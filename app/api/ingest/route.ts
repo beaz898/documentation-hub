@@ -48,6 +48,43 @@ export async function POST(req: NextRequest) {
 
     const documentId = randomUUID();
 
+    // Comprobar si ya existe un documento con el mismo nombre en esta org
+    console.log(`[INGEST] Checking for existing doc with name="${file.name}" org_id="${orgId}"`);
+    
+    const { data: existingDocs, error: queryError } = await supabase
+      .from('documents')
+      .select('id, chunk_count')
+      .eq('org_id', orgId)
+      .eq('name', file.name);
+
+    console.log(`[INGEST] Query result: found=${existingDocs?.length || 0}, error=${queryError?.message || 'none'}`);
+
+    if (existingDocs && existingDocs.length > 0) {
+      console.log(`[INGEST] Replacing ${existingDocs.length} existing doc(s)`);
+      const index = getIndex();
+
+      for (const oldDoc of existingDocs) {
+        console.log(`[INGEST] Deleting old doc id=${oldDoc.id}, chunks=${oldDoc.chunk_count}`);
+        
+        // Borrar vectores antiguos de Pinecone
+        const idsToDelete = Array.from(
+          { length: oldDoc.chunk_count },
+          (_, i) => `${oldDoc.id}-${i}`
+        );
+        for (let i = 0; i < idsToDelete.length; i += 1000) {
+          const batch = idsToDelete.slice(i, i + 1000);
+          await index.namespace(orgId).deleteMany(batch);
+        }
+        console.log(`[INGEST] Pinecone vectors deleted for ${oldDoc.id}`);
+
+        // Borrar registro de Supabase
+        const { error: deleteError } = await supabase.from('documents').delete().eq('id', oldDoc.id);
+        console.log(`[INGEST] Supabase delete result: error=${deleteError?.message || 'none (success)'}`);
+      }
+    } else {
+      console.log(`[INGEST] No existing doc found, creating new`);
+    }
+
     // 1. Extraer texto del archivo
     const buffer = Buffer.from(await file.arrayBuffer());
     const text = await extractText(buffer, file.name);
@@ -99,8 +136,11 @@ export async function POST(req: NextRequest) {
       status: 'indexed',
     });
 
+    const wasReplaced = existingDocs && existingDocs.length > 0;
+
     return NextResponse.json({
       success: true,
+      replaced: wasReplaced,
       document: {
         id: documentId,
         name: file.name,
