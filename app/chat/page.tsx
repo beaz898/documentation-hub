@@ -107,12 +107,15 @@ export default function ChatPage() {
     }
 
     const data = await res.json();
+    const action = data.replaced ? 'actualizado' : 'indexado';
     setMessages(prev => [
       ...prev,
       {
         id: crypto.randomUUID(),
         role: 'assistant',
-        content: `Documento **${data.document.name}** indexado correctamente (${data.document.chunks} fragmentos). Ya puedes hacer preguntas sobre su contenido.`,
+        content: data.replaced
+          ? `Documento **${data.document.name}** actualizado correctamente. Se reemplazó la versión anterior y se reindexaron ${data.document.chunks} fragmentos.`
+          : `Documento **${data.document.name}** indexado correctamente (${data.document.chunks} fragmentos). Ya puedes hacer preguntas sobre su contenido.`,
       },
     ]);
     await loadDocuments();
