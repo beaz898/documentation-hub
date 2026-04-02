@@ -4,18 +4,17 @@
  * 1. Convierte la pregunta en un vector (embedding)
  * 2. Busca los chunks más relevantes en Pinecone
  * 3. Construye un prompt con los fragmentos encontrados
- * 4. Envía a Claude y devuelve la respuesta
+ * 4. Envía a Gemini y devuelve la respuesta
  */
 
-import Anthropic from '@anthropic-ai/sdk';
 import { getIndex } from './pinecone';
 import { generateQueryEmbedding } from './embeddings';
 
-const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY!,
-});
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY!;
+const GEMINI_MODEL = 'gemini-2.5-flash';
+const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
 
-const TOP_K = 8; // Número de fragmentos a recuperar
+const TOP_K = 8;
 
 const SYSTEM_PROMPT = `Eres un asistente experto en documentación empresarial. Tu trabajo es responder preguntas basándote ÚNICAMENTE en los fragmentos de documentación que se te proporcionan.
 
@@ -92,28 +91,47 @@ ${context}
 
 PREGUNTA DEL USUARIO: ${question}`;
 
-  // 4. Enviar a Claude
-  const response = await anthropic.messages.create({
-    model: 'claude-sonnet-4-20250514',
-    max_tokens: 2048,
-    system: SYSTEM_PROMPT,
-    messages: [{ role: 'user', content: userMessage }],
+  // 4. Enviar a Gemini
+  const response = await fetch(GEMINI_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      system_instruction: {
+        parts: [{ text: SYSTEM_PROMPT }],
+      },
+      contents: [
+        {
+          role: 'user',
+          parts: [{ text: userMessage }],
+        },
+      ],
+      generationConfig: {
+        maxOutputTokens: 2048,
+        temperature: 0.3,
+      },
+    }),
   });
 
-  const answer = response.content
-    .filter(block => block.type === 'text')
-    .map(block => {
-      if (block.type === 'text') return block.text;
-      return '';
-    })
-    .join('');
+  if (!response.ok) {
+    const errorData = await response.text();
+    throw new Error(`Gemini API error ${response.status}: ${errorData}`);
+  }
+
+  const data = await response.json();
+
+  const answer =
+    data.candidates?.[0]?.content?.parts
+      ?.map((p: { text?: string }) => p.text || '')
+      .join('') || 'No se pudo generar una respuesta.';
+
+  const usageMetadata = data.usageMetadata || {};
 
   return {
     answer,
-    sources: fragments.slice(0, 5), // Top 5 fuentes
+    sources: fragments.slice(0, 5),
     usage: {
-      inputTokens: response.usage.input_tokens,
-      outputTokens: response.usage.output_tokens,
+      inputTokens: usageMetadata.promptTokenCount || 0,
+      outputTokens: usageMetadata.candidatesTokenCount || 0,
     },
   };
 }
