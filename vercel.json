@@ -1,0 +1,13 @@
+{
+  "framework": "nextjs",
+  "functions": {
+    "app/api/ingest/route.ts": {
+      "memory": 1024,
+      "maxDuration": 60
+    },
+    "app/api/ask/route.ts": {
+      "memory": 512,
+      "maxDuration": 30
+    }
+  }
+}
