@@ -20,7 +20,7 @@ export async function generateEmbeddings(texts: string[]): Promise<number[][]> {
 
     const response = await pc.inference.embed(
       EMBEDDING_MODEL,
-      batch.map(text => ({ text })),
+      batch,
       { inputType: 'passage', truncate: 'END' }
     );
 
@@ -38,7 +38,7 @@ export async function generateQueryEmbedding(text: string): Promise<number[]> {
 
   const response = await pc.inference.embed(
     EMBEDDING_MODEL,
-    [{ text }],
+    [text],
     { inputType: 'query', truncate: 'END' }
   );
 
