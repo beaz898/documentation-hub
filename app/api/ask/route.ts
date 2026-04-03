@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
 
     // Validar body
     const body = await req.json();
-    const { question } = body;
+    const { question, history } = body;
 
     if (!question || typeof question !== 'string' || question.trim().length < 3) {
       return NextResponse.json(
@@ -38,8 +38,9 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Ejecutar RAG
-    const result = await queryRAG(question.trim(), orgId);
+    // Ejecutar RAG con historial de conversación
+    const conversationHistory = Array.isArray(history) ? history : [];
+    const result = await queryRAG(question.trim(), orgId, conversationHistory);
 
     return NextResponse.json({
       success: true,
