@@ -4,7 +4,7 @@
  * 1. Convierte la pregunta en un vector (embedding)
  * 2. Busca los chunks más relevantes en Pinecone
  * 3. Construye un prompt con los fragmentos encontrados
- * 4. Envía a Gemini y devuelve la respuesta
+ * 4. Envía a Gemini con historial de conversación y devuelve la respuesta
  */
 
 import { getIndex } from './pinecone';
@@ -15,6 +15,7 @@ const GEMINI_MODEL = 'gemini-2.5-flash';
 const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
 
 const TOP_K = 8;
+const MAX_HISTORY_MESSAGES = 6; // Últimos 3 pares pregunta-respuesta
 
 const SYSTEM_PROMPT = `Eres un asistente experto en documentación empresarial. Tu trabajo es responder preguntas basándote ÚNICAMENTE en los fragmentos de documentación que se te proporcionan.
 
@@ -26,7 +27,14 @@ REGLAS:
 5. Sé conciso pero completo. Usa formato Markdown para estructurar la respuesta.
 6. Mantén el mismo idioma que la pregunta del usuario.
 7. Si la pregunta es ambigua, pide aclaración.
-8. Si hay información contradictoria entre documentos, señálalo.`;
+8. Si hay información contradictoria entre documentos, señálalo.
+9. Tienes acceso al historial reciente de la conversación. Úsalo para entender referencias como "eso", "lo anterior", "y cómo se hace", etc.
+10. Responde de forma completa sin cortar la respuesta. Si la respuesta es larga, estructura bien con secciones.`;
+
+export interface ConversationMessage {
+  role: 'user' | 'assistant';
+  content: string;
+}
 
 export interface RAGResult {
   answer: string;
@@ -42,11 +50,12 @@ export interface RAGResult {
 }
 
 /**
- * Ejecuta una consulta RAG completa.
+ * Ejecuta una consulta RAG completa con memoria de conversación.
  */
 export async function queryRAG(
   question: string,
-  orgId: string
+  orgId: string,
+  conversationHistory: ConversationMessage[] = []
 ): Promise<RAGResult> {
   // 1. Generar embedding de la pregunta
   const queryVector = await generateQueryEmbedding(question);
@@ -91,7 +100,24 @@ ${context}
 
 PREGUNTA DEL USUARIO: ${question}`;
 
-  // 4. Enviar a Gemini
+  // 4. Construir historial de conversación para Gemini
+  // Solo los últimos N mensajes para no pasarnos de tokens
+  const recentHistory = conversationHistory.slice(-MAX_HISTORY_MESSAGES);
+
+  const geminiContents = [
+    // Historial previo
+    ...recentHistory.map(msg => ({
+      role: msg.role === 'assistant' ? 'model' : 'user',
+      parts: [{ text: msg.content }],
+    })),
+    // Pregunta actual con contexto
+    {
+      role: 'user',
+      parts: [{ text: userMessage }],
+    },
+  ];
+
+  // 5. Enviar a Gemini
   const response = await fetch(GEMINI_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -99,14 +125,9 @@ PREGUNTA DEL USUARIO: ${question}`;
       system_instruction: {
         parts: [{ text: SYSTEM_PROMPT }],
       },
-      contents: [
-        {
-          role: 'user',
-          parts: [{ text: userMessage }],
-        },
-      ],
+      contents: geminiContents,
       generationConfig: {
-        maxOutputTokens: 2048,
+        maxOutputTokens: 8192,
         temperature: 0.3,
       },
     }),
