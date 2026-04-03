@@ -5,6 +5,8 @@ import { generateEmbeddings } from '@/lib/embeddings';
 import { chunkText, extractText } from '@/lib/chunking';
 import { randomUUID } from 'crypto';
 
+export const maxDuration = 300;
+
 export async function POST(req: NextRequest) {
   try {
     // Verificar autenticación
@@ -23,22 +25,17 @@ export async function POST(req: NextRequest) {
 
     const orgId = user.user_metadata?.org_id || user.id;
 
-    // Leer archivo del FormData
-    const formData = await req.formData();
-    const file = formData.get('file') as File | null;
+    // Leer datos del body (ahora recibe la ruta en Storage, no el archivo)
+    const body = await req.json();
+    const { storagePath, fileName, fileSize } = body;
 
-    if (!file) {
-      return NextResponse.json({ error: 'No se proporcionó archivo' }, { status: 400 });
-    }
-
-    // Validar tamaño (max 20MB)
-    if (file.size > 20 * 1024 * 1024) {
-      return NextResponse.json({ error: 'Archivo demasiado grande (máximo 20MB)' }, { status: 400 });
+    if (!storagePath || !fileName) {
+      return NextResponse.json({ error: 'Parámetros inválidos' }, { status: 400 });
     }
 
     // Validar tipo
     const allowedExtensions = ['txt', 'md', 'pdf', 'docx', 'csv', 'json', 'html'];
-    const ext = file.name.split('.').pop()?.toLowerCase();
+    const ext = fileName.split('.').pop()?.toLowerCase();
     if (!ext || !allowedExtensions.includes(ext)) {
       return NextResponse.json(
         { error: `Formato no soportado. Permitidos: ${allowedExtensions.join(', ')}` },
@@ -49,62 +46,73 @@ export async function POST(req: NextRequest) {
     const documentId = randomUUID();
 
     // Comprobar si ya existe un documento con el mismo nombre en esta org
-    console.log(`[INGEST] Checking for existing doc with name="${file.name}" org_id="${orgId}"`);
-    
+    console.log(`[INGEST] Checking for existing doc: name="${fileName}" org="${orgId}"`);
+
     const { data: existingDocs, error: queryError } = await supabase
       .from('documents')
       .select('id, chunk_count')
       .eq('org_id', orgId)
-      .eq('name', file.name);
+      .eq('name', fileName);
 
-    console.log(`[INGEST] Query result: found=${existingDocs?.length || 0}, error=${queryError?.message || 'none'}`);
+    console.log(`[INGEST] Found ${existingDocs?.length || 0} existing, error=${queryError?.message || 'none'}`);
 
     if (existingDocs && existingDocs.length > 0) {
-      console.log(`[INGEST] Replacing ${existingDocs.length} existing doc(s)`);
-      const index = getIndex();
+      const pineconeIndex = getIndex();
 
       for (const oldDoc of existingDocs) {
-        console.log(`[INGEST] Deleting old doc id=${oldDoc.id}, chunks=${oldDoc.chunk_count}`);
-        
-        // Borrar vectores antiguos de Pinecone
+        console.log(`[INGEST] Deleting old doc id=${oldDoc.id}`);
+
         const idsToDelete = Array.from(
           { length: oldDoc.chunk_count },
           (_, i) => `${oldDoc.id}-${i}`
         );
         for (let i = 0; i < idsToDelete.length; i += 1000) {
           const batch = idsToDelete.slice(i, i + 1000);
-          await index.namespace(orgId).deleteMany(batch);
+          await pineconeIndex.namespace(orgId).deleteMany(batch);
         }
-        console.log(`[INGEST] Pinecone vectors deleted for ${oldDoc.id}`);
 
-        // Borrar registro de Supabase
-        const { error: deleteError } = await supabase.from('documents').delete().eq('id', oldDoc.id);
-        console.log(`[INGEST] Supabase delete result: error=${deleteError?.message || 'none (success)'}`);
+        await supabase.from('documents').delete().eq('id', oldDoc.id);
       }
-    } else {
-      console.log(`[INGEST] No existing doc found, creating new`);
     }
 
-    // 1. Extraer texto del archivo
-    const buffer = Buffer.from(await file.arrayBuffer());
-    const text = await extractText(buffer, file.name);
+    // 1. Descargar archivo de Supabase Storage
+    console.log(`[INGEST] Downloading from storage: ${storagePath}`);
+    const { data: fileData, error: downloadError } = await supabase.storage
+      .from('documents')
+      .download(storagePath);
+
+    if (downloadError || !fileData) {
+      console.error('[INGEST] Storage download error:', downloadError);
+      return NextResponse.json(
+        { error: 'Error descargando archivo de storage' },
+        { status: 500 }
+      );
+    }
+
+    // 2. Extraer texto
+    const buffer = Buffer.from(await fileData.arrayBuffer());
+    const text = await extractText(buffer, fileName);
 
     if (!text || text.trim().length < 50) {
+      await supabase.storage.from('documents').remove([storagePath]);
       return NextResponse.json(
         { error: 'No se pudo extraer texto suficiente del archivo' },
         { status: 400 }
       );
     }
 
-    // 2. Trocear en chunks
-    const chunks = chunkText(text, documentId, file.name, orgId);
+    console.log(`[INGEST] Extracted ${text.length} chars from ${fileName}`);
 
-    // 3. Generar embeddings
+    // 3. Trocear en chunks
+    const chunks = chunkText(text, documentId, fileName, orgId);
+    console.log(`[INGEST] Created ${chunks.length} chunks`);
+
+    // 4. Generar embeddings
     const chunkTexts = chunks.map(c => c.text);
     const embeddings = await generateEmbeddings(chunkTexts);
 
-    // 4. Subir a Pinecone
-    const index = getIndex();
+    // 5. Subir a Pinecone
+    const pineconeIndex = getIndex();
     const vectors = chunks.map((chunk, i) => ({
       id: `${documentId}-${i}`,
       values: embeddings[i],
@@ -118,34 +126,39 @@ export async function POST(req: NextRequest) {
       },
     }));
 
-    // Subir en lotes de 100
     const batchSize = 100;
     for (let i = 0; i < vectors.length; i += batchSize) {
       const batch = vectors.slice(i, i + batchSize);
-      await index.namespace(orgId).upsert(batch);
+      await pineconeIndex.namespace(orgId).upsert(batch);
+      console.log(`[INGEST] Upserted batch ${Math.floor(i / batchSize) + 1}/${Math.ceil(vectors.length / batchSize)}`);
     }
 
-    // 5. Guardar metadatos del documento en Supabase
+    // 6. Guardar metadatos en Supabase
     await supabase.from('documents').insert({
       id: documentId,
-      name: file.name,
-      size_bytes: file.size,
+      name: fileName,
+      size_bytes: fileSize || 0,
       chunk_count: chunks.length,
       org_id: orgId,
       user_id: user.id,
       status: 'indexed',
     });
 
+    // 7. Limpiar archivo de storage (ya no lo necesitamos)
+    await supabase.storage.from('documents').remove([storagePath]);
+
     const wasReplaced = existingDocs && existingDocs.length > 0;
+
+    console.log(`[INGEST] Done! ${fileName} - ${chunks.length} chunks, replaced=${wasReplaced}`);
 
     return NextResponse.json({
       success: true,
       replaced: wasReplaced,
       document: {
         id: documentId,
-        name: file.name,
+        name: fileName,
         chunks: chunks.length,
-        size: file.size,
+        size: fileSize || 0,
       },
     });
   } catch (error: unknown) {
