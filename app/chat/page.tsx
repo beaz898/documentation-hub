@@ -83,44 +83,22 @@ export default function ChatPage() {
     if (session) loadDocuments();
   }, [session, loadDocuments]);
 
-  // Upload document: 1) Upload to Supabase Storage, 2) Tell backend to process it
+  // Upload document
   async function handleUpload(file: File) {
     if (!session) return;
 
-    // Paso 1: Subir archivo a Supabase Storage (soporta archivos grandes)
-    const storagePath = `${session.user.id}/${Date.now()}-${file.name}`;
+    const formData = new FormData();
+    formData.append('file', file);
 
-    const { error: uploadError } = await supabase.storage
-      .from('documents')
-      .upload(storagePath, file);
-
-    if (uploadError) {
-      setMessages(prev => [
-        ...prev,
-        { id: crypto.randomUUID(), role: 'error', content: `Error subiendo archivo: ${uploadError.message}` },
-      ]);
-      throw new Error(uploadError.message);
-    }
-
-    // Paso 2: Decirle al backend que procese el archivo (solo envía la ruta, no el archivo)
     const res = await fetch('/api/ingest', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${session.access_token}`,
-      },
-      body: JSON.stringify({
-        storagePath,
-        fileName: file.name,
-        fileSize: file.size,
-      }),
+      headers: { Authorization: `Bearer ${session.access_token}` },
+      body: formData,
     });
 
     if (!res.ok) {
       const data = await res.json();
-      const errorMsg = data.error || 'Error procesando documento';
-      // Limpiar archivo de storage si falla el procesamiento
-      await supabase.storage.from('documents').remove([storagePath]);
+      const errorMsg = data.error || 'Error subiendo documento';
       setMessages(prev => [
         ...prev,
         { id: crypto.randomUUID(), role: 'error', content: errorMsg },
@@ -129,6 +107,7 @@ export default function ChatPage() {
     }
 
     const data = await res.json();
+    const action = data.replaced ? 'actualizado' : 'indexado';
     setMessages(prev => [
       ...prev,
       {
@@ -193,13 +172,19 @@ export default function ChatPage() {
     setMessages(prev => [...prev, userMsg, loadingMsg]);
 
     try {
+      // Construir historial de conversación (solo mensajes user/assistant)
+      const history = messages
+        .filter(m => m.role === 'user' || m.role === 'assistant')
+        .slice(-6) // Últimos 6 mensajes (3 pares)
+        .map(m => ({ role: m.role, content: m.content }));
+
       const res = await fetch('/api/ask', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${session.access_token}`,
         },
-        body: JSON.stringify({ question }),
+        body: JSON.stringify({ question, history }),
       });
 
       const data = await res.json();
