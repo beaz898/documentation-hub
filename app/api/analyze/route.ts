@@ -17,10 +17,11 @@ Detecta:
 2. SOLAPAMIENTO: ¿Qué partes ya están en otros documentos?
 3. DISCREPANCIAS: ¿Hay datos que se contradigan entre documentos?
 4. INFORMACIÓN NUEVA: ¿Qué aporta que no existía?
+5. ACCIONES RECOMENDADAS: Según lo detectado, sugiere acciones concretas.
 
 IMPORTANTE: Responde SOLO con un JSON válido, sin markdown, sin explicaciones fuera del JSON. Las descripciones deben ser MUY BREVES (máximo 15 palabras cada una). El JSON debe ser compacto.
 
-{"isDuplicate":true/false,"duplicateOf":"nombre o null","duplicateConfidence":0-100,"overlaps":[{"existingDocument":"nombre","description":"breve","severity":"alta/media/baja"}],"discrepancies":[{"topic":"tema","newDocSays":"breve","existingDocSays":"breve","existingDocument":"nombre"}],"newInformation":"breve resumen","recommendation":"INDEXAR/REVISAR/NO_INDEXAR","summary":"2 frases máximo"}`;
+{"isDuplicate":true/false,"duplicateOf":"nombre o null","duplicateConfidence":0-100,"overlaps":[{"existingDocument":"nombre","description":"breve","severity":"alta/media/baja"}],"discrepancies":[{"topic":"tema","newDocSays":"breve","existingDocSays":"breve","existingDocument":"nombre"}],"newInformation":"breve resumen","recommendation":"INDEXAR/REVISAR/NO_INDEXAR","suggestedActions":[{"action":"REEMPLAZAR/FUSIONAR/CORREGIR_EXISTENTE/CORREGIR_NUEVO/IGNORAR","target":"nombre del doc afectado","reason":"breve explicación"}],"summary":"2 frases máximo"}`;
 
 export async function POST(req: NextRequest) {
   try {
