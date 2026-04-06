@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase';
 import ChatMessage from '@/components/ChatMessage';
 import DocumentsSidebar from '@/components/DocumentsSidebar';
+import AnalysisModal from '@/components/AnalysisModal';
 
 interface Message {
   id: string;
@@ -22,6 +23,13 @@ interface Document {
   status: string;
 }
 
+interface PendingAnalysis {
+  fileName: string;
+  storagePath: string;
+  fileSize: number;
+  analysis: Record<string, unknown>;
+}
+
 export default function ChatPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [documents, setDocuments] = useState<Document[]>([]);
@@ -30,12 +38,25 @@ export default function ChatPage() {
   const [sending, setSending] = useState(false);
   const [session, setSession] = useState<{ access_token: string; user: { email?: string; id: string } } | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [isMobile, setIsMobile] = useState(false);
+  const [pendingAnalysis, setPendingAnalysis] = useState<PendingAnalysis | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const router = useRouter();
   const supabase = createClient();
 
-  // Scroll to bottom when messages change
+  // Detect mobile
+  useEffect(() => {
+    function checkMobile() {
+      setIsMobile(window.innerWidth < 768);
+      if (window.innerWidth < 768) setSidebarOpen(false);
+    }
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  // Scroll to bottom
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
@@ -43,20 +64,12 @@ export default function ChatPage() {
   // Auth check
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session: s } }) => {
-      if (!s) {
-        router.replace('/login');
-        return;
-      }
-      setSession({
-        access_token: s.access_token,
-        user: { email: s.user.email, id: s.user.id },
-      });
+      if (!s) { router.replace('/login'); return; }
+      setSession({ access_token: s.access_token, user: { email: s.user.email, id: s.user.id } });
     });
-
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, s) => {
       if (!s) router.replace('/login');
     });
-
     return () => subscription.unsubscribe();
   }, [router, supabase.auth]);
 
@@ -72,202 +85,107 @@ export default function ChatPage() {
         const data = await res.json();
         setDocuments(data.documents || []);
       }
-    } catch (err) {
-      console.error('Error loading documents:', err);
-    } finally {
-      setDocsLoading(false);
-    }
+    } catch (err) { console.error('Error loading documents:', err); }
+    finally { setDocsLoading(false); }
   }, [session]);
 
-  useEffect(() => {
-    if (session) loadDocuments();
-  }, [session, loadDocuments]);
+  useEffect(() => { if (session) loadDocuments(); }, [session, loadDocuments]);
 
-  // Upload document: 1) Storage, 2) Analyze, 3) Show report, 4) User confirms, 5) Index
+  // Upload document with analysis
   async function handleUpload(file: File) {
     if (!session) return;
 
-    // Paso 1: Subir a Supabase Storage
     const storagePath = `${session.user.id}/${Date.now()}-${file.name}`;
-
-    const { error: uploadError } = await supabase.storage
-      .from('documents')
-      .upload(storagePath, file);
+    const { error: uploadError } = await supabase.storage.from('documents').upload(storagePath, file);
 
     if (uploadError) {
-      setMessages(prev => [
-        ...prev,
-        { id: crypto.randomUUID(), role: 'error', content: `Error subiendo archivo: ${uploadError.message}` },
-      ]);
+      setMessages(prev => [...prev, { id: crypto.randomUUID(), role: 'error', content: `Error subiendo archivo: ${uploadError.message}` }]);
       throw new Error(uploadError.message);
     }
 
-    // Paso 2: Analizar contra documentos existentes (solo si hay docs previos)
+    // Analyze if there are existing documents
     if (documents.length > 0) {
-      setMessages(prev => [
-        ...prev,
-        { id: crypto.randomUUID(), role: 'assistant', content: `Analizando **${file.name}** contra la documentación existente...` },
-      ]);
+      setMessages(prev => [...prev, { id: crypto.randomUUID(), role: 'assistant', content: `Analizando **${file.name}** contra la documentación existente...` }]);
 
       try {
         const analyzeRes = await fetch('/api/analyze', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${session.access_token}`,
-          },
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
           body: JSON.stringify({ storagePath, fileName: file.name }),
         });
 
         if (analyzeRes.ok) {
           const analyzeData = await analyzeRes.json();
-
           if (analyzeData.hasIssues) {
-            const analysis = analyzeData.analysis;
-            let report = `**Informe de análisis para "${file.name}"**\n\n`;
-            report += `${analysis.summary}\n\n`;
-
-            if (analysis.isDuplicate) {
-              report += `⚠️ **POSIBLE DUPLICADO** de "${analysis.duplicateOf}" (confianza: ${analysis.duplicateConfidence}%)\n\n`;
-            }
-
-            if (analysis.discrepancies && analysis.discrepancies.length > 0) {
-              report += `❌ **DISCREPANCIAS ENCONTRADAS:**\n`;
-              for (const d of analysis.discrepancies) {
-                report += `- **${d.topic}**: El nuevo documento dice "${d.newDocSays}" pero "${d.existingDocument}" dice "${d.existingDocSays}"\n`;
-              }
-              report += '\n';
-            }
-
-            if (analysis.overlaps && analysis.overlaps.length > 0) {
-              report += `📋 **SOLAPAMIENTOS:**\n`;
-              for (const o of analysis.overlaps) {
-                report += `- ${o.description} (con "${o.existingDocument}", severidad: ${o.severity})\n`;
-              }
-              report += '\n';
-            }
-
-            if (analysis.newInformation) {
-              report += `✅ **Información nueva que aporta:** ${analysis.newInformation}\n\n`;
-            }
-
-            // Acciones recomendadas
-            if (analysis.suggestedActions && analysis.suggestedActions.length > 0) {
-              report += `🔧 **ACCIONES RECOMENDADAS:**\n`;
-              for (const a of analysis.suggestedActions) {
-                const actionLabels: Record<string, string> = {
-                  'REEMPLAZAR': '🔄 Reemplazar',
-                  'FUSIONAR': '🔗 Fusionar contenido',
-                  'CORREGIR_EXISTENTE': '✏️ Corregir documento existente',
-                  'CORREGIR_NUEVO': '✏️ Corregir documento nuevo',
-                  'IGNORAR': '➡️ Ignorar',
-                };
-                const label = actionLabels[a.action] || a.action;
-                report += `- ${label} → **${a.target}**: ${a.reason}\n`;
-              }
-              report += '\n';
-            }
-
-            // Guía de decisión según recomendación
-            if (analysis.recommendation === 'NO_INDEXAR') {
-              report += `🚫 **Recomendación: NO INDEXAR**\n`;
-              report += `Este documento es prácticamente idéntico a uno existente. Indexarlo crearía duplicidad y posibles confusiones en las respuestas. Si contiene correcciones, considera eliminar el documento antiguo primero y después subir este.\n\n`;
-            } else if (analysis.recommendation === 'REVISAR') {
-              report += `⚠️ **Recomendación: REVISAR ANTES DE INDEXAR**\n`;
-              report += `Se han detectado diferencias que podrían causar respuestas contradictorias. Antes de indexar, verifica qué versión de los datos es la correcta. Si este documento es más reciente y fiable, puedes indexarlo y después eliminar el documento antiguo que contenga datos obsoletos.\n\n`;
-            } else {
-              report += `✅ **Recomendación: INDEXAR**\n`;
-              report += `A pesar de los hallazgos, el documento aporta valor. Puedes indexarlo con confianza.\n\n`;
-            }
-
-            setMessages(prev => [
-              ...prev,
-              { id: crypto.randomUUID(), role: 'assistant', content: report },
-            ]);
-
-            const userConfirms = confirm(
-              `Se han encontrado posibles problemas con "${file.name}".\n\n` +
-              (analysis.isDuplicate ? `⚠️ Posible duplicado de "${analysis.duplicateOf}"\n` : '') +
-              (analysis.discrepancies?.length ? `❌ ${analysis.discrepancies.length} discrepancia(s)\n` : '') +
-              (analysis.overlaps?.length ? `📋 ${analysis.overlaps.length} solapamiento(s)\n` : '') +
-              (analysis.suggestedActions?.length ? `🔧 ${analysis.suggestedActions.length} acción(es) recomendada(s)\n` : '') +
-              `\nRecomendación: ${analysis.recommendation}\n\n` +
-              `¿Quieres indexar el documento de todas formas?`
-            );
-
-            if (!userConfirms) {
-              await supabase.storage.from('documents').remove([storagePath]);
-              setMessages(prev => [
-                ...prev,
-                { id: crypto.randomUUID(), role: 'assistant', content: `Subida de **${file.name}** cancelada por el usuario.` },
-              ]);
-              return;
-            }
+            // Show modal instead of confirm()
+            setPendingAnalysis({
+              fileName: file.name,
+              storagePath,
+              fileSize: file.size,
+              analysis: analyzeData.analysis,
+            });
+            return; // Wait for user decision via modal
           } else {
-            setMessages(prev => [
-              ...prev,
-              { id: crypto.randomUUID(), role: 'assistant', content: `✅ Análisis completado: no se detectaron problemas. Indexando **${file.name}**...` },
-            ]);
+            setMessages(prev => [...prev, { id: crypto.randomUUID(), role: 'assistant', content: `Análisis completado: no se detectaron problemas. Indexando **${file.name}**...` }]);
           }
         }
       } catch (analyzeError) {
-        console.error('Analysis failed, continuing with indexing:', analyzeError);
+        console.error('Analysis failed, continuing:', analyzeError);
       }
     }
 
-    // Paso 3: Indexar el documento
+    await indexDocument(storagePath, file.name, file.size);
+  }
+
+  // Index document (called after analysis confirmation or directly)
+  async function indexDocument(storagePath: string, fileName: string, fileSize: number) {
+    if (!session) return;
+
     const res = await fetch('/api/ingest', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${session.access_token}`,
-      },
-      body: JSON.stringify({
-        storagePath,
-        fileName: file.name,
-        fileSize: file.size,
-      }),
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
+      body: JSON.stringify({ storagePath, fileName, fileSize }),
     });
 
     if (!res.ok) {
       const data = await res.json();
-      const errorMsg = data.error || 'Error procesando documento';
       await supabase.storage.from('documents').remove([storagePath]);
-      setMessages(prev => [
-        ...prev,
-        { id: crypto.randomUUID(), role: 'error', content: errorMsg },
-      ]);
-      throw new Error(errorMsg);
+      setMessages(prev => [...prev, { id: crypto.randomUUID(), role: 'error', content: data.error || 'Error procesando documento' }]);
+      return;
     }
 
     const data = await res.json();
-    setMessages(prev => [
-      ...prev,
-      {
-        id: crypto.randomUUID(),
-        role: 'assistant',
-        content: data.replaced
-          ? `Documento **${data.document.name}** actualizado correctamente. Se reemplazó la versión anterior y se reindexaron ${data.document.chunks} fragmentos.`
-          : `Documento **${data.document.name}** indexado correctamente (${data.document.chunks} fragmentos). Ya puedes hacer preguntas sobre su contenido.`,
-      },
-    ]);
+    setMessages(prev => [...prev, {
+      id: crypto.randomUUID(), role: 'assistant',
+      content: data.replaced
+        ? `Documento **${data.document.name}** actualizado correctamente (${data.document.chunks} fragmentos).`
+        : `Documento **${data.document.name}** indexado correctamente (${data.document.chunks} fragmentos).`,
+    }]);
     await loadDocuments();
+  }
+
+  // Analysis modal handlers
+  async function handleAnalysisConfirm() {
+    if (!pendingAnalysis) return;
+    const { storagePath, fileName, fileSize } = pendingAnalysis;
+    setPendingAnalysis(null);
+    await indexDocument(storagePath, fileName, fileSize);
+  }
+
+  async function handleAnalysisCancel() {
+    if (!pendingAnalysis) return;
+    await supabase.storage.from('documents').remove([pendingAnalysis.storagePath]);
+    setMessages(prev => [...prev, { id: crypto.randomUUID(), role: 'assistant', content: `Subida de **${pendingAnalysis.fileName}** cancelada.` }]);
+    setPendingAnalysis(null);
   }
 
   // Delete document
   async function handleDelete(id: string) {
     if (!session) return;
-
     const res = await fetch(`/api/documents?id=${id}`, {
-      method: 'DELETE',
-      headers: { Authorization: `Bearer ${session.access_token}` },
+      method: 'DELETE', headers: { Authorization: `Bearer ${session.access_token}` },
     });
-
-    if (!res.ok) {
-      const data = await res.json();
-      throw new Error(data.error || 'Error eliminando');
-    }
-
+    if (!res.ok) { const data = await res.json(); throw new Error(data.error || 'Error eliminando'); }
     await loadDocuments();
   }
 
@@ -277,190 +195,147 @@ export default function ChatPage() {
     if (!question || sending || !session) return;
 
     if (documents.length === 0) {
-      setMessages(prev => [
-        ...prev,
-        {
-          id: crypto.randomUUID(),
-          role: 'error',
-          content: 'Sube al menos un documento antes de hacer preguntas.',
-        },
-      ]);
+      setMessages(prev => [...prev, { id: crypto.randomUUID(), role: 'error', content: 'Sube al menos un documento antes de hacer preguntas.' }]);
       return;
     }
 
     setInput('');
     setSending(true);
 
-    const userMsg: Message = {
-      id: crypto.randomUUID(),
-      role: 'user',
-      content: question,
-    };
-    const loadingMsg: Message = {
-      id: crypto.randomUUID(),
-      role: 'loading',
-      content: '',
-    };
-
+    const userMsg: Message = { id: crypto.randomUUID(), role: 'user', content: question };
+    const loadingMsg: Message = { id: crypto.randomUUID(), role: 'loading', content: '' };
     setMessages(prev => [...prev, userMsg, loadingMsg]);
 
     try {
-      // Construir historial de conversación (solo mensajes user/assistant)
       const history = messages
         .filter(m => m.role === 'user' || m.role === 'assistant')
-        .slice(-6) // Últimos 6 mensajes (3 pares)
+        .slice(-6)
         .map(m => ({ role: m.role, content: m.content }));
 
       const res = await fetch('/api/ask', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${session.access_token}`,
-        },
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
         body: JSON.stringify({ question, history }),
       });
 
       const data = await res.json();
 
       if (!res.ok) {
-        setMessages(prev =>
-          prev.filter(m => m.id !== loadingMsg.id).concat({
-            id: crypto.randomUUID(),
-            role: 'error',
-            content: data.error || `Error ${res.status}`,
-          })
-        );
+        setMessages(prev => prev.filter(m => m.id !== loadingMsg.id).concat({
+          id: crypto.randomUUID(), role: 'error', content: data.error || `Error ${res.status}`,
+        }));
         return;
       }
 
-      setMessages(prev =>
-        prev.filter(m => m.id !== loadingMsg.id).concat({
-          id: crypto.randomUUID(),
-          role: 'assistant',
-          content: data.answer,
-          sources: data.sources,
-        })
-      );
-    } catch (err) {
-      console.error('Error asking:', err);
-      setMessages(prev =>
-        prev.filter(m => m.id !== loadingMsg.id).concat({
-          id: crypto.randomUUID(),
-          role: 'error',
-          content: 'Error de conexión. Verifica tu internet e intenta de nuevo.',
-        })
-      );
+      setMessages(prev => prev.filter(m => m.id !== loadingMsg.id).concat({
+        id: crypto.randomUUID(), role: 'assistant', content: data.answer, sources: data.sources,
+      }));
+    } catch {
+      setMessages(prev => prev.filter(m => m.id !== loadingMsg.id).concat({
+        id: crypto.randomUUID(), role: 'error', content: 'Error de conexión. Verifica tu internet.',
+      }));
     } finally {
       setSending(false);
       inputRef.current?.focus();
     }
   }
 
-  // Handle keyboard
   function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSend();
-    }
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); }
   }
 
-  // Logout
-  async function handleLogout() {
-    await supabase.auth.signOut();
-    router.replace('/login');
-  }
+  async function handleLogout() { await supabase.auth.signOut(); router.replace('/login'); }
 
-  // Auto-resize textarea
   function handleInputChange(e: React.ChangeEvent<HTMLTextAreaElement>) {
     setInput(e.target.value);
-    const textarea = e.target;
-    textarea.style.height = 'auto';
-    textarea.style.height = Math.min(textarea.scrollHeight, 160) + 'px';
+    const t = e.target; t.style.height = 'auto'; t.style.height = Math.min(t.scrollHeight, 140) + 'px';
   }
 
   if (!session) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="w-4 h-4 border-2 border-[var(--brand)] border-t-transparent rounded-full animate-spin" />
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
+        <div className="animate-spin" style={{ width: 20, height: 20, border: '2px solid var(--brand)', borderTopColor: 'transparent', borderRadius: '50%' }} />
       </div>
     );
   }
 
   return (
-    <div className="flex h-screen overflow-hidden">
+    <div style={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
+
+      {/* Mobile sidebar overlay */}
+      {isMobile && sidebarOpen && (
+        <div
+          className="sidebar-mobile-overlay"
+          onClick={() => setSidebarOpen(false)}
+          aria-hidden="true"
+        />
+      )}
+
       {/* Sidebar */}
-      <div
-        className="flex-shrink-0 transition-all duration-300 overflow-hidden"
-        style={{ width: sidebarOpen ? '280px' : '0px' }}
-      >
-        <div className="w-[280px] h-full">
+      <div style={{
+        flexShrink: 0, transition: 'width 0.25s ease, transform 0.25s ease',
+        width: isMobile ? 280 : (sidebarOpen ? 260 : 0),
+        overflow: 'hidden',
+        ...(isMobile ? { position: 'fixed', left: 0, top: 0, bottom: 0, zIndex: 41, transform: sidebarOpen ? 'translateX(0)' : 'translateX(-100%)', boxShadow: sidebarOpen ? 'var(--shadow-md)' : 'none' } : {}),
+      }}>
+        <div style={{ width: 260, height: '100%' }}>
           <DocumentsSidebar
             documents={documents}
             loading={docsLoading}
             onUpload={handleUpload}
             onDelete={handleDelete}
             onLogout={handleLogout}
+            onClose={isMobile ? () => setSidebarOpen(false) : undefined}
             userEmail={session.user.email || 'Usuario'}
           />
         </div>
       </div>
 
-      {/* Main chat area */}
-      <div className="flex-1 flex flex-col min-w-0">
-        {/* Top bar */}
-        <div
-          className="flex items-center gap-3 px-4 py-3 flex-shrink-0"
-          style={{ borderBottom: '1px solid var(--border)' }}
-        >
+      {/* Chat area */}
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+        {/* Header */}
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: 10, padding: '10px 16px',
+          borderBottom: '0.5px solid var(--border)', flexShrink: 0,
+        }}>
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="p-2 rounded-lg transition-colors"
-            style={{ color: 'var(--text-secondary)' }}
-            onMouseEnter={e => (e.currentTarget.style.background = 'var(--surface-overlay)')}
+            aria-label={sidebarOpen ? 'Cerrar sidebar' : 'Abrir sidebar'}
+            style={{
+              width: 34, height: 34, borderRadius: 8, border: 'none',
+              background: 'transparent', cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              color: 'var(--text-secondary)', transition: 'background 0.1s',
+            }}
+            onMouseEnter={e => (e.currentTarget.style.background = 'var(--surface-hover)')}
             onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
           >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              {sidebarOpen ? (
-                <>
-                  <rect x="3" y="3" width="18" height="18" rx="2" />
-                  <line x1="9" y1="3" x2="9" y2="21" />
-                </>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              {sidebarOpen && !isMobile ? (
+                <><rect x="3" y="3" width="18" height="18" rx="2" /><line x1="9" y1="3" x2="9" y2="21" /></>
               ) : (
-                <>
-                  <line x1="3" y1="6" x2="21" y2="6" />
-                  <line x1="3" y1="12" x2="21" y2="12" />
-                  <line x1="3" y1="18" x2="21" y2="18" />
-                </>
+                <><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" /></>
               )}
             </svg>
           </button>
-          <div className="flex-1">
-            <h1 className="text-sm font-semibold">Documentation Hub</h1>
-            <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+          <div style={{ flex: 1 }}>
+            <h1 style={{ fontSize: 14, fontWeight: 600 }}>Documentation Hub</h1>
+            <p style={{ fontSize: 11, color: 'var(--text-muted)' }}>
               {documents.length > 0
                 ? `${documents.length} documento${documents.length !== 1 ? 's' : ''} indexado${documents.length !== 1 ? 's' : ''}`
-                : 'Sube documentos para empezar'
-              }
+                : 'Sube documentos para empezar'}
             </p>
           </div>
           {messages.length > 0 && (
             <button
-              onClick={() => {
-                if (confirm('¿Limpiar conversación?')) setMessages([]);
-              }}
-              className="text-xs px-3 py-1.5 rounded-md transition-colors"
+              onClick={() => { if (window.confirm('¿Limpiar conversación?')) setMessages([]); }}
               style={{
-                color: 'var(--text-muted)',
-                border: '1px solid var(--border)',
+                fontSize: 12, padding: '6px 12px', borderRadius: 8,
+                border: '0.5px solid var(--border)', background: 'transparent',
+                color: 'var(--text-muted)', cursor: 'pointer', transition: 'all 0.15s',
               }}
-              onMouseEnter={e => {
-                e.currentTarget.style.borderColor = 'var(--danger)';
-                e.currentTarget.style.color = 'var(--danger)';
-              }}
-              onMouseLeave={e => {
-                e.currentTarget.style.borderColor = 'var(--border)';
-                e.currentTarget.style.color = 'var(--text-muted)';
-              }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--danger)'; e.currentTarget.style.color = 'var(--danger)'; }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = 'var(--text-muted)'; }}
             >
               Limpiar chat
             </button>
@@ -468,87 +343,55 @@ export default function ChatPage() {
         </div>
 
         {/* Messages */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        <div style={{ flex: 1, overflowY: 'auto', padding: 16, display: 'flex', flexDirection: 'column', gap: 14 }}>
           {messages.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full text-center px-4">
-              <div
-                className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4"
-                style={{ background: 'rgba(51,102,255,0.08)', border: '1px solid rgba(51,102,255,0.15)' }}
-              >
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--brand)" strokeWidth="1.5">
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', textAlign: 'center', padding: '0 16px' }}>
+              <div style={{
+                width: 56, height: 56, borderRadius: 16, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                marginBottom: 16, background: 'var(--brand-light)', border: '0.5px solid var(--brand)',
+              }}>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--brand)" strokeWidth="1.5">
                   <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
                   <line x1="9" y1="10" x2="15" y2="10" />
                 </svg>
               </div>
-              <h2 className="text-lg font-semibold mb-2">
-                Pregunta sobre tu documentación
-              </h2>
-              <p className="text-sm max-w-md" style={{ color: 'var(--text-secondary)' }}>
+              <h2 style={{ fontSize: 18, fontWeight: 600, marginBottom: 8 }}>Pregunta sobre tu documentación</h2>
+              <p style={{ fontSize: 13, color: 'var(--text-secondary)', maxWidth: 400 }}>
                 {documents.length > 0
-                  ? `Tienes ${documents.length} documento${documents.length !== 1 ? 's' : ''} indexado${documents.length !== 1 ? 's' : ''}. Escribe cualquier pregunta y buscaré la respuesta en tu documentación.`
-                  : 'Sube documentos con el botón de la barra lateral y luego pregunta lo que necesites.'
-                }
+                  ? `Tienes ${documents.length} documento${documents.length !== 1 ? 's' : ''} indexado${documents.length !== 1 ? 's' : ''}. Escribe cualquier pregunta.`
+                  : 'Sube documentos con el botón de la barra lateral y luego pregunta lo que necesites.'}
               </p>
-
               {documents.length > 0 && (
-                <div className="flex flex-wrap gap-2 mt-6 justify-center">
-                  {[
-                    '¿Cómo se realiza el proceso de...?',
-                    '¿Quién es responsable de...?',
-                    '¿Qué dice la documentación sobre...?',
-                  ].map((suggestion, i) => (
-                    <button
-                      key={i}
-                      onClick={() => {
-                        setInput(suggestion);
-                        inputRef.current?.focus();
-                      }}
-                      className="text-xs px-3 py-2 rounded-lg transition-all"
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 20, justifyContent: 'center' }}>
+                  {['¿Cómo se realiza el proceso de...?', '¿Quién es responsable de...?', '¿Qué dice la documentación sobre...?'].map((s, i) => (
+                    <button key={i} onClick={() => { setInput(s); inputRef.current?.focus(); }}
                       style={{
-                        background: 'var(--surface-overlay)',
-                        border: '1px solid var(--border)',
-                        color: 'var(--text-secondary)',
+                        fontSize: 12, padding: '8px 14px', borderRadius: 10,
+                        background: 'var(--bg-secondary)', border: '0.5px solid var(--border)',
+                        color: 'var(--text-secondary)', cursor: 'pointer', transition: 'all 0.15s',
                       }}
-                      onMouseEnter={e => {
-                        e.currentTarget.style.borderColor = 'var(--brand)';
-                        e.currentTarget.style.color = 'var(--brand)';
-                      }}
-                      onMouseLeave={e => {
-                        e.currentTarget.style.borderColor = 'var(--border)';
-                        e.currentTarget.style.color = 'var(--text-secondary)';
-                      }}
-                    >
-                      {suggestion}
-                    </button>
+                      onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--brand)'; e.currentTarget.style.color = 'var(--brand)'; }}
+                      onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = 'var(--text-secondary)'; }}
+                    >{s}</button>
                   ))}
                 </div>
               )}
             </div>
           ) : (
             messages.map(msg => (
-              <ChatMessage
-                key={msg.id}
-                role={msg.role}
-                content={msg.content}
-                sources={msg.sources}
-              />
+              <ChatMessage key={msg.id} role={msg.role} content={msg.content} sources={msg.sources} />
             ))
           )}
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Input area */}
-        <div
-          className="flex-shrink-0 p-4"
-          style={{ borderTop: '1px solid var(--border)' }}
-        >
-          <div
-            className="flex items-end gap-2 p-2 rounded-xl transition-colors"
-            style={{
-              background: 'var(--surface-raised)',
-              border: '1px solid var(--border)',
-            }}
-          >
+        {/* Input */}
+        <div style={{ padding: '12px 16px', borderTop: '0.5px solid var(--border)', flexShrink: 0 }}>
+          <div style={{
+            display: 'flex', alignItems: 'flex-end', gap: 8,
+            background: 'var(--bg-secondary)', border: '0.5px solid var(--border)',
+            borderRadius: 12, padding: '8px 10px', transition: 'border-color 0.15s',
+          }}>
             <textarea
               ref={inputRef}
               value={input}
@@ -557,39 +400,51 @@ export default function ChatPage() {
               placeholder={documents.length > 0 ? 'Escribe tu pregunta...' : 'Sube documentos primero...'}
               disabled={sending}
               rows={1}
-              className="flex-1 resize-none outline-none text-sm py-2 px-2"
+              aria-label="Pregunta"
               style={{
-                background: 'transparent',
-                color: 'var(--text-primary)',
-                maxHeight: '160px',
-                lineHeight: '1.5',
+                flex: 1, resize: 'none', outline: 'none', border: 'none',
+                background: 'transparent', color: 'var(--text-primary)',
+                fontSize: 13, fontFamily: 'var(--font-sans)', lineHeight: 1.5,
+                maxHeight: 140, minHeight: 20,
               }}
             />
             <button
               onClick={handleSend}
               disabled={sending || !input.trim()}
-              className="p-2.5 rounded-lg transition-all flex-shrink-0"
+              aria-label="Enviar pregunta"
               style={{
-                background: sending || !input.trim() ? 'var(--surface-overlay)' : 'var(--brand)',
-                color: sending || !input.trim() ? 'var(--text-muted)' : 'white',
+                width: 34, height: 34, borderRadius: 8, border: 'none',
+                background: sending || !input.trim() ? 'var(--bg-tertiary)' : 'var(--brand)',
+                color: sending || !input.trim() ? 'var(--text-muted)' : '#fff',
                 cursor: sending || !input.trim() ? 'not-allowed' : 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                flexShrink: 0, transition: 'all 0.15s',
               }}
             >
               {sending ? (
-                <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                <div className="animate-spin" style={{ width: 14, height: 14, border: '2px solid currentColor', borderTopColor: 'transparent', borderRadius: '50%' }} />
               ) : (
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <line x1="22" y1="2" x2="11" y2="13" />
-                  <polygon points="22 2 15 22 11 13 2 9 22 2" />
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <line x1="22" y1="2" x2="11" y2="13" /><polygon points="22 2 15 22 11 13 2 9 22 2" />
                 </svg>
               )}
             </button>
           </div>
-          <p className="text-xs mt-2 text-center" style={{ color: 'var(--text-muted)' }}>
-            Las respuestas se basan exclusivamente en tu documentación · Enter para enviar, Shift+Enter para nueva línea
+          <p style={{ fontSize: 10, marginTop: 6, textAlign: 'center', color: 'var(--text-muted)' }}>
+            Las respuestas se basan exclusivamente en tu documentación
           </p>
         </div>
       </div>
+
+      {/* Analysis modal */}
+      {pendingAnalysis && (
+        <AnalysisModal
+          fileName={pendingAnalysis.fileName}
+          analysis={pendingAnalysis.analysis}
+          onConfirm={handleAnalysisConfirm}
+          onCancel={handleAnalysisCancel}
+        />
+      )}
     </div>
   );
 }
