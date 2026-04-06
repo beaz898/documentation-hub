@@ -10,42 +10,17 @@ const GEMINI_API_KEY = process.env.GEMINI_API_KEY!;
 const GEMINI_MODEL = 'gemini-2.5-flash';
 const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
 
-const ANALYSIS_PROMPT = `Eres un auditor de documentación empresarial. Se te proporcionan fragmentos de un DOCUMENTO NUEVO que se quiere añadir al sistema, y fragmentos de DOCUMENTOS EXISTENTES que ya están indexados y que son similares al nuevo.
+const ANALYSIS_PROMPT = `Eres un auditor de documentación. Compara el DOCUMENTO NUEVO con los DOCUMENTOS EXISTENTES.
 
-Tu trabajo es analizar y detectar:
+Detecta:
+1. DUPLICADO: ¿Es el mismo contenido con otro nombre? (>80% igual)
+2. SOLAPAMIENTO: ¿Qué partes ya están en otros documentos?
+3. DISCREPANCIAS: ¿Hay datos que se contradigan entre documentos?
+4. INFORMACIÓN NUEVA: ¿Qué aporta que no existía?
 
-1. DUPLICADO: ¿El documento nuevo es esencialmente el mismo que algún documento existente pero con otro nombre? (>80% del contenido es igual o muy parecido)
+IMPORTANTE: Responde SOLO con un JSON válido, sin markdown, sin explicaciones fuera del JSON. Las descripciones deben ser MUY BREVES (máximo 15 palabras cada una). El JSON debe ser compacto.
 
-2. SOLAPAMIENTO: ¿Hay partes significativas del documento nuevo que ya están cubiertas por otros documentos? Indica qué partes y en qué documentos existentes.
-
-3. DISCREPANCIAS: ¿Hay información en el documento nuevo que contradiga lo que dicen los documentos existentes? Esto es crítico - señala exactamente qué datos son contradictorios.
-
-4. INFORMACIÓN NUEVA: ¿Qué aporta este documento que NO está en los documentos existentes?
-
-Responde SIEMPRE en este formato JSON exacto (sin bloques de código markdown, solo el JSON puro):
-{
-  "isDuplicate": true/false,
-  "duplicateOf": "nombre del documento duplicado o null",
-  "duplicateConfidence": 0-100,
-  "overlaps": [
-    {
-      "existingDocument": "nombre del doc existente",
-      "description": "breve descripción del solapamiento",
-      "severity": "alta/media/baja"
-    }
-  ],
-  "discrepancies": [
-    {
-      "topic": "tema de la discrepancia",
-      "newDocSays": "lo que dice el doc nuevo",
-      "existingDocSays": "lo que dice el doc existente",
-      "existingDocument": "nombre del doc existente"
-    }
-  ],
-  "newInformation": "resumen de lo que aporta nuevo este documento",
-  "recommendation": "INDEXAR / REVISAR / NO_INDEXAR",
-  "summary": "resumen ejecutivo de 2-3 frases del análisis"
-}`;
+{"isDuplicate":true/false,"duplicateOf":"nombre o null","duplicateConfidence":0-100,"overlaps":[{"existingDocument":"nombre","description":"breve","severity":"alta/media/baja"}],"discrepancies":[{"topic":"tema","newDocSays":"breve","existingDocSays":"breve","existingDocument":"nombre"}],"newInformation":"breve resumen","recommendation":"INDEXAR/REVISAR/NO_INDEXAR","summary":"2 frases máximo"}`;
 
 export async function POST(req: NextRequest) {
   try {
@@ -117,7 +92,7 @@ export async function POST(req: NextRequest) {
 
       const matches = queryResponse.matches || [];
       for (const match of matches) {
-        if (match.metadata && match.score && match.score > 0.5) {
+        if (match.metadata && match.score && match.score > 0.35) {
           const docName = String(match.metadata.documentName || '');
           // No comparar con sí mismo si ya existe con el mismo nombre
           if (docName !== fileName) {
@@ -165,6 +140,13 @@ export async function POST(req: NextRequest) {
       .slice(0, 10);
 
     console.log(`[ANALYZE] Found ${topSimilarFragments.length} similar fragments from ${uniqueByDoc.size} documents`);
+
+    // Detección rápida: si la similitud media es muy alta, es casi seguro un duplicado
+    const avgScore = topSimilarFragments.reduce((sum, f) => sum + f.score, 0) / topSimilarFragments.length;
+    const maxScore = Math.max(...topSimilarFragments.map(f => f.score));
+    const mostSimilarDoc = topSimilarFragments[0]?.documentName || '';
+
+    console.log(`[ANALYZE] Similarity stats: avgScore=${avgScore.toFixed(3)}, maxScore=${maxScore.toFixed(3)}, mostSimilar="${mostSimilarDoc}"`);
 
     // 6. Enviar a la IA para análisis
     const newDocContext = sampleTexts
@@ -221,27 +203,56 @@ ${existingContext}`;
       ?.map((p: { text?: string }) => p.text || '')
       .join('') || '';
 
+    console.log(`[ANALYZE] Raw AI response length: ${rawAnswer.length} chars`);
+
     // Parsear el JSON de la respuesta
     let analysis;
+    let parseSuccess = false;
     try {
-      const cleaned = rawAnswer.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim();
+      let cleaned = rawAnswer.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim();
+      // Intentar arreglar JSON truncado: si no termina en }, añadirlo
+      if (!cleaned.endsWith('}')) {
+        // Buscar el último } válido
+        const lastBrace = cleaned.lastIndexOf('}');
+        if (lastBrace > 0) {
+          cleaned = cleaned.substring(0, lastBrace + 1);
+        }
+      }
       analysis = JSON.parse(cleaned);
-    } catch {
-      console.error('[ANALYZE] Failed to parse analysis JSON:', rawAnswer);
+      parseSuccess = true;
+      console.log(`[ANALYZE] JSON parsed successfully`);
+    } catch (parseError) {
+      console.error('[ANALYZE] Failed to parse JSON. Raw response:', rawAnswer.substring(0, 500));
+
+      // Fallback: si hay fragmentos similares con alta puntuación, marcar como problema
+      const maxScore = topSimilarFragments.length > 0
+        ? Math.max(...topSimilarFragments.map(f => f.score))
+        : 0;
+      const similarDocNames = [...new Set(topSimilarFragments.map(f => f.documentName))];
+
       analysis = {
-        isDuplicate: false,
-        overlaps: [],
+        isDuplicate: maxScore > 0.85,
+        duplicateOf: maxScore > 0.85 ? similarDocNames[0] : null,
+        duplicateConfidence: Math.round(maxScore * 100),
+        overlaps: similarDocNames.map(name => ({
+          existingDocument: name,
+          description: `Contenido muy similar detectado (${Math.round(maxScore * 100)}% similitud)`,
+          severity: maxScore > 0.8 ? 'alta' : maxScore > 0.6 ? 'media' : 'baja',
+        })),
         discrepancies: [],
-        recommendation: 'INDEXAR',
-        summary: 'No se pudo interpretar el análisis. Se recomienda indexar y revisar manualmente.',
+        newInformation: 'No se pudo determinar (análisis parcial)',
+        recommendation: maxScore > 0.8 ? 'REVISAR' : 'INDEXAR',
+        summary: `Se detectó contenido similar a ${similarDocNames.join(', ')} con ${Math.round(maxScore * 100)}% de similitud. Se recomienda revisar antes de indexar.`,
       };
     }
 
     const hasIssues = analysis.isDuplicate ||
+      analysis.recommendation === 'REVISAR' ||
+      analysis.recommendation === 'NO_INDEXAR' ||
       (analysis.discrepancies && analysis.discrepancies.length > 0) ||
       (analysis.overlaps && analysis.overlaps.some((o: { severity: string }) => o.severity === 'alta'));
 
-    console.log(`[ANALYZE] Analysis complete: recommendation=${analysis.recommendation}, hasIssues=${hasIssues}`);
+    console.log(`[ANALYZE] Complete: recommendation=${analysis.recommendation}, hasIssues=${hasIssues}, parseSuccess=${parseSuccess}`);
 
     return NextResponse.json({
       success: true,
