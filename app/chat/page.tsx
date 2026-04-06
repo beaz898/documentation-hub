@@ -151,7 +151,34 @@ export default function ChatPage() {
               report += `✅ **Información nueva que aporta:** ${analysis.newInformation}\n\n`;
             }
 
-            report += `**Recomendación:** ${analysis.recommendation}`;
+            // Acciones recomendadas
+            if (analysis.suggestedActions && analysis.suggestedActions.length > 0) {
+              report += `🔧 **ACCIONES RECOMENDADAS:**\n`;
+              for (const a of analysis.suggestedActions) {
+                const actionLabels: Record<string, string> = {
+                  'REEMPLAZAR': '🔄 Reemplazar',
+                  'FUSIONAR': '🔗 Fusionar contenido',
+                  'CORREGIR_EXISTENTE': '✏️ Corregir documento existente',
+                  'CORREGIR_NUEVO': '✏️ Corregir documento nuevo',
+                  'IGNORAR': '➡️ Ignorar',
+                };
+                const label = actionLabels[a.action] || a.action;
+                report += `- ${label} → **${a.target}**: ${a.reason}\n`;
+              }
+              report += '\n';
+            }
+
+            // Guía de decisión según recomendación
+            if (analysis.recommendation === 'NO_INDEXAR') {
+              report += `🚫 **Recomendación: NO INDEXAR**\n`;
+              report += `Este documento es prácticamente idéntico a uno existente. Indexarlo crearía duplicidad y posibles confusiones en las respuestas. Si contiene correcciones, considera eliminar el documento antiguo primero y después subir este.\n\n`;
+            } else if (analysis.recommendation === 'REVISAR') {
+              report += `⚠️ **Recomendación: REVISAR ANTES DE INDEXAR**\n`;
+              report += `Se han detectado diferencias que podrían causar respuestas contradictorias. Antes de indexar, verifica qué versión de los datos es la correcta. Si este documento es más reciente y fiable, puedes indexarlo y después eliminar el documento antiguo que contenga datos obsoletos.\n\n`;
+            } else {
+              report += `✅ **Recomendación: INDEXAR**\n`;
+              report += `A pesar de los hallazgos, el documento aporta valor. Puedes indexarlo con confianza.\n\n`;
+            }
 
             setMessages(prev => [
               ...prev,
@@ -163,6 +190,7 @@ export default function ChatPage() {
               (analysis.isDuplicate ? `⚠️ Posible duplicado de "${analysis.duplicateOf}"\n` : '') +
               (analysis.discrepancies?.length ? `❌ ${analysis.discrepancies.length} discrepancia(s)\n` : '') +
               (analysis.overlaps?.length ? `📋 ${analysis.overlaps.length} solapamiento(s)\n` : '') +
+              (analysis.suggestedActions?.length ? `🔧 ${analysis.suggestedActions.length} acción(es) recomendada(s)\n` : '') +
               `\nRecomendación: ${analysis.recommendation}\n\n` +
               `¿Quieres indexar el documento de todas formas?`
             );
