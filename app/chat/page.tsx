@@ -83,22 +83,128 @@ export default function ChatPage() {
     if (session) loadDocuments();
   }, [session, loadDocuments]);
 
-  // Upload document
+  // Upload document: 1) Storage, 2) Analyze, 3) Show report, 4) User confirms, 5) Index
   async function handleUpload(file: File) {
     if (!session) return;
 
-    const formData = new FormData();
-    formData.append('file', file);
+    // Paso 1: Subir a Supabase Storage
+    const storagePath = `${session.user.id}/${Date.now()}-${file.name}`;
 
+    const { error: uploadError } = await supabase.storage
+      .from('documents')
+      .upload(storagePath, file);
+
+    if (uploadError) {
+      setMessages(prev => [
+        ...prev,
+        { id: crypto.randomUUID(), role: 'error', content: `Error subiendo archivo: ${uploadError.message}` },
+      ]);
+      throw new Error(uploadError.message);
+    }
+
+    // Paso 2: Analizar contra documentos existentes (solo si hay docs previos)
+    if (documents.length > 0) {
+      setMessages(prev => [
+        ...prev,
+        { id: crypto.randomUUID(), role: 'assistant', content: `Analizando **${file.name}** contra la documentación existente...` },
+      ]);
+
+      try {
+        const analyzeRes = await fetch('/api/analyze', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${session.access_token}`,
+          },
+          body: JSON.stringify({ storagePath, fileName: file.name }),
+        });
+
+        if (analyzeRes.ok) {
+          const analyzeData = await analyzeRes.json();
+
+          if (analyzeData.hasIssues) {
+            const analysis = analyzeData.analysis;
+            let report = `**Informe de análisis para "${file.name}"**\n\n`;
+            report += `${analysis.summary}\n\n`;
+
+            if (analysis.isDuplicate) {
+              report += `⚠️ **POSIBLE DUPLICADO** de "${analysis.duplicateOf}" (confianza: ${analysis.duplicateConfidence}%)\n\n`;
+            }
+
+            if (analysis.discrepancies && analysis.discrepancies.length > 0) {
+              report += `❌ **DISCREPANCIAS ENCONTRADAS:**\n`;
+              for (const d of analysis.discrepancies) {
+                report += `- **${d.topic}**: El nuevo documento dice "${d.newDocSays}" pero "${d.existingDocument}" dice "${d.existingDocSays}"\n`;
+              }
+              report += '\n';
+            }
+
+            if (analysis.overlaps && analysis.overlaps.length > 0) {
+              report += `📋 **SOLAPAMIENTOS:**\n`;
+              for (const o of analysis.overlaps) {
+                report += `- ${o.description} (con "${o.existingDocument}", severidad: ${o.severity})\n`;
+              }
+              report += '\n';
+            }
+
+            if (analysis.newInformation) {
+              report += `✅ **Información nueva que aporta:** ${analysis.newInformation}\n\n`;
+            }
+
+            report += `**Recomendación:** ${analysis.recommendation}`;
+
+            setMessages(prev => [
+              ...prev,
+              { id: crypto.randomUUID(), role: 'assistant', content: report },
+            ]);
+
+            const userConfirms = confirm(
+              `Se han encontrado posibles problemas con "${file.name}".\n\n` +
+              (analysis.isDuplicate ? `⚠️ Posible duplicado de "${analysis.duplicateOf}"\n` : '') +
+              (analysis.discrepancies?.length ? `❌ ${analysis.discrepancies.length} discrepancia(s)\n` : '') +
+              (analysis.overlaps?.length ? `📋 ${analysis.overlaps.length} solapamiento(s)\n` : '') +
+              `\nRecomendación: ${analysis.recommendation}\n\n` +
+              `¿Quieres indexar el documento de todas formas?`
+            );
+
+            if (!userConfirms) {
+              await supabase.storage.from('documents').remove([storagePath]);
+              setMessages(prev => [
+                ...prev,
+                { id: crypto.randomUUID(), role: 'assistant', content: `Subida de **${file.name}** cancelada por el usuario.` },
+              ]);
+              return;
+            }
+          } else {
+            setMessages(prev => [
+              ...prev,
+              { id: crypto.randomUUID(), role: 'assistant', content: `✅ Análisis completado: no se detectaron problemas. Indexando **${file.name}**...` },
+            ]);
+          }
+        }
+      } catch (analyzeError) {
+        console.error('Analysis failed, continuing with indexing:', analyzeError);
+      }
+    }
+
+    // Paso 3: Indexar el documento
     const res = await fetch('/api/ingest', {
       method: 'POST',
-      headers: { Authorization: `Bearer ${session.access_token}` },
-      body: formData,
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${session.access_token}`,
+      },
+      body: JSON.stringify({
+        storagePath,
+        fileName: file.name,
+        fileSize: file.size,
+      }),
     });
 
     if (!res.ok) {
       const data = await res.json();
-      const errorMsg = data.error || 'Error subiendo documento';
+      const errorMsg = data.error || 'Error procesando documento';
+      await supabase.storage.from('documents').remove([storagePath]);
       setMessages(prev => [
         ...prev,
         { id: crypto.randomUUID(), role: 'error', content: errorMsg },
@@ -107,7 +213,6 @@ export default function ChatPage() {
     }
 
     const data = await res.json();
-    const action = data.replaced ? 'actualizado' : 'indexado';
     setMessages(prev => [
       ...prev,
       {
