@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef } from 'react';
+import { useTheme } from '@/components/ThemeProvider';
 
 interface Document {
   id: string;
@@ -17,6 +18,7 @@ interface DocumentsSidebarProps {
   onUpload: (file: File) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
   onLogout: () => void;
+  onClose?: () => void;
   userEmail: string;
 }
 
@@ -25,6 +27,7 @@ export default function DocumentsSidebar({
   loading,
   onUpload,
   onDelete,
+  onClose,
   onLogout,
   userEmail,
 }: DocumentsSidebarProps) {
@@ -32,6 +35,7 @@ export default function DocumentsSidebar({
   const [uploadProgress, setUploadProgress] = useState('');
   const [deleting, setDeleting] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { theme, toggleTheme } = useTheme();
 
   async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const files = e.target.files;
@@ -53,7 +57,7 @@ export default function DocumentsSidebar({
   }
 
   async function handleDelete(id: string, name: string) {
-    if (!confirm(`¿Eliminar "${name}"? Se borrarán todos sus datos indexados.`)) return;
+    if (!window.confirm(`¿Eliminar "${name}"? Se borrarán todos sus datos indexados.`)) return;
     setDeleting(id);
     try {
       await onDelete(id);
@@ -69,58 +73,76 @@ export default function DocumentsSidebar({
   }
 
   function formatDate(dateStr: string): string {
-    return new Date(dateStr).toLocaleDateString('es-ES', {
-      day: 'numeric',
-      month: 'short',
-    });
+    return new Date(dateStr).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
   }
 
   return (
-    <div
-      className="flex flex-col h-full"
-      style={{ background: 'var(--surface-raised)', borderRight: '1px solid var(--border)' }}
-    >
+    <div style={{
+      display: 'flex', flexDirection: 'column', height: '100%',
+      background: 'var(--bg-secondary)', borderRight: '0.5px solid var(--border)',
+    }}>
       {/* Header */}
-      <div className="p-4 flex-shrink-0" style={{ borderBottom: '1px solid var(--border)' }}>
-        <div className="flex items-center gap-2 mb-3">
-          <div
-            className="w-8 h-8 rounded-lg flex items-center justify-center"
-            style={{ background: 'linear-gradient(135deg, var(--brand), #6366f1)' }}
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
+      <div style={{ padding: 16, flexShrink: 0, borderBottom: '0.5px solid var(--border)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
+          <div style={{
+            width: 34, height: 34, borderRadius: 10, background: 'var(--brand)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2">
               <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20" />
+              <path d="M8 7h6" /><path d="M8 11h8" />
             </svg>
           </div>
-          <div>
-            <h2 className="text-sm font-semibold">Doc Hub</h2>
-            <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+          <div style={{ flex: 1 }}>
+            <h2 style={{ fontSize: 14, fontWeight: 600 }}>Documentation Hub</h2>
+            <p style={{ fontSize: 11, color: 'var(--text-muted)' }}>
               {documents.length} documento{documents.length !== 1 ? 's' : ''}
             </p>
           </div>
+          {/* Close button for mobile */}
+          {onClose && (
+            <button
+              onClick={onClose}
+              aria-label="Cerrar sidebar"
+              style={{
+                width: 30, height: 30, borderRadius: 8, border: 'none',
+                background: 'transparent', cursor: 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                color: 'var(--text-muted)',
+              }}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            </button>
+          )}
         </div>
 
-        {/* Upload button */}
         <button
           onClick={() => fileInputRef.current?.click()}
           disabled={uploading}
-          className="w-full py-2.5 rounded-lg text-sm font-medium flex items-center justify-center gap-2 transition-all"
           style={{
-            background: uploading ? 'var(--surface-overlay)' : 'var(--brand)',
-            color: uploading ? 'var(--text-secondary)' : 'white',
-            cursor: uploading ? 'not-allowed' : 'pointer',
+            width: '100%', padding: '10px 16px', borderRadius: 10, border: 'none',
+            background: uploading ? 'var(--bg-tertiary)' : 'var(--brand)',
+            color: uploading ? 'var(--text-secondary)' : '#fff',
+            fontSize: 13, fontWeight: 600, cursor: uploading ? 'not-allowed' : 'pointer',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+            transition: 'opacity 0.15s',
           }}
         >
           {uploading ? (
             <>
-              <div className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
+              <div className="animate-spin" style={{
+                width: 14, height: 14, border: '2px solid currentColor',
+                borderTopColor: 'transparent', borderRadius: '50%',
+              }} />
               Procesando...
             </>
           ) : (
             <>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                <polyline points="17 8 12 3 7 8" />
-                <line x1="12" y1="3" x2="12" y2="15" />
+                <polyline points="17 8 12 3 7 8" /><line x1="12" y1="3" x2="12" y2="15" />
               </svg>
               Subir documentos
             </>
@@ -132,102 +154,179 @@ export default function DocumentsSidebar({
           multiple
           accept=".txt,.md,.pdf,.docx,.csv,.json,.html"
           onChange={handleFileChange}
-          className="hidden"
+          style={{ display: 'none' }}
+          aria-label="Seleccionar archivos"
         />
 
         {uploadProgress && (
-          <p className="text-xs mt-2" style={{ color: 'var(--brand)' }}>{uploadProgress}</p>
+          <p style={{ fontSize: 11, marginTop: 8, color: 'var(--brand)' }}>{uploadProgress}</p>
         )}
       </div>
 
       {/* Document list */}
-      <div className="flex-1 overflow-y-auto p-3 space-y-1.5">
+      <div style={{ flex: 1, overflowY: 'auto', padding: 10 }}>
         {loading ? (
-          <div className="flex items-center justify-center py-8">
-            <div className="w-4 h-4 border-2 border-[var(--brand)] border-t-transparent rounded-full animate-spin" />
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '32px 0' }}>
+            <div className="animate-spin" style={{
+              width: 18, height: 18, border: '2px solid var(--brand)',
+              borderTopColor: 'transparent', borderRadius: '50%',
+            }} />
           </div>
         ) : documents.length === 0 ? (
-          <div className="text-center py-8 px-4">
-            <div className="text-3xl mb-3 opacity-50">📄</div>
-            <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
-              Sube documentos para empezar a preguntar
+          <div style={{ textAlign: 'center', padding: '32px 16px' }}>
+            <div style={{ marginBottom: 8 }}>
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="1.5" style={{ opacity: 0.5 }}>
+                <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
+                <polyline points="14 2 14 8 20 8" />
+              </svg>
+            </div>
+            <p style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 4 }}>
+              Sube documentos para empezar
             </p>
-            <p className="text-xs mt-2" style={{ color: 'var(--text-muted)' }}>
-              PDF, Word, TXT, Markdown, CSV...
+            <p style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+              PDF, Word, TXT, Markdown, CSV
             </p>
           </div>
         ) : (
-          documents.map(doc => (
-            <div
-              key={doc.id}
-              className="group flex items-start gap-2 p-2.5 rounded-lg transition-colors"
-              style={{ background: 'transparent' }}
-              onMouseEnter={e => (e.currentTarget.style.background = 'var(--surface-overlay)')}
-              onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
-            >
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            {documents.map(doc => (
               <div
-                className="w-7 h-7 rounded-md flex items-center justify-center flex-shrink-0 mt-0.5"
-                style={{ background: 'rgba(51,102,255,0.08)' }}
+                key={doc.id}
+                role="listitem"
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px',
+                  borderRadius: 8, cursor: 'default', transition: 'background 0.1s',
+                }}
+                onMouseEnter={e => (e.currentTarget.style.background = 'var(--surface-hover)')}
+                onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
               >
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--brand)" strokeWidth="2">
-                  <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
-                </svg>
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm truncate" style={{ color: 'var(--text-primary)' }}>{doc.name}</p>
-                <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
-                  {formatSize(doc.size_bytes)} · {doc.chunk_count} fragmentos · {formatDate(doc.created_at)}
-                </p>
-              </div>
-              <button
-                onClick={() => handleDelete(doc.id, doc.name)}
-                disabled={deleting === doc.id}
-                className="opacity-0 group-hover:opacity-100 p-1 rounded transition-all flex-shrink-0"
-                style={{ color: 'var(--danger)' }}
-                title="Eliminar documento"
-              >
-                {deleting === doc.id ? (
-                  <div className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                ) : (
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M3 6h18" /><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
-                    <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+                <div style={{
+                  width: 28, height: 28, borderRadius: 6, flexShrink: 0,
+                  background: 'var(--brand-light)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--brand)" strokeWidth="2">
+                    <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
                   </svg>
-                )}
-              </button>
-            </div>
-          ))
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <p style={{
+                    fontSize: 12, color: 'var(--text-primary)', whiteSpace: 'nowrap',
+                    overflow: 'hidden', textOverflow: 'ellipsis',
+                  }}>{doc.name}</p>
+                  <p style={{ fontSize: 10, color: 'var(--text-muted)' }}>
+                    {formatSize(doc.size_bytes)} · {doc.chunk_count} frag. · {formatDate(doc.created_at)}
+                  </p>
+                </div>
+                <button
+                  onClick={() => handleDelete(doc.id, doc.name)}
+                  disabled={deleting === doc.id}
+                  aria-label={`Eliminar ${doc.name}`}
+                  style={{
+                    opacity: 0, padding: 4, borderRadius: 6, border: 'none',
+                    background: 'transparent', cursor: 'pointer', color: 'var(--danger)',
+                    flexShrink: 0, transition: 'opacity 0.1s',
+                  }}
+                  onMouseEnter={e => (e.currentTarget.style.opacity = '1')}
+                  onMouseLeave={e => (e.currentTarget.style.opacity = '0')}
+                  onFocus={e => (e.currentTarget.style.opacity = '1')}
+                  onBlur={e => (e.currentTarget.style.opacity = '0')}
+                >
+                  {deleting === doc.id ? (
+                    <div className="animate-spin" style={{
+                      width: 12, height: 12, border: '2px solid currentColor',
+                      borderTopColor: 'transparent', borderRadius: '50%',
+                    }} />
+                  ) : (
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M3 6h18" /><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+                      <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+                    </svg>
+                  )}
+                </button>
+              </div>
+            ))}
+          </div>
         )}
       </div>
 
-      {/* Footer: user info */}
-      <div
-        className="p-3 flex items-center gap-2 flex-shrink-0"
-        style={{ borderTop: '1px solid var(--border)' }}
-      >
-        <div
-          className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-medium flex-shrink-0"
-          style={{ background: 'var(--surface-overlay)', color: 'var(--text-secondary)' }}
-        >
-          {userEmail.charAt(0).toUpperCase()}
+      {/* Footer */}
+      <div style={{
+        padding: '10px 14px', borderTop: '0.5px solid var(--border)',
+        display: 'flex', flexDirection: 'column', gap: 10, flexShrink: 0,
+      }}>
+        {/* Theme toggle */}
+        <div style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          padding: '6px 0',
+        }}>
+          <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>Tema</span>
+          <button
+            onClick={toggleTheme}
+            aria-label={`Cambiar a tema ${theme === 'light' ? 'oscuro' : 'claro'}`}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 6, padding: '4px 10px',
+              borderRadius: 8, border: '0.5px solid var(--border)',
+              background: 'var(--bg-tertiary)', cursor: 'pointer', fontSize: 11,
+              color: 'var(--text-secondary)', transition: 'background 0.15s',
+            }}
+          >
+            {theme === 'light' ? (
+              <>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+                </svg>
+                Oscuro
+              </>
+            ) : (
+              <>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <circle cx="12" cy="12" r="5" /><line x1="12" y1="1" x2="12" y2="3" />
+                  <line x1="12" y1="21" x2="12" y2="23" /><line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+                  <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" /><line x1="1" y1="12" x2="3" y2="12" />
+                  <line x1="21" y1="12" x2="23" y2="12" /><line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+                  <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+                </svg>
+                Claro
+              </>
+            )}
+          </button>
         </div>
-        <p className="text-xs truncate flex-1" style={{ color: 'var(--text-secondary)' }}>
-          {userEmail}
-        </p>
-        <button
-          onClick={onLogout}
-          className="p-1.5 rounded-md transition-colors flex-shrink-0"
-          style={{ color: 'var(--text-muted)' }}
-          title="Cerrar sesión"
-          onMouseEnter={e => (e.currentTarget.style.color = 'var(--danger)')}
-          onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-muted)')}
-        >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-            <polyline points="16 17 21 12 16 7" />
-            <line x1="21" y1="12" x2="9" y2="12" />
-          </svg>
-        </button>
+
+        {/* User */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{
+            width: 28, height: 28, borderRadius: '50%', flexShrink: 0,
+            background: 'var(--bg-tertiary)', display: 'flex',
+            alignItems: 'center', justifyContent: 'center',
+            fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)',
+          }}>
+            {userEmail.charAt(0).toUpperCase()}
+          </div>
+          <p style={{
+            fontSize: 11, color: 'var(--text-secondary)', flex: 1, minWidth: 0,
+            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+          }}>
+            {userEmail}
+          </p>
+          <button
+            onClick={onLogout}
+            aria-label="Cerrar sesión"
+            style={{
+              padding: 6, borderRadius: 6, border: 'none',
+              background: 'transparent', cursor: 'pointer',
+              color: 'var(--text-muted)', flexShrink: 0,
+              transition: 'color 0.15s',
+            }}
+            onMouseEnter={e => (e.currentTarget.style.color = 'var(--danger)')}
+            onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-muted)')}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+              <polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" />
+            </svg>
+          </button>
+        </div>
       </div>
     </div>
   );
