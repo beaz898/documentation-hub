@@ -56,15 +56,49 @@ export async function POST(req: NextRequest) {
 
     const message = error instanceof Error ? error.message : 'Error interno';
 
-    if (message.includes('rate_limit') || message.includes('429')) {
+    // Errores categorizados desde rag.ts
+    if (message === 'SERVICE_OVERLOADED') {
       return NextResponse.json(
-        { error: 'Límite de peticiones excedido. Espera unos segundos.' },
+        {
+          error: 'El servicio de IA está experimentando alta demanda en este momento. Esto es temporal y no es un problema con tu consulta ni con tus documentos. Por favor, espera unos segundos e inténtalo de nuevo.',
+          errorType: 'overloaded',
+        },
+        { status: 503 }
+      );
+    }
+
+    if (message === 'RATE_LIMIT_EXCEEDED') {
+      return NextResponse.json(
+        {
+          error: 'Se ha superado el límite de consultas por minuto. Por favor, espera un momento antes de hacer otra pregunta.',
+          errorType: 'rate_limit',
+        },
         { status: 429 }
       );
     }
 
+    if (message === 'AUTH_ERROR') {
+      return NextResponse.json(
+        {
+          error: 'Hay un problema de autenticación con el servicio de IA. Si el problema persiste, contacta con el administrador.',
+          errorType: 'auth',
+        },
+        { status: 500 }
+      );
+    }
+
+    if (message === 'SERVICE_ERROR') {
+      return NextResponse.json(
+        {
+          error: 'El servicio de IA está temporalmente no disponible. Esto no es un problema de tu cuenta. Por favor, inténtalo de nuevo en unos minutos.',
+          errorType: 'service',
+        },
+        { status: 503 }
+      );
+    }
+
     return NextResponse.json(
-      { error: 'Error procesando la pregunta' },
+      { error: 'Error procesando la pregunta. Por favor, inténtalo de nuevo.' },
       { status: 500 }
     );
   }
