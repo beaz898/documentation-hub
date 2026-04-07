@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useMemo } from 'react';
 import { useTheme } from '@/components/ThemeProvider';
 
 interface Document {
@@ -11,6 +11,7 @@ interface Document {
   created_at: string;
   status: string;
   source?: string;
+  folder_path?: string | null;
 }
 
 interface DriveFolder {
@@ -42,6 +43,54 @@ interface DocumentsSidebarProps {
   userEmail: string;
 }
 
+// ============================================================
+// Folder tree types and builder
+// ============================================================
+interface FolderNode {
+  name: string;          // segment name (e.g. "Q1")
+  fullPath: string;      // full path from root (e.g. "Ventas/2025/Q1"), used as React key + expand state
+  children: Map<string, FolderNode>;
+  docs: Document[];      // docs directly inside this folder (not in sub-folders)
+}
+
+function buildFolderTree(docs: Document[]): FolderNode {
+  const root: FolderNode = { name: '', fullPath: '', children: new Map(), docs: [] };
+
+  for (const doc of docs) {
+    const path = doc.folder_path || '/';
+    // "/" or "" => root level
+    if (path === '/' || path === '') {
+      root.docs.push(doc);
+      continue;
+    }
+
+    const segments = path.split('/').filter(Boolean);
+    let node = root;
+    let acc = '';
+    for (const segment of segments) {
+      acc = acc ? `${acc}/${segment}` : segment;
+      let child = node.children.get(segment);
+      if (!child) {
+        child = { name: segment, fullPath: acc, children: new Map(), docs: [] };
+        node.children.set(segment, child);
+      }
+      node = child;
+    }
+    node.docs.push(doc);
+  }
+
+  return root;
+}
+
+// Count all docs inside a node, including all descendants
+function countDocsRecursive(node: FolderNode): number {
+  let total = node.docs.length;
+  for (const child of node.children.values()) {
+    total += countDocsRecursive(child);
+  }
+  return total;
+}
+
 export default function DocumentsSidebar({
   documents,
   loading,
@@ -63,28 +112,19 @@ export default function DocumentsSidebar({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { theme, toggleTheme } = useTheme();
 
-  const driveDocs = documents.filter(d => d.source === 'google_drive');
-  const manualDocs = documents.filter(d => d.source !== 'google_drive');
+  const driveDocs = useMemo(() => documents.filter(d => d.source === 'google_drive'), [documents]);
+  const manualDocs = useMemo(() => documents.filter(d => d.source !== 'google_drive'), [documents]);
 
-  function toggleFolder(name: string) {
+  // Build the folder tree once per docs change
+  const driveTree = useMemo(() => buildFolderTree(driveDocs), [driveDocs]);
+
+  function toggleFolder(fullPath: string) {
     setExpandedFolders(prev => {
       const next = new Set(prev);
-      if (next.has(name)) next.delete(name);
-      else next.add(name);
+      if (next.has(fullPath)) next.delete(fullPath);
+      else next.add(fullPath);
       return next;
     });
-  }
-
-  // Group drive docs by folder path (using name prefix or a simple grouping)
-  function groupDriveDocsByFolder(): Record<string, Document[]> {
-    const groups: Record<string, Document[]> = {};
-    for (const doc of driveDocs) {
-      // Group by first part of name or use a default
-      const folder = 'Documentos';
-      if (!groups[folder]) groups[folder] = [];
-      groups[folder].push(doc);
-    }
-    return groups;
   }
 
   async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -124,6 +164,68 @@ export default function DocumentsSidebar({
     if (diff < 3600000) return `Hace ${Math.floor(diff / 60000)} min`;
     if (diff < 86400000) return `Hace ${Math.floor(diff / 3600000)} h`;
     return formatDate(dateStr);
+  }
+
+  // ============================================================
+  // Recursive renderer for the Drive folder tree
+  // ============================================================
+  function renderFolderNode(node: FolderNode, depth: number): React.ReactNode {
+    const isExpanded = expandedFolders.has(node.fullPath);
+    const totalCount = countDocsRecursive(node);
+    const indentPx = 8 + depth * 14;
+
+    return (
+      <div key={node.fullPath || 'root'}>
+        <div
+          onClick={() => toggleFolder(node.fullPath)}
+          style={{
+            display: 'flex', alignItems: 'center', gap: 4,
+            padding: '5px 6px', paddingLeft: indentPx,
+            borderRadius: 6, cursor: 'pointer',
+            fontSize: 11, color: 'var(--text-primary)',
+            transition: 'background 0.1s',
+          }}
+          onMouseEnter={e => (e.currentTarget.style.background = 'var(--surface-hover)')}
+          onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+        >
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)"
+            strokeWidth="2" style={{ flexShrink: 0, transition: 'transform 0.15s', transform: isExpanded ? 'rotate(90deg)' : 'none' }}>
+            <polyline points="9 18 15 12 9 6" />
+          </svg>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--warning)" strokeWidth="2" style={{ flexShrink: 0 }}>
+            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
+          </svg>
+          <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{node.name}</span>
+          <span style={{ fontSize: 9, color: 'var(--text-muted)', flexShrink: 0 }}>{totalCount}</span>
+        </div>
+
+        {isExpanded && (
+          <div>
+            {/* Render child folders first */}
+            {Array.from(node.children.values())
+              .sort((a, b) => a.name.localeCompare(b.name))
+              .map(child => renderFolderNode(child, depth + 1))}
+
+            {/* Then render docs directly in this folder */}
+            {node.docs
+              .slice()
+              .sort((a, b) => a.name.localeCompare(b.name))
+              .map(doc => (
+                <div key={doc.id} style={{
+                  display: 'flex', alignItems: 'center', gap: 5,
+                  padding: '3px 6px',
+                  paddingLeft: indentPx + 24,
+                  fontSize: 10, color: 'var(--text-secondary)',
+                }}>
+                  <div style={{ width: 4, height: 4, borderRadius: '50%', background: 'var(--success)', flexShrink: 0 }} />
+                  <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>{doc.name}</span>
+                  <span style={{ fontSize: 9, color: 'var(--text-muted)', flexShrink: 0 }}>{formatSize(doc.size_bytes)}</span>
+                </div>
+              ))}
+          </div>
+        )}
+      </div>
+    );
   }
 
   const sectionHeaderStyle: React.CSSProperties = {
@@ -228,7 +330,7 @@ export default function DocumentsSidebar({
               Conectar Google Drive
             </button>
           ) : (
-            /* Connected: show account, folders, files */
+            /* Connected: show account, then real folder tree built from indexed docs */
             <>
               <div style={{
                 display: 'flex', alignItems: 'center', gap: 6, padding: '5px 8px',
@@ -244,69 +346,33 @@ export default function DocumentsSidebar({
                 </span>
               </div>
 
-              {/* Folder tree */}
-              {driveStatus.folders && driveStatus.folders.length > 0 ? (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                  {driveStatus.folders.map(folder => {
-                    const isExpanded = expandedFolders.has(folder.name);
-                    const folderDocs = driveDocs; // In production, filter by folder
-                    return (
-                      <div key={folder.id}>
-                        <div
-                          onClick={() => toggleFolder(folder.name)}
-                          style={{
-                            display: 'flex', alignItems: 'center', gap: 4,
-                            padding: '5px 6px', borderRadius: 6, cursor: 'pointer',
-                            fontSize: 11, color: 'var(--text-primary)',
-                            transition: 'background 0.1s',
-                          }}
-                          onMouseEnter={e => (e.currentTarget.style.background = 'var(--surface-hover)')}
-                          onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
-                        >
-                          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)"
-                            strokeWidth="2" style={{ flexShrink: 0, transition: 'transform 0.15s', transform: isExpanded ? 'rotate(90deg)' : 'none' }}>
-                            <polyline points="9 18 15 12 9 6" />
-                          </svg>
-                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--warning)" strokeWidth="2" style={{ flexShrink: 0 }}>
-                            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
-                          </svg>
-                          <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{folder.name}</span>
-                          <span style={{ fontSize: 9, color: 'var(--text-muted)', flexShrink: 0 }}>{folder.fileCount}</span>
-                        </div>
-                        {isExpanded && folderDocs.length > 0 && (
-                          <div>
-                            {folderDocs.slice(0, 10).map(doc => (
-                              <div key={doc.id} style={{
-                                display: 'flex', alignItems: 'center', gap: 5,
-                                padding: '3px 6px 3px 32px', fontSize: 10, color: 'var(--text-secondary)',
-                              }}>
-                                <div style={{ width: 4, height: 4, borderRadius: '50%', background: 'var(--success)', flexShrink: 0 }} />
-                                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{doc.name}</span>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              ) : driveDocs.length > 0 ? (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                  {driveDocs.map(doc => (
-                    <div key={doc.id} style={{
-                      display: 'flex', alignItems: 'center', gap: 5,
-                      padding: '4px 6px', fontSize: 10, color: 'var(--text-secondary)',
-                    }}>
-                      <div style={{ width: 4, height: 4, borderRadius: '50%', background: 'var(--success)', flexShrink: 0 }} />
-                      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>{doc.name}</span>
-                      <span style={{ fontSize: 9, color: 'var(--text-muted)' }}>{formatSize(doc.size_bytes)}</span>
-                    </div>
-                  ))}
-                </div>
-              ) : (
+              {driveDocs.length === 0 ? (
                 <p style={{ fontSize: 11, color: 'var(--text-muted)', padding: '8px 4px' }}>
                   Sin documentos. Pulsa sincronizar.
                 </p>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                  {/* Render top-level folders (sorted) */}
+                  {Array.from(driveTree.children.values())
+                    .sort((a, b) => a.name.localeCompare(b.name))
+                    .map(child => renderFolderNode(child, 0))}
+
+                  {/* Render docs at the very root (folder_path === "/" or empty) */}
+                  {driveTree.docs
+                    .slice()
+                    .sort((a, b) => a.name.localeCompare(b.name))
+                    .map(doc => (
+                      <div key={doc.id} style={{
+                        display: 'flex', alignItems: 'center', gap: 5,
+                        padding: '4px 6px', paddingLeft: 8,
+                        fontSize: 10, color: 'var(--text-secondary)',
+                      }}>
+                        <div style={{ width: 4, height: 4, borderRadius: '50%', background: 'var(--success)', flexShrink: 0 }} />
+                        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>{doc.name}</span>
+                        <span style={{ fontSize: 9, color: 'var(--text-muted)', flexShrink: 0 }}>{formatSize(doc.size_bytes)}</span>
+                      </div>
+                    ))}
+                </div>
               )}
 
               <button
