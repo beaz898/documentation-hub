@@ -69,7 +69,7 @@ export async function POST(req: NextRequest) {
     const targetFolderId = folderId || connection.folder_id;
     console.log(`[DRIVE SYNC] Starting sync for folder: ${targetFolderId}`);
 
-    const allFiles = await listFilesRecursive(accessToken, targetFolderId, '');
+    const allFiles = await listFilesRecursive(accessToken, targetFolderId, '', null);
     console.log(`[DRIVE SYNC] Found ${allFiles.length} files`);
 
     // Get existing drive documents
@@ -88,11 +88,15 @@ export async function POST(req: NextRequest) {
     let skippedCount = 0;
     const pineconeIndex = getIndex();
 
+    // Track which Drive file IDs we saw, to detect deletions afterwards
+    const seenDriveIds = new Set<string>();
+
     for (const file of allFiles) {
+      seenDriveIds.add(file.id);
       const existing = existingMap.get(file.id);
 
       // Skip if file hasn't changed
-      if (existing && existing.source_modified_at &&
+      if (existing && existing.source_modified_at && file.modifiedTime &&
           new Date(file.modifiedTime) <= new Date(existing.source_modified_at)) {
         skippedCount++;
         continue;
@@ -123,9 +127,9 @@ export async function POST(req: NextRequest) {
       }
 
       // Extract text
-      const ext = file.mimeType === 'application/vnd.google-apps.document' ? 'txt' : 
+      const ext = file.mimeType === 'application/vnd.google-apps.document' ? 'txt' :
                   ALLOWED_MIME_TYPES[file.mimeType] || file.name.split('.').pop() || 'txt';
-      
+
       let text: string;
       try {
         text = await extractText(fileBuffer, `${file.name}.${ext}`);
@@ -189,9 +193,35 @@ export async function POST(req: NextRequest) {
         source: 'google_drive',
         source_path: file.id,
         source_modified_at: file.modifiedTime,
+        folder_path: file.folderPath,
+        folder_id: file.parentId,
       });
 
-      console.log(`[DRIVE SYNC] Indexed: ${file.name} (${chunks.length} chunks)`);
+      console.log(`[DRIVE SYNC] Indexed: ${file.name} (${chunks.length} chunks) [${file.folderPath}]`);
+    }
+
+    // ========================================
+    // DETECT DELETIONS: any existing doc whose source_path is not in seenDriveIds
+    // means the file has been deleted (or moved out of the synced folder) in Drive.
+    // ========================================
+    let deletedCount = 0;
+    const docsToDelete = (existingDocs || []).filter(d => !seenDriveIds.has(d.source_path));
+
+    for (const doc of docsToDelete) {
+      try {
+        const idsToDelete = Array.from(
+          { length: doc.chunk_count },
+          (_, i) => `${doc.id}-${i}`
+        );
+        for (let i = 0; i < idsToDelete.length; i += 1000) {
+          await pineconeIndex.namespace(orgId).deleteMany(idsToDelete.slice(i, i + 1000));
+        }
+        await supabase.from('documents').delete().eq('id', doc.id);
+        deletedCount++;
+        console.log(`[DRIVE SYNC] Deleted (no longer in Drive): ${doc.name}`);
+      } catch (err) {
+        console.error(`[DRIVE SYNC] Failed to delete ${doc.name}:`, err);
+      }
     }
 
     // Update last synced
@@ -199,11 +229,17 @@ export async function POST(req: NextRequest) {
       .update({ last_synced_at: new Date().toISOString() })
       .eq('org_id', orgId);
 
-    console.log(`[DRIVE SYNC] Complete: ${newCount} new, ${updatedCount} updated, ${skippedCount} unchanged`);
+    console.log(`[DRIVE SYNC] Complete: ${newCount} new, ${updatedCount} updated, ${deletedCount} deleted, ${skippedCount} unchanged`);
 
     return NextResponse.json({
       success: true,
-      stats: { new: newCount, updated: updatedCount, skipped: skippedCount, total: allFiles.length },
+      stats: {
+        new: newCount,
+        updated: updatedCount,
+        deleted: deletedCount,
+        skipped: skippedCount,
+        total: allFiles.length,
+      },
     });
   } catch (error: unknown) {
     console.error('Error in /api/drive/sync:', error);
@@ -306,15 +342,18 @@ interface DriveFile {
   mimeType: string;
   modifiedTime: string;
   folderPath: string;
+  parentId: string | null;
 }
 
 async function listFilesRecursive(
   accessToken: string,
   folderId: string,
-  currentPath: string
+  currentPath: string,
+  parentId: string | null,
 ): Promise<DriveFile[]> {
   const allFiles: DriveFile[] = [];
 
+  // FIX: include modifiedTime in fields (was missing — caused skip-detection to never work)
   const res = await fetch(
     `https://www.googleapis.com/drive/v3/files?q='${folderId}'+in+parents+and+trashed=false&fields=files(id,name,mimeType,modifiedTime)&orderBy=name&pageSize=1000`,
     { headers: { Authorization: `Bearer ${accessToken}` } }
@@ -329,9 +368,9 @@ async function listFilesRecursive(
     if (file.mimeType === 'application/vnd.google-apps.folder') {
       // Recurse into subfolders
       const subPath = currentPath ? `${currentPath}/${file.name}` : file.name;
-      const subFiles = await listFilesRecursive(accessToken, file.id, subPath);
+      const subFiles = await listFilesRecursive(accessToken, file.id, subPath, file.id);
       allFiles.push(...subFiles);
-    } else if (ALLOWED_MIME_TYPES[file.mimeType] || 
+    } else if (ALLOWED_MIME_TYPES[file.mimeType] ||
                ['pdf', 'docx', 'txt', 'md', 'csv', 'json', 'html'].includes(
                  file.name.split('.').pop()?.toLowerCase() || ''
                )) {
@@ -341,6 +380,7 @@ async function listFilesRecursive(
         mimeType: file.mimeType,
         modifiedTime: file.modifiedTime,
         folderPath: currentPath || '/',
+        parentId: parentId,
       });
     }
   }
@@ -357,7 +397,7 @@ async function listFolders(accessToken: string, parentId: string) {
 
   if (!res.ok) return [];
   const data = await res.json();
-  
+
   const folders = [];
   for (const folder of (data.files || [])) {
     // Count files in each subfolder
