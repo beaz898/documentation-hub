@@ -17,9 +17,10 @@ interface AnalysisModalProps {
   analysis: AnalysisResult;
   onConfirm: () => void;
   onCancel: () => void;
+  onImprove: () => void;
 }
 
-export default function AnalysisModal({ fileName, analysis, onConfirm, onCancel }: AnalysisModalProps) {
+export default function AnalysisModal({ fileName, analysis, onConfirm, onCancel, onImprove }: AnalysisModalProps) {
   const recColor = analysis.recommendation === 'NO_INDEXAR'
     ? { bg: 'var(--danger-light)', text: 'var(--danger-text)', border: 'var(--danger)' }
     : analysis.recommendation === 'REVISAR'
@@ -182,29 +183,44 @@ export default function AnalysisModal({ fileName, analysis, onConfirm, onCancel 
           </p>
         </div>
 
-        {/* Action buttons */}
-        <div style={{ display: 'flex', gap: 10 }}>
+        {/* Action buttons: Cancel | Improve | Index anyway */}
+        <div style={{ display: 'flex', gap: 8 }}>
           <button
             onClick={onCancel}
             style={{
-              flex: 1, padding: '10px 16px', borderRadius: 10,
+              flex: 1, padding: '10px 12px', borderRadius: 10,
               border: '0.5px solid var(--border)', background: 'var(--bg-secondary)',
-              color: 'var(--text-secondary)', fontSize: 13, fontWeight: 500,
+              color: 'var(--text-secondary)', fontSize: 12, fontWeight: 500,
               cursor: 'pointer', transition: 'background 0.15s',
             }}
           >
             Cancelar subida
           </button>
           <button
+            onClick={onImprove}
+            style={{
+              flex: 1.3, padding: '10px 12px', borderRadius: 10,
+              border: '0.5px solid var(--brand)', background: 'var(--brand-light)',
+              color: 'var(--brand)', fontSize: 12, fontWeight: 600,
+              cursor: 'pointer', transition: 'opacity 0.15s',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+            }}
+          >
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M12 2l2.4 7.4H22l-6.2 4.5L18.2 22 12 17.3 5.8 22l2.4-8.1L2 9.4h7.6L12 2z" />
+            </svg>
+            Mejorar con IA
+          </button>
+          <button
             onClick={onConfirm}
             style={{
-              flex: 1, padding: '10px 16px', borderRadius: 10,
+              flex: 1, padding: '10px 12px', borderRadius: 10,
               border: 'none', background: 'var(--brand)', color: '#fff',
-              fontSize: 13, fontWeight: 500, cursor: 'pointer',
+              fontSize: 12, fontWeight: 500, cursor: 'pointer',
               transition: 'opacity 0.15s',
             }}
           >
-            Indexar de todas formas
+            Indexar igualmente
           </button>
         </div>
       </div>
