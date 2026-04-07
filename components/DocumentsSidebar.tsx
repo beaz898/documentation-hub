@@ -109,6 +109,9 @@ export default function DocumentsSidebar({
   const [uploadProgress, setUploadProgress] = useState('');
   const [deleting, setDeleting] = useState<string | null>(null);
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
+  // NEW: section-level collapse state (both sections start expanded)
+  const [driveSectionOpen, setDriveSectionOpen] = useState(true);
+  const [manualSectionOpen, setManualSectionOpen] = useState(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { theme, toggleTheme } = useTheme();
 
@@ -228,12 +231,23 @@ export default function DocumentsSidebar({
     );
   }
 
+  // Chevron icon for collapsible section headers
+  function SectionChevron({ open }: { open: boolean }) {
+    return (
+      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+        strokeWidth="2.5" style={{ flexShrink: 0, transition: 'transform 0.15s', transform: open ? 'rotate(90deg)' : 'none' }}>
+        <polyline points="9 18 15 12 9 6" />
+      </svg>
+    );
+  }
+
   const sectionHeaderStyle: React.CSSProperties = {
     position: 'sticky', top: 0, zIndex: 2,
     padding: '8px 12px', fontSize: 11, fontWeight: 600,
     color: 'var(--text-secondary)', background: 'var(--bg-secondary)',
     borderBottom: '0.5px solid var(--border)',
     display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+    cursor: 'pointer', userSelect: 'none',
   };
 
   return (
@@ -279,16 +293,28 @@ export default function DocumentsSidebar({
       <div style={{ flex: 1, overflowY: 'auto' }}>
 
         {/* 2. Google Drive section */}
-        <div style={sectionHeaderStyle}>
+        <div
+          style={sectionHeaderStyle}
+          onClick={(e) => {
+            // Don't toggle section if user clicked the sync button
+            if ((e.target as HTMLElement).closest('button')) return;
+            setDriveSectionOpen(v => !v);
+          }}
+          role="button"
+          aria-expanded={driveSectionOpen}
+          aria-label="Mostrar/ocultar sección Google Drive"
+        >
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <SectionChevron open={driveSectionOpen} />
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--brand)" strokeWidth="2">
               <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
             </svg>
             <span>Google Drive</span>
+            <span style={{ fontSize: 10, color: 'var(--text-muted)', fontWeight: 500 }}>{driveDocs.length}</span>
           </div>
           {driveStatus.connected && (
             <button
-              onClick={onSyncDrive}
+              onClick={(e) => { e.stopPropagation(); onSyncDrive(); }}
               disabled={syncing}
               aria-label="Sincronizar"
               style={{
@@ -308,161 +334,174 @@ export default function DocumentsSidebar({
           )}
         </div>
 
-        <div style={{ padding: '8px 12px' }}>
-          {!driveStatus.connected ? (
-            /* Not connected: show connect button */
-            <button
-              onClick={onConnectDrive}
-              style={{
-                width: '100%', padding: '10px 14px', borderRadius: 8,
-                border: '0.5px dashed var(--border)', background: 'transparent',
-                color: 'var(--text-secondary)', fontSize: 12, cursor: 'pointer',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                transition: 'border-color 0.15s, color 0.15s',
-              }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--brand)'; e.currentTarget.style.color = 'var(--brand)'; }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = 'var(--text-secondary)'; }}
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
-                <line x1="12" y1="11" x2="12" y2="17" /><line x1="9" y1="14" x2="15" y2="14" />
-              </svg>
-              Conectar Google Drive
-            </button>
-          ) : (
-            /* Connected: show account, then real folder tree built from indexed docs */
-            <>
-              <div style={{
-                display: 'flex', alignItems: 'center', gap: 6, padding: '5px 8px',
-                borderRadius: 6, background: 'var(--bg-tertiary)', marginBottom: 8,
-                fontSize: 10, color: 'var(--text-secondary)',
-              }}>
-                <div style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--success)', flexShrink: 0 }} />
-                <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {driveStatus.email}
-                </span>
-                <span style={{ color: 'var(--text-muted)', flexShrink: 0 }}>
-                  {formatLastSynced(driveStatus.lastSynced)}
-                </span>
-              </div>
-
-              {driveDocs.length === 0 ? (
-                <p style={{ fontSize: 11, color: 'var(--text-muted)', padding: '8px 4px' }}>
-                  Sin documentos. Pulsa sincronizar.
-                </p>
-              ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                  {/* Render top-level folders (sorted) */}
-                  {Array.from(driveTree.children.values())
-                    .sort((a, b) => a.name.localeCompare(b.name))
-                    .map(child => renderFolderNode(child, 0))}
-
-                  {/* Render docs at the very root (folder_path === "/" or empty) */}
-                  {driveTree.docs
-                    .slice()
-                    .sort((a, b) => a.name.localeCompare(b.name))
-                    .map(doc => (
-                      <div key={doc.id} style={{
-                        display: 'flex', alignItems: 'center', gap: 5,
-                        padding: '4px 6px', paddingLeft: 8,
-                        fontSize: 10, color: 'var(--text-secondary)',
-                      }}>
-                        <div style={{ width: 4, height: 4, borderRadius: '50%', background: 'var(--success)', flexShrink: 0 }} />
-                        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>{doc.name}</span>
-                        <span style={{ fontSize: 9, color: 'var(--text-muted)', flexShrink: 0 }}>{formatSize(doc.size_bytes)}</span>
-                      </div>
-                    ))}
-                </div>
-              )}
-
+        {driveSectionOpen && (
+          <div style={{ padding: '8px 12px' }}>
+            {!driveStatus.connected ? (
+              /* Not connected: show connect button */
               <button
-                onClick={onDisconnectDrive}
+                onClick={onConnectDrive}
                 style={{
-                  marginTop: 8, fontSize: 10, color: 'var(--text-muted)', background: 'none',
-                  border: 'none', cursor: 'pointer', padding: '4px 0',
+                  width: '100%', padding: '10px 14px', borderRadius: 8,
+                  border: '0.5px dashed var(--border)', background: 'transparent',
+                  color: 'var(--text-secondary)', fontSize: 12, cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                  transition: 'border-color 0.15s, color 0.15s',
                 }}
-                onMouseEnter={e => (e.currentTarget.style.color = 'var(--danger)')}
-                onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-muted)')}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--brand)'; e.currentTarget.style.color = 'var(--brand)'; }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = 'var(--text-secondary)'; }}
               >
-                Desconectar Drive
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
+                  <line x1="12" y1="11" x2="12" y2="17" /><line x1="9" y1="14" x2="15" y2="14" />
+                </svg>
+                Conectar Google Drive
               </button>
-            </>
-          )}
-        </div>
+            ) : (
+              /* Connected: show account, then real folder tree built from indexed docs */
+              <>
+                <div style={{
+                  display: 'flex', alignItems: 'center', gap: 6, padding: '5px 8px',
+                  borderRadius: 6, background: 'var(--bg-tertiary)', marginBottom: 8,
+                  fontSize: 10, color: 'var(--text-secondary)',
+                }}>
+                  <div style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--success)', flexShrink: 0 }} />
+                  <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {driveStatus.email}
+                  </span>
+                  <span style={{ color: 'var(--text-muted)', flexShrink: 0 }}>
+                    {formatLastSynced(driveStatus.lastSynced)}
+                  </span>
+                </div>
+
+                {driveDocs.length === 0 ? (
+                  <p style={{ fontSize: 11, color: 'var(--text-muted)', padding: '8px 4px' }}>
+                    Sin documentos. Pulsa sincronizar.
+                  </p>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                    {/* Render top-level folders (sorted) */}
+                    {Array.from(driveTree.children.values())
+                      .sort((a, b) => a.name.localeCompare(b.name))
+                      .map(child => renderFolderNode(child, 0))}
+
+                    {/* Render docs at the very root (folder_path === "/" or empty) */}
+                    {driveTree.docs
+                      .slice()
+                      .sort((a, b) => a.name.localeCompare(b.name))
+                      .map(doc => (
+                        <div key={doc.id} style={{
+                          display: 'flex', alignItems: 'center', gap: 5,
+                          padding: '4px 6px', paddingLeft: 8,
+                          fontSize: 10, color: 'var(--text-secondary)',
+                        }}>
+                          <div style={{ width: 4, height: 4, borderRadius: '50%', background: 'var(--success)', flexShrink: 0 }} />
+                          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>{doc.name}</span>
+                          <span style={{ fontSize: 9, color: 'var(--text-muted)', flexShrink: 0 }}>{formatSize(doc.size_bytes)}</span>
+                        </div>
+                      ))}
+                  </div>
+                )}
+
+                <button
+                  onClick={onDisconnectDrive}
+                  style={{
+                    marginTop: 8, fontSize: 10, color: 'var(--text-muted)', background: 'none',
+                    border: 'none', cursor: 'pointer', padding: '4px 0',
+                  }}
+                  onMouseEnter={e => (e.currentTarget.style.color = 'var(--danger)')}
+                  onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-muted)')}
+                >
+                  Desconectar Drive
+                </button>
+              </>
+            )}
+          </div>
+        )}
 
         {/* 3. Manual documents section */}
-        <div style={sectionHeaderStyle}>
-          <span>Subidos manualmente</span>
+        <div
+          style={sectionHeaderStyle}
+          onClick={() => setManualSectionOpen(v => !v)}
+          role="button"
+          aria-expanded={manualSectionOpen}
+          aria-label="Mostrar/ocultar sección Subidos manualmente"
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <SectionChevron open={manualSectionOpen} />
+            <span>Subidos manualmente</span>
+          </div>
           <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>{manualDocs.length}</span>
         </div>
 
-        <div style={{ padding: '6px 10px' }}>
-          {loading ? (
-            <div style={{ display: 'flex', justifyContent: 'center', padding: '20px 0' }}>
-              <div className="animate-spin" style={{
-                width: 16, height: 16, border: '2px solid var(--brand)',
-                borderTopColor: 'transparent', borderRadius: '50%',
-              }} />
-            </div>
-          ) : manualDocs.length === 0 ? (
-            <p style={{ fontSize: 11, color: 'var(--text-muted)', padding: '12px 4px', textAlign: 'center' }}>
-              Sin documentos manuales
-            </p>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-              {manualDocs.map(doc => (
-                <div
-                  key={doc.id}
-                  style={{
-                    display: 'flex', alignItems: 'center', gap: 7, padding: '6px 8px',
-                    borderRadius: 7, transition: 'background 0.1s',
-                  }}
-                  onMouseEnter={e => (e.currentTarget.style.background = 'var(--surface-hover)')}
-                  onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
-                >
-                  <div style={{
-                    width: 22, height: 22, borderRadius: 5, flexShrink: 0,
-                    background: 'var(--brand-light)', display: 'flex',
-                    alignItems: 'center', justifyContent: 'center',
-                  }}>
-                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--brand)" strokeWidth="2">
-                      <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
-                    </svg>
-                  </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <p style={{ fontSize: 11, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                      {doc.name}
-                    </p>
-                    <p style={{ fontSize: 9, color: 'var(--text-muted)' }}>
-                      {formatSize(doc.size_bytes)} · {doc.chunk_count} frag. · {formatDate(doc.created_at)}
-                    </p>
-                  </div>
-                  <button
-                    onClick={() => handleDelete(doc.id, doc.name)}
-                    disabled={deleting === doc.id}
-                    aria-label={`Eliminar ${doc.name}`}
+        {manualSectionOpen && (
+          <div style={{ padding: '6px 10px' }}>
+            {loading ? (
+              <div style={{ display: 'flex', justifyContent: 'center', padding: '20px 0' }}>
+                <div className="animate-spin" style={{
+                  width: 16, height: 16, border: '2px solid var(--brand)',
+                  borderTopColor: 'transparent', borderRadius: '50%',
+                }} />
+              </div>
+            ) : manualDocs.length === 0 ? (
+              <p style={{ fontSize: 11, color: 'var(--text-muted)', padding: '12px 4px', textAlign: 'center' }}>
+                Sin documentos manuales
+              </p>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                {manualDocs.map(doc => (
+                  <div
+                    key={doc.id}
                     style={{
-                      opacity: 0, padding: 3, borderRadius: 5, border: 'none',
-                      background: 'transparent', cursor: 'pointer', color: 'var(--danger)',
-                      flexShrink: 0, transition: 'opacity 0.1s',
+                      display: 'flex', alignItems: 'center', gap: 7, padding: '6px 8px',
+                      borderRadius: 7, transition: 'background 0.1s',
                     }}
-                    onMouseEnter={e => (e.currentTarget.style.opacity = '1')}
-                    onMouseLeave={e => (e.currentTarget.style.opacity = '0')}
+                    onMouseEnter={e => (e.currentTarget.style.background = 'var(--surface-hover)')}
+                    onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
                   >
-                    {deleting === doc.id ? (
-                      <div className="animate-spin" style={{ width: 10, height: 10, border: '1.5px solid currentColor', borderTopColor: 'transparent', borderRadius: '50%' }} />
-                    ) : (
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M3 6h18" /><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
-                        <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+                    <div style={{
+                      width: 22, height: 22, borderRadius: 5, flexShrink: 0,
+                      background: 'var(--brand-light)', display: 'flex',
+                      alignItems: 'center', justifyContent: 'center',
+                    }}>
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--brand)" strokeWidth="2">
+                        <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
                       </svg>
-                    )}
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <p style={{ fontSize: 11, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {doc.name}
+                      </p>
+                      <p style={{ fontSize: 9, color: 'var(--text-muted)' }}>
+                        {formatSize(doc.size_bytes)} · {doc.chunk_count} frag. · {formatDate(doc.created_at)}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => handleDelete(doc.id, doc.name)}
+                      disabled={deleting === doc.id}
+                      aria-label={`Eliminar ${doc.name}`}
+                      style={{
+                        opacity: 0, padding: 3, borderRadius: 5, border: 'none',
+                        background: 'transparent', cursor: 'pointer', color: 'var(--danger)',
+                        flexShrink: 0, transition: 'opacity 0.1s',
+                      }}
+                      onMouseEnter={e => (e.currentTarget.style.opacity = '1')}
+                      onMouseLeave={e => (e.currentTarget.style.opacity = '0')}
+                    >
+                      {deleting === doc.id ? (
+                        <div className="animate-spin" style={{ width: 10, height: 10, border: '1.5px solid currentColor', borderTopColor: 'transparent', borderRadius: '50%' }} />
+                      ) : (
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M3 6h18" /><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+                          <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+                        </svg>
+                      )}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* 4. Bottom: upload button + user */}
