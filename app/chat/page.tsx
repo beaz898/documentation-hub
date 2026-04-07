@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase';
 import ChatMessage from '@/components/ChatMessage';
 import DocumentsSidebar from '@/components/DocumentsSidebar';
 import AnalysisModal from '@/components/AnalysisModal';
+import ImprovementModal from '@/components/ImprovementModal';
 
 interface Message {
   id: string;
@@ -39,6 +40,14 @@ interface PendingAnalysis {
   analysis: Record<string, unknown>;
 }
 
+interface ImprovementTarget {
+  fileName: string;
+  storagePath: string;
+  initialText: string;
+  analysis: Record<string, unknown>;
+  existingDocWithSameName: { id: string; name: string } | null;
+}
+
 export default function ChatPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [documents, setDocuments] = useState<Document[]>([]);
@@ -49,6 +58,8 @@ export default function ChatPage() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
   const [pendingAnalysis, setPendingAnalysis] = useState<PendingAnalysis | null>(null);
+  const [improvementTarget, setImprovementTarget] = useState<ImprovementTarget | null>(null);
+  const [improvementLoading, setImprovementLoading] = useState(false);
   const [driveStatus, setDriveStatus] = useState<DriveStatus>({ connected: false });
   const [syncing, setSyncing] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -88,7 +99,6 @@ export default function ChatPage() {
     if (searchParams.get('drive_connected') === 'true') {
       setMessages(prev => [...prev, { id: crypto.randomUUID(), role: 'assistant', content: 'Google Drive conectado correctamente. Pulsa **Sincronizar** para indexar los documentos.' }]);
       loadDriveStatus();
-      // Clean URL
       window.history.replaceState({}, '', '/chat');
     }
     if (searchParams.get('drive_error')) {
@@ -258,6 +268,66 @@ export default function ChatPage() {
     setPendingAnalysis(null);
   }
 
+  // Open improvement modal: extract text from the uploaded file and show the modal
+  async function handleAnalysisImprove() {
+    if (!pendingAnalysis || !session) return;
+    const { storagePath, fileName, analysis } = pendingAnalysis;
+    setImprovementLoading(true);
+    try {
+      const res = await fetch('/api/extract-text', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
+        body: JSON.stringify({ storagePath, fileName }),
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        setMessages(prev => [...prev, { id: crypto.randomUUID(), role: 'error', content: `No se pudo abrir el modo mejora: ${err.error}` }]);
+        return;
+      }
+      const data = await res.json();
+
+      // Check if a doc with the same name already exists (for the replace/keep dialog)
+      const existing = documents.find(d => d.name === fileName);
+
+      setImprovementTarget({
+        fileName,
+        storagePath,
+        initialText: data.text,
+        analysis,
+        existingDocWithSameName: existing ? { id: existing.id, name: existing.name } : null,
+      });
+      setPendingAnalysis(null);
+    } catch {
+      setMessages(prev => [...prev, { id: crypto.randomUUID(), role: 'error', content: 'Error de conexión al abrir el modo mejora.' }]);
+    } finally {
+      setImprovementLoading(false);
+    }
+  }
+
+  // Improvement modal closed without indexing — clean up
+  async function handleImprovementClose() {
+    if (!improvementTarget) return;
+    const path = improvementTarget.storagePath;
+    const name = improvementTarget.fileName;
+    setImprovementTarget(null);
+    try {
+      await supabase.storage.from('documents').remove([path]);
+    } catch { /* ignore */ }
+    setMessages(prev => [...prev, { id: crypto.randomUUID(), role: 'assistant', content: `Subida de **${name}** descartada.` }]);
+  }
+
+  // Improvement modal indexed successfully
+  async function handleImprovementIndexed(finalName: string, wasReplaced: boolean) {
+    setImprovementTarget(null);
+    setMessages(prev => [...prev, {
+      id: crypto.randomUUID(), role: 'assistant',
+      content: wasReplaced
+        ? `Versión corregida indexada, reemplazando el documento original **${finalName}**.`
+        : `Versión corregida indexada como **${finalName}**.`,
+    }]);
+    await loadDocuments();
+  }
+
   async function handleDelete(id: string) {
     if (!session) return;
     const res = await fetch(`/api/documents?id=${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${session.access_token}` } });
@@ -389,7 +459,48 @@ export default function ChatPage() {
         </div>
       </div>
 
-      {pendingAnalysis && <AnalysisModal fileName={pendingAnalysis.fileName} analysis={pendingAnalysis.analysis} onConfirm={handleAnalysisConfirm} onCancel={handleAnalysisCancel} />}
+      {pendingAnalysis && (
+        <AnalysisModal
+          fileName={pendingAnalysis.fileName}
+          analysis={pendingAnalysis.analysis}
+          onConfirm={handleAnalysisConfirm}
+          onCancel={handleAnalysisCancel}
+          onImprove={handleAnalysisImprove}
+        />
+      )}
+
+      {improvementLoading && (
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 99,
+          background: 'rgba(0,0,0,0.55)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}>
+          <div style={{
+            background: 'var(--bg-primary)', padding: '20px 28px', borderRadius: 12,
+            display: 'flex', alignItems: 'center', gap: 12,
+            border: '0.5px solid var(--border)',
+          }}>
+            <div className="animate-spin" style={{
+              width: 16, height: 16, border: '2px solid var(--brand)',
+              borderTopColor: 'transparent', borderRadius: '50%',
+            }} />
+            <span style={{ fontSize: 13, color: 'var(--text-primary)' }}>Preparando el modo mejora...</span>
+          </div>
+        </div>
+      )}
+
+      {improvementTarget && session && (
+        <ImprovementModal
+          fileName={improvementTarget.fileName}
+          initialText={improvementTarget.initialText}
+          analysis={improvementTarget.analysis}
+          storagePath={improvementTarget.storagePath}
+          existingDocWithSameName={improvementTarget.existingDocWithSameName}
+          accessToken={session.access_token}
+          onClose={handleImprovementClose}
+          onIndexed={handleImprovementIndexed}
+        />
+      )}
     </div>
   );
 }
