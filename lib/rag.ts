@@ -117,25 +117,58 @@ PREGUNTA DEL USUARIO: ${question}`;
     },
   ];
 
-  // 5. Enviar a Gemini
-  const response = await fetch(GEMINI_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      system_instruction: {
-        parts: [{ text: SYSTEM_PROMPT }],
-      },
-      contents: geminiContents,
-      generationConfig: {
-        maxOutputTokens: 8192,
-        temperature: 0.3,
-      },
-    }),
-  });
+  // 5. Enviar a Gemini con reintentos automáticos
+  const MAX_RETRIES = 3;
+  let response: Response | null = null;
+  let lastError: string = '';
 
-  if (!response.ok) {
-    const errorData = await response.text();
-    throw new Error(`Gemini API error ${response.status}: ${errorData}`);
+  for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+    response = await fetch(GEMINI_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        system_instruction: {
+          parts: [{ text: SYSTEM_PROMPT }],
+        },
+        contents: geminiContents,
+        generationConfig: {
+          maxOutputTokens: 8192,
+          temperature: 0.3,
+        },
+      }),
+    });
+
+    if (response.ok) break;
+
+    lastError = await response.text();
+
+    // Si es error temporal (503/429), reintentar con backoff exponencial
+    if ((response.status === 503 || response.status === 429) && attempt < MAX_RETRIES - 1) {
+      const waitMs = Math.pow(2, attempt) * 1500; // 1.5s, 3s, 6s
+      console.log(`[RAG] Gemini ${response.status}, reintentando en ${waitMs}ms (intento ${attempt + 1}/${MAX_RETRIES})`);
+      await new Promise(resolve => setTimeout(resolve, waitMs));
+      continue;
+    }
+
+    // Otros errores: salir del bucle
+    break;
+  }
+
+  if (!response || !response.ok) {
+    const status = response?.status || 0;
+
+    // Categorizar el error para dar un mensaje claro al usuario
+    if (status === 503) {
+      throw new Error('SERVICE_OVERLOADED');
+    } else if (status === 429) {
+      throw new Error('RATE_LIMIT_EXCEEDED');
+    } else if (status === 401 || status === 403) {
+      throw new Error('AUTH_ERROR');
+    } else if (status >= 500) {
+      throw new Error('SERVICE_ERROR');
+    } else {
+      throw new Error(`UNKNOWN_ERROR: ${status} ${lastError.substring(0, 200)}`);
+    }
   }
 
   const data = await response.json();
