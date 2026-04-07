@@ -147,9 +147,15 @@ export default function ChatPage() {
       if (res.ok) {
         const data = await res.json();
         const stats = data.stats;
+        const parts = [
+          `**${stats.new}** nuevo${stats.new !== 1 ? 's' : ''}`,
+          `**${stats.updated}** actualizado${stats.updated !== 1 ? 's' : ''}`,
+          `**${stats.deleted ?? 0}** eliminado${(stats.deleted ?? 0) !== 1 ? 's' : ''}`,
+          `**${stats.skipped}** sin cambios`,
+        ];
         setMessages(prev => [...prev, {
           id: crypto.randomUUID(), role: 'assistant',
-          content: `Sincronización completada: **${stats.new}** nuevo${stats.new !== 1 ? 's' : ''}, **${stats.updated}** actualizado${stats.updated !== 1 ? 's' : ''}, **${stats.skipped}** sin cambios.`,
+          content: `Sincronización completada: ${parts.join(', ')}.`,
         }]);
         await loadDocuments();
         await loadDriveStatus();
