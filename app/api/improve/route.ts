@@ -11,41 +11,56 @@ const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GE
 
 /**
  * SYSTEM PROMPT for improvement chat.
- * The assistant has two possible response modes:
- *  A) Normal conversational reply (explanation, question, suggestion in plain language).
- *  B) Concrete replacement proposal — when the user asks to change / rewrite / fix something,
- *     the assistant MUST return a JSON block delimited by <<<REPLACEMENT>>> and <<<END>>>
- *     with exact "find" and "replace" strings, so the frontend can apply them to the textarea.
- *
- * The "find" string MUST be an EXACT verbatim substring of CURRENT_TEXT (so the frontend can
- * locate it with String.indexOf). Never paraphrase the "find". Never include line numbers.
+ * Stricter version: emphasizes exact copy-paste for the "find" field.
  */
-const IMPROVE_SYSTEM_PROMPT = `Eres un asistente experto en documentación corporativa. Ayudas al usuario a mejorar un documento que tiene problemas detectados (contradicciones con otros documentos, duplicidades, ambigüedades, errores, etc.).
+const IMPROVE_SYSTEM_PROMPT = `Eres un asistente experto en documentación corporativa. Ayudas al usuario a mejorar un documento que tiene problemas detectados (contradicciones con otros documentos, duplicidades, ambigüedades, errores, texto redundante, etc.).
 
 Tienes acceso a:
-- El TEXTO ACTUAL del documento en edición.
+- El TEXTO ACTUAL del documento en edición (delimitado por <<<TEXTO_ACTUAL>>> y <<<FIN_TEXTO>>>).
 - Un RESUMEN de los problemas detectados.
-- Fragmentos de documentos EXISTENTES en el sistema que están relacionados (para contexto de contradicciones).
+- Fragmentos de documentos EXISTENTES en el sistema que están relacionados (para contexto de contradicciones o duplicidades).
 
-REGLAS:
+REGLAS GENERALES:
 1. Responde siempre en español, de forma clara, breve y profesional.
-2. Cuando el usuario pregunte algo conceptual ("¿por qué contradice?", "¿qué aporta esto?"), responde en texto normal sin bloques especiales.
-3. Cuando el usuario pida un cambio concreto en el texto ("reescribe X", "corrige Y", "cambia Z por W"), responde así:
-   - Primero una frase corta en texto normal explicando la propuesta.
-   - Después, UN BLOQUE JSON delimitado EXACTAMENTE así:
+2. Cuando el usuario pregunte algo conceptual ("¿por qué contradice?", "¿qué aporta esto?", "¿qué opinas de X?"), responde en texto normal sin bloques especiales.
+3. Cuando el usuario pida un cambio, corrección o borrado en el texto, responde así:
+   - Primero una frase corta explicando la propuesta.
+   - Después, UN BLOQUE JSON delimitado EXACTAMENTE así (sin acentos graves, sin markdown, sin nada extra):
 
 <<<REPLACEMENT>>>
-{"find": "texto exacto a buscar en el documento", "replace": "texto nuevo que sustituye"}
+{"find": "texto exacto a buscar", "replace": "texto nuevo"}
 <<<END>>>
 
-4. REGLAS CRÍTICAS del bloque REPLACEMENT:
-   - El campo "find" DEBE ser un substring exacto y verbatim del TEXTO ACTUAL. Copia literal. NO parafrasees.
-   - Si el fragmento a cambiar aparece más de una vez, incluye suficiente contexto en "find" para que sea único.
-   - No incluyas saltos de línea falsos. Respeta el texto tal cual aparece.
-   - El campo "replace" es el texto nuevo que lo sustituirá.
-   - Si propones varios cambios a la vez, genera varios bloques REPLACEMENT seguidos.
-5. Si no estás seguro del texto exacto a cambiar, pide aclaración antes de proponer un REPLACEMENT.
-6. Nunca inventes datos que no estén en los documentos existentes ni en el texto actual.`;
+REGLAS CRÍTICAS del campo "find" (¡LEE BIEN!):
+A. El "find" DEBE ser una copia literal carácter por carácter de un substring del TEXTO_ACTUAL entre los delimitadores. Ni una coma de más ni de menos.
+B. NO parafrasees. NO normalices espacios. NO corrijas ortografía. NO cambies mayúsculas. NO añadas puntos al final. Copia exactamente lo que hay en el TEXTO_ACTUAL.
+C. Los saltos de línea dentro del "find" deben ir como literales \\n dentro del JSON.
+D. Si el fragmento que quieres cambiar aparece más de una vez en el texto, incluye suficiente contexto antes o después para que sea ÚNICO.
+E. El "find" debe ser lo más CORTO posible pero único. Prefiere 1-3 frases a copiar párrafos enteros.
+F. Para BORRAR texto: usa "replace" vacío "". Para AÑADIR texto nuevo: usa como "find" la frase justo anterior y como "replace" esa misma frase + el texto nuevo.
+G. Si NO puedes localizar el fragmento exacto en TEXTO_ACTUAL, NO inventes un REPLACEMENT. En su lugar, pide al usuario que te señale el fragmento exacto o cítale literalmente qué parte vas a tocar.
+
+EJEMPLOS CORRECTOS:
+
+Usuario: "Borra el párrafo sobre vacaciones"
+Respuesta correcta:
+Voy a eliminar el párrafo que menciona las vacaciones.
+<<<REPLACEMENT>>>
+{"find": "Todos los empleados tienen derecho a 22 días de vacaciones al año.", "replace": ""}
+<<<END>>>
+
+Usuario: "Cambia 22 días por 25"
+Respuesta correcta:
+Actualizo la cifra de días de vacaciones.
+<<<REPLACEMENT>>>
+{"find": "derecho a 22 días", "replace": "derecho a 25 días"}
+<<<END>>>
+
+Usuario: "Elimina la duplicación sobre el portal de RRHH"
+Si la frase exacta sobre el portal no aparece literal en el texto → responde:
+No encuentro una referencia literal al "portal de RRHH" en el texto actual. ¿Puedes copiarme la frase exacta que quieres quitar, o indicarme en qué párrafo está?
+
+NUNCA inventes texto para el "find". NUNCA.`;
 
 interface ChatMessage {
   role: 'user' | 'assistant';
@@ -71,11 +86,11 @@ export async function POST(req: NextRequest) {
 
     const body = await req.json();
     const {
-      currentText,       // string - text currently in the textarea
-      fileName,          // string
-      problemsSummary,   // string - bullet-list summary of problems to give the IA initial context
-      history,           // ChatMessage[] - previous messages in the improvement chat
-      userMessage,       // string - new user message
+      currentText,
+      fileName,
+      problemsSummary,
+      history,
+      userMessage,
     }: {
       currentText: string;
       fileName: string;
@@ -88,8 +103,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Parámetros inválidos' }, { status: 400 });
     }
 
-    // Retrieve context from existing documents relevant to the user's question
-    // (lightweight retrieval: embed the user message + a snippet of current text)
+    // Retrieve context from existing documents (docs de Drive incluidos, viven en el mismo namespace)
     let existingContext = '';
     try {
       const queryText = `${userMessage}\n\n${currentText.slice(0, 500)}`;
@@ -97,30 +111,31 @@ export async function POST(req: NextRequest) {
       const index = getIndex();
       const queryResponse = await index.namespace(orgId).query({
         vector: queryEmbedding,
-        topK: 5,
+        topK: 8,
         includeMetadata: true,
       });
 
       const matches = (queryResponse.matches || [])
-        .filter(m => m.metadata && m.score && m.score > 0.35 && String(m.metadata.documentName) !== fileName)
-        .slice(0, 5);
+        .filter(m => m.metadata && m.score && m.score > 0.30 && String(m.metadata.documentName) !== fileName)
+        .slice(0, 6);
 
       if (matches.length > 0) {
         existingContext = matches
-          .map((m, i) => `[${i + 1}] "${m.metadata!.documentName}" — ${String(m.metadata!.text).slice(0, 400)}`)
+          .map((m, i) => {
+            const src = m.metadata!.source === 'google_drive' ? ' [Drive]' : ' [Manual]';
+            return `[${i + 1}] "${m.metadata!.documentName}"${src} — ${String(m.metadata!.text).slice(0, 400)}`;
+          })
           .join('\n\n');
       }
     } catch (err) {
       console.error('[IMPROVE] Retrieval failed, continuing without existing context:', err);
     }
 
-    // Build the user turn with all the context
     const contextBlock = `=== DOCUMENTO EN EDICIÓN: "${fileName}" ===
 
-TEXTO ACTUAL (el que hay en el editor ahora mismo):
-"""
+<<<TEXTO_ACTUAL>>>
 ${currentText}
-"""
+<<<FIN_TEXTO>>>
 
 PROBLEMAS DETECTADOS INICIALMENTE:
 ${problemsSummary || '(ninguno registrado)'}
@@ -128,9 +143,10 @@ ${problemsSummary || '(ninguno registrado)'}
 ${existingContext ? `FRAGMENTOS DE DOCUMENTOS EXISTENTES RELACIONADOS:\n${existingContext}\n` : ''}
 === FIN DE CONTEXTO ===
 
-Mensaje del usuario: ${userMessage}`;
+Mensaje del usuario: ${userMessage}
 
-    // Build contents for Gemini: include prior history + the new user turn w/ context
+Recuerda: si propones un REPLACEMENT, el "find" debe ser una copia literal carácter por carácter del TEXTO_ACTUAL anterior.`;
+
     const contents: Array<{ role: string; parts: Array<{ text: string }> }> = [];
     for (const h of (history || []).slice(-10)) {
       contents.push({
@@ -148,7 +164,7 @@ Mensaje del usuario: ${userMessage}`;
         contents,
         generationConfig: {
           maxOutputTokens: 4096,
-          temperature: 0.3,
+          temperature: 0.2,
         },
       }),
     });
@@ -167,7 +183,7 @@ Mensaje del usuario: ${userMessage}`;
       ?.map((p: { text?: string }) => p.text || '')
       .join('') || '';
 
-    // Parse replacement blocks out of the reply
+    // Parse replacement blocks
     const replacements: Array<{ find: string; replace: string }> = [];
     const replacementRegex = /<<<REPLACEMENT>>>\s*([\s\S]*?)\s*<<<END>>>/g;
     let match;
@@ -182,7 +198,6 @@ Mensaje del usuario: ${userMessage}`;
       }
     }
 
-    // Strip the replacement blocks from the visible text
     const visibleText = rawReply.replace(replacementRegex, '').trim();
 
     return NextResponse.json({
