@@ -45,6 +45,7 @@ interface ImprovementModalProps {
   fileName: string;
   initialText: string;
   analysis: RawAnalysis;
+  documentSources?: Record<string, string[]>;   // { "doc.pdf": ["google_drive"], ... }
   storagePath: string;
   existingDocWithSameName?: ExistingDocForDialog | null;
   accessToken: string;
@@ -195,6 +196,7 @@ export default function ImprovementModal({
   fileName,
   initialText,
   analysis,
+  documentSources,
   storagePath,
   existingDocWithSameName,
   accessToken,
@@ -266,6 +268,19 @@ export default function ImprovementModal({
       else next.add(t);
       return next;
     });
+  }
+
+  // Returns the source label ("Drive" / "Manual" / null) for a related doc name,
+  // based on the documentSources prop returned by /api/analyze.
+  function getDocSourceBadge(docName?: string): { label: string; color: string } | null {
+    if (!docName || !documentSources) return null;
+    const sources = documentSources[docName];
+    if (!sources || sources.length === 0) return null;
+    // If the doc exists in both sources, show the one that's NOT the file we're editing's source
+    if (sources.length > 1) return { label: 'Drive+Manual', color: '#6b7280' };
+    return sources[0] === 'google_drive'
+      ? { label: 'Drive', color: '#2563eb' }
+      : { label: 'Manual', color: '#7c3aed' };
   }
 
   function goToProblem(p: Problem) {
@@ -376,6 +391,18 @@ export default function ImprovementModal({
       }
 
       const data = await res.json();
+
+      // If the backend loaded a full document (because the user mentioned it),
+      // show a small system message so the user knows the chat has full context.
+      if (data.loadedDoc && data.loadedDoc.loaded) {
+        const srcLabel = data.loadedDoc.source === 'google_drive' ? 'Drive' : 'Manual';
+        setChatMessages(prev => [...prev, {
+          id: crypto.randomUUID(),
+          role: 'assistant',
+          content: `📄 He cargado el contenido completo de **${data.loadedDoc.name}** (${srcLabel}) para poder compararlo con el documento actual.`,
+        }]);
+      }
+
       setChatMessages(prev => [...prev, {
         id: crypto.randomUUID(),
         role: 'assistant',
@@ -690,6 +717,7 @@ export default function ImprovementModal({
               }}>
                 {visibleProblems.map((p, i) => {
                   const meta = TYPE_META[p.type];
+                  const srcBadge = getDocSourceBadge(p.relatedDoc);
                   return (
                     <div
                       key={p.id}
@@ -699,14 +727,25 @@ export default function ImprovementModal({
                         borderLeft: `3px solid ${meta.color}`,
                       }}
                     >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 3 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 3, flexWrap: 'wrap' }}>
                         <span style={{
                           fontSize: 9, fontWeight: 600, textTransform: 'uppercase',
                           color: meta.color, letterSpacing: 0.3,
                         }}>
                           {meta.label}
                         </span>
-                        <span style={{ fontSize: 11, fontWeight: 500, color: 'var(--text-primary)', flex: 1 }}>
+                        {srcBadge && (
+                          <span style={{
+                            fontSize: 8, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.3,
+                            padding: '1px 5px', borderRadius: 3,
+                            background: `${srcBadge.color}1a`,
+                            color: srcBadge.color,
+                            border: `0.5px solid ${srcBadge.color}66`,
+                          }}>
+                            {srcBadge.label}
+                          </span>
+                        )}
+                        <span style={{ fontSize: 11, fontWeight: 500, color: 'var(--text-primary)', flex: 1, minWidth: 0 }}>
                           {p.title}
                         </span>
                         {p.textRef && (
