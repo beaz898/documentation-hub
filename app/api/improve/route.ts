@@ -192,7 +192,10 @@ export async function POST(req: NextRequest) {
       .from('documents')
       .select('id, name, source, chunk_count')
       .eq('org_id', orgId);
-    const orgDocs: DocRow[] = (orgDocsRaw || []).filter(d => d.name !== fileName);
+    // Note: we don't filter by name here. The doc being edited is NOT yet indexed
+    // (it's a fresh upload), so any indexed doc with the same name is a DIFFERENT
+    // document (typically a Drive version) that we want to be able to compare against.
+    const orgDocs: DocRow[] = orgDocsRaw || [];
 
     // Detect explicit mention of another document by name
     const mentionedDoc = detectMentionedDoc(userMessage, orgDocs);
@@ -220,7 +223,9 @@ export async function POST(req: NextRequest) {
       });
 
       const matches = (queryResponse.matches || [])
-        .filter(m => m.metadata && m.score && m.score > 0.28 && String(m.metadata.documentName) !== fileName)
+        // Same reasoning: don't exclude by name. The doc being edited isn't indexed yet,
+        // so any match is by definition a different document.
+        .filter(m => m.metadata && m.score && m.score > 0.28)
         // Don't re-include the mentioned doc's chunks here (we already loaded it fully)
         .filter(m => !mentionedDoc || String(m.metadata!.documentId) !== mentionedDoc.id)
         .slice(0, 6);
