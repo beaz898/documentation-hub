@@ -11,20 +11,19 @@ export type ProblemType = 'contradiccion' | 'duplicidad' | 'ortografia' | 'ambig
 export interface Problem {
   id: string;
   type: ProblemType;
-  title: string;           // short label ("Contradicción con politica.pdf")
-  description: string;     // longer explanation
-  textRef?: string;        // optional verbatim snippet of the document where the problem lives
-  relatedDoc?: string;     // optional name of the other document involved
+  title: string;
+  description: string;
+  textRef?: string;
+  relatedDoc?: string;
 }
 
 interface ChatMessage {
   id: string;
   role: 'user' | 'assistant';
   content: string;
-  replacements?: Array<{ find: string; replace: string; applied?: boolean }>;
+  replacements?: Array<{ find: string; replace: string; applied?: boolean; failed?: boolean }>;
 }
 
-// Raw analysis coming from /api/analyze — same shape as AnalysisModal expects
 interface RawAnalysis {
   isDuplicate?: boolean;
   duplicateOf?: string;
@@ -47,10 +46,10 @@ interface ImprovementModalProps {
   initialText: string;
   analysis: RawAnalysis;
   storagePath: string;
-  existingDocWithSameName?: ExistingDocForDialog | null; // if present → show replace/keep dialog on index
+  existingDocWithSameName?: ExistingDocForDialog | null;
   accessToken: string;
-  onClose: () => void;      // called when user cancels / closes (parent will delete storage)
-  onIndexed: (docName: string, wasReplaced: boolean) => void; // called after successful index
+  onClose: () => void;
+  onIndexed: (docName: string, wasReplaced: boolean) => void;
 }
 
 // ============================================================
@@ -65,8 +64,89 @@ const TYPE_META: Record<ProblemType, { label: string; color: string; bg: string;
 };
 
 // ============================================================
-// Convert the raw analysis into a flat list of typed Problems
+// Tolerant matching: tries exact, then whitespace-normalized, then fuzzy
 // ============================================================
+function normalizeWhitespace(s: string): string {
+  return s.replace(/\s+/g, ' ').trim();
+}
+
+/**
+ * Tries to find `find` inside `text` using progressively more tolerant strategies.
+ * Returns the match range in the ORIGINAL text, or null if nothing works.
+ */
+function findMatchRange(text: string, find: string): { start: number; end: number } | null {
+  if (!find) return null;
+
+  // 1. Exact match
+  const exactIdx = text.indexOf(find);
+  if (exactIdx !== -1) {
+    return { start: exactIdx, end: exactIdx + find.length };
+  }
+
+  // 2. Whitespace-normalized match
+  //    Normalize both sides but keep a mapping back to original offsets in `text`.
+  //    Strategy: walk `text`, build a normalized version with an index map,
+  //    search the normalized `find` inside it, then map back.
+  const normFind = normalizeWhitespace(find);
+  if (!normFind) return null;
+
+  const mapping: number[] = []; // mapping[i] = original index of normalized char i
+  let normText = '';
+  let lastWasSpace = false;
+  let started = false;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    const isSpace = /\s/.test(ch);
+    if (isSpace) {
+      if (!started) continue; // skip leading whitespace
+      if (!lastWasSpace) {
+        normText += ' ';
+        mapping.push(i);
+        lastWasSpace = true;
+      }
+    } else {
+      normText += ch;
+      mapping.push(i);
+      lastWasSpace = false;
+      started = true;
+    }
+  }
+  // Trim trailing space from normText
+  while (normText.endsWith(' ')) {
+    normText = normText.slice(0, -1);
+    mapping.pop();
+  }
+
+  const normIdx = normText.indexOf(normFind);
+  if (normIdx !== -1 && mapping[normIdx] !== undefined) {
+    const start = mapping[normIdx];
+    const lastNormCharIdx = normIdx + normFind.length - 1;
+    const endInOriginal = (mapping[lastNormCharIdx] ?? start) + 1;
+    return { start, end: endInOriginal };
+  }
+
+  // 3. Fuzzy match: first ~15 chars + last ~15 chars of find
+  //    Useful when the middle got paraphrased but the anchors are still there.
+  if (normFind.length >= 30) {
+    const head = normFind.slice(0, 15);
+    const tail = normFind.slice(-15);
+    const headIdx = normText.indexOf(head);
+    if (headIdx !== -1) {
+      const tailIdx = normText.indexOf(tail, headIdx + head.length);
+      if (tailIdx !== -1) {
+        const start = mapping[headIdx];
+        const endInOriginal = (mapping[tailIdx + tail.length - 1] ?? start) + 1;
+        // Only accept if the fuzzy span is not absurdly larger than the expected length
+        if (endInOriginal - start < find.length * 2.5) {
+          return { start, end: endInOriginal };
+        }
+      }
+    }
+  }
+
+  return null;
+}
+
 function problemsFromAnalysis(analysis: RawAnalysis): Problem[] {
   const out: Problem[] = [];
 
@@ -137,14 +217,14 @@ export default function ImprovementModal({
   const chatEndRef = useRef<HTMLDivElement>(null);
   const filterBtnRef = useRef<HTMLButtonElement>(null);
 
-  // Initial assistant message: summarise the problems found
+  // Initial assistant message
   useEffect(() => {
     if (chatMessages.length > 0 || problems.length === 0) return;
     const summary = problems.map((p, i) => `${i + 1}. [${TYPE_META[p.type].label}] ${p.title}`).join('\n');
     setChatMessages([{
       id: crypto.randomUUID(),
       role: 'assistant',
-      content: `He detectado ${problems.length} problema${problems.length !== 1 ? 's' : ''} en el documento:\n\n${summary}\n\n¿Por dónde quieres empezar? Puedo proponer correcciones concretas, explicarte cualquier punto o reescribir fragmentos a tu gusto.`,
+      content: `He detectado ${problems.length} problema${problems.length !== 1 ? 's' : ''} en el documento:\n\n${summary}\n\n¿Por dónde quieres empezar? Puedo proponer correcciones concretas, explicarte cualquier punto, borrar fragmentos o reescribir partes a tu gusto.`,
     }]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -166,13 +246,11 @@ export default function ImprovementModal({
     return () => window.removeEventListener('mousedown', handleClick);
   }, [filterMenuOpen]);
 
-  // Derived: visible problems after filter
   const visibleProblems = useMemo(
     () => problems.filter(p => activeTypes.has(p.type)),
     [problems, activeTypes]
   );
 
-  // Count problems per type
   const countsByType = useMemo(() => {
     const c: Record<ProblemType, number> = {
       contradiccion: 0, duplicidad: 0, ortografia: 0, ambiguedad: 0, sugerencia: 0,
@@ -190,20 +268,17 @@ export default function ImprovementModal({
     });
   }
 
-  // Scroll to + select a problem's textRef in the textarea
   function goToProblem(p: Problem) {
     if (!p.textRef || !textareaRef.current) return;
-    const idx = text.indexOf(p.textRef);
-    if (idx === -1) {
-      // The text has been edited and the ref no longer exists
-      alert('Ese fragmento ya no se encuentra en el texto (quizá lo editaste). Usa "Reanalizar" para actualizar la lista de problemas.');
+    const range = findMatchRange(text, p.textRef);
+    if (!range) {
+      alert('Ese fragmento ya no se encuentra en el texto (quizá lo editaste).');
       return;
     }
     const ta = textareaRef.current;
     ta.focus();
-    ta.setSelectionRange(idx, idx + p.textRef.length);
-    // Force scroll
-    const beforeText = text.slice(0, idx);
+    ta.setSelectionRange(range.start, range.end);
+    const beforeText = text.slice(0, range.start);
     const lineNumber = beforeText.split('\n').length;
     const lineHeight = 20;
     ta.scrollTop = Math.max(0, (lineNumber - 3) * lineHeight);
@@ -230,28 +305,37 @@ export default function ImprovementModal({
     URL.revokeObjectURL(url);
   }
 
-  // Apply a single replacement to the textarea text
+  // Apply a single replacement using tolerant matching
   function applyReplacement(msgId: string, replacementIdx: number) {
-    setChatMessages(prev => {
-      const msg = prev.find(m => m.id === msgId);
-      if (!msg || !msg.replacements) return prev;
-      const r = msg.replacements[replacementIdx];
-      if (!r || r.applied) return prev;
+    const msg = chatMessages.find(m => m.id === msgId);
+    if (!msg || !msg.replacements) return;
+    const r = msg.replacements[replacementIdx];
+    if (!r || r.applied) return;
 
-      const idx = text.indexOf(r.find);
-      if (idx === -1) {
-        alert('No se pudo aplicar el cambio: el texto original ya no está en el documento (puede que lo hayas editado).');
-        return prev;
-      }
-      const newText = text.slice(0, idx) + r.replace + text.slice(idx + r.find.length);
-      setText(newText);
-
-      return prev.map(m => {
+    const range = findMatchRange(text, r.find);
+    if (!range) {
+      // Mark as failed so the user knows
+      setChatMessages(prev => prev.map(m => {
         if (m.id !== msgId) return m;
-        const newReplacements = m.replacements!.map((rr, i) => i === replacementIdx ? { ...rr, applied: true } : rr);
+        const newReplacements = m.replacements!.map((rr, i) =>
+          i === replacementIdx ? { ...rr, failed: true } : rr
+        );
         return { ...m, replacements: newReplacements };
-      });
-    });
+      }));
+      alert('No se pudo localizar el fragmento exacto en el texto. Prueba a pedirle al chat que te indique el fragmento literal o edítalo a mano.');
+      return;
+    }
+
+    const newText = text.slice(0, range.start) + r.replace + text.slice(range.end);
+    setText(newText);
+
+    setChatMessages(prev => prev.map(m => {
+      if (m.id !== msgId) return m;
+      const newReplacements = m.replacements!.map((rr, i) =>
+        i === replacementIdx ? { ...rr, applied: true, failed: false } : rr
+      );
+      return { ...m, replacements: newReplacements };
+    }));
   }
 
   async function handleSendChat() {
@@ -315,14 +399,12 @@ export default function ImprovementModal({
     }
   }
 
-  // Ask user to confirm close (will trigger Storage deletion)
   function handleCloseRequest() {
     if (window.confirm('¿Descartar los cambios y cerrar? El archivo original se eliminará.')) {
       onClose();
     }
   }
 
-  // Final index — either directly or via the replace/keep dialog
   function handleIndexClick() {
     if (existingDocWithSameName) {
       setShowReplaceDialog(true);
@@ -337,7 +419,7 @@ export default function ImprovementModal({
     try {
       const today = new Date().toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
       const finalName = replaceExisting
-        ? fileName                       // keep original name when replacing
+        ? fileName
         : `${fileName} (corregido ${today})`;
 
       const res = await fetch('/api/index-text', {
@@ -367,11 +449,11 @@ export default function ImprovementModal({
     }
   }
 
-  // ============================================================
-  // Render
-  // ============================================================
   const allTypes: ProblemType[] = ['contradiccion', 'duplicidad', 'ortografia', 'ambiguedad', 'sugerencia'];
 
+  // ============================================================
+  // Render — STRICT flex layout so footer never moves
+  // ============================================================
   return (
     <div
       className="modal-overlay"
@@ -385,17 +467,21 @@ export default function ImprovementModal({
       <div
         onClick={e => e.stopPropagation()}
         style={{
-          width: '100%', maxWidth: 1200, height: '90vh', maxHeight: 900,
+          width: '100%', maxWidth: 1200,
+          height: '90vh',                       // FIXED height
+          maxHeight: 900,
           background: 'var(--bg-primary)', borderRadius: 14,
           border: '0.5px solid var(--border)',
-          display: 'flex', flexDirection: 'column', overflow: 'hidden',
+          display: 'flex', flexDirection: 'column',
+          overflow: 'hidden',
           boxShadow: '0 20px 60px rgba(0,0,0,0.4)',
         }}
       >
-        {/* Header */}
+        {/* HEADER — fixed height */}
         <div style={{
           padding: '14px 20px', borderBottom: '0.5px solid var(--border)',
-          display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0,
+          display: 'flex', alignItems: 'center', gap: 12,
+          flexShrink: 0, flexGrow: 0,
         }}>
           <div style={{
             width: 32, height: 32, borderRadius: 8, background: 'var(--brand-light)',
@@ -430,14 +516,25 @@ export default function ImprovementModal({
           </button>
         </div>
 
-        {/* Two-panel body */}
-        <div style={{ flex: 1, display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', minHeight: 0 }}>
+        {/* BODY — flex: 1, cannot overflow */}
+        <div style={{
+          flex: '1 1 auto',
+          display: 'grid',
+          gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)',
+          minHeight: 0,
+          overflow: 'hidden',
+        }}>
 
           {/* LEFT: editor */}
-          <div style={{ display: 'flex', flexDirection: 'column', borderRight: '0.5px solid var(--border)', minWidth: 0 }}>
+          <div style={{
+            display: 'flex', flexDirection: 'column',
+            borderRight: '0.5px solid var(--border)',
+            minWidth: 0, minHeight: 0,
+          }}>
             <div style={{
               padding: '10px 16px', borderBottom: '0.5px solid var(--border)',
-              display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0,
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              flexShrink: 0, flexGrow: 0,
             }}>
               <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>
                 Texto del documento
@@ -447,14 +544,18 @@ export default function ImprovementModal({
               </span>
             </div>
 
-            <div style={{ flex: 1, padding: '10px 16px', minHeight: 0, display: 'flex' }}>
+            <div style={{
+              flex: '1 1 auto', padding: '10px 16px',
+              minHeight: 0, display: 'flex', overflow: 'hidden',
+            }}>
               <textarea
                 ref={textareaRef}
                 value={text}
                 onChange={e => setText(e.target.value)}
                 spellCheck={false}
                 style={{
-                  flex: 1, width: '100%', resize: 'none',
+                  flex: 1, width: '100%', height: '100%',
+                  resize: 'none',
                   background: 'var(--bg-secondary)',
                   border: '0.5px solid var(--border)', borderRadius: 8,
                   padding: '12px 14px',
@@ -468,7 +569,8 @@ export default function ImprovementModal({
 
             <div style={{
               padding: '10px 16px', borderTop: '0.5px solid var(--border)',
-              display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0,
+              display: 'flex', alignItems: 'center', gap: 10,
+              flexShrink: 0, flexGrow: 0,
             }}>
               <button
                 onClick={handleCopy}
@@ -491,13 +593,18 @@ export default function ImprovementModal({
             </div>
           </div>
 
-          {/* RIGHT: chat */}
-          <div style={{ display: 'flex', flexDirection: 'column', background: 'var(--bg-secondary)', minWidth: 0 }}>
+          {/* RIGHT: chat column — STRICT flex so footer cannot be pushed */}
+          <div style={{
+            display: 'flex', flexDirection: 'column',
+            background: 'var(--bg-secondary)',
+            minWidth: 0, minHeight: 0, overflow: 'hidden',
+          }}>
 
-            {/* Chat header with filter */}
+            {/* Chat header with filter — fixed */}
             <div style={{
               padding: '10px 16px', borderBottom: '0.5px solid var(--border)',
-              display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0,
+              display: 'flex', alignItems: 'center', gap: 10,
+              flexShrink: 0, flexGrow: 0,
             }}>
               <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', flex: 1 }}>
                 Asistente de mejora
@@ -573,12 +680,13 @@ export default function ImprovementModal({
               </div>
             </div>
 
-            {/* Problems list (filtered) */}
+            {/* Problems list — fixed max height, independent scroll */}
             {visibleProblems.length > 0 && (
               <div style={{
                 padding: '10px 16px', borderBottom: '0.5px solid var(--border)',
-                display: 'flex', flexDirection: 'column', gap: 6, flexShrink: 0,
-                maxHeight: '35%', overflowY: 'auto',
+                display: 'flex', flexDirection: 'column', gap: 6,
+                flexShrink: 0, flexGrow: 0,
+                maxHeight: 160, overflowY: 'auto',
               }}>
                 {visibleProblems.map((p, i) => {
                   const meta = TYPE_META[p.type];
@@ -625,8 +733,14 @@ export default function ImprovementModal({
               </div>
             )}
 
-            {/* Chat messages */}
-            <div style={{ flex: 1, overflowY: 'auto', padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: 10, minHeight: 0 }}>
+            {/* Chat messages — the ONLY element that takes the remaining space */}
+            <div style={{
+              flex: '1 1 auto',
+              overflowY: 'auto',
+              padding: '12px 16px',
+              display: 'flex', flexDirection: 'column', gap: 10,
+              minHeight: 0,
+            }}>
               {chatMessages.map(msg => (
                 <div
                   key={msg.id}
@@ -655,40 +769,54 @@ export default function ImprovementModal({
                     </div>
                     {msg.replacements && msg.replacements.length > 0 && (
                       <div style={{ marginTop: 6, display: 'flex', flexDirection: 'column', gap: 6 }}>
-                        {msg.replacements.map((r, i) => (
-                          <div
-                            key={i}
-                            style={{
-                              padding: '6px 9px', borderRadius: 7,
-                              background: r.applied ? 'rgba(5,150,105,0.08)' : 'var(--bg-tertiary)',
-                              border: `0.5px solid ${r.applied ? 'rgba(5,150,105,0.4)' : 'var(--border)'}`,
-                            }}
-                          >
-                            <p style={{ fontSize: 9, color: 'var(--text-muted)', margin: '0 0 3px', textTransform: 'uppercase', fontWeight: 600 }}>
-                              {r.applied ? '✓ Aplicado' : 'Propuesta de cambio'}
-                            </p>
-                            <p style={{ fontSize: 10, color: 'var(--text-secondary)', margin: '0 0 2px', textDecoration: 'line-through' }}>
-                              {r.find.slice(0, 120)}{r.find.length > 120 ? '…' : ''}
-                            </p>
-                            <p style={{ fontSize: 10, color: 'var(--text-primary)', margin: 0 }}>
-                              → {r.replace.slice(0, 120)}{r.replace.length > 120 ? '…' : ''}
-                            </p>
-                            {!r.applied && (
-                              <div style={{ display: 'flex', gap: 5, marginTop: 6 }}>
-                                <button
-                                  onClick={() => applyReplacement(msg.id, i)}
-                                  style={{
-                                    fontSize: 10, padding: '3px 8px', borderRadius: 5,
-                                    border: 'none', background: '#059669', color: '#fff',
-                                    cursor: 'pointer', fontWeight: 500,
-                                  }}
-                                >
-                                  Aplicar al texto
-                                </button>
-                              </div>
-                            )}
-                          </div>
-                        ))}
+                        {msg.replacements.map((r, i) => {
+                          const stateBg = r.applied
+                            ? 'rgba(5,150,105,0.08)'
+                            : r.failed
+                              ? 'rgba(220,38,38,0.08)'
+                              : 'var(--bg-tertiary)';
+                          const stateBorder = r.applied
+                            ? 'rgba(5,150,105,0.4)'
+                            : r.failed
+                              ? 'rgba(220,38,38,0.4)'
+                              : 'var(--border)';
+                          return (
+                            <div
+                              key={i}
+                              style={{
+                                padding: '6px 9px', borderRadius: 7,
+                                background: stateBg,
+                                border: `0.5px solid ${stateBorder}`,
+                              }}
+                            >
+                              <p style={{ fontSize: 9, color: 'var(--text-muted)', margin: '0 0 3px', textTransform: 'uppercase', fontWeight: 600 }}>
+                                {r.applied ? '✓ Aplicado' : r.failed ? '✗ No se pudo aplicar' : 'Propuesta de cambio'}
+                              </p>
+                              {r.find && (
+                                <p style={{ fontSize: 10, color: 'var(--text-secondary)', margin: '0 0 2px', textDecoration: 'line-through' }}>
+                                  {r.find.slice(0, 140)}{r.find.length > 140 ? '…' : ''}
+                                </p>
+                              )}
+                              <p style={{ fontSize: 10, color: 'var(--text-primary)', margin: 0 }}>
+                                {r.replace ? `→ ${r.replace.slice(0, 140)}${r.replace.length > 140 ? '…' : ''}` : '→ (eliminar)'}
+                              </p>
+                              {!r.applied && !r.failed && (
+                                <div style={{ display: 'flex', gap: 5, marginTop: 6 }}>
+                                  <button
+                                    onClick={() => applyReplacement(msg.id, i)}
+                                    style={{
+                                      fontSize: 10, padding: '3px 8px', borderRadius: 5,
+                                      border: 'none', background: '#059669', color: '#fff',
+                                      cursor: 'pointer', fontWeight: 500,
+                                    }}
+                                  >
+                                    Aplicar al texto
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
                       </div>
                     )}
                   </div>
@@ -711,8 +839,12 @@ export default function ImprovementModal({
               <div ref={chatEndRef} />
             </div>
 
-            {/* Chat input */}
-            <div style={{ padding: '10px 14px', borderTop: '0.5px solid var(--border)', flexShrink: 0, background: 'var(--bg-primary)' }}>
+            {/* Chat input — fixed */}
+            <div style={{
+              padding: '10px 14px', borderTop: '0.5px solid var(--border)',
+              flexShrink: 0, flexGrow: 0,
+              background: 'var(--bg-primary)',
+            }}>
               <div style={{
                 display: 'flex', alignItems: 'flex-end', gap: 6,
                 background: 'var(--bg-secondary)',
@@ -754,67 +886,93 @@ export default function ImprovementModal({
           </div>
         </div>
 
-        {/* Footer with action buttons */}
+        {/* FOOTER — fixed, never moves, redesigned buttons with distinct colors */}
         <div style={{
           padding: '12px 20px', borderTop: '0.5px solid var(--border)',
-          display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0,
+          display: 'flex', alignItems: 'center', gap: 10,
+          flexShrink: 0, flexGrow: 0,
           background: 'var(--bg-primary)',
         }}>
+          {/* Volver y descartar — red outline */}
           <button
             onClick={handleCloseRequest}
             disabled={indexing}
             style={{
               display: 'flex', alignItems: 'center', gap: 6,
-              fontSize: 12, padding: '8px 12px', borderRadius: 8,
-              border: '0.5px solid var(--border)', background: 'transparent',
-              color: 'var(--text-secondary)', cursor: indexing ? 'not-allowed' : 'pointer',
+              fontSize: 12, padding: '9px 14px', borderRadius: 8,
+              border: '0.5px solid rgba(220,38,38,0.5)',
+              background: 'rgba(220,38,38,0.06)',
+              color: '#dc2626',
+              cursor: indexing ? 'not-allowed' : 'pointer',
+              fontWeight: 500,
+              transition: 'background 0.15s',
             }}
+            onMouseEnter={e => { if (!indexing) e.currentTarget.style.background = 'rgba(220,38,38,0.12)'; }}
+            onMouseLeave={e => { if (!indexing) e.currentTarget.style.background = 'rgba(220,38,38,0.06)'; }}
           >
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <line x1="19" y1="12" x2="5" y2="12" />
-              <polyline points="12 19 5 12 12 5" />
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <polyline points="3 6 5 6 21 6" />
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
             </svg>
-            Volver y descartar
+            Descartar y cerrar
           </button>
+
           <div style={{ flex: 1 }} />
+
+          {/* Descargar .txt — neutral outline */}
           <button
             onClick={handleDownload}
             disabled={indexing}
             style={{
               display: 'flex', alignItems: 'center', gap: 6,
-              fontSize: 12, padding: '8px 12px', borderRadius: 8,
-              border: '0.5px solid var(--border)', background: 'var(--bg-tertiary)',
-              color: 'var(--text-secondary)', cursor: indexing ? 'not-allowed' : 'pointer',
+              fontSize: 12, padding: '9px 14px', borderRadius: 8,
+              border: '0.5px solid var(--border)',
+              background: 'transparent',
+              color: 'var(--text-secondary)',
+              cursor: indexing ? 'not-allowed' : 'pointer',
+              fontWeight: 500,
+              transition: 'background 0.15s',
             }}
+            onMouseEnter={e => { if (!indexing) e.currentTarget.style.background = 'var(--surface-hover)'; }}
+            onMouseLeave={e => { if (!indexing) e.currentTarget.style.background = 'transparent'; }}
           >
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
               <polyline points="7 10 12 15 17 10" />
               <line x1="12" y1="15" x2="12" y2="3" />
             </svg>
             Descargar .txt
           </button>
+
+          {/* Indexar versión corregida — prominent green */}
           <button
             onClick={handleIndexClick}
             disabled={indexing}
             style={{
               display: 'flex', alignItems: 'center', gap: 6,
-              fontSize: 12, padding: '8px 14px', borderRadius: 8,
-              border: 'none', background: 'var(--brand)', color: '#fff',
-              cursor: indexing ? 'not-allowed' : 'pointer', fontWeight: 500,
+              fontSize: 13, padding: '9px 16px', borderRadius: 8,
+              border: 'none',
+              background: indexing ? 'var(--bg-tertiary)' : '#059669',
+              color: indexing ? 'var(--text-muted)' : '#fff',
+              cursor: indexing ? 'not-allowed' : 'pointer',
+              fontWeight: 600,
+              boxShadow: indexing ? 'none' : '0 1px 3px rgba(5,150,105,0.3)',
+              transition: 'background 0.15s',
             }}
+            onMouseEnter={e => { if (!indexing) e.currentTarget.style.background = '#047857'; }}
+            onMouseLeave={e => { if (!indexing) e.currentTarget.style.background = '#059669'; }}
           >
             {indexing ? (
               <>
                 <div className="animate-spin" style={{
-                  width: 12, height: 12, border: '2px solid currentColor',
+                  width: 13, height: 13, border: '2px solid currentColor',
                   borderTopColor: 'transparent', borderRadius: '50%',
                 }} />
                 Indexando...
               </>
             ) : (
               <>
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                   <polyline points="20 6 9 17 4 12" />
                 </svg>
                 Indexar versión corregida
@@ -823,7 +981,7 @@ export default function ImprovementModal({
           </button>
         </div>
 
-        {/* Replace/Keep dialog (second-level modal) */}
+        {/* Replace/Keep dialog */}
         {showReplaceDialog && existingDocWithSameName && (
           <div
             onClick={e => e.stopPropagation()}
@@ -840,10 +998,10 @@ export default function ImprovementModal({
               padding: 20, maxWidth: 460, width: '100%',
             }}>
               <h3 style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-primary)', margin: '0 0 8px' }}>
-                Ya existe una versión de este documento
+                Ya existe una versión manual de este documento
               </h3>
               <p style={{ fontSize: 13, color: 'var(--text-secondary)', margin: '0 0 16px', lineHeight: 1.5 }}>
-                El documento <strong>{existingDocWithSameName.name}</strong> ya está indexado. ¿Qué quieres hacer con la versión corregida?
+                El documento manual <strong>{existingDocWithSameName.name}</strong> ya está indexado. ¿Qué quieres hacer con la versión corregida?
               </p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 <button
@@ -864,8 +1022,9 @@ export default function ImprovementModal({
                   onClick={() => doIndex(true)}
                   style={{
                     padding: '10px 14px', borderRadius: 8,
-                    border: '0.5px solid var(--danger)', background: 'rgba(220,38,38,0.08)',
-                    color: 'var(--danger-text, #b91c1c)', fontSize: 13, cursor: 'pointer',
+                    border: '0.5px solid rgba(220,38,38,0.5)',
+                    background: 'rgba(220,38,38,0.08)',
+                    color: '#b91c1c', fontSize: 13, cursor: 'pointer',
                     textAlign: 'left',
                   }}
                 >
