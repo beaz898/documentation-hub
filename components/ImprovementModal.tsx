@@ -216,6 +216,7 @@ export default function ImprovementModal({
   const [showReplaceDialog, setShowReplaceDialog] = useState(false);
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const chatInputRef = useRef<HTMLTextAreaElement>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
   const filterBtnRef = useRef<HTMLButtonElement>(null);
 
@@ -416,6 +417,8 @@ export default function ImprovementModal({
       }]);
     } finally {
       setChatSending(false);
+      // Refocus the input so the user can keep typing without clicking
+      setTimeout(() => chatInputRef.current?.focus(), 0);
     }
   }
 
@@ -486,7 +489,8 @@ export default function ImprovementModal({
       className="modal-overlay"
       style={{
         position: 'fixed', inset: 0, zIndex: 100,
-        background: 'rgba(0,0,0,0.55)',
+        background: 'rgba(0,0,0,0.78)',
+        backdropFilter: 'blur(2px)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         padding: 20,
       }}
@@ -890,12 +894,14 @@ export default function ImprovementModal({
                 border: '0.5px solid var(--border)', borderRadius: 9, padding: '6px 9px',
               }}>
                 <textarea
+                  ref={chatInputRef}
                   value={chatInput}
                   onChange={e => setChatInput(e.target.value)}
                   onKeyDown={handleChatKeyDown}
                   placeholder="Escribe una instrucción..."
                   rows={1}
                   disabled={chatSending}
+                  autoFocus
                   style={{
                     flex: 1, resize: 'none', outline: 'none', border: 'none',
                     background: 'transparent', color: 'var(--text-primary)',
