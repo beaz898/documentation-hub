@@ -231,13 +231,38 @@ export default function ChatPage() {
     await indexDocument(storagePath, file.name, file.size);
   }
 
-  async function indexDocument(storagePath: string, fileName: string, fileSize: number) {
+  async function indexDocument(storagePath: string, fileName: string, fileSize: number, force = false) {
     if (!session) return;
     const res = await fetch('/api/ingest', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
-      body: JSON.stringify({ storagePath, fileName, fileSize }),
+      body: JSON.stringify({ storagePath, fileName, fileSize, force }),
     });
+
+    // Handle manual collision: the backend refuses and asks us to confirm
+    if (res.status === 409) {
+      const data = await res.json();
+      if (data.collision) {
+        const confirmed = window.confirm(
+          `Ya existe un documento manual llamado "${fileName}".\n\n` +
+          `¿Quieres reemplazarlo por el nuevo?\n\n` +
+          `(Los documentos de Google Drive con el mismo nombre NO se tocarán.)`
+        );
+        if (confirmed) {
+          // Retry with force = true
+          return indexDocument(storagePath, fileName, fileSize, true);
+        } else {
+          // User cancelled: remove the uploaded file from Storage
+          await supabase.storage.from('documents').remove([storagePath]);
+          setMessages(prev => [...prev, {
+            id: crypto.randomUUID(), role: 'assistant',
+            content: `Subida de **${fileName}** cancelada.`,
+          }]);
+          return;
+        }
+      }
+    }
+
     if (!res.ok) {
       const data = await res.json();
       await supabase.storage.from('documents').remove([storagePath]);
@@ -286,8 +311,9 @@ export default function ChatPage() {
       }
       const data = await res.json();
 
-      // Check if a doc with the same name already exists (for the replace/keep dialog)
-      const existing = documents.find(d => d.name === fileName);
+      // Check if a MANUAL doc with the same name already exists (for the replace/keep dialog)
+      // We deliberately ignore Drive docs here: the manual upload flow never touches Drive.
+      const existing = documents.find(d => d.name === fileName && d.source !== 'google_drive');
 
       setImprovementTarget({
         fileName,
