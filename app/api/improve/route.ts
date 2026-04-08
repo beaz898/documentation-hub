@@ -9,6 +9,29 @@ const GEMINI_API_KEY = process.env.GEMINI_API_KEY!;
 const GEMINI_MODEL = 'gemini-2.5-flash';
 const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
 
+// Retry helper for transient Gemini errors (429/503/5xx)
+async function callGeminiWithRetry(payload: object, maxAttempts = 3): Promise<Response> {
+  const delays = [0, 1500, 3500];
+  let lastResponse: Response | null = null;
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    if (delays[attempt] > 0) {
+      console.log(`[IMPROVE] Retry ${attempt}/${maxAttempts - 1} after ${delays[attempt]}ms`);
+      await new Promise(r => setTimeout(r, delays[attempt]));
+    }
+    const res = await fetch(GEMINI_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    lastResponse = res;
+    if (res.ok) return res;
+    if (res.status !== 429 && res.status !== 503 && res.status < 500) {
+      return res;
+    }
+  }
+  return lastResponse!;
+}
+
 const IMPROVE_SYSTEM_PROMPT = `Eres un asistente experto en documentación corporativa. Ayudas al usuario a mejorar un documento que tiene problemas detectados (contradicciones con otros documentos, duplicidades, ambigüedades, errores, texto redundante, etc.).
 
 Tienes acceso a:
@@ -272,24 +295,24 @@ Recuerda: si propones REPLACEMENT(s), el "find" debe ser copia literal del TEXTO
     }
     contents.push({ role: 'user', parts: [{ text: contextBlock }] });
 
-    const response = await fetch(GEMINI_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        system_instruction: { parts: [{ text: IMPROVE_SYSTEM_PROMPT }] },
-        contents,
-        generationConfig: {
-          maxOutputTokens: 6144,
-          temperature: 0.2,
-        },
-      }),
+    const response = await callGeminiWithRetry({
+      system_instruction: { parts: [{ text: IMPROVE_SYSTEM_PROMPT }] },
+      contents,
+      generationConfig: {
+        maxOutputTokens: 6144,
+        temperature: 0.2,
+      },
     });
 
     if (!response.ok) {
       const errText = await response.text();
-      console.error('[IMPROVE] Gemini error:', errText);
+      console.error(`[IMPROVE] Gemini error after retries (status=${response.status}):`, errText.slice(0, 300));
       return NextResponse.json(
-        { error: 'El asistente de mejora no está disponible en este momento. Inténtalo de nuevo en unos segundos.' },
+        {
+          error: response.status === 503 || response.status === 429
+            ? 'El asistente de IA está saturado en este momento. Vuelve a intentarlo en unos segundos.'
+            : 'No se pudo contactar con el asistente de mejora. Inténtalo de nuevo.',
+        },
         { status: 503 }
       );
     }
