@@ -10,6 +10,30 @@ const GEMINI_API_KEY = process.env.GEMINI_API_KEY!;
 const GEMINI_MODEL = 'gemini-2.5-flash';
 const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
 
+// Retry helper: tries Gemini up to 3 times with exponential backoff on 429/503/5xx
+async function callGeminiWithRetry(payload: object, maxAttempts = 3): Promise<Response> {
+  const delays = [0, 1500, 3500]; // first attempt immediate, then 1.5s, then 3.5s
+  let lastResponse: Response | null = null;
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    if (delays[attempt] > 0) {
+      console.log(`[ANALYZE] Retry ${attempt}/${maxAttempts - 1} after ${delays[attempt]}ms`);
+      await new Promise(r => setTimeout(r, delays[attempt]));
+    }
+    const res = await fetch(GEMINI_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    lastResponse = res;
+    if (res.ok) return res;
+    // Only retry on transient errors
+    if (res.status !== 429 && res.status !== 503 && res.status < 500) {
+      return res;
+    }
+  }
+  return lastResponse!;
+}
+
 const ANALYSIS_PROMPT = `Eres un auditor de documentación corporativa. Tu trabajo es comparar UN DOCUMENTO NUEVO contra TODOS los fragmentos de DOCUMENTOS EXISTENTES que te damos (pueden venir de Google Drive o de subidas manuales — ambos son igual de importantes).
 
 REGLAS DE ORO:
@@ -217,33 +241,121 @@ ${existingContext}
 
 INSTRUCCIÓN FINAL: Analiza el documento nuevo contra TODOS los ${distinctDocs.size} documentos existentes listados arriba. No ignores ninguno. Para cada documento existente con contenido relacionado, decide si hay duplicado, solapamiento o discrepancia y repórtalo en el JSON.`;
 
-    const response = await fetch(GEMINI_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        system_instruction: { parts: [{ text: ANALYSIS_PROMPT }] },
-        contents: [{ role: 'user', parts: [{ text: userMessage }] }],
-        generationConfig: {
-          maxOutputTokens: 3072,
-          temperature: 0.2,
-        },
-      }),
+    // ============================================================
+    // FAST PATH: if we have an extremely high similarity (>=0.95)
+    // with a single document, that's a near-perfect duplicate.
+    // We can short-circuit Gemini entirely.
+    // ============================================================
+    if (maxScore >= 0.95 && distinctDocs.size === 1) {
+      const dupDoc = topSimilarFragments[0];
+      const srcLabel = dupDoc.source === 'google_drive' ? 'Google Drive' : 'subidas manuales';
+      console.log(`[ANALYZE] Fast-path: near-perfect duplicate of "${dupDoc.documentName}" (score=${maxScore.toFixed(3)})`);
+
+      const fastAnalysis = {
+        isDuplicate: true,
+        duplicateOf: dupDoc.documentName,
+        duplicateConfidence: Math.round(maxScore * 100),
+        overlaps: [{
+          existingDocument: dupDoc.documentName,
+          description: `Coincidencia prácticamente total con el documento existente (${Math.round(maxScore * 100)}% de similitud).`,
+          severity: 'alta',
+        }],
+        discrepancies: [],
+        newInformation: 'No se detecta información nueva relevante.',
+        recommendation: 'NO_INDEXAR',
+        suggestedActions: [{
+          action: 'IGNORAR',
+          target: dupDoc.documentName,
+          reason: `Ya existe en ${srcLabel}. Indexarlo crearía un duplicado exacto.`,
+        }],
+        summary: `El documento es prácticamente idéntico a "${dupDoc.documentName}" (${srcLabel}). Se recomienda no indexarlo o usar el modo Mejora con IA para ver las diferencias y decidir.`,
+      };
+
+      // Build documentSources for the fast-path response
+      const fastSources: Record<string, string[]> = {};
+      fastSources[dupDoc.documentName] = [dupDoc.source];
+
+      return NextResponse.json({
+        success: true,
+        analysis: fastAnalysis,
+        hasIssues: true,
+        documentSources: fastSources,
+      });
+    }
+
+    // ============================================================
+    // Normal path: send everything to Gemini for structured analysis
+    // ============================================================
+    const response = await callGeminiWithRetry({
+      system_instruction: { parts: [{ text: ANALYSIS_PROMPT }] },
+      contents: [{ role: 'user', parts: [{ text: userMessage }] }],
+      generationConfig: {
+        maxOutputTokens: 3072,
+        temperature: 0.2,
+      },
     });
 
     if (!response.ok) {
       const errorData = await response.text();
-      console.error('[ANALYZE] Gemini error:', errorData);
+      console.error(`[ANALYZE] Gemini error after retries (status=${response.status}):`, errorData.slice(0, 300));
+
+      // FALLBACK: Gemini is unavailable but we DO have similarity data from Pinecone.
+      // Build a meaningful analysis from the retrieval results so the user gets
+      // useful info instead of a misleading "no issues" response.
+      console.log(`[ANALYZE] Building retrieval-only fallback analysis (maxScore=${maxScore.toFixed(3)}, docs=${distinctDocs.size})`);
+
+      // Group fragments by document to build per-doc severity
+      const fragsByDoc = new Map<string, typeof topSimilarFragments>();
+      for (const f of topSimilarFragments) {
+        if (!fragsByDoc.has(f.documentId)) fragsByDoc.set(f.documentId, []);
+        fragsByDoc.get(f.documentId)!.push(f);
+      }
+
+      const overlapsList = Array.from(fragsByDoc.values()).map(frags => {
+        const docName = frags[0].documentName;
+        const docMaxScore = Math.max(...frags.map(f => f.score));
+        const srcLabel = frags[0].source === 'google_drive' ? 'Drive' : 'manual';
+        const severity = docMaxScore > 0.85 ? 'alta' : docMaxScore > 0.6 ? 'media' : 'baja';
+        return {
+          existingDocument: docName,
+          description: `Contenido similar detectado contra "${docName}" (${srcLabel}, ${Math.round(docMaxScore * 100)}% similitud, ${frags.length} fragmento${frags.length !== 1 ? 's' : ''} coincidente${frags.length !== 1 ? 's' : ''}).`,
+          severity,
+        };
+      }).sort((a, b) => {
+        const order = { alta: 0, media: 1, baja: 2 };
+        return order[a.severity as keyof typeof order] - order[b.severity as keyof typeof order];
+      });
+
+      const isDuplicate = maxScore > 0.85;
+      const mostSimilarDoc = topSimilarFragments[0]?.documentName || '';
+
+      const fallbackAnalysis = {
+        isDuplicate,
+        duplicateOf: isDuplicate ? mostSimilarDoc : null,
+        duplicateConfidence: Math.round(maxScore * 100),
+        overlaps: overlapsList,
+        discrepancies: [],
+        newInformation: 'Análisis limitado: el servicio de IA no estaba disponible. Solo se muestran coincidencias por similitud, sin detección de contradicciones puntuales.',
+        recommendation: isDuplicate ? 'NO_INDEXAR' : (maxScore > 0.6 ? 'REVISAR' : 'INDEXAR'),
+        summary: `El servicio de análisis avanzado no está disponible en este momento, pero se detectaron ${overlapsList.length} documento${overlapsList.length !== 1 ? 's' : ''} con contenido similar. Revisa los solapamientos antes de indexar.`,
+      };
+
+      // Build documentSources from the retrieval data
+      const fallbackSources: Record<string, string[]> = {};
+      for (const frag of topSimilarFragments) {
+        if (!fallbackSources[frag.documentName]) fallbackSources[frag.documentName] = [];
+        if (!fallbackSources[frag.documentName].includes(frag.source)) {
+          fallbackSources[frag.documentName].push(frag.source);
+        }
+      }
+
       return NextResponse.json({
         success: true,
-        analysis: {
-          isDuplicate: false,
-          overlaps: [],
-          discrepancies: [],
-          recommendation: 'INDEXAR',
-          summary: 'No se pudo completar el análisis automático. Se recomienda indexar y revisar manualmente.',
-        },
-        hasIssues: false,
+        analysis: fallbackAnalysis,
+        hasIssues: overlapsList.length > 0 || isDuplicate,
+        documentSources: fallbackSources,
         analysisError: true,
+        analysisErrorReason: 'gemini_unavailable',
       });
     }
 
