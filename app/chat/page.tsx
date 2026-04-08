@@ -38,6 +38,7 @@ interface PendingAnalysis {
   storagePath: string;
   fileSize: number;
   analysis: Record<string, unknown>;
+  documentSources?: Record<string, string[]>;
 }
 
 interface ImprovementTarget {
@@ -45,6 +46,7 @@ interface ImprovementTarget {
   storagePath: string;
   initialText: string;
   analysis: Record<string, unknown>;
+  documentSources?: Record<string, string[]>;
   existingDocWithSameName: { id: string; name: string } | null;
 }
 
@@ -219,7 +221,13 @@ export default function ChatPage() {
         if (analyzeRes.ok) {
           const analyzeData = await analyzeRes.json();
           if (analyzeData.hasIssues) {
-            setPendingAnalysis({ fileName: file.name, storagePath, fileSize: file.size, analysis: analyzeData.analysis });
+            setPendingAnalysis({
+              fileName: file.name,
+              storagePath,
+              fileSize: file.size,
+              analysis: analyzeData.analysis,
+              documentSources: analyzeData.documentSources,
+            });
             return;
           } else {
             setMessages(prev => [...prev, { id: crypto.randomUUID(), role: 'assistant', content: `Análisis completado: sin problemas. Indexando...` }]);
@@ -296,7 +304,7 @@ export default function ChatPage() {
   // Open improvement modal: extract text from the uploaded file and show the modal
   async function handleAnalysisImprove() {
     if (!pendingAnalysis || !session) return;
-    const { storagePath, fileName, analysis } = pendingAnalysis;
+    const { storagePath, fileName, analysis, documentSources } = pendingAnalysis;
     setImprovementLoading(true);
     try {
       const res = await fetch('/api/extract-text', {
@@ -320,6 +328,7 @@ export default function ChatPage() {
         storagePath,
         initialText: data.text,
         analysis,
+        documentSources,
         existingDocWithSameName: existing ? { id: existing.id, name: existing.name } : null,
       });
       setPendingAnalysis(null);
@@ -520,6 +529,7 @@ export default function ChatPage() {
           fileName={improvementTarget.fileName}
           initialText={improvementTarget.initialText}
           analysis={improvementTarget.analysis}
+          documentSources={improvementTarget.documentSources}
           storagePath={improvementTarget.storagePath}
           existingDocWithSameName={improvementTarget.existingDocWithSameName}
           accessToken={session.access_token}
