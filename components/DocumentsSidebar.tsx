@@ -118,6 +118,15 @@ export default function DocumentsSidebar({
   const driveDocs = useMemo(() => documents.filter(d => d.source === 'google_drive'), [documents]);
   const manualDocs = useMemo(() => documents.filter(d => d.source !== 'google_drive'), [documents]);
 
+  // Names that appear BOTH as manual and as drive → show a small badge on those
+  const crossSourceNames = useMemo(() => {
+    const driveNames = new Set(driveDocs.map(d => d.name));
+    const manualNames = new Set(manualDocs.map(d => d.name));
+    const both = new Set<string>();
+    driveNames.forEach(n => { if (manualNames.has(n)) both.add(n); });
+    return both;
+  }, [driveDocs, manualDocs]);
+
   // Build the folder tree once per docs change
   const driveTree = useMemo(() => buildFolderTree(driveDocs), [driveDocs]);
 
@@ -167,6 +176,23 @@ export default function DocumentsSidebar({
     if (diff < 3600000) return `Hace ${Math.floor(diff / 60000)} min`;
     if (diff < 86400000) return `Hace ${Math.floor(diff / 3600000)} h`;
     return formatDate(dateStr);
+  }
+
+  // Small "drive" / "manual" badge for docs that exist in both sources
+  function SourceBadge({ source }: { source: 'drive' | 'manual' }) {
+    const isDrive = source === 'drive';
+    return (
+      <span style={{
+        fontSize: 8, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.4,
+        padding: '1px 5px', borderRadius: 3,
+        background: isDrive ? 'rgba(37,99,235,0.12)' : 'rgba(124,58,237,0.12)',
+        color: isDrive ? '#2563eb' : '#7c3aed',
+        border: `0.5px solid ${isDrive ? 'rgba(37,99,235,0.4)' : 'rgba(124,58,237,0.4)'}`,
+        flexShrink: 0,
+      }}>
+        {isDrive ? 'drive' : 'manual'}
+      </span>
+    );
   }
 
   // ============================================================
@@ -222,6 +248,7 @@ export default function DocumentsSidebar({
                 }}>
                   <div style={{ width: 4, height: 4, borderRadius: '50%', background: 'var(--success)', flexShrink: 0 }} />
                   <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>{doc.name}</span>
+                  {crossSourceNames.has(doc.name) && <SourceBadge source="drive" />}
                   <span style={{ fontSize: 9, color: 'var(--text-muted)', flexShrink: 0 }}>{formatSize(doc.size_bytes)}</span>
                 </div>
               ))}
@@ -396,6 +423,7 @@ export default function DocumentsSidebar({
                         }}>
                           <div style={{ width: 4, height: 4, borderRadius: '50%', background: 'var(--success)', flexShrink: 0 }} />
                           <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>{doc.name}</span>
+                          {crossSourceNames.has(doc.name) && <SourceBadge source="drive" />}
                           <span style={{ fontSize: 9, color: 'var(--text-muted)', flexShrink: 0 }}>{formatSize(doc.size_bytes)}</span>
                         </div>
                       ))}
@@ -468,9 +496,12 @@ export default function DocumentsSidebar({
                       </svg>
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <p style={{ fontSize: 11, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                        {doc.name}
-                      </p>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                        <p style={{ fontSize: 11, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', margin: 0, flex: 1 }}>
+                          {doc.name}
+                        </p>
+                        {crossSourceNames.has(doc.name) && <SourceBadge source="manual" />}
+                      </div>
                       <p style={{ fontSize: 9, color: 'var(--text-muted)' }}>
                         {formatSize(doc.size_bytes)} · {doc.chunk_count} frag. · {formatDate(doc.created_at)}
                       </p>
