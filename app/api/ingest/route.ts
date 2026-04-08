@@ -25,9 +25,10 @@ export async function POST(req: NextRequest) {
 
     const orgId = user.user_metadata?.org_id || user.id;
 
-    // Leer datos del body (ahora recibe la ruta en Storage, no el archivo)
+    // Leer datos del body
+    // force=true significa "el usuario ya confirmó que quiere reemplazar el manual existente"
     const body = await req.json();
-    const { storagePath, fileName, fileSize } = body;
+    const { storagePath, fileName, fileSize, force } = body;
 
     if (!storagePath || !fileName) {
       return NextResponse.json({ error: 'Parámetros inválidos' }, { status: 400 });
@@ -45,23 +46,47 @@ export async function POST(req: NextRequest) {
 
     const documentId = randomUUID();
 
-    // Comprobar si ya existe un documento con el mismo nombre en esta org
-    console.log(`[INGEST] Checking for existing doc: name="${fileName}" org="${orgId}"`);
+    // ============================================================
+    // Comprobar colisiones de nombre SOLO entre documentos MANUALES
+    // Los documentos de Google Drive (source = 'google_drive') NUNCA se tocan
+    // al subir manualmente, aunque tengan el mismo nombre. Coexisten.
+    // ============================================================
+    console.log(`[INGEST] Checking manual collisions for name="${fileName}" org="${orgId}"`);
 
-    const { data: existingDocs, error: queryError } = await supabase
+    const { data: existingManualDocs, error: queryError } = await supabase
       .from('documents')
-      .select('id, chunk_count')
+      .select('id, name, chunk_count, source')
       .eq('org_id', orgId)
-      .eq('name', fileName);
+      .eq('name', fileName)
+      .or('source.is.null,source.neq.google_drive');
 
-    console.log(`[INGEST] Found ${existingDocs?.length || 0} existing, error=${queryError?.message || 'none'}`);
+    if (queryError) {
+      console.error('[INGEST] Query error:', queryError);
+    }
 
-    if (existingDocs && existingDocs.length > 0) {
+    const manualCollisions = (existingManualDocs || []).filter(
+      d => d.source !== 'google_drive'
+    );
+
+    console.log(`[INGEST] Found ${manualCollisions.length} manual collision(s)`);
+
+    // Si hay un manual con el mismo nombre y el usuario NO ha confirmado el reemplazo → 409
+    if (manualCollisions.length > 0 && !force) {
+      return NextResponse.json({
+        error: 'collision',
+        collision: true,
+        existingDoc: {
+          id: manualCollisions[0].id,
+          name: manualCollisions[0].name,
+        },
+      }, { status: 409 });
+    }
+
+    // Si force === true (el usuario confirmó) o no hay colisión, seguimos
+    if (manualCollisions.length > 0 && force) {
       const pineconeIndex = getIndex();
-
-      for (const oldDoc of existingDocs) {
-        console.log(`[INGEST] Deleting old doc id=${oldDoc.id}`);
-
+      for (const oldDoc of manualCollisions) {
+        console.log(`[INGEST] Replacing manual doc id=${oldDoc.id}`);
         const idsToDelete = Array.from(
           { length: oldDoc.chunk_count },
           (_, i) => `${oldDoc.id}-${i}`
@@ -70,7 +95,6 @@ export async function POST(req: NextRequest) {
           const batch = idsToDelete.slice(i, i + 1000);
           await pineconeIndex.namespace(orgId).deleteMany(batch);
         }
-
         await supabase.from('documents').delete().eq('id', oldDoc.id);
       }
     }
@@ -123,6 +147,7 @@ export async function POST(req: NextRequest) {
         chunkIndex: chunk.metadata.chunkIndex,
         totalChunks: chunk.metadata.totalChunks,
         orgId: chunk.metadata.orgId,
+        source: 'manual',
       },
     }));
 
@@ -133,7 +158,7 @@ export async function POST(req: NextRequest) {
       console.log(`[INGEST] Upserted batch ${Math.floor(i / batchSize) + 1}/${Math.ceil(vectors.length / batchSize)}`);
     }
 
-    // 6. Guardar metadatos en Supabase
+    // 6. Guardar metadatos en Supabase (explicit source = 'manual')
     await supabase.from('documents').insert({
       id: documentId,
       name: fileName,
@@ -142,12 +167,13 @@ export async function POST(req: NextRequest) {
       org_id: orgId,
       user_id: user.id,
       status: 'indexed',
+      source: 'manual',
     });
 
-    // 7. Limpiar archivo de storage (ya no lo necesitamos)
+    // 7. Limpiar archivo de storage
     await supabase.storage.from('documents').remove([storagePath]);
 
-    const wasReplaced = existingDocs && existingDocs.length > 0;
+    const wasReplaced = manualCollisions.length > 0 && force === true;
 
     console.log(`[INGEST] Done! ${fileName} - ${chunks.length} chunks, replaced=${wasReplaced}`);
 
