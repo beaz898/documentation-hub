@@ -72,24 +72,31 @@ export async function POST(req: NextRequest) {
     const orgId = user.user_metadata?.org_id || user.id;
 
     const body = await req.json();
-    const { storagePath, fileName } = body;
-
-    if (!storagePath || !fileName) {
-      return NextResponse.json({ error: 'Parámetros inválidos' }, { status: 400 });
+    const { storagePath, fileName, text: directText } = body;
+ 
+    if (!fileName) {
+      return NextResponse.json({ error: 'fileName requerido' }, { status: 400 });
     }
-
-    // 1. Download and extract text from new file
-    console.log(`[ANALYZE] Downloading ${fileName} from storage`);
-    const { data: fileData, error: downloadError } = await supabase.storage
-      .from('documents')
-      .download(storagePath);
-
-    if (downloadError || !fileData) {
-      return NextResponse.json({ error: 'Error descargando archivo' }, { status: 500 });
+    if (!storagePath && !directText) {
+      return NextResponse.json({ error: 'Se requiere storagePath o text' }, { status: 400 });
     }
-
-    const buffer = Buffer.from(await fileData.arrayBuffer());
-    const text = await extractText(buffer, fileName);
+ 
+    // 1. Obtain text — either from Storage or directly from the body
+    let text: string;
+    if (directText && typeof directText === 'string') {
+      console.log(`[ANALYZE] Using direct text (${directText.length} chars) for ${fileName}`);
+      text = directText;
+    } else {
+      console.log(`[ANALYZE] Downloading ${fileName} from storage`);
+      const { data: fileData, error: downloadError } = await supabase.storage
+        .from('documents')
+        .download(storagePath);
+      if (downloadError || !fileData) {
+        return NextResponse.json({ error: 'Error descargando archivo' }, { status: 500 });
+      }
+      const buffer = Buffer.from(await fileData.arrayBuffer());
+      text = await extractText(buffer, fileName);
+    }
 
     if (!text || text.trim().length < 50) {
       return NextResponse.json({ error: 'No se pudo extraer texto suficiente' }, { status: 400 });
