@@ -386,7 +386,7 @@ INSTRUCCIÓN FINAL: Analiza el documento nuevo contra TODOS los ${distinctDocs.s
       analysis = JSON.parse(cleaned);
       parseSuccess = true;
       console.log(`[ANALYZE] JSON parsed successfully`);
-    } } catch (parseError) {
+    } catch (parseError) {
       console.error('[ANALYZE] Failed to parse JSON. Raw response:', rawAnswer.substring(0, 500));
 
       // Group fragments by document and compute per-doc max score (no copiar maxScore global)
