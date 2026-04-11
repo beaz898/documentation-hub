@@ -7,6 +7,7 @@ import ChatMessage from '@/components/ChatMessage';
 import DocumentsSidebar from '@/components/DocumentsSidebar';
 import AnalysisModal from '@/components/AnalysisModal';
 import ImprovementModal from '@/components/ImprovementModal';
+import FeedbackButton from '@/components/feedback/FeedbackButton';
 
 interface Message {
   id: string;
@@ -455,12 +456,15 @@ export default function ChatPage() {
               {documents.length > 0 ? `${documents.length} documento${documents.length !== 1 ? 's' : ''}` : 'Sube documentos para empezar'}
             </p>
           </div>
-          {messages.length > 0 && (
-            <button onClick={() => { if (window.confirm('¿Limpiar conversación?')) setMessages([]); }}
-              style={{ fontSize: 12, padding: '6px 12px', borderRadius: 8, border: '0.5px solid var(--border)', background: 'transparent', color: 'var(--text-muted)', cursor: 'pointer' }}>
-              Limpiar chat
-            </button>
-          )}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <FeedbackButton accessToken={session?.access_token ?? null} />
+            {messages.length > 0 && (
+              <button onClick={() => { if (window.confirm('¿Limpiar conversación?')) setMessages([]); }}
+                style={{ fontSize: 12, padding: '6px 12px', borderRadius: 8, border: '0.5px solid var(--border)', background: 'transparent', color: 'var(--text-muted)', cursor: 'pointer' }}>
+                Limpiar chat
+              </button>
+            )}
+          </div>
         </div>
 
         <div style={{ flex: 1, overflowY: 'auto', padding: 16, display: 'flex', flexDirection: 'column', gap: 14 }}>
