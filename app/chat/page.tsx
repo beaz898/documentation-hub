@@ -529,18 +529,18 @@ export default function ChatPage() {
       )}
 
       {improvementTarget && session && (
-        <ImprovementModal
-          fileName={improvementTarget.fileName}
-          initialText={improvementTarget.initialText}
-          analysis={improvementTarget.analysis}
-          documentSources={improvementTarget.documentSources}
-          storagePath={improvementTarget.storagePath}
-          existingDocWithSameName={improvementTarget.existingDocWithSameName}
-          accessToken={session.access_token}
-          onClose={handleImprovementClose}
-          onIndexed={handleImprovementIndexed}
-        />
-      )}
+          <ImprovementModal
+            fileName={improvementTarget.fileName}
+            initialText={improvementTarget.initialText}
+            analysis={improvementTarget.analysis}
+            documentSources={improvementTarget.documentSources}
+            storagePath={improvementTarget.storagePath}
+            existingDocWithSameName={improvementTarget.existingDocWithSameName}
+            accessToken={session.access_token}
+            onClose={handleImprovementClose}
+            onIndexed={handleImprovementIndexed}
+          />
+        )}
     </div>
   );
 }
