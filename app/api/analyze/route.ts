@@ -386,24 +386,46 @@ INSTRUCCIÓN FINAL: Analiza el documento nuevo contra TODOS los ${distinctDocs.s
       analysis = JSON.parse(cleaned);
       parseSuccess = true;
       console.log(`[ANALYZE] JSON parsed successfully`);
-    } catch (parseError) {
+    } } catch (parseError) {
       console.error('[ANALYZE] Failed to parse JSON. Raw response:', rawAnswer.substring(0, 500));
 
-      const similarDocNames = [...new Set(topSimilarFragments.map(f => f.documentName))];
+      // Group fragments by document and compute per-doc max score (no copiar maxScore global)
+      const byDoc = new Map<string, typeof topSimilarFragments>();
+      for (const f of topSimilarFragments) {
+        const arr = byDoc.get(f.documentName) ?? [];
+        arr.push(f);
+        byDoc.set(f.documentName, arr);
+      }
+
+      const perDocOverlaps = Array.from(byDoc.entries()).map(([name, frags]) => {
+        const docMaxScore = Math.max(...frags.map(f => f.score));
+        return {
+          existingDocument: name,
+          description: `Contenido similar detectado (${Math.round(docMaxScore * 100)}% similitud, ${frags.length} fragmento${frags.length !== 1 ? 's' : ''} coincidente${frags.length !== 1 ? 's' : ''}).`,
+          severity: (docMaxScore > 0.8 ? 'alta' : docMaxScore > 0.6 ? 'media' : 'baja') as 'alta' | 'media' | 'baja',
+          _score: docMaxScore,
+        };
+      });
+
+      // Filter out weak matches (<0.5) so no salen falsos positivos en el fallback
+      const meaningfulOverlaps = perDocOverlaps
+        .filter(o => o._score >= 0.5)
+        .sort((a, b) => b._score - a._score)
+        .map(({ _score, ...rest }) => rest);
+
+      const topDocName = meaningfulOverlaps[0]?.existingDocument ?? null;
 
       analysis = {
         isDuplicate: maxScore > 0.85,
-        duplicateOf: maxScore > 0.85 ? similarDocNames[0] : null,
+        duplicateOf: maxScore > 0.85 ? topDocName : null,
         duplicateConfidence: Math.round(maxScore * 100),
-        overlaps: similarDocNames.map(name => ({
-          existingDocument: name,
-          description: `Contenido muy similar detectado (${Math.round(maxScore * 100)}% similitud)`,
-          severity: maxScore > 0.8 ? 'alta' : maxScore > 0.6 ? 'media' : 'baja',
-        })),
+        overlaps: meaningfulOverlaps,
         discrepancies: [],
         newInformation: 'No se pudo determinar (análisis parcial)',
         recommendation: maxScore > 0.8 ? 'REVISAR' : 'INDEXAR',
-        summary: `Se detectó contenido similar a ${similarDocNames.join(', ')} con ${Math.round(maxScore * 100)}% de similitud. Se recomienda revisar antes de indexar.`,
+        summary: meaningfulOverlaps.length > 0
+          ? `Se detectó contenido similar a ${meaningfulOverlaps.map(o => o.existingDocument).join(', ')}. Se recomienda revisar antes de indexar.`
+          : 'No se detectaron solapamientos significativos en el análisis parcial.',
       };
     }
 
