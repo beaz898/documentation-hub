@@ -5,126 +5,132 @@ import { getIndex } from '@/lib/pinecone';
 export const maxDuration = 300;
 
 /**
- * Endpoint de un solo uso: limpia vectores huérfanos en Pinecone
- * (vectores cuyo documentId ya no existe en Supabase).
+ * GET /api/admin/cleanup-orphans
+ * - dryRun=true (default): público, analiza TODOS los namespaces
+ * - dryRun=false: requiere login, borra solo en el namespace del usuario
  *
- * USO: GET /api/admin/cleanup-orphans con Authorization: Bearer <token>
- * - dryRun=true (default): solo reporta, no borra
- * - dryRun=false: borra los huérfanos
- *
- * IMPORTANTE: eliminar este archivo después de usarlo.
+ * IMPORTANTE: eliminar este archivo después de usarlo en producción.
  */
 export async function GET(req: NextRequest) {
   try {
+    const { searchParams } = new URL(req.url);
+    const dryRun = searchParams.get('dryRun') !== 'false';
+    const supabase = createServiceClient();
+
+    // DRY RUN: público, barrido global
+    if (dryRun) {
+      const { data: allDocs } = await supabase
+        .from('documents')
+        .select('id, name, org_id');
+
+      const validIdsByOrg = new Map<string, Set<string>>();
+      const orgs = new Set<string>();
+      for (const d of allDocs || []) {
+        orgs.add(d.org_id);
+        const set = validIdsByOrg.get(d.org_id) || new Set();
+        set.add(d.id);
+        validIdsByOrg.set(d.org_id, set);
+      }
+
+      const index = getIndex();
+      const dummyVector = new Array(1024).fill(0);
+      dummyVector[0] = 1;
+
+      const orphansByDoc = new Map<string, { name: string; org: string; vectorCount: number }>();
+      let totalVectors = 0;
+
+      for (const org of orgs) {
+        try {
+          const res = await index.namespace(org).query({
+            vector: dummyVector, topK: 10000, includeMetadata: true,
+          });
+          const matches = res.matches || [];
+          totalVectors += matches.length;
+          const validIds = validIdsByOrg.get(org) || new Set();
+
+          for (const m of matches) {
+            const meta = m.metadata as { documentId?: string; documentName?: string } | undefined;
+            const docId = meta?.documentId;
+            const docName = meta?.documentName || '(sin nombre)';
+            if (!docId) {
+              const key = `${org}:__NO_ID__`;
+              const b = orphansByDoc.get(key) || { name: '(metadata incompleta)', org, vectorCount: 0 };
+              b.vectorCount++; orphansByDoc.set(key, b);
+              continue;
+            }
+            if (!validIds.has(docId)) {
+              const key = `${org}:${docId}`;
+              const b = orphansByDoc.get(key) || { name: docName, org, vectorCount: 0 };
+              b.vectorCount++; orphansByDoc.set(key, b);
+            }
+          }
+        } catch (err) {
+          console.warn(`[CLEANUP] Skipping org ${org}:`, err);
+        }
+      }
+
+      const summary = Array.from(orphansByDoc.entries()).map(([key, info]) => ({
+        documentId: key.split(':')[1],
+        documentName: info.name,
+        org: info.org,
+        vectorCount: info.vectorCount,
+      }));
+
+      return NextResponse.json({
+        dryRun: true,
+        message: 'Análisis global. Para borrar debes iniciar sesión y usar dryRun=false (solo borra en tu cuenta).',
+        totalVectorsInPinecone: totalVectors,
+        validDocumentsInSupabase: (allDocs || []).length,
+        organizationsScanned: orgs.size,
+        orphanGroups: summary,
+        totalOrphanVectors: summary.reduce((s, g) => s + g.vectorCount, 0),
+      });
+    }
+
+    // DELETE: exige login
     const authHeader = req.headers.get('authorization');
     if (!authHeader?.startsWith('Bearer ')) {
-      return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+      return NextResponse.json({ error: 'Para borrar debes iniciar sesión' }, { status: 401 });
     }
     const token = authHeader.split(' ')[1];
-    const supabase = createServiceClient();
     const { data: { user }, error: authError } = await supabase.auth.getUser(token);
     if (authError || !user) {
       return NextResponse.json({ error: 'Token inválido' }, { status: 401 });
     }
     const orgId = user.user_metadata?.org_id || user.id;
 
-    const { searchParams } = new URL(req.url);
-    const dryRun = searchParams.get('dryRun') !== 'false'; // default true
-
-    // 1. Obtener todos los documentIds válidos en Supabase para esta org
     const { data: validDocs } = await supabase
-      .from('documents')
-      .select('id, name, chunk_count')
-      .eq('org_id', orgId);
-
+      .from('documents').select('id').eq('org_id', orgId);
     const validIds = new Set((validDocs || []).map(d => d.id));
-    console.log(`[CLEANUP] Valid documents in Supabase: ${validIds.size}`);
 
-    // 2. Barrer Pinecone con una query dummy (tier gratuito no soporta listPaginated con filtros)
     const index = getIndex();
     const ns = index.namespace(orgId);
+    const dummyVector = new Array(1024).fill(0); dummyVector[0] = 1;
+    const queryRes = await ns.query({ vector: dummyVector, topK: 10000, includeMetadata: true });
+    const matches = queryRes.matches || [];
 
-    // Vector dummy de 1024 dimensiones (coincide con multilingual-e5-large)
-    const dummyVector = new Array(1024).fill(0);
-    dummyVector[0] = 1;
-
-    const queryResult = await ns.query({
-      vector: dummyVector,
-      topK: 10000, // máximo permitido en la mayoría de planes
-      includeMetadata: true,
-    });
-
-    const matches = queryResult.matches || [];
-    console.log(`[CLEANUP] Pinecone returned ${matches.length} vectors`);
-
-    // 3. Identificar huérfanos (vectores cuyo documentId no está en Supabase)
-    const orphansByDoc = new Map<string, { name: string; vectorIds: string[] }>();
-
-    for (const match of matches) {
-      const meta = match.metadata as { documentId?: string; documentName?: string } | undefined;
-      const docId = meta?.documentId;
-      const docName = meta?.documentName || '(sin nombre)';
-
-      if (!docId) {
-        // Vectores antiquísimos sin documentId en metadata: imposibles de recuperar
-        const bucket = orphansByDoc.get('__NO_DOCUMENT_ID__') || { name: '(metadata incompleta)', vectorIds: [] };
-        bucket.vectorIds.push(match.id);
-        orphansByDoc.set('__NO_DOCUMENT_ID__', bucket);
-        continue;
-      }
-
-      if (!validIds.has(docId)) {
-        const bucket = orphansByDoc.get(docId) || { name: docName, vectorIds: [] };
-        bucket.vectorIds.push(match.id);
-        orphansByDoc.set(docId, bucket);
-      }
+    const orphanIds: string[] = [];
+    for (const m of matches) {
+      const meta = m.metadata as { documentId?: string } | undefined;
+      if (!meta?.documentId || !validIds.has(meta.documentId)) orphanIds.push(m.id);
     }
 
-    const summary = Array.from(orphansByDoc.entries()).map(([docId, info]) => ({
-      documentId: docId,
-      documentName: info.name,
-      vectorCount: info.vectorIds.length,
-    }));
-
-    const totalOrphans = summary.reduce((sum, s) => sum + s.vectorCount, 0);
-
-    if (dryRun) {
-      return NextResponse.json({
-        dryRun: true,
-        message: 'Nada borrado. Vuelve a llamar con ?dryRun=false para confirmar.',
-        totalVectorsInPinecone: matches.length,
-        validDocumentsInSupabase: validIds.size,
-        orphanGroups: summary,
-        totalOrphanVectors: totalOrphans,
-      });
-    }
-
-    // 4. Borrar huérfanos (batches de 1000)
     let deleted = 0;
-    for (const [, info] of orphansByDoc) {
-      const ids = info.vectorIds;
-      for (let i = 0; i < ids.length; i += 1000) {
-        const batch = ids.slice(i, i + 1000);
-        try {
-          await ns.deleteMany(batch);
-          deleted += batch.length;
-        } catch (err) {
-          console.error(`[CLEANUP] Failed to delete batch:`, err);
-        }
-      }
+    for (let i = 0; i < orphanIds.length; i += 1000) {
+      const batch = orphanIds.slice(i, i + 1000);
+      try { await ns.deleteMany(batch); deleted += batch.length; } catch (err) { console.error(err); }
     }
 
     return NextResponse.json({
       dryRun: false,
-      message: `Limpieza completada. ${deleted} vectores huérfanos eliminados.`,
+      message: `Limpieza completada en tu cuenta. ${deleted} vectores eliminados.`,
       totalVectorsInPinecone: matches.length,
       validDocumentsInSupabase: validIds.size,
-      orphanGroups: summary,
+      orphanGroups: [],
       totalDeleted: deleted,
     });
   } catch (error: unknown) {
-    console.error('Error in cleanup-orphans:', error);
-    const message = error instanceof Error ? error.message : 'Error interno';
-    return NextResponse.json({ error: message }, { status: 500 });
+    console.error('cleanup-orphans error:', error);
+    return NextResponse.json({ error: error instanceof Error ? error.message : 'Error' }, { status: 500 });
   }
 }
