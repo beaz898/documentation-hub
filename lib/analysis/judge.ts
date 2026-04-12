@@ -100,12 +100,16 @@ export async function judgeAllDocuments(args: {
   candidates: RerankedCandidate[];
 }): Promise<DocumentJudgment[]> {
   if (args.candidates.length === 0) return [];
-  const promises = args.candidates.map(candidate =>
-    judgeSingleDocument({
+
+  const results: DocumentJudgment[] = [];
+  for (let i = 0; i < args.candidates.length; i++) {
+    if (i > 0) await new Promise(r => setTimeout(r, 1200));
+    const judgment = await judgeSingleDocument({
       newDocumentName: args.newDocumentName,
       newDocumentSample: args.newDocumentSample,
-      candidate,
-    })
-  );
-  return Promise.all(promises);
+      candidate: args.candidates[i],
+    });
+    results.push(judgment);
+  }
+  return results;
 }
