@@ -21,8 +21,8 @@ function mapStyleProblems(raw: StyleApiProblem[]): Problem[] {
     title: p.title,
     description: p.description,
     textRef: p.textRef,
-    relatedDoc: null,
-    proposal: null,
+    relatedDoc: undefined,
+    proposal: undefined,
   }));
 }
 
