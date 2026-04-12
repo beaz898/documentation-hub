@@ -76,7 +76,7 @@ ${candidates.map((c, i) => `[${i + 1}] → ${c.documentId}`).join('\n')}`;
         rerankConfidence: sel.confidence || 'media',
       });
     }
-    return selected.slice(0, 6);
+    return selected.slice(0, 10);
   } catch (err) {
     console.warn('[rerank] LLM failed, falling back to top-3 by embedding score:', err);
     return candidates.slice(0, 3).map(c => ({
