@@ -1,34 +1,23 @@
 'use client';
-import { useState, useEffect } from 'react';
-import { createClient } from '@supabase/supabase-js';
+import { useState } from 'react';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
-
-interface OrphanGroup { documentId: string; documentName: string; org?: string; vectorCount: number; }
+interface OrphanGroup { documentId: string; documentName: string; org: string; vectorCount: number; }
 interface Report {
   totalVectorsInPinecone: number; validDocumentsInSupabase: number;
-  organizationsScanned?: number; orphanGroups: OrphanGroup[];
+  organizationsScanned: number; orphanGroups: OrphanGroup[];
   totalOrphanVectors?: number; totalDeleted?: number; message: string;
 }
 
 export default function CleanupPage() {
-  const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [report, setReport] = useState<Report | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [deleted, setDeleted] = useState(false);
 
-  useEffect(() => { supabase.auth.getSession().then(({ data }) => setToken(data.session?.access_token ?? null)); }, []);
-
   const call = async (dryRun: boolean) => {
     setLoading(true); setError(null);
     try {
-      const headers: Record<string, string> = {};
-      if (token) headers.Authorization = `Bearer ${token}`;
-      const res = await fetch(`/api/admin/cleanup-orphans?dryRun=${dryRun}`, { headers });
+      const res = await fetch(`/api/admin/cleanup-orphans?dryRun=${dryRun}`);
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Error');
       setReport(data);
@@ -41,7 +30,8 @@ export default function CleanupPage() {
     <div style={{ maxWidth: 720, margin: '40px auto', padding: 24, fontFamily: 'system-ui, sans-serif', color: 'var(--text-primary)' }}>
       <h1 style={{ fontSize: 22, marginBottom: 8 }}>Limpieza de vectores huérfanos</h1>
       <p style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 24 }}>
-        El análisis es público y muestra vectores huérfanos de toda la aplicación. El borrado requiere iniciar sesión y solo afecta a tu propia cuenta.
+        Elimina vectores de Pinecone que ya no tienen documento en la base de datos.
+        Primero analiza para ver qué hay, luego pulsa limpiar.
       </p>
 
       <div style={{ display: 'flex', gap: 12, marginBottom: 24, flexWrap: 'wrap' }}>
@@ -49,17 +39,13 @@ export default function CleanupPage() {
           style={{ padding: '10px 16px', borderRadius: 8, border: '0.5px solid var(--border)', background: 'var(--bg-secondary)', color: 'var(--text-primary)', cursor: loading ? 'not-allowed' : 'pointer', fontSize: 14 }}>
           {loading ? 'Analizando...' : '1. Analizar (sin borrar)'}
         </button>
-        {report && !deleted && token && (
-          <button onClick={() => { if (confirm('¿Borrar los huérfanos de TU cuenta? No se puede deshacer.')) call(false); }}
-            disabled={loading}
-            style={{ padding: '10px 16px', borderRadius: 8, border: 'none', background: '#dc2626', color: 'white', cursor: loading ? 'not-allowed' : 'pointer', fontSize: 14, fontWeight: 500 }}>
-            {loading ? 'Borrando...' : '2. Limpiar huérfanos de mi cuenta'}
+        {report && !deleted && (
+          <button
+            onClick={() => { if (confirm(`¿Borrar ${report.totalOrphanVectors ?? 0} vectores huérfanos? No se puede deshacer.`)) call(false); }}
+            disabled={loading || (report.totalOrphanVectors ?? 0) === 0}
+            style={{ padding: '10px 16px', borderRadius: 8, border: 'none', background: '#dc2626', color: 'white', cursor: loading || (report.totalOrphanVectors ?? 0) === 0 ? 'not-allowed' : 'pointer', fontSize: 14, fontWeight: 500, opacity: (report.totalOrphanVectors ?? 0) === 0 ? 0.5 : 1 }}>
+            {loading ? 'Borrando...' : '2. Limpiar huérfanos'}
           </button>
-        )}
-        {report && !deleted && !token && (
-          <div style={{ padding: '10px 14px', fontSize: 12, color: 'var(--text-muted)', background: 'var(--bg-secondary)', borderRadius: 8 }}>
-            Para borrar, inicia sesión en <a href="/chat" style={{ color: 'var(--brand)' }}>/chat</a> y vuelve aquí.
-          </div>
         )}
       </div>
 
@@ -69,8 +55,8 @@ export default function CleanupPage() {
         <div style={{ padding: 16, background: 'var(--bg-secondary)', border: '0.5px solid var(--border)', borderRadius: 8 }}>
           <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 12 }}>{report.message}</div>
           <div style={{ fontSize: 13, marginBottom: 6 }}>Vectores en Pinecone: <b>{report.totalVectorsInPinecone}</b></div>
-          <div style={{ fontSize: 13, marginBottom: 6 }}>Documentos válidos en base de datos: <b>{report.validDocumentsInSupabase}</b></div>
-          {report.organizationsScanned !== undefined && <div style={{ fontSize: 13, marginBottom: 16 }}>Cuentas escaneadas: <b>{report.organizationsScanned}</b></div>}
+          <div style={{ fontSize: 13, marginBottom: 6 }}>Documentos en base de datos: <b>{report.validDocumentsInSupabase}</b></div>
+          <div style={{ fontSize: 13, marginBottom: 16 }}>Cuentas escaneadas: <b>{report.organizationsScanned}</b></div>
 
           {report.orphanGroups.length === 0 ? (
             <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>✅ No hay huérfanos. Todo limpio.</div>
@@ -84,8 +70,8 @@ export default function CleanupPage() {
                 </tr></thead>
                 <tbody>
                   {report.orphanGroups.map((g, i) => (
-                    <tr key={`${g.org || ''}-${g.documentId}-${i}`} style={{ borderBottom: '0.5px solid var(--border)' }}>
-                      <td style={{ padding: 6 }}>{g.documentName}<br /><span style={{ fontSize: 10, color: 'var(--text-muted)' }}>{g.documentId}{g.org ? ` · ${g.org.slice(0, 8)}…` : ''}</span></td>
+                    <tr key={`${g.org}-${g.documentId}-${i}`} style={{ borderBottom: '0.5px solid var(--border)' }}>
+                      <td style={{ padding: 6 }}>{g.documentName}<br /><span style={{ fontSize: 10, color: 'var(--text-muted)' }}>{g.documentId} · {g.org.slice(0, 8)}…</span></td>
                       <td style={{ padding: 6, textAlign: 'right' }}>{g.vectorCount}</td>
                     </tr>
                   ))}
@@ -98,7 +84,7 @@ export default function CleanupPage() {
 
       {deleted && (
         <div style={{ marginTop: 16, padding: 12, background: '#dcfce7', color: '#166534', borderRadius: 8, fontSize: 13 }}>
-          ✅ Limpieza completada. Puedes borrar del repo <code>app/admin/cleanup</code> y <code>app/api/admin</code> cuando quieras cerrar el acceso.
+          ✅ Limpieza completada. Borra del repo las carpetas <code>app/admin/cleanup</code> y <code>app/api/admin</code> para cerrar el acceso.
         </div>
       )}
     </div>
