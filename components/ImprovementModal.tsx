@@ -210,7 +210,7 @@ export default function ImprovementModal({
   // -------- Reanalizar estilo (con delta) ----------
   const handleReanalyzeStyle = useCallback(async () => {
     const prev = styleProblems;
-    await reanalyzeStyle(text);
+    await reanalyzeStyle(text, fileName);
     // styleProblems del closure es el viejo; tras reanalyzeStyle, leemos el nuevo
     // de forma diferida usando un setter funcional para capturar el último valor.
     setStyleProblems(curr => {
