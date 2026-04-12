@@ -69,10 +69,23 @@ Responde EXCLUSIVAMENTE con este JSON:
     synthesis = await callLLMJson<SynthesisResponse>(prompt, { maxOutputTokens: 1024, temperature: 0.2 });
   } catch (err) {
     console.warn('[synthesize] LLM failed, using deterministic fallback:', err);
+    const totalOverlaps = judgments.filter(j => j.overlapPercent >= 15).length;
+    const totalContradictions = judgments.reduce((sum, j) => sum + j.contradictions.length, 0);
+    const hasSignificantOverlap = judgments.some(j => j.overlapPercent >= 30);
+
     synthesis = {
-      recommendation: isDuplicate ? 'NO_INDEXAR' : (judgments.some(j => j.overlapPercent >= 30 || j.contradictions.length > 0) ? 'REVISAR' : 'INDEXAR'),
-      summary: `Análisis completado. Se evaluaron ${judgments.length} documento(s) relacionado(s).`,
-      newInformation: 'No disponible (fallback).',
+      recommendation: isDuplicate
+        ? 'NO_INDEXAR'
+        : (hasSignificantOverlap || totalContradictions > 0 ? 'REVISAR' : 'INDEXAR'),
+      summary: isDuplicate
+        ? `Se detectó que este documento es prácticamente idéntico a "${topJudgment.documentName}" (${topJudgment.overlapPercent}% de solapamiento).`
+        : totalOverlaps > 0
+          ? `Se analizaron ${judgments.length} documentos relacionados. ${totalOverlaps} presentan solapamiento significativo${totalContradictions > 0 ? ` y se detectaron ${totalContradictions} contradicciones` : ''}. Revisa los detalles antes de indexar.`
+          : `Se evaluaron ${judgments.length} documentos relacionados pero ninguno presenta solapamiento significativo. Puede indexarse.`,
+      newInformation: judgments
+        .flatMap(j => j.uniqueToNewDoc)
+        .slice(0, 3)
+        .join('. ') || 'Contenido del nuevo documento que no coincide con lo existente.',
     };
   }
 
