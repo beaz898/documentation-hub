@@ -12,17 +12,9 @@ export interface AnalyzePipelineInput {
   excludeDocumentId?: string;
 }
 
-/**
- * Pipeline completo v2.
- * 1. Retrieval amplio (Pinecone)
- * 2. Rerank con LLM
- * 3. Juicios individuales por documento (LLM paralelo)
- * 4. Síntesis final (LLM)
- */
 export async function runAnalysisPipeline(input: AnalyzePipelineInput): Promise<FinalAnalysis> {
   const t0 = Date.now();
 
-  // Etapa 1
   const candidates = await retrieveCandidates({
     sampleTexts: input.sampleTexts,
     orgId: input.orgId,
@@ -34,7 +26,6 @@ export async function runAnalysisPipeline(input: AnalyzePipelineInput): Promise<
     return synthesizeFinalAnalysis({ newDocumentName: input.newDocumentName, judgments: [] });
   }
 
-  // Etapa 2
   const t1 = Date.now();
   const reranked = await rerankCandidates({
     newDocumentName: input.newDocumentName,
@@ -47,7 +38,6 @@ export async function runAnalysisPipeline(input: AnalyzePipelineInput): Promise<
     return synthesizeFinalAnalysis({ newDocumentName: input.newDocumentName, judgments: [] });
   }
 
-  // Etapa 3
   const t2 = Date.now();
   const judgments = await judgeAllDocuments({
     newDocumentName: input.newDocumentName,
@@ -56,7 +46,9 @@ export async function runAnalysisPipeline(input: AnalyzePipelineInput): Promise<
   });
   console.log(`[pipeline-v2] Judge: ${judgments.length} juicios emitidos (${Date.now() - t2}ms)`);
 
-  // Etapa 4
+  // Pausa para liberar presupuesto de rate limit antes de la síntesis
+  await new Promise(r => setTimeout(r, 1500));
+
   const t3 = Date.now();
   const final = await synthesizeFinalAnalysis({
     newDocumentName: input.newDocumentName,
