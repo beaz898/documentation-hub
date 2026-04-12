@@ -9,7 +9,6 @@ interface CallOptions {
 
 /**
  * Llamada a Gemini con retry y opciones centralizadas.
- * Migrar a Claude: cambiar solo el cuerpo de esta función.
  */
 export async function callLLM(prompt: string, opts: CallOptions = {}): Promise<string> {
   const { maxOutputTokens = 4096, temperature = 0.2, forceJson = true } = opts;
@@ -57,9 +56,73 @@ export async function callLLM(prompt: string, opts: CallOptions = {}): Promise<s
   throw new Error(`LLM call failed after retries: ${lastError}`);
 }
 
-/** Helper: llama al LLM y parsea JSON. Tolera fences ```json. */
-export async function callLLMJson<T = unknown>(prompt: string, opts: CallOptions = {}): Promise<T> {
-  const raw = await callLLM(prompt, { ...opts, forceJson: true });
-  const cleaned = raw.trim().replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/```\s*$/i, '').trim();
-  return JSON.parse(cleaned) as T;
+/**
+ * Sanea la respuesta de Gemini para que JSON.parse la acepte.
+ * Gemini a veces inserta saltos de línea reales dentro de strings o no escapa comillas internas.
+ */
+function sanitizeJsonResponse(raw: string): string {
+  // Quitar fences ```json``` y ``` sueltos
+  let cleaned = raw.trim()
+    .replace(/^```json\s*/i, '')
+    .replace(/^```\s*/i, '')
+    .replace(/```\s*$/, '')
+    .trim();
+
+  // Recortar basura antes del primer { o [ y después del último } o ]
+  const firstBrace = Math.min(
+    ...[cleaned.indexOf('{'), cleaned.indexOf('[')].filter(i => i !== -1)
+  );
+  const lastBrace = Math.max(cleaned.lastIndexOf('}'), cleaned.lastIndexOf(']'));
+  if (isFinite(firstBrace) && lastBrace > firstBrace) {
+    cleaned = cleaned.slice(firstBrace, lastBrace + 1);
+  }
+
+  // Escapar saltos de línea y tabs crudos que estén DENTRO de strings JSON.
+  // Recorremos carácter a carácter, mantenemos track de si estamos dentro de un string.
+  let result = '';
+  let inString = false;
+  let escape = false;
+  for (let i = 0; i < cleaned.length; i++) {
+    const ch = cleaned[i];
+
+    if (escape) {
+      result += ch;
+      escape = false;
+      continue;
+    }
+
+    if (ch === '\\') {
+      result += ch;
+      escape = true;
+      continue;
+    }
+
+    if (ch === '"') {
+      inString = !inString;
+      result += ch;
+      continue;
+    }
+
+    if (inString) {
+      if (ch === '\n') { result += '\\n'; continue; }
+      if (ch === '\r') { result += '\\r'; continue; }
+      if (ch === '\t') { result += '\\t'; continue; }
+    }
+
+    result += ch;
+  }
+
+  return result;
 }
+
+/** Intenta extraer el primer objeto JSON válido aunque haya basura. */
+function tryParseJson<T>(raw: string): T {
+  // Intento 1: parseo directo tras sanear
+  try {
+    return JSON.parse(sanitizeJsonResponse(raw)) as T;
+  } catch {
+    // Intento 2: buscar el JSON más largo que parsee
+    const sanitized = sanitizeJsonResponse(raw);
+    // Buscar el último cierre antes del error y reconstruir
+    for (let end = sanitized.length; end > 0; end--) {
+      con
