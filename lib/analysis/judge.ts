@@ -67,7 +67,7 @@ Responde EXCLUSIVAMENTE con este JSON:
 }`;
 
   try {
-    const response = await callLLMJson<JudgeResponse>(prompt, { maxOutputTokens: 3072, temperature: 0.1 });
+    const response = await callLLMJson<JudgeResponse>(prompt, { maxOutputTokens: 8192, temperature: 0.1 });
     return {
       documentId: candidate.documentId,
       documentName: candidate.documentName,
