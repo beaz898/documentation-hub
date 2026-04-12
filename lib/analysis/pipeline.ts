@@ -1,5 +1,8 @@
 import type { FinalAnalysis } from './types';
 import { retrieveCandidates } from './retrieval';
+import { rerankCandidates } from './rerank';
+import { judgeAllDocuments } from './judge';
+import { synthesizeFinalAnalysis } from './synthesize';
 
 export interface AnalyzePipelineInput {
   newDocumentText: string;
@@ -10,39 +13,56 @@ export interface AnalyzePipelineInput {
 }
 
 /**
- * Orquestador del pipeline v2.
- * Etapas:
- *   1. Retrieval amplio (embeddings + Pinecone)           ← IMPLEMENTADO
- *   2. Rerank con LLM                                     ← próxima sesión
- *   3. Juicios individuales por documento (LLM paralelo)  ← próxima sesión
- *   4. Síntesis final                                     ← próxima sesión
- *
- * Por ahora solo devuelve un resultado provisional con los candidatos
- * para poder testear la etapa 1 de forma aislada.
+ * Pipeline completo v2.
+ * 1. Retrieval amplio (Pinecone)
+ * 2. Rerank con LLM
+ * 3. Juicios individuales por documento (LLM paralelo)
+ * 4. Síntesis final (LLM)
  */
 export async function runAnalysisPipeline(input: AnalyzePipelineInput): Promise<FinalAnalysis> {
+  const t0 = Date.now();
+
+  // Etapa 1
   const candidates = await retrieveCandidates({
     sampleTexts: input.sampleTexts,
     orgId: input.orgId,
     excludeDocumentId: input.excludeDocumentId,
   });
+  console.log(`[pipeline-v2] Retrieval: ${candidates.length} candidatos (${Date.now() - t0}ms)`);
 
-  // TODO: Etapas 2, 3, 4 en próximas sesiones.
-  // De momento devolvemos un shape compatible con el frontend pero sin juicio LLM.
-  return {
-    isDuplicate: false,
-    duplicateOf: null,
-    duplicateConfidence: 0,
-    overlaps: candidates.map(c => ({
-      existingDocument: c.documentName,
-      description: `(pipeline v2 en construcción — candidato con ${c.fragments.length} fragmento(s) similares, maxScore ${Math.round(c.maxScore * 100)}%)`,
-      severity: 'baja' as const,
-      overlapPercent: Math.round(c.maxScore * 100),
-    })),
-    discrepancies: [],
-    newInformation: 'Pipeline v2 en construcción',
-    recommendation: 'REVISAR',
-    summary: `Candidatos recuperados: ${candidates.length}. Las etapas de rerank, juicio y síntesis se implementarán en las próximas sesiones.`,
-    judgments: [],
-  };
+  if (candidates.length === 0) {
+    return synthesizeFinalAnalysis({ newDocumentName: input.newDocumentName, judgments: [] });
+  }
+
+  // Etapa 2
+  const t1 = Date.now();
+  const reranked = await rerankCandidates({
+    newDocumentName: input.newDocumentName,
+    newDocumentSample: input.newDocumentText,
+    candidates,
+  });
+  console.log(`[pipeline-v2] Rerank: ${reranked.length} seleccionados (${Date.now() - t1}ms)`);
+
+  if (reranked.length === 0) {
+    return synthesizeFinalAnalysis({ newDocumentName: input.newDocumentName, judgments: [] });
+  }
+
+  // Etapa 3
+  const t2 = Date.now();
+  const judgments = await judgeAllDocuments({
+    newDocumentName: input.newDocumentName,
+    newDocumentSample: input.newDocumentText,
+    candidates: reranked,
+  });
+  console.log(`[pipeline-v2] Judge: ${judgments.length} juicios emitidos (${Date.now() - t2}ms)`);
+
+  // Etapa 4
+  const t3 = Date.now();
+  const final = await synthesizeFinalAnalysis({
+    newDocumentName: input.newDocumentName,
+    judgments,
+  });
+  console.log(`[pipeline-v2] Synthesize (${Date.now() - t3}ms). Total: ${Date.now() - t0}ms`);
+
+  return final;
 }
