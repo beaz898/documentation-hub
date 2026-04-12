@@ -214,7 +214,7 @@ export default function ChatPage() {
     if (documents.length > 0) {
       setMessages(prev => [...prev, { id: crypto.randomUUID(), role: 'assistant', content: `Analizando **${file.name}**...` }]);
       try {
-        const analyzeRes = await fetch('/api/analyze', {
+        const analyzeRes = await fetch('/api/analyze-v2', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
           body: JSON.stringify({ storagePath, fileName: file.name }),
