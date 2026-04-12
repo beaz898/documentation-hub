@@ -4,13 +4,12 @@ import type { CandidateDocument, DocumentFragment } from './types';
 
 /**
  * Etapa 1 — Retrieval amplio.
- * Trae candidatos de Pinecone sin decidir nada; solo filtra.
- * Umbral bajo (0.60) para no perder candidatos. El juicio lo hace el LLM después.
+ * Umbral bajo (0.60) y topK alto (25) para no perder candidatos.
  */
 export async function retrieveCandidates(args: {
-  sampleTexts: string[];      // fragmentos representativos del doc nuevo
+  sampleTexts: string[];
   orgId: string;
-  excludeDocumentId?: string; // para evitar auto-match al reanalizar
+  excludeDocumentId?: string;
 }): Promise<CandidateDocument[]> {
   const { sampleTexts, orgId, excludeDocumentId } = args;
 
@@ -20,7 +19,7 @@ export async function retrieveCandidates(args: {
 
   const allMatches: DocumentFragment[] = [];
   for (const emb of embeddings) {
-    const res = await ns.query({ vector: emb, topK: 15, includeMetadata: true });
+    const res = await ns.query({ vector: emb, topK: 25, includeMetadata: true });
     for (const m of res.matches || []) {
       if (!m.metadata || typeof m.score !== 'number') continue;
       if (m.score < 0.60) continue;
@@ -42,7 +41,6 @@ export async function retrieveCandidates(args: {
     }
   }
 
-  // Agrupar por documento, quedarse con top 4 fragmentos por doc
   const byDoc = new Map<string, DocumentFragment[]>();
   for (const f of allMatches) {
     const arr = byDoc.get(f.documentId) ?? [];
@@ -62,6 +60,6 @@ export async function retrieveCandidates(args: {
     });
   }
 
-  // Ordenar documentos por maxScore y cap a 10 para no saturar al reranker
-  return candidates.sort((a, b) => b.maxScore - a.maxScore).slice(0, 10);
+  // Hasta 25 candidatos hacia el rerank (antes eran 10)
+  return candidates.sort((a, b) => b.maxScore - a.maxScore).slice(0, 25);
 }
