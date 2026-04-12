@@ -50,7 +50,13 @@ export async function POST(req: NextRequest) {
 
     // Muestreo: chunks representativos
     const chunks = chunkText(text, 'temp-id', fileName, orgId);
-    const sampleIndices = pickSampleIndices(chunks.length, Math.min(8, chunks.length));
+    // Muestreo adaptativo: 8 fragmentos para docs pequeños, hasta 25 para docs grandes
+    const targetSamples = chunks.length <= 20
+      ? Math.min(8, chunks.length)
+      : chunks.length <= 60
+        ? 15
+        : 25;
+    const sampleIndices = pickSampleIndices(chunks.length, targetSamples);
     const sampleTexts = sampleIndices.map(i => chunks[i].text);
 
     console.log(`[analyze-v2] "${fileName}" — ${chunks.length} chunks, ${sampleTexts.length} samples`);
