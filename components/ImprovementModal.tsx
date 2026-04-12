@@ -114,15 +114,8 @@ export default function ImprovementModal({
   } = useCrossDocAnalysis(analysis);
 
   // -------- Style problems ----------
-  // Mensaje automático tras el análisis inicial de estilo
-  const handleInitialStyleLoaded = useCallback((count: number) => {
-    if (count > 0) {
-      addAssistantMessage(
-        `He analizado el estilo y he encontrado ${count} problema${count !== 1 ? 's' : ''} adicional${count !== 1 ? 'es' : ''}.`
-      );
-    }
-  }, [addAssistantMessage]);
-
+  // El análisis de estilo ya no se dispara al abrir el modal.
+  // Solo corre cuando el usuario pulsa "Reanalizar estilo".
   const {
     styleProblems,
     setStyleProblems,
@@ -131,7 +124,6 @@ export default function ImprovementModal({
   } = useStyleAnalysis({
     initialText,
     fileName,
-    onInitialProblemsLoaded: handleInitialStyleLoaded,
   });
 
   // -------- Lista combinada de problemas ----------
