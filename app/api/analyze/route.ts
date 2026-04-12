@@ -150,7 +150,7 @@ export async function POST(req: NextRequest) {
 
       const matches = queryResponse.matches || [];
       for (const match of matches) {
-        if (match.metadata && match.score && match.score > 0.28) {   // WAS 0.35
+        if (match.metadata && match.score && match.score > 0.75) {   // WAS 0.35
           const docName = String(match.metadata.documentName || '');
           const docId = String(match.metadata.documentId || '');
           const source = String(match.metadata.source || 'manual');
