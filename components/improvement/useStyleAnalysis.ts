@@ -1,5 +1,12 @@
 import { useState, useCallback } from 'react';
-import type { Problem, StyleApiProblem } from './problems';
+import type { Problem } from './problems';
+
+type StyleApiProblem = {
+  type: Problem['type'];
+  title: string;
+  description: string;
+  textRef: string;
+};
 
 interface UseStyleAnalysisArgs {
   initialText: string;
