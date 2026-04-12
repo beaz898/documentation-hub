@@ -12,7 +12,7 @@ interface StyleApiProblem {
 
 function mapStyleProblems(raw: StyleApiProblem[]): Problem[] {
   return raw.map((p, i) => ({
-    id: `style-${Date.now()}-${i}`,
+    id: `cross-style-${Date.now()}-${Math.random().toString(36).slice(2, 8)}-${i}`,,
     type: p.type,
     title: p.title,
     description: p.description,
