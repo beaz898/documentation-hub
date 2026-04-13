@@ -124,6 +124,7 @@ export default function ImprovementModal({
   } = useStyleAnalysis({
     initialText,
     fileName,
+    accessToken,
   });
 
   // -------- Lista combinada de problemas ----------
