@@ -37,6 +37,7 @@ D. Si el fragmento aparece más de una vez en el texto, incluye suficiente conte
 E. El "find" debe ser lo más CORTO posible pero único. Prefiere 1-3 frases a copiar párrafos enteros.
 F. Para BORRAR texto: usa "replace" vacío "". Para AÑADIR: usa como "find" la frase justo anterior y como "replace" esa misma frase + el texto nuevo.
 G. Si NO puedes localizar el fragmento exacto, NO inventes un REPLACEMENT. Pídele al usuario que te señale el fragmento exacto.
+H. NUNCA emitas un REPLACEMENT donde "find" y "replace" sean iguales (o solo difieran en espacios al inicio/final). Si una parte del texto ya está bien y no necesita cambio, simplemente NO la incluyas como propuesta. Es mejor proponer 2 cambios reales que 3 cambios donde uno no cambia nada.
 
 EJEMPLOS:
 
@@ -60,7 +61,7 @@ He encontrado 3 fragmentos duplicados con politica_rrhh.pdf. Aquí las propuesta
 {"find": "El periodo de disfrute va del 1 de enero al 31 de diciembre.", "replace": ""}
 <<<END>>>
 
-NUNCA inventes texto para el "find". NUNCA.`;
+NUNCA inventes texto para el "find". NUNCA emitas un REPLACEMENT que no cambie nada.`;
 
 interface ChatMessage {
   role: 'user' | 'assistant';
@@ -277,7 +278,7 @@ ${existingContext ? `FRAGMENTOS DE OTROS DOCUMENTOS RELACIONADOS:\n${existingCon
 
 Mensaje del usuario: ${userMessage}
 
-Recuerda: si propones REPLACEMENT(s), el "find" debe ser copia literal del TEXTO_ACTUAL. Si el usuario pide algo multi-fragmento (ej: "borra todo lo duplicado con X"), genera UN REPLACEMENT por cada fragmento, no resumas en uno solo.`;
+Recuerda: si propones REPLACEMENT(s), el "find" debe ser copia literal del TEXTO_ACTUAL. Si el usuario pide algo multi-fragmento (ej: "borra todo lo duplicado con X"), genera UN REPLACEMENT por cada fragmento, no resumas en uno solo. Y NUNCA emitas un REPLACEMENT donde "find" y "replace" sean iguales.`;
 
     // Construir un único prompt: sistema + historial aplanado + bloque de contexto.
     // Limitamos historial a los 10 últimos mensajes (igual que la versión anterior).
@@ -317,12 +318,20 @@ ${historyBlock}${contextBlock}`;
     const replacements: Array<{ find: string; replace: string }> = [];
     const replacementRegex = /<<<REPLACEMENT>>>\s*([\s\S]*?)\s*<<<END>>>/g;
     let match;
+    let droppedNoOpCount = 0;
     while ((match = replacementRegex.exec(rawReply)) !== null) {
       try {
         const parsed = JSON.parse(match[1].trim());
-        if (typeof parsed.find === 'string' && typeof parsed.replace === 'string') {
-          replacements.push({ find: parsed.find, replace: parsed.replace });
+        if (typeof parsed.find !== 'string' || typeof parsed.replace !== 'string') continue;
+
+        // Defensa en profundidad: descartar REPLACEMENTs que no cambian nada,
+        // incluso si el modelo se salta la regla H del prompt.
+        if (parsed.find.trim() === parsed.replace.trim()) {
+          droppedNoOpCount++;
+          continue;
         }
+
+        replacements.push({ find: parsed.find, replace: parsed.replace });
       } catch (e) {
         console.error('[IMPROVE] Failed to parse REPLACEMENT block:', e, match[1].slice(0, 200));
       }
@@ -331,7 +340,7 @@ ${historyBlock}${contextBlock}`;
     const visibleText = rawReply.replace(replacementRegex, '').trim();
 
     console.log(
-      `[IMPROVE] OK — model=haiku tokens_in=${usage.inputTokens} tokens_out=${usage.outputTokens} replacements=${replacements.length} latency=${Date.now() - startedAt}ms`
+      `[IMPROVE] OK — model=haiku tokens_in=${usage.inputTokens} tokens_out=${usage.outputTokens} replacements=${replacements.length} dropped_noop=${droppedNoOpCount} latency=${Date.now() - startedAt}ms`
     );
 
     return NextResponse.json({
