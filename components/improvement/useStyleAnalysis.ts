@@ -11,7 +11,7 @@ type StyleApiProblem = {
 interface UseStyleAnalysisArgs {
   initialText: string;
   fileName: string;
-  // onInitialProblemsLoaded eliminado: ya no hay auto-análisis
+  accessToken: string | null;
 }
 
 function mapStyleProblems(raw: StyleApiProblem[]): Problem[] {
@@ -26,23 +26,27 @@ function mapStyleProblems(raw: StyleApiProblem[]): Problem[] {
   }));
 }
 
-export function useStyleAnalysis({ initialText, fileName }: UseStyleAnalysisArgs) {
+export function useStyleAnalysis({ initialText, fileName, accessToken }: UseStyleAnalysisArgs) {
   const [styleProblems, setStyleProblems] = useState<Problem[]>([]);
   const [styleLoading, setStyleLoading] = useState(false);
 
-  // Se mantiene initialText/fileName en la firma por si algún consumidor los pasa,
-  // pero ya no se dispara nada al montar. El análisis solo corre cuando el usuario
-  // pulsa el botón "Reanalizar estilo".
   void initialText;
   void fileName;
 
   const reanalyzeStyle = useCallback(
     async (currentText: string, currentFileName: string): Promise<Problem[]> => {
+      if (!accessToken) {
+        console.warn('[useStyleAnalysis] no access token available');
+        return [];
+      }
       setStyleLoading(true);
       try {
         const res = await fetch('/api/analyze-style', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${accessToken}`,
+          },
           body: JSON.stringify({ text: currentText, fileName: currentFileName }),
         });
         if (!res.ok) {
@@ -64,7 +68,7 @@ export function useStyleAnalysis({ initialText, fileName }: UseStyleAnalysisArgs
         setStyleLoading(false);
       }
     },
-    []
+    [accessToken]
   );
 
   return { styleProblems, styleLoading, reanalyzeStyle, setStyleProblems };
