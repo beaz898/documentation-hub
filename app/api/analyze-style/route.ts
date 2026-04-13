@@ -1,27 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
+import { callLLMJson } from '@/lib/analysis/llm-client';
 
 export const maxDuration = 60;
-
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY!;
-const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`;
-
-async function callGeminiWithRetry(payload: object, maxAttempts = 3): Promise<Response> {
-  const delays = [0, 1500, 3500];
-  let last: Response | null = null;
-  for (let i = 0; i < maxAttempts; i++) {
-    if (delays[i] > 0) await new Promise(r => setTimeout(r, delays[i]));
-    const res = await fetch(GEMINI_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
-    last = res;
-    if (res.ok) return res;
-    if (res.status !== 429 && res.status !== 503 && res.status < 500) return res;
-  }
-  return last!;
-}
 
 const STYLE_PROMPT = `Eres un revisor de estilo de documentación corporativa. Analiza el TEXTO que se te da y detecta SOLO problemas internos del propio texto (sin compararlo con otros documentos).
 
@@ -37,10 +18,24 @@ REGLAS:
 4. La "title" es un nombre breve (máx. 8 palabras). La "description" explica el problema y sugiere la corrección (máx. 25 palabras).
 5. Devuelve máximo 15 problemas en total. Si hay más, prioriza los más graves.
 
-Responde SOLO con un JSON válido, sin markdown, con esta estructura exacta:
+Estructura JSON exacta a devolver:
 {"problems":[{"type":"ortografia|ambiguedad|sugerencia","title":"...","description":"...","textRef":"..."}]}`;
 
+interface StyleProblem {
+  type?: string;
+  title?: string;
+  description?: string;
+  textRef?: string;
+}
+
+interface StyleResponse {
+  problems?: StyleProblem[];
+}
+
+const VALID_TYPES = new Set(['ortografia', 'ambiguedad', 'sugerencia']);
+
 export async function POST(req: NextRequest) {
+  const startedAt = Date.now();
   try {
     const authHeader = req.headers.get('authorization');
     if (!authHeader?.startsWith('Bearer ')) {
@@ -58,40 +53,43 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Texto insuficiente' }, { status: 400 });
     }
 
-    const userMessage = `DOCUMENTO: "${fileName || 'sin nombre'}"\n\nTEXTO A REVISAR:\n"""\n${text.slice(0, 20000)}\n"""\n\nDevuelve el JSON con los problemas internos detectados.`;
+    const userPrompt = `${STYLE_PROMPT}
 
-    const response = await callGeminiWithRetry({
-      system_instruction: { parts: [{ text: STYLE_PROMPT }] },
-      contents: [{ role: 'user', parts: [{ text: userMessage }] }],
-      generationConfig: { maxOutputTokens: 3072, temperature: 0.2 },
-    });
+---
 
-    if (!response.ok) {
-      console.error('[ANALYZE-STYLE] Gemini error after retries:', response.status);
-      return NextResponse.json({ success: true, problems: [], styleError: true });
-    }
+DOCUMENTO: "${fileName || 'sin nombre'}"
 
-    const data = await response.json();
-    const raw = data.candidates?.[0]?.content?.parts?.map((p: { text?: string }) => p.text || '').join('') || '';
+TEXTO A REVISAR:
+"""
+${text.slice(0, 20000)}
+"""
 
-    let parsed;
+Devuelve el JSON con los problemas internos detectados.`;
+
+    let parsed: StyleResponse;
     try {
-      let cleaned = raw.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim();
-      if (!cleaned.endsWith('}')) {
-        const last = cleaned.lastIndexOf('}');
-        if (last > 0) cleaned = cleaned.substring(0, last + 1);
-      }
-      parsed = JSON.parse(cleaned);
-    } catch (e) {
-      console.error('[ANALYZE-STYLE] JSON parse failed:', e);
+      parsed = await callLLMJson<StyleResponse>(userPrompt, {
+        model: 'haiku',
+        maxOutputTokens: 3072,
+        temperature: 0.2,
+      });
+    } catch (err) {
+      // Mismo comportamiento permisivo que la versión anterior:
+      // si el LLM falla o el JSON no se puede parsear, devolvemos lista vacía
+      // con la bandera styleError para que el frontend no muestre error duro.
+      console.error('[ANALYZE-STYLE] LLM/parse failed:', err instanceof Error ? err.message : err);
       return NextResponse.json({ success: true, problems: [], styleError: true });
     }
 
-    const problems = Array.isArray(parsed.problems) ? parsed.problems.filter((p: { type?: string; textRef?: string }) =>
-      ['ortografia', 'ambiguedad', 'sugerencia'].includes(p.type || '') && typeof p.textRef === 'string'
-    ) : [];
+    const problems = Array.isArray(parsed.problems)
+      ? parsed.problems.filter(
+          (p) => VALID_TYPES.has(p.type || '') && typeof p.textRef === 'string',
+        )
+      : [];
 
-    console.log(`[ANALYZE-STYLE] Returned ${problems.length} style problems`);
+    console.log(
+      `[ANALYZE-STYLE] OK — model=haiku problems=${problems.length} latency=${Date.now() - startedAt}ms`,
+    );
     return NextResponse.json({ success: true, problems });
   } catch (error: unknown) {
     console.error('Error in /api/analyze-style:', error);
