@@ -4,18 +4,28 @@
  * 1. Convierte la pregunta en un vector (embedding)
  * 2. Busca los chunks más relevantes en Pinecone
  * 3. Construye un prompt con los fragmentos encontrados
- * 4. Envía a Gemini con historial de conversación y devuelve la respuesta
+ * 4. Envía a Claude (vía llm-client) con historial de conversación y devuelve la respuesta
+ *
+ * Notas de implementación:
+ * - Se usa callLLMWithUsage para poder reportar tokens de entrada/salida.
+ * - El historial de conversación se aplana dentro del prompt porque la
+ *   abstracción actual de llm-client acepta un único string. Cuando se
+ *   reescriba llm-client con API nativa de mensajes (refactor estructural
+ *   pendiente), esta función se puede simplificar.
+ * - El mapeo de errores conserva las mismas categorías que esperaba el
+ *   endpoint /api/ask cuando usaba Gemini (AUTH_ERROR, RATE_LIMIT_EXCEEDED,
+ *   SERVICE_OVERLOADED, SERVICE_ERROR), de modo que route.ts no necesita
+ *   cambiar.
  */
 
 import { getIndex } from './pinecone';
 import { generateQueryEmbedding } from './embeddings';
-
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY!;
-const GEMINI_MODEL = 'gemini-2.5-flash';
-const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
+import { callLLMWithUsage } from './analysis/llm-client';
 
 const TOP_K = 8;
 const MAX_HISTORY_MESSAGES = 6; // Últimos 3 pares pregunta-respuesta
+const MAX_OUTPUT_TOKENS = 4096;
+const TEMPERATURE = 0.3;
 
 const SYSTEM_PROMPT = `Eres un asistente experto en documentación empresarial. Tu trabajo es responder preguntas basándote ÚNICAMENTE en los fragmentos de documentación que se te proporcionan.
 
@@ -50,6 +60,59 @@ export interface RAGResult {
 }
 
 /**
+ * Construye un prompt único que incluye instrucciones de sistema,
+ * historial de conversación, fragmentos recuperados y pregunta actual.
+ */
+function buildPrompt(
+  question: string,
+  context: string,
+  history: ConversationMessage[]
+): string {
+  const historyBlock =
+    history.length === 0
+      ? ''
+      : `HISTORIAL RECIENTE DE LA CONVERSACIÓN:
+
+${history
+  .map(m => `${m.role === 'user' ? 'Usuario' : 'Asistente'}: ${m.content}`)
+  .join('\n\n')}
+
+---
+
+`;
+
+  return `${SYSTEM_PROMPT}
+
+---
+
+${historyBlock}FRAGMENTOS DE DOCUMENTACIÓN RELEVANTES:
+
+${context}
+
+---
+
+PREGUNTA DEL USUARIO: ${question}`;
+}
+
+/**
+ * Convierte el error genérico de llm-client (que llega como
+ * "LLM call failed after retries: HTTP 401") en una de las categorías
+ * de error que /api/ask sabe traducir a mensaje de usuario.
+ */
+function mapLLMError(err: unknown): never {
+  const message = err instanceof Error ? err.message : String(err);
+
+  // Patrones HTTP que vienen del cliente
+  if (/HTTP 401|HTTP 403/.test(message)) throw new Error('AUTH_ERROR');
+  if (/HTTP 429/.test(message)) throw new Error('RATE_LIMIT_EXCEEDED');
+  if (/HTTP 529/.test(message)) throw new Error('SERVICE_OVERLOADED');
+  if (/HTTP 5\d\d/.test(message)) throw new Error('SERVICE_ERROR');
+
+  // Cualquier otro fallo (red, timeout, parse) lo tratamos como servicio caído
+  throw new Error('SERVICE_ERROR');
+}
+
+/**
  * Ejecuta una consulta RAG completa con memoria de conversación.
  */
 export async function queryRAG(
@@ -70,10 +133,11 @@ export async function queryRAG(
 
   const matches = queryResponse.matches || [];
 
-  // Si no hay resultados relevantes
+  // Si no hay resultados relevantes, no llamamos al LLM
   if (matches.length === 0 || (matches[0].score && matches[0].score < 0.3)) {
     return {
-      answer: 'No encontré información relevante sobre esto en la documentación disponible. Asegúrate de que los documentos relacionados con tu pregunta han sido subidos al sistema.',
+      answer:
+        'No encontré información relevante sobre esto en la documentación disponible. Asegúrate de que los documentos relacionados con tu pregunta han sido subidos al sistema.',
       sources: [],
       usage: { inputTokens: 0, outputTokens: 0 },
     };
@@ -92,100 +156,30 @@ export async function queryRAG(
     .map((f, i) => `[Fragmento ${i + 1} - ${f.documentName}]\n${f.chunkText}`)
     .join('\n\n---\n\n');
 
-  const userMessage = `FRAGMENTOS DE DOCUMENTACIÓN RELEVANTES:
-
-${context}
-
----
-
-PREGUNTA DEL USUARIO: ${question}`;
-
-  // 4. Construir historial de conversación para Gemini
-  // Solo los últimos N mensajes para no pasarnos de tokens
+  // 4. Construir prompt con historial limitado a los últimos N mensajes
   const recentHistory = conversationHistory.slice(-MAX_HISTORY_MESSAGES);
+  const prompt = buildPrompt(question, context, recentHistory);
 
-  const geminiContents = [
-    // Historial previo
-    ...recentHistory.map(msg => ({
-      role: msg.role === 'assistant' ? 'model' : 'user',
-      parts: [{ text: msg.content }],
-    })),
-    // Pregunta actual con contexto
-    {
-      role: 'user',
-      parts: [{ text: userMessage }],
-    },
-  ];
-
-  // 5. Enviar a Gemini con reintentos automáticos
-  const MAX_RETRIES = 3;
-  let response: Response | null = null;
-  let lastError: string = '';
-
-  for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
-    response = await fetch(GEMINI_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        system_instruction: {
-          parts: [{ text: SYSTEM_PROMPT }],
-        },
-        contents: geminiContents,
-        generationConfig: {
-          maxOutputTokens: 8192,
-          temperature: 0.3,
-        },
-      }),
+  // 5. Llamar a Claude vía cliente centralizado
+  let text: string;
+  let usage: { inputTokens: number; outputTokens: number };
+  try {
+    const response = await callLLMWithUsage(prompt, {
+      model: 'haiku',
+      maxOutputTokens: MAX_OUTPUT_TOKENS,
+      temperature: TEMPERATURE,
     });
-
-    if (response.ok) break;
-
-    lastError = await response.text();
-
-    // Si es error temporal (503/429), reintentar con backoff exponencial
-    if ((response.status === 503 || response.status === 429) && attempt < MAX_RETRIES - 1) {
-      const waitMs = Math.pow(2, attempt) * 1500; // 1.5s, 3s, 6s
-      console.log(`[RAG] Gemini ${response.status}, reintentando en ${waitMs}ms (intento ${attempt + 1}/${MAX_RETRIES})`);
-      await new Promise(resolve => setTimeout(resolve, waitMs));
-      continue;
-    }
-
-    // Otros errores: salir del bucle
-    break;
+    text = response.text;
+    usage = response.usage;
+  } catch (err) {
+    console.error('[RAG] LLM call failed:', err instanceof Error ? err.message : err);
+    mapLLMError(err); // siempre lanza
+    throw err; // inalcanzable, pero TypeScript lo necesita
   }
-
-  if (!response || !response.ok) {
-    const status = response?.status || 0;
-
-    // Categorizar el error para dar un mensaje claro al usuario
-    if (status === 503) {
-      throw new Error('SERVICE_OVERLOADED');
-    } else if (status === 429) {
-      throw new Error('RATE_LIMIT_EXCEEDED');
-    } else if (status === 401 || status === 403) {
-      throw new Error('AUTH_ERROR');
-    } else if (status >= 500) {
-      throw new Error('SERVICE_ERROR');
-    } else {
-      throw new Error(`UNKNOWN_ERROR: ${status} ${lastError.substring(0, 200)}`);
-    }
-  }
-
-  const data = await response.json();
-
-  const answer =
-    data.candidates?.[0]?.content?.parts
-      ?.map((p: { text?: string }) => p.text || '')
-      .join('') || 'No se pudo generar una respuesta.';
-
-  const usageMetadata = data.usageMetadata || {};
 
   return {
-    answer,
+    answer: text || 'No se pudo generar una respuesta.',
     sources: fragments.slice(0, 5),
-    usage: {
-      inputTokens: usageMetadata.promptTokenCount || 0,
-      outputTokens: usageMetadata.candidatesTokenCount || 0,
-    },
+    usage,
   };
 }
