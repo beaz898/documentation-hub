@@ -1,7 +1,5 @@
 'use client';
 
-import { useState, ReactNode } from 'react';
-
 interface AnalysisResult {
   isDuplicate?: boolean;
   duplicateOf?: string;
@@ -22,90 +20,12 @@ interface AnalysisModalProps {
   onImprove: () => void;
 }
 
-// ============================================================
-// Componente plegable interno
-// ============================================================
-interface CollapsibleSectionProps {
-  title: string;
-  count?: number;
-  color?: string;
-  defaultOpen?: boolean;
-  children: ReactNode;
-}
-
-function CollapsibleSection({
-  title,
-  count,
-  color = 'var(--text-secondary)',
-  defaultOpen = false,
-  children,
-}: CollapsibleSectionProps) {
-  const [open, setOpen] = useState(defaultOpen);
-  return (
-    <div style={{ marginBottom: 8 }}>
-      <button
-        type="button"
-        onClick={() => setOpen(o => !o)}
-        style={{
-          width: '100%',
-          display: 'flex', alignItems: 'center', gap: 6,
-          padding: '6px 8px', borderRadius: 6,
-          border: 'none', background: 'transparent',
-          cursor: 'pointer', textAlign: 'left',
-          color, fontSize: 12, fontWeight: 600,
-        }}
-      >
-        <span style={{ fontSize: 10, width: 12, display: 'inline-block' }}>
-          {open ? '▾' : '▸'}
-        </span>
-        <span>
-          {title}{typeof count === 'number' ? ` (${count})` : ''}
-        </span>
-      </button>
-      {open && (
-        <div style={{ padding: '4px 4px 0 22px' }}>
-          {children}
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ============================================================
-// Encabezado de bloque (Problemas / Resumen)
-// ============================================================
-function BlockHeader({ children }: { children: ReactNode }) {
-  return (
-    <p style={{
-      fontSize: 11, fontWeight: 700, textTransform: 'uppercase',
-      letterSpacing: 0.5, color: 'var(--text-muted)',
-      margin: '14px 0 6px',
-      paddingBottom: 4, borderBottom: '0.5px solid var(--border)',
-    }}>
-      {children}
-    </p>
-  );
-}
-
-// ============================================================
-// Modal principal
-// ============================================================
 export default function AnalysisModal({ fileName, analysis, onConfirm, onCancel, onImprove }: AnalysisModalProps) {
   const recColor = analysis.recommendation === 'NO_INDEXAR'
     ? { bg: 'var(--danger-light)', text: 'var(--danger-text)', border: 'var(--danger)' }
     : analysis.recommendation === 'REVISAR'
       ? { bg: 'var(--warning-light)', text: 'var(--warning-text)', border: 'var(--warning)' }
       : { bg: 'var(--success-light)', text: 'var(--success-text)', border: 'var(--success)' };
-
-  const hasProblems =
-    analysis.isDuplicate ||
-    (analysis.discrepancies && analysis.discrepancies.length > 0) ||
-    (analysis.overlaps && analysis.overlaps.length > 0);
-
-  const hasSummaryItems =
-    !!analysis.newInformation ||
-    (analysis.suggestedActions && analysis.suggestedActions.length > 0) ||
-    !!analysis.recommendation;
 
   return (
     <div className="modal-overlay" onClick={onCancel}>
@@ -133,173 +53,138 @@ export default function AnalysisModal({ fileName, analysis, onConfirm, onCancel,
           </button>
         </div>
 
-        {/* Summary general */}
+        {/* Summary */}
         {analysis.summary && (
-          <p style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: 8 }}>
+          <p style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: 16 }}>
             {analysis.summary}
           </p>
         )}
 
-        {/* ============================================================ */}
-        {/* PROBLEMAS DETECTADOS — plegados por defecto */}
-        {/* ============================================================ */}
-        {hasProblems && (
-          <>
-            <BlockHeader>Problemas detectados</BlockHeader>
-
-            {analysis.isDuplicate && (
-              <CollapsibleSection
-                title="Posible duplicado"
-                count={1}
-                color="var(--warning-text)"
-                defaultOpen={false}
-              >
-                <div style={{
-                  padding: '10px 14px', borderRadius: 10,
-                  background: 'var(--warning-light)', border: '0.5px solid var(--warning)',
-                }}>
-                  <p style={{ fontSize: 12, color: 'var(--warning-text)' }}>
-                    Similar a &quot;{analysis.duplicateOf}&quot; ({analysis.duplicateConfidence}% confianza)
-                  </p>
-                </div>
-              </CollapsibleSection>
-            )}
-
-            {analysis.discrepancies && analysis.discrepancies.length > 0 && (
-              <CollapsibleSection
-                title="Discrepancias"
-                count={analysis.discrepancies.length}
-                color="var(--danger)"
-                defaultOpen={false}
-              >
-                {analysis.discrepancies.map((d, i) => (
-                  <div key={i} style={{
-                    padding: '8px 12px', borderRadius: 8, marginBottom: 6,
-                    background: 'var(--danger-light)', border: '0.5px solid var(--danger)',
-                  }}>
-                    <p style={{ fontSize: 12, fontWeight: 500, color: 'var(--danger-text)', marginBottom: 4 }}>{d.topic}</p>
-                    <p style={{ fontSize: 11, color: 'var(--danger-text)' }}>
-                      Nuevo: &quot;{d.newDocSays}&quot;
-                    </p>
-                    <p style={{ fontSize: 11, color: 'var(--danger-text)' }}>
-                      Existente ({d.existingDocument}): &quot;{d.existingDocSays}&quot;
-                    </p>
-                  </div>
-                ))}
-              </CollapsibleSection>
-            )}
-
-            {analysis.overlaps && analysis.overlaps.length > 0 && (
-              <CollapsibleSection
-                title="Solapamientos"
-                count={analysis.overlaps.length}
-                color="var(--info)"
-                defaultOpen={false}
-              >
-                {analysis.overlaps.map((o, i) => (
-                  <div key={i} style={{
-                    padding: '8px 12px', borderRadius: 8, marginBottom: 6,
-                    background: 'var(--info-light)', border: '0.5px solid var(--info)',
-                  }}>
-                    <p style={{ fontSize: 12, color: 'var(--info-text)' }}>
-                      {o.description}
-                    </p>
-                    <p style={{ fontSize: 11, color: 'var(--info-text)', opacity: 0.8 }}>
-                      Con &quot;{o.existingDocument}&quot; — severidad: {o.severity}
-                    </p>
-                  </div>
-                ))}
-              </CollapsibleSection>
-            )}
-          </>
+        {/* Duplicate warning */}
+        {analysis.isDuplicate && (
+          <div style={{
+            padding: '10px 14px', borderRadius: 10, marginBottom: 10,
+            background: 'var(--warning-light)', border: '0.5px solid var(--warning)',
+          }}>
+            <p style={{ fontSize: 13, fontWeight: 500, color: 'var(--warning-text)', marginBottom: 2 }}>
+              Posible duplicado
+            </p>
+            <p style={{ fontSize: 12, color: 'var(--warning-text)' }}>
+              Similar a &quot;{analysis.duplicateOf}&quot; ({analysis.duplicateConfidence}% confianza)
+            </p>
+          </div>
         )}
 
-        {/* ============================================================ */}
-        {/* RESUMEN DEL ANÁLISIS — desplegado por defecto */}
-        {/* ============================================================ */}
-        {hasSummaryItems && (
-          <>
-            <BlockHeader>Resumen del análisis</BlockHeader>
-
-            {analysis.newInformation && (
-              <CollapsibleSection
-                title="Información nueva"
-                color="var(--success-text)"
-                defaultOpen={true}
-              >
-                <div style={{
-                  padding: '10px 14px', borderRadius: 10,
-                  background: 'var(--success-light)', border: '0.5px solid var(--success)',
-                }}>
-                  <p style={{ fontSize: 12, color: 'var(--success-text)' }}>
-                    {analysis.newInformation}
-                  </p>
-                </div>
-              </CollapsibleSection>
-            )}
-
-            {analysis.suggestedActions && analysis.suggestedActions.length > 0 && (
-              <CollapsibleSection
-                title="Acciones recomendadas"
-                count={analysis.suggestedActions.length}
-                color="var(--text-secondary)"
-                defaultOpen={true}
-              >
-                <div>
-                  {analysis.suggestedActions.map((a, i) => {
-                    const icons: Record<string, string> = {
-                      'REEMPLAZAR': '↻', 'FUSIONAR': '⊕', 'CORREGIR_EXISTENTE': '✎',
-                      'CORREGIR_NUEVO': '✎', 'IGNORAR': '→',
-                    };
-                    return (
-                      <div key={i} style={{
-                        display: 'flex', gap: 8, alignItems: 'flex-start',
-                        padding: '6px 0', borderBottom: i < analysis.suggestedActions!.length - 1 ? '0.5px solid var(--border)' : 'none',
-                      }}>
-                        <span style={{ fontSize: 14, flexShrink: 0, width: 20, textAlign: 'center' }}>
-                          {icons[a.action] || '•'}
-                        </span>
-                        <div>
-                          <p style={{ fontSize: 12, color: 'var(--text-primary)' }}>
-                            <strong>{a.action}</strong> — {a.target}
-                          </p>
-                          <p style={{ fontSize: 11, color: 'var(--text-secondary)' }}>{a.reason}</p>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </CollapsibleSection>
-            )}
-
-            {analysis.recommendation && (
-              <CollapsibleSection
-                title="Recomendación"
-                color={recColor.text}
-                defaultOpen={true}
-              >
-                <div style={{
-                  padding: '12px 16px', borderRadius: 10,
-                  background: recColor.bg, borderLeft: `3px solid ${recColor.border}`,
-                }}>
-                  <p style={{ fontSize: 13, fontWeight: 600, color: recColor.text }}>
-                    {analysis.recommendation}
-                  </p>
-                  <p style={{ fontSize: 12, color: recColor.text, marginTop: 4, lineHeight: 1.5 }}>
-                    {analysis.recommendation === 'NO_INDEXAR'
-                      ? 'Este documento es prácticamente idéntico a uno existente. Indexarlo crearía duplicidad.'
-                      : analysis.recommendation === 'REVISAR'
-                        ? 'Se detectaron diferencias que podrían causar respuestas contradictorias. Verifica qué versión es correcta.'
-                        : 'El documento aporta valor y puede indexarse con confianza.'}
-                  </p>
-                </div>
-              </CollapsibleSection>
-            )}
-          </>
+        {/* Discrepancies */}
+        {analysis.discrepancies && analysis.discrepancies.length > 0 && (
+          <div style={{ marginBottom: 12 }}>
+            <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--danger)', marginBottom: 8 }}>
+              Discrepancias ({analysis.discrepancies.length})
+            </p>
+            {analysis.discrepancies.map((d, i) => (
+              <div key={i} style={{
+                padding: '8px 12px', borderRadius: 8, marginBottom: 6,
+                background: 'var(--danger-light)', border: '0.5px solid var(--danger)',
+              }}>
+                <p style={{ fontSize: 12, fontWeight: 500, color: 'var(--danger-text)', marginBottom: 4 }}>{d.topic}</p>
+                <p style={{ fontSize: 11, color: 'var(--danger-text)' }}>
+                  Nuevo: &quot;{d.newDocSays}&quot;
+                </p>
+                <p style={{ fontSize: 11, color: 'var(--danger-text)' }}>
+                  Existente ({d.existingDocument}): &quot;{d.existingDocSays}&quot;
+                </p>
+              </div>
+            ))}
+          </div>
         )}
+
+        {/* Overlaps */}
+        {analysis.overlaps && analysis.overlaps.length > 0 && (
+          <div style={{ marginBottom: 12 }}>
+            <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--info)', marginBottom: 8 }}>
+              Solapamientos ({analysis.overlaps.length})
+            </p>
+            {analysis.overlaps.map((o, i) => (
+              <div key={i} style={{
+                padding: '8px 12px', borderRadius: 8, marginBottom: 6,
+                background: 'var(--info-light)', border: '0.5px solid var(--info)',
+              }}>
+                <p style={{ fontSize: 12, color: 'var(--info-text)' }}>
+                  {o.description}
+                </p>
+                <p style={{ fontSize: 11, color: 'var(--info-text)', opacity: 0.8 }}>
+                  Con &quot;{o.existingDocument}&quot; — severidad: {o.severity}
+                </p>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* New information */}
+        {analysis.newInformation && (
+          <div style={{
+            padding: '10px 14px', borderRadius: 10, marginBottom: 12,
+            background: 'var(--success-light)', border: '0.5px solid var(--success)',
+          }}>
+            <p style={{ fontSize: 12, fontWeight: 500, color: 'var(--success-text)', marginBottom: 2 }}>
+              Información nueva
+            </p>
+            <p style={{ fontSize: 12, color: 'var(--success-text)' }}>
+              {analysis.newInformation}
+            </p>
+          </div>
+        )}
+
+        {/* Suggested actions */}
+        {analysis.suggestedActions && analysis.suggestedActions.length > 0 && (
+          <div style={{ marginBottom: 16 }}>
+            <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 8 }}>
+              Acciones recomendadas
+            </p>
+            {analysis.suggestedActions.map((a, i) => {
+              const icons: Record<string, string> = {
+                'REEMPLAZAR': '↻', 'FUSIONAR': '⊕', 'CORREGIR_EXISTENTE': '✎',
+                'CORREGIR_NUEVO': '✎', 'IGNORAR': '→',
+              };
+              return (
+                <div key={i} style={{
+                  display: 'flex', gap: 8, alignItems: 'flex-start',
+                  padding: '6px 0', borderBottom: i < analysis.suggestedActions!.length - 1 ? '0.5px solid var(--border)' : 'none',
+                }}>
+                  <span style={{ fontSize: 14, flexShrink: 0, width: 20, textAlign: 'center' }}>
+                    {icons[a.action] || '•'}
+                  </span>
+                  <div>
+                    <p style={{ fontSize: 12, color: 'var(--text-primary)' }}>
+                      <strong>{a.action}</strong> — {a.target}
+                    </p>
+                    <p style={{ fontSize: 11, color: 'var(--text-secondary)' }}>{a.reason}</p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Recommendation badge */}
+        <div style={{
+          padding: '12px 16px', borderRadius: 10, marginBottom: 20,
+          background: recColor.bg, borderLeft: `3px solid ${recColor.border}`,
+        }}>
+          <p style={{ fontSize: 13, fontWeight: 600, color: recColor.text }}>
+            Recomendación: {analysis.recommendation}
+          </p>
+          <p style={{ fontSize: 12, color: recColor.text, marginTop: 4, lineHeight: 1.5 }}>
+            {analysis.recommendation === 'NO_INDEXAR'
+              ? 'Este documento es prácticamente idéntico a uno existente. Indexarlo crearía duplicidad.'
+              : analysis.recommendation === 'REVISAR'
+                ? 'Se detectaron diferencias que podrían causar respuestas contradictorias. Verifica qué versión es correcta.'
+                : 'El documento aporta valor y puede indexarse con confianza.'}
+          </p>
+        </div>
 
         {/* Action buttons: Cancel | Improve | Index anyway */}
-        <div style={{ display: 'flex', gap: 8, marginTop: 20 }}>
+        <div style={{ display: 'flex', gap: 8 }}>
           <button
             onClick={onCancel}
             style={{
