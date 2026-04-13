@@ -2,35 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import { getIndex } from '@/lib/pinecone';
 import { generateEmbeddings } from '@/lib/embeddings';
+import { callLLMWithUsage } from '@/lib/analysis/llm-client';
 
 export const maxDuration = 120;
-
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY!;
-const GEMINI_MODEL = 'gemini-2.5-flash';
-const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
-
-// Retry helper for transient Gemini errors (429/503/5xx)
-async function callGeminiWithRetry(payload: object, maxAttempts = 3): Promise<Response> {
-  const delays = [0, 1500, 3500];
-  let lastResponse: Response | null = null;
-  for (let attempt = 0; attempt < maxAttempts; attempt++) {
-    if (delays[attempt] > 0) {
-      console.log(`[IMPROVE] Retry ${attempt}/${maxAttempts - 1} after ${delays[attempt]}ms`);
-      await new Promise(r => setTimeout(r, delays[attempt]));
-    }
-    const res = await fetch(GEMINI_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
-    lastResponse = res;
-    if (res.ok) return res;
-    if (res.status !== 429 && res.status !== 503 && res.status < 500) {
-      return res;
-    }
-  }
-  return lastResponse!;
-}
 
 const IMPROVE_SYSTEM_PROMPT = `Eres un asistente experto en documentación corporativa. Ayudas al usuario a mejorar un documento que tiene problemas detectados (contradicciones con otros documentos, duplicidades, ambigüedades, errores, texto redundante, etc.).
 
@@ -174,7 +148,26 @@ async function loadFullDocumentText(
   }
 }
 
+/**
+ * Aplana el historial de conversación dentro del prompt, ya que la abstracción
+ * actual de llm-client acepta una única string. Cuando se reescriba el cliente
+ * con API nativa de mensajes, esto se podrá simplificar.
+ */
+function flattenHistory(history: ChatMessage[]): string {
+  if (history.length === 0) return '';
+  return `HISTORIAL RECIENTE DE LA CONVERSACIÓN:
+
+${history
+  .map(m => `${m.role === 'user' ? 'Usuario' : 'Asistente'}: ${m.content}`)
+  .join('\n\n')}
+
+---
+
+`;
+}
+
 export async function POST(req: NextRequest) {
+  const startedAt = Date.now();
   try {
     const authHeader = req.headers.get('authorization');
     if (!authHeader?.startsWith('Bearer ')) {
@@ -286,41 +279,39 @@ Mensaje del usuario: ${userMessage}
 
 Recuerda: si propones REPLACEMENT(s), el "find" debe ser copia literal del TEXTO_ACTUAL. Si el usuario pide algo multi-fragmento (ej: "borra todo lo duplicado con X"), genera UN REPLACEMENT por cada fragmento, no resumas en uno solo.`;
 
-    const contents: Array<{ role: string; parts: Array<{ text: string }> }> = [];
-    for (const h of (history || []).slice(-10)) {
-      contents.push({
-        role: h.role === 'assistant' ? 'model' : 'user',
-        parts: [{ text: h.content }],
-      });
-    }
-    contents.push({ role: 'user', parts: [{ text: contextBlock }] });
+    // Construir un único prompt: sistema + historial aplanado + bloque de contexto.
+    // Limitamos historial a los 10 últimos mensajes (igual que la versión anterior).
+    const historyBlock = flattenHistory((history || []).slice(-10));
+    const prompt = `${IMPROVE_SYSTEM_PROMPT}
 
-    const response = await callGeminiWithRetry({
-      system_instruction: { parts: [{ text: IMPROVE_SYSTEM_PROMPT }] },
-      contents,
-      generationConfig: {
+---
+
+${historyBlock}${contextBlock}`;
+
+    // Llamar a Claude vía cliente centralizado
+    let rawReply = '';
+    let usage = { inputTokens: 0, outputTokens: 0 };
+    try {
+      const response = await callLLMWithUsage(prompt, {
+        model: 'haiku',
         maxOutputTokens: 6144,
         temperature: 0.2,
-      },
-    });
-
-    if (!response.ok) {
-      const errText = await response.text();
-      console.error(`[IMPROVE] Gemini error after retries (status=${response.status}):`, errText.slice(0, 300));
+      });
+      rawReply = response.text;
+      usage = response.usage;
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      console.error('[IMPROVE] LLM call failed:', message);
+      const isRateOrOverloaded = /HTTP 429|HTTP 5\d\d/.test(message);
       return NextResponse.json(
         {
-          error: response.status === 503 || response.status === 429
+          error: isRateOrOverloaded
             ? 'El asistente de IA está saturado en este momento. Vuelve a intentarlo en unos segundos.'
             : 'No se pudo contactar con el asistente de mejora. Inténtalo de nuevo.',
         },
         { status: 503 }
       );
     }
-
-    const data = await response.json();
-    const rawReply: string = data.candidates?.[0]?.content?.parts
-      ?.map((p: { text?: string }) => p.text || '')
-      .join('') || '';
 
     // Parse replacement blocks
     const replacements: Array<{ find: string; replace: string }> = [];
@@ -338,6 +329,10 @@ Recuerda: si propones REPLACEMENT(s), el "find" debe ser copia literal del TEXTO
     }
 
     const visibleText = rawReply.replace(replacementRegex, '').trim();
+
+    console.log(
+      `[IMPROVE] OK — model=haiku tokens_in=${usage.inputTokens} tokens_out=${usage.outputTokens} replacements=${replacements.length} latency=${Date.now() - startedAt}ms`
+    );
 
     return NextResponse.json({
       success: true,
