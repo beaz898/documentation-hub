@@ -155,3 +155,85 @@ IMPORTANTE: Responde EXCLUSIVAMENTE con un objeto JSON válido. Sin texto antes 
     throw err;
   }
 }
+
+// ---------------------------------------------------------------------------
+// callLLMWithUsage
+// ---------------------------------------------------------------------------
+// Variante de callLLM que además devuelve el conteo de tokens de entrada y
+// salida. Usada por endpoints que necesitan reportar uso (p. ej. /api/ask
+// para mostrar/registrar coste por consulta). No modifica callLLM existente
+// para no afectar al pipeline v2 ni al resto de call sites.
+//
+// Estructura de respuesta de Anthropic:
+//   data.content[0].text          -> texto generado
+//   data.usage.input_tokens       -> tokens del prompt
+//   data.usage.output_tokens      -> tokens de la respuesta
+// ---------------------------------------------------------------------------
+
+export interface LLMUsage {
+  inputTokens: number;
+  outputTokens: number;
+}
+
+export interface LLMResponseWithUsage {
+  text: string;
+  usage: LLMUsage;
+}
+
+export async function callLLMWithUsage(
+  prompt: string,
+  opts: CallOptions = {}
+): Promise<LLMResponseWithUsage> {
+  const { maxOutputTokens = 4096, temperature = 0.2, model = 'haiku' } = opts;
+  const modelId = model === 'sonnet' ? SONNET_MODEL : DEFAULT_MODEL;
+
+  const payload = {
+    model: modelId,
+    max_tokens: maxOutputTokens,
+    temperature,
+    messages: [{ role: 'user', content: prompt }],
+  };
+
+  const delays = [0, 1500, 3500];
+  let lastError: string = 'unknown';
+
+  for (let attempt = 0; attempt < 3; attempt++) {
+    if (delays[attempt] > 0) await new Promise(r => setTimeout(r, delays[attempt]));
+
+    try {
+      const res = await fetch(ANTHROPIC_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': ANTHROPIC_API_KEY,
+          'anthropic-version': '2023-06-01',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        lastError = `HTTP ${res.status}`;
+        if (res.status !== 429 && res.status !== 529 && res.status < 500) break;
+        continue;
+      }
+
+      const data = await res.json();
+      const text = data?.content?.[0]?.text;
+      if (!text) {
+        lastError = 'empty response';
+        continue;
+      }
+
+      const usage: LLMUsage = {
+        inputTokens: data?.usage?.input_tokens ?? 0,
+        outputTokens: data?.usage?.output_tokens ?? 0,
+      };
+
+      return { text, usage };
+    } catch (err) {
+      lastError = err instanceof Error ? err.message : 'unknown';
+    }
+  }
+
+  throw new Error(`LLM call failed after retries: ${lastError}`);
+}
