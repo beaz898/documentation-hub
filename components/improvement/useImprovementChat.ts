@@ -75,7 +75,7 @@ export function useImprovementChat(accessToken: string) {
       const res = await fetch('/api/improve', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
-        body: JSON.stringify({ message: userText, currentText: currentEditorText }),
+        body: JSON.stringify({ userMessage: userText, currentText: currentEditorText, fileName: '', problemsSummary: '', history: [] }),
       });
       const data = await res.json();
       const { reply, replacements, loadedDoc } = data as {
