@@ -1,17 +1,26 @@
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY!;
-const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY!;
+const ANTHROPIC_URL = 'https://api.anthropic.com/v1/messages';
+
+// Modelos: Haiku para la mayoría de llamadas (rápido, barato, suficiente).
+// Sonnet solo si una llamada concreta lo pide explícitamente (mejor razonamiento).
+const DEFAULT_MODEL = 'claude-haiku-4-5-20251001';
+const SONNET_MODEL = 'claude-sonnet-4-6';
 
 interface CallOptions {
   maxOutputTokens?: number;
   temperature?: number;
+  model?: 'haiku' | 'sonnet';
 }
 
 export async function callLLM(prompt: string, opts: CallOptions = {}): Promise<string> {
-  const { maxOutputTokens = 8192, temperature = 0.2 } = opts;
+  const { maxOutputTokens = 4096, temperature = 0.2, model = 'haiku' } = opts;
+  const modelId = model === 'sonnet' ? SONNET_MODEL : DEFAULT_MODEL;
 
   const payload = {
-    contents: [{ role: 'user', parts: [{ text: prompt }] }],
-    generationConfig: { maxOutputTokens, temperature },
+    model: modelId,
+    max_tokens: maxOutputTokens,
+    temperature,
+    messages: [{ role: 'user', content: prompt }],
   };
 
   const delays = [0, 1500, 3500];
@@ -21,20 +30,24 @@ export async function callLLM(prompt: string, opts: CallOptions = {}): Promise<s
     if (delays[attempt] > 0) await new Promise(r => setTimeout(r, delays[attempt]));
 
     try {
-      const res = await fetch(GEMINI_URL, {
+      const res = await fetch(ANTHROPIC_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': ANTHROPIC_API_KEY,
+          'anthropic-version': '2023-06-01',
+        },
         body: JSON.stringify(payload),
       });
 
       if (!res.ok) {
         lastError = `HTTP ${res.status}`;
-        if (res.status !== 429 && res.status !== 503 && res.status < 500) break;
+        if (res.status !== 429 && res.status !== 529 && res.status < 500) break;
         continue;
       }
 
       const data = await res.json();
-      const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+      const text = data?.content?.[0]?.text;
       if (!text) {
         lastError = 'empty response';
         continue;
@@ -80,13 +93,9 @@ function sanitizeJsonResponse(raw: string): string {
   return result;
 }
 
-/**
- * Intenta reparar JSON truncado cerrando strings, objetos y arrays abiertos.
- */
 function repairTruncatedJson(sanitized: string): string {
   let repaired = sanitized;
 
-  // Track de estado: si acaba dentro de un string, cierra la comilla
   let inString = false;
   let escape = false;
   const stack: Array<'{' | '['> = [];
@@ -102,16 +111,13 @@ function repairTruncatedJson(sanitized: string): string {
     if (ch === ']' && stack[stack.length - 1] === '[') stack.pop();
   }
 
-  // Si terminó dentro de un string, cerrarlo
   if (inString) repaired += '"';
 
-  // Cerrar estructuras abiertas en orden inverso
   while (stack.length > 0) {
     const open = stack.pop();
     repaired += open === '{' ? '}' : ']';
   }
 
-  // Si el último carácter antes del cierre es una coma, quitarla (trailing comma)
   repaired = repaired.replace(/,(\s*[}\]])/g, '$1');
 
   return repaired;
@@ -120,16 +126,13 @@ function repairTruncatedJson(sanitized: string): string {
 function tryParseJson<T>(raw: string): T {
   const sanitized = sanitizeJsonResponse(raw);
 
-  // Intento 1: parseo directo
   try { return JSON.parse(sanitized) as T; } catch { /* sigue */ }
 
-  // Intento 2: reparar truncado
   try {
     const repaired = repairTruncatedJson(sanitized);
     return JSON.parse(repaired) as T;
   } catch { /* sigue */ }
 
-  // Intento 3: ir truncando desde el final hasta encontrar algo válido
   for (let end = sanitized.length; end > 0; end--) {
     if (sanitized[end - 1] === '}' || sanitized[end - 1] === ']') {
       try { return JSON.parse(sanitized.slice(0, end)) as T; } catch { continue; }
@@ -140,7 +143,6 @@ function tryParseJson<T>(raw: string): T {
 }
 
 export async function callLLMJson<T = unknown>(prompt: string, opts: CallOptions = {}): Promise<T> {
-  // Añadimos instrucción estricta al final del prompt en lugar de usar responseMimeType
   const strictPrompt = `${prompt}
 
 IMPORTANTE: Responde EXCLUSIVAMENTE con un objeto JSON válido. Sin texto antes ni después, sin bloques de código, sin explicaciones. El JSON debe ser parseable directamente con JSON.parse().`;
