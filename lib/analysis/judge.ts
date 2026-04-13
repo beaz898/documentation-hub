@@ -1,4 +1,4 @@
-import { callLLMJson } from './gemini-client';
+import { callLLMJson } from './llm-client';
 import type { RerankedCandidate, DocumentJudgment } from './types';
 
 /**
