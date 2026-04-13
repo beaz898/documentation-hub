@@ -13,27 +13,10 @@ Detecta tres tipos de problema:
 
 REGLAS:
 1. NO te inventes problemas. Si el texto está bien, devuelve un array vacío.
-
-2. Para cada problema, el campo "textRef" DEBE ser una copia LITERAL de un substring del texto (carácter por carácter, sin parafrasear). Es lo que permite localizarlo en el editor. Debe ser lo MÁS CORTO posible: la palabra o expresión exacta que tiene el problema, no la frase entera. Si una palabra concreta aparece varias veces en el texto, incluye una o dos palabras de contexto para que sea único.
-
-3. La "title" es un nombre breve (máx. 8 palabras) que identifica el problema (ej: "Errata en 'consulltas'", "Frase ambigua sobre vacaciones", "Repetición innecesaria").
-
-4. La "description" tiene un formato OBLIGATORIO de dos partes:
-   - Primera parte: qué está mal (sin repetir literalmente la palabra equivocada como si fuera la correcta).
-   - Segunda parte: la corrección concreta, introducida por "Sugerencia:" o "Corrección:".
-   Máximo 30 palabras en total.
-
+2. Para cada problema, el campo "textRef" DEBE ser una copia LITERAL de un substring del texto (carácter por carácter, sin parafrasear). Es lo que permite localizarlo en el editor.
+3. El "textRef" debe ser lo más corto posible pero único en el texto.
+4. La "title" es un nombre breve (máx. 8 palabras). La "description" explica el problema y sugiere la corrección (máx. 25 palabras).
 5. Devuelve máximo 15 problemas en total. Si hay más, prioriza los más graves.
-
-EJEMPLOS DE description BIEN HECHA:
-- "La palabra está mal escrita: sobra una 'l'. Corrección: 'consultas'."
-- "La frase es ambigua porque no queda claro a quién se refiere 'su responsable'. Sugerencia: especificar 'el responsable del solicitante'."
-- "Este párrafo repite la idea ya expresada en el anterior. Sugerencia: eliminarlo o fusionarlo con el párrafo previo."
-
-EJEMPLOS DE description MAL HECHA (NO HAGAS ESTO):
-- "Falta una 'l' en consulltas. Debe ser consultas." (escribe la palabra equivocada como si fuera la corrección)
-- "Esta frase es rara." (no propone corrección)
-- "Mejorar redacción." (vago, sin corrección concreta)
 
 Estructura JSON exacta a devolver:
 {"problems":[{"type":"ortografia|ambiguedad|sugerencia","title":"...","description":"...","textRef":"..."}]}`;
