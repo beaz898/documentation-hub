@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useMemo } from 'react';
 import ReanalyzeButtons from './ReanalyzeButtons';
 import FilterMenu from './FilterMenu';
 import type { ProblemType, Problem } from './problems';
@@ -37,6 +37,16 @@ interface ChatPanelProps {
   onGoToProblem: (p: Problem) => void;
 }
 
+// Etiquetas en plural para los encabezados de grupo (las del singular ya
+// están en typeMeta y se usan dentro de cada tarjeta).
+const GROUP_LABELS: Record<ProblemType, string> = {
+  contradiccion: 'Contradicciones',
+  duplicidad: 'Duplicidades',
+  ortografia: 'Ortografía',
+  ambiguedad: 'Ambigüedades',
+  sugerencia: 'Sugerencias',
+};
+
 export default function ChatPanel({
   messages, sending, sendMessage, setMessages,
   currentText, onApplyText, chatInput, setChatInput,
@@ -51,6 +61,19 @@ export default function ChatPanel({
   useEffect(() => { endRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages, sending]);
 
   const labels = allTypes.reduce((acc, t) => { acc[t] = typeMeta[t].label; return acc; }, {} as Record<ProblemType, string>);
+
+  // Agrupamos visibleProblems por tipo conservando el orden de allTypes.
+  // Cada item lleva su índice global dentro de visibleProblems para que la
+  // numeración del botón "Ir al problema N" sea estable.
+  const groupedProblems = useMemo(() => {
+    const indexed = visibleProblems.map((p, globalIndex) => ({ p, globalIndex }));
+    return allTypes
+      .map(type => ({
+        type,
+        items: indexed.filter(({ p }) => p.type === type),
+      }))
+      .filter(g => g.items.length > 0);
+  }, [visibleProblems, allTypes]);
 
   const handleSend = async () => {
     const text = chatInput.trim();
@@ -106,40 +129,82 @@ export default function ChatPanel({
       {visibleProblems.length > 0 && (
         <div style={{
           padding: '10px 16px', borderBottom: '0.5px solid var(--border)',
-          display: 'flex', flexDirection: 'column', gap: 6,
-          flexShrink: 0, maxHeight: 160, overflowY: 'auto',
+          display: 'flex', flexDirection: 'column', gap: 10,
+          flexShrink: 0, maxHeight: 200, overflowY: 'auto',
         }}>
-          {visibleProblems.map((p, i) => {
-            const meta = typeMeta[p.type];
-            const srcBadge = getDocSourceBadge(p.relatedDoc);
+          {groupedProblems.map(({ type, items }) => {
+            const meta = typeMeta[type];
             return (
-              <div key={p.id} style={{ padding: '8px 10px', borderRadius: 7, background: meta.bg, borderLeft: `3px solid ${meta.color}` }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 3, flexWrap: 'wrap' }}>
-                  <span style={{ fontSize: 9, fontWeight: 600, textTransform: 'uppercase', color: meta.color, letterSpacing: 0.3 }}>
-                    {meta.label}
+              <div key={type} style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                {/* Encabezado de grupo */}
+                <div style={{
+                  display: 'flex', alignItems: 'center', gap: 6,
+                  padding: '2px 0',
+                  borderBottom: `0.5px solid ${meta.border}`,
+                  marginBottom: 2,
+                }}>
+                  <span style={{
+                    fontSize: 11,
+                    fontWeight: 700,
+                    color: meta.color,
+                    textTransform: 'uppercase',
+                    letterSpacing: 0.4,
+                  }}>
+                    {GROUP_LABELS[type]} ({items.length})
                   </span>
-                  {srcBadge && (
-                    <span style={{
-                      fontSize: 8, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.3,
-                      padding: '1px 5px', borderRadius: 3,
-                      background: `${srcBadge.color}1a`, color: srcBadge.color,
-                      border: `0.5px solid ${srcBadge.color}66`,
-                    }}>{srcBadge.label}</span>
-                  )}
-                  <span style={{ fontSize: 11, fontWeight: 500, color: 'var(--text-primary)', flex: 1, minWidth: 0 }}>{p.title}</span>
-                  {p.textRef && (
-                    <button
-                      onClick={() => onGoToProblem(p)}
-                      title="Ir al fragmento en el texto"
-                      style={{
-                        fontSize: 10, padding: '2px 6px', borderRadius: 4,
-                        border: `0.5px solid ${meta.color}`, background: 'transparent', color: meta.color,
-                        cursor: 'pointer', flexShrink: 0,
-                      }}
-                    >Ir al problema {i + 1}</button>
-                  )}
                 </div>
-                <p style={{ fontSize: 10, color: 'var(--text-secondary)', margin: 0, lineHeight: 1.4 }}>{p.description}</p>
+
+                {/* Tarjetas del grupo */}
+                {items.map(({ p, globalIndex }) => {
+                  const srcBadge = getDocSourceBadge(p.relatedDoc);
+                  const isClickable = !!p.textRef;
+                  return (
+                    <div
+                      key={p.id}
+                      onClick={isClickable ? () => onGoToProblem(p) : undefined}
+                      title={isClickable ? 'Ir al fragmento en el texto' : undefined}
+                      style={{
+                        padding: '8px 10px', borderRadius: 7,
+                        background: meta.bg, borderLeft: `3px solid ${meta.color}`,
+                        cursor: isClickable ? 'pointer' : 'default',
+                        transition: 'background 0.12s',
+                      }}
+                      onMouseEnter={e => {
+                        if (isClickable) e.currentTarget.style.background = meta.border;
+                      }}
+                      onMouseLeave={e => {
+                        if (isClickable) e.currentTarget.style.background = meta.bg;
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 3, flexWrap: 'wrap' }}>
+                        <span style={{ fontSize: 9, fontWeight: 600, textTransform: 'uppercase', color: meta.color, letterSpacing: 0.3 }}>
+                          {meta.label}
+                        </span>
+                        {srcBadge && (
+                          <span style={{
+                            fontSize: 8, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.3,
+                            padding: '1px 5px', borderRadius: 3,
+                            background: `${srcBadge.color}1a`, color: srcBadge.color,
+                            border: `0.5px solid ${srcBadge.color}66`,
+                          }}>{srcBadge.label}</span>
+                        )}
+                        <span style={{ fontSize: 11, fontWeight: 500, color: 'var(--text-primary)', flex: 1, minWidth: 0 }}>{p.title}</span>
+                        {p.textRef && (
+                          <button
+                            onClick={e => { e.stopPropagation(); onGoToProblem(p); }}
+                            title="Ir al fragmento en el texto"
+                            style={{
+                              fontSize: 10, padding: '2px 6px', borderRadius: 4,
+                              border: `0.5px solid ${meta.color}`, background: 'transparent', color: meta.color,
+                              cursor: 'pointer', flexShrink: 0,
+                            }}
+                          >Ir al problema {globalIndex + 1}</button>
+                        )}
+                      </div>
+                      <p style={{ fontSize: 10, color: 'var(--text-secondary)', margin: 0, lineHeight: 1.4 }}>{p.description}</p>
+                    </div>
+                  );
+                })}
               </div>
             );
           })}
