@@ -20,7 +20,10 @@ function mapStyleProblems(raw: StyleApiProblem[]): Problem[] {
   }));
 }
 
-export function useCrossDocAnalysis(initialAnalysis: RawAnalysis) {
+export function useCrossDocAnalysis(
+  initialAnalysis: RawAnalysis,
+  accessToken: string | null,
+) {
   const [crossDocProblems, setCrossDocProblems] = useState<Problem[]>(
     () => problemsFromAnalysis(initialAnalysis)
   );
@@ -33,18 +36,29 @@ export function useCrossDocAnalysis(initialAnalysis: RawAnalysis) {
    */
   const reanalyzeAll = useCallback(
     async (currentText: string, fileName: string): Promise<{ styleProblems: Problem[] } | null> => {
+      if (!accessToken) {
+        console.warn('[useCrossDocAnalysis] no access token available');
+        setLastError('No se pudo reanalizar: sesión no disponible.');
+        return null;
+      }
+
       setReanalyzingAll(true);
       setLastError(null);
       try {
+        const authHeaders = {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${accessToken}`,
+        };
+
         const [crossRes, styleRes] = await Promise.all([
-          fetch('/api/analyze', {
+          fetch('/api/analyze-v2', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: authHeaders,
             body: JSON.stringify({ text: currentText, fileName }),
           }),
           fetch('/api/analyze-style', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: authHeaders,
             body: JSON.stringify({ text: currentText, fileName }),
           }),
         ]);
@@ -76,7 +90,7 @@ export function useCrossDocAnalysis(initialAnalysis: RawAnalysis) {
         setReanalyzingAll(false);
       }
     },
-    []
+    [accessToken]
   );
 
   return { crossDocProblems, setCrossDocProblems, reanalyzeAll, reanalyzingAll, lastError };
