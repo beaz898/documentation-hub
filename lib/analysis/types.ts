@@ -59,9 +59,9 @@ export interface FinalAnalysis {
   }>;
   discrepancies: Array<{
     topic: string;
-    newDocument: string;
+    newDocSays: string;
+    existingDocSays: string;
     existingDocument: string;
-    description: string;
   }>;
   newInformation: string;
   recommendation: 'INDEXAR' | 'REVISAR' | 'NO_INDEXAR';
