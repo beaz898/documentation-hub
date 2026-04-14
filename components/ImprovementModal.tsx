@@ -111,7 +111,7 @@ export default function ImprovementModal({
     setCrossDocProblems,
     reanalyzeAll,
     reanalyzingAll,
-  } = useCrossDocAnalysis(analysis);
+  } = useCrossDocAnalysis(analysis, accessToken);
 
   // -------- Style problems ----------
   // El análisis de estilo ya no se dispara al abrir el modal.
@@ -189,8 +189,6 @@ export default function ImprovementModal({
   );
 
   // -------- Ir al problema en el textarea ----------
-  // El EditorPanel renderiza el textarea internamente. Buscamos por DOM dentro
-  // del wrapper editorRef para hacer foco/selección sin romper la encapsulación.
   const goToProblem = useCallback((p: Problem) => {
     if (!p.textRef) return;
     const range = findTolerant(text, p.textRef);
@@ -212,8 +210,6 @@ export default function ImprovementModal({
   const handleReanalyzeStyle = useCallback(async () => {
     const prev = styleProblems;
     await reanalyzeStyle(text, fileName);
-    // styleProblems del closure es el viejo; tras reanalyzeStyle, leemos el nuevo
-    // de forma diferida usando un setter funcional para capturar el último valor.
     setStyleProblems(curr => {
       const msg = buildDeltaMessage(prev, curr, 'estilo');
       addAssistantMessage(msg);
@@ -223,21 +219,18 @@ export default function ImprovementModal({
 
   // -------- Reanalizar todo (con delta) ----------
   const handleReanalyzeAll = useCallback(async () => {
-    const prev = problems; // snapshot conjunto previo
+    const prev = problems;
     const result = await reanalyzeAll(text, fileName);
     if (!result) {
       addAssistantMessage('No se pudo reanalizar, prueba de nuevo en unos segundos.');
       return;
     }
-    // Empuja los nuevos style problems al hook de estilo
     setStyleProblems(result.styleProblems);
-    // Construye el "next" combinando los nuevos cross-doc (ya seteados por el hook)
-    // y los nuevos style. Usamos un setter funcional para leer el cross-doc actual.
     setCrossDocProblems(currCross => {
       const next = [...currCross, ...result.styleProblems];
       const msg = buildDeltaMessage(prev, next, 'todo');
       addAssistantMessage(msg);
-      return currCross; // no mutamos, solo leemos
+      return currCross;
     });
   }, [problems, reanalyzeAll, text, fileName, setStyleProblems, setCrossDocProblems, addAssistantMessage]);
 
