@@ -89,7 +89,7 @@ Responde EXCLUSIVAMENTE con este JSON:
     };
   }
 
-  // Construir overlaps y discrepancies a partir de los juicios
+  // Construir overlaps a partir de los juicios
   const overlaps = judgments
     .filter(j => j.overlapPercent >= 15 || j.overlappingContent.length > 0)
     .map(j => ({
@@ -101,12 +101,16 @@ Responde EXCLUSIVAMENTE con este JSON:
       overlapPercent: j.overlapPercent,
     }));
 
+  // Construir discrepancies con las claves que el frontend espera:
+  // { topic, newDocSays, existingDocSays, existingDocument }
+  // El frontend usa newDocSays como textRef para saltar al fragmento en el
+  // editor, así que esta estructura también alimenta el botón "Ir al problema".
   const discrepancies = judgments.flatMap(j =>
     j.contradictions.map(c => ({
       topic: c.topic,
-      newDocument: c.newDocSays,
-      existingDocument: c.existingDocSays,
-      description: `En el documento nuevo: "${c.newDocSays}". En "${j.documentName}": "${c.existingDocSays}".`,
+      newDocSays: c.newDocSays,
+      existingDocSays: c.existingDocSays,
+      existingDocument: j.documentName,
     }))
   );
 
