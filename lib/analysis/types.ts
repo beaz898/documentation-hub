@@ -43,6 +43,7 @@ export interface DocumentJudgment {
   overlappingContent: Array<{
     description: string;
     evidence: string;
+    evidenceInNewDoc?: string;
   }>;
   uniqueToNewDoc: string[];
 }
@@ -56,6 +57,7 @@ export interface FinalAnalysis {
     description: string;
     severity: 'alta' | 'media' | 'baja';
     overlapPercent: number;
+    textRef?: string;
   }>;
   discrepancies: Array<{
     topic: string;
