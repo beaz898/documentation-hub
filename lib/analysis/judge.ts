@@ -18,6 +18,7 @@ interface JudgeResponse {
   overlappingContent: Array<{
     description: string;
     evidence: string;
+    evidenceInNewDoc: string;
   }>;
   uniqueToNewDoc: string[];
 }
@@ -58,13 +59,18 @@ Responde EXCLUSIVAMENTE con este JSON:
   "overlapPercent": <número 0-100>,
   "verdict": "duplicado_exacto" | "reformulacion" | "solapamiento_parcial" | "tema_similar" | "sin_relacion",
   "contradictions": [
-    { "topic": "<tema concreto>", "newDocSays": "<lo que dice el nuevo>", "existingDocSays": "<lo que dice el existente>" }
+    { "topic": "<tema concreto>", "newDocSays": "<cita literal del documento NUEVO>", "existingDocSays": "<cita literal del documento EXISTENTE>" }
   ],
   "overlappingContent": [
-    { "description": "<qué se solapa>", "evidence": "<cita literal del fragmento que lo prueba>" }
+    { "description": "<qué se solapa>", "evidence": "<cita literal del documento EXISTENTE>", "evidenceInNewDoc": "<cita literal del documento NUEVO que dice lo mismo o similar>" }
   ],
   "uniqueToNewDoc": ["<aspecto 1 que solo aporta el nuevo>", "<aspecto 2>"]
-}`;
+}
+
+REGLAS PARA evidenceInNewDoc:
+- DEBE ser una copia LITERAL carácter por carácter de un substring del DOCUMENTO NUEVO (el texto entre las primeras comillas triples).
+- NO parafrasees. NO normalices espacios. Copia exactamente lo que aparece en el documento nuevo.
+- Si no puedes encontrar un fragmento literal equivalente en el documento nuevo, deja evidenceInNewDoc como cadena vacía "".`;
 
   try {
     const response = await callLLMJson<JudgeResponse>(prompt, { maxOutputTokens: 8192, temperature: 0.1 });
@@ -75,7 +81,11 @@ Responde EXCLUSIVAMENTE con este JSON:
       overlapPercent: Math.max(0, Math.min(100, Math.round(response.overlapPercent || 0))),
       verdict: response.verdict || 'sin_relacion',
       contradictions: response.contradictions || [],
-      overlappingContent: response.overlappingContent || [],
+      overlappingContent: (response.overlappingContent || []).map(o => ({
+        description: o.description || '',
+        evidence: o.evidence || '',
+        evidenceInNewDoc: o.evidenceInNewDoc || '',
+      })),
       uniqueToNewDoc: response.uniqueToNewDoc || [],
     };
   } catch (err) {
@@ -87,13 +97,13 @@ Responde EXCLUSIVAMENTE con este JSON:
       overlapPercent: 0,
       verdict: 'sin_relacion',
       contradictions: [],
-      overlappingContent: [{ description: 'No se pudo emitir juicio (error del LLM)', evidence: '' }],
+      overlappingContent: [{ description: 'No se pudo emitir juicio (error del LLM)', evidence: '', evidenceInNewDoc: '' }],
       uniqueToNewDoc: [],
     };
   }
 }
 
-/** Lanza los juicios en paralelo. Con free tier puede chocar con rate limits. */
+/** Lanza los juicios en secuencial con pausa. Pendiente revertir a paralelo. */
 export async function judgeAllDocuments(args: {
   newDocumentName: string;
   newDocumentSample: string;
