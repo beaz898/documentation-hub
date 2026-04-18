@@ -20,7 +20,7 @@ export interface RawAnalysis {
   isDuplicate?: boolean;
   duplicateOf?: string;
   duplicateConfidence?: number;
-  overlaps?: Array<{ existingDocument: string; description: string; severity: string }>;
+  overlaps?: Array<{ existingDocument: string; description: string; severity: string; textRef?: string }>;
   discrepancies?: Array<{ topic: string; newDocSays: string; existingDocSays: string; existingDocument: string }>;
   newInformation?: string;
   recommendation?: string;
@@ -123,6 +123,7 @@ export function problemsFromAnalysis(analysis: RawAnalysis): Problem[] {
         type: 'duplicidad',
         title: `Solapamiento con "${o.existingDocument}"`,
         description: `${o.description} (severidad: ${o.severity})`,
+        textRef: o.textRef || undefined,
         relatedDoc: o.existingDocument,
       });
     });
