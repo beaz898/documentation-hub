@@ -1,125 +1,134 @@
 import { callLLMJson } from './llm-client';
-import type { RerankedCandidate, DocumentJudgment } from './types';
+import type { DocumentJudgment, FinalAnalysis } from './types';
 
 /**
- * Etapa 3 — Juicio individual por documento.
- * Una llamada al LLM por cada candidato finalista, en paralelo.
- * El LLM recibe fragmentos reales de ambos documentos y emite un veredicto con evidencia concreta.
+ * Etapa 4 — Síntesis final.
+ * Agrega los juicios individuales en una recomendación global con resumen para el usuario.
  */
 
-interface JudgeResponse {
-  overlapPercent: number;
-  verdict: 'duplicado_exacto' | 'reformulacion' | 'solapamiento_parcial' | 'tema_similar' | 'sin_relacion';
-  contradictions: Array<{
-    topic: string;
-    newDocSays: string;
-    existingDocSays: string;
-  }>;
-  overlappingContent: Array<{
-    description: string;
-    evidence: string;
-    evidenceInNewDoc: string;
-  }>;
-  uniqueToNewDoc: string[];
+interface SynthesisResponse {
+  recommendation: 'INDEXAR' | 'REVISAR' | 'NO_INDEXAR';
+  summary: string;
+  newInformation: string;
 }
 
-async function judgeSingleDocument(args: {
+export async function synthesizeFinalAnalysis(args: {
   newDocumentName: string;
-  newDocumentSample: string;
-  candidate: RerankedCandidate;
-}): Promise<DocumentJudgment> {
-  const { newDocumentName, newDocumentSample, candidate } = args;
+  judgments: DocumentJudgment[];
+}): Promise<FinalAnalysis> {
+  const { newDocumentName, judgments } = args;
 
-  const existingFragsBlock = candidate.fragments
-    .map((f, i) => `[Fragmento ${i + 1} de "${candidate.documentName}"]\n${f.text}`)
-    .join('\n\n');
+  // Caso sin candidatos: todo limpio
+  if (judgments.length === 0) {
+    return {
+      isDuplicate: false,
+      duplicateOf: null,
+      duplicateConfidence: 0,
+      overlaps: [],
+      discrepancies: [],
+      newInformation: 'Este documento aporta información completamente nueva al sistema.',
+      recommendation: 'INDEXAR',
+      summary: `No se encontraron documentos con contenido solapado. "${newDocumentName}" puede indexarse sin conflicto.`,
+      judgments: [],
+    };
+  }
 
-  const prompt = `Eres un auditor de documentación. Tu tarea es comparar CONTENIDO CONCRETO entre dos documentos y emitir un juicio preciso, no una impresión general.
+  // Detectar duplicado exacto
+  const topJudgment = [...judgments].sort((a, b) => b.overlapPercent - a.overlapPercent)[0];
+  const isDuplicate = topJudgment.verdict === 'duplicado_exacto' && topJudgment.overlapPercent >= 85;
+
+  // Síntesis vía LLM
+  const judgmentsBlock = judgments.map(j =>
+    `Documento: "${j.documentName}"
+  Veredicto: ${j.verdict} (${j.overlapPercent}% solapamiento)
+  Contradicciones: ${j.contradictions.length > 0 ? j.contradictions.map(c => `"${c.topic}"`).join(', ') : 'ninguna'}
+  Solapamientos: ${j.overlappingContent.length > 0 ? j.overlappingContent.map(o => o.description).join('; ') : 'ninguno'}`
+  ).join('\n\n');
+
+  const prompt = `Eres un asistente que resume análisis de documentación para un usuario no técnico.
 
 DOCUMENTO NUEVO: "${newDocumentName}"
-"""
-${newDocumentSample.slice(0, 4000)}
-"""
 
-DOCUMENTO EXISTENTE: "${candidate.documentName}" (fuente: ${candidate.source})
-"""
-${existingFragsBlock}
-"""
+JUICIOS INDIVIDUALES YA EMITIDOS POR EL AUDITOR:
+${judgmentsBlock}
 
-INSTRUCCIONES CRÍTICAS:
-1. "Solapamiento" significa contenido que se repite, aunque esté redactado con palabras distintas. NO significa compartir tema general.
-2. "Contradicción" significa que ambos documentos afirman algo distinto sobre el mismo dato concreto (cifras, plazos, políticas, definiciones).
-3. El porcentaje de solapamiento debe reflejar CUÁNTO del documento nuevo ya está en el existente, no la similitud temática.
-4. Si los documentos hablan del mismo tema pero con contenido distinto, veredicto = "tema_similar", overlapPercent < 20.
-5. Solo marca "duplicado_exacto" si el contenido es prácticamente idéntico (>85% del nuevo ya está en el existente).
-6. Cita evidencia literal cuando identifiques solapamiento o contradicción.
+Genera un resumen final. Considera:
+- INDEXAR: ningún solapamiento significativo (todos "tema_similar" o "sin_relacion", sin contradicciones).
+- REVISAR: solapamientos parciales, reformulaciones, o contradicciones detectadas.
+- NO_INDEXAR: duplicado exacto confirmado (overlap >= 85% con un documento).
 
 Responde EXCLUSIVAMENTE con este JSON:
 {
-  "overlapPercent": <número 0-100>,
-  "verdict": "duplicado_exacto" | "reformulacion" | "solapamiento_parcial" | "tema_similar" | "sin_relacion",
-  "contradictions": [
-    { "topic": "<tema concreto>", "newDocSays": "<cita literal del documento NUEVO>", "existingDocSays": "<cita literal del documento EXISTENTE>" }
-  ],
-  "overlappingContent": [
-    { "description": "<qué se solapa>", "evidence": "<cita literal del documento EXISTENTE>", "evidenceInNewDoc": "<cita literal del documento NUEVO que dice lo mismo o similar>" }
-  ],
-  "uniqueToNewDoc": ["<aspecto 1 que solo aporta el nuevo>", "<aspecto 2>"]
-}
+  "recommendation": "INDEXAR" | "REVISAR" | "NO_INDEXAR",
+  "summary": "<2-3 frases claras para el usuario sobre qué se encontró>",
+  "newInformation": "<1-2 frases sobre qué aporta el documento nuevo>"
+}`;
 
-REGLAS PARA evidenceInNewDoc:
-- DEBE ser una copia LITERAL carácter por carácter de un substring del DOCUMENTO NUEVO (el texto entre las primeras comillas triples).
-- NO parafrasees. NO normalices espacios. Copia exactamente lo que aparece en el documento nuevo.
-- Si no puedes encontrar un fragmento literal equivalente en el documento nuevo, deja evidenceInNewDoc como cadena vacía "".`;
-
+  let synthesis: SynthesisResponse;
   try {
-    const response = await callLLMJson<JudgeResponse>(prompt, { maxOutputTokens: 8192, temperature: 0.1 });
-    return {
-      documentId: candidate.documentId,
-      documentName: candidate.documentName,
-      source: candidate.source,
-      overlapPercent: Math.max(0, Math.min(100, Math.round(response.overlapPercent || 0))),
-      verdict: response.verdict || 'sin_relacion',
-      contradictions: response.contradictions || [],
-      overlappingContent: (response.overlappingContent || []).map(o => ({
-        description: o.description || '',
-        evidence: o.evidence || '',
-        evidenceInNewDoc: o.evidenceInNewDoc || '',
-      })),
-      uniqueToNewDoc: response.uniqueToNewDoc || [],
-    };
+    synthesis = await callLLMJson<SynthesisResponse>(prompt, { maxOutputTokens: 1024, temperature: 0.2 });
   } catch (err) {
-    console.warn(`[judge] Failed for "${candidate.documentName}":`, err);
-    return {
-      documentId: candidate.documentId,
-      documentName: candidate.documentName,
-      source: candidate.source,
-      overlapPercent: 0,
-      verdict: 'sin_relacion',
-      contradictions: [],
-      overlappingContent: [{ description: 'No se pudo emitir juicio (error del LLM)', evidence: '', evidenceInNewDoc: '' }],
-      uniqueToNewDoc: [],
+    console.warn('[synthesize] LLM failed, using deterministic fallback:', err);
+    const totalOverlaps = judgments.filter(j => j.overlapPercent >= 15).length;
+    const totalContradictions = judgments.reduce((sum, j) => sum + j.contradictions.length, 0);
+    const hasSignificantOverlap = judgments.some(j => j.overlapPercent >= 30);
+
+    synthesis = {
+      recommendation: isDuplicate
+        ? 'NO_INDEXAR'
+        : (hasSignificantOverlap || totalContradictions > 0 ? 'REVISAR' : 'INDEXAR'),
+      summary: isDuplicate
+        ? `Se detectó que este documento es prácticamente idéntico a "${topJudgment.documentName}" (${topJudgment.overlapPercent}% de solapamiento).`
+        : totalOverlaps > 0
+          ? `Se analizaron ${judgments.length} documentos relacionados. ${totalOverlaps} presentan solapamiento significativo${totalContradictions > 0 ? ` y se detectaron ${totalContradictions} contradicciones` : ''}. Revisa los detalles antes de indexar.`
+          : `Se evaluaron ${judgments.length} documentos relacionados pero ninguno presenta solapamiento significativo. Puede indexarse.`,
+      newInformation: judgments
+        .flatMap(j => j.uniqueToNewDoc)
+        .slice(0, 3)
+        .join('. ') || 'Contenido del nuevo documento que no coincide con lo existente.',
     };
   }
-}
 
-/** Lanza los juicios en secuencial con pausa. Pendiente revertir a paralelo. */
-export async function judgeAllDocuments(args: {
-  newDocumentName: string;
-  newDocumentSample: string;
-  candidates: RerankedCandidate[];
-}): Promise<DocumentJudgment[]> {
-  if (args.candidates.length === 0) return [];
-
-  const results: DocumentJudgment[] = [];
-  for (let i = 0; i < args.candidates.length; i++) {
-    if (i > 0) await new Promise(r => setTimeout(r, 1200));
-    const judgment = await judgeSingleDocument({
-      newDocumentName: args.newDocumentName,
-      newDocumentSample: args.newDocumentSample,
-      candidate: args.candidates[i],
+  // Construir overlaps a partir de los juicios.
+  // Se busca el primer evidenceInNewDoc no vacío para usarlo como textRef
+  // (permite que la tarjeta de duplicidad sea clickable en el editor).
+  const overlaps = judgments
+    .filter(j => j.overlapPercent >= 15 || j.overlappingContent.length > 0)
+    .map(j => {
+      // Buscar la primera cita literal del documento nuevo entre los solapamientos
+      const firstEvidence = j.overlappingContent.find(
+        o => o.evidenceInNewDoc && o.evidenceInNewDoc.trim().length > 0
+      );
+      return {
+        existingDocument: j.documentName,
+        description: j.overlappingContent.length > 0
+          ? j.overlappingContent.map(o => o.description).join('. ')
+          : `Solapamiento ${j.verdict.replace('_', ' ')}`,
+        severity: (j.overlapPercent >= 60 ? 'alta' : j.overlapPercent >= 30 ? 'media' : 'baja') as 'alta' | 'media' | 'baja',
+        overlapPercent: j.overlapPercent,
+        textRef: firstEvidence?.evidenceInNewDoc || undefined,
+      };
     });
-    results.push(judgment);
-  }
-  return results;
+
+  // Construir discrepancies con las claves que el frontend espera
+  const discrepancies = judgments.flatMap(j =>
+    j.contradictions.map(c => ({
+      topic: c.topic,
+      newDocSays: c.newDocSays,
+      existingDocSays: c.existingDocSays,
+      existingDocument: j.documentName,
+    }))
+  );
+
+  return {
+    isDuplicate,
+    duplicateOf: isDuplicate ? topJudgment.documentName : null,
+    duplicateConfidence: isDuplicate ? topJudgment.overlapPercent : 0,
+    overlaps,
+    discrepancies,
+    newInformation: synthesis.newInformation,
+    recommendation: synthesis.recommendation,
+    summary: synthesis.summary,
+    judgments,
+  };
 }
