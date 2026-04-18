@@ -10,10 +10,6 @@ import { useCrossDocAnalysis } from './improvement/useCrossDocAnalysis';
 import { useIndexing } from './improvement/useIndexing';
 import type { Problem, ProblemType, RawAnalysis } from './improvement/problems';
 
-// ============================================================
-// Types (props públicos del modal — INTACTOS)
-// ============================================================
-
 interface ExistingDocForDialog {
   id: string;
   name: string;
@@ -31,9 +27,6 @@ interface ImprovementModalProps {
   onIndexed: (docName: string, wasReplaced: boolean) => void;
 }
 
-// ============================================================
-// Color palette per problem type (compartida con ChatPanel via prop)
-// ============================================================
 const TYPE_META: Record<ProblemType, { label: string; color: string; bg: string; border: string }> = {
   contradiccion: { label: 'Contradicción', color: '#dc2626', bg: 'rgba(220,38,38,0.08)',  border: 'rgba(220,38,38,0.35)' },
   duplicidad:    { label: 'Duplicidad',    color: '#ea580c', bg: 'rgba(234,88,12,0.08)',  border: 'rgba(234,88,12,0.35)' },
@@ -44,9 +37,6 @@ const TYPE_META: Record<ProblemType, { label: string; color: string; bg: string;
 
 const ALL_TYPES: ProblemType[] = ['contradiccion', 'duplicidad', 'ortografia', 'ambiguedad', 'sugerencia'];
 
-// ============================================================
-// Helpers para el delta de reanálisis
-// ============================================================
 function normalizeTitle(s: string): string {
   return s.trim().toLowerCase().replace(/\s+/g, ' ');
 }
@@ -77,9 +67,18 @@ function buildDeltaMessage(
     `• Pendientes: ${pending}`;
 }
 
-// ============================================================
-// Component
-// ============================================================
+/**
+ * Construye un resumen textual de todos los problemas detectados para inyectar
+ * en el prompt del chat. Así Claude sabe exactamente qué problemas hay sin
+ * tener que redescubrirlos.
+ */
+function buildProblemsSummary(problems: Problem[]): string {
+  if (problems.length === 0) return '(ningún problema detectado)';
+  return problems
+    .map((p, i) => `${i + 1}. [${TYPE_META[p.type].label}] ${p.title}: ${p.description}`)
+    .join('\n');
+}
+
 export default function ImprovementModal({
   fileName,
   initialText,
@@ -91,11 +90,9 @@ export default function ImprovementModal({
   onClose,
   onIndexed,
 }: ImprovementModalProps) {
-  // -------- Editor state ----------
   const [text, setText] = useState(initialText);
-  const editorRef = useRef<HTMLDivElement>(null); // wrapper para goToProblem (scroll)
+  const editorRef = useRef<HTMLDivElement>(null);
 
-  // -------- Chat ----------
   const {
     messages: chatMessages,
     sending: chatSending,
@@ -105,7 +102,6 @@ export default function ImprovementModal({
   } = useImprovementChat(accessToken);
   const [chatInput, setChatInput] = useState('');
 
-  // -------- Cross-doc problems ----------
   const {
     crossDocProblems,
     setCrossDocProblems,
@@ -113,9 +109,6 @@ export default function ImprovementModal({
     reanalyzingAll,
   } = useCrossDocAnalysis(analysis, accessToken);
 
-  // -------- Style problems ----------
-  // El análisis de estilo ya no se dispara al abrir el modal.
-  // Solo corre cuando el usuario pulsa "Reanalizar estilo".
   const {
     styleProblems,
     setStyleProblems,
@@ -127,13 +120,17 @@ export default function ImprovementModal({
     accessToken,
   });
 
-  // -------- Lista combinada de problemas ----------
   const problems = useMemo<Problem[]>(
     () => [...crossDocProblems, ...styleProblems],
     [crossDocProblems, styleProblems]
   );
 
-  // -------- Filtros ----------
+  // Resumen de problemas para inyectar en el prompt del chat
+  const problemsSummary = useMemo(
+    () => buildProblemsSummary(problems),
+    [problems]
+  );
+
   const [activeTypes, setActiveTypes] = useState<Set<ProblemType>>(
     () => new Set(ALL_TYPES)
   );
@@ -155,8 +152,6 @@ export default function ImprovementModal({
   const selectAllTypes = useCallback(() => setActiveTypes(new Set(ALL_TYPES)), []);
   const clearTypes = useCallback(() => setActiveTypes(new Set()), []);
 
-  // -------- Mensaje de bienvenida (cross-doc) ----------
-  // Solo se dispara una vez con los problemas iniciales de cross-doc.
   const didWelcomeRef = useRef(false);
   useEffect(() => {
     if (didWelcomeRef.current) return;
@@ -174,7 +169,6 @@ export default function ImprovementModal({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // -------- Source badge helper (para los chips de Drive/Manual) ----------
   const getDocSourceBadge = useCallback(
     (docName?: string): { label: string; color: string } | null => {
       if (!docName || !documentSources) return null;
@@ -188,7 +182,6 @@ export default function ImprovementModal({
     [documentSources]
   );
 
-  // -------- Ir al problema en el textarea ----------
   const goToProblem = useCallback((p: Problem) => {
     if (!p.textRef) return;
     const range = findTolerant(text, p.textRef);
@@ -206,7 +199,28 @@ export default function ImprovementModal({
     ta.scrollTop = Math.max(0, (lineNumber - 3) * lineHeight);
   }, [text]);
 
-  // -------- Reanalizar estilo (con delta) ----------
+  // -------- Solventar un problema individual ----------
+  const handleSolveOne = useCallback((p: Problem) => {
+    const typeLabel = TYPE_META[p.type].label.toLowerCase();
+    const message = `Resuelve el siguiente problema de tipo ${typeLabel} en el TEXTO_ACTUAL. Propón los cambios necesarios con bloques REPLACEMENT:\n\nTítulo: ${p.title}\nDescripción: ${p.description}${p.relatedDoc ? `\nDocumento relacionado: ${p.relatedDoc}` : ''}`;
+    sendMessage(message, text, fileName, problemsSummary);
+  }, [sendMessage, text, fileName, problemsSummary]);
+
+  // -------- Resolver todos los problemas de un grupo ----------
+  const handleSolveGroup = useCallback((type: ProblemType, groupProblems: Problem[]) => {
+    const typeLabel = TYPE_META[type].label.toLowerCase();
+    const list = groupProblems
+      .map((p, i) => `${i + 1}. ${p.title}: ${p.description}${p.relatedDoc ? ` (doc: ${p.relatedDoc})` : ''}`)
+      .join('\n');
+    const message = `Resuelve TODOS los problemas de tipo ${typeLabel} detectados en el TEXTO_ACTUAL. Genera UN BLOQUE REPLACEMENT POR CADA cambio necesario, no resumas en uno solo:\n\n${list}`;
+    sendMessage(message, text, fileName, problemsSummary);
+  }, [sendMessage, text, fileName, problemsSummary]);
+
+  // -------- Wrapper del sendMessage manual para incluir fileName y problemsSummary ----------
+  const handleManualSend = useCallback(async (userText: string, currentEditorText: string) => {
+    await sendMessage(userText, currentEditorText, fileName, problemsSummary);
+  }, [sendMessage, fileName, problemsSummary]);
+
   const handleReanalyzeStyle = useCallback(async () => {
     const prev = styleProblems;
     await reanalyzeStyle(text, fileName);
@@ -217,7 +231,6 @@ export default function ImprovementModal({
     });
   }, [styleProblems, reanalyzeStyle, text, setStyleProblems, addAssistantMessage]);
 
-  // -------- Reanalizar todo (con delta) ----------
   const handleReanalyzeAll = useCallback(async () => {
     const prev = problems;
     const result = await reanalyzeAll(text, fileName);
@@ -234,7 +247,6 @@ export default function ImprovementModal({
     });
   }, [problems, reanalyzeAll, text, fileName, setStyleProblems, setCrossDocProblems, addAssistantMessage]);
 
-  // -------- Indexado ----------
   const {
     indexing,
     showReplaceDialog,
@@ -256,16 +268,12 @@ export default function ImprovementModal({
     }
   }, [existingDocWithSameName, setShowReplaceDialog, doIndex, text]);
 
-  // -------- Cierre con confirmación ----------
   const handleCloseRequest = useCallback(() => {
     if (window.confirm('¿Descartar los cambios y cerrar? El archivo original se eliminará.')) {
       onClose();
     }
   }, [onClose]);
 
-  // ============================================================
-  // Render
-  // ============================================================
   return (
     <div
       className="modal-overlay"
@@ -291,7 +299,6 @@ export default function ImprovementModal({
           position: 'relative',
         }}
       >
-        {/* HEADER */}
         <div style={{
           padding: '14px 20px', borderBottom: '0.5px solid var(--border)',
           display: 'flex', alignItems: 'center', gap: 12,
@@ -330,7 +337,6 @@ export default function ImprovementModal({
           </button>
         </div>
 
-        {/* BODY */}
         <div style={{
           flex: '1 1 auto',
           display: 'grid',
@@ -338,7 +344,6 @@ export default function ImprovementModal({
           minHeight: 0,
           overflow: 'hidden',
         }}>
-          {/* LEFT: editor */}
           <div
             ref={editorRef}
             style={{
@@ -352,11 +357,10 @@ export default function ImprovementModal({
             <EditorPanel value={text} onChange={setText} fileName={fileName} />
           </div>
 
-          {/* RIGHT: chat */}
           <ChatPanel
             messages={chatMessages}
             sending={chatSending}
-            sendMessage={sendMessage}
+            sendMessage={handleManualSend}
             setMessages={setChatMessages}
             currentText={text}
             onApplyText={setText}
@@ -376,10 +380,11 @@ export default function ImprovementModal({
             onClearTypes={clearTypes}
             getDocSourceBadge={getDocSourceBadge}
             onGoToProblem={goToProblem}
+            onSolveOne={handleSolveOne}
+            onSolveGroup={handleSolveGroup}
           />
         </div>
 
-        {/* FOOTER */}
         <div style={{
           padding: '12px 20px', borderTop: '0.5px solid var(--border)',
           display: 'flex', alignItems: 'center', gap: 10,
@@ -447,7 +452,6 @@ export default function ImprovementModal({
           </button>
         </div>
 
-        {/* Replace dialog */}
         <ReplaceDialog
           open={showReplaceDialog}
           existingDocName={existingDocWithSameName?.name || ''}
