@@ -6,22 +6,57 @@ const ANTHROPIC_URL = 'https://api.anthropic.com/v1/messages';
 const DEFAULT_MODEL = 'claude-haiku-4-5-20251001';
 const SONNET_MODEL = 'claude-sonnet-4-6';
 
+interface MessageItem {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
 interface CallOptions {
   maxOutputTokens?: number;
   temperature?: number;
   model?: 'haiku' | 'sonnet';
+  system?: string;
+  messages?: MessageItem[];
 }
 
-export async function callLLM(prompt: string, opts: CallOptions = {}): Promise<string> {
+/**
+ * Construye el array de mensajes para la API de Anthropic.
+ * - Si se pasan `messages` en las opciones, se usan directamente.
+ * - Si no, se usa `prompt` como único mensaje de usuario (comportamiento original).
+ */
+function buildMessages(prompt: string, opts: CallOptions): MessageItem[] {
+  if (opts.messages && opts.messages.length > 0) {
+    return opts.messages;
+  }
+  return [{ role: 'user', content: prompt }];
+}
+
+/**
+ * Construye el payload completo para la API de Anthropic.
+ * Si se pasa `system` en las opciones, va como campo separado (mejor calidad).
+ * Si no se pasa, no se incluye (comportamiento original).
+ */
+function buildPayload(prompt: string, opts: CallOptions) {
   const { maxOutputTokens = 4096, temperature = 0.2, model = 'haiku' } = opts;
   const modelId = model === 'sonnet' ? SONNET_MODEL : DEFAULT_MODEL;
+  const messages = buildMessages(prompt, opts);
 
-  const payload = {
+  const payload: Record<string, unknown> = {
     model: modelId,
     max_tokens: maxOutputTokens,
     temperature,
-    messages: [{ role: 'user', content: prompt }],
+    messages,
   };
+
+  if (opts.system) {
+    payload.system = opts.system;
+  }
+
+  return payload;
+}
+
+export async function callLLM(prompt: string, opts: CallOptions = {}): Promise<string> {
+  const payload = buildPayload(prompt, opts);
 
   const delays = [0, 1500, 3500];
   let lastError: string = 'unknown';
@@ -143,11 +178,31 @@ function tryParseJson<T>(raw: string): T {
 }
 
 export async function callLLMJson<T = unknown>(prompt: string, opts: CallOptions = {}): Promise<T> {
-  const strictPrompt = `${prompt}
+  const strictSuffix = `
 
 IMPORTANTE: Responde EXCLUSIVAMENTE con un objeto JSON válido. Sin texto antes ni después, sin bloques de código, sin explicaciones. El JSON debe ser parseable directamente con JSON.parse().`;
 
-  const raw = await callLLM(strictPrompt, opts);
+  // Si se pasan messages, añadimos la instrucción de JSON al último mensaje de usuario.
+  // Si no, la añadimos al prompt como antes.
+  let adjustedPrompt = prompt;
+  let adjustedOpts = { ...opts };
+
+  if (opts.messages && opts.messages.length > 0) {
+    const msgs = [...opts.messages];
+    const lastUserIdx = msgs.reduce((acc, m, i) => m.role === 'user' ? i : acc, -1);
+    if (lastUserIdx >= 0) {
+      msgs[lastUserIdx] = {
+        ...msgs[lastUserIdx],
+        content: msgs[lastUserIdx].content + strictSuffix,
+      };
+    }
+    adjustedOpts = { ...opts, messages: msgs };
+    adjustedPrompt = '';
+  } else {
+    adjustedPrompt = prompt + strictSuffix;
+  }
+
+  const raw = await callLLM(adjustedPrompt, adjustedOpts);
   try {
     return tryParseJson<T>(raw);
   } catch (err) {
@@ -158,16 +213,6 @@ IMPORTANTE: Responde EXCLUSIVAMENTE con un objeto JSON válido. Sin texto antes 
 
 // ---------------------------------------------------------------------------
 // callLLMWithUsage
-// ---------------------------------------------------------------------------
-// Variante de callLLM que además devuelve el conteo de tokens de entrada y
-// salida. Usada por endpoints que necesitan reportar uso (p. ej. /api/ask
-// para mostrar/registrar coste por consulta). No modifica callLLM existente
-// para no afectar al pipeline v2 ni al resto de call sites.
-//
-// Estructura de respuesta de Anthropic:
-//   data.content[0].text          -> texto generado
-//   data.usage.input_tokens       -> tokens del prompt
-//   data.usage.output_tokens      -> tokens de la respuesta
 // ---------------------------------------------------------------------------
 
 export interface LLMUsage {
@@ -184,15 +229,7 @@ export async function callLLMWithUsage(
   prompt: string,
   opts: CallOptions = {}
 ): Promise<LLMResponseWithUsage> {
-  const { maxOutputTokens = 4096, temperature = 0.2, model = 'haiku' } = opts;
-  const modelId = model === 'sonnet' ? SONNET_MODEL : DEFAULT_MODEL;
-
-  const payload = {
-    model: modelId,
-    max_tokens: maxOutputTokens,
-    temperature,
-    messages: [{ role: 'user', content: prompt }],
-  };
+  const payload = buildPayload(prompt, opts);
 
   const delays = [0, 1500, 3500];
   let lastError: string = 'unknown';
