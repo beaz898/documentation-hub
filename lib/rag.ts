@@ -3,19 +3,8 @@
  *
  * 1. Convierte la pregunta en un vector (embedding)
  * 2. Busca los chunks más relevantes en Pinecone
- * 3. Construye un prompt con los fragmentos encontrados
- * 4. Envía a Claude (vía llm-client) con historial de conversación y devuelve la respuesta
- *
- * Notas de implementación:
- * - Se usa callLLMWithUsage para poder reportar tokens de entrada/salida.
- * - El historial de conversación se aplana dentro del prompt porque la
- *   abstracción actual de llm-client acepta un único string. Cuando se
- *   reescriba llm-client con API nativa de mensajes (refactor estructural
- *   pendiente), esta función se puede simplificar.
- * - El mapeo de errores conserva las mismas categorías que esperaba el
- *   endpoint /api/ask cuando usaba Gemini (AUTH_ERROR, RATE_LIMIT_EXCEEDED,
- *   SERVICE_OVERLOADED, SERVICE_ERROR), de modo que route.ts no necesita
- *   cambiar.
+ * 3. Construye mensajes estructurados con los fragmentos encontrados
+ * 4. Envía a Claude con system prompt separado e historial nativo
  */
 
 import { getIndex } from './pinecone';
@@ -60,55 +49,17 @@ export interface RAGResult {
 }
 
 /**
- * Construye un prompt único que incluye instrucciones de sistema,
- * historial de conversación, fragmentos recuperados y pregunta actual.
- */
-function buildPrompt(
-  question: string,
-  context: string,
-  history: ConversationMessage[]
-): string {
-  const historyBlock =
-    history.length === 0
-      ? ''
-      : `HISTORIAL RECIENTE DE LA CONVERSACIÓN:
-
-${history
-  .map(m => `${m.role === 'user' ? 'Usuario' : 'Asistente'}: ${m.content}`)
-  .join('\n\n')}
-
----
-
-`;
-
-  return `${SYSTEM_PROMPT}
-
----
-
-${historyBlock}FRAGMENTOS DE DOCUMENTACIÓN RELEVANTES:
-
-${context}
-
----
-
-PREGUNTA DEL USUARIO: ${question}`;
-}
-
-/**
- * Convierte el error genérico de llm-client (que llega como
- * "LLM call failed after retries: HTTP 401") en una de las categorías
+ * Convierte el error genérico de llm-client en una de las categorías
  * de error que /api/ask sabe traducir a mensaje de usuario.
  */
 function mapLLMError(err: unknown): never {
   const message = err instanceof Error ? err.message : String(err);
 
-  // Patrones HTTP que vienen del cliente
   if (/HTTP 401|HTTP 403/.test(message)) throw new Error('AUTH_ERROR');
   if (/HTTP 429/.test(message)) throw new Error('RATE_LIMIT_EXCEEDED');
   if (/HTTP 529/.test(message)) throw new Error('SERVICE_OVERLOADED');
   if (/HTTP 5\d\d/.test(message)) throw new Error('SERVICE_ERROR');
 
-  // Cualquier otro fallo (red, timeout, parse) lo tratamos como servicio caído
   throw new Error('SERVICE_ERROR');
 }
 
@@ -156,15 +107,31 @@ export async function queryRAG(
     .map((f, i) => `[Fragmento ${i + 1} - ${f.documentName}]\n${f.chunkText}`)
     .join('\n\n---\n\n');
 
-  // 4. Construir prompt con historial limitado a los últimos N mensajes
+  // 4. Construir historial como mensajes nativos con roles
   const recentHistory = conversationHistory.slice(-MAX_HISTORY_MESSAGES);
-  const prompt = buildPrompt(question, context, recentHistory);
 
-  // 5. Llamar a Claude vía cliente centralizado
+  const userQuestion = `FRAGMENTOS DE DOCUMENTACIÓN RELEVANTES:
+
+${context}
+
+---
+
+PREGUNTA DEL USUARIO: ${question}`;
+
+  // El historial previo va como mensajes separados con su rol real.
+  // La pregunta actual (con los fragmentos) va como el último mensaje de usuario.
+  const messages: Array<{ role: 'user' | 'assistant'; content: string }> = [
+    ...recentHistory,
+    { role: 'user', content: userQuestion },
+  ];
+
+  // 5. Llamar a Claude con system prompt separado y mensajes estructurados
   let text: string;
   let usage: { inputTokens: number; outputTokens: number };
   try {
-    const response = await callLLMWithUsage(prompt, {
+    const response = await callLLMWithUsage('', {
+      system: SYSTEM_PROMPT,
+      messages,
       model: 'haiku',
       maxOutputTokens: MAX_OUTPUT_TOKENS,
       temperature: TEMPERATURE,
@@ -173,7 +140,7 @@ export async function queryRAG(
     usage = response.usage;
   } catch (err) {
     console.error('[RAG] LLM call failed:', err instanceof Error ? err.message : err);
-    mapLLMError(err); // siempre lanza
+    mapLLMError(err);
     throw err; // inalcanzable, pero TypeScript lo necesita
   }
 
