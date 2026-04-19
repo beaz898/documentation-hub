@@ -37,6 +37,7 @@ D. Si el fragmento aparece más de una vez en el texto, incluye suficiente conte
 E. El "find" debe ser lo más CORTO posible pero único. Prefiere 1-3 frases a copiar párrafos enteros.
 F. Para BORRAR texto: usa "replace" vacío "". Para AÑADIR: usa como "find" la frase justo anterior y como "replace" esa misma frase + el texto nuevo.
 G. Si NO puedes localizar el fragmento exacto, NO inventes un REPLACEMENT. Pídele al usuario que te señale el fragmento exacto.
+H. NUNCA emitas un REPLACEMENT donde "find" y "replace" sean iguales (o solo difieran en espacios al inicio/final). Si una parte del texto ya está bien y no necesita cambio, simplemente NO la incluyas como propuesta. Es mejor proponer 2 cambios reales que 3 cambios donde uno no cambia nada.
 
 EJEMPLOS:
 
@@ -60,7 +61,7 @@ He encontrado 3 fragmentos duplicados con politica_rrhh.pdf. Aquí las propuesta
 {"find": "El periodo de disfrute va del 1 de enero al 31 de diciembre.", "replace": ""}
 <<<END>>>
 
-NUNCA inventes texto para el "find". NUNCA.`;
+NUNCA inventes texto para el "find". NUNCA emitas un REPLACEMENT que no cambie nada.`;
 
 interface ChatMessage {
   role: 'user' | 'assistant';
@@ -74,20 +75,12 @@ interface DocRow {
   chunk_count: number;
 }
 
-/**
- * Detect if the user's message mentions the name of any indexed document.
- * Returns the first matching document row (or null).
- * We match case-insensitively, ignoring extension, and require a substring of
- * at least 6 chars to avoid matching generic words.
- */
 function detectMentionedDoc(userMessage: string, orgDocs: DocRow[]): DocRow | null {
   const msgLower = userMessage.toLowerCase();
-  // Prefer longer names first to avoid matching a prefix of a longer name
   const sorted = [...orgDocs].sort((a, b) => b.name.length - a.name.length);
   for (const doc of sorted) {
     const nameLower = doc.name.toLowerCase();
     const nameNoExt = nameLower.replace(/\.[^/.]+$/, '');
-    // Require at least 6 chars to be considered a meaningful mention
     if (nameNoExt.length < 6) continue;
     if (msgLower.includes(nameLower) || msgLower.includes(nameNoExt)) {
       return doc;
@@ -96,10 +89,6 @@ function detectMentionedDoc(userMessage: string, orgDocs: DocRow[]): DocRow | nu
   return null;
 }
 
-/**
- * Fetch all chunks of a given document from Pinecone using fetch-by-id.
- * Returns the concatenated text in chunk order, capped at maxChars.
- */
 async function loadFullDocumentText(
   orgId: string,
   doc: DocRow,
@@ -110,7 +99,6 @@ async function loadFullDocumentText(
     const chunkCount = doc.chunk_count;
     if (!chunkCount || chunkCount === 0) return null;
 
-    // Build ids and fetch in batches (Pinecone fetch limit is ~1000 ids per call)
     const allIds = Array.from({ length: chunkCount }, (_, i) => `${doc.id}-${i}`);
     const batches: string[][] = [];
     for (let i = 0; i < allIds.length; i += 100) {
@@ -126,14 +114,12 @@ async function loadFullDocumentText(
         if (meta && typeof meta.text === 'string' && typeof meta.chunkIndex === 'number') {
           texts.push({ idx: meta.chunkIndex, text: meta.text });
         } else if (meta && typeof meta.text === 'string') {
-          // Fallback: try to parse chunk index from the id
           const idxMatch = id.match(/-(\d+)$/);
           texts.push({ idx: idxMatch ? parseInt(idxMatch[1], 10) : 0, text: meta.text as string });
         }
       }
     }
 
-    // Sort by chunkIndex and concatenate
     texts.sort((a, b) => a.idx - b.idx);
     let combined = texts.map(t => t.text).join('\n\n');
 
@@ -146,24 +132,6 @@ async function loadFullDocumentText(
     console.error('[IMPROVE] Failed to load full document:', err);
     return null;
   }
-}
-
-/**
- * Aplana el historial de conversación dentro del prompt, ya que la abstracción
- * actual de llm-client acepta una única string. Cuando se reescriba el cliente
- * con API nativa de mensajes, esto se podrá simplificar.
- */
-function flattenHistory(history: ChatMessage[]): string {
-  if (history.length === 0) return '';
-  return `HISTORIAL RECIENTE DE LA CONVERSACIÓN:
-
-${history
-  .map(m => `${m.role === 'user' ? 'Usuario' : 'Asistente'}: ${m.content}`)
-  .join('\n\n')}
-
----
-
-`;
 }
 
 export async function POST(req: NextRequest) {
@@ -203,20 +171,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Parámetros inválidos' }, { status: 400 });
     }
 
-    // Load org docs (needed for mention detection and for retrieval context)
     const { data: orgDocsRaw } = await supabase
       .from('documents')
       .select('id, name, source, chunk_count')
       .eq('org_id', orgId);
-    // Note: we don't filter by name here. The doc being edited is NOT yet indexed
-    // (it's a fresh upload), so any indexed doc with the same name is a DIFFERENT
-    // document (typically a Drive version) that we want to be able to compare against.
     const orgDocs: DocRow[] = orgDocsRaw || [];
 
-    // Detect explicit mention of another document by name
     const mentionedDoc = detectMentionedDoc(userMessage, orgDocs);
 
-    // If a doc is mentioned, load its full content
     let fullMentionedText: string | null = null;
     if (mentionedDoc) {
       console.log(`[IMPROVE] User mentioned document: "${mentionedDoc.name}" (${mentionedDoc.source || 'manual'})`);
@@ -226,7 +188,6 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Standard semantic retrieval — queries the whole org namespace (Drive + manuals)
     let existingContext = '';
     try {
       const queryText = `${userMessage}\n\n${currentText.slice(0, 500)}`;
@@ -239,10 +200,7 @@ export async function POST(req: NextRequest) {
       });
 
       const matches = (queryResponse.matches || [])
-        // Same reasoning: don't exclude by name. The doc being edited isn't indexed yet,
-        // so any match is by definition a different document.
         .filter(m => m.metadata && m.score && m.score > 0.28)
-        // Don't re-include the mentioned doc's chunks here (we already loaded it fully)
         .filter(m => !mentionedDoc || String(m.metadata!.documentId) !== mentionedDoc.id)
         .slice(0, 6);
 
@@ -258,7 +216,6 @@ export async function POST(req: NextRequest) {
       console.error('[IMPROVE] Retrieval failed, continuing without existing context:', err);
     }
 
-    // Build the main context block
     const fullDocSection = fullMentionedText
       ? `\n\nCONTENIDO COMPLETO DEL DOCUMENTO MENCIONADO POR EL USUARIO:\n<<<DOC_COMPLETO:${mentionedDoc!.name}>>>\n${fullMentionedText}\n<<<FIN_DOC>>>\n`
       : '';
@@ -277,22 +234,23 @@ ${existingContext ? `FRAGMENTOS DE OTROS DOCUMENTOS RELACIONADOS:\n${existingCon
 
 Mensaje del usuario: ${userMessage}
 
-Recuerda: si propones REPLACEMENT(s), el "find" debe ser copia literal del TEXTO_ACTUAL. Si el usuario pide algo multi-fragmento (ej: "borra todo lo duplicado con X"), genera UN REPLACEMENT por cada fragmento, no resumas en uno solo.`;
+Recuerda: si propones REPLACEMENT(s), el "find" debe ser copia literal del TEXTO_ACTUAL. Si el usuario pide algo multi-fragmento (ej: "borra todo lo duplicado con X"), genera UN REPLACEMENT por cada fragmento, no resumas en uno solo. Y NUNCA emitas un REPLACEMENT donde "find" y "replace" sean iguales.`;
 
-    // Construir un único prompt: sistema + historial aplanado + bloque de contexto.
-    // Limitamos historial a los 10 últimos mensajes (igual que la versión anterior).
-    const historyBlock = flattenHistory((history || []).slice(-10));
-    const prompt = `${IMPROVE_SYSTEM_PROMPT}
+    // Construir mensajes nativos: historial previo + mensaje actual con contexto.
+    // El system prompt va separado para que Claude lo procese como instrucciones,
+    // no como parte de la conversación.
+    const recentHistory = (history || []).slice(-10);
+    const messages: Array<{ role: 'user' | 'assistant'; content: string }> = [
+      ...recentHistory,
+      { role: 'user', content: contextBlock },
+    ];
 
----
-
-${historyBlock}${contextBlock}`;
-
-    // Llamar a Claude vía cliente centralizado
     let rawReply = '';
     let usage = { inputTokens: 0, outputTokens: 0 };
     try {
-      const response = await callLLMWithUsage(prompt, {
+      const response = await callLLMWithUsage('', {
+        system: IMPROVE_SYSTEM_PROMPT,
+        messages,
         model: 'haiku',
         maxOutputTokens: 6144,
         temperature: 0.2,
@@ -313,16 +271,21 @@ ${historyBlock}${contextBlock}`;
       );
     }
 
-    // Parse replacement blocks
     const replacements: Array<{ find: string; replace: string }> = [];
     const replacementRegex = /<<<REPLACEMENT>>>\s*([\s\S]*?)\s*<<<END>>>/g;
     let match;
+    let droppedNoOpCount = 0;
     while ((match = replacementRegex.exec(rawReply)) !== null) {
       try {
         const parsed = JSON.parse(match[1].trim());
-        if (typeof parsed.find === 'string' && typeof parsed.replace === 'string') {
-          replacements.push({ find: parsed.find, replace: parsed.replace });
+        if (typeof parsed.find !== 'string' || typeof parsed.replace !== 'string') continue;
+
+        if (parsed.find.trim() === parsed.replace.trim()) {
+          droppedNoOpCount++;
+          continue;
         }
+
+        replacements.push({ find: parsed.find, replace: parsed.replace });
       } catch (e) {
         console.error('[IMPROVE] Failed to parse REPLACEMENT block:', e, match[1].slice(0, 200));
       }
@@ -331,7 +294,7 @@ ${historyBlock}${contextBlock}`;
     const visibleText = rawReply.replace(replacementRegex, '').trim();
 
     console.log(
-      `[IMPROVE] OK — model=haiku tokens_in=${usage.inputTokens} tokens_out=${usage.outputTokens} replacements=${replacements.length} latency=${Date.now() - startedAt}ms`
+      `[IMPROVE] OK — model=haiku tokens_in=${usage.inputTokens} tokens_out=${usage.outputTokens} replacements=${replacements.length} dropped_noop=${droppedNoOpCount} latency=${Date.now() - startedAt}ms`
     );
 
     return NextResponse.json({
