@@ -60,6 +60,13 @@ export default function ChatPanel({
 
   useEffect(() => { endRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages, sending]);
 
+  // Devolver el foco al textarea cuando el asistente termina de responder
+  useEffect(() => {
+    if (!sending) {
+      setTimeout(() => inputRef.current?.focus(), 50);
+    }
+  }, [sending]);
+  
   const labels = allTypes.reduce((acc, t) => { acc[t] = typeMeta[t].label; return acc; }, {} as Record<ProblemType, string>);
 
   const groupedProblems = useMemo(() => {
@@ -77,7 +84,6 @@ export default function ChatPanel({
     if (!text || sending) return;
     setChatInput('');
     await sendMessage(text, currentText);
-    setTimeout(() => inputRef.current?.focus(), 0);
   };
 
   const handleApply = (msgId: string, idx: number, find: string, replace: string) => {
