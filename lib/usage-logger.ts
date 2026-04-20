@@ -1,4 +1,4 @@
-import { createServiceClient } from '@/lib/supabase';
+import { SupabaseClient } from '@supabase/supabase-js';
 
 interface UsageLogEntry {
   userId: string;
@@ -17,13 +17,15 @@ interface UsageLogEntry {
 
 /**
  * Registra una llamada al LLM en la tabla usage_logs de Supabase.
- * Es fire-and-forget: no bloquea ni lanza errores si falla el insert.
- * Si Supabase no responde o hay un error, solo se pierde el log.
+ * Recibe el cliente de Supabase ya creado por el endpoint para reutilizar
+ * la conexión existente en vez de crear una nueva.
  */
-export function logUsage(entry: UsageLogEntry): void {
+export async function logUsage(
+  supabase: SupabaseClient,
+  entry: UsageLogEntry
+): Promise<void> {
   try {
-    const supabase = createServiceClient();
-    supabase
+    const { error } = await supabase
       .from('usage_logs')
       .insert({
         user_id: entry.userId,
@@ -38,10 +40,11 @@ export function logUsage(entry: UsageLogEntry): void {
         success: entry.success,
         error_message: entry.errorMessage || null,
         user_query: entry.userQuery || null,
-      })
-      .then(({ error }) => {
-        if (error) console.warn('[usage-logger] Insert failed:', error.message);
       });
+
+    if (error) {
+      console.warn('[usage-logger] Insert failed:', error.message);
+    }
   } catch (err) {
     console.warn('[usage-logger] Unexpected error:', err);
   }
