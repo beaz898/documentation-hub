@@ -140,6 +140,7 @@ export async function POST(req: NextRequest) {
   let userId = '';
   let orgId = '';
   let userMessage = '';
+  const supabase = createServiceClient();
 
   try {
     const authHeader = req.headers.get('authorization');
@@ -148,7 +149,6 @@ export async function POST(req: NextRequest) {
     }
 
     const token = authHeader.split(' ')[1];
-    const supabase = createServiceClient();
 
     const { data: { user }, error: authError } = await supabase.auth.getUser(token);
     if (authError || !user) {
