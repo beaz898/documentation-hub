@@ -100,7 +100,7 @@ Devuelve el JSON con los problemas internos detectados.`;
     } catch (err) {
       console.error('[ANALYZE-STYLE] LLM/parse failed:', err instanceof Error ? err.message : err);
 
-      logUsage({
+      await logUsage(supabase, {
         userId,
         orgId,
         endpoint: '/api/analyze-style',
@@ -123,7 +123,7 @@ Devuelve el JSON con los problemas internos detectados.`;
 
     const latencyMs = Date.now() - startedAt;
 
-    logUsage({
+    await logUsage(supabase, {
       userId,
       orgId,
       endpoint: '/api/analyze-style',
@@ -142,7 +142,7 @@ Devuelve el JSON con los problemas internos detectados.`;
     console.error('Error in /api/analyze-style:', error);
 
     if (userId) {
-      logUsage({
+      await logUsage(supabase, {
         userId,
         orgId,
         endpoint: '/api/analyze-style',
