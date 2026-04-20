@@ -65,6 +65,8 @@ export default function ChatPage() {
   const [improvementLoading, setImprovementLoading] = useState(false);
   const [driveStatus, setDriveStatus] = useState<DriveStatus>({ connected: false });
   const [syncing, setSyncing] = useState(false);
+  const [analysisProgress, setAnalysisProgress] = useState(0);
+  const [analysisPhase, setAnalysisPhase] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const router = useRouter();
@@ -203,25 +205,64 @@ export default function ChatPage() {
   async function handleUpload(file: File) {
     if (!session) return;
 
+    // Fase 1: subida a Storage
+    setAnalysisProgress(5);
+    setAnalysisPhase('Subiendo documento...');
+
     const storagePath = `${session.user.id}/${Date.now()}-${file.name}`;
     const { error: uploadError } = await supabase.storage.from('documents').upload(storagePath, file);
 
     if (uploadError) {
+      setAnalysisProgress(0);
+      setAnalysisPhase('');
       setMessages(prev => [...prev, { id: crypto.randomUUID(), role: 'error', content: `Error subiendo archivo: ${uploadError.message}` }]);
       throw new Error(uploadError.message);
     }
 
+    setAnalysisProgress(15);
+
     if (documents.length > 0) {
-      setMessages(prev => [...prev, { id: crypto.randomUUID(), role: 'assistant', content: `Analizando **${file.name}**...` }]);
+      setAnalysisPhase('Buscando documentos relacionados...');
+
+      // Progreso simulado: avanza gradualmente mientras el backend trabaja
+      let currentProgress = 15;
+      const progressInterval = setInterval(() => {
+        currentProgress += 1;
+        if (currentProgress >= 30 && currentProgress < 35) {
+          setAnalysisPhase('Comparando contenido...');
+        }
+        if (currentProgress >= 75 && currentProgress < 80) {
+          setAnalysisPhase('Generando informe...');
+        }
+        if (currentProgress >= 92) {
+          clearInterval(progressInterval);
+          return;
+        }
+        setAnalysisProgress(currentProgress);
+      }, 350);
+
       try {
         const analyzeRes = await fetch('/api/analyze-v2', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
           body: JSON.stringify({ storagePath, fileName: file.name }),
         });
+
+        clearInterval(progressInterval);
+
         if (analyzeRes.ok) {
           const analyzeData = await analyzeRes.json();
+          setAnalysisProgress(95);
+          setAnalysisPhase('Análisis completado');
+
           if (analyzeData.hasIssues) {
+            // Breve pausa para que el usuario vea el 95% antes de abrir el modal
+            await new Promise(r => setTimeout(r, 500));
+            setAnalysisProgress(100);
+            await new Promise(r => setTimeout(r, 300));
+            setAnalysisProgress(0);
+            setAnalysisPhase('');
+
             setPendingAnalysis({
               fileName: file.name,
               storagePath,
@@ -231,12 +272,27 @@ export default function ChatPage() {
             });
             return;
           } else {
+            setAnalysisProgress(100);
+            setAnalysisPhase('Sin problemas detectados');
+            await new Promise(r => setTimeout(r, 500));
+            setAnalysisProgress(0);
+            setAnalysisPhase('');
             setMessages(prev => [...prev, { id: crypto.randomUUID(), role: 'assistant', content: `Análisis completado: sin problemas. Indexando...` }]);
           }
+        } else {
+          setAnalysisProgress(0);
+          setAnalysisPhase('');
         }
-      } catch (e) { console.error('Analysis failed:', e); }
+      } catch (e) {
+        clearInterval(progressInterval);
+        setAnalysisProgress(0);
+        setAnalysisPhase('');
+        console.error('Analysis failed:', e);
+      }
     }
 
+    setAnalysisProgress(0);
+    setAnalysisPhase('');
     await indexDocument(storagePath, file.name, file.size);
   }
 
@@ -436,6 +492,8 @@ export default function ChatPage() {
             onConnectDrive={handleConnectDrive} onSyncDrive={handleSyncDrive} onDisconnectDrive={handleDisconnectDrive}
             onLogout={handleLogout} onClose={isMobile ? () => setSidebarOpen(false) : undefined}
             userEmail={session.user.email || 'Usuario'}
+            analysisProgress={analysisProgress}
+            analysisPhase={analysisPhase}
           />
         </div>
       </div>
