@@ -2,27 +2,33 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import { chunkText, extractText } from '@/lib/chunking';
 import { runAnalysisPipeline } from '@/lib/analysis/pipeline';
+import { logUsage } from '@/lib/usage-logger';
 
 export const maxDuration = 120;
 
 /**
  * Analyze v2 — pipeline de 4 etapas con LLM-as-judge.
  * Body: { storagePath?, fileName, text? }
- * Mismo shape de respuesta que /api/analyze para compatibilidad con el frontend.
  */
 export async function POST(req: NextRequest) {
+  const startedAt = Date.now();
+  let userId = '';
+  let orgId = '';
+  const supabase = createServiceClient();
+
   try {
     const authHeader = req.headers.get('authorization');
     if (!authHeader?.startsWith('Bearer ')) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
     }
     const token = authHeader.split(' ')[1];
-    const supabase = createServiceClient();
     const { data: { user }, error: authError } = await supabase.auth.getUser(token);
     if (authError || !user) {
       return NextResponse.json({ error: 'Token inválido' }, { status: 401 });
     }
-    const orgId = user.user_metadata?.org_id || user.id;
+
+    userId = user.id;
+    orgId = user.user_metadata?.org_id || user.id;
 
     const body = await req.json();
     const { storagePath, fileName, text: directText } = body;
@@ -50,7 +56,6 @@ export async function POST(req: NextRequest) {
 
     // Muestreo: chunks representativos
     const chunks = chunkText(text, 'temp-id', fileName, orgId);
-    // Muestreo adaptativo: 8 fragmentos para docs pequeños, hasta 25 para docs grandes
     const targetSamples = chunks.length <= 20
       ? Math.min(8, chunks.length)
       : chunks.length <= 60
@@ -81,6 +86,20 @@ export async function POST(req: NextRequest) {
       analysis.discrepancies.length > 0 ||
       analysis.recommendation !== 'INDEXAR';
 
+    const latencyMs = Date.now() - startedAt;
+
+    await logUsage(supabase, {
+      userId,
+      orgId,
+      endpoint: '/api/analyze-v2',
+      model: 'haiku',
+      inputTokens: 0,
+      outputTokens: 0,
+      latencyMs,
+      success: true,
+      userQuery: fileName,
+    });
+
     return NextResponse.json({
       success: true,
       hasIssues,
@@ -99,6 +118,21 @@ export async function POST(req: NextRequest) {
   } catch (error: unknown) {
     console.error('[analyze-v2] Error:', error);
     const message = error instanceof Error ? error.message : 'Error interno';
+
+    if (userId) {
+      await logUsage(supabase, {
+        userId,
+        orgId,
+        endpoint: '/api/analyze-v2',
+        model: 'haiku',
+        inputTokens: 0,
+        outputTokens: 0,
+        latencyMs: Date.now() - startedAt,
+        success: false,
+        errorMessage: message,
+      });
+    }
+
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
