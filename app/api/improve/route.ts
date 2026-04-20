@@ -277,7 +277,7 @@ Recuerda: si propones REPLACEMENT(s), el "find" debe ser copia literal del TEXTO
       const message = err instanceof Error ? err.message : String(err);
       console.error('[IMPROVE] LLM call failed:', message);
 
-      logUsage({
+      await logUsage(supabase, {
         userId,
         orgId,
         endpoint: '/api/improve',
@@ -325,7 +325,7 @@ Recuerda: si propones REPLACEMENT(s), el "find" debe ser copia literal del TEXTO
 
     const latencyMs = Date.now() - startedAt;
 
-    logUsage({
+    await logUsage(supabase, {
       userId,
       orgId,
       endpoint: '/api/improve',
@@ -356,7 +356,7 @@ Recuerda: si propones REPLACEMENT(s), el "find" debe ser copia literal del TEXTO
     const message = error instanceof Error ? error.message : 'Error interno';
 
     if (userId) {
-      logUsage({
+      await logUsage(supabase, {
         userId,
         orgId,
         endpoint: '/api/improve',
