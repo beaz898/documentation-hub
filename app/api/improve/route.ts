@@ -216,11 +216,12 @@ export async function POST(req: NextRequest) {
       console.error('[IMPROVE] Retrieval failed, continuing without existing context:', err);
     }
 
+    // Construir el bloque de contexto del documento (va en el system, se cachea)
     const fullDocSection = fullMentionedText
       ? `\n\nCONTENIDO COMPLETO DEL DOCUMENTO MENCIONADO POR EL USUARIO:\n<<<DOC_COMPLETO:${mentionedDoc!.name}>>>\n${fullMentionedText}\n<<<FIN_DOC>>>\n`
       : '';
 
-    const contextBlock = `=== DOCUMENTO EN EDICIÓN: "${fileName}" ===
+    const documentContext = `=== DOCUMENTO EN EDICIÓN: "${fileName}" ===
 
 <<<TEXTO_ACTUAL>>>
 ${currentText}
@@ -230,33 +231,46 @@ PROBLEMAS DETECTADOS INICIALMENTE:
 ${problemsSummary || '(ninguno registrado)'}
 ${fullDocSection}
 ${existingContext ? `FRAGMENTOS DE OTROS DOCUMENTOS RELACIONADOS:\n${existingContext}\n` : ''}
-=== FIN DE CONTEXTO ===
+=== FIN DE CONTEXTO ===`;
 
-Mensaje del usuario: ${userMessage}
+    // System prompt como dos bloques:
+    // 1. Instrucciones (fijas siempre)
+    // 2. Contexto del documento (fijo durante la conversación)
+    // El último bloque lleva cache_control para que Anthropic cachee ambos.
+    const systemBlocks: Array<{ type: 'text'; text: string; cache_control?: { type: 'ephemeral' } }> = [
+      { type: 'text', text: IMPROVE_SYSTEM_PROMPT },
+      { type: 'text', text: documentContext, cache_control: { type: 'ephemeral' } },
+    ];
+
+    // El mensaje del usuario va como messages (no cacheado, cambia cada vez)
+    const userContent = `${userMessage}
 
 Recuerda: si propones REPLACEMENT(s), el "find" debe ser copia literal del TEXTO_ACTUAL. Si el usuario pide algo multi-fragmento (ej: "borra todo lo duplicado con X"), genera UN REPLACEMENT por cada fragmento, no resumas en uno solo. Y NUNCA emitas un REPLACEMENT donde "find" y "replace" sean iguales.`;
 
-    // Construir mensajes nativos: historial previo + mensaje actual con contexto.
-    // El system prompt va separado para que Claude lo procese como instrucciones,
-    // no como parte de la conversación.
     const recentHistory = (history || []).slice(-10);
     const messages: Array<{ role: 'user' | 'assistant'; content: string }> = [
       ...recentHistory,
-      { role: 'user', content: contextBlock },
+      { role: 'user', content: userContent },
     ];
 
     let rawReply = '';
-    let usage = { inputTokens: 0, outputTokens: 0 };
+    let usage = { inputTokens: 0, outputTokens: 0, cacheCreationTokens: 0, cacheReadTokens: 0 };
     try {
       const response = await callLLMWithUsage('', {
-        system: IMPROVE_SYSTEM_PROMPT,
+        system: systemBlocks,
         messages,
         model: 'haiku',
         maxOutputTokens: 6144,
         temperature: 0.2,
+        cacheSystem: true,
       });
       rawReply = response.text;
-      usage = response.usage;
+      usage = {
+        inputTokens: response.usage.inputTokens,
+        outputTokens: response.usage.outputTokens,
+        cacheCreationTokens: response.usage.cacheCreationTokens ?? 0,
+        cacheReadTokens: response.usage.cacheReadTokens ?? 0,
+      };
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       console.error('[IMPROVE] LLM call failed:', message);
@@ -294,7 +308,7 @@ Recuerda: si propones REPLACEMENT(s), el "find" debe ser copia literal del TEXTO
     const visibleText = rawReply.replace(replacementRegex, '').trim();
 
     console.log(
-      `[IMPROVE] OK — model=haiku tokens_in=${usage.inputTokens} tokens_out=${usage.outputTokens} replacements=${replacements.length} dropped_noop=${droppedNoOpCount} latency=${Date.now() - startedAt}ms`
+      `[IMPROVE] OK — model=haiku tokens_in=${usage.inputTokens} tokens_out=${usage.outputTokens} cache_create=${usage.cacheCreationTokens} cache_read=${usage.cacheReadTokens} replacements=${replacements.length} dropped_noop=${droppedNoOpCount} latency=${Date.now() - startedAt}ms`
     );
 
     return NextResponse.json({
