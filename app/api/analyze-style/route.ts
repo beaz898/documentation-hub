@@ -56,6 +56,7 @@ export async function POST(req: NextRequest) {
   const startedAt = Date.now();
   let userId = '';
   let orgId = '';
+  const supabase = createServiceClient();
 
   try {
     const authHeader = req.headers.get('authorization');
@@ -63,7 +64,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
     }
     const token = authHeader.split(' ')[1];
-    const supabase = createServiceClient();
     const { data: { user }, error: authError } = await supabase.auth.getUser(token);
     if (authError || !user) {
       return NextResponse.json({ error: 'Token inválido' }, { status: 401 });
