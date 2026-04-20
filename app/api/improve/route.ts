@@ -3,6 +3,7 @@ import { createServiceClient } from '@/lib/supabase';
 import { getIndex } from '@/lib/pinecone';
 import { generateEmbeddings } from '@/lib/embeddings';
 import { callLLMWithUsage } from '@/lib/analysis/llm-client';
+import { logUsage } from '@/lib/usage-logger';
 
 export const maxDuration = 120;
 
@@ -136,6 +137,10 @@ async function loadFullDocumentText(
 
 export async function POST(req: NextRequest) {
   const startedAt = Date.now();
+  let userId = '';
+  let orgId = '';
+  let userMessage = '';
+
   try {
     const authHeader = req.headers.get('authorization');
     if (!authHeader?.startsWith('Bearer ')) {
@@ -150,7 +155,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Token inválido' }, { status: 401 });
     }
 
-    const orgId = user.user_metadata?.org_id || user.id;
+    userId = user.id;
+    orgId = user.user_metadata?.org_id || user.id;
 
     const body = await req.json();
     const {
@@ -158,7 +164,7 @@ export async function POST(req: NextRequest) {
       fileName,
       problemsSummary,
       history,
-      userMessage,
+      userMessage: bodyUserMessage,
     }: {
       currentText: string;
       fileName: string;
@@ -166,6 +172,8 @@ export async function POST(req: NextRequest) {
       history: ChatMessage[];
       userMessage: string;
     } = body;
+
+    userMessage = bodyUserMessage;
 
     if (!currentText || !userMessage) {
       return NextResponse.json({ error: 'Parámetros inválidos' }, { status: 400 });
@@ -216,7 +224,6 @@ export async function POST(req: NextRequest) {
       console.error('[IMPROVE] Retrieval failed, continuing without existing context:', err);
     }
 
-    // Construir el bloque de contexto del documento (va en el system, se cachea)
     const fullDocSection = fullMentionedText
       ? `\n\nCONTENIDO COMPLETO DEL DOCUMENTO MENCIONADO POR EL USUARIO:\n<<<DOC_COMPLETO:${mentionedDoc!.name}>>>\n${fullMentionedText}\n<<<FIN_DOC>>>\n`
       : '';
@@ -233,16 +240,11 @@ ${fullDocSection}
 ${existingContext ? `FRAGMENTOS DE OTROS DOCUMENTOS RELACIONADOS:\n${existingContext}\n` : ''}
 === FIN DE CONTEXTO ===`;
 
-    // System prompt como dos bloques:
-    // 1. Instrucciones (fijas siempre)
-    // 2. Contexto del documento (fijo durante la conversación)
-    // El último bloque lleva cache_control para que Anthropic cachee ambos.
     const systemBlocks: Array<{ type: 'text'; text: string; cache_control?: { type: 'ephemeral' } }> = [
       { type: 'text', text: IMPROVE_SYSTEM_PROMPT },
       { type: 'text', text: documentContext, cache_control: { type: 'ephemeral' } },
     ];
 
-    // El mensaje del usuario va como messages (no cacheado, cambia cada vez)
     const userContent = `${userMessage}
 
 Recuerda: si propones REPLACEMENT(s), el "find" debe ser copia literal del TEXTO_ACTUAL. Si el usuario pide algo multi-fragmento (ej: "borra todo lo duplicado con X"), genera UN REPLACEMENT por cada fragmento, no resumas en uno solo. Y NUNCA emitas un REPLACEMENT donde "find" y "replace" sean iguales.`;
@@ -274,6 +276,20 @@ Recuerda: si propones REPLACEMENT(s), el "find" debe ser copia literal del TEXTO
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       console.error('[IMPROVE] LLM call failed:', message);
+
+      logUsage({
+        userId,
+        orgId,
+        endpoint: '/api/improve',
+        model: 'haiku',
+        inputTokens: 0,
+        outputTokens: 0,
+        latencyMs: Date.now() - startedAt,
+        success: false,
+        errorMessage: message,
+        userQuery: userMessage,
+      });
+
       const isRateOrOverloaded = /HTTP 429|HTTP 5\d\d/.test(message);
       return NextResponse.json(
         {
@@ -307,8 +323,24 @@ Recuerda: si propones REPLACEMENT(s), el "find" debe ser copia literal del TEXTO
 
     const visibleText = rawReply.replace(replacementRegex, '').trim();
 
+    const latencyMs = Date.now() - startedAt;
+
+    logUsage({
+      userId,
+      orgId,
+      endpoint: '/api/improve',
+      model: 'haiku',
+      inputTokens: usage.inputTokens,
+      outputTokens: usage.outputTokens,
+      cacheCreationTokens: usage.cacheCreationTokens,
+      cacheReadTokens: usage.cacheReadTokens,
+      latencyMs,
+      success: true,
+      userQuery: userMessage,
+    });
+
     console.log(
-      `[IMPROVE] OK — model=haiku tokens_in=${usage.inputTokens} tokens_out=${usage.outputTokens} cache_create=${usage.cacheCreationTokens} cache_read=${usage.cacheReadTokens} replacements=${replacements.length} dropped_noop=${droppedNoOpCount} latency=${Date.now() - startedAt}ms`
+      `[IMPROVE] OK — model=haiku tokens_in=${usage.inputTokens} tokens_out=${usage.outputTokens} cache_create=${usage.cacheCreationTokens} cache_read=${usage.cacheReadTokens} replacements=${replacements.length} dropped_noop=${droppedNoOpCount} latency=${latencyMs}ms`
     );
 
     return NextResponse.json({
@@ -322,6 +354,22 @@ Recuerda: si propones REPLACEMENT(s), el "find" debe ser copia literal del TEXTO
   } catch (error: unknown) {
     console.error('Error in /api/improve:', error);
     const message = error instanceof Error ? error.message : 'Error interno';
+
+    if (userId) {
+      logUsage({
+        userId,
+        orgId,
+        endpoint: '/api/improve',
+        model: 'haiku',
+        inputTokens: 0,
+        outputTokens: 0,
+        latencyMs: Date.now() - startedAt,
+        success: false,
+        errorMessage: message,
+        userQuery: userMessage || undefined,
+      });
+    }
+
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
