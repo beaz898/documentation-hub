@@ -1,8 +1,6 @@
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY!;
 const ANTHROPIC_URL = 'https://api.anthropic.com/v1/messages';
 
-// Modelos: Haiku para la mayoría de llamadas (rápido, barato, suficiente).
-// Sonnet solo si una llamada concreta lo pide explícitamente (mejor razonamiento).
 const DEFAULT_MODEL = 'claude-haiku-4-5-20251001';
 const SONNET_MODEL = 'claude-sonnet-4-6';
 
@@ -11,19 +9,21 @@ interface MessageItem {
   content: string;
 }
 
+interface SystemBlock {
+  type: 'text';
+  text: string;
+  cache_control?: { type: 'ephemeral' };
+}
+
 interface CallOptions {
   maxOutputTokens?: number;
   temperature?: number;
   model?: 'haiku' | 'sonnet';
-  system?: string;
+  system?: string | SystemBlock[];
   messages?: MessageItem[];
+  cacheSystem?: boolean;
 }
 
-/**
- * Construye el array de mensajes para la API de Anthropic.
- * - Si se pasan `messages` en las opciones, se usan directamente.
- * - Si no, se usa `prompt` como único mensaje de usuario (comportamiento original).
- */
 function buildMessages(prompt: string, opts: CallOptions): MessageItem[] {
   if (opts.messages && opts.messages.length > 0) {
     return opts.messages;
@@ -31,11 +31,29 @@ function buildMessages(prompt: string, opts: CallOptions): MessageItem[] {
   return [{ role: 'user', content: prompt }];
 }
 
-/**
- * Construye el payload completo para la API de Anthropic.
- * Si se pasa `system` en las opciones, va como campo separado (mejor calidad).
- * Si no se pasa, no se incluye (comportamiento original).
- */
+function buildSystemBlocks(opts: CallOptions): SystemBlock[] | null {
+  if (!opts.system) return null;
+
+  // Si ya viene como array de bloques, lo usamos directamente
+  if (Array.isArray(opts.system)) {
+    const blocks = [...opts.system];
+    if (opts.cacheSystem && blocks.length > 0) {
+      blocks[blocks.length - 1] = {
+        ...blocks[blocks.length - 1],
+        cache_control: { type: 'ephemeral' },
+      };
+    }
+    return blocks;
+  }
+
+  // Si viene como string, lo convertimos a un bloque
+  const block: SystemBlock = { type: 'text', text: opts.system };
+  if (opts.cacheSystem) {
+    block.cache_control = { type: 'ephemeral' };
+  }
+  return [block];
+}
+
 function buildPayload(prompt: string, opts: CallOptions) {
   const { maxOutputTokens = 4096, temperature = 0.2, model = 'haiku' } = opts;
   const modelId = model === 'sonnet' ? SONNET_MODEL : DEFAULT_MODEL;
@@ -48,15 +66,29 @@ function buildPayload(prompt: string, opts: CallOptions) {
     messages,
   };
 
-  if (opts.system) {
-    payload.system = opts.system;
+  const systemBlocks = buildSystemBlocks(opts);
+  if (systemBlocks) {
+    payload.system = systemBlocks;
   }
 
   return payload;
 }
 
+function buildHeaders(opts: CallOptions): Record<string, string> {
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    'x-api-key': ANTHROPIC_API_KEY,
+    'anthropic-version': '2023-06-01',
+  };
+  if (opts.cacheSystem) {
+    headers['anthropic-beta'] = 'prompt-caching-2024-07-31';
+  }
+  return headers;
+}
+
 export async function callLLM(prompt: string, opts: CallOptions = {}): Promise<string> {
   const payload = buildPayload(prompt, opts);
+  const headers = buildHeaders(opts);
 
   const delays = [0, 1500, 3500];
   let lastError: string = 'unknown';
@@ -67,11 +99,7 @@ export async function callLLM(prompt: string, opts: CallOptions = {}): Promise<s
     try {
       const res = await fetch(ANTHROPIC_URL, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': ANTHROPIC_API_KEY,
-          'anthropic-version': '2023-06-01',
-        },
+        headers,
         body: JSON.stringify(payload),
       });
 
@@ -182,8 +210,6 @@ export async function callLLMJson<T = unknown>(prompt: string, opts: CallOptions
 
 IMPORTANTE: Responde EXCLUSIVAMENTE con un objeto JSON válido. Sin texto antes ni después, sin bloques de código, sin explicaciones. El JSON debe ser parseable directamente con JSON.parse().`;
 
-  // Si se pasan messages, añadimos la instrucción de JSON al último mensaje de usuario.
-  // Si no, la añadimos al prompt como antes.
   let adjustedPrompt = prompt;
   let adjustedOpts = { ...opts };
 
@@ -218,6 +244,8 @@ IMPORTANTE: Responde EXCLUSIVAMENTE con un objeto JSON válido. Sin texto antes 
 export interface LLMUsage {
   inputTokens: number;
   outputTokens: number;
+  cacheCreationTokens?: number;
+  cacheReadTokens?: number;
 }
 
 export interface LLMResponseWithUsage {
@@ -230,6 +258,7 @@ export async function callLLMWithUsage(
   opts: CallOptions = {}
 ): Promise<LLMResponseWithUsage> {
   const payload = buildPayload(prompt, opts);
+  const headers = buildHeaders(opts);
 
   const delays = [0, 1500, 3500];
   let lastError: string = 'unknown';
@@ -240,11 +269,7 @@ export async function callLLMWithUsage(
     try {
       const res = await fetch(ANTHROPIC_URL, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': ANTHROPIC_API_KEY,
-          'anthropic-version': '2023-06-01',
-        },
+        headers,
         body: JSON.stringify(payload),
       });
 
@@ -264,6 +289,8 @@ export async function callLLMWithUsage(
       const usage: LLMUsage = {
         inputTokens: data?.usage?.input_tokens ?? 0,
         outputTokens: data?.usage?.output_tokens ?? 0,
+        cacheCreationTokens: data?.usage?.cache_creation_input_tokens ?? 0,
+        cacheReadTokens: data?.usage?.cache_read_input_tokens ?? 0,
       };
 
       return { text, usage };
