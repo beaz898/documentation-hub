@@ -8,6 +8,7 @@ export async function POST(req: NextRequest) {
   let userId = '';
   let orgId = '';
   let question = '';
+  const supabase = createServiceClient();
 
   try {
     // Verificar autenticación
@@ -20,7 +21,6 @@ export async function POST(req: NextRequest) {
     }
 
     const token = authHeader.split(' ')[1];
-    const supabase = createServiceClient();
 
     const { data: { user }, error: authError } = await supabase.auth.getUser(token);
     if (authError || !user) {
