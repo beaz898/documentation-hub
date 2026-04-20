@@ -1,8 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import { queryRAG } from '@/lib/rag';
+import { logUsage } from '@/lib/usage-logger';
 
 export async function POST(req: NextRequest) {
+  const startedAt = Date.now();
+  let userId = '';
+  let orgId = '';
+  let question = '';
+
   try {
     // Verificar autenticación
     const authHeader = req.headers.get('authorization');
@@ -24,12 +30,13 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Obtener orgId del usuario (usamos el user.id como orgId por simplicidad)
-    const orgId = user.user_metadata?.org_id || user.id;
+    userId = user.id;
+    orgId = user.user_metadata?.org_id || user.id;
 
     // Validar body
     const body = await req.json();
-    const { question, history } = body;
+    question = body.question;
+    const { history } = body;
 
     if (!question || typeof question !== 'string' || question.trim().length < 3) {
       return NextResponse.json(
@@ -41,6 +48,21 @@ export async function POST(req: NextRequest) {
     // Ejecutar RAG con historial de conversación
     const conversationHistory = Array.isArray(history) ? history : [];
     const result = await queryRAG(question.trim(), orgId, conversationHistory);
+
+    const latencyMs = Date.now() - startedAt;
+
+    // Registrar uso exitoso
+    logUsage({
+      userId,
+      orgId,
+      endpoint: '/api/ask',
+      model: 'haiku',
+      inputTokens: result.usage.inputTokens,
+      outputTokens: result.usage.outputTokens,
+      latencyMs,
+      success: true,
+      userQuery: question.trim(),
+    });
 
     return NextResponse.json({
       success: true,
@@ -55,6 +77,23 @@ export async function POST(req: NextRequest) {
     console.error('Error in /api/ask:', error);
 
     const message = error instanceof Error ? error.message : 'Error interno';
+    const latencyMs = Date.now() - startedAt;
+
+    // Registrar uso fallido
+    if (userId) {
+      logUsage({
+        userId,
+        orgId,
+        endpoint: '/api/ask',
+        model: 'haiku',
+        inputTokens: 0,
+        outputTokens: 0,
+        latencyMs,
+        success: false,
+        errorMessage: message,
+        userQuery: question?.trim() || undefined,
+      });
+    }
 
     // Errores categorizados desde rag.ts
     if (message === 'SERVICE_OVERLOADED') {
