@@ -52,7 +52,7 @@ export async function POST(req: NextRequest) {
     const latencyMs = Date.now() - startedAt;
 
     // Registrar uso exitoso
-    logUsage({
+    await logUsage(supabase, {
       userId,
       orgId,
       endpoint: '/api/ask',
@@ -81,7 +81,7 @@ export async function POST(req: NextRequest) {
 
     // Registrar uso fallido
     if (userId) {
-      logUsage({
+      await logUsage(supabase, {
         userId,
         orgId,
         endpoint: '/api/ask',
