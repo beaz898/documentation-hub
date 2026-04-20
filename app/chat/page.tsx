@@ -397,7 +397,7 @@ export default function ChatPage() {
       setMessages(prev => prev.filter(m => m.id !== loadingMsg.id).concat({ id: crypto.randomUUID(), role: 'assistant', content: data.answer, sources: data.sources }));
     } catch {
       setMessages(prev => prev.filter(m => m.id !== loadingMsg.id).concat({ id: crypto.randomUUID(), role: 'error', content: 'Error de conexión.' }));
-    } finally { setSending(false); inputRef.current?.focus(); }
+    } finally { setSending(false); setTimeout(() => inputRef.current?.focus(), 50); }
   }
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
