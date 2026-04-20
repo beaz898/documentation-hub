@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import { callLLMJson } from '@/lib/analysis/llm-client';
+import { logUsage } from '@/lib/usage-logger';
 
 export const maxDuration = 60;
 
@@ -53,6 +54,9 @@ const VALID_TYPES = new Set(['ortografia', 'ambiguedad', 'sugerencia']);
 
 export async function POST(req: NextRequest) {
   const startedAt = Date.now();
+  let userId = '';
+  let orgId = '';
+
   try {
     const authHeader = req.headers.get('authorization');
     if (!authHeader?.startsWith('Bearer ')) {
@@ -64,6 +68,9 @@ export async function POST(req: NextRequest) {
     if (authError || !user) {
       return NextResponse.json({ error: 'Token inválido' }, { status: 401 });
     }
+
+    userId = user.id;
+    orgId = user.user_metadata?.org_id || user.id;
 
     const { text, fileName } = await req.json();
     if (!text || typeof text !== 'string' || text.trim().length < 50) {
@@ -91,10 +98,20 @@ Devuelve el JSON con los problemas internos detectados.`;
         temperature: 0.2,
       });
     } catch (err) {
-      // Mismo comportamiento permisivo que la versión anterior:
-      // si el LLM falla o el JSON no se puede parsear, devolvemos lista vacía
-      // con la bandera styleError para que el frontend no muestre error duro.
       console.error('[ANALYZE-STYLE] LLM/parse failed:', err instanceof Error ? err.message : err);
+
+      logUsage({
+        userId,
+        orgId,
+        endpoint: '/api/analyze-style',
+        model: 'haiku',
+        inputTokens: 0,
+        outputTokens: 0,
+        latencyMs: Date.now() - startedAt,
+        success: false,
+        errorMessage: err instanceof Error ? err.message : 'LLM/parse failed',
+      });
+
       return NextResponse.json({ success: true, problems: [], styleError: true });
     }
 
@@ -104,12 +121,40 @@ Devuelve el JSON con los problemas internos detectados.`;
         )
       : [];
 
+    const latencyMs = Date.now() - startedAt;
+
+    logUsage({
+      userId,
+      orgId,
+      endpoint: '/api/analyze-style',
+      model: 'haiku',
+      inputTokens: 0,
+      outputTokens: 0,
+      latencyMs,
+      success: true,
+    });
+
     console.log(
-      `[ANALYZE-STYLE] OK — model=haiku problems=${problems.length} latency=${Date.now() - startedAt}ms`,
+      `[ANALYZE-STYLE] OK — model=haiku problems=${problems.length} latency=${latencyMs}ms`,
     );
     return NextResponse.json({ success: true, problems });
   } catch (error: unknown) {
     console.error('Error in /api/analyze-style:', error);
+
+    if (userId) {
+      logUsage({
+        userId,
+        orgId,
+        endpoint: '/api/analyze-style',
+        model: 'haiku',
+        inputTokens: 0,
+        outputTokens: 0,
+        latencyMs: Date.now() - startedAt,
+        success: false,
+        errorMessage: error instanceof Error ? error.message : 'Error interno',
+      });
+    }
+
     return NextResponse.json({ error: 'Error interno' }, { status: 500 });
   }
 }
