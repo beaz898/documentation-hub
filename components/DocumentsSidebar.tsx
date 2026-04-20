@@ -41,6 +41,8 @@ interface DocumentsSidebarProps {
   onLogout: () => void;
   onClose?: () => void;
   userEmail: string;
+  analysisProgress?: number;
+  analysisPhase?: string;
 }
 
 // ============================================================
@@ -104,6 +106,8 @@ export default function DocumentsSidebar({
   onLogout,
   onClose,
   userEmail,
+  analysisProgress = 0,
+  analysisPhase = '',
 }: DocumentsSidebarProps) {
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState('');
@@ -540,23 +544,54 @@ export default function DocumentsSidebar({
         padding: '10px 14px', borderTop: '0.5px solid var(--border)',
         display: 'flex', flexDirection: 'column', gap: 8, flexShrink: 0,
       }}>
-        <button
-          onClick={() => fileInputRef.current?.click()}
-          disabled={uploading}
-          style={{
-            width: '100%', padding: '9px', borderRadius: 9, border: 'none',
-            background: uploading ? 'var(--bg-tertiary)' : 'var(--brand)',
-            color: uploading ? 'var(--text-secondary)' : '#fff',
-            fontSize: 12, fontWeight: 600, cursor: uploading ? 'not-allowed' : 'pointer',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
-          }}
-        >
-          {uploading ? (
-            <><div className="animate-spin" style={{ width: 12, height: 12, border: '1.5px solid currentColor', borderTopColor: 'transparent', borderRadius: '50%' }} /> Procesando...</>
-          ) : (
-            <><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="17 8 12 3 7 8" /><line x1="12" y1="3" x2="12" y2="15" /></svg> Subir documentos</>
-          )}
-        </button>
+        {analysisProgress > 0 ? (
+          <div style={{ width: '100%' }}>
+            <p style={{
+              fontSize: 10, fontWeight: 500, color: 'var(--brand)',
+              marginBottom: 4, textAlign: 'center',
+            }}>
+              {analysisPhase}
+            </p>
+            <div style={{
+              width: '100%', height: 36, borderRadius: 9,
+              background: 'var(--bg-tertiary)', overflow: 'hidden',
+              position: 'relative',
+            }}>
+              <div style={{
+                height: '100%', borderRadius: 9,
+                background: 'var(--brand)',
+                width: `${analysisProgress}%`,
+                transition: 'width 0.4s ease',
+              }} />
+              <span style={{
+                position: 'absolute', inset: 0,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: 11, fontWeight: 600,
+                color: analysisProgress > 50 ? '#fff' : 'var(--brand)',
+              }}>
+                {analysisProgress}%
+              </span>
+            </div>
+          </div>
+        ) : (
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            disabled={uploading}
+            style={{
+              width: '100%', padding: '9px', borderRadius: 9, border: 'none',
+              background: uploading ? 'var(--bg-tertiary)' : 'var(--brand)',
+              color: uploading ? 'var(--text-secondary)' : '#fff',
+              fontSize: 12, fontWeight: 600, cursor: uploading ? 'not-allowed' : 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
+            }}
+          >
+            {uploading ? (
+              <><div className="animate-spin" style={{ width: 12, height: 12, border: '1.5px solid currentColor', borderTopColor: 'transparent', borderRadius: '50%' }} /> Procesando...</>
+            ) : (
+              <><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="17 8 12 3 7 8" /><line x1="12" y1="3" x2="12" y2="15" /></svg> Subir documentos</>
+            )}
+          </button>
+        )}
         <input ref={fileInputRef} type="file" multiple accept=".txt,.md,.pdf,.docx,.csv,.json,.html" onChange={handleFileChange} style={{ display: 'none' }} aria-label="Seleccionar archivos" />
 
         {uploadProgress && <p style={{ fontSize: 10, color: 'var(--brand)' }}>{uploadProgress}</p>}
