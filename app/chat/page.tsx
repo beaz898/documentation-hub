@@ -396,6 +396,101 @@ export default function ChatPage() {
     }
   }
 
+  // Launch exhaustive analysis from the analysis modal
+  async function handleExhaustiveAnalysis() {
+    if (!pendingAnalysis || !session) return;
+    const { storagePath, fileName, fileSize } = pendingAnalysis;
+
+    // Guardar datos necesarios y cerrar el modal
+    const savedDocumentSources = pendingAnalysis.documentSources;
+    const savedAnalysis = pendingAnalysis.analysis;
+    setPendingAnalysis(null);
+
+    // Mostrar barra de progreso — el exhaustivo tarda ~45-75 s
+    setAnalysisProgress(5);
+    setAnalysisPhase('Iniciando análisis exhaustivo...');
+
+    let currentProgress = 5;
+    const progressInterval = setInterval(() => {
+      currentProgress += 0.5;
+      if (currentProgress >= 15 && currentProgress < 16) {
+        setAnalysisPhase('Analizando todos los fragmentos...');
+      }
+      if (currentProgress >= 40 && currentProgress < 41) {
+        setAnalysisPhase('Comparando contra el corpus...');
+      }
+      if (currentProgress >= 65 && currentProgress < 66) {
+        setAnalysisPhase('Verificando contradicciones...');
+      }
+      if (currentProgress >= 85 && currentProgress < 86) {
+        setAnalysisPhase('Generando informe exhaustivo...');
+      }
+      if (currentProgress >= 92) {
+        clearInterval(progressInterval);
+        return;
+      }
+      setAnalysisProgress(Math.round(currentProgress));
+    }, 600); // Más lento que el rápido: ~600ms por tick
+
+    try {
+      const analyzeRes = await fetch('/api/analyze-v2', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
+        body: JSON.stringify({ storagePath, fileName, exhaustive: true }),
+      });
+
+      clearInterval(progressInterval);
+
+      if (analyzeRes.ok) {
+        const analyzeData = await analyzeRes.json();
+        setAnalysisProgress(95);
+        setAnalysisPhase('Análisis exhaustivo completado');
+        await new Promise(r => setTimeout(r, 500));
+        setAnalysisProgress(100);
+        await new Promise(r => setTimeout(r, 300));
+        setAnalysisProgress(0);
+        setAnalysisPhase('');
+
+        // Reabrir el modal con el resultado exhaustivo
+        setPendingAnalysis({
+          fileName,
+          storagePath,
+          fileSize,
+          analysis: analyzeData.analysis,
+          documentSources: analyzeData.documentSources ?? savedDocumentSources,
+        });
+      } else {
+        setAnalysisProgress(0);
+        setAnalysisPhase('');
+        const errData = await analyzeRes.json().catch(() => ({ error: 'Error desconocido' }));
+        setMessages(prev => [...prev, {
+          id: crypto.randomUUID(), role: 'error',
+          content: `Error en análisis exhaustivo: ${errData.error || `Error ${analyzeRes.status}`}`,
+        }]);
+        // Reabrir el modal original para que el usuario no pierda el análisis rápido
+        setPendingAnalysis({
+          fileName, storagePath, fileSize,
+          analysis: savedAnalysis,
+          documentSources: savedDocumentSources,
+        });
+      }
+    } catch {
+      clearInterval(progressInterval);
+      setAnalysisProgress(0);
+      setAnalysisPhase('');
+      setMessages(prev => [...prev, {
+        id: crypto.randomUUID(), role: 'error',
+        content: 'Error de conexión al ejecutar el análisis exhaustivo.',
+      }]);
+      // Reabrir el modal original
+      setPendingAnalysis({
+        fileName, storagePath, fileSize,
+        analysis: savedAnalysis,
+        documentSources: savedDocumentSources,
+      });
+    }
+  }
+
   // Improvement modal closed without indexing — clean up
   async function handleImprovementClose() {
     if (!improvementTarget) return;
@@ -563,6 +658,7 @@ export default function ChatPage() {
           onConfirm={handleAnalysisConfirm}
           onCancel={handleAnalysisCancel}
           onImprove={handleAnalysisImprove}
+          onExhaustive={handleExhaustiveAnalysis}
         />
       )}
 
