@@ -14,6 +14,8 @@ export interface Problem {
   description: string;
   textRef?: string;
   relatedDoc?: string;
+  /** Nivel de confianza de la contradicción (solo para type 'contradiccion'). */
+  confidence?: 'alta' | 'posible';
 }
 
 export interface RawAnalysis {
@@ -21,7 +23,13 @@ export interface RawAnalysis {
   duplicateOf?: string;
   duplicateConfidence?: number;
   overlaps?: Array<{ existingDocument: string; description: string; severity: string; textRef?: string }>;
-  discrepancies?: Array<{ topic: string; newDocSays: string; existingDocSays: string; existingDocument: string }>;
+  discrepancies?: Array<{
+    topic: string;
+    newDocSays: string;
+    existingDocSays: string;
+    existingDocument: string;
+    confidence?: 'alta' | 'posible';
+  }>;
   newInformation?: string;
   recommendation?: string;
   suggestedActions?: Array<{ action: string; target: string; reason: string }>;
@@ -138,6 +146,7 @@ export function problemsFromAnalysis(analysis: RawAnalysis): Problem[] {
         description: `En este documento: "${d.newDocSays}". En "${d.existingDocument}": "${d.existingDocSays}".`,
         textRef: d.newDocSays,
         relatedDoc: d.existingDocument,
+        confidence: d.confidence,
       });
     });
   }
