@@ -60,6 +60,9 @@ export interface PipelineOptions {
   exhaustive: boolean;
 }
 
+/** Nivel de confianza de una contradicción detectada. */
+export type DiscrepancyConfidence = 'alta' | 'posible';
+
 export interface FinalAnalysis {
   isDuplicate: boolean;
   duplicateOf: string | null;
@@ -76,6 +79,9 @@ export interface FinalAnalysis {
     newDocSays: string;
     existingDocSays: string;
     existingDocument: string;
+    /** Nivel de confianza: 'alta' si dos modelos coinciden, 'posible' si solo uno la detectó.
+     *  Opcional para compatibilidad: el pipeline rápido no hace doble verificación. */
+    confidence?: DiscrepancyConfidence;
   }>;
   newInformation: string;
   recommendation: 'INDEXAR' | 'REVISAR' | 'NO_INDEXAR';
