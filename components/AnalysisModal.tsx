@@ -12,6 +12,7 @@ interface AnalysisResult {
   recommendation?: string;
   suggestedActions?: Array<{ action: string; target: string; reason: string }>;
   summary?: string;
+  analysisMode?: 'quick' | 'exhaustive';
 }
 
 interface AnalysisModalProps {
@@ -20,6 +21,7 @@ interface AnalysisModalProps {
   onConfirm: () => void;
   onCancel: () => void;
   onImprove: () => void;
+  onExhaustive?: () => void;
 }
 
 // ============================================================
@@ -88,9 +90,27 @@ function BlockHeader({ children }: { children: ReactNode }) {
 }
 
 // ============================================================
+// Badge de modo de análisis
+// ============================================================
+function AnalysisModeBadge({ mode }: { mode: 'quick' | 'exhaustive' }) {
+  const isExhaustive = mode === 'exhaustive';
+  return (
+    <span style={{
+      fontSize: 9, fontWeight: 600, textTransform: 'uppercase',
+      letterSpacing: 0.4, padding: '2px 7px', borderRadius: 4,
+      background: isExhaustive ? 'rgba(16,185,129,0.12)' : 'rgba(99,102,241,0.12)',
+      color: isExhaustive ? 'var(--success-text)' : 'var(--info-text)',
+      border: `0.5px solid ${isExhaustive ? 'rgba(16,185,129,0.3)' : 'rgba(99,102,241,0.3)'}`,
+    }}>
+      {isExhaustive ? '✓ Exhaustivo' : 'Rápido'}
+    </span>
+  );
+}
+
+// ============================================================
 // Modal principal
 // ============================================================
-export default function AnalysisModal({ fileName, analysis, onConfirm, onCancel, onImprove }: AnalysisModalProps) {
+export default function AnalysisModal({ fileName, analysis, onConfirm, onCancel, onImprove, onExhaustive }: AnalysisModalProps) {
   const recColor = analysis.recommendation === 'NO_INDEXAR'
     ? { bg: 'var(--danger-light)', text: 'var(--danger-text)', border: 'var(--danger)' }
     : analysis.recommendation === 'REVISAR'
@@ -107,15 +127,22 @@ export default function AnalysisModal({ fileName, analysis, onConfirm, onCancel,
     (analysis.suggestedActions && analysis.suggestedActions.length > 0) ||
     !!analysis.recommendation;
 
+  const isExhaustive = analysis.analysisMode === 'exhaustive';
+
   return (
     <div className="modal-overlay" onClick={onCancel}>
       <div className="modal-content" onClick={e => e.stopPropagation()}>
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 16 }}>
           <div>
-            <h2 style={{ fontSize: 16, fontWeight: 600, marginBottom: 4 }}>
-              Informe de análisis
-            </h2>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+              <h2 style={{ fontSize: 16, fontWeight: 600 }}>
+                Informe de análisis
+              </h2>
+              {analysis.analysisMode && (
+                <AnalysisModeBadge mode={analysis.analysisMode} />
+              )}
+            </div>
             <p style={{ fontSize: 13, color: 'var(--text-secondary)' }}>{fileName}</p>
           </div>
           <button
@@ -296,6 +323,29 @@ export default function AnalysisModal({ fileName, analysis, onConfirm, onCancel,
               </CollapsibleSection>
             )}
           </>
+        )}
+
+        {/* ============================================================ */}
+        {/* Botón de análisis exhaustivo (solo si aún no es exhaustivo) */}
+        {/* ============================================================ */}
+        {!isExhaustive && onExhaustive && (
+          <button
+            onClick={onExhaustive}
+            style={{
+              width: '100%', padding: '8px 12px', borderRadius: 8,
+              border: '0.5px dashed var(--border)', background: 'transparent',
+              color: 'var(--text-secondary)', fontSize: 11, cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+              marginTop: 12, transition: 'border-color 0.15s, color 0.15s',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--brand)'; e.currentTarget.style.color = 'var(--brand)'; }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = 'var(--text-secondary)'; }}
+          >
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
+            Análisis exhaustivo — verificación profunda (~1 min)
+          </button>
         )}
 
         {/* Action buttons: Cancel | Improve | Index anyway */}
