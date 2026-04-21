@@ -51,6 +51,15 @@ export interface DocumentJudgment {
 /** Modo de análisis: rápido (v2 con muestreo) o exhaustivo (multicapa, sin muestreo). */
 export type AnalysisMode = 'quick' | 'exhaustive';
 
+/**
+ * Opciones que condicionan el comportamiento de cada etapa del pipeline.
+ * Se pasan desde pipeline.ts a retrieval, rerank y judge.
+ */
+export interface PipelineOptions {
+  /** true = modo exhaustivo: sin límites arbitrarios, todo se analiza. */
+  exhaustive: boolean;
+}
+
 export interface FinalAnalysis {
   isDuplicate: boolean;
   duplicateOf: string | null;
