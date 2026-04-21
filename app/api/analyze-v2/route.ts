@@ -11,8 +11,9 @@ export const maxDuration = 120;
  * Body: { storagePath?, fileName, text?, exhaustive? }
  *
  * Cuando exhaustive=true se usa el pipeline exhaustivo:
+ * - Hash SHA-256 para duplicados exactos (coste cero, 100% precisión).
  * - Todos los chunks del documento (sin muestreo).
- * - Capas adicionales de verificación (se irán activando en fases 2-7).
+ * - Capas adicionales de verificación (se irán activando en fases futuras).
  */
 export async function POST(req: NextRequest) {
   const startedAt = Date.now();
@@ -71,16 +72,20 @@ export async function POST(req: NextRequest) {
     console.log(`[analyze-v2] "${fileName}" — ${chunks.length} chunks, ${sampleTexts.length} samples (${modeLabel})`);
 
     // Ejecutar pipeline correspondiente
-    const pipelineInput = {
-      newDocumentText: text,
-      newDocumentName: fileName,
-      sampleTexts,
-      orgId,
-    };
-
     const analysis = isExhaustive
-      ? await runExhaustiveAnalysisPipeline(pipelineInput)
-      : await runAnalysisPipeline(pipelineInput);
+      ? await runExhaustiveAnalysisPipeline({
+          newDocumentText: text,
+          newDocumentName: fileName,
+          sampleTexts,
+          orgId,
+          supabase,
+        })
+      : await runAnalysisPipeline({
+          newDocumentText: text,
+          newDocumentName: fileName,
+          sampleTexts,
+          orgId,
+        });
 
     // Construir documentSources (mapa nombre → fuente) para compatibilidad con frontend actual
     const documentSources: Record<string, 'manual' | 'google_drive'> = {};
