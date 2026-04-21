@@ -6,6 +6,7 @@ import { synthesizeFinalAnalysis } from './synthesize';
 import { checkContentHash } from './hash-check';
 import { extractAtomicClaims } from './extract-claims';
 import { verifyClaimsAgainstCorpus } from './verify-claims';
+import { doubleCheckContradictions } from './double-check';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
 export interface AnalyzePipelineInput {
@@ -85,10 +86,6 @@ async function runCorePipeline(
 // Pipeline rápido (v2) — con muestreo, ~12-15 s
 // ============================================================
 
-/**
- * Análisis rápido: usa fragmentos muestreados (8-25) para comparar
- * contra el corpus. Buena relación velocidad/calidad para el día a día.
- */
 export async function runAnalysisPipeline(input: AnalyzePipelineInput): Promise<FinalAnalysis> {
   const result = await runCorePipeline(input, { exhaustive: false }, 'pipeline-v2');
   return { ...result, analysisMode: 'quick' };
@@ -99,18 +96,14 @@ export async function runAnalysisPipeline(input: AnalyzePipelineInput): Promise<
 // ============================================================
 
 /**
- * Análisis exhaustivo: CERO límites arbitrarios + capas deterministas + verificación atómica.
+ * Análisis exhaustivo completo:
  *
- * Capa 0 — Hash SHA-256: duplicados exactos (100% precisión, coste cero).
- * Capas 1-4 — Pipeline v2 sin límites (retrieval, rerank, judge, synthesize).
- * Capa 5 — Extracción de afirmaciones atómicas + verificación individual contra corpus.
- *
- * La capa 5 detecta contradicciones que el pipeline v2 puede perder:
- * el v2 compara fragmentos, la capa 5 compara datos concretos.
- * Las contradicciones de ambas fuentes se fusionan deduplicando.
+ * Capa 0 — Hash SHA-256: duplicados exactos (100%, coste cero).
+ * Capas 1-4 — Pipeline v2 sin límites.
+ * Capa 5 — Extracción de afirmaciones atómicas + verificación contra corpus.
+ * Capa 6 — Doble verificación: Sonnet confirma cada contradicción de Haiku.
  *
  * Capas futuras:
- * - Fase 5: doble verificación LLM (Haiku + Sonnet).
  * - Fase 6: corrector ortográfico determinista (LanguageTool).
  * - Fase 7: retrieval híbrido semántico + léxico BM25.
  */
@@ -144,20 +137,15 @@ export async function runExhaustiveAnalysisPipeline(input: ExhaustivePipelineInp
 
   console.log(`[pipeline-exhaustive] Hash check: sin duplicado exacto (${Date.now() - t0}ms)`);
 
-  // ── Capas 1-4: Pipeline v2 sin límites ───────────────────────
-  // ── Capa 5: Extracción y verificación atómica (en paralelo) ──
-  // Ambos pueden correr a la vez: el pipeline v2 compara fragmentos,
-  // la extracción atómica analiza afirmaciones individuales.
+  // ── Capas 1-4 + Capa 5 (en paralelo) ────────────────────────
   const [pipelineResult, atomicClaims] = await Promise.all([
     runCorePipeline(input, { exhaustive: true }, 'pipeline-exhaustive'),
     extractAtomicClaims(input.newDocumentText, input.newDocumentName),
   ]);
 
-  // Verificar afirmaciones contra el corpus
   const atomicContradictions = await verifyClaimsAgainstCorpus(atomicClaims, input.orgId);
 
-  // ── Fusionar contradicciones ─────────────────────────────────
-  // Las del pipeline v2 + las atómicas, deduplicando por tema
+  // ── Fusionar contradicciones v2 + atómicas ───────────────────
   const mergedDiscrepancies = mergeContradictions(
     pipelineResult.discrepancies,
     atomicContradictions.map(c => ({
@@ -168,18 +156,25 @@ export async function runExhaustiveAnalysisPipeline(input: ExhaustivePipelineInp
     })),
   );
 
-  const totalTime = Date.now() - t0;
-  console.log(`[pipeline-exhaustive] Completo: ${pipelineResult.discrepancies.length} contradicciones v2 + ${atomicContradictions.length} atómicas → ${mergedDiscrepancies.length} totales (${totalTime}ms)`);
+  console.log(`[pipeline-exhaustive] Fusión: ${pipelineResult.discrepancies.length} v2 + ${atomicContradictions.length} atómicas → ${mergedDiscrepancies.length} totales`);
 
-  // Ajustar recomendación si las contradicciones atómicas cambian el panorama
+  // ── Capa 6: Doble verificación con Sonnet ────────────────────
+  const doubleChecked = await doubleCheckContradictions(mergedDiscrepancies);
+
+  // Ajustar recomendación
+  const hasConfirmed = doubleChecked.some(d => d.confidence === 'alta');
+  const hasPossible = doubleChecked.some(d => d.confidence === 'posible');
   let recommendation = pipelineResult.recommendation;
-  if (recommendation === 'INDEXAR' && mergedDiscrepancies.length > 0) {
+  if (recommendation === 'INDEXAR' && (hasConfirmed || hasPossible)) {
     recommendation = 'REVISAR';
   }
 
+  const totalTime = Date.now() - t0;
+  console.log(`[pipeline-exhaustive] Completo en ${totalTime}ms`);
+
   return {
     ...pipelineResult,
-    discrepancies: mergedDiscrepancies,
+    discrepancies: doubleChecked,
     recommendation,
     analysisMode: 'exhaustive',
   };
@@ -196,16 +191,9 @@ interface Discrepancy {
   existingDocument: string;
 }
 
-/**
- * Fusiona dos listas de contradicciones deduplicando por contenido.
- * Dos contradicciones se consideran duplicadas si hablan del mismo tema
- * contra el mismo documento existente y dicen cosas similares.
- */
 function mergeContradictions(listA: Discrepancy[], listB: Discrepancy[]): Discrepancy[] {
   const result = [...listA];
-  const existingKeys = new Set(
-    listA.map(d => makeContradictionKey(d))
-  );
+  const existingKeys = new Set(listA.map(d => makeContradictionKey(d)));
 
   for (const d of listB) {
     const key = makeContradictionKey(d);
@@ -218,12 +206,9 @@ function mergeContradictions(listA: Discrepancy[], listB: Discrepancy[]): Discre
   return result;
 }
 
-/** Genera una clave normalizada para deduplicar contradicciones. */
 function makeContradictionKey(d: Discrepancy): string {
   const normTopic = d.topic.toLowerCase().replace(/\s+/g, ' ').trim();
   const normDoc = d.existingDocument.toLowerCase().trim();
-  // Usar los primeros 50 chars de newDocSays para diferenciar contradicciones
-  // del mismo tema pero sobre datos distintos
   const normClaim = d.newDocSays.toLowerCase().replace(/\s+/g, ' ').trim().slice(0, 50);
   return `${normDoc}|${normTopic}|${normClaim}`;
 }
