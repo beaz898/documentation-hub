@@ -72,6 +72,7 @@ export interface FinalAnalysis {
   recommendation: 'INDEXAR' | 'REVISAR' | 'NO_INDEXAR';
   summary: string;
   judgments: DocumentJudgment[]; // útil para debug
-  /** Indica si el resultado viene del análisis rápido o del exhaustivo. */
-  analysisMode: AnalysisMode;
+  /** Indica si el resultado viene del análisis rápido o del exhaustivo.
+   *  Opcional aquí porque lo asigna pipeline.ts tras la síntesis. */
+  analysisMode?: AnalysisMode;
 }
