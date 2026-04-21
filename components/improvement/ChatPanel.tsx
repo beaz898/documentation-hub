@@ -209,6 +209,15 @@ export default function ChatPanel({
                             border: `0.5px solid ${srcBadge.color}66`,
                           }}>{srcBadge.label}</span>
                         )}
+                        {p.type === 'contradiccion' && p.confidence && (
+                          <span style={{
+                            fontSize: 8, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.3,
+                            padding: '1px 5px', borderRadius: 3,
+                            background: p.confidence === 'alta' ? 'rgba(220,38,38,0.12)' : 'rgba(245,158,11,0.12)',
+                            color: p.confidence === 'alta' ? 'var(--danger-text)' : 'var(--warning-text)',
+                            border: `0.5px solid ${p.confidence === 'alta' ? 'rgba(220,38,38,0.3)' : 'rgba(245,158,11,0.3)'}`,
+                          }}>{p.confidence === 'alta' ? 'Confirmada' : 'Posible'}</span>
+                        )}
                         <span style={{ fontSize: 11, fontWeight: 500, color: 'var(--text-primary)', flex: 1, minWidth: 0 }}>{p.title}</span>
                         <button
                           onClick={(e) => { e.stopPropagation(); onSolveOne(p); }}
