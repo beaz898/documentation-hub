@@ -19,6 +19,12 @@ interface AnalysisResult {
   suggestedActions?: Array<{ action: string; target: string; reason: string }>;
   summary?: string;
   analysisMode?: 'quick' | 'exhaustive';
+  styleProblems?: Array<{
+    type: 'ortografia' | 'ambiguedad' | 'sugerencia';
+    title: string;
+    description: string;
+    textRef: string;
+  }>;
 }
 
 interface AnalysisModalProps {
@@ -145,7 +151,8 @@ export default function AnalysisModal({ fileName, analysis, onConfirm, onCancel,
   const hasProblems =
     analysis.isDuplicate ||
     (analysis.discrepancies && analysis.discrepancies.length > 0) ||
-    (analysis.overlaps && analysis.overlaps.length > 0);
+    (analysis.overlaps && analysis.overlaps.length > 0) ||
+    (analysis.styleProblems && analysis.styleProblems.length > 0);
 
   const hasSummaryItems =
     !!analysis.newInformation ||
@@ -266,6 +273,58 @@ export default function AnalysisModal({ fileName, analysis, onConfirm, onCancel,
                 ))}
               </CollapsibleSection>
             )}
+
+            {analysis.styleProblems && analysis.styleProblems.length > 0 && (() => {
+              const ortografia = analysis.styleProblems!.filter(p => p.type === 'ortografia');
+              const ambiguedad = analysis.styleProblems!.filter(p => p.type === 'ambiguedad');
+              const sugerencia = analysis.styleProblems!.filter(p => p.type === 'sugerencia');
+
+              const styleColors: Record<string, { color: string; bg: string }> = {
+                ortografia: { color: 'var(--danger)', bg: 'var(--danger-light)' },
+                ambiguedad: { color: 'var(--warning-text)', bg: 'var(--warning-light)' },
+                sugerencia: { color: 'var(--text-secondary)', bg: 'var(--bg-tertiary)' },
+              };
+
+              const groups: Array<{ label: string; type: string; items: typeof ortografia }> = [];
+              if (ortografia.length > 0) groups.push({ label: 'Ortografía', type: 'ortografia', items: ortografia });
+              if (ambiguedad.length > 0) groups.push({ label: 'Ambigüedades', type: 'ambiguedad', items: ambiguedad });
+              if (sugerencia.length > 0) groups.push({ label: 'Sugerencias', type: 'sugerencia', items: sugerencia });
+
+              return (
+                <CollapsibleSection
+                  title="Estilo"
+                  count={analysis.styleProblems!.length}
+                  color="var(--warning-text)"
+                  defaultOpen={false}
+                >
+                  {groups.map(group => (
+                    <div key={group.type} style={{ marginBottom: 8 }}>
+                      <p style={{
+                        fontSize: 10, fontWeight: 600, textTransform: 'uppercase',
+                        color: styleColors[group.type].color, letterSpacing: 0.3,
+                        marginBottom: 4,
+                      }}>
+                        {group.label} ({group.items.length})
+                      </p>
+                      {group.items.map((p, i) => (
+                        <div key={i} style={{
+                          padding: '6px 10px', borderRadius: 7, marginBottom: 4,
+                          background: styleColors[group.type].bg,
+                          borderLeft: `2px solid ${styleColors[group.type].color}`,
+                        }}>
+                          <p style={{ fontSize: 11, fontWeight: 500, color: 'var(--text-primary)', marginBottom: 2 }}>
+                            {p.title}
+                          </p>
+                          <p style={{ fontSize: 10, color: 'var(--text-secondary)', margin: 0, lineHeight: 1.4 }}>
+                            {p.description}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  ))}
+                </CollapsibleSection>
+              );
+            })()}
           </>
         )}
 
