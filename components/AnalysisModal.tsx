@@ -218,7 +218,7 @@ export default function AnalysisModal({ fileName, analysis, onConfirm, onCancel,
 
             {analysis.overlaps && analysis.overlaps.length > 0 && (
               <CollapsibleSection
-                title="Solapamientos"
+                title="Duplicidades"
                 count={analysis.overlaps.length}
                 color="var(--info)"
                 defaultOpen={false}
