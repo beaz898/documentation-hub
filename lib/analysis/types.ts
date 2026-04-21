@@ -90,4 +90,12 @@ export interface FinalAnalysis {
   /** Indica si el resultado viene del análisis rápido o del exhaustivo.
    *  Opcional aquí porque lo asigna pipeline.ts tras la síntesis. */
   analysisMode?: AnalysisMode;
+  /** Problemas de estilo detectados (solo en análisis exhaustivo).
+   *  Opcional para compatibilidad: el pipeline rápido no los incluye. */
+  styleProblems?: Array<{
+    type: 'ortografia' | 'ambiguedad' | 'sugerencia';
+    title: string;
+    description: string;
+    textRef: string;
+  }>;
 }
