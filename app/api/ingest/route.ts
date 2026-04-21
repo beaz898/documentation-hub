@@ -162,7 +162,7 @@ export async function POST(req: NextRequest) {
       console.log(`[INGEST] Upserted batch ${Math.floor(i / batchSize) + 1}/${Math.ceil(vectors.length / batchSize)}`);
     }
 
-    // 7. Guardar metadatos en Supabase (con content_hash para detección de duplicados)
+    // 7. Guardar metadatos en Supabase (con content_hash y full_text)
     await supabase.from('documents').insert({
       id: documentId,
       name: fileName,
@@ -173,6 +173,7 @@ export async function POST(req: NextRequest) {
       status: 'indexed',
       source: 'manual',
       content_hash: contentHash,
+      full_text: text,
     });
 
     // 8. Limpiar archivo de storage
