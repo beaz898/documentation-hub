@@ -7,7 +7,13 @@ interface AnalysisResult {
   duplicateOf?: string;
   duplicateConfidence?: number;
   overlaps?: Array<{ existingDocument: string; description: string; severity: string }>;
-  discrepancies?: Array<{ topic: string; newDocSays: string; existingDocSays: string; existingDocument: string }>;
+  discrepancies?: Array<{
+    topic: string;
+    newDocSays: string;
+    existingDocSays: string;
+    existingDocument: string;
+    confidence?: 'alta' | 'posible';
+  }>;
   newInformation?: string;
   recommendation?: string;
   suggestedActions?: Array<{ action: string; target: string; reason: string }>;
@@ -108,6 +114,25 @@ function AnalysisModeBadge({ mode }: { mode: 'quick' | 'exhaustive' }) {
 }
 
 // ============================================================
+// Badge de confianza de contradicción
+// ============================================================
+function ConfidenceBadge({ confidence }: { confidence: 'alta' | 'posible' }) {
+  const isHigh = confidence === 'alta';
+  return (
+    <span style={{
+      fontSize: 8, fontWeight: 600, textTransform: 'uppercase',
+      letterSpacing: 0.3, padding: '1px 5px', borderRadius: 3,
+      background: isHigh ? 'rgba(220,38,38,0.12)' : 'rgba(245,158,11,0.12)',
+      color: isHigh ? 'var(--danger-text)' : 'var(--warning-text)',
+      border: `0.5px solid ${isHigh ? 'rgba(220,38,38,0.3)' : 'rgba(245,158,11,0.3)'}`,
+      flexShrink: 0,
+    }}>
+      {isHigh ? 'Confirmada' : 'Posible'}
+    </span>
+  );
+}
+
+// ============================================================
 // Modal principal
 // ============================================================
 export default function AnalysisModal({ fileName, analysis, onConfirm, onCancel, onImprove, onExhaustive }: AnalysisModalProps) {
@@ -194,7 +219,7 @@ export default function AnalysisModal({ fileName, analysis, onConfirm, onCancel,
 
             {analysis.discrepancies && analysis.discrepancies.length > 0 && (
               <CollapsibleSection
-                title="Discrepancias"
+                title="Contradicciones"
                 count={analysis.discrepancies.length}
                 color="var(--danger)"
                 defaultOpen={false}
@@ -204,7 +229,10 @@ export default function AnalysisModal({ fileName, analysis, onConfirm, onCancel,
                     padding: '8px 12px', borderRadius: 8, marginBottom: 6,
                     background: 'var(--danger-light)', border: '0.5px solid var(--danger)',
                   }}>
-                    <p style={{ fontSize: 12, fontWeight: 500, color: 'var(--danger-text)', marginBottom: 4 }}>{d.topic}</p>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+                      <p style={{ fontSize: 12, fontWeight: 500, color: 'var(--danger-text)', flex: 1, margin: 0 }}>{d.topic}</p>
+                      {d.confidence && <ConfidenceBadge confidence={d.confidence} />}
+                    </div>
                     <p style={{ fontSize: 11, color: 'var(--danger-text)' }}>
                       Nuevo: &quot;{d.newDocSays}&quot;
                     </p>
@@ -325,9 +353,7 @@ export default function AnalysisModal({ fileName, analysis, onConfirm, onCancel,
           </>
         )}
 
-        {/* ============================================================ */}
         {/* Botón de análisis exhaustivo (solo si aún no es exhaustivo) */}
-        {/* ============================================================ */}
         {!isExhaustive && onExhaustive && (
           <button
             onClick={onExhaustive}
@@ -348,7 +374,7 @@ export default function AnalysisModal({ fileName, analysis, onConfirm, onCancel,
           </button>
         )}
 
-        {/* Action buttons: Cancel | Improve | Index anyway */}
+        {/* Action buttons */}
         <div style={{ display: 'flex', gap: 8, marginTop: 20 }}>
           <button
             onClick={onCancel}
