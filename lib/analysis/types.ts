@@ -1,6 +1,6 @@
 /**
  * Tipos compartidos del pipeline de análisis v2.
- * Diseñado para ser agnóstico de proveedor: hoy Gemini+Pinecone, mañana Claude+Voyage+Cohere.
+ * Diseñado para ser agnóstico de proveedor: hoy Claude+Pinecone, mañana Claude+Voyage+Cohere.
  */
 
 export interface DocumentFragment {
@@ -48,6 +48,9 @@ export interface DocumentJudgment {
   uniqueToNewDoc: string[];
 }
 
+/** Modo de análisis: rápido (v2 con muestreo) o exhaustivo (multicapa, sin muestreo). */
+export type AnalysisMode = 'quick' | 'exhaustive';
+
 export interface FinalAnalysis {
   isDuplicate: boolean;
   duplicateOf: string | null;
@@ -69,4 +72,6 @@ export interface FinalAnalysis {
   recommendation: 'INDEXAR' | 'REVISAR' | 'NO_INDEXAR';
   summary: string;
   judgments: DocumentJudgment[]; // útil para debug
+  /** Indica si el resultado viene del análisis rápido o del exhaustivo. */
+  analysisMode: AnalysisMode;
 }
