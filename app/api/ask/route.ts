@@ -47,7 +47,7 @@ export async function POST(req: NextRequest) {
 
     // Ejecutar RAG con historial de conversación
     const conversationHistory = Array.isArray(history) ? history : [];
-    const result = await queryRAG(question.trim(), orgId, conversationHistory);
+    const result = await queryRAG(question.trim(), orgId, supabase, conversationHistory);
 
     const latencyMs = Date.now() - startedAt;
 
