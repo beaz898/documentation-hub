@@ -1,186 +1,229 @@
-import { getIndex } from '@/lib/pinecone';
-import { generateEmbeddings } from '@/lib/embeddings';
-import { callLLMJson } from './llm-client';
-import type { AtomicClaim } from './extract-claims';
+import type { FinalAnalysis, PipelineOptions } from './types';
+import { retrieveCandidates } from './retrieval';
+import { rerankCandidates } from './rerank';
+import { judgeAllDocuments } from './judge';
+import { synthesizeFinalAnalysis } from './synthesize';
+import { checkContentHash } from './hash-check';
+import { extractAtomicClaims } from './extract-claims';
+import { verifyClaimsAgainstCorpus } from './verify-claims';
+import type { SupabaseClient } from '@supabase/supabase-js';
 
-/**
- * Fase 4b — Verificación de afirmaciones atómicas contra el corpus.
- *
- * Cada afirmación se busca en Pinecone para encontrar fragmentos del corpus
- * que hablen del mismo tema. Luego el LLM compara la afirmación con los
- * fragmentos y determina si hay contradicción, confirmación o sin relación.
- *
- * Las contradicciones encontradas aquí se fusionan con las del pipeline v2.
- */
-
-/** Resultado de verificar una afirmación contra el corpus. */
-export interface ClaimVerification {
-  claim: string;
-  category: string;
-  sourceQuote: string;
-  verdict: 'contradiccion' | 'confirmado' | 'sin_datos';
-  /** Solo si verdict === 'contradiccion': qué dice el corpus. */
-  corpusSays?: string;
-  /** Solo si verdict === 'contradiccion': nombre del documento del corpus. */
-  existingDocument?: string;
+export interface AnalyzePipelineInput {
+  newDocumentText: string;
+  newDocumentName: string;
+  sampleTexts: string[];
+  orgId: string;
+  excludeDocumentId?: string;
 }
 
-/** Contradicción detectada por verificación atómica (formato compatible con synthesize). */
-export interface AtomicContradiction {
+/** Input extendido para el pipeline exhaustivo (necesita Supabase para el hash check). */
+export interface ExhaustivePipelineInput extends AnalyzePipelineInput {
+  supabase: SupabaseClient;
+}
+
+// ============================================================
+// Núcleo compartido: retrieve → rerank → judge → synthesize
+// ============================================================
+
+async function runCorePipeline(
+  input: AnalyzePipelineInput,
+  options: PipelineOptions,
+  label: string,
+): Promise<FinalAnalysis> {
+  const t0 = Date.now();
+
+  const candidates = await retrieveCandidates({
+    sampleTexts: input.sampleTexts,
+    orgId: input.orgId,
+    excludeDocumentId: input.excludeDocumentId,
+    options,
+  });
+  console.log(`[${label}] Retrieval: ${candidates.length} candidatos (${Date.now() - t0}ms)`);
+
+  if (candidates.length === 0) {
+    return synthesizeFinalAnalysis({ newDocumentName: input.newDocumentName, judgments: [] });
+  }
+
+  const t1 = Date.now();
+  const reranked = await rerankCandidates({
+    newDocumentName: input.newDocumentName,
+    newDocumentSample: input.newDocumentText,
+    candidates,
+    options,
+  });
+  console.log(`[${label}] Rerank: ${reranked.length} seleccionados (${Date.now() - t1}ms)`);
+
+  if (reranked.length === 0) {
+    return synthesizeFinalAnalysis({ newDocumentName: input.newDocumentName, judgments: [] });
+  }
+
+  const t2 = Date.now();
+  const judgments = await judgeAllDocuments({
+    newDocumentName: input.newDocumentName,
+    newDocumentSample: input.newDocumentText,
+    candidates: reranked,
+    options,
+  });
+  console.log(`[${label}] Judge: ${judgments.length} juicios emitidos (${Date.now() - t2}ms)`);
+
+  // Pausa solo en modo rápido para liberar presupuesto de rate limit
+  if (!options.exhaustive) {
+    await new Promise(r => setTimeout(r, 1500));
+  }
+
+  const t3 = Date.now();
+  const final = await synthesizeFinalAnalysis({
+    newDocumentName: input.newDocumentName,
+    judgments,
+  });
+  console.log(`[${label}] Synthesize (${Date.now() - t3}ms). Total: ${Date.now() - t0}ms`);
+
+  return final;
+}
+
+// ============================================================
+// Pipeline rápido (v2) — con muestreo, ~12-15 s
+// ============================================================
+
+/**
+ * Análisis rápido: usa fragmentos muestreados (8-25) para comparar
+ * contra el corpus. Buena relación velocidad/calidad para el día a día.
+ */
+export async function runAnalysisPipeline(input: AnalyzePipelineInput): Promise<FinalAnalysis> {
+  const result = await runCorePipeline(input, { exhaustive: false }, 'pipeline-v2');
+  return { ...result, analysisMode: 'quick' };
+}
+
+// ============================================================
+// Pipeline exhaustivo — sin muestreo, sin límites, multicapa
+// ============================================================
+
+/**
+ * Análisis exhaustivo: CERO límites arbitrarios + capas deterministas + verificación atómica.
+ *
+ * Capa 0 — Hash SHA-256: duplicados exactos (100% precisión, coste cero).
+ * Capas 1-4 — Pipeline v2 sin límites (retrieval, rerank, judge, synthesize).
+ * Capa 5 — Extracción de afirmaciones atómicas + verificación individual contra corpus.
+ *
+ * La capa 5 detecta contradicciones que el pipeline v2 puede perder:
+ * el v2 compara fragmentos, la capa 5 compara datos concretos.
+ * Las contradicciones de ambas fuentes se fusionan deduplicando.
+ *
+ * Capas futuras:
+ * - Fase 5: doble verificación LLM (Haiku + Sonnet).
+ * - Fase 6: corrector ortográfico determinista (LanguageTool).
+ * - Fase 7: retrieval híbrido semántico + léxico BM25.
+ */
+export async function runExhaustiveAnalysisPipeline(input: ExhaustivePipelineInput): Promise<FinalAnalysis> {
+  const t0 = Date.now();
+  console.log(`[pipeline-exhaustive] Iniciando análisis exhaustivo de "${input.newDocumentName}" con ${input.sampleTexts.length} fragmentos`);
+
+  // ── Capa 0: Hash exacto ──────────────────────────────────────
+  const hashResult = await checkContentHash(
+    input.supabase,
+    input.newDocumentText,
+    input.orgId,
+    input.excludeDocumentId,
+  );
+
+  if (hashResult.isDuplicateExact) {
+    console.log(`[pipeline-exhaustive] Hash match: duplicado exacto de "${hashResult.duplicateOfName}" (${Date.now() - t0}ms)`);
+    return {
+      isDuplicate: true,
+      duplicateOf: hashResult.duplicateOfName,
+      duplicateConfidence: 100,
+      overlaps: [],
+      discrepancies: [],
+      newInformation: '',
+      recommendation: 'NO_INDEXAR',
+      summary: `Este documento es idéntico a "${hashResult.duplicateOfName}" que ya está indexado. No aporta información nueva.`,
+      judgments: [],
+      analysisMode: 'exhaustive',
+    };
+  }
+
+  console.log(`[pipeline-exhaustive] Hash check: sin duplicado exacto (${Date.now() - t0}ms)`);
+
+  // ── Capas 1-4: Pipeline v2 sin límites ───────────────────────
+  // ── Capa 5: Extracción y verificación atómica (en paralelo) ──
+  // Ambos pueden correr a la vez: el pipeline v2 compara fragmentos,
+  // la extracción atómica analiza afirmaciones individuales.
+  const [pipelineResult, atomicClaims] = await Promise.all([
+    runCorePipeline(input, { exhaustive: true }, 'pipeline-exhaustive'),
+    extractAtomicClaims(input.newDocumentText, input.newDocumentName),
+  ]);
+
+  // Verificar afirmaciones contra el corpus
+  const atomicContradictions = await verifyClaimsAgainstCorpus(atomicClaims, input.orgId);
+
+  // ── Fusionar contradicciones ─────────────────────────────────
+  // Las del pipeline v2 + las atómicas, deduplicando por tema
+  const mergedDiscrepancies = mergeContradictions(
+    pipelineResult.discrepancies,
+    atomicContradictions.map(c => ({
+      topic: c.topic,
+      newDocSays: c.newDocSays,
+      existingDocSays: c.existingDocSays,
+      existingDocument: c.existingDocument,
+    })),
+  );
+
+  const totalTime = Date.now() - t0;
+  console.log(`[pipeline-exhaustive] Completo: ${pipelineResult.discrepancies.length} contradicciones v2 + ${atomicContradictions.length} atómicas → ${mergedDiscrepancies.length} totales (${totalTime}ms)`);
+
+  // Ajustar recomendación si las contradicciones atómicas cambian el panorama
+  let recommendation = pipelineResult.recommendation;
+  if (recommendation === 'INDEXAR' && mergedDiscrepancies.length > 0) {
+    recommendation = 'REVISAR';
+  }
+
+  return {
+    ...pipelineResult,
+    discrepancies: mergedDiscrepancies,
+    recommendation,
+    analysisMode: 'exhaustive',
+  };
+}
+
+// ============================================================
+// Helpers
+// ============================================================
+
+interface Discrepancy {
   topic: string;
   newDocSays: string;
   existingDocSays: string;
   existingDocument: string;
 }
 
-interface VerifyResponse {
-  verdict: 'contradiccion' | 'confirmado' | 'sin_datos';
-  corpusSays?: string;
-  existingDocument?: string;
-}
-
-/** Tamaño del lote de verificaciones paralelas. */
-const VERIFY_BATCH_SIZE = 5;
-
-/** Umbral de similitud para buscar fragmentos relevantes del corpus. */
-const CORPUS_SCORE_THRESHOLD = 0.50;
-
-/** Máximo de fragmentos del corpus por afirmación. */
-const MAX_CORPUS_FRAGMENTS = 4;
-
 /**
- * Verifica todas las afirmaciones contra el corpus.
- * Devuelve solo las contradicciones encontradas, listas para fusionar
- * con las del pipeline v2.
+ * Fusiona dos listas de contradicciones deduplicando por contenido.
+ * Dos contradicciones se consideran duplicadas si hablan del mismo tema
+ * contra el mismo documento existente y dicen cosas similares.
  */
-export async function verifyClaimsAgainstCorpus(
-  claims: AtomicClaim[],
-  orgId: string,
-): Promise<AtomicContradiction[]> {
-  if (claims.length === 0) return [];
+function mergeContradictions(listA: Discrepancy[], listB: Discrepancy[]): Discrepancy[] {
+  const result = [...listA];
+  const existingKeys = new Set(
+    listA.map(d => makeContradictionKey(d))
+  );
 
-  const t0 = Date.now();
-  const contradictions: AtomicContradiction[] = [];
-
-  // Procesar en lotes para no saturar Pinecone ni el LLM
-  for (let batchStart = 0; batchStart < claims.length; batchStart += VERIFY_BATCH_SIZE) {
-    const batch = claims.slice(batchStart, batchStart + VERIFY_BATCH_SIZE);
-    const batchResults = await Promise.all(
-      batch.map(claim => verifySingleClaim(claim, orgId))
-    );
-
-    for (const result of batchResults) {
-      if (result.verdict === 'contradiccion' && result.corpusSays && result.existingDocument) {
-        contradictions.push({
-          topic: result.category,
-          newDocSays: result.claim,
-          existingDocSays: result.corpusSays,
-          existingDocument: result.existingDocument,
-        });
-      }
+  for (const d of listB) {
+    const key = makeContradictionKey(d);
+    if (!existingKeys.has(key)) {
+      result.push(d);
+      existingKeys.add(key);
     }
   }
 
-  console.log(`[verify-claims] ${claims.length} afirmaciones verificadas, ${contradictions.length} contradicciones encontradas (${Date.now() - t0}ms)`);
-  return contradictions;
+  return result;
 }
 
-// ============================================================
-// Internos
-// ============================================================
-
-async function verifySingleClaim(claim: AtomicClaim, orgId: string): Promise<ClaimVerification> {
-  // 1. Buscar fragmentos relevantes del corpus
-  const corpusFragments = await findCorpusFragments(claim.claim, orgId);
-
-  if (corpusFragments.length === 0) {
-    return { ...claim, verdict: 'sin_datos' };
-  }
-
-  // 2. Pedir al LLM que compare la afirmación con los fragmentos
-  const corpusBlock = corpusFragments
-    .map((f, i) => `[${i + 1}] Documento: "${f.documentName}"\n${f.text}`)
-    .join('\n\n');
-
-  const prompt = `Eres un verificador de datos. Compara esta afirmación de un documento nuevo con fragmentos del corpus existente.
-
-AFIRMACIÓN DEL DOCUMENTO NUEVO:
-"${claim.claim}"
-
-CONTEXTO ORIGINAL: "${claim.sourceQuote}"
-
-FRAGMENTOS DEL CORPUS EXISTENTE:
-${corpusBlock}
-
-INSTRUCCIONES:
-- "contradiccion": el corpus afirma algo DISTINTO sobre el mismo dato concreto (cifra, plazo, política, definición diferente).
-- "confirmado": el corpus dice lo mismo o es compatible.
-- "sin_datos": los fragmentos no hablan del mismo tema concreto.
-
-Solo marca "contradiccion" si hay un dato concreto que se contradice. Diferencias de redacción NO son contradicciones.
-
-Responde EXCLUSIVAMENTE con este JSON:
-{
-  "verdict": "contradiccion" | "confirmado" | "sin_datos",
-  "corpusSays": "<qué dice el corpus sobre este tema, solo si es contradiccion>",
-  "existingDocument": "<nombre del documento del corpus que contradice, solo si es contradiccion>"
-}`;
-
-  try {
-    const response = await callLLMJson<VerifyResponse>(prompt, {
-      maxOutputTokens: 512,
-      temperature: 0.1,
-    });
-
-    return {
-      ...claim,
-      verdict: response.verdict || 'sin_datos',
-      corpusSays: response.corpusSays,
-      existingDocument: response.existingDocument,
-    };
-  } catch (err) {
-    console.warn(`[verify-claims] Falló verificación de "${claim.claim.slice(0, 50)}...":`, err);
-    return { ...claim, verdict: 'sin_datos' };
-  }
-}
-
-interface CorpusFragment {
-  text: string;
-  documentName: string;
-  score: number;
-}
-
-async function findCorpusFragments(claimText: string, orgId: string): Promise<CorpusFragment[]> {
-  try {
-    const [embedding] = await generateEmbeddings([claimText]);
-    const index = getIndex();
-    const ns = index.namespace(orgId);
-
-    const res = await ns.query({ vector: embedding, topK: MAX_CORPUS_FRAGMENTS * 2, includeMetadata: true });
-
-    const fragments: CorpusFragment[] = [];
-    for (const m of res.matches || []) {
-      if (!m.metadata || typeof m.score !== 'number') continue;
-      if (m.score < CORPUS_SCORE_THRESHOLD) continue;
-      const meta = m.metadata as { text?: string; documentName?: string };
-      if (!meta.text || !meta.documentName) continue;
-      fragments.push({
-        text: meta.text,
-        documentName: meta.documentName,
-        score: m.score,
-      });
-    }
-
-    // Deduplicar por contenido (mismo texto de distinto embedding)
-    const seen = new Set<string>();
-    return fragments.filter(f => {
-      const key = f.text.slice(0, 100);
-      if (seen.has(key)) return false;
-      seen.add(key);
-      return true;
-    }).slice(0, MAX_CORPUS_FRAGMENTS);
-  } catch (err) {
-    console.warn('[verify-claims] Pinecone query failed:', err);
-    return [];
-  }
+/** Genera una clave normalizada para deduplicar contradicciones. */
+function makeContradictionKey(d: Discrepancy): string {
+  const normTopic = d.topic.toLowerCase().replace(/\s+/g, ' ').trim();
+  const normDoc = d.existingDocument.toLowerCase().trim();
+  // Usar los primeros 50 chars de newDocSays para diferenciar contradicciones
+  // del mismo tema pero sobre datos distintos
+  const normClaim = d.newDocSays.toLowerCase().replace(/\s+/g, ' ').trim().slice(0, 50);
+  return `${normDoc}|${normTopic}|${normClaim}`;
 }
