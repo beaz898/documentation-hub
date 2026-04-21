@@ -69,7 +69,6 @@ export async function POST(req: NextRequest) {
       answer: result.answer,
       sources: result.sources.map(s => ({
         documentName: s.documentName,
-        score: Math.round(s.score * 100),
       })),
       usage: result.usage,
     });
