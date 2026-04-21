@@ -97,7 +97,8 @@ export async function POST(req: NextRequest) {
       analysis.isDuplicate ||
       analysis.overlaps.length > 0 ||
       analysis.discrepancies.length > 0 ||
-      analysis.recommendation !== 'INDEXAR';
+      analysis.recommendation !== 'INDEXAR' ||
+      (analysis.styleProblems && analysis.styleProblems.length > 0);
 
     const latencyMs = Date.now() - startedAt;
 
@@ -127,6 +128,7 @@ export async function POST(req: NextRequest) {
         recommendation: analysis.recommendation,
         summary: analysis.summary,
         analysisMode: analysis.analysisMode,
+        styleProblems: analysis.styleProblems,
       },
       documentSources,
     });
