@@ -3,6 +3,8 @@ import { retrieveCandidates } from './retrieval';
 import { rerankCandidates } from './rerank';
 import { judgeAllDocuments } from './judge';
 import { synthesizeFinalAnalysis } from './synthesize';
+import { checkContentHash } from './hash-check';
+import type { SupabaseClient } from '@supabase/supabase-js';
 
 export interface AnalyzePipelineInput {
   newDocumentText: string;
@@ -10,6 +12,11 @@ export interface AnalyzePipelineInput {
   sampleTexts: string[];
   orgId: string;
   excludeDocumentId?: string;
+}
+
+/** Input extendido para el pipeline exhaustivo (necesita Supabase para el hash check). */
+export interface ExhaustivePipelineInput extends AnalyzePipelineInput {
+  supabase: SupabaseClient;
 }
 
 // ============================================================
@@ -86,31 +93,55 @@ export async function runAnalysisPipeline(input: AnalyzePipelineInput): Promise<
 }
 
 // ============================================================
-// Pipeline exhaustivo — sin muestreo, sin límites arbitrarios
+// Pipeline exhaustivo — sin muestreo, sin límites, multicapa
 // ============================================================
 
 /**
- * Análisis exhaustivo: CERO límites arbitrarios.
- * - Todos los chunks del documento nuevo (sin muestreo).
- * - Todos los fragmentos únicos por candidato (sin slice).
- * - Todos los candidatos relevantes del rerank (sin tope numérico).
- * - Documento nuevo completo en cada juicio (sin truncar).
- * - Juicios en paralelo.
+ * Análisis exhaustivo: CERO límites arbitrarios + capas deterministas.
  *
- * Capas adicionales que se irán enchufando aquí:
- * - Fase 2: hash SHA-256 para duplicados exactos (determinista).
+ * Capa 0 — Hash SHA-256: detección de duplicados exactos (100% precisión, coste cero).
+ * Capa 1-4 — Pipeline v2 sin límites (retrieval, rerank, judge, synthesize).
+ *
+ * Capas futuras:
  * - Fase 4: extracción de afirmaciones atómicas verificadas.
  * - Fase 5: doble verificación LLM (Haiku + Sonnet).
  * - Fase 6: corrector ortográfico determinista (LanguageTool).
  * - Fase 7: retrieval híbrido semántico + léxico BM25.
  */
-export async function runExhaustiveAnalysisPipeline(input: AnalyzePipelineInput): Promise<FinalAnalysis> {
+export async function runExhaustiveAnalysisPipeline(input: ExhaustivePipelineInput): Promise<FinalAnalysis> {
+  const t0 = Date.now();
   console.log(`[pipeline-exhaustive] Iniciando análisis exhaustivo de "${input.newDocumentName}" con ${input.sampleTexts.length} fragmentos (sin muestreo, sin límites)`);
 
+  // ── Capa 0: Hash exacto ──────────────────────────────────────
+  const hashResult = await checkContentHash(
+    input.supabase,
+    input.newDocumentText,
+    input.orgId,
+    input.excludeDocumentId,
+  );
+
+  if (hashResult.isDuplicateExact) {
+    console.log(`[pipeline-exhaustive] Hash match: duplicado exacto de "${hashResult.duplicateOfName}" (${Date.now() - t0}ms)`);
+    return {
+      isDuplicate: true,
+      duplicateOf: hashResult.duplicateOfName,
+      duplicateConfidence: 100,
+      overlaps: [],
+      discrepancies: [],
+      newInformation: '',
+      recommendation: 'NO_INDEXAR',
+      summary: `Este documento es idéntico a "${hashResult.duplicateOfName}" que ya está indexado. No aporta información nueva.`,
+      judgments: [],
+      analysisMode: 'exhaustive',
+    };
+  }
+
+  console.log(`[pipeline-exhaustive] Hash check: no hay duplicado exacto (${Date.now() - t0}ms)`);
+
+  // ── Capas 1-4: Pipeline v2 sin límites ───────────────────────
   const result = await runCorePipeline(input, { exhaustive: true }, 'pipeline-exhaustive');
 
-  // Aquí se enchufarán las capas adicionales (fases 2, 4, 5, 6, 7)
-  // que enriquecen el resultado antes de devolverlo.
+  // Aquí se enchufarán las capas adicionales (fases 4, 5, 6, 7)
 
   return { ...result, analysisMode: 'exhaustive' };
 }
