@@ -54,7 +54,7 @@ export function useCrossDocAnalysis(
           fetch('/api/analyze-v2', {
             method: 'POST',
             headers: authHeaders,
-            body: JSON.stringify({ text: currentText, fileName }),
+            body: JSON.stringify({ text: currentText, fileName, exhaustive: true }),
           }),
           fetch('/api/analyze-style', {
             method: 'POST',
