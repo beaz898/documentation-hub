@@ -1,14 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import { chunkText, extractText } from '@/lib/chunking';
-import { runAnalysisPipeline } from '@/lib/analysis/pipeline';
+import { runAnalysisPipeline, runExhaustiveAnalysisPipeline } from '@/lib/analysis/pipeline';
 import { logUsage } from '@/lib/usage-logger';
 
 export const maxDuration = 120;
 
 /**
  * Analyze v2 — pipeline de 4 etapas con LLM-as-judge.
- * Body: { storagePath?, fileName, text? }
+ * Body: { storagePath?, fileName, text?, exhaustive? }
+ *
+ * Cuando exhaustive=true se usa el pipeline exhaustivo:
+ * - Todos los chunks del documento (sin muestreo).
+ * - Capas adicionales de verificación (se irán activando en fases 2-7).
  */
 export async function POST(req: NextRequest) {
   const startedAt = Date.now();
@@ -31,7 +35,7 @@ export async function POST(req: NextRequest) {
     orgId = user.user_metadata?.org_id || user.id;
 
     const body = await req.json();
-    const { storagePath, fileName, text: directText } = body;
+    const { storagePath, fileName, text: directText, exhaustive } = body;
 
     if (!fileName) {
       return NextResponse.json({ error: 'fileName requerido' }, { status: 400 });
@@ -54,25 +58,29 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Texto insuficiente' }, { status: 400 });
     }
 
-    // Muestreo: chunks representativos
+    // Chunking
     const chunks = chunkText(text, 'temp-id', fileName, orgId);
-    const targetSamples = chunks.length <= 20
-      ? Math.min(8, chunks.length)
-      : chunks.length <= 60
-        ? 15
-        : 25;
-    const sampleIndices = pickSampleIndices(chunks.length, targetSamples);
-    const sampleTexts = sampleIndices.map(i => chunks[i].text);
 
-    console.log(`[analyze-v2] "${fileName}" — ${chunks.length} chunks, ${sampleTexts.length} samples`);
+    // Selección de fragmentos: muestreo para rápido, todos para exhaustivo
+    const isExhaustive = exhaustive === true;
+    const sampleTexts = isExhaustive
+      ? chunks.map(c => c.text)
+      : pickSampledTexts(chunks);
 
-    // Ejecutar pipeline
-    const analysis = await runAnalysisPipeline({
+    const modeLabel = isExhaustive ? 'exhaustivo' : 'rápido';
+    console.log(`[analyze-v2] "${fileName}" — ${chunks.length} chunks, ${sampleTexts.length} samples (${modeLabel})`);
+
+    // Ejecutar pipeline correspondiente
+    const pipelineInput = {
       newDocumentText: text,
       newDocumentName: fileName,
       sampleTexts,
       orgId,
-    });
+    };
+
+    const analysis = isExhaustive
+      ? await runExhaustiveAnalysisPipeline(pipelineInput)
+      : await runAnalysisPipeline(pipelineInput);
 
     // Construir documentSources (mapa nombre → fuente) para compatibilidad con frontend actual
     const documentSources: Record<string, 'manual' | 'google_drive'> = {};
@@ -97,12 +105,13 @@ export async function POST(req: NextRequest) {
       outputTokens: 0,
       latencyMs,
       success: true,
-      userQuery: fileName,
+      userQuery: `${fileName} (${modeLabel})`,
     });
 
     return NextResponse.json({
       success: true,
       hasIssues,
+      analysisMode: analysis.analysisMode,
       analysis: {
         isDuplicate: analysis.isDuplicate,
         duplicateOf: analysis.duplicateOf,
@@ -112,6 +121,7 @@ export async function POST(req: NextRequest) {
         newInformation: analysis.newInformation,
         recommendation: analysis.recommendation,
         summary: analysis.summary,
+        analysisMode: analysis.analysisMode,
       },
       documentSources,
     });
@@ -137,6 +147,23 @@ export async function POST(req: NextRequest) {
   }
 }
 
+// ============================================================
+// Helpers
+// ============================================================
+
+/** Extrae textos muestreados de los chunks para el análisis rápido. */
+function pickSampledTexts(chunks: Array<{ text: string }>): string[] {
+  const total = chunks.length;
+  const targetSamples = total <= 20
+    ? Math.min(8, total)
+    : total <= 60
+      ? 15
+      : 25;
+  const indices = pickSampleIndices(total, targetSamples);
+  return indices.map(i => chunks[i].text);
+}
+
+/** Selecciona índices distribuidos uniformemente por el documento. */
 function pickSampleIndices(total: number, count: number): number[] {
   if (total <= count) return Array.from({ length: total }, (_, i) => i);
   const indices: number[] = [];
