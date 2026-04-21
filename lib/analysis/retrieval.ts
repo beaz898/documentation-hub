@@ -4,10 +4,11 @@ import type { CandidateDocument, DocumentFragment, PipelineOptions } from './typ
 
 /**
  * Etapa 1 — Retrieval amplio.
- * Umbral bajo (0.60) y topK alto (25) para no perder candidatos.
  *
- * Modo rápido: secuencial, 4 fragmentos por documento.
- * Modo exhaustivo: paralelo por lotes, TODOS los fragmentos únicos por documento.
+ * Modo rápido: umbral 0.60, secuencial, 4 fragmentos por documento.
+ * Modo exhaustivo: umbral 0.45, paralelo por lotes, TODOS los fragmentos únicos.
+ *   El umbral bajo en exhaustivo permite recuperar candidatos que los embeddings
+ *   puntúan bajo pero que pueden contener contradicciones. El rerank filtra el ruido.
  */
 
 /** Tamaño del lote de queries paralelas a Pinecone. */
@@ -15,6 +16,12 @@ const QUERY_BATCH_SIZE = 5;
 
 /** Fragmentos por documento en modo rápido. */
 const FRAGS_PER_DOC_QUICK = 4;
+
+/** Umbral mínimo de similitud.
+ *  Rápido: 0.60 (menos ruido, suficiente para detección básica).
+ *  Exhaustivo: 0.45 (más permisivo — el rerank filtra el ruido temático). */
+const SCORE_THRESHOLD_QUICK = 0.60;
+const SCORE_THRESHOLD_EXHAUSTIVE = 0.45;
 
 export async function retrieveCandidates(args: {
   sampleTexts: string[];
@@ -29,6 +36,8 @@ export async function retrieveCandidates(args: {
   const index = getIndex();
   const ns = index.namespace(orgId);
 
+  const scoreThreshold = isExhaustive ? SCORE_THRESHOLD_EXHAUSTIVE : SCORE_THRESHOLD_QUICK;
+
   // Recoger todos los matches de Pinecone
   const allMatches: DocumentFragment[] = [];
 
@@ -40,14 +49,14 @@ export async function retrieveCandidates(args: {
         batch.map(emb => ns.query({ vector: emb, topK: 25, includeMetadata: true }))
       );
       for (const res of batchResults) {
-        collectMatches(res.matches, allMatches, excludeDocumentId);
+        collectMatches(res.matches, allMatches, scoreThreshold, excludeDocumentId);
       }
     }
   } else {
     // Secuencial — menos presión sobre Pinecone free tier
     for (const emb of embeddings) {
       const res = await ns.query({ vector: emb, topK: 25, includeMetadata: true });
-      collectMatches(res.matches, allMatches, excludeDocumentId);
+      collectMatches(res.matches, allMatches, scoreThreshold, excludeDocumentId);
     }
   }
 
@@ -88,11 +97,12 @@ export async function retrieveCandidates(args: {
 function collectMatches(
   matches: Array<{ metadata?: Record<string, unknown>; score?: number }> | undefined,
   out: DocumentFragment[],
+  scoreThreshold: number,
   excludeDocumentId?: string,
 ): void {
   for (const m of matches || []) {
     if (!m.metadata || typeof m.score !== 'number') continue;
-    if (m.score < 0.60) continue;
+    if (m.score < scoreThreshold) continue;
     const meta = m.metadata as {
       documentId?: string; documentName?: string;
       source?: string; chunkIndex?: number; text?: string;
