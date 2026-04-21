@@ -4,6 +4,7 @@ import { getIndex } from '@/lib/pinecone';
 import { generateEmbeddings } from '@/lib/embeddings';
 import { chunkText, extractText } from '@/lib/chunking';
 import { randomUUID } from 'crypto';
+import { generateContentHash } from '@/lib/analysis/hash-check';
 
 export const maxDuration = 300;
 
@@ -127,15 +128,18 @@ export async function POST(req: NextRequest) {
 
     console.log(`[INGEST] Extracted ${text.length} chars from ${fileName}`);
 
-    // 3. Trocear en chunks
+    // 3. Generar hash del contenido para detección futura de duplicados exactos
+    const contentHash = generateContentHash(text);
+
+    // 4. Trocear en chunks
     const chunks = chunkText(text, documentId, fileName, orgId);
     console.log(`[INGEST] Created ${chunks.length} chunks`);
 
-    // 4. Generar embeddings
+    // 5. Generar embeddings
     const chunkTexts = chunks.map(c => c.text);
     const embeddings = await generateEmbeddings(chunkTexts);
 
-    // 5. Subir a Pinecone
+    // 6. Subir a Pinecone
     const pineconeIndex = getIndex();
     const vectors = chunks.map((chunk, i) => ({
       id: `${documentId}-${i}`,
@@ -158,7 +162,7 @@ export async function POST(req: NextRequest) {
       console.log(`[INGEST] Upserted batch ${Math.floor(i / batchSize) + 1}/${Math.ceil(vectors.length / batchSize)}`);
     }
 
-    // 6. Guardar metadatos en Supabase (explicit source = 'manual')
+    // 7. Guardar metadatos en Supabase (con content_hash para detección de duplicados)
     await supabase.from('documents').insert({
       id: documentId,
       name: fileName,
@@ -168,9 +172,10 @@ export async function POST(req: NextRequest) {
       user_id: user.id,
       status: 'indexed',
       source: 'manual',
+      content_hash: contentHash,
     });
 
-    // 7. Limpiar archivo de storage
+    // 8. Limpiar archivo de storage
     await supabase.storage.from('documents').remove([storagePath]);
 
     const wasReplaced = manualCollisions.length > 0 && force === true;
