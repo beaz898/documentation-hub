@@ -181,7 +181,10 @@ export async function POST(req: NextRequest) {
         await pineconeIndex.namespace(orgId).upsert(vectors.slice(i, i + 100));
       }
 
-      // Save to Supabase
+      // Save to Supabase (with full_text for RAG and content_hash for duplicate detection)
+      const { generateContentHash } = await import('@/lib/analysis/hash-check');
+      const contentHash = generateContentHash(text);
+
       await supabase.from('documents').insert({
         id: documentId,
         name: file.name,
@@ -195,6 +198,8 @@ export async function POST(req: NextRequest) {
         source_modified_at: file.modifiedTime,
         folder_path: file.folderPath,
         folder_id: file.parentId,
+        full_text: text,
+        content_hash: contentHash,
       });
 
       console.log(`[DRIVE SYNC] Indexed: ${file.name} (${chunks.length} chunks) [${file.folderPath}]`);
