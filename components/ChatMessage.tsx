@@ -4,7 +4,7 @@ import ReactMarkdown from 'react-markdown';
 
 interface Source {
   documentName: string;
-  score: number;
+  score?: number;
 }
 
 interface ChatMessageProps {
@@ -117,7 +117,6 @@ export default function ChatMessage({ role, content, sources }: ChatMessageProps
                   <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
                 </svg>
                 {source.documentName}
-                <span style={{ opacity: 0.6 }}>{source.score}%</span>
               </span>
             ))}
           </div>
