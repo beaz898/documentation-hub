@@ -7,6 +7,7 @@ import { checkContentHash } from './hash-check';
 import { extractAtomicClaims } from './extract-claims';
 import { verifyClaimsAgainstCorpus } from './verify-claims';
 import { doubleCheckContradictions } from './double-check';
+import { analyzeStyle } from './style-check';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
 export interface AnalyzePipelineInput {
@@ -102,10 +103,7 @@ export async function runAnalysisPipeline(input: AnalyzePipelineInput): Promise<
  * Capas 1-4 — Pipeline v2 sin límites.
  * Capa 5 — Extracción de afirmaciones atómicas + verificación contra corpus.
  * Capa 6 — Doble verificación: Sonnet confirma cada contradicción de Haiku.
- *
- * Capas futuras:
- * - Fase 6: corrector ortográfico determinista (LanguageTool).
- * - Fase 7: retrieval híbrido semántico + léxico BM25.
+ * Capa 7 — Análisis de estilo: ortografía, ambigüedades, sugerencias.
  */
 export async function runExhaustiveAnalysisPipeline(input: ExhaustivePipelineInput): Promise<FinalAnalysis> {
   const t0 = Date.now();
@@ -137,12 +135,18 @@ export async function runExhaustiveAnalysisPipeline(input: ExhaustivePipelineInp
 
   console.log(`[pipeline-exhaustive] Hash check: sin duplicado exacto (${Date.now() - t0}ms)`);
 
-  // ── Capas 1-4 + Capa 5 (en paralelo) ────────────────────────
-  const [pipelineResult, atomicClaims] = await Promise.all([
+  // ── Capas 1-4 + Capa 5 + Capa 7 (en paralelo) ──────────────
+  // Tres procesos independientes a la vez:
+  // 1. Pipeline v2 (retrieve → rerank → judge → synthesize)
+  // 2. Extracción de afirmaciones atómicas
+  // 3. Análisis de estilo
+  const [pipelineResult, atomicClaims, styleProblems] = await Promise.all([
     runCorePipeline(input, { exhaustive: true }, 'pipeline-exhaustive'),
     extractAtomicClaims(input.newDocumentText, input.newDocumentName),
+    analyzeStyle(input.newDocumentText, input.newDocumentName),
   ]);
 
+  // ── Capa 5b: Verificar afirmaciones contra corpus ───────────
   const atomicContradictions = await verifyClaimsAgainstCorpus(atomicClaims, input.orgId);
 
   // ── Fusionar contradicciones v2 + atómicas ───────────────────
@@ -161,22 +165,24 @@ export async function runExhaustiveAnalysisPipeline(input: ExhaustivePipelineInp
   // ── Capa 6: Doble verificación con Sonnet ────────────────────
   const doubleChecked = await doubleCheckContradictions(mergedDiscrepancies);
 
-  // Ajustar recomendación
+  // ── Ajustar recomendación ────────────────────────────────────
   const hasConfirmed = doubleChecked.some(d => d.confidence === 'alta');
   const hasPossible = doubleChecked.some(d => d.confidence === 'posible');
+  const hasStyleErrors = styleProblems.some(p => p.type === 'ortografia');
   let recommendation = pipelineResult.recommendation;
   if (recommendation === 'INDEXAR' && (hasConfirmed || hasPossible)) {
     recommendation = 'REVISAR';
   }
 
   const totalTime = Date.now() - t0;
-  console.log(`[pipeline-exhaustive] Completo en ${totalTime}ms`);
+  console.log(`[pipeline-exhaustive] Completo en ${totalTime}ms — ${styleProblems.length} problemas de estilo, ${doubleChecked.length} contradicciones`);
 
   return {
     ...pipelineResult,
     discrepancies: doubleChecked,
     recommendation,
     analysisMode: 'exhaustive',
+    styleProblems,
   };
 }
 
