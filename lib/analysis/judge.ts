@@ -1,11 +1,19 @@
 import { callLLMJson } from './llm-client';
-import type { RerankedCandidate, DocumentJudgment } from './types';
+import type { RerankedCandidate, DocumentJudgment, PipelineOptions } from './types';
 
 /**
  * Etapa 3 — Juicio individual por documento.
- * Una llamada al LLM por cada candidato finalista, en paralelo.
- * El LLM recibe fragmentos reales de ambos documentos y emite un veredicto con evidencia concreta.
+ *
+ * Modo rápido: secuencial con pausa, documento nuevo truncado a 4000 chars.
+ * Modo exhaustivo: paralelo, documento nuevo COMPLETO (Haiku 4.5 tiene 200K de contexto,
+ *   los documentos de PYME caben enteros sin problema).
  */
+
+/** Límite de texto del doc nuevo en modo rápido (ahorra tokens). */
+const NEW_DOC_LIMIT_QUICK = 4000;
+
+/** Pausa entre juicios secuenciales (solo modo rápido). */
+const SEQUENTIAL_DELAY_MS = 1200;
 
 interface JudgeResponse {
   overlapPercent: number;
@@ -25,10 +33,10 @@ interface JudgeResponse {
 
 async function judgeSingleDocument(args: {
   newDocumentName: string;
-  newDocumentSample: string;
+  newDocumentText: string;
   candidate: RerankedCandidate;
 }): Promise<DocumentJudgment> {
-  const { newDocumentName, newDocumentSample, candidate } = args;
+  const { newDocumentName, newDocumentText, candidate } = args;
 
   const existingFragsBlock = candidate.fragments
     .map((f, i) => `[Fragmento ${i + 1} de "${candidate.documentName}"]\n${f.text}`)
@@ -38,7 +46,7 @@ async function judgeSingleDocument(args: {
 
 DOCUMENTO NUEVO: "${newDocumentName}"
 """
-${newDocumentSample.slice(0, 4000)}
+${newDocumentText}
 """
 
 DOCUMENTO EXISTENTE: "${candidate.documentName}" (fuente: ${candidate.source})
@@ -53,6 +61,7 @@ INSTRUCCIONES CRÍTICAS:
 4. Si los documentos hablan del mismo tema pero con contenido distinto, veredicto = "tema_similar", overlapPercent < 20.
 5. Solo marca "duplicado_exacto" si el contenido es prácticamente idéntico (>85% del nuevo ya está en el existente).
 6. Cita evidencia literal cuando identifiques solapamiento o contradicción.
+7. Busca contradicciones en TODO el documento nuevo, no solo en las primeras líneas. Revisa cada afirmación concreta.
 
 Responde EXCLUSIVAMENTE con este JSON:
 {
@@ -103,20 +112,47 @@ REGLAS PARA evidenceInNewDoc:
   }
 }
 
-/** Lanza los juicios en secuencial con pausa. Pendiente revertir a paralelo. */
+/**
+ * Lanza juicios para todos los candidatos.
+ *
+ * Modo rápido: secuencial con pausa, doc nuevo truncado.
+ * Modo exhaustivo: paralelo, doc nuevo completo.
+ */
 export async function judgeAllDocuments(args: {
   newDocumentName: string;
   newDocumentSample: string;
   candidates: RerankedCandidate[];
+  options?: PipelineOptions;
 }): Promise<DocumentJudgment[]> {
   if (args.candidates.length === 0) return [];
 
+  const isExhaustive = args.options?.exhaustive === true;
+
+  // Texto del documento nuevo: completo en exhaustivo, truncado en rápido
+  const newDocumentText = isExhaustive
+    ? args.newDocumentSample
+    : args.newDocumentSample.slice(0, NEW_DOC_LIMIT_QUICK);
+
+  if (isExhaustive) {
+    // Paralelo: todas las llamadas a la vez, sin límite, sin pausa
+    return Promise.all(
+      args.candidates.map(candidate =>
+        judgeSingleDocument({
+          newDocumentName: args.newDocumentName,
+          newDocumentText,
+          candidate,
+        })
+      )
+    );
+  }
+
+  // Secuencial con pausa (modo rápido)
   const results: DocumentJudgment[] = [];
   for (let i = 0; i < args.candidates.length; i++) {
-    if (i > 0) await new Promise(r => setTimeout(r, 1200));
+    if (i > 0) await new Promise(r => setTimeout(r, SEQUENTIAL_DELAY_MS));
     const judgment = await judgeSingleDocument({
       newDocumentName: args.newDocumentName,
-      newDocumentSample: args.newDocumentSample,
+      newDocumentText,
       candidate: args.candidates[i],
     });
     results.push(judgment);
