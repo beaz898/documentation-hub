@@ -4,6 +4,7 @@ import { getIndex } from '@/lib/pinecone';
 import { generateEmbeddings } from '@/lib/embeddings';
 import { callLLMWithUsage } from '@/lib/analysis/llm-client';
 import { logUsage } from '@/lib/usage-logger';
+import { checkRateLimit } from '@/lib/rate-limiter';
 
 export const maxDuration = 120;
 
@@ -157,6 +158,15 @@ export async function POST(req: NextRequest) {
 
     userId = user.id;
     orgId = user.user_metadata?.org_id || user.id;
+
+    // Rate limiting
+    const rateCheck = await checkRateLimit(supabase, userId, '/api/improve');
+    if (!rateCheck.allowed) {
+      return NextResponse.json(
+        { error: `Has alcanzado el límite diario de mejoras (${rateCheck.limit}). Inténtalo mañana.`, remaining: 0 },
+        { status: 429 }
+      );
+    }
 
     const body = await req.json();
     const {
