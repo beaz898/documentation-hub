@@ -3,6 +3,7 @@ import { createServiceClient } from '@/lib/supabase';
 import { chunkText, extractText } from '@/lib/chunking';
 import { runAnalysisPipeline, runExhaustiveAnalysisPipeline } from '@/lib/analysis/pipeline';
 import { logUsage } from '@/lib/usage-logger';
+import { checkRateLimit } from '@/lib/rate-limiter';
 
 export const maxDuration = 120;
 
@@ -40,6 +41,17 @@ export async function POST(req: NextRequest) {
 
     if (!fileName) {
       return NextResponse.json({ error: 'fileName requerido' }, { status: 400 });
+    }
+
+    // Rate limiting (límite separado para rápido y exhaustivo)
+    const isExhaustive = exhaustive === true;
+    const rateCheck = await checkRateLimit(supabase, userId, '/api/analyze-v2', isExhaustive);
+    if (!rateCheck.allowed) {
+      const modeLabel = isExhaustive ? 'análisis exhaustivos' : 'análisis';
+      return NextResponse.json(
+        { error: `Has alcanzado el límite diario de ${modeLabel} (${rateCheck.limit}). Inténtalo mañana.`, remaining: 0 },
+        { status: 429 }
+      );
     }
 
     // Obtener texto: desde storage o directo
