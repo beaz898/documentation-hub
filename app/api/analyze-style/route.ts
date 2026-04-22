@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import { analyzeStyle } from '@/lib/analysis/style-check';
 import { logUsage } from '@/lib/usage-logger';
+import { checkRateLimit } from '@/lib/rate-limiter';
 
 export const maxDuration = 60;
 
@@ -24,6 +25,15 @@ export async function POST(req: NextRequest) {
 
     userId = user.id;
     orgId = user.user_metadata?.org_id || user.id;
+
+    // Rate limiting
+    const rateCheck = await checkRateLimit(supabase, userId, '/api/analyze-style');
+    if (!rateCheck.allowed) {
+      return NextResponse.json(
+        { error: `Has alcanzado el límite diario de análisis de estilo (${rateCheck.limit}). Inténtalo mañana.`, remaining: 0 },
+        { status: 429 }
+      );
+    }
 
     const { text, fileName } = await req.json();
     if (!text || typeof text !== 'string' || text.trim().length < 50) {
