@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import { queryRAG } from '@/lib/rag';
 import { logUsage } from '@/lib/usage-logger';
+import { checkRateLimit } from '@/lib/rate-limiter';
 
 export async function POST(req: NextRequest) {
   const startedAt = Date.now();
@@ -32,6 +33,15 @@ export async function POST(req: NextRequest) {
 
     userId = user.id;
     orgId = user.user_metadata?.org_id || user.id;
+
+    // Rate limiting
+    const rateCheck = await checkRateLimit(supabase, userId, '/api/ask');
+    if (!rateCheck.allowed) {
+      return NextResponse.json(
+        { error: `Has alcanzado el límite diario de consultas (${rateCheck.limit}). Inténtalo mañana.`, remaining: 0 },
+        { status: 429 }
+      );
+    }
 
     // Validar body
     const body = await req.json();
@@ -69,6 +79,7 @@ export async function POST(req: NextRequest) {
       answer: result.answer,
       sources: result.sources.map(s => ({
         documentName: s.documentName,
+        score: Math.round(s.score * 100),
       })),
       usage: result.usage,
     });
