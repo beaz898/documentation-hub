@@ -59,7 +59,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Refresh token if needed (descifrar antes de usar)
-    let accessToken = decrypt(connection.access_token);
+    let accessToken: string | null = decrypt(connection.access_token);
     if (new Date(connection.token_expires_at) < new Date()) {
       accessToken = await refreshAccessToken(decrypt(connection.refresh_token), supabase, orgId);
       if (!accessToken) {
@@ -282,7 +282,7 @@ export async function GET(req: NextRequest) {
     }
 
     // Refresh token if needed (descifrar antes de usar)
-    let accessToken = decrypt(connection.access_token);
+    let accessToken: string | null = decrypt(connection.access_token);
     if (new Date(connection.token_expires_at) < new Date()) {
       accessToken = await refreshAccessToken(decrypt(connection.refresh_token), supabase, orgId);
       if (!accessToken) {
