@@ -4,6 +4,8 @@ import { getIndex } from '@/lib/pinecone';
 import { generateEmbeddings } from '@/lib/embeddings';
 import { chunkText, extractText } from '@/lib/chunking';
 import { randomUUID } from 'crypto';
+import { decrypt, encrypt } from '@/lib/crypto';
+import { generateContentHash } from '@/lib/analysis/hash-check';
 
 export const maxDuration = 300;
 
@@ -56,10 +58,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'No hay conexión de Drive' }, { status: 404 });
     }
 
-    // Refresh token if needed
-    let accessToken = connection.access_token;
+    // Refresh token if needed (descifrar antes de usar)
+    let accessToken = decrypt(connection.access_token);
     if (new Date(connection.token_expires_at) < new Date()) {
-      accessToken = await refreshAccessToken(connection.refresh_token, supabase, orgId);
+      accessToken = await refreshAccessToken(decrypt(connection.refresh_token), supabase, orgId);
       if (!accessToken) {
         return NextResponse.json({ error: 'Error renovando token de Google' }, { status: 401 });
       }
@@ -182,7 +184,6 @@ export async function POST(req: NextRequest) {
       }
 
       // Save to Supabase (with full_text for RAG and content_hash for duplicate detection)
-      const { generateContentHash } = await import('@/lib/analysis/hash-check');
       const contentHash = generateContentHash(text);
 
       await supabase.from('documents').insert({
@@ -280,10 +281,10 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ connected: false });
     }
 
-    // Refresh token if needed
-    let accessToken = connection.access_token;
+    // Refresh token if needed (descifrar antes de usar)
+    let accessToken = decrypt(connection.access_token);
     if (new Date(connection.token_expires_at) < new Date()) {
-      accessToken = await refreshAccessToken(connection.refresh_token, supabase, orgId);
+      accessToken = await refreshAccessToken(decrypt(connection.refresh_token), supabase, orgId);
       if (!accessToken) {
         return NextResponse.json({ connected: false, error: 'Token expirado' });
       }
@@ -329,7 +330,7 @@ async function refreshAccessToken(
     const data = await res.json();
     await supabase.from('drive_connections')
       .update({
-        access_token: data.access_token,
+        access_token: encrypt(data.access_token),
         token_expires_at: new Date(Date.now() + (data.expires_in || 3600) * 1000).toISOString(),
       })
       .eq('org_id', orgId);
