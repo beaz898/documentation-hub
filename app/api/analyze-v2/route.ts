@@ -75,7 +75,6 @@ export async function POST(req: NextRequest) {
     const chunks = chunkText(text, 'temp-id', fileName, orgId);
 
     // Selección de fragmentos: muestreo para rápido, todos para exhaustivo
-    const isExhaustive = exhaustive === true;
     const sampleTexts = isExhaustive
       ? chunks.map(c => c.text)
       : pickSampledTexts(chunks);
