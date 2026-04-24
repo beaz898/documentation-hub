@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
+import { encrypt } from '@/lib/crypto';
 
 export async function GET(req: NextRequest) {
   try {
@@ -49,8 +50,7 @@ export async function GET(req: NextRequest) {
     });
     const userInfo = await userInfoRes.json();
 
-    // Get root folders to let user pick (for now, use root "My Drive")
-    // In a future version, we can show a folder picker
+    // Get root folders to let user pick
     const driveRes = await fetch(
       'https://www.googleapis.com/drive/v3/files?q=%27root%27+in+parents+and+mimeType%3D%27application/vnd.google-apps.folder%27&fields=files(id,name)&orderBy=name',
       { headers: { Authorization: `Bearer ${tokens.access_token}` } }
@@ -58,18 +58,18 @@ export async function GET(req: NextRequest) {
     const driveData = await driveRes.json();
     const folders = driveData.files || [];
 
-    // Save connection with the first folder or root
-    // For MVP: we'll redirect to a page where user picks the folder
-    // For now, save tokens and redirect to folder picker
+    // Cifrar tokens antes de guardar en Supabase
+    const encryptedAccessToken = encrypt(tokens.access_token);
+    const encryptedRefreshToken = encrypt(tokens.refresh_token || '');
+
     const supabase = createServiceClient();
 
-    // Store tokens temporarily in the connection (folder will be set by picker)
     const { error: insertError } = await supabase.from('drive_connections').upsert({
       org_id: state.orgId,
       user_id: state.userId,
       provider: 'google_drive',
-      access_token: tokens.access_token,
-      refresh_token: tokens.refresh_token || '',
+      access_token: encryptedAccessToken,
+      refresh_token: encryptedRefreshToken,
       token_expires_at: new Date(Date.now() + (tokens.expires_in || 3600) * 1000).toISOString(),
       email: userInfo.email || '',
       folder_id: 'root',
