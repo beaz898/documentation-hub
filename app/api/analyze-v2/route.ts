@@ -1,191 +1,256 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { createServiceClient } from '@/lib/supabase';
-import { chunkText, extractText } from '@/lib/chunking';
-import { runAnalysisPipeline, runExhaustiveAnalysisPipeline } from '@/lib/analysis/pipeline';
-import { logUsage } from '@/lib/usage-logger';
-import { checkRateLimit } from '@/lib/rate-limiter';
+import type { FinalAnalysis, PipelineOptions } from './types';
+import { retrieveCandidates } from './retrieval';
+import { rerankCandidates } from './rerank';
+import { judgeAllDocuments } from './judge';
+import { synthesizeFinalAnalysis } from './synthesize';
+import { checkContentHash } from './hash-check';
+import { extractAtomicClaims } from './extract-claims';
+import { verifyClaimsAgainstCorpus } from './verify-claims';
+import { doubleCheckContradictions } from './double-check';
+import { analyzeStyle } from './style-check';
+import type { SupabaseClient } from '@supabase/supabase-js';
 
-export const maxDuration = 120;
+export interface AnalyzePipelineInput {
+  newDocumentText: string;
+  newDocumentName: string;
+  sampleTexts: string[];
+  orgId: string;
+  excludeDocumentId?: string;
+  /**
+   * Cliente de Supabase. Necesario para la comprobación de duplicados exactos
+   * por hash SHA-256 al inicio del pipeline (rápido y exhaustivo).
+   */
+  supabase: SupabaseClient;
+}
+
+/** Alias mantenido por compatibilidad. El exhaustivo usa la misma forma de input. */
+export type ExhaustivePipelineInput = AnalyzePipelineInput;
+
+// ============================================================
+// Núcleo compartido: retrieve → rerank → judge → synthesize
+// ============================================================
+
+async function runCorePipeline(
+  input: AnalyzePipelineInput,
+  options: PipelineOptions,
+  label: string,
+): Promise<FinalAnalysis> {
+  const t0 = Date.now();
+
+  const candidates = await retrieveCandidates({
+    sampleTexts: input.sampleTexts,
+    orgId: input.orgId,
+    excludeDocumentId: input.excludeDocumentId,
+    options,
+  });
+  console.log(`[${label}] Retrieval: ${candidates.length} candidatos (${Date.now() - t0}ms)`);
+
+  if (candidates.length === 0) {
+    return synthesizeFinalAnalysis({ newDocumentName: input.newDocumentName, judgments: [] });
+  }
+
+  const t1 = Date.now();
+  const reranked = await rerankCandidates({
+    newDocumentName: input.newDocumentName,
+    newDocumentSample: input.newDocumentText,
+    candidates,
+    options,
+  });
+  console.log(`[${label}] Rerank: ${reranked.length} seleccionados (${Date.now() - t1}ms)`);
+
+  if (reranked.length === 0) {
+    return synthesizeFinalAnalysis({ newDocumentName: input.newDocumentName, judgments: [] });
+  }
+
+  const t2 = Date.now();
+  const judgments = await judgeAllDocuments({
+    newDocumentName: input.newDocumentName,
+    newDocumentSample: input.newDocumentText,
+    candidates: reranked,
+    options,
+  });
+  console.log(`[${label}] Judge: ${judgments.length} juicios emitidos (${Date.now() - t2}ms)`);
+
+  // Pausa solo en modo rápido para liberar presupuesto de rate limit
+  if (!options.exhaustive) {
+    await new Promise(r => setTimeout(r, 1500));
+  }
+
+  const t3 = Date.now();
+  const final = await synthesizeFinalAnalysis({
+    newDocumentName: input.newDocumentName,
+    judgments,
+  });
+  console.log(`[${label}] Synthesize (${Date.now() - t3}ms). Total: ${Date.now() - t0}ms`);
+
+  return final;
+}
+
+// ============================================================
+// Helper compartido: respuesta de duplicado exacto detectado por hash
+// ============================================================
+
+function buildExactDuplicateResponse(
+  duplicateOfName: string,
+  mode: 'quick' | 'exhaustive',
+): FinalAnalysis {
+  return {
+    isDuplicate: true,
+    duplicateOf: duplicateOfName,
+    duplicateConfidence: 100,
+    overlaps: [],
+    discrepancies: [],
+    newInformation: '',
+    recommendation: 'NO_INDEXAR',
+    summary: `Este documento es idéntico a "${duplicateOfName}" que ya está indexado. No aporta información nueva.`,
+    judgments: [],
+    analysisMode: mode,
+  };
+}
+
+// ============================================================
+// Pipeline rápido (v2) — con muestreo, ~12-15 s
+// ============================================================
+//
+// Capa 0 — Hash SHA-256: duplicados exactos (100%, coste cero).
+//          Si hay match, devolvemos directamente sin gastar LLM.
+// Capas 1-4 — retrieve → rerank → judge → synthesize.
+//
+export async function runAnalysisPipeline(input: AnalyzePipelineInput): Promise<FinalAnalysis> {
+  const t0 = Date.now();
+
+  // ── Capa 0: Hash exacto ──────────────────────────────────────
+  const hashResult = await checkContentHash(
+    input.supabase,
+    input.newDocumentText,
+    input.orgId,
+    input.excludeDocumentId,
+  );
+
+  if (hashResult.isDuplicateExact) {
+    console.log(`[pipeline-v2] Hash match: duplicado exacto de "${hashResult.duplicateOfName}" (${Date.now() - t0}ms)`);
+    return buildExactDuplicateResponse(hashResult.duplicateOfName!, 'quick');
+  }
+
+  console.log(`[pipeline-v2] Hash check: sin duplicado exacto (${Date.now() - t0}ms)`);
+
+  // ── Capas 1-4: pipeline normal ──────────────────────────────
+  const result = await runCorePipeline(input, { exhaustive: false }, 'pipeline-v2');
+  return { ...result, analysisMode: 'quick' };
+}
+
+// ============================================================
+// Pipeline exhaustivo — sin muestreo, sin límites, multicapa
+// ============================================================
 
 /**
- * Analyze v2 — pipeline de 4 etapas con LLM-as-judge.
- * Body: { storagePath?, fileName, text?, exhaustive? }
+ * Análisis exhaustivo completo:
  *
- * Cuando exhaustive=true se usa el pipeline exhaustivo:
- * - Hash SHA-256 para duplicados exactos (coste cero, 100% precisión).
- * - Todos los chunks del documento (sin muestreo).
- * - Capas adicionales de verificación (se irán activando en fases futuras).
+ * Capa 0 — Hash SHA-256: duplicados exactos (100%, coste cero).
+ * Capas 1-4 — Pipeline v2 sin límites.
+ * Capa 5 — Extracción de afirmaciones atómicas + verificación contra corpus.
+ * Capa 6 — Doble verificación: Sonnet confirma cada contradicción de Haiku.
+ * Capa 7 — Análisis de estilo: ortografía, ambigüedades, sugerencias.
  */
-export async function POST(req: NextRequest) {
-  const startedAt = Date.now();
-  let userId = '';
-  let orgId = '';
-  const supabase = createServiceClient();
+export async function runExhaustiveAnalysisPipeline(input: ExhaustivePipelineInput): Promise<FinalAnalysis> {
+  const t0 = Date.now();
+  console.log(`[pipeline-exhaustive] Iniciando análisis exhaustivo de "${input.newDocumentName}" con ${input.sampleTexts.length} fragmentos`);
 
-  try {
-    const authHeader = req.headers.get('authorization');
-    if (!authHeader?.startsWith('Bearer ')) {
-      return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
-    }
-    const token = authHeader.split(' ')[1];
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Token inválido' }, { status: 401 });
-    }
+  // ── Capa 0: Hash exacto ──────────────────────────────────────
+  const hashResult = await checkContentHash(
+    input.supabase,
+    input.newDocumentText,
+    input.orgId,
+    input.excludeDocumentId,
+  );
 
-    userId = user.id;
-    orgId = user.user_metadata?.org_id || user.id;
-
-    const body = await req.json();
-    const { storagePath, fileName, text: directText, exhaustive } = body;
-
-    if (!fileName) {
-      return NextResponse.json({ error: 'fileName requerido' }, { status: 400 });
-    }
-
-    // Rate limiting (límite separado para rápido y exhaustivo)
-    const isExhaustive = exhaustive === true;
-    const rateCheck = await checkRateLimit(supabase, userId, '/api/analyze-v2', isExhaustive);
-    if (!rateCheck.allowed) {
-      const modeLabel = isExhaustive ? 'análisis exhaustivos' : 'análisis';
-      return NextResponse.json(
-        { error: `Has alcanzado el límite diario de ${modeLabel} (${rateCheck.limit}). Inténtalo mañana.`, remaining: 0 },
-        { status: 429 }
-      );
-    }
-
-    // Obtener texto: desde storage o directo
-    let text: string;
-    if (directText && typeof directText === 'string') {
-      text = directText;
-    } else if (storagePath) {
-      const { data: fileData, error: dlErr } = await supabase.storage.from('documents').download(storagePath);
-      if (dlErr || !fileData) return NextResponse.json({ error: 'Error descargando archivo' }, { status: 500 });
-      const buffer = Buffer.from(await fileData.arrayBuffer());
-      text = await extractText(buffer, fileName);
-    } else {
-      return NextResponse.json({ error: 'storagePath o text requeridos' }, { status: 400 });
-    }
-
-    if (!text || text.trim().length < 50) {
-      return NextResponse.json({ error: 'Texto insuficiente' }, { status: 400 });
-    }
-
-    // Chunking
-    const chunks = chunkText(text, 'temp-id', fileName, orgId);
-
-    // Selección de fragmentos: muestreo para rápido, todos para exhaustivo
-    const sampleTexts = isExhaustive
-      ? chunks.map(c => c.text)
-      : pickSampledTexts(chunks);
-
-    const modeLabel = isExhaustive ? 'exhaustivo' : 'rápido';
-    console.log(`[analyze-v2] "${fileName}" — ${chunks.length} chunks, ${sampleTexts.length} samples (${modeLabel})`);
-
-    // Ejecutar pipeline correspondiente
-    const analysis = isExhaustive
-      ? await runExhaustiveAnalysisPipeline({
-          newDocumentText: text,
-          newDocumentName: fileName,
-          sampleTexts,
-          orgId,
-          supabase,
-        })
-      : await runAnalysisPipeline({
-          newDocumentText: text,
-          newDocumentName: fileName,
-          sampleTexts,
-          orgId,
-        });
-
-    // Construir documentSources (mapa nombre → fuente) para compatibilidad con frontend actual
-    const documentSources: Record<string, 'manual' | 'google_drive'> = {};
-    for (const j of analysis.judgments) {
-      documentSources[j.documentName] = j.source;
-    }
-
-    const hasIssues =
-      analysis.isDuplicate ||
-      analysis.overlaps.length > 0 ||
-      analysis.discrepancies.length > 0 ||
-      analysis.recommendation !== 'INDEXAR' ||
-      (analysis.styleProblems && analysis.styleProblems.length > 0);
-
-    const latencyMs = Date.now() - startedAt;
-
-    await logUsage(supabase, {
-      userId,
-      orgId,
-      endpoint: '/api/analyze-v2',
-      model: 'haiku',
-      inputTokens: 0,
-      outputTokens: 0,
-      latencyMs,
-      success: true,
-      userQuery: `${fileName} (${modeLabel})`,
-    });
-
-    return NextResponse.json({
-      success: true,
-      hasIssues,
-      analysisMode: analysis.analysisMode,
-      analysis: {
-        isDuplicate: analysis.isDuplicate,
-        duplicateOf: analysis.duplicateOf,
-        duplicateConfidence: analysis.duplicateConfidence,
-        overlaps: analysis.overlaps,
-        discrepancies: analysis.discrepancies,
-        newInformation: analysis.newInformation,
-        recommendation: analysis.recommendation,
-        summary: analysis.summary,
-        analysisMode: analysis.analysisMode,
-        styleProblems: analysis.styleProblems,
-      },
-      documentSources,
-    });
-  } catch (error: unknown) {
-    console.error('[analyze-v2] Error:', error);
-    const message = error instanceof Error ? error.message : 'Error interno';
-
-    if (userId) {
-      await logUsage(supabase, {
-        userId,
-        orgId,
-        endpoint: '/api/analyze-v2',
-        model: 'haiku',
-        inputTokens: 0,
-        outputTokens: 0,
-        latencyMs: Date.now() - startedAt,
-        success: false,
-        errorMessage: message,
-      });
-    }
-
-    return NextResponse.json({ error: message }, { status: 500 });
+  if (hashResult.isDuplicateExact) {
+    console.log(`[pipeline-exhaustive] Hash match: duplicado exacto de "${hashResult.duplicateOfName}" (${Date.now() - t0}ms)`);
+    return buildExactDuplicateResponse(hashResult.duplicateOfName!, 'exhaustive');
   }
+
+  console.log(`[pipeline-exhaustive] Hash check: sin duplicado exacto (${Date.now() - t0}ms)`);
+
+  // ── Capas 1-4 + Capa 5 + Capa 7 (en paralelo) ──────────────
+  // Tres procesos independientes a la vez:
+  // 1. Pipeline v2 (retrieve → rerank → judge → synthesize)
+  // 2. Extracción de afirmaciones atómicas
+  // 3. Análisis de estilo
+  const [pipelineResult, atomicClaims, styleProblems] = await Promise.all([
+    runCorePipeline(input, { exhaustive: true }, 'pipeline-exhaustive'),
+    extractAtomicClaims(input.newDocumentText, input.newDocumentName),
+    analyzeStyle(input.newDocumentText, input.newDocumentName),
+  ]);
+
+  // ── Capa 5b: Verificar afirmaciones contra corpus ───────────
+  const atomicContradictions = await verifyClaimsAgainstCorpus(atomicClaims, input.orgId);
+
+  // ── Fusionar contradicciones v2 + atómicas ───────────────────
+  const mergedDiscrepancies = mergeContradictions(
+    pipelineResult.discrepancies,
+    atomicContradictions.map(c => ({
+      topic: c.topic,
+      newDocSays: c.newDocSays,
+      existingDocSays: c.existingDocSays,
+      existingDocument: c.existingDocument,
+    })),
+  );
+
+  console.log(`[pipeline-exhaustive] Fusión: ${pipelineResult.discrepancies.length} v2 + ${atomicContradictions.length} atómicas → ${mergedDiscrepancies.length} totales`);
+
+  // ── Capa 6: Doble verificación con Sonnet ────────────────────
+  const doubleChecked = await doubleCheckContradictions(mergedDiscrepancies);
+
+  // ── Ajustar recomendación ────────────────────────────────────
+  const hasConfirmed = doubleChecked.some(d => d.confidence === 'alta');
+  const hasPossible = doubleChecked.some(d => d.confidence === 'posible');
+  const hasStyleErrors = styleProblems.some(p => p.type === 'ortografia');
+  let recommendation = pipelineResult.recommendation;
+  if (recommendation === 'INDEXAR' && (hasConfirmed || hasPossible)) {
+    recommendation = 'REVISAR';
+  }
+
+  const totalTime = Date.now() - t0;
+  console.log(`[pipeline-exhaustive] Completo en ${totalTime}ms — ${styleProblems.length} problemas de estilo, ${doubleChecked.length} contradicciones`);
+
+  return {
+    ...pipelineResult,
+    discrepancies: doubleChecked,
+    recommendation,
+    analysisMode: 'exhaustive',
+    styleProblems,
+  };
 }
 
 // ============================================================
 // Helpers
 // ============================================================
 
-/** Extrae textos muestreados de los chunks para el análisis rápido. */
-function pickSampledTexts(chunks: Array<{ text: string }>): string[] {
-  const total = chunks.length;
-  const targetSamples = total <= 20
-    ? Math.min(8, total)
-    : total <= 60
-      ? 15
-      : 25;
-  const indices = pickSampleIndices(total, targetSamples);
-  return indices.map(i => chunks[i].text);
+interface Discrepancy {
+  topic: string;
+  newDocSays: string;
+  existingDocSays: string;
+  existingDocument: string;
 }
 
-/** Selecciona índices distribuidos uniformemente por el documento. */
-function pickSampleIndices(total: number, count: number): number[] {
-  if (total <= count) return Array.from({ length: total }, (_, i) => i);
-  const indices: number[] = [];
-  const step = (total - 1) / (count - 1);
-  for (let i = 0; i < count; i++) indices.push(Math.round(i * step));
-  return [...new Set(indices)];
+function mergeContradictions(listA: Discrepancy[], listB: Discrepancy[]): Discrepancy[] {
+  const result = [...listA];
+  const existingKeys = new Set(listA.map(d => makeContradictionKey(d)));
+
+  for (const d of listB) {
+    const key = makeContradictionKey(d);
+    if (!existingKeys.has(key)) {
+      result.push(d);
+      existingKeys.add(key);
+    }
+  }
+
+  return result;
+}
+
+function makeContradictionKey(d: Discrepancy): string {
+  const normTopic = d.topic.toLowerCase().replace(/\s+/g, ' ').trim();
+  const normDoc = d.existingDocument.toLowerCase().trim();
+  const normClaim = d.newDocSays.toLowerCase().replace(/\s+/g, ' ').trim().slice(0, 50);
+  return `${normDoc}|${normTopic}|${normClaim}`;
 }
