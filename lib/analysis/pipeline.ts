@@ -16,12 +16,15 @@ export interface AnalyzePipelineInput {
   sampleTexts: string[];
   orgId: string;
   excludeDocumentId?: string;
-}
-
-/** Input extendido para el pipeline exhaustivo (necesita Supabase para el hash check). */
-export interface ExhaustivePipelineInput extends AnalyzePipelineInput {
+  /**
+   * Cliente de Supabase. Necesario para la comprobación de duplicados exactos
+   * por hash SHA-256 al inicio del pipeline (rápido y exhaustivo).
+   */
   supabase: SupabaseClient;
 }
+
+/** Alias mantenido por compatibilidad. El exhaustivo usa la misma forma de input. */
+export type ExhaustivePipelineInput = AnalyzePipelineInput;
 
 // ============================================================
 // Núcleo compartido: retrieve → rerank → judge → synthesize
@@ -84,10 +87,54 @@ async function runCorePipeline(
 }
 
 // ============================================================
-// Pipeline rápido (v2) — con muestreo, ~12-15 s
+// Helper compartido: respuesta de duplicado exacto detectado por hash
 // ============================================================
 
+function buildExactDuplicateResponse(
+  duplicateOfName: string,
+  mode: 'quick' | 'exhaustive',
+): FinalAnalysis {
+  return {
+    isDuplicate: true,
+    duplicateOf: duplicateOfName,
+    duplicateConfidence: 100,
+    overlaps: [],
+    discrepancies: [],
+    newInformation: '',
+    recommendation: 'NO_INDEXAR',
+    summary: `Este documento es idéntico a "${duplicateOfName}" que ya está indexado. No aporta información nueva.`,
+    judgments: [],
+    analysisMode: mode,
+  };
+}
+
+// ============================================================
+// Pipeline rápido (v2) — con muestreo, ~12-15 s
+// ============================================================
+//
+// Capa 0 — Hash SHA-256: duplicados exactos (100%, coste cero).
+//          Si hay match, devolvemos directamente sin gastar LLM.
+// Capas 1-4 — retrieve → rerank → judge → synthesize.
+//
 export async function runAnalysisPipeline(input: AnalyzePipelineInput): Promise<FinalAnalysis> {
+  const t0 = Date.now();
+
+  // ── Capa 0: Hash exacto ──────────────────────────────────────
+  const hashResult = await checkContentHash(
+    input.supabase,
+    input.newDocumentText,
+    input.orgId,
+    input.excludeDocumentId,
+  );
+
+  if (hashResult.isDuplicateExact) {
+    console.log(`[pipeline-v2] Hash match: duplicado exacto de "${hashResult.duplicateOfName}" (${Date.now() - t0}ms)`);
+    return buildExactDuplicateResponse(hashResult.duplicateOfName!, 'quick');
+  }
+
+  console.log(`[pipeline-v2] Hash check: sin duplicado exacto (${Date.now() - t0}ms)`);
+
+  // ── Capas 1-4: pipeline normal ──────────────────────────────
   const result = await runCorePipeline(input, { exhaustive: false }, 'pipeline-v2');
   return { ...result, analysisMode: 'quick' };
 }
@@ -119,18 +166,7 @@ export async function runExhaustiveAnalysisPipeline(input: ExhaustivePipelineInp
 
   if (hashResult.isDuplicateExact) {
     console.log(`[pipeline-exhaustive] Hash match: duplicado exacto de "${hashResult.duplicateOfName}" (${Date.now() - t0}ms)`);
-    return {
-      isDuplicate: true,
-      duplicateOf: hashResult.duplicateOfName,
-      duplicateConfidence: 100,
-      overlaps: [],
-      discrepancies: [],
-      newInformation: '',
-      recommendation: 'NO_INDEXAR',
-      summary: `Este documento es idéntico a "${hashResult.duplicateOfName}" que ya está indexado. No aporta información nueva.`,
-      judgments: [],
-      analysisMode: 'exhaustive',
-    };
+    return buildExactDuplicateResponse(hashResult.duplicateOfName!, 'exhaustive');
   }
 
   console.log(`[pipeline-exhaustive] Hash check: sin duplicado exacto (${Date.now() - t0}ms)`);
