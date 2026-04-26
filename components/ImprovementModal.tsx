@@ -298,9 +298,7 @@ export default function ImprovementModal({
       style={{
         position: 'fixed', inset: 0, zIndex: 100,
         // Overlay casi sólido para que el marco alrededor del modal no deje
-        // ver el contenido específico de la app de fondo. Conservamos un
-        // ligero traslucido (0.92) para mantener la sensación de profundidad
-        // sin exponer el contenido legible de la app.
+        // ver el contenido específico de la app de fondo.
         background: 'rgba(0,0,0,0.92)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         padding: 20,
@@ -322,10 +320,12 @@ export default function ImprovementModal({
           position: 'relative',
         }}
       >
+        {/* CABECERA: background explícito sólido para que no se vea nada detrás. */}
         <div style={{
           padding: '14px 20px', borderBottom: '0.5px solid var(--border)',
           display: 'flex', alignItems: 'center', gap: 12,
           flexShrink: 0,
+          background: 'var(--bg-primary)',
         }}>
           <div style={{
             width: 32, height: 32, borderRadius: 8, background: 'var(--brand-light)',
@@ -375,13 +375,16 @@ export default function ImprovementModal({
           </button>
         </div>
 
+        {/* GRID PRINCIPAL: background explícito sólido. */}
         <div style={{
           flex: '1 1 auto',
           display: 'grid',
           gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)',
           minHeight: 0,
           overflow: 'hidden',
+          background: 'var(--bg-primary)',
         }}>
+          {/* PANEL IZQUIERDO (editor): background explícito sólido. */}
           <div
             ref={editorRef}
             style={{
@@ -390,6 +393,7 @@ export default function ImprovementModal({
               minWidth: 0, minHeight: 0,
               padding: '10px 16px',
               overflow: 'hidden',
+              background: 'var(--bg-primary)',
             }}
           >
             <EditorPanel value={text} onChange={setText} fileName={fileName} />
