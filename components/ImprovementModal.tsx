@@ -296,9 +296,9 @@ export default function ImprovementModal({
       className="modal-overlay"
       style={{
         position: 'fixed', inset: 0, zIndex: 100,
-        // Overlay muy suave para que la app de detrás siga visible y sintamos
-        // que sigue operativa. La presencia del modal se refuerza con la sombra.
-        background: 'rgba(0,0,0,0.15)',
+        // Overlay intermedio: lo bastante presente para que el modal sea
+        // claramente protagonista, pero sin ocultar la app de detrás.
+        background: 'rgba(0,0,0,0.35)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         padding: 20,
       }}
@@ -309,9 +309,8 @@ export default function ImprovementModal({
           width: '100%', maxWidth: 1200,
           height: '90vh',
           maxHeight: 900,
+          // Fondo totalmente opaco del modal.
           background: 'var(--bg-primary)', borderRadius: 14,
-          // Borde más definido y sombra fuerte para destacar el modal sin
-          // necesitar un overlay opaco detrás.
           border: '1px solid var(--border)',
           display: 'flex', flexDirection: 'column',
           overflow: 'hidden',
@@ -342,28 +341,28 @@ export default function ImprovementModal({
             </p>
           </div>
           {/*
-            Botón Cerrar (X). Antes era casi invisible: fondo transparente y
-            color text-muted. Ahora tiene fondo sólido con borde y color
-            text-secondary, y se oscurece al pasar el cursor.
+            Botón Cerrar (X). Usa --bg-tertiary (un escalón más alejado que
+            --bg-secondary) para diferenciarse claramente del fondo opaco del
+            modal, que es --bg-primary.
           */}
           <button
             onClick={handleCloseRequest}
             aria-label="Cerrar"
             style={{
               width: 34, height: 34, borderRadius: 8,
-              border: '0.5px solid var(--border)',
-              background: 'var(--bg-secondary)',
+              border: '1px solid var(--border)',
+              background: 'var(--bg-tertiary)',
               cursor: 'pointer',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               color: 'var(--text-secondary)',
               transition: 'background 0.15s, color 0.15s',
             }}
             onMouseEnter={e => {
-              e.currentTarget.style.background = 'var(--bg-tertiary)';
+              e.currentTarget.style.background = 'var(--bg-secondary)';
               e.currentTarget.style.color = 'var(--text-primary)';
             }}
             onMouseLeave={e => {
-              e.currentTarget.style.background = 'var(--bg-secondary)';
+              e.currentTarget.style.background = 'var(--bg-tertiary)';
               e.currentTarget.style.color = 'var(--text-secondary)';
             }}
           >
@@ -427,23 +426,28 @@ export default function ImprovementModal({
           flexShrink: 0,
           background: 'var(--bg-primary)',
         }}>
+          {/*
+            Botón Descartar y cerrar. Ahora sólido como el de Indexar pero
+            en rojo destructivo. Sombra suave y hover que oscurece.
+          */}
           <button
             onClick={handleCloseRequest}
             disabled={indexing}
             style={{
               display: 'flex', alignItems: 'center', gap: 6,
-              fontSize: 12, padding: '9px 14px', borderRadius: 8,
-              border: '0.5px solid rgba(220,38,38,0.5)',
-              background: 'rgba(220,38,38,0.06)',
-              color: '#dc2626',
+              fontSize: 13, padding: '9px 16px', borderRadius: 8,
+              border: 'none',
+              background: indexing ? 'var(--bg-tertiary)' : '#dc2626',
+              color: indexing ? 'var(--text-muted)' : '#fff',
               cursor: indexing ? 'not-allowed' : 'pointer',
-              fontWeight: 500,
+              fontWeight: 600,
+              boxShadow: indexing ? 'none' : '0 1px 3px rgba(220,38,38,0.3)',
               transition: 'background 0.15s',
             }}
-            onMouseEnter={e => { if (!indexing) e.currentTarget.style.background = 'rgba(220,38,38,0.12)'; }}
-            onMouseLeave={e => { if (!indexing) e.currentTarget.style.background = 'rgba(220,38,38,0.06)'; }}
+            onMouseEnter={e => { if (!indexing) e.currentTarget.style.background = '#b91c1c'; }}
+            onMouseLeave={e => { if (!indexing) e.currentTarget.style.background = '#dc2626'; }}
           >
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
               <polyline points="3 6 5 6 21 6" />
               <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
             </svg>
