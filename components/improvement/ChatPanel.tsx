@@ -1,501 +1,386 @@
 'use client';
 
-import { useState, useRef, useMemo, useEffect, useCallback } from 'react';
-import EditorPanel from './improvement/EditorPanel';
-import ChatPanel from './improvement/ChatPanel';
-import ReplaceDialog from './improvement/ReplaceDialog';
-import { useImprovementChat, findTolerant } from './improvement/useImprovementChat';
-import { useStyleAnalysis } from './improvement/useStyleAnalysis';
-import { useCrossDocAnalysis } from './improvement/useCrossDocAnalysis';
-import { useIndexing } from './improvement/useIndexing';
-import type { Problem, ProblemType, RawAnalysis } from './improvement/problems';
+import React, { useEffect, useRef, useMemo } from 'react';
+import ReanalyzeButtons from './ReanalyzeButtons';
+import FilterMenu from './FilterMenu';
+import type { ProblemType, Problem } from './problems';
+import type { ChatMessage } from './useImprovementChat';
+import { applyReplacement } from './useImprovementChat';
 
-interface ExistingDocForDialog {
-  id: string;
-  name: string;
+interface TypeMeta { label: string; color: string; bg: string; border: string }
+
+interface ChatPanelProps {
+  messages: ChatMessage[];
+  sending: boolean;
+  sendMessage: (userText: string, currentEditorText: string) => Promise<void>;
+  setMessages: React.Dispatch<React.SetStateAction<ChatMessage[]>>;
+
+  currentText: string;
+  onApplyText: (newText: string) => void;
+  chatInput: string;
+  setChatInput: (v: string) => void;
+
+  onReanalyzeStyle: () => void;
+  onReanalyzeAll: () => void;
+  styleLoading: boolean;
+  reanalyzingAll: boolean;
+
+  problems: Problem[];
+  visibleProblems: Problem[];
+  allTypes: ProblemType[];
+  activeTypes: Set<ProblemType>;
+  typeMeta: Record<ProblemType, TypeMeta>;
+  onToggleType: (t: ProblemType) => void;
+  onSelectAllTypes: () => void;
+  onClearTypes: () => void;
+  getDocSourceBadge: (docName?: string) => { label: string; color: string } | null;
+  onGoToProblem: (p: Problem) => void;
+  onSolveOne: (p: Problem) => void;
+  onSolveGroup: (type: ProblemType, problems: Problem[]) => void;
 }
 
-/**
- * Forma de los styleProblems que vienen del análisis exhaustivo. Coincide con
- * lo que devuelve /api/analyze-style y con StyleApiProblem en useStyleAnalysis.
- */
-interface AnalysisStyleProblem {
-  type: Problem['type'];
-  title: string;
-  description: string;
-  textRef: string;
-}
-
-interface ImprovementModalProps {
-  fileName: string;
-  initialText: string;
-  analysis: RawAnalysis & { styleProblems?: AnalysisStyleProblem[] };
-  documentSources?: Record<string, string[]>;
-  storagePath: string;
-  existingDocWithSameName?: ExistingDocForDialog | null;
-  accessToken: string;
-  onClose: () => void;
-  onIndexed: (docName: string, wasReplaced: boolean) => void;
-}
-
-const TYPE_META: Record<ProblemType, { label: string; color: string; bg: string; border: string }> = {
-  contradiccion: { label: 'Contradicción', color: '#dc2626', bg: 'rgba(220,38,38,0.08)',  border: 'rgba(220,38,38,0.35)' },
-  duplicidad:    { label: 'Duplicidad',    color: '#ea580c', bg: 'rgba(234,88,12,0.08)',  border: 'rgba(234,88,12,0.35)' },
-  ortografia:    { label: 'Ortografía',    color: '#7c3aed', bg: 'rgba(124,58,237,0.08)', border: 'rgba(124,58,237,0.35)' },
-  ambiguedad:    { label: 'Ambigüedad',    color: '#2563eb', bg: 'rgba(37,99,235,0.08)',  border: 'rgba(37,99,235,0.35)' },
-  sugerencia:    { label: 'Sugerencia',    color: '#059669', bg: 'rgba(5,150,105,0.08)',  border: 'rgba(5,150,105,0.35)' },
+const GROUP_LABELS: Record<ProblemType, string> = {
+  contradiccion: 'Contradicciones',
+  duplicidad: 'Duplicidades',
+  ortografia: 'Ortografía',
+  ambiguedad: 'Ambigüedades',
+  sugerencia: 'Sugerencias',
 };
 
-const ALL_TYPES: ProblemType[] = ['contradiccion', 'duplicidad', 'ortografia', 'ambiguedad', 'sugerencia'];
+export default function ChatPanel({
+  messages, sending, sendMessage, setMessages,
+  currentText, onApplyText, chatInput, setChatInput,
+  onReanalyzeStyle, onReanalyzeAll, styleLoading, reanalyzingAll,
+  problems, visibleProblems, allTypes, activeTypes, typeMeta,
+  onToggleType, onSelectAllTypes, onClearTypes,
+  getDocSourceBadge, onGoToProblem, onSolveOne, onSolveGroup,
+}: ChatPanelProps) {
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+  const endRef = useRef<HTMLDivElement>(null);
 
-function normalizeTitle(s: string): string {
-  return s.trim().toLowerCase().replace(/\s+/g, ' ');
-}
-
-function buildTitleSet(problems: Problem[]): Set<string> {
-  return new Set(problems.map(p => normalizeTitle(p.title)));
-}
-
-function buildDeltaMessage(
-  prev: Problem[],
-  next: Problem[],
-  scopeLabel: 'estilo' | 'todo'
-): string {
-  const prevSet = buildTitleSet(prev);
-  const nextSet = buildTitleSet(next);
-
-  let resolved = 0;
-  for (const t of prevSet) if (!nextSet.has(t)) resolved++;
-
-  let added = 0;
-  for (const t of nextSet) if (!prevSet.has(t)) added++;
-
-  const pending = next.length;
-
-  return `He reanalizado ${scopeLabel === 'estilo' ? 'el estilo' : 'todo'} y este es el resumen:\n\n` +
-    `• Resueltos: ${resolved}\n` +
-    `• Nuevos: ${added}\n` +
-    `• Pendientes: ${pending}`;
-}
-
-/**
- * Construye un resumen textual de todos los problemas detectados para inyectar
- * en el prompt del chat. Así Claude sabe exactamente qué problemas hay sin
- * tener que redescubrirlos.
- */
-function buildProblemsSummary(problems: Problem[]): string {
-  if (problems.length === 0) return '(ningún problema detectado)';
-  return problems
-    .map((p, i) => `${i + 1}. [${TYPE_META[p.type].label}] ${p.title}: ${p.description}`)
-    .join('\n');
-}
-
-export default function ImprovementModal({
-  fileName,
-  initialText,
-  analysis,
-  documentSources,
-  storagePath,
-  existingDocWithSameName,
-  accessToken,
-  onClose,
-  onIndexed,
-}: ImprovementModalProps) {
-  const [text, setText] = useState(initialText);
-  const editorRef = useRef<HTMLDivElement>(null);
-
-  const {
-    messages: chatMessages,
-    sending: chatSending,
-    sendMessage,
-    addAssistantMessage,
-    setMessages: setChatMessages,
-  } = useImprovementChat(accessToken);
-  const [chatInput, setChatInput] = useState('');
-
-  const {
-    crossDocProblems,
-    setCrossDocProblems,
-    reanalyzeAll,
-    reanalyzingAll,
-  } = useCrossDocAnalysis(analysis, accessToken);
-
-  const {
-    styleProblems,
-    setStyleProblems,
-    reanalyzeStyle,
-    styleLoading,
-  } = useStyleAnalysis({
-    initialText,
-    fileName,
-    accessToken,
-    // Precargamos los problemas de estilo del análisis exhaustivo, si los hay.
-    // Así el usuario los ve al abrir el modal sin tener que pulsar "Reanalizar estilo".
-    initialStyleProblems: analysis.styleProblems,
-  });
-
-  const problems = useMemo<Problem[]>(
-    () => [...crossDocProblems, ...styleProblems],
-    [crossDocProblems, styleProblems]
-  );
-
-  // Resumen de problemas para inyectar en el prompt del chat
-  const problemsSummary = useMemo(
-    () => buildProblemsSummary(problems),
-    [problems]
-  );
-
-  const [activeTypes, setActiveTypes] = useState<Set<ProblemType>>(
-    () => new Set(ALL_TYPES)
-  );
-
-  const visibleProblems = useMemo(
-    () => problems.filter(p => activeTypes.has(p.type)),
-    [problems, activeTypes]
-  );
-
-  const toggleType = useCallback((t: ProblemType) => {
-    setActiveTypes(prev => {
-      const next = new Set(prev);
-      if (next.has(t)) next.delete(t);
-      else next.add(t);
-      return next;
-    });
-  }, []);
-
-  const selectAllTypes = useCallback(() => setActiveTypes(new Set(ALL_TYPES)), []);
-  const clearTypes = useCallback(() => setActiveTypes(new Set()), []);
-
-  const didWelcomeRef = useRef(false);
+  // Autoscroll: solo cuando AUMENTA el número de mensajes (mensaje nuevo) o
+  // cuando el asistente empieza a responder (sending = true). Modificar un
+  // mensaje existente, p. ej. al marcar un replacement como aplicado tras
+  // pulsar "Aplicar al texto", NO debe disparar scroll, porque el usuario
+  // suele estar mirando una propuesta concreta a media altura del chat.
+  const prevMsgCountRef = useRef(messages.length);
   useEffect(() => {
-    if (didWelcomeRef.current) return;
-    // El mensaje de bienvenida resume los problemas detectados al abrir el modal.
-    // Incluimos cross-doc + estilo (ambos vienen ya cargados si el análisis fue exhaustivo).
-    const allInitial = [...crossDocProblems, ...styleProblems];
-    if (allInitial.length === 0) {
-      didWelcomeRef.current = true;
+    const prev = prevMsgCountRef.current;
+    const curr = messages.length;
+    if (curr > prev) {
+      endRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+    prevMsgCountRef.current = curr;
+  }, [messages]);
+
+  useEffect(() => {
+    if (sending) {
+      endRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [sending]);
+
+  // Devolver el foco al textarea cuando el asistente termina de responder
+  useEffect(() => {
+    if (!sending) {
+      setTimeout(() => inputRef.current?.focus(), 50);
+    }
+  }, [sending]);
+
+  const labels = allTypes.reduce((acc, t) => { acc[t] = typeMeta[t].label; return acc; }, {} as Record<ProblemType, string>);
+
+  const groupedProblems = useMemo(() => {
+    const indexed = visibleProblems.map((p, globalIndex) => ({ p, globalIndex }));
+    return allTypes
+      .map(type => ({
+        type,
+        items: indexed.filter(({ p }) => p.type === type),
+      }))
+      .filter(g => g.items.length > 0);
+  }, [visibleProblems, allTypes]);
+
+  const handleSend = async () => {
+    const text = chatInput.trim();
+    if (!text || sending) return;
+    setChatInput('');
+    await sendMessage(text, currentText);
+  };
+
+  const handleApply = (msgId: string, idx: number, find: string, replace: string) => {
+    const next = applyReplacement(currentText, find, replace);
+    if (next === null) {
+      setMessages(prev => prev.map(m => {
+        if (m.id !== msgId || !m.replacements) return m;
+        return { ...m, replacements: m.replacements.map((r, i) => i === idx ? { ...r, failed: true } : r) };
+      }));
+      alert('No se pudo localizar el fragmento exacto en el texto.');
       return;
     }
-    didWelcomeRef.current = true;
-    const summary = allInitial
-      .map((p, i) => `${i + 1}. [${TYPE_META[p.type].label}] ${p.title}`)
-      .join('\n');
-    addAssistantMessage(
-      `He detectado ${allInitial.length} problema${allInitial.length !== 1 ? 's' : ''} en el documento:\n\n${summary}\n\n¿Por dónde quieres empezar? Puedo proponer correcciones concretas, explicarte cualquier punto, borrar fragmentos o reescribir partes a tu gusto.`
-    );
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const getDocSourceBadge = useCallback(
-    (docName?: string): { label: string; color: string } | null => {
-      if (!docName || !documentSources) return null;
-      const sources = documentSources[docName];
-      if (!sources || sources.length === 0) return null;
-      if (sources.length > 1) return { label: 'Drive+Manual', color: '#6b7280' };
-      return sources[0] === 'google_drive'
-        ? { label: 'Drive', color: '#2563eb' }
-        : { label: 'Manual', color: '#7c3aed' };
-    },
-    [documentSources]
-  );
-
-  const goToProblem = useCallback((p: Problem) => {
-    if (!p.textRef) return;
-    const range = findTolerant(text, p.textRef);
-    if (!range) {
-      alert('Ese fragmento ya no se encuentra en el texto (quizá lo editaste).');
-      return;
-    }
-    const ta = editorRef.current?.querySelector('textarea') as HTMLTextAreaElement | null;
-    if (!ta) return;
-    ta.focus();
-    ta.setSelectionRange(range.start, range.end);
-    const beforeText = text.slice(0, range.start);
-    const lineNumber = beforeText.split('\n').length;
-    const lineHeight = 20;
-    ta.scrollTop = Math.max(0, (lineNumber - 3) * lineHeight);
-  }, [text]);
-
-  // -------- Solventar un problema individual ----------
-  const handleSolveOne = useCallback((p: Problem) => {
-    const typeLabel = TYPE_META[p.type].label.toLowerCase();
-    const message = `Resuelve el siguiente problema de tipo ${typeLabel} en el TEXTO_ACTUAL. Propón los cambios necesarios con bloques REPLACEMENT:\n\nTítulo: ${p.title}\nDescripción: ${p.description}${p.relatedDoc ? `\nDocumento relacionado: ${p.relatedDoc}` : ''}`;
-    sendMessage(message, text, fileName, problemsSummary);
-  }, [sendMessage, text, fileName, problemsSummary]);
-
-  // -------- Resolver todos los problemas de un grupo ----------
-  const handleSolveGroup = useCallback((type: ProblemType, groupProblems: Problem[]) => {
-    const typeLabel = TYPE_META[type].label.toLowerCase();
-    const list = groupProblems
-      .map((p, i) => `${i + 1}. ${p.title}: ${p.description}${p.relatedDoc ? ` (doc: ${p.relatedDoc})` : ''}`)
-      .join('\n');
-    const message = `Resuelve TODOS los problemas de tipo ${typeLabel} detectados en el TEXTO_ACTUAL. Genera UN BLOQUE REPLACEMENT POR CADA cambio necesario, no resumas en uno solo:\n\n${list}`;
-    sendMessage(message, text, fileName, problemsSummary);
-  }, [sendMessage, text, fileName, problemsSummary]);
-
-  // -------- Wrapper del sendMessage manual para incluir fileName y problemsSummary ----------
-  const handleManualSend = useCallback(async (userText: string, currentEditorText: string) => {
-    await sendMessage(userText, currentEditorText, fileName, problemsSummary);
-  }, [sendMessage, fileName, problemsSummary]);
-
-  const handleReanalyzeStyle = useCallback(async () => {
-    const prev = styleProblems;
-    await reanalyzeStyle(text, fileName);
-    setStyleProblems(curr => {
-      const msg = buildDeltaMessage(prev, curr, 'estilo');
-      addAssistantMessage(msg);
-      return curr;
-    });
-  }, [styleProblems, reanalyzeStyle, text, setStyleProblems, addAssistantMessage]);
-
-  const handleReanalyzeAll = useCallback(async () => {
-    const prev = problems;
-    const result = await reanalyzeAll(text, fileName);
-    if (!result) {
-      addAssistantMessage('No se pudo reanalizar, prueba de nuevo en unos segundos.');
-      return;
-    }
-    setStyleProblems(result.styleProblems);
-    setCrossDocProblems(currCross => {
-      const next = [...currCross, ...result.styleProblems];
-      const msg = buildDeltaMessage(prev, next, 'todo');
-      addAssistantMessage(msg);
-      return currCross;
-    });
-  }, [problems, reanalyzeAll, text, fileName, setStyleProblems, setCrossDocProblems, addAssistantMessage]);
-
-  const {
-    indexing,
-    showReplaceDialog,
-    setShowReplaceDialog,
-    doIndex,
-  } = useIndexing({
-    fileName,
-    storagePath,
-    accessToken,
-    existingDocWithSameName,
-    onIndexed,
-  });
-
-  const handleIndexClick = useCallback(() => {
-    if (existingDocWithSameName) {
-      setShowReplaceDialog(true);
-    } else {
-      doIndex(text, false);
-    }
-  }, [existingDocWithSameName, setShowReplaceDialog, doIndex, text]);
-
-  const handleCloseRequest = useCallback(() => {
-    if (window.confirm('¿Descartar los cambios y cerrar? El archivo original se eliminará.')) {
-      onClose();
-    }
-  }, [onClose]);
+    onApplyText(next);
+    setMessages(prev => prev.map(m => {
+      if (m.id !== msgId || !m.replacements) return m;
+      return { ...m, replacements: m.replacements.map((r, i) => i === idx ? { ...r, applied: true, failed: false } : r) };
+    }));
+  };
 
   return (
-    <div
-      className="modal-overlay"
-      style={{
-        position: 'fixed', inset: 0, zIndex: 100,
-        // Overlay muy suave para que la app de detrás siga visible y sintamos
-        // que sigue operativa. La presencia del modal se refuerza con la sombra.
-        background: 'rgba(0,0,0,0.15)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        padding: 20,
-      }}
-    >
-      <div
-        onClick={e => e.stopPropagation()}
-        style={{
-          width: '100%', maxWidth: 1200,
-          height: '90vh',
-          maxHeight: 900,
-          background: 'var(--bg-primary)', borderRadius: 14,
-          // Borde más definido y sombra fuerte para destacar el modal sin
-          // necesitar un overlay opaco detrás.
-          border: '1px solid var(--border)',
-          display: 'flex', flexDirection: 'column',
-          overflow: 'hidden',
-          boxShadow: '0 30px 80px rgba(0,0,0,0.45), 0 12px 30px rgba(0,0,0,0.25)',
-          position: 'relative',
-        }}
-      >
-        <div style={{
-          padding: '14px 20px', borderBottom: '0.5px solid var(--border)',
-          display: 'flex', alignItems: 'center', gap: 12,
-          flexShrink: 0,
-        }}>
-          <div style={{
-            width: 32, height: 32, borderRadius: 8, background: 'var(--brand-light)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-          }}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--brand)" strokeWidth="2">
-              <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
-              <polyline points="14 2 14 8 20 8" />
-            </svg>
-          </div>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              Mejora con IA — {fileName}
-            </p>
-            <p style={{ fontSize: 12, color: 'var(--text-secondary)', margin: '2px 0 0' }}>
-              {problems.length} problema{problems.length !== 1 ? 's' : ''} detectado{problems.length !== 1 ? 's' : ''}
-            </p>
-          </div>
-          {/*
-            Botón Cerrar (X). Antes era casi invisible: fondo transparente y
-            color text-muted. Ahora tiene fondo sólido con borde y color
-            text-secondary, y se oscurece al pasar el cursor.
-          */}
-          <button
-            onClick={handleCloseRequest}
-            aria-label="Cerrar"
-            style={{
-              width: 34, height: 34, borderRadius: 8,
-              border: '0.5px solid var(--border)',
-              background: 'var(--bg-secondary)',
-              cursor: 'pointer',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              color: 'var(--text-secondary)',
-              transition: 'background 0.15s, color 0.15s',
-            }}
-            onMouseEnter={e => {
-              e.currentTarget.style.background = 'var(--bg-tertiary)';
-              e.currentTarget.style.color = 'var(--text-primary)';
-            }}
-            onMouseLeave={e => {
-              e.currentTarget.style.background = 'var(--bg-secondary)';
-              e.currentTarget.style.color = 'var(--text-secondary)';
-            }}
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
-              <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
-            </svg>
-          </button>
-        </div>
-
-        <div style={{
-          flex: '1 1 auto',
-          display: 'grid',
-          gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)',
-          minHeight: 0,
-          overflow: 'hidden',
-        }}>
-          <div
-            ref={editorRef}
-            style={{
-              display: 'flex', flexDirection: 'column',
-              borderRight: '0.5px solid var(--border)',
-              minWidth: 0, minHeight: 0,
-              padding: '10px 16px',
-              overflow: 'hidden',
-            }}
-          >
-            <EditorPanel value={text} onChange={setText} fileName={fileName} />
-          </div>
-
-          <ChatPanel
-            messages={chatMessages}
-            sending={chatSending}
-            sendMessage={handleManualSend}
-            setMessages={setChatMessages}
-            currentText={text}
-            onApplyText={setText}
-            chatInput={chatInput}
-            setChatInput={setChatInput}
-            onReanalyzeStyle={handleReanalyzeStyle}
-            onReanalyzeAll={handleReanalyzeAll}
-            styleLoading={styleLoading}
-            reanalyzingAll={reanalyzingAll}
-            problems={problems}
-            visibleProblems={visibleProblems}
-            allTypes={ALL_TYPES}
-            activeTypes={activeTypes}
-            typeMeta={TYPE_META}
-            onToggleType={toggleType}
-            onSelectAllTypes={selectAllTypes}
-            onClearTypes={clearTypes}
-            getDocSourceBadge={getDocSourceBadge}
-            onGoToProblem={goToProblem}
-            onSolveOne={handleSolveOne}
-            onSolveGroup={handleSolveGroup}
-          />
-        </div>
-
-        <div style={{
-          padding: '12px 20px', borderTop: '0.5px solid var(--border)',
-          display: 'flex', alignItems: 'center', gap: 10,
-          flexShrink: 0,
-          background: 'var(--bg-primary)',
-        }}>
-          <button
-            onClick={handleCloseRequest}
-            disabled={indexing}
-            style={{
-              display: 'flex', alignItems: 'center', gap: 6,
-              fontSize: 12, padding: '9px 14px', borderRadius: 8,
-              border: '0.5px solid rgba(220,38,38,0.5)',
-              background: 'rgba(220,38,38,0.06)',
-              color: '#dc2626',
-              cursor: indexing ? 'not-allowed' : 'pointer',
-              fontWeight: 500,
-              transition: 'background 0.15s',
-            }}
-            onMouseEnter={e => { if (!indexing) e.currentTarget.style.background = 'rgba(220,38,38,0.12)'; }}
-            onMouseLeave={e => { if (!indexing) e.currentTarget.style.background = 'rgba(220,38,38,0.06)'; }}
-          >
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <polyline points="3 6 5 6 21 6" />
-              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-            </svg>
-            Descartar y cerrar
-          </button>
-
-          <div style={{ flex: 1 }} />
-
-          <button
-            onClick={handleIndexClick}
-            disabled={indexing}
-            style={{
-              display: 'flex', alignItems: 'center', gap: 6,
-              fontSize: 13, padding: '9px 16px', borderRadius: 8,
-              border: 'none',
-              background: indexing ? 'var(--bg-tertiary)' : '#059669',
-              color: indexing ? 'var(--text-muted)' : '#fff',
-              cursor: indexing ? 'not-allowed' : 'pointer',
-              fontWeight: 600,
-              boxShadow: indexing ? 'none' : '0 1px 3px rgba(5,150,105,0.3)',
-              transition: 'background 0.15s',
-            }}
-            onMouseEnter={e => { if (!indexing) e.currentTarget.style.background = '#047857'; }}
-            onMouseLeave={e => { if (!indexing) e.currentTarget.style.background = '#059669'; }}
-          >
-            {indexing ? (
-              <>
-                <div className="animate-spin" style={{
-                  width: 13, height: 13, border: '2px solid currentColor',
-                  borderTopColor: 'transparent', borderRadius: '50%',
-                }} />
-                Indexando...
-              </>
-            ) : (
-              <>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                  <polyline points="20 6 9 17 4 12" />
-                </svg>
-                Indexar versión corregida
-              </>
-            )}
-          </button>
-        </div>
-
-        <ReplaceDialog
-          open={showReplaceDialog}
-          existingDocName={existingDocWithSameName?.name || ''}
-          busy={indexing}
-          onKeepBoth={() => doIndex(text, false)}
-          onReplace={() => doIndex(text, true)}
-          onCancel={() => setShowReplaceDialog(false)}
+    <div style={{ display: 'flex', flexDirection: 'column', background: 'var(--bg-secondary)', minWidth: 0, minHeight: 0, overflow: 'hidden' }}>
+      <div style={{
+        padding: '10px 16px', borderBottom: '0.5px solid var(--border)',
+        display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0, flexWrap: 'wrap',
+      }}>
+        <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', flex: 1, minWidth: 120 }}>
+          Asistente de mejora
+        </span>
+        <ReanalyzeButtons
+          onReanalyzeStyle={onReanalyzeStyle}
+          onReanalyzeAll={onReanalyzeAll}
+          styleLoading={styleLoading}
+          reanalyzingAll={reanalyzingAll}
         />
+        <FilterMenu
+          allTypes={allTypes}
+          activeTypes={activeTypes}
+          onToggle={onToggleType}
+          onSelectAll={onSelectAllTypes}
+          onClear={onClearTypes}
+          labels={labels}
+          totalCount={problems.length}
+        />
+      </div>
+
+      {visibleProblems.length > 0 && (
+        <div style={{
+          padding: '10px 16px', borderBottom: '0.5px solid var(--border)',
+          display: 'flex', flexDirection: 'column', gap: 10,
+          flexShrink: 0, maxHeight: 200, overflowY: 'auto',
+        }}>
+          {groupedProblems.map(({ type, items }) => {
+            const meta = typeMeta[type];
+            return (
+              <div key={type} style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                {/* Encabezado de grupo con botón Resolver */}
+                <div style={{
+                  display: 'flex', alignItems: 'center', gap: 6,
+                  padding: '2px 0',
+                  borderBottom: `0.5px solid ${meta.border}`,
+                  marginBottom: 2,
+                }}>
+                  <span style={{
+                    fontSize: 11,
+                    fontWeight: 700,
+                    color: meta.color,
+                    textTransform: 'uppercase',
+                    letterSpacing: 0.4,
+                    flex: 1,
+                  }}>
+                    {GROUP_LABELS[type]} ({items.length})
+                  </span>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onSolveGroup(type, items.map(({ p }) => p));
+                    }}
+                    disabled={sending}
+                    title={`Resolver todos los problemas de ${GROUP_LABELS[type].toLowerCase()}`}
+                    style={{
+                      fontSize: 9, padding: '2px 8px', borderRadius: 4,
+                      border: `0.5px solid ${meta.color}`,
+                      background: meta.bg, color: meta.color,
+                      cursor: sending ? 'not-allowed' : 'pointer',
+                      fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.3,
+                      opacity: sending ? 0.5 : 1,
+                      flexShrink: 0,
+                    }}
+                  >Resolver</button>
+                </div>
+
+                {/* Tarjetas del grupo */}
+                {items.map(({ p, globalIndex }) => {
+                  const srcBadge = getDocSourceBadge(p.relatedDoc);
+                  const isClickable = !!p.textRef;
+                  return (
+                    <div
+                      key={p.id}
+                      onClick={isClickable ? () => onGoToProblem(p) : undefined}
+                      title={isClickable ? 'Ir al fragmento en el texto' : undefined}
+                      style={{
+                        padding: '8px 10px', borderRadius: 7,
+                        background: meta.bg, borderLeft: `3px solid ${meta.color}`,
+                        cursor: isClickable ? 'pointer' : 'default',
+                        transition: 'background 0.12s',
+                      }}
+                      onMouseEnter={e => {
+                        if (isClickable) e.currentTarget.style.background = meta.border;
+                      }}
+                      onMouseLeave={e => {
+                        if (isClickable) e.currentTarget.style.background = meta.bg;
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 3, flexWrap: 'wrap' }}>
+                        <span style={{ fontSize: 9, fontWeight: 600, textTransform: 'uppercase', color: meta.color, letterSpacing: 0.3 }}>
+                          {meta.label}
+                        </span>
+                        {srcBadge && (
+                          <span style={{
+                            fontSize: 8, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.3,
+                            padding: '1px 5px', borderRadius: 3,
+                            background: `${srcBadge.color}1a`, color: srcBadge.color,
+                            border: `0.5px solid ${srcBadge.color}66`,
+                          }}>{srcBadge.label}</span>
+                        )}
+                        {p.type === 'contradiccion' && p.confidence && (
+                          <span style={{
+                            fontSize: 8, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.3,
+                            padding: '1px 5px', borderRadius: 3,
+                            background: p.confidence === 'alta' ? 'rgba(220,38,38,0.12)' : 'rgba(245,158,11,0.12)',
+                            color: p.confidence === 'alta' ? 'var(--danger-text)' : 'var(--warning-text)',
+                            border: `0.5px solid ${p.confidence === 'alta' ? 'rgba(220,38,38,0.3)' : 'rgba(245,158,11,0.3)'}`,
+                          }}>{p.confidence === 'alta' ? 'Confirmada' : 'Posible'}</span>
+                        )}
+                        <span style={{ fontSize: 11, fontWeight: 500, color: 'var(--text-primary)', flex: 1, minWidth: 0 }}>{p.title}</span>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); onSolveOne(p); }}
+                          disabled={sending}
+                          title="Pedir solución al asistente"
+                          style={{
+                            fontSize: 10, padding: '2px 6px', borderRadius: 4,
+                            border: `0.5px solid ${meta.color}`, background: 'transparent', color: meta.color,
+                            cursor: sending ? 'not-allowed' : 'pointer',
+                            fontWeight: 600, flexShrink: 0,
+                            opacity: sending ? 0.5 : 1,
+                          }}
+                        >Solventar</button>
+                      </div>
+                      <p style={{ fontSize: 10, color: 'var(--text-secondary)', margin: 0, lineHeight: 1.4 }}>{p.description}</p>
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      <div style={{
+        flex: '1 1 auto', overflowY: 'auto', padding: '12px 16px',
+        display: 'flex', flexDirection: 'column', gap: 10, minHeight: 0,
+      }}>
+        {messages.map(msg => (
+          <div key={msg.id} style={{ display: 'flex', gap: 8, justifyContent: msg.role === 'user' ? 'flex-end' : 'flex-start' }}>
+            {msg.role === 'assistant' && (
+              <div style={{
+                width: 24, height: 24, borderRadius: '50%', flexShrink: 0,
+                background: 'var(--brand-light)', display: 'flex',
+                alignItems: 'center', justifyContent: 'center',
+                fontSize: 9, fontWeight: 600, color: 'var(--brand)',
+              }}>IA</div>
+            )}
+            <div style={{ maxWidth: '82%' }}>
+              <div style={{
+                background: msg.role === 'user' ? 'var(--brand)' : 'var(--bg-primary)',
+                color: msg.role === 'user' ? '#fff' : 'var(--text-primary)',
+                border: msg.role === 'assistant' ? '0.5px solid var(--border)' : 'none',
+                borderRadius: 10, padding: '8px 11px',
+                fontSize: 12, lineHeight: 1.5, whiteSpace: 'pre-wrap', wordBreak: 'break-word',
+              }}>{msg.content}</div>
+
+              {msg.replacements && msg.replacements.length > 0 && (
+                <div style={{ marginTop: 6, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  {msg.replacements.map((r, i) => {
+                    const stateBg = r.applied ? 'rgba(5,150,105,0.08)' : r.failed ? 'rgba(220,38,38,0.08)' : 'var(--bg-tertiary)';
+                    const stateBorder = r.applied ? 'rgba(5,150,105,0.4)' : r.failed ? 'rgba(220,38,38,0.4)' : 'var(--border)';
+                    return (
+                      <div key={i} style={{ padding: '6px 9px', borderRadius: 7, background: stateBg, border: `0.5px solid ${stateBorder}` }}>
+                        <p style={{ fontSize: 9, color: 'var(--text-muted)', margin: '0 0 3px', textTransform: 'uppercase', fontWeight: 600 }}>
+                          {r.applied ? '✓ Aplicado' : r.failed ? '✗ No se pudo aplicar' : 'Propuesta de cambio'}
+                        </p>
+                        {r.find && (
+                          <p style={{ fontSize: 10, color: 'var(--text-secondary)', margin: '0 0 2px', textDecoration: 'line-through' }}>
+                            {r.find.slice(0, 140)}{r.find.length > 140 ? '…' : ''}
+                          </p>
+                        )}
+                        <p style={{ fontSize: 10, color: 'var(--text-primary)', margin: 0 }}>
+                          {r.replace ? `→ ${r.replace.slice(0, 140)}${r.replace.length > 140 ? '…' : ''}` : '→ (eliminar)'}
+                        </p>
+                        {!r.applied && !r.failed && (
+                          <div style={{ display: 'flex', gap: 5, marginTop: 6 }}>
+                            <button
+                              onClick={() => handleApply(msg.id, i, r.find, r.replace)}
+                              style={{
+                                fontSize: 10, padding: '3px 8px', borderRadius: 5,
+                                border: 'none', background: '#059669', color: '#fff',
+                                cursor: 'pointer', fontWeight: 500,
+                              }}
+                            >Aplicar al texto</button>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+        ))}
+        {sending && (
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            <div style={{
+              width: 24, height: 24, borderRadius: '50%',
+              background: 'var(--brand-light)', display: 'flex',
+              alignItems: 'center', justifyContent: 'center',
+              fontSize: 9, fontWeight: 600, color: 'var(--brand)',
+            }}>IA</div>
+            <div className="animate-spin" style={{
+              width: 12, height: 12, border: '2px solid var(--brand)',
+              borderTopColor: 'transparent', borderRadius: '50%',
+            }} />
+          </div>
+        )}
+        <div ref={endRef} />
+      </div>
+
+      <div style={{ padding: '10px 14px', borderTop: '0.5px solid var(--border)', flexShrink: 0, background: 'var(--bg-primary)' }}>
+        <div style={{
+          display: 'flex', alignItems: 'flex-end', gap: 6,
+          background: 'var(--bg-secondary)',
+          border: '0.5px solid var(--border)', borderRadius: 9, padding: '6px 9px',
+        }}>
+          <textarea
+            ref={inputRef}
+            value={chatInput}
+            onChange={e => setChatInput(e.target.value)}
+            onKeyDown={e => {
+              if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); }
+            }}
+            placeholder="Escribe una instrucción..."
+            rows={1}
+            disabled={sending}
+            autoFocus
+            style={{
+              flex: 1, resize: 'none', outline: 'none', border: 'none',
+              background: 'transparent', color: 'var(--text-primary)',
+              fontSize: 12, fontFamily: 'var(--font-sans)',
+              lineHeight: 1.5, maxHeight: 80, minHeight: 18,
+            }}
+          />
+          <button
+            onClick={handleSend}
+            disabled={sending || !chatInput.trim()}
+            aria-label="Enviar"
+            style={{
+              width: 26, height: 26, borderRadius: 6, border: 'none',
+              background: sending || !chatInput.trim() ? 'var(--bg-tertiary)' : 'var(--brand)',
+              color: sending || !chatInput.trim() ? 'var(--text-muted)' : '#fff',
+              cursor: sending || !chatInput.trim() ? 'not-allowed' : 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+            }}
+          >
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <line x1="22" y1="2" x2="11" y2="13" />
+              <polygon points="22 2 15 22 11 13 2 9 22 2" />
+            </svg>
+          </button>
+        </div>
       </div>
     </div>
   );
