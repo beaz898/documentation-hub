@@ -297,9 +297,10 @@ export default function ImprovementModal({
     <div
       style={{
         position: 'fixed', inset: 0, zIndex: 100,
-        // Overlay casi sólido para que el marco alrededor del modal no deje
-        // ver el contenido específico de la app de fondo.
-        background: 'rgba(0,0,0,0.92)',
+        // Overlay translúcido, recuperamos la versión más amable que dejaba
+        // intuir la app de fondo. La opacidad real ahora la garantiza el
+        // propio modal con su background sólido.
+        background: 'rgba(0,0,0,0.55)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         padding: 20,
       }}
@@ -310,8 +311,9 @@ export default function ImprovementModal({
           width: '100%', maxWidth: 1200,
           height: '90vh',
           maxHeight: 900,
-          // Fondo totalmente opaco. --bg es #ffffff en light y
-          // #0f1117 en dark, ambos sin transparencia.
+          // Fondo totalmente opaco. --bg es la variable correcta de globals.css
+          // (#ffffff en light, #0f1117 en dark). Antes usábamos --bg-primary,
+          // que NO existe, y eso hacía que el modal se quedara transparente.
           background: 'var(--bg)', borderRadius: 14,
           border: '1px solid var(--border)',
           display: 'flex', flexDirection: 'column',
@@ -320,7 +322,7 @@ export default function ImprovementModal({
           position: 'relative',
         }}
       >
-        {/* CABECERA: background explícito sólido para que no se vea nada detrás. */}
+        {/* CABECERA: background explícito sólido. */}
         <div style={{
           padding: '14px 20px', borderBottom: '0.5px solid var(--border)',
           display: 'flex', alignItems: 'center', gap: 12,
@@ -346,7 +348,7 @@ export default function ImprovementModal({
           </div>
           {/*
             Botón Cerrar (X). Usa --bg-tertiary para diferenciarse claramente
-            del fondo opaco del modal (--bg).
+            del fondo opaco del modal.
           */}
           <button
             onClick={handleCloseRequest}
