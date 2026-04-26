@@ -99,18 +99,36 @@ export default function ChatPage() {
     return () => subscription.unsubscribe();
   }, [router, supabase.auth]);
 
-  // Handle Drive OAuth callback
+  // Handle Drive OAuth callback.
+  //
+  // Cuando el usuario vuelve de conectar Drive (?drive_connected=true) lanzamos
+  // la sincronización inicial automáticamente, en lugar de pedirle que pulse
+  // "Sincronizar" manualmente. Así, conectar = traer los archivos, igual que
+  // hacen Notion, Slack, etc.
+  //
+  // Usamos un useRef como flag para que el efecto no se dispare dos veces
+  // (modo estricto de React, navegaciones). Sin esta protección lanzaríamos
+  // dos sincronizaciones simultáneas.
+  const driveAutoSyncTriggeredRef = useRef(false);
   useEffect(() => {
-    if (searchParams.get('drive_connected') === 'true') {
-      setMessages(prev => [...prev, { id: crypto.randomUUID(), role: 'assistant', content: 'Google Drive conectado correctamente. Pulsa **Sincronizar** para indexar los documentos.' }]);
+    if (searchParams.get('drive_connected') === 'true' && !driveAutoSyncTriggeredRef.current && session) {
+      driveAutoSyncTriggeredRef.current = true;
+      setMessages(prev => [...prev, {
+        id: crypto.randomUUID(), role: 'assistant',
+        content: 'Google Drive conectado correctamente. Trayendo tus archivos...',
+      }]);
       loadDriveStatus();
       window.history.replaceState({}, '', '/chat');
+      // Pequeño delay para que el mensaje de bienvenida se muestre antes de
+      // que aparezca el "Sincronizando..." que añade handleSyncDrive.
+      setTimeout(() => { handleSyncDrive(); }, 400);
     }
     if (searchParams.get('drive_error')) {
       setMessages(prev => [...prev, { id: crypto.randomUUID(), role: 'error', content: `Error conectando Google Drive: ${searchParams.get('drive_error')}` }]);
       window.history.replaceState({}, '', '/chat');
     }
-  }, [searchParams]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams, session]);
 
   // Load documents
   const loadDocuments = useCallback(async () => {
