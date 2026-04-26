@@ -310,9 +310,9 @@ export default function ImprovementModal({
           width: '100%', maxWidth: 1200,
           height: '90vh',
           maxHeight: 900,
-          // Fondo totalmente opaco. --bg-primary es #ffffff en light y
+          // Fondo totalmente opaco. --bg es #ffffff en light y
           // #0f1117 en dark, ambos sin transparencia.
-          background: 'var(--bg-primary)', borderRadius: 14,
+          background: 'var(--bg)', borderRadius: 14,
           border: '1px solid var(--border)',
           display: 'flex', flexDirection: 'column',
           overflow: 'hidden',
@@ -325,7 +325,7 @@ export default function ImprovementModal({
           padding: '14px 20px', borderBottom: '0.5px solid var(--border)',
           display: 'flex', alignItems: 'center', gap: 12,
           flexShrink: 0,
-          background: 'var(--bg-primary)',
+          background: 'var(--bg)',
         }}>
           <div style={{
             width: 32, height: 32, borderRadius: 8, background: 'var(--brand-light)',
@@ -346,7 +346,7 @@ export default function ImprovementModal({
           </div>
           {/*
             Botón Cerrar (X). Usa --bg-tertiary para diferenciarse claramente
-            del fondo opaco del modal (--bg-primary).
+            del fondo opaco del modal (--bg).
           */}
           <button
             onClick={handleCloseRequest}
@@ -382,7 +382,7 @@ export default function ImprovementModal({
           gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)',
           minHeight: 0,
           overflow: 'hidden',
-          background: 'var(--bg-primary)',
+          background: 'var(--bg)',
         }}>
           {/* PANEL IZQUIERDO (editor): background explícito sólido. */}
           <div
@@ -393,7 +393,7 @@ export default function ImprovementModal({
               minWidth: 0, minHeight: 0,
               padding: '10px 16px',
               overflow: 'hidden',
-              background: 'var(--bg-primary)',
+              background: 'var(--bg)',
             }}
           >
             <EditorPanel value={text} onChange={setText} fileName={fileName} />
@@ -431,7 +431,7 @@ export default function ImprovementModal({
           padding: '12px 20px', borderTop: '0.5px solid var(--border)',
           display: 'flex', alignItems: 'center', gap: 10,
           flexShrink: 0,
-          background: 'var(--bg-primary)',
+          background: 'var(--bg)',
         }}>
           {/*
             Botón Descartar y cerrar. Sólido en rojo destructivo, simétrico
