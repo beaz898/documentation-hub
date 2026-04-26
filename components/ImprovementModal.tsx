@@ -15,10 +15,21 @@ interface ExistingDocForDialog {
   name: string;
 }
 
+/**
+ * Forma de los styleProblems que vienen del análisis exhaustivo. Coincide con
+ * lo que devuelve /api/analyze-style y con StyleApiProblem en useStyleAnalysis.
+ */
+interface AnalysisStyleProblem {
+  type: Problem['type'];
+  title: string;
+  description: string;
+  textRef: string;
+}
+
 interface ImprovementModalProps {
   fileName: string;
   initialText: string;
-  analysis: RawAnalysis;
+  analysis: RawAnalysis & { styleProblems?: AnalysisStyleProblem[] };
   documentSources?: Record<string, string[]>;
   storagePath: string;
   existingDocWithSameName?: ExistingDocForDialog | null;
@@ -118,6 +129,9 @@ export default function ImprovementModal({
     initialText,
     fileName,
     accessToken,
+    // Precargamos los problemas de estilo del análisis exhaustivo, si los hay.
+    // Así el usuario los ve al abrir el modal sin tener que pulsar "Reanalizar estilo".
+    initialStyleProblems: analysis.styleProblems,
   });
 
   const problems = useMemo<Problem[]>(
@@ -155,16 +169,19 @@ export default function ImprovementModal({
   const didWelcomeRef = useRef(false);
   useEffect(() => {
     if (didWelcomeRef.current) return;
-    if (crossDocProblems.length === 0) {
+    // El mensaje de bienvenida resume los problemas detectados al abrir el modal.
+    // Incluimos cross-doc + estilo (ambos vienen ya cargados si el análisis fue exhaustivo).
+    const allInitial = [...crossDocProblems, ...styleProblems];
+    if (allInitial.length === 0) {
       didWelcomeRef.current = true;
       return;
     }
     didWelcomeRef.current = true;
-    const summary = crossDocProblems
+    const summary = allInitial
       .map((p, i) => `${i + 1}. [${TYPE_META[p.type].label}] ${p.title}`)
       .join('\n');
     addAssistantMessage(
-      `He detectado ${crossDocProblems.length} problema${crossDocProblems.length !== 1 ? 's' : ''} en el documento:\n\n${summary}\n\n¿Por dónde quieres empezar? Puedo proponer correcciones concretas, explicarte cualquier punto, borrar fragmentos o reescribir partes a tu gusto.`
+      `He detectado ${allInitial.length} problema${allInitial.length !== 1 ? 's' : ''} en el documento:\n\n${summary}\n\n¿Por dónde quieres empezar? Puedo proponer correcciones concretas, explicarte cualquier punto, borrar fragmentos o reescribir partes a tu gusto.`
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
