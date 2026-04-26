@@ -292,13 +292,15 @@ export default function ImprovementModal({
   }, [onClose]);
 
   return (
+    // Contenedor de overlay propio. NO usamos la clase global "modal-overlay"
+    // de globals.css porque su background y animación entraban en conflicto
+    // con los estilos inline y daban una falsa sensación de translucidez.
     <div
-      className="modal-overlay"
       style={{
         position: 'fixed', inset: 0, zIndex: 100,
-        // Overlay intermedio: lo bastante presente para que el modal sea
-        // claramente protagonista, pero sin ocultar la app de detrás.
-        background: 'rgba(0,0,0,0.35)',
+        // Overlay con presencia clara. La app de detrás se ve atenuada pero
+        // visible, dando la pista al usuario de que sigue ahí operativa.
+        background: 'rgba(0,0,0,0.65)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         padding: 20,
       }}
@@ -309,7 +311,8 @@ export default function ImprovementModal({
           width: '100%', maxWidth: 1200,
           height: '90vh',
           maxHeight: 900,
-          // Fondo totalmente opaco del modal.
+          // Fondo totalmente opaco. --bg-primary es #ffffff en light y
+          // #0f1117 en dark, ambos sin transparencia.
           background: 'var(--bg-primary)', borderRadius: 14,
           border: '1px solid var(--border)',
           display: 'flex', flexDirection: 'column',
@@ -341,9 +344,8 @@ export default function ImprovementModal({
             </p>
           </div>
           {/*
-            Botón Cerrar (X). Usa --bg-tertiary (un escalón más alejado que
-            --bg-secondary) para diferenciarse claramente del fondo opaco del
-            modal, que es --bg-primary.
+            Botón Cerrar (X). Usa --bg-tertiary para diferenciarse claramente
+            del fondo opaco del modal (--bg-primary).
           */}
           <button
             onClick={handleCloseRequest}
@@ -427,8 +429,8 @@ export default function ImprovementModal({
           background: 'var(--bg-primary)',
         }}>
           {/*
-            Botón Descartar y cerrar. Ahora sólido como el de Indexar pero
-            en rojo destructivo. Sombra suave y hover que oscurece.
+            Botón Descartar y cerrar. Sólido en rojo destructivo, simétrico
+            al de Indexar versión corregida.
           */}
           <button
             onClick={handleCloseRequest}
