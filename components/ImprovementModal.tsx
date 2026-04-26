@@ -293,14 +293,15 @@ export default function ImprovementModal({
 
   return (
     // Contenedor de overlay propio. NO usamos la clase global "modal-overlay"
-    // de globals.css porque su background y animación entraban en conflicto
-    // con los estilos inline y daban una falsa sensación de translucidez.
+    // de globals.css porque su background entra en conflicto con el inline.
     <div
       style={{
         position: 'fixed', inset: 0, zIndex: 100,
-        // Overlay con presencia clara. La app de detrás se ve atenuada pero
-        // visible, dando la pista al usuario de que sigue ahí operativa.
-        background: 'rgba(0,0,0,0.65)',
+        // Overlay casi sólido para que el marco alrededor del modal no deje
+        // ver el contenido específico de la app de fondo. Conservamos un
+        // ligero traslucido (0.92) para mantener la sensación de profundidad
+        // sin exponer el contenido legible de la app.
+        background: 'rgba(0,0,0,0.92)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         padding: 20,
       }}
