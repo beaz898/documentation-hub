@@ -8,6 +8,21 @@ interface EditorPanelProps {
   fileName: string;
 }
 
+/**
+ * Estilo unificado para los botones secundarios del editor (Copiar, Descargar).
+ * Antes eran transparentes y costaban verlos. Ahora usan un fondo sólido suave
+ * con borde, igualando el estilo del botón Cerrar de la cabecera del modal.
+ */
+const SECONDARY_BUTTON_STYLE: React.CSSProperties = {
+  display: 'flex', alignItems: 'center', gap: 6,
+  fontSize: 12, padding: '7px 12px', borderRadius: 8,
+  border: '0.5px solid var(--border)',
+  background: 'var(--bg-secondary)',
+  color: 'var(--text-secondary)',
+  cursor: 'pointer', fontWeight: 500,
+  transition: 'background 0.15s, color 0.15s',
+};
+
 export default function EditorPanel({ value, onChange, fileName }: EditorPanelProps) {
   const [copied, setCopied] = useState(false);
 
@@ -33,6 +48,15 @@ export default function EditorPanel({ value, onChange, fileName }: EditorPanelPr
     URL.revokeObjectURL(url);
   };
 
+  const onHoverEnter = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.currentTarget.style.background = 'var(--bg-tertiary)';
+    e.currentTarget.style.color = 'var(--text-primary)';
+  };
+  const onHoverLeave = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.currentTarget.style.background = 'var(--bg-secondary)';
+    e.currentTarget.style.color = 'var(--text-secondary)';
+  };
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0 }}>
       <textarea
@@ -53,23 +77,17 @@ export default function EditorPanel({ value, onChange, fileName }: EditorPanelPr
         <div style={{ flex: 1 }} />
         <button
           onClick={handleCopy}
-          style={{
-            display: 'flex', alignItems: 'center', gap: 6,
-            fontSize: 12, padding: '7px 12px', borderRadius: 8,
-            border: '0.5px solid var(--border)', background: 'transparent',
-            color: 'var(--text-secondary)', cursor: 'pointer', fontWeight: 500,
-          }}
+          style={SECONDARY_BUTTON_STYLE}
+          onMouseEnter={onHoverEnter}
+          onMouseLeave={onHoverLeave}
         >
           {copied ? '✓ Copiado' : 'Copiar'}
         </button>
         <button
           onClick={handleDownload}
-          style={{
-            display: 'flex', alignItems: 'center', gap: 6,
-            fontSize: 12, padding: '7px 12px', borderRadius: 8,
-            border: '0.5px solid var(--border)', background: 'transparent',
-            color: 'var(--text-secondary)', cursor: 'pointer', fontWeight: 500,
-          }}
+          style={SECONDARY_BUTTON_STYLE}
+          onMouseEnter={onHoverEnter}
+          onMouseLeave={onHoverLeave}
         >
           Descargar .txt
         </button>
