@@ -11,6 +11,7 @@ interface UsageLogEntry {
   cacheReadTokens?: number;
   latencyMs: number;
   success: boolean;
+  creditsConsumed?: number;
   errorMessage?: string;
   userQuery?: string;
 }
@@ -38,6 +39,7 @@ export async function logUsage(
         cache_read_tokens: entry.cacheReadTokens ?? 0,
         latency_ms: entry.latencyMs,
         success: entry.success,
+        credits_consumed: entry.creditsConsumed ?? 0,
         error_message: entry.errorMessage || null,
         user_query: entry.userQuery || null,
       });
