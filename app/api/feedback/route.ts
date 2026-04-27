@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
+import { resolveOrg } from '@/lib/org';
 
 export async function POST(req: NextRequest) {
   try {
@@ -26,7 +27,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'El mensaje no puede superar los 5000 caracteres' }, { status: 400 });
     }
 
-    const orgId = user.user_metadata?.org_id || user.id;
+    // Resolver organización
+    const org = await resolveOrg(supabase, user.id);
+    const orgId = org?.orgId || user.id;
 
     const { error: insertError } = await supabase.from('feedback').insert({
       user_id: user.id,
