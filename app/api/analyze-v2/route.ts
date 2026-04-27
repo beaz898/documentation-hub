@@ -4,6 +4,7 @@ import { chunkText, extractText } from '@/lib/chunking';
 import { runAnalysisPipeline, runExhaustiveAnalysisPipeline } from '@/lib/analysis/pipeline';
 import { logUsage } from '@/lib/usage-logger';
 import { checkRateLimit } from '@/lib/rate-limiter';
+import { resolveOrg } from '@/lib/org';
 
 export const maxDuration = 120;
 
@@ -36,7 +37,16 @@ export async function POST(req: NextRequest) {
     }
 
     userId = user.id;
-    orgId = user.user_metadata?.org_id || user.id;
+
+    // Resolver organización
+    const org = await resolveOrg(supabase, userId);
+    if (!org) {
+      return NextResponse.json(
+        { error: 'No perteneces a ninguna organización. Contacta con el administrador.' },
+        { status: 403 }
+      );
+    }
+    orgId = org.orgId;
 
     const body = await req.json();
     const { storagePath, fileName, text: directText, exhaustive } = body;
