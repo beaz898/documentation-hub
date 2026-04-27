@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import { getIndex } from '@/lib/pinecone';
+import { resolveOrg } from '@/lib/org';
 
 export async function POST(req: NextRequest) {
   try {
@@ -17,7 +18,15 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Token inválido' }, { status: 401 });
     }
 
-    const orgId = user.user_metadata?.org_id || user.id;
+    // Resolver organización
+    const org = await resolveOrg(supabase, user.id);
+    if (!org) {
+      return NextResponse.json(
+        { error: 'No perteneces a ninguna organización. Contacta con el administrador.' },
+        { status: 403 }
+      );
+    }
+    const orgId = org.orgId;
 
     // Get all drive documents to delete their vectors
     const { data: driveDocs } = await supabase.from('documents')
