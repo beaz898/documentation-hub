@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
+import { resolveOrg } from '@/lib/org';
 
 export async function GET(req: NextRequest) {
   try {
@@ -15,6 +16,15 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Token inválido' }, { status: 401 });
     }
 
+    // Resolver organización
+    const orgInfo = await resolveOrg(supabase, user.id);
+    if (!orgInfo) {
+      return NextResponse.json(
+        { error: 'No perteneces a ninguna organización. Contacta con el administrador.' },
+        { status: 403 }
+      );
+    }
+
     const clientId = process.env.GOOGLE_CLIENT_ID!;
     const redirectUri = process.env.GOOGLE_REDIRECT_URI!;
 
@@ -26,7 +36,7 @@ export async function GET(req: NextRequest) {
 
     const state = Buffer.from(JSON.stringify({
       userId: user.id,
-      orgId: user.user_metadata?.org_id || user.id,
+      orgId: orgInfo.orgId,
       token,
     })).toString('base64');
 
