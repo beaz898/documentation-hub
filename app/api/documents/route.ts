@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import { getIndex } from '@/lib/pinecone';
+import { resolveOrg } from '@/lib/org';
 
 // GET: Listar documentos del usuario
 export async function GET(req: NextRequest) {
@@ -15,7 +16,17 @@ export async function GET(req: NextRequest) {
     if (authError || !user) {
       return NextResponse.json({ error: 'Token inválido' }, { status: 401 });
     }
-    const orgId = user.user_metadata?.org_id || user.id;
+
+    // Resolver organización
+    const org = await resolveOrg(supabase, user.id);
+    if (!org) {
+      return NextResponse.json(
+        { error: 'No perteneces a ninguna organización. Contacta con el administrador.' },
+        { status: 403 }
+      );
+    }
+    const orgId = org.orgId;
+
     const { data: documents, error } = await supabase
       .from('documents')
       .select('id, name, size_bytes, chunk_count, created_at, status, source, folder_path, folder_id')
@@ -42,7 +53,17 @@ export async function DELETE(req: NextRequest) {
     if (authError || !user) {
       return NextResponse.json({ error: 'Token inválido' }, { status: 401 });
     }
-    const orgId = user.user_metadata?.org_id || user.id;
+
+    // Resolver organización
+    const org = await resolveOrg(supabase, user.id);
+    if (!org) {
+      return NextResponse.json(
+        { error: 'No perteneces a ninguna organización. Contacta con el administrador.' },
+        { status: 403 }
+      );
+    }
+    const orgId = org.orgId;
+
     const { searchParams } = new URL(req.url);
     const documentId = searchParams.get('id');
     if (!documentId) {
