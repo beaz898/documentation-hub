@@ -4,6 +4,7 @@ import { getIndex } from '@/lib/pinecone';
 import { generateEmbeddings } from '@/lib/embeddings';
 import { chunkText } from '@/lib/chunking';
 import { randomUUID } from 'crypto';
+import { resolveOrg } from '@/lib/org';
 
 export const maxDuration = 300;
 
@@ -34,7 +35,15 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Token inválido' }, { status: 401 });
     }
 
-    const orgId = user.user_metadata?.org_id || user.id;
+    // Resolver organización
+    const org = await resolveOrg(supabase, user.id);
+    if (!org) {
+      return NextResponse.json(
+        { error: 'No perteneces a ninguna organización. Contacta con el administrador.' },
+        { status: 403 }
+      );
+    }
+    const orgId = org.orgId;
 
     const body = await req.json();
     const { text, name, originalStoragePath, replaceExistingId, sizeBytes } = body;
