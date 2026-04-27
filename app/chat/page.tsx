@@ -300,6 +300,7 @@ export default function ChatPage() {
               analysis: analyzeData.analysis,
               documentSources: analyzeData.documentSources,
             });
+            loadCredits();
             return;
           } else {
             setAnalysisProgress(100);
@@ -308,6 +309,7 @@ export default function ChatPage() {
             setAnalysisProgress(0);
             setAnalysisPhase('');
             setMessages(prev => [...prev, { id: crypto.randomUUID(), role: 'assistant', content: `Análisis completado: sin problemas. Indexando...` }]);
+            loadCredits();
           }
         } else {
           setAnalysisProgress(0);
@@ -489,6 +491,7 @@ export default function ChatPage() {
           analysis: analyzeData.analysis,
           documentSources: analyzeData.documentSources ?? savedDocumentSources,
         });
+        loadCredits();
       } else {
         setAnalysisProgress(0);
         setAnalysisPhase('');
