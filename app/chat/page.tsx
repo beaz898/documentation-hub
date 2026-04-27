@@ -72,6 +72,7 @@ export default function ChatPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const supabase = createClient();
+  const [credits, setCredits] = useState<{ remaining: number; extra: number; plan: string } | null>(null);
 
   // Detect mobile
   useEffect(() => {
@@ -156,7 +157,18 @@ export default function ChatPage() {
     } catch (err) { console.error('Error loading drive status:', err); }
   }, [session]);
 
-  useEffect(() => { if (session) { loadDocuments(); loadDriveStatus(); } }, [session, loadDocuments, loadDriveStatus]);
+  const loadCredits = useCallback(async () => {
+  if (!session) return;
+  try {
+    const res = await fetch('/api/usage/summary', { headers: { Authorization: `Bearer ${session.access_token}` } });
+    if (res.ok) {
+      const data = await res.json();
+      setCredits({ remaining: data.creditsRemaining + data.creditsExtra, extra: data.creditsExtra, plan: data.plan });
+    }
+  } catch (err) { console.error('Error loading credits:', err); }
+}, [session]);
+
+  useEffect(() => { if (session) { loadDocuments(); loadDriveStatus(); loadCredits(); } }, [session, loadDocuments, loadDriveStatus, loadCredits]);
 
   // Connect Google Drive
   function handleConnectDrive() {
@@ -561,9 +573,11 @@ export default function ChatPage() {
       const data = await res.json();
       if (!res.ok) {
         setMessages(prev => prev.filter(m => m.id !== loadingMsg.id).concat({ id: crypto.randomUUID(), role: 'error', content: data.error || `Error ${res.status}` }));
+        loadCredits();
         return;
       }
       setMessages(prev => prev.filter(m => m.id !== loadingMsg.id).concat({ id: crypto.randomUUID(), role: 'assistant', content: data.answer, sources: data.sources }));
+      loadCredits();
     } catch {
       setMessages(prev => prev.filter(m => m.id !== loadingMsg.id).concat({ id: crypto.randomUUID(), role: 'error', content: 'Error de conexión.' }));
     } finally { setSending(false); setTimeout(() => inputRef.current?.focus(), 50); }
@@ -607,6 +621,7 @@ export default function ChatPage() {
             userEmail={session.user.email || 'Usuario'}
             analysisProgress={analysisProgress}
             analysisPhase={analysisPhase}
+            credits={credits}
           />
         </div>
       </div>
