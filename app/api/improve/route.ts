@@ -6,6 +6,7 @@ import { callLLMWithUsage } from '@/lib/analysis/llm-client';
 import { logUsage } from '@/lib/usage-logger';
 import { checkRateLimit } from '@/lib/rate-limiter';
 import { resolveOrg } from '@/lib/org';
+import { consumeCredits, getCreditCost } from '@/lib/credits';
 
 export const maxDuration = 120;
 
@@ -142,6 +143,7 @@ export async function POST(req: NextRequest) {
   let userId = '';
   let orgId = '';
   let userMessage = '';
+  let creditsConsumed = 0;
   const supabase = createServiceClient();
 
   try {
@@ -177,6 +179,21 @@ export async function POST(req: NextRequest) {
         { status: 429 }
       );
     }
+
+    // Verificar y descontar créditos
+    const creditResult = await consumeCredits(supabase, orgId, '/api/improve');
+    if (!creditResult.success) {
+      return NextResponse.json(
+        {
+          error: 'Se han agotado los créditos de tu plan. Contacta con el administrador para recargar o cambiar de plan.',
+          errorType: 'no_credits',
+          creditsRemaining: creditResult.creditsRemaining,
+          creditsExtra: creditResult.creditsExtra,
+        },
+        { status: 402 }
+      );
+    }
+    creditsConsumed = getCreditCost('/api/improve');
 
     const body = await req.json();
     const {
@@ -306,6 +323,7 @@ Recuerda: si propones REPLACEMENT(s), el "find" debe ser copia literal del TEXTO
         outputTokens: 0,
         latencyMs: Date.now() - startedAt,
         success: false,
+        creditsConsumed,
         errorMessage: message,
         userQuery: userMessage,
       });
@@ -356,6 +374,7 @@ Recuerda: si propones REPLACEMENT(s), el "find" debe ser copia literal del TEXTO
       cacheReadTokens: usage.cacheReadTokens,
       latencyMs,
       success: true,
+      creditsConsumed,
       userQuery: userMessage,
     });
 
@@ -385,6 +404,7 @@ Recuerda: si propones REPLACEMENT(s), el "find" debe ser copia literal del TEXTO
         outputTokens: 0,
         latencyMs: Date.now() - startedAt,
         success: false,
+        creditsConsumed,
         errorMessage: message,
         userQuery: userMessage || undefined,
       });
