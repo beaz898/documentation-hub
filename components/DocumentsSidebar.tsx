@@ -28,6 +28,12 @@ interface DriveStatus {
   folders?: DriveFolder[];
 }
 
+interface Credits {
+  remaining: number;
+  extra: number;
+  plan: string;
+}
+
 interface DocumentsSidebarProps {
   documents: Document[];
   loading: boolean;
@@ -43,6 +49,7 @@ interface DocumentsSidebarProps {
   userEmail: string;
   analysisProgress?: number;
   analysisPhase?: string;
+  credits?: Credits | null;
 }
 
 // ============================================================
@@ -93,6 +100,16 @@ function countDocsRecursive(node: FolderNode): number {
   return total;
 }
 
+// Plan display names
+const PLAN_LABELS: Record<string, string> = {
+  free: 'Free',
+  starter: 'Starter',
+  pro: 'Pro',
+  business: 'Business',
+  business_plus: 'Business+',
+  enterprise: 'Enterprise',
+};
+
 export default function DocumentsSidebar({
   documents,
   loading,
@@ -108,6 +125,7 @@ export default function DocumentsSidebar({
   userEmail,
   analysisProgress = 0,
   analysisPhase = '',
+  credits,
 }: DocumentsSidebarProps) {
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState('');
@@ -190,255 +208,254 @@ export default function DocumentsSidebar({
         fontSize: 8, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.4,
         padding: '1px 5px', borderRadius: 3,
         background: isDrive ? 'rgba(37,99,235,0.12)' : 'rgba(124,58,237,0.12)',
-        color: isDrive ? '#2563eb' : '#7c3aed',
-        border: `0.5px solid ${isDrive ? 'rgba(37,99,235,0.4)' : 'rgba(124,58,237,0.4)'}`,
-        flexShrink: 0,
+        color: isDrive ? 'rgb(37,99,235)' : 'rgb(124,58,237)',
       }}>
-        {isDrive ? 'drive' : 'manual'}
+        {source}
       </span>
     );
   }
 
-  // ============================================================
-  // Recursive renderer for the Drive folder tree
-  // ============================================================
-  function renderFolderNode(node: FolderNode, depth: number): React.ReactNode {
+  // Section header chevron
+  function SectionChevron({ open }: { open: boolean }) {
+    return (
+      <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+        style={{ transition: 'transform 0.15s', transform: open ? 'rotate(90deg)' : 'rotate(0deg)', flexShrink: 0 }}>
+        <polyline points="9 18 15 12 9 6" />
+      </svg>
+    );
+  }
+
+  // Document row renderer (reused for both drive and manual docs)
+  function DocRow({ doc, showSourceBadge, badgeType }: { doc: Document; showSourceBadge: boolean; badgeType: 'drive' | 'manual' }) {
+    return (
+      <div
+        key={doc.id}
+        style={{
+          display: 'flex', alignItems: 'center', gap: 7, padding: '6px 8px',
+          borderRadius: 7, transition: 'background 0.1s',
+        }}
+        onMouseEnter={e => (e.currentTarget.style.background = 'var(--surface-hover)')}
+        onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+      >
+        <div style={{
+          width: 22, height: 22, borderRadius: 5, flexShrink: 0,
+          background: 'var(--brand-light)', display: 'flex',
+          alignItems: 'center', justifyContent: 'center',
+        }}>
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--brand)" strokeWidth="2">
+            <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
+          </svg>
+        </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+            <p style={{ fontSize: 11, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', margin: 0, flex: 1 }}>
+              {doc.name}
+            </p>
+            {showSourceBadge && <SourceBadge source={badgeType} />}
+          </div>
+          <p style={{ fontSize: 9, color: 'var(--text-muted)' }}>
+            {formatSize(doc.size_bytes)} · {doc.chunk_count} frag. · {formatDate(doc.created_at)}
+          </p>
+        </div>
+        {doc.source !== 'google_drive' && (
+          <button
+            onClick={() => handleDelete(doc.id, doc.name)}
+            disabled={deleting === doc.id}
+            aria-label={`Eliminar ${doc.name}`}
+            style={{
+              opacity: 0, padding: 3, borderRadius: 5, border: 'none',
+              background: 'transparent', cursor: 'pointer', color: 'var(--danger)',
+              flexShrink: 0, transition: 'opacity 0.1s',
+            }}
+            onMouseEnter={e => (e.currentTarget.style.opacity = '1')}
+            onMouseLeave={e => (e.currentTarget.style.opacity = '0')}
+          >
+            {deleting === doc.id ? (
+              <div className="animate-spin" style={{ width: 10, height: 10, border: '1.5px solid currentColor', borderTopColor: 'transparent', borderRadius: '50%' }} />
+            ) : (
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M3 6h18" /><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+                <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+              </svg>
+            )}
+          </button>
+        )}
+      </div>
+    );
+  }
+
+  // Recursive folder renderer for Drive tree
+  function FolderView({ node, depth }: { node: FolderNode; depth: number }) {
     const isExpanded = expandedFolders.has(node.fullPath);
-    const totalCount = countDocsRecursive(node);
-    const indentPx = 8 + depth * 14;
+    const totalDocs = countDocsRecursive(node);
+    const hasChildren = node.children.size > 0 || node.docs.length > 0;
+
+    if (!hasChildren) return null;
 
     return (
-      <div key={node.fullPath || 'root'}>
+      <div style={{ marginLeft: depth > 0 ? 10 : 0 }}>
         <div
           onClick={() => toggleFolder(node.fullPath)}
+          role="button"
           style={{
-            display: 'flex', alignItems: 'center', gap: 4,
-            padding: '5px 6px', paddingLeft: indentPx,
-            borderRadius: 6, cursor: 'pointer',
-            fontSize: 11, color: 'var(--text-primary)',
+            display: 'flex', alignItems: 'center', gap: 5, padding: '4px 6px',
+            borderRadius: 5, cursor: 'pointer', fontSize: 11, color: 'var(--text-primary)',
             transition: 'background 0.1s',
           }}
           onMouseEnter={e => (e.currentTarget.style.background = 'var(--surface-hover)')}
           onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
         >
-          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)"
-            strokeWidth="2" style={{ flexShrink: 0, transition: 'transform 0.15s', transform: isExpanded ? 'rotate(90deg)' : 'none' }}>
-            <polyline points="9 18 15 12 9 6" />
-          </svg>
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--warning)" strokeWidth="2" style={{ flexShrink: 0 }}>
+          <SectionChevron open={isExpanded} />
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" strokeWidth="2">
             <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
           </svg>
           <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{node.name}</span>
-          <span style={{ fontSize: 9, color: 'var(--text-muted)', flexShrink: 0 }}>{totalCount}</span>
+          <span style={{ fontSize: 9, color: 'var(--text-muted)', flexShrink: 0 }}>{totalDocs}</span>
         </div>
-
         {isExpanded && (
           <div>
-            {/* Render child folders first */}
-            {Array.from(node.children.values())
-              .sort((a, b) => a.name.localeCompare(b.name))
-              .map(child => renderFolderNode(child, depth + 1))}
-
-            {/* Then render docs directly in this folder */}
-            {node.docs
-              .slice()
-              .sort((a, b) => a.name.localeCompare(b.name))
-              .map(doc => (
-                <div key={doc.id} style={{
-                  display: 'flex', alignItems: 'center', gap: 5,
-                  padding: '3px 6px',
-                  paddingLeft: indentPx + 24,
-                  fontSize: 10, color: 'var(--text-secondary)',
-                }}>
-                  <div style={{ width: 4, height: 4, borderRadius: '50%', background: 'var(--success)', flexShrink: 0 }} />
-                  <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>{doc.name}</span>
-                  {crossSourceNames.has(doc.name) && <SourceBadge source="drive" />}
-                  <span style={{ fontSize: 9, color: 'var(--text-muted)', flexShrink: 0 }}>{formatSize(doc.size_bytes)}</span>
-                </div>
-              ))}
+            {[...node.children.values()].map(child => (
+              <FolderView key={child.fullPath} node={child} depth={depth + 1} />
+            ))}
+            {node.docs.map(doc => (
+              <div key={doc.id} style={{ marginLeft: 10 }}>
+                <DocRow doc={doc} showSourceBadge={crossSourceNames.has(doc.name)} badgeType="drive" />
+              </div>
+            ))}
           </div>
         )}
       </div>
     );
   }
 
-  // Chevron icon for collapsible section headers
-  function SectionChevron({ open }: { open: boolean }) {
-    return (
-      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-        strokeWidth="2.5" style={{ flexShrink: 0, transition: 'transform 0.15s', transform: open ? 'rotate(90deg)' : 'none' }}>
-        <polyline points="9 18 15 12 9 6" />
-      </svg>
-    );
-  }
-
   const sectionHeaderStyle: React.CSSProperties = {
-    position: 'sticky', top: 0, zIndex: 2,
-    padding: '8px 12px', fontSize: 11, fontWeight: 600,
-    color: 'var(--text-secondary)', background: 'var(--bg-secondary)',
-    borderBottom: '0.5px solid var(--border)',
     display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+    padding: '7px 14px', fontSize: 10, fontWeight: 600,
+    color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: 0.5,
     cursor: 'pointer', userSelect: 'none',
   };
 
+  // Credit bar color logic
+  const creditBarColor = credits
+    ? credits.remaining <= 10
+      ? 'var(--danger)'
+      : credits.remaining <= 30
+        ? '#f59e0b'
+        : 'var(--brand)'
+    : 'var(--brand)';
+
   return (
     <div style={{
-      display: 'flex', flexDirection: 'column', height: '100%',
+      height: '100%', display: 'flex', flexDirection: 'column',
       background: 'var(--bg-secondary)', borderRight: '0.5px solid var(--border)',
     }}>
-      {/* 1. Logo */}
+      {/* 1. Header */}
       <div style={{
-        padding: '14px 16px', flexShrink: 0, borderBottom: '0.5px solid var(--border)',
-        display: 'flex', alignItems: 'center', gap: 10,
+        padding: '14px 14px 10px', borderBottom: '0.5px solid var(--border)',
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0,
       }}>
-        <div style={{
-          width: 32, height: 32, borderRadius: 9, background: 'var(--brand)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-        }}>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2">
-            <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20" />
-            <path d="M8 7h6" /><path d="M8 11h8" />
-          </svg>
-        </div>
-        <div style={{ flex: 1 }}>
-          <h2 style={{ fontSize: 13, fontWeight: 600 }}>Documentation Hub</h2>
-          <p style={{ fontSize: 10, color: 'var(--text-muted)' }}>
-            {documents.length} documento{documents.length !== 1 ? 's' : ''}
-          </p>
+        <div>
+          <h2 style={{ fontSize: 12, fontWeight: 700, letterSpacing: -0.2 }}>Documentos</h2>
+          <p style={{ fontSize: 9, color: 'var(--text-muted)', marginTop: 2 }}>{documents.length} archivos indexados</p>
         </div>
         {onClose && (
-          <button onClick={onClose} aria-label="Cerrar" style={{
-            width: 28, height: 28, borderRadius: 7, border: 'none',
-            background: 'transparent', cursor: 'pointer',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          <button onClick={onClose} aria-label="Cerrar sidebar" style={{
+            width: 28, height: 28, borderRadius: 6, border: 'none', background: 'transparent',
+            cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
             color: 'var(--text-muted)',
           }}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
-            </svg>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
           </button>
         )}
       </div>
 
-      {/* Scrollable area for both sections */}
-      <div style={{ flex: 1, overflowY: 'auto' }}>
-
-        {/* 2. Google Drive section */}
+      {/* 2. Scrollable content */}
+      <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden' }}>
+        {/* Drive section */}
         <div
           style={sectionHeaderStyle}
-          onClick={(e) => {
-            // Don't toggle section if user clicked the sync button
-            if ((e.target as HTMLElement).closest('button')) return;
-            setDriveSectionOpen(v => !v);
-          }}
+          onClick={() => setDriveSectionOpen(v => !v)}
           role="button"
           aria-expanded={driveSectionOpen}
           aria-label="Mostrar/ocultar sección Google Drive"
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             <SectionChevron open={driveSectionOpen} />
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--brand)" strokeWidth="2">
-              <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
-            </svg>
             <span>Google Drive</span>
-            <span style={{ fontSize: 10, color: 'var(--text-muted)', fontWeight: 500 }}>{driveDocs.length}</span>
           </div>
-          {driveStatus.connected && (
-            <button
-              onClick={(e) => { e.stopPropagation(); onSyncDrive(); }}
-              disabled={syncing}
-              aria-label="Sincronizar"
-              style={{
-                fontSize: 10, padding: '3px 8px', borderRadius: 5,
-                border: '0.5px solid var(--border)', background: 'var(--bg-tertiary)',
-                color: 'var(--text-secondary)', cursor: syncing ? 'not-allowed' : 'pointer',
-                display: 'flex', alignItems: 'center', gap: 3,
-              }}
-            >
-              <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
-                style={{ animation: syncing ? 'spin 1s linear infinite' : 'none' }}>
-                <path d="M21 2v6h-6" /><path d="M3 12a9 9 0 0 1 15-6.7L21 8" />
-                <path d="M3 22v-6h6" /><path d="M21 12a9 9 0 0 1-15 6.7L3 16" />
-              </svg>
-              {syncing ? 'Sincronizando...' : 'Sincronizar'}
-            </button>
-          )}
+          <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>
+            {driveStatus.connected ? driveDocs.length : '—'}
+          </span>
         </div>
 
         {driveSectionOpen && (
-          <div style={{ padding: '8px 12px' }}>
+          <div style={{ padding: '6px 10px' }}>
             {!driveStatus.connected ? (
-              /* Not connected: show connect button */
-              <button
-                onClick={onConnectDrive}
-                style={{
-                  width: '100%', padding: '10px 14px', borderRadius: 8,
-                  border: '0.5px dashed var(--border)', background: 'transparent',
-                  color: 'var(--text-secondary)', fontSize: 12, cursor: 'pointer',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                  transition: 'border-color 0.15s, color 0.15s',
-                }}
-                onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--brand)'; e.currentTarget.style.color = 'var(--brand)'; }}
-                onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = 'var(--text-secondary)'; }}
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
-                  <line x1="12" y1="11" x2="12" y2="17" /><line x1="9" y1="14" x2="15" y2="14" />
+              <button onClick={onConnectDrive} style={{
+                width: '100%', padding: '8px 10px', borderRadius: 8,
+                border: '0.5px solid var(--border)', background: 'var(--bg-tertiary)',
+                cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8,
+                fontSize: 11, color: 'var(--text-primary)',
+              }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <path d="M12 2L2 19.5h20L12 2z" /><path d="M12 2l8.5 17.5" /><path d="M2 19.5h17" />
                 </svg>
                 Conectar Google Drive
               </button>
             ) : (
-              /* Connected: show account, then real folder tree built from indexed docs */
               <>
-                <div style={{
-                  display: 'flex', alignItems: 'center', gap: 6, padding: '5px 8px',
-                  borderRadius: 6, background: 'var(--bg-tertiary)', marginBottom: 8,
-                  fontSize: 10, color: 'var(--text-secondary)',
-                }}>
-                  <div style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--success)', flexShrink: 0 }} />
-                  <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {driveStatus.email}
-                  </span>
-                  <span style={{ color: 'var(--text-muted)', flexShrink: 0 }}>
-                    {formatLastSynced(driveStatus.lastSynced)}
-                  </span>
+                <div style={{ fontSize: 10, color: 'var(--text-secondary)', marginBottom: 6 }}>
+                  <span>{driveStatus.email}</span>
+                  <span style={{ margin: '0 4px' }}>·</span>
+                  <span>Sync: {formatLastSynced(driveStatus.lastSynced)}</span>
+                </div>
+
+                <div style={{ display: 'flex', gap: 4, marginBottom: 8 }}>
+                  <button onClick={onSyncDrive} disabled={syncing} style={{
+                    flex: 1, padding: '5px 8px', borderRadius: 6, border: '0.5px solid var(--border)',
+                    background: 'var(--bg-tertiary)', fontSize: 10, cursor: syncing ? 'not-allowed' : 'pointer',
+                    color: 'var(--text-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4,
+                  }}>
+                    {syncing ? (
+                      <><div className="animate-spin" style={{ width: 8, height: 8, border: '1.5px solid currentColor', borderTopColor: 'transparent', borderRadius: '50%' }} /> Sincronizando...</>
+                    ) : (
+                      <><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="23 4 23 10 17 10" /><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" /></svg> Sincronizar</>
+                    )}
+                  </button>
                 </div>
 
                 {driveDocs.length === 0 ? (
-                  <p style={{ fontSize: 11, color: 'var(--text-muted)', padding: '8px 4px' }}>
-                    Sin documentos. Pulsa sincronizar.
+                  <p style={{ fontSize: 11, color: 'var(--text-muted)', textAlign: 'center', padding: '8px 0' }}>
+                    {syncing ? 'Trayendo archivos...' : 'Sin documentos en la carpeta'}
                   </p>
                 ) : (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                    {/* Render top-level folders (sorted) */}
-                    {Array.from(driveTree.children.values())
-                      .sort((a, b) => a.name.localeCompare(b.name))
-                      .map(child => renderFolderNode(child, 0))}
-
-                    {/* Render docs at the very root (folder_path === "/" or empty) */}
-                    {driveTree.docs
-                      .slice()
-                      .sort((a, b) => a.name.localeCompare(b.name))
-                      .map(doc => (
-                        <div key={doc.id} style={{
-                          display: 'flex', alignItems: 'center', gap: 5,
-                          padding: '4px 6px', paddingLeft: 8,
-                          fontSize: 10, color: 'var(--text-secondary)',
-                        }}>
-                          <div style={{ width: 4, height: 4, borderRadius: '50%', background: 'var(--success)', flexShrink: 0 }} />
-                          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>{doc.name}</span>
-                          {crossSourceNames.has(doc.name) && <SourceBadge source="drive" />}
-                          <span style={{ fontSize: 9, color: 'var(--text-muted)', flexShrink: 0 }}>{formatSize(doc.size_bytes)}</span>
-                        </div>
+                  // If there are Drive docs with folders, show tree. Otherwise flat list.
+                  driveTree.children.size > 0 ? (
+                    <div>
+                      {/* Root-level docs first */}
+                      {driveTree.docs.map(doc => (
+                        <DocRow key={doc.id} doc={doc} showSourceBadge={crossSourceNames.has(doc.name)} badgeType="drive" />
                       ))}
-                  </div>
+                      {/* Then folder tree */}
+                      {[...driveTree.children.values()].map(child => (
+                        <FolderView key={child.fullPath} node={child} depth={0} />
+                      ))}
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                      {driveDocs.map(doc => (
+                        <DocRow key={doc.id} doc={doc} showSourceBadge={crossSourceNames.has(doc.name)} badgeType="drive" />
+                      ))}
+                    </div>
+                  )
                 )}
 
                 <button
                   onClick={onDisconnectDrive}
                   style={{
-                    marginTop: 8, fontSize: 10, color: 'var(--text-muted)', background: 'none',
-                    border: 'none', cursor: 'pointer', padding: '4px 0',
+                    width: '100%', marginTop: 6, padding: '4px 0', border: 'none',
+                    background: 'transparent', fontSize: 10, cursor: 'pointer',
+                    color: 'var(--text-muted)', textAlign: 'center',
                   }}
                   onMouseEnter={e => (e.currentTarget.style.color = 'var(--danger)')}
                   onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-muted)')}
@@ -481,57 +498,7 @@ export default function DocumentsSidebar({
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                 {manualDocs.map(doc => (
-                  <div
-                    key={doc.id}
-                    style={{
-                      display: 'flex', alignItems: 'center', gap: 7, padding: '6px 8px',
-                      borderRadius: 7, transition: 'background 0.1s',
-                    }}
-                    onMouseEnter={e => (e.currentTarget.style.background = 'var(--surface-hover)')}
-                    onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
-                  >
-                    <div style={{
-                      width: 22, height: 22, borderRadius: 5, flexShrink: 0,
-                      background: 'var(--brand-light)', display: 'flex',
-                      alignItems: 'center', justifyContent: 'center',
-                    }}>
-                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--brand)" strokeWidth="2">
-                        <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
-                      </svg>
-                    </div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-                        <p style={{ fontSize: 11, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', margin: 0, flex: 1 }}>
-                          {doc.name}
-                        </p>
-                        {crossSourceNames.has(doc.name) && <SourceBadge source="manual" />}
-                      </div>
-                      <p style={{ fontSize: 9, color: 'var(--text-muted)' }}>
-                        {formatSize(doc.size_bytes)} · {doc.chunk_count} frag. · {formatDate(doc.created_at)}
-                      </p>
-                    </div>
-                    <button
-                      onClick={() => handleDelete(doc.id, doc.name)}
-                      disabled={deleting === doc.id}
-                      aria-label={`Eliminar ${doc.name}`}
-                      style={{
-                        opacity: 0, padding: 3, borderRadius: 5, border: 'none',
-                        background: 'transparent', cursor: 'pointer', color: 'var(--danger)',
-                        flexShrink: 0, transition: 'opacity 0.1s',
-                      }}
-                      onMouseEnter={e => (e.currentTarget.style.opacity = '1')}
-                      onMouseLeave={e => (e.currentTarget.style.opacity = '0')}
-                    >
-                      {deleting === doc.id ? (
-                        <div className="animate-spin" style={{ width: 10, height: 10, border: '1.5px solid currentColor', borderTopColor: 'transparent', borderRadius: '50%' }} />
-                      ) : (
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <path d="M3 6h18" /><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
-                          <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
-                        </svg>
-                      )}
-                    </button>
-                  </div>
+                  <DocRow key={doc.id} doc={doc} showSourceBadge={crossSourceNames.has(doc.name)} badgeType="manual" />
                 ))}
               </div>
             )}
@@ -539,11 +506,46 @@ export default function DocumentsSidebar({
         )}
       </div>
 
-      {/* 4. Bottom: upload button + user */}
+      {/* 4. Bottom: credits + upload button + user */}
       <div style={{
         padding: '10px 14px', borderTop: '0.5px solid var(--border)',
         display: 'flex', flexDirection: 'column', gap: 8, flexShrink: 0,
       }}>
+        {/* Credits indicator */}
+        {credits && (
+          <div style={{
+            padding: '6px 10px', borderRadius: 8,
+            background: 'var(--bg-tertiary)',
+            display: 'flex', alignItems: 'center', gap: 8,
+          }}>
+            <div style={{ flex: 1 }}>
+              <div style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                marginBottom: 3,
+              }}>
+                <span style={{ fontSize: 9, fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: 0.3 }}>
+                  {PLAN_LABELS[credits.plan] || credits.plan}
+                </span>
+                <span style={{ fontSize: 10, fontWeight: 600, color: creditBarColor }}>
+                  {credits.remaining} cr
+                </span>
+              </div>
+              <div style={{
+                width: '100%', height: 3, borderRadius: 2,
+                background: 'var(--border)',
+                overflow: 'hidden',
+              }}>
+                <div style={{
+                  height: '100%', borderRadius: 2,
+                  background: creditBarColor,
+                  width: `${Math.min(100, (credits.remaining / Math.max(credits.remaining, 100)) * 100)}%`,
+                  transition: 'width 0.3s ease',
+                }} />
+              </div>
+            </div>
+          </div>
+        )}
+
         {analysisProgress > 0 ? (
           <div style={{ width: '100%' }}>
             <p style={{
