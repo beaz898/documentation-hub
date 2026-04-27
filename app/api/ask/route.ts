@@ -1,164 +1,81 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
-import { queryRAG } from '@/lib/rag';
-import { logUsage } from '@/lib/usage-logger';
-import { checkRateLimit } from '@/lib/rate-limiter';
 import { resolveOrg } from '@/lib/org';
 
-export async function POST(req: NextRequest) {
-  const startedAt = Date.now();
-  let userId = '';
-  let orgId = '';
-  let question = '';
-  const supabase = createServiceClient();
-
+/**
+ * GET /api/usage/summary
+ *
+ * Devuelve los créditos restantes y el consumo del ciclo actual.
+ * Accesible por cualquier miembro de la organización.
+ */
+export async function GET(req: NextRequest) {
   try {
-    // Verificar autenticación
     const authHeader = req.headers.get('authorization');
     if (!authHeader?.startsWith('Bearer ')) {
-      return NextResponse.json(
-        { error: 'No autorizado' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
     }
 
     const token = authHeader.split(' ')[1];
+    const supabase = createServiceClient();
 
     const { data: { user }, error: authError } = await supabase.auth.getUser(token);
     if (authError || !user) {
-      return NextResponse.json(
-        { error: 'Token inválido o expirado' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Token inválido' }, { status: 401 });
     }
 
-    userId = user.id;
-
-    // Resolver organización
-    const org = await resolveOrg(supabase, userId);
+    const org = await resolveOrg(supabase, user.id);
     if (!org) {
       return NextResponse.json(
-        { error: 'No perteneces a ninguna organización. Contacta con el administrador.' },
+        { error: 'No perteneces a ninguna organización.' },
         { status: 403 }
       );
     }
-    orgId = org.orgId;
 
-    // Rate limiting
-    const rateCheck = await checkRateLimit(supabase, userId, '/api/ask');
-    if (!rateCheck.allowed) {
-      return NextResponse.json(
-        { error: `Has alcanzado el límite diario de consultas (${rateCheck.limit}). Inténtalo mañana.`, remaining: 0 },
-        { status: 429 }
-      );
+    // Obtener datos de la organización
+    const { data: orgData, error: orgError } = await supabase
+      .from('organizations')
+      .select('plan, credits_remaining, credits_extra, billing_cycle_start, max_users')
+      .eq('id', org.orgId)
+      .single();
+
+    if (orgError || !orgData) {
+      return NextResponse.json({ error: 'Error obteniendo datos' }, { status: 500 });
     }
 
-    // Validar body
-    const body = await req.json();
-    question = body.question;
-    const { history } = body;
+    // Consumo del ciclo actual (desde billing_cycle_start)
+    const cycleStart = orgData.billing_cycle_start || new Date().toISOString();
 
-    if (!question || typeof question !== 'string' || question.trim().length < 3) {
-      return NextResponse.json(
-        { error: 'La pregunta debe tener al menos 3 caracteres' },
-        { status: 400 }
-      );
+    const { data: usageData } = await supabase
+      .from('usage_logs')
+      .select('endpoint, credits_consumed')
+      .eq('org_id', org.orgId)
+      .eq('success', true)
+      .gte('created_at', cycleStart)
+      .gt('credits_consumed', 0);
+
+    // Desglose por tipo de operación
+    const breakdown: Record<string, number> = {};
+    let totalConsumed = 0;
+
+    for (const row of usageData || []) {
+      const label = row.endpoint || 'otro';
+      breakdown[label] = (breakdown[label] || 0) + (row.credits_consumed || 0);
+      totalConsumed += row.credits_consumed || 0;
     }
-
-    // Ejecutar RAG con historial de conversación
-    const conversationHistory = Array.isArray(history) ? history : [];
-    const result = await queryRAG(question.trim(), orgId, supabase, conversationHistory);
-
-    const latencyMs = Date.now() - startedAt;
-
-    // Registrar uso exitoso
-    await logUsage(supabase, {
-      userId,
-      orgId,
-      endpoint: '/api/ask',
-      model: 'haiku',
-      inputTokens: result.usage.inputTokens,
-      outputTokens: result.usage.outputTokens,
-      latencyMs,
-      success: true,
-      userQuery: question.trim(),
-    });
 
     return NextResponse.json({
       success: true,
-      answer: result.answer,
-      sources: result.sources.map(s => ({
-        documentName: s.documentName,
-        score: Math.round(s.score * 100),
-      })),
-      usage: result.usage,
+      plan: orgData.plan,
+      creditsRemaining: orgData.credits_remaining,
+      creditsExtra: orgData.credits_extra,
+      creditsTotal: orgData.credits_remaining + orgData.credits_extra,
+      cycleStart,
+      consumed: totalConsumed,
+      breakdown,
+      role: org.role,
     });
   } catch (error: unknown) {
-    console.error('Error in /api/ask:', error);
-
-    const message = error instanceof Error ? error.message : 'Error interno';
-    const latencyMs = Date.now() - startedAt;
-
-    // Registrar uso fallido
-    if (userId) {
-      await logUsage(supabase, {
-        userId,
-        orgId,
-        endpoint: '/api/ask',
-        model: 'haiku',
-        inputTokens: 0,
-        outputTokens: 0,
-        latencyMs,
-        success: false,
-        errorMessage: message,
-        userQuery: question?.trim() || undefined,
-      });
-    }
-
-    // Errores categorizados desde rag.ts
-    if (message === 'SERVICE_OVERLOADED') {
-      return NextResponse.json(
-        {
-          error: 'El servicio de IA está experimentando alta demanda en este momento. Esto es temporal y no es un problema con tu consulta ni con tus documentos. Por favor, espera unos segundos e inténtalo de nuevo.',
-          errorType: 'overloaded',
-        },
-        { status: 503 }
-      );
-    }
-
-    if (message === 'RATE_LIMIT_EXCEEDED') {
-      return NextResponse.json(
-        {
-          error: 'Se ha superado el límite de consultas por minuto. Por favor, espera un momento antes de hacer otra pregunta.',
-          errorType: 'rate_limit',
-        },
-        { status: 429 }
-      );
-    }
-
-    if (message === 'AUTH_ERROR') {
-      return NextResponse.json(
-        {
-          error: 'Hay un problema de autenticación con el servicio de IA. Si el problema persiste, contacta con el administrador.',
-          errorType: 'auth',
-        },
-        { status: 500 }
-      );
-    }
-
-    if (message === 'SERVICE_ERROR') {
-      return NextResponse.json(
-        {
-          error: 'El servicio de IA está temporalmente no disponible. Esto no es un problema de tu cuenta. Por favor, inténtalo de nuevo en unos minutos.',
-          errorType: 'service',
-        },
-        { status: 503 }
-      );
-    }
-
-    return NextResponse.json(
-      { error: 'Error procesando la pregunta. Por favor, inténtalo de nuevo.' },
-      { status: 500 }
-    );
+    console.error('Error in /api/usage/summary:', error);
+    return NextResponse.json({ error: 'Error interno' }, { status: 500 });
   }
 }
