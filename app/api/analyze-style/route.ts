@@ -4,6 +4,7 @@ import { analyzeStyle } from '@/lib/analysis/style-check';
 import { logUsage } from '@/lib/usage-logger';
 import { checkRateLimit } from '@/lib/rate-limiter';
 import { resolveOrg } from '@/lib/org';
+import { consumeCredits, getCreditCost } from '@/lib/credits';
 
 export const maxDuration = 60;
 
@@ -11,6 +12,7 @@ export async function POST(req: NextRequest) {
   const startedAt = Date.now();
   let userId = '';
   let orgId = '';
+  let creditsConsumed = 0;
   const supabase = createServiceClient();
 
   try {
@@ -45,6 +47,21 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Verificar y descontar créditos
+    const creditResult = await consumeCredits(supabase, orgId, '/api/analyze-style');
+    if (!creditResult.success) {
+      return NextResponse.json(
+        {
+          error: 'Se han agotado los créditos de tu plan. Contacta con el administrador para recargar o cambiar de plan.',
+          errorType: 'no_credits',
+          creditsRemaining: creditResult.creditsRemaining,
+          creditsExtra: creditResult.creditsExtra,
+        },
+        { status: 402 }
+      );
+    }
+    creditsConsumed = getCreditCost('/api/analyze-style');
+
     const { text, fileName } = await req.json();
     if (!text || typeof text !== 'string' || text.trim().length < 50) {
       return NextResponse.json({ error: 'Texto insuficiente' }, { status: 400 });
@@ -63,6 +80,7 @@ export async function POST(req: NextRequest) {
       outputTokens: 0,
       latencyMs,
       success: true,
+      creditsConsumed,
     });
 
     console.log(`[ANALYZE-STYLE] OK — problems=${problems.length} latency=${latencyMs}ms`);
@@ -80,6 +98,7 @@ export async function POST(req: NextRequest) {
         outputTokens: 0,
         latencyMs: Date.now() - startedAt,
         success: false,
+        creditsConsumed,
         errorMessage: error instanceof Error ? error.message : 'Error interno',
       });
     }
