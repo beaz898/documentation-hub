@@ -5,6 +5,7 @@ import { generateEmbeddings } from '@/lib/embeddings';
 import { chunkText, extractText } from '@/lib/chunking';
 import { randomUUID } from 'crypto';
 import { generateContentHash } from '@/lib/analysis/hash-check';
+import { resolveOrg } from '@/lib/org';
 
 export const maxDuration = 300;
 
@@ -24,7 +25,15 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Token inválido' }, { status: 401 });
     }
 
-    const orgId = user.user_metadata?.org_id || user.id;
+    // Resolver organización
+    const org = await resolveOrg(supabase, user.id);
+    if (!org) {
+      return NextResponse.json(
+        { error: 'No perteneces a ninguna organización. Contacta con el administrador.' },
+        { status: 403 }
+      );
+    }
+    const orgId = org.orgId;
 
     // Leer datos del body
     // force=true significa "el usuario ya confirmó que quiere reemplazar el manual existente"
