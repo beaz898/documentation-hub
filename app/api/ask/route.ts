@@ -3,6 +3,7 @@ import { createServiceClient } from '@/lib/supabase';
 import { queryRAG } from '@/lib/rag';
 import { logUsage } from '@/lib/usage-logger';
 import { checkRateLimit } from '@/lib/rate-limiter';
+import { resolveOrg } from '@/lib/org';
 
 export async function POST(req: NextRequest) {
   const startedAt = Date.now();
@@ -32,7 +33,16 @@ export async function POST(req: NextRequest) {
     }
 
     userId = user.id;
-    orgId = user.user_metadata?.org_id || user.id;
+
+    // Resolver organización
+    const org = await resolveOrg(supabase, userId);
+    if (!org) {
+      return NextResponse.json(
+        { error: 'No perteneces a ninguna organización. Contacta con el administrador.' },
+        { status: 403 }
+      );
+    }
+    orgId = org.orgId;
 
     // Rate limiting
     const rateCheck = await checkRateLimit(supabase, userId, '/api/ask');
