@@ -5,6 +5,7 @@ import { runAnalysisPipeline, runExhaustiveAnalysisPipeline } from '@/lib/analys
 import { logUsage } from '@/lib/usage-logger';
 import { checkRateLimit } from '@/lib/rate-limiter';
 import { resolveOrg } from '@/lib/org';
+import { consumeCredits, getCreditCost } from '@/lib/credits';
 
 export const maxDuration = 120;
 
@@ -23,6 +24,7 @@ export async function POST(req: NextRequest) {
   const startedAt = Date.now();
   let userId = '';
   let orgId = '';
+  let creditsConsumed = 0;
   const supabase = createServiceClient();
 
   try {
@@ -65,6 +67,21 @@ export async function POST(req: NextRequest) {
         { status: 429 }
       );
     }
+
+    // Verificar y descontar créditos
+    const creditResult = await consumeCredits(supabase, orgId, '/api/analyze-v2', isExhaustive);
+    if (!creditResult.success) {
+      return NextResponse.json(
+        {
+          error: 'Se han agotado los créditos de tu plan. Contacta con el administrador para recargar o cambiar de plan.',
+          errorType: 'no_credits',
+          creditsRemaining: creditResult.creditsRemaining,
+          creditsExtra: creditResult.creditsExtra,
+        },
+        { status: 402 }
+      );
+    }
+    creditsConsumed = getCreditCost('/api/analyze-v2', isExhaustive);
 
     // Obtener texto: desde storage o directo
     let text: string;
@@ -135,6 +152,7 @@ export async function POST(req: NextRequest) {
       outputTokens: 0,
       latencyMs,
       success: true,
+      creditsConsumed,
       userQuery: `${fileName} (${modeLabel})`,
     });
 
@@ -170,6 +188,7 @@ export async function POST(req: NextRequest) {
         outputTokens: 0,
         latencyMs: Date.now() - startedAt,
         success: false,
+        creditsConsumed,
         errorMessage: message,
       });
     }
