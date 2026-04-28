@@ -12,6 +12,7 @@ interface UsageSummary {
   consumed: number;
   cycleStart: string;
   role: string;
+  subscriptionStatus?: string;
 }
 
 const PLANS = [
@@ -22,11 +23,16 @@ const PLANS = [
   { id: 'business_plus', name: 'Business+', price: 499, credits: 18000, users: 80, description: 'PYME grande' },
 ];
 
+const CREDIT_PACKS = [
+  { id: 'pack_500', credits: 500, price: 12, pricePerCredit: '0,024€' },
+];
+
 export default function BillingPage() {
   const [session, setSession] = useState<{ access_token: string } | null>(null);
   const [usage, setUsage] = useState<UsageSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [checkingOut, setCheckingOut] = useState<string | null>(null);
+  const [buyingCredits, setBuyingCredits] = useState<string | null>(null);
   const [openingPortal, setOpeningPortal] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const router = useRouter();
@@ -41,7 +47,7 @@ export default function BillingPage() {
     });
   }, [router, supabase.auth]);
 
-  // Handle billing callback params
+  // Handle callback params
   useEffect(() => {
     if (searchParams.get('billing') === 'success') {
       setMessage({ type: 'success', text: 'Plan contratado correctamente. Los créditos ya están disponibles.' });
@@ -49,6 +55,15 @@ export default function BillingPage() {
     }
     if (searchParams.get('billing') === 'cancelled') {
       setMessage({ type: 'error', text: 'Contratación cancelada.' });
+      window.history.replaceState({}, '', '/settings/billing');
+    }
+    if (searchParams.get('credits') === 'success') {
+      const amount = searchParams.get('amount') || '';
+      setMessage({ type: 'success', text: `Recarga de ${amount} créditos completada.` });
+      window.history.replaceState({}, '', '/settings/billing');
+    }
+    if (searchParams.get('credits') === 'cancelled') {
+      setMessage({ type: 'error', text: 'Compra de créditos cancelada.' });
       window.history.replaceState({}, '', '/settings/billing');
     }
   }, [searchParams]);
@@ -94,6 +109,32 @@ export default function BillingPage() {
       setMessage({ type: 'error', text: 'Error de conexión.' });
     } finally {
       setCheckingOut(null);
+    }
+  }
+
+  async function handleBuyCredits(packId: string) {
+    if (!session || buyingCredits) return;
+    setBuyingCredits(packId);
+    setMessage(null);
+
+    try {
+      const res = await fetch('/api/billing/buy-credits', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
+        body: JSON.stringify({ pack: packId }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok && data.url) {
+        window.location.href = data.url;
+      } else {
+        setMessage({ type: 'error', text: data.error || 'Error iniciando la compra.' });
+      }
+    } catch {
+      setMessage({ type: 'error', text: 'Error de conexión.' });
+    } finally {
+      setBuyingCredits(null);
     }
   }
 
@@ -229,7 +270,7 @@ export default function BillingPage() {
               display: 'grid',
               gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
               gap: 12,
-              marginBottom: 24,
+              marginBottom: 32,
             }}>
               {PLANS.filter(p => p.id !== 'free').map(plan => {
                 const isCurrent = plan.id === currentPlan;
@@ -313,6 +354,47 @@ export default function BillingPage() {
                 );
               })}
             </div>
+
+            {/* Credit packs section */}
+            {isAdmin && currentPlan !== 'free' && (
+              <div style={{ marginBottom: 32 }}>
+                <h2 style={{ fontSize: 13, fontWeight: 600, marginBottom: 6 }}>Recargar créditos</h2>
+                <p style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 14 }}>
+                  Los créditos extra no caducan y se usan cuando se agotan los del plan.
+                </p>
+                <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+                  {CREDIT_PACKS.map(pack => (
+                    <div
+                      key={pack.id}
+                      style={{
+                        padding: '16px 20px', borderRadius: 10,
+                        background: 'var(--bg-secondary)', border: '0.5px solid var(--border)',
+                        display: 'flex', alignItems: 'center', gap: 16,
+                        minWidth: 250,
+                      }}
+                    >
+                      <div style={{ flex: 1 }}>
+                        <p style={{ fontSize: 14, fontWeight: 600 }}>{pack.credits} créditos</p>
+                        <p style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 2 }}>{pack.pricePerCredit}/crédito</p>
+                      </div>
+                      <button
+                        onClick={() => handleBuyCredits(pack.id)}
+                        disabled={buyingCredits === pack.id}
+                        style={{
+                          padding: '8px 16px', borderRadius: 8, border: '0.5px solid var(--border)',
+                          background: buyingCredits === pack.id ? 'var(--bg-tertiary)' : 'var(--bg-tertiary)',
+                          color: buyingCredits === pack.id ? 'var(--text-muted)' : 'var(--text-primary)',
+                          fontSize: 12, fontWeight: 600,
+                          cursor: buyingCredits === pack.id ? 'not-allowed' : 'pointer',
+                        }}
+                      >
+                        {buyingCredits === pack.id ? 'Redirigiendo...' : `${pack.price}€`}
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* IVA note */}
             <p style={{ fontSize: 10, color: 'var(--text-muted)', textAlign: 'center' }}>
