@@ -4,26 +4,57 @@ import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase';
 
+interface CurrentOrg {
+  name: string;
+  hasDocuments: boolean;
+}
+
 export default function InvitePage() {
   const [status, setStatus] = useState<'loading' | 'ready' | 'accepting' | 'success' | 'error'>('loading');
   const [errorMessage, setErrorMessage] = useState('');
   const [orgName, setOrgName] = useState('');
+  const [currentOrg, setCurrentOrg] = useState<CurrentOrg | null>(null);
   const [session, setSession] = useState<{ access_token: string; user: { email?: string } } | null>(null);
   const router = useRouter();
   const searchParams = useSearchParams();
   const supabase = createClient();
   const token = searchParams.get('token');
 
-  // Auth check
+  // Auth check + load current org info
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session: s } }) => {
+    supabase.auth.getSession().then(async ({ data: { session: s } }) => {
       if (!s) {
-        // Guardar la URL actual para redirigir después del login
         const returnUrl = `/invite?token=${token}`;
         router.replace(`/login?returnTo=${encodeURIComponent(returnUrl)}`);
         return;
       }
       setSession({ access_token: s.access_token, user: { email: s.user.email } });
+
+      // Check if user currently belongs to an org
+      try {
+        const res = await fetch('/api/usage/summary', {
+          headers: { Authorization: `Bearer ${s.access_token}` },
+        });
+        if (res.ok) {
+          const data = await res.json();
+          // User has an org — check if it has documents
+          const docsRes = await fetch('/api/documents', {
+            headers: { Authorization: `Bearer ${s.access_token}` },
+          });
+          let hasDocuments = false;
+          if (docsRes.ok) {
+            const docsData = await docsRes.json();
+            hasDocuments = Array.isArray(docsData.documents) && docsData.documents.length > 0;
+          }
+          setCurrentOrg({
+            name: data.plan === 'free' ? 'Mi workspace' : `Workspace (${data.plan})`,
+            hasDocuments,
+          });
+        }
+      } catch {
+        // No org or error — that's fine
+      }
+
       setStatus('ready');
     });
   }, [router, supabase.auth, token]);
@@ -44,7 +75,6 @@ export default function InvitePage() {
       if (res.ok) {
         setOrgName(data.orgName || 'el workspace');
         setStatus('success');
-        // Redirigir al chat después de 2 segundos
         setTimeout(() => router.replace('/chat'), 2000);
       } else {
         setErrorMessage(data.error || 'Error aceptando la invitación.');
@@ -106,9 +136,37 @@ export default function InvitePage() {
             <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 6 }}>
               Has recibido una invitación para unirte a un workspace en Documentation Hub.
             </p>
-            <p style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 24 }}>
+            <p style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 16 }}>
               Sesión: {session?.user.email}
             </p>
+
+            {/* Warning about leaving current workspace */}
+            {currentOrg && (
+              <div style={{
+                padding: '12px 14px', borderRadius: 8, marginBottom: 20, textAlign: 'left',
+                background: currentOrg.hasDocuments
+                  ? 'rgba(239,68,68,0.06)'
+                  : 'rgba(245,158,11,0.08)',
+                border: `0.5px solid ${currentOrg.hasDocuments
+                  ? 'rgba(239,68,68,0.2)'
+                  : 'rgba(245,158,11,0.25)'}`,
+              }}>
+                <p style={{
+                  fontSize: 11, fontWeight: 600, marginBottom: 4,
+                  color: currentOrg.hasDocuments ? 'rgb(239,68,68)' : 'rgb(180,120,10)',
+                }}>
+                  {currentOrg.hasDocuments
+                    ? 'Atención: tienes documentos en tu workspace actual'
+                    : 'Cambiarás de workspace'}
+                </p>
+                <p style={{ fontSize: 11, color: 'var(--text-secondary)', lineHeight: 1.4 }}>
+                  {currentOrg.hasDocuments
+                    ? 'Al aceptar, dejarás tu workspace actual y perderás acceso a tus documentos. Los documentos no se migrarán al nuevo workspace.'
+                    : 'Al aceptar, dejarás tu workspace actual para unirte al nuevo.'}
+                </p>
+              </div>
+            )}
+
             <button
               onClick={handleAccept}
               style={{
