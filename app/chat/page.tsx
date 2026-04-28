@@ -88,11 +88,21 @@ export default function ChatPage() {
   // Scroll to bottom
   useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
 
-  // Auth check
+  // Auth check + auto org setup
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session: s } }) => {
+    supabase.auth.getSession().then(async ({ data: { session: s } }) => {
       if (!s) { router.replace('/login'); return; }
       setSession({ access_token: s.access_token, user: { email: s.user.email, id: s.user.id } });
+
+      // Ensure user has an organization (creates one if needed, idempotent)
+      try {
+        await fetch('/api/org/setup', {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${s.access_token}` },
+        });
+      } catch {
+        // Non-blocking: if org/setup fails, endpoints return 403
+      }
     });
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, s) => {
       if (!s) router.replace('/login');
