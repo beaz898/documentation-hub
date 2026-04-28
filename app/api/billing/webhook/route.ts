@@ -115,37 +115,80 @@ async function handleCheckoutCompleted(
   session: Stripe.Checkout.Session
 ) {
   const orgId = session.metadata?.org_id;
-  const plan = session.metadata?.plan;
-
-  if (!orgId || !plan) {
-    console.error('[webhook] checkout.session.completed missing org_id or plan in metadata');
+  if (!orgId) {
+    console.error('[webhook] checkout.session.completed missing org_id in metadata');
     return;
   }
 
-  const config = PLAN_CONFIG[plan];
-  if (!config) {
-    console.error(`[webhook] Unknown plan: ${plan}`);
-    return;
+  const isCreditPack = session.metadata?.type === 'credit_pack';
+
+  if (isCreditPack) {
+    const creditsToAdd = parseInt(session.metadata?.credits || '0', 10);
+    if (creditsToAdd <= 0) {
+      console.error('[webhook] credit_pack checkout with invalid credits amount');
+      return;
+    }
+
+    const { data: org } = await supabase
+      .from('organizations')
+      .select('credits_extra')
+      .eq('id', orgId)
+      .single();
+
+    const currentExtra = org?.credits_extra || 0;
+
+    await supabase
+      .from('organizations')
+      .update({ credits_extra: currentExtra + creditsToAdd })
+      .eq('id', orgId);
+
+    const { error: insertError } = await supabase
+      .from('credit_purchases')
+      .insert({
+        org_id: orgId,
+        credits: creditsToAdd,
+        amount_cents: session.amount_total || 0,
+        stripe_payment_id: session.payment_intent as string || session.id,
+        purchased_by: null,
+      });
+
+    if (insertError) {
+      console.warn('[webhook] Failed to log credit purchase:', insertError.message);
+    }
+
+    console.log(`[webhook] Org ${orgId} purchased ${creditsToAdd} extra credits (total extra: ${currentExtra + creditsToAdd})`);
+  } else {
+    const plan = session.metadata?.plan;
+    if (!plan) {
+      console.error('[webhook] checkout.session.completed missing plan in metadata');
+      return;
+    }
+
+    const config = PLAN_CONFIG[plan];
+    if (!config) {
+      console.error(`[webhook] Unknown plan: ${plan}`);
+      return;
+    }
+
+    const subscriptionId = typeof session.subscription === 'string'
+      ? session.subscription
+      : session.subscription?.id;
+
+    await supabase
+      .from('organizations')
+      .update({
+        plan,
+        credits_remaining: config.credits,
+        max_users: config.maxUsers,
+        stripe_subscription_id: subscriptionId || null,
+        billing_cycle_start: new Date().toISOString(),
+        canceled_at: null,
+        grace_period_ends_at: null,
+      })
+      .eq('id', orgId);
+
+    console.log(`[webhook] Org ${orgId} activated plan: ${plan} (${config.credits} credits, ${config.maxUsers} users)`);
   }
-
-  const subscriptionId = typeof session.subscription === 'string'
-    ? session.subscription
-    : session.subscription?.id;
-
-  await supabase
-    .from('organizations')
-    .update({
-      plan,
-      credits_remaining: config.credits,
-      max_users: config.maxUsers,
-      stripe_subscription_id: subscriptionId || null,
-      billing_cycle_start: new Date().toISOString(),
-      canceled_at: null,
-      grace_period_ends_at: null,
-    })
-    .eq('id', orgId);
-
-  console.log(`[webhook] Org ${orgId} activated plan: ${plan} (${config.credits} credits, ${config.maxUsers} users)`);
 }
 
 async function handleInvoicePaid(
