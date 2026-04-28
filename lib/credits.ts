@@ -60,7 +60,30 @@ export async function consumeCredits(
       source: null,
     };
   }
+  
+  // Verificar si la suscripción ha expirado (pasó el período de gracia)
+  try {
+    const { data: orgData } = await supabase
+      .from('organizations')
+      .select('canceled_at, grace_period_ends_at')
+      .eq('id', orgId)
+      .single();
 
+    if (orgData?.canceled_at && orgData?.grace_period_ends_at) {
+      if (new Date(orgData.grace_period_ends_at) < new Date()) {
+        return {
+          success: false,
+          creditsRemaining: 0,
+          creditsExtra: 0,
+          source: null,
+          error: 'subscription_expired',
+        };
+      }
+    }
+  } catch (err) {
+    console.warn('[credits] Error checking subscription status, allowing request:', err);
+  }
+  
   try {
     const { data, error } = await supabase.rpc('consume_credits', {
       p_org_id: orgId,
