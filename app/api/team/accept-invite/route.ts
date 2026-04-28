@@ -13,7 +13,9 @@ import { createServiceClient } from '@/lib/supabase';
  * 1. El Admin comparte un enlace tipo /invite?token=xxx
  * 2. La página /invite verifica el token y muestra info del workspace.
  * 3. Si el usuario acepta, llama a este endpoint.
- * 4. Se crea la membership y se marca la invitación como accepted.
+ * 4. Se elimina la membership anterior (si existe).
+ * 5. Si la org anterior se queda sin miembros, se marca como abandonada.
+ * 6. Se crea la membership en la nueva org y se marca la invitación como accepted.
  */
 export async function POST(req: NextRequest) {
   try {
@@ -70,7 +72,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Verificar que no sea ya miembro
+    // Verificar que no sea ya miembro de esa org
     const { data: existingMembership } = await supabase
       .from('memberships')
       .select('id')
@@ -79,7 +81,6 @@ export async function POST(req: NextRequest) {
       .limit(1);
 
     if (existingMembership && existingMembership.length > 0) {
-      // Ya es miembro, marcar invitación como accepted y continuar
       await supabase
         .from('invitations')
         .update({ status: 'accepted' })
@@ -106,13 +107,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Si el usuario tiene su propia organización vacía (solo él), la dejamos.
-    // No borramos organizaciones automáticamente — el usuario puede tener datos ahí.
-    // Simplemente lo añadimos a la nueva org. resolveOrg devuelve la primera que encuentre,
-    // así que en el futuro podríamos añadir selector de workspace.
-
     // Eliminar membership anterior si existe en otra org
-    // (por ahora un usuario solo puede estar en una org)
     const { data: currentMembership } = await supabase
       .from('memberships')
       .select('id, org_id')
@@ -120,12 +115,33 @@ export async function POST(req: NextRequest) {
       .limit(1)
       .single();
 
+    let leftOrgId: string | null = null;
+
     if (currentMembership) {
+      leftOrgId = currentMembership.org_id;
+
       await supabase
         .from('memberships')
         .delete()
         .eq('id', currentMembership.id);
+
       console.log(`[accept-invite] Removed user ${user.id} from org ${currentMembership.org_id}`);
+
+      // Comprobar si la org anterior se queda sin miembros
+      const { count: remainingMembers } = await supabase
+        .from('memberships')
+        .select('id', { count: 'exact', head: true })
+        .eq('org_id', currentMembership.org_id);
+
+      if (remainingMembers === 0) {
+        // Marcar la org como abandonada
+        await supabase
+          .from('organizations')
+          .update({ abandoned_at: new Date().toISOString() })
+          .eq('id', currentMembership.org_id);
+
+        console.log(`[accept-invite] Org ${currentMembership.org_id} marked as abandoned (no members left)`);
+      }
     }
 
     // Crear membership como member
@@ -148,7 +164,7 @@ export async function POST(req: NextRequest) {
       .update({ status: 'accepted' })
       .eq('id', invitation.id);
 
-    console.log(`[accept-invite] User ${user.id} (${user.email}) joined org ${invitation.org_id}`);
+    console.log(`[accept-invite] User ${user.id} (${user.email}) joined org ${invitation.org_id}${leftOrgId ? ` (left org ${leftOrgId})` : ''}`);
 
     return NextResponse.json({
       success: true,
