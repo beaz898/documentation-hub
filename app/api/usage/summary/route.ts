@@ -34,7 +34,7 @@ export async function GET(req: NextRequest) {
     // Obtener datos de la organización
     const { data: orgData, error: orgError } = await supabase
       .from('organizations')
-      .select('plan, credits_remaining, credits_extra, billing_cycle_start, max_users')
+      .select('plan, credits_remaining, credits_extra, billing_cycle_start, max_users, canceled_at, grace_period_ends_at')
       .eq('id', org.orgId)
       .single();
 
@@ -63,6 +63,16 @@ export async function GET(req: NextRequest) {
       totalConsumed += row.credits_consumed || 0;
     }
 
+    // Determinar estado de la suscripción
+    let subscriptionStatus: 'active' | 'canceled' | 'expired' = 'active';
+    if (orgData.canceled_at) {
+      if (orgData.grace_period_ends_at && new Date(orgData.grace_period_ends_at) < new Date()) {
+        subscriptionStatus = 'expired';
+      } else {
+        subscriptionStatus = 'canceled';
+      }
+    }
+
     return NextResponse.json({
       success: true,
       plan: orgData.plan,
@@ -73,6 +83,9 @@ export async function GET(req: NextRequest) {
       consumed: totalConsumed,
       breakdown,
       role: org.role,
+      canceledAt: orgData.canceled_at,
+      gracePeriodEndsAt: orgData.grace_period_ends_at,
+      subscriptionStatus,
     });
   } catch (error: unknown) {
     console.error('Error in /api/usage/summary:', error);
