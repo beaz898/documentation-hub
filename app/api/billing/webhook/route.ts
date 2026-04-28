@@ -12,8 +12,8 @@ import Stripe from 'stripe';
  * Eventos procesados:
  * - checkout.session.completed → activa plan tras pago inicial
  * - invoice.paid → renueva créditos al inicio de cada ciclo
- * - customer.subscription.updated → cambio de plan (upgrade/downgrade)
- * - customer.subscription.deleted → cancelación
+ * - customer.subscription.updated → cambio de plan O cancelación programada
+ * - customer.subscription.deleted → cancelación efectiva (fin del período)
  * - invoice.payment_failed → marca fallo de pago
  */
 export async function POST(req: NextRequest) {
@@ -245,7 +245,60 @@ async function handleSubscriptionUpdated(
   const orgId = subscription.metadata?.org_id;
   if (!orgId) return;
 
-  // Determinar el nuevo plan a partir del price ID
+  // Caso 1: Cancelación programada (cancel_at_period_end = true)
+  if (subscription.cancel_at_period_end) {
+    // Solo marcar si aún no está marcado como cancelado
+    const { data: org } = await supabase
+      .from('organizations')
+      .select('canceled_at')
+      .eq('id', orgId)
+      .single();
+
+    if (org && !org.canceled_at) {
+      // Usar cancel_at de Stripe como fin del período, más 90 días de gracia
+      const cancelAt = subscription.cancel_at
+        ? new Date(subscription.cancel_at * 1000)
+        : new Date();
+
+      const gracePeriodEnd = new Date(cancelAt.getTime());
+      gracePeriodEnd.setDate(gracePeriodEnd.getDate() + 90);
+
+      await supabase
+        .from('organizations')
+        .update({
+          canceled_at: new Date().toISOString(),
+          grace_period_ends_at: gracePeriodEnd.toISOString(),
+        })
+        .eq('id', orgId);
+
+      console.log(`[webhook] Org ${orgId} cancellation scheduled. Access until ${cancelAt.toISOString()}, grace until ${gracePeriodEnd.toISOString()}`);
+    }
+    return;
+  }
+
+  // Caso 2: Reactivación (el usuario deshizo la cancelación)
+  if (!subscription.cancel_at_period_end) {
+    const { data: org } = await supabase
+      .from('organizations')
+      .select('canceled_at')
+      .eq('id', orgId)
+      .single();
+
+    if (org?.canceled_at) {
+      await supabase
+        .from('organizations')
+        .update({
+          canceled_at: null,
+          grace_period_ends_at: null,
+        })
+        .eq('id', orgId);
+
+      console.log(`[webhook] Org ${orgId} cancellation reversed — subscription reactivated`);
+      return;
+    }
+  }
+
+  // Caso 3: Cambio de plan (upgrade/downgrade)
   const priceId = subscription.items.data[0]?.price?.id;
   if (!priceId) return;
 
@@ -259,17 +312,17 @@ async function handleSubscriptionUpdated(
   if (!config) return;
 
   // Obtener plan actual
-  const { data: org } = await supabase
+  const { data: currentOrg } = await supabase
     .from('organizations')
     .select('plan, credits_remaining')
     .eq('id', orgId)
     .single();
 
-  if (!org) return;
+  if (!currentOrg) return;
 
   // Si cambió de plan, actualizar créditos y límites
-  if (org.plan !== newPlan) {
-    const oldConfig = PLAN_CONFIG[org.plan];
+  if (currentOrg.plan !== newPlan) {
+    const oldConfig = PLAN_CONFIG[currentOrg.plan];
     const isUpgrade = config.credits > (oldConfig?.credits || 0);
 
     await supabase
@@ -279,11 +332,11 @@ async function handleSubscriptionUpdated(
         max_users: config.maxUsers,
         // En upgrade: dar los créditos completos del nuevo plan
         // En downgrade: mantener los que le quedan (no quitar)
-        credits_remaining: isUpgrade ? config.credits : Math.min(org.credits_remaining, config.credits),
+        credits_remaining: isUpgrade ? config.credits : Math.min(currentOrg.credits_remaining, config.credits),
       })
       .eq('id', orgId);
 
-    console.log(`[webhook] Org ${orgId} plan changed: ${org.plan} → ${newPlan} (${isUpgrade ? 'upgrade' : 'downgrade'})`);
+    console.log(`[webhook] Org ${orgId} plan changed: ${currentOrg.plan} → ${newPlan} (${isUpgrade ? 'upgrade' : 'downgrade'})`);
   }
 }
 
@@ -294,20 +347,36 @@ async function handleSubscriptionDeleted(
   const orgId = subscription.metadata?.org_id;
   if (!orgId) return;
 
-  // Marcar como cancelado con 90 días de gracia
-  const gracePeriodEnd = new Date();
-  gracePeriodEnd.setDate(gracePeriodEnd.getDate() + 90);
-
-  await supabase
+  // Marcar como cancelado con 90 días de gracia (si no se marcó ya en updated)
+  const { data: org } = await supabase
     .from('organizations')
-    .update({
-      canceled_at: new Date().toISOString(),
-      grace_period_ends_at: gracePeriodEnd.toISOString(),
-      stripe_subscription_id: null,
-    })
-    .eq('id', orgId);
+    .select('canceled_at')
+    .eq('id', orgId)
+    .single();
 
-  console.log(`[webhook] Org ${orgId} subscription cancelled. Grace period until ${gracePeriodEnd.toISOString()}`);
+  if (org && !org.canceled_at) {
+    const gracePeriodEnd = new Date();
+    gracePeriodEnd.setDate(gracePeriodEnd.getDate() + 90);
+
+    await supabase
+      .from('organizations')
+      .update({
+        canceled_at: new Date().toISOString(),
+        grace_period_ends_at: gracePeriodEnd.toISOString(),
+        stripe_subscription_id: null,
+      })
+      .eq('id', orgId);
+
+    console.log(`[webhook] Org ${orgId} subscription deleted. Grace period until ${gracePeriodEnd.toISOString()}`);
+  } else {
+    // Ya estaba marcado como cancelado — solo limpiar el subscription ID
+    await supabase
+      .from('organizations')
+      .update({ stripe_subscription_id: null })
+      .eq('id', orgId);
+
+    console.log(`[webhook] Org ${orgId} subscription deleted (already marked as canceled)`);
+  }
 }
 
 async function handlePaymentFailed(
