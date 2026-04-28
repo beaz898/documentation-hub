@@ -32,6 +32,8 @@ interface Credits {
   remaining: number;
   extra: number;
   plan: string;
+  subscriptionStatus?: string;
+  gracePeriodEndsAt?: string | null;
 }
 
 interface DocumentsSidebarProps {
