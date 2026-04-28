@@ -295,7 +295,7 @@ async function handlePaymentFailed(
 // ============================================================
 
 function extractOrgId(event: Stripe.Event): string | null {
-  const obj = event.data.object as Record<string, unknown>;
+  const obj = event.data.object as unknown as Record<string, unknown>;
 
   // Intentar desde metadata
   if (obj.metadata && typeof obj.metadata === 'object') {
