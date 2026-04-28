@@ -35,6 +35,11 @@ export default function BillingPage() {
   const [buyingCredits, setBuyingCredits] = useState<string | null>(null);
   const [openingPortal, setOpeningPortal] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  // Purge state
+  const [showPurgeConfirm, setShowPurgeConfirm] = useState(false);
+  const [purgeEmail, setPurgeEmail] = useState('');
+  const [purging, setPurging] = useState(false);
+  const [userEmail, setUserEmail] = useState('');
   const router = useRouter();
   const searchParams = useSearchParams();
   const supabase = createClient();
@@ -44,6 +49,7 @@ export default function BillingPage() {
     supabase.auth.getSession().then(({ data: { session: s } }) => {
       if (!s) { router.replace('/login'); return; }
       setSession({ access_token: s.access_token });
+      setUserEmail(s.user?.email || '');
     });
   }, [router, supabase.auth]);
 
@@ -162,6 +168,35 @@ export default function BillingPage() {
     }
   }
 
+  async function handlePurge() {
+    if (!session || purging) return;
+    setPurging(true);
+    setMessage(null);
+
+    try {
+      const res = await fetch('/api/org/purge', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
+        body: JSON.stringify({ confirmEmail: purgeEmail }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok && data.success) {
+        setMessage({ type: 'success', text: 'Todos los datos han sido borrados correctamente.' });
+        setShowPurgeConfirm(false);
+        setPurgeEmail('');
+        loadUsage();
+      } else {
+        setMessage({ type: 'error', text: data.error || 'Error al borrar los datos.' });
+      }
+    } catch {
+      setMessage({ type: 'error', text: 'Error de conexión.' });
+    } finally {
+      setPurging(false);
+    }
+  }
+
   if (!session) {
     return (
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
@@ -172,6 +207,7 @@ export default function BillingPage() {
 
   const isAdmin = usage?.role === 'admin';
   const currentPlan = usage?.plan || 'free';
+  const isCanceledOrExpired = usage?.subscriptionStatus === 'canceled' || usage?.subscriptionStatus === 'expired';
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
@@ -393,6 +429,84 @@ export default function BillingPage() {
                     </div>
                   ))}
                 </div>
+              </div>
+            )}
+
+            {/* Danger zone: purge data */}
+            {isAdmin && isCanceledOrExpired && (
+              <div style={{
+                marginBottom: 32, padding: '20px', borderRadius: 10,
+                border: '1px solid rgba(239,68,68,0.3)',
+                background: 'rgba(239,68,68,0.04)',
+              }}>
+                <h2 style={{ fontSize: 13, fontWeight: 600, color: 'rgb(239,68,68)', marginBottom: 6 }}>
+                  Zona de peligro
+                </h2>
+                <p style={{ fontSize: 11, color: 'var(--text-secondary)', marginBottom: 14 }}>
+                  Borra permanentemente todos los documentos, embeddings, conexiones y datos de tu workspace.
+                  Los registros de uso y feedback se anonimizan. Esta acción no se puede deshacer.
+                </p>
+
+                {!showPurgeConfirm ? (
+                  <button
+                    onClick={() => setShowPurgeConfirm(true)}
+                    style={{
+                      padding: '8px 16px', borderRadius: 8,
+                      border: '1px solid rgba(239,68,68,0.4)',
+                      background: 'transparent',
+                      color: 'rgb(239,68,68)',
+                      fontSize: 11, fontWeight: 600, cursor: 'pointer',
+                    }}
+                  >
+                    Borrar todos los datos
+                  </button>
+                ) : (
+                  <div style={{
+                    padding: '16px', borderRadius: 8,
+                    background: 'var(--bg-secondary)', border: '0.5px solid var(--border)',
+                  }}>
+                    <p style={{ fontSize: 11, color: 'var(--text-secondary)', marginBottom: 10 }}>
+                      Escribe tu email (<strong>{userEmail}</strong>) para confirmar el borrado:
+                    </p>
+                    <input
+                      type="email"
+                      value={purgeEmail}
+                      onChange={e => setPurgeEmail(e.target.value)}
+                      placeholder={userEmail}
+                      style={{
+                        width: '100%', padding: '8px 12px', borderRadius: 6,
+                        border: '0.5px solid var(--border)', background: 'var(--bg)',
+                        fontSize: 12, color: 'var(--text-primary)',
+                        marginBottom: 12, boxSizing: 'border-box',
+                      }}
+                    />
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      <button
+                        onClick={handlePurge}
+                        disabled={purging || purgeEmail !== userEmail}
+                        style={{
+                          padding: '8px 16px', borderRadius: 8, border: 'none',
+                          background: purgeEmail === userEmail ? 'rgb(239,68,68)' : 'var(--bg-tertiary)',
+                          color: purgeEmail === userEmail ? '#fff' : 'var(--text-muted)',
+                          fontSize: 11, fontWeight: 600,
+                          cursor: purging || purgeEmail !== userEmail ? 'not-allowed' : 'pointer',
+                        }}
+                      >
+                        {purging ? 'Borrando...' : 'Confirmar borrado'}
+                      </button>
+                      <button
+                        onClick={() => { setShowPurgeConfirm(false); setPurgeEmail(''); }}
+                        style={{
+                          padding: '8px 16px', borderRadius: 8,
+                          border: '0.5px solid var(--border)', background: 'var(--bg-secondary)',
+                          color: 'var(--text-secondary)', fontSize: 11, cursor: 'pointer',
+                        }}
+                      >
+                        Cancelar
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
