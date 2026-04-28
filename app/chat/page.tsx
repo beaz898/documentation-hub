@@ -72,7 +72,7 @@ export default function ChatPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const supabase = createClient();
-  const [credits, setCredits] = useState<{ remaining: number; extra: number; plan: string } | null>(null);
+  const [credits, setCredits] = useState<{ remaining: number; extra: number; plan: string; subscriptionStatus: string; gracePeriodEndsAt: string | null } | null>(null);
 
   // Detect mobile
   useEffect(() => {
@@ -163,7 +163,7 @@ export default function ChatPage() {
     const res = await fetch('/api/usage/summary', { headers: { Authorization: `Bearer ${session.access_token}` } });
     if (res.ok) {
       const data = await res.json();
-      setCredits({ remaining: data.creditsRemaining + data.creditsExtra, extra: data.creditsExtra, plan: data.plan });
+      setCredits({ remaining: data.creditsRemaining + data.creditsExtra, extra: data.creditsExtra, plan: data.plan, subscriptionStatus: data.subscriptionStatus || 'active', gracePeriodEndsAt: data.gracePeriodEndsAt || null });
     }
   } catch (err) { console.error('Error loading credits:', err); }
 }, [session]);
@@ -656,6 +656,19 @@ export default function ChatPage() {
           </div>
         </div>
 
+        {credits?.subscriptionStatus === 'canceled' && (
+          <div style={{ padding: '8px 16px', background: 'rgba(245,158,11,0.1)', borderBottom: '0.5px solid rgba(245,158,11,0.3)', fontSize: 12, color: '#b45309', textAlign: 'center', flexShrink: 0 }}>
+            Tu suscripción está cancelada. Tienes acceso hasta el {credits.gracePeriodEndsAt ? new Date(credits.gracePeriodEndsAt).toLocaleDateString('es-ES') : 'fin del período'}.
+            <a href="/settings/billing" style={{ marginLeft: 8, color: '#b45309', fontWeight: 600, textDecoration: 'underline' }}>Reactivar</a>
+          </div>
+        )}
+        {credits?.subscriptionStatus === 'expired' && (
+          <div style={{ padding: '8px 16px', background: 'rgba(239,68,68,0.1)', borderBottom: '0.5px solid rgba(239,68,68,0.3)', fontSize: 12, color: '#dc2626', textAlign: 'center', flexShrink: 0 }}>
+            Tu suscripción ha expirado. Contrata un plan para seguir usando la app.
+            <a href="/settings/billing" style={{ marginLeft: 8, color: '#dc2626', fontWeight: 600, textDecoration: 'underline' }}>Ver planes</a>
+          </div>
+        )}
+        
         <div style={{ flex: 1, overflowY: 'auto', padding: 16, display: 'flex', flexDirection: 'column', gap: 14 }}>
           {messages.length === 0 ? (
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', textAlign: 'center', padding: '0 16px' }}>
