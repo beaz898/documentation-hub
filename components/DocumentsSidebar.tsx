@@ -618,6 +618,16 @@ export default function DocumentsSidebar({
               <path d="M16 3.13a4 4 0 0 1 0 7.75" />
             </svg>
           </a>
+          <a href="/settings/billing" aria-label="Plan y facturación" style={{
+            padding: 5, borderRadius: 5, border: 'none', background: 'transparent',
+            cursor: 'pointer', color: 'var(--text-muted)', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
+            textDecoration: 'none',
+          }}>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <rect x="1" y="4" width="22" height="16" rx="2" />
+              <line x1="1" y1="10" x2="23" y2="10" />
+            </svg>
+          </a>
           <button onClick={toggleTheme} aria-label="Cambiar tema" style={{
             fontSize: 10, padding: '3px 7px', borderRadius: 5,
             border: '0.5px solid var(--border)', background: 'var(--bg-tertiary)',
