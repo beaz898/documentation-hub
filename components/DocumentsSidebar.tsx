@@ -630,6 +630,17 @@ export default function DocumentsSidebar({
               <line x1="1" y1="10" x2="23" y2="10" />
             </svg>
           </a>
+          
+          <a href="/settings/usage" aria-label="Consumo" style={{
+            padding: 5, borderRadius: 5, border: 'none', background: 'transparent',
+            cursor: 'pointer', color: 'var(--text-muted)', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
+            textDecoration: 'none',
+          }}>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M18 20V10" /><path d="M12 20V4" /><path d="M6 20v-6" />
+            </svg>
+          </a>
+          
           <button onClick={toggleTheme} aria-label="Cambiar tema" style={{
             fontSize: 10, padding: '3px 7px', borderRadius: 5,
             border: '0.5px solid var(--border)', background: 'var(--bg-tertiary)',
