@@ -206,6 +206,7 @@ export default function LandingPage() {
                   style={{
                     padding: '8px 20px', borderRadius: 8, border: 'none',
                     background: 'transparent', color: '#1a1a1a',
+                    border: '1.5px solid rgba(0,0,0,0.15)',
                     fontSize: 13, fontWeight: 500, cursor: 'pointer',
                   }}
                 >
@@ -217,6 +218,7 @@ export default function LandingPage() {
                     style={{
                       padding: '8px 20px', borderRadius: 8, border: 'none',
                       background: '#1a1a1a', color: '#fff',
+                       border: 'none',
                       fontSize: 13, fontWeight: 600, cursor: 'pointer',
                     }}
                   >
