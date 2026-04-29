@@ -204,7 +204,7 @@ export default function LandingPage() {
                 <button
                   onClick={() => router.push('/login')}
                   style={{
-                    padding: '8px 20px', borderRadius: 8, border: 'none',
+                    padding: '8px 20px', borderRadius: 8, 
                     background: 'transparent', color: '#1a1a1a',
                     border: '1.5px solid rgba(0,0,0,0.15)',
                     fontSize: 13, fontWeight: 500, cursor: 'pointer',
@@ -216,7 +216,7 @@ export default function LandingPage() {
                   <button
                     onClick={() => router.push('/login')}
                     style={{
-                      padding: '8px 20px', borderRadius: 8, border: 'none',
+                      padding: '8px 20px', borderRadius: 8, 
                       background: '#1a1a1a', color: '#fff',
                        border: '1.5px solid rgba(0,0,0,0.15)',
                       fontSize: 13, fontWeight: 600, cursor: 'pointer',
