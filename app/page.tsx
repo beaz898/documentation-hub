@@ -63,8 +63,12 @@ export default function LandingPage() {
   }, [supabase.auth]);
 
   function handleCTA() {
-    router.push(isLoggedIn ? '/chat' : '/login');
-  }
+     router.push(isLoggedIn ? '/chat' : '/login');
+   }
+   
+   function handlePlanCTA() {
+     router.push(isLoggedIn ? '/settings/billing' : '/login');
+   }
 
   return (
     <div style={{ background: '#fafaf9', color: '#1a1a1a', minHeight: '100vh' }}>
@@ -564,7 +568,7 @@ export default function LandingPage() {
                     <p>Hasta {plan.users} usuario{plan.users !== '1' ? 's' : ''}</p>
                   </div>
                   <button
-                    onClick={handleCTA}
+                    onClick={handlePlanCTA}
                     style={{
                       width: '100%', padding: '10px', borderRadius: 8, border: 'none',
                       background: plan.popular ? '#1a1a1a' : '#f0f0ee',
