@@ -55,7 +55,9 @@ function buildSystemBlocks(opts: CallOptions): SystemBlock[] | null {
 }
 
 function buildPayload(prompt: string, opts: CallOptions) {
-  const { maxOutputTokens = 4096, temperature = 0.2, model = 'haiku' } = opts;
+  // Temperatura 0 por defecto: máxima consistencia para análisis.
+  // Los endpoints de chat (ask, improve) pasan temperature: 0.3 explícitamente.
+  const { maxOutputTokens = 4096, temperature = 0, model = 'haiku' } = opts;
   const modelId = model === 'sonnet' ? SONNET_MODEL : DEFAULT_MODEL;
   const messages = buildMessages(prompt, opts);
 
