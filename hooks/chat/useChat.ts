@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import type { SessionInfo, Message, Document } from './types';
 
-export function useChat(session: SessionInfo | null, documents: Document[], onCreditsChange: () => void) {
+export function useChat(session: SessionInfo | null, onCreditsChange: () => void) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
@@ -16,10 +16,6 @@ export function useChat(session: SessionInfo | null, documents: Document[], onCr
   async function handleSend() {
     const question = input.trim();
     if (!question || sending || !session) return;
-    if (documents.length === 0) {
-      setMessages(prev => [...prev, { id: crypto.randomUUID(), role: 'error', content: 'Sube o sincroniza documentos primero.' }]);
-      return;
-    }
     setInput(''); setSending(true);
     const userMsg: Message = { id: crypto.randomUUID(), role: 'user', content: question };
     const loadingMsg: Message = { id: crypto.randomUUID(), role: 'loading', content: '' };
