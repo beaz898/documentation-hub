@@ -334,16 +334,16 @@ export default function LandingPage() {
                   <div style={{ flex: 1, fontSize: 10, color: '#aaa', textAlign: 'center' }}>Chat — Documentation Hub</div>
                 </div>
                 <div style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 12 }}>
-                  <div style={{ alignSelf: 'flex-end', maxWidth: '75%' }}>
+                  <div className="s1-msg-user" style={{ alignSelf: 'flex-end', maxWidth: '75%' }}>
                     <div style={{ padding: '9px 14px', borderRadius: '14px 14px 4px 14px', background: BRAND, color: '#fff', fontSize: 12, lineHeight: 1.5 }}>
                       ¿Dónde encuentro el formulario de solicitud de anticipo?
                     </div>
                   </div>
-                  <div style={{ maxWidth: '85%' }}>
+                  <div className="s1-msg-ai" style={{ maxWidth: '85%' }}>
                     <div style={{ padding: '11px 14px', borderRadius: '14px 14px 14px 4px', background: '#f5f5f4', fontSize: 12, lineHeight: 1.65, color: '#333' }}>
                       El formulario de solicitud de anticipo está en el <span style={{ color: BRAND, fontWeight: 600 }}>Anexo 3 del Manual RRHH</span>. Debe entregarse firmado al departamento de nóminas con al menos 5 días de antelación.
                     </div>
-                    <div style={{ marginTop: 6, display: 'flex', gap: 6 }}>
+                    <div className="s1-source" style={{ marginTop: 6, display: 'flex', gap: 6 }}>
                       <span style={{ fontSize: 9, padding: '3px 8px', borderRadius: 4, background: BRAND_LIGHT, color: BRAND, fontWeight: 500 }}>📄 Manual_RRHH.docx — pág. 34</span>
                     </div>
                   </div>
