@@ -128,6 +128,11 @@ export default function LandingPage() {
         .animate-on-scroll.in-view .m3-apply{animation:fadeSlideUp .3s ease-out 1.5s both}
         .animate-on-scroll.in-view .m3-resolved{animation:fadeSlideUp .3s ease-out 2.1s both}
 
+        .s1-msg-user,.s1-msg-ai,.s1-source{opacity:0}
+        .animate-on-scroll.in-view .s1-msg-user{animation:fadeSlideUp .4s ease-out .3s both}
+        .animate-on-scroll.in-view .s1-msg-ai{animation:fadeSlideUp .4s ease-out 1s both}
+        .animate-on-scroll.in-view .s1-source{animation:slideInRight .3s ease-out 1.6s both}
+
         .showcase-item{opacity:0;animation:fadeSlideUp .6s ease-out both}
 
         .mockup-sidebar-doc{opacity:0;animation:fadeSlideUp .3s ease-out both}
@@ -322,7 +327,7 @@ export default function LandingPage() {
                 ))}
               </div>
             </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
+            <div className="animate-on-scroll" style={{ flex: 1, minWidth: 0 }}>
               <div style={{ borderRadius: 14, overflow: 'hidden', boxShadow: '0 20px 60px rgba(0,0,0,.1), 0 0 0 1px rgba(0,0,0,.06)', background: '#fff' }}>
                 <div style={{ padding: '8px 12px', background: '#f5f5f4', borderBottom: '1px solid rgba(0,0,0,.06)', display: 'flex', alignItems: 'center', gap: 6 }}>
                   <div style={{ display: 'flex', gap: 4 }}><div style={{ width: 8, height: 8, borderRadius: '50%', background: '#fbbf24' }} /><div style={{ width: 8, height: 8, borderRadius: '50%', background: '#a3e635' }} /><div style={{ width: 8, height: 8, borderRadius: '50%', background: '#f87171' }} /></div>
