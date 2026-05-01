@@ -21,77 +21,89 @@ function mapStyleProblems(raw: StyleApiProblem[]): Problem[] {
 }
 
 /**
- * Genera una "huella" de un problema para compararlo con otros.
+ * Genera una huella estable para un problema.
  * Dos problemas con la misma huella se consideran el mismo problema.
- * Se basa en tipo + documento relacionado + contenido normalizado.
+ * Se basa en: tipo + documento relacionado + textRef normalizado.
+ * 
+ * Evitamos usar title/description porque Claude los redacta de forma
+ * ligeramente diferente en cada ejecución. En cambio, textRef es una
+ * cita directa del documento que no varía.
  */
 function problemFingerprint(p: Problem): string {
   const type = p.type;
   const relDoc = (p.relatedDoc || '').toLowerCase().trim();
-  // Normalizar el contenido: quitar espacios extra, minúsculas, quitar puntuación
+
+  // Para contradicciones y solapamientos, textRef es la cita del documento nuevo.
+  // Es el dato más estable porque viene del documento, no del LLM.
+  if (p.textRef) {
+    const textRefNorm = p.textRef
+      .toLowerCase()
+      .replace(/\s+/g, ' ')
+      .replace(/[.,;:!?""''«»()[\]{}]/g, '')
+      .trim();
+    return `${type}|${relDoc}|${textRefNorm.slice(0, 80)}`;
+  }
+
+  // Fallback para problemas sin textRef (duplicados generales)
   const descNorm = (p.description || '')
     .toLowerCase()
     .replace(/\s+/g, ' ')
-    .replace(/[.,;:!?""''()[\]{}]/g, '')
+    .replace(/[.,;:!?""''«»()[\]{}]/g, '')
     .trim();
-  // Para contradicciones, usar el textRef (lo que dice el documento nuevo) como clave principal
-  const textRefNorm = (p.textRef || '')
-    .toLowerCase()
-    .replace(/\s+/g, ' ')
-    .trim();
-
-  return `${type}|${relDoc}|${textRefNorm || descNorm.slice(0, 100)}`;
+  return `${type}|${relDoc}|${descNorm.slice(0, 80)}`;
 }
 
 /**
- * Compara dos conjuntos de problemas de forma inteligente.
+ * Fusiona problemas existentes con los nuevos de forma inteligente.
  * 
- * En vez de sobrescribir, identifica:
- * - Problemas que siguen existiendo (mantiene el ID original)
- * - Problemas genuinamente nuevos (nuevo ID)
- * - Problemas que desaparecieron (se consideran resueltos solo si ya no aparecen)
+ * - Si un problema ya existía (misma huella): mantiene el ID original.
+ * - Si es genuinamente nuevo (huella no vista): lo añade con su ID nuevo.
+ * - Si un problema anterior no aparece: se elimina (resuelto).
  * 
- * Devuelve el array fusionado de problemas.
+ * Devuelve { merged, kept, added, removed } para reportar al usuario.
  */
 function mergeProblems(
   existing: Problem[],
   incoming: Problem[],
-): Problem[] {
-  // Crear mapa de huellas de los existentes
-  const existingByFingerprint = new Map<string, Problem>();
+): { merged: Problem[]; kept: number; added: number; removed: number } {
+  const existingByFp = new Map<string, Problem>();
   for (const p of existing) {
-    existingByFingerprint.set(problemFingerprint(p), p);
-  }
-
-  // Crear mapa de huellas de los nuevos
-  const incomingByFingerprint = new Map<string, Problem>();
-  for (const p of incoming) {
-    incomingByFingerprint.set(problemFingerprint(p), p);
+    const fp = problemFingerprint(p);
+    existingByFp.set(fp, p);
   }
 
   const merged: Problem[] = [];
-  const usedExistingFingerprints = new Set<string>();
+  let kept = 0;
+  let added = 0;
+  const matchedFps = new Set<string>();
 
-  // Paso 1: para cada problema nuevo, buscar si ya existía
-  for (const [fp, newProblem] of incomingByFingerprint) {
-    const existingProblem = existingByFingerprint.get(fp);
-    if (existingProblem) {
-      // El problema ya existía → mantener el ID original y los datos actualizados
-      merged.push({
-        ...newProblem,
-        id: existingProblem.id, // mantener ID para que la UI no lo trate como nuevo
-      });
-      usedExistingFingerprints.add(fp);
+  for (const newP of incoming) {
+    const fp = problemFingerprint(newP);
+    const existingP = existingByFp.get(fp);
+
+    if (existingP) {
+      merged.push({ ...newP, id: existingP.id });
+      matchedFps.add(fp);
+      kept++;
     } else {
-      // Problema genuinamente nuevo
-      merged.push(newProblem);
+      merged.push(newP);
+      added++;
     }
   }
 
-  // Los problemas existentes que no aparecen en incoming se consideran resueltos
-  // y no se incluyen en el resultado
+  let removed = 0;
+  for (const [fp] of existingByFp) {
+    if (!matchedFps.has(fp)) removed++;
+  }
 
-  return merged;
+  return { merged, kept, added, removed };
+}
+
+export interface ReanalyzeResult {
+  styleProblems: Problem[];
+  delta: { kept: number; added: number; removed: number };
+  /** True si no se reanalizo porque el texto no cambio */
+  skipped: boolean;
 }
 
 export function useCrossDocAnalysis(
@@ -103,20 +115,25 @@ export function useCrossDocAnalysis(
   );
   const [reanalyzingAll, setReanalyzingAll] = useState(false);
   const [lastError, setLastError] = useState<string | null>(null);
-  // Guardar referencia al texto con el que se hizo el último análisis
-  const lastAnalyzedTextRef = useRef<string>('');
 
-  /**
-   * Reanalyzes both cross-doc and style in parallel.
-   * Uses intelligent comparison to merge results instead of overwriting.
-   * Returns the new style problems so the caller can push them into useStyleAnalysis.
-   */
+  // Guardar el texto del último análisis para detectar si cambió
+  const lastAnalyzedTextRef = useRef<string | null>(null);
+
   const reanalyzeAll = useCallback(
-    async (currentText: string, fileName: string): Promise<{ styleProblems: Problem[] } | null> => {
+    async (currentText: string, fileName: string): Promise<ReanalyzeResult | null> => {
       if (!accessToken) {
         console.warn('[useCrossDocAnalysis] no access token available');
         setLastError('No se pudo reanalizar: sesión no disponible.');
         return null;
+      }
+
+      // Si el texto no cambió desde el último análisis, no reanalizar
+      if (lastAnalyzedTextRef.current !== null && lastAnalyzedTextRef.current === currentText) {
+        return {
+          styleProblems: [],
+          delta: { kept: crossDocProblems.length, added: 0, removed: 0 },
+          skipped: true,
+        };
       }
 
       setReanalyzingAll(true);
@@ -147,13 +164,15 @@ export function useCrossDocAnalysis(
         const crossData = await crossRes.json();
         const incomingCrossProblems = problemsFromAnalysis(crossData?.analysis || crossData || {});
 
-        // Comparación inteligente: fusionar en vez de sobrescribir
+        // Fusión inteligente
+        let delta = { kept: 0, added: 0, removed: 0 };
         setCrossDocProblems(prev => {
-          const merged = mergeProblems(prev, incomingCrossProblems);
-          return merged;
+          const result = mergeProblems(prev, incomingCrossProblems);
+          delta = { kept: result.kept, added: result.added, removed: result.removed };
+          return result.merged;
         });
 
-        // Guardar referencia del texto analizado
+        // Guardar el texto analizado
         lastAnalyzedTextRef.current = currentText;
 
         let newStyleProblems: Problem[] = [];
@@ -166,7 +185,7 @@ export function useCrossDocAnalysis(
           console.warn('[useCrossDocAnalysis] style HTTP error', styleRes.status);
         }
 
-        return { styleProblems: newStyleProblems };
+        return { styleProblems: newStyleProblems, delta, skipped: false };
       } catch (err) {
         console.warn('[useCrossDocAnalysis] reanalyzeAll failed', err);
         setLastError('No se pudo reanalizar, prueba de nuevo en unos segundos.');
@@ -175,7 +194,7 @@ export function useCrossDocAnalysis(
         setReanalyzingAll(false);
       }
     },
-    [accessToken]
+    [accessToken, crossDocProblems.length]
   );
 
   return { crossDocProblems, setCrossDocProblems, reanalyzeAll, reanalyzingAll, lastError };
