@@ -38,6 +38,27 @@ export default function LandingPage() {
 
   function handleCTA() { router.push(isLoggedIn ? '/chat' : '/login'); }
   function handlePlanCTA() { router.push(isLoggedIn ? '/settings/billing' : '/login'); }
+  
+  // Trigger animations when elements scroll into view
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('in-view');
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.15 }
+    );
+
+  document.querySelectorAll('.animate-on-scroll').forEach(el => {
+    observer.observe(el);
+  });
+
+    return () => observer.disconnect();
+  }, []);
 
   return (
     <div className="landing" style={{ background: '#fafaf9', color: '#1a1a1a', minHeight: '100vh' }}>
@@ -92,17 +113,20 @@ export default function LandingPage() {
         .m1-msg-ai{animation:fadeSlideUp .4s ease-out 2s both}
         .m1-source{animation:slideInRight .3s ease-out 2.6s both}
 
-        .m2-upload{animation:fadeSlideUp .4s ease-out .8s both}
-        .m2-progress{animation:fadeSlideUp .3s ease-out 1.2s both}
-        .m2-progress-bar{animation:progressFill 1.5s ease-out 1.5s both}
-        .m2-result{animation:fadeSlideUp .4s ease-out 3s both}
-        .m2-issue1{animation:slideInRight .3s ease-out 3.4s both}
-        .m2-issue2{animation:slideInRight .3s ease-out 3.7s both}
-
-        .m3-problem{animation:fadeSlideUp .3s ease-out .8s both}
-        .m3-suggestion{animation:fadeSlideUp .4s ease-out 1.4s both}
-        .m3-apply{animation:fadeSlideUp .3s ease-out 2s both}
-        .m3-resolved{animation:fadeSlideUp .3s ease-out 2.6s both}
+        .m2-upload,.m2-progress,.m2-progress-bar,.m2-result,.m2-issue1,.m2-issue2,
+        .m3-problem,.m3-suggestion,.m3-apply,.m3-resolved{opacity:0}
+        
+        .animate-on-scroll.in-view .m2-upload{animation:fadeSlideUp .4s ease-out .3s both}
+        .animate-on-scroll.in-view .m2-progress{animation:fadeSlideUp .3s ease-out .7s both}
+        .animate-on-scroll.in-view .m2-progress-bar{animation:progressFill 1.5s ease-out 1s both}
+        .animate-on-scroll.in-view .m2-result{animation:fadeSlideUp .4s ease-out 2.5s both}
+        .animate-on-scroll.in-view .m2-issue1{animation:slideInRight .3s ease-out 2.9s both}
+        .animate-on-scroll.in-view .m2-issue2{animation:slideInRight .3s ease-out 3.2s both}
+        
+        .animate-on-scroll.in-view .m3-problem{animation:fadeSlideUp .3s ease-out .3s both}
+        .animate-on-scroll.in-view .m3-suggestion{animation:fadeSlideUp .4s ease-out .9s both}
+        .animate-on-scroll.in-view .m3-apply{animation:fadeSlideUp .3s ease-out 1.5s both}
+        .animate-on-scroll.in-view .m3-resolved{animation:fadeSlideUp .3s ease-out 2.1s both}
 
         .showcase-item{opacity:0;animation:fadeSlideUp .6s ease-out both}
 
@@ -339,8 +363,8 @@ export default function LandingPage() {
                 ))}
               </div>
             </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ borderRadius: 14, overflow: 'hidden', boxShadow: '0 20px 60px rgba(0,0,0,.2), 0 0 0 1px rgba(0,0,0,.15)', background: '#1e1e1e' }}>
+            <div className="animate-on-scroll" style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ borderRadius: 14, overflow: 'hidden', boxShadow: '0 20px 60px rgba(0,0,0,.2), 0 0 0 1px rgba(0,0,0,.15)', background: '#1e1e1e' }}>      
                 <div style={{ padding: '8px 12px', background: '#2d2d2d', borderBottom: '1px solid rgba(255,255,255,.06)', display: 'flex', alignItems: 'center', gap: 6 }}>
                   <div style={{ display: 'flex', gap: 4 }}><div style={{ width: 8, height: 8, borderRadius: '50%', background: '#fbbf24' }} /><div style={{ width: 8, height: 8, borderRadius: '50%', background: '#a3e635' }} /><div style={{ width: 8, height: 8, borderRadius: '50%', background: '#f87171' }} /></div>
                   <div style={{ flex: 1, fontSize: 10, color: '#666', textAlign: 'center' }}>Análisis — Protocolo_Seguridad_v2.pdf</div>
@@ -408,7 +432,7 @@ export default function LandingPage() {
                 ))}
               </div>
             </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
+            <div className="animate-on-scroll" style={{ flex: 1, minWidth: 0 }}>
               <div style={{ borderRadius: 14, overflow: 'hidden', boxShadow: '0 20px 60px rgba(0,0,0,.1), 0 0 0 1px rgba(0,0,0,.06)', background: '#fff' }}>
                 <div style={{ padding: '8px 12px', background: '#f5f5f4', borderBottom: '1px solid rgba(0,0,0,.06)', display: 'flex', alignItems: 'center', gap: 6 }}>
                   <div style={{ display: 'flex', gap: 4 }}><div style={{ width: 8, height: 8, borderRadius: '50%', background: '#fbbf24' }} /><div style={{ width: 8, height: 8, borderRadius: '50%', background: '#a3e635' }} /><div style={{ width: 8, height: 8, borderRadius: '50%', background: '#f87171' }} /></div>
