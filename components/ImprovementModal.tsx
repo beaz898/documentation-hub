@@ -15,10 +15,6 @@ interface ExistingDocForDialog {
   name: string;
 }
 
-/**
- * Forma de los styleProblems que vienen del análisis exhaustivo. Coincide con
- * lo que devuelve /api/analyze-style y con StyleApiProblem en useStyleAnalysis.
- */
 interface AnalysisStyleProblem {
   type: Problem['type'];
   title: string;
@@ -48,41 +44,6 @@ const TYPE_META: Record<ProblemType, { label: string; color: string; bg: string;
 
 const ALL_TYPES: ProblemType[] = ['contradiccion', 'duplicidad', 'ortografia', 'ambiguedad', 'sugerencia'];
 
-function normalizeTitle(s: string): string {
-  return s.trim().toLowerCase().replace(/\s+/g, ' ');
-}
-
-function buildTitleSet(problems: Problem[]): Set<string> {
-  return new Set(problems.map(p => normalizeTitle(p.title)));
-}
-
-function buildDeltaMessage(
-  prev: Problem[],
-  next: Problem[],
-  scopeLabel: 'estilo' | 'todo'
-): string {
-  const prevSet = buildTitleSet(prev);
-  const nextSet = buildTitleSet(next);
-
-  let resolved = 0;
-  for (const t of prevSet) if (!nextSet.has(t)) resolved++;
-
-  let added = 0;
-  for (const t of nextSet) if (!prevSet.has(t)) added++;
-
-  const pending = next.length;
-
-  return `He reanalizado ${scopeLabel === 'estilo' ? 'el estilo' : 'todo'} y este es el resumen:\n\n` +
-    `• Resueltos: ${resolved}\n` +
-    `• Nuevos: ${added}\n` +
-    `• Pendientes: ${pending}`;
-}
-
-/**
- * Construye un resumen textual de todos los problemas detectados para inyectar
- * en el prompt del chat. Así Claude sabe exactamente qué problemas hay sin
- * tener que redescubrirlos.
- */
 function buildProblemsSummary(problems: Problem[]): string {
   if (problems.length === 0) return '(ningún problema detectado)';
   return problems
@@ -129,8 +90,6 @@ export default function ImprovementModal({
     initialText,
     fileName,
     accessToken,
-    // Precargamos los problemas de estilo del análisis exhaustivo, si los hay.
-    // Así el usuario los ve al abrir el modal sin tener que pulsar "Reanalizar estilo".
     initialStyleProblems: analysis.styleProblems,
   });
 
@@ -139,7 +98,6 @@ export default function ImprovementModal({
     [crossDocProblems, styleProblems]
   );
 
-  // Resumen de problemas para inyectar en el prompt del chat
   const problemsSummary = useMemo(
     () => buildProblemsSummary(problems),
     [problems]
@@ -169,8 +127,6 @@ export default function ImprovementModal({
   const didWelcomeRef = useRef(false);
   useEffect(() => {
     if (didWelcomeRef.current) return;
-    // El mensaje de bienvenida resume los problemas detectados al abrir el modal.
-    // Incluimos cross-doc + estilo (ambos vienen ya cargados si el análisis fue exhaustivo).
     const allInitial = [...crossDocProblems, ...styleProblems];
     if (allInitial.length === 0) {
       didWelcomeRef.current = true;
@@ -216,14 +172,12 @@ export default function ImprovementModal({
     ta.scrollTop = Math.max(0, (lineNumber - 3) * lineHeight);
   }, [text]);
 
-  // -------- Solventar un problema individual ----------
   const handleSolveOne = useCallback((p: Problem) => {
     const typeLabel = TYPE_META[p.type].label.toLowerCase();
     const message = `Resuelve el siguiente problema de tipo ${typeLabel} en el TEXTO_ACTUAL. Propón los cambios necesarios con bloques REPLACEMENT:\n\nTítulo: ${p.title}\nDescripción: ${p.description}${p.relatedDoc ? `\nDocumento relacionado: ${p.relatedDoc}` : ''}`;
     sendMessage(message, text, fileName, problemsSummary);
   }, [sendMessage, text, fileName, problemsSummary]);
 
-  // -------- Resolver todos los problemas de un grupo ----------
   const handleSolveGroup = useCallback((type: ProblemType, groupProblems: Problem[]) => {
     const typeLabel = TYPE_META[type].label.toLowerCase();
     const list = groupProblems
@@ -233,36 +187,59 @@ export default function ImprovementModal({
     sendMessage(message, text, fileName, problemsSummary);
   }, [sendMessage, text, fileName, problemsSummary]);
 
-  // -------- Wrapper del sendMessage manual para incluir fileName y problemsSummary ----------
   const handleManualSend = useCallback(async (userText: string, currentEditorText: string) => {
     await sendMessage(userText, currentEditorText, fileName, problemsSummary);
   }, [sendMessage, fileName, problemsSummary]);
 
   const handleReanalyzeStyle = useCallback(async () => {
-    const prev = styleProblems;
+    const prevCount = styleProblems.length;
     await reanalyzeStyle(text, fileName);
     setStyleProblems(curr => {
-      const msg = buildDeltaMessage(prev, curr, 'estilo');
+      const diff = curr.length - prevCount;
+      let msg: string;
+      if (diff === 0) {
+        msg = 'He reanalizado el estilo. No hay cambios respecto al análisis anterior.';
+      } else if (diff > 0) {
+        msg = `He reanalizado el estilo. ${diff} problema${diff !== 1 ? 's' : ''} nuevo${diff !== 1 ? 's' : ''}, ${curr.length} pendiente${curr.length !== 1 ? 's' : ''} en total.`;
+      } else {
+        msg = `He reanalizado el estilo. ${Math.abs(diff)} problema${Math.abs(diff) !== 1 ? 's' : ''} resuelto${Math.abs(diff) !== 1 ? 's' : ''}, ${curr.length} pendiente${curr.length !== 1 ? 's' : ''} en total.`;
+      }
       addAssistantMessage(msg);
       return curr;
     });
-  }, [styleProblems, reanalyzeStyle, text, setStyleProblems, addAssistantMessage]);
+  }, [styleProblems.length, reanalyzeStyle, text, setStyleProblems, addAssistantMessage]);
 
   const handleReanalyzeAll = useCallback(async () => {
-    const prev = problems;
     const result = await reanalyzeAll(text, fileName);
     if (!result) {
       addAssistantMessage('No se pudo reanalizar, prueba de nuevo en unos segundos.');
       return;
     }
+
+    // Si el texto no cambió, no se reanalizo — informar al usuario
+    if (result.skipped) {
+      addAssistantMessage(
+        'El texto no ha cambiado desde el último análisis. Los problemas detectados siguen siendo los mismos.\n\n' +
+        `Pendientes: ${crossDocProblems.length + styleProblems.length}`
+      );
+      return;
+    }
+
+    // Actualizar style problems
     setStyleProblems(result.styleProblems);
-    setCrossDocProblems(currCross => {
-      const next = [...currCross, ...result.styleProblems];
-      const msg = buildDeltaMessage(prev, next, 'todo');
-      addAssistantMessage(msg);
-      return currCross;
-    });
-  }, [problems, reanalyzeAll, text, fileName, setStyleProblems, setCrossDocProblems, addAssistantMessage]);
+
+    // Construir mensaje con las estadísticas reales de la fusión
+    const d = result.delta;
+    const totalPending = (crossDocProblems.length - d.removed + d.added) + result.styleProblems.length;
+    const parts: string[] = ['He reanalizado todo el documento.'];
+
+    if (d.removed > 0) parts.push(`✅ ${d.removed} problema${d.removed !== 1 ? 's' : ''} resuelto${d.removed !== 1 ? 's' : ''}.`);
+    if (d.added > 0) parts.push(`🆕 ${d.added} problema${d.added !== 1 ? 's' : ''} nuevo${d.added !== 1 ? 's' : ''}.`);
+    if (d.removed === 0 && d.added === 0) parts.push('No hay cambios en los problemas detectados.');
+    parts.push(`📋 ${totalPending} pendiente${totalPending !== 1 ? 's' : ''} en total.`);
+
+    addAssistantMessage(parts.join('\n'));
+  }, [reanalyzeAll, text, fileName, setStyleProblems, crossDocProblems.length, styleProblems.length, addAssistantMessage]);
 
   const {
     indexing,
@@ -292,14 +269,9 @@ export default function ImprovementModal({
   }, [onClose]);
 
   return (
-    // Contenedor de overlay propio. NO usamos la clase global "modal-overlay"
-    // de globals.css porque su background entra en conflicto con el inline.
     <div
       style={{
         position: 'fixed', inset: 0, zIndex: 100,
-        // Overlay translúcido, recuperamos la versión más amable que dejaba
-        // intuir la app de fondo. La opacidad real ahora la garantiza el
-        // propio modal con su background sólido.
         background: 'rgba(0,0,0,0.55)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         padding: 20,
@@ -311,9 +283,6 @@ export default function ImprovementModal({
           width: '100%', maxWidth: 1200,
           height: '90vh',
           maxHeight: 900,
-          // Fondo totalmente opaco. --bg es la variable correcta de globals.css
-          // (#ffffff en light, #0f1117 en dark). Antes usábamos --bg-primary,
-          // que NO existe, y eso hacía que el modal se quedara transparente.
           background: 'var(--bg)', borderRadius: 14,
           border: '1px solid var(--border)',
           display: 'flex', flexDirection: 'column',
@@ -322,7 +291,7 @@ export default function ImprovementModal({
           position: 'relative',
         }}
       >
-        {/* CABECERA: background explícito sólido. */}
+        {/* CABECERA */}
         <div style={{
           padding: '14px 20px', borderBottom: '0.5px solid var(--border)',
           display: 'flex', alignItems: 'center', gap: 12,
@@ -346,10 +315,6 @@ export default function ImprovementModal({
               {problems.length} problema{problems.length !== 1 ? 's' : ''} detectado{problems.length !== 1 ? 's' : ''}
             </p>
           </div>
-          {/*
-            Botón Cerrar (X). Usa --bg-tertiary para diferenciarse claramente
-            del fondo opaco del modal.
-          */}
           <button
             onClick={handleCloseRequest}
             aria-label="Cerrar"
@@ -377,7 +342,7 @@ export default function ImprovementModal({
           </button>
         </div>
 
-        {/* GRID PRINCIPAL: background explícito sólido. */}
+        {/* GRID PRINCIPAL */}
         <div style={{
           flex: '1 1 auto',
           display: 'grid',
@@ -386,7 +351,7 @@ export default function ImprovementModal({
           overflow: 'hidden',
           background: 'var(--bg)',
         }}>
-          {/* PANEL IZQUIERDO (editor): background explícito sólido. */}
+          {/* PANEL IZQUIERDO (editor) */}
           <div
             ref={editorRef}
             style={{
@@ -435,10 +400,6 @@ export default function ImprovementModal({
           flexShrink: 0,
           background: 'var(--bg)',
         }}>
-          {/*
-            Botón Descartar y cerrar. Sólido en rojo destructivo, simétrico
-            al de Indexar versión corregida.
-          */}
           <button
             onClick={handleCloseRequest}
             disabled={indexing}
