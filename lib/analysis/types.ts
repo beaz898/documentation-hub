@@ -63,6 +63,9 @@ export interface PipelineOptions {
 /** Nivel de confianza de una contradicción detectada. */
 export type DiscrepancyConfidence = 'alta' | 'posible';
 
+/** Motivo por el que el análisis exhaustivo se detuvo antes de completar todas las capas. */
+export type EarlyStopReason = 'high_overlap' | 'too_many_contradictions';
+
 export interface FinalAnalysis {
   isDuplicate: boolean;
   duplicateOf: string | null;
@@ -98,4 +101,11 @@ export interface FinalAnalysis {
     description: string;
     textRef: string;
   }>;
+  /**
+   * Si el análisis exhaustivo se detuvo antes de completar todas las capas.
+   * - 'high_overlap': solapamiento ≥30% con documentos existentes.
+   * - 'too_many_contradictions': ≥15 contradicciones detectadas por el judge.
+   * Ausente si el análisis se completó normalmente.
+   */
+  earlyStop?: EarlyStopReason;
 }
