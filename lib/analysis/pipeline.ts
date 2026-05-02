@@ -26,6 +26,21 @@ export interface AnalyzePipelineInput {
 /** Alias mantenido por compatibilidad. El exhaustivo usa la misma forma de input. */
 export type ExhaustivePipelineInput = AnalyzePipelineInput;
 
+/**
+ * Umbral de solapamiento alto (%). Si algún juicio supera este valor,
+ * se considera que el documento tiene un solapamiento significativo
+ * y se marca para revisión prioritaria.
+ */
+const HIGH_OVERLAP_THRESHOLD = 30;
+
+/**
+ * Máximo de contradicciones del judge antes de cortar el exhaustivo.
+ * Si el judge ya encontró más de esto, no tiene sentido gastar tiempo
+ * y dinero en verify-claims + double-check. El documento claramente
+ * necesita revisión.
+ */
+const MAX_CONTRADICTIONS_BEFORE_CUTOFF = 15;
+
 // ============================================================
 // Núcleo compartido: retrieve → rerank → judge → synthesize
 // ============================================================
@@ -148,6 +163,10 @@ export async function runAnalysisPipeline(input: AnalyzePipelineInput): Promise<
  *
  * Capa 0 — Hash SHA-256: duplicados exactos (100%, coste cero).
  * Capas 1-4 — Pipeline v2 sin límites.
+ * Corte temprano — Si hay solapamiento alto (≥30%) o demasiadas
+ *   contradicciones (≥15), devolvemos resultado directamente.
+ *   El usuario debe resolver estos problemas graves antes de
+ *   gastar tiempo y dinero en un análisis más profundo.
  * Capa 5 — Extracción de afirmaciones atómicas + verificación contra corpus.
  * Capa 6 — Doble verificación: Sonnet confirma cada contradicción de Haiku.
  * Capa 7 — Análisis de estilo: ortografía, ambigüedades, sugerencias.
@@ -171,18 +190,57 @@ export async function runExhaustiveAnalysisPipeline(input: ExhaustivePipelineInp
 
   console.log(`[pipeline-exhaustive] Hash check: sin duplicado exacto (${Date.now() - t0}ms)`);
 
-  // ── Capas 1-4 + Capa 5 + Capa 7 (en paralelo) ──────────────
-  // Tres procesos independientes a la vez:
-  // 1. Pipeline v2 (retrieve → rerank → judge → synthesize)
-  // 2. Extracción de afirmaciones atómicas
-  // 3. Análisis de estilo
-  const [pipelineResult, atomicClaims, styleProblems] = await Promise.all([
+  // ── Capas 1-4 + Capa 7 (estilo en paralelo) ─────────────────
+  // Pipeline v2 y análisis de estilo corren en paralelo.
+  // La extracción de claims se hace DESPUÉS del pipeline v2 para
+  // poder evaluar si merece la pena continuar (corte temprano).
+  const [pipelineResult, styleProblems] = await Promise.all([
     runCorePipeline(input, { exhaustive: true }, 'pipeline-exhaustive'),
-    extractAtomicClaims(input.newDocumentText, input.newDocumentName),
     analyzeStyle(input.newDocumentText, input.newDocumentName),
   ]);
 
-  // ── Capa 5b: Verificar afirmaciones contra corpus ───────────
+  // ── Corte temprano: solapamiento alto ────────────────────────
+  const highOverlaps = pipelineResult.judgments
+    ?.filter(j => j.overlapPercent >= HIGH_OVERLAP_THRESHOLD) || [];
+
+  if (highOverlaps.length > 0) {
+    const topOverlap = highOverlaps.sort((a, b) => b.overlapPercent - a.overlapPercent)[0];
+    const overlapSummary = highOverlaps
+      .map(j => `"${j.documentName}" (${j.overlapPercent}%)`)
+      .join(', ');
+
+    console.log(`[pipeline-exhaustive] Corte temprano: solapamiento alto con ${overlapSummary} (${Date.now() - t0}ms)`);
+
+    return {
+      ...pipelineResult,
+      recommendation: topOverlap.overlapPercent >= 60 ? 'NO_INDEXAR' : 'REVISAR',
+      summary: `Este documento tiene un solapamiento significativo con documentos existentes: ${overlapSummary}. ` +
+        `Resuelve los solapamientos antes de realizar un análisis más profundo. ` +
+        `Se han encontrado también ${pipelineResult.discrepancies.length} posibles discrepancias.`,
+      analysisMode: 'exhaustive',
+      styleProblems,
+      earlyStop: 'high_overlap',
+    };
+  }
+
+  // ── Corte temprano: demasiadas contradicciones ───────────────
+  const totalContradictions = pipelineResult.discrepancies.length;
+  if (totalContradictions >= MAX_CONTRADICTIONS_BEFORE_CUTOFF) {
+    console.log(`[pipeline-exhaustive] Corte temprano: ${totalContradictions} contradicciones (≥${MAX_CONTRADICTIONS_BEFORE_CUTOFF}) (${Date.now() - t0}ms)`);
+
+    return {
+      ...pipelineResult,
+      recommendation: 'REVISAR',
+      summary: `Se han encontrado al menos ${totalContradictions} discrepancias con el corpus existente. ` +
+        `Es probable que haya más. Corrige las indicadas y vuelve a analizar para encontrar las restantes.`,
+      analysisMode: 'exhaustive',
+      styleProblems,
+      earlyStop: 'too_many_contradictions',
+    };
+  }
+
+  // ── Capa 5: Extracción y verificación de afirmaciones ────────
+  const atomicClaims = await extractAtomicClaims(input.newDocumentText, input.newDocumentName);
   const atomicContradictions = await verifyClaimsAgainstCorpus(atomicClaims, input.orgId);
 
   // ── Fusionar contradicciones v2 + atómicas ───────────────────
