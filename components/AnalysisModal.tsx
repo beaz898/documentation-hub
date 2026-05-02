@@ -25,6 +25,7 @@ interface AnalysisResult {
     description: string;
     textRef: string;
   }>;
+  earlyStop?: 'high_overlap' | 'too_many_contradictions';
 }
 
 interface AnalysisModalProps {
@@ -199,6 +200,23 @@ export default function AnalysisModal({ fileName, analysis, onConfirm, onCancel,
           </p>
         )}
 
+        {/* Banner de corte temprano: aviso de que el análisis no completó todas las capas */}
+        {analysis.earlyStop && (
+          <div style={{
+            padding: '10px 14px', borderRadius: 10, marginBottom: 12,
+            background: 'rgba(245,158,11,0.08)',
+            border: '0.5px solid rgba(245,158,11,0.3)',
+            display: 'flex', alignItems: 'flex-start', gap: 8,
+          }}>
+            <span style={{ fontSize: 14, flexShrink: 0, marginTop: 1 }}>⚠️</span>
+            <p style={{ fontSize: 12, color: 'var(--warning-text)', lineHeight: 1.5, margin: 0 }}>
+              {analysis.earlyStop === 'high_overlap'
+                ? 'El análisis se ha detenido porque se han detectado solapamientos significativos con documentos existentes. Resuelve los solapamientos, corrige las discrepancias indicadas y vuelve a analizar para encontrar las restantes.'
+                : 'El análisis se ha detenido porque se han detectado demasiadas discrepancias. Las mostradas han sido verificadas con doble comprobación. Corrige las indicadas y vuelve a analizar para encontrar las restantes.'}
+            </p>
+          </div>
+        )}
+
         {/* ============================================================ */}
         {/* PROBLEMAS DETECTADOS — plegados por defecto */}
         {/* ============================================================ */}
@@ -231,23 +249,38 @@ export default function AnalysisModal({ fileName, analysis, onConfirm, onCancel,
                 color="var(--danger)"
                 defaultOpen={false}
               >
-                {analysis.discrepancies.map((d, i) => (
-                  <div key={i} style={{
-                    padding: '8px 12px', borderRadius: 8, marginBottom: 6,
+                {/* En modo rápido: mensaje cualitativo sin detalle individual.
+                    En modo exhaustivo: lista detallada con badges de confianza. */}
+                {!isExhaustive ? (
+                  <div style={{
+                    padding: '10px 14px', borderRadius: 10,
                     background: 'var(--danger-light)', border: '0.5px solid var(--danger)',
                   }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
-                      <p style={{ fontSize: 12, fontWeight: 500, color: 'var(--danger-text)', flex: 1, margin: 0 }}>{d.topic}</p>
-                      {d.confidence && <ConfidenceBadge confidence={d.confidence} />}
-                    </div>
-                    <p style={{ fontSize: 11, color: 'var(--danger-text)' }}>
-                      Nuevo: &quot;{d.newDocSays}&quot;
-                    </p>
-                    <p style={{ fontSize: 11, color: 'var(--danger-text)' }}>
-                      Existente ({d.existingDocument}): &quot;{d.existingDocSays}&quot;
+                    <p style={{ fontSize: 12, color: 'var(--danger-text)', lineHeight: 1.5, margin: 0 }}>
+                      Se han detectado <strong>{analysis.discrepancies.length} posibles discrepancias</strong> con
+                      documentos existentes. Ejecuta el <strong>análisis exhaustivo</strong> para obtener
+                      el detalle verificado de cada una.
                     </p>
                   </div>
-                ))}
+                ) : (
+                  analysis.discrepancies.map((d, i) => (
+                    <div key={i} style={{
+                      padding: '8px 12px', borderRadius: 8, marginBottom: 6,
+                      background: 'var(--danger-light)', border: '0.5px solid var(--danger)',
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+                        <p style={{ fontSize: 12, fontWeight: 500, color: 'var(--danger-text)', flex: 1, margin: 0 }}>{d.topic}</p>
+                        {d.confidence && <ConfidenceBadge confidence={d.confidence} />}
+                      </div>
+                      <p style={{ fontSize: 11, color: 'var(--danger-text)' }}>
+                        Nuevo: &quot;{d.newDocSays}&quot;
+                      </p>
+                      <p style={{ fontSize: 11, color: 'var(--danger-text)' }}>
+                        Existente ({d.existingDocument}): &quot;{d.existingDocSays}&quot;
+                      </p>
+                    </div>
+                  ))
+                )}
               </CollapsibleSection>
             )}
 
