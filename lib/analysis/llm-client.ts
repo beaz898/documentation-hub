@@ -88,15 +88,31 @@ function buildHeaders(opts: CallOptions): Record<string, string> {
   return headers;
 }
 
+/**
+ * Calcula el delay para reintentos ante 429/529/5xx.
+ * Backoff progresivo: 2s → 5s → 10s → 15s → 20s.
+ * Suficiente para que Anthropic libere la ventana de rate limit.
+ */
+function getRetryDelay(attempt: number): number {
+  const delays = [2000, 5000, 10000, 15000, 20000];
+  return delays[Math.min(attempt, delays.length - 1)];
+}
+
+/** Máximo de reintentos para errores recuperables (429, 529, 5xx). */
+const MAX_RETRIES = 5;
+
 export async function callLLM(prompt: string, opts: CallOptions = {}): Promise<string> {
   const payload = buildPayload(prompt, opts);
   const headers = buildHeaders(opts);
 
-  const delays = [0, 1500, 3500];
   let lastError: string = 'unknown';
 
-  for (let attempt = 0; attempt < 3; attempt++) {
-    if (delays[attempt] > 0) await new Promise(r => setTimeout(r, delays[attempt]));
+  for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+    // El primer intento va sin delay; los siguientes esperan con backoff
+    if (attempt > 0) {
+      const delay = getRetryDelay(attempt - 1);
+      await new Promise(r => setTimeout(r, delay));
+    }
 
     try {
       const res = await fetch(ANTHROPIC_URL, {
@@ -107,7 +123,9 @@ export async function callLLM(prompt: string, opts: CallOptions = {}): Promise<s
 
       if (!res.ok) {
         lastError = `HTTP ${res.status}`;
+        // Errores no recuperables: salir inmediatamente
         if (res.status !== 429 && res.status !== 529 && res.status < 500) break;
+        // 429, 529, 5xx: reintentar con backoff
         continue;
       }
 
@@ -127,12 +145,23 @@ export async function callLLM(prompt: string, opts: CallOptions = {}): Promise<s
 }
 
 function sanitizeJsonResponse(raw: string): string {
-  let cleaned = raw.trim()
-    .replace(/^```json\s*/i, '')
-    .replace(/^```\s*/i, '')
-    .replace(/```\s*$/, '')
-    .trim();
+  let cleaned = raw.trim();
 
+  // Eliminar bloques de código markdown (```json ... ``` o ``` ... ```)
+  // Manejar tanto al inicio como envolviendo todo el contenido
+  const fencedMatch = cleaned.match(/^```(?:json)?\s*\n?([\s\S]*?)\n?\s*```\s*$/i);
+  if (fencedMatch) {
+    cleaned = fencedMatch[1].trim();
+  } else {
+    // Fallback: quitar marcas sueltas al inicio/final
+    cleaned = cleaned
+      .replace(/^```json\s*/i, '')
+      .replace(/^```\s*/i, '')
+      .replace(/```\s*$/, '')
+      .trim();
+  }
+
+  // Encontrar el JSON real entre llaves/corchetes
   const candidates = [cleaned.indexOf('{'), cleaned.indexOf('[')].filter(i => i !== -1);
   const firstBrace = candidates.length > 0 ? Math.min(...candidates) : -1;
   const lastBrace = Math.max(cleaned.lastIndexOf('}'), cleaned.lastIndexOf(']'));
@@ -140,6 +169,7 @@ function sanitizeJsonResponse(raw: string): string {
     cleaned = cleaned.slice(firstBrace, lastBrace + 1);
   }
 
+  // Escapar caracteres especiales dentro de strings JSON
   let result = '';
   let inString = false;
   let escape = false;
@@ -262,11 +292,13 @@ export async function callLLMWithUsage(
   const payload = buildPayload(prompt, opts);
   const headers = buildHeaders(opts);
 
-  const delays = [0, 1500, 3500];
   let lastError: string = 'unknown';
 
-  for (let attempt = 0; attempt < 3; attempt++) {
-    if (delays[attempt] > 0) await new Promise(r => setTimeout(r, delays[attempt]));
+  for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+    if (attempt > 0) {
+      const delay = getRetryDelay(attempt - 1);
+      await new Promise(r => setTimeout(r, delay));
+    }
 
     try {
       const res = await fetch(ANTHROPIC_URL, {
