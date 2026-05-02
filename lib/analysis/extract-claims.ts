@@ -3,13 +3,20 @@ import { callLLMJson } from './llm-client';
 /**
  * Fase 4a — Extracción de afirmaciones atómicas.
  *
- * El LLM lee el documento nuevo y extrae cada afirmación factual concreta:
- * cifras, plazos, políticas, definiciones, precios, porcentajes, nombres,
- * fechas, responsables, procedimientos, etc.
+ * El LLM lee el documento nuevo y extrae las afirmaciones factuales más
+ * relevantes y verificables: cifras, plazos, políticas, definiciones,
+ * precios, porcentajes, nombres, fechas, responsables, procedimientos, etc.
  *
  * Cada afirmación es una frase corta, autónoma y verificable. No son
  * opiniones, ni frases vagas, ni títulos de sección.
+ *
+ * OPTIMIZACIÓN (mayo 2026): se limita a MAX_CLAIMS afirmaciones priorizando
+ * las más concretas y contrastables, para reducir coste y tiempo sin perder
+ * calidad de detección.
  */
+
+/** Máximo de afirmaciones a extraer por documento. */
+const MAX_CLAIMS = 40;
 
 /** Una afirmación factual extraída del documento. */
 export interface AtomicClaim {
@@ -50,8 +57,11 @@ export async function extractAtomicClaims(documentText: string, documentName: st
   // Deduplicar afirmaciones idénticas o casi idénticas
   const unique = deduplicateClaims(allClaims);
 
-  console.log(`[extract-claims] "${documentName}": ${unique.length} afirmaciones extraídas de ${segments.length} segmento(s) (${Date.now() - t0}ms)`);
-  return unique;
+  // Limitar al máximo configurado
+  const limited = unique.slice(0, MAX_CLAIMS);
+
+  console.log(`[extract-claims] "${documentName}": ${limited.length} afirmaciones extraídas (${unique.length} antes de limitar) de ${segments.length} segmento(s) (${Date.now() - t0}ms)`);
+  return limited;
 }
 
 // ============================================================
@@ -66,7 +76,7 @@ async function extractClaimsFromSegment(
 ): Promise<AtomicClaim[]> {
   const segmentLabel = totalSegments > 1 ? ` (segmento ${segmentNumber}/${totalSegments})` : '';
 
-  const prompt = `Eres un auditor de documentación. Tu tarea es extraer TODAS las afirmaciones factuales concretas de este texto.
+  const prompt = `Eres un auditor de documentación. Tu tarea es extraer las afirmaciones factuales más relevantes y verificables de este texto.
 
 DOCUMENTO: "${documentName}"${segmentLabel}
 """
@@ -74,11 +84,21 @@ ${segmentText}
 """
 
 INSTRUCCIONES:
-1. Extrae cada dato concreto y verificable: cifras, plazos, políticas, definiciones, precios, porcentajes, nombres, fechas, responsables, procedimientos, cantidades, horarios, requisitos, obligaciones.
-2. Cada afirmación debe ser una frase CORTA y AUTÓNOMA (comprensible sin contexto adicional).
-3. NO extraigas opiniones, frases vagas, títulos de sección ni enunciados genéricos sin dato concreto.
-4. Incluye TODAS las que encuentres, sin importar cuántas sean. No resumas ni agrupes.
-5. El campo sourceQuote debe ser una COPIA LITERAL de un fragmento del texto original que contiene el dato.
+1. Extrae afirmaciones concretas y verificables: cifras, plazos, políticas, definiciones, precios, porcentajes, nombres, fechas, responsables, procedimientos, cantidades, requisitos, obligaciones, clasificaciones, comparaciones.
+2. PRIORIZA las afirmaciones que:
+   - Definen conceptos (ej: "La transformación digital es un proceso estratégico...")
+   - Establecen clasificaciones o tipologías (ej: "Existen tres tipos de automatización...")
+   - Hacen comparaciones o contrastes (ej: "A diferencia de X, Y hace...")
+   - Establecen requisitos o condiciones (ej: "Para implementar IA se necesita...")
+   - Indican cantidades, cifras o umbrales concretos
+3. NO extraigas:
+   - Opiniones sin dato verificable
+   - Frases vagas o genéricas (ej: "la tecnología es importante")
+   - Títulos de sección
+   - Afirmaciones triviales o tautológicas
+4. Cada afirmación debe ser una frase CORTA y AUTÓNOMA (comprensible sin contexto adicional).
+5. Extrae un máximo de ${MAX_CLAIMS} afirmaciones. Si hay más, quédate con las más concretas y verificables.
+6. El campo sourceQuote debe ser una COPIA LITERAL de un fragmento del texto original que contiene el dato.
 
 Responde EXCLUSIVAMENTE con este JSON:
 {
