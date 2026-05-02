@@ -4,16 +4,15 @@ import type { RerankedCandidate, DocumentJudgment, PipelineOptions } from './typ
 /**
  * Etapa 3 — Juicio individual por documento.
  *
- * Modo rápido: secuencial con pausa, documento nuevo truncado a 4000 chars.
- * Modo exhaustivo: secuencial con pausa corta, documento nuevo COMPLETO.
+ * Ambos modos (rápido y exhaustivo) reciben el documento nuevo COMPLETO
+ * para no perder solapamientos ni contradicciones en la parte final.
  *
- * Ambos modos son secuenciales para evitar ráfagas de llamadas LLM
- * que provocan 429 de Anthropic. La pausa es menor en exhaustivo
- * porque ya hay margen del backoff mejorado en llm-client.
+ * Modo rápido: secuencial con pausa larga (1200ms).
+ * Modo exhaustivo: secuencial con pausa corta (500ms).
+ *
+ * Ambos son secuenciales para evitar ráfagas de llamadas LLM
+ * que provocan 429 de Anthropic.
  */
-
-/** Límite de texto del doc nuevo en modo rápido (ahorra tokens). */
-const NEW_DOC_LIMIT_QUICK = 4000;
 
 /** Pausa entre juicios secuenciales en modo rápido. */
 const SEQUENTIAL_DELAY_QUICK_MS = 1200;
@@ -68,22 +67,22 @@ INSTRUCCIONES CRÍTICAS:
 5. Solo marca "duplicado_exacto" si el contenido es prácticamente idéntico (>85% del nuevo ya está en el existente).
 6. Busca contradicciones en TODO el documento nuevo, no solo en las primeras líneas. Revisa cada afirmación concreta.
 
-REGLAS DE FORMATO PARA EL JSON:
-- Las citas en newDocSays, existingDocSays, evidence y evidenceInNewDoc deben ser CORTAS: máximo 1-2 frases.
-- NO copies párrafos enteros. Extrae solo la frase clave que contiene el dato relevante.
-- Si la evidencia abarca varias frases, resume en una y pon "..." para indicar continuación.
+REGLAS DE FORMATO:
+- Las citas en newDocSays, existingDocSays, evidence y evidenceInNewDoc deben ser CORTAS: máximo 1 frase.
+- NO copies párrafos enteros. Extrae solo la frase clave que contiene el dato.
+- Máximo 10 contradicciones y 5 solapamientos. Si hay más, incluye los más importantes.
 
-Responde EXCLUSIVAMENTE con este JSON:
+Responde con este JSON (sin bloques de código, sin texto adicional):
 {
-  "overlapPercent": <número 0-100>,
-  "verdict": "duplicado_exacto" | "reformulacion" | "solapamiento_parcial" | "tema_similar" | "sin_relacion",
+  "overlapPercent": 25,
+  "verdict": "tema_similar",
   "contradictions": [
-    { "topic": "<tema concreto>", "newDocSays": "<cita corta del documento NUEVO>", "existingDocSays": "<cita corta del documento EXISTENTE>" }
+    { "topic": "tema", "newDocSays": "frase corta", "existingDocSays": "frase corta" }
   ],
   "overlappingContent": [
-    { "description": "<qué se solapa>", "evidence": "<cita corta del EXISTENTE>", "evidenceInNewDoc": "<cita corta del NUEVO>" }
+    { "description": "qué se solapa", "evidence": "frase corta del existente", "evidenceInNewDoc": "frase corta del nuevo" }
   ],
-  "uniqueToNewDoc": ["<aspecto 1 que solo aporta el nuevo>", "<aspecto 2>"]
+  "uniqueToNewDoc": ["aspecto 1", "aspecto 2"]
 }`;
 
   try {
@@ -121,8 +120,11 @@ Responde EXCLUSIVAMENTE con este JSON:
  * Lanza juicios para todos los candidatos.
  *
  * Ambos modos son secuenciales para evitar saturar la API.
- * Modo rápido: pausa de 1200ms, doc truncado.
- * Modo exhaustivo: pausa de 500ms, doc completo.
+ * Modo rápido: pausa de 1200ms.
+ * Modo exhaustivo: pausa de 500ms.
+ *
+ * El documento nuevo se envía COMPLETO en ambos modos para no
+ * perder solapamientos ni contradicciones en ninguna parte del texto.
  */
 export async function judgeAllDocuments(args: {
   newDocumentName: string;
@@ -133,15 +135,11 @@ export async function judgeAllDocuments(args: {
   if (args.candidates.length === 0) return [];
 
   const isExhaustive = args.options?.exhaustive === true;
-
-  // Texto del documento nuevo: completo en exhaustivo, truncado en rápido
-  const newDocumentText = isExhaustive
-    ? args.newDocumentSample
-    : args.newDocumentSample.slice(0, NEW_DOC_LIMIT_QUICK);
-
   const delayMs = isExhaustive ? SEQUENTIAL_DELAY_EXHAUSTIVE_MS : SEQUENTIAL_DELAY_QUICK_MS;
 
-  // Secuencial con pausa en ambos modos
+  // Documento nuevo COMPLETO en ambos modos
+  const newDocumentText = args.newDocumentSample;
+
   const results: DocumentJudgment[] = [];
   for (let i = 0; i < args.candidates.length; i++) {
     if (i > 0) await new Promise(r => setTimeout(r, delayMs));
