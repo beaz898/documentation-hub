@@ -5,15 +5,21 @@ import type { RerankedCandidate, DocumentJudgment, PipelineOptions } from './typ
  * Etapa 3 — Juicio individual por documento.
  *
  * Modo rápido: secuencial con pausa, documento nuevo truncado a 4000 chars.
- * Modo exhaustivo: paralelo, documento nuevo COMPLETO (Haiku 4.5 tiene 200K de contexto,
- *   los documentos de PYME caben enteros sin problema).
+ * Modo exhaustivo: secuencial con pausa corta, documento nuevo COMPLETO.
+ *
+ * Ambos modos son secuenciales para evitar ráfagas de llamadas LLM
+ * que provocan 429 de Anthropic. La pausa es menor en exhaustivo
+ * porque ya hay margen del backoff mejorado en llm-client.
  */
 
 /** Límite de texto del doc nuevo en modo rápido (ahorra tokens). */
 const NEW_DOC_LIMIT_QUICK = 4000;
 
-/** Pausa entre juicios secuenciales (solo modo rápido). */
-const SEQUENTIAL_DELAY_MS = 1200;
+/** Pausa entre juicios secuenciales en modo rápido. */
+const SEQUENTIAL_DELAY_QUICK_MS = 1200;
+
+/** Pausa entre juicios secuenciales en modo exhaustivo. */
+const SEQUENTIAL_DELAY_EXHAUSTIVE_MS = 500;
 
 interface JudgeResponse {
   overlapPercent: number;
@@ -60,29 +66,28 @@ INSTRUCCIONES CRÍTICAS:
 3. El porcentaje de solapamiento debe reflejar CUÁNTO del documento nuevo ya está en el existente, no la similitud temática.
 4. Si los documentos hablan del mismo tema pero con contenido distinto, veredicto = "tema_similar", overlapPercent < 20.
 5. Solo marca "duplicado_exacto" si el contenido es prácticamente idéntico (>85% del nuevo ya está en el existente).
-6. Cita evidencia literal cuando identifiques solapamiento o contradicción.
-7. Busca contradicciones en TODO el documento nuevo, no solo en las primeras líneas. Revisa cada afirmación concreta.
+6. Busca contradicciones en TODO el documento nuevo, no solo en las primeras líneas. Revisa cada afirmación concreta.
+
+REGLAS DE FORMATO PARA EL JSON:
+- Las citas en newDocSays, existingDocSays, evidence y evidenceInNewDoc deben ser CORTAS: máximo 1-2 frases.
+- NO copies párrafos enteros. Extrae solo la frase clave que contiene el dato relevante.
+- Si la evidencia abarca varias frases, resume en una y pon "..." para indicar continuación.
 
 Responde EXCLUSIVAMENTE con este JSON:
 {
   "overlapPercent": <número 0-100>,
   "verdict": "duplicado_exacto" | "reformulacion" | "solapamiento_parcial" | "tema_similar" | "sin_relacion",
   "contradictions": [
-    { "topic": "<tema concreto>", "newDocSays": "<cita literal del documento NUEVO>", "existingDocSays": "<cita literal del documento EXISTENTE>" }
+    { "topic": "<tema concreto>", "newDocSays": "<cita corta del documento NUEVO>", "existingDocSays": "<cita corta del documento EXISTENTE>" }
   ],
   "overlappingContent": [
-    { "description": "<qué se solapa>", "evidence": "<cita literal del documento EXISTENTE>", "evidenceInNewDoc": "<cita literal del documento NUEVO que dice lo mismo o similar>" }
+    { "description": "<qué se solapa>", "evidence": "<cita corta del EXISTENTE>", "evidenceInNewDoc": "<cita corta del NUEVO>" }
   ],
   "uniqueToNewDoc": ["<aspecto 1 que solo aporta el nuevo>", "<aspecto 2>"]
-}
-
-REGLAS PARA evidenceInNewDoc:
-- DEBE ser una copia LITERAL carácter por carácter de un substring del DOCUMENTO NUEVO (el texto entre las primeras comillas triples).
-- NO parafrasees. NO normalices espacios. Copia exactamente lo que aparece en el documento nuevo.
-- Si no puedes encontrar un fragmento literal equivalente en el documento nuevo, deja evidenceInNewDoc como cadena vacía "".`;
+}`;
 
   try {
-    const response = await callLLMJson<JudgeResponse>(prompt, { maxOutputTokens: 8192, temperature: 0.1 });
+    const response = await callLLMJson<JudgeResponse>(prompt, { maxOutputTokens: 4096, temperature: 0.1 });
     return {
       documentId: candidate.documentId,
       documentName: candidate.documentName,
@@ -115,8 +120,9 @@ REGLAS PARA evidenceInNewDoc:
 /**
  * Lanza juicios para todos los candidatos.
  *
- * Modo rápido: secuencial con pausa, doc nuevo truncado.
- * Modo exhaustivo: paralelo, doc nuevo completo.
+ * Ambos modos son secuenciales para evitar saturar la API.
+ * Modo rápido: pausa de 1200ms, doc truncado.
+ * Modo exhaustivo: pausa de 500ms, doc completo.
  */
 export async function judgeAllDocuments(args: {
   newDocumentName: string;
@@ -133,23 +139,12 @@ export async function judgeAllDocuments(args: {
     ? args.newDocumentSample
     : args.newDocumentSample.slice(0, NEW_DOC_LIMIT_QUICK);
 
-  if (isExhaustive) {
-    // Paralelo: todas las llamadas a la vez, sin límite, sin pausa
-    return Promise.all(
-      args.candidates.map(candidate =>
-        judgeSingleDocument({
-          newDocumentName: args.newDocumentName,
-          newDocumentText,
-          candidate,
-        })
-      )
-    );
-  }
+  const delayMs = isExhaustive ? SEQUENTIAL_DELAY_EXHAUSTIVE_MS : SEQUENTIAL_DELAY_QUICK_MS;
 
-  // Secuencial con pausa (modo rápido)
+  // Secuencial con pausa en ambos modos
   const results: DocumentJudgment[] = [];
   for (let i = 0; i < args.candidates.length; i++) {
-    if (i > 0) await new Promise(r => setTimeout(r, SEQUENTIAL_DELAY_MS));
+    if (i > 0) await new Promise(r => setTimeout(r, delayMs));
     const judgment = await judgeSingleDocument({
       newDocumentName: args.newDocumentName,
       newDocumentText,
