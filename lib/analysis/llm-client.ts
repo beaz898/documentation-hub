@@ -148,17 +148,14 @@ function sanitizeJsonResponse(raw: string): string {
   let cleaned = raw.trim();
 
   // Eliminar bloques de código markdown (```json ... ``` o ``` ... ```)
-  // Manejar tanto al inicio como envolviendo todo el contenido
-  const fencedMatch = cleaned.match(/^```(?:json)?\s*\n?([\s\S]*?)\n?\s*```\s*$/i);
-  if (fencedMatch) {
-    cleaned = fencedMatch[1].trim();
-  } else {
-    // Fallback: quitar marcas sueltas al inicio/final
-    cleaned = cleaned
-      .replace(/^```json\s*/i, '')
-      .replace(/^```\s*/i, '')
-      .replace(/```\s*$/, '')
-      .trim();
+  // Estrategia: buscar la primera apertura de fence y la última, quitar ambas.
+  // Usamos greedy ([\s\S]*) para no cortar prematuramente con JSON largo.
+  if (/^```/.test(cleaned)) {
+    // Quitar la línea de apertura (```json o ```)
+    cleaned = cleaned.replace(/^```(?:json)?\s*\n?/i, '');
+    // Quitar el cierre final (``` al final del string, posiblemente con whitespace)
+    cleaned = cleaned.replace(/\n?\s*```\s*$/, '');
+    cleaned = cleaned.trim();
   }
 
   // Encontrar el JSON real entre llaves/corchetes
