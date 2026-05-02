@@ -11,6 +11,11 @@ import type { AtomicClaim } from './extract-claims';
  * fragmentos y determina si hay contradicción, confirmación o sin relación.
  *
  * Las contradicciones encontradas aquí se fusionan con las del pipeline v2.
+ *
+ * OPTIMIZACIONES (mayo 2026):
+ * - Embeddings en batch: todas las afirmaciones se embeden en una sola llamada.
+ * - Verificación secuencial: una llamada LLM a la vez con pausa entre ellas
+ *   para evitar 429 de Anthropic.
  */
 
 /** Resultado de verificar una afirmación contra el corpus. */
@@ -39,19 +44,24 @@ interface VerifyResponse {
   existingDocument?: string;
 }
 
-/** Tamaño del lote de verificaciones paralelas. */
-const VERIFY_BATCH_SIZE = 5;
-
 /** Umbral de similitud para buscar fragmentos relevantes del corpus. */
 const CORPUS_SCORE_THRESHOLD = 0.50;
 
 /** Máximo de fragmentos del corpus por afirmación. */
 const MAX_CORPUS_FRAGMENTS = 4;
 
+/** Pausa en ms entre verificaciones LLM para evitar 429. */
+const DELAY_BETWEEN_VERIFICATIONS_MS = 300;
+
 /**
  * Verifica todas las afirmaciones contra el corpus.
  * Devuelve solo las contradicciones encontradas, listas para fusionar
  * con las del pipeline v2.
+ *
+ * Flujo optimizado:
+ * 1. Embeder todas las afirmaciones en un solo batch.
+ * 2. Buscar fragmentos del corpus para cada embedding (Pinecone, sin LLM).
+ * 3. Verificar una por una contra el LLM, con pausa entre llamadas.
  */
 export async function verifyClaimsAgainstCorpus(
   claims: AtomicClaim[],
@@ -62,22 +72,43 @@ export async function verifyClaimsAgainstCorpus(
   const t0 = Date.now();
   const contradictions: AtomicContradiction[] = [];
 
-  // Procesar en lotes para no saturar Pinecone ni el LLM
-  for (let batchStart = 0; batchStart < claims.length; batchStart += VERIFY_BATCH_SIZE) {
-    const batch = claims.slice(batchStart, batchStart + VERIFY_BATCH_SIZE);
-    const batchResults = await Promise.all(
-      batch.map(claim => verifySingleClaim(claim, orgId))
-    );
+  // ── Paso 1: Embeder todas las afirmaciones en un solo batch ───
+  const claimTexts = claims.map(c => c.claim);
+  let embeddings: number[][];
+  try {
+    embeddings = await generateEmbeddings(claimTexts);
+  } catch (err) {
+    console.warn('[verify-claims] Falló el batch de embeddings:', err);
+    return [];
+  }
 
-    for (const result of batchResults) {
-      if (result.verdict === 'contradiccion' && result.corpusSays && result.existingDocument) {
-        contradictions.push({
-          topic: result.category,
-          newDocSays: result.claim,
-          existingDocSays: result.corpusSays,
-          existingDocument: result.existingDocument,
-        });
-      }
+  // ── Paso 2: Buscar fragmentos del corpus para cada claim ──────
+  // Pinecone no tiene rate limit tan estricto, podemos paralelizar las queries
+  const corpusResults = await Promise.all(
+    embeddings.map((emb, i) => findCorpusFragmentsByEmbedding(emb, orgId, claims[i].claim))
+  );
+
+  // ── Paso 3: Verificar contra el LLM de forma secuencial ──────
+  for (let i = 0; i < claims.length; i++) {
+    const fragments = corpusResults[i];
+
+    // Sin fragmentos relevantes → sin datos, no hace falta llamar al LLM
+    if (fragments.length === 0) continue;
+
+    // Pausa entre verificaciones LLM para evitar saturar Anthropic
+    if (i > 0) {
+      await new Promise(r => setTimeout(r, DELAY_BETWEEN_VERIFICATIONS_MS));
+    }
+
+    const result = await verifySingleClaimWithFragments(claims[i], fragments);
+
+    if (result.verdict === 'contradiccion' && result.corpusSays && result.existingDocument) {
+      contradictions.push({
+        topic: result.category,
+        newDocSays: result.claim,
+        existingDocSays: result.corpusSays,
+        existingDocument: result.existingDocument,
+      });
     }
   }
 
@@ -89,15 +120,14 @@ export async function verifyClaimsAgainstCorpus(
 // Internos
 // ============================================================
 
-async function verifySingleClaim(claim: AtomicClaim, orgId: string): Promise<ClaimVerification> {
-  // 1. Buscar fragmentos relevantes del corpus
-  const corpusFragments = await findCorpusFragments(claim.claim, orgId);
-
-  if (corpusFragments.length === 0) {
-    return { ...claim, verdict: 'sin_datos' };
-  }
-
-  // 2. Pedir al LLM que compare la afirmación con los fragmentos
+/**
+ * Verifica una afirmación contra fragmentos del corpus ya recuperados.
+ * Separado de la búsqueda de embeddings para poder secuenciar las llamadas LLM.
+ */
+async function verifySingleClaimWithFragments(
+  claim: AtomicClaim,
+  corpusFragments: CorpusFragment[],
+): Promise<ClaimVerification> {
   const corpusBlock = corpusFragments
     .map((f, i) => `[${i + 1}] Documento: "${f.documentName}"\n${f.text}`)
     .join('\n\n');
@@ -150,13 +180,24 @@ interface CorpusFragment {
   score: number;
 }
 
-async function findCorpusFragments(claimText: string, orgId: string): Promise<CorpusFragment[]> {
+/**
+ * Busca fragmentos relevantes del corpus usando un embedding ya calculado.
+ * Esto evita la llamada individual a generateEmbeddings por cada claim.
+ */
+async function findCorpusFragmentsByEmbedding(
+  embedding: number[],
+  orgId: string,
+  claimText: string,
+): Promise<CorpusFragment[]> {
   try {
-    const [embedding] = await generateEmbeddings([claimText]);
     const index = getIndex();
     const ns = index.namespace(orgId);
 
-    const res = await ns.query({ vector: embedding, topK: MAX_CORPUS_FRAGMENTS * 2, includeMetadata: true });
+    const res = await ns.query({
+      vector: embedding,
+      topK: MAX_CORPUS_FRAGMENTS * 2,
+      includeMetadata: true,
+    });
 
     const fragments: CorpusFragment[] = [];
     for (const m of res.matches || []) {
@@ -180,7 +221,7 @@ async function findCorpusFragments(claimText: string, orgId: string): Promise<Co
       return true;
     }).slice(0, MAX_CORPUS_FRAGMENTS);
   } catch (err) {
-    console.warn('[verify-claims] Pinecone query failed:', err);
+    console.warn(`[verify-claims] Pinecone query failed for "${claimText.slice(0, 40)}...":`, err);
     return [];
   }
 }
