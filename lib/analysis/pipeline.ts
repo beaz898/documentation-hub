@@ -34,12 +34,21 @@ export type ExhaustivePipelineInput = AnalyzePipelineInput;
 const HIGH_OVERLAP_THRESHOLD = 30;
 
 /**
- * Máximo de contradicciones del judge antes de cortar el exhaustivo.
- * Si el judge ya encontró más de esto, no tiene sentido gastar tiempo
- * y dinero en verify-claims + double-check. El documento claramente
- * necesita revisión.
+ * Máximo de contradicciones del judge antes de activar corte temprano.
+ * Si el judge ya encontró más de esto, no gastamos en verify-claims.
+ * Pero sí hacemos double-check para confirmar las más importantes.
  */
 const MAX_CONTRADICTIONS_BEFORE_CUTOFF = 15;
+
+/**
+ * Cuántas contradicciones confirmadas queremos garantizar en corte temprano.
+ * Se envían más candidatas al double-check como backup por si algunas
+ * no se confirman.
+ */
+const TARGET_CONFIRMED = 15;
+
+/** Candidatas extra de backup para el double-check en corte temprano. */
+const BACKUP_CANDIDATES = 5;
 
 // ============================================================
 // Núcleo compartido: retrieve → rerank → judge → synthesize
@@ -164,9 +173,8 @@ export async function runAnalysisPipeline(input: AnalyzePipelineInput): Promise<
  * Capa 0 — Hash SHA-256: duplicados exactos (100%, coste cero).
  * Capas 1-4 — Pipeline v2 sin límites.
  * Corte temprano — Si hay solapamiento alto (≥30%) o demasiadas
- *   contradicciones (≥15), devolvemos resultado directamente.
- *   El usuario debe resolver estos problemas graves antes de
- *   gastar tiempo y dinero en un análisis más profundo.
+ *   contradicciones (≥15): se hace double-check de las candidatas
+ *   principales + backup, y se devuelve resultado con las confirmadas.
  * Capa 5 — Extracción de afirmaciones atómicas + verificación contra corpus.
  * Capa 6 — Doble verificación: Sonnet confirma cada contradicción de Haiku.
  * Capa 7 — Análisis de estilo: ortografía, ambigüedades, sugerencias.
@@ -191,51 +199,74 @@ export async function runExhaustiveAnalysisPipeline(input: ExhaustivePipelineInp
   console.log(`[pipeline-exhaustive] Hash check: sin duplicado exacto (${Date.now() - t0}ms)`);
 
   // ── Capas 1-4 + Capa 7 (estilo en paralelo) ─────────────────
-  // Pipeline v2 y análisis de estilo corren en paralelo.
-  // La extracción de claims se hace DESPUÉS del pipeline v2 para
-  // poder evaluar si merece la pena continuar (corte temprano).
   const [pipelineResult, styleProblems] = await Promise.all([
     runCorePipeline(input, { exhaustive: true }, 'pipeline-exhaustive'),
     analyzeStyle(input.newDocumentText, input.newDocumentName),
   ]);
 
-  // ── Corte temprano: solapamiento alto ────────────────────────
+  // ── Evaluar corte temprano ───────────────────────────────────
   const highOverlaps = pipelineResult.judgments
     ?.filter(j => j.overlapPercent >= HIGH_OVERLAP_THRESHOLD) || [];
-
-  if (highOverlaps.length > 0) {
-    const topOverlap = highOverlaps.sort((a, b) => b.overlapPercent - a.overlapPercent)[0];
-    const overlapSummary = highOverlaps
-      .map(j => `"${j.documentName}" (${j.overlapPercent}%)`)
-      .join(', ');
-
-    console.log(`[pipeline-exhaustive] Corte temprano: solapamiento alto con ${overlapSummary} (${Date.now() - t0}ms)`);
-
-    return {
-      ...pipelineResult,
-      recommendation: topOverlap.overlapPercent >= 60 ? 'NO_INDEXAR' : 'REVISAR',
-      summary: `Este documento tiene un solapamiento significativo con documentos existentes: ${overlapSummary}. ` +
-        `Resuelve los solapamientos antes de realizar un análisis más profundo. ` +
-        `Se han encontrado también ${pipelineResult.discrepancies.length} posibles discrepancias.`,
-      analysisMode: 'exhaustive',
-      styleProblems,
-      earlyStop: 'high_overlap',
-    };
-  }
-
-  // ── Corte temprano: demasiadas contradicciones ───────────────
   const totalContradictions = pipelineResult.discrepancies.length;
-  if (totalContradictions >= MAX_CONTRADICTIONS_BEFORE_CUTOFF) {
-    console.log(`[pipeline-exhaustive] Corte temprano: ${totalContradictions} contradicciones (≥${MAX_CONTRADICTIONS_BEFORE_CUTOFF}) (${Date.now() - t0}ms)`);
+  const shouldCutEarly = highOverlaps.length > 0 || totalContradictions >= MAX_CONTRADICTIONS_BEFORE_CUTOFF;
+
+  if (shouldCutEarly) {
+    const earlyStopReason = highOverlaps.length > 0 ? 'high_overlap' as const : 'too_many_contradictions' as const;
+
+    // ── Double-check de candidatas principales + backup ─────────
+    // Cogemos TARGET_CONFIRMED + BACKUP_CANDIDATES para tener margen
+    const candidateCount = Math.min(
+      pipelineResult.discrepancies.length,
+      TARGET_CONFIRMED + BACKUP_CANDIDATES,
+    );
+    const candidatesForCheck = pipelineResult.discrepancies.slice(0, candidateCount);
+
+    console.log(`[pipeline-exhaustive] Corte temprano (${earlyStopReason}): double-check de ${candidatesForCheck.length} candidatas`);
+
+    const doubleChecked = await doubleCheckContradictions(candidatesForCheck);
+
+    // Separar confirmadas y posibles
+    const confirmed = doubleChecked.filter(d => d.confidence === 'alta');
+    const possible = doubleChecked.filter(d => d.confidence === 'posible');
+
+    // Tomar hasta TARGET_CONFIRMED confirmadas, completar con posibles si faltan
+    let finalDiscrepancies = confirmed.slice(0, TARGET_CONFIRMED);
+    if (finalDiscrepancies.length < TARGET_CONFIRMED) {
+      const needed = TARGET_CONFIRMED - finalDiscrepancies.length;
+      finalDiscrepancies = [...finalDiscrepancies, ...possible.slice(0, needed)];
+    }
+
+    // Construir resumen según el motivo del corte
+    let summary: string;
+    const topOverlap = highOverlaps.length > 0
+      ? highOverlaps.sort((a, b) => b.overlapPercent - a.overlapPercent)[0]
+      : null;
+
+    if (earlyStopReason === 'high_overlap' && topOverlap) {
+      const overlapList = highOverlaps
+        .map(j => `"${j.documentName}" (${j.overlapPercent}%)`)
+        .join(', ');
+      summary = `Este documento tiene un solapamiento significativo con documentos existentes: ${overlapList}. ` +
+        `Se han confirmado ${confirmed.length} discrepancias de las ${totalContradictions} detectadas. ` +
+        `Resuelve los solapamientos y las discrepancias indicadas, y vuelve a analizar para encontrar las restantes.`;
+    } else {
+      summary = `Se han detectado al menos ${totalContradictions} discrepancias con el corpus existente ` +
+        `y se han confirmado ${confirmed.length} con doble verificación. ` +
+        `Es probable que haya más. Corrige las indicadas y vuelve a analizar para encontrar las restantes.`;
+    }
+
+    const recommendation = topOverlap && topOverlap.overlapPercent >= 60 ? 'NO_INDEXAR' : 'REVISAR';
+
+    console.log(`[pipeline-exhaustive] Corte temprano completado: ${confirmed.length} confirmadas, ${possible.length} posibles (${Date.now() - t0}ms)`);
 
     return {
       ...pipelineResult,
-      recommendation: 'REVISAR',
-      summary: `Se han encontrado al menos ${totalContradictions} discrepancias con el corpus existente. ` +
-        `Es probable que haya más. Corrige las indicadas y vuelve a analizar para encontrar las restantes.`,
+      discrepancies: finalDiscrepancies,
+      recommendation,
+      summary,
       analysisMode: 'exhaustive',
       styleProblems,
-      earlyStop: 'too_many_contradictions',
+      earlyStop: earlyStopReason,
     };
   }
 
@@ -262,7 +293,6 @@ export async function runExhaustiveAnalysisPipeline(input: ExhaustivePipelineInp
   // ── Ajustar recomendación ────────────────────────────────────
   const hasConfirmed = doubleChecked.some(d => d.confidence === 'alta');
   const hasPossible = doubleChecked.some(d => d.confidence === 'posible');
-  const hasStyleErrors = styleProblems.some(p => p.type === 'ortografia');
   let recommendation = pipelineResult.recommendation;
   if (recommendation === 'INDEXAR' && (hasConfirmed || hasPossible)) {
     recommendation = 'REVISAR';
