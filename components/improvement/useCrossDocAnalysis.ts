@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback } from 'react';
 import { problemsFromAnalysis, type Problem, type RawAnalysis } from './problems';
 
 interface StyleApiProblem {
@@ -102,8 +102,6 @@ function mergeProblems(
 export interface ReanalyzeResult {
   styleProblems: Problem[];
   delta: { kept: number; added: number; removed: number };
-  /** True si no se reanalizo porque el texto no cambio */
-  skipped: boolean;
 }
 
 export function useCrossDocAnalysis(
@@ -116,24 +114,12 @@ export function useCrossDocAnalysis(
   const [reanalyzingAll, setReanalyzingAll] = useState(false);
   const [lastError, setLastError] = useState<string | null>(null);
 
-  // Guardar el texto del último análisis para detectar si cambió
-  const lastAnalyzedTextRef = useRef<string | null>(null);
-
   const reanalyzeAll = useCallback(
     async (currentText: string, fileName: string): Promise<ReanalyzeResult | null> => {
       if (!accessToken) {
         console.warn('[useCrossDocAnalysis] no access token available');
         setLastError('No se pudo reanalizar: sesión no disponible.');
         return null;
-      }
-
-      // Si el texto no cambió desde el último análisis, no reanalizar
-      if (lastAnalyzedTextRef.current !== null && lastAnalyzedTextRef.current === currentText) {
-        return {
-          styleProblems: [],
-          delta: { kept: crossDocProblems.length, added: 0, removed: 0 },
-          skipped: true,
-        };
       }
 
       setReanalyzingAll(true);
@@ -164,7 +150,8 @@ export function useCrossDocAnalysis(
         const crossData = await crossRes.json();
         const incomingCrossProblems = problemsFromAnalysis(crossData?.analysis || crossData || {});
 
-        // Fusión inteligente
+        // Fusión inteligente — calcular fuera del setter para evitar
+        // problemas de timing con el estado asíncrono de React
         let delta = { kept: 0, added: 0, removed: 0 };
         setCrossDocProblems(prev => {
           const result = mergeProblems(prev, incomingCrossProblems);
@@ -172,8 +159,8 @@ export function useCrossDocAnalysis(
           return result.merged;
         });
 
-        // Guardar el texto analizado
-        lastAnalyzedTextRef.current = currentText;
+        // Esperar a que React procese el setter para que delta tenga los valores correctos
+        await new Promise(r => setTimeout(r, 0));
 
         let newStyleProblems: Problem[] = [];
         if (styleRes.ok) {
