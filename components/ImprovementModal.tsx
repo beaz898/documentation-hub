@@ -216,15 +216,6 @@ export default function ImprovementModal({
       return;
     }
 
-    // Si el texto no cambió, no se reanalizo — informar al usuario
-    if (result.skipped) {
-      addAssistantMessage(
-        'El texto no ha cambiado desde el último análisis. Los problemas detectados siguen siendo los mismos.\n\n' +
-        `Pendientes: ${crossDocProblems.length + styleProblems.length}`
-      );
-      return;
-    }
-
     // Actualizar style problems
     setStyleProblems(result.styleProblems);
 
