@@ -172,7 +172,7 @@ export function useCrossDocAnalysis(
           console.warn('[useCrossDocAnalysis] style HTTP error', styleRes.status);
         }
 
-        return { styleProblems: newStyleProblems, delta, skipped: false };
+        return { styleProblems: newStyleProblems, delta };
       } catch (err) {
         console.warn('[useCrossDocAnalysis] reanalyzeAll failed', err);
         setLastError('No se pudo reanalizar, prueba de nuevo en unos segundos.');
