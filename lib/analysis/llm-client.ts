@@ -147,18 +147,14 @@ export async function callLLM(prompt: string, opts: CallOptions = {}): Promise<s
 function sanitizeJsonResponse(raw: string): string {
   let cleaned = raw.trim();
 
-  // Eliminar bloques de código markdown (```json ... ``` o ``` ... ```)
-  // Estrategia: buscar la primera apertura de fence y la última, quitar ambas.
-  // Usamos greedy ([\s\S]*) para no cortar prematuramente con JSON largo.
-  if (/^```/.test(cleaned)) {
-    // Quitar la línea de apertura (```json o ```)
-    cleaned = cleaned.replace(/^```(?:json)?\s*\n?/i, '');
-    // Quitar el cierre final (``` al final del string, posiblemente con whitespace)
-    cleaned = cleaned.replace(/\n?\s*```\s*$/, '');
-    cleaned = cleaned.trim();
-  }
+  // Paso 1: Eliminar bloques de código markdown de forma agresiva.
+  // Quitar cualquier línea que empiece con ``` (apertura o cierre).
+  cleaned = cleaned.replace(/^```[^\n]*\n?/i, '');
+  cleaned = cleaned.replace(/\n?```\s*$/i, '');
+  cleaned = cleaned.trim();
 
-  // Encontrar el JSON real entre llaves/corchetes
+  // Paso 2: Encontrar el JSON real entre la primera { y la última }
+  // (o [ y ] para arrays). Esto ignora cualquier texto antes o después.
   const candidates = [cleaned.indexOf('{'), cleaned.indexOf('[')].filter(i => i !== -1);
   const firstBrace = candidates.length > 0 ? Math.min(...candidates) : -1;
   const lastBrace = Math.max(cleaned.lastIndexOf('}'), cleaned.lastIndexOf(']'));
@@ -166,7 +162,7 @@ function sanitizeJsonResponse(raw: string): string {
     cleaned = cleaned.slice(firstBrace, lastBrace + 1);
   }
 
-  // Escapar caracteres especiales dentro de strings JSON
+  // Paso 3: Escapar caracteres especiales dentro de strings JSON
   let result = '';
   let inString = false;
   let escape = false;
