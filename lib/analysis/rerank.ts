@@ -7,8 +7,10 @@ import type { CandidateDocument, RerankedCandidate, PipelineOptions } from './ty
  * Filtra ruido temático (docs del mismo dominio que no se solapan realmente).
  *
  * Modo rápido: máximo 6 seleccionados.
- * Modo exhaustivo: sin límite — todos los que tengan probabilidad real de solapamiento
- *   o contradicción pasan al judge. No se descarta nada que merezca análisis.
+ * Modo exhaustivo: máximo 10 seleccionados — suficiente para cubrir todos los
+ *   solapamientos y contradicciones reales. Un documento nuevo raramente tiene
+ *   relación significativa con más de 10 documentos del corpus.
+ *   Si hay más, se detectarán en reanálisis sucesivos.
  */
 
 interface RerankResponse {
@@ -22,6 +24,9 @@ interface RerankResponse {
 /** Límite de seleccionados en modo rápido. */
 const MAX_SELECTED_QUICK = 6;
 
+/** Límite de seleccionados en modo exhaustivo. */
+const MAX_SELECTED_EXHAUSTIVE = 10;
+
 export async function rerankCandidates(args: {
   newDocumentName: string;
   newDocumentSample: string;
@@ -30,6 +35,7 @@ export async function rerankCandidates(args: {
 }): Promise<RerankedCandidate[]> {
   const { newDocumentName, newDocumentSample, candidates, options } = args;
   const isExhaustive = options?.exhaustive === true;
+  const maxSelected = isExhaustive ? MAX_SELECTED_EXHAUSTIVE : MAX_SELECTED_QUICK;
 
   if (candidates.length === 0) return [];
 
@@ -38,10 +44,10 @@ export async function rerankCandidates(args: {
     return `[${i + 1}] Documento: "${c.documentName}" (fuente: ${c.source})\nFragmentos similares encontrados:\n${fragsText}`;
   }).join('\n\n');
 
-  // Instrucción de límite: exhaustivo no tiene tope, rápido sí.
+  // Instrucción de límite
   const limitInstruction = isExhaustive
-    ? '- Selecciona TODOS los que merezcan análisis. No hay límite de cantidad. Es preferible incluir un candidato dudoso que perder una posible contradicción.'
-    : '- Máximo 6 seleccionados. Si ninguno merece análisis, devuelve selected: [].';
+    ? `- Selecciona los que merezcan análisis, hasta un máximo de ${MAX_SELECTED_EXHAUSTIVE}. Prioriza los que tengan mayor probabilidad de solapamiento o contradicción. Es preferible incluir un candidato dudoso que perder una posible contradicción.`
+    : `- Máximo ${MAX_SELECTED_QUICK} seleccionados. Si ninguno merece análisis, devuelve selected: [].`;
 
   // Criterio de filtrado: exhaustivo es más permisivo.
   const filterCriteria = isExhaustive
@@ -95,12 +101,12 @@ ${candidates.map((c, i) => `[${i + 1}] → ${c.documentId}`).join('\n')}`;
       });
     }
 
-    // En exhaustivo no cortamos. En rápido, máximo 6.
-    return isExhaustive ? selected : selected.slice(0, MAX_SELECTED_QUICK);
+    return selected.slice(0, maxSelected);
   } catch (err) {
     console.warn('[rerank] LLM failed, falling back to top candidates by embedding score:', err);
-    // Fallback: en exhaustivo todos, en rápido top 3
-    const fallbackCandidates = isExhaustive ? candidates : candidates.slice(0, 3);
+    // Fallback: en exhaustivo top 5, en rápido top 3
+    const fallbackCount = isExhaustive ? 5 : 3;
+    const fallbackCandidates = candidates.slice(0, fallbackCount);
     return fallbackCandidates.map(c => ({
       documentId: c.documentId,
       documentName: c.documentName,
