@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { problemsFromAnalysis, type Problem, type RawAnalysis } from './problems';
 
 /**
@@ -96,6 +96,11 @@ export function useCrossDocAnalysis(
   const [reanalyzingAll, setReanalyzingAll] = useState(false);
   const [lastError, setLastError] = useState<string | null>(null);
 
+  // Ref que siempre apunta al valor actual de crossDocProblems.
+  // Permite leerlo de forma síncrona sin depender del timing de React.
+  const crossDocProblemsRef = useRef(crossDocProblems);
+  crossDocProblemsRef.current = crossDocProblems;
+
   const reanalyzeAll = useCallback(
     async (currentText: string, fileName: string): Promise<ReanalyzeResult | null> => {
       if (!accessToken) {
@@ -127,17 +132,15 @@ export function useCrossDocAnalysis(
         const crossData = await crossRes.json();
         const incomingCrossProblems = problemsFromAnalysis(crossData?.analysis || crossData || {});
 
-        // Fusión inteligente — calcular fuera del setter para evitar
-        // problemas de timing con el estado asíncrono de React
-        let delta = { kept: 0, added: 0, removed: 0 };
-        setCrossDocProblems(prev => {
-          const result = mergeProblems(prev, incomingCrossProblems);
-          delta = { kept: result.kept, added: result.added, removed: result.removed };
-          return result.merged;
-        });
+        // Calcular merge de forma síncrona usando la ref (no el estado).
+        // Esto evita el bug de timing donde setCrossDocProblems aún no ha
+        // ejecutado su callback cuando leemos delta.
+        const currentProblems = crossDocProblemsRef.current;
+        const result = mergeProblems(currentProblems, incomingCrossProblems);
+        const delta = { kept: result.kept, added: result.added, removed: result.removed };
 
-        // Esperar a que React procese el setter para que delta tenga los valores correctos
-        await new Promise(r => setTimeout(r, 0));
+        // Actualizar el estado con los problemas fusionados
+        setCrossDocProblems(result.merged);
 
         return { delta };
       } catch (err) {
@@ -148,7 +151,7 @@ export function useCrossDocAnalysis(
         setReanalyzingAll(false);
       }
     },
-    [accessToken, crossDocProblems.length]
+    [accessToken]
   );
 
   return { crossDocProblems, setCrossDocProblems, reanalyzeAll, reanalyzingAll, lastError };
