@@ -188,9 +188,16 @@ export function useDocuments(
       const data = await res.json();
       const existing = documents.find(d => d.name === fileName && d.source !== 'google_drive');
 
+      // Si viene de análisis rápido, quitar contradicciones sin verificar.
+      // El chat de mejora solo debe trabajar con duplicidades (overlaps).
+      // Las contradicciones se verifican y trabajan desde el análisis exhaustivo.
+      const analysisForImprovement = analysis.analysisMode === 'quick'
+        ? { ...analysis, discrepancies: [] }
+        : analysis;
+
       setImprovementTarget({
         fileName, storagePath, initialText: data.text,
-        analysis, documentSources,
+        analysis: analysisForImprovement, documentSources,
         existingDocWithSameName: existing ? { id: existing.id, name: existing.name } : null,
       });
       setPendingAnalysis(null);
