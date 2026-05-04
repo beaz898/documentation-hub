@@ -166,10 +166,27 @@ export default function ImprovementModal({
     if (!ta) return;
     ta.focus();
     ta.setSelectionRange(range.start, range.end);
-    const beforeText = text.slice(0, range.start);
-    const lineNumber = beforeText.split('\n').length;
-    const lineHeight = 20;
-    ta.scrollTop = Math.max(0, (lineNumber - 3) * lineHeight);
+
+    // Calcular la posición real de scroll usando un div espejo temporal.
+    // Esto maneja correctamente el word-wrap y cualquier fontSize/lineHeight.
+    const mirror = document.createElement('div');
+    const cs = getComputedStyle(ta);
+    mirror.style.cssText = `
+      position:absolute; top:-9999px; left:-9999px; visibility:hidden;
+      white-space:pre-wrap; word-wrap:break-word;
+      width:${ta.clientWidth}px;
+      font:${cs.font}; font-size:${cs.fontSize}; line-height:${cs.lineHeight};
+      padding:${cs.padding}; border:${cs.border}; box-sizing:border-box;
+    `;
+    // Insertar el texto hasta la posición del match
+    mirror.textContent = text.slice(0, range.start);
+    document.body.appendChild(mirror);
+    const targetY = mirror.scrollHeight;
+    document.body.removeChild(mirror);
+
+    // Scroll para centrar el texto encontrado en el textarea
+    const visibleHeight = ta.clientHeight;
+    ta.scrollTop = Math.max(0, targetY - visibleHeight / 3);
   }, [text]);
 
   const handleSolveOne = useCallback((p: Problem) => {
