@@ -3,23 +3,6 @@
 import { useState, useCallback } from 'react';
 import { problemsFromAnalysis, type Problem, type RawAnalysis } from './problems';
 
-interface StyleApiProblem {
-  type: 'ortografia' | 'ambiguedad' | 'sugerencia';
-  title: string;
-  description: string;
-  textRef?: string;
-}
-
-function mapStyleProblems(raw: StyleApiProblem[]): Problem[] {
-  return raw.map((p, i) => ({
-    id: `cross-style-${Date.now()}-${Math.random().toString(36).slice(2, 8)}-${i}`,
-    type: p.type,
-    title: p.title,
-    description: p.description,
-    textRef: p.textRef,
-  }));
-}
-
 /**
  * Genera una huella estable para un problema.
  * Dos problemas con la misma huella se consideran el mismo problema.
@@ -100,7 +83,6 @@ function mergeProblems(
 }
 
 export interface ReanalyzeResult {
-  styleProblems: Problem[];
   delta: { kept: number; added: number; removed: number };
 }
 
@@ -130,18 +112,13 @@ export function useCrossDocAnalysis(
           Authorization: `Bearer ${accessToken}`,
         };
 
-        const [crossRes, styleRes] = await Promise.all([
-          fetch('/api/analyze-v2', {
-            method: 'POST',
-            headers: authHeaders,
-            body: JSON.stringify({ text: currentText, fileName, exhaustive: true }),
-          }),
-          fetch('/api/analyze-style', {
-            method: 'POST',
-            headers: authHeaders,
-            body: JSON.stringify({ text: currentText, fileName }),
-          }),
-        ]);
+        // Solo análisis contra corpus (sin estilo).
+        // El estilo se analiza aparte con el botón "Reanalizar estilo".
+        const crossRes = await fetch('/api/analyze-v2', {
+          method: 'POST',
+          headers: authHeaders,
+          body: JSON.stringify({ text: currentText, fileName, exhaustive: true }),
+        });
 
         if (!crossRes.ok) {
           throw new Error(`cross-doc HTTP ${crossRes.status}`);
@@ -162,17 +139,7 @@ export function useCrossDocAnalysis(
         // Esperar a que React procese el setter para que delta tenga los valores correctos
         await new Promise(r => setTimeout(r, 0));
 
-        let newStyleProblems: Problem[] = [];
-        if (styleRes.ok) {
-          const styleData = await styleRes.json();
-          if (!styleData?.styleError) {
-            newStyleProblems = mapStyleProblems(styleData?.problems || []);
-          }
-        } else {
-          console.warn('[useCrossDocAnalysis] style HTTP error', styleRes.status);
-        }
-
-        return { styleProblems: newStyleProblems, delta };
+        return { delta };
       } catch (err) {
         console.warn('[useCrossDocAnalysis] reanalyzeAll failed', err);
         setLastError('No se pudo reanalizar, prueba de nuevo en unos segundos.');
