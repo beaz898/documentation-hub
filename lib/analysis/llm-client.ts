@@ -256,9 +256,18 @@ IMPORTANTE: Responde EXCLUSIVAMENTE con un objeto JSON válido. Sin texto antes 
   const raw = await callLLM(adjustedPrompt, adjustedOpts);
   try {
     return tryParseJson<T>(raw);
-  } catch (err) {
-    console.warn('[callLLMJson] Parse failed. Response length:', raw.length, 'head:', raw.slice(0, 300));
-    throw err;
+  } catch {
+    // Primer parseo falló. Reintentar la llamada LLM una vez más.
+    // Esto recupera juicios que se pierden por respuestas mal formateadas.
+    console.warn('[callLLMJson] Parse failed, retrying LLM call. Response length:', raw.length, 'head:', raw.slice(0, 200));
+    await new Promise(r => setTimeout(r, 1500));
+    const raw2 = await callLLM(adjustedPrompt, adjustedOpts);
+    try {
+      return tryParseJson<T>(raw2);
+    } catch (err2) {
+      console.warn('[callLLMJson] Retry parse also failed. Response length:', raw2.length, 'head:', raw2.slice(0, 200));
+      throw err2;
+    }
   }
 }
 
