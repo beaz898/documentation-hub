@@ -292,15 +292,15 @@ Responde con este JSON (sin bloques de código, sin texto adicional):
   }
 }
 
+/** Límite de texto del doc nuevo en modo rápido (ahorra tokens). */
+const NEW_DOC_LIMIT_QUICK = 6000;
+
 /**
  * Lanza juicios para todos los candidatos.
  *
  * Ambos modos son secuenciales para evitar saturar la API.
- * Modo rápido: pausa de 1200ms.
- * Modo exhaustivo: pausa de 500ms.
- *
- * El documento nuevo se envía COMPLETO en ambos modos para no
- * perder solapamientos ni contradicciones en ninguna parte del texto.
+ * Modo rápido: pausa de 1200ms, documento truncado a 6000 chars.
+ * Modo exhaustivo: pausa de 500ms, documento completo.
  */
 export async function judgeAllDocuments(args: {
   newDocumentName: string;
@@ -313,8 +313,11 @@ export async function judgeAllDocuments(args: {
   const isExhaustive = args.options?.exhaustive === true;
   const delayMs = isExhaustive ? SEQUENTIAL_DELAY_EXHAUSTIVE_MS : SEQUENTIAL_DELAY_QUICK_MS;
 
-  // Documento nuevo COMPLETO en ambos modos
-  const newDocumentText = args.newDocumentSample;
+  // Modo rápido: truncar para ahorrar tokens (el exhaustivo cubre el 100%)
+  // Modo exhaustivo: documento completo
+  const newDocumentText = isExhaustive
+    ? args.newDocumentSample
+    : args.newDocumentSample.slice(0, NEW_DOC_LIMIT_QUICK);
 
   const results: DocumentJudgment[] = [];
   for (let i = 0; i < args.candidates.length; i++) {
