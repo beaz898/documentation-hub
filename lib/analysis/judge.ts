@@ -19,7 +19,7 @@ const NEW_DOC_LIMIT_QUICK = 6000;
 const SEQUENTIAL_DELAY_QUICK_MS = 1200;
 
 /** Concurrencia en modo exhaustivo. */
-const EXHAUSTIVE_CONCURRENCY = 2;
+const EXHAUSTIVE_CONCURRENCY = 3;
 
 /** Pausa entre rondas en modo exhaustivo. */
 const EXHAUSTIVE_ROUND_DELAY_MS = 500;
