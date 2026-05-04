@@ -65,6 +65,11 @@ export default function ImprovementModal({
   const [text, setText] = useState(initialText);
   const editorRef = useRef<HTMLDivElement>(null);
 
+  // Ref que siempre apunta al texto actual del editor.
+  // Evita que los callbacks capturen una versión stale del texto.
+  const textRef = useRef(text);
+  textRef.current = text;
+
   const {
     messages: chatMessages,
     sending: chatSending,
@@ -181,8 +186,8 @@ export default function ImprovementModal({
   const handleSolveOne = useCallback((p: Problem) => {
     const typeLabel = TYPE_META[p.type].label.toLowerCase();
     const message = `Resuelve el siguiente problema de tipo ${typeLabel} en el TEXTO_ACTUAL. Propón los cambios necesarios con bloques REPLACEMENT:\n\nTítulo: ${p.title}\nDescripción: ${p.description}${p.relatedDoc ? `\nDocumento relacionado: ${p.relatedDoc}` : ''}`;
-    sendMessage(message, text, fileName, problemsSummary);
-  }, [sendMessage, text, fileName, problemsSummary]);
+    sendMessage(message, textRef.current, fileName, problemsSummary);
+  }, [sendMessage, fileName, problemsSummary]);
 
   const handleSolveGroup = useCallback((type: ProblemType, groupProblems: Problem[]) => {
     const typeLabel = TYPE_META[type].label.toLowerCase();
@@ -190,8 +195,8 @@ export default function ImprovementModal({
       .map((p, i) => `${i + 1}. ${p.title}: ${p.description}${p.relatedDoc ? ` (doc: ${p.relatedDoc})` : ''}`)
       .join('\n');
     const message = `Resuelve TODOS los problemas de tipo ${typeLabel} detectados en el TEXTO_ACTUAL. Genera UN BLOQUE REPLACEMENT POR CADA cambio necesario, no resumas en uno solo:\n\n${list}`;
-    sendMessage(message, text, fileName, problemsSummary);
-  }, [sendMessage, text, fileName, problemsSummary]);
+    sendMessage(message, textRef.current, fileName, problemsSummary);
+  }, [sendMessage, fileName, problemsSummary]);
 
   const handleManualSend = useCallback(async (userText: string, currentEditorText: string) => {
     await sendMessage(userText, currentEditorText, fileName, problemsSummary);
@@ -199,7 +204,7 @@ export default function ImprovementModal({
 
   const handleReanalyzeStyle = useCallback(async () => {
     const prevCount = styleProblems.length;
-    await reanalyzeStyle(text, fileName);
+    await reanalyzeStyle(textRef.current, fileName);
     setStyleProblems(curr => {
       const diff = curr.length - prevCount;
       let msg: string;
@@ -213,10 +218,9 @@ export default function ImprovementModal({
       addAssistantMessage(msg);
       return curr;
     });
-  }, [styleProblems.length, reanalyzeStyle, text, setStyleProblems, addAssistantMessage]);
-
+  }, [styleProblems.length, reanalyzeStyle, setStyleProblems, addAssistantMessage, fileName]);
   const handleReanalyzeAll = useCallback(async () => {
-    const result = await reanalyzeAll(text, fileName);
+    const result = await reanalyzeAll(textRef.current, fileName);
     if (!result) {
       addAssistantMessage('No se pudo reanalizar, prueba de nuevo en unos segundos.');
       return;
@@ -239,7 +243,7 @@ export default function ImprovementModal({
     }
 
     addAssistantMessage(parts.join('\n'));
-  }, [reanalyzeAll, text, fileName, crossDocProblems.length, styleProblems.length, addAssistantMessage]);
+  }, [reanalyzeAll, fileName, crossDocProblems.length, styleProblems.length, addAssistantMessage]);
 
   const {
     indexing,
