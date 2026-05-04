@@ -50,8 +50,11 @@ const CORPUS_SCORE_THRESHOLD = 0.50;
 /** Máximo de fragmentos del corpus por afirmación. */
 const MAX_CORPUS_FRAGMENTS = 4;
 
-/** Pausa en ms entre verificaciones LLM para evitar 429. */
-const DELAY_BETWEEN_VERIFICATIONS_MS = 300;
+/** Número de verificaciones LLM en paralelo. */
+const CONCURRENCY = 2;
+
+/** Pausa en ms entre rondas de verificaciones para evitar 429. */
+const DELAY_BETWEEN_ROUNDS_MS = 200;
 
 /**
  * Verifica todas las afirmaciones contra el corpus.
@@ -61,7 +64,7 @@ const DELAY_BETWEEN_VERIFICATIONS_MS = 300;
  * Flujo optimizado:
  * 1. Embeder todas las afirmaciones en un solo batch.
  * 2. Buscar fragmentos del corpus para cada embedding (Pinecone, sin LLM).
- * 3. Verificar una por una contra el LLM, con pausa entre llamadas.
+ * 3. Verificar en rondas de CONCURRENCY llamadas LLM en paralelo.
  */
 export async function verifyClaimsAgainstCorpus(
   claims: AtomicClaim[],
@@ -83,36 +86,42 @@ export async function verifyClaimsAgainstCorpus(
   }
 
   // ── Paso 2: Buscar fragmentos del corpus para cada claim ──────
-  // Pinecone no tiene rate limit tan estricto, podemos paralelizar las queries
   const corpusResults = await Promise.all(
     embeddings.map((emb, i) => findCorpusFragmentsByEmbedding(emb, orgId, claims[i].claim))
   );
 
-  // ── Paso 3: Verificar contra el LLM de forma secuencial ──────
+  // ── Paso 3: Filtrar claims que tienen fragmentos relevantes ───
+  const claimsToVerify: Array<{ claim: AtomicClaim; fragments: CorpusFragment[] }> = [];
   for (let i = 0; i < claims.length; i++) {
-    const fragments = corpusResults[i];
-
-    // Sin fragmentos relevantes → sin datos, no hace falta llamar al LLM
-    if (fragments.length === 0) continue;
-
-    // Pausa entre verificaciones LLM para evitar saturar Anthropic
-    if (i > 0) {
-      await new Promise(r => setTimeout(r, DELAY_BETWEEN_VERIFICATIONS_MS));
-    }
-
-    const result = await verifySingleClaimWithFragments(claims[i], fragments);
-
-    if (result.verdict === 'contradiccion' && result.corpusSays && result.existingDocument) {
-      contradictions.push({
-        topic: result.category,
-        newDocSays: result.claim,
-        existingDocSays: result.corpusSays,
-        existingDocument: result.existingDocument,
-      });
+    if (corpusResults[i].length > 0) {
+      claimsToVerify.push({ claim: claims[i], fragments: corpusResults[i] });
     }
   }
 
-  console.log(`[verify-claims] ${claims.length} afirmaciones verificadas, ${contradictions.length} contradicciones encontradas (${Date.now() - t0}ms)`);
+  // ── Paso 4: Verificar en rondas de CONCURRENCY en paralelo ────
+  for (let roundStart = 0; roundStart < claimsToVerify.length; roundStart += CONCURRENCY) {
+    if (roundStart > 0) {
+      await new Promise(r => setTimeout(r, DELAY_BETWEEN_ROUNDS_MS));
+    }
+
+    const round = claimsToVerify.slice(roundStart, roundStart + CONCURRENCY);
+    const results = await Promise.all(
+      round.map(({ claim, fragments }) => verifySingleClaimWithFragments(claim, fragments))
+    );
+
+    for (const result of results) {
+      if (result.verdict === 'contradiccion' && result.corpusSays && result.existingDocument) {
+        contradictions.push({
+          topic: result.category,
+          newDocSays: result.claim,
+          existingDocSays: result.corpusSays,
+          existingDocument: result.existingDocument,
+        });
+      }
+    }
+  }
+
+  console.log(`[verify-claims] ${claims.length} afirmaciones verificadas (${claimsToVerify.length} con corpus), ${contradictions.length} contradicciones encontradas (${Date.now() - t0}ms)`);
   return contradictions;
 }
 
