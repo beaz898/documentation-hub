@@ -228,7 +228,7 @@ export default function ImprovementModal({
 
     // Construir mensaje con las estadísticas reales de la fusión
     const d = result.delta;
-    const parts: string[] = ['He reanalizado las contradicciones y duplicados del documento.'];
+    const parts: string[] = ['He reanalizado contradicciones y duplicados contra el corpus.'];
 
     if (d.removed > 0) parts.push(`✅ ${d.removed} problema${d.removed !== 1 ? 's' : ''} resuelto${d.removed !== 1 ? 's' : ''}.`);
     if (d.added > 0) parts.push(`🆕 ${d.added} problema${d.added !== 1 ? 's' : ''} nuevo${d.added !== 1 ? 's' : ''}.`);
