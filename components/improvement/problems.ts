@@ -138,17 +138,19 @@ export function problemsFromAnalysis(analysis: RawAnalysis): Problem[] {
   }
 
   if (analysis.discrepancies) {
-    analysis.discrepancies.forEach((d, i) => {
-      out.push({
-        id: `disc-${i}`,
-        type: 'contradiccion',
-        title: d.topic || `Contradicción con "${d.existingDocument}"`,
-        description: `En este documento: "${d.newDocSays}". En "${d.existingDocument}": "${d.existingDocSays}".`,
-        textRef: d.newDocSays,
-        relatedDoc: d.existingDocument,
-        confidence: d.confidence,
+    analysis.discrepancies
+      .filter(d => d.confidence !== 'posible')
+      .forEach((d, i) => {
+        out.push({
+          id: `disc-${i}`,
+          type: 'contradiccion',
+          title: d.topic || `Contradicción con "${d.existingDocument}"`,
+          description: `En este documento: "${d.newDocSays}". En "${d.existingDocument}": "${d.existingDocSays}".`,
+          textRef: d.newDocSays,
+          relatedDoc: d.existingDocument,
+          confidence: d.confidence,
+        });
       });
-    });
   }
 
   return out;
