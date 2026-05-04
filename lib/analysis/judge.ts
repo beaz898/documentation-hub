@@ -133,8 +133,14 @@ function findBestMatch(haystack: string, needle: string): string | null {
 
 /**
  * Corrige las citas del LLM para que coincidan con el texto real del documento.
- * Si una cita no se encuentra exactamente, busca la frase más parecida.
- * Si no encuentra nada razonable, deja la cita original del LLM.
+ *
+ * Estrategias en orden:
+ * 1. Si newDocSays se encuentra en el documento nuevo → OK, usar el match exacto.
+ * 2. Si newDocSays NO se encuentra pero existingDocSays SÍ se encuentra en el
+ *    documento nuevo → el LLM las intercambió. Invertir las citas.
+ * 3. Si ninguna coincide → dejar la cita original del LLM.
+ *
+ * Lo mismo aplica a evidenceInNewDoc en solapamientos.
  */
 function fixQuotesInJudgment(
   judgment: DocumentJudgment,
@@ -143,15 +149,52 @@ function fixQuotesInJudgment(
   // Corregir newDocSays en contradicciones
   const fixedContradictions = judgment.contradictions.map(c => {
     if (!c.newDocSays) return c;
-    const match = findBestMatch(newDocumentText, c.newDocSays);
-    return match ? { ...c, newDocSays: match } : c;
+
+    // Intento 1: buscar newDocSays en el documento nuevo
+    const matchNew = findBestMatch(newDocumentText, c.newDocSays);
+    if (matchNew) {
+      return { ...c, newDocSays: matchNew };
+    }
+
+    // Intento 2: el LLM intercambió las citas — existingDocSays está en el doc nuevo
+    if (c.existingDocSays) {
+      const matchSwapped = findBestMatch(newDocumentText, c.existingDocSays);
+      if (matchSwapped) {
+        // Invertir: lo que el LLM puso como existingDocSays es realmente del nuevo
+        return {
+          ...c,
+          newDocSays: matchSwapped,
+          existingDocSays: c.newDocSays,
+        };
+      }
+    }
+
+    // No se encontró ninguna coincidencia: dejar como está
+    return c;
   });
 
   // Corregir evidenceInNewDoc en solapamientos
   const fixedOverlaps = judgment.overlappingContent.map(o => {
     if (!o.evidenceInNewDoc) return o;
-    const match = findBestMatch(newDocumentText, o.evidenceInNewDoc);
-    return match ? { ...o, evidenceInNewDoc: match } : o;
+
+    const matchNew = findBestMatch(newDocumentText, o.evidenceInNewDoc);
+    if (matchNew) {
+      return { ...o, evidenceInNewDoc: matchNew };
+    }
+
+    // Intento 2: intercambio con evidence
+    if (o.evidence) {
+      const matchSwapped = findBestMatch(newDocumentText, o.evidence);
+      if (matchSwapped) {
+        return {
+          ...o,
+          evidenceInNewDoc: matchSwapped,
+          evidence: o.evidenceInNewDoc,
+        };
+      }
+    }
+
+    return o;
   });
 
   return {
