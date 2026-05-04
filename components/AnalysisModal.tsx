@@ -257,9 +257,12 @@ export default function AnalysisModal({ fileName, analysis, onConfirm, onCancel,
                     background: 'var(--danger-light)', border: '0.5px solid var(--danger)',
                   }}>
                     <p style={{ fontSize: 12, color: 'var(--danger-text)', lineHeight: 1.5, margin: 0 }}>
-                      Se han detectado <strong>{analysis.discrepancies.length} posibles discrepancias</strong> con
-                      documentos existentes. Ejecuta el <strong>análisis exhaustivo</strong> para obtener
-                      el detalle verificado de cada una.
+                      Se han detectado al menos <strong>{analysis.discrepancies.length} posibles contradicciones</strong> con
+                      otros documentos del corpus. Estas contradicciones no han sido verificadas con doble comprobación.
+                    </p>
+                    <p style={{ fontSize: 12, color: 'var(--danger-text)', lineHeight: 1.5, margin: '6px 0 0 0' }}>
+                      Ejecuta el <strong>análisis exhaustivo</strong> para verificarlas y trabajarlas de 15 en 15
+                      con doble comprobación de cada una.
                     </p>
                   </div>
                 ) : (
