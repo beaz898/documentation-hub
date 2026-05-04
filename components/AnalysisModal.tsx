@@ -245,7 +245,7 @@ export default function AnalysisModal({ fileName, analysis, onConfirm, onCancel,
             {analysis.discrepancies && analysis.discrepancies.length > 0 && (
               <CollapsibleSection
                 title="Contradicciones"
-                count={analysis.discrepancies.length}
+                count={isExhaustive ? analysis.discrepancies.filter(d => d.confidence !== 'posible').length : analysis.discrepancies.length}
                 color="var(--danger)"
                 defaultOpen={false}
               >
@@ -266,15 +266,12 @@ export default function AnalysisModal({ fileName, analysis, onConfirm, onCancel,
                     </p>
                   </div>
                 ) : (
-                  analysis.discrepancies.map((d, i) => (
+                  analysis.discrepancies.filter(d => d.confidence !== 'posible').map((d, i) => (
                     <div key={i} style={{
                       padding: '8px 12px', borderRadius: 8, marginBottom: 6,
                       background: 'var(--danger-light)', border: '0.5px solid var(--danger)',
                     }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
-                        <p style={{ fontSize: 12, fontWeight: 500, color: 'var(--danger-text)', flex: 1, margin: 0 }}>{d.topic}</p>
-                        {d.confidence && <ConfidenceBadge confidence={d.confidence} />}
-                      </div>
+                      <p style={{ fontSize: 12, fontWeight: 500, color: 'var(--danger-text)', margin: '0 0 4px 0' }}>{d.topic}</p>
                       <p style={{ fontSize: 11, color: 'var(--danger-text)' }}>
                         Nuevo: &quot;{d.newDocSays}&quot;
                       </p>
