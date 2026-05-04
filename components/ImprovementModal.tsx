@@ -167,26 +167,15 @@ export default function ImprovementModal({
     ta.focus();
     ta.setSelectionRange(range.start, range.end);
 
-    // Calcular la posición real de scroll usando un div espejo temporal.
-    // Esto maneja correctamente el word-wrap y cualquier fontSize/lineHeight.
-    const mirror = document.createElement('div');
-    const cs = getComputedStyle(ta);
-    mirror.style.cssText = `
-      position:absolute; top:-9999px; left:-9999px; visibility:hidden;
-      white-space:pre-wrap; word-wrap:break-word;
-      width:${ta.clientWidth}px;
-      font:${cs.font}; font-size:${cs.fontSize}; line-height:${cs.lineHeight};
-      padding:${cs.padding}; border:${cs.border}; box-sizing:border-box;
-    `;
-    // Insertar el texto hasta la posición del match
-    mirror.textContent = text.slice(0, range.start);
-    document.body.appendChild(mirror);
-    const targetY = mirror.scrollHeight;
-    document.body.removeChild(mirror);
-
-    // Scroll para centrar el texto encontrado en el textarea
-    const visibleHeight = ta.clientHeight;
-    ta.scrollTop = Math.max(0, targetY - visibleHeight / 3);
+    // Calcular scroll: usar la posición relativa del texto en el documento
+    // para calcular la posición de scroll proporcional.
+    // scrollHeight = alto total del contenido (incluyendo lo no visible)
+    // clientHeight = alto visible del textarea
+    const ratio = range.start / Math.max(1, text.length);
+    const maxScroll = ta.scrollHeight - ta.clientHeight;
+    // Centramos la selección: apuntamos al punto proporcional menos medio viewport
+    const targetScroll = ratio * ta.scrollHeight - ta.clientHeight / 3;
+    ta.scrollTop = Math.max(0, Math.min(maxScroll, targetScroll));
   }, [text]);
 
   const handleSolveOne = useCallback((p: Problem) => {
@@ -233,21 +222,24 @@ export default function ImprovementModal({
       return;
     }
 
-    // Actualizar style problems
-    setStyleProblems(result.styleProblems);
-
     // Construir mensaje con las estadísticas reales de la fusión
     const d = result.delta;
-    const totalPending = (crossDocProblems.length - d.removed + d.added) + result.styleProblems.length;
-    const parts: string[] = ['He reanalizado todo el documento.'];
+    const parts: string[] = ['He reanalizado las contradicciones y duplicados del documento.'];
 
     if (d.removed > 0) parts.push(`✅ ${d.removed} problema${d.removed !== 1 ? 's' : ''} resuelto${d.removed !== 1 ? 's' : ''}.`);
     if (d.added > 0) parts.push(`🆕 ${d.added} problema${d.added !== 1 ? 's' : ''} nuevo${d.added !== 1 ? 's' : ''}.`);
     if (d.removed === 0 && d.added === 0) parts.push('No hay cambios en los problemas detectados.');
-    parts.push(`📋 ${totalPending} pendiente${totalPending !== 1 ? 's' : ''} en total.`);
+
+    const pendingCrossDoc = crossDocProblems.length - d.removed + d.added;
+    const totalPending = pendingCrossDoc + styleProblems.length;
+    parts.push(`📋 ${totalPending} pendiente${totalPending !== 1 ? 's' : ''} en total (${pendingCrossDoc} de corpus + ${styleProblems.length} de estilo).`);
+
+    if (styleProblems.length > 0) {
+      parts.push('\n💡 Para reanalizar el estilo, usa el botón "Reanalizar estilo".');
+    }
 
     addAssistantMessage(parts.join('\n'));
-  }, [reanalyzeAll, text, fileName, setStyleProblems, crossDocProblems.length, styleProblems.length, addAssistantMessage]);
+  }, [reanalyzeAll, text, fileName, crossDocProblems.length, styleProblems.length, addAssistantMessage]);
 
   const {
     indexing,
