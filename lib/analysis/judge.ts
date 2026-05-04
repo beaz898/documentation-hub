@@ -4,27 +4,25 @@ import type { RerankedCandidate, DocumentJudgment, PipelineOptions } from './typ
 /**
  * Etapa 3 — Juicio individual por documento.
  *
- * Ambos modos (rápido y exhaustivo) reciben el documento nuevo COMPLETO
- * para no perder solapamientos ni contradicciones en la parte final.
+ * Modo rápido: secuencial con pausa (1200ms), documento truncado a 6000 chars.
+ * Modo exhaustivo: 2 en paralelo con pausa entre rondas (500ms),
+ *   documento completo.
  *
- * Modo rápido: secuencial con pausa larga (1200ms).
- * Modo exhaustivo: secuencial con pausa corta (500ms).
- *
- * Ambos son secuenciales para evitar ráfagas de llamadas LLM
- * que provocan 429 de Anthropic.
- *
- * Post-procesamiento: las citas del LLM (newDocSays, evidenceInNewDoc)
- * se verifican contra el texto real del documento. Si no coinciden
- * exactamente, se busca la frase más parecida con match fuzzy y se
- * sustituye para garantizar que la navegación y la fusión de problemas
- * funcionen correctamente.
+ * Post-procesamiento: las citas del LLM se verifican contra el texto real
+ * del documento y se corrigen con match fuzzy si no coinciden exactamente.
  */
+
+/** Límite de texto del doc nuevo en modo rápido (ahorra tokens). */
+const NEW_DOC_LIMIT_QUICK = 6000;
 
 /** Pausa entre juicios secuenciales en modo rápido. */
 const SEQUENTIAL_DELAY_QUICK_MS = 1200;
 
-/** Pausa entre juicios secuenciales en modo exhaustivo. */
-const SEQUENTIAL_DELAY_EXHAUSTIVE_MS = 500;
+/** Concurrencia en modo exhaustivo. */
+const EXHAUSTIVE_CONCURRENCY = 2;
+
+/** Pausa entre rondas en modo exhaustivo. */
+const EXHAUSTIVE_ROUND_DELAY_MS = 500;
 
 interface JudgeResponse {
   overlapPercent: number;
@@ -46,10 +44,6 @@ interface JudgeResponse {
 // Post-procesamiento: corregir citas del LLM contra el texto real
 // ============================================================
 
-/**
- * Normaliza texto para comparación: minúsculas, espacios colapsados,
- * puntuación removida.
- */
 function normalize(s: string): string {
   return s
     .toLowerCase()
@@ -58,34 +52,21 @@ function normalize(s: string): string {
     .trim();
 }
 
-/**
- * Busca en `haystack` el substring que mejor coincide con `needle`.
- * Usa una estrategia de anclas: busca los primeros y últimos N caracteres
- * normalizados de `needle` dentro de `haystack` normalizado, y devuelve
- * el texto original correspondiente.
- *
- * Retorna el substring original del haystack que mejor coincide,
- * o null si no encuentra nada razonable.
- */
 function findBestMatch(haystack: string, needle: string): string | null {
   if (!needle || needle.length < 10) return null;
 
-  // 1. Búsqueda exacta
   const exactIdx = haystack.indexOf(needle);
   if (exactIdx !== -1) return needle;
 
-  // 2. Búsqueda normalizada con mapeo de posiciones
   const normNeedle = normalize(needle);
   if (normNeedle.length < 8) return null;
 
-  // Construir texto normalizado con mapeo a posiciones originales
   const mapping: number[] = [];
   let normHaystack = '';
   for (let i = 0; i < haystack.length; i++) {
     const ch = haystack[i];
     const isSpace = /\s/.test(ch);
     const isPunct = /[.,;:!?"""''«»()[\]{}\-—–…]/.test(ch);
-
     if (isPunct) continue;
     if (isSpace) {
       if (normHaystack.length > 0 && !normHaystack.endsWith(' ')) {
@@ -98,7 +79,6 @@ function findBestMatch(haystack: string, needle: string): string | null {
     }
   }
 
-  // Buscar needle normalizado dentro de haystack normalizado
   const normIdx = normHaystack.indexOf(normNeedle);
   if (normIdx !== -1 && mapping[normIdx] !== undefined) {
     const startOrig = mapping[normIdx];
@@ -107,7 +87,6 @@ function findBestMatch(haystack: string, needle: string): string | null {
     return haystack.slice(startOrig, endOrig);
   }
 
-  // 3. Búsqueda por anclas: primeros 20 chars + últimos 20 chars
   if (normNeedle.length >= 25) {
     const headLen = Math.min(20, Math.floor(normNeedle.length * 0.4));
     const tailLen = Math.min(20, Math.floor(normNeedle.length * 0.4));
@@ -120,7 +99,6 @@ function findBestMatch(haystack: string, needle: string): string | null {
       if (tailIdx !== -1) {
         const startOrig = mapping[headIdx];
         const endOrig = (mapping[tailIdx + tail.length - 1] ?? startOrig) + 1;
-        // Sanity check: el match no debería ser más de 3x el needle original
         if (endOrig - startOrig < needle.length * 3) {
           return haystack.slice(startOrig, endOrig);
         }
@@ -131,36 +109,21 @@ function findBestMatch(haystack: string, needle: string): string | null {
   return null;
 }
 
-/**
- * Corrige las citas del LLM para que coincidan con el texto real del documento.
- *
- * Estrategias en orden:
- * 1. Si newDocSays se encuentra en el documento nuevo → OK, usar el match exacto.
- * 2. Si newDocSays NO se encuentra pero existingDocSays SÍ se encuentra en el
- *    documento nuevo → el LLM las intercambió. Invertir las citas.
- * 3. Si ninguna coincide → dejar la cita original del LLM.
- *
- * Lo mismo aplica a evidenceInNewDoc en solapamientos.
- */
 function fixQuotesInJudgment(
   judgment: DocumentJudgment,
   newDocumentText: string,
 ): DocumentJudgment {
-  // Corregir newDocSays en contradicciones
   const fixedContradictions = judgment.contradictions.map(c => {
     if (!c.newDocSays) return c;
 
-    // Intento 1: buscar newDocSays en el documento nuevo
     const matchNew = findBestMatch(newDocumentText, c.newDocSays);
     if (matchNew) {
       return { ...c, newDocSays: matchNew };
     }
 
-    // Intento 2: el LLM intercambió las citas — existingDocSays está en el doc nuevo
     if (c.existingDocSays) {
       const matchSwapped = findBestMatch(newDocumentText, c.existingDocSays);
       if (matchSwapped) {
-        // Invertir: lo que el LLM puso como existingDocSays es realmente del nuevo
         return {
           ...c,
           newDocSays: matchSwapped,
@@ -169,11 +132,9 @@ function fixQuotesInJudgment(
       }
     }
 
-    // No se encontró ninguna coincidencia: dejar como está
     return c;
   });
 
-  // Corregir evidenceInNewDoc en solapamientos
   const fixedOverlaps = judgment.overlappingContent.map(o => {
     if (!o.evidenceInNewDoc) return o;
 
@@ -182,7 +143,6 @@ function fixQuotesInJudgment(
       return { ...o, evidenceInNewDoc: matchNew };
     }
 
-    // Intento 2: intercambio con evidence
     if (o.evidence) {
       const matchSwapped = findBestMatch(newDocumentText, o.evidence);
       if (matchSwapped) {
@@ -275,7 +235,6 @@ Responde con este JSON (sin bloques de código, sin texto adicional):
       uniqueToNewDoc: response.uniqueToNewDoc || [],
     };
 
-    // Post-procesamiento: corregir citas para que coincidan con el texto real
     return fixQuotesInJudgment(rawJudgment, newDocumentText);
   } catch (err) {
     console.warn(`[judge] Failed for "${candidate.documentName}":`, err);
@@ -292,15 +251,12 @@ Responde con este JSON (sin bloques de código, sin texto adicional):
   }
 }
 
-/** Límite de texto del doc nuevo en modo rápido (ahorra tokens). */
-const NEW_DOC_LIMIT_QUICK = 6000;
-
 /**
  * Lanza juicios para todos los candidatos.
  *
- * Ambos modos son secuenciales para evitar saturar la API.
- * Modo rápido: pausa de 1200ms, documento truncado a 6000 chars.
- * Modo exhaustivo: pausa de 500ms, documento completo.
+ * Modo rápido: secuencial con pausa de 1200ms, documento truncado.
+ * Modo exhaustivo: 2 en paralelo con pausa de 500ms entre rondas,
+ *   documento completo.
  */
 export async function judgeAllDocuments(args: {
   newDocumentName: string;
@@ -311,17 +267,45 @@ export async function judgeAllDocuments(args: {
   if (args.candidates.length === 0) return [];
 
   const isExhaustive = args.options?.exhaustive === true;
-  const delayMs = isExhaustive ? SEQUENTIAL_DELAY_EXHAUSTIVE_MS : SEQUENTIAL_DELAY_QUICK_MS;
 
-  // Modo rápido: truncar para ahorrar tokens (el exhaustivo cubre el 100%)
+  // Modo rápido: truncar para ahorrar tokens
   // Modo exhaustivo: documento completo
   const newDocumentText = isExhaustive
     ? args.newDocumentSample
     : args.newDocumentSample.slice(0, NEW_DOC_LIMIT_QUICK);
 
+  if (isExhaustive) {
+    // Paralelo controlado: 2 a la vez con pausa entre rondas
+    const results: DocumentJudgment[] = new Array(args.candidates.length);
+
+    for (let roundStart = 0; roundStart < args.candidates.length; roundStart += EXHAUSTIVE_CONCURRENCY) {
+      if (roundStart > 0) {
+        await new Promise(r => setTimeout(r, EXHAUSTIVE_ROUND_DELAY_MS));
+      }
+
+      const roundEnd = Math.min(roundStart + EXHAUSTIVE_CONCURRENCY, args.candidates.length);
+      const roundPromises = [];
+
+      for (let i = roundStart; i < roundEnd; i++) {
+        roundPromises.push(
+          judgeSingleDocument({
+            newDocumentName: args.newDocumentName,
+            newDocumentText,
+            candidate: args.candidates[i],
+          }).then(judgment => { results[i] = judgment; })
+        );
+      }
+
+      await Promise.all(roundPromises);
+    }
+
+    return results;
+  }
+
+  // Secuencial con pausa (modo rápido)
   const results: DocumentJudgment[] = [];
   for (let i = 0; i < args.candidates.length; i++) {
-    if (i > 0) await new Promise(r => setTimeout(r, delayMs));
+    if (i > 0) await new Promise(r => setTimeout(r, SEQUENTIAL_DELAY_QUICK_MS));
     const judgment = await judgeSingleDocument({
       newDocumentName: args.newDocumentName,
       newDocumentText,
