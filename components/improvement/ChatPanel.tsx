@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import ReanalyzeButtons from './ReanalyzeButtons';
 import FilterMenu from './FilterMenu';
 import type { ProblemType, Problem } from './problems';
@@ -58,11 +58,21 @@ export default function ChatPanel({
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const endRef = useRef<HTMLDivElement>(null);
 
-  // Autoscroll: solo cuando AUMENTA el número de mensajes (mensaje nuevo) o
-  // cuando el asistente empieza a responder (sending = true). Modificar un
-  // mensaje existente, p. ej. al marcar un replacement como aplicado tras
-  // pulsar "Aplicar al texto", NO debe disparar scroll, porque el usuario
-  // suele estar mirando una propuesta concreta a media altura del chat.
+  // Estado de grupos colapsados: por defecto todos expandidos
+  const [collapsedGroups, setCollapsedGroups] = useState<Set<ProblemType>>(new Set());
+
+  const toggleGroupCollapse = (type: ProblemType) => {
+    setCollapsedGroups(prev => {
+      const next = new Set(prev);
+      if (next.has(type)) {
+        next.delete(type);
+      } else {
+        next.add(type);
+      }
+      return next;
+    });
+  };
+
   const prevMsgCountRef = useRef(messages.length);
   useEffect(() => {
     const prev = prevMsgCountRef.current;
@@ -79,7 +89,6 @@ export default function ChatPanel({
     }
   }, [sending]);
 
-  // Devolver el foco al textarea cuando el asistente termina de responder
   useEffect(() => {
     if (!sending) {
       setTimeout(() => inputRef.current?.focus(), 50);
@@ -152,19 +161,37 @@ export default function ChatPanel({
         <div style={{
           padding: '10px 16px', borderBottom: '0.5px solid var(--border)',
           display: 'flex', flexDirection: 'column', gap: 10,
-          flexShrink: 0, maxHeight: 200, overflowY: 'auto',
+          flexShrink: 0, maxHeight: 300, overflowY: 'auto',
         }}>
           {groupedProblems.map(({ type, items }) => {
             const meta = typeMeta[type];
+            const isCollapsed = collapsedGroups.has(type);
             return (
               <div key={type} style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                {/* Encabezado de grupo con botón Resolver */}
-                <div style={{
-                  display: 'flex', alignItems: 'center', gap: 6,
-                  padding: '2px 0',
-                  borderBottom: `0.5px solid ${meta.border}`,
-                  marginBottom: 2,
-                }}>
+                {/* Encabezado de grupo: plegable + botón Resolver */}
+                <div
+                  onClick={() => toggleGroupCollapse(type)}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 6,
+                    padding: '4px 0',
+                    borderBottom: `0.5px solid ${meta.border}`,
+                    marginBottom: 2,
+                    cursor: 'pointer',
+                    userSelect: 'none',
+                  }}
+                >
+                  {/* Flecha de colapsar/expandir */}
+                  <svg
+                    width="10" height="10" viewBox="0 0 24 24"
+                    fill="none" stroke={meta.color} strokeWidth="3"
+                    style={{
+                      transform: isCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)',
+                      transition: 'transform 0.15s ease',
+                      flexShrink: 0,
+                    }}
+                  >
+                    <polyline points="6 9 12 15 18 9" />
+                  </svg>
                   <span style={{
                     fontSize: 11,
                     fontWeight: 700,
@@ -194,8 +221,8 @@ export default function ChatPanel({
                   >Resolver</button>
                 </div>
 
-                {/* Tarjetas del grupo */}
-                {items.map(({ p, globalIndex }) => {
+                {/* Tarjetas del grupo (solo si no está colapsado) */}
+                {!isCollapsed && items.map(({ p }) => {
                   const srcBadge = getDocSourceBadge(p.relatedDoc);
                   const isClickable = !!p.textRef;
                   return (
@@ -227,15 +254,6 @@ export default function ChatPanel({
                             background: `${srcBadge.color}1a`, color: srcBadge.color,
                             border: `0.5px solid ${srcBadge.color}66`,
                           }}>{srcBadge.label}</span>
-                        )}
-                        {p.type === 'contradiccion' && p.confidence && (
-                          <span style={{
-                            fontSize: 8, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.3,
-                            padding: '1px 5px', borderRadius: 3,
-                            background: p.confidence === 'alta' ? 'rgba(220,38,38,0.12)' : 'rgba(245,158,11,0.12)',
-                            color: p.confidence === 'alta' ? 'var(--danger-text)' : 'var(--warning-text)',
-                            border: `0.5px solid ${p.confidence === 'alta' ? 'rgba(220,38,38,0.3)' : 'rgba(245,158,11,0.3)'}`,
-                          }}>{p.confidence === 'alta' ? 'Confirmada' : 'Posible'}</span>
                         )}
                         <span style={{ fontSize: 11, fontWeight: 500, color: 'var(--text-primary)', flex: 1, minWidth: 0 }}>{p.title}</span>
                         <button
