@@ -16,6 +16,8 @@ export interface Problem {
   relatedDoc?: string;
   /** Nivel de confianza de la contradicción (solo para type 'contradiccion'). */
   confidence?: 'alta' | 'posible';
+  /** Si el usuario marcó este problema como "no es un error". */
+  dismissed?: boolean;
 }
 
 export interface RawAnalysis {
