@@ -16,39 +16,26 @@ export interface AnalyzePipelineInput {
   sampleTexts: string[];
   orgId: string;
   excludeDocumentId?: string;
-  /**
-   * Cliente de Supabase. Necesario para la comprobación de duplicados exactos
-   * por hash SHA-256 al inicio del pipeline (rápido y exhaustivo).
-   */
   supabase: SupabaseClient;
+  /**
+   * Huellas de contradicciones descartadas en reanálisis anteriores.
+   * Se pasan al double-check para no gastar Sonnet re-verificándolas.
+   */
+  excludeFingerprints?: Set<string>;
 }
 
-/** Alias mantenido por compatibilidad. El exhaustivo usa la misma forma de input. */
 export type ExhaustivePipelineInput = AnalyzePipelineInput;
 
-/**
- * Umbral de solapamiento alto (%). Si algún juicio supera este valor,
- * se considera que el documento tiene un solapamiento significativo
- * y se marca para revisión prioritaria.
- */
 const HIGH_OVERLAP_THRESHOLD = 30;
-
-/**
- * Máximo de contradicciones del judge antes de activar corte temprano.
- * Si el judge ya encontró más de esto, no gastamos en verify-claims.
- * Pero sí hacemos double-check para confirmar las más importantes.
- */
 const MAX_CONTRADICTIONS_BEFORE_CUTOFF = 15;
-
-/**
- * Cuántas contradicciones confirmadas queremos garantizar en corte temprano.
- * Se envían más candidatas al double-check como backup por si algunas
- * no se confirman.
- */
 const TARGET_CONFIRMED = 15;
 
-/** Candidatas extra de backup para el double-check en corte temprano. */
-const BACKUP_CANDIDATES = 5;
+/**
+ * Máximo de candidatas a enviar al double-check en corte temprano.
+ * 30 da margen suficiente para conseguir 15 confirmadas incluso
+ * si Sonnet descarta la mitad.
+ */
+const MAX_CANDIDATES_FOR_DOUBLECHECK = 30;
 
 // ============================================================
 // Núcleo compartido: retrieve → rerank → judge → synthesize
@@ -95,7 +82,6 @@ async function runCorePipeline(
   });
   console.log(`[${label}] Judge: ${judgments.length} juicios emitidos (${Date.now() - t2}ms)`);
 
-  // Pausa solo en modo rápido para liberar presupuesto de rate limit
   if (!options.exhaustive) {
     await new Promise(r => setTimeout(r, 1500));
   }
@@ -111,7 +97,7 @@ async function runCorePipeline(
 }
 
 // ============================================================
-// Helper compartido: respuesta de duplicado exacto detectado por hash
+// Helper: duplicado exacto
 // ============================================================
 
 function buildExactDuplicateResponse(
@@ -133,22 +119,14 @@ function buildExactDuplicateResponse(
 }
 
 // ============================================================
-// Pipeline rápido (v2) — con muestreo, ~12-15 s
+// Pipeline rápido
 // ============================================================
-//
-// Capa 0 — Hash SHA-256: duplicados exactos (100%, coste cero).
-//          Si hay match, devolvemos directamente sin gastar LLM.
-// Capas 1-4 — retrieve → rerank → judge → synthesize.
-//
+
 export async function runAnalysisPipeline(input: AnalyzePipelineInput): Promise<FinalAnalysis> {
   const t0 = Date.now();
 
-  // ── Capa 0: Hash exacto ──────────────────────────────────────
   const hashResult = await checkContentHash(
-    input.supabase,
-    input.newDocumentText,
-    input.orgId,
-    input.excludeDocumentId,
+    input.supabase, input.newDocumentText, input.orgId, input.excludeDocumentId,
   );
 
   if (hashResult.isDuplicateExact) {
@@ -158,37 +136,20 @@ export async function runAnalysisPipeline(input: AnalyzePipelineInput): Promise<
 
   console.log(`[pipeline-v2] Hash check: sin duplicado exacto (${Date.now() - t0}ms)`);
 
-  // ── Capas 1-4: pipeline normal ──────────────────────────────
   const result = await runCorePipeline(input, { exhaustive: false }, 'pipeline-v2');
   return { ...result, analysisMode: 'quick' };
 }
 
 // ============================================================
-// Pipeline exhaustivo — sin muestreo, sin límites, multicapa
+// Pipeline exhaustivo
 // ============================================================
 
-/**
- * Análisis exhaustivo completo:
- *
- * Capa 0 — Hash SHA-256: duplicados exactos (100%, coste cero).
- * Capas 1-4 — Pipeline v2 sin límites.
- * Corte temprano — Si hay solapamiento alto (≥30%) o demasiadas
- *   contradicciones (≥15): se hace double-check de las candidatas
- *   principales + backup, y se devuelve resultado con las confirmadas.
- * Capa 5 — Extracción de afirmaciones atómicas + verificación contra corpus.
- * Capa 6 — Doble verificación: Sonnet confirma cada contradicción de Haiku.
- * Capa 7 — Análisis de estilo: ortografía, ambigüedades, sugerencias.
- */
 export async function runExhaustiveAnalysisPipeline(input: ExhaustivePipelineInput): Promise<FinalAnalysis> {
   const t0 = Date.now();
   console.log(`[pipeline-exhaustive] Iniciando análisis exhaustivo de "${input.newDocumentName}" con ${input.sampleTexts.length} fragmentos`);
 
-  // ── Capa 0: Hash exacto ──────────────────────────────────────
   const hashResult = await checkContentHash(
-    input.supabase,
-    input.newDocumentText,
-    input.orgId,
-    input.excludeDocumentId,
+    input.supabase, input.newDocumentText, input.orgId, input.excludeDocumentId,
   );
 
   if (hashResult.isDuplicateExact) {
@@ -198,11 +159,12 @@ export async function runExhaustiveAnalysisPipeline(input: ExhaustivePipelineInp
 
   console.log(`[pipeline-exhaustive] Hash check: sin duplicado exacto (${Date.now() - t0}ms)`);
 
-  // ── Capas 1-4 + Capa 7 (estilo en paralelo) ─────────────────
   const [pipelineResult, styleProblems] = await Promise.all([
     runCorePipeline(input, { exhaustive: true }, 'pipeline-exhaustive'),
     analyzeStyle(input.newDocumentText, input.newDocumentName),
   ]);
+
+  const excludeFps = input.excludeFingerprints || new Set<string>();
 
   // ── Evaluar corte temprano ───────────────────────────────────
   const highOverlaps = pipelineResult.judgments
@@ -213,30 +175,21 @@ export async function runExhaustiveAnalysisPipeline(input: ExhaustivePipelineInp
   if (shouldCutEarly) {
     const earlyStopReason = highOverlaps.length > 0 ? 'high_overlap' as const : 'too_many_contradictions' as const;
 
-    // ── Double-check de candidatas principales + backup ─────────
-    // Cogemos TARGET_CONFIRMED + BACKUP_CANDIDATES para tener margen
-    const candidateCount = Math.min(
-      pipelineResult.discrepancies.length,
-      TARGET_CONFIRMED + BACKUP_CANDIDATES,
-    );
+    // Coger hasta 30 candidatas para double-check progresivo
+    const candidateCount = Math.min(pipelineResult.discrepancies.length, MAX_CANDIDATES_FOR_DOUBLECHECK);
     const candidatesForCheck = pipelineResult.discrepancies.slice(0, candidateCount);
 
-    console.log(`[pipeline-exhaustive] Corte temprano (${earlyStopReason}): double-check de ${candidatesForCheck.length} candidatas`);
+    console.log(`[pipeline-exhaustive] Corte temprano (${earlyStopReason}): double-check progresivo de ${candidatesForCheck.length} candidatas`);
 
-    const doubleChecked = await doubleCheckContradictions(candidatesForCheck);
+    const doubleChecked = await doubleCheckContradictions(
+      candidatesForCheck,
+      TARGET_CONFIRMED,
+      excludeFps,
+    );
 
-    // Separar confirmadas y posibles
     const confirmed = doubleChecked.filter(d => d.confidence === 'alta');
-    const possible = doubleChecked.filter(d => d.confidence === 'posible');
+    const finalDiscrepancies = confirmed.slice(0, TARGET_CONFIRMED);
 
-    // Tomar hasta TARGET_CONFIRMED confirmadas, completar con posibles si faltan
-    let finalDiscrepancies = confirmed.slice(0, TARGET_CONFIRMED);
-    if (finalDiscrepancies.length < TARGET_CONFIRMED) {
-      const needed = TARGET_CONFIRMED - finalDiscrepancies.length;
-      finalDiscrepancies = [...finalDiscrepancies, ...possible.slice(0, needed)];
-    }
-
-    // Construir resumen según el motivo del corte
     let summary: string;
     const topOverlap = highOverlaps.length > 0
       ? highOverlaps.sort((a, b) => b.overlapPercent - a.overlapPercent)[0]
@@ -257,7 +210,7 @@ export async function runExhaustiveAnalysisPipeline(input: ExhaustivePipelineInp
 
     const recommendation = topOverlap && topOverlap.overlapPercent >= 60 ? 'NO_INDEXAR' : 'REVISAR';
 
-    console.log(`[pipeline-exhaustive] Corte temprano completado: ${confirmed.length} confirmadas, ${possible.length} posibles (${Date.now() - t0}ms)`);
+    console.log(`[pipeline-exhaustive] Corte temprano completado: ${confirmed.length} confirmadas de ${candidatesForCheck.length} candidatas (${Date.now() - t0}ms)`);
 
     return {
       ...pipelineResult,
@@ -270,11 +223,10 @@ export async function runExhaustiveAnalysisPipeline(input: ExhaustivePipelineInp
     };
   }
 
-  // ── Capa 5: Extracción y verificación de afirmaciones ────────
+  // ── Sin corte temprano: análisis completo ────────────────────
   const atomicClaims = await extractAtomicClaims(input.newDocumentText, input.newDocumentName);
   const atomicContradictions = await verifyClaimsAgainstCorpus(atomicClaims, input.orgId);
 
-  // ── Fusionar contradicciones v2 + atómicas ───────────────────
   const mergedDiscrepancies = mergeContradictions(
     pipelineResult.discrepancies,
     atomicContradictions.map(c => ({
@@ -287,10 +239,12 @@ export async function runExhaustiveAnalysisPipeline(input: ExhaustivePipelineInp
 
   console.log(`[pipeline-exhaustive] Fusión: ${pipelineResult.discrepancies.length} v2 + ${atomicContradictions.length} atómicas → ${mergedDiscrepancies.length} totales`);
 
-  // ── Capa 6: Doble verificación con Sonnet ────────────────────
-  const doubleChecked = await doubleCheckContradictions(mergedDiscrepancies);
+  const doubleChecked = await doubleCheckContradictions(
+    mergedDiscrepancies,
+    0, // sin objetivo → verificar todas
+    excludeFps,
+  );
 
-  // ── Ajustar recomendación ────────────────────────────────────
   const hasConfirmed = doubleChecked.some(d => d.confidence === 'alta');
   const hasPossible = doubleChecked.some(d => d.confidence === 'posible');
   let recommendation = pipelineResult.recommendation;
