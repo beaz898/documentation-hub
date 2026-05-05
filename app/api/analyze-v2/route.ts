@@ -51,7 +51,12 @@ export async function POST(req: NextRequest) {
     orgId = org.orgId;
 
     const body = await req.json();
-    const { storagePath, fileName, text: directText, exhaustive } = body;
+    const { storagePath, fileName, text: directText, exhaustive, excludeFingerprints: rawExcludeFps } = body;
+
+    // Convertir array de huellas descartadas a Set (si viene del frontend)
+    const excludeFingerprints = Array.isArray(rawExcludeFps)
+      ? new Set<string>(rawExcludeFps)
+      : new Set<string>();
 
     if (!fileName) {
       return NextResponse.json({ error: 'fileName requerido' }, { status: 400 });
@@ -119,6 +124,7 @@ export async function POST(req: NextRequest) {
           sampleTexts,
           orgId,
           supabase,
+          excludeFingerprints,
         })
       : await runAnalysisPipeline({
           newDocumentText: text,
