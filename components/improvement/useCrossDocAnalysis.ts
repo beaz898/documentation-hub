@@ -6,18 +6,11 @@ import { problemsFromAnalysis, type Problem, type RawAnalysis } from './problems
 /**
  * Genera una huella estable para un problema.
  * Dos problemas con la misma huella se consideran el mismo problema.
- * Se basa en: tipo + documento relacionado + textRef normalizado.
- * 
- * Evitamos usar title/description porque Claude los redacta de forma
- * ligeramente diferente en cada ejecución. En cambio, textRef es una
- * cita directa del documento que no varía.
  */
 function problemFingerprint(p: Problem): string {
   const type = p.type;
   const relDoc = (p.relatedDoc || '').toLowerCase().trim();
 
-  // Para contradicciones y solapamientos, textRef es la cita del documento nuevo.
-  // Es el dato más estable porque viene del documento, no del LLM.
   if (p.textRef) {
     const textRefNorm = p.textRef
       .toLowerCase()
@@ -27,7 +20,6 @@ function problemFingerprint(p: Problem): string {
     return `${type}|${relDoc}|${textRefNorm.slice(0, 80)}`;
   }
 
-  // Fallback para problemas sin textRef (duplicados generales)
   const descNorm = (p.description || '')
     .toLowerCase()
     .replace(/\s+/g, ' ')
@@ -37,14 +29,21 @@ function problemFingerprint(p: Problem): string {
 }
 
 /**
- * Fusiona problemas existentes con los nuevos de forma inteligente.
- * 
- * - Si un problema ya existía (misma huella): mantiene el ID original.
- * - Si es genuinamente nuevo (huella no vista): lo añade con su ID nuevo.
- * - Si un problema anterior no aparece: se elimina (resuelto).
- * 
- * Devuelve { merged, kept, added, removed } para reportar al usuario.
+ * Genera huella para una discrepancia descartada por Sonnet.
+ * Combina texto del documento nuevo + nombre del documento del corpus.
+ * Debe coincidir con makeDiscrepancyFingerprint en double-check.ts.
  */
+function makeDiscrepancyFingerprint(newDocSays: string, existingDocument: string): string {
+  const textNorm = newDocSays
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .replace(/[.,;:!?""''«»()[\]{}]/g, '')
+    .trim()
+    .slice(0, 80);
+  const docNorm = existingDocument.toLowerCase().trim();
+  return `${docNorm}|${textNorm}`;
+}
+
 function mergeProblems(
   existing: Problem[],
   incoming: Problem[],
@@ -96,10 +95,16 @@ export function useCrossDocAnalysis(
   const [reanalyzingAll, setReanalyzingAll] = useState(false);
   const [lastError, setLastError] = useState<string | null>(null);
 
-  // Ref que siempre apunta al valor actual de crossDocProblems.
-  // Permite leerlo de forma síncrona sin depender del timing de React.
   const crossDocProblemsRef = useRef(crossDocProblems);
   crossDocProblemsRef.current = crossDocProblems;
+
+  /**
+   * Huellas de contradicciones que Sonnet descartó como "posible".
+   * Se acumulan entre reanálisis para no re-verificar lo que ya se rechazó.
+   * La huella es la combinación texto + documento del corpus, así que si
+   * el usuario edita el texto o se compara con otro documento, se re-verifica.
+   */
+  const dismissedFingerprintsRef = useRef<Set<string>>(new Set());
 
   const reanalyzeAll = useCallback(
     async (currentText: string, fileName: string): Promise<ReanalyzeResult | null> => {
@@ -117,12 +122,15 @@ export function useCrossDocAnalysis(
           Authorization: `Bearer ${accessToken}`,
         };
 
-        // Solo análisis contra corpus (sin estilo).
-        // El estilo se analiza aparte con el botón "Reanalizar estilo".
         const crossRes = await fetch('/api/analyze-v2', {
           method: 'POST',
           headers: authHeaders,
-          body: JSON.stringify({ text: currentText, fileName, exhaustive: true }),
+          body: JSON.stringify({
+            text: currentText,
+            fileName,
+            exhaustive: true,
+            excludeFingerprints: Array.from(dismissedFingerprintsRef.current),
+          }),
         });
 
         if (!crossRes.ok) {
@@ -130,16 +138,24 @@ export function useCrossDocAnalysis(
         }
 
         const crossData = await crossRes.json();
-        const incomingCrossProblems = problemsFromAnalysis(crossData?.analysis || crossData || {});
+        const analysis = crossData?.analysis || crossData || {};
+        const incomingCrossProblems = problemsFromAnalysis(analysis);
 
-        // Calcular merge de forma síncrona usando la ref (no el estado).
-        // Esto evita el bug de timing donde setCrossDocProblems aún no ha
-        // ejecutado su callback cuando leemos delta.
+        // Recoger huellas de las "posibles" que Sonnet descartó en esta pasada
+        // para no re-verificarlas en el siguiente reanálisis.
+        if (analysis.discrepancies) {
+          for (const d of analysis.discrepancies) {
+            if (d.confidence === 'posible') {
+              const fp = makeDiscrepancyFingerprint(d.newDocSays, d.existingDocument);
+              dismissedFingerprintsRef.current.add(fp);
+            }
+          }
+        }
+
         const currentProblems = crossDocProblemsRef.current;
         const result = mergeProblems(currentProblems, incomingCrossProblems);
         const delta = { kept: result.kept, added: result.added, removed: result.removed };
 
-        // Actualizar el estado con los problemas fusionados
         setCrossDocProblems(result.merged);
 
         return { delta };
