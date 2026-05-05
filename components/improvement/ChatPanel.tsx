@@ -37,6 +37,7 @@ interface ChatPanelProps {
   onGoToProblem: (p: Problem) => void;
   onSolveOne: (p: Problem) => void;
   onSolveGroup: (type: ProblemType, problems: Problem[]) => void;
+  onDismissProblem: (p: Problem) => void;
 }
 
 const GROUP_LABELS: Record<ProblemType, string> = {
@@ -53,7 +54,7 @@ export default function ChatPanel({
   onReanalyzeStyle, onReanalyzeAll, styleLoading, reanalyzingAll,
   problems, visibleProblems, allTypes, activeTypes, typeMeta,
   onToggleType, onSelectAllTypes, onClearTypes,
-  getDocSourceBadge, onGoToProblem, onSolveOne, onSolveGroup,
+  getDocSourceBadge, onGoToProblem, onSolveOne, onSolveGroup, onDismissProblem,
 }: ChatPanelProps) {
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const endRef = useRef<HTMLDivElement>(null);
@@ -200,14 +201,15 @@ export default function ChatPanel({
                     letterSpacing: 0.4,
                     flex: 1,
                   }}>
-                    {GROUP_LABELS[type]} ({items.length})
+                    {GROUP_LABELS[type]} ({items.filter(({ p }) => !p.dismissed).length}{items.some(({ p }) => p.dismissed) ? `/${items.length}` : ''})
                   </span>
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      onSolveGroup(type, items.map(({ p }) => p));
+                      const activeItems = items.filter(({ p }) => !p.dismissed).map(({ p }) => p);
+                      if (activeItems.length > 0) onSolveGroup(type, activeItems);
                     }}
-                    disabled={sending}
+                    disabled={sending || items.every(({ p }) => p.dismissed)}
                     title={`Resolver todos los problemas de ${GROUP_LABELS[type].toLowerCase()}`}
                     style={{
                       fontSize: 9, padding: '2px 8px', borderRadius: 4,
@@ -224,17 +226,19 @@ export default function ChatPanel({
                 {/* Tarjetas del grupo (solo si no está colapsado) */}
                 {!isCollapsed && items.map(({ p }) => {
                   const srcBadge = getDocSourceBadge(p.relatedDoc);
-                  const isClickable = !!p.textRef;
+                  const isClickable = !!p.textRef && !p.dismissed;
+                  const isDismissed = !!p.dismissed;
                   return (
                     <div
                       key={p.id}
                       onClick={isClickable ? () => onGoToProblem(p) : undefined}
-                      title={isClickable ? 'Ir al fragmento en el texto' : undefined}
+                      title={isClickable ? 'Ir al fragmento en el texto' : isDismissed ? 'Marcado como no es un error' : undefined}
                       style={{
                         padding: '8px 10px', borderRadius: 7,
                         background: meta.bg, borderLeft: `3px solid ${meta.color}`,
                         cursor: isClickable ? 'pointer' : 'default',
-                        transition: 'background 0.12s',
+                        transition: 'background 0.12s, opacity 0.15s',
+                        opacity: isDismissed ? 0.45 : 1,
                       }}
                       onMouseEnter={e => {
                         if (isClickable) e.currentTarget.style.background = meta.border;
@@ -255,21 +259,49 @@ export default function ChatPanel({
                             border: `0.5px solid ${srcBadge.color}66`,
                           }}>{srcBadge.label}</span>
                         )}
-                        <span style={{ fontSize: 11, fontWeight: 500, color: 'var(--text-primary)', flex: 1, minWidth: 0 }}>{p.title}</span>
+                        {isDismissed && (
+                          <span style={{
+                            fontSize: 8, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.3,
+                            padding: '1px 5px', borderRadius: 3,
+                            background: 'rgba(107,114,128,0.1)', color: 'var(--text-muted)',
+                            border: '0.5px solid rgba(107,114,128,0.3)',
+                          }}>Descartado</span>
+                        )}
+                        <span style={{
+                          fontSize: 11, fontWeight: 500, flex: 1, minWidth: 0,
+                          color: isDismissed ? 'var(--text-muted)' : 'var(--text-primary)',
+                          textDecoration: isDismissed ? 'line-through' : 'none',
+                        }}>{p.title}</span>
                         <button
-                          onClick={(e) => { e.stopPropagation(); onSolveOne(p); }}
-                          disabled={sending}
-                          title="Pedir solución al asistente"
+                          onClick={(e) => { e.stopPropagation(); onDismissProblem(p); }}
+                          title={isDismissed ? 'Restaurar como error' : 'Marcar como no es un error'}
                           style={{
                             fontSize: 10, padding: '2px 6px', borderRadius: 4,
-                            border: `0.5px solid ${meta.color}`, background: 'transparent', color: meta.color,
-                            cursor: sending ? 'not-allowed' : 'pointer',
-                            fontWeight: 600, flexShrink: 0,
-                            opacity: sending ? 0.5 : 1,
+                            border: `0.5px solid ${isDismissed ? '#059669' : 'var(--text-muted)'}`,
+                            background: isDismissed ? 'rgba(5,150,105,0.08)' : 'transparent',
+                            color: isDismissed ? '#059669' : 'var(--text-muted)',
+                            cursor: 'pointer',
+                            fontWeight: 500, flexShrink: 0,
                           }}
-                        >Solventar</button>
+                        >{isDismissed ? 'Es error' : 'No es error'}</button>
+                        {!isDismissed && (
+                          <button
+                            onClick={(e) => { e.stopPropagation(); onSolveOne(p); }}
+                            disabled={sending}
+                            title="Pedir solución al asistente"
+                            style={{
+                              fontSize: 10, padding: '2px 6px', borderRadius: 4,
+                              border: `0.5px solid ${meta.color}`, background: 'transparent', color: meta.color,
+                              cursor: sending ? 'not-allowed' : 'pointer',
+                              fontWeight: 600, flexShrink: 0,
+                              opacity: sending ? 0.5 : 1,
+                            }}
+                          >Solventar</button>
+                        )}
                       </div>
-                      <p style={{ fontSize: 10, color: 'var(--text-secondary)', margin: 0, lineHeight: 1.4 }}>{p.description}</p>
+                      {!isDismissed && (
+                        <p style={{ fontSize: 10, color: 'var(--text-secondary)', margin: 0, lineHeight: 1.4 }}>{p.description}</p>
+                      )}
                     </div>
                   );
                 })}
