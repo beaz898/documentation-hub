@@ -170,5 +170,27 @@ export function useCrossDocAnalysis(
     [accessToken]
   );
 
-  return { crossDocProblems, setCrossDocProblems, reanalyzeAll, reanalyzingAll, lastError };
+  /**
+   * Toggle de "no es un error" en un problema.
+   * Si estaba activo → lo marca como dismissed y guarda huella.
+   * Si estaba dismissed → lo reactiva y elimina huella.
+   */
+  const dismissProblem = useCallback((p: Problem) => {
+    const isDismissing = !p.dismissed;
+
+    if (p.textRef && p.relatedDoc) {
+      const fp = makeDiscrepancyFingerprint(p.textRef, p.relatedDoc);
+      if (isDismissing) {
+        dismissedFingerprintsRef.current.add(fp);
+      } else {
+        dismissedFingerprintsRef.current.delete(fp);
+      }
+    }
+
+    setCrossDocProblems(prev =>
+      prev.map(cp => cp.id === p.id ? { ...cp, dismissed: isDismissing } : cp)
+    );
+  }, []);
+
+  return { crossDocProblems, setCrossDocProblems, reanalyzeAll, reanalyzingAll, lastError, dismissProblem };
 }
