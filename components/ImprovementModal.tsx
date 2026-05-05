@@ -84,6 +84,7 @@ export default function ImprovementModal({
     setCrossDocProblems,
     reanalyzeAll,
     reanalyzingAll,
+    dismissProblem,
   } = useCrossDocAnalysis(analysis, accessToken);
 
   const {
@@ -197,6 +198,27 @@ export default function ImprovementModal({
     const message = `Resuelve TODOS los problemas de tipo ${typeLabel} detectados en el TEXTO_ACTUAL. Genera UN BLOQUE REPLACEMENT POR CADA cambio necesario, no resumas en uno solo:\n\n${list}`;
     sendMessage(message, textRef.current, fileName, problemsSummary);
   }, [sendMessage, fileName, problemsSummary]);
+
+  /** Toggle de "no es un error" en un problema. */
+  const handleDismissProblem = useCallback((p: Problem) => {
+    if (p.type === 'ortografia' || p.type === 'ambiguedad' || p.type === 'sugerencia') {
+      // Problemas de estilo: toggle dismissed
+      setStyleProblems(prev =>
+        prev.map(sp => sp.id === p.id ? { ...sp, dismissed: !sp.dismissed } : sp)
+      );
+      const msg = p.dismissed
+        ? `Problema restaurado: "${p.title}".`
+        : `Problema descartado: "${p.title}".`;
+      addAssistantMessage(msg);
+    } else {
+      // Contradicciones y duplicidades: toggle + guardar/quitar huella
+      dismissProblem(p);
+      const msg = p.dismissed
+        ? `Problema restaurado: "${p.title}". Se volverá a verificar en el próximo reanálisis.`
+        : `Problema descartado: "${p.title}". No volverá a aparecer en los próximos reanálisis.`;
+      addAssistantMessage(msg);
+    }
+  }, [dismissProblem, setStyleProblems, addAssistantMessage]);
 
   const handleManualSend = useCallback(async (userText: string, currentEditorText: string) => {
     await sendMessage(userText, currentEditorText, fileName, problemsSummary);
@@ -395,6 +417,7 @@ export default function ImprovementModal({
             onGoToProblem={goToProblem}
             onSolveOne={handleSolveOne}
             onSolveGroup={handleSolveGroup}
+            onDismissProblem={handleDismissProblem}
           />
         </div>
 
