@@ -2,18 +2,15 @@ import { callLLMJson } from './llm-client';
 import type { DiscrepancyConfidence } from './types';
 
 /**
- * Fase 5 — Doble verificación LLM.
+ * Fase 5 — Doble verificación LLM (progresiva).
  *
- * Las contradicciones detectadas por Haiku (pipeline v2 + verificación atómica)
- * se pasan a Sonnet para una segunda opinión.
+ * Las contradicciones detectadas por Haiku se verifican con Sonnet
+ * en lotes progresivos. Se detiene cuando se alcanzan suficientes
+ * confirmadas, ahorrando coste en las restantes.
  *
  * - Ambos coinciden → alta confianza.
- * - Solo Haiku la detectó, Sonnet no confirma → "posible contradicción".
- * - Nunca se descarta: en el peor caso baja de confianza, no desaparece.
- *
- * OPTIMIZACIÓN (mayo 2026): en vez de una llamada a Sonnet por contradicción,
- * se envían lotes de hasta BATCH_SIZE contradicciones en una sola llamada.
- * Esto reduce de ~50 llamadas a 3-4, ahorrando tiempo y coste.
+ * - Solo Haiku la detectó, Sonnet no confirma → "posible".
+ * - Nunca se descarta: en el peor caso baja de confianza.
  */
 
 /** Contradicción con confianza asignada tras doble verificación. */
@@ -41,61 +38,117 @@ interface BatchVerifyResponse {
   }>;
 }
 
-/**
- * Máximo de contradicciones por lote enviado a Sonnet.
- * 15 es un buen equilibrio: caben sobradamente en el contexto de Sonnet
- * y el JSON de respuesta no se trunca.
- */
-const BATCH_SIZE = 15;
+/** Tamaño del primer lote enviado a Sonnet. */
+const FIRST_BATCH_SIZE = 20;
+
+/** Tamaño del segundo lote (backup). */
+const SECOND_BATCH_SIZE = 10;
 
 /** Pausa entre lotes para evitar 429. */
 const DELAY_BETWEEN_BATCHES_MS = 1000;
 
 /**
- * Verifica todas las contradicciones con un segundo modelo (Sonnet).
- * Las contradicciones confirmadas obtienen confianza 'alta',
- * las no confirmadas obtienen 'posible'. Ninguna se descarta.
+ * Verifica contradicciones con Sonnet de forma progresiva.
+ *
+ * @param discrepancies - Candidatas a verificar (hasta 30).
+ * @param targetConfirmed - Número objetivo de confirmadas. Si se alcanza
+ *   con el primer lote, no se envía el segundo. 0 = verificar todas.
+ * @param excludeFingerprints - Huellas de contradicciones ya descartadas
+ *   en reanálisis anteriores. Se saltan sin enviar a Sonnet.
  */
 export async function doubleCheckContradictions(
   discrepancies: Discrepancy[],
+  targetConfirmed: number = 0,
+  excludeFingerprints: Set<string> = new Set(),
 ): Promise<DoubleCheckedDiscrepancy[]> {
   if (discrepancies.length === 0) return [];
 
   const t0 = Date.now();
-  const results: DoubleCheckedDiscrepancy[] = [];
 
-  // Procesar en lotes de BATCH_SIZE
-  for (let batchStart = 0; batchStart < discrepancies.length; batchStart += BATCH_SIZE) {
-    // Pausa entre lotes (no antes del primero)
-    if (batchStart > 0) {
-      await new Promise(r => setTimeout(r, DELAY_BETWEEN_BATCHES_MS));
+  // Separar candidatas nuevas de las ya descartadas anteriormente
+  const newCandidates: Discrepancy[] = [];
+  const skippedAsAlreadyDismissed: DoubleCheckedDiscrepancy[] = [];
+
+  for (const d of discrepancies) {
+    const fp = makeDiscrepancyFingerprint(d);
+    if (excludeFingerprints.has(fp)) {
+      // Ya fue descartada antes → marcar como posible sin gastar Sonnet
+      skippedAsAlreadyDismissed.push({
+        topic: d.topic,
+        newDocSays: d.newDocSays,
+        existingDocSays: d.existingDocSays,
+        existingDocument: d.existingDocument,
+        confidence: 'posible',
+      });
+    } else {
+      newCandidates.push(d);
     }
-
-    const batch = discrepancies.slice(batchStart, batchStart + BATCH_SIZE);
-    const batchResults = await verifyBatch(batch, batchStart);
-    results.push(...batchResults);
   }
 
-  const confirmed = results.filter(r => r.confidence === 'alta').length;
-  const possible = results.filter(r => r.confidence === 'posible').length;
-  console.log(`[double-check] ${discrepancies.length} contradicciones verificadas: ${confirmed} confirmadas, ${possible} posibles (${Date.now() - t0}ms)`);
+  if (newCandidates.length === 0) {
+    console.log(`[double-check] Todas las ${discrepancies.length} candidatas ya fueron descartadas anteriormente (${Date.now() - t0}ms)`);
+    return skippedAsAlreadyDismissed;
+  }
 
-  return results;
+  // Verificación progresiva: primer lote de 20, segundo de 10 si hace falta
+  const allResults: DoubleCheckedDiscrepancy[] = [];
+  let confirmedSoFar = 0;
+
+  // Primer lote
+  const firstBatch = newCandidates.slice(0, FIRST_BATCH_SIZE);
+  const firstResults = await verifyBatch(firstBatch);
+  allResults.push(...firstResults);
+  confirmedSoFar = firstResults.filter(r => r.confidence === 'alta').length;
+
+  console.log(`[double-check] Lote 1: ${firstBatch.length} verificadas, ${confirmedSoFar} confirmadas`);
+
+  // Segundo lote solo si no se alcanzó el objetivo y hay más candidatas
+  const needsMore = targetConfirmed > 0 && confirmedSoFar < targetConfirmed;
+  const hasMore = newCandidates.length > FIRST_BATCH_SIZE;
+
+  if (needsMore && hasMore) {
+    await new Promise(r => setTimeout(r, DELAY_BETWEEN_BATCHES_MS));
+
+    const secondBatch = newCandidates.slice(FIRST_BATCH_SIZE, FIRST_BATCH_SIZE + SECOND_BATCH_SIZE);
+    const secondResults = await verifyBatch(secondBatch);
+    allResults.push(...secondResults);
+
+    const newConfirmed = secondResults.filter(r => r.confidence === 'alta').length;
+    confirmedSoFar += newConfirmed;
+    console.log(`[double-check] Lote 2: ${secondBatch.length} verificadas, ${newConfirmed} confirmadas (total: ${confirmedSoFar})`);
+  }
+
+  // Combinar resultados verificados + los descartados anteriormente
+  const finalResults = [...allResults, ...skippedAsAlreadyDismissed];
+
+  const totalConfirmed = finalResults.filter(r => r.confidence === 'alta').length;
+  const totalPossible = finalResults.filter(r => r.confidence === 'posible').length;
+  console.log(`[double-check] ${finalResults.length} totales: ${totalConfirmed} confirmadas, ${totalPossible} posibles (${skippedAsAlreadyDismissed.length} saltadas por memoria) (${Date.now() - t0}ms)`);
+
+  return finalResults;
+}
+
+/**
+ * Genera huella para una discrepancia.
+ * Combina el texto del documento nuevo + nombre del documento del corpus.
+ * Si el texto cambia o se compara con otro documento, es una huella diferente.
+ */
+export function makeDiscrepancyFingerprint(d: { newDocSays: string; existingDocument: string }): string {
+  const textNorm = d.newDocSays
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .replace(/[.,;:!?""''«»()[\]{}]/g, '')
+    .trim()
+    .slice(0, 80);
+  const docNorm = d.existingDocument.toLowerCase().trim();
+  return `${docNorm}|${textNorm}`;
 }
 
 // ============================================================
 // Internos
 // ============================================================
 
-/**
- * Verifica un lote de contradicciones en una sola llamada a Sonnet.
- * Si la llamada falla, todas las contradicciones del lote quedan como "posible".
- */
-async function verifyBatch(
-  batch: Discrepancy[],
-  globalOffset: number,
-): Promise<DoubleCheckedDiscrepancy[]> {
-  // Construir el bloque de contradicciones numeradas
+async function verifyBatch(batch: Discrepancy[]): Promise<DoubleCheckedDiscrepancy[]> {
   const contradictionsBlock = batch
     .map((d, i) => `[${i + 1}] Tema: ${d.topic}
    Documento nuevo dice: "${d.newDocSays}"
@@ -129,7 +182,6 @@ Responde EXCLUSIVAMENTE con este JSON:
       model: 'sonnet',
     });
 
-    // Construir un mapa de resultados por índice (1-based)
     const resultMap = new Map<number, boolean>();
     for (const r of response.results || []) {
       if (typeof r.index === 'number' && typeof r.isContradiction === 'boolean') {
@@ -137,21 +189,15 @@ Responde EXCLUSIVAMENTE con este JSON:
       }
     }
 
-    // Asignar confianza a cada contradicción del lote
-    return batch.map((d, i) => {
-      const confirmed = resultMap.get(i + 1);
-      return {
-        topic: d.topic,
-        newDocSays: d.newDocSays,
-        existingDocSays: d.existingDocSays,
-        existingDocument: d.existingDocument,
-        // Si Sonnet confirma → alta; si niega o no respondió → posible (nunca se descarta)
-        confidence: (confirmed === true ? 'alta' : 'posible') as DiscrepancyConfidence,
-      };
-    });
+    return batch.map((d, i) => ({
+      topic: d.topic,
+      newDocSays: d.newDocSays,
+      existingDocSays: d.existingDocSays,
+      existingDocument: d.existingDocument,
+      confidence: (resultMap.get(i + 1) === true ? 'alta' : 'posible') as DiscrepancyConfidence,
+    }));
   } catch (err) {
     console.warn(`[double-check] Sonnet falló para lote de ${batch.length} contradicciones:`, err);
-    // Si Sonnet falla, no descartamos: todas quedan como "posible"
     return batch.map(d => ({
       topic: d.topic,
       newDocSays: d.newDocSays,
