@@ -47,6 +47,7 @@ function makeDiscrepancyFingerprint(newDocSays: string, existingDocument: string
 function mergeProblems(
   existing: Problem[],
   incoming: Problem[],
+  dismissedFingerprints: Set<string>,
 ): { merged: Problem[]; kept: number; added: number; removed: number } {
   const existingByFp = new Map<string, Problem>();
   for (const p of existing) {
@@ -64,11 +65,16 @@ function mergeProblems(
     const existingP = existingByFp.get(fp);
 
     if (existingP) {
-      merged.push({ ...newP, id: existingP.id });
+      // Mantener ID original. El estado dismissed se determina por la memoria,
+      // no por el estado anterior del problema.
+      const isDismissed = isInDismissedMemory(newP, dismissedFingerprints);
+      merged.push({ ...newP, id: existingP.id, dismissed: isDismissed });
       matchedFps.add(fp);
       kept++;
     } else {
-      merged.push(newP);
+      // Problema nuevo: comprobar si está en la memoria de descartadas
+      const isDismissed = isInDismissedMemory(newP, dismissedFingerprints);
+      merged.push({ ...newP, dismissed: isDismissed });
       added++;
     }
   }
@@ -79,6 +85,16 @@ function mergeProblems(
   }
 
   return { merged, kept, added, removed };
+}
+
+/** Comprueba si un problema está en la memoria de descartadas */
+function isInDismissedMemory(p: Problem, dismissedFingerprints: Set<string>): boolean {
+  if (dismissedFingerprints.size === 0) return false;
+  if (p.textRef && p.relatedDoc) {
+    const fp = makeDiscrepancyFingerprint(p.textRef, p.relatedDoc);
+    return dismissedFingerprints.has(fp);
+  }
+  return false;
 }
 
 export interface ReanalyzeResult {
@@ -153,7 +169,7 @@ export function useCrossDocAnalysis(
         }
 
         const currentProblems = crossDocProblemsRef.current;
-        const result = mergeProblems(currentProblems, incomingCrossProblems);
+        const result = mergeProblems(currentProblems, incomingCrossProblems, dismissedFingerprintsRef.current);
         const delta = { kept: result.kept, added: result.added, removed: result.removed };
 
         setCrossDocProblems(result.merged);
@@ -172,14 +188,16 @@ export function useCrossDocAnalysis(
 
   /**
    * Toggle de "no es un error" en un problema.
-   * Si estaba activo → lo marca como dismissed y guarda huella.
-   * Si estaba dismissed → lo reactiva y elimina huella.
+   * Lee el estado actual directamente del array para evitar stale closures.
    */
-  const dismissProblem = useCallback((p: Problem) => {
-    const isDismissing = !p.dismissed;
+  const dismissProblem = useCallback((problemId: string, textRef?: string, relatedDoc?: string) => {
+    const current = crossDocProblemsRef.current.find(cp => cp.id === problemId);
+    if (!current) return;
 
-    if (p.textRef && p.relatedDoc) {
-      const fp = makeDiscrepancyFingerprint(p.textRef, p.relatedDoc);
+    const isDismissing = !current.dismissed;
+
+    if (textRef && relatedDoc) {
+      const fp = makeDiscrepancyFingerprint(textRef, relatedDoc);
       if (isDismissing) {
         dismissedFingerprintsRef.current.add(fp);
       } else {
@@ -188,8 +206,10 @@ export function useCrossDocAnalysis(
     }
 
     setCrossDocProblems(prev =>
-      prev.map(cp => cp.id === p.id ? { ...cp, dismissed: isDismissing } : cp)
+      prev.map(cp => cp.id === problemId ? { ...cp, dismissed: isDismissing } : cp)
     );
+
+    return isDismissing;
   }, []);
 
   return { crossDocProblems, setCrossDocProblems, reanalyzeAll, reanalyzingAll, lastError, dismissProblem };
