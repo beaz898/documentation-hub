@@ -66,7 +66,6 @@ export default function ImprovementModal({
   const editorRef = useRef<HTMLDivElement>(null);
 
   // Ref que siempre apunta al texto actual del editor.
-  // Evita que los callbacks capturen una versión stale del texto.
   const textRef = useRef(text);
   textRef.current = text;
 
@@ -163,7 +162,8 @@ export default function ImprovementModal({
 
   const goToProblem = useCallback((p: Problem) => {
     if (!p.textRef) return;
-    const range = findTolerant(text, p.textRef);
+    const currentText = textRef.current;
+    const range = findTolerant(currentText, p.textRef);
     if (!range) {
       alert('Ese fragmento ya no se encuentra en el texto (quizá lo editaste).');
       return;
@@ -173,16 +173,12 @@ export default function ImprovementModal({
     ta.focus();
     ta.setSelectionRange(range.start, range.end);
 
-    // Calcular scroll: usar la posición relativa del texto en el documento
-    // para calcular la posición de scroll proporcional.
-    // scrollHeight = alto total del contenido (incluyendo lo no visible)
-    // clientHeight = alto visible del textarea
-    const ratio = range.start / Math.max(1, text.length);
+    // Scroll proporcional
+    const ratio = range.start / Math.max(1, currentText.length);
     const maxScroll = ta.scrollHeight - ta.clientHeight;
-    // Centramos la selección: apuntamos al punto proporcional menos medio viewport
     const targetScroll = ratio * ta.scrollHeight - ta.clientHeight / 3;
     ta.scrollTop = Math.max(0, Math.min(maxScroll, targetScroll));
-  }, [text]);
+  }, []);
 
   const handleSolveOne = useCallback((p: Problem) => {
     const typeLabel = TYPE_META[p.type].label.toLowerCase();
@@ -202,22 +198,20 @@ export default function ImprovementModal({
   /** Toggle de "no es un error" en un problema. */
   const handleDismissProblem = useCallback((p: Problem) => {
     if (p.type === 'ortografia' || p.type === 'ambiguedad' || p.type === 'sugerencia') {
-      // Problemas de estilo: toggle dismissed localmente
       setStyleProblems(prev =>
         prev.map(sp => sp.id === p.id ? { ...sp, dismissed: !sp.dismissed } : sp)
       );
-      const wasDismissed = !!p.dismissed;
-      const msg = wasDismissed
-        ? `Problema restaurado: "${p.title}".`
-        : `Problema descartado: "${p.title}".`;
-      addAssistantMessage(msg);
+      const isDismissing = !p.dismissed;
+      addAssistantMessage(isDismissing
+        ? `Problema descartado: "${p.title}".`
+        : `Problema restaurado: "${p.title}".`
+      );
     } else {
-      // Contradicciones y duplicidades: toggle + guardar/quitar huella
       const isDismissing = dismissProblem(p.id, p.textRef, p.relatedDoc);
-      const msg = isDismissing
+      addAssistantMessage(isDismissing
         ? `Problema descartado: "${p.title}". No volverá a aparecer en los próximos reanálisis.`
-        : `Problema restaurado: "${p.title}". Se volverá a verificar en el próximo reanálisis.`;
-      addAssistantMessage(msg);
+        : `Problema restaurado: "${p.title}". Se volverá a verificar en el próximo reanálisis.`
+      );
     }
   }, [dismissProblem, setStyleProblems, addAssistantMessage]);
 
@@ -242,6 +236,7 @@ export default function ImprovementModal({
       return curr;
     });
   }, [styleProblems.length, reanalyzeStyle, setStyleProblems, addAssistantMessage, fileName]);
+
   const handleReanalyzeAll = useCallback(async () => {
     const result = await reanalyzeAll(textRef.current, fileName);
     if (!result) {
@@ -249,24 +244,16 @@ export default function ImprovementModal({
       return;
     }
 
-    // Construir mensaje con las estadísticas reales de la fusión
-    const d = result.delta;
     const parts: string[] = ['He reanalizado contradicciones y duplicados contra el corpus.'];
-
-    if (d.removed > 0) parts.push(`✅ ${d.removed} problema${d.removed !== 1 ? 's' : ''} resuelto${d.removed !== 1 ? 's' : ''}.`);
-    if (d.added > 0) parts.push(`🆕 ${d.added} problema${d.added !== 1 ? 's' : ''} nuevo${d.added !== 1 ? 's' : ''}.`);
-    if (d.removed === 0 && d.added === 0) parts.push('No hay cambios en los problemas detectados.');
-
-    const pendingCrossDoc = crossDocProblems.length - d.removed + d.added;
-    const totalPending = pendingCrossDoc + styleProblems.length;
-    parts.push(`📋 ${totalPending} pendiente${totalPending !== 1 ? 's' : ''} en total (${pendingCrossDoc} de corpus + ${styleProblems.length} de estilo).`);
-
-    if (styleProblems.length > 0) {
-      parts.push('\n💡 Para reanalizar el estilo, usa el botón "Reanalizar estilo".');
+    parts.push(`📋 ${result.activeCount} problema${result.activeCount !== 1 ? 's' : ''} activo${result.activeCount !== 1 ? 's' : ''}.`);
+    if (result.dismissedCount > 0) {
+      parts.push(`🚫 ${result.dismissedCount} descartado${result.dismissedCount !== 1 ? 's' : ''} anteriormente.`);
     }
-
+    if (styleProblems.length > 0) {
+      parts.push(`\n💡 ${styleProblems.length} problema${styleProblems.length !== 1 ? 's' : ''} de estilo pendiente${styleProblems.length !== 1 ? 's' : ''}. Usa "Reanalizar estilo" para actualizarlos.`);
+    }
     addAssistantMessage(parts.join('\n'));
-  }, [reanalyzeAll, fileName, crossDocProblems.length, styleProblems.length, addAssistantMessage]);
+  }, [reanalyzeAll, fileName, styleProblems.length, addAssistantMessage]);
 
   const {
     indexing,
