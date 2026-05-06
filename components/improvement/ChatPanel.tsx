@@ -224,21 +224,20 @@ export default function ChatPanel({
                 </div>
 
                 {/* Tarjetas del grupo (solo si no está colapsado) */}
-                {!isCollapsed && items.map(({ p }) => {
+                {/* Tarjetas activas del grupo */}
+                {!isCollapsed && items.filter(({ p }) => !p.dismissed).map(({ p }) => {
                   const srcBadge = getDocSourceBadge(p.relatedDoc);
-                  const isClickable = !!p.textRef && !p.dismissed;
-                  const isDismissed = !!p.dismissed;
+                  const isClickable = !!p.textRef;
                   return (
                     <div
                       key={p.id}
                       onClick={isClickable ? () => onGoToProblem(p) : undefined}
-                      title={isClickable ? 'Ir al fragmento en el texto' : isDismissed ? 'Marcado como no es un error' : undefined}
+                      title={isClickable ? 'Ir al fragmento en el texto' : undefined}
                       style={{
                         padding: '8px 10px', borderRadius: 7,
                         background: meta.bg, borderLeft: `3px solid ${meta.color}`,
                         cursor: isClickable ? 'pointer' : 'default',
-                        transition: 'background 0.12s, opacity 0.15s',
-                        opacity: isDismissed ? 0.45 : 1,
+                        transition: 'background 0.12s',
                       }}
                       onMouseEnter={e => {
                         if (isClickable) e.currentTarget.style.background = meta.border;
@@ -259,52 +258,97 @@ export default function ChatPanel({
                             border: `0.5px solid ${srcBadge.color}66`,
                           }}>{srcBadge.label}</span>
                         )}
-                        {isDismissed && (
-                          <span style={{
-                            fontSize: 8, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.3,
-                            padding: '1px 5px', borderRadius: 3,
-                            background: 'rgba(107,114,128,0.1)', color: 'var(--text-muted)',
-                            border: '0.5px solid rgba(107,114,128,0.3)',
-                          }}>Descartado</span>
-                        )}
-                        <span style={{
-                          fontSize: 11, fontWeight: 500, flex: 1, minWidth: 0,
-                          color: isDismissed ? 'var(--text-muted)' : 'var(--text-primary)',
-                          textDecoration: isDismissed ? 'line-through' : 'none',
-                        }}>{p.title}</span>
+                        <span style={{ fontSize: 11, fontWeight: 500, color: 'var(--text-primary)', flex: 1, minWidth: 0 }}>{p.title}</span>
                         <button
                           onClick={(e) => { e.stopPropagation(); onDismissProblem(p); }}
-                          title={isDismissed ? 'Restaurar como error' : 'Marcar como no es un error'}
+                          title="Marcar como no es un error"
                           style={{
                             fontSize: 10, padding: '2px 6px', borderRadius: 4,
-                            border: `0.5px solid ${isDismissed ? '#059669' : 'var(--text-muted)'}`,
-                            background: isDismissed ? 'rgba(5,150,105,0.08)' : 'transparent',
-                            color: isDismissed ? '#059669' : 'var(--text-muted)',
+                            border: '0.5px solid var(--text-muted)', background: 'transparent', color: 'var(--text-muted)',
                             cursor: 'pointer',
                             fontWeight: 500, flexShrink: 0,
                           }}
-                        >{isDismissed ? 'Es error' : 'No es error'}</button>
-                        {!isDismissed && (
-                          <button
-                            onClick={(e) => { e.stopPropagation(); onSolveOne(p); }}
-                            disabled={sending}
-                            title="Pedir solución al asistente"
-                            style={{
-                              fontSize: 10, padding: '2px 6px', borderRadius: 4,
-                              border: `0.5px solid ${meta.color}`, background: 'transparent', color: meta.color,
-                              cursor: sending ? 'not-allowed' : 'pointer',
-                              fontWeight: 600, flexShrink: 0,
-                              opacity: sending ? 0.5 : 1,
-                            }}
-                          >Solventar</button>
-                        )}
+                        >No es error</button>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); onSolveOne(p); }}
+                          disabled={sending}
+                          title="Pedir solución al asistente"
+                          style={{
+                            fontSize: 10, padding: '2px 6px', borderRadius: 4,
+                            border: `0.5px solid ${meta.color}`, background: 'transparent', color: meta.color,
+                            cursor: sending ? 'not-allowed' : 'pointer',
+                            fontWeight: 600, flexShrink: 0,
+                            opacity: sending ? 0.5 : 1,
+                          }}
+                        >Solventar</button>
                       </div>
-                      {!isDismissed && (
-                        <p style={{ fontSize: 10, color: 'var(--text-secondary)', margin: 0, lineHeight: 1.4 }}>{p.description}</p>
-                      )}
+                      <p style={{ fontSize: 10, color: 'var(--text-secondary)', margin: 0, lineHeight: 1.4 }}>{p.description}</p>
                     </div>
                   );
                 })}
+
+                {/* Subsección de descartados */}
+                {!isCollapsed && items.some(({ p }) => p.dismissed) && (() => {
+                  const dismissedItems = items.filter(({ p }) => p.dismissed);
+                  const dismissedKey = `dismissed-${type}`;
+                  const isDismissedCollapsed = collapsedGroups.has(dismissedKey as ProblemType);
+                  return (
+                    <div style={{ marginTop: 4 }}>
+                      <div
+                        onClick={() => toggleGroupCollapse(dismissedKey as ProblemType)}
+                        style={{
+                          display: 'flex', alignItems: 'center', gap: 5, padding: '3px 0',
+                          cursor: 'pointer', userSelect: 'none',
+                        }}
+                      >
+                        <svg
+                          width="8" height="8" viewBox="0 0 24 24"
+                          fill="none" stroke="var(--text-muted)" strokeWidth="3"
+                          style={{
+                            transform: isDismissedCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)',
+                            transition: 'transform 0.15s ease',
+                            flexShrink: 0,
+                          }}
+                        >
+                          <polyline points="6 9 12 15 18 9" />
+                        </svg>
+                        <span style={{
+                          fontSize: 10, color: 'var(--text-muted)', fontWeight: 500,
+                        }}>
+                          Descartados ({dismissedItems.length})
+                        </span>
+                      </div>
+                      {!isDismissedCollapsed && dismissedItems.map(({ p }) => (
+                        <div
+                          key={p.id}
+                          style={{
+                            padding: '6px 10px', borderRadius: 7, marginTop: 3,
+                            background: 'var(--bg-tertiary)', borderLeft: '3px solid var(--text-muted)',
+                            opacity: 0.6,
+                          }}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                            <span style={{
+                              fontSize: 11, fontWeight: 500, flex: 1, minWidth: 0,
+                              color: 'var(--text-muted)', textDecoration: 'line-through',
+                            }}>{p.title}</span>
+                            <button
+                              onClick={(e) => { e.stopPropagation(); onDismissProblem(p); }}
+                              title="Restaurar como error"
+                              style={{
+                                fontSize: 10, padding: '2px 6px', borderRadius: 4,
+                                border: '0.5px solid #059669',
+                                background: 'rgba(5,150,105,0.08)', color: '#059669',
+                                cursor: 'pointer',
+                                fontWeight: 500, flexShrink: 0,
+                              }}
+                            >Es error</button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  );
+                })()}
               </div>
             );
           })}
