@@ -202,20 +202,21 @@ export default function ImprovementModal({
   /** Toggle de "no es un error" en un problema. */
   const handleDismissProblem = useCallback((p: Problem) => {
     if (p.type === 'ortografia' || p.type === 'ambiguedad' || p.type === 'sugerencia') {
-      // Problemas de estilo: toggle dismissed
+      // Problemas de estilo: toggle dismissed localmente
       setStyleProblems(prev =>
         prev.map(sp => sp.id === p.id ? { ...sp, dismissed: !sp.dismissed } : sp)
       );
-      const msg = p.dismissed
+      const wasDismissed = !!p.dismissed;
+      const msg = wasDismissed
         ? `Problema restaurado: "${p.title}".`
         : `Problema descartado: "${p.title}".`;
       addAssistantMessage(msg);
     } else {
       // Contradicciones y duplicidades: toggle + guardar/quitar huella
-      dismissProblem(p);
-      const msg = p.dismissed
-        ? `Problema restaurado: "${p.title}". Se volverá a verificar en el próximo reanálisis.`
-        : `Problema descartado: "${p.title}". No volverá a aparecer en los próximos reanálisis.`;
+      const isDismissing = dismissProblem(p.id, p.textRef, p.relatedDoc);
+      const msg = isDismissing
+        ? `Problema descartado: "${p.title}". No volverá a aparecer en los próximos reanálisis.`
+        : `Problema restaurado: "${p.title}". Se volverá a verificar en el próximo reanálisis.`;
       addAssistantMessage(msg);
     }
   }, [dismissProblem, setStyleProblems, addAssistantMessage]);
