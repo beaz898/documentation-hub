@@ -35,6 +35,12 @@ function applyDismissedState(problems: Problem[], dismissed: Set<string>): Probl
   });
 }
 
+/** Intervalo de polling en ms. */
+const POLL_INTERVAL = 5000;
+
+/** Tiempo máximo de espera en ms (10 minutos). */
+const MAX_POLL_WAIT = 600_000;
+
 export interface ReanalyzeResult {
   activeCount: number;
   dismissedCount: number;
@@ -50,6 +56,7 @@ export function useCrossDocAnalysis(
   );
   const [reanalyzingAll, setReanalyzingAll] = useState(false);
   const [lastError, setLastError] = useState<string | null>(null);
+  const [reanalyzePhase, setReanalyzePhase] = useState<string | null>(null);
 
   /**
    * Huellas de problemas que el usuario marcó como "no es un error".
@@ -68,6 +75,8 @@ export function useCrossDocAnalysis(
 
       setReanalyzingAll(true);
       setLastError(null);
+      setReanalyzePhase('Enviando reanálisis...');
+
       try {
         const crossRes = await fetch('/api/analyze-v2', {
           method: 'POST',
@@ -84,11 +93,37 @@ export function useCrossDocAnalysis(
         });
 
         if (!crossRes.ok) {
-          throw new Error(`cross-doc HTTP ${crossRes.status}`);
+          const errData = await crossRes.json().catch(() => ({ error: 'Error desconocido' }));
+          throw new Error(errData.error || `HTTP ${crossRes.status}`);
         }
 
         const crossData = await crossRes.json();
-        const analysis = crossData?.analysis || crossData || {};
+
+        let analysis: RawAnalysis;
+
+        if (crossData.async && crossData.jobId) {
+          // ── Reanálisis asíncrono: polling hasta que termine ──────
+          setReanalyzePhase('Reanálisis en curso...');
+
+          const job = await pollJobUntilDone(crossData.jobId, accessToken, (elapsed) => {
+            const seconds = Math.floor(elapsed / 1000);
+            if (seconds < 15) setReanalyzePhase('Analizando fragmentos...');
+            else if (seconds < 40) setReanalyzePhase('Comparando contra el corpus...');
+            else if (seconds < 70) setReanalyzePhase('Verificando contradicciones...');
+            else setReanalyzePhase('Generando informe...');
+          });
+
+          const result = job.result as Record<string, unknown> | null;
+          if (!result) {
+            throw new Error('El reanálisis terminó pero no devolvió resultados.');
+          }
+          analysis = result as unknown as RawAnalysis;
+        } else {
+          // Respuesta síncrona (fallback)
+          analysis = crossData?.analysis || crossData || {};
+        }
+
+        setReanalyzePhase(null);
 
         // Recoger huellas de "posibles" descartadas por Sonnet
         if (analysis.discrepancies) {
@@ -114,7 +149,9 @@ export function useCrossDocAnalysis(
         return { activeCount, dismissedCount, totalCount: withDismissed.length };
       } catch (err) {
         console.warn('[useCrossDocAnalysis] reanalyzeAll failed', err);
-        setLastError('No se pudo reanalizar, prueba de nuevo en unos segundos.');
+        const message = err instanceof Error ? err.message : 'Error desconocido';
+        setLastError(`No se pudo reanalizar: ${message}`);
+        setReanalyzePhase(null);
         return null;
       } finally {
         setReanalyzingAll(false);
@@ -152,5 +189,56 @@ export function useCrossDocAnalysis(
     return isDismissing;
   }, []);
 
-  return { crossDocProblems, setCrossDocProblems, reanalyzeAll, reanalyzingAll, lastError, dismissProblem };
+  return { crossDocProblems, setCrossDocProblems, reanalyzeAll, reanalyzingAll, reanalyzePhase, lastError, dismissProblem };
+}
+
+// ============================================================
+// Polling interno (no usa el hook porque estamos dentro de un hook)
+// ============================================================
+
+interface JobStatus {
+  id: string;
+  status: 'pending' | 'processing' | 'completed' | 'failed';
+  result: Record<string, unknown> | null;
+  errorMessage: string | null;
+}
+
+async function pollJobUntilDone(
+  jobId: string,
+  accessToken: string,
+  onProgress?: (elapsed: number) => void,
+): Promise<JobStatus> {
+  const start = Date.now();
+
+  while (true) {
+    const elapsed = Date.now() - start;
+    if (elapsed > MAX_POLL_WAIT) {
+      throw new Error('El reanálisis ha superado el tiempo máximo de espera.');
+    }
+
+    try {
+      const res = await fetch(`/api/analysis-jobs/${jobId}`, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+
+      if (!res.ok) {
+        throw new Error(`Error consultando estado (HTTP ${res.status})`);
+      }
+
+      const job: JobStatus = await res.json();
+
+      if (job.status === 'completed') return job;
+      if (job.status === 'failed') {
+        throw new Error(job.errorMessage || 'El reanálisis falló.');
+      }
+
+      onProgress?.(elapsed);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : '';
+      if (message.includes('tiempo máximo') || message.includes('falló')) throw err;
+      console.warn('[useCrossDocAnalysis] Error transitorio en polling:', message);
+    }
+
+    await new Promise(r => setTimeout(r, POLL_INTERVAL));
+  }
 }
