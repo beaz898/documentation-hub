@@ -51,7 +51,7 @@ const CORPUS_SCORE_THRESHOLD = 0.50;
 const MAX_CORPUS_FRAGMENTS = 4;
 
 /** Número de verificaciones LLM en paralelo. */
-const CONCURRENCY = 2;
+const CONCURRENCY = 5;
 
 /** Pausa en ms entre rondas de verificaciones para evitar 429. */
 const DELAY_BETWEEN_ROUNDS_MS = 200;
