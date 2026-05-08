@@ -164,64 +164,7 @@ export async function runExhaustiveAnalysisPipeline(input: ExhaustivePipelineInp
 
   const excludeFps = input.excludeFingerprints || new Set<string>();
 
-  // ── Evaluar corte temprano ───────────────────────────────────
-  const highOverlaps = pipelineResult.judgments
-    ?.filter(j => j.overlapPercent >= HIGH_OVERLAP_THRESHOLD) || [];
-  const totalContradictions = pipelineResult.discrepancies.length;
-  const shouldCutEarly = highOverlaps.length > 0 || totalContradictions >= MAX_CONTRADICTIONS_BEFORE_CUTOFF;
-
-  if (shouldCutEarly) {
-    const earlyStopReason = highOverlaps.length > 0 ? 'high_overlap' as const : 'too_many_contradictions' as const;
-
-    // Coger hasta 30 candidatas para double-check progresivo
-    const candidateCount = Math.min(pipelineResult.discrepancies.length, MAX_CANDIDATES_FOR_DOUBLECHECK);
-    const candidatesForCheck = pipelineResult.discrepancies.slice(0, candidateCount);
-
-    console.log(`[pipeline-exhaustive] Corte temprano (${earlyStopReason}): double-check progresivo de ${candidatesForCheck.length} candidatas`);
-
-    const doubleChecked = await doubleCheckContradictions(
-      candidatesForCheck,
-      TARGET_CONFIRMED,
-      excludeFps,
-    );
-
-    const confirmed = doubleChecked.filter(d => d.confidence === 'alta');
-    const finalDiscrepancies = confirmed.slice(0, TARGET_CONFIRMED);
-
-    let summary: string;
-    const topOverlap = highOverlaps.length > 0
-      ? highOverlaps.sort((a, b) => b.overlapPercent - a.overlapPercent)[0]
-      : null;
-
-    if (earlyStopReason === 'high_overlap' && topOverlap) {
-      const overlapList = highOverlaps
-        .map(j => `"${j.documentName}" (${j.overlapPercent}%)`)
-        .join(', ');
-      summary = `Este documento tiene un solapamiento significativo con documentos existentes: ${overlapList}. ` +
-        `Se han confirmado ${confirmed.length} discrepancias de las ${totalContradictions} detectadas. ` +
-        `Resuelve los solapamientos y las discrepancias indicadas, y vuelve a analizar para encontrar las restantes.`;
-    } else {
-      summary = `Se han detectado al menos ${totalContradictions} discrepancias con el corpus existente ` +
-        `y se han confirmado ${confirmed.length} con doble verificación. ` +
-        `Es probable que haya más. Corrige las indicadas y vuelve a analizar para encontrar las restantes.`;
-    }
-
-    const recommendation = topOverlap && topOverlap.overlapPercent >= 60 ? 'NO_INDEXAR' : 'REVISAR';
-
-    console.log(`[pipeline-exhaustive] Corte temprano completado: ${confirmed.length} confirmadas de ${candidatesForCheck.length} candidatas (${Date.now() - t0}ms)`);
-
-    return {
-      ...pipelineResult,
-      discrepancies: finalDiscrepancies,
-      recommendation,
-      summary,
-      analysisMode: 'exhaustive',
-      styleProblems,
-      earlyStop: earlyStopReason,
-    };
-  }
-
-  // ── Sin corte temprano: análisis completo ────────────────────
+  // ── Análisis completo: sin corte temprano ────────────────────
   const atomicClaims = await extractAtomicClaims(input.newDocumentText, input.newDocumentName);
   const atomicContradictions = await verifyClaimsAgainstCorpus(atomicClaims, input.orgId);
 
