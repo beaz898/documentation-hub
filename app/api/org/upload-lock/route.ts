@@ -140,7 +140,30 @@ export async function POST(req: NextRequest) {
 
       return NextResponse.json({ locked: true, isMe: true });
     } else {
-      // Desactivar bloqueo: cualquier usuario puede desbloquear
+      // Desactivar bloqueo: solo el admin o quien lo activó puede desbloquear
+      const { data: orgData } = await supabase
+        .from('organizations')
+        .select('upload_locked_by')
+        .eq('id', org.orgId)
+        .single();
+
+      if (orgData?.upload_locked_by && orgData.upload_locked_by !== user.id) {
+        // Verificar si es admin
+        const { data: membership } = await supabase
+          .from('memberships')
+          .select('role')
+          .eq('org_id', org.orgId)
+          .eq('user_id', user.id)
+          .single();
+
+        if (membership?.role !== 'admin') {
+          return NextResponse.json(
+            { error: 'Solo el administrador o quien activó el bloqueo puede desbloquearlo.', errorType: 'not_authorized' },
+            { status: 403 }
+          );
+        }
+      }
+
       await supabase
         .from('organizations')
         .update({ upload_locked_by: null, upload_locked_at: null })
