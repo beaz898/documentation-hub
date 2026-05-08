@@ -122,8 +122,6 @@ export async function callLLM(prompt: string, opts: CallOptions = {}): Promise<s
       });
 
       if (!res.ok) {
-        const errorBody = await res.text().catch(() => 'no body');
-        console.error(`[llm-client] HTTP ${res.status} error:`, errorBody);
         lastError = `HTTP ${res.status}`;
         // Errores no recuperables: salir inmediatamente
         if (res.status !== 429 && res.status !== 529 && res.status < 500) break;
