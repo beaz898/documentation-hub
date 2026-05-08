@@ -15,6 +15,7 @@ import { useCredits } from '@/hooks/chat/useCredits';
 import { useChat } from '@/hooks/chat/useChat';
 import { useDocuments } from '@/hooks/chat/useDocuments';
 import { useDrive } from '@/hooks/chat/useDrive';
+import { useUploadLock } from '@/hooks/chat/useUploadLock';
 
 export default function ChatPage() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -45,6 +46,8 @@ export default function ChatPage() {
     loadDriveStatus,
     handleConnectDrive, handleSyncDrive, handleDisconnectDrive,
   } = useDrive(session, addMessage, loadDocuments);
+
+  const { lockState, showReminder, toggleLock, activateLock, dismissReminder } = useUploadLock(session);
 
   // Detect mobile
   useEffect(() => {
@@ -102,13 +105,17 @@ export default function ChatPage() {
           <DocumentsSidebar
             documents={documents} loading={docsLoading}
             driveStatus={driveStatus} syncing={syncing}
-            onUpload={handleUpload} onDelete={handleDelete}
+            onUpload={async (file: File) => { await activateLock(); await handleUpload(file); }} onDelete={handleDelete}
             onConnectDrive={handleConnectDrive} onSyncDrive={handleSyncDrive} onDisconnectDrive={handleDisconnectDrive}
             onLogout={handleLogout} onClose={isMobile ? () => setSidebarOpen(false) : undefined}
             userEmail={session.user.email || 'Usuario'}
             analysisProgress={analysisProgress}
             analysisPhase={analysisPhase}
             credits={credits}
+            uploadLock={lockState}
+            onToggleUploadLock={toggleLock}
+            showLockReminder={showReminder}
+            onDismissLockReminder={dismissReminder}
           />
         </div>
       </div>
