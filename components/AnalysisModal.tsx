@@ -200,23 +200,6 @@ export default function AnalysisModal({ fileName, analysis, onConfirm, onCancel,
           </p>
         )}
 
-        {/* Banner de corte temprano: aviso de que el análisis no completó todas las capas */}
-        {analysis.earlyStop && (
-          <div style={{
-            padding: '10px 14px', borderRadius: 10, marginBottom: 12,
-            background: 'rgba(245,158,11,0.08)',
-            border: '0.5px solid rgba(245,158,11,0.3)',
-            display: 'flex', alignItems: 'flex-start', gap: 8,
-          }}>
-            <span style={{ fontSize: 14, flexShrink: 0, marginTop: 1 }}>⚠️</span>
-            <p style={{ fontSize: 12, color: 'var(--warning-text)', lineHeight: 1.5, margin: 0 }}>
-              {analysis.earlyStop === 'high_overlap'
-                ? 'El análisis se ha detenido porque se han detectado solapamientos significativos con documentos existentes. Resuelve los solapamientos, corrige las discrepancias indicadas y vuelve a analizar para encontrar las restantes.'
-                : 'El análisis se ha detenido porque se han detectado demasiadas discrepancias. Las mostradas han sido verificadas con doble comprobación. Corrige las indicadas y vuelve a analizar para encontrar las restantes.'}
-            </p>
-          </div>
-        )}
-
         {/* ============================================================ */}
         {/* PROBLEMAS DETECTADOS — plegados por defecto */}
         {/* ============================================================ */}
@@ -261,8 +244,8 @@ export default function AnalysisModal({ fileName, analysis, onConfirm, onCancel,
                       otros documentos del corpus. Estas contradicciones no han sido verificadas con doble comprobación.
                     </p>
                     <p style={{ fontSize: 12, color: 'var(--danger-text)', lineHeight: 1.5, margin: '6px 0 0 0' }}>
-                      Ejecuta el <strong>análisis exhaustivo</strong> para verificarlas y trabajarlas de 15 en 15
-                      con doble comprobación de cada una.
+                      Ejecuta el <strong>análisis exhaustivo</strong> para verificarlas todas
+                      con doble comprobación.
                     </p>
                   </div>
                 ) : (
