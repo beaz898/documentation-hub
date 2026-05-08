@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import { chunkText, extractText } from '@/lib/chunking';
-import { runAnalysisPipeline, runExhaustiveAnalysisPipeline } from '@/lib/analysis/pipeline';
+import { runAnalysisPipeline } from '@/lib/analysis/pipeline';
 import { logUsage } from '@/lib/usage-logger';
 import { checkRateLimit } from '@/lib/rate-limiter';
 import { resolveOrg } from '@/lib/org';
@@ -11,14 +11,11 @@ export const maxDuration = 120;
 
 /**
  * Analyze v2 — pipeline de 4 etapas con LLM-as-judge.
- * Body: { storagePath?, fileName, text?, exhaustive? }
+ * Body: { storagePath?, fileName, text?, exhaustive?, excludeFingerprints? }
  *
- * Tanto el rápido como el exhaustivo ejecutan primero un hash SHA-256 contra
- * el corpus para detectar duplicados exactos sin gastar LLM (Capa 0).
- *
- * Cuando exhaustive=true se añaden además:
- * - Todos los chunks del documento (sin muestreo).
- * - Capas adicionales de verificación (afirmaciones atómicas, doble check, estilo).
+ * Modo rápido: ejecuta el pipeline síncrono y devuelve el resultado.
+ * Modo exhaustivo: crea un job en analysis_jobs y devuelve el jobId.
+ *   El worker de Railway procesa el job en segundo plano.
  */
 export async function POST(req: NextRequest) {
   const startedAt = Date.now();
@@ -108,33 +105,91 @@ export async function POST(req: NextRequest) {
     // Chunking
     const chunks = chunkText(text, 'temp-id', fileName, orgId);
 
-    // Selección de fragmentos: muestreo para rápido, todos para exhaustivo
-    const sampleTexts = isExhaustive
-      ? chunks.map(c => c.text)
-      : pickSampledTexts(chunks);
+    if (isExhaustive) {
+      // ── EXHAUSTIVO: crear job y devolver inmediatamente ──────
+      
+      // Semáforo: verificar que no hay otro exhaustivo activo en esta org
+      const { data: activeJobs } = await supabase
+        .from('analysis_jobs')
+        .select('id, document_name')
+        .eq('org_id', orgId)
+        .in('status', ['pending', 'processing'])
+        .limit(1);
 
-    const modeLabel = isExhaustive ? 'exhaustivo' : 'rápido';
-    console.log(`[analyze-v2] "${fileName}" — ${chunks.length} chunks, ${sampleTexts.length} samples (${modeLabel})`);
+      if (activeJobs && activeJobs.length > 0) {
+        return NextResponse.json(
+          {
+            error: `Ya hay un análisis exhaustivo en curso ("${activeJobs[0].document_name}"). Espera a que termine antes de lanzar otro.`,
+            errorType: 'analysis_in_progress',
+            activeJobId: activeJobs[0].id,
+          },
+          { status: 409 }
+        );
+      }
 
-    // Ejecutar pipeline correspondiente. Ambos reciben supabase para la Capa 0 (hash check).
-    const analysis = isExhaustive
-      ? await runExhaustiveAnalysisPipeline({
-          newDocumentText: text,
-          newDocumentName: fileName,
-          sampleTexts,
-          orgId,
-          supabase,
-          excludeFingerprints,
+      // Todos los chunks para exhaustivo
+      const sampleTexts = chunks.map(c => c.text);
+
+      // Crear el job
+      const { data: job, error: jobError } = await supabase
+        .from('analysis_jobs')
+        .insert({
+          org_id: orgId,
+          user_id: userId,
+          status: 'pending',
+          document_name: fileName,
+          document_text: text,
+          sample_texts: JSON.stringify(sampleTexts),
+          exclude_document_id: body.excludeDocumentId || null,
+          exclude_fingerprints: JSON.stringify(Array.from(excludeFingerprints)),
+          credits_consumed: creditsConsumed,
         })
-      : await runAnalysisPipeline({
-          newDocumentText: text,
-          newDocumentName: fileName,
-          sampleTexts,
-          orgId,
-          supabase,
-        });
+        .select('id')
+        .single();
 
-    // Construir documentSources (mapa nombre → fuente) para compatibilidad con frontend actual
+      if (jobError || !job) {
+        console.error('[analyze-v2] Error creando job:', jobError);
+        return NextResponse.json({ error: 'Error al encolar el análisis' }, { status: 500 });
+      }
+
+      console.log(`[analyze-v2] Job exhaustivo creado: ${job.id} para "${fileName}" (org: ${orgId})`);
+
+      await logUsage(supabase, {
+        userId,
+        orgId,
+        endpoint: '/api/analyze-v2',
+        model: 'haiku',
+        inputTokens: 0,
+        outputTokens: 0,
+        latencyMs: Date.now() - startedAt,
+        success: true,
+        creditsConsumed,
+        userQuery: `${fileName} (exhaustivo → job ${job.id})`,
+      });
+
+      return NextResponse.json({
+        success: true,
+        async: true,
+        jobId: job.id,
+        message: 'Análisis exhaustivo en cola. Puedes seguir trabajando mientras se procesa.',
+      });
+    }
+
+    // ── RÁPIDO: ejecutar síncrono como siempre ──────────────────
+
+    const sampleTexts = pickSampledTexts(chunks);
+
+    console.log(`[analyze-v2] "${fileName}" — ${chunks.length} chunks, ${sampleTexts.length} samples (rápido)`);
+
+    const analysis = await runAnalysisPipeline({
+      newDocumentText: text,
+      newDocumentName: fileName,
+      sampleTexts,
+      orgId,
+      supabase,
+    });
+
+    // Construir documentSources para compatibilidad con frontend
     const documentSources: Record<string, 'manual' | 'google_drive'> = {};
     for (const j of analysis.judgments) {
       documentSources[j.documentName] = j.source;
@@ -159,11 +214,12 @@ export async function POST(req: NextRequest) {
       latencyMs,
       success: true,
       creditsConsumed,
-      userQuery: `${fileName} (${modeLabel})`,
+      userQuery: `${fileName} (rápido)`,
     });
 
     return NextResponse.json({
       success: true,
+      async: false,
       hasIssues,
       analysisMode: analysis.analysisMode,
       analysis: {
@@ -177,7 +233,6 @@ export async function POST(req: NextRequest) {
         summary: analysis.summary,
         analysisMode: analysis.analysisMode,
         styleProblems: analysis.styleProblems,
-        earlyStop: analysis.earlyStop,
       },
       documentSources,
     });
