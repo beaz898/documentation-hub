@@ -52,6 +52,10 @@ interface DocumentsSidebarProps {
   analysisProgress?: number;
   analysisPhase?: string;
   credits?: Credits | null;
+  uploadLock?: { locked: boolean; lockedBy: string | null; isMe: boolean };
+  onToggleUploadLock?: () => void;
+  showLockReminder?: boolean;
+  onDismissLockReminder?: () => void;
 }
 
 // ============================================================
@@ -128,6 +132,10 @@ export default function DocumentsSidebar({
   analysisProgress = 0,
   analysisPhase = '',
   credits,
+  uploadLock,
+  onToggleUploadLock,
+  showLockReminder,
+  onDismissLockReminder,
 }: DocumentsSidebarProps) {
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState('');
@@ -357,7 +365,39 @@ export default function DocumentsSidebar({
         display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0,
       }}>
         <div>
-          <h2 style={{ fontSize: 12, fontWeight: 700, letterSpacing: -0.2 }}>Documentos</h2>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <h2 style={{ fontSize: 12, fontWeight: 700, letterSpacing: -0.2 }}>Documentos</h2>
+            {onToggleUploadLock && (
+              <button
+                onClick={e => { e.stopPropagation(); onToggleUploadLock(); }}
+                aria-label={uploadLock?.locked ? 'Desbloquear subidas' : 'Bloquear subidas'}
+                title={uploadLock?.locked
+                  ? uploadLock.isMe
+                    ? 'Subidas bloqueadas por ti. Clic para desbloquear.'
+                    : `Bloqueado por ${uploadLock.lockedBy || 'otro usuario'}`
+                  : 'Bloquear subidas mientras analizas'}
+                style={{
+                  padding: '2px 5px', borderRadius: 4, border: 'none',
+                  background: uploadLock?.locked ? 'rgba(220,38,38,0.12)' : 'transparent',
+                  cursor: 'pointer', display: 'flex', alignItems: 'center',
+                  color: uploadLock?.locked ? 'var(--danger)' : 'var(--text-muted)',
+                  transition: 'color 0.15s, background 0.15s',
+                }}
+              >
+                {uploadLock?.locked ? (
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                  </svg>
+                ) : (
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                    <path d="M7 11V7a5 5 0 0 1 9.9-1" />
+                  </svg>
+                )}
+              </button>
+            )}
+          </div>
           <p style={{ fontSize: 9, color: 'var(--text-muted)', marginTop: 2 }}>{documents.length} archivos indexados</p>
         </div>
         {onClose && (
@@ -373,6 +413,42 @@ export default function DocumentsSidebar({
 
       {/* 2. Scrollable content */}
       <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden' }}>
+        {/* Banner de bloqueo activo */}
+        {uploadLock?.locked && !uploadLock.isMe && (
+          <div style={{
+            margin: '6px 10px', padding: '8px 10px', borderRadius: 8,
+            background: 'rgba(220,38,38,0.08)', border: '0.5px solid rgba(220,38,38,0.25)',
+            fontSize: 10, color: 'var(--danger-text)', lineHeight: 1.4,
+          }}>
+            🔒 {uploadLock.lockedBy || 'Un compañero'} está analizando documentos. La subida está bloqueada temporalmente.
+          </div>
+        )}
+
+        {/* Recordatorio periódico para quien tiene el bloqueo */}
+        {showLockReminder && uploadLock?.isMe && (
+          <div style={{
+            margin: '6px 10px', padding: '8px 10px', borderRadius: 8,
+            background: 'rgba(245,158,11,0.1)', border: '0.5px solid rgba(245,158,11,0.3)',
+            fontSize: 10, color: 'var(--warning-text)', lineHeight: 1.4,
+            display: 'flex', alignItems: 'flex-start', gap: 6,
+          }}>
+            <span style={{ flexShrink: 0 }}>⚠️</span>
+            <div style={{ flex: 1 }}>
+              Tienes las subidas bloqueadas. Si ya has terminado de analizar, desbloquéalas para tus compañeros.
+              <button
+                onClick={onDismissLockReminder}
+                style={{
+                  display: 'block', marginTop: 4, padding: '2px 8px', borderRadius: 4,
+                  border: '0.5px solid rgba(245,158,11,0.3)', background: 'transparent',
+                  fontSize: 9, color: 'var(--warning-text)', cursor: 'pointer',
+                }}
+              >
+                Entendido
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Drive section */}
         <div
           style={sectionHeaderStyle}
@@ -413,7 +489,7 @@ export default function DocumentsSidebar({
                 </div>
 
                 <div style={{ display: 'flex', gap: 4, marginBottom: 8 }}>
-                  <button onClick={onSyncDrive} disabled={syncing} style={{
+                  <button onClick={onSyncDrive} disabled={syncing || (uploadLock?.locked && !uploadLock?.isMe)} style={{
                     flex: 1, padding: '5px 8px', borderRadius: 6, border: '0.5px solid var(--border)',
                     background: 'var(--bg-tertiary)', fontSize: 10, cursor: syncing ? 'not-allowed' : 'pointer',
                     color: 'var(--text-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4,
@@ -580,7 +656,7 @@ export default function DocumentsSidebar({
         ) : (
           <button
             onClick={() => fileInputRef.current?.click()}
-            disabled={uploading}
+            disabled={uploading || (uploadLock?.locked && !uploadLock?.isMe)}
             style={{
               width: '100%', padding: '9px', borderRadius: 9, border: 'none',
               background: uploading ? 'var(--bg-tertiary)' : 'var(--brand)',
