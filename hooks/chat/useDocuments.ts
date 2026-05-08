@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from 'react';
 import { createClient } from '@/lib/supabase';
+import { useJobPolling } from './useJobPolling';
 import type { SessionInfo, Document, Message, PendingAnalysis, ImprovementTarget } from './types';
 
 export function useDocuments(
@@ -17,6 +18,7 @@ export function useDocuments(
   const [analysisProgress, setAnalysisProgress] = useState(0);
   const [analysisPhase, setAnalysisPhase] = useState('');
   const supabase = createClient();
+  const { pollJob } = useJobPolling();
 
   const loadDocuments = useCallback(async () => {
     if (!session) return;
@@ -216,18 +218,7 @@ export function useDocuments(
     setPendingAnalysis(null);
 
     setAnalysisProgress(5);
-    setAnalysisPhase('Iniciando análisis exhaustivo...');
-
-    let currentProgress = 5;
-    const progressInterval = setInterval(() => {
-      currentProgress += 0.5;
-      if (currentProgress >= 15 && currentProgress < 16) setAnalysisPhase('Analizando todos los fragmentos...');
-      if (currentProgress >= 40 && currentProgress < 41) setAnalysisPhase('Comparando contra el corpus...');
-      if (currentProgress >= 65 && currentProgress < 66) setAnalysisPhase('Verificando contradicciones...');
-      if (currentProgress >= 85 && currentProgress < 86) setAnalysisPhase('Generando informe exhaustivo...');
-      if (currentProgress >= 92) { clearInterval(progressInterval); return; }
-      setAnalysisProgress(Math.round(currentProgress));
-    }, 600);
+    setAnalysisPhase('Enviando análisis exhaustivo...');
 
     try {
       const analyzeRes = await fetch('/api/analyze-v2', {
@@ -236,10 +227,61 @@ export function useDocuments(
         body: JSON.stringify({ storagePath, fileName, exhaustive: true }),
       });
 
-      clearInterval(progressInterval);
+      if (!analyzeRes.ok) {
+        setAnalysisProgress(0);
+        setAnalysisPhase('');
+        const errData = await analyzeRes.json().catch(() => ({ error: 'Error desconocido' }));
+        addMessage({ id: crypto.randomUUID(), role: 'error', content: `Error en análisis exhaustivo: ${errData.error || `Error ${analyzeRes.status}`}` });
+        setPendingAnalysis({ fileName, storagePath, fileSize, analysis: savedAnalysis, documentSources: savedDocumentSources });
+        return;
+      }
 
-      if (analyzeRes.ok) {
-        const analyzeData = await analyzeRes.json();
+      const analyzeData = await analyzeRes.json();
+
+      if (analyzeData.async && analyzeData.jobId) {
+        // ── Análisis asíncrono: polling hasta que termine ──────
+        setAnalysisProgress(10);
+        setAnalysisPhase('Análisis exhaustivo en curso...');
+
+        const job = await pollJob(
+          analyzeData.jobId,
+          session.access_token,
+          (status, elapsed) => {
+            // Progreso simulado basado en el tiempo transcurrido
+            const seconds = Math.floor(elapsed / 1000);
+            const simulatedProgress = Math.min(90, 10 + seconds);
+            setAnalysisProgress(simulatedProgress);
+
+            if (seconds < 15) setAnalysisPhase('Analizando todos los fragmentos...');
+            else if (seconds < 40) setAnalysisPhase('Comparando contra el corpus...');
+            else if (seconds < 70) setAnalysisPhase('Verificando contradicciones...');
+            else setAnalysisPhase('Generando informe exhaustivo...');
+          },
+        );
+
+        // Job completado
+        setAnalysisProgress(95);
+        setAnalysisPhase('Análisis exhaustivo completado');
+        await new Promise(r => setTimeout(r, 500));
+        setAnalysisProgress(100);
+        await new Promise(r => setTimeout(r, 300));
+        setAnalysisProgress(0);
+        setAnalysisPhase('');
+
+        const result = job.result as Record<string, unknown> | null;
+        if (result) {
+          setPendingAnalysis({
+            fileName, storagePath, fileSize,
+            analysis: result as PendingAnalysis['analysis'],
+            documentSources: (result.documentSources as Record<string, 'manual' | 'google_drive'>) ?? savedDocumentSources,
+          });
+        } else {
+          addMessage({ id: crypto.randomUUID(), role: 'error', content: 'El análisis terminó pero no devolvió resultados.' });
+          setPendingAnalysis({ fileName, storagePath, fileSize, analysis: savedAnalysis, documentSources: savedDocumentSources });
+        }
+        loadCredits();
+      } else {
+        // Respuesta síncrona (fallback, no debería pasar con exhaustivo)
         setAnalysisProgress(95);
         setAnalysisPhase('Análisis exhaustivo completado');
         await new Promise(r => setTimeout(r, 500));
@@ -254,18 +296,12 @@ export function useDocuments(
           documentSources: analyzeData.documentSources ?? savedDocumentSources,
         });
         loadCredits();
-      } else {
-        setAnalysisProgress(0);
-        setAnalysisPhase('');
-        const errData = await analyzeRes.json().catch(() => ({ error: 'Error desconocido' }));
-        addMessage({ id: crypto.randomUUID(), role: 'error', content: `Error en análisis exhaustivo: ${errData.error || `Error ${analyzeRes.status}`}` });
-        setPendingAnalysis({ fileName, storagePath, fileSize, analysis: savedAnalysis, documentSources: savedDocumentSources });
       }
-    } catch {
-      clearInterval(progressInterval);
+    } catch (err) {
       setAnalysisProgress(0);
       setAnalysisPhase('');
-      addMessage({ id: crypto.randomUUID(), role: 'error', content: 'Error de conexión al ejecutar el análisis exhaustivo.' });
+      const message = err instanceof Error ? err.message : 'Error de conexión';
+      addMessage({ id: crypto.randomUUID(), role: 'error', content: `Error en análisis exhaustivo: ${message}` });
       setPendingAnalysis({ fileName, storagePath, fileSize, analysis: savedAnalysis, documentSources: savedDocumentSources });
     }
   }
