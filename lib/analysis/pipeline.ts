@@ -27,8 +27,6 @@ export interface AnalyzePipelineInput {
 export type ExhaustivePipelineInput = AnalyzePipelineInput;
 
 const HIGH_OVERLAP_THRESHOLD = 30;
-const MAX_CONTRADICTIONS_BEFORE_CUTOFF = 15;
-const TARGET_CONFIRMED = 15;
 
 /**
  * Máximo de candidatas a enviar al double-check en corte temprano.
