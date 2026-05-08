@@ -25,7 +25,7 @@ interface RerankResponse {
 const MAX_SELECTED_QUICK = 6;
 
 /** Límite de seleccionados en modo exhaustivo. */
-const MAX_SELECTED_EXHAUSTIVE = 10;
+const MAX_SELECTED_EXHAUSTIVE = 25;
 
 export async function rerankCandidates(args: {
   newDocumentName: string;
