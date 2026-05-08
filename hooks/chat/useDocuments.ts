@@ -273,7 +273,7 @@ export function useDocuments(
           setPendingAnalysis({
             fileName, storagePath, fileSize,
             analysis: result as PendingAnalysis['analysis'],
-            documentSources: (result.documentSources as Record<string, 'manual' | 'google_drive'>) ?? savedDocumentSources,
+            documentSources: (result.documentSources as PendingAnalysis['documentSources']) ?? savedDocumentSources,
           });
         } else {
           addMessage({ id: crypto.randomUUID(), role: 'error', content: 'El análisis terminó pero no devolvió resultados.' });
