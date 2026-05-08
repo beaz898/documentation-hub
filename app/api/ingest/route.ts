@@ -35,6 +35,15 @@ export async function POST(req: NextRequest) {
     }
     const orgId = org.orgId;
 
+    // Verificar bloqueo de subidas
+    const lockCheck = await checkUploadLock(supabase, orgId, user.id);
+    if (lockCheck.locked) {
+      return NextResponse.json(
+        { error: `La subida de documentos está bloqueada por ${lockCheck.lockedByEmail || 'otro usuario'}. Espera a que termine.`, errorType: 'upload_locked' },
+        { status: 423 }
+      );
+    }
+    
     // Leer datos del body
     // force=true significa "el usuario ya confirmó que quiere reemplazar el manual existente"
     const body = await req.json();
