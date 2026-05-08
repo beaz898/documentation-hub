@@ -6,6 +6,7 @@ import { logUsage } from '@/lib/usage-logger';
 import { checkRateLimit } from '@/lib/rate-limiter';
 import { resolveOrg } from '@/lib/org';
 import { consumeCredits, getCreditCost } from '@/lib/credits';
+import { checkUploadLock } from '@/lib/upload-lock';
 
 export const maxDuration = 120;
 
@@ -47,6 +48,15 @@ export async function POST(req: NextRequest) {
     }
     orgId = org.orgId;
 
+    // Verificar bloqueo de subidas
+    const lockCheck = await checkUploadLock(supabase, orgId, userId);
+    if (lockCheck.locked) {
+      return NextResponse.json(
+        { error: `La subida de documentos está bloqueada por ${lockCheck.lockedByEmail || 'otro usuario'}. Espera a que termine.`, errorType: 'upload_locked' },
+        { status: 423 }
+      );
+    }
+    
     const body = await req.json();
     const { storagePath, fileName, text: directText, exhaustive, excludeFingerprints: rawExcludeFps } = body;
 
