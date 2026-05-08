@@ -365,39 +365,7 @@ export default function DocumentsSidebar({
         display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0,
       }}>
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <h2 style={{ fontSize: 12, fontWeight: 700, letterSpacing: -0.2 }}>Documentos</h2>
-            {onToggleUploadLock && (
-              <button
-                onClick={e => { e.stopPropagation(); onToggleUploadLock(); }}
-                aria-label={uploadLock?.locked ? 'Desbloquear subidas' : 'Bloquear subidas'}
-                title={uploadLock?.locked
-                  ? uploadLock.isMe
-                    ? 'Subidas bloqueadas por ti. Clic para desbloquear.'
-                    : `Bloqueado por ${uploadLock.lockedBy || 'otro usuario'}`
-                  : 'Bloquear subidas mientras analizas'}
-                style={{
-                  padding: '2px 5px', borderRadius: 4, border: 'none',
-                  background: uploadLock?.locked ? 'rgba(220,38,38,0.12)' : 'transparent',
-                  cursor: 'pointer', display: 'flex', alignItems: 'center',
-                  color: uploadLock?.locked ? 'var(--danger)' : 'var(--text-muted)',
-                  transition: 'color 0.15s, background 0.15s',
-                }}
-              >
-                {uploadLock?.locked ? (
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-                    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                  </svg>
-                ) : (
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-                    <path d="M7 11V7a5 5 0 0 1 9.9-1" />
-                  </svg>
-                )}
-              </button>
-            )}
-          </div>
+          <h2 style={{ fontSize: 12, fontWeight: 700, letterSpacing: -0.2 }}>Documentos</h2>
           <p style={{ fontSize: 9, color: 'var(--text-muted)', marginTop: 2 }}>{documents.length} archivos indexados</p>
         </div>
         {onClose && (
@@ -461,9 +429,48 @@ export default function DocumentsSidebar({
             <SectionChevron open={driveSectionOpen} />
             <span>Google Drive</span>
           </div>
-          <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>
-            {driveStatus.connected ? driveDocs.length : '—'}
-          </span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            {onToggleUploadLock && (
+              <button
+                onClick={e => {
+                  e.stopPropagation();
+                  if (uploadLock?.locked && !uploadLock.isMe) {
+                    alert(`El bloqueo fue activado por ${uploadLock.lockedBy || 'otro usuario'}. Solo esa persona o el administrador puede desbloquearlo.`);
+                    return;
+                  }
+                  onToggleUploadLock();
+                }}
+                aria-label={uploadLock?.locked ? 'Desbloquear subidas' : 'Bloquear subidas'}
+                title={uploadLock?.locked
+                  ? uploadLock.isMe
+                    ? 'Subidas bloqueadas por ti. Clic para desbloquear.'
+                    : `Bloqueado por ${uploadLock.lockedBy || 'otro usuario'}`
+                  : 'Bloquear subidas mientras analizas'}
+                style={{
+                  padding: '2px 5px', borderRadius: 4, border: 'none',
+                  background: uploadLock?.locked ? 'rgba(220,38,38,0.12)' : 'transparent',
+                  cursor: 'pointer', display: 'flex', alignItems: 'center',
+                  color: uploadLock?.locked ? 'var(--danger)' : 'var(--text-muted)',
+                  transition: 'color 0.15s, background 0.15s',
+                }}
+              >
+                {uploadLock?.locked ? (
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                  </svg>
+                ) : (
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                    <path d="M7 11V7a5 5 0 0 1 9.9-1" />
+                  </svg>
+                )}
+              </button>
+            )}
+            <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>
+              {driveStatus.connected ? driveDocs.length : '—'}
+            </span>
+          </div>
         </div>
 
         {driveSectionOpen && (
@@ -655,8 +662,14 @@ export default function DocumentsSidebar({
           </div>
         ) : (
           <button
-            onClick={() => fileInputRef.current?.click()}
-            disabled={uploading || (uploadLock?.locked && !uploadLock?.isMe)}
+            onClick={() => {
+              if (uploadLock?.locked && !uploadLock?.isMe) {
+                alert(`La subida de documentos está bloqueada por ${uploadLock.lockedBy || 'un compañero'}. Espera a que termine de analizar.`);
+                return;
+              }
+              fileInputRef.current?.click();
+            }}
+            disabled={uploading}
             style={{
               width: '100%', padding: '9px', borderRadius: 9, border: 'none',
               background: uploading ? 'var(--bg-tertiary)' : 'var(--brand)',
