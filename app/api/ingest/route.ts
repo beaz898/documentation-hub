@@ -6,6 +6,7 @@ import { chunkText, extractText } from '@/lib/chunking';
 import { randomUUID } from 'crypto';
 import { generateContentHash } from '@/lib/analysis/hash-check';
 import { resolveOrg } from '@/lib/org';
+import { checkUploadLock } from '@/lib/upload-lock';
 
 export const maxDuration = 300;
 
@@ -34,6 +35,15 @@ export async function POST(req: NextRequest) {
       );
     }
     const orgId = org.orgId;
+
+    // Verificar bloqueo de subidas
+    const lockCheck = await checkUploadLock(supabase, orgId, user.id);
+    if (lockCheck.locked) {
+      return NextResponse.json(
+        { error: `La subida de documentos está bloqueada por ${lockCheck.lockedByEmail || 'otro usuario'}. Espera a que termine.`, errorType: 'upload_locked' },
+        { status: 423 }
+      );
+    }
 
     // Verificar bloqueo de subidas
     const lockCheck = await checkUploadLock(supabase, orgId, user.id);
