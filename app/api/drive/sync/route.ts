@@ -383,10 +383,15 @@ async function listFilesRecursive(
     { headers: { Authorization: `Bearer ${accessToken}` } }
   );
 
-  if (!res.ok) return allFiles;
+  if (!res.ok) {
+    const errText = await res.text().catch(() => 'no body');
+    console.error(`[DRIVE SYNC] Google API error ${res.status}:`, errText);
+    return allFiles;
+  }
 
   const data = await res.json();
   const files = data.files || [];
+  console.log(`[DRIVE SYNC] Folder ${folderId}: ${files.length} items found`);
 
   for (const file of files) {
     if (file.mimeType === 'application/vnd.google-apps.folder') {
