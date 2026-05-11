@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { runExhaustiveAnalysisPipeline } from '../../lib/analysis/pipeline';
 import type { ExhaustivePipelineInput } from '../../lib/analysis/pipeline';
+import { saveAnalysisResult } from '../../lib/persist-analysis';
 
 // ============================================================
 // Configuración
@@ -113,6 +114,14 @@ async function processJob(job: AnalysisJob): Promise<void> {
         completed_at: new Date().toISOString(),
       })
       .eq('id', job.id);
+
+    void saveAnalysisResult(supabase, {
+      orgId: job.org_id,
+      userId: job.user_id,
+      documentName: job.document_name,
+      analysis,
+      analysisType: 'exhaustive',
+    });
 
     const discCount = analysis.discrepancies?.length ?? 0;
     const styleCount = analysis.styleProblems?.length ?? 0;

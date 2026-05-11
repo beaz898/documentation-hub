@@ -7,6 +7,7 @@ import { checkRateLimit } from '@/lib/rate-limiter';
 import { resolveOrg } from '@/lib/org';
 import { consumeCredits, getCreditCost } from '@/lib/credits';
 import { checkUploadLock } from '@/lib/upload-lock';
+import { saveAnalysisResult } from '@/lib/persist-analysis';
 
 export const maxDuration = 120;
 
@@ -225,6 +226,14 @@ export async function POST(req: NextRequest) {
       success: true,
       creditsConsumed,
       userQuery: `${fileName} (rápido)`,
+    });
+
+    void saveAnalysisResult(supabase, {
+      orgId,
+      userId,
+      documentName: fileName,
+      analysis,
+      analysisType: 'quick',
     });
 
     return NextResponse.json({

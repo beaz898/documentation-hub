@@ -5,6 +5,7 @@ import { logUsage } from '@/lib/usage-logger';
 import { checkRateLimit } from '@/lib/rate-limiter';
 import { resolveOrg } from '@/lib/org';
 import { consumeCredits, getCreditCost } from '@/lib/credits';
+import { saveChatQuery } from '@/lib/persist-analysis';
 
 export async function POST(req: NextRequest) {
   const startedAt = Date.now();
@@ -87,6 +88,14 @@ export async function POST(req: NextRequest) {
     const result = await queryRAG(question.trim(), orgId, supabase, conversationHistory);
 
     const latencyMs = Date.now() - startedAt;
+
+    void saveChatQuery(supabase, {
+      orgId,
+      userId,
+      question: question.trim(),
+      sources: result.sources,
+      answerLength: result.answer.length,
+    });
 
     // Registrar uso exitoso
     await logUsage(supabase, {

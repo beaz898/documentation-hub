@@ -5,6 +5,7 @@ import { logUsage } from '@/lib/usage-logger';
 import { checkRateLimit } from '@/lib/rate-limiter';
 import { resolveOrg } from '@/lib/org';
 import { consumeCredits, getCreditCost } from '@/lib/credits';
+import { saveStyleResult } from '@/lib/persist-analysis';
 
 export const maxDuration = 60;
 
@@ -68,6 +69,13 @@ export async function POST(req: NextRequest) {
     }
 
     const problems = await analyzeStyle(text, fileName || 'sin nombre');
+
+    void saveStyleResult(supabase, {
+      orgId,
+      userId,
+      documentName: fileName || 'sin nombre',
+      problemsCount: problems.length,
+    });
 
     const latencyMs = Date.now() - startedAt;
 

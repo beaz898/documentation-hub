@@ -59,6 +59,7 @@ export interface ConversationMessage {
 export interface RAGResult {
   answer: string;
   sources: Array<{
+    documentId: string;
     documentName: string;
     score: number;
   }>;
@@ -187,6 +188,7 @@ PREGUNTA DEL USUARIO: ${question}`;
   return {
     answer: text || 'No se pudo generar una respuesta.',
     sources: topDocs.map(d => ({
+      documentId: d.documentId,
       documentName: d.documentName,
       score: d.maxScore,
     })),
