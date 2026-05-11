@@ -35,6 +35,7 @@ interface AnalysisModalProps {
   onCancel: () => void;
   onImprove: () => void;
   onExhaustive?: () => void;
+  onMinimize?: () => void;
 }
 
 // ============================================================
@@ -142,7 +143,7 @@ function ConfidenceBadge({ confidence }: { confidence: 'alta' | 'posible' }) {
 // ============================================================
 // Modal principal
 // ============================================================
-export default function AnalysisModal({ fileName, analysis, onConfirm, onCancel, onImprove, onExhaustive }: AnalysisModalProps) {
+export default function AnalysisModal({ fileName, analysis, onConfirm, onCancel, onImprove, onExhaustive, onMinimize }: AnalysisModalProps) {
   const recColor = analysis.recommendation === 'NO_INDEXAR'
     ? { bg: 'var(--danger-light)', text: 'var(--danger-text)', border: 'var(--danger)' }
     : analysis.recommendation === 'REVISAR'
@@ -163,7 +164,7 @@ export default function AnalysisModal({ fileName, analysis, onConfirm, onCancel,
   const isExhaustive = analysis.analysisMode === 'exhaustive';
 
   return (
-    <div className="modal-overlay" onClick={onCancel}>
+    <div className="modal-overlay" onClick={onMinimize ?? onCancel}>
       <div className="modal-content" onClick={e => e.stopPropagation()}>
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 16 }}>
@@ -179,8 +180,8 @@ export default function AnalysisModal({ fileName, analysis, onConfirm, onCancel,
             <p style={{ fontSize: 13, color: 'var(--text-secondary)' }}>{fileName}</p>
           </div>
           <button
-            onClick={onCancel}
-            aria-label="Cerrar"
+            onClick={onMinimize ?? onCancel}
+            aria-label="Minimizar"
             style={{
               width: 32, height: 32, borderRadius: 8, border: 'none',
               background: 'transparent', cursor: 'pointer', display: 'flex',
@@ -188,7 +189,7 @@ export default function AnalysisModal({ fileName, analysis, onConfirm, onCancel,
             }}
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+              <line x1="5" y1="12" x2="19" y2="12" />
             </svg>
           </button>
         </div>

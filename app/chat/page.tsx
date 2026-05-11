@@ -20,6 +20,8 @@ import { useUploadLock } from '@/hooks/chat/useUploadLock';
 export default function ChatPage() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
+  const [analysisMinimized, setAnalysisMinimized] = useState(false);
+  const [improvementMinimized, setImprovementMinimized] = useState(false);
   const searchParams = useSearchParams();
 
   // Core hooks
@@ -65,6 +67,10 @@ export default function ChatPage() {
     if (session) { loadDocuments(); loadDriveStatus(); loadCredits(); }
   }, [session, loadDocuments, loadDriveStatus, loadCredits]);
 
+  // Resetear estado minimizado cuando el modal correspondiente desaparece
+  useEffect(() => { if (!pendingAnalysis) setAnalysisMinimized(false); }, [pendingAnalysis]);
+  useEffect(() => { if (!improvementTarget) setImprovementMinimized(false); }, [improvementTarget]);
+
   // Handle Drive OAuth callback
   const driveAutoSyncTriggeredRef = useRef(false);
   useEffect(() => {
@@ -81,6 +87,20 @@ export default function ChatPage() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams, session]);
+
+  // Estado del indicador del sidebar para modales minimizados o análisis en curso
+  const activeModalForSidebar = improvementTarget && improvementMinimized
+    ? { status: 'ready' as const, label: 'Chat de mejora activo' }
+    : pendingAnalysis && analysisMinimized
+      ? { status: 'ready' as const, label: 'Resultados listos' }
+      : analysisProgress > 0
+        ? { status: 'running' as const, label: analysisPhase || 'Analizando...' }
+        : undefined;
+
+  function handleRestoreModal() {
+    if (improvementMinimized) setImprovementMinimized(false);
+    else if (analysisMinimized) setAnalysisMinimized(false);
+  }
 
   // Loading state
   if (!session) {
@@ -116,6 +136,9 @@ export default function ChatPage() {
             onToggleUploadLock={toggleLock}
             showLockReminder={showReminder}
             onDismissLockReminder={dismissReminder}
+            activeModal={activeModalForSidebar}
+            onRestoreModal={handleRestoreModal}
+            modalActive={!!pendingAnalysis || !!improvementTarget}
           />
         </div>
       </div>
@@ -159,16 +182,19 @@ export default function ChatPage() {
         />
       </div>
 
-      {/* Modals */}
+      {/* Modals — se mantienen montados al minimizar para preservar el estado */}
       {pendingAnalysis && (
-        <AnalysisModal
-          fileName={pendingAnalysis.fileName}
-          analysis={pendingAnalysis.analysis}
-          onConfirm={handleAnalysisConfirm}
-          onCancel={handleAnalysisCancel}
-          onImprove={handleAnalysisImprove}
-          onExhaustive={handleExhaustiveAnalysis}
-        />
+        <div style={{ display: analysisMinimized ? 'none' : undefined }}>
+          <AnalysisModal
+            fileName={pendingAnalysis.fileName}
+            analysis={pendingAnalysis.analysis}
+            onConfirm={handleAnalysisConfirm}
+            onCancel={handleAnalysisCancel}
+            onImprove={handleAnalysisImprove}
+            onExhaustive={handleExhaustiveAnalysis}
+            onMinimize={() => setAnalysisMinimized(true)}
+          />
+        </div>
       )}
 
       {improvementLoading && (
@@ -181,17 +207,20 @@ export default function ChatPage() {
       )}
 
       {improvementTarget && session && (
-        <ImprovementModal
-          fileName={improvementTarget.fileName}
-          initialText={improvementTarget.initialText}
-          analysis={improvementTarget.analysis}
-          documentSources={improvementTarget.documentSources}
-          storagePath={improvementTarget.storagePath}
-          existingDocWithSameName={improvementTarget.existingDocWithSameName}
-          accessToken={session.access_token}
-          onClose={handleImprovementClose}
-          onIndexed={handleImprovementIndexed}
-        />
+        <div style={{ display: improvementMinimized ? 'none' : undefined }}>
+          <ImprovementModal
+            fileName={improvementTarget.fileName}
+            initialText={improvementTarget.initialText}
+            analysis={improvementTarget.analysis}
+            documentSources={improvementTarget.documentSources}
+            storagePath={improvementTarget.storagePath}
+            existingDocWithSameName={improvementTarget.existingDocWithSameName}
+            accessToken={session.access_token}
+            onClose={handleImprovementClose}
+            onIndexed={handleImprovementIndexed}
+            onMinimize={() => setImprovementMinimized(true)}
+          />
+        </div>
       )}
     </div>
   );

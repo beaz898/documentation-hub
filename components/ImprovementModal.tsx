@@ -32,6 +32,7 @@ interface ImprovementModalProps {
   accessToken: string;
   onClose: () => void;
   onIndexed: (docName: string, wasReplaced: boolean) => void;
+  onMinimize?: () => void;
 }
 
 const TYPE_META: Record<ProblemType, { label: string; color: string; bg: string; border: string }> = {
@@ -61,6 +62,7 @@ export default function ImprovementModal({
   accessToken,
   onClose,
   onIndexed,
+  onMinimize,
 }: ImprovementModalProps) {
   const [text, setText] = useState(initialText);
   const editorRef = useRef<HTMLDivElement>(null);
@@ -330,8 +332,8 @@ export default function ImprovementModal({
             </p>
           </div>
           <button
-            onClick={handleCloseRequest}
-            aria-label="Cerrar"
+            onClick={onMinimize ?? handleCloseRequest}
+            aria-label="Minimizar"
             style={{
               width: 34, height: 34, borderRadius: 8,
               border: '1px solid var(--border)',
@@ -351,7 +353,7 @@ export default function ImprovementModal({
             }}
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
-              <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+              <line x1="5" y1="12" x2="19" y2="12" />
             </svg>
           </button>
         </div>
