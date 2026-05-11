@@ -102,20 +102,33 @@ export async function doubleCheckContradictions(
 
   console.log(`[double-check] Lote 1: ${firstBatch.length} verificadas, ${confirmedSoFar} confirmadas`);
 
-  // Segundo lote solo si no se alcanzó el objetivo y hay más candidatas
-  const needsMore = targetConfirmed > 0 && confirmedSoFar < targetConfirmed;
-  const hasMore = newCandidates.length > FIRST_BATCH_SIZE;
+  if (targetConfirmed === 0) {
+    // Modo exhaustivo: verificar TODAS las candidatas restantes en lotes sucesivos
+    let offset = FIRST_BATCH_SIZE;
+    while (offset < newCandidates.length) {
+      await new Promise(r => setTimeout(r, DELAY_BETWEEN_BATCHES_MS));
+      const batch = newCandidates.slice(offset, offset + FIRST_BATCH_SIZE);
+      const results = await verifyBatch(batch);
+      allResults.push(...results);
+      const batchConfirmed = results.filter(r => r.confidence === 'alta').length;
+      confirmedSoFar += batchConfirmed;
+      console.log(`[double-check] Lote adicional (${offset}–${offset + batch.length}): ${batch.length} verificadas, ${batchConfirmed} confirmadas`);
+      offset += FIRST_BATCH_SIZE;
+    }
+  } else {
+    // Modo rápido: segundo lote solo si no se alcanzó el objetivo
+    const needsMore = confirmedSoFar < targetConfirmed;
+    const hasMore = newCandidates.length > FIRST_BATCH_SIZE;
 
-  if (needsMore && hasMore) {
-    await new Promise(r => setTimeout(r, DELAY_BETWEEN_BATCHES_MS));
-
-    const secondBatch = newCandidates.slice(FIRST_BATCH_SIZE, FIRST_BATCH_SIZE + SECOND_BATCH_SIZE);
-    const secondResults = await verifyBatch(secondBatch);
-    allResults.push(...secondResults);
-
-    const newConfirmed = secondResults.filter(r => r.confidence === 'alta').length;
-    confirmedSoFar += newConfirmed;
-    console.log(`[double-check] Lote 2: ${secondBatch.length} verificadas, ${newConfirmed} confirmadas (total: ${confirmedSoFar})`);
+    if (needsMore && hasMore) {
+      await new Promise(r => setTimeout(r, DELAY_BETWEEN_BATCHES_MS));
+      const secondBatch = newCandidates.slice(FIRST_BATCH_SIZE, FIRST_BATCH_SIZE + SECOND_BATCH_SIZE);
+      const secondResults = await verifyBatch(secondBatch);
+      allResults.push(...secondResults);
+      const newConfirmed = secondResults.filter(r => r.confidence === 'alta').length;
+      confirmedSoFar += newConfirmed;
+      console.log(`[double-check] Lote 2: ${secondBatch.length} verificadas, ${newConfirmed} confirmadas (total: ${confirmedSoFar})`);
+    }
   }
 
   // Combinar resultados verificados + los descartados anteriormente
