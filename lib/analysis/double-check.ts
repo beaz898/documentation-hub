@@ -183,6 +183,11 @@ INSTRUCCIONES:
 - Diferencias de redacción, énfasis o perspectiva NO son contradicciones.
 - Si ambas pueden ser verdaderas en contextos diferentes, NO es contradicción.
 - Para las que NO son contradicción, indica si es una "inconsistencia menor" (diferencia de enfoque o matiz que el usuario podría querer revisar) con el campo severity.
+TIPOS QUE SÍ SON CONTRADICCIÓN (marca isContradiction=true):
+- Listas con diferente número de elementos sobre el mismo concepto (omisión de elementos clave).
+- Definiciones que usan términos técnicamente diferentes para el mismo concepto (sustitución de términos).
+- Afirmaciones absolutas ("todo", "siempre", "completamente") cuando el original usa matices ("algunos", "puede", "tiende a").
+- Degradar algo que el original presenta como fundamental a "secundario" o "menor".
 - Debes evaluar TODAS las contradicciones listadas, del 1 al ${batch.length}.
 
 Responde EXCLUSIVAMENTE con este JSON:

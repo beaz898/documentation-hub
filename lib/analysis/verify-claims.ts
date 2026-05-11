@@ -165,6 +165,11 @@ EJEMPLOS:
 - "Se recomienda formación continua" vs corpus dice "La formación es clave" → "confirmado"
 - "El equipo tiene 10 personas" vs corpus habla de presupuestos → "sin_datos"
 
+BUSCA TAMBIÉN ESTOS TIPOS:
+- OMISIÓN: la afirmación del documento nuevo presenta una lista incompleta respecto al corpus. Ejemplo: afirma "hay 2 tipos" cuando el corpus define 3 o más. Veredicto: "contradiccion".
+- DISTORSIÓN: la afirmación usa términos similares pero técnicamente incorrectos respecto al corpus. Ejemplo: usa "cognitiva" cuando el corpus dice "inteligente". Veredicto: "inconsistencia_menor" si el significado es cercano, "contradiccion" si cambia el sentido.
+- EXAGERACIÓN: la afirmación convierte un matiz del corpus en absoluto. Ejemplo: "elimina todos los errores" cuando el corpus dice "reduce errores". Veredicto: "contradiccion".
+
 EN CASO DE DUDA entre "contradiccion" e "inconsistencia_menor", elige "inconsistencia_menor".
 
 Responde EXCLUSIVAMENTE con este JSON:
