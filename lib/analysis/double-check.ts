@@ -38,8 +38,8 @@ interface BatchVerifyResponse {
   }>;
 }
 
-/** Tamaño del primer lote enviado a Sonnet. */
-const FIRST_BATCH_SIZE = 20;
+/** Tamaño de cada lote enviado a Sonnet. */
+const FIRST_BATCH_SIZE = 15;
 
 /** Tamaño del segundo lote (backup). */
 const SECOND_BATCH_SIZE = 10;

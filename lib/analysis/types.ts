@@ -108,4 +108,9 @@ export interface FinalAnalysis {
    * Ausente si el análisis se completó normalmente.
    */
   earlyStop?: EarlyStopReason;
+  /**
+   * Total de candidatas a contradicción encontradas antes del corte a 50.
+   * Presente solo cuando hay más de 50 candidatas; indica cuántas se omitieron.
+   */
+  candidatesOverLimit?: number;
 }

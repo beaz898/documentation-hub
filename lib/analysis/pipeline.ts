@@ -28,12 +28,8 @@ export type ExhaustivePipelineInput = AnalyzePipelineInput;
 
 const HIGH_OVERLAP_THRESHOLD = 30;
 
-/**
- * Máximo de candidatas a enviar al double-check en corte temprano.
- * 30 da margen suficiente para conseguir 15 confirmadas incluso
- * si Sonnet descarta la mitad.
- */
-const MAX_CANDIDATES_FOR_DOUBLECHECK = 30;
+/** Máximo de candidatas enviadas al double-check en modo exhaustivo. */
+const MAX_DOUBLE_CHECK_CANDIDATES = 50;
 
 // ============================================================
 // Núcleo compartido: retrieve → rerank → judge → synthesize
@@ -180,8 +176,16 @@ export async function runExhaustiveAnalysisPipeline(input: ExhaustivePipelineInp
 
   console.log(`[pipeline-exhaustive] Fusión: ${pipelineResult.discrepancies.length} v2 + ${atomicContradictions.length} atómicas → ${mergedDiscrepancies.length} totales`);
 
+  const totalCandidates = mergedDiscrepancies.length;
+  const cappedCandidates = mergedDiscrepancies.slice(0, MAX_DOUBLE_CHECK_CANDIDATES);
+  const candidatesOverLimit = totalCandidates > MAX_DOUBLE_CHECK_CANDIDATES ? totalCandidates : undefined;
+
+  if (candidatesOverLimit !== undefined) {
+    console.log(`[pipeline-exhaustive] Candidatas limitadas a ${MAX_DOUBLE_CHECK_CANDIDATES} (había ${totalCandidates})`);
+  }
+
   const doubleChecked = await doubleCheckContradictions(
-    mergedDiscrepancies,
+    cappedCandidates,
     0, // sin objetivo → verificar todas
     excludeFps,
   );
@@ -202,6 +206,7 @@ export async function runExhaustiveAnalysisPipeline(input: ExhaustivePipelineInp
     recommendation,
     analysisMode: 'exhaustive',
     styleProblems,
+    ...(candidatesOverLimit !== undefined && { candidatesOverLimit }),
   };
 }
 
