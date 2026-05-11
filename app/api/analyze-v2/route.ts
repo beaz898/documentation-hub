@@ -247,6 +247,7 @@ export async function POST(req: NextRequest) {
         duplicateConfidence: analysis.duplicateConfidence,
         overlaps: analysis.overlaps,
         discrepancies: analysis.discrepancies,
+        minorInconsistencies: analysis.minorInconsistencies,
         newInformation: analysis.newInformation,
         recommendation: analysis.recommendation,
         summary: analysis.summary,

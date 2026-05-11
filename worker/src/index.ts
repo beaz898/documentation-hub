@@ -94,6 +94,7 @@ async function processJob(job: AnalysisJob): Promise<void> {
       duplicateConfidence: analysis.duplicateConfidence,
       overlaps: analysis.overlaps,
       discrepancies: analysis.discrepancies,
+      minorInconsistencies: analysis.minorInconsistencies,
       newInformation: analysis.newInformation,
       recommendation: analysis.recommendation,
       summary: analysis.summary,
