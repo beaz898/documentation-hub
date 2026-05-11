@@ -39,6 +39,7 @@ export interface DocumentJudgment {
     topic: string;
     newDocSays: string;
     existingDocSays: string;
+    severity?: 'contradiction' | 'minor_inconsistency';
   }>;
   overlappingContent: Array<{
     description: string;
@@ -85,6 +86,14 @@ export interface FinalAnalysis {
     /** Nivel de confianza: 'alta' si dos modelos coinciden, 'posible' si solo uno la detectó.
      *  Opcional para compatibilidad: el pipeline rápido no hace doble verificación. */
     confidence?: DiscrepancyConfidence;
+    severity?: 'contradiction' | 'minor_inconsistency';
+  }>;
+  /** Diferencias de enfoque o matiz confirmadas como no estrictamente incompatibles (solo modo exhaustivo). */
+  minorInconsistencies?: Array<{
+    topic: string;
+    newDocSays: string;
+    existingDocSays: string;
+    existingDocument: string;
   }>;
   newInformation: string;
   recommendation: 'INDEXAR' | 'REVISAR' | 'NO_INDEXAR';

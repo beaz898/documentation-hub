@@ -37,14 +37,15 @@ interface ImprovementModalProps {
 }
 
 const TYPE_META: Record<ProblemType, { label: string; color: string; bg: string; border: string }> = {
-  contradiccion: { label: 'Contradicción', color: '#dc2626', bg: 'rgba(220,38,38,0.08)',  border: 'rgba(220,38,38,0.35)' },
-  duplicidad:    { label: 'Duplicidad',    color: '#ea580c', bg: 'rgba(234,88,12,0.08)',  border: 'rgba(234,88,12,0.35)' },
-  ortografia:    { label: 'Ortografía',    color: '#7c3aed', bg: 'rgba(124,58,237,0.08)', border: 'rgba(124,58,237,0.35)' },
-  ambiguedad:    { label: 'Ambigüedad',    color: '#2563eb', bg: 'rgba(37,99,235,0.08)',  border: 'rgba(37,99,235,0.35)' },
-  sugerencia:    { label: 'Sugerencia',    color: '#059669', bg: 'rgba(5,150,105,0.08)',  border: 'rgba(5,150,105,0.35)' },
+  contradiccion:        { label: 'Contradicción',        color: '#dc2626', bg: 'rgba(220,38,38,0.08)',  border: 'rgba(220,38,38,0.35)' },
+  inconsistencia_menor: { label: 'Inconsistencia menor', color: '#d97706', bg: 'rgba(217,119,6,0.08)',  border: 'rgba(217,119,6,0.35)' },
+  duplicidad:           { label: 'Duplicidad',           color: '#ea580c', bg: 'rgba(234,88,12,0.08)',  border: 'rgba(234,88,12,0.35)' },
+  ortografia:           { label: 'Ortografía',           color: '#7c3aed', bg: 'rgba(124,58,237,0.08)', border: 'rgba(124,58,237,0.35)' },
+  ambiguedad:           { label: 'Ambigüedad',           color: '#2563eb', bg: 'rgba(37,99,235,0.08)',  border: 'rgba(37,99,235,0.35)' },
+  sugerencia:           { label: 'Sugerencia',           color: '#059669', bg: 'rgba(5,150,105,0.08)',  border: 'rgba(5,150,105,0.35)' },
 };
 
-const ALL_TYPES: ProblemType[] = ['contradiccion', 'duplicidad', 'ortografia', 'ambiguedad', 'sugerencia'];
+const ALL_TYPES: ProblemType[] = ['contradiccion', 'inconsistencia_menor', 'duplicidad', 'ortografia', 'ambiguedad', 'sugerencia'];
 
 function buildProblemsSummary(problems: Problem[]): string {
   if (problems.length === 0) return '(ningún problema detectado)';

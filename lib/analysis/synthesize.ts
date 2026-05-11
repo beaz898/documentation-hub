@@ -117,6 +117,7 @@ Responde EXCLUSIVAMENTE con este JSON:
       newDocSays: c.newDocSays,
       existingDocSays: c.existingDocSays,
       existingDocument: j.documentName,
+      severity: c.severity,
     }))
   );
 

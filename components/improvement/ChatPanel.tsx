@@ -42,6 +42,7 @@ interface ChatPanelProps {
 
 const GROUP_LABELS: Record<ProblemType, string> = {
   contradiccion: 'Contradicciones',
+  inconsistencia_menor: 'Inconsistencias menores',
   duplicidad: 'Duplicidades',
   ortografia: 'Ortografía',
   ambiguedad: 'Ambigüedades',

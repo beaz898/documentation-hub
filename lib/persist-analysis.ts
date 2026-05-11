@@ -34,6 +34,9 @@ export async function saveAnalysisResult(
   if (analysis.isDuplicate && analysis.duplicateOf) involvedSet.add(analysis.duplicateOf);
   for (const d of analysis.discrepancies) involvedSet.add(d.existingDocument);
   for (const o of analysis.overlaps) involvedSet.add(o.existingDocument);
+  if (analysis.minorInconsistencies) {
+    for (const d of analysis.minorInconsistencies) involvedSet.add(d.existingDocument);
+  }
 
   const { error } = await supabase.from('analysis_results').insert({
     org_id: orgId,
@@ -42,6 +45,7 @@ export async function saveAnalysisResult(
     analysis_type: analysisType,
     contradictions_found: analysis.discrepancies.length,
     contradictions_confirmed: analysis.discrepancies.filter(d => d.confidence === 'alta').length,
+    minor_inconsistencies_found: analysis.minorInconsistencies?.length ?? 0,
     duplicates_found: analysis.isDuplicate ? 1 : 0,
     overlaps_found: analysis.overlaps.length,
     style_problems_found: analysis.styleProblems?.length ?? 0,

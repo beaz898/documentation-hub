@@ -171,6 +171,7 @@ export async function runExhaustiveAnalysisPipeline(input: ExhaustivePipelineInp
       newDocSays: c.newDocSays,
       existingDocSays: c.existingDocSays,
       existingDocument: c.existingDocument,
+      severity: c.severity,
     })),
   );
 
@@ -190,19 +191,26 @@ export async function runExhaustiveAnalysisPipeline(input: ExhaustivePipelineInp
     excludeFps,
   );
 
-  const hasConfirmed = doubleChecked.some(d => d.confidence === 'alta');
-  const hasPossible = doubleChecked.some(d => d.confidence === 'posible');
+  // Separar contradicciones confirmadas de inconsistencias menores
+  const confirmedContradictions = doubleChecked.filter(d => d.confidence === 'alta');
+  const minorInconsistencies = doubleChecked
+    .filter(d => d.confidence === 'posible' && d.severity === 'minor_inconsistency')
+    .map(({ topic, newDocSays, existingDocSays, existingDocument }) => ({
+      topic, newDocSays, existingDocSays, existingDocument,
+    }));
+
   let recommendation = pipelineResult.recommendation;
-  if (recommendation === 'INDEXAR' && (hasConfirmed || hasPossible)) {
+  if (recommendation === 'INDEXAR' && (confirmedContradictions.length > 0 || minorInconsistencies.length > 0)) {
     recommendation = 'REVISAR';
   }
 
   const totalTime = Date.now() - t0;
-  console.log(`[pipeline-exhaustive] Completo en ${totalTime}ms — ${styleProblems.length} problemas de estilo, ${doubleChecked.length} contradicciones`);
+  console.log(`[pipeline-exhaustive] Completo en ${totalTime}ms — ${styleProblems.length} problemas de estilo, ${confirmedContradictions.length} contradicciones, ${minorInconsistencies.length} inconsistencias menores`);
 
   return {
     ...pipelineResult,
-    discrepancies: doubleChecked,
+    discrepancies: confirmedContradictions,
+    ...(minorInconsistencies.length > 0 && { minorInconsistencies }),
     recommendation,
     analysisMode: 'exhaustive',
     styleProblems,
@@ -219,6 +227,7 @@ interface Discrepancy {
   newDocSays: string;
   existingDocSays: string;
   existingDocument: string;
+  severity?: 'contradiction' | 'minor_inconsistency';
 }
 
 function mergeContradictions(listA: Discrepancy[], listB: Discrepancy[]): Discrepancy[] {

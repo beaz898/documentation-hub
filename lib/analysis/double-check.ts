@@ -20,6 +20,7 @@ export interface DoubleCheckedDiscrepancy {
   existingDocSays: string;
   existingDocument: string;
   confidence: DiscrepancyConfidence;
+  severity?: 'contradiction' | 'minor_inconsistency';
 }
 
 interface Discrepancy {
@@ -28,12 +29,14 @@ interface Discrepancy {
   existingDocSays: string;
   existingDocument: string;
   confidence?: DiscrepancyConfidence;
+  severity?: 'contradiction' | 'minor_inconsistency';
 }
 
 interface BatchVerifyResponse {
   results: Array<{
     index: number;
     isContradiction: boolean;
+    severity: 'contradiction' | 'minor_inconsistency' | 'none';
     reason: string;
   }>;
 }
@@ -168,23 +171,26 @@ async function verifyBatch(batch: Discrepancy[]): Promise<DoubleCheckedDiscrepan
    Documento existente ("${d.existingDocument}") dice: "${d.existingDocSays}"`)
     .join('\n\n');
 
-  const prompt = `Eres un verificador de contradicciones en documentación corporativa. Un primer auditor ha detectado ${batch.length} posibles contradicciones entre documentos. Tu tarea es confirmar o desmentir CADA UNA.
+  const prompt = `Eres un verificador de contradicciones en documentación corporativa. Un primer auditor ha detectado ${batch.length} posibles contradicciones entre documentos. Tu tarea es confirmar o desmentir CADA UNA con criterio estricto.
 
 POSIBLES CONTRADICCIONES:
 ${contradictionsBlock}
 
 INSTRUCCIONES:
-- Para cada contradicción, marca isContradiction=true SOLO si ambas afirmaciones se refieren al MISMO dato concreto y dicen cosas incompatibles.
-- Diferencias de redacción o nivel de detalle NO son contradicciones.
-- Si una afirmación es más general y la otra más específica pero compatibles, NO es contradicción.
-- Si no puedes determinar si se refieren al mismo dato, marca isContradiction=false.
+- Marca isContradiction=true SOLO si es IMPOSIBLE que ambas afirmaciones sean verdaderas a la vez. Deben referirse al MISMO dato concreto (cifra, plazo, política, responsable, definición) y decir cosas incompatibles.
+- EN CASO DE DUDA, marca isContradiction=false. Es preferible dejar pasar una contradicción dudosa que marcar un falso positivo.
+- Si una es más general y la otra más específica pero compatibles, NO es contradicción.
+- Diferencias de redacción, énfasis o perspectiva NO son contradicciones.
+- Si ambas pueden ser verdaderas en contextos diferentes, NO es contradicción.
+- Para las que NO son contradicción, indica si es una "inconsistencia menor" (diferencia de enfoque o matiz que el usuario podría querer revisar) con el campo severity.
 - Debes evaluar TODAS las contradicciones listadas, del 1 al ${batch.length}.
 
 Responde EXCLUSIVAMENTE con este JSON:
 {
   "results": [
-    { "index": 1, "isContradiction": true, "reason": "<una frase corta>" },
-    { "index": 2, "isContradiction": false, "reason": "<una frase corta>" }
+    { "index": 1, "isContradiction": true, "severity": "contradiction", "reason": "frase corta" },
+    { "index": 2, "isContradiction": false, "severity": "minor_inconsistency", "reason": "frase corta" },
+    { "index": 3, "isContradiction": false, "severity": "none", "reason": "frase corta" }
   ]
 }`;
 
@@ -195,20 +201,26 @@ Responde EXCLUSIVAMENTE con este JSON:
       model: 'sonnet',
     });
 
-    const resultMap = new Map<number, boolean>();
+    const resultMap = new Map<number, { isContradiction: boolean; severity?: string }>();
     for (const r of response.results || []) {
       if (typeof r.index === 'number' && typeof r.isContradiction === 'boolean') {
-        resultMap.set(r.index, r.isContradiction);
+        resultMap.set(r.index, { isContradiction: r.isContradiction, severity: r.severity });
       }
     }
 
-    return batch.map((d, i) => ({
-      topic: d.topic,
-      newDocSays: d.newDocSays,
-      existingDocSays: d.existingDocSays,
-      existingDocument: d.existingDocument,
-      confidence: (resultMap.get(i + 1) === true ? 'alta' : 'posible') as DiscrepancyConfidence,
-    }));
+    return batch.map((d, i) => {
+      const result = resultMap.get(i + 1);
+      const isContradiction = result?.isContradiction ?? false;
+      const sev = result?.severity;
+      return {
+        topic: d.topic,
+        newDocSays: d.newDocSays,
+        existingDocSays: d.existingDocSays,
+        existingDocument: d.existingDocument,
+        confidence: (isContradiction ? 'alta' : 'posible') as DiscrepancyConfidence,
+        ...(sev && sev !== 'none' ? { severity: sev as 'contradiction' | 'minor_inconsistency' } : {}),
+      };
+    });
   } catch (err) {
     console.warn(`[double-check] Sonnet falló para lote de ${batch.length} contradicciones:`, err);
     return batch.map(d => ({
@@ -217,6 +229,7 @@ Responde EXCLUSIVAMENTE con este JSON:
       existingDocSays: d.existingDocSays,
       existingDocument: d.existingDocument,
       confidence: 'posible' as DiscrepancyConfidence,
+      severity: d.severity,
     }));
   }
 }

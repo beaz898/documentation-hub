@@ -13,6 +13,13 @@ interface AnalysisResult {
     existingDocSays: string;
     existingDocument: string;
     confidence?: 'alta' | 'posible';
+    severity?: 'contradiction' | 'minor_inconsistency';
+  }>;
+  minorInconsistencies?: Array<{
+    topic: string;
+    newDocSays: string;
+    existingDocSays: string;
+    existingDocument: string;
   }>;
   newInformation?: string;
   recommendation?: string;
@@ -153,6 +160,7 @@ export default function AnalysisModal({ fileName, analysis, onConfirm, onCancel,
   const hasProblems =
     analysis.isDuplicate ||
     (analysis.discrepancies && analysis.discrepancies.length > 0) ||
+    (analysis.minorInconsistencies && analysis.minorInconsistencies.length > 0) ||
     (analysis.overlaps && analysis.overlaps.length > 0) ||
     (analysis.styleProblems && analysis.styleProblems.length > 0);
 
@@ -265,6 +273,30 @@ export default function AnalysisModal({ fileName, analysis, onConfirm, onCancel,
                     </div>
                   ))
                 )}
+              </CollapsibleSection>
+            )}
+
+            {isExhaustive && analysis.minorInconsistencies && analysis.minorInconsistencies.length > 0 && (
+              <CollapsibleSection
+                title="Inconsistencias menores"
+                count={analysis.minorInconsistencies.length}
+                color="var(--warning-text)"
+                defaultOpen={false}
+              >
+                {analysis.minorInconsistencies.map((d, i) => (
+                  <div key={i} style={{
+                    padding: '8px 12px', borderRadius: 8, marginBottom: 6,
+                    background: 'var(--warning-light)', border: '0.5px solid var(--warning)',
+                  }}>
+                    <p style={{ fontSize: 12, fontWeight: 500, color: 'var(--warning-text)', margin: '0 0 4px 0' }}>{d.topic}</p>
+                    <p style={{ fontSize: 11, color: 'var(--warning-text)' }}>
+                      Nuevo: &quot;{d.newDocSays}&quot;
+                    </p>
+                    <p style={{ fontSize: 11, color: 'var(--warning-text)' }}>
+                      Existente ({d.existingDocument}): &quot;{d.existingDocSays}&quot;
+                    </p>
+                  </div>
+                ))}
               </CollapsibleSection>
             )}
 

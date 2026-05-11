@@ -31,6 +31,7 @@ interface JudgeResponse {
     topic: string;
     newDocSays: string;
     existingDocSays: string;
+    severity: 'contradiction' | 'minor_inconsistency';
   }>;
   overlappingContent: Array<{
     description: string;
@@ -193,24 +194,42 @@ ${existingFragsBlock}
 
 INSTRUCCIONES CRÍTICAS:
 1. "Solapamiento" significa contenido que se repite, aunque esté redactado con palabras distintas. NO significa compartir tema general.
-2. "Contradicción" significa que ambos documentos afirman algo distinto sobre el mismo dato concreto (cifras, plazos, políticas, definiciones).
-3. El porcentaje de solapamiento debe reflejar CUÁNTO del documento nuevo ya está en el existente, no la similitud temática.
-4. Si los documentos hablan del mismo tema pero con contenido distinto, veredicto = "tema_similar", overlapPercent < 20.
-5. Solo marca "duplicado_exacto" si el contenido es prácticamente idéntico (>85% del nuevo ya está en el existente).
-6. Busca contradicciones en TODO el documento nuevo, no solo en las primeras líneas. Revisa cada afirmación concreta.
+2. "Contradicción" significa que ambos documentos afirman cosas INCOMPATIBLES sobre el mismo dato concreto. Es decir: es IMPOSIBLE que ambas afirmaciones sean verdaderas a la vez.
+3. "Inconsistencia menor" significa que ambos documentos hablan del mismo tema con enfoques, matices o énfasis diferentes, pero no son estrictamente incompatibles.
+4. El porcentaje de solapamiento debe reflejar CUÁNTO del documento nuevo ya está en el existente, no la similitud temática.
+5. Si los documentos hablan del mismo tema pero con contenido distinto, veredicto = "tema_similar", overlapPercent < 20.
+6. Solo marca "duplicado_exacto" si el contenido es prácticamente idéntico (>85% del nuevo ya está en el existente).
+7. Busca contradicciones en TODO el documento nuevo, no solo en las primeras líneas.
+
+EJEMPLOS DE LO QUE SÍ ES CONTRADICCIÓN:
+- "El plazo de entrega es 30 días" vs "El plazo de entrega es 15 días"
+- "El presupuesto aprobado es 100.000€" vs "El presupuesto aprobado es 200.000€"
+- "La política prohíbe el teletrabajo" vs "Se permite el teletrabajo 3 días por semana"
+- "El responsable del proyecto es Ana García" vs "El responsable del proyecto es Luis Pérez"
+
+EJEMPLOS DE LO QUE NO ES CONTRADICCIÓN (usar inconsistencia menor si aplica):
+- "La transformación digital es un proceso tecnológico" vs "La tecnología es solo el habilitador" → perspectivas diferentes, ambas pueden ser verdaderas
+- "Es importante formar al equipo" vs "Es fundamental formar al equipo" → diferencia de énfasis, no de dato
+- "El proyecto tiene 3 fases" vs "El proyecto tiene 3 fases principales y 2 secundarias" → la segunda amplía la primera, no la contradice
+- "Se recomienda usar Python" vs "Se recomienda usar TypeScript" → pueden ser recomendaciones para contextos diferentes
+- Afirmaciones genéricas vs específicas que son compatibles entre sí
+
+REGLA DE ORO: Si puedes imaginar un contexto razonable en el que ambas afirmaciones sean verdaderas simultáneamente, NO es contradicción. Puede ser inconsistencia menor.
 
 REGLAS DE FORMATO:
-- En newDocSays y evidenceInNewDoc: copia LITERALMENTE un fragmento del DOCUMENTO NUEVO. Debe ser un substring exacto, carácter por carácter.
+- En newDocSays y evidenceInNewDoc: copia LITERALMENTE un fragmento del DOCUMENTO NUEVO.
 - En existingDocSays y evidence: copia literalmente un fragmento del DOCUMENTO EXISTENTE.
 - Máximo 1 frase por cita. NO copies párrafos enteros.
-- Máximo 10 contradicciones y 5 solapamientos. Si hay más, incluye los más importantes.
+- Máximo 10 contradicciones, 5 inconsistencias menores y 5 solapamientos.
+- El campo "severity" es obligatorio en cada contradicción: "contradiction" si son incompatibles, "minor_inconsistency" si son diferencias de enfoque o matiz.
 
 Responde con este JSON (sin bloques de código, sin texto adicional):
 {
   "overlapPercent": 25,
   "verdict": "tema_similar",
   "contradictions": [
-    { "topic": "tema", "newDocSays": "cita literal del nuevo", "existingDocSays": "cita literal del existente" }
+    { "topic": "tema", "newDocSays": "cita literal del nuevo", "existingDocSays": "cita literal del existente", "severity": "contradiction" },
+    { "topic": "tema", "newDocSays": "cita literal del nuevo", "existingDocSays": "cita literal del existente", "severity": "minor_inconsistency" }
   ],
   "overlappingContent": [
     { "description": "qué se solapa", "evidence": "cita literal del existente", "evidenceInNewDoc": "cita literal del nuevo" }

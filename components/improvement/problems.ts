@@ -2,6 +2,7 @@
 
 export type ProblemType =
   | 'contradiccion'
+  | 'inconsistencia_menor'
   | 'duplicidad'
   | 'ortografia'
   | 'ambiguedad'
@@ -31,6 +32,13 @@ export interface RawAnalysis {
     existingDocSays: string;
     existingDocument: string;
     confidence?: 'alta' | 'posible';
+    severity?: 'contradiction' | 'minor_inconsistency';
+  }>;
+  minorInconsistencies?: Array<{
+    topic: string;
+    newDocSays: string;
+    existingDocSays: string;
+    existingDocument: string;
   }>;
   newInformation?: string;
   recommendation?: string;
@@ -153,6 +161,19 @@ export function problemsFromAnalysis(analysis: RawAnalysis): Problem[] {
           confidence: d.confidence,
         });
       });
+  }
+
+  if (analysis.minorInconsistencies) {
+    analysis.minorInconsistencies.forEach((d, i) => {
+      out.push({
+        id: `minor-${i}`,
+        type: 'inconsistencia_menor',
+        title: d.topic || `Inconsistencia con "${d.existingDocument}"`,
+        description: `En este documento: "${d.newDocSays}". En "${d.existingDocument}": "${d.existingDocSays}".`,
+        textRef: d.newDocSays,
+        relatedDoc: d.existingDocument,
+      });
+    });
   }
 
   return out;

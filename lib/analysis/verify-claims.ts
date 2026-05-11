@@ -23,10 +23,10 @@ export interface ClaimVerification {
   claim: string;
   category: string;
   sourceQuote: string;
-  verdict: 'contradiccion' | 'confirmado' | 'sin_datos';
-  /** Solo si verdict === 'contradiccion': qué dice el corpus. */
+  verdict: 'contradiccion' | 'inconsistencia_menor' | 'confirmado' | 'sin_datos';
+  /** Solo si verdict es 'contradiccion' o 'inconsistencia_menor': qué dice el corpus. */
   corpusSays?: string;
-  /** Solo si verdict === 'contradiccion': nombre del documento del corpus. */
+  /** Solo si verdict es 'contradiccion' o 'inconsistencia_menor': nombre del documento del corpus. */
   existingDocument?: string;
 }
 
@@ -36,10 +36,11 @@ export interface AtomicContradiction {
   newDocSays: string;
   existingDocSays: string;
   existingDocument: string;
+  severity?: 'contradiction' | 'minor_inconsistency';
 }
 
 interface VerifyResponse {
-  verdict: 'contradiccion' | 'confirmado' | 'sin_datos';
+  verdict: 'contradiccion' | 'inconsistencia_menor' | 'confirmado' | 'sin_datos';
   corpusSays?: string;
   existingDocument?: string;
 }
@@ -110,12 +111,13 @@ export async function verifyClaimsAgainstCorpus(
     );
 
     for (const result of results) {
-      if (result.verdict === 'contradiccion' && result.corpusSays && result.existingDocument) {
+      if ((result.verdict === 'contradiccion' || result.verdict === 'inconsistencia_menor') && result.corpusSays && result.existingDocument) {
         contradictions.push({
           topic: result.category,
           newDocSays: result.claim,
           existingDocSays: result.corpusSays,
           existingDocument: result.existingDocument,
+          severity: result.verdict === 'contradiccion' ? 'contradiction' : 'minor_inconsistency',
         });
       }
     }
@@ -152,17 +154,24 @@ FRAGMENTOS DEL CORPUS EXISTENTE:
 ${corpusBlock}
 
 INSTRUCCIONES:
-- "contradiccion": el corpus afirma algo DISTINTO sobre el mismo dato concreto (cifra, plazo, política, definición diferente).
+- "contradiccion": el corpus afirma algo INCOMPATIBLE sobre el mismo dato concreto. Es IMPOSIBLE que ambos sean verdaderos a la vez (cifra diferente, plazo diferente, política opuesta, definición contradictoria).
+- "inconsistencia_menor": el corpus dice algo diferente sobre el mismo tema pero ambas afirmaciones podrían ser verdaderas simultáneamente (perspectivas diferentes, niveles de detalle distintos, énfasis diferente).
 - "confirmado": el corpus dice lo mismo o es compatible.
 - "sin_datos": los fragmentos no hablan del mismo tema concreto.
 
-Solo marca "contradiccion" si hay un dato concreto que se contradice. Diferencias de redacción NO son contradicciones.
+EJEMPLOS:
+- "El plazo es 30 días" vs corpus dice "El plazo es 15 días" → "contradiccion"
+- "La tecnología es el motor del cambio" vs corpus dice "La tecnología es solo un habilitador" → "inconsistencia_menor"
+- "Se recomienda formación continua" vs corpus dice "La formación es clave" → "confirmado"
+- "El equipo tiene 10 personas" vs corpus habla de presupuestos → "sin_datos"
+
+EN CASO DE DUDA entre "contradiccion" e "inconsistencia_menor", elige "inconsistencia_menor".
 
 Responde EXCLUSIVAMENTE con este JSON:
 {
-  "verdict": "contradiccion" | "confirmado" | "sin_datos",
-  "corpusSays": "<qué dice el corpus sobre este tema, solo si es contradiccion>",
-  "existingDocument": "<nombre del documento del corpus que contradice, solo si es contradiccion>"
+  "verdict": "contradiccion" | "inconsistencia_menor" | "confirmado" | "sin_datos",
+  "corpusSays": "<qué dice el corpus, solo si es contradiccion o inconsistencia_menor>",
+  "existingDocument": "<nombre del documento del corpus, solo si es contradiccion o inconsistencia_menor>"
 }`;
 
   try {
