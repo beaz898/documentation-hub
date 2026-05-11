@@ -1,0 +1,397 @@
+BITÁCORA DE SESIONES — Documentation Hub
+=========================================
+Registro cronológico de cambios implementados en cada sesión de trabajo.
+
+
+────────────────────────────────────────────────────────────────
+SESIÓN 1 — 03/04/2026
+Título: Proyecto inicial — RAG funcional
+────────────────────────────────────────────────────────────────
+
+OBJETIVO
+Construir la base del producto: subir documentos, indexarlos y poder hacer
+preguntas en lenguaje natural que se respondan usando el contenido.
+
+CAMBIOS IMPLEMENTADOS
+
+Motor RAG (lib/rag.ts)
+  - Embedding de la pregunta → búsqueda en Pinecone (topK=15, score mínimo 0.3)
+  - Deduplicación a ≤4 documentos más relevantes
+  - Obtención de texto completo desde Supabase (evita cortes de chunk)
+  - Llamada a Claude con contexto completo + historial de conversación
+  - Soporte de historial (últimos 6 mensajes)
+
+Ingesta de documentos (app/api/ingest/route.ts)
+  - Extracción de texto: PDF (pdf-parse), DOCX (mammoth), TXT/MD/CSV/JSON/HTML
+  - Chunking: fragmentos de ~2000 chars con overlap de 200 chars
+  - Embeddings con Pinecone Inference API (multilingual-e5-large, 1024 dims)
+  - Upsert en Pinecone con metadata: documentId, documentName, chunkIndex,
+    totalChunks, orgId
+  - Registro en Supabase: tabla documents con id, name, size_bytes, chunk_count,
+    org_id, user_id, status
+
+Interfaz de chat (app/chat/page.tsx)
+  - Mensaje con soporte Markdown (componente ChatMessage.tsx)
+  - Sidebar de documentos (DocumentsSidebar.tsx): subir, listar, eliminar
+
+Base de datos (supabase-setup.sql)
+  - Tabla documents con RLS por org_id
+  - Índices en org_id, user_id, created_at
+
+STACK DEFINIDO
+  - Frontend: Next.js 15 + Tailwind CSS → Vercel
+  - LLM: Claude (Anthropic API)
+  - Vector DB: Pinecone serverless
+  - Auth + DB: Supabase
+
+
+────────────────────────────────────────────────────────────────
+SESIÓN 2 — 06/04/2026
+Título: Dark mode + Google Drive + Primer análisis documental
+────────────────────────────────────────────────────────────────
+
+OBJETIVO
+Añadir tema oscuro, integrar Google Drive y primera versión del análisis
+automático de contradicciones al subir un documento.
+
+CAMBIOS IMPLEMENTADOS
+
+ThemeProvider (components/ThemeProvider.tsx)
+  - Toggle dark/light mode persistente
+
+Google Drive (app/api/drive/)
+  - OAuth con Google (callback, redirect)
+  - Listado de archivos del Drive del usuario
+  - Descarga e indexación automática de documentos seleccionados
+
+AnalysisModal (components/AnalysisModal.tsx) — primera versión
+  - Modal que muestra el análisis de contradicciones al subir un documento
+  - Llamada al pipeline de análisis vía /api/analyze-v2
+
+Pipeline de análisis (app/api/analyze-v2/route.ts) — primera versión
+  - Extracción de afirmaciones → búsqueda en Pinecone → comparación LLM
+  - Recomendación: INDEXAR / REVISAR / NO_INDEXAR
+
+ChatMessage.tsx
+  - Soporte mejorado de Markdown con react-markdown
+
+
+────────────────────────────────────────────────────────────────
+SESIÓN 3 — 07/04/2026
+Título: Google Drive completo + mejoras de rendimiento
+────────────────────────────────────────────────────────────────
+
+OBJETIVO
+Completar la integración con Google Drive: sincronización automática,
+seguimiento de eliminaciones, soporte de carpetas.
+
+CAMBIOS IMPLEMENTADOS
+
+Google Drive sync (app/api/drive/sync/route.ts)
+  - Sincronización incremental: sólo descarga ficheros nuevos o modificados
+  - Seguimiento de eliminaciones: detecta ficheros borrados en Drive y los
+    elimina del corpus
+  - Soporte de carpetas: folder_path y folder_id en metadata de documentos
+  - Reconexión: endpoint /api/drive/disconnect para desconectar cuenta
+
+DocumentsSidebar (components/DocumentsSidebar.tsx)
+  - Optimizaciones de rendimiento: carga lazy, paginación implícita
+  - Indicador visual de origen (manual vs Google Drive)
+  - Columna de carpeta para docs de Drive
+
+Supabase: campo source ('manual' | 'google_drive') en tabla documents
+  - Colisión de nombres: documentos Drive con mismo nombre que un manual
+    coexisten sin reemplazarse
+
+
+────────────────────────────────────────────────────────────────
+SESIÓN 4 — 06/05/2026
+Título: Modal de mejora + pipeline de análisis cross-documento
+────────────────────────────────────────────────────────────────
+
+OBJETIVO
+Añadir flujo completo de mejora de documentos: el usuario puede aceptar
+o rechazar sugerencias de la IA y aplicarlas directamente al documento.
+
+CAMBIOS IMPLEMENTADOS
+
+ImprovementModal (components/ImprovementModal.tsx)
+  - Modal de mejora con chat de IA + editor de texto
+  - Sugerencias de reemplazos: el LLM propone {find, replace} pairs
+  - El usuario acepta o rechaza cada sugerencia individual
+  - Aplicación de reemplazos con detección tolerante (fuzzy matching)
+
+ChatPanel (components/improvement/ChatPanel.tsx)
+  - Panel izquierdo del ImprovementModal
+  - Lista de problemas detectados: contradicciones, solapamientos, estilo
+  - Botón "Solventar" por categoría de problema
+
+useCrossDocAnalysis (hooks)
+  - Hook para gestionar estado del análisis cross-documento
+  - Integración con pipeline de análisis desde el modal de mejora
+
+EditorPanel (components/improvement/EditorPanel.tsx)
+  - Editor de texto con resaltado de cambios pendientes
+
+
+────────────────────────────────────────────────────────────────
+SESIÓN 5 — 08/05/2026
+Título: Upload lock + Worker de análisis exhaustivo + optimizaciones
+────────────────────────────────────────────────────────────────
+
+OBJETIVO
+Evitar conflictos de subida simultánea, descargar el análisis exhaustivo
+a un worker separado para no bloquear Vercel, y mejorar la precisión
+del pipeline.
+
+CAMBIOS IMPLEMENTADOS
+
+Upload lock (lib/upload-lock.ts + app/api/org/upload-lock/)
+  - Semáforo de subida por organización: solo un usuario puede subir a la vez
+  - Hook useUploadLock: gestión del estado de bloqueo en el frontend
+  - UI en DocumentsSidebar: mensaje de bloqueo con email del bloqueador
+  - Refactor de lógica de bloqueo (09/05/2026): restricción solo al propietario del lock
+
+Worker de análisis exhaustivo (worker/src/index.ts)
+  - Proceso separado (Node.js) para análisis que tardan >30s
+  - Cola de jobs con estado: pending → processing → completed/failed
+  - Tabla analysis_jobs en Supabase para persistir estado
+
+Job polling (app/api/analysis-jobs/[id]/route.ts)
+  - Endpoint para consultar estado de un job de análisis
+  - Hook useJobPolling: polling automático con backoff hasta completar
+
+Fingerprints para reanálisis (lib/analysis/hash-check.ts)
+  - generateContentHash: hash SHA-256 del contenido del documento
+  - excludeFingerprints: saltarse contradicciones ya descartadas
+    en análisis anteriores del mismo documento
+  - Parámetro en /api/analyze-v2 y en el worker
+
+Optimizaciones del pipeline
+  - Concurrencia LLM: 2 → 5 llamadas paralelas
+  - Eliminado el corte anticipado (early stop) que truncaba resultados
+  - MAX_SELECTED_EXHAUSTIVE: 15 → 25 pares de documentos comparados
+  - Fix double-check exhaustivo: ahora verifica TODAS las candidatas
+    (no solo las primeras 20 del primer lote)
+  - Cap double-check: máximo 50 candidatas, FIRST_BATCH_SIZE=15
+  - Campo candidatesOverLimit en respuesta cuando se supera el límite
+
+
+────────────────────────────────────────────────────────────────
+SESIÓN 6 — 11/05/2026
+Título: Persistencia + Panel de analítica + Mejoras UX + Detección mejorada
+────────────────────────────────────────────────────────────────
+
+OBJETIVO
+Registrar histórico de análisis y consultas de chat para poder mostrar
+estadísticas de uso. Mejorar la detección de errores en el pipeline.
+Mejorar la experiencia de usuario en resolución de duplicidades y modales.
+
+CAMBIOS IMPLEMENTADOS
+
+1. PERSISTENCIA EN SUPABASE (supabase-analysis-persistence.sql)
+
+   Nueva tabla analysis_results
+   - Almacena cada análisis realizado: tipo (quick/exhaustive/style),
+     contradicciones encontradas y confirmadas, duplicados, solapamientos,
+     problemas de estilo, recomendación, documentos involucrados
+   - RLS por org_id
+
+   Nueva tabla chat_queries
+   - Almacena cada consulta de chat: pregunta, documentos usados (JSONB
+     con documentId, documentName, score, chunks[], totalChunks),
+     longitud de respuesta
+   - Los campos chunks y totalChunks permiten calcular cobertura
+
+   lib/persist-analysis.ts
+   - saveAnalysisResult(): guarda resultado de análisis de calidad
+   - saveStyleResult(): guarda resultado de análisis de estilo
+   - saveChatQuery(): guarda consulta de chat con fuentes usadas
+
+   Integración
+   - /api/analyze-v2: llama saveAnalysisResult al completar
+   - /api/analyze-style: llama saveStyleResult al completar
+   - /api/ask: llama saveChatQuery (fire-and-forget) con result.sources completo
+
+2. PANEL DE INTELIGENCIA DOCUMENTAL (/settings/usage)
+
+   app/settings/usage/page.tsx
+   - Página de analytics para admins, con selector de periodo (7/14/30 días)
+
+   app/api/usage/analytics/route.ts
+   - GET /api/usage/analytics?tab=quality|chat&days=N
+   - Solo accesible para rol admin
+
+   Pestaña Calidad Documental (components/usage/QualityTab.tsx)
+   - Totales: análisis realizados, contradicciones, confirmadas, duplicados,
+     solapamientos, problemas de estilo
+   - Evolución por día (gráfico de barras con CSS puro)
+   - Ranking de documentos más problemáticos (top 10)
+   - Distribución por tipo de análisis
+   - Distribución de recomendaciones (INDEXAR / REVISAR / NO_INDEXAR)
+
+   Pestaña Uso del Chat (components/usage/ChatTab.tsx)
+   - Total de consultas y longitud media de respuesta
+   - Top 10 documentos más consultados
+   - Documentos que nunca se han consultado
+   - Consultas recientes deduplicadas (últimas 15 únicas)
+   - Evolución de consultas por día
+   - Sección de Cobertura de documentos (ver punto 6)
+
+   app/api/usage/history/route.ts
+   - Historial paginado de análisis para exportación futura
+
+   app/api/usage/summary/route.ts
+   - Resumen rápido de métricas clave para dashboard principal
+
+3. UX: MINIMIZAR MODALES AL SIDEBAR
+
+   AnalysisModal + ImprovementModal
+   - Botón "Minimizar" (icono —) en la barra de título
+   - Al minimizar, el modal desaparece y aparece un indicador en el sidebar
+     sobre el nombre del documento en análisis/mejora
+   - Haciendo click en el indicador del sidebar se vuelve a abrir el modal
+
+   DocumentsSidebar
+   - Muestra el indicador de modal minimizado como chip sobre el documento
+   - Un solo botón de subida que se transforma según estado:
+     reposo → cargando → procesando → subido
+
+4. MEJORA UX: PROGRESS BAR Y BOTÓN UNIFICADO
+
+   Progress bar en AnalysisModal
+   - Ahora es clickable: click en cualquier punto de la barra salta
+     directamente a esa fase del análisis (para reanálisis parciales)
+   - Propagación de estado de reanálisis desde el modal al sidebar
+
+   Botón de subida unificado en DocumentsSidebar
+   - Un único botón que muestra el estado actual: subir / cargando /
+     indexando / completado, con icono animado según fase
+
+5. NUEVO NIVEL DE SEVERIDAD: INCONSISTENCIA MENOR
+
+   lib/analysis/types.ts
+   - Nueva severidad 'minor_inconsistency' entre 'contradiction' y sin datos
+   - FinalAnalysis.minorInconsistencies[]: array de inconsistencias menores
+     (mismo formato que discrepancies pero no son contradicciones reales)
+
+   lib/analysis/double-check.ts
+   - verifyBatch: severity puede ser 'contradiction' | 'minor_inconsistency' | 'none'
+   - Contradicciones confirmadas: confidence='alta', severity='contradiction'
+   - Inconsistencias menores: confidence='posible', severity='minor_inconsistency'
+
+   lib/analysis/synthesize.ts
+   - Separa minorInconsistencies[] de discrepancies[] en el resultado final
+
+   /api/analyze-v2 + worker
+   - Fix: minorInconsistencies no se serializaban en la respuesta del worker
+     ni en el modo quick del endpoint → ahora incluidas en ambos
+
+   ImprovementModal + ChatPanel
+   - Sección dedicada para inconsistencias menores con tono visual diferente
+   - Filtros para mostrar/ocultar cada categoría de problema
+
+6. COBERTURA DE DOCUMENTOS
+
+   lib/rag.ts
+   - queryRAG ahora trackea qué chunks de Pinecone se usaron en cada consulta
+   - docScores acumula Set<number> de chunkIndex por documento
+   - sources retorna chunks: number[] y totalChunks: number por documento
+
+   /api/ask
+   - saveChatQuery recibe sources con chunks y totalChunks
+   - Se persiste en chat_queries.documents_used (JSONB)
+
+   /api/usage/analytics?tab=chat
+   - Calcula cobertura: unión de todos los chunks usados / totalChunks
+   - Devuelve documentCoverage[]: documentId, documentName, chunksUsados,
+     totalChunks, percentage
+
+   app/api/documents/coverage/[id]/route.ts
+   - Endpoint admin: detalle de cobertura por documento
+   - Muestra qué fragmentos específicos han sido consultados
+
+   ChatTab.tsx
+   - Sección "Cobertura de documentos" al final de la pestaña Chat
+   - Barra de progreso por documento (color rojo < 30%, amarillo < 70%, verde ≥ 70%)
+   - Click expande y muestra los fragmentos más consultados del documento
+
+7. MEJORA DE PROMPTS: TAXONOMÍA DE ERRORES
+
+   Los tres LLMs del pipeline recibieron instrucciones ampliadas para detectar:
+
+   OMISIÓN SIGNIFICATIVA
+   - El documento nuevo presenta una lista incompleta respecto al corpus
+   - Ejemplo: "hay 2 tipos" cuando el corpus define 3 o más
+   - Veredicto: contradicción
+
+   DISTORSIÓN CONCEPTUAL / SUSTITUCIÓN
+   - Usa términos técnicamente diferentes para el mismo concepto
+   - Ejemplo: "cognitiva" cuando el corpus dice "inteligente"
+   - Veredicto: inconsistencia menor si el significado es cercano,
+     contradicción si cambia el sentido
+
+   EXAGERACIÓN
+   - Convierte un matiz del corpus en afirmación absoluta
+   - Ejemplo: "elimina todos los errores" cuando el corpus dice "reduce errores"
+   - Veredicto: contradicción
+
+   DEGRADACIÓN
+   - Presenta como secundario algo que el corpus define como fundamental
+   - Veredicto: contradicción
+
+   Archivos modificados: lib/analysis/judge.ts, verify-claims.ts, double-check.ts
+
+8. RESOLUCIÓN DIRECTA DE DUPLICIDADES (SIN LLM)
+
+   Antes
+   - Click en "Solventar" duplicidad → llamada a /api/improve → gasta 1 crédito
+   - El LLM generaba la propuesta de borrado
+
+   Ahora
+   - Click en "Solventar" → propuesta generada localmente en el frontend
+   - Se detecta el párrafo completo que contiene el fragmento duplicado
+   - Se propone {find: párrafo_completo, replace: ''} directamente
+   - Sin llamada API, sin consumo de créditos
+   - Detección de párrafo: busca \n\n antes y después del fragmento duplicado
+
+   Archivos: components/ImprovementModal.tsx (handleSolveOne, handleSolveGroup)
+
+9. AGRUPACIÓN DE DUPLICIDADES POR DOCUMENTO
+
+   AnalysisModal
+   - Las duplicidades se agrupan por documento de origen (existingDocument)
+   - Cada grupo tiene su propio CollapsibleSection: "Solapamiento con «doc» (N)"
+
+   ChatPanel
+   - Duplicidades sub-agrupadas por relatedDoc dentro de la sección principal
+   - Cada sub-grupo tiene su propio botón "Resolver (N fragmentos)"
+   - Estado de colapso independiente por sub-grupo (collapsedSubGroups: Set<string>)
+
+ARCHIVOS NUEVOS
+  supabase-analysis-persistence.sql
+  lib/persist-analysis.ts
+  app/api/usage/analytics/route.ts
+  app/api/usage/history/route.ts
+  app/api/usage/summary/route.ts
+  app/api/documents/coverage/[id]/route.ts
+  app/settings/usage/page.tsx
+  components/usage/QualityTab.tsx
+  components/usage/ChatTab.tsx
+  CLAUDE.md
+
+ARCHIVOS MODIFICADOS (principales)
+  lib/rag.ts                          — tracking de chunks usados
+  lib/persist-analysis.ts             — tipo ChatQueryInput ampliado
+  lib/analysis/types.ts               — minor_inconsistency severity
+  lib/analysis/synthesize.ts          — separa minorInconsistencies
+  lib/analysis/judge.ts               — taxonomía de errores en prompt
+  lib/analysis/verify-claims.ts       — taxonomía de errores en prompt
+  lib/analysis/double-check.ts        — taxonomía, severity, cap 50
+  app/api/analyze-v2/route.ts         — serializa minorInconsistencies
+  app/api/ask/route.ts                — pasa sources completo a saveChatQuery
+  worker/src/index.ts                 — serializa minorInconsistencies
+  components/AnalysisModal.tsx        — minimizar, agrupación duplicidades
+  components/ImprovementModal.tsx     — minimizar, resolución directa
+  components/DocumentsSidebar.tsx     — indicador modal minimizado, botón unificado
+  components/improvement/ChatPanel.tsx — sub-grupos duplicidades

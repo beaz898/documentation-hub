@@ -39,10 +39,10 @@ Upload → Text extraction (PDF/docx/md/txt) → Chunking (2000 chars, 200 overl
 ### RAG Query Flow (`lib/rag.ts`)
 
 1. Embed user question → Pinecone search (top 15 chunks, min score 0.3)
-2. Deduplicate to ≤4 source documents
+2. Deduplicate to ≤4 source documents; track which `chunkIndex` values matched per doc
 3. **Fetch full document text from Supabase** (not just chunks) — avoids context loss from bad chunk boundaries
 4. Pass full docs + conversation history to Claude Haiku
-5. Return answer + source citations
+5. Return answer + source citations, with `chunks: number[]` and `totalChunks` per source (used for coverage analytics)
 
 ### Analysis Pipeline (`lib/analysis/pipeline.ts`)
 
@@ -50,6 +50,19 @@ When requested, the system runs multi-step analysis against existing docs:
 - Claim extraction → Pinecone retrieval → Contradiction/duplicate verification → Synthesis
 - Each step calls Claude via `lib/analysis/llm-client.ts`
 - Results are confidence-scored findings users can accept/reject before saving improvements
+
+**Severity tiers** (as of May 2026):
+- `contradiction` — confirmed by both Haiku and Sonnet; shown in main discrepancies list
+- `minor_inconsistency` — real difference but both statements can coexist; shown in separate section
+- `none` — not a contradiction
+
+**Detection taxonomy** (judge.ts, verify-claims.ts, double-check.ts):
+- OMISIÓN SIGNIFICATIVA — incomplete list vs corpus
+- DISTORSIÓN CONCEPTUAL / SUSTITUCIÓN — wrong technical term
+- EXAGERACIÓN — absolute claim where corpus uses qualifiers
+- DEGRADACIÓN — downgrades something the corpus marks as fundamental
+
+**Double-check** (`lib/analysis/double-check.ts`): Sonnet verifies Haiku candidates in batches of 15, max 50 total. Exhaustive mode verifies all candidates in successive batches. `excludeFingerprints` skips already-dismissed contradictions from prior re-analyses.
 
 ### Credits & Billing
 
@@ -94,28 +107,50 @@ const ns = getIndex().namespace(orgId);
 await ns.query({ vector, topK: 15, includeMetadata: true });
 ```
 
+### Persistence (`lib/persist-analysis.ts`)
+
+Every completed analysis and chat query is persisted to Supabase for analytics:
+- `saveAnalysisResult()` — called from `/api/analyze-v2` and `/api/analyze-style`
+- `saveChatQuery()` — called fire-and-forget from `/api/ask` with full sources (including `chunks[]` and `totalChunks`)
+
+Run `supabase-analysis-persistence.sql` to create `analysis_results` and `chat_queries` tables.
+
+### Usage Analytics (`app/settings/usage/`)
+
+Admin-only page at `/settings/usage` with two tabs:
+- **Calidad documental** — analysis history, document ranking, recommendation distribution
+- **Uso del chat** — query history, top/never-used documents, corpus coverage per document
+
+Coverage: `chat_queries.documents_used` stores `chunks: number[]` and `totalChunks` per source. The analytics route aggregates these across all queries in the period to compute what % of each document's chunks have actually been retrieved.
+
 ### Key Files
 
 | File | Purpose |
 |---|---|
 | `lib/org.ts` | `resolveOrg()` — user → org + role |
-| `lib/rag.ts` | Core RAG engine |
+| `lib/rag.ts` | Core RAG engine + chunk coverage tracking |
 | `lib/credits.ts` | `consumeCredits()`, `CREDIT_COSTS` |
 | `lib/chunking.ts` | Text extraction + chunking |
 | `lib/embeddings.ts` | Pinecone Inference API with rate limiting |
+| `lib/persist-analysis.ts` | Save analysis results and chat queries to Supabase |
 | `lib/analysis/pipeline.ts` | Multi-step document analysis orchestration |
 | `lib/analysis/llm-client.ts` | Robust Claude API wrapper |
 | `app/api/ingest/route.ts` | File upload + indexing |
 | `app/api/ask/route.ts` | Chat endpoint |
+| `app/api/analyze-v2/route.ts` | Document quality analysis (quick + exhaustive) |
+| `app/api/usage/analytics/route.ts` | Usage analytics for admins |
 | `app/api/billing/` | Stripe webhook + checkout + portal |
 | `app/api/drive/` | Google Drive OAuth + sync |
-| `supabase-setup.sql` | DB schema + RLS policies |
+| `supabase-setup.sql` | Core DB schema + RLS policies |
+| `supabase-analysis-persistence.sql` | analytics tables: analysis_results, chat_queries |
 
 ### Gotchas
 
 - Older documents may lack `full_text` in Supabase — fallback to reconstructing from chunks.
 - Pinecone free tier rate-limits at 250K tokens/min; `lib/embeddings.ts` auto-waits 60s on 429.
 - RLS policies enforce `org_id` on all tables; use the service role client server-side.
+- `chat_queries.documents_used` records made before commit `b71dd5e` (May 2026) lack `chunks`/`totalChunks` — coverage section only shows for queries made after that deploy.
+- Duplicity resolution in `ImprovementModal` is intentionally local (no API call, no credit cost) — `handleSolveOne`/`handleSolveGroup` generate the replacement proposal by finding the surrounding paragraph with `findParagraphContaining()`.
 
 ## Reglas de trabajo con el usuario
 
