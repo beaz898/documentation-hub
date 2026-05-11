@@ -637,40 +637,26 @@ export default function DocumentsSidebar({
           </div>
         )}
 
-        {/* Indicador de modal minimizado o análisis en curso */}
-        {activeModal && (
+        {activeModal?.status === 'ready' ? (
+          /* Modal minimizado: botón de restaurar */
           <button
-            onClick={activeModal.status === 'ready' ? onRestoreModal : undefined}
+            onClick={onRestoreModal}
             style={{
-              width: '100%', padding: '8px 10px', borderRadius: 9,
-              border: `0.5px solid ${activeModal.status === 'ready' ? 'var(--brand)' : 'var(--border)'}`,
-              background: activeModal.status === 'ready' ? 'var(--brand)' : 'transparent',
-              color: activeModal.status === 'ready' ? '#fff' : 'var(--brand)',
-              fontSize: 11, fontWeight: 600,
-              cursor: activeModal.status === 'ready' ? 'pointer' : 'default',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+              width: '100%', padding: '9px', borderRadius: 9, border: 'none',
+              background: activeModal.label.startsWith('Chat') ? '#059669' : 'var(--brand)',
+              color: '#fff',
+              fontSize: 12, fontWeight: 600, cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
             }}
           >
-            {activeModal.status === 'running' ? (
-              <>
-                <div className="animate-pulse" style={{
-                  width: 6, height: 6, borderRadius: '50%', background: 'var(--brand)', flexShrink: 0,
-                }} />
-                <span>{activeModal.label}</span>
-              </>
-            ) : (
-              <>
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                  <circle cx="12" cy="12" r="3" />
-                </svg>
-                {activeModal.label}
-              </>
-            )}
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <polyline points="15 3 21 3 21 9" /><polyline points="9 21 3 21 3 15" />
+              <line x1="21" y1="3" x2="14" y2="10" /><line x1="3" y1="21" x2="10" y2="14" />
+            </svg>
+            {activeModal.label}
           </button>
-        )}
-
-        {analysisProgress > 0 ? (
+        ) : analysisProgress > 0 ? (
+          /* Análisis en curso: barra de progreso */
           <div style={{ width: '100%' }}>
             <p style={{
               fontSize: 10, fontWeight: 500, color: 'var(--brand)',
@@ -700,6 +686,7 @@ export default function DocumentsSidebar({
             </div>
           </div>
         ) : (
+          /* Estado normal o modal visible (bloqueado) */
           <button
             onClick={() => {
               if (uploadLock?.locked && !uploadLock?.isMe) {
