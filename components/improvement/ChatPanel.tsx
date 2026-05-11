@@ -62,6 +62,15 @@ export default function ChatPanel({
 
   // Estado de grupos colapsados: por defecto todos expandidos
   const [collapsedGroups, setCollapsedGroups] = useState<Set<ProblemType>>(new Set());
+  const [collapsedSubGroups, setCollapsedSubGroups] = useState<Set<string>>(new Set());
+
+  const toggleSubGroup = (key: string) => {
+    setCollapsedSubGroups(prev => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key); else next.add(key);
+      return next;
+    });
+  };
 
   const toggleGroupCollapse = (type: ProblemType) => {
     setCollapsedGroups(prev => {
@@ -224,69 +233,164 @@ export default function ChatPanel({
                   >Resolver</button>
                 </div>
 
-                {/* Tarjetas del grupo (solo si no está colapsado) */}
-                {/* Tarjetas activas del grupo */}
-                {!isCollapsed && items.filter(({ p }) => !p.dismissed).map(({ p }) => {
-                  const srcBadge = getDocSourceBadge(p.relatedDoc);
-                  const isClickable = !!p.textRef;
-                  return (
-                    <div
-                      key={p.id}
-                      onClick={isClickable ? () => onGoToProblem(p) : undefined}
-                      title={isClickable ? 'Ir al fragmento en el texto' : undefined}
-                      style={{
-                        padding: '8px 10px', borderRadius: 7,
-                        background: meta.bg, borderLeft: `3px solid ${meta.color}`,
-                        cursor: isClickable ? 'pointer' : 'default',
-                        transition: 'background 0.12s',
-                      }}
-                      onMouseEnter={e => {
-                        if (isClickable) e.currentTarget.style.background = meta.border;
-                      }}
-                      onMouseLeave={e => {
-                        if (isClickable) e.currentTarget.style.background = meta.bg;
-                      }}
-                    >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 3, flexWrap: 'wrap' }}>
-                        <span style={{ fontSize: 9, fontWeight: 600, textTransform: 'uppercase', color: meta.color, letterSpacing: 0.3 }}>
-                          {meta.label}
-                        </span>
-                        {srcBadge && (
-                          <span style={{
-                            fontSize: 8, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.3,
-                            padding: '1px 5px', borderRadius: 3,
-                            background: `${srcBadge.color}1a`, color: srcBadge.color,
-                            border: `0.5px solid ${srcBadge.color}66`,
-                          }}>{srcBadge.label}</span>
-                        )}
-                        <span style={{ fontSize: 11, fontWeight: 500, color: 'var(--text-primary)', flex: 1, minWidth: 0 }}>{p.title}</span>
-                        <button
-                          onClick={(e) => { e.stopPropagation(); onDismissProblem(p); }}
-                          title="Marcar como no es un error"
-                          style={{
-                            fontSize: 10, padding: '2px 6px', borderRadius: 4,
-                            border: '0.5px solid var(--text-muted)', background: 'transparent', color: 'var(--text-muted)',
-                            cursor: 'pointer',
-                            fontWeight: 500, flexShrink: 0,
-                          }}
-                        >No es error</button>
-                        <button
-                          onClick={(e) => { e.stopPropagation(); onSolveOne(p); }}
-                          disabled={sending}
-                          title="Pedir solución al asistente"
-                          style={{
-                            fontSize: 10, padding: '2px 6px', borderRadius: 4,
-                            border: `0.5px solid ${meta.color}`, background: 'transparent', color: meta.color,
-                            cursor: sending ? 'not-allowed' : 'pointer',
-                            fontWeight: 600, flexShrink: 0,
-                            opacity: sending ? 0.5 : 1,
-                          }}
-                        >Solventar</button>
+                {/* Tarjetas del grupo */}
+                {!isCollapsed && (() => {
+                  const activeItems = items.filter(({ p }) => !p.dismissed);
+
+                  if (type === 'duplicidad') {
+                    const subGroupMap = new Map<string, typeof activeItems>();
+                    for (const item of activeItems) {
+                      const key = item.p.relatedDoc || 'Sin documento';
+                      if (!subGroupMap.has(key)) subGroupMap.set(key, []);
+                      subGroupMap.get(key)!.push(item);
+                    }
+                    return [...subGroupMap.entries()].map(([docName, subItems]) => {
+                      const subKey = `dup-sg-${docName}`;
+                      const isSubCollapsed = collapsedSubGroups.has(subKey);
+                      return (
+                        <div key={docName} style={{ marginBottom: 3 }}>
+                          <div
+                            onClick={() => toggleSubGroup(subKey)}
+                            style={{
+                              display: 'flex', alignItems: 'center', gap: 5,
+                              padding: '4px 8px', borderRadius: 5, cursor: 'pointer', userSelect: 'none',
+                              background: meta.bg, marginBottom: 2,
+                            }}
+                          >
+                            <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke={meta.color} strokeWidth="3"
+                              style={{ transform: isSubCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)', transition: 'transform 0.15s ease', flexShrink: 0 }}>
+                              <polyline points="6 9 12 15 18 9" />
+                            </svg>
+                            <span style={{ fontSize: 10, fontWeight: 600, color: meta.color, flex: 1 }}>
+                              Con &ldquo;{docName}&rdquo; ({subItems.length} fragmento{subItems.length !== 1 ? 's' : ''})
+                            </span>
+                            <button
+                              onClick={(e) => { e.stopPropagation(); onSolveGroup(type, subItems.map(({ p }) => p)); }}
+                              disabled={sending}
+                              style={{
+                                fontSize: 9, padding: '2px 6px', borderRadius: 4,
+                                border: `0.5px solid ${meta.color}`, background: 'transparent', color: meta.color,
+                                cursor: sending ? 'not-allowed' : 'pointer', fontWeight: 600, flexShrink: 0, opacity: sending ? 0.5 : 1,
+                              }}
+                            >Resolver</button>
+                          </div>
+                          {!isSubCollapsed && subItems.map(({ p }) => {
+                            const srcBadge = getDocSourceBadge(p.relatedDoc);
+                            const isClickable = !!p.textRef;
+                            return (
+                              <div
+                                key={p.id}
+                                onClick={isClickable ? () => onGoToProblem(p) : undefined}
+                                title={isClickable ? 'Ir al fragmento en el texto' : undefined}
+                                style={{
+                                  padding: '7px 10px', borderRadius: 7, marginBottom: 3,
+                                  background: meta.bg, borderLeft: `3px solid ${meta.color}`,
+                                  cursor: isClickable ? 'pointer' : 'default', transition: 'background 0.12s',
+                                }}
+                                onMouseEnter={e => { if (isClickable) e.currentTarget.style.background = meta.border; }}
+                                onMouseLeave={e => { if (isClickable) e.currentTarget.style.background = meta.bg; }}
+                              >
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 3, flexWrap: 'wrap' }}>
+                                  {srcBadge && (
+                                    <span style={{
+                                      fontSize: 8, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.3,
+                                      padding: '1px 5px', borderRadius: 3,
+                                      background: `${srcBadge.color}1a`, color: srcBadge.color,
+                                      border: `0.5px solid ${srcBadge.color}66`,
+                                    }}>{srcBadge.label}</span>
+                                  )}
+                                  <span style={{ fontSize: 11, fontWeight: 500, color: 'var(--text-primary)', flex: 1, minWidth: 0 }}>{p.title}</span>
+                                  <button
+                                    onClick={(e) => { e.stopPropagation(); onDismissProblem(p); }}
+                                    title="Marcar como no es un error"
+                                    style={{
+                                      fontSize: 10, padding: '2px 6px', borderRadius: 4,
+                                      border: '0.5px solid var(--text-muted)', background: 'transparent', color: 'var(--text-muted)',
+                                      cursor: 'pointer', fontWeight: 500, flexShrink: 0,
+                                    }}
+                                  >No es error</button>
+                                  <button
+                                    onClick={(e) => { e.stopPropagation(); onSolveOne(p); }}
+                                    disabled={sending}
+                                    title="Proponer eliminación del fragmento"
+                                    style={{
+                                      fontSize: 10, padding: '2px 6px', borderRadius: 4,
+                                      border: `0.5px solid ${meta.color}`, background: 'transparent', color: meta.color,
+                                      cursor: sending ? 'not-allowed' : 'pointer', fontWeight: 600, flexShrink: 0, opacity: sending ? 0.5 : 1,
+                                    }}
+                                  >Solventar</button>
+                                </div>
+                                <p style={{ fontSize: 10, color: 'var(--text-secondary)', margin: 0, lineHeight: 1.4 }}>{p.description}</p>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      );
+                    });
+                  }
+
+                  return activeItems.map(({ p }) => {
+                    const srcBadge = getDocSourceBadge(p.relatedDoc);
+                    const isClickable = !!p.textRef;
+                    return (
+                      <div
+                        key={p.id}
+                        onClick={isClickable ? () => onGoToProblem(p) : undefined}
+                        title={isClickable ? 'Ir al fragmento en el texto' : undefined}
+                        style={{
+                          padding: '8px 10px', borderRadius: 7,
+                          background: meta.bg, borderLeft: `3px solid ${meta.color}`,
+                          cursor: isClickable ? 'pointer' : 'default',
+                          transition: 'background 0.12s',
+                        }}
+                        onMouseEnter={e => {
+                          if (isClickable) e.currentTarget.style.background = meta.border;
+                        }}
+                        onMouseLeave={e => {
+                          if (isClickable) e.currentTarget.style.background = meta.bg;
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 3, flexWrap: 'wrap' }}>
+                          <span style={{ fontSize: 9, fontWeight: 600, textTransform: 'uppercase', color: meta.color, letterSpacing: 0.3 }}>
+                            {meta.label}
+                          </span>
+                          {srcBadge && (
+                            <span style={{
+                              fontSize: 8, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.3,
+                              padding: '1px 5px', borderRadius: 3,
+                              background: `${srcBadge.color}1a`, color: srcBadge.color,
+                              border: `0.5px solid ${srcBadge.color}66`,
+                            }}>{srcBadge.label}</span>
+                          )}
+                          <span style={{ fontSize: 11, fontWeight: 500, color: 'var(--text-primary)', flex: 1, minWidth: 0 }}>{p.title}</span>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); onDismissProblem(p); }}
+                            title="Marcar como no es un error"
+                            style={{
+                              fontSize: 10, padding: '2px 6px', borderRadius: 4,
+                              border: '0.5px solid var(--text-muted)', background: 'transparent', color: 'var(--text-muted)',
+                              cursor: 'pointer',
+                              fontWeight: 500, flexShrink: 0,
+                            }}
+                          >No es error</button>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); onSolveOne(p); }}
+                            disabled={sending}
+                            title="Pedir solución al asistente"
+                            style={{
+                              fontSize: 10, padding: '2px 6px', borderRadius: 4,
+                              border: `0.5px solid ${meta.color}`, background: 'transparent', color: meta.color,
+                              cursor: sending ? 'not-allowed' : 'pointer',
+                              fontWeight: 600, flexShrink: 0,
+                              opacity: sending ? 0.5 : 1,
+                            }}
+                          >Solventar</button>
+                        </div>
+                        <p style={{ fontSize: 10, color: 'var(--text-secondary)', margin: 0, lineHeight: 1.4 }}>{p.description}</p>
                       </div>
-                      <p style={{ fontSize: 10, color: 'var(--text-secondary)', margin: 0, lineHeight: 1.4 }}>{p.description}</p>
-                    </div>
-                  );
-                })}
+                    );
+                  });
+                })()}
 
                 {/* Subsección de descartados */}
                 {!isCollapsed && items.some(({ p }) => p.dismissed) && (() => {

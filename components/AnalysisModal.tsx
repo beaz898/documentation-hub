@@ -300,28 +300,41 @@ export default function AnalysisModal({ fileName, analysis, onConfirm, onCancel,
               </CollapsibleSection>
             )}
 
-            {analysis.overlaps && analysis.overlaps.length > 0 && (
-              <CollapsibleSection
-                title="Duplicidades"
-                count={analysis.overlaps.length}
-                color="var(--info)"
-                defaultOpen={false}
-              >
-                {analysis.overlaps.map((o, i) => (
-                  <div key={i} style={{
-                    padding: '8px 12px', borderRadius: 8, marginBottom: 6,
-                    background: 'var(--info-light)', border: '0.5px solid var(--info)',
-                  }}>
-                    <p style={{ fontSize: 12, color: 'var(--info-text)' }}>
-                      {o.description}
-                    </p>
-                    <p style={{ fontSize: 11, color: 'var(--info-text)', opacity: 0.8 }}>
-                      Con &quot;{o.existingDocument}&quot; — severidad: {o.severity}
-                    </p>
-                  </div>
-                ))}
-              </CollapsibleSection>
-            )}
+            {analysis.overlaps && analysis.overlaps.length > 0 && (() => {
+              const overlaps = analysis.overlaps!;
+              const byDoc = new Map<string, typeof overlaps>();
+              for (const o of overlaps) {
+                if (!byDoc.has(o.existingDocument)) byDoc.set(o.existingDocument, []);
+                byDoc.get(o.existingDocument)!.push(o);
+              }
+              return (
+                <CollapsibleSection
+                  title="Duplicidades"
+                  count={overlaps.length}
+                  color="var(--info)"
+                  defaultOpen={false}
+                >
+                  {[...byDoc.entries()].map(([docName, items]) => (
+                    <CollapsibleSection
+                      key={docName}
+                      title={`Solapamiento con "${docName}" (${items.length} fragmento${items.length !== 1 ? 's' : ''})`}
+                      color="var(--info)"
+                      defaultOpen={false}
+                    >
+                      {items.map((o, i) => (
+                        <div key={i} style={{
+                          padding: '8px 12px', borderRadius: 8, marginBottom: 6,
+                          background: 'var(--info-light)', border: '0.5px solid var(--info)',
+                        }}>
+                          <p style={{ fontSize: 12, color: 'var(--info-text)' }}>{o.description}</p>
+                          <p style={{ fontSize: 11, color: 'var(--info-text)', opacity: 0.8 }}>Severidad: {o.severity}</p>
+                        </div>
+                      ))}
+                    </CollapsibleSection>
+                  ))}
+                </CollapsibleSection>
+              );
+            })()}
 
             {analysis.styleProblems && analysis.styleProblems.length > 0 && (() => {
               const ortografia = analysis.styleProblems!.filter(p => p.type === 'ortografia');

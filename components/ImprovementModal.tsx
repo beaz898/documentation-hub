@@ -10,6 +10,17 @@ import { useCrossDocAnalysis } from './improvement/useCrossDocAnalysis';
 import { useIndexing } from './improvement/useIndexing';
 import type { Problem, ProblemType, RawAnalysis } from './improvement/problems';
 
+/** Returns the full paragraph (bounded by \n\n) that contains `fragment`. */
+function findParagraphContaining(text: string, fragment: string): string | null {
+  const range = findTolerant(text, fragment);
+  if (!range) return null;
+  const beforeSlice = text.lastIndexOf('\n\n', range.start);
+  const start = beforeSlice === -1 ? 0 : beforeSlice + 2;
+  const afterSlice = text.indexOf('\n\n', range.end);
+  const end = afterSlice === -1 ? text.length : afterSlice;
+  return text.slice(start, end).trim() || null;
+}
+
 interface ExistingDocForDialog {
   id: string;
   name: string;
@@ -198,19 +209,64 @@ export default function ImprovementModal({
   }, []);
 
   const handleSolveOne = useCallback((p: Problem) => {
+    if (p.type === 'duplicidad') {
+      const fragment = p.textRef;
+      if (!fragment) {
+        addAssistantMessage('Esta duplicidad no tiene fragmento de referencia. Revísala manualmente.');
+        return;
+      }
+      const paragraph = findParagraphContaining(textRef.current, fragment);
+      if (!paragraph) {
+        addAssistantMessage('No se encontró el fragmento duplicado en el texto. Es posible que ya haya sido eliminado.');
+        return;
+      }
+      setChatMessages(prev => [...prev,
+        { id: `u-${Date.now()}`, role: 'user', content: `Resolver duplicidad: ${p.title}` },
+        {
+          id: `a-${Date.now()}-${Math.random()}`, role: 'assistant',
+          content: `Para resolver la duplicidad con "${p.relatedDoc || 'documento externo'}", propongo eliminar el siguiente párrafo:`,
+          replacements: [{ find: paragraph, replace: '', applied: false, failed: false }],
+        },
+      ]);
+      return;
+    }
     const typeLabel = TYPE_META[p.type].label.toLowerCase();
     const message = `Resuelve el siguiente problema de tipo ${typeLabel} en el TEXTO_ACTUAL. Propón los cambios necesarios con bloques REPLACEMENT:\n\nTítulo: ${p.title}\nDescripción: ${p.description}${p.relatedDoc ? `\nDocumento relacionado: ${p.relatedDoc}` : ''}`;
     sendMessage(message, textRef.current, fileName, problemsSummary);
-  }, [sendMessage, fileName, problemsSummary]);
+  }, [sendMessage, fileName, problemsSummary, addAssistantMessage, setChatMessages]);
 
   const handleSolveGroup = useCallback((type: ProblemType, groupProblems: Problem[]) => {
+    if (type === 'duplicidad') {
+      const currentText = textRef.current;
+      const replacements: Array<{ find: string; replace: string; applied: boolean; failed: boolean }> = [];
+      for (const p of groupProblems) {
+        if (!p.textRef) continue;
+        const paragraph = findParagraphContaining(currentText, p.textRef);
+        if (paragraph && !replacements.some(r => r.find === paragraph)) {
+          replacements.push({ find: paragraph, replace: '', applied: false, failed: false });
+        }
+      }
+      if (replacements.length === 0) {
+        addAssistantMessage('No se pudieron localizar los fragmentos duplicados en el texto.');
+        return;
+      }
+      setChatMessages(prev => [...prev,
+        { id: `u-${Date.now()}`, role: 'user', content: `Resolver todas las duplicidades (${replacements.length} fragmento${replacements.length !== 1 ? 's' : ''})` },
+        {
+          id: `a-${Date.now()}-${Math.random()}`, role: 'assistant',
+          content: `He generado ${replacements.length} propuesta${replacements.length !== 1 ? 's' : ''} para eliminar el contenido duplicado. Aplica cada cambio:`,
+          replacements,
+        },
+      ]);
+      return;
+    }
     const typeLabel = TYPE_META[type].label.toLowerCase();
     const list = groupProblems
       .map((p, i) => `${i + 1}. ${p.title}: ${p.description}${p.relatedDoc ? ` (doc: ${p.relatedDoc})` : ''}`)
       .join('\n');
     const message = `Resuelve TODOS los problemas de tipo ${typeLabel} detectados en el TEXTO_ACTUAL. Genera UN BLOQUE REPLACEMENT POR CADA cambio necesario, no resumas en uno solo:\n\n${list}`;
     sendMessage(message, textRef.current, fileName, problemsSummary);
-  }, [sendMessage, fileName, problemsSummary]);
+  }, [sendMessage, fileName, problemsSummary, addAssistantMessage, setChatMessages]);
 
   /** Toggle de "no es un error" en un problema. */
   const handleDismissProblem = useCallback((p: Problem) => {
