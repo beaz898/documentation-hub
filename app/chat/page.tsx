@@ -22,6 +22,8 @@ export default function ChatPage() {
   const [isMobile, setIsMobile] = useState(false);
   const [analysisMinimized, setAnalysisMinimized] = useState(false);
   const [improvementMinimized, setImprovementMinimized] = useState(false);
+  const [improvementRunning, setImprovementRunning] = useState(false);
+  const [improvementRunPhase, setImprovementRunPhase] = useState('');
   const searchParams = useSearchParams();
 
   // Core hooks
@@ -89,13 +91,15 @@ export default function ChatPage() {
   }, [searchParams, session]);
 
   // Estado del indicador del sidebar para modales minimizados o análisis en curso
-  const activeModalForSidebar = improvementTarget && improvementMinimized
-    ? { status: 'ready' as const, label: 'Chat de mejora activo' }
-    : pendingAnalysis && analysisMinimized
-      ? { status: 'ready' as const, label: 'Resultados listos' }
-      : analysisProgress > 0
-        ? { status: 'running' as const, label: analysisPhase || 'Analizando...' }
-        : undefined;
+  const activeModalForSidebar = improvementTarget && improvementMinimized && improvementRunning
+    ? { status: 'running' as const, label: improvementRunPhase || 'Reanalizando...' }
+    : improvementTarget && improvementMinimized
+      ? { status: 'ready' as const, label: 'Chat de mejora activo' }
+      : pendingAnalysis && analysisMinimized
+        ? { status: 'ready' as const, label: 'Resultados listos' }
+        : analysisProgress > 0
+          ? { status: 'running' as const, label: analysisPhase || 'Analizando...' }
+          : undefined;
 
   function handleRestoreModal() {
     if (improvementMinimized) setImprovementMinimized(false);
@@ -219,6 +223,7 @@ export default function ChatPage() {
             onClose={handleImprovementClose}
             onIndexed={handleImprovementIndexed}
             onMinimize={() => setImprovementMinimized(true)}
+            onReanalysisChange={(running, phase) => { setImprovementRunning(running); setImprovementRunPhase(phase); }}
           />
         </div>
       )}

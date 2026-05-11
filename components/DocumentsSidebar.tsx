@@ -656,8 +656,11 @@ export default function DocumentsSidebar({
             {activeModal.label}
           </button>
         ) : analysisProgress > 0 ? (
-          /* Análisis en curso: barra de progreso */
-          <div style={{ width: '100%' }}>
+          /* Análisis en curso con porcentaje: barra clicable para restaurar modal */
+          <div
+            onClick={onRestoreModal}
+            style={{ width: '100%', cursor: 'pointer' }}
+          >
             <p style={{
               fontSize: 10, fontWeight: 500, color: 'var(--brand)',
               marginBottom: 4, textAlign: 'center',
@@ -685,6 +688,23 @@ export default function DocumentsSidebar({
               </span>
             </div>
           </div>
+        ) : activeModal?.status === 'running' ? (
+          /* Reanálisis en curso sin porcentaje (reanalizar dentro del modal de mejora) */
+          <button
+            onClick={onRestoreModal}
+            style={{
+              width: '100%', padding: '9px', borderRadius: 9, border: 'none',
+              background: 'var(--brand-light)',
+              color: 'var(--brand)',
+              fontSize: 12, fontWeight: 600, cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+            }}
+          >
+            <div className="animate-pulse" style={{
+              width: 7, height: 7, borderRadius: '50%', background: 'var(--brand)', flexShrink: 0,
+            }} />
+            {activeModal.label}
+          </button>
         ) : (
           /* Estado normal o modal visible (bloqueado) */
           <button

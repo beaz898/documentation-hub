@@ -33,6 +33,7 @@ interface ImprovementModalProps {
   onClose: () => void;
   onIndexed: (docName: string, wasReplaced: boolean) => void;
   onMinimize?: () => void;
+  onReanalysisChange?: (running: boolean, phase: string) => void;
 }
 
 const TYPE_META: Record<ProblemType, { label: string; color: string; bg: string; border: string }> = {
@@ -63,6 +64,7 @@ export default function ImprovementModal({
   onClose,
   onIndexed,
   onMinimize,
+  onReanalysisChange,
 }: ImprovementModalProps) {
   const [text, setText] = useState(initialText);
   const editorRef = useRef<HTMLDivElement>(null);
@@ -85,6 +87,7 @@ export default function ImprovementModal({
     setCrossDocProblems,
     reanalyzeAll,
     reanalyzingAll,
+    reanalyzePhase,
     dismissProblem,
   } = useCrossDocAnalysis(analysis, accessToken);
 
@@ -99,6 +102,17 @@ export default function ImprovementModal({
     accessToken,
     initialStyleProblems: analysis.styleProblems,
   });
+
+  // Propagar estado de reanálisis al padre para el indicador del sidebar
+  useEffect(() => {
+    const running = reanalyzingAll || styleLoading;
+    const phase = reanalyzingAll
+      ? (reanalyzePhase ?? 'Reanalizando corpus...')
+      : styleLoading
+        ? 'Reanalizando estilo...'
+        : '';
+    onReanalysisChange?.(running, phase);
+  }, [reanalyzingAll, styleLoading, reanalyzePhase, onReanalysisChange]);
 
   const problems = useMemo<Problem[]>(
     () => [...crossDocProblems, ...styleProblems],
