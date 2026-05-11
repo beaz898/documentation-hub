@@ -62,6 +62,8 @@ export interface RAGResult {
     documentId: string;
     documentName: string;
     score: number;
+    chunks: number[];
+    totalChunks: number;
   }>;
   usage: {
     inputTokens: number;
@@ -117,16 +119,23 @@ export async function queryRAG(
   }
 
   // 3. Identificar los documentos relevantes (deduplicar por documentId)
-  const docScores = new Map<string, { documentId: string; documentName: string; maxScore: number }>();
+  const docScores = new Map<string, { documentId: string; documentName: string; maxScore: number; chunks: Set<number>; totalChunks: number }>();
   for (const m of matches) {
     if (!m.metadata || typeof m.score !== 'number' || m.score < MIN_SCORE) continue;
     const docId = String(m.metadata.documentId || '');
     const docName = String(m.metadata.documentName || 'Documento');
     if (!docId) continue;
 
+    const chunkIndex = typeof m.metadata.chunkIndex === 'number' ? m.metadata.chunkIndex : Number(m.metadata.chunkIndex ?? 0);
+    const totalChunks = typeof m.metadata.totalChunks === 'number' ? m.metadata.totalChunks : Number(m.metadata.totalChunks ?? 1);
+
     const existing = docScores.get(docId);
-    if (!existing || m.score > existing.maxScore) {
-      docScores.set(docId, { documentId: docId, documentName: docName, maxScore: m.score });
+    if (!existing) {
+      docScores.set(docId, { documentId: docId, documentName: docName, maxScore: m.score, chunks: new Set([chunkIndex]), totalChunks });
+    } else {
+      existing.chunks.add(chunkIndex);
+      if (m.score > existing.maxScore) existing.maxScore = m.score;
+      if (totalChunks > existing.totalChunks) existing.totalChunks = totalChunks;
     }
   }
 
@@ -191,6 +200,8 @@ PREGUNTA DEL USUARIO: ${question}`;
       documentId: d.documentId,
       documentName: d.documentName,
       score: d.maxScore,
+      chunks: [...d.chunks].sort((a, b) => a - b),
+      totalChunks: d.totalChunks,
     })),
     usage,
   };

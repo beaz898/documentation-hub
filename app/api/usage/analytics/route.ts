@@ -115,19 +115,38 @@ export async function GET(req: NextRequest) {
         ? Math.round(queries.reduce((s, q) => s + (q.answer_length ?? 0), 0) / totalQueries)
         : 0;
 
-      // Apariciones por documento
+      // Apariciones + cobertura por documento
       const docCount: Record<string, number> = {};
       const dayMap: Record<string, number> = {};
+      const coverageMap: Record<string, { documentId: string; documentName: string; chunks: Set<number>; totalChunks: number }> = {};
+
       for (const q of queries) {
-        const docs = q.documents_used as Array<{ documentName: string }> | null;
+        const docs = q.documents_used as Array<{ documentId?: string; documentName: string; score?: number; chunks?: number[]; totalChunks?: number }> | null;
         if (Array.isArray(docs)) {
           for (const d of docs) {
             if (d.documentName) docCount[d.documentName] = (docCount[d.documentName] ?? 0) + 1;
+            if (d.documentId && Array.isArray(d.chunks) && typeof d.totalChunks === 'number' && d.totalChunks > 0) {
+              if (!coverageMap[d.documentId]) {
+                coverageMap[d.documentId] = { documentId: d.documentId, documentName: d.documentName, chunks: new Set(), totalChunks: d.totalChunks };
+              }
+              for (const c of d.chunks) coverageMap[d.documentId].chunks.add(c);
+              if (d.totalChunks > coverageMap[d.documentId].totalChunks) coverageMap[d.documentId].totalChunks = d.totalChunks;
+            }
           }
         }
         const day = (q.created_at as string).slice(0, 10);
         dayMap[day] = (dayMap[day] ?? 0) + 1;
       }
+
+      const documentCoverage = Object.values(coverageMap)
+        .map(({ documentId, documentName, chunks, totalChunks }) => ({
+          documentId,
+          documentName,
+          totalChunks,
+          chunksUsados: chunks.size,
+          percentage: Math.round((chunks.size / totalChunks) * 100),
+        }))
+        .sort((a, b) => a.percentage - b.percentage);
 
       const topDocuments = Object.entries(docCount)
         .map(([documentName, appearances]) => ({ documentName, appearances }))
@@ -159,7 +178,7 @@ export async function GET(req: NextRequest) {
 
       return NextResponse.json({
         success: true, days, totalQueries, avgAnswerLength,
-        topDocuments, neverUsed, recentQuestions, byDay,
+        topDocuments, neverUsed, recentQuestions, byDay, documentCoverage,
       });
     }
 

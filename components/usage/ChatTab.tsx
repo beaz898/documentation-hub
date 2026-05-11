@@ -2,6 +2,19 @@
 
 import { useState, useEffect, useCallback } from 'react';
 
+interface CoverageItem {
+  documentId: string;
+  documentName: string;
+  totalChunks: number;
+  chunksUsados: number;
+  percentage: number;
+}
+
+interface CoverageDetail {
+  usedChunks: Array<{ chunkIndex: number; text: string }>;
+  unusedChunks: number[];
+}
+
 interface ChatData {
   days: number;
   totalQueries: number;
@@ -10,6 +23,7 @@ interface ChatData {
   neverUsed: string[];
   recentQuestions: Array<{ question: string; documentsCount: number; created_at: string }>;
   byDay: Array<{ day: string; queries: number }>;
+  documentCoverage?: CoverageItem[];
 }
 
 interface ChatTabProps {
@@ -37,10 +51,19 @@ function formatDate(dateStr: string): string {
   return new Date(dateStr).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
 }
 
+function coverageColor(pct: number): string {
+  if (pct < 30) return '#ef4444';
+  if (pct < 60) return '#f59e0b';
+  return '#22c55e';
+}
+
 export default function ChatTab({ session }: ChatTabProps) {
   const [data, setData] = useState<ChatData | null>(null);
   const [loading, setLoading] = useState(true);
   const [days, setDays] = useState(30);
+  const [expandedDoc, setExpandedDoc] = useState<string | null>(null);
+  const [coverageDetails, setCoverageDetails] = useState<Record<string, CoverageDetail>>({});
+  const [loadingDetail, setLoadingDetail] = useState<Record<string, boolean>>({});
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -57,6 +80,30 @@ export default function ChatTab({ session }: ChatTabProps) {
   }, [session, days]);
 
   useEffect(() => { load(); }, [load]);
+
+  const toggleDoc = useCallback(async (item: CoverageItem) => {
+    const docId = item.documentId;
+    if (expandedDoc === docId) {
+      setExpandedDoc(null);
+      return;
+    }
+    setExpandedDoc(docId);
+    if (coverageDetails[docId]) return;
+    setLoadingDetail(prev => ({ ...prev, [docId]: true }));
+    try {
+      const res = await fetch(`/api/documents/coverage/${docId}?days=${days}`, {
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
+      if (res.ok) {
+        const detail = await res.json();
+        setCoverageDetails(prev => ({ ...prev, [docId]: detail }));
+      }
+    } catch (err) {
+      console.error('Error cargando detalle de cobertura:', err);
+    } finally {
+      setLoadingDetail(prev => ({ ...prev, [docId]: false }));
+    }
+  }, [expandedDoc, coverageDetails, days, session]);
 
   if (loading) {
     return (
@@ -135,6 +182,91 @@ export default function ChatTab({ session }: ChatTabProps) {
                   <div style={{ width: '100%', height: 4, borderRadius: 2, background: 'var(--border)', overflow: 'hidden' }}>
                     <div style={{ height: '100%', borderRadius: 2, background: 'var(--brand)', width: pct + '%', transition: 'width 0.3s ease' }} />
                   </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Cobertura de documentos */}
+      {data.documentCoverage && data.documentCoverage.length > 0 && (
+        <div style={{ marginBottom: 28 }}>
+          <h2 style={{ fontSize: 13, fontWeight: 600, marginBottom: 4 }}>Cobertura de documentos</h2>
+          <p style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 12 }}>
+            % de fragmentos de cada documento que han sido usados como fuente en respuestas. Haz clic para ver los fragmentos.
+          </p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            {data.documentCoverage.map(item => {
+              const color = coverageColor(item.percentage);
+              const isExpanded = expandedDoc === item.documentId;
+              const detail = coverageDetails[item.documentId];
+              const isLoading = loadingDetail[item.documentId];
+              return (
+                <div key={item.documentId} style={{ borderRadius: 8, border: `0.5px solid ${item.percentage < 30 ? 'rgba(239,68,68,0.3)' : 'var(--border)'}`, overflow: 'hidden' }}>
+                  <button
+                    onClick={() => toggleDoc(item)}
+                    style={{ width: '100%', padding: '10px 14px', background: 'var(--bg-secondary)', border: 'none', cursor: 'pointer', textAlign: 'left' }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                      <span style={{ fontSize: 12, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>{item.documentName}</span>
+                      <span style={{ fontSize: 12, fontWeight: 700, color, flexShrink: 0, marginLeft: 8 }}>{item.percentage}%</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <div style={{ flex: 1, height: 5, borderRadius: 3, background: 'var(--border)', overflow: 'hidden' }}>
+                        <div style={{ height: '100%', borderRadius: 3, background: color, width: item.percentage + '%', transition: 'width 0.3s ease' }} />
+                      </div>
+                      <span style={{ fontSize: 10, color: 'var(--text-muted)', flexShrink: 0 }}>
+                        {item.chunksUsados}/{item.totalChunks} frags
+                      </span>
+                      <span style={{ fontSize: 10, color: 'var(--text-muted)', flexShrink: 0 }}>{isExpanded ? '▲' : '▼'}</span>
+                    </div>
+                    {item.percentage < 30 && (
+                      <p style={{ fontSize: 10, color: '#ef4444', marginTop: 5 }}>
+                        Baja cobertura — la mayoría del contenido no se usa en respuestas.
+                      </p>
+                    )}
+                  </button>
+
+                  {isExpanded && (
+                    <div style={{ padding: '10px 14px', borderTop: '0.5px solid var(--border)', background: 'var(--bg-primary)' }}>
+                      {isLoading && (
+                        <div style={{ display: 'flex', justifyContent: 'center', padding: 16 }}>
+                          <div className="animate-spin" style={{ width: 16, height: 16, border: '2px solid var(--brand)', borderTopColor: 'transparent', borderRadius: '50%' }} />
+                        </div>
+                      )}
+                      {!isLoading && detail && (
+                        <>
+                          {detail.usedChunks.length === 0 && (
+                            <p style={{ fontSize: 11, color: 'var(--text-muted)' }}>Sin fragmentos usados en este período.</p>
+                          )}
+                          {detail.usedChunks.length > 0 && (
+                            <>
+                              <p style={{ fontSize: 10, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 8 }}>
+                                Fragmentos utilizados ({detail.usedChunks.length}):
+                              </p>
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                                {detail.usedChunks.map(chunk => (
+                                  <div key={chunk.chunkIndex} style={{ padding: '8px 10px', borderRadius: 6, background: 'var(--bg-secondary)', border: '0.5px solid var(--border)' }}>
+                                    <span style={{ fontSize: 9, color: 'var(--text-muted)', display: 'block', marginBottom: 3 }}>Fragmento #{chunk.chunkIndex}</span>
+                                    <p style={{ fontSize: 11, lineHeight: 1.5, color: 'var(--text-secondary)' }}>
+                                      {chunk.text ? chunk.text.slice(0, 250) + (chunk.text.length > 250 ? '…' : '') : '(texto no disponible)'}
+                                    </p>
+                                  </div>
+                                ))}
+                              </div>
+                              {detail.unusedChunks.length > 0 && (
+                                <p style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 8 }}>
+                                  Fragmentos no usados: #{detail.unusedChunks.slice(0, 10).join(', #')}
+                                  {detail.unusedChunks.length > 10 ? ` y ${detail.unusedChunks.length - 10} más` : ''}
+                                </p>
+                              )}
+                            </>
+                          )}
+                        </>
+                      )}
+                    </div>
+                  )}
                 </div>
               );
             })}

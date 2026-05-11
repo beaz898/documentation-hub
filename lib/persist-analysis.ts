@@ -20,7 +20,7 @@ interface ChatQueryInput {
   orgId: string;
   userId: string;
   question: string;
-  sources: Array<{ documentId: string; documentName: string; score: number }>;
+  sources: Array<{ documentId: string; documentName: string; score: number; chunks: number[]; totalChunks: number }>;
   answerLength: number;
 }
 
