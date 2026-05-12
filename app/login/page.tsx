@@ -195,6 +195,14 @@ export default function LoginPage() {
         <p className="text-center text-xs mt-6" style={{ color: 'var(--text-muted)' }}>
           Tus documentos están seguros y solo accesibles por tu organización
         </p>
+        <p className="text-center text-xs mt-3" style={{ color: 'var(--text-muted)' }}>
+          <a
+            href="/legal/privacidad"
+            style={{ color: 'var(--text-muted)', textDecoration: 'underline', textUnderlineOffset: 3 }}
+          >
+            Política de privacidad
+          </a>
+        </p>
       </div>
     </div>
   );
