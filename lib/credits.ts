@@ -7,7 +7,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 export const CREDIT_COSTS: Record<string, number> = {
   '/api/ask': 1,
   '/api/analyze-v2': 5,
-  '/api/analyze-v2:exhaustive': 20,
+  '/api/analyze-v2:exhaustive': 30,
   '/api/analyze-style': 2,
   '/api/improve': 1,
 };

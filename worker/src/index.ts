@@ -124,8 +124,22 @@ async function processJob(job: AnalysisJob): Promise<void> {
       analysisType: 'exhaustive',
     });
 
-    // Precio variable: devolver créditos en planes Business/Enterprise
-    void applyVariablePricingRefund(supabase, job.org_id, job.id, analysis.estimatedCost);
+    // Precio variable / descuento reanálisis
+    const isReanalysis = job.exclude_fingerprints !== '[]';
+    const confirmedCount = analysis.discrepancies?.length ?? 0;
+
+    if (isReanalysis && confirmedCount < 2) {
+      // Reanálisis con pocos errores → reembolso fijo para todos los planes
+      const refundResult = await refundCredits(supabase, job.org_id, 20);
+      if (refundResult.success) {
+        console.log(`[worker] Reanálisis con ${confirmedCount} contradicciones, devolviendo 20 créditos (coste final 10)`);
+      } else {
+        console.error(`[worker] Job ${job.id}: fallo al devolver créditos de reanálisis`);
+      }
+    } else {
+      // Análisis inicial o reanálisis con >=2 contradicciones → precio variable por plan
+      void applyVariablePricingRefund(supabase, job.org_id, job.id, analysis.estimatedCost);
+    }
 
     const discCount = analysis.discrepancies?.length ?? 0;
     const styleCount = analysis.styleProblems?.length ?? 0;
