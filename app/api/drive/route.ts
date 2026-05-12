@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import { resolveOrg } from '@/lib/org';
+import { getOrgFeatures } from '@/lib/plan-features';
 
 export async function GET(req: NextRequest) {
   try {
@@ -21,6 +22,14 @@ export async function GET(req: NextRequest) {
     if (!orgInfo) {
       return NextResponse.json(
         { error: 'No perteneces a ninguna organización. Contacta con el administrador.' },
+        { status: 403 }
+      );
+    }
+
+    const features = await getOrgFeatures(supabase, orgInfo.orgId);
+    if (!features.hasDrive) {
+      return NextResponse.json(
+        { error: 'Google Drive disponible a partir del plan Pro' },
         { status: 403 }
       );
     }

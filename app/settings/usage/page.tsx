@@ -43,11 +43,13 @@ function formatEndpoint(endpoint: string): string {
 
 type TabId = 'consumption' | 'quality' | 'chat';
 
-const TABS: Array<{ id: TabId; label: string }> = [
+const ALL_TABS: Array<{ id: TabId; label: string }> = [
   { id: 'consumption', label: 'Consumo' },
   { id: 'quality',     label: 'Calidad documental' },
   { id: 'chat',        label: 'Uso del chat' },
 ];
+
+const PLANS_WITH_ANALYTICS = new Set(['business', 'business_plus', 'enterprise']);
 
 export default function UsagePage() {
   const [session, setSession] = useState<{ access_token: string } | null>(null);
@@ -95,6 +97,8 @@ export default function UsagePage() {
   }
 
   const isAdmin = summary?.role === 'admin';
+  const hasAnalyticsPanel = PLANS_WITH_ANALYTICS.has(summary?.plan ?? '');
+  const visibleTabs = ALL_TABS.filter(t => t.id === 'consumption' || hasAnalyticsPanel);
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
@@ -109,7 +113,7 @@ export default function UsagePage() {
 
       {/* Pestañas */}
       <div style={{ padding: '0 20px', borderBottom: '0.5px solid var(--border)', display: 'flex' }}>
-        {TABS.map(tab => (
+        {visibleTabs.map(tab => (
           <button key={tab.id} onClick={() => setActiveTab(tab.id)} style={{
             padding: '10px 16px', border: 'none', background: 'transparent', cursor: 'pointer',
             fontSize: 12, fontWeight: 600,
@@ -252,6 +256,32 @@ export default function UsagePage() {
 
             {/* ── Pestaña Uso del chat ── */}
             {activeTab === 'chat' && <ChatTab session={session} />}
+
+            {/* ── Upsell analytics para planes sin acceso ── */}
+            {!hasAnalyticsPanel && (
+              <div style={{
+                marginTop: 32, padding: '24px 20px', borderRadius: 12,
+                border: '0.5px solid var(--border)', background: 'var(--bg-secondary)',
+                textAlign: 'center',
+              }}>
+                <p style={{ fontSize: 14, fontWeight: 600, marginBottom: 6 }}>
+                  Panel de inteligencia documental
+                </p>
+                <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 20, lineHeight: 1.6 }}>
+                  Las pestañas &ldquo;Calidad documental&rdquo; y &ldquo;Uso del chat&rdquo; están disponibles en el plan Business.
+                </p>
+                <a
+                  href="/settings/billing"
+                  style={{
+                    display: 'inline-block', padding: '8px 20px', borderRadius: 8,
+                    background: 'var(--brand)', color: '#fff', fontSize: 12, fontWeight: 600,
+                    textDecoration: 'none',
+                  }}
+                >
+                  Ver planes
+                </a>
+              </div>
+            )}
           </>
         )}
       </div>

@@ -62,6 +62,24 @@ export const PLAN_CONFIG: Record<string, { credits: number; maxUsers: number; ha
 export const PLANS_WITH_VARIABLE_PRICING = new Set(['business', 'business_plus']);
 
 /**
+ * Funcionalidades disponibles por plan.
+ * maxUsers: null = ilimitados (Enterprise).
+ */
+export const PLAN_FEATURES: Record<string, {
+  hasDrive: boolean;
+  hasAnalyticsPanel: boolean;
+  hasVariablePricing: boolean;
+  maxUsers: number | null;
+}> = {
+  free:          { hasDrive: false, hasAnalyticsPanel: false, hasVariablePricing: false, maxUsers: 1 },
+  starter:       { hasDrive: false, hasAnalyticsPanel: false, hasVariablePricing: false, maxUsers: 5 },
+  pro:           { hasDrive: true,  hasAnalyticsPanel: false, hasVariablePricing: false, maxUsers: 15 },
+  business:      { hasDrive: true,  hasAnalyticsPanel: true,  hasVariablePricing: true,  maxUsers: 40 },
+  business_plus: { hasDrive: true,  hasAnalyticsPanel: true,  hasVariablePricing: true,  maxUsers: 80 },
+  enterprise:    { hasDrive: true,  hasAnalyticsPanel: true,  hasVariablePricing: true,  maxUsers: null },
+};
+
+/**
  * Nombres legibles de cada plan.
  */
 export const PLAN_LABELS: Record<string, string> = {

@@ -119,6 +119,8 @@ const PLAN_LABELS: Record<string, string> = {
   enterprise: 'Enterprise',
 };
 
+const PLANS_WITH_DRIVE = new Set(['pro', 'business', 'business_plus', 'enterprise']);
+
 export default function DocumentsSidebar({
   documents,
   loading,
@@ -153,6 +155,8 @@ export default function DocumentsSidebar({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { theme, toggleTheme } = useTheme();
 
+  const hasDrive = PLANS_WITH_DRIVE.has(credits?.plan ?? '');
+
   const driveDocs = useMemo(() => documents.filter(d => d.source === 'google_drive'), [documents]);
   const manualDocs = useMemo(() => documents.filter(d => d.source !== 'google_drive'), [documents]);
 
@@ -183,7 +187,7 @@ export default function DocumentsSidebar({
     setUploading(true);
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
-      setUploadProgress(`Subiendo ${file.name}... (${i + 1}/${files.length})`);
+      setUploadProgress(`Analizando ${file.name}... (${i + 1}/${files.length})`);
       try { await onUpload(file); } catch { /* handled in parent */ }
     }
     setUploading(false);
@@ -481,7 +485,15 @@ export default function DocumentsSidebar({
 
         {driveSectionOpen && (
           <div style={{ padding: '6px 10px' }}>
-            {!driveStatus.connected ? (
+            {!hasDrive ? (
+              <div style={{
+                padding: '8px 10px', borderRadius: 8,
+                background: 'var(--bg-tertiary)', border: '0.5px solid var(--border)',
+                fontSize: 10, color: 'var(--text-muted)', textAlign: 'center', lineHeight: 1.5,
+              }}>
+                Disponible a partir del plan Pro
+              </div>
+            ) : !driveStatus.connected ? (
               <button onClick={onConnectDrive} style={{
                 width: '100%', padding: '8px 10px', borderRadius: 8,
                 border: '0.5px solid var(--border)', background: 'var(--bg-tertiary)',
@@ -716,7 +728,7 @@ export default function DocumentsSidebar({
               fileInputRef.current?.click();
             }}
             disabled={uploading || !!modalActive}
-            title={modalActive ? 'Hay un análisis o mejora activo. Termínalo antes de subir.' : undefined}
+            title={modalActive ? 'Hay un análisis o mejora activo. Termínalo antes de continuar.' : undefined}
             style={{
               width: '100%', padding: '9px', borderRadius: 9, border: 'none',
               background: (uploading || modalActive) ? 'var(--bg-tertiary)' : 'var(--brand)',
@@ -728,7 +740,7 @@ export default function DocumentsSidebar({
             {uploading ? (
               <><div className="animate-spin" style={{ width: 12, height: 12, border: '1.5px solid currentColor', borderTopColor: 'transparent', borderRadius: '50%' }} /> Procesando...</>
             ) : (
-              <><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="17 8 12 3 7 8" /><line x1="12" y1="3" x2="12" y2="15" /></svg> Subir documentos</>
+              <><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="17 8 12 3 7 8" /><line x1="12" y1="3" x2="12" y2="15" /></svg> Analizar documento</>
             )}
           </button>
         )}

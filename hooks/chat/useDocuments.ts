@@ -53,7 +53,7 @@ export function useDocuments(
           return indexDocument(storagePath, fileName, fileSize, true);
         } else {
           await supabase.storage.from('documents').remove([storagePath]);
-          addMessage({ id: crypto.randomUUID(), role: 'assistant', content: `Subida de **${fileName}** cancelada.` });
+          addMessage({ id: crypto.randomUUID(), role: 'assistant', content: `**${fileName}** descartado. No se ha añadido al corpus.` });
           return;
         }
       }
@@ -92,65 +92,63 @@ export function useDocuments(
     }
 
     setAnalysisProgress(15);
+    setAnalysisPhase('Analizando documento...');
 
-    if (documents.length > 0) {
-      setAnalysisPhase('Buscando documentos relacionados...');
+    let currentProgress = 15;
+    const progressInterval = setInterval(() => {
+      currentProgress += 1;
+      if (currentProgress >= 30 && currentProgress < 35) setAnalysisPhase(documents.length > 0 ? 'Comparando con el corpus...' : 'Revisando estilo y calidad...');
+      if (currentProgress >= 75 && currentProgress < 80) setAnalysisPhase('Generando informe...');
+      if (currentProgress >= 92) { clearInterval(progressInterval); return; }
+      setAnalysisProgress(currentProgress);
+    }, 350);
 
-      let currentProgress = 15;
-      const progressInterval = setInterval(() => {
-        currentProgress += 1;
-        if (currentProgress >= 30 && currentProgress < 35) setAnalysisPhase('Comparando contenido...');
-        if (currentProgress >= 75 && currentProgress < 80) setAnalysisPhase('Generando informe...');
-        if (currentProgress >= 92) { clearInterval(progressInterval); return; }
-        setAnalysisProgress(currentProgress);
-      }, 350);
+    try {
+      const analyzeRes = await fetch('/api/analyze-v2', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
+        body: JSON.stringify({ storagePath, fileName: file.name }),
+      });
 
-      try {
-        const analyzeRes = await fetch('/api/analyze-v2', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
-          body: JSON.stringify({ storagePath, fileName: file.name }),
-        });
+      clearInterval(progressInterval);
 
-        clearInterval(progressInterval);
+      if (analyzeRes.ok) {
+        const analyzeData = await analyzeRes.json();
+        setAnalysisProgress(95);
+        setAnalysisPhase('Análisis completado');
 
-        if (analyzeRes.ok) {
-          const analyzeData = await analyzeRes.json();
-          setAnalysisProgress(95);
-          setAnalysisPhase('Análisis completado');
-
-          if (analyzeData.hasIssues) {
-            await new Promise(r => setTimeout(r, 500));
-            setAnalysisProgress(100);
-            await new Promise(r => setTimeout(r, 300));
-            setAnalysisProgress(0);
-            setAnalysisPhase('');
-
-            setPendingAnalysis({
-              fileName: file.name, storagePath, fileSize: file.size,
-              analysis: analyzeData.analysis, documentSources: analyzeData.documentSources,
-            });
-            loadCredits();
-            return;
-          } else {
-            setAnalysisProgress(100);
-            setAnalysisPhase('Sin problemas detectados');
-            await new Promise(r => setTimeout(r, 500));
-            setAnalysisProgress(0);
-            setAnalysisPhase('');
-            addMessage({ id: crypto.randomUUID(), role: 'assistant', content: `Análisis completado: sin problemas. Indexando...` });
-            loadCredits();
-          }
-        } else {
+        if (analyzeData.hasIssues) {
+          await new Promise(r => setTimeout(r, 500));
+          setAnalysisProgress(100);
+          await new Promise(r => setTimeout(r, 300));
           setAnalysisProgress(0);
           setAnalysisPhase('');
+
+          setPendingAnalysis({
+            fileName: file.name, storagePath, fileSize: file.size,
+            analysis: analyzeData.analysis, documentSources: analyzeData.documentSources,
+          });
+          loadCredits();
+          return;
+        } else {
+          setAnalysisProgress(100);
+          setAnalysisPhase('Sin problemas detectados');
+          await new Promise(r => setTimeout(r, 500));
+          setAnalysisProgress(0);
+          setAnalysisPhase('');
+          addMessage({ id: crypto.randomUUID(), role: 'assistant', content: `Análisis completado: sin problemas. Añadiendo al corpus...` });
+          loadCredits();
         }
-      } catch (e) {
+      } else {
         clearInterval(progressInterval);
         setAnalysisProgress(0);
         setAnalysisPhase('');
-        console.error('Analysis failed:', e);
       }
+    } catch (e) {
+      clearInterval(progressInterval);
+      setAnalysisProgress(0);
+      setAnalysisPhase('');
+      console.error('Analysis failed:', e);
     }
 
     setAnalysisProgress(0);
@@ -168,7 +166,7 @@ export function useDocuments(
   async function handleAnalysisCancel() {
     if (!pendingAnalysis) return;
     await supabase.storage.from('documents').remove([pendingAnalysis.storagePath]);
-    addMessage({ id: crypto.randomUUID(), role: 'assistant', content: `Subida de **${pendingAnalysis.fileName}** cancelada.` });
+    addMessage({ id: crypto.randomUUID(), role: 'assistant', content: `**${pendingAnalysis.fileName}** descartado. No se ha añadido al corpus.` });
     setPendingAnalysis(null);
   }
 
@@ -312,7 +310,7 @@ export function useDocuments(
     const name = improvementTarget.fileName;
     setImprovementTarget(null);
     try { await supabase.storage.from('documents').remove([path]); } catch { /* ignore */ }
-    addMessage({ id: crypto.randomUUID(), role: 'assistant', content: `Subida de **${name}** descartada.` });
+    addMessage({ id: crypto.randomUUID(), role: 'assistant', content: `**${name}** descartado. No se ha añadido al corpus.` });
   }
 
   async function handleImprovementIndexed(finalName: string, wasReplaced: boolean) {

@@ -463,10 +463,10 @@ export default function AnalysisModal({ fileName, analysis, onConfirm, onCancel,
                   </p>
                   <p style={{ fontSize: 12, color: recColor.text, marginTop: 4, lineHeight: 1.5 }}>
                     {analysis.recommendation === 'NO_INDEXAR'
-                      ? 'Este documento es prácticamente idéntico a uno existente. Indexarlo crearía duplicidad.'
+                      ? 'Este documento es prácticamente idéntico a uno existente. Añadirlo al corpus crearía duplicidad.'
                       : analysis.recommendation === 'REVISAR'
                         ? 'Se detectaron diferencias que podrían causar respuestas contradictorias. Verifica qué versión es correcta.'
-                        : 'El documento aporta valor y puede indexarse con confianza.'}
+                        : 'El documento aporta valor y puede añadirse al corpus con confianza.'}
                   </p>
                 </div>
               </CollapsibleSection>
@@ -506,7 +506,7 @@ export default function AnalysisModal({ fileName, analysis, onConfirm, onCancel,
               cursor: 'pointer', transition: 'background 0.15s',
             }}
           >
-            Cancelar subida
+            Descartar
           </button>
           <button
             onClick={onImprove}
@@ -532,7 +532,7 @@ export default function AnalysisModal({ fileName, analysis, onConfirm, onCancel,
               transition: 'opacity 0.15s',
             }}
           >
-            Indexar igualmente
+            Añadir al corpus
           </button>
         </div>
       </div>

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import { resolveOrg } from '@/lib/org';
+import { getOrgFeatures } from '@/lib/plan-features';
 
 /**
  * GET /api/usage/analytics?tab=quality|chat&days=7|14|30
@@ -27,6 +28,14 @@ export async function GET(req: NextRequest) {
     }
     if (org.role !== 'admin') {
       return NextResponse.json({ error: 'Solo los administradores pueden ver analytics.' }, { status: 403 });
+    }
+
+    const features = await getOrgFeatures(supabase, org.orgId);
+    if (!features.hasAnalyticsPanel) {
+      return NextResponse.json(
+        { error: 'Panel de inteligencia documental disponible en el plan Business' },
+        { status: 403 }
+      );
     }
 
     const tab = req.nextUrl.searchParams.get('tab') || 'quality';

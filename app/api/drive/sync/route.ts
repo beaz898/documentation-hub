@@ -7,6 +7,7 @@ import { randomUUID } from 'crypto';
 import { decrypt, encrypt } from '@/lib/crypto';
 import { generateContentHash } from '@/lib/analysis/hash-check';
 import { resolveOrg } from '@/lib/org';
+import { getOrgFeatures } from '@/lib/plan-features';
 
 export const maxDuration = 300;
 
@@ -47,6 +48,14 @@ export async function POST(req: NextRequest) {
       );
     }
     const orgId = org.orgId;
+
+    const features = await getOrgFeatures(supabase, orgId);
+    if (!features.hasDrive) {
+      return NextResponse.json(
+        { error: 'Google Drive disponible a partir del plan Pro' },
+        { status: 403 }
+      );
+    }
 
     const body = await req.json();
     const { folderId, folderName } = body;
@@ -289,6 +298,14 @@ export async function GET(req: NextRequest) {
       );
     }
     const orgId = org.orgId;
+
+    const featuresGet = await getOrgFeatures(supabase, orgId);
+    if (!featuresGet.hasDrive) {
+      return NextResponse.json(
+        { error: 'Google Drive disponible a partir del plan Pro' },
+        { status: 403 }
+      );
+    }
 
     const { data: connection } = await supabase.from('drive_connections')
       .select('*')
