@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import { resolveOrg } from '@/lib/org';
-import { purgeOrganization } from '@/lib/cleanup';
+import { purgeOrganization } from '@/lib/purge-org';
 
 /**
  * POST /api/org/purge
@@ -41,7 +41,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Verificar confirmación por email
     const body = await req.json();
     const { confirmEmail } = body;
 
@@ -52,7 +51,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Verificar que la org no esté ya purgada
     const { data: orgData } = await supabase
       .from('organizations')
       .select('purged_at')
@@ -66,7 +64,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Ejecutar el borrado
     const result = await purgeOrganization(supabase, org.orgId);
 
     console.log(`[org/purge] Borrado voluntario completado para org ${org.orgId}`, {
@@ -81,12 +78,17 @@ export async function POST(req: NextRequest) {
       summary: {
         documentosBorrados: result.deletedDocuments,
         archivosBorrados: result.deletedStorageFiles,
-        conexionesDriveBorradas: result.deletedDriveConnections,
-        feedbackAnonimizado: result.anonymizedFeedback,
-        logsAnonimizados: result.anonymizedUsageLogs,
-        invitacionesBorradas: result.deletedInvitations,
-        miembrosBorrados: result.deletedMemberships,
         embeddingsBorrados: result.pineconeNamespaceDeleted,
+        chatQueriesBorradas: result.deletedChatQueries,
+        resultadosAnalisisBorrados: result.deletedAnalysisResults,
+        jobsAnalisisBorrados: result.deletedAnalysisJobs,
+        logsUsoBorrados: result.deletedUsageLogs,
+        feedbackBorrado: result.deletedFeedback,
+        comprasCreditosBorradas: result.deletedCreditPurchases,
+        eventosFacturacionAnonimizados: result.anonymizedBillingEvents,
+        invitacionesBorradas: result.deletedInvitations,
+        conexionesDriveBorradas: result.deletedDriveConnections,
+        miembrosBorrados: result.deletedMemberships,
       },
       errors: result.errors.length > 0 ? result.errors : undefined,
     });

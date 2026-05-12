@@ -2,6 +2,7 @@ import { createClient } from '@supabase/supabase-js';
 import { runExhaustiveAnalysisPipeline } from '../../lib/analysis/pipeline';
 import type { ExhaustivePipelineInput } from '../../lib/analysis/pipeline';
 import { saveAnalysisResult } from '../../lib/persist-analysis';
+import { purgeOrganization, type PurgeResult } from '../../lib/purge-org';
 
 // ============================================================
 // Configuración
@@ -15,6 +16,9 @@ const POLL_INTERVAL = 5000;
 
 /** Máximo de análisis exhaustivos procesándose a la vez. */
 const MAX_CONCURRENT = 2;
+
+/** Intervalo del check de purgado de orgs expiradas (6 horas). */
+const PURGE_INTERVAL = 6 * 60 * 60 * 1000;
 
 /** Contador de jobs activos. */
 let activeJobs = 0;
@@ -62,12 +66,10 @@ async function processJob(job: AnalysisJob): Promise<void> {
     .eq('id', job.id);
 
   try {
-    // Parsear datos de entrada
     const sampleTexts: string[] = JSON.parse(job.sample_texts);
     const excludeFpArray: string[] = JSON.parse(job.exclude_fingerprints);
     const excludeFingerprints = new Set<string>(excludeFpArray);
 
-    // Preparar input del pipeline
     const input: ExhaustivePipelineInput = {
       newDocumentText: job.document_text,
       newDocumentName: job.document_name,
@@ -78,16 +80,13 @@ async function processJob(job: AnalysisJob): Promise<void> {
       excludeFingerprints,
     };
 
-    // Ejecutar el pipeline exhaustivo completo
     const analysis = await runExhaustiveAnalysisPipeline(input);
 
-    // Construir documentSources
     const documentSources: Record<string, string> = {};
     for (const j of analysis.judgments) {
       documentSources[j.documentName] = j.source;
     }
 
-    // Construir resultado completo (mismo formato que devolvía el endpoint síncrono)
     const result = {
       isDuplicate: analysis.isDuplicate,
       duplicateOf: analysis.duplicateOf,
@@ -106,7 +105,6 @@ async function processJob(job: AnalysisJob): Promise<void> {
 
     const latencyMs = Date.now() - t0;
 
-    // Marcar como completed con el resultado
     await supabase
       .from('analysis_jobs')
       .update({
@@ -131,7 +129,6 @@ async function processJob(job: AnalysisJob): Promise<void> {
     const errorMessage = err instanceof Error ? err.message : 'Error desconocido';
     console.error(`[worker] Job ${job.id} falló:`, errorMessage);
 
-    // Marcar como failed
     await supabase
       .from('analysis_jobs')
       .update({
@@ -153,7 +150,6 @@ async function pollAndProcess(): Promise<void> {
   const supabase = createServiceClient();
 
   try {
-    // Buscar jobs pendientes, ordenados por antigüedad
     const slotsAvailable = MAX_CONCURRENT - activeJobs;
     const { data: jobs, error } = await supabase
       .from('analysis_jobs')
@@ -169,7 +165,6 @@ async function pollAndProcess(): Promise<void> {
 
     if (!jobs || jobs.length === 0) return;
 
-    // Procesar cada job en paralelo (hasta MAX_CONCURRENT)
     for (const job of jobs) {
       activeJobs++;
       processJob(job as AnalysisJob)
@@ -178,6 +173,42 @@ async function pollAndProcess(): Promise<void> {
     }
   } catch (err) {
     console.error('[worker] Error en polling:', err);
+  }
+}
+
+// ============================================================
+// Purga de organizaciones con período de gracia expirado
+// ============================================================
+
+async function purgeExpiredOrgs(): Promise<void> {
+  const supabase = createServiceClient();
+
+  try {
+    const { data: expiredOrgs, error } = await supabase
+      .from('organizations')
+      .select('id')
+      .lt('grace_period_ends_at', new Date().toISOString())
+      .is('purged_at', null);
+
+    if (error) {
+      console.error('[worker] Error consultando orgs expiradas:', error.message);
+      return;
+    }
+
+    if (!expiredOrgs || expiredOrgs.length === 0) return;
+
+    console.log(`[worker] Purgando ${expiredOrgs.length} organización(es) expirada(s)`);
+
+    for (const org of expiredOrgs) {
+      try {
+        const result: PurgeResult = await purgeOrganization(supabase, org.id);
+        console.log(`[worker] Org ${org.id} purgada — errores: ${result.errors.length}`, result.errors);
+      } catch (err) {
+        console.error(`[worker] Error purgando org ${org.id}:`, err);
+      }
+    }
+  } catch (err) {
+    console.error('[worker] Error en purgeExpiredOrgs:', err);
   }
 }
 
@@ -206,12 +237,13 @@ function start(): void {
 
   console.log('[worker] Documentation Hub Analysis Worker iniciado');
   console.log(`[worker] Polling cada ${POLL_INTERVAL / 1000}s, max ${MAX_CONCURRENT} jobs simultáneos`);
+  console.log(`[worker] Purga de orgs expiradas cada ${PURGE_INTERVAL / 3600000}h`);
 
-  // Polling periódico
   setInterval(pollAndProcess, POLL_INTERVAL);
-
-  // Primera ejecución inmediata
   pollAndProcess();
+
+  setInterval(purgeExpiredOrgs, PURGE_INTERVAL);
+  purgeExpiredOrgs();
 }
 
 start();

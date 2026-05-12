@@ -1,97 +1,68 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
-import { resolveOrg } from '@/lib/org';
-import { purgeOrganization } from '@/lib/cleanup';
+import { purgeOrganization, type PurgeResult } from '@/lib/purge-org';
+
+export const maxDuration = 300;
 
 /**
- * POST /api/org/purge
+ * POST /api/admin/purge-expired
  *
- * Borrado voluntario de todos los datos de la organización.
- * Solo el admin puede ejecutarlo.
- * Requiere confirmación: el admin debe enviar su email en el body.
+ * Busca organizaciones con el período de gracia expirado (grace_period_ends_at < now())
+ * y purged_at IS NULL, y ejecuta el borrado completo de cada una.
  *
- * Body: { confirmEmail: string }
+ * Llamado periódicamente por el worker o por un cron externo.
+ * Requiere el ADMIN_SECRET en el header Authorization.
  */
 export async function POST(req: NextRequest) {
-  try {
-    const authHeader = req.headers.get('authorization');
-    if (!authHeader?.startsWith('Bearer ')) {
-      return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
-    }
-
-    const token = authHeader.split(' ')[1];
-    const supabase = createServiceClient();
-
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Token inválido' }, { status: 401 });
-    }
-
-    const org = await resolveOrg(supabase, user.id);
-    if (!org) {
-      return NextResponse.json(
-        { error: 'No perteneces a ninguna organización.' },
-        { status: 403 }
-      );
-    }
-    if (org.role !== 'admin') {
-      return NextResponse.json(
-        { error: 'Solo el administrador puede borrar los datos.' },
-        { status: 403 }
-      );
-    }
-
-    // Verificar confirmación por email
-    const body = await req.json();
-    const { confirmEmail } = body;
-
-    if (!confirmEmail || confirmEmail !== user.email) {
-      return NextResponse.json(
-        { error: 'Debes confirmar escribiendo tu email exacto.' },
-        { status: 400 }
-      );
-    }
-
-    // Verificar que la org no esté ya purgada
-    const { data: orgData } = await supabase
-      .from('organizations')
-      .select('purged_at')
-      .eq('id', org.orgId)
-      .single();
-
-    if (orgData?.purged_at) {
-      return NextResponse.json(
-        { error: 'Los datos de esta organización ya fueron borrados.' },
-        { status: 409 }
-      );
-    }
-
-    // Ejecutar el borrado
-    const result = await purgeOrganization(supabase, org.orgId);
-
-    console.log(`[org/purge] Borrado voluntario completado para org ${org.orgId}`, {
-      documents: result.deletedDocuments,
-      storage: result.deletedStorageFiles,
-      errors: result.errors.length,
-    });
-
-    return NextResponse.json({
-      success: true,
-      message: 'Todos los datos han sido borrados.',
-      summary: {
-        documentosBorrados: result.deletedDocuments,
-        archivosBorrados: result.deletedStorageFiles,
-        conexionesDriveBorradas: result.deletedDriveConnections,
-        feedbackAnonimizado: result.anonymizedFeedback,
-        logsAnonimizados: result.anonymizedUsageLogs,
-        invitacionesBorradas: result.deletedInvitations,
-        miembrosBorrados: result.deletedMemberships,
-        embeddingsBorrados: result.pineconeNamespaceDeleted,
-      },
-      errors: result.errors.length > 0 ? result.errors : undefined,
-    });
-  } catch (error: unknown) {
-    console.error('Error in /api/org/purge:', error);
-    return NextResponse.json({ error: 'Error interno' }, { status: 500 });
+  const adminSecret = process.env.ADMIN_SECRET;
+  if (!adminSecret) {
+    return NextResponse.json({ error: 'ADMIN_SECRET no configurado' }, { status: 500 });
   }
+
+  const authHeader = req.headers.get('authorization');
+  if (authHeader !== `Bearer ${adminSecret}`) {
+    return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+  }
+
+  const supabase = createServiceClient();
+
+  const { data: expiredOrgs, error } = await supabase
+    .from('organizations')
+    .select('id')
+    .lt('grace_period_ends_at', new Date().toISOString())
+    .is('purged_at', null);
+
+  if (error) {
+    console.error('[admin/purge-expired] Error consultando orgs expiradas:', error.message);
+    return NextResponse.json({ error: 'Error consultando la base de datos' }, { status: 500 });
+  }
+
+  if (!expiredOrgs || expiredOrgs.length === 0) {
+    console.log('[admin/purge-expired] No hay organizaciones expiradas para purgar');
+    return NextResponse.json({ success: true, purged: 0, results: [] });
+  }
+
+  console.log(`[admin/purge-expired] Purgando ${expiredOrgs.length} organización(es) expirada(s)`);
+
+  const results: Array<{ orgId: string; success: boolean; errors: string[] }> = [];
+
+  for (const org of expiredOrgs) {
+    try {
+      const result: PurgeResult = await purgeOrganization(supabase, org.id);
+      results.push({ orgId: org.id, success: result.errors.length === 0, errors: result.errors });
+      console.log(`[admin/purge-expired] Org ${org.id} purgada — errores: ${result.errors.length}`);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      results.push({ orgId: org.id, success: false, errors: [msg] });
+      console.error(`[admin/purge-expired] Error purgando org ${org.id}:`, msg);
+    }
+  }
+
+  const successCount = results.filter(r => r.success).length;
+  return NextResponse.json({
+    success: true,
+    purged: successCount,
+    failed: results.length - successCount,
+    results,
+  });
 }
