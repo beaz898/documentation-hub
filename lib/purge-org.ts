@@ -19,6 +19,7 @@ export interface PurgeResult {
   deletedInvitations: number;
   deletedDriveConnections: number;
   deletedMemberships: number;
+  deletedUsers: number;
   errors: string[];
 }
 
@@ -55,6 +56,7 @@ export async function purgeOrganization(
     deletedInvitations: 0,
     deletedDriveConnections: 0,
     deletedMemberships: 0,
+    deletedUsers: 0,
     errors: [],
   };
 
@@ -181,7 +183,18 @@ export async function purgeOrganization(
     log(`Memberships: ${result.deletedMemberships} borradas`);
   } catch (e) { fail('Memberships', e); }
 
-  // ── 14. Marcar organización como purgada (nunca borrar la fila) ────────
+  // ── 14. Supabase Auth: borrar cuentas de usuario ──────────────────────
+  for (const userId of memberIds) {
+    try {
+      const { error: authErr } = await supabase.auth.admin.deleteUser(userId);
+      if (authErr) throw new Error(authErr.message);
+      result.deletedUsers++;
+      log(`Auth: usuario ${userId} borrado`);
+    } catch (e) { fail(`Auth.deleteUser(${userId})`, e); }
+  }
+  log(`Auth: ${result.deletedUsers}/${memberIds.length} usuarios borrados`);
+
+  // ── 15. Marcar organización como purgada (nunca borrar la fila) ────────
   try {
     await supabase.from('organizations').update({ purged_at: new Date().toISOString() }).eq('id', orgId);
     log('Organization: purged_at marcado');
