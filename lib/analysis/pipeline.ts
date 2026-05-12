@@ -207,6 +207,14 @@ export async function runExhaustiveAnalysisPipeline(input: ExhaustivePipelineInp
   const totalTime = Date.now() - t0;
   console.log(`[pipeline-exhaustive] Completo en ${totalTime}ms — ${styleProblems.length} problemas de estilo, ${confirmedContradictions.length} contradicciones, ${minorInconsistencies.length} inconsistencias menores`);
 
+  const n = confirmedContradictions.length;
+  const estimatedCost: 'light' | 'medium' | 'heavy' =
+    candidatesOverLimit !== undefined || n > 30 ? 'heavy'
+    : n >= 10 ? 'medium'
+    : 'light';
+
+  console.log(`[pipeline-exhaustive] estimatedCost: ${estimatedCost} (${n} contradicciones, candidatesOverLimit=${candidatesOverLimit ?? 'no'})`);
+
   return {
     ...pipelineResult,
     discrepancies: confirmedContradictions,
@@ -214,6 +222,7 @@ export async function runExhaustiveAnalysisPipeline(input: ExhaustivePipelineInp
     recommendation,
     analysisMode: 'exhaustive',
     styleProblems,
+    estimatedCost,
     ...(candidatesOverLimit !== undefined && { candidatesOverLimit }),
   };
 }

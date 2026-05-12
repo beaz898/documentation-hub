@@ -147,3 +147,45 @@ export function getCreditCost(endpoint: string, isExhaustive = false): number {
   const key = isExhaustive ? `${endpoint}:exhaustive` : endpoint;
   return CREDIT_COSTS[key] ?? 0;
 }
+
+/**
+ * Devuelve créditos a una organización (inverso de consumeCredits).
+ *
+ * Los créditos devueltos se añaden a credits_extra (no al pool del plan),
+ * ya que son un reembolso parcial, no una renovación de suscripción.
+ */
+export async function refundCredits(
+  supabase: SupabaseClient,
+  orgId: string,
+  amount: number,
+): Promise<{ success: boolean; creditsExtra: number }> {
+  try {
+    const { data: org, error: fetchErr } = await supabase
+      .from('organizations')
+      .select('credits_extra')
+      .eq('id', orgId)
+      .single();
+
+    if (fetchErr || !org) {
+      console.error('[credits] refundCredits: error leyendo org:', fetchErr?.message);
+      return { success: false, creditsExtra: 0 };
+    }
+
+    const newExtra = (org.credits_extra ?? 0) + amount;
+
+    const { error: updateErr } = await supabase
+      .from('organizations')
+      .update({ credits_extra: newExtra })
+      .eq('id', orgId);
+
+    if (updateErr) {
+      console.error('[credits] refundCredits: error actualizando:', updateErr.message);
+      return { success: false, creditsExtra: org.credits_extra ?? 0 };
+    }
+
+    return { success: true, creditsExtra: newExtra };
+  } catch (err) {
+    console.error('[credits] refundCredits: error inesperado:', err);
+    return { success: false, creditsExtra: 0 };
+  }
+}

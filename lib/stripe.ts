@@ -43,15 +43,23 @@ export const PRICE_ID_TO_PACK: Record<string, { credits: number }> = Object.from
 );
 
 /**
- * Configuración de cada plan: créditos mensuales y máximo de usuarios.
+ * Configuración de cada plan: créditos mensuales, máximo de usuarios
+ * y si tiene precio variable en análisis exhaustivos.
  */
-export const PLAN_CONFIG: Record<string, { credits: number; maxUsers: number }> = {
+export const PLAN_CONFIG: Record<string, { credits: number; maxUsers: number; hasVariablePricing?: boolean }> = {
   free: { credits: 100, maxUsers: 1 },
   starter: { credits: 800, maxUsers: 5 },
   pro: { credits: 3000, maxUsers: 15 },
-  business: { credits: 8000, maxUsers: 40 },
-  business_plus: { credits: 18000, maxUsers: 80 },
+  business: { credits: 8000, maxUsers: 40, hasVariablePricing: true },
+  business_plus: { credits: 18000, maxUsers: 80, hasVariablePricing: true },
 };
+
+/**
+ * Planes con precio variable en análisis exhaustivos.
+ * En estos planes, al completar el job se devuelven créditos
+ * según el coste real del análisis.
+ */
+export const PLANS_WITH_VARIABLE_PRICING = new Set(['business', 'business_plus']);
 
 /**
  * Nombres legibles de cada plan.

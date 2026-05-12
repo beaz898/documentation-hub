@@ -122,4 +122,12 @@ export interface FinalAnalysis {
    * Presente solo cuando hay más de 50 candidatas; indica cuántas se omitieron.
    */
   candidatesOverLimit?: number;
+  /**
+   * Estimación del coste computacional del análisis exhaustivo.
+   * Usado para calcular el reembolso parcial de créditos en planes Business/Enterprise.
+   * - 'light':  <10 contradicciones confirmadas
+   * - 'medium': 10–30 contradicciones confirmadas
+   * - 'heavy':  >30 contradicciones o pipeline completo con 50 candidatas
+   */
+  estimatedCost?: 'light' | 'medium' | 'heavy';
 }

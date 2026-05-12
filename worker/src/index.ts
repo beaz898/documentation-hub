@@ -3,6 +3,8 @@ import { runExhaustiveAnalysisPipeline } from '../../lib/analysis/pipeline';
 import type { ExhaustivePipelineInput } from '../../lib/analysis/pipeline';
 import { saveAnalysisResult } from '../../lib/persist-analysis';
 import { purgeOrganization, type PurgeResult } from '../../lib/purge-org';
+import { refundCredits } from '../../lib/credits';
+import { PLANS_WITH_VARIABLE_PRICING } from '../../lib/stripe';
 
 // ============================================================
 // Configuración
@@ -122,6 +124,9 @@ async function processJob(job: AnalysisJob): Promise<void> {
       analysisType: 'exhaustive',
     });
 
+    // Precio variable: devolver créditos en planes Business/Enterprise
+    void applyVariablePricingRefund(supabase, job.org_id, job.id, analysis.estimatedCost);
+
     const discCount = analysis.discrepancies?.length ?? 0;
     const styleCount = analysis.styleProblems?.length ?? 0;
     console.log(`[worker] Job ${job.id} completado en ${latencyMs}ms — ${discCount} discrepancias, ${styleCount} estilo`);
@@ -137,6 +142,50 @@ async function processJob(job: AnalysisJob): Promise<void> {
         completed_at: new Date().toISOString(),
       })
       .eq('id', job.id);
+  }
+}
+
+// ============================================================
+// Precio variable: reembolso parcial para Business / Enterprise
+// ============================================================
+
+const REFUND_BY_COST: Record<string, number> = {
+  light: 10,  // coste final: 20 créditos
+  medium: 5,  // coste final: 25 créditos
+  heavy: 0,   // coste final: 30 créditos (sin reembolso)
+};
+
+async function applyVariablePricingRefund(
+  supabase: ReturnType<typeof createServiceClient>,
+  orgId: string,
+  jobId: string,
+  estimatedCost: string | undefined,
+): Promise<void> {
+  try {
+    const { data: org } = await supabase
+      .from('organizations')
+      .select('plan')
+      .eq('id', orgId)
+      .single();
+
+    if (!org || !PLANS_WITH_VARIABLE_PRICING.has(org.plan)) return;
+
+    const cost = estimatedCost ?? 'heavy';
+    const refund = REFUND_BY_COST[cost] ?? 0;
+
+    if (refund === 0) {
+      console.log(`[worker] Job ${jobId}: precio variable — coste ${cost}, sin reembolso (plan ${org.plan})`);
+      return;
+    }
+
+    const refundResult = await refundCredits(supabase, orgId, refund);
+    if (refundResult.success) {
+      console.log(`[worker] Job ${jobId}: precio variable — coste ${cost}, devueltos ${refund} créditos (plan ${org.plan}, credits_extra ahora: ${refundResult.creditsExtra})`);
+    } else {
+      console.error(`[worker] Job ${jobId}: precio variable — fallo al devolver ${refund} créditos (plan ${org.plan})`);
+    }
+  } catch (err) {
+    console.error(`[worker] Job ${jobId}: error en applyVariablePricingRefund:`, err);
   }
 }
 
