@@ -8,12 +8,12 @@ const BRAND = '#2563eb';
 const BRAND_LIGHT = '#dbeafe';
 const BRAND_DARK = '#1d4ed8';
 
-const PLANS = [
-  { name: 'Free', price: '0', credits: '100', users: '1', desc: 'Para probar', cta: 'Empezar gratis' },
-  { name: 'Starter', price: '39', credits: '800', users: '5', desc: 'Profesional independiente', cta: 'Empezar' },
-  { name: 'Pro', price: '99', credits: '3.000', users: '15', desc: 'PYME pequeña', cta: 'Empezar', popular: true },
-  { name: 'Business', price: '249', credits: '8.000', users: '40', desc: 'PYME mediana', cta: 'Empezar' },
-  { name: 'Business+', price: '499', credits: '18.000', users: '80', desc: 'PYME grande', cta: 'Contactar' },
+const PLANS: Array<{ name: string; price: string; credits: string; users: number | null; desc: string; cta: string; popular?: boolean }> = [
+  { name: 'Free', price: '0', credits: '100', users: 1, desc: 'Para probar', cta: 'Empezar gratis' },
+  { name: 'Starter', price: '59', credits: '400', users: 3, desc: 'Profesional independiente', cta: 'Empezar' },
+  { name: 'Pro', price: '149', credits: '1.500', users: 5, desc: 'PYME pequeña', cta: 'Empezar', popular: true },
+  { name: 'Business', price: '349', credits: '4.000', users: 15, desc: 'PYME mediana', cta: 'Empezar' },
+  { name: 'Business+', price: '599', credits: '10.000', users: null, desc: 'PYME grande', cta: 'Contactar' },
 ];
 
 const FAQS = [
@@ -629,7 +629,7 @@ export default function LandingPage() {
                 </div>
                 <div style={{ fontSize: 13, color: '#666', marginBottom: 20, flex: 1 }}>
                   <p style={{ marginBottom: 6, display: 'flex', alignItems: 'center', gap: 6 }}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={BRAND} strokeWidth="2.5"><polyline points="20 6 9 17 4 12" /></svg>{plan.credits} créditos/mes</p>
-                  <p style={{ display: 'flex', alignItems: 'center', gap: 6 }}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={BRAND} strokeWidth="2.5"><polyline points="20 6 9 17 4 12" /></svg>Hasta {plan.users} usuario{plan.users !== '1' ? 's' : ''}</p>
+                  <p style={{ display: 'flex', alignItems: 'center', gap: 6 }}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={BRAND} strokeWidth="2.5"><polyline points="20 6 9 17 4 12" /></svg>{plan.users !== null ? `Hasta ${plan.users} usuario${plan.users !== 1 ? 's' : ''}` : 'Usuarios ilimitados'}</p>
                 </div>
                 <button onClick={handlePlanCTA} style={{ width: '100%', padding: '10px', borderRadius: 8, border: 'none', background: plan.popular ? BRAND : '#f0f0ee', color: plan.popular ? '#fff' : '#1a1a1a', fontSize: 13, fontWeight: 600, cursor: 'pointer', transition: 'all .15s', boxShadow: plan.popular ? `0 2px 8px ${BRAND}33` : 'none' }}
                   onMouseEnter={e => { if (!plan.popular) { e.currentTarget.style.background = BRAND_LIGHT; e.currentTarget.style.color = BRAND; } }}
