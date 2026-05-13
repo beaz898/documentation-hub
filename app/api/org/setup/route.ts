@@ -63,13 +63,13 @@ export async function POST(req: NextRequest) {
       // Body vacío o no JSON, usar nombre por defecto
     }
 
-    // Crear organización con plan Free (100 créditos, 1 usuario)
+    // Crear organización con plan Free (50 créditos, 1 usuario)
     const { data: newOrg, error: orgError } = await supabase
       .from('organizations')
       .insert({
         name: orgName,
         plan: 'free',
-        credits_remaining: 100,
+        credits_remaining: 50,
         credits_extra: 0,
         max_users: 1,
       })

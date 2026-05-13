@@ -9,7 +9,7 @@ const BRAND_LIGHT = '#dbeafe';
 const BRAND_DARK = '#1d4ed8';
 
 const PLANS: Array<{ name: string; price: string; credits: string; users: number | null; desc: string; cta: string; popular?: boolean }> = [
-  { name: 'Free', price: '0', credits: '100', users: 1, desc: 'Para probar', cta: 'Empezar gratis' },
+  { name: 'Free', price: '0', credits: '50', users: 1, desc: 'Para probar', cta: 'Empezar gratis' },
   { name: 'Starter', price: '59', credits: '400', users: 3, desc: 'Profesional independiente', cta: 'Empezar' },
   { name: 'Pro', price: '149', credits: '1.500', users: 5, desc: 'PYME pequeña', cta: 'Empezar', popular: true },
   { name: 'Business', price: '349', credits: '4.000', users: 15, desc: 'PYME mediana', cta: 'Empezar' },
@@ -211,7 +211,7 @@ export default function LandingPage() {
                   Ver cómo funciona
                 </button>
               </div>
-              <p style={{ fontSize: 12, color: '#999', marginTop: 14 }}>Sin tarjeta de crédito · 100 consultas gratis</p>
+              <p style={{ fontSize: 12, color: '#999', marginTop: 14 }}>Sin tarjeta de crédito · 50 créditos gratis</p>
             </div>
 
             {/* Hero mockup — Chat */}
@@ -683,7 +683,7 @@ export default function LandingPage() {
             <h2 style={{ fontSize: 'clamp(28px,4.5vw,44px)', lineHeight: 1.2, letterSpacing: -0.5, marginBottom: 16 }}>
               Pon tu documentación<br /><span style={{ color: BRAND }}>a trabajar para ti</span>
             </h2>
-            <p style={{ fontSize: 16, color: '#555', marginBottom: 32, maxWidth: 480, margin: '0 auto 32px' }}>Empieza gratis con 100 consultas. Sin tarjeta. Sin compromiso.</p>
+            <p style={{ fontSize: 16, color: '#555', marginBottom: 32, maxWidth: 480, margin: '0 auto 32px' }}>Empieza gratis con 50 créditos. Sin tarjeta. Sin compromiso.</p>
             <button className="btn-primary" onClick={handleCTA} style={{ fontSize: 16, padding: '15px 36px' }}>
               Empezar ahora
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg>
@@ -697,8 +697,8 @@ export default function LandingPage() {
         <div className="landing-section" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 16 }}>
           <span style={{ fontSize: 13, color: '#999' }}>© {new Date().getFullYear()} Doclity</span>
           <div style={{ display: 'flex', gap: 24 }}>
-            <a href="/privacy" style={{ fontSize: 13, color: '#999', textDecoration: 'none' }}>Política de privacidad</a>
-            <a href="/terms" style={{ fontSize: 13, color: '#999', textDecoration: 'none' }}>Términos de uso</a>
+            <a href="/legal/privacidad" style={{ fontSize: 13, color: '#999', textDecoration: 'none' }}>Política de privacidad</a>
+            <a href="/legal/terminos" style={{ fontSize: 13, color: '#999', textDecoration: 'none' }}>Términos de uso</a>
           </div>
         </div>
       </footer>

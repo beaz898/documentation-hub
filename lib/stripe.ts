@@ -47,7 +47,7 @@ export const PRICE_ID_TO_PACK: Record<string, { credits: number }> = Object.from
  * y si tiene precio variable en análisis exhaustivos.
  */
 export const PLAN_CONFIG: Record<string, { credits: number; maxUsers: number | null; hasVariablePricing?: boolean }> = {
-  free: { credits: 100, maxUsers: 1 },
+  free: { credits: 50, maxUsers: 1 },
   starter: { credits: 400, maxUsers: 3 },
   pro: { credits: 1500, maxUsers: 5 },
   business: { credits: 4000, maxUsers: 15, hasVariablePricing: true },
@@ -83,7 +83,7 @@ export const PLAN_FEATURES: Record<string, {
  * Nombres legibles de cada plan.
  */
 export const PLAN_LABELS: Record<string, string> = {
-  free: 'Free',
+  free: 'Gratis',
   starter: 'Starter',
   pro: 'Pro',
   business: 'Business',

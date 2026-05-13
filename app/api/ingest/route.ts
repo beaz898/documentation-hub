@@ -119,6 +119,28 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    // Límite de 5 documentos en plan free (solo aplica a documentos nuevos, no a reemplazos)
+    if (manualCollisions.length === 0) {
+      const { data: orgPlan } = await supabase
+        .from('organizations')
+        .select('plan')
+        .eq('id', orgId)
+        .single();
+      if (orgPlan?.plan === 'free') {
+        const { count: docCount } = await supabase
+          .from('documents')
+          .select('id', { count: 'exact', head: true })
+          .eq('org_id', orgId);
+        if ((docCount ?? 0) >= 5) {
+          await supabase.storage.from('documents').remove([storagePath]);
+          return NextResponse.json(
+            { error: 'Has alcanzado el límite de 5 documentos del plan gratuito. Actualiza tu plan para subir más.' },
+            { status: 403 }
+          );
+        }
+      }
+    }
+
     // 1. Descargar archivo de Supabase Storage
     console.log(`[INGEST] Downloading from storage: ${storagePath}`);
     const { data: fileData, error: downloadError } = await supabase.storage

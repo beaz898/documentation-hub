@@ -72,6 +72,22 @@ export async function POST(req: NextRequest) {
 
     // Rate limiting (límite separado para rápido y exhaustivo)
     const isExhaustive = exhaustive === true;
+
+    // El análisis exhaustivo no está disponible en el plan free
+    if (isExhaustive) {
+      const { data: orgPlan } = await supabase
+        .from('organizations')
+        .select('plan')
+        .eq('id', orgId)
+        .single();
+      if (orgPlan?.plan === 'free') {
+        return NextResponse.json(
+          { error: 'El análisis exhaustivo está disponible a partir del plan Starter.' },
+          { status: 403 }
+        );
+      }
+    }
+
     const rateCheck = await checkRateLimit(supabase, userId, '/api/analyze-v2', isExhaustive);
     if (!rateCheck.allowed) {
       const modeLabel = isExhaustive ? 'análisis exhaustivos' : 'análisis';
