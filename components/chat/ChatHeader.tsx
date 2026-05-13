@@ -1,6 +1,7 @@
 'use client';
 
 import FeedbackButton from '@/components/feedback/FeedbackButton';
+import DoclityLogo from '@/components/DoclityLogo';
 
 interface ChatHeaderProps {
   sidebarOpen: boolean;
@@ -30,7 +31,7 @@ export default function ChatHeader({
         </svg>
       </button>
       <div style={{ flex: 1 }}>
-        <h1 style={{ fontSize: 14, fontWeight: 600 }}>Doclity</h1>
+        <DoclityLogo size="sm" />
         <p style={{ fontSize: 11, color: 'var(--text-muted)' }}>
           {documentCount > 0 ? `${documentCount} documento${documentCount !== 1 ? 's' : ''}` : 'Sube documentos para empezar'}
         </p>
