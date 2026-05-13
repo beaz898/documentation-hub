@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase';
+import DoclityLogo from '@/components/DoclityLogo';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -66,17 +67,9 @@ export default function LoginPage() {
       <div className="relative w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8">
-          <div
-            className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-4"
-            style={{ background: 'linear-gradient(135deg, var(--brand), #6366f1)' }}
-          >
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20" />
-              <path d="M8 7h6" />
-              <path d="M8 11h8" />
-            </svg>
+          <div className="flex justify-center mb-3" style={{ color: 'var(--text-primary)' }}>
+            <DoclityLogo size="md" />
           </div>
-          <h1 className="text-2xl font-bold text-[var(--text-primary)]">Doclity</h1>
           <p className="text-sm text-[var(--text-secondary)] mt-1">
             Tu documentación, siempre accesible
           </p>
