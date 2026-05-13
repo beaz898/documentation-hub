@@ -134,7 +134,7 @@ export default function InvitePage() {
             </div>
             <h1 style={{ fontSize: 18, fontWeight: 600, marginBottom: 8 }}>Te han invitado</h1>
             <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 6 }}>
-              Has recibido una invitación para unirte a un workspace en Documentation Hub.
+              Has recibido una invitación para unirte a un workspace en Doclity.
             </p>
             <p style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 16 }}>
               Sesión: {session?.user.email}

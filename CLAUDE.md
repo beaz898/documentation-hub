@@ -12,7 +12,7 @@ npm run lint     # Lint + type-check
 
 ## Architecture
 
-**Documentation Hub** is a multi-tenant SaaS for document management and AI-powered analysis. Users upload documents, ask questions, and receive answers grounded in their document content. The system also detects contradictions, duplicates, and quality issues across documents.
+**Doclity** is a multi-tenant SaaS for document management and AI-powered analysis. Users upload documents, ask questions, and receive answers grounded in their document content. The system also detects contradictions, duplicates, and quality issues across documents.
 
 ### Stack
 

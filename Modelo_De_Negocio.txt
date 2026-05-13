@@ -1,4 +1,4 @@
-MODELO DE NEGOCIO — Documentation Hub
+MODELO DE NEGOCIO — Doclity
 ======================================
 Última actualización: 11/05/2026
 
@@ -7,7 +7,7 @@ MODELO DE NEGOCIO — Documentation Hub
 PROPUESTA DE VALOR
 ────────────────────────────────────────────────────────────────
 
-Documentation Hub ayuda a empresas a mantener su documentación interna
+Doclity ayuda a empresas a mantener su documentación interna
 coherente y consultable. El sistema:
 
 1. Responde preguntas sobre la documentación en segundos (RAG)

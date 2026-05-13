@@ -3,7 +3,7 @@ import './globals.css';
 import { ThemeProvider } from '@/components/ThemeProvider';
 
 export const metadata: Metadata = {
-  title: 'Documentation Hub',
+  title: 'Doclity',
   description: 'Asistente inteligente para tu documentación empresarial',
   viewport: 'width=device-width, initial-scale=1, maximum-scale=1',
   icons: { icon: '/favicon.ico' },

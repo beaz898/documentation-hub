@@ -1,5 +1,5 @@
-BITÁCORA DE SESIONES — Documentation Hub
-=========================================
+BITÁCORA DE SESIONES — Doclity
+==============================
 Registro cronológico de cambios implementados en cada sesión de trabajo.
 
 

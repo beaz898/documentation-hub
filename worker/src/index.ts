@@ -298,7 +298,7 @@ function validateEnv(): void {
 function start(): void {
   validateEnv();
 
-  console.log('[worker] Documentation Hub Analysis Worker iniciado');
+  console.log('[worker] Doclity Analysis Worker iniciado');
   console.log(`[worker] Polling cada ${POLL_INTERVAL / 1000}s, max ${MAX_CONCURRENT} jobs simultáneos`);
   console.log(`[worker] Purga de orgs expiradas cada ${PURGE_INTERVAL / 3600000}h`);
 

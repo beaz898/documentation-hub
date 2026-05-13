@@ -19,7 +19,7 @@ const PLANS = [
 const FAQS = [
   { q: '¿Mis documentos están seguros?', a: 'Sí. Cada organización tiene su espacio aislado. Usamos cifrado AES-256, Row Level Security en la base de datos, y validación JWT en cada petición. Tus documentos nunca se comparten con otras empresas ni se usan para entrenar modelos de IA.' },
   { q: '¿Qué formatos de documento aceptáis?', a: 'PDF, Word (.docx), texto plano (.txt), Markdown (.md), CSV, JSON y HTML. También puedes importar directamente desde Google Drive.' },
-  { q: '¿Qué pasa si la IA se equivoca?', a: 'Documentation Hub siempre muestra las fuentes de sus respuestas para que puedas verificarlas. El análisis de documentos indica el nivel de confianza de cada hallazgo. Nunca prometemos detección al 100% — somos una herramienta de apoyo, no un sustituto del criterio humano.' },
+  { q: '¿Qué pasa si la IA se equivoca?', a: 'Doclity siempre muestra las fuentes de sus respuestas para que puedas verificarlas. El análisis de documentos indica el nivel de confianza de cada hallazgo. Nunca prometemos detección al 100% — somos una herramienta de apoyo, no un sustituto del criterio humano.' },
   { q: '¿Puedo cancelar en cualquier momento?', a: 'Sí, sin permanencia. Al cancelar mantienes el acceso hasta el final del período facturado, más 90 días de gracia para exportar tus datos.' },
   { q: '¿Necesito conocimientos técnicos?', a: 'No. Subes tus documentos y empiezas a preguntar. No hay configuración técnica, no hay APIs que conectar, no hay que instalar nada.' },
 ];
@@ -169,7 +169,7 @@ export default function LandingPage() {
               <div style={{ width: 34, height: 34, borderRadius: 9, background: BRAND, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px rgba(37,99,235,.25)' }}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /><line x1="16" y1="13" x2="8" y2="13" /><line x1="16" y1="17" x2="8" y2="17" /></svg>
               </div>
-              <span style={{ fontSize: 16, fontWeight: 700, letterSpacing: -0.3 }}>Documentation Hub</span>
+              <span style={{ fontSize: 16, fontWeight: 700, letterSpacing: -0.3 }}>Doclity</span>
             </div>
             <div className="nav-cta" style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
               {isLoggedIn ? (
@@ -220,7 +220,7 @@ export default function LandingPage() {
                 <div style={{ borderRadius: 14, overflow: 'hidden', boxShadow: '0 24px 80px rgba(0,0,0,.12), 0 0 0 1px rgba(0,0,0,.06)', background: '#fff' }}>
                   <div style={{ padding: '10px 14px', background: '#f5f5f4', borderBottom: '1px solid rgba(0,0,0,.06)', display: 'flex', alignItems: 'center', gap: 8 }}>
                     <div style={{ display: 'flex', gap: 5 }}><div style={{ width: 10, height: 10, borderRadius: '50%', background: '#fbbf24' }} /><div style={{ width: 10, height: 10, borderRadius: '50%', background: '#a3e635' }} /><div style={{ width: 10, height: 10, borderRadius: '50%', background: '#f87171' }} /></div>
-                    <div style={{ flex: 1, background: '#fff', borderRadius: 6, padding: '4px 12px', fontSize: 11, color: '#999', border: '1px solid rgba(0,0,0,.06)' }}>documentation-hub.app/chat</div>
+                    <div style={{ flex: 1, background: '#fff', borderRadius: 6, padding: '4px 12px', fontSize: 11, color: '#999', border: '1px solid rgba(0,0,0,.06)' }}>doclity.app/chat</div>
                   </div>
                   <div style={{ display: 'flex', height: 280 }}>
                     <div style={{ width: 160, borderRight: '1px solid rgba(0,0,0,.06)', padding: '12px 10px', background: '#fafaf9', display: 'flex', flexDirection: 'column', gap: 4 }}>
@@ -331,7 +331,7 @@ export default function LandingPage() {
               <div style={{ borderRadius: 14, overflow: 'hidden', boxShadow: '0 20px 60px rgba(0,0,0,.1), 0 0 0 1px rgba(0,0,0,.06)', background: '#fff' }}>
                 <div style={{ padding: '8px 12px', background: '#f5f5f4', borderBottom: '1px solid rgba(0,0,0,.06)', display: 'flex', alignItems: 'center', gap: 6 }}>
                   <div style={{ display: 'flex', gap: 4 }}><div style={{ width: 8, height: 8, borderRadius: '50%', background: '#fbbf24' }} /><div style={{ width: 8, height: 8, borderRadius: '50%', background: '#a3e635' }} /><div style={{ width: 8, height: 8, borderRadius: '50%', background: '#f87171' }} /></div>
-                  <div style={{ flex: 1, fontSize: 10, color: '#aaa', textAlign: 'center' }}>Chat — Documentation Hub</div>
+                  <div style={{ flex: 1, fontSize: 10, color: '#aaa', textAlign: 'center' }}>Chat — Doclity</div>
                 </div>
                 <div style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 12 }}>
                   <div className="s1-msg-user" style={{ alignSelf: 'flex-end', maxWidth: '75%' }}>
@@ -572,7 +572,7 @@ export default function LandingPage() {
                   </div>
                 </div>
                 <div style={{ padding: '22px 24px', borderRadius: 14, background: `${BRAND}22`, border: `1px solid ${BRAND}44` }}>
-                  <span style={{ fontSize: 14, fontWeight: 700, color: '#fff' }}>Documentation Hub</span>
+                  <span style={{ fontSize: 14, fontWeight: 700, color: '#fff' }}>Doclity</span>
                   <div style={{ marginTop: 14, display: 'flex', flexDirection: 'column', gap: 8 }}>
                     {['Búsqueda con IA', 'Análisis de calidad al subir', 'Mejora guiada con IA'].map((t, i) => (
                       <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, color: i === 0 ? 'rgba(255,255,255,.7)' : '#4ade80', fontWeight: i === 0 ? 400 : 600 }}>
@@ -695,7 +695,7 @@ export default function LandingPage() {
       {/* ============ FOOTER ============ */}
       <footer style={{ borderTop: '1px solid rgba(0,0,0,.06)', padding: '32px 24px' }}>
         <div className="landing-section" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 16 }}>
-          <span style={{ fontSize: 13, color: '#999' }}>© {new Date().getFullYear()} Documentation Hub</span>
+          <span style={{ fontSize: 13, color: '#999' }}>© {new Date().getFullYear()} Doclity</span>
           <div style={{ display: 'flex', gap: 24 }}>
             <a href="/privacy" style={{ fontSize: 13, color: '#999', textDecoration: 'none' }}>Política de privacidad</a>
             <a href="/terms" style={{ fontSize: 13, color: '#999', textDecoration: 'none' }}>Términos de uso</a>

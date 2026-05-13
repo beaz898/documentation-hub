@@ -1,7 +1,7 @@
 import Link from 'next/link';
 
 export const metadata = {
-  title: 'Política de Privacidad — Documentation Hub',
+  title: 'Política de Privacidad — Doclity',
 };
 
 const sections = [
@@ -11,7 +11,7 @@ const sections = [
     content: (
       <>
         <p>
-          El responsable del tratamiento de tus datos es el titular de Documentation Hub, con domicilio en A Coruña, España.
+          El responsable del tratamiento de tus datos es el titular de Doclity, con domicilio en A Coruña, España.
           Para cualquier consulta relacionada con la protección de tus datos personales, puedes contactarnos en:{' '}
           <a href="mailto:[EMAIL_CONTACTO]" style={{ color: 'var(--brand)' }}>[EMAIL_CONTACTO]</a>.
         </p>
@@ -193,7 +193,7 @@ const sections = [
     title: 'Cookies',
     content: (
       <p>
-        Documentation Hub no utiliza cookies de seguimiento ni publicidad. Solo utilizamos cookies técnicas
+        Doclity no utiliza cookies de seguimiento ni publicidad. Solo utilizamos cookies técnicas
         estrictamente necesarias para mantener tu sesión activa.
       </p>
     ),
@@ -249,7 +249,7 @@ export default function PrivacidadPage() {
         {/* Intro */}
         <div style={{ marginBottom: 36 }}>
           <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 6 }}>
-            Política de Privacidad de Documentation Hub
+            Política de Privacidad de Doclity
           </h2>
           <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>Última actualización: mayo 2026</p>
         </div>
@@ -300,7 +300,7 @@ export default function PrivacidadPage() {
           textAlign: 'center',
           lineHeight: 1.6,
         }}>
-          Esta política se aplica a todos los usuarios de Documentation Hub registrados a partir de su fecha de entrada en vigor.
+          Esta política se aplica a todos los usuarios de Doclity registrados a partir de su fecha de entrada en vigor.
         </p>
       </div>
     </div>

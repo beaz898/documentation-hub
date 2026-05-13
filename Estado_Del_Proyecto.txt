@@ -1,4 +1,4 @@
-ESTADO DEL PROYECTO — Documentation Hub
+ESTADO DEL PROYECTO — Doclity
 ========================================
 Última actualización: 11/05/2026
 
@@ -7,7 +7,7 @@ ESTADO DEL PROYECTO — Documentation Hub
 RESUMEN EJECUTIVO
 ────────────────────────────────────────────────────────────────
 
-Documentation Hub es un SaaS multi-tenant para gestión y análisis inteligente
+Doclity es un SaaS multi-tenant para gestión y análisis inteligente
 de documentación empresarial. Los usuarios suben documentos, hacen preguntas
 en lenguaje natural y reciben respuestas basadas en el contenido. El sistema
 detecta automáticamente contradicciones, duplicados y problemas de calidad

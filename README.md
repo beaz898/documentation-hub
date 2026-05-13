@@ -1,4 +1,4 @@
-# Documentation Hub
+# Doclity
 
 Asistente inteligente para documentación empresarial. Sube los documentos de tu empresa y pregunta lo que necesites — la IA busca en tu documentación y te responde en segundos.
 

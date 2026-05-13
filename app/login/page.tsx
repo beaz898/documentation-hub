@@ -76,7 +76,7 @@ export default function LoginPage() {
               <path d="M8 11h8" />
             </svg>
           </div>
-          <h1 className="text-2xl font-bold text-[var(--text-primary)]">Documentation Hub</h1>
+          <h1 className="text-2xl font-bold text-[var(--text-primary)]">Doclity</h1>
           <p className="text-sm text-[var(--text-secondary)] mt-1">
             Tu documentación, siempre accesible
           </p>
