@@ -15,16 +15,16 @@ interface UsageSummary {
   subscriptionStatus?: string;
 }
 
-const PLANS = [
+const PLANS: Array<{ id: string; name: string; price: number; credits: number; users: number | null; description: string; popular?: boolean }> = [
   { id: 'free', name: 'Free', price: 0, credits: 100, users: 1, description: 'Para probar' },
-  { id: 'starter', name: 'Starter', price: 39, credits: 800, users: 5, description: 'Profesional independiente' },
-  { id: 'pro', name: 'Pro', price: 99, credits: 3000, users: 15, description: 'PYME pequeña', popular: true },
-  { id: 'business', name: 'Business', price: 249, credits: 8000, users: 40, description: 'PYME mediana' },
-  { id: 'business_plus', name: 'Business+', price: 499, credits: 18000, users: 80, description: 'PYME grande' },
+  { id: 'starter', name: 'Starter', price: 59, credits: 400, users: 3, description: 'Profesional independiente' },
+  { id: 'pro', name: 'Pro', price: 149, credits: 1500, users: 5, description: 'PYME pequeña', popular: true },
+  { id: 'business', name: 'Business', price: 349, credits: 4000, users: 15, description: 'PYME mediana' },
+  { id: 'business_plus', name: 'Business+', price: 599, credits: 10000, users: null, description: 'PYME grande' },
 ];
 
 const CREDIT_PACKS = [
-  { id: 'pack_500', credits: 500, price: 12, pricePerCredit: '0,024€' },
+  { id: 'pack_500', credits: 500, price: 15, pricePerCredit: '0,030€' },
 ];
 
 export default function BillingPage() {
@@ -348,7 +348,7 @@ export default function BillingPage() {
 
                     <div style={{ fontSize: 11, color: 'var(--text-secondary)', marginBottom: 14, flex: 1 }}>
                       <p style={{ marginBottom: 3 }}>{plan.credits.toLocaleString('es-ES')} créditos/mes</p>
-                      <p>Hasta {plan.users} usuarios</p>
+                      <p>{plan.users !== null ? `Hasta ${plan.users} usuarios` : 'Usuarios ilimitados'}</p>
                     </div>
 
                     {isCurrent ? (

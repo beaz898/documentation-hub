@@ -15,8 +15,8 @@ export function getStripe(): Stripe {
  * Cuando pases a producción, actualiza estos IDs con los de modo live.
  */
 export const PLAN_PRICE_IDS: Record<string, string> = {
-  starter: 'price_1TR7KXQJlzJPB7cCr8rQ9lqN',
-  pro: 'price_1TR7KuQJlzJPB7cC84w0zhUK',
+  starter: 'price_1TWY7rQJlzJPB7cCGDrOZNb3',
+  pro: 'price_1TWY6pQJlzJPB7cC5D9RVVDt',
   business: 'price_1TR7LCQJlzJPB7cCs1LJp4Xp',
   business_plus: 'price_1TR7LXQJlzJPB7cCvXtF0XPP',
 };
@@ -32,7 +32,7 @@ export const PRICE_ID_TO_PLAN: Record<string, string> = Object.fromEntries(
  * Price IDs de recargas de créditos (pagos únicos).
  */
 export const CREDIT_PACK_PRICE_IDS: Record<string, { priceId: string; credits: number }> = {
-  pack_500: { priceId: 'price_1TR7MFQJlzJPB7cC9556NDv7', credits: 500 },
+  pack_500: { priceId: 'price_1TWY5YQJlzJPB7cCqm5CeJ7R', credits: 500 },
 };
 
 /**
@@ -46,12 +46,12 @@ export const PRICE_ID_TO_PACK: Record<string, { credits: number }> = Object.from
  * Configuración de cada plan: créditos mensuales, máximo de usuarios
  * y si tiene precio variable en análisis exhaustivos.
  */
-export const PLAN_CONFIG: Record<string, { credits: number; maxUsers: number; hasVariablePricing?: boolean }> = {
+export const PLAN_CONFIG: Record<string, { credits: number; maxUsers: number | null; hasVariablePricing?: boolean }> = {
   free: { credits: 100, maxUsers: 1 },
-  starter: { credits: 800, maxUsers: 5 },
-  pro: { credits: 3000, maxUsers: 15 },
-  business: { credits: 8000, maxUsers: 40, hasVariablePricing: true },
-  business_plus: { credits: 18000, maxUsers: 80, hasVariablePricing: true },
+  starter: { credits: 400, maxUsers: 3 },
+  pro: { credits: 1500, maxUsers: 5 },
+  business: { credits: 4000, maxUsers: 15, hasVariablePricing: true },
+  business_plus: { credits: 10000, maxUsers: null, hasVariablePricing: true },
 };
 
 /**
@@ -72,10 +72,10 @@ export const PLAN_FEATURES: Record<string, {
   maxUsers: number | null;
 }> = {
   free:          { hasDrive: false, hasAnalyticsPanel: false, hasVariablePricing: false, maxUsers: 1 },
-  starter:       { hasDrive: false, hasAnalyticsPanel: false, hasVariablePricing: false, maxUsers: 5 },
-  pro:           { hasDrive: true,  hasAnalyticsPanel: false, hasVariablePricing: false, maxUsers: 15 },
-  business:      { hasDrive: true,  hasAnalyticsPanel: true,  hasVariablePricing: true,  maxUsers: 40 },
-  business_plus: { hasDrive: true,  hasAnalyticsPanel: true,  hasVariablePricing: true,  maxUsers: 80 },
+  starter:       { hasDrive: false, hasAnalyticsPanel: false, hasVariablePricing: false, maxUsers: 3 },
+  pro:           { hasDrive: true,  hasAnalyticsPanel: false, hasVariablePricing: false, maxUsers: 5 },
+  business:      { hasDrive: true,  hasAnalyticsPanel: true,  hasVariablePricing: true,  maxUsers: 15 },
+  business_plus: { hasDrive: true,  hasAnalyticsPanel: true,  hasVariablePricing: true,  maxUsers: null },
   enterprise:    { hasDrive: true,  hasAnalyticsPanel: true,  hasVariablePricing: true,  maxUsers: null },
 };
 
