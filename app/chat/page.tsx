@@ -168,6 +168,35 @@ export default function ChatPage() {
     <div style={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
       {isMobile && sidebarOpen && <div className="sidebar-mobile-overlay" onClick={() => setSidebarOpen(false)} />}
 
+      {/* Strip colapsado (desktop, sidebar cerrado) */}
+      {!isMobile && !sidebarOpen && (
+        <div style={{
+          width: 36, flexShrink: 0, height: '100%',
+          background: 'var(--bg-secondary)', borderRight: '0.5px solid var(--border)',
+          display: 'flex', flexDirection: 'column', alignItems: 'center', paddingTop: 12,
+        }}>
+          <button
+            onClick={() => setSidebarOpen(true)}
+            title="Expandir panel"
+            aria-label="Expandir panel"
+            style={{
+              width: 26, height: 26, borderRadius: 6, border: 'none',
+              background: 'transparent', cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              color: 'var(--text-muted)',
+            }}
+            onMouseEnter={e => (e.currentTarget.style.background = 'var(--surface-hover)')}
+            onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <rect x="3" y="3" width="18" height="18" rx="2" />
+              <line x1="9" y1="3" x2="9" y2="21" />
+              <polyline points="12 9 15 12 12 15" />
+            </svg>
+          </button>
+        </div>
+      )}
+
       {/* Sidebar */}
       <div style={{
         flexShrink: 0, transition: 'width 0.25s ease, transform 0.25s ease',
@@ -180,7 +209,9 @@ export default function ChatPage() {
             driveStatus={driveStatus} syncing={syncing}
             onUpload={async (file: File) => { await activateLock(); await handleUpload(file); }} onDelete={handleDelete}
             onConnectDrive={handleConnectDrive} onSyncDrive={handleSyncDrive} onDisconnectDrive={handleDisconnectDrive}
-            onLogout={handleLogout} onClose={isMobile ? () => setSidebarOpen(false) : undefined}
+            onLogout={handleLogout}
+            onClose={isMobile ? () => setSidebarOpen(false) : undefined}
+            onCollapseSidebar={!isMobile ? () => setSidebarOpen(false) : undefined}
             userEmail={session.user.email || 'Usuario'}
             analysisProgress={analysisProgress}
             analysisPhase={analysisPhase}

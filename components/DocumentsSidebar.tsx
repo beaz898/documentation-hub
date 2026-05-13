@@ -48,6 +48,7 @@ interface DocumentsSidebarProps {
   onDisconnectDrive: () => void;
   onLogout: () => void;
   onClose?: () => void;
+  onCollapseSidebar?: () => void;
   userEmail: string;
   analysisProgress?: number;
   analysisPhase?: string;
@@ -133,6 +134,7 @@ export default function DocumentsSidebar({
   onDisconnectDrive,
   onLogout,
   onClose,
+  onCollapseSidebar,
   userEmail,
   analysisProgress = 0,
   analysisPhase = '',
@@ -371,16 +373,39 @@ export default function DocumentsSidebar({
     }}>
       {/* 1. Header */}
       <div style={{
-        padding: '14px 14px 10px', borderBottom: '0.5px solid var(--border)',
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0,
+        padding: '10px 10px 10px 14px', borderBottom: '0.5px solid var(--border)',
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0, gap: 6,
       }}>
-        <div>
+        <div style={{ flex: 1, minWidth: 0 }}>
           <h2 style={{ fontSize: 12, fontWeight: 700, letterSpacing: -0.2 }}>Documentos</h2>
           <p style={{ fontSize: 9, color: 'var(--text-muted)', marginTop: 2 }}>{documents.length} archivos indexados</p>
         </div>
+        {/* Botón de colapsar (desktop) */}
+        {onCollapseSidebar && (
+          <button
+            onClick={onCollapseSidebar}
+            title="Contraer panel"
+            aria-label="Contraer panel"
+            style={{
+              width: 26, height: 26, flexShrink: 0, borderRadius: 6, border: 'none',
+              background: 'transparent', cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              color: 'var(--text-muted)',
+            }}
+            onMouseEnter={e => (e.currentTarget.style.background = 'var(--surface-hover)')}
+            onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <rect x="3" y="3" width="18" height="18" rx="2" />
+              <line x1="9" y1="3" x2="9" y2="21" />
+              <polyline points="12 9 9 12 12 15" />
+            </svg>
+          </button>
+        )}
+        {/* Botón de cerrar (mobile) */}
         {onClose && (
           <button onClick={onClose} aria-label="Cerrar sidebar" style={{
-            width: 28, height: 28, borderRadius: 6, border: 'none', background: 'transparent',
+            width: 26, height: 26, flexShrink: 0, borderRadius: 6, border: 'none', background: 'transparent',
             cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
             color: 'var(--text-muted)',
           }}>
