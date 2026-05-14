@@ -2,10 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import { resolveOrg } from '@/lib/org';
 import { getOrgFeatures } from '@/lib/plan-features';
+import { getProvider } from '@/lib/drive/registry';
 
 export async function GET(req: NextRequest) {
   try {
-    // Verify auth
     const token = req.nextUrl.searchParams.get('token');
     if (!token) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
@@ -17,7 +17,6 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Token inválido' }, { status: 401 });
     }
 
-    // Resolver organización
     const orgInfo = await resolveOrg(supabase, user.id);
     if (!orgInfo) {
       return NextResponse.json(
@@ -34,31 +33,17 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    const clientId = process.env.GOOGLE_CLIENT_ID!;
-    const redirectUri = process.env.GOOGLE_REDIRECT_URI!;
-
-    // Build Google OAuth URL
-    const scopes = [
-      'https://www.googleapis.com/auth/drive.readonly',
-      'https://www.googleapis.com/auth/userinfo.email',
-    ];
+    const providerName = req.nextUrl.searchParams.get('provider') || 'google_drive';
+    const provider = getProvider(providerName);
 
     const state = Buffer.from(JSON.stringify({
       userId: user.id,
       orgId: orgInfo.orgId,
       token,
+      provider: provider.name,
     })).toString('base64');
 
-    const authUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth');
-    authUrl.searchParams.set('client_id', clientId);
-    authUrl.searchParams.set('redirect_uri', redirectUri);
-    authUrl.searchParams.set('response_type', 'code');
-    authUrl.searchParams.set('scope', scopes.join(' '));
-    authUrl.searchParams.set('access_type', 'offline');
-    authUrl.searchParams.set('prompt', 'consent');
-    authUrl.searchParams.set('state', state);
-
-    return NextResponse.redirect(authUrl.toString());
+    return NextResponse.redirect(provider.buildAuthUrl(state));
   } catch (error: unknown) {
     console.error('Error in /api/drive:', error);
     return NextResponse.json({ error: 'Error interno' }, { status: 500 });

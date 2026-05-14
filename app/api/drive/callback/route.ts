@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import { encrypt } from '@/lib/crypto';
+import { getProvider } from '@/lib/drive/registry';
 
 export async function GET(req: NextRequest) {
   try {
@@ -16,62 +17,39 @@ export async function GET(req: NextRequest) {
       return NextResponse.redirect(new URL('/chat?drive_error=missing_params', req.url));
     }
 
-    // Decode state
-    let state: { userId: string; orgId: string; token: string };
+    let state: { userId: string; orgId: string; token: string; provider?: string };
     try {
       state = JSON.parse(Buffer.from(stateParam, 'base64').toString());
     } catch {
       return NextResponse.redirect(new URL('/chat?drive_error=invalid_state', req.url));
     }
 
-    // Exchange code for tokens
-    const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({
-        code,
-        client_id: process.env.GOOGLE_CLIENT_ID!,
-        client_secret: process.env.GOOGLE_CLIENT_SECRET!,
-        redirect_uri: process.env.GOOGLE_REDIRECT_URI!,
-        grant_type: 'authorization_code',
-      }),
-    });
+    const provider = getProvider(state.provider || 'google_drive');
 
-    if (!tokenResponse.ok) {
-      console.error('Token exchange failed:', await tokenResponse.text());
+    // Exchange code for tokens
+    let tokens;
+    try {
+      tokens = await provider.exchangeCodeForTokens(code);
+    } catch {
       return NextResponse.redirect(new URL('/chat?drive_error=token_failed', req.url));
     }
 
-    const tokens = await tokenResponse.json();
-
-    // Get user email
-    const userInfoRes = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
-      headers: { Authorization: `Bearer ${tokens.access_token}` },
-    });
-    const userInfo = await userInfoRes.json();
-
-    // Get root folders to let user pick
-    const driveRes = await fetch(
-      'https://www.googleapis.com/drive/v3/files?q=%27root%27+in+parents+and+mimeType%3D%27application/vnd.google-apps.folder%27&fields=files(id,name)&orderBy=name',
-      { headers: { Authorization: `Bearer ${tokens.access_token}` } }
-    );
-    const driveData = await driveRes.json();
-    const folders = driveData.files || [];
-
-    // Cifrar tokens antes de guardar en Supabase
-    const encryptedAccessToken = encrypt(tokens.access_token);
-    const encryptedRefreshToken = encrypt(tokens.refresh_token || '');
+    // Get user email and root folders in parallel
+    const [email, folders] = await Promise.all([
+      provider.getUserEmail(tokens.accessToken),
+      provider.listFolders(tokens.accessToken, 'root'),
+    ]);
 
     const supabase = createServiceClient();
 
     const { error: insertError } = await supabase.from('drive_connections').upsert({
       org_id: state.orgId,
       user_id: state.userId,
-      provider: 'google_drive',
-      access_token: encryptedAccessToken,
-      refresh_token: encryptedRefreshToken,
-      token_expires_at: new Date(Date.now() + (tokens.expires_in || 3600) * 1000).toISOString(),
-      email: userInfo.email || '',
+      provider: provider.name,
+      access_token: encrypt(tokens.accessToken),
+      refresh_token: encrypt(tokens.refreshToken),
+      token_expires_at: tokens.expiresAt.toISOString(),
+      email,
       folder_id: 'root',
       folder_name: 'Mi Drive',
     }, { onConflict: 'org_id' });
@@ -81,7 +59,6 @@ export async function GET(req: NextRequest) {
       return NextResponse.redirect(new URL('/chat?drive_error=save_failed', req.url));
     }
 
-    // Redirect back to chat with success
     const foldersParam = encodeURIComponent(JSON.stringify(folders));
     return NextResponse.redirect(
       new URL(`/chat?drive_connected=true&drive_folders=${foldersParam}`, req.url)

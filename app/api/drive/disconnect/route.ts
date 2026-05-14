@@ -18,7 +18,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Token inválido' }, { status: 401 });
     }
 
-    // Resolver organización
     const org = await resolveOrg(supabase, user.id);
     if (!org) {
       return NextResponse.json(
@@ -28,11 +27,18 @@ export async function POST(req: NextRequest) {
     }
     const orgId = org.orgId;
 
-    // Get all drive documents to delete their vectors
+    // Read provider from the connection so we filter documents correctly
+    const { data: connection } = await supabase.from('drive_connections')
+      .select('provider')
+      .eq('org_id', orgId)
+      .single();
+
+    const providerName = connection?.provider || 'google_drive';
+
     const { data: driveDocs } = await supabase.from('documents')
       .select('id, chunk_count')
       .eq('org_id', orgId)
-      .eq('source', 'google_drive');
+      .eq('source', providerName);
 
     if (driveDocs && driveDocs.length > 0) {
       const index = getIndex();
@@ -42,10 +48,9 @@ export async function POST(req: NextRequest) {
           await index.namespace(orgId).deleteMany(ids.slice(i, i + 1000));
         }
       }
-      await supabase.from('documents').delete().eq('org_id', orgId).eq('source', 'google_drive');
+      await supabase.from('documents').delete().eq('org_id', orgId).eq('source', providerName);
     }
 
-    // Delete connection
     await supabase.from('drive_connections').delete().eq('org_id', orgId);
 
     return NextResponse.json({ success: true });
