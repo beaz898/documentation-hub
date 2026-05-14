@@ -21,6 +21,7 @@ export interface DriveStatus {
   folderName?: string;
   lastSynced?: string;
   folders?: Array<{ id: string; name: string; fileCount: number }>;
+  provider?: string;
 }
 
 export interface PendingAnalysis {

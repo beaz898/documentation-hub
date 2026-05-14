@@ -290,6 +290,7 @@ export async function GET(req: NextRequest) {
       folderName: connection.folder_name,
       lastSynced: connection.last_synced_at,
       folders,
+      provider: provider.name,
     });
   } catch (error: unknown) {
     console.error('Error getting drive status:', error);

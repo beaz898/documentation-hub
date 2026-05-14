@@ -78,7 +78,8 @@ export default function ChatPage() {
   useEffect(() => {
     if (searchParams.get('drive_connected') === 'true' && !driveAutoSyncTriggeredRef.current && session) {
       driveAutoSyncTriggeredRef.current = true;
-      addMessage({ id: crypto.randomUUID(), role: 'assistant', content: 'Google Drive conectado correctamente. Trayendo tus archivos...' });
+      const driveProviderLabel = searchParams.get('drive_provider') === 'onedrive' ? 'OneDrive' : 'Google Drive';
+      addMessage({ id: crypto.randomUUID(), role: 'assistant', content: `${driveProviderLabel} conectado correctamente. Trayendo tus archivos...` });
       loadDriveStatus();
       window.history.replaceState({}, '', '/chat');
       setTimeout(() => { handleSyncDrive(); }, 400);

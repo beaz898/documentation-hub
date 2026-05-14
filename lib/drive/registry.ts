@@ -1,8 +1,10 @@
 import { googleDriveProvider } from './google';
+import { oneDriveProvider } from './onedrive';
 import type { DriveProvider } from './types';
 
 const providers: Record<string, DriveProvider> = {
   google_drive: googleDriveProvider,
+  onedrive: oneDriveProvider,
 };
 
 export function getProvider(name: string): DriveProvider {

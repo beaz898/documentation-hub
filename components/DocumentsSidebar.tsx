@@ -26,6 +26,7 @@ interface DriveStatus {
   folderName?: string;
   lastSynced?: string;
   folders?: DriveFolder[];
+  provider?: string;
 }
 
 interface Credits {
@@ -43,7 +44,7 @@ interface DocumentsSidebarProps {
   syncing: boolean;
   onUpload: (file: File) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
-  onConnectDrive: () => void;
+  onConnectDrive: (provider: string) => void;
   onSyncDrive: () => void;
   onDisconnectDrive: () => void;
   onLogout: () => void;
@@ -121,6 +122,7 @@ const PLAN_LABELS: Record<string, string> = {
 };
 
 const PLANS_WITH_DRIVE = new Set(['pro', 'business', 'business_plus', 'enterprise']);
+const DRIVE_SOURCES = new Set(['google_drive', 'onedrive']);
 
 export default function DocumentsSidebar({
   documents,
@@ -159,8 +161,8 @@ export default function DocumentsSidebar({
 
   const hasDrive = PLANS_WITH_DRIVE.has(credits?.plan ?? '');
 
-  const driveDocs = useMemo(() => documents.filter(d => d.source === 'google_drive'), [documents]);
-  const manualDocs = useMemo(() => documents.filter(d => d.source !== 'google_drive'), [documents]);
+  const driveDocs = useMemo(() => documents.filter(d => DRIVE_SOURCES.has(d.source ?? '')), [documents]);
+  const manualDocs = useMemo(() => documents.filter(d => !DRIVE_SOURCES.has(d.source ?? '')), [documents]);
 
   // Names that appear BOTH as manual and as drive → show a small badge on those
   const crossSourceNames = useMemo(() => {
@@ -279,7 +281,7 @@ export default function DocumentsSidebar({
             {formatSize(doc.size_bytes)} · {doc.chunk_count} frag. · {formatDate(doc.created_at)}
           </p>
         </div>
-        {doc.source !== 'google_drive' && (
+        {!DRIVE_SOURCES.has(doc.source ?? '') && (
           <button
             onClick={() => handleDelete(doc.id, doc.name)}
             disabled={deleting === doc.id}
@@ -458,11 +460,14 @@ export default function DocumentsSidebar({
           onClick={() => setDriveSectionOpen(v => !v)}
           role="button"
           aria-expanded={driveSectionOpen}
-          aria-label="Mostrar/ocultar sección Google Drive"
+          aria-label="Mostrar/ocultar sección Drive"
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             <SectionChevron open={driveSectionOpen} />
-            <span>Google Drive</span>
+            <span>{driveStatus.connected
+              ? (driveStatus.provider === 'onedrive' ? 'OneDrive' : 'Google Drive')
+              : 'Drive'
+            }</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             {onToggleUploadLock && (
@@ -520,7 +525,7 @@ export default function DocumentsSidebar({
               </div>
             ) : !driveStatus.connected ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                <button onClick={onConnectDrive} style={{
+                <button onClick={() => onConnectDrive('google_drive')} style={{
                   width: '100%', padding: '8px 10px', borderRadius: 8,
                   border: '0.5px solid var(--border)', background: 'var(--bg-tertiary)',
                   cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8,
@@ -531,22 +536,16 @@ export default function DocumentsSidebar({
                   </svg>
                   Conectar Google Drive
                 </button>
-                <button disabled style={{
+                <button onClick={() => onConnectDrive('onedrive')} style={{
                   width: '100%', padding: '8px 10px', borderRadius: 8,
                   border: '0.5px solid var(--border)', background: 'var(--bg-tertiary)',
-                  cursor: 'not-allowed', display: 'flex', alignItems: 'center', gap: 8,
-                  fontSize: 11, color: 'var(--text-muted)', opacity: 0.55,
+                  cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8,
+                  fontSize: 11, color: 'var(--text-primary)',
                 }}>
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                     <path d="M17.5 19H9a5 5 0 1 1 .9-9.9A5.5 5.5 0 1 1 17.5 19Z" />
                   </svg>
                   Conectar OneDrive
-                  <span style={{
-                    marginLeft: 'auto', fontSize: 9, fontWeight: 600,
-                    textTransform: 'uppercase', letterSpacing: 0.5,
-                  }}>
-                    Próximamente
-                  </span>
                 </button>
               </div>
             ) : (
@@ -607,7 +606,7 @@ export default function DocumentsSidebar({
                   onMouseEnter={e => (e.currentTarget.style.color = 'var(--danger)')}
                   onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-muted)')}
                 >
-                  Desconectar Drive
+                  {driveStatus.provider === 'onedrive' ? 'Desconectar OneDrive' : 'Desconectar Google Drive'}
                 </button>
               </>
             )}

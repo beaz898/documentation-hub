@@ -22,15 +22,21 @@ export function useDrive(
     } catch (err) { console.error('Error loading drive status:', err); }
   }, [session]);
 
-  function handleConnectDrive() {
+  const PROVIDER_NAMES: Record<string, string> = {
+    google_drive: 'Google Drive',
+    onedrive: 'OneDrive',
+  };
+
+  function handleConnectDrive(provider: string) {
     if (!session) return;
-    window.location.href = `/api/drive?token=${session.access_token}`;
+    window.location.href = `/api/drive?token=${session.access_token}&provider=${provider}`;
   }
 
   async function handleSyncDrive() {
     if (!session || syncing) return;
+    const providerLabel = PROVIDER_NAMES[driveStatus.provider ?? ''] ?? 'Drive';
     setSyncing(true);
-    addMessage({ id: crypto.randomUUID(), role: 'assistant', content: 'Sincronizando con Google Drive...' });
+    addMessage({ id: crypto.randomUUID(), role: 'assistant', content: `Sincronizando con ${providerLabel}...` });
 
     try {
       const res = await fetch('/api/drive/sync', {
@@ -63,14 +69,15 @@ export function useDrive(
   }
 
   async function handleDisconnectDrive() {
-    if (!session || !window.confirm('¿Desconectar Google Drive? Se eliminarán todos los documentos sincronizados.')) return;
+    const providerLabel = PROVIDER_NAMES[driveStatus.provider ?? ''] ?? 'Drive';
+    if (!session || !window.confirm(`¿Desconectar ${providerLabel}? Se eliminarán todos los documentos sincronizados.`)) return;
 
     try {
       await fetch('/api/drive/disconnect', {
         method: 'POST', headers: { Authorization: `Bearer ${session.access_token}` },
       });
       setDriveStatus({ connected: false });
-      addMessage({ id: crypto.randomUUID(), role: 'assistant', content: 'Google Drive desconectado.' });
+      addMessage({ id: crypto.randomUUID(), role: 'assistant', content: `${providerLabel} desconectado.` });
       await loadDocuments();
     } catch {
       addMessage({ id: crypto.randomUUID(), role: 'error', content: 'Error desconectando Drive' });

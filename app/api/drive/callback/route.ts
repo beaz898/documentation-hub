@@ -61,7 +61,7 @@ export async function GET(req: NextRequest) {
 
     const foldersParam = encodeURIComponent(JSON.stringify(folders));
     return NextResponse.redirect(
-      new URL(`/chat?drive_connected=true&drive_folders=${foldersParam}`, req.url)
+      new URL(`/chat?drive_connected=true&drive_provider=${provider.name}&drive_folders=${foldersParam}`, req.url)
     );
   } catch (error: unknown) {
     console.error('Error in /api/drive/callback:', error);
