@@ -49,7 +49,8 @@ REGLAS:
 8. Si hay información contradictoria entre documentos, señálalo.
 9. Tienes acceso al historial reciente de la conversación. Úsalo para entender referencias como "eso", "lo anterior", "y cómo se hace", etc.
 10. Responde de forma completa sin cortar la respuesta. Si la respuesta es larga, estructura bien con secciones.
-11. Tienes acceso a documentos COMPLETOS, no fragmentos. Revisa todo el contenido de cada documento para dar la respuesta más completa posible.`;
+11. Tienes acceso a documentos COMPLETOS, no fragmentos. Revisa todo el contenido de cada documento para dar la respuesta más completa posible.
+12. SIEMPRE basa tus respuestas en la documentación proporcionada. Puedes usar tus propias palabras para explicar, pero el contenido debe estar fundamentado en los documentos. Si no encuentras información relevante en la documentación para responder la pregunta, dilo claramente.`;
 
 export interface ConversationMessage {
   role: 'user' | 'assistant';
@@ -87,6 +88,46 @@ function mapLLMError(err: unknown): never {
 }
 
 /**
+ * Si hay historial de conversación, usa Haiku para reformular la pregunta
+ * del usuario en una query autónoma con suficientes palabras clave para
+ * Pinecone. La pregunta original se sigue usando para la respuesta final.
+ *
+ * Operación interna — no facturable, no afecta al coste en créditos.
+ */
+async function rewriteQueryForSearch(
+  question: string,
+  history: ConversationMessage[],
+): Promise<string> {
+  const recentHistory = history.slice(-MAX_HISTORY_MESSAGES);
+
+  const historyText = recentHistory
+    .map(m => `${m.role === 'user' ? 'Usuario' : 'Asistente'}: ${m.content.slice(0, 400)}`)
+    .join('\n');
+
+  const prompt = `Historial de conversación:
+${historyText}
+
+Nueva pregunta del usuario: "${question}"
+
+Reformula la pregunta para que se entienda por sí sola sin necesidad del historial. Devuelve SOLO la pregunta reformulada, nada más.`;
+
+  try {
+    const response = await callLLMWithUsage('', {
+      system: 'Eres un asistente que reformula preguntas para hacerlas autónomas y con palabras clave explícitas.',
+      messages: [{ role: 'user', content: prompt }],
+      model: 'haiku',
+      maxOutputTokens: 100,
+      temperature: 0,
+    });
+    return response.text.trim() || question;
+  } catch (err) {
+    // Si falla la reformulación, usar la pregunta original sin interrumpir el flujo
+    console.warn('[RAG] Query rewrite failed, using original:', err instanceof Error ? err.message : err);
+    return question;
+  }
+}
+
+/**
  * Ejecuta una consulta RAG completa con documentos completos como contexto.
  */
 export async function queryRAG(
@@ -95,8 +136,17 @@ export async function queryRAG(
   supabase: SupabaseClient,
   conversationHistory: ConversationMessage[] = []
 ): Promise<RAGResult> {
-  // 1. Generar embedding de la pregunta
-  const queryVector = await generateQueryEmbedding(question);
+  // 1. Si hay historial, reformular la pregunta para mejorar la búsqueda
+  const searchQuery = conversationHistory.length > 0
+    ? await rewriteQueryForSearch(question, conversationHistory)
+    : question;
+
+  if (conversationHistory.length > 0 && searchQuery !== question) {
+    console.log(`[RAG] Query rewritten for search: "${question}" → "${searchQuery}"`);
+  }
+
+  // Generar embedding de la query reformulada (la pregunta original va al LLM)
+  const queryVector = await generateQueryEmbedding(searchQuery);
 
   // 2. Buscar en Pinecone los chunks más relevantes
   const index = getIndex();
