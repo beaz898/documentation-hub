@@ -71,7 +71,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Determinar la URL base
-    const origin = req.headers.get('origin') || 'https://documentation-hub-zeta.vercel.app';
+    const origin = req.headers.get('origin') || process.env.NEXT_PUBLIC_APP_URL || '';
 
     // Crear sesión de Checkout
     const session = await stripe.checkout.sessions.create({

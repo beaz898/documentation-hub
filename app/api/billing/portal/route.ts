@@ -48,7 +48,7 @@ export async function POST(req: NextRequest) {
     }
 
     const stripe = getStripe();
-    const origin = req.headers.get('origin') || 'https://documentation-hub-zeta.vercel.app';
+    const origin = req.headers.get('origin') || process.env.NEXT_PUBLIC_APP_URL || '';
 
     const portalSession = await stripe.billingPortal.sessions.create({
       customer: orgData.stripe_customer_id,

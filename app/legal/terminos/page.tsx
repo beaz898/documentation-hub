@@ -5,6 +5,9 @@ export const metadata = {
   title: 'Términos y Condiciones — Doclity',
 };
 
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || '/';
+const APP_DISPLAY = APP_URL.replace(/^https?:\/\//, '');
+
 const sections = [
   {
     number: '1',
@@ -13,8 +16,8 @@ const sections = [
       <p>
         Los presentes Términos y Condiciones regulan el acceso y uso de Doclity, una plataforma de gestión
         y análisis de documentación corporativa con inteligencia artificial, accesible desde{' '}
-        <a href="https://documentation-hub-zeta.vercel.app" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--brand)' }}>
-          documentation-hub-zeta.vercel.app
+        <a href={APP_URL} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--brand)' }}>
+          {APP_DISPLAY}
         </a>.
       </p>
     ),
