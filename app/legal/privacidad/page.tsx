@@ -13,7 +13,7 @@ const sections = [
         <p>
           El responsable del tratamiento de tus datos es el titular de Doclity, con domicilio en A Coruña, España.
           Para cualquier consulta relacionada con la protección de tus datos personales, puedes contactarnos en:{' '}
-          <a href="mailto:[EMAIL_CONTACTO]" style={{ color: 'var(--brand)' }}>[EMAIL_CONTACTO]</a>.
+          <a href="mailto:doclitynfo@gmail.com" style={{ color: 'var(--brand)' }}>doclitynfo@gmail.com</a>.
         </p>
       </>
     ),
@@ -134,7 +134,7 @@ const sections = [
         <p style={{ marginTop: 12 }}>
           Se anonimizarán los datos agregados de uso para estadísticas internas. Puedes solicitar el borrado anticipado
           contactando a{' '}
-          <a href="mailto:[EMAIL_CONTACTO]" style={{ color: 'var(--brand)' }}>[EMAIL_CONTACTO]</a>.
+          <a href="mailto:doclitynfo@gmail.com" style={{ color: 'var(--brand)' }}>doclitynfo@gmail.com</a>.
         </p>
       </>
     ),
@@ -159,7 +159,7 @@ const sections = [
         </ul>
         <p>
           Para ejercer estos derechos, escríbenos a{' '}
-          <a href="mailto:[EMAIL_CONTACTO]" style={{ color: 'var(--brand)' }}>[EMAIL_CONTACTO]</a>.
+          <a href="mailto:doclitynfo@gmail.com" style={{ color: 'var(--brand)' }}>doclitynfo@gmail.com</a>.
           Responderemos en un plazo máximo de 30 días. Si consideras que no hemos atendido adecuadamente
           tus derechos, puedes presentar una reclamación ante la Agencia Española de Protección de Datos (
           <a href="https://www.aepd.es" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--brand)' }}>www.aepd.es</a>

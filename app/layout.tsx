@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { ThemeProvider } from '@/components/ThemeProvider';
+import CookieBanner from '@/components/CookieBanner';
 
 export const metadata: Metadata = {
   title: 'Doclity',
@@ -19,6 +20,7 @@ export default function RootLayout({
       <body className="antialiased">
         <ThemeProvider>
           {children}
+          <CookieBanner />
         </ThemeProvider>
       </body>
     </html>

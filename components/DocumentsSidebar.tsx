@@ -839,6 +839,28 @@ export default function DocumentsSidebar({
             </svg>
           </button>
         </div>
+
+        {/* Legal footer */}
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '2px 10px', justifyContent: 'center' }}>
+          {[
+            { href: '/legal/aviso-legal', label: 'Aviso legal' },
+            { href: '/legal/privacidad', label: 'Privacidad' },
+            { href: '/legal/cookies', label: 'Cookies' },
+            { href: '/legal/terminos', label: 'Términos' },
+          ].map(({ href, label }) => (
+            <a
+              key={href}
+              href={href}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ fontSize: 9, color: 'var(--text-muted)', textDecoration: 'none' }}
+              onMouseEnter={e => (e.currentTarget.style.textDecoration = 'underline')}
+              onMouseLeave={e => (e.currentTarget.style.textDecoration = 'none')}
+            >
+              {label}
+            </a>
+          ))}
+        </div>
       </div>
     </div>
   );

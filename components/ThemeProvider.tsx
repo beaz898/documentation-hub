@@ -19,15 +19,13 @@ export function useTheme() {
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setTheme] = useState<Theme>('dark');
+  const [theme, setTheme] = useState<Theme>('light');
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     const saved = localStorage.getItem('dochub-theme') as Theme | null;
     if (saved) {
       setTheme(saved);
-    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-      setTheme('dark');
     }
     setMounted(true);
   }, []);
@@ -43,7 +41,6 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     setTheme(prev => prev === 'light' ? 'dark' : 'light');
   }
 
-  // Prevent flash of wrong theme
   if (!mounted) {
     return (
       <html lang="es" suppressHydrationWarning>

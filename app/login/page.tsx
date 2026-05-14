@@ -9,6 +9,7 @@ export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isRegister, setIsRegister] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -149,13 +150,49 @@ export default function LoginPage() {
               </div>
             )}
 
+            {isRegister && (
+              <div className="flex items-start gap-3 pt-1">
+                <input
+                  id="terms-checkbox"
+                  type="checkbox"
+                  checked={termsAccepted}
+                  onChange={e => setTermsAccepted(e.target.checked)}
+                  className="mt-0.5 cursor-pointer"
+                  style={{ accentColor: 'var(--brand)', width: 15, height: 15, flexShrink: 0 }}
+                />
+                <label htmlFor="terms-checkbox" className="text-xs leading-relaxed cursor-pointer" style={{ color: 'var(--text-secondary)' }}>
+                  He leído y acepto los{' '}
+                  <a
+                    href="/legal/terminos"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ color: 'var(--brand)', textDecoration: 'underline', textUnderlineOffset: 3 }}
+                    onClick={e => e.stopPropagation()}
+                  >
+                    Términos y Condiciones
+                  </a>
+                  {' '}y la{' '}
+                  <a
+                    href="/legal/privacidad"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ color: 'var(--brand)', textDecoration: 'underline', textUnderlineOffset: 3 }}
+                    onClick={e => e.stopPropagation()}
+                  >
+                    Política de Privacidad
+                  </a>
+                </label>
+              </div>
+            )}
+
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || (isRegister && !termsAccepted)}
               className="w-full py-3 rounded-lg text-sm font-semibold text-white transition-all"
               style={{
-                background: loading ? 'var(--text-muted)' : 'var(--brand)',
-                cursor: loading ? 'not-allowed' : 'pointer',
+                background: loading || (isRegister && !termsAccepted) ? 'var(--text-muted)' : 'var(--brand)',
+                cursor: loading || (isRegister && !termsAccepted) ? 'not-allowed' : 'pointer',
+                opacity: isRegister && !termsAccepted ? 0.6 : 1,
               }}
             >
               {loading
@@ -171,6 +208,7 @@ export default function LoginPage() {
             <button
               onClick={() => {
                 setIsRegister(!isRegister);
+                setTermsAccepted(false);
                 setError('');
                 setSuccess('');
               }}
@@ -188,14 +226,22 @@ export default function LoginPage() {
         <p className="text-center text-xs mt-6" style={{ color: 'var(--text-muted)' }}>
           Tus documentos están seguros y solo accesibles por tu organización
         </p>
-        <p className="text-center text-xs mt-3" style={{ color: 'var(--text-muted)' }}>
-          <a
-            href="/legal/privacidad"
-            style={{ color: 'var(--text-muted)', textDecoration: 'underline', textUnderlineOffset: 3 }}
-          >
-            Política de privacidad
-          </a>
-        </p>
+        <div className="text-center text-xs mt-3" style={{ color: 'var(--text-muted)', display: 'flex', justifyContent: 'center', gap: 16, flexWrap: 'wrap' }}>
+          {[
+            { href: '/legal/privacidad', label: 'Política de privacidad' },
+            { href: '/legal/terminos', label: 'Términos y condiciones' },
+            { href: '/legal/aviso-legal', label: 'Aviso legal' },
+            { href: '/legal/cookies', label: 'Política de cookies' },
+          ].map(({ href, label }) => (
+            <a
+              key={href}
+              href={href}
+              style={{ color: 'var(--text-muted)', textDecoration: 'underline', textUnderlineOffset: 3 }}
+            >
+              {label}
+            </a>
+          ))}
+        </div>
       </div>
     </div>
   );
