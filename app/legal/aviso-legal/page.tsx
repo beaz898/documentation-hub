@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import BackButton from '@/components/BackButton';
 
 export const metadata = {
   title: 'Aviso Legal — Doclity',
@@ -110,26 +110,7 @@ export default function AvisoLegalPage() {
         alignItems: 'center',
         gap: 12,
       }}>
-        <Link
-          href="/login"
-          style={{
-            padding: '6px 12px',
-            borderRadius: 8,
-            border: '0.5px solid var(--border)',
-            background: 'var(--bg-secondary)',
-            fontSize: 12,
-            color: 'var(--text-secondary)',
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 5,
-            textDecoration: 'none',
-          }}
-        >
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <polyline points="15 18 9 12 15 6" />
-          </svg>
-          Volver
-        </Link>
+        <BackButton />
         <h1 style={{ fontSize: 15, fontWeight: 600 }}>Aviso Legal</h1>
       </div>
 
