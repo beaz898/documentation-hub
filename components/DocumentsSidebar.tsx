@@ -519,17 +519,36 @@ export default function DocumentsSidebar({
                 Disponible a partir del plan Pro
               </div>
             ) : !driveStatus.connected ? (
-              <button onClick={onConnectDrive} style={{
-                width: '100%', padding: '8px 10px', borderRadius: 8,
-                border: '0.5px solid var(--border)', background: 'var(--bg-tertiary)',
-                cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8,
-                fontSize: 11, color: 'var(--text-primary)',
-              }}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                  <path d="M12 2L2 19.5h20L12 2z" /><path d="M12 2l8.5 17.5" /><path d="M2 19.5h17" />
-                </svg>
-                Conectar Google Drive
-              </button>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <button onClick={onConnectDrive} style={{
+                  width: '100%', padding: '8px 10px', borderRadius: 8,
+                  border: '0.5px solid var(--border)', background: 'var(--bg-tertiary)',
+                  cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8,
+                  fontSize: 11, color: 'var(--text-primary)',
+                }}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                    <path d="M12 2L2 19.5h20L12 2z" /><path d="M12 2l8.5 17.5" /><path d="M2 19.5h17" />
+                  </svg>
+                  Conectar Google Drive
+                </button>
+                <button disabled style={{
+                  width: '100%', padding: '8px 10px', borderRadius: 8,
+                  border: '0.5px solid var(--border)', background: 'var(--bg-tertiary)',
+                  cursor: 'not-allowed', display: 'flex', alignItems: 'center', gap: 8,
+                  fontSize: 11, color: 'var(--text-muted)', opacity: 0.55,
+                }}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                    <path d="M17.5 19H9a5 5 0 1 1 .9-9.9A5.5 5.5 0 1 1 17.5 19Z" />
+                  </svg>
+                  Conectar OneDrive
+                  <span style={{
+                    marginLeft: 'auto', fontSize: 9, fontWeight: 600,
+                    textTransform: 'uppercase', letterSpacing: 0.5,
+                  }}>
+                    Próximamente
+                  </span>
+                </button>
+              </div>
             ) : (
               <>
                 <div style={{ fontSize: 10, color: 'var(--text-secondary)', marginBottom: 6 }}>
