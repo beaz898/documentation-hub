@@ -692,9 +692,11 @@ export default function LandingPage() {
       <footer style={{ borderTop: '1px solid rgba(0,0,0,.06)', padding: '32px 24px' }}>
         <div className="landing-section" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 16 }}>
           <span style={{ fontSize: 13, color: '#999' }}>© {new Date().getFullYear()} Doclity</span>
-          <div style={{ display: 'flex', gap: 24 }}>
+          <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap' }}>
             <a href="/legal/privacidad" style={{ fontSize: 13, color: '#999', textDecoration: 'none' }}>Política de privacidad</a>
             <a href="/legal/terminos" style={{ fontSize: 13, color: '#999', textDecoration: 'none' }}>Términos de uso</a>
+            <a href="/legal/aviso-legal" style={{ fontSize: 13, color: '#999', textDecoration: 'none' }}>Aviso legal</a>
+            <a href="/legal/cookies" style={{ fontSize: 13, color: '#999', textDecoration: 'none' }}>Política de cookies</a>
           </div>
         </div>
       </footer>
