@@ -395,3 +395,180 @@ ARCHIVOS MODIFICADOS (principales)
   components/ImprovementModal.tsx     — minimizar, resolución directa
   components/DocumentsSidebar.tsx     — indicador modal minimizado, botón unificado
   components/improvement/ChatPanel.tsx — sub-grupos duplicidades
+
+
+────────────────────────────────────────────────────────────────
+SESIÓN 7 — 12/05/2026
+Título: Purga automática + Precio variable + UX renombrado
+────────────────────────────────────────────────────────────────
+
+OBJETIVO
+Completar el ciclo de vida de las suscripciones con purga automática
+de datos al expirar el grace period. Introducir precio variable en el
+análisis exhaustivo para planes premium. Pequeñas mejoras de UX.
+
+CAMBIOS IMPLEMENTADOS
+
+1. PURGA AUTOMÁTICA TRAS GRACE PERIOD (lib/purge-org.ts)
+   - Al expirar grace_period_ends_at, se eliminan automáticamente:
+     documentos en Supabase + vectores en Pinecone + usuario en Auth
+   - /api/admin/purge-expired: endpoint para ejecutar la purga
+     (ejecutable manualmente o vía cron de Vercel)
+   - Supabase Auth user deletion incluido en purgeOrganization()
+
+2. PRECIO VARIABLE EN ANÁLISIS EXHAUSTIVO (worker/src/index.ts)
+   Planes Business y Business+ reciben reembolso parcial al terminar:
+   - Ligero (<10 contradicciones)        → reembolso 10 cr → coste 20
+   - Medio (10-30 contradicciones)       → reembolso  5 cr → coste 25
+   - Pesado (>30 o cap 50 candidatas)    → sin reembolso → coste 30
+   Implementado en lib/credits.ts (refundCredits) + worker/src/index.ts
+
+3. DESCUENTO DE REANÁLISIS (todos los planes)
+   - Reanálisis (excludeFingerprints no vacío) con <2 contradicciones
+     → reembolso de 20 créditos → coste final: 10 créditos
+   - Reanálisis con ≥2 contradicciones en Business+ aplica precio variable
+
+4. COSTE EXHAUSTIVO CORREGIDO: 20 → 30 CRÉDITOS
+   - lib/credits.ts: CREDIT_COSTS['/api/analyze-v2:exhaustive'] = 30
+   - Necesario para que la matemática de reembolsos sea coherente
+
+5. POLÍTICA DE PRIVACIDAD
+   - /privacy: nueva página con política de privacidad
+   - Enlace desde /login
+
+6. RETRY EN ORG/SETUP
+   - En el flujo de login, si org/setup falla se reintenta automáticamente
+   - Pantalla de error visible si el setup no puede completarse
+
+7. RENAME UI: "SUBIR" → "ANALIZAR"
+   - El botón de subida de documentos ahora indica claramente que
+     se va a analizar el documento al subirlo
+   - Análisis ya se ejecuta aunque el corpus esté vacío
+
+ARCHIVOS NUEVOS
+  app/privacy/page.tsx
+  app/api/admin/purge-expired/route.ts (o equivalente)
+
+ARCHIVOS MODIFICADOS
+  lib/credits.ts              — refundCredits(), CREDIT_COSTS (30 exhaustivo)
+  lib/analysis/types.ts       — campo pricingTier en resultado del análisis
+  lib/analysis/pipeline.ts    — devuelve pricingTier al worker
+  worker/src/index.ts         — precio variable, descuento reanálisis
+  app/login/page.tsx          — enlace política de privacidad, retry org/setup
+
+
+────────────────────────────────────────────────────────────────
+SESIÓN 8 — 13/05/2026
+Título: Rebranding Doclity + Planes con features + UX sidebar
+────────────────────────────────────────────────────────────────
+
+OBJETIVO
+Renombrar el producto a Doclity, añadir identidad visual (logo, favicon),
+definir la estructura de planes con sus features en el código, y mejorar
+pequeños detalles de UX en el sidebar y la landing.
+
+CAMBIOS IMPLEMENTADOS
+
+1. REBRANDING: DOCUMENTATION HUB → DOCLITY
+   - Nombre oficial: Doclity
+   - Nuevo logo (components/DoclityLogo.tsx)
+   - Nuevo favicon en /public/
+   - Logo visible en la cabecera del chat (chat/ChatHeader.tsx)
+
+2. ESTRUCTURA DE PLANES EN CÓDIGO (lib/stripe.ts + lib/plan-features.ts)
+   - PLAN_CONFIG: créditos/mes y maxUsers por plan
+   - PLAN_FEATURES: hasDrive, hasAnalyticsPanel, hasVariablePricing, maxUsers
+   - PLAN_LABELS: nombres legibles de cada plan
+   - PLAN_PRICE_IDS: Price IDs de Stripe para checkout
+   - PRICE_ID_TO_PLAN: inverso para webhook
+   - CREDIT_PACK_PRICE_IDS: Price IDs de recargas (pack_500 = 500 cr)
+   - getOrgFeatures(supabase, orgId): consulta el plan de la org
+     y devuelve sus features; fallback al plan más restrictivo
+
+   Planes definidos: free, starter, pro, business, business_plus, enterprise
+   Drive desde: pro | Analytics desde: business | Variable pricing desde: business
+
+3. LANDING PAGE ACTUALIZADA
+   - Tabla de precios actualizada con los planes reales
+   - Límites del plan free visibles (1 usuario, sin Drive)
+   - Landing refleja el posicionamiento correcto de cada plan
+
+4. UX: SIDEBAR TOGGLE MOVIDO AL INTERIOR DEL PANEL
+   - El botón para colapsar/expandir el sidebar de documentos
+     ahora vive dentro del propio panel, no flotando fuera
+
+ARCHIVOS NUEVOS
+  components/DoclityLogo.tsx
+  lib/stripe.ts
+  lib/plan-features.ts
+
+ARCHIVOS MODIFICADOS
+  components/chat/ChatHeader.tsx      — logo Doclity
+  components/DocumentsSidebar.tsx     — toggle en interior del panel
+  app/page.tsx (o landing)            — precios actualizados, límites free
+  app/layout.tsx / metadata           — nombre Doclity, favicon
+
+
+────────────────────────────────────────────────────────────────
+SESIÓN 9 — 14/05/2026
+Título: Legal + Drive multi-proveedor + OneDrive + RAG mejorado
+────────────────────────────────────────────────────────────────
+
+OBJETIVO
+Añadir páginas legales obligatorias (aviso legal, cookies), refactorizar
+la arquitectura de Drive a un patrón multi-proveedor, implementar OneDrive
+vía Microsoft Graph API, y mejorar el motor RAG con query rewriting y
+reglas de honestidad.
+
+CAMBIOS IMPLEMENTADOS
+
+1. PÁGINAS LEGALES
+   - /legal: aviso legal
+   - /cookies: política de cookies
+   - Cookie banner de consentimiento (components/CookieBanner.tsx)
+   - Light mode establecido como modo por defecto
+   - Botón "atrás" (router.back()) en páginas legales
+   - Enlace a aviso legal y cookies en footer de la landing
+
+2. ARQUITECTURA DE DRIVE MULTI-PROVEEDOR (lib/drive/)
+   - Interfaz DriveProvider en lib/drive/types.ts
+   - Registry pattern: lib/drive/registry.ts con getProvider() y getAllProviders()
+   - Google Drive migrado a lib/drive/google.ts (mismo comportamiento)
+   - OneDrive implementado en lib/drive/onedrive.ts (Microsoft Graph API)
+   - NEXT_PUBLIC_APP_URL: reemplaza la URL hardcodeada de producción
+
+3. ONEDRIVE INTEGRACIÓN (lib/drive/onedrive.ts)
+   - Autenticación vía Microsoft Graph API (OAuth 2.0)
+   - Listado de archivos, descarga, sincronización incremental
+   - Botón en DocumentsSidebar: desactivado ("Próximamente")
+   - Preparado para activar sin cambios de arquitectura
+
+4. QUERY REWRITING EN RAG (lib/rag.ts)
+   - Nueva función interna rewriteQueryForSearch()
+   - Si hay historial de conversación, Haiku reformula la pregunta del
+     usuario en una query autónoma con palabras clave para Pinecone
+   - Resuelve el problema de preguntas de seguimiento como "¿y cómo se hace?"
+     que sin contexto no recuperan nada útil de Pinecone
+   - Llamada interna: no facturable, no afecta al coste en créditos
+
+5. REGLAS DE HONESTIDAD EN RAG (lib/rag.ts — SYSTEM_PROMPT)
+   - Regla 12: siempre basar respuestas en documentación
+   - Regla 13: cuando el usuario pregunta si se usó la documentación,
+     Claude responde con transparencia, distinguiendo entre información
+     del corpus y reformulación propia
+
+ARCHIVOS NUEVOS
+  app/legal/page.tsx
+  app/cookies/page.tsx
+  components/CookieBanner.tsx
+  lib/drive/types.ts
+  lib/drive/registry.ts
+  lib/drive/google.ts
+  lib/drive/onedrive.ts
+
+ARCHIVOS MODIFICADOS
+  lib/rag.ts                      — rewriteQueryForSearch, reglas honestidad
+  components/DocumentsSidebar.tsx — botón OneDrive (desactivado)
+  app/landing (footer)            — enlaces aviso legal + cookies
+  next.config.js / env            — NEXT_PUBLIC_APP_URL
+  app/api/drive/*.ts              — refactorizados para usar registry

@@ -1,6 +1,6 @@
 ESTADO DEL PROYECTO — Doclity
 ========================================
-Última actualización: 11/05/2026
+Última actualización: 19/05/2026
 
 
 ────────────────────────────────────────────────────────────────
@@ -21,13 +21,13 @@ STACK TECNOLÓGICO
 ────────────────────────────────────────────────────────────────
 
 Frontend    : Next.js 15 (React 19) + Tailwind CSS
-LLM Rápido  : Claude Haiku 4.5 (chat, preguntas)
+LLM Rápido  : Claude Haiku 4.5 (chat, preguntas, reescritura de queries)
 LLM Análisis: Claude Sonnet 4.6 (análisis de contradicciones, double-check)
 Vector DB   : Pinecone serverless (multilingual-e5-large, 1024 dims)
 Auth + DB   : Supabase (PostgreSQL + Row Level Security)
 Facturación : Stripe (créditos prepago + planes de suscripción)
 Deploy      : Vercel (auto-deploy desde GitHub)
-Worker      : Node.js separado (análisis exhaustivo > 30s)
+Worker      : Node.js en Railway (análisis exhaustivo > 30s)
 
 
 ────────────────────────────────────────────────────────────────
@@ -37,34 +37,42 @@ BASE DE DATOS — SUPABASE
 Tablas principales (supabase-setup.sql)
   documents
     - id, name, size_bytes, chunk_count, org_id, user_id
-    - status, source ('manual' | 'google_drive')
+    - status, source ('manual' | 'google_drive' | 'onedrive')
     - content_hash (SHA-256 para detectar duplicados exactos)
     - full_text (texto completo para RAG sin cortes de chunk)
     - created_at, updated_at
     - RLS: usuarios ven solo documentos de su org_id
 
   organizations
-    - id, name, subscription_id, canceled_at, grace_period_ends_at
-    - credits, extra_credits (consumo atómico vía RPC consume_credits)
+    - id, name, plan ('free'|'starter'|'pro'|'business'|'business_plus'|'enterprise')
+    - credits, credits_extra (consumo atómico vía RPC consume_credits)
+    - subscription_id, canceled_at, grace_period_ends_at
+    - stripe_customer_id
+    - upload_locked_by, upload_locked_at (semáforo de subidas simultáneas)
 
   memberships
     - user_id, org_id, role ('admin' | 'member')
     - Base del modelo multi-tenant
 
+  invitations
+    - id, org_id, email, token, status, expires_at
+    - Para invitar miembros por email
+
   analysis_jobs
     - id, org_id, status (pending/processing/completed/failed)
-    - input_data, result_data (JSONB)
+    - document_name, input_data, result (JSONB), error_message
+    - created_at, started_at, completed_at
     - Para análisis exhaustivos que superan timeout de Vercel
 
-  upload_lock
-    - org_id, locked_by_user_id, locked_at
-    - Semáforo: impide subidas simultáneas en la misma org
+  feedback
+    - user_id, org_id, message
+    - Mensajes de feedback enviados por los usuarios
 
 Tablas de analítica (supabase-analysis-persistence.sql)
   analysis_results
     - org_id, user_id, document_name, analysis_type (quick/exhaustive/style)
     - contradictions_found, contradictions_confirmed
-    - minor_inconsistencies_found (novedad 11/05/2026)
+    - minor_inconsistencies_found
     - duplicates_found, overlaps_found, style_problems_found
     - recommendation (INDEXAR / REVISAR / NO_INDEXAR)
     - involved_documents (JSONB: array de nombres de documentos involucrados)
@@ -79,6 +87,31 @@ Tablas de analítica (supabase-analysis-persistence.sql)
 
 
 ────────────────────────────────────────────────────────────────
+PLANES Y FUNCIONALIDADES POR PLAN
+────────────────────────────────────────────────────────────────
+
+Definidos en lib/stripe.ts (PLAN_CONFIG, PLAN_FEATURES, PLAN_LABELS)
+
+  Plan          Créditos/mes  MaxUsuarios  Drive  Analytics  PrecioVariable
+  ──────────────────────────────────────────────────────────────────────────
+  free              50             1        No       No           No
+  starter          400             3        No       No           No
+  pro             1500             5        Sí       No           No
+  business        4000            15        Sí       Sí           Sí
+  business_plus  10000      ilimitados      Sí       Sí           Sí
+  enterprise     10000      ilimitados      Sí       Sí           Sí
+
+  Drive disponible: pro, business, business_plus, enterprise
+  Panel analítica (/settings/usage): business, business_plus, enterprise
+  Precio variable en exhaustivo: business, business_plus, enterprise
+
+  Créditos extra (pack_500)
+    - 500 créditos por pago único vía Stripe
+    - Se acumulan en organizations.credits_extra
+    - No caducan, separados del pool del plan
+
+
+────────────────────────────────────────────────────────────────
 ENDPOINTS DE API
 ────────────────────────────────────────────────────────────────
 
@@ -89,10 +122,13 @@ Chat y documentos
   DELETE /api/documents      — Eliminar documento
 
 Análisis de calidad
-  POST /api/analyze-v2       — Análisis quick (5 cr) o exhaustive (20 cr)
+  POST /api/analyze-v2       — Análisis quick (5 cr) o exhaustive (30 cr*)
   POST /api/analyze-style    — Análisis de estilo y coherencia. 2 créditos
   POST /api/improve          — Mejora de documento con IA. 1 crédito
   GET  /api/analysis-jobs/[id] — Estado de un job de análisis exhaustivo
+
+  * Exhaustivo: 30 cr descontados al inicio; se reembolsa parcialmente
+    según precio variable (ver sección Pipeline de Análisis)
 
 Cobertura y extracción
   GET  /api/documents/coverage/[id] — Detalle de cobertura por documento (admin)
@@ -108,10 +144,12 @@ Equipo y organización
   GET/POST /api/team/members    — Gestión de miembros
   DELETE   /api/team/members/[id]
   POST     /api/team/invite     — Invitar miembro por email
-  POST     /api/team/invitations/[id] — Aceptar/rechazar invitación
+  GET      /api/team/invitations — Listar invitaciones
+  PATCH/DELETE /api/team/invitations/[id] — Aceptar/rechazar invitación
+  POST     /api/team/accept-invite — Aceptar invitación con token
   GET/POST /api/org/setup       — Crear organización
   POST     /api/org/purge       — Eliminar organización y datos
-  GET/POST /api/org/upload-lock — Semáforo de subida
+  GET/POST /api/org/upload-lock — Semáforo de subida (bloqueo 60 min)
 
 Google Drive
   GET  /api/drive            — Estado de conexión + listar archivos
@@ -120,13 +158,14 @@ Google Drive
   POST /api/drive/disconnect — Desconectar cuenta de Drive
 
 Facturación (Stripe)
-  POST /api/billing/checkout    — Crear sesión de pago
+  POST /api/billing/checkout    — Crear sesión de pago de suscripción
   POST /api/billing/portal      — Acceso al portal de cliente
-  POST /api/billing/buy-credits — Compra de créditos extra
+  POST /api/billing/buy-credits — Compra de créditos extra (pack_500)
   POST /api/billing/webhook     — Webhook de Stripe
 
 Admin interno
   POST /api/admin/cleanup-orphans — Limpiar vectores huérfanos en Pinecone
+  POST /api/admin/purge-org       — Purgar organización por ID (superadmin)
   POST /api/admin/purge-expired   — Purgar orgs con suscripción expirada
 
 Feedback
@@ -147,6 +186,9 @@ PÁGINAS (app router)
                             └ Pestaña: Calidad documental
                             └ Pestaña: Uso del chat + Cobertura
 /settings/admin/cleanup   → Herramienta de limpieza (solo admin interno)
+/privacy                  → Política de privacidad
+/legal                    → Aviso legal
+/cookies                  → Política de cookies
 
 
 ────────────────────────────────────────────────────────────────
@@ -157,7 +199,7 @@ Interfaz de chat
   ChatMessage.tsx           — Mensaje con Markdown, citas de fuentes
   DocumentsSidebar.tsx      — Gestión de documentos: subir, Drive, locks,
                               indicador de modal minimizado, botón unificado
-  chat/ChatHeader.tsx       — Cabecera con selector de conversación
+  chat/ChatHeader.tsx       — Cabecera con logo Doclity + selector conversación
   chat/ChatInput.tsx        — Input de pregunta con estado de carga
   chat/EmptyState.tsx       — Estado vacío (sin documentos o sin mensajes)
   chat/SubscriptionBanners.tsx — Avisos de créditos bajos, plan expirado
@@ -183,8 +225,10 @@ Analítica
                               docs nunca usados, cobertura de corpus
 
 Utilidades
-  ThemeProvider.tsx         — Dark / light mode
+  ThemeProvider.tsx         — Dark / light mode (light por defecto)
+  DoclityLogo.tsx           — Logo oficial de Doclity
   feedback/FeedbackButton.tsx — Botón de feedback flotante
+  CookieBanner.tsx          — Banner de consentimiento de cookies
 
 
 ────────────────────────────────────────────────────────────────
@@ -197,6 +241,7 @@ Fases (modo quick)
   1. Hash check         — Detecta duplicados exactos por SHA-256
   2. Extract claims     — Haiku extrae afirmaciones atómicas del documento nuevo
   3. Pinecone retrieval — Busca fragmentos del corpus para cada afirmación
+  3b. Rerank            — Haiku filtra candidatos irrelevantes (máx 6 seleccionados)
   4a. Judge             — Haiku compara afirmaciones vs corpus (contradicciones)
   4b. Verify claims     — Haiku verifica afirmaciones atómicas individuales
   5. Double-check       — Sonnet confirma/descarta candidatas (lote 1: 15, max 50)
@@ -205,17 +250,27 @@ Fases (modo quick)
 
 Fases adicionales (modo exhaustive)
   - Compara el documento nuevo contra todos los documentos del corpus
-  - Procesado en worker separado para evitar timeout de Vercel
+  - Procesado en worker (Railway) para evitar timeout de Vercel
   - Hasta 25 pares de documentos comparados (MAX_SELECTED_EXHAUSTIVE=25)
+  - Rerank exhaustivo: máximo 10 candidatos seleccionados
 
-Niveles de severidad (novedad)
+Coste del análisis exhaustivo (30 cr base, con reembolso)
+  Reanálisis (excludeFingerprints no vacío) con <2 contradicciones
+    → reembolso 20 cr → coste final 10 cr (todos los planes)
+  Planes Business/Business+/Enterprise — precio variable según resultado:
+    · Ligero (<10 contradicciones)         → reembolso 10 cr → coste final 20
+    · Medio (10-30 contradicciones)        → reembolso 5 cr → coste final 25
+    · Pesado (>30 o cap 50 candidatas)     → sin reembolso → coste final 30
+  Reanálisis con ≥2 contradicciones en Business+ aplica precio variable
+
+Niveles de severidad
   'contradiction'         — Contradicción confirmada (confidence='alta')
                             Mostrada en sección principal de discrepancias
   'minor_inconsistency'   — Inconsistencia menor (confidence='posible')
                             Diferencia real pero ambas afirmaciones compatibles
                             Mostrada en sección separada con tono visual distinto
 
-Taxonomía de errores detectados (añadida 11/05/2026)
+Taxonomía de errores detectados
   OMISIÓN SIGNIFICATIVA   — Lista incompleta respecto al corpus
   DISTORSIÓN CONCEPTUAL   — Términos técnicamente incorrectos
   SUSTITUCIÓN             — Reemplaza un término clave por otro
@@ -233,9 +288,95 @@ Double-check progresivo (lib/analysis/double-check.ts)
 Costes de créditos
   /api/ask               : 1 crédito
   /api/analyze-v2 quick  : 5 créditos
-  /api/analyze-v2 exhaust: 20 créditos
+  /api/analyze-v2 exhaust: 30 créditos (con posible reembolso parcial)
   /api/analyze-style     : 2 créditos
   /api/improve           : 1 crédito
+
+
+────────────────────────────────────────────────────────────────
+ARQUITECTURA DRIVE (lib/drive/)
+────────────────────────────────────────────────────────────────
+
+Patrón provider registry: cada proveedor implementa la interfaz DriveProvider.
+
+  lib/drive/types.ts        — Interfaz DriveProvider (connect, sync, disconnect…)
+  lib/drive/registry.ts     — getProvider(name), getAllProviders()
+  lib/drive/google.ts       — Implementación Google Drive (OAuth + sync)
+  lib/drive/onedrive.ts     — Implementación OneDrive (Microsoft Graph API)
+
+Estado por proveedor
+  Google Drive  : [✓] Implementado y activo
+  OneDrive      : [~] Implementado, botón en UI desactivado ("Próximamente")
+
+
+────────────────────────────────────────────────────────────────
+MOTOR RAG (lib/rag.ts)
+────────────────────────────────────────────────────────────────
+
+Flujo de consulta:
+  1. Si hay historial de conversación, Haiku reescribe la pregunta en una
+     query autónoma con palabras clave para Pinecone (rewriteQueryForSearch).
+     La pregunta original se sigue usando para la respuesta final.
+     Esta llamada es interna, no facturable.
+  2. Embed query → Pinecone search (top 15, min score 0.3)
+  3. Deduplica a ≤4 documentos fuente
+  4. Obtiene texto completo desde Supabase (evita cortes de chunk)
+  5. Llama a Haiku con documentos completos + historial (máx 6 mensajes)
+  6. Devuelve answer + sources con chunks[] y totalChunks por documento
+
+System prompt incluye reglas de honestidad: si el usuario pregunta si
+la respuesta vino de los documentos, Claude debe responder con transparencia,
+distinguiendo entre información del corpus y posible reformulación propia.
+
+
+────────────────────────────────────────────────────────────────
+ARCHIVOS CLAVE
+────────────────────────────────────────────────────────────────
+
+  lib/org.ts                — resolveOrg() — user → org + role
+  lib/rag.ts                — Motor RAG + query rewriting + chunk coverage
+  lib/credits.ts            — consumeCredits(), refundCredits(), CREDIT_COSTS
+  lib/chunking.ts           — Extracción de texto + chunking
+  lib/embeddings.ts         — Pinecone Inference API con rate limiting
+  lib/stripe.ts             — Stripe client, PLAN_CONFIG, PLAN_FEATURES, price IDs
+  lib/plan-features.ts      — getOrgFeatures() — gates de funcionalidades por plan
+  lib/upload-lock.ts        — checkUploadLock() — semáforo de subidas (60 min)
+  lib/persist-analysis.ts   — saveAnalysisResult(), saveChatQuery()
+  lib/cleanup.ts            — Limpieza de vectores huérfanos en Pinecone
+  lib/purge-org.ts          — Purga completa de organización (datos + auth)
+  lib/drive/registry.ts     — Registro de proveedores de Drive
+  lib/drive/google.ts       — Implementación Google Drive
+  lib/drive/onedrive.ts     — Implementación OneDrive
+  lib/analysis/pipeline.ts  — Orquestación del pipeline de análisis
+  lib/analysis/llm-client.ts — Wrapper robusto de la API de Claude
+  lib/analysis/rerank.ts    — Etapa 2: filtra candidatos con LLM
+  app/api/ingest/route.ts   — Subida + indexación de documentos
+  app/api/ask/route.ts      — Endpoint de chat RAG
+  app/api/analyze-v2/route.ts — Análisis de calidad (quick + crea job exhaustivo)
+  app/api/usage/analytics/route.ts — Analítica de uso para admins
+  app/api/billing/         — Stripe: checkout, portal, buy-credits, webhook
+  app/api/drive/           — Google Drive: OAuth, sync, disconnect
+  supabase-setup.sql        — Schema de BD + políticas RLS
+  supabase-analysis-persistence.sql — Tablas: analysis_results, chat_queries
+  worker/src/index.ts       — Worker Railway para análisis exhaustivos
+
+
+────────────────────────────────────────────────────────────────
+GOTCHAS
+────────────────────────────────────────────────────────────────
+
+- Documentos antiguos pueden no tener full_text en Supabase → fallback a chunks.
+- Pinecone free tier: rate-limit 250K tokens/min; lib/embeddings.ts auto-espera 60s.
+- RLS usa service role en servidor; nunca usar el cliente anon para escrituras.
+- chat_queries anteriores a commit b71dd5e (mayo 2026) no tienen chunks/totalChunks.
+- ImprovementModal: handleSolveOne/handleSolveGroup resuelven duplicidades localmente
+  (sin API, sin crédito) usando findParagraphContaining().
+- El worker en Railway necesita las variables de entorno SUPABASE_URL,
+  SUPABASE_SERVICE_ROLE_KEY, PINECONE_API_KEY y ANTHROPIC_API_KEY.
+- El coste del análisis exhaustivo es 30 cr; el reembolso se aplica al terminar,
+  no al inicio. Si el worker falla, los créditos no se reembolsan automáticamente.
+- getOrgFeatures() debe consultarse antes de mostrar funcionalidades de Drive
+  o el panel de analytics: un plan free no tiene acceso a esas páginas.
 
 
 ────────────────────────────────────────────────────────────────
@@ -243,11 +384,21 @@ FUNCIONALIDADES IMPLEMENTADAS
 ────────────────────────────────────────────────────────────────
 
 [✓] Chat RAG con documentos completos (no solo chunks)
+[✓] Query rewriting: Haiku reformula preguntas de seguimiento para Pinecone
+[✓] Reglas de honestidad en RAG: Claude distingue corpus vs reformulación
 [✓] Subida de documentos: PDF, DOCX, TXT, MD, CSV, JSON, HTML
 [✓] Integración Google Drive: OAuth, sync incremental, carpetas
-[✓] Multi-tenant: organizaciones, roles admin/member, invitaciones
-[✓] Facturación Stripe: planes, créditos prepago, portal de cliente
-[✓] Análisis de contradicciones quick (síncrono) y exhaustivo (worker)
+[✓] Arquitectura de Drive multi-proveedor (registry pattern)
+[✓] OneDrive implementado vía Microsoft Graph API (botón desactivado en UI)
+[✓] Multi-tenant: organizaciones, roles admin/member, invitaciones por email
+[✓] Gestión de equipo: invitar, aceptar, expulsar miembros
+[✓] Facturación Stripe: planes (free/starter/pro/business/business_plus)
+[✓] Compra de créditos extra (pack_500 = 500 créditos, pago único)
+[✓] Precio variable análisis exhaustivo (Business/Business+)
+[✓] Descuento de reanálisis: <2 contradicciones → coste final 10 cr
+[✓] Gates de funcionalidades por plan (getOrgFeatures)
+[✓] Análisis de contradicciones quick (síncrono) y exhaustivo (worker Railway)
+[✓] Rerank LLM de candidatos antes del pipeline (reduce ruido)
 [✓] Análisis de estilo y coherencia
 [✓] Modal de mejora: chat IA + editor con sugerencias aplicables
 [✓] Upload lock: evita subidas simultáneas en la misma org
@@ -258,17 +409,22 @@ FUNCIONALIDADES IMPLEMENTADAS
 [✓] Agrupación de duplicidades por documento en UI
 [✓] Minimizar modales al sidebar con indicador visual
 [✓] Persistencia en Supabase: analysis_results + chat_queries
-[✓] Panel de analítica (/settings/usage):
+[✓] Panel de analítica (/settings/usage) — solo planes Business+:
     - Calidad documental: evolución, ranking, recomendaciones
     - Uso del chat: consultas, documentos más/menos usados
     - Cobertura de corpus: % de chunks usados por documento
 [✓] Admin tools: cleanup de vectores huérfanos, purga de orgs expiradas
-[✓] Dark / light mode
-[✓] Feedback integrado
+[✓] Purga automática de datos tras grace period de cancelación
+[✓] Páginas legales: aviso legal, política de privacidad, política de cookies
+[✓] Cookie banner de consentimiento
+[✓] Rebranding: nombre Doclity, logo, favicon
+[✓] Light mode por defecto (dark/light toggle disponible)
+[✓] Feedback integrado (tabla feedback en Supabase)
 
 PENDIENTE / ROADMAP
+[ ] Activar OneDrive en UI (implementado, pendiente de activar)
 [ ] Notificaciones en tiempo real (WebSocket o SSE)
 [ ] Exportación de informes PDF
-[ ] Soporte de OneDrive / SharePoint
 [ ] Análisis programado automático (cron)
 [ ] API pública para integraciones externas
+[ ] Notificaciones automáticas al acercarse al límite de créditos

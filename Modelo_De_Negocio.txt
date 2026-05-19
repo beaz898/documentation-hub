@@ -1,6 +1,6 @@
 MODELO DE NEGOCIO — Doclity
 ======================================
-Última actualización: 11/05/2026
+Última actualización: 19/05/2026
 
 
 ────────────────────────────────────────────────────────────────
@@ -21,72 +21,133 @@ y cualquier equipo que gestione documentación normativa o de procesos.
 
 
 ────────────────────────────────────────────────────────────────
+ESTRUCTURA DE PLANES
+────────────────────────────────────────────────────────────────
+
+Planes gestionados vía Stripe. Price IDs definidos en lib/stripe.ts.
+
+  Plan           Precio    Créditos/mes   Usuarios   Drive   Analytics
+  ──────────────────────────────────────────────────────────────────────
+  Gratis (free)  —              50            1        No        No
+  Starter        TBD           400            3        No        No
+  Pro            TBD          1500            5        Sí        No
+  Business       TBD          4000           15        Sí        Sí
+  Business+      TBD         10000      ilimitados     Sí        Sí
+  Enterprise     Custom      10000      ilimitados     Sí        Sí
+
+  Notas:
+  - Drive (Google Drive, OneDrive) disponible desde plan Pro
+  - Panel de analítica (/settings/usage) disponible desde Business
+  - Precio variable en análisis exhaustivo: Business, Business+, Enterprise
+  - Los precios (TBD) se configuran en el dashboard de Stripe, no en el código
+
+
+────────────────────────────────────────────────────────────────
 MODELO DE CRÉDITOS
 ────────────────────────────────────────────────────────────────
 
 El sistema usa créditos prepago por operación. Cada organización tiene
 un saldo de créditos que se consume con cada acción de IA.
 
-Costes por operación
+Costes por operación (CREDIT_COSTS en lib/credits.ts)
   Consulta de chat (/api/ask)              : 1 crédito
   Análisis de calidad rápido               : 5 créditos
-  Análisis de calidad exhaustivo           : 20 créditos
+  Análisis de calidad exhaustivo           : 30 créditos (base)
   Análisis de estilo (/api/analyze-style)  : 2 créditos
   Mejora de documento (/api/improve)       : 1 crédito
   Subida de documento (indexación)         : GRATIS
-  Resolución de duplicidades               : GRATIS (desde 11/05/2026,
-                                             propuesta generada localmente)
+  Resolución de duplicidades               : GRATIS (propuesta local en frontend)
 
 Nota: el crédito se descuenta ANTES de ejecutar la operación para evitar
 sobrepasar el límite con solicitudes paralelas (RPC atómica en Supabase).
+Los reembolsos del análisis exhaustivo se aplican al finalizar el worker.
 
 
 ────────────────────────────────────────────────────────────────
-ESTRUCTURA DE PLANES (REFERENCIA)
+PRECIO VARIABLE DEL ANÁLISIS EXHAUSTIVO
 ────────────────────────────────────────────────────────────────
 
-Los planes se gestionan vía Stripe. La estructura exacta de precios se
-define en el dashboard de Stripe, no en el código.
+El análisis exhaustivo siempre descuenta 30 créditos al inicio.
+Al finalizar, el worker puede devolver créditos según dos reglas:
 
-Características comunes a todos los planes
-  - Multi-tenant: varias organizaciones independientes
-  - Subida de documentos sin límite de almacenamiento (limitado por Pinecone)
-  - Chat RAG con historial de conversación
-  - Panel de analítica para admins
+1. DESCUENTO DE REANÁLISIS (todos los planes)
+   Condición: excludeFingerprints no vacío Y < 2 contradicciones confirmadas
+   → Reembolso de 20 créditos → coste final: 10 créditos
 
-Diferenciadores esperados por plan
-  - Número de créditos mensuales incluidos
-  - Número de miembros por organización
-  - Acceso a análisis exhaustivo (alto coste en créditos)
-  - Soporte prioritario
+2. PRECIO VARIABLE (solo Business, Business+, Enterprise)
+   Aplica cuando el reanálisis tiene ≥2 contradicciones, o en análisis nuevos:
+   · Ligero (<10 contradicciones)         → reembolso 10 → coste final: 20 cr
+   · Medio (10-30 contradicciones)        → reembolso  5 → coste final: 25 cr
+   · Pesado (>30 o cap de 50 candidatas)  → sin reembolso → coste final: 30 cr
 
-Créditos extra
-  - Los usuarios pueden comprar créditos adicionales independientemente
-    del plan vía /api/billing/buy-credits
-  - Acumulables con los créditos del plan
-  - No caducan (extra_credits separados de credits del plan)
+   En planes sin precio variable (free, starter, pro), el coste siempre es 30 cr
+   (salvo el descuento de reanálisis, que aplica a todos).
 
-Grace period
-  - 90 días tras cancelación de suscripción antes de purgar datos
-  - Tabla organizations: canceled_at + grace_period_ends_at
-  - Durante grace period el acceso sigue activo (datos no eliminados)
+Implementación: worker/src/index.ts llama a refundCredits() al terminar.
+Si el worker falla, los créditos no se reembolsan automáticamente.
+
+
+────────────────────────────────────────────────────────────────
+CRÉDITOS EXTRA
+────────────────────────────────────────────────────────────────
+
+Los usuarios pueden comprar créditos adicionales independientemente del plan:
+
+  Pack disponible
+    pack_500: 500 créditos — pago único vía Stripe Checkout
+
+  Características
+    - Solo accesible para el rol admin de la organización
+    - Se acumulan en organizations.credits_extra (separados de credits del plan)
+    - No caducan
+    - El sistema consume primero credits del plan, luego credits_extra
+      (lógica en la RPC consume_credits de Supabase)
+
+  Endpoint: POST /api/billing/buy-credits
 
 
 ────────────────────────────────────────────────────────────────
 FLUJO DE FACTURACIÓN IMPLEMENTADO
 ────────────────────────────────────────────────────────────────
 
-1. Usuario accede a /settings/billing
-2. Elige plan → checkout Stripe → webhook actualiza organizations en Supabase
-3. Webhook de Stripe gestiona:
-   - checkout.session.completed → activar plan, asignar créditos
-   - customer.subscription.updated → cambio de plan
-   - customer.subscription.deleted → marcar canceled_at, iniciar grace period
-   - invoice.payment_failed → notificar al admin
+Suscripción mensual
+  1. Usuario accede a /settings/billing
+  2. Elige plan → checkout Stripe → webhook actualiza organizations en Supabase
+  3. Webhook de Stripe gestiona:
+     - checkout.session.completed → activar plan, asignar créditos, asignar features
+     - customer.subscription.updated → cambio de plan
+     - customer.subscription.deleted → marcar canceled_at, iniciar grace period
+     - invoice.payment_failed → notificar al admin (pendiente de UI)
+     - checkout.session.completed (type=credit_pack) → sumar créditos extra
 
 Compra de créditos extra
-  - Pago único vía Stripe (no suscripción)
-  - Webhook añade a organizations.extra_credits
+  - Pago único vía Stripe Checkout (mode: 'payment')
+  - Webhook identifica type=credit_pack en metadata y suma a credits_extra
+
+Grace period
+  - 90 días tras cancelación antes de purgar datos
+  - Tabla organizations: canceled_at + grace_period_ends_at
+  - Durante grace period el acceso sigue activo
+  - Al expirar: datos de Supabase + Pinecone eliminados, usuario de Auth eliminado
+  - Purga automática ejecutada por /api/admin/purge-expired (cron manual o Vercel cron)
+
+
+────────────────────────────────────────────────────────────────
+GATES DE FUNCIONALIDADES (lib/plan-features.ts)
+────────────────────────────────────────────────────────────────
+
+La función getOrgFeatures(supabase, orgId) devuelve:
+  {
+    hasDrive: boolean           — Drive disponible en el plan
+    hasAnalyticsPanel: boolean  — Panel /settings/usage disponible
+    hasVariablePricing: boolean — Reembolso parcial en exhaustivo
+    maxUsers: number | null     — Límite de miembros (null = ilimitado)
+    plan: string                — Nombre del plan actual
+  }
+
+Uso: consultada antes de mostrar Drive, panel de analytics,
+o calcular reembolsos. Si el plan no existe en PLAN_FEATURES, aplica
+el fallback más restrictivo (free: hasDrive=false, maxUsers=1).
 
 
 ────────────────────────────────────────────────────────────────
@@ -104,8 +165,11 @@ Supabase
 
 Vercel
   - Gratis: 100GB bandwidth/mes, funciones serverless con timeout 30s
-  - Pro ($20/mes): timeout hasta 300s (necesario para análisis largos),
-    dominio personalizado
+  - Pro ($20/mes): timeout hasta 300s, dominio personalizado
+
+Railway (worker)
+  - Proceso Node.js para análisis exhaustivos > 30s
+  - Coste variable según uso de CPU/memoria
 
 Anthropic (Claude)
   - Claude Haiku 4.5: ~$0.25 / M tokens input, ~$1.25 / M tokens output
@@ -118,8 +182,8 @@ Estimación para 100 usuarios activos / mes
   - 100 análisis rápidos: ~$10
   - 20 análisis exhaustivos: ~$14
   - Total API: ~$25/mes
-  - Infraestructura (Vercel Pro + Supabase Pro): ~$45/mes
-  - Total estimado: ~$70/mes para 100 usuarios activos
+  - Infraestructura (Vercel Pro + Supabase Pro + Railway): ~$60/mes
+  - Total estimado: ~$85/mes para 100 usuarios activos
 
 
 ────────────────────────────────────────────────────────────────
@@ -129,14 +193,19 @@ ESTADO DE IMPLEMENTACIÓN DEL MODELO
 [✓] Créditos y descuento atómico (consume_credits RPC)
 [✓] Integración Stripe: checkout, portal, webhooks
 [✓] Grace period tras cancelación (90 días)
-[✓] Compra de créditos extra
+[✓] Purga automática de datos al expirar grace period
+[✓] Compra de créditos extra (pack_500)
+[✓] Precio variable en análisis exhaustivo (Business/Business+)
+[✓] Descuento de reanálisis para todos los planes
+[✓] Planes con estructura de features por código (getOrgFeatures)
 [✓] Rate limiting por usuario y endpoint
-[✓] Panel de uso para admins (/settings/usage)
+[✓] Panel de uso para admins (solo Business+)
 [✓] Historial de operaciones (usage_logs en Supabase)
-[✓] Resolución de duplicidades sin coste (mejora 11/05/2026)
+[✓] Resolución de duplicidades sin coste (local en frontend)
 
 PENDIENTE
 [ ] Notificaciones automáticas al acercarse al límite de créditos
 [ ] Factura mensual automática con desglose de uso
 [ ] Descuentos por volumen / contrato anual
 [ ] Periodo de prueba gratuito con créditos iniciales predefinidos
+[ ] Gestión de impago: bloqueo automático al fallar pago de renovación
