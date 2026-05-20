@@ -69,7 +69,7 @@ export default function ChatTab({ session }: ChatTabProps) {
     setLoading(true);
     try {
       const res = await fetch(`/api/usage/analytics?tab=chat&days=${days}`, {
-        headers: { Authorization: `Bearer ${session.access_token}` },
+        credentials: 'include',
       });
       if (res.ok) setData(await res.json());
     } catch (err) {
@@ -92,7 +92,7 @@ export default function ChatTab({ session }: ChatTabProps) {
     setLoadingDetail(prev => ({ ...prev, [docId]: true }));
     try {
       const res = await fetch(`/api/documents/coverage/${docId}?days=${days}`, {
-        headers: { Authorization: `Bearer ${session.access_token}` },
+        credentials: 'include',
       });
       if (res.ok) {
         const detail = await res.json();

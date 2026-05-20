@@ -33,13 +33,13 @@ export default function InvitePage() {
       // Check if user currently belongs to an org
       try {
         const res = await fetch('/api/usage/summary', {
-          headers: { Authorization: `Bearer ${s.access_token}` },
+          credentials: 'include',
         });
         if (res.ok) {
           const data = await res.json();
           // User has an org — check if it has documents
           const docsRes = await fetch('/api/documents', {
-            headers: { Authorization: `Bearer ${s.access_token}` },
+            credentials: 'include',
           });
           let hasDocuments = false;
           if (docsRes.ok) {
@@ -66,7 +66,8 @@ export default function InvitePage() {
     try {
       const res = await fetch('/api/team/accept-invite', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ token }),
       });
 

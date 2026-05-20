@@ -82,8 +82,8 @@ export function useCrossDocAnalysis(
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            Authorization: `Bearer ${accessToken}`,
           },
+          credentials: 'include',
           body: JSON.stringify({
             text: currentText,
             fileName,
@@ -105,7 +105,7 @@ export function useCrossDocAnalysis(
           // ── Reanálisis asíncrono: polling hasta que termine ──────
           setReanalyzePhase('Reanálisis en curso...');
 
-          const job = await pollJobUntilDone(crossData.jobId, accessToken, (elapsed) => {
+          const job = await pollJobUntilDone(crossData.jobId, (elapsed) => {
             const seconds = Math.floor(elapsed / 1000);
             if (seconds < 15) setReanalyzePhase('Analizando fragmentos...');
             else if (seconds < 40) setReanalyzePhase('Comparando contra el corpus...');
@@ -205,7 +205,6 @@ interface JobStatus {
 
 async function pollJobUntilDone(
   jobId: string,
-  accessToken: string,
   onProgress?: (elapsed: number) => void,
 ): Promise<JobStatus> {
   const start = Date.now();
@@ -218,7 +217,7 @@ async function pollJobUntilDone(
 
     try {
       const res = await fetch(`/api/analysis-jobs/${jobId}`, {
-        headers: { Authorization: `Bearer ${accessToken}` },
+        credentials: 'include',
       });
 
       if (!res.ok) {

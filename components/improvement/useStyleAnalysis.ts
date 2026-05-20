@@ -68,8 +68,8 @@ export function useStyleAnalysis({
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            Authorization: `Bearer ${accessToken}`,
           },
+          credentials: 'include',
           body: JSON.stringify({ text: currentText, fileName: currentFileName }),
         });
         if (!res.ok) {

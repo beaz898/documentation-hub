@@ -78,7 +78,7 @@ export default function BillingPage() {
     if (!session) return;
     setLoading(true);
     try {
-      const res = await fetch('/api/usage/summary', { headers: { Authorization: `Bearer ${session.access_token}` } });
+      const res = await fetch('/api/usage/summary', { credentials: 'include' });
       if (res.ok) {
         const data = await res.json();
         setUsage(data);
@@ -100,7 +100,8 @@ export default function BillingPage() {
     try {
       const res = await fetch('/api/billing/checkout', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ plan: planId }),
       });
 
@@ -126,7 +127,8 @@ export default function BillingPage() {
     try {
       const res = await fetch('/api/billing/buy-credits', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ pack: packId }),
       });
 
@@ -151,7 +153,7 @@ export default function BillingPage() {
     try {
       const res = await fetch('/api/billing/portal', {
         method: 'POST',
-        headers: { Authorization: `Bearer ${session.access_token}` },
+        credentials: 'include',
       });
 
       const data = await res.json();
@@ -176,7 +178,8 @@ export default function BillingPage() {
     try {
       const res = await fetch('/api/org/purge', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ confirmEmail: purgeEmail }),
       });
 

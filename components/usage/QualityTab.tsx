@@ -64,7 +64,7 @@ export default function QualityTab({ session }: QualityTabProps) {
     setLoading(true);
     try {
       const res = await fetch(`/api/usage/analytics?tab=quality&days=${days}`, {
-        headers: { Authorization: `Bearer ${session.access_token}` },
+        credentials: 'include',
       });
       if (res.ok) setData(await res.json());
     } catch (err) {

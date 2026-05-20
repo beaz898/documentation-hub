@@ -50,8 +50,8 @@ export default function TeamPage() {
     setLoading(true);
     try {
       const [membersRes, invitationsRes] = await Promise.all([
-        fetch('/api/team/members', { headers: { Authorization: `Bearer ${session.access_token}` } }),
-        fetch('/api/team/invitations', { headers: { Authorization: `Bearer ${session.access_token}` } }),
+        fetch('/api/team/members', { credentials: 'include' }),
+        fetch('/api/team/invitations', { credentials: 'include' }),
       ]);
 
       if (membersRes.ok) {
@@ -82,7 +82,8 @@ export default function TeamPage() {
     try {
       const res = await fetch('/api/team/invite', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ email: inviteEmail.trim() }),
       });
 
@@ -113,7 +114,7 @@ export default function TeamPage() {
     try {
       const res = await fetch(`/api/team/members/${userId}`, {
         method: 'DELETE',
-        headers: { Authorization: `Bearer ${session.access_token}` },
+        credentials: 'include',
       });
       if (res.ok) await loadTeam();
       else {
@@ -133,7 +134,7 @@ export default function TeamPage() {
     try {
       const res = await fetch(`/api/team/invitations/${inviteId}`, {
         method: 'DELETE',
-        headers: { Authorization: `Bearer ${session.access_token}` },
+        credentials: 'include',
       });
       if (res.ok) await loadTeam();
       else {

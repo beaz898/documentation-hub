@@ -33,7 +33,8 @@ export default function FeedbackButton({ accessToken }: Props) {
     try {
       const res = await fetch('/api/feedback', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ message }),
       });
       if (!res.ok) throw new Error('fail');

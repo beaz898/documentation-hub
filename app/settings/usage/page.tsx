@@ -73,8 +73,8 @@ export default function UsagePage() {
     setLoading(true);
     try {
       const [summaryRes, historyRes] = await Promise.all([
-        fetch('/api/usage/summary', { headers: { Authorization: `Bearer ${session.access_token}` } }),
-        fetch('/api/usage/history?days=' + days, { headers: { Authorization: `Bearer ${session.access_token}` } }),
+        fetch('/api/usage/summary', { credentials: 'include' }),
+        fetch('/api/usage/history?days=' + days, { credentials: 'include' }),
       ]);
       if (summaryRes.ok) setSummary(await summaryRes.json());
       if (historyRes.ok) setHistory(await historyRes.json());

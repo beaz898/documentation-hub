@@ -43,8 +43,8 @@ export function useIndexing({
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            Authorization: `Bearer ${accessToken}`,
           },
+          credentials: 'include',
           body: JSON.stringify({
             text: currentText,
             name: finalName,
