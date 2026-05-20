@@ -5,6 +5,7 @@ import { saveAnalysisResult } from '../../lib/persist-analysis';
 import { purgeOrganization, type PurgeResult } from '../../lib/purge-org';
 import { refundCredits } from '../../lib/credits';
 import { PLANS_WITH_VARIABLE_PRICING } from '../../lib/stripe';
+import { pollAgentTasks } from './agent-handler';
 
 // ============================================================
 // Configuración
@@ -207,6 +208,17 @@ async function applyVariablePricingRefund(
 // Bucle principal de polling
 // ============================================================
 
+async function pollAndProcessAgentTasks(): Promise<void> {
+  if (activeJobs >= MAX_CONCURRENT) return;
+
+  try {
+    const claimed = await pollAgentTasks(() => { activeJobs--; });
+    if (claimed) activeJobs++;
+  } catch (err) {
+    console.error('[worker] Error en polling de agent_tasks:', err);
+  }
+}
+
 async function pollAndProcess(): Promise<void> {
   if (activeJobs >= MAX_CONCURRENT) return;
 
@@ -302,8 +314,13 @@ function start(): void {
   console.log(`[worker] Polling cada ${POLL_INTERVAL / 1000}s, max ${MAX_CONCURRENT} jobs simultáneos`);
   console.log(`[worker] Purga de orgs expiradas cada ${PURGE_INTERVAL / 3600000}h`);
 
-  setInterval(pollAndProcess, POLL_INTERVAL);
-  pollAndProcess();
+  async function pollAll(): Promise<void> {
+    await pollAndProcess();
+    await pollAndProcessAgentTasks();
+  }
+
+  setInterval(pollAll, POLL_INTERVAL);
+  pollAll();
 
   setInterval(purgeExpiredOrgs, PURGE_INTERVAL);
   purgeExpiredOrgs();

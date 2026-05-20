@@ -129,8 +129,9 @@ export async function callLLM(prompt: string, opts: CallOptions = {}): Promise<s
         continue;
       }
 
-      const data = await res.json();
-      const text = data?.content?.[0]?.text;
+      const data = await res.json() as Record<string, unknown>;
+      const content = data?.content as Array<Record<string, unknown>> | undefined;
+      const text = content?.[0]?.text as string | undefined;
       if (!text) {
         lastError = 'empty response';
         continue;
@@ -315,18 +316,20 @@ export async function callLLMWithUsage(
         continue;
       }
 
-      const data = await res.json();
-      const text = data?.content?.[0]?.text;
+      const data = await res.json() as Record<string, unknown>;
+      const content2 = data?.content as Array<Record<string, unknown>> | undefined;
+      const text = content2?.[0]?.text as string | undefined;
       if (!text) {
         lastError = 'empty response';
         continue;
       }
 
+      const usageRaw = data?.usage as Record<string, number> | undefined;
       const usage: LLMUsage = {
-        inputTokens: data?.usage?.input_tokens ?? 0,
-        outputTokens: data?.usage?.output_tokens ?? 0,
-        cacheCreationTokens: data?.usage?.cache_creation_input_tokens ?? 0,
-        cacheReadTokens: data?.usage?.cache_read_input_tokens ?? 0,
+        inputTokens: usageRaw?.input_tokens ?? 0,
+        outputTokens: usageRaw?.output_tokens ?? 0,
+        cacheCreationTokens: usageRaw?.cache_creation_input_tokens ?? 0,
+        cacheReadTokens: usageRaw?.cache_read_input_tokens ?? 0,
       };
 
       return { text, usage };
