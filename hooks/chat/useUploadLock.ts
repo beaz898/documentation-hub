@@ -9,8 +9,8 @@ interface UploadLockState {
   isMe: boolean;
 }
 
-/** Intervalo de polling para comprobar el estado del bloqueo (ms). */
-const POLL_INTERVAL = 10_000;
+/** Intervalo de polling cuando otro usuario tiene el lock (ms). No se usa para polling continuo. */
+const POLL_INTERVAL_WHEN_LOCKED_BY_OTHER = 30_000;
 
 /** Intervalo entre recordatorios al usuario que tiene el bloqueo (ms). */
 const REMINDER_INTERVAL = 10 * 60 * 1000; // 10 minutos
@@ -53,13 +53,29 @@ export function useUploadLock(session: SessionInfo | null) {
     }
   }, [session]);
 
-  // Polling periódico del estado del bloqueo
+  // Polling adaptativo: solo cuando otro usuario tiene el lock
   useEffect(() => {
     if (!session) return;
+
     fetchLockState();
-    const interval = setInterval(fetchLockState, POLL_INTERVAL);
-    return () => clearInterval(interval);
-  }, [session, fetchLockState]);
+
+    const onVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        fetchLockState();
+      }
+    };
+    document.addEventListener('visibilitychange', onVisibilityChange);
+
+    let interval: ReturnType<typeof setInterval> | null = null;
+    if (lockState.locked && !lockState.isMe) {
+      interval = setInterval(fetchLockState, POLL_INTERVAL_WHEN_LOCKED_BY_OTHER);
+    }
+
+    return () => {
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+      if (interval) clearInterval(interval);
+    };
+  }, [session, fetchLockState, lockState.locked, lockState.isMe]);
 
   function clearReminderTimer() {
     if (reminderTimerRef.current) {
