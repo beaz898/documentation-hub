@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
+import { getAuthenticatedUserHybrid } from '@/lib/supabase-server';
 
 /**
  * POST /api/team/accept-invite
@@ -19,18 +20,10 @@ import { createServiceClient } from '@/lib/supabase';
  */
 export async function POST(req: NextRequest) {
   try {
-    const authHeader = req.headers.get('authorization');
-    if (!authHeader?.startsWith('Bearer ')) {
-      return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
-    }
+    const user = await getAuthenticatedUserHybrid(req);
+    if (!user) return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
 
-    const authToken = authHeader.split(' ')[1];
     const supabase = createServiceClient();
-
-    const { data: { user }, error: authError } = await supabase.auth.getUser(authToken);
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Token inválido' }, { status: 401 });
-    }
 
     const body = await req.json();
     const inviteToken = (body.token || '').toString().trim();
