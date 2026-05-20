@@ -23,8 +23,8 @@ const MAX_WAIT = 600_000;
 /**
  * Hook para hacer polling al estado de un analysis job.
  *
- * Devuelve `pollJob`, una función que recibe el jobId y el accessToken,
- * y devuelve una promesa que se resuelve cuando el job termina (completed o failed).
+ * Devuelve `pollJob`, una función que recibe el jobId y devuelve una
+ * promesa que se resuelve cuando el job termina (completed o failed).
  *
  * Mientras espera, llama a `onProgress` para actualizar el estado en la UI.
  */
@@ -33,7 +33,6 @@ export function useJobPolling() {
 
   const pollJob = useCallback(async (
     jobId: string,
-    accessToken: string,
     onProgress?: (status: JobStatus['status'], elapsed: number) => void,
   ): Promise<JobStatus> => {
     abortRef.current = false;
@@ -47,7 +46,7 @@ export function useJobPolling() {
 
       try {
         const res = await fetch(`/api/analysis-jobs/${jobId}`, {
-          headers: { Authorization: `Bearer ${accessToken}` },
+          credentials: 'include',
         });
 
         if (!res.ok) {

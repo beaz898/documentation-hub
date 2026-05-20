@@ -14,7 +14,7 @@ export function useDrive(
   const loadDriveStatus = useCallback(async () => {
     if (!session) return;
     try {
-      const res = await fetch('/api/drive/sync', { headers: { Authorization: `Bearer ${session.access_token}` } });
+      const res = await fetch('/api/drive/sync', { credentials: 'include' });
       if (res.ok) {
         const data = await res.json();
         setDriveStatus(data);
@@ -41,7 +41,8 @@ export function useDrive(
     try {
       const res = await fetch('/api/drive/sync', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({}),
       });
 
@@ -74,7 +75,8 @@ export function useDrive(
 
     try {
       await fetch('/api/drive/disconnect', {
-        method: 'POST', headers: { Authorization: `Bearer ${session.access_token}` },
+        method: 'POST',
+        credentials: 'include',
       });
       setDriveStatus({ connected: false });
       addMessage({ id: crypto.randomUUID(), role: 'assistant', content: `${providerLabel} desconectado.` });

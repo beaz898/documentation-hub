@@ -24,7 +24,7 @@ export function useDocuments(
     if (!session) return;
     setDocsLoading(true);
     try {
-      const res = await fetch('/api/documents', { headers: { Authorization: `Bearer ${session.access_token}` } });
+      const res = await fetch('/api/documents', { credentials: 'include' });
       if (res.ok) {
         const data = await res.json();
         setDocuments(data.documents || []);
@@ -37,7 +37,8 @@ export function useDocuments(
     if (!session) return;
     const res = await fetch('/api/ingest', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify({ storagePath, fileName, fileSize, force }),
     });
 
@@ -106,7 +107,8 @@ export function useDocuments(
     try {
       const analyzeRes = await fetch('/api/analyze-v2', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ storagePath, fileName: file.name }),
       });
 
@@ -177,7 +179,8 @@ export function useDocuments(
     try {
       const res = await fetch('/api/extract-text', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ storagePath, fileName }),
       });
       if (!res.ok) {
@@ -221,7 +224,8 @@ export function useDocuments(
     try {
       const analyzeRes = await fetch('/api/analyze-v2', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ storagePath, fileName, exhaustive: true }),
       });
 
@@ -243,7 +247,6 @@ export function useDocuments(
 
         const job = await pollJob(
           analyzeData.jobId,
-          session.access_token,
           (status, elapsed) => {
             // Progreso simulado basado en el tiempo transcurrido
             const seconds = Math.floor(elapsed / 1000);
@@ -326,7 +329,7 @@ export function useDocuments(
 
   async function handleDelete(id: string) {
     if (!session) return;
-    const res = await fetch(`/api/documents?id=${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${session.access_token}` } });
+    const res = await fetch(`/api/documents?id=${id}`, { method: 'DELETE', credentials: 'include' });
     if (!res.ok) { const d = await res.json(); throw new Error(d.error || 'Error'); }
     await loadDocuments();
   }

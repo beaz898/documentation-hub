@@ -26,7 +26,7 @@ export function useUserPreferences(session: SessionInfo | null): UseUserPreferen
     setError(null);
     try {
       const res = await fetch('/api/user/preferences', {
-        headers: { Authorization: `Bearer ${session.access_token}` },
+        credentials: 'include',
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
@@ -51,10 +51,8 @@ export function useUserPreferences(session: SessionInfo | null): UseUserPreferen
     try {
       const res = await fetch('/api/user/preferences', {
         method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${session.access_token}`,
-        },
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify(patch),
       });
       if (!res.ok) {

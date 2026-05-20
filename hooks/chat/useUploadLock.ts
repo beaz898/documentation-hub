@@ -32,7 +32,7 @@ export function useUploadLock(session: SessionInfo | null) {
     if (!session) return;
     try {
       const res = await fetch('/api/org/upload-lock', {
-        headers: { Authorization: `Bearer ${session.access_token}` },
+        credentials: 'include',
       });
       if (res.ok) {
         const data = await res.json();
@@ -111,10 +111,8 @@ export function useUploadLock(session: SessionInfo | null) {
     try {
       const res = await fetch('/api/org/upload-lock', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${session.access_token}`,
-        },
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ locked: newLocked }),
       });
 
@@ -147,10 +145,8 @@ export function useUploadLock(session: SessionInfo | null) {
     try {
       const res = await fetch('/api/org/upload-lock', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${session.access_token}`,
-        },
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ locked: true }),
       });
 

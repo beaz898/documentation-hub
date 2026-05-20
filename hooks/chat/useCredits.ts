@@ -9,7 +9,7 @@ export function useCredits(session: SessionInfo | null) {
   const loadCredits = useCallback(async () => {
     if (!session) return;
     try {
-      const res = await fetch('/api/usage/summary', { headers: { Authorization: `Bearer ${session.access_token}` } });
+      const res = await fetch('/api/usage/summary', { credentials: 'include' });
       if (res.ok) {
         const data = await res.json();
         setCredits({
