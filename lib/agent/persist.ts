@@ -1,7 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { AgentStep, AgentTaskStatus, Citation, PendingRequest } from './types';
-import { tokensToCredits, reconcileCredits } from './credit-calc';
-import { refundCredits } from '@/lib/credits';
 
 export async function appendStep(
   supabase: SupabaseClient,
@@ -141,22 +139,16 @@ export async function accumulateTokens(
 
 export async function consumeCreditsFromTokens(
   supabase: SupabaseClient,
-  orgId: string,
+  _orgId: string,
   taskId: string,
-  totalInputTokens: number,
-  totalOutputTokens: number,
-  estimatedCredits: number
+  actualCredits: number
 ): Promise<void> {
-  const actual = tokensToCredits(totalInputTokens, totalOutputTokens);
-  const toRefund = reconcileCredits(estimatedCredits, actual);
-
-  await supabase
+  const { error } = await supabase
     .from('agent_tasks')
-    .update({ credits_consumed: actual })
+    .update({ credits_consumed: actualCredits })
     .eq('id', taskId);
 
-  if (toRefund > 0) {
-    // TODO Paso 6: adjustCredits para reconciliar (refundCredits devuelve créditos extra, no reduce consumo)
-    await refundCredits(supabase, orgId, toRefund);
+  if (error) {
+    console.error('[persist] consumeCreditsFromTokens error:', error.message);
   }
 }

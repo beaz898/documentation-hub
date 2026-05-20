@@ -27,6 +27,8 @@ import {
 } from './llm-call';
 import { getToolDefinitions, getToolExecutor } from './tools/index';
 import { shouldConfirm } from './should-confirm';
+import { tokensToCredits, reconcileCredits } from './credit-calc';
+import { adjustCredits } from '@/lib/credits';
 import type { ToolName } from './types';
 
 const MAX_ITERATIONS = 15;
@@ -290,11 +292,12 @@ export async function runAgent(input: RunnerInput): Promise<RunnerOutput> {
     if (toolBlocks.length === 0) {
       const finalText = textBlocks.find(b => b.type === 'text')?.text ?? '';
       await setResult(supabase, taskId, finalText, []);
-      await consumeCreditsFromTokens(
-        supabase, ctx.orgId, taskId,
-        totalInputTokens, totalOutputTokens,
-        task.credits_estimated
-      );
+      const creditsReal0 = tokensToCredits(totalInputTokens, totalOutputTokens);
+      const refund0 = reconcileCredits(task.credits_estimated, creditsReal0);
+      await consumeCreditsFromTokens(supabase, ctx.orgId, taskId, creditsReal0);
+      if (refund0 > 0) {
+        await adjustCredits(supabase, ctx.orgId, refund0, `agent_task_underrun:${taskId}`);
+      }
       return { status: 'completed', result: { output: finalText, citations: [] } };
     }
 
@@ -374,16 +377,13 @@ export async function runAgent(input: RunnerInput): Promise<RunnerOutput> {
 
       // Handle result kinds
       if (result.kind === 'final') {
-        // finalize tool — task complete
-        if (toolName === 'warn') {
-          // warn returns kind:'data', handled below
-        }
         await setResult(supabase, taskId, result.output, result.citations);
-        await consumeCreditsFromTokens(
-          supabase, ctx.orgId, taskId,
-          totalInputTokens, totalOutputTokens,
-          task.credits_estimated
-        );
+        const creditsReal = tokensToCredits(totalInputTokens, totalOutputTokens);
+        const refund = reconcileCredits(task.credits_estimated, creditsReal);
+        await consumeCreditsFromTokens(supabase, ctx.orgId, taskId, creditsReal);
+        if (refund > 0) {
+          await adjustCredits(supabase, ctx.orgId, refund, `agent_task_underrun:${taskId}`);
+        }
         return {
           status: 'completed',
           result: { output: result.output, citations: result.citations },

@@ -140,6 +140,53 @@ export async function consumeCredits(
 }
 
 /**
+ * Ajusta el saldo de créditos de una organización (delta positivo o negativo).
+ *
+ * Uso exclusivo: reconciliación final de tareas del agente, desde el worker.
+ * No es atómica — no usar en endpoints con riesgo de concurrencia por la misma org.
+ *
+ * @param delta Positivo → suma a credits. Negativo → resta de credits (mínimo 0).
+ * @param reason String descriptivo para auditoría/logging.
+ */
+export async function adjustCredits(
+  supabase: SupabaseClient,
+  orgId: string,
+  delta: number,
+  reason: string,
+): Promise<void> {
+  if (delta === 0) return;
+
+  try {
+    const { data: org, error: fetchErr } = await supabase
+      .from('organizations')
+      .select('credits')
+      .eq('id', orgId)
+      .single();
+
+    if (fetchErr || !org) {
+      console.error('[credits] adjustCredits: error leyendo org:', fetchErr?.message);
+      return;
+    }
+
+    const newBalance = Math.max(0, (org.credits ?? 0) + delta);
+
+    const { error: updateErr } = await supabase
+      .from('organizations')
+      .update({ credits: newBalance })
+      .eq('id', orgId);
+
+    if (updateErr) {
+      console.error('[credits] adjustCredits: error actualizando:', updateErr.message);
+      return;
+    }
+
+    console.log('[credits] adjustCredits:', { orgId, delta, reason, newBalance });
+  } catch (err) {
+    console.error('[credits] adjustCredits: error inesperado:', err);
+  }
+}
+
+/**
  * Devuelve el coste en créditos de una operación.
  * Útil para mostrarlo en la UI o registrarlo en usage_logs.
  */
