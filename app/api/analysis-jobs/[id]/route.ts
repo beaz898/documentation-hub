@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
+import { getAuthenticatedUserHybrid } from '@/lib/supabase-server';
 import { resolveOrg } from '@/lib/org';
 
 /**
@@ -21,16 +22,8 @@ export async function GET(
   const supabase = createServiceClient();
 
   try {
-    // Autenticación
-    const authHeader = req.headers.get('authorization');
-    if (!authHeader?.startsWith('Bearer ')) {
-      return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
-    }
-    const token = authHeader.split(' ')[1];
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Token inválido' }, { status: 401 });
-    }
+    const user = await getAuthenticatedUserHybrid(req);
+    if (!user) return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
 
     // Resolver organización
     const org = await resolveOrg(supabase, user.id);

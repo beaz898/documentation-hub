@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
+import { getAuthenticatedUserHybrid } from '@/lib/supabase-server';
 import { chunkText, extractText } from '@/lib/chunking';
 import { runAnalysisPipeline } from '@/lib/analysis/pipeline';
 import { logUsage } from '@/lib/usage-logger';
@@ -27,15 +28,8 @@ export async function POST(req: NextRequest) {
   const supabase = createServiceClient();
 
   try {
-    const authHeader = req.headers.get('authorization');
-    if (!authHeader?.startsWith('Bearer ')) {
-      return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
-    }
-    const token = authHeader.split(' ')[1];
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Token inválido' }, { status: 401 });
-    }
+    const user = await getAuthenticatedUserHybrid(req);
+    if (!user) return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
 
     userId = user.id;
 
