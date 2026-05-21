@@ -37,16 +37,8 @@ const MAX_ITERATIONS = 15;
 // Build Anthropic messages from recorded steps
 // ---------------------------------------------------------------------------
 
-interface ToolUseIdMap {
-  // stepIndex of ToolCallStep → tool_use_id used in that turn
-  [stepIndex: number]: string;
-}
-
 function buildMessages(goal: string, steps: AgentStep[]): AgentMessage[] {
   const messages: AgentMessage[] = [{ role: 'user', content: goal }];
-
-  // Walk steps; group into assistant turns (think + tool_call) and user turns (tool_result)
-  // UserMessageStep also generates a user message
   let i = 0;
 
   while (i < steps.length) {
@@ -55,7 +47,6 @@ function buildMessages(goal: string, steps: AgentStep[]): AgentMessage[] {
     if (step.type === 'think' || step.type === 'tool_call') {
       // Collect consecutive think/tool_call steps into one assistant message
       const content: AssistantContent = [];
-      const toolUseIds: ToolUseIdMap = {};
       let j = i;
 
       while (j < steps.length && (steps[j].type === 'think' || steps[j].type === 'tool_call')) {
@@ -64,26 +55,20 @@ function buildMessages(goal: string, steps: AgentStep[]): AgentMessage[] {
           content.push({ type: 'text', text: (s as ThinkStep).content });
         } else {
           const tc = s as ToolCallStep;
-          // Use stored tool_use_id if present, otherwise derive from step index
-          const id = (tc as ToolCallStep & { tool_use_id?: string }).tool_use_id ?? `toolu_step_${j}`;
-          toolUseIds[j] = id;
-          content.push({ type: 'tool_use', id, name: tc.tool_name, input: tc.input });
+          content.push({ type: 'tool_use', id: tc.tool_use_id, name: tc.tool_name, input: tc.input });
         }
         j++;
       }
 
       messages.push({ role: 'assistant', content });
 
-      // Collect following tool_result steps as one user message
+      // Collect following tool_result steps into one user message
       const toolResults: ToolResultContent[] = [];
       while (j < steps.length && steps[j].type === 'tool_result') {
         const tr = steps[j] as ToolResultStep;
-        // Find the matching tool_call by looking back for a ToolCallStep with same tool_name
-        // at the closest preceding position with a recorded id
-        const matchedId = findMatchingToolUseId(steps, j, toolUseIds);
         toolResults.push({
           type: 'tool_result',
-          tool_use_id: matchedId,
+          tool_use_id: tr.tool_use_id,
           content: JSON.stringify(tr.output),
           is_error: tr.is_error,
         });
@@ -98,30 +83,12 @@ function buildMessages(goal: string, steps: AgentStep[]): AgentMessage[] {
       messages.push({ role: 'user', content: step.content });
       i++;
     } else {
-      // Skip meta-steps (confirmation_request, confirmation_response, escalation, warning, final_output)
+      // Skip meta-steps: confirmation_request, confirmation_response, escalation, warning, final_output
       i++;
     }
   }
 
   return messages;
-}
-
-function findMatchingToolUseId(
-  steps: AgentStep[],
-  toolResultIndex: number,
-  toolUseIds: ToolUseIdMap
-): string {
-  const tr = steps[toolResultIndex] as ToolResultStep;
-  // Find the closest preceding ToolCallStep with same tool_name
-  for (let k = toolResultIndex - 1; k >= 0; k--) {
-    if (steps[k].type === 'tool_call') {
-      const tc = steps[k] as ToolCallStep;
-      if (tc.tool_name === tr.tool_name && toolUseIds[k]) {
-        return toolUseIds[k];
-      }
-    }
-  }
-  return `toolu_step_${toolResultIndex}`;
 }
 
 // ---------------------------------------------------------------------------
@@ -254,6 +221,17 @@ export async function runAgent(input: RunnerInput): Promise<RunnerOutput> {
   // ReAct loop
   for (let iter = 0; iter < MAX_ITERATIONS; iter++) {
     const currentSteps = await loadSteps(supabase, taskId);
+
+    // Tareas creadas antes de que se persistiera tool_use_id no se pueden reanudar
+    const hasLegacySteps = currentSteps.some(
+      s => s.type === 'tool_result' && !(s as ToolResultStep).tool_use_id
+    );
+    if (hasLegacySteps) {
+      const legacyMsg = 'Tarea creada con versión anterior del runner. Lanza una nueva tarea.';
+      await updateStatus(supabase, taskId, 'failed', { error_message: legacyMsg });
+      return { status: 'failed', error: legacyMsg };
+    }
+
     const messages = buildMessages(task.goal, currentSteps);
 
     let llmResponse;
@@ -346,14 +324,14 @@ export async function runAgent(input: RunnerInput): Promise<RunnerOutput> {
       }
 
       // Record tool_call step
-      const tcStep: ToolCallStep & { tool_use_id: string } = {
+      const tcStep: ToolCallStep = {
         type: 'tool_call',
         tool_name: toolName,
-        input: toolInput,
         tool_use_id: toolUseId,
+        input: toolInput,
         timestamp: new Date().toISOString(),
       };
-      await appendStep(supabase, taskId, tcStep as AgentStep);
+      await appendStep(supabase, taskId, tcStep);
 
       // Execute tool
       const executor = getToolExecutor(toolName);
@@ -363,6 +341,7 @@ export async function runAgent(input: RunnerInput): Promise<RunnerOutput> {
       const trStep: ToolResultStep = {
         type: 'tool_result',
         tool_name: toolName,
+        tool_use_id: toolUseId,
         output: result.kind === 'error'
           ? { error: result.error, details: result.details }
           : result.kind === 'final'

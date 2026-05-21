@@ -50,12 +50,14 @@ export interface ThinkStep extends AgentStepBase {
 export interface ToolCallStep extends AgentStepBase {
   type: 'tool_call';
   tool_name: ToolName;
+  tool_use_id: string;
   input: Record<string, unknown>;
 }
 
 export interface ToolResultStep extends AgentStepBase {
   type: 'tool_result';
   tool_name: ToolName;
+  tool_use_id: string;
   output: Record<string, unknown>;
   is_error?: boolean;
 }
