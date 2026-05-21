@@ -93,7 +93,7 @@ export async function POST(req: NextRequest) {
       .select('id', { count: 'exact', head: true })
       .eq('org_id', invitation.org_id);
 
-    if (orgData && (currentMembers ?? 0) >= orgData.max_users) {
+    if (orgData && orgData.max_users !== null && (currentMembers ?? 0) >= orgData.max_users) {
       return NextResponse.json(
         { error: 'El workspace ha alcanzado el límite de usuarios de su plan.' },
         { status: 403 }

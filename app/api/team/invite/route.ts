@@ -58,7 +58,7 @@ export async function POST(req: NextRequest) {
       .eq('status', 'pending');
 
     const totalSlots = (currentMembers ?? 0) + (pendingInvites ?? 0);
-    if (orgData && totalSlots >= orgData.max_users) {
+    if (orgData && orgData.max_users !== null && totalSlots >= orgData.max_users) {
       return NextResponse.json(
         { error: `Tu plan permite un máximo de ${orgData.max_users} usuario${orgData.max_users !== 1 ? 's' : ''}. Cambia de plan para añadir más.` },
         { status: 403 }
