@@ -13,6 +13,7 @@ interface UsageSummary {
   cycleStart: string;
   role: string;
   subscriptionStatus?: string;
+  hasActiveSubscription?: boolean;
 }
 
 const PLANS: Array<{ id: string; name: string; price: number; credits: number; users: number | null; description: string; popular?: boolean }> = [
@@ -211,6 +212,7 @@ export default function BillingPage() {
   const isAdmin = usage?.role === 'admin';
   const currentPlan = usage?.plan || 'free';
   const isCanceledOrExpired = usage?.subscriptionStatus === 'canceled' || usage?.subscriptionStatus === 'expired';
+  const hasActiveSubscription = usage?.hasActiveSubscription ?? false;
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
@@ -300,99 +302,135 @@ export default function BillingPage() {
               </div>
             )}
 
-            {/* Plans grid */}
-            <h2 style={{ fontSize: 13, fontWeight: 600, marginBottom: 14 }}>
-              {currentPlan === 'free' ? 'Elige un plan' : 'Cambiar de plan'}
-            </h2>
+            {/* Plans grid o portal CTA según si hay suscripción activa */}
+            {hasActiveSubscription ? (
+              <div style={{ marginBottom: 32 }}>
+                <h2 style={{ fontSize: 13, fontWeight: 600, marginBottom: 14 }}>Cambiar de plan o gestionar suscripción</h2>
+                <div style={{
+                  padding: '20px 24px', borderRadius: 10,
+                  background: 'var(--bg-secondary)', border: '0.5px solid var(--border)',
+                  display: 'flex', flexDirection: 'column', gap: 14,
+                }}>
+                  <p style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.6 }}>
+                    Para cambiar de plan, actualizar tu tarjeta o cancelar la suscripción, usa el portal de Stripe.
+                  </p>
+                  {isAdmin ? (
+                    <button
+                      onClick={handlePortal}
+                      disabled={openingPortal}
+                      style={{
+                        alignSelf: 'flex-start', padding: '10px 20px', borderRadius: 8, border: 'none',
+                        background: openingPortal ? 'var(--bg-tertiary)' : 'var(--brand)',
+                        color: openingPortal ? 'var(--text-muted)' : '#fff',
+                        fontSize: 13, fontWeight: 600,
+                        cursor: openingPortal ? 'not-allowed' : 'pointer',
+                      }}
+                    >
+                      {openingPortal ? 'Abriendo portal...' : 'Gestionar suscripción →'}
+                    </button>
+                  ) : (
+                    <p style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+                      Solo los administradores pueden cambiar el plan.
+                    </p>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <>
+                <h2 style={{ fontSize: 13, fontWeight: 600, marginBottom: 14 }}>
+                  {currentPlan === 'free' ? 'Elige un plan' : 'Cambiar de plan'}
+                </h2>
 
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
-              gap: 12,
-              marginBottom: 32,
-            }}>
-              {PLANS.filter(p => p.id !== 'free').map(plan => {
-                const isCurrent = plan.id === currentPlan;
-                const isDowngrade = PLANS.findIndex(p => p.id === plan.id) < PLANS.findIndex(p => p.id === currentPlan);
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
+                  gap: 12,
+                  marginBottom: 32,
+                }}>
+                  {PLANS.filter(p => p.id !== 'free').map(plan => {
+                    const isCurrent = plan.id === currentPlan;
+                    const isDowngrade = PLANS.findIndex(p => p.id === plan.id) < PLANS.findIndex(p => p.id === currentPlan);
 
-                return (
-                  <div
-                    key={plan.id}
-                    style={{
-                      padding: '18px 16px', borderRadius: 10,
-                      background: 'var(--bg-secondary)',
-                      border: isCurrent
-                        ? '2px solid var(--brand)'
-                        : plan.popular
-                          ? '1px solid var(--brand)'
-                          : '0.5px solid var(--border)',
-                      position: 'relative',
-                      display: 'flex', flexDirection: 'column',
-                    }}
-                  >
-                    {plan.popular && !isCurrent && (
-                      <span style={{
-                        position: 'absolute', top: -8, left: '50%', transform: 'translateX(-50%)',
-                        padding: '2px 10px', borderRadius: 10,
-                        background: 'var(--brand)', color: '#fff',
-                        fontSize: 9, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.3,
-                      }}>
-                        Popular
-                      </span>
-                    )}
-
-                    <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 4 }}>{plan.name}</h3>
-                    <p style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 10 }}>{plan.description}</p>
-
-                    <div style={{ marginBottom: 12 }}>
-                      <span style={{ fontSize: 24, fontWeight: 700 }}>{plan.price}€</span>
-                      <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>/mes</span>
-                    </div>
-
-                    <div style={{ fontSize: 11, color: 'var(--text-secondary)', marginBottom: 14, flex: 1 }}>
-                      <p style={{ marginBottom: 3 }}>{plan.credits.toLocaleString('es-ES')} créditos/mes</p>
-                      <p>{plan.users !== null ? `Hasta ${plan.users} usuarios` : 'Usuarios ilimitados'}</p>
-                    </div>
-
-                    {isCurrent ? (
-                      <div style={{
-                        padding: '8px', borderRadius: 8, textAlign: 'center',
-                        background: 'var(--brand-light)', color: 'var(--brand)',
-                        fontSize: 11, fontWeight: 600,
-                      }}>
-                        Plan actual
-                      </div>
-                    ) : isAdmin ? (
-                      <button
-                        onClick={() => handleCheckout(plan.id)}
-                        disabled={checkingOut === plan.id}
+                    return (
+                      <div
+                        key={plan.id}
                         style={{
-                          padding: '8px', borderRadius: 8, border: 'none',
-                          background: checkingOut === plan.id ? 'var(--bg-tertiary)' : 'var(--brand)',
-                          color: checkingOut === plan.id ? 'var(--text-muted)' : '#fff',
-                          fontSize: 11, fontWeight: 600,
-                          cursor: checkingOut === plan.id ? 'not-allowed' : 'pointer',
+                          padding: '18px 16px', borderRadius: 10,
+                          background: 'var(--bg-secondary)',
+                          border: isCurrent
+                            ? '2px solid var(--brand)'
+                            : plan.popular
+                              ? '1px solid var(--brand)'
+                              : '0.5px solid var(--border)',
+                          position: 'relative',
+                          display: 'flex', flexDirection: 'column',
                         }}
                       >
-                        {checkingOut === plan.id
-                          ? 'Redirigiendo...'
-                          : isDowngrade
-                            ? 'Cambiar'
-                            : 'Contratar'}
-                      </button>
-                    ) : (
-                      <div style={{
-                        padding: '8px', borderRadius: 8, textAlign: 'center',
-                        background: 'var(--bg-tertiary)', color: 'var(--text-muted)',
-                        fontSize: 11,
-                      }}>
-                        Solo el admin puede cambiar
+                        {plan.popular && !isCurrent && (
+                          <span style={{
+                            position: 'absolute', top: -8, left: '50%', transform: 'translateX(-50%)',
+                            padding: '2px 10px', borderRadius: 10,
+                            background: 'var(--brand)', color: '#fff',
+                            fontSize: 9, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.3,
+                          }}>
+                            Popular
+                          </span>
+                        )}
+
+                        <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 4 }}>{plan.name}</h3>
+                        <p style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 10 }}>{plan.description}</p>
+
+                        <div style={{ marginBottom: 12 }}>
+                          <span style={{ fontSize: 24, fontWeight: 700 }}>{plan.price}€</span>
+                          <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>/mes</span>
+                        </div>
+
+                        <div style={{ fontSize: 11, color: 'var(--text-secondary)', marginBottom: 14, flex: 1 }}>
+                          <p style={{ marginBottom: 3 }}>{plan.credits.toLocaleString('es-ES')} créditos/mes</p>
+                          <p>{plan.users !== null ? `Hasta ${plan.users} usuarios` : 'Usuarios ilimitados'}</p>
+                        </div>
+
+                        {isCurrent ? (
+                          <div style={{
+                            padding: '8px', borderRadius: 8, textAlign: 'center',
+                            background: 'var(--brand-light)', color: 'var(--brand)',
+                            fontSize: 11, fontWeight: 600,
+                          }}>
+                            Plan actual
+                          </div>
+                        ) : isAdmin ? (
+                          <button
+                            onClick={() => handleCheckout(plan.id)}
+                            disabled={checkingOut === plan.id}
+                            style={{
+                              padding: '8px', borderRadius: 8, border: 'none',
+                              background: checkingOut === plan.id ? 'var(--bg-tertiary)' : 'var(--brand)',
+                              color: checkingOut === plan.id ? 'var(--text-muted)' : '#fff',
+                              fontSize: 11, fontWeight: 600,
+                              cursor: checkingOut === plan.id ? 'not-allowed' : 'pointer',
+                            }}
+                          >
+                            {checkingOut === plan.id
+                              ? 'Redirigiendo...'
+                              : isDowngrade
+                                ? 'Cambiar'
+                                : 'Contratar'}
+                          </button>
+                        ) : (
+                          <div style={{
+                            padding: '8px', borderRadius: 8, textAlign: 'center',
+                            background: 'var(--bg-tertiary)', color: 'var(--text-muted)',
+                            fontSize: 11,
+                          }}>
+                            Solo el admin puede cambiar
+                          </div>
+                        )}
                       </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
+                    );
+                  })}
+                </div>
+              </>
+            )}
 
             {/* Credit packs section */}
             {isAdmin && currentPlan !== 'free' && (

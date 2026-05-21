@@ -27,7 +27,7 @@ export async function GET(req: NextRequest) {
     // Obtener datos de la organización
     const { data: orgData, error: orgError } = await supabase
       .from('organizations')
-      .select('plan, credits_remaining, credits_extra, billing_cycle_start, max_users, canceled_at, grace_period_ends_at')
+      .select('plan, credits_remaining, credits_extra, billing_cycle_start, max_users, canceled_at, grace_period_ends_at, stripe_subscription_id')
       .eq('id', org.orgId)
       .single();
 
@@ -79,6 +79,7 @@ export async function GET(req: NextRequest) {
       canceledAt: orgData.canceled_at,
       gracePeriodEndsAt: orgData.grace_period_ends_at,
       subscriptionStatus,
+      hasActiveSubscription: !!orgData.stripe_subscription_id,
     });
   } catch (error: unknown) {
     console.error('Error in /api/usage/summary:', error);
