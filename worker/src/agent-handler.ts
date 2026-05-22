@@ -22,10 +22,11 @@ export async function pollAgentTasks(onFinish: () => void): Promise<boolean> {
   const supabase = createServiceClient();
 
   try {
+    const twoMinutesAgo = new Date(Date.now() - 2 * 60 * 1000).toISOString();
     const { data: tasks, error } = await supabase
       .from('agent_tasks')
       .select('id, status')
-      .in('status', ['pending', 'running'])
+      .or(`status.eq.pending,and(status.eq.running,updated_at.lt.${twoMinutesAgo})`)
       .order('created_at', { ascending: true })
       .limit(1);
 
