@@ -63,7 +63,7 @@ export async function POST(req: NextRequest) {
     const now = new Date().toISOString();
     const baseSteps: AgentStep[] = Array.isArray(task.steps) ? task.steps : [];
     const newSteps: AgentStep[] = [...baseSteps];
-    let newStatus: AgentTask['status'] = 'running';
+    let newStatus: AgentTask['status'] = 'pending';
     const extraUpdates: Record<string, unknown> = {};
 
     // ── confirmation ──────────────────────────────────────────────────────────
