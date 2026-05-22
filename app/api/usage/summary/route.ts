@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import { getAuthenticatedUserHybrid } from '@/lib/supabase-server';
 import { resolveOrg } from '@/lib/org';
+import { PLAN_FEATURES } from '@/lib/stripe';
 
 /**
  * GET /api/usage/summary
@@ -80,6 +81,7 @@ export async function GET(req: NextRequest) {
       gracePeriodEndsAt: orgData.grace_period_ends_at,
       subscriptionStatus,
       hasActiveSubscription: !!orgData.stripe_subscription_id,
+      hasAgent: PLAN_FEATURES[orgData.plan]?.hasAgent ?? false,
     });
   } catch (error: unknown) {
     console.error('Error in /api/usage/summary:', error);

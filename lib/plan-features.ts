@@ -5,6 +5,7 @@ export interface OrgFeatures {
   hasDrive: boolean;
   hasAnalyticsPanel: boolean;
   hasVariablePricing: boolean;
+  hasAgent: boolean;
   maxUsers: number | null;
   plan: string;
 }
@@ -13,6 +14,7 @@ const FALLBACK: Omit<OrgFeatures, 'plan'> = {
   hasDrive: false,
   hasAnalyticsPanel: false,
   hasVariablePricing: false,
+  hasAgent: false,
   maxUsers: 1,
 };
 

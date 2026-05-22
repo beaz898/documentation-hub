@@ -69,14 +69,15 @@ export const PLAN_FEATURES: Record<string, {
   hasDrive: boolean;
   hasAnalyticsPanel: boolean;
   hasVariablePricing: boolean;
+  hasAgent: boolean;
   maxUsers: number | null;
 }> = {
-  free:          { hasDrive: false, hasAnalyticsPanel: false, hasVariablePricing: false, maxUsers: 1 },
-  starter:       { hasDrive: false, hasAnalyticsPanel: false, hasVariablePricing: false, maxUsers: 3 },
-  pro:           { hasDrive: true,  hasAnalyticsPanel: false, hasVariablePricing: false, maxUsers: 5 },
-  business:      { hasDrive: true,  hasAnalyticsPanel: true,  hasVariablePricing: true,  maxUsers: 15 },
-  business_plus: { hasDrive: true,  hasAnalyticsPanel: true,  hasVariablePricing: true,  maxUsers: null },
-  enterprise:    { hasDrive: true,  hasAnalyticsPanel: true,  hasVariablePricing: true,  maxUsers: null },
+  free:          { hasDrive: false, hasAnalyticsPanel: false, hasVariablePricing: false, hasAgent: false, maxUsers: 1 },
+  starter:       { hasDrive: false, hasAnalyticsPanel: false, hasVariablePricing: false, hasAgent: false, maxUsers: 3 },
+  pro:           { hasDrive: true,  hasAnalyticsPanel: false, hasVariablePricing: false, hasAgent: false, maxUsers: 5 },
+  business:      { hasDrive: true,  hasAnalyticsPanel: true,  hasVariablePricing: true,  hasAgent: true,  maxUsers: 15 },
+  business_plus: { hasDrive: true,  hasAnalyticsPanel: true,  hasVariablePricing: true,  hasAgent: true,  maxUsers: null },
+  enterprise:    { hasDrive: true,  hasAnalyticsPanel: true,  hasVariablePricing: true,  hasAgent: true,  maxUsers: null },
 };
 
 /**
