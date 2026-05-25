@@ -1,6 +1,6 @@
 ESTADO DEL PROYECTO — Doclity
 ========================================
-Última actualización: 19/05/2026
+Última actualización: 25/05/2026
 
 
 ────────────────────────────────────────────────────────────────
@@ -31,6 +31,29 @@ Worker      : Node.js en Railway (análisis exhaustivo > 30s)
 
 
 ────────────────────────────────────────────────────────────────
+AUTENTICACIÓN
+────────────────────────────────────────────────────────────────
+
+Auth basada en cookies HttpOnly (@supabase/ssr v0.5.2). El middleware
+refresca el access_token silenciosamente antes de cada request.
+
+  middleware.ts
+  - createServerClient con API getAll/setAll (v0.5.2)
+  - Refresca sesión via cookie sin intervención del código de la app
+
+  lib/supabase-server.ts
+  - createServerSupabase(): cliente anon que lee cookies del request
+  - getAuthenticatedUser(): atajo seguro vía supabase.auth.getUser()
+  (El adaptador híbrido Bearer fue eliminado tras completar la migración)
+
+Todos los endpoints usan getAuthenticatedUser(); ninguno acepta
+el header Authorization: Bearer.
+
+Los hooks y componentes del frontend no envían token manualmente:
+la sesión viaja en la cookie HttpOnly que el browser gestiona sola.
+
+
+────────────────────────────────────────────────────────────────
 BASE DE DATOS — SUPABASE
 ────────────────────────────────────────────────────────────────
 
@@ -49,6 +72,7 @@ Tablas principales (supabase-setup.sql)
     - subscription_id, canceled_at, grace_period_ends_at
     - stripe_customer_id
     - upload_locked_by, upload_locked_at (semáforo de subidas simultáneas)
+    - max_users: INTEGER NULL (NULL = ilimitado; business_plus/enterprise)
 
   memberships
     - user_id, org_id, role ('admin' | 'member')
@@ -63,6 +87,19 @@ Tablas principales (supabase-setup.sql)
     - document_name, input_data, result (JSONB), error_message
     - created_at, started_at, completed_at
     - Para análisis exhaustivos que superan timeout de Vercel
+
+  agent_tasks
+    - id, org_id, user_id, status (pending/running/waiting/completed/failed)
+    - goal: objetivo en lenguaje natural enviado por el usuario
+    - steps (JSONB): array de AgentStep (iteraciones del loop ReAct)
+    - pending_request (JSONB): confirmación/escalación/input pendiente de usuario
+    - credits_estimated, credits_real: para reconciliación final
+    - created_at, started_at, completed_at
+
+  memberships
+    - user_id, org_id, role ('admin' | 'member')
+    - preferences (JSONB): UserPreferences del usuario en esta org
+      (ConfirmationMode y otras preferencias del agente)
 
   feedback
     - user_id, org_id, message
@@ -92,18 +129,19 @@ PLANES Y FUNCIONALIDADES POR PLAN
 
 Definidos en lib/stripe.ts (PLAN_CONFIG, PLAN_FEATURES, PLAN_LABELS)
 
-  Plan          Créditos/mes  MaxUsuarios  Drive  Analytics  PrecioVariable
-  ──────────────────────────────────────────────────────────────────────────
-  free              50             1        No       No           No
-  starter          400             3        No       No           No
-  pro             1500             5        Sí       No           No
-  business        4000            15        Sí       Sí           Sí
-  business_plus  10000      ilimitados      Sí       Sí           Sí
-  enterprise     10000      ilimitados      Sí       Sí           Sí
+  Plan          Créditos/mes  MaxUsuarios  Drive  Analytics  PrecioVariable  Agente
+  ──────────────────────────────────────────────────────────────────────────────────
+  free              50             1        No       No           No             No
+  starter          400             3        No       No           No             No
+  pro             1500             5        Sí       No           No             No
+  business        4000            15        Sí       Sí           Sí             Sí
+  business_plus  10000      ilimitados      Sí       Sí           Sí             Sí
+  enterprise     10000      ilimitados      Sí       Sí           Sí             Sí
 
   Drive disponible: pro, business, business_plus, enterprise
   Panel analítica (/settings/usage): business, business_plus, enterprise
   Precio variable en exhaustivo: business, business_plus, enterprise
+  Agente IA: business, business_plus, enterprise
 
   Créditos extra (pack_500)
     - 500 créditos por pago único vía Stripe
@@ -139,6 +177,15 @@ Analítica (solo admin)
   GET  /api/usage/analytics?tab=quality|chat&days=N — Métricas de uso
   GET  /api/usage/history    — Historial paginado de análisis
   GET  /api/usage/summary    — Resumen rápido de KPIs
+
+Agente IA (plans Business+)
+  POST /api/agent/run           — Crea tarea, consume créditos estimados
+  GET  /api/agent/tasks/[id]    — Polling de estado, steps y pendingRequest
+  POST /api/agent/confirm       — Responde confirmación/escalación/input usuario
+  POST /api/agent/cancel        — Cancela tarea y reconcilia créditos
+
+Usuario
+  GET/PATCH /api/user/preferences — Lee/actualiza preferencias (ConfirmationMode…)
 
 Equipo y organización
   GET/POST /api/team/members    — Gestión de miembros
@@ -179,8 +226,9 @@ PÁGINAS (app router)
 /                         → Redirect a /login o /chat
 /login                    → Autenticación (login + registro)
 /chat                     → Interfaz principal: chat + sidebar de documentos
+/agent                    → Agente IA (paywall para planes free/starter/pro)
 /invite                   → Aceptar invitación de equipo
-/settings/billing         → Plan, créditos, facturación (Stripe)
+/settings/billing         → Plan, créditos, facturación (Stripe Customer Portal)
 /settings/team            → Gestión de equipo (admin)
 /settings/usage           → Panel de inteligencia documental (admin)
                             └ Pestaña: Calidad documental
@@ -223,6 +271,10 @@ Analítica
                               distribución por tipo y recomendación
   usage/ChatTab.tsx         — Pestaña chat: consultas, docs más usados,
                               docs nunca usados, cobertura de corpus
+
+Agente IA (app/agent/, hooks/agent/)
+  app/agent/page.tsx        — Página del agente: paywall o interfaz según plan
+  hooks/agent/useUserPreferences.ts — Preferencias (ConfirmationMode…)
 
 Utilidades
   ThemeProvider.tsx         — Dark / light mode (light por defecto)
@@ -294,6 +346,48 @@ Costes de créditos
 
 
 ────────────────────────────────────────────────────────────────
+AGENTE IA (lib/agent/)
+────────────────────────────────────────────────────────────────
+
+Motor autónomo basado en loop ReAct que ejecuta tareas complejas
+sobre el corpus documental. Disponible en planes Business y superiores.
+
+Arquitectura
+  lib/agent/types.ts          — Tipos: AgentTask, AgentStep, PendingRequest,
+                                ConfirmationMode (ask_always/ask_risky/auto)
+  lib/agent/should-confirm.ts — Política de confirmación humana por herramienta
+  lib/agent/credit-calc.ts    — Estimación y reconciliación de créditos
+  lib/agent/system-prompt.ts  — Prompt del sistema adaptado por ConfirmationMode
+  lib/agent/persist.ts        — Helpers Supabase para estado de AgentTask
+  lib/agent/llm-call.ts       — Wrapper Anthropic: gestiona tool_use blocks,
+                                construye historial con tool_use_id correctos
+  lib/agent/runner.ts         — Loop ReAct: hasta 15 iteraciones, pausa en
+                                ask_user/escalate, reconcilia créditos al final
+
+Herramientas disponibles (lib/agent/tools/)
+  search_docs   — Búsqueda semántica en Pinecone (namespace org)
+  read_doc      — Texto completo desde Supabase
+  ask_user      — Pausa el loop y solicita input al usuario
+  escalate      — Pausa para confirmación ante acciones críticas
+  warn          — Emite advertencia sin detener el loop
+  finalize      — Cierra la tarea con resultado final
+
+Flujo de una tarea
+  1. POST /api/agent/run → crea AgentTask, descuenta créditos estimados
+  2. Worker Railway (agent-handler.ts) recoge la tarea con optimistic lock
+  3. Loop ReAct: llama a Claude → elige herramienta → ejecuta → siguiente iter.
+  4. Si la herramienta es ask_user/escalate → tarea pasa a 'waiting'
+  5. POST /api/agent/confirm → usuario responde → runner se reanuda de inmediato
+  6. Tarea completa: adjustCredits reconcilia estimado vs real
+  7. GET /api/agent/tasks/[id] permite polling de estado y steps desde el UI
+
+Worker (worker/src/agent-handler.ts)
+  - Optimistic lock: evita doble procesamiento si el poll se solapa
+  - Recovery de tareas 'running' huérfanas tras reinicios
+  - Integrado en el loop principal junto a analysis_jobs (MAX_CONCURRENT=2)
+
+
+────────────────────────────────────────────────────────────────
 ARQUITECTURA DRIVE (lib/drive/)
 ────────────────────────────────────────────────────────────────
 
@@ -333,9 +427,11 @@ distinguiendo entre información del corpus y posible reformulación propia.
 ARCHIVOS CLAVE
 ────────────────────────────────────────────────────────────────
 
+  middleware.ts             — Refresco de sesión via cookie HttpOnly (@supabase/ssr)
+  lib/supabase-server.ts    — createServerSupabase(), getAuthenticatedUser()
   lib/org.ts                — resolveOrg() — user → org + role
   lib/rag.ts                — Motor RAG + query rewriting + chunk coverage
-  lib/credits.ts            — consumeCredits(), refundCredits(), CREDIT_COSTS
+  lib/credits.ts            — consumeCredits(), refundCredits(), adjustCredits(), CREDIT_COSTS
   lib/chunking.ts           — Extracción de texto + chunking
   lib/embeddings.ts         — Pinecone Inference API con rate limiting
   lib/stripe.ts             — Stripe client, PLAN_CONFIG, PLAN_FEATURES, price IDs
@@ -347,18 +443,24 @@ ARCHIVOS CLAVE
   lib/drive/registry.ts     — Registro de proveedores de Drive
   lib/drive/google.ts       — Implementación Google Drive
   lib/drive/onedrive.ts     — Implementación OneDrive
+  lib/agent/types.ts        — Tipos del agente: AgentTask, AgentStep, PendingRequest
+  lib/agent/runner.ts       — Loop ReAct del agente (hasta 15 iteraciones)
+  lib/agent/tools/          — Herramientas: search_docs, read_doc, ask_user, escalate…
   lib/analysis/pipeline.ts  — Orquestación del pipeline de análisis
   lib/analysis/llm-client.ts — Wrapper robusto de la API de Claude
   lib/analysis/rerank.ts    — Etapa 2: filtra candidatos con LLM
   app/api/ingest/route.ts   — Subida + indexación de documentos
   app/api/ask/route.ts      — Endpoint de chat RAG
   app/api/analyze-v2/route.ts — Análisis de calidad (quick + crea job exhaustivo)
+  app/api/agent/            — Endpoints del agente: run, tasks, confirm, cancel
   app/api/usage/analytics/route.ts — Analítica de uso para admins
   app/api/billing/         — Stripe: checkout, portal, buy-credits, webhook
   app/api/drive/           — Google Drive: OAuth, sync, disconnect
   supabase-setup.sql        — Schema de BD + políticas RLS
   supabase-analysis-persistence.sql — Tablas: analysis_results, chat_queries
-  worker/src/index.ts       — Worker Railway para análisis exhaustivos
+  supabase-max-users-nullable.sql — Migración: max_users INTEGER NULL
+  worker/src/index.ts       — Worker Railway: analysis_jobs + agent_tasks
+  worker/src/agent-handler.ts — Handler del agente en Railway
 
 
 ────────────────────────────────────────────────────────────────
@@ -371,12 +473,22 @@ GOTCHAS
 - chat_queries anteriores a commit b71dd5e (mayo 2026) no tienen chunks/totalChunks.
 - ImprovementModal: handleSolveOne/handleSolveGroup resuelven duplicidades localmente
   (sin API, sin crédito) usando findParagraphContaining().
-- El worker en Railway necesita las variables de entorno SUPABASE_URL,
-  SUPABASE_SERVICE_ROLE_KEY, PINECONE_API_KEY y ANTHROPIC_API_KEY.
+- El worker en Railway necesita SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY,
+  PINECONE_API_KEY y ANTHROPIC_API_KEY.
 - El coste del análisis exhaustivo es 30 cr; el reembolso se aplica al terminar,
   no al inicio. Si el worker falla, los créditos no se reembolsan automáticamente.
-- getOrgFeatures() debe consultarse antes de mostrar funcionalidades de Drive
-  o el panel de analytics: un plan free no tiene acceso a esas páginas.
+- getOrgFeatures() debe consultarse antes de mostrar Drive, analytics o el agente:
+  un plan free/starter/pro no tiene acceso a esas páginas.
+- Agente IA: los créditos se descuentan al crear la tarea (estimados), y se
+  reconcilian con adjustCredits() al completar o cancelar. Si el worker muere
+  con la tarea en 'running', los créditos no se devuelven automáticamente.
+- agent_tasks en estado 'waiting' esperan respuesta del usuario vía
+  POST /api/agent/confirm. El runner se reanuda de inmediato al recibir la respuesta
+  (no espera al siguiente ciclo de poll del worker).
+- lib/agent/llm-call.ts debe persistir el tool_use_id de Claude en cada AgentStep;
+  sin él, la reconstrucción del historial falla en la segunda llamada al LLM.
+- organizations.max_users puede ser NULL (planes ilimitados). Las comprobaciones
+  de límite deben tratar NULL como "sin límite" (no como 0).
 
 
 ────────────────────────────────────────────────────────────────
@@ -420,8 +532,21 @@ FUNCIONALIDADES IMPLEMENTADAS
 [✓] Rebranding: nombre Doclity, logo, favicon
 [✓] Light mode por defecto (dark/light toggle disponible)
 [✓] Feedback integrado (tabla feedback en Supabase)
+[✓] Auth basada en cookies HttpOnly (@supabase/ssr): middleware + helper server-side
+[✓] Migración completa de todos los endpoints y hooks a cookies (Bearer eliminado)
+[✓] Billing: gestión de suscripción vía Stripe Customer Portal
+[✓] Fix: max_users nullable para planes ilimitados (business_plus/enterprise)
+[✓] Agente IA — motor ReAct autónomo para tareas documentales (Business+):
+    - Herramientas: search_docs, read_doc, ask_user, escalate, warn, finalize
+    - Confirmación humana configurable (ConfirmationMode: ask_always/ask_risky/auto)
+    - Créditos estimados al inicio + reconciliación real al terminar
+    - Worker Railway con optimistic lock y recovery de tareas huérfanas
+    - Reanudación inmediata tras respuesta del usuario
+    - Preferencias de usuario: GET/PATCH /api/user/preferences
+[✓] Página /agent con paywall para planes sin acceso y pestaña en ChatHeader
 
 PENDIENTE / ROADMAP
+[ ] Agente IA: interfaz completa (actualmente en placeholder)
 [ ] Activar OneDrive en UI (implementado, pendiente de activar)
 [ ] Notificaciones en tiempo real (WebSocket o SSE)
 [ ] Exportación de informes PDF

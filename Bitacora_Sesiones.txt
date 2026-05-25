@@ -572,3 +572,245 @@ ARCHIVOS MODIFICADOS
   app/landing (footer)            — enlaces aviso legal + cookies
   next.config.js / env            — NEXT_PUBLIC_APP_URL
   app/api/drive/*.ts              — refactorizados para usar registry
+
+
+────────────────────────────────────────────────────────────────
+SESIÓN 10 — 19/05/2026 – 20/05/2026
+Título: Agente IA — motor autónomo de tareas documentales (base)
+────────────────────────────────────────────────────────────────
+
+OBJETIVO
+Construir el núcleo del Agente IA: un motor autónomo basado en loop
+ReAct que ejecuta tareas complejas sobre el corpus documental usando
+herramientas (search_docs, read_doc, ask_user, escalate, finalize).
+El agente soporta confirmación humana antes de acciones críticas y
+reconcilia créditos al terminar.
+
+CAMBIOS IMPLEMENTADOS
+
+1. TIPOS Y FUNCIONES PURAS (lib/agent/)
+   lib/agent/types.ts
+   - AgentTask: estado de la tarea (pending/running/waiting/completed/failed)
+   - AgentStep: registro de cada iteración del loop ReAct
+   - PendingRequest: solicitud de confirmación o input al usuario
+   - ConfirmationMode: política ask_always / ask_risky / auto
+
+   lib/agent/should-confirm.ts
+   - shouldConfirm(): decide si una herramienta requiere confirmación
+     humana según la ConfirmationMode de la tarea
+
+   lib/agent/credit-calc.ts
+   - estimateCredits(): estimación inicial de créditos al crear la tarea
+   - reconcileCredits(): coste real tras completar (pasos × coste/paso)
+
+2. PREFERENCIAS DE USUARIO (lib/agent)
+   app/api/user/preferences/route.ts
+   - GET/PATCH: lee y actualiza UserPreferences en la fila de memberships
+   - Shallow-merge: solo cambian los campos enviados
+
+   hooks/agent/useUserPreferences.ts
+   - useUserPreferences: fetch en mount + updatePreferences(patch) para UI
+
+3. HERRAMIENTAS DEL AGENTE (lib/agent/tools/)
+   lib/agent/tools/index.ts      — ToolBundle registry
+   lib/agent/tools/types.ts      — ToolExecutionResult discriminado (data/pause/final/error)
+   lib/agent/tools/search-docs.ts — Búsqueda semántica en Pinecone (namespace org)
+   lib/agent/tools/read-doc.ts   — Lectura de texto completo desde Supabase
+   lib/agent/tools/ask-user.ts   — Pausa el loop y solicita input al usuario
+   lib/agent/tools/escalate.ts   — Pausa para confirmación ante acciones críticas
+   lib/agent/tools/warn.ts       — Emite advertencia sin detener el loop
+   lib/agent/tools/finalize.ts   — Cierra la tarea con resultado final
+
+4. RUNNER REACT (lib/agent/runner.ts)
+   - Loop ReAct hasta 15 iteraciones máximo
+   - lib/agent/system-prompt.ts: prompt del sistema adaptado por ConfirmationMode
+   - lib/agent/persist.ts: helpers Supabase para leer/escribir estado de AgentTask
+   - lib/agent/llm-call.ts: wrapper Anthropic con tool_use, gestiona streaming
+     de tool blocks y construye el historial de messages correctamente
+
+5. ENDPOINTS HTTP (/api/agent/)
+   POST /api/agent/run
+   - Crea la AgentTask en Supabase, consume créditos estimados (RPC atómica)
+   - Devuelve el taskId para polling posterior
+
+   GET /api/agent/tasks/[id]
+   - Polling de estado: devuelve steps[], status, pendingRequest si existe
+
+   POST /api/agent/confirm
+   - El usuario responde a una confirmación/escalación/user_input
+   - Reanuda el runner inmediatamente (no espera al próximo poll del worker)
+
+   POST /api/agent/cancel
+   - Cancela la tarea y reconcilia créditos (adjustCredits)
+
+   lib/credits.ts — adjustCredits()
+   - Nueva función para reconciliar la diferencia entre créditos estimados
+     y créditos reales consumidos al completar o cancelar una tarea
+
+6. WORKER RAILWAY (worker/src/agent-handler.ts)
+   - Poll de agent_tasks con optimistic lock (evita doble procesamiento)
+   - Recovery de tareas 'running' huérfanas tras reinicios del worker
+   - Fire-and-forget con callback de concurrencia (MAX_CONCURRENT=2 global)
+   - worker/src/index.ts: integra agent_tasks en el loop principal junto
+     a analysis_jobs (pollAll: analysis_jobs primero, agent_tasks después)
+   - Fix lib/analysis/llm-client.ts: tipos estrictos @types/node v22
+     (json() retorna unknown; añadido cast explícito)
+
+ARCHIVOS NUEVOS
+  lib/agent/types.ts
+  lib/agent/should-confirm.ts
+  lib/agent/credit-calc.ts
+  lib/agent/system-prompt.ts
+  lib/agent/persist.ts
+  lib/agent/llm-call.ts
+  lib/agent/runner.ts
+  lib/agent/tools/index.ts
+  lib/agent/tools/types.ts
+  lib/agent/tools/search-docs.ts
+  lib/agent/tools/read-doc.ts
+  lib/agent/tools/ask-user.ts
+  lib/agent/tools/escalate.ts
+  lib/agent/tools/warn.ts
+  lib/agent/tools/finalize.ts
+  app/api/user/preferences/route.ts
+  app/api/agent/run/route.ts
+  app/api/agent/tasks/[id]/route.ts
+  app/api/agent/confirm/route.ts
+  app/api/agent/cancel/route.ts
+  hooks/agent/useUserPreferences.ts
+  worker/src/agent-handler.ts
+
+ARCHIVOS MODIFICADOS
+  lib/credits.ts           — adjustCredits()
+  lib/agent/persist.ts     — actualizado tras refactor de runner
+  lib/agent/runner.ts      — integra adjustCredits, fix tool_use_id
+  lib/analysis/llm-client.ts — tipos estrictos @types/node v22
+  worker/src/index.ts      — integra agent_tasks en pollAll
+
+
+────────────────────────────────────────────────────────────────
+SESIÓN 11 — 20/05/2026 – 21/05/2026
+Título: Migración Auth Bearer → Cookies + Billing Portal + Fixes
+────────────────────────────────────────────────────────────────
+
+OBJETIVO
+Abandonar el patrón de autenticación con Bearer token en las cabeceras
+HTTP y migrar toda la app a sesión basada en cookies HttpOnly gestionadas
+por @supabase/ssr. Mejora de seguridad, compatibilidad con SSR y eliminación
+de token manual en cada fetch. Completar la gestión de suscripción via
+Customer Portal de Stripe. Corregir max_users para planes ilimitados.
+
+CAMBIOS IMPLEMENTADOS
+
+1. MIDDLEWARE DE SESIÓN (middleware.ts)
+   - Crea middleware usando @supabase/ssr createServerClient (v0.5.2)
+     con la API getAll/setAll (nueva)
+   - Refresca el access_token via cookie HttpOnly antes de cada request
+   - Silencioso: no modifica ningún endpoint ni hook existente en este paso
+
+2. HELPER SERVER-SIDE (lib/supabase-server.ts)
+   - createServerSupabase(): cliente anon que lee cookies del request Next.js
+   - getAuthenticatedUser(): atajo seguro vía supabase.auth.getUser()
+   - getAuthenticatedUserHybrid(req): intenta cookies primero, cae a Bearer
+     si no hay cookie — permite migración gradual endpoint por endpoint
+
+3. MIGRACIÓN DE ENDPOINTS — 27 RUTAS EN 3 LOTES
+   Lote A (13 rutas): drive/disconnect, drive/sync, feedback, org/purge,
+     org/setup, org/upload-lock, team/*, user/preferences
+   Lote B (6 rutas): billing/buy-credits, billing/checkout, billing/portal,
+     usage/analytics, usage/history, usage/summary
+   Lote C (14 rutas): agent/*, analysis-jobs/[id], analyze-style, analyze-v2,
+     ask, documents/*, extract-text, improve, index-text, ingest
+   Todos sustituyen la extracción manual del header Authorization: Bearer
+   por getAuthenticatedUserHybrid() — el código se reduce ~10 líneas por ruta
+
+4. MIGRACIÓN DEL FRONTEND
+   Hooks (paso 5a): useUserPreferences, useChat, useCredits, useDocuments,
+     useDrive, useJobPolling, useUploadLock — ya no añaden Authorization: Bearer
+   Componentes y páginas (paso 5b): settings/billing, settings/team,
+     settings/usage, invite, FeedbackButton, improvement hooks (useCrossDocAnalysis,
+     useImprovementChat, useIndexing, useStyleAnalysis), ChatTab, QualityTab
+
+5. FINALIZACIÓN (paso 6/7)
+   - getAuthenticatedUserHybrid simplificado: elimina soporte Bearer
+   - Solo acepta cookies HttpOnly; Bearer ya no es válido en ningún endpoint
+
+6. BILLING — CUSTOMER PORTAL DE STRIPE
+   app/settings/billing/page.tsx
+   - Gestión completa de la suscripción vía Stripe Customer Portal
+     (upgrade, downgrade, cancelar) desde un único botón
+   - Muestra plan actual, créditos restantes, fecha de renovación
+   - /api/usage/summary expone hasAgent para la UI de billing
+
+7. FIX: max_users NULLABLE (supabase-max-users-nullable.sql)
+   - Migración SQL: organizations.max_users pasa a INTEGER NULL
+   - NULL significa ilimitado (business_plus, enterprise)
+   - app/api/team/invite + accept-invite: NULL tratado como sin límite
+
+ARCHIVOS NUEVOS
+  middleware.ts
+  lib/supabase-server.ts
+  supabase-max-users-nullable.sql
+
+ARCHIVOS MODIFICADOS (principales)
+  app/api/agent/*.ts              — getAuthenticatedUserHybrid
+  app/api/ask/route.ts            — getAuthenticatedUserHybrid
+  app/api/analyze-v2/route.ts     — getAuthenticatedUserHybrid
+  app/api/billing/*.ts            — getAuthenticatedUserHybrid
+  app/api/team/*.ts               — getAuthenticatedUserHybrid + fix max_users
+  app/api/usage/*.ts              — getAuthenticatedUserHybrid
+  app/settings/billing/page.tsx   — Customer Portal de Stripe
+  app/api/usage/summary/route.ts  — expone hasAgent
+  hooks/chat/useChat.ts y otros   — eliminan Bearer de fetch
+  components/improvement/*.ts     — eliminan Bearer de fetch
+
+
+────────────────────────────────────────────────────────────────
+SESIÓN 12 — 21/05/2026 – 22/05/2026
+Título: Agente IA — estabilización, UI y paywall
+────────────────────────────────────────────────────────────────
+
+OBJETIVO
+Corregir bugs del loop ReAct descubiertos en pruebas de integración
+(tool_use_id perdido, reprocesamiento de tareas activas, reanudación
+tardía) y añadir la UI de la pestaña Agente con control de acceso por plan.
+
+CAMBIOS IMPLEMENTADOS
+
+1. FIX: PERSISTIR tool_use_id Y RECONSTRUIR HISTORIAL (lib/agent/persist.ts)
+   - Cada AgentStep guarda el tool_use_id que Claude devolvió
+   - La reconstrucción del historial de messages para la siguiente iteración
+     incluye correctamente el bloque tool_result con su tool_use_id
+   - Sin este fix, Claude generaba un error de validación en la segunda llamada
+
+2. FIX: EVITAR REPROCESAMIENTO DE TAREAS RUNNING (worker/src/agent-handler.ts)
+   - El worker comprobaba solo agent_tasks en estado 'pending'
+   - Ahora descarta tareas que ya están en 'running' para evitar doble ejecución
+     si el poll se solapa con una iteración lenta
+
+3. FIX: REANUDACIÓN INMEDIATA TRAS RESPUESTA DEL USUARIO
+   - POST /api/agent/confirm reanudaba la tarea actualizando Supabase,
+     pero el worker no la recogía hasta el próximo ciclo de poll (~5s)
+   - Ahora confirm dispara directamente el runner sin esperar al poll,
+     reduciendo la latencia percibida al responder confirmaciones
+
+4. PESTAÑA AGENTE + PÁGINA CON PAYWALL (app/agent/page.tsx)
+   - lib/stripe.ts + lib/plan-features.ts: hasAgent añadido a PLAN_FEATURES
+     Disponible en: business, business_plus, enterprise
+   - /api/usage/summary: devuelve hasAgent junto al resto de features
+   - ChatHeader.tsx: pestañas de navegación Chat | Agente en la cabecera
+   - app/agent/page.tsx:
+     · Planes sin acceso (free, starter, pro): paywall con CTA de upgrade
+     · Planes con acceso: placeholder de interfaz del agente
+
+ARCHIVOS MODIFICADOS
+  lib/agent/persist.ts            — guarda tool_use_id, reconstruye historial
+  worker/src/agent-handler.ts     — descarta tareas ya en 'running'
+  app/api/agent/confirm/route.ts  — reanudación inmediata del runner
+  lib/stripe.ts                   — hasAgent en PLAN_FEATURES
+  lib/plan-features.ts            — OrgFeatures.hasAgent
+  app/api/usage/summary/route.ts  — expone hasAgent
+  components/chat/ChatHeader.tsx  — pestañas Chat | Agente
+
+ARCHIVOS NUEVOS
+  app/agent/page.tsx
