@@ -210,10 +210,8 @@ export default function ChatPage() {
             driveStatus={driveStatus} syncing={syncing}
             onUpload={async (file: File) => { await activateLock(); await handleUpload(file); }} onDelete={handleDelete}
             onConnectDrive={handleConnectDrive} onSyncDrive={handleSyncDrive} onDisconnectDrive={handleDisconnectDrive}
-            onLogout={handleLogout}
             onClose={isMobile ? () => setSidebarOpen(false) : undefined}
             onCollapseSidebar={!isMobile ? () => setSidebarOpen(false) : undefined}
-            userEmail={session.user.email || 'Usuario'}
             analysisProgress={analysisProgress}
             analysisPhase={analysisPhase}
             credits={credits}

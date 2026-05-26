@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useRef, useMemo } from 'react';
-import { useTheme } from '@/components/ThemeProvider';
 
 interface Document {
   id: string;
@@ -47,10 +46,8 @@ interface DocumentsSidebarProps {
   onConnectDrive: (provider: string) => void;
   onSyncDrive: () => void;
   onDisconnectDrive: () => void;
-  onLogout: () => void;
   onClose?: () => void;
   onCollapseSidebar?: () => void;
-  userEmail: string;
   analysisProgress?: number;
   analysisPhase?: string;
   credits?: Credits | null;
@@ -62,6 +59,7 @@ interface DocumentsSidebarProps {
   onRestoreModal?: () => void;
   modalActive?: boolean;
 }
+
 
 // ============================================================
 // Folder tree types and builder
@@ -111,16 +109,6 @@ function countDocsRecursive(node: FolderNode): number {
   return total;
 }
 
-// Plan display names
-const PLAN_LABELS: Record<string, string> = {
-  free: 'Free',
-  starter: 'Starter',
-  pro: 'Pro',
-  business: 'Business',
-  business_plus: 'Business+',
-  enterprise: 'Enterprise',
-};
-
 const PLANS_WITH_DRIVE = new Set(['pro', 'business', 'business_plus', 'enterprise']);
 const DRIVE_SOURCES = new Set(['google_drive', 'onedrive']);
 
@@ -134,10 +122,8 @@ export default function DocumentsSidebar({
   onConnectDrive,
   onSyncDrive,
   onDisconnectDrive,
-  onLogout,
   onClose,
   onCollapseSidebar,
-  userEmail,
   analysisProgress = 0,
   analysisPhase = '',
   credits,
@@ -157,7 +143,6 @@ export default function DocumentsSidebar({
   const [driveSectionOpen, setDriveSectionOpen] = useState(true);
   const [manualSectionOpen, setManualSectionOpen] = useState(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { theme, toggleTheme } = useTheme();
 
   const hasDrive = PLANS_WITH_DRIVE.has(credits?.plan ?? '');
 
@@ -358,15 +343,6 @@ export default function DocumentsSidebar({
     color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: 0.5,
     cursor: 'pointer', userSelect: 'none',
   };
-
-  // Credit bar color logic
-  const creditBarColor = credits
-    ? credits.remaining <= 10
-      ? 'var(--danger)'
-      : credits.remaining <= 30
-        ? '#f59e0b'
-        : 'var(--brand)'
-    : 'var(--brand)';
 
   return (
     <div style={{
@@ -652,46 +628,11 @@ export default function DocumentsSidebar({
         )}
       </div>
 
-      {/* 4. Bottom: credits + upload button + user */}
+      {/* 4. Bottom: upload button */}
       <div style={{
         padding: '10px 14px', borderTop: '0.5px solid var(--border)',
         display: 'flex', flexDirection: 'column', gap: 8, flexShrink: 0,
       }}>
-        {/* Credits indicator */}
-        {credits && (
-          <div style={{
-            padding: '6px 10px', borderRadius: 8,
-            background: 'var(--bg-tertiary)',
-            display: 'flex', alignItems: 'center', gap: 8,
-          }}>
-            <div style={{ flex: 1 }}>
-              <div style={{
-                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                marginBottom: 3,
-              }}>
-                <span style={{ fontSize: 9, fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: 0.3 }}>
-                  {PLAN_LABELS[credits.plan] || credits.plan}
-                </span>
-                <span style={{ fontSize: 10, fontWeight: 600, color: creditBarColor }}>
-                  {credits.remaining} cr
-                </span>
-              </div>
-              <div style={{
-                width: '100%', height: 3, borderRadius: 2,
-                background: 'var(--border)',
-                overflow: 'hidden',
-              }}>
-                <div style={{
-                  height: '100%', borderRadius: 2,
-                  background: creditBarColor,
-                  width: `${Math.min(100, (credits.remaining / Math.max(credits.remaining, 100)) * 100)}%`,
-                  transition: 'width 0.3s ease',
-                }} />
-              </div>
-            </div>
-          </div>
-        )}
-
         {activeModal?.status === 'ready' ? (
           /* Modal minimizado: botón de restaurar */
           <button
@@ -790,73 +731,6 @@ export default function DocumentsSidebar({
         <input ref={fileInputRef} type="file" multiple accept=".txt,.md,.pdf,.docx,.csv,.json,.html" onChange={handleFileChange} style={{ display: 'none' }} aria-label="Seleccionar archivos" />
 
         {uploadProgress && <p style={{ fontSize: 10, color: 'var(--brand)' }}>{uploadProgress}</p>}
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <div style={{
-            width: 24, height: 24, borderRadius: '50%', flexShrink: 0,
-            background: 'var(--bg-tertiary)', display: 'flex',
-            alignItems: 'center', justifyContent: 'center',
-            fontSize: 9, fontWeight: 600, color: 'var(--text-secondary)',
-          }}>{userEmail.charAt(0).toUpperCase()}</div>
-          <p style={{ fontSize: 10, color: 'var(--text-secondary)', flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{userEmail}</p>
-          <a href="/settings/team" aria-label="Equipo" style={{
-            padding: 5, borderRadius: 5, border: 'none', background: 'transparent',
-            cursor: 'pointer', color: 'var(--text-muted)', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
-            textDecoration: 'none',
-          }}>
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-              <circle cx="9" cy="7" r="4" />
-              <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-              <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-            </svg>
-          </a>
-          <a href="/settings/billing" aria-label="Plan y facturación" style={{
-            padding: 5, borderRadius: 5, border: 'none', background: 'transparent',
-            cursor: 'pointer', color: 'var(--text-muted)', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
-            textDecoration: 'none',
-          }}>
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <rect x="1" y="4" width="22" height="16" rx="2" />
-              <line x1="1" y1="10" x2="23" y2="10" />
-            </svg>
-          </a>
-          
-          <a href="/settings/usage" aria-label="Consumo" style={{
-            padding: 5, borderRadius: 5, border: 'none', background: 'transparent',
-            cursor: 'pointer', color: 'var(--text-muted)', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
-            textDecoration: 'none',
-          }}>
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M18 20V10" /><path d="M12 20V4" /><path d="M6 20v-6" />
-            </svg>
-          </a>
-          
-          <button onClick={toggleTheme} aria-label="Cambiar tema" style={{
-            fontSize: 10, padding: '3px 7px', borderRadius: 5,
-            border: '0.5px solid var(--border)', background: 'var(--bg-tertiary)',
-            color: 'var(--text-secondary)', cursor: 'pointer',
-            display: 'flex', alignItems: 'center', gap: 3, flexShrink: 0,
-          }}>
-            {theme === 'dark' ? (
-              <><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="5" /><line x1="12" y1="1" x2="12" y2="3" /></svg> Claro</>
-            ) : (
-              <><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" /></svg> Oscuro</>
-            )}
-          </button>
-          <button onClick={onLogout} aria-label="Cerrar sesión" style={{
-            padding: 5, borderRadius: 5, border: 'none', background: 'transparent',
-            cursor: 'pointer', color: 'var(--text-muted)', flexShrink: 0,
-          }}
-            onMouseEnter={e => (e.currentTarget.style.color = 'var(--danger)')}
-            onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-muted)')}
-          >
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-              <polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" />
-            </svg>
-          </button>
-        </div>
       </div>
     </div>
   );
