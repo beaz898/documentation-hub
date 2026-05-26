@@ -1,8 +1,6 @@
 'use client';
 
-import { usePathname } from 'next/navigation';
 import FeedbackButton from '@/components/feedback/FeedbackButton';
-import DoclityLogo from '@/components/DoclityLogo';
 
 interface ChatHeaderProps {
   sidebarOpen: boolean;
@@ -15,14 +13,11 @@ interface ChatHeaderProps {
 }
 
 export default function ChatHeader({
-  sidebarOpen, isMobile, documentCount, accessToken, hasMessages,
+  isMobile, documentCount, accessToken, hasMessages,
   onToggleSidebar, onClearChat,
 }: ChatHeaderProps) {
-  const pathname = usePathname();
-
   return (
     <div style={{ borderBottom: '0.5px solid var(--border)', flexShrink: 0 }}>
-      {/* Top row: logo + actions */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 16px' }}>
         {isMobile && (
           <button onClick={onToggleSidebar} aria-label="Toggle sidebar" style={{
@@ -34,12 +29,9 @@ export default function ChatHeader({
             </svg>
           </button>
         )}
-        <div style={{ flex: 1 }}>
-          <DoclityLogo size="sm" />
-          <p style={{ fontSize: 11, color: 'var(--text-muted)' }}>
-            {documentCount > 0 ? `${documentCount} documento${documentCount !== 1 ? 's' : ''}` : 'Sube documentos para empezar'}
-          </p>
-        </div>
+        <p style={{ flex: 1, fontSize: 11, color: 'var(--text-muted)', margin: 0 }}>
+          {documentCount > 0 ? `${documentCount} documento${documentCount !== 1 ? 's' : ''}` : 'Sube documentos para empezar'}
+        </p>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <FeedbackButton accessToken={accessToken} />
           {hasMessages && (
@@ -49,33 +41,6 @@ export default function ChatHeader({
             </button>
           )}
         </div>
-      </div>
-
-      {/* Nav tabs */}
-      <div style={{ display: 'flex', padding: '0 16px' }}>
-        {([
-          { label: 'Chat', href: '/chat' },
-          { label: 'Agente', href: '/agent' },
-        ] as const).map(({ label, href }) => {
-          const active = pathname === href || pathname.startsWith(href + '/');
-          return (
-            <a
-              key={href}
-              href={href}
-              style={{
-                padding: '8px 14px',
-                textDecoration: 'none',
-                fontSize: 12,
-                fontWeight: 600,
-                borderBottom: active ? '2px solid var(--brand)' : '2px solid transparent',
-                color: active ? 'var(--text-primary)' : 'var(--text-secondary)',
-                marginBottom: -1,
-              }}
-            >
-              {label}
-            </a>
-          );
-        })}
       </div>
     </div>
   );
