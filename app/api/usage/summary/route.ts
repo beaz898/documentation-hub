@@ -82,6 +82,7 @@ export async function GET(req: NextRequest) {
       subscriptionStatus,
       hasActiveSubscription: !!orgData.stripe_subscription_id,
       hasAgent: PLAN_FEATURES[orgData.plan]?.hasAgent ?? false,
+      hasAnalyticsPanel: PLAN_FEATURES[orgData.plan]?.hasAnalyticsPanel ?? false,
     });
   } catch (error: unknown) {
     console.error('Error in /api/usage/summary:', error);
