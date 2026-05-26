@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase';
+import { PLAN_DETAILS } from '@/lib/plan-details';
 
 interface UsageSummary {
   plan: string;
@@ -16,17 +17,17 @@ interface UsageSummary {
   hasActiveSubscription?: boolean;
 }
 
-const PLANS: Array<{ id: string; name: string; price: number; credits: number; users: number | null; description: string; popular?: boolean }> = [
-  { id: 'free', name: 'Free', price: 0, credits: 100, users: 1, description: 'Para probar' },
-  { id: 'starter', name: 'Starter', price: 59, credits: 400, users: 3, description: 'Profesional independiente' },
-  { id: 'pro', name: 'Pro', price: 149, credits: 1500, users: 5, description: 'PYME pequeña', popular: true },
-  { id: 'business', name: 'Business', price: 349, credits: 4000, users: 15, description: 'PYME mediana' },
-  { id: 'business_plus', name: 'Business+', price: 599, credits: 10000, users: null, description: 'PYME grande' },
-];
-
 const CREDIT_PACKS = [
   { id: 'pack_500', credits: 500, price: 15, pricePerCredit: '0,030€' },
 ];
+
+function Check() {
+  return (
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--brand)" strokeWidth="2.5" style={{ flexShrink: 0, marginTop: 1 }}>
+      <polyline points="20 6 9 17 4 12" />
+    </svg>
+  );
+}
 
 export default function BillingPage() {
   const [session, setSession] = useState<{ access_token: string } | null>(null);
@@ -36,7 +37,6 @@ export default function BillingPage() {
   const [buyingCredits, setBuyingCredits] = useState<string | null>(null);
   const [openingPortal, setOpeningPortal] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
-  // Purge state
   const [showPurgeConfirm, setShowPurgeConfirm] = useState(false);
   const [purgeEmail, setPurgeEmail] = useState('');
   const [purging, setPurging] = useState(false);
@@ -45,7 +45,6 @@ export default function BillingPage() {
   const searchParams = useSearchParams();
   const supabase = createClient();
 
-  // Auth check
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session: s } }) => {
       if (!s) { router.replace('/login'); return; }
@@ -54,7 +53,6 @@ export default function BillingPage() {
     });
   }, [router, supabase.auth]);
 
-  // Handle callback params
   useEffect(() => {
     if (searchParams.get('billing') === 'success') {
       setMessage({ type: 'success', text: 'Plan contratado correctamente. Los créditos ya están disponibles.' });
@@ -80,10 +78,7 @@ export default function BillingPage() {
     setLoading(true);
     try {
       const res = await fetch('/api/usage/summary', { credentials: 'include' });
-      if (res.ok) {
-        const data = await res.json();
-        setUsage(data);
-      }
+      if (res.ok) { const data = await res.json(); setUsage(data); }
     } catch (err) {
       console.error('Error loading usage:', err);
     } finally {
@@ -97,108 +92,62 @@ export default function BillingPage() {
     if (!session || checkingOut) return;
     setCheckingOut(planId);
     setMessage(null);
-
     try {
       const res = await fetch('/api/billing/checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ plan: planId }),
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        credentials: 'include', body: JSON.stringify({ plan: planId }),
       });
-
       const data = await res.json();
-
-      if (res.ok && data.url) {
-        window.location.href = data.url;
-      } else {
-        setMessage({ type: 'error', text: data.error || 'Error iniciando el pago.' });
-      }
-    } catch {
-      setMessage({ type: 'error', text: 'Error de conexión.' });
-    } finally {
-      setCheckingOut(null);
-    }
+      if (res.ok && data.url) { window.location.href = data.url; }
+      else { setMessage({ type: 'error', text: data.error || 'Error iniciando el pago.' }); }
+    } catch { setMessage({ type: 'error', text: 'Error de conexión.' }); }
+    finally { setCheckingOut(null); }
   }
 
   async function handleBuyCredits(packId: string) {
     if (!session || buyingCredits) return;
     setBuyingCredits(packId);
     setMessage(null);
-
     try {
       const res = await fetch('/api/billing/buy-credits', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ pack: packId }),
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        credentials: 'include', body: JSON.stringify({ pack: packId }),
       });
-
       const data = await res.json();
-
-      if (res.ok && data.url) {
-        window.location.href = data.url;
-      } else {
-        setMessage({ type: 'error', text: data.error || 'Error iniciando la compra.' });
-      }
-    } catch {
-      setMessage({ type: 'error', text: 'Error de conexión.' });
-    } finally {
-      setBuyingCredits(null);
-    }
+      if (res.ok && data.url) { window.location.href = data.url; }
+      else { setMessage({ type: 'error', text: data.error || 'Error iniciando la compra.' }); }
+    } catch { setMessage({ type: 'error', text: 'Error de conexión.' }); }
+    finally { setBuyingCredits(null); }
   }
 
   async function handlePortal() {
     if (!session || openingPortal) return;
     setOpeningPortal(true);
-
     try {
-      const res = await fetch('/api/billing/portal', {
-        method: 'POST',
-        credentials: 'include',
-      });
-
+      const res = await fetch('/api/billing/portal', { method: 'POST', credentials: 'include' });
       const data = await res.json();
-
-      if (res.ok && data.url) {
-        window.location.href = data.url;
-      } else {
-        setMessage({ type: 'error', text: data.error || 'Error abriendo el portal.' });
-      }
-    } catch {
-      setMessage({ type: 'error', text: 'Error de conexión.' });
-    } finally {
-      setOpeningPortal(false);
-    }
+      if (res.ok && data.url) { window.location.href = data.url; }
+      else { setMessage({ type: 'error', text: data.error || 'Error abriendo el portal.' }); }
+    } catch { setMessage({ type: 'error', text: 'Error de conexión.' }); }
+    finally { setOpeningPortal(false); }
   }
 
   async function handlePurge() {
     if (!session || purging) return;
     setPurging(true);
     setMessage(null);
-
     try {
       const res = await fetch('/api/org/purge', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ confirmEmail: purgeEmail }),
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        credentials: 'include', body: JSON.stringify({ confirmEmail: purgeEmail }),
       });
-
       const data = await res.json();
-
       if (res.ok && data.success) {
         setMessage({ type: 'success', text: 'Todos los datos han sido borrados correctamente.' });
-        setShowPurgeConfirm(false);
-        setPurgeEmail('');
-        loadUsage();
-      } else {
-        setMessage({ type: 'error', text: data.error || 'Error al borrar los datos.' });
-      }
-    } catch {
-      setMessage({ type: 'error', text: 'Error de conexión.' });
-    } finally {
-      setPurging(false);
-    }
+        setShowPurgeConfirm(false); setPurgeEmail(''); loadUsage();
+      } else { setMessage({ type: 'error', text: data.error || 'Error al borrar los datos.' }); }
+    } catch { setMessage({ type: 'error', text: 'Error de conexión.' }); }
+    finally { setPurging(false); }
   }
 
   if (!session) {
@@ -216,29 +165,11 @@ export default function BillingPage() {
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
-      {/* Header */}
-      <div style={{
-        padding: '14px 20px', borderBottom: '0.5px solid var(--border)',
-        display: 'flex', alignItems: 'center', gap: 12,
-      }}>
-        <button
-          onClick={() => router.push('/chat')}
-          style={{
-            padding: '6px 12px', borderRadius: 8, border: '0.5px solid var(--border)',
-            background: 'var(--bg-secondary)', cursor: 'pointer', fontSize: 12,
-            color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: 5,
-          }}
-        >
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <polyline points="15 18 9 12 15 6" />
-          </svg>
-          Volver al chat
-        </button>
+      <div style={{ padding: '14px 20px', borderBottom: '0.5px solid var(--border)' }}>
         <h1 style={{ fontSize: 15, fontWeight: 600 }}>Plan y facturación</h1>
       </div>
 
-      <div style={{ maxWidth: 800, margin: '0 auto', padding: '24px 20px' }}>
-        {/* Messages */}
+      <div style={{ maxWidth: 900, margin: '0 auto', padding: '24px 20px' }}>
         {message && (
           <div style={{
             marginBottom: 20, padding: '10px 14px', borderRadius: 8,
@@ -256,23 +187,21 @@ export default function BillingPage() {
           </div>
         ) : (
           <>
-            {/* Current plan summary */}
             {usage && (
               <div style={{
-                padding: '16px 20px', borderRadius: 10, marginBottom: 24,
+                padding: '16px 20px', borderRadius: 10, marginBottom: 28,
                 background: 'var(--bg-secondary)', border: '0.5px solid var(--border)',
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
                   <div>
                     <span style={{ fontSize: 11, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: 0.3 }}>Plan actual</span>
                     <h2 style={{ fontSize: 20, fontWeight: 700, marginTop: 2 }}>
-                      {PLANS.find(p => p.id === currentPlan)?.name || currentPlan}
+                      {PLAN_DETAILS.find(p => p.id === currentPlan)?.name || currentPlan}
                     </h2>
                   </div>
                   {currentPlan !== 'free' && isAdmin && (
                     <button
-                      onClick={handlePortal}
-                      disabled={openingPortal}
+                      onClick={handlePortal} disabled={openingPortal}
                       style={{
                         padding: '7px 14px', borderRadius: 8, border: '0.5px solid var(--border)',
                         background: 'var(--bg-tertiary)', fontSize: 11, cursor: 'pointer',
@@ -302,137 +231,95 @@ export default function BillingPage() {
               </div>
             )}
 
-            {/* Plans grid o portal CTA según si hay suscripción activa */}
-            {hasActiveSubscription ? (
-              <div style={{ marginBottom: 32 }}>
-                <h2 style={{ fontSize: 13, fontWeight: 600, marginBottom: 14 }}>Cambiar de plan o gestionar suscripción</h2>
-                <div style={{
-                  padding: '20px 24px', borderRadius: 10,
-                  background: 'var(--bg-secondary)', border: '0.5px solid var(--border)',
-                  display: 'flex', flexDirection: 'column', gap: 14,
-                }}>
-                  <p style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.6 }}>
-                    Para cambiar de plan, actualizar tu tarjeta o cancelar la suscripción, usa el portal de Stripe.
-                  </p>
-                  {isAdmin ? (
-                    <button
-                      onClick={handlePortal}
-                      disabled={openingPortal}
-                      style={{
-                        alignSelf: 'flex-start', padding: '10px 20px', borderRadius: 8, border: 'none',
-                        background: openingPortal ? 'var(--bg-tertiary)' : 'var(--brand)',
-                        color: openingPortal ? 'var(--text-muted)' : '#fff',
-                        fontSize: 13, fontWeight: 600,
-                        cursor: openingPortal ? 'not-allowed' : 'pointer',
-                      }}
-                    >
-                      {openingPortal ? 'Abriendo portal...' : 'Gestionar suscripción →'}
-                    </button>
-                  ) : (
-                    <p style={{ fontSize: 11, color: 'var(--text-muted)' }}>
-                      Solo los administradores pueden cambiar el plan.
-                    </p>
-                  )}
-                </div>
-              </div>
-            ) : (
-              <>
-                <h2 style={{ fontSize: 13, fontWeight: 600, marginBottom: 14 }}>
-                  {currentPlan === 'free' ? 'Elige un plan' : 'Cambiar de plan'}
-                </h2>
+            <h2 style={{ fontSize: 13, fontWeight: 600, marginBottom: 14 }}>Planes</h2>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(190px, 1fr))', gap: 12, marginBottom: 12 }}>
+              {PLAN_DETAILS.map(plan => {
+                const isCurrent = plan.id === currentPlan;
+                const priceLabel = plan.price === null ? 'Gratis' : `${plan.price.toLocaleString('es-ES', { minimumFractionDigits: 2 })}€`;
+                const busy = checkingOut === plan.id || openingPortal;
 
-                <div style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
-                  gap: 12,
-                  marginBottom: 32,
-                }}>
-                  {PLANS.filter(p => p.id !== 'free').map(plan => {
-                    const isCurrent = plan.id === currentPlan;
-                    const isDowngrade = PLANS.findIndex(p => p.id === plan.id) < PLANS.findIndex(p => p.id === currentPlan);
+                return (
+                  <div
+                    key={plan.id}
+                    style={{
+                      padding: '18px 16px', borderRadius: 10, background: 'var(--bg-secondary)',
+                      border: isCurrent ? '2px solid var(--brand)' : plan.popular ? '1.5px solid rgba(99,102,241,0.5)' : '0.5px solid var(--border)',
+                      position: 'relative', display: 'flex', flexDirection: 'column',
+                    }}
+                  >
+                    {plan.popular && (
+                      <span style={{
+                        position: 'absolute', top: -9, left: '50%', transform: 'translateX(-50%)',
+                        padding: '2px 10px', borderRadius: 10, whiteSpace: 'nowrap',
+                        background: 'var(--brand)', color: '#fff',
+                        fontSize: 9, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5,
+                      }}>
+                        Más popular
+                      </span>
+                    )}
 
-                    return (
-                      <div
-                        key={plan.id}
+                    <h3 style={{ fontSize: 14, fontWeight: 700, marginBottom: 6 }}>{plan.name}</h3>
+
+                    <div style={{ marginBottom: 10 }}>
+                      <span style={{ fontSize: 22, fontWeight: 700 }}>{priceLabel}</span>
+                      {plan.price !== null && <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>/mes</span>}
+                    </div>
+
+                    {plan.base && (
+                      <p style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 8, fontStyle: 'italic' }}>
+                        {plan.base}
+                      </p>
+                    )}
+
+                    <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 14px', flex: 1, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                      {plan.features.map(f => (
+                        <li key={f} style={{ display: 'flex', alignItems: 'flex-start', gap: 7, fontSize: 11 }}>
+                          <Check />
+                          <span style={{ color: 'var(--text-secondary)', lineHeight: 1.4 }}>{f}</span>
+                        </li>
+                      ))}
+                    </ul>
+
+                    {isCurrent ? (
+                      <div style={{
+                        padding: '7px', borderRadius: 8, textAlign: 'center',
+                        background: 'rgba(99,102,241,0.08)', color: 'var(--brand)', fontSize: 11, fontWeight: 600,
+                      }}>
+                        Plan actual
+                      </div>
+                    ) : plan.id !== 'free' && isAdmin ? (
+                      <button
+                        onClick={hasActiveSubscription ? handlePortal : () => handleCheckout(plan.id)}
+                        disabled={busy}
                         style={{
-                          padding: '18px 16px', borderRadius: 10,
-                          background: 'var(--bg-secondary)',
-                          border: isCurrent
-                            ? '2px solid var(--brand)'
-                            : plan.popular
-                              ? '1px solid var(--brand)'
-                              : '0.5px solid var(--border)',
-                          position: 'relative',
-                          display: 'flex', flexDirection: 'column',
+                          padding: '7px', borderRadius: 8, border: 'none',
+                          background: busy ? 'var(--bg-tertiary)' : 'var(--brand)',
+                          color: busy ? 'var(--text-muted)' : '#fff',
+                          fontSize: 11, fontWeight: 600, cursor: busy ? 'not-allowed' : 'pointer',
                         }}
                       >
-                        {plan.popular && !isCurrent && (
-                          <span style={{
-                            position: 'absolute', top: -8, left: '50%', transform: 'translateX(-50%)',
-                            padding: '2px 10px', borderRadius: 10,
-                            background: 'var(--brand)', color: '#fff',
-                            fontSize: 9, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.3,
-                          }}>
-                            Popular
-                          </span>
-                        )}
-
-                        <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 4 }}>{plan.name}</h3>
-                        <p style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 10 }}>{plan.description}</p>
-
-                        <div style={{ marginBottom: 12 }}>
-                          <span style={{ fontSize: 24, fontWeight: 700 }}>{plan.price}€</span>
-                          <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>/mes</span>
-                        </div>
-
-                        <div style={{ fontSize: 11, color: 'var(--text-secondary)', marginBottom: 14, flex: 1 }}>
-                          <p style={{ marginBottom: 3 }}>{plan.credits.toLocaleString('es-ES')} créditos/mes</p>
-                          <p>{plan.users !== null ? `Hasta ${plan.users} usuarios` : 'Usuarios ilimitados'}</p>
-                        </div>
-
-                        {isCurrent ? (
-                          <div style={{
-                            padding: '8px', borderRadius: 8, textAlign: 'center',
-                            background: 'var(--brand-light)', color: 'var(--brand)',
-                            fontSize: 11, fontWeight: 600,
-                          }}>
-                            Plan actual
-                          </div>
-                        ) : isAdmin ? (
-                          <button
-                            onClick={() => handleCheckout(plan.id)}
-                            disabled={checkingOut === plan.id}
-                            style={{
-                              padding: '8px', borderRadius: 8, border: 'none',
-                              background: checkingOut === plan.id ? 'var(--bg-tertiary)' : 'var(--brand)',
-                              color: checkingOut === plan.id ? 'var(--text-muted)' : '#fff',
-                              fontSize: 11, fontWeight: 600,
-                              cursor: checkingOut === plan.id ? 'not-allowed' : 'pointer',
-                            }}
-                          >
-                            {checkingOut === plan.id
-                              ? 'Redirigiendo...'
-                              : isDowngrade
-                                ? 'Cambiar'
-                                : 'Contratar'}
-                          </button>
-                        ) : (
-                          <div style={{
-                            padding: '8px', borderRadius: 8, textAlign: 'center',
-                            background: 'var(--bg-tertiary)', color: 'var(--text-muted)',
-                            fontSize: 11,
-                          }}>
-                            Solo el admin puede cambiar
-                          </div>
-                        )}
+                        {busy ? 'Redirigiendo...' : hasActiveSubscription ? 'Cambiar plan' : 'Contratar'}
+                      </button>
+                    ) : plan.id !== 'free' ? (
+                      <div style={{
+                        padding: '7px', borderRadius: 8, textAlign: 'center',
+                        background: 'var(--bg-tertiary)', color: 'var(--text-muted)', fontSize: 10,
+                      }}>
+                        Solo el admin puede cambiar
                       </div>
-                    );
-                  })}
-                </div>
-              </>
-            )}
+                    ) : null}
+                  </div>
+                );
+              })}
+            </div>
 
-            {/* Credit packs section */}
+            <p style={{ fontSize: 12, color: 'var(--text-muted)', textAlign: 'center', marginBottom: 32 }}>
+              ¿Más de 50 usuarios o volumen personalizado?{' '}
+              <a href="mailto:hola@doclity.com" style={{ color: 'var(--brand)', textDecoration: 'none' }}>
+                Contáctanos
+              </a>
+            </p>
+
             {isAdmin && currentPlan !== 'free' && (
               <div style={{ marginBottom: 32 }}>
                 <h2 style={{ fontSize: 13, fontWeight: 600, marginBottom: 6 }}>Recargar créditos</h2>
@@ -446,8 +333,7 @@ export default function BillingPage() {
                       style={{
                         padding: '16px 20px', borderRadius: 10,
                         background: 'var(--bg-secondary)', border: '0.5px solid var(--border)',
-                        display: 'flex', alignItems: 'center', gap: 16,
-                        minWidth: 250,
+                        display: 'flex', alignItems: 'center', gap: 16, minWidth: 250,
                       }}
                     >
                       <div style={{ flex: 1 }}>
@@ -459,7 +345,7 @@ export default function BillingPage() {
                         disabled={buyingCredits === pack.id}
                         style={{
                           padding: '8px 16px', borderRadius: 8, border: '0.5px solid var(--border)',
-                          background: buyingCredits === pack.id ? 'var(--bg-tertiary)' : 'var(--bg-tertiary)',
+                          background: 'var(--bg-tertiary)',
                           color: buyingCredits === pack.id ? 'var(--text-muted)' : 'var(--text-primary)',
                           fontSize: 12, fontWeight: 600,
                           cursor: buyingCredits === pack.id ? 'not-allowed' : 'pointer',
@@ -473,58 +359,44 @@ export default function BillingPage() {
               </div>
             )}
 
-            {/* Danger zone: purge data */}
             {isAdmin && isCanceledOrExpired && (
               <div style={{
                 marginBottom: 32, padding: '20px', borderRadius: 10,
-                border: '1px solid rgba(239,68,68,0.3)',
-                background: 'rgba(239,68,68,0.04)',
+                border: '1px solid rgba(239,68,68,0.3)', background: 'rgba(239,68,68,0.04)',
               }}>
-                <h2 style={{ fontSize: 13, fontWeight: 600, color: 'rgb(239,68,68)', marginBottom: 6 }}>
-                  Zona de peligro
-                </h2>
+                <h2 style={{ fontSize: 13, fontWeight: 600, color: 'rgb(239,68,68)', marginBottom: 6 }}>Zona de peligro</h2>
                 <p style={{ fontSize: 11, color: 'var(--text-secondary)', marginBottom: 14 }}>
                   Borra permanentemente todos los documentos, embeddings, conexiones y datos de tu workspace.
                   Los registros de uso y feedback se anonimizan. Esta acción no se puede deshacer.
                 </p>
-
                 {!showPurgeConfirm ? (
                   <button
                     onClick={() => setShowPurgeConfirm(true)}
                     style={{
                       padding: '8px 16px', borderRadius: 8,
-                      border: '1px solid rgba(239,68,68,0.4)',
-                      background: 'transparent',
-                      color: 'rgb(239,68,68)',
-                      fontSize: 11, fontWeight: 600, cursor: 'pointer',
+                      border: '1px solid rgba(239,68,68,0.4)', background: 'transparent',
+                      color: 'rgb(239,68,68)', fontSize: 11, fontWeight: 600, cursor: 'pointer',
                     }}
                   >
                     Borrar todos los datos
                   </button>
                 ) : (
-                  <div style={{
-                    padding: '16px', borderRadius: 8,
-                    background: 'var(--bg-secondary)', border: '0.5px solid var(--border)',
-                  }}>
+                  <div style={{ padding: '16px', borderRadius: 8, background: 'var(--bg-secondary)', border: '0.5px solid var(--border)' }}>
                     <p style={{ fontSize: 11, color: 'var(--text-secondary)', marginBottom: 10 }}>
                       Escribe tu email (<strong>{userEmail}</strong>) para confirmar el borrado:
                     </p>
                     <input
-                      type="email"
-                      value={purgeEmail}
-                      onChange={e => setPurgeEmail(e.target.value)}
-                      placeholder={userEmail}
+                      type="email" value={purgeEmail}
+                      onChange={e => setPurgeEmail(e.target.value)} placeholder={userEmail}
                       style={{
                         width: '100%', padding: '8px 12px', borderRadius: 6,
                         border: '0.5px solid var(--border)', background: 'var(--bg)',
-                        fontSize: 12, color: 'var(--text-primary)',
-                        marginBottom: 12, boxSizing: 'border-box',
+                        fontSize: 12, color: 'var(--text-primary)', marginBottom: 12, boxSizing: 'border-box',
                       }}
                     />
                     <div style={{ display: 'flex', gap: 8 }}>
                       <button
-                        onClick={handlePurge}
-                        disabled={purging || purgeEmail !== userEmail}
+                        onClick={handlePurge} disabled={purging || purgeEmail !== userEmail}
                         style={{
                           padding: '8px 16px', borderRadius: 8, border: 'none',
                           background: purgeEmail === userEmail ? 'rgb(239,68,68)' : 'var(--bg-tertiary)',
@@ -551,7 +423,6 @@ export default function BillingPage() {
               </div>
             )}
 
-            {/* IVA note */}
             <p style={{ fontSize: 10, color: 'var(--text-muted)', textAlign: 'center' }}>
               Precios sin IVA. Se aplicará el 21% de IVA en la factura.
             </p>
