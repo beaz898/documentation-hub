@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase';
 
+
 interface Summary {
   hasAgent: boolean;
 }
@@ -41,60 +42,7 @@ export default function AgentPage() {
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
-      {/* Header */}
-      <div style={{ borderBottom: '0.5px solid var(--border)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 16px' }}>
-          <button
-            onClick={() => router.push('/chat')}
-            style={{
-              padding: '6px 12px', borderRadius: 8, border: '0.5px solid var(--border)',
-              background: 'var(--bg-secondary)', cursor: 'pointer',
-              fontSize: 12, color: 'var(--text-secondary)',
-              display: 'flex', alignItems: 'center', gap: 5,
-            }}
-          >
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <polyline points="15 18 9 12 15 6" />
-            </svg>
-            Volver
-          </button>
-          <h1 style={{ fontSize: 15, fontWeight: 600 }}>Agente IA</h1>
-        </div>
-
-        {/* Nav tabs */}
-        <div style={{ display: 'flex', padding: '0 16px' }}>
-          {([
-            { label: 'Chat', href: '/chat' },
-            { label: 'Agente', href: '/agent' },
-          ] as const).map(({ label, href }) => {
-            const active = href === '/agent';
-            return (
-              <a
-                key={href}
-                href={href}
-                style={{
-                  padding: '8px 14px',
-                  textDecoration: 'none',
-                  fontSize: 12,
-                  fontWeight: 600,
-                  borderBottom: active ? '2px solid var(--brand)' : '2px solid transparent',
-                  color: active ? 'var(--text-primary)' : 'var(--text-secondary)',
-                  marginBottom: -1,
-                }}
-              >
-                {label}
-              </a>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Content */}
-      {hasAgent ? (
-        <Placeholder />
-      ) : (
-        <Paywall />
-      )}
+      {hasAgent ? <Placeholder /> : <Paywall />}
     </div>
   );
 }
