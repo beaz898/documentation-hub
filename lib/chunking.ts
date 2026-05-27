@@ -114,12 +114,13 @@ function extractTextFromExcel(buffer: Buffer): string {
     .map((name: string) => {
       const sheet = workbook.Sheets[name];
       const csv = xlsx.utils.sheet_to_csv(sheet, { FS: '\t' });
-      // Drop sheets that are entirely empty after trimming
       if (!csv.trim()) return '';
       return `--- Hoja: ${name} ---\n\n${csv}`;
     })
     .filter(Boolean)
-    .join('\n\n');
+    .join('\n\n')
+    // PostgreSQL rejects null bytes in text columns; strip them.
+    .replace(/\u0000/g, '');
 }
 
 /**
