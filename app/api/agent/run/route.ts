@@ -62,7 +62,17 @@ export async function POST(req: NextRequest) {
       .eq('id', orgId)
       .single();
     const available = (orgData?.credits ?? 0) + (orgData?.credits_extra ?? 0);
+
+    console.log('[agent/run] DEBUG credits', {
+      orgId,
+      credits: orgData?.credits,
+      credits_extra: orgData?.credits_extra,
+      available,
+      estimated,
+    });
+
     if (available < estimated) {
+      console.log('[agent/run] 402 from pre-check', { available, estimated });
       return NextResponse.json({
         error: 'insufficient_credits',
         required: estimated,
@@ -74,6 +84,11 @@ export async function POST(req: NextRequest) {
     const { data: consumeRaw, error: consumeErr } = await supabase.rpc('consume_credits', {
       p_org_id: orgId,
       p_amount: estimated,
+    });
+
+    console.log('[agent/run] DEBUG rpc consume_credits', {
+      data: consumeRaw,
+      error: consumeErr ? { message: consumeErr.message, code: consumeErr.code, details: consumeErr.details, hint: consumeErr.hint } : null,
     });
 
     if (consumeErr) {
@@ -90,6 +105,7 @@ export async function POST(req: NextRequest) {
 
       if (consumeResult && !consumeResult.success) {
         // The function returned an explicit insufficient-credits response.
+        console.log('[agent/run] 402 from RPC success=false', { consumeResult, estimated });
         return NextResponse.json({
           error: 'insufficient_credits',
           required: estimated,
