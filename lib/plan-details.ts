@@ -49,6 +49,6 @@ export const PLAN_DETAILS: readonly PlanDetail[] = [
     name: 'Business+',
     price: 599.99,
     base: 'Todo lo de Business, más:',
-    features: ['10.000 créditos/mes', 'Usuarios ilimitados', 'Soporte prioritario'],
+    features: ['10.000 créditos/mes', 'Hasta 25 usuarios', 'Soporte prioritario'],
   },
 ];

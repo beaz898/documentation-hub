@@ -51,7 +51,7 @@ export const PLAN_CONFIG: Record<string, { credits: number; maxUsers: number | n
   starter: { credits: 400, maxUsers: 3 },
   pro: { credits: 1500, maxUsers: 5 },
   business: { credits: 4000, maxUsers: 15, hasVariablePricing: true },
-  business_plus: { credits: 10000, maxUsers: null, hasVariablePricing: true },
+  business_plus: { credits: 10000, maxUsers: 25, hasVariablePricing: true },
 };
 
 /**
@@ -76,7 +76,7 @@ export const PLAN_FEATURES: Record<string, {
   starter:       { hasDrive: false, hasAnalyticsPanel: false, hasVariablePricing: false, hasAgent: false, maxUsers: 3 },
   pro:           { hasDrive: true,  hasAnalyticsPanel: false, hasVariablePricing: false, hasAgent: false, maxUsers: 5 },
   business:      { hasDrive: true,  hasAnalyticsPanel: true,  hasVariablePricing: true,  hasAgent: true,  maxUsers: 15 },
-  business_plus: { hasDrive: true,  hasAnalyticsPanel: true,  hasVariablePricing: true,  hasAgent: true,  maxUsers: null },
+  business_plus: { hasDrive: true,  hasAnalyticsPanel: true,  hasVariablePricing: true,  hasAgent: true,  maxUsers: 25   },
   enterprise:    { hasDrive: true,  hasAnalyticsPanel: true,  hasVariablePricing: true,  hasAgent: true,  maxUsers: null },
 };
 
