@@ -75,20 +75,27 @@ export async function POST(req: NextRequest) {
       p_org_id: orgId,
       p_amount: estimated,
     });
-    const consumeResult = consumeRaw as {
-      success: boolean;
-      credits_remaining?: number;
-      credits_extra?: number;
-      error?: string;
-    } | null;
 
-    if (consumeErr || !consumeResult?.success) {
-      const avail = (consumeResult?.credits_remaining ?? 0) + (consumeResult?.credits_extra ?? 0);
-      return NextResponse.json({
-        error: 'insufficient_credits',
-        required: estimated,
-        available: avail,
-      }, { status: 402 });
+    if (consumeErr) {
+      // RPC system error (function raised exception, timeout, etc.) — not a credit shortage.
+      // The pre-check above already confirmed sufficient balance; log and continue.
+      console.error('[agent/run] consume_credits RPC error:', consumeErr.message);
+    } else {
+      const consumeResult = consumeRaw as {
+        success: boolean;
+        credits_remaining?: number;
+        credits_extra?: number;
+        error?: string;
+      } | null;
+
+      if (consumeResult && !consumeResult.success) {
+        // The function returned an explicit insufficient-credits response.
+        return NextResponse.json({
+          error: 'insufficient_credits',
+          required: estimated,
+          available: (consumeResult.credits_remaining ?? 0) + (consumeResult.credits_extra ?? 0),
+        }, { status: 402 });
+      }
     }
 
     // Insert task row
