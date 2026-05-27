@@ -113,9 +113,22 @@ function extractTextFromExcel(buffer: Buffer): string {
   return workbook.SheetNames
     .map((name: string) => {
       const sheet = workbook.Sheets[name];
-      const csv = xlsx.utils.sheet_to_csv(sheet, { FS: '\t' });
-      if (!csv.trim()) return '';
-      return `--- Hoja: ${name} ---\n\n${csv}`;
+      const rows = xlsx.utils.sheet_to_json(sheet, { header: 1 }) as unknown[][];
+      if (rows.length < 2) return '';
+
+      const header = rows[0].map(cell => String(cell ?? ''));
+      const dataRows = rows.slice(1).map(row =>
+        header.map((_, i) => String((row as unknown[])[i] ?? ''))
+      );
+
+      const toMdRow = (cells: string[]) => `| ${cells.join(' | ')} |`;
+      const table = [
+        toMdRow(header),
+        toMdRow(header.map(() => '---')),
+        ...dataRows.map(toMdRow),
+      ].join('\n');
+
+      return `--- Hoja: ${name} ---\n\n${table}`;
     })
     .filter(Boolean)
     .join('\n\n')
