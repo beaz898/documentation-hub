@@ -8,7 +8,6 @@ import { adjustCredits } from '@/lib/credits';
 import type { ConfirmationMode } from '@/lib/agent/types';
 
 const VALID_MODES: ConfirmationMode[] = ['step_by_step', 'milestones', 'autonomous'];
-// Paso 11 añadirá hasAgent a PLAN_FEATURES; por ahora lista explícita
 const PLANS_WITH_AGENT = ['business', 'business_plus', 'enterprise'];
 
 export async function POST(req: NextRequest) {
@@ -55,45 +54,14 @@ export async function POST(req: NextRequest) {
 
     const estimated = estimateCredits(cleanGoal, mode);
 
-    // Pre-check credit balance (informational; RPC below is the authoritative check)
-    const { data: orgData } = await supabase
-      .from('organizations')
-      .select('credits, credits_extra')
-      .eq('id', orgId)
-      .single();
-    const available = (orgData?.credits ?? 0) + (orgData?.credits_extra ?? 0);
-
-    console.log('[agent/run] DEBUG credits', {
-      orgId,
-      credits: orgData?.credits,
-      credits_extra: orgData?.credits_extra,
-      available,
-      estimated,
-    });
-
-    if (available < estimated) {
-      console.log('[agent/run] 402 from pre-check', { available, estimated });
-      return NextResponse.json({
-        error: 'insufficient_credits',
-        required: estimated,
-        available,
-      }, { status: 402 });
-    }
-
-    // Atomically consume credits
+    // Atomically consume credits via RPC (authoritative check)
     const { data: consumeRaw, error: consumeErr } = await supabase.rpc('consume_credits', {
       p_org_id: orgId,
       p_amount: estimated,
     });
 
-    console.log('[agent/run] DEBUG rpc consume_credits', {
-      data: consumeRaw,
-      error: consumeErr ? { message: consumeErr.message, code: consumeErr.code, details: consumeErr.details, hint: consumeErr.hint } : null,
-    });
-
     if (consumeErr) {
-      // RPC system error (function raised exception, timeout, etc.) — not a credit shortage.
-      // The pre-check above already confirmed sufficient balance; log and continue.
+      // RPC system error — log but do not block the user; plan check already confirmed access.
       console.error('[agent/run] consume_credits RPC error:', consumeErr.message);
     } else {
       const consumeResult = consumeRaw as {
@@ -104,8 +72,6 @@ export async function POST(req: NextRequest) {
       } | null;
 
       if (consumeResult && !consumeResult.success) {
-        // The function returned an explicit insufficient-credits response.
-        console.log('[agent/run] 402 from RPC success=false', { consumeResult, estimated });
         return NextResponse.json({
           error: 'insufficient_credits',
           required: estimated,
