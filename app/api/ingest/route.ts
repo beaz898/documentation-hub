@@ -47,7 +47,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Validar tipo
-    const allowedExtensions = ['txt', 'md', 'pdf', 'docx', 'csv', 'json', 'html'];
+    const allowedExtensions = ['txt', 'md', 'pdf', 'docx', 'csv', 'json', 'html', 'xlsx', 'xlsm'];
     const ext = fileName.split('.').pop()?.toLowerCase();
     if (!ext || !allowedExtensions.includes(ext)) {
       return NextResponse.json(
