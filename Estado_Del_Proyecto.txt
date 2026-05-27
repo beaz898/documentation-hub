@@ -1,6 +1,6 @@
 ESTADO DEL PROYECTO — Doclity
 ========================================
-Última actualización: 25/05/2026
+Última actualización: 27/05/2026
 
 
 ────────────────────────────────────────────────────────────────
@@ -89,17 +89,17 @@ Tablas principales (supabase-setup.sql)
     - Para análisis exhaustivos que superan timeout de Vercel
 
   agent_tasks
-    - id, org_id, user_id, status (pending/running/waiting/completed/failed)
+    - id, org_id, user_id
+    - status: pending | running | awaiting_user | awaiting_confirmation |
+               completed | failed | cancelled
     - goal: objetivo en lenguaje natural enviado por el usuario
+    - confirmation_mode: step_by_step | milestones | autonomous
     - steps (JSONB): array de AgentStep (iteraciones del loop ReAct)
     - pending_request (JSONB): confirmación/escalación/input pendiente de usuario
-    - credits_estimated, credits_real: para reconciliación final
-    - created_at, started_at, completed_at
-
-  memberships
-    - user_id, org_id, role ('admin' | 'member')
-    - preferences (JSONB): UserPreferences del usuario en esta org
-      (ConfirmationMode y otras preferencias del agente)
+    - credits_estimated, credits_consumed: para reconciliación final
+    - model, total_tokens_input, total_tokens_output, step_count
+    - error_message, error_step_index
+    - created_at, started_at, completed_at, updated_at
 
   feedback
     - user_id, org_id, message
@@ -135,7 +135,7 @@ Definidos en lib/stripe.ts (PLAN_CONFIG, PLAN_FEATURES, PLAN_LABELS)
   starter          400             3        No       No           No             No
   pro             1500             5        Sí       No           No             No
   business        4000            15        Sí       Sí           Sí             Sí
-  business_plus  10000      ilimitados      Sí       Sí           Sí             Sí
+  business_plus  10000            25        Sí       Sí           Sí             Sí
   enterprise     10000      ilimitados      Sí       Sí           Sí             Sí
 
   Drive disponible: pro, business, business_plus, enterprise
@@ -178,8 +178,9 @@ Analítica (solo admin)
   GET  /api/usage/history    — Historial paginado de análisis
   GET  /api/usage/summary    — Resumen rápido de KPIs
 
-Agente IA (plans Business+)
-  POST /api/agent/run           — Crea tarea, consume créditos estimados
+Agente IA (planes Business+)
+  POST /api/agent/run           — Crea tarea, consume créditos estimados (RPC atómica)
+  GET  /api/agent/tasks         — Lista de tareas de la org/usuario (últimas 50)
   GET  /api/agent/tasks/[id]    — Polling de estado, steps y pendingRequest
   POST /api/agent/confirm       — Responde confirmación/escalación/input usuario
   POST /api/agent/cancel        — Cancela tarea y reconcilia créditos
@@ -272,9 +273,20 @@ Analítica
   usage/ChatTab.tsx         — Pestaña chat: consultas, docs más usados,
                               docs nunca usados, cobertura de corpus
 
-Agente IA (app/agent/, hooks/agent/)
-  app/agent/page.tsx        — Página del agente: paywall o interfaz según plan
-  hooks/agent/useUserPreferences.ts — Preferencias (ConfirmationMode…)
+Agente IA (app/(authenticated)/agent/, components/agent/, hooks/agent/)
+  app/(authenticated)/agent/page.tsx — Layout dos paneles: AgentSidebar + AgentChat/AgentInput
+                                       Paywall para planes sin acceso (free/starter/pro)
+  components/agent/AgentSidebar.tsx  — Panel izquierdo: lista de tareas con estado,
+                                       indicador de pulso para tareas activas, botón nueva tarea
+  components/agent/AgentChat.tsx     — Panel derecho: conversación por pasos (StepRow),
+                                       PendingRequestPanel integrado en la parte inferior
+  components/agent/AgentInput.tsx    — Input inferior: modo nueva tarea (textarea + selector
+                                       de ConfirmationMode) o modo respuesta (user_input,
+                                       confirmation, escalation) según pendingRequest
+  hooks/agent/useAgentTasks.ts       — Estado completo: lista, polling (2s), crear, cancelar,
+                                       confirmar; polling solo para estados pending/running;
+                                       upsert de tarea al recibir actualización
+  hooks/agent/useUserPreferences.ts  — Preferencias (ConfirmationMode…)
 
 Utilidades
   ThemeProvider.tsx         — Dark / light mode (light por defecto)
@@ -354,7 +366,7 @@ sobre el corpus documental. Disponible en planes Business y superiores.
 
 Arquitectura
   lib/agent/types.ts          — Tipos: AgentTask, AgentStep, PendingRequest,
-                                ConfirmationMode (ask_always/ask_risky/auto)
+                                ConfirmationMode (step_by_step/milestones/autonomous)
   lib/agent/should-confirm.ts — Política de confirmación humana por herramienta
   lib/agent/credit-calc.ts    — Estimación y reconciliación de créditos
   lib/agent/system-prompt.ts  — Prompt del sistema adaptado por ConfirmationMode
@@ -376,10 +388,10 @@ Flujo de una tarea
   1. POST /api/agent/run → crea AgentTask, descuenta créditos estimados
   2. Worker Railway (agent-handler.ts) recoge la tarea con optimistic lock
   3. Loop ReAct: llama a Claude → elige herramienta → ejecuta → siguiente iter.
-  4. Si la herramienta es ask_user/escalate → tarea pasa a 'waiting'
+  4. ask_user → status='awaiting_user' | escalate → status='awaiting_confirmation'
   5. POST /api/agent/confirm → usuario responde → runner se reanuda de inmediato
   6. Tarea completa: adjustCredits reconcilia estimado vs real
-  7. GET /api/agent/tasks/[id] permite polling de estado y steps desde el UI
+  7. GET /api/agent/tasks/[id] y GET /api/agent/tasks permiten polling desde la UI
 
 Worker (worker/src/agent-handler.ts)
   - Optimistic lock: evita doble procesamiento si el poll se solapa
@@ -432,7 +444,7 @@ ARCHIVOS CLAVE
   lib/org.ts                — resolveOrg() — user → org + role
   lib/rag.ts                — Motor RAG + query rewriting + chunk coverage
   lib/credits.ts            — consumeCredits(), refundCredits(), adjustCredits(), CREDIT_COSTS
-  lib/chunking.ts           — Extracción de texto + chunking
+  lib/chunking.ts           — Extracción de texto + chunking (PDF, DOCX, TXT/MD/CSV/JSON/HTML, XLSX/XLSM)
   lib/embeddings.ts         — Pinecone Inference API con rate limiting
   lib/stripe.ts             — Stripe client, PLAN_CONFIG, PLAN_FEATURES, price IDs
   lib/plan-features.ts      — getOrgFeatures() — gates de funcionalidades por plan
@@ -498,7 +510,7 @@ FUNCIONALIDADES IMPLEMENTADAS
 [✓] Chat RAG con documentos completos (no solo chunks)
 [✓] Query rewriting: Haiku reformula preguntas de seguimiento para Pinecone
 [✓] Reglas de honestidad en RAG: Claude distingue corpus vs reformulación
-[✓] Subida de documentos: PDF, DOCX, TXT, MD, CSV, JSON, HTML
+[✓] Subida de documentos: PDF, DOCX, TXT, MD, CSV, JSON, HTML, XLSX, XLSM
 [✓] Integración Google Drive: OAuth, sync incremental, carpetas
 [✓] Arquitectura de Drive multi-proveedor (registry pattern)
 [✓] OneDrive implementado vía Microsoft Graph API (botón desactivado en UI)
@@ -544,9 +556,16 @@ FUNCIONALIDADES IMPLEMENTADAS
     - Reanudación inmediata tras respuesta del usuario
     - Preferencias de usuario: GET/PATCH /api/user/preferences
 [✓] Página /agent con paywall para planes sin acceso y pestaña en ChatHeader
+[✓] Agente IA: interfaz completa dos paneles (AgentSidebar + AgentChat + AgentInput)
+[✓] Hook useAgentTasks: polling 2s, crear/cancelar/confirmar, upsert automático
+[✓] GET /api/agent/tasks: endpoint de listado de tareas
+[✓] Soporte Excel (.xlsx y .xlsm) en ingesta de documentos (SheetJS)
+[✓] Fix billing page: siempre visible, feature list por plan, badge "Más popular"
+[✓] AppRail: items bloqueados visibles con opacidad + popover de upgrade (no ocultos)
+[✓] Dark mode fix: tailwind.config.js darkMode='class' + classList en ThemeProvider
+[✓] Business+ max_users: 25 (anteriormente ilimitado)
 
 PENDIENTE / ROADMAP
-[ ] Agente IA: interfaz completa (actualmente en placeholder)
 [ ] Activar OneDrive en UI (implementado, pendiente de activar)
 [ ] Notificaciones en tiempo real (WebSocket o SSE)
 [ ] Exportación de informes PDF

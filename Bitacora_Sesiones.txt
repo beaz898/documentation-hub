@@ -814,3 +814,185 @@ ARCHIVOS MODIFICADOS
 
 ARCHIVOS NUEVOS
   app/agent/page.tsx
+
+
+────────────────────────────────────────────────────────────────
+SESIÓN 13 — 25/05/2026 – 26/05/2026
+Título: UI completa del Agente IA + billing refactor + AppRail + dark mode
+────────────────────────────────────────────────────────────────
+
+OBJETIVO
+Construir la interfaz completa del Agente IA (los componentes de chat,
+sidebar y input), refactorizar la página de billing para mostrar siempre
+la tabla de planes, corregir el dark mode en el AppRail y ajustar
+el límite de usuarios del plan Business+.
+
+CAMBIOS IMPLEMENTADOS
+
+1. INTERFAZ COMPLETA DEL AGENTE IA
+
+   app/(authenticated)/agent/page.tsx — refactorizado
+   - Elimina el placeholder; ahora renderiza layout de dos paneles
+   - Izquierda: AgentSidebar (260px fijo)
+   - Derecha: AgentChat si hay tarea seleccionada; estado vacío + AgentInput si no
+   - Auto-selección de la tarea activa más reciente al cargar
+   - Error toast posicionado en la parte inferior
+   - Paywall conservado para planes sin acceso
+
+   components/agent/AgentSidebar.tsx — nuevo
+   - Lista de tareas con dot de estado (animate-pulse para activas)
+   - STATUS_CONFIG: label, color y pulso por estado
+   - Resaltado de tarea seleccionada (var(--brand-light))
+   - Fechas relativas: "Ahora", "Hace N min", "Hace N h"
+   - Botón "Nueva tarea" en el footer
+   - Soporte de props onClose y onCollapseSidebar para modales futuros
+
+   components/agent/AgentChat.tsx — nuevo
+   - StepRow: renderiza cada tipo de paso (think, tool_call, tool_result,
+     user_message, warning, escalation, confirmation_request, final_output)
+   - PendingRequestPanel: user_input (input de texto), escalation (botones),
+     confirmation (Aprobar / Modificar / Cancelar con input inline)
+   - Auto-scroll al último mensaje en cada actualización
+   - Cabecera con goal + botón Cancelar (si la tarea no es terminal)
+   - Indicador de ejecución animado cuando status='running'
+   - Tarjeta visual de estado final (completed/failed/cancelled)
+
+   components/agent/AgentInput.tsx — nuevo
+   - 4 modos según pendingRequest: user_input, escalation, confirmation, nueva tarea
+   - Modo nueva tarea: textarea autoexpandible (máx 160px), selector de
+     ConfirmationMode (step_by_step / milestones / autonomous), botón enviar
+   - ConfirmationMode por defecto: milestones
+   - ⌘+Enter para enviar nueva tarea
+
+   hooks/agent/useAgentTasks.ts — nuevo
+   - Estado: tasks[], activeTask, loading, creating, error
+   - POLLING_STATUSES: pending, running (polling cada 2s)
+   - pollOnce: fetch de tarea, para polling si status no está en POLLING_STATUSES
+   - applyTaskUpdate: upsert (inserta si no existe, actualiza si existe)
+   - loadTasks: GET /api/agent/tasks, reanuda polling si hay tarea activa
+   - createTask: POST /api/agent/run, inicia polling inmediato
+   - cancelTask: POST /api/agent/cancel, para polling
+   - confirm: POST /api/agent/confirm, reanuda polling si status en POLLING_STATUSES
+   - Cleanup de intervalo en unmount
+
+   app/api/agent/tasks/route.ts — nuevo
+   - GET /api/agent/tasks: lista las últimas 50 tareas del usuario en la org
+   - Ordenadas por created_at desc
+
+2. BILLING PAGE REFACTOR
+
+   app/(authenticated)/settings/billing/page.tsx
+   - Elimina botón "volver"
+   - Tabla de planes siempre visible (no requiere haber cargado el plan actual)
+   - Feature list con checkmarks por plan (datos de lib/plan-details.ts)
+   - Badge "Más popular" en tarjeta Business (borde azul, posición absoluta)
+   - Línea de contacto para Enterprise
+   - CTA adaptado: "Plan actual" / "Cambiar plan" (portal) / "Contratar" (checkout)
+   - Administradores ven CTAs; miembros ven etiqueta deshabilitada
+
+3. APPRAIL: ITEMS BLOQUEADOS VISIBLES
+
+   components/layout/AppRail.tsx
+   - Antes: items sin acceso se ocultaban según el plan
+   - Ahora: siempre visibles con opacity 0.35 y cursor not-allowed
+   - Al hacer click: popover fijo posicionado a la derecha del rail
+     con mensaje "Disponible desde el plan Business" y enlace a billing
+   - Auto-cierre del popover tras 4s (useEffect con cleanup)
+
+4. FIX: DARK MODE EN APPRAIL
+
+   components/ThemeProvider.tsx
+   - Añadida línea: document.documentElement.classList.toggle('dark', theme === 'dark')
+   - Sin esto, Tailwind no aplicaba las clases dark: aunque el atributo data-theme
+     estuviera puesto
+
+   tailwind.config.js
+   - darkMode: 'class' añadido como primera propiedad
+   - Por defecto Next.js usaba 'media', ignorando la clase 'dark' del DOM
+
+5. BUSINESS+ MAX USERS: ILIMITADO → 25
+
+   lib/stripe.ts + lib/plan-details.ts
+   - business_plus: maxUsers cambia de null (ilimitado) a 25
+   - Solo enterprise mantiene null (ilimitado)
+
+   migrations/2026-05-27_business-plus-max-users.sql
+   - UPDATE organizations SET max_users = 25 WHERE plan = 'business_plus' AND max_users IS NULL
+
+ARCHIVOS NUEVOS
+  app/api/agent/tasks/route.ts
+  hooks/agent/useAgentTasks.ts
+  components/agent/AgentSidebar.tsx
+  components/agent/AgentChat.tsx
+  components/agent/AgentInput.tsx
+  migrations/2026-05-27_business-plus-max-users.sql
+
+ARCHIVOS MODIFICADOS
+  app/(authenticated)/agent/page.tsx  — layout dos paneles completo
+  app/(authenticated)/settings/billing/page.tsx — siempre visible, feature list
+  components/layout/AppRail.tsx       — items bloqueados con popover
+  components/ThemeProvider.tsx        — classList.toggle('dark', ...)
+  tailwind.config.js                  — darkMode: 'class'
+  lib/stripe.ts                       — business_plus maxUsers=25
+  lib/plan-details.ts                 — "Hasta 25 usuarios" en Business+
+
+
+────────────────────────────────────────────────────────────────
+SESIÓN 14 — 27/05/2026
+Título: Fix 402 falso en agente + soporte Excel (.xlsx / .xlsm)
+────────────────────────────────────────────────────────────────
+
+OBJETIVO
+Corregir el error 402 que impedía crear tareas del agente aunque la
+organización tuviera créditos suficientes. Añadir soporte de archivos
+Excel a la ingesta de documentos.
+
+CAMBIOS IMPLEMENTADOS
+
+1. FIX: 402 FALSO EN /api/agent/run
+
+   Causa raíz
+   - app/api/agent/run/route.ts tenía un pre-check que leía credits y
+     credits_extra de la tabla organizations antes de llamar a la RPC
+   - La query ignoraba el error de Supabase (solo desestructuraba {data})
+   - Cuando la query fallaba silenciosamente, orgData era null,
+     available quedaba en 0 y 0 < estimated(15) → 402 antes de la RPC
+   - Otros endpoints no tienen este problema porque usan consumeCredits()
+     de lib/credits.ts, que va directo a la RPC sin pre-check
+
+   Solución
+   - Eliminado el pre-check redundante
+   - El endpoint ahora va directo a la RPC consume_credits (que ya es
+     la verificación autoritativa, igual que /api/ask y /api/analyze-v2)
+   - Si la RPC falla por error de sistema, se loguea y se permite (no 402)
+   - Solo se devuelve 402 cuando la RPC responde explícitamente {success:false}
+
+2. SOPORTE DE ARCHIVOS EXCEL (.xlsx, .xlsm)
+
+   lib/chunking.ts
+   - Nueva función extractTextFromExcel(buffer: Buffer): string
+   - Usa SheetJS (xlsx@0.18.5) para parsear el workbook
+   - Recorre todas las hojas (workbook.SheetNames)
+   - Convierte cada hoja a CSV con tabulaciones (sheet_to_csv, FS: '\t')
+   - Separa hojas con encabezado "--- Hoja: NombreDeLaHoja ---"
+   - Hojas vacías se descartan
+   - El código VBA de .xlsm se ignora (SheetJS solo lee celdas)
+   - Nuevos casos en el switch de extractText: 'xlsx' y 'xlsm'
+
+   app/api/ingest/route.ts
+   - allowedExtensions: añadidos 'xlsx', 'xlsm'
+
+   components/DocumentsSidebar.tsx
+   - accept del input de archivo: añadidos .xlsx, .xlsm y sus MIME types
+     (application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,
+      application/vnd.ms-excel.sheet.macroEnabled.12)
+
+   app/api/extract-text/route.ts
+   - Sin cambios: delega en extractText() que ya maneja xlsx/xlsm
+
+ARCHIVOS MODIFICADOS
+  app/api/agent/run/route.ts    — eliminado pre-check, solo RPC autoritativa
+  lib/chunking.ts               — extractTextFromExcel + casos xlsx/xlsm
+  app/api/ingest/route.ts       — allowedExtensions incluye xlsx, xlsm
+  components/DocumentsSidebar.tsx — accept con xlsx, xlsm y MIME types
+  package.json / package-lock.json — xlsx@0.18.5 instalado

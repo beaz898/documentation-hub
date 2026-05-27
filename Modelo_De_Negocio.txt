@@ -1,6 +1,6 @@
 MODELO DE NEGOCIO — Doclity
 ======================================
-Última actualización: 19/05/2026
+Última actualización: 27/05/2026
 
 
 ────────────────────────────────────────────────────────────────
@@ -26,14 +26,14 @@ ESTRUCTURA DE PLANES
 
 Planes gestionados vía Stripe. Price IDs definidos en lib/stripe.ts.
 
-  Plan           Precio    Créditos/mes   Usuarios   Drive   Analytics
-  ──────────────────────────────────────────────────────────────────────
-  Gratis (free)  —              50            1        No        No
-  Starter        TBD           400            3        No        No
-  Pro            TBD          1500            5        Sí        No
-  Business       TBD          4000           15        Sí        Sí
-  Business+      TBD         10000      ilimitados     Sí        Sí
-  Enterprise     Custom      10000      ilimitados     Sí        Sí
+  Plan           Precio    Créditos/mes   Usuarios   Drive   Analytics   Agente
+  ─────────────────────────────────────────────────────────────────────────────
+  Gratis (free)  —              50            1        No        No         No
+  Starter        TBD           400            3        No        No         No
+  Pro            TBD          1500            5        Sí        No         No
+  Business       TBD          4000           15        Sí        Sí         Sí
+  Business+      TBD         10000           25        Sí        Sí         Sí
+  Enterprise     Custom      10000      ilimitados     Sí        Sí         Sí
 
   Notas:
   - Drive (Google Drive, OneDrive) disponible desde plan Pro
@@ -57,6 +57,14 @@ Costes por operación (CREDIT_COSTS en lib/credits.ts)
   Mejora de documento (/api/improve)       : 1 crédito
   Subida de documento (indexación)         : GRATIS
   Resolución de duplicidades               : GRATIS (propuesta local en frontend)
+
+  Agente IA (/api/agent/run)               : 15–50 créditos (estimación al crear)
+    - Base: 15 créditos
+    - Objetivo >300 chars: +5 créditos
+    - Modo step_by_step: +5 créditos adicionales
+    - Máximo: 50 créditos
+    - Al completar/cancelar: reconciliación con adjustCredits()
+      (devuelve diferencia entre estimado y real basado en tokens)
 
 Nota: el crédito se descuenta ANTES de ejecutar la operación para evitar
 sobrepasar el límite con solicitudes paralelas (RPC atómica en Supabase).
@@ -141,9 +149,12 @@ La función getOrgFeatures(supabase, orgId) devuelve:
     hasDrive: boolean           — Drive disponible en el plan
     hasAnalyticsPanel: boolean  — Panel /settings/usage disponible
     hasVariablePricing: boolean — Reembolso parcial en exhaustivo
-    maxUsers: number | null     — Límite de miembros (null = ilimitado)
+    hasAgent: boolean           — Agente IA disponible (business, business+, enterprise)
+    maxUsers: number | null     — Límite de miembros (null = ilimitado; enterprise)
     plan: string                — Nombre del plan actual
   }
+
+  Nota: business_plus tiene maxUsers=25 (no ilimitado). Solo enterprise es null.
 
 Uso: consultada antes de mostrar Drive, panel de analytics,
 o calcular reembolsos. Si el plan no existe en PLAN_FEATURES, aplica
@@ -209,3 +220,5 @@ PENDIENTE
 [ ] Descuentos por volumen / contrato anual
 [ ] Periodo de prueba gratuito con créditos iniciales predefinidos
 [ ] Gestión de impago: bloqueo automático al fallar pago de renovación
+[ ] Activar OneDrive en UI (implementado, pendiente de activar)
+[ ] Definir coste final exacto del agente (actualmente estimación + reconciliación)
