@@ -103,9 +103,28 @@ export function chunkText(
   return chunks;
 }
 
+function extractTextFromExcel(buffer: Buffer): string {
+  // Dynamic import avoided here — xlsx is a sync library, require works fine.
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const xlsx = require('xlsx') as typeof import('xlsx');
+  const workbook = xlsx.read(buffer, { type: 'buffer' });
+  if (!workbook.SheetNames.length) return '';
+
+  return workbook.SheetNames
+    .map((name: string) => {
+      const sheet = workbook.Sheets[name];
+      const csv = xlsx.utils.sheet_to_csv(sheet, { FS: '\t' });
+      // Drop sheets that are entirely empty after trimming
+      if (!csv.trim()) return '';
+      return `--- Hoja: ${name} ---\n\n${csv}`;
+    })
+    .filter(Boolean)
+    .join('\n\n');
+}
+
 /**
  * Extrae texto de diferentes formatos de archivo.
- * Soporta: .txt, .md, .pdf, .docx
+ * Soporta: .txt, .md, .pdf, .docx, .xlsx, .xlsm
  */
 export async function extractText(
   buffer: Buffer,
@@ -132,6 +151,10 @@ export async function extractText(
       const result = await mammoth.extractRawText({ buffer });
       return result.value;
     }
+
+    case 'xlsx':
+    case 'xlsm':
+      return extractTextFromExcel(buffer);
 
     default:
       // Intentar como texto plano
