@@ -75,8 +75,8 @@ export const PLAN_FEATURES: Record<string, {
   free:          { hasDrive: false, hasAnalyticsPanel: false, hasVariablePricing: false, hasAgent: false, maxUsers: 1 },
   starter:       { hasDrive: false, hasAnalyticsPanel: false, hasVariablePricing: false, hasAgent: false, maxUsers: 3 },
   pro:           { hasDrive: true,  hasAnalyticsPanel: false, hasVariablePricing: false, hasAgent: false, maxUsers: 5 },
-  business:      { hasDrive: true,  hasAnalyticsPanel: true,  hasVariablePricing: true,  hasAgent: true,  maxUsers: 15 },
-  business_plus: { hasDrive: true,  hasAnalyticsPanel: true,  hasVariablePricing: true,  hasAgent: true,  maxUsers: 25   },
+  business:      { hasDrive: true,  hasAnalyticsPanel: true,  hasVariablePricing: true,  hasAgent: false, maxUsers: 15 },
+  business_plus: { hasDrive: true,  hasAnalyticsPanel: true,  hasVariablePricing: true,  hasAgent: true,  maxUsers: 25 },
   enterprise:    { hasDrive: true,  hasAnalyticsPanel: true,  hasVariablePricing: true,  hasAgent: true,  maxUsers: null },
 };
 

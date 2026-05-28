@@ -41,7 +41,7 @@ export const PLAN_DETAILS: readonly PlanDetail[] = [
     base: 'Todo lo de Pro, más:',
     features: [
       '4.000 créditos/mes', 'Hasta 15 usuarios',
-      'Panel de analítica', 'Precio variable en análisis exhaustivo', 'Agente IA autónomo',
+      'Panel de analítica', 'Precio variable en análisis exhaustivo',
     ],
   },
   {
@@ -49,6 +49,6 @@ export const PLAN_DETAILS: readonly PlanDetail[] = [
     name: 'Business+',
     price: 599.99,
     base: 'Todo lo de Business, más:',
-    features: ['10.000 créditos/mes', 'Hasta 25 usuarios', 'Soporte prioritario'],
+    features: ['10.000 créditos/mes', 'Hasta 25 usuarios', 'Agente IA autónomo', 'Soporte prioritario'],
   },
 ];
