@@ -58,10 +58,18 @@ export function useChat(session: SessionInfo | null, onCreditsChange: () => void
     setMessages([]);
   }
 
+  function appendToInput(text: string) {
+    setInput(prev => prev + (prev && !prev.endsWith(' ') ? ' ' : '') + text);
+    setTimeout(() => {
+      const t = inputRef.current;
+      if (t) { t.style.height = 'auto'; t.style.height = Math.min(t.scrollHeight, 140) + 'px'; }
+    }, 0);
+  }
+
   return {
     messages, setMessages, input, sending,
     messagesEndRef, inputRef,
     handleSend, handleKeyDown, handleInputChange,
-    addMessage, clearMessages,
+    appendToInput, addMessage, clearMessages,
   };
 }

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef, useMemo } from 'react';
+import VoiceInput from '@/components/VoiceInput';
 import ReanalyzeButtons from './ReanalyzeButtons';
 import FilterMenu from './FilterMenu';
 import type { ProblemType, Problem } from './problems';
@@ -562,6 +563,7 @@ export default function ChatPanel({
               lineHeight: 1.5, maxHeight: 80, minHeight: 18,
             }}
           />
+          <VoiceInput onTranscript={text => setChatInput(chatInput + (chatInput && !chatInput.endsWith(' ') ? ' ' : '') + text)} disabled={sending} />
           <button
             onClick={handleSend}
             disabled={sending || !chatInput.trim()}

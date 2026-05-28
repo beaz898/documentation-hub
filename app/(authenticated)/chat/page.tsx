@@ -33,7 +33,7 @@ export default function ChatPage() {
     messages, setMessages, input, sending,
     messagesEndRef, inputRef,
     handleSend, handleKeyDown, handleInputChange,
-    addMessage, clearMessages,
+    appendToInput, addMessage, clearMessages,
   } = useChat(session, loadCredits);
 
   const {
@@ -255,6 +255,7 @@ export default function ChatPage() {
           inputRef={inputRef}
           onInputChange={handleInputChange}
           onKeyDown={handleKeyDown}
+          onAppendText={appendToInput}
           onSend={() => {
             if (documents.length === 0) {
               addMessage({ id: crypto.randomUUID(), role: 'error', content: 'Sube o sincroniza documentos primero.' });

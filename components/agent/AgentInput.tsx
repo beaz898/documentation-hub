@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef } from 'react';
+import VoiceInput from '@/components/VoiceInput';
 import type { ConfirmationMode, PendingRequest } from '@/lib/agent/types';
 
 interface AgentInputProps {
@@ -87,6 +88,7 @@ export default function AgentInput({
               color: 'var(--text-primary)', fontSize: 13, fontFamily: 'var(--font-sans)',
             }}
           />
+          <VoiceInput onTranscript={text => setUserInput(prev => prev + (prev && !prev.endsWith(' ') ? ' ' : '') + text)} disabled={submitting} />
           <button
             onClick={() => handleConfirm('user_input', { userInput })}
             disabled={submitting || !userInput.trim()}
@@ -256,22 +258,37 @@ export default function AgentInput({
             ))}
           </div>
           {/* Send button */}
-          <button
-            onClick={handleCreateTask}
-            disabled={creating || !goal.trim()}
-            aria-label="Crear tarea"
-            style={{
-              width: 34, height: 34, borderRadius: 8, border: 'none', flexShrink: 0,
-              background: goal.trim() && !creating ? 'var(--brand)' : 'var(--bg-tertiary)',
-              color: goal.trim() && !creating ? '#fff' : 'var(--text-muted)',
-              cursor: goal.trim() && !creating ? 'pointer' : 'not-allowed',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-            }}>
-            {creating
-              ? <div className="animate-spin" style={{ width: 14, height: 14, border: '2px solid currentColor', borderTopColor: 'transparent', borderRadius: '50%' }} />
-              : <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="22" y1="2" x2="11" y2="13" /><polygon points="22 2 15 22 11 13 2 9 22 2" /></svg>
-            }
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+            <VoiceInput
+              onTranscript={text => {
+                setGoal(prev => {
+                  const next = prev + (prev && !prev.endsWith(' ') ? ' ' : '') + text;
+                  setTimeout(() => {
+                    const t = textareaRef.current;
+                    if (t) { t.style.height = 'auto'; t.style.height = Math.min(t.scrollHeight, 160) + 'px'; }
+                  }, 0);
+                  return next;
+                });
+              }}
+              disabled={creating}
+            />
+            <button
+              onClick={handleCreateTask}
+              disabled={creating || !goal.trim()}
+              aria-label="Crear tarea"
+              style={{
+                width: 34, height: 34, borderRadius: 8, border: 'none', flexShrink: 0,
+                background: goal.trim() && !creating ? 'var(--brand)' : 'var(--bg-tertiary)',
+                color: goal.trim() && !creating ? '#fff' : 'var(--text-muted)',
+                cursor: goal.trim() && !creating ? 'pointer' : 'not-allowed',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>
+              {creating
+                ? <div className="animate-spin" style={{ width: 14, height: 14, border: '2px solid currentColor', borderTopColor: 'transparent', borderRadius: '50%' }} />
+                : <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="22" y1="2" x2="11" y2="13" /><polygon points="22 2 15 22 11 13 2 9 22 2" /></svg>
+              }
+            </button>
+          </div>
         </div>
       </div>
       <p style={{ fontSize: 10, textAlign: 'center', color: 'var(--text-muted)' }}>
