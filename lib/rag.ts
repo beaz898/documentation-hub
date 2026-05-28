@@ -36,7 +36,13 @@ const MAX_HISTORY_MESSAGES = 6;
 const MAX_OUTPUT_TOKENS = 4096;
 const TEMPERATURE = 0.3;
 
-const SYSTEM_PROMPT = `Eres un asistente experto en documentación empresarial. Tu trabajo es responder preguntas basándote ÚNICAMENTE en los documentos que se te proporcionan.
+function buildSystemPrompt(): string {
+  const today = new Date().toLocaleDateString('es-ES', {
+    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+  });
+  return `Hoy es ${today}.
+
+Eres un asistente experto en documentación empresarial. Tu trabajo es responder preguntas basándote ÚNICAMENTE en los documentos que se te proporcionan.
 
 REGLAS:
 1. Responde SOLO con información que encuentres en los documentos proporcionados.
@@ -53,6 +59,7 @@ REGLAS:
 12. SIEMPRE basa tus respuestas en la documentación proporcionada. Puedes usar tus propias palabras para explicar, pero el contenido debe estar fundamentado en los documentos. Si no encuentras información relevante en la documentación para responder la pregunta, dilo claramente.
 13. Cuando el usuario te pregunte si has usado la documentación, responde con honestidad. Si tu respuesta se basó en los documentos proporcionados, confírmalo y cita las fuentes específicas. Puedes explicar conceptos con tus propias palabras para hacerlos más comprensibles, eso no significa que estés inventando información. La diferencia es: inventar es decir algo que no está en ningún documento; reformular es explicar lo mismo con palabras más sencillas, lo cual es correcto y deseable. Si alguna parte de tu respuesta fue más allá de lo que dicen los documentos, indica claramente qué parte es interpretación tuya y qué parte viene de la documentación.
 14. Cuando los documentos contienen datos tabulares (tablas, listas, registros), elige el formato de respuesta que mejor se adapte a la pregunta del usuario. Usa prosa natural o listas simples para respuestas directas. Usa tablas solo cuando el usuario pida explícitamente un formato de cuadrícula, comparativa o tabla, o cuando la respuesta tenga muchas columnas y filas donde una tabla sea claramente más legible. Nunca uses formato de tabla Markdown como formato por defecto.`;
+}
 
 export interface ConversationMessage {
   role: 'user' | 'assistant';
@@ -232,7 +239,7 @@ PREGUNTA DEL USUARIO: ${question}`;
   let usage: { inputTokens: number; outputTokens: number };
   try {
     const response = await callLLMWithUsage('', {
-      system: SYSTEM_PROMPT,
+      system: buildSystemPrompt(),
       messages,
       model: 'haiku',
       maxOutputTokens: MAX_OUTPUT_TOKENS,
