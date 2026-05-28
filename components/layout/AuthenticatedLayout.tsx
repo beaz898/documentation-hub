@@ -6,7 +6,7 @@ export default function AuthenticatedLayout({ children }: { children: React.Reac
   return (
     <div className="flex h-screen">
       <AppRail />
-      <main className="flex-1 overflow-hidden">{children}</main>
+      <main className="flex-1 overflow-y-auto md:overflow-hidden">{children}</main>
     </div>
   );
 }
