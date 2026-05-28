@@ -357,20 +357,18 @@ export default function ImprovementModal({
 
   return (
     <div
+      className="p-0 md:p-5"
       style={{
         position: 'fixed', inset: 0, zIndex: 100,
         background: 'rgba(0,0,0,0.55)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        padding: 20,
       }}
     >
       <div
         onClick={e => e.stopPropagation()}
+        className="w-full h-full rounded-none md:max-w-[1200px] md:h-[90vh] md:max-h-[900px] md:rounded-[14px]"
         style={{
-          width: '100%', maxWidth: 1200,
-          height: '90vh',
-          maxHeight: 900,
-          background: 'var(--bg)', borderRadius: 14,
+          background: 'var(--bg)',
           border: '1px solid var(--border)',
           display: 'flex', flexDirection: 'column',
           overflow: 'hidden',
@@ -430,29 +428,25 @@ export default function ImprovementModal({
         </div>
 
         {/* GRID PRINCIPAL */}
-        <div style={{
-          flex: '1 1 auto',
-          display: 'grid',
-          gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)',
-          minHeight: 0,
-          overflow: 'hidden',
-          background: 'var(--bg)',
-        }}>
-          {/* PANEL IZQUIERDO (editor) */}
+        <div
+          className="flex-1 flex flex-col md:grid md:grid-cols-2 min-h-0 overflow-hidden"
+          style={{ background: 'var(--bg)' }}
+        >
+          {/* PANEL EDITOR — móvil: order-2 (debajo del chat) */}
           <div
             ref={editorRef}
+            className="order-2 md:order-1 flex flex-col flex-1 min-w-0 min-h-0 overflow-hidden"
             style={{
-              display: 'flex', flexDirection: 'column',
               borderRight: '0.5px solid var(--border)',
-              minWidth: 0, minHeight: 0,
               padding: '10px 16px',
-              overflow: 'hidden',
               background: 'var(--bg)',
             }}
           >
             <EditorPanel value={text} onChange={setText} fileName={fileName} />
           </div>
 
+          {/* PANEL CHAT — móvil: order-1 (encima del editor) */}
+          <div className="order-1 md:order-2 flex flex-col flex-1 min-h-0 overflow-hidden">
           <ChatPanel
             messages={chatMessages}
             sending={chatSending}
@@ -480,6 +474,7 @@ export default function ImprovementModal({
             onSolveGroup={handleSolveGroup}
             onDismissProblem={handleDismissProblem}
           />
+          </div>
         </div>
 
         <div style={{

@@ -143,7 +143,7 @@ export default function ChatPanel({
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', background: 'var(--bg-secondary)', minWidth: 0, minHeight: 0, overflow: 'hidden' }}>
+    <div className="flex-1 min-h-0" style={{ display: 'flex', flexDirection: 'column', background: 'var(--bg-secondary)', minWidth: 0, overflow: 'hidden' }}>
       <div style={{
         padding: '10px 16px', borderBottom: '0.5px solid var(--border)',
         display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0, flexWrap: 'wrap',
