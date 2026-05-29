@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 
 interface EditorPanelProps {
   value: string;
@@ -8,11 +9,6 @@ interface EditorPanelProps {
   fileName: string;
 }
 
-/**
- * Estilo unificado para los botones secundarios del editor (Copiar, Descargar).
- * Usamos --bg-tertiary para diferenciarse claramente del fondo opaco del modal
- * (--bg-primary). El estilo coincide con el botón Cerrar (X) de la cabecera.
- */
 const SECONDARY_BUTTON_STYLE: React.CSSProperties = {
   display: 'flex', alignItems: 'center', gap: 6,
   fontSize: 12, padding: '7px 12px', borderRadius: 8,
@@ -24,6 +20,7 @@ const SECONDARY_BUTTON_STYLE: React.CSSProperties = {
 };
 
 export default function EditorPanel({ value, onChange, fileName }: EditorPanelProps) {
+  const t = useTranslations('improvement');
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
@@ -73,7 +70,7 @@ export default function EditorPanel({ value, onChange, fileName }: EditorPanelPr
         display: 'flex', alignItems: 'center', gap: 8,
         padding: '8px 2px 0', fontSize: 11, color: 'var(--text-muted)',
       }}>
-        <span>{value.length.toLocaleString()} caracteres</span>
+        <span>{t('characters', { count: value.length })}</span>
         <div style={{ flex: 1 }} />
         <button
           onClick={handleCopy}
@@ -81,7 +78,7 @@ export default function EditorPanel({ value, onChange, fileName }: EditorPanelPr
           onMouseEnter={onHoverEnter}
           onMouseLeave={onHoverLeave}
         >
-          {copied ? '✓ Copiado' : 'Copiar'}
+          {copied ? t('copiedButton') : t('copyButton')}
         </button>
         <button
           onClick={handleDownload}
@@ -89,7 +86,7 @@ export default function EditorPanel({ value, onChange, fileName }: EditorPanelPr
           onMouseEnter={onHoverEnter}
           onMouseLeave={onHoverLeave}
         >
-          Descargar .txt
+          {t('downloadTxt')}
         </button>
       </div>
     </div>

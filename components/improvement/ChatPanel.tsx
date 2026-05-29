@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { useTranslations } from 'next-intl';
 import VoiceInput from '@/components/VoiceInput';
 import ReanalyzeButtons from './ReanalyzeButtons';
 import FilterMenu from './FilterMenu';
@@ -41,15 +42,6 @@ interface ChatPanelProps {
   onDismissProblem: (p: Problem) => void;
 }
 
-const GROUP_LABELS: Record<ProblemType, string> = {
-  contradiccion: 'Contradicciones',
-  inconsistencia_menor: 'Inconsistencias menores',
-  duplicidad: 'Duplicidades',
-  ortografia: 'Ortografía',
-  ambiguedad: 'Ambigüedades',
-  sugerencia: 'Sugerencias',
-};
-
 export default function ChatPanel({
   messages, sending, sendMessage, setMessages,
   currentText, onApplyText, chatInput, setChatInput,
@@ -58,10 +50,30 @@ export default function ChatPanel({
   onToggleType, onSelectAllTypes, onClearTypes,
   getDocSourceBadge, onGoToProblem, onSolveOne, onSolveGroup, onDismissProblem,
 }: ChatPanelProps) {
+  const t = useTranslations('analysis');
+
+  // Translated labels for group headers (plural) and type badges
+  const groupLabels: Record<ProblemType, string> = {
+    contradiccion: t('contradictions'),
+    inconsistencia_menor: t('inconsistencies'),
+    duplicidad: t('duplicates'),
+    ortografia: t('spelling'),
+    ambiguedad: t('ambiguities'),
+    sugerencia: t('suggestions'),
+  };
+
+  const typeLabels: Record<ProblemType, string> = {
+    contradiccion: t('contradictionLabel'),
+    inconsistencia_menor: t('inconsistenciaLabel'),
+    duplicidad: t('duplicidadLabel'),
+    ortografia: t('spelling'),
+    ambiguedad: t('ambiguities'),
+    sugerencia: t('suggestions'),
+  };
+
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const endRef = useRef<HTMLDivElement>(null);
 
-  // Estado de grupos colapsados: por defecto todos expandidos
   const [collapsedGroups, setCollapsedGroups] = useState<Set<ProblemType>>(new Set());
   const [collapsedSubGroups, setCollapsedSubGroups] = useState<Set<string>>(new Set());
 
@@ -76,11 +88,7 @@ export default function ChatPanel({
   const toggleGroupCollapse = (type: ProblemType) => {
     setCollapsedGroups(prev => {
       const next = new Set(prev);
-      if (next.has(type)) {
-        next.delete(type);
-      } else {
-        next.add(type);
-      }
+      if (next.has(type)) next.delete(type); else next.add(type);
       return next;
     });
   };
@@ -89,25 +97,23 @@ export default function ChatPanel({
   useEffect(() => {
     const prev = prevMsgCountRef.current;
     const curr = messages.length;
-    if (curr > prev) {
-      endRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }
+    if (curr > prev) endRef.current?.scrollIntoView({ behavior: 'smooth' });
     prevMsgCountRef.current = curr;
   }, [messages]);
 
   useEffect(() => {
-    if (sending) {
-      endRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }
+    if (sending) endRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [sending]);
 
   useEffect(() => {
-    if (!sending) {
-      setTimeout(() => inputRef.current?.focus(), 50);
-    }
+    if (!sending) setTimeout(() => inputRef.current?.focus(), 50);
   }, [sending]);
 
-  const labels = allTypes.reduce((acc, t) => { acc[t] = typeMeta[t].label; return acc; }, {} as Record<ProblemType, string>);
+  // Labels for FilterMenu checkboxes (use group/plural labels)
+  const filterLabels = allTypes.reduce((acc, type) => {
+    acc[type] = groupLabels[type];
+    return acc;
+  }, {} as Record<ProblemType, string>);
 
   const groupedProblems = useMemo(() => {
     const indexed = visibleProblems.map((p, globalIndex) => ({ p, globalIndex }));
@@ -133,7 +139,7 @@ export default function ChatPanel({
         if (m.id !== msgId || !m.replacements) return m;
         return { ...m, replacements: m.replacements.map((r, i) => i === idx ? { ...r, failed: true } : r) };
       }));
-      alert('No se pudo localizar el fragmento exacto en el texto.');
+      alert(t('cannotLocate'));
       return;
     }
     onApplyText(next);
@@ -150,7 +156,7 @@ export default function ChatPanel({
         display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0, flexWrap: 'wrap',
       }}>
         <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', flex: 1, minWidth: 120 }}>
-          Asistente de mejora
+          {t('improvementAssistant')}
         </span>
         <ReanalyzeButtons
           onReanalyzeStyle={onReanalyzeStyle}
@@ -164,7 +170,7 @@ export default function ChatPanel({
           onToggle={onToggleType}
           onSelectAll={onSelectAllTypes}
           onClear={onClearTypes}
-          labels={labels}
+          labels={filterLabels}
           totalCount={problems.length}
         />
       </div>
@@ -180,7 +186,7 @@ export default function ChatPanel({
             const isCollapsed = collapsedGroups.has(type);
             return (
               <div key={type} style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                {/* Encabezado de grupo: plegable + botón Resolver */}
+                {/* Group header: collapsible + solve button */}
                 <div
                   onClick={() => toggleGroupCollapse(type)}
                   style={{
@@ -192,7 +198,6 @@ export default function ChatPanel({
                     userSelect: 'none',
                   }}
                 >
-                  {/* Flecha de colapsar/expandir */}
                   <svg
                     width="10" height="10" viewBox="0 0 24 24"
                     fill="none" stroke={meta.color} strokeWidth="3"
@@ -205,14 +210,10 @@ export default function ChatPanel({
                     <polyline points="6 9 12 15 18 9" />
                   </svg>
                   <span style={{
-                    fontSize: 11,
-                    fontWeight: 700,
-                    color: meta.color,
-                    textTransform: 'uppercase',
-                    letterSpacing: 0.4,
-                    flex: 1,
+                    fontSize: 11, fontWeight: 700, color: meta.color,
+                    textTransform: 'uppercase', letterSpacing: 0.4, flex: 1,
                   }}>
-                    {GROUP_LABELS[type]} ({items.filter(({ p }) => !p.dismissed).length}{items.some(({ p }) => p.dismissed) ? `/${items.length}` : ''})
+                    {groupLabels[type]} ({items.filter(({ p }) => !p.dismissed).length}{items.some(({ p }) => p.dismissed) ? `/${items.length}` : ''})
                   </span>
                   <button
                     onClick={(e) => {
@@ -221,20 +222,19 @@ export default function ChatPanel({
                       if (activeItems.length > 0) onSolveGroup(type, activeItems);
                     }}
                     disabled={sending || items.every(({ p }) => p.dismissed)}
-                    title={`Resolver todos los problemas de ${GROUP_LABELS[type].toLowerCase()}`}
+                    title={`${t('solveAll')} - ${groupLabels[type].toLowerCase()}`}
                     style={{
                       fontSize: 9, padding: '2px 8px', borderRadius: 4,
                       border: `0.5px solid ${meta.color}`,
                       background: meta.bg, color: meta.color,
                       cursor: sending ? 'not-allowed' : 'pointer',
                       fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.3,
-                      opacity: sending ? 0.5 : 1,
-                      flexShrink: 0,
+                      opacity: sending ? 0.5 : 1, flexShrink: 0,
                     }}
-                  >Resolver</button>
+                  >{t('solveAll')}</button>
                 </div>
 
-                {/* Tarjetas del grupo */}
+                {/* Group cards */}
                 {!isCollapsed && (() => {
                   const activeItems = items.filter(({ p }) => !p.dismissed);
 
@@ -263,7 +263,7 @@ export default function ChatPanel({
                               <polyline points="6 9 12 15 18 9" />
                             </svg>
                             <span style={{ fontSize: 10, fontWeight: 600, color: meta.color, flex: 1 }}>
-                              Con &ldquo;{docName}&rdquo; ({subItems.length} fragmento{subItems.length !== 1 ? 's' : ''})
+                              {t('withDocument', { doc: docName })} ({t('fragmentCount', { count: subItems.length })})
                             </span>
                             <button
                               onClick={(e) => { e.stopPropagation(); onSolveGroup(type, subItems.map(({ p }) => p)); }}
@@ -273,7 +273,7 @@ export default function ChatPanel({
                                 border: `0.5px solid ${meta.color}`, background: 'transparent', color: meta.color,
                                 cursor: sending ? 'not-allowed' : 'pointer', fontWeight: 600, flexShrink: 0, opacity: sending ? 0.5 : 1,
                               }}
-                            >Resolver</button>
+                            >{t('solveAll')}</button>
                           </div>
                           {!isSubCollapsed && subItems.map(({ p }) => {
                             const srcBadge = getDocSourceBadge(p.relatedDoc);
@@ -282,7 +282,7 @@ export default function ChatPanel({
                               <div
                                 key={p.id}
                                 onClick={isClickable ? () => onGoToProblem(p) : undefined}
-                                title={isClickable ? 'Ir al fragmento en el texto' : undefined}
+                                title={isClickable ? t('goToFragment') : undefined}
                                 style={{
                                   padding: '7px 10px', borderRadius: 7, marginBottom: 3,
                                   background: meta.bg, borderLeft: `3px solid ${meta.color}`,
@@ -303,23 +303,23 @@ export default function ChatPanel({
                                   <span style={{ fontSize: 11, fontWeight: 500, color: 'var(--text-primary)', flex: 1, minWidth: 0 }}>{p.title}</span>
                                   <button
                                     onClick={(e) => { e.stopPropagation(); onDismissProblem(p); }}
-                                    title="Marcar como no es un error"
+                                    title={t('markNotError')}
                                     style={{
                                       fontSize: 10, padding: '2px 6px', borderRadius: 4,
                                       border: '0.5px solid var(--text-muted)', background: 'transparent', color: 'var(--text-muted)',
                                       cursor: 'pointer', fontWeight: 500, flexShrink: 0,
                                     }}
-                                  >No es error</button>
+                                  >{t('dismiss')}</button>
                                   <button
                                     onClick={(e) => { e.stopPropagation(); onSolveOne(p); }}
                                     disabled={sending}
-                                    title="Proponer eliminación del fragmento"
+                                    title={t('solve')}
                                     style={{
                                       fontSize: 10, padding: '2px 6px', borderRadius: 4,
                                       border: `0.5px solid ${meta.color}`, background: 'transparent', color: meta.color,
                                       cursor: sending ? 'not-allowed' : 'pointer', fontWeight: 600, flexShrink: 0, opacity: sending ? 0.5 : 1,
                                     }}
-                                  >Solventar</button>
+                                  >{t('solve')}</button>
                                 </div>
                                 <p style={{ fontSize: 10, color: 'var(--text-secondary)', margin: 0, lineHeight: 1.4 }}>{p.description}</p>
                               </div>
@@ -337,23 +337,19 @@ export default function ChatPanel({
                       <div
                         key={p.id}
                         onClick={isClickable ? () => onGoToProblem(p) : undefined}
-                        title={isClickable ? 'Ir al fragmento en el texto' : undefined}
+                        title={isClickable ? t('goToFragment') : undefined}
                         style={{
                           padding: '8px 10px', borderRadius: 7,
                           background: meta.bg, borderLeft: `3px solid ${meta.color}`,
                           cursor: isClickable ? 'pointer' : 'default',
                           transition: 'background 0.12s',
                         }}
-                        onMouseEnter={e => {
-                          if (isClickable) e.currentTarget.style.background = meta.border;
-                        }}
-                        onMouseLeave={e => {
-                          if (isClickable) e.currentTarget.style.background = meta.bg;
-                        }}
+                        onMouseEnter={e => { if (isClickable) e.currentTarget.style.background = meta.border; }}
+                        onMouseLeave={e => { if (isClickable) e.currentTarget.style.background = meta.bg; }}
                       >
                         <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 3, flexWrap: 'wrap' }}>
                           <span style={{ fontSize: 9, fontWeight: 600, textTransform: 'uppercase', color: meta.color, letterSpacing: 0.3 }}>
-                            {meta.label}
+                            {typeLabels[type]}
                           </span>
                           {srcBadge && (
                             <span style={{
@@ -366,26 +362,24 @@ export default function ChatPanel({
                           <span style={{ fontSize: 11, fontWeight: 500, color: 'var(--text-primary)', flex: 1, minWidth: 0 }}>{p.title}</span>
                           <button
                             onClick={(e) => { e.stopPropagation(); onDismissProblem(p); }}
-                            title="Marcar como no es un error"
+                            title={t('markNotError')}
                             style={{
                               fontSize: 10, padding: '2px 6px', borderRadius: 4,
                               border: '0.5px solid var(--text-muted)', background: 'transparent', color: 'var(--text-muted)',
-                              cursor: 'pointer',
-                              fontWeight: 500, flexShrink: 0,
+                              cursor: 'pointer', fontWeight: 500, flexShrink: 0,
                             }}
-                          >No es error</button>
+                          >{t('dismiss')}</button>
                           <button
                             onClick={(e) => { e.stopPropagation(); onSolveOne(p); }}
                             disabled={sending}
-                            title="Pedir solución al asistente"
+                            title={t('solve')}
                             style={{
                               fontSize: 10, padding: '2px 6px', borderRadius: 4,
                               border: `0.5px solid ${meta.color}`, background: 'transparent', color: meta.color,
                               cursor: sending ? 'not-allowed' : 'pointer',
-                              fontWeight: 600, flexShrink: 0,
-                              opacity: sending ? 0.5 : 1,
+                              fontWeight: 600, flexShrink: 0, opacity: sending ? 0.5 : 1,
                             }}
-                          >Solventar</button>
+                          >{t('solve')}</button>
                         </div>
                         <p style={{ fontSize: 10, color: 'var(--text-secondary)', margin: 0, lineHeight: 1.4 }}>{p.description}</p>
                       </div>
@@ -393,7 +387,7 @@ export default function ChatPanel({
                   });
                 })()}
 
-                {/* Subsección de descartados */}
+                {/* Dismissed subsection */}
                 {!isCollapsed && items.some(({ p }) => p.dismissed) && (() => {
                   const dismissedItems = items.filter(({ p }) => p.dismissed);
                   const dismissedKey = `dismissed-${type}`;
@@ -412,16 +406,13 @@ export default function ChatPanel({
                           fill="none" stroke="var(--text-muted)" strokeWidth="3"
                           style={{
                             transform: isDismissedCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)',
-                            transition: 'transform 0.15s ease',
-                            flexShrink: 0,
+                            transition: 'transform 0.15s ease', flexShrink: 0,
                           }}
                         >
                           <polyline points="6 9 12 15 18 9" />
                         </svg>
-                        <span style={{
-                          fontSize: 10, color: 'var(--text-muted)', fontWeight: 500,
-                        }}>
-                          Descartados ({dismissedItems.length})
+                        <span style={{ fontSize: 10, color: 'var(--text-muted)', fontWeight: 500 }}>
+                          {t('discardedCount', { count: dismissedItems.length })}
                         </span>
                       </div>
                       {!isDismissedCollapsed && dismissedItems.map(({ p }) => (
@@ -440,15 +431,14 @@ export default function ChatPanel({
                             }}>{p.title}</span>
                             <button
                               onClick={(e) => { e.stopPropagation(); onDismissProblem(p); }}
-                              title="Restaurar como error"
+                              title={t('restoreError')}
                               style={{
                                 fontSize: 10, padding: '2px 6px', borderRadius: 4,
                                 border: '0.5px solid #059669',
                                 background: 'rgba(5,150,105,0.08)', color: '#059669',
-                                cursor: 'pointer',
-                                fontWeight: 500, flexShrink: 0,
+                                cursor: 'pointer', fontWeight: 500, flexShrink: 0,
                               }}
-                            >Es error</button>
+                            >{t('restore')}</button>
                           </div>
                         </div>
                       ))}
@@ -492,7 +482,7 @@ export default function ChatPanel({
                     return (
                       <div key={i} style={{ padding: '6px 9px', borderRadius: 7, background: stateBg, border: `0.5px solid ${stateBorder}` }}>
                         <p style={{ fontSize: 9, color: 'var(--text-muted)', margin: '0 0 3px', textTransform: 'uppercase', fontWeight: 600 }}>
-                          {r.applied ? '✓ Aplicado' : r.failed ? '✗ No se pudo aplicar' : 'Propuesta de cambio'}
+                          {r.applied ? t('applied') : r.failed ? t('failed') : t('proposedChange')}
                         </p>
                         {r.find && (
                           <p style={{ fontSize: 10, color: 'var(--text-secondary)', margin: '0 0 2px', textDecoration: 'line-through' }}>
@@ -500,7 +490,7 @@ export default function ChatPanel({
                           </p>
                         )}
                         <p style={{ fontSize: 10, color: 'var(--text-primary)', margin: 0 }}>
-                          {r.replace ? `→ ${r.replace.slice(0, 140)}${r.replace.length > 140 ? '…' : ''}` : '→ (eliminar)'}
+                          {r.replace ? `→ ${r.replace.slice(0, 140)}${r.replace.length > 140 ? '…' : ''}` : t('toDelete')}
                         </p>
                         {!r.applied && !r.failed && (
                           <div style={{ display: 'flex', gap: 5, marginTop: 6 }}>
@@ -511,7 +501,7 @@ export default function ChatPanel({
                                 border: 'none', background: '#059669', color: '#fff',
                                 cursor: 'pointer', fontWeight: 500,
                               }}
-                            >Aplicar al texto</button>
+                            >{t('applyText')}</button>
                           </div>
                         )}
                       </div>
@@ -552,7 +542,7 @@ export default function ChatPanel({
             onKeyDown={e => {
               if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); }
             }}
-            placeholder="Escribe una instrucción..."
+            placeholder={t('instructionPlaceholder')}
             rows={1}
             disabled={sending}
             autoFocus
@@ -567,7 +557,7 @@ export default function ChatPanel({
           <button
             onClick={handleSend}
             disabled={sending || !chatInput.trim()}
-            aria-label="Enviar"
+            aria-label={t('instructionPlaceholder')}
             style={{
               width: 26, height: 26, borderRadius: 6, border: 'none',
               background: sending || !chatInput.trim() ? 'var(--bg-tertiary)' : 'var(--brand)',

@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { useTranslations } from 'next-intl';
 
 interface ReplaceDialogProps {
   open: boolean;
@@ -19,6 +20,8 @@ export default function ReplaceDialog({
   onReplace,
   onCancel,
 }: ReplaceDialogProps) {
+  const t = useTranslations('improvement');
+
   if (!open) return null;
 
   return (
@@ -48,11 +51,12 @@ export default function ReplaceDialog({
         }}
       >
         <h3 style={{ margin: '0 0 12px', fontSize: 16, fontWeight: 600 }}>
-          Documento ya existente
+          {t('existingDocTitle')}
         </h3>
         <p style={{ margin: '0 0 20px', fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.5 }}>
-          El documento manual <strong style={{ color: 'var(--text-primary)' }}>{existingDocName}</strong> ya está indexado.
-          ¿Qué quieres hacer con la versión corregida?
+          {t('existingDocDescPrefix')}{' '}
+          <strong style={{ color: 'var(--text-primary)' }}>{existingDocName}</strong>{' '}
+          {t('existingDocDescSuffix')}
         </p>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           <button
@@ -68,9 +72,9 @@ export default function ReplaceDialog({
               opacity: busy ? 0.6 : 1, textAlign: 'left',
             }}
           >
-            <strong>Conservar ambos</strong>
+            <strong>{t('keepBoth')}</strong>
             <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 2 }}>
-              Se indexa como un documento nuevo con sufijo "(corregido …)".
+              {t('keepBothDesc')}
             </div>
           </button>
           <button
@@ -86,9 +90,9 @@ export default function ReplaceDialog({
               opacity: busy ? 0.6 : 1, textAlign: 'left',
             }}
           >
-            <strong>Reemplazar el original</strong>
+            <strong>{t('replaceOriginal')}</strong>
             <div style={{ fontSize: 12, opacity: 0.9, marginTop: 2 }}>
-              Sustituye el documento existente conservando el mismo nombre.
+              {t('replaceOriginalDesc')}
             </div>
           </button>
           <button
@@ -104,7 +108,7 @@ export default function ReplaceDialog({
               marginTop: 4,
             }}
           >
-            Cancelar
+            {t('cancel')}
           </button>
         </div>
       </div>

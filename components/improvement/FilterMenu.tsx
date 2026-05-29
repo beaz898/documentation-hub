@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import type { ProblemType } from './problems';
 
 interface FilterMenuProps {
@@ -22,6 +23,7 @@ export default function FilterMenu({
   labels,
   totalCount,
 }: FilterMenuProps) {
+  const t = useTranslations('improvement');
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -36,7 +38,9 @@ export default function FilterMenu({
 
   const activeCount = activeTypes.size;
   const allActive = activeCount === allTypes.length;
-  const label = allActive ? `Todos (${totalCount})` : `${activeCount} de ${allTypes.length} tipos`;
+  const label = allActive
+    ? t('filterAllCount', { count: totalCount })
+    : t('filterCountOf', { active: activeCount, total: allTypes.length });
 
   return (
     <div ref={ref} style={{ position: 'relative' }}>
@@ -57,7 +61,7 @@ export default function FilterMenu({
           gap: 6,
         }}
       >
-        <span>Filtrar: {label}</span>
+        <span>{t('filterPrefix')}: {label}</span>
         <span style={{ fontSize: 10, opacity: 0.7 }}>▾</span>
       </button>
 
@@ -86,7 +90,7 @@ export default function FilterMenu({
                 color: 'var(--text-primary)', cursor: 'pointer',
               }}
             >
-              Todos
+              {t('filterAll')}
             </button>
             <button
               type="button"
@@ -97,15 +101,15 @@ export default function FilterMenu({
                 color: 'var(--text-primary)', cursor: 'pointer',
               }}
             >
-              Ninguno
+              {t('filterClear')}
             </button>
           </div>
           <div style={{ paddingTop: 4 }}>
-            {allTypes.map(t => {
-              const active = activeTypes.has(t);
+            {allTypes.map(type => {
+              const active = activeTypes.has(type);
               return (
                 <label
-                  key={t}
+                  key={type}
                   style={{
                     display: 'flex', alignItems: 'center', gap: 8,
                     padding: '6px 8px', borderRadius: 4, cursor: 'pointer',
@@ -116,10 +120,10 @@ export default function FilterMenu({
                   <input
                     type="checkbox"
                     checked={active}
-                    onChange={() => onToggle(t)}
+                    onChange={() => onToggle(type)}
                     style={{ cursor: 'pointer' }}
                   />
-                  <span>{labels[t]}</span>
+                  <span>{labels[type]}</span>
                 </label>
               );
             })}

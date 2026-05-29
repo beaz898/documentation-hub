@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { useTranslations } from 'next-intl';
 
 interface ReanalyzeButtonsProps {
   onReanalyzeStyle: () => void;
@@ -15,6 +16,7 @@ export default function ReanalyzeButtons({
   styleLoading,
   reanalyzingAll,
 }: ReanalyzeButtonsProps) {
+  const t = useTranslations('analysis');
   const anyLoading = styleLoading || reanalyzingAll;
 
   const baseStyle: React.CSSProperties = {
@@ -37,18 +39,18 @@ export default function ReanalyzeButtons({
         onClick={onReanalyzeStyle}
         disabled={anyLoading}
         style={baseStyle}
-        title="Volver a analizar solo el estilo del texto actual"
+        title={t('reanalyzeStyleTitle')}
       >
-        {styleLoading ? 'Analizando estilo…' : 'Reanalizar estilo'}
+        {styleLoading ? t('reanalyzingStyle') : t('reanalyzeStyle')}
       </button>
       <button
         type="button"
         onClick={onReanalyzeAll}
         disabled={anyLoading}
         style={baseStyle}
-        title="Volver a analizar contradicciones y duplicados contra el corpus"
+        title={t('reanalyzeAllTitle')}
       >
-        {reanalyzingAll ? 'Reanalizando…' : 'Reanalizar corpus'}
+        {reanalyzingAll ? t('reanalyzingAll') : t('reanalyzeCorpus')}
       </button>
     </div>
   );

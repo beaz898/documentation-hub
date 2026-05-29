@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useMemo, useEffect, useCallback } from 'react';
+import { useTranslations } from 'next-intl';
 import EditorPanel from './improvement/EditorPanel';
 import ChatPanel from './improvement/ChatPanel';
 import ReplaceDialog from './improvement/ReplaceDialog';
@@ -47,6 +48,7 @@ interface ImprovementModalProps {
   onReanalysisChange?: (running: boolean, phase: string) => void;
 }
 
+// TYPE_META labels kept in Spanish — used in buildProblemsSummary which is passed to the LLM
 const TYPE_META: Record<ProblemType, { label: string; color: string; bg: string; border: string }> = {
   contradiccion:        { label: 'Contradicción',        color: '#dc2626', bg: 'rgba(220,38,38,0.08)',  border: 'rgba(220,38,38,0.35)' },
   inconsistencia_menor: { label: 'Inconsistencia menor', color: '#d97706', bg: 'rgba(217,119,6,0.08)',  border: 'rgba(217,119,6,0.35)' },
@@ -78,10 +80,12 @@ export default function ImprovementModal({
   onMinimize,
   onReanalysisChange,
 }: ImprovementModalProps) {
+  const t = useTranslations('improvement');
+  const ta = useTranslations('analysis');
+
   const [text, setText] = useState(initialText);
   const editorRef = useRef<HTMLDivElement>(null);
 
-  // Ref que siempre apunta al texto actual del editor.
   const textRef = useRef(text);
   textRef.current = text;
 
@@ -115,7 +119,6 @@ export default function ImprovementModal({
     initialStyleProblems: analysis.styleProblems,
   });
 
-  // Propagar estado de reanálisis al padre para el indicador del sidebar
   useEffect(() => {
     const running = reanalyzingAll || styleLoading;
     const phase = reanalyzingAll
@@ -145,11 +148,11 @@ export default function ImprovementModal({
     [problems, activeTypes]
   );
 
-  const toggleType = useCallback((t: ProblemType) => {
+  const toggleType = useCallback((type: ProblemType) => {
     setActiveTypes(prev => {
       const next = new Set(prev);
-      if (next.has(t)) next.delete(t);
-      else next.add(t);
+      if (next.has(type)) next.delete(type);
+      else next.add(type);
       return next;
     });
   }, []);
@@ -193,31 +196,31 @@ export default function ImprovementModal({
     const currentText = textRef.current;
     const range = findTolerant(currentText, p.textRef);
     if (!range) {
-      alert('Ese fragmento ya no se encuentra en el texto (quizá lo editaste).');
+      alert(ta('fragmentNotFound'));
       return;
     }
-    const ta = editorRef.current?.querySelector('textarea') as HTMLTextAreaElement | null;
-    if (!ta) return;
-    ta.focus();
-    ta.setSelectionRange(range.start, range.end);
+    const ta2 = editorRef.current?.querySelector('textarea') as HTMLTextAreaElement | null;
+    if (!ta2) return;
+    ta2.focus();
+    ta2.setSelectionRange(range.start, range.end);
 
-    // Scroll proporcional
     const ratio = range.start / Math.max(1, currentText.length);
-    const maxScroll = ta.scrollHeight - ta.clientHeight;
-    const targetScroll = ratio * ta.scrollHeight - ta.clientHeight / 3;
-    ta.scrollTop = Math.max(0, Math.min(maxScroll, targetScroll));
+    const maxScroll = ta2.scrollHeight - ta2.clientHeight;
+    const targetScroll = ratio * ta2.scrollHeight - ta2.clientHeight / 3;
+    ta2.scrollTop = Math.max(0, Math.min(maxScroll, targetScroll));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleSolveOne = useCallback((p: Problem) => {
     if (p.type === 'duplicidad') {
       const fragment = p.textRef;
       if (!fragment) {
-        addAssistantMessage('Esta duplicidad no tiene fragmento de referencia. Revísala manualmente.');
+        addAssistantMessage(t('duplicateMissingRef'));
         return;
       }
       const paragraph = findParagraphContaining(textRef.current, fragment);
       if (!paragraph) {
-        addAssistantMessage('No se encontró el fragmento duplicado en el texto. Es posible que ya haya sido eliminado.');
+        addAssistantMessage(t('duplicateNotFound'));
         return;
       }
       setChatMessages(prev => [...prev,
@@ -233,7 +236,7 @@ export default function ImprovementModal({
     const typeLabel = TYPE_META[p.type].label.toLowerCase();
     const message = `Resuelve el siguiente problema de tipo ${typeLabel} en el TEXTO_ACTUAL. Propón los cambios necesarios con bloques REPLACEMENT:\n\nTítulo: ${p.title}\nDescripción: ${p.description}${p.relatedDoc ? `\nDocumento relacionado: ${p.relatedDoc}` : ''}`;
     sendMessage(message, textRef.current, fileName, problemsSummary);
-  }, [sendMessage, fileName, problemsSummary, addAssistantMessage, setChatMessages]);
+  }, [sendMessage, fileName, problemsSummary, addAssistantMessage, setChatMessages, t]);
 
   const handleSolveGroup = useCallback((type: ProblemType, groupProblems: Problem[]) => {
     if (type === 'duplicidad') {
@@ -268,7 +271,6 @@ export default function ImprovementModal({
     sendMessage(message, textRef.current, fileName, problemsSummary);
   }, [sendMessage, fileName, problemsSummary, addAssistantMessage, setChatMessages]);
 
-  /** Toggle de "no es un error" en un problema. */
   const handleDismissProblem = useCallback((p: Problem) => {
     if (p.type === 'ortografia' || p.type === 'ambiguedad' || p.type === 'sugerencia') {
       setStyleProblems(prev =>
@@ -276,17 +278,17 @@ export default function ImprovementModal({
       );
       const isDismissing = !p.dismissed;
       addAssistantMessage(isDismissing
-        ? `Problema descartado: "${p.title}".`
-        : `Problema restaurado: "${p.title}".`
+        ? t('problemDismissed', { title: p.title })
+        : t('problemRestored', { title: p.title })
       );
     } else {
       const isDismissing = dismissProblem(p.id, p.textRef, p.relatedDoc);
       addAssistantMessage(isDismissing
-        ? `Problema descartado: "${p.title}". No volverá a aparecer en los próximos reanálisis.`
-        : `Problema restaurado: "${p.title}". Se volverá a verificar en el próximo reanálisis.`
+        ? t('problemDismissedPersist', { title: p.title })
+        : t('problemRestoredPersist', { title: p.title })
       );
     }
-  }, [dismissProblem, setStyleProblems, addAssistantMessage]);
+  }, [dismissProblem, setStyleProblems, addAssistantMessage, t]);
 
   const handleManualSend = useCallback(async (userText: string, currentEditorText: string) => {
     await sendMessage(userText, currentEditorText, fileName, problemsSummary);
@@ -313,7 +315,7 @@ export default function ImprovementModal({
   const handleReanalyzeAll = useCallback(async () => {
     const result = await reanalyzeAll(textRef.current, fileName);
     if (!result) {
-      addAssistantMessage('No se pudo reanalizar, prueba de nuevo en unos segundos.');
+      addAssistantMessage(t('reanalyzeFailed'));
       return;
     }
 
@@ -326,7 +328,7 @@ export default function ImprovementModal({
       parts.push(`\n💡 ${styleProblems.length} problema${styleProblems.length !== 1 ? 's' : ''} de estilo pendiente${styleProblems.length !== 1 ? 's' : ''}. Usa "Reanalizar estilo" para actualizarlos.`);
     }
     addAssistantMessage(parts.join('\n'));
-  }, [reanalyzeAll, fileName, styleProblems.length, addAssistantMessage]);
+  }, [reanalyzeAll, fileName, styleProblems.length, addAssistantMessage, t]);
 
   const {
     indexing,
@@ -350,10 +352,10 @@ export default function ImprovementModal({
   }, [existingDocWithSameName, setShowReplaceDialog, doIndex, text]);
 
   const handleCloseRequest = useCallback(() => {
-    if (window.confirm('¿Descartar los cambios y cerrar? El archivo original se eliminará.')) {
+    if (window.confirm(t('discardConfirm'))) {
       onClose();
     }
-  }, [onClose]);
+  }, [onClose, t]);
 
   return (
     <div
@@ -376,7 +378,7 @@ export default function ImprovementModal({
           position: 'relative',
         }}
       >
-        {/* CABECERA */}
+        {/* HEADER */}
         <div style={{
           padding: '14px 20px', borderBottom: '0.5px solid var(--border)',
           display: 'flex', alignItems: 'center', gap: 12,
@@ -394,15 +396,15 @@ export default function ImprovementModal({
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
             <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              Mejora con IA — {fileName}
+              {t('titleWithFile', { fileName })}
             </p>
             <p style={{ fontSize: 12, color: 'var(--text-secondary)', margin: '2px 0 0' }}>
-              {problems.length} problema{problems.length !== 1 ? 's' : ''} detectado{problems.length !== 1 ? 's' : ''}
+              {t('problemsDetected', { count: problems.length })}
             </p>
           </div>
           <button
             onClick={onMinimize ?? handleCloseRequest}
-            aria-label="Minimizar"
+            aria-label={t('minimize')}
             style={{
               width: 34, height: 34, borderRadius: 8,
               border: '1px solid var(--border)',
@@ -427,12 +429,12 @@ export default function ImprovementModal({
           </button>
         </div>
 
-        {/* GRID PRINCIPAL */}
+        {/* MAIN GRID */}
         <div
           className="flex-1 flex flex-col md:grid md:grid-cols-2 min-h-0 overflow-hidden"
           style={{ background: 'var(--bg)' }}
         >
-          {/* PANEL EDITOR — móvil: order-2 (debajo del chat) */}
+          {/* EDITOR PANEL */}
           <div
             ref={editorRef}
             className="order-2 md:order-1 flex flex-col flex-1 min-w-0 min-h-0 overflow-hidden"
@@ -445,7 +447,7 @@ export default function ImprovementModal({
             <EditorPanel value={text} onChange={setText} fileName={fileName} />
           </div>
 
-          {/* PANEL CHAT — móvil: order-1 (encima del editor) */}
+          {/* CHAT PANEL */}
           <div className="order-1 md:order-2 flex flex-col flex-1 min-h-0 overflow-hidden">
           <ChatPanel
             messages={chatMessages}
@@ -477,6 +479,7 @@ export default function ImprovementModal({
           </div>
         </div>
 
+        {/* FOOTER ACTIONS */}
         <div style={{
           padding: '12px 20px', borderTop: '0.5px solid var(--border)',
           display: 'flex', alignItems: 'center', gap: 10,
@@ -504,7 +507,7 @@ export default function ImprovementModal({
               <polyline points="3 6 5 6 21 6" />
               <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
             </svg>
-            Descartar y cerrar
+            {t('discardAndClose')}
           </button>
 
           <div style={{ flex: 1 }} />
@@ -532,14 +535,14 @@ export default function ImprovementModal({
                   width: 13, height: 13, border: '2px solid currentColor',
                   borderTopColor: 'transparent', borderRadius: '50%',
                 }} />
-                Indexando...
+                {t('indexing')}
               </>
             ) : (
               <>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                   <polyline points="20 6 9 17 4 12" />
                 </svg>
-                Indexar versión corregida
+                {t('indexCorrected')}
               </>
             )}
           </button>

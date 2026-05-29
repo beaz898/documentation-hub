@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, ReactNode } from 'react';
+import { useTranslations } from 'next-intl';
 
 interface AnalysisResult {
   isDuplicate?: boolean;
@@ -46,7 +47,7 @@ interface AnalysisModalProps {
 }
 
 // ============================================================
-// Componente plegable interno
+// Collapsible section
 // ============================================================
 interface CollapsibleSectionProps {
   title: string;
@@ -95,7 +96,7 @@ function CollapsibleSection({
 }
 
 // ============================================================
-// Encabezado de bloque (Problemas / Resumen)
+// Block header
 // ============================================================
 function BlockHeader({ children }: { children: ReactNode }) {
   return (
@@ -111,9 +112,10 @@ function BlockHeader({ children }: { children: ReactNode }) {
 }
 
 // ============================================================
-// Badge de modo de análisis
+// Analysis mode badge
 // ============================================================
 function AnalysisModeBadge({ mode }: { mode: 'quick' | 'exhaustive' }) {
+  const t = useTranslations('analysis');
   const isExhaustive = mode === 'exhaustive';
   return (
     <span style={{
@@ -123,15 +125,16 @@ function AnalysisModeBadge({ mode }: { mode: 'quick' | 'exhaustive' }) {
       color: isExhaustive ? 'var(--success-text)' : 'var(--info-text)',
       border: `0.5px solid ${isExhaustive ? 'rgba(16,185,129,0.3)' : 'rgba(99,102,241,0.3)'}`,
     }}>
-      {isExhaustive ? '✓ Exhaustivo' : 'Rápido'}
+      {isExhaustive ? t('exhaustiveBadge') : t('quickBadge')}
     </span>
   );
 }
 
 // ============================================================
-// Badge de confianza de contradicción
+// Confidence badge (defined but available for future use)
 // ============================================================
 function ConfidenceBadge({ confidence }: { confidence: 'alta' | 'posible' }) {
+  const t = useTranslations('analysis');
   const isHigh = confidence === 'alta';
   return (
     <span style={{
@@ -142,15 +145,20 @@ function ConfidenceBadge({ confidence }: { confidence: 'alta' | 'posible' }) {
       border: `0.5px solid ${isHigh ? 'rgba(220,38,38,0.3)' : 'rgba(245,158,11,0.3)'}`,
       flexShrink: 0,
     }}>
-      {isHigh ? 'Confirmada' : 'Posible'}
+      {isHigh ? t('confidenceHigh') : t('confidencePossible')}
     </span>
   );
 }
 
+// Suppress unused warning — ConfidenceBadge is kept for future use
+void ConfidenceBadge;
+
 // ============================================================
-// Modal principal
+// Main modal
 // ============================================================
 export default function AnalysisModal({ fileName, analysis, onConfirm, onCancel, onImprove, onExhaustive, onMinimize }: AnalysisModalProps) {
+  const t = useTranslations('analysis');
+
   const recColor = analysis.recommendation === 'NO_INDEXAR'
     ? { bg: 'var(--danger-light)', text: 'var(--danger-text)', border: 'var(--danger)' }
     : analysis.recommendation === 'REVISAR'
@@ -179,7 +187,7 @@ export default function AnalysisModal({ fileName, analysis, onConfirm, onCancel,
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
               <h2 style={{ fontSize: 16, fontWeight: 600 }}>
-                Informe de análisis
+                {t('reportTitle')}
               </h2>
               {analysis.analysisMode && (
                 <AnalysisModeBadge mode={analysis.analysisMode} />
@@ -189,7 +197,7 @@ export default function AnalysisModal({ fileName, analysis, onConfirm, onCancel,
           </div>
           <button
             onClick={onMinimize ?? onCancel}
-            aria-label="Minimizar"
+            aria-label={t('minimizeModal')}
             style={{
               width: 32, height: 32, borderRadius: 8, border: 'none',
               background: 'transparent', cursor: 'pointer', display: 'flex',
@@ -202,7 +210,7 @@ export default function AnalysisModal({ fileName, analysis, onConfirm, onCancel,
           </button>
         </div>
 
-        {/* Summary general */}
+        {/* General summary */}
         {analysis.summary && (
           <p style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: 8 }}>
             {analysis.summary}
@@ -210,15 +218,15 @@ export default function AnalysisModal({ fileName, analysis, onConfirm, onCancel,
         )}
 
         {/* ============================================================ */}
-        {/* PROBLEMAS DETECTADOS — plegados por defecto */}
+        {/* DETECTED PROBLEMS */}
         {/* ============================================================ */}
         {hasProblems && (
           <>
-            <BlockHeader>Problemas detectados</BlockHeader>
+            <BlockHeader>{t('detectedProblems')}</BlockHeader>
 
             {analysis.isDuplicate && (
               <CollapsibleSection
-                title="Posible duplicado"
+                title={t('possibleDuplicate')}
                 count={1}
                 color="var(--warning-text)"
                 defaultOpen={false}
@@ -228,7 +236,7 @@ export default function AnalysisModal({ fileName, analysis, onConfirm, onCancel,
                   background: 'var(--warning-light)', border: '0.5px solid var(--warning)',
                 }}>
                   <p style={{ fontSize: 12, color: 'var(--warning-text)' }}>
-                    Similar a &quot;{analysis.duplicateOf}&quot; ({analysis.duplicateConfidence}% confianza)
+                    {t('duplicateSimilarTo', { doc: analysis.duplicateOf ?? '', confidence: analysis.duplicateConfidence ?? 0 })}
                   </p>
                 </div>
               </CollapsibleSection>
@@ -236,25 +244,21 @@ export default function AnalysisModal({ fileName, analysis, onConfirm, onCancel,
 
             {analysis.discrepancies && analysis.discrepancies.length > 0 && (
               <CollapsibleSection
-                title="Contradicciones"
+                title={t('contradictions')}
                 count={isExhaustive ? analysis.discrepancies.filter(d => d.confidence !== 'posible').length : analysis.discrepancies.length}
                 color="var(--danger)"
                 defaultOpen={false}
               >
-                {/* En modo rápido: mensaje cualitativo sin detalle individual.
-                    En modo exhaustivo: lista detallada con badges de confianza. */}
                 {!isExhaustive ? (
                   <div style={{
                     padding: '10px 14px', borderRadius: 10,
                     background: 'var(--danger-light)', border: '0.5px solid var(--danger)',
                   }}>
                     <p style={{ fontSize: 12, color: 'var(--danger-text)', lineHeight: 1.5, margin: 0 }}>
-                      Se han detectado al menos <strong>{analysis.discrepancies.length} posibles contradicciones</strong> con
-                      otros documentos del corpus. Estas contradicciones no han sido verificadas con doble comprobación.
+                      {t('quickContradictionsDesc', { count: analysis.discrepancies.length })}
                     </p>
                     <p style={{ fontSize: 12, color: 'var(--danger-text)', lineHeight: 1.5, margin: '6px 0 0 0' }}>
-                      Ejecuta el <strong>análisis exhaustivo</strong> para verificarlas todas
-                      con doble comprobación.
+                      {t('quickExhaustivePrompt')}
                     </p>
                   </div>
                 ) : (
@@ -265,10 +269,10 @@ export default function AnalysisModal({ fileName, analysis, onConfirm, onCancel,
                     }}>
                       <p style={{ fontSize: 12, fontWeight: 500, color: 'var(--danger-text)', margin: '0 0 4px 0' }}>{d.topic}</p>
                       <p style={{ fontSize: 11, color: 'var(--danger-text)' }}>
-                        Nuevo: &quot;{d.newDocSays}&quot;
+                        {t('labelNew')}: &quot;{d.newDocSays}&quot;
                       </p>
                       <p style={{ fontSize: 11, color: 'var(--danger-text)' }}>
-                        Existente ({d.existingDocument}): &quot;{d.existingDocSays}&quot;
+                        {t('labelExisting', { doc: d.existingDocument })}: &quot;{d.existingDocSays}&quot;
                       </p>
                     </div>
                   ))
@@ -278,7 +282,7 @@ export default function AnalysisModal({ fileName, analysis, onConfirm, onCancel,
 
             {isExhaustive && analysis.minorInconsistencies && analysis.minorInconsistencies.length > 0 && (
               <CollapsibleSection
-                title="Inconsistencias menores"
+                title={t('inconsistencies')}
                 count={analysis.minorInconsistencies.length}
                 color="var(--warning-text)"
                 defaultOpen={false}
@@ -290,10 +294,10 @@ export default function AnalysisModal({ fileName, analysis, onConfirm, onCancel,
                   }}>
                     <p style={{ fontSize: 12, fontWeight: 500, color: 'var(--warning-text)', margin: '0 0 4px 0' }}>{d.topic}</p>
                     <p style={{ fontSize: 11, color: 'var(--warning-text)' }}>
-                      Nuevo: &quot;{d.newDocSays}&quot;
+                      {t('labelNew')}: &quot;{d.newDocSays}&quot;
                     </p>
                     <p style={{ fontSize: 11, color: 'var(--warning-text)' }}>
-                      Existente ({d.existingDocument}): &quot;{d.existingDocSays}&quot;
+                      {t('labelExisting', { doc: d.existingDocument })}: &quot;{d.existingDocSays}&quot;
                     </p>
                   </div>
                 ))}
@@ -309,7 +313,7 @@ export default function AnalysisModal({ fileName, analysis, onConfirm, onCancel,
               }
               return (
                 <CollapsibleSection
-                  title="Duplicidades"
+                  title={t('duplicates')}
                   count={overlaps.length}
                   color="var(--info)"
                   defaultOpen={false}
@@ -317,7 +321,7 @@ export default function AnalysisModal({ fileName, analysis, onConfirm, onCancel,
                   {[...byDoc.entries()].map(([docName, items]) => (
                     <CollapsibleSection
                       key={docName}
-                      title={`Solapamiento con "${docName}" (${items.length} fragmento${items.length !== 1 ? 's' : ''})`}
+                      title={`${t('overlapWith', { doc: docName })} (${t('fragmentCount', { count: items.length })})`}
                       color="var(--info)"
                       defaultOpen={false}
                     >
@@ -327,7 +331,7 @@ export default function AnalysisModal({ fileName, analysis, onConfirm, onCancel,
                           background: 'var(--info-light)', border: '0.5px solid var(--info)',
                         }}>
                           <p style={{ fontSize: 12, color: 'var(--info-text)' }}>{o.description}</p>
-                          <p style={{ fontSize: 11, color: 'var(--info-text)', opacity: 0.8 }}>Severidad: {o.severity}</p>
+                          <p style={{ fontSize: 11, color: 'var(--info-text)', opacity: 0.8 }}>{t('severityLabel')}: {o.severity}</p>
                         </div>
                       ))}
                     </CollapsibleSection>
@@ -348,13 +352,13 @@ export default function AnalysisModal({ fileName, analysis, onConfirm, onCancel,
               };
 
               const groups: Array<{ label: string; type: string; items: typeof ortografia }> = [];
-              if (ortografia.length > 0) groups.push({ label: 'Ortografía', type: 'ortografia', items: ortografia });
-              if (ambiguedad.length > 0) groups.push({ label: 'Ambigüedades', type: 'ambiguedad', items: ambiguedad });
-              if (sugerencia.length > 0) groups.push({ label: 'Sugerencias', type: 'sugerencia', items: sugerencia });
+              if (ortografia.length > 0) groups.push({ label: t('spelling'), type: 'ortografia', items: ortografia });
+              if (ambiguedad.length > 0) groups.push({ label: t('ambiguities'), type: 'ambiguedad', items: ambiguedad });
+              if (sugerencia.length > 0) groups.push({ label: t('suggestions'), type: 'sugerencia', items: sugerencia });
 
               return (
                 <CollapsibleSection
-                  title="Estilo"
+                  title={t('styleSectionTitle')}
                   count={analysis.styleProblems!.length}
                   color="var(--warning-text)"
                   defaultOpen={false}
@@ -391,15 +395,15 @@ export default function AnalysisModal({ fileName, analysis, onConfirm, onCancel,
         )}
 
         {/* ============================================================ */}
-        {/* RESUMEN DEL ANÁLISIS — desplegado por defecto */}
+        {/* ANALYSIS SUMMARY */}
         {/* ============================================================ */}
         {hasSummaryItems && (
           <>
-            <BlockHeader>Resumen del análisis</BlockHeader>
+            <BlockHeader>{t('analysisSummary')}</BlockHeader>
 
             {analysis.newInformation && (
               <CollapsibleSection
-                title="Información nueva"
+                title={t('newInformation')}
                 color="var(--success-text)"
                 defaultOpen={true}
               >
@@ -416,7 +420,7 @@ export default function AnalysisModal({ fileName, analysis, onConfirm, onCancel,
 
             {analysis.suggestedActions && analysis.suggestedActions.length > 0 && (
               <CollapsibleSection
-                title="Acciones recomendadas"
+                title={t('recommendedActions')}
                 count={analysis.suggestedActions.length}
                 color="var(--text-secondary)"
                 defaultOpen={true}
@@ -450,7 +454,7 @@ export default function AnalysisModal({ fileName, analysis, onConfirm, onCancel,
 
             {analysis.recommendation && (
               <CollapsibleSection
-                title="Recomendación"
+                title={t('recommendationLabel')}
                 color={recColor.text}
                 defaultOpen={true}
               >
@@ -463,10 +467,10 @@ export default function AnalysisModal({ fileName, analysis, onConfirm, onCancel,
                   </p>
                   <p style={{ fontSize: 12, color: recColor.text, marginTop: 4, lineHeight: 1.5 }}>
                     {analysis.recommendation === 'NO_INDEXAR'
-                      ? 'Este documento es prácticamente idéntico a uno existente. Añadirlo al corpus crearía duplicidad.'
+                      ? t('recommendationNoIndexar')
                       : analysis.recommendation === 'REVISAR'
-                        ? 'Se detectaron diferencias que podrían causar respuestas contradictorias. Verifica qué versión es correcta.'
-                        : 'El documento aporta valor y puede añadirse al corpus con confianza.'}
+                        ? t('recommendationRevisar')
+                        : t('recommendationIndexar')}
                   </p>
                 </div>
               </CollapsibleSection>
@@ -474,7 +478,7 @@ export default function AnalysisModal({ fileName, analysis, onConfirm, onCancel,
           </>
         )}
 
-        {/* Botón de análisis exhaustivo (solo si aún no es exhaustivo) */}
+        {/* Exhaustive analysis button */}
         {!isExhaustive && onExhaustive && (
           <button
             onClick={onExhaustive}
@@ -491,7 +495,7 @@ export default function AnalysisModal({ fileName, analysis, onConfirm, onCancel,
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
             </svg>
-            Análisis exhaustivo — verificación profunda (~1 min)
+            {t('exhaustiveButton')}
           </button>
         )}
 
@@ -506,7 +510,7 @@ export default function AnalysisModal({ fileName, analysis, onConfirm, onCancel,
               cursor: 'pointer', transition: 'background 0.15s',
             }}
           >
-            Descartar
+            {t('discard')}
           </button>
           <button
             onClick={onImprove}
@@ -521,7 +525,7 @@ export default function AnalysisModal({ fileName, analysis, onConfirm, onCancel,
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M12 2l2.4 7.4H22l-6.2 4.5L18.2 22 12 17.3 5.8 22l2.4-8.1L2 9.4h7.6L12 2z" />
             </svg>
-            Mejorar con IA
+            {t('improveWithAI')}
           </button>
           <button
             onClick={onConfirm}
@@ -532,7 +536,7 @@ export default function AnalysisModal({ fileName, analysis, onConfirm, onCancel,
               transition: 'opacity 0.15s',
             }}
           >
-            Añadir al corpus
+            {t('addToCorpus')}
           </button>
         </div>
       </div>
