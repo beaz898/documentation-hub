@@ -1,11 +1,13 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
+import { useTranslations } from 'next-intl';
 
 interface Props {
   accessToken: string | null;
 }
 
 export default function FeedbackButton({ accessToken }: Props) {
+  const t = useTranslations('feedback');
   const [open, setOpen] = useState(false);
   const [text, setText] = useState('');
   const [sending, setSending] = useState(false);
@@ -41,7 +43,7 @@ export default function FeedbackButton({ accessToken }: Props) {
       setJustSent(true);
       setTimeout(() => { setOpen(false); setJustSent(false); setText(''); }, 2000);
     } catch {
-      setError('No se pudo enviar. Inténtalo de nuevo.');
+      setError(t('error'));
     } finally {
       setSending(false);
     }
@@ -51,36 +53,36 @@ export default function FeedbackButton({ accessToken }: Props) {
     <div ref={wrapperRef} style={{ position: 'relative' }}>
       <button
         onClick={() => setOpen(v => !v)}
-        aria-label="Enviar feedback"
-        title="Enviar feedback"
+        aria-label={t('ariaLabel')}
+        title={t('ariaLabel')}
         style={{ fontSize: 12, padding: '6px 12px', borderRadius: 8, border: '0.5px solid var(--border)', background: 'transparent', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
       >
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
         </svg>
-        Feedback
+        {t('button')}
       </button>
 
       {open && (
-        <div role="dialog" aria-label="Enviar feedback"
+        <div role="dialog" aria-label={t('ariaLabel')}
           style={{ position: 'absolute', top: 'calc(100% + 8px)', right: 0, width: 340, background: 'var(--bg-secondary)', border: '0.5px solid var(--border)', borderRadius: 12, padding: 14, boxShadow: '0 8px 24px rgba(0,0,0,0.15)', zIndex: 1000 }}>
           {justSent ? (
             <div style={{ textAlign: 'center', padding: '20px 0', color: 'var(--text-primary)', fontSize: 14 }}>
-              ¡Gracias! Lo tendremos en cuenta 💚
+              {t('thanks')}
             </div>
           ) : (
             <>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
                 <div>
-                  <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>Cuéntanos qué piensas</div>
-                  <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>Tu mensaje nos ayuda a mejorar la aplicación</div>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>{t('title')}</div>
+                  <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>{t('subtitle')}</div>
                 </div>
-                <button onClick={close} aria-label="Cerrar" style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: 16, lineHeight: 1, padding: 2 }}>×</button>
+                <button onClick={close} aria-label={t('close')} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: 16, lineHeight: 1, padding: 2 }}>×</button>
               </div>
               <textarea
                 value={text}
                 onChange={e => setText(e.target.value.slice(0, 5000))}
-                placeholder="¿Qué echas en falta? ¿Qué te ha dado problemas? ¿Qué harías diferente?"
+                placeholder={t('placeholderFull')}
                 rows={5}
                 style={{ width: '100%', boxSizing: 'border-box', resize: 'vertical', fontSize: 12, padding: 8, borderRadius: 8, border: '0.5px solid var(--border)', background: 'var(--bg-primary)', color: 'var(--text-primary)', fontFamily: 'inherit', marginTop: 6 }}
               />
@@ -91,7 +93,7 @@ export default function FeedbackButton({ accessToken }: Props) {
                   disabled={!text.trim() || sending}
                   style={{ fontSize: 12, padding: '6px 14px', borderRadius: 8, border: 'none', background: !text.trim() || sending ? 'var(--border)' : 'var(--brand)', color: 'white', cursor: !text.trim() || sending ? 'not-allowed' : 'pointer', fontWeight: 500 }}
                 >
-                  {sending ? 'Enviando...' : 'Enviar'}
+                  {sending ? t('sending') : t('send')}
                 </button>
               </div>
               {error && <div style={{ fontSize: 11, color: '#dc2626', marginTop: 6 }}>{error}</div>}

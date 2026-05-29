@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { createClient } from '@/lib/supabase';
 import { PLAN_DETAILS } from '@/lib/plan-details';
 
@@ -30,6 +31,7 @@ function Check() {
 }
 
 export default function BillingPage() {
+  const t = useTranslations('billing');
   const [session, setSession] = useState<{ access_token: string } | null>(null);
   const [usage, setUsage] = useState<UsageSummary | null>(null);
   const [loading, setLoading] = useState(true);
@@ -55,23 +57,23 @@ export default function BillingPage() {
 
   useEffect(() => {
     if (searchParams.get('billing') === 'success') {
-      setMessage({ type: 'success', text: 'Plan contratado correctamente. Los créditos ya están disponibles.' });
+      setMessage({ type: 'success', text: t('successPlan') });
       window.history.replaceState({}, '', '/settings/billing');
     }
     if (searchParams.get('billing') === 'cancelled') {
-      setMessage({ type: 'error', text: 'Contratación cancelada.' });
+      setMessage({ type: 'error', text: t('canceledPaymentLocal') });
       window.history.replaceState({}, '', '/settings/billing');
     }
     if (searchParams.get('credits') === 'success') {
       const amount = searchParams.get('amount') || '';
-      setMessage({ type: 'success', text: `Recarga de ${amount} créditos completada.` });
+      setMessage({ type: 'success', text: t('successCredits', { amount }) });
       window.history.replaceState({}, '', '/settings/billing');
     }
     if (searchParams.get('credits') === 'cancelled') {
-      setMessage({ type: 'error', text: 'Compra de créditos cancelada.' });
+      setMessage({ type: 'error', text: t('canceledCredits') });
       window.history.replaceState({}, '', '/settings/billing');
     }
-  }, [searchParams]);
+  }, [searchParams, t]);
 
   const loadUsage = useCallback(async () => {
     if (!session) return;
@@ -166,7 +168,7 @@ export default function BillingPage() {
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
       <div style={{ padding: '14px 20px', borderBottom: '0.5px solid var(--border)' }}>
-        <h1 style={{ fontSize: 15, fontWeight: 600 }}>Plan y facturación</h1>
+        <h1 style={{ fontSize: 15, fontWeight: 600 }}>{t('pageTitle')}</h1>
       </div>
 
       <div style={{ maxWidth: 900, margin: '0 auto', padding: '24px 20px' }}>
@@ -194,7 +196,7 @@ export default function BillingPage() {
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
                   <div>
-                    <span style={{ fontSize: 11, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: 0.3 }}>Plan actual</span>
+                    <span style={{ fontSize: 11, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: 0.3 }}>{t('currentPlan')}</span>
                     <h2 style={{ fontSize: 20, fontWeight: 700, marginTop: 2 }}>
                       {PLAN_DETAILS.find(p => p.id === currentPlan)?.name || currentPlan}
                     </h2>
@@ -208,22 +210,22 @@ export default function BillingPage() {
                         color: 'var(--text-secondary)',
                       }}
                     >
-                      {openingPortal ? 'Abriendo...' : 'Gestionar suscripción'}
+                      {openingPortal ? t('opening') : t('manageSubscription')}
                     </button>
                   )}
                 </div>
                 <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap' }}>
                   <div>
-                    <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>Créditos restantes</span>
+                    <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>{t('creditsRemaining')}</span>
                     <p style={{ fontSize: 16, fontWeight: 600, marginTop: 2 }}>{usage.creditsRemaining + usage.creditsExtra}</p>
                   </div>
                   <div>
-                    <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>Consumidos este ciclo</span>
+                    <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>{t('creditsConsumed')}</span>
                     <p style={{ fontSize: 16, fontWeight: 600, marginTop: 2 }}>{usage.consumed}</p>
                   </div>
                   {usage.creditsExtra > 0 && (
                     <div>
-                      <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>Créditos extra</span>
+                      <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>{t('creditsExtra')}</span>
                       <p style={{ fontSize: 16, fontWeight: 600, marginTop: 2 }}>{usage.creditsExtra}</p>
                     </div>
                   )}
@@ -231,11 +233,11 @@ export default function BillingPage() {
               </div>
             )}
 
-            <h2 style={{ fontSize: 13, fontWeight: 600, marginBottom: 14 }}>Planes</h2>
+            <h2 style={{ fontSize: 13, fontWeight: 600, marginBottom: 14 }}>{t('plansSection')}</h2>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(190px, 1fr))', gap: 12, marginBottom: 12 }}>
               {PLAN_DETAILS.map(plan => {
                 const isCurrent = plan.id === currentPlan;
-                const priceLabel = plan.price === null ? 'Gratis' : `${plan.price.toLocaleString('es-ES', { minimumFractionDigits: 2 })}€`;
+                const priceLabel = plan.price === null ? t('free') : `${plan.price.toLocaleString('es-ES', { minimumFractionDigits: 2 })}€`;
                 const busy = checkingOut === plan.id || openingPortal;
 
                 return (
@@ -254,7 +256,7 @@ export default function BillingPage() {
                         background: 'var(--brand)', color: '#fff',
                         fontSize: 9, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5,
                       }}>
-                        Más popular
+                        {t('mostPopular')}
                       </span>
                     )}
 
@@ -262,7 +264,7 @@ export default function BillingPage() {
 
                     <div style={{ marginBottom: 10 }}>
                       <span style={{ fontSize: 22, fontWeight: 700 }}>{priceLabel}</span>
-                      {plan.price !== null && <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>/mes</span>}
+                      {plan.price !== null && <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{t('perMonth')}</span>}
                     </div>
 
                     {plan.base && (
@@ -285,7 +287,7 @@ export default function BillingPage() {
                         padding: '7px', borderRadius: 8, textAlign: 'center',
                         background: 'rgba(99,102,241,0.08)', color: 'var(--brand)', fontSize: 11, fontWeight: 600,
                       }}>
-                        Plan actual
+                        {t('currentPlanBadge')}
                       </div>
                     ) : plan.id !== 'free' && isAdmin ? (
                       <button
@@ -298,14 +300,14 @@ export default function BillingPage() {
                           fontSize: 11, fontWeight: 600, cursor: busy ? 'not-allowed' : 'pointer',
                         }}
                       >
-                        {busy ? 'Redirigiendo...' : hasActiveSubscription ? 'Cambiar plan' : 'Contratar'}
+                        {busy ? t('redirecting') : hasActiveSubscription ? t('changePlan') : t('hire')}
                       </button>
                     ) : plan.id !== 'free' ? (
                       <div style={{
                         padding: '7px', borderRadius: 8, textAlign: 'center',
                         background: 'var(--bg-tertiary)', color: 'var(--text-muted)', fontSize: 10,
                       }}>
-                        Solo el admin puede cambiar
+                        {t('adminOnlyPlan')}
                       </div>
                     ) : null}
                   </div>
@@ -314,17 +316,17 @@ export default function BillingPage() {
             </div>
 
             <p style={{ fontSize: 12, color: 'var(--text-muted)', textAlign: 'center', marginBottom: 32 }}>
-              ¿Más de 50 usuarios o volumen personalizado?{' '}
+              {t('contactNote')}{' '}
               <a href="mailto:hola@doclity.com" style={{ color: 'var(--brand)', textDecoration: 'none' }}>
-                Contáctanos
+                {t('contactUs')}
               </a>
             </p>
 
             {isAdmin && currentPlan !== 'free' && (
               <div style={{ marginBottom: 32 }}>
-                <h2 style={{ fontSize: 13, fontWeight: 600, marginBottom: 6 }}>Recargar créditos</h2>
+                <h2 style={{ fontSize: 13, fontWeight: 600, marginBottom: 6 }}>{t('rechargeCredits')}</h2>
                 <p style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 14 }}>
-                  Los créditos extra no caducan y se usan cuando se agotan los del plan.
+                  {t('rechargeDesc')}
                 </p>
                 <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
                   {CREDIT_PACKS.map(pack => (
@@ -338,7 +340,7 @@ export default function BillingPage() {
                     >
                       <div style={{ flex: 1 }}>
                         <p style={{ fontSize: 14, fontWeight: 600 }}>{pack.credits} créditos</p>
-                        <p style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 2 }}>{pack.pricePerCredit}/crédito</p>
+                        <p style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 2 }}>{pack.pricePerCredit}/{t('perCredit')}</p>
                       </div>
                       <button
                         onClick={() => handleBuyCredits(pack.id)}
@@ -351,7 +353,7 @@ export default function BillingPage() {
                           cursor: buyingCredits === pack.id ? 'not-allowed' : 'pointer',
                         }}
                       >
-                        {buyingCredits === pack.id ? 'Redirigiendo...' : `${pack.price}€`}
+                        {buyingCredits === pack.id ? t('redirecting') : `${pack.price}€`}
                       </button>
                     </div>
                   ))}
@@ -364,10 +366,9 @@ export default function BillingPage() {
                 marginBottom: 32, padding: '20px', borderRadius: 10,
                 border: '1px solid rgba(239,68,68,0.3)', background: 'rgba(239,68,68,0.04)',
               }}>
-                <h2 style={{ fontSize: 13, fontWeight: 600, color: 'rgb(239,68,68)', marginBottom: 6 }}>Zona de peligro</h2>
+                <h2 style={{ fontSize: 13, fontWeight: 600, color: 'rgb(239,68,68)', marginBottom: 6 }}>{t('dangerZone')}</h2>
                 <p style={{ fontSize: 11, color: 'var(--text-secondary)', marginBottom: 14 }}>
-                  Borra permanentemente todos los documentos, embeddings, conexiones y datos de tu workspace.
-                  Los registros de uso y feedback se anonimizan. Esta acción no se puede deshacer.
+                  {t('dangerZoneDesc')}
                 </p>
                 {!showPurgeConfirm ? (
                   <button
@@ -378,12 +379,12 @@ export default function BillingPage() {
                       color: 'rgb(239,68,68)', fontSize: 11, fontWeight: 600, cursor: 'pointer',
                     }}
                   >
-                    Borrar todos los datos
+                    {t('deleteAllData')}
                   </button>
                 ) : (
                   <div style={{ padding: '16px', borderRadius: 8, background: 'var(--bg-secondary)', border: '0.5px solid var(--border)' }}>
                     <p style={{ fontSize: 11, color: 'var(--text-secondary)', marginBottom: 10 }}>
-                      Escribe tu email (<strong>{userEmail}</strong>) para confirmar el borrado:
+                      {t('purgeConfirmPrompt', { email: userEmail })}
                     </p>
                     <input
                       type="email" value={purgeEmail}
@@ -405,7 +406,7 @@ export default function BillingPage() {
                           cursor: purging || purgeEmail !== userEmail ? 'not-allowed' : 'pointer',
                         }}
                       >
-                        {purging ? 'Borrando...' : 'Confirmar borrado'}
+                        {purging ? t('deleting') : t('confirmDelete')}
                       </button>
                       <button
                         onClick={() => { setShowPurgeConfirm(false); setPurgeEmail(''); }}
@@ -415,7 +416,7 @@ export default function BillingPage() {
                           color: 'var(--text-secondary)', fontSize: 11, cursor: 'pointer',
                         }}
                       >
-                        Cancelar
+                        {t('cancel')}
                       </button>
                     </div>
                   </div>
@@ -424,7 +425,7 @@ export default function BillingPage() {
             )}
 
             <p style={{ fontSize: 10, color: 'var(--text-muted)', textAlign: 'center' }}>
-              Precios sin IVA. Se aplicará el 21% de IVA en la factura.
+              {t('vatNote')}
             </p>
           </>
         )}

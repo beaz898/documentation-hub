@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { useTranslations } from 'next-intl';
 
 interface CoverageItem {
   documentId: string;
@@ -31,6 +32,7 @@ interface ChatTabProps {
 }
 
 function DayFilter({ days, setDays }: { days: number; setDays: (d: number) => void }) {
+  const t = useTranslations('usage');
   return (
     <div style={{ display: 'flex', gap: 6, marginBottom: 20 }}>
       {[7, 14, 30].map(d => (
@@ -40,7 +42,7 @@ function DayFilter({ days, setDays }: { days: number; setDays: (d: number) => vo
           color: days === d ? '#fff' : 'var(--text-secondary)',
           fontSize: 11, fontWeight: 500, cursor: 'pointer',
         }}>
-          {d} días
+          {t('days', { days: d })}
         </button>
       ))}
     </div>
@@ -58,6 +60,7 @@ function coverageColor(pct: number): string {
 }
 
 export default function ChatTab({ session }: ChatTabProps) {
+  const t = useTranslations('usage');
   const [data, setData] = useState<ChatData | null>(null);
   const [loading, setLoading] = useState(true);
   const [days, setDays] = useState(30);
@@ -118,7 +121,7 @@ export default function ChatTab({ session }: ChatTabProps) {
       <>
         <DayFilter days={days} setDays={setDays} />
         <p style={{ fontSize: 13, color: 'var(--text-secondary)', textAlign: 'center', padding: '40px 0' }}>
-          No hay consultas registradas en los últimos {days} días.
+          {t('noChatData', { days })}
         </p>
       </>
     );
@@ -131,26 +134,24 @@ export default function ChatTab({ session }: ChatTabProps) {
     <>
       <DayFilter days={days} setDays={setDays} />
 
-      {/* Tarjetas resumen */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 10, marginBottom: 24 }}>
         <div style={{ padding: '14px 16px', borderRadius: 10, background: 'var(--bg-secondary)', border: '0.5px solid var(--border)' }}>
-          <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>Consultas ({days}d)</span>
+          <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>{t('queriesDays', { days })}</span>
           <p style={{ fontSize: 20, fontWeight: 700, marginTop: 4 }}>{data.totalQueries}</p>
         </div>
         <div style={{ padding: '14px 16px', borderRadius: 10, background: 'var(--bg-secondary)', border: '0.5px solid var(--border)' }}>
-          <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>Resp. media (chars)</span>
+          <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>{t('avgResponse')}</span>
           <p style={{ fontSize: 20, fontWeight: 700, marginTop: 4 }}>{data.avgAnswerLength}</p>
         </div>
         <div style={{ padding: '14px 16px', borderRadius: 10, background: 'var(--bg-secondary)', border: '0.5px solid var(--border)' }}>
-          <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>Docs sin uso</span>
+          <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>{t('docsUnused')}</span>
           <p style={{ fontSize: 20, fontWeight: 700, marginTop: 4 }}>{data.neverUsed.length}</p>
         </div>
       </div>
 
-      {/* Consultas por día */}
       {data.byDay.length > 1 && (
         <div style={{ marginBottom: 28 }}>
-          <h2 style={{ fontSize: 13, fontWeight: 600, marginBottom: 12 }}>Consultas por día</h2>
+          <h2 style={{ fontSize: 13, fontWeight: 600, marginBottom: 12 }}>{t('queriesPerDay')}</h2>
           <div style={{ display: 'flex', alignItems: 'flex-end', gap: 2, height: 100, padding: '0 4px' }}>
             {data.byDay.map(({ day, queries }) => {
               const barH = (queries / maxDayQueries) * 80;
@@ -166,10 +167,9 @@ export default function ChatTab({ session }: ChatTabProps) {
         </div>
       )}
 
-      {/* Documentos más utilizados */}
       {data.topDocuments.length > 0 && (
         <div style={{ marginBottom: 28 }}>
-          <h2 style={{ fontSize: 13, fontWeight: 600, marginBottom: 12 }}>Documentos más utilizados</h2>
+          <h2 style={{ fontSize: 13, fontWeight: 600, marginBottom: 12 }}>{t('mostUsedDocs')}</h2>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             {data.topDocuments.map(doc => {
               const pct = (doc.appearances / maxAppearances) * 100;
@@ -189,12 +189,11 @@ export default function ChatTab({ session }: ChatTabProps) {
         </div>
       )}
 
-      {/* Cobertura de documentos */}
       {data.documentCoverage && data.documentCoverage.length > 0 && (
         <div style={{ marginBottom: 28 }}>
-          <h2 style={{ fontSize: 13, fontWeight: 600, marginBottom: 4 }}>Cobertura de documentos</h2>
+          <h2 style={{ fontSize: 13, fontWeight: 600, marginBottom: 4 }}>{t('documentCoverage')}</h2>
           <p style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 12 }}>
-            % de fragmentos de cada documento que han sido usados como fuente en respuestas. Haz clic para ver los fragmentos.
+            {t('coverageDesc')}
           </p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             {data.documentCoverage.map(item => {
@@ -217,13 +216,13 @@ export default function ChatTab({ session }: ChatTabProps) {
                         <div style={{ height: '100%', borderRadius: 3, background: color, width: item.percentage + '%', transition: 'width 0.3s ease' }} />
                       </div>
                       <span style={{ fontSize: 10, color: 'var(--text-muted)', flexShrink: 0 }}>
-                        {item.chunksUsados}/{item.totalChunks} frags
+                        {t('fragsRatio', { used: item.chunksUsados, total: item.totalChunks })}
                       </span>
                       <span style={{ fontSize: 10, color: 'var(--text-muted)', flexShrink: 0 }}>{isExpanded ? '▲' : '▼'}</span>
                     </div>
                     {item.percentage < 30 && (
                       <p style={{ fontSize: 10, color: '#ef4444', marginTop: 5 }}>
-                        Baja cobertura — la mayoría del contenido no se usa en respuestas.
+                        {t('lowCoverage')}
                       </p>
                     )}
                   </button>
@@ -238,27 +237,27 @@ export default function ChatTab({ session }: ChatTabProps) {
                       {!isLoading && detail && (
                         <>
                           {detail.usedChunks.length === 0 && (
-                            <p style={{ fontSize: 11, color: 'var(--text-muted)' }}>Sin fragmentos usados en este período.</p>
+                            <p style={{ fontSize: 11, color: 'var(--text-muted)' }}>{t('noFragsUsed')}</p>
                           )}
                           {detail.usedChunks.length > 0 && (
                             <>
                               <p style={{ fontSize: 10, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 8 }}>
-                                Fragmentos utilizados ({detail.usedChunks.length}):
+                                {t('fragsUsedTitle', { count: detail.usedChunks.length })}
                               </p>
                               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                                 {detail.usedChunks.map(chunk => (
                                   <div key={chunk.chunkIndex} style={{ padding: '8px 10px', borderRadius: 6, background: 'var(--bg-secondary)', border: '0.5px solid var(--border)' }}>
-                                    <span style={{ fontSize: 9, color: 'var(--text-muted)', display: 'block', marginBottom: 3 }}>Fragmento #{chunk.chunkIndex}</span>
+                                    <span style={{ fontSize: 9, color: 'var(--text-muted)', display: 'block', marginBottom: 3 }}>{t('fragIndex', { index: chunk.chunkIndex })}</span>
                                     <p style={{ fontSize: 11, lineHeight: 1.5, color: 'var(--text-secondary)' }}>
-                                      {chunk.text ? chunk.text.slice(0, 250) + (chunk.text.length > 250 ? '…' : '') : '(texto no disponible)'}
+                                      {chunk.text ? chunk.text.slice(0, 250) + (chunk.text.length > 250 ? '…' : '') : t('textUnavailable')}
                                     </p>
                                   </div>
                                 ))}
                               </div>
                               {detail.unusedChunks.length > 0 && (
                                 <p style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 8 }}>
-                                  Fragmentos no usados: #{detail.unusedChunks.slice(0, 10).join(', #')}
-                                  {detail.unusedChunks.length > 10 ? ` y ${detail.unusedChunks.length - 10} más` : ''}
+                                  {t('unusedFragsList', { indices: detail.unusedChunks.slice(0, 10).join(', #') })}
+                                  {detail.unusedChunks.length > 10 ? ` ${t('andMore', { count: detail.unusedChunks.length - 10 })}` : ''}
                                 </p>
                               )}
                             </>
@@ -274,16 +273,15 @@ export default function ChatTab({ session }: ChatTabProps) {
         </div>
       )}
 
-      {/* Consultas recientes */}
       {data.recentQuestions.length > 0 && (
         <div style={{ marginBottom: 28 }}>
-          <h2 style={{ fontSize: 13, fontWeight: 600, marginBottom: 12 }}>Consultas recientes</h2>
+          <h2 style={{ fontSize: 13, fontWeight: 600, marginBottom: 12 }}>{t('recentQueries')}</h2>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
             {data.recentQuestions.map((q, i) => (
               <div key={i} style={{ padding: '10px 14px', borderRadius: 8, background: 'var(--bg-secondary)', border: '0.5px solid var(--border)' }}>
                 <p style={{ fontSize: 12, marginBottom: 3, lineHeight: 1.4 }}>{q.question}</p>
                 <p style={{ fontSize: 9, color: 'var(--text-muted)' }}>
-                  {q.documentsCount} doc{q.documentsCount !== 1 ? 's' : ''} · {formatDate(q.created_at)}
+                  {t('docsCount', { count: q.documentsCount })} · {formatDate(q.created_at)}
                 </p>
               </div>
             ))}
@@ -291,12 +289,11 @@ export default function ChatTab({ session }: ChatTabProps) {
         </div>
       )}
 
-      {/* Documentos sin uso */}
       {data.neverUsed.length > 0 && (
         <div>
-          <h2 style={{ fontSize: 13, fontWeight: 600, marginBottom: 6 }}>Documentos sin uso</h2>
+          <h2 style={{ fontSize: 13, fontWeight: 600, marginBottom: 6 }}>{t('neverUsedTitle')}</h2>
           <p style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 12 }}>
-            Nunca han aparecido como fuente en una respuesta. Considera revisarlos o eliminarlos.
+            {t('neverUsedDesc')}
           </p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
             {data.neverUsed.slice(0, 15).map((name, i) => (
@@ -306,7 +303,7 @@ export default function ChatTab({ session }: ChatTabProps) {
               </div>
             ))}
             {data.neverUsed.length > 15 && (
-              <p style={{ fontSize: 10, color: 'var(--text-muted)', paddingLeft: 14 }}>+{data.neverUsed.length - 15} más</p>
+              <p style={{ fontSize: 10, color: 'var(--text-muted)', paddingLeft: 14 }}>{t('moreItems', { count: data.neverUsed.length - 15 })}</p>
             )}
           </div>
         </div>

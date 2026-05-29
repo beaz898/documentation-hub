@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { createClient } from '@/lib/supabase';
 import { useAgentTasks } from '@/hooks/agent/useAgentTasks';
 import AgentSidebar from '@/components/agent/AgentSidebar';
@@ -26,7 +27,6 @@ export default function AgentPage() {
     loadTasks, createTask, cancelTask, confirm,
   } = useAgentTasks();
 
-  // Auth + plan check
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (!session) { router.replace('/login'); return; }
@@ -41,12 +41,10 @@ export default function AgentPage() {
     });
   }, [router, supabase.auth]);
 
-  // Load tasks once access is confirmed
   useEffect(() => {
     if (hasAgent) loadTasks();
   }, [hasAgent, loadTasks]);
 
-  // Auto-select the most recent non-terminal task on first load
   useEffect(() => {
     if (autoSelectedRef.current || tasks.length === 0) return;
     autoSelectedRef.current = true;
@@ -75,7 +73,6 @@ export default function AgentPage() {
   return (
     <div style={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
 
-      {/* Left sidebar */}
       <div style={{ width: 260, flexShrink: 0, height: '100%' }}>
         <AgentSidebar
           tasks={tasks}
@@ -86,40 +83,17 @@ export default function AgentPage() {
         />
       </div>
 
-      {/* Right panel */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, overflow: 'hidden' }}>
         {selectedTask ? (
           <AgentChat task={selectedTask} onConfirm={confirm} onCancel={cancelTask} />
         ) : (
-          <>
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12, color: 'var(--text-muted)' }}>
-              <div style={{
-                width: 48, height: 48, borderRadius: 12,
-                background: 'var(--bg-secondary)', border: '0.5px solid var(--border)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-              }}>
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--brand)" strokeWidth="1.5">
-                  <path d="M12 2a10 10 0 1 0 10 10" />
-                  <path d="M12 8v4l3 3" />
-                  <circle cx="19" cy="5" r="3" fill="var(--brand)" stroke="none" />
-                </svg>
-              </div>
-              <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-secondary)' }}>Agente IA</p>
-              <p style={{ fontSize: 12, color: 'var(--text-muted)', textAlign: 'center', maxWidth: 280, lineHeight: 1.6 }}>
-                Selecciona una tarea de la lista o describe un nuevo objetivo abajo.
-              </p>
-            </div>
-            <AgentInput
-              creating={creating}
-              onCreateTask={handleCreateTask}
-              activeTaskId={null}
-              pendingRequest={null}
-              onConfirm={confirm}
-            />
-          </>
+          <AgentEmptyView
+            creating={creating}
+            onCreateTask={handleCreateTask}
+            onConfirm={confirm}
+          />
         )}
 
-        {/* Error toast */}
         {error && (
           <div style={{
             position: 'fixed', bottom: 80, left: '50%', transform: 'translateX(-50%)',
@@ -135,9 +109,61 @@ export default function AgentPage() {
   );
 }
 
+// ─── Empty state (no task selected) ────────────────────────────────────────
+
+type ConfirmFn = ReturnType<typeof useAgentTasks>['confirm'];
+
+function AgentEmptyView({
+  creating,
+  onCreateTask,
+  onConfirm,
+}: {
+  creating: boolean;
+  onCreateTask: (goal: string, mode: ConfirmationMode) => Promise<string | null>;
+  onConfirm: ConfirmFn;
+}) {
+  const t = useTranslations('agent');
+  return (
+    <>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12, color: 'var(--text-muted)' }}>
+        <div style={{
+          width: 48, height: 48, borderRadius: 12,
+          background: 'var(--bg-secondary)', border: '0.5px solid var(--border)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--brand)" strokeWidth="1.5">
+            <path d="M12 2a10 10 0 1 0 10 10" />
+            <path d="M12 8v4l3 3" />
+            <circle cx="19" cy="5" r="3" fill="var(--brand)" stroke="none" />
+          </svg>
+        </div>
+        <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-secondary)' }}>{t('title')}</p>
+        <p style={{ fontSize: 12, color: 'var(--text-muted)', textAlign: 'center', maxWidth: 280, lineHeight: 1.6 }}>
+          {t('emptyHint')}
+        </p>
+      </div>
+      <AgentInput
+        creating={creating}
+        onCreateTask={onCreateTask}
+        activeTaskId={null}
+        pendingRequest={null}
+        onConfirm={onConfirm}
+      />
+    </>
+  );
+}
+
 // ─── Paywall ─────────────────────────────────────────────────────────────────
 
 function Paywall() {
+  const t = useTranslations('agent');
+  const features = [
+    t('featureEmail'),
+    t('featureRead'),
+    t('featureCite'),
+    t('featureAsk'),
+  ];
+
   return (
     <div style={{ maxWidth: 520, margin: '64px auto', padding: '0 24px' }}>
       <div style={{
@@ -153,17 +179,12 @@ function Paywall() {
             <path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18" />
           </svg>
         </div>
-        <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 8 }}>Agente IA</h2>
+        <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 8 }}>{t('title')}</h2>
         <p style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: 20 }}>
-          El agente sigue las instrucciones de tu documentación y redacta o procesa contenido por ti, citando siempre las fuentes.
+          {t('paywallBody')}
         </p>
         <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 24px', display: 'flex', flexDirection: 'column', gap: 10 }}>
-          {[
-            'Redacta emails siguiendo el tono de tu empresa',
-            'Lee y resume documentos siguiendo tus procedimientos',
-            'Cita las fuentes que usa en cada respuesta',
-            'Pregunta antes de improvisar fuera del corpus',
-          ].map(item => (
+          {features.map(item => (
             <li key={item} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, fontSize: 13 }}>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--brand)" strokeWidth="2" style={{ flexShrink: 0, marginTop: 1 }}>
                 <polyline points="20 6 9 17 4 12" />
@@ -181,7 +202,7 @@ function Paywall() {
             fontSize: 13, fontWeight: 600,
           }}
         >
-          Actualizar a Business
+          {t('paywallCta')}
         </a>
       </div>
     </div>

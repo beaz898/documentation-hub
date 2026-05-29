@@ -2,10 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { createClient } from '@/lib/supabase';
 import DoclityLogo from '@/components/DoclityLogo';
 
 export default function LoginPage() {
+  const t = useTranslations('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isRegister, setIsRegister] = useState(false);
@@ -38,7 +40,7 @@ export default function LoginPage() {
           },
         });
         if (error) throw error;
-        setSuccess('Cuenta creada. Revisa tu email para confirmar (o inicia sesión si la confirmación está desactivada).');
+        setSuccess(t('successCreate'));
       } else {
         const { error } = await supabase.auth.signInWithPassword({
           email,
@@ -57,7 +59,6 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4">
-      {/* Background effect */}
       <div
         className="fixed inset-0 pointer-events-none"
         style={{
@@ -66,17 +67,15 @@ export default function LoginPage() {
       />
 
       <div className="relative w-full max-w-md">
-        {/* Logo */}
         <div className="text-center mb-8">
           <div className="flex justify-center mb-3" style={{ color: 'var(--text-primary)' }}>
             <DoclityLogo size="md" />
           </div>
           <p className="text-sm text-[var(--text-secondary)] mt-1">
-            Tu documentación, siempre accesible
+            {t('taglineAlt')}
           </p>
         </div>
 
-        {/* Card */}
         <div
           className="rounded-2xl p-8"
           style={{
@@ -85,20 +84,20 @@ export default function LoginPage() {
           }}
         >
           <h2 className="text-lg font-semibold mb-6 text-center">
-            {isRegister ? 'Crear cuenta' : 'Iniciar sesión'}
+            {isRegister ? t('signUp') : t('signIn')}
           </h2>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="block text-sm text-[var(--text-secondary)] mb-1.5">
-                Email
+                {t('email')}
               </label>
               <input
                 type="email"
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 required
-                placeholder="tu@empresa.com"
+                placeholder={t('emailPlaceholder')}
                 className="w-full px-4 py-3 rounded-lg text-sm outline-none transition-colors"
                 style={{
                   background: 'var(--surface)',
@@ -112,7 +111,7 @@ export default function LoginPage() {
 
             <div>
               <label className="block text-sm text-[var(--text-secondary)] mb-1.5">
-                Contraseña
+                {t('password')}
               </label>
               <input
                 type="password"
@@ -120,7 +119,7 @@ export default function LoginPage() {
                 onChange={e => setPassword(e.target.value)}
                 required
                 minLength={6}
-                placeholder="Mínimo 6 caracteres"
+                placeholder={t('passwordPlaceholder')}
                 className="w-full px-4 py-3 rounded-lg text-sm outline-none transition-colors"
                 style={{
                   background: 'var(--surface)',
@@ -161,7 +160,7 @@ export default function LoginPage() {
                   style={{ accentColor: 'var(--brand)', width: 15, height: 15, flexShrink: 0 }}
                 />
                 <label htmlFor="terms-checkbox" className="text-xs leading-relaxed cursor-pointer" style={{ color: 'var(--text-secondary)' }}>
-                  He leído y acepto los{' '}
+                  {t('termsText')}{' '}
                   <a
                     href="/legal/terminos"
                     target="_blank"
@@ -169,9 +168,9 @@ export default function LoginPage() {
                     style={{ color: 'var(--brand)', textDecoration: 'underline', textUnderlineOffset: 3 }}
                     onClick={e => e.stopPropagation()}
                   >
-                    Términos y Condiciones
+                    {t('termsLinkText')}
                   </a>
-                  {' '}y la{' '}
+                  {' '}{t('andThe')}{' '}
                   <a
                     href="/legal/privacidad"
                     target="_blank"
@@ -179,7 +178,7 @@ export default function LoginPage() {
                     style={{ color: 'var(--brand)', textDecoration: 'underline', textUnderlineOffset: 3 }}
                     onClick={e => e.stopPropagation()}
                   >
-                    Política de Privacidad
+                    {t('privacyLinkText')}
                   </a>
                 </label>
               </div>
@@ -196,10 +195,10 @@ export default function LoginPage() {
               }}
             >
               {loading
-                ? 'Procesando...'
+                ? t('processing')
                 : isRegister
-                  ? 'Crear cuenta'
-                  : 'Entrar'
+                  ? t('signUp')
+                  : t('enter')
               }
             </button>
           </form>
@@ -215,16 +214,13 @@ export default function LoginPage() {
               className="text-sm transition-colors"
               style={{ color: 'var(--brand)' }}
             >
-              {isRegister
-                ? '¿Ya tienes cuenta? Inicia sesión'
-                : '¿No tienes cuenta? Regístrate'
-              }
+              {isRegister ? t('switchToLoginFull') : t('switchToRegisterFull')}
             </button>
           </div>
         </div>
 
         <p className="text-center text-xs mt-6" style={{ color: 'var(--text-muted)' }}>
-          Tus documentos están seguros y solo accesibles por tu organización
+          {t('securityNote')}
         </p>
         <div className="text-center text-xs mt-3" style={{ color: 'var(--text-muted)', display: 'flex', justifyContent: 'center', gap: 16, flexWrap: 'wrap' }}>
           {[

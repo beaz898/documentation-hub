@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 
 const COOKIE_NAME = 'doclity_cookie_notice';
 const COOKIE_MAX_AGE = 365 * 24 * 60 * 60;
@@ -13,6 +14,7 @@ function getCookieValue(name: string): string | null {
 }
 
 export default function CookieBanner() {
+  const t = useTranslations('cookies');
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
@@ -31,7 +33,7 @@ export default function CookieBanner() {
   return (
     <div
       role="region"
-      aria-label="Aviso de cookies"
+      aria-label={t('ariaLabel')}
       style={{
         position: 'fixed',
         bottom: 16,
@@ -57,12 +59,12 @@ export default function CookieBanner() {
       }}
     >
       <p style={{ flex: 1, minWidth: 200, color: 'rgba(255,255,255,0.85)' }}>
-        Este sitio utiliza únicamente cookies técnicas necesarias para el funcionamiento del servicio.{' '}
+        {t('bannerMessage')}{' '}
         <Link
           href="/legal/cookies"
           style={{ color: 'var(--brand)', textDecoration: 'underline', textUnderlineOffset: 3 }}
         >
-          Más información
+          {t('moreInfo')}
         </Link>
       </p>
       <button
@@ -80,7 +82,7 @@ export default function CookieBanner() {
           whiteSpace: 'nowrap',
         }}
       >
-        Entendido
+        {t('understood')}
       </button>
     </div>
   );

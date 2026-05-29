@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { createClient } from '@/lib/supabase';
 
 interface CurrentOrg {
@@ -10,6 +11,7 @@ interface CurrentOrg {
 }
 
 export default function InvitePage() {
+  const t = useTranslations('invite');
   const [status, setStatus] = useState<'loading' | 'ready' | 'accepting' | 'success' | 'error'>('loading');
   const [errorMessage, setErrorMessage] = useState('');
   const [orgName, setOrgName] = useState('');
@@ -20,7 +22,6 @@ export default function InvitePage() {
   const supabase = createClient();
   const token = searchParams.get('token');
 
-  // Auth check + load current org info
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data: { session: s } }) => {
       if (!s) {
@@ -30,14 +31,12 @@ export default function InvitePage() {
       }
       setSession({ access_token: s.access_token, user: { email: s.user.email } });
 
-      // Check if user currently belongs to an org
       try {
         const res = await fetch('/api/usage/summary', {
           credentials: 'include',
         });
         if (res.ok) {
           const data = await res.json();
-          // User has an org — check if it has documents
           const docsRes = await fetch('/api/documents', {
             credentials: 'include',
           });
@@ -91,7 +90,7 @@ export default function InvitePage() {
     return (
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: 'var(--bg)' }}>
         <div style={{ textAlign: 'center', padding: 20 }}>
-          <p style={{ fontSize: 14, color: 'var(--text-secondary)' }}>Enlace de invitación inválido.</p>
+          <p style={{ fontSize: 14, color: 'var(--text-secondary)' }}>{t('invalidToken')}</p>
           <button
             onClick={() => router.replace('/chat')}
             style={{
@@ -99,7 +98,7 @@ export default function InvitePage() {
               background: 'var(--brand)', color: '#fff', fontSize: 12, fontWeight: 600, cursor: 'pointer',
             }}
           >
-            Ir al chat
+            {t('goToChat')}
           </button>
         </div>
       </div>
@@ -133,15 +132,14 @@ export default function InvitePage() {
                 <path d="M16 3.13a4 4 0 0 1 0 7.75" />
               </svg>
             </div>
-            <h1 style={{ fontSize: 18, fontWeight: 600, marginBottom: 8 }}>Te han invitado</h1>
+            <h1 style={{ fontSize: 18, fontWeight: 600, marginBottom: 8 }}>{t('title')}</h1>
             <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 6 }}>
-              Has recibido una invitación para unirte a un workspace en Doclity.
+              {t('description')}
             </p>
             <p style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 16 }}>
-              Sesión: {session?.user.email}
+              {t('session', { email: session?.user.email ?? '' })}
             </p>
 
-            {/* Warning about leaving current workspace */}
             {currentOrg && (
               <div style={{
                 padding: '12px 14px', borderRadius: 8, marginBottom: 20, textAlign: 'left',
@@ -156,14 +154,10 @@ export default function InvitePage() {
                   fontSize: 11, fontWeight: 600, marginBottom: 4,
                   color: currentOrg.hasDocuments ? 'rgb(239,68,68)' : 'rgb(180,120,10)',
                 }}>
-                  {currentOrg.hasDocuments
-                    ? 'Atención: tienes documentos en tu workspace actual'
-                    : 'Cambiarás de workspace'}
+                  {currentOrg.hasDocuments ? t('warningDocsTitle') : t('warningNoDocsTitle')}
                 </p>
                 <p style={{ fontSize: 11, color: 'var(--text-secondary)', lineHeight: 1.4 }}>
-                  {currentOrg.hasDocuments
-                    ? 'Al aceptar, dejarás tu workspace actual y perderás acceso a tus documentos. Los documentos no se migrarán al nuevo workspace.'
-                    : 'Al aceptar, dejarás tu workspace actual para unirte al nuevo.'}
+                  {currentOrg.hasDocuments ? t('warningDocsDetail') : t('warningNoDocsDetail')}
                 </p>
               </div>
             )}
@@ -176,7 +170,7 @@ export default function InvitePage() {
                 fontSize: 13, fontWeight: 600, cursor: 'pointer',
               }}
             >
-              Aceptar invitación
+              {t('accept')}
             </button>
           </>
         )}
@@ -184,7 +178,7 @@ export default function InvitePage() {
         {status === 'accepting' && (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, padding: 20 }}>
             <div className="animate-spin" style={{ width: 20, height: 20, border: '2px solid var(--brand)', borderTopColor: 'transparent', borderRadius: '50%' }} />
-            <p style={{ fontSize: 13, color: 'var(--text-secondary)' }}>Uniéndose al workspace...</p>
+            <p style={{ fontSize: 13, color: 'var(--text-secondary)' }}>{t('joining')}</p>
           </div>
         )}
 
@@ -199,8 +193,8 @@ export default function InvitePage() {
                 <polyline points="20 6 9 17 4 12" />
               </svg>
             </div>
-            <h2 style={{ fontSize: 16, fontWeight: 600, marginBottom: 8 }}>Te has unido a {orgName}</h2>
-            <p style={{ fontSize: 12, color: 'var(--text-secondary)' }}>Redirigiendo al chat...</p>
+            <h2 style={{ fontSize: 16, fontWeight: 600, marginBottom: 8 }}>{t('joined', { orgName })}</h2>
+            <p style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{t('redirecting')}</p>
           </>
         )}
 
@@ -215,7 +209,7 @@ export default function InvitePage() {
                 <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
               </svg>
             </div>
-            <h2 style={{ fontSize: 16, fontWeight: 600, marginBottom: 8 }}>No se pudo aceptar</h2>
+            <h2 style={{ fontSize: 16, fontWeight: 600, marginBottom: 8 }}>{t('error')}</h2>
             <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginBottom: 20 }}>{errorMessage}</p>
             <button
               onClick={() => router.replace('/chat')}
@@ -225,7 +219,7 @@ export default function InvitePage() {
                 color: 'var(--text-primary)',
               }}
             >
-              Ir al chat
+              {t('goToChat')}
             </button>
           </>
         )}

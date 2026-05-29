@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { createClient } from '@/lib/supabase';
 
 interface Member {
@@ -23,6 +24,8 @@ interface Invitation {
 }
 
 export default function TeamPage() {
+  const t = useTranslations('team');
+  const tc = useTranslations('common');
   const [session, setSession] = useState<{ access_token: string; user: { email?: string; id: string } } | null>(null);
   const [members, setMembers] = useState<Member[]>([]);
   const [invitations, setInvitations] = useState<Invitation[]>([]);
@@ -37,7 +40,6 @@ export default function TeamPage() {
   const router = useRouter();
   const supabase = createClient();
 
-  // Auth check
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session: s } }) => {
       if (!s) { router.replace('/login'); return; }
@@ -93,7 +95,7 @@ export default function TeamPage() {
         const inviteLink = `${window.location.origin}/invite?token=${data.invitation.token}`;
         setInviteResult({
           type: 'success',
-          message: `Invitación enviada a ${inviteEmail.trim()}.`,
+          message: t('inviteSent', { email: inviteEmail.trim() }),
           link: inviteLink,
         });
         setInviteEmail('');
@@ -109,7 +111,7 @@ export default function TeamPage() {
   }
 
   async function handleRemoveMember(userId: string, email: string) {
-    if (!session || !window.confirm(`¿Expulsar a ${email} del workspace?`)) return;
+    if (!session || !window.confirm(t('confirmExpel', { email }))) return;
     setRemoving(userId);
     try {
       const res = await fetch(`/api/team/members/${userId}`, {
@@ -129,7 +131,7 @@ export default function TeamPage() {
   }
 
   async function handleCancelInvite(inviteId: string) {
-    if (!session || !window.confirm('¿Cancelar esta invitación?')) return;
+    if (!session || !window.confirm(t('confirmCancelInvite'))) return;
     setCancellingInvite(inviteId);
     try {
       const res = await fetch(`/api/team/invitations/${inviteId}`, {
@@ -170,7 +172,6 @@ export default function TeamPage() {
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
-      {/* Header */}
       <div style={{
         padding: '14px 20px', borderBottom: '0.5px solid var(--border)',
         display: 'flex', alignItems: 'center', gap: 12,
@@ -186,9 +187,9 @@ export default function TeamPage() {
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <polyline points="15 18 9 12 15 6" />
           </svg>
-          Volver al chat
+          {t('backToChat')}
         </button>
-        <h1 style={{ fontSize: 15, fontWeight: 600 }}>Equipo</h1>
+        <h1 style={{ fontSize: 15, fontWeight: 600 }}>{t('title')}</h1>
       </div>
 
       <div style={{ maxWidth: 600, margin: '0 auto', padding: '24px 20px' }}>
@@ -198,10 +199,9 @@ export default function TeamPage() {
           </div>
         ) : (
           <>
-            {/* Members section */}
             <div style={{ marginBottom: 32 }}>
               <h2 style={{ fontSize: 13, fontWeight: 600, marginBottom: 12, color: 'var(--text-primary)' }}>
-                Miembros ({members.length})
+                {t('membersCount', { count: members.length })}
               </h2>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                 {members.map(member => (
@@ -228,7 +228,7 @@ export default function TeamPage() {
                         </span>
                         {member.isYou && (
                           <span style={{ fontSize: 9, padding: '1px 5px', borderRadius: 3, background: 'var(--brand-light)', color: 'var(--brand)', fontWeight: 600 }}>
-                            Tú
+                            {t('youBadge')}
                           </span>
                         )}
                       </div>
@@ -242,7 +242,7 @@ export default function TeamPage() {
                           {member.role}
                         </span>
                         <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>
-                          Desde {formatDate(member.joinedAt)}
+                          {t('since', { date: formatDate(member.joinedAt) })}
                         </span>
                       </div>
                     </div>
@@ -256,7 +256,7 @@ export default function TeamPage() {
                           color: 'var(--danger)', flexShrink: 0,
                         }}
                       >
-                        {removing === member.userId ? 'Eliminando...' : 'Expulsar'}
+                        {removing === member.userId ? t('removing') : t('expel')}
                       </button>
                     )}
                   </div>
@@ -264,11 +264,10 @@ export default function TeamPage() {
               </div>
             </div>
 
-            {/* Invite section (admin only) */}
             {isAdmin && (
               <div style={{ marginBottom: 32 }}>
                 <h2 style={{ fontSize: 13, fontWeight: 600, marginBottom: 12, color: 'var(--text-primary)' }}>
-                  Invitar a un nuevo miembro
+                  {t('inviteTitle')}
                 </h2>
                 <div style={{ display: 'flex', gap: 8 }}>
                   <input
@@ -295,7 +294,7 @@ export default function TeamPage() {
                       flexShrink: 0,
                     }}
                   >
-                    {inviting ? 'Enviando...' : 'Invitar'}
+                    {inviting ? t('sending') : t('invite')}
                   </button>
                 </div>
 
@@ -310,7 +309,7 @@ export default function TeamPage() {
                     {inviteResult.link && (
                       <div style={{ marginTop: 8 }}>
                         <p style={{ fontSize: 10, color: 'var(--text-secondary)', marginBottom: 4 }}>
-                          Comparte este enlace con la persona invitada:
+                          {t('shareLink')}
                         </p>
                         <div style={{
                           display: 'flex', alignItems: 'center', gap: 6,
@@ -326,7 +325,7 @@ export default function TeamPage() {
                           <button
                             onClick={() => {
                               navigator.clipboard.writeText(inviteResult.link!);
-                              setInviteResult({ ...inviteResult, message: 'Enlace copiado al portapapeles.' });
+                              setInviteResult({ ...inviteResult, message: t('linkCopied') });
                             }}
                             style={{
                               padding: '3px 8px', borderRadius: 4, border: '0.5px solid var(--border)',
@@ -334,7 +333,7 @@ export default function TeamPage() {
                               color: 'var(--text-secondary)', flexShrink: 0,
                             }}
                           >
-                            Copiar
+                            {t('copy')}
                           </button>
                         </div>
                       </div>
@@ -344,11 +343,10 @@ export default function TeamPage() {
               </div>
             )}
 
-            {/* Pending invitations (admin only) */}
             {isAdmin && invitations.length > 0 && (
               <div>
                 <h2 style={{ fontSize: 13, fontWeight: 600, marginBottom: 12, color: 'var(--text-primary)' }}>
-                  Invitaciones pendientes ({invitations.length})
+                  {t('pendingCount', { count: invitations.length })}
                 </h2>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                   {invitations.map(inv => (
@@ -377,8 +375,8 @@ export default function TeamPage() {
                           {inv.email}
                         </p>
                         <p style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 2 }}>
-                          {inv.isExpired ? 'Expirada' : `Expira ${formatDate(inv.expires_at)}`}
-                          {' · '}Enviada {formatDate(inv.created_at)}
+                          {inv.isExpired ? t('expired') : t('expiresOn', { date: formatDate(inv.expires_at) })}
+                          {' · '}{t('sentOn', { date: formatDate(inv.created_at) })}
                         </p>
                       </div>
                       <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
@@ -391,7 +389,7 @@ export default function TeamPage() {
                               color: 'var(--text-secondary)',
                             }}
                           >
-                            {copiedToken === inv.token ? 'Copiado' : 'Copiar enlace'}
+                            {copiedToken === inv.token ? t('copied') : t('copyLink')}
                           </button>
                         )}
                         <button
@@ -403,7 +401,7 @@ export default function TeamPage() {
                             color: 'var(--danger)',
                           }}
                         >
-                          {cancellingInvite === inv.id ? '...' : 'Cancelar'}
+                          {cancellingInvite === inv.id ? '...' : tc('cancel')}
                         </button>
                       </div>
                     </div>
@@ -412,10 +410,9 @@ export default function TeamPage() {
               </div>
             )}
 
-            {/* Non-admin message */}
             {!isAdmin && (
               <p style={{ fontSize: 12, color: 'var(--text-secondary)', textAlign: 'center', padding: 20 }}>
-                Solo los administradores pueden invitar o expulsar miembros.
+                {t('adminOnlyMsg')}
               </p>
             )}
           </>
