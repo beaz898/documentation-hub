@@ -2,6 +2,8 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import CookieBanner from '@/components/CookieBanner';
+import { NextIntlClientProvider } from 'next-intl';
+import { getLocale, getMessages } from 'next-intl/server';
 
 export const metadata: Metadata = {
   title: 'Doclity',
@@ -10,18 +12,23 @@ export const metadata: Metadata = {
   icons: { icon: '/favicon.svg' },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const locale = await getLocale();
+  const messages = await getMessages();
+
   return (
-    <html lang="es" suppressHydrationWarning>
+    <html lang={locale} suppressHydrationWarning>
       <body className="antialiased">
-        <ThemeProvider>
-          {children}
-          <CookieBanner />
-        </ThemeProvider>
+        <NextIntlClientProvider messages={messages} locale={locale}>
+          <ThemeProvider>
+            {children}
+            <CookieBanner />
+          </ThemeProvider>
+        </NextIntlClientProvider>
       </body>
     </html>
   );

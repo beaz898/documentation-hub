@@ -162,5 +162,5 @@ export interface AgentTask {
 // Preferencias por usuario (memberships.preferences)
 export interface UserPreferences {
   agent_default_mode?: ConfirmationMode;
-  // Futuro: theme, language, notifications, etc.
+  locale?: 'es' | 'en';
 }

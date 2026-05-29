@@ -7,6 +7,7 @@ import { MessageSquare, Bot, Sun, Moon, Users, BarChart3, CreditCard, LogOut } f
 import DoclityLogo from '@/components/DoclityLogo';
 import { useTheme } from '@/components/ThemeProvider';
 import { createClient } from '@/lib/supabase';
+import LanguageSelector from '@/components/LanguageSelector';
 
 interface OrgSummary {
   hasAgent: boolean;
@@ -120,6 +121,8 @@ export default function AppRail() {
         </nav>
 
         <div className="flex flex-col items-center gap-1">
+          <LanguageSelector />
+
           <button
             onClick={toggleTheme}
             title={theme === 'light' ? 'Cambiar a modo oscuro' : 'Cambiar a modo claro'}

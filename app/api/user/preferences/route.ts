@@ -5,7 +5,8 @@ import { resolveOrg } from '@/lib/org';
 import type { UserPreferences, ConfirmationMode } from '@/lib/agent/types';
 
 const VALID_MODES: ConfirmationMode[] = ['step_by_step', 'milestones', 'autonomous'];
-const ALLOWED_KEYS: Array<keyof UserPreferences> = ['agent_default_mode'];
+const VALID_LOCALES = ['es', 'en'] as const;
+const ALLOWED_KEYS: Array<keyof UserPreferences> = ['agent_default_mode', 'locale'];
 
 /**
  * GET /api/user/preferences
@@ -76,6 +77,14 @@ export async function PATCH(req: NextRequest) {
       if (!VALID_MODES.includes(body.agent_default_mode)) {
         return NextResponse.json(
           { error: `agent_default_mode debe ser uno de: ${VALID_MODES.join(', ')}` },
+          { status: 400 }
+        );
+      }
+    }
+    if ('locale' in body) {
+      if (!VALID_LOCALES.includes(body.locale)) {
+        return NextResponse.json(
+          { error: `locale debe ser uno de: ${VALID_LOCALES.join(', ')}` },
           { status: 400 }
         );
       }
