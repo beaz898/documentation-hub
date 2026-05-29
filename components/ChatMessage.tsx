@@ -1,6 +1,7 @@
 'use client';
 
 import ReactMarkdown from 'react-markdown';
+import { useTranslations } from 'next-intl';
 
 interface Source {
   documentName: string;
@@ -14,6 +15,8 @@ interface ChatMessageProps {
 }
 
 export default function ChatMessage({ role, content, sources }: ChatMessageProps) {
+  const t = useTranslations('chat');
+
   if (role === 'loading') {
     return (
       <div className="animate-fade-in-up" style={{ display: 'flex', gap: 10 }}>
@@ -35,7 +38,7 @@ export default function ChatMessage({ role, content, sources }: ChatMessageProps
             <div className="animate-pulse-dot" style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--brand)', animationDelay: '400ms' }} />
           </div>
           <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
-            Buscando en la documentación...
+            {t('loadingSearch')}
           </span>
         </div>
       </div>

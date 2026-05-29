@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useMemo } from 'react';
+import { useTranslations, useLocale } from 'next-intl';
 
 interface Document {
   id: string;
@@ -65,10 +66,10 @@ interface DocumentsSidebarProps {
 // Folder tree types and builder
 // ============================================================
 interface FolderNode {
-  name: string;          // segment name (e.g. "Q1")
-  fullPath: string;      // full path from root (e.g. "Ventas/2025/Q1"), used as React key + expand state
+  name: string;
+  fullPath: string;
   children: Map<string, FolderNode>;
-  docs: Document[];      // docs directly inside this folder (not in sub-folders)
+  docs: Document[];
 }
 
 function buildFolderTree(docs: Document[]): FolderNode {
@@ -76,7 +77,6 @@ function buildFolderTree(docs: Document[]): FolderNode {
 
   for (const doc of docs) {
     const path = doc.folder_path || '/';
-    // "/" or "" => root level
     if (path === '/' || path === '') {
       root.docs.push(doc);
       continue;
@@ -100,7 +100,6 @@ function buildFolderTree(docs: Document[]): FolderNode {
   return root;
 }
 
-// Count all docs inside a node, including all descendants
 function countDocsRecursive(node: FolderNode): number {
   let total = node.docs.length;
   for (const child of node.children.values()) {
@@ -135,11 +134,13 @@ export default function DocumentsSidebar({
   onRestoreModal,
   modalActive,
 }: DocumentsSidebarProps) {
+  const t = useTranslations('sidebar');
+  const locale = useLocale();
+
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState('');
   const [deleting, setDeleting] = useState<string | null>(null);
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
-  // NEW: section-level collapse state (both sections start expanded)
   const [driveSectionOpen, setDriveSectionOpen] = useState(true);
   const [manualSectionOpen, setManualSectionOpen] = useState(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -149,7 +150,6 @@ export default function DocumentsSidebar({
   const driveDocs = useMemo(() => documents.filter(d => DRIVE_SOURCES.has(d.source ?? '')), [documents]);
   const manualDocs = useMemo(() => documents.filter(d => !DRIVE_SOURCES.has(d.source ?? '')), [documents]);
 
-  // Names that appear BOTH as manual and as drive → show a small badge on those
   const crossSourceNames = useMemo(() => {
     const driveNames = new Set(driveDocs.map(d => d.name));
     const manualNames = new Set(manualDocs.map(d => d.name));
@@ -158,7 +158,6 @@ export default function DocumentsSidebar({
     return both;
   }, [driveDocs, manualDocs]);
 
-  // Build the folder tree once per docs change
   const driveTree = useMemo(() => buildFolderTree(driveDocs), [driveDocs]);
 
   function toggleFolder(fullPath: string) {
@@ -176,7 +175,7 @@ export default function DocumentsSidebar({
     setUploading(true);
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
-      setUploadProgress(`Analizando ${file.name}... (${i + 1}/${files.length})`);
+      setUploadProgress(`${t('analyzing')} ${file.name}... (${i + 1}/${files.length})`);
       try { await onUpload(file); } catch { /* handled in parent */ }
     }
     setUploading(false);
@@ -185,7 +184,7 @@ export default function DocumentsSidebar({
   }
 
   async function handleDelete(id: string, name: string) {
-    if (!window.confirm(`¿Eliminar "${name}"?`)) return;
+    if (!window.confirm(t('deleteConfirm', { name }))) return;
     setDeleting(id);
     try { await onDelete(id); } finally { setDeleting(null); }
   }
@@ -197,19 +196,18 @@ export default function DocumentsSidebar({
   }
 
   function formatDate(dateStr: string): string {
-    return new Date(dateStr).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
+    return new Date(dateStr).toLocaleDateString(locale, { day: 'numeric', month: 'short' });
   }
 
   function formatLastSynced(dateStr?: string): string {
-    if (!dateStr) return 'Nunca';
+    if (!dateStr) return t('relativeNever');
     const diff = Date.now() - new Date(dateStr).getTime();
-    if (diff < 60000) return 'Hace un momento';
-    if (diff < 3600000) return `Hace ${Math.floor(diff / 60000)} min`;
-    if (diff < 86400000) return `Hace ${Math.floor(diff / 3600000)} h`;
+    if (diff < 60000) return t('relativeJustNow');
+    if (diff < 3600000) return t('relativeMinutes', { count: Math.floor(diff / 60000) });
+    if (diff < 86400000) return t('relativeHours', { count: Math.floor(diff / 3600000) });
     return formatDate(dateStr);
   }
 
-  // Small "drive" / "manual" badge for docs that exist in both sources
   function SourceBadge({ source }: { source: 'drive' | 'manual' }) {
     const isDrive = source === 'drive';
     return (
@@ -224,7 +222,6 @@ export default function DocumentsSidebar({
     );
   }
 
-  // Section header chevron
   function SectionChevron({ open }: { open: boolean }) {
     return (
       <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
@@ -234,7 +231,6 @@ export default function DocumentsSidebar({
     );
   }
 
-  // Document row renderer (reused for both drive and manual docs)
   function DocRow({ doc, showSourceBadge, badgeType }: { doc: Document; showSourceBadge: boolean; badgeType: 'drive' | 'manual' }) {
     return (
       <div
@@ -270,7 +266,7 @@ export default function DocumentsSidebar({
           <button
             onClick={() => handleDelete(doc.id, doc.name)}
             disabled={deleting === doc.id}
-            aria-label={`Eliminar ${doc.name}`}
+            aria-label={`${t('deleteConfirm', { name: doc.name })}`}
             style={{
               opacity: 0, padding: 3, borderRadius: 5, border: 'none',
               background: 'transparent', cursor: 'pointer', color: 'var(--danger)',
@@ -293,7 +289,6 @@ export default function DocumentsSidebar({
     );
   }
 
-  // Recursive folder renderer for Drive tree
   function FolderView({ node, depth }: { node: FolderNode; depth: number }) {
     const isExpanded = expandedFolders.has(node.fullPath);
     const totalDocs = countDocsRecursive(node);
@@ -355,15 +350,14 @@ export default function DocumentsSidebar({
         display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0, gap: 6,
       }}>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <h2 style={{ fontSize: 12, fontWeight: 700, letterSpacing: -0.2 }}>Documentos</h2>
-          <p style={{ fontSize: 9, color: 'var(--text-muted)', marginTop: 2 }}>{documents.length} archivos indexados</p>
+          <h2 style={{ fontSize: 12, fontWeight: 700, letterSpacing: -0.2 }}>{t('documents')}</h2>
+          <p style={{ fontSize: 9, color: 'var(--text-muted)', marginTop: 2 }}>{t('filesIndexed', { count: documents.length })}</p>
         </div>
-        {/* Botón de colapsar (desktop) */}
         {onCollapseSidebar && (
           <button
             onClick={onCollapseSidebar}
-            title="Contraer panel"
-            aria-label="Contraer panel"
+            title={t('collapseSidebar')}
+            aria-label={t('collapseSidebar')}
             style={{
               width: 26, height: 26, flexShrink: 0, borderRadius: 6, border: 'none',
               background: 'transparent', cursor: 'pointer',
@@ -380,9 +374,8 @@ export default function DocumentsSidebar({
             </svg>
           </button>
         )}
-        {/* Botón de cerrar (mobile) */}
         {onClose && (
-          <button onClick={onClose} aria-label="Cerrar sidebar" style={{
+          <button onClick={onClose} aria-label={t('closeSidebar')} style={{
             width: 26, height: 26, flexShrink: 0, borderRadius: 6, border: 'none', background: 'transparent',
             cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
             color: 'var(--text-muted)',
@@ -394,18 +387,16 @@ export default function DocumentsSidebar({
 
       {/* 2. Scrollable content */}
       <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden' }}>
-        {/* Banner de bloqueo activo */}
         {uploadLock?.locked && !uploadLock.isMe && (
           <div style={{
             margin: '6px 10px', padding: '8px 10px', borderRadius: 8,
             background: 'rgba(220,38,38,0.08)', border: '0.5px solid rgba(220,38,38,0.25)',
             fontSize: 10, color: 'var(--danger-text)', lineHeight: 1.4,
           }}>
-            🔒 {uploadLock.lockedBy || 'Un compañero'} está analizando documentos. La subida está bloqueada temporalmente.
+            🔒 {t('lockedBanner', { lockedBy: uploadLock.lockedBy || 'Un compañero' })}
           </div>
         )}
 
-        {/* Recordatorio periódico para quien tiene el bloqueo */}
         {showLockReminder && uploadLock?.isMe && (
           <div style={{
             margin: '6px 10px', padding: '8px 10px', borderRadius: 8,
@@ -415,7 +406,7 @@ export default function DocumentsSidebar({
           }}>
             <span style={{ flexShrink: 0 }}>⚠️</span>
             <div style={{ flex: 1 }}>
-              Tienes las subidas bloqueadas. Si ya has terminado de analizar, desbloquéalas para tus compañeros.
+              {t('lockReminderMsg')}
               <button
                 onClick={onDismissLockReminder}
                 style={{
@@ -424,7 +415,7 @@ export default function DocumentsSidebar({
                   fontSize: 9, color: 'var(--warning-text)', cursor: 'pointer',
                 }}
               >
-                Entendido
+                {t('lockReminderDismiss')}
               </button>
             </div>
           </div>
@@ -436,7 +427,6 @@ export default function DocumentsSidebar({
           onClick={() => setDriveSectionOpen(v => !v)}
           role="button"
           aria-expanded={driveSectionOpen}
-          aria-label="Mostrar/ocultar sección Drive"
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             <SectionChevron open={driveSectionOpen} />
@@ -451,17 +441,17 @@ export default function DocumentsSidebar({
                 onClick={e => {
                   e.stopPropagation();
                   if (uploadLock?.locked && !uploadLock.isMe) {
-                    alert(`El bloqueo fue activado por ${uploadLock.lockedBy || 'otro usuario'}. Solo esa persona o el administrador puede desbloquearlo.`);
+                    alert(t('lockedByOtherAlert', { name: uploadLock.lockedBy || 'otro usuario' }));
                     return;
                   }
                   onToggleUploadLock();
                 }}
-                aria-label={uploadLock?.locked ? 'Desbloquear subidas' : 'Bloquear subidas'}
+                aria-label={uploadLock?.locked ? t('unlockTitle') : t('lockTitle')}
                 title={uploadLock?.locked
                   ? uploadLock.isMe
-                    ? 'Subidas bloqueadas por ti. Clic para desbloquear.'
-                    : `Bloqueado por ${uploadLock.lockedBy || 'otro usuario'}`
-                  : 'Bloquear subidas mientras analizas'}
+                    ? t('lockActive')
+                    : t('lockedByOtherAlert', { name: uploadLock.lockedBy || 'otro usuario' })
+                  : t('lockTitle')}
                 style={{
                   padding: '2px 5px', borderRadius: 4, border: 'none',
                   background: uploadLock?.locked ? 'rgba(220,38,38,0.12)' : 'transparent',
@@ -497,7 +487,7 @@ export default function DocumentsSidebar({
                 background: 'var(--bg-tertiary)', border: '0.5px solid var(--border)',
                 fontSize: 10, color: 'var(--text-muted)', textAlign: 'center', lineHeight: 1.5,
               }}>
-                Disponible a partir del plan Pro
+                {t('driveAvailableFrom')}
               </div>
             ) : !driveStatus.connected ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -510,7 +500,7 @@ export default function DocumentsSidebar({
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                     <path d="M12 2L2 19.5h20L12 2z" /><path d="M12 2l8.5 17.5" /><path d="M2 19.5h17" />
                   </svg>
-                  Conectar Google Drive
+                  {t('connectGoogleDrive')}
                 </button>
                 <button onClick={() => onConnectDrive('onedrive')} style={{
                   width: '100%', padding: '8px 10px', borderRadius: 8,
@@ -521,7 +511,7 @@ export default function DocumentsSidebar({
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                     <path d="M17.5 19H9a5 5 0 1 1 .9-9.9A5.5 5.5 0 1 1 17.5 19Z" />
                   </svg>
-                  Conectar OneDrive
+                  {t('connectOneDrive')}
                 </button>
               </div>
             ) : (
@@ -529,7 +519,7 @@ export default function DocumentsSidebar({
                 <div style={{ fontSize: 10, color: 'var(--text-secondary)', marginBottom: 6 }}>
                   <span>{driveStatus.email}</span>
                   <span style={{ margin: '0 4px' }}>·</span>
-                  <span>Sync: {formatLastSynced(driveStatus.lastSynced)}</span>
+                  <span>{t('syncLabel')} {formatLastSynced(driveStatus.lastSynced)}</span>
                 </div>
 
                 <div style={{ display: 'flex', gap: 4, marginBottom: 8 }}>
@@ -539,26 +529,23 @@ export default function DocumentsSidebar({
                     color: 'var(--text-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4,
                   }}>
                     {syncing ? (
-                      <><div className="animate-spin" style={{ width: 8, height: 8, border: '1.5px solid currentColor', borderTopColor: 'transparent', borderRadius: '50%' }} /> Sincronizando...</>
+                      <><div className="animate-spin" style={{ width: 8, height: 8, border: '1.5px solid currentColor', borderTopColor: 'transparent', borderRadius: '50%' }} /> {t('syncing')}</>
                     ) : (
-                      <><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="23 4 23 10 17 10" /><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" /></svg> Sincronizar</>
+                      <><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="23 4 23 10 17 10" /><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" /></svg> {t('syncNow')}</>
                     )}
                   </button>
                 </div>
 
                 {driveDocs.length === 0 ? (
                   <p style={{ fontSize: 11, color: 'var(--text-muted)', textAlign: 'center', padding: '8px 0' }}>
-                    {syncing ? 'Trayendo archivos...' : 'Sin documentos en la carpeta'}
+                    {syncing ? t('fetchingFiles') : t('noFolderDocs')}
                   </p>
                 ) : (
-                  // If there are Drive docs with folders, show tree. Otherwise flat list.
                   driveTree.children.size > 0 ? (
                     <div>
-                      {/* Root-level docs first */}
                       {driveTree.docs.map(doc => (
                         <DocRow key={doc.id} doc={doc} showSourceBadge={crossSourceNames.has(doc.name)} badgeType="drive" />
                       ))}
-                      {/* Then folder tree */}
                       {[...driveTree.children.values()].map(child => (
                         <FolderView key={child.fullPath} node={child} depth={0} />
                       ))}
@@ -582,7 +569,7 @@ export default function DocumentsSidebar({
                   onMouseEnter={e => (e.currentTarget.style.color = 'var(--danger)')}
                   onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-muted)')}
                 >
-                  {driveStatus.provider === 'onedrive' ? 'Desconectar OneDrive' : 'Desconectar Google Drive'}
+                  {driveStatus.provider === 'onedrive' ? t('disconnectOneDrive') : t('disconnectGoogleDrive')}
                 </button>
               </>
             )}
@@ -595,11 +582,10 @@ export default function DocumentsSidebar({
           onClick={() => setManualSectionOpen(v => !v)}
           role="button"
           aria-expanded={manualSectionOpen}
-          aria-label="Mostrar/ocultar sección Subidos manualmente"
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             <SectionChevron open={manualSectionOpen} />
-            <span>Subidos manualmente</span>
+            <span>{t('manualSection')}</span>
           </div>
           <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>{manualDocs.length}</span>
         </div>
@@ -615,7 +601,7 @@ export default function DocumentsSidebar({
               </div>
             ) : manualDocs.length === 0 ? (
               <p style={{ fontSize: 11, color: 'var(--text-muted)', padding: '12px 4px', textAlign: 'center' }}>
-                Sin documentos manuales
+                {t('noManualDocs')}
               </p>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
@@ -634,7 +620,6 @@ export default function DocumentsSidebar({
         display: 'flex', flexDirection: 'column', gap: 8, flexShrink: 0,
       }}>
         {activeModal?.status === 'ready' ? (
-          /* Modal minimizado: botón de restaurar */
           <button
             onClick={onRestoreModal}
             style={{
@@ -652,67 +637,41 @@ export default function DocumentsSidebar({
             {activeModal.label}
           </button>
         ) : analysisProgress > 0 ? (
-          /* Análisis en curso con porcentaje: barra clicable para restaurar modal */
-          <div
-            onClick={onRestoreModal}
-            style={{ width: '100%', cursor: 'pointer' }}
-          >
-            <p style={{
-              fontSize: 10, fontWeight: 500, color: 'var(--brand)',
-              marginBottom: 4, textAlign: 'center',
-            }}>
+          <div onClick={onRestoreModal} style={{ width: '100%', cursor: 'pointer' }}>
+            <p style={{ fontSize: 10, fontWeight: 500, color: 'var(--brand)', marginBottom: 4, textAlign: 'center' }}>
               {analysisPhase}
             </p>
-            <div style={{
-              width: '100%', height: 36, borderRadius: 9,
-              background: 'var(--bg-tertiary)', overflow: 'hidden',
-              position: 'relative',
-            }}>
-              <div style={{
-                height: '100%', borderRadius: 9,
-                background: 'var(--brand)',
-                width: `${analysisProgress}%`,
-                transition: 'width 0.4s ease',
-              }} />
-              <span style={{
-                position: 'absolute', inset: 0,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: 11, fontWeight: 600,
-                color: analysisProgress > 50 ? '#fff' : 'var(--brand)',
-              }}>
+            <div style={{ width: '100%', height: 36, borderRadius: 9, background: 'var(--bg-tertiary)', overflow: 'hidden', position: 'relative' }}>
+              <div style={{ height: '100%', borderRadius: 9, background: 'var(--brand)', width: `${analysisProgress}%`, transition: 'width 0.4s ease' }} />
+              <span style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 600, color: analysisProgress > 50 ? '#fff' : 'var(--brand)' }}>
                 {analysisProgress}%
               </span>
             </div>
           </div>
         ) : activeModal?.status === 'running' ? (
-          /* Reanálisis en curso sin porcentaje (reanalizar dentro del modal de mejora) */
           <button
             onClick={onRestoreModal}
             style={{
               width: '100%', padding: '9px', borderRadius: 9, border: 'none',
-              background: 'var(--brand-light)',
-              color: 'var(--brand)',
+              background: 'var(--brand-light)', color: 'var(--brand)',
               fontSize: 12, fontWeight: 600, cursor: 'pointer',
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
             }}
           >
-            <div className="animate-pulse" style={{
-              width: 7, height: 7, borderRadius: '50%', background: 'var(--brand)', flexShrink: 0,
-            }} />
+            <div className="animate-pulse" style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--brand)', flexShrink: 0 }} />
             {activeModal.label}
           </button>
         ) : (
-          /* Estado normal o modal visible (bloqueado) */
           <button
             onClick={() => {
               if (uploadLock?.locked && !uploadLock?.isMe) {
-                alert(`La subida de documentos está bloqueada por ${uploadLock.lockedBy || 'un compañero'}. Espera a que termine de analizar.`);
+                alert(t('lockedByOtherConfirm', { name: uploadLock.lockedBy || 'un compañero' }));
                 return;
               }
               fileInputRef.current?.click();
             }}
             disabled={uploading || !!modalActive}
-            title={modalActive ? 'Hay un análisis o mejora activo. Termínalo antes de continuar.' : undefined}
+            title={modalActive ? t('modalActiveTooltip') : undefined}
             style={{
               width: '100%', padding: '9px', borderRadius: 9, border: 'none',
               background: (uploading || modalActive) ? 'var(--bg-tertiary)' : 'var(--brand)',
@@ -722,9 +681,9 @@ export default function DocumentsSidebar({
             }}
           >
             {uploading ? (
-              <><div className="animate-spin" style={{ width: 12, height: 12, border: '1.5px solid currentColor', borderTopColor: 'transparent', borderRadius: '50%' }} /> Procesando...</>
+              <><div className="animate-spin" style={{ width: 12, height: 12, border: '1.5px solid currentColor', borderTopColor: 'transparent', borderRadius: '50%' }} /> {t('processing')}</>
             ) : (
-              <><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="17 8 12 3 7 8" /><line x1="12" y1="3" x2="12" y2="15" /></svg> Analizar documento</>
+              <><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="17 8 12 3 7 8" /><line x1="12" y1="3" x2="12" y2="15" /></svg> {t('uploadButton')}</>
             )}
           </button>
         )}

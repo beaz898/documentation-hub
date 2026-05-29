@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import FeedbackButton from '@/components/feedback/FeedbackButton';
 
 interface ChatHeaderProps {
@@ -16,6 +17,8 @@ export default function ChatHeader({
   isMobile, documentCount, accessToken, hasMessages,
   onToggleSidebar, onClearChat,
 }: ChatHeaderProps) {
+  const t = useTranslations();
+
   return (
     <div style={{ borderBottom: '0.5px solid var(--border)', flexShrink: 0 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 16px' }}>
@@ -30,14 +33,18 @@ export default function ChatHeader({
           </button>
         )}
         <p style={{ flex: 1, fontSize: 11, color: 'var(--text-muted)', margin: 0 }}>
-          {documentCount > 0 ? `${documentCount} documento${documentCount !== 1 ? 's' : ''}` : 'Sube documentos para empezar'}
+          {documentCount > 0
+            ? t('chat.documentCount', { count: documentCount })
+            : t('sidebar.noDocumentsHint')}
         </p>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <FeedbackButton accessToken={accessToken} />
           {hasMessages && (
-            <button onClick={() => { if (window.confirm('¿Limpiar conversación?')) onClearChat(); }}
-              style={{ fontSize: 12, padding: '6px 12px', borderRadius: 8, border: '0.5px solid var(--border)', background: 'transparent', color: 'var(--text-muted)', cursor: 'pointer' }}>
-              Limpiar chat
+            <button
+              onClick={() => { if (window.confirm(t('chat.clearChatConfirm'))) onClearChat(); }}
+              style={{ fontSize: 12, padding: '6px 12px', borderRadius: 8, border: '0.5px solid var(--border)', background: 'transparent', color: 'var(--text-muted)', cursor: 'pointer' }}
+            >
+              {t('chat.clearChat')}
             </button>
           )}
         </div>
