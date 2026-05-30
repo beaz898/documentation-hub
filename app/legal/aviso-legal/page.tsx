@@ -1,6 +1,7 @@
 import { getLocale, getTranslations } from 'next-intl/server';
 import BackButton from '@/components/BackButton';
 import LegalDisclaimer from '@/components/LegalDisclaimer';
+import LanguageSelector from '@/components/LanguageSelector';
 
 export async function generateMetadata() {
   const t = await getTranslations('legal.aviso');
@@ -100,6 +101,7 @@ export default async function AvisoLegalPage() {
       }}>
         <BackButton />
         <h1 style={{ fontSize: 15, fontWeight: 600 }}>{t('pageTitle')}</h1>
+        <div style={{ marginLeft: 'auto' }}><LanguageSelector /></div>
       </div>
 
       <div style={{ maxWidth: 720, margin: '0 auto', padding: '32px 20px 60px' }}>

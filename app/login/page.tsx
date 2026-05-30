@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { createClient } from '@/lib/supabase';
 import DoclityLogo from '@/components/DoclityLogo';
+import LanguageSelector from '@/components/LanguageSelector';
 
 export default function LoginPage() {
   const t = useTranslations('login');
@@ -59,6 +60,9 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4">
+      <div style={{ position: 'fixed', top: 12, right: 16, zIndex: 50 }}>
+        <LanguageSelector />
+      </div>
       <div
         className="fixed inset-0 pointer-events-none"
         style={{

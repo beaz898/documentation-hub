@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { createClient } from '@/lib/supabase';
+import LanguageSelector from '@/components/LanguageSelector';
 
 interface CurrentOrg {
   name: string;
@@ -107,6 +108,9 @@ export default function InvitePage() {
 
   return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: 'var(--bg)' }}>
+      <div style={{ position: 'fixed', top: 12, right: 16, zIndex: 50 }}>
+        <LanguageSelector />
+      </div>
       <div style={{
         width: '100%', maxWidth: 400, padding: 32, borderRadius: 12,
         background: 'var(--bg-secondary)', border: '0.5px solid var(--border)',

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { createClient } from '@/lib/supabase';
 import DoclityLogo from '@/components/DoclityLogo';
+import LanguageSelector from '@/components/LanguageSelector';
 
 const BRAND = '#2563eb';
 const BRAND_LIGHT = '#dbeafe';
@@ -147,15 +148,18 @@ export default function LandingPage() {
         <div className="landing-section">
           <div className="nav-inner" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <DoclityLogo size="sm" />
-            <div className="nav-cta" style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-              {isLoggedIn ? (
-                <button className="btn-nav-primary" onClick={() => router.push('/chat')}>{t('goToChat')}</button>
-              ) : (
-                <>
-                  <button className="btn-nav" onClick={() => router.push('/login')}>{t('ctaLogin')}</button>
-                  <button className="btn-nav-primary" onClick={() => router.push('/login')}>{t('ctaStart')}</button>
-                </>
-              )}
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+              <LanguageSelector />
+              <div className="nav-cta" style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                {isLoggedIn ? (
+                  <button className="btn-nav-primary" onClick={() => router.push('/chat')}>{t('goToChat')}</button>
+                ) : (
+                  <>
+                    <button className="btn-nav" onClick={() => router.push('/login')}>{t('ctaLogin')}</button>
+                    <button className="btn-nav-primary" onClick={() => router.push('/login')}>{t('ctaStart')}</button>
+                  </>
+                )}
+              </div>
             </div>
           </div>
         </div>
