@@ -1,14 +1,27 @@
-import { getTranslations } from 'next-intl/server';
+import { getLocale, getTranslations } from 'next-intl/server';
 import BackButton from '@/components/BackButton';
+import LegalDisclaimer from '@/components/LegalDisclaimer';
 
 export async function generateMetadata() {
   const t = await getTranslations('legal.aviso');
   return { title: `${t('pageTitle')} — Doclity` };
 }
 
+const email = (chunks: React.ReactNode) => (
+  <a href="mailto:doclitynfo@gmail.com" style={{ color: 'var(--brand)' }}>{chunks}</a>
+);
+
 export default async function AvisoLegalPage() {
-  const t  = await getTranslations('legal.aviso');
-  const tl = await getTranslations('legal');
+  const t      = await getTranslations('legal.aviso');
+  const tl     = await getTranslations('legal');
+  const locale = await getLocale();
+
+  const tableRows = [
+    { label: t('s1LabelOwner'),    value: t('s1ValueOwner') },
+    { label: t('s1LabelNif'),      value: t('s1ValueNif') },
+    { label: t('s1LabelDomicilio'),value: t('s1ValueDomicilio') },
+    { label: t('s1LabelActividad'),value: t('s1ValueActividad') },
+  ];
 
   const sections = [
     {
@@ -16,17 +29,9 @@ export default async function AvisoLegalPage() {
       title: t('s1'),
       content: (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          <p>
-            En cumplimiento del artículo 10 de la Ley 34/2002, de 11 de julio, de Servicios de la Sociedad de la Información
-            y de Comercio Electrónico (LSSI-CE), se informa al usuario de los datos del titular de este sitio web:
-          </p>
+          <p>{t('s1Intro')}</p>
           <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 6 }}>
-            {[
-              { label: 'Titular', value: '[PENDIENTE — se completará con el alta como autónomo]' },
-              { label: 'NIF', value: '[PENDIENTE]' },
-              { label: 'Domicilio', value: 'A Coruña, España' },
-              { label: 'Actividad', value: 'Prestación de servicios de gestión y análisis de documentación corporativa mediante inteligencia artificial.' },
-            ].map(({ label, value }) => (
+            {tableRows.map(({ label, value }) => (
               <div key={label} style={{
                 padding: '10px 14px', borderRadius: 8,
                 background: 'var(--bg-secondary)', border: '0.5px solid var(--border)',
@@ -41,7 +46,7 @@ export default async function AvisoLegalPage() {
               background: 'var(--bg-secondary)', border: '0.5px solid var(--border)',
               display: 'flex', gap: 12, flexWrap: 'wrap',
             }}>
-              <span style={{ fontWeight: 600, fontSize: 13, flexShrink: 0, minWidth: 120 }}>Email de contacto</span>
+              <span style={{ fontWeight: 600, fontSize: 13, flexShrink: 0, minWidth: 120 }}>{t('s1LabelEmail')}</span>
               <a href="mailto:doclitynfo@gmail.com" style={{ color: 'var(--brand)' }}>doclitynfo@gmail.com</a>
             </div>
           </div>
@@ -51,27 +56,15 @@ export default async function AvisoLegalPage() {
     {
       number: '2',
       title: t('s2'),
-      content: (
-        <p>
-          Este sitio web ofrece el servicio Doclity, una plataforma de gestión y análisis de documentación corporativa.
-          El acceso al servicio requiere registro y está sujeto a los Términos y Condiciones de uso.
-        </p>
-      ),
+      content: <p>{t('s2Body')}</p>,
     },
     {
       number: '3',
       title: t('s3'),
       content: (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <p>
-            Todos los contenidos del sitio web (textos, diseño, código fuente, logotipos, gráficos) son propiedad del titular
-            o de sus licenciantes, y están protegidos por la legislación de propiedad intelectual e industrial.
-            Queda prohibida su reproducción, distribución o transformación sin autorización expresa.
-          </p>
-          <p>
-            El usuario conserva todos los derechos sobre los documentos que sube a la plataforma.
-            Doclity no adquiere ningún derecho de propiedad sobre los contenidos del usuario.
-          </p>
+          <p>{t('s3Body1')}</p>
+          <p>{t('s3Body2')}</p>
         </div>
       ),
     },
@@ -80,13 +73,9 @@ export default async function AvisoLegalPage() {
       title: t('s4'),
       content: (
         <>
-          <p style={{ marginBottom: 12 }}>El titular no se hace responsable de:</p>
+          <p style={{ marginBottom: 12 }}>{t('s4Intro')}</p>
           <ul style={{ paddingLeft: 20, display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {[
-              'Interrupciones en el servicio por causas técnicas, mantenimiento o fuerza mayor.',
-              'Decisiones tomadas por el usuario basándose exclusivamente en los resultados del análisis automático (los resultados son orientativos y no sustituyen la revisión humana).',
-              'Contenidos alojados por los usuarios que pudieran infringir derechos de terceros.',
-            ].map(item => (
+            {[t('s4Item1'), t('s4Item2'), t('s4Item3')].map(item => (
               <li key={item}>{item}</li>
             ))}
           </ul>
@@ -96,12 +85,7 @@ export default async function AvisoLegalPage() {
     {
       number: '5',
       title: t('s5'),
-      content: (
-        <p>
-          Este aviso legal se rige por la legislación española. Para cualquier controversia derivada del uso de este sitio web,
-          las partes se someten a los juzgados y tribunales de A Coruña, España.
-        </p>
-      ),
+      content: <p>{t('s5Body')}</p>,
     },
   ];
 
@@ -124,21 +108,17 @@ export default async function AvisoLegalPage() {
           <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>{tl('lastUpdated')}</p>
         </div>
 
+        {locale !== 'es' && <LegalDisclaimer />}
+
         <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
           {sections.map(section => (
             <section key={section.number}>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, marginBottom: 12 }}>
                 <span style={{
-                  flexShrink: 0,
-                  width: 24, height: 24,
-                  borderRadius: 6,
-                  background: 'var(--brand-light)',
-                  color: 'var(--brand)',
-                  fontSize: 11,
-                  fontWeight: 700,
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
+                  flexShrink: 0, width: 24, height: 24, borderRadius: 6,
+                  background: 'var(--brand-light)', color: 'var(--brand)',
+                  fontSize: 11, fontWeight: 700,
+                  display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
                 }}>
                   {section.number}
                 </span>

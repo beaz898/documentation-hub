@@ -1,58 +1,63 @@
-import { getTranslations } from 'next-intl/server';
+import { getLocale, getTranslations } from 'next-intl/server';
 import BackButton from '@/components/BackButton';
+import LegalDisclaimer from '@/components/LegalDisclaimer';
 
 export async function generateMetadata() {
   const t = await getTranslations('legal.privacidad');
   return { title: `${t('pageTitle')} — Doclity` };
 }
 
+const emailLink = (chunks: React.ReactNode) => (
+  <a href="mailto:doclitynfo@gmail.com" style={{ color: 'var(--brand)' }}>{chunks}</a>
+);
+
 export default async function PrivacidadPage() {
-  const t  = await getTranslations('legal.privacidad');
-  const tl = await getTranslations('legal');
+  const t      = await getTranslations('legal.privacidad');
+  const tl     = await getTranslations('legal');
+  const locale = await getLocale();
+
+  const providers = [
+    { name: t('s4Provider1Name'), desc: t('s4Provider1Desc') },
+    { name: t('s4Provider2Name'), desc: t('s4Provider2Desc') },
+    { name: t('s4Provider3Name'), desc: t('s4Provider3Desc') },
+    { name: t('s4Provider4Name'), desc: t('s4Provider4Desc') },
+    { name: t('s4Provider5Name'), desc: t('s4Provider5Desc') },
+    { name: t('s4Provider6Name'), desc: t('s4Provider6Desc') },
+  ];
+
+  const s2Subs = [
+    { title: t('s2Sub1Title'), body: t('s2Sub1Body') },
+    { title: t('s2Sub2Title'), body: t('s2Sub2Body') },
+    { title: t('s2Sub3Title'), body: t('s2Sub3Body') },
+    { title: t('s2Sub4Title'), body: t('s2Sub4Body') },
+    { title: t('s2Sub5Title'), body: t('s2Sub5Body') },
+    { title: t('s2Sub6Title'), body: t('s2Sub6Body') },
+  ];
+
+  const s3Subs = [
+    { title: t('s3Sub1Title'), body: t('s3Sub1Body') },
+    { title: t('s3Sub2Title'), body: t('s3Sub2Body') },
+    { title: t('s3Sub3Title'), body: t('s3Sub3Body') },
+    { title: t('s3Sub4Title'), body: t('s3Sub4Body') },
+  ];
 
   const sections = [
     {
       number: '1',
       title: t('s1'),
-      content: (
-        <>
-          <p>
-            El responsable del tratamiento de tus datos es el titular de Doclity, con domicilio en A Coruña, España.
-            Para cualquier consulta relacionada con la protección de tus datos personales, puedes contactarnos en:{' '}
-            <a href="mailto:doclitynfo@gmail.com" style={{ color: 'var(--brand)' }}>doclitynfo@gmail.com</a>.
-          </p>
-        </>
-      ),
+      content: <p>{t.rich('s1Body', { email: emailLink })}</p>,
     },
     {
       number: '2',
       title: t('s2'),
       content: (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-          <div>
-            <p style={{ fontWeight: 600, marginBottom: 4 }}>Datos de registro</p>
-            <p>Dirección de email y contraseña, gestionados por Supabase Auth. No recogemos nombre, teléfono ni dirección postal.</p>
-          </div>
-          <div>
-            <p style={{ fontWeight: 600, marginBottom: 4 }}>Documentos que subes</p>
-            <p>Los documentos que indexas en la plataforma se almacenan en Supabase (texto completo y metadatos) y en Pinecone (fragmentos vectorizados para búsqueda semántica). Solo son accesibles por los miembros de tu organización.</p>
-          </div>
-          <div>
-            <p style={{ fontWeight: 600, marginBottom: 4 }}>Consultas al chat</p>
-            <p>Las preguntas que haces al asistente se registran para generar estadísticas de uso internas de tu organización. No las usamos para entrenar modelos ni las compartimos con terceros.</p>
-          </div>
-          <div>
-            <p style={{ fontWeight: 600, marginBottom: 4 }}>Resultados de análisis</p>
-            <p>Los resultados de los análisis de documentos (contradicciones, duplicidades, inconsistencias) se almacenan para que puedas consultarlos en tu panel de inteligencia documental.</p>
-          </div>
-          <div>
-            <p style={{ fontWeight: 600, marginBottom: 4 }}>Datos de facturación</p>
-            <p>Los datos de pago (tarjeta de crédito) son gestionados íntegramente por Stripe. Nosotros no almacenamos ni tenemos acceso a los datos de tu tarjeta.</p>
-          </div>
-          <div>
-            <p style={{ fontWeight: 600, marginBottom: 4 }}>Datos técnicos</p>
-            <p>Registramos información de uso (endpoint utilizado, modelo de IA, tokens consumidos, latencia) para monitorización y facturación. No registramos datos personales en estos logs.</p>
-          </div>
+          {s2Subs.map(({ title, body }) => (
+            <div key={title}>
+              <p style={{ fontWeight: 600, marginBottom: 4 }}>{title}</p>
+              <p>{body}</p>
+            </div>
+          ))}
         </div>
       ),
     },
@@ -61,22 +66,12 @@ export default async function PrivacidadPage() {
       title: t('s3'),
       content: (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-          <div>
-            <p style={{ fontWeight: 600, marginBottom: 4 }}>Prestarte el servicio</p>
-            <p>Responder tus preguntas sobre documentación, analizar documentos, detectar contradicciones y duplicidades, y gestionar tu cuenta.</p>
-          </div>
-          <div>
-            <p style={{ fontWeight: 600, marginBottom: 4 }}>Facturación</p>
-            <p>Gestionar tu suscripción, controlar el consumo de créditos y procesar pagos.</p>
-          </div>
-          <div>
-            <p style={{ fontWeight: 600, marginBottom: 4 }}>Estadísticas internas de tu organización</p>
-            <p>Mostrarte el panel de inteligencia documental con datos de uso, calidad y cobertura de tus documentos. Estas estadísticas solo son visibles para los administradores de tu organización.</p>
-          </div>
-          <div>
-            <p style={{ fontWeight: 600, marginBottom: 4 }}>Mejora del servicio</p>
-            <p>Usamos datos agregados y anonimizados para mejorar la calidad del análisis. Nunca usamos tus documentos ni consultas para entrenar modelos de IA.</p>
-          </div>
+          {s3Subs.map(({ title, body }) => (
+            <div key={title}>
+              <p style={{ fontWeight: 600, marginBottom: 4 }}>{title}</p>
+              <p>{body}</p>
+            </div>
+          ))}
         </div>
       ),
     },
@@ -85,14 +80,7 @@ export default async function PrivacidadPage() {
       title: t('s4'),
       content: (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          {[
-            { name: 'Supabase (Supabase Inc.)', desc: 'Almacenamiento de base de datos, autenticación y archivos.' },
-            { name: 'Pinecone (Pinecone Systems, Inc.)', desc: 'Base de datos vectorial para búsqueda semántica.' },
-            { name: 'Anthropic (Anthropic, PBC)', desc: 'Procesamiento de lenguaje natural. Anthropic no usa los datos enviados por API para entrenar sus modelos.' },
-            { name: 'Stripe (Stripe, Inc.)', desc: 'Procesamiento de pagos.' },
-            { name: 'Vercel (Vercel, Inc.)', desc: 'Hosting de la aplicación web.' },
-            { name: 'Railway (Railway Corp.)', desc: 'Ejecución de análisis exhaustivos en segundo plano.' },
-          ].map(({ name, desc }) => (
+          {providers.map(({ name, desc }) => (
             <div key={name} style={{
               padding: '12px 14px', borderRadius: 8,
               background: 'var(--bg-secondary)', border: '0.5px solid var(--border)',
@@ -101,47 +89,27 @@ export default async function PrivacidadPage() {
               <p style={{ color: 'var(--text-secondary)' }}>{desc}</p>
             </div>
           ))}
-          <p style={{ marginTop: 4, color: 'var(--text-secondary)' }}>
-            Todos estos proveedores están ubicados en EE.UU. o la UE y ofrecen garantías adecuadas de protección de datos.
-          </p>
+          <p style={{ marginTop: 4, color: 'var(--text-secondary)' }}>{t('s4Footer')}</p>
         </div>
       ),
     },
     {
       number: '5',
       title: t('s5'),
-      content: (
-        <p>
-          Mientras tu cuenta esté activa, conservamos todos tus datos para prestarte el servicio. Si cancelas tu suscripción,
-          mantenemos tus datos durante un período de gracia de <strong>90 días</strong>. Transcurrido ese período, procederemos
-          al borrado. Los datos de facturación se conservan el tiempo que exija la legislación fiscal española (4 años).
-        </p>
-      ),
+      content: <p>{t.rich('s5Body', { b: (c) => <strong>{c}</strong> })}</p>,
     },
     {
       number: '6',
       title: t('s6'),
       content: (
         <>
-          <p style={{ marginBottom: 12 }}>
-            Tras el período de gracia de 90 días después de la cancelación, borraremos:
-          </p>
+          <p style={{ marginBottom: 12 }}>{t('s6Intro')}</p>
           <ul style={{ paddingLeft: 20, display: 'flex', flexDirection: 'column', gap: 6 }}>
-            {[
-              'Tus documentos y su texto completo',
-              'Los vectores de Pinecone asociados a tu organización',
-              'Tus consultas al chat',
-              'Los resultados de análisis',
-              'Los logs de uso',
-            ].map(item => (
+            {[t('s6Item1'), t('s6Item2'), t('s6Item3'), t('s6Item4'), t('s6Item5')].map(item => (
               <li key={item}>{item}</li>
             ))}
           </ul>
-          <p style={{ marginTop: 12 }}>
-            Se anonimizarán los datos agregados de uso para estadísticas internas. Puedes solicitar el borrado anticipado
-            contactando a{' '}
-            <a href="mailto:doclitynfo@gmail.com" style={{ color: 'var(--brand)' }}>doclitynfo@gmail.com</a>.
-          </p>
+          <p style={{ marginTop: 12 }}>{t.rich('s6Body2', { email: emailLink })}</p>
         </>
       ),
     },
@@ -150,27 +118,16 @@ export default async function PrivacidadPage() {
       title: t('s7'),
       content: (
         <>
-          <p style={{ marginBottom: 12 }}>Conforme al RGPD, tienes derecho a:</p>
+          <p style={{ marginBottom: 12 }}>{t('s7Intro')}</p>
           <ul style={{ paddingLeft: 20, display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 12 }}>
-            {[
-              'Acceder a tus datos personales',
-              'Rectificar datos inexactos',
-              'Solicitar la supresión',
-              'Oponerte al tratamiento',
-              'Solicitar la limitación del tratamiento',
-              'Solicitar la portabilidad',
-            ].map(item => (
+            {[t('s7Item1'), t('s7Item2'), t('s7Item3'), t('s7Item4'), t('s7Item5'), t('s7Item6')].map(item => (
               <li key={item}>{item}</li>
             ))}
           </ul>
-          <p>
-            Para ejercer estos derechos, escríbenos a{' '}
-            <a href="mailto:doclitynfo@gmail.com" style={{ color: 'var(--brand)' }}>doclitynfo@gmail.com</a>.
-            Responderemos en un plazo máximo de 30 días. Si consideras que no hemos atendido adecuadamente
-            tus derechos, puedes presentar una reclamación ante la Agencia Española de Protección de Datos (
-            <a href="https://www.aepd.es" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--brand)' }}>www.aepd.es</a>
-            ).
-          </p>
+          <p>{t.rich('s7Body2', {
+            email: emailLink,
+            aepd: (c) => <a href="https://www.aepd.es" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--brand)' }}>{c}</a>,
+          })}</p>
         </>
       ),
     },
@@ -179,15 +136,9 @@ export default async function PrivacidadPage() {
       title: t('s8'),
       content: (
         <>
-          <p style={{ marginBottom: 12 }}>Implementamos las siguientes medidas técnicas y organizativas:</p>
+          <p style={{ marginBottom: 12 }}>{t('s8Intro')}</p>
           <ul style={{ paddingLeft: 20, display: 'flex', flexDirection: 'column', gap: 6 }}>
-            {[
-              'Cifrado AES-256-GCM de tokens OAuth',
-              'Aislamiento de datos por organización (Row Level Security y namespaces)',
-              'Autenticación con JWT',
-              'Verificación de firma en webhooks de pago',
-              'Rate limiting en endpoints sensibles',
-            ].map(item => (
+            {[t('s8Item1'), t('s8Item2'), t('s8Item3'), t('s8Item4'), t('s8Item5')].map(item => (
               <li key={item}>{item}</li>
             ))}
           </ul>
@@ -197,22 +148,12 @@ export default async function PrivacidadPage() {
     {
       number: '9',
       title: t('s9'),
-      content: (
-        <p>
-          Doclity no utiliza cookies de seguimiento ni publicidad. Solo utilizamos cookies técnicas
-          estrictamente necesarias para mantener tu sesión activa.
-        </p>
-      ),
+      content: <p>{t('s9Body')}</p>,
     },
     {
       number: '10',
       title: t('s10'),
-      content: (
-        <p>
-          Podemos actualizar esta política cuando sea necesario. Te notificaremos cualquier cambio relevante
-          a través de la aplicación.
-        </p>
-      ),
+      content: <p>{t('s10Body')}</p>,
     },
   ];
 
@@ -235,21 +176,17 @@ export default async function PrivacidadPage() {
           <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>{tl('lastUpdated')}</p>
         </div>
 
+        {locale !== 'es' && <LegalDisclaimer />}
+
         <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
           {sections.map(section => (
             <section key={section.number}>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, marginBottom: 12 }}>
                 <span style={{
-                  flexShrink: 0,
-                  width: 24, height: 24,
-                  borderRadius: 6,
-                  background: 'var(--brand-light)',
-                  color: 'var(--brand)',
-                  fontSize: 11,
-                  fontWeight: 700,
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
+                  flexShrink: 0, width: 24, height: 24, borderRadius: 6,
+                  background: 'var(--brand-light)', color: 'var(--brand)',
+                  fontSize: 11, fontWeight: 700,
+                  display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
                 }}>
                   {section.number}
                 </span>

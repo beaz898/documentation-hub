@@ -1,18 +1,24 @@
 import Link from 'next/link';
-import { getTranslations } from 'next-intl/server';
+import { getLocale, getTranslations } from 'next-intl/server';
 import BackButton from '@/components/BackButton';
+import LegalDisclaimer from '@/components/LegalDisclaimer';
 
 export async function generateMetadata() {
   const t = await getTranslations('legal.terminos');
   return { title: `${t('pageTitle')} — Doclity` };
 }
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || '/';
+const APP_URL     = process.env.NEXT_PUBLIC_APP_URL || '/';
 const APP_DISPLAY = APP_URL.replace(/^https?:\/\//, '');
 
+const emailLink = (chunks: React.ReactNode) => (
+  <a href="mailto:doclitynfo@gmail.com" style={{ color: 'var(--brand)' }}>{chunks}</a>
+);
+
 export default async function TerminosPage() {
-  const t  = await getTranslations('legal.terminos');
-  const tl = await getTranslations('legal');
+  const t      = await getTranslations('legal.terminos');
+  const tl     = await getTranslations('legal');
+  const locale = await getLocale();
 
   const sections = [
     {
@@ -20,8 +26,7 @@ export default async function TerminosPage() {
       title: t('s1'),
       content: (
         <p>
-          Los presentes Términos y Condiciones regulan el acceso y uso de Doclity, una plataforma de gestión
-          y análisis de documentación corporativa con inteligencia artificial, accesible desde{' '}
+          {t('s1BodyBefore')}
           <a href={APP_URL} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--brand)' }}>
             {APP_DISPLAY}
           </a>.
@@ -33,15 +38,9 @@ export default async function TerminosPage() {
       title: t('s2'),
       content: (
         <>
-          <p style={{ marginBottom: 12 }}>Doclity ofrece las siguientes funcionalidades:</p>
+          <p style={{ marginBottom: 12 }}>{t('s2Intro')}</p>
           <ul style={{ paddingLeft: 20, display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {[
-              'Un chat privado que responde preguntas sobre la documentación corporativa del usuario, con citas a las fuentes.',
-              'Análisis automático de documentos al subirlos, detectando duplicados, contradicciones, solapamientos e incoherencias contra el corpus existente.',
-              'Un modo de mejora asistida por IA para corregir documentos conversando.',
-              'Análisis de estilo (ortografía, ambigüedades, sugerencias).',
-              'Integración con Google Drive para sincronizar documentación.',
-            ].map(item => (
+            {[t('s2Item1'), t('s2Item2'), t('s2Item3'), t('s2Item4'), t('s2Item5')].map(item => (
               <li key={item}>{item}</li>
             ))}
           </ul>
@@ -53,9 +52,9 @@ export default async function TerminosPage() {
       title: t('s3'),
       content: (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          <p>Para usar el servicio es necesario registrarse con una dirección de email válida.</p>
-          <p>El usuario es responsable de mantener la confidencialidad de sus credenciales.</p>
-          <p>Cada usuario pertenece a una organización (workspace) con un rol de administrador o miembro.</p>
+          <p>{t('s3Body1')}</p>
+          <p>{t('s3Body2')}</p>
+          <p>{t('s3Body3')}</p>
         </div>
       ),
     },
@@ -64,12 +63,7 @@ export default async function TerminosPage() {
       title: t('s4'),
       content: (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          {[
-            'El servicio funciona mediante planes de suscripción mensual con un pool de créditos compartido por la organización.',
-            'Cada operación consume un número determinado de créditos según su tipo.',
-            'Los créditos no utilizados del plan no se acumulan entre períodos.',
-            'Los créditos extra adquiridos mediante recargas no caducan.',
-          ].map(item => (
+          {[t('s4Item1'), t('s4Item2'), t('s4Item3'), t('s4Item4')].map(item => (
             <div key={item} style={{
               padding: '10px 14px', borderRadius: 8,
               background: 'var(--bg-secondary)', border: '0.5px solid var(--border)',
@@ -85,12 +79,9 @@ export default async function TerminosPage() {
       title: t('s5'),
       content: (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          <p>Los pagos se procesan a través de Stripe. Doclity no almacena ni tiene acceso a los datos de tarjeta del usuario.</p>
-          <p>Las suscripciones se renuevan automáticamente cada mes.</p>
-          <p>
-            El administrador de la organización puede gestionar su suscripción, consultar facturas y cambiar
-            el método de pago desde el portal de Stripe.
-          </p>
+          <p>{t('s5Body1')}</p>
+          <p>{t('s5Body2')}</p>
+          <p>{t('s5Body3')}</p>
         </div>
       ),
     },
@@ -99,12 +90,9 @@ export default async function TerminosPage() {
       title: t('s6'),
       content: (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          <p>Los documentos subidos por el usuario son y siguen siendo propiedad del usuario.</p>
-          <p>
-            Doclity no utiliza los documentos del usuario para entrenar modelos de inteligencia artificial
-            ni los comparte con terceros.
-          </p>
-          <p>Los documentos se almacenan cifrados y aislados por organización.</p>
+          <p>{t('s6Body1')}</p>
+          <p>{t('s6Body2')}</p>
+          <p>{t('s6Body3')}</p>
         </div>
       ),
     },
@@ -113,19 +101,13 @@ export default async function TerminosPage() {
       title: t('s7'),
       content: (
         <>
-          <p style={{ marginBottom: 12 }}>El usuario se compromete a no usar el servicio para:</p>
+          <p style={{ marginBottom: 12 }}>{t('s7Intro')}</p>
           <ul style={{ paddingLeft: 20, display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 12 }}>
-            {[
-              'Almacenar contenido ilegal o que infrinja derechos de terceros.',
-              'Intentar acceder a datos de otras organizaciones.',
-              'Realizar ingeniería inversa del servicio.',
-              'Sobrecargar intencionadamente la infraestructura.',
-              'Compartir sus credenciales con personas no autorizadas.',
-            ].map(item => (
+            {[t('s7Item1'), t('s7Item2'), t('s7Item3'), t('s7Item4'), t('s7Item5')].map(item => (
               <li key={item}>{item}</li>
             ))}
           </ul>
-          <p>Nos reservamos el derecho de suspender cuentas que incumplan estas condiciones.</p>
+          <p>{t('s7Outro')}</p>
         </>
       ),
     },
@@ -134,18 +116,9 @@ export default async function TerminosPage() {
       title: t('s8'),
       content: (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          <p>
-            Doclity se ofrece &ldquo;tal cual&rdquo;. Nos esforzamos por mantener el servicio disponible,
-            pero no garantizamos disponibilidad ininterrumpida ni ausencia de errores.
-          </p>
-          <p>
-            El análisis de documentos se basa en inteligencia artificial y puede no detectar todas las
-            discrepancias existentes. Los resultados del análisis son orientativos y no sustituyen la
-            revisión humana.
-          </p>
-          <p>
-            No nos hacemos responsables de decisiones tomadas basándose exclusivamente en los resultados del servicio.
-          </p>
+          <p>{t('s8Body1')}</p>
+          <p>{t('s8Body2')}</p>
+          <p>{t('s8Body3')}</p>
         </div>
       ),
     },
@@ -154,46 +127,29 @@ export default async function TerminosPage() {
       title: t('s9'),
       content: (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          <p>Puedes cancelar tu suscripción en cualquier momento.</p>
-          <p>Tras la cancelación, mantendrás acceso hasta el final del período facturado.</p>
-          <p>
-            Tus datos se conservarán durante <strong>90 días</strong> adicionales de gracia. Transcurrido
-            ese período, se procederá al borrado según lo descrito en la{' '}
-            <Link href="/legal/privacidad" style={{ color: 'var(--brand)' }}>Política de Privacidad</Link>.
-          </p>
+          <p>{t('s9Body1')}</p>
+          <p>{t('s9Body2')}</p>
+          <p>{t.rich('s9Body3', {
+            b: (c) => <strong>{c}</strong>,
+            privLink: (c) => <Link href="/legal/privacidad" style={{ color: 'var(--brand)' }}>{c}</Link>,
+          })}</p>
         </div>
       ),
     },
     {
       number: '10',
       title: t('s10'),
-      content: (
-        <p>
-          Podemos modificar estos términos cuando sea necesario. Te notificaremos los cambios relevantes a
-          través de la aplicación con al menos <strong>15 días</strong> de antelación. El uso continuado del
-          servicio tras la notificación implica la aceptación de los nuevos términos.
-        </p>
-      ),
+      content: <p>{t.rich('s10Body', { b: (c) => <strong>{c}</strong> })}</p>,
     },
     {
       number: '11',
       title: t('s11'),
-      content: (
-        <p>
-          Estos términos se rigen por la legislación española. Para cualquier controversia, las partes se
-          someten a los juzgados y tribunales de A Coruña, España.
-        </p>
-      ),
+      content: <p>{t('s11Body')}</p>,
     },
     {
       number: '12',
       title: t('s12'),
-      content: (
-        <p>
-          Para cualquier consulta sobre estos términos, puedes escribirnos a{' '}
-          <a href="mailto:doclitynfo@gmail.com" style={{ color: 'var(--brand)' }}>doclitynfo@gmail.com</a>.
-        </p>
-      ),
+      content: <p>{t.rich('s12Body', { email: emailLink })}</p>,
     },
   ];
 
@@ -216,21 +172,17 @@ export default async function TerminosPage() {
           <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>{tl('lastUpdated')}</p>
         </div>
 
+        {locale !== 'es' && <LegalDisclaimer />}
+
         <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
           {sections.map(section => (
             <section key={section.number}>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, marginBottom: 12 }}>
                 <span style={{
-                  flexShrink: 0,
-                  width: 24, height: 24,
-                  borderRadius: 6,
-                  background: 'var(--brand-light)',
-                  color: 'var(--brand)',
-                  fontSize: 11,
-                  fontWeight: 700,
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
+                  flexShrink: 0, width: 24, height: 24, borderRadius: 6,
+                  background: 'var(--brand-light)', color: 'var(--brand)',
+                  fontSize: 11, fontWeight: 700,
+                  display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
                 }}>
                   {section.number}
                 </span>
