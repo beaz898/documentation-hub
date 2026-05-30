@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import ReactMarkdown from 'react-markdown';
 import type { AgentTask, AgentStep, PendingRequest, ToolName } from '@/lib/agent/types';
 
 interface AgentChatProps {
@@ -185,9 +186,9 @@ function StepRow({ step }: { step: AgentStep }) {
         background: 'var(--bg-secondary)', border: '0.5px solid var(--border)',
       }}>
         <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 8 }}>Resultado</p>
-        <p style={{ fontSize: 13, color: 'var(--text-primary)', lineHeight: 1.7, whiteSpace: 'pre-wrap', margin: 0 }}>
-          {step.output}
-        </p>
+        <div style={{ fontSize: 13, color: 'var(--text-primary)', lineHeight: 1.7, margin: 0 }}>
+          <ReactMarkdown>{step.output}</ReactMarkdown>
+        </div>
         {step.citations.length > 0 && (
           <div style={{ marginTop: 12, paddingTop: 10, borderTop: '0.5px solid var(--border)' }}>
             <p style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 5 }}>Fuentes</p>

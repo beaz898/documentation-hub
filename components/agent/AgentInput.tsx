@@ -228,7 +228,9 @@ export default function AgentInput({
       }}>
         <textarea
           ref={textareaRef} value={goal} onChange={handleGoalChange} rows={2}
-          onKeyDown={e => { if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') handleCreateTask(); }}
+          onKeyDown={e => {
+            if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleCreateTask(); }
+          }}
           placeholder="Describe el objetivo de la tarea para el agente…"
           disabled={creating}
           style={{
@@ -292,7 +294,7 @@ export default function AgentInput({
         </div>
       </div>
       <p style={{ fontSize: 10, textAlign: 'center', color: 'var(--text-muted)' }}>
-        ⌘ + Enter para enviar · El agente solo usa tu documentación
+        Enter para enviar · Shift+Enter nueva línea · El agente solo usa tu documentación
       </p>
     </div>
   );
