@@ -10,12 +10,6 @@ import type { RerankedCandidate, DocumentJudgment, PipelineOptions } from './typ
  *
  * Post-procesamiento: las citas del LLM se verifican contra el texto real
  * del documento y se corrigen con match fuzzy si no coinciden exactamente.
- *
- * Prompt caching: las instrucciones + documento nuevo se envían en el system
- * con cache_control:ephemeral. Los fragmentos del candidato van en el user
- * message. El caché se activa cuando el prefijo supera los 2.048 tokens de
- * Haiku; para documentos muy cortos (<~3.300 chars) Anthropic lo omite sin
- * error.
  */
 
 /** Límite de texto del doc nuevo en modo rápido (ahorra tokens). */
@@ -172,15 +166,31 @@ function fixQuotesInJudgment(
 }
 
 // ============================================================
-// Constructores de prompt (separados para claridad del split)
+// Juicio individual
 // ============================================================
 
-/**
- * Bloque estable que se cachea: instrucciones fijas + documento nuevo.
- * Idéntico en todas las comparaciones de un mismo análisis.
- */
-function buildJudgeSystem(newDocumentName: string, newDocumentText: string): string {
-  return `Eres un auditor de documentación. Tu tarea es comparar CONTENIDO CONCRETO entre dos documentos y emitir un juicio preciso, no una impresión general.
+async function judgeSingleDocument(args: {
+  newDocumentName: string;
+  newDocumentText: string;
+  candidate: RerankedCandidate;
+}): Promise<DocumentJudgment> {
+  const { newDocumentName, newDocumentText, candidate } = args;
+
+  const existingFragsBlock = candidate.fragments
+    .map((f, i) => `[Fragmento ${i + 1} de "${candidate.documentName}"]\n${f.text}`)
+    .join('\n\n');
+
+  const prompt = `Eres un auditor de documentación. Tu tarea es comparar CONTENIDO CONCRETO entre dos documentos y emitir un juicio preciso, no una impresión general.
+
+DOCUMENTO NUEVO: "${newDocumentName}"
+"""
+${newDocumentText}
+"""
+
+DOCUMENTO EXISTENTE: "${candidate.documentName}" (fuente: ${candidate.source})
+"""
+${existingFragsBlock}
+"""
 
 INSTRUCCIONES CRÍTICAS:
 1. "Solapamiento" significa contenido que se repite, aunque esté redactado con palabras distintas. NO significa compartir tema general.
@@ -226,26 +236,6 @@ REGLAS DE FORMATO:
 - Máximo 10 contradicciones, 5 inconsistencias menores y 5 solapamientos.
 - El campo "severity" es obligatorio en cada contradicción: "contradiction" si son incompatibles, "minor_inconsistency" si son diferencias de enfoque o matiz.
 
-DOCUMENTO NUEVO: "${newDocumentName}"
-"""
-${newDocumentText}
-"""`;
-}
-
-/**
- * Bloque variable por llamada: fragmentos del candidato + formato JSON.
- * Cambia en cada comparación; no se cachea.
- */
-function buildJudgeUserMessage(candidate: RerankedCandidate): string {
-  const existingFragsBlock = candidate.fragments
-    .map((f, i) => `[Fragmento ${i + 1} de "${candidate.documentName}"]\n${f.text}`)
-    .join('\n\n');
-
-  return `DOCUMENTO EXISTENTE: "${candidate.documentName}" (fuente: ${candidate.source})
-"""
-${existingFragsBlock}
-"""
-
 Responde con este JSON (sin bloques de código, sin texto adicional):
 {
   "overlapPercent": 25,
@@ -259,28 +249,9 @@ Responde con este JSON (sin bloques de código, sin texto adicional):
   ],
   "uniqueToNewDoc": ["aspecto 1", "aspecto 2"]
 }`;
-}
-
-// ============================================================
-// Juicio individual
-// ============================================================
-
-async function judgeSingleDocument(args: {
-  newDocumentName: string;
-  newDocumentText: string;
-  candidate: RerankedCandidate;
-  useCache: boolean;
-}): Promise<DocumentJudgment> {
-  const { newDocumentName, newDocumentText, candidate, useCache } = args;
 
   try {
-    const response = await callLLMJson<JudgeResponse>('', {
-      system:      buildJudgeSystem(newDocumentName, newDocumentText),
-      cacheSystem: useCache,
-      messages:    [{ role: 'user', content: buildJudgeUserMessage(candidate) }],
-      maxOutputTokens: 4096,
-      temperature: 0.1,
-    });
+    const response = await callLLMJson<JudgeResponse>(prompt, { maxOutputTokens: 4096, temperature: 0.1 });
     const rawJudgment: DocumentJudgment = {
       documentId: candidate.documentId,
       documentName: candidate.documentName,
@@ -328,8 +299,6 @@ export async function judgeAllDocuments(args: {
   if (args.candidates.length === 0) return [];
 
   const isExhaustive = args.options?.exhaustive === true;
-  // Caché activo solo cuando hay ≥2 candidatos (si hay 1, no hay hits posibles).
-  const useCache = args.candidates.length >= 2;
 
   // Modo rápido: truncar para ahorrar tokens
   // Modo exhaustivo: documento completo
@@ -355,7 +324,6 @@ export async function judgeAllDocuments(args: {
             newDocumentName: args.newDocumentName,
             newDocumentText,
             candidate: args.candidates[i],
-            useCache,
           }).then(judgment => { results[i] = judgment; })
         );
       }
@@ -374,7 +342,6 @@ export async function judgeAllDocuments(args: {
       newDocumentName: args.newDocumentName,
       newDocumentText,
       candidate: args.candidates[i],
-      useCache,
     });
     results.push(judgment);
   }
