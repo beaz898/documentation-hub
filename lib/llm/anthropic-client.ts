@@ -58,6 +58,8 @@ interface TextResult {
   text: string;
   inputTokens: number;
   outputTokens: number;
+  cacheCreationTokens: number;
+  cacheReadTokens: number;
 }
 
 // ── Constructores de payload / headers ─────────────────────────────────────────
@@ -159,11 +161,18 @@ async function callAnthropicTextWithTokens(
     buildPayload(prompt, opts),
     buildHeaders(opts),
   );
-  const d       = body as Record<string, unknown>;
-  const content = d?.content as Array<Record<string, unknown>> | undefined;
-  const text    = content?.[0]?.text as string | undefined;
+  const d        = body as Record<string, unknown>;
+  const content  = d?.content as Array<Record<string, unknown>> | undefined;
+  const text     = content?.[0]?.text as string | undefined;
   if (!text) throw new Error('Empty text response from Anthropic');
-  return { text, inputTokens, outputTokens };
+  const usageRaw = d?.usage as Record<string, number> | undefined;
+  return {
+    text,
+    inputTokens,
+    outputTokens,
+    cacheCreationTokens: usageRaw?.cache_creation_input_tokens ?? 0,
+    cacheReadTokens:     usageRaw?.cache_read_input_tokens     ?? 0,
+  };
 }
 
 // ── Respuestas de texto — sin rate limiting (función interna) ──────────────────
@@ -318,6 +327,13 @@ export async function callAnthropicJson<T = unknown>(
     finalInput  = r1.inputTokens;
     finalOutput = r1.outputTokens;
 
+    if (opts.cacheSystem) {
+      console.log(
+        `[judge cache] in=${r1.inputTokens} out=${r1.outputTokens}` +
+        ` cache_creation=${r1.cacheCreationTokens} cache_read=${r1.cacheReadTokens}`,
+      );
+    }
+
     try {
       return tryParseJson<T>(r1.text);
     } catch {
@@ -327,6 +343,13 @@ export async function callAnthropicJson<T = unknown>(
       const r2 = await callAnthropicTextWithTokens(adjustedPrompt, adjustedOpts);
       finalInput  = r2.inputTokens;
       finalOutput = r2.outputTokens;
+
+      if (opts.cacheSystem) {
+        console.log(
+          `[judge cache] retry in=${r2.inputTokens} out=${r2.outputTokens}` +
+          ` cache_creation=${r2.cacheCreationTokens} cache_read=${r2.cacheReadTokens}`,
+        );
+      }
 
       try {
         return tryParseJson<T>(r2.text);
