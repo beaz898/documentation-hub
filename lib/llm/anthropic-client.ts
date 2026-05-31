@@ -6,6 +6,12 @@ import type {
   AgentLLMResponse,
   AgentMessage,
 } from './types';
+import {
+  acquireRateLimit,
+  recordUsage,
+  currentWindowStart,
+  EST_OUTPUT_TOKENS,
+} from './rate-limiter';
 
 // ── Constantes ─────────────────────────────────────────────────────────────────
 
@@ -16,7 +22,7 @@ const HAIKU_MODEL  = 'claude-haiku-4-5-20251001';
 const SONNET_MODEL = 'claude-sonnet-4-6';
 export const AGENT_MODEL = SONNET_MODEL;
 
-// 5 reintentos, backoff progresivo. El agente también usa esta política.
+// 5 reintentos, backoff progresivo. Red de seguridad tras el rate limiter.
 const MAX_RETRIES  = 5;
 const RETRY_DELAYS = [2000, 5000, 10000, 15000, 20000];
 
@@ -42,7 +48,19 @@ export interface CallOptions {
   cacheSystem?: boolean;
 }
 
-// ── Constructores de payload / headers ────────────────────────────────────────
+interface RawResult {
+  body: unknown;
+  inputTokens: number;
+  outputTokens: number;
+}
+
+interface TextResult {
+  text: string;
+  inputTokens: number;
+  outputTokens: number;
+}
+
+// ── Constructores de payload / headers ─────────────────────────────────────────
 
 function buildMessages(prompt: string, opts: CallOptions): MessageItem[] {
   if (opts.messages && opts.messages.length > 0) return opts.messages;
@@ -96,7 +114,7 @@ function buildHeaders(opts: CallOptions): Record<string, string> {
 async function callAnthropicRaw(
   payload: Record<string, unknown>,
   headers: Record<string, string>,
-): Promise<unknown> {
+): Promise<RawResult> {
   let lastError = 'unknown';
 
   for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
@@ -114,7 +132,13 @@ async function callAnthropicRaw(
         if (res.status !== 429 && res.status !== 529 && res.status < 500) break;
         continue;
       }
-      return await res.json();
+      const body = await res.json();
+      const usageRaw = (body as Record<string, unknown>)?.usage as Record<string, number> | undefined;
+      return {
+        body,
+        inputTokens:  usageRaw?.input_tokens  ?? 0,
+        outputTokens: usageRaw?.output_tokens ?? 0,
+      };
     } catch (err) {
       lastError = err instanceof Error ? err.message : String(err);
     }
@@ -123,41 +147,73 @@ async function callAnthropicRaw(
   throw new Error(`Anthropic API call failed after retries: ${lastError}`);
 }
 
-// ── Respuestas de texto ────────────────────────────────────────────────────────
+// ── Helpers de texto ───────────────────────────────────────────────────────────
+
+async function callAnthropicTextWithTokens(
+  prompt: string,
+  opts: CallOptions,
+): Promise<TextResult> {
+  const { body, inputTokens, outputTokens } = await callAnthropicRaw(
+    buildPayload(prompt, opts),
+    buildHeaders(opts),
+  );
+  const d       = body as Record<string, unknown>;
+  const content = d?.content as Array<Record<string, unknown>> | undefined;
+  const text    = content?.[0]?.text as string | undefined;
+  if (!text) throw new Error('Empty text response from Anthropic');
+  return { text, inputTokens, outputTokens };
+}
+
+// ── Respuestas de texto — sin rate limiting (función interna) ──────────────────
 
 export async function callAnthropicText(
   prompt: string,
   opts: CallOptions = {},
 ): Promise<string> {
-  const data    = await callAnthropicRaw(buildPayload(prompt, opts), buildHeaders(opts));
-  const d       = data as Record<string, unknown>;
-  const content = d?.content as Array<Record<string, unknown>> | undefined;
-  const text    = content?.[0]?.text as string | undefined;
-  if (!text) throw new Error('Empty text response from Anthropic');
+  const { text } = await callAnthropicTextWithTokens(prompt, opts);
   return text;
 }
+
+// ── Respuestas con usage — record-only fire-and-forget (RAG, improve, style) ──
 
 export async function callAnthropicWithUsage(
   prompt: string,
   opts: CallOptions = {},
 ): Promise<LLMResponseWithUsage> {
-  const data    = await callAnthropicRaw(buildPayload(prompt, opts), buildHeaders(opts));
-  const d       = data as Record<string, unknown>;
+  // Capturar la ventana antes de la llamada para contabilizar en el minuto correcto
+  const windowStart = currentWindowStart();
+
+  const { body, inputTokens, outputTokens } = await callAnthropicRaw(
+    buildPayload(prompt, opts),
+    buildHeaders(opts),
+  );
+
+  const d       = body as Record<string, unknown>;
   const content = d?.content as Array<Record<string, unknown>> | undefined;
   const text    = content?.[0]?.text as string | undefined;
   if (!text) throw new Error('Empty text response from Anthropic');
 
   const usageRaw = d?.usage as Record<string, number> | undefined;
   const usage: LLMUsage = {
-    inputTokens:         usageRaw?.input_tokens                ?? 0,
-    outputTokens:        usageRaw?.output_tokens               ?? 0,
+    inputTokens,
+    outputTokens,
     cacheCreationTokens: usageRaw?.cache_creation_input_tokens ?? 0,
     cacheReadTokens:     usageRaw?.cache_read_input_tokens     ?? 0,
   };
+
+  // Fire-and-forget: registra consumo para que análisis/agente vean el total real.
+  // El error se loguea como warning; nunca bloquea la respuesta al usuario.
+  recordUsage({
+    windowStart,
+    reqDelta:    1,
+    inputDelta:  inputTokens,
+    outputDelta: outputTokens,
+  }).catch(err => console.warn('[rate-limiter] Error registrando uso RAG:', err));
+
   return { text, usage };
 }
 
-// ── Respuestas JSON ────────────────────────────────────────────────────────────
+// ── Respuestas JSON — blocking (pipeline de análisis) ─────────────────────────
 
 function sanitizeJsonResponse(raw: string): string {
   let cleaned = raw.trim();
@@ -247,23 +303,48 @@ export async function callAnthropicJson<T = unknown>(
     adjustedPrompt = prompt + strictSuffix;
   }
 
-  const raw = await callAnthropicText(adjustedPrompt, adjustedOpts);
+  const payload     = buildPayload(adjustedPrompt, adjustedOpts);
+  const estInput    = Math.ceil(JSON.stringify(payload).length / 4);
+  const windowStart = await acquireRateLimit(estInput, EST_OUTPUT_TOKENS.json);
+
+  // Inicializar con estimados para que el finally tenga valores correctos incluso en error
+  let finalInput:  number = estInput;
+  let finalOutput: number = EST_OUTPUT_TOKENS.json;
+
   try {
-    return tryParseJson<T>(raw);
-  } catch {
-    console.warn('[callAnthropicJson] Parse failed, retrying. Length:', raw.length, 'head:', raw.slice(0, 200));
-    await new Promise(r => setTimeout(r, 1500));
-    const raw2 = await callAnthropicText(adjustedPrompt, adjustedOpts);
+    const r1 = await callAnthropicTextWithTokens(adjustedPrompt, adjustedOpts);
+    finalInput  = r1.inputTokens;
+    finalOutput = r1.outputTokens;
+
     try {
-      return tryParseJson<T>(raw2);
-    } catch (err2) {
-      console.warn('[callAnthropicJson] Retry parse also failed. Length:', raw2.length, 'head:', raw2.slice(0, 200));
-      throw err2;
+      return tryParseJson<T>(r1.text);
+    } catch {
+      console.warn('[callAnthropicJson] Parse failed, retrying. head:', r1.text.slice(0, 200));
+      await new Promise(r => setTimeout(r, 1500));
+
+      const r2 = await callAnthropicTextWithTokens(adjustedPrompt, adjustedOpts);
+      finalInput  = r2.inputTokens;
+      finalOutput = r2.outputTokens;
+
+      try {
+        return tryParseJson<T>(r2.text);
+      } catch (err2) {
+        console.warn('[callAnthropicJson] Retry parse also failed. head:', r2.text.slice(0, 200));
+        throw err2;
+      }
     }
+  } finally {
+    // Awaited: el siguiente paso del pipeline ve los contadores actualizados.
+    await recordUsage({
+      windowStart,
+      reqDelta:    0,
+      inputDelta:  finalInput  - estInput,
+      outputDelta: finalOutput - EST_OUTPUT_TOKENS.json,
+    }).catch(err => console.warn('[rate-limiter] Error ajustando uso de análisis:', err));
   }
 }
 
-// ── Respuestas del agente (tool_use) ──────────────────────────────────────────
+// ── Respuestas del agente — blocking (tool_use) ────────────────────────────────
 
 export async function callAnthropicAgent(
   systemPrompt: string,
@@ -279,24 +360,46 @@ export async function callAnthropicAgent(
     messages,
   };
   const headers = {
-    'Content-Type':    'application/json',
-    'x-api-key':       ANTHROPIC_API_KEY,
+    'Content-Type':      'application/json',
+    'x-api-key':         ANTHROPIC_API_KEY,
     'anthropic-version': '2023-06-01',
   };
 
-  const data = await callAnthropicRaw(payload as Record<string, unknown>, headers);
-  const d    = data as {
-    stop_reason: string;
-    content: ContentBlock[];
-    usage: { input_tokens: number; output_tokens: number };
-  };
+  const estInput    = Math.ceil(JSON.stringify(payload).length / 4);
+  const windowStart = await acquireRateLimit(estInput, EST_OUTPUT_TOKENS.agent);
 
-  return {
-    stop_reason: d.stop_reason ?? 'end_turn',
-    content:     Array.isArray(d.content) ? d.content : [],
-    usage: {
-      input_tokens:  d.usage?.input_tokens  ?? 0,
-      output_tokens: d.usage?.output_tokens ?? 0,
-    },
-  };
+  let finalInput:  number = estInput;
+  let finalOutput: number = EST_OUTPUT_TOKENS.agent;
+
+  try {
+    const { body, inputTokens, outputTokens } = await callAnthropicRaw(
+      payload as Record<string, unknown>,
+      headers,
+    );
+    finalInput  = inputTokens;
+    finalOutput = outputTokens;
+
+    const d = body as {
+      stop_reason: string;
+      content:     ContentBlock[];
+      usage:       { input_tokens: number; output_tokens: number };
+    };
+
+    return {
+      stop_reason: d.stop_reason ?? 'end_turn',
+      content:     Array.isArray(d.content) ? d.content : [],
+      usage: {
+        input_tokens:  inputTokens,
+        output_tokens: outputTokens,
+      },
+    };
+  } finally {
+    // Awaited: asegura que el contador refleja el consumo real antes del siguiente turno.
+    await recordUsage({
+      windowStart,
+      reqDelta:    0,
+      inputDelta:  finalInput  - estInput,
+      outputDelta: finalOutput - EST_OUTPUT_TOKENS.agent,
+    }).catch(err => console.warn('[rate-limiter] Error ajustando uso del agente:', err));
+  }
 }
