@@ -334,8 +334,7 @@ export async function callAnthropicJson<T = unknown>(
       }
     }
   } finally {
-    // Awaited: el siguiente paso del pipeline ve los contadores actualizados.
-    await recordUsage({
+    recordUsage({
       windowStart,
       reqDelta:    0,
       inputDelta:  finalInput  - estInput,
@@ -394,8 +393,7 @@ export async function callAnthropicAgent(
       },
     };
   } finally {
-    // Awaited: asegura que el contador refleja el consumo real antes del siguiente turno.
-    await recordUsage({
+    recordUsage({
       windowStart,
       reqDelta:    0,
       inputDelta:  finalInput  - estInput,

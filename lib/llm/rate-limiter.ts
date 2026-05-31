@@ -19,10 +19,6 @@ export function currentWindowStart(): string {
   return new Date(Math.floor(Date.now() / 60_000) * 60_000).toISOString();
 }
 
-function msUntilNextWindow(): number {
-  return 60_000 - (Date.now() % 60_000) + 200; // +200 ms de margen
-}
-
 // ── Cliente Supabase (singleton service role) ─────────────────────────────────
 let _client: ReturnType<typeof createServiceClient> | null = null;
 function getClient() {
@@ -30,7 +26,7 @@ function getClient() {
   return _client;
 }
 
-// ── Reserva bloqueante ────────────────────────────────────────────────────────
+// ── Reserva no-bloqueante (fail-open) ─────────────────────────────────────────
 
 type AcquireRow = {
   allowed:      boolean;
@@ -40,63 +36,54 @@ type AcquireRow = {
 };
 
 /**
- * Reserva capacidad para análisis o agente (modo blocking).
- * Espera hasta la siguiente ventana si la actual está saturada (máx. 2 ciclos).
- * Fail-open si Supabase es inalcanzable.
+ * Intenta reservar capacidad en la ventana actual.
+ * Siempre fail-open: si Supabase no está disponible o el límite está saturado,
+ * loguea un warning y deja pasar la llamada igualmente.
  * @returns windowStart — la ventana reservada, necesaria para el ajuste posterior.
  */
 export async function acquireRateLimit(
   estInputTokens:  number,
   estOutputTokens: number,
 ): Promise<string> {
-  const MAX_CYCLES = 2;
+  const windowStart = currentWindowStart();
 
-  for (let cycle = 0; cycle < MAX_CYCLES; cycle++) {
-    const windowStart = currentWindowStart();
+  try {
+    const { data, error } = await getClient().rpc('try_acquire_rate_limit', {
+      p_window:     windowStart,
+      p_est_input:  estInputTokens,
+      p_est_output: estOutputTokens,
+      p_max_req:    MAX_RPM,
+      p_max_input:  MAX_ITPM,
+      p_max_output: MAX_OTPM,
+    });
 
-    try {
-      const { data, error } = await getClient().rpc('try_acquire_rate_limit', {
-        p_window:     windowStart,
-        p_est_input:  estInputTokens,
-        p_est_output: estOutputTokens,
-        p_max_req:    MAX_RPM,
-        p_max_input:  MAX_ITPM,
-        p_max_output: MAX_OTPM,
-      });
+    if (error) {
+      console.warn('[rate-limiter] Error Supabase — fail-open:', error.message);
+      return windowStart;
+    }
 
-      if (error) {
-        console.warn('[rate-limiter] Error Supabase — fail-open:', error.message);
-        return windowStart;
-      }
+    const row = (data as AcquireRow[] | null)?.[0];
+    if (!row) {
+      console.warn('[rate-limiter] RPC sin resultado — fail-open');
+      return windowStart;
+    }
 
-      const row = (data as AcquireRow[] | null)?.[0];
-      if (!row) {
-        console.warn('[rate-limiter] RPC sin resultado — fail-open');
-        return windowStart;
-      }
-
-      if (row.allowed) return windowStart;
-
+    if (!row.allowed) {
       const reason =
         row.cur_requests >= MAX_RPM  ? 'RPM'  :
         row.cur_input    >= MAX_ITPM ? 'ITPM' : 'OTPM';
-      const waitMs = msUntilNextWindow();
-
       console.warn(
         `[rate-limiter] ${reason} saturado ` +
         `(req=${row.cur_requests} in=${row.cur_input} out=${row.cur_output}). ` +
-        `Esperando ${Math.round(waitMs / 1000)}s hasta la siguiente ventana.`
+        `Fail-open — dejando pasar la llamada.`
       );
-
-      await new Promise(r => setTimeout(r, waitMs));
-
-    } catch (err) {
-      console.warn('[rate-limiter] Error inesperado — fail-open:', err);
-      return currentWindowStart();
     }
-  }
 
-  throw new Error('[rate-limiter] Límite de tasa excedido tras los máximos ciclos de espera');
+    return windowStart;
+  } catch (err) {
+    console.warn('[rate-limiter] Error inesperado — fail-open:', err);
+    return currentWindowStart();
+  }
 }
 
 // ── Registro de uso post-llamada ──────────────────────────────────────────────
