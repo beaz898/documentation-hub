@@ -164,3 +164,55 @@ export interface UserPreferences {
   agent_default_mode?: ConfirmationMode;
   locale?: 'es' | 'en';
 }
+
+// ── Modelo de conversación continua (nuevo) ────────────────────────────────
+
+// Estado de la conversación (a nivel de hilo)
+export type ConversationStatus =
+  | 'idle'                    // Sin turno activo; el usuario puede escribir
+  | 'running'                 // El worker está procesando un turno
+  | 'awaiting_user'           // El agente espera respuesta del usuario
+  | 'awaiting_confirmation';  // El agente espera aprobación del usuario
+
+// Estado de un mensaje assistant individual
+export type MessageStatus =
+  | 'running'
+  | 'awaiting_user'
+  | 'awaiting_confirmation'
+  | 'completed'
+  | 'failed';
+
+// Fila de agent_conversations
+export interface AgentConversation {
+  id: string;
+  org_id: string;
+  user_id: string;
+  title: string | null;
+  confirmation_mode: ConfirmationMode;
+  status: ConversationStatus;
+  pending_request: PendingRequest | null;
+  total_credits_used: number;
+  total_tokens_input: number;
+  total_tokens_output: number;
+  turn_count: number;
+  created_at: string;
+  updated_at: string;
+  last_message_at: string | null;
+}
+
+// Fila de agent_messages
+export interface AgentMessage {
+  id: string;
+  conversation_id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  steps: AgentStep[];
+  status: MessageStatus;
+  error_message: string | null;
+  tokens_input: number;
+  tokens_output: number;
+  credits_estimated: number;
+  credits_used: number;
+  created_at: string;
+  updated_at: string;
+}
