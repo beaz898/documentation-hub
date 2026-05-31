@@ -128,7 +128,9 @@ async function callAnthropicRaw(
         body: JSON.stringify(payload),
       });
       if (!res.ok) {
+        const errBody = await res.text().catch(() => '');
         lastError = `HTTP ${res.status}`;
+        console.error(`[Anthropic] ${res.status} error body:`, errBody);
         if (res.status !== 429 && res.status !== 529 && res.status < 500) break;
         continue;
       }
