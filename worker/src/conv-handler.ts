@@ -63,8 +63,28 @@ export async function pollConversationTurns(
     if (!messages || messages.length === 0) return 0;
 
     // Optimistic lock individual por mensaje: UPDATE WHERE status='running' RETURNING id.
-    // Si la fila ya fue modificada por otro worker (estado cambiado), RETURNING devuelve
-    // vacío y se salta. Garantiza que cada mensaje lo procesa a lo sumo un worker.
+    //
+    // LIMITACIÓN (single-worker OK, multi-worker NO):
+    // Este lock protege la transición DESDE otro estado (p.ej. 'pending' → 'running'),
+    // pero NO protege mensajes que YA están en 'running'. PostgreSQL devuelve la fila
+    // si el WHERE matchea aunque el valor no cambie, así que dos workers concurrentes
+    // haciendo UPDATE WHERE status='running' sobre el mismo mensaje AMBOS obtienen éxito.
+    //
+    // Con un único worker en Railway el riesgo es mínimo (solo ocurre si el poll retoma
+    // un turno stuck mientras el runner original sigue vivo). Los fixes del runner lo cubren:
+    //   - runner-conv.ts buildStepsIntoMessages deduplica tool_results por tool_use_id
+    //     → garantía determinista de que nunca llega payload inválido a Anthropic.
+    //   - runner-conv.ts validateHistory detecta duplicados y falla el turno con error claro.
+    //
+    // PARA ESCALA HORIZONTAL (N workers): añadir columna locked_at timestamp a agent_messages
+    // y cambiar el claim a:
+    //   UPDATE agent_messages
+    //   SET locked_at = now()
+    //   WHERE id = $1
+    //     AND status = 'running'
+    //     AND (locked_at IS NULL OR locked_at < now() - interval '2 min')
+    //   RETURNING id
+    // Eso cierra la race condition completamente.
     for (const row of messages) {
       const msg = row as { id: string; conversation_id: string };
 

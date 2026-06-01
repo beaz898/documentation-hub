@@ -94,16 +94,20 @@ function buildStepsIntoMessages(steps: AgentStep[]): LLMMessage[] {
       // Recoge tool_results saltando meta-pasos que puedan aparecer entre
       // el grupo de tool_calls y sus resultados (caso: confirmation pause).
       const toolResults: ToolResultContent[] = [];
+      const seenResultIds = new Set<string>();
       while (j < steps.length) {
         if (isMetaStep(steps[j].type)) { j++; continue; }
         if (steps[j].type !== 'tool_result') break;
         const tr = steps[j] as ToolResultStep;
-        toolResults.push({
-          type:        'tool_result',
-          tool_use_id: tr.tool_use_id,
-          content:     JSON.stringify(tr.output),
-          is_error:    tr.is_error,
-        });
+        if (!seenResultIds.has(tr.tool_use_id)) {
+          seenResultIds.add(tr.tool_use_id);
+          toolResults.push({
+            type:        'tool_result',
+            tool_use_id: tr.tool_use_id,
+            content:     JSON.stringify(tr.output),
+            is_error:    tr.is_error,
+          });
+        }
         j++;
       }
       if (toolResults.length > 0) {
@@ -165,6 +169,20 @@ function validateHistory(allMessages: ConvMessage[]): string | null {
     for (const step of msg.steps) {
       if (step.type === 'tool_result' && !(step as ToolResultStep).tool_use_id) {
         return `Mensaje ${msg.id}: tool_result sin tool_use_id (datos de versión anterior)`;
+      }
+    }
+
+    // Detectar tool_results duplicados (síntoma de race condition entre runners)
+    const resultCounts = new Map<string, number>();
+    for (const step of msg.steps) {
+      if (step.type === 'tool_result') {
+        const id = (step as ToolResultStep).tool_use_id;
+        if (id) resultCounts.set(id, (resultCounts.get(id) ?? 0) + 1);
+      }
+    }
+    for (const [id, count] of resultCounts) {
+      if (count > 1) {
+        return `Mensaje ${msg.id}: tool_result duplicado para ${id} (${count} veces)`;
       }
     }
 
@@ -396,6 +414,14 @@ export async function runAgentTurn(input: TurnInput): Promise<TurnOutput> {
     const pending    = findPendingToolCalls(currentMsg?.steps ?? []);
 
     for (const tc of pending) {
+      // Re-verificar antes de ejecutar: protege contra dos runners concurrentes
+      // que ambos pasaron findPendingToolCalls antes de que cualquiera escribiera
+      // su ToolResultStep. El segundo runner leerá el result ya escrito y saltará.
+      const freshMsgs    = await loadAllMessages(supabase, conversationId);
+      const freshMsg     = freshMsgs.find(m => m.id === messageId);
+      const stillPending = findPendingToolCalls(freshMsg?.steps ?? []);
+      if (!stillPending.some(p => p.tool_use_id === tc.tool_use_id)) continue;
+
       const executor = getToolExecutor(tc.tool_name);
       const result   = await executor(tc.input, toolCtx);
 
