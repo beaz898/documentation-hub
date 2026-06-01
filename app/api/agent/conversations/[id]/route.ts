@@ -2,7 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import { getAuthenticatedUserHybrid } from '@/lib/supabase-server';
 import { resolveOrg } from '@/lib/org';
-import type { AgentConversation, AgentMessage } from '@/lib/agent/types';
+import type { AgentConversation, AgentMessage, ConfirmationMode } from '@/lib/agent/types';
+
+const VALID_MODES: ConfirmationMode[] = ['step_by_step', 'milestones', 'autonomous'];
 
 // ── GET /api/agent/conversations/[id] ────────────────────────────────────────
 // Devuelve la conversación + sus mensajes en orden created_at ASC.
@@ -57,6 +59,74 @@ export async function GET(
     });
   } catch (error: unknown) {
     console.error('[agent/conversations/[id] GET] Error:', error);
+    const message = error instanceof Error ? error.message : 'Error interno';
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
+}
+
+// ── PATCH /api/agent/conversations/[id] ──────────────────────────────────────
+// Actualiza confirmation_mode. Solo permitido cuando status='idle' (entre turnos).
+// El frontend también deshabilita el selector cuando no está idle — doble guarda.
+
+export async function PATCH(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  try {
+    const { id } = await params;
+
+    const user = await getAuthenticatedUserHybrid(req);
+    if (!user) return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+
+    const supabase = createServiceClient();
+
+    const orgInfo = await resolveOrg(supabase, user.id);
+    if (!orgInfo) {
+      return NextResponse.json({ error: 'No perteneces a ninguna organización.' }, { status: 403 });
+    }
+    const { orgId } = orgInfo;
+
+    const { data: conv, error: convErr } = await supabase
+      .from('agent_conversations')
+      .select('org_id, status')
+      .eq('id', id)
+      .single();
+
+    if (convErr || !conv) {
+      return NextResponse.json({ error: 'Conversación no encontrada.' }, { status: 404 });
+    }
+
+    if (conv.org_id !== orgId) {
+      return NextResponse.json({ error: 'Sin acceso a esta conversación.' }, { status: 403 });
+    }
+
+    if (conv.status !== 'idle') {
+      return NextResponse.json(
+        { error: 'Solo se puede cambiar el modo cuando la conversación está en reposo.' },
+        { status: 409 },
+      );
+    }
+
+    const body = await req.json() as { confirmation_mode?: unknown };
+    if (!body.confirmation_mode || !VALID_MODES.includes(body.confirmation_mode as ConfirmationMode)) {
+      return NextResponse.json(
+        { error: `confirmation_mode debe ser uno de: ${VALID_MODES.join(', ')}.` },
+        { status: 400 },
+      );
+    }
+
+    const { error: updateErr } = await supabase
+      .from('agent_conversations')
+      .update({ confirmation_mode: body.confirmation_mode as ConfirmationMode })
+      .eq('id', id);
+
+    if (updateErr) {
+      return NextResponse.json({ error: 'Error actualizando el modo.' }, { status: 500 });
+    }
+
+    return NextResponse.json({ ok: true });
+  } catch (error: unknown) {
+    console.error('[agent/conversations/[id] PATCH] Error:', error);
     const message = error instanceof Error ? error.message : 'Error interno';
     return NextResponse.json({ error: message }, { status: 500 });
   }
