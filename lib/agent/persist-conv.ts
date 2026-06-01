@@ -92,36 +92,22 @@ export async function insertAssistantMessage(
 
 // ── appendStepToMessage ────────────────────────────────────────────────────
 //
-// Read-modify-write igual que appendStep en persist.ts para agent_tasks.
-// El worker procesa un solo turno a la vez por conversación (garantizado por
-// el optimistic lock del worker), así que no hay escrituras concurrentes
-// sobre el mismo messageId. El patrón es seguro en este contexto.
+// Append atómico vía RPC: UPDATE steps = steps || jsonb_build_array($1)
+// sin SELECT previo. Elimina la race condition de read-modify-write cuando
+// dos runners concurrentes escriben sobre el mismo messageId.
+// Lanza si la RPC falla para que el runner no continúe en estado corrupto.
 
 export async function appendStepToMessage(
   supabase: SupabaseClient,
   messageId: string,
   step: AgentStep,
 ): Promise<void> {
-  const { data: msg, error: fetchErr } = await supabase
-    .from('agent_messages')
-    .select('steps')
-    .eq('id', messageId)
-    .single();
-
-  if (fetchErr || !msg) {
-    console.error('[persist-conv] appendStepToMessage fetch error:', fetchErr?.message);
-    return;
-  }
-
-  const current: AgentStep[] = Array.isArray(msg.steps) ? (msg.steps as AgentStep[]) : [];
-
-  const { error: updateErr } = await supabase
-    .from('agent_messages')
-    .update({ steps: [...current, step] })
-    .eq('id', messageId);
-
-  if (updateErr) {
-    console.error('[persist-conv] appendStepToMessage update error:', updateErr.message);
+  const { error } = await supabase.rpc('append_step_to_message', {
+    p_message_id: messageId,
+    p_step: step as unknown as Record<string, unknown>,
+  });
+  if (error) {
+    throw new Error(`[persist-conv] appendStepToMessage RPC error: ${error.message}`);
   }
 }
 

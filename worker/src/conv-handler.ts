@@ -4,6 +4,12 @@ import { runAgentTurn } from '../../lib/agent/runner-conv';
 const SUPABASE_URL      = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
+// Threshold para considerar un turno STUCK: 5 min.
+// Margen holgado sobre la duración máxima realista de una iteración ReAct
+// (~3 min: callAgentLLM ~90s + 2-3 tools × ~30s). El runner refresca locked_at
+// al inicio de cada iteración, así que mientras avance nunca llega a este umbral.
+const STUCK_THRESHOLD_MS = 5 * 60 * 1000;
+
 function createServiceClient() {
   return createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY, {
     auth: { autoRefreshToken: false, persistSession: false },
@@ -14,24 +20,25 @@ function createServiceClient() {
 //
 // Detecta mensajes assistant con status='running' que necesitan ser procesados:
 //
-//   FRESH   — created_at < 30s (recién insertado por el endpoint, ningún worker
-//             ha empezado todavía; equivale al status='pending' de agent_tasks).
-//   STUCK   — updated_at < 2min (el runner cayó a mitad del turno; recovery).
+//   NEW    — locked_at IS NULL (recién insertado como 'running'; nunca reclamado).
+//   STUCK  — locked_at < now() - 5 min (el runner que lo tenía murió o dejó de
+//             refreshear el heartbeat).
 //
-// agent_messages no tiene status='pending' (se insertan directamente como
-// 'running'), por lo que el criterio de "no iniciado" se aproxima con la
-// ventana de creación de 30 s. El trigger de Supabase mantiene updated_at
-// actualizado en cada appendStepToMessage, así que un runner activo siempre
-// tiene updated_at reciente y nunca cae en el criterio STUCK.
+// LOCK EXCLUSIVO (FIX 1):
+// El claim es un UPDATE con WHERE locked_at IS NULL OR locked_at < ahora-5min.
+// Solo el primer runner que escriba locked_at = now() se lleva la fila; cualquier
+// runner concurrente en la misma ventana ve 0 filas devueltas y descarta el turno.
+// Esto cierra la race condition que permitía hasta 6 runners simultáneos sobre el
+// mismo mensaje (ventana FRESH 30s + poll cada 5s + lock que no protegía 'running').
 //
-// CONCURRENCIA: el optimistic lock (UPDATE WHERE status='running') protege
-// frente a dos workers en el mismo ciclo. Con el despliegue single-worker
-// de Railway no hay race condition en la práctica. Si se escala a N workers,
-// añadir una columna claimed_at con SELECT FOR UPDATE SKIP LOCKED.
+// HEARTBEAT:
+// El runner refresca locked_at al inicio de cada iteración ReAct y en el pre-bucle.
+// Mientras el turno avance, locked_at nunca llegará al umbral de 5 min.
+//
+// PARA ESCALA HORIZONTAL (N workers):
+// La implementación actual ya es correcta para múltiples instancias del worker
+// gracias al UPDATE condicional sobre locked_at. No requiere cambios adicionales.
 
-// Devuelve el número de turnos efectivamente reclamados (0..maxClaims).
-// Cada turno se reclama con un optimistic lock individual antes de lanzar
-// su runner, igual que agent-handler hace con agent_tasks.
 export async function pollConversationTurns(
   maxClaims: number,
   onFinish:  () => void,
@@ -42,16 +49,14 @@ export async function pollConversationTurns(
   let claimedCount = 0;
 
   try {
-    const thirtySecondsAgo = new Date(Date.now() -     30 * 1000).toISOString();
-    const twoMinutesAgo    = new Date(Date.now() - 2 * 60 * 1000).toISOString();
+    const stuckThreshold = new Date(Date.now() - STUCK_THRESHOLD_MS).toISOString();
 
-    // Traemos hasta maxClaims candidatos en una sola consulta
     const { data: messages, error } = await supabase
       .from('agent_messages')
       .select('id, conversation_id')
       .eq('role', 'assistant')
       .eq('status', 'running')
-      .or(`created_at.gt.${thirtySecondsAgo},updated_at.lt.${twoMinutesAgo}`)
+      .or(`locked_at.is.null,locked_at.lt.${stuckThreshold}`)
       .order('created_at', { ascending: true })
       .limit(maxClaims);
 
@@ -62,37 +67,20 @@ export async function pollConversationTurns(
 
     if (!messages || messages.length === 0) return 0;
 
-    // Optimistic lock individual por mensaje: UPDATE WHERE status='running' RETURNING id.
-    //
-    // LIMITACIÓN (single-worker OK, multi-worker NO):
-    // Este lock protege la transición DESDE otro estado (p.ej. 'pending' → 'running'),
-    // pero NO protege mensajes que YA están en 'running'. PostgreSQL devuelve la fila
-    // si el WHERE matchea aunque el valor no cambie, así que dos workers concurrentes
-    // haciendo UPDATE WHERE status='running' sobre el mismo mensaje AMBOS obtienen éxito.
-    //
-    // Con un único worker en Railway el riesgo es mínimo (solo ocurre si el poll retoma
-    // un turno stuck mientras el runner original sigue vivo). Los fixes del runner lo cubren:
-    //   - runner-conv.ts buildStepsIntoMessages deduplica tool_results por tool_use_id
-    //     → garantía determinista de que nunca llega payload inválido a Anthropic.
-    //   - runner-conv.ts validateHistory detecta duplicados y falla el turno con error claro.
-    //
-    // PARA ESCALA HORIZONTAL (N workers): añadir columna locked_at timestamp a agent_messages
-    // y cambiar el claim a:
-    //   UPDATE agent_messages
-    //   SET locked_at = now()
-    //   WHERE id = $1
-    //     AND status = 'running'
-    //     AND (locked_at IS NULL OR locked_at < now() - interval '2 min')
-    //   RETURNING id
-    // Eso cierra la race condition completamente.
+    // Claim atómico: UPDATE condicional sobre locked_at.
+    // Solo tiene éxito si la fila aún cumple locked_at IS NULL OR locked_at < threshold,
+    // garantizando que dos runners en el mismo ciclo no procesen el mismo mensaje.
+    const now = new Date().toISOString();
+
     for (const row of messages) {
       const msg = row as { id: string; conversation_id: string };
 
       const { data: claimed } = await supabase
         .from('agent_messages')
-        .update({ status: 'running' })
+        .update({ status: 'running', locked_at: now })
         .eq('id', msg.id)
         .eq('status', 'running')
+        .or(`locked_at.is.null,locked_at.lt.${stuckThreshold}`)
         .select('id');
 
       if (!claimed || claimed.length === 0) continue;
@@ -135,7 +123,7 @@ async function processConversationTurn(
     const recovery = createServiceClient();
     await recovery
       .from('agent_messages')
-      .update({ status: 'failed', error_message: errorMessage })
+      .update({ status: 'failed', error_message: errorMessage, locked_at: null })
       .eq('id', messageId);
     await recovery
       .from('agent_conversations')

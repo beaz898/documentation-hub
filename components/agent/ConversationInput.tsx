@@ -30,9 +30,9 @@ const HINT: React.CSSProperties = {
 
 // ── Componentes pequeños ──────────────────────────────────────────────────────
 
-function SendBtn({ disabled, busy }: { disabled: boolean; busy: boolean }) {
+function SendBtn({ disabled, busy, onClick }: { disabled: boolean; busy: boolean; onClick?: () => void }) {
   return (
-    <button type="button" disabled={disabled} aria-label="Enviar" style={{
+    <button type="button" disabled={disabled} aria-label="Enviar" onClick={onClick} style={{
       width: 34, height: 34, borderRadius: 8, border: 'none', flexShrink: 0,
       background: disabled ? 'var(--bg-tertiary)' : 'var(--brand)',
       color: disabled ? 'var(--text-muted)' : '#fff',
@@ -214,7 +214,7 @@ export default function ConversationInput({
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
               <VoiceInput onTranscript={appendVoice} disabled={isBusy} />
-              <SendBtn disabled={isBusy || !content.trim()} busy={isBusy} />
+              <SendBtn disabled={isBusy || !content.trim()} busy={isBusy} onClick={handleNewConvSend} />
             </div>
           </div>
         </div>
@@ -275,7 +275,7 @@ export default function ConversationInput({
             }}
           />
           <VoiceInput onTranscript={appendVoice} disabled={isBusy} />
-          <SendBtn disabled={isBusy || !content.trim()} busy={isBusy} />
+          <SendBtn disabled={isBusy || !content.trim()} busy={isBusy} onClick={() => handleTextSend(conversation.id)} />
         </div>
         <p style={HINT}>Enter para enviar · Shift+Enter nueva línea</p>
       </div>
@@ -309,7 +309,7 @@ export default function ConversationInput({
             }}
           />
           <VoiceInput onTranscript={appendVoice} disabled={isBusy} />
-          <SendBtn disabled={isBusy || !content.trim()} busy={isBusy} />
+          <SendBtn disabled={isBusy || !content.trim()} busy={isBusy} onClick={() => handleTextSend(conversation.id)} />
         </div>
         <p style={HINT}>Enter para enviar · Shift+Enter nueva línea</p>
       </div>

@@ -67,6 +67,17 @@ function isMetaStep(type: string): boolean {
 // ─────────────────────────────────────────────────────────────────────────────
 
 function buildStepsIntoMessages(steps: AgentStep[]): LLMMessage[] {
+  // Pre-computar IDs emparejados para excluir tool_calls huérfanos del historial.
+  // Un tool_call sin su tool_result correspondiente (síntoma de race condition)
+  // causaría HTTP 400 de Anthropic ("each tool_use must have a single result").
+  const callIds   = new Set<string>();
+  const resultIds = new Set<string>();
+  for (const s of steps) {
+    if (s.type === 'tool_call')   callIds.add((s as ToolCallStep).tool_use_id);
+    if (s.type === 'tool_result') resultIds.add((s as ToolResultStep).tool_use_id);
+  }
+  const pairedIds = new Set([...callIds].filter(id => resultIds.has(id)));
+
   const messages: LLMMessage[] = [];
   let i = 0;
 
@@ -84,12 +95,18 @@ function buildStepsIntoMessages(steps: AgentStep[]): LLMMessage[] {
           content.push({ type: 'text', text: (s as ThinkStep).content });
         } else {
           const tc = s as ToolCallStep;
-          content.push({ type: 'tool_use', id: tc.tool_use_id, name: tc.tool_name, input: tc.input });
+          // Solo incluir tool_calls que tienen su result emparejado
+          if (pairedIds.has(tc.tool_use_id)) {
+            content.push({ type: 'tool_use', id: tc.tool_use_id, name: tc.tool_name, input: tc.input });
+          }
         }
         j++;
       }
 
-      messages.push({ role: 'assistant', content });
+      // Solo emitir el bloque assistant si tiene contenido relevante
+      if (content.length > 0) {
+        messages.push({ role: 'assistant', content });
+      }
 
       // Recoge tool_results saltando meta-pasos que puedan aparecer entre
       // el grupo de tool_calls y sus resultados (caso: confirmation pause).
@@ -99,7 +116,7 @@ function buildStepsIntoMessages(steps: AgentStep[]): LLMMessage[] {
         if (isMetaStep(steps[j].type)) { j++; continue; }
         if (steps[j].type !== 'tool_result') break;
         const tr = steps[j] as ToolResultStep;
-        if (!seenResultIds.has(tr.tool_use_id)) {
+        if (!seenResultIds.has(tr.tool_use_id) && pairedIds.has(tr.tool_use_id)) {
           seenResultIds.add(tr.tool_use_id);
           toolResults.push({
             type:        'tool_result',
@@ -110,7 +127,8 @@ function buildStepsIntoMessages(steps: AgentStep[]): LLMMessage[] {
         }
         j++;
       }
-      if (toolResults.length > 0) {
+      // Solo emitir el bloque user si el assistant block fue emitido
+      if (toolResults.length > 0 && content.length > 0) {
         messages.push({ role: 'user', content: toolResults });
       }
 
@@ -186,6 +204,24 @@ function validateHistory(allMessages: ConvMessage[]): string | null {
       }
     }
 
+    // Mensajes fallidos: loguear huérfanos como advertencia pero no fallar el turno.
+    // Son consecuencia de la race condition ya corregida; buildStepsIntoMessages
+    // los excluye del historial vía pairedIds, así que no contaminan al LLM.
+    if (msg.status === 'failed' && msg.role === 'assistant') {
+      const failedCallIds   = new Set<string>();
+      const failedResultIds = new Set<string>();
+      for (const step of msg.steps) {
+        if (step.type === 'tool_call')   failedCallIds.add((step as ToolCallStep).tool_use_id);
+        if (step.type === 'tool_result') failedResultIds.add((step as ToolResultStep).tool_use_id);
+      }
+      for (const id of failedCallIds) {
+        if (!failedResultIds.has(id)) {
+          console.warn(`[runner-conv] validateHistory: msg fallido ${msg.id} — tool_use ${id} sin result (ignorando)`);
+        }
+      }
+      continue;
+    }
+
     if (msg.status !== 'completed' || msg.role !== 'assistant') continue;
 
     const callIds   = new Set<string>();
@@ -241,6 +277,14 @@ function findLastEscalationStep(steps: AgentStep[]): EscalationStep | undefined 
 // ─────────────────────────────────────────────────────────────────────────────
 // Helpers internos
 // ─────────────────────────────────────────────────────────────────────────────
+
+async function refreshHeartbeat(supabase: SupabaseClient, messageId: string): Promise<void> {
+  await supabase
+    .from('agent_messages')
+    .update({ locked_at: new Date().toISOString() })
+    .eq('id', messageId)
+    .eq('status', 'running');
+}
 
 async function loadAllMessages(
   supabase: SupabaseClient,
@@ -409,6 +453,7 @@ export async function runAgentTurn(input: TurnInput): Promise<TurnOutput> {
   // ToolExecutionStartedStep(tool_use_id) y, en el re-claim, saltarse la
   // ejecución si ese step ya existe.
   {
+    await refreshHeartbeat(supabase, messageId);
     const allMsgs    = await loadAllMessages(supabase, conversationId);
     const currentMsg = allMsgs.find(m => m.id === messageId);
     const pending    = findPendingToolCalls(currentMsg?.steps ?? []);
@@ -463,6 +508,7 @@ export async function runAgentTurn(input: TurnInput): Promise<TurnOutput> {
   // ── BUCLE ReAct ────────────────────────────────────────────────────────────
 
   for (let iter = 0; iter < MAX_ITERATIONS; iter++) {
+    await refreshHeartbeat(supabase, messageId);
     // Recargar todos los mensajes (pueden haber cambiado por el pre-bucle o el resume)
     const allMessages  = await loadAllMessages(supabase, conversationId);
     const currentMsg   = allMessages.find(m => m.id === messageId);
