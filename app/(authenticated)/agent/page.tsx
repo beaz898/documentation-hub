@@ -1,31 +1,36 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { createClient } from '@/lib/supabase';
-import { useAgentTasks } from '@/hooks/agent/useAgentTasks';
-import AgentSidebar from '@/components/agent/AgentSidebar';
-import AgentChat from '@/components/agent/AgentChat';
-import AgentInput from '@/components/agent/AgentInput';
+import { useConversation } from '@/hooks/agent/useConversation';
+import ConversationSidebar from '@/components/agent/ConversationSidebar';
+import ConversationThread from '@/components/agent/ConversationThread';
+import ConversationInput from '@/components/agent/ConversationInput';
 import type { ConfirmationMode } from '@/lib/agent/types';
 
 interface Summary { hasAgent: boolean }
 
-const TERMINAL = new Set(['completed', 'failed', 'cancelled']);
+const ACTIVE_STATUSES = new Set(['running', 'awaiting_user', 'awaiting_confirmation']);
 
 export default function AgentPage() {
   const [pageLoading, setPageLoading] = useState(true);
   const [hasAgent, setHasAgent]       = useState(false);
+  // selectedId controla qué conversación muestra la UI. Es independiente del hook
+  // para poder volver al estado "nueva conversación" (null) sin limpiar el hook.
   const [selectedId, setSelectedId]   = useState<string | null>(null);
   const router   = useRouter();
   const supabase = createClient();
   const autoSelectedRef = useRef(false);
 
   const {
-    tasks, loading: tasksLoading, creating, error,
-    loadTasks, createTask, cancelTask, confirm,
-  } = useAgentTasks();
+    conversations, conversation, messages,
+    loading, sending, creating, error, pollingError,
+    loadConversations, selectConversation, createConversation,
+    sendMessage, cancelConversation, updateMode,
+    retryPolling, clearError,
+  } = useConversation();
 
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data: { session } }) => {
@@ -42,21 +47,45 @@ export default function AgentPage() {
   }, [router, supabase.auth]);
 
   useEffect(() => {
-    if (hasAgent) loadTasks();
-  }, [hasAgent, loadTasks]);
+    if (hasAgent) loadConversations();
+  }, [hasAgent, loadConversations]);
 
+  // Auto-seleccionar la conversación activa más reciente al cargar por primera vez
   useEffect(() => {
-    if (autoSelectedRef.current || tasks.length === 0) return;
+    if (autoSelectedRef.current || conversations.length === 0) return;
     autoSelectedRef.current = true;
-    const active = tasks.find(t => !TERMINAL.has(t.status));
-    if (active) setSelectedId(active.id);
-  }, [tasks]);
+    const active = conversations.find(c => ACTIVE_STATUSES.has(c.status));
+    if (active) {
+      setSelectedId(active.id);
+      void selectConversation(active.id);
+    }
+  }, [conversations, selectConversation]);
 
-  async function handleCreateTask(goal: string, mode: ConfirmationMode): Promise<string | null> {
-    const id = await createTask(goal, mode);
-    if (id) setSelectedId(id);
-    return id;
+  const handleSelect = useCallback((id: string) => {
+    setSelectedId(id);
+    void selectConversation(id);
+  }, [selectConversation]);
+
+  // "Nueva conversación": volvemos al formulario vacío sin tocar el polling del hook.
+  // Si había polling activo de otra conv, se descartará en cuanto handleCreateAndSend
+  // llame a selectConversation con el nuevo ID.
+  const handleNew = useCallback(() => {
+    setSelectedId(null);
+  }, []);
+
+  async function handleCreateAndSend(mode: ConfirmationMode, content: string) {
+    const id = await createConversation(mode);
+    if (!id) return;
+    setSelectedId(id);
+    await selectConversation(id);
+    await sendMessage(id, { content });
   }
+
+  // La conversación a renderizar solo se muestra cuando el selectedId coincide
+  // con la conversación que el hook tiene cargada en detalle.
+  const displayedConversation = selectedId !== null && conversation?.id === selectedId
+    ? conversation
+    : null;
 
   if (pageLoading) {
     return (
@@ -68,92 +97,100 @@ export default function AgentPage() {
 
   if (!hasAgent) return <Paywall />;
 
-  const selectedTask = tasks.find(t => t.id === selectedId) ?? null;
-
   return (
     <div style={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
 
+      {/* Sidebar */}
       <div style={{ width: 260, flexShrink: 0, height: '100%' }}>
-        <AgentSidebar
-          tasks={tasks}
-          loading={tasksLoading}
-          selectedTaskId={selectedId}
-          onSelectTask={setSelectedId}
-          onNewTask={() => setSelectedId(null)}
+        <ConversationSidebar
+          conversations={conversations}
+          loading={loading}
+          selectedId={selectedId}
+          onSelect={handleSelect}
+          onNew={handleNew}
         />
       </div>
 
+      {/* Área principal */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, overflow: 'hidden' }}>
-        {selectedTask ? (
-          <AgentChat task={selectedTask} onConfirm={confirm} onCancel={cancelTask} />
+
+        {/* Hilo de mensajes o estado vacío */}
+        {displayedConversation ? (
+          <div style={{ flex: 1, overflow: 'hidden' }}>
+            <ConversationThread
+              conversation={displayedConversation}
+              messages={messages}
+              onCancel={() => void cancelConversation(displayedConversation.id)}
+              onUpdateMode={mode => void updateMode(displayedConversation.id, mode)}
+            />
+          </div>
         ) : (
-          <AgentEmptyView
-            creating={creating}
-            onCreateTask={handleCreateTask}
-            onConfirm={confirm}
-          />
+          <EmptyState />
         )}
 
-        {error && (
+        {/* Banner de error de polling */}
+        {pollingError && (
           <div style={{
-            position: 'fixed', bottom: 80, left: '50%', transform: 'translateX(-50%)',
-            padding: '8px 16px', borderRadius: 8, zIndex: 100,
-            background: 'rgba(220,38,38,0.92)', color: '#fff', fontSize: 12,
-            boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+            padding: '8px 16px', borderTop: '0.5px solid var(--border)',
+            background: 'rgba(220,38,38,0.06)', display: 'flex',
+            alignItems: 'center', justifyContent: 'space-between', gap: 8, flexShrink: 0,
           }}>
-            {error}
+            <span style={{ fontSize: 11, color: 'var(--danger)' }}>
+              Se perdió la conexión con el agente. Puede que siga trabajando en segundo plano.
+            </span>
+            <button
+              onClick={retryPolling}
+              style={{
+                padding: '4px 12px', borderRadius: 6, fontSize: 11, fontWeight: 600,
+                border: '0.5px solid rgba(220,38,38,0.3)', background: 'transparent',
+                color: 'var(--danger)', cursor: 'pointer', flexShrink: 0,
+              }}
+            >Reintentar</button>
           </div>
         )}
+
+        {/* Input — siempre visible */}
+        <ConversationInput
+          conversation={displayedConversation}
+          sending={sending}
+          creating={creating}
+          error={error}
+          onSendMessage={sendMessage}
+          onCreateAndSend={handleCreateAndSend}
+          onCancel={() => { if (displayedConversation) void cancelConversation(displayedConversation.id); }}
+          onClearError={clearError}
+        />
       </div>
     </div>
   );
 }
 
-// ─── Empty state (no task selected) ────────────────────────────────────────
+// ── Estado vacío (sin conversación seleccionada) ──────────────────────────────
 
-type ConfirmFn = ReturnType<typeof useAgentTasks>['confirm'];
-
-function AgentEmptyView({
-  creating,
-  onCreateTask,
-  onConfirm,
-}: {
-  creating: boolean;
-  onCreateTask: (goal: string, mode: ConfirmationMode) => Promise<string | null>;
-  onConfirm: ConfirmFn;
-}) {
+function EmptyState() {
   const t = useTranslations('agent');
   return (
-    <>
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12, color: 'var(--text-muted)' }}>
-        <div style={{
-          width: 48, height: 48, borderRadius: 12,
-          background: 'var(--bg-secondary)', border: '0.5px solid var(--border)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-        }}>
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--brand)" strokeWidth="1.5">
-            <path d="M12 2a10 10 0 1 0 10 10" />
-            <path d="M12 8v4l3 3" />
-            <circle cx="19" cy="5" r="3" fill="var(--brand)" stroke="none" />
-          </svg>
-        </div>
-        <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-secondary)' }}>{t('title')}</p>
-        <p style={{ fontSize: 12, color: 'var(--text-muted)', textAlign: 'center', maxWidth: 280, lineHeight: 1.6 }}>
-          {t('emptyHint')}
-        </p>
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12, color: 'var(--text-muted)' }}>
+      <div style={{
+        width: 48, height: 48, borderRadius: 12,
+        background: 'var(--bg-secondary)', border: '0.5px solid var(--border)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+      }}>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--brand)" strokeWidth="1.5">
+          <path d="M12 2a10 10 0 1 0 10 10" />
+          <path d="M12 8v4l3 3" />
+          <circle cx="19" cy="5" r="3" fill="var(--brand)" stroke="none" />
+        </svg>
       </div>
-      <AgentInput
-        creating={creating}
-        onCreateTask={onCreateTask}
-        activeTaskId={null}
-        pendingRequest={null}
-        onConfirm={onConfirm}
-      />
-    </>
+      <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-secondary)' }}>{t('title')}</p>
+      <p style={{ fontSize: 12, color: 'var(--text-muted)', textAlign: 'center', maxWidth: 280, lineHeight: 1.6 }}>
+        {t('emptyHint')}
+      </p>
+    </div>
   );
 }
 
-// ─── Paywall ─────────────────────────────────────────────────────────────────
+// ── Paywall ───────────────────────────────────────────────────────────────────
 
 function Paywall() {
   const t = useTranslations('agent');
