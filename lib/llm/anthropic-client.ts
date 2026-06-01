@@ -129,8 +129,9 @@ async function callAnthropicRaw(
       });
       if (!res.ok) {
         const errBody = await res.text().catch(() => '');
-        lastError = `HTTP ${res.status}`;
-        console.error(`[Anthropic] ${res.status} error body:`, errBody);
+        // Incluir el body en lastError para que llegue a error_message en BD y logs del runner
+        lastError = `HTTP ${res.status}: ${errBody || '(sin body)'}`;
+        console.error(`[anthropic ${res.status} body]`, errBody || '(sin body)');
         if (res.status !== 429 && res.status !== 529 && res.status < 500) break;
         continue;
       }
