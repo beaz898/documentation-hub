@@ -35,6 +35,17 @@ import type {
 
 const ACTIVE_MSG_STATUSES = ['running', 'awaiting_user', 'awaiting_confirmation'];
 
+// Trunca texto a ~60 chars respetando límites de palabra cuando es posible.
+function truncateTitle(text: string): string | null {
+  const t = text.trim();
+  if (!t) return null;
+  if (t.length <= 60) return t;
+  const cut       = t.slice(0, 60);
+  const lastSpace = cut.lastIndexOf(' ');
+  // Si hay un espacio suficientemente avanzado (>30 chars), cortar ahí; si no, truncar duro
+  return (lastSpace > 30 ? cut.slice(0, lastSpace) : cut) + '…';
+}
+
 type ConfirmResponse =
   | 'approve' | 'reject' | 'modify'
   | 'stop' | 'ask_more' | 'improvise';
@@ -99,6 +110,21 @@ export async function POST(
       }
       const cleanContent = rawContent.trim();
       const now = new Date().toISOString();
+
+      // Autogenerar título solo en el primer turno (title IS NULL) — cosmético, no bloquea.
+      if (!conv.title) {
+        const title = truncateTitle(cleanContent);
+        if (title) {
+          supabase
+            .from('agent_conversations')
+            .update({ title })
+            .eq('id', conversationId)
+            .is('title', null)   // guarda extra: solo si sigue siendo null (sin condición de carrera)
+            .then(({ error: titleErr }) => {
+              if (titleErr) console.warn('[agent/conversations/message] title update failed:', titleErr.message);
+            });
+        }
+      }
 
       const estimated = estimateCredits(cleanContent, conv.confirmation_mode as ConfirmationMode);
 

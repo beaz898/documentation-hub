@@ -189,6 +189,16 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
   to { opacity: 1; }
 }
 
+/* Paso de agente nuevo: fade + leve subida. 'both' mantiene opacity:0 durante el delay
+   para que la cadencia (stagger) no muestre el elemento antes de animar. */
+@keyframes stepIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-step-in {
+  animation: stepIn 0.2s ease-out both;
+}
+
 .modal-content {
   background: var(--surface);
   border: 0.5px solid var(--border);
