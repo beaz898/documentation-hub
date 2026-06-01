@@ -6,6 +6,7 @@ import { purgeOrganization, type PurgeResult } from '../../lib/purge-org';
 import { refundCredits } from '../../lib/credits';
 import { PLANS_WITH_VARIABLE_PRICING } from '../../lib/stripe';
 import { pollAgentTasks } from './agent-handler';
+import { pollConversationTurns } from './conv-handler';
 
 // ============================================================
 // Configuración
@@ -17,8 +18,8 @@ const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 /** Intervalo de polling a la tabla analysis_jobs (ms). */
 const POLL_INTERVAL = 5000;
 
-/** Máximo de análisis exhaustivos procesándose a la vez. */
-const MAX_CONCURRENT = 2;
+/** Máximo de jobs simultáneos de cualquier tipo (analysis_jobs + conv turns + agent_tasks). */
+const MAX_CONCURRENT = 8;
 
 /** Intervalo del check de purgado de orgs expiradas (6 horas). */
 const PURGE_INTERVAL = 6 * 60 * 60 * 1000;
@@ -208,6 +209,19 @@ async function applyVariablePricingRefund(
 // Bucle principal de polling
 // ============================================================
 
+async function pollAndProcessConversationTurns(): Promise<void> {
+  if (activeJobs >= MAX_CONCURRENT) return;
+
+  const slotsAvailable = MAX_CONCURRENT - activeJobs;
+
+  try {
+    const claimed = await pollConversationTurns(slotsAvailable, () => { activeJobs--; });
+    activeJobs += claimed;
+  } catch (err) {
+    console.error('[worker] Error en polling de conv turns:', err);
+  }
+}
+
 async function pollAndProcessAgentTasks(): Promise<void> {
   if (activeJobs >= MAX_CONCURRENT) return;
 
@@ -311,12 +325,13 @@ function start(): void {
   validateEnv();
 
   console.log('[worker] Doclity Analysis Worker iniciado');
-  console.log(`[worker] Polling cada ${POLL_INTERVAL / 1000}s, max ${MAX_CONCURRENT} jobs simultáneos`);
+  console.log(`[worker] Polling cada ${POLL_INTERVAL / 1000}s, max ${MAX_CONCURRENT} jobs simultáneos (analysis + conv + tasks)`);
   console.log(`[worker] Purga de orgs expiradas cada ${PURGE_INTERVAL / 3600000}h`);
 
   async function pollAll(): Promise<void> {
-    await pollAndProcess();
-    await pollAndProcessAgentTasks();
+    await pollAndProcess();              // 1. analysis_jobs (exhaustive)
+    await pollAndProcessConversationTurns(); // 2. conv turns (agente nuevo)
+    await pollAndProcessAgentTasks();   // 3. agent_tasks (legado, borra Paso 8)
   }
 
   setInterval(pollAll, POLL_INTERVAL);
