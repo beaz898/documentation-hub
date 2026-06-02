@@ -344,8 +344,10 @@ export async function POST(
       return NextResponse.json({ error: 'Tipo de pending_request desconocido.' }, { status: 409 });
     }
 
-    // Set message and conversation back to running, clear pending_request
-    await updateMessageStatus(supabase, assistantMessageId, 'running');
+    // Set message and conversation back to running, clear pending_request.
+    // locked_at se resetea a null para que el worker lo reclame por la vía rápida
+    // (locked_at IS NULL) sin esperar al STUCK threshold de 5 min.
+    await updateMessageStatus(supabase, assistantMessageId, 'running', { locked_at: null });
     await updateConversationStatus(supabase, conversationId, 'running', { pending_request: null });
 
     return NextResponse.json({ assistantMessageId });
