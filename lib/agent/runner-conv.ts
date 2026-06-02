@@ -368,8 +368,9 @@ async function handlePauseResult(
   conversationId: string,
   pr: PendingRequest,
 ): Promise<TurnOutput> {
-  const msgStatus:  MessageStatus      = pr.type === 'confirmation' ? 'awaiting_confirmation' : 'awaiting_user';
-  const convStatus: ConversationStatus = pr.type === 'confirmation' ? 'awaiting_confirmation' : 'awaiting_user';
+  const isConfirmationLike = pr.type === 'confirmation' || pr.type === 'escalation';
+  const msgStatus:  MessageStatus      = isConfirmationLike ? 'awaiting_confirmation' : 'awaiting_user';
+  const convStatus: ConversationStatus = isConfirmationLike ? 'awaiting_confirmation' : 'awaiting_user';
 
   if (pr.type === 'escalation') {
     const escStep: AgentStep = {
