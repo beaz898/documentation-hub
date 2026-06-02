@@ -16,7 +16,7 @@ const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
 /** Intervalo de polling a la tabla analysis_jobs (ms). */
-const POLL_INTERVAL = 5000;
+const POLL_INTERVAL = 1000;
 
 /** Máximo de jobs simultáneos de cualquier tipo (analysis_jobs + conv turns + agent_tasks). */
 const MAX_CONCURRENT = 8;
