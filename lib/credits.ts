@@ -159,7 +159,7 @@ export async function adjustCredits(
   try {
     const { data: org, error: fetchErr } = await supabase
       .from('organizations')
-      .select('credits')
+      .select('credits_remaining')
       .eq('id', orgId)
       .single();
 
@@ -168,11 +168,11 @@ export async function adjustCredits(
       return;
     }
 
-    const newBalance = Math.max(0, (org.credits ?? 0) + delta);
+    const newBalance = Math.max(0, (org.credits_remaining ?? 0) + delta);
 
     const { error: updateErr } = await supabase
       .from('organizations')
-      .update({ credits: newBalance })
+      .update({ credits_remaining: newBalance })
       .eq('id', orgId);
 
     if (updateErr) {
