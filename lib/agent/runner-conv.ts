@@ -468,6 +468,27 @@ export async function runAgentTurn(input: TurnInput): Promise<TurnOutput> {
       const stillPending = findPendingToolCalls(freshMsg?.steps ?? []);
       if (!stillPending.some(p => p.tool_use_id === tc.tool_use_id)) continue;
 
+      // Si el usuario eligió "modify" para ESTA confirmación concreta, no ejecutar
+      // la tool original. El tool_call queda sin tool_result → excluido de pairedIds
+      // → el bloque assistant solo lleva el think text → el LLM replantea desde cero
+      // guiado por el user_message con la modificación que añadió el endpoint.
+      // La detección es por slice(tcIdx) para no confundir modify de un turno con
+      // approve de otro cuando hay varias confirmaciones dentro del mismo mensaje.
+      const freshSteps = freshMsg?.steps ?? [];
+      const tcIdx      = freshSteps.findIndex(
+        s => s.type === 'tool_call' && (s as ToolCallStep).tool_use_id === tc.tool_use_id
+      );
+      const wasModified =
+        tcIdx !== -1 &&
+        freshSteps
+          .slice(tcIdx)
+          .some(
+            s =>
+              s.type === 'confirmation_response' &&
+              (s as { response?: string }).response === 'modify',
+          );
+      if (wasModified) continue;
+
       const executor = getToolExecutor(tc.tool_name);
       const result   = await executor(tc.input, toolCtx);
 
