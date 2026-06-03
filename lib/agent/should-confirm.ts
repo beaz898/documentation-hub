@@ -8,8 +8,13 @@ export interface ShouldConfirmParams {
   has_external_effect: boolean;  // Acción con efecto externo (Fase C+)
 }
 
+const READ_ONLY_TOOLS = new Set<ToolName>(['search_docs', 'read_doc']);
+
 export function shouldConfirm(params: ShouldConfirmParams): boolean {
   const { mode, tool_name, is_improvising, is_over_estimate, has_external_effect } = params;
+
+  // Herramientas de solo lectura: nunca requieren confirmación
+  if (READ_ONLY_TOOLS.has(tool_name)) return false;
 
   // Reglas no negociables: SIEMPRE confirman, en todos los modos
   if (is_improvising) return true;
@@ -29,10 +34,8 @@ export function shouldConfirm(params: ShouldConfirmParams): boolean {
   }
 
   if (mode === 'step_by_step') {
-    // Confirma todo lo que tiene impacto: búsquedas, lecturas y finalize
-    return tool_name === 'search_docs'
-      || tool_name === 'read_doc'
-      || tool_name === 'finalize';
+    // Confirma antes del output final; búsquedas y lecturas son solo lectura
+    return tool_name === 'finalize';
   }
 
   return false;
