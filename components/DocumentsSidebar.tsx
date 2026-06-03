@@ -2,6 +2,7 @@
 
 import { useState, useRef, useMemo } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
+import CreditsIndicator from '@/components/shared/CreditsIndicator';
 
 interface Document {
   id: string;
@@ -614,11 +615,12 @@ export default function DocumentsSidebar({
         )}
       </div>
 
-      {/* 4. Bottom: upload button */}
+      {/* 4. Bottom: credits + upload button */}
       <div style={{
         padding: '10px 14px', borderTop: '0.5px solid var(--border)',
         display: 'flex', flexDirection: 'column', gap: 8, flexShrink: 0,
       }}>
+        <CreditsIndicator credits={credits} />
         {activeModal?.status === 'ready' ? (
           <button
             onClick={onRestoreModal}
