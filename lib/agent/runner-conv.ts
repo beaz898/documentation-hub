@@ -307,6 +307,19 @@ async function loadAllMessages(
   })) as ConvMessage[];
 }
 
+function describePendingAction(toolName: string, toolInput: Record<string, unknown>): string {
+  switch (toolName) {
+    case 'finalize':
+      return 'Entregar la respuesta final';
+    case 'ask_user':
+      return `Hacerte una pregunta: "${toolInput.question}"`;
+    case 'escalate':
+      return `Consultar contigo antes de seguir: "${toolInput.reason}"`;
+    default:
+      return 'Realizar la siguiente acción';
+  }
+}
+
 function buildToolOutput(
   result: Awaited<ReturnType<ReturnType<typeof getToolExecutor>>>,
 ): Record<string, unknown> {
@@ -623,14 +636,14 @@ export async function runAgentTurn(input: TurnInput): Promise<TurnOutput> {
 
         const confirmStep: AgentStep = {
           type:           'confirmation_request',
-          pending_action: `Llamar a ${toolName} con: ${JSON.stringify(toolInput)}`,
+          pending_action: describePendingAction(toolName, toolInput),
           timestamp:      new Date().toISOString(),
         };
         await appendStepToMessage(supabase, messageId, confirmStep);
 
         const pendingReq: PendingRequest = {
           type:           'confirmation',
-          pending_action: `Llamar a ${toolName}`,
+          pending_action: describePendingAction(toolName, toolInput),
           reason:         toolName === 'finalize' ? 'finalize' : 'tool_call',
         };
         await updateMessageStatus(supabase, messageId, 'awaiting_confirmation');
