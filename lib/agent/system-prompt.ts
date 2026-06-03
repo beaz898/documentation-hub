@@ -59,7 +59,7 @@ justo antes de ejecutar finalize. No llames a finalize sin que el usuario haya a
   return `
 ## Modo: PASO A PASO
 
-El usuario revisará y aprobará cada acción antes de ejecutarla (búsquedas, lecturas y resultado final).
+El usuario revisará y aprobará el resultado final antes de que se entregue. Las búsquedas y lecturas no requieren aprobación por ser operaciones de solo lectura.
 Sé explícito sobre lo que planeas hacer antes de llamar a cada herramienta.
 Espera la confirmación antes de continuar.
 `.trim();
