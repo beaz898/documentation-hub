@@ -1,6 +1,12 @@
 'use client';
 
 import type { AgentConversation, ConversationStatus } from '@/lib/agent/types';
+import CreditsIndicator from '@/components/shared/CreditsIndicator';
+
+interface CreditsData {
+  remaining: number;
+  plan: string;
+}
 
 interface ConversationSidebarProps {
   conversations:  AgentConversation[];
@@ -9,6 +15,7 @@ interface ConversationSidebarProps {
   onSelect:       (id: string) => void;
   onNew:          () => void;
   onCollapse?:    () => void;
+  credits?:       CreditsData | null;
 }
 
 interface StatusConfig {
@@ -43,7 +50,7 @@ function formatDate(iso: string): string {
 }
 
 export default function ConversationSidebar({
-  conversations, loading, selectedId, onSelect, onNew, onCollapse,
+  conversations, loading, selectedId, onSelect, onNew, onCollapse, credits,
 }: ConversationSidebarProps) {
   return (
     <div style={{
@@ -162,8 +169,12 @@ export default function ConversationSidebar({
         )}
       </div>
 
-      {/* Footer: Nueva conversación */}
-      <div style={{ padding: '10px 14px', borderTop: '0.5px solid var(--border)', flexShrink: 0 }}>
+      {/* Footer: créditos + nueva conversación */}
+      <div style={{
+        padding: '10px 14px', borderTop: '0.5px solid var(--border)',
+        display: 'flex', flexDirection: 'column', gap: 8, flexShrink: 0,
+      }}>
+        <CreditsIndicator credits={credits} />
         <button
           onClick={onNew}
           style={{

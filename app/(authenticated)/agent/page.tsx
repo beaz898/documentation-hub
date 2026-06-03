@@ -10,13 +10,15 @@ import ConversationThread from '@/components/agent/ConversationThread';
 import ConversationInput from '@/components/agent/ConversationInput';
 import type { ConfirmationMode } from '@/lib/agent/types';
 
-interface Summary { hasAgent: boolean }
+interface Summary { hasAgent: boolean; creditsRemaining: number; creditsExtra: number; plan: string }
+interface CreditsData { remaining: number; plan: string }
 
 const ACTIVE_STATUSES = new Set(['running', 'awaiting_user', 'awaiting_confirmation']);
 
 export default function AgentPage() {
   const [pageLoading, setPageLoading] = useState(true);
   const [hasAgent, setHasAgent]       = useState(false);
+  const [credits, setCredits]         = useState<CreditsData | null>(null);
   // selectedId controla qué conversación muestra la UI. Es independiente del hook
   // para poder volver al estado "nueva conversación" (null) sin limpiar el hook.
   const [selectedId, setSelectedId]   = useState<string | null>(null);
@@ -40,6 +42,7 @@ export default function AgentPage() {
         if (res.ok) {
           const data: Summary = await res.json();
           setHasAgent(data.hasAgent ?? false);
+          setCredits({ remaining: (data.creditsRemaining ?? 0) + (data.creditsExtra ?? 0), plan: data.plan ?? 'free' });
         }
       } catch { /* keep hasAgent false */ }
       finally { setPageLoading(false); }
@@ -108,6 +111,7 @@ export default function AgentPage() {
           selectedId={selectedId}
           onSelect={handleSelect}
           onNew={handleNew}
+          credits={credits}
         />
       </div>
 
