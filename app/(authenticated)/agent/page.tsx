@@ -24,7 +24,8 @@ export default function AgentPage() {
   const [selectedId, setSelectedId]   = useState<string | null>(null);
   const router   = useRouter();
   const supabase = createClient();
-  const autoSelectedRef = useRef(false);
+  const autoSelectedRef    = useRef(false);
+  const prevConvStatusRef  = useRef<string | undefined>(undefined);
 
   const {
     conversations, conversation, messages,
@@ -34,6 +35,7 @@ export default function AgentPage() {
     retryPolling, clearError,
   } = useConversation();
 
+  // Carga inicial: verifica acceso al agente y obtiene saldo de créditos.
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (!session) { router.replace('/login'); return; }
@@ -48,6 +50,32 @@ export default function AgentPage() {
       finally { setPageLoading(false); }
     });
   }, [router, supabase.auth]);
+
+  // Refresco de créditos tras completar un turno. Usado solo por el efecto de
+  // transición running → idle; no reutiliza la sesión ni toca hasAgent.
+  const loadCredits = useCallback(async () => {
+    try {
+      const res = await fetch('/api/usage/summary', { credentials: 'include' });
+      if (res.ok) {
+        const data = await res.json() as { creditsRemaining: number; creditsExtra: number; plan: string };
+        setCredits({
+          remaining: (data.creditsRemaining ?? 0) + (data.creditsExtra ?? 0),
+          plan: data.plan ?? 'free',
+        });
+      }
+    } catch { /* ignore — saldo queda con el valor anterior */ }
+  }, []);
+
+  // Detecta la transición running → idle (turno completado) y refresca el saldo.
+  // No dispara en pausas (awaiting_user / awaiting_confirmation) porque el turno
+  // aún está activo y la reconciliación de créditos no ha ocurrido todavía.
+  useEffect(() => {
+    const current = conversation?.status;
+    if (prevConvStatusRef.current === 'running' && current === 'idle') {
+      void loadCredits();
+    }
+    prevConvStatusRef.current = current;
+  }, [conversation?.status, loadCredits]);
 
   useEffect(() => {
     if (hasAgent) loadConversations();
