@@ -2,6 +2,7 @@ import type { ToolBundle, ToolContext, ToolExecutionResult, ToolExecutorTyped } 
 
 interface WarnInput {
   message: string;
+  kind?: 'improvised';
 }
 
 const executeTyped: ToolExecutorTyped<WarnInput> = async (
@@ -28,6 +29,14 @@ export const warnTool: ToolBundle = {
         message: {
           type: 'string',
           description: 'Descripción del aviso o riesgo detectado.',
+        },
+        kind: {
+          type: 'string',
+          enum: ['improvised'],
+          description:
+            "Usa 'improvised' cuando el aviso sea que estás usando conocimiento general " +
+            "fuera del corpus de la empresa. Omite para avisos genéricos (ambigüedad, " +
+            "riesgo menor, dato no verificado, etc.).",
         },
       },
       required: ['message'],

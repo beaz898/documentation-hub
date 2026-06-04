@@ -3,6 +3,7 @@
 // Extraído de AgentChat.tsx (no modificar el original — se elimina en Paso 8).
 // Helpers puros para renderizar un AgentStep individual.
 
+import { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import type { AgentStep, ToolName, ToolResultStep, ThinkStep, ToolCallStep,
   UserMessageStep, WarningStep, EscalationStep,
@@ -49,6 +50,43 @@ export function toolResultDetail(
     case 'finalize':  return 'Listo';
     default:          return 'Completado';
   }
+}
+
+// ── ImprovisedWarnBadge ───────────────────────────────────────────────────────
+
+function ImprovisedWarnBadge({ message }: { message: string }) {
+  const [hover, setHover] = useState(false);
+  return (
+    <div
+      style={{ padding: '4px 16px 8px', display: 'flex', alignItems: 'center', gap: 8 }}
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+    >
+      <div style={{ position: 'relative', display: 'inline-flex', flexShrink: 0 }}>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+          stroke="#d97706" strokeWidth="2" style={{ cursor: 'default' }}>
+          <circle cx="12" cy="12" r="10"/>
+          <path d="M12 16v-4M12 8h.01"/>
+        </svg>
+        {hover && (
+          <div style={{
+            position: 'absolute', bottom: '120%', left: 0,
+            background: '#1c1917', color: '#fef3c7',
+            padding: '8px 12px', borderRadius: 8,
+            fontSize: 11, lineHeight: 1.5,
+            width: 260, whiteSpace: 'normal',
+            zIndex: 10, boxShadow: '0 4px 12px rgba(0,0,0,0.25)',
+            pointerEvents: 'none',
+          }}>
+            {message}
+          </div>
+        )}
+      </div>
+      <span style={{ fontSize: 11, color: '#d97706', fontStyle: 'italic' }}>
+        Conocimiento general
+      </span>
+    </div>
+  );
 }
 
 // ── StepRow ───────────────────────────────────────────────────────────────────
@@ -135,6 +173,7 @@ export function StepRow({ step }: { step: AgentStep }) {
 
   if (step.type === 'warning') {
     const s = step as WarningStep;
+    if (s.kind === 'improvised') return <ImprovisedWarnBadge message={s.message} />;
     return (
       <div style={{
         margin: '4px 16px 8px', padding: '8px 12px', borderRadius: 8,

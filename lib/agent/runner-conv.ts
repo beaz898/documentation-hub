@@ -549,9 +549,11 @@ export async function runAgentTurn(input: TurnInput): Promise<TurnOutput> {
       // kind='error': no fatal; el bucle principal lo verá en el historial y el LLM puede recuperarse
       // kind='data':  registrar warning si aplica
       if (result.kind === 'data' && tc.tool_name === 'warn') {
+        const warnInput = tc.input as { message?: string; kind?: 'improvised' };
         const warnStep: AgentStep = {
           type:      'warning',
-          message:   (tc.input as { message?: string }).message ?? '',
+          message:   warnInput.message ?? '',
+          kind:      warnInput.kind,
           timestamp: new Date().toISOString(),
         };
         await appendStepToMessage(supabase, messageId, warnStep);
@@ -715,9 +717,11 @@ export async function runAgentTurn(input: TurnInput): Promise<TurnOutput> {
 
       // kind === 'data': registrar warning si aplica
       if (toolName === 'warn') {
+        const warnInput = toolInput as { message?: string; kind?: 'improvised' };
         const warnStep: AgentStep = {
           type:      'warning',
-          message:   (toolInput as { message?: string }).message ?? '',
+          message:   warnInput.message ?? '',
+          kind:      warnInput.kind,
           timestamp: new Date().toISOString(),
         };
         await appendStepToMessage(supabase, messageId, warnStep);

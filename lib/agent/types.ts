@@ -89,6 +89,7 @@ export interface EscalationStep extends AgentStepBase {
 export interface WarningStep extends AgentStepBase {
   type: 'warning';
   message: string;
+  kind?: 'improvised';
 }
 
 export interface FinalOutputStep extends AgentStepBase {
