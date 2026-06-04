@@ -234,7 +234,25 @@ function validateHistory(allMessages: ConvMessage[]): string | null {
 
     for (const id of callIds) {
       if (!resultIds.has(id)) {
-        return `Mensaje ${msg.id}: tool_use ${id} sin tool_result en mensaje completado`;
+        // Huérfano: distinguir modify legítimo de corrupción real.
+        // Escáner de primera señal determinante a partir del tool_call:
+        //   confirmation_response:modify → tolerar (el pre-bucle lo saltó intencionadamente)
+        //   tool_result o fin de array  → abortar (corrupción: crash, race condition)
+        const tcIdx = msg.steps.findIndex(
+          s => s.type === 'tool_call' && (s as ToolCallStep).tool_use_id === id,
+        );
+        let isLegitimateModify = false;
+        for (let k = tcIdx + 1; k < msg.steps.length; k++) {
+          const s = msg.steps[k];
+          if (s.type === 'confirmation_response' && (s as { response?: string }).response === 'modify') {
+            isLegitimateModify = true;
+            break;
+          }
+          if (s.type === 'tool_result') break; // tool_result antes del modify → corrupción
+        }
+        if (!isLegitimateModify) {
+          return `Mensaje ${msg.id}: tool_use ${id} sin tool_result en mensaje completado`;
+        }
       }
     }
     for (const id of resultIds) {
