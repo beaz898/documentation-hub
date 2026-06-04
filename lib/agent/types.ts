@@ -82,7 +82,8 @@ export interface ConfirmationResponseStep extends AgentStepBase {
 export interface EscalationStep extends AgentStepBase {
   type: 'escalation';
   reason: string;
-  user_choice?: 'stop' | 'ask_more' | 'improvise';
+  escalation_type?: 'undocumented';
+  user_choice?: 'stop' | 'ask_more' | 'improvise' | 'expert_judgment' | 'mark_gap' | 'search_again';
 }
 
 export interface WarningStep extends AgentStepBase {
@@ -125,7 +126,8 @@ export type PendingRequest =
   | {
       type: 'escalation';
       reason: string;
-      options: Array<'stop' | 'ask_more' | 'improvise'>;
+      options: Array<'stop' | 'ask_more' | 'improvise' | 'expert_judgment' | 'mark_gap' | 'search_again'>;
+      escalation_type?: 'undocumented';
     }
   | {
       type: 'confirmation';

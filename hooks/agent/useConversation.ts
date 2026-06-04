@@ -15,7 +15,7 @@ export type SendMessageBody =
   | { content: string }
   | { response: 'approve' | 'reject' }
   | { response: 'modify'; modification: string }
-  | { response: 'stop' | 'ask_more' | 'improvise' };
+  | { response: 'stop' | 'ask_more' | 'improvise' | 'expert_judgment' | 'mark_gap' | 'search_again' };
 
 export interface UseConversationResult {
   // Estado
