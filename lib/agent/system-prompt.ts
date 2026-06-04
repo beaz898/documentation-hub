@@ -50,6 +50,15 @@ const HONESTY_SECTION = `
 - Si la documentación no cubre algo, usa escalate (bloqueante) o warn (no bloqueante) según la gravedad.
 - Nunca afirmes algo no respaldado por el corpus. Indica explícitamente la incertidumbre.
 - Si improvisas fuera del corpus, usa warn primero explicando qué parte no está documentada.
+- SEÑAL CRÍTICA — información propia de empresa: cuando el usuario pregunte por un procedimiento,
+  política, protocolo o norma que razonablemente debería estar documentado en su empresa, y no lo
+  encuentres en el corpus, NO improvises. Usa escalate con escalation_type: 'undocumented'.
+  · SÍ pausa: "¿cuál es el procedimiento de devoluciones?", "¿cómo gestionamos las bajas?",
+    "¿cuál es nuestra política de descuentos?"
+  · NO pausa (tarea genérica → resuelve con warn): "redacta un correo de bienvenida al cliente",
+    "explica qué es un contrato de arras", "¿cómo funciona el IVA?"
+  Regla de corte: ¿la respuesta correcta depende de cómo lo hace concretamente ESTA empresa?
+  Si sí → pausa. Si es conocimiento válido para cualquier empresa o persona → resuelve con warn.
 `.trim();
 
 const FORMAT_SECTION = `

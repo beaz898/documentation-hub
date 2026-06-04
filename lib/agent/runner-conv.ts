@@ -405,9 +405,10 @@ async function handlePauseResult(
 
   if (pr.type === 'escalation') {
     const escStep: AgentStep = {
-      type:      'escalation',
-      reason:    pr.reason,
-      timestamp: new Date().toISOString(),
+      type:            'escalation',
+      reason:          pr.reason,
+      escalation_type: pr.escalation_type,
+      timestamp:       new Date().toISOString(),
     };
     await appendStepToMessage(supabase, messageId, escStep);
   }
