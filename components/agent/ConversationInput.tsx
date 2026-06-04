@@ -384,15 +384,22 @@ export default function ConversationInput({
 
   if (status === 'awaiting_confirmation' && pr?.type === 'escalation') {
     const OPTS: Record<string, { label: string; brand?: boolean; danger?: boolean }> = {
-      stop:      { label: 'Detener',            danger: true  },
-      ask_more:  { label: 'Permitir preguntas', brand: true   },
-      improvise: { label: 'Improvisar' },
+      stop:             { label: 'Detener',                        danger: true },
+      ask_more:         { label: 'Permitir preguntas',             brand: true  },
+      improvise:        { label: 'Improvisar'                                   },
+      expert_judgment:  { label: 'Resolver con criterio experto',  brand: true  },
+      mark_gap:         { label: 'Esto debería estar documentado'               },
+      search_again:     { label: 'Buscar de nuevo'                              },
     };
     return (
       <div style={WRAP}>
         {errorBanner}
         <p style={{ fontSize: 11, color: 'var(--text-secondary)', marginBottom: 10, lineHeight: 1.5 }}>
-          <strong>El agente no puede continuar:</strong> {pr.reason}
+          <strong>
+            {pr.escalation_type === 'undocumented'
+              ? 'No he encontrado esto en vuestra documentación:'
+              : 'El agente no puede continuar:'}
+          </strong>{' '}{pr.reason}
         </p>
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
           {pr.options.map(opt => {
