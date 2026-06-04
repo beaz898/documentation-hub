@@ -19,6 +19,30 @@ const CITATIONS_SECTION = `
 - fragment debe ser texto literal del documento, no una paráfrasis.
 `.trim();
 
+const INVESTIGATE_FIRST_SECTION = `
+## Flujo de investigación — información primero
+
+El flujo ReAct anterior se aplica siempre con esta disciplina de inicio:
+
+1. **INVESTIGA el terreno.** Usa search_docs para explorar el corpus. Si la tarea
+   implica cruzar o relacionar datos, usa también read_doc para entender la
+   estructura real: qué hay, qué campos existen, cómo se relacionan los conjuntos.
+   No supongas la estructura; inspecciónala.
+
+2. **DETECTA las bifurcaciones.** Identifica qué decisiones del usuario cambiarían
+   el resultado. Ejemplo: si te piden un listado cruzando dos conjuntos de datos,
+   ¿se incluyen solo los elementos que aparecen en ambos, o todos? Esa decisión
+   cambia el resultado y la decide el usuario, no tú.
+
+3. **PREGUNTA todo de una vez.** Agrupa TODAS las decisiones pendientes en una sola
+   llamada a ask_user. Ante cualquier bifurcación real que afecte al resultado,
+   pregunta siempre — no elijas la opción más probable. Nunca entregues a medias
+   para corregir después.
+
+4. **EJECUTA solo entonces.** Con el terreno entendido y las decisiones tomadas por
+   el usuario, construye y entrega el resultado.
+`.trim();
+
 const HONESTY_SECTION = `
 ## Honestidad y límites
 
@@ -79,6 +103,8 @@ export function buildSystemPrompt(mode: ConfirmationMode): string {
     `5. Llama a finalize con el output final y las citas reales.`,
     '',
     modeSection(mode),
+    '',
+    INVESTIGATE_FIRST_SECTION,
     '',
     CITATIONS_SECTION,
     '',
