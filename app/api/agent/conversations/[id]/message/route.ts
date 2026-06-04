@@ -48,7 +48,8 @@ function truncateTitle(text: string): string | null {
 
 type ConfirmResponse =
   | 'approve' | 'reject' | 'modify'
-  | 'stop' | 'ask_more' | 'improvise';
+  | 'stop' | 'ask_more' | 'improvise'
+  | 'expert_judgment' | 'mark_gap' | 'search_again';
 
 export async function POST(
   req: NextRequest,
@@ -283,8 +284,12 @@ export async function POST(
     // ── escalation ─────────────────────────────────────────────────────────────
 
     } else if (pr.type === 'escalation') {
+      const isUndocumented = pr.escalation_type === 'undocumented';
+      const valid: ConfirmResponse[] = isUndocumented
+        ? ['expert_judgment', 'mark_gap', 'search_again']
+        : ['stop', 'ask_more', 'improvise'];
+
       const resp = body.response as ConfirmResponse | undefined;
-      const valid: ConfirmResponse[] = ['stop', 'ask_more', 'improvise'];
       if (!resp || !valid.includes(resp)) {
         return NextResponse.json({
           error: `Para escalation, response debe ser: ${valid.join(', ')}.`,
@@ -317,8 +322,34 @@ export async function POST(
 
         return NextResponse.json({ assistantMessageId, cancelled: true });
 
+      } else if (isUndocumented) {
+        // expert_judgment | mark_gap | search_again
+        const escStep: AgentStep = {
+          type:            'escalation',
+          reason:          pr.reason,
+          escalation_type: pr.escalation_type,
+          user_choice:     resp as 'expert_judgment' | 'mark_gap' | 'search_again',
+          timestamp:       now,
+        };
+        await appendStepToMessage(supabase, assistantMessageId, escStep);
+
+        const instruction =
+          resp === 'expert_judgment'
+            ? 'El usuario ha elegido responder con criterio experto: quiere la mejor respuesta posible y esa es tu tarea. Aplica tu conocimiento del sector con plena confianza y rigor. Usa warn antes de finalize para señalar, con precisión, qué partes provienen de criterio experto general y no del corpus de la empresa — esa transparencia es parte del valor de la respuesta, no una disculpa.'
+          : resp === 'mark_gap'
+            ? 'El usuario ha indicado que esta información debería estar documentada. No improvises ni uses conocimiento general. Llama a finalize con un mensaje que: (1) confirme que el tema no está cubierto en el corpus actual, y (2) identifique el tipo de documento que faltaría y los apartados que probablemente debería incluir, para que el usuario sepa qué crear. NO redactes ni rellenes el contenido de ese documento: solo nombra su tipo y estructura. Generar el contenido sería precisamente lo que se quiere evitar.'
+            : /* search_again */
+              'El usuario ha pedido intentar de nuevo con otro enfoque. Reformula la búsqueda usando términos alternativos e intenta resolver la tarea con lo que encuentres en el corpus. Si tras la nueva búsqueda la información sigue sin aparecer, vuelve a escalar.';
+
+        const instrStep: AgentStep = {
+          type:      'user_message',
+          content:   instruction,
+          timestamp: now,
+        };
+        await appendStepToMessage(supabase, assistantMessageId, instrStep);
+
       } else {
-        // ask_more o improvise
+        // ask_more o improvise (escalación genérica — sin cambios)
         const escStep: AgentStep = {
           type:        'escalation',
           reason:      pr.reason,
