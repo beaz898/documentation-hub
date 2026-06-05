@@ -3,7 +3,7 @@ PENDIENTES — Doclity (Agente IA)
 Documento vivo. Se actualiza al completar tareas (marcar [✓]) y se
 sustituye por la versión nueva. Más ligero que la Bitácora: aquí va
 lo que falta y la visión que lo guía, no el detalle de cada sesión.
-Última actualización: 05/06/2026 (noche)
+Última actualización: 06/06/2026
 
 
 ════════════════════════════════════════════════════════════════
@@ -169,13 +169,12 @@ Leyenda: [ ] pendiente · [~] en curso · [✓] hecho
       confirmación/escalación).
       VISIÓN: fluidez básica — el teclado no debe interrumpirse entre turnos.
 
-[ ] B.13 — (UX + Seguridad) Borrar conversaciones desde la barra lateral
-      Hoy no hay forma de eliminar una conversación. Añadir opción de borrado
-      (botón o swipe) en el listado de conversaciones del sidebar.
-      SEGURIDAD: el borrado debe verificar que la conversación pertenece a la org
-      del usuario (RLS o check explícito en el endpoint); nunca borrar por id solo.
-      VISIÓN: higiene básica del historial; el usuario debe poder limpiar lo que
-      ya no necesita sin acumular conversaciones para siempre.
+[✓] B.13 — (UX + Seguridad) Borrar conversaciones desde la barra lateral
+      Borrado real (CASCADE borra los mensajes). Aislado por org_id. Confirmación
+      inline "¿Borrar? Sí/No". Bloqueo si hay turno vivo (locked_at reciente, mismo
+      umbral 5 min del worker); permite borrar si el running es fantasma. Deselecciona
+      si era la activa y limpia el polling.
+      Commits: 8963a36 (endpoint + hook), c57c13c (UI).
 
 [ ] B.14 — (Funcionalidad) Acceso del agente a metadatos documentales
       Herramienta nueva (list_docs o similar) para que el agente pueda consultar
