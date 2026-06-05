@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import type { AgentConversation, ConversationStatus } from '@/lib/agent/types';
 import CreditsIndicator from '@/components/shared/CreditsIndicator';
 
@@ -14,6 +15,7 @@ interface ConversationSidebarProps {
   selectedId:     string | null;
   onSelect:       (id: string) => void;
   onNew:          () => void;
+  onDelete:       (id: string) => void;
   onCollapse?:    () => void;
   credits?:       CreditsData | null;
 }
@@ -31,8 +33,6 @@ const STATUS_CONFIG: Record<ConversationStatus, StatusConfig> = {
   awaiting_confirmation: { label: 'Esperando aprobación',  color: '#d97706',           pulse: true  },
 };
 
-// Cuando title es null (actualmente siempre), mostramos fecha+hora como identificador único.
-// Pendiente: autogenerar title del primer mensaje en el endpoint de mensaje (Paso 6 post).
 function getConvTitle(conv: AgentConversation): string {
   if (conv.title) return conv.title;
   const date = new Date(conv.last_message_at ?? conv.created_at);
@@ -50,8 +50,16 @@ function formatDate(iso: string): string {
 }
 
 export default function ConversationSidebar({
-  conversations, loading, selectedId, onSelect, onNew, onCollapse, credits,
+  conversations, loading, selectedId, onSelect, onNew, onDelete, onCollapse, credits,
 }: ConversationSidebarProps) {
+  const [hoveredId,    setHoveredId]    = useState<string | null>(null);
+  const [confirmingId, setConfirmingId] = useState<string | null>(null);
+
+  function handleSelect(id: string) {
+    setConfirmingId(null);
+    onSelect(id);
+  }
+
   return (
     <div style={{
       height: '100%', display: 'flex', flexDirection: 'column',
@@ -114,56 +122,127 @@ export default function ConversationSidebar({
           conversations.map(conv => {
             const cfg        = STATUS_CONFIG[conv.status];
             const isSelected = conv.id === selectedId;
+            const isHovered  = hoveredId === conv.id;
+            const isConfirming = confirmingId === conv.id;
             const title      = getConvTitle(conv);
             const dateStr    = formatDate(conv.last_message_at ?? conv.created_at);
             const turns      = conv.turn_count;
 
-            return (
-              <button
-                key={conv.id}
-                onClick={() => onSelect(conv.id)}
-                style={{
-                  width: '100%', textAlign: 'left', padding: '8px 10px',
-                  borderRadius: 8, border: 'none', cursor: 'pointer',
-                  background: isSelected ? 'var(--brand-light)' : 'transparent',
-                  marginBottom: 1, display: 'flex', alignItems: 'flex-start', gap: 9,
-                  transition: 'background 0.1s',
-                }}
-                onMouseEnter={e => { if (!isSelected) e.currentTarget.style.background = 'var(--surface-hover)'; }}
-                onMouseLeave={e => { if (!isSelected) e.currentTarget.style.background = 'transparent'; }}
-              >
-                {/* Dot de estado */}
-                <div style={{ paddingTop: 3, flexShrink: 0 }}>
-                  <div
-                    className={cfg.pulse ? 'animate-pulse' : undefined}
-                    style={{ width: 7, height: 7, borderRadius: '50%', background: cfg.color }}
-                  />
+            // ── Fila en modo confirmación ──────────────────────────────────────
+            if (isConfirming) {
+              return (
+                <div
+                  key={conv.id}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 6,
+                    padding: '8px 10px', borderRadius: 8, marginBottom: 1,
+                    background: 'rgba(220,38,38,0.06)',
+                    border: '0.5px solid rgba(220,38,38,0.2)',
+                  }}
+                >
+                  <span style={{ flex: 1, fontSize: 11, color: 'var(--text-secondary)', lineHeight: 1.4 }}>
+                    ¿Borrar conversación?
+                  </span>
+                  <button
+                    onClick={() => { setConfirmingId(null); onDelete(conv.id); }}
+                    style={{
+                      padding: '3px 10px', borderRadius: 6, border: 'none', flexShrink: 0,
+                      background: 'var(--danger)', color: '#fff',
+                      fontSize: 11, fontWeight: 600, cursor: 'pointer',
+                    }}
+                  >Sí</button>
+                  <button
+                    onClick={() => setConfirmingId(null)}
+                    style={{
+                      padding: '3px 10px', borderRadius: 6, flexShrink: 0,
+                      border: '0.5px solid var(--border)', background: 'transparent',
+                      color: 'var(--text-secondary)', fontSize: 11, fontWeight: 600, cursor: 'pointer',
+                    }}
+                  >No</button>
                 </div>
+              );
+            }
 
-                {/* Contenido */}
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <p style={{
-                    fontSize: 11, margin: '0 0 3px',
-                    fontWeight: isSelected ? 600 : 400,
-                    color: isSelected ? 'var(--brand-text)' : 'var(--text-primary)',
-                    lineHeight: 1.4,
-                    whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-                  }}>
-                    {title}
-                  </p>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-                    <span style={{ fontSize: 9, color: cfg.color, fontWeight: 500 }}>
-                      {cfg.label}
-                    </span>
-                    <span style={{ fontSize: 9, color: 'var(--text-muted)' }}>·</span>
-                    <span style={{ fontSize: 9, color: 'var(--text-muted)' }}>
-                      {turns > 0 ? `${turns} ${turns === 1 ? 'turno' : 'turnos'}` : 'Nueva'}
-                    </span>
-                    <span style={{ fontSize: 9, color: 'var(--text-muted)' }}>·</span>
-                    <span style={{ fontSize: 9, color: 'var(--text-muted)' }}>{dateStr}</span>
+            // ── Fila normal ────────────────────────────────────────────────────
+            return (
+              <div
+                key={conv.id}
+                style={{ position: 'relative', marginBottom: 1 }}
+                onMouseEnter={() => setHoveredId(conv.id)}
+                onMouseLeave={() => setHoveredId(null)}
+              >
+                <div
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => handleSelect(conv.id)}
+                  onKeyDown={e => e.key === 'Enter' && handleSelect(conv.id)}
+                  style={{
+                    width: '100%', textAlign: 'left',
+                    padding: `8px ${isHovered ? 34 : 10}px 8px 10px`,
+                    borderRadius: 8, cursor: 'pointer',
+                    background: isSelected ? 'var(--brand-light)' : isHovered ? 'var(--surface-hover)' : 'transparent',
+                    display: 'flex', alignItems: 'flex-start', gap: 9,
+                    transition: 'background 0.1s', outline: 'none',
+                  }}
+                >
+                  {/* Dot de estado */}
+                  <div style={{ paddingTop: 3, flexShrink: 0 }}>
+                    <div
+                      className={cfg.pulse ? 'animate-pulse' : undefined}
+                      style={{ width: 7, height: 7, borderRadius: '50%', background: cfg.color }}
+                    />
+                  </div>
+
+                  {/* Contenido */}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <p style={{
+                      fontSize: 11, margin: '0 0 3px',
+                      fontWeight: isSelected ? 600 : 400,
+                      color: isSelected ? 'var(--brand-text)' : 'var(--text-primary)',
+                      lineHeight: 1.4,
+                      whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                    }}>
+                      {title}
+                    </p>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                      <span style={{ fontSize: 9, color: cfg.color, fontWeight: 500 }}>
+                        {cfg.label}
+                      </span>
+                      <span style={{ fontSize: 9, color: 'var(--text-muted)' }}>·</span>
+                      <span style={{ fontSize: 9, color: 'var(--text-muted)' }}>
+                        {turns > 0 ? `${turns} ${turns === 1 ? 'turno' : 'turnos'}` : 'Nueva'}
+                      </span>
+                      <span style={{ fontSize: 9, color: 'var(--text-muted)' }}>·</span>
+                      <span style={{ fontSize: 9, color: 'var(--text-muted)' }}>{dateStr}</span>
+                    </div>
                   </div>
                 </div>
-              </button>
+
+                {/* Papelera — visible al hover */}
+                {isHovered && (
+                  <button
+                    onClick={e => { e.stopPropagation(); setConfirmingId(conv.id); }}
+                    title="Borrar conversación"
+                    aria-label="Borrar conversación"
+                    style={{
+                      position: 'absolute', right: 6, top: '50%', transform: 'translateY(-50%)',
+                      width: 22, height: 22, borderRadius: 5, border: 'none',
+                      background: 'transparent', cursor: 'pointer',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      color: 'var(--text-muted)',
+                    }}
+                    onMouseEnter={e => (e.currentTarget.style.color = 'var(--danger)')}
+                    onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-muted)')}
+                  >
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <polyline points="3 6 5 6 21 6"/>
+                      <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+                      <path d="M10 11v6M14 11v6"/>
+                      <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+                    </svg>
+                  </button>
+                )}
+              </div>
             );
           })
         )}

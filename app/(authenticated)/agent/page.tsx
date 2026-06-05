@@ -31,7 +31,7 @@ export default function AgentPage() {
     conversations, conversation, messages,
     loading, sending, creating, error, pollingError,
     loadConversations, selectConversation, createConversation,
-    sendMessage, cancelConversation, updateMode,
+    sendMessage, cancelConversation, updateMode, deleteConversation,
     retryPolling, clearError,
   } = useConversation();
 
@@ -104,6 +104,15 @@ export default function AgentPage() {
     setSelectedId(null);
   }, []);
 
+  const handleDelete = useCallback(async (id: string) => {
+    const ok = await deleteConversation(id);
+    // El hook ya limpia la lista y detiene el polling si era la activa.
+    // Aquí solo falta deseleccionar en la UI si era la conversación visible.
+    if (ok && selectedId === id) {
+      setSelectedId(null);
+    }
+  }, [deleteConversation, selectedId]);
+
   async function handleCreateAndSend(mode: ConfirmationMode, content: string) {
     const id = await createConversation(mode);
     if (!id) return;
@@ -139,6 +148,7 @@ export default function AgentPage() {
           selectedId={selectedId}
           onSelect={handleSelect}
           onNew={handleNew}
+          onDelete={handleDelete}
           credits={credits}
         />
       </div>

@@ -272,12 +272,19 @@ export function useConversation(): UseConversationResult {
         return false;
       }
       setConversations(prev => prev.filter(c => c.id !== id));
+      // Si era la conversación activa, limpiar detalle y parar polling
+      if (activeConvIdRef.current === id) {
+        stopPolling();
+        activeConvIdRef.current = null;
+        setConversation(null);
+        setMessages([]);
+      }
       return true;
     } catch {
       setError('Error de conexión.');
       return false;
     }
-  }, []);
+  }, [stopPolling]);
 
   const retryPolling = useCallback(() => {
     const convId = activeConvIdRef.current;
