@@ -1,0 +1,236 @@
+PENDIENTES — Doclity (Agente IA)
+================================
+Documento vivo. Se actualiza al completar tareas (marcar [✓]) y se
+sustituye por la versión nueva. Más ligero que la Bitácora: aquí va
+lo que falta y la visión que lo guía, no el detalle de cada sesión.
+Última actualización: 05/06/2026 (noche)
+
+
+════════════════════════════════════════════════════════════════
+PARTE A — VISIÓN Y DECISIONES CONCEPTUALES (cerradas)
+════════════════════════════════════════════════════════════════
+
+Esta parte NO es código pendiente: es el marco que guía las tareas de
+la Parte B. Está cerrada y validada. Si una tarea contradice esto,
+manda esto.
+
+
+A.1 — COMPORTAMIENTO DEL AGENTE: "información primero, decisiones al usuario"
+─────────────────────────────────────────────────────────────────────────
+
+Regla raíz: el agente no inventa hechos del dominio de la empresa.
+Primero investiga, y cada punto no resuelto se convierte en una
+pregunta de decisión por adelantado, no en una suposición.
+
+Flujo ante cualquier petición:
+  1. INSPECCIONA primero lo que hay (busca en el corpus; si la tarea
+     toca estructuras como tablas/esquemas, las mira antes de actuar).
+  2. DETECTA las bifurcaciones que cambian el resultado
+     (ej. ¿incluyo clientes sin ventas?, ¿qué relación hay entre tablas?).
+  3. PREGUNTA por adelantado TODAS las decisiones de una vez,
+     no a base de entregar-y-corregir.
+  4. EJECUTA solo entonces. El conocimiento general del agente rellena
+     el CÓMO (construir la query, redactar el correo), nunca el QUÉ
+     (qué dice la realidad de la empresa: qué es tal campo, qué tablas
+     hay, cómo se relacionan). Eso no se inventa: se busca o se pregunta.
+
+Clave de la propiedad: la INFORMACIÓN MANDA. Lo documentado tiene
+prioridad sobre lo que pida el usuario.
+
+Cláusula de aviso (IMPORTANTE — riesgo de operar fuera de directrices):
+  Cuando el agente rellene un hueco con conocimiento general que el
+  usuario PODRÍA estar asumiendo que está documentado, debe avisarlo.
+  Peligro real: el usuario cree que la empresa lo tiene documentado,
+  el agente no lo encuentra, rellena en silencio, y el usuario acaba
+  operando fuera de las directrices de su empresa creyéndose dentro.
+  Eso es peor que no responder.
+
+  Forma del aviso (UX): NO un párrafo dentro de la respuesta. Un icono
+  de información visible que al pasar por encima se expande y muestra
+  el mensaje (tipo: "Esto no lo he encontrado en vuestra documentación,
+  lo he hecho con criterio general. Si tenéis norma propia, decídmela
+  o añadidla al corpus."). Visible porque importa; sin ensuciar.
+
+  Efecto de producto buscado: la ausencia de documentación pasa a ser
+  una SEÑAL ÚTIL para el cliente (ve dónde le falta documentar), no un
+  fallo silencioso.
+
+
+A.2 — APRENDIZAJE: dos naturalezas distintas + interruptor de enseñanza
+────────────────────────────────────────────────────────────────────────
+
+Premisa: guardar soluciones como ejemplos literales es contraproducente.
+Un mismo problema tiene mil formas válidas de resolverse; lo que en una
+query necesita un LEFT JOIN, en otra sobre las mismas tablas no. Un
+ejemplo induciría a copiar una solución que no aplica.
+
+Se distinguen dos tipos:
+
+  TIPO A — preferencia / convención estable (SÍ se retiene)
+    "Los correos los escribimos así." Vale la próxima vez y la
+    siguiente, porque el contexto se repite. Se guarda como convención.
+
+  TIPO B — decisión dependiente del caso (NO se guarda como ejemplo)
+    "Esta query sin los clientes sin ventas." No está MAL: es que ESTE
+    problema lo pedía así. Guardarlo envenenaría futuras queries sobre
+    las mismas tablas. De un caso B lo único reutilizable son los
+    HECHOS DE DOMINIO descubiertos por el camino (ej.: tal campo es
+    "cliente", la relación ventas–clientes es N:N, ciertas descripciones
+    viven en tablas de dimensiones referenciadas por código). La
+    DECISIÓN concreta se vuelve a preguntar cada vez.
+
+  Resumen: se aprende el MAPA del territorio (hechos del dominio),
+  no la RUTA concreta de una vez (la decisión de ese caso).
+  Implicación para el system prompt: debe empujar al agente a EXTRAER
+  y RETENER hechos de dominio durante la investigación.
+
+Mecanismo de captura — "interruptor de enseñanza" (NO jerarquía de confianza):
+  - Cada respuesta del usuario lleva DOS botones:
+      · "Enviar"
+      · "Enviar + tener en cuenta para el aprendizaje"
+  - Durante una fase de enseñanza que abre quien manda ("estas semanas,
+    corregid y marcad para que aprenda"), CUALQUIER usuario puede pulsar
+    el segundo botón. La corrección se retiene independientemente de
+    quién la haga.
+  - Llega un momento en que la enseñanza se CIERRA: solo quien manda
+    puede seguir alimentándolo, o se congela del todo.
+  - Es un interruptor con control de quién puede accionarlo, no una
+    autoridad permanente por persona.
+
+  A futuro (no ahora): permitir adjuntar correos/documentos de ejemplo.
+
+ESTADO: VISIÓN. El mecanismo concreto (almacenamiento, recuperación sin
+recaer en la trampa de los ejemplos, control del interruptor) está
+PENDIENTE DE DISEÑO. No darlo por especificado.
+
+
+A.3 — ENCAJE DE PRODUCTO (promesa honesta)
+──────────────────────────────────────────
+
+La promesa al cliente PYME es: "aplica vuestras reglas y os pregunta
+lo que no sabe", NO "juicio humano perfecto".
+Un agente replica criterios y convenciones; no replica el juicio tácito
+del experto. La promesa humilde se cumple siempre y es más vendible a
+largo plazo. El "trabajador perfecto" es el objetivo aspiracional, no
+la garantía contractual.
+
+
+════════════════════════════════════════════════════════════════
+PARTE B — TAREAS PENDIENTES (orden a confirmar)
+════════════════════════════════════════════════════════════════
+
+Leyenda: [ ] pendiente · [~] en curso · [✓] hecho
+
+
+[✓] B.1 — (UX) Barra indicadora de créditos disponibles
+      Recuperar la barra de créditos que existía en /chat y desapareció
+      al rediseñar el layout. Mostrarla en el agente y donde corresponda.
+      VISIÓN: el usuario debe ver su saldo sin buscarlo; transparencia
+      de consumo, sobre todo ahora que el agente gasta por turno.
+
+[✓] B.2 — (Comportamiento) Confirmaciones de solo-lectura + lenguaje legible
+      search_docs / read_doc / finalize NO deben pedir permiso (son de
+      solo lectura; pedirlo causaba lentitud y jerga tipo "¿permiso para
+      llamar a search_docs?"). Reservar la confirmación para futuras
+      acciones con efecto real. Traducir TODOS los textos de
+      confirmación/escalación a lenguaje legible para no técnicos.
+      VISIÓN: el usuario no técnico no debe ver fontanería interna;
+      pedir permiso solo cuando hay algo real que aprobar.
+
+[✓] B.3 Fase 2 + B.10 — (Comportamiento + UI) Aviso de "no documentado"
+      Comportamiento + visual completos y validados. El agente distingue lo propio de
+      empresa (pausa con 3 opciones legibles) de lo genérico (resuelve + icono
+      "Conocimiento general" con detalle al hover). Commits: 9c1ac70, 7a95055,
+      8f37feb, 34233f2, 7de5ac6.
+
+[ ] B.4 — (Funcionalidad) Acceso del agente a estadísticas de uso
+      Herramienta nueva para que el agente consulte el panel de analytics
+      y responda cosas como "cuántas consultas ha resuelto tal documento".
+      VISIÓN: ampliar al agente más allá del corpus, hacia datos propios
+      de Doclity. Primer paso de darle "más sentidos".
+
+[ ] B.5 — (Latencia) Opción D: HTTP trigger directo Vercel→Railway
+      Sustituir el polling provisional a 1s por un disparo directo para
+      que el worker se entere al instante. El procesamiento sigue en
+      Railway. (Diseño ya pensado en sesiones previas.)
+      VISIÓN: reanudaciones instantáneas; quitar la latencia residual
+      del modelo de polling.
+
+[✓] B.11 — (Comportamiento) Dar al agente conciencia temporal (fecha/hora actual)
+      Inyectado en el system prompt al final (tras FORMAT_SECTION) para no romper
+      el caché futuro (B.7). Zona horaria Europe/Madrid (DST automático). Solo fecha,
+      formato largo español. Parámetro now:Date pasado desde runner-conv.ts.
+      Commit: 6d3ea38.
+
+[ ] B.12 — (UX) Auto-foco del input tras enviar mensaje
+      Al enviar un mensaje el cursor desaparece del input y el usuario tiene que
+      volver a hacer clic para escribir el siguiente. El input debe recuperar el
+      foco automáticamente tras cada envío (tanto mensaje libre como respuesta a
+      confirmación/escalación).
+      VISIÓN: fluidez básica — el teclado no debe interrumpirse entre turnos.
+
+[ ] B.13 — (UX + Seguridad) Borrar conversaciones desde la barra lateral
+      Hoy no hay forma de eliminar una conversación. Añadir opción de borrado
+      (botón o swipe) en el listado de conversaciones del sidebar.
+      SEGURIDAD: el borrado debe verificar que la conversación pertenece a la org
+      del usuario (RLS o check explícito en el endpoint); nunca borrar por id solo.
+      VISIÓN: higiene básica del historial; el usuario debe poder limpiar lo que
+      ya no necesita sin acumular conversaciones para siempre.
+
+[ ] B.14 — (Funcionalidad) Acceso del agente a metadatos documentales
+      Herramienta nueva (list_docs o similar) para que el agente pueda consultar
+      qué documentos hay en el corpus: nombre, fecha de subida, tipo, tamaño.
+      Útil para responder "¿qué documentos tenéis sobre X?" o "¿cuándo se subió
+      el contrato de Y?".
+      FILTRO DE SEGURIDAD (clave): definir qué campos puede ver y cuáles se vetan.
+      Nunca exponer: claves, tokens (los de Drive están en texto plano hoy — deuda
+      conocida), stripe_customer_id, datos de otras orgs, contenido sensible de la
+      tabla organizations. Solo metadatos documentales seguros. Aislar SIEMPRE
+      por org_id.
+      VISIÓN: ampliar los "sentidos" del agente más allá del contenido puro;
+      primer paso hacia B.4 (estadísticas de uso).
+
+[ ] B.15 — (Seguridad / Roles) Rol de administrador temporal
+      Mecanismo para que el dueño de la cuenta pueda elevar temporalmente a un
+      usuario a administrador (para soporte, auditoría, etc.) sin cambiar su rol
+      permanente.
+      NO mezclar con trabajo del agente. Requiere diseño propio y cuidadoso del
+      modelo de permisos: quién puede elevar, por cuánto tiempo, qué acciones
+      permite el rol temporal, y cómo se revoca (automáticamente o manualmente).
+      VISIÓN: control de acceso sin fricción para escenarios de soporte puntual.
+      ESTADO: PENDIENTE DE DISEÑO antes de tocar código.
+
+[ ] B.6 — (Futuro) Mecanismo de aprendizaje (ver A.2)
+      Diseñar e implementar el almacenamiento/recuperación de hechos de
+      dominio (tipo B) y convenciones (tipo A), más el interruptor de
+      enseñanza con su control de accionamiento.
+      VISIÓN: el diferencial a largo plazo. Pendiente de DISEÑO antes de
+      tocar código. No empezar hasta cerrar mecanismo.
+
+[ ] B.7 — (Cierre técnico) Prompt caching + borrar agente viejo
+      Activar prompt caching del agente. Borrar el código del agente
+      antiguo (runner.ts, persist.ts, agent-handler.ts, endpoints legado),
+      SIN borrar todavía la tabla agent_tasks.
+      VISIÓN: limpieza y coste. Dejar un solo modelo (conversaciones) vivo.
+
+[✓] B.8 — (Regresión) Pasada de prueba antes de añadir mucho
+      Probar: 3 modos de confirmación × 3 caminos (approve/modify/reject)
+      + escalación + memoria entre turnos.
+      VISIÓN: red de seguridad. Verde aquí antes de construir encima.
+
+
+════════════════════════════════════════════════════════════════
+NOTAS DE ORDEN (propuesta, a confirmar)
+════════════════════════════════════════════════════════════════
+
+- B.2 y B.3 (comportamiento) son los cimientos: tocan system prompt y
+  lógica de pausa, sobre los que se prueba todo lo demás. Irían primero.
+- B.8 (regresión) conviene ANTES de empezar a añadir, para tener una
+  base verde de referencia.
+- B.4 y B.5 son funcionalidad/latencia, después de los cimientos.
+- B.6 (aprendizaje) requiere fase de diseño propia antes de código.
+- B.7 (cierre) al final, cuando el modelo nuevo esté plenamente asentado.
+
+Forma de trabajo: diagnóstico con datos reales antes de arreglar; un
+cambio lógico cada vez; build verde entre medias; SQL en Supabase antes
+del push; plan completo antes de tocar varios archivos.
