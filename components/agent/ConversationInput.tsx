@@ -71,7 +71,11 @@ export default function ConversationInput({
   const [modif,      setModif]      = useState('');
   const [showModify, setShowModify] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const textareaRef  = useRef<HTMLTextAreaElement>(null);
+  const prevStateRef = useRef<{
+    id:     string | undefined;
+    status: AgentConversation['status'] | undefined;
+  }>({ id: undefined, status: undefined });
 
   // Limpiar estado local al cambiar de conversación (no contaminar entre hilos)
   useEffect(() => {
@@ -88,6 +92,18 @@ export default function ConversationInput({
       setModif('');
     }
   }, [conversation?.status]);
+
+  // Auto-foco: devolver el cursor al textarea solo cuando la misma conversación
+  // transiciona de running → idle (el agente terminó). No aplica al cargar o
+  // seleccionar una conversación desde el sidebar (evita teclado emergente en móvil).
+  useEffect(() => {
+    const prev = prevStateRef.current;
+    const curr = { id: conversation?.id, status: conversation?.status };
+    prevStateRef.current = curr;
+    if (prev.id === curr.id && prev.status === 'running' && curr.status === 'idle') {
+      textareaRef.current?.focus();
+    }
+  }, [conversation?.id, conversation?.status]);
 
   // ── Helpers de textarea ────────────────────────────────────────────────────
 
