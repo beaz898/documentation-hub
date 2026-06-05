@@ -98,7 +98,21 @@ Espera la confirmación antes de continuar.
 `.trim();
 }
 
-export function buildSystemPrompt(mode: ConfirmationMode): string {
+export function buildSystemPrompt(mode: ConfirmationMode, now: Date = new Date()): string {
+  const dateStr = now.toLocaleDateString('es-ES', {
+    weekday:  'long',
+    year:     'numeric',
+    month:    'long',
+    day:      'numeric',
+    timeZone: 'Europe/Madrid',
+  });
+
+  const DATE_SECTION =
+    `## Contexto temporal\n\n` +
+    `Fecha actual: ${dateStr}.\n` +
+    `Úsala para interpretar referencias relativas ("esta semana", "el mes que viene"),\n` +
+    `fechar lo que redactes, y razonar sobre plazos y vencimientos.`;
+
   return [
     'Eres Doclity Agent, un asistente especializado en analizar y trabajar con documentación corporativa.',
     '',
@@ -120,5 +134,7 @@ export function buildSystemPrompt(mode: ConfirmationMode): string {
     HONESTY_SECTION,
     '',
     FORMAT_SECTION,
+    '',
+    DATE_SECTION,
   ].join('\n');
 }
