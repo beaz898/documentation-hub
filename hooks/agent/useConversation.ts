@@ -30,14 +30,15 @@ export interface UseConversationResult {
   pollingError:   boolean;        // MAX_CONSECUTIVE_FAILURES alcanzado; polling detenido
 
   // Acciones
-  loadConversations:  () => Promise<void>;
-  selectConversation: (id: string) => Promise<void>;
-  createConversation: (mode: ConfirmationMode) => Promise<string | null>;
-  sendMessage:        (convId: string, body: SendMessageBody) => Promise<boolean>;
-  cancelConversation: (convId: string) => Promise<void>;
-  updateMode:         (convId: string, mode: ConfirmationMode) => Promise<void>;
-  retryPolling:       () => void;   // reintentar polling tras pollingError
-  clearError:         () => void;
+  loadConversations:   () => Promise<void>;
+  selectConversation:  (id: string) => Promise<void>;
+  createConversation:  (mode: ConfirmationMode) => Promise<string | null>;
+  sendMessage:         (convId: string, body: SendMessageBody) => Promise<boolean>;
+  cancelConversation:  (convId: string) => Promise<void>;
+  updateMode:          (convId: string, mode: ConfirmationMode) => Promise<void>;
+  deleteConversation:  (id: string) => Promise<boolean>;
+  retryPolling:        () => void;   // reintentar polling tras pollingError
+  clearError:          () => void;
 }
 
 // ── Hook ──────────────────────────────────────────────────────────────────────
@@ -258,6 +259,26 @@ export function useConversation(): UseConversationResult {
     }
   }, []);
 
+  const deleteConversation = useCallback(async (id: string): Promise<boolean> => {
+    setError(null);
+    try {
+      const res = await fetch(`/api/agent/conversations/${id}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError((data as { error?: string }).error || 'Error borrando la conversación.');
+        return false;
+      }
+      setConversations(prev => prev.filter(c => c.id !== id));
+      return true;
+    } catch {
+      setError('Error de conexión.');
+      return false;
+    }
+  }, []);
+
   const retryPolling = useCallback(() => {
     const convId = activeConvIdRef.current;
     if (!convId || !pollingError) return;
@@ -272,7 +293,7 @@ export function useConversation(): UseConversationResult {
     conversations, conversation, messages,
     loading, loadingDetail, sending, creating, error, pollingError,
     loadConversations, selectConversation, createConversation,
-    sendMessage, cancelConversation, updateMode,
+    sendMessage, cancelConversation, updateMode, deleteConversation,
     retryPolling, clearError,
   };
 }
