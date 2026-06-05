@@ -996,3 +996,223 @@ ARCHIVOS MODIFICADOS
   app/api/ingest/route.ts       — allowedExtensions incluye xlsx, xlsm
   components/DocumentsSidebar.tsx — accept con xlsx, xlsm y MIME types
   package.json / package-lock.json — xlsx@0.18.5 instalado
+
+
+────────────────────────────────────────────────────────────────
+SESIÓN 15 — ~28/05/2026 – ~01/06/2026
+Título: Agente IA — rediseño al modelo de conversaciones (Pasos 1–8)
+────────────────────────────────────────────────────────────────
+
+OBJETIVO
+Reemplazar el modelo de tareas únicas (agent_tasks) por un modelo de
+conversación continua multi-turno (agent_conversations + agent_messages).
+El agente ahora mantiene historial entre turnos, puede hacer múltiples
+preguntas o confirmaciones dentro de una misma sesión de trabajo, y la
+UI refleja el flujo conversacional completo.
+
+CAMBIOS IMPLEMENTADOS
+
+1. NUEVO ESQUEMA DE BASE DE DATOS (SQL ejecutado en Supabase antes del push)
+
+   agent_conversations
+   - id, org_id, user_id, confirmation_mode
+   - status: idle | running | awaiting_user | awaiting_confirmation
+   - pending_request (JSONB): solicitud pendiente al usuario
+   - title: autogenerado desde el primer mensaje (≤60 chars)
+   - total_credits_used, total_tokens_input, total_tokens_output, turn_count
+   - last_message_at, created_at
+
+   agent_messages
+   - id, conversation_id, role ('user' | 'assistant')
+   - content: texto final del turno (assistant completado)
+   - steps (JSONB): array de AgentStep del turno
+   - status: running | awaiting_user | awaiting_confirmation | completed | failed
+   - credits_estimated, credits_used, tokens_input, tokens_output
+   - locked_at: claim exclusivo del worker (NULL = reclamable)
+   - error_message
+
+   RPCs nuevas
+   - append_step_to_message: UPDATE atómico steps = steps || jsonb_build_array($1)
+     (elimina race condition de read-modify-write cuando hay runners concurrentes)
+
+2. BACKEND: PERSIST-CONV + RUNNER-CONV + CONV-HANDLER (Pasos 1–5)
+
+   lib/agent/persist-conv.ts — nuevo
+   - createConversation, insertUserMessage, insertAssistantMessage
+   - appendStepToMessage (vía RPC atómica — lanza si falla, no silencia)
+   - updateMessageStatus, updateConversationStatus, setMessageContent
+   - setPendingRequestOnConversation, clearPendingRequest
+   - accumulateMessageTokens
+
+   lib/agent/runner-conv.ts — nuevo
+   - buildStepsIntoMessages: convierte steps[] de un turno en mensajes Anthropic
+     · pairedIds = callIds ∩ resultIds: excluye tool_calls sin result del historial
+     · meta-steps (confirmation_request/response, escalation, warning) se saltan
+     · invariante: tool_results deben aparecer antes del user_message en steps[]
+   - buildMessagesFromHistory: combina todos los turnos de la conversación
+   - validateHistory: detecta corrupción (tool_use sin result, duplicados) antes
+     del LLM; mensajes 'failed' solo emiten warning (no abortan el turno)
+   - findPendingToolCalls: tool_calls sin result (usada en pre-bucle)
+   - refreshHeartbeat: actualiza locked_at al inicio de cada iteración ReAct
+   - Pre-bucle: ejecuta tool_calls aprobadas cuyo runner fue interrumpido antes
+     de registrar su tool_result; detecta confirm_response(modify) vía slice(tcIdx)
+     y salta la ejecución (no ejecuta tool original; LLM replantea)
+   - Loop ReAct: hasta 15 iteraciones; reconcilia créditos al completar
+
+   worker/src/conv-handler.ts — nuevo
+   - pollConversationTurns: SELECT assistant messages en 'running' con
+     (locked_at IS NULL OR locked_at < now()-5min)
+   - Claim atómico: UPDATE WHERE locked_at IS NULL OR locked_at < threshold
+     Si otro runner ya lo reclamó, claimed=[] → descarta sin procesar
+   - STUCK_THRESHOLD_MS = 5 min (margen sobre ~3 min máx por iteración)
+   - Cada turno lanza processConversationTurn en background (fire-and-forget)
+   - Recovery defensiva: si el runner lanza, marca message=failed y conv=idle
+
+3. NUEVOS ENDPOINTS API
+
+   POST /api/agent/conversations              — Nueva conversación
+   GET  /api/agent/conversations              — Lista (últimas 50)
+   GET  /api/agent/conversations/[id]         — Estado + pending_request
+   PATCH /api/agent/conversations/[id]        — Actualiza confirmation_mode
+   POST /api/agent/conversations/[id]/message — Nuevo turno o reanudación:
+     · idle: consume créditos, inserta user + assistant, status='running'
+     · awaiting_user (user_input): añade UserMessageStep, reanuda
+     · awaiting_confirmation (confirmation): añade ConfirmationResponseStep, reanuda
+       - approve/modify: continúa; reject: falla el mensaje, idle+reembolso
+     · awaiting_confirmation (escalation): añade EscalationStep, reanuda
+       - ask_more/improvise: continúa; stop: falla, idle+reembolso
+   POST /api/agent/conversations/[id]/cancel  — Cancela turno activo
+
+4. UI (Pasos 6–8)
+
+   components/agent/ConversationSidebar.tsx — nuevo
+   - Lista de conversaciones con dot de estado (animate-pulse para activas)
+   - Fechas relativas, botón nueva conversación
+
+   components/agent/ConversationChat.tsx — nuevo
+   - StepRow: renderiza cada tipo de step del turno actual
+   - PendingRequestPanel: input de texto (user_input), botones (escalation),
+     Aprobar/Modificar/Cancelar con input inline (confirmation)
+
+   components/agent/ConversationInput.tsx — nuevo (reemplaza AgentInput)
+   - Modo idle: textarea + selector ConfirmationMode + botón enviar
+   - Modo awaiting_*: input/botones según tipo de pending_request
+   - SendBtn con onClick (fix: antes solo Enter funcionaba)
+
+   hooks/agent/useConversation.ts — nuevo
+   - Gestión de conversación activa + mensajes
+   - Polling solo cuando status='running'
+   - startPolling/stopPolling controlados por ciclo de vida
+
+ARCHIVOS NUEVOS
+  lib/agent/persist-conv.ts
+  lib/agent/runner-conv.ts
+  worker/src/conv-handler.ts
+  app/api/agent/conversations/route.ts
+  app/api/agent/conversations/[id]/route.ts
+  app/api/agent/conversations/[id]/message/route.ts
+  app/api/agent/conversations/[id]/cancel/route.ts
+  components/agent/ConversationSidebar.tsx
+  components/agent/ConversationChat.tsx
+  components/agent/ConversationInput.tsx
+  hooks/agent/useConversation.ts
+
+ARCHIVOS MODIFICADOS
+  worker/src/index.ts           — integra pollConversationTurns en pollAll
+  lib/agent/types.ts            — añade tipos de conversación (AgentConversation, AgentMessage…)
+  app/(authenticated)/agent/page.tsx — refactorizado a modelo de conversaciones
+
+
+────────────────────────────────────────────────────────────────
+SESIÓN 16 — 02/06/2026 – 03/06/2026
+Título: Fixes de producción del agente — latencia, locked_at, modify
+────────────────────────────────────────────────────────────────
+
+OBJETIVO
+Corregir bugs descubiertos en pruebas de producción del nuevo modelo de
+conversaciones: race conditions en el claim del worker, latencia de ~5 min
+en reanudaciones tras confirmación, y HTTP 400 de Anthropic al usar "Modificar".
+
+CAMBIOS IMPLEMENTADOS
+
+1. FIX: RACE CONDITIONS DEL RUNNER (4 fixes simultáneos)
+
+   a) Claim exclusivo en conv-handler.ts (FIX 1)
+      - Antes: SELECT en 'running' + UPDATE posterior → ventana de race
+      - Ahora: UPDATE condicional WHERE locked_at IS NULL OR locked_at < threshold
+        → solo el primer runner obtiene filas; el segundo obtiene claimed=[]
+
+   b) Append atómico de steps en persist-conv.ts (FIX 2)
+      - Antes: SELECT steps → push → UPDATE (read-modify-write; race con otros runners)
+      - Ahora: RPC append_step_to_message → UPDATE steps = steps || jsonb_build_array()
+        → atómico a nivel de base de datos; lanza en error (no silencia)
+
+   c) Heartbeat + orphan filtering en runner-conv.ts (FIX 3)
+      - refreshHeartbeat() actualiza locked_at al inicio de cada iteración ReAct
+      - buildStepsIntoMessages usa pairedIds para excluir tool_calls sin result
+        (síntoma de race condition anterior)
+      - validateHistory: mensajes 'failed' solo loguean (no abortan el turno)
+
+   d) SendBtn onClick en ConversationInput.tsx (FIX 4)
+      - El botón de enviar no tenía prop onClick → solo Enter funcionaba
+      - Añadido onClick a SendBtn y pasado en los tres puntos de uso
+
+2. FIX: TYPO EN adjustCredits (lib/credits.ts)
+   - adjustCredits usaba .select('credits') y .update({ credits: newBalance })
+   - La columna correcta es credits_remaining → silenciaba el error sin actualizar
+   - Corrección: .select('credits_remaining') y .update({ credits_remaining: newBalance })
+
+3. FIX: STATUS INCORRECTO PARA ESCALATION (lib/agent/runner-conv.ts)
+   - handlePauseResult asignaba awaiting_user a type='escalation'
+   - ConversationInput maneja escalation bajo awaiting_confirmation
+   - Fix: ternario isConfirmationLike = type === 'confirmation' || type === 'escalation'
+     → escalation ahora recibe status awaiting_confirmation correctamente
+
+4. REDUCCIÓN DE LATENCIA: POLL_INTERVAL 5s → 1s (worker/src/index.ts)
+   - Bajado de 5000ms a 1000ms
+   - Aplica a los tres pollers: analysis_jobs, conv turns, agent_tasks
+   - Latencia máxima de reanudación: 5s → 1s (media ~500ms)
+   - Carga extra: ~96 queries/min adicionales en idle (asumible en Supabase Pro)
+   - El HTTP trigger directo Vercel→Railway (Opción D) se planifica para después
+
+5. FIX CRÍTICO: locked_at NO SE RESETEABA AL REANUDAR
+   Causa raíz
+   - Cuando el runner pausa (awaiting_confirmation), el heartbeat deja locked_at
+     con un valor reciente (p.ej. now()-30s).
+   - Al reanudar, el endpoint llamaba updateMessageStatus('running') sin tocar locked_at.
+   - El worker evaluaba locked_at IS NULL → false; locked_at < threshold → false
+     → No reclama el mensaje. Espera hasta que locked_at envejece 5 min → STUCK threshold.
+   - Resultado observado: ~4m37s de espera entre que el usuario aprobaba y el worker procesaba.
+   Solución
+   - message/route.ts: updateMessageStatus(…, 'running', { locked_at: null })
+   - locked_at=NULL → el worker lo reclama en ≤1s por la vía rápida
+
+6. FIX: MODIFY DEJABA tool_use SIN tool_result → HTTP 400 ANTHROPIC
+   Causa raíz
+   - Al responder "Modificar", el endpoint añadía: confirmation_response(modify) + user_message
+   - El pre-bucle de runner-conv veía el tool_call pendiente y lo ejecutaba con el input
+     ORIGINAL (igual que approve), añadiendo tool_result DESPUÉS del user_message en steps[]
+   - buildStepsIntoMessages escanea tool_results parando al primer non-meta, non-tool_result step
+     → user_message cortaba el escaneo ANTES de llegar al tool_result
+   - El tool_call estaba en pairedIds (result existía) → incluido en bloque assistant
+   - Pero el tool_result no era recogido → Anthropic recibía tool_use sin result → HTTP 400
+   Solución (runner-conv.ts, pre-bucle)
+   - Para cada pending tool_call, buscar confirmation_response(modify) en steps.slice(tcIdx)
+   - Si wasModified → skip: no ejecutar la tool original, no añadir tool_result
+   - Resultado: tool_call ∉ pairedIds → excluido del historial
+   - El LLM recibe: [think text] + [user_message de modificación] → replantea desde cero
+   - Detección por slice(tcIdx): robusta ante múltiples confirmaciones en el mismo turno
+
+COMMITS DE ESTA SESIÓN
+  8a05836 — Worker: bajar POLL_INTERVAL de 5s a 1s (Opción A latencia)
+  ead0537 — Fix: resetear locked_at al reanudar turno del agente tras confirmación
+  d76098f — Fix: en modify, no ejecutar tool original en el pre-bucle del runner
+
+ARCHIVOS MODIFICADOS
+  worker/src/index.ts                      — POLL_INTERVAL 1s
+  worker/src/conv-handler.ts               — claim exclusivo locked_at (sesión anterior)
+  lib/agent/runner-conv.ts                 — heartbeat, pairedIds, modify detection
+  lib/agent/persist-conv.ts               — RPC atómica append, throw en error
+  lib/credits.ts                           — typo credits → credits_remaining
+  app/api/agent/conversations/[id]/message/route.ts — locked_at: null al reanudar
+  components/agent/ConversationInput.tsx   — SendBtn onClick

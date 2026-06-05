@@ -1,6 +1,6 @@
 MODELO DE NEGOCIO — Doclity
 ======================================
-Última actualización: 27/05/2026
+Última actualización: 03/06/2026
 
 
 ────────────────────────────────────────────────────────────────
@@ -58,13 +58,14 @@ Costes por operación (CREDIT_COSTS en lib/credits.ts)
   Subida de documento (indexación)         : GRATIS
   Resolución de duplicidades               : GRATIS (propuesta local en frontend)
 
-  Agente IA (/api/agent/run)               : 15–50 créditos (estimación al crear)
+  Agente IA (por turno de conversación)    : 15–50 créditos (estimación al iniciar)
     - Base: 15 créditos
     - Objetivo >300 chars: +5 créditos
     - Modo step_by_step: +5 créditos adicionales
     - Máximo: 50 créditos
-    - Al completar/cancelar: reconciliación con adjustCredits()
+    - Al completar/cancelar: reconciliación con reconcileTurnCredits()
       (devuelve diferencia entre estimado y real basado en tokens)
+    - Los créditos se descuentan por TURNO, no por conversación completa
 
 Nota: el crédito se descuenta ANTES de ejecutar la operación para evitar
 sobrepasar el límite con solicitudes paralelas (RPC atómica en Supabase).
@@ -221,4 +222,5 @@ PENDIENTE
 [ ] Periodo de prueba gratuito con créditos iniciales predefinidos
 [ ] Gestión de impago: bloqueo automático al fallar pago de renovación
 [ ] Activar OneDrive en UI (implementado, pendiente de activar)
-[ ] Definir coste final exacto del agente (actualmente estimación + reconciliación)
+[ ] Definir coste final exacto del agente (actualmente estimación por turno + reconciliación)
+[ ] HTTP trigger directo Vercel→Railway (Opción D) para latencia sub-segundo en reanudaciones

@@ -1,6 +1,6 @@
 ESTADO DEL PROYECTO — Doclity
 ========================================
-Última actualización: 27/05/2026
+Última actualización: 03/06/2026
 
 
 ────────────────────────────────────────────────────────────────
@@ -88,18 +88,27 @@ Tablas principales (supabase-setup.sql)
     - created_at, started_at, completed_at
     - Para análisis exhaustivos que superan timeout de Vercel
 
-  agent_tasks
-    - id, org_id, user_id
-    - status: pending | running | awaiting_user | awaiting_confirmation |
-               completed | failed | cancelled
-    - goal: objetivo en lenguaje natural enviado por el usuario
-    - confirmation_mode: step_by_step | milestones | autonomous
-    - steps (JSONB): array de AgentStep (iteraciones del loop ReAct)
+  agent_conversations
+    - id, org_id, user_id, confirmation_mode (step_by_step|milestones|autonomous)
+    - status: idle | running | awaiting_user | awaiting_confirmation
     - pending_request (JSONB): confirmación/escalación/input pendiente de usuario
-    - credits_estimated, credits_consumed: para reconciliación final
-    - model, total_tokens_input, total_tokens_output, step_count
-    - error_message, error_step_index
-    - created_at, started_at, completed_at, updated_at
+    - title: autogenerado desde el primer mensaje del usuario (≤60 chars)
+    - total_credits_used, total_tokens_input, total_tokens_output, turn_count
+    - last_message_at, created_at
+
+  agent_messages
+    - id, conversation_id, role ('user' | 'assistant')
+    - content: texto final del turno (solo assistant completados)
+    - steps (JSONB): array de AgentStep del turno (think, tool_call, tool_result,
+      user_message, confirmation_request, confirmation_response, escalation, warning)
+    - status: running | awaiting_user | awaiting_confirmation | completed | failed
+    - credits_estimated, credits_used
+    - tokens_input, tokens_output
+    - locked_at: timestamp para claim exclusivo del worker (NULL = reclamable)
+    - error_message, created_at, updated_at
+
+  agent_tasks (LEGADO — pendiente de eliminar en Paso 8)
+    - Modelo anterior de tareas únicas. Sustituido por agent_conversations + agent_messages.
 
   feedback
     - user_id, org_id, message
@@ -178,12 +187,20 @@ Analítica (solo admin)
   GET  /api/usage/history    — Historial paginado de análisis
   GET  /api/usage/summary    — Resumen rápido de KPIs
 
-Agente IA (planes Business+)
-  POST /api/agent/run           — Crea tarea, consume créditos estimados (RPC atómica)
-  GET  /api/agent/tasks         — Lista de tareas de la org/usuario (últimas 50)
-  GET  /api/agent/tasks/[id]    — Polling de estado, steps y pendingRequest
-  POST /api/agent/confirm       — Responde confirmación/escalación/input usuario
-  POST /api/agent/cancel        — Cancela tarea y reconcilia créditos
+Agente IA — modelo de conversaciones (activo, planes Business+)
+  POST /api/agent/conversations              — Nueva conversación (no inicia turno)
+  GET  /api/agent/conversations              — Lista conversaciones de la org (últimas 50)
+  GET  /api/agent/conversations/[id]         — Estado + pending_request + mensajes
+  PATCH /api/agent/conversations/[id]        — Actualiza confirmation_mode
+  POST /api/agent/conversations/[id]/message — Nuevo turno (idle) o reanudación (awaiting_*)
+  POST /api/agent/conversations/[id]/cancel  — Cancela turno activo, reconcilia créditos
+
+Agente IA — legado (agent_tasks, pendiente de eliminar)
+  POST /api/agent/run           — Crea tarea (modelo antiguo)
+  GET  /api/agent/tasks         — Lista de tareas
+  GET  /api/agent/tasks/[id]    — Estado de tarea
+  POST /api/agent/confirm       — Responde confirmación (modelo antiguo)
+  POST /api/agent/cancel        — Cancela tarea
 
 Usuario
   GET/PATCH /api/user/preferences — Lee/actualiza preferencias (ConfirmationMode…)
@@ -274,19 +291,19 @@ Analítica
                               docs nunca usados, cobertura de corpus
 
 Agente IA (app/(authenticated)/agent/, components/agent/, hooks/agent/)
-  app/(authenticated)/agent/page.tsx — Layout dos paneles: AgentSidebar + AgentChat/AgentInput
-                                       Paywall para planes sin acceso (free/starter/pro)
-  components/agent/AgentSidebar.tsx  — Panel izquierdo: lista de tareas con estado,
-                                       indicador de pulso para tareas activas, botón nueva tarea
-  components/agent/AgentChat.tsx     — Panel derecho: conversación por pasos (StepRow),
-                                       PendingRequestPanel integrado en la parte inferior
-  components/agent/AgentInput.tsx    — Input inferior: modo nueva tarea (textarea + selector
-                                       de ConfirmationMode) o modo respuesta (user_input,
-                                       confirmation, escalation) según pendingRequest
-  hooks/agent/useAgentTasks.ts       — Estado completo: lista, polling (2s), crear, cancelar,
-                                       confirmar; polling solo para estados pending/running;
-                                       upsert de tarea al recibir actualización
-  hooks/agent/useUserPreferences.ts  — Preferencias (ConfirmationMode…)
+  app/(authenticated)/agent/page.tsx     — Layout dos paneles: sidebar de conversaciones +
+                                           chat activo. Paywall para planes sin acceso.
+  components/agent/ConversationSidebar.tsx — Panel izquierdo: lista de conversaciones con
+                                              estado, dot de pulso para activas, botón nueva
+  components/agent/ConversationChat.tsx    — Panel derecho: mensajes del turno activo (StepRow
+                                              por tipo de step), PendingRequestPanel en footer
+  components/agent/ConversationInput.tsx   — Input inferior: modo idle (nueva pregunta +
+                                              selector ConfirmationMode) o modo respuesta
+                                              (user_input, confirmation, escalation)
+  hooks/agent/useConversation.ts           — Estado: conversación activa, mensajes, polling
+                                              (solo cuando status='running'), enviar turno,
+                                              responder a pending_request
+  hooks/agent/useUserPreferences.ts        — Preferencias de usuario (ConfirmationMode…)
 
 Utilidades
   ThemeProvider.tsx         — Dark / light mode (light por defecto)
@@ -362,19 +379,36 @@ AGENTE IA (lib/agent/)
 ────────────────────────────────────────────────────────────────
 
 Motor autónomo basado en loop ReAct que ejecuta tareas complejas
-sobre el corpus documental. Disponible en planes Business y superiores.
+sobre el corpus documental como conversación continua multi-turno.
+Disponible en planes Business y superiores.
 
-Arquitectura
-  lib/agent/types.ts          — Tipos: AgentTask, AgentStep, PendingRequest,
-                                ConfirmationMode (step_by_step/milestones/autonomous)
+Arquitectura (modelo de conversaciones — activo)
+  lib/agent/types.ts          — Tipos: AgentConversation, AgentMessage, AgentStep,
+                                PendingRequest, ConfirmationMode (step_by_step/milestones/autonomous)
   lib/agent/should-confirm.ts — Política de confirmación humana por herramienta
-  lib/agent/credit-calc.ts    — Estimación y reconciliación de créditos
+  lib/agent/credit-calc.ts    — Estimación y reconciliación de créditos por turno
   lib/agent/system-prompt.ts  — Prompt del sistema adaptado por ConfirmationMode
-  lib/agent/persist.ts        — Helpers Supabase para estado de AgentTask
+  lib/agent/persist-conv.ts   — Helpers Supabase: createConversation, insertUserMessage,
+                                insertAssistantMessage, appendStepToMessage (RPC atómica),
+                                updateMessageStatus, updateConversationStatus, accumulateMessageTokens
   lib/agent/llm-call.ts       — Wrapper Anthropic: gestiona tool_use blocks,
                                 construye historial con tool_use_id correctos
-  lib/agent/runner.ts         — Loop ReAct: hasta 15 iteraciones, pausa en
-                                ask_user/escalate, reconcilia créditos al final
+  lib/agent/runner-conv.ts    — Loop ReAct para conversaciones:
+                                · buildStepsIntoMessages: convierte steps[] del turno en
+                                  mensajes Anthropic; excluye tool_calls huérfanos vía pairedIds
+                                · buildMessagesFromHistory: combina todos los turnos de la
+                                  conversación en el historial enviado al LLM
+                                · validateHistory: detecta corrupción antes de llamar al LLM
+                                · findPendingToolCalls: tool_calls sin result (para pre-bucle)
+                                · refreshHeartbeat: actualiza locked_at al inicio de cada
+                                  iteración (previene STUCK falso en workers concurrentes)
+                                · Pre-bucle: ejecuta tool_calls aprobadas pendientes de resultado;
+                                  detecta "modify" via slice(tcIdx) y las salta (no ejecuta
+                                  la tool original; LLM replantea con el user_message)
+
+  worker/src/conv-handler.ts  — Poll de agent_messages con claim exclusivo via locked_at:
+                                UPDATE WHERE locked_at IS NULL OR locked_at < now()-5min
+                                STUCK_THRESHOLD_MS = 5 min (margen sobre máx ~3 min/iteración)
 
 Herramientas disponibles (lib/agent/tools/)
   search_docs   — Búsqueda semántica en Pinecone (namespace org)
@@ -382,21 +416,29 @@ Herramientas disponibles (lib/agent/tools/)
   ask_user      — Pausa el loop y solicita input al usuario
   escalate      — Pausa para confirmación ante acciones críticas
   warn          — Emite advertencia sin detener el loop
-  finalize      — Cierra la tarea con resultado final
+  finalize      — Cierra el turno con resultado final
 
-Flujo de una tarea
-  1. POST /api/agent/run → crea AgentTask, descuenta créditos estimados
-  2. Worker Railway (agent-handler.ts) recoge la tarea con optimistic lock
-  3. Loop ReAct: llama a Claude → elige herramienta → ejecuta → siguiente iter.
-  4. ask_user → status='awaiting_user' | escalate → status='awaiting_confirmation'
-  5. POST /api/agent/confirm → usuario responde → runner se reanuda de inmediato
-  6. Tarea completa: adjustCredits reconcilia estimado vs real
-  7. GET /api/agent/tasks/[id] y GET /api/agent/tasks permiten polling desde la UI
+Flujo de un turno de conversación
+  1. POST /api/agent/conversations/[id]/message (conv en 'idle')
+     → consume créditos estimados (RPC atómica), inserta user + assistant messages
+  2. Worker Railway (conv-handler.ts) reclama el mensaje assistant
+     con claim exclusivo (locked_at IS NULL → UPDATE lo fija a now())
+  3. runner-conv.ts: pre-bucle (tool_calls aprobadas pendientes) + loop ReAct hasta 15 iter.
+  4. ask_user → awaiting_user | confirmation/escalation → awaiting_confirmation
+  5. POST /api/agent/conversations/[id]/message reanuda:
+     · Añade step de respuesta (confirmation_response / user_message / escalation)
+     · Resetea locked_at=NULL → worker reclama en ≤1s (no espera STUCK de 5 min)
+  6. Al completar: reconcileTurnCredits (estimado vs real), conversación vuelve a 'idle'
 
-Worker (worker/src/agent-handler.ts)
-  - Optimistic lock: evita doble procesamiento si el poll se solapa
-  - Recovery de tareas 'running' huérfanas tras reinicios
-  - Integrado en el loop principal junto a analysis_jobs (MAX_CONCURRENT=2)
+Worker (worker/src/index.ts + conv-handler.ts)
+  - POLL_INTERVAL = 1s (bajado de 5s para reducir latencia de reanudación)
+  - MAX_CONCURRENT = 8 (analysis_jobs + conv turns + agent_tasks legado)
+  - Claim exclusivo via locked_at: un solo runner por mensaje
+  - STUCK recovery: locked_at > 5 min → el worker lo reclama como huérfano
+
+Legado (pendiente de eliminar en Paso 8)
+  lib/agent/runner.ts, lib/agent/persist.ts, worker/src/agent-handler.ts
+  Endpoints: /api/agent/run, /api/agent/tasks/*, /api/agent/confirm, /api/agent/cancel
 
 
 ────────────────────────────────────────────────────────────────
@@ -455,8 +497,9 @@ ARCHIVOS CLAVE
   lib/drive/registry.ts     — Registro de proveedores de Drive
   lib/drive/google.ts       — Implementación Google Drive
   lib/drive/onedrive.ts     — Implementación OneDrive
-  lib/agent/types.ts        — Tipos del agente: AgentTask, AgentStep, PendingRequest
-  lib/agent/runner.ts       — Loop ReAct del agente (hasta 15 iteraciones)
+  lib/agent/types.ts        — Tipos del agente: AgentConversation, AgentMessage, AgentStep
+  lib/agent/runner-conv.ts  — Loop ReAct para conversaciones (buildStepsIntoMessages, pairedIds…)
+  lib/agent/persist-conv.ts — Helpers Supabase para agent_conversations + agent_messages
   lib/agent/tools/          — Herramientas: search_docs, read_doc, ask_user, escalate…
   lib/analysis/pipeline.ts  — Orquestación del pipeline de análisis
   lib/analysis/llm-client.ts — Wrapper robusto de la API de Claude
@@ -464,15 +507,17 @@ ARCHIVOS CLAVE
   app/api/ingest/route.ts   — Subida + indexación de documentos
   app/api/ask/route.ts      — Endpoint de chat RAG
   app/api/analyze-v2/route.ts — Análisis de calidad (quick + crea job exhaustivo)
-  app/api/agent/            — Endpoints del agente: run, tasks, confirm, cancel
+  app/api/agent/conversations/ — Endpoints del agente (modelo activo): message, cancel, route
+  app/api/agent/            — Endpoints legado: run, tasks, confirm, cancel
   app/api/usage/analytics/route.ts — Analítica de uso para admins
   app/api/billing/         — Stripe: checkout, portal, buy-credits, webhook
   app/api/drive/           — Google Drive: OAuth, sync, disconnect
   supabase-setup.sql        — Schema de BD + políticas RLS
   supabase-analysis-persistence.sql — Tablas: analysis_results, chat_queries
   supabase-max-users-nullable.sql — Migración: max_users INTEGER NULL
-  worker/src/index.ts       — Worker Railway: analysis_jobs + agent_tasks
-  worker/src/agent-handler.ts — Handler del agente en Railway
+  worker/src/index.ts       — Worker Railway: analysis_jobs + conv turns + agent_tasks (legado)
+  worker/src/conv-handler.ts  — Handler del agente (modelo conversaciones) en Railway
+  worker/src/agent-handler.ts — Handler legado (agent_tasks) en Railway
 
 
 ────────────────────────────────────────────────────────────────
@@ -494,13 +539,18 @@ GOTCHAS
 - Agente IA: los créditos se descuentan al crear la tarea (estimados), y se
   reconcilian con adjustCredits() al completar o cancelar. Si el worker muere
   con la tarea en 'running', los créditos no se devuelven automáticamente.
-- agent_tasks en estado 'waiting' esperan respuesta del usuario vía
-  POST /api/agent/confirm. El runner se reanuda de inmediato al recibir la respuesta
-  (no espera al siguiente ciclo de poll del worker).
-- lib/agent/llm-call.ts debe persistir el tool_use_id de Claude en cada AgentStep;
-  sin él, la reconstrucción del historial falla en la segunda llamada al LLM.
+- Agente IA (modelo conversaciones): el endpoint /message resetea locked_at=NULL al
+  reanudar un turno. Sin este reset, el worker esperaba al STUCK threshold de 5 min
+  antes de recoger el turno (locked_at viejo → no cumple la condición IS NULL).
+- buildStepsIntoMessages corta el escaneo de tool_results al encontrar un user_message.
+  Esto es correcto para separar turnos LLM, pero requiere que tool_results aparezcan
+  ANTES de cualquier user_message en steps[]. El pre-bucle de runner-conv lo garantiza
+  para approve; para modify, salta la ejecución (no añade tool_result) → el tool_call
+  queda fuera de pairedIds → excluido del historial → el LLM replantea desde cero.
 - organizations.max_users puede ser NULL (planes ilimitados). Las comprobaciones
   de límite deben tratar NULL como "sin límite" (no como 0).
+- lib/agent/llm-call.ts debe persistir el tool_use_id de Claude en cada AgentStep;
+  sin él, la reconstrucción del historial falla en la segunda llamada al LLM.
 
 
 ────────────────────────────────────────────────────────────────
@@ -550,15 +600,23 @@ FUNCIONALIDADES IMPLEMENTADAS
 [✓] Fix: max_users nullable para planes ilimitados (business_plus/enterprise)
 [✓] Agente IA — motor ReAct autónomo para tareas documentales (Business+):
     - Herramientas: search_docs, read_doc, ask_user, escalate, warn, finalize
-    - Confirmación humana configurable (ConfirmationMode: ask_always/ask_risky/auto)
+    - Confirmación humana configurable (ConfirmationMode: step_by_step/milestones/autonomous)
     - Créditos estimados al inicio + reconciliación real al terminar
-    - Worker Railway con optimistic lock y recovery de tareas huérfanas
-    - Reanudación inmediata tras respuesta del usuario
+    - Worker Railway con claim exclusivo (locked_at) y STUCK recovery (5 min)
     - Preferencias de usuario: GET/PATCH /api/user/preferences
 [✓] Página /agent con paywall para planes sin acceso y pestaña en ChatHeader
-[✓] Agente IA: interfaz completa dos paneles (AgentSidebar + AgentChat + AgentInput)
-[✓] Hook useAgentTasks: polling 2s, crear/cancelar/confirmar, upsert automático
-[✓] GET /api/agent/tasks: endpoint de listado de tareas
+[✓] Agente IA: rediseño al modelo de conversaciones continuas multi-turno:
+    - Nueva arquitectura: agent_conversations + agent_messages (en lugar de agent_tasks)
+    - runner-conv.ts con buildStepsIntoMessages (pairedIds excluye tool_calls huérfanos)
+    - Claim exclusivo via locked_at (elimina race condition de runners concurrentes)
+    - Heartbeat por iteración (previene STUCK falso mientras el runner avanza)
+    - Append atómico de steps via RPC (elimina race condition read-modify-write)
+    - Pre-bucle: ejecuta tool_calls aprobadas con runner interrumpido antes de llegar
+    - Fix: locked_at reseteado a NULL al reanudar → reanudación en ≤1s (no 5 min)
+    - Fix: modify no ejecuta tool original; LLM replantea con user_message de modificación
+    - POLL_INTERVAL 5s → 1s para reducir latencia máxima de reanudación
+[✓] Interfaz conversacional del agente dos paneles (ConversationSidebar + ConversationChat + ConversationInput)
+[✓] Hook useConversation: polling cuando status='running', enviar/responder, sincronización
 [✓] Soporte Excel (.xlsx y .xlsm) en ingesta de documentos (SheetJS)
 [✓] Fix billing page: siempre visible, feature list por plan, badge "Más popular"
 [✓] AppRail: items bloqueados visibles con opacidad + popover de upgrade (no ocultos)
