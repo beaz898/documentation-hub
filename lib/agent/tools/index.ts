@@ -1,11 +1,12 @@
 import type { ToolName } from '@/lib/agent/types';
 import type { AnthropicToolDefinition, ToolBundle, ToolExecutor } from './types';
 import { searchDocsTool } from './search-docs';
-import { readDocTool } from './read-doc';
-import { askUserTool } from './ask-user';
-import { escalateTool } from './escalate';
-import { warnTool } from './warn';
-import { finalizeTool } from './finalize';
+import { readDocTool }    from './read-doc';
+import { askUserTool }    from './ask-user';
+import { escalateTool }   from './escalate';
+import { warnTool }       from './warn';
+import { finalizeTool }   from './finalize';
+import { listDocsTool }   from './list-docs';
 
 export const TOOLS: Record<ToolName, ToolBundle> = {
   search_docs: searchDocsTool,
@@ -14,10 +15,16 @@ export const TOOLS: Record<ToolName, ToolBundle> = {
   escalate:    escalateTool,
   warn:        warnTool,
   finalize:    finalizeTool,
+  list_docs:   listDocsTool,
 };
 
-export function getToolDefinitions(): AnthropicToolDefinition[] {
-  return Object.values(TOOLS).map(t => t.definition);
+// Para members, list_docs no se incluye en las definiciones enviadas al LLM.
+// El LLM nunca puede llamar una tool que no está en su lista de definiciones.
+// El gate interno de la tool es defensa en profundidad adicional.
+export function getToolDefinitions(role: 'admin' | 'member' = 'member'): AnthropicToolDefinition[] {
+  return Object.values(TOOLS)
+    .filter(t => role === 'admin' || t.definition.name !== 'list_docs')
+    .map(t => t.definition);
 }
 
 export function getToolExecutor(name: ToolName): ToolExecutor {

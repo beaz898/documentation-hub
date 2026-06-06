@@ -216,7 +216,7 @@ export async function runAgent(input: RunnerInput): Promise<RunnerOutput> {
 
   const systemPrompt = buildSystemPrompt(ctx.mode);
   const toolDefs = getToolDefinitions();
-  const toolCtx = { supabase, orgId: ctx.orgId, userId: ctx.userId, taskId };
+  const toolCtx = { supabase, orgId: ctx.orgId, userId: ctx.userId, taskId, role: 'member' as const };
 
   // ReAct loop
   for (let iter = 0; iter < MAX_ITERATIONS; iter++) {

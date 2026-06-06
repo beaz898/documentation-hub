@@ -19,6 +19,7 @@ export const TOOL_LABELS: Record<ToolName, string> = {
   escalate:    'Solicitando instrucciones',
   warn:        'Advertencia',
   finalize:    'Finalizando',
+  list_docs:   'Consultando documentos',
 };
 
 export function toolCallDetail(tool: ToolName, input: Record<string, unknown>): string {
@@ -29,6 +30,12 @@ export function toolCallDetail(tool: ToolName, input: Record<string, unknown>): 
     case 'escalate':    return String(input.reason ?? '');
     case 'warn':        return String(input.message ?? '');
     case 'finalize':    return 'Generando resultado final…';
+    case 'list_docs': {
+      const parts: string[] = [];
+      if (input.source)      parts.push(String(input.source));
+      if (input.folder_path) parts.push(String(input.folder_path));
+      return parts.length ? parts.join(' · ') : 'todos los documentos';
+    }
     default:            return '';
   }
 }

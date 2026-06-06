@@ -3,9 +3,10 @@ import type { Citation, PendingRequest } from '@/lib/agent/types';
 
 export interface ToolContext {
   supabase: SupabaseClient;
-  orgId: string;
-  userId: string;
-  taskId: string;
+  orgId:    string;
+  userId:   string;
+  taskId:   string;
+  role:     'admin' | 'member';
 }
 
 export type ToolExecutionResult =

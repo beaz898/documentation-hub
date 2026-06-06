@@ -452,6 +452,15 @@ export async function runAgentTurn(input: TurnInput): Promise<TurnOutput> {
   const userId: string           = convRow.user_id as string;
   const mode:   ConfirmationMode = convRow.confirmation_mode as ConfirmationMode;
 
+  // Obtener el rol del usuario para el gate de herramientas restringidas (list_docs, etc.)
+  const { data: membership } = await supabase
+    .from('memberships')
+    .select('role')
+    .eq('user_id', userId)
+    .eq('org_id', orgId)
+    .single();
+  const role: 'admin' | 'member' = (membership?.role as 'admin' | 'member') ?? 'member';
+
   // Marcar mensaje y conversación como running (idempotente en re-claim)
   await updateMessageStatus(supabase, messageId, 'running');
   await updateConversationStatus(supabase, conversationId, 'running');
@@ -467,10 +476,10 @@ export async function runAgentTurn(input: TurnInput): Promise<TurnOutput> {
   let totalOutputTokens:  number = (msgMeta?.tokens_output       as number) ?? 0;
 
   const systemPrompt = buildSystemPrompt(mode, new Date());
-  const toolDefs     = getToolDefinitions();
+  const toolDefs     = getToolDefinitions(role);
   // ToolContext.taskId se usa como identificador del trabajo en curso; las herramientas
   // actuales no escriben en agent_tasks, por lo que messageId es correcto aquí.
-  const toolCtx      = { supabase, orgId, userId, taskId: messageId };
+  const toolCtx      = { supabase, orgId, userId, taskId: messageId, role };
 
   let isImprovising = false;
 

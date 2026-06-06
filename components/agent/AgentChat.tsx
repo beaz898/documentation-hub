@@ -23,6 +23,7 @@ const TOOL_LABELS: Record<ToolName, string> = {
   escalate:    'Solicitando instrucciones',
   warn:        'Advertencia',
   finalize:    'Finalizando',
+  list_docs:   'Consultando documentos',
 };
 
 function toolCallDetail(tool: ToolName, input: Record<string, unknown>): string {
