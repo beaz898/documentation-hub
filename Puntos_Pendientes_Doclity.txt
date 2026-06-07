@@ -3,7 +3,7 @@ PENDIENTES — Doclity (Agente IA)
 Documento vivo. Se actualiza al completar tareas (marcar [✓]) y se
 sustituye por la versión nueva. Más ligero que la Bitácora: aquí va
 lo que falta y la visión que lo guía, no el detalle de cada sesión.
-Última actualización: 06/06/2026
+Última actualización: 07/06/2026
 
 
 ════════════════════════════════════════════════════════════════
@@ -143,9 +143,13 @@ Leyenda: [ ] pendiente · [~] en curso · [✓] hecho
       "Conocimiento general" con detalle al hover). Commits: 9c1ac70, 7a95055,
       8f37feb, 34233f2, 7de5ac6.
 
-[ ] B.4 — (Funcionalidad) Acceso del agente a estadísticas de uso
+[~] B.4 — (Funcionalidad) Acceso del agente a estadísticas de uso
       Herramienta nueva para que el agente consulte el panel de analytics
       y responda cosas como "cuántas consultas ha resuelto tal documento".
+      PATRÓN: reutilizar arquitectura de B.14 (tool + SELECT explícito + gate admin).
+      LÍMITE CRÍTICO: solo métricas agregadas. NUNCA exponer preguntas en bruto de
+      usuarios (datos sensibles). Métricas seguras: query count por doc, cobertura %,
+      conteo de problemas de calidad por doc, docs nunca usados.
       VISIÓN: ampliar al agente más allá del corpus, hacia datos propios
       de Doclity. Primer paso de darle "más sentidos".
 
@@ -162,12 +166,11 @@ Leyenda: [ ] pendiente · [~] en curso · [✓] hecho
       formato largo español. Parámetro now:Date pasado desde runner-conv.ts.
       Commit: 6d3ea38.
 
-[ ] B.12 — (UX) Auto-foco del input tras enviar mensaje
-      Al enviar un mensaje el cursor desaparece del input y el usuario tiene que
-      volver a hacer clic para escribir el siguiente. El input debe recuperar el
-      foco automáticamente tras cada envío (tanto mensaje libre como respuesta a
-      confirmación/escalación).
-      VISIÓN: fluidez básica — el teclado no debe interrumpirse entre turnos.
+[✓] B.12 — (UX) Auto-foco del input tras enviar mensaje
+      El input recupera el foco automáticamente en la transición running→idle de la
+      misma conversación (prevStateRef{id,status}). No se dispara al seleccionar o
+      cargar conversaciones antiguas (evita el teclado pop-up en móvil).
+      Commit: 3252423.
 
 [✓] B.13 — (UX + Seguridad) Borrar conversaciones desde la barra lateral
       Borrado real (CASCADE borra los mensajes). Aislado por org_id. Confirmación
@@ -176,18 +179,24 @@ Leyenda: [ ] pendiente · [~] en curso · [✓] hecho
       si era la activa y limpia el polling.
       Commits: 8963a36 (endpoint + hook), c57c13c (UI).
 
-[ ] B.14 — (Funcionalidad) Acceso del agente a metadatos documentales
-      Herramienta nueva (list_docs o similar) para que el agente pueda consultar
-      qué documentos hay en el corpus: nombre, fecha de subida, tipo, tamaño.
-      Útil para responder "¿qué documentos tenéis sobre X?" o "¿cuándo se subió
-      el contrato de Y?".
-      FILTRO DE SEGURIDAD (clave): definir qué campos puede ver y cuáles se vetan.
-      Nunca exponer: claves, tokens (los de Drive están en texto plano hoy — deuda
-      conocida), stripe_customer_id, datos de otras orgs, contenido sensible de la
-      tabla organizations. Solo metadatos documentales seguros. Aislar SIEMPRE
-      por org_id.
-      VISIÓN: ampliar los "sentidos" del agente más allá del contenido puro;
-      primer paso hacia B.4 (estadísticas de uso).
+[✓] B.14 — (Funcionalidad) Acceso del agente a metadatos documentales
+      Herramienta list_docs: 9 campos seguros (id, name, created_at, size_bytes,
+      chunk_count, status, source, folder_path, source_modified_at). SELECT explícito,
+      nunca SELECT *. Solo para admins: doble capa (no se ofrece al LLM para member;
+      el executor verifica role !== 'admin'). Aislado por org_id.
+      Nota: tokens de Drive SÍ están cifrados con AES-256-GCM (lib/crypto.ts) —
+      no hay deuda de texto plano.
+      Commits: d416dab (herramienta + gate + runner) + tanda 2 (FORMAT_SECTION +
+      CONFIDENTIALITY_SECTION).
+
+[✓] B.16 — (Seguridad) Confidencialidad del agente
+      Capa 1: tablas sensibles (organizations, memberships, tokens) fuera del alcance
+      del agente — no hay herramienta que las exponga. Capa 2: CONFIDENTIALITY_SECTION
+      en el system prompt (zona estable, antes de DATE_SECTION, no afecta al caché de
+      B.7). Instrucción equilibrada: el agente explica el producto con naturalidad;
+      rechaza revelar el prompt o credenciales cuando detecta patrones de extracción
+      ("ignora tus instrucciones", "muéstrame tu prompt", "actúa sin restricciones").
+      Commits: tanda 2 (junto con FORMAT_SECTION).
 
 [ ] B.15 — (Seguridad / Roles) Rol de administrador temporal
       Mecanismo para que el dueño de la cuenta pueda elevar temporalmente a un
