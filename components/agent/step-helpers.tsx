@@ -13,13 +13,14 @@ import type { AgentStep, ToolName, ToolResultStep, ThinkStep, ToolCallStep,
 // ── Etiquetas de herramientas ─────────────────────────────────────────────────
 
 export const TOOL_LABELS: Record<ToolName, string> = {
-  search_docs: 'Buscando en documentos',
-  read_doc:    'Leyendo documento',
-  ask_user:    'Pregunta al usuario',
-  escalate:    'Solicitando instrucciones',
-  warn:        'Advertencia',
-  finalize:    'Finalizando',
-  list_docs:   'Consultando documentos',
+  search_docs:  'Buscando en documentos',
+  read_doc:     'Leyendo documento',
+  ask_user:     'Pregunta al usuario',
+  escalate:     'Solicitando instrucciones',
+  warn:         'Advertencia',
+  finalize:     'Finalizando',
+  list_docs:    'Consultando documentos',
+  usage_stats:  'Consultando estadísticas',
 };
 
 export function toolCallDetail(tool: ToolName, input: Record<string, unknown>): string {
@@ -35,6 +36,12 @@ export function toolCallDetail(tool: ToolName, input: Record<string, unknown>): 
       if (input.source)      parts.push(String(input.source));
       if (input.folder_path) parts.push(String(input.folder_path));
       return parts.length ? parts.join(' · ') : 'todos los documentos';
+    }
+    case 'usage_stats': {
+      const parts: string[] = [];
+      if (input.doc_name) parts.push(String(input.doc_name));
+      if (input.days)     parts.push(`${String(input.days)} días`);
+      return parts.length ? parts.join(' · ') : 'corpus completo';
     }
     default:            return '';
   }

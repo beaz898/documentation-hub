@@ -17,13 +17,14 @@ interface AgentChatProps {
 // ─── Tool display helpers ────────────────────────────────────────────────────
 
 const TOOL_LABELS: Record<ToolName, string> = {
-  search_docs: 'Buscando en documentos',
-  read_doc:    'Leyendo documento',
-  ask_user:    'Pregunta al usuario',
-  escalate:    'Solicitando instrucciones',
-  warn:        'Advertencia',
-  finalize:    'Finalizando',
-  list_docs:   'Consultando documentos',
+  search_docs:  'Buscando en documentos',
+  read_doc:     'Leyendo documento',
+  ask_user:     'Pregunta al usuario',
+  escalate:     'Solicitando instrucciones',
+  warn:         'Advertencia',
+  finalize:     'Finalizando',
+  list_docs:    'Consultando documentos',
+  usage_stats:  'Consultando estadísticas',
 };
 
 function toolCallDetail(tool: ToolName, input: Record<string, unknown>): string {

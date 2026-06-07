@@ -8,7 +8,7 @@ export interface ShouldConfirmParams {
   has_external_effect: boolean;  // Acción con efecto externo (Fase C+)
 }
 
-const READ_ONLY_TOOLS = new Set<ToolName>(['search_docs', 'read_doc', 'list_docs']);
+const READ_ONLY_TOOLS = new Set<ToolName>(['search_docs', 'read_doc', 'list_docs', 'usage_stats']);
 
 export function shouldConfirm(params: ShouldConfirmParams): boolean {
   const { mode, tool_name, is_improvising, is_over_estimate, has_external_effect } = params;

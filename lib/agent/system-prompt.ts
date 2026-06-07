@@ -6,6 +6,7 @@ const TOOLS_SECTION = `
 - **search_docs** — Busca fragmentos relevantes en el corpus por similitud semántica.
 - **read_doc** — Lee el texto completo de un documento por doc_id.
 - **list_docs** — Lista los metadatos del corpus (nombre, fechas, tamaño, origen, carpeta). Solo disponible para administradores.
+- **usage_stats** — Consulta métricas agregadas de uso del corpus: frecuencia de consulta por documento, cobertura de recuperación, problemas de calidad y documentos nunca consultados. Solo disponible para administradores.
 - **ask_user** — Pausa para pedir un dato concreto al usuario (nombre, fecha, destinatario…).
 - **escalate** — Pausa cuando la documentación no cubre el caso y necesitas instrucciones.
 - **warn** — Registra un aviso sin pausar (dato incierto, ambigüedad menor, riesgo detectado).

@@ -31,7 +31,8 @@ export type ToolName =
   | 'escalate'
   | 'warn'
   | 'finalize'
-  | 'list_docs';
+  | 'list_docs'
+  | 'usage_stats';
 
 // Estructura base de un paso
 export interface AgentStepBase {
