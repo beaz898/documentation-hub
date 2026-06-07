@@ -3,7 +3,7 @@ PENDIENTES — Doclity (Agente IA)
 Documento vivo. Se actualiza al completar tareas (marcar [✓]) y se
 sustituye por la versión nueva. Más ligero que la Bitácora: aquí va
 lo que falta y la visión que lo guía, no el detalle de cada sesión.
-Última actualización: 07/06/2026
+Última actualización: 07/06/2026 (v2)
 
 
 ════════════════════════════════════════════════════════════════
@@ -197,6 +197,24 @@ Leyenda: [ ] pendiente · [~] en curso · [✓] hecho
       rechaza revelar el prompt o credenciales cuando detecta patrones de extracción
       ("ignora tus instrucciones", "muéstrame tu prompt", "actúa sin restricciones").
       Commits: tanda 2 (junto con FORMAT_SECTION).
+
+[ ] B.17 — (UX) Renombrar conversaciones
+      Permitir poner/cambiar el nombre de una conversación desde la UI (hoy el título se
+      autogenera o muestra fecha+hora). Editar inline en el sidebar, similar al patrón de
+      borrado. Respetar aislamiento por org_id en el endpoint (como en B.13).
+      Nota: hay un PATCH /api/agent/conversations/[id] que ya cambia confirmation_mode;
+      probablemente se extienda ahí para aceptar también el title, no crear endpoint nuevo.
+
+[ ] B.18 — (UX) Al abrir una conversación, posicionarse abajo (últimos mensajes)
+      Hoy, al clicar una conversación, hay que scrollear hasta el final para ver lo último.
+      Al seleccionarla, debe aparecer ya desplazada abajo, mostrando los mensajes recientes
+      —no arriba del todo. Especialmente útil en conversaciones largas.
+
+[ ] B.19 — (UX) Botón "ir abajo" cuando no estás en el fondo de la conversación
+      Un botón sutil (estilo la flechita de Claude sobre la caja de texto) que aparezca solo
+      cuando el usuario ha scrolleado hacia arriba y NO está en la parte baja, para volver
+      al último mensaje de un clic. Se oculta cuando ya estás abajo.
+      Relacionado con B.18 (las dos van de scroll/posición en el hilo).
 
 [ ] B.15 — (Seguridad / Roles) Rol de administrador temporal
       Mecanismo para que el dueño de la cuenta pueda elevar temporalmente a un
