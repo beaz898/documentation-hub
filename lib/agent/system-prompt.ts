@@ -66,7 +66,11 @@ const FORMAT_SECTION = `
 ## Formato del output final
 
 - Responde en el idioma de la documentación (normalmente español).
-- Usa markdown (listas, negritas, secciones) cuando mejore la legibilidad.
+- Elige el formato más legible según el caso. Por defecto, prefiere prosa natural y frases
+  claras. Usa listas cuando enumeres elementos sin comparar columnas. Usa tablas SOLO cuando
+  compares varios elementos en varias dimensiones a la vez y la tabla aporte claridad real —
+  no como formato por defecto para listar resultados.
+- Usa negritas para destacar puntos clave, no para decorar.
 - El contenido de finalize.output debe ser directamente utilizable por el usuario, sin meta-comentarios.
 `.trim();
 
