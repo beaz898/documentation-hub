@@ -555,7 +555,18 @@ export async function runAgentTurn(input: TurnInput): Promise<TurnOutput> {
         return handlePauseResult(supabase, messageId, conversationId, result.pending_request);
       }
 
-      // kind='error': no fatal; el bucle principal lo verá en el historial y el LLM puede recuperarse
+      // finalize fallido tras aprobación: siempre fatal — no tiene sentido reintentar
+      // en el mismo turno con el mismo contexto enorme; evita el bucle confirmar→error.
+      if (result.kind === 'error' && tc.tool_name === 'finalize') {
+        const errMsg =
+          'La respuesta era demasiado extensa o tenía un formato incorrecto. ' +
+          'Inténtalo de nuevo con una consulta más acotada.';
+        await updateMessageStatus(supabase, messageId, 'failed', { error_message: errMsg });
+        await updateConversationStatus(supabase, conversationId, 'idle');
+        return { status: 'failed', error: errMsg };
+      }
+
+      // kind='error' (otras tools): no fatal; el bucle principal lo verá en el historial y el LLM puede recuperarse
       // kind='data':  registrar warning si aplica
       if (result.kind === 'data' && tc.tool_name === 'warn') {
         const warnInput = tc.input as { message?: string; kind?: 'improvised' };
@@ -720,7 +731,16 @@ export async function runAgentTurn(input: TurnInput): Promise<TurnOutput> {
       }
 
       if (result.kind === 'error') {
-        // No fatal: el modelo ve el error en tool_result y puede recuperarse
+        // finalize fallido: siempre fatal — evita el bucle confirmar→invalid_input→confirmar
+        if (toolName === 'finalize') {
+          const errMsg =
+            'La respuesta era demasiado extensa o tenía un formato incorrecto. ' +
+            'Inténtalo de nuevo con una consulta más acotada.';
+          await updateMessageStatus(supabase, messageId, 'failed', { error_message: errMsg });
+          await updateConversationStatus(supabase, conversationId, 'idle');
+          return { status: 'failed', error: errMsg };
+        }
+        // Otras tools: no fatal; el modelo ve el error en tool_result y puede recuperarse
         continue;
       }
 
