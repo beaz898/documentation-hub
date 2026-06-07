@@ -3,7 +3,7 @@ PENDIENTES — Doclity (Agente IA)
 Documento vivo. Se actualiza al completar tareas (marcar [✓]) y se
 sustituye por la versión nueva. Más ligero que la Bitácora: aquí va
 lo que falta y la visión que lo guía, no el detalle de cada sesión.
-Última actualización: 07/06/2026 (v3)
+Última actualización: 07/06/2026 (v4)
 
 
 ════════════════════════════════════════════════════════════════
@@ -143,15 +143,12 @@ Leyenda: [ ] pendiente · [~] en curso · [✓] hecho
       "Conocimiento general" con detalle al hover). Commits: 9c1ac70, 7a95055,
       8f37feb, 34233f2, 7de5ac6.
 
-[~] B.4 — (Funcionalidad) Acceso del agente a estadísticas de uso
-      Herramienta nueva para que el agente consulte el panel de analytics
-      y responda cosas como "cuántas consultas ha resuelto tal documento".
-      PATRÓN: reutilizar arquitectura de B.14 (tool + SELECT explícito + gate admin).
-      LÍMITE CRÍTICO: solo métricas agregadas. NUNCA exponer preguntas en bruto de
-      usuarios (datos sensibles). Métricas seguras: query count por doc, cobertura %,
-      conteo de problemas de calidad por doc, docs nunca usados.
-      VISIÓN: ampliar al agente más allá del corpus, hacia datos propios
-      de Doclity. Primer paso de darle "más sentidos".
+[✓] B.4 — (Funcionalidad) Acceso del agente a estadísticas de uso
+      Herramienta usage_stats: métricas agregadas por documento (frecuencia de
+      consulta, cobertura de recuperación %, problemas de calidad, docs nunca usados).
+      Doble gate admin (excluida del LLM para members + verificación en ejecutor).
+      NUNCA expone el campo question ni datos sensibles. Añadida a READ_ONLY_TOOLS.
+      Commit: 1f52630.
 
 [✓] BUGFIX finalize — Turno con muchos docs truncaba respuesta → invalid_input → bucle
       Resuelto en tres capas: d3d4e50 (finalize fatal, corta el bucle confirmar→error),
