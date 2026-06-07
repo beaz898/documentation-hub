@@ -14,14 +14,15 @@ const executeTyped: ToolExecutorTyped<FinalizeInput> = async (
     return { kind: 'error', error: 'invalid_input', details: 'output no puede estar vacío' };
   }
 
-  if (!Array.isArray(input.citations)) {
-    return { kind: 'error', error: 'invalid_input', details: 'citations debe ser un array' };
-  }
+  // citations es metadata de apoyo: si llega malformada (no array) pero el output
+  // está completo (stop_reason normal, nunca truncado — el runner corta antes),
+  // degradar con citas vacías en vez de fallar. El usuario recibe la respuesta íntegra.
+  const citations = Array.isArray(input.citations) ? input.citations : [];
 
   return {
     kind: 'final',
     output: input.output.trim(),
-    citations: input.citations,
+    citations,
   };
 };
 

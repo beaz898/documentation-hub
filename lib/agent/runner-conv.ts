@@ -653,6 +653,18 @@ export async function runAgentTurn(input: TurnInput): Promise<TurnOutput> {
       const toolInput = block.input;
       const toolUseId = block.id;
 
+      // Si la respuesta fue truncada por max_tokens y el modelo intenta finalize,
+      // el output podría estar incompleto. Fallar limpio ANTES de persistir el
+      // tool_call o pedir confirmación — así el PRE-BUCLE nunca recibe un finalize
+      // con contenido cortado.
+      if (toolName === 'finalize' && llmResponse.stop_reason === 'max_tokens') {
+        const errMsg =
+          'La respuesta era demasiado extensa. Inténtalo con una consulta más acotada.';
+        await updateMessageStatus(supabase, messageId, 'failed', { error_message: errMsg });
+        await updateConversationStatus(supabase, conversationId, 'idle');
+        return { status: 'failed', error: errMsg };
+      }
+
       const needsConfirm = shouldConfirm({
         mode,
         tool_name:           toolName,
