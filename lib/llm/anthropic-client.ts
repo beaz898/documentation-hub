@@ -355,7 +355,7 @@ export async function callAnthropicAgent(
 ): Promise<AgentLLMResponse> {
   const payload = {
     model:       AGENT_MODEL,
-    max_tokens:  4096,
+    max_tokens:  8192,
     temperature: 0,
     system:      systemPrompt,
     tools,
