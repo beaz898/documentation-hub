@@ -75,7 +75,10 @@ export const listDocsTool: ToolBundle = {
       'número de fragmentos, origen y carpeta. Útil para responder qué documentos hay en la ' +
       'organización, cuándo se subió un documento concreto, o cuáles vienen de Drive. ' +
       'No devuelve el contenido de los documentos — para eso usa read_doc. ' +
-      'Solo disponible para administradores.',
+      'Solo disponible para administradores. ' +
+      'Al presentar los resultados al usuario, NO uses tabla por defecto: resume en prosa ' +
+      'o lista de nombres legible. Usa tabla únicamente si el usuario pide explícitamente ' +
+      'comparar columnas o el caso lo requiere con claridad.',
     input_schema: {
       type: 'object',
       properties: {
