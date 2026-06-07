@@ -3,7 +3,7 @@ PENDIENTES — Doclity (Agente IA)
 Documento vivo. Se actualiza al completar tareas (marcar [✓]) y se
 sustituye por la versión nueva. Más ligero que la Bitácora: aquí va
 lo que falta y la visión que lo guía, no el detalle de cada sesión.
-Última actualización: 07/06/2026 (v2)
+Última actualización: 07/06/2026 (v3)
 
 
 ════════════════════════════════════════════════════════════════
@@ -152,6 +152,23 @@ Leyenda: [ ] pendiente · [~] en curso · [✓] hecho
       conteo de problemas de calidad por doc, docs nunca usados.
       VISIÓN: ampliar al agente más allá del corpus, hacia datos propios
       de Doclity. Primer paso de darle "más sentidos".
+
+[✓] BUGFIX finalize — Turno con muchos docs truncaba respuesta → invalid_input → bucle
+      Resuelto en tres capas: d3d4e50 (finalize fatal, corta el bucle confirmar→error),
+      887babf (max_tokens 4096→8192, más margen de salida), aaec17d (check stop_reason
+      antes de persistir + citations tolerantes si llegan malformadas sin truncación).
+      Si supera 8192 tokens, falla limpio con mensaje legible. Sin bucle posible.
+
+[ ] B.21 — (Comportamiento, opcional) Manejo de peticiones demasiado grandes
+      El stack anti-truncación funciona (falla limpio), pero "detalle exhaustivo de muchos
+      docs" supera incluso 8192 tokens. Subir más el techo no es la solución. En vez de
+      solo fallar, queremos que el agente RESUMA y AVISE de que ha resumido por extensión,
+      ofreciendo profundizar. Dos piezas: (1) PROACTIVA en el prompt — ante peticiones de
+      alcance desproporcionado (muchos docs, "máximo detalle"), priorizar lo relevante y
+      avisar de que se ha resumido, ofreciendo profundizar en una parte; solo cuando el
+      alcance es desproporcionado, sin volverse perezoso en preguntas normales. (2) REACTIVA
+      — mejorar el mensaje de fallo por truncación para que oriente CÓMO acotar (por doc,
+      tema, grupo). PRIORIDAD: baja. El bug ya está cerrado; esto es refinamiento.
 
 [ ] B.5 — (Latencia) Opción D: HTTP trigger directo Vercel→Railway
       Sustituir el polling provisional a 1s por un disparo directo para
