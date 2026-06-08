@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { StepRow } from './step-helpers';
 import type { AgentConversation, AgentMessage, ConfirmationMode } from '@/lib/agent/types';
@@ -214,16 +214,35 @@ interface ConversationThreadProps {
 export default function ConversationThread({
   conversation, messages, onCancel, onUpdateMode,
 }: ConversationThreadProps) {
-  const scrollRef    = useRef<HTMLDivElement>(null);
-  const bottomRef    = useRef<HTMLDivElement>(null);
-  // Registra cuántos steps conocía cada mensaje en el render anterior.
-  // Permite que LiveSteps identifique cuáles son nuevos y les aplique stagger.
+  const scrollRef         = useRef<HTMLDivElement>(null);
+  const bottomRef         = useRef<HTMLDivElement>(null);
   const prevStepCountsRef = useRef<Record<string, number>>({});
+  const [isAtBottom, setIsAtBottom] = useState(true);
 
   const isActive = ACTIVE_STATUSES.has(conversation.status);
 
-  // Auto-scroll suave: solo si el usuario está cerca del fondo (≤150px de margen)
-  // Evita interrumpir el scroll manual hacia el historial.
+  // B.18 — Al cambiar de conversación, saltar al final de forma instantánea (sin animación).
+  // Debe ejecutarse antes del auto-scroll suave para no entrar en conflicto.
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: 'instant', block: 'end' });
+    setIsAtBottom(true);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [conversation.id]);
+
+  // B.19 — Listener de scroll para detectar si el usuario está cerca del fondo.
+  // Se re-registra cada vez que cambia la conversación para resetear el estado.
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const check = () => {
+      setIsAtBottom(el.scrollHeight - el.scrollTop - el.clientHeight < 80);
+    };
+    el.addEventListener('scroll', check, { passive: true });
+    return () => el.removeEventListener('scroll', check);
+  }, [conversation.id]);
+
+  // Auto-scroll suave durante un turno activo: solo si el usuario está cerca del fondo
+  // (≤150px de margen). Evita interrumpir el scroll manual hacia el historial.
   useEffect(() => {
     const container = scrollRef.current;
     if (!container) return;
@@ -243,7 +262,9 @@ export default function ConversationThread({
   }, [messages]);
 
   return (
-    <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: 'var(--bg)' }}>
+    // position: relative necesario para que el botón "ir abajo" quede anclado
+    // a este contenedor y NO dentro del scroll container (que scrollearía con el contenido).
+    <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: 'var(--bg)', position: 'relative' }}>
 
       {/* Header */}
       <div style={{
@@ -309,6 +330,33 @@ export default function ConversationThread({
 
         <div ref={bottomRef} style={{ height: 1 }} />
       </div>
+
+      {/* B.19 — Botón "ir abajo": aparece solo cuando el usuario está desplazado hacia arriba.
+          Position absolute dentro del contenedor con position:relative (no dentro del scroll). */}
+      {!isAtBottom && (
+        <button
+          onClick={() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' })}
+          title="Ir al último mensaje"
+          aria-label="Ir al último mensaje"
+          style={{
+            position: 'absolute', bottom: 16, right: 16,
+            width: 40, height: 40, borderRadius: '50%',
+            border: '0.5px solid var(--border)',
+            background: 'var(--bg-secondary)',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
+            cursor: 'pointer',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            color: 'var(--text-secondary)',
+            transition: 'box-shadow 0.15s',
+          }}
+          onMouseEnter={e => (e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.18)')}
+          onMouseLeave={e => (e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.12)')}
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <polyline points="6 9 12 15 18 9" />
+          </svg>
+        </button>
+      )}
     </div>
   );
 }
