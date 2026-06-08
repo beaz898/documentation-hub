@@ -8,6 +8,7 @@ import type { AgentConversation, AgentMessage, ConfirmationMode } from '@/lib/ag
 const STUCK_THRESHOLD_MS = 5 * 60 * 1000;
 
 const VALID_MODES: ConfirmationMode[] = ['step_by_step', 'milestones', 'autonomous'];
+const MAX_TITLE_LENGTH = 80;
 
 // ── GET /api/agent/conversations/[id] ────────────────────────────────────────
 // Devuelve la conversación + sus mensajes en orden created_at ASC.
@@ -68,8 +69,9 @@ export async function GET(
 }
 
 // ── PATCH /api/agent/conversations/[id] ──────────────────────────────────────
-// Actualiza confirmation_mode. Solo permitido cuando status='idle' (entre turnos).
-// El frontend también deshabilita el selector cuando no está idle — doble guarda.
+// Acepta: { title? } y/o { confirmation_mode? }
+// - title: siempre editable (no requiere idle). null o "" → vuelve al título automático.
+// - confirmation_mode: solo cuando status='idle'. Doble guarda — el frontend también bloquea.
 
 export async function PATCH(
   req: NextRequest,
@@ -103,28 +105,53 @@ export async function PATCH(
       return NextResponse.json({ error: 'Sin acceso a esta conversación.' }, { status: 403 });
     }
 
-    if (conv.status !== 'idle') {
-      return NextResponse.json(
-        { error: 'Solo se puede cambiar el modo cuando la conversación está en reposo.' },
-        { status: 409 },
-      );
+    const body = await req.json() as { confirmation_mode?: unknown; title?: unknown };
+    const updates: Record<string, unknown> = {};
+
+    // ── title (no requiere idle) ─────────────────────────────────────────────
+    if ('title' in body) {
+      const raw = body.title;
+      if (raw !== null && typeof raw !== 'string') {
+        return NextResponse.json({ error: 'title debe ser una cadena o null.' }, { status: 400 });
+      }
+      const trimmed = typeof raw === 'string' ? raw.trim() : null;
+      if (trimmed !== null && trimmed.length > MAX_TITLE_LENGTH) {
+        return NextResponse.json(
+          { error: `El título no puede superar ${MAX_TITLE_LENGTH} caracteres.` },
+          { status: 400 },
+        );
+      }
+      updates.title = trimmed || null; // cadena vacía tras trim → null (vuelve al automático)
     }
 
-    const body = await req.json() as { confirmation_mode?: unknown };
-    if (!body.confirmation_mode || !VALID_MODES.includes(body.confirmation_mode as ConfirmationMode)) {
-      return NextResponse.json(
-        { error: `confirmation_mode debe ser uno de: ${VALID_MODES.join(', ')}.` },
-        { status: 400 },
-      );
+    // ── confirmation_mode (requiere idle) ────────────────────────────────────
+    if ('confirmation_mode' in body) {
+      if (conv.status !== 'idle') {
+        return NextResponse.json(
+          { error: 'Solo se puede cambiar el modo cuando la conversación está en reposo.' },
+          { status: 409 },
+        );
+      }
+      if (!body.confirmation_mode || !VALID_MODES.includes(body.confirmation_mode as ConfirmationMode)) {
+        return NextResponse.json(
+          { error: `confirmation_mode debe ser uno de: ${VALID_MODES.join(', ')}.` },
+          { status: 400 },
+        );
+      }
+      updates.confirmation_mode = body.confirmation_mode as ConfirmationMode;
+    }
+
+    if (Object.keys(updates).length === 0) {
+      return NextResponse.json({ error: 'Nada que actualizar.' }, { status: 400 });
     }
 
     const { error: updateErr } = await supabase
       .from('agent_conversations')
-      .update({ confirmation_mode: body.confirmation_mode as ConfirmationMode })
+      .update(updates)
       .eq('id', id);
 
     if (updateErr) {
-      return NextResponse.json({ error: 'Error actualizando el modo.' }, { status: 500 });
+      return NextResponse.json({ error: 'Error actualizando la conversación.' }, { status: 500 });
     }
 
     return NextResponse.json({ ok: true });

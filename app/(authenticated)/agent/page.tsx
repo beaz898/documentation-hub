@@ -31,7 +31,7 @@ export default function AgentPage() {
     conversations, conversation, messages,
     loading, sending, creating, error, pollingError,
     loadConversations, selectConversation, createConversation,
-    sendMessage, cancelConversation, updateMode, deleteConversation,
+    sendMessage, cancelConversation, updateMode, renameConversation, deleteConversation,
     retryPolling, clearError,
   } = useConversation();
 
@@ -104,6 +104,10 @@ export default function AgentPage() {
     setSelectedId(null);
   }, []);
 
+  const handleRename = useCallback((id: string, title: string) => {
+    void renameConversation(id, title);
+  }, [renameConversation]);
+
   const handleDelete = useCallback(async (id: string) => {
     const ok = await deleteConversation(id);
     // El hook ya limpia la lista y detiene el polling si era la activa.
@@ -148,6 +152,7 @@ export default function AgentPage() {
           selectedId={selectedId}
           onSelect={handleSelect}
           onNew={handleNew}
+          onRename={handleRename}
           onDelete={handleDelete}
           credits={credits}
         />

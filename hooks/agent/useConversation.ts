@@ -36,6 +36,7 @@ export interface UseConversationResult {
   sendMessage:         (convId: string, body: SendMessageBody) => Promise<boolean>;
   cancelConversation:  (convId: string) => Promise<void>;
   updateMode:          (convId: string, mode: ConfirmationMode) => Promise<void>;
+  renameConversation:  (id: string, title: string) => Promise<boolean>;
   deleteConversation:  (id: string) => Promise<boolean>;
   retryPolling:        () => void;   // reintentar polling tras pollingError
   clearError:          () => void;
@@ -259,6 +260,38 @@ export function useConversation(): UseConversationResult {
     }
   }, []);
 
+  const renameConversation = useCallback(async (id: string, title: string): Promise<boolean> => {
+    setError(null);
+    const new_title = title.trim().slice(0, 80) || null;
+    // Captura el título anterior para rollback si falla
+    const prev_title = conversations.find(c => c.id === id)?.title ?? null;
+    // Actualización optimista
+    setConversations(prev => prev.map(c => c.id === id ? { ...c, title: new_title } : c));
+    setConversation(prev => prev?.id === id ? { ...prev, title: new_title } : prev);
+    try {
+      const res = await fetch(`/api/agent/conversations/${id}`, {
+        method:  'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ title: new_title }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        // Rollback si falla
+        setConversations(prev => prev.map(c => c.id === id ? { ...c, title: prev_title } : c));
+        setConversation(prev => prev?.id === id ? { ...prev, title: prev_title } : prev);
+        setError((data as { error?: string }).error || 'Error renombrando la conversación.');
+        return false;
+      }
+      return true;
+    } catch {
+      setConversations(prev => prev.map(c => c.id === id ? { ...c, title: prev_title } : c));
+      setConversation(prev => prev?.id === id ? { ...prev, title: prev_title } : prev);
+      setError('Error de conexión.');
+      return false;
+    }
+  }, [conversations]);
+
   const deleteConversation = useCallback(async (id: string): Promise<boolean> => {
     setError(null);
     try {
@@ -300,7 +333,7 @@ export function useConversation(): UseConversationResult {
     conversations, conversation, messages,
     loading, loadingDetail, sending, creating, error, pollingError,
     loadConversations, selectConversation, createConversation,
-    sendMessage, cancelConversation, updateMode, deleteConversation,
+    sendMessage, cancelConversation, updateMode, renameConversation, deleteConversation,
     retryPolling, clearError,
   };
 }

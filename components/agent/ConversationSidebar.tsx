@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import type { AgentConversation, ConversationStatus } from '@/lib/agent/types';
 import CreditsIndicator from '@/components/shared/CreditsIndicator';
 
@@ -15,6 +15,7 @@ interface ConversationSidebarProps {
   selectedId:     string | null;
   onSelect:       (id: string) => void;
   onNew:          () => void;
+  onRename:       (id: string, title: string) => void;
   onDelete:       (id: string) => void;
   onCollapse?:    () => void;
   credits?:       CreditsData | null;
@@ -50,14 +51,32 @@ function formatDate(iso: string): string {
 }
 
 export default function ConversationSidebar({
-  conversations, loading, selectedId, onSelect, onNew, onDelete, onCollapse, credits,
+  conversations, loading, selectedId, onSelect, onNew, onRename, onDelete, onCollapse, credits,
 }: ConversationSidebarProps) {
   const [hoveredId,    setHoveredId]    = useState<string | null>(null);
   const [confirmingId, setConfirmingId] = useState<string | null>(null);
+  const [renamingId,   setRenamingId]   = useState<string | null>(null);
+  const [draftTitle,   setDraftTitle]   = useState('');
+  const inputRef = useRef<HTMLInputElement>(null);
 
   function handleSelect(id: string) {
     setConfirmingId(null);
     onSelect(id);
+  }
+
+  function startRename(conv: AgentConversation) {
+    setRenamingId(conv.id);
+    setDraftTitle(getConvTitle(conv));
+    setConfirmingId(null);
+  }
+
+  function commitRename(id: string) {
+    onRename(id, draftTitle.trim());
+    setRenamingId(null);
+  }
+
+  function cancelRename() {
+    setRenamingId(null);
   }
 
   return (
@@ -120,15 +139,16 @@ export default function ConversationSidebar({
           </p>
         ) : (
           conversations.map(conv => {
-            const cfg        = STATUS_CONFIG[conv.status];
-            const isSelected = conv.id === selectedId;
-            const isHovered  = hoveredId === conv.id;
+            const cfg          = STATUS_CONFIG[conv.status];
+            const isSelected   = conv.id === selectedId;
+            const isHovered    = hoveredId === conv.id;
             const isConfirming = confirmingId === conv.id;
-            const title      = getConvTitle(conv);
-            const dateStr    = formatDate(conv.last_message_at ?? conv.created_at);
-            const turns      = conv.turn_count;
+            const isRenaming   = renamingId === conv.id;
+            const title        = getConvTitle(conv);
+            const dateStr      = formatDate(conv.last_message_at ?? conv.created_at);
+            const turns        = conv.turn_count;
 
-            // ── Fila en modo confirmación ──────────────────────────────────────
+            // ── Fila en modo confirmación de borrado ───────────────────────────
             if (isConfirming) {
               return (
                 <div
@@ -163,23 +183,23 @@ export default function ConversationSidebar({
               );
             }
 
-            // ── Fila normal ────────────────────────────────────────────────────
+            // ── Fila normal (con modo renombrado inline) ───────────────────────
             return (
               <div
                 key={conv.id}
                 style={{ position: 'relative', marginBottom: 1 }}
-                onMouseEnter={() => setHoveredId(conv.id)}
+                onMouseEnter={() => { if (!isRenaming) setHoveredId(conv.id); }}
                 onMouseLeave={() => setHoveredId(null)}
               >
                 <div
-                  role="button"
-                  tabIndex={0}
-                  onClick={() => handleSelect(conv.id)}
-                  onKeyDown={e => e.key === 'Enter' && handleSelect(conv.id)}
+                  role={isRenaming ? undefined : 'button'}
+                  tabIndex={isRenaming ? undefined : 0}
+                  onClick={() => { if (!isRenaming) handleSelect(conv.id); }}
+                  onKeyDown={e => { if (!isRenaming && e.key === 'Enter') handleSelect(conv.id); }}
                   style={{
                     width: '100%', textAlign: 'left',
-                    padding: `8px ${isHovered ? 34 : 10}px 8px 10px`,
-                    borderRadius: 8, cursor: 'pointer',
+                    padding: `8px ${isHovered && !isRenaming ? 58 : 10}px 8px 10px`,
+                    borderRadius: 8, cursor: isRenaming ? 'default' : 'pointer',
                     background: isSelected ? 'var(--brand-light)' : isHovered ? 'var(--surface-hover)' : 'transparent',
                     display: 'flex', alignItems: 'flex-start', gap: 9,
                     transition: 'background 0.1s', outline: 'none',
@@ -195,15 +215,39 @@ export default function ConversationSidebar({
 
                   {/* Contenido */}
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <p style={{
-                      fontSize: 11, margin: '0 0 3px',
-                      fontWeight: isSelected ? 600 : 400,
-                      color: isSelected ? 'var(--brand-text)' : 'var(--text-primary)',
-                      lineHeight: 1.4,
-                      whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-                    }}>
-                      {title}
-                    </p>
+                    {isRenaming ? (
+                      <input
+                        ref={inputRef}
+                        autoFocus
+                        value={draftTitle}
+                        maxLength={80}
+                        onChange={e => setDraftTitle(e.target.value)}
+                        onKeyDown={e => {
+                          if (e.key === 'Enter')  { e.preventDefault(); commitRename(conv.id); }
+                          if (e.key === 'Escape') { e.preventDefault(); cancelRename(); }
+                        }}
+                        onBlur={() => commitRename(conv.id)}
+                        onClick={e => e.stopPropagation()}
+                        style={{
+                          display: 'block', width: '100%',
+                          fontSize: 11, fontWeight: isSelected ? 600 : 400,
+                          color: isSelected ? 'var(--brand-text)' : 'var(--text-primary)',
+                          background: 'transparent', border: 'none', outline: 'none',
+                          borderBottom: '1px solid var(--brand)',
+                          padding: '0 0 1px', lineHeight: 1.4, margin: '0 0 3px',
+                        }}
+                      />
+                    ) : (
+                      <p style={{
+                        fontSize: 11, margin: '0 0 3px',
+                        fontWeight: isSelected ? 600 : 400,
+                        color: isSelected ? 'var(--brand-text)' : 'var(--text-primary)',
+                        lineHeight: 1.4,
+                        whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                      }}>
+                        {title}
+                      </p>
+                    )}
                     <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
                       <span style={{ fontSize: 9, color: cfg.color, fontWeight: 500 }}>
                         {cfg.label}
@@ -218,29 +262,53 @@ export default function ConversationSidebar({
                   </div>
                 </div>
 
-                {/* Papelera — visible al hover */}
-                {isHovered && (
-                  <button
-                    onClick={e => { e.stopPropagation(); setConfirmingId(conv.id); }}
-                    title="Borrar conversación"
-                    aria-label="Borrar conversación"
-                    style={{
-                      position: 'absolute', right: 6, top: '50%', transform: 'translateY(-50%)',
-                      width: 22, height: 22, borderRadius: 5, border: 'none',
-                      background: 'transparent', cursor: 'pointer',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      color: 'var(--text-muted)',
-                    }}
-                    onMouseEnter={e => (e.currentTarget.style.color = 'var(--danger)')}
-                    onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-muted)')}
-                  >
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <polyline points="3 6 5 6 21 6"/>
-                      <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
-                      <path d="M10 11v6M14 11v6"/>
-                      <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
-                    </svg>
-                  </button>
+                {/* Lápiz + papelera — visibles al hover, ocultos durante renombrado */}
+                {isHovered && !isRenaming && (
+                  <>
+                    {/* Lápiz (renombrar) */}
+                    <button
+                      onClick={e => { e.stopPropagation(); startRename(conv); }}
+                      title="Renombrar conversación"
+                      aria-label="Renombrar conversación"
+                      style={{
+                        position: 'absolute', right: 30, top: '50%', transform: 'translateY(-50%)',
+                        width: 22, height: 22, borderRadius: 5, border: 'none',
+                        background: 'transparent', cursor: 'pointer',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        color: 'var(--text-muted)',
+                      }}
+                      onMouseEnter={e => (e.currentTarget.style.color = 'var(--brand)')}
+                      onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-muted)')}
+                    >
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                      </svg>
+                    </button>
+
+                    {/* Papelera (borrar) */}
+                    <button
+                      onClick={e => { e.stopPropagation(); setConfirmingId(conv.id); }}
+                      title="Borrar conversación"
+                      aria-label="Borrar conversación"
+                      style={{
+                        position: 'absolute', right: 6, top: '50%', transform: 'translateY(-50%)',
+                        width: 22, height: 22, borderRadius: 5, border: 'none',
+                        background: 'transparent', cursor: 'pointer',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        color: 'var(--text-muted)',
+                      }}
+                      onMouseEnter={e => (e.currentTarget.style.color = 'var(--danger)')}
+                      onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-muted)')}
+                    >
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <polyline points="3 6 5 6 21 6"/>
+                        <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+                        <path d="M10 11v6M14 11v6"/>
+                        <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+                      </svg>
+                    </button>
+                  </>
                 )}
               </div>
             );
