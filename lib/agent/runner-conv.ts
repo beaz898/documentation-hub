@@ -12,7 +12,7 @@ import type {
   ToolResultStep,
   ToolName,
 } from './types';
-import { buildSystemPrompt } from './system-prompt';
+import { buildSystemBlocks } from './system-prompt';
 import {
   appendStepToMessage,
   updateMessageStatus,
@@ -475,7 +475,7 @@ export async function runAgentTurn(input: TurnInput): Promise<TurnOutput> {
   let totalInputTokens:   number = (msgMeta?.tokens_input        as number) ?? 0;
   let totalOutputTokens:  number = (msgMeta?.tokens_output       as number) ?? 0;
 
-  const systemPrompt = buildSystemPrompt(mode, new Date());
+  const systemBlocks = buildSystemBlocks(mode, new Date());
   const toolDefs     = getToolDefinitions(role);
   // ToolContext.taskId se usa como identificador del trabajo en curso; las herramientas
   // actuales no escriben en agent_tasks, por lo que messageId es correcto aquí.
@@ -606,7 +606,7 @@ export async function runAgentTurn(input: TurnInput): Promise<TurnOutput> {
 
     let llmResponse;
     try {
-      llmResponse = await callAgentLLM(systemPrompt, messages, toolDefs);
+      llmResponse = await callAgentLLM(systemBlocks, messages, toolDefs);
     } catch (err) {
       const errMsg = err instanceof Error ? err.message : String(err);
       await updateMessageStatus(supabase, messageId, 'failed', { error_message: errMsg });

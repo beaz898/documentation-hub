@@ -1,4 +1,5 @@
 import type { ConfirmationMode } from './types';
+import type { SystemBlock } from '../llm/types';
 
 const TOOLS_SECTION = `
 ## Herramientas disponibles
@@ -118,7 +119,7 @@ Espera la confirmación antes de continuar.
 `.trim();
 }
 
-export function buildSystemPrompt(mode: ConfirmationMode, now: Date = new Date()): string {
+function buildDateSection(now: Date): string {
   const dateStr = now.toLocaleDateString('es-ES', {
     weekday:  'long',
     year:     'numeric',
@@ -126,13 +127,15 @@ export function buildSystemPrompt(mode: ConfirmationMode, now: Date = new Date()
     day:      'numeric',
     timeZone: 'Europe/Madrid',
   });
-
-  const DATE_SECTION =
+  return (
     `## Contexto temporal\n\n` +
     `Fecha actual: ${dateStr}.\n` +
     `Úsala para interpretar referencias relativas ("esta semana", "el mes que viene"),\n` +
-    `fechar lo que redactes, y razonar sobre plazos y vencimientos.`;
+    `fechar lo que redactes, y razonar sobre plazos y vencimientos.`
+  );
+}
 
+function buildStableText(mode: ConfirmationMode): string {
   return [
     'Eres Doclity Agent, un asistente especializado en analizar y trabajar con documentación corporativa.',
     '',
@@ -156,7 +159,19 @@ export function buildSystemPrompt(mode: ConfirmationMode, now: Date = new Date()
     FORMAT_SECTION,
     '',
     CONFIDENTIALITY_SECTION,
-    '',
-    DATE_SECTION,
   ].join('\n');
+}
+
+// Devuelve el system prompt como dos bloques para prompt caching de Anthropic:
+//   bloque 0 — contenido estable (todo excepto la fecha), marcado con cache_control
+//   bloque 1 — DATE_SECTION, fuera del caché porque cambia cada día
+export function buildSystemBlocks(mode: ConfirmationMode, now: Date = new Date()): SystemBlock[] {
+  return [
+    { type: 'text', text: buildStableText(mode), cache_control: { type: 'ephemeral' } },
+    { type: 'text', text: buildDateSection(now) },
+  ];
+}
+
+export function buildSystemPrompt(mode: ConfirmationMode, now: Date = new Date()): string {
+  return buildStableText(mode) + '\n\n' + buildDateSection(now);
 }

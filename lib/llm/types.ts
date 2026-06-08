@@ -1,5 +1,13 @@
 // Tipos compartidos entre lib/llm/anthropic-client.ts y sus consumidores.
 
+// ── Bloques de sistema (prompt caching) ───────────────────────────────────────
+
+export interface SystemBlock {
+  type: 'text';
+  text: string;
+  cache_control?: { type: 'ephemeral' };
+}
+
 // ── Análisis / RAG ─────────────────────────────────────────────────────────────
 
 export interface LLMUsage {

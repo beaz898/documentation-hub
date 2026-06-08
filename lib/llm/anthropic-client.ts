@@ -5,6 +5,7 @@ import type {
   ContentBlock,
   AgentLLMResponse,
   AgentMessage,
+  SystemBlock,
 } from './types';
 import {
   acquireRateLimit,
@@ -31,12 +32,6 @@ const RETRY_DELAYS = [2000, 5000, 10000, 15000, 20000];
 interface MessageItem {
   role: 'user' | 'assistant';
   content: string;
-}
-
-interface SystemBlock {
-  type: 'text';
-  text: string;
-  cache_control?: { type: 'ephemeral' };
 }
 
 export interface CallOptions {
@@ -349,22 +344,32 @@ export async function callAnthropicJson<T = unknown>(
 // ── Respuestas del agente — blocking (tool_use) ────────────────────────────────
 
 export async function callAnthropicAgent(
-  systemPrompt: string,
+  systemBlocks: SystemBlock[],
   messages: AgentMessage[],
   tools: AnthropicToolDefinition[],
 ): Promise<AgentLLMResponse> {
+  // Marca el último tool con cache_control para cachear todas las definiciones de herramienta.
+  // Admin y member producen listas distintas → dos entradas de caché independientes (correcto).
+  const toolsWithCache = tools.length > 0
+    ? [
+        ...tools.slice(0, -1),
+        { ...tools[tools.length - 1], cache_control: { type: 'ephemeral' as const } },
+      ]
+    : tools;
+
   const payload = {
     model:       AGENT_MODEL,
     max_tokens:  8192,
     temperature: 0,
-    system:      systemPrompt,
-    tools,
+    system:      systemBlocks,
+    tools:       toolsWithCache,
     messages,
   };
   const headers = {
     'Content-Type':      'application/json',
     'x-api-key':         ANTHROPIC_API_KEY,
     'anthropic-version': '2023-06-01',
+    'anthropic-beta':    'prompt-caching-2024-07-31',
   };
 
   const estInput    = Math.ceil(JSON.stringify(payload).length / 4);
@@ -384,8 +389,18 @@ export async function callAnthropicAgent(
     const d = body as {
       stop_reason: string;
       content:     ContentBlock[];
-      usage:       { input_tokens: number; output_tokens: number };
+      usage: {
+        input_tokens:                number;
+        output_tokens:               number;
+        cache_creation_input_tokens: number;
+        cache_read_input_tokens:     number;
+      };
     };
+
+    const cacheCreation = d.usage?.cache_creation_input_tokens ?? 0;
+    const cacheRead     = d.usage?.cache_read_input_tokens     ?? 0;
+    if (cacheCreation > 0) console.log(`[agent-llm] cache write: ${cacheCreation}t`);
+    if (cacheRead     > 0) console.log(`[agent-llm] cache read:  ${cacheRead}t (saved ~${Math.round(cacheRead * 0.9)}t)`);
 
     return {
       stop_reason: d.stop_reason ?? 'end_turn',
