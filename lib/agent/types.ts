@@ -1,17 +1,7 @@
 // Modos de actuación del agente
 export type ConfirmationMode = 'step_by_step' | 'milestones' | 'autonomous';
 
-// Estados de una tarea
-export type AgentTaskStatus =
-  | 'pending'
-  | 'running'
-  | 'awaiting_user'
-  | 'awaiting_confirmation'
-  | 'completed'
-  | 'failed'
-  | 'cancelled';
-
-// Tipos de paso registrados en agent_tasks.steps
+// Tipos de paso del agente
 export type AgentStepType =
   | 'think'                  // Razonamiento interno del modelo
   | 'tool_call'              // El modelo invoca una herramienta
@@ -138,31 +128,6 @@ export type PendingRequest =
       preview?: string;
       reason: 'finalize' | 'tool_call' | 'over_estimate' | 'external_effect' | 'improvise';
     };
-
-// Fila completa de agent_tasks (lo que se devuelve al frontend)
-export interface AgentTask {
-  id: string;
-  org_id: string;
-  user_id: string;
-  goal: string;
-  confirmation_mode: ConfirmationMode;
-  status: AgentTaskStatus;
-  steps: AgentStep[];
-  result: { output: string; citations: Citation[] } | null;
-  pending_request: PendingRequest | null;
-  credits_estimated: number;
-  credits_consumed: number;
-  model: string;
-  total_tokens_input: number;
-  total_tokens_output: number;
-  step_count: number;
-  error_message: string | null;
-  error_step_index: number | null;
-  created_at: string;
-  started_at: string | null;
-  completed_at: string | null;
-  updated_at: string;
-}
 
 // Preferencias por usuario (memberships.preferences)
 export interface UserPreferences {

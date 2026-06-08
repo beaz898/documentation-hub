@@ -1,6 +1,5 @@
 'use client';
 
-// Extraído de AgentChat.tsx (no modificar el original — se elimina en Paso 8).
 // Helpers puros para renderizar un AgentStep individual.
 
 import { useState } from 'react';
