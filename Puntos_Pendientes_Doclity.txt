@@ -3,7 +3,7 @@ PENDIENTES — Doclity (Agente IA)
 Documento vivo. Se actualiza al completar tareas (marcar [✓]) y se
 sustituye por la versión nueva. Más ligero que la Bitácora: aquí va
 lo que falta y la visión que lo guía, no el detalle de cada sesión.
-Última actualización: 07/06/2026 (v4)
+Última actualización: 09/06/2026 (v6)
 
 
 ════════════════════════════════════════════════════════════════
@@ -56,52 +56,18 @@ Cláusula de aviso (IMPORTANTE — riesgo de operar fuera de directrices):
   fallo silencioso.
 
 
-A.2 — APRENDIZAJE: dos naturalezas distintas + interruptor de enseñanza
-────────────────────────────────────────────────────────────────────────
+A.2 — APRENDIZAJE: visión conceptual (diseño cerrado — ver B.6 para especificación completa)
+─────────────────────────────────────────────────────────────────────────────────────────────
 
 Premisa: guardar soluciones como ejemplos literales es contraproducente.
-Un mismo problema tiene mil formas válidas de resolverse; lo que en una
-query necesita un LEFT JOIN, en otra sobre las mismas tablas no. Un
-ejemplo induciría a copiar una solución que no aplica.
+Se aprende el MAPA del territorio (hechos/convenciones estables),
+no la RUTA concreta de una vez (la decisión de ese caso).
 
-Se distinguen dos tipos:
+Tres tipos de cosa aprendida con mecanismos distintos (ver B.6 para detalle
+completo de cada tipo, mecanismo de captura e interruptor de enseñanza).
 
-  TIPO A — preferencia / convención estable (SÍ se retiene)
-    "Los correos los escribimos así." Vale la próxima vez y la
-    siguiente, porque el contexto se repite. Se guarda como convención.
-
-  TIPO B — decisión dependiente del caso (NO se guarda como ejemplo)
-    "Esta query sin los clientes sin ventas." No está MAL: es que ESTE
-    problema lo pedía así. Guardarlo envenenaría futuras queries sobre
-    las mismas tablas. De un caso B lo único reutilizable son los
-    HECHOS DE DOMINIO descubiertos por el camino (ej.: tal campo es
-    "cliente", la relación ventas–clientes es N:N, ciertas descripciones
-    viven en tablas de dimensiones referenciadas por código). La
-    DECISIÓN concreta se vuelve a preguntar cada vez.
-
-  Resumen: se aprende el MAPA del territorio (hechos del dominio),
-  no la RUTA concreta de una vez (la decisión de ese caso).
-  Implicación para el system prompt: debe empujar al agente a EXTRAER
-  y RETENER hechos de dominio durante la investigación.
-
-Mecanismo de captura — "interruptor de enseñanza" (NO jerarquía de confianza):
-  - Cada respuesta del usuario lleva DOS botones:
-      · "Enviar"
-      · "Enviar + tener en cuenta para el aprendizaje"
-  - Durante una fase de enseñanza que abre quien manda ("estas semanas,
-    corregid y marcad para que aprenda"), CUALQUIER usuario puede pulsar
-    el segundo botón. La corrección se retiene independientemente de
-    quién la haga.
-  - Llega un momento en que la enseñanza se CIERRA: solo quien manda
-    puede seguir alimentándolo, o se congela del todo.
-  - Es un interruptor con control de quién puede accionarlo, no una
-    autoridad permanente por persona.
-
-  A futuro (no ahora): permitir adjuntar correos/documentos de ejemplo.
-
-ESTADO: VISIÓN. El mecanismo concreto (almacenamiento, recuperación sin
-recaer en la trampa de los ejemplos, control del interruptor) está
-PENDIENTE DE DISEÑO. No darlo por especificado.
+ESTADO: DISEÑO CERRADO. Implementación = Fase Final del proyecto.
+Ver B.6 para la especificación técnica completa.
 
 
 A.3 — ENCAJE DE PRODUCTO (promesa honesta)
@@ -113,6 +79,89 @@ Un agente replica criterios y convenciones; no replica el juicio tácito
 del experto. La promesa humilde se cumple siempre y es más vendible a
 largo plazo. El "trabajador perfecto" es el objetivo aspiracional, no
 la garantía contractual.
+
+
+A.4 — DIFERENCIACIÓN FRENTE A CRM / ERP / BI (visión cerrada — ver B.20 para implementación)
+─────────────────────────────────────────────────────────────────────────────────────────────
+
+Esta es la apuesta estratégica grande del producto a medio plazo. Marco
+conceptual cerrado; la ejecución vive en B.20 (Parte B).
+
+EL HUECO QUE OCUPAMOS
+  Un CRM/ERP o un Power BI/MicroStrategy responden al QUÉ cuantitativo:
+  "en Madrid se vende un 30% más que en Sevilla". Lo hacen agregando
+  números de tablas. Pero se quedan ciegos ante el POR QUÉ cualitativo:
+  "se vende más en Madrid porque tres de los cinco clientes enterprise
+  tienen allí su sede de compras, según las actas de Q2". Esa frase NO
+  está en ninguna tabla: vive en documentos (actas, correos, contratos,
+  informes). Ahí es donde Doclity puede vivir y nadie más llega.
+
+  Posicionamiento: NO somos el CRM/ERP, NO los sustituimos (ver "lo que NO
+  hacemos" al final de A.4). Somos la CAPA DE INTELIGENCIA que se sienta
+  ENCIMA de los datos que la empresa ya tiene, sumándole lo que esos
+  sistemas nunca tuvieron: la documentación. Es la misma filosofía que ya
+  aplicamos con Google Drive/OneDrive (registry pattern en lib/drive/):
+  un proveedor que se enchufa. Aquí el proveedor es de DATOS, no de archivos.
+
+EL COMPORTAMIENTO QUE NOS DIFERENCIA: investigación iterativa que cruza fuentes
+  No es "mete un Excel en Pinecone". Es un agente de investigación en bucle:
+    1. Recibe una pregunta abierta ("informe de ventas de España").
+    2. Descubre qué fuentes hay y PIDE PERMISO antes de tocarlas
+       ("hay estas tablas de ventas, ¿accedo? contienen tal, tal y tal").
+    3. Saca un primer hallazgo cuantitativo ("se vende más en el sur").
+    4. SE REPLANTEA SOLO — esto es lo clave — detecta que hay un "por qué"
+       sin responder y decide ahondar.
+    5. O pregunta al usuario si quiere profundizar, o lanza por su cuenta
+       nuevas búsquedas: otra tabla, la documentación, cruza al cliente
+       que concentra ventas, descubre su volumen/empleados/canal, etc.
+    6. SINTETIZA todo en una explicación causal que ninguna fuente
+       individual contenía.
+  Conceptualmente esto YA lo permite el loop ReAct actual (runner-conv.ts):
+  ya hace bucles, ya tiene search_docs/read_doc, ya pausa con escalate/ask_user.
+  El "saco dato → me replanteo → busco más → sintetizo" es literalmente un
+  ReAct bien promptado. La maquinaria del razonamiento NO hay que inventarla.
+
+LAS DOS FRONTERAS DEL "POR QUÉ" (matiz importante, corrige una idea inicial)
+  Hay dos tipos de "por qué" y conviene no confundirlos:
+  · "POR QUÉ" QUE ESTÁ EN LOS DATOS: "vende más porque este cliente concentra
+    el 60% del volumen y tiene 200 tiendas". El agente lo saca CRUZANDO TABLAS
+    entre sí. NO necesita documentación para esto. (Idea aportada por el usuario,
+    correcta: gran parte de la causa se descubre navegando tablas, sin docs.)
+  · "POR QUÉ" QUE NO ESTÁ EN NINGÚN DATO: "vende más porque en marzo lanzamos
+    una campaña regional", "porque el comercial de la zona es excepcional",
+    "porque cambiamos de proveedor logístico". Esto NO aparece en ninguna tabla
+    por muchas que se crucen. Solo existe si alguien lo escribió en un acta,
+    informe o correo.
+  RESUMEN: las tablas dan el QUÉ concentra las ventas; la documentación da el
+  POR QUÉ pasó algo que las tablas no registran. El valor diferencial REAL
+  aparece cuando la respuesta necesita LAS DOS. Un competidor que solo cruza
+  tablas (un BI con IA) llega a la primera frontera. Doclity, bien hecho,
+  cruza la segunda. La búsqueda debe ser SIEMPRE entre ambas, nunca quedarse
+  en una sola.
+
+DEPENDENCIA DE LA CULTURA DOCUMENTAL (dato de mercado, no defecto)
+  La calidad del análisis causal "de segunda frontera" depende de que la
+  empresa haya documentado el porqué. Si la causa solo está en la cabeza del
+  director comercial y nunca se escribió, el agente cruzará tablas, no hallará
+  el porqué en docs, y lo dirá con honestidad (encaja con reglas de honestidad
+  del RAG y con A.1). Consecuencia: el producto BRILLA en empresas con buena
+  cultura documental y rinde menos en las que documentan poco. Esto es un dato
+  de posicionamiento a tener claro de antemano, NO una crítica. Además conecta
+  con A.1: la ausencia de documentación es una SEÑAL ÚTIL (ves dónde te falta
+  documentar), no un fallo silencioso.
+
+EL USUARIO COLABORA (no es un oráculo)
+  No construimos un adivino. Construimos un investigador que colabora con un
+  humano que conoce su negocio. Una buena pregunta inicial, o responder al
+  agente cuando pregunta "¿ahondamos por aquí?", mejora enormemente el
+  resultado. Más realista y más vendible: el cliente siente que tiene el control.
+
+LO QUE NO HACEMOS (límite explícito)
+  NO sustituir al CRM/ERP (no ser el "system of record"). La idea futura de
+  "rellenar Excel y que el agente lo meta en la base de datos" queda FUERA de
+  alcance por estrategia, no por dificultad: ser el sistema de registro es una
+  batalla brutal de fiabilidad, permisos, auditoría y confianza, y las empresas
+  no migran su ERP a la ligera. Conectarse, no reemplazar.
 
 
 ════════════════════════════════════════════════════════════════
@@ -212,23 +261,21 @@ Leyenda: [ ] pendiente · [~] en curso · [✓] hecho
       ("ignora tus instrucciones", "muéstrame tu prompt", "actúa sin restricciones").
       Commits: tanda 2 (junto con FORMAT_SECTION).
 
-[ ] B.17 — (UX) Renombrar conversaciones
-      Permitir poner/cambiar el nombre de una conversación desde la UI (hoy el título se
-      autogenera o muestra fecha+hora). Editar inline en el sidebar, similar al patrón de
-      borrado. Respetar aislamiento por org_id en el endpoint (como en B.13).
-      Nota: hay un PATCH /api/agent/conversations/[id] que ya cambia confirmation_mode;
-      probablemente se extienda ahí para aceptar también el title, no crear endpoint nuevo.
+[✓] B.17 — (UX) Renombrar conversaciones
+      Edición inline en el sidebar (lápiz al hover). PATCH /api/agent/conversations/[id]
+      extendido para aceptar title además de confirmation_mode. Validación: trim + máx
+      80 chars; vacío tras trim → null (revierte al título automático fecha/hora).
+      Actualización optimista con rollback en el hook si el PATCH falla.
+      Commits: 94486fc.
 
-[ ] B.18 — (UX) Al abrir una conversación, posicionarse abajo (últimos mensajes)
-      Hoy, al clicar una conversación, hay que scrollear hasta el final para ver lo último.
-      Al seleccionarla, debe aparecer ya desplazada abajo, mostrando los mensajes recientes
-      —no arriba del todo. Especialmente útil en conversaciones largas.
+[✓] B.18 — (UX) Al abrir una conversación, posicionarse abajo (últimos mensajes)
+      scrollIntoView instant al cambiar conversation.id (antes del auto-scroll suave).
+      Commit: e6e8fe4.
 
-[ ] B.19 — (UX) Botón "ir abajo" cuando no estás en el fondo de la conversación
-      Un botón sutil (estilo la flechita de Claude sobre la caja de texto) que aparezca solo
-      cuando el usuario ha scrolleado hacia arriba y NO está en la parte baja, para volver
-      al último mensaje de un clic. Se oculta cuando ya estás abajo.
-      Relacionado con B.18 (las dos van de scroll/posición en el hilo).
+[✓] B.19 — (UX) Botón "ir abajo" cuando no estás en el fondo de la conversación
+      Botón 40px circular, position:absolute en el contenedor externo (no en el scroll),
+      aparece solo cuando scrollHeight - scrollTop - clientHeight > 80px.
+      Commit: e6e8fe4.
 
 [ ] B.15 — (Seguridad / Roles) Rol de administrador temporal
       Mecanismo para que el dueño de la cuenta pueda elevar temporalmente a un
@@ -240,23 +287,199 @@ Leyenda: [ ] pendiente · [~] en curso · [✓] hecho
       VISIÓN: control de acceso sin fricción para escenarios de soporte puntual.
       ESTADO: PENDIENTE DE DISEÑO antes de tocar código.
 
-[ ] B.6 — (Futuro) Mecanismo de aprendizaje (ver A.2)
-      Diseñar e implementar el almacenamiento/recuperación de hechos de
-      dominio (tipo B) y convenciones (tipo A), más el interruptor de
-      enseñanza con su control de accionamiento.
-      VISIÓN: el diferencial a largo plazo. Pendiente de DISEÑO antes de
-      tocar código. No empezar hasta cerrar mecanismo.
-
-[ ] B.7 — (Cierre técnico) Prompt caching + borrar agente viejo
-      Activar prompt caching del agente. Borrar el código del agente
-      antiguo (runner.ts, persist.ts, agent-handler.ts, endpoints legado),
-      SIN borrar todavía la tabla agent_tasks.
-      VISIÓN: limpieza y coste. Dejar un solo modelo (conversaciones) vivo.
+[✓] B.7 — (Cierre técnico) Limpieza del agente legado + prompt caching
+      PARTE 1 — Limpieza (~2356 líneas eliminadas): runner.ts, persist.ts,
+      agent-handler.ts, endpoints legado, componentes y hooks viejos.
+      Tabla agent_tasks intacta. Commits: 83bf7a4, 4c93091, 3a949d9, 2206377.
+      PARTE 2 — Prompt caching: dos bloques de system (estable cacheado con
+      cache_control:ephemeral + DATE_SECTION fuera del caché), tools cacheados
+      (último tool marcado con cache_control). Verificado en Railway: cache write
+      en turno 1, cache read en turnos siguientes (~3193t ahorrados en system+tools;
+      hasta ~12929t en llamadas largas por caché de contexto intra-turno automático).
+      Commit: 8305bdc.
 
 [✓] B.8 — (Regresión) Pasada de prueba antes de añadir mucho
       Probar: 3 modos de confirmación × 3 caminos (approve/modify/reject)
       + escalación + memoria entre turnos.
       VISIÓN: red de seguridad. Verde aquí antes de construir encima.
+
+[ ] B.20 — (Funcionalidad GRANDE) Conexión a bases de datos + análisis cruzado datos↔documentación
+      Marco conceptual completo en A.4. Esto es la materialización técnica. Es la
+      apuesta diferencial frente a CRM/ERP/BI. NO es una sesión: son varias.
+      ESTADO: DISEÑO PRIMERO antes de tocar código (igual que B.6 y B.15).
+
+      ── POR QUÉ HOY NO SE PUEDE (límite arquitectónico actual) ──
+      El pipeline actual es RAG semántico puro sobre texto: trocea en chunks,
+      embebe en Pinecone, recupera los ~15 más parecidos. Para datos tabulares
+      esto FALLA en dos cosas:
+        · No agrega: "¿cuántas llamadas en marzo vs febrero?" exige contar/sumar
+          filas. El RAG no cuenta, recupera trozos parecidos → la cuenta sale mal
+          o inventada (si las filas de marzo están en 200 chunks, solo recupera ~15).
+        · El embedding semántico es pésimo para celdas: una fila
+          "2026-03-12 | Cliente X | 14 min | no cerrada" no tiene semántica rica que
+          multilingual-e5-large capture. Los embeddings van con prosa, no con tablas.
+      Falta una PIEZA ARQUITECTÓNICA entera, no afinar prompts. La pieza es separar
+      dos tipos de pregunta y darle al agente una vía SQL real:
+        · TIPO A (estructurada/cuantitativa: cuántas, cuánto, tendencia, agrupado por)
+          → necesita datos en TABLA SQL de verdad + el agente genera SQL, lo ejecuta,
+            recibe números exactos. (text-to-SQL)
+        · TIPO B (cualitativa/contextual: por qué, qué dijeron, en qué contexto)
+          → es el RAG actual, que ya funciona.
+      El valor está en hacer LAS DOS en la misma pregunta y combinarlas (ver A.4).
+
+      ── PLAN POR FASES (validar barato antes de la ingeniería pesada) ──
+
+      FASE 0 — Validación con UNA tabla controlada (riesgo casi cero, demo rápida)
+        · Meter UNA tabla real como tabla normal en el Supabase Postgres que YA
+          tenemos. Sin conectores externos, sin CRM, sin nada genérico.
+        · Herramienta nueva del agente que solo sepa consultar ESA tabla
+          (ej. query_sales_data). Read-only.
+        · Documento de esquema de esa tabla en el corpus (ver "documento de esquema").
+        · OBJETIVO: ver si el bucle "saco dato → me replanteo → busco en docs →
+          sintetizo" produce algo que dé escalofríos de lo bueno. Si funciona con
+          una tabla, la idea está validada y hay demo. Si no impresiona ni con datos
+          controlados, mejor saberlo antes de construir conectores.
+
+      FASE 1 — "Sube tu Excel/CSV → se vuelve tabla consultable"
+        · Generalizar: el usuario sube un Excel/CSV y va por "ruta datos" (tabla SQL
+          en Postgres con esquema detectado), NO por "ruta documento" (RAG). O ambas.
+        · Aquí entra el text-to-SQL de verdad, pero sobre datos que el usuario sube
+          (más controlable que sistemas externos).
+        · Decidir al subir: ¿ruta documento (RAG), ruta datos (SQL), o las dos?
+
+      FASE 2 — Conectores a bases de datos externas reales (LA CARA, la más pesada)
+        · Postgres/MySQL propios de la empresa primero (conexión directa por red).
+        · CRMs/ERPs cerrados (Salesforce, HubSpot) DESPUÉS: ahí NO hay BD accesible,
+          se conecta vía su API (otra auth, normalmente OAuth como Drive). El agente
+          recibe una herramienta que sabe llamar esa API. Esto YA se puede hoy, no
+          esperamos avances. Se añade como otro proveedor en el registry pattern.
+
+      ── CONEXIÓN DE SOLO-LECTURA (decisión del usuario, correcta) ──
+        · Cada empresa crea un USUARIO DE BD dedicado al agente, SOLO con permiso
+          SELECT (ni escritura ni nada). Práctica estándar en producción.
+        · Para conectarse hace falta cadena de conexión: HOST (URL/dirección del
+          servidor), PUERTO, NOMBRE DE LA BD, USUARIO, CONTRASEÑA. (No solo user+pass.)
+
+      ── ⚠️ SEGURIDAD NO NEGOCIABLE: credenciales cifradas DESDE EL DÍA 1 ──
+        · Las credenciales de BD son secretos críticos: dan acceso a TODO el negocio
+          del cliente. Si se filtran en texto plano, es un incidente que se lleva la
+          empresa por delante, NO un bug.
+        · NACEN CIFRADAS. Reutilizar el patrón que ya usamos para tokens de Drive
+          (AES-256-GCM, lib/crypto.ts — ver B.14). NO repetir la deuda de "texto plano
+          y ya lo arreglo pronto". Esto no es deuda asumible.
+
+      ── DOCUMENTO DE ESQUEMA POR TABLA (la mejor idea de la conversación) ──
+        Un documento por tabla que describe: qué campos tiene, qué significa cada
+        campo, clave única, relaciones, y si es TABLA HISTÓRICA. Resuelve TRES
+        problemas a la vez y es elegante:
+          1. Enseña al agente a escribir SQL correcto (sabe qué columnas hay, no las
+             inventa).
+          2. Evita joins que duplican registros (sabe la clave única y cómo se
+             relacionan las tablas).
+          3. Ese documento VIVE EN EL PROPIO RAG de Doclity → el producto se documenta
+             a sí mismo usando su propia funcionalidad (coherencia arquitectónica).
+        En la industria esto es un "semantic layer" / catálogo de datos por el que se
+        paga mucho. Resolverlo como "un documento más en el corpus" es simple y potente.
+        CUIDADO: hay que mantenerlo sincronizado con la tabla real. Si alguien añade una
+        columna y no actualiza el doc, el agente trabaja con info vieja. Problema de
+        PROCESO manejable, no fallo de diseño.
+
+      ── BARRERAS ANTI-DESTROZO DE SQL (dos capas, ambas obligatorias) ──
+        El documento de esquema hace el SQL INTELIGENTE, pero NO impide que sea
+        PELIGROSO. Hacen falta barreras de CÓDIGO que no dependen del criterio del LLM:
+          · Usuario read-only (ya previsto) → impide escrituras pase lo que pase.
+          · LÍMITE DE FILAS forzado en código (ej. corta a 10.000) aunque el agente
+            pida "todo".
+          · TIMEOUT de consulta: si tarda más de X s, se cancela (protege contra la
+            tabla histórica enorme).
+          · Por encima: el agente, avisado por el doc de esquema de que una tabla es
+            histórica, PREGUNTA antes ("esto puede tardar y traer mucho, ¿seguimos?")
+            vía el mecanismo escalate que ya existe.
+        CLAVE MENTAL: prompt + documento hacen que se porte bien por defecto; las
+        barreras de código garantizan que NO PUEDA portarse mal aunque quiera. Nunca
+        confiar solo en que el LLM se comporte.
+
+      ── QUÉ ES REALISTA Y CUÁNDO ──
+        · Razonamiento iterativo (saco dato→replanteo→busco más→sintetizo): el loop
+          ReAct YA lo hace. Real HOY.
+        · Cruce tabla+documentación en una respuesta: real, es darle las dos
+          herramientas y dejar que combine. Real HOY, con trabajo de prompting.
+        · Conexión segura a BD externas (credenciales cifradas, esquemas, permisos,
+          barreras SQL): real, pero es la ingeniería serie. Varias sesiones.
+
+      ── ENCAJE CON PRINCIPIOS DEL PROYECTO ──
+        · Nuevo dominio limpio: lib/agent/tools/query-table.ts (o similar) + quizá
+          lib/tabular/ para la lógica de conexión/esquema. Abstracción en el límite
+          (nunca SDK de BD directo desde endpoint), como exige el perfil de trabajo.
+        · No rompe nada existente: se añade en paralelo al RAG actual.
+        · Aislamiento por org_id en todo (credenciales, esquemas, resultados).
+
+      DEPENDE DE / SE RELACIONA CON: A.4 (visión), A.1 (investigar primero, preguntar
+      las bifurcaciones por adelantado — encaja perfecto con "¿accedo a estas tablas?"),
+      B.15 (permisos: quién puede ver qué datos; el comercial no saca nóminas),
+      B.16 (confidencialidad), B.6 tipo 2/3 (hechos de dominio y criterios de trabajo
+      como LEFT JOIN — el documento de esquema y B.3 ya cubren buena parte).
+
+[ ] B.6 — FASE FINAL
+      ── B.6 — MECANISMO DE APRENDIZAJE (diseño cerrado, implementación = fase final) ──
+
+      PRINCIPIO: se aprende el MAPA del territorio (hechos/convenciones estables),
+      no la RUTA concreta de una vez (la decisión de un caso). Guardar soluciones
+      literales envenena; por eso se destila.
+
+      TRES TIPOS de cosa aprendida, cada uno con su mecanismo:
+
+      TIPO 1 — CONVENCIÓN DE EMPRESA (ej: "los correos los firmamos con el nombre del equipo").
+        · Específica de la empresa, pocas, estables.
+        · SIEMPRE PRESENTE en el system prompt (bloque estable, ya cacheado — no lo encarece
+          porque son pocas).
+
+      TIPO 2 — HECHO DE DOMINIO DE EMPRESA (ej: "claper es la tabla de clientes",
+        "ventas–clientes es N:N").
+        · Específico de la empresa, muchos, crecen sin techo.
+        · RECUPERADO SEGÚN LA PREGUNTA — se indexan (reutilizar el sistema de búsqueda semántica
+          que ya existe para el corpus) y se traen solo los relevantes a la consulta. NO van
+          siempre presentes (saturarían y encarecerían el prompt).
+
+      TIPO 3 — CRITERIO DE TRABAJO GENERAL (ej: "cuando se piden todos los registros incluyendo
+        los huérfanos, usar LEFT JOIN para no excluirlos").
+        · NO es específico de la empresa: es conocimiento general que el agente YA tiene.
+        · ⚠️ AVISO DE DISEÑO: "enseñar" esto es en realidad "recordarle que lo aplique". ANTES de
+          construir el tipo 3, comprobar si el comportamiento de investigar-primero (B.3) ya
+          resuelve estos casos solo (un agente que inspecciona bien la estructura se da cuenta
+          solo de que toca LEFT JOIN). Si B.3 ya lo cubre, el tipo 3 apenas se usará. Evaluar con
+          uso real antes de invertir en él. Mecanismo de recuperación: a decidir (probablemente
+          como el tipo 2, recuperado según pregunta).
+
+      CAPTURA (cómo entra algo al aprendizaje):
+        · SOLO si el usuario pulsa el botón "enviar + tener en cuenta para el aprendizaje" (el
+          interruptor de enseñanza). El "enviar" normal NO aprende nada.
+        · El usuario escribe la corrección en lenguaje NATURAL ("deberías haber hecho un LEFT
+          JOIN aquí").
+        · El agente DESTILA esa corrección en una regla/hecho reutilizable y SE LA MUESTRA al
+          usuario para que la APRUEBE, EDITE o DESCARTE antes de guardar. Esto evita que se cuele
+          la decisión puntual del caso (ej: destila "usa LEFT JOIN para incluir huérfanos", NO
+          "para esta consulta concreta usa LEFT JOIN"). El usuario tiene la última palabra.
+
+      INTERRUPTOR DE ENSEÑANZA:
+        · Quien manda (admin) abre una fase de enseñanza: durante ella, cualquier usuario puede
+          marcar correcciones para aprender.
+        · La enseñanza se CIERRA: solo el admin sigue alimentándolo, o se congela.
+        · No es jerarquía de confianza permanente, es un interruptor con control de accionamiento.
+
+      ALCANCE: lo aprendido es a nivel de TODA LA ORGANIZACIÓN (lo aprende uno, lo saben todos).
+      Aislado por org_id (como todo lo demás).
+
+      GESTIÓN (admin): pantalla/acceso desde Doclity, por organización, donde el admin puede VER,
+      EDITAR y BORRAR lo aprendido (convenciones, hechos, criterios). Imprescindible: sin esto se
+      acumulan reglas viejas que ya no aplican y nadie sabe por qué el agente hace lo que hace.
+
+      FUTURO (no en la primera versión): permitir adjuntar correos/documentos de ejemplo.
+
+      IMPLEMENTACIÓN: FASE FINAL del proyecto. Empezar por DISEÑO técnico (esquema de BD, cómo se
+      indexan los hechos, cómo se inyecta cada tipo, la pantalla de gestión) cuando se llegue.
+      Se construye sobre B.3 (comportamiento), el sistema de búsqueda semántica, y los permisos
+      de B.15.
 
 
 ════════════════════════════════════════════════════════════════
@@ -268,8 +491,15 @@ NOTAS DE ORDEN (propuesta, a confirmar)
 - B.8 (regresión) conviene ANTES de empezar a añadir, para tener una
   base verde de referencia.
 - B.4 y B.5 son funcionalidad/latencia, después de los cimientos.
-- B.6 (aprendizaje) requiere fase de diseño propia antes de código.
-- B.7 (cierre) al final, cuando el modelo nuevo esté plenamente asentado.
+- B.20 (conexión a BD + análisis cruzado) es la apuesta diferencial grande
+  (ver A.4). Empezar SIEMPRE por FASE 0 (una tabla controlada en el Supabase
+  actual) para validar el cruce con riesgo casi cero antes de la ingeniería
+  pesada de conectores. Diseño técnico primero. Credenciales cifradas desde
+  el día 1 (no negociable). Se apoya en A.1 (investigar+preguntar antes) y
+  en los permisos de B.15.
+- B.6 (aprendizaje) es la FASE FINAL: se construye sobre B.3, el sistema
+  de búsqueda y los permisos de B.15. Diseño técnico primero cuando se llegue.
+- B.7 (cierre técnico) completado.
 
 Forma de trabajo: diagnóstico con datos reales antes de arreglar; un
 cambio lógico cada vez; build verde entre medias; SQL en Supabase antes
