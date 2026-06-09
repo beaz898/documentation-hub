@@ -19,6 +19,27 @@ import type {
   PendingRequest,
 } from '@/lib/agent/types';
 
+// ── Trigger HTTP al worker Railway ────────────────────────────────────────────
+
+const RAILWAY_WORKER_URL     = process.env.RAILWAY_WORKER_URL;
+const RAILWAY_TRIGGER_SECRET = process.env.RAILWAY_TRIGGER_SECRET;
+
+async function notifyWorker(): Promise<void> {
+  if (!RAILWAY_WORKER_URL || !RAILWAY_TRIGGER_SECRET) return;
+  try {
+    const ctrl = new AbortController();
+    const timeout = setTimeout(() => ctrl.abort(), 3_000);
+    await fetch(`${RAILWAY_WORKER_URL}/trigger/agent`, {
+      method:  'POST',
+      headers: { Authorization: `Bearer ${RAILWAY_TRIGGER_SECRET}` },
+      signal:  ctrl.signal,
+    });
+    clearTimeout(timeout);
+  } catch {
+    // fallo silencioso — el polling de 10s actúa como red de seguridad
+  }
+}
+
 // ── POST /api/agent/conversations/[id]/message ────────────────────────────────
 //
 // Comportamiento según conversation.status:
@@ -168,6 +189,7 @@ export async function POST(
         last_message_at: now,
       });
 
+      void notifyWorker();
       return NextResponse.json({ userMessageId, assistantMessageId, creditsConsumed: estimated });
     }
 
@@ -381,6 +403,7 @@ export async function POST(
     await updateMessageStatus(supabase, assistantMessageId, 'running', { locked_at: null });
     await updateConversationStatus(supabase, conversationId, 'running', { pending_request: null });
 
+    void notifyWorker();
     return NextResponse.json({ assistantMessageId });
 
   } catch (error: unknown) {
