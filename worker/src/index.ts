@@ -6,6 +6,7 @@ import { purgeOrganization, type PurgeResult } from '../../lib/purge-org';
 import { refundCredits } from '../../lib/credits';
 import { PLANS_WITH_VARIABLE_PRICING } from '../../lib/stripe';
 import { pollConversationTurns } from './conv-handler';
+import { startTriggerServer } from './trigger-server';
 
 // ============================================================
 // Configuración
@@ -15,7 +16,7 @@ const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
 /** Intervalo de polling a la tabla analysis_jobs (ms). */
-const POLL_INTERVAL = 1000;
+const POLL_INTERVAL = 10_000;
 
 /** Máximo de jobs simultáneos de cualquier tipo (analysis_jobs + conv turns). */
 const MAX_CONCURRENT = 8;
@@ -320,6 +321,8 @@ function start(): void {
     await pollAndProcess();                   // 1. analysis_jobs (exhaustive)
     await pollAndProcessConversationTurns();  // 2. conv turns (agente)
   }
+
+  startTriggerServer(() => { void pollAndProcessConversationTurns(); });
 
   setInterval(pollAll, POLL_INTERVAL);
   pollAll();
