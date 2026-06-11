@@ -3,7 +3,7 @@ PENDIENTES — Doclity (Agente IA)
 Documento vivo. Se actualiza al completar tareas (marcar [✓]) y se
 sustituye por la versión nueva. Más ligero que la Bitácora: aquí va
 lo que falta y la visión que lo guía, no el detalle de cada sesión.
-Última actualización: 09/06/2026 (v6)
+Última actualización: 11/06/2026 (v7)
 
 
 ════════════════════════════════════════════════════════════════
@@ -215,6 +215,21 @@ Leyenda: [ ] pendiente · [~] en curso · [✓] hecho
       alcance es desproporcionado, sin volverse perezoso en preguntas normales. (2) REACTIVA
       — mejorar el mensaje de fallo por truncación para que oriente CÓMO acotar (por doc,
       tema, grupo). PRIORIDAD: baja. El bug ya está cerrado; esto es refinamiento.
+
+[ ] B.22 — (UX / RESPONSIVE) Layout del agente adaptado a móvil
+      El agente está diseñado para pantalla ancha (sidebar de conversaciones fijo a la
+      izquierda). En móvil (pantalla estrecha) ese sidebar roba demasiado espacio al chat.
+      Replantear el layout en móvil:
+      · Lista de conversaciones: NO sidebar fijo, sino desplegable/colapsable, para que el
+        chat use todo el ancho.
+      · Botón de nueva conversación: reubicar de forma accesible en el layout móvil.
+      · Créditos: cuando el desplegable esté plegado, mostrar el saldo en la zona superior
+        (hoy vive en el footer del sidebar — en móvil quedaría oculto).
+      · Las mejoras B.17 (renombrar), B.18/B.19 (scroll) deben funcionar también en móvil.
+      PESO: media-alta. Diseño responsive de una pieza (no a parches). Empezar por decidir el
+      patrón (drawer lateral, bottom sheet, etc.) antes de tocar.
+      VISIÓN: el agente debe ser usable en móvil, no solo en escritorio — relevante porque
+      usuarios finales (PYMES, técnicos en campo) pueden usarlo desde el teléfono.
 
 [ ] B.5 — (Latencia) Opción D: HTTP trigger directo Vercel→Railway
       Sustituir el polling provisional a 1s por un disparo directo para
