@@ -3,7 +3,7 @@ PENDIENTES — Doclity (Agente IA)
 Documento vivo. Se actualiza al completar tareas (marcar [✓]) y se
 sustituye por la versión nueva. Más ligero que la Bitácora: aquí va
 lo que falta y la visión que lo guía, no el detalle de cada sesión.
-Última actualización: 11/06/2026 (v7)
+Última actualización: 11/06/2026 (v8)
 
 
 ════════════════════════════════════════════════════════════════
@@ -231,12 +231,13 @@ Leyenda: [ ] pendiente · [~] en curso · [✓] hecho
       VISIÓN: el agente debe ser usable en móvil, no solo en escritorio — relevante porque
       usuarios finales (PYMES, técnicos en campo) pueden usarlo desde el teléfono.
 
-[ ] B.5 — (Latencia) Opción D: HTTP trigger directo Vercel→Railway
-      Sustituir el polling provisional a 1s por un disparo directo para
-      que el worker se entere al instante. El procesamiento sigue en
-      Railway. (Diseño ya pensado en sesiones previas.)
-      VISIÓN: reanudaciones instantáneas; quitar la latencia residual
-      del modelo de polling.
+[✓] B.5 — (Latencia) Trigger directo Vercel→Railway (Opción D). Commits ba1e822 (worker:
+      trigger-server.ts + POLL_INTERVAL 10s) + 130edbf (notifyWorker fire-and-forget en Vercel).
+      Endpoint POST /trigger/agent en el worker (valida Bearer secret), notifyWorker tras el 200.
+      Polling baja a 10s como red de seguridad (no se elimina). Claim por locked_at intacto.
+      Degrada a polling puro si faltan variables. Dominio worker: doclity-worker.up.railway.app.
+      Variables: RAILWAY_TRIGGER_SECRET (Railway+Vercel), RAILWAY_WORKER_URL (Vercel).
+      VERIFICADO: reanudación tras confirmación en 502ms (antes hasta 10s por polling).
 
 [✓] B.11 — (Comportamiento) Dar al agente conciencia temporal (fecha/hora actual)
       Inyectado en el system prompt al final (tras FORMAT_SECTION) para no romper
