@@ -376,6 +376,12 @@
     "adminOnlyMsg": "Solo los administradores pueden invitar o expulsar miembros.",
     "confirmExpel": "¿Expulsar a {email} del workspace?",
     "confirmCancelInvite": "¿Cancelar esta invitación?",
+    "menuActions": "Acciones",
+    "grantTemporary": "Conceder admin temporal",
+    "granting": "Concediendo...",
+    "revokeTemporary": "Revocar admin temporal",
+    "revoking": "Revocando...",
+    "confirmRevoke": "¿Revocar los permisos temporales de {email}?",
     "rolesExplainOwner": "Administrador principal: gestiona el equipo y puede ceder este rol.",
     "rolesExplainAdmin": "Administrador: acceso completo a la gestión del equipo.",
     "rolesExplainTemporary": "Administrador temporal: permisos de administrador concedidos por el principal, que puede retirarlos en cualquier momento."

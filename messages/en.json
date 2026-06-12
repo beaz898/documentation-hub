@@ -376,6 +376,12 @@
     "adminOnlyMsg": "Only administrators can invite or remove members.",
     "confirmExpel": "Remove {email} from the workspace?",
     "confirmCancelInvite": "Cancel this invitation?",
+    "menuActions": "Actions",
+    "grantTemporary": "Grant temporary admin",
+    "granting": "Granting...",
+    "revokeTemporary": "Revoke temporary admin",
+    "revoking": "Revoking...",
+    "confirmRevoke": "Revoke temporary permissions for {email}?",
     "rolesExplainOwner": "Owner: manages the team and can hand over this role.",
     "rolesExplainAdmin": "Admin: full access to team management.",
     "rolesExplainTemporary": "Temporary admin: admin permissions granted by the owner, who can revoke them at any time."

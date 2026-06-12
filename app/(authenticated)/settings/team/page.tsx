@@ -89,6 +89,10 @@ export default function TeamPage() {
   const [cancellingInvite, setCancellingInvite] = useState<string | null>(null);
   const [copiedToken, setCopiedToken] = useState<string | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [amIOwner, setAmIOwner] = useState(false);
+  const [openMenuUserId, setOpenMenuUserId] = useState<string | null>(null);
+  const [grantingElevation, setGrantingElevation] = useState<string | null>(null);
+  const [revokingElevation, setRevokingElevation] = useState<string | null>(null);
   const router = useRouter();
   const supabase = createClient();
 
@@ -113,6 +117,7 @@ export default function TeamPage() {
         setMembers(data.members || []);
         const me = (data.members || []).find((m: Member) => m.isYou);
         setIsAdmin(me?.role === 'admin');
+        setAmIOwner(me?.isOwner === true);
       }
 
       if (invitationsRes.ok) {
@@ -127,6 +132,12 @@ export default function TeamPage() {
   }, [session]);
 
   useEffect(() => { if (session) loadTeam(); }, [session, loadTeam]);
+
+  useEffect(() => {
+    function handleOutsideClick() { setOpenMenuUserId(null); }
+    document.addEventListener('mousedown', handleOutsideClick);
+    return () => document.removeEventListener('mousedown', handleOutsideClick);
+  }, []);
 
   async function handleInvite() {
     if (!session || !inviteEmail.trim()) return;
@@ -179,6 +190,50 @@ export default function TeamPage() {
       alert('Error de conexión.');
     } finally {
       setRemoving(null);
+    }
+  }
+
+  async function handleGrantElevation(userId: string) {
+    if (!session) return;
+    setGrantingElevation(userId);
+    try {
+      const res = await fetch('/api/team/elevations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ targetUserId: userId }),
+      });
+      if (res.ok) await loadTeam();
+      else {
+        const data = await res.json();
+        alert(data.error || 'Error concediendo permisos temporales.');
+      }
+    } catch {
+      alert('Error de conexión.');
+    } finally {
+      setGrantingElevation(null);
+      setOpenMenuUserId(null);
+    }
+  }
+
+  async function handleRevokeElevation(userId: string, email: string) {
+    if (!session || !window.confirm(t('confirmRevoke', { email }))) return;
+    setRevokingElevation(userId);
+    try {
+      const res = await fetch(`/api/team/elevations/${userId}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      });
+      if (res.ok) await loadTeam();
+      else {
+        const data = await res.json();
+        alert(data.error || 'Error revocando permisos temporales.');
+      }
+    } catch {
+      alert('Error de conexión.');
+    } finally {
+      setRevokingElevation(null);
+      setOpenMenuUserId(null);
     }
   }
 
@@ -296,18 +351,75 @@ export default function TeamPage() {
                         </span>
                       </div>
                     </div>
-                    {isAdmin && !member.isYou && (
-                      <button
-                        onClick={() => handleRemoveMember(member.userId, member.email)}
-                        disabled={removing === member.userId}
-                        style={{
-                          padding: '4px 10px', borderRadius: 6, border: '0.5px solid var(--border)',
-                          background: 'transparent', fontSize: 10, cursor: 'pointer',
-                          color: 'var(--danger)', flexShrink: 0,
-                        }}
-                      >
-                        {removing === member.userId ? t('removing') : t('expel')}
-                      </button>
+                    {((isAdmin && !member.isYou) ||
+                      (amIOwner && !member.isYou && member.role !== 'admin' && !member.isOwner && !member.elevationActive) ||
+                      (amIOwner && member.elevationActive)) && (
+                      <div style={{ position: 'relative', flexShrink: 0 }}>
+                        <button
+                          onMouseDown={e => e.stopPropagation()}
+                          onClick={() => setOpenMenuUserId(openMenuUserId === member.userId ? null : member.userId)}
+                          style={{
+                            width: 28, height: 28, borderRadius: 6,
+                            border: '0.5px solid var(--border)',
+                            background: openMenuUserId === member.userId ? 'var(--bg-tertiary)' : 'transparent',
+                            cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            fontSize: 16, color: 'var(--text-secondary)',
+                          }}
+                        >
+                          ⋮
+                        </button>
+                        {openMenuUserId === member.userId && (
+                          <div
+                            onMouseDown={e => e.stopPropagation()}
+                            style={{
+                              position: 'absolute', right: 0, top: '100%', marginTop: 4,
+                              background: 'var(--bg-secondary)', border: '0.5px solid var(--border)',
+                              borderRadius: 8, padding: '4px 0', zIndex: 50,
+                              minWidth: 200, boxShadow: '0 4px 12px rgba(0,0,0,0.12)',
+                            }}
+                          >
+                            {isAdmin && !member.isYou && (
+                              <button
+                                onClick={() => { setOpenMenuUserId(null); void handleRemoveMember(member.userId, member.email); }}
+                                disabled={removing === member.userId}
+                                style={{
+                                  width: '100%', padding: '8px 14px', textAlign: 'left',
+                                  background: 'transparent', border: 'none', cursor: removing === member.userId ? 'not-allowed' : 'pointer',
+                                  fontSize: 12, color: 'var(--danger)',
+                                }}
+                              >
+                                {removing === member.userId ? t('removing') : t('expel')}
+                              </button>
+                            )}
+                            {amIOwner && !member.isYou && member.role !== 'admin' && !member.isOwner && !member.elevationActive && (
+                              <button
+                                onClick={() => { void handleGrantElevation(member.userId); }}
+                                disabled={grantingElevation === member.userId}
+                                style={{
+                                  width: '100%', padding: '8px 14px', textAlign: 'left',
+                                  background: 'transparent', border: 'none', cursor: grantingElevation === member.userId ? 'not-allowed' : 'pointer',
+                                  fontSize: 12, color: 'var(--text-primary)',
+                                }}
+                              >
+                                {grantingElevation === member.userId ? t('granting') : t('grantTemporary')}
+                              </button>
+                            )}
+                            {amIOwner && member.elevationActive && (
+                              <button
+                                onClick={() => { void handleRevokeElevation(member.userId, member.email); }}
+                                disabled={revokingElevation === member.userId}
+                                style={{
+                                  width: '100%', padding: '8px 14px', textAlign: 'left',
+                                  background: 'transparent', border: 'none', cursor: revokingElevation === member.userId ? 'not-allowed' : 'pointer',
+                                  fontSize: 12, color: 'var(--text-primary)',
+                                }}
+                              >
+                                {revokingElevation === member.userId ? t('revoking') : t('revokeTemporary')}
+                              </button>
+                            )}
+                          </div>
+                        )}
+                      </div>
                     )}
                   </div>
                 ))}
