@@ -31,6 +31,7 @@ import { getToolDefinitions, getToolExecutor } from './tools/index';
 import { shouldConfirm } from './should-confirm';
 import { tokensToCredits, reconcileCredits } from './credit-calc';
 import { adjustCredits } from '@/lib/credits';
+import { getEffectiveRole, type OrgRole } from '@/lib/org';
 
 const MAX_ITERATIONS = 15;
 
@@ -452,14 +453,10 @@ export async function runAgentTurn(input: TurnInput): Promise<TurnOutput> {
   const userId: string           = convRow.user_id as string;
   const mode:   ConfirmationMode = convRow.confirmation_mode as ConfirmationMode;
 
-  // Obtener el rol del usuario para el gate de herramientas restringidas (list_docs, etc.)
-  const { data: membership } = await supabase
-    .from('memberships')
-    .select('role')
-    .eq('user_id', userId)
-    .eq('org_id', orgId)
-    .single();
-  const role: 'admin' | 'member' = (membership?.role as 'admin' | 'member') ?? 'member';
+  // Obtener el rol efectivo para el gate de herramientas restringidas (list_docs, etc.)
+  // Usa getEffectiveRole para respetar is_owner y elevaciones temporales activas.
+  const effectiveRoleData = await getEffectiveRole(supabase, userId, orgId);
+  const role: OrgRole = effectiveRoleData?.effectiveRole ?? 'member';
 
   // Marcar mensaje y conversación como running (idempotente en re-claim)
   await updateMessageStatus(supabase, messageId, 'running');

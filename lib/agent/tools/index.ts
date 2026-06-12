@@ -1,5 +1,6 @@
 import type { ToolName } from '@/lib/agent/types';
 import type { AnthropicToolDefinition, ToolBundle, ToolExecutor } from './types';
+import type { OrgRole } from '@/lib/org';
 import { searchDocsTool } from './search-docs';
 import { readDocTool }    from './read-doc';
 import { askUserTool }    from './ask-user';
@@ -25,7 +26,7 @@ export const TOOLS: Record<ToolName, ToolBundle> = {
 // El gate interno de cada tool es defensa en profundidad adicional.
 const ADMIN_ONLY_TOOLS = new Set(['list_docs', 'usage_stats']);
 
-export function getToolDefinitions(role: 'admin' | 'member' = 'member'): AnthropicToolDefinition[] {
+export function getToolDefinitions(role: OrgRole = 'member'): AnthropicToolDefinition[] {
   return Object.values(TOOLS)
     .filter(t => role === 'admin' || !ADMIN_ONLY_TOOLS.has(t.definition.name))
     .map(t => t.definition);

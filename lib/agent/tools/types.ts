@@ -1,12 +1,13 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Citation, PendingRequest } from '@/lib/agent/types';
+import type { OrgRole } from '@/lib/org';
 
 export interface ToolContext {
   supabase: SupabaseClient;
   orgId:    string;
   userId:   string;
   taskId:   string;
-  role:     'admin' | 'member';
+  role:     OrgRole;
 }
 
 export type ToolExecutionResult =
