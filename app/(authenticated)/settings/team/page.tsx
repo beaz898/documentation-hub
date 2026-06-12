@@ -11,6 +11,8 @@ interface Member {
   role: 'admin' | 'member';
   joinedAt: string;
   isYou: boolean;
+  isOwner: boolean;
+  elevationActive: boolean;
 }
 
 interface Invitation {
@@ -21,6 +23,55 @@ interface Invitation {
   created_at: string;
   expires_at: string;
   isExpired: boolean;
+}
+
+function RoleBadge({ member }: { member: Member }) {
+  if (member.isOwner) {
+    return (
+      <span style={{
+        display: 'inline-flex', alignItems: 'center', gap: 3,
+        fontSize: 9, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.3,
+        padding: '1px 5px', borderRadius: 3,
+        background: 'rgba(217,119,6,0.12)', color: 'rgb(217,119,6)',
+      }}>
+        <svg width="8" height="8" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M2 19h20l-2-10-5 5-3-8-3 8-5-5z" />
+        </svg>
+        Principal
+      </span>
+    );
+  }
+  if (member.elevationActive) {
+    return (
+      <span style={{
+        fontSize: 9, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.3,
+        padding: '1px 5px', borderRadius: 3,
+        background: 'rgba(124,58,237,0.12)', color: 'rgb(124,58,237)',
+      }}>
+        Admin temporal
+      </span>
+    );
+  }
+  if (member.role === 'admin') {
+    return (
+      <span style={{
+        fontSize: 9, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.3,
+        padding: '1px 5px', borderRadius: 3,
+        background: 'rgba(37,99,235,0.12)', color: 'rgb(37,99,235)',
+      }}>
+        Admin
+      </span>
+    );
+  }
+  return (
+    <span style={{
+      fontSize: 9, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.3,
+      padding: '1px 5px', borderRadius: 3,
+      background: 'var(--bg-tertiary)', color: 'var(--text-muted)',
+    }}>
+      Miembro
+    </span>
+  );
 }
 
 export default function TeamPage() {
@@ -200,9 +251,12 @@ export default function TeamPage() {
         ) : (
           <>
             <div style={{ marginBottom: 32 }}>
-              <h2 style={{ fontSize: 13, fontWeight: 600, marginBottom: 12, color: 'var(--text-primary)' }}>
+              <h2 style={{ fontSize: 13, fontWeight: 600, marginBottom: 4, color: 'var(--text-primary)' }}>
                 {t('membersCount', { count: members.length })}
               </h2>
+              <p style={{ fontSize: 11, color: 'var(--text-secondary)', marginBottom: 12 }}>
+                El administrador principal puede gestionar roles y transferir la titularidad de la organización.
+              </p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                 {members.map(member => (
                   <div
@@ -233,14 +287,7 @@ export default function TeamPage() {
                         )}
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 2 }}>
-                        <span style={{
-                          fontSize: 9, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.3,
-                          padding: '1px 5px', borderRadius: 3,
-                          background: member.role === 'admin' ? 'rgba(37,99,235,0.12)' : 'var(--bg-tertiary)',
-                          color: member.role === 'admin' ? 'rgb(37,99,235)' : 'var(--text-muted)',
-                        }}>
-                          {member.role}
-                        </span>
+                        <RoleBadge member={member} />
                         <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>
                           {t('since', { date: formatDate(member.joinedAt) })}
                         </span>
