@@ -77,13 +77,14 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Crear membership como admin
+    // Crear membership como admin y owner principal
     const { error: memberError } = await supabase
       .from('memberships')
       .insert({
         org_id: newOrg.id,
         user_id: user.id,
         role: 'admin',
+        is_owner: true,
       });
 
     if (memberError) {
