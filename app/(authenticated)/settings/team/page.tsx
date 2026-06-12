@@ -26,6 +26,7 @@ interface Invitation {
 }
 
 function RoleBadge({ member }: { member: Member }) {
+  const t = useTranslations('team');
   if (member.isOwner) {
     return (
       <span style={{
@@ -37,7 +38,7 @@ function RoleBadge({ member }: { member: Member }) {
         <svg width="8" height="8" viewBox="0 0 24 24" fill="currentColor">
           <path d="M2 19h20l-2-10-5 5-3-8-3 8-5-5z" />
         </svg>
-        Principal
+        {t('roleOwner')}
       </span>
     );
   }
@@ -48,7 +49,7 @@ function RoleBadge({ member }: { member: Member }) {
         padding: '1px 5px', borderRadius: 3,
         background: 'rgba(124,58,237,0.12)', color: 'rgb(124,58,237)',
       }}>
-        Admin temporal
+        {t('roleTemporary')}
       </span>
     );
   }
@@ -59,7 +60,7 @@ function RoleBadge({ member }: { member: Member }) {
         padding: '1px 5px', borderRadius: 3,
         background: 'rgba(37,99,235,0.12)', color: 'rgb(37,99,235)',
       }}>
-        Admin
+        {t('roleAdmin')}
       </span>
     );
   }
@@ -69,7 +70,7 @@ function RoleBadge({ member }: { member: Member }) {
       padding: '1px 5px', borderRadius: 3,
       background: 'var(--bg-tertiary)', color: 'var(--text-muted)',
     }}>
-      Miembro
+      {t('roleMember')}
     </span>
   );
 }
@@ -254,9 +255,11 @@ export default function TeamPage() {
               <h2 style={{ fontSize: 13, fontWeight: 600, marginBottom: 4, color: 'var(--text-primary)' }}>
                 {t('membersCount', { count: members.length })}
               </h2>
-              <p style={{ fontSize: 11, color: 'var(--text-secondary)', marginBottom: 12 }}>
-                El administrador principal puede gestionar roles y transferir la titularidad de la organización.
-              </p>
+              <div style={{ marginBottom: 12, display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <p style={{ fontSize: 11, color: 'var(--text-secondary)' }}>{t('rolesExplainOwner')}</p>
+                <p style={{ fontSize: 11, color: 'var(--text-secondary)' }}>{t('rolesExplainAdmin')}</p>
+                <p style={{ fontSize: 11, color: 'var(--text-secondary)' }}>{t('rolesExplainTemporary')}</p>
+              </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                 {members.map(member => (
                   <div

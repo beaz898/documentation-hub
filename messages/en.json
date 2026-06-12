@@ -343,7 +343,9 @@
     "invite": "Invite",
     "inviteEmail": "Member email",
     "role": "Role",
-    "roleAdmin": "Administrator",
+    "roleOwner": "Owner",
+    "roleAdmin": "Admin",
+    "roleTemporary": "Temporary admin",
     "roleMember": "Member",
     "remove": "Remove",
     "pending": "Pending",
@@ -373,7 +375,10 @@
     "copied": "Copied",
     "adminOnlyMsg": "Only administrators can invite or remove members.",
     "confirmExpel": "Remove {email} from the workspace?",
-    "confirmCancelInvite": "Cancel this invitation?"
+    "confirmCancelInvite": "Cancel this invitation?",
+    "rolesExplainOwner": "Owner: manages the team and can hand over this role.",
+    "rolesExplainAdmin": "Admin: full access to team management.",
+    "rolesExplainTemporary": "Temporary admin: admin permissions granted by the owner, who can revoke them at any time."
   },
   "usage": {
     "title": "Document Intelligence Dashboard",

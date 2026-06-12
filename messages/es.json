@@ -343,7 +343,9 @@
     "invite": "Invitar",
     "inviteEmail": "Correo del miembro",
     "role": "Rol",
-    "roleAdmin": "Administrador",
+    "roleOwner": "Principal",
+    "roleAdmin": "Admin",
+    "roleTemporary": "Admin temporal",
     "roleMember": "Miembro",
     "remove": "Eliminar",
     "pending": "Pendiente",
@@ -373,7 +375,10 @@
     "copied": "Copiado",
     "adminOnlyMsg": "Solo los administradores pueden invitar o expulsar miembros.",
     "confirmExpel": "¿Expulsar a {email} del workspace?",
-    "confirmCancelInvite": "¿Cancelar esta invitación?"
+    "confirmCancelInvite": "¿Cancelar esta invitación?",
+    "rolesExplainOwner": "Administrador principal: gestiona el equipo y puede ceder este rol.",
+    "rolesExplainAdmin": "Administrador: acceso completo a la gestión del equipo.",
+    "rolesExplainTemporary": "Administrador temporal: permisos de administrador concedidos por el principal, que puede retirarlos en cualquier momento."
   },
   "usage": {
     "title": "Panel de inteligencia documental",
