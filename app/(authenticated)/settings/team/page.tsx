@@ -25,9 +25,11 @@ interface Invitation {
   isExpired: boolean;
 }
 
-function RoleBadge({ member }: { member: Member }) {
+type RoleBadgeType = 'owner' | 'admin' | 'temporary' | 'member';
+
+function RoleBadgeByType({ type }: { type: RoleBadgeType }) {
   const t = useTranslations('team');
-  if (member.isOwner) {
+  if (type === 'owner') {
     return (
       <span style={{
         display: 'inline-flex', alignItems: 'center', gap: 3,
@@ -42,7 +44,7 @@ function RoleBadge({ member }: { member: Member }) {
       </span>
     );
   }
-  if (member.elevationActive) {
+  if (type === 'temporary') {
     return (
       <span style={{
         fontSize: 9, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.3,
@@ -53,7 +55,7 @@ function RoleBadge({ member }: { member: Member }) {
       </span>
     );
   }
-  if (member.role === 'admin') {
+  if (type === 'admin') {
     return (
       <span style={{
         fontSize: 9, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.3,
@@ -75,6 +77,13 @@ function RoleBadge({ member }: { member: Member }) {
   );
 }
 
+function RoleBadge({ member }: { member: Member }) {
+  if (member.isOwner) return <RoleBadgeByType type="owner" />;
+  if (member.elevationActive) return <RoleBadgeByType type="temporary" />;
+  if (member.role === 'admin') return <RoleBadgeByType type="admin" />;
+  return <RoleBadgeByType type="member" />;
+}
+
 export default function TeamPage() {
   const t = useTranslations('team');
   const tc = useTranslations('common');
@@ -94,6 +103,9 @@ export default function TeamPage() {
   const menuRef = useRef<HTMLDivElement | null>(null);
   const [grantingElevation, setGrantingElevation] = useState<string | null>(null);
   const [revokingElevation, setRevokingElevation] = useState<string | null>(null);
+  const [transferTarget, setTransferTarget] = useState<Member | null>(null);
+  const [transferConfirmText, setTransferConfirmText] = useState('');
+  const [transferring, setTransferring] = useState(false);
   const router = useRouter();
   const supabase = createClient();
 
@@ -242,6 +254,28 @@ export default function TeamPage() {
     }
   }
 
+  async function handleTransferOwner() {
+    if (!session || !transferTarget) return;
+    setTransferring(true);
+    try {
+      const res = await fetch('/api/team/transfer-owner', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ newOwnerUserId: transferTarget.userId }),
+      });
+      if (res.ok) { await loadTeam(); setTransferTarget(null); }
+      else {
+        const data = await res.json();
+        alert(data.error || 'Error al transferir.');
+      }
+    } catch {
+      alert('Error de conexión.');
+    } finally {
+      setTransferring(false);
+    }
+  }
+
   async function handleCancelInvite(inviteId: string) {
     if (!session || !window.confirm(t('confirmCancelInvite'))) return;
     setCancellingInvite(inviteId);
@@ -315,10 +349,19 @@ export default function TeamPage() {
               <h2 style={{ fontSize: 13, fontWeight: 600, marginBottom: 4, color: 'var(--text-primary)' }}>
                 {t('membersCount', { count: members.length })}
               </h2>
-              <div style={{ marginBottom: 12, display: 'flex', flexDirection: 'column', gap: 2 }}>
-                <p style={{ fontSize: 11, color: 'var(--text-secondary)' }}>{t('rolesExplainOwner')}</p>
-                <p style={{ fontSize: 11, color: 'var(--text-secondary)' }}>{t('rolesExplainAdmin')}</p>
-                <p style={{ fontSize: 11, color: 'var(--text-secondary)' }}>{t('rolesExplainTemporary')}</p>
+              <div style={{ marginBottom: 12, display: 'flex', flexDirection: 'column', gap: 5 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <RoleBadgeByType type="owner" />
+                  <span style={{ fontSize: 11, color: 'var(--text-secondary)' }}>{t('rolesExplainOwner')}</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <RoleBadgeByType type="admin" />
+                  <span style={{ fontSize: 11, color: 'var(--text-secondary)' }}>{t('rolesExplainAdmin')}</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <RoleBadgeByType type="temporary" />
+                  <span style={{ fontSize: 11, color: 'var(--text-secondary)' }}>{t('rolesExplainTemporary')}</span>
+                </div>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                 {members.map(member => (
@@ -358,7 +401,8 @@ export default function TeamPage() {
                     </div>
                     {((isAdmin && !member.isYou) ||
                       (amIOwner && !member.isYou && member.role !== 'admin' && !member.isOwner && !member.elevationActive) ||
-                      (amIOwner && member.elevationActive)) && (
+                      (amIOwner && member.elevationActive) ||
+                      (amIOwner && !member.isYou && member.role === 'admin' && !member.isOwner)) && (
                       <div ref={openMenuUserId === member.userId ? menuRef : null} style={{ position: 'relative', flexShrink: 0 }}>
                         <button
                           onClick={() => setOpenMenuUserId(openMenuUserId === member.userId ? null : member.userId)}
@@ -418,6 +462,18 @@ export default function TeamPage() {
                                 }}
                               >
                                 {revokingElevation === member.userId ? t('revoking') : t('revokeTemporary')}
+                              </button>
+                            )}
+                            {amIOwner && !member.isYou && member.role === 'admin' && !member.isOwner && (
+                              <button
+                                onClick={() => { setOpenMenuUserId(null); setTransferTarget(member); setTransferConfirmText(''); }}
+                                style={{
+                                  width: '100%', padding: '8px 14px', textAlign: 'left',
+                                  background: 'transparent', border: 'none', cursor: 'pointer',
+                                  fontSize: 12, color: 'var(--danger)',
+                                }}
+                              >
+                                {t('transferOwnership')}
                               </button>
                             )}
                           </div>
@@ -583,6 +639,75 @@ export default function TeamPage() {
           </>
         )}
       </div>
+
+      {transferTarget && (
+        <div style={{
+          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          zIndex: 100,
+        }}>
+          <div style={{
+            background: 'var(--bg-secondary)', border: '0.5px solid var(--border)',
+            borderRadius: 12, padding: 24, maxWidth: 440, width: '90%',
+          }}>
+            <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 12, color: 'var(--text-primary)' }}>
+              {t('transferTitle')}
+            </h3>
+            <p style={{
+              fontSize: 12, color: 'var(--text-secondary)', marginBottom: 16, lineHeight: 1.5,
+              padding: '10px 12px', borderRadius: 8,
+              background: 'rgba(239,68,68,0.08)', border: '0.5px solid rgba(239,68,68,0.2)',
+            }}>
+              {t('transferWarning', { email: transferTarget.email })}
+            </p>
+            <p style={{ fontSize: 12, color: 'var(--text-primary)', marginBottom: 6 }}>
+              {t('transferConfirmInstruction')}
+            </p>
+            <code style={{ fontSize: 11, color: 'var(--text-secondary)', display: 'block', marginBottom: 8 }}>
+              {transferTarget.email}
+            </code>
+            <input
+              type="text"
+              value={transferConfirmText}
+              onChange={e => setTransferConfirmText(e.target.value)}
+              placeholder={transferTarget.email}
+              style={{
+                width: '100%', padding: '9px 12px', borderRadius: 8, boxSizing: 'border-box',
+                border: '0.5px solid var(--border)', background: 'var(--bg)',
+                color: 'var(--text-primary)', fontSize: 12, outline: 'none', marginBottom: 16,
+              }}
+            />
+            <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+              <button
+                onClick={() => setTransferTarget(null)}
+                disabled={transferring}
+                style={{
+                  padding: '8px 16px', borderRadius: 8, border: '0.5px solid var(--border)',
+                  background: 'var(--bg-tertiary)', fontSize: 12, cursor: transferring ? 'not-allowed' : 'pointer',
+                  color: 'var(--text-secondary)',
+                }}
+              >
+                {tc('cancel')}
+              </button>
+              <button
+                onClick={() => { void handleTransferOwner(); }}
+                disabled={transferConfirmText.trim().toLowerCase() !== transferTarget.email.toLowerCase() || transferring}
+                style={{
+                  padding: '8px 16px', borderRadius: 8, border: 'none', fontSize: 12, fontWeight: 600,
+                  background: transferConfirmText.trim().toLowerCase() === transferTarget.email.toLowerCase() && !transferring
+                    ? 'var(--danger)' : 'var(--bg-tertiary)',
+                  color: transferConfirmText.trim().toLowerCase() === transferTarget.email.toLowerCase() && !transferring
+                    ? '#fff' : 'var(--text-muted)',
+                  cursor: transferConfirmText.trim().toLowerCase() !== transferTarget.email.toLowerCase() || transferring
+                    ? 'not-allowed' : 'pointer',
+                }}
+              >
+                {transferring ? t('transferring') : t('transferConfirm')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

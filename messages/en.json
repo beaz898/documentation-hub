@@ -382,6 +382,12 @@
     "revokeTemporary": "Revoke temporary admin",
     "revoking": "Revoking...",
     "confirmRevoke": "Revoke temporary permissions for {email}?",
+    "transferOwnership": "Transfer ownership",
+    "transferTitle": "Transfer ownership",
+    "transferWarning": "This action is permanent. You will stop being the main administrator and {email} will gain full control of the organization, including the ability to remove your permissions. You won't be able to undo this yourself.",
+    "transferConfirmInstruction": "To confirm, type this person's email:",
+    "transferConfirm": "Transfer",
+    "transferring": "Transferring...",
     "rolesExplainOwner": "Owner: manages the team and can hand over this role.",
     "rolesExplainAdmin": "Admin: full access to team management.",
     "rolesExplainTemporary": "Temporary admin: admin permissions granted by the owner, who can revoke them at any time."

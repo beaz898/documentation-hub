@@ -382,6 +382,12 @@
     "revokeTemporary": "Revocar admin temporal",
     "revoking": "Revocando...",
     "confirmRevoke": "¿Revocar los permisos temporales de {email}?",
+    "transferOwnership": "Transferir administración principal",
+    "transferTitle": "Transferir administración principal",
+    "transferWarning": "Esta acción es permanente. Dejarás de ser el administrador principal y {email} pasará a tener el control total de la organización, incluida la capacidad de retirarte permisos. No podrás deshacerlo tú mismo.",
+    "transferConfirmInstruction": "Para confirmar, escribe el correo de esta persona:",
+    "transferConfirm": "Transferir",
+    "transferring": "Transfiriendo...",
     "rolesExplainOwner": "Administrador principal: gestiona el equipo y puede ceder este rol.",
     "rolesExplainAdmin": "Administrador: acceso completo a la gestión del equipo.",
     "rolesExplainTemporary": "Administrador temporal: permisos de administrador concedidos por el principal, que puede retirarlos en cualquier momento."
