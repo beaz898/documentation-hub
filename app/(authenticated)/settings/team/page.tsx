@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { createClient } from '@/lib/supabase';
@@ -91,6 +91,7 @@ export default function TeamPage() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [amIOwner, setAmIOwner] = useState(false);
   const [openMenuUserId, setOpenMenuUserId] = useState<string | null>(null);
+  const menuRef = useRef<HTMLDivElement | null>(null);
   const [grantingElevation, setGrantingElevation] = useState<string | null>(null);
   const [revokingElevation, setRevokingElevation] = useState<string | null>(null);
   const router = useRouter();
@@ -134,7 +135,11 @@ export default function TeamPage() {
   useEffect(() => { if (session) loadTeam(); }, [session, loadTeam]);
 
   useEffect(() => {
-    function handleOutsideClick() { setOpenMenuUserId(null); }
+    function handleOutsideClick(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setOpenMenuUserId(null);
+      }
+    }
     document.addEventListener('mousedown', handleOutsideClick);
     return () => document.removeEventListener('mousedown', handleOutsideClick);
   }, []);
@@ -354,9 +359,8 @@ export default function TeamPage() {
                     {((isAdmin && !member.isYou) ||
                       (amIOwner && !member.isYou && member.role !== 'admin' && !member.isOwner && !member.elevationActive) ||
                       (amIOwner && member.elevationActive)) && (
-                      <div style={{ position: 'relative', flexShrink: 0 }}>
+                      <div ref={openMenuUserId === member.userId ? menuRef : null} style={{ position: 'relative', flexShrink: 0 }}>
                         <button
-                          onMouseDown={e => e.stopPropagation()}
                           onClick={() => setOpenMenuUserId(openMenuUserId === member.userId ? null : member.userId)}
                           style={{
                             width: 28, height: 28, borderRadius: 6,
@@ -370,7 +374,6 @@ export default function TeamPage() {
                         </button>
                         {openMenuUserId === member.userId && (
                           <div
-                            onMouseDown={e => e.stopPropagation()}
                             style={{
                               position: 'absolute', right: 0, top: '100%', marginTop: 4,
                               background: 'var(--bg-secondary)', border: '0.5px solid var(--border)',
