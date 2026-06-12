@@ -24,7 +24,7 @@ export async function GET(req: NextRequest) {
     // Obtener memberships
     const { data: memberships, error: membError } = await supabase
       .from('memberships')
-      .select('user_id, role, joined_at')
+      .select('user_id, role, joined_at, is_owner')
       .eq('org_id', org.orgId)
       .order('joined_at', { ascending: true });
 
@@ -33,16 +33,27 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Error obteniendo miembros.' }, { status: 500 });
     }
 
+    // Elevaciones activas de la org (una sola query; fallo no fatal)
+    const { data: elevations, error: elevErr } = await supabase
+      .from('temporary_elevations')
+      .select('user_id')
+      .eq('org_id', org.orgId)
+      .is('revoked_at', null);
+    if (elevErr) console.warn('[team/members] Error obteniendo elevaciones:', elevErr.message);
+    const elevatedUserIds = new Set((elevations || []).map(e => e.user_id as string));
+
     // Enriquecer con email de cada usuario
     const members = [];
     for (const m of memberships || []) {
       const { data: userData } = await supabase.auth.admin.getUserById(m.user_id);
       members.push({
-        userId: m.user_id,
-        email: userData?.user?.email || 'desconocido',
-        role: m.role,
-        joinedAt: m.joined_at,
-        isYou: m.user_id === user.id,
+        userId:          m.user_id,
+        email:           userData?.user?.email || 'desconocido',
+        role:            m.role,
+        joinedAt:        m.joined_at,
+        isYou:           m.user_id === user.id,
+        isOwner:         Boolean(m.is_owner),
+        elevationActive: elevatedUserIds.has(m.user_id),
       });
     }
 
