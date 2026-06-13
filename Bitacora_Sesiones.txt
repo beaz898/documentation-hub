@@ -1216,3 +1216,94 @@ ARCHIVOS MODIFICADOS
   lib/credits.ts                           — typo credits → credits_remaining
   app/api/agent/conversations/[id]/message/route.ts — locked_at: null al reanudar
   components/agent/ConversationInput.tsx   — SendBtn onClick
+
+
+────────────────────────────────────────────────────────────────
+SESIÓN 17 — 12/06/2026
+Título: B.15 — Rol de administrador principal (owner) + admin temporal
+────────────────────────────────────────────────────────────────
+
+OBJETIVO
+Implementar B.15: un modelo de dos roles donde existe un administrador
+principal (owner, único por organización) que puede conceder permisos de
+administrador temporal a otros miembros y transferir su rol principal.
+Eliminar el concepto de "admin nativo" repartido: solo owner + temporales.
+
+CAMBIOS IMPLEMENTADOS
+
+1. BASE DE DATOS (supabase-owner-and-elevations.sql)
+   - Columna memberships.is_owner (boolean, default false)
+   - Índice único parcial uniq_one_owner_per_org: garantiza como mucho un
+     owner por org a nivel de BD (no solo por código)
+   - Tabla temporary_elevations (org_id, user_id, granted_by, granted_at,
+     expires_at [preparada, sin uso aún], revoked_at, revoked_by)
+     · elevación activa = revoked_at IS NULL
+     · índice único parcial: una elevación activa por (org, user)
+   - RLS por pertenencia a la org
+   - Migración: marcó owner inicial de orgs existentes (admin más antiguo)
+
+2. ROL EFECTIVO (lib/org.ts)
+   - getEffectiveRole(): función única que calcula el rol efectivo leyendo
+     SIEMPRE de la BD (nunca del JWT): admin efectivo si is_owner OR
+     role='admin' OR elevación activa
+   - resolveOrg ampliado: devuelve role (efectivo), nativeRole, isOwner,
+     elevationActive
+   - runner-conv.ts usa getEffectiveRole (mismo cálculo en agente y endpoints)
+   - Tipo compartido OrgRole
+
+3. ENDPOINTS (app/api/team/)
+   - POST   /elevations         — conceder elevación (solo owner)
+   - DELETE /elevations/[id]    — revocar elevación (solo owner)
+   - POST   /transfer-owner     — transferir owner (solo owner)
+   - PATCH no se añadió: el modelo de 2 roles no necesita ascender a admin nativo
+
+4. RPC transfer_owner (supabase-transfer-owner-rpc.sql)
+   - Transferencia atómica dentro de transacción (el índice único se evalúa
+     al COMMIT, nunca en estado intermedio)
+   - Requisito: el destino debe tener elevación temporal ACTIVA
+   - Comportamiento (Opción 2, "ceder del todo"):
+     · nuevo owner: is_owner=true, role='admin', su elevación se revoca
+     · viejo owner: is_owner=false, role='member' (sin elevación residual)
+
+5. UI (app/(authenticated)/settings/team/page.tsx)
+   - Badges por rol: Principal (corona ámbar), Admin temporal (morado),
+     Member. Componente RoleBadgeByType reutilizable + leyenda visual
+   - Menú ⋮ por miembro (construido desde cero, cierre por ref al clic fuera)
+   - Acciones del owner: conceder/revocar admin temporal, transferir
+   - Modal de transferencia con fricción fuerte: escribir el email del
+     destino para activar el botón
+   - i18n completo (es + en)
+
+6. FIX: orgs nuevas nacían sin owner (app/api/org/setup/route.ts)
+   - El creador ahora se inserta con is_owner=true (antes solo role='admin')
+
+NOTAS
+- El concepto de admin nativo desaparece de facto: solo el owner tiene
+  role='admin'; el resto son member o member con elevación temporal.
+- expires_at queda en la tabla preparada para una futura caducidad
+  automática de elevaciones (no implementada).
+
+PENDIENTES DESTAPADOS (no abordados)
+- Limpiar 3 orgs huérfanas vacías ("Mi workspace" sin miembros)
+- Doble FK redundante en analysis_jobs (analysis_jobs_org_id_fkey + fk_org)
+- Política DELETE de documents con USING(true) — revisar si endurecer
+
+ARCHIVOS NUEVOS
+  supabase-owner-and-elevations.sql
+  supabase-owner-verify.sql
+  supabase-transfer-owner-rpc.sql
+  app/api/team/elevations/route.ts
+  app/api/team/elevations/[id]/route.ts
+  app/api/team/transfer-owner/route.ts
+
+ARCHIVOS MODIFICADOS
+  lib/org.ts                          — getEffectiveRole, OrgRole, resolveOrg
+  lib/agent/tools/types.ts            — OrgRole
+  lib/agent/tools/index.ts            — OrgRole
+  lib/agent/runner-conv.ts            — usa getEffectiveRole
+  app/api/team/members/route.ts       — devuelve isOwner, elevationActive
+  app/api/team/members/[id]/route.ts  — (sin cambios finales; PATCH descartado)
+  app/api/org/setup/route.ts          — is_owner=true al crear org
+  app/(authenticated)/settings/team/page.tsx — toda la UI de B.15
+  messages/es.json, messages/en.json  — claves de roles y acciones
+  supabase-setup.sql                  — recuperado/reconstruido esta sesión

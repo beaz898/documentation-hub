@@ -3,7 +3,7 @@ PENDIENTES — Doclity (Agente IA)
 Documento vivo. Se actualiza al completar tareas (marcar [✓]) y se
 sustituye por la versión nueva. Más ligero que la Bitácora: aquí va
 lo que falta y la visión que lo guía, no el detalle de cada sesión.
-Última actualización: 11/06/2026 (v8)
+Última actualización: 12/06/2026 (v9)
 
 
 ════════════════════════════════════════════════════════════════
@@ -293,7 +293,7 @@ Leyenda: [ ] pendiente · [~] en curso · [✓] hecho
       aparece solo cuando scrollHeight - scrollTop - clientHeight > 80px.
       Commit: e6e8fe4.
 
-[ ] B.15 — (Seguridad / Roles) Rol de administrador temporal
+[✓] B.15 — (Seguridad / Roles) Rol de administrador temporal
       Mecanismo para que el dueño de la cuenta pueda elevar temporalmente a un
       usuario a administrador (para soporte, auditoría, etc.) sin cambiar su rol
       permanente.
@@ -301,7 +301,7 @@ Leyenda: [ ] pendiente · [~] en curso · [✓] hecho
       modelo de permisos: quién puede elevar, por cuánto tiempo, qué acciones
       permite el rol temporal, y cómo se revoca (automáticamente o manualmente).
       VISIÓN: control de acceso sin fricción para escenarios de soporte puntual.
-      ESTADO: PENDIENTE DE DISEÑO antes de tocar código.
+      IMPLEMENTADO en Sesión 17 (12/06/2026). Ver bitácora para detalle completo.
 
 [✓] B.7 — (Cierre técnico) Limpieza del agente legado + prompt caching
       PARTE 1 — Limpieza (~2356 líneas eliminadas): runner.ts, persist.ts,
