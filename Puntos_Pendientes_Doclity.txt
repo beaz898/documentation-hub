@@ -3,7 +3,7 @@ PENDIENTES — Doclity (Agente IA)
 Documento vivo. Se actualiza al completar tareas (marcar [✓]) y se
 sustituye por la versión nueva. Más ligero que la Bitácora: aquí va
 lo que falta y la visión que lo guía, no el detalle de cada sesión.
-Última actualización: 12/06/2026 (v9)
+Última actualización: 13/06/2026 (v10)
 
 
 ════════════════════════════════════════════════════════════════
@@ -230,6 +230,31 @@ Leyenda: [ ] pendiente · [~] en curso · [✓] hecho
       patrón (drawer lateral, bottom sheet, etc.) antes de tocar.
       VISIÓN: el agente debe ser usable en móvil, no solo en escritorio — relevante porque
       usuarios finales (PYMES, técnicos en campo) pueden usarlo desde el teléfono.
+
+[ ] B.23 — (UX / RESPONSIVE) Altura de viewport en móvil (100vh → 100dvh) fuera del agente
+      En móvil, la barra de URL del navegador ocupa espacio en la parte superior hasta que
+      se hace scroll. Con height:100vh (o h-screen) el navegador calcula la altura ignorando
+      esa barra, así que la primera franja de la app queda tapada hasta scrollear. Solución:
+      usar la unidad dvh (dynamic viewport height), que se ajusta sola cuando la barra
+      aparece/desaparece. Poner 100vh como fallback y 100dvh después, para navegadores viejos.
+      ALCANCE: el agente YA se arregla dentro de B.22. Esta tarea cubre el RESTO de páginas que
+      usen 100vh/h-screen (chat, /settings/usage, login, legales…). Primero localizar dónde se
+      usa (exploración: grep de "100vh" y "h-screen"), luego decidir si es un cambio global o
+      varios localizados. PRIORIDAD: media. Se nota, pero no bloquea.
+      VISIÓN: la app debe verse completa nada más entrar en móvil, sin tener que scrollear.
+
+[ ] B.24 — (UX / PULIDO) Layout shift en cabeceras al cargar (sensación de poco profesional)
+      Síntoma observado en /settings/usage en móvil: mientras carga, la cabecera (botón "volver"
+      + título de la pestaña) ocupa una línea; al llegar los datos, el contenido reflueye y pasa
+      a dos líneas, empujando todo. Es Cumulative Layout Shift (CLS): el contenido salta porque
+      no se reserva su espacio desde el principio. Solución: reservar la altura de la cabecera
+      desde el render inicial (altura fija aunque el contenido aún no haya cargado) o usar un
+      skeleton que ocupe lo mismo que ocupará el resultado final. Revisar QualityTab y ChatTab
+      (y cualquier cabecera con datos asíncronos). PRIORIDAD: baja. Es pulido visual, no funcional.
+      VISIÓN: nada debe "saltar" al cargar; transmite producto cuidado y profesional.
+
+- B.23 (dvh) y B.24 (layout shift) salieron al diseñar B.22. El dvh del agente se resuelve
+  DENTRO de B.22; B.23 cubre el resto de páginas. Ambas son pulido responsive, no bloqueantes.
 
 [✓] B.5 — (Latencia) Trigger directo Vercel→Railway (Opción D). Commits ba1e822 (worker:
       trigger-server.ts + POLL_INTERVAL 10s) + 130edbf (notifyWorker fire-and-forget en Vercel).
