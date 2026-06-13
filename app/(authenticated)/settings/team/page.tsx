@@ -402,7 +402,7 @@ export default function TeamPage() {
                     {((isAdmin && !member.isYou) ||
                       (amIOwner && !member.isYou && member.role !== 'admin' && !member.isOwner && !member.elevationActive) ||
                       (amIOwner && member.elevationActive) ||
-                      (amIOwner && !member.isYou && member.role === 'admin' && !member.isOwner)) && (
+                      (amIOwner && !member.isYou && member.elevationActive && !member.isOwner)) && (
                       <div ref={openMenuUserId === member.userId ? menuRef : null} style={{ position: 'relative', flexShrink: 0 }}>
                         <button
                           onClick={() => setOpenMenuUserId(openMenuUserId === member.userId ? null : member.userId)}
@@ -464,7 +464,7 @@ export default function TeamPage() {
                                 {revokingElevation === member.userId ? t('revoking') : t('revokeTemporary')}
                               </button>
                             )}
-                            {amIOwner && !member.isYou && member.role === 'admin' && !member.isOwner && (
+                            {amIOwner && !member.isYou && member.elevationActive && !member.isOwner && (
                               <button
                                 onClick={() => { setOpenMenuUserId(null); setTransferTarget(member); setTransferConfirmText(''); }}
                                 style={{

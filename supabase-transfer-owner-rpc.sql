@@ -1,0 +1,28 @@
+-- RPC: transfer_owner
+-- Transfiere la propiedad (is_owner) de una organización a otro miembro.
+-- Requisito: el destino debe tener elevación temporal activa (elevation_active = true).
+-- Devuelve { success: true } o { success: false, error: '<código>' }.
+--
+-- Códigos de error posibles:
+--   same_user          — el origen y destino son el mismo usuario
+--   current_not_member — el owner actual no pertenece a la org
+--   caller_not_owner   — el llamante no es el owner actual
+--   target_not_member  — el destino no pertenece a la org
+--   target_not_elevated — el destino no tiene elevación temporal activa
+--
+-- PENDIENTE: pegar aquí el cuerpo completo de la función desde Supabase.
+-- El usuario debe proporcionar el SQL de la función actual para completar este archivo.
+
+-- CREATE OR REPLACE FUNCTION transfer_owner(
+--   p_org_id             uuid,
+--   p_current_owner_user uuid,
+--   p_new_owner_user     uuid
+-- )
+-- RETURNS jsonb
+-- LANGUAGE plpgsql
+-- SECURITY DEFINER
+-- AS $$
+-- BEGIN
+--   -- <contenido pendiente de pegar>
+-- END;
+-- $$;

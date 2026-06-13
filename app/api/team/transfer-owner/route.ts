@@ -66,7 +66,7 @@ export async function POST(req: NextRequest) {
         current_not_member: { status: 403, message: 'No perteneces a la organización.' },
         caller_not_owner:   { status: 403, message: 'Solo el administrador principal puede transferir.' },
         target_not_member:  { status: 404, message: 'Ese usuario no pertenece a tu organización.' },
-        target_not_admin:   { status: 400, message: 'Solo puedes transferir la administración principal a un administrador. Asciende antes a esa persona a administrador.' },
+        target_not_elevated: { status: 400, message: 'Solo puedes transferir la administración principal a alguien que tenga permisos de administrador temporal activos. Concédele primero permisos temporales.' },
       };
       const mapped = ERROR_MAP[code] ?? { status: 400, message: 'No se pudo transferir.' };
       return NextResponse.json({ error: mapped.message }, { status: mapped.status });
