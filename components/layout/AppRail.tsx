@@ -96,7 +96,7 @@ export default function AppRail() {
 
   return (
     <>
-      <aside className="flex flex-col items-center justify-between w-16 h-screen flex-shrink-0 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 py-4">
+      <aside className="flex flex-col items-center justify-between w-16 h-dvh flex-shrink-0 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 py-4">
 
         <div className="flex items-center justify-center">
           <DoclityLogo size="sm" showText={false} />
