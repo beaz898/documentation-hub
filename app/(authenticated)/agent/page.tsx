@@ -147,7 +147,7 @@ export default function AgentPage() {
   if (!hasAgent) return <Paywall />;
 
   return (
-    <div style={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
+    <div style={{ display: 'flex', height: '100dvh', overflow: 'hidden' }}>
 
       {/* Sidebar — fijo en escritorio, drawer en móvil */}
       {!isMobile && (
