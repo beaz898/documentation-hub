@@ -54,7 +54,7 @@ export default function ConversationDrawer({ open, onClose, children }: Conversa
           position: 'fixed',
           top: 0,
           left: 0,
-          height: '100%',
+          height: '100dvh',
           width: 'min(260px, 85vw)',
           zIndex: 1001,
           background: 'var(--bg-secondary)',
