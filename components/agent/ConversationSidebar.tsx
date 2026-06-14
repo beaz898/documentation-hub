@@ -19,6 +19,7 @@ interface ConversationSidebarProps {
   onDelete:       (id: string) => void;
   onCollapse?:    () => void;
   credits?:       CreditsData | null;
+  isMobile?:      boolean;
 }
 
 interface StatusConfig {
@@ -51,7 +52,7 @@ function formatDate(iso: string): string {
 }
 
 export default function ConversationSidebar({
-  conversations, loading, selectedId, onSelect, onNew, onRename, onDelete, onCollapse, credits,
+  conversations, loading, selectedId, onSelect, onNew, onRename, onDelete, onCollapse, credits, isMobile,
 }: ConversationSidebarProps) {
   const [hoveredId,    setHoveredId]    = useState<string | null>(null);
   const [confirmingId, setConfirmingId] = useState<string | null>(null);
@@ -198,7 +199,7 @@ export default function ConversationSidebar({
                   onKeyDown={e => { if (!isRenaming && e.key === 'Enter') handleSelect(conv.id); }}
                   style={{
                     width: '100%', textAlign: 'left',
-                    padding: `8px ${isHovered && !isRenaming ? 58 : 10}px 8px 10px`,
+                    padding: `8px ${(isHovered || isMobile) && !isRenaming ? 58 : 10}px 8px 10px`,
                     borderRadius: 8, cursor: isRenaming ? 'default' : 'pointer',
                     background: isSelected ? 'var(--brand-light)' : isHovered ? 'var(--surface-hover)' : 'transparent',
                     display: 'flex', alignItems: 'flex-start', gap: 9,
@@ -263,7 +264,7 @@ export default function ConversationSidebar({
                 </div>
 
                 {/* Lápiz + papelera — visibles al hover, ocultos durante renombrado */}
-                {isHovered && !isRenaming && (
+                {(isHovered || isMobile) && !isRenaming && (
                   <>
                     {/* Lápiz (renombrar) */}
                     <button

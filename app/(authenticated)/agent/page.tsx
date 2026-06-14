@@ -161,6 +161,7 @@ export default function AgentPage() {
             onRename={handleRename}
             onDelete={handleDelete}
             credits={credits}
+            isMobile={isMobile}
           />
         </div>
       )}
@@ -176,6 +177,7 @@ export default function AgentPage() {
             onDelete={handleDelete}
             onCollapse={() => setDrawerOpen(false)}
             credits={credits}
+            isMobile={isMobile}
           />
         </ConversationDrawer>
       )}
