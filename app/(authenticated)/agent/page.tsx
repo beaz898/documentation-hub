@@ -6,8 +6,11 @@ import { useTranslations } from 'next-intl';
 import { createClient } from '@/lib/supabase';
 import { useConversation } from '@/hooks/agent/useConversation';
 import ConversationSidebar from '@/components/agent/ConversationSidebar';
+import ConversationDrawer from '@/components/agent/ConversationDrawer';
 import ConversationThread from '@/components/agent/ConversationThread';
 import ConversationInput from '@/components/agent/ConversationInput';
+import CreditsIndicator from '@/components/shared/CreditsIndicator';
+import { useMediaQuery } from '@/hooks/useMediaQuery';
 import type { ConfirmationMode } from '@/lib/agent/types';
 
 interface Summary { hasAgent: boolean; creditsRemaining: number; creditsExtra: number; plan: string }
@@ -22,6 +25,8 @@ export default function AgentPage() {
   // selectedId controla qué conversación muestra la UI. Es independiente del hook
   // para poder volver al estado "nueva conversación" (null) sin limpiar el hook.
   const [selectedId, setSelectedId]   = useState<string | null>(null);
+  const [drawerOpen, setDrawerOpen]   = useState(false);
+  const isMobile = useMediaQuery('(max-width: 767px)');
   const router   = useRouter();
   const supabase = createClient();
   const autoSelectedRef    = useRef(false);
@@ -144,22 +149,68 @@ export default function AgentPage() {
   return (
     <div style={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
 
-      {/* Sidebar */}
-      <div style={{ width: 260, flexShrink: 0, height: '100%' }}>
-        <ConversationSidebar
-          conversations={conversations}
-          loading={loading}
-          selectedId={selectedId}
-          onSelect={handleSelect}
-          onNew={handleNew}
-          onRename={handleRename}
-          onDelete={handleDelete}
-          credits={credits}
-        />
-      </div>
+      {/* Sidebar — fijo en escritorio, drawer en móvil */}
+      {!isMobile && (
+        <div style={{ width: 260, flexShrink: 0, height: '100%' }}>
+          <ConversationSidebar
+            conversations={conversations}
+            loading={loading}
+            selectedId={selectedId}
+            onSelect={handleSelect}
+            onNew={handleNew}
+            onRename={handleRename}
+            onDelete={handleDelete}
+            credits={credits}
+          />
+        </div>
+      )}
+      {isMobile && (
+        <ConversationDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)}>
+          <ConversationSidebar
+            conversations={conversations}
+            loading={loading}
+            selectedId={selectedId}
+            onSelect={id => { handleSelect(id); setDrawerOpen(false); }}
+            onNew={() => { handleNew(); setDrawerOpen(false); }}
+            onRename={handleRename}
+            onDelete={handleDelete}
+            onCollapse={() => setDrawerOpen(false)}
+            credits={credits}
+          />
+        </ConversationDrawer>
+      )}
 
       {/* Área principal */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, overflow: 'hidden' }}>
+
+        {/* Barra superior móvil — botón ☰ + créditos; oculta en escritorio */}
+        {isMobile && (
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: 8,
+            padding: '8px 12px', borderBottom: '0.5px solid var(--border)',
+            background: 'var(--bg)', flexShrink: 0,
+          }}>
+            <button
+              onClick={() => setDrawerOpen(true)}
+              aria-label="Abrir menú de conversaciones"
+              style={{
+                width: 32, height: 32, borderRadius: 8, flexShrink: 0,
+                border: '0.5px solid var(--border)', background: 'transparent',
+                cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                color: 'var(--text-secondary)',
+              }}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <line x1="3" y1="6"  x2="21" y2="6"  />
+                <line x1="3" y1="12" x2="21" y2="12" />
+                <line x1="3" y1="18" x2="21" y2="18" />
+              </svg>
+            </button>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <CreditsIndicator credits={credits} />
+            </div>
+          </div>
+        )}
 
         {/* Hilo de mensajes o estado vacío */}
         {displayedConversation ? (
