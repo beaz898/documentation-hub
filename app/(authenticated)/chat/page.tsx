@@ -166,7 +166,7 @@ export default function ChatPage() {
   }
 
   return (
-    <div style={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
+    <div style={{ display: 'flex', height: '100dvh', overflow: 'hidden' }}>
       {isMobile && sidebarOpen && <div className="sidebar-mobile-overlay" onClick={() => setSidebarOpen(false)} />}
 
       {/* Strip colapsado (desktop, sidebar cerrado) */}
