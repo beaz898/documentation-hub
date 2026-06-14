@@ -1307,3 +1307,66 @@ ARCHIVOS MODIFICADOS
   app/(authenticated)/settings/team/page.tsx — toda la UI de B.15
   messages/es.json, messages/en.json  — claves de roles y acciones
   supabase-setup.sql                  — recuperado/reconstruido esta sesión
+
+
+────────────────────────────────────────────────────────────────
+SESIÓN 18 — 14/06/2026
+Título: B.22 layout móvil del agente + B.23 (parcial) dvh en la app
+────────────────────────────────────────────────────────────────
+
+OBJETIVO
+Adaptar el Agente IA a móvil (estaba diseñado solo para pantalla ancha) y
+corregir el problema de altura de viewport (100vh) que en móvil deja franja
+blanca o corta contenido por culpa de la barra del navegador.
+
+CAMBIOS IMPLEMENTADOS
+
+1. B.22 — LAYOUT MÓVIL DEL AGENTE (patrón drawer)
+   - hooks/useMediaQuery.ts (nuevo): detección de viewport con matchMedia,
+     SSR-safe, umbral pasado por argumento. Una sola fuente de verdad en page.tsx.
+   - components/agent/ConversationDrawer.tsx (nuevo): cajón lateral deslizante
+     (backdrop + panel 'min(260px,85vw)', translateX, cierre Escape/backdrop,
+     scroll-lock del body). Recibe children genéricos.
+   - app/(authenticated)/agent/page.tsx: en móvil el ConversationSidebar se
+     monta dentro del drawer (☰ en barra superior nueva con CreditsIndicator);
+     en escritorio, sidebar fijo 260px intacto. Cierre del drawer al
+     seleccionar/crear conversación.
+   - ConversationInput.tsx: hint "Enter para enviar" oculto en móvil (prop isMobile).
+   - ConversationSidebar.tsx: iconos renombrar/borrar siempre visibles en móvil
+     (isHovered || isMobile); en escritorio siguen al hover. Padding derecho
+     reservado también en móvil.
+
+2. B.23 (PARCIAL) — ALTURA DVH
+   - AuthenticatedLayout + AppRail: h-screen → h-dvh (arregla altura base de toda
+     la zona autenticada y el corte del último icono del AppRail).
+   - chat/page.tsx: contenedor raíz height 100vh → 100dvh (caja de escribir ya no
+     se corta; sin scroll espúreo).
+   - globals.css body: min-height 100vh → 100dvh (con 100vh fallback): elimina la
+     franja blanca al scrollear en toda la app.
+   - NO tocado: minHeight:100vh en páginas que scrollean (legales, billing, usage,
+     team, landing, invite, login) — no estaban rotas.
+
+PENDIENTES DESTAPADOS (no abordados)
+- B.24: layout shift en cabeceras de /settings/usage al cargar (CLS).
+- B.25: micrófono (VoiceInput) duplica texto en móvil.
+- AppRail en móvil sigue siendo barra vertical de 64px (roba algo de ancho);
+  decidir si conviene bottom-nav/colapso en el futuro (no urgente, no roto).
+
+COMMITS DE ESTA SESIÓN
+  90ab550 useMediaQuery · 6d2d3e5 ConversationDrawer · 934b020 conectar drawer
+  ef53578 dvh agente · 41ca354 ocultar hint móvil · 03c129b iconos siempre visibles
+  ff3fff0 altura drawer dvh · fd4fa8e dvh AuthenticatedLayout+AppRail
+  040c08c chat dvh · 762f8bc body dvh
+
+ARCHIVOS NUEVOS
+  hooks/useMediaQuery.ts
+  components/agent/ConversationDrawer.tsx
+
+ARCHIVOS MODIFICADOS
+  app/(authenticated)/agent/page.tsx
+  components/agent/ConversationInput.tsx
+  components/agent/ConversationSidebar.tsx
+  components/layout/AuthenticatedLayout.tsx
+  components/layout/AppRail.tsx
+  app/(authenticated)/chat/page.tsx
+  app/globals.css

@@ -3,7 +3,7 @@ PENDIENTES — Doclity (Agente IA)
 Documento vivo. Se actualiza al completar tareas (marcar [✓]) y se
 sustituye por la versión nueva. Más ligero que la Bitácora: aquí va
 lo que falta y la visión que lo guía, no el detalle de cada sesión.
-Última actualización: 13/06/2026 (v10)
+Última actualización: 14/06/2026 (v11)
 
 
 ════════════════════════════════════════════════════════════════
@@ -216,31 +216,33 @@ Leyenda: [ ] pendiente · [~] en curso · [✓] hecho
       — mejorar el mensaje de fallo por truncación para que oriente CÓMO acotar (por doc,
       tema, grupo). PRIORIDAD: baja. El bug ya está cerrado; esto es refinamiento.
 
-[ ] B.22 — (UX / RESPONSIVE) Layout del agente adaptado a móvil
-      El agente está diseñado para pantalla ancha (sidebar de conversaciones fijo a la
-      izquierda). En móvil (pantalla estrecha) ese sidebar roba demasiado espacio al chat.
-      Replantear el layout en móvil:
-      · Lista de conversaciones: NO sidebar fijo, sino desplegable/colapsable, para que el
-        chat use todo el ancho.
-      · Botón de nueva conversación: reubicar de forma accesible en el layout móvil.
-      · Créditos: cuando el desplegable esté plegado, mostrar el saldo en la zona superior
-        (hoy vive en el footer del sidebar — en móvil quedaría oculto).
-      · Las mejoras B.17 (renombrar), B.18/B.19 (scroll) deben funcionar también en móvil.
-      PESO: media-alta. Diseño responsive de una pieza (no a parches). Empezar por decidir el
-      patrón (drawer lateral, bottom sheet, etc.) antes de tocar.
-      VISIÓN: el agente debe ser usable en móvil, no solo en escritorio — relevante porque
-      usuarios finales (PYMES, técnicos en campo) pueden usarlo desde el teléfono.
+[✓] B.22 — (UX / RESPONSIVE) Layout del agente adaptado a móvil
+      COMPLETADO. Patrón elegido: drawer lateral (cajón deslizante) solo en móvil; escritorio
+      intacto. Detección de móvil con hook useMediaQuery (umbral 767px), una sola fuente de
+      verdad en page.tsx que baja por props a los componentes que la necesitan.
+      Implementado: hook useMediaQuery; componente ConversationDrawer (backdrop + panel
+      deslizante, cierre por Escape/backdrop/selección, scroll-lock); en móvil el sidebar de
+      conversaciones se monta dentro del drawer y se abre con botón ☰ en una barra superior
+      nueva que muestra también los créditos (antes ocultos en el footer del sidebar); hint de
+      teclado ("Enter para enviar") oculto en móvil; iconos de renombrar/borrar SIEMPRE visibles
+      en móvil (en escritorio siguen al hover); altura del agente y del drawer a 100dvh.
+      B.17 (renombrar) y B.18/B.19 (scroll) verificados funcionando dentro del drawer en móvil.
 
-[ ] B.23 — (UX / RESPONSIVE) Altura de viewport en móvil (100vh → 100dvh) fuera del agente
-      En móvil, la barra de URL del navegador ocupa espacio en la parte superior hasta que
-      se hace scroll. Con height:100vh (o h-screen) el navegador calcula la altura ignorando
-      esa barra, así que la primera franja de la app queda tapada hasta scrollear. Solución:
-      usar la unidad dvh (dynamic viewport height), que se ajusta sola cuando la barra
-      aparece/desaparece. Poner 100vh como fallback y 100dvh después, para navegadores viejos.
-      ALCANCE: el agente YA se arregla dentro de B.22. Esta tarea cubre el RESTO de páginas que
-      usen 100vh/h-screen (chat, /settings/usage, login, legales…). Primero localizar dónde se
-      usa (exploración: grep de "100vh" y "h-screen"), luego decidir si es un cambio global o
-      varios localizados. PRIORIDAD: media. Se nota, pero no bloquea.
+[~] B.23 — (UX / RESPONSIVE) Altura de viewport en móvil (100vh → 100dvh) fuera del agente
+      EN CURSO. Problema: con height/min-height:100vh, la barra del navegador móvil deja una
+      franja blanca o corta contenido. Solución: dvh (con 100vh como fallback previo donde aplica).
+      HECHO hasta ahora:
+        · AuthenticatedLayout (contenedor raíz) y AppRail: h-screen → h-dvh (Tailwind 3.4 nativo).
+          Arregla la altura base de TODAS las páginas autenticadas y el corte del último icono
+          del AppRail (cerrar sesión).
+        · Pantalla de chat (chat/page.tsx, contenedor raíz): height 100vh → 100dvh. Arregla la
+          caja de escribir cortada y el scroll espúreo.
+        · globals.css, body: min-height 100vh → 100dvh (con 100vh de fallback). Elimina la franja
+          blanca al hacer scroll en TODA la app de un solo cambio.
+      PENDIENTE / A REVISAR:
+        · Resto de minHeight:100vh en estados de carga y páginas que SÍ scrollean (billing, usage,
+          team, legales, landing, invite, login). NO se tocaron: scrollean bien y no estaban rotos.
+          Revisar solo si aparece un problema concreto en alguno en móvil.
       VISIÓN: la app debe verse completa nada más entrar en móvil, sin tener que scrollear.
 
 [ ] B.24 — (UX / PULIDO) Layout shift en cabeceras al cargar (sensación de poco profesional)
@@ -253,8 +255,14 @@ Leyenda: [ ] pendiente · [~] en curso · [✓] hecho
       (y cualquier cabecera con datos asíncronos). PRIORIDAD: baja. Es pulido visual, no funcional.
       VISIÓN: nada debe "saltar" al cargar; transmite producto cuidado y profesional.
 
-- B.23 (dvh) y B.24 (layout shift) salieron al diseñar B.22. El dvh del agente se resuelve
-  DENTRO de B.22; B.23 cubre el resto de páginas. Ambas son pulido responsive, no bloqueantes.
+[ ] B.25 — (BUG) Micrófono (entrada de voz) duplica el texto en móvil
+      El componente VoiceInput funciona bien en escritorio pero en móvil duplica lo que escucha:
+      el texto transcrito sale repetido y el prompt queda inservible. Patrón típico de la API de
+      reconocimiento de voz del navegador en móvil (resultados intermedios/finales que se
+      concatenan mal, o reinicio que reescucha). Requiere explorar components/VoiceInput.tsx y ver
+      cómo acumula los resultados. NO relacionado con el layout (B.22/B.23). PRIORIDAD: media —
+      la función queda inutilizable en móvil, que es donde más se usaría dictar.
+      VISIÓN: dictar por voz debe funcionar igual de bien en móvil que en escritorio.
 
 [✓] B.5 — (Latencia) Trigger directo Vercel→Railway (Opción D). Commits ba1e822 (worker:
       trigger-server.ts + POLL_INTERVAL 10s) + 130edbf (notifyWorker fire-and-forget en Vercel).
@@ -541,6 +549,9 @@ NOTAS DE ORDEN (propuesta, a confirmar)
 - B.6 (aprendizaje) es la FASE FINAL: se construye sobre B.3, el sistema
   de búsqueda y los permisos de B.15. Diseño técnico primero cuando se llegue.
 - B.7 (cierre técnico) completado.
+- B.22 (layout móvil del agente) COMPLETADO. B.23 (dvh resto de la app) en curso: hecho el
+  layout autenticado, AppRail, chat y el body global; pendiente revisar páginas que scrollean
+  solo si dan problema. B.24 (layout shift) y B.25 (micrófono móvil) salieron durante B.22/B.23.
 
 Forma de trabajo: diagnóstico con datos reales antes de arreglar; un
 cambio lógico cada vez; build verde entre medias; SQL en Supabase antes
