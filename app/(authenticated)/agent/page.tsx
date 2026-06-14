@@ -250,6 +250,7 @@ export default function AgentPage() {
         {/* Input — siempre visible */}
         <ConversationInput
           conversation={displayedConversation}
+          isMobile={isMobile}
           sending={sending}
           creating={creating}
           error={error}

@@ -54,6 +54,7 @@ export interface ConversationInputProps {
   sending:         boolean;
   creating:        boolean;
   error:           string | null;
+  isMobile?:       boolean;
   onSendMessage:   (convId: string, body: SendMessageBody) => Promise<boolean>;
   onCreateAndSend: (mode: ConfirmationMode, content: string) => Promise<void>;
   onCancel:        () => void;
@@ -63,7 +64,7 @@ export interface ConversationInputProps {
 // ── Componente principal ──────────────────────────────────────────────────────
 
 export default function ConversationInput({
-  conversation, sending, creating, error,
+  conversation, sending, creating, error, isMobile,
   onSendMessage, onCreateAndSend, onCancel, onClearError,
 }: ConversationInputProps) {
   const [content,    setContent]    = useState('');
@@ -234,7 +235,7 @@ export default function ConversationInput({
             </div>
           </div>
         </div>
-        <p style={HINT}>Enter para enviar · Shift+Enter nueva línea</p>
+        {!isMobile && <p style={HINT}>Enter para enviar · Shift+Enter nueva línea</p>}
       </div>
     );
   }
@@ -293,7 +294,7 @@ export default function ConversationInput({
           <VoiceInput onTranscript={appendVoice} disabled={isBusy} />
           <SendBtn disabled={isBusy || !content.trim()} busy={isBusy} onClick={() => handleTextSend(conversation.id)} />
         </div>
-        <p style={HINT}>Enter para enviar · Shift+Enter nueva línea</p>
+        {!isMobile && <p style={HINT}>Enter para enviar · Shift+Enter nueva línea</p>}
       </div>
     );
   }
@@ -327,7 +328,7 @@ export default function ConversationInput({
           <VoiceInput onTranscript={appendVoice} disabled={isBusy} />
           <SendBtn disabled={isBusy || !content.trim()} busy={isBusy} onClick={() => handleTextSend(conversation.id)} />
         </div>
-        <p style={HINT}>Enter para enviar · Shift+Enter nueva línea</p>
+        {!isMobile && <p style={HINT}>Enter para enviar · Shift+Enter nueva línea</p>}
       </div>
     );
   }
