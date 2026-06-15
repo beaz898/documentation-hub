@@ -12,6 +12,7 @@ declare global {
     onend: (() => void) | null;
     start(): void;
     stop(): void;
+    abort(): void;
   }
   interface SpeechRecognitionEvent extends Event {
     resultIndex: number;
@@ -32,8 +33,15 @@ export default function VoiceInput({ onTranscript, disabled }: VoiceInputProps) 
   const [supported, setSupported] = useState(false);
   const [recording, setRecording] = useState(false);
   const [interim, setInterim] = useState('');
+
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const onTranscriptRef = useRef(onTranscript);
+
+  // Texto final ya emitido en ESTA sesión de dictado. Sirve para emitir solo
+  // la parte nueva y no duplicar cuando el navegador móvil reentrega un final.
+  const emittedRef = useRef('');
+  // true = el usuario pulsó parar (no relanzar). false = lo cortó el navegador.
+  const manualStopRef = useRef(false);
 
   useEffect(() => { onTranscriptRef.current = onTranscript; }, [onTranscript]);
 
@@ -41,16 +49,23 @@ export default function VoiceInput({ onTranscript, disabled }: VoiceInputProps) 
     setSupported(!!(window.SpeechRecognition ?? window.webkitSpeechRecognition));
   }, []);
 
-  const stopRecording = useCallback(() => {
-    recognitionRef.current?.stop();
-    recognitionRef.current = null;
-    setRecording(false);
-    setInterim('');
-  }, []);
-
-  const startRecording = useCallback(() => {
+  // Crea, configura y arranca una instancia de reconocimiento.
+  // restart=true cuando relanzamos tras un corte del navegador (no resetea lo emitido).
+  const launch = useCallback((restart: boolean) => {
     const SR = window.SpeechRecognition ?? window.webkitSpeechRecognition;
     if (!SR) return;
+
+    // Aborta cualquier instancia previa y quita sus listeners (anti doble-tap / relanzado).
+    const prev = recognitionRef.current;
+    if (prev) {
+      prev.onresult = null;
+      prev.onerror = null;
+      prev.onend = null;
+      try { prev.abort(); } catch { /* noop */ }
+      recognitionRef.current = null;
+    }
+
+    if (!restart) emittedRef.current = '';
 
     const recognition = new SR();
     recognition.continuous = true;
@@ -58,29 +73,107 @@ export default function VoiceInput({ onTranscript, disabled }: VoiceInputProps) 
     recognition.lang = 'es-ES';
 
     recognition.onresult = (event: SpeechRecognitionEvent) => {
+      console.log('[VOICE] resultIndex=', event.resultIndex,
+        'len=', event.results.length,
+        'items=', Array.from(event.results).map((r, i) => ({
+          i,
+          final: r.isFinal,
+          text: r[0].transcript,
+        })));
+      // Reconstruye TODO el texto final visible en esta tanda de resultados.
+      let finalText = '';
       let interimText = '';
-      for (let i = event.resultIndex; i < event.results.length; i++) {
+      for (let i = 0; i < event.results.length; i++) {
         const result = event.results[i];
         if (result.isFinal) {
-          onTranscriptRef.current(result[0].transcript);
+          finalText += result[0].transcript;
         } else {
           interimText += result[0].transcript;
         }
       }
+
+      // Emite SOLO lo nuevo respecto a lo ya emitido en esta sesión.
+      // Si el navegador reentrega lo mismo, delta queda vacío → no duplica.
+      if (finalText.length > emittedRef.current.length
+          && finalText.startsWith(emittedRef.current)) {
+        const delta = finalText.slice(emittedRef.current.length).trim();
+        if (delta) onTranscriptRef.current(delta);
+        emittedRef.current = finalText;
+      } else if (finalText && finalText !== emittedRef.current
+                 && !finalText.startsWith(emittedRef.current)) {
+        // Caso raro: el navegador reescribió el final entero (no es una extensión).
+        // Emitimos el final completo y reseteamos la referencia para esta tanda.
+        const delta = finalText.trim();
+        if (delta) onTranscriptRef.current(delta);
+        emittedRef.current = finalText;
+      }
+
       setInterim(interimText);
     };
 
-    recognition.onerror = () => { setRecording(false); setInterim(''); };
-    recognition.onend  = () => { setRecording(false); setInterim(''); };
+    recognition.onerror = () => {
+      setInterim('');
+    };
+
+    recognition.onend = () => {
+      setInterim('');
+      // Si el usuario no paró a propósito, relanzamos: escucha continua en móvil.
+      if (!manualStopRef.current) {
+        // Nueva tanda: el navegador empezará un results nuevo desde cero,
+        // así que reseteamos lo emitido de la tanda anterior.
+        emittedRef.current = '';
+        launch(true);
+      } else {
+        setRecording(false);
+      }
+    };
 
     recognitionRef.current = recognition;
-    recognition.start();
-    setRecording(true);
+    try {
+      recognition.start();
+      setRecording(true);
+    } catch {
+      // start() puede lanzar si la instancia ya está activa; lo ignoramos.
+    }
+  }, []);
+
+  const startRecording = useCallback(() => {
+    manualStopRef.current = false;
+    launch(false);
+  }, [launch]);
+
+  const stopRecording = useCallback(() => {
+    manualStopRef.current = true;
+    const rec = recognitionRef.current;
+    if (rec) {
+      rec.onresult = null;
+      rec.onerror = null;
+      rec.onend = null;
+      try { rec.stop(); } catch { /* noop */ }
+      recognitionRef.current = null;
+    }
+    setRecording(false);
+    setInterim('');
   }, []);
 
   const handleToggle = useCallback(() => {
     if (recording) stopRecording(); else startRecording();
   }, [recording, startRecording, stopRecording]);
+
+  // Cleanup al desmontar: aborta cualquier reconocimiento vivo.
+  useEffect(() => {
+    return () => {
+      manualStopRef.current = true;
+      const rec = recognitionRef.current;
+      if (rec) {
+        rec.onresult = null;
+        rec.onerror = null;
+        rec.onend = null;
+        try { rec.abort(); } catch { /* noop */ }
+        recognitionRef.current = null;
+      }
+    };
+  }, []);
 
   if (!supported) return null;
 
