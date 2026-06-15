@@ -1370,3 +1370,63 @@ ARCHIVOS MODIFICADOS
   components/layout/AppRail.tsx
   app/(authenticated)/chat/page.tsx
   app/globals.css
+
+
+────────────────────────────────────────────────────────────────
+SESIÓN 19 — 15/06/2026
+Título: B.25 — Fix duplicado de transcripción de voz en móvil
+────────────────────────────────────────────────────────────────
+
+OBJETIVO
+Corregir B.25: el componente VoiceInput duplicaba/repetía el texto al dictar
+en móvil (en escritorio funcionaba bien), dejando el prompt inservible.
+
+DIAGNÓSTICO
+Exploración primero (Claude Code "solo reporta"). Una primera hipótesis (que el
+navegador reentregaba finales acumulados y bastaba con quedarse con el delta)
+resultó FALSA al probar en móvil real: seguía duplicando mientras se dictaba.
+Se instrumentó onresult con un log VISIBLE EN PANTALLA del móvil (sin cable, por
+no tener Remote Debugging a mano). El log reveló el comportamiento real del
+Android: en cada evento onresult el navegador AÑADE un resultado nuevo a
+event.results y marca TODOS como isFinal, conteniendo cada uno la FRASE COMPLETA
+ACUMULADA desde el principio. El código original recorría desde resultIndex y
+emitía cada final → reenviaba la frase entera en cada evento → duplicado masivo.
+
+SOLUCIÓN (components/VoiceInput.tsx)
+- onresult lee SOLO el último resultado de event.results (siempre el más completo)
+  en lugar de recorrer todos los finales.
+- emitDelta(fullText): compara la frase completa con lo ya emitido en la sesión
+  (emittedRef) y emite únicamente el fragmento nuevo del final. Si el navegador
+  rehace la frase (no es extensión), actualiza la base sin re-emitir (no duplica).
+- Guard anti doble-tap: launch() aborta y limpia listeners de cualquier instancia
+  previa antes de crear otra (en táctil un tap puede contarse dos veces).
+- Auto-reinicio en onend: si el usuario no paró a propósito (manualStopRef=false),
+  relanza el reconocimiento → escucha continua en móvil (el navegador apaga el micro
+  solo en pausas largas). manualStopRef distingue parada del usuario vs corte del navegador.
+- Cleanup al desmontar: aborta cualquier reconocimiento vivo.
+- Props (onTranscript, disabled) intactas → ni chat ni agente requieren cambios.
+
+PROCESO
+- Se descartó el push-to-talk (ráfaga) y se mantuvo escucha continua a petición del
+  usuario (preferencia por la sensación tipo "micro de Claude"). Nota honesta: se
+  replica el flujo, no la calidad del motor — VoiceInput usa la Web Speech API nativa
+  del navegador (gratis, sin enviar audio fuera), no un motor en nube tipo Whisper.
+- Logs de debug en pantalla retirados antes del commit final.
+
+VERIFICADO EN MÓVIL REAL
+Chat y agente; parada con botón; ritmos rápido/lento; pausas cortas y largas con y
+sin botón. Sin duplicados.
+
+PENDIENTES DESTAPADOS (no abordados)
+- B.24: layout shift (CLS) en cabeceras de /settings/usage al cargar (heredado de Sesión 18).
+- Calidad de transcripción limitada por usar la Web Speech API del navegador. Si en el
+  futuro se quisiera transcripción premium (mejor con acentos/ruido/jerga), la vía sería
+  enviar el audio a un motor tipo Whisper vía API. Es FUNCIONALIDAD NUEVA (coste por uso,
+  audio sale del dispositivo, más arquitectura), no un fix. No urgente.
+
+ARCHIVOS MODIFICADOS
+  components/VoiceInput.tsx — emitDelta + emittedRef, lectura del último resultado,
+                              guard anti doble-tap, auto-reinicio en onend, cleanup
+
+COMMIT
+  fix(voice): evitar duplicado de transcripción en móvil (B.25)

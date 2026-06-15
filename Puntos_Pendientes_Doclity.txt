@@ -255,14 +255,17 @@ Leyenda: [ ] pendiente · [~] en curso · [✓] hecho
       (y cualquier cabecera con datos asíncronos). PRIORIDAD: baja. Es pulido visual, no funcional.
       VISIÓN: nada debe "saltar" al cargar; transmite producto cuidado y profesional.
 
-[ ] B.25 — (BUG) Micrófono (entrada de voz) duplica el texto en móvil
-      El componente VoiceInput funciona bien en escritorio pero en móvil duplica lo que escucha:
-      el texto transcrito sale repetido y el prompt queda inservible. Patrón típico de la API de
-      reconocimiento de voz del navegador en móvil (resultados intermedios/finales que se
-      concatenan mal, o reinicio que reescucha). Requiere explorar components/VoiceInput.tsx y ver
-      cómo acumula los resultados. NO relacionado con el layout (B.22/B.23). PRIORIDAD: media —
-      la función queda inutilizable en móvil, que es donde más se usaría dictar.
-      VISIÓN: dictar por voz debe funcionar igual de bien en móvil que en escritorio.
+[✓] B.25 — (UX / Voz) Micrófono duplicaba texto en móvil
+      Causa real (vista con log en pantalla del propio móvil): el navegador en Android
+      entrega en cada onresult la FRASE COMPLETA ACUMULADA repetida en múltiples
+      resultados, todos marcados isFinal. El código emitía cada final → frase entera
+      repetida en cada evento mientras se dictaba. Fix: leer SOLO el último resultado
+      (el más completo) y emitir únicamente el fragmento nuevo respecto a lo ya emitido
+      (emitDelta + emittedRef). Añadido: guard anti doble-tap (abort de instancia previa),
+      auto-reinicio en onend para escucha continua en móvil (manualStopRef distingue
+      parada del usuario vs corte del navegador) y cleanup al desmontar. Todo en
+      components/VoiceInput.tsx; props intactas, sin tocar chat ni agente. Verificado en
+      móvil real: chat + agente, parada manual, ritmos y pausas cortas/largas con y sin botón.
 
 [✓] B.5 — (Latencia) Trigger directo Vercel→Railway (Opción D). Commits ba1e822 (worker:
       trigger-server.ts + POLL_INTERVAL 10s) + 130edbf (notifyWorker fire-and-forget en Vercel).
