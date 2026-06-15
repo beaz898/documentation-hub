@@ -33,6 +33,7 @@ export default function VoiceInput({ onTranscript, disabled }: VoiceInputProps) 
   const [supported, setSupported] = useState(false);
   const [recording, setRecording] = useState(false);
   const [interim, setInterim] = useState('');
+  const [debugLog, setDebugLog] = useState<string[]>([]);
 
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const onTranscriptRef = useRef(onTranscript);
@@ -73,13 +74,13 @@ export default function VoiceInput({ onTranscript, disabled }: VoiceInputProps) 
     recognition.lang = 'es-ES';
 
     recognition.onresult = (event: SpeechRecognitionEvent) => {
-      console.log('[VOICE] resultIndex=', event.resultIndex,
-        'len=', event.results.length,
-        'items=', Array.from(event.results).map((r, i) => ({
-          i,
-          final: r.isFinal,
-          text: r[0].transcript,
-        })));
+      const snapshot = Array.from(event.results).map((r, i) =>
+        `${i}:${r.isFinal ? 'F' : 'i'}:"${r[0].transcript}"`
+      ).join('  ');
+      setDebugLog(prev => [
+        `idx=${event.resultIndex} len=${event.results.length} | ${snapshot}`,
+        ...prev,
+      ].slice(0, 25));
       // Reconstruye TODO el texto final visible en esta tanda de resultados.
       let finalText = '';
       let interimText = '';
@@ -179,6 +180,24 @@ export default function VoiceInput({ onTranscript, disabled }: VoiceInputProps) 
 
   return (
     <div style={{ position: 'relative', flexShrink: 0 }}>
+      {debugLog.length > 0 && (
+        <div style={{
+          position: 'fixed', left: 8, right: 8, bottom: 8, zIndex: 9999,
+          maxHeight: '40vh', overflow: 'auto',
+          background: 'rgba(0,0,0,0.88)', color: '#0f0',
+          fontFamily: 'monospace', fontSize: 10, lineHeight: 1.4,
+          padding: 8, borderRadius: 6, whiteSpace: 'pre-wrap',
+        }}>
+          <div style={{ color:'#fff', marginBottom:4 }}>
+            [VOICE DEBUG] — toca para copiar
+          </div>
+          <div onClick={() => {
+            navigator.clipboard?.writeText(debugLog.join('\n'));
+          }}>
+            {debugLog.join('\n')}
+          </div>
+        </div>
+      )}
       {interim && (
         <div style={{
           position: 'absolute', bottom: '100%', right: 0, marginBottom: 6,
