@@ -33,13 +33,13 @@ export default function VoiceInput({ onTranscript, disabled }: VoiceInputProps) 
   const [supported, setSupported] = useState(false);
   const [recording, setRecording] = useState(false);
   const [interim, setInterim] = useState('');
-  const [debugLog, setDebugLog] = useState<string[]>([]);
 
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const onTranscriptRef = useRef(onTranscript);
 
-  // Texto final ya emitido en ESTA sesión de dictado. Sirve para emitir solo
-  // la parte nueva y no duplicar cuando el navegador móvil reentrega un final.
+  // Texto completo ya emitido en ESTA sesión de dictado.
+  // Cada evento del navegador trae la frase entera acumulada; comparamos con
+  // esto y emitimos solo la parte nueva del final. Así no se duplica.
   const emittedRef = useRef('');
   // true = el usuario pulsó parar (no relanzar). false = lo cortó el navegador.
   const manualStopRef = useRef(false);
@@ -50,8 +50,28 @@ export default function VoiceInput({ onTranscript, disabled }: VoiceInputProps) 
     setSupported(!!(window.SpeechRecognition ?? window.webkitSpeechRecognition));
   }, []);
 
-  // Crea, configura y arranca una instancia de reconocimiento.
-  // restart=true cuando relanzamos tras un corte del navegador (no resetea lo emitido).
+  // Emite solo el fragmento nuevo de 'fullText' respecto a lo ya emitido.
+  // fullText = la frase completa acumulada que reporta el navegador.
+  const emitDelta = useCallback((fullText: string) => {
+    const full = fullText.trim();
+    if (!full) return;
+
+    const prev = emittedRef.current;
+    if (full === prev) return; // nada nuevo
+
+    if (full.startsWith(prev)) {
+      // Extensión normal: emite solo lo añadido al final.
+      const delta = full.slice(prev.length).trim();
+      if (delta) onTranscriptRef.current(delta);
+      emittedRef.current = full;
+    } else {
+      // El navegador rehízo la frase (corrección interna). Para no perder ni
+      // duplicar, no re-emitimos lo ya dado: solo actualizamos la referencia.
+      // El siguiente fragmento nuevo se calculará contra esta nueva base.
+      emittedRef.current = full;
+    }
+  }, []);
+
   const launch = useCallback((restart: boolean) => {
     const SR = window.SpeechRecognition ?? window.webkitSpeechRecognition;
     if (!SR) return;
@@ -74,42 +94,22 @@ export default function VoiceInput({ onTranscript, disabled }: VoiceInputProps) 
     recognition.lang = 'es-ES';
 
     recognition.onresult = (event: SpeechRecognitionEvent) => {
-      const snapshot = Array.from(event.results).map((r, i) =>
-        `${i}:${r.isFinal ? 'F' : 'i'}:"${r[0].transcript}"`
-      ).join('  ');
-      setDebugLog(prev => [
-        `idx=${event.resultIndex} len=${event.results.length} | ${snapshot}`,
-        ...prev,
-      ].slice(0, 25));
-      // Reconstruye TODO el texto final visible en esta tanda de resultados.
-      let finalText = '';
-      let interimText = '';
-      for (let i = 0; i < event.results.length; i++) {
-        const result = event.results[i];
-        if (result.isFinal) {
-          finalText += result[0].transcript;
-        } else {
-          interimText += result[0].transcript;
-        }
-      }
+      const results = event.results;
+      if (results.length === 0) return;
 
-      // Emite SOLO lo nuevo respecto a lo ya emitido en esta sesión.
-      // Si el navegador reentrega lo mismo, delta queda vacío → no duplica.
-      if (finalText.length > emittedRef.current.length
-          && finalText.startsWith(emittedRef.current)) {
-        const delta = finalText.slice(emittedRef.current.length).trim();
-        if (delta) onTranscriptRef.current(delta);
-        emittedRef.current = finalText;
-      } else if (finalText && finalText !== emittedRef.current
-                 && !finalText.startsWith(emittedRef.current)) {
-        // Caso raro: el navegador reescribió el final entero (no es una extensión).
-        // Emitimos el final completo y reseteamos la referencia para esta tanda.
-        const delta = finalText.trim();
-        if (delta) onTranscriptRef.current(delta);
-        emittedRef.current = finalText;
-      }
+      // CLAVE: el último resultado siempre contiene la frase más completa.
+      // Este navegador entrega la frase acumulada entera en cada evento, así
+      // que con mirar el último elemento basta; ignoramos los anteriores.
+      const last = results[results.length - 1];
+      const lastText = last[0].transcript;
 
-      setInterim(interimText);
+      if (last.isFinal) {
+        emitDelta(lastText);
+        setInterim('');
+      } else {
+        // Provisional: lo mostramos en el tooltip, no lo emitimos aún.
+        setInterim(lastText);
+      }
     };
 
     recognition.onerror = () => {
@@ -118,10 +118,10 @@ export default function VoiceInput({ onTranscript, disabled }: VoiceInputProps) 
 
     recognition.onend = () => {
       setInterim('');
-      // Si el usuario no paró a propósito, relanzamos: escucha continua en móvil.
+      // Si el usuario no paró a propósito, relanzamos para escucha continua.
+      // emittedRef NO se resetea aquí: los consumidores acumulan el texto, y
+      // la nueva tanda arranca con su propia frase; emitDelta gestiona la base.
       if (!manualStopRef.current) {
-        // Nueva tanda: el navegador empezará un results nuevo desde cero,
-        // así que reseteamos lo emitido de la tanda anterior.
         emittedRef.current = '';
         launch(true);
       } else {
@@ -136,7 +136,7 @@ export default function VoiceInput({ onTranscript, disabled }: VoiceInputProps) 
     } catch {
       // start() puede lanzar si la instancia ya está activa; lo ignoramos.
     }
-  }, []);
+  }, [emitDelta]);
 
   const startRecording = useCallback(() => {
     manualStopRef.current = false;
@@ -161,7 +161,6 @@ export default function VoiceInput({ onTranscript, disabled }: VoiceInputProps) 
     if (recording) stopRecording(); else startRecording();
   }, [recording, startRecording, stopRecording]);
 
-  // Cleanup al desmontar: aborta cualquier reconocimiento vivo.
   useEffect(() => {
     return () => {
       manualStopRef.current = true;
@@ -180,24 +179,6 @@ export default function VoiceInput({ onTranscript, disabled }: VoiceInputProps) 
 
   return (
     <div style={{ position: 'relative', flexShrink: 0 }}>
-      {debugLog.length > 0 && (
-        <div style={{
-          position: 'fixed', left: 8, right: 8, bottom: 8, zIndex: 9999,
-          maxHeight: '40vh', overflow: 'auto',
-          background: 'rgba(0,0,0,0.88)', color: '#0f0',
-          fontFamily: 'monospace', fontSize: 10, lineHeight: 1.4,
-          padding: 8, borderRadius: 6, whiteSpace: 'pre-wrap',
-        }}>
-          <div style={{ color:'#fff', marginBottom:4 }}>
-            [VOICE DEBUG] — toca para copiar
-          </div>
-          <div onClick={() => {
-            navigator.clipboard?.writeText(debugLog.join('\n'));
-          }}>
-            {debugLog.join('\n')}
-          </div>
-        </div>
-      )}
       {interim && (
         <div style={{
           position: 'absolute', bottom: '100%', right: 0, marginBottom: 6,
