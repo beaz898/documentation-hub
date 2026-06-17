@@ -640,7 +640,11 @@ export async function runAgentTurn(input: TurnInput): Promise<TurnOutput> {
     // Sin tool calls: el modelo terminó sin llamar a finalize
     if (toolBlocks.length === 0) {
       const finalText = textBlocks.find(b => b.type === 'text')?.text ?? '';
-      await setMessageContent(supabase, messageId, finalText);
+      const wasTruncated = llmResponse.stop_reason === 'max_tokens';
+      const contentToSave = wasTruncated
+        ? `⚠️ ${TRUNCATION_MESSAGE}\n\n---\n\n${finalText}`
+        : finalText;
+      await setMessageContent(supabase, messageId, contentToSave);
       await updateMessageStatus(supabase, messageId, 'completed');
       await updateConversationStatus(supabase, conversationId, 'idle');
       await reconcileTurnCredits(supabase, orgId, conversationId, messageId, creditsEstimated, totalInputTokens, totalOutputTokens);
