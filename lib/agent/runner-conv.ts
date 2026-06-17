@@ -35,6 +35,11 @@ import { getEffectiveRole, type OrgRole } from '@/lib/org';
 
 const MAX_ITERATIONS = 15;
 
+const TRUNCATION_MESSAGE =
+  'La respuesta se ha cortado porque la petición abarcaba demasiado de una vez. ' +
+  'Pídemelo por partes en este mismo chat y lo completo: por ejemplo un documento ' +
+  'concreto, un tema, o el aspecto que más te interese.';
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Meta-pasos: steps que se registran para la UI pero no se mandan al LLM
 // ─────────────────────────────────────────────────────────────────────────────
@@ -655,11 +660,10 @@ export async function runAgentTurn(input: TurnInput): Promise<TurnOutput> {
       // tool_call o pedir confirmación — así el PRE-BUCLE nunca recibe un finalize
       // con contenido cortado.
       if (toolName === 'finalize' && llmResponse.stop_reason === 'max_tokens') {
-        const errMsg =
-          'La respuesta era demasiado extensa. Inténtalo con una consulta más acotada.';
-        await updateMessageStatus(supabase, messageId, 'failed', { error_message: errMsg });
+        await updateMessageStatus(supabase, messageId, 'failed', { error_message: TRUNCATION_MESSAGE });
+        await reconcileTurnCredits(supabase, orgId, conversationId, messageId, creditsEstimated, totalInputTokens, totalOutputTokens);
         await updateConversationStatus(supabase, conversationId, 'idle');
-        return { status: 'failed', error: errMsg };
+        return { status: 'failed', error: TRUNCATION_MESSAGE };
       }
 
       const needsConfirm = shouldConfirm({
