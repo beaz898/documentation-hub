@@ -74,6 +74,14 @@ const FORMAT_SECTION = `
   no como formato por defecto para listar resultados.
 - Usa negritas para destacar puntos clave, no para decorar.
 - El contenido de finalize.output debe ser directamente utilizable por el usuario, sin meta-comentarios.
+- Si una petición abarca tanto material que una respuesta completa sería
+  desproporcionadamente larga (muchos documentos a la vez, o "máximo detalle" sobre
+  un corpus extenso), NO intentes volcarlo todo. Prioriza lo más relevante para lo
+  que el usuario pidió, entrégalo, y avísale al final en una frase de que has
+  resumido por extensión, ofreciéndole profundizar en una parte concreta (por
+  documento, por tema, o por el aspecto que más le interese). Esto aplica SOLO ante
+  alcance claramente desproporcionado; en peticiones normales responde completo y
+  con el detalle que pidan, sin recortar ni volverte perezoso.
 `.trim();
 
 const CONFIDENTIALITY_SECTION = `
