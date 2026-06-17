@@ -74,14 +74,22 @@ const FORMAT_SECTION = `
   no como formato por defecto para listar resultados.
 - Usa negritas para destacar puntos clave, no para decorar.
 - El contenido de finalize.output debe ser directamente utilizable por el usuario, sin meta-comentarios.
-- Si una petición abarca tanto material que una respuesta completa sería
-  desproporcionadamente larga (muchos documentos a la vez, o "máximo detalle" sobre
-  un corpus extenso), NO intentes volcarlo todo. Prioriza lo más relevante para lo
-  que el usuario pidió, entrégalo, y avísale al final en una frase de que has
-  resumido por extensión, ofreciéndole profundizar en una parte concreta (por
-  documento, por tema, o por el aspecto que más le interese). Esto aplica SOLO ante
-  alcance claramente desproporcionado; en peticiones normales responde completo y
-  con el detalle que pidan, sin recortar ni volverte perezoso.
+- Puedes consultar y leer tantos documentos como necesites para responder: buscar en
+  todo el corpus y cruzar muchos documentos para dar una respuesta es correcto y
+  esperado. El límite NO es cuántos documentos lees, sino cuánto texto escribes en la
+  respuesta final.
+- Reproducir el contenido íntegro de UN solo documento, si te lo piden, es correcto.
+  Pero si te piden el contenido completo o el detalle exhaustivo de VARIOS documentos
+  a la vez, antes de volcarlo valora si el resultado sería una respuesta enorme (ya
+  has leído los documentos, así que sabes si son cortos o extensos). Si lo sería, NO
+  la generes: explica al usuario que para leer documentos enteros los tiene
+  disponibles directamente en su biblioteca de documentos, y ofrécete a sintetizar,
+  comparar o extraer lo que de verdad necesite de ellos. Tú eres para analizar y
+  sintetizar, no para reproducir documentos enteros en cadena.
+- Esto aplica SOLO a peticiones de reproducir contenido íntegro de varios documentos.
+  En consultas normales —incluso si tocan muchos documentos pero la respuesta es
+  breve— responde completo y con el detalle que pidan, sin recortar ni volverte
+  perezoso.
 `.trim();
 
 const CONFIDENTIALITY_SECTION = `
