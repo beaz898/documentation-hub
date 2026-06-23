@@ -3,7 +3,7 @@ PENDIENTES — Doclity (Agente IA)
 Documento vivo. Se actualiza al completar tareas (marcar [✓]) y se
 sustituye por la versión nueva. Más ligero que la Bitácora: aquí va
 lo que falta y la visión que lo guía, no el detalle de cada sesión.
-Última actualización: 23/06/2026 (v12)
+Última actualización: 23/06/2026 (v13)
 
 
 ════════════════════════════════════════════════════════════════
@@ -245,15 +245,14 @@ Leyenda: [ ] pendiente · [~] en curso · [✓] hecho
           Revisar solo si aparece un problema concreto en alguno en móvil.
       VISIÓN: la app debe verse completa nada más entrar en móvil, sin tener que scrollear.
 
-[ ] B.24 — (UX / PULIDO) Layout shift en cabeceras al cargar (sensación de poco profesional)
-      Síntoma observado en /settings/usage en móvil: mientras carga, la cabecera (botón "volver"
-      + título de la pestaña) ocupa una línea; al llegar los datos, el contenido reflueye y pasa
-      a dos líneas, empujando todo. Es Cumulative Layout Shift (CLS): el contenido salta porque
-      no se reserva su espacio desde el principio. Solución: reservar la altura de la cabecera
-      desde el render inicial (altura fija aunque el contenido aún no haya cargado) o usar un
-      skeleton que ocupe lo mismo que ocupará el resultado final. Revisar QualityTab y ChatTab
-      (y cualquier cabecera con datos asíncronos). PRIORIDAD: baja. Es pulido visual, no funcional.
-      VISIÓN: nada debe "saltar" al cargar; transmite producto cuidado y profesional.
+[✓] B.24 — (UX / PULIDO) Layout shift en cabeceras al cargar (sensación de poco profesional)
+      COMPLETADO en Sesión 20 (23/06/2026). Dos commits:
+      · Commit 1: barra de pestañas — placeholder con minHeight:80 mientras loading=true,
+        evita el CLS en móvil donde las 3 pestañas (plan Business) envolvían a 2 líneas
+        al llegar summary.plan.
+      · Commit 2: grids KPI en QualityTab y ChatTab — DayFilter visible desde el primer
+        frame + div vacío minHeight:80 durante loading; minHeight:80 en estado sin-datos y
+        en el contenedor del grid con datos. Los tres estados ocupan ≥80px → sin salto.
 
 [✓] B.26 — (Seguridad) Política RLS DELETE de documents endurecida
       De USING(true) a filtro por org_id (mismo patrón que SELECT/INSERT).
