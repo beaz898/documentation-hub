@@ -112,19 +112,23 @@ export default function UsagePage() {
         <h1 style={{ fontSize: 15, fontWeight: 600 }}>{t('headerTitle')}</h1>
       </div>
 
-      <div style={{ padding: '0 20px', borderBottom: '0.5px solid var(--border)', display: 'flex' }}>
-        {visibleTabs.map(tab => (
-          <button key={tab.id} onClick={() => setActiveTab(tab.id)} style={{
-            padding: '10px 16px', border: 'none', background: 'transparent', cursor: 'pointer',
-            fontSize: 12, fontWeight: 600,
-            borderBottom: activeTab === tab.id ? '2px solid var(--brand)' : '2px solid transparent',
-            color: activeTab === tab.id ? 'var(--text-primary)' : 'var(--text-secondary)',
-            marginBottom: -1,
-          }}>
-            {tab.label}
-          </button>
-        ))}
-      </div>
+      {loading ? (
+        <div style={{ padding: '0 20px', borderBottom: '0.5px solid var(--border)', minHeight: 80 }} />
+      ) : (
+        <div style={{ padding: '0 20px', borderBottom: '0.5px solid var(--border)', display: 'flex' }}>
+          {visibleTabs.map(tab => (
+            <button key={tab.id} onClick={() => setActiveTab(tab.id)} style={{
+              padding: '10px 16px', border: 'none', background: 'transparent', cursor: 'pointer',
+              fontSize: 12, fontWeight: 600,
+              borderBottom: activeTab === tab.id ? '2px solid var(--brand)' : '2px solid transparent',
+              color: activeTab === tab.id ? 'var(--text-primary)' : 'var(--text-secondary)',
+              marginBottom: -1,
+            }}>
+              {tab.label}
+            </button>
+          ))}
+        </div>
+      )}
 
       <div style={{ maxWidth: 700, margin: '0 auto', padding: '24px 20px' }}>
         {loading ? (
