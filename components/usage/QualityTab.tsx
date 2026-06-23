@@ -93,9 +93,10 @@ export default function QualityTab({ session }: QualityTabProps) {
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', padding: 40 }}>
-        <div className="animate-spin" style={{ width: 20, height: 20, border: '2px solid var(--brand)', borderTopColor: 'transparent', borderRadius: '50%' }} />
-      </div>
+      <>
+        <DayFilter days={days} setDays={setDays} />
+        <div style={{ minHeight: 80 }} />
+      </>
     );
   }
 
@@ -103,7 +104,7 @@ export default function QualityTab({ session }: QualityTabProps) {
     return (
       <>
         <DayFilter days={days} setDays={setDays} />
-        <p style={{ fontSize: 13, color: 'var(--text-secondary)', textAlign: 'center', padding: '40px 0' }}>
+        <p style={{ fontSize: 13, color: 'var(--text-secondary)', textAlign: 'center', padding: '20px 0', minHeight: 80 }}>
           {t('noQualityData', { days })}
         </p>
       </>
@@ -117,7 +118,7 @@ export default function QualityTab({ session }: QualityTabProps) {
     <>
       <DayFilter days={days} setDays={setDays} />
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: 10, marginBottom: 24 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: 10, marginBottom: 24, minHeight: 80 }}>
         {statCards.map(({ label, value }) => (
           <div key={label} style={{ padding: '14px 16px', borderRadius: 10, background: 'var(--bg-secondary)', border: '0.5px solid var(--border)' }}>
             <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>{label}</span>
