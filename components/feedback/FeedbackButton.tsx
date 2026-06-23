@@ -9,6 +9,7 @@ interface Props {
 export default function FeedbackButton({ accessToken }: Props) {
   const t = useTranslations('feedback');
   const [open, setOpen] = useState(false);
+  const [panelTop, setPanelTop] = useState(64);
   const [text, setText] = useState('');
   const [sending, setSending] = useState(false);
   const [justSent, setJustSent] = useState(false);
@@ -49,10 +50,17 @@ export default function FeedbackButton({ accessToken }: Props) {
     }
   };
 
+  function handleToggle() {
+    if (!open && wrapperRef.current) {
+      setPanelTop(wrapperRef.current.getBoundingClientRect().bottom + 8);
+    }
+    setOpen(v => !v);
+  }
+
   return (
     <div ref={wrapperRef} style={{ position: 'relative' }}>
       <button
-        onClick={() => setOpen(v => !v)}
+        onClick={handleToggle}
         aria-label={t('ariaLabel')}
         title={t('ariaLabel')}
         style={{ fontSize: 12, padding: '6px 12px', borderRadius: 8, border: '0.5px solid var(--border)', background: 'transparent', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
@@ -65,7 +73,7 @@ export default function FeedbackButton({ accessToken }: Props) {
 
       {open && (
         <div role="dialog" aria-label={t('ariaLabel')}
-          style={{ position: 'absolute', top: 'calc(100% + 8px)', right: 0, width: 'min(340px, calc(100vw - 32px))', background: 'var(--bg-secondary)', border: '0.5px solid var(--border)', borderRadius: 12, padding: 14, boxShadow: '0 8px 24px rgba(0,0,0,0.15)', zIndex: 1000 }}>
+          style={{ position: 'fixed', top: panelTop, right: 16, width: 'min(340px, calc(100vw - 32px))', background: 'var(--bg-secondary)', border: '0.5px solid var(--border)', borderRadius: 12, padding: 14, boxShadow: '0 8px 24px rgba(0,0,0,0.15)', zIndex: 1000 }}>
           {justSent ? (
             <div style={{ textAlign: 'center', padding: '20px 0', color: 'var(--text-primary)', fontSize: 14 }}>
               {t('thanks')}
