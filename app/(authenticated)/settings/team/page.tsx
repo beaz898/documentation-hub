@@ -318,23 +318,7 @@ export default function TeamPage() {
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
-      <div style={{
-        padding: '14px 20px', borderBottom: '0.5px solid var(--border)',
-        display: 'flex', alignItems: 'center', gap: 12,
-      }}>
-        <button
-          onClick={() => router.push('/chat')}
-          style={{
-            padding: '6px 12px', borderRadius: 8, border: '0.5px solid var(--border)',
-            background: 'var(--bg-secondary)', cursor: 'pointer', fontSize: 12,
-            color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: 5,
-          }}
-        >
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <polyline points="15 18 9 12 15 6" />
-          </svg>
-          {t('backToChat')}
-        </button>
+      <div style={{ padding: '14px 20px', borderBottom: '0.5px solid var(--border)' }}>
         <h1 style={{ fontSize: 15, fontWeight: 600 }}>{t('title')}</h1>
       </div>
 
