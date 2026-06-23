@@ -733,10 +733,14 @@ CREATE POLICY "Users can view own org credit purchases" ON public.credit_purchas
 
 -- ----------------------------------------------------------------------------
 -- Políticas — documents (org_id TEXT; vía JWT user_metadata)
--- NOTA: la política de DELETE usa USING (true) — revisar si conviene endurecer.
 -- ----------------------------------------------------------------------------
 CREATE POLICY "Users can delete org documents" ON public.documents
-  FOR DELETE USING (true);
+  FOR DELETE USING (
+    org_id = (SELECT COALESCE(
+      ((auth.jwt() -> 'user_metadata'::text) ->> 'org_id'::text),
+      (auth.uid())::text
+    ))
+  );
 CREATE POLICY "Users can insert org documents" ON public.documents
   FOR INSERT WITH CHECK (
     org_id = (SELECT COALESCE(((auth.jwt() -> 'user_metadata'::text) ->> 'org_id'::text), (auth.uid())::text))

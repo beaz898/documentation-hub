@@ -3,7 +3,7 @@ PENDIENTES — Doclity (Agente IA)
 Documento vivo. Se actualiza al completar tareas (marcar [✓]) y se
 sustituye por la versión nueva. Más ligero que la Bitácora: aquí va
 lo que falta y la visión que lo guía, no el detalle de cada sesión.
-Última actualización: 14/06/2026 (v11)
+Última actualización: 23/06/2026 (v12)
 
 
 ════════════════════════════════════════════════════════════════
@@ -205,16 +205,16 @@ Leyenda: [ ] pendiente · [~] en curso · [✓] hecho
       antes de persistir + citations tolerantes si llegan malformadas sin truncación).
       Si supera 8192 tokens, falla limpio con mensaje legible. Sin bucle posible.
 
-[ ] B.21 — (Comportamiento, opcional) Manejo de peticiones demasiado grandes
-      El stack anti-truncación funciona (falla limpio), pero "detalle exhaustivo de muchos
-      docs" supera incluso 8192 tokens. Subir más el techo no es la solución. En vez de
-      solo fallar, queremos que el agente RESUMA y AVISE de que ha resumido por extensión,
-      ofreciendo profundizar. Dos piezas: (1) PROACTIVA en el prompt — ante peticiones de
-      alcance desproporcionado (muchos docs, "máximo detalle"), priorizar lo relevante y
-      avisar de que se ha resumido, ofreciendo profundizar en una parte; solo cuando el
-      alcance es desproporcionado, sin volverse perezoso en preguntas normales. (2) REACTIVA
-      — mejorar el mensaje de fallo por truncación para que oriente CÓMO acotar (por doc,
-      tema, grupo). PRIORIDAD: baja. El bug ya está cerrado; esto es refinamiento.
+[✓] B.21 — (Comportamiento) Manejo de peticiones demasiado grandes
+      Las dos piezas implementadas (Sesión 20). PROACTIVA: instrucción en
+      FORMAT_SECTION basada en el TAMAÑO del texto a reproducir, no en número de
+      documentos — distingue leer muchos docs (correcto) de reproducir íntegros
+      varios (redirige a biblioteca + ofrece sintetizar). Verificada: ante "dame
+      todo íntegro" el agente redirige por sí solo, sin truncar. REACTIVA: mensaje
+      de truncación legible y orientativo (constante TRUNCATION_MESSAGE), conv vuelve
+      a idle. Por el camino se cerraron dos bugs: (1) créditos no reembolsados en
+      truncación finalize → ahora reconcilia; (2) segundo punto de truncación
+      silenciosa en texto libre → ahora entrega con aviso visible. Ver bitácora S20.
 
 [✓] B.22 — (UX / RESPONSIVE) Layout del agente adaptado a móvil
       COMPLETADO. Patrón elegido: drawer lateral (cajón deslizante) solo en móvil; escritorio
@@ -254,6 +254,12 @@ Leyenda: [ ] pendiente · [~] en curso · [✓] hecho
       skeleton que ocupe lo mismo que ocupará el resultado final. Revisar QualityTab y ChatTab
       (y cualquier cabecera con datos asíncronos). PRIORIDAD: baja. Es pulido visual, no funcional.
       VISIÓN: nada debe "saltar" al cargar; transmite producto cuidado y profesional.
+
+[✓] B.26 — (Seguridad) Política RLS DELETE de documents endurecida
+      De USING(true) a filtro por org_id (mismo patrón que SELECT/INSERT).
+      SQL ejecutado y verificado en Supabase; registro actualizado en
+      supabase-setup.sql. Riesgo latente cerrado (era inerte por uso de
+      service role, pero quedaba como trampa para futuros endpoints anon).
 
 [✓] B.25 — (UX / Voz) Micrófono duplicaba texto en móvil
       Causa real (vista con log en pantalla del propio móvil): el navegador en Android
