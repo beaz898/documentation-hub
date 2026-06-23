@@ -3,7 +3,7 @@ PENDIENTES — Doclity (Agente IA)
 Documento vivo. Se actualiza al completar tareas (marcar [✓]) y se
 sustituye por la versión nueva. Más ligero que la Bitácora: aquí va
 lo que falta y la visión que lo guía, no el detalle de cada sesión.
-Última actualización: 23/06/2026 (v13)
+Última actualización: 23/06/2026 (v14)
 
 
 ════════════════════════════════════════════════════════════════
@@ -253,6 +253,11 @@ Leyenda: [ ] pendiente · [~] en curso · [✓] hecho
       · Commit 2: grids KPI en QualityTab y ChatTab — DayFilter visible desde el primer
         frame + div vacío minHeight:80 durante loading; minHeight:80 en estado sin-datos y
         en el contenedor del grid con datos. Los tres estados ocupan ≥80px → sin salto.
+
+[✓] B.27 — (UX / PULIDO) Quitar botón "volver al chat" redundante en settings
+      Eliminado de settings/usage y settings/team. En esas páginas la AppRail
+      siempre está visible y permite navegar; el botón era ruido innecesario.
+      La cabecera queda solo con el h1, mismo padding y borde inferior.
 
 [✓] B.26 — (Seguridad) Política RLS DELETE de documents endurecida
       De USING(true) a filtro por org_id (mismo patrón que SELECT/INSERT).

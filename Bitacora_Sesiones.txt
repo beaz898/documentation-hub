@@ -1518,7 +1518,7 @@ ARCHIVOS MODIFICADOS
 
 ────────────────────────────────────────────────────────────────
 SESIÓN 21 — 23/06/2026
-Título: B.26 — RLS DELETE endurecida + B.24 — Fix CLS en /settings/usage
+Título: B.26 RLS DELETE + B.24 CLS /settings/usage + B.27 botón volver
 ────────────────────────────────────────────────────────────────
 
 OBJETIVO
@@ -1581,8 +1581,29 @@ CAMBIOS IMPLEMENTADOS
      components/usage/QualityTab.tsx              — reserva altura KPIs
      components/usage/ChatTab.tsx                 — reserva altura KPIs
 
+3. B.27 — QUITAR BOTÓN "VOLVER AL CHAT" REDUNDANTE EN SETTINGS
+
+   Situación previa
+   - settings/usage y settings/team tenían un botón "← Volver al chat"
+     en su cabecera (router.push('/chat')). La AppRail siempre está visible
+     en esas páginas y ya permite navegar; el botón era ruido innecesario.
+   - settings/billing no lo tenía (ya se eliminó en Sesión 13).
+
+   Solución
+   - Eliminado el <button> de cada cabecera junto con display:flex,
+     alignItems:center y gap:12 del div contenedor (ya innecesarios con
+     un solo hijo). El h1 del título queda solo con el mismo padding y borde.
+   - router conservado en ambos archivos: sigue usándose para
+     router.replace('/login') en el useEffect de autenticación.
+
+   Archivos modificados
+     app/(authenticated)/settings/usage/page.tsx  — cabecera simplificada
+     app/(authenticated)/settings/team/page.tsx   — cabecera simplificada
+
 COMMITS DE ESTA SESIÓN
    854b08d — fix(security): endurecer política RLS DELETE de documents (B.26)
    7be5b8b — fix(ux): B.24 commit 1 — placeholder barra de pestañas durante carga
    595a5a3 — fix(ux): B.24 commit 2 — reservar altura KPIs en QualityTab y ChatTab
    c0b4574 — docs: cerrar B.24 (✓), pendientes v13
+   fc9b1b5 — docs: bitácora sesión 21
+   b9b7dc4 — fix(ux): quitar botón "volver al chat" de settings/usage y settings/team (B.27)
