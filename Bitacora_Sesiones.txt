@@ -1430,3 +1430,159 @@ ARCHIVOS MODIFICADOS
 
 COMMIT
   fix(voice): evitar duplicado de transcripción en móvil (B.25)
+
+
+────────────────────────────────────────────────────────────────
+SESIÓN 20 — 17/06/2026
+Título: B.21 — Manejo de peticiones demasiado grandes en el agente
+────────────────────────────────────────────────────────────────
+
+OBJETIVO
+Refinar el comportamiento del agente ante peticiones de alcance desproporcionado.
+El bug de truncación ya estaba cerrado (fallaba limpio desde el BUGFIX finalize),
+pero quedaban dos piezas: (1) proactiva — que el agente evite truncarse priorizando
+y redirigiendo por su cuenta; (2) reactiva — mejorar el mensaje de fallo para que
+oriente cómo acotar. Por el camino se destaparon dos defectos no previstos.
+
+CAMBIOS IMPLEMENTADOS
+
+1. PIEZA PROACTIVA — INSTRUCCIÓN EN EL PROMPT (lib/agent/system-prompt.ts)
+   - Nueva instrucción al final de FORMAT_SECTION (bloque estable cacheado, no rompe
+     el prompt caching de B.7).
+   - Primera versión ("alcance desproporcionado", cualitativa) NO se activó en
+     pruebas: el agente intentó volcar todo el corpus y se truncó.
+   - Segunda versión (commit 4): reescrita sobre el TAMAÑO del texto a reproducir,
+     no sobre el número de documentos. Distingue explícitamente leer muchos
+     documentos (correcto, esperado) de reproducir el contenido íntegro de varios
+     (redirige a la biblioteca + ofrece sintetizar). Sin umbral numérico: el agente
+     juzga el tamaño con los documentos ya leídos en el turno.
+   - Decisión de diseño: contar documentos es métrica equivocada (5 cortos caben,
+     2 enormes no). El criterio es el volumen de salida, valorado caso por caso.
+
+2. HALLAZGO 1 (BUG DESTAPADO) — CRÉDITOS NO REEMBOLSADOS EN TRUNCACIÓN finalize
+   - El camino de truncación en finalize (runner-conv.ts) era el único 'failed' que
+     NO llamaba a reconcileTurnCredits: el usuario pagaba la estimación completa por
+     un turno fallido por límite de tokens, no por su culpa.
+   - Fix: añadido reconcileTurnCredits (misma firma de 7 args que los caminos
+     completed). Ahora paga solo el trabajo real consumido hasta el corte.
+
+3. HALLAZGO 2 (BUG DESTAPADO) — SEGUNDO PUNTO DE TRUNCACIÓN SILENCIOSA
+   - El bloque de "texto libre sin tool calls" (runner-conv.ts) persistía el texto y
+     lo marcaba 'completed' SIN comprobar stop_reason. Si el LLM se cortaba por
+     max_tokens emitiendo prosa larga sin llamar a finalize, el usuario recibía texto
+     a media frase sin aviso.
+   - Fix: detecta stop_reason === 'max_tokens'; si truncó, antepone un aviso visible
+     (⚠️ + mensaje legible + separador) al texto parcial y lo entrega igualmente
+     (Decisión B: entregar con aviso, el texto parcial tiene valor). Reconcilia
+     créditos como antes.
+
+4. PIEZA REACTIVA — MENSAJE DE TRUNCACIÓN MEJORADO
+   - Constante única TRUNCATION_MESSAGE (runner-conv.ts), usada en los dos puntos de
+     truncación (Decisión C: no duplicar el texto).
+   - De "Inténtalo con una consulta más acotada" (vago) a un mensaje que orienta el
+     cómo acotar en lenguaje legible (B.2): por documento, por tema, o por el aspecto
+     de interés. La conversación vuelve a idle → el usuario puede reescribir en el
+     mismo chat (el mensaje lo refleja con honestidad).
+
+DECISIONES DE PRODUCTO (tomadas por el usuario)
+   A — Reembolso reconciliado al coste real (no total): paga el trabajo hecho.
+   B — Texto libre truncado: entregar con aviso (no descartar).
+   C — Mensaje en constante única compartida.
+
+VERIFICACIÓN POST-DEPLOY (con commit 4 efectivamente desplegado)
+   - Nota: una primera tanda de pruebas se hizo sin el commit 4 aún en producción
+     (se probó la proactiva v2 sin estar desplegada). Repetidas en limpio, en
+     conversación nueva, con todos los commits desplegados:
+   - Prueba A (frenar cuando debe): "dame el contenido completo de todos los
+     documentos, uno por uno" → el agente NO trunca: reconoce los 21 documentos
+     leídos, explica que volcarlos íntegros no aporta valor frente a la biblioteca,
+     y redirige ofreciendo resumir/comparar/extraer/detectar contradicciones. La
+     proactiva v2 actúa por sí sola, sin llegar a la red reactiva.
+   - Prueba B (NO frenar cuando no debe): "¿qué dicen mis documentos sobre X?" cruzó
+     múltiples documentos y respondió completo, con fuentes citadas, sin redirigir
+     ni resumir de menos.
+   - Conclusión: el filo "leer muchos docs" (correcto) vs "reproducir íntegro varios"
+     (redirige) funciona como se diseñó. Sin observaciones abiertas.
+
+COMMITS DE ESTA SESIÓN
+   Commit 1 — proactiva v1 en FORMAT_SECTION (no se activó, sustituida por commit 4)
+   Commit 2 — reembolso en truncación finalize + constante + mensaje legible
+   Commit 3 — segundo punto de truncación (texto libre) con aviso
+   Commit 4 — proactiva v2: criterio de tamaño + redirección, sin umbral numérico
+
+ARCHIVOS MODIFICADOS
+   lib/agent/system-prompt.ts   — instrucción proactiva en FORMAT_SECTION (v2)
+   lib/agent/runner-conv.ts     — TRUNCATION_MESSAGE, reembolso en truncación,
+                                  detección stop_reason en texto libre con aviso
+
+
+────────────────────────────────────────────────────────────────
+SESIÓN 21 — 23/06/2026
+Título: B.26 — RLS DELETE endurecida + B.24 — Fix CLS en /settings/usage
+────────────────────────────────────────────────────────────────
+
+OBJETIVO
+Cerrar dos deudas técnicas descubiertas en sesiones anteriores: la política
+RLS de DELETE de documents con USING(true) (riesgo latente de seguridad) y el
+layout shift (CLS) en /settings/usage al cargar datos.
+
+CAMBIOS IMPLEMENTADOS
+
+1. B.26 — POLÍTICA RLS DELETE DE DOCUMENTS ENDURECIDA
+
+   Situación previa
+   - La política "Users can delete org documents" tenía USING(true) — sin
+     restricción: cualquier sesión autenticada podría borrar documentos de
+     cualquier org. Era inerte porque todos los borrados usan service role
+     (que salta RLS), pero constituía una trampa para futuros endpoints anon.
+   - SELECT e INSERT ya tenían el filtro correcto por org_id desde siempre.
+
+   Solución (SQL ejecutado en Supabase + supabase-setup.sql actualizado)
+   - DROP + CREATE POLICY con el mismo patrón que SELECT/INSERT:
+     USING (org_id = COALESCE((jwt()->'user_metadata'->>'org_id'), uid()::text))
+   - La nota "revisar si conviene endurecer" eliminada del SQL.
+   - Sin impacto en código: los 6 sitios que borran documents siguen usando
+     service role; el cambio es exclusivamente defensivo.
+
+   Archivos modificados
+     supabase-setup.sql   — política DELETE alineada con SELECT/INSERT
+
+2. B.24 — FIX CLS EN /settings/usage (2 commits)
+
+   DIAGNÓSTICO (exploración previa sin modificar nada)
+   Dos fuentes de CLS identificadas:
+
+   CLS 1 (principal, visible en móvil): la barra de pestañas se calculaba
+   sobre summary?.plan = null durante loading → solo 1 pestaña renderizada.
+   Al llegar summary.plan='business' → 3 pestañas, que en pantalla estrecha
+   envuelven a 2 líneas → la barra crece en altura y empuja el contenido.
+
+   CLS 2 (dentro del scroll): los grids KPI de QualityTab y ChatTab pasaban
+   de spinner (padding:40) a tarjetas de golpe sin altura reservada.
+
+   Commit 1 — Placeholder barra de pestañas (page.tsx)
+   - Mientras loading=true, sustituye la barra de pestañas por un <div> vacío
+     con el mismo borderBottom y minHeight:80 (cubre 2 líneas de pestañas en
+     móvil, peor caso).
+   - Al resolver loading, la barra real aparece con visibleTabs ya calculado
+     sobre summary.plan correcto → sin reflow de altura.
+
+   Commit 2 — Reserva de altura KPIs (QualityTab.tsx + ChatTab.tsx)
+   - Estado loading: reemplaza spinner suelto por DayFilter visible + div
+     vacío con minHeight:80. El selector 7/14/30 días aparece desde el primer
+     frame (bonus UX).
+   - Estado sin datos: minHeight:80 en el párrafo de texto vacío.
+   - Grid con datos: minHeight:80 en el contenedor del grid.
+   - Los tres estados (cargando / sin datos / con datos) ocupan ≥80px → sin
+     salto vertical al transicionar.
+
+   Archivos modificados
+     app/(authenticated)/settings/usage/page.tsx  — placeholder barra pestañas
+     components/usage/QualityTab.tsx              — reserva altura KPIs
+     components/usage/ChatTab.tsx                 — reserva altura KPIs
+
+COMMITS DE ESTA SESIÓN
+   854b08d — fix(security): endurecer política RLS DELETE de documents (B.26)
+   7be5b8b — fix(ux): B.24 commit 1 — placeholder barra de pestañas durante carga
+   595a5a3 — fix(ux): B.24 commit 2 — reservar altura KPIs en QualityTab y ChatTab
+   c0b4574 — docs: cerrar B.24 (✓), pendientes v13
