@@ -65,7 +65,7 @@ export default function FeedbackButton({ accessToken }: Props) {
 
       {open && (
         <div role="dialog" aria-label={t('ariaLabel')}
-          style={{ position: 'absolute', top: 'calc(100% + 8px)', right: 0, width: 340, background: 'var(--bg-secondary)', border: '0.5px solid var(--border)', borderRadius: 12, padding: 14, boxShadow: '0 8px 24px rgba(0,0,0,0.15)', zIndex: 1000 }}>
+          style={{ position: 'absolute', top: 'calc(100% + 8px)', right: 0, width: 'min(340px, calc(100vw - 32px))', background: 'var(--bg-secondary)', border: '0.5px solid var(--border)', borderRadius: 12, padding: 14, boxShadow: '0 8px 24px rgba(0,0,0,0.15)', zIndex: 1000 }}>
           {justSent ? (
             <div style={{ textAlign: 'center', padding: '20px 0', color: 'var(--text-primary)', fontSize: 14 }}>
               {t('thanks')}
