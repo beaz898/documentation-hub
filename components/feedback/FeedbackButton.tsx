@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useTranslations } from 'next-intl';
 
 interface Props {
-  accessToken: string | null;
+  accessToken?: string | null;
 }
 
 export default function FeedbackButton({ accessToken }: Props) {
@@ -31,7 +31,7 @@ export default function FeedbackButton({ accessToken }: Props) {
 
   const send = async () => {
     const message = text.trim();
-    if (!message || sending || !accessToken) return;
+    if (!message || sending) return;
     setSending(true); setError(null);
     try {
       const res = await fetch('/api/feedback', {
