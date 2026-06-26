@@ -16,9 +16,10 @@ interface CreditsData {
 
 interface CreditsIndicatorProps {
   credits: CreditsData | null | undefined;
+  compact?: boolean;
 }
 
-export default function CreditsIndicator({ credits }: CreditsIndicatorProps) {
+export default function CreditsIndicator({ credits, compact }: CreditsIndicatorProps) {
   if (!credits) return null;
 
   const color = credits.remaining <= 10
@@ -26,6 +27,14 @@ export default function CreditsIndicator({ credits }: CreditsIndicatorProps) {
     : credits.remaining <= 30
       ? '#f59e0b'
       : 'var(--brand)';
+
+  if (compact) {
+    return (
+      <span style={{ fontSize: 12, fontWeight: 600, color, whiteSpace: 'nowrap' }}>
+        {credits.remaining} cr
+      </span>
+    );
+  }
 
   const fillPct = Math.min(100, (credits.remaining / Math.max(credits.remaining, 100)) * 100);
 

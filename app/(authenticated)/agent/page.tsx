@@ -209,9 +209,8 @@ export default function AgentPage() {
                 <line x1="3" y1="18" x2="21" y2="18" />
               </svg>
             </button>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <CreditsIndicator credits={credits} />
-            </div>
+            <div style={{ flex: 1 }} />
+            <CreditsIndicator credits={credits} compact />
             <FeedbackButton />
           </div>
         )}
