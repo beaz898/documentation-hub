@@ -6,6 +6,7 @@ import { useTranslations } from 'next-intl';
 import { createClient } from '@/lib/supabase';
 import { PLAN_DETAILS } from '@/lib/plan-details';
 import FeedbackButton from '@/components/feedback/FeedbackButton';
+import { useVisualViewportHeight } from '@/hooks/useVisualViewportHeight';
 
 interface UsageSummary {
   plan: string;
@@ -47,6 +48,7 @@ export default function BillingPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const supabase = createClient();
+  const vvHeight = useVisualViewportHeight();
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session: s } }) => {
@@ -167,12 +169,13 @@ export default function BillingPage() {
   const hasActiveSubscription = usage?.hasActiveSubscription ?? false;
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
-      <div style={{ padding: '14px 20px', borderBottom: '0.5px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: vvHeight != null ? `${vvHeight}px` : '100dvh', overflow: 'hidden', background: 'var(--bg)' }}>
+      <div style={{ padding: '14px 20px', borderBottom: '0.5px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexShrink: 0 }}>
         <h1 style={{ fontSize: 15, fontWeight: 600 }}>{t('pageTitle')}</h1>
         <FeedbackButton />
       </div>
 
+      <div style={{ flex: 1, overflowY: 'auto' }}>
       <div style={{ maxWidth: 900, margin: '0 auto', padding: '24px 20px' }}>
         {message && (
           <div style={{
@@ -431,6 +434,7 @@ export default function BillingPage() {
             </p>
           </>
         )}
+      </div>
       </div>
     </div>
   );

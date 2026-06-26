@@ -7,6 +7,7 @@ import { createClient } from '@/lib/supabase';
 import QualityTab from '@/components/usage/QualityTab';
 import ChatTab from '@/components/usage/ChatTab';
 import FeedbackButton from '@/components/feedback/FeedbackButton';
+import { useVisualViewportHeight } from '@/hooks/useVisualViewportHeight';
 
 interface UserUsage {
   userId: string;
@@ -57,6 +58,7 @@ export default function UsagePage() {
   const [activeTab, setActiveTab] = useState<TabId>('consumption');
   const router = useRouter();
   const supabase = createClient();
+  const vvHeight = useVisualViewportHeight();
 
   const allTabs: Array<{ id: TabId; label: string }> = [
     { id: 'consumption', label: t('tabConsumption') },
@@ -104,16 +106,16 @@ export default function UsagePage() {
   const visibleTabs = allTabs.filter(tab => tab.id === 'consumption' || hasAnalyticsPanel);
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
-      <div style={{ padding: '14px 20px', borderBottom: '0.5px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: vvHeight != null ? `${vvHeight}px` : '100dvh', overflow: 'hidden', background: 'var(--bg)' }}>
+      <div style={{ padding: '14px 20px', borderBottom: '0.5px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexShrink: 0 }}>
         <h1 style={{ fontSize: 15, fontWeight: 600 }}>{t('headerTitle')}</h1>
         <FeedbackButton />
       </div>
 
       {loading ? (
-        <div style={{ padding: '0 20px', borderBottom: '0.5px solid var(--border)', minHeight: 80 }} />
+        <div style={{ padding: '0 20px', borderBottom: '0.5px solid var(--border)', minHeight: 80, flexShrink: 0 }} />
       ) : (
-        <div style={{ padding: '0 20px', borderBottom: '0.5px solid var(--border)', display: 'flex' }}>
+        <div style={{ padding: '0 20px', borderBottom: '0.5px solid var(--border)', display: 'flex', flexShrink: 0 }}>
           {visibleTabs.map(tab => (
             <button key={tab.id} onClick={() => setActiveTab(tab.id)} style={{
               padding: '10px 16px', border: 'none', background: 'transparent', cursor: 'pointer',
@@ -128,6 +130,7 @@ export default function UsagePage() {
         </div>
       )}
 
+      <div style={{ flex: 1, overflowY: 'auto' }}>
       <div style={{ maxWidth: 700, margin: '0 auto', padding: '24px 20px' }}>
         {loading ? (
           <div style={{ display: 'flex', justifyContent: 'center', padding: 40 }}>
@@ -281,6 +284,7 @@ export default function UsagePage() {
             )}
           </>
         )}
+      </div>
       </div>
     </div>
   );

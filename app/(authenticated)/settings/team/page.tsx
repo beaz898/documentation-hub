@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { createClient } from '@/lib/supabase';
 import FeedbackButton from '@/components/feedback/FeedbackButton';
+import { useVisualViewportHeight } from '@/hooks/useVisualViewportHeight';
 
 interface Member {
   userId: string;
@@ -109,6 +110,7 @@ export default function TeamPage() {
   const [transferring, setTransferring] = useState(false);
   const router = useRouter();
   const supabase = createClient();
+  const vvHeight = useVisualViewportHeight();
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session: s } }) => {
@@ -318,12 +320,13 @@ export default function TeamPage() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
-      <div style={{ padding: '14px 20px', borderBottom: '0.5px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: vvHeight != null ? `${vvHeight}px` : '100dvh', overflow: 'hidden', background: 'var(--bg)' }}>
+      <div style={{ padding: '14px 20px', borderBottom: '0.5px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexShrink: 0 }}>
         <h1 style={{ fontSize: 15, fontWeight: 600 }}>{t('title')}</h1>
         <FeedbackButton />
       </div>
 
+      <div style={{ flex: 1, overflowY: 'auto' }}>
       <div style={{ maxWidth: 600, margin: '0 auto', padding: '24px 20px' }}>
         {loading ? (
           <div style={{ display: 'flex', justifyContent: 'center', padding: 40 }}>
@@ -624,6 +627,7 @@ export default function TeamPage() {
             )}
           </>
         )}
+      </div>
       </div>
 
       {transferTarget && (
