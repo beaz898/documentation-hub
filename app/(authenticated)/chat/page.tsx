@@ -16,6 +16,7 @@ import { useChat } from '@/hooks/chat/useChat';
 import { useDocuments } from '@/hooks/chat/useDocuments';
 import { useDrive } from '@/hooks/chat/useDrive';
 import { useUploadLock } from '@/hooks/chat/useUploadLock';
+import { useVisualViewportHeight } from '@/hooks/useVisualViewportHeight';
 
 export default function ChatPage() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -25,6 +26,8 @@ export default function ChatPage() {
   const [improvementRunning, setImprovementRunning] = useState(false);
   const [improvementRunPhase, setImprovementRunPhase] = useState('');
   const searchParams = useSearchParams();
+
+  const vvHeight = useVisualViewportHeight();
 
   // Core hooks
   const { session, handleLogout, orgSetupError } = useAuth();
@@ -166,7 +169,7 @@ export default function ChatPage() {
   }
 
   return (
-    <div style={{ display: 'flex', height: '100dvh', overflow: 'hidden' }}>
+    <div style={{ display: 'flex', height: vvHeight != null ? `${vvHeight}px` : '100dvh', overflow: 'hidden' }}>
       {isMobile && sidebarOpen && <div className="sidebar-mobile-overlay" onClick={() => setSidebarOpen(false)} />}
 
       {/* Strip colapsado (desktop, sidebar cerrado) */}
