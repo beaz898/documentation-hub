@@ -230,7 +230,7 @@ export default function ChatPage() {
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
         <ChatHeader
           sidebarOpen={sidebarOpen} isMobile={isMobile}
-          documentCount={documents.length}
+          credits={credits}
           accessToken={session.access_token}
           hasMessages={messages.length > 0}
           onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}

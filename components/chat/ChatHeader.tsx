@@ -2,11 +2,12 @@
 
 import { useTranslations } from 'next-intl';
 import FeedbackButton from '@/components/feedback/FeedbackButton';
+import CreditsIndicator from '@/components/shared/CreditsIndicator';
 
 interface ChatHeaderProps {
   sidebarOpen: boolean;
   isMobile: boolean;
-  documentCount: number;
+  credits: { remaining: number; plan: string } | null | undefined;
   accessToken: string;
   hasMessages: boolean;
   onToggleSidebar: () => void;
@@ -14,7 +15,7 @@ interface ChatHeaderProps {
 }
 
 export default function ChatHeader({
-  isMobile, documentCount, accessToken, hasMessages,
+  isMobile, credits, accessToken, hasMessages,
   onToggleSidebar, onClearChat,
 }: ChatHeaderProps) {
   const t = useTranslations();
@@ -32,12 +33,9 @@ export default function ChatHeader({
             </svg>
           </button>
         )}
-        <p style={{ flex: 1, fontSize: 11, color: 'var(--text-muted)', margin: 0 }}>
-          {documentCount > 0
-            ? t('chat.documentCount', { count: documentCount })
-            : t('sidebar.noDocumentsHint')}
-        </p>
+        <div style={{ flex: 1 }} />
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          {isMobile && <CreditsIndicator credits={credits} compact />}
           <FeedbackButton accessToken={accessToken} />
           {hasMessages && (
             <button
