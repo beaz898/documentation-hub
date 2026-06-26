@@ -20,7 +20,16 @@ interface CreditsIndicatorProps {
 }
 
 export default function CreditsIndicator({ credits, compact }: CreditsIndicatorProps) {
-  if (!credits) return null;
+  if (!credits) {
+    if (compact) {
+      return (
+        <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', whiteSpace: 'nowrap', opacity: 0.5 }}>
+          ·· cr
+        </span>
+      );
+    }
+    return null;
+  }
 
   const color = credits.remaining <= 10
     ? 'var(--danger)'
