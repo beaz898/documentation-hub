@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { createClient } from '@/lib/supabase';
 import { PLAN_DETAILS } from '@/lib/plan-details';
+import FeedbackButton from '@/components/feedback/FeedbackButton';
 
 interface UsageSummary {
   plan: string;
@@ -167,8 +168,9 @@ export default function BillingPage() {
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
-      <div style={{ padding: '14px 20px', borderBottom: '0.5px solid var(--border)' }}>
+      <div style={{ padding: '14px 20px', borderBottom: '0.5px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
         <h1 style={{ fontSize: 15, fontWeight: 600 }}>{t('pageTitle')}</h1>
+        <FeedbackButton />
       </div>
 
       <div style={{ maxWidth: 900, margin: '0 auto', padding: '24px 20px' }}>

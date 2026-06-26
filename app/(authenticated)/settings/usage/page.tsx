@@ -6,6 +6,7 @@ import { useTranslations } from 'next-intl';
 import { createClient } from '@/lib/supabase';
 import QualityTab from '@/components/usage/QualityTab';
 import ChatTab from '@/components/usage/ChatTab';
+import FeedbackButton from '@/components/feedback/FeedbackButton';
 
 interface UserUsage {
   userId: string;
@@ -104,8 +105,9 @@ export default function UsagePage() {
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
-      <div style={{ padding: '14px 20px', borderBottom: '0.5px solid var(--border)' }}>
+      <div style={{ padding: '14px 20px', borderBottom: '0.5px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
         <h1 style={{ fontSize: 15, fontWeight: 600 }}>{t('headerTitle')}</h1>
+        <FeedbackButton />
       </div>
 
       {loading ? (
