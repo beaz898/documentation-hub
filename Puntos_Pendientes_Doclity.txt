@@ -3,7 +3,7 @@ PENDIENTES — Doclity (Agente IA)
 Documento vivo. Se actualiza al completar tareas (marcar [✓]) y se
 sustituye por la versión nueva. Más ligero que la Bitácora: aquí va
 lo que falta y la visión que lo guía, no el detalle de cada sesión.
-Última actualización: 26/06/2026 (v15)
+Última actualización: 26/06/2026 (v16)
 
 
 ════════════════════════════════════════════════════════════════
@@ -253,6 +253,20 @@ Leyenda: [ ] pendiente · [~] en curso · [✓] hecho
       · Commit 2: grids KPI en QualityTab y ChatTab — DayFilter visible desde el primer
         frame + div vacío minHeight:80 durante loading; minHeight:80 en estado sin-datos y
         en el contenedor del grid con datos. Los tres estados ocupan ≥80px → sin salto.
+
+[ ] B.31 — (UX / Coherencia) Unificar el arranque del agente al modelo progresivo del chat
+      El agente bloquea toda la UI con un spinner (pageLoading) hasta cargar todo
+      (sesión, créditos, conversaciones). El chat muestra la interfaz enseguida y
+      rellena las piezas progresivamente (placeholder mientras cargan). Decisión:
+      igualar el agente al modelo PROGRESIVO del chat, NO al revés (mejor UX: ver
+      la app antes vs esperar ruedita). Cambio estructural del arranque del agente:
+      requiere identificar qué piezas toleran renderizar a medias y cuáles necesitan
+      un dato sí o sí (riesgo de romper la pantalla más compleja). Empezar por
+      exploración a fondo + plan validado antes de tocar. Probable: desacoplar
+      pageLoading del render + placeholders por pieza. Varios commits, build verde
+      entre medias, probar en móvil.
+      IDEA FUTURA (baja prioridad, no en este bloque): contador animado de créditos
+      al CAMBIAR el saldo (al gastar), no al cargar — detalle decorativo.
 
 [✓] B.30 — (UX / PULIDO) CreditsIndicator compact en cabeceras móviles + placeholder anti-salto
       Nueva prop compact?: boolean: solo muestra "<X> cr" con color dinámico, sin
@@ -585,6 +599,7 @@ NOTAS DE ORDEN (propuesta, a confirmar)
   solo si dan problema. B.24 (layout shift) y B.25 (micrófono móvil) salieron durante B.22/B.23.
 - B.26 (RLS DELETE), B.27 (botón volver redundante), B.28 (panel feedback cortado),
   B.29 (FeedbackButton autónomo), B.30 (créditos compactos + placeholder) COMPLETADOS en sesiones 21-22.
+- B.31 (arranque progresivo del agente) destapado en sesión 22 — pendiente.
 
 Forma de trabajo: diagnóstico con datos reales antes de arreglar; un
 cambio lógico cada vez; build verde entre medias; SQL en Supabase antes

@@ -1683,3 +1683,20 @@ COMMITS DE ESTA SESIÓN
    50f5619 — feat(ux): CreditsIndicator compact — solo número en barra móvil del agente (B.30)
    951558f — feat(ux): créditos compactos en cabecera móvil del chat, quita "X documentos" (B.30)
    e32bc66 — fix(ux): placeholder tenue en CreditsIndicator compact mientras carga (B.30)
+   67be52d — feat(ux): FeedbackButton en cabeceras de settings/usage, team y billing (B.29)
+   58db9fb — docs: sesión 22 — B.28/B.29/B.30 cerrados, bitácora y pendientes v15
+
+PENDIENTE DESTAPADO EN ESTA SESIÓN
+
+   B.31 — Unificar el arranque del agente al modelo progresivo del chat
+   El agente bloquea toda la UI con un spinner (pageLoading) hasta cargar todo
+   (sesión, créditos, conversaciones). El chat muestra la interfaz enseguida y
+   rellena las piezas progresivamente (placeholder mientras cargan).
+   - Decisión: igualar el agente al modelo PROGRESIVO del chat, NO al revés.
+   - Requiere identificar qué piezas toleran renderizar a medias y cuáles
+     necesitan un dato sí o sí (riesgo de romper el agente, la pantalla más
+     compleja). Empezar por exploración a fondo + plan validado antes de tocar.
+   - Probable: desacoplar pageLoading del render + placeholders por pieza.
+   - Varios commits, build verde entre medias, probar en móvil.
+   IDEA FUTURA (no ahora): contador animado de créditos al CAMBIAR el saldo
+   (al gastar, no al cargar). Detalle decorativo, baja prioridad.
