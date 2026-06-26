@@ -10,6 +10,7 @@ import ConversationDrawer from '@/components/agent/ConversationDrawer';
 import ConversationThread from '@/components/agent/ConversationThread';
 import ConversationInput from '@/components/agent/ConversationInput';
 import CreditsIndicator from '@/components/shared/CreditsIndicator';
+import FeedbackButton from '@/components/feedback/FeedbackButton';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import type { ConfirmationMode } from '@/lib/agent/types';
 
@@ -211,6 +212,7 @@ export default function AgentPage() {
             <div style={{ flex: 1, minWidth: 0 }}>
               <CreditsIndicator credits={credits} />
             </div>
+            <FeedbackButton />
           </div>
         )}
 
