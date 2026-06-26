@@ -12,6 +12,7 @@ import ConversationInput from '@/components/agent/ConversationInput';
 import CreditsIndicator from '@/components/shared/CreditsIndicator';
 import FeedbackButton from '@/components/feedback/FeedbackButton';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
+import { useVisualViewportHeight } from '@/hooks/useVisualViewportHeight';
 import type { ConfirmationMode } from '@/lib/agent/types';
 
 interface Summary { hasAgent: boolean; creditsRemaining: number; creditsExtra: number; plan: string }
@@ -28,6 +29,7 @@ export default function AgentPage() {
   const [selectedId, setSelectedId]   = useState<string | null>(null);
   const [drawerOpen, setDrawerOpen]   = useState(false);
   const isMobile = useMediaQuery('(max-width: 767px)');
+  const vvHeight = useVisualViewportHeight();
   const router   = useRouter();
   const supabase = createClient();
   const autoSelectedRef    = useRef(false);
@@ -148,7 +150,7 @@ export default function AgentPage() {
   if (!hasAgent) return <Paywall />;
 
   return (
-    <div style={{ display: 'flex', height: '100dvh', overflow: 'hidden' }}>
+    <div style={{ display: 'flex', height: vvHeight != null ? `${vvHeight}px` : '100dvh', overflow: 'hidden' }}>
 
       {/* Sidebar — fijo en escritorio, drawer en móvil */}
       {!isMobile && (
