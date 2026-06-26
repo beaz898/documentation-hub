@@ -3,7 +3,7 @@ PENDIENTES — Doclity (Agente IA)
 Documento vivo. Se actualiza al completar tareas (marcar [✓]) y se
 sustituye por la versión nueva. Más ligero que la Bitácora: aquí va
 lo que falta y la visión que lo guía, no el detalle de cada sesión.
-Última actualización: 23/06/2026 (v14)
+Última actualización: 26/06/2026 (v15)
 
 
 ════════════════════════════════════════════════════════════════
@@ -253,6 +253,24 @@ Leyenda: [ ] pendiente · [~] en curso · [✓] hecho
       · Commit 2: grids KPI en QualityTab y ChatTab — DayFilter visible desde el primer
         frame + div vacío minHeight:80 durante loading; minHeight:80 en estado sin-datos y
         en el contenedor del grid con datos. Los tres estados ocupan ≥80px → sin salto.
+
+[✓] B.30 — (UX / PULIDO) CreditsIndicator compact en cabeceras móviles + placeholder anti-salto
+      Nueva prop compact?: boolean: solo muestra "<X> cr" con color dinámico, sin
+      recuadro ni barra de progreso. Cuando credits es null en modo compact, muestra
+      "·· cr" en gris tenue (opacity 0.5) para reservar espacio y evitar el salto
+      visual — modo completo sigue devolviendo null. Añadido en barra móvil del agente
+      (sustituye CreditsIndicator completo) y en cabecera del chat (quita "X documentos").
+
+[✓] B.29 — (UX / PULIDO) FeedbackButton autónomo y global en cabeceras móviles
+      accessToken hecho opcional (prop?: string | null); guardia if(!accessToken) eliminada
+      (el fetch usa credentials:include). FeedbackButton añadido a la barra móvil del
+      agente. ChatHeader ya lo tenía desde la sesión.
+
+[✓] B.28 — (UX / BUG) Panel de feedback cortado en móvil
+      Causa raíz: el panel (position:absolute) era recortado por overflow:hidden/auto en
+      ancestros. Con AppRail 64px fijo, <main> mide 311px en iPhone 375px; el panel
+      sobreasalía 29px y desaparecía. Fix: position:fixed con top calculado en
+      getBoundingClientRect().bottom al abrir y right:16 anclado al viewport.
 
 [✓] B.27 — (UX / PULIDO) Quitar botón "volver al chat" redundante en settings
       Eliminado de settings/usage y settings/team. En esas páginas la AppRail
@@ -565,6 +583,8 @@ NOTAS DE ORDEN (propuesta, a confirmar)
 - B.22 (layout móvil del agente) COMPLETADO. B.23 (dvh resto de la app) en curso: hecho el
   layout autenticado, AppRail, chat y el body global; pendiente revisar páginas que scrollean
   solo si dan problema. B.24 (layout shift) y B.25 (micrófono móvil) salieron durante B.22/B.23.
+- B.26 (RLS DELETE), B.27 (botón volver redundante), B.28 (panel feedback cortado),
+  B.29 (FeedbackButton autónomo), B.30 (créditos compactos + placeholder) COMPLETADOS en sesiones 21-22.
 
 Forma de trabajo: diagnóstico con datos reales antes de arreglar; un
 cambio lógico cada vez; build verde entre medias; SQL en Supabase antes

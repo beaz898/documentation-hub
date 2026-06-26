@@ -1607,3 +1607,79 @@ COMMITS DE ESTA SESIÓN
    c0b4574 — docs: cerrar B.24 (✓), pendientes v13
    fc9b1b5 — docs: bitácora sesión 21
    b9b7dc4 — fix(ux): quitar botón "volver al chat" de settings/usage y settings/team (B.27)
+   d1ce5f8 — docs: cerrar B.27 (✓), pendientes v14 + bitácora sesión 21 completa
+
+
+────────────────────────────────────────────────────────────────
+SESIÓN 22 — 25-26/06/2026
+Título: B.28 panel feedback · B.29 feedback global · B.30 créditos compactos
+────────────────────────────────────────────────────────────────
+
+OBJETIVO
+Tres bloques de mejora UX móvil: (1) arreglar el panel de feedback que se
+cortaba por la izquierda en móvil, (2) hacer el FeedbackButton autónomo y
+añadirlo a las cabeceras de agente y chat, (3) añadir el indicador de
+créditos compacto a esas cabeceras móviles con un placeholder anti-salto.
+
+CAMBIOS IMPLEMENTADOS
+
+1. B.28 — FIX PANEL FEEDBACK CORTADO EN MÓVIL
+
+   Causa raíz (dos commits de diagnóstico progresivo)
+   - Commit 1 (25/06): se limitó width a min(340px, calc(100vw-32px)).
+     No resolvió: el problema no era solo el ancho sino que el panel
+     (position:absolute) era recortado por ancestros overflow:hidden/auto:
+     el chat root div tiene overflow:hidden y <main> en AuthenticatedLayout
+     tiene overflow-y:auto (que fuerza overflow-x:auto). Con AppRail de
+     64px fijo, <main> mide 311px en un iPhone 375px → el panel de 340px
+     sobreasalía 29px por la izquierda y era recortado.
+   - Commit 2 (26/06): cambio a position:fixed. El panel escapa de todos
+     los contenedores de overflow. top calculado dinámicamente con
+     wrapperRef.current.getBoundingClientRect().bottom al abrir, right:16
+     anclado al viewport. El click-outside sigue funcionando porque el
+     panel permanece en el DOM como hijo de wrapperRef.
+
+   Archivos modificados
+     components/feedback/FeedbackButton.tsx  — position fixed + panelTop
+
+2. B.29 — FEEDBACKBUTTON AUTÓNOMO + GLOBAL EN CABECERAS MÓVILES
+
+   - accessToken hecho opcional (prop?: string | null). La guardia
+     "if (!accessToken) return" eliminada: el fetch usa credentials:include
+     (cookie), no el token. ChatHeader sigue pasándolo sin romper nada.
+   - Botón añadido a la barra móvil del agente (app/(authenticated)/agent/
+     page.tsx, dentro de {isMobile && ...}). No toca el sidebar de escritorio.
+
+   Archivos modificados
+     components/feedback/FeedbackButton.tsx  — prop opcional, guardia quitada
+     app/(authenticated)/agent/page.tsx      — import + <FeedbackButton />
+
+3. B.30 — CREDITSINDICATOR COMPACT EN CABECERAS MÓVILES + PLACEHOLDER
+
+   - Nueva prop compact?: boolean en CreditsIndicator. Cuando true: solo
+     muestra "<X> cr" con color dinámico (rojo/ámbar/azul según saldo),
+     sin recuadro, sin etiqueta de plan, sin barra de progreso.
+   - Cuando compact y credits es null (cargando): muestra "·· cr" en gris
+     tenue (opacity:0.5) para reservar espacio y evitar el salto visual.
+     Modo completo (sidebar) sigue devolviendo null sin créditos.
+   - Barra móvil del agente: sustituye CreditsIndicator completo por
+     compact. Estructura: ☰ | <div flex:1 /> | <X cr> | [Feedback].
+   - Cabecera del chat: quita el <p> de "X documentos", añade créditos
+     compact solo en móvil ({isMobile && ...}). Estructura:
+     ☰ | <div flex:1 /> | <X cr> | [Feedback] | [Borrar (si hay msgs)].
+     documentCount eliminado de la interface de ChatHeader.
+
+   Archivos modificados
+     components/shared/CreditsIndicator.tsx   — prop compact + placeholder
+     app/(authenticated)/agent/page.tsx       — CreditsIndicator compact
+     components/chat/ChatHeader.tsx           — credits compact + quita docs
+     app/(authenticated)/chat/page.tsx        — prop credits, quita documentCount
+
+COMMITS DE ESTA SESIÓN
+   bb85df1 — fix(ux): panel feedback no se corta en móvil — width min(340px, 100vw-32px)
+   5bca2d1 — fix(ux): panel feedback position fixed — sale del flujo de overflow (B.28)
+   b55b657 — fix(ux): FeedbackButton — accessToken opcional, guardia eliminada (B.29)
+   7318e8e — feat(ux): FeedbackButton en barra móvil del agente (B.29)
+   50f5619 — feat(ux): CreditsIndicator compact — solo número en barra móvil del agente (B.30)
+   951558f — feat(ux): créditos compactos en cabecera móvil del chat, quita "X documentos" (B.30)
+   e32bc66 — fix(ux): placeholder tenue en CreditsIndicator compact mientras carga (B.30)
