@@ -3,7 +3,7 @@ PENDIENTES — Doclity (Agente IA)
 Documento vivo. Se actualiza al completar tareas (marcar [✓]) y se
 sustituye por la versión nueva. Más ligero que la Bitácora: aquí va
 lo que falta y la visión que lo guía, no el detalle de cada sesión.
-Última actualización: 26/06/2026 (v16)
+Última actualización: 28/06/2026 (v17)
 
 
 ════════════════════════════════════════════════════════════════
@@ -228,22 +228,18 @@ Leyenda: [ ] pendiente · [~] en curso · [✓] hecho
       en móvil (en escritorio siguen al hover); altura del agente y del drawer a 100dvh.
       B.17 (renombrar) y B.18/B.19 (scroll) verificados funcionando dentro del drawer en móvil.
 
-[~] B.23 — (UX / RESPONSIVE) Altura de viewport en móvil (100vh → 100dvh) fuera del agente
-      EN CURSO. Problema: con height/min-height:100vh, la barra del navegador móvil deja una
-      franja blanca o corta contenido. Solución: dvh (con 100vh como fallback previo donde aplica).
-      HECHO hasta ahora:
-        · AuthenticatedLayout (contenedor raíz) y AppRail: h-screen → h-dvh (Tailwind 3.4 nativo).
-          Arregla la altura base de TODAS las páginas autenticadas y el corte del último icono
-          del AppRail (cerrar sesión).
-        · Pantalla de chat (chat/page.tsx, contenedor raíz): height 100vh → 100dvh. Arregla la
-          caja de escribir cortada y el scroll espúreo.
-        · globals.css, body: min-height 100vh → 100dvh (con 100vh de fallback). Elimina la franja
-          blanca al hacer scroll en TODA la app de un solo cambio.
-      PENDIENTE / A REVISAR:
-        · Resto de minHeight:100vh en estados de carga y páginas que SÍ scrollean (billing, usage,
-          team, legales, landing, invite, login). NO se tocaron: scrollean bien y no estaban rotos.
-          Revisar solo si aparece un problema concreto en alguno en móvil.
-      VISIÓN: la app debe verse completa nada más entrar en móvil, sin tener que scrollear.
+[✓] B.23 — (UX / RESPONSIVE) Altura de viewport en móvil (100vh → 100dvh) fuera del agente
+      COMPLETADO en Sesiones 18 y 23.
+      · AuthenticatedLayout y AppRail: h-screen → h-dvh. Arregla la altura base de toda la zona
+        autenticada y el corte del último icono del AppRail (cerrar sesión).
+      · chat/page.tsx: height 100vh → 100dvh. Arregla la caja de escribir cortada y el scroll espúreo.
+      · globals.css body: min-height 100vh → 100dvh. Elimina la franja blanca global.
+      · settings/team, billing, usage (Sesión 23): restructurados a flex column + height:vvHeight|100dvh
+        + cabecera flexShrink:0 + contenido flex:1 overflowY:auto. El teclado ya no empuja la cabecera
+        fuera de la vista. En settings/usage, la barra de pestañas también queda fija (flexShrink:0).
+      · Nuevo hook useScrollFocusedInputIntoView en AuthenticatedLayout: cuando el teclado aparece,
+        hace scrollIntoView del input activo. Arregla Chrome Android con scroll en contenedor anidado.
+      · Legales, landing, invite, login: scrollean en window → sin bug → no necesitan cambios.
 
 [✓] B.24 — (UX / PULIDO) Layout shift en cabeceras al cargar (sensación de poco profesional)
       COMPLETADO en Sesión 20 (23/06/2026). Dos commits:
@@ -594,9 +590,9 @@ NOTAS DE ORDEN (propuesta, a confirmar)
 - B.6 (aprendizaje) es la FASE FINAL: se construye sobre B.3, el sistema
   de búsqueda y los permisos de B.15. Diseño técnico primero cuando se llegue.
 - B.7 (cierre técnico) completado.
-- B.22 (layout móvil del agente) COMPLETADO. B.23 (dvh resto de la app) en curso: hecho el
-  layout autenticado, AppRail, chat y el body global; pendiente revisar páginas que scrollean
-  solo si dan problema. B.24 (layout shift) y B.25 (micrófono móvil) salieron durante B.22/B.23.
+- B.22 (layout móvil del agente) COMPLETADO. B.23 (dvh + teclado móvil) COMPLETADO en sesiones
+  18 y 23: layout autenticado, AppRail, chat, body global, y settings (team/billing/usage)
+  restructuradas a modelo chat. B.24 (layout shift) y B.25 (micrófono móvil) cerrados.
 - B.26 (RLS DELETE), B.27 (botón volver redundante), B.28 (panel feedback cortado),
   B.29 (FeedbackButton autónomo), B.30 (créditos compactos + placeholder) COMPLETADOS en sesiones 21-22.
 - B.31 (arranque progresivo del agente) destapado en sesión 22 — pendiente.

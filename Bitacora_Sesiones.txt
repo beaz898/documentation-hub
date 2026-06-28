@@ -1700,3 +1700,72 @@ PENDIENTE DESTAPADO EN ESTA SESIÓN
    - Varios commits, build verde entre medias, probar en móvil.
    IDEA FUTURA (no ahora): contador animado de créditos al CAMBIAR el saldo
    (al gastar, no al cargar). Detalle decorativo, baja prioridad.
+
+
+────────────────────────────────────────────────────────────────
+SESIÓN 23 — 26-28/06/2026
+Título: B.23 completado — cabecera fija en settings + teclado móvil
+────────────────────────────────────────────────────────────────
+
+OBJETIVO
+Resolver el último bloque pendiente de B.23: en settings (team, billing,
+usage) al abrir el teclado en móvil (Chrome Android), toda la página se
+desplazaba hacia arriba y la cabecera (título + FeedbackButton) desaparecía
+de la vista. Aplicar el modelo del chat (cabecera fija + contenido scrolleable
+interior) a las tres páginas de settings, y arreglar Chrome Android que no
+hace scroll automático a inputs en contenedores anidados.
+
+CAMBIOS IMPLEMENTADOS
+
+1. HOOK useScrollFocusedInputIntoView (hooks/useScrollFocusedInputIntoView.ts)
+   - Nuevo hook SSR-safe. Escucha visualViewport.resize (= teclado aparece)
+     y llama a el.scrollIntoView({ block: 'nearest' }) sobre el input/textarea
+     activo. Delay de 50ms para que el teclado termine de ajustarse.
+   - Arregla Chrome Android, que no hace scroll automático cuando el scroll
+     está en un contenedor anidado (<main>.overflow-y-auto) en lugar de window.
+   - Montado en AuthenticatedLayout: cubre todas las páginas autenticadas con
+     inputs en flujo, de una sola vez. No-op en chat/agente (el input ya queda
+     visible con vvHeight). No-op si el elemento ya está en vista.
+
+2. SETTINGS — CABECERA FIJA + CONTENIDO SCROLLEABLE (3 páginas)
+
+   Las tres páginas compartían el mismo patrón roto: minHeight:100vh + todo
+   en flujo normal → cabecera + contenido scrolleaban juntos → al abrir el
+   teclado o hacer scroll, la cabecera desaparecía de la vista.
+
+   Cambio aplicado a las tres páginas:
+   · Raíz: minHeight:100vh → flex column, height:vvHeight|100dvh, overflow:hidden.
+     Mismo patrón que chat/agente con useVisualViewportHeight.
+   · Cabecera (h1 + FeedbackButton): flexShrink:0 — no encoge, permanece fija.
+   · Contenido: envuelto en div flex:1 overflowY:auto — única zona scrolleable.
+
+   settings/team/page.tsx — cambio base descrito arriba.
+   settings/billing/page.tsx — ídem (maxWidth:900 en div de contenido).
+   settings/usage/page.tsx — ídem, más:
+   · Barra de pestañas (entre cabecera y contenido) también fija (flexShrink:0
+     en ambas variantes: loading placeholder y barra real). Es navegación →
+     debe permanecer visible siempre, como la cabecera.
+
+DIAGNÓSTICO PREVIO (exploración)
+   Dos problemas separados con soluciones separadas:
+   · Chrome Android no hace scroll automático a inputs focalizados cuando el
+     scroll está en <main>.overflow-y-auto (anidado), solo en window/body.
+     → useScrollFocusedInputIntoView en AuthenticatedLayout.
+   · Cabecera que desaparece al abrir el teclado o scrollear.
+     → Restructura a flex column + cabecera flexShrink:0.
+   Login/invite están fuera de (authenticated), scrollean en window → sin problema.
+   Los modales (transferir ownership) tienen causa distinta (position:fixed +
+   teclado iOS) → fuera de alcance en esta sesión.
+
+COMMITS DE ESTA SESIÓN
+   21bc26e — fix(ux): scroll automático al input enfocado en móvil (páginas auth)
+   d78313e — fix(ux): cabecera fija en settings — modelo chat (team, billing, usage)
+
+ARCHIVOS NUEVOS
+  hooks/useScrollFocusedInputIntoView.ts
+
+ARCHIVOS MODIFICADOS
+  components/layout/AuthenticatedLayout.tsx     — import + useScrollFocusedInputIntoView()
+  app/(authenticated)/settings/team/page.tsx    — cabecera fija + scroll interior + vvHeight
+  app/(authenticated)/settings/billing/page.tsx — cabecera fija + scroll interior + vvHeight
+  app/(authenticated)/settings/usage/page.tsx   — cabecera fija + pestañas fijas + scroll + vvHeight
