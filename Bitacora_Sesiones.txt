@@ -1708,26 +1708,48 @@ Título: B.23 completado — cabecera fija en settings + teclado móvil
 ────────────────────────────────────────────────────────────────
 
 OBJETIVO
-Resolver el último bloque pendiente de B.23: en settings (team, billing,
-usage) al abrir el teclado en móvil (Chrome Android), toda la página se
-desplazaba hacia arriba y la cabecera (título + FeedbackButton) desaparecía
-de la vista. Aplicar el modelo del chat (cabecera fija + contenido scrolleable
-interior) a las tres páginas de settings, y arreglar Chrome Android que no
-hace scroll automático a inputs en contenedores anidados.
+Arreglar el comportamiento del teclado en móvil en toda la app autenticada.
+Tres problemas distintos, tres soluciones:
+  a) Chat y agente: el teclado empujaba toda la página arriba → campo de texto
+     fuera de la vista. → Hook useVisualViewportHeight + altura dinámica del raíz.
+  b) Chrome Android + contenedor anidado: no hace scroll automático al input
+     al aparecer el teclado. → Hook useScrollFocusedInputIntoView global.
+  c) Settings (team, billing, usage): la cabecera desaparecía al abrir el
+     teclado o al scrollear. → Restructura a modelo flex-column del chat.
 
 CAMBIOS IMPLEMENTADOS
 
-1. HOOK useScrollFocusedInputIntoView (hooks/useScrollFocusedInputIntoView.ts)
-   - Nuevo hook SSR-safe. Escucha visualViewport.resize (= teclado aparece)
+1. HOOK useVisualViewportHeight + TECLADO EN CHAT Y AGENTE
+
+   Hook useVisualViewportHeight (hooks/useVisualViewportHeight.ts):
+   · Detecta la altura visible real del viewport vía window.visualViewport.
+   · Escucha dos eventos: 'resize' (Chrome Android, escritorio) y 'scroll'
+     (iOS Safari, que dispara 'scroll' en lugar de 'resize' al abrir el teclado).
+   · SSR-safe: devuelve null hasta que el componente monta.
+   · Sin soporte de visualViewport → devuelve null → fallback a CSS dvh.
+
+   Aplicación a chat/page.tsx y agent/page.tsx:
+   · El contenedor raíz pasa de height:100dvh fijo a altura dinámica:
+     vvHeight != null ? `${vvHeight}px` : '100dvh'
+   · Al aparecer el teclado, el contenedor se reduce a la altura visible real.
+     La zona de mensajes (flex:1) se acorta. El input (flexShrink:0) queda
+     siempre encima del teclado, SIN que el navegador empuje toda la página.
+   · Verificado en Android/Chrome. PENDIENTE de verificar en iOS/Safari — el
+     estándar visualViewport es universal, pero iOS tiene particularidades con
+     el teclado. Las salvaguardas (evento 'scroll' adicional + fallback dvh)
+     están en su lugar, sin probar en dispositivo iOS real.
+
+2. HOOK useScrollFocusedInputIntoView (hooks/useScrollFocusedInputIntoView.ts)
+   · Nuevo hook SSR-safe. Escucha visualViewport.resize (= teclado aparece)
      y llama a el.scrollIntoView({ block: 'nearest' }) sobre el input/textarea
      activo. Delay de 50ms para que el teclado termine de ajustarse.
-   - Arregla Chrome Android, que no hace scroll automático cuando el scroll
+   · Arregla Chrome Android, que no hace scroll automático cuando el scroll
      está en un contenedor anidado (<main>.overflow-y-auto) en lugar de window.
-   - Montado en AuthenticatedLayout: cubre todas las páginas autenticadas con
+   · Montado en AuthenticatedLayout: cubre todas las páginas autenticadas con
      inputs en flujo, de una sola vez. No-op en chat/agente (el input ya queda
      visible con vvHeight). No-op si el elemento ya está en vista.
 
-2. SETTINGS — CABECERA FIJA + CONTENIDO SCROLLEABLE (3 páginas)
+3. SETTINGS — CABECERA FIJA + CONTENIDO SCROLLEABLE (3 páginas)
 
    Las tres páginas compartían el mismo patrón roto: minHeight:100vh + todo
    en flujo normal → cabecera + contenido scrolleaban juntos → al abrir el
@@ -1735,7 +1757,7 @@ CAMBIOS IMPLEMENTADOS
 
    Cambio aplicado a las tres páginas:
    · Raíz: minHeight:100vh → flex column, height:vvHeight|100dvh, overflow:hidden.
-     Mismo patrón que chat/agente con useVisualViewportHeight.
+     Mismo patrón que chat/agente (usa useVisualViewportHeight).
    · Cabecera (h1 + FeedbackButton): flexShrink:0 — no encoge, permanece fija.
    · Contenido: envuelto en div flex:1 overflowY:auto — única zona scrolleable.
 
@@ -1746,26 +1768,27 @@ CAMBIOS IMPLEMENTADOS
      en ambas variantes: loading placeholder y barra real). Es navegación →
      debe permanecer visible siempre, como la cabecera.
 
-DIAGNÓSTICO PREVIO (exploración)
-   Dos problemas separados con soluciones separadas:
-   · Chrome Android no hace scroll automático a inputs focalizados cuando el
-     scroll está en <main>.overflow-y-auto (anidado), solo en window/body.
-     → useScrollFocusedInputIntoView en AuthenticatedLayout.
-   · Cabecera que desaparece al abrir el teclado o scrollear.
-     → Restructura a flex column + cabecera flexShrink:0.
-   Login/invite están fuera de (authenticated), scrollean en window → sin problema.
-   Los modales (transferir ownership) tienen causa distinta (position:fixed +
-   teclado iOS) → fuera de alcance en esta sesión.
+CASOS DE TECLADO NO ABORDADOS (uso marginal en móvil)
+   · ImprovementModal (editor de mejora de docs): tendría el salto del teclado,
+     pero editar documentos en móvil es infrecuente. Si cambia el uso, aplicar
+     el mismo patrón visualViewport al div interno del modal.
+   · Modales destructivos (transferir ownership, purge email): position:fixed
+     no sube con el teclado en iOS; uso muy infrecuente en móvil. No se arregla.
 
 COMMITS DE ESTA SESIÓN
+   50f8b4d — feat(ux): ajuste de altura con visualViewport en el chat móvil
+   2056809 — feat(ux): ajuste de altura con visualViewport en el agente móvil
    21bc26e — fix(ux): scroll automático al input enfocado en móvil (páginas auth)
    d78313e — fix(ux): cabecera fija en settings — modelo chat (team, billing, usage)
 
 ARCHIVOS NUEVOS
+  hooks/useVisualViewportHeight.ts
   hooks/useScrollFocusedInputIntoView.ts
 
 ARCHIVOS MODIFICADOS
-  components/layout/AuthenticatedLayout.tsx     — import + useScrollFocusedInputIntoView()
-  app/(authenticated)/settings/team/page.tsx    — cabecera fija + scroll interior + vvHeight
-  app/(authenticated)/settings/billing/page.tsx — cabecera fija + scroll interior + vvHeight
-  app/(authenticated)/settings/usage/page.tsx   — cabecera fija + pestañas fijas + scroll + vvHeight
+  app/(authenticated)/chat/page.tsx              — height dinámica con vvHeight (contenedor raíz)
+  app/(authenticated)/agent/page.tsx             — height dinámica con vvHeight (contenedor raíz)
+  components/layout/AuthenticatedLayout.tsx      — import + useScrollFocusedInputIntoView()
+  app/(authenticated)/settings/team/page.tsx     — cabecera fija + scroll interior + vvHeight
+  app/(authenticated)/settings/billing/page.tsx  — cabecera fija + scroll interior + vvHeight
+  app/(authenticated)/settings/usage/page.tsx    — cabecera fija + pestañas fijas + scroll + vvHeight
