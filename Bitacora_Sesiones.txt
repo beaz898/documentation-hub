@@ -1856,3 +1856,8 @@ ARCHIVOS MODIFICADOS
   components/ImprovementModal.tsx  — wrapper isMobile + ImprovementMobileNotice + rename Desktop
   messages/es.json                 — 3 claves nuevas en namespace improvement
   messages/en.json                 — 3 claves nuevas en namespace improvement
+
+DESTAPADO EN ESTA SESIÓN
+   B.33 — Unificar detección de móvil en chat/page.tsx. Al añadir useMediaQuery en
+   ImprovementModal se detectó que chat/page.tsx usa un useState+useEffect inline con
+   window.innerWidth en lugar del hook canónico useMediaQuery. Pendiente de refactorizar.
