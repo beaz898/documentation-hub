@@ -272,7 +272,10 @@
     "problemRestored": "Problema restaurado: \"{title}\".",
     "problemDismissedPersist": "Problema descartado: \"{title}\". No volverá a aparecer en los próximos reanálisis.",
     "problemRestoredPersist": "Problema restaurado: \"{title}\". Se volverá a verificar en el próximo reanálisis.",
-    "reanalyzeFailed": "No se pudo reanalizar, prueba de nuevo en unos segundos."
+    "reanalyzeFailed": "No se pudo reanalizar, prueba de nuevo en unos segundos.",
+    "mobileNoticeTitle": "Mejora con IA, mejor en ordenador",
+    "mobileNoticeBody": "La edición de documentos con IA necesita una pantalla amplia para revisar el texto, comparar problemas y aplicar cambios con comodidad. Abre este documento desde un ordenador para mejorarlo.",
+    "mobileNoticeButton": "Entendido"
   },
   "billing": {
     "title": "Facturación",

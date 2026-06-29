@@ -272,7 +272,10 @@
     "problemRestored": "Issue restored: \"{title}\".",
     "problemDismissedPersist": "Issue dismissed: \"{title}\". It won't appear in future re-analyses.",
     "problemRestoredPersist": "Issue restored: \"{title}\". It will be checked again in the next re-analysis.",
-    "reanalyzeFailed": "Could not re-analyze, try again in a few seconds."
+    "reanalyzeFailed": "Could not re-analyze, try again in a few seconds.",
+    "mobileNoticeTitle": "AI Improvement works best on a computer",
+    "mobileNoticeBody": "Editing documents with AI needs a wide screen to review the text, compare issues and apply changes comfortably. Open this document on a computer to improve it.",
+    "mobileNoticeButton": "Got it"
   },
   "billing": {
     "title": "Billing",

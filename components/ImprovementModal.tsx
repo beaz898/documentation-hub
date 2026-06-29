@@ -9,6 +9,7 @@ import { useImprovementChat, findTolerant } from './improvement/useImprovementCh
 import { useStyleAnalysis } from './improvement/useStyleAnalysis';
 import { useCrossDocAnalysis } from './improvement/useCrossDocAnalysis';
 import { useIndexing } from './improvement/useIndexing';
+import { useMediaQuery } from '@/hooks/useMediaQuery';
 import type { Problem, ProblemType, RawAnalysis } from './improvement/problems';
 
 /** Returns the full paragraph (bounded by \n\n) that contains `fragment`. */
@@ -67,7 +68,81 @@ function buildProblemsSummary(problems: Problem[]): string {
     .join('\n');
 }
 
-export default function ImprovementModal({
+export default function ImprovementModal(props: ImprovementModalProps) {
+  const isMobile = useMediaQuery('(max-width: 767px)');
+  if (isMobile) {
+    return <ImprovementMobileNotice onClose={props.onMinimize ?? props.onClose} />;
+  }
+  return <ImprovementModalDesktop {...props} />;
+}
+
+function ImprovementMobileNotice({ onClose }: { onClose: () => void }) {
+  const t = useTranslations('improvement');
+  return (
+    <div
+      style={{
+        position: 'fixed', inset: 0, zIndex: 100,
+        background: 'rgba(0,0,0,0.55)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        padding: 20,
+      }}
+    >
+      <div
+        onClick={e => e.stopPropagation()}
+        style={{
+          width: '100%', maxWidth: 420,
+          background: 'var(--bg)',
+          border: '1px solid var(--border)',
+          borderRadius: 14,
+          boxShadow: '0 30px 80px rgba(0,0,0,0.45), 0 12px 30px rgba(0,0,0,0.25)',
+          padding: '28px 24px 24px',
+          display: 'flex', flexDirection: 'column', alignItems: 'center',
+          textAlign: 'center',
+        }}
+      >
+        <div style={{
+          width: 56, height: 56, borderRadius: 14, background: 'var(--brand-light)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          marginBottom: 18,
+        }}>
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--brand)" strokeWidth="2">
+            <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
+            <line x1="8" y1="21" x2="16" y2="21" />
+            <line x1="12" y1="17" x2="12" y2="21" />
+          </svg>
+        </div>
+
+        <h2 style={{
+          fontSize: 17, fontWeight: 600, color: 'var(--text-primary)',
+          margin: '0 0 10px',
+        }}>
+          {t('mobileNoticeTitle')}
+        </h2>
+
+        <p style={{
+          fontSize: 14, lineHeight: 1.55, color: 'var(--text-secondary)',
+          margin: '0 0 22px', maxWidth: 340,
+        }}>
+          {t('mobileNoticeBody')}
+        </p>
+
+        <button
+          onClick={onClose}
+          style={{
+            width: '100%', padding: '12px 16px', borderRadius: 9,
+            border: 'none', background: 'var(--brand)', color: '#fff',
+            fontSize: 14, fontWeight: 600, cursor: 'pointer',
+            fontFamily: 'var(--font-sans)',
+          }}
+        >
+          {t('mobileNoticeButton')}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function ImprovementModalDesktop({
   fileName,
   initialText,
   analysis,
