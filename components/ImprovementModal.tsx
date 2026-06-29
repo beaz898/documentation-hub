@@ -71,7 +71,7 @@ function buildProblemsSummary(problems: Problem[]): string {
 export default function ImprovementModal(props: ImprovementModalProps) {
   const isMobile = useMediaQuery('(max-width: 767px)');
   if (isMobile) {
-    return <ImprovementMobileNotice onClose={props.onMinimize ?? props.onClose} />;
+    return <ImprovementMobileNotice onClose={props.onClose} />;
   }
   return <ImprovementModalDesktop {...props} />;
 }
