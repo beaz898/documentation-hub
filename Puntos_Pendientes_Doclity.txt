@@ -3,7 +3,7 @@ PENDIENTES — Doclity (Agente IA)
 Documento vivo. Se actualiza al completar tareas (marcar [✓]) y se
 sustituye por la versión nueva. Más ligero que la Bitácora: aquí va
 lo que falta y la visión que lo guía, no el detalle de cada sesión.
-Última actualización: 28/06/2026 (v17)
+Última actualización: 29/06/2026 (v18)
 
 
 ════════════════════════════════════════════════════════════════
@@ -249,6 +249,16 @@ Leyenda: [ ] pendiente · [~] en curso · [✓] hecho
       · Commit 2: grids KPI en QualityTab y ChatTab — DayFilter visible desde el primer
         frame + div vacío minHeight:80 durante loading; minHeight:80 en estado sin-datos y
         en el contenedor del grid con datos. Los tres estados ocupan ≥80px → sin salto.
+
+[✓] B.32 — (UX / MÓVIL) Aviso "mejor en ordenador" en ImprovementModal
+      COMPLETADO en Sesión 24 (29/06/2026).
+      El editor de mejora de documentos con IA era ilegible en móvil (dos columnas,
+      textarea larga, lista de problemas). En lugar de adaptar el editor, se muestra
+      un aviso claro en viewport <768px. El wrapper ImprovementModal detecta isMobile
+      con useMediaQuery; si móvil → ImprovementMobileNotice (tarjeta con botón
+      "Entendido" que llama a onClose → descarta el archivo y limpia el estado);
+      si escritorio → ImprovementModalDesktop sin cambios. 3 claves i18n nuevas en
+      es.json y en.json (mobileNoticeTitle, mobileNoticeBody, mobileNoticeButton).
 
 [ ] B.31 — (UX / Coherencia) Unificar el arranque del agente al modelo progresivo del chat
       El agente bloquea toda la UI con un spinner (pageLoading) hasta cargar todo
@@ -596,6 +606,7 @@ NOTAS DE ORDEN (propuesta, a confirmar)
 - B.26 (RLS DELETE), B.27 (botón volver redundante), B.28 (panel feedback cortado),
   B.29 (FeedbackButton autónomo), B.30 (créditos compactos + placeholder) COMPLETADOS en sesiones 21-22.
 - B.31 (arranque progresivo del agente) destapado en sesión 22 — pendiente.
+- B.32 (aviso móvil ImprovementModal) COMPLETADO en sesión 24.
 
 Forma de trabajo: diagnóstico con datos reales antes de arreglar; un
 cambio lógico cada vez; build verde entre medias; SQL en Supabase antes

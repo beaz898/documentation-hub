@@ -1792,3 +1792,67 @@ ARCHIVOS MODIFICADOS
   app/(authenticated)/settings/team/page.tsx     — cabecera fija + scroll interior + vvHeight
   app/(authenticated)/settings/billing/page.tsx  — cabecera fija + scroll interior + vvHeight
   app/(authenticated)/settings/usage/page.tsx    — cabecera fija + pestañas fijas + scroll + vvHeight
+
+
+────────────────────────────────────────────────────────────────
+SESIÓN 24 — 28-29/06/2026
+Título: B.32 — Aviso móvil en ImprovementModal (mejor en ordenador)
+────────────────────────────────────────────────────────────────
+
+OBJETIVO
+El ImprovementModal (editor de mejora de documentos con IA) era ilegible
+en móvil: dos columnas, textarea larga, lista de problemas, teclado virtual
+— todo junto en una pantalla pequeña. En Sesión 23 se había decidido no
+abordarlo por uso marginal. En esta sesión se decide una solución diferente:
+en lugar de adaptar el editor, mostrar un aviso claro que dirija al usuario
+al ordenador, con un botón "Entendido" que descarta el análisis limpiamente.
+
+EXPLORACIÓN PREVIA
+   Se volcaron a REVISION_MOVIL.txt los componentes del árbol de mejora
+   (ImprovementModal, ChatPanel, EditorPanel, ReanalyzeButtons, FilterMenu,
+   useVisualViewportHeight) y se analizó la detección de móvil existente
+   en la app:
+   · Hay dos mecanismos: useMediaQuery (canónico, usado en agent/page.tsx)
+     y un useState+window.innerWidth inline en chat/page.tsx.
+   · ImprovementModal no recibía ningún flag de móvil — solo usaba clases
+     Tailwind md: para el layout visual, sin diferencia de comportamiento.
+   · El modal se abre desde AnalysisModal → botón "Mejorar con IA" →
+     handleAnalysisImprove (hooks/chat/useDocuments.ts) → setImprovementTarget
+     → chat/page.tsx renderiza <ImprovementModal>.
+   · handleImprovementClose: no tiene window.confirm propio (la confirmación
+     está en el modal). Borra el archivo de Supabase Storage con
+     supabase.storage.from('documents').remove([path]) y pone
+     improvementTarget a null — la app queda lista para un nuevo análisis.
+
+CAMBIOS IMPLEMENTADOS
+
+1. WRAPPER isMobile EN ImprovementModal (components/ImprovementModal.tsx)
+   · La función original se renombra a ImprovementModalDesktop (sin ningún
+     cambio en su lógica).
+   · Se añade un nuevo export default ImprovementModal que actúa de wrapper:
+     detecta isMobile con useMediaQuery('(max-width: 767px)').
+     - En móvil: renderiza ImprovementMobileNotice (aviso).
+     - En escritorio: renderiza ImprovementModalDesktop (comportamiento sin cambios).
+   · ImprovementMobileNotice: tarjeta centrada con icono de monitor, título,
+     párrafo explicativo y botón "Entendido". El botón llama a onClose
+     (no a onMinimize), que ejecuta handleImprovementClose → borra el archivo
+     temporal de Storage y deja la app limpia.
+
+   Fix posterior (mismo commit de sesión): el botón llamaba inicialmente a
+   onMinimize ?? onClose, lo que dejaba el documento en estado minimizado
+   en móvil e impedía analizar otro. Corregido a onClose directamente.
+
+2. TRADUCCIONES (messages/es.json, messages/en.json)
+   Tres claves nuevas en el namespace "improvement":
+   · mobileNoticeTitle — "Mejora con IA, mejor en ordenador" / "AI Improvement works best on a computer"
+   · mobileNoticeBody — párrafo explicativo
+   · mobileNoticeButton — "Entendido" / "Got it"
+
+COMMITS DE ESTA SESIÓN
+   30b71bc — feat(improvement): bloquear modal de mejora en móvil con aviso
+   fd1f09a — fix(improvement): el aviso móvil descarta el análisis al cerrar
+
+ARCHIVOS MODIFICADOS
+  components/ImprovementModal.tsx  — wrapper isMobile + ImprovementMobileNotice + rename Desktop
+  messages/es.json                 — 3 claves nuevas en namespace improvement
+  messages/en.json                 — 3 claves nuevas en namespace improvement
