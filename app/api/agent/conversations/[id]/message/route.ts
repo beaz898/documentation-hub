@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import { getAuthenticatedUserHybrid } from '@/lib/supabase-server';
 import { resolveOrg } from '@/lib/org';
+import { getOrgFeatures } from '@/lib/plan-features';
 import { estimateCredits, tokensToCredits, reconcileCredits } from '@/lib/agent/credit-calc';
 import { adjustCredits } from '@/lib/credits';
 import {
@@ -89,6 +90,14 @@ export async function POST(
       return NextResponse.json({ error: 'No perteneces a ninguna organización.' }, { status: 403 });
     }
     const { orgId } = orgInfo;
+
+    const features = await getOrgFeatures(supabase, orgId);
+    if (!features.hasAgent) {
+      return NextResponse.json({
+        error: 'El Agente IA ya no está disponible en tu plan actual. Para continuar esta conversación, vuelve a un plan que incluya el Agente.',
+        code: 'plan_required',
+      }, { status: 403 });
+    }
 
     const { data: convRow, error: convErr } = await supabase
       .from('agent_conversations')
