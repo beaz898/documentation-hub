@@ -237,3 +237,36 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
     box-shadow: var(--shadow-md);
   }
 }
+
+/* Chat documents sidebar — responsive positioning handled in CSS, not JS.
+   Desktop: in-flow panel that collapses to zero width.
+   Mobile: fixed off-canvas panel that slides in when open. */
+.chat-sidebar {
+  flex-shrink: 0;
+  height: 100%;
+  width: 260px;
+  overflow: hidden;
+  transition: width 0.25s ease, transform 0.25s ease;
+}
+.chat-sidebar.is-collapsed {
+  width: 0;
+}
+@media (max-width: 767px) {
+  .chat-sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    z-index: 41;
+    width: 280px;
+    transform: translateX(-100%);
+    box-shadow: none;
+  }
+  .chat-sidebar.is-collapsed {
+    width: 280px;
+  }
+  .chat-sidebar.is-open {
+    transform: translateX(0);
+    box-shadow: var(--shadow-md);
+  }
+}
