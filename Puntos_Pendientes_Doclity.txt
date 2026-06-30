@@ -3,7 +3,7 @@ PENDIENTES — Doclity (Agente IA)
 Documento vivo. Se actualiza al completar tareas (marcar [✓]) y se
 sustituye por la versión nueva. Más ligero que la Bitácora: aquí va
 lo que falta y la visión que lo guía, no el detalle de cada sesión.
-Última actualización: 29/06/2026 (v19)
+Última actualización: 30/06/2026 (v20)
 
 
 ════════════════════════════════════════════════════════════════
@@ -250,20 +250,16 @@ Leyenda: [ ] pendiente · [~] en curso · [✓] hecho
         frame + div vacío minHeight:80 durante loading; minHeight:80 en estado sin-datos y
         en el contenedor del grid con datos. Los tres estados ocupan ≥80px → sin salto.
 
-[ ] B.33 — (DEUDA TÉCNICA / Coherencia) Unificar detección de móvil en chat/page.tsx
-      Descubierto en Sesión 24. La app tiene dos mecanismos para detectar móvil:
-      · agent/page.tsx: usa useMediaQuery('(max-width: 767px)') — hook canónico,
-        SSR-safe, reactivo al resize.
-      · chat/page.tsx: usa useState(false) + useEffect con window.innerWidth < 768
-        y un listener de resize propio — duplica lógica, más frágil.
-      Además ImprovementModal (añadido en B.32) ya usa useMediaQuery.
-      Fix: reemplazar el bloque inline de chat/page.tsx por:
-        const isMobile = useMediaQuery('(max-width: 767px)');
-      y eliminar el useEffect de checkMobile y el listener de resize.
-      Cambio pequeño, bajo riesgo, pero requiere verificar que setSidebarOpen(false)
-      en el primer render de móvil sigue funcionando (actualmente lo hace el
-      useEffect de checkMobile; con useMediaQuery hay que manejarlo con un useEffect
-      separado sobre isMobile).
+[✓] B.33 — (DEUDA TÉCNICA / Coherencia) Unificar detección de móvil en chat/page.tsx
+      RESUELTO EN SESIÓN 25 (30/06/2026) por vía diferente a la planificada, y mejor.
+      El flash del sidebar (causa raíz del problema) se eliminó moviendo el posicionamiento
+      del sidebar a CSS media query (.chat-sidebar en globals.css). El navegador posiciona
+      el sidebar desde el primer render sin esperar a JS, sin flash posible.
+      isMobile (useState+useEffect) sigue presente en chat/page.tsx pero ya no controla
+      el posicionamiento del sidebar: gestiona solo el overlay oscuro en móvil, el strip
+      colapsado de escritorio y las props onClose/onCollapseSidebar del DocumentsSidebar.
+      La sustitución total por useMediaQuery queda como deuda menor de coherencia sin
+      impacto visible en UX.
 
 [✓] B.32 — (UX / MÓVIL) Aviso "mejor en ordenador" en ImprovementModal
       COMPLETADO en Sesión 24 (29/06/2026).
@@ -275,19 +271,14 @@ Leyenda: [ ] pendiente · [~] en curso · [✓] hecho
       si escritorio → ImprovementModalDesktop sin cambios. 3 claves i18n nuevas en
       es.json y en.json (mobileNoticeTitle, mobileNoticeBody, mobileNoticeButton).
 
-[ ] B.31 — (UX / Coherencia) Unificar el arranque del agente al modelo progresivo del chat
-      El agente bloquea toda la UI con un spinner (pageLoading) hasta cargar todo
-      (sesión, créditos, conversaciones). El chat muestra la interfaz enseguida y
-      rellena las piezas progresivamente (placeholder mientras cargan). Decisión:
-      igualar el agente al modelo PROGRESIVO del chat, NO al revés (mejor UX: ver
-      la app antes vs esperar ruedita). Cambio estructural del arranque del agente:
-      requiere identificar qué piezas toleran renderizar a medias y cuáles necesitan
-      un dato sí o sí (riesgo de romper la pantalla más compleja). Empezar por
-      exploración a fondo + plan validado antes de tocar. Probable: desacoplar
-      pageLoading del render + placeholders por pieza. Varios commits, build verde
-      entre medias, probar en móvil.
-      IDEA FUTURA (baja prioridad, no en este bloque): contador animado de créditos
-      al CAMBIAR el saldo (al gastar), no al cargar — detalle decorativo.
+[✓] B.31 — (UX / Coherencia) Unificar el arranque del agente al modelo progresivo del chat
+      COMPLETADO en Sesión 25 (30/06/2026) como parte del refactor de contextos React.
+      El agente ya no bloquea con pageLoading. Usa AccountContext (useAccount()) para leer
+      features y créditos: spinner mientras !features, Paywall si !features.hasAgent.
+      El arranque es progresivo: la interfaz queda disponible de inmediato, los datos
+      llegan del contexto compartido sin bloquear la pantalla.
+      IDEA FUTURA (baja prioridad, no urgente): contador animado de créditos al CAMBIAR
+      el saldo (al gastar), no al cargar — detalle decorativo.
 
 [✓] B.30 — (UX / PULIDO) CreditsIndicator compact en cabeceras móviles + placeholder anti-salto
       Nueva prop compact?: boolean: solo muestra "<X> cr" con color dinámico, sin
@@ -620,9 +611,9 @@ NOTAS DE ORDEN (propuesta, a confirmar)
   restructuradas a modelo chat. B.24 (layout shift) y B.25 (micrófono móvil) cerrados.
 - B.26 (RLS DELETE), B.27 (botón volver redundante), B.28 (panel feedback cortado),
   B.29 (FeedbackButton autónomo), B.30 (créditos compactos + placeholder) COMPLETADOS en sesiones 21-22.
-- B.31 (arranque progresivo del agente) destapado en sesión 22 — pendiente.
+- B.31 (arranque progresivo del agente) COMPLETADO en sesión 25 — AccountContext, sin pageLoading.
 - B.32 (aviso móvil ImprovementModal) COMPLETADO en sesión 24.
-- B.33 (unificar detección de móvil en chat/page.tsx) destapado en sesión 24 — pendiente.
+- B.33 (sidebar flash en móvil) RESUELTO en sesión 25 — CSS media query, mejor que useMediaQuery.
 
 Forma de trabajo: diagnóstico con datos reales antes de arreglar; un
 cambio lógico cada vez; build verde entre medias; SQL en Supabase antes

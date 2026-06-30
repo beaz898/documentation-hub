@@ -1,6 +1,6 @@
 ESTADO DEL PROYECTO — Doclity
 ========================================
-Última actualización: 03/06/2026
+Última actualización: 30/06/2026
 
 
 ────────────────────────────────────────────────────────────────
@@ -305,6 +305,18 @@ Agente IA (app/(authenticated)/agent/, components/agent/, hooks/agent/)
                                               responder a pending_request
   hooks/agent/useUserPreferences.ts        — Preferencias de usuario (ConfirmationMode…)
 
+Contextos y layout autenticado
+  contexts/SessionContext.tsx        — SessionProvider: expone { session, orgSetupError, logout }
+  contexts/AccountContext.tsx        — AccountProvider: fetch único a /api/usage/summary;
+                                       expone { credits, features, loading, refresh() }
+                                       features = { hasAgent, hasAnalyticsPanel, hasDrive, plan }
+  contexts/types.ts                  — Interfaces: SessionContextValue, AccountContextValue, AccountFeatures
+  components/layout/AuthenticatedLayout.tsx — Monta SessionProvider + AccountProvider;
+                                              incluye useScrollFocusedInputIntoView
+  components/layout/SessionGate.tsx         — Spinner hasta tener sesión; no monta la página sin ella
+  components/layout/OrgSetupErrorScreen.tsx — Pantalla de error cuando la org no puede resolverse
+  components/AppRail.tsx                    — Barra de navegación lateral; lee features del AccountContext
+
 Utilidades
   ThemeProvider.tsx         — Dark / light mode (light por defecto)
   DoclityLogo.tsx           — Logo oficial de Doclity
@@ -481,6 +493,8 @@ distinguiendo entre información del corpus y posible reformulación propia.
 ARCHIVOS CLAVE
 ────────────────────────────────────────────────────────────────
 
+  contexts/SessionContext.tsx   — useSession() — sesión del usuario autenticado
+  contexts/AccountContext.tsx   — useAccount() — créditos y features del plan (fetch único)
   middleware.ts             — Refresco de sesión via cookie HttpOnly (@supabase/ssr)
   lib/supabase-server.ts    — createServerSupabase(), getAuthenticatedUser()
   lib/org.ts                — resolveOrg() — user → org + role
@@ -536,6 +550,12 @@ GOTCHAS
   no al inicio. Si el worker falla, los créditos no se reembolsan automáticamente.
 - getOrgFeatures() debe consultarse antes de mostrar Drive, analytics o el agente:
   un plan free/starter/pro no tiene acceso a esas páginas.
+- En el frontend, todos los gates de features (hasDrive, hasAnalyticsPanel, hasAgent)
+  se leen del AccountContext via useAccount(). Nunca hardcodear Sets PLANS_WITH_X ni
+  consultar el plan directamente — divergen de PLAN_FEATURES sin que el linter avise.
+- El sidebar del chat usa la clase CSS .chat-sidebar para su posicionamiento responsive
+  (ver globals.css). No usar estilos inline para el posicionamiento: el comportamiento
+  correcto en móvil depende de la media query en CSS, no de isMobile en JS.
 - Agente IA: los créditos se descuentan al crear la tarea (estimados), y se
   reconcilian con adjustCredits() al completar o cancelar. Si el worker muere
   con la tarea en 'running', los créditos no se devuelven automáticamente.
@@ -622,6 +642,20 @@ FUNCIONALIDADES IMPLEMENTADAS
 [✓] AppRail: items bloqueados visibles con opacidad + popover de upgrade (no ocultos)
 [✓] Dark mode fix: tailwind.config.js darkMode='class' + classList en ThemeProvider
 [✓] Business+ max_users: 25 (anteriormente ilimitado)
+[✓] Refactor React Context: sesión y features centralizados (Sesión 25):
+    - SessionContext + AccountContext montados en AuthenticatedLayout
+    - Fetch único a /api/usage/summary por sesión, no por página
+    - Gates hasDrive, hasAnalyticsPanel, hasAgent leídos del AccountContext en frontend
+    - Eliminados PLANS_WITH_DRIVE y PLANS_WITH_ANALYTICS hardcodeados del frontend
+    - DocumentsSidebar: hasDrive como prop booleana (ya no calcula el plan internamente)
+    - Agente: modelo progresivo con AccountContext — sin pageLoading (cierra B.31)
+    - SessionGate y OrgSetupErrorScreen extraídos del chat al layout
+[✓] Sidebar del chat: posicionamiento CSS responsive — sin flash en móvil (Sesión 25):
+    - Clase .chat-sidebar con .is-open y .is-collapsed en globals.css
+    - Desktop: en flujo (width:260px), colapsa a width:0
+    - Móvil: position:fixed off-canvas, translateX(-100%); .is-open desliza al interior
+    - El navegador posiciona el sidebar desde el primer render sin esperar a JS
+[✓] Fix seguridad: guarda hasAgent en endpoint de mensaje del agente (Sesión 25)
 
 PENDIENTE / ROADMAP
 [ ] Activar OneDrive en UI (implementado, pendiente de activar)

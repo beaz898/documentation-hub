@@ -1861,3 +1861,151 @@ DESTAPADO EN ESTA SESIÓN
    B.33 — Unificar detección de móvil en chat/page.tsx. Al añadir useMediaQuery en
    ImprovementModal se detectó que chat/page.tsx usa un useState+useEffect inline con
    window.innerWidth en lugar del hook canónico useMediaQuery. Pendiente de refactorizar.
+
+
+────────────────────────────────────────────────────────────────
+SESIÓN 25 — 29-30/06/2026
+Título: Refactor React Context (Fases A–F) · B.31 cerrado · fix flash sidebar
+────────────────────────────────────────────────────────────────
+
+OBJETIVO
+Dos frentes simultáneos:
+  1. Refactorizar la gestión de sesión y features a React Context para eliminar
+     fetches duplicados por página y Sets hardcodeados en el frontend.
+  2. Investigar y corregir el flash visible del sidebar de documentos en móvil
+     al cargar /chat (raíz de B.33).
+
+CAMBIOS IMPLEMENTADOS
+
+1. FIX SEGURIDAD — GUARDA hasAgent EN ENDPOINT DE MENSAJE DEL AGENTE
+
+   El endpoint /api/agent/conversations/[id]/message no verificaba si el plan
+   de la org seguía teniendo acceso al agente. Si un usuario cambiaba de plan
+   entre turnos podía seguir enviando mensajes sin gate.
+
+   Fix: guarda con getOrgFeatures() al inicio del handler; devuelve 403 con
+   mensaje legible si el plan ya no incluye hasAgent.
+
+   Archivo modificado
+     app/api/agent/conversations/[id]/message/route.ts  — guarda hasAgent
+
+2. REFACTOR CONTEXTOS REACT — Fases A–F
+
+   MOTIVACIÓN
+   Cada página autenticada (chat, agente, AppRail) hacía su propio fetch a
+   /api/usage/summary para obtener créditos y features. Además, el frontend
+   duplicaba PLAN_FEATURES con Sets hardcodeados (PLANS_WITH_DRIVE,
+   PLANS_WITH_ANALYTICS) que podían diverger de la fuente de verdad en
+   lib/stripe.ts.
+
+   Fase A — Crear SessionContext y AccountContext (sin conectar)
+   - contexts/SessionContext.tsx: envuelve useAuth, expone { session, orgSetupError, logout }
+   - contexts/AccountContext.tsx: fetch único a /api/usage/summary al montar; expone
+     { credits, features, loading, refresh() } donde features = { hasAgent,
+     hasAnalyticsPanel, hasDrive, plan }
+   - contexts/types.ts: interfaces SessionContextValue, AccountContextValue, AccountFeatures
+
+   Fase B — Providers en el layout + migrar sesión del chat
+   - AuthenticatedLayout.tsx: monta <SessionProvider><AccountProvider> para todas las
+     páginas autenticadas
+   - components/layout/SessionGate.tsx: spinner hasta tener sesión (extraído del chat)
+   - components/layout/OrgSetupErrorScreen.tsx: pantalla error de org (extraída del chat)
+   - chat/page.tsx: usa useSession() en lugar de useAuth(); guarda de sesión
+     simplificada (el layout garantiza que la página solo monta con sesión)
+
+   Fase C — AppRail lee del AccountContext
+   - components/AppRail.tsx: elimina fetch propio; lee features del AccountContext
+     (tres estados: loading / hasAccess / noAccess para el ítem del agente)
+
+   Fase D — Agente migrado al contexto de cuenta (CIERRA B.31)
+   - app/(authenticated)/agent/page.tsx: elimina pageLoading, hasAgent y credits
+     locales; lee todo del AccountContext con useAccount()
+   - Spinner mientras !features, Paywall cuando !features.hasAgent
+   - Modelo progresivo: la interfaz queda disponible de inmediato, los datos
+     llegan del contexto sin bloquear la pantalla con un spinner de arranque
+
+   Fase E — /api/usage/summary devuelve también hasDrive
+   - app/api/usage/summary/route.ts: añadida una línea al return:
+     hasDrive: PLAN_FEATURES[orgData.plan]?.hasDrive ?? false
+   - El endpoint devuelve hasAgent + hasAnalyticsPanel + hasDrive, todos desde
+     PLAN_FEATURES (única fuente de verdad)
+
+   Fase F — Eliminar Sets hardcodeados del frontend (dos commits)
+   · Commit F1 — DocumentsSidebar.tsx + chat/page.tsx:
+     - Eliminado PLANS_WITH_DRIVE = new Set([...]) de DocumentsSidebar
+     - hasDrive ahora es prop booleana recibida del padre
+     - chat/page.tsx: añade hasDrive={features?.hasDrive ?? false} a <DocumentsSidebar>
+   · Commit F2 — settings/usage/page.tsx:
+     - Eliminado PLANS_WITH_ANALYTICS = new Set([...])
+     - Lee hasAnalyticsPanel del AccountContext: features?.hasAnalyticsPanel ?? false
+     - El fetch propio a /api/usage/summary se conserva (para role, creditsRemaining,
+       consumed — datos que el contexto no expone)
+
+   ARCHIVOS NUEVOS
+     contexts/SessionContext.tsx
+     contexts/AccountContext.tsx
+     contexts/types.ts
+     components/layout/SessionGate.tsx
+     components/layout/OrgSetupErrorScreen.tsx
+
+   ARCHIVOS MODIFICADOS
+     components/layout/AuthenticatedLayout.tsx     — SessionProvider + AccountProvider
+     app/(authenticated)/chat/page.tsx             — useSession() + hasDrive prop
+     app/(authenticated)/agent/page.tsx            — AccountContext, elimina pageLoading
+     components/AppRail.tsx                        — features del AccountContext
+     app/api/usage/summary/route.ts                — añadir hasDrive al return
+     components/DocumentsSidebar.tsx               — prop hasDrive (elimina Set)
+     app/(authenticated)/settings/usage/page.tsx   — hasAnalyticsPanel del contexto
+
+3. FIX FLASH DEL SIDEBAR EN MÓVIL (B.33 — causa raíz)
+
+   DIAGNÓSTICO
+   Al cargar /chat en móvil el sidebar era visible brevemente antes de ocultarse.
+   Tres capas de causa, identificadas de fuera a dentro:
+   · sidebarOpen arrancaba en true → el sidebar se pintaba abierto y el useEffect
+     lo cerraba animando la transición de cierre.
+   · Al cambiar sidebarOpen a false, seguía un reflow: isMobile arrancaba en false
+     y pasaba a true en el primer useEffect, cambiando el sidebar de width:0 en-flujo
+     a position:fixed width:280px — la transición CSS animaba ese cambio.
+   · El único fix sin animación ni reflow es que el navegador conozca el modo
+     correcto desde el primer render, sin esperar a JS.
+
+   Commit 1 — sidebarOpen=false por defecto
+   - useState(false) en lugar de useState(true)
+   - checkMobile solo actualiza isMobile, ya no llama a setSidebarOpen
+
+   Commit 2 — flag mounted (provisional, sustituido)
+   - Nuevo estado mounted que pone a true tras el primer render
+   - La transición del sidebar solo activa si mounted=true
+   - Eliminó la animación pero quedaba un reflow de layout instantáneo
+
+   Commit 3 — CSS media query (solución definitiva)
+   - Nueva clase .chat-sidebar en app/globals.css:
+     · Desktop: flex-shrink:0; width:260px en flujo; transition width+transform 0.25s
+     · .chat-sidebar.is-collapsed: width:0 (desktop) / width:280px (móvil — no colapsar)
+     · @media (max-width: 767px): position:fixed; left:0; top:0; bottom:0; z-index:41;
+       width:280px; transform:translateX(-100%)
+     · .chat-sidebar.is-open (móvil): translateX(0) + box-shadow
+   - chat/page.tsx: contenedor usa className en lugar de estilo inline con isMobile
+   - isMobile sigue vivo solo para: overlay oscuro, strip colapsado de escritorio
+     y props onClose/onCollapseSidebar del DocumentsSidebar
+   - Flag mounted eliminado
+   - El navegador posiciona el sidebar desde el primer render, sin esperar a JS
+
+   ARCHIVOS MODIFICADOS
+     app/globals.css                          — nueva clase .chat-sidebar
+     app/(authenticated)/chat/page.tsx        — className={`chat-sidebar${...}`}
+
+COMMITS DE ESTA SESIÓN
+   bc50c96c — fix(agent): bloquear envío de mensajes si el plan ya no incluye el agente
+   d1264635 — feat(contexts): crear SessionContext y AccountContext (sin conectar)
+   f93a7c2b — feat(contexts): montar providers en layout y migrar sesión del chat (Fase B1)
+   5381f06d — fix(chat): guarda de sesión para satisfacer el tipado tras mover el gate al layout
+   60245bb6 — feat(rail): leer features del AccountContext en lugar de fetch propio (Fase C)
+   3a0bf7a4 — feat(agent): migrar el agente al contexto de cuenta, eliminar pageLoading (Fase D)
+   b8c7db9d — feat(api): añadir hasDrive a /api/usage/summary (Fase E)
+   569bd728 — refactor(drive): leer gate de Drive del AccountContext, eliminar Set duplicado (Fase F)
+   7ce0adb9 — refactor(usage): leer gate de analítica del AccountContext, eliminar Set duplicado (Fase F)
+   71eea8a0 — fix(chat): el sidebar de documentos arranca cerrado, sin saltito en móvil
+   d3ad565b — fix(chat): suprimir animación del sidebar en el primer render (saltito móvil)
+   8d71c24d — fix(chat): posicionar el sidebar con CSS responsive, eliminar el salto de layout

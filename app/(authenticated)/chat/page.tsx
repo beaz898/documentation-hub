@@ -58,10 +58,17 @@ export default function ChatPage() {
 
   const { lockState, showReminder, toggleLock, activateLock, dismissReminder } = useUploadLock(session);
 
-  // Detect mobile
+  const didInitSidebarRef = useRef(false);
+
+  // Detect mobile + abrir sidebar en escritorio al montar (una sola vez)
   useEffect(() => {
     function checkMobile() {
-      setIsMobile(window.innerWidth < 768);
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
+      if (!didInitSidebarRef.current) {
+        didInitSidebarRef.current = true;
+        if (!mobile) setSidebarOpen(true);
+      }
     }
     checkMobile();
     window.addEventListener('resize', checkMobile);
