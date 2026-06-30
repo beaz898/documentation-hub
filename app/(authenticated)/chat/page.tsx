@@ -110,6 +110,9 @@ export default function ChatPage() {
     else if (analysisMinimized) setAnalysisMinimized(false);
   }
 
+  // El layout (SessionGate) garantiza que esta página solo se monta con sesión.
+  // Esta guarda satisface a TypeScript y es defensiva; en la práctica no se ejecuta.
+  if (!session) return null;
 
   return (
     <div style={{ display: 'flex', height: vvHeight != null ? `${vvHeight}px` : '100dvh', overflow: 'hidden' }}>
