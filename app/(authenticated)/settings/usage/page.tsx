@@ -8,6 +8,7 @@ import QualityTab from '@/components/usage/QualityTab';
 import ChatTab from '@/components/usage/ChatTab';
 import FeedbackButton from '@/components/feedback/FeedbackButton';
 import { useVisualViewportHeight } from '@/hooks/useVisualViewportHeight';
+import { useAccount } from '@/contexts/AccountContext';
 
 interface UserUsage {
   userId: string;
@@ -46,8 +47,6 @@ function formatEndpoint(endpoint: string): string {
 
 type TabId = 'consumption' | 'quality' | 'chat';
 
-const PLANS_WITH_ANALYTICS = new Set(['business', 'business_plus', 'enterprise']);
-
 export default function UsagePage() {
   const t = useTranslations('usage');
   const [session, setSession] = useState<{ access_token: string } | null>(null);
@@ -59,6 +58,7 @@ export default function UsagePage() {
   const router = useRouter();
   const supabase = createClient();
   const vvHeight = useVisualViewportHeight();
+  const { features } = useAccount();
 
   const allTabs: Array<{ id: TabId; label: string }> = [
     { id: 'consumption', label: t('tabConsumption') },
@@ -102,7 +102,7 @@ export default function UsagePage() {
   }
 
   const isAdmin = summary?.role === 'admin';
-  const hasAnalyticsPanel = PLANS_WITH_ANALYTICS.has(summary?.plan ?? '');
+  const hasAnalyticsPanel = features?.hasAnalyticsPanel ?? false;
   const visibleTabs = allTabs.filter(tab => tab.id === 'consumption' || hasAnalyticsPanel);
 
   return (
