@@ -8,11 +8,7 @@ import DoclityLogo from '@/components/DoclityLogo';
 import { useTheme } from '@/components/ThemeProvider';
 import { createClient } from '@/lib/supabase';
 import LanguageSelector from '@/components/LanguageSelector';
-
-interface OrgSummary {
-  hasAgent: boolean;
-  hasAnalyticsPanel: boolean;
-}
+import { useAccount } from '@/contexts/AccountContext';
 
 interface UpgradeToast {
   label: string;
@@ -58,21 +54,29 @@ function LockedNavItem({ icon: Icon, label, minPlan, onShow }: {
   );
 }
 
+function LoadingNavItem({ icon: Icon, label }: { icon: React.ElementType; label: string }) {
+  return (
+    <div
+      title={label}
+      aria-busy="true"
+      style={{ opacity: 0.2, cursor: 'default' }}
+      className="flex items-center justify-center w-10 h-10 rounded-lg text-gray-500 dark:text-gray-400"
+    >
+      <Icon size={20} />
+    </div>
+  );
+}
+
 export default function AppRail() {
   const pathname = usePathname();
   const router = useRouter();
   const { theme, toggleTheme } = useTheme();
-  const [org, setOrg] = useState<OrgSummary>({ hasAgent: false, hasAnalyticsPanel: false });
+  const { features } = useAccount();
   const [upgradeToast, setUpgradeToast] = useState<UpgradeToast | null>(null);
 
-  useEffect(() => {
-    fetch('/api/usage/summary', { credentials: 'include' })
-      .then(r => r.ok ? r.json() : null)
-      .then(data => {
-        if (data) setOrg({ hasAgent: data.hasAgent ?? false, hasAnalyticsPanel: data.hasAnalyticsPanel ?? false });
-      })
-      .catch(() => {});
-  }, []);
+  const featuresLoading = features === null;
+  const hasAgent = features?.hasAgent ?? false;
+  const hasAnalyticsPanel = features?.hasAnalyticsPanel ?? false;
 
   useEffect(() => {
     if (!upgradeToast) return;
@@ -105,17 +109,21 @@ export default function AppRail() {
         <nav className="flex flex-col items-center gap-1">
           <NavLink href="/chat" icon={MessageSquare} label="Chat" active={isActive('/chat')} />
 
-          {org.hasAgent
-            ? <NavLink href="/agent" icon={Bot} label="Agente" active={isActive('/agent')} />
-            : <LockedNavItem icon={Bot} label="Agente" minPlan="Business" onShow={showToast} />}
+          {featuresLoading
+            ? <LoadingNavItem icon={Bot} label="Agente" />
+            : hasAgent
+              ? <NavLink href="/agent" icon={Bot} label="Agente" active={isActive('/agent')} />
+              : <LockedNavItem icon={Bot} label="Agente" minPlan="Business" onShow={showToast} />}
 
           <div className="w-6 border-t border-gray-200 dark:border-gray-700 my-1" />
 
           <NavLink href="/settings/team" icon={Users} label="Equipo" active={isActive('/settings/team')} />
 
-          {org.hasAnalyticsPanel
-            ? <NavLink href="/settings/usage" icon={BarChart3} label="Analítica" active={isActive('/settings/usage')} />
-            : <LockedNavItem icon={BarChart3} label="Analítica" minPlan="Business" onShow={showToast} />}
+          {featuresLoading
+            ? <LoadingNavItem icon={BarChart3} label="Analítica" />
+            : hasAnalyticsPanel
+              ? <NavLink href="/settings/usage" icon={BarChart3} label="Analítica" active={isActive('/settings/usage')} />
+              : <LockedNavItem icon={BarChart3} label="Analítica" minPlan="Business" onShow={showToast} />}
 
           <NavLink href="/settings/billing" icon={CreditCard} label="Facturación" active={isActive('/settings/billing')} />
         </nav>
