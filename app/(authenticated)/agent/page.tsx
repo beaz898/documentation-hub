@@ -1,9 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { createClient } from '@/lib/supabase';
 import { useConversation } from '@/hooks/agent/useConversation';
 import ConversationSidebar from '@/components/agent/ConversationSidebar';
 import ConversationDrawer from '@/components/agent/ConversationDrawer';
@@ -13,25 +11,20 @@ import CreditsIndicator from '@/components/shared/CreditsIndicator';
 import FeedbackButton from '@/components/feedback/FeedbackButton';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { useVisualViewportHeight } from '@/hooks/useVisualViewportHeight';
+import { useAccount } from '@/contexts/AccountContext';
 import type { ConfirmationMode } from '@/lib/agent/types';
 
-interface Summary { hasAgent: boolean; creditsRemaining: number; creditsExtra: number; plan: string }
-interface CreditsData { remaining: number; plan: string }
 
 const ACTIVE_STATUSES = new Set(['running', 'awaiting_user', 'awaiting_confirmation']);
 
 export default function AgentPage() {
-  const [pageLoading, setPageLoading] = useState(true);
-  const [hasAgent, setHasAgent]       = useState(false);
-  const [credits, setCredits]         = useState<CreditsData | null>(null);
   // selectedId controla qué conversación muestra la UI. Es independiente del hook
   // para poder volver al estado "nueva conversación" (null) sin limpiar el hook.
   const [selectedId, setSelectedId]   = useState<string | null>(null);
   const [drawerOpen, setDrawerOpen]   = useState(false);
   const isMobile = useMediaQuery('(max-width: 767px)');
   const vvHeight = useVisualViewportHeight();
-  const router   = useRouter();
-  const supabase = createClient();
+  const { credits, features, refresh } = useAccount();
   const autoSelectedRef    = useRef(false);
   const prevConvStatusRef  = useRef<string | undefined>(undefined);
 
@@ -43,36 +36,7 @@ export default function AgentPage() {
     retryPolling, clearError,
   } = useConversation();
 
-  // Carga inicial: verifica acceso al agente y obtiene saldo de créditos.
-  useEffect(() => {
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      if (!session) { router.replace('/login'); return; }
-      try {
-        const res = await fetch('/api/usage/summary', { credentials: 'include' });
-        if (res.ok) {
-          const data: Summary = await res.json();
-          setHasAgent(data.hasAgent ?? false);
-          setCredits({ remaining: (data.creditsRemaining ?? 0) + (data.creditsExtra ?? 0), plan: data.plan ?? 'free' });
-        }
-      } catch { /* keep hasAgent false */ }
-      finally { setPageLoading(false); }
-    });
-  }, [router, supabase.auth]);
-
-  // Refresco de créditos tras completar un turno. Usado solo por el efecto de
-  // transición running → idle; no reutiliza la sesión ni toca hasAgent.
-  const loadCredits = useCallback(async () => {
-    try {
-      const res = await fetch('/api/usage/summary', { credentials: 'include' });
-      if (res.ok) {
-        const data = await res.json() as { creditsRemaining: number; creditsExtra: number; plan: string };
-        setCredits({
-          remaining: (data.creditsRemaining ?? 0) + (data.creditsExtra ?? 0),
-          plan: data.plan ?? 'free',
-        });
-      }
-    } catch { /* ignore — saldo queda con el valor anterior */ }
-  }, []);
+  const hasAgent = features?.hasAgent ?? false;
 
   // Detecta la transición running → idle (turno completado) y refresca el saldo.
   // No dispara en pausas (awaiting_user / awaiting_confirmation) porque el turno
@@ -80,10 +44,10 @@ export default function AgentPage() {
   useEffect(() => {
     const current = conversation?.status;
     if (prevConvStatusRef.current === 'running' && current === 'idle') {
-      void loadCredits();
+      void refresh();
     }
     prevConvStatusRef.current = current;
-  }, [conversation?.status, loadCredits]);
+  }, [conversation?.status, refresh]);
 
   useEffect(() => {
     if (hasAgent) loadConversations();
@@ -139,7 +103,7 @@ export default function AgentPage() {
     ? conversation
     : null;
 
-  if (pageLoading) {
+  if (!features) {
     return (
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
         <div className="animate-spin" style={{ width: 20, height: 20, border: '2px solid var(--brand)', borderTopColor: 'transparent', borderRadius: '50%' }} />
@@ -147,7 +111,7 @@ export default function AgentPage() {
     );
   }
 
-  if (!hasAgent) return <Paywall />;
+  if (!features.hasAgent) return <Paywall />;
 
   return (
     <div style={{ display: 'flex', height: vvHeight != null ? `${vvHeight}px` : '100dvh', overflow: 'hidden' }}>
