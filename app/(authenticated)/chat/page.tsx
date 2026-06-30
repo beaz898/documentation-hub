@@ -11,6 +11,7 @@ import ChatInput from '@/components/chat/ChatInput';
 import SubscriptionBanners from '@/components/chat/SubscriptionBanners';
 import EmptyState from '@/components/chat/EmptyState';
 import { useSession } from '@/contexts/SessionContext';
+import { useAccount } from '@/contexts/AccountContext';
 import { useCredits } from '@/hooks/chat/useCredits';
 import { useChat } from '@/hooks/chat/useChat';
 import { useDocuments } from '@/hooks/chat/useDocuments';
@@ -31,6 +32,7 @@ export default function ChatPage() {
 
   // Core hooks
   const { session } = useSession();
+  const { features } = useAccount();
   const { credits, loadCredits } = useCredits(session);
   const {
     messages, setMessages, input, sending,
@@ -164,6 +166,7 @@ export default function ChatPage() {
             analysisProgress={analysisProgress}
             analysisPhase={analysisPhase}
             credits={credits}
+            hasDrive={features?.hasDrive ?? false}
             uploadLock={lockState}
             onToggleUploadLock={toggleLock}
             showLockReminder={showReminder}

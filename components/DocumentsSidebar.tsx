@@ -53,6 +53,7 @@ interface DocumentsSidebarProps {
   analysisProgress?: number;
   analysisPhase?: string;
   credits?: Credits | null;
+  hasDrive: boolean;
   uploadLock?: { locked: boolean; lockedBy: string | null; isMe: boolean };
   onToggleUploadLock?: () => void;
   showLockReminder?: boolean;
@@ -109,7 +110,6 @@ function countDocsRecursive(node: FolderNode): number {
   return total;
 }
 
-const PLANS_WITH_DRIVE = new Set(['pro', 'business', 'business_plus', 'enterprise']);
 const DRIVE_SOURCES = new Set(['google_drive', 'onedrive']);
 
 export default function DocumentsSidebar({
@@ -127,6 +127,7 @@ export default function DocumentsSidebar({
   analysisProgress = 0,
   analysisPhase = '',
   credits,
+  hasDrive,
   uploadLock,
   onToggleUploadLock,
   showLockReminder,
@@ -145,8 +146,6 @@ export default function DocumentsSidebar({
   const [driveSectionOpen, setDriveSectionOpen] = useState(true);
   const [manualSectionOpen, setManualSectionOpen] = useState(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const hasDrive = PLANS_WITH_DRIVE.has(credits?.plan ?? '');
 
   const driveDocs = useMemo(() => documents.filter(d => DRIVE_SOURCES.has(d.source ?? '')), [documents]);
   const manualDocs = useMemo(() => documents.filter(d => !DRIVE_SOURCES.has(d.source ?? '')), [documents]);
