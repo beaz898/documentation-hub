@@ -20,7 +20,7 @@ import { useUploadLock } from '@/hooks/chat/useUploadLock';
 import { useVisualViewportHeight } from '@/hooks/useVisualViewportHeight';
 
 export default function ChatPage() {
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [analysisMinimized, setAnalysisMinimized] = useState(false);
   const [improvementMinimized, setImprovementMinimized] = useState(false);
@@ -62,7 +62,6 @@ export default function ChatPage() {
   useEffect(() => {
     function checkMobile() {
       setIsMobile(window.innerWidth < 768);
-      if (window.innerWidth < 768) setSidebarOpen(false);
     }
     checkMobile();
     window.addEventListener('resize', checkMobile);
