@@ -22,10 +22,10 @@ export default function ChatHeader({
 
   return (
     <div style={{ borderBottom: '0.5px solid var(--border)', flexShrink: 0 }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 16px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', background: 'var(--bg)' }}>
         {isMobile && (
           <button onClick={onToggleSidebar} aria-label="Toggle sidebar" style={{
-            width: 34, height: 34, borderRadius: 8, border: 'none', background: 'transparent', cursor: 'pointer',
+            width: 32, height: 32, borderRadius: 8, border: '0.5px solid var(--border)', background: 'transparent', cursor: 'pointer',
             display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-secondary)',
           }}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -36,7 +36,7 @@ export default function ChatHeader({
         <div style={{ flex: 1 }} />
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           {isMobile && <CreditsIndicator credits={credits} compact />}
-          <FeedbackButton accessToken={accessToken} />
+          <FeedbackButton />
           {hasMessages && (
             <button
               onClick={() => { if (window.confirm(t('chat.clearChatConfirm'))) onClearChat(); }}
