@@ -12,7 +12,6 @@ import SubscriptionBanners from '@/components/chat/SubscriptionBanners';
 import EmptyState from '@/components/chat/EmptyState';
 import { useSession } from '@/contexts/SessionContext';
 import { useAccount } from '@/contexts/AccountContext';
-import { useCredits } from '@/hooks/chat/useCredits';
 import { useChat } from '@/hooks/chat/useChat';
 import { useDocuments } from '@/hooks/chat/useDocuments';
 import { useDrive } from '@/hooks/chat/useDrive';
@@ -32,14 +31,13 @@ export default function ChatPage() {
 
   // Core hooks
   const { session } = useSession();
-  const { features } = useAccount();
-  const { credits, loadCredits } = useCredits(session);
+  const { credits, features, refresh } = useAccount();
   const {
     messages, setMessages, input, sending,
     messagesEndRef, inputRef,
     handleSend, handleKeyDown, handleInputChange,
     appendToInput, addMessage, clearMessages,
-  } = useChat(session, loadCredits);
+  } = useChat(session, refresh);
 
   const {
     documents, docsLoading, loadDocuments,
@@ -48,7 +46,7 @@ export default function ChatPage() {
     handleUpload, handleDelete,
     handleAnalysisConfirm, handleAnalysisCancel, handleAnalysisImprove, handleExhaustiveAnalysis,
     handleImprovementClose, handleImprovementIndexed,
-  } = useDocuments(session, addMessage, loadCredits);
+  } = useDocuments(session, addMessage, refresh);
 
   const {
     driveStatus, syncing,
@@ -77,8 +75,8 @@ export default function ChatPage() {
 
   // Load data on session ready
   useEffect(() => {
-    if (session) { loadDocuments(); loadDriveStatus(); loadCredits(); }
-  }, [session, loadDocuments, loadDriveStatus, loadCredits]);
+    if (session) { loadDocuments(); loadDriveStatus(); }
+  }, [session, loadDocuments, loadDriveStatus]);
 
   // Resetear estado minimizado cuando el modal correspondiente desaparece
   useEffect(() => { if (!pendingAnalysis) setAnalysisMinimized(false); }, [pendingAnalysis]);
