@@ -22,6 +22,7 @@ import { useVisualViewportHeight } from '@/hooks/useVisualViewportHeight';
 export default function ChatPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const [analysisMinimized, setAnalysisMinimized] = useState(false);
   const [improvementMinimized, setImprovementMinimized] = useState(false);
   const [improvementRunning, setImprovementRunning] = useState(false);
@@ -57,6 +58,10 @@ export default function ChatPage() {
   } = useDrive(session, addMessage, loadDocuments);
 
   const { lockState, showReminder, toggleLock, activateLock, dismissReminder } = useUploadLock(session);
+
+  // Activa las transiciones del sidebar solo tras montar, para que el ajuste
+  // inicial de isMobile no dispare la animación de width.
+  useEffect(() => { setMounted(true); }, []);
 
   // Detect mobile
   useEffect(() => {
@@ -150,7 +155,7 @@ export default function ChatPage() {
 
       {/* Sidebar */}
       <div style={{
-        flexShrink: 0, transition: 'width 0.25s ease, transform 0.25s ease',
+        flexShrink: 0, transition: mounted ? 'width 0.25s ease, transform 0.25s ease' : 'none',
         width: isMobile ? 270 : (sidebarOpen ? 260 : 0), overflow: 'hidden',
         ...(isMobile ? { position: 'fixed', left: 0, top: 0, bottom: 0, zIndex: 41, transform: sidebarOpen ? 'translateX(0)' : 'translateX(-100%)', boxShadow: sidebarOpen ? 'var(--shadow-md)' : 'none' } : {}),
       }}>
