@@ -67,7 +67,18 @@
     "sources": "Fuentes utilizadas",
     "sourceChunks": "{count}/{total} fragmentos",
     "errorTitle": "Error",
-    "loadingTitle": "Procesando..."
+    "loadingTitle": "Procesando...",
+    "docGap": {
+      "markMissing": "Marcar que falta esta documentación",
+      "wasMissing": "¿Faltaba documentación para esto?",
+      "registered": "Registrado ✓",
+      "panelTitle": "Reportar laguna de documentación",
+      "notePlaceholder": "Nota opcional (ej: necesito esto para completar un albarán)",
+      "cancel": "Cancelar",
+      "submit": "Registrar",
+      "submitting": "Guardando…",
+      "saveError": "Error al guardar"
+    }
   },
   "sidebar": {
     "documents": "Documentos",

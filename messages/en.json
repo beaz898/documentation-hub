@@ -67,7 +67,18 @@
     "sources": "Sources used",
     "sourceChunks": "{count}/{total} chunks",
     "errorTitle": "Error",
-    "loadingTitle": "Processing..."
+    "loadingTitle": "Processing...",
+    "docGap": {
+      "markMissing": "Report missing documentation",
+      "wasMissing": "Was documentation missing for this?",
+      "registered": "Recorded ✓",
+      "panelTitle": "Report documentation gap",
+      "notePlaceholder": "Optional note (e.g. I need this to complete an order)",
+      "cancel": "Cancel",
+      "submit": "Record",
+      "submitting": "Saving…",
+      "saveError": "Failed to save"
+    }
   },
   "sidebar": {
     "documents": "Documents",

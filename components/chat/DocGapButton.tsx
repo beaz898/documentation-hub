@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 
 interface DocGapButtonProps {
   question: string;
@@ -11,6 +12,7 @@ interface DocGapButtonProps {
 type Status = 'idle' | 'open' | 'saving' | 'saved' | 'error';
 
 export default function DocGapButton({ question, answer, noContext }: DocGapButtonProps) {
+  const t = useTranslations('chat');
   const [status, setStatus] = useState<Status>('idle');
   const [note, setNote] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
@@ -35,7 +37,7 @@ export default function DocGapButton({ question, answer, noContext }: DocGapButt
       }
       setStatus('saved');
     } catch (err) {
-      setErrorMsg(err instanceof Error ? err.message : 'Error al guardar');
+      setErrorMsg(err instanceof Error ? err.message : t('docGap.saveError'));
       setStatus('error');
     }
   }
@@ -43,7 +45,7 @@ export default function DocGapButton({ question, answer, noContext }: DocGapButt
   if (status === 'saved') {
     return (
       <div style={{ marginTop: 8, fontSize: 11, color: 'var(--text-muted)' }}>
-        Registrado ✓
+        {t('docGap.registered')}
       </div>
     );
   }
@@ -62,7 +64,7 @@ export default function DocGapButton({ question, answer, noContext }: DocGapButt
               color: 'var(--warning-text)', cursor: 'pointer',
             }}
           >
-            {noContext ? 'Marcar que falta esta documentación' : '¿Faltaba documentación para esto?'}
+            {noContext ? t('docGap.markMissing') : t('docGap.wasMissing')}
           </button>
           {status === 'error' && (
             <div style={{ marginTop: 4, fontSize: 11, color: '#dc2626' }}>{errorMsg}</div>
@@ -76,12 +78,12 @@ export default function DocGapButton({ question, answer, noContext }: DocGapButt
           borderRadius: 10, padding: '10px 12px', maxWidth: 360,
         }}>
           <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 6 }}>
-            Reportar laguna de documentación
+            {t('docGap.panelTitle')}
           </div>
           <textarea
             value={note}
             onChange={e => setNote(e.target.value.slice(0, 5000))}
-            placeholder="Nota opcional (ej: necesito esto para completar un albarán)"
+            placeholder={t('docGap.notePlaceholder')}
             rows={3}
             disabled={status === 'saving'}
             style={{
@@ -101,7 +103,7 @@ export default function DocGapButton({ question, answer, noContext }: DocGapButt
                 color: 'var(--text-muted)', cursor: status === 'saving' ? 'not-allowed' : 'pointer',
               }}
             >
-              Cancelar
+              {t('docGap.cancel')}
             </button>
             <button
               onClick={handleSave}
@@ -112,7 +114,7 @@ export default function DocGapButton({ question, answer, noContext }: DocGapButt
                 color: 'white', cursor: status === 'saving' ? 'not-allowed' : 'pointer', fontWeight: 500,
               }}
             >
-              {status === 'saving' ? 'Guardando…' : 'Registrar'}
+              {status === 'saving' ? t('docGap.submitting') : t('docGap.submit')}
             </button>
           </div>
         </div>
