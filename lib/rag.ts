@@ -79,6 +79,7 @@ export interface RAGResult {
     inputTokens: number;
     outputTokens: number;
   };
+  noContext: boolean;
 }
 
 /**
@@ -174,6 +175,7 @@ export async function queryRAG(
         'No encontré información relevante sobre esto en la documentación disponible. Asegúrate de que los documentos relacionados con tu pregunta han sido subidos al sistema.',
       sources: [],
       usage: { inputTokens: 0, outputTokens: 0 },
+      noContext: true,
     };
   }
 
@@ -208,6 +210,7 @@ export async function queryRAG(
       answer: 'No encontré información relevante sobre esto en la documentación disponible.',
       sources: [],
       usage: { inputTokens: 0, outputTokens: 0 },
+      noContext: true,
     };
   }
 
@@ -263,6 +266,7 @@ PREGUNTA DEL USUARIO: ${question}`;
       totalChunks: d.totalChunks,
     })),
     usage,
+    noContext: false,
   };
 }
 

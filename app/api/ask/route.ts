@@ -104,6 +104,7 @@ export async function POST(req: NextRequest) {
         score: Math.round(s.score * 100),
       })),
       usage: result.usage,
+      noContext: result.noContext,
     });
   } catch (error: unknown) {
     console.error('Error in /api/ask:', error);

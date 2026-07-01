@@ -3,6 +3,8 @@ export interface Message {
   role: 'user' | 'assistant' | 'loading' | 'error';
   content: string;
   sources?: Array<{ documentName: string; score: number }>;
+  question?: string;
+  noContext?: boolean;
 }
 
 export interface Document {

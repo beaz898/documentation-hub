@@ -196,7 +196,7 @@ export default function ChatPage() {
           {messages.length === 0 ? (
             <EmptyState hasDocuments={documents.length > 0} />
           ) : (
-            messages.map(msg => <ChatMessage key={msg.id} role={msg.role} content={msg.content} sources={msg.sources} />)
+            messages.map(msg => <ChatMessage key={msg.id} role={msg.role} content={msg.content} sources={msg.sources} question={msg.question} noContext={msg.noContext} />)
           )}
           <div ref={messagesEndRef} />
         </div>

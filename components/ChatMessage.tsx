@@ -2,6 +2,7 @@
 
 import ReactMarkdown from 'react-markdown';
 import { useTranslations } from 'next-intl';
+import DocGapButton from '@/components/chat/DocGapButton';
 
 interface Source {
   documentName: string;
@@ -12,9 +13,11 @@ interface ChatMessageProps {
   role: 'user' | 'assistant' | 'loading' | 'error';
   content: string;
   sources?: Source[];
+  question?: string;
+  noContext?: boolean;
 }
 
-export default function ChatMessage({ role, content, sources }: ChatMessageProps) {
+export default function ChatMessage({ role, content, sources, question, noContext }: ChatMessageProps) {
   const t = useTranslations('chat');
 
   if (role === 'loading') {
@@ -123,6 +126,10 @@ export default function ChatMessage({ role, content, sources }: ChatMessageProps
               </span>
             ))}
           </div>
+        )}
+
+        {question !== undefined && (
+          <DocGapButton question={question} answer={content} noContext={noContext ?? false} />
         )}
       </div>
     </div>
