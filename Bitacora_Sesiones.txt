@@ -2009,3 +2009,80 @@ COMMITS DE ESTA SESIÓN
    71eea8a0 — fix(chat): el sidebar de documentos arranca cerrado, sin saltito en móvil
    d3ad565b — fix(chat): suprimir animación del sidebar en el primer render (saltito móvil)
    8d71c24d — fix(chat): posicionar el sidebar con CSS responsive, eliminar el salto de layout
+
+
+────────────────────────────────────────────────────────────────
+SESIÓN 26 — 01/07/2026
+Título: Pulido UX del chat — sidebar abre en escritorio, créditos del contexto, cabecera móvil
+────────────────────────────────────────────────────────────────
+
+OBJETIVO
+Tres mejoras de pulido sobre el chat, todas sin tocar otros archivos:
+  1. El sidebar de documentos debe arrancar abierto en escritorio (hoy arranca cerrado).
+  2. Los créditos del chat deben venir del AccountContext en lugar de hacer su propio
+     fetch con useCredits (misma arquitectura que el agente desde Sesión 25).
+  3. La cabecera móvil del chat debe verse igual que la barra superior del agente.
+
+CAMBIOS IMPLEMENTADOS
+
+1. SIDEBAR ABRE EN ESCRITORIO AL MONTAR (chat/page.tsx)
+
+   El sidebar arrancaba en false (cerrado) para evitar el flash en móvil (Sesión 25).
+   En escritorio eso es incorrecto: el usuario espera ver el sidebar al entrar.
+
+   Solución: nuevo ref didInitSidebarRef que garantiza la apertura solo una vez al montar.
+   Dentro del useEffect de checkMobile, en la primera ejecución (ref=false), si no es
+   móvil se llama a setSidebarOpen(true) y se marca el ref a true. En ejecuciones
+   posteriores (resize), el bloque de init ya no se ejecuta: si el usuario cerró el
+   sidebar en escritorio y luego redimensiona la ventana, no se reabre solo.
+
+   Código añadido:
+     const didInitSidebarRef = useRef(false);
+     // dentro de checkMobile():
+     if (!didInitSidebarRef.current) {
+       didInitSidebarRef.current = true;
+       if (!mobile) setSidebarOpen(true);
+     }
+
+   Archivo modificado
+     app/(authenticated)/chat/page.tsx  — didInitSidebarRef + lógica en checkMobile
+
+2. CRÉDITOS DEL CHAT DESDE ACCOUNTCONTEXT (chat/page.tsx)
+
+   El chat hacía su propio fetch a /api/usage/summary con el hook useCredits, lo que
+   significaba una llamada extra al montar y un estado de créditos independiente del
+   contexto. El agente ya usaba AccountContext desde Sesión 25.
+
+   Cambios aplicados en chat/page.tsx:
+   - Eliminado import de useCredits
+   - const { features } = useAccount() → const { credits, features, refresh } = useAccount()
+   - Eliminada la línea const { credits, loadCredits } = useCredits(session)
+   - useChat(session, loadCredits) → useChat(session, refresh)
+   - useDocuments(session, addMessage, loadCredits) → useDocuments(session, addMessage, refresh)
+   - useEffect "Load data on session ready": eliminada la llamada loadCredits() y
+     loadCredits quitado del array de dependencias
+
+   Resultado: credits viene ya resuelto del contexto (el AccountProvider lo carga al
+   montar AuthenticatedLayout). El chat ya no hace fetch propio de créditos.
+   useCredits.ts sigue en disco pero ninguna página lo importa.
+
+   Archivo modificado
+     app/(authenticated)/chat/page.tsx  — elimina useCredits, lee credits y refresh del contexto
+
+3. CABECERA MÓVIL DEL CHAT IGUALADA AL AGENTE (ChatHeader.tsx)
+
+   La barra móvil del chat tenía pequeñas diferencias visuales respecto a la barra
+   superior del agente (referencia de diseño):
+   · padding del contenedor: '10px 16px' → '8px 12px'; añadido background:'var(--bg)'
+   · botón de menú: width/height 34 → 32; border:'none' → '0.5px solid var(--border)'
+   · FeedbackButton: se le pasaba accessToken={session.access_token}; el agente lo
+     omite (el fetch usa credentials:include desde Sesión 22). Igualado a <FeedbackButton />
+   La prop accessToken se conserva en ChatHeaderProps e interfaz por compatibilidad.
+
+   Archivo modificado
+     components/chat/ChatHeader.tsx  — padding, tamaño botón, borde, FeedbackButton sin prop
+
+COMMITS DE ESTA SESIÓN
+   70f7b161 — feat(chat): sidebar abre en escritorio al montar, cerrado en móvil
+   4848fd80 — refactor(chat): créditos del chat desde AccountContext, eliminar useCredits
+   ea973953 — fix(chat): igualar cabecera móvil del chat a la del agente

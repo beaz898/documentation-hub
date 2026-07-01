@@ -1,6 +1,6 @@
 ESTADO DEL PROYECTO — Doclity
 ========================================
-Última actualización: 30/06/2026
+Última actualización: 01/07/2026
 
 
 ────────────────────────────────────────────────────────────────
@@ -556,6 +556,9 @@ GOTCHAS
 - El sidebar del chat usa la clase CSS .chat-sidebar para su posicionamiento responsive
   (ver globals.css). No usar estilos inline para el posicionamiento: el comportamiento
   correcto en móvil depende de la media query en CSS, no de isMobile en JS.
+- chat/page.tsx ya no usa useCredits: los créditos vienen del AccountContext (mismo
+  patrón que el agente). El archivo hooks/chat/useCredits.ts sigue en disco pero no
+  está importado por ninguna página; puede eliminarse cuando convenga.
 - Agente IA: los créditos se descuentan al crear la tarea (estimados), y se
   reconcilian con adjustCredits() al completar o cancelar. Si el worker muere
   con la tarea en 'running', los créditos no se devuelven automáticamente.
@@ -656,6 +659,9 @@ FUNCIONALIDADES IMPLEMENTADAS
     - Móvil: position:fixed off-canvas, translateX(-100%); .is-open desliza al interior
     - El navegador posiciona el sidebar desde el primer render sin esperar a JS
 [✓] Fix seguridad: guarda hasAgent en endpoint de mensaje del agente (Sesión 25)
+[✓] Chat: sidebar abre en escritorio al montar (didInitSidebarRef, una sola vez) (Sesión 26)
+[✓] Chat: créditos desde AccountContext — useCredits eliminado de chat/page.tsx (Sesión 26)
+[✓] ChatHeader móvil igualado visualmente al agente: padding, tamaño botón, borde (Sesión 26)
 
 PENDIENTE / ROADMAP
 [ ] Activar OneDrive en UI (implementado, pendiente de activar)
