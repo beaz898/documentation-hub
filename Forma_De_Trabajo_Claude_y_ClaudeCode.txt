@@ -1,0 +1,135 @@
+FORMA DE TRABAJO — Claude (chat) + Claude Code
+================================================
+Cómo colaboramos en este proyecto (Doclity). Leer al empezar cada sesión.
+Última actualización: 01/07/2026
+
+
+────────────────────────────────────────────────────────────────
+EL REPARTO DE PAPELES
+────────────────────────────────────────────────────────────────
+
+Trabajamos con DOS Claude distintos, cada uno en lo que hace mejor:
+
+- Claude (este chat): razonamiento, arquitectura y planificación. No ve
+  el repo directamente. Diseña la solución, decide el orden, detecta
+  riesgos, revisa el código que vuelve, y redacta las instrucciones para
+  Claude Code.
+
+- Claude Code: tiene acceso directo al repositorio y ejecuta. Conoce el
+  código real, lee archivos, escribe, corre el build y hace commits.
+  Mejor conocimiento del código; se le dan instrucciones precisas.
+
+El usuario hace de PUENTE entre los dos: copia las instrucciones que
+prepara Claude (chat) y las pega en Claude Code; luego copia lo que
+devuelve Claude Code y lo pega de vuelta en el chat.
+
+Regla mental: Claude (chat) piensa y planifica; Claude Code conoce el
+código y ejecuta. Si Claude Code se lanza a decidir arquitectura por su
+cuenta, conviene frenarlo y que esa decisión la tome el chat.
+
+
+────────────────────────────────────────────────────────────────
+CÓMO DEBE ESCRIBIR CLAUDE (CHAT) LAS INSTRUCCIONES
+────────────────────────────────────────────────────────────────
+
+- Los mensajes destinados a Claude Code van SIEMPRE en UN ÚNICO bloque
+  de código, copiable de un solo clic. Nunca partidos en varios bloques
+  ni con explicación intercalada dentro del bloque. Toda la instrucción
+  para Claude Code debe caber en ese único bloque; la explicación para el
+  usuario va FUERA, antes o después, nunca dentro. Si el mensaje necesita
+  varios pasos, van todos numerados dentro del mismo bloque, no en bloques
+  separados. El usuario debe poder copiarlo de un golpe sin entresacar
+  texto ni juntar trozos.
+
+- Cada instrucción debe ser autocontenida: recordar el contexto
+  necesario (esquema de tablas, endpoints ya existentes, nombres reales)
+  para que Claude Code no tenga que adivinar ni inventar.
+
+- Antes de pedir que escriba, si hace falta conocer el código real,
+  primero se manda un MENSAJE DE EXPLORACIÓN ("solo reporta, no
+  modifiques nada") para que Claude Code enseñe el estado actual. Con
+  esos datos reales, el chat diseña sin inventar rutas ni nombres.
+
+- Nunca inventar nombres de archivos, rutas o APIs. Si no se sabe, se
+  pregunta a Claude Code (exploración) o al usuario.
+
+
+────────────────────────────────────────────────────────────────
+RITMO Y SEGURIDAD DE LOS CAMBIOS
+────────────────────────────────────────────────────────────────
+
+- Un cambio lógico cada vez. Trocear las tareas grandes en pasos
+  pequeños, con build verde entre cada uno. No mandar un commit gigante.
+
+- Para cambios que tocan varios archivos o son arriesgados: dar el plan
+  completo primero y que el usuario lo valide ANTES de tocar nada.
+
+- Cuando el código que vuelve ESCRIBE en la base de datos o toca
+  permisos/seguridad, Claude (chat) pide ver el CÓDIGO REAL COMPLETO
+  (no solo el resumen de Claude Code) y lo revisa línea por línea antes
+  de aprobar el push.
+
+- Confirmar SIEMPRE el resultado del build (exit code) antes de dar por
+  bueno un paso. Claude Code a veces resume antes de que el build
+  termine; hay que pedir el exit code explícito.
+
+- El usuario sube a GitHub manualmente y Vercel despliega solo. Tras un
+  push, ESPERAR el deploy de Vercel (1-2 min) antes de probar en la web.
+
+
+────────────────────────────────────────────────────────────────
+BASE DE DATOS (SUPABASE)
+────────────────────────────────────────────────────────────────
+
+- "SQL en Supabase antes del push": los cambios de BD se ejecutan en el
+  SQL Editor de Supabase y se VERIFICAN antes de subir el código que los
+  usa.
+
+- DISTINCIÓN CLAVE (causó confusión y conviene recordarla): versionar un
+  archivo .sql en el repo NO cambia la base de datos. El archivo es solo
+  documentación/registro en GitHub. La función o tabla solo cambia de
+  verdad cuando se pega el SQL en el SQL Editor de Supabase y se ejecuta
+  (Run). Son dos mundos separados: el repo guarda el texto; Supabase
+  ejecuta. Para cambiar lo que hace una RPC, hay que ejecutarla EN
+  Supabase, no basta con guardar el archivo.
+
+- Las funciones (RPC) y la lógica atómica viven en Supabase. El código
+  de Vercel las llama, pero quien se ejecuta es la versión que está
+  dentro de la base.
+
+- Cambios de BD que deban ser atómicos (p. ej. mover un flag único entre
+  dos filas) van en una RPC con transacción, no en UPDATEs sueltos desde
+  el endpoint. Los UPDATE manuales no atómicos pueden chocar con índices
+  únicos (hay que partirlos: primero quitar, luego poner).
+
+- Probar las RPC delicadas de forma aislada en el SQL Editor (con datos
+  de prueba reversibles) ANTES de conectarlas al endpoint/UI.
+
+- Dejar siempre el estado de prueba REVERTIDO al terminar (no dejar la
+  org del usuario con roles/datos cambiados de una prueba).
+
+
+────────────────────────────────────────────────────────────────
+DECISIONES DE PRODUCTO
+────────────────────────────────────────────────────────────────
+
+- Las decisiones de producto (qué comportamiento, qué roles, qué flujo)
+  las toma el usuario. Claude (chat) propone, razona los pros y contras,
+  recomienda, pero no decide solo. Cuando hay varias opciones válidas,
+  presentarlas con su recomendación y dejar elegir.
+
+- Preferir el modelo más simple que cumpla la necesidad. Evitar
+  sobre-ingeniería. La promesa honesta y mantenible vale más que la
+  solución sofisticada (coherente con A.3 del documento de pendientes).
+
+
+────────────────────────────────────────────────────────────────
+DOCUMENTACIÓN
+────────────────────────────────────────────────────────────────
+
+- Al cerrar una tarea grande: añadir una entrada a Bitacora_Sesiones.txt
+  (formato de las sesiones anteriores) y marcar el punto como [✓] en
+  Puntos_Pendientes_Doclity.txt.
+
+- Anotar los "pendientes destapados" (cosas que se descubren por el
+  camino y no se abordan) para no perderlos.
