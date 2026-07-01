@@ -58,8 +58,8 @@ export default function DocGapButton({ question, answer, noContext }: DocGapButt
             onClick={() => { setStatus('open'); setErrorMsg(''); }}
             style={noContext ? {
               fontSize: 12, padding: '5px 12px', borderRadius: 8,
-              border: '0.5px solid var(--brand)', background: 'var(--brand-light)',
-              color: 'var(--brand-text)', cursor: 'pointer',
+              border: '0.5px solid var(--warning)', background: 'var(--warning-light)',
+              color: 'var(--warning-text)', cursor: 'pointer',
             } : {
               fontSize: 11, padding: '3px 8px', borderRadius: 6,
               border: '0.5px solid var(--border)', background: 'transparent',
