@@ -56,14 +56,10 @@ export default function DocGapButton({ question, answer, noContext }: DocGapButt
         <>
           <button
             onClick={() => { setStatus('open'); setErrorMsg(''); }}
-            style={noContext ? {
+            style={{
               fontSize: 12, padding: '5px 12px', borderRadius: 8,
               border: '0.5px solid var(--warning)', background: 'var(--warning-light)',
               color: 'var(--warning-text)', cursor: 'pointer',
-            } : {
-              fontSize: 11, padding: '3px 8px', borderRadius: 6,
-              border: '0.5px solid var(--border)', background: 'transparent',
-              color: 'var(--text-muted)', cursor: 'pointer',
             }}
           >
             {noContext ? 'Marcar que falta esta documentación' : '¿Faltaba documentación para esto?'}
