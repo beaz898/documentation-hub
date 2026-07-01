@@ -3,7 +3,7 @@ PENDIENTES — Doclity (Agente IA)
 Documento vivo. Se actualiza al completar tareas (marcar [✓]) y se
 sustituye por la versión nueva. Más ligero que la Bitácora: aquí va
 lo que falta y la visión que lo guía, no el detalle de cada sesión.
-Última actualización: 01/07/2026 (v21)
+Última actualización: 01/07/2026 (v22)
 
 
 ════════════════════════════════════════════════════════════════
@@ -588,6 +588,62 @@ Leyenda: [ ] pendiente · [~] en curso · [✓] hecho
       de B.15.
 
 
+[✓] B.34 — (Funcionalidad) Lagunas de documentación: el usuario marca lo que falta
+      HECHO (Sesión 27, 01/07/2026). Cuando el chat RAG no cubre una pregunta,
+      el usuario deja constancia con un botón; queda registrado para que quien
+      documenta actúe. La ausencia de documentación pasa a ser señal útil (encaja
+      con A.1). Implementado en 3 fases con build verde entre medias:
+      · FASE 1 (backend): tabla documentation_gaps (org_id, user_id, question,
+        answer, note, status pending/documented/dismissed, created_at, resolved_at)
+        con RLS activado + política service_role. Endpoint POST /api/documentation-gaps
+        (patrón de /api/feedback: getAuthenticatedUserHybrid → createServiceClient →
+        resolveOrg → insert). Archivos: supabase-documentation-gaps.sql (ejecutado en
+        Supabase), app/api/documentation-gaps/route.ts.
+      · FASE 2 (frontend): botón en cada mensaje del assistant. Guarda pregunta +
+        respuesta + nota opcional. Tras registrar → "Registrado ✓" y se bloquea.
+        Flag noContext añadido a RAGResult (lib/rag.ts) y expuesto por /api/ask;
+        propagado a Message (question, noContext) vía useChat hasta ChatMessage.
+        Componente nuevo components/chat/DocGapButton.tsx.
+      · FASE 2b (pulido): botón en color ámbar (var(--warning)) en TODOS los mensajes
+        (decisión del usuario: se ve siempre, sea buena o mala la respuesta).
+        Internacionalizado con next-intl: claves chat.docGap.* en es.json y en.json.
+
+[ ] B.35 — (Funcionalidad) Panel de admin para revisar las lagunas de documentación
+      FASE 3 de B.34, pendiente. Vista donde el admin ve los gaps registrados,
+      idealmente ORDENADOS POR FRECUENCIA (preguntas repetidas = prioridad de
+      documentar), con la pregunta, la respuesta que se dio y la nota del usuario.
+      Poder marcar cada gap como 'documented' o 'dismissed' (la tabla ya tiene
+      status y resolved_at preparados). Encaje natural: pestaña en /settings/usage
+      (solo Business+, como el resto de analítica), o sección propia.
+      VISIÓN: cerrar el círculo. Sin este panel, los gaps se registran pero nadie
+      los revisa de forma organizada. Aquí es donde el cliente VE dónde le falta
+      documentar y actúa.
+
+[ ] B.36 — (Deuda menor de B.34) noContext no cubre el caso "LLM dice no sé"
+      DIAGNOSTICADO, no urgente. Hay TRES formas de "no encontré", solo dos marcan
+      noContext=true (Pinecone sin matches / score bajo, y topDocs vacío tras filtrar).
+      El TERCER caso —el LLM SÍ recibe documentos pero él mismo responde "no encontré
+      información"— hoy devuelve noContext=false. No afecta a lo visual (el botón es
+      ámbar en todos los mensajes), pero SÍ importará para B.35 si se quiere distinguir
+      "no había nada" de "respondió pero flojo". Opciones evaluadas: (a) detectar por
+      el texto de la respuesta — rápido pero frágil; (b) respuesta estructurada del LLM
+      con campo found:boolean — robusto pero toca el prompting del RAG. DECISIÓN: no
+      tocar hasta montar B.35 y decidir con datos reales si el ruido justifica el fix.
+
+[ ] B.37 — (Funcionalidad, SECUNDARIO) Idioma de las respuestas del LLM en el chat
+      El i18n de la interfaz (next-intl) ya funciona, pero solo traduce textos FIJOS.
+      Las respuestas del chat las genera el LLM al vuelo y salen en español aunque la
+      interfaz esté en inglés. Para que respondan en el idioma activo hay que pasar el
+      idioma al prompt del RAG (/api/ask). El CÓDIGO es sencillo; lo que hay que cerrar
+      antes son dos DECISIONES de producto: (1) ¿el idioma lo marca la interfaz o la
+      pregunta del usuario? (los productos serios suelen usar el de la pregunta);
+      (2) ¿qué hacer con las citas literales de documentos que están en español —
+      traducirlas puede introducir imprecisiones en documentación corporativa?
+      PRIORIDAD BAJA: el producto está enfocado primero en español. Riesgo de dejarlo
+      a medias: interfaz en inglés pero respuestas traduciendo docs españoles con
+      imprecisiones da peor impresión que tenerlo todo coherente en español.
+
+
 ════════════════════════════════════════════════════════════════
 NOTAS DE ORDEN (propuesta, a confirmar)
 ════════════════════════════════════════════════════════════════
@@ -614,6 +670,10 @@ NOTAS DE ORDEN (propuesta, a confirmar)
 - B.31 (arranque progresivo del agente) COMPLETADO en sesión 25 — AccountContext, sin pageLoading.
 - B.32 (aviso móvil ImprovementModal) COMPLETADO en sesión 24.
 - B.33 (sidebar flash en móvil) RESUELTO en sesión 25 — CSS media query, mejor que useMediaQuery.
+- B.34 (lagunas de documentación) COMPLETADO en sesión 27 — backend + frontend + pulido.
+  B.35 (panel admin de gaps) es la continuación natural (Fase 3 de B.34).
+  B.36 (noContext tercer caso) diagnosticado, no urgente; decidir con datos reales en B.35.
+  B.37 (idioma del LLM en chat) pendiente de decisiones de producto; prioridad baja.
 
 Forma de trabajo: diagnóstico con datos reales antes de arreglar; un
 cambio lógico cada vez; build verde entre medias; SQL en Supabase antes
