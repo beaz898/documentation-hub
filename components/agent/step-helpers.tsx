@@ -4,6 +4,7 @@
 
 import { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import type { AgentStep, ToolName, ToolResultStep, ThinkStep, ToolCallStep,
   UserMessageStep, WarningStep, EscalationStep,
   ConfirmationRequestStep, ConfirmationResponseStep, FinalOutputStep,
@@ -251,7 +252,7 @@ export function StepRow({ step }: { step: AgentStep }) {
       }}>
         <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 8 }}>Resultado</p>
         <div className="prose-chat" style={{ fontSize: 13, color: 'var(--text-primary)', lineHeight: 1.7 }}>
-          <ReactMarkdown>{s.output}</ReactMarkdown>
+          <ReactMarkdown remarkPlugins={[remarkGfm]}>{s.output}</ReactMarkdown>
         </div>
         {s.citations.length > 0 && (
           <div style={{ marginTop: 12, paddingTop: 10, borderTop: '0.5px solid var(--border)' }}>

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { StepRow } from './step-helpers';
 import type { AgentConversation, AgentMessage, ConfirmationMode } from '@/lib/agent/types';
 
@@ -194,7 +195,7 @@ function AssistantBubble({
               fontSize: 13, color: 'var(--text-primary)', lineHeight: 1.65,
             }}
           >
-            <ReactMarkdown>{msg.content}</ReactMarkdown>
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.content}</ReactMarkdown>
           </div>
         </div>
       )}

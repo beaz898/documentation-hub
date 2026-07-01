@@ -1,6 +1,7 @@
 'use client';
 
 import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { useTranslations } from 'next-intl';
 import DocGapButton from '@/components/chat/DocGapButton';
 
@@ -104,7 +105,7 @@ export default function ChatMessage({ role, content, sources, question, noContex
             color: 'var(--text-primary)', lineHeight: 1.65,
           }}
         >
-          <ReactMarkdown>{content}</ReactMarkdown>
+          <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
         </div>
 
         {sources && sources.length > 0 && (

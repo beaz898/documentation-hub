@@ -143,6 +143,23 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 }
 .prose-chat strong { color: var(--text-primary); font-weight: 600; }
 .prose-chat a { color: var(--brand); text-decoration: underline; }
+.prose-chat table {
+  display: block;
+  overflow-x: auto;
+  border-collapse: collapse;
+  width: 100%;
+  margin: 0.6em 0;
+  font-size: 0.9em;
+}
+.prose-chat th, .prose-chat td {
+  border: 0.5px solid var(--border);
+  padding: 6px 10px;
+  text-align: left;
+}
+.prose-chat th {
+  background: var(--bg-tertiary);
+  font-weight: 600;
+}
 
 /* Animations */
 @keyframes fadeInUp {
