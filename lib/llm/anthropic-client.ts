@@ -432,6 +432,13 @@ export async function callAnthropicAgent(
     if (cacheCreation > 0) console.log(`[agent-llm] cache write: ${cacheCreation}t`);
     if (cacheRead     > 0) console.log(`[agent-llm] cache read:  ${cacheRead}t (saved ~${Math.round(cacheRead * 0.9)}t)`);
 
+    recordToContext(AGENT_MODEL, {
+      inputTokens:         inputTokens,
+      outputTokens:        outputTokens,
+      cacheCreationTokens: cacheCreation,
+      cacheReadTokens:     cacheRead,
+    });
+
     return {
       stop_reason: d.stop_reason ?? 'end_turn',
       content:     Array.isArray(d.content) ? d.content : [],

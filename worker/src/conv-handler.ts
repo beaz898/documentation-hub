@@ -1,5 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { runAgentTurn } from '../../lib/agent/runner-conv';
+import { usageContext } from '@/lib/observability/usage-context';
+import { persistLLMUsage } from '@/lib/observability/record-usage';
 
 const SUPABASE_URL      = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -110,11 +112,29 @@ async function processConversationTurn(
   const t0 = Date.now();
 
   try {
-    const result = await runAgentTurn({ supabase, conversationId, messageId });
+    const { data: convMeta } = await supabase
+      .from('agent_conversations')
+      .select('org_id, user_id')
+      .eq('id', conversationId)
+      .single();
+
+    const llmAcc = new Map();
+    const result = await usageContext.run(llmAcc, () =>
+      runAgentTurn({ supabase, conversationId, messageId })
+    );
     const latencyMs = Date.now() - t0;
     console.log(
       `[worker] conv: Turno ${messageId} finalizado — status=${result.status} en ${latencyMs}ms`,
     );
+
+    if (convMeta) {
+      void persistLLMUsage({
+        accumulator: llmAcc,
+        orgId:       convMeta.org_id as string,
+        userId:      convMeta.user_id as string,
+        operation:   'agent',
+      });
+    }
   } catch (err) {
     const errorMessage = err instanceof Error ? err.message : 'Error desconocido';
     console.error(`[worker] conv: Turno ${messageId} lanzó excepción inesperada:`, errorMessage);

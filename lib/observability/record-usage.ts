@@ -7,7 +7,8 @@ export type OperationType =
   | 'analyze_quick'
   | 'analyze_exhaustive'
   | 'analyze_style'
-  | 'improve';
+  | 'improve'
+  | 'agent';
 
 interface UsageRow {
   org_id: string;
