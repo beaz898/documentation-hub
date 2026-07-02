@@ -9,6 +9,8 @@ import { resolveOrg } from '@/lib/org';
 import { consumeCredits, getCreditCost } from '@/lib/credits';
 import { checkUploadLock } from '@/lib/upload-lock';
 import { saveAnalysisResult } from '@/lib/persist-analysis';
+import { usageContext } from '@/lib/observability/usage-context';
+import { persistLLMUsage } from '@/lib/observability/record-usage';
 
 export const maxDuration = 120;
 
@@ -202,12 +204,22 @@ export async function POST(req: NextRequest) {
 
     console.log(`[analyze-v2] "${fileName}" — ${chunks.length} chunks, ${sampleTexts.length} samples (rápido)`);
 
-    const analysis = await runAnalysisPipeline({
-      newDocumentText: text,
-      newDocumentName: fileName,
-      sampleTexts,
+    const llmAcc = new Map();
+    const analysis = await usageContext.run(llmAcc, () =>
+      runAnalysisPipeline({
+        newDocumentText: text,
+        newDocumentName: fileName,
+        sampleTexts,
+        orgId,
+        supabase,
+      })
+    );
+    void persistLLMUsage({
+      accumulator:    llmAcc,
       orgId,
-      supabase,
+      userId,
+      operation:      'analyze_quick',
+      creditsCharged: creditsConsumed,
     });
 
     // Construir documentSources para compatibilidad con frontend

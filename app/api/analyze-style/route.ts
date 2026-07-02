@@ -7,6 +7,8 @@ import { checkRateLimit } from '@/lib/rate-limiter';
 import { resolveOrg } from '@/lib/org';
 import { consumeCredits, getCreditCost } from '@/lib/credits';
 import { saveStyleResult } from '@/lib/persist-analysis';
+import { usageContext } from '@/lib/observability/usage-context';
+import { persistLLMUsage } from '@/lib/observability/record-usage';
 
 export const maxDuration = 60;
 
@@ -62,7 +64,17 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Texto insuficiente' }, { status: 400 });
     }
 
-    const problems = await analyzeStyle(text, fileName || 'sin nombre');
+    const llmAcc = new Map();
+    const problems = await usageContext.run(llmAcc, () =>
+      analyzeStyle(text, fileName || 'sin nombre')
+    );
+    void persistLLMUsage({
+      accumulator:    llmAcc,
+      orgId,
+      userId,
+      operation:      'analyze_style',
+      creditsCharged: creditsConsumed,
+    });
 
     void saveStyleResult(supabase, {
       orgId,

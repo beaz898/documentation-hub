@@ -7,6 +7,8 @@ import { refundCredits } from '../../lib/credits';
 import { PLANS_WITH_VARIABLE_PRICING } from '../../lib/stripe';
 import { pollConversationTurns } from './conv-handler';
 import { startTriggerServer } from './trigger-server';
+import { usageContext } from '@/lib/observability/usage-context';
+import { persistLLMUsage } from '@/lib/observability/record-usage';
 
 // ============================================================
 // Configuración
@@ -84,7 +86,18 @@ async function processJob(job: AnalysisJob): Promise<void> {
       excludeFingerprints,
     };
 
-    const analysis = await runExhaustiveAnalysisPipeline(input);
+    const llmAcc = new Map();
+    const analysis = await usageContext.run(llmAcc, () =>
+      runExhaustiveAnalysisPipeline(input)
+    );
+    // Fire-and-forget: si falla no afecta al resultado ni a los créditos
+    void persistLLMUsage({
+      accumulator:    llmAcc,
+      orgId:          job.org_id,
+      userId:         job.user_id,
+      operation:      'analyze_exhaustive',
+      creditsCharged: job.credits_consumed,
+    });
 
     const documentSources: Record<string, string> = {};
     for (const j of analysis.judgments) {

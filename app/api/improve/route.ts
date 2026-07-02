@@ -8,6 +8,8 @@ import { logUsage } from '@/lib/usage-logger';
 import { checkRateLimit } from '@/lib/rate-limiter';
 import { resolveOrg } from '@/lib/org';
 import { consumeCredits, getCreditCost } from '@/lib/credits';
+import { usageContext } from '@/lib/observability/usage-context';
+import { persistLLMUsage } from '@/lib/observability/record-usage';
 
 export const maxDuration = 120;
 
@@ -284,17 +286,20 @@ Recuerda: si propones REPLACEMENT(s), el "find" debe ser copia literal del TEXTO
       { role: 'user', content: userContent },
     ];
 
+    const llmAcc = new Map();
     let rawReply = '';
     let usage = { inputTokens: 0, outputTokens: 0, cacheCreationTokens: 0, cacheReadTokens: 0 };
     try {
-      const response = await callLLMWithUsage('', {
-        system: systemBlocks,
-        messages,
-        model: 'haiku',
-        maxOutputTokens: 6144,
-        temperature: 0.2,
-        cacheSystem: true,
-      });
+      const response = await usageContext.run(llmAcc, () =>
+        callLLMWithUsage('', {
+          system: systemBlocks,
+          messages,
+          model: 'haiku',
+          maxOutputTokens: 6144,
+          temperature: 0.2,
+          cacheSystem: true,
+        })
+      );
       rawReply = response.text;
       usage = {
         inputTokens: response.usage.inputTokens,
@@ -354,6 +359,14 @@ Recuerda: si propones REPLACEMENT(s), el "find" debe ser copia literal del TEXTO
     const visibleText = rawReply.replace(replacementRegex, '').trim();
 
     const latencyMs = Date.now() - startedAt;
+
+    void persistLLMUsage({
+      accumulator:    llmAcc,
+      orgId,
+      userId,
+      operation:      'improve',
+      creditsCharged: creditsConsumed,
+    });
 
     await logUsage(supabase, {
       userId,
