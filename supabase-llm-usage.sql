@@ -9,12 +9,11 @@
 CREATE TABLE IF NOT EXISTS public.llm_usage (
   id                 uuid                     NOT NULL DEFAULT gen_random_uuid(),
   created_at         timestamp with time zone NOT NULL DEFAULT now(),
-  org_id             text                     NOT NULL,
+  org_id             uuid                     NOT NULL,
   user_id            uuid                     REFERENCES auth.users(id),
 
   -- Qué operación generó este consumo
   operation          text                     NOT NULL,
-  -- CONSTRAINT: solo valores conocidos
   CONSTRAINT llm_usage_operation_check CHECK (
     operation IN ('chat', 'analyze_quick', 'analyze_exhaustive', 'analyze_style', 'improve', 'agent')
   ),
@@ -22,7 +21,7 @@ CREATE TABLE IF NOT EXISTS public.llm_usage (
   -- Modelo exacto (p. ej. 'claude-haiku-4-5-20251001')
   model              text                     NOT NULL,
 
-  -- Contadores de tokens (fuente de verdad para recalcular coste si cambian precios)
+  -- Contadores de tokens (fuente de verdad; permiten recalcular coste si cambian precios)
   input_tokens       integer                  NOT NULL DEFAULT 0,
   output_tokens      integer                  NOT NULL DEFAULT 0,
   cache_write_tokens integer                  NOT NULL DEFAULT 0,
@@ -41,7 +40,7 @@ CREATE TABLE IF NOT EXISTS public.llm_usage (
 CREATE INDEX IF NOT EXISTS idx_llm_usage_org_date
   ON public.llm_usage USING btree (org_id, created_at DESC);
 
--- Índice auxiliar para filtrar por operación
+-- Índice auxiliar para filtrar por operación dentro de una org
 CREATE INDEX IF NOT EXISTS idx_llm_usage_org_operation
   ON public.llm_usage USING btree (org_id, operation, created_at DESC);
 
@@ -58,7 +57,11 @@ CREATE POLICY "llm_usage: service role insert"
   TO service_role
   WITH CHECK (true);
 
--- Solo admins de la org pueden leer (datos de coste, información sensible)
+-- Solo admins de la propia org pueden leer sus filas.
+-- Aislamiento garantizado: la condición m.org_id = llm_usage.org_id
+-- limita el EXISTS a membresías de exactamente la misma org que la fila.
+-- Un admin de org A no puede ver filas de org B porque no tiene membresía en B.
+-- Un no-admin (rol 'member') tampoco ve nada porque role = 'admin' falla.
 CREATE POLICY "llm_usage: admin read"
   ON public.llm_usage
   FOR SELECT
@@ -66,8 +69,8 @@ CREATE POLICY "llm_usage: admin read"
     EXISTS (
       SELECT 1
       FROM public.memberships m
-      WHERE m.org_id::text = llm_usage.org_id
-        AND m.user_id      = auth.uid()
-        AND m.role         = 'admin'
+      WHERE m.org_id  = llm_usage.org_id   -- uuid = uuid, sin cast
+        AND m.user_id = auth.uid()
+        AND m.role    = 'admin'
     )
   );
