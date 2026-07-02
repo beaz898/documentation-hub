@@ -13,6 +13,7 @@ import {
   currentWindowStart,
   EST_OUTPUT_TOKENS,
 } from './rate-limiter';
+import { recordToContext } from '@/lib/observability/usage-context';
 
 // ── Constantes ─────────────────────────────────────────────────────────────────
 
@@ -207,6 +208,15 @@ export async function callAnthropicWithUsage(
     inputDelta:  inputTokens,
     outputDelta: outputTokens,
   }).catch(err => console.warn('[rate-limiter] Error registrando uso RAG:', err));
+
+  // Acumular en el contexto de la operación activa (si existe).
+  const modelId = opts.model === 'sonnet' ? SONNET_MODEL : HAIKU_MODEL;
+  recordToContext(modelId, {
+    inputTokens,
+    outputTokens,
+    cacheCreationTokens: usage.cacheCreationTokens ?? 0,
+    cacheReadTokens:     usage.cacheReadTokens     ?? 0,
+  });
 
   return { text, usage };
 }

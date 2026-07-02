@@ -7,6 +7,8 @@ import { checkRateLimit } from '@/lib/rate-limiter';
 import { resolveOrg } from '@/lib/org';
 import { consumeCredits, getCreditCost } from '@/lib/credits';
 import { saveChatQuery } from '@/lib/persist-analysis';
+import { usageContext } from '@/lib/observability/usage-context';
+import { persistLLMUsage } from '@/lib/observability/record-usage';
 
 export async function POST(req: NextRequest) {
   const startedAt = Date.now();
@@ -70,9 +72,21 @@ export async function POST(req: NextRequest) {
 
     // Ejecutar RAG con historial de conversación
     const conversationHistory = Array.isArray(history) ? history : [];
-    const result = await queryRAG(question.trim(), orgId, supabase, conversationHistory);
+    const llmAcc = new Map();
+    const result = await usageContext.run(llmAcc, () =>
+      queryRAG(question.trim(), orgId, supabase, conversationHistory)
+    );
 
     const latencyMs = Date.now() - startedAt;
+
+    // Persistir tokens reales en llm_usage — fire-and-forget, nunca bloquea ni propaga error.
+    void persistLLMUsage({
+      accumulator:    llmAcc,
+      orgId,
+      userId,
+      operation:      'chat',
+      creditsCharged: creditsConsumed,
+    });
 
     void saveChatQuery(supabase, {
       orgId,
