@@ -3,7 +3,7 @@ PENDIENTES — Doclity (Agente IA)
 Documento vivo. Se actualiza al completar tareas (marcar [✓]) y se
 sustituye por la versión nueva. Más ligero que la Bitácora: aquí va
 lo que falta y la visión que lo guía, no el detalle de cada sesión.
-Última actualización: 01/07/2026 (v22)
+Última actualización: 02/07/2026 (v23)
 
 
 ════════════════════════════════════════════════════════════════
@@ -630,6 +630,50 @@ Leyenda: [ ] pendiente · [~] en curso · [✓] hecho
       con campo found:boolean — robusto pero toca el prompting del RAG. DECISIÓN: no
       tocar hasta montar B.35 y decidir con datos reales si el ruido justifica el fix.
 
+[ ] B.38 — (OPTIMIZACIÓN DE COSTE) Prompt caching en el pipeline de análisis
+      INVESTIGADO en Sesión 28 (01/07/2026). NO implementado aún.
+
+      SITUACIÓN ACTUAL: ninguna de las 7 llamadas del pipeline de análisis
+      (rerank, judge, extract-claims, verify-claims, synthesize, style-check,
+      double-check) usa `cacheSystem: true`. Todas van por `callLLMJson` sin
+      prompt caching activado.
+
+      POR QUÉ IMPORTA: en un análisis exhaustivo observado en producción,
+      la fila Haiku consumió 73.276 tokens de entrada. El pipeline repite el
+      system prompt en cada llamada. Con prompt caching, el system prompt de
+      la primera llamada se cachea (coste × 1,25 una sola vez) y las siguientes
+      lo leen a 0,025 $/Mtok (vs 0,25 $/Mtok sin caché), es decir, 10× más
+      barato en tokens de entrada cacheados.
+
+      ACLARACIÓN TÉCNICA IMPORTANTE: el prompt caching de Anthropic NO cambia
+      el resultado del modelo; solo afecta a la latencia y al coste. El modelo
+      procesa exactamente las mismas instrucciones. No es un "cambio de
+      comportamiento" del sistema: es ahorro económico puro.
+
+      ESTIMACIÓN DE AHORRO (análisis exhaustivo, 73.276 tokens de entrada):
+      · Sin caché: 73.276 × 0,25 $ / 1.000.000 = ~0,018 $ por análisis
+      · Con caché (asumiendo system prompt ~4.000 tokens cacheable × N llamadas):
+        el ahorro depende del % de tokens cacheados. Si ~30% del input es system
+        prompt reutilizable, el ahorro es ~3× en esa fracción → aprox. 0,005-0,006 $
+        por análisis (ahorro de ~0,012-0,013 $ por análisis exhaustivo).
+      · Escala: si hay 100 análisis exhaustivos/mes, ~1,2 $ ahorrados. No es
+        dramático en absoluto con el volumen actual, pero es coste real y creciente.
+
+      QUÉ REQUIERE IMPLEMENTARLO:
+      1. Identificar el system prompt que se repite en cada paso y marcarlo con
+         `cache_control: { type: 'ephemeral' }` (o pasar `cacheSystem: true` a
+         `callLLMJson`).
+      2. Añadir la cabecera `anthropic-beta: prompt-caching-2024-07-31` en
+         `callLLMJson` cuando `cacheSystem` esté activo (ya existe en `buildHeaders`).
+      3. Verificar que los tokens de caché aparecen en `llm_usage` (ya hay campos
+         `cache_write_tokens` y `cache_read_tokens`).
+      IMPORTANTE: este cambio solo toca `callLLMJson` y los system prompts de los
+      pasos del pipeline — NO cambia prompts, modelos ni lógica de créditos.
+
+      PRIORIDAD: baja (ahorro marginal con volumen actual). Revisar cuando el
+      volumen de análisis exhaustivos crezca o cuando el coste de Haiku sea un
+      porcentaje relevante de los costes totales.
+
 [ ] B.37 — (Funcionalidad, SECUNDARIO) Idioma de las respuestas del LLM en el chat
       El i18n de la interfaz (next-intl) ya funciona, pero solo traduce textos FIJOS.
       Las respuestas del chat las genera el LLM al vuelo y salen en español aunque la
@@ -674,6 +718,7 @@ NOTAS DE ORDEN (propuesta, a confirmar)
   B.35 (panel admin de gaps) es la continuación natural (Fase 3 de B.34).
   B.36 (noContext tercer caso) diagnosticado, no urgente; decidir con datos reales en B.35.
   B.37 (idioma del LLM en chat) pendiente de decisiones de producto; prioridad baja.
+  B.38 (prompt caching en análisis) investigado, anotado; implementar cuando el volumen justifique.
 
 Forma de trabajo: diagnóstico con datos reales antes de arreglar; un
 cambio lógico cada vez; build verde entre medias; SQL en Supabase antes
