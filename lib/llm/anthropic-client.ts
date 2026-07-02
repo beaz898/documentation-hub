@@ -48,12 +48,16 @@ interface RawResult {
   body: unknown;
   inputTokens: number;
   outputTokens: number;
+  cacheCreationTokens: number;
+  cacheReadTokens: number;
 }
 
 interface TextResult {
   text: string;
   inputTokens: number;
   outputTokens: number;
+  cacheCreationTokens: number;
+  cacheReadTokens: number;
 }
 
 // ── Constructores de payload / headers ─────────────────────────────────────────
@@ -135,8 +139,10 @@ async function callAnthropicRaw(
       const usageRaw = (body as Record<string, unknown>)?.usage as Record<string, number> | undefined;
       return {
         body,
-        inputTokens:  usageRaw?.input_tokens  ?? 0,
-        outputTokens: usageRaw?.output_tokens ?? 0,
+        inputTokens:         usageRaw?.input_tokens                ?? 0,
+        outputTokens:        usageRaw?.output_tokens               ?? 0,
+        cacheCreationTokens: usageRaw?.cache_creation_input_tokens ?? 0,
+        cacheReadTokens:     usageRaw?.cache_read_input_tokens     ?? 0,
       };
     } catch (err) {
       lastError = err instanceof Error ? err.message : String(err);
@@ -152,7 +158,7 @@ async function callAnthropicTextWithTokens(
   prompt: string,
   opts: CallOptions,
 ): Promise<TextResult> {
-  const { body, inputTokens, outputTokens } = await callAnthropicRaw(
+  const { body, inputTokens, outputTokens, cacheCreationTokens, cacheReadTokens } = await callAnthropicRaw(
     buildPayload(prompt, opts),
     buildHeaders(opts),
   );
@@ -160,7 +166,7 @@ async function callAnthropicTextWithTokens(
   const content = d?.content as Array<Record<string, unknown>> | undefined;
   const text    = content?.[0]?.text as string | undefined;
   if (!text) throw new Error('Empty text response from Anthropic');
-  return { text, inputTokens, outputTokens };
+  return { text, inputTokens, outputTokens, cacheCreationTokens, cacheReadTokens };
 }
 
 // ── Respuestas de texto — sin rate limiting (función interna) ──────────────────
@@ -319,10 +325,18 @@ export async function callAnthropicJson<T = unknown>(
   let finalInput:  number = estInput;
   let finalOutput: number = EST_OUTPUT_TOKENS.json;
 
+  const jsonModelId = adjustedOpts.model === 'sonnet' ? SONNET_MODEL : HAIKU_MODEL;
+
   try {
     const r1 = await callAnthropicTextWithTokens(adjustedPrompt, adjustedOpts);
     finalInput  = r1.inputTokens;
     finalOutput = r1.outputTokens;
+    recordToContext(jsonModelId, {
+      inputTokens:         r1.inputTokens,
+      outputTokens:        r1.outputTokens,
+      cacheCreationTokens: r1.cacheCreationTokens,
+      cacheReadTokens:     r1.cacheReadTokens,
+    });
 
     try {
       return tryParseJson<T>(r1.text);
@@ -333,6 +347,12 @@ export async function callAnthropicJson<T = unknown>(
       const r2 = await callAnthropicTextWithTokens(adjustedPrompt, adjustedOpts);
       finalInput  = r2.inputTokens;
       finalOutput = r2.outputTokens;
+      recordToContext(jsonModelId, {
+        inputTokens:         r2.inputTokens,
+        outputTokens:        r2.outputTokens,
+        cacheCreationTokens: r2.cacheCreationTokens,
+        cacheReadTokens:     r2.cacheReadTokens,
+      });
 
       try {
         return tryParseJson<T>(r2.text);
