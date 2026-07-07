@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { MessageSquare, Bot, Sun, Moon, Users, BarChart3, CreditCard, LogOut } from 'lucide-react';
+import { MessageSquare, Bot, Sun, Moon, Users, BarChart3, CreditCard, BookOpen, LogOut } from 'lucide-react';
 import DoclityLogo from '@/components/DoclityLogo';
 import { useTheme } from '@/components/ThemeProvider';
 import { createClient } from '@/lib/supabase';
@@ -126,6 +126,7 @@ export default function AppRail() {
               : <LockedNavItem icon={BarChart3} label="Analítica" minPlan="Business" onShow={showToast} />}
 
           <NavLink href="/settings/billing" icon={CreditCard} label="Facturación" active={isActive('/settings/billing')} />
+          <NavLink href="/settings/learning" icon={BookOpen} label="Aprendizaje" active={isActive('/settings/learning')} />
         </nav>
 
         <div className="flex flex-col items-center gap-1">
