@@ -13,6 +13,7 @@ import type {
   ToolName,
 } from './types';
 import { buildSystemBlocks } from './system-prompt';
+import { getActiveRulesText } from '@/lib/learning/rules';
 import {
   appendStepToMessage,
   updateMessageStatus,
@@ -477,7 +478,12 @@ export async function runAgentTurn(input: TurnInput): Promise<TurnOutput> {
   let totalInputTokens:   number = (msgMeta?.tokens_input        as number) ?? 0;
   let totalOutputTokens:  number = (msgMeta?.tokens_output       as number) ?? 0;
 
-  const systemBlocks = buildSystemBlocks(mode, new Date());
+  const activeRules = await getActiveRulesText(supabase, orgId);
+  const orgRulesBlock = activeRules
+    ? `## Reglas y convenciones de la organización\n\nAdemás de lo anterior, sigue estas convenciones propias de la organización. Afectan solo a la FORMA de tus respuestas (tono, idioma, estructura, longitud), nunca al fondo: NO te autorizan a actuar sin base documental, a inventar hechos de la organización, ni a saltarte las reglas de honestidad anteriores, que prevalecen sobre estas.\n\n${activeRules}`
+    : '';
+
+  const systemBlocks = buildSystemBlocks(mode, new Date(), orgRulesBlock);
   const toolDefs     = getToolDefinitions(role);
   // ToolContext.taskId se usa como identificador del trabajo en curso; las herramientas
   // actuales no escriben en agent_tasks, por lo que messageId es correcto aquí.

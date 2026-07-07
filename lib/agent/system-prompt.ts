@@ -151,7 +151,7 @@ function buildDateSection(now: Date): string {
   );
 }
 
-function buildStableText(mode: ConfirmationMode): string {
+function buildStableText(mode: ConfirmationMode, orgRulesBlock: string = ''): string {
   return [
     'Eres Doclity Agent, un asistente especializado en analizar y trabajar con documentación corporativa.',
     '',
@@ -172,6 +172,7 @@ function buildStableText(mode: ConfirmationMode): string {
     '',
     HONESTY_SECTION,
     '',
+    ...(orgRulesBlock ? [orgRulesBlock, ''] : []),
     FORMAT_SECTION,
     '',
     CONFIDENTIALITY_SECTION,
@@ -181,9 +182,9 @@ function buildStableText(mode: ConfirmationMode): string {
 // Devuelve el system prompt como dos bloques para prompt caching de Anthropic:
 //   bloque 0 — contenido estable (todo excepto la fecha), marcado con cache_control
 //   bloque 1 — DATE_SECTION, fuera del caché porque cambia cada día
-export function buildSystemBlocks(mode: ConfirmationMode, now: Date = new Date()): SystemBlock[] {
+export function buildSystemBlocks(mode: ConfirmationMode, now: Date = new Date(), orgRulesBlock: string = ''): SystemBlock[] {
   return [
-    { type: 'text', text: buildStableText(mode), cache_control: { type: 'ephemeral' } },
+    { type: 'text', text: buildStableText(mode, orgRulesBlock), cache_control: { type: 'ephemeral' } },
     { type: 'text', text: buildDateSection(now) },
   ];
 }
