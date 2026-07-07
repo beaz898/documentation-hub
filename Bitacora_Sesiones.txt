@@ -1692,6 +1692,107 @@ PENDIENTE DESTAPADO EN ESTA SESIÓN
    El agente bloquea toda la UI con un spinner (pageLoading) hasta cargar todo
    (sesión, créditos, conversaciones). El chat muestra la interfaz enseguida y
    rellena las piezas progresivamente (placeholder mientras cargan).
+
+
+────────────────────────────────────────────────────────────────
+SESIÓN 23 — 07/07/2026
+Título: Fase A — Aprendizaje Tipo 1 (convenciones de organización)
+────────────────────────────────────────────────────────────────
+
+OBJETIVO
+Implementar el aprendizaje Tipo 1 de B.6: convenciones de organización que un admin
+define y que se inyectan en el system prompt del chat RAG y del agente, afectando a la
+forma de las respuestas sin autorizar nunca a responder sin base documental. Primera fase
+del mecanismo de aprendizaje de B.6; independiente del resto.
+
+CAMBIOS IMPLEMENTADOS
+
+1. TABLA LEARNED_RULES + CAPA DE DATOS
+   - Migración public.learned_rules (org_id, kind convencion/hecho_dominio, rule_text,
+     source manual/destilada, status pendiente/activa/archivada, created_by, approved_by).
+     RLS por org_id; SELECT para miembros, escrituras vía service role tras chequeo admin.
+   - lib/learning/types.ts (tipos del dominio, MAX_ACTIVE_RULES_PER_ORG = 20) y
+     lib/learning/rules.ts (capa de datos: mapeo snake_case↔camelCase, tope de activas en
+     servidor, getActiveRulesText tolerante a fallos).
+
+   Archivos modificados
+     supabase-learned-rules.sql        — migración SQL (ejecutar en Supabase)
+     lib/learning/types.ts             — tipos de dominio + constante de tope
+     lib/learning/rules.ts             — listRules, createRule, updateRule, deleteRule,
+                                         getActiveRulesText
+
+2. ENDPOINTS ADMIN (GET/POST/PATCH/DELETE)
+   - GET/POST /api/learning/rules y PATCH/DELETE /api/learning/rules/[id].
+     Solo-admin (resolveOrg + org.role). Errores de validación y tope como 400.
+
+   Archivos modificados
+     app/api/learning/rules/route.ts          — GET lista, POST crea
+     app/api/learning/rules/[id]/route.ts     — PATCH edita/activa/archiva, DELETE borra
+
+3. PANTALLA DE GESTIÓN (settings/learning)
+   - Namespace i18n "learning" añadido a ambos archivos de traducción.
+   - Componentes: types.ts, RuleRow.tsx (fila: texto + toggle activa/pausada + editar/quitar),
+     RulesManager.tsx (carga, alta, secciones Activas/En pausa; borrado suave a archivada;
+     estado pendiente reservado para A.2).
+   - Página app/(authenticated)/settings/learning/page.tsx sobre el layout de settings.
+   - Enlace "Aprendizaje" (BookOpen) añadido a AppRail entre Facturación y el bloque inferior.
+
+   Archivos modificados
+     messages/es.json                                 — namespace learning
+     messages/en.json                                 — namespace learning
+     components/learning/types.ts                     — tipos UI del dominio
+     components/learning/RuleRow.tsx                  — componente de fila
+     components/learning/RulesManager.tsx             — cerebro de la pantalla
+     app/(authenticated)/settings/learning/page.tsx   — página de settings
+     components/layout/AppRail.tsx                    — enlace de navegación
+
+4. FIX: CREAR REGLA YA ACTIVA
+   - createRule nacía en 'pendiente' (invisible en la UI de v1, que solo muestra 'activa'
+     y 'archivada'). Corregido para nacer directamente 'activa', con chequeo del tope de
+     activas y approved_by = creador (el admin implícitamente aprueba lo que crea).
+
+   Archivos modificados
+     lib/learning/rules.ts   — createRule: chequeo tope + status activa + approved_by
+
+5. INYECCIÓN EN EL CHAT RAG
+   - buildSystemPrompt recibe orgRulesBlock e inyecta las convenciones activas entre las
+     reglas 13 y 14, con meta-instrucción de jerarquía (honestidad prevalece sobre las
+     convenciones de org). queryRAG llama a getActiveRulesText antes del LLM.
+
+   Archivos modificados
+     lib/rag.ts   — import getActiveRulesText, firma buildSystemPrompt(orgRulesBlock),
+                    await activeRules antes de la llamada al LLM
+
+6. INYECCIÓN EN EL AGENTE
+   - Sección "Reglas y convenciones de la organización" insertada entre HONESTY_SECTION y
+     FORMAT_SECTION, dentro del bloque 0 cacheado. El runner lee las reglas por orgId antes
+     de construir los systemBlocks. Sin reglas activas el prompt (y su caché) queda idéntico.
+
+   Archivos modificados
+     lib/agent/system-prompt.ts   — buildStableText/buildSystemBlocks reciben orgRulesBlock
+     lib/agent/runner-conv.ts     — import + await getActiveRulesText + pasa orgRulesBlock
+
+COMMITS DE ESTA SESIÓN
+   7fd7d90f — feat(learning): tabla learned_rules (registro SQL) + capa de datos y tipos del dominio
+   305e2fb5 — feat(learning): endpoints admin GET/POST/PATCH/DELETE de reglas
+   b071f6a1 — feat(learning): traducciones (namespace learning) es/en
+   98a5fadf — feat(learning): pantalla de gestión de reglas (componentes + página)
+   c92fe46d — feat(learning): enlace 'Aprendizaje' en la navegación (AppRail)
+   c8a2ce59 — fix(learning): crear regla ya activa con chequeo de tope
+   076e039e — feat(learning): inyectar reglas de organización en el system prompt del chat
+   b49232b4 — feat(learning): inyectar reglas de organización en el system prompt del agente
+
+PENDIENTE DESTAPADO EN ESTA SESIÓN
+
+   A.2 (continuación del aprendizaje) — botón "tener en cuenta" en el chat, destilación
+   con Haiku de la corrección y cola de aprobación del admin. El estado 'pendiente' de
+   learned_rules queda reservado para esto (hoy sin uso en la UI).
+
+   Pulido menor UI — el botón de reintentar del error de carga en RulesManager usa la
+   etiqueta "Cancelar" en vez de una clave "retry" propia.
+
+   El "quitar" de una regla usa window.confirm (diálogo nativo); sustituible por un
+   diálogo propio coherente con el resto (existe ReplaceDialog como referencia).
    - Decisión: igualar el agente al modelo PROGRESIVO del chat, NO al revés.
    - Requiere identificar qué piezas toleran renderizar a medias y cuáles
      necesitan un dato sí o sí (riesgo de romper el agente, la pantalla más

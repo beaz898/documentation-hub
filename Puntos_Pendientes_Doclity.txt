@@ -3,7 +3,7 @@ PENDIENTES — Doclity (Agente IA)
 Documento vivo. Se actualiza al completar tareas (marcar [✓]) y se
 sustituye por la versión nueva. Más ligero que la Bitácora: aquí va
 lo que falta y la visión que lo guía, no el detalle de cada sesión.
-Última actualización: 02/07/2026 (v23)
+Última actualización: 07/07/2026 (v24)
 
 
 ════════════════════════════════════════════════════════════════
@@ -586,6 +586,11 @@ Leyenda: [ ] pendiente · [~] en curso · [✓] hecho
       indexan los hechos, cómo se inyecta cada tipo, la pantalla de gestión) cuando se llegue.
       Se construye sobre B.3 (comportamiento), el sistema de búsqueda semántica, y los permisos
       de B.15.
+
+      · PARCIAL — Tipo 1 (convención de empresa) + gestión implementados en Sesión 23
+        (07/07/2026): tabla learned_rules, CRUD admin en settings/learning, e inyección en el
+        system prompt del chat y del agente. Pendiente de B.6: Tipos 2 y 3 y el mecanismo de
+        captura/destilación (ver A.2 en la bitácora).
 
 
 [✓] B.34 — (Funcionalidad) Lagunas de documentación: el usuario marca lo que falta
