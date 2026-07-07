@@ -83,9 +83,10 @@ export async function countActiveRules(
 }
 
 /**
- * Crea una regla nueva. Nace en estado 'pendiente' (no afecta al prompt
- * hasta activarla). kind por defecto 'convencion'. source siempre 'manual' en v1.
- * createdBy = id del admin que la crea (para auditoría).
+ * Crea una regla nueva. Nace en estado 'activa' (la crea un admin que la aprueba
+ * implícitamente). kind por defecto 'convencion'. source siempre 'manual' en v1.
+ * 'pendiente' se reserva para la fase A.2 (reglas auto-destiladas).
+ * createdBy = id del admin que la crea (registrado como created_by y approved_by).
  */
 export async function createRule(
   supabase: SupabaseClient,
@@ -96,6 +97,14 @@ export async function createRule(
   const ruleText = input.ruleText.trim();
   if (!ruleText) throw new Error('El texto de la regla no puede estar vacío.');
 
+  const active = await countActiveRules(supabase, orgId);
+  if (active >= MAX_ACTIVE_RULES_PER_ORG) {
+    throw new Error(
+      'Límite alcanzado: máximo ' + MAX_ACTIVE_RULES_PER_ORG +
+      ' reglas activas por organización. Archiva alguna antes de activar otra.',
+    );
+  }
+
   const { data, error } = await supabase
     .from(TABLE)
     .insert({
@@ -103,8 +112,9 @@ export async function createRule(
       kind: input.kind ?? 'convencion',
       rule_text: ruleText,
       source: 'manual',
-      status: 'pendiente',
+      status: 'activa',
       created_by: createdBy,
+      approved_by: createdBy,
     })
     .select('*')
     .single();
