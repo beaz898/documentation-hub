@@ -3,7 +3,7 @@ PENDIENTES — Doclity (Agente IA)
 Documento vivo. Se actualiza al completar tareas (marcar [✓]) y se
 sustituye por la versión nueva. Más ligero que la Bitácora: aquí va
 lo que falta y la visión que lo guía, no el detalle de cada sesión.
-Última actualización: 07/07/2026 (v24)
+Última actualización: 08/07/2026 (v25)
 
 
 ════════════════════════════════════════════════════════════════
@@ -692,6 +692,29 @@ Leyenda: [ ] pendiente · [~] en curso · [✓] hecho
       a medias: interfaz en inglés pero respuestas traduciendo docs españoles con
       imprecisiones da peor impresión que tenerlo todo coherente en español.
 
+[ ] B.39 — (FIX FONDO) analyze-v2: pasar el texto ya extraído en lugar de re-descargar de Storage
+      DIAGNOSTICADO. Ciertos PDFs fallan con "bad XRef entry" en analyze-v2 pero no en
+      ingest, porque analyze-v2 descarga de Storage justo tras el upload antes de que el
+      archivo esté completamente escrito. El reintento de 3 intentos (fix 86c65cf2) es
+      una mitigación parcial.
+      Fix de fondo: que el frontend extraiga el texto una sola vez (tras el upload)
+      y lo pase a analyze-v2 via directText en el body (el endpoint ya soporta directText).
+      Así analyze-v2 nunca descarga de Storage — elimina la condición de carrera por diseño.
+      Implica reordenar el flujo en hooks/chat/useDocuments.ts:
+        upload → extractText (una vez) → analyze-v2(directText) → ingest
+      NO urgente: el documento entra igualmente al corpus vía ingest y el chat lo usa;
+      solo se pierde el análisis previo del archivo afectado. Encaja con el rediseño
+      del flujo de la Fase B.
+
+[ ] B.40 — (DEUDA MENOR) Vectores huérfanos en ingest
+      Si algo falla entre el upsert a Pinecone (paso 8) y el insert en Supabase (paso 9)
+      en app/api/ingest/route.ts, quedan vectores sin fila de documento en la BD.
+      El usuario no puede verlos ni borrarlos; ocupan namespace de la org.
+      Sin impacto funcional hoy (el chat ignora vectores sin documento al resolver fuentes),
+      pero es deuda latente. Revisar al reconducir ingest por la capa Pinecone (B.0.2):
+      ese es el momento natural para añadir un try/catch que, si el insert en Supabase
+      falla, elimine inmediatamente los vectores recién subidos.
+
 
 ════════════════════════════════════════════════════════════════
 NOTAS DE ORDEN (propuesta, a confirmar)
@@ -724,6 +747,8 @@ NOTAS DE ORDEN (propuesta, a confirmar)
   B.36 (noContext tercer caso) diagnosticado, no urgente; decidir con datos reales en B.35.
   B.37 (idioma del LLM en chat) pendiente de decisiones de producto; prioridad baja.
   B.38 (prompt caching en análisis) investigado, anotado; implementar cuando el volumen justifique.
+  B.39 (fix fondo analyze-v2 race condition) diagnosticado, no urgente; encaja con el rediseño de flujo de Fase B.
+  B.40 (vectores huérfanos en ingest) deuda menor; revisar al reconducir ingest por la capa en B.0.2.
 
 Forma de trabajo: diagnóstico con datos reales antes de arreglar; un
 cambio lógico cada vez; build verde entre medias; SQL en Supabase antes

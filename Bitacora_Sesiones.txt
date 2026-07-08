@@ -2187,3 +2187,110 @@ COMMITS DE ESTA SESIÓN
    70f7b161 — feat(chat): sidebar abre en escritorio al montar, cerrado en móvil
    4848fd80 — refactor(chat): créditos del chat desde AccountContext, eliminar useCredits
    ea973953 — fix(chat): igualar cabecera móvil del chat a la del agente
+
+
+────────────────────────────────────────────────────────────────
+SESIÓN 27 — 08/07/2026
+Título: Refactor capa Pinecone (B.0, en curso) + fixes de subida de documentos
+────────────────────────────────────────────────────────────────
+
+OBJETIVO
+Iniciar el refactor B.0: crear una capa intermedia que abstraiga todas las
+llamadas directas al SDK de Pinecone. Reconducir los primeros dos puntos de
+acceso por la nueva capa. Corregir tres bugs descubiertos en el flujo de
+subida de documentos.
+
+CAMBIOS IMPLEMENTADOS
+
+1. CAPA lib/pinecone/ — B.0.1-a (ARCHIVOS NUEVOS)
+
+   lib/pinecone/types.ts
+   - Tipos compartidos: VectorMetadata, VectorRecord, QueryVectorsParams,
+     VectorMatch. VectorMetadata NO extiende RecordMetadata (incompatibilidad
+     de índice por campos opcionales con string | undefined): usa as unknown as
+     en los dos puntos de cruce con el SDK.
+
+   lib/pinecone/vectors.ts
+   - queryVectors(orgId, params): búsqueda semántica en el namespace de la org.
+   - upsertVectors(orgId, vectors[]): upsert en lotes de 100.
+   - deleteVectorsByIds(orgId, ids[]): eliminación en lotes de 1000.
+   - deleteVectorsByFilter(orgId, filter): eliminación por filtro de metadatos.
+   - deleteAllVectors(orgId): vaciar namespace completo.
+   - fetchVectors(orgId, ids[]): recuperar vectores por ID.
+   - updateVectorMetadata(orgId, id, metadata): actualizar metadatos parcialmente
+     (merge, no reemplaza). Sin uso aún — reservado para el backfill de B.4.
+   - orgId obligatorio en todas las funciones: el aislamiento de namespace
+     queda garantizado por contrato, no por convención.
+
+2. MIGRACIÓN DEL CHAT (lib/rag.ts) — B.0.1-b
+
+   - Sustituido el bloque de query directo al SDK por queryVectors(orgId, {...}).
+   - Cast en la llamada a buildContext: VectorMatch[] → Array<{ metadata?:
+     Record<string, unknown>; score? }> (buildContext espera el tipo genérico
+     sin index signature; VectorMetadata no lo tiene).
+   - Verificado en producción.
+
+3. MIGRACIÓN DEL AGENTE (lib/agent/tools/search-docs.ts) — B.0.1-c
+
+   - Sustituido el bloque de query directo al SDK por queryVectors(orgId, {...}).
+   - Verificado en producción.
+
+   PENDIENTE DE B.0: quedan ~15 de 19 sitios sin reconducir por la capa.
+   Próximos: lib/analysis/retrieval.ts, verify-claims.ts, improve, cleanup-orphans,
+   drive/sync, drive/disconnect, documents, coverage, purge-org, ingest, index-text.
+   Los deleteMany (B.0.2) y fetch + deleteAll (B.0.3) se abordarán por separado.
+
+4. FIX PÉRDIDA DE DATOS EN INGEST (app/api/ingest/route.ts)
+
+   Bug: en reemplazo por colisión (force=true), el documento viejo se borraba
+   de Pinecone y Supabase ANTES de extraer y validar el texto del nuevo.
+   Si el nuevo PDF era ilegible, el viejo desaparecía sin reemplazo.
+
+   Fix: reordenación de operaciones.
+   - Paso 1: descargar y extraer texto (try/catch propio).
+   - Si extractText lanza → 400 con "El documento anterior sigue intacto".
+   - Paso 2 (solo si el texto es válido y suficiente): eliminar el viejo
+     de Pinecone y Supabase, luego upsertear el nuevo.
+   El documento anterior solo se borra cuando el nuevo está confirmado.
+
+5. FIX FRONTEND SILENT FAILURE (hooks/chat/useDocuments.ts)
+
+   Bug: si /api/analyze-v2 devolvía error (4xx/5xx) o lanzaba excepción,
+   el frontend limpiaba la barra de progreso y seguía indexando en silencio,
+   sin ningún mensaje al usuario.
+
+   Fix: en el bloque else (res.ok=false) y en el catch, añadir addMessage
+   con role:'error' antes de continuar a indexDocument(). El usuario ve el
+   problema; el indexado sigue (el documento entra al corpus sin análisis).
+
+6. FIX CONDICIÓN DE CARRERA EN ANALYZE-V2 (app/api/analyze-v2/route.ts)
+
+   Bug: analyze-v2 descarga el archivo de Supabase Storage inmediatamente
+   tras el upload del navegador. Si Storage aún no ha terminado de escribir
+   el archivo, pdf-parse lanza "bad XRef entry" aunque el mismo PDF se indexe
+   correctamente por ingest (que corre más tarde, cuando el archivo ya está
+   completo en Storage).
+
+   Mitigación parcial: loop de 3 intentos (esperas 0 / 400ms / 800ms)
+   alrededor del bloque download + extractText. Si los tres fallan, devuelve
+   400 con mensaje legible. Ver B.39 para el fix de fondo.
+
+ARCHIVOS NUEVOS
+  lib/pinecone/types.ts
+  lib/pinecone/vectors.ts
+
+ARCHIVOS MODIFICADOS
+  lib/rag.ts                        — queryVectors + cast para buildContext
+  lib/agent/tools/search-docs.ts    — queryVectors
+  app/api/ingest/route.ts           — reordenar: extractText antes de borrar viejo
+  hooks/chat/useDocuments.ts        — addMessage en else y catch de analyze-v2
+  app/api/analyze-v2/route.ts       — reintento con espera creciente (3 intentos)
+
+COMMITS DE ESTA SESIÓN
+  ff362a0c — feat(pinecone): capa intermedia lib/pinecone/types.ts + vectors.ts (B.0.1-a)
+  d05a5d68 — refactor(rag): reconducir query del chat por la capa Pinecone (B.0.1-b)
+  cdc85299 — refactor(agent): reconducir query del agente por la capa Pinecone (B.0.1-c)
+  0ee96c99 — fix(ingest): extraer texto ANTES de borrar el documento viejo (pérdida de datos)
+  b21c42e7 — fix(upload): avisar al usuario si el análisis previo falla (sin silent fall-through)
+  86c65cf2 — fix(analyze-v2): reintentar la lectura del archivo para evitar falsos errores
+             por lectura prematura de Storage
