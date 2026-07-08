@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import { getAuthenticatedUserHybrid } from '@/lib/supabase-server';
 import { getIndex } from '@/lib/pinecone';
+import { upsertVectors } from '@/lib/pinecone/vectors';
 import { generateEmbeddings } from '@/lib/embeddings';
 import { chunkText, extractText } from '@/lib/chunking';
 import { randomUUID } from 'crypto';
@@ -189,7 +190,6 @@ export async function POST(req: NextRequest) {
     const embeddings = await generateEmbeddings(chunkTexts);
 
     // 8. Subir a Pinecone
-    const pineconeIndex = getIndex();
     const vectors = chunks.map((chunk, i) => ({
       id: `${documentId}-${i}`,
       values: embeddings[i],
@@ -204,12 +204,7 @@ export async function POST(req: NextRequest) {
       },
     }));
 
-    const batchSize = 100;
-    for (let i = 0; i < vectors.length; i += batchSize) {
-      const batch = vectors.slice(i, i + batchSize);
-      await pineconeIndex.namespace(orgId).upsert(batch);
-      console.log(`[INGEST] Upserted batch ${Math.floor(i / batchSize) + 1}/${Math.ceil(vectors.length / batchSize)}`);
-    }
+    await upsertVectors(orgId, vectors);
 
     // 9. Guardar metadatos en Supabase (con content_hash y full_text)
     await supabase.from('documents').insert({
