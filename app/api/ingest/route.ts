@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import { getAuthenticatedUserHybrid } from '@/lib/supabase-server';
-import { getIndex } from '@/lib/pinecone';
-import { upsertVectors } from '@/lib/pinecone/vectors';
+import { upsertVectors, deleteVectorsByIds } from '@/lib/pinecone/vectors';
 import { generateEmbeddings } from '@/lib/embeddings';
 import { chunkText, extractText } from '@/lib/chunking';
 import { randomUUID } from 'crypto';
@@ -163,17 +162,13 @@ export async function POST(req: NextRequest) {
     // 4. Ahora que tenemos texto válido del nuevo, borrar el documento viejo (si procede).
     // Este es el único punto donde se modifica el corpus: solo cuando el nuevo está listo.
     if (manualCollisions.length > 0 && force) {
-      const pineconeIndex = getIndex();
       for (const oldDoc of manualCollisions) {
         console.log(`[INGEST] Replacing manual doc id=${oldDoc.id}`);
         const idsToDelete = Array.from(
           { length: oldDoc.chunk_count },
           (_, i) => `${oldDoc.id}-${i}`
         );
-        for (let i = 0; i < idsToDelete.length; i += 1000) {
-          const batch = idsToDelete.slice(i, i + 1000);
-          await pineconeIndex.namespace(orgId).deleteMany(batch);
-        }
+        await deleteVectorsByIds(orgId, idsToDelete);
         await supabase.from('documents').delete().eq('id', oldDoc.id);
       }
     }
