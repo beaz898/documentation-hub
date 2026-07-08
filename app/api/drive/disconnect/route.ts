@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import { getAuthenticatedUserHybrid } from '@/lib/supabase-server';
-import { getIndex } from '@/lib/pinecone';
+import { deleteVectorsByIds } from '@/lib/pinecone/vectors';
 import { resolveOrg } from '@/lib/org';
 
 export async function POST(req: NextRequest) {
@@ -34,12 +34,9 @@ export async function POST(req: NextRequest) {
       .eq('source', providerName);
 
     if (driveDocs && driveDocs.length > 0) {
-      const index = getIndex();
       for (const doc of driveDocs) {
         const ids = Array.from({ length: doc.chunk_count }, (_, i) => `${doc.id}-${i}`);
-        for (let i = 0; i < ids.length; i += 1000) {
-          await index.namespace(orgId).deleteMany(ids.slice(i, i + 1000));
-        }
+        await deleteVectorsByIds(orgId, ids);
       }
       await supabase.from('documents').delete().eq('org_id', orgId).eq('source', providerName);
     }
