@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
         { status: 423 }
       );
     }
-    
+
     // Leer datos del body
     // force=true significa "el usuario ya confirmó que quiere reemplazar el manual existente"
     const body = await req.json();
@@ -94,23 +94,6 @@ export async function POST(req: NextRequest) {
       }, { status: 409 });
     }
 
-    // Si force === true (el usuario confirmó) o no hay colisión, seguimos
-    if (manualCollisions.length > 0 && force) {
-      const pineconeIndex = getIndex();
-      for (const oldDoc of manualCollisions) {
-        console.log(`[INGEST] Replacing manual doc id=${oldDoc.id}`);
-        const idsToDelete = Array.from(
-          { length: oldDoc.chunk_count },
-          (_, i) => `${oldDoc.id}-${i}`
-        );
-        for (let i = 0; i < idsToDelete.length; i += 1000) {
-          const batch = idsToDelete.slice(i, i + 1000);
-          await pineconeIndex.namespace(orgId).deleteMany(batch);
-        }
-        await supabase.from('documents').delete().eq('id', oldDoc.id);
-      }
-    }
-
     // Límite de 5 documentos en plan free (solo aplica a documentos nuevos, no a reemplazos)
     if (manualCollisions.length === 0) {
       const { data: orgPlan } = await supabase
@@ -147,32 +130,65 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 2. Extraer texto
+    // 2. Extraer texto — envuelto en try/catch propio para detectar archivos ilegibles.
+    // Si falla aquí, el documento anterior (en caso de reemplazo) NO se ha tocado.
     const buffer = Buffer.from(await fileData.arrayBuffer());
-    const text = await extractText(buffer, fileName);
+    let text: string;
+    try {
+      text = await extractText(buffer, fileName);
+    } catch (extractErr) {
+      const detail = extractErr instanceof Error ? extractErr.message : 'formato no legible';
+      console.error('[INGEST] extractText falló:', detail);
+      // El documento anterior (si había colisión) NO se ha tocado: seguimos intactos.
+      return NextResponse.json(
+        { error: 'No se pudo leer el archivo. El documento anterior sigue intacto. Comprueba que el PDF no esté dañado.', errorType: 'unreadable_file' },
+        { status: 400 }
+      );
+    }
 
+    // 3. Validar que el texto sea suficiente. También aquí el viejo sigue intacto.
     if (!text || text.trim().length < 50) {
       await supabase.storage.from('documents').remove([storagePath]);
+      const baseMsg = 'No se pudo extraer texto suficiente del archivo';
+      const suffix = manualCollisions.length > 0 ? ' El documento anterior sigue intacto.' : '';
       return NextResponse.json(
-        { error: 'No se pudo extraer texto suficiente del archivo' },
+        { error: baseMsg + suffix },
         { status: 400 }
       );
     }
 
     console.log(`[INGEST] Extracted ${text.length} chars from ${fileName}`);
 
-    // 3. Generar hash del contenido para detección futura de duplicados exactos
+    // 4. Ahora que tenemos texto válido del nuevo, borrar el documento viejo (si procede).
+    // Este es el único punto donde se modifica el corpus: solo cuando el nuevo está listo.
+    if (manualCollisions.length > 0 && force) {
+      const pineconeIndex = getIndex();
+      for (const oldDoc of manualCollisions) {
+        console.log(`[INGEST] Replacing manual doc id=${oldDoc.id}`);
+        const idsToDelete = Array.from(
+          { length: oldDoc.chunk_count },
+          (_, i) => `${oldDoc.id}-${i}`
+        );
+        for (let i = 0; i < idsToDelete.length; i += 1000) {
+          const batch = idsToDelete.slice(i, i + 1000);
+          await pineconeIndex.namespace(orgId).deleteMany(batch);
+        }
+        await supabase.from('documents').delete().eq('id', oldDoc.id);
+      }
+    }
+
+    // 5. Generar hash del contenido para detección futura de duplicados exactos
     const contentHash = generateContentHash(text);
 
-    // 4. Trocear en chunks
+    // 6. Trocear en chunks
     const chunks = chunkText(text, documentId, fileName, orgId);
     console.log(`[INGEST] Created ${chunks.length} chunks`);
 
-    // 5. Generar embeddings
+    // 7. Generar embeddings
     const chunkTexts = chunks.map(c => c.text);
     const embeddings = await generateEmbeddings(chunkTexts);
 
-    // 6. Subir a Pinecone
+    // 8. Subir a Pinecone
     const pineconeIndex = getIndex();
     const vectors = chunks.map((chunk, i) => ({
       id: `${documentId}-${i}`,
@@ -195,7 +211,7 @@ export async function POST(req: NextRequest) {
       console.log(`[INGEST] Upserted batch ${Math.floor(i / batchSize) + 1}/${Math.ceil(vectors.length / batchSize)}`);
     }
 
-    // 7. Guardar metadatos en Supabase (con content_hash y full_text)
+    // 9. Guardar metadatos en Supabase (con content_hash y full_text)
     await supabase.from('documents').insert({
       id: documentId,
       name: fileName,
@@ -209,7 +225,7 @@ export async function POST(req: NextRequest) {
       full_text: text,
     });
 
-    // 8. Limpiar archivo de storage
+    // 10. Limpiar archivo de storage
     await supabase.storage.from('documents').remove([storagePath]);
 
     const wasReplaced = manualCollisions.length > 0 && force === true;
