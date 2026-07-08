@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import { getAuthenticatedUserHybrid } from '@/lib/supabase-server';
 import { getIndex } from '@/lib/pinecone';
+import { upsertVectors } from '@/lib/pinecone/vectors';
 import { generateEmbeddings } from '@/lib/embeddings';
 import { chunkText } from '@/lib/chunking';
 import { randomUUID } from 'crypto';
@@ -112,9 +113,7 @@ export async function POST(req: NextRequest) {
       },
     }));
 
-    for (let i = 0; i < vectors.length; i += 100) {
-      await pineconeIndex.namespace(orgId).upsert(vectors.slice(i, i + 100));
-    }
+    await upsertVectors(orgId, vectors);
 
     // Save to Supabase
     await supabase.from('documents').insert({
