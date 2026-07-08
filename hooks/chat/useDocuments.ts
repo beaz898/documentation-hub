@@ -142,15 +142,26 @@ export function useDocuments(
           loadCredits();
         }
       } else {
+        // analyze-v2 devolvió error (4xx/5xx): avisamos y seguimos indexando sin análisis.
         clearInterval(progressInterval);
         setAnalysisProgress(0);
         setAnalysisPhase('');
+        addMessage({
+          id: crypto.randomUUID(),
+          role: 'error',
+          content: 'No se pudo analizar el documento (duplicados/contradicciones). Se añadirá al corpus sin análisis previo.',
+        });
       }
     } catch (e) {
       clearInterval(progressInterval);
       setAnalysisProgress(0);
       setAnalysisPhase('');
       console.error('Analysis failed:', e);
+      addMessage({
+        id: crypto.randomUUID(),
+        role: 'error',
+        content: 'No se pudo analizar el documento (error de conexión). Se añadirá al corpus sin análisis previo.',
+      });
     }
 
     setAnalysisProgress(0);
