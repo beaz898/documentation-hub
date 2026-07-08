@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import { getAuthenticatedUserHybrid } from '@/lib/supabase-server';
-import { getIndex } from '@/lib/pinecone';
+import { fetchVectors, queryVectors } from '@/lib/pinecone/vectors';
 import { generateEmbeddings } from '@/lib/embeddings';
 import { callLLMWithUsage } from '@/lib/analysis/llm-client';
 import { logUsage } from '@/lib/usage-logger';
@@ -102,7 +102,6 @@ async function loadFullDocumentText(
   maxChars: number = 15000
 ): Promise<string | null> {
   try {
-    const index = getIndex();
     const chunkCount = doc.chunk_count;
     if (!chunkCount || chunkCount === 0) return null;
 
@@ -114,10 +113,9 @@ async function loadFullDocumentText(
 
     const texts: Array<{ idx: number; text: string }> = [];
     for (const batch of batches) {
-      const res = await index.namespace(orgId).fetch(batch);
-      const records = res.records || {};
+      const records = await fetchVectors(orgId, batch);
       for (const [id, record] of Object.entries(records)) {
-        const meta = (record as { metadata?: Record<string, unknown> }).metadata;
+        const meta = record.metadata;
         if (meta && typeof meta.text === 'string' && typeof meta.chunkIndex === 'number') {
           texts.push({ idx: meta.chunkIndex, text: meta.text });
         } else if (meta && typeof meta.text === 'string') {
@@ -231,14 +229,9 @@ export async function POST(req: NextRequest) {
     try {
       const queryText = `${userMessage}\n\n${currentText.slice(0, 500)}`;
       const [queryEmbedding] = await generateEmbeddings([queryText]);
-      const index = getIndex();
-      const queryResponse = await index.namespace(orgId).query({
-        vector: queryEmbedding,
-        topK: 8,
-        includeMetadata: true,
-      });
+      const matches0 = await queryVectors(orgId, { vector: queryEmbedding, topK: 8, includeMetadata: true });
 
-      const matches = (queryResponse.matches || [])
+      const matches = matches0
         .filter(m => m.metadata && m.score && m.score > 0.28)
         .filter(m => !mentionedDoc || String(m.metadata!.documentId) !== mentionedDoc.id)
         .slice(0, 6);
