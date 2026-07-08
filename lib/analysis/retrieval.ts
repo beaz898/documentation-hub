@@ -1,4 +1,4 @@
-import { getIndex } from '@/lib/pinecone';
+import { queryVectors } from '@/lib/pinecone/vectors';
 import { generateEmbeddings } from '@/lib/embeddings';
 import type { CandidateDocument, DocumentFragment, PipelineOptions } from './types';
 
@@ -33,9 +33,6 @@ export async function retrieveCandidates(args: {
   const isExhaustive = options?.exhaustive === true;
 
   const embeddings = await generateEmbeddings(sampleTexts);
-  const index = getIndex();
-  const ns = index.namespace(orgId);
-
   const scoreThreshold = isExhaustive ? SCORE_THRESHOLD_EXHAUSTIVE : SCORE_THRESHOLD_QUICK;
 
   // Recoger todos los matches de Pinecone
@@ -46,17 +43,17 @@ export async function retrieveCandidates(args: {
     for (let batchStart = 0; batchStart < embeddings.length; batchStart += QUERY_BATCH_SIZE) {
       const batch = embeddings.slice(batchStart, batchStart + QUERY_BATCH_SIZE);
       const batchResults = await Promise.all(
-        batch.map(emb => ns.query({ vector: emb, topK: 25, includeMetadata: true }))
+        batch.map(emb => queryVectors(orgId, { vector: emb, topK: 25, includeMetadata: true }))
       );
-      for (const res of batchResults) {
-        collectMatches(res.matches, allMatches, scoreThreshold, excludeDocumentId);
+      for (const matches of batchResults) {
+        collectMatches(matches as Array<{ metadata?: Record<string, unknown>; score?: number }>, allMatches, scoreThreshold, excludeDocumentId);
       }
     }
   } else {
     // Secuencial — menos presión sobre Pinecone free tier
     for (const emb of embeddings) {
-      const res = await ns.query({ vector: emb, topK: 25, includeMetadata: true });
-      collectMatches(res.matches, allMatches, scoreThreshold, excludeDocumentId);
+      const matches = await queryVectors(orgId, { vector: emb, topK: 25, includeMetadata: true });
+      collectMatches(matches as Array<{ metadata?: Record<string, unknown>; score?: number }>, allMatches, scoreThreshold, excludeDocumentId);
     }
   }
 

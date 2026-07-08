@@ -1,4 +1,4 @@
-import { getIndex } from '@/lib/pinecone';
+import { queryVectors } from '@/lib/pinecone/vectors';
 import { generateEmbeddings } from '@/lib/embeddings';
 import { callLLMJson } from './llm-client';
 import type { AtomicClaim } from './extract-claims';
@@ -213,17 +213,14 @@ async function findCorpusFragmentsByEmbedding(
   claimText: string,
 ): Promise<CorpusFragment[]> {
   try {
-    const index = getIndex();
-    const ns = index.namespace(orgId);
-
-    const res = await ns.query({
+    const matches = await queryVectors(orgId, {
       vector: embedding,
       topK: MAX_CORPUS_FRAGMENTS * 2,
       includeMetadata: true,
     });
 
     const fragments: CorpusFragment[] = [];
-    for (const m of res.matches || []) {
+    for (const m of matches) {
       if (!m.metadata || typeof m.score !== 'number') continue;
       if (m.score < CORPUS_SCORE_THRESHOLD) continue;
       const meta = m.metadata as { text?: string; documentName?: string };
