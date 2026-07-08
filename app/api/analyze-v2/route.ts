@@ -113,10 +113,28 @@ export async function POST(req: NextRequest) {
     if (directText && typeof directText === 'string') {
       text = directText;
     } else if (storagePath) {
-      const { data: fileData, error: dlErr } = await supabase.storage.from('documents').download(storagePath);
-      if (dlErr || !fileData) return NextResponse.json({ error: 'Error descargando archivo' }, { status: 500 });
-      const buffer = Buffer.from(await fileData.arrayBuffer());
-      text = await extractText(buffer, fileName);
+      // El archivo puede no estar completamente escrito en Storage justo tras el upload;
+      // reintentamos con espera creciente para evitar falsos "bad XRef" por lectura prematura.
+      let extracted: string | null = null;
+      let lastErr: unknown = null;
+      for (let attempt = 0; attempt < 3; attempt++) {
+        if (attempt > 0) await new Promise(r => setTimeout(r, attempt * 400));
+        try {
+          const { data: fileData, error: dlErr } = await supabase.storage.from('documents').download(storagePath);
+          if (dlErr || !fileData) { lastErr = dlErr; continue; }
+          const buffer = Buffer.from(await fileData.arrayBuffer());
+          extracted = await extractText(buffer, fileName);
+          break;
+        } catch (e) {
+          lastErr = e;
+        }
+      }
+      if (extracted === null) {
+        const detail = lastErr instanceof Error ? lastErr.message : 'desconocido';
+        console.error('[analyze-v2] extracción falló tras reintentos:', detail);
+        return NextResponse.json({ error: 'No se pudo leer el archivo para analizarlo.' }, { status: 400 });
+      }
+      text = extracted;
     } else {
       return NextResponse.json({ error: 'storagePath o text requeridos' }, { status: 400 });
     }
