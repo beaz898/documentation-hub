@@ -1,5 +1,5 @@
 import { generateQueryEmbedding } from '@/lib/embeddings';
-import { getIndex } from '@/lib/pinecone';
+import { queryVectors } from '@/lib/pinecone/vectors';
 import type { ToolBundle, ToolContext, ToolExecutionResult, ToolExecutorTyped } from './types';
 
 const TOP_K = 6;
@@ -28,11 +28,7 @@ const executeTyped: ToolExecutorTyped<SearchDocsInput> = async (
 
   try {
     const vector = await generateQueryEmbedding(input.query.trim());
-    const ns = getIndex().namespace(context.orgId);
-
-    const result = await ns.query({ vector, topK: TOP_K, includeMetadata: true });
-
-    const matches = result.matches ?? [];
+    const matches = await queryVectors(context.orgId, { vector, topK: TOP_K, includeMetadata: true });
     const results: SearchResult[] = matches
       .filter(m => (m.score ?? 0) >= MIN_SCORE)
       .map(m => {
