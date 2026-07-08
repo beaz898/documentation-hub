@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import { getAuthenticatedUserHybrid } from '@/lib/supabase-server';
-import { getIndex } from '@/lib/pinecone';
-import { upsertVectors } from '@/lib/pinecone/vectors';
+import { upsertVectors, deleteVectorsByIds } from '@/lib/pinecone/vectors';
 import { generateEmbeddings } from '@/lib/embeddings';
 import { chunkText } from '@/lib/chunking';
 import { randomUUID } from 'crypto';
@@ -50,7 +49,6 @@ export async function POST(req: NextRequest) {
     }
 
     const documentId = randomUUID();
-    const pineconeIndex = getIndex();
 
     // If the user chose "replace", delete the old indexed document first
     if (replaceExistingId) {
@@ -67,9 +65,7 @@ export async function POST(req: NextRequest) {
           { length: oldDoc.chunk_count },
           (_, i) => `${oldDoc.id}-${i}`
         );
-        for (let i = 0; i < idsToDelete.length; i += 1000) {
-          await pineconeIndex.namespace(orgId).deleteMany(idsToDelete.slice(i, i + 1000));
-        }
+        await deleteVectorsByIds(orgId, idsToDelete);
         await supabase.from('documents').delete().eq('id', oldDoc.id);
       }
     } else {
