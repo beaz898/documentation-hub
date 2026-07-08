@@ -15,7 +15,7 @@
  * - Mejor calidad de respuesta cuando la info cruza secciones
  */
 
-import { getIndex } from './pinecone';
+import { queryVectors } from './pinecone/vectors';
 import { generateQueryEmbedding } from './embeddings';
 import { callLLMWithUsage } from './analysis/llm-client';
 import type { SupabaseClient } from '@supabase/supabase-js';
@@ -161,14 +161,11 @@ export async function queryRAG(
   const queryVector = await generateQueryEmbedding(searchQuery);
 
   // 2. Buscar en Pinecone los chunks más relevantes
-  const index = getIndex();
-  const queryResponse = await index.namespace(orgId).query({
+  const matches = await queryVectors(orgId, {
     vector: queryVector,
     topK: TOP_K,
     includeMetadata: true,
   });
-
-  const matches = queryResponse.matches || [];
 
   // Si no hay resultados relevantes, no llamamos al LLM
   if (matches.length === 0 || (matches[0].score && matches[0].score < MIN_SCORE)) {
@@ -221,7 +218,7 @@ export async function queryRAG(
   const fullTexts = await fetchFullTexts(supabase, docIds);
 
   // 5. Construir contexto con documentos completos
-  const context = buildContext(topDocs, fullTexts, matches);
+  const context = buildContext(topDocs, fullTexts, matches as Array<{ metadata?: Record<string, unknown>; score?: number }>);
 
   // 6. Construir mensajes para Claude
   const recentHistory = conversationHistory.slice(-MAX_HISTORY_MESSAGES);
