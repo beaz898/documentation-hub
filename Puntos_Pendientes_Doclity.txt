@@ -3,7 +3,7 @@ PENDIENTES — Doclity (Agente IA)
 Documento vivo. Se actualiza al completar tareas (marcar [✓]) y se
 sustituye por la versión nueva. Más ligero que la Bitácora: aquí va
 lo que falta y la visión que lo guía, no el detalle de cada sesión.
-Última actualización: 09/07/2026 (v30)
+Última actualización: 09/07/2026 (v31)
 
 
 ════════════════════════════════════════════════════════════════
@@ -844,6 +844,9 @@ NOTAS DE ORDEN (propuesta, a confirmar)
   B.43 (admin/cleanup-orphans protegido con sesión de admin) HECHO — endpoint y página corregidos; se conserva para el backfill B.4.
   B.44 (upload lock colgado tras subida exitosa) BUG diagnosticado; pendiente de fix en chat/page.tsx + ingest.
   B.45 (sync de Drive no escala) ESCALABILIDAD importante; encaja con Fase D (background queue). Prioridad: antes de clientes con Drives grandes.
+  Fase B: B.1 (migración SQL) y B.2 (vectores nuevos etiquetados) HECHOS. B.3 verificado sin código nuevo.
+  B.4 (backfill) HECHO y VERIFICADO en producción (46/46 vectores etiquetados, 0 fallos).
+  Quedan: B.5 (badges + bandeja de revisión) y B.6 (filtro del chat, aislado y reversible), en ese orden obligatorio.
 
 Forma de trabajo: diagnóstico con datos reales antes de arreglar; un
 cambio lógico cada vez; build verde entre medias; SQL en Supabase antes
