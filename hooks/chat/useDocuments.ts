@@ -33,13 +33,19 @@ export function useDocuments(
     finally { setDocsLoading(false); }
   }, [session]);
 
-  async function indexDocument(storagePath: string, fileName: string, fileSize: number, force = false) {
+  async function indexDocument(
+    storagePath: string,
+    fileName: string,
+    fileSize: number,
+    force = false,
+    analysisStatus: 'analizado' | 'pendiente' = 'pendiente',
+  ) {
     if (!session) return;
     const res = await fetch('/api/ingest', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
-      body: JSON.stringify({ storagePath, fileName, fileSize, force }),
+      body: JSON.stringify({ storagePath, fileName, fileSize, force, analysisStatus }),
     });
 
     if (res.status === 409) {
@@ -51,7 +57,7 @@ export function useDocuments(
           `(Los documentos de Google Drive con el mismo nombre NO se tocarán.)`
         );
         if (confirmed) {
-          return indexDocument(storagePath, fileName, fileSize, true);
+          return indexDocument(storagePath, fileName, fileSize, true, analysisStatus);
         } else {
           await supabase.storage.from('documents').remove([storagePath]);
           addMessage({ id: crypto.randomUUID(), role: 'assistant', content: `**${fileName}** descartado. No se ha añadido al corpus.` });
@@ -95,6 +101,7 @@ export function useDocuments(
     setAnalysisProgress(15);
     setAnalysisPhase('Analizando documento...');
 
+    let analysisCompleted = false;
     let currentProgress = 15;
     const progressInterval = setInterval(() => {
       currentProgress += 1;
@@ -115,6 +122,7 @@ export function useDocuments(
       clearInterval(progressInterval);
 
       if (analyzeRes.ok) {
+        analysisCompleted = true;
         const analyzeData = await analyzeRes.json();
         setAnalysisProgress(95);
         setAnalysisPhase('Análisis completado');
@@ -166,14 +174,14 @@ export function useDocuments(
 
     setAnalysisProgress(0);
     setAnalysisPhase('');
-    await indexDocument(storagePath, file.name, file.size);
+    await indexDocument(storagePath, file.name, file.size, false, analysisCompleted ? 'analizado' : 'pendiente');
   }
 
   async function handleAnalysisConfirm() {
     if (!pendingAnalysis) return;
     const { storagePath, fileName, fileSize } = pendingAnalysis;
     setPendingAnalysis(null);
-    await indexDocument(storagePath, fileName, fileSize);
+    await indexDocument(storagePath, fileName, fileSize, false, 'analizado');
   }
 
   async function handleAnalysisCancel() {
