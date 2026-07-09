@@ -46,6 +46,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Parámetros inválidos' }, { status: 400 });
     }
 
+    // Estado de análisis con el que nace el documento. El frontend indica si el
+    // análisis previo se completó ('analizado') o falló ('pendiente'). Validación
+    // estricta: cualquier otro valor cae al conservador 'pendiente' (irá a la bandeja).
+    const analysisStatus: string =
+      body.analysisStatus === 'analizado' ? 'analizado' : 'pendiente';
+
     // Validar tipo
     const allowedExtensions = ['txt', 'md', 'pdf', 'docx', 'csv', 'json', 'html', 'xlsx', 'xlsm'];
     const ext = fileName.split('.').pop()?.toLowerCase();
@@ -196,6 +202,7 @@ export async function POST(req: NextRequest) {
         totalChunks: chunk.metadata.totalChunks,
         orgId: chunk.metadata.orgId,
         source: 'manual',
+        analysisStatus,
       },
     }));
 
@@ -211,6 +218,7 @@ export async function POST(req: NextRequest) {
       user_id: user.id,
       status: 'indexed',
       source: 'manual',
+      analysis_status: analysisStatus,
       content_hash: contentHash,
       full_text: text,
     });

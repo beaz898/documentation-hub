@@ -8,7 +8,11 @@ export interface VectorMetadata {
   orgId: string;
   source?: string;          // 'manual' | 'google_drive' | ...
   folderPath?: string;      // solo en documentos de Drive
-  // analysisStatus?: string;  // se añadirá en B.2 (estado del documento)
+  /** Estado de análisis del documento al que pertenece este vector.
+   *  Proyección de documents.analysis_status (Supabase es la fuente de verdad).
+   *  Valores: 'pendiente' | 'en_analisis' | 'analizado' | 'desactualizado'.
+   *  Opcional: los vectores anteriores a B.2 no lo tienen (backfill en B.4). */
+  analysisStatus?: string;
 }
 
 /** Un vector listo para upsert. */
