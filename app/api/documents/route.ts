@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import { getAuthenticatedUserHybrid } from '@/lib/supabase-server';
-import { getIndex } from '@/lib/pinecone';
+import { deleteVectorsByFilter, deleteVectorsByIds } from '@/lib/pinecone/vectors';
 import { resolveOrg } from '@/lib/org';
 
 // GET: Listar documentos del usuario
@@ -71,14 +71,11 @@ export async function DELETE(req: NextRequest) {
       return NextResponse.json({ error: 'Documento no encontrado' }, { status: 404 });
     }
 
-    const index = getIndex();
-    const ns = index.namespace(orgId);
-
     // Estrategia 1: borrado por filtro de metadata (captura TODO, incluyendo vectores
     // huérfanos si chunk_count quedó desincronizado en algún punto del pasado)
     let filterDeleteWorked = false;
     try {
-      await ns.deleteMany({ documentId: { $eq: documentId } });
+      await deleteVectorsByFilter(orgId, { documentId: { $eq: documentId } });
       filterDeleteWorked = true;
       console.log(`[DELETE] Metadata filter delete OK for documentId=${documentId}`);
     } catch (err) {
@@ -92,13 +89,10 @@ export async function DELETE(req: NextRequest) {
         { length: Math.max(doc.chunk_count, 0) },
         (_, i) => `${documentId}-${i}`
       );
-      for (let i = 0; i < idsToDelete.length; i += 1000) {
-        const batch = idsToDelete.slice(i, i + 1000);
-        try {
-          await ns.deleteMany(batch);
-        } catch (err) {
-          console.warn(`[DELETE] ID batch delete failed:`, err);
-        }
+      try {
+        await deleteVectorsByIds(orgId, idsToDelete);
+      } catch (err) {
+        console.warn(`[DELETE] ID batch delete failed:`, err);
       }
     }
 
