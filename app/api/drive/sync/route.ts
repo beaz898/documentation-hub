@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import { getAuthenticatedUserHybrid } from '@/lib/supabase-server';
-import { getIndex } from '@/lib/pinecone';
-import { upsertVectors } from '@/lib/pinecone/vectors';
+import { upsertVectors, deleteVectorsByIds } from '@/lib/pinecone/vectors';
 import { generateEmbeddings } from '@/lib/embeddings';
 import { chunkText } from '@/lib/chunking';
 import { randomUUID } from 'crypto';
@@ -95,7 +94,6 @@ export async function POST(req: NextRequest) {
     let newCount = 0;
     let updatedCount = 0;
     let skippedCount = 0;
-    const pineconeIndex = getIndex();
     const seenDriveIds = new Set<string>();
 
     for (const file of allFiles) {
@@ -125,9 +123,7 @@ export async function POST(req: NextRequest) {
           { length: existing.chunk_count },
           (_, i) => `${existing.id}-${i}`
         );
-        for (let i = 0; i < idsToDelete.length; i += 1000) {
-          await pineconeIndex.namespace(orgId).deleteMany(idsToDelete.slice(i, i + 1000));
-        }
+        await deleteVectorsByIds(orgId, idsToDelete);
         await supabase.from('documents').delete().eq('id', existing.id);
         updatedCount++;
       } else {
@@ -186,9 +182,7 @@ export async function POST(req: NextRequest) {
           { length: doc.chunk_count },
           (_, i) => `${doc.id}-${i}`
         );
-        for (let i = 0; i < idsToDelete.length; i += 1000) {
-          await pineconeIndex.namespace(orgId).deleteMany(idsToDelete.slice(i, i + 1000));
-        }
+        await deleteVectorsByIds(orgId, idsToDelete);
         await supabase.from('documents').delete().eq('id', doc.id);
         deletedCount++;
         console.log(`[DRIVE SYNC] Deleted (no longer in Drive): ${doc.name}`);
