@@ -3,7 +3,7 @@ PENDIENTES — Doclity (Agente IA)
 Documento vivo. Se actualiza al completar tareas (marcar [✓]) y se
 sustituye por la versión nueva. Más ligero que la Bitácora: aquí va
 lo que falta y la visión que lo guía, no el detalle de cada sesión.
-Última actualización: 09/07/2026 (v29)
+Última actualización: 09/07/2026 (v30)
 
 
 ════════════════════════════════════════════════════════════════
@@ -773,6 +773,35 @@ Leyenda: [ ] pendiente · [~] en curso · [✓] hecho
       La herramienta SE CONSERVA: hará falta para el backfill de metadata de vectores (B.4 de la
       Fase B).
 
+[ ] B.44 — (BUG) El upload lock no se libera tras una subida exitosa
+      DESCUBIERTO (09/07/2026). El lock vive en organizations.upload_locked_by /
+      upload_locked_at. Lo activa el frontend antes de subir (chat/page.tsx llama a activateLock),
+      pero tras una subida CORRECTA queda activo: se comprobó que una subida exitosa a las 12:03
+      dejó el lock puesto durante horas. Solo se libera si el usuario pulsa el candado o si pasan
+      60 minutos y el backend lo expira en el siguiente checkUploadLock.
+      Efecto: la organización queda con las subidas bloqueadas ("está analizando... bloqueada
+      temporalmente") sin motivo, y otros usuarios no pueden subir.
+      Fix: que ingest (o el frontend, en su finally) desactive el lock al terminar, tanto en
+      éxito como en error. Revisar dónde se activa (chat/page.tsx) y si existe un endpoint de
+      desactivación que no se esté llamando.
+
+[ ] B.45 — (ESCALABILIDAD, IMPORTANTE) El sync de Drive no escala: procesa todos los archivos
+      en una sola petición HTTP
+      DESCUBIERTO (09/07/2026). app/api/drive/sync/route.ts recorre TODOS los archivos de la
+      carpeta y, por cada uno, descarga, extrae texto, genera embeddings y hace upsert a
+      Pinecone — todo dentro de una única llamada con maxDuration = 300s. Con una cuenta de
+      OneDrive personal (bastantes archivos) el sync se colgó y acabó en "error de conexión":
+      la función de Vercel se corta a los 5 minutos y el frontend espera una respuesta que nunca
+      llega. Peor: se corta A MITAD, dejando unos documentos indexados y otros no, sin punto de
+      reanudación. La siguiente sincronización vuelve a empezar y puede no terminar nunca.
+      Con cuentas pequeñas (la de Doclity) funciona; con un Drive corporativo real, romperá.
+      Es la misma enfermedad que la deuda técnica nº3 (análisis síncrono): trabajo pesado dentro
+      de una petición HTTP con límite de tiempo.
+      Fix: llevar el sync a la cola de background (encaja con la Fase D). Alternativa intermedia:
+      procesar por lotes con reanudación (guardar el último archivo procesado y continuar en la
+      siguiente llamada).
+      PRIORIDAD: antes de tener clientes con Drives grandes.
+
 
 ════════════════════════════════════════════════════════════════
 NOTAS DE ORDEN (propuesta, a confirmar)
@@ -813,6 +842,8 @@ NOTAS DE ORDEN (propuesta, a confirmar)
       protegido con ADMIN_SECRET. Los endpoints de admin restantes quedan: cleanup (página) y
       cleanup-orphans (protegidos con sesión de admin) y purge-expired (ADMIN_SECRET).
   B.43 (admin/cleanup-orphans protegido con sesión de admin) HECHO — endpoint y página corregidos; se conserva para el backfill B.4.
+  B.44 (upload lock colgado tras subida exitosa) BUG diagnosticado; pendiente de fix en chat/page.tsx + ingest.
+  B.45 (sync de Drive no escala) ESCALABILIDAD importante; encaja con Fase D (background queue). Prioridad: antes de clientes con Drives grandes.
 
 Forma de trabajo: diagnóstico con datos reales antes de arreglar; un
 cambio lógico cada vez; build verde entre medias; SQL en Supabase antes
