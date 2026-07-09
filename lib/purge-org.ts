@@ -1,5 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { getIndex } from './pinecone';
+import { deleteAllVectors } from './pinecone/vectors';
 
 /**
  * Resultado del borrado completo de una organización.
@@ -79,7 +79,7 @@ export async function purgeOrganization(
 
   // ── 1. Pinecone: borrar namespace completo ─────────────────────────────
   try {
-    await getIndex().namespace(orgId).deleteAll();
+    await deleteAllVectors(orgId);
     result.pineconeNamespaceDeleted = true;
     log('Pinecone: namespace borrado');
   } catch (e) { fail('Pinecone', e); }
