@@ -2294,3 +2294,143 @@ COMMITS DE ESTA SESIÓN
   b21c42e7 — fix(upload): avisar al usuario si el análisis previo falla (sin silent fall-through)
   86c65cf2 — fix(analyze-v2): reintentar la lectura del archivo para evitar falsos errores
              por lectura prematura de Storage
+
+
+────────────────────────────────────────────────────────────────
+SESIÓN 28 — 09/07/2026
+Título: B.0 completo — capa intermedia de Pinecone (19/19 sitios migrados)
+────────────────────────────────────────────────────────────────
+
+OBJETIVO
+Completar el refactor B.0: reconducir los 16 sitios de acceso directo al SDK
+de Pinecone que quedaban pendientes tras la Sesión 27. Al terminar, ningún
+archivo fuera de lib/pinecone/vectors.ts toca el SDK de Pinecone directamente.
+También se documentaron tres pendientes descubiertos durante la sesión (uno de
+UX y dos de seguridad).
+
+CAMBIOS IMPLEMENTADOS
+
+1. PIPELINE DE ANÁLISIS — queryVectors (B.0.1-d / B.0.1-e)
+
+   lib/analysis/verify-claims.ts
+   - Sustituido el bloque de query directo al SDK por queryVectors(orgId, {...}).
+   - No requiere cast: los metadatos se consumen en línea.
+
+   lib/analysis/retrieval.ts
+   - Dos sitios de query (ruta exhaustiva con Promise.all y ruta rápida
+     secuencial), ambos sustituidos por queryVectors(orgId, {...}).
+   - Cast necesario en cada llamada a collectMatches:
+     VectorMatch[] → Array<{ metadata?: Record<string, unknown>; score?: number }>
+     porque collectMatches usa un tipo genérico sin index signature.
+
+2. IMPROVE — fetchVectors + queryVectors (B.0.1-f)
+
+   app/api/improve/route.ts
+   - fetchVectors sustituye a index.namespace(orgId).fetch(batch) + .records || {}.
+     La capa devuelve el mapa directamente; se elimina el acceso a .records.
+   - queryVectors sustituye al bloque de query; resultado usado directamente
+     (renombrado matches0, sin .matches).
+
+3. UPSERTS Y DELETEMANY — index-text, drive/sync, ingest, drive/disconnect
+   (B.0.1-g / B.0.1-h / B.0.1-i / B.0.2-a / B.0.2-b / B.0.2-c / B.0.2-d)
+
+   app/api/index-text/route.ts
+   - upsertVectors sustituye el for-loop de upsert en lotes.
+   - deleteVectorsByIds sustituye el for-loop de delete.
+   - getIndex() y su import eliminados por completo.
+
+   app/api/drive/sync/route.ts
+   - upsertVectors sustituye el for-loop de upsert.
+   - deleteVectorsByIds ×2 sustituyen los dos for-loops de delete (revisión
+     inicial y sincronización incremental).
+   - getIndex() y su variable local eliminados.
+
+   app/api/ingest/route.ts
+   - upsertVectors sustituye el for-loop de upsert (paso 8).
+   - deleteVectorsByIds sustituye el for-loop de delete del viejo documento
+     (paso 4). Orden de operaciones conservado: extraer texto → validar →
+     borrar viejo → upsert nuevo → insertar Supabase.
+   - Los dos getIndex() locales (uno por operación) eliminados.
+
+   app/api/drive/disconnect/route.ts
+   - Único sitio Pinecone: deleteVectorsByIds sustituye el loop de delete.
+   - getIndex() e import completamente eliminados.
+
+4. BORRADOS DE DOCUMENTS + FETCH DE COVERAGE + DELETEALL DE PURGE-ORG
+   (B.0.2-e / B.0.3-a / B.0.3-b)
+
+   app/api/documents/route.ts
+   - Estrategia 1 (filtro): deleteVectorsByFilter(orgId, { documentId: { $eq } }).
+   - Estrategia 2 (IDs, condicional si el filtro falló o chunk_count > 0):
+     deleteVectorsByIds(orgId, idsToDelete).
+   - Ambos try/catch, flag filterDeleteWorked y condicional conservados.
+
+   app/api/documents/coverage/[id]/route.ts
+   - fetchVectors(org.orgId, vectorIds) sustituye el bloque SDK de 3 líneas.
+     orgId referenciado como org.orgId (no variable local).
+   - Mapeo de metadatos records[`${documentId}-${i}`]?.metadata?.text conservado.
+
+   lib/purge-org.ts
+   - deleteAllVectors(orgId) sustituye la llamada directa al SDK.
+   - Import relativo (./pinecone/vectors, no @/).
+
+5. CLEANUP-ORPHANS — queryVectors + deleteVectorsByIds (B.0.3-c — ÚLTIMO)
+
+   app/api/admin/cleanup-orphans/route.ts
+   - queryVectors(org, { vector: dummy, topK: 10000, includeMetadata: true })
+     sustituye el bloque de query directo por namespace.
+   - deleteVectorsByIds(org, ids) sustituye el delete por namespace, dentro del
+     try/catch por org; contador deleted += ids.length.
+   - getIndex() y su import eliminados.
+   - dryRun check conservado: retorno anticipado antes del bloque de borrado.
+
+   Con este commit, B.0 queda completamente cerrado: los 19/19 sitios de acceso
+   al SDK de Pinecone pasan por lib/pinecone/vectors.ts.
+
+ARCHIVOS MODIFICADOS
+  lib/analysis/verify-claims.ts         — queryVectors
+  lib/analysis/retrieval.ts             — queryVectors ×2 + cast collectMatches
+  app/api/improve/route.ts              — fetchVectors + queryVectors
+  app/api/index-text/route.ts           — upsertVectors + deleteVectorsByIds
+  app/api/drive/sync/route.ts           — upsertVectors + deleteVectorsByIds ×2
+  app/api/ingest/route.ts               — upsertVectors + deleteVectorsByIds
+  app/api/drive/disconnect/route.ts     — deleteVectorsByIds
+  app/api/documents/route.ts            — deleteVectorsByFilter + deleteVectorsByIds
+  app/api/documents/coverage/[id]/route.ts — fetchVectors
+  lib/purge-org.ts                      — deleteAllVectors
+  app/api/admin/cleanup-orphans/route.ts — queryVectors + deleteVectorsByIds
+
+COMMITS DE ESTA SESIÓN
+  699e205f — refactor(pinecone): el pipeline de análisis (retrieval y verify-claims) consulta vectores a través de la capa
+  8b3b3ac1 — refactor(pinecone): improve recupera y consulta vectores a través de la capa
+  6c97b2b3 — refactor(pinecone): el upsert de index-text pasa por la capa
+  7e8e9252 — refactor(pinecone): el upsert de drive/sync pasa por la capa
+  5c25512c — refactor(pinecone): el upsert de ingest pasa por la capa
+  2d69538c — refactor(pinecone): drive/disconnect borra vectores a través de la capa
+  c4ae92f6 — refactor(pinecone): el deleteMany de index-text pasa por la capa
+  77192ed4 — refactor(pinecone): el deleteMany de ingest pasa por la capa
+  ec1dbb02 — refactor(pinecone): los deleteMany de drive/sync pasan por la capa
+  ee17ca8f — docs: pendiente — avisar de limpiar chat / abrir conversación nueva tras actualizar un documento
+  f40fea06 — refactor(pinecone): los borrados de documents pasan por la capa (filtro + IDs)
+  1352c38b — refactor(pinecone): el fetch de coverage pasa por la capa
+  82cf3d98 — refactor(pinecone): el deleteAll de purge-org pasa por la capa
+  d0d39262 — docs: pendientes de seguridad — endpoints de admin sin autenticación
+  c7b4f5e1 — refactor(pinecone): cleanup-orphans consulta y borra a través de la capa (B.0 completo)
+
+PENDIENTE DESTAPADO EN ESTA SESIÓN
+
+   B.41 — UX: avisar al usuario de limpiar el chat tras reemplazar un documento
+   Tras una subida con force=true, la respuesta de ingest ya devuelve replaced=true.
+   Hook: hooks/chat/useDocuments.ts recibe data.replaced. Añadir un addMessage con
+   role:'warning' recomendando abrir una conversación nueva para que el historial
+   no contradiga el contenido actualizado.
+
+   B.42 — SEGURIDAD ALTA: /api/admin/purge-org sin autenticación
+   El endpoint llama a purgeOrganization() (borra Pinecone + Supabase + Auth de una
+   org entera) sin ningún check de usuario ni secreto. Recomendación: eliminar el
+   archivo. La purga voluntaria y la purga del worker cubren todos los casos legítimos.
+
+   B.43 — SEGURIDAD MEDIA: /api/admin/cleanup-orphans sin autenticación
+   El endpoint puede listar y borrar vectores de todas las cuentas sin autenticación.
+   Proteger con secreto de admin o eliminar cuando ya no sea necesario como herramienta
+   de mantenimiento puntual.
