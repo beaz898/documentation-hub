@@ -2434,3 +2434,92 @@ PENDIENTE DESTAPADO EN ESTA SESIÓN
    El endpoint puede listar y borrar vectores de todas las cuentas sin autenticación.
    Proteger con secreto de admin o eliminar cuando ya no sea necesario como herramienta
    de mantenimiento puntual.
+
+
+────────────────────────────────────────────────────────────────
+SESIÓN 29 — 09/07/2026
+Título: Endpoints de administración asegurados (B.42 y B.43)
+────────────────────────────────────────────────────────────────
+
+OBJETIVO
+Cerrar los dos pendientes de seguridad destapados durante el refactor B.0.
+Verificar cada uno leyendo el código real antes de actuar, en lugar de fiarse
+de las anotaciones previas.
+
+CAMBIOS IMPLEMENTADOS
+
+1. B.42 — Endpoint /api/admin/purge-org ELIMINADO
+
+   - La anotación previa decía "sin autenticación". Al leer el archivo se
+     comprobó que ERA INCORRECTO: sí estaba protegido con ADMIN_SECRET
+     (header Authorization: Bearer <secreto>, 401 si no coincide) y además
+     comprobaba orgData.purged_at para no purgar dos veces.
+   - Motivo real de la eliminación: código muerto. Ninguna referencia en el
+     repo (ni frontend, ni hooks, ni worker, ni scripts). Herramienta manual
+     que nunca se usó.
+   - Los consumidores legítimos de purgeOrganization() quedan intactos:
+     app/api/org/purge (auth + resolveOrg) y worker/src/index.ts (purga tras
+     90 días de gracia). También se conserva app/api/admin/purge-expired,
+     que importa la misma función.
+
+   Archivos: app/api/admin/purge-org/route.ts (eliminado)
+
+2. B.43 — Endpoint /api/admin/cleanup-orphans PROTEGIDO
+
+   - Diagnóstico CONFIRMADO: no tenía ninguna autenticación (su propio
+     comentario decía "ACCESO PÚBLICO. Borra en TODAS las cuentas") y la
+     página que lo consume tampoco comprobaba sesión. Cualquiera con la URL
+     podía listar los documentos de todas las organizaciones y, con
+     ?dryRun=false, borrar sus vectores.
+   - Endpoint: ahora exige getAuthenticatedUserHybrid + resolveOrg +
+     org.role === 'admin', y opera ÚNICAMENTE sobre org.orgId. Desaparecen
+     el bucle de organizaciones, el Map anidado y la clave compuesta; el
+     archivo quedó más corto y más rápido. Eliminados los campos
+     organizationsScanned y org de la respuesta.
+   - Página: añadido credentials:'include' al fetch (sin él la cookie de
+     sesión no viajaba y el endpoint habría devuelto 401 siempre), manejo
+     explícito de 401/403 con aviso claro, y eliminadas las referencias a
+     los campos suprimidos (g.org habría lanzado TypeError en runtime al
+     pintar cualquier huérfano).
+   - Verificado en producción: como admin reporta solo la propia
+     organización (46 vectores, 23 documentos, 0 huérfanos); en ventana de
+     incógnito muestra el aviso de "necesitas iniciar sesión como
+     administrador" sin exponer ningún dato.
+   - La herramienta SE CONSERVA: hará falta para el backfill de metadata
+     de vectores (B.4).
+
+   Archivos: app/api/admin/cleanup-orphans/route.ts,
+             app/api/admin/cleanup/page.tsx
+
+3. Verificación de los endpoints de admin restantes
+
+   - app/api/admin/purge-expired/route.ts: SÍ protegido con ADMIN_SECRET.
+     No se toca.
+   - Estado final de app/api/admin/: cleanup (página, solo-admin por
+     sesión), cleanup-orphans (solo-admin por sesión), purge-expired
+     (ADMIN_SECRET). purge-org eliminado.
+
+ARCHIVOS MODIFICADOS
+  app/api/admin/purge-org/route.ts        — ELIMINADO
+  app/api/admin/cleanup-orphans/route.ts  — auth de admin + alcance limitado a la propia org
+  app/api/admin/cleanup/page.tsx          — credentials + manejo de 401/403 + campos suprimidos
+
+COMMITS DE ESTA SESIÓN
+  3d2f29f7 — chore(seguridad): eliminar endpoint /api/admin/purge-org (código muerto)
+  54601d05 — docs: B.42 hecho — endpoint purge-org eliminado; corregido el diagnóstico previo
+  9709f498 — fix(seguridad): cleanup-orphans exige sesión de admin y opera solo sobre la propia organización
+  8172d07b — fix(seguridad): la página de cleanup manda sesión y se adapta al endpoint solo-admin
+  2ee1603f — docs: B.43 hecho — cleanup-orphans protegido con sesión de admin y limitado a la propia org
+
+LECCIÓN DE LA SESIÓN
+   De los dos pendientes de seguridad anotados en la sesión anterior, uno era
+   FALSO (purge-org sí tenía autenticación) y el otro era REAL y algo peor de
+   lo anotado (cleanup-orphans no tenía auth, y su página tampoco; además el
+   fetch sin credentials habría roto la página al proteger el endpoint). Ambas
+   anotaciones se habían escrito a partir de resúmenes, no del código. Leer el
+   archivo completo antes de actuar evitó eliminar un endpoint por la razón
+   equivocada y destapó la rotura latente de la página.
+
+PENDIENTE DESTAPADO EN ESTA SESIÓN
+
+   Ninguno.

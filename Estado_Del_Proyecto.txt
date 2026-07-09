@@ -1,6 +1,6 @@
 ESTADO DEL PROYECTO — Doclity
 ========================================
-Última actualización: 01/07/2026
+Última actualización: 09/07/2026
 
 
 ────────────────────────────────────────────────────────────────
@@ -229,9 +229,8 @@ Facturación (Stripe)
   POST /api/billing/webhook     — Webhook de Stripe
 
 Admin interno
-  POST /api/admin/cleanup-orphans — Limpiar vectores huérfanos en Pinecone
-  POST /api/admin/purge-org       — Purgar organización por ID (superadmin)
-  POST /api/admin/purge-expired   — Purgar orgs con suscripción expirada
+  GET  /api/admin/cleanup-orphans — Limpiar vectores huérfanos de la org (solo admin, con sesión)
+  POST /api/admin/purge-expired   — Purgar orgs con suscripción expirada (ADMIN_SECRET)
 
 Feedback
   POST /api/feedback         — Enviar feedback del usuario
@@ -501,6 +500,12 @@ ARCHIVOS CLAVE
   lib/rag.ts                — Motor RAG + query rewriting + chunk coverage
   lib/credits.ts            — consumeCredits(), refundCredits(), adjustCredits(), CREDIT_COSTS
   lib/chunking.ts           — Extracción de texto + chunking (PDF, DOCX, TXT/MD/CSV/JSON/HTML, XLSX/XLSM)
+  lib/pinecone/vectors.ts   — Capa única de acceso a Pinecone: queryVectors, upsertVectors,
+                              deleteVectorsByIds, deleteVectorsByFilter, deleteAllVectors,
+                              fetchVectors, updateVectorMetadata. orgId obligatorio y explícito
+                              en todas las funciones. Ningún endpoint toca el SDK directamente.
+  lib/pinecone/types.ts     — Tipos de la capa: VectorMetadata, VectorRecord, VectorMatch,
+                              QueryVectorsParams
   lib/embeddings.ts         — Pinecone Inference API con rate limiting
   lib/stripe.ts             — Stripe client, PLAN_CONFIG, PLAN_FEATURES, price IDs
   lib/plan-features.ts      — getOrgFeatures() — gates de funcionalidades por plan
@@ -539,6 +544,11 @@ GOTCHAS
 ────────────────────────────────────────────────────────────────
 
 - Documentos antiguos pueden no tener full_text en Supabase → fallback a chunks.
+- Todas las operaciones de Pinecone pasan por lib/pinecone/vectors.ts (capa única, B.0).
+  orgId es parámetro obligatorio en todas las funciones; el namespace = org_id. Ningún
+  endpoint ni módulo de la app llama al SDK directamente. lib/pinecone.ts (getPinecone()
+  y getIndex()) existe pero solo lo usa la capa. updateVectorMetadata existe y aún no se
+  usa: reservada para el backfill de estado (B.4 de Fase B).
 - Pinecone free tier: rate-limit 250K tokens/min; lib/embeddings.ts auto-espera 60s.
 - RLS usa service role en servidor; nunca usar el cliente anon para escrituras.
 - chat_queries anteriores a commit b71dd5e (mayo 2026) no tienen chunks/totalChunks.
