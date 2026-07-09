@@ -1,61 +1,55 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
+import { getAuthenticatedUserHybrid } from '@/lib/supabase-server';
+import { resolveOrg } from '@/lib/org';
 import { queryVectors, deleteVectorsByIds } from '@/lib/pinecone/vectors';
 
 export const maxDuration = 300;
 
 /**
  * GET /api/admin/cleanup-orphans?dryRun=true|false
- * ACCESO PÚBLICO. Borra en TODAS las cuentas. Uso único. ELIMINAR DESPUÉS.
+ * Solo-admin. Opera ÚNICAMENTE sobre la organización del usuario autenticado.
+ * dryRun=true (por defecto) solo analiza; dryRun=false borra los vectores huérfanos.
  */
 export async function GET(req: NextRequest) {
+  const user = await getAuthenticatedUserHybrid(req);
+  if (!user) return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+
+  const supabase = createServiceClient();
+  const org = await resolveOrg(supabase, user.id);
+  if (!org) return NextResponse.json({ error: 'No perteneces a ninguna organización.' }, { status: 403 });
+  if (org.role !== 'admin') return NextResponse.json({ error: 'Solo los administradores pueden usar esta herramienta.' }, { status: 403 });
+
   try {
     const { searchParams } = new URL(req.url);
     const dryRun = searchParams.get('dryRun') !== 'false';
-    const supabase = createServiceClient();
 
-    const { data: allDocs } = await supabase.from('documents').select('id, org_id');
-    const validIdsByOrg = new Map<string, Set<string>>();
-    const orgs = new Set<string>();
-    for (const d of allDocs || []) {
-      orgs.add(d.org_id);
-      const s = validIdsByOrg.get(d.org_id) || new Set();
-      s.add(d.id);
-      validIdsByOrg.set(d.org_id, s);
-    }
+    const { data: orgDocs } = await supabase.from('documents').select('id').eq('org_id', org.orgId);
+    const validIds = new Set((orgDocs || []).map(d => d.id as string));
 
     const dummy = new Array(1024).fill(0); dummy[0] = 1;
 
-    const orphansByDoc = new Map<string, { name: string; org: string; vectorIds: string[] }>();
-    let totalVectors = 0;
+    const matches = await queryVectors(org.orgId, { vector: dummy, topK: 10000, includeMetadata: true });
+    const totalVectors = matches.length;
 
-    for (const org of orgs) {
-      try {
-        const matches = await queryVectors(org, { vector: dummy, topK: 10000, includeMetadata: true });
-        totalVectors += matches.length;
-        const validIds = validIdsByOrg.get(org) || new Set();
+    const orphansByDoc = new Map<string, { name: string; vectorIds: string[] }>();
 
-        for (const m of matches) {
-          const meta = m.metadata as { documentId?: string; documentName?: string } | undefined;
-          const docId = meta?.documentId;
-          const docName = meta?.documentName || '(sin nombre)';
-          const key = `${org}:${docId || '__NO_ID__'}`;
+    for (const m of matches) {
+      const meta = m.metadata as { documentId?: string; documentName?: string } | undefined;
+      const docId = meta?.documentId;
+      const docName = meta?.documentName || '(sin nombre)';
 
-          if (!docId || !validIds.has(docId)) {
-            const b = orphansByDoc.get(key) || { name: docName, org, vectorIds: [] };
-            b.vectorIds.push(m.id);
-            orphansByDoc.set(key, b);
-          }
-        }
-      } catch (err) {
-        console.warn(`[CLEANUP] Skipping org ${org}:`, err);
+      if (!docId || !validIds.has(docId)) {
+        const key = docId || '__NO_ID__';
+        const b = orphansByDoc.get(key) || { name: docName, vectorIds: [] };
+        b.vectorIds.push(m.id);
+        orphansByDoc.set(key, b);
       }
     }
 
-    const summary = Array.from(orphansByDoc.entries()).map(([key, info]) => ({
-      documentId: key.split(':')[1],
+    const summary = Array.from(orphansByDoc.entries()).map(([documentId, info]) => ({
+      documentId,
       documentName: info.name,
-      org: info.org,
       vectorCount: info.vectorIds.length,
     }));
     const totalOrphans = summary.reduce((s, g) => s + g.vectorCount, 0);
@@ -63,38 +57,28 @@ export async function GET(req: NextRequest) {
     if (dryRun) {
       return NextResponse.json({
         dryRun: true,
-        message: `Se encontraron ${totalOrphans} vectores huérfanos en ${orgs.size} cuenta(s). No se ha borrado nada.`,
+        message: `Se encontraron ${totalOrphans} vectores huérfanos en tu organización. No se ha borrado nada.`,
         totalVectorsInPinecone: totalVectors,
-        validDocumentsInSupabase: (allDocs || []).length,
-        organizationsScanned: orgs.size,
+        validDocumentsInSupabase: validIds.size,
         orphanGroups: summary,
         totalOrphanVectors: totalOrphans,
       });
     }
 
-    // Borrado real, namespace por namespace
+    const allOrphanIds = Array.from(orphansByDoc.values()).flatMap(b => b.vectorIds);
     let deleted = 0;
-    const deletionsByOrg = new Map<string, string[]>();
-    for (const [, info] of orphansByDoc) {
-      const arr = deletionsByOrg.get(info.org) || [];
-      arr.push(...info.vectorIds);
-      deletionsByOrg.set(info.org, arr);
-    }
-    for (const [org, ids] of deletionsByOrg) {
-      try {
-        await deleteVectorsByIds(org, ids);
-        deleted += ids.length;
-      } catch (err) {
-        console.error(`[CLEANUP] delete failed in org ${org}:`, err);
-      }
+    try {
+      await deleteVectorsByIds(org.orgId, allOrphanIds);
+      deleted = allOrphanIds.length;
+    } catch (err) {
+      console.error('[CLEANUP] delete failed:', err);
     }
 
     return NextResponse.json({
       dryRun: false,
-      message: `Limpieza completada. ${deleted} vectores huérfanos eliminados de ${deletionsByOrg.size} cuenta(s).`,
+      message: `Limpieza completada. ${deleted} vectores huérfanos eliminados.`,
       totalVectorsInPinecone: totalVectors,
-      validDocumentsInSupabase: (allDocs || []).length,
-      organizationsScanned: orgs.size,
+      validDocumentsInSupabase: validIds.size,
       orphanGroups: summary,
       totalDeleted: deleted,
     });
