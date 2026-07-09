@@ -7,6 +7,15 @@ interface Report {
   orphanGroups: OrphanGroup[];
   totalOrphanVectors?: number; totalDeleted?: number; message: string;
 }
+interface BackfillReport {
+  message: string;
+  documentsScanned: number;
+  vectorsToUpdate: number;
+  byStatus: Record<string, number>;
+  skipped: Array<{ id: string; name: string; reason: string }>;
+  vectorsUpdated?: number;
+  failed?: Array<{ id: string; name: string; error: string }>;
+}
 
 export default function CleanupPage() {
   const [loading, setLoading] = useState(false);
@@ -14,6 +23,24 @@ export default function CleanupPage() {
   const [error, setError] = useState<string | null>(null);
   const [forbidden, setForbidden] = useState(false);
   const [deleted, setDeleted] = useState(false);
+  const [backfill, setBackfill] = useState<BackfillReport | null>(null);
+  const [backfillDone, setBackfillDone] = useState(false);
+
+  const callBackfill = async (dryRun: boolean) => {
+    setLoading(true); setError(null); setForbidden(false);
+    try {
+      const res = await fetch(`/api/admin/cleanup-orphans?dryRun=${dryRun}`, {
+        method: 'POST',
+        credentials: 'include',
+      });
+      if (res.status === 401 || res.status === 403) { setForbidden(true); return; }
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Error');
+      setBackfill(data);
+      if (!dryRun) setBackfillDone(true);
+    } catch (e) { setError(e instanceof Error ? e.message : 'Error'); }
+    finally { setLoading(false); }
+  };
 
   const call = async (dryRun: boolean) => {
     setLoading(true); setError(null); setForbidden(false);
@@ -94,6 +121,70 @@ export default function CleanupPage() {
           ✅ Limpieza completada.
         </div>
       )}
+
+      <div style={{ marginTop: 40, paddingTop: 24, borderTop: '0.5px solid var(--border)' }}>
+        <h2 style={{ fontSize: 18, marginBottom: 8 }}>Etiquetar vectores con su estado</h2>
+        <p style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 16 }}>
+          Copia el estado de análisis de cada documento (Supabase) a la metadata de sus vectores
+          en Pinecone. Necesario antes de activar el filtro del chat. Es repetible sin daño.
+        </p>
+
+        <div style={{ display: 'flex', gap: 12, marginBottom: 16, flexWrap: 'wrap' }}>
+          <button onClick={() => callBackfill(true)} disabled={loading}
+            style={{ padding: '10px 16px', borderRadius: 8, border: '0.5px solid var(--border)', background: 'var(--bg-secondary)', color: 'var(--text-primary)', cursor: loading ? 'not-allowed' : 'pointer', fontSize: 14 }}>
+            {loading ? 'Analizando...' : '1. Analizar (sin escribir)'}
+          </button>
+          {backfill && !backfillDone && (
+            <button
+              onClick={() => { if (confirm(`¿Etiquetar ${backfill.vectorsToUpdate} vectores?`)) callBackfill(false); }}
+              disabled={loading || backfill.vectorsToUpdate === 0}
+              style={{ padding: '10px 16px', borderRadius: 8, border: 'none', background: '#2563eb', color: 'white', cursor: loading || backfill.vectorsToUpdate === 0 ? 'not-allowed' : 'pointer', fontSize: 14, fontWeight: 500, opacity: backfill.vectorsToUpdate === 0 ? 0.5 : 1 }}>
+              {loading ? 'Etiquetando...' : '2. Ejecutar backfill'}
+            </button>
+          )}
+        </div>
+
+        {backfill && (
+          <div style={{ padding: 16, background: 'var(--bg-secondary)', border: '0.5px solid var(--border)', borderRadius: 8 }}>
+            <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 12 }}>{backfill.message}</div>
+            <div style={{ fontSize: 13, marginBottom: 6 }}>Documentos: <b>{backfill.documentsScanned}</b></div>
+            <div style={{ fontSize: 13, marginBottom: 12 }}>Vectores a etiquetar: <b>{backfill.vectorsToUpdate}</b>
+              {typeof backfill.vectorsUpdated === 'number' && <> · etiquetados: <b>{backfill.vectorsUpdated}</b></>}
+            </div>
+
+            <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 6 }}>Por estado:</div>
+            <ul style={{ fontSize: 12, marginBottom: 12, paddingLeft: 18 }}>
+              {Object.entries(backfill.byStatus).map(([estado, n]) => (
+                <li key={estado}>{estado}: <b>{n}</b> vectores</li>
+              ))}
+            </ul>
+
+            {backfill.skipped.length > 0 && (
+              <>
+                <div style={{ fontSize: 13, fontWeight: 600, color: '#92400e', marginBottom: 6 }}>Documentos omitidos:</div>
+                <ul style={{ fontSize: 12, marginBottom: 12, paddingLeft: 18, color: '#92400e' }}>
+                  {backfill.skipped.map(s => (<li key={s.id}>{s.name} — {s.reason}</li>))}
+                </ul>
+              </>
+            )}
+
+            {backfill.failed && backfill.failed.length > 0 && (
+              <>
+                <div style={{ fontSize: 13, fontWeight: 600, color: '#991b1b', marginBottom: 6 }}>Fallos:</div>
+                <ul style={{ fontSize: 12, paddingLeft: 18, color: '#991b1b' }}>
+                  {backfill.failed.map(f => (<li key={f.id}>{f.id} — {f.error}</li>))}
+                </ul>
+              </>
+            )}
+          </div>
+        )}
+
+        {backfillDone && (
+          <div style={{ marginTop: 16, padding: 12, background: '#dbeafe', color: '#1e40af', borderRadius: 8, fontSize: 13 }}>
+            ✅ Backfill completado.
+          </div>
+        )}
+      </div>
     </div>
   );
 }
