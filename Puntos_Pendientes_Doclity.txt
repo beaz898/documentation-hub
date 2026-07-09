@@ -3,7 +3,7 @@ PENDIENTES — Doclity (Agente IA)
 Documento vivo. Se actualiza al completar tareas (marcar [✓]) y se
 sustituye por la versión nueva. Más ligero que la Bitácora: aquí va
 lo que falta y la visión que lo guía, no el detalle de cada sesión.
-Última actualización: 08/07/2026 (v25)
+Última actualización: 09/07/2026 (v26)
 
 
 ════════════════════════════════════════════════════════════════
@@ -715,6 +715,26 @@ Leyenda: [ ] pendiente · [~] en curso · [✓] hecho
       ese es el momento natural para añadir un try/catch que, si el insert en Supabase
       falla, elimine inmediatamente los vectores recién subidos.
 
+[ ] B.41 — (UX) Avisar al usuario tras reindexar un documento: la memoria conversacional puede
+      mezclar la versión antigua con la nueva
+      DIAGNOSTICADO (09/07/2026). Al reemplazar un documento (mismo nombre, force=true) y
+      volver a preguntar en la MISMA conversación, el chat mezcla la respuesta anterior (que
+      sigue en el historial) con el contenido nuevo del documento, y lo reporta como una
+      "contradicción entre documentos". No es un bug de datos: se verificó que el borrado de
+      vectores funciona (cleanup-orphans reporta 0 huérfanos), que full_text en Supabase
+      contiene solo la versión nueva, y que el agente en conversación nueva responde bien.
+      Es la memoria conversacional del chat haciendo su trabajo: detecta que lo que dijo antes
+      contradice lo que lee ahora, y avisa.
+      Fix propuesto: tras una subida que REEMPLAZA un documento existente (replaced=true en la
+      respuesta de /api/ingest), mostrar un aviso al usuario:
+        - En el chat: recomendar "Limpiar chat" (solo hay una conversación activa).
+        - En el agente: recomendar empezar una conversación nueva (sí tiene hilos separados).
+      Texto orientativo: "Has actualizado un documento. Para evitar respuestas basadas en la
+      versión anterior, limpia el chat / empieza una conversación nueva."
+      Dónde: hooks/chat/useDocuments.ts ya recibe data.replaced de /api/ingest (lo usa hoy para
+      el mensaje "Documento X actualizado"). Ese es el punto natural para añadir el aviso.
+      NO urgente: no hay pérdida ni corrupción de datos; es una recomendación de uso.
+
 
 ════════════════════════════════════════════════════════════════
 NOTAS DE ORDEN (propuesta, a confirmar)
@@ -749,6 +769,7 @@ NOTAS DE ORDEN (propuesta, a confirmar)
   B.38 (prompt caching en análisis) investigado, anotado; implementar cuando el volumen justifique.
   B.39 (fix fondo analyze-v2 race condition) diagnosticado, no urgente; encaja con el rediseño de flujo de Fase B.
   B.40 (vectores huérfanos en ingest) deuda menor; revisar al reconducir ingest por la capa en B.0.2.
+  B.41 (aviso tras reemplazar documento) UX no urgente; diagnosticado sesión 29 (09/07/2026). Implementar cuando el flujo de upload quede estable.
 
 Forma de trabajo: diagnóstico con datos reales antes de arreglar; un
 cambio lógico cada vez; build verde entre medias; SQL en Supabase antes
