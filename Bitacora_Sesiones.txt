@@ -2650,3 +2650,126 @@ PENDIENTE DESTAPADO EN ESTA SESIÓN
    Doclity asume una sola conexión de drive por organización. Conectar OneDrive
    eliminó la conexión de Google Drive. No es un bug, es el diseño, pero conviene
    documentarlo de cara al usuario.
+
+
+────────────────────────────────────────────────────────────────
+SESIÓN 31 — 09/07/2026
+Título: Fase B (B.1–B.4) — estados de análisis y backfill de metadata en Pinecone
+────────────────────────────────────────────────────────────────
+
+OBJETIVO
+Poner la fundación de la Fase B: estados de análisis por documento en Supabase
+(fuente de verdad), que todos los vectores nuevos nazcan etiquetados, y etiquetar
+los existentes. Se cierran los pasos 1 y 2 del orden innegociable
+(nuevos → backfill → filtro). El filtro del chat (B.6) NO se activa aún: requiere
+antes la bandeja de revisión (B.5), o los documentos pendientes quedarían invisibles
+sin forma de aprobarlos desde la interfaz.
+
+CAMBIOS IMPLEMENTADOS
+
+1. B.1 — Migración de estados (SQL ejecutado en Supabase)
+
+   - Columna documents.analysis_status ('pendiente'|'en_analisis'|'analizado'|
+     'desactualizado'), con CHECK y DEFAULT 'pendiente'. SEPARADA del status de
+     ingesta (verificado: solo toma 'indexed', 41 filas, sin comparaciones en código).
+   - Backfill de la tabla: los 41 documentos existentes quedaron 'analizado'
+     (corpus confiado).
+   - Índice (org_id, analysis_status) para la bandeja.
+   - Columna analysis_results.document_id (uuid, anulable, sin FK) + índice.
+     Prepara la Fase D.
+
+   Archivos: supabase-analysis-status.sql (registro; ya ejecutado)
+
+2. B.2 — Los vectores nuevos nacen etiquetados
+
+   - lib/pinecone/types.ts: se activa analysisStatus en VectorMetadata (tipado como
+     string, no unión literal: es la frontera con Pinecone y no se garantiza el valor
+     de vectores antiguos; el tipo estricto vive en el CHECK de Supabase).
+   - ingest: recibe analysisStatus del body con validación estricta (solo 'analizado'
+     pasa; lo demás cae al conservador 'pendiente'). Lo escribe en la fila y en la
+     metadata.
+   - useDocuments: el frontend indica si el análisis se completó. Análisis OK (con o
+     sin problemas detectados) → 'analizado'. Análisis FALLIDO (se indexa igual,
+     avisando) → 'pendiente', para que vaya a la bandeja. Decisión de producto: el
+     sistema no miente sobre lo que sabe. La llamada recursiva del reemplazo por
+     colisión propaga el estado.
+   - drive/sync → 'pendiente' fijo (Drive entra sin analizar).
+   - index-text → 'analizado' fijo (lo llama el modal de mejora: texto ya revisado
+     por el usuario).
+
+   Archivos: lib/pinecone/types.ts, app/api/ingest/route.ts,
+             hooks/chat/useDocuments.ts, app/api/drive/sync/route.ts,
+             app/api/index-text/route.ts
+
+3. B.3 — El sync marca estados: YA CUBIERTO, sin código nuevo
+
+   - Verificado: drive/sync tiene UN SOLO insert en documents, por el que pasan tanto
+     los archivos nuevos como los modificados (que borran y recrean). Ambos escriben
+     'pendiente'. No hay ningún UPDATE a documents en el sync. Los archivos sin cambios
+     no tocan la tabla.
+   - DECISIÓN: 'desactualizado' queda RESERVADO SIN USO hasta la Fase C. Hoy el sync
+     borra y recrea el documento modificado (nace 'pendiente'), comportamiento correcto
+     para la Fase B. 'desactualizado' solo cobra sentido con el relevo de versiones
+     (D6), que exige mantener la identidad del documento y el intercambio atómico de
+     vectores. No se adelanta la Fase C dentro de la B.
+
+4. B.4 — Backfill de metadata en Pinecone
+
+   - POST /api/admin/cleanup-orphans?dryRun=true|false, junto al GET de huérfanos.
+     Solo-admin, alcance a la propia organización.
+   - Backfill FIEL: cada vector recibe el analysis_status REAL de su documento en
+     Supabase (proyección; Supabase es la fuente de verdad). No se marca todo con un
+     valor único.
+   - Reconstruye los IDs desde Supabase (${documentId}-${chunkIndex}, patrón uniforme)
+     y usa updateVectorMetadata (merge parcial: solo toca analysisStatus). Repetible
+     sin daño.
+   - Guardia explícita: documentos con chunk_count nulo o <= 0 se REPORTAN (skipped),
+     no se saltan en silencio. Los fallos por vector también se listan.
+   - Página de cleanup: sección nueva con analizar (dryRun) → ejecutar.
+   - EJECUTADO Y VERIFICADO en producción: 23 documentos, 46 vectores, 46/46
+     etiquetados, 0 fallos, 0 omitidos. Desglose: pendiente 32 (OneDrive), analizado
+     14 (manuales). La aparición de DOS estados distintos confirma que el backfill es
+     fiel.
+
+   Archivos: app/api/admin/cleanup-orphans/route.ts,
+             app/api/admin/cleanup/page.tsx
+
+ESTADO DEL ORDEN INNEGOCIABLE (nuevos → backfill → filtro)
+   Paso 1 (nuevos):   HECHO — B.2
+   Paso 2 (backfill): HECHO — B.4, verificado en producción
+   Paso 3 (filtro):   PENDIENTE — B.6, requiere antes la bandeja (B.5)
+
+ARCHIVOS MODIFICADOS
+  supabase-analysis-status.sql                    — SQL de la migración (registro)
+  lib/pinecone/types.ts                           — analysisStatus activado en VectorMetadata
+  app/api/ingest/route.ts                         — escribe analysis_status en fila y metadata
+  hooks/chat/useDocuments.ts                      — frontend propaga estado al ingest
+  app/api/drive/sync/route.ts                     — Drive nace 'pendiente'
+  app/api/index-text/route.ts                     — modal de mejora nace 'analizado'
+  app/api/admin/cleanup-orphans/route.ts          — POST backfill (+ cabecera + import)
+  app/api/admin/cleanup/page.tsx                  — sección de backfill en la UI
+
+COMMITS DE ESTA SESIÓN
+  f73df2f4 — feat(fase-b): registro SQL de analysis_status en documents y document_id en analysis_results
+  fd643a7b — feat(fase-b): ingest escribe analysis_status en la fila y en la metadata de los vectores
+  432e8867 — feat(fase-b): el frontend indica a ingest si el análisis se completó
+  169c269f — feat(fase-b): drive/sync marca pendiente e index-text marca analizado
+  a9ae2884 — docs: pendientes — upload lock colgado y sync de Drive no escala
+  f45337e1 — feat(fase-b): backfill de analysis_status en la metadata de los vectores (POST, con dryRun)
+  e111c6a3 — feat(fase-b): botón de backfill en la página de cleanup
+  6fae4033 — docs: bitácora — Fase B pasos B.1 a B.4 (estados y backfill de metadata)
+
+PENDIENTE DESTAPADO EN ESTA SESIÓN
+
+   B.44 — El upload lock no se libera tras una subida exitosa (ya anotado).
+
+   B.45 — El sync de Drive no escala (ya anotado; se eleva su prioridad a BLOQUEANTE
+   DEL ONBOARDING). Una empresa con un Drive real (cientos de documentos) NO PUEDE
+   NI CONECTAR hoy: el sync se corta a los 5 minutos, a mitad, sin punto de
+   reanudación. Ver Puntos_Pendientes para el texto actualizado.
+
+   Observación: al conectar un proveedor de drive, el callback hace upsert
+   onConflict:'org_id', así que SOBRESCRIBE la conexión existente. Doclity asume
+   UNA SOLA conexión de drive por organización. Conectar OneDrive eliminó la conexión
+   de Google Drive. No es un bug, es el diseño, pero conviene advertirlo en la
+   interfaz.

@@ -3,7 +3,7 @@ PENDIENTES — Doclity (Agente IA)
 Documento vivo. Se actualiza al completar tareas (marcar [✓]) y se
 sustituye por la versión nueva. Más ligero que la Bitácora: aquí va
 lo que falta y la visión que lo guía, no el detalle de cada sesión.
-Última actualización: 09/07/2026 (v31)
+Última actualización: 09/07/2026 (v32)
 
 
 ════════════════════════════════════════════════════════════════
@@ -800,7 +800,15 @@ Leyenda: [ ] pendiente · [~] en curso · [✓] hecho
       Fix: llevar el sync a la cola de background (encaja con la Fase D). Alternativa intermedia:
       procesar por lotes con reanudación (guardar el último archivo procesado y continuar en la
       siguiente llamada).
-      PRIORIDAD: antes de tener clientes con Drives grandes.
+      PRIORIDAD: BLOQUEANTE DEL ONBOARDING. Una empresa con un Drive real (cientos de documentos)
+      NO PUEDE NI CONECTAR hoy: el sync se corta a los 5 minutos, a mitad, sin punto de
+      reanudación. No es una mejora deseable, es un requisito para vender.
+      Nota importante: esto es un problema de INDEXACIÓN, no de análisis. El análisis de los
+      documentos de Drive nunca es automático (D8: el sync no lanza análisis; el usuario decide
+      qué analizar desde la bandeja, viendo el coste). Cuando sí se pide, los análisis van a la
+      cola de analysis_jobs con el worker de Railway, sin límite de tiempo HTTP. El sync sufre la
+      misma enfermedad que el análisis síncrono (deuda técnica nº3) y debería resolverse con la
+      misma medicina, en la Fase D: llevarlo a la cola de background.
 
 
 ════════════════════════════════════════════════════════════════
@@ -843,10 +851,11 @@ NOTAS DE ORDEN (propuesta, a confirmar)
       cleanup-orphans (protegidos con sesión de admin) y purge-expired (ADMIN_SECRET).
   B.43 (admin/cleanup-orphans protegido con sesión de admin) HECHO — endpoint y página corregidos; se conserva para el backfill B.4.
   B.44 (upload lock colgado tras subida exitosa) BUG diagnosticado; pendiente de fix en chat/page.tsx + ingest.
-  B.45 (sync de Drive no escala) ESCALABILIDAD importante; encaja con Fase D (background queue). Prioridad: antes de clientes con Drives grandes.
-  Fase B: B.1 (migración SQL) y B.2 (vectores nuevos etiquetados) HECHOS. B.3 verificado sin código nuevo.
-  B.4 (backfill) HECHO y VERIFICADO en producción (46/46 vectores etiquetados, 0 fallos).
-  Quedan: B.5 (badges + bandeja de revisión) y B.6 (filtro del chat, aislado y reversible), en ese orden obligatorio.
+  B.45 (sync de Drive no escala) BLOQUEANTE DEL ONBOARDING — elevado a máxima prioridad en sesión 31.
+  Fase B: B.1–B.4 hechos y verificados (estados en Supabase, vectores nuevos etiquetados,
+  backfill ejecutado: 46/46). Quedan B.5 (badges + bandeja de revisión) y B.6 (filtro del chat,
+  commit aislado y reversible), EN ESE ORDEN OBLIGATORIO: sin bandeja, activar el filtro dejaría
+  los documentos pendientes invisibles y sin forma de aprobarlos desde la interfaz.
 
 Forma de trabajo: diagnóstico con datos reales antes de arreglar; un
 cambio lógico cada vez; build verde entre medias; SQL en Supabase antes
