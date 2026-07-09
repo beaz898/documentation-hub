@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
-import { getIndex } from '@/lib/pinecone';
+import { queryVectors, deleteVectorsByIds } from '@/lib/pinecone/vectors';
 
 export const maxDuration = 300;
 
@@ -24,7 +24,6 @@ export async function GET(req: NextRequest) {
       validIdsByOrg.set(d.org_id, s);
     }
 
-    const index = getIndex();
     const dummy = new Array(1024).fill(0); dummy[0] = 1;
 
     const orphansByDoc = new Map<string, { name: string; org: string; vectorIds: string[] }>();
@@ -32,8 +31,7 @@ export async function GET(req: NextRequest) {
 
     for (const org of orgs) {
       try {
-        const res = await index.namespace(org).query({ vector: dummy, topK: 10000, includeMetadata: true });
-        const matches = res.matches || [];
+        const matches = await queryVectors(org, { vector: dummy, topK: 10000, includeMetadata: true });
         totalVectors += matches.length;
         const validIds = validIdsByOrg.get(org) || new Set();
 
@@ -83,14 +81,11 @@ export async function GET(req: NextRequest) {
       deletionsByOrg.set(info.org, arr);
     }
     for (const [org, ids] of deletionsByOrg) {
-      const ns = index.namespace(org);
-      for (let i = 0; i < ids.length; i += 1000) {
-        try {
-          await ns.deleteMany(ids.slice(i, i + 1000));
-          deleted += Math.min(1000, ids.length - i);
-        } catch (err) {
-          console.error(`[CLEANUP] delete batch failed in org ${org}:`, err);
-        }
+      try {
+        await deleteVectorsByIds(org, ids);
+        deleted += ids.length;
+      } catch (err) {
+        console.error(`[CLEANUP] delete failed in org ${org}:`, err);
       }
     }
 
