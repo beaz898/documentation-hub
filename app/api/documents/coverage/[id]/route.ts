@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import { getAuthenticatedUserHybrid } from '@/lib/supabase-server';
 import { resolveOrg } from '@/lib/org';
-import { getIndex } from '@/lib/pinecone';
+import { fetchVectors } from '@/lib/pinecone/vectors';
 
 /**
  * GET /api/documents/coverage/[id]?days=30
@@ -90,9 +90,7 @@ export async function GET(
     if (usedChunkIndices.length > 0) {
       try {
         const vectorIds = usedChunkIndices.map(i => `${documentId}-${i}`);
-        const ns = getIndex().namespace(org.orgId);
-        const fetchResult = await ns.fetch(vectorIds);
-        const records = fetchResult.records || {};
+        const records = await fetchVectors(org.orgId, vectorIds);
 
         usedChunks = usedChunkIndices.map(i => ({
           chunkIndex: i,
