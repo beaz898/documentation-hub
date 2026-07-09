@@ -3,7 +3,7 @@ PENDIENTES — Doclity (Agente IA)
 Documento vivo. Se actualiza al completar tareas (marcar [✓]) y se
 sustituye por la versión nueva. Más ligero que la Bitácora: aquí va
 lo que falta y la visión que lo guía, no el detalle de cada sesión.
-Última actualización: 09/07/2026 (v28)
+Última actualización: 09/07/2026 (v29)
 
 
 ════════════════════════════════════════════════════════════════
@@ -754,15 +754,24 @@ Leyenda: [ ] pendiente · [~] en curso · [✓] hecho
       superadmin, confirmación explícita en dos pasos, y registro de quién ejecutó la purga
       (nada de eso existía en el endpoint eliminado).
 
-[ ] B.43 — (SEGURIDAD, MEDIA) app/api/admin/cleanup-orphans/route.ts sin autenticación
-      DESCUBIERTO (09/07/2026). El endpoint (y su página app/api/admin/cleanup/page.tsx) permite
-      listar y BORRAR vectores huérfanos de TODAS las organizaciones sin ninguna autenticación.
-      El propio comentario del código lo admite ("uso único"). El modo dryRun (por defecto) solo
-      lista, pero ?dryRun=false borra.
-      Riesgo menor que B.42 (solo borra vectores sin fila en Supabase), pero expone información
-      de todas las orgs (nombres de documentos, recuentos) y permite borrados no autorizados.
-      Fix: proteger con auth + rol admin, o eliminar cuando ya no se necesite como red de
-      seguridad del refactor.
+[✓] B.43 — (SEGURIDAD) cleanup-orphans protegido con sesión de admin
+      HECHO (Sesión 29, 09/07/2026). El diagnóstico original era CORRECTO: el endpoint no tenía
+      ninguna autenticación (su propio comentario decía "ACCESO PÚBLICO. Borra en TODAS las
+      cuentas") y la página que lo consume tampoco comprobaba sesión. Cualquiera con la URL podía
+      listar los documentos de todas las organizaciones y, con ?dryRun=false, borrar sus vectores.
+      Fix aplicado (dos commits):
+        · Endpoint: exige getAuthenticatedUserHybrid + resolveOrg + org.role === 'admin', y opera
+          ÚNICAMENTE sobre org.orgId (desaparece el bucle de organizaciones y la clave compuesta;
+          el código quedó además más corto y rápido). Se eliminaron los campos organizationsScanned
+          y org de la respuesta.
+        · Página: añadido credentials:'include' al fetch (sin él la cookie no viajaba y el endpoint
+          habría devuelto 401 siempre), manejo de 401/403 con aviso claro, y eliminadas las
+          referencias a los campos que ya no existen (g.org rompía en runtime).
+      Verificado en producción: como admin reporta solo la propia organización (46 vectores, 23
+      documentos, 0 huérfanos); en ventana de incógnito muestra el aviso de "necesitas iniciar
+      sesión como administrador" sin exponer ningún dato.
+      La herramienta SE CONSERVA: hará falta para el backfill de metadata de vectores (B.4 de la
+      Fase B).
 
 
 ════════════════════════════════════════════════════════════════
@@ -800,7 +809,10 @@ NOTAS DE ORDEN (propuesta, a confirmar)
   B.40 (vectores huérfanos en ingest) deuda menor; revisar al reconducir ingest por la capa en B.0.2.
   B.41 (aviso tras reemplazar documento) UX no urgente; diagnosticado sesión 29 (09/07/2026). Implementar cuando el flujo de upload quede estable.
   B.42 (endpoint purge-org eliminado) HECHO — era código muerto protegido con ADMIN_SECRET; diagnóstico original incorrecto.
-  B.43 (admin/cleanup-orphans sin auth) SEGURIDAD MEDIA — eliminar o proteger cuando ya no sea necesario como red de seguridad.
+      Nota: al revisar B.43 se comprobó también app/api/admin/purge-expired/route.ts — SÍ está
+      protegido con ADMIN_SECRET. Los endpoints de admin restantes quedan: cleanup (página) y
+      cleanup-orphans (protegidos con sesión de admin) y purge-expired (ADMIN_SECRET).
+  B.43 (admin/cleanup-orphans protegido con sesión de admin) HECHO — endpoint y página corregidos; se conserva para el backfill B.4.
 
 Forma de trabajo: diagnóstico con datos reales antes de arreglar; un
 cambio lógico cada vez; build verde entre medias; SQL en Supabase antes
