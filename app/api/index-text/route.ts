@@ -106,6 +106,7 @@ export async function POST(req: NextRequest) {
         chunkIndex: chunk.metadata.chunkIndex,
         totalChunks: chunk.metadata.totalChunks,
         orgId: chunk.metadata.orgId,
+        analysisStatus: 'analizado',
       },
     }));
 
@@ -120,6 +121,9 @@ export async function POST(req: NextRequest) {
       org_id: orgId,
       user_id: user.id,
       status: 'indexed',
+      // Esta ruta la usa el modal de mejora: el texto ya fue revisado y corregido
+      // por el usuario, así que nace analizado (no va a la bandeja de revisión).
+      analysis_status: 'analizado',
     });
 
     // Clean up the original uploaded file from Storage if provided

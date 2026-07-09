@@ -145,6 +145,7 @@ export async function POST(req: NextRequest) {
           orgId,
           source: provider.name,
           folderPath: file.folderPath ?? '/',
+          analysisStatus: 'pendiente',
         },
       }));
 
@@ -161,6 +162,7 @@ export async function POST(req: NextRequest) {
         user_id: user.id,
         status: 'indexed',
         source: provider.name,
+        analysis_status: 'pendiente',   // Drive entra sin analizar: irá a la bandeja de revisión
         source_path: file.id,
         source_modified_at: file.modifiedTime,
         folder_path: file.folderPath ?? '/',
