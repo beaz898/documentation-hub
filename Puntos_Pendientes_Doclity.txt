@@ -3,7 +3,7 @@ PENDIENTES — Doclity (Agente IA)
 Documento vivo. Se actualiza al completar tareas (marcar [✓]) y se
 sustituye por la versión nueva. Más ligero que la Bitácora: aquí va
 lo que falta y la visión que lo guía, no el detalle de cada sesión.
-Última actualización: 09/07/2026 (v27)
+Última actualización: 09/07/2026 (v28)
 
 
 ════════════════════════════════════════════════════════════════
@@ -735,21 +735,24 @@ Leyenda: [ ] pendiente · [~] en curso · [✓] hecho
       el mensaje "Documento X actualizado"). Ese es el punto natural para añadir el aviso.
       NO urgente: no hay pérdida ni corrupción de datos; es una recomendación de uso.
 
-[ ] B.42 — (SEGURIDAD, ALTA) app/api/admin/purge-org/route.ts sin autenticación
-      DESCUBIERTO (09/07/2026) durante el refactor B.0. Este endpoint llama a
-      purgeOrganization(), que BORRA POR COMPLETO una organización: namespace entero de
-      Pinecone, archivos de Storage, y 13 tablas de Supabase (documents, chat_queries,
-      analysis_results, analysis_jobs, usage_logs, feedback, credit_purchases, invitations,
-      drive_connections, memberships), además de ELIMINAR LAS CUENTAS DE AUTH de todos los
-      miembros. Solo usa createServiceClient() — sin getAuthenticatedUserHybrid, sin resolveOrg,
-      sin comprobación de rol. Cualquiera que conozca la URL y un org_id puede destruir una
-      organización entera.
-      Contraste: app/api/org/purge/route.ts (borrado voluntario) SÍ está protegido con
-      autenticación + resolveOrg. El de admin no.
-      Fix: o bien protegerlo (auth + comprobación de rol/superadmin + confirmación explícita),
-      o bien ELIMINARLO del repo si era de uso único. Recomendación: eliminarlo; la purga
-      voluntaria y la del worker ya cubren los casos legítimos.
-      PRIORIDAD ALTA antes de tener clientes reales.
+[✓] B.42 — (SEGURIDAD) Endpoint /api/admin/purge-org eliminado
+      HECHO (Sesión 29, 09/07/2026).
+      CORRECCIÓN DEL DIAGNÓSTICO ANTERIOR: la anotación original decía que este endpoint no
+      tenía autenticación. ERA INCORRECTO. Al leer el archivo se comprobó que SÍ estaba
+      protegido con ADMIN_SECRET (header Authorization: Bearer <secreto>, 401 si no coincide)
+      y que además comprobaba orgData.purged_at para no purgar dos veces. No había agujero
+      de seguridad crítico.
+      Motivo real de la eliminación: código muerto. Nadie lo llamaba desde el repo (ni frontend,
+      ni hooks, ni worker, ni scripts); era una herramienta manual (curl/Postman) que nunca se
+      usó. Menos superficie expuesta para una operación que destruye una organización entera.
+      Los dos consumidores legítimos de purgeOrganization() siguen intactos e importan la función
+      directamente de lib/purge-org.ts:
+        · app/api/org/purge/route.ts — borrado voluntario (auth + resolveOrg)
+        · worker/src/index.ts — purga automática tras 90 días de gracia
+      También se conserva app/api/admin/purge-expired/route.ts, que importa la misma función.
+      Si algún día hace falta purgar una organización ajena, reconstruirlo con: autenticación de
+      superadmin, confirmación explícita en dos pasos, y registro de quién ejecutó la purga
+      (nada de eso existía en el endpoint eliminado).
 
 [ ] B.43 — (SEGURIDAD, MEDIA) app/api/admin/cleanup-orphans/route.ts sin autenticación
       DESCUBIERTO (09/07/2026). El endpoint (y su página app/api/admin/cleanup/page.tsx) permite
@@ -796,7 +799,7 @@ NOTAS DE ORDEN (propuesta, a confirmar)
   B.39 (fix fondo analyze-v2 race condition) diagnosticado, no urgente; encaja con el rediseño de flujo de Fase B.
   B.40 (vectores huérfanos en ingest) deuda menor; revisar al reconducir ingest por la capa en B.0.2.
   B.41 (aviso tras reemplazar documento) UX no urgente; diagnosticado sesión 29 (09/07/2026). Implementar cuando el flujo de upload quede estable.
-  B.42 (admin/purge-org sin auth) SEGURIDAD ALTA — eliminar o proteger antes de tener clientes reales.
+  B.42 (endpoint purge-org eliminado) HECHO — era código muerto protegido con ADMIN_SECRET; diagnóstico original incorrecto.
   B.43 (admin/cleanup-orphans sin auth) SEGURIDAD MEDIA — eliminar o proteger cuando ya no sea necesario como red de seguridad.
 
 Forma de trabajo: diagnóstico con datos reales antes de arreglar; un
