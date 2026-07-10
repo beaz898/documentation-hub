@@ -132,7 +132,12 @@
     "lockedByOtherConfirm": "La subida de documentos está bloqueada por {name}. Espera a que termine de analizar.",
     "modalActiveTooltip": "Hay un análisis o mejora activo. Termínalo antes de continuar.",
     "unlockTitle": "Desbloquear subidas",
-    "lockTitle": "Bloquear subidas mientras analizas"
+    "lockTitle": "Bloquear subidas mientras analizas",
+    "status": {
+      "pendiente": "Sin analizar",
+      "en_analisis": "Analizando",
+      "desactualizado": "Desactualizado"
+    }
   },
   "analysis": {
     "contradictions": "Contradicciones",

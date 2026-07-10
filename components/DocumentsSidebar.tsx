@@ -13,6 +13,7 @@ interface Document {
   status: string;
   source?: string;
   folder_path?: string | null;
+  analysis_status?: string; // 'pendiente' | 'en_analisis' | 'analizado' | 'desactualizado'
 }
 
 interface DriveFolder {
@@ -108,6 +109,24 @@ function countDocsRecursive(node: FolderNode): number {
     total += countDocsRecursive(child);
   }
   return total;
+}
+
+function statusBadge(status: string | undefined, t: (k: string) => string) {
+  if (!status || status === 'analizado') return null;
+  const colors: Record<string, { bg: string; fg: string }> = {
+    pendiente:      { bg: '#fef3c7', fg: '#92400e' },
+    en_analisis:    { bg: '#dbeafe', fg: '#1e40af' },
+    desactualizado: { bg: '#fee2e2', fg: '#991b1b' },
+  };
+  const c = colors[status] || { bg: 'var(--bg-tertiary)', fg: 'var(--text-muted)' };
+  return (
+    <span style={{
+      fontSize: 9, fontWeight: 600, padding: '1px 6px', borderRadius: 999,
+      background: c.bg, color: c.fg, flexShrink: 0, whiteSpace: 'nowrap',
+    }}>
+      {t(`status.${status}`)}
+    </span>
+  );
 }
 
 const DRIVE_SOURCES = new Set(['google_drive', 'onedrive']);
@@ -257,6 +276,7 @@ export default function DocumentsSidebar({
               {doc.name}
             </p>
             {showSourceBadge && <SourceBadge source={badgeType} />}
+            {statusBadge(doc.analysis_status, t)}
           </div>
           <p style={{ fontSize: 9, color: 'var(--text-muted)' }}>
             {formatSize(doc.size_bytes)} · {doc.chunk_count} frag. · {formatDate(doc.created_at)}

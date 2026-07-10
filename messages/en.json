@@ -132,7 +132,12 @@
     "lockedByOtherConfirm": "Uploads are locked by {name}. Wait until they finish analyzing.",
     "modalActiveTooltip": "An analysis or improvement session is active. Finish it before continuing.",
     "unlockTitle": "Unlock uploads",
-    "lockTitle": "Lock uploads while analyzing"
+    "lockTitle": "Lock uploads while analyzing",
+    "status": {
+      "pendiente": "Not analyzed",
+      "en_analisis": "Analyzing",
+      "desactualizado": "Outdated"
+    }
   },
   "analysis": {
     "contradictions": "Contradictions",

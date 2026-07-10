@@ -15,6 +15,7 @@ export interface Document {
   created_at: string;
   status: string;
   source?: string;
+  analysis_status?: string; // 'pendiente' | 'en_analisis' | 'analizado' | 'desactualizado'
 }
 
 export interface DriveStatus {
