@@ -3,7 +3,7 @@ PENDIENTES — Doclity (Agente IA)
 Documento vivo. Se actualiza al completar tareas (marcar [✓]) y se
 sustituye por la versión nueva. Más ligero que la Bitácora: aquí va
 lo que falta y la visión que lo guía, no el detalle de cada sesión.
-Última actualización: 09/07/2026 (v32)
+Última actualización: 10/07/2026 (v33)
 
 
 ════════════════════════════════════════════════════════════════
@@ -811,6 +811,69 @@ Leyenda: [ ] pendiente · [~] en curso · [✓] hecho
       misma medicina, en la Fase D: llevarlo a la cola de background.
 
 
+[ ] B.46 — (PRODUCTO) Analizar un LOTE de documentos entre sí, sin comparar contra el corpus
+      Caso de uso: enviar un paquete de documentos a un cliente (p. ej. documentación legal) y
+      necesitar que sean coherentes ENTRE ELLOS. Hoy el análisis siempre compara contra todo el
+      corpus, lo que mezcla dos preguntas distintas: "¿mi corpus es coherente?" y "¿este paquete
+      que voy a entregar es coherente?".
+      Ejemplo: tres escritos donde el condenado se llama Pepe Pérez en uno y Jaimito Pérez en
+      otro. Detectarlo ANTES de enviarlos, comparándolos solo entre sí.
+      Otro caso: carpetas de equipos distintos con metodologías legítimamente diferentes.
+      Compararlos entre sí genera contradicciones esperadas y ruidosas.
+      Diseño posible: al seleccionar documentos, elegir el ÁMBITO de comparación: (a) contra todo
+      el corpus (por defecto), (b) solo entre los seleccionados, (c) contra una carpeta concreta.
+      El retrieval ya filtra por documentId (excludeDocumentId existe en retrieval.ts), así que
+      restringir el ámbito es viable técnicamente.
+      ESTRATEGIA EN DOS RONDAS (idea del usuario, 09/07/2026): para una carga inicial grande,
+      analizar primero el lote ENTRE SÍ (resolver sus contradicciones internas) y solo después
+      contra el corpus. Reduce el efecto cascada (ver B.47). Coste: dos rondas de análisis. NO
+      debe ser obligatorio: se ofrece como opción, porque con 400 documentos son 4.000 créditos.
+
+[ ] B.47 — (CORRECCIÓN) Los análisis guardados quedan OBSOLETOS cuando cambia el corpus
+      Los resultados viven en analysis_results (una foto del momento del análisis). Si corriges un
+      documento, los análisis de OTROS documentos que lo mencionaban dejan de reflejar la realidad:
+      siguen diciendo "contradice a X" cuando X ya se corrigió.
+      SOLUCIÓN (diseñada con el usuario, 09/07/2026): al modificar el documento X,
+        1. BORRAR las incidencias que otros documentos tenían contra X (son fotos de una versión
+           que ya no existe).
+        2. REANALIZAR X contra el corpus.
+      Fundamento: al reanalizar X, TODAS sus contradicciones actuales —las que sobreviven y las
+      NUEVAS que la corrección haya podido crear con documentos que antes no lo mencionaban—
+      quedan registradas en el informe de X. No se pierde ninguna contradicción: cambia de dueño.
+      Y es el dueño correcto, porque X es el documento que se movió.
+      Coste: UN análisis (el de X), no N. Descarta la idea inicial de reanalizar todos los que
+      aparecían en involved_documents, que además era insuficiente (detectaba las contradicciones
+      que desaparecen, no las que aparecen).
+      Requiere: analysis_results.document_id (ya añadido en B.1), poder borrar/invalidar los
+      resultados que mencionen a X en involved_documents, y encolar el reanálisis de X.
+
+[ ] B.48 — (PRODUCTO) Excluir documentos concretos de la comparación (archivo histórico)
+      Caso: conservar versiones antiguas como documentos distintos (documento_v1, documento_v2) en
+      vez de reemplazarlas. El análisis las marcará como duplicados y contradicciones, y
+      técnicamente tendrá razón, pero es ruido inútil: el usuario ya sabe que son versiones.
+      Propuesta: marcar un documento como "archivo histórico / no comparar". Se conserva en el
+      corpus pero se excluye del retrieval de análisis.
+      Relacionado con la Fase C (D5, identidad y versiones), pero es un caso DISTINTO: no se quiere
+      REEMPLAZAR la versión vieja, se quiere CONSERVARLA sin que genere ruido.
+
+[ ] B.49 — (PRODUCTO, FUTURO) Filtro de documentos en el chat y el agente
+      Que el usuario pueda elegir contra qué documentos (o carpetas) quiere preguntar, en vez de
+      contra todo el corpus. Ejemplo: "responde solo con la documentación del equipo A".
+      Técnicamente viable: queryVectors ya acepta un parámetro `filter` genérico (metadata de
+      Pinecone), y los vectores llevan documentId y folderPath en su metadata.
+      NO URGENTE. Idea de producto para una versión futura; no desviar el foco.
+
+[ ] B.50 — (PRODUCTO) Las duplicidades y las contradicciones no pesan lo mismo
+      Una contradicción es casi siempre un problema real. Una duplicidad puede ser perfectamente
+      normal (plantillas, encabezados, cláusulas estándar, textos legales repetidos). Hoy el
+      análisis las presenta con el mismo peso, y el usuario acaba descartando duplicados una y
+      otra vez.
+      Propuestas: (a) separar visualmente la severidad en el modal y en la bandeja; (b) que los
+      descartes de duplicados sean PERMANENTES por organización (es el D9 del encargo:
+      excludeFingerprints persistentes, previsto para la Fase C); (c) considerar no contar los
+      duplicados descartados sistemáticamente como "incidencia" en la bandeja.
+
+
 ════════════════════════════════════════════════════════════════
 NOTAS DE ORDEN (propuesta, a confirmar)
 ════════════════════════════════════════════════════════════════
@@ -852,6 +915,12 @@ NOTAS DE ORDEN (propuesta, a confirmar)
   B.43 (admin/cleanup-orphans protegido con sesión de admin) HECHO — endpoint y página corregidos; se conserva para el backfill B.4.
   B.44 (upload lock colgado tras subida exitosa) BUG diagnosticado; pendiente de fix en chat/page.tsx + ingest.
   B.45 (sync de Drive no escala) BLOQUEANTE DEL ONBOARDING — elevado a máxima prioridad en sesión 31.
+  B.46-B.50 (ideas de producto surgidas del diseño de la bandeja, sesión 32, 10/07/2026):
+    B.46 análisis por lote entre sí (ámbito de comparación configurable + estrategia en dos rondas).
+    B.47 obsolescencia de análisis guardados al corregir un doc (solución: borrar incidencias ajenas + reanalizar X).
+    B.48 archivo histórico: excluir versiones antiguas de la comparación sin borrarlas del corpus.
+    B.49 filtro de documentos en chat/agente (futuro, técnicamente viable con metadata Pinecone).
+    B.50 duplicidades vs contradicciones: no pesan lo mismo; descartes persistentes (D9, Fase C).
   Fase B: B.1–B.4 hechos y verificados (estados en Supabase, vectores nuevos etiquetados,
   backfill ejecutado: 46/46). Quedan B.5 (badges + bandeja de revisión) y B.6 (filtro del chat,
   commit aislado y reversible), EN ESE ORDEN OBLIGATORIO: sin bandeja, activar el filtro dejaría
