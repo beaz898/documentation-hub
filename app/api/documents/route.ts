@@ -24,7 +24,7 @@ export async function GET(req: NextRequest) {
 
     const { data: documents, error } = await supabase
       .from('documents')
-      .select('id, name, size_bytes, chunk_count, created_at, status, source, folder_path, folder_id')
+      .select('id, name, size_bytes, chunk_count, created_at, status, source, folder_path, folder_id, analysis_status')
       .eq('org_id', orgId)
       .order('created_at', { ascending: false });
     if (error) throw error;
