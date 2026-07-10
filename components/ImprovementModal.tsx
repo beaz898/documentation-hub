@@ -40,7 +40,7 @@ interface ImprovementModalProps {
   initialText: string;
   analysis: RawAnalysis & { styleProblems?: AnalysisStyleProblem[] };
   documentSources?: Record<string, string[]>;
-  storagePath: string;
+  storagePath?: string;   // ausente en documentos ya indexados (Drive): no hay archivo temporal
   existingDocWithSameName?: ExistingDocForDialog | null;
   accessToken: string;
   onClose: () => void;

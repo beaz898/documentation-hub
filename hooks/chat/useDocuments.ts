@@ -331,8 +331,16 @@ export function useDocuments(
     const path = improvementTarget.storagePath;
     const name = improvementTarget.fileName;
     setImprovementTarget(null);
-    try { await supabase.storage.from('documents').remove([path]); } catch { /* ignore */ }
-    addMessage({ id: crypto.randomUUID(), role: 'assistant', content: `**${name}** descartado. No se ha añadido al corpus.` });
+
+    if (path) {
+      // Subida manual: el archivo temporal sigue en Storage y el documento NO está en el corpus.
+      try { await supabase.storage.from('documents').remove([path]); } catch { /* ignore */ }
+      addMessage({ id: crypto.randomUUID(), role: 'assistant', content: `**${name}** descartado. No se ha añadido al corpus.` });
+    } else {
+      // Documento ya indexado (bandeja de revisión): no hay archivo temporal que borrar
+      // y el documento SIGUE en el corpus. Solo se cerró el modal.
+      addMessage({ id: crypto.randomUUID(), role: 'assistant', content: `Se cerró la mejora de **${name}**. El documento sigue en el corpus, sin cambios.` });
+    }
   }
 
   async function handleImprovementIndexed(finalName: string, wasReplaced: boolean) {

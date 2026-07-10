@@ -37,7 +37,7 @@ export interface PendingAnalysis {
 
 export interface ImprovementTarget {
   fileName: string;
-  storagePath: string;
+  storagePath?: string;
   initialText: string;
   analysis: Record<string, unknown>;
   documentSources?: Record<string, string[]>;

@@ -9,7 +9,7 @@ export interface ExistingDocForIndexing {
 
 interface UseIndexingParams {
   fileName: string;
-  storagePath: string;
+  storagePath?: string;
   accessToken: string;
   existingDocWithSameName?: ExistingDocForIndexing | null;
   onIndexed: (docName: string, wasReplaced: boolean) => void;
@@ -48,7 +48,7 @@ export function useIndexing({
           body: JSON.stringify({
             text: currentText,
             name: finalName,
-            originalStoragePath: storagePath,
+            ...(storagePath ? { originalStoragePath: storagePath } : {}),
             replaceExistingId: replaceExisting ? existingDocWithSameName?.id : undefined,
             sizeBytes: new Blob([currentText]).size,
           }),
