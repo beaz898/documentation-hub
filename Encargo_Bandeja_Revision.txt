@@ -1,0 +1,58 @@
+═══════════════════════════════════════════════════════════════
+ENCARGO CERRADO — Bandeja de revisión (Fase B, paso B.5-d)
+Decisiones fijadas con el usuario el 09/07/2026. NO improvisar sobre esto.
+═══════════════════════════════════════════════════════════════
+
+DÓNDE VIVE
+- Página propia: /settings/review (o /(authenticated)/review). NO en el sidebar.
+- El sidebar de documentos gana solo un aviso "N documentos sin analizar →" que enlaza a la página.
+
+QUÉ LISTA
+- Documentos de la organización con analysis_status distinto de 'analizado'.
+- Agrupados por folder_path cuando lo tengan.
+- Cada documento muestra: nombre, fuente, estado y —si ya fue analizado— sus incidencias
+  (contradicciones, duplicados, etc.), leídas de analysis_results.
+
+SELECCIÓN
+- Checkboxes. Con "seleccionar todos" y selección por carpeta.
+- Límite de 20 documentos seleccionables a la vez mientras no exista la cola (Fase D).
+- Al seleccionar, muestra el coste estimado (N × coste del análisis rápido) y los créditos
+  disponibles del usuario.
+
+ANALIZAR
+- Botón "Analizar seleccionados (N)". Corre de uno en uno.
+- Por cada documento: lee su texto de GET /api/documents/[id]/text, llama a analyze-v2 con
+  directText, y GUARDA EL ANÁLISIS COMPLETO (jsonb) + document_id en analysis_results.
+- Diseño DESACOPLADO: NO se abren modales en cadena. Al terminar, la lista se refresca mostrando
+  las incidencias de cada documento.
+- Usa el análisis RÁPIDO (no el exhaustivo) por defecto.
+
+REVISAR (desacoplado)
+- Clic en un documento con incidencias → abre AnalysisModal en modo 'review', leyendo el análisis
+  YA GUARDADO (sin recalcular, sin gastar créditos).
+- El análisis exhaustivo SÍ está disponible desde el modal (ese sí recalcula y cobra).
+
+ACCIONES DEL MODAL EN MODO 'review' (cuatro, distintas del modo 'upload')
+1. "Marcar como analizado" → analysis_status = 'analizado'. Sale de la bandeja.
+   Significa "revisado por un humano", NO "correcto".
+2. "Mejorar con IA" → abre ImprovementModal (ya soporta documentos sin storagePath).
+3. "Quitar del corpus" → borrado real (vectores + fila), con confirmación. Reutiliza
+   DELETE /api/documents. Es DISTINTO de "Cerrar".
+4. "Cerrar" → no hace nada, el documento sigue pendiente.
+
+FUERA DE ALCANCE (anotado como pendientes; NO hacer en B.5)
+- Ámbito de comparación configurable (B.46).
+- Invalidación de análisis obsoletos al cambiar el corpus (B.47).
+- Exclusión de documentos históricos (B.48).
+- Botón de análisis en lote con cola real en background (Fase D).
+
+ORDEN DE EJECUCIÓN (un commit por paso, build verde entre medias)
+Paso 0 — Migración: columna analysis (jsonb) en analysis_results (document_id ya existe de B.1).
+         saveAnalysisResult pasa a guardar el objeto completo + document_id. analyze-v2 le pasa
+         el document_id cuando el análisis viene de la bandeja.
+Paso 1 — Endpoint que lee analysis_results de un documento (incidencias para la bandeja).
+Paso 2 — Página /review: lista, agrupación por carpeta, checkboxes, coste, análisis uno a uno.
+Paso 3 — Modo 'review' en AnalysisModal (las cuatro acciones).
+Paso 4 — Aviso en el sidebar que enlaza a la página.
+
+═══════════════════════════════════════════════════════════════
