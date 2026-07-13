@@ -7,6 +7,7 @@ interface AnalysisResultInput {
   documentName: string;
   analysis: FinalAnalysis;
   analysisType: 'quick' | 'exhaustive';
+  documentId?: string | null;
 }
 
 interface StyleResultInput {
@@ -28,7 +29,7 @@ export async function saveAnalysisResult(
   supabase: SupabaseClient,
   input: AnalysisResultInput,
 ): Promise<void> {
-  const { analysis, orgId, userId, documentName, analysisType } = input;
+  const { analysis, orgId, userId, documentName, analysisType, documentId } = input;
 
   const involvedSet = new Set<string>();
   if (analysis.isDuplicate && analysis.duplicateOf) involvedSet.add(analysis.duplicateOf);
@@ -51,6 +52,8 @@ export async function saveAnalysisResult(
     style_problems_found: analysis.styleProblems?.length ?? 0,
     recommendation: analysis.recommendation,
     involved_documents: involvedSet.size > 0 ? [...involvedSet] : null,
+    document_id: documentId ?? null,
+    analysis,
   });
 
   if (error) console.error('[persist-analysis] saveAnalysisResult:', error.message);

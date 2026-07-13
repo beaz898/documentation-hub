@@ -55,7 +55,7 @@ export async function POST(req: NextRequest) {
     }
     
     const body = await req.json();
-    const { storagePath, fileName, text: directText, exhaustive, excludeFingerprints: rawExcludeFps } = body;
+    const { storagePath, fileName, text: directText, exhaustive, excludeFingerprints: rawExcludeFps, documentId } = body;
 
     // Convertir array de huellas descartadas a Set (si viene del frontend)
     const excludeFingerprints = Array.isArray(rawExcludeFps)
@@ -274,6 +274,7 @@ export async function POST(req: NextRequest) {
       documentName: fileName,
       analysis,
       analysisType: 'quick',
+      documentId: typeof documentId === 'string' ? documentId : null,
     });
 
     return NextResponse.json({
