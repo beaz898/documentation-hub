@@ -2773,3 +2773,105 @@ PENDIENTE DESTAPADO EN ESTA SESIÓN
    UNA SOLA conexión de drive por organización. Conectar OneDrive eliminó la conexión
    de Google Drive. No es un bug, es el diseño, pero conviene advertirlo en la
    interfaz.
+
+────────────────────────────────────────────────────────────────
+SESIÓN 32 — 13/07/2026
+Título: Fase B — Bandeja de revisión (B.5, pasos 0 a 2D)
+────────────────────────────────────────────────────────────────
+
+OBJETIVO
+Construir la bandeja de revisión (/settings/review): persistir el análisis
+completo de cada documento, listar los no-analizados agrupados por carpeta,
+seleccionarlos con límite y coste, y analizarlos de uno en uno guardando el
+resultado. Base para el modo review del modal (paso 3) y el aviso en el
+sidebar (paso 4), que quedan pendientes.
+
+CAMBIOS IMPLEMENTADOS
+
+1. Paso 0 — Persistir el análisis completo + document_id
+   - Migración: columna analysis (jsonb, nullable) en analysis_results
+     (ejecutada en Supabase; document_id ya existía de B.1).
+   - saveAnalysisResult (lib/persist-analysis.ts): acepta documentId opcional
+     y escribe el objeto FinalAnalysis completo + document_id, además de los
+     contadores que ya guardaba.
+   - analyze-v2: lee documentId opcional del body y lo propaga. En el flujo de
+     SUBIDA el documento aún no está indexado → document_id null (esperado y
+     permanente). El id solo se rellena cuando el análisis viene de la bandeja.
+   - Verificado en producción: fila nueva con analysis no-nulo.
+   Archivos: supabase-analysis-jsonb.sql (registro), lib/persist-analysis.ts,
+             app/api/analyze-v2/route.ts
+
+2. Paso 1 — Endpoint que lee el análisis guardado
+   - GET /api/documents/[id]/analysis: devuelve el último análisis de un
+     documento. Match id-primero, nombre-respaldo, ambos filtrados por org_id.
+     200 con analysis:null si no hay análisis (estado normal, no error).
+     Devuelve contadores aunque analysis sea null (filas anteriores al paso 0).
+   - Fix de tipos: lista de columnas a constante de módulo + maybeSingle<T>()
+     (el .select con cadena dinámica infería GenericStringError).
+   Archivos: app/api/documents/[id]/analysis/route.ts
+
+3. Paso 2A — Endpoint de listado de la bandeja
+   - GET /api/documents/review-list: documentos con analysis_status !=
+     'analizado', ligeros (contadores sí, objeto analysis no). Contadores
+     cruzados en UNA sola consulta a analysis_results (sin N+1). Ordenado por
+     folder_path y luego name. hasDetail = analysis IS NOT NULL.
+   Archivos: app/api/documents/review-list/route.ts
+
+4. Paso 2B — Hook useReviewList
+   - Agrupa por carpeta ("/" o null → "Sin carpeta"), selección con límite de
+     20 (deshabilita al llegar), coste con getCreditCost (fuente única, no
+     hardcode), refetch limpia selección.
+   Archivos: hooks/review/useReviewList.ts
+
+5. Paso 2C — Página /settings/review + componentes
+   - Página al patrón de settings (Client Component, useVisualViewportHeight,
+     cabecera + FeedbackButton, créditos de useAccount). Estados loading /
+     error / vacío / con datos.
+   - Componentes de presentación: ReviewDocumentRow (badge de estado, resumen
+     de contadores, señal "sin detalle" para análisis previos al paso 0),
+     ReviewFolderGroup (checkbox de carpeta con indeterminate),
+     ReviewSelectionBar (coste vs créditos, aviso si insuficiente).
+   - Textos hardcodeados en español (i18n de la bandeja queda pendiente).
+   Archivos: app/(authenticated)/settings/review/page.tsx,
+             components/review/ReviewDocumentRow.tsx,
+             components/review/ReviewFolderGroup.tsx,
+             components/review/ReviewSelectionBar.tsx
+
+6. Paso 2D — Análisis por lote uno a uno
+   - Hook useReviewAnalysis: bucle SECUENCIAL (no paralelo, evita el 409
+     "análisis en curso" y los rate limits). Por documento: lee texto
+     (/api/documents/[id]/text) y llama a analyze-v2 con documentId → rellena
+     la columna del paso 0. Ante fallo de uno, SIGUE con los demás y reporta
+     "N analizados, M con error" con detalle. Progreso "X de N" visible.
+   - Barra y página cableadas: handler real, progreso y resumen verde/ámbar.
+   - Verificado en producción: análisis desde la bandeja guarda document_id
+     RELLENO (no null). Cierra el círculo del paso 0.
+   Archivos: hooks/review/useReviewAnalysis.ts,
+             components/review/ReviewSelectionBar.tsx,
+             app/(authenticated)/settings/review/page.tsx
+
+DECISIÓN DE DISEÑO IMPORTANTE (no es un bug)
+   Analizar desde la bandeja NO cambia analysis_status a 'analizado'. Analizar
+   y "marcar como analizado" son acciones distintas (encargo cerrado): analizar
+   guarda el resultado y muestra las incidencias; marcar como analizado ("lo he
+   revisado", no "es correcto") lo hará el usuario desde el modo review del
+   modal (paso 3). Por eso un documento recién analizado se queda en la bandeja
+   con sus contadores actualizados hasta que el usuario lo revise. Comportamiento
+   correcto; la fricción actual se resuelve con el paso 3.
+
+COMMITS DE ESTA SESIÓN
+  337c6f3c — feat(analysis): persistir análisis completo y document_id (B.5 paso 0)
+  921d7a8c — feat(analysis): endpoint GET /api/documents/[id]/analysis (B.5 paso 1)
+  3972f3b8 — feat(review): endpoint GET /api/documents/review-list (B.5 paso 2A)
+  261f422b — feat(review): hook useReviewList (B.5 paso 2B)
+  a645a6c1 — feat(review): página /settings/review con lista y selección (B.5 paso 2C)
+  aaec7b05 — feat(review): análisis por lote uno a uno desde la bandeja (B.5 paso 2D)
+
+PENDIENTE DESTAPADO EN ESTA SESIÓN
+   - i18n de la bandeja: los textos de /settings/review están hardcodeados en
+     español; internacionalizarlos cuando toque i18n en serio.
+   - Ordenación natural: los "new N.txt" salen en orden alfabético (new 1, new
+     10, new 2...). Cosmético; mejorable en frontend si molesta.
+   - Renombrar getAuthenticatedUserHybrid: es un alias exacto de
+     getAuthenticatedUser (ya no hay Bearer); el nombre "Hybrid" engaña. Algún
+     día renombrar en los ~41 usos y borrar el alias. Puro naming, cero riesgo.

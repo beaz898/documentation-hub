@@ -3,7 +3,7 @@ PENDIENTES — Doclity (Agente IA)
 Documento vivo. Se actualiza al completar tareas (marcar [✓]) y se
 sustituye por la versión nueva. Más ligero que la Bitácora: aquí va
 lo que falta y la visión que lo guía, no el detalle de cada sesión.
-Última actualización: 10/07/2026 (v33)
+Última actualización: 13/07/2026 (v34)
 
 
 ════════════════════════════════════════════════════════════════
@@ -922,9 +922,11 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     B.49 filtro de documentos en chat/agente (futuro, técnicamente viable con metadata Pinecone).
     B.50 duplicidades vs contradicciones: no pesan lo mismo; descartes persistentes (D9, Fase C).
   Fase B: B.1–B.4 hechos y verificados (estados en Supabase, vectores nuevos etiquetados,
-  backfill ejecutado: 46/46). Quedan B.5 (badges + bandeja de revisión) y B.6 (filtro del chat,
-  commit aislado y reversible), EN ESE ORDEN OBLIGATORIO: sin bandeja, activar el filtro dejaría
-  los documentos pendientes invisibles y sin forma de aprobarlos desde la interfaz.
+  backfill ejecutado: 46/46). B.5 pasos 0–2D HECHOS (sesión 32, 13/07/2026): análisis completo
+  persistido, endpoint de listado, hook + página + componentes de la bandeja, análisis por lote.
+  Quedan de B.5: paso 3 (modo review del modal) y paso 4 (aviso en sidebar). Después, B.6 (filtro
+  del chat, commit aislado y reversible), EN ESE ORDEN OBLIGATORIO: sin bandeja completa, activar
+  el filtro dejaría los documentos pendientes invisibles y sin forma de aprobarlos desde la interfaz.
 
 Forma de trabajo: diagnóstico con datos reales antes de arreglar; un
 cambio lógico cada vez; build verde entre medias; SQL en Supabase antes
