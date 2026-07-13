@@ -3,6 +3,7 @@
 import { useVisualViewportHeight } from '@/hooks/useVisualViewportHeight';
 import { useAccount } from '@/contexts/AccountContext';
 import { useReviewList } from '@/hooks/review/useReviewList';
+import { useReviewAnalysis } from '@/hooks/review/useReviewAnalysis';
 import ReviewFolderGroup from '@/components/review/ReviewFolderGroup';
 import ReviewSelectionBar from '@/components/review/ReviewSelectionBar';
 import FeedbackButton from '@/components/feedback/FeedbackButton';
@@ -27,6 +28,19 @@ export default function ReviewPage() {
   } = useReviewList();
 
   const creditsRemaining = credits?.remaining ?? null;
+
+  const { analyze, analyzing, progress, summary, clearSummary } = useReviewAnalysis();
+
+  const handleAnalyze = async () => {
+    // Documentos seleccionados, en el orden de la lista.
+    const selectedDocs = groups
+      .flatMap((g) => g.documents)
+      .filter((d) => selectedIds.has(d.id));
+    if (selectedDocs.length === 0) return;
+    clearSummary();
+    await analyze(selectedDocs);
+    await refetch();
+  };
 
   return (
     <div style={{ height: vvHeight != null ? `${vvHeight}px` : '100dvh', overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
@@ -92,6 +106,32 @@ export default function ReviewPage() {
 
         {!loading && !error && totalPending > 0 && (
           <>
+            {summary && (
+              <div
+                style={{
+                  marginBottom: 16,
+                  padding: '10px 12px',
+                  borderRadius: 8,
+                  fontSize: 12,
+                  background: summary.failed > 0 ? '#fef3c7' : '#dcfce7',
+                  color: summary.failed > 0 ? '#92400e' : '#166534',
+                  border: '0.5px solid var(--border)',
+                }}
+              >
+                {summary.analyzed} analizado{summary.analyzed === 1 ? '' : 's'}
+                {summary.failed > 0 && `, ${summary.failed} con error`}
+                {summary.errors.length > 0 && (
+                  <ul style={{ margin: '6px 0 0', paddingLeft: 18 }}>
+                    {summary.errors.map((e) => (
+                      <li key={e.documentId}>
+                        {e.documentName}: {e.message}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            )}
+
             {/* Controles superiores */}
             <div
               style={{
@@ -135,14 +175,14 @@ export default function ReviewPage() {
               ))}
             </div>
 
-            {/* Barra de accion (boton inerte en 2C; la logica de analisis llega en 2D) */}
             <ReviewSelectionBar
               selectedCount={selectedCount}
               estimatedCost={estimatedCost}
               creditsRemaining={creditsRemaining}
               maxSelection={maxSelection}
-              analyzing={false}
-              onAnalyze={undefined}
+              analyzing={analyzing}
+              progress={progress}
+              onAnalyze={handleAnalyze}
             />
           </>
         )}

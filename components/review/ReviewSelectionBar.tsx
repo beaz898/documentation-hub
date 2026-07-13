@@ -6,6 +6,7 @@ interface Props {
   creditsRemaining: number | null;
   maxSelection: number;
   analyzing: boolean;
+  progress?: { current: number; total: number; currentName: string } | null;
   onAnalyze?: () => void;
 }
 
@@ -15,6 +16,7 @@ export default function ReviewSelectionBar({
   creditsRemaining,
   maxSelection,
   analyzing,
+  progress,
   onAnalyze,
 }: Props) {
   if (selectedCount === 0) return null;
@@ -49,12 +51,18 @@ export default function ReviewSelectionBar({
             </span>
           )}
         </span>
-        <span style={{ fontSize: 11, color: insufficient ? '#991b1b' : 'var(--text-muted)' }}>
-          Coste estimado: {estimatedCost} credito{estimatedCost === 1 ? '' : 's'}
-          {' · '}
-          Disponibles: {creditsRemaining === null ? '—' : creditsRemaining}
-          {insufficient && ' · creditos insuficientes'}
-        </span>
+        {analyzing && progress ? (
+          <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+            Analizando {progress.current} de {progress.total}: {progress.currentName}
+          </span>
+        ) : (
+          <span style={{ fontSize: 11, color: insufficient ? '#991b1b' : 'var(--text-muted)' }}>
+            Coste estimado: {estimatedCost} credito{estimatedCost === 1 ? '' : 's'}
+            {' · '}
+            Disponibles: {creditsRemaining === null ? '—' : creditsRemaining}
+            {insufficient && ' · creditos insuficientes'}
+          </span>
+        )}
       </div>
 
       <button
@@ -73,7 +81,11 @@ export default function ReviewSelectionBar({
           whiteSpace: 'nowrap',
         }}
       >
-        {analyzing ? 'Analizando...' : `Analizar seleccionados (${selectedCount})`}
+        {analyzing
+          ? progress
+            ? `Analizando ${progress.current}/${progress.total}...`
+            : 'Analizando...'
+          : `Analizar seleccionados (${selectedCount})`}
       </button>
     </div>
   );
