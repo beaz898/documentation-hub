@@ -921,6 +921,21 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     B.48 archivo histórico: excluir versiones antiguas de la comparación sin borrarlas del corpus.
     B.49 filtro de documentos en chat/agente (futuro, técnicamente viable con metadata Pinecone).
     B.50 duplicidades vs contradicciones: no pesan lo mismo; descartes persistentes (D9, Fase C).
+  B.51 — Jobs de análisis zombis: sin recuperación ante caída del worker.
+    Si el worker de Railway muere entre 'processing' y 'completed'/'failed', el job
+    en analysis_jobs queda bloqueante para siempre (status 'processing') y hay que
+    cerrarlo a mano en Supabase (UPDATE ... SET status='failed'). Mientras existe,
+    el 409 "analysis_in_progress" bloquea TODO análisis nuevo de la organización.
+    Ocurrió en producción (13/07/2026): un exhaustivo se cortó porque Railway se
+    quedó sin saldo. Falta timeout/recuperación: p.ej. tratar como 'failed' un job
+    en 'processing' más de N minutos, o un heartbeat del worker. Hermano de la deuda
+    técnica nº3 (análisis a cola). Riesgo OPERATIVO: un corte del worker bloquea los
+    análisis de toda la org hasta intervención manual en la BD.
+  B.52 — Estilo: el botón "Descartar" del AnalysisModal es gris, se prefería
+    rojizo. Da sensación de deshabilitado aunque funciona. Cambio estético (no bug:
+    el botón ya era gris antes del refactor 3A). Decidir el color junto con el diseño
+    de los botones del modo review (paso 3), donde "descartar" se desdobla en "Cerrar"
+    y "Quitar del corpus".
   Fase B: B.1–B.4 hechos y verificados (estados en Supabase, vectores nuevos etiquetados,
   backfill ejecutado: 46/46). B.5 pasos 0–2D HECHOS (sesión 32, 13/07/2026): análisis completo
   persistido, endpoint de listado, hook + página + componentes de la bandeja, análisis por lote.
