@@ -10,7 +10,6 @@ export interface ExistingDocForIndexing {
 interface UseIndexingParams {
   fileName: string;
   storagePath?: string;
-  accessToken: string;
   existingDocWithSameName?: ExistingDocForIndexing | null;
   onIndexed: (docName: string, wasReplaced: boolean) => void;
 }
@@ -18,7 +17,6 @@ interface UseIndexingParams {
 export function useIndexing({
   fileName,
   storagePath,
-  accessToken,
   existingDocWithSameName,
   onIndexed,
 }: UseIndexingParams) {
@@ -68,7 +66,7 @@ export function useIndexing({
         setIndexing(false);
       }
     },
-    [fileName, storagePath, accessToken, existingDocWithSameName, onIndexed]
+    [fileName, storagePath, existingDocWithSameName, onIndexed]
   );
 
   const handleIndexClick = useCallback(() => {

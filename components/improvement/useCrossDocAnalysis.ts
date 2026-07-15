@@ -49,7 +49,6 @@ export interface ReanalyzeResult {
 
 export function useCrossDocAnalysis(
   initialAnalysis: RawAnalysis,
-  accessToken: string | null,
 ) {
   const [crossDocProblems, setCrossDocProblems] = useState<Problem[]>(
     () => problemsFromAnalysis(initialAnalysis)
@@ -67,12 +66,6 @@ export function useCrossDocAnalysis(
 
   const reanalyzeAll = useCallback(
     async (currentText: string, fileName: string): Promise<ReanalyzeResult | null> => {
-      if (!accessToken) {
-        console.warn('[useCrossDocAnalysis] no access token available');
-        setLastError('No se pudo reanalizar: sesión no disponible.');
-        return null;
-      }
-
       setReanalyzingAll(true);
       setLastError(null);
       setReanalyzePhase('Enviando reanálisis...');
@@ -157,7 +150,7 @@ export function useCrossDocAnalysis(
         setReanalyzingAll(false);
       }
     },
-    [accessToken]
+    []
   );
 
   /**

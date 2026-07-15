@@ -251,7 +251,6 @@ export default function ChatPage() {
             documentSources={improvementTarget.documentSources}
             storagePath={improvementTarget.storagePath}
             existingDocWithSameName={improvementTarget.existingDocWithSameName}
-            accessToken={session.access_token}
             onClose={handleImprovementClose}
             onIndexed={handleImprovementIndexed}
             onMinimize={() => setImprovementMinimized(true)}

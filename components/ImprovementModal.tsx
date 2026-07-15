@@ -42,7 +42,6 @@ interface ImprovementModalProps {
   documentSources?: Record<string, string[]>;
   storagePath?: string;   // ausente en documentos ya indexados (Drive): no hay archivo temporal
   existingDocWithSameName?: ExistingDocForDialog | null;
-  accessToken: string;
   onClose: () => void;
   onIndexed: (docName: string, wasReplaced: boolean) => void;
   onMinimize?: () => void;
@@ -149,7 +148,6 @@ function ImprovementModalDesktop({
   documentSources,
   storagePath,
   existingDocWithSameName,
-  accessToken,
   onClose,
   onIndexed,
   onMinimize,
@@ -170,7 +168,7 @@ function ImprovementModalDesktop({
     sendMessage,
     addAssistantMessage,
     setMessages: setChatMessages,
-  } = useImprovementChat(accessToken);
+  } = useImprovementChat();
   const [chatInput, setChatInput] = useState('');
 
   const {
@@ -180,7 +178,7 @@ function ImprovementModalDesktop({
     reanalyzingAll,
     reanalyzePhase,
     dismissProblem,
-  } = useCrossDocAnalysis(analysis, accessToken);
+  } = useCrossDocAnalysis(analysis);
 
   const {
     styleProblems,
@@ -190,7 +188,6 @@ function ImprovementModalDesktop({
   } = useStyleAnalysis({
     initialText,
     fileName,
-    accessToken,
     initialStyleProblems: analysis.styleProblems,
   });
 
@@ -413,7 +410,6 @@ function ImprovementModalDesktop({
   } = useIndexing({
     fileName,
     storagePath,
-    accessToken,
     existingDocWithSameName,
     onIndexed,
   });

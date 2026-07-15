@@ -11,7 +11,6 @@ type StyleApiProblem = {
 interface UseStyleAnalysisArgs {
   initialText: string;
   fileName: string;
-  accessToken: string | null;
   /**
    * Problemas de estilo precargados (vienen del análisis exhaustivo previo).
    * Si se proporcionan, se mapean al tipo Problem y se usan como estado inicial,
@@ -35,7 +34,6 @@ function mapStyleProblems(raw: StyleApiProblem[]): Problem[] {
 export function useStyleAnalysis({
   initialText,
   fileName,
-  accessToken,
   initialStyleProblems,
 }: UseStyleAnalysisArgs) {
   // Mapeamos los problemas iniciales una sola vez (no en cada render),
@@ -58,10 +56,6 @@ export function useStyleAnalysis({
 
   const reanalyzeStyle = useCallback(
     async (currentText: string, currentFileName: string): Promise<Problem[]> => {
-      if (!accessToken) {
-        console.warn('[useStyleAnalysis] no access token available');
-        return [];
-      }
       setStyleLoading(true);
       try {
         const res = await fetch('/api/analyze-style', {
@@ -91,7 +85,7 @@ export function useStyleAnalysis({
         setStyleLoading(false);
       }
     },
-    [accessToken]
+    []
   );
 
   return { styleProblems, styleLoading, reanalyzeStyle, setStyleProblems };

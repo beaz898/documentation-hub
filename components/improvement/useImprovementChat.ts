@@ -77,7 +77,7 @@ export function applyReplacement(text: string, find: string, replace: string): s
   return text.slice(0, range.start) + replace + text.slice(range.end);
 }
 
-export function useImprovementChat(accessToken: string) {
+export function useImprovementChat() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [sending, setSending] = useState(false);
 
@@ -137,7 +137,7 @@ export function useImprovementChat(accessToken: string) {
     } finally {
       setSending(false);
     }
-  }, [accessToken]);
+  }, []);
 
   return { messages, sending, sendMessage, addAssistantMessage, updateMessage, setMessages };
 }
