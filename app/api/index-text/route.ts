@@ -6,6 +6,7 @@ import { generateEmbeddings } from '@/lib/embeddings';
 import { chunkText } from '@/lib/chunking';
 import { randomUUID } from 'crypto';
 import { resolveOrg } from '@/lib/org';
+import { generateContentHash } from '@/lib/analysis/hash-check';
 
 export const maxDuration = 300;
 
@@ -112,6 +113,13 @@ export async function POST(req: NextRequest) {
 
     await upsertVectors(orgId, vectors);
 
+    // content_hash = "que texto ES este documento" (identidad, para detectar
+    // duplicados exactos en hash-check y para el portero por hash de Fase C).
+    // NO confundir con analyzed_content_hash = "que texto SE ANALIZO por ultima
+    // vez" (verificacion). Son campos primos, nunca el mismo: fusionarlos haria
+    // que un documento se declare analizado por el mero hecho de indexarse.
+    const contentHash = generateContentHash(text);
+
     // Save to Supabase
     await supabase.from('documents').insert({
       id: documentId,
@@ -124,6 +132,8 @@ export async function POST(req: NextRequest) {
       // Esta ruta la usa el modal de mejora: el texto ya fue revisado y corregido
       // por el usuario, así que nace analizado (no va a la bandeja de revisión).
       analysis_status: 'analizado',
+      content_hash: contentHash,
+      full_text: text,
     });
 
     // Clean up the original uploaded file from Storage if provided
