@@ -3,6 +3,7 @@
 import { useState, ReactNode } from 'react';
 import { useTranslations } from 'next-intl';
 import UploadActions from './AnalysisModal/UploadActions';
+import ReviewActions from './AnalysisModal/ReviewActions';
 
 interface AnalysisResult {
   isDuplicate?: boolean;
@@ -46,6 +47,8 @@ interface AnalysisModalProps {
   onExhaustive?: () => void;
   onMinimize?: () => void;
   mode?: 'upload' | 'review';
+  onMarkAnalyzed?: () => void | Promise<void>;
+  onRemove?: () => void | Promise<void>;
 }
 
 // ============================================================
@@ -158,7 +161,7 @@ void ConfidenceBadge;
 // ============================================================
 // Main modal
 // ============================================================
-export default function AnalysisModal({ fileName, analysis, onConfirm, onCancel, onImprove, onExhaustive, onMinimize, mode = 'upload' }: AnalysisModalProps) {
+export default function AnalysisModal({ fileName, analysis, onConfirm, onCancel, onImprove, onExhaustive, onMinimize, mode = 'upload', onMarkAnalyzed, onRemove }: AnalysisModalProps) {
   const t = useTranslations('analysis');
 
   const recColor = analysis.recommendation === 'NO_INDEXAR'
@@ -480,13 +483,22 @@ export default function AnalysisModal({ fileName, analysis, onConfirm, onCancel,
           </>
         )}
 
-        <UploadActions
-          isExhaustive={isExhaustive}
-          onCancel={onCancel}
-          onImprove={onImprove}
-          onConfirm={onConfirm}
-          onExhaustive={onExhaustive}
-        />
+        {mode === 'review' ? (
+          <ReviewActions
+            onMarkAnalyzed={onMarkAnalyzed ?? (() => {})}
+            onImprove={onImprove}
+            onRemove={onRemove ?? (() => {})}
+            onClose={onCancel}
+          />
+        ) : (
+          <UploadActions
+            isExhaustive={isExhaustive}
+            onCancel={onCancel}
+            onImprove={onImprove}
+            onConfirm={onConfirm}
+            onExhaustive={onExhaustive}
+          />
+        )}
       </div>
     </div>
   );

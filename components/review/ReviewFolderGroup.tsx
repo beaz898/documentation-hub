@@ -9,6 +9,7 @@ interface Props {
   limitReached: boolean;
   onToggleDocument: (id: string) => void;
   onToggleFolder: (folderPath: string | null) => void;
+  onOpenDocument?: (doc: FolderGroup['documents'][number]) => void;
 }
 
 export default function ReviewFolderGroup({
@@ -17,6 +18,7 @@ export default function ReviewFolderGroup({
   limitReached,
   onToggleDocument,
   onToggleFolder,
+  onOpenDocument,
 }: Props) {
   const folderLabel = group.folderPath ?? 'Sin carpeta';
   const total = group.documents.length;
@@ -64,6 +66,7 @@ export default function ReviewFolderGroup({
               selected={selected}
               disabled={limitReached && !selected}
               onToggle={onToggleDocument}
+              onOpen={onOpenDocument}
             />
           );
         })}

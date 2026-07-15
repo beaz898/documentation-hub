@@ -1,9 +1,11 @@
 'use client';
 
+import { useState } from 'react';
 import { useVisualViewportHeight } from '@/hooks/useVisualViewportHeight';
 import { useAccount } from '@/contexts/AccountContext';
 import { useReviewList } from '@/hooks/review/useReviewList';
 import { useReviewAnalysis } from '@/hooks/review/useReviewAnalysis';
+import AnalysisModal from '@/components/AnalysisModal';
 import ReviewFolderGroup from '@/components/review/ReviewFolderGroup';
 import ReviewSelectionBar from '@/components/review/ReviewSelectionBar';
 import FeedbackButton from '@/components/feedback/FeedbackButton';
@@ -30,6 +32,83 @@ export default function ReviewPage() {
   const creditsRemaining = credits?.remaining ?? null;
 
   const { analyze, analyzing, progress, summary, clearSummary } = useReviewAnalysis();
+
+  // Modal de revision: documento abierto y su analisis guardado.
+  const [reviewDoc, setReviewDoc] = useState<{ id: string; name: string } | null>(null);
+  const [reviewAnalysis, setReviewAnalysis] = useState<Record<string, unknown> | null>(null);
+  const [loadingAnalysis, setLoadingAnalysis] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
+
+  const handleOpenDocument = async (doc: { id: string; name: string }) => {
+    setActionError(null);
+    setLoadingAnalysis(true);
+    setReviewDoc(doc);
+    setReviewAnalysis(null);
+    try {
+      const res = await fetch(`/api/documents/${doc.id}/analysis`, {
+        credentials: 'include',
+      });
+      if (!res.ok) throw new Error(`Error ${res.status}`);
+      const data = await res.json();
+      if (!data.analysis) {
+        setActionError(
+          'Este analisis es anterior y no guardo el detalle de las incidencias. Puedes reanalizar el documento para verlas.',
+        );
+        setReviewDoc(null);
+        return;
+      }
+      setReviewAnalysis(data.analysis);
+    } catch (err) {
+      console.error('[review] cargar analisis:', err);
+      setActionError('No se pudo cargar el analisis de este documento.');
+      setReviewDoc(null);
+    } finally {
+      setLoadingAnalysis(false);
+    }
+  };
+
+  const closeReviewModal = () => {
+    setReviewDoc(null);
+    setReviewAnalysis(null);
+  };
+
+  const handleMarkAnalyzed = async () => {
+    if (!reviewDoc) return;
+    setActionError(null);
+    try {
+      const res = await fetch(`/api/documents/${reviewDoc.id}/mark-analyzed`, {
+        method: 'POST',
+        credentials: 'include',
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || `Error ${res.status}`);
+      }
+      closeReviewModal();
+      await refetch();
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : 'No se pudo marcar como analizado.');
+    }
+  };
+
+  const handleRemoveDocument = async () => {
+    if (!reviewDoc) return;
+    setActionError(null);
+    try {
+      const res = await fetch(`/api/documents?id=${reviewDoc.id}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || `Error ${res.status}`);
+      }
+      closeReviewModal();
+      await refetch();
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : 'No se pudo quitar el documento.');
+    }
+  };
 
   const handleAnalyze = async () => {
     // Documentos seleccionados, en el orden de la lista.
@@ -106,6 +185,22 @@ export default function ReviewPage() {
 
         {!loading && !error && totalPending > 0 && (
           <>
+            {actionError && (
+              <div
+                style={{
+                  marginBottom: 16,
+                  padding: '10px 12px',
+                  borderRadius: 8,
+                  fontSize: 12,
+                  background: '#fef3c7',
+                  color: '#92400e',
+                  border: '0.5px solid var(--border)',
+                }}
+              >
+                {actionError}
+              </div>
+            )}
+
             {summary && (
               <div
                 style={{
@@ -171,6 +266,7 @@ export default function ReviewPage() {
                   limitReached={limitReached}
                   onToggleDocument={toggleDocument}
                   onToggleFolder={toggleFolder}
+                  onOpenDocument={handleOpenDocument}
                 />
               ))}
             </div>
@@ -187,6 +283,37 @@ export default function ReviewPage() {
           </>
         )}
       </div>
+
+      {loadingAnalysis && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: 'rgba(0,0,0,0.2)',
+            fontSize: 13,
+            color: '#fff',
+            zIndex: 50,
+          }}
+        >
+          Cargando analisis...
+        </div>
+      )}
+
+      {reviewDoc && reviewAnalysis && (
+        <AnalysisModal
+          fileName={reviewDoc.name}
+          analysis={reviewAnalysis}
+          mode="review"
+          onConfirm={() => {}}
+          onCancel={closeReviewModal}
+          onImprove={() => {}}
+          onMarkAnalyzed={handleMarkAnalyzed}
+          onRemove={handleRemoveDocument}
+        />
+      )}
     </div>
   );
 }

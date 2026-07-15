@@ -39,9 +39,10 @@ interface Props {
   selected: boolean;
   disabled: boolean;
   onToggle: (id: string) => void;
+  onOpen?: (doc: ReviewDocument) => void;
 }
 
-export default function ReviewDocumentRow({ document: doc, selected, disabled, onToggle }: Props) {
+export default function ReviewDocumentRow({ document: doc, selected, disabled, onToggle, onOpen }: Props) {
   const status = doc.analysis_status;
   const statusColor = STATUS_COLORS[status] ?? { bg: 'var(--bg-tertiary)', fg: 'var(--text-muted)' };
   const statusLabel = STATUS_LABELS[status] ?? status;
@@ -75,7 +76,16 @@ export default function ReviewDocumentRow({ document: doc, selected, disabled, o
         }}
       />
 
-      <div style={{ flex: 1, minWidth: 0 }}>
+      <div
+        style={{
+          flex: 1,
+          minWidth: 0,
+          cursor: doc.lastAnalysis && onOpen ? 'pointer' : 'default',
+        }}
+        onClick={() => {
+          if (doc.lastAnalysis && onOpen) onOpen(doc);
+        }}
+      >
         <div
           style={{
             fontSize: 13,
