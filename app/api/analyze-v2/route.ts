@@ -11,6 +11,7 @@ import { checkUploadLock } from '@/lib/upload-lock';
 import { saveAnalysisResult } from '@/lib/persist-analysis';
 import { usageContext } from '@/lib/observability/usage-context';
 import { persistLLMUsage } from '@/lib/observability/record-usage';
+import { generateContentHash } from '@/lib/analysis/hash-check';
 
 // Un job en 'pending'/'processing' mas viejo que esto se considera muerto: el
 // worker cayo sin marcarlo 'failed' y bloqueaba el 409 de toda la organizacion
@@ -315,6 +316,21 @@ export async function POST(req: NextRequest) {
       analysisType: 'quick',
       documentId: typeof documentId === 'string' ? documentId : null,
     });
+
+    // B.5-hash-a: si el analisis vino de la bandeja (hay documentId), el
+    // documento ya existe: registramos que ESTE texto es el analizado. En el
+    // flujo de subida no hay documentId (el doc aun no existe) y lo escribe
+    // ingest al indexar.
+    if (typeof documentId === 'string') {
+      const { error: hashError } = await supabase
+        .from('documents')
+        .update({ analyzed_content_hash: generateContentHash(text) })
+        .eq('id', documentId)
+        .eq('org_id', orgId);
+      if (hashError) {
+        console.error('[analyze-v2] analyzed_content_hash:', hashError.message);
+      }
+    }
 
     return NextResponse.json({
       success: true,

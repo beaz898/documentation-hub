@@ -221,6 +221,12 @@ export async function POST(req: NextRequest) {
       analysis_status: analysisStatus,
       content_hash: contentHash,
       full_text: text,
+      // Si el analisis se completo OK, fue sobre ESTE mismo texto (el frontend
+      // analiza y luego indexa lo mismo), asi que el hash analizado coincide con
+      // el de identidad. Si el analisis fallo o no hubo, queda null = "esta
+      // version nunca se ha analizado". Campo distinto de content_hash pese a
+      // coincidir aqui en valor: no los fusiones.
+      analyzed_content_hash: analysisStatus === 'analizado' ? contentHash : null,
     });
 
     // 10. Limpiar archivo de storage
