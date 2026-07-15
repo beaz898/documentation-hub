@@ -12,6 +12,18 @@ import { saveAnalysisResult } from '@/lib/persist-analysis';
 import { usageContext } from '@/lib/observability/usage-context';
 import { persistLLMUsage } from '@/lib/observability/record-usage';
 
+// Un job en 'pending'/'processing' mas viejo que esto se considera muerto: el
+// worker cayo sin marcarlo 'failed' y bloqueaba el 409 de toda la organizacion
+// (B.51; ocurrio en produccion el 13/07/2026 al quedarse Railway sin saldo).
+// 20 min con margen: el analisis exhaustivo mas largo registrado tardo 6,1 min.
+// Hoy no puede haber 'pending' viejos legitimos: el propio 409 impide encolar
+// detras de un analisis vivo, asi que un 'pending' de 20 min significa que el
+// worker no lo recogio.
+// FASE D: al construir la cola (D8), ELIMINAR el umbral de 'pending' y
+// sustituirlo por semantica de cola (encolar varios pending sera lo normal),
+// y cambiar este umbral grueso por el heartbeat que el worker toque por etapa.
+const STALE_JOB_THRESHOLD_MS = 20 * 60 * 1000;
+
 export const maxDuration = 120;
 
 /**
@@ -148,7 +160,34 @@ export async function POST(req: NextRequest) {
 
     if (isExhaustive) {
       // ── EXHAUSTIVO: crear job y devolver inmediatamente ──────
-      
+
+      // B.51 — Barrer jobs zombis de esta org antes de nada: si el worker murio
+      // sin cerrarlos, bloquearian el semaforo indefinidamente. Se marcan
+      // 'failed' (no solo se ignoran) para que un worker resucitado no los
+      // recoja y acabemos con dos analisis en paralelo de la misma org.
+      const staleCutoff = new Date(Date.now() - STALE_JOB_THRESHOLD_MS).toISOString();
+
+      const { data: sweptProcessing } = await supabase
+        .from('analysis_jobs')
+        .update({ status: 'failed', error_message: 'stale_timeout' })
+        .eq('org_id', orgId)
+        .eq('status', 'processing')
+        .lt('started_at', staleCutoff)
+        .select('id');
+
+      const { data: sweptPending } = await supabase
+        .from('analysis_jobs')
+        .update({ status: 'failed', error_message: 'stale_timeout' })
+        .eq('org_id', orgId)
+        .eq('status', 'pending')
+        .lt('created_at', staleCutoff)
+        .select('id');
+
+      const sweptCount = (sweptProcessing?.length ?? 0) + (sweptPending?.length ?? 0);
+      if (sweptCount > 0) {
+        console.log(`[analyze-v2] B.51: ${sweptCount} job(s) zombi marcados como failed (org: ${orgId})`);
+      }
+
       // Semáforo: verificar que no hay otro exhaustivo activo en esta org
       const { data: activeJobs } = await supabase
         .from('analysis_jobs')
