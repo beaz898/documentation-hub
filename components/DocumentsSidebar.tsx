@@ -179,6 +179,13 @@ export default function DocumentsSidebar({
 
   const driveTree = useMemo(() => buildFolderTree(driveDocs), [driveDocs]);
 
+  // Paso 4 (B.5): documentos que aun no ha revisado nadie. Se cuenta aqui
+  // porque el sidebar ya recibe todos los documentos con su analysis_status:
+  // cero llamadas extra.
+  const pendingReviewCount = documents.filter(
+    (d) => d.analysis_status && d.analysis_status !== 'analizado',
+  ).length;
+
   function toggleFolder(fullPath: string) {
     setExpandedFolders(prev => {
       const next = new Set(prev);
@@ -404,6 +411,32 @@ export default function DocumentsSidebar({
           </button>
         )}
       </div>
+
+      {pendingReviewCount > 0 && (
+        <a
+          href="/settings/review"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 8,
+            margin: '0 12px 8px',
+            padding: '8px 10px',
+            borderRadius: 8,
+            background: '#fef3c7',
+            color: '#92400e',
+            border: '0.5px solid var(--border)',
+            fontSize: 12,
+            fontWeight: 600,
+            textDecoration: 'none',
+          }}
+        >
+          <span>
+            {pendingReviewCount} sin analizar
+          </span>
+          <span aria-hidden="true">&rarr;</span>
+        </a>
+      )}
 
       {/* 2. Scrollable content */}
       <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden' }}>
