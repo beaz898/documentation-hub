@@ -6,6 +6,7 @@ import { useAccount } from '@/contexts/AccountContext';
 import { useReviewList } from '@/hooks/review/useReviewList';
 import { useReviewAnalysis } from '@/hooks/review/useReviewAnalysis';
 import AnalysisModal from '@/components/AnalysisModal';
+import ImprovementModal from '@/components/ImprovementModal';
 import ReviewFolderGroup from '@/components/review/ReviewFolderGroup';
 import ReviewSelectionBar from '@/components/review/ReviewSelectionBar';
 import FeedbackButton from '@/components/feedback/FeedbackButton';
@@ -38,6 +39,14 @@ export default function ReviewPage() {
   const [reviewAnalysis, setReviewAnalysis] = useState<Record<string, unknown> | null>(null);
   const [loadingAnalysis, setLoadingAnalysis] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
+
+  // Modal de mejora abierto desde la bandeja (el documento ya esta indexado).
+  const [improveTarget, setImproveTarget] = useState<{
+    id: string;
+    name: string;
+    text: string;
+    analysis: Record<string, unknown>;
+  } | null>(null);
 
   const handleOpenDocument = async (doc: { id: string; name: string }) => {
     setActionError(null);
@@ -107,6 +116,33 @@ export default function ReviewPage() {
       await refetch();
     } catch (err) {
       setActionError(err instanceof Error ? err.message : 'No se pudo quitar el documento.');
+    }
+  };
+
+  const handleImprove = async () => {
+    if (!reviewDoc || !reviewAnalysis) return;
+    const doc = reviewDoc;
+    const analysis = reviewAnalysis;
+    setActionError(null);
+    setLoadingAnalysis(true);
+    closeReviewModal();
+    try {
+      const res = await fetch(`/api/documents/${doc.id}/text`, {
+        credentials: 'include',
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || `Error ${res.status}`);
+      }
+      const data = await res.json();
+      if (!data.text) throw new Error('El documento no tiene texto guardado.');
+      setImproveTarget({ id: doc.id, name: doc.name, text: data.text, analysis });
+    } catch (err) {
+      setActionError(
+        err instanceof Error ? err.message : 'No se pudo abrir el editor de mejora.',
+      );
+    } finally {
+      setLoadingAnalysis(false);
     }
   };
 
@@ -309,9 +345,23 @@ export default function ReviewPage() {
           mode="review"
           onConfirm={() => {}}
           onCancel={closeReviewModal}
-          onImprove={() => {}}
+          onImprove={handleImprove}
           onMarkAnalyzed={handleMarkAnalyzed}
           onRemove={handleRemoveDocument}
+        />
+      )}
+
+      {improveTarget && (
+        <ImprovementModal
+          fileName={improveTarget.name}
+          initialText={improveTarget.text}
+          analysis={improveTarget.analysis as never}
+          existingDocWithSameName={{ id: improveTarget.id, name: improveTarget.name }}
+          onClose={() => setImproveTarget(null)}
+          onIndexed={async () => {
+            setImproveTarget(null);
+            await refetch();
+          }}
         />
       )}
     </div>
