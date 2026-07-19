@@ -24,6 +24,13 @@ import { getActiveRulesText } from '@/lib/learning/rules';
 /** Cuántos chunks recuperar de Pinecone para identificar documentos relevantes. */
 const TOP_K = 15;
 
+// D3: el chat solo responde con documentos ya analizados. El filtro se aplica
+// AQUI (ruta del chat), nunca en el pipeline de analisis (lib/analysis/), que
+// debe ver TODO el corpus para detectar conflictos entre documentos. El campo
+// en la metadata de Pinecone es analysisStatus (camelCase); en Supabase la
+// columna es analysis_status (snake_case). No confundirlos.
+const CHAT_ANALYZED_FILTER = { analysisStatus: { $eq: 'analizado' } };
+
 /** Máximo de documentos completos a pasar como contexto. */
 const MAX_DOCUMENTS = 4;
 
@@ -165,6 +172,7 @@ export async function queryRAG(
     vector: queryVector,
     topK: TOP_K,
     includeMetadata: true,
+    filter: CHAT_ANALYZED_FILTER,
   });
 
   // Si no hay resultados relevantes, no llamamos al LLM
