@@ -355,6 +355,10 @@ Leyenda: [ ] pendiente · [~] en curso · [✓] hecho
       el executor verifica role !== 'admin'). Aislado por org_id.
       Nota: tokens de Drive SÍ están cifrados con AES-256-GCM (lib/crypto.ts) —
       no hay deuda de texto plano.
+      RESUELTO (verificado 19/07/2026): encrypt() en callback y en ambos puntos de
+      refresh de sync; decrypt() al leer. Confirmado en BD: 0 filas en texto plano,
+      incluida la más antigua (mayo 2026). Formato iv:authTag:ciphertext en todas las
+      filas de drive_connections.
       Commits: d416dab (herramienta + gate + runner) + tanda 2 (FORMAT_SECTION +
       CONFIDENTIALITY_SECTION).
 
