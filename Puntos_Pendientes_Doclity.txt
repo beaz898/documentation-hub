@@ -3,7 +3,7 @@ PENDIENTES — Doclity (Agente IA)
 Documento vivo. Se actualiza al completar tareas (marcar [✓]) y se
 sustituye por la versión nueva. Más ligero que la Bitácora: aquí va
 lo que falta y la visión que lo guía, no el detalle de cada sesión.
-Última actualización: 13/07/2026 (v34)
+Última actualización: 17/07/2026 (v35)
 
 
 ════════════════════════════════════════════════════════════════
@@ -936,12 +936,45 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     el botón ya era gris antes del refactor 3A). Decidir el color junto con el diseño
     de los botones del modo review (paso 3), donde "descartar" se desdobla en "Cerrar"
     y "Quitar del corpus".
-  Fase B: B.1–B.4 hechos y verificados (estados en Supabase, vectores nuevos etiquetados,
-  backfill ejecutado: 46/46). B.5 pasos 0–2D HECHOS (sesión 32, 13/07/2026): análisis completo
-  persistido, endpoint de listado, hook + página + componentes de la bandeja, análisis por lote.
-  Quedan de B.5: paso 3 (modo review del modal) y paso 4 (aviso en sidebar). Después, B.6 (filtro
-  del chat, commit aislado y reversible), EN ESE ORDEN OBLIGATORIO: sin bandeja completa, activar
-  el filtro dejaría los documentos pendientes invisibles y sin forma de aprobarlos desde la interfaz.
+  B.53 — [FASE D, bloque único] Cerrar el ciclo del hash y la cola.
+    Es UN solo bloque de trabajo, no piezas sueltas: (1) migrar document_id a
+    analysis_jobs — la cola por org es imposible sin saber de qué documento es
+    cada job; (2) el worker rellena analyzed_content_hash al completar el
+    análisis; (3) encender la marca "modificado desde el último análisis" en la
+    bandeja (aviso suave, tercera categoría no bloqueante, reanálisis a un clic,
+    5 cr) — HOY NO se enciende porque el worker no puede rellenar la columna y
+    la marca acusaría de "modificado" a documentos recién analizados en
+    exhaustivo; (4) eliminar el umbral de 'pending' del 409 (B.51) y sustituirlo
+    por semántica de cola: encolar varios pending será lo NORMAL, el gate actual
+    se reescribe entero; (5) sustituir el umbral grueso de 20 min por heartbeat
+    que el worker toque por etapa del pipeline.
+  B.54 — [OPERATIVO, fuera de código] Averiguar y documentar el mecanismo de
+    deploy del worker de Railway en Estado_Del_Proyecto.txt. Hoy no lo sabemos
+    (¿auto-deploy desde GitHub como Vercel?). Fase D toca el worker: será lo
+    primero que haga falta.
+  B.55 — i18n de la bandeja de revisión. Los textos de /settings/review y de
+    components/review/ están hardcodeados en español; el resto de la app usa
+    next-intl con claves. Decisión consciente de B.5 por simplicidad. También
+    ReviewActions (los de UploadActions sí usan t()).
+  B.56 — DocumentsSidebar.tsx tiene 750 líneas (límite del proyecto: 400).
+    Trocearlo en subcomponentes. No se hizo en B.5 para no abrir otro frente.
+  B.57 — Ambigüedad de la prop `mode` en AnalysisModal: el subcomponente interno
+    AnalysisModeBadge recibe mode: 'quick'|'exhaustive' y el modal principal
+    mode: 'upload'|'review'. Scopes distintos, compila bien, pero el nombre
+    duplicado confunde al leer (nos costó una verificación). Renombrar el del
+    modal a viewMode. Cosmético, cero riesgo.
+  B.58 — Documentos indexados desde el modal de mejora ANTES del fix e91e8b44
+    no tienen full_text ni content_hash: darán 422 en /api/documents/[id]/text
+    y no se pueden mejorar ni analizar. Si alguno importa, rellenar full_text
+    con SQL. Los nuevos ya nacen bien.
+  Fase B: B.1–B.4 hechos y verificados. B.5 COMPLETA (pasos 0-4 + B.51 + fix index-text +
+  B.5-hash-a, sesiones 32-33, 13-17/07/2026): bandeja de revisión completa (análisis persistido,
+  endpoint de listado, selección por lote, modo review del modal, aviso en sidebar, jobs zombis
+  resueltos, full_text/content_hash en index-text, columna analyzed_content_hash).
+  Siguiente: B.6 (filtro del chat por 'analizado', commit aislado y reversible) para cerrar la
+  Fase B. OJO: B.6 será la primera prueba real de que updateVectorMetadata escribió bien en
+  Pinecone — si un documento marcado como analizado desaparece del chat tras activar el filtro,
+  la metadata no se actualizó.
 
 Forma de trabajo: diagnóstico con datos reales antes de arreglar; un
 cambio lógico cada vez; build verde entre medias; SQL en Supabase antes

@@ -2875,3 +2875,178 @@ PENDIENTE DESTAPADO EN ESTA SESIÓN
    - Renombrar getAuthenticatedUserHybrid: es un alias exacto de
      getAuthenticatedUser (ya no hay Bearer); el nombre "Hybrid" engaña. Algún
      día renombrar en los ~41 usos y borrar el alias. Puro naming, cero riesgo.
+
+────────────────────────────────────────────────────────────────
+SESIÓN 33 — 15-17/07/2026
+Título: Fase B — Bandeja de revisión: paso 3 (modo review), paso 4 y B.51
+────────────────────────────────────────────────────────────────
+
+OBJETIVO
+Cerrar B.5: el modo review del AnalysisModal (ver incidencias y decidir),
+el aviso en el sidebar, y el fix del bloqueo por jobs zombis. Consultadas
+tres decisiones a Fable; las tres cambiaron el diseño.
+
+CAMBIOS IMPLEMENTADOS
+
+1. Paso 3A — Extraer botones del modal (2259cefd)
+   AnalysisModal (545 líneas) → botones a components/AnalysisModal/UploadActions.tsx.
+   Prop `mode?: 'upload' | 'review'` declarada sin usar. Cero cambio visible.
+   Refactor puro para no inflar el modal con condicionales.
+
+2. Paso 3B — ReviewActions (352075d6)
+   Cuatro botones del modo review: Cerrar, Mejorar con IA, Quitar del corpus
+   (rojo, con confirmación INLINE — descartado window.confirm: bloquea el hilo,
+   no es el patrón del repo, y se descarta con Enter por inercia), Marcar como
+   analizado. Estado `busy` bloquea la fila mientras corre una acción.
+
+3. Paso 3C-1 — Endpoint mark-analyzed (9d3e7f99)
+   Migración: reviewed_at (timestamptz) + reviewed_by (uuid), nullable, sin FK.
+   POST /api/documents/[id]/mark-analyzed escribe en DOS sistemas:
+   Pinecone PRIMERO (analysisStatus='analizado' en cada vector, vía la capa
+   B.0), y solo si TODOS los chunks van bien, Supabase después.
+   Orden deliberado: si Pinecone falla se ABORTA sin tocar Supabase → el doc
+   sigue 'pendiente' (estado coherente, se reintenta; la operación es
+   idempotente). Nunca Supabase-sí/Pinecone-no, que dejaría el documento
+   invisible para el chat (que filtra por metadata).
+   AVISO DE FABLE que evitó el bug: sin la escritura a Pinecone, marcar como
+   analizado no habría servido de nada con D3 activo.
+
+4. Paso 3C-2 — Modo review cableado (b8b7c697)
+   Modal ramifica por `mode`. Filas de la bandeja clicables SOLO en la zona del
+   nombre (el checkbox selecciona; toda la fila clicable sería ambiguo) y solo
+   si tienen análisis. Tipos: el FinalAnalysis guardado encaja directamente con
+   el AnalysisResult del modal (campos opcionales) — sin mapeo.
+   Si el análisis no tiene detalle (anterior al paso 0), NO se abre el modal:
+   aviso honesto sugiriendo reanalizar.
+
+5. Paso 3C-3a — Eliminado accessToken muerto (1812f301)
+   El ImprovementModal exigía accessToken y lo propagaba a sus 4 hooks. Verificado:
+   CERO menciones de Authorization/Bearer — no se enviaba en ninguna llamada (los
+   fetch van por cookies desde que se eliminó el Bearer). En useIndexing y
+   useImprovementChat solo aparecía en arrays de dependencias; en los otros dos,
+   en guards que BLOQUEABAN el reanálisis si faltaba.
+   Descartado el parche de Claude Code (pasar accessToken="review" como dummy):
+   falsificar un token para engañar guards perpetúa la causa. Se eliminó de los
+   6 archivos. Sin él, la bandeja puede abrir el modal sin inventarse nada.
+
+6. Paso 3C-3b — "Mejorar con IA" desde la bandeja (218f1e1e)
+   El texto se obtiene de /api/documents/[id]/text (B.5-b), no de extract-text
+   (que exige storagePath, inexistente en documentos ya indexados).
+   CLAVE: existingDocWithSameName = EL PROPIO DOCUMENTO. Pasar null habría
+   creado un duplicado silencioso (D5 lo prohíbe). Así el ReplaceDialog ofrece
+   Reemplazar (borra el viejo, mismo nombre) o Conservar ambos (sufijo de fecha).
+   Verificado en producción: ambas ramas funcionan.
+
+7. Paso 4 — Aviso en el sidebar (6962ebc3)
+   "N sin analizar →" en ámbar, enlace a /settings/review. El contador se calcula
+   en cliente (el sidebar ya recibe los documentos con analysis_status: cero
+   llamadas extra). Solo visible si N > 0.
+
+8. B.51 — Jobs zombis (6f459236)
+   Un job en 'processing' cuyo worker murió bloqueaba el 409 de TODA la org para
+   siempre (ocurrió en producción 13/07: Railway sin saldo). También los 'pending'
+   si el worker no arranca.
+   Solución (Fable): el barrido va en la CREACIÓN del job (zona de escritura), no
+   en el chequeo del 409 (lectura). Marca 'failed' + error_message='stale_timeout'
+   los jobs de la org más viejos que STALE_JOB_THRESHOLD_MS antes de insertar.
+   Marcar y no solo ignorar evita la carrera: si el worker resucita y recoge un
+   zombi ignorado, habría DOS análisis de la misma org en paralelo (serialización
+   rota, créditos dobles).
+   Umbral 20 min, calibrado contra datos reales: el exhaustivo más largo
+   registrado tardó 6,1 min (margen x3).
+
+9. Fix index-text: full_text y content_hash (e91e8b44)
+   BUG EN PRODUCCIÓN destapado por la bandeja: index-text no escribía full_text
+   → /api/documents/[id]/text devolvía 422 → un documento mejorado NO se podía
+   volver a mejorar ni analizar. Callejón sin salida. Tampoco escribía
+   content_hash → los duplicados exactos se lo saltaban (y D7 los reanalizaría
+   siempre). Arreglado dentro de B.5 por decisión de Fable: rompía la promesa
+   central de la bandeja para los documentos más importantes del flujo.
+
+10. B.5-hash-a — analyzed_content_hash (e159184f)
+    Migración: columna nullable en documents. NULL = "esta versión nunca se ha
+    analizado" (literalmente cierto). Sin backfill a propósito.
+    Escritores: ingest la rellena si el análisis fue OK (mismo texto); analyze-v2
+    la rellena cuando el análisis viene de la bandeja (hay documentId);
+    index-text NO la toca (el texto mejorado no se ha analizado).
+    NO confundir con content_hash ("qué texto ES este documento", identidad) —
+    son primos, nunca el mismo campo.
+
+DECISIONES DE FABLE EN ESTA SESIÓN (razonamiento, para no reabrirlas)
+
+A. "Marcar como analizado" vs D2 ("transiciones automáticas, jamás manuales").
+   Se reutiliza 'analizado': el filtro del chat debe tener UNA sola puerta; un
+   estado paralelo "revisado-por-humano" bifurcaría esa lógica para siempre. La
+   distinción se guarda como PROCEDENCIA (reviewed_at/reviewed_by), no como
+   estado. D2 queda intacto: su invariante es que la columna nunca se edita
+   libremente; el clic humano es el EVENTO que dispara una operación definida
+   del sistema (el cierre legítimo del flujo de revisión), no una edición manual.
+
+B. Estado tras mejorar con IA e indexar (corrección a B.2).
+   B.2 marcaba 'analizado' fijo con el argumento "texto ya revisado". El usuario
+   objetó: el texto CAMBIÓ, nadie lo ha comparado contra el corpus. Fable acepta
+   la objeción y descarta las tres alternativas propuestas:
+   - Distinguir por origen del flujo es ILUSORIO: también en subida el texto
+     indexado difiere del analizado (análisis sobre T0, se indexa T1). La
+     variable real no es el camino, es "¿cambió el texto desde el último
+     análisis?", y eso se mide con hash.
+   - Marcar 'pendiente' castiga el comportamiento deseado: dejaría fuera del chat
+     un documento recién arreglado, mientras la versión CON contradicciones sí
+     servía.
+   Decisión: 'analizado' sigue siendo la única puerta y el documento mejorado la
+   cruza (la versión mejorada es mejor por construcción). Pero el sistema deja de
+   mentir vía analyzed_content_hash.
+   Coherencia global: en Drive los cambios vienen de fuera (desconocidos) y la
+   versión vieja era buena → relevo, reanálisis ANTES del swap (D6). En mejora
+   interna los cambios son conocidos (resolvieron incidencias) y la versión vieja
+   era mala → swap inmediato, verificación después. Convergen en Fase D.
+
+C. Alcance del hash: solo infraestructura (opción a).
+   Principio: "la marca solo existe si no puede mentir en NINGÚN sentido". Una
+   marca que acusa de "modificado" a un documento recién analizado destruye la
+   confianza igual que una que calla. Como el worker exhaustivo NO puede rellenar
+   la columna (analysis_jobs no tiene document_id y el worker no toca documents),
+   la marca visible NO se enciende: el usuario no debe tener que saber POR QUÉ
+   CAMINO se analizó algo para saber si creer la señal.
+   B.5-hash-a (hecho): columna + escritores síncronos, cero interfaz.
+   B.5-hash-b: la marca visible → Fase D.
+   BONUS: analyzed_content_hash es la pieza que D7 (portero por hash, Fase C)
+   necesita almacenada. No es columna parche: es infraestructura de Fase C
+   llegando antes.
+
+VERIFICADO EN PRODUCCIÓN
+- Marcar como analizado: reviewed_at/reviewed_by rellenos, doc fuera de la bandeja.
+- Quitar del corpus: el chat deja de responder sobre el documento (vectores
+  borrados de verdad, no solo la fila).
+- Mejorar + Reemplazar: el documento viejo desaparece (id confirmado ausente),
+  el nuevo ocupa su sitio. Una sola fila.
+- Mejorar + Conservar ambos: crea "nombre (corregido DD/MM/YYYY)" con hash distinto.
+- El documento mejorado nace con full_text y content_hash, y analyzed_content_hash
+  NULL: el sistema no afirma lo que no ha verificado.
+
+RESUELTO FUERA DE CÓDIGO
+- Railway recargado (plan Hobby): el análisis exhaustivo vuelve a estar operativo.
+  Estaba caído desde el 13/07 y es la funcionalidad estrella del plan Business.
+
+PENDIENTES DESTAPADOS EN ESTA SESIÓN
+   Ver B.53–B.57 en Puntos_Pendientes_Doclity.txt.
+
+COMMITS DE ESTA SESIÓN
+  2259cefd — refactor(analysis): extraer botones del AnalysisModal a UploadActions (3A)
+  352075d6 — feat(review): componente ReviewActions con confirmacion inline (3B)
+  982d2752 — docs: pendientes B.51 y B.52
+  9d3e7f99 — feat(review): endpoint mark-analyzed (3C-1)
+  b8b7c697 — feat(review): modo review del AnalysisModal cableado (3C-2)
+  1812f301 — refactor(improvement): eliminar accessToken muerto (3C-3a)
+  6f459236 — fix(analysis): barrer jobs zombis antes del semaforo (B.51)
+  6962ebc3 — feat(review): aviso "N sin analizar" en el sidebar (paso 4)
+  e91e8b44 — fix(index-text): escribir full_text y content_hash
+  e159184f — feat(analysis): columna analyzed_content_hash y escritores (B.5-hash-a)
+  218f1e1e — feat(review): cablear "Mejorar con IA" desde la bandeja (3C-3b)
+
+ESTADO: B.5 COMPLETA. Siguiente: B.6 (filtro del chat por 'analizado'), que
+cierra la Fase B. OJO al verificar B.6: es la primera vez que se comprobará de
+verdad que updateVectorMetadata escribió bien en Pinecone (hasta ahora el chat
+veía todo, así que la escritura dual del 3C-1 no era observable). Si tras activar
+el filtro un documento marcado como analizado desaparece del chat, la metadata
+no se actualizó.
