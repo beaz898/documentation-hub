@@ -3,7 +3,7 @@ PENDIENTES — Doclity (Agente IA)
 Documento vivo. Se actualiza al completar tareas (marcar [✓]) y se
 sustituye por la versión nueva. Más ligero que la Bitácora: aquí va
 lo que falta y la visión que lo guía, no el detalle de cada sesión.
-Última actualización: 17/07/2026 (v35)
+Última actualización: 19/07/2026 (v36)
 
 
 ════════════════════════════════════════════════════════════════
@@ -967,14 +967,14 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     no tienen full_text ni content_hash: darán 422 en /api/documents/[id]/text
     y no se pueden mejorar ni analizar. Si alguno importa, rellenar full_text
     con SQL. Los nuevos ya nacen bien.
-  Fase B: B.1–B.4 hechos y verificados. B.5 COMPLETA (pasos 0-4 + B.51 + fix index-text +
-  B.5-hash-a, sesiones 32-33, 13-17/07/2026): bandeja de revisión completa (análisis persistido,
-  endpoint de listado, selección por lote, modo review del modal, aviso en sidebar, jobs zombis
-  resueltos, full_text/content_hash en index-text, columna analyzed_content_hash).
-  Siguiente: B.6 (filtro del chat por 'analizado', commit aislado y reversible) para cerrar la
-  Fase B. OJO: B.6 será la primera prueba real de que updateVectorMetadata escribió bien en
-  Pinecone — si un documento marcado como analizado desaparece del chat tras activar el filtro,
-  la metadata no se actualizó.
+  FASE B COMPLETA (B.0–B.6, sesiones 26-33, hasta 19/07/2026):
+  B.0 refactor Pinecone, B.1-B.4 estados y backfill, B.5 bandeja de revisión
+  completa (pasos 0-4 + B.51 + fix index-text + B.5-hash-a), B.6 filtro del
+  chat por 'analizado' (D3, lib/rag.ts CHAT_ANALYZED_FILTER).
+  Siguiente: FASE C (identidad y reemplazo D5, relevo D6, portero por hash D7,
+  fingerprints permanentes D9, aviso al borrar D10b). La Fase C es la más
+  delicada: toca la identidad de documentos y el duplicado fantasma
+  (google_drive+onedrive del mismo archivo) es su caso de prueba principal.
 
 Forma de trabajo: diagnóstico con datos reales antes de arreglar; un
 cambio lógico cada vez; build verde entre medias; SQL en Supabase antes

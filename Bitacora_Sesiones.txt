@@ -3050,3 +3050,35 @@ verdad que updateVectorMetadata escribió bien en Pinecone (hasta ahora el chat
 veía todo, así que la escritura dual del 3C-1 no era observable). Si tras activar
 el filtro un documento marcado como analizado desaparece del chat, la metadata
 no se actualizó.
+
+────────────────────────────────────────────────────────────────
+SESIÓN 33 (cont.) — B.6 y cierre de Fase B
+────────────────────────────────────────────────────────────────
+
+B.6 — Filtro del chat por documentos analizados (D3)
+  lib/rag.ts: la llamada a queryVectors del chat pasa
+  filter: { analysisStatus: { $eq: 'analizado' } } (constante CHAT_ANALYZED_FILTER).
+  El pipeline de analisis (retrieval.ts, verify-claims.ts) NO se toca: sigue
+  viendo todo el corpus (D3). Commit aparte, reversible.
+
+VERIFICADO EN PRODUCCION
+  - Documentos analizados responden en el chat.
+  - Confirmado retroactivamente que updateVectorMetadata (3C-1) escribio bien en
+    Pinecone: los documentos marcados desde la bandeja aparecen en las respuestas.
+  - PENDIENTE DE CONFIRMAR: preguntar por contenido de un documento 'pendiente'
+    y verificar que NO aparece (deducido por codigo, no probado en vivo).
+
+APRENDIZAJE (falsa alarma resuelta)
+  Sintoma inicial: "el chat no encuentra new 1.txt". No era un bug: el RAG busca
+  por CONTENIDO semantico, no por nombre de archivo. Preguntar "que dice new
+  1.txt" no matchea nada porque el nombre no es contenido. Al preguntar por el
+  contenido, responde bien. Descartadas por el camino dos hipotesis (patron de
+  IDs de vector distinto — falso, todos usan ${documentId}-${i}; y el duplicado
+  fantasma como causa — falso, Puntos_De_Dolor.pdf tambien esta duplicado y
+  funciona). No se toco nada: el sistema estaba bien.
+
+ESTADO: FASE B COMPLETA (B.0 refactor Pinecone, B.1-B.4 estados, B.5 bandeja,
+B.6 filtro del chat). Siguiente: Fase C (identidad y reemplazo D5, relevo D6,
+portero por hash D7, fingerprints permanentes D9, aviso al borrar D10b) — la
+fase mas delicada. El duplicado fantasma (dos copias google_drive+onedrive del
+mismo documento) sigue presente y es lo que Fase C resuelve.
