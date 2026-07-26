@@ -287,7 +287,7 @@ CREATE TABLE public.documents (
   created_at timestamp with time zone DEFAULT now(),
   updated_at timestamp with time zone DEFAULT now(),
   source text DEFAULT 'manual'::text,
-  source_path text,
+  provider_file_id text,
   source_modified_at timestamp with time zone,
   folder_path text,
   folder_id text,

@@ -83,12 +83,12 @@ export async function POST(req: NextRequest) {
     console.log(`[DRIVE SYNC] Found ${allFiles.length} files`);
 
     const { data: existingDocs } = await supabase.from('documents')
-      .select('id, name, source_path, source_modified_at, chunk_count')
+      .select('id, name, provider_file_id, source_modified_at, chunk_count')
       .eq('org_id', orgId)
       .eq('source', provider.name);
 
     const existingMap = new Map(
-      (existingDocs || []).map(d => [d.source_path, d])
+      (existingDocs || []).map(d => [d.provider_file_id, d])
     );
 
     let newCount = 0;
@@ -163,7 +163,7 @@ export async function POST(req: NextRequest) {
         status: 'indexed',
         source: provider.name,
         analysis_status: 'pendiente',   // Drive entra sin analizar: irá a la bandeja de revisión
-        source_path: file.id,
+        provider_file_id: file.id,
         source_modified_at: file.modifiedTime,
         folder_path: file.folderPath ?? '/',
         folder_id: file.parentId ?? null,
@@ -174,9 +174,9 @@ export async function POST(req: NextRequest) {
       console.log(`[DRIVE SYNC] Indexed: ${file.name} (${chunks.length} chunks) [${file.folderPath ?? '/'}]`);
     }
 
-    // Detect deletions: docs whose source_path is no longer in Drive
+    // Detect deletions: docs whose provider_file_id is no longer in Drive
     let deletedCount = 0;
-    const docsToDelete = (existingDocs || []).filter(d => !seenDriveIds.has(d.source_path));
+    const docsToDelete = (existingDocs || []).filter(d => !seenDriveIds.has(d.provider_file_id));
 
     for (const doc of docsToDelete) {
       try {
