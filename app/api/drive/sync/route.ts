@@ -94,6 +94,7 @@ export async function POST(req: NextRequest) {
     let newCount = 0;
     let updatedCount = 0;
     let skippedCount = 0;
+    let failedCount = 0;
     const seenDriveIds = new Set<string>();
 
     for (const file of allFiles) {
@@ -118,16 +119,27 @@ export async function POST(req: NextRequest) {
 
       const documentId = randomUUID();
 
+      const isReplacement = Boolean(existing);
       if (existing) {
         const idsToDelete = Array.from(
           { length: existing.chunk_count },
           (_, i) => `${existing.id}-${i}`
         );
         await deleteVectorsByIds(orgId, idsToDelete);
-        await supabase.from('documents').delete().eq('id', existing.id);
-        updatedCount++;
-      } else {
-        newCount++;
+        const { error: deleteError } = await supabase
+          .from('documents')
+          .delete()
+          .eq('id', existing.id);
+        if (deleteError) {
+          // No se pudo borrar la fila vieja: no seguimos con el insert de la
+          // nueva para no dejar dos filas de la misma identidad. Se registra
+          // y se cuenta como fallo.
+          console.error(
+            `[DRIVE SYNC] delete-old fallo | org=${orgId} | file=${file.id} | name=${file.name} | code=${deleteError.code ?? '?'} | ${deleteError.message}`
+          );
+          failedCount++;
+          continue;
+        }
       }
 
       const chunks = chunkText(text, documentId, file.name, orgId);
@@ -153,7 +165,7 @@ export async function POST(req: NextRequest) {
 
       const contentHash = generateContentHash(text);
 
-      await supabase.from('documents').insert({
+      const { error: insertError } = await supabase.from('documents').insert({
         id: documentId,
         name: file.name,
         size_bytes: Buffer.byteLength(text, 'utf8'),
@@ -170,6 +182,34 @@ export async function POST(req: NextRequest) {
         full_text: text,
         content_hash: contentHash,
       });
+
+      if (insertError) {
+        if (insertError.code === '23505') {
+          // Violacion del indice unico de identidad (documents_identity_unique):
+          // algo intento crear una segunda fila con la misma (org_id, source,
+          // provider_file_id). No deberia pasar (el sync empareja antes), pero
+          // si suena, es ESA alarma y no un error de BD generico.
+          console.error(
+            `[DRIVE SYNC] IDENTIDAD DUPLICADA (23505) | org=${orgId} | file=${file.id} | name=${file.name} | provider=${provider.name} | ${insertError.message}`
+          );
+        } else {
+          console.error(
+            `[DRIVE SYNC] insert fallo | org=${orgId} | file=${file.id} | name=${file.name} | replacement=${isReplacement} | code=${insertError.code ?? '?'} | ${insertError.message}`
+          );
+        }
+        // Si era un reemplazo, la fila vieja ya se borro arriba: el documento
+        // queda en mal estado (sin fila, con vectores nuevos en Pinecone). C.3
+        // resolvera el orden para prevenirlo; C.1c solo lo hace AUDIBLE.
+        failedCount++;
+        continue;
+      }
+
+      // Insert OK: recien ahora contamos el exito, no antes.
+      if (isReplacement) {
+        updatedCount++;
+      } else {
+        newCount++;
+      }
 
       console.log(`[DRIVE SYNC] Indexed: ${file.name} (${chunks.length} chunks) [${file.folderPath ?? '/'}]`);
     }
@@ -200,8 +240,15 @@ export async function POST(req: NextRequest) {
     console.log(`[DRIVE SYNC] Complete: ${newCount} new, ${updatedCount} updated, ${deletedCount} deleted, ${skippedCount} unchanged`);
 
     return NextResponse.json({
-      success: true,
-      stats: { new: newCount, updated: updatedCount, deleted: deletedCount, skipped: skippedCount, total: allFiles.length },
+      success: failedCount === 0,
+      stats: {
+        new: newCount,
+        updated: updatedCount,
+        deleted: deletedCount,
+        skipped: skippedCount,
+        failed: failedCount,
+        total: allFiles.length,
+      },
     });
   } catch (error: unknown) {
     console.error('Error in /api/drive/sync:', error);
