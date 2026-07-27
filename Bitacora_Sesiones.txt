@@ -3082,3 +3082,80 @@ B.6 filtro del chat). Siguiente: Fase C (identidad y reemplazo D5, relevo D6,
 portero por hash D7, fingerprints permanentes D9, aviso al borrar D10b) — la
 fase mas delicada. El duplicado fantasma (dos copias google_drive+onedrive del
 mismo documento) sigue presente y es lo que Fase C resuelve.
+
+────────────────────────────────────────────────────────────────
+SESIÓN 34 — Fase C arranque: C.1 (identidad de origen)
+────────────────────────────────────────────────────────────────
+
+CONTEXTO
+Antes de C, auditoria de cobertura de A y B (contra el encargo, no contra
+pendientes): cimientos solidos. Unico "hallazgo" (checkContentHash) resulto ser
+FALSO POSITIVO por una lectura erronea del archivo — el detector funciona; se
+verifico empiricamente subiendo el mismo archivo dos veces (dispara y ofrece
+reemplazo por identidad manual). Deuda nº1 (tokens OAuth) confirmada ya resuelta
+(cifrados AES-256-GCM, 0 filas en texto plano). Fable ordeno C antes que D
+(la cola de D automatizaria ruido sobre el duplicado fantasma; D6 nace en ruta
+sincrona; el deploy del worker es prerrequisito de D, no de C).
+
+C.1 — IDENTIDAD DE ORIGEN (D5.1). Cerrada en tres piezas:
+
+C.1a — Rename source_path -> provider_file_id (commit del rename)
+  Hallazgo: la identidad de un doc sincronizado (source + provider_file_id de
+  D5.1) YA existia, pero con nombre enganoso: la columna se llamaba source_path
+  y guardaba el file.id nativo del proveedor, no una ruta. El sync ya dependia
+  de ella para emparejar y detectar borrados. Rename por veracidad (Fable: en la
+  fase que borra datos, un nombre que miente sobre la columna de identidad es
+  riesgo activo, no cosmetico). Alcance: 6 apariciones en sync/route.ts +
+  supabase-setup.sql, ninguna protegida por el compilador (strings de query).
+  Coreografia: SQL RENAME en Supabase primero, push inmediato despues, sin
+  disparar sync en el intervalo. Verificado en produccion: sync empareja bien
+  (18 sin cambios al resincronizar, cero duplicados).
+
+C.1b — Indice unico parcial de identidad
+  CREATE UNIQUE INDEX documents_identity_unique ON documents
+  (org_id, source, provider_file_id) WHERE provider_file_id IS NOT NULL.
+  Parcial: los manuales tienen provider_file_id null (identidad = source+name,
+  otro regimen). Red de seguridad para C.3 (que borrara vectores por identidad):
+  convierte "dos filas misma identidad" en error ruidoso en vez de borrado
+  silencioso del doc equivocado. Datos ya cumplian (0 colisiones verificadas).
+  Registro: supabase-identity-unique.sql.
+
+C.1c — Deteccion honesta de errores en el sync (dos commits)
+  Hallazgo destapado al verificar C.1b: NINGUNA llamada a Supabase de la ruta
+  del sync comprobaba .error. Como supabase-js no lanza excepcion ante rechazo
+  de Postgres (solo ante fallo de red), un error de constraint se ignoraba: el
+  sync loguearia "Indexed", devolveria success:true, y en el camino de reemplazo
+  (borra vieja -> inserta nueva) dejaria el doc sin fila + vectores huerfanos en
+  Pinecone, reportado como exito. Preexistente; el indice de C.1b solo le dio una
+  forma de dispararse. Fable: fix propio, alcance COMPLETO, BLOQUEA C.2/C.3
+  ("C no construye sobre escrituras no verificadas").
+  - C.1c-1: el corazon (insert/delete del reemplazo verificados, 23505 distinguido
+    con mensaje propio, stats veraces N ok / M failed, success:false si M>0,
+    contadores solo tras insert OK). NO se toco el orden de operaciones (eso es C.3).
+  - C.1c-2: el resto de llamadas (aborta en selects criticos connection/existingDocs,
+    loguea en cosmeticos folder/token/last_synced_at, cuenta delete-failed).
+  - La persistencia del resumen (remache 2 de Fable) se DIFIRIO a Fase D: su unico
+    lector nace con la cola; hoy el sync corre desde la UI. El console.error
+    contextual es "la persistencia de los pobres" (logs de Vercel) hasta entonces.
+
+VERIFICACION DE CIERRE ("hacer ruido" — Fable). Metodo: trigger centinela temporal.
+  - Pieza 2 (constraint+23505): INSERT manual duplicado de identidad rechazado con
+    "23505: duplicate key value violates unique constraint documents_identity_unique".
+  - Pieza 1 (maquinaria): trigger BEFORE INSERT que revienta solo el archivo
+    'TEST_C1C_FALLO.txt'. Sync real -> logs de Vercel:
+      [DRIVE SYNC] insert fallo | ... | name=TEST_C1C_FALLO.txt | code=P0001 | ...
+      [DRIVE SYNC] Complete: 0 new, ... 18 unchanged, 1 failed, 0 delete-failed
+    El rechazo se capturo, conto como failed, NO como exito. Maquinaria confirmada.
+  - Pieza 3 (mapeo 23505): revisado en codigo.
+  - VERIFICACION DE ORO (huerfanos): tras los intentos fallidos quedaron 4 vectores
+    en Pinecone con nombre TEST_C1C_FALLO.txt SIN fila en documents — uno por cada
+    intento (cada reintento genera documentId nuevo, sube vector, falla insert).
+    Es la anatomia exacta del desastre que C.3 debe prevenir invirtiendo el orden
+    (insertar/verificar ANTES de subir vectores, o actualizar-en-sitio).
+  - Reversion completa y verificada: trigger eliminado, archivo fuera de OneDrive,
+    doc de prueba quitado del corpus, 4 huerfanos limpiados via /admin/cleanup
+    (reanalisis: 0 huerfanos, 49 vectores / 26 docs, coherente).
+
+ESTADO: C.1 CERRADO ENTERO (identidad existente, integra, nombrada con verdad,
+garantizada por BD, errores audibles y verificados). Siguiente: C.2 (resolucion
+de duplicados exactos con lapida — exploracion del tracking de borrados del sync).

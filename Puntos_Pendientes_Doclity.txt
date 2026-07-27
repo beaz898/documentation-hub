@@ -979,6 +979,27 @@ NOTAS DE ORDEN (propuesta, a confirmar)
   fingerprints permanentes D9, aviso al borrar D10b). La Fase C es la más
   delicada: toca la identidad de documentos y el duplicado fantasma
   (google_drive+onedrive del mismo archivo) es su caso de prueba principal.
+  FASE C — C.1 (identidad de origen) CERRADO en sesión 34: rename source_path→
+  provider_file_id, índice único documents_identity_unique, detección honesta
+  de errores en el sync (C.1c-1/C.1c-2), todo verificado en producción con
+  trigger centinela. Siguiente: C.2 (duplicados exactos con lápida).
+  B.59 — [FLECO UI de C.1c] El backend del sync ya cuenta failed/deleteFailed y devuelve
+    success:false, pero la UI de sincronización NO muestra los fallos al usuario
+    (solo pinta nuevos/actualizados/eliminados/sin cambios). Un fallo que el usuario
+    no ve sigue siendo silencio para él. Mostrar failed/deleteFailed en el resultado
+    del sync. Consultar a Fable si es parte imprescindible de C.1c o pieza aparte.
+  B.60 — [PARA FASE D] Persistir el resumen del sync (N ok / M fallidos + errores) en BD
+    (drive_connections o donde la cola dicte) — prerrequisito de mover el sync a
+    background; hoy el resumen solo vive en la respuesta HTTP y muere con ella.
+    Patrón de referencia: status + result jsonb + error_message de analysis_jobs.
+  B.61 — [PARA C.3, LITERAL] Resolver el orden del reemplazo (insertar-antes-de-borrar
+    vs actualizar-en-sitio) compatible con el índice de identidad — el índice manda,
+    el flujo se adapta. Evidencia: la verificación de C.1c dejó 4 huérfanos (uno por
+    intento) por subir vectores antes del insert.
+  B.62 — [OBSERVACIÓN PARA FASE C, BORRADOS] Hoy un documento borrado en Drive/OneDrive
+    sigue en el corpus hasta el siguiente sync (el borrado es reactivo, no inmediato).
+    En ese intervalo el chat aún puede responder con su contenido. Valorar con Fable
+    si conviene un borrado más inmediato o el modelo reactivo basta.
 
 Forma de trabajo: diagnóstico con datos reales antes de arreglar; un
 cambio lógico cada vez; build verde entre medias; SQL en Supabase antes
