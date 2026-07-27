@@ -43,15 +43,22 @@ export async function POST(req: NextRequest) {
     const { folderId, folderName } = body;
 
     if (folderId && folderName) {
-      await supabase.from('drive_connections')
+      const { error: folderError } = await supabase.from('drive_connections')
         .update({ folder_id: folderId, folder_name: folderName })
         .eq('org_id', orgId);
+      if (folderError) {
+        console.error(`[DRIVE SYNC] update-folder fallo | org=${orgId} | code=${folderError.code ?? '?'} | ${folderError.message}`);
+      }
     }
 
-    const { data: connection } = await supabase.from('drive_connections')
+    const { data: connection, error: connectionError } = await supabase.from('drive_connections')
       .select('*')
       .eq('org_id', orgId)
       .single();
+    if (connectionError) {
+      console.error(`[DRIVE SYNC] select-connection fallo | org=${orgId} | code=${connectionError.code ?? '?'} | ${connectionError.message}`);
+      return NextResponse.json({ error: 'Error al leer la conexion de Drive' }, { status: 500 });
+    }
 
     if (!connection) {
       return NextResponse.json({ error: 'No hay conexión de Drive' }, { status: 404 });
@@ -65,12 +72,15 @@ export async function POST(req: NextRequest) {
       try {
         const newTokens = await provider.refreshAccessToken(decrypt(connection.refresh_token));
         accessToken = newTokens.accessToken;
-        await supabase.from('drive_connections')
+        const { error: tokenUpdateError } = await supabase.from('drive_connections')
           .update({
             access_token: encrypt(newTokens.accessToken),
             token_expires_at: newTokens.expiresAt.toISOString(),
           })
           .eq('org_id', orgId);
+        if (tokenUpdateError) {
+          console.error(`[DRIVE SYNC] update-token fallo | org=${orgId} | code=${tokenUpdateError.code ?? '?'} | ${tokenUpdateError.message}`);
+        }
       } catch {
         return NextResponse.json({ error: 'Error renovando token de acceso' }, { status: 401 });
       }
@@ -82,10 +92,17 @@ export async function POST(req: NextRequest) {
     const allFiles = await provider.listFiles(accessToken, targetFolderId);
     console.log(`[DRIVE SYNC] Found ${allFiles.length} files`);
 
-    const { data: existingDocs } = await supabase.from('documents')
+    const { data: existingDocs, error: existingError } = await supabase.from('documents')
       .select('id, name, provider_file_id, source_modified_at, chunk_count')
       .eq('org_id', orgId)
       .eq('source', provider.name);
+    if (existingError) {
+      // Critico: sin la lista de documentos existentes, el sync trataria
+      // todo el corpus como nuevo (reindexando y duplicando) y no detectaria
+      // borrados. Abortar es la unica opcion segura.
+      console.error(`[DRIVE SYNC] select-existing fallo | org=${orgId} | source=${provider.name} | code=${existingError.code ?? '?'} | ${existingError.message}`);
+      return NextResponse.json({ error: 'Error al leer los documentos existentes; sync cancelado' }, { status: 500 });
+    }
 
     const existingMap = new Map(
       (existingDocs || []).map(d => [d.provider_file_id, d])
@@ -218,6 +235,7 @@ export async function POST(req: NextRequest) {
     let deletedCount = 0;
     const docsToDelete = (existingDocs || []).filter(d => !seenDriveIds.has(d.provider_file_id));
 
+    let deleteFailedCount = 0;
     for (const doc of docsToDelete) {
       try {
         const idsToDelete = Array.from(
@@ -225,19 +243,28 @@ export async function POST(req: NextRequest) {
           (_, i) => `${doc.id}-${i}`
         );
         await deleteVectorsByIds(orgId, idsToDelete);
-        await supabase.from('documents').delete().eq('id', doc.id);
+        const { error: delDocError } = await supabase.from('documents').delete().eq('id', doc.id);
+        if (delDocError) {
+          console.error(`[DRIVE SYNC] delete-doc fallo | org=${orgId} | doc=${doc.id} | name=${doc.name} | code=${delDocError.code ?? '?'} | ${delDocError.message}`);
+          deleteFailedCount++;
+          continue;
+        }
         deletedCount++;
         console.log(`[DRIVE SYNC] Deleted (no longer in Drive): ${doc.name}`);
       } catch (err) {
         console.error(`[DRIVE SYNC] Failed to delete ${doc.name}:`, err);
+        deleteFailedCount++;
       }
     }
 
-    await supabase.from('drive_connections')
+    const { error: syncedAtError } = await supabase.from('drive_connections')
       .update({ last_synced_at: new Date().toISOString() })
       .eq('org_id', orgId);
+    if (syncedAtError) {
+      console.error(`[DRIVE SYNC] update-last-synced fallo | org=${orgId} | code=${syncedAtError.code ?? '?'} | ${syncedAtError.message}`);
+    }
 
-    console.log(`[DRIVE SYNC] Complete: ${newCount} new, ${updatedCount} updated, ${deletedCount} deleted, ${skippedCount} unchanged`);
+    console.log(`[DRIVE SYNC] Complete: ${newCount} new, ${updatedCount} updated, ${deletedCount} deleted, ${skippedCount} unchanged, ${failedCount} failed, ${deleteFailedCount} delete-failed`);
 
     return NextResponse.json({
       success: failedCount === 0,
@@ -247,6 +274,7 @@ export async function POST(req: NextRequest) {
         deleted: deletedCount,
         skipped: skippedCount,
         failed: failedCount,
+        deleteFailed: deleteFailedCount,
         total: allFiles.length,
       },
     });
