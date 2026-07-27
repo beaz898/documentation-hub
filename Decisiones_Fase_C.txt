@@ -1,0 +1,109 @@
+DECISIONES DE FASE C — TEXTO CANÓNICO DE FABLE
+================================================
+Fecha original: 21/07/2026. Regenerado el 27/07/2026 (la primera copia nunca
+llegó al conocimiento del proyecto). Este archivo sustituye a cualquier
+reconstrucción de memoria. Contiene: decisiones literales del encargo +
+refinamientos cerrados en consultas posteriores + D5.1 + veredicto de la
+auditoría + addendum de arranque de C.2.
+
+────────────────────────────────────────────────────────────────
+D5. IDENTIDAD Y REEMPLAZO [encargo, literal]
+────────────────────────────────────────────────────────────────
+"Misma identidad de archivo = mismo documento interno. Reindexar = borrar los
+vectores antiguos de ese documentId en Pinecone y subir los nuevos. NUNCA
+convivencia de versiones. Eliminar el comportamiento de la sesión 3 por el que
+un documento manual y uno de Drive con el mismo nombre coexisten. Resubida
+manual de un archivo con mismo nombre + mismo origen → ofrecer '¿Es una versión
+nueva de X? → reemplazar'. El análisis de una versión nueva EXCLUYE de sus
+comparaciones los vectores de su propia versión anterior (filtro por documentId)."
+
+────────────────────────────────────────────────────────────────
+D5.1 QUÉ ES "LA MISMA IDENTIDAD" [cerrado el 21/07/2026]
+────────────────────────────────────────────────────────────────
+La identidad NUNCA es el hash de contenido: la identidad debe sobrevivir a las
+ediciones (un documento modificado sigue siendo él mismo con otro hash), así que
+el contenido no puede definirla. La identidad es el ANCLAJE DE ORIGEN:
+
+  · Documentos sincronizados: (source, provider_file_id) — el ID del archivo que
+    da el proveedor. [Nota post-C.1: la columna se renombró de source_path a
+    provider_file_id; índice documents_identity_unique UNIQUE(org_id, source,
+    provider_file_id) WHERE provider_file_id IS NOT NULL.]
+  · Documentos manuales: (source='manual', name) — con el flujo de "¿versión
+    nueva? → reemplazar", nunca reemplazo silencioso.
+
+Corolario: el mismo archivo llegado por google_drive Y por onedrive son DOS
+identidades legítimas con contenido duplicado — NO se fusionan en silencio.
+Se tratan como duplicado exacto por content_hash, visible, con resolución
+asistida — el usuario elige superviviente y el otro se quita del corpus.
+Acción en app/admin/cleanup: "duplicados exactos" (agrupar por org_id +
+content_hash, elegir superviviente), REPETIBLE hasta que C.3 aterrice.
+
+────────────────────────────────────────────────────────────────
+D6. RELEVO DE VERSIONES [encargo + corrección cerrada en consulta]
+────────────────────────────────────────────────────────────────
+"Al detectar modificación en Drive NO se reemplazan los vectores inmediatamente:
+la versión anterior (analizada) SIGUE sirviendo al chat mientras la nueva espera
+en cola y se analiza. Al completar el análisis se hace el intercambio atómico:
+fuera los vectores viejos, dentro los nuevos con su estado, incidencias a la
+bandeja si las hay. El documento nunca se apaga."
+
+Refinamientos cerrados:
+  · El swap vive como función propia y reutilizable en la capa de B.0
+    (swapDocumentVectors) — único acoplamiento anticipado a Fase D permitido.
+  · Coherencia de caminos: en el camino Drive los cambios vienen de fuera
+    (desconocidos) y la versión vieja era buena → relevo, reanálisis ANTES del
+    swap. En el camino de mejora interna los cambios son conocidos (resolvieron
+    incidencias) y la vieja era mala → swap inmediato, verificación después
+    (implementado en B.5 con analyzed_content_hash a null).
+
+────────────────────────────────────────────────────────────────
+D7. PORTERO POR HASH [encargo, literal]
+────────────────────────────────────────────────────────────────
+"Antes de encolar un archivo modificado: descargar → extraer texto → normalizar
+(espacios, saltos de línea) → SHA-256 → comparar con el hash almacenado. Si es
+idéntico: actualizar source_modified_at, mantener 'analizado', NO encolar, cero
+créditos. Las imágenes son invisibles al hash por construcción. Todo este
+chequeo es computación local: cero llamadas a Anthropic o Pinecone."
+
+Refinamiento cerrado en B.5: el hash contra el que se compara para decidir
+REANÁLISIS es analyzed_content_hash ("qué texto se analizó por última vez").
+content_hash ("qué texto ES el documento") sirve para identidad de duplicados
+exactos. Primos, nunca el mismo campo. La normalización vive en una función
+única que usan los dos hashes (normalizeTextForHash, verificada en auditoría).
+
+────────────────────────────────────────────────────────────────
+D9. FINGERPRINTS PERMANENTES [encargo, literal]
+────────────────────────────────────────────────────────────────
+"Los descartes de falsos positivos (excludeFingerprints) pasan a persistirse a
+nivel de ORGANIZACIÓN y se aplican SIEMPRE, en cualquier análisis futuro de
+cualquier documento, no solo en reanálisis del mismo. Explorar cómo se almacenan
+hoy antes de diseñar la tabla/columna."
+
+Nota asumida y aceptable: el fingerprint se calcula sobre los fragmentos
+implicados; si el usuario edita justo ese texto, el descarte puede reaparecer
+una vez — correcto, el texto cambió y merece segunda mirada.
+
+────────────────────────────────────────────────────────────────
+D10b. AVISO AL BORRAR [encargo, literal]
+────────────────────────────────────────────────────────────────
+"Al eliminar un documento del corpus: si aparece en involved_documents de
+análisis recientes, avisar antes de confirmar." Aviso informativo, no bloqueo.
+"Recientes" = últimos 30 días (aprobado).
+
+────────────────────────────────────────────────────────────────
+ADDENDUM DE ARRANQUE DE C.2 (27/07/2026)
+────────────────────────────────────────────────────────────────
+· B.59-UI (fallos del sync invisibles en la UI): imprescindible, fix propio al
+  inicio de C.2, sin bloquear la lápida. Número nuevo si B.59 quedó escrito con
+  el significado viejo (checkContentHash, falso positivo).
+· Lápida: orden lápida PRIMERO, borrado después (el medio-fallo cae del lado
+  inofensivo). Puerta de salida obligatoria: cleanup lista lápidas y permite
+  quitarlas. El sync cuenta los saltados por lápida en stats visibles.
+· Función de borrado compartida: NO borra analysis_results (memoria de la org;
+  C.7 se apoya en ella). Borrar = fila de documents + vectores (vía capa B.0) +
+  lápida si procede. Nace con el patrón de C.1c: .error en cada escritura,
+  jamás éxito parcial como éxito.
+· C.2 aprobado el 27/07/2026 con los remaches registrados en la respuesta de
+  Fable de esa fecha (RLS de la tabla de lápidas, unicidad e idempotencia,
+  motivo del borrado como parámetro, endurecimiento del DELETE como cambio
+  deliberado).
