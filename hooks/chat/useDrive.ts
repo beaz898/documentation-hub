@@ -55,7 +55,22 @@ export function useDrive(
           `**${stats.deleted ?? 0}** eliminado${(stats.deleted ?? 0) !== 1 ? 's' : ''}`,
           `**${stats.skipped}** sin cambios`,
         ];
-        addMessage({ id: crypto.randomUUID(), role: 'assistant', content: `Sincronización completada: ${parts.join(', ')}.` });
+        const failed = stats.failed ?? 0;
+        const deleteFailed = stats.deleteFailed ?? 0;
+        if (failed > 0) {
+          parts.push(`**${failed}** fallido${failed !== 1 ? 's' : ''}`);
+        }
+        if (deleteFailed > 0) {
+          parts.push(`**${deleteFailed}** con borrado fallido${deleteFailed !== 1 ? 's' : ''}`);
+        }
+        const hadFailures = failed > 0 || deleteFailed > 0;
+        addMessage({
+          id: crypto.randomUUID(),
+          role: hadFailures ? 'error' : 'assistant',
+          content: hadFailures
+            ? `⚠️ Sincronización terminada con incidencias: ${parts.join(', ')}`
+            : `Sincronización completada: ${parts.join(', ')}`,
+        });
         await loadDocuments();
         await loadDriveStatus();
       } else {
