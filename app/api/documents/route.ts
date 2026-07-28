@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import { getAuthenticatedUserHybrid } from '@/lib/supabase-server';
-import { deleteVectorsByFilter, deleteVectorsByIds } from '@/lib/pinecone/vectors';
 import { resolveOrg } from '@/lib/org';
+import { deleteDocument } from '@/lib/delete-document';
 
 // GET: Listar documentos del usuario
 export async function GET(req: NextRequest) {
@@ -31,11 +31,14 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ documents: documents || [] });
   } catch (error: unknown) {
     console.error('Error listing documents:', error);
-    return NextResponse.json({ error: 'Error obteniendo documentos' }, { status: 500 });
+    return NextResponse.json({ error: 'Error listando documentos' }, { status: 500 });
   }
 }
 
-// DELETE: Eliminar un documento (robusto: borra por filtro de metadata + barrido por ID)
+// DELETE: Eliminar un documento del corpus (exclusión voluntaria).
+// Delega en la función de borrado compartida (C.2): vectores + fila + lápida si
+// el documento es sincronizado. A diferencia del código pre-C.2, un fallo de
+// borrado NO se reporta como éxito (endurecimiento de .error, remache 3 de Fable).
 export async function DELETE(req: NextRequest) {
   try {
     const user = await getAuthenticatedUserHybrid(req);
@@ -59,47 +62,27 @@ export async function DELETE(req: NextRequest) {
       return NextResponse.json({ error: 'ID de documento requerido' }, { status: 400 });
     }
 
-    // Verificar propiedad
-    const { data: doc } = await supabase
-      .from('documents')
-      .select('id, chunk_count')
-      .eq('id', documentId)
-      .eq('org_id', orgId)
-      .single();
+    // Exclusión voluntaria: este endpoint solo lo llaman la bandeja y el sidebar,
+    // siempre es el usuario quitando un documento del corpus. Si es sincronizado,
+    // deleteDocument escribe lápida para que el sync no lo reimporte.
+    const result = await deleteDocument(supabase, {
+      orgId,
+      documentId,
+      reason: 'user_excluded',
+      excludedBy: user.id,
+    });
 
-    if (!doc) {
-      return NextResponse.json({ error: 'Documento no encontrado' }, { status: 404 });
-    }
-
-    // Estrategia 1: borrado por filtro de metadata (captura TODO, incluyendo vectores
-    // huérfanos si chunk_count quedó desincronizado en algún punto del pasado)
-    let filterDeleteWorked = false;
-    try {
-      await deleteVectorsByFilter(orgId, { documentId: { $eq: documentId } });
-      filterDeleteWorked = true;
-      console.log(`[DELETE] Metadata filter delete OK for documentId=${documentId}`);
-    } catch (err) {
-      console.warn(`[DELETE] Metadata filter delete failed, falling back to ID list:`, err);
-    }
-
-    // Estrategia 2: barrido por IDs construidos (siempre, por si el filtro no se aplicó
-    // en el plan actual o quedaron IDs antiguos antes de que empezáramos a guardar metadata)
-    if (!filterDeleteWorked || doc.chunk_count > 0) {
-      const idsToDelete = Array.from(
-        { length: Math.max(doc.chunk_count, 0) },
-        (_, i) => `${documentId}-${i}`
+    if (!result.ok) {
+      // La verificación de propiedad la hace deleteDocument al leer el documento
+      // filtrando por org_id; si no existe, devuelve error de lectura.
+      const notFound = result.error?.includes('no encontrado');
+      return NextResponse.json(
+        { error: result.error ?? 'Error eliminando documento' },
+        { status: notFound ? 404 : 500 }
       );
-      try {
-        await deleteVectorsByIds(orgId, idsToDelete);
-      } catch (err) {
-        console.warn(`[DELETE] ID batch delete failed:`, err);
-      }
     }
 
-    // Eliminar de Supabase
-    await supabase.from('documents').delete().eq('id', documentId);
-
-    return NextResponse.json({ success: true, filterDeleteWorked });
+    return NextResponse.json({ success: true, tombstoned: result.tombstoned });
   } catch (error: unknown) {
     console.error('Error deleting document:', error);
     return NextResponse.json({ error: 'Error eliminando documento' }, { status: 500 });
