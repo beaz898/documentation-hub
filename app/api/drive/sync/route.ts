@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import { getAuthenticatedUserHybrid } from '@/lib/supabase-server';
 import { upsertVectors, deleteVectorsByIds } from '@/lib/pinecone/vectors';
-import { deleteDocument } from '@/lib/delete-document';
+import { deleteDocument, getTombstonedIdentities, tombstoneKey } from '@/lib/delete-document';
 import { generateEmbeddings } from '@/lib/embeddings';
 import { chunkText } from '@/lib/chunking';
 import { randomUUID } from 'crypto';
@@ -109,15 +109,29 @@ export async function POST(req: NextRequest) {
       (existingDocs || []).map(d => [d.provider_file_id, d])
     );
 
+    // Lápidas: identidades excluidas a propósito por el usuario. Se cargan una
+    // sola vez (no una consulta por archivo) y se consultan antes de importar
+    // para no reimportar lo que se quitó del corpus (C.2 paso 4).
+    const tombstonedIdentities = await getTombstonedIdentities(supabase, orgId);
+
     let newCount = 0;
     let updatedCount = 0;
     let skippedCount = 0;
+    let skippedExcludedCount = 0;
     let failedCount = 0;
     const seenDriveIds = new Set<string>();
 
     for (const file of allFiles) {
       seenDriveIds.add(file.id);
       const existing = existingMap.get(file.id);
+
+      // Si el archivo tiene lápida, fue excluido a propósito: no reimportar.
+      // Se comprueba antes de descargar para no gastar la descarga.
+      if (tombstonedIdentities.has(tombstoneKey(provider.name, file.id))) {
+        skippedExcludedCount++;
+        console.log(`[DRIVE SYNC] Saltado por exclusión (lápida): ${file.name}`);
+        continue;
+      }
 
       if (existing && existing.source_modified_at && file.modifiedTime &&
           new Date(file.modifiedTime) <= new Date(existing.source_modified_at)) {
@@ -263,7 +277,7 @@ export async function POST(req: NextRequest) {
       console.error(`[DRIVE SYNC] update-last-synced fallo | org=${orgId} | code=${syncedAtError.code ?? '?'} | ${syncedAtError.message}`);
     }
 
-    console.log(`[DRIVE SYNC] Complete: ${newCount} new, ${updatedCount} updated, ${deletedCount} deleted, ${skippedCount} unchanged, ${failedCount} failed, ${deleteFailedCount} delete-failed`);
+    console.log(`[DRIVE SYNC] Complete: ${newCount} new, ${updatedCount} updated, ${deletedCount} deleted, ${skippedCount} unchanged, ${failedCount} failed, ${deleteFailedCount} delete-failed, ${skippedExcludedCount} excluded`);
 
     return NextResponse.json({
       success: failedCount === 0,
@@ -272,6 +286,7 @@ export async function POST(req: NextRequest) {
         updated: updatedCount,
         deleted: deletedCount,
         skipped: skippedCount,
+        skippedExcluded: skippedExcludedCount,
         failed: failedCount,
         deleteFailed: deleteFailedCount,
         total: allFiles.length,
