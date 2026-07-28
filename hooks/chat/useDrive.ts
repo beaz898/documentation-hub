@@ -63,6 +63,10 @@ export function useDrive(
         if (deleteFailed > 0) {
           parts.push(`**${deleteFailed}** con borrado fallido${deleteFailed !== 1 ? 's' : ''}`);
         }
+        const skippedExcluded = stats.skippedExcluded ?? 0;
+        if (skippedExcluded > 0) {
+          parts.push(`**${skippedExcluded}** excluido${skippedExcluded !== 1 ? 's' : ''}`);
+        }
         const hadFailures = failed > 0 || deleteFailed > 0;
         addMessage({
           id: crypto.randomUUID(),
