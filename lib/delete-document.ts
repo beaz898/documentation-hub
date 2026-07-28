@@ -153,3 +153,40 @@ export async function deleteDocument(
 
   return result;
 }
+
+/**
+ * Clave de identidad de una lápida, en el formato `source::provider_file_id`.
+ * Se usa para comprobar en memoria si un archivo del proveedor está excluido,
+ * sin una consulta por archivo.
+ */
+export function tombstoneKey(source: string, providerFileId: string): string {
+  return `${source}::${providerFileId}`;
+}
+
+/**
+ * Lee todas las lápidas de una organización y devuelve un Set con sus claves de
+ * identidad (source::provider_file_id). El sync lo consulta ANTES de importar
+ * cada archivo: si la clave está en el Set, el archivo fue excluido a propósito
+ * y no debe reimportarse (C.2, paso 4).
+ *
+ * Una sola consulta por sync (no una por archivo). Si la consulta falla, se
+ * devuelve un Set vacío y se registra el error: en el peor caso el sync no
+ * salta exclusiones (comportamiento pre-lápida), nunca bloquea el sync entero.
+ */
+export async function getTombstonedIdentities(
+  supabase: SupabaseClient,
+  orgId: string,
+): Promise<Set<string>> {
+  const { data, error } = await supabase
+    .from('document_tombstones')
+    .select('source, provider_file_id')
+    .eq('org_id', orgId);
+
+  if (error) {
+    console.error(`[getTombstonedIdentities] fallo al leer lápidas | org=${orgId} | ${error.message}`);
+    return new Set();
+  }
+
+  const keys = (data ?? []).map((row) => tombstoneKey(row.source, row.provider_file_id));
+  return new Set(keys);
+}
