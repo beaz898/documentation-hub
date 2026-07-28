@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import { getAuthenticatedUserHybrid } from '@/lib/supabase-server';
 import { upsertVectors, deleteVectorsByIds } from '@/lib/pinecone/vectors';
+import { deleteDocument } from '@/lib/delete-document';
 import { generateEmbeddings } from '@/lib/embeddings';
 import { chunkText } from '@/lib/chunking';
 import { randomUUID } from 'crypto';
@@ -237,22 +238,20 @@ export async function POST(req: NextRequest) {
 
     let deleteFailedCount = 0;
     for (const doc of docsToDelete) {
-      try {
-        const idsToDelete = Array.from(
-          { length: doc.chunk_count },
-          (_, i) => `${doc.id}-${i}`
-        );
-        await deleteVectorsByIds(orgId, idsToDelete);
-        const { error: delDocError } = await supabase.from('documents').delete().eq('id', doc.id);
-        if (delDocError) {
-          console.error(`[DRIVE SYNC] delete-doc fallo | org=${orgId} | doc=${doc.id} | name=${doc.name} | code=${delDocError.code ?? '?'} | ${delDocError.message}`);
-          deleteFailedCount++;
-          continue;
-        }
+      // Borrado remoto: el archivo desapareció del proveedor. reason='remote_deleted'
+      // => sin lápida (no hay reimportación que bloquear, y una lápida impediría
+      // restaurarlo si el usuario lo recupera en su Drive). Borrado vía la función
+      // compartida de C.2 (vectores + fila, con .error verificado).
+      const result = await deleteDocument(supabase, {
+        orgId,
+        documentId: doc.id,
+        reason: 'remote_deleted',
+      });
+      if (result.ok) {
         deletedCount++;
-        console.log(`[DRIVE SYNC] Deleted (no longer in Drive): ${doc.name}`);
-      } catch (err) {
-        console.error(`[DRIVE SYNC] Failed to delete ${doc.name}:`, err);
+        console.log(`[DRIVE SYNC] Deleted ${doc.name}`);
+      } else {
+        console.error(`[DRIVE SYNC] delete failed | doc=${doc.id} | name=${doc.name} | ${result.error ?? 'error desconocido'}`);
         deleteFailedCount++;
       }
     }
