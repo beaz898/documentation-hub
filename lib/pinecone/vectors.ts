@@ -104,3 +104,30 @@ export async function updateVectorMetadata(
   // Mismo motivo que en upsertVectors: cast estructural, compatible en runtime.
   await ns.update({ id, metadata: metadata as unknown as RecordMetadata });
 }
+
+/** Lista TODOS los IDs de vectores de un documento en el namespace de la org,
+ *  paginando hasta agotar resultados. El prefijo lleva el guion final
+ *  (`${documentId}-`) a propósito: sin él, un documentId que fuera prefijo textual
+ *  de otro arrastraría chunks ajenos. Con UUIDs es improbable; el guion lo hace
+ *  estructuralmente imposible. Usado por C.3 para borrar los "zombis" (chunks
+ *  sobrantes de una versión anterior más larga) por lo que HAY en Pinecone, no
+ *  por lo que chunk_count dice que hubo. */
+export async function listVectorIdsByPrefix(
+  orgId: string,
+  documentId: string,
+): Promise<string[]> {
+  const ns = getIndex().namespace(orgId);
+  const prefix = `${documentId}-`;
+  const ids: string[] = [];
+  let paginationToken: string | undefined = undefined;
+
+  do {
+    const res = await ns.listPaginated({ prefix, ...(paginationToken ? { paginationToken } : {}) });
+    for (const item of res.vectors ?? []) {
+      if (item.id) ids.push(item.id);
+    }
+    paginationToken = res.pagination?.next;
+  } while (paginationToken);
+
+  return ids;
+}
