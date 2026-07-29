@@ -70,6 +70,14 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { storagePath, fileName, text: directText, exhaustive, excludeFingerprints: rawExcludeFps, documentId } = body;
 
+    // Auto-exclusión derivada del endpoint (no del caller): un documento que YA
+    // existe en el corpus (tiene documentId) NUNCA se compara consigo mismo.
+    // La garantía vive aquí, no en el frontend, para que todo llamador la herede:
+    // la bandeja, la cola de Fase D, y el reemplazo manual de D5 ("el análisis de
+    // una versión nueva excluye los vectores de su propia versión anterior").
+    // En la subida no hay documentId (el doc aún no existe) → undefined → no excluye.
+    const excludeDocumentId = typeof documentId === 'string' ? documentId : undefined;
+
     // Convertir array de huellas descartadas a Set (si viene del frontend)
     const excludeFingerprints = Array.isArray(rawExcludeFps)
       ? new Set<string>(rawExcludeFps)
@@ -221,7 +229,7 @@ export async function POST(req: NextRequest) {
           document_name: fileName,
           document_text: text,
           sample_texts: JSON.stringify(sampleTexts),
-          exclude_document_id: body.excludeDocumentId || null,
+          exclude_document_id: excludeDocumentId ?? null,
           exclude_fingerprints: JSON.stringify(Array.from(excludeFingerprints)),
           credits_consumed: creditsConsumed,
         })
@@ -269,6 +277,7 @@ export async function POST(req: NextRequest) {
         newDocumentName: fileName,
         sampleTexts,
         orgId,
+        excludeDocumentId,
         supabase,
       })
     );
