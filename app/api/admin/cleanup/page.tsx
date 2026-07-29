@@ -27,6 +27,13 @@ interface DuplicateGroup {
   contentHash: string;
   copies: DuplicateCopy[];
 }
+interface Tombstone {
+  id: string;
+  source: string;
+  provider_file_id: string;
+  original_name: string | null;
+  excluded_at: string;
+}
 
 export default function CleanupPage() {
   const [loading, setLoading] = useState(false);
@@ -40,6 +47,35 @@ export default function CleanupPage() {
   const [dupGroups, setDupGroups] = useState<DuplicateGroup[] | null>(null);
   const [survivors, setSurvivors] = useState<Record<string, string>>({});
   const [dupBusy, setDupBusy] = useState(false);
+
+  const [tombstones, setTombstones] = useState<Tombstone[] | null>(null);
+  const [tombBusy, setTombBusy] = useState(false);
+
+  const loadTombstones = async () => {
+    setLoading(true); setError(null); setForbidden(false);
+    try {
+      const res = await fetch('/api/admin/tombstones', { credentials: 'include' });
+      if (res.status === 401 || res.status === 403) { setForbidden(true); return; }
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Error');
+      setTombstones(data.tombstones);
+    } catch (e) { setError(e instanceof Error ? e.message : 'Error'); }
+    finally { setLoading(false); }
+  };
+
+  const recoverTombstone = async (t: Tombstone) => {
+    if (!confirm(`¿Recuperar "${t.original_name ?? t.provider_file_id}"? Se quitará la exclusión; el archivo volverá a importarse en el próximo sync.`)) return;
+    setTombBusy(true); setError(null);
+    try {
+      const res = await fetch(`/api/admin/tombstones?id=${t.id}`, { method: 'DELETE', credentials: 'include' });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || 'No se pudo recuperar');
+      }
+      await loadTombstones();
+    } catch (e) { setError(e instanceof Error ? e.message : 'Error'); }
+    finally { setTombBusy(false); }
+  };
 
   const loadDuplicates = async () => {
     setLoading(true); setError(null); setForbidden(false);
@@ -264,6 +300,34 @@ export default function CleanupPage() {
             <button onClick={() => removeDuplicates(g)} disabled={dupBusy}
               style={{ marginTop: 8, padding: '8px 14px', borderRadius: 8, border: 'none', background: '#dc2626', color: 'white', cursor: dupBusy ? 'not-allowed' : 'pointer', fontSize: 13, fontWeight: 500 }}>
               {dupBusy ? 'Quitando...' : 'Conservar la marcada y quitar las demás'}
+            </button>
+          </div>
+        ))}
+      </div>
+
+      <div style={{ marginTop: 40, paddingTop: 24, borderTop: '0.5px solid var(--border)' }}>
+        <h2 style={{ fontSize: 18, marginBottom: 8 }}>Exclusiones (documentos quitados que no vuelven)</h2>
+        <p style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 16 }}>
+          Archivos de una nube que quitaste del corpus y que el sync ya no reimporta. Recuperar uno quita su exclusión: volverá a entrar en el próximo sync. Solo administradores.
+        </p>
+
+        <button onClick={loadTombstones} disabled={loading}
+          style={{ padding: '10px 16px', borderRadius: 8, border: '0.5px solid var(--border)', background: 'var(--bg-secondary)', color: 'var(--text-primary)', cursor: loading ? 'not-allowed' : 'pointer', fontSize: 14, marginBottom: 16 }}>
+          {loading ? 'Cargando...' : 'Ver exclusiones'}
+        </button>
+
+        {tombstones && tombstones.length === 0 && (
+          <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>No hay exclusiones.</div>
+        )}
+
+        {tombstones && tombstones.map((t) => (
+          <div key={t.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: 12, background: 'var(--bg-secondary)', border: '0.5px solid var(--border)', borderRadius: 8, marginBottom: 8 }}>
+            <span style={{ fontSize: 13 }}>
+              <b>{t.original_name ?? t.provider_file_id}</b> · {t.source} · <span style={{ color: 'var(--text-muted)' }}>{new Date(t.excluded_at).toLocaleDateString()}</span>
+            </span>
+            <button onClick={() => recoverTombstone(t)} disabled={tombBusy}
+              style={{ padding: '8px 14px', borderRadius: 8, border: '0.5px solid var(--border)', background: 'var(--bg-secondary)', color: 'var(--text-primary)', cursor: tombBusy ? 'not-allowed' : 'pointer', fontSize: 13, fontWeight: 500, whiteSpace: 'nowrap' }}>
+              {tombBusy ? '...' : 'Recuperar'}
             </button>
           </div>
         ))}
