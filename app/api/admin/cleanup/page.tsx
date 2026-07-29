@@ -16,6 +16,17 @@ interface BackfillReport {
   vectorsUpdated?: number;
   failed?: Array<{ id: string; name: string; error: string }>;
 }
+interface DuplicateCopy {
+  id: string;
+  name: string;
+  source: string;
+  provider_file_id: string | null;
+  created_at: string;
+}
+interface DuplicateGroup {
+  contentHash: string;
+  copies: DuplicateCopy[];
+}
 
 export default function CleanupPage() {
   const [loading, setLoading] = useState(false);
@@ -25,6 +36,46 @@ export default function CleanupPage() {
   const [deleted, setDeleted] = useState(false);
   const [backfill, setBackfill] = useState<BackfillReport | null>(null);
   const [backfillDone, setBackfillDone] = useState(false);
+
+  const [dupGroups, setDupGroups] = useState<DuplicateGroup[] | null>(null);
+  const [survivors, setSurvivors] = useState<Record<string, string>>({});
+  const [dupBusy, setDupBusy] = useState(false);
+
+  const loadDuplicates = async () => {
+    setLoading(true); setError(null); setForbidden(false);
+    try {
+      const res = await fetch('/api/admin/duplicates', { credentials: 'include' });
+      if (res.status === 401 || res.status === 403) { setForbidden(true); return; }
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Error');
+      setDupGroups(data.groups);
+      // Preselecciona como superviviente la primera copia de cada grupo (la más antigua).
+      const pre: Record<string, string> = {};
+      for (const g of data.groups as DuplicateGroup[]) pre[g.contentHash] = g.copies[0].id;
+      setSurvivors(pre);
+    } catch (e) { setError(e instanceof Error ? e.message : 'Error'); }
+    finally { setLoading(false); }
+  };
+
+  const removeDuplicates = async (group: DuplicateGroup) => {
+    const survivorId = survivors[group.contentHash];
+    const toRemove = group.copies.filter(c => c.id !== survivorId);
+    if (toRemove.length === 0) return;
+    const names = toRemove.map(c => `${c.name} (${c.source})`).join(', ');
+    if (!confirm(`¿Quitar del corpus: ${names}? Se conservará solo la copia seleccionada. Los quitados dejarán exclusión para no volver en el próximo sync.`)) return;
+    setDupBusy(true); setError(null);
+    try {
+      for (const copy of toRemove) {
+        const res = await fetch(`/api/documents?id=${copy.id}`, { method: 'DELETE', credentials: 'include' });
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          throw new Error(data.error || `No se pudo quitar ${copy.name}`);
+        }
+      }
+      await loadDuplicates();
+    } catch (e) { setError(e instanceof Error ? e.message : 'Error'); }
+    finally { setDupBusy(false); }
+  };
 
   const callBackfill = async (dryRun: boolean) => {
     setLoading(true); setError(null); setForbidden(false);
@@ -184,6 +235,38 @@ export default function CleanupPage() {
             ✅ Backfill completado.
           </div>
         )}
+      </div>
+
+      <div style={{ marginTop: 40, paddingTop: 24, borderTop: '0.5px solid var(--border)' }}>
+        <h2 style={{ fontSize: 18, marginBottom: 8 }}>Duplicados exactos</h2>
+        <p style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 16 }}>
+          Documentos con contenido idéntico (mismo hash). Elige qué copia conservar; las demás se quitan del corpus y, si son de una nube, dejan exclusión para no volver en el próximo sync. Solo administradores.
+        </p>
+
+        <button onClick={loadDuplicates} disabled={loading}
+          style={{ padding: '10px 16px', borderRadius: 8, border: '0.5px solid var(--border)', background: 'var(--bg-secondary)', color: 'var(--text-primary)', cursor: loading ? 'not-allowed' : 'pointer', fontSize: 14, marginBottom: 16 }}>
+          {loading ? 'Analizando...' : 'Analizar duplicados'}
+        </button>
+
+        {dupGroups && dupGroups.length === 0 && (
+          <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>✅ No hay duplicados exactos.</div>
+        )}
+
+        {dupGroups && dupGroups.map((g) => (
+          <div key={g.contentHash} style={{ padding: 16, background: 'var(--bg-secondary)', border: '0.5px solid var(--border)', borderRadius: 8, marginBottom: 12 }}>
+            {g.copies.map((c) => (
+              <label key={c.id} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, marginBottom: 6, cursor: 'pointer' }}>
+                <input type="radio" name={`survivor-${g.contentHash}`} checked={survivors[g.contentHash] === c.id}
+                  onChange={() => setSurvivors((s) => ({ ...s, [g.contentHash]: c.id }))} />
+                <span><b>{c.name}</b> · {c.source} · <span style={{ color: 'var(--text-muted)' }}>{new Date(c.created_at).toLocaleDateString()}</span></span>
+              </label>
+            ))}
+            <button onClick={() => removeDuplicates(g)} disabled={dupBusy}
+              style={{ marginTop: 8, padding: '8px 14px', borderRadius: 8, border: 'none', background: '#dc2626', color: 'white', cursor: dupBusy ? 'not-allowed' : 'pointer', fontSize: 13, fontWeight: 500 }}>
+              {dupBusy ? 'Quitando...' : 'Conservar la marcada y quitar las demás'}
+            </button>
+          </div>
+        ))}
       </div>
     </div>
   );
