@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import { getAuthenticatedUserHybrid } from '@/lib/supabase-server';
-import { upsertVectors, deleteVectorsByIds } from '@/lib/pinecone/vectors';
+import { upsertVectors, deleteVectorsByIds, listVectorIdsByPrefix } from '@/lib/pinecone/vectors';
 import { deleteDocument, getTombstonedIdentities, tombstoneKey } from '@/lib/delete-document';
 import { generateEmbeddings } from '@/lib/embeddings';
 import { chunkText } from '@/lib/chunking';
@@ -125,125 +125,147 @@ export async function POST(req: NextRequest) {
       seenDriveIds.add(file.id);
       const existing = existingMap.get(file.id);
 
-      // Si el archivo tiene lápida, fue excluido a propósito: no reimportar.
-      // Se comprueba antes de descargar para no gastar la descarga.
+      // Lápida: excluido a propósito, no reimportar. Antes de descargar.
       if (tombstonedIdentities.has(tombstoneKey(provider.name, file.id))) {
         skippedExcludedCount++;
         console.log(`[DRIVE SYNC] Saltado por exclusión (lápida): ${file.name}`);
         continue;
       }
 
+      // Sin cambios desde el último sync: saltar.
       if (existing && existing.source_modified_at && file.modifiedTime &&
           new Date(file.modifiedTime) <= new Date(existing.source_modified_at)) {
         skippedCount++;
         continue;
       }
 
-      let text: string;
+      // Todo el procesamiento del archivo va en try/catch: un archivo que falla
+      // se cuenta como failed y el sync SIGUE con los demás (aislamiento honesto).
+      // La fila vieja NUNCA se borra en reemplazo: se actualiza en sitio (C.3).
       try {
-        text = await provider.downloadFile(accessToken, file.id, file.mimeType);
-      } catch {
-        console.error(`[DRIVE SYNC] Failed to download: ${file.name}`);
-        continue;
-      }
-
-      if (!text || text.trim().length < 50) continue;
-
-      const documentId = randomUUID();
-
-      const isReplacement = Boolean(existing);
-      if (existing) {
-        const idsToDelete = Array.from(
-          { length: existing.chunk_count },
-          (_, i) => `${existing.id}-${i}`
-        );
-        await deleteVectorsByIds(orgId, idsToDelete);
-        const { error: deleteError } = await supabase
-          .from('documents')
-          .delete()
-          .eq('id', existing.id);
-        if (deleteError) {
-          // No se pudo borrar la fila vieja: no seguimos con el insert de la
-          // nueva para no dejar dos filas de la misma identidad. Se registra
-          // y se cuenta como fallo.
-          console.error(
-            `[DRIVE SYNC] delete-old fallo | org=${orgId} | file=${file.id} | name=${file.name} | code=${deleteError.code ?? '?'} | ${deleteError.message}`
-          );
-          failedCount++;
+        const text = await provider.downloadFile(accessToken, file.id, file.mimeType);
+        if (!text || text.trim().length < 50) {
+          console.warn(`[DRIVE SYNC] Texto vacío o muy corto, se omite: ${file.name}`);
           continue;
         }
-      }
 
-      const chunks = chunkText(text, documentId, file.name, orgId);
-      const embeddings = await generateEmbeddings(chunks.map(c => c.text));
+        const isReplacement = Boolean(existing);
+        // En reemplazo se CONSERVA el documentId viejo (update en sitio).
+        const documentId = existing ? existing.id : randomUUID();
 
-      const vectors = chunks.map((chunk, i) => ({
-        id: `${documentId}-${i}`,
-        values: embeddings[i],
-        metadata: {
-          text: chunk.text,
-          documentId,
-          documentName: file.name,
-          chunkIndex: i,
-          totalChunks: chunks.length,
-          orgId,
-          source: provider.name,
-          folderPath: file.folderPath ?? '/',
-          analysisStatus: 'pendiente',
-        },
-      }));
+        const chunks = chunkText(text, documentId, file.name, orgId);
+        const embeddings = await generateEmbeddings(chunks.map(c => c.text));
+        const contentHash = generateContentHash(text);
 
-      await upsertVectors(orgId, vectors);
+        const vectors = chunks.map((chunk, i) => ({
+          id: `${documentId}-${i}`,
+          values: embeddings[i],
+          metadata: {
+            text: chunk.text,
+            documentId,
+            documentName: file.name,
+            chunkIndex: i,
+            totalChunks: chunks.length,
+            orgId,
+            source: provider.name,
+            folderPath: file.folderPath ?? '/',
+            analysisStatus: 'pendiente',
+          },
+        }));
 
-      const contentHash = generateContentHash(text);
+        // Construir antes de destruir: subir los vectores nuevos primero.
+        await upsertVectors(orgId, vectors);
 
-      const { error: insertError } = await supabase.from('documents').insert({
-        id: documentId,
-        name: file.name,
-        size_bytes: Buffer.byteLength(text, 'utf8'),
-        chunk_count: chunks.length,
-        org_id: orgId,
-        user_id: user.id,
-        status: 'indexed',
-        source: provider.name,
-        analysis_status: 'pendiente',   // Drive entra sin analizar: irá a la bandeja de revisión
-        provider_file_id: file.id,
-        source_modified_at: file.modifiedTime,
-        folder_path: file.folderPath ?? '/',
-        folder_id: file.parentId ?? null,
-        full_text: text,
-        content_hash: contentHash,
-      });
+        if (isReplacement) {
+          // Borrar "zombis": chunks de la versión vieja que sobran si la nueva
+          // tiene menos. Fuente de verdad = lo que HAY en Pinecone, no chunk_count.
+          const existingIds = await listVectorIdsByPrefix(orgId, documentId);
+          const newChunkCount = chunks.length;
+          const zombieIds: string[] = [];
+          let anomalies = 0;
+          for (const id of existingIds) {
+            const idx = parseInt(id.slice(id.lastIndexOf('-') + 1), 10);
+            if (Number.isNaN(idx)) {
+              anomalies++;
+              console.warn(`[DRIVE SYNC] ID de vector anómalo (no parsea índice): ${id} | doc=${documentId}`);
+              continue;
+            }
+            if (idx >= newChunkCount) zombieIds.push(id);
+          }
+          if (anomalies > 0) {
+            console.warn(`[DRIVE SYNC] ${anomalies} IDs anómalos en doc=${documentId} (${file.name})`);
+          }
+          if (zombieIds.length > 0) {
+            await deleteVectorsByIds(orgId, zombieIds);
+            console.log(`[DRIVE SYNC] Zombis borrados: ${zombieIds.length} | doc=${documentId} | ${file.name}`);
+          }
 
-      if (insertError) {
-        if (insertError.code === '23505') {
-          // Violacion del indice unico de identidad (documents_identity_unique):
-          // algo intento crear una segunda fila con la misma (org_id, source,
-          // provider_file_id). No deberia pasar (el sync empareja antes), pero
-          // si suena, es ESA alarma y no un error de BD generico.
-          console.error(
-            `[DRIVE SYNC] IDENTIDAD DUPLICADA (23505) | org=${orgId} | file=${file.id} | name=${file.name} | provider=${provider.name} | ${insertError.message}`
-          );
+          // UPDATE atómico en sitio: contenido y estado en UNA sola operación.
+          // source_modified_at avanza SOLO aquí (cerrojo del reintento).
+          const { error: updateError } = await supabase
+            .from('documents')
+            .update({
+              name: file.name,
+              size_bytes: Buffer.byteLength(text, 'utf8'),
+              chunk_count: chunks.length,
+              status: 'indexed',
+              analysis_status: 'pendiente',
+              source_modified_at: file.modifiedTime,
+              folder_path: file.folderPath ?? '/',
+              folder_id: file.parentId ?? null,
+              full_text: text,
+              content_hash: contentHash,
+            })
+            .eq('id', documentId)
+            .eq('org_id', orgId);
+
+          if (updateError) {
+            // Update falló tras subir vectores: Pinecone adelantado, fila vieja
+            // intacta (no se borró). Recuperable: source_modified_at no avanzó,
+            // el próximo sync reintenta. Se cuenta como fallo.
+            console.error(`[DRIVE SYNC] update-en-sitio fallo | org=${orgId} | doc=${documentId} | name=${file.name} | code=${updateError.code ?? '?'} | ${updateError.message}`);
+            failedCount++;
+            continue;
+          }
+          updatedCount++;
+          console.log(`[DRIVE SYNC] Actualizado en sitio: ${file.name} (${chunks.length} chunks)`);
         } else {
-          console.error(
-            `[DRIVE SYNC] insert fallo | org=${orgId} | file=${file.id} | name=${file.name} | replacement=${isReplacement} | code=${insertError.code ?? '?'} | ${insertError.message}`
-          );
+          // Documento nuevo: insert normal.
+          const { error: insertError } = await supabase.from('documents').insert({
+            id: documentId,
+            name: file.name,
+            size_bytes: Buffer.byteLength(text, 'utf8'),
+            chunk_count: chunks.length,
+            org_id: orgId,
+            user_id: user.id,
+            status: 'indexed',
+            source: provider.name,
+            analysis_status: 'pendiente',
+            provider_file_id: file.id,
+            source_modified_at: file.modifiedTime,
+            folder_path: file.folderPath ?? '/',
+            folder_id: file.parentId ?? null,
+            full_text: text,
+            content_hash: contentHash,
+          });
+
+          if (insertError) {
+            if (insertError.code === '23505') {
+              console.error(`[DRIVE SYNC] IDENTIDAD DUPLICADA (23505) | org=${orgId} | file=${file.id} | name=${file.name} | provider=${provider.name} | ${insertError.message}`);
+            } else {
+              console.error(`[DRIVE SYNC] insert fallo | org=${orgId} | file=${file.id} | name=${file.name} | code=${insertError.code ?? '?'} | ${insertError.message}`);
+            }
+            failedCount++;
+            continue;
+          }
+          newCount++;
+          console.log(`[DRIVE SYNC] Indexed: ${file.name} (${chunks.length} chunks) [${file.folderPath ?? '/'}]`);
         }
-        // Si era un reemplazo, la fila vieja ya se borro arriba: el documento
-        // queda en mal estado (sin fila, con vectores nuevos en Pinecone). C.3
-        // resolvera el orden para prevenirlo; C.1c solo lo hace AUDIBLE.
+      } catch (err) {
+        console.error(`[DRIVE SYNC] Fallo procesando ${file.name} | doc-file=${file.id} |`, err);
         failedCount++;
         continue;
       }
-
-      // Insert OK: recien ahora contamos el exito, no antes.
-      if (isReplacement) {
-        updatedCount++;
-      } else {
-        newCount++;
-      }
-
-      console.log(`[DRIVE SYNC] Indexed: ${file.name} (${chunks.length} chunks) [${file.folderPath ?? '/'}]`);
     }
 
     // Detect deletions: docs whose provider_file_id is no longer in Drive
