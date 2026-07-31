@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from 'react';
 import type { SessionInfo, DriveStatus, Message } from './types';
+import { uploadLockMessage } from '@/lib/upload-lock-message';
 
 export function useDrive(
   session: SessionInfo | null,
@@ -78,8 +79,9 @@ export function useDrive(
         await loadDocuments();
         await loadDriveStatus();
       } else {
-        const data = await res.json();
-        addMessage({ id: crypto.randomUUID(), role: 'error', content: data.error || 'Error sincronizando' });
+        const data = await res.json().catch(() => ({}));
+        const lockMsg = uploadLockMessage(res.status, data);
+        addMessage({ id: crypto.randomUUID(), role: 'error', content: lockMsg ?? (data.error || 'Error sincronizando') });
       }
     } catch {
       addMessage({ id: crypto.randomUUID(), role: 'error', content: 'Error de conexión al sincronizar' });

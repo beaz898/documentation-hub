@@ -1,5 +1,6 @@
 'use client';
 import { useState } from 'react';
+import { uploadLockMessage } from '@/lib/upload-lock-message';
 
 interface OrphanGroup { documentId: string; documentName: string; vectorCount: number; }
 interface Report {
@@ -105,7 +106,8 @@ export default function CleanupPage() {
         const res = await fetch(`/api/documents?id=${copy.id}`, { method: 'DELETE', credentials: 'include' });
         if (!res.ok) {
           const data = await res.json().catch(() => ({}));
-          throw new Error(data.error || `No se pudo quitar ${copy.name}`);
+          const lockMsg = uploadLockMessage(res.status, data);
+          throw new Error(lockMsg ?? (data.error || `No se pudo quitar ${copy.name}`));
         }
       }
       await loadDuplicates();

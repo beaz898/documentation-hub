@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useState } from 'react';
+import { uploadLockMessage } from '@/lib/upload-lock-message';
 
 export interface ExistingDocForIndexing {
   id: string;
@@ -54,7 +55,8 @@ export function useIndexing({
 
         if (!res.ok) {
           const err = await res.json().catch(() => ({ error: 'Error' }));
-          alert(`Error al indexar: ${err.error || 'desconocido'}`);
+          const lockMsg = uploadLockMessage(res.status, err);
+          alert(lockMsg ?? `Error al indexar: ${err.error || 'desconocido'}`);
           return;
         }
 

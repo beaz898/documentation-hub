@@ -10,6 +10,7 @@ import ImprovementModal from '@/components/ImprovementModal';
 import ReviewFolderGroup from '@/components/review/ReviewFolderGroup';
 import ReviewSelectionBar from '@/components/review/ReviewSelectionBar';
 import FeedbackButton from '@/components/feedback/FeedbackButton';
+import { uploadLockMessage } from '@/lib/upload-lock-message';
 
 export default function ReviewPage() {
   const vvHeight = useVisualViewportHeight();
@@ -110,7 +111,8 @@ export default function ReviewPage() {
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || `Error ${res.status}`);
+        const lockMsg = uploadLockMessage(res.status, data);
+        throw new Error(lockMsg ?? (data.error || `Error ${res.status}`));
       }
       closeReviewModal();
       await refetch();
