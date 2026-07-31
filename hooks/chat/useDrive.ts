@@ -81,7 +81,11 @@ export function useDrive(
       } else {
         const data = await res.json().catch(() => ({}));
         const lockMsg = uploadLockMessage(res.status, data);
-        addMessage({ id: crypto.randomUUID(), role: 'error', content: lockMsg ?? (data.error || 'Error sincronizando') });
+        if (lockMsg) {
+          alert(lockMsg);
+        } else {
+          addMessage({ id: crypto.randomUUID(), role: 'error', content: data.error || 'Error sincronizando' });
+        }
       }
     } catch {
       addMessage({ id: crypto.randomUUID(), role: 'error', content: 'Error de conexión al sincronizar' });
