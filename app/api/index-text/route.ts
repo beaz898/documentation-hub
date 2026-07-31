@@ -7,6 +7,7 @@ import { chunkText } from '@/lib/chunking';
 import { randomUUID } from 'crypto';
 import { resolveOrg } from '@/lib/org';
 import { generateContentHash } from '@/lib/analysis/hash-check';
+import { checkUploadLock } from '@/lib/upload-lock';
 
 export const maxDuration = 300;
 
@@ -38,6 +39,16 @@ export async function POST(req: NextRequest) {
       );
     }
     const orgId = org.orgId;
+
+    // Candado (B.64): indexar desde "mejorar con IA" escribe en el corpus.
+    // Si otro usuario tiene el candado, se rechaza con 423 visible.
+    const lockCheck = await checkUploadLock(supabase, orgId, user.id);
+    if (lockCheck.locked) {
+      return NextResponse.json(
+        { error: `El corpus está bloqueado por ${lockCheck.lockedByEmail || 'otro usuario'}. Espera a que termine.`, errorType: 'upload_locked' },
+        { status: 423 }
+      );
+    }
 
     const body = await req.json();
     const { text, name, originalStoragePath, replaceExistingId, sizeBytes } = body;
