@@ -1,5 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { deleteVectorsByFilter, deleteVectorsByIds } from '@/lib/pinecone/vectors';
+import { checkUploadLock } from '@/lib/upload-lock';
 
 /**
  * Motivo del borrado. Decide si se escribe lápida:
@@ -18,6 +19,9 @@ export interface DeleteDocumentParams {
   reason: DeleteReason;
   /** user_id de quien excluye; solo se usa para lápidas ('user_excluded'). */
   excludedBy?: string | null;
+  /** user_id de quien EJECUTA el borrado, para el candado (B.64). El portador
+   *  del candado no se bloquea a sí mismo. En el sync es quien disparó el sync. */
+  actorUserId?: string | null;
 }
 
 export interface DeleteDocumentResult {
@@ -26,6 +30,9 @@ export interface DeleteDocumentResult {
   vectorsDeleted: boolean;
   rowDeleted: boolean;
   error?: string;
+  /** true si el borrado se rechazó porque el corpus está bloqueado por otro (B.64). */
+  locked?: boolean;
+  lockedByEmail?: string;
 }
 
 interface DocumentRow {
@@ -54,7 +61,7 @@ export async function deleteDocument(
   supabase: SupabaseClient,
   params: DeleteDocumentParams,
 ): Promise<DeleteDocumentResult> {
-  const { orgId, documentId, reason, excludedBy = null } = params;
+  const { orgId, documentId, reason, excludedBy = null, actorUserId = null } = params;
 
   const result: DeleteDocumentResult = {
     ok: false,
@@ -62,6 +69,21 @@ export async function deleteDocument(
     vectorsDeleted: false,
     rowDeleted: false,
   };
+
+  // Candado (B.64): si el corpus está bloqueado por OTRO usuario, no se borra.
+  // El portador no se bloquea a sí mismo (checkUploadLock lo exime). En el sync,
+  // actorUserId es quien disparó el sync, que ya pasó el candado en la entrada.
+  // Toda ruta nueva que MUTE el corpus debe comprobar el candado — lista actual:
+  // ingest, analyze-v2, sync, index-text, deleteDocument.
+  if (actorUserId) {
+    const lockCheck = await checkUploadLock(supabase, orgId, actorUserId);
+    if (lockCheck.locked) {
+      result.locked = true;
+      result.lockedByEmail = lockCheck.lockedByEmail;
+      result.error = `El corpus está bloqueado por ${lockCheck.lockedByEmail || 'otro usuario'}. Espera a que termine.`;
+      return result;
+    }
+  }
 
   // 1. Leer el documento (identidad de origen + chunk_count).
   const { data: doc, error: readError } = await supabase

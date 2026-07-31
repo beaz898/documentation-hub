@@ -70,7 +70,15 @@ export async function DELETE(req: NextRequest) {
       documentId,
       reason: 'user_excluded',
       excludedBy: user.id,
+      actorUserId: user.id,
     });
+
+    if (result.locked) {
+      return NextResponse.json(
+        { error: result.error, errorType: 'upload_locked' },
+        { status: 423 }
+      );
+    }
 
     if (!result.ok) {
       // La verificación de propiedad la hace deleteDocument al leer el documento
