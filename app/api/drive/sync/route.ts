@@ -3,6 +3,7 @@ import { createServiceClient } from '@/lib/supabase';
 import { getAuthenticatedUserHybrid } from '@/lib/supabase-server';
 import { upsertVectors, deleteVectorsByIds, listVectorIdsByPrefix } from '@/lib/pinecone/vectors';
 import { deleteDocument, getTombstonedIdentities, tombstoneKey } from '@/lib/delete-document';
+import { checkUploadLock } from '@/lib/upload-lock';
 import { generateEmbeddings } from '@/lib/embeddings';
 import { chunkText } from '@/lib/chunking';
 import { randomUUID } from 'crypto';
@@ -31,6 +32,17 @@ export async function POST(req: NextRequest) {
       );
     }
     const orgId = org.orgId;
+
+    // Candado (B.64): el sync es una mutación mayor del corpus (escribe, actualiza
+    // y borra). Si otro usuario tiene el candado, se rechaza con 423 visible.
+    // El portador no se bloquea a sí mismo.
+    const lockCheck = await checkUploadLock(supabase, orgId, user.id);
+    if (lockCheck.locked) {
+      return NextResponse.json(
+        { error: `El corpus está bloqueado por ${lockCheck.lockedByEmail || 'otro usuario'}. Espera a que termine.`, errorType: 'upload_locked' },
+        { status: 423 }
+      );
+    }
 
     const features = await getOrgFeatures(supabase, orgId);
     if (!features.hasDrive) {
@@ -282,6 +294,7 @@ export async function POST(req: NextRequest) {
         orgId,
         documentId: doc.id,
         reason: 'remote_deleted',
+        actorUserId: user.id,
       });
       if (result.ok) {
         deletedCount++;
