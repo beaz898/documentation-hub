@@ -3159,3 +3159,87 @@ VERIFICACION DE CIERRE ("hacer ruido" — Fable). Metodo: trigger centinela temp
 ESTADO: C.1 CERRADO ENTERO (identidad existente, integra, nombrada con verdad,
 garantizada por BD, errores audibles y verificados). Siguiente: C.2 (resolucion
 de duplicados exactos con lapida — exploracion del tracking de borrados del sync).
+
+────────────────────────────────────────────────────────────────
+SESIÓN 35 — Fase C: C.2 (lápidas + borrado), C.3 (reemplazo sin
+catástrofes), C.8 creado, fix auto-comparación, B.64 (candado transversal)
+────────────────────────────────────────────────────────────────
+
+Sesión larga. Todo lo construido está commiteado, pusheado y verificado en
+producción salvo donde se indique. Diseño consultado con Fable en cada pieza
+que tocaba el corazón del sync o del análisis.
+
+B.59 (fleco UI de C.1c) — RESUELTO. La UI del sync (hooks/chat/useDrive.ts)
+muestra failed/deleteFailed y ya no presenta un sync con incidencias como
+"completado" limpio. Se detectó de paso que success del backend = failedCount===0
+ignora deleteFailed → anotado como B.63.
+
+C.2 — CERRADO ENTERO (resolución de duplicados exactos con lápida). Cinco pasos:
+  - Tabla document_tombstones (org_id TEXT, UNIQUE(org_id,source,provider_file_id),
+    RLS estilo drive_connections, idempotente por upsert). Verificada en Supabase.
+  - deleteDocument (lib/delete-document.ts): función de borrado compartida, patrón
+    C.1c (.error en cada escritura, nunca éxito parcial como éxito), escribe lápida
+    solo en exclusión voluntaria de sincronizados, NO toca analysis_results
+    (decisión de Fable — memoria de la org, C.7 se apoya en ella).
+  - Migrados los dos caminos de borrado a deleteDocument: DELETE /api/documents
+    (endurece .error + añade lápida) y el bucle docsToDelete del sync (remote_deleted,
+    sin lápida).
+  - El sync consulta lápidas antes de importar (getTombstonedIdentities) y cuenta
+    los saltados como skippedExcluded (visible en la UI).
+  - UI en /admin/cleanup: sección de duplicados exactos (agrupar por content_hash,
+    elegir superviviente) + sección de exclusiones con "recuperar" (puerta de salida).
+  Verificado en producción con el duplicado fantasma real: quitar desde la app →
+  no vuelve en el sync (sale "excluido") → recuperar → vuelve. Endpoints
+  /api/admin/duplicates y /api/admin/tombstones nuevos.
+
+C.3 — CERRADO ENTERO (reemplazo sin catástrofes). El sync ya no borra la fila
+vieja en el reemplazo: UPDATE en sitio (mismo documentId, la identidad persiste,
+el historial sigue vinculado). Esto resuelve B.61 por disolución (no hay reinsert,
+no hay 23505 posible en reemplazo). Orden "construir antes de destruir": subir
+vectores nuevos → borrar zombis (chunks sobrantes de una versión más larga) por
+listado REAL de Pinecone (listVectorIdsByPrefix, no por chunk_count) → un solo
+UPDATE atómico (content_hash + analysis_status='pendiente' + source_modified_at
+juntos; la fecha es el cerrojo del reintento, solo avanza al final). Try/catch por
+archivo: un archivo que falla no tumba el sync. Verificado inspeccionando Pinecone
+(new 9.txt: un solo vector -0, contenido nuevo, cero zombis).
+DEUDA para C.4 (anotada por Fable): durante el upsert conviven chunks nuevos y
+viejos unos segundos (mezcla transitoria); aceptable en C.3, C.4 decidirá si el
+relevo de D6 exige generaciones.
+
+FIX auto-comparación del análisis — analyze-v2 deriva excludeDocumentId del
+documentId (garantía del endpoint, no del caller) para que un documento no se
+compare consigo mismo. Camino RÁPIDO resuelto y verificado (new 9.txt dejó de
+salir como "duplicado consigo mismo"). El EXHAUSTIVO va por el worker de Railway
+y llega sin documentId (solo se dispara desde subida hoy); su document_id=null en
+resultados es B.53, para Fase D. Nota Fase D: exclude_document_id en analysis_jobs
+es de facto el document_id; D lo renombra/absorbe al migrar esa tabla.
+
+C.8 — CREADO (nuevo, diseño de Fable). "Ciclo de vida por conexión": al cambiar/
+perder proveedor de nube, los documentos del proveedor anterior no se borran ni se
+siguen sirviendo — se INERTIZAN (perviven en BD pero fuera del chat y de los
+análisis) y REVIVEN al reconectar. Resuelve privacidad (ex-empleado), fósiles y
+desconexión accidental. Idea original del usuario. Orden de fase actualizado:
+C.4 → C.8 → C.5 → C.6 → C.7. (No implementado aún; el usuario NO tenía fósiles
+reales en su org — verificado.)
+
+B.64 — CERRADO (candado transversal). El candado (upload_locked_by/at en
+organizations) protege la SESIÓN DE TRABAJO del portador: congela toda mutación
+del corpus hecha por OTROS; al portador no le afecta. Se extendió el check a todas
+las rutas que mutaban el corpus y lo ignoraban: sync e index-text (en su entrada),
+y deleteDocument (que lo HEREDA a DELETE /api/documents y a la acción de duplicados).
+Admin sin bypass. Análisis dentro (ya estaba). El 423 se muestra uniforme en la UI
+vía helper uploadLockMessage (sync como popup; bandeja en banner ámbar; duplicados
+en su error; index-text en alert). Verificado con dos usuarios: el otro choca en
+las cuatro puertas, el portador trabaja sin trabas.
+Pendiente menor anotado: acción explícita de "liberar candado de otro" (admin) — no
+construir ahora.
+
+ABIERTO (esperando a Fable): ¿el análisis debe comparar contra documentos en estado
+'pendiente'? El usuario propone: no contra pendientes sueltos (no validados), SÍ
+contra los del mismo lote (B.46), con una marca/estado que los distinga. Conecta con
+B.46, B.48 y los estados de C.8. Sin decidir.
+
+ESTADO: C.2 y C.3 cerrados y verificados en producción. El duplicado fantasma está
+muerto y el sync ya no pierde documentos. C.8 creado. B.64 cerrado. Fix de
+auto-comparación (rápido) desplegado. Siguiente en el plan: C.4 (relevo de versiones),
+tras la respuesta de Fable sobre el análisis-contra-pendientes.

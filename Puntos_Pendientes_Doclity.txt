@@ -983,7 +983,7 @@ NOTAS DE ORDEN (propuesta, a confirmar)
   provider_file_id, índice único documents_identity_unique, detección honesta
   de errores en el sync (C.1c-1/C.1c-2), todo verificado en producción con
   trigger centinela. Siguiente: C.2 (duplicados exactos con lápida).
-  B.59 — [FLECO UI de C.1c] El backend del sync ya cuenta failed/deleteFailed y devuelve
+  B.59 — [RESUELTO S35, commit 5a020619] [FLECO UI de C.1c] El backend del sync ya cuenta failed/deleteFailed y devuelve
     success:false, pero la UI de sincronización NO muestra los fallos al usuario
     (solo pinta nuevos/actualizados/eliminados/sin cambios). Un fallo que el usuario
     no ve sigue siendo silencio para él. Mostrar failed/deleteFailed en el resultado
@@ -992,7 +992,7 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     (drive_connections o donde la cola dicte) — prerrequisito de mover el sync a
     background; hoy el resumen solo vive en la respuesta HTTP y muere con ella.
     Patrón de referencia: status + result jsonb + error_message de analysis_jobs.
-  B.61 — [PARA C.3, LITERAL] Resolver el orden del reemplazo (insertar-antes-de-borrar
+  B.61 — [RESUELTO por disolución en C.3, S35 — el reemplazo es UPDATE en sitio, no hay reinsert, no hay 23505 posible] [PARA C.3, LITERAL] Resolver el orden del reemplazo (insertar-antes-de-borrar
     vs actualizar-en-sitio) compatible con el índice de identidad — el índice manda,
     el flujo se adapta. Evidencia: la verificación de C.1c dejó 4 huérfanos (uno por
     intento) por subir vectores antes del insert.
@@ -1000,6 +1000,38 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     sigue en el corpus hasta el siguiente sync (el borrado es reactivo, no inmediato).
     En ese intervalo el chat aún puede responder con su contenido. Valorar con Fable
     si conviene un borrado más inmediato o el modelo reactivo basta.
+  B.63 — [FLECO de B.59] El success del sync (app/api/drive/sync) se calcula como
+    failedCount===0, ignorando deleteFailedCount. Un sync donde solo falla un borrado
+    reporta success:true con deleteFailed>0. Valorar con Fable si success debe ser
+    failedCount===0 && deleteFailedCount===0. La UI ya muestra deleteFailed (B.59),
+    esto es solo la semántica del flag success. No urgente.
+  B.64 — [RESUELTO S35] Candado transversal. El candado (upload_locked_by/at en
+    organizations) ya cubre TODAS las rutas que mutan el corpus: ingest y analyze-v2
+    (ya lo tenían) + sync, index-text y deleteDocument (que lo hereda a DELETE
+    /api/documents y a la acción de duplicados de cleanup). 423 visible en la UI
+    (helper uploadLockMessage). Admin sin bypass. Verificado con dos usuarios.
+    PENDIENTE MENOR derivado: acción explícita de "liberar candado de otro" (admin,
+    cuando el portador está ausente) — no construir ahora, solo anotado.
+
+  C.8 — [NUEVO, diseño de Fable, S35] Ciclo de vida por conexión. Al cambiar o perder
+    el proveedor de nube, los documentos del proveedor anterior NO se borran ni se
+    siguen sirviendo: se INERTIZAN (perviven en BD pero fuera del chat y de los
+    análisis) y REVIVEN al reconectar el mismo proveedor. Resuelve privacidad
+    (ex-empleado que pierde acceso), fósiles y desconexión accidental. Idea del usuario.
+    ORDEN DE FASE C ACTUALIZADO: C.4 → C.8 → C.5 → C.6 → C.7. No implementado aún.
+
+  [ABIERTO — esperando a Fable] ¿El análisis debe comparar contra documentos en estado 'pendiente'?
+    Propuesta del usuario: NO contra pendientes sueltos (no validados), SÍ contra los
+    del mismo lote de análisis (conecta con B.46, "analizar lote entre sí"), con una
+    marca/estado que distinga "pendiente suelto" de "pendiente del lote actual".
+    Técnicamente el retrieval puede filtrar por analysisStatus (está en metadata de
+    Pinecone). Conecta con B.46, B.48 y los estados de C.8. Sin decidir.
+
+  NOTAS PARA FASE D:
+    - exclude_document_id en analysis_jobs es de facto el document_id del documento
+      analizado. Fase D lo renombra o lo absorbe al migrar analysis_jobs (que ya
+      necesita document_id para la cola por documento).
+    - B.53 (document_id=null en resultados exhaustivos) sigue para Fase D.
 
 Forma de trabajo: diagnóstico con datos reales antes de arreglar; un
 cambio lógico cada vez; build verde entre medias; SQL en Supabase antes
