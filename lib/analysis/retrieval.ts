@@ -54,7 +54,7 @@ export async function retrieveCandidates(args: {
     // Secuencial — menos presión sobre Pinecone free tier
     for (const emb of embeddings) {
       const matches = await queryVectors(orgId, { vector: emb, topK: 25, includeMetadata: true });
-      collectMatches(matches as Array<{ metadata?: Record<string, unknown>; score?: number }>, allMatches, scoreThreshold, excludeDocumentId);
+      collectMatches(matches as Array<{ metadata?: Record<string, unknown>; score?: number }>, allMatches, scoreThreshold, excludeDocumentId, analyzedDocumentIds);
     }
   }
 
