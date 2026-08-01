@@ -16,6 +16,12 @@ export interface AnalyzePipelineInput {
   sampleTexts: string[];
   orgId: string;
   excludeDocumentId?: string;
+  /** documentIds de la org en estado 'analizado'. Si se pasa, collectMatches
+   *  descarta los matches de documentos que NO estén en esta lista (comparar solo
+   *  contra corpus validado — B.65). Los del lote actual se añadirán aquí en B.46.
+   *  Fuente de verdad: Supabase (documents.analysis_status), NO la metadata de
+   *  Pinecone, que puede estar desactualizada. undefined = no filtrar (compat). */
+  analyzedDocumentIds?: Set<string>;
   supabase: SupabaseClient;
   /**
    * Huellas de contradicciones descartadas en reanálisis anteriores.
@@ -46,6 +52,7 @@ async function runCorePipeline(
     sampleTexts: input.sampleTexts,
     orgId: input.orgId,
     excludeDocumentId: input.excludeDocumentId,
+    analyzedDocumentIds: input.analyzedDocumentIds,
     options,
   });
   console.log(`[${label}] Retrieval: ${candidates.length} candidatos (${Date.now() - t0}ms)`);

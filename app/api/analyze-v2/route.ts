@@ -270,6 +270,15 @@ export async function POST(req: NextRequest) {
 
     console.log(`[analyze-v2] "${fileName}" — ${chunks.length} chunks, ${sampleTexts.length} samples (rápido)`);
 
+    // B.65: cargar los documentos ya validados ('analizado') para que el análisis
+    // compare solo contra el corpus aceptado, no contra pendientes sueltos.
+    const { data: completedDocs } = await supabase
+      .from('documents')
+      .select('id')
+      .eq('org_id', orgId)
+      .eq('analysis_status', 'analizado');
+    const analyzedDocumentIds = new Set<string>((completedDocs ?? []).map(d => d.id));
+
     const llmAcc = new Map();
     const analysis = await usageContext.run(llmAcc, () =>
       runAnalysisPipeline({
@@ -278,6 +287,7 @@ export async function POST(req: NextRequest) {
         sampleTexts,
         orgId,
         excludeDocumentId,
+        analyzedDocumentIds,
         supabase,
       })
     );

@@ -27,9 +27,10 @@ export async function retrieveCandidates(args: {
   sampleTexts: string[];
   orgId: string;
   excludeDocumentId?: string;
+  analyzedDocumentIds?: Set<string>;
   options?: PipelineOptions;
 }): Promise<CandidateDocument[]> {
-  const { sampleTexts, orgId, excludeDocumentId, options } = args;
+  const { sampleTexts, orgId, excludeDocumentId, analyzedDocumentIds, options } = args;
   const isExhaustive = options?.exhaustive === true;
 
   const embeddings = await generateEmbeddings(sampleTexts);
@@ -46,7 +47,7 @@ export async function retrieveCandidates(args: {
         batch.map(emb => queryVectors(orgId, { vector: emb, topK: 25, includeMetadata: true }))
       );
       for (const matches of batchResults) {
-        collectMatches(matches as Array<{ metadata?: Record<string, unknown>; score?: number }>, allMatches, scoreThreshold, excludeDocumentId);
+        collectMatches(matches as Array<{ metadata?: Record<string, unknown>; score?: number }>, allMatches, scoreThreshold, excludeDocumentId, analyzedDocumentIds);
       }
     }
   } else {
@@ -96,6 +97,7 @@ function collectMatches(
   out: DocumentFragment[],
   scoreThreshold: number,
   excludeDocumentId?: string,
+  analyzedDocumentIds?: Set<string>,
 ): void {
   for (const m of matches || []) {
     if (!m.metadata || typeof m.score !== 'number') continue;
@@ -106,6 +108,9 @@ function collectMatches(
     };
     if (!meta.documentId || !meta.documentName || !meta.text) continue;
     if (excludeDocumentId && meta.documentId === excludeDocumentId) continue;
+    // B.65: comparar solo contra corpus validado ('analizado'). Si se pasó la
+    // lista de analizados y este match no está en ella, se descarta.
+    if (analyzedDocumentIds && !analyzedDocumentIds.has(meta.documentId)) continue;
 
     out.push({
       text: meta.text,
