@@ -230,6 +230,7 @@ export async function POST(req: NextRequest) {
           document_text: text,
           sample_texts: JSON.stringify(sampleTexts),
           exclude_document_id: excludeDocumentId ?? null,
+          document_id: documentId ?? null,
           exclude_fingerprints: JSON.stringify(Array.from(excludeFingerprints)),
           credits_consumed: creditsConsumed,
         })

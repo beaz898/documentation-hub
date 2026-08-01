@@ -51,6 +51,7 @@ interface AnalysisJob {
   document_text: string;
   sample_texts: string;
   exclude_document_id: string | null;
+  document_id: string | null;
   exclude_fingerprints: string;
   credits_consumed: number;
 }
@@ -149,6 +150,7 @@ async function processJob(job: AnalysisJob): Promise<void> {
       documentName: job.document_name,
       analysis,
       analysisType: 'exhaustive',
+      documentId: job.document_id ?? undefined,
     });
 
     // Precio variable / descuento reanálisis
@@ -256,7 +258,7 @@ async function pollAndProcess(): Promise<void> {
     const slotsAvailable = MAX_CONCURRENT - activeJobs;
     const { data: jobs, error } = await supabase
       .from('analysis_jobs')
-      .select('id, org_id, user_id, document_name, document_text, sample_texts, exclude_document_id, exclude_fingerprints, credits_consumed')
+      .select('id, org_id, user_id, document_name, document_text, sample_texts, exclude_document_id, document_id, exclude_fingerprints, credits_consumed')
       .eq('status', 'pending')
       .order('created_at', { ascending: true })
       .limit(slotsAvailable);

@@ -385,7 +385,7 @@ function ImprovementModalDesktop({
   }, [styleProblems.length, reanalyzeStyle, setStyleProblems, addAssistantMessage, fileName]);
 
   const handleReanalyzeAll = useCallback(async () => {
-    const result = await reanalyzeAll(textRef.current, fileName);
+    const result = await reanalyzeAll(textRef.current, fileName, existingDocWithSameName?.id);
     if (!result) {
       addAssistantMessage(t('reanalyzeFailed'));
       return;
@@ -400,7 +400,7 @@ function ImprovementModalDesktop({
       parts.push(`\n💡 ${styleProblems.length} problema${styleProblems.length !== 1 ? 's' : ''} de estilo pendiente${styleProblems.length !== 1 ? 's' : ''}. Usa "Reanalizar estilo" para actualizarlos.`);
     }
     addAssistantMessage(parts.join('\n'));
-  }, [reanalyzeAll, fileName, styleProblems.length, addAssistantMessage, t]);
+  }, [reanalyzeAll, fileName, existingDocWithSameName?.id, styleProblems.length, addAssistantMessage, t]);
 
   const {
     indexing,

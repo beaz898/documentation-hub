@@ -65,7 +65,7 @@ export function useCrossDocAnalysis(
   const dismissedFingerprintsRef = useRef<Set<string>>(new Set());
 
   const reanalyzeAll = useCallback(
-    async (currentText: string, fileName: string): Promise<ReanalyzeResult | null> => {
+    async (currentText: string, fileName: string, documentId?: string | null): Promise<ReanalyzeResult | null> => {
       setReanalyzingAll(true);
       setLastError(null);
       setReanalyzePhase('Enviando reanálisis...');
@@ -82,6 +82,7 @@ export function useCrossDocAnalysis(
             fileName,
             exhaustive: true,
             excludeFingerprints: Array.from(dismissedFingerprintsRef.current),
+            documentId: documentId ?? undefined,
           }),
         });
 
