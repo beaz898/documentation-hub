@@ -76,12 +76,24 @@ async function processJob(job: AnalysisJob): Promise<void> {
     const excludeFpArray: string[] = JSON.parse(job.exclude_fingerprints);
     const excludeFingerprints = new Set<string>(excludeFpArray);
 
+    // B.65: el exhaustivo también compara solo contra el corpus validado.
+    // Se carga aquí (no al encolar) para reflejar el estado en el MOMENTO del
+    // análisis: la cola puede tardar y el corpus cambia. Mismo filtro que el
+    // rápido — la función collectMatches es compartida.
+    const { data: completedDocs } = await supabase
+      .from('documents')
+      .select('id')
+      .eq('org_id', job.org_id)
+      .eq('analysis_status', 'analizado');
+    const analyzedDocumentIds = new Set<string>((completedDocs ?? []).map(d => d.id));
+
     const input: ExhaustivePipelineInput = {
       newDocumentText: job.document_text,
       newDocumentName: job.document_name,
       sampleTexts,
       orgId: job.org_id,
       excludeDocumentId: job.exclude_document_id || undefined,
+      analyzedDocumentIds,
       supabase,
       excludeFingerprints,
     };
