@@ -940,7 +940,7 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     el botón ya era gris antes del refactor 3A). Decidir el color junto con el diseño
     de los botones del modo review (paso 3), donde "descartar" se desdobla en "Cerrar"
     y "Quitar del corpus".
-  B.53 — [FASE D, bloque único] Cerrar el ciclo del hash y la cola.
+  B.53 — [RESUELTO S35 — el documentId ya viaja frontend→job→worker vía columna analysis_jobs.document_id; el resultado exhaustivo guarda document_id relleno] [FASE D, bloque único] Cerrar el ciclo del hash y la cola.
     Es UN solo bloque de trabajo, no piezas sueltas: (1) migrar document_id a
     analysis_jobs — la cola por org es imposible sin saber de qué documento es
     cada job; (2) el worker rellena analyzed_content_hash al completar el
@@ -1013,6 +1013,13 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     PENDIENTE MENOR derivado: acción explícita de "liberar candado de otro" (admin,
     cuando el portador está ausente) — no construir ahora, solo anotado.
 
+  B.65 — [RESUELTO S35, D3-rev] El análisis compara solo contra corpus validado
+    (analysis_status='analizado'), no contra pendientes sueltos. Fuente de verdad:
+    Supabase, no metadata de Pinecone. En rápido (endpoint) y exhaustivo (worker),
+    cargando la lista de analizados justo antes de analizar. PENDIENTE relacionado:
+    B.46 (excepción del lote — que un lote se compare entre sí) para cuando exista
+    el flujo de análisis por lotes.
+
   C.8 — [NUEVO, diseño de Fable, S35] Ciclo de vida por conexión. Al cambiar o perder
     el proveedor de nube, los documentos del proveedor anterior NO se borran ni se
     siguen sirviendo: se INERTIZAN (perviven en BD pero fuera del chat y de los
@@ -1020,18 +1027,23 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     (ex-empleado que pierde acceso), fósiles y desconexión accidental. Idea del usuario.
     ORDEN DE FASE C ACTUALIZADO: C.4 → C.8 → C.5 → C.6 → C.7. No implementado aún.
 
-  [ABIERTO — esperando a Fable] ¿El análisis debe comparar contra documentos en estado 'pendiente'?
+  [RESUELTO S35 como B.65 / D3-rev] ¿El análisis debe comparar contra documentos en estado 'pendiente'?
     Propuesta del usuario: NO contra pendientes sueltos (no validados), SÍ contra los
     del mismo lote de análisis (conecta con B.46, "analizar lote entre sí"), con una
     marca/estado que distinga "pendiente suelto" de "pendiente del lote actual".
     Técnicamente el retrieval puede filtrar por analysisStatus (está en metadata de
-    Pinecone). Conecta con B.46, B.48 y los estados de C.8. Sin decidir.
+    Pinecone). Conecta con B.46, B.48 y los estados de C.8. — Implementado: compara
+    solo contra 'analizado' en rápido y exhaustivo. La excepción del lote (B.46)
+    queda para cuando exista el flujo de lotes.
 
   NOTAS PARA FASE D:
     - exclude_document_id en analysis_jobs es de facto el document_id del documento
       analizado. Fase D lo renombra o lo absorbe al migrar analysis_jobs (que ya
       necesita document_id para la cola por documento).
     - B.53 (document_id=null en resultados exhaustivos) sigue para Fase D.
+    - Unificar el retrieval de app y worker en un módulo compartido (hoy el worker
+      importa lib/analysis de la app; funciona, pero conviene formalizarlo). Fable
+      lo situó en Fase D.
 
 Forma de trabajo: diagnóstico con datos reales antes de arreglar; un
 cambio lógico cada vez; build verde entre medias; SQL en Supabase antes

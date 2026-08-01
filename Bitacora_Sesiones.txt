@@ -3243,3 +3243,58 @@ ESTADO: C.2 y C.3 cerrados y verificados en producción. El duplicado fantasma e
 muerto y el sync ya no pierde documentos. C.8 creado. B.64 cerrado. Fix de
 auto-comparación (rápido) desplegado. Siguiente en el plan: C.4 (relevo de versiones),
 tras la respuesta de Fable sobre el análisis-contra-pendientes.
+
+────────────────────────────────────────────────────────────────
+SESIÓN 35 (continuación) — B.65 (análisis solo contra corpus
+validado), descubrimiento del worker, camino exhaustivo + B.53
+────────────────────────────────────────────────────────────────
+
+Tras registrar la 35, siguió la misma sesión con la respuesta de Fable sobre
+el análisis-contra-pendientes y su ejecución. Todo desplegado y verificado.
+
+B.65 (D3-rev) — el análisis compara SOLO contra el corpus validado
+(analysis_status='analizado'), no contra pendientes sueltos. Diseño de Fable:
+la fuente de verdad es Supabase (documents.analysis_status), NO la metadata de
+Pinecone (que puede estar desactualizada — el estado no se reescribe en el
+vector al validar). El endpoint (rápido) y el worker (exhaustivo) cargan cada
+uno la lista de 'analizado' de su org JUSTO ANTES de analizar (estado fresco, no
+al encolar) y la pasan como analyzedDocumentIds; collectMatches (compartido)
+descarta los matches cuyo documentId no esté en la lista. La excepción del LOTE
+(que un lote se compare entre sí, B.46) queda para cuando exista el flujo de
+lotes — se sumará a esa misma lista. Fable descartó una marca/estado nueva en
+BD: "pertenece al lote" es efímero (parámetro de la llamada), no estado.
+BUG encontrado tras el primer deploy: la rama secuencial del retrieval (análisis
+rápido) no pasaba analyzedDocumentIds a collectMatches (solo la exhaustiva lo
+hacía) → el rápido seguía comparando contra pendientes. Causa: el cambio se
+describió en vez de darse el texto literal de cada rama. Arreglado (5º arg en la
+llamada secuencial). Verificado: analizar new 8.txt ya solo reporta contra
+'analizado' (new 1, Puntos_De_Dolor), no contra los pendientes (new 3/7/14).
+
+DESCUBRIMIENTO DEL WORKER (pendiente operativo de semanas, RESUELTO). El worker
+del análisis exhaustivo (worker/src/index.ts) vive en el MISMO repo (monorepo,
+carpeta worker/ con su package.json y tsconfig propios), está en Railway
+conectado a main con AUTO-DEPLOY activado (último deploy = mismo que Vercel, ~22h
+→ se redespliega con cada push desde siempre). IMPORTA lib/analysis de la app
+(runAnalysisPipeline, collectMatches) — NO tiene copia gemela del retrieval, así
+que un fix en collectMatches lo heredan rápido y exhaustivo. Consecuencia: el
+miedo a "no sabemos qué código corre / cómo se redespliega" queda disuelto por
+los hechos. Nota: el npm run build de la app NO cubre el worker (sin script de
+build propio, solo start con tsx); verificar el worker con
+tsc --noEmit -p worker/tsconfig.json. Documentado en Estado_Del_Proyecto.txt.
+
+CAMINO EXHAUSTIVO — auto-comparación + B.53 (misma raíz, un arreglo). El
+exhaustivo se comparaba consigo mismo porque el documentId no viajaba del
+frontend al worker. Se cableó de punta a punta: ImprovementModal pasa
+existingDocWithSameName.id a reanalyzeAll → al body del fetch → analyze-v2 lo
+guarda en el job (columna NUEVA analysis_jobs.document_id, uuid nullable, ALTER
+ejecutado en Supabase + registrado en supabase-analysis-jobs-document-id.sql) →
+el worker lo lee y lo pasa a saveAnalysisResult. Con esto: (a) exclude_document_id
+deja de ser null → el exhaustivo no se auto-compara; (b) el analysis_results
+exhaustivo guarda document_id relleno → B.53 resuelto. Verificado: exhaustivo de
+new 8.txt ya no sale como duplicado de sí mismo, y su fila tiene document_id
+poblado (antes null).
+
+ESTADO: análisis cerrado en las dos vías (rápido y exhaustivo): no se auto-compara,
+compara solo contra corpus validado (B.65), resultados vinculados (B.53). Pieza de
+Fase C intacta; lo de hoy fue el frente de análisis. Siguiente: C.4 (relevo de
+versiones), cuando se retome, con Fable para el diseño.

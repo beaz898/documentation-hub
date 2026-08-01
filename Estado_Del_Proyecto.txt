@@ -680,3 +680,12 @@ PENDIENTE / ROADMAP
 [ ] Análisis programado automático (cron)
 [ ] API pública para integraciones externas
 [ ] Notificaciones automáticas al acercarse al límite de créditos
+
+## Worker de análisis exhaustivo (Railway)
+
+- Vive en el MISMO repo (monorepo): carpeta worker/, con package.json y tsconfig.json propios.
+- Desplegado en Railway, servicio conectado al repo de GitHub, rama main, con AUTO-DEPLOY activado ("deploy on push"). Se redespliega con cada push a main, a la vez que Vercel despliega la app.
+- IMPORTA código de la app (lib/analysis: runAnalysisPipeline, collectMatches). NO tiene copia propia del retrieval — un cambio en lib/analysis lo heredan la app (rápido) y el worker (exhaustivo).
+- Procesa la cola analysis_jobs (status 'pending') y escribe en analysis_results.
+- VERIFICACIÓN: el `npm run build` de la app NO cubre el worker (no tiene script de build propio, arranca con tsx que no comprueba tipos). Verificar cambios del worker con: tsc --noEmit -p worker/tsconfig.json
+- PENDIENTE Fase D: unificar el retrieval en un módulo compartido formal; añadir log de arranque del worker con el commit SHA (observabilidad de "qué código corre").
