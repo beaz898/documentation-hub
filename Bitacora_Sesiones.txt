@@ -3298,3 +3298,44 @@ ESTADO: análisis cerrado en las dos vías (rápido y exhaustivo): no se auto-co
 compara solo contra corpus validado (B.65), resultados vinculados (B.53). Pieza de
 Fase C intacta; lo de hoy fue el frente de análisis. Siguiente: C.4 (relevo de
 versiones), cuando se retome, con Fable para el diseño.
+
+────────────────────────────────────────────────────────────────
+SESIÓN 36 — Arranque de C.4 (relevo atómico de versiones): C.4a
+(el chat sirve por Supabase, no por metadata de Pinecone)
+────────────────────────────────────────────────────────────────
+
+Diseño de C.4 consultado con Fable. Reformulación clave suya: el objetivo de D6
+no es "conservar la versión vieja" sino que el documento NUNCA PARPADEE — siempre
+hay exactamente UNA generación activa; la vieja sigue activa (sirviendo al chat)
+hasta que la nueva valida, y entonces swap atómico (cambio de puntero). C.4 se
+parte en sub-fases: C.4a (chat por Supabase), C.4b (modelo de generación),
+C.4c (relevo atómico en el reemplazo, que sustituye el swap destructivo de C.3).
+
+HALLAZGO que motivó C.4a: el chat (lib/rag.ts) filtraba el corpus por la METADATA
+de Pinecone (analysisStatus=='analizado'), NO por Supabase — fuente de verdad
+distinta de la del análisis (B.65 fijó Supabase). Además, tras un reemplazo (C.3,
+swap destructivo), el documento DESAPARECE del chat durante la ventana de
+reanálisis (queda 'pendiente' y su metadata también), sin fallback a la versión
+vieja (C.3 ya la machacó). D6 no se cumple hoy.
+
+C.4a — HECHO y verificado. El chat sirve el corpus según Supabase, no según la
+metadata de Pinecone. app/api/ask carga de Supabase los documentIds
+'analizado' de la org y los pasa a queryRAG (lib/rag.ts) como activeDocumentIds;
+el retrieval filtra Pinecone por { documentId: { $in: activeDocumentIds } } en
+vez de por { analysisStatus: 'analizado' }. lib/rag.ts NO se acopla a Supabase
+(recibe la lista como parámetro, mismo patrón que analyzedDocumentIds del análisis).
+Guarda para lista vacía (0 analizados → devuelve vacío sin llamar a Pinecone, sin
+depender de cómo Pinecone trate $in []). Decisión: filtro por INCLUSIÓN ($in con
+analizados), no por exclusión — el aislamiento por org mantiene la lista en
+cientos como mucho, y evoluciona limpio a "generación activa" en C.4b.
+Verificado: el chat sigue sirviendo los analizados e ignora los pendientes, ahora
+por la vía de Supabase. Resuelve la incoherencia de B.65 (chat y análisis comparten
+fuente de verdad). Commit 85322776.
+
+ABIERTO (esperando a Fable): diseño interno de C.4b (modelo de generación) — dónde
+vive la generación activa (columna vs tabla), cómo se marcan los vectores
+(${documentId}-g{N}-i vs metadata), migración de lo existente (¿generación 1
+implícita?), y frontera exacta C.4b vs C.4c.
+
+ESTADO: C.4a cerrado (chat por Supabase). Base lista para el versionado por
+generaciones. Siguiente: C.4b (modelo de generación), con el diseño de Fable.

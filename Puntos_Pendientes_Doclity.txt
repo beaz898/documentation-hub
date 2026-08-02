@@ -982,7 +982,7 @@ NOTAS DE ORDEN (propuesta, a confirmar)
   FASE C — C.1 (identidad de origen) CERRADO en sesión 34: rename source_path→
   provider_file_id, índice único documents_identity_unique, detección honesta
   de errores en el sync (C.1c-1/C.1c-2), todo verificado en producción con
-  trigger centinela. Siguiente: C.2 (duplicados exactos con lápida).
+  trigger centinela. Siguiente: C.4b (modelo de generación), tras el diseño de Fable.
   B.59 — [RESUELTO S35, commit 5a020619] [FLECO UI de C.1c] El backend del sync ya cuenta failed/deleteFailed y devuelve
     success:false, pero la UI de sincronización NO muestra los fallos al usuario
     (solo pinta nuevos/actualizados/eliminados/sin cambios). Un fallo que el usuario
@@ -1020,12 +1020,26 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     B.46 (excepción del lote — que un lote se compare entre sí) para cuando exista
     el flujo de análisis por lotes.
 
+  C.4 — [EN CURSO desde S36] Relevo atómico de versiones (D6). Objetivo: que un
+    documento nunca parpadee en el chat durante un reemplazo — siempre una
+    generación activa, la vieja sirve hasta que la nueva valida, swap atómico.
+    Sub-fases (diseño de Fable):
+      · C.4a [HECHO S36] — el chat sirve por Supabase (documentIds 'analizado'
+        vía $in), no por metadata de Pinecone. Resuelve la incoherencia de B.65.
+        Commit 85322776.
+      · C.4b [PENDIENTE, esperando diseño de Fable] — modelo de generación: dónde
+        vive la generación activa (Supabase), cómo se marcan los vectores por
+        generación, migración de lo existente.
+      · C.4c [PENDIENTE] — relevo atómico en el reemplazo: crear generación nueva
+        sin bajar la vieja + swap al validar. Sustituye el swap destructivo de C.3
+        en el sync (y cubre también reemplazo manual D5 y mejorar-con-IA).
+
   C.8 — [NUEVO, diseño de Fable, S35] Ciclo de vida por conexión. Al cambiar o perder
     el proveedor de nube, los documentos del proveedor anterior NO se borran ni se
     siguen sirviendo: se INERTIZAN (perviven en BD pero fuera del chat y de los
     análisis) y REVIVEN al reconectar el mismo proveedor. Resuelve privacidad
     (ex-empleado que pierde acceso), fósiles y desconexión accidental. Idea del usuario.
-    ORDEN DE FASE C ACTUALIZADO: C.4 → C.8 → C.5 → C.6 → C.7. No implementado aún.
+    ORDEN DE FASE C: C.4 (EN CURSO: C.4a hecho, C.4b/c pendientes) → C.8 → C.5 → C.6 → C.7.
 
   [RESUELTO S35 como B.65 / D3-rev] ¿El análisis debe comparar contra documentos en estado 'pendiente'?
     Propuesta del usuario: NO contra pendientes sueltos (no validados), SÍ contra los
