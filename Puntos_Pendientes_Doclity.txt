@@ -1033,15 +1033,17 @@ NOTAS DE ORDEN (propuesta, a confirmar)
         de Supabase. Retirados: el $in del chat y analyzedDocumentIds del análisis
         (mecanismo de B.65-app/worker). La REGLA de B.65 se mantiene vía el filtro.
         excludeDocumentId intacto.
-      · C.4a-real [SIGUIENTE] — modelo en Supabase (solo esquema, cero
-        comportamiento): columna active_generation (int, default 1) en documents +
+      · C.4a-real [HECHO S37] — commit f62128f8. Modelo en Supabase (solo esquema,
+        cero comportamiento): columna active_generation (int, default 1) en documents +
         tabla document_staged (document_id PK, generation, full_text, content_hash,
         chunk_count, size_bytes, source_modified_at, created_at; RLS por org).
-      · C.4b [PENDIENTE] — capa B.0 consciente de generación: IDs ${documentId}-g{N}-{i}
-        para N>=2 + metadata generation; g1 implícita (parsing tolerante, sin
-        backfill); adaptar el listado/parseo de C.3c. Sin tocar el chat.
+      · C.4b [HECHO S37] — commits 28dfeae7 + 55014f88. Capa B.0 consciente de
+        generación: IDs ${documentId}-g{N}-{i} para N>=2 + metadata generation; g1
+        implícita (parsing tolerante, sin backfill); adaptado el listado/parseo de
+        C.3c. Sin tocar el chat.
       · C.4c [PENDIENTE] — swapDocumentVectors en B.0: función idempotente y
-        re-ejecutable. Requiere mini-diseño previo del orden de sus 3 patas a Fable.
+        re-ejecutable. REQUIERE mini-diseño previo del orden de sus 3 patas a Fable
+        (citando última F-n) ANTES de escribir código.
       · C.4d [PENDIENTE] — el sync versiona: reemplazo construye staged sin bajar la
         activa; el chat sirve la vieja hasta completar el análisis; swap al validar.
         Mata la ventana a-oscuras interina de C.3. C.3 no se borra (solo se retira su
@@ -1053,6 +1055,15 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     compara contra corpus validado) SIGUE activa, ahora vía el filtro CORPUS_ACTIVO
     en Pinecone (antes: lista analyzedDocumentIds descartada en memoria, retirada en
     la reversión de S37). No confundir la retirada del mecanismo con deshacer la regla.
+
+  B.66 — [BUG mejora-con-IA] En el modal de "Mejora con IA", al resolver/solventar un
+    problema de tipo DUPLICADO, el editor de texto se queda VACÍO (borra todo el
+    contenido) en vez de eliminar solo el fragmento duplicado. Antes eliminaba solo la
+    parte duplicada — regresión. Revisar la lógica que aplica la resolución de un
+    problema al texto del editor (components/improvement/, EditorPanel / la función
+    que quita el fragmento). No urgente (acción manual) pero es pérdida del texto en
+    edición. Arreglar antes de cerrar el bloque grande de análisis/versionado.
+    Reproducido en S37.
 
   C.8 — [NUEVO, diseño de Fable, S35] Ciclo de vida por conexión. Al cambiar o perder
     el proveedor de nube, los documentos del proveedor anterior NO se borran ni se

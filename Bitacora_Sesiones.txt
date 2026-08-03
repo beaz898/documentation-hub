@@ -3393,3 +3393,43 @@ limpia para el modelo de generación. Orden F-1: REVERSIÓN [hecha] → C.4a-rea
 (modelo Supabase) → C.4b (capa B.0 con generación) → C.4c (swap idempotente) →
 C.4d (sync versiona) → C.4e (migrar caminos). Siguiente: C.4a-real. Diseño canónico
 en Diseno_C4_F1.txt. Protocolo de canal F-n vigente.
+
+────────────────────────────────────────────────────────────────
+SESIÓN 37 (continuación) — C.4a-real (modelo de generación) y C.4b
+(capa B.0 consciente de generación)
+────────────────────────────────────────────────────────────────
+
+Tras la reversión, se avanzó en el orden de F-1. Ambas piezas son andamiaje: cero
+cambio de comportamiento, preparan el terreno para el relevo (C.4c/d).
+
+C.4a-real — HECHO. Modelo de generación en Supabase (solo esquema). Ejecutado en
+Supabase y registrado en supabase-c4-generation-model.sql (commit f62128f8):
+- documents.active_generation (integer, default 1): la generación que sirve el chat.
+  Todo lo existente es generación 1.
+- Tabla document_staged (document_id uuid PK REFERENCES documents(id) ON DELETE
+  CASCADE, org_id text, generation, full_text, content_hash, chunk_count, size_bytes,
+  source_modified_at, created_at; RLS permisiva como tombstones, aislamiento por
+  código). Es la versión "en vuelo" que espera el swap; máximo un staged por
+  documento (PK); si llega otro cambio antes del swap, reemplaza al anterior.
+Cero comportamiento: nada lo usa todavía (eso es C.4d). Verificado por esquema.
+
+C.4b — HECHO. La capa B.0 (lib/pinecone/vectors.ts) se vuelve consciente de
+generación, SIN crear generaciones >=2 (eso es C.4d). Exploración obligatoria de F-1
+completada: ningún sitio parsea el documentId desde el string del ID de vector (todos
+lo leen de metadata.documentId), así que gN no rompe la identidad; el único riesgo era
+el parseo del índice, que se centraliza. Piezas:
+- Helpers buildVectorId(documentId, generation, chunkIndex) y parseVectorId(id) en la
+  capa (commit 28dfeae7). buildVectorId devuelve ${documentId}-${i} para g1 (formato
+  histórico, sin -g1-, sin reindexar) y ${documentId}-g${N}-${i} para N>=2.
+  parseVectorId es tolerante (ID sin -g es g1 implícita), anclado al FINAL del string
+  para no tropezar con los guiones del UUID; devuelve null en anomalía.
+- Los tres upserts (sync, ingest, index-text) usan buildVectorId(documentId, 1, i) y
+  añaden generation:1 a metadata; el borrado de zombis de C.3c usa parseVectorId
+  (null tratado como el NaN de antes: anomalía, avisa, no borra) (commit 55014f88).
+IDs reales SIN cambio (buildVectorId(x,1,i) === `${x}-${i}`). Verificación F-1: los g1
+siguen construyéndose/listándose/parseándose igual; desplegable sin riesgo funcional.
+
+ESTADO: C.4a-real y C.4b cerrados (andamiaje de generación puesto, cero cambio de
+comportamiento). Siguiente: C.4c (swapDocumentVectors idempotente) — REQUIERE
+mini-diseño previo del orden de sus 3 patas a Fable, citando la última F-n, ANTES de
+escribir. Luego C.4d (el sync versiona — "aquí cambia el mundo") y C.4e.
