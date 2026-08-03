@@ -71,19 +71,10 @@ export async function POST(req: NextRequest) {
     }
 
     // Ejecutar RAG con historial de conversación
-
-    // C.4a: fuente de verdad del corpus del chat = Supabase, no metadata de Pinecone.
-    const { data: analyzedDocs } = await supabase
-      .from('documents')
-      .select('id')
-      .eq('org_id', orgId)
-      .eq('analysis_status', 'analizado');
-    const activeDocumentIds = (analyzedDocs ?? []).map(d => d.id);
-
     const conversationHistory = Array.isArray(history) ? history : [];
     const llmAcc = new Map();
     const result = await usageContext.run(llmAcc, () =>
-      queryRAG(question.trim(), orgId, supabase, activeDocumentIds, conversationHistory)
+      queryRAG(question.trim(), orgId, supabase, conversationHistory)
     );
 
     const latencyMs = Date.now() - startedAt;

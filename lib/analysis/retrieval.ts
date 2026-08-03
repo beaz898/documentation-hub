@@ -1,4 +1,4 @@
-import { queryVectors } from '@/lib/pinecone/vectors';
+import { queryVectors, CORPUS_ACTIVO } from '@/lib/pinecone/vectors';
 import { generateEmbeddings } from '@/lib/embeddings';
 import type { CandidateDocument, DocumentFragment, PipelineOptions } from './types';
 
@@ -27,10 +27,9 @@ export async function retrieveCandidates(args: {
   sampleTexts: string[];
   orgId: string;
   excludeDocumentId?: string;
-  analyzedDocumentIds?: Set<string>;
   options?: PipelineOptions;
 }): Promise<CandidateDocument[]> {
-  const { sampleTexts, orgId, excludeDocumentId, analyzedDocumentIds, options } = args;
+  const { sampleTexts, orgId, excludeDocumentId, options } = args;
   const isExhaustive = options?.exhaustive === true;
 
   const embeddings = await generateEmbeddings(sampleTexts);
@@ -44,17 +43,17 @@ export async function retrieveCandidates(args: {
     for (let batchStart = 0; batchStart < embeddings.length; batchStart += QUERY_BATCH_SIZE) {
       const batch = embeddings.slice(batchStart, batchStart + QUERY_BATCH_SIZE);
       const batchResults = await Promise.all(
-        batch.map(emb => queryVectors(orgId, { vector: emb, topK: 25, includeMetadata: true }))
+        batch.map(emb => queryVectors(orgId, { vector: emb, topK: 25, includeMetadata: true, filter: CORPUS_ACTIVO }))
       );
       for (const matches of batchResults) {
-        collectMatches(matches as Array<{ metadata?: Record<string, unknown>; score?: number }>, allMatches, scoreThreshold, excludeDocumentId, analyzedDocumentIds);
+        collectMatches(matches as Array<{ metadata?: Record<string, unknown>; score?: number }>, allMatches, scoreThreshold, excludeDocumentId);
       }
     }
   } else {
     // Secuencial — menos presión sobre Pinecone free tier
     for (const emb of embeddings) {
-      const matches = await queryVectors(orgId, { vector: emb, topK: 25, includeMetadata: true });
-      collectMatches(matches as Array<{ metadata?: Record<string, unknown>; score?: number }>, allMatches, scoreThreshold, excludeDocumentId, analyzedDocumentIds);
+      const matches = await queryVectors(orgId, { vector: emb, topK: 25, includeMetadata: true, filter: CORPUS_ACTIVO });
+      collectMatches(matches as Array<{ metadata?: Record<string, unknown>; score?: number }>, allMatches, scoreThreshold, excludeDocumentId);
     }
   }
 
@@ -97,7 +96,6 @@ function collectMatches(
   out: DocumentFragment[],
   scoreThreshold: number,
   excludeDocumentId?: string,
-  analyzedDocumentIds?: Set<string>,
 ): void {
   for (const m of matches || []) {
     if (!m.metadata || typeof m.score !== 'number') continue;
@@ -108,9 +106,6 @@ function collectMatches(
     };
     if (!meta.documentId || !meta.documentName || !meta.text) continue;
     if (excludeDocumentId && meta.documentId === excludeDocumentId) continue;
-    // B.65: comparar solo contra corpus validado ('analizado'). Si se pasó la
-    // lista de analizados y este match no está en ella, se descarta.
-    if (analyzedDocumentIds && !analyzedDocumentIds.has(meta.documentId)) continue;
 
     out.push({
       text: meta.text,

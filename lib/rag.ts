@@ -15,7 +15,7 @@
  * - Mejor calidad de respuesta cuando la info cruza secciones
  */
 
-import { queryVectors } from './pinecone/vectors';
+import { queryVectors, CORPUS_ACTIVO } from './pinecone/vectors';
 import { generateQueryEmbedding } from './embeddings';
 import { callLLMWithUsage } from './analysis/llm-client';
 import type { SupabaseClient } from '@supabase/supabase-js';
@@ -146,23 +146,8 @@ export async function queryRAG(
   question: string,
   orgId: string,
   supabase: SupabaseClient,
-  activeDocumentIds: string[],
   conversationHistory: ConversationMessage[] = []
 ): Promise<RAGResult> {
-  // C.4a: el chat sirve los documentos que Supabase marca como analizados
-  // (fuente de verdad), no la metadata analysisStatus de Pinecone (que puede
-  // quedar desactualizada). Si la org no tiene ningún documento analizado no
-  // hay corpus que consultar — evitamos el rewrite y el embedding también.
-  if (activeDocumentIds.length === 0) {
-    return {
-      answer:
-        'No encontré información relevante sobre esto en la documentación disponible. Asegúrate de que los documentos relacionados con tu pregunta han sido subidos al sistema.',
-      sources: [],
-      usage: { inputTokens: 0, outputTokens: 0 },
-      noContext: true,
-    };
-  }
-
   // 1. Si hay historial, reformular la pregunta para mejorar la búsqueda
   const searchQuery = conversationHistory.length > 0
     ? await rewriteQueryForSearch(question, conversationHistory)
@@ -175,16 +160,12 @@ export async function queryRAG(
   // Generar embedding de la query reformulada (la pregunta original va al LLM)
   const queryVector = await generateQueryEmbedding(searchQuery);
 
-  // C.4a: en C.4b esto pasará a ser "documentos de la generación activa" —
-  // misma forma (lista de IDs), distinto origen.
-  const chatFilter = { documentId: { $in: activeDocumentIds } };
-
   // 2. Buscar en Pinecone los chunks más relevantes
   const matches = await queryVectors(orgId, {
     vector: queryVector,
     topK: TOP_K,
     includeMetadata: true,
-    filter: chatFilter,
+    filter: CORPUS_ACTIVO,
   });
 
   // Si no hay resultados relevantes, no llamamos al LLM
