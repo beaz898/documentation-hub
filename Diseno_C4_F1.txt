@@ -1,0 +1,125 @@
+DISEÑO C.4 — TEXTO CANÓNICO DE FABLE [F-1]
+================================================
+Fecha de emisión: 31/07/2026. Este archivo ES la respuesta F-1 de Fable. Sustituye
+a cualquier "diseño de C.4" recibido por otra vía (hubo al menos un diseño fantasma
+atribuido a Fable que Fable nunca emitió). Protocolo de canal vigente: Fable numera
+sus respuestas (F-n); toda consulta a Fable empieza citando el ID de la última
+recibida; si falta la cita, se asume mensaje perdido y se pide reemisión ANTES de
+actuar.
+
+────────────────────────────────────────────────────────────────
+0. PROCEDENCIA
+────────────────────────────────────────────────────────────────
+Fable NO emitió el diseño que motivó el "C.4a" desplegado (chat sirviendo por lista
+de documentIds de Supabase con filtro $in). Ese diseño contradice el canon vigente:
+"Supabase es la fuente de verdad; la metadata de Pinecone es su PROYECCIÓN para
+poder filtrar". Queda pendiente identificar qué texto se recibió como "diseño de
+Fable" y de qué fuente salió.
+
+────────────────────────────────────────────────────────────────
+1. VEREDICTO SOBRE EL "C.4a" DESPLEGADO: SE REVIERTE
+────────────────────────────────────────────────────────────────
+Razones técnicas (la primera es terminal):
+a) Callejón sin salida con generaciones: con dos generaciones del mismo documento
+   en Pinecone, "qué servir" es un PAR (documentId, generación activa) por
+   documento. Un $in plano de documentIds trae las dos generaciones, y Pinecone no
+   filtra por patrón de ID ni digiere $or de cientos de pares. El mecanismo muere
+   en C.4b.
+b) Escala: la lista de activos viaja en CADA query y crece con el corpus, no con
+   la pregunta.
+c) Canon: el filtro vive donde ocurre el retrieval (Pinecone); la coherencia se
+   garantiza haciendo que las TRANSICIONES de estado mantengan la metadata (como
+   B.5 y C.3 ya hacen), no cambiando de árbitro por query.
+
+LO QUE SE SALVA del trabajo hecho:
+- La idea buena (chat y análisis con la MISMA definición de corpus) se consuma
+  así: la capa B.0 gana un filtro nombrado CORPUS_ACTIVO (hoy: metadata
+  analysisStatus='analizado'; en C.8 se ampliará con la exclusión de inertes).
+  AMBOS consumidores lo usan: el chat (restaurado a filtrar por metadata) y el
+  retrieval del análisis (migrando la lista de B.65-app a este mismo filtro).
+  Una constante, dos consumidores, cero listas por query.
+- La parametrización limpia de lib/rag.ts sirve tal cual para pasar el filtro en
+  vez de la lista.
+- Commit de reversión propio, con mensaje que diga qué se retira y por qué.
+
+────────────────────────────────────────────────────────────────
+2. MODELO DE GENERACIÓN (responde Q1 y Q4)
+────────────────────────────────────────────────────────────────
+- Supabase: documents gana active_generation (int, default 1). Lo en-vuelo vive en
+  tabla nueva document_staged (document_id PK, generation, full_text, content_hash,
+  chunk_count, size_bytes, source_modified_at, created_at; RLS por org como todo):
+  la fila principal de documents describe SIEMPRE la versión que sirve; el staged
+  nunca la pisa hasta el swap. Máximo un staged por documento (PK lo garantiza);
+  si llega otro cambio antes del swap, el staged se REEMPLAZA (el más nuevo gana —
+  el intermedio jamás sirvió ni servirá).
+- El CHAT NO CAMBIA en toda la fase (tras la reversión): filtra CORPUS_ACTIVO
+  como siempre. El invariante del sistema es: SOLO los vectores de la generación
+  activa están 'analizado' (los staged nacen 'pendiente'; el swap voltea). La
+  generación desambigua por ESTADO — por eso el filtro de siempre basta y el chat
+  no necesita saber de generaciones. [Esto cubre también el riesgo señalado en la
+  consulta: el chat jamás filtra por generación, así que los vectores viejos sin
+  marca no pueden "dejar de encontrarse".]
+
+────────────────────────────────────────────────────────────────
+3. VECTORES (responde Q2 y Q4)
+────────────────────────────────────────────────────────────────
+- IDs nuevos: ${documentId}-g{N}-{i} para N>=2, con metadata generation=N.
+- Los vectores existentes ${documentId}-{i} SON generación 1 implícita: parsing
+  tolerante, SIN backfill ni reindexado. Las nuevas generaciones empiezan en 2.
+- ATENCIÓN C.3: el listado por prefijo y el parseo de índices de C.3c deben
+  hacerse conscientes de generación (docId-g2-4 NO es el índice 4 de g1).
+  Primera exploración obligatoria de C.4b: TODOS los sitios que parsean IDs de
+  vector.
+
+────────────────────────────────────────────────────────────────
+4. SUB-FASES Y FRONTERAS (responde Q3 y Q5)
+────────────────────────────────────────────────────────────────
+Orden: REVERSIÓN → C.4a-real → C.4b → C.4c → C.4d → C.4e.
+Build verde y verificación entre cada una.
+
+- REVERSIÓN (punto 1): chat a metadata + filtro CORPUS_ACTIVO compartido con el
+  análisis. Verificación: chat y análisis dan resultados coherentes; B.65 sigue
+  cumpliéndose (pendientes fuera de ambos).
+- C.4a-real — MODELO (solo Supabase): migración de active_generation +
+  document_staged. Cero comportamiento. Verificable por esquema. Riesgo nulo.
+- C.4b — CAPA B.0 consciente de generación: esquema de IDs g{N}, metadata
+  generation, parsing tolerante de g1 implícita, adaptación del listado/parseo de
+  C.3c. SIN llamadores nuevos y SIN tocar el chat. El reemplazo sigue siendo el
+  de C.3 (sobrescribe). Verificable con el corpus real: los g1 siguen listándose
+  y parseándose bien. Desplegable sin riesgo funcional.
+- C.4c — swapDocumentVectors en B.0: función IDEMPOTENTE y RE-EJECUTABLE (si
+  muere a medias, re-lanzarla completa el swap). Sus tres patas — flip de metadata
+  de la generación nueva a 'analizado', update de la fila principal desde staged
+  (UN solo UPDATE atómico con todos los campos), borrado por IDs listados de
+  generaciones < activa — no son transaccionables juntas: ANTES de escribirla,
+  mini-diseño de un párrafo con el orden interno de las tres patas y la
+  recuperación si muere entre ellas (como el mini-diseño de IDs de C.3), a Fable
+  para visto bueno. Commit de revisión línea a línea. Sin llamadores aún:
+  andamiaje puro; se verifica con su idempotencia en re-ejecución.
+- C.4d — EL SYNC VERSIONA (aquí cambia el mundo): reemplazo detectado → construir
+  staged (vectores g{N+1} en 'pendiente' + fila en document_staged) SIN tocar la
+  generación activa → el chat sigue sirviendo la vieja (muere la ventana
+  a-oscuras interina de C.3) → el staged aparece en la bandeja como "nueva
+  versión por validar" → su análisis (analyze-v2 con documentId; B.65 excluye
+  pendientes; la auto-exclusión cubre ambas generaciones del propio documento) →
+  al COMPLETAR el análisis, swap; incidencias, si las hay, a la bandeja (D6
+  literal: el swap no espera a que estén limpias). C.3 NO se borra: sobreviven
+  su try/catch por archivo, su cerrojo de source_modified_at y su listado; se
+  retira SOLO el upsert-en-sitio del camino de reemplazo. Verificación (la de
+  D6): modificar un doc sincronizado y comprobar con queries que el chat sirve
+  la VIEJA hasta completar el análisis y la NUEVA después, sin hueco ni mezcla.
+- C.4e — MIGRAR los demás caminos a la misma función: mejora-interna (política:
+  swap INMEDIATO, sin relevo — semántica cerrada de D6: los cambios son conocidos
+  y la versión vieja era la mala) y el futuro reemplazo manual de D5 (política:
+  relevo). Detector de "documentos multi-generación" en cleanup como red de
+  seguridad.
+
+────────────────────────────────────────────────────────────────
+5. CONDICIÓN DURA DE ARRANQUE
+────────────────────────────────────────────────────────────────
+Este archivo se commitea al repo (commit propio de docs) y su hash se confirma a
+Fable CITANDO F-1 antes de la primera línea de código — incluida la reversión.
+Contexto que justifica la dureza: cuatro incidentes de memoria del canal (dos
+respuestas de Fable perdidas, un archivo que nunca llegó al conocimiento del
+proyecto, y un diseño fantasma atribuido a Fable que llegó a producción). Las
+decisiones que no están en el repo no existen.
