@@ -1020,35 +1020,39 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     B.46 (excepción del lote — que un lote se compare entre sí) para cuando exista
     el flujo de análisis por lotes.
 
-  C.4 — [EN CURSO desde S36, revisado S37 con F-1 de Fable] Relevo atómico de
-    versiones (D6). Objetivo: que un documento nunca parpadee en el chat durante
-    un reemplazo — siempre una generación activa, la vieja sirve hasta que la
-    nueva valida, swap atómico. Diseño canónico: Diseno_C4_F1.txt (commit
-    f3877851). Protocolo de canal F-n vigente (Fable numera sus respuestas; toda
-    consulta cita el ID de la última recibida).
+  C.4 — [EN CURSO] Relevo atómico de versiones (D6). Objetivo: que un documento
+    nunca parpadee en el chat durante un reemplazo — siempre una generación activa,
+    la vieja sirve hasta que la nueva valida, swap atómico. DISEÑO CANÓNICO:
+    Diseno_C4_F1.txt (F-1). Protocolo de canal F-n vigente (toda consulta a Fable
+    cita la última respuesta recibida).
+    NOTA: el primer "C.4a" (chat por lista de Supabase con $in) fue un diseño
+    fantasma NO emitido por Fable; F-1 lo REVIRTIÓ (moría con las generaciones).
+    Sub-fases (orden F-1):
+      · REVERSIÓN [HECHO S37, commits 841325b5+e9ae0199] — chat y análisis filtran
+        por CORPUS_ACTIVO (constante compartida, metadata Pinecone), no por listas
+        de Supabase. Retirados: el $in del chat y analyzedDocumentIds del análisis
+        (mecanismo de B.65-app/worker). La REGLA de B.65 se mantiene vía el filtro.
+        excludeDocumentId intacto.
+      · C.4a-real [SIGUIENTE] — modelo en Supabase (solo esquema, cero
+        comportamiento): columna active_generation (int, default 1) en documents +
+        tabla document_staged (document_id PK, generation, full_text, content_hash,
+        chunk_count, size_bytes, source_modified_at, created_at; RLS por org).
+      · C.4b [PENDIENTE] — capa B.0 consciente de generación: IDs ${documentId}-g{N}-{i}
+        para N>=2 + metadata generation; g1 implícita (parsing tolerante, sin
+        backfill); adaptar el listado/parseo de C.3c. Sin tocar el chat.
+      · C.4c [PENDIENTE] — swapDocumentVectors en B.0: función idempotente y
+        re-ejecutable. Requiere mini-diseño previo del orden de sus 3 patas a Fable.
+      · C.4d [PENDIENTE] — el sync versiona: reemplazo construye staged sin bajar la
+        activa; el chat sirve la vieja hasta completar el análisis; swap al validar.
+        Mata la ventana a-oscuras interina de C.3. C.3 no se borra (solo se retira su
+        upsert-en-sitio del reemplazo).
+      · C.4e [PENDIENTE] — migrar los demás caminos (mejora-interna: swap inmediato;
+        D5 manual: relevo) + detector de multi-generación en cleanup.
 
-    HISTORIAL: el "C.4a" original (chat por lista $in de Supabase) fue un diseño
-    fantasma, no de Fable — revertido en S37 (commits 841325b5 + e9ae0199). Ver
-    Bitácora Sesión 37.
-
-    Orden F-1: REVERSIÓN [HECHA S37] → C.4a-real → C.4b → C.4c → C.4d → C.4e.
-      · REVERSIÓN [HECHA S37] — chat y análisis filtran por CORPUS_ACTIVO
-        (metadata Pinecone, lib/pinecone/vectors.ts), constante compartida. Se
-        retiró el $in del chat y analyzedDocumentIds del análisis (B.65-app/
-        worker). La regla de B.65 se mantiene (pendientes fuera del análisis) —
-        solo cambió el mecanismo. excludeDocumentId intacto.
-      · C.4a-real [PENDIENTE] — modelo de generación en Supabase:
-        documents.active_generation + tabla document_staged.
-      · C.4b [PENDIENTE] — capa B.0 consciente de generación: IDs
-        ${documentId}-g{N}-{i}, metadata generation, parsing tolerante de g1
-        implícita, adaptación de C.3c.
-      · C.4c [PENDIENTE] — swapDocumentVectors idempotente en B.0 (mini-diseño
-        previo a Fable antes de escribirla).
-      · C.4d [PENDIENTE] — el sync versiona: reemplazo construye staged sin
-        tocar la generación activa; swap al completar análisis. Sustituye el
-        swap destructivo de C.3.
-      · C.4e [PENDIENTE] — migrar mejora-interna (swap inmediato) y reemplazo
-        manual D5 (relevo) a la misma función.
+  B.65 — [REGLA VIGENTE, mecanismo migrado en S37] La regla (el análisis solo
+    compara contra corpus validado) SIGUE activa, ahora vía el filtro CORPUS_ACTIVO
+    en Pinecone (antes: lista analyzedDocumentIds descartada en memoria, retirada en
+    la reversión de S37). No confundir la retirada del mecanismo con deshacer la regla.
 
   C.8 — [NUEVO, diseño de Fable, S35] Ciclo de vida por conexión. Al cambiar o perder
     el proveedor de nube, los documentos del proveedor anterior NO se borran ni se
