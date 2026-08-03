@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import { getAuthenticatedUserHybrid } from '@/lib/supabase-server';
-import { upsertVectors, deleteVectorsByIds } from '@/lib/pinecone/vectors';
+import { upsertVectors, deleteVectorsByIds, buildVectorId } from '@/lib/pinecone/vectors';
 import { generateEmbeddings } from '@/lib/embeddings';
 import { chunkText } from '@/lib/chunking';
 import { randomUUID } from 'crypto';
@@ -109,7 +109,7 @@ export async function POST(req: NextRequest) {
 
     // Upsert vectors
     const vectors = chunks.map((chunk, i) => ({
-      id: `${documentId}-${i}`,
+      id: buildVectorId(documentId, 1, i),
       values: embeddings[i],
       metadata: {
         text: chunk.text,
@@ -119,6 +119,7 @@ export async function POST(req: NextRequest) {
         totalChunks: chunk.metadata.totalChunks,
         orgId: chunk.metadata.orgId,
         analysisStatus: 'analizado',
+        generation: 1,
       },
     }));
 

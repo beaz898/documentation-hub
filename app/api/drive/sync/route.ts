@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import { getAuthenticatedUserHybrid } from '@/lib/supabase-server';
-import { upsertVectors, deleteVectorsByIds, listVectorIdsByPrefix } from '@/lib/pinecone/vectors';
+import { upsertVectors, deleteVectorsByIds, listVectorIdsByPrefix, buildVectorId, parseVectorId } from '@/lib/pinecone/vectors';
 import { deleteDocument, getTombstonedIdentities, tombstoneKey } from '@/lib/delete-document';
 import { checkUploadLock } from '@/lib/upload-lock';
 import { generateEmbeddings } from '@/lib/embeddings';
@@ -170,7 +170,7 @@ export async function POST(req: NextRequest) {
         const contentHash = generateContentHash(text);
 
         const vectors = chunks.map((chunk, i) => ({
-          id: `${documentId}-${i}`,
+          id: buildVectorId(documentId, 1, i),
           values: embeddings[i],
           metadata: {
             text: chunk.text,
@@ -182,6 +182,7 @@ export async function POST(req: NextRequest) {
             source: provider.name,
             folderPath: file.folderPath ?? '/',
             analysisStatus: 'pendiente',
+            generation: 1,
           },
         }));
 
@@ -196,13 +197,13 @@ export async function POST(req: NextRequest) {
           const zombieIds: string[] = [];
           let anomalies = 0;
           for (const id of existingIds) {
-            const idx = parseInt(id.slice(id.lastIndexOf('-') + 1), 10);
-            if (Number.isNaN(idx)) {
+            const parsed = parseVectorId(id);
+            if (parsed === null) {
               anomalies++;
-              console.warn(`[DRIVE SYNC] ID de vector anómalo (no parsea índice): ${id} | doc=${documentId}`);
+              console.warn(`[DRIVE SYNC] ID de vector anómalo (no parsea): ${id} | doc=${documentId}`);
               continue;
             }
-            if (idx >= newChunkCount) zombieIds.push(id);
+            if (parsed.chunkIndex >= newChunkCount) zombieIds.push(id);
           }
           if (anomalies > 0) {
             console.warn(`[DRIVE SYNC] ${anomalies} IDs anómalos en doc=${documentId} (${file.name})`);
