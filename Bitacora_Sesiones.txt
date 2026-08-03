@@ -3339,3 +3339,57 @@ implícita?), y frontera exacta C.4b vs C.4c.
 
 ESTADO: C.4a cerrado (chat por Supabase). Base lista para el versionado por
 generaciones. Siguiente: C.4b (modelo de generación), con el diseño de Fable.
+
+────────────────────────────────────────────────────────────────
+SESIÓN 37 — C.4: diseño fantasma de "C.4a", F-1 de Fable, y REVERSIÓN
+al modelo CORPUS_ACTIVO
+────────────────────────────────────────────────────────────────
+
+Episodio importante de proceso, no solo de código. Se implementó y desplegó un
+"C.4a" (chat sirviendo por lista de documentIds de Supabase con filtro $in en
+Pinecone) creyéndolo diseño de Fable. NO lo era: fue un diseño fantasma colado
+por un fallo de canal (Fable nunca lo emitió). Funcionaba, pero era un callejón
+sin salida.
+
+F-1 — respuesta canónica de Fable, commiteada como Diseno_C4_F1.txt (commit
+f3877851). Veredicto: SE REVIERTE C.4a. Razón terminal: con el versionado por
+generaciones (que viene), "qué servir" es un PAR (documentId, generación activa)
+por documento; un $in plano de documentIds trae las DOS generaciones y Pinecone
+no filtra por patrón de ID. El mecanismo de la lista muere en cuanto lleguen las
+generaciones. Además F-1 estableció el PROTOCOLO DE CANAL: Fable numera sus
+respuestas (F-n); toda consulta cita el ID de la última recibida; si falta la
+cita, se pide reemisión antes de actuar. Nace de cuatro incidentes de memoria del
+canal (dos respuestas perdidas, un archivo que no llegó, y este diseño fantasma
+que llegó a producción).
+
+REVERSIÓN — HECHA y verificada (commits 841325b5 + e9ae0199). El comportamiento NO
+cambia (el chat sigue sirviendo analizados e ignorando pendientes; el análisis
+sigue sin comparar contra pendientes); cambia el MECANISMO: chat y análisis vuelven
+a filtrar por la metadata de Pinecone a través de una constante compartida nueva
+CORPUS_ACTIVO = { analysisStatus: 'analizado' } (lib/pinecone/vectors.ts). Una
+fuente, dos consumidores, cero listas por query.
+- Se retiró el $in del chat (el "C.4a" fantasma): app/api/ask ya no carga la lista;
+  lib/rag.ts usa CORPUS_ACTIVO. Se conservó su parametrización limpia.
+- Se retiró analyzedDocumentIds del análisis (el MECANISMO de B.65-app/worker): el
+  retrieval del análisis ahora filtra en Pinecone con CORPUS_ACTIVO (antes traía
+  todo y descartaba en memoria). La REGLA de B.65 SE MANTIENE (pendientes fuera del
+  análisis) — solo cambia cómo se consigue. excludeDocumentId (auto-comparación)
+  INTACTO.
+POR QUÉ REVERTIR ALGO QUE FUNCIONABA: los cimientos aguantaban hoy pero no
+soportarían el versionado por generaciones (segundo piso). Mejor rehacerlos ahora,
+antes de construir encima, que a medio camino. El trabajo no se perdió: la idea
+buena (chat y análisis con la misma definición de corpus) se conservó, implementada
+de la forma que sí sobrevive a las generaciones.
+
+VERIFICACIÓN PREVIA CLAVE (por qué filtrar por metadata es seguro): se comprobó que
+TODOS los caminos que cambian analysis_status mantienen la metadata de Pinecone al
+día (mark-analyzed, sync/C.3, ingest, index-text). No existe hoy ningún camino que
+ponga Supabase='analizado' sin actualizar Pinecone. Así que el filtro por metadata
+(CORPUS_ACTIVO) NO reintroduce el problema que motivó B.65. Verificado en código
+antes de escribir la reversión.
+
+ESTADO: reversión cerrada; sistema en el modelo CORPUS_ACTIVO que F-1 quiere. Base
+limpia para el modelo de generación. Orden F-1: REVERSIÓN [hecha] → C.4a-real
+(modelo Supabase) → C.4b (capa B.0 con generación) → C.4c (swap idempotente) →
+C.4d (sync versiona) → C.4e (migrar caminos). Siguiente: C.4a-real. Diseño canónico
+en Diseno_C4_F1.txt. Protocolo de canal F-n vigente.

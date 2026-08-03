@@ -1020,19 +1020,35 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     B.46 (excepción del lote — que un lote se compare entre sí) para cuando exista
     el flujo de análisis por lotes.
 
-  C.4 — [EN CURSO desde S36] Relevo atómico de versiones (D6). Objetivo: que un
-    documento nunca parpadee en el chat durante un reemplazo — siempre una
-    generación activa, la vieja sirve hasta que la nueva valida, swap atómico.
-    Sub-fases (diseño de Fable):
-      · C.4a [HECHO S36] — el chat sirve por Supabase (documentIds 'analizado'
-        vía $in), no por metadata de Pinecone. Resuelve la incoherencia de B.65.
-        Commit 85322776.
-      · C.4b [PENDIENTE, esperando diseño de Fable] — modelo de generación: dónde
-        vive la generación activa (Supabase), cómo se marcan los vectores por
-        generación, migración de lo existente.
-      · C.4c [PENDIENTE] — relevo atómico en el reemplazo: crear generación nueva
-        sin bajar la vieja + swap al validar. Sustituye el swap destructivo de C.3
-        en el sync (y cubre también reemplazo manual D5 y mejorar-con-IA).
+  C.4 — [EN CURSO desde S36, revisado S37 con F-1 de Fable] Relevo atómico de
+    versiones (D6). Objetivo: que un documento nunca parpadee en el chat durante
+    un reemplazo — siempre una generación activa, la vieja sirve hasta que la
+    nueva valida, swap atómico. Diseño canónico: Diseno_C4_F1.txt (commit
+    f3877851). Protocolo de canal F-n vigente (Fable numera sus respuestas; toda
+    consulta cita el ID de la última recibida).
+
+    HISTORIAL: el "C.4a" original (chat por lista $in de Supabase) fue un diseño
+    fantasma, no de Fable — revertido en S37 (commits 841325b5 + e9ae0199). Ver
+    Bitácora Sesión 37.
+
+    Orden F-1: REVERSIÓN [HECHA S37] → C.4a-real → C.4b → C.4c → C.4d → C.4e.
+      · REVERSIÓN [HECHA S37] — chat y análisis filtran por CORPUS_ACTIVO
+        (metadata Pinecone, lib/pinecone/vectors.ts), constante compartida. Se
+        retiró el $in del chat y analyzedDocumentIds del análisis (B.65-app/
+        worker). La regla de B.65 se mantiene (pendientes fuera del análisis) —
+        solo cambió el mecanismo. excludeDocumentId intacto.
+      · C.4a-real [PENDIENTE] — modelo de generación en Supabase:
+        documents.active_generation + tabla document_staged.
+      · C.4b [PENDIENTE] — capa B.0 consciente de generación: IDs
+        ${documentId}-g{N}-{i}, metadata generation, parsing tolerante de g1
+        implícita, adaptación de C.3c.
+      · C.4c [PENDIENTE] — swapDocumentVectors idempotente en B.0 (mini-diseño
+        previo a Fable antes de escribirla).
+      · C.4d [PENDIENTE] — el sync versiona: reemplazo construye staged sin
+        tocar la generación activa; swap al completar análisis. Sustituye el
+        swap destructivo de C.3.
+      · C.4e [PENDIENTE] — migrar mejora-interna (swap inmediato) y reemplazo
+        manual D5 (relevo) a la misma función.
 
   C.8 — [NUEVO, diseño de Fable, S35] Ciclo de vida por conexión. Al cambiar o perder
     el proveedor de nube, los documentos del proveedor anterior NO se borran ni se
