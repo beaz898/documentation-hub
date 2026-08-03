@@ -139,3 +139,36 @@ export async function listVectorIdsByPrefix(
 
   return ids;
 }
+
+/**
+ * Formato de ID de vector consciente de generación (C.4b, F-1 sección 3).
+ * - Generación 1: ${documentId}-${chunkIndex}  (formato histórico, SIN -g1-, para
+ *   que los vectores existentes sigan siendo válidos sin reindexar — g1 implícita).
+ * - Generación N>=2: ${documentId}-g${N}-${chunkIndex}
+ * documentId es un UUID (contiene guiones), por eso el parseo se ancla al FINAL.
+ */
+export function buildVectorId(documentId: string, generation: number, chunkIndex: number): string {
+  return generation >= 2
+    ? `${documentId}-g${generation}-${chunkIndex}`
+    : `${documentId}-${chunkIndex}`;
+}
+
+/**
+ * Descompone un ID de vector en { documentId, generation, chunkIndex }.
+ * Tolerante: un ID sin marca -g{N}- es generación 1 implícita. Se ancla al FINAL
+ * del string para no tropezar con los guiones del UUID del documentId.
+ * Devuelve null si el ID no encaja en ninguno de los dos formatos (anomalía).
+ */
+export function parseVectorId(id: string): { documentId: string; generation: number; chunkIndex: number } | null {
+  // Generación N>=2: ...-g{N}-{i} al final.
+  const genMatch = id.match(/^(.*)-g(\d+)-(\d+)$/);
+  if (genMatch) {
+    return { documentId: genMatch[1], generation: parseInt(genMatch[2], 10), chunkIndex: parseInt(genMatch[3], 10) };
+  }
+  // Generación 1 implícita: ...-{i} al final (sin -g).
+  const g1Match = id.match(/^(.*)-(\d+)$/);
+  if (g1Match) {
+    return { documentId: g1Match[1], generation: 1, chunkIndex: parseInt(g1Match[2], 10) };
+  }
+  return null;
+}
