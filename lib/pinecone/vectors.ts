@@ -7,6 +7,14 @@ import type {
   VectorMetadata,
 } from './types';
 
+/** Filtro de metadata de Pinecone que define el CORPUS ACTIVO: los vectores que
+ *  el chat y el análisis consideran parte del corpus servible. Fuente única (F-1):
+ *  chat y análisis usan esta MISMA constante, en vez de listas por query. Hoy =
+ *  documentos analizados; en C.8 se ampliará para excluir inertes. La coherencia
+ *  se garantiza porque toda transición de estado mantiene la metadata al día
+ *  (mark-analyzed, sync/C.3, ingest, index-text lo hacen — verificado). */
+export const CORPUS_ACTIVO = { analysisStatus: { $eq: 'analizado' } };
+
 const UPSERT_BATCH = 100;
 const DELETE_BATCH = 1000;
 
