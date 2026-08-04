@@ -13,6 +13,10 @@ export interface VectorMetadata {
    *  Valores: 'pendiente' | 'en_analisis' | 'analizado' | 'desactualizado'.
    *  Opcional: los vectores anteriores a B.2 no lo tienen (backfill en B.4). */
   analysisStatus?: string;
+  /** Generación del vector (C.4b). Opcional por la misma razón que analysisStatus:
+   *  los vectores anteriores a C.4b no lo tienen — su ausencia se trata como
+   *  generación 1 implícita (parsing tolerante). */
+  generation?: number;
 }
 
 /** Un vector listo para upsert. */
