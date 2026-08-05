@@ -3491,3 +3491,46 @@ ESTADO: C.4c cerrado. swapDocumentVectors en producción pero INERTE (sin llamad
 los crea C.4d). Siguiente: C.4d (el sync versiona — "aquí cambia el mundo", verificación
 D6: modificar un doc sincronizado y que el chat sirva la vieja hasta completar y la nueva
 después, sin hueco). Requiere Fable. Luego C.4e.
+
+────────────────────────────────────────────────────────────────
+SESIÓN 37 (cont.) — C.4d-1: el sync versiona (construcción del
+staged sin bajar la generación activa)
+────────────────────────────────────────────────────────────────
+
+C.4d-1 — HECHO y verificado. El reemplazo del sync deja de sobrescribir cuando el
+doc tenía una versión validada: construye la generación nueva en staged sin tocar
+la activa, y el chat sigue sirviendo la vieja. CERO parpadeo. Diseño F-4 + F-5.
+
+Enganche del análisis (mapeado): mark-analyzed es el ÚNICO punto donde un doc
+reemplazado pasa a 'analizado', y es HUMANO y explícito (el usuario revisa y pulsa
+"marcar analizado"). Analizar (analyze-v2) y validar (mark-analyzed) son dos pasos
+separados. Ese es el punto de enganche del swap — pero eso es C.4d-2, no d-1.
+
+BIFURCACIÓN del reemplazo (según estado del doc existente, F-4 pregunta 2):
+  - doc 'analizado' (hay versión validada que proteger) → VERSIONAR: targetGen =
+    staged existente (reutiliza su generación, F-4(2)) o active_generation+1; sube
+    vectores g{N} 'pendiente'; recorte de zombis INTRA-generación; upsert en
+    document_staged AL FINAL (marcador F-3, F-5 R3); NO toca la fila documents.
+  - doc 'pendiente' o nuevo → SOBRESCRIBIR como C.3 (R1 de F-5: targetGen =
+    active_generation del doc, NO 1 — machacar la generación activa sea cual sea).
+Decisión de generación movida ARRIBA, antes de construir los vectores (F-5 P1).
+R2 de F-5 verificado en código: buildVectorId(id,1,i) === `${id}-${i}` (formato
+legacy, g1 implícita) → la rama sobrescribir machaca los IDs legacy, no crea juego
+paralelo. stagedMap cargado en LOTE junto al existingMap (anti-N+1, F-5 remache i).
+Todo con .error patrón C.1c. Contador 'versioned' en stats + mensaje de UI ("N con
+nueva versión pendiente de validar", useDrive.ts).
+
+Sub-piezas: d-1.1 (stagedMap en lote), d-1.2 (decisión targetGen), d-1.3 (rama
+versionar). Commits e9f4801f (backend) + 250482e0 (mensaje UI).
+
+VERIFICADO con datos reales: modificado new 9.txt (estaba 'analizado') → sync lo
+reporta "1 versioned"; Supabase: documents.active_generation=1 + content_hash viejo
++ analysis_status='analizado', document_staged generation=2 + content_hash nuevo
+(distintos); el CHAT sigue respondiendo con el contenido VIEJO. El doc no parpadeó.
+Es la mitad de D6 que corresponde a d-1 (la vieja sirve hasta validar).
+
+ESTADO: C.4d-1 cerrado. Un doc versionado sigue sirviendo la vieja indefinidamente
+hasta que exista el swap en mark-analyzed (seguro, no roto). Siguiente: C.4d-2 —
+enganchar swapDocumentVectors (ya probado en C.4c) en mark-analyzed: si el doc tiene
+staged → swap (g nueva pasa a activa); si no → marcado normal. Completa D6 (la nueva
+aparece al validar). Explorar mark-analyzed literal antes de escribir. Luego C.4e.
