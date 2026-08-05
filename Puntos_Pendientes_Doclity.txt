@@ -1041,9 +1041,11 @@ NOTAS DE ORDEN (propuesta, a confirmar)
         generación: IDs ${documentId}-g{N}-{i} para N>=2 + metadata generation; g1
         implícita (parsing tolerante, sin backfill); adaptado el listado/parseo de
         C.3c. Sin tocar el chat.
-      · C.4c [PENDIENTE] — swapDocumentVectors en B.0: función idempotente y
-        re-ejecutable. REQUIERE mini-diseño previo del orden de sus 3 patas a Fable
-        (citando última F-n) ANTES de escribir código.
+      · C.4c [HECHO S37] — swapDocumentVectors (lib/document-swap.ts), idempotente
+        de 4 patas con document_staged como marcador de "swap en curso" (diseño F-3).
+        Verificado con desastres fabricados (endpoint temporal, ya retirado). Commits
+        05ac49fd (función), c1ac531e (VectorMetadata.generation, deuda de C.4b),
+        88019c86 (retirada del endpoint de prueba).
       · C.4d [PENDIENTE] — el sync versiona: reemplazo construye staged sin bajar la
         activa; el chat sirve la vieja hasta completar el análisis; swap al validar.
         Mata la ventana a-oscuras interina de C.3. C.3 no se borra (solo se retira su

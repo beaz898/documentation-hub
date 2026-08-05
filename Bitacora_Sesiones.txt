@@ -3433,3 +3433,61 @@ ESTADO: C.4a-real y C.4b cerrados (andamiaje de generación puesto, cero cambio 
 comportamiento). Siguiente: C.4c (swapDocumentVectors idempotente) — REQUIERE
 mini-diseño previo del orden de sus 3 patas a Fable, citando la última F-n, ANTES de
 escribir. Luego C.4d (el sync versiona — "aquí cambia el mundo") y C.4e.
+
+────────────────────────────────────────────────────────────────
+SESIÓN 37 (cont.) — C.4c: swapDocumentVectors idempotente,
+verificado con desastres fabricados
+────────────────────────────────────────────────────────────────
+
+C.4c — HECHO y verificado. La función que promueve una generación staged a activa,
+idempotente y re-ejecutable. Diseño aprobado por Fable en F-3 (mini-diseño previo
+del orden de las patas, condición de F-1).
+
+CANAL: cadena F-1 → F-2 → F-3 completa y confirmada (F-2 llegó: autorizó reversión →
+C.4a-real → C.4b con tres recordatorios; F-3 aprobó el mini-diseño del swap y corrigió
+un error de análisis nuestro). Incidente del diseño fantasma: oficialmente cerrado
+(F-2) — identificado, revertido, sustituido por canon con hash. Origen del texto
+fantasma: nunca identificado; el protocolo F-n existe para que dé igual.
+
+CORRECCIÓN DE FABLE (F-3) que cambió el diseño: el borrado del staged SALE de P2 y
+pasa a ser pata final (P4). La fila document_staged es el MARCADOR de "swap en curso":
+existe = incompleto (reparable re-invocando); no existe = completado o nada que
+promover (no-op). Y corrigió un error nuestro: tras la reversión el chat filtra por
+metadata (CORPUS_ACTIVO), NO por active_generation — así que "muere tras P1" = chat
+sirve MEZCLA de ambas generaciones hasta que alguien re-ejecute (no "sirve la vieja"
+como habíamos escrito). La mezcla de segundos es tolerable (D6 prohíbe el apagón, no
+la mezcla breve); lo que la acota es que el marcador persiste y cleanup re-invoca el
+swap (C.4e).
+
+swapDocumentVectors (lib/document-swap.ts, módulo aparte como delete-document.ts
+porque orquesta Pinecone+Supabase). 4 patas con corte secuencial (si una falla, aborta
+sin avanzar; el staged persiste → reparable):
+  P1: flip metadata de la generación nueva a 'analizado' (Pinecone; updateVectorMetadata
+      MERGEA, no reemplaza — verificado en el contrato del SDK).
+  P2: UPDATE atómico de la fila documents desde staged (active_generation=N, full_text,
+      content_hash, etc.). SIN borrar staged.
+  P3: borrar vectores de generaciones < N (no necesita staged → re-ejecutable).
+  P4: borrar el marcador document_staged. Lo último.
+Aísla generaciones con listVectorIdsByPrefix + parseVectorId (C.4b). null = anomalía,
+se ignora (no se toca).
+
+DEUDA de C.4b encontrada al verificar: VectorMetadata no declaraba el campo generation
+(los upserts de C.4b lo escribían, pero el tipo no lo reflejaba). Corregido
+(generation?: number, opcional como analysisStatus). Salió porque el endpoint de prueba
+construye metadata literal, que TypeScript chequea estricto.
+
+VERIFICACIÓN (con endpoint temporal /api/admin/test-swap, ya BORRADO tras validar):
+  (a) swap normal: g1 activa + g2 staged → tras swap: solo g2 'analizado',
+      active_generation=2, content_hash=hash-g2, staged borrado, g1 borrada. Correcto.
+  (b) idempotencia básica: re-swap sin staged = noop:true, sin cambios. Correcto.
+  (c) DESASTRE FABRICADO (F-3): estado "muerto tras P1" (g2 ya 'analizado', staged
+      presente, fila aún g1) → re-invocar swap → convergió al estado final limpio
+      idéntico al normal. "La función que repara desastres, sometida a un desastre
+      fabricado, lo repara." Verificado con datos.
+Nota: Pinecone tiene consistencia eventual (~segundos) — el primer inspect tras un
+seed puede salir vacío; con pausa de 5s se ve correcto. No es bug del swap.
+
+ESTADO: C.4c cerrado. swapDocumentVectors en producción pero INERTE (sin llamadores;
+los crea C.4d). Siguiente: C.4d (el sync versiona — "aquí cambia el mundo", verificación
+D6: modificar un doc sincronizado y que el chat sirva la vieja hasta completar y la nueva
+después, sin hueco). Requiere Fable. Luego C.4e.
