@@ -68,6 +68,10 @@ export function useDrive(
         if (skippedExcluded > 0) {
           parts.push(`**${skippedExcluded}** excluido${skippedExcluded !== 1 ? 's' : ''}`);
         }
+        const versioned = stats.versioned ?? 0;
+        if (versioned > 0) {
+          parts.push(`**${versioned}** con nueva versión pendiente de validar`);
+        }
         const hadFailures = failed > 0 || deleteFailed > 0;
         addMessage({
           id: crypto.randomUUID(),
