@@ -3,6 +3,7 @@ import { createServiceClient } from '@/lib/supabase';
 import { getAuthenticatedUserHybrid } from '@/lib/supabase-server';
 import { resolveOrg } from '@/lib/org';
 import { updateVectorMetadata } from '@/lib/pinecone/vectors';
+import { swapDocumentVectors } from '@/lib/document-swap';
 
 /**
  * POST /api/documents/[id]/mark-analyzed
@@ -58,6 +59,54 @@ export async function POST(
       { status: 422 },
     );
   }
+
+  // C.4d-2: si el documento tiene una versión staged (nueva generación pendiente
+  // de validar), validar = PROMOVERLA. El swap hace todo: flip de metadata de la
+  // generación nueva a 'analizado', UPDATE de la fila desde staged, borra la vieja,
+  // borra el marcador staged (verificado en C.4c). mark-analyzed solo añade encima
+  // la procedencia de revisión humana. NO se hace el flip normal (apuntaría a los
+  // vectores viejos g1, que el swap va a borrar).
+  const { data: stagedRow, error: stagedCheckError } = await supabase
+    .from('document_staged')
+    .select('document_id')
+    .eq('document_id', id)
+    .eq('org_id', orgId)
+    .maybeSingle();
+
+  if (stagedCheckError) {
+    console.error('[mark-analyzed] Error comprobando staged:', stagedCheckError.message);
+    return NextResponse.json(
+      { error: 'No se pudo comprobar el estado del documento. Reintentalo.' },
+      { status: 500 },
+    );
+  }
+
+  if (stagedRow) {
+    // Rama VERSIONADO: delegar la promoción en el swap.
+    const swapResult = await swapDocumentVectors(supabase, orgId, id);
+    if (!swapResult.ok) {
+      console.error(`[mark-analyzed] swap falló | doc=${id} | ${swapResult.error ?? '?'}`);
+      return NextResponse.json(
+        { error: 'No se pudo promover la nueva versión del documento. Reintentalo.', errorType: 'swap_failed' },
+        { status: 502 },
+      );
+    }
+    // El swap ya dejó la fila 'analizado' y active_generation actualizada.
+    // Añadir la procedencia de revisión humana (lo que el swap no toca).
+    const { error: reviewError } = await supabase
+      .from('documents')
+      .update({ reviewed_at: new Date().toISOString(), reviewed_by: user.id })
+      .eq('id', id)
+      .eq('org_id', orgId);
+    if (reviewError) {
+      console.error('[mark-analyzed] Supabase (review tras swap):', reviewError.message);
+      // El swap sí se completó; el fallo es solo en los metadatos de revisión.
+      // No es crítico para el corpus. Se devuelve éxito con aviso en log.
+    }
+    return NextResponse.json({ success: true, id, swapped: swapResult.swapped, reviewedAt: new Date().toISOString() });
+  }
+
+  // Sin staged: comportamiento normal (documento sin versión pendiente).
 
   // 2) Pinecone PRIMERO: actualizar la metadata de cada vector. Abortar si falla.
   try {
