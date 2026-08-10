@@ -1046,9 +1046,12 @@ NOTAS DE ORDEN (propuesta, a confirmar)
         Verificado con desastres fabricados (endpoint temporal, ya retirado). Commits
         05ac49fd (función), c1ac531e (VectorMetadata.generation, deuda de C.4b),
         88019c86 (retirada del endpoint de prueba).
-      · C.4d [EN CURSO S37] — el sync versiona. d-1 HECHO (construcción del staged,
-        el chat sirve la vieja; commits e9f4801f + 250482e0). d-2 PENDIENTE (enganche
-        del swap en mark-analyzed: si hay staged → swapDocumentVectors; completa D6).
+      · C.4d [EN CURSO S37] — el sync versiona. d-1 HECHO (e9f4801f+250482e0). d-2
+        rediseñado por F-6: el swap se dispara al COMPLETAR el análisis (analyze-v2),
+        NO al validar. mark-analyzed con staged NIEGA (409, commit 4a914fba). Falta:
+        d-2a (bandeja muestra staged + texto staged-first) y d-2b (compleción de
+        analyze-v2 dispara swap + analyzed_content_hash en P2 + negativa de
+        index-text). Diseño en Bitácora S37.
       · C.4e [PENDIENTE] — migrar los demás caminos (mejora-interna: swap inmediato;
         D5 manual: relevo) + detector de multi-generación en cleanup.
 

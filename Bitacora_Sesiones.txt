@@ -3534,3 +3534,62 @@ hasta que exista el swap en mark-analyzed (seguro, no roto). Siguiente: C.4d-2 �
 enganchar swapDocumentVectors (ya probado en C.4c) en mark-analyzed: si el doc tiene
 staged → swap (g nueva pasa a activa); si no → marcado normal. Completa D6 (la nueva
 aparece al validar). Explorar mark-analyzed literal antes de escribir. Luego C.4e.
+
+────────────────────────────────────────────────────────────────
+SESIÓN 37 (cont.) — C.4d-2: enganche del swap desplegado, detectado
+que contradecía F-4, corregido; rediseño completo según F-6
+────────────────────────────────────────────────────────────────
+
+Se compuso y DESPLEGÓ el enganche del swap en mark-analyzed (commit eeb987cc): al
+validar un doc con staged, disparaba swapDocumentVectors. Al probarlo aparecieron
+tres huecos, y la consulta a Fable (F-6) reveló que el enganche mismo estaba MAL
+UBICADO.
+
+CORRECCIÓN (F-6.0): disparar el swap en mark-analyzed CONTRADICE F-4 — el swap va en
+la COMPLECIÓN del análisis (analyze-v2), NO en la validación humana (razón F-4: la
+puerta humana en validación causa obsolescencia sin tope y embudo de validaciones).
+mark-analyzed con staged debe NEGARSE con mensaje.
+→ REVERTIDO: mark-analyzed con staged ahora devuelve 409 ("versión nueva pendiente
+de análisis; analízala desde la bandeja, se activa automáticamente al completar")
+en vez de disparar el swap (commit 4a914fba). El código del swap se reciclará en
+d-2b, movido a analyze-v2. swapDocumentVectors intacto en lib/document-swap.ts.
+(NOTA de proceso: el error de ubicación se me escapó porque no releí F-4 al componer;
+Claude Code cazó además que yo iba a registrar "sin commitear" cuando el enganche YA
+estaba en producción — el protocolo F-n y la disciplina de estado evitaron una
+divergencia doc/realidad. Bien parado.)
+
+FLUJO CORRECTO (F-6): sync crea staged → bandeja lo muestra (diferenciado: "nueva
+versión, pendiente de análisis", botón ANALIZAR, sin marcar-analizado) → usuario
+pulsa ANALIZAR → el análisis lee el TEXTO DEL STAGED (T1) → al completar, swap
+AUTOMÁTICO → hallazgos (si los hay) a la bandeja sobre la versión ya activa. Analizar
+la versión nueva ES aprobarla.
+
+LOS TRES HUECOS (confirmados en código):
+  1. review-list filtra .neq('analysis_status','analizado') → doc versionado (fila
+     'analizado', staged pendiente) NO aparece. Inalcanzable.
+  2. /documents/[id]/text devuelve documents.full_text (vieja), no mira staged (T1).
+  3. analyzed_content_hash NO es huérfano (F-6): su lector llega en C.5/D7 (portero
+     por hash). Se escribe en la P2 del swap con staged.content_hash. Semántica:
+     "hash del texto la última vez que se analizó".
+
+PARTICIÓN (F-6.4):
+  - C.4d-2a — ALCANZABLE Y VERAZ: bandeja muestra staged (query en lote, entrada
+    diferenciada) + /documents/[id]/text staged-first con campo source:'staged'|
+    'principal' y generation. Verificable solo. Invariante (Fable): staged implica
+    fila 'analizado'. Colindante: tras swap, doc con hallazgos abiertos queda
+    'analizado'; la bandeja debe seguir mostrándolo por su contador de incidencias
+    (B.5) — si el .neq lo oculta, taparlo aquí.
+  - C.4d-2b — EL DISPARADOR: compleción de analyze-v2 invoca swapDocumentVectors
+    (código reciclado) + analyzed_content_hash en P2 del swap + DOS NEGATIVAS
+    (mark-analyzed ya hecha; falta index-text/mejora-con-IA se niega con staged).
+    Verificación: D6 completo + test del embudo (sync→analizar→swap→sync, cero
+    reconstrucción/re-embeddings).
+
+CERROJO T2 (F-6.5): intacto — "analizar dispara el swap", "analiza y no valida" ya no
+existe. Verificar con grep que el análisis NO toca source_modified_at.
+
+ESTADO: mark-analyzed corregido (niega con staged). Sistema en estado seguro de
+C.4d-1 (versiona, no promueve; ahora con la puerta de validación correctamente
+cerrada). Última respuesta de Fable: F-6. Siguiente: C.4d-2a (bandeja + texto
+staged-first), luego d-2b, luego C.4e. Antes de d-2b: explorar el final de
+analyze-v2 (punto de enganche) y grep de source_modified_at.
