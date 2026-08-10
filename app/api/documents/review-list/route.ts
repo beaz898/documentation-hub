@@ -49,12 +49,40 @@ export async function GET(req: NextRequest) {
   }
   const orgId = org.orgId;
 
-  // 1) Documentos no-analizados de la org (columnas crudas, como /api/documents).
-  const { data: docs, error: docsError } = await supabase
+  // 0) Versiones staged pendientes de la org (nueva version en vuelo, C.4d-2a).
+  //    staged implica que la fila del documento esta en 'analizado' (invariante F-7);
+  //    por eso el filtro de abajo las ocultaria y hay que incluirlas a mano.
+  const { data: stagedRows, error: stagedError } = await supabase
+    .from('document_staged')
+    .select('document_id, generation')
+    .eq('org_id', orgId);
+
+  if (stagedError) {
+    console.error('[review-list] staged:', stagedError.message);
+    return NextResponse.json(
+      { error: 'Error al leer las versiones pendientes' },
+      { status: 500 },
+    );
+  }
+
+  const stagedGenById = new Map<string, number>();
+  for (const row of stagedRows ?? []) {
+    stagedGenById.set(row.document_id as string, row.generation as number);
+  }
+  const stagedIds = [...stagedGenById.keys()];
+
+  // 1) Documentos por revisar: no-analizados O con una version staged pendiente.
+  const docsBase = supabase
     .from('documents')
     .select('id, name, source, folder_path, folder_id, analysis_status, created_at')
-    .eq('org_id', orgId)
-    .neq('analysis_status', 'analizado')
+    .eq('org_id', orgId);
+
+  const docsFiltered =
+    stagedIds.length > 0
+      ? docsBase.or(`analysis_status.neq.analizado,id.in.(${stagedIds.join(',')})`)
+      : docsBase.neq('analysis_status', 'analizado');
+
+  const { data: docs, error: docsError } = await docsFiltered
     .order('folder_path', { ascending: true, nullsFirst: false })
     .order('name', { ascending: true });
 
@@ -104,6 +132,8 @@ export async function GET(req: NextRequest) {
       folder_id: doc.folder_id,
       analysis_status: doc.analysis_status,
       created_at: doc.created_at,
+      stagedPending: stagedGenById.has(doc.id),
+      stagedGeneration: stagedGenById.get(doc.id) ?? null,
       lastAnalysis: a
         ? {
             hasDetail: a.analysis !== null,
