@@ -3,7 +3,6 @@ import { createServiceClient } from '@/lib/supabase';
 import { getAuthenticatedUserHybrid } from '@/lib/supabase-server';
 import { resolveOrg } from '@/lib/org';
 import { updateVectorMetadata } from '@/lib/pinecone/vectors';
-import { swapDocumentVectors } from '@/lib/document-swap';
 
 /**
  * POST /api/documents/[id]/mark-analyzed
@@ -82,28 +81,18 @@ export async function POST(
   }
 
   if (stagedRow) {
-    // Rama VERSIONADO: delegar la promoción en el swap.
-    const swapResult = await swapDocumentVectors(supabase, orgId, id);
-    if (!swapResult.ok) {
-      console.error(`[mark-analyzed] swap falló | doc=${id} | ${swapResult.error ?? '?'}`);
-      return NextResponse.json(
-        { error: 'No se pudo promover la nueva versión del documento. Reintentalo.', errorType: 'swap_failed' },
-        { status: 502 },
-      );
-    }
-    // El swap ya dejó la fila 'analizado' y active_generation actualizada.
-    // Añadir la procedencia de revisión humana (lo que el swap no toca).
-    const { error: reviewError } = await supabase
-      .from('documents')
-      .update({ reviewed_at: new Date().toISOString(), reviewed_by: user.id })
-      .eq('id', id)
-      .eq('org_id', orgId);
-    if (reviewError) {
-      console.error('[mark-analyzed] Supabase (review tras swap):', reviewError.message);
-      // El swap sí se completó; el fallo es solo en los metadatos de revisión.
-      // No es crítico para el corpus. Se devuelve éxito con aviso en log.
-    }
-    return NextResponse.json({ success: true, id, swapped: swapResult.swapped, reviewedAt: new Date().toISOString() });
+    // C.4d-2 (F-6): con staged presente, validar manualmente NO está permitido.
+    // La versión nueva se promueve al COMPLETAR su análisis (analyze-v2), no aquí
+    // (F-4: la puerta humana en validación causa obsolescencia sin tope). El usuario
+    // debe ANALIZAR la nueva versión desde la bandeja; el swap es automático al
+    // completar. mark-analyzed se niega.
+    return NextResponse.json(
+      {
+        error: 'Este documento tiene una versión nueva pendiente de análisis. Analízala desde la bandeja de revisión; se activará automáticamente al completarse.',
+        errorType: 'staged_pending_analysis',
+      },
+      { status: 409 },
+    );
   }
 
   // Sin staged: comportamiento normal (documento sin versión pendiente).
