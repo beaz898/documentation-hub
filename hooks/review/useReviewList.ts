@@ -30,6 +30,10 @@ export interface ReviewDocument {
   created_at: string;
   stagedPending: boolean;
   stagedGeneration: number | null;
+  // F-12: el staged ya se analizo y el portero lo freno por hallazgos de corpus.
+  stagedAnalyzed: boolean;
+  // Contadores del analisis EXACTO que freno el staged (o null si pendiente).
+  stagedAnalysis: ReviewAnalysisSummary | null;
   lastAnalysis: ReviewAnalysisSummary | null;
 }
 

@@ -1,6 +1,6 @@
 'use client';
 
-import type { ReviewDocument } from '@/hooks/review/useReviewList';
+import type { ReviewDocument, ReviewAnalysisSummary } from '@/hooks/review/useReviewList';
 
 const STATUS_LABELS: Record<string, string> = {
   pendiente: 'Sin analizar',
@@ -34,6 +34,17 @@ function buildCountsSummary(doc: ReviewDocument): string | null {
   return parts.join(' · ');
 }
 
+// Detalle de hallazgos de CORPUS de la version staged (los que frenaron el portero).
+// Estilo NO entra: no es lo que bloquea la activacion (F-4-rev).
+function buildStagedCorpusSummary(a: ReviewAnalysisSummary): string {
+  const c = a.counts;
+  const parts: string[] = [];
+  if (c.contradictions > 0) parts.push(`${c.contradictions} contradiccion${c.contradictions === 1 ? '' : 'es'}`);
+  if (c.duplicates > 0) parts.push(`${c.duplicates} duplicado${c.duplicates === 1 ? '' : 's'}`);
+  if (c.overlaps > 0) parts.push(`${c.overlaps} solapamiento${c.overlaps === 1 ? '' : 's'}`);
+  return parts.length > 0 ? parts.join(' · ') : 'hallazgos en el corpus';
+}
+
 interface Props {
   document: ReviewDocument;
   selected: boolean;
@@ -50,6 +61,9 @@ export default function ReviewDocumentRow({ document: doc, selected, disabled, o
   const countsSummary = buildCountsSummary(doc);
   const hasDetail = doc.lastAnalysis?.hasDetail ?? true;
   const stagedPending = doc.stagedPending;
+  // Staged ya analizado y frenado por el portero (F-12): mostramos "requiere
+  // decision" con sus hallazgos exactos, en vez de "pendiente de analisis".
+  const stagedDecided = stagedPending && doc.stagedAnalyzed && doc.stagedAnalysis != null;
 
   return (
     <div
@@ -106,7 +120,19 @@ export default function ReviewDocumentRow({ document: doc, selected, disabled, o
         >
           {doc.name}
         </div>
-        {stagedPending && (
+        {stagedDecided && doc.stagedAnalysis && (
+          <div
+            style={{
+              fontSize: 11,
+              color: '#b45309',
+              marginTop: 2,
+              fontWeight: 500,
+            }}
+          >
+            Versión nueva con hallazgos: {buildStagedCorpusSummary(doc.stagedAnalysis)}
+          </div>
+        )}
+        {stagedPending && !stagedDecided && (
           <div
             style={{
               fontSize: 11,
@@ -144,13 +170,13 @@ export default function ReviewDocumentRow({ document: doc, selected, disabled, o
           fontWeight: 600,
           padding: '2px 7px',
           borderRadius: 999,
-          background: stagedPending ? '#ede9fe' : statusColor.bg,
-          color: stagedPending ? '#5b21b6' : statusColor.fg,
+          background: stagedDecided ? '#fef3c7' : stagedPending ? '#ede9fe' : statusColor.bg,
+          color: stagedDecided ? '#b45309' : stagedPending ? '#5b21b6' : statusColor.fg,
           flexShrink: 0,
           whiteSpace: 'nowrap',
         }}
       >
-        {stagedPending ? 'Versión nueva' : statusLabel}
+        {stagedDecided ? 'Requiere decisión' : stagedPending ? 'Versión nueva' : statusLabel}
       </span>
     </div>
   );
