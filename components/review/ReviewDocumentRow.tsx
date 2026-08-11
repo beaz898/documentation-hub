@@ -81,10 +81,16 @@ export default function ReviewDocumentRow({ document: doc, selected, disabled, o
         style={{
           flex: 1,
           minWidth: 0,
-          cursor: doc.lastAnalysis && onOpen ? 'pointer' : 'default',
+          cursor: !stagedPending && doc.lastAnalysis && onOpen ? 'pointer' : 'default',
         }}
         onClick={() => {
-          if (doc.lastAnalysis && onOpen) onOpen(doc);
+          // Un documento con version nueva en vuelo (stagedPending) NO abre el
+          // modal del analisis viejo: ese analisis es de la generacion anterior y
+          // "Mejorar con IA" sobre el crearia una tercera identidad (F-9). La via
+          // correcta es seleccionarlo y pulsar "Analizar" (analisis rapido, que al
+          // completar dispara el swap). La fila queda inerte al clic; el checkbox
+          // sigue activo para seleccionarlo.
+          if (!stagedPending && doc.lastAnalysis && onOpen) onOpen(doc);
         }}
       >
         <div
