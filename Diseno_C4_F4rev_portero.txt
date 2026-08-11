@@ -1,0 +1,96 @@
+===============================================================
+ADDENDUM DE DISEÑO — F-4-rev · EL PORTERO DE CALIDAD (Fase C.4d-2b)
+Decidido por Fable en F-11 (revisa parcialmente F-4(1)). Registro obligatorio
+como condicion de cierre de F-11. Diseño canonico previo: Diseno_C4_F1.txt.
+===============================================================
+
+CONTEXTO
+C.4d-2b se implemento con el swap INCONDICIONAL: al completar el analisis rapido
+de una version staged, se promovia siempre. El dueño del producto objeto: activar
+una version que el analisis acaba de detectar con problemas mete en el corpus, por
+el tiempo que va de la activacion a la revision humana, contenido con contradicciones
+o duplicados CONOCIDOS — lo que contradice la promesa central (coherencia), la misma
+razon por la que los documentos pendientes no sirven al chat (D3-rev).
+
+Fable (F-11) revisa F-4(1): reconoce que F-4 "sobre-roto" — por matar la obsolescencia
+acepto servir incoherencia detectada. Ambos valores (frescura y coherencia) son reales;
+el diseño correcto no elige, los reparte.
+
+Sobre el embudo: F-4 rechazo la puerta-humana-en-validacion por "obsolescencia sin tope
+y embudo de validaciones". El dueño señalo que el embudo existe igual hoy en el diseño
+automatico (si nadie analiza, se queda la vieja). Fable matiza: cierto HOY, pero
+"analizar" se automatiza en Fase D (auto-encolado tras el sync) — ese embudo tiene fecha
+de muerte; "validar" es humano por definicion — su embudo seria perpetuo. Aun asi, el
+punto de coherencia del dueño pesa mas, y de ahi el portero.
+
+DECISION — EL PORTERO DE CALIDAD (F-4-rev)
+El swap se vuelve CONDICIONAL segun el resultado del analisis del staged:
+
+  · Analisis LIMPIO (cero hallazgos) -> SWAP AUTOMATICO. El caso mayoritario
+    ("Doclity va solo") queda intacto. En Fase D: sync -> analisis -> swap corre
+    solo donde no hay nada que deliberar.
+
+  · Analisis CON HALLAZGOS (>0) -> NO HAY SWAP. El staged persiste; la version VIEJA
+    sigue sirviendo (coherente aunque desactualizada — el TRADE que el dueño elige).
+    La bandeja muestra "Version nueva con hallazgos — requiere decision", con TRES
+    salidas:
+      (a) APROBAR Y ACTIVAR: el humano decide que los hallazgos no bloquean ->
+          dispara swapDocumentVectors. La negativa de F-6(3) a mark-analyzed-con-
+          staged SE TRANSFORMA: ese boton, en esta entrada, ES la aprobacion humana.
+          Segunda puerta NORMAL del swap (automatica-si-limpio, humana-si-hallazgos).
+          cleanup sigue siendo la unica puerta de REPARACION.
+      (b) CORREGIR EN DRIVE: el usuario edita el archivo -> el sync reemplaza el
+          staged (misma generacion, F-5) -> re-analizar -> si limpio, swap solo.
+          ESTE es el "pulir antes de entrar" del dueño, y su via es DRIVE (la fuente
+          de verdad). Las negativas de mejora-con-IA / index-text con staged SIGUEN
+          VIGENTES (F-6/F-9): la tercera identidad sigue prohibida; no se pule en un
+          editor paralelo.
+      (c) REANALIZAR CON DESCARTES: si los hallazgos son falsos positivos, re-analisis
+          con excludeFingerprints -> queda limpio -> swap solo. Cuesta 5 cr por ronda
+          hasta que C.6 (fingerprints permanentes por org) los haga descartables una
+          sola vez. POR ESO C.6 SUBE DE PRIORIDAD (recomendado inmediatamente despues
+          de cerrar d-2b): el portero multiplica el valor de los descartes persistentes.
+
+TRADE ACEPTADO Y FIRMADO (por decision del dueño del producto):
+Una actualizacion CON hallazgos puede servir contenido desactualizado sin tope temporal
+si nadie decide. Se acepta a cambio de no servir nunca incoherencia detectada.
+Mitigacion: visibilidad en bandeja; y en Fase D el analisis automatico hace la deteccion
+inmediata, acortando solo el tiempo-a-decision.
+
+ANALISIS POR LOTES (B.46) — CONEXION, SIN ESTADOS NUEVOS
+El portero acopla "cuando sale un staged" con "que ve el siguiente analisis de un lote"
+(con portero, el doc 2 de un lote no ve al 1 si el 1 quedo frenado). La solucion NO son
+mas estados: es AMBITO COMO PARAMETRO (includeDocumentIds en el retrieval, D3-rev:
+"parametro, no estado"), donde el analisis del doc N de un lote incluye las versiones
+staged de sus predecesores del MISMO lote. Eso es B.46, y su casa es la cola de Fase D
+(quien sabe que jobs forman un lote). El modelo de generacion (una activa + un staged
+por documento) NO se queda corto: el staged es por-documento, el lote es entre-documentos
+— dimensiones distintas, herramientas distintas. Cero estados nuevos.
+
+QUE SE CONSERVA Y QUE CAMBIA (d-2b se TERMINA con este diseño, no se revierte)
+CONSERVA (todo lo estructural que d-2b ya construyo, que es justo lo que el portero
+necesita): C.4a/b/c, construccion del staged (d-1), texto staged-first y bandeja (d-2a),
+persistencia awaited con resultado comprobado (F-8/F-10 — AUN MAS CRITICA: el portero
+LEE LOS CONTADORES DEL ANALISIS PERSISTIDO para decidir; sin persistir, decidiria a
+ciegas), reset de reviewed_at en la P2 del swap, cerrojo T2, vetos de exhaustivo /
+mejora-con-IA / index-text con staged.
+CAMBIA:
+  · El disparador gana la condicion: hallazgos === 0 -> swap; > 0 -> esperar.
+  · mark-analyzed con staged pasa de NEGARSE a SER LA APROBACION (solo desde la entrada
+    de bandeja, con confirmacion explicita "activar con N hallazgos abiertos").
+  · El Commit 6 se rediseña con DOS entradas de bandeja: "staged con hallazgos —
+    decidir" (nueva) + la de F-7 "hallazgos por revisar" (SOBREVIVE: sirve para los
+    aprobados-con-hallazgos POST-swap y para los docs promovidos bajo el regimen
+    anterior).
+NO se revierte nada de produccion: el swap incondicional vivio lo que tardo la consulta
+F-11; se le añade la condicion.
+
+VERIFICACION DEL PORTERO (cuatro actos + negativo):
+  1. staged limpio -> swap solo.
+  2. staged con hallazgos -> NO swap, la vieja sirviendo, entrada en bandeja.
+  3. aprobar-con-hallazgos -> swap + reaparece como "hallazgos por revisar" (F-7).
+  4. corregir-en-Drive -> staged reemplazado misma generacion -> reanalisis limpio -> swap solo.
+  negativo: dos syncs sin tocar nada -> cero re-embeddings / re-trabajo.
+
+Ultima respuesta de Fable en el momento de este registro: F-11.
+===============================================================
