@@ -132,7 +132,7 @@ async function processJob(job: AnalysisJob): Promise<void> {
       })
       .eq('id', job.id);
 
-    void saveAnalysisResult(supabase, {
+    const saveResult = await saveAnalysisResult(supabase, {
       orgId: job.org_id,
       userId: job.user_id,
       documentName: job.document_name,
@@ -140,6 +140,11 @@ async function processJob(job: AnalysisJob): Promise<void> {
       analysisType: 'exhaustive',
       documentId: job.document_id ?? undefined,
     });
+    if (!saveResult.ok) {
+      // El exhaustivo no dispara swap: perder la fila es malo pero no bloquea el
+      // job (ya marcado completed). Se loguea con contexto (F-10) en vez de tragar.
+      console.error(`[worker] Job ${job.id}: no se pudo persistir el analisis: ${saveResult.error}`);
+    }
 
     // Precio variable / descuento reanálisis
     const isReanalysis = job.exclude_fingerprints !== '[]';

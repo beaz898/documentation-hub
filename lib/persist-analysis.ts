@@ -25,10 +25,14 @@ interface ChatQueryInput {
   answerLength: number;
 }
 
+// Resultado de una escritura persistida con comprobacion. Ver la nota de
+// convencion sobre por que analysis_results NO es fire-and-forget (F-10).
+export type PersistResult = { ok: true; id: string } | { ok: false; error: string };
+
 export async function saveAnalysisResult(
   supabase: SupabaseClient,
   input: AnalysisResultInput,
-): Promise<void> {
+): Promise<PersistResult> {
   const { analysis, orgId, userId, documentName, analysisType, documentId } = input;
 
   const involvedSet = new Set<string>();
@@ -39,7 +43,7 @@ export async function saveAnalysisResult(
     for (const d of analysis.minorInconsistencies) involvedSet.add(d.existingDocument);
   }
 
-  const { error } = await supabase.from('analysis_results').insert({
+  const { data, error } = await supabase.from('analysis_results').insert({
     org_id: orgId,
     user_id: userId,
     document_name: documentName,
@@ -54,11 +58,23 @@ export async function saveAnalysisResult(
     involved_documents: involvedSet.size > 0 ? [...involvedSet] : null,
     document_id: documentId ?? null,
     analysis,
-  });
+  }).select('id').single();
 
-  if (error) console.error('[persist-analysis] saveAnalysisResult:', error.message);
+  if (error || !data) {
+    const msg = error?.message ?? 'insert sin datos';
+    console.error('[persist-analysis] saveAnalysisResult:', msg);
+    return { ok: false, error: msg };
+  }
+  return { ok: true, id: data.id as string };
 }
 
+// Convencion de persistencia (F-10): void/fire-and-forget SOLO para telemetria
+// pura (metricas, logs de uso) cuya perdida no altera lo que el usuario ve ni lo
+// que el sistema decide. Todo lo que la UI lista, otra logica lee, o el usuario
+// paga, se persiste con resultado comprobado (como saveAnalysisResult). La linea
+// es el criterio, no la lista: saveChatQuery/saveStyleResult son telemetria hoy;
+// si algun dia la UI los enseña o se facturan, cruzan la linea y se les aplica
+// la misma vara.
 export async function saveStyleResult(
   supabase: SupabaseClient,
   input: StyleResultInput,

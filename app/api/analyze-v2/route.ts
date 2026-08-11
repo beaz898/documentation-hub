@@ -344,7 +344,7 @@ export async function POST(req: NextRequest) {
       userQuery: `${fileName} (rápido)`,
     });
 
-    void saveAnalysisResult(supabase, {
+    const saveResult = await saveAnalysisResult(supabase, {
       orgId,
       userId,
       documentName: fileName,
@@ -352,6 +352,12 @@ export async function POST(req: NextRequest) {
       analysisType: 'quick',
       documentId: typeof documentId === 'string' ? documentId : null,
     });
+    if (!saveResult.ok) {
+      // Camino sin staged: el usuario recibe su analisis igual (lo tiene en
+      // pantalla); perder la fila se loguea con contexto (F-10). El camino CON
+      // staged usara saveResult.ok para decidir el swap en el Commit 5b.
+      console.error('[analyze-v2] no se pudo persistir el analisis:', saveResult.error);
+    }
 
     // B.5-hash-a: si el analisis vino de la bandeja (hay documentId), el
     // documento ya existe: registramos que ESTE texto es el analizado. En el
