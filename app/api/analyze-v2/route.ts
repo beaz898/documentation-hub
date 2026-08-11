@@ -14,6 +14,7 @@ import { persistLLMUsage } from '@/lib/observability/record-usage';
 import { generateContentHash } from '@/lib/analysis/hash-check';
 import { getStagedForDocument } from '@/lib/document-staged';
 import { swapDocumentVectors } from '@/lib/document-swap';
+import { checkAndAcquireAnalysisLock, releaseAnalysisLock, analysisLockMessage } from '@/lib/analysis-lock';
 
 // Un job en 'pending'/'processing' mas viejo que esto se considera muerto: el
 // worker cayo sin marcarlo 'failed' y bloqueaba el 409 de toda la organizacion
@@ -42,6 +43,7 @@ export async function POST(req: NextRequest) {
   let userId = '';
   let orgId = '';
   let creditsConsumed = 0;
+  let lockAcquired = false;
   const supabase = createServiceClient();
 
   try {
@@ -156,6 +158,25 @@ export async function POST(req: NextRequest) {
     }
     creditsConsumed = getCreditCost('/api/analyze-v2', isExhaustive);
 
+    // Semaforo de concurrencia (F-13/F-14): un solo analisis activo por org. Se
+    // adquiere aqui, cuando el analisis ya va a ocurrir (pasados los vetos baratos
+    // y el cobro), y se libera en el finally. La auto-expiracion por timestamp es la
+    // garantia real; el finally es cortesia de latencia. Reemplaza al viejo veto del
+    // exhaustivo (que solo miraba analysis_jobs); este cubre rapido Y exhaustivo.
+    const lockResult = await checkAndAcquireAnalysisLock(
+      supabase,
+      orgId,
+      userId,
+      isExhaustive ? 'exhaustive' : 'quick',
+    );
+    if (!lockResult.acquired) {
+      return NextResponse.json(
+        { error: analysisLockMessage(lockResult), errorType: 'analysis_in_progress' },
+        { status: 409 },
+      );
+    }
+    lockAcquired = true;
+
     // Obtener texto: desde storage o directo
     let text: string;
     if (directText && typeof directText === 'string') {
@@ -224,24 +245,9 @@ export async function POST(req: NextRequest) {
         console.log(`[analyze-v2] B.51: ${sweptCount} job(s) zombi marcados como failed (org: ${orgId})`);
       }
 
-      // Semáforo: verificar que no hay otro exhaustivo activo en esta org
-      const { data: activeJobs } = await supabase
-        .from('analysis_jobs')
-        .select('id, document_name')
-        .eq('org_id', orgId)
-        .in('status', ['pending', 'processing'])
-        .limit(1);
-
-      if (activeJobs && activeJobs.length > 0) {
-        return NextResponse.json(
-          {
-            error: `Ya hay un análisis exhaustivo en curso ("${activeJobs[0].document_name}"). Espera a que termine antes de lanzar otro.`,
-            errorType: 'analysis_in_progress',
-            activeJobId: activeJobs[0].id,
-          },
-          { status: 409 }
-        );
-      }
+      // (El veto de "un analisis a la vez" ya lo hizo el semaforo de concurrencia
+      // arriba, que cubre rapido Y exhaustivo — F-13/F-14. El barrido B.51 de arriba
+      // se mantiene: limpia jobs zombis de analysis_jobs, cosa distinta del semaforo.)
 
       // Todos los chunks para exhaustivo
       const sampleTexts = chunks.map(c => c.text);
@@ -471,6 +477,14 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json({ error: message }, { status: 500 });
+  } finally {
+    // Cortesia de latencia: libera el semaforo al acabar (bien o mal) para que nadie
+    // espere el umbral entero. Solo si lo adquirimos (una salida por veto temprano no
+    // lo tomo). La auto-expiracion cubre el caso de que este finally no llegue a correr
+    // (serverless puede matar la funcion tras responder) — F-14.
+    if (lockAcquired) {
+      await releaseAnalysisLock(supabase, orgId);
+    }
   }
 }
 
