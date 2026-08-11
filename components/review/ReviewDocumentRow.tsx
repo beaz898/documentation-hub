@@ -49,6 +49,7 @@ export default function ReviewDocumentRow({ document: doc, selected, disabled, o
   const sourceLabel = SOURCE_LABELS[doc.source] ?? doc.source;
   const countsSummary = buildCountsSummary(doc);
   const hasDetail = doc.lastAnalysis?.hasDetail ?? true;
+  const stagedPending = doc.stagedPending;
 
   return (
     <div
@@ -99,7 +100,19 @@ export default function ReviewDocumentRow({ document: doc, selected, disabled, o
         >
           {doc.name}
         </div>
-        {countsSummary && (
+        {stagedPending && (
+          <div
+            style={{
+              fontSize: 11,
+              color: '#5b21b6',
+              marginTop: 2,
+              fontWeight: 500,
+            }}
+          >
+            Nueva versión pendiente de análisis
+          </div>
+        )}
+        {!stagedPending && countsSummary && (
           <div
             style={{
               fontSize: 11,
@@ -125,13 +138,13 @@ export default function ReviewDocumentRow({ document: doc, selected, disabled, o
           fontWeight: 600,
           padding: '2px 7px',
           borderRadius: 999,
-          background: statusColor.bg,
-          color: statusColor.fg,
+          background: stagedPending ? '#ede9fe' : statusColor.bg,
+          color: stagedPending ? '#5b21b6' : statusColor.fg,
           flexShrink: 0,
           whiteSpace: 'nowrap',
         }}
       >
-        {statusLabel}
+        {stagedPending ? 'Versión nueva' : statusLabel}
       </span>
     </div>
   );

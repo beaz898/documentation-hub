@@ -28,6 +28,8 @@ export interface ReviewDocument {
   folder_id: string | null;
   analysis_status: string;
   created_at: string;
+  stagedPending: boolean;
+  stagedGeneration: number | null;
   lastAnalysis: ReviewAnalysisSummary | null;
 }
 
