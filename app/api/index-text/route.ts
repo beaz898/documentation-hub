@@ -8,6 +8,7 @@ import { randomUUID } from 'crypto';
 import { resolveOrg } from '@/lib/org';
 import { generateContentHash } from '@/lib/analysis/hash-check';
 import { checkUploadLock } from '@/lib/upload-lock';
+import { getStagedForDocument } from '@/lib/document-staged';
 
 export const maxDuration = 300;
 
@@ -61,6 +62,28 @@ export async function POST(req: NextRequest) {
     }
 
     const documentId = randomUUID();
+
+    // d-2b (F-9): si el documento a reemplazar tiene una version nueva en vuelo
+    // (document_staged), NO se puede re-indexar por esta via. Esta ruta borra la
+    // fila documents del viejo, y como document_staged tiene ON DELETE CASCADE,
+    // ese borrado destruiria la version staged (sin swap, sin aviso, sin rastro).
+    // Ademas crearia una tercera identidad del documento (activa, staged y este
+    // texto). La via correcta con version en vuelo es analizarla desde la bandeja
+    // (analisis rapido), que al completar dispara el swap. Se veta ANTES de tocar
+    // Pinecone o Supabase.
+    if (typeof replaceExistingId === 'string') {
+      const staged = await getStagedForDocument(supabase, replaceExistingId, orgId);
+      if (staged) {
+        return NextResponse.json(
+          {
+            error:
+              'Este documento tiene una versión nueva pendiente de análisis. Analízala desde la bandeja de revisión antes de mejorarlo; una vez activada, podrás mejorar y reindexar con normalidad.',
+            errorType: 'staged_pending',
+          },
+          { status: 409 },
+        );
+      }
+    }
 
     // If the user chose "replace", delete the old indexed document first
     if (replaceExistingId) {
