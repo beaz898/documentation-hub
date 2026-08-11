@@ -330,6 +330,19 @@ export async function POST(req: NextRequest) {
       analysis.recommendation !== 'INDEXAR' ||
       (analysis.styleProblems && analysis.styleProblems.length > 0);
 
+    // Portero de calidad (F-4-rev / F-11): que frena la activacion automatica de
+    // una version nueva. Solo cuentan los problemas de CORPUS (coherencia con el
+    // resto de documentos): duplicados, solapamientos, contradicciones y una
+    // recomendacion que no sea INDEXAR. Los problemas de ESTILO NO frenan: una
+    // falta de ortografia no hace la version incoherente con el corpus, y frenar
+    // por estilo dejaria casi todo atascado. Si hay problemas de corpus, la vieja
+    // sigue sirviendo (coherente) y la nueva espera decision humana en la bandeja.
+    const hasCorpusIssues =
+      analysis.isDuplicate ||
+      analysis.overlaps.length > 0 ||
+      analysis.discrepancies.length > 0 ||
+      analysis.recommendation !== 'INDEXAR';
+
     const latencyMs = Date.now() - startedAt;
 
     await logUsage(supabase, {
@@ -393,6 +406,14 @@ export async function POST(req: NextRequest) {
         versionPromoted = false;
         versionPromotedMessage =
           'El análisis se completó pero no pudo guardarse. Reinténtalo.';
+      } else if (hasCorpusIssues) {
+        // El portero frena: hay problemas de corpus. NO se activa. La version
+        // vieja sigue sirviendo (coherente); la nueva espera en la bandeja a que
+        // el humano decida (aprobar y activar, corregir en Drive, o reanalizar
+        // con descartes — F-11). El staged persiste como esa version en espera.
+        versionPromoted = false;
+        versionPromotedMessage =
+          'La nueva versión tiene hallazgos en el corpus y no se ha activado todavía. Revísala en la bandeja para decidir si activarla.';
       } else {
         const swapResult = await swapDocumentVectors(supabase, orgId, documentId);
         if (swapResult.swapped) {
