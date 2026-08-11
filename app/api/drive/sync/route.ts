@@ -266,6 +266,11 @@ export async function POST(req: NextRequest) {
                 chunk_count: chunks.length,
                 size_bytes: Buffer.byteLength(text, 'utf8'),
                 source_modified_at: file.modifiedTime,
+                // d-2b (F-12): contenido nuevo -> el analisis que freno la version
+                // anterior del staged ya no lo describe. Reset explicito del puntero
+                // (un upsert conserva las columnas no mencionadas, asi que si no se
+                // pone null aqui, el puntero viejo sobreviviria al reemplazo).
+                analysis_result_id: null,
               });
             if (stagedUpsertError) {
               console.error(`[DRIVE SYNC] staged-upsert fallo | doc=${documentId} | name=${file.name} | code=${stagedUpsertError.code ?? '?'} | ${stagedUpsertError.message}`);

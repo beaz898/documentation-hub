@@ -420,6 +420,21 @@ export async function POST(req: NextRequest) {
         versionPromoted = false;
         versionPromotedMessage =
           'La nueva versión tiene hallazgos en el corpus y no se ha activado todavía. Revísala en la bandeja para decidir si activarla.';
+        // d-2b (F-12): vincular el staged con el analisis que lo freno, para que la
+        // bandeja muestre los contadores de ESTE analisis exacto (no "el ultimo por
+        // fecha"). saveResult.ok esta garantizado aqui (esta rama vive dentro del
+        // bloque donde el save fue ok). Fallo del update: se loguea, no bloquea (la
+        // bandeja caeria a la heuristica por fecha, degradacion suave).
+        if (saveResult.ok) {
+          const { error: ptrError } = await supabase
+            .from('document_staged')
+            .update({ analysis_result_id: saveResult.id })
+            .eq('document_id', documentId)
+            .eq('org_id', orgId);
+          if (ptrError) {
+            console.error('[analyze-v2] puntero staged->analisis:', ptrError.message);
+          }
+        }
       } else {
         const swapResult = await swapDocumentVectors(supabase, orgId, documentId);
         if (swapResult.swapped) {
