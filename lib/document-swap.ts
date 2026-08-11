@@ -104,6 +104,16 @@ export async function swapDocumentVectors(
       source_modified_at: staged.source_modified_at,
       active_generation: newGeneration,
       analysis_status: 'analizado',
+      // d-2b (F-7): esta version se acaba de analizar; su hash pasa a ser el
+      // "ultimo texto analizado". Unico escritor de analyzed_content_hash en el
+      // camino con staged (analyze-v2 lo salta cuando hay staged, Commit 5) —
+      // asi la fila nunca mezcla el hash de un texto con el content_hash de otro.
+      analyzed_content_hash: staged.content_hash,
+      // El contenido cambio: nadie humano ha visto ESTA version. Reset de
+      // procedencia -> el colindante la mostrara en la bandeja como "hallazgos
+      // por revisar" (Commit 6). Solo mark-analyzed vuelve a rellenarlos.
+      reviewed_at: null,
+      reviewed_by: null,
     })
     .eq('id', documentId)
     .eq('org_id', orgId);
