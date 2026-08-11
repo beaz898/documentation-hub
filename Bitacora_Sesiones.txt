@@ -3593,3 +3593,71 @@ C.4d-1 (versiona, no promueve; ahora con la puerta de validación correctamente
 cerrada). Última respuesta de Fable: F-6. Siguiente: C.4d-2a (bandeja + texto
 staged-first), luego d-2b, luego C.4e. Antes de d-2b: explorar el final de
 analyze-v2 (punto de enganche) y grep de source_modified_at.
+
+────────────────────────────────────────────────────────────────
+SESIÓN 38 — C.4d-2a: la bandeja muestra el staged + texto staged-first.
+Diseño F-7 registrado (material de d-2b).
+────────────────────────────────────────────────────────────────
+
+C.4d-2a — HECHO y verificado en producción. La "mitad alcanzable y veraz" de
+F-6.4: un documento con nueva versión en vuelo (document_staged) ya es visible
+y su texto es el de la versión nueva. Tres commits, build verde entre medias.
+
+- Commit 1 (8fe7863b) — /documents/[id]/text staged-first. Nuevo
+  lib/document-staged.ts: primer tipo nombrado DocumentStaged + getStagedForDocument
+  (lectura aislada por org, fallback null seguro). El endpoint devuelve el texto del
+  staged cuando existe; campos nuevos textSource ('staged'|'principal') y generation.
+  El campo source (origen del doc: manual/google_drive/onedrive) queda intacto — se
+  usó textSource para no pisarlo. Docs sin staged: sin cambio.
+- Commit 2 (895aeda1) — review-list incluye los docs con staged pendiente. Lee
+  document_staged de la org y los añade aunque su fila esté en 'analizado' (el
+  .neq los ocultaba). Filtro .or(analysis_status.neq.analizado, id.in(staged));
+  sin staged, el .neq de siempre. Cada doc gana stagedPending/stagedGeneration.
+- Commit 3 (d34dee6a) — etiqueta diferenciada en la fila. Badge "Versión nueva"
+  (violeta) + subtexto "Nueva versión pendiente de análisis" cuando hay staged,
+  en vez del estado 'analizado' y los contadores del análisis viejo. Tipo
+  ReviewDocument ampliado. Docs sin staged: sin cambio.
+
+VERIFICADO con new 9.txt (versionado por el sync en C.4d-1): aparece en la
+bandeja con "Versión nueva"; "Mejorar con IA" carga el texto de OneDrive (el
+nuevo), no el indexado viejo. Invariante F-7 confirmado en la práctica: staged
+implica fila 'analizado'.
+
+ALCANCE (lo que d-2a NO hace, es d-2b): la fila "Versión nueva" abre el análisis
+VIEJO; el botón de analizar la versión nueva y el disparo del swap al completar
+son d-2b. No se tocó nada de eso.
+
+────────────────────────────────────────────────────────────────
+DISEÑO F-7 (de Fable) — reservado para d-2b. No implementado aún.
+────────────────────────────────────────────────────────────────
+
+Consulta a Fable (citando F-6) por el COLINDANTE de F-6.4 ("tras un swap, un
+doc con hallazgos abiertos queda 'analizado'; la bandeja debe seguir
+mostrándolo"). Choque detectado: B.5 fijó que "marcar analizado" saca el doc de
+la bandeja, y hoy no hay noción persistida de hallazgo abierto/resuelto (solo
+contadores agregados + excludeFingerprints del cliente). Respuesta F-7:
+
+- El colindante NO es de d-2a: es PARTE INTEGRAL de d-2b. Sin él, d-2b promueve
+  versiones cuyos hallazgos no ve nadie (el análisis los encuentra, el swap
+  promueve, se evaporan). d-2b no cierra sin esto.
+- Mecanismo: reviewed_at / reviewed_by (procedencia, ya en el esquema desde B.5).
+  · El SWAP (P2, mismo UPDATE atómico) resetea reviewed_at y reviewed_by a NULL.
+  · Condición de bandeja para el colindante: analysis_status='analizado' AND sin
+    staged AND reviewed_at IS NULL AND último análisis (por document_id) con
+    contadores > 0. Etiqueta: "Versión nueva activa — hallazgos por revisar".
+  · Salida: mark-analyzed sin staged rellena reviewed_at/reviewed_by → sale de la
+    bandeja (contrato B.5 intacto). Con staged sigue negándose (F-6).
+  · Lo ya aceptado no se reabre: tiene reviewed_at relleno. Parque pre-swap:
+    BACKFILL en la migración de d-2b (todo 'analizado' actual recibe reviewed_at =
+    fecha de migración, "aceptado bajo régimen pre-versionado").
+  · VERIFICAR CON GREP (antes de d-2b): que solo el botón humano (mark-analyzed)
+    escribe reviewed_at y que ningún camino de sistema lo toca; el swap es el
+    único que lo resetea.
+- Estado por-hallazgo (abierto/resuelto) NO se introduce ahora: es C.6/D9
+  (fingerprints permanentes por org). Enriquecerá esta entrada sin cambiar el
+  esqueleto.
+
+Última respuesta de Fable: F-7. Siguiente: C.4d-2b (disparador en analyze-v2 +
+negativa de index-text/mejora-con-IA con staged + reset de reviewed_at en P2 +
+condición de bandeja + backfill). Antes de d-2b: explorar el final de analyze-v2
+y grep de source_modified_at (cerrojo T2, F-6.5) + grep de reviewed_at (F-7).
