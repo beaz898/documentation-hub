@@ -12,6 +12,7 @@ import { saveAnalysisResult } from '@/lib/persist-analysis';
 import { usageContext } from '@/lib/observability/usage-context';
 import { persistLLMUsage } from '@/lib/observability/record-usage';
 import { generateContentHash } from '@/lib/analysis/hash-check';
+import { getStagedForDocument } from '@/lib/document-staged';
 
 // Un job en 'pending'/'processing' mas viejo que esto se considera muerto: el
 // worker cayo sin marcarlo 'failed' y bloqueaba el 409 de toda la organizacion
@@ -89,6 +90,31 @@ export async function POST(req: NextRequest) {
 
     // Rate limiting (límite separado para rápido y exhaustivo)
     const isExhaustive = exhaustive === true;
+
+    // d-2b: ¿el documento tiene una versión nueva en vuelo (staged)? Se lee una
+    // sola vez aquí (arriba, antes de cobrar créditos) y sirve para las dos ramas:
+    // la exhaustiva la niega (más abajo) y la rápida disparará el swap (C.4d-2b).
+    // Solo puede haber staged si el documento ya existe (documentId presente).
+    const staged =
+      typeof documentId === 'string'
+        ? await getStagedForDocument(supabase, documentId, orgId)
+        : null;
+
+    // d-2b (F-8): con una versión staged pendiente, el exhaustivo queda vetado.
+    // El exhaustivo se completa en el worker, que no sabe de swaps: dejaría el
+    // staged atascado sin promoción. Mientras haya versión en vuelo, solo el
+    // análisis rápido (que sí dispara el swap). Se veta ANTES de consumir
+    // créditos para no cobrar por un análisis que rechazamos.
+    if (isExhaustive && staged) {
+      return NextResponse.json(
+        {
+          error:
+            'Este documento tiene una versión nueva pendiente. El análisis exhaustivo no está disponible mientras haya una versión en vuelo; usa el análisis rápido.',
+          errorType: 'staged_pending',
+        },
+        { status: 409 },
+      );
+    }
 
     // El análisis exhaustivo no está disponible en el plan free
     if (isExhaustive) {
