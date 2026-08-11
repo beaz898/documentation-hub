@@ -13,6 +13,7 @@ import { usageContext } from '@/lib/observability/usage-context';
 import { persistLLMUsage } from '@/lib/observability/record-usage';
 import { generateContentHash } from '@/lib/analysis/hash-check';
 import { getStagedForDocument } from '@/lib/document-staged';
+import { swapDocumentVectors } from '@/lib/document-swap';
 
 // Un job en 'pending'/'processing' mas viejo que esto se considera muerto: el
 // worker cayo sin marcarlo 'failed' y bloqueaba el 409 de toda la organizacion
@@ -363,7 +364,10 @@ export async function POST(req: NextRequest) {
     // documento ya existe: registramos que ESTE texto es el analizado. En el
     // flujo de subida no hay documentId (el doc aun no existe) y lo escribe
     // ingest al indexar.
-    if (typeof documentId === 'string') {
+    // d-2b (F-7/F-8): con staged, este hash NO se escribe aqui; lo escribe la P2
+    // del swap con staged.content_hash (unico escritor). Escribirlo aqui pondria
+    // el hash del texto nuevo sobre la fila que aun describe la generacion vieja.
+    if (typeof documentId === 'string' && !staged) {
       const { error: hashError } = await supabase
         .from('documents')
         .update({ analyzed_content_hash: generateContentHash(text) })
@@ -371,6 +375,36 @@ export async function POST(req: NextRequest) {
         .eq('org_id', orgId);
       if (hashError) {
         console.error('[analyze-v2] analyzed_content_hash:', hashError.message);
+      }
+    }
+
+    // d-2b (F-8/F-10): el disparador. Si el documento tiene version en vuelo
+    // (staged) y el analisis SE PERSISTIO, promovemos la version nueva a activa
+    // con un swap atomico. El swap solo se dispara sobre analisis persistido
+    // (si el save fallo, no se promueve: los hallazgos no existirian). staged y
+    // documentId ya estan resueltos arriba (Commit 2). versionPromoted informa
+    // al cliente; si el swap falla, respondemos 200 honesto (el analisis SI se
+    // hizo y guardo) con versionPromoted:false y mensaje — el staged persiste
+    // como marcador reparable y cleanup lo remata (sin boton de reintento, F-6/F-9).
+    let versionPromoted: boolean | undefined;
+    let versionPromotedMessage: string | undefined;
+    if (staged && typeof documentId === 'string') {
+      if (!saveResult.ok) {
+        versionPromoted = false;
+        versionPromotedMessage =
+          'El análisis se completó pero no pudo guardarse. Reinténtalo.';
+      } else {
+        const swapResult = await swapDocumentVectors(supabase, orgId, documentId);
+        if (swapResult.swapped) {
+          versionPromoted = true;
+        } else {
+          versionPromoted = false;
+          if (!swapResult.ok) {
+            console.error('[analyze-v2] swap fallo:', swapResult.error);
+            versionPromotedMessage =
+              'El análisis se guardó, pero la nueva versión no se pudo activar. Sigue pendiente y se reintentará automáticamente.';
+          }
+        }
       }
     }
 
@@ -393,6 +427,8 @@ export async function POST(req: NextRequest) {
         styleProblems: analysis.styleProblems,
       },
       documentSources,
+      versionPromoted,
+      versionPromotedMessage,
     });
   } catch (error: unknown) {
     console.error('[analyze-v2] Error:', error);
