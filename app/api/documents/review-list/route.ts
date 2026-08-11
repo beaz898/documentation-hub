@@ -54,7 +54,7 @@ export async function GET(req: NextRequest) {
   //    por eso el filtro de abajo las ocultaria y hay que incluirlas a mano.
   const { data: stagedRows, error: stagedError } = await supabase
     .from('document_staged')
-    .select('document_id, generation')
+    .select('document_id, generation, analysis_result_id')
     .eq('org_id', orgId);
 
   if (stagedError) {
@@ -66,8 +66,13 @@ export async function GET(req: NextRequest) {
   }
 
   const stagedGenById = new Map<string, number>();
+  // document_id del staged -> id del analisis que lo freno (puntero F-12), o null
+  // si el staged aun no se ha analizado (o el sync lo reseteo). Distingue en la
+  // bandeja "pendiente de analisis" de "con hallazgos, requiere decision".
+  const stagedPtrById = new Map<string, string | null>();
   for (const row of stagedRows ?? []) {
     stagedGenById.set(row.document_id as string, row.generation as number);
+    stagedPtrById.set(row.document_id as string, (row.analysis_result_id as string | null) ?? null);
   }
   const stagedIds = [...stagedGenById.keys()];
 
@@ -98,6 +103,26 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ documents: [] });
   }
 
+  // 1.5) Analisis apuntados por los staged (F-12): traidos por su id EXACTO, no por
+  //      nombre/fecha. Estos son los que gobiernan la entrada del portero en la
+  //      bandeja ("con hallazgos, requiere decision"), asi que su precision importa.
+  const stagedPtrIds = [...stagedPtrById.values()].filter((v): v is string => v !== null);
+  const stagedAnalysisById = new Map<string, AnalysisSummaryRow>();
+  if (stagedPtrIds.length > 0) {
+    const { data: ptrAnalyses, error: ptrError } = await supabase
+      .from('analysis_results')
+      .select(`id, ${ANALYSIS_SUMMARY_COLUMNS}`)
+      .eq('org_id', orgId)
+      .in('id', stagedPtrIds);
+    if (ptrError) {
+      console.error('[review-list] analisis apuntados:', ptrError.message);
+      return NextResponse.json({ error: 'Error al leer los analisis' }, { status: 500 });
+    }
+    for (const row of ((ptrAnalyses ?? []) as unknown as (AnalysisSummaryRow & { id: string })[])) {
+      stagedAnalysisById.set(row.id, row);
+    }
+  }
+
   // 2) Una sola consulta de analisis para todo el lote (por nombre).
   const names = [...new Set(documents.map((d) => d.name))];
   const { data: analyses, error: analysesError } = await supabase
@@ -121,9 +146,31 @@ export async function GET(req: NextRequest) {
     }
   }
 
+  // Construye el bloque de contadores desde una fila de analisis (mismo shape para
+  // el analisis normal y para el apuntado por el staged).
+  const buildAnalysisBlock = (a: AnalysisSummaryRow) => ({
+    hasDetail: a.analysis !== null,
+    recommendation: a.recommendation,
+    analyzedAt: a.created_at,
+    counts: {
+      contradictions: a.contradictions_found,
+      contradictionsConfirmed: a.contradictions_confirmed,
+      minorInconsistencies: a.minor_inconsistencies_found,
+      duplicates: a.duplicates_found,
+      overlaps: a.overlaps_found,
+      styleProblems: a.style_problems_found,
+    },
+  });
+
   // 3) Cruce en memoria: cada documento con su bloque de analisis (o null).
   const result = documents.map((doc) => {
     const a = latestByName.get(doc.name);
+    const hasStaged = stagedGenById.has(doc.id);
+    // Puntero del staged: si existe y apunta a un analisis cargado, esa version YA
+    // se analizo y el portero la freno -> mostramos SUS contadores exactos. Si el
+    // puntero es null, el staged esta pendiente de analisis.
+    const stagedPtr = hasStaged ? (stagedPtrById.get(doc.id) ?? null) : null;
+    const stagedRow = stagedPtr ? stagedAnalysisById.get(stagedPtr) : undefined;
     return {
       id: doc.id,
       name: doc.name,
@@ -132,23 +179,13 @@ export async function GET(req: NextRequest) {
       folder_id: doc.folder_id,
       analysis_status: doc.analysis_status,
       created_at: doc.created_at,
-      stagedPending: stagedGenById.has(doc.id),
+      stagedPending: hasStaged,
       stagedGeneration: stagedGenById.get(doc.id) ?? null,
-      lastAnalysis: a
-        ? {
-            hasDetail: a.analysis !== null,
-            recommendation: a.recommendation,
-            analyzedAt: a.created_at,
-            counts: {
-              contradictions: a.contradictions_found,
-              contradictionsConfirmed: a.contradictions_confirmed,
-              minorInconsistencies: a.minor_inconsistencies_found,
-              duplicates: a.duplicates_found,
-              overlaps: a.overlaps_found,
-              styleProblems: a.style_problems_found,
-            },
-          }
-        : null,
+      // F-12: el staged con puntero ya fue analizado (portero freno). Sin puntero,
+      // esta pendiente. La fila usa esto para elegir la etiqueta (Commit 6d).
+      stagedAnalyzed: hasStaged ? stagedRow != null : false,
+      stagedAnalysis: stagedRow ? buildAnalysisBlock(stagedRow) : null,
+      lastAnalysis: a ? buildAnalysisBlock(a) : null,
     };
   });
 
