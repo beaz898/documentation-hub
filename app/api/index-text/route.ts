@@ -90,12 +90,33 @@ export async function POST(req: NextRequest) {
       console.log(`[INDEX-TEXT] Replacing existing document id=${replaceExistingId}`);
       const { data: oldDoc } = await supabase
         .from('documents')
-        .select('id, chunk_count')
+        .select('id, chunk_count, source')
         .eq('id', replaceExistingId)
         .eq('org_id', orgId)
         .single();
 
       if (oldDoc) {
+        // d-2b (F-15): veto por ORIGEN. Un documento cuyo origen es Drive
+        // (google_drive/onedrive) NO se re-indexa desde aqui: Drive es su fuente de
+        // verdad. Re-indexarlo por esta via lo convertiria en 'manual' y le quitaria
+        // el provider_file_id, con lo que el siguiente sync no lo reconoceria y
+        // reimportaria el original sin corregir (duplicado huerfano). La correccion de
+        // un archivo de Drive vuelve POR Drive: se descarga el texto corregido desde
+        // "Mejorar con IA", se sube a Drive, y el sync lo procesa como version nueva.
+        // Lista explicita (no "!== manual") para que un proveedor futuro no quede
+        // vetado sin revision. Complementa el veto por staged de mas arriba (F-9): el
+        // de origen cubre Drive con y sin staged; ambos conviven.
+        if (oldDoc.source === 'google_drive' || oldDoc.source === 'onedrive') {
+          return NextResponse.json(
+            {
+              error:
+                'Este documento existe en Drive, así que no puede reindexarse desde aquí. Descarga el texto corregido y súbelo a Drive; se procesará en la próxima sincronización.',
+              errorType: 'drive_origin',
+            },
+            { status: 409 },
+          );
+        }
+
         const idsToDelete = Array.from(
           { length: oldDoc.chunk_count },
           (_, i) => `${oldDoc.id}-${i}`
