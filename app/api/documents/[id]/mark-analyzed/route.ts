@@ -3,6 +3,7 @@ import { createServiceClient } from '@/lib/supabase';
 import { getAuthenticatedUserHybrid } from '@/lib/supabase-server';
 import { resolveOrg } from '@/lib/org';
 import { updateVectorMetadata } from '@/lib/pinecone/vectors';
+import { swapDocumentVectors } from '@/lib/document-swap';
 
 /**
  * POST /api/documents/[id]/mark-analyzed
@@ -59,6 +60,9 @@ export async function POST(
     );
   }
 
+  // d-2b (F-11): flag de aprobacion explicita de una version staged con hallazgos.
+  const body = await req.json().catch(() => ({}));
+
   // C.4d-2: si el documento tiene una versión staged (nueva generación pendiente
   // de validar), validar = PROMOVERLA. El swap hace todo: flip de metadata de la
   // generación nueva a 'analizado', UPDATE de la fila desde staged, borra la vieja,
@@ -81,18 +85,46 @@ export async function POST(
   }
 
   if (stagedRow) {
-    // C.4d-2 (F-6): con staged presente, validar manualmente NO está permitido.
-    // La versión nueva se promueve al COMPLETAR su análisis (analyze-v2), no aquí
-    // (F-4: la puerta humana en validación causa obsolescencia sin tope). El usuario
-    // debe ANALIZAR la nueva versión desde la bandeja; el swap es automático al
-    // completar. mark-analyzed se niega.
-    return NextResponse.json(
-      {
-        error: 'Este documento tiene una versión nueva pendiente de análisis. Analízala desde la bandeja de revisión; se activará automáticamente al completarse.',
-        errorType: 'staged_pending_analysis',
-      },
-      { status: 409 },
-    );
+    // Sin confirmacion explicita, seguimos negando: activar una version con hallazgos
+    // debe ser un acto deliberado del humano, no accidental (F-11).
+    if (body?.approveStaged !== true) {
+      return NextResponse.json(
+        {
+          error: 'Este documento tiene una versión nueva pendiente de análisis. Analízala desde la bandeja de revisión; se activará automáticamente al completarse.',
+          errorType: 'staged_pending_analysis',
+        },
+        { status: 409 },
+      );
+    }
+    // Aprobacion humana (F-11): activar la version nueva (swap) y marcarla revisada.
+    const swapResult = await swapDocumentVectors(supabase, orgId, id);
+    if (!swapResult.swapped && !swapResult.ok) {
+      console.error('[mark-analyzed] swap fallo al aprobar:', swapResult.error);
+      return NextResponse.json(
+        { error: 'No se pudo activar la nueva versión. Inténtalo de nuevo.' },
+        { status: 500 },
+      );
+    }
+    // El swap resetea reviewed_at a NULL en su P2; lo rellenamos DESPUES: el humano SI
+    // ha revisado esta version (aprobo con sus hallazgos a la vista). Asi sale de la
+    // bandeja (F-7: reviewed_at relleno + activo = no reaparece).
+    const { error: reviewError } = await supabase
+      .from('documents')
+      .update({
+        analysis_status: 'analizado',
+        reviewed_at: new Date().toISOString(),
+        reviewed_by: user.id,
+      })
+      .eq('id', id)
+      .eq('org_id', orgId);
+    if (reviewError) {
+      console.error('[mark-analyzed] no se pudo marcar revisado tras aprobar:', reviewError.message);
+      return NextResponse.json(
+        { error: 'La versión se activó, pero no se pudo marcar como revisada. Recarga la bandeja.' },
+        { status: 500 },
+      );
+    }
+    return NextResponse.json({ success: true, approved: true, versionPromoted: swapResult.swapped });
   }
 
   // Sin staged: comportamiento normal (documento sin versión pendiente).
