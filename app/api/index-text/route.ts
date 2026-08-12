@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import { getAuthenticatedUserHybrid } from '@/lib/supabase-server';
 import { upsertVectors, deleteVectorsByIds, buildVectorId } from '@/lib/pinecone/vectors';
+import { deleteDocument } from '@/lib/delete-document';
 import { generateEmbeddings } from '@/lib/embeddings';
 import { chunkText } from '@/lib/chunking';
 import { randomUUID } from 'crypto';
@@ -117,12 +118,29 @@ export async function POST(req: NextRequest) {
           );
         }
 
-        const idsToDelete = Array.from(
-          { length: oldDoc.chunk_count },
-          (_, i) => `${oldDoc.id}-${i}`
-        );
-        await deleteVectorsByIds(orgId, idsToDelete);
-        await supabase.from('documents').delete().eq('id', oldDoc.id);
+        // d-2b (F-15): borrado con la funcion compartida. Antes se borraba a mano
+        // (deleteVectorsByIds por chunk_count + .delete() crudo), lo que (a) dejaba
+        // vectores huerfanos si chunk_count estaba desfasado, y (b) borraba sin
+        // lapida — si el doc era de Drive, el sync lo reimportaba sin corregir.
+        // deleteDocument usa doble estrategia de vectores (por filtro y por ids) y
+        // escribe lapida SOLO si el doc es de Drive (provider_file_id != null); para
+        // un manual (el unico caso que llega aqui tras el veto por origen, Commit 10)
+        // no escribe lapida, que es lo correcto. Si el borrado falla, NO seguimos:
+        // insertar el nuevo dejando el viejo daria dos documentos.
+        const delResult = await deleteDocument(supabase, {
+          orgId,
+          documentId: replaceExistingId,
+          reason: 'user_excluded',
+          excludedBy: user.id,
+          actorUserId: user.id,
+        });
+        if (delResult.error) {
+          console.error('[INDEX-TEXT] deleteDocument fallo:', delResult.error);
+          return NextResponse.json(
+            { error: 'No se pudo reemplazar el documento anterior. Inténtalo de nuevo.' },
+            { status: 500 },
+          );
+        }
       }
     } else {
       // If NOT replacing, still check for name collision and bump the name if necessary.
