@@ -185,6 +185,7 @@ export async function GET(req: NextRequest) {
       // esta pendiente. La fila usa esto para elegir la etiqueta (Commit 6d).
       stagedAnalyzed: hasStaged ? stagedRow != null : false,
       stagedAnalysis: stagedRow ? buildAnalysisBlock(stagedRow) : null,
+      stagedAnalysisResultId: stagedPtr,
       lastAnalysis: a ? buildAnalysisBlock(a) : null,
     };
   });

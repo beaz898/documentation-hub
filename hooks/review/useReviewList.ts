@@ -34,6 +34,7 @@ export interface ReviewDocument {
   stagedAnalyzed: boolean;
   // Contadores del analisis EXACTO que freno el staged (o null si pendiente).
   stagedAnalysis: ReviewAnalysisSummary | null;
+  stagedAnalysisResultId: string | null;
   lastAnalysis: ReviewAnalysisSummary | null;
 }
 
