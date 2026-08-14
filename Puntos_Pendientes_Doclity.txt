@@ -3,7 +3,7 @@ PENDIENTES — Doclity (Agente IA)
 Documento vivo. Se actualiza al completar tareas (marcar [✓]) y se
 sustituye por la versión nueva. Más ligero que la Bitácora: aquí va
 lo que falta y la visión que lo guía, no el detalle de cada sesión.
-Última actualización: 19/07/2026 (v36)
+Última actualización: 14/08/2026 (v37)
 
 
 ════════════════════════════════════════════════════════════════
@@ -1046,14 +1046,44 @@ NOTAS DE ORDEN (propuesta, a confirmar)
         Verificado con desastres fabricados (endpoint temporal, ya retirado). Commits
         05ac49fd (función), c1ac531e (VectorMetadata.generation, deuda de C.4b),
         88019c86 (retirada del endpoint de prueba).
-      · C.4d [EN CURSO S37] — el sync versiona. d-1 HECHO (e9f4801f+250482e0). d-2
+      · C.4d [HECHO S38] — el sync versiona. d-1 HECHO (e9f4801f+250482e0). d-2
         rediseñado por F-6: el swap se dispara al COMPLETAR el análisis (analyze-v2),
-        NO al validar. mark-analyzed con staged NIEGA (409, commit 4a914fba). Falta:
-        d-2a (bandeja muestra staged + texto staged-first) y d-2b (compleción de
-        analyze-v2 dispara swap + analyzed_content_hash en P2 + negativa de
-        index-text). Diseño en Bitácora S37.
-      · C.4e [PENDIENTE] — migrar los demás caminos (mejora-interna: swap inmediato;
-        D5 manual: relevo) + detector de multi-generación en cleanup.
+        NO al validar; mark-analyzed con staged NIEGA salvo aprobación explícita
+        (409 por defecto, approveStaged:true = aprobación humana, F-11). d-2a HECHO
+        (bandeja muestra staged + texto staged-first, S38). d-2b HECHO (S38, 30
+        commits, F-7 a F-18): portero de calidad (swap condicional según hallazgos
+        de corpus, F-4-rev), puntero al análisis exacto que frenó (F-12), veto de
+        concurrencia interino (F-13/F-14), veto por origen sincronizado (F-9-rev/
+        F-15, addendum Diseno_C4_F9rev_origen.txt), UI de decisión completa
+        (activar/descartar, opción C sobre AnalysisModal) y el cerrojo del sync
+        arreglado (F-16, addendum Diseno_C4_F16_cerrojo.txt). Detalle completo en
+        Bitácora, entrada "SESIÓN 38 (cont.)".
+      · C.4e [PENDIENTE, residual — F-17] — lo que F-15 dejó vivo: migrar la mejora
+        de documentos MANUALES a swapDocumentVectors (hoy index-text borra-e-inserta
+        directo; el veto por origen ya saca a los de Drive de este camino) y matar
+        el match-by-name del modal de mejora en favor de emparejado universal por
+        document_id (hoy solo los staged con puntero exacto lo usan, F-12; los docs
+        normales siguen por nombre) + detector de multi-generación en cleanup como
+        red de seguridad. Foto de fase F-17: es la última pieza de la Fase C, tras
+        C.6/C.5/C.7/C.8.
+
+      PENDIENTES DESTAPADOS EN d-2b (Sesión 38, detalle en Bitácora):
+        - Barrido de resucitados + conteo al dueño (única pieza viva de F-9-rev):
+          puede haber duplicados exactos creados por index-text ANTES del fix de
+          lápida (1661958a) — documentos de Drive reimportados sin corregir. No es
+          código nuevo: ejecutar la acción de duplicados exactos de C.2 y contar.
+        - Comentario cruzado pendiente en el enum/config de providers (F-18): "al
+          añadir proveedor: revisar veto de index-text (F-9-rev)".
+        - mark-analyzed no comprueba el veto de concurrencia (lib/analysis-lock.ts):
+          ventana confusa, no corruptora (el swap es idempotente). Para Fase D.
+        - Carpeta sin trackear app/api/admin/diagnose-vectors/: decidir si se retira
+          (como el test-swap de C.4c) o se registra.
+        - Import huérfano deleteVectorsByIds en index-text/route.ts (sin uso tras
+          1661958a).
+        - window.alert() de errores de indexado en el modal de mejora → sustituir
+          por banner integrado.
+        - El 409 de concurrencia se muestra en la bandeja como "1 con error";
+          cambiar el mensaje a algo tipo "espera unos segundos, análisis en curso".
 
   B.65 — [REGLA VIGENTE, mecanismo migrado en S37] La regla (el análisis solo
     compara contra corpus validado) SIGUE activa, ahora vía el filtro CORPUS_ACTIVO
@@ -1074,7 +1104,12 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     siguen sirviendo: se INERTIZAN (perviven en BD pero fuera del chat y de los
     análisis) y REVIVEN al reconectar el mismo proveedor. Resuelve privacidad
     (ex-empleado que pierde acceso), fósiles y desconexión accidental. Idea del usuario.
-    ORDEN DE FASE C: C.4 (EN CURSO: C.4a hecho, C.4b/c pendientes) → C.8 → C.5 → C.6 → C.7.
+    ORDEN DE FASE C (foto de fase F-17, sustituye el orden anterior): F-9-rev
+    (pieza viva, barrido de resucitados) → C.6 (fingerprints permanentes, prioridad
+    subida por el portero) → C.5 (portero por hash, con dos adelantos ya anotados:
+    la guarda de F-16 y que con staged compara contra staged.content_hash) → C.7
+    (aviso al borrar) → C.8 (ciclo de vida por conexión + formalizar CORPUS_ACTIVO)
+    → C.4e (residual). F-17: lo peligroso de la Fase C queda detrás.
 
   [RESUELTO S35 como B.65 / D3-rev] ¿El análisis debe comparar contra documentos en estado 'pendiente'?
     Propuesta del usuario: NO contra pendientes sueltos (no validados), SÍ contra los
