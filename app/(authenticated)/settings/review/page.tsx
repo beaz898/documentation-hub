@@ -159,6 +159,55 @@ export default function ReviewPage() {
     }
   };
 
+  // Activar la version nueva (F-11): mark-analyzed con approveStaged:true. El endpoint
+  // dispara swapDocumentVectors (la generacion staged pasa a activa, la vieja se borra)
+  // y rellena reviewed_at DESPUES del swap, que lo habia reseteado a NULL en su P2: el
+  // humano SI reviso esta version, la aprobo con sus hallazgos a la vista. Por eso el
+  // documento sale de la bandeja en vez de reaparecer.
+  const handleApproveStaged = async () => {
+    if (!reviewDoc) return;
+    setActionError(null);
+    try {
+      const res = await fetch(`/api/documents/${reviewDoc.id}/mark-analyzed`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ approveStaged: true }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || `Error ${res.status}`);
+      }
+      closeReviewModal();
+      await refetch();
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : 'No se pudo activar la nueva versión.');
+    }
+  };
+
+  // Descartar la version nueva (F-11): borra sus vectores y su fila staged. La version
+  // activa (vieja) no se toca y sigue sirviendo el chat. Ademas sella el cerrojo del
+  // sync (F-16 Q5), asi que la version rechazada no renace en el siguiente sync; si el
+  // usuario edita el archivo en Drive, el ciclo empieza de nuevo con normalidad.
+  const handleDiscardStaged = async () => {
+    if (!reviewDoc) return;
+    setActionError(null);
+    try {
+      const res = await fetch(`/api/documents/${reviewDoc.id}/discard-staged`, {
+        method: 'POST',
+        credentials: 'include',
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || `Error ${res.status}`);
+      }
+      closeReviewModal();
+      await refetch();
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : 'No se pudo descartar la versión nueva.');
+    }
+  };
+
   const handleImprove = async () => {
     if (!reviewDoc || !reviewAnalysis) return;
     const doc = reviewDoc;
@@ -390,6 +439,8 @@ export default function ReviewPage() {
           onMarkAnalyzed={handleMarkAnalyzed}
           onRemove={handleRemoveDocument}
           stagedDecision={reviewStagedDecision}
+          onApproveStaged={handleApproveStaged}
+          onDiscardStaged={handleDiscardStaged}
         />
       )}
 
