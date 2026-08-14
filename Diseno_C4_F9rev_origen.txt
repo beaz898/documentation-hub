@@ -1,0 +1,80 @@
+===============================================================
+DISEÑO C.4 — ADDENDUM F-9-rev: EL VETO POR ORIGEN SINCRONIZADO
+===============================================================
+Respuesta de Fable F-9-rev, remachada en F-15. Registro exigido como condición de
+cierre de F-15; se salda aquí (Sesión 38).
+
+===============================================================
+1. LA REGLA
+===============================================================
+Un documento cuyo origen NO es 'manual' (google_drive, onedrive) NO se re-indexa
+desde index-text ni desde "Mejora con IA". Drive es su fuente de verdad.
+
+La corrección de un archivo de Drive vuelve POR Drive: se descarga el texto
+corregido desde "Mejora con IA", se sube a Drive reemplazando el archivo, y el
+sync lo procesa como versión nueva (staged) con todo el circuito normal —
+análisis, portero, decisión.
+
+Sobre un documento de Drive, "Mejora con IA" es TALLER DE LECTURA: ver, reanalizar,
+descargar. No indexa.
+
+===============================================================
+2. POR QUÉ (las tres consecuencias de no vetarlo)
+===============================================================
+Re-indexar un documento de Drive desde index-text:
+  a) Lo convertiría en 'manual'.
+  b) Le quitaría el provider_file_id.
+  c) El siguiente sync no lo reconocería y reimportaría el ORIGINAL SIN CORREGIR
+     → duplicado huérfano, y la corrección perdida.
+
+La lista de proveedores es EXPLÍCITA ('google_drive' || 'onedrive'), no un
+"!== manual", para que un proveedor futuro no quede vetado sin revisión.
+
+===============================================================
+3. LA TERCERA IDENTIDAD PROHIBIDA
+===============================================================
+Invariante que sostiene todo C.4: un documento tiene como mucho DOS identidades —
+la activa (documents) y la que está en vuelo (document_staged). Nunca una tercera.
+
+Crear una versión editada que no sea ni la activa ni la staged rompería el modelo
+de generaciones: el swap no sabría qué promover, el cerrojo no sabría qué fecha
+representa, y el chat podría servir una mezcla sin dueño.
+
+De ahí el veto por staged (F-9, anterior y complementario al de origen): si el
+documento a reemplazar tiene versión en vuelo, index-text se niega. Esa ruta borra
+la fila de documents del viejo, y como document_staged tiene ON DELETE CASCADE, ese
+borrado destruiría la versión staged sin swap, sin aviso y sin rastro.
+
+Los dos vetos CONVIVEN: el de staged cubre cualquier origen con versión en vuelo;
+el de origen cubre Drive con y sin staged.
+
+===============================================================
+4. IMPLEMENTACIÓN (todo en producción, Sesión 38)
+===============================================================
+  9cca713d — veto por STAGED en index-text (F-9). 409, errorType 'staged_pending'.
+             Se veta ANTES de tocar Pinecone o Supabase.
+  800eabed — la fila de la bandeja con staged no abre el modal del análisis viejo
+             (F-9). NOTA: matizado después por 11c-1b-3 (4f58d86d) — hoy la fila se
+             bifurca: staged AÚN NO analizado sigue inerte (F-9 vigente); staged ya
+             analizado y frenado por el portero SÍ abre, pero en modo decisión,
+             mostrando los hallazgos de la versión NUEVA, no el análisis viejo. El
+             invariante de F-9 no se toca: nunca se reabre el análisis de la
+             generación vieja sobre un documento con versión en vuelo.
+  229d2526 — veto por ORIGEN en index-text (F-9-rev/F-15). 409, errorType
+             'drive_origin', con mensaje que dirige al camino correcto (descargar,
+             subir a Drive, sincronizar).
+  1661958a — index-text borra con deleteDocument en vez de a mano. El borrado
+             manual (deleteVectorsByIds por chunk_count + delete crudo) dejaba
+             vectores huérfanos si chunk_count estaba desfasado, y borraba SIN
+             lápida: si el doc era de Drive, el sync lo reimportaba sin corregir.
+             deleteDocument usa doble estrategia de vectores (por filtro y por ids)
+             y escribe lápida solo si el doc es de Drive.
+
+===============================================================
+5. PENDIENTE DE F-15 (no cubierto aquí)
+===============================================================
+Barrido de resucitados: puede haber duplicados exactos creados por index-text
+ANTES del fix de 1661958a (documentos de Drive reimportados sin corregir). Fable
+pidió además un conteo al dueño del proyecto. Es la única de las tres piezas de
+F-9-rev que sigue pendiente; las otras dos (fix-lápida y veto por origen) están en
+producción desde esta sesión.
