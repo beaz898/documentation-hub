@@ -126,7 +126,7 @@ export async function POST(req: NextRequest) {
     // y trae el source_modified_at del último cambio no validado (F-5 remache ii).
     const { data: stagedRows, error: stagedError } = await supabase
       .from('document_staged')
-      .select('document_id, generation, source_modified_at, chunk_count')
+      .select('document_id, generation, source_modified_at, chunk_count, content_hash')
       .eq('org_id', orgId);
     if (stagedError) {
       console.error(`[DRIVE SYNC] Error cargando document_staged | org=${orgId} | ${stagedError.message}`);
@@ -142,6 +142,7 @@ export async function POST(req: NextRequest) {
     let newCount = 0;
     let updatedCount = 0;
     let versionedCount = 0;
+    let stagedReplacedCount = 0;
     let skippedCount = 0;
     let skippedExcludedCount = 0;
     let failedCount = 0;
@@ -150,6 +151,9 @@ export async function POST(req: NextRequest) {
     for (const file of allFiles) {
       seenDriveIds.add(file.id);
       const existing = existingMap.get(file.id);
+      // C.4d-2b (T2, F-16): el staged es el CERROJO cuando existe, asi que hay que
+      // leerlo ANTES del chequeo de salto, no dentro del try.
+      const stagedRow = existing ? stagedMap.get(existing.id) : undefined;
 
       // Lápida: excluido a propósito, no reimportar. Antes de descargar.
       if (tombstonedIdentities.has(tombstoneKey(provider.name, file.id))) {
@@ -158,9 +162,14 @@ export async function POST(req: NextRequest) {
         continue;
       }
 
-      // Sin cambios desde el último sync: saltar.
-      if (existing && existing.source_modified_at && file.modifiedTime &&
-          new Date(file.modifiedTime) <= new Date(existing.source_modified_at)) {
+      // Cerrojo T2 (F-4, F-5(3)(ii); doctrina fijada en F-16). El descriptor de la
+      // fila activa NO sirve como cerrojo cuando hay una version en vuelo: queda
+      // congelado en la fecha de lo que se sirve, asi que el archivo no se saltaba
+      // NUNCA y cada sync reconstruia el mismo staged (re-embeddings) y reseteaba
+      // su analysis_result_id, destruyendo la decision pendiente del portero.
+      const lockModifiedAt = stagedRow?.source_modified_at ?? existing?.source_modified_at ?? null;
+      if (lockModifiedAt && file.modifiedTime &&
+          new Date(file.modifiedTime) <= new Date(lockModifiedAt)) {
         skippedCount++;
         continue;
       }
@@ -184,7 +193,6 @@ export async function POST(req: NextRequest) {
         //     targetGen = staged existente (reutiliza su generación, F-4(2)) o active_generation+1.
         // - Sobrescribir (doc 'pendiente': nada validado): targetGen = active_generation (F-5 R1: NO 1).
         // - Doc nuevo: targetGen = 1.
-        const stagedRow = existing ? stagedMap.get(existing.id) : undefined;
         let targetGen: number;
         let isVersioning = false;
         if (existing && existing.analysis_status === 'analizado') {
@@ -196,9 +204,33 @@ export async function POST(req: NextRequest) {
           targetGen = 1;
         }
 
+        // El hash ANTES de chunkear/embeber: si el contenido no cambio, la guarda de
+        // abajo corta sin pagar embeddings.
+        const contentHash = generateContentHash(text);
+
+        // Toque-sin-cambio (F-16 Q2): el archivo se re-guardo en Drive (modifiedTime
+        // avanzo) pero el texto es IDENTICO al del staged en vuelo. Reemplazar el
+        // staged aqui destruiria la decision humana pendiente (analysis_result_id) sin
+        // motivo alguno. Se avanza SOLO el cerrojo del staged (aprende la fecha nueva)
+        // y se cuenta como sin-cambios. Vectores y puntero, intactos.
+        if (isVersioning && stagedRow && contentHash === stagedRow.content_hash) {
+          const { error: touchError } = await supabase
+            .from('document_staged')
+            .update({ source_modified_at: file.modifiedTime })
+            .eq('document_id', documentId)
+            .eq('org_id', orgId);
+          if (touchError) {
+            console.error(`[DRIVE SYNC] staged-touch fallo | doc=${documentId} | name=${file.name} | code=${touchError.code ?? '?'} | ${touchError.message}`);
+            failedCount++;
+            continue;
+          }
+          skippedCount++;
+          console.log(`[DRIVE SYNC] Toque sin cambio (staged g${stagedRow.generation} intacto): ${file.name}`);
+          continue;
+        }
+
         const chunks = chunkText(text, documentId, file.name, orgId);
         const embeddings = await generateEmbeddings(chunks.map(c => c.text));
-        const contentHash = generateContentHash(text);
 
         const vectors = chunks.map((chunk, i) => ({
           id: buildVectorId(documentId, targetGen, i),
@@ -278,10 +310,19 @@ export async function POST(req: NextRequest) {
               continue;
             }
             versionedCount++;
+            if (stagedRow) {
+              stagedReplacedCount++;
+              console.log(`[DRIVE SYNC] Staged REEMPLAZADO (habia una version en vuelo; su analisis y su decision pendiente caducan): ${file.name} | doc=${documentId} | g${stagedRow.generation} (${stagedRow.source_modified_at}) -> g${targetGen} (${file.modifiedTime})`);
+            }
             console.log(`[DRIVE SYNC] Versionado (staged g${targetGen}): ${file.name} (${chunks.length} chunks) — el chat sigue sirviendo la versión activa`);
           } else {
-            // RAMA SOBRESCRIBIR (C.3, sin cambios): UPDATE atómico en sitio.
-            // source_modified_at avanza SOLO aquí (cerrojo del reintento).
+            // RAMA SOBRESCRIBIR (C.3): UPDATE atomico en sitio.
+            // Aqui documents.source_modified_at avanza porque descriptor y cerrojo
+            // COINCIDEN: lo procesado es exactamente lo que pasa a servirse. Cuando
+            // no coinciden (rama versionar) el cerrojo vive en el staged (F-16 Q1).
+            // El cerrojo avanza cuando una version remota FUE PROCESADA: por
+            // sobrescritura (aqui), por swap (P2 hereda la fecha del staged) o por
+            // decision humana (discard-staged la sella al descartar).
             const { error: updateError } = await supabase
               .from('documents')
               .update({
@@ -381,7 +422,7 @@ export async function POST(req: NextRequest) {
       console.error(`[DRIVE SYNC] update-last-synced fallo | org=${orgId} | code=${syncedAtError.code ?? '?'} | ${syncedAtError.message}`);
     }
 
-    console.log(`[DRIVE SYNC] Complete: ${newCount} new, ${updatedCount} updated, ${deletedCount} deleted, ${skippedCount} unchanged, ${failedCount} failed, ${deleteFailedCount} delete-failed, ${skippedExcludedCount} excluded, ${versionedCount} versioned`);
+    console.log(`[DRIVE SYNC] Complete: ${newCount} new, ${updatedCount} updated, ${deletedCount} deleted, ${skippedCount} unchanged, ${failedCount} failed, ${deleteFailedCount} delete-failed, ${skippedExcludedCount} excluded, ${versionedCount} versioned, ${stagedReplacedCount} staged-replaced`);
 
     return NextResponse.json({
       success: failedCount === 0,
@@ -389,6 +430,7 @@ export async function POST(req: NextRequest) {
         new: newCount,
         updated: updatedCount,
         versioned: versionedCount,
+        stagedReplaced: stagedReplacedCount,
         deleted: deletedCount,
         skipped: skippedCount,
         skippedExcluded: skippedExcludedCount,
