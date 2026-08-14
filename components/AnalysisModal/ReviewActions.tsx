@@ -7,6 +7,10 @@ interface ReviewActionsProps {
   onImprove: () => void;
   onRemove: () => void | Promise<void>;
   onClose: () => void;
+  // Documento con version staged frenada por el portero (F-4-rev): marcar-analizado
+  // devolveria 409 y quitar-del-corpus borraria el documento entero en vez de la
+  // version nueva. Se ocultan; sus sustitutos llegan en 11c-2.
+  stagedDecision?: boolean;
 }
 
 export default function ReviewActions({
@@ -14,6 +18,7 @@ export default function ReviewActions({
   onImprove,
   onRemove,
   onClose,
+  stagedDecision = false,
 }: ReviewActionsProps) {
   const [confirmingRemove, setConfirmingRemove] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -131,41 +136,45 @@ export default function ReviewActions({
         Mejorar con IA
       </button>
 
-      <button
-        onClick={() => setConfirmingRemove(true)}
-        disabled={busy}
-        style={{
-          flex: 1,
-          padding: '10px 12px',
-          borderRadius: 10,
-          border: '0.5px solid #dc2626',
-          background: 'transparent',
-          color: '#dc2626',
-          fontSize: 12,
-          fontWeight: 600,
-          cursor: busy ? 'not-allowed' : 'pointer',
-        }}
-      >
-        Quitar del corpus
-      </button>
+      {!stagedDecision && (
+        <button
+          onClick={() => setConfirmingRemove(true)}
+          disabled={busy}
+          style={{
+            flex: 1,
+            padding: '10px 12px',
+            borderRadius: 10,
+            border: '0.5px solid #dc2626',
+            background: 'transparent',
+            color: '#dc2626',
+            fontSize: 12,
+            fontWeight: 600,
+            cursor: busy ? 'not-allowed' : 'pointer',
+          }}
+        >
+          Quitar del corpus
+        </button>
+      )}
 
-      <button
-        onClick={handleMarkAnalyzed}
-        disabled={busy}
-        style={{
-          flex: 1,
-          padding: '10px 12px',
-          borderRadius: 10,
-          border: 'none',
-          background: busy ? 'var(--bg-tertiary)' : 'var(--brand)',
-          color: busy ? 'var(--text-muted)' : '#fff',
-          fontSize: 12,
-          fontWeight: 500,
-          cursor: busy ? 'not-allowed' : 'pointer',
-        }}
-      >
-        {busy ? 'Guardando...' : 'Marcar como analizado'}
-      </button>
+      {!stagedDecision && (
+        <button
+          onClick={handleMarkAnalyzed}
+          disabled={busy}
+          style={{
+            flex: 1,
+            padding: '10px 12px',
+            borderRadius: 10,
+            border: 'none',
+            background: busy ? 'var(--bg-tertiary)' : 'var(--brand)',
+            color: busy ? 'var(--text-muted)' : '#fff',
+            fontSize: 12,
+            fontWeight: 500,
+            cursor: busy ? 'not-allowed' : 'pointer',
+          }}
+        >
+          {busy ? 'Guardando...' : 'Marcar como analizado'}
+        </button>
+      )}
     </div>
   );
 }
