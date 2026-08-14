@@ -50,6 +50,8 @@ interface AnalysisModalProps {
   onMarkAnalyzed?: () => void | Promise<void>;
   onRemove?: () => void | Promise<void>;
   stagedDecision?: boolean;
+  onApproveStaged?: () => void | Promise<void>;
+  onDiscardStaged?: () => void | Promise<void>;
 }
 
 // ============================================================
@@ -162,7 +164,7 @@ void ConfidenceBadge;
 // ============================================================
 // Main modal
 // ============================================================
-export default function AnalysisModal({ fileName, analysis, onConfirm, onCancel, onImprove, onExhaustive, onMinimize, mode = 'upload', onMarkAnalyzed, onRemove, stagedDecision = false }: AnalysisModalProps) {
+export default function AnalysisModal({ fileName, analysis, onConfirm, onCancel, onImprove, onExhaustive, onMinimize, mode = 'upload', onMarkAnalyzed, onRemove, stagedDecision = false, onApproveStaged, onDiscardStaged }: AnalysisModalProps) {
   const t = useTranslations('analysis');
 
   const recColor = analysis.recommendation === 'NO_INDEXAR'
@@ -491,6 +493,8 @@ export default function AnalysisModal({ fileName, analysis, onConfirm, onCancel,
             onRemove={onRemove ?? (() => {})}
             onClose={onCancel}
             stagedDecision={stagedDecision}
+            onApprove={onApproveStaged}
+            onDiscard={onDiscardStaged}
           />
         ) : (
           <UploadActions

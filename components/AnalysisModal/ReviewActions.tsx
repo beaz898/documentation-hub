@@ -9,8 +9,12 @@ interface ReviewActionsProps {
   onClose: () => void;
   // Documento con version staged frenada por el portero (F-4-rev): marcar-analizado
   // devolveria 409 y quitar-del-corpus borraria el documento entero en vez de la
-  // version nueva. Se ocultan; sus sustitutos llegan en 11c-2.
+  // version nueva. Se ocultan y en su lugar salen las dos salidas de la decision.
   stagedDecision?: boolean;
+  // Activar la version nueva: mark-analyzed con approveStaged:true (swap + revisado).
+  onApprove?: () => void | Promise<void>;
+  // Descartar la version nueva: discard-staged (la activa sigue sirviendo).
+  onDiscard?: () => void | Promise<void>;
 }
 
 export default function ReviewActions({
@@ -19,6 +23,8 @@ export default function ReviewActions({
   onRemove,
   onClose,
   stagedDecision = false,
+  onApprove,
+  onDiscard,
 }: ReviewActionsProps) {
   const [confirmingRemove, setConfirmingRemove] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -41,6 +47,26 @@ export default function ReviewActions({
     } finally {
       setBusy(false);
       setConfirmingRemove(false);
+    }
+  };
+
+  const handleApprove = async () => {
+    if (busy || !onApprove) return;
+    setBusy(true);
+    try {
+      await onApprove();
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleDiscard = async () => {
+    if (busy || !onDiscard) return;
+    setBusy(true);
+    try {
+      await onDiscard();
+    } finally {
+      setBusy(false);
     }
   };
 
@@ -173,6 +199,46 @@ export default function ReviewActions({
           }}
         >
           {busy ? 'Guardando...' : 'Marcar como analizado'}
+        </button>
+      )}
+
+      {stagedDecision && onDiscard && (
+        <button
+          onClick={handleDiscard}
+          disabled={busy}
+          style={{
+            flex: 1,
+            padding: '10px 12px',
+            borderRadius: 10,
+            border: '0.5px solid #dc2626',
+            background: 'transparent',
+            color: '#dc2626',
+            fontSize: 12,
+            fontWeight: 600,
+            cursor: busy ? 'not-allowed' : 'pointer',
+          }}
+        >
+          {busy ? 'Descartando...' : 'Descartar versión nueva'}
+        </button>
+      )}
+
+      {stagedDecision && onApprove && (
+        <button
+          onClick={handleApprove}
+          disabled={busy}
+          style={{
+            flex: 1,
+            padding: '10px 12px',
+            borderRadius: 10,
+            border: 'none',
+            background: busy ? 'var(--bg-tertiary)' : 'var(--brand)',
+            color: busy ? 'var(--text-muted)' : '#fff',
+            fontSize: 12,
+            fontWeight: 500,
+            cursor: busy ? 'not-allowed' : 'pointer',
+          }}
+        >
+          {busy ? 'Activando...' : 'Activar esta versión'}
         </button>
       )}
     </div>
