@@ -3661,3 +3661,309 @@ contadores agregados + excludeFingerprints del cliente). Respuesta F-7:
 negativa de index-text/mejora-con-IA con staged + reset de reviewed_at en P2 +
 condición de bandeja + backfill). Antes de d-2b: explorar el final de analyze-v2
 y grep de source_modified_at (cerrojo T2, F-6.5) + grep de reviewed_at (F-7).
+
+────────────────────────────────────────────────────────────────
+SESIÓN 38 (cont.) — C.4d-2b: el portero de calidad, la UI de decisión y el
+cerrojo del sync
+────────────────────────────────────────────────────────────────
+
+OBJETIVO DE LA SESIÓN
+Cerrar C.4d-2b (D6): que el chat nunca sirva contenido incoherente, y que una
+versión nueva con problemas de corpus no se active sola — el humano decide.
+Sesión larga (F-7 a F-18), 30 commits en el rango 3a53f4a4..HEAD (exclusivo por
+abajo; el primero incluido es c8f237cc, el último es 2c5b7de4).
+
+1. EL PORTERO DE CALIDAD (F-4-rev)
+El diseño original de C.4d-2b (primera mitad de la Sesión 38) dejaba el swap
+INCONDICIONAL: al completar el análisis rápido de una versión staged, se
+promovía siempre. El dueño del producto objetó: activar una versión con
+problemas detectados mete en el corpus, durante el tiempo que va de la
+activación a la revisión humana, contenido con contradicciones o duplicados
+CONOCIDOS. Fable (F-11) revisa parcialmente F-4(1) y decide: el swap pasa a ser
+CONDICIONAL. Limpio de problemas de CORPUS (duplicados, solapamientos,
+contradicciones, recomendación distinta de INDEXAR) → swap automático, como
+hasta ahora. Con hallazgos de corpus → NO se activa: la versión vieja sigue
+sirviendo (coherente) y la nueva espera en la bandeja a que el humano decida
+(aprobar, corregir en Drive, o reanalizar con descartes). El ESTILO NO CUENTA
+para esta puerta — un documento con solo problemas de ortografía o ambigüedad
+se activa igual. La pieza se construyó en orden: e4125949 hace que la P2 del
+swap escriba analyzed_content_hash y resetee reviewed_at/reviewed_by a NULL
+(nadie humano ha visto la versión nueva); 7306d01c convierte
+saveAnalysisResult de Promise<void> a un resultado {ok,id}/{ok,error}
+explícito, porque el swap necesita saber con certeza si el análisis se guardó
+antes de decidir nada; 954f416b dispara el swap al completar el análisis
+rápido con staged, todavía incondicional en ese punto; b5520c8d registra el
+diseño F-4-rev en Diseno_C4_F4rev_portero.txt; y bc11d8f6 cierra el bloque con
+la constante hasCorpusIssues (subconjunto de hasIssues sin estilo) que decide
+si el swap se dispara o no — versionPromoted refleja el resultado, hasIssues
+queda intacto para la respuesta al usuario.
+
+2. EL PUNTERO (F-12)
+Cuando el portero frena, la bandeja necesita mostrar los hallazgos EXACTOS que
+frenaron esa versión concreta, no "el último análisis por fecha" (que podría
+ser de la generación activa, o de un reanálisis posterior). Se añade
+document_staged.analysis_result_id (dfb13ae8, migración) como puntero al
+analysis_results exacto. analyze-v2 lo escribe cuando el portero frena
+(a8351e3c), y el sync lo resetea a null explícitamente cuando reemplaza un
+staged con contenido nuevo (mismo commit — un upsert conserva las columnas no
+mencionadas, así que sin el reset explícito el puntero viejo sobreviviría al
+reemplazo y mentiría sobre qué análisis describe el texto nuevo). review-list
+carga los análisis apuntados por id EXACTO, en una consulta en lote aparte de
+la de "más reciente por nombre" que usan los documentos normales (ea51b077), y
+deriva los contadores en un único sitio — buildAnalysisBlock —, preparado para
+que C.6 cambie esa derivación (a "no descartados") sin tocar la bandeja.
+baea7628 cierra el bloque visual: la fila distingue con badge ámbar "Requiere
+decisión" + subtexto con los hallazgos de corpus exactos, de la fila violeta
+"Versión nueva" para un staged aún sin analizar.
+
+3. EL VETO DE CONCURRENCIA (F-13/F-14)
+Antes de F-13, solo el análisis exhaustivo tenía un veto de concurrencia
+(mirando analysis_jobs). El portero necesita que NINGÚN análisis (rápido o
+exhaustivo) se solape con otro de la misma organización, porque dos swaps
+concurrentes sobre el mismo staged son una carrera de datos real. F-13/F-14
+decide un semáforo interino, global por organización, en columnas de
+organizations (analysis_running_by/since/type), con AUTO-EXPIRACIÓN por
+timestamp como garantía real — no el finally del endpoint, que en serverless
+puede no llegar a ejecutarse si la función muere tras responder. Umbral por
+tipo (quick 5 min, exhaustive 20 min) para que un rápido colgado no bloquee la
+org los 20 minutos enteros del exhaustivo. c5690adc crea el helper
+(lib/analysis-lock.ts: checkAndAcquireAnalysisLock, releaseAnalysisLock,
+analysisLockMessage), autocontenido, sin llamadores; 6acd3705 lo cablea en
+analyze-v2 (adquiere tras consumir créditos, libera en un finally de cortesía)
+y retira el veto viejo que solo miraba el exhaustivo; a8f66f32 registra las
+columnas SQL. Explícitamente interino: la cola de Fase D lo sustituye por
+serialización con dedup por documento.
+
+4. LOS VETOS DE IDENTIDAD (F-9 y F-9-rev/F-15)
+Dos vetos que conviven, ambos custodiando el invariante de que un documento
+tiene como mucho DOS identidades — la activa y la que está en vuelo (staged),
+nunca una tercera. El primero (F-9): si el documento a reemplazar por
+index-text tiene una versión staged, se veta con 409 ANTES de tocar Pinecone o
+Supabase (9cca713d) — esa ruta borra la fila documents del viejo, y como
+document_staged tiene ON DELETE CASCADE, el borrado se llevaría la versión
+staged sin swap, sin aviso y sin rastro. La UI ya deriva lo mismo del lado
+cliente (800eabed): la fila con staged queda inerte al clic, porque su
+análisis guardado es de la generación vieja y "Mejorar con IA" sobre él
+crearía la tercera identidad prohibida. El segundo veto (F-9-rev, remachado en
+F-15): un documento cuyo origen NO es 'manual' (google_drive, onedrive)
+tampoco se re-indexa desde aquí — Drive es su fuente de verdad, y
+re-indexarlo lo convertiría en 'manual', le quitaría provider_file_id, y el
+siguiente sync reimportaría el original sin corregir (duplicado huérfano).
+229d2526 implementa el veto (409, errorType drive_origin, lista explícita de
+proveedores en vez de "!= manual"); 1661958a corrige de paso el borrado del
+camino de reemplazo, sustituyendo el borrado manual (deleteVectorsByIds por
+chunk_count + delete crudo, sin lápida) por la función compartida
+deleteDocument, con doble estrategia de vectores y lápida cuando corresponde.
+Doctrina completa registrada aparte para no repetirla: Diseno_C4_F9rev_origen.txt
+(commit 2c5b7de4).
+
+5. LA UI DE DECISIÓN (11c — opción C: reutilizar el AnalysisModal)
+El usuario pidió explícitamente NO un par de botones sueltos: con botones
+sueltos no puede VER los hallazgos antes de decidir, necesita entrar al
+detalle. Se reutiliza el AnalysisModal existente en mode="review" en vez de
+construir uno nuevo. Método deliberado: cada pieza se añadió INERTE antes de
+cablearla, para no dejar nunca producción con un botón que falla o destruye a
+medio commitear. En orden: 954052c4 crea el endpoint discard-staged (borra
+vectores del staged por lista de IDs con buildVectorId, vía probada, y la
+fila; la versión activa no se toca); 9f8c32d6 transforma mark-analyzed en la
+aprobación humana — con staged y approveStaged:true en el body, dispara el
+swap y rellena reviewed_at/reviewed_by DESPUÉS (el humano sí revisó, con los
+hallazgos a la vista), así el documento sale de la bandeja en vez de
+reaparecer; a7ded3e0 añade GET /api/analysis-results/[id] por id exacto (no
+"el más reciente por document_id"), para que el modal muestre el detalle de
+la versión staged concreta; 99ff8cb2 expone stagedAnalysisResultId en
+review-list (el backend ya lo leía, no lo exponía); 3c5378e0 y 98ea3b45 son, a
+propósito, commits SIN efecto visible — el primero añade la prop
+stagedDecision al modal (oculta "Marcar como analizado" y "Quitar del
+corpus", ninguno correcto sobre un staged), el segundo añade los botones
+"Activar esta versión" / "Descartar versión nueva" a ReviewActions, ambos con
+su handler todavía sin pasar desde page.tsx; 4f58d86d enruta el clic de la
+fila stagedDecided al modal en modo decisión, cargando el detalle exacto vía
+el endpoint de a7ded3e0; 0bad0c31 cierra cableando los dos handlers reales
+(mark-analyzed con approveStaged:true, discard-staged), cerrando el ciclo
+completo de la decisión.
+
+6. EL BUG DEL CERROJO (F-16)
+El bloque más importante de la sesión. Al preparar la UI de decisión (punto
+5), se preguntó qué impedía que el sync recreara el mismo staged sobre el que
+el humano estaba a punto de decidir. La lectura del código levantó la
+sospecha; una prueba en Supabase más un sync sin tocar el archivo en Drive lo
+CONFIRMÓ en producción: un documento con staged se reprocesaba en CADA sync
+aunque nadie tocara Drive — re-embeddings del mismo texto, y reset
+incondicional de document_staged.analysis_result_id, que devolvía la fila de
+"Requiere decisión" a "Versión nueva" y destruía la decisión pendiente sin que
+nadie decidiera. Bucle: morada → analizar → ámbar (Requiere decisión) → sync →
+morada otra vez. El portero quedaba decorativo. Diagnóstico de Fable: el bug
+ERA la no-implementación de T2, decidido en F-4 y remachado en F-5(3)(ii) — no
+falló el canal de comunicación, falló la transcripción de la decisión a
+código, y falló la verificación que lo habría cazado (el test del embudo,
+mandado dos veces en el diseño original, nunca se ejecutó con un staged
+vivo). Doctrina: source_modified_at jugaba dos papeles fundidos que dejaron de
+coincidir con el staged — DESCRIPTOR (qué fecha remota tiene lo que el chat
+sirve, congelado en documents mientras hay versión en vuelo) y CERROJO (¿esta
+versión remota ya la procesé?, que apunta a lo último construido: el staged si
+existe, la fila activa si no). El chequeo de salto del sync leía el
+descriptor como si fuera el cerrojo. Un comentario fosilizado en la línea 284
+de sync/route.ts ("source_modified_at avanza SOLO aquí, cerrojo del
+reintento") era cómplice: describía la doctrina de C.3 (antes de que el
+staged existiera) como si siguiera siendo universal, y nadie lo revisó al
+introducir el staged en C.4d-1. Fix A (ba24707c): el chequeo de salto lee
+ahora staged.source_modified_at con fallback a la fila activa; stagedRow se
+carga antes del chequeo, no dentro del try; el hash se calcula antes de
+chunkear y embeber, para poder cortar barato; guarda de toque-sin-cambio
+(mismo hash con staged vivo → avanza solo el cerrojo del staged, sin tocar
+vectores ni puntero); contador stagedReplaced cuenta cuando una versión en
+vuelo SÍ es reemplazada de verdad; y el comentario fosilizado, reescrito con
+la regla completa. Fix B (ee9f2971): discard-staged sellaba vectores y fila
+pero no documents, así que descartar era "ahora no" en vez de una decisión —
+el siguiente sync reconstruía el mismo staged por la misma puerta que
+arregló el Fix A. Se sella documents.source_modified_at =
+staged.source_modified_at al descartar (orden: vectores → sello → fila, cada
+paso reintentable si el siguiente falla). Doctrina completa, con la simetría
+de las tres puertas por las que el cerrojo avanza (sobrescritura, swap,
+decisión humana) y lo que Fable rechazó explícitamente (Q1-ii: sellar
+automáticamente con el staged vigente, que mentiría en el descriptor),
+registrada en Diseno_C4_F16_cerrojo.txt (commit a1475002).
+
+VERIFICACIÓN — CHECKLIST CON EVIDENCIA (F-16)
+Los cinco actos, ejecutados en producción sobre "new 9.txt", org
+a9625e93-af2a-4416-a465-5c2fa2a25bdf:
+  [✓] (i)   Staged en ámbar con puntero → sync sin tocar el archivo → ámbar y
+            puntero INTACTOS, cero descargas, cero embeddings. (El test del
+            embudo de F-4/F-5, por fin ejecutado con staged vivo.)
+  [✓] (ii)  Toque-sin-cambio fabricado (re-guardar idéntico en Drive) →
+            puntero intacto, staged.source_modified_at avanzado, stats
+            sin-cambios.
+  [✓] (iii) Cambio real → staged reemplazado, puntero a null, fila morada,
+            stagedReplaced contado.
+  [✓] (iv)  Descartar → dos syncs seguidos → nada renace. Editar en Drive →
+            renace con normalidad.
+  [✓] (v)   Aprobar con hallazgos → swap + reviewed_at relleno. Foto SQL:
+            source_modified_at 11:22:36 (heredado del staged por la P2),
+            reviewed_at 11:23:42 — un minuto después, firma de que la P2 lo
+            reseteó a NULL y mark-analyzed lo rellenó DESPUÉS. Documento
+            fuera de la bandeja, chat sirviendo el contenido nuevo, siguiente
+            sync limpio. Este acto es una VERIFICACIÓN DE ORDEN CAUSAL —
+            nombre acuñado por Fable en F-18: obligatoria cuando la
+            corrección depende de QUÉ se escribió ANTES que QUÉ (swaps,
+            cerrojos, relevos); opcional en el resto de verificaciones.
+
+DECISIONES DE FABLE EN ESTA SESIÓN (razonamiento, para no reabrirlas)
+
+A. Exhaustivo sobre staged: vetado hoy (9e71e0d8, anterior al bloque del
+   portero). El worker no sabe disparar swaps; dejaría el staged atascado si
+   se le permitiera. Mejora de Fase D. NO reabrir en d-2b.
+
+B. Aprobar = activar Y dar por revisado (opción 1 del usuario, F-11). Al
+   aprobar una versión con hallazgos, el documento sale de la bandeja — no
+   queda un estado intermedio "activado pero sin revisar".
+
+C. La vuelta a "Versión nueva" (morada) tras un reemplazo real del staged es
+   SILENCIOSA, y es correcta (F-16 Q3): la bandeja es el estado y el estado es
+   el mensaje; no se construyen notificaciones para esto. Pero se cuenta
+   (stats.stagedReplaced, ba24707c).
+
+D. Lista explícita de proveedores ('google_drive' || 'onedrive') en el veto
+   por origen, en vez de "!= manual". Desviación APROBADA por F-18 —
+   fail-closed hacia la revisión humana si aparece un proveedor nuevo sin
+   vetar a propósito — con la condición de añadir un comentario cruzado en el
+   punto de extensión (enum/config de providers): "al añadir proveedor:
+   revisar veto de index-text (F-9-rev)". PENDIENTE de escribir ese comentario
+   (sección de pendientes).
+
+E. Corrección de proceso (F-16). Cerrar una sub-fase exige copiar la lista de
+   verificación consolidada de los F-n correspondientes A LA BITÁCORA como
+   checklist, y marcarla ítem a ítem con su evidencia (query, conteo,
+   captura). "Se verificó" sin la lista delante es como este bug llegó a
+   producción con dos avisos escritos.
+
+F. Protocolo (F-16 y F-18). Los F-n numeran las RESPUESTAS de Fable; no se
+   reserva el número al titular una consulta. Y (F-18): lo hecho sin
+   confirmar se reporta en la comunicación siguiente; Fable no re-declara
+   estado sin que se le pida.
+
+PENDIENTES DESTAPADOS (no abordados esta sesión)
+  - Barrido de resucitados + conteo al dueño del proyecto. Única pieza viva de
+    F-9-rev/F-15: puede haber duplicados exactos creados por index-text ANTES
+    del fix de lápida (1661958a) — documentos de Drive reimportados sin
+    corregir. Fable recuerda que NO es código nuevo: es ejecutar la acción de
+    duplicados exactos de C.2 y contar. Solo se vuelve consulta si el caso
+    manual-vs-drive no lo cubre.
+  - Comentario cruzado pendiente en el enum/config de providers (decisión D,
+    arriba): "al añadir proveedor: revisar veto de index-text (F-9-rev)".
+  - mark-analyzed NO comprueba el veto de concurrencia (lib/analysis-lock.ts):
+    activar una versión mientras corre un análisis es una ventana confusa
+    (mensaje incoherente en el peor caso), no corruptora — el swap es
+    idempotente. Para Fase D, que sustituye el veto entero por la cola.
+  - Carpeta sin trackear app/api/admin/diagnose-vectors/: decidir si se
+    retira como el endpoint temporal test-swap de C.4c, o se registra.
+  - Retirar el import huérfano deleteVectorsByIds de index-text/route.ts
+    (quedó sin uso tras 1661958a).
+  - Cambiar el window.alert() de errores de indexado del modal de mejora por
+    un banner integrado (hoy es el único punto de la bandeja que usa alert
+    nativo para un error de mutación).
+  - El 409 de concurrencia se muestra hoy en la bandeja como "1 con error";
+    cambiar el mensaje a algo tipo "espera unos segundos, análisis en curso".
+  - [C.4e] Emparejado universal por document_id en review-list (hoy los
+    documentos normales van por nombre, inofensivo pero inconsistente con el
+    puntero exacto de F-12). Migrar el match-by-name del modal de mejora a
+    documentId. Migrar mejora-interna a swapDocumentVectors (solo aplica a
+    manuales, tras el veto por origen).
+  - [Fase D] Exhaustivo directo sobre staged (worker con swap on-complete),
+    pedido explícito del usuario: verificar con exhaustivo una versión antes
+    de aceptarla. Análisis por lotes B.46 (ámbito como parámetro
+    includeDocumentIds, no estados nuevos). La cola sustituye el veto global
+    de concurrencia.
+  - [C.6] Fingerprints permanentes por org — prioridad subida por el portero:
+    los contadores que gobiernan la decisión pasarían de "hallazgos brutos" a
+    "hallazgos no descartados".
+
+COMMITS DE ESTA SESIÓN
+30 commits, rango 3a53f4a4..HEAD (exclusivo por abajo; el primero incluido es
+c8f237cc), en orden cronológico:
+
+  1.  c8f237cc — docs(sql): registrar backfill de reviewed_at para C.4d-2b (F-7, ya ejecutado)
+  2.  9e71e0d8 — feat(analyze): vetar analisis exhaustivo cuando el documento tiene version staged (C.4d-2b)
+  3.  800eabed — feat(review): un doc con version staged no abre el modal de analisis viejo (C.4d-2b, F-9)
+  4.  9cca713d — feat(index-text): vetar reindexado cuando el documento a reemplazar tiene version staged (C.4d-2b, F-9)
+  5.  e4125949 — feat(swap): la P2 escribe analyzed_content_hash y resetea reviewed_at/by (C.4d-2b, F-7)
+  6.  7306d01c — feat(persist): saveAnalysisResult devuelve exito/fallo, consumido por sus dos llamadores (C.4d-2b, F-10)
+  7.  954f416b — feat(analyze): disparar el swap al completar el analisis rapido con staged (C.4d-2b, F-8/F-10)
+  8.  b5520c8d — docs(diseno): registrar F-4-rev (el portero de calidad) — swap condicional segun hallazgos
+  9.  bc11d8f6 — feat(analyze): portero de calidad — el swap solo activa la version nueva si el corpus esta limpio (C.4d-2b, F-4-rev/F-11)
+  10. a8f66f32 — docs(sql): registrar columnas del semaforo de concurrencia de analisis (C.4d-2b, F-13/F-14, ya ejecutado)
+  11. c5690adc — feat(analysis): helper del semaforo de concurrencia de analisis (C.4d-2b, F-13/F-14)
+  12. 6acd3705 — feat(analyze): cablear el semaforo de concurrencia y retirar el veto viejo del exhaustivo (C.4d-2b, F-13/F-14)
+  13. dfb13ae8 — docs(sql): registrar columna analysis_result_id en document_staged (C.4d-2b, F-12, ya ejecutado)
+  14. a8351e3c — feat(analyze): el staged apunta al analisis que lo freno; el sync resetea el puntero (C.4d-2b, F-12)
+  15. ea51b077 — feat(review): review-list lee el puntero del staged para mostrar los contadores exactos (C.4d-2b, F-12)
+  16. baea7628 — feat(review): la fila distingue "requiere decision" de "pendiente de analisis" (C.4d-2b, F-11/F-12)
+  17. 229d2526 — feat(index-text): vetar reindexado de documentos con origen Drive (C.4d-2b, F-15)
+  18. 1661958a — fix(index-text): borrar el documento reemplazado con deleteDocument (lapida + borrado robusto) (C.4d-2b, F-15)
+  19. 9f8c32d6 — feat(review): mark-analyzed aprueba y activa una version staged con hallazgos (C.4d-2b, F-11)
+  20. 954052c4 — feat(review): endpoint para descartar una version staged (C.4d-2b, F-11)
+  21. a7ded3e0 — feat(analysis): endpoint GET /api/analysis-results/[id] por id exacto (C.4d-2b, F-12)
+  22. 99ff8cb2 — 11c-1b-1: review-list expone stagedAnalysisResultId del staged
+  23. 3c5378e0 — 11c-1b-2: el modal acepta stagedDecision y oculta las acciones incorrectas
+  24. 4f58d86d — 11c-1b-3: la fila "Requiere decision" abre el modal con los hallazgos del staged
+  25. 98ea3b45 — 11c-2a: ReviewActions gana los botones de decision (inertes)
+  26. ba24707c — Fix A (F-16): el cerrojo del sync vive en el staged cuando hay version en vuelo
+  27. ee9f2971 — Fix B (F-16 Q5): descartar la version nueva sella el cerrojo del sync
+  28. 0bad0c31 — 11c-2b: cablear los botones de decision de la version nueva
+  29. a1475002 — docs(diseno): registrar F-16 — la doctrina del cerrojo del sync
+  30. 2c5b7de4 — docs(diseno): registrar F-9-rev — el veto por origen sincronizado
+
+ESTADO: C.4d-2b CERRADO ENTERO — portero de calidad, puntero exacto, veto de
+concurrencia, los dos vetos de identidad, la UI de decisión completa (activar/
+descartar con detalle visible), y el cerrojo del sync arreglado y verificado
+en producción con los cinco actos de F-16. Siguiente, con el orden ya fijado
+por Fable (F-17/F-18): barrido de resucitados + conteo (única pieza viva de
+F-9-rev), y después la FOTO DE CONJUNTO que Fable pide desde F-12 — qué queda
+de C que un piloto real necesita, qué de D es imprescindible para onboardear a
+un cliente, y qué puede esperar a que haya alguien pagando. La foto de fase de
+F-17 deja el resto de C así: F-9-rev (pieza viva) → C.6 (fingerprints,
+prioridad subida por el portero) → C.5 (portero por hash, con dos adelantos ya
+anotados: la guarda de F-16 y que con staged compara contra
+staged.content_hash) → C.7 (aviso al borrar) → C.8 (ciclo de vida por conexión
++ formalizar CORPUS_ACTIVO) → C.4e residual. F-17: lo peligroso de la Fase C
+queda detrás.
