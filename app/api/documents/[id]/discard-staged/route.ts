@@ -10,13 +10,16 @@ import { buildVectorId, deleteVectorsByIds } from '@/lib/pinecone/vectors';
  * vectores (los de su generacion) y su fila. La version activa (vieja) queda intacta
  * y sigue sirviendo el chat. (C.4d-2b, F-11: salida "descartar" de "requiere decision".)
  *
- * Tras descartar, si el usuario modifica de nuevo el archivo en Drive y sincroniza, el
- * sync compara contra la version ACTIVA y crea un staged nuevo con normalidad — descartar
- * no bloquea futuras versiones.
+ * Tras descartar se sella el cerrojo (documents.source_modified_at = el del staged
+ * descartado, F-16 Q5): la version rechazada NO renace en el siguiente sync. Si el
+ * usuario edita de nuevo el archivo en Drive, su modifiedTime avanza por encima del
+ * sello y el sync crea un staged nuevo con normalidad.
  *
- * Orden: vectores PRIMERO, fila DESPUES. Si el borrado de vectores falla, la fila sigue
- * (con su generation) y se puede reintentar; al reves quedarian vectores huerfanos sin
- * saber su generacion.
+ * Orden: vectores PRIMERO, sello del cerrojo DESPUES, fila AL FINAL. Si el borrado de
+ * vectores falla, la fila sigue (con su generation) y se puede reintentar; si el sello
+ * falla, tampoco se borra la fila (mismo motivo: reintentable). Solo se borra la fila
+ * cuando las dos patas anteriores tuvieron exito — al reves quedarian vectores
+ * huerfanos, o el staged borrado con el cerrojo sin avanzar (el sync lo resucitaria).
  */
 export async function POST(
   req: NextRequest,
@@ -35,7 +38,7 @@ export async function POST(
   // Leer la version staged (necesitamos su generacion para borrar sus vectores).
   const { data: staged, error: stagedError } = await supabase
     .from('document_staged')
-    .select('document_id, generation, chunk_count')
+    .select('document_id, generation, chunk_count, source_modified_at')
     .eq('document_id', id)
     .eq('org_id', orgId)
     .maybeSingle();
@@ -67,7 +70,36 @@ export async function POST(
     );
   }
 
-  // 2) Borrar la fila document_staged. La version activa (vieja) no se toca.
+  // 2) Sellar el cerrojo del sync (F-16 Q5). Descartar ES procesar la version remota:
+  // el humano la vio y la rechazo. Si no se sella, documents.source_modified_at sigue
+  // congelado en la fecha de la version activa y el proximo sync reconstruye este mismo
+  // staged aunque nadie haya tocado Drive (el bucle que arreglo el Fix A, por otra
+  // puerta). Que el descriptor quede con la fecha de una version que nunca sirvio NO es
+  // la "mentira" que F-16 rechazo en Q1-ii: alli el sello era automatico y con el staged
+  // VIGENTE (hacia indistinguible "pendiente de decidir" de "resuelto"); aqui el staged
+  // desaparece en esta misma operacion y media una decision humana, asi que el campo
+  // significa exactamente "la ultima version remota que se proceso, rechazandola".
+  // Va ANTES de borrar la fila a proposito: si el sello falla, el staged sigue vivo y la
+  // operacion es reintentable. Al reves quedaria el staged borrado y el cerrojo sin
+  // avanzar -> el sync lo resucitaria.
+  if (staged.source_modified_at) {
+    const { error: lockError } = await supabase
+      .from('documents')
+      .update({ source_modified_at: staged.source_modified_at })
+      .eq('id', id)
+      .eq('org_id', orgId);
+
+    if (lockError) {
+      console.error('[discard-staged] error sellando el cerrojo:', lockError.message);
+      return NextResponse.json(
+        { error: 'No se pudo registrar el descarte. Inténtalo de nuevo.' },
+        { status: 500 },
+      );
+    }
+  }
+
+  // 3) Borrar la fila document_staged. Los vectores y el contenido de la version activa
+  // no se tocan; solo se ha avanzado su cerrojo.
   const { error: delError } = await supabase
     .from('document_staged')
     .delete()
