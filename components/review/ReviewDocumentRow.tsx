@@ -51,9 +51,10 @@ interface Props {
   disabled: boolean;
   onToggle: (id: string) => void;
   onOpen?: (doc: ReviewDocument) => void;
+  onDecide?: (doc: ReviewDocument) => void;
 }
 
-export default function ReviewDocumentRow({ document: doc, selected, disabled, onToggle, onOpen }: Props) {
+export default function ReviewDocumentRow({ document: doc, selected, disabled, onToggle, onOpen, onDecide }: Props) {
   const status = doc.analysis_status;
   const statusColor = STATUS_COLORS[status] ?? { bg: 'var(--bg-tertiary)', fg: 'var(--text-muted)' };
   const statusLabel = STATUS_LABELS[status] ?? status;
@@ -95,15 +96,21 @@ export default function ReviewDocumentRow({ document: doc, selected, disabled, o
         style={{
           flex: 1,
           minWidth: 0,
-          cursor: !stagedPending && doc.lastAnalysis && onOpen ? 'pointer' : 'default',
+          cursor: (stagedDecided && onDecide) || (!stagedPending && doc.lastAnalysis && onOpen) ? 'pointer' : 'default',
         }}
         onClick={() => {
-          // Un documento con version nueva en vuelo (stagedPending) NO abre el
-          // modal del analisis viejo: ese analisis es de la generacion anterior y
-          // "Mejorar con IA" sobre el crearia una tercera identidad (F-9). La via
-          // correcta es seleccionarlo y pulsar "Analizar" (analisis rapido, que al
-          // completar dispara el swap). La fila queda inerte al clic; el checkbox
-          // sigue activo para seleccionarlo.
+          // Un staged AUN NO analizado (stagedPending sin stagedDecided) sigue inerte:
+          // su analisis guardado (si lo hay) es de la generacion vieja y "Mejorar con
+          // IA" sobre el crearia una tercera identidad (F-9). La via correcta es
+          // seleccionarlo y pulsar "Analizar" (rapido, que al completar dispara el
+          // swap o, si hay hallazgos de corpus, deja la fila en "Requiere decision").
+          // Un staged YA analizado y frenado por el portero (stagedDecided) SI abre,
+          // pero en modo decision: el modal muestra los hallazgos de la version nueva
+          // para que el humano decida activarla o descartarla.
+          if (stagedDecided) {
+            if (onDecide) onDecide(doc);
+            return;
+          }
           if (!stagedPending && doc.lastAnalysis && onOpen) onOpen(doc);
         }}
       >

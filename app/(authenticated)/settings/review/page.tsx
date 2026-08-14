@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useVisualViewportHeight } from '@/hooks/useVisualViewportHeight';
 import { useAccount } from '@/contexts/AccountContext';
 import { useReviewList } from '@/hooks/review/useReviewList';
+import type { ReviewDocument } from '@/hooks/review/useReviewList';
 import { useReviewAnalysis } from '@/hooks/review/useReviewAnalysis';
 import AnalysisModal from '@/components/AnalysisModal';
 import ImprovementModal from '@/components/ImprovementModal';
@@ -40,6 +41,7 @@ export default function ReviewPage() {
   const [reviewAnalysis, setReviewAnalysis] = useState<Record<string, unknown> | null>(null);
   const [loadingAnalysis, setLoadingAnalysis] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [reviewStagedDecision, setReviewStagedDecision] = useState(false);
 
   // Modal de mejora abierto desde la bandeja (el documento ya esta indexado).
   const [improveTarget, setImproveTarget] = useState<{
@@ -51,6 +53,7 @@ export default function ReviewPage() {
 
   const handleOpenDocument = async (doc: { id: string; name: string }) => {
     setActionError(null);
+    setReviewStagedDecision(false);
     setLoadingAnalysis(true);
     setReviewDoc(doc);
     setReviewAnalysis(null);
@@ -77,9 +80,44 @@ export default function ReviewPage() {
     }
   };
 
+  const handleDecideDocument = async (doc: ReviewDocument) => {
+    const resultId = doc.stagedAnalysisResultId;
+    if (!resultId) {
+      setActionError('No se encontro el analisis de la version nueva de este documento.');
+      return;
+    }
+    setActionError(null);
+    setLoadingAnalysis(true);
+    setReviewStagedDecision(true);
+    setReviewDoc({ id: doc.id, name: doc.name });
+    setReviewAnalysis(null);
+    try {
+      const res = await fetch(`/api/analysis-results/${resultId}`, {
+        credentials: 'include',
+      });
+      if (!res.ok) throw new Error(`Error ${res.status}`);
+      const data = await res.json();
+      if (!data.analysis) {
+        setActionError('El analisis de la version nueva no guardo el detalle de las incidencias.');
+        setReviewDoc(null);
+        setReviewStagedDecision(false);
+        return;
+      }
+      setReviewAnalysis(data.analysis);
+    } catch (err) {
+      console.error('[review] cargar analisis del staged:', err);
+      setActionError('No se pudo cargar el analisis de la version nueva.');
+      setReviewDoc(null);
+      setReviewStagedDecision(false);
+    } finally {
+      setLoadingAnalysis(false);
+    }
+  };
+
   const closeReviewModal = () => {
     setReviewDoc(null);
     setReviewAnalysis(null);
+    setReviewStagedDecision(false);
   };
 
   const handleMarkAnalyzed = async () => {
@@ -305,6 +343,7 @@ export default function ReviewPage() {
                   onToggleDocument={toggleDocument}
                   onToggleFolder={toggleFolder}
                   onOpenDocument={handleOpenDocument}
+                  onDecideDocument={handleDecideDocument}
                 />
               ))}
             </div>
@@ -350,6 +389,7 @@ export default function ReviewPage() {
           onImprove={handleImprove}
           onMarkAnalyzed={handleMarkAnalyzed}
           onRemove={handleRemoveDocument}
+          stagedDecision={reviewStagedDecision}
         />
       )}
 
