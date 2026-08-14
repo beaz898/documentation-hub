@@ -1,0 +1,139 @@
+===============================================================
+DISEÑO C.4 — ADDENDUM F-16: LA DOCTRINA DEL CERROJO DEL SYNC
+===============================================================
+Respuesta de Fable F-16, recibida en Sesión 38. Registro exigido por la propia
+F-16 como condición de cierre ("es la regla más sutil del sync y acaba de
+demostrar qué pasa cuando vive solo en respuestas").
+
+Origen: bug verificado en producción durante C.4d-2b. Un documento con versión
+staged en vuelo se reprocesaba en CADA sync aunque nadie tocara el archivo en
+Drive: re-embeddings del mismo texto y reset de document_staged.analysis_result_id,
+que devolvía la fila de "Requiere decisión" a "Versión nueva" y destruía la
+decisión pendiente del humano. El portero (F-4-rev) quedaba decorativo y el
+documento entraba en bucle. Diagnóstico de Fable: el bug ERA la no-implementación
+de T2, decidido en F-4 y remachado en F-5(3)(ii). No falló el canal: falló la
+transcripción de decisión a código, y falló la verificación que lo habría cazado
+(el test del embudo, mandado dos veces, nunca se ejecutó con staged vivo).
+
+===============================================================
+1. LOS DOS PAPELES DE source_modified_at
+===============================================================
+Hasta C.3 el campo jugaba dos papeles FUNDIDOS, y era correcto porque coincidían.
+Con el staged (C.4d-1) dejaron de coincidir, y ahí nació el bug.
+
+  DESCRIPTOR — "qué fecha remota tiene lo que el chat SIRVE".
+    Vive en documents. Mientras hay una versión en vuelo se queda CONGELADO, y eso
+    es correcto: la fila principal describe siempre la versión activa.
+
+  CERROJO — "¿esta versión remota ya la procesé?".
+    Apunta a LO ÚLTIMO CONSTRUIDO: el staged cuando existe, la fila activa cuando
+    no. El chequeo de salto del sync lee staged.source_modified_at si hay staged,
+    documents.source_modified_at si no.
+
+Leer el descriptor como cerrojo es el bug. Un documento con staged tiene el
+descriptor congelado en una fecha vieja, así que el archivo NUNCA se salta.
+
+===============================================================
+2. LA REGLA (simetría que ordena todo el cerrojo)
+===============================================================
+EL CERROJO AVANZA CUANDO UNA VERSIÓN REMOTA FUE PROCESADA. Tres puertas, y solo
+tres:
+
+  a) POR SOBRESCRITURA — rama 'pendiente' del sync (C.3). Aquí descriptor y
+     cerrojo coinciden: lo procesado es exactamente lo que pasa a servirse, así
+     que avanza documents.source_modified_at.
+
+  b) POR SWAP — la P2 de swapDocumentVectors hereda source_modified_at del staged
+     (F-8). Al promover, la versión en vuelo pasa a ser la servida: los dos
+     papeles vuelven a coincidir.
+
+  c) POR DECISIÓN HUMANA — discard-staged escribe
+     documents.source_modified_at = staged.source_modified_at al descartar.
+     Descartar ES procesar: "esta versión la vi y la rechacé".
+
+===============================================================
+3. LO QUE FABLE RECHAZÓ, Y POR QUÉ IMPORTA
+===============================================================
+Se propuso (Q1-ii) que la rama VERSIONAR sellara documents.source_modified_at
+igual que la rama sobrescribir. RECHAZADO por dos razones:
+  - Sellaría la fila principal con la fecha de una versión que nunca sirvió:
+    mentira en el DESCRIPTOR.
+  - Haría indistinguible "staged vigente" de "staged descartado".
+
+La distinción con el punto 2(c) es fina y hay que entenderla o alguien "arreglará"
+discard-staged en el futuro: allí el sello sería AUTOMÁTICO y con el staged
+VIGENTE; aquí el staged DESAPARECE en la misma operación y media una decisión
+humana, así que el campo significa exactamente "la última versión remota que se
+procesó, rechazándola".
+
+===============================================================
+4. EL TOQUE-SIN-CAMBIO (F-16 Q2)
+===============================================================
+Caso residual tras implementar el cerrojo: el archivo se re-guarda en Drive
+(modifiedTime avanza) pero el texto es IDÉNTICO al del staged en vuelo. Reemplazar
+el staged ahí destruiría la decisión humana sin motivo. Como el hash ya se calcula
+en esa rama, la guarda es gratis:
+
+  contentHash === staged.content_hash
+    → avanzar SOLO staged.source_modified_at (el cerrojo aprende la fecha nueva),
+      NO tocar vectores, NO tocar el puntero, contar como sin-cambios.
+  distinto
+    → flujo normal: reemplazo del staged + reset del puntero (ahí el reset SÍ es
+      correcto: el análisis viejo caduca).
+
+Esto NO es adelantar C.5 (portero por hash): es no destruir una decisión humana
+con un dato que ya se tiene en la mano. Cuando C.5 exista, su comparación con
+staged presente será contra staged.content_hash y su "actualizar fecha" será la
+del staged. Anotado en el diseño de C.5.
+
+===============================================================
+5. OBSERVABILIDAD (F-16 Q3)
+===============================================================
+Cuando un staged SÍ se reemplaza de verdad, la decisión pendiente sobre la versión
+anterior caduca. La vuelta a "Versión nueva" (morada) es SILENCIOSA y es correcta:
+la bandeja es el estado y el estado es el mensaje. No se construyen notificaciones
+para esto. Pero se cuenta: stats.stagedReplaced en el resumen del sync (patrón
+C.1c) y log con documento, generaciones y fechas.
+
+===============================================================
+6. IMPLEMENTACIÓN Y VERIFICACIÓN
+===============================================================
+Fix A (commit ba24707c) — app/api/drive/sync/route.ts: chequeo de salto contra el
+cerrojo correcto; stagedRow cargado antes del chequeo; hash calculado antes de
+chunkear/embeber; guarda de toque-sin-cambio; contador stagedReplaced; comentario
+de la rama sobrescribir reescrito (fosilizaba la doctrina de C.3 y llevaba meses
+enseñando el invariante viejo).
+
+Fix B (commit ee9f2971) — discard-staged sella el cerrojo. Orden de patas:
+vectores → sello → fila. Si el sello falla, la fila sigue viva y la operación es
+reintentable; sellar después de borrar la fila dejaría el staged eliminado con el
+cerrojo sin avanzar, y el sync lo resucitaría.
+
+LOS CINCO ACTOS (verificación ordenada por F-16, ejecutada en producción sobre
+"new 9.txt", org a9625e93-af2a-4416-a465-5c2fa2a25bdf):
+
+  [✓] (i)   Staged en ámbar con puntero → sync sin tocar el archivo → ámbar y
+            puntero INTACTOS, cero descargas, cero embeddings.
+            (El test del embudo de F-4/F-5, por fin ejecutado con staged vivo.)
+  [✓] (ii)  Toque-sin-cambio fabricado (re-guardar idéntico en Drive) → puntero
+            intacto, staged.source_modified_at avanzado, stats sin-cambios.
+  [✓] (iii) Cambio real → staged reemplazado, puntero a null, fila morada,
+            stagedReplaced contado.
+  [✓] (iv)  Descartar → dos syncs seguidos → nada renace. Editar en Drive →
+            renace con normalidad.
+  [✓] (v)   Aprobar con hallazgos → swap + reviewed_at relleno (foto SQL:
+            source_modified_at 11:22:36 heredado del staged, reviewed_at 11:23:42
+            un minuto después — firma de que la P2 lo reseteó y mark-analyzed lo
+            rellenó), documento fuera de la bandeja, chat sirviendo el contenido
+            nuevo → siguiente sync limpio.
+
+===============================================================
+7. CORRECCIÓN DE PROCESO (F-16, obligatoria desde hoy)
+===============================================================
+Cerrar una sub-fase exige copiar la lista de verificación consolidada de los F-n
+correspondientes a la bitácora COMO CHECKLIST, y marcarla ítem a ítem con su
+evidencia (query, conteo, captura). "Se verificó" sin la lista delante es como
+este bug llegó a producción con dos avisos escritos.
+
+Nota de protocolo (F-16): los F-n numeran las respuestas de Fable. No se reserva
+el número al titular una consulta.
