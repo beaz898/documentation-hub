@@ -10,9 +10,17 @@ const ALLOWED_MIME_TYPES: Record<string, string> = {
   'text/html': 'html',
   'application/json': 'json',
   'application/vnd.google-apps.document': 'gdoc',
+  // Hojas de calculo subidas como fichero (mismo mimeType OOXML que en OneDrive).
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': 'xlsx',
+  'application/vnd.ms-excel.sheet.macroEnabled.12': 'xlsm',
+  // Google Sheets NATIVO: no se descarga, se exporta (ver downloadFile). Entra aqui
+  // tambien porque Drive convierte a nativo los .xlsx subidos cuando el usuario tiene
+  // activada la conversion automatica: sin esta entrada, esos archivos serian
+  // invisibles para el sync sin que el cliente supiera por que.
+  'application/vnd.google-apps.spreadsheet': 'gsheet',
 };
 
-const ALLOWED_EXTENSIONS = new Set(['pdf', 'docx', 'txt', 'md', 'csv', 'json', 'html']);
+const ALLOWED_EXTENSIONS = new Set(['pdf', 'docx', 'txt', 'md', 'csv', 'json', 'html', 'xlsx', 'xlsm']);
 
 async function listFilesRecursive(
   accessToken: string,
@@ -161,6 +169,18 @@ export const googleDriveProvider: DriveProvider = {
       if (!res.ok) throw new Error(`Google Docs export failed: ${res.status}`);
       fileBuffer = Buffer.from(await res.arrayBuffer());
       ext = 'txt';
+    } else if (mimeType === 'application/vnd.google-apps.spreadsheet') {
+      // Un Sheet nativo no tiene binario descargable: ?alt=media devuelve 403
+      // fileNotDownloadable. Hay que exportarlo, igual que los Docs. Se exporta a XLSX y
+      // NO a text/csv a proposito: el export a CSV solo devuelve la PRIMERA hoja y
+      // perderia el resto sin avisar.
+      const res = await fetch(
+        `https://www.googleapis.com/drive/v3/files/${fileId}/export?mimeType=application%2Fvnd.openxmlformats-officedocument.spreadsheetml.sheet`,
+        { headers: { Authorization: `Bearer ${accessToken}` } }
+      );
+      if (!res.ok) throw new Error(`Google Sheets export failed: ${res.status}`);
+      fileBuffer = Buffer.from(await res.arrayBuffer());
+      ext = 'xlsx';
     } else {
       const res = await fetch(
         `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`,

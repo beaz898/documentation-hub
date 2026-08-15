@@ -9,9 +9,14 @@ const ALLOWED_MIME_TYPES: Record<string, string> = {
   'text/csv': 'csv',
   'text/html': 'html',
   'application/json': 'json',
+  // Hojas de calculo: extractText ya las convierte a tablas Markdown por hoja
+  // (extractTextFromExcel) y la subida manual siempre las acepto. Faltaban aqui, asi
+  // que por Drive se descartaban en el listado, antes de descargarse y sin contador.
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': 'xlsx',
+  'application/vnd.ms-excel.sheet.macroEnabled.12': 'xlsm',
 };
 
-const ALLOWED_EXTENSIONS = new Set(['pdf', 'docx', 'txt', 'md', 'csv', 'json', 'html']);
+const ALLOWED_EXTENSIONS = new Set(['pdf', 'docx', 'txt', 'md', 'csv', 'json', 'html', 'xlsx', 'xlsm']);
 
 const MS_TOKEN_URL = 'https://login.microsoftonline.com/common/oauth2/v2.0/token';
 const GRAPH_BASE = 'https://graph.microsoft.com/v1.0';
