@@ -88,6 +88,15 @@ export async function POST(req: NextRequest) {
         const { error: tokenUpdateError } = await supabase.from('drive_connections')
           .update({
             access_token: encrypt(newTokens.accessToken),
+            // Persistir TAMBIEN el refresh_token: Microsoft puede rotarlo en cada
+            // refresco (OneDrive devuelve data.refresh_token cuando lo hace). Si no se
+            // guarda, la fila conserva el viejo y el SIGUIENTE refresco falla, dejando
+            // la conexion muerta sin aviso: el usuario tiene que reconectar Drive a
+            // mano. Se escribe siempre, sin condicion: el campo es obligatorio en
+            // DriveTokens y ambos providers devuelven un string valido (Google reenvia
+            // el mismo, OneDrive el nuevo o el mismo como fallback), asi que cuando no
+            // ha cambiado esto lo reescribe identico, que es inocuo.
+            refresh_token: encrypt(newTokens.refreshToken),
             token_expires_at: newTokens.expiresAt.toISOString(),
           })
           .eq('org_id', orgId);
@@ -489,6 +498,9 @@ export async function GET(req: NextRequest) {
         await supabase.from('drive_connections')
           .update({
             access_token: encrypt(newTokens.accessToken),
+            // Mismo motivo que en el refresco del POST: si Microsoft rota el
+            // refresh_token y no se persiste, el proximo refresco muere.
+            refresh_token: encrypt(newTokens.refreshToken),
             token_expires_at: newTokens.expiresAt.toISOString(),
           })
           .eq('org_id', orgId);
