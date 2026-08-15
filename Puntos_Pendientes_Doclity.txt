@@ -3,7 +3,7 @@ PENDIENTES — Doclity (Agente IA)
 Documento vivo. Se actualiza al completar tareas (marcar [✓]) y se
 sustituye por la versión nueva. Más ligero que la Bitácora: aquí va
 lo que falta y la visión que lo guía, no el detalle de cada sesión.
-Última actualización: 15/08/2026 (v38)
+Última actualización: 15/08/2026 (v39)
 
 
 ════════════════════════════════════════════════════════════════
@@ -1116,6 +1116,39 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     que quita el fragmento). No urgente (acción manual) pero es pérdida del texto en
     edición. Arreglar antes de cerrar el bloque grande de análisis/versionado.
     Reproducido en S37.
+
+  B.67 — [Chat/RAG] El dedupe a máximo 4 documentos hace que un documento corto
+    pierda el corte frente a Excels que generan muchos fragmentos al convertirse en
+    tablas Markdown (un protocolo de una página compite en igualdad de condiciones
+    contra un Excel que aporta decenas de fragmentos). Evaluar subir el límite o
+    señalar al usuario cuándo usar el agente (que no tiene el problema: busca en
+    varias vueltas y lee documentos enteros) en vez del chat. Detectado en S38 con
+    el corpus de prueba Dentalia (ver Bitácora, "SESIÓN 38 (cierre 2)").
+
+  B.68 — [Sync] Mensaje accionable cuando pdf-parse falla o devuelve 0 caracteres
+    (hoy el usuario solo ve "N sin texto legible" sin saber qué hacer). Sugerir
+    reescanear/reguardar el PDF o comprobar si está escaneado sin OCR. No es bug:
+    pdf-parse no soporta PDFs generados por script ni sin capa de texto; los PDF
+    ofimáticos normales se leen bien.
+
+  B.69 — [Sync] Evaluar soporte de .odt (LibreOffice) en extractText y en las
+    listas blancas de los proveedores (onedrive.ts, google.ts, ingest).
+
+  B.70 — [Coste] Repetir la medición de llm_usage con ~100 turnos de agente (la
+    muestra de S38 fue de 16: 9,3 céntimos de media, máximo 30) y decidir si el
+    mínimo de 15 créditos cobrados por turno cubre el peor caso — con margen medio
+    del 38% hoy, un turno largo puede salir negativo. Investigar además por qué
+    analyze_exhaustive con Haiku cuesta 3x lo que con Sonnet.
+
+  B.71 — [Observabilidad] llm_usage no se lee desde ninguna pantalla: /settings/usage
+    agrega usage_logs, analysis_results y chat_queries, pero no el coste real en
+    USD que ya guarda esa tabla. Y las filas operation='agent' tienen
+    credits_charged NULL (el worker no lo pasa al persistir), así que no se puede
+    comparar coste real contra créditos cobrados sin cruzar con agent_messages.
+
+  B.72 — [Agente] tokensToCredits (lib/agent/credit-calc.ts) asume Sonnet fijo y no
+    lee el modelo real de llm_usage; si el agente cambiara de modelo, los créditos
+    cobrados quedarían desalineados del coste real sin que nada lo detecte.
 
   C.8 — [NUEVO, diseño de Fable, S35] Ciclo de vida por conexión. Al cambiar o perder
     el proveedor de nube, los documentos del proveedor anterior NO se borran ni se

@@ -4029,3 +4029,103 @@ ESTADO: bloque de piloto cerrado. C.4d-2b, sus dos fixes de producción y el
 barrido de F-9-rev, todo verificado. Pendiente para la próxima consulta a
 Fable: el hueco de /api/admin/duplicates frente al patrón real de un
 resucitado (ver Puntos_Pendientes_Doclity.txt).
+
+────────────────────────────────────────────────────────────────
+SESIÓN 38 (cierre 2) — el sync perdía archivos: hojas de cálculo invisibles
+y desapariciones silenciosas. Validación del agente con corpus de prueba
+────────────────────────────────────────────────────────────────
+
+CONTEXTO: se preparó un corpus de prueba ficticio (red de clínicas "Dentalia":
+Excel de facturación 2025 con patrones plantados, actas de dirección con las
+causas de dos de esos patrones y ninguna causa para el tercero, protocolo de
+visitas y registro de visitas) para validar si el agente distingue lo que
+sabe de lo que no. Al subirlo aparecieron DOS fallos del sync, ninguno
+relacionado con lo que se iba a probar.
+
+f0d4572c — el sync perdía archivos en silencio. Tras descargar, si el texto
+extraído salía vacío o de menos de 50 caracteres, se hacía console.warn +
+continue SIN incrementar ningún contador: el archivo desaparecía del
+recuento (ni nuevo, ni actualizado, ni saltado, ni fallido). El usuario veía
+un resumen que cuadraba y creía que todo se había indexado, mientras el
+corpus quedaba incompleto y el chat respondía sin ese documento. Ahora se
+cuenta en stats.unreadable, se loguea con el número de caracteres extraídos,
+y el mensaje del sync dice "N sin texto legible". No entra en hadFailures:
+no es fallo del sistema, es un aviso sobre el contenido.
+
+9d198063 — hojas de cálculo invisibles para el sync. extractText SIEMPRE
+supo leer xlsx/xlsm (extractTextFromExcel los convierte a tablas Markdown
+por hoja) y la subida manual (ingest) siempre los aceptó, pero las listas
+blancas de los DOS proveedores los excluían en el LISTADO, antes de
+descargarlos: no llegaban ni a contarse como encontrados. Alguien añadió
+soporte de Excel a extractText y a ingest y no actualizó los proveedores. Se
+tapan tres huecos a la vez: (1) xlsx/xlsm en ALLOWED_MIME_TYPES y
+ALLOWED_EXTENSIONS de onedrive.ts y google.ts; (2) rama de exportación para
+Google Sheets nativo en downloadFile (un Sheet nativo no tiene binario
+descargable: ?alt=media devuelve 403 fileNotDownloadable), exportando a XLSX
+y NO a text/csv, porque el CSV solo devuelve la PRIMERA hoja y perdería el
+resto en silencio — el mismo fallo que acababa de taparse; (3) el caso de la
+conversión automática de Drive, que convierte a Sheets nativo los .xlsx
+subidos si el usuario tiene ese ajuste activado, sin que lo sepa. Van juntos
+a propósito: arreglar solo el primero dejaría el soporte funcionando o no
+según un ajuste de la cuenta del cliente.
+
+INCIDENTE DE PROCESO: el commit 9d198063 se hizo saltándose la aprobación
+previa acordada (Claude Code commiteó sin pegar el diff) y además quedó SIN
+PUSHEAR. Se perdió media hora diagnosticando un bug inexistente: producción
+seguía con el código viejo. Regla reforzada: confirmar que el hash está en
+origin/main, no solo que el commit existe.
+
+LIMITACIÓN CONOCIDA (no es bug): pdf-parse falla con PDFs generados por
+script ("FormatError: Command token too long: 128") y devuelve 0 caracteres
+con PDFs sin capa de texto. Los PDF ofimáticos normales (Word, escáner con
+OCR) se leen bien. Anotado como pendiente el mensaje accionable al usuario.
+Tampoco se soporta .odt.
+
+VALIDACIÓN DEL AGENTE (nueve preguntas sobre el corpus de prueba, resultado:
+cero alucinaciones). Lo relevante:
+- Encuentra causas documentadas en otro documento y otro mes (la reforma de
+  Vigo en el acta de febrero explica la caída de marzo-mayo), citando la
+  fuente.
+- Ante una caída SIN causa documentada (Ourense) dice explícitamente que no
+  la hay, y la contrasta con Vigo. No inventa explicaciones plausibles. Esta
+  era la prueba decisiva.
+- Cruza tres documentos y calcula: medias anuales del Excel + umbrales del
+  protocolo + fechas del registro = días exactos de retraso por centro.
+  Aritmética correcta.
+- Audita cumplimiento: detecta que Vigo debía visita extraordinaria por la
+  caída del 54% en marzo, comprueba en el registro que no se hizo, y
+  RECHAZA la excepción fácil ("el protocolo no contempla excepciones por
+  causa justificada").
+- Separa hecho de juicio sin que se le pida ("el texto dice literalmente"
+  frente a "la posición más sólida sería"), y aporta un argumento de
+  gobernanza que no está en ningún documento (una decisión de no visitar
+  debería haberse documentado).
+- Encuentra una laguna derivada del protocolo que no está escrita en
+  ninguna parte: si la media de Ourense baja de 60.000 EUR pasaría al tramo
+  de 90 días, reduciendo la supervisión justo sobre el centro que peor va.
+
+LIMITACIÓN OBSERVADA EN EL CHAT (no en el agente): una pregunta que necesita
+tres documentos falló porque el RAG dedupe a un máximo de 4 documentos y los
+Excel, al convertirse en tablas Markdown, generan MUCHOS más fragmentos que
+un protocolo de una página: el documento corto pierde el corte por volumen.
+Respondió con honestidad ("no encontré el protocolo") pero incompleto. El
+agente no tiene el problema porque busca en varias vueltas y lee documentos
+enteros. Decisión de producto pendiente: ajustar el límite o explicar al
+usuario cuándo usar cada superficie.
+
+COSTES REALES MEDIDOS (consulta a llm_usage, que ya guardaba cost_usd por
+operación aunque ninguna pantalla la lea): chat 0,27 céntimos de media;
+análisis rápido 0,62; turno de agente 9,3 céntimos de media con máximo
+observado de 30. El agente cobra mínimo 15 créditos, así que el margen medio
+es del 38% y en los turnos largos puede ser negativo. Muestra corta (16
+turnos): repetir la medición con 100. Anotado además que analyze_exhaustive
+con Haiku cuesta 3x lo que con Sonnet (hipótesis: Haiku hace el trabajo
+bruto sobre muchos documentos y Sonnet solo sintetiza lo filtrado).
+
+Se guarda el corpus de prueba y las nueve preguntas como GUION DE
+DEMOSTRACIÓN: datos ficticios con patrones controlados, sin datos reales de
+ningún cliente.
+
+ESTADO: bloque cerrado. Siguiente: la FOTO DE CONJUNTO que Fable pide desde
+F-12 (qué queda de C para un piloto real, qué de D es imprescindible para
+onboardear a un cliente, y qué puede esperar a que haya alguien pagando).
