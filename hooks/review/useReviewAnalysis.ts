@@ -7,11 +7,17 @@ export interface ReviewAnalysisError {
   documentId: string;
   documentName: string;
   message: string;
+  // true = no se analizo porque habia otro analisis en curso en la organizacion
+  // (veto de concurrencia F-13/F-14, 409 'analysis_in_progress'). NO es un fallo:
+  // el documento sigue intacto y basta reintentar cuando el otro termine. Se cuenta
+  // aparte para no llamar "error" a una cola funcionando.
+  blocked?: boolean;
 }
 
 export interface ReviewAnalysisSummary {
   analyzed: number;
   failed: number;
+  blocked: number;
   errors: ReviewAnalysisError[];
 }
 
@@ -49,7 +55,12 @@ async function analyzeOneDocument(doc: ReviewDocument): Promise<void> {
   });
   if (!analyzeRes.ok) {
     const data = await analyzeRes.json().catch(() => ({}));
-    throw new Error(data.error || `Error al analizar (${analyzeRes.status})`);
+    const err = new Error(data.error || `Error al analizar (${analyzeRes.status})`);
+    // Marcar el veto de concurrencia para que el bucle lo cuente aparte.
+    if (data.errorType === 'analysis_in_progress') {
+      (err as Error & { blocked?: boolean }).blocked = true;
+    }
+    throw err;
   }
 }
 
@@ -72,15 +83,23 @@ export function useReviewAnalysis() {
           await analyzeOneDocument(doc);
           analyzed++;
         } catch (err) {
+          const blocked = Boolean((err as Error & { blocked?: boolean })?.blocked);
           errors.push({
             documentId: doc.id,
             documentName: doc.name,
             message: err instanceof Error ? err.message : 'Error desconocido',
+            blocked,
           });
         }
       }
 
-      const result: ReviewAnalysisSummary = { analyzed, failed: errors.length, errors };
+      const blockedCount = errors.filter((e) => e.blocked).length;
+      const result: ReviewAnalysisSummary = {
+        analyzed,
+        failed: errors.length - blockedCount,
+        blocked: blockedCount,
+        errors,
+      };
       setSummary(result);
       setProgress(null);
       setAnalyzing(false);

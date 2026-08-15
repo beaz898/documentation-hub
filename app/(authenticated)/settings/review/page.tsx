@@ -333,16 +333,22 @@ export default function ReviewPage() {
                   padding: '10px 12px',
                   borderRadius: 8,
                   fontSize: 12,
-                  background: summary.failed > 0 ? '#fef3c7' : '#dcfce7',
-                  color: summary.failed > 0 ? '#92400e' : '#166534',
+                  background: summary.failed > 0 ? '#fef3c7' : summary.blocked > 0 ? '#dbeafe' : '#dcfce7',
+                  color: summary.failed > 0 ? '#92400e' : summary.blocked > 0 ? '#1e40af' : '#166534',
                   border: '0.5px solid var(--border)',
                 }}
               >
                 {summary.analyzed} analizado{summary.analyzed === 1 ? '' : 's'}
                 {summary.failed > 0 && `, ${summary.failed} con error`}
-                {summary.errors.length > 0 && (
+                {summary.blocked > 0 && `, ${summary.blocked} sin analizar (hay un análisis en curso)`}
+                {summary.blocked > 0 && (
+                  <div style={{ marginTop: 4 }}>
+                    {summary.errors.find((e) => e.blocked)?.message}
+                  </div>
+                )}
+                {summary.errors.filter((e) => !e.blocked).length > 0 && (
                   <ul style={{ margin: '6px 0 0', paddingLeft: 18 }}>
-                    {summary.errors.map((e) => (
+                    {summary.errors.filter((e) => !e.blocked).map((e) => (
                       <li key={e.documentId}>
                         {e.documentName}: {e.message}
                       </li>
