@@ -152,6 +152,7 @@ export async function POST(req: NextRequest) {
     let updatedCount = 0;
     let versionedCount = 0;
     let stagedReplacedCount = 0;
+    let unreadableCount = 0;
     let skippedCount = 0;
     let skippedExcludedCount = 0;
     let failedCount = 0;
@@ -189,7 +190,12 @@ export async function POST(req: NextRequest) {
       try {
         const text = await provider.downloadFile(accessToken, file.id, file.mimeType);
         if (!text || text.trim().length < 50) {
-          console.warn(`[DRIVE SYNC] Texto vacío o muy corto, se omite: ${file.name}`);
+          // Se cuenta: antes este continue no incrementaba NINGUN contador, asi que un
+          // archivo ilegible (formato que el extractor no entiende, PDF escaneado sin
+          // OCR, documento practicamente vacio) desaparecia del recuento y el usuario
+          // creia que se habia indexado. El corpus quedaba incompleto en silencio.
+          unreadableCount++;
+          console.warn(`[DRIVE SYNC] Texto vacío o muy corto, se omite: ${file.name} | chars=${text?.trim().length ?? 0}`);
           continue;
         }
 
@@ -431,7 +437,7 @@ export async function POST(req: NextRequest) {
       console.error(`[DRIVE SYNC] update-last-synced fallo | org=${orgId} | code=${syncedAtError.code ?? '?'} | ${syncedAtError.message}`);
     }
 
-    console.log(`[DRIVE SYNC] Complete: ${newCount} new, ${updatedCount} updated, ${deletedCount} deleted, ${skippedCount} unchanged, ${failedCount} failed, ${deleteFailedCount} delete-failed, ${skippedExcludedCount} excluded, ${versionedCount} versioned, ${stagedReplacedCount} staged-replaced`);
+    console.log(`[DRIVE SYNC] Complete: ${newCount} new, ${updatedCount} updated, ${deletedCount} deleted, ${skippedCount} unchanged, ${failedCount} failed, ${deleteFailedCount} delete-failed, ${skippedExcludedCount} excluded, ${versionedCount} versioned, ${stagedReplacedCount} staged-replaced, ${unreadableCount} unreadable`);
 
     return NextResponse.json({
       success: failedCount === 0,
@@ -444,6 +450,7 @@ export async function POST(req: NextRequest) {
         skipped: skippedCount,
         skippedExcluded: skippedExcludedCount,
         failed: failedCount,
+        unreadable: unreadableCount,
         deleteFailed: deleteFailedCount,
         total: allFiles.length,
       },

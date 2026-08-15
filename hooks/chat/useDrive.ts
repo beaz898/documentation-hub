@@ -72,6 +72,10 @@ export function useDrive(
         if (versioned > 0) {
           parts.push(`**${versioned}** con nueva versión pendiente de validar`);
         }
+        const unreadable = stats.unreadable ?? 0;
+        if (unreadable > 0) {
+          parts.push(`**${unreadable}** sin texto legible`);
+        }
         const hadFailures = failed > 0 || deleteFailed > 0;
         addMessage({
           id: crypto.randomUUID(),
