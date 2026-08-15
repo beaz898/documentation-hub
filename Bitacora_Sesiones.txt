@@ -3967,3 +3967,65 @@ anotados: la guarda de F-16 y que con staged compara contra
 staged.content_hash) → C.7 (aviso al borrar) → C.8 (ciclo de vida por conexión
 + formalizar CORPUS_ACTIVO) → C.4e residual. F-17: lo peligroso de la Fase C
 queda detrás.
+
+────────────────────────────────────────────────────────────────
+SESIÓN 38 (cierre) — arreglos de piloto: refresh_token de OneDrive, el veto
+de concurrencia deja de ser "error", y barrido de resucitados sin hallazgos
+────────────────────────────────────────────────────────────────
+
+- 47289d1e — fix del refresh_token. Los dos puntos de refresco del sync (POST
+  y GET) llamaban a provider.refreshAccessToken(), que devuelve DriveTokens
+  con refreshToken siempre relleno, pero el .update() solo escribía
+  access_token y token_expires_at: el refresh_token nuevo se calculaba y se
+  descartaba. Con Google era inofensivo (reenvía el mismo, sus refresh tokens
+  son long-lived); con OneDrive no, porque Microsoft rota el refresh token y
+  lib/drive/onedrive.ts ya lo contemplaba (data.refresh_token || refreshToken).
+  Al no persistirlo, la fila conservaba el viejo y el SIGUIENTE refresco
+  fallaba: conexión muerta sin aviso, días después de conectar, sin más
+  salida que reconectar Drive a mano. Se escribe siempre, sin condición (el
+  campo es obligatorio en DriveTokens y ambos providers devuelven string
+  válido). VERIFICACIÓN DE ORDEN CAUSAL (estándar F-18): se forzó
+  token_expires_at al pasado, se lanzó un sync, y el refresh_token de la fila
+  CAMBIÓ (bbf403b1... → f8d4a30a...) — Microsoft rotó en ese mismo refresco,
+  luego el bug estaba ACTIVO y antes ese token se habría perdido.
+
+- 0aef3530 — el veto de concurrencia deja de contarse como error. analyze-v2
+  responde 409 con errorType 'analysis_in_progress' y un mensaje útil, pero
+  analyzeOneDocument descartaba errorType y la bandeja lo contaba como "N con
+  error": un fallo donde hay una cola funcionando. Con tandas era peor (5
+  documentos con el veto puesto = "0 analizados, 5 con error" y cinco líneas
+  idénticas). Ahora ReviewAnalysisError gana blocked, ReviewAnalysisSummary
+  separa failed de blocked, y el resumen sale en azul informativo con un solo
+  mensaje y sin lista. Verificado en producción con dos pestañas: "0
+  analizados, 1 sin analizar (hay un análisis en curso)".
+
+- Deuda técnica retirada sin código: los tokens OAuth NO estaban en texto
+  plano. lib/crypto.ts (AES-256-GCM, clave DRIVE_ENCRYPTION_KEY) ya se usaba
+  en los cuatro puntos de escritura, y una consulta a drive_connections
+  confirmó que las dos filas (google_drive y onedrive) tienen access_token y
+  refresh_token cifrados. El punto venía arrastrándose en la lista de deuda
+  sin haberse comprobado — mismo error que F-18 corrigió en sentido inverso:
+  declarar pendiente lo desconocido en vez de mirarlo.
+
+- BARRIDO DE RESUCITADOS (última pieza viva de F-9-rev): ejecutado, CERO
+  hallazgos. Evidencia: en la org de pruebas, 0 grupos de duplicados exactos
+  por content_hash y 0 pares con el mismo nombre + un lado de nube y otro
+  manual. Lo mismo en la org con Google Drive. F-9-rev queda COMPLETO
+  (fix-lápida 1661958a, barrido, veto por origen 229d2526).
+  HALLAZGO SOBRE LA HERRAMIENTA, no sobre los datos: /api/admin/duplicates
+  agrupa por content_hash IDÉNTICO, y un resucitado y su corrección manual
+  son textos DISTINTOS (la corrección existe porque el original tenía un
+  problema). La herramienta NO habría encontrado estos pares salvo en el caso
+  raro de que la corrección no cambiara nada. El patrón real es mismo NOMBRE
+  + un lado de nube y otro manual, con hashes distintos; se detectó por SQL
+  directo, no por la herramienta. Además su preselección automática marca la
+  copia MÁS ANTIGUA como superviviente, que en este caso suele ser la
+  CORRECCIÓN: un admin que confíe en el valor por defecto borraría la buena y
+  conservaría el resucitado. Pendiente de comentar a Fable en la próxima
+  consulta (no se le escribió un mensaje propio: no había decisión que
+  tomar).
+
+ESTADO: bloque de piloto cerrado. C.4d-2b, sus dos fixes de producción y el
+barrido de F-9-rev, todo verificado. Pendiente para la próxima consulta a
+Fable: el hueco de /api/admin/duplicates frente al patrón real de un
+resucitado (ver Puntos_Pendientes_Doclity.txt).

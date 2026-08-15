@@ -3,7 +3,7 @@ PENDIENTES — Doclity (Agente IA)
 Documento vivo. Se actualiza al completar tareas (marcar [✓]) y se
 sustituye por la versión nueva. Más ligero que la Bitácora: aquí va
 lo que falta y la visión que lo guía, no el detalle de cada sesión.
-Última actualización: 14/08/2026 (v37)
+Última actualización: 15/08/2026 (v38)
 
 
 ════════════════════════════════════════════════════════════════
@@ -1068,10 +1068,11 @@ NOTAS DE ORDEN (propuesta, a confirmar)
         C.6/C.5/C.7/C.8.
 
       PENDIENTES DESTAPADOS EN d-2b (Sesión 38, detalle en Bitácora):
-        - Barrido de resucitados + conteo al dueño (única pieza viva de F-9-rev):
-          puede haber duplicados exactos creados por index-text ANTES del fix de
-          lápida (1661958a) — documentos de Drive reimportados sin corregir. No es
-          código nuevo: ejecutar la acción de duplicados exactos de C.2 y contar.
+        - [✓ HECHO, 15/08/2026] Barrido de resucitados + conteo al dueño (única
+          pieza viva de F-9-rev): ejecutado, CERO hallazgos — 0 grupos por
+          content_hash y 0 pares mismo-nombre/distinto-origen en ambas orgs de
+          prueba. F-9-rev queda COMPLETO. Detalle en Bitácora, "SESIÓN 38
+          (cierre)".
         - Comentario cruzado pendiente en el enum/config de providers (F-18): "al
           añadir proveedor: revisar veto de index-text (F-9-rev)".
         - mark-analyzed no comprueba el veto de concurrencia (lib/analysis-lock.ts):
@@ -1082,8 +1083,25 @@ NOTAS DE ORDEN (propuesta, a confirmar)
           1661958a).
         - window.alert() de errores de indexado en el modal de mejora → sustituir
           por banner integrado.
-        - El 409 de concurrencia se muestra en la bandeja como "1 con error";
-          cambiar el mensaje a algo tipo "espera unos segundos, análisis en curso".
+        - [✓ RESUELTO, commit 0aef3530] El 409 de concurrencia ya no se cuenta como
+          "N con error" en la bandeja: ReviewAnalysisSummary separa failed de
+          blocked, y el resumen sale como aviso azul informativo con el mensaje
+          real del veto.
+        - [NUEVO, destapado al ejecutar el barrido] /api/admin/duplicates (C.2) no
+          detecta el patrón real de un resucitado: agrupa por content_hash
+          IDÉNTICO, pero un resucitado y su corrección manual son textos
+          DISTINTOS (la corrección existe porque el original tenía un problema)
+          — el patrón real es mismo NOMBRE + un lado de nube y otro manual, con
+          hashes distintos, y hoy solo se encuentra por SQL directo. Además su
+          preselección automática marca como superviviente la copia MÁS
+          ANTIGUA, que en este patrón suele ser la CORRECCIÓN: un admin que
+          confíe en el valor por defecto borraría la buena y conservaría el
+          resucitado. Evaluar detección adicional por nombre+origen, o al menos
+          invertir/avisar en la preselección.
+        - Pendiente de comentar los dos hallazgos de arriba (barrido en cero +
+          hueco de la herramienta de duplicados) a Fable en la próxima consulta;
+          no se le escribió mensaje propio porque no había decisión que tomar
+          todavía.
 
   B.65 — [REGLA VIGENTE, mecanismo migrado en S37] La regla (el análisis solo
     compara contra corpus validado) SIGUE activa, ahora vía el filtro CORPUS_ACTIVO
@@ -1104,12 +1122,13 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     siguen sirviendo: se INERTIZAN (perviven en BD pero fuera del chat y de los
     análisis) y REVIVEN al reconectar el mismo proveedor. Resuelve privacidad
     (ex-empleado que pierde acceso), fósiles y desconexión accidental. Idea del usuario.
-    ORDEN DE FASE C (foto de fase F-17, sustituye el orden anterior): F-9-rev
-    (pieza viva, barrido de resucitados) → C.6 (fingerprints permanentes, prioridad
-    subida por el portero) → C.5 (portero por hash, con dos adelantos ya anotados:
-    la guarda de F-16 y que con staged compara contra staged.content_hash) → C.7
-    (aviso al borrar) → C.8 (ciclo de vida por conexión + formalizar CORPUS_ACTIVO)
-    → C.4e (residual). F-17: lo peligroso de la Fase C queda detrás.
+    ORDEN DE FASE C (foto de fase F-17): F-9-rev CERRADO (barrido de resucitados
+    ejecutado 15/08/2026, cero hallazgos — ver Bitácora "SESIÓN 38 (cierre)").
+    Orden que queda: C.6 (fingerprints permanentes, prioridad subida por el
+    portero) → C.5 (portero por hash, con dos adelantos ya anotados: la guarda de
+    F-16 y que con staged compara contra staged.content_hash) → C.7 (aviso al
+    borrar) → C.8 (ciclo de vida por conexión + formalizar CORPUS_ACTIVO) → C.4e
+    (residual). F-17: lo peligroso de la Fase C queda detrás.
 
   [RESUELTO S35 como B.65 / D3-rev] ¿El análisis debe comparar contra documentos en estado 'pendiente'?
     Propuesta del usuario: NO contra pendientes sueltos (no validados), SÍ contra los
