@@ -268,6 +268,7 @@
     "discardAndClose": "Descartar y cerrar",
     "indexCorrected": "Indexar versión corregida",
     "discardConfirm": "¿Descartar los cambios y cerrar? El archivo original se eliminará.",
+    "discardConfirmNoDelete": "¿Descartar los cambios y cerrar? El documento seguirá en el corpus, sin cambios.",
     "copyButton": "Copiar",
     "copiedButton": "✓ Copiado",
     "downloadTxt": "Descargar .txt",

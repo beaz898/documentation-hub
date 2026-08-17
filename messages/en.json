@@ -268,6 +268,7 @@
     "discardAndClose": "Discard and close",
     "indexCorrected": "Index corrected version",
     "discardConfirm": "Discard changes and close? The original file will be deleted.",
+    "discardConfirmNoDelete": "Discard changes and close? The document will stay in the corpus, unchanged.",
     "copyButton": "Copy",
     "copiedButton": "✓ Copied",
     "downloadTxt": "Download .txt",

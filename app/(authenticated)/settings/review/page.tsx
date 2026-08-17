@@ -42,7 +42,6 @@ export default function ReviewPage() {
   const [loadingAnalysis, setLoadingAnalysis] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
   const [reviewStagedDecision, setReviewStagedDecision] = useState(false);
-  const [reviewAnalysisMinimized, setReviewAnalysisMinimized] = useState(false);
 
   // Modal de mejora abierto desde la bandeja (el documento ya esta indexado).
   const [improveTarget, setImproveTarget] = useState<{
@@ -51,7 +50,6 @@ export default function ReviewPage() {
     text: string;
     analysis: Record<string, unknown>;
   } | null>(null);
-  const [improveMinimized, setImproveMinimized] = useState(false);
 
   const handleOpenDocument = async (doc: { id: string; name: string }) => {
     setActionError(null);
@@ -120,7 +118,6 @@ export default function ReviewPage() {
     setReviewDoc(null);
     setReviewAnalysis(null);
     setReviewStagedDecision(false);
-    setReviewAnalysisMinimized(false);
   };
 
   const handleMarkAnalyzed = async () => {
@@ -270,39 +267,6 @@ export default function ReviewPage() {
         </div>
         <FeedbackButton />
       </div>
-
-      {(reviewAnalysisMinimized || improveMinimized) && (
-        <div style={{ padding: '10px 20px 0' }}>
-          <button
-            onClick={() => {
-              if (improveMinimized) setImproveMinimized(false);
-              else setReviewAnalysisMinimized(false);
-            }}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 8,
-              width: '100%',
-              padding: '10px 14px',
-              background: 'var(--brand)',
-              color: '#fff',
-              border: 'none',
-              borderRadius: 8,
-              fontSize: 13,
-              fontWeight: 500,
-              cursor: 'pointer',
-              flexShrink: 0,
-              textAlign: 'left',
-            }}
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <polyline points="4 14 10 14 10 20" />
-              <polyline points="20 10 14 10 14 4" />
-            </svg>
-            {improveMinimized ? 'Mejora en curso — pulsa para volver' : 'Análisis en curso — pulsa para volver'}
-          </button>
-        </div>
-      )}
 
       {/* Contenido */}
       <div style={{ padding: '16px 20px', flex: 1, display: 'flex', flexDirection: 'column' }}>
@@ -470,42 +434,34 @@ export default function ReviewPage() {
         </div>
       )}
 
-      {/* Modales: se mantienen montados al minimizar para preservar el estado */}
       {reviewDoc && reviewAnalysis && (
-        <div style={{ display: reviewAnalysisMinimized ? 'none' : undefined }}>
-          <AnalysisModal
-            fileName={reviewDoc.name}
-            analysis={reviewAnalysis}
-            mode="review"
-            onConfirm={() => {}}
-            onCancel={closeReviewModal}
-            onImprove={handleImprove}
-            onMarkAnalyzed={handleMarkAnalyzed}
-            onRemove={handleRemoveDocument}
-            stagedDecision={reviewStagedDecision}
-            onApproveStaged={handleApproveStaged}
-            onDiscardStaged={handleDiscardStaged}
-            onMinimize={() => setReviewAnalysisMinimized(true)}
-          />
-        </div>
+        <AnalysisModal
+          fileName={reviewDoc.name}
+          analysis={reviewAnalysis}
+          mode="review"
+          onConfirm={() => {}}
+          onCancel={closeReviewModal}
+          onImprove={handleImprove}
+          onMarkAnalyzed={handleMarkAnalyzed}
+          onRemove={handleRemoveDocument}
+          stagedDecision={reviewStagedDecision}
+          onApproveStaged={handleApproveStaged}
+          onDiscardStaged={handleDiscardStaged}
+        />
       )}
 
       {improveTarget && (
-        <div style={{ display: improveMinimized ? 'none' : undefined }}>
-          <ImprovementModal
-            fileName={improveTarget.name}
-            initialText={improveTarget.text}
-            analysis={improveTarget.analysis as never}
-            existingDocWithSameName={{ id: improveTarget.id, name: improveTarget.name }}
-            onClose={() => { setImproveTarget(null); setImproveMinimized(false); }}
-            onIndexed={async () => {
-              setImproveTarget(null);
-              setImproveMinimized(false);
-              await refetch();
-            }}
-            onMinimize={() => setImproveMinimized(true)}
-          />
-        </div>
+        <ImprovementModal
+          fileName={improveTarget.name}
+          initialText={improveTarget.text}
+          analysis={improveTarget.analysis as never}
+          existingDocWithSameName={{ id: improveTarget.id, name: improveTarget.name }}
+          onClose={() => setImproveTarget(null)}
+          onIndexed={async () => {
+            setImproveTarget(null);
+            await refetch();
+          }}
+        />
       )}
     </div>
   );
