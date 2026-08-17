@@ -5,6 +5,8 @@
  * Esto asegura que el contexto no se corte en mitad de una idea.
  */
 
+import { extractPdfText } from './pdf-extract';
+
 export interface Chunk {
   text: string;
   metadata: {
@@ -154,11 +156,8 @@ export async function extractText(
     case 'html':
       return buffer.toString('utf-8');
 
-    case 'pdf': {
-      const pdfParse = (await import('pdf-parse')).default;
-      const data = await pdfParse(buffer);
-      return data.text;
-    }
+    case 'pdf':
+      return extractPdfText(buffer);
 
     case 'docx': {
       const mammoth = await import('mammoth');
