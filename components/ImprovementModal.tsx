@@ -423,10 +423,14 @@ function ImprovementModalDesktop({
   }, [existingDocWithSameName, setShowReplaceDialog, doIndex, text]);
 
   const handleCloseRequest = useCallback(() => {
-    if (window.confirm(t('discardConfirm'))) {
+    // Con storagePath es una subida manual sin confirmar: cerrar SI borra el
+    // temporal de Storage. Sin storagePath el documento ya esta indexado
+    // (p. ej. abierto desde la bandeja) y no se elimina nada.
+    const message = storagePath ? t('discardConfirm') : t('discardConfirmNoDelete');
+    if (window.confirm(message)) {
       onClose();
     }
-  }, [onClose, t]);
+  }, [onClose, storagePath, t]);
 
   return (
     <div
