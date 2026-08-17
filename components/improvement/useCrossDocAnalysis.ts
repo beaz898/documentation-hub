@@ -99,7 +99,15 @@ export function useCrossDocAnalysis(
           // ── Reanálisis asíncrono: polling hasta que termine ──────
           setReanalyzePhase('Reanálisis en curso...');
 
-          const job = await pollJobUntilDone(crossData.jobId, (elapsed) => {
+          const job = await pollJobUntilDone(crossData.jobId, (status, elapsed) => {
+            // 'pending' = encolado, el worker aun no lo ha tocado. Puede pasar cuando
+            // otro analisis de la misma organizacion esta en curso (veto por org).
+            // No mentir diciendo que se esta analizando.
+            if (status === 'pending') {
+              setReanalyzePhase('En cola: hay otro análisis en curso. Empezará en cuanto termine.');
+              return;
+            }
+
             const seconds = Math.floor(elapsed / 1000);
             if (seconds < 15) setReanalyzePhase('Analizando fragmentos...');
             else if (seconds < 40) setReanalyzePhase('Comparando contra el corpus...');
@@ -199,7 +207,7 @@ interface JobStatus {
 
 async function pollJobUntilDone(
   jobId: string,
-  onProgress?: (elapsed: number) => void,
+  onProgress?: (status: JobStatus['status'], elapsed: number) => void,
 ): Promise<JobStatus> {
   const start = Date.now();
 
@@ -225,7 +233,7 @@ async function pollJobUntilDone(
         throw new Error(job.errorMessage || 'El reanálisis falló.');
       }
 
-      onProgress?.(elapsed);
+      onProgress?.(job.status, elapsed);
     } catch (err) {
       const message = err instanceof Error ? err.message : '';
       if (message.includes('tiempo máximo') || message.includes('falló')) throw err;

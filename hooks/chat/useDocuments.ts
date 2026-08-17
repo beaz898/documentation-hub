@@ -267,8 +267,18 @@ export function useDocuments(
         const job = await pollJob(
           analyzeData.jobId,
           (status, elapsed) => {
-            // Progreso simulado basado en el tiempo transcurrido
             const seconds = Math.floor(elapsed / 1000);
+
+            // 'pending' = encolado, el worker aun no lo ha tocado. Puede pasar cuando
+            // otro analisis de la misma organizacion esta en curso (veto por org).
+            // No mentir diciendo que se esta analizando.
+            if (status === 'pending') {
+              setAnalysisProgress(5);
+              setAnalysisPhase('En cola: hay otro análisis en curso. Empezará en cuanto termine.');
+              return;
+            }
+
+            // Progreso simulado basado en el tiempo transcurrido
             const simulatedProgress = Math.min(90, 10 + seconds);
             setAnalysisProgress(simulatedProgress);
 
