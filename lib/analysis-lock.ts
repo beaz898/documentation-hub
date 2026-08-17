@@ -83,13 +83,17 @@ export async function checkAndAcquireAnalysisLock(
 }
 
 /**
- * Libera el semaforo (pone los tres campos a NULL). Idempotente: llamarlo sin semaforo
- * puesto no hace daño. Se invoca en el finally del endpoint como cortesia de latencia;
- * la auto-expiracion es la garantia real.
+ * Libera el semaforo (pone los tres campos a NULL) SOLO si lo tiene el usuario
+ * indicado. Idempotente en dos sentidos: llamarlo sin semaforo puesto no hace
+ * nada, y llamarlo cuando el semaforo lo tiene OTRO usuario tampoco — antes
+ * liberaba el candado ajeno, que permitia analisis en paralelo no deseados.
+ * Se invoca en el finally del endpoint como cortesia de latencia; la
+ * auto-expiracion sigue siendo la garantia real.
  */
 export async function releaseAnalysisLock(
   supabase: SupabaseClient,
   orgId: string,
+  userId: string,
 ): Promise<void> {
   await supabase
     .from('organizations')
@@ -98,7 +102,8 @@ export async function releaseAnalysisLock(
       analysis_running_since: null,
       analysis_running_type: null,
     })
-    .eq('id', orgId);
+    .eq('id', orgId)
+    .eq('analysis_running_by', userId);
 }
 
 /**

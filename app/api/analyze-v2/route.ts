@@ -498,7 +498,7 @@ export async function POST(req: NextRequest) {
     // lo tomo). La auto-expiracion cubre el caso de que este finally no llegue a correr
     // (serverless puede matar la funcion tras responder) — F-14.
     if (lockAcquired) {
-      await releaseAnalysisLock(supabase, orgId);
+      await releaseAnalysisLock(supabase, orgId, userId);
     }
   }
 }
