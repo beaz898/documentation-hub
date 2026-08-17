@@ -26,6 +26,11 @@ const MAX_CONCURRENT = 8;
 /** Intervalo del check de purgado de orgs expiradas (6 horas). */
 const PURGE_INTERVAL = 6 * 60 * 60 * 1000;
 
+/** Un job en 'processing' con started_at mas antiguo que esto se considera
+ *  muerto (worker caido): deja de bloquear a su organizacion y puede
+ *  reclamarse de nuevo. Coherente con EXHAUSTIVE_LOCK_MS del endpoint. */
+const STUCK_JOB_MS = 20 * 60 * 1000;
+
 /** Contador de jobs activos. */
 let activeJobs = 0;
 
@@ -66,11 +71,8 @@ async function processJob(job: AnalysisJob): Promise<void> {
 
   console.log(`[worker] Procesando job ${job.id}: "${job.document_name}" (org: ${job.org_id})`);
 
-  // Marcar como processing
-  await supabase
-    .from('analysis_jobs')
-    .update({ status: 'processing', started_at: new Date().toISOString() })
-    .eq('id', job.id);
+  // El job ya viene reclamado por pollAndProcess (status='processing' +
+  // started_at fijados de forma atomica). No se re-marca aqui.
 
   try {
     const sampleTexts: string[] = JSON.parse(job.sample_texts);
@@ -249,21 +251,66 @@ async function pollAndProcess(): Promise<void> {
 
   try {
     const slotsAvailable = MAX_CONCURRENT - activeJobs;
-    const { data: jobs, error } = await supabase
+    const stuckBefore = new Date(Date.now() - STUCK_JOB_MS).toISOString();
+
+    // Candidatos: mas 'pending' de los que caben, porque algunos se
+    // descartaran por tener su organizacion ocupada.
+    const { data: candidates, error } = await supabase
       .from('analysis_jobs')
       .select('id, org_id, user_id, document_name, document_text, sample_texts, exclude_document_id, document_id, exclude_fingerprints, credits_consumed')
       .eq('status', 'pending')
       .order('created_at', { ascending: true })
-      .limit(slotsAvailable);
+      .limit(slotsAvailable * 4);
 
     if (error) {
       console.error('[worker] Error consultando jobs:', error.message);
       return;
     }
 
-    if (!jobs || jobs.length === 0) return;
+    if (!candidates || candidates.length === 0) return;
 
-    for (const job of jobs) {
+    // Orgs que ya tienen un job vivo en esta misma vuelta: evita reclamar dos
+    // del mismo cliente cuando ambos son candidatos a la vez.
+    const orgsClaimedNow = new Set<string>();
+    let launched = 0;
+
+    for (const job of candidates) {
+      if (launched >= slotsAvailable) break;
+      if (orgsClaimedNow.has(job.org_id)) continue;
+
+      // VETO POR ORGANIZACION: ¿tiene ya un job corriendo de verdad?
+      // Un 'processing' con started_at viejo es un zombi y no cuenta.
+      const { data: running, error: runningError } = await supabase
+        .from('analysis_jobs')
+        .select('id')
+        .eq('org_id', job.org_id)
+        .eq('status', 'processing')
+        .gte('started_at', stuckBefore)
+        .limit(1);
+
+      if (runningError) {
+        console.error('[worker] Error comprobando jobs en curso:', runningError.message);
+        continue;
+      }
+      if (running && running.length > 0) {
+        // Cascada: espera su turno en 'pending', se recogera en otra vuelta.
+        continue;
+      }
+
+      // RECLAMO ATOMICO: solo se lo lleva quien consiga cambiar el estado.
+      // Si otro sondeo (u otra instancia del worker) se adelanto, devuelve
+      // cero filas y lo descartamos sin procesarlo.
+      const { data: claimed } = await supabase
+        .from('analysis_jobs')
+        .update({ status: 'processing', started_at: new Date().toISOString() })
+        .eq('id', job.id)
+        .eq('status', 'pending')
+        .select('id');
+
+      if (!claimed || claimed.length === 0) continue;
+
+      orgsClaimedNow.add(job.org_id);
+      launched++;
       activeJobs++;
       processJob(job as AnalysisJob)
         .catch(err => console.error(`[worker] Error no capturado en job ${job.id}:`, err))
