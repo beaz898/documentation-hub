@@ -113,50 +113,47 @@ function findBestMatch(haystack: string, needle: string): string | null {
 function fixQuotesInJudgment(
   judgment: DocumentJudgment,
   newDocumentText: string,
+  existingDocumentText: string,
 ): DocumentJudgment {
-  const fixedContradictions = judgment.contradictions.map(c => {
-    if (!c.newDocSays) return c;
+  const fixedContradictions: DocumentJudgment['contradictions'] = [];
+  for (const c of judgment.contradictions) {
+    const matchNew = c.newDocSays ? findBestMatch(newDocumentText, c.newDocSays) : null;
+    const matchExisting = c.existingDocSays ? findBestMatch(existingDocumentText, c.existingDocSays) : null;
 
-    const matchNew = findBestMatch(newDocumentText, c.newDocSays);
-    if (matchNew) {
-      return { ...c, newDocSays: matchNew };
+    if (matchNew && matchExisting) {
+      fixedContradictions.push({ ...c, newDocSays: matchNew, existingDocSays: matchExisting });
+    } else {
+      const failedSide = !matchNew ? 'newDocSays' : 'existingDocSays';
+      const failedText = !matchNew ? c.newDocSays : c.existingDocSays;
+      console.warn(
+        `[judge] Contradicción descartada en "${judgment.documentName}" (cita no verificable, lado=${failedSide}): "${(failedText || '').slice(0, 60)}"`
+      );
     }
+  }
 
-    if (c.existingDocSays) {
-      const matchSwapped = findBestMatch(newDocumentText, c.existingDocSays);
-      if (matchSwapped) {
-        return {
-          ...c,
-          newDocSays: matchSwapped,
-          existingDocSays: c.newDocSays,
-        };
-      }
+  const fixedOverlaps: DocumentJudgment['overlappingContent'] = [];
+  for (const o of judgment.overlappingContent) {
+    const matchNew = o.evidenceInNewDoc ? findBestMatch(newDocumentText, o.evidenceInNewDoc) : null;
+    const matchExisting = o.evidence ? findBestMatch(existingDocumentText, o.evidence) : null;
+
+    if (matchNew && matchExisting) {
+      fixedOverlaps.push({ ...o, evidenceInNewDoc: matchNew, evidence: matchExisting });
+    } else {
+      const failedSide = !matchNew ? 'evidenceInNewDoc' : 'evidence';
+      const failedText = !matchNew ? o.evidenceInNewDoc : o.evidence;
+      console.warn(
+        `[judge] Solapamiento descartado en "${judgment.documentName}" (cita no verificable, lado=${failedSide}): "${(failedText || '').slice(0, 60)}"`
+      );
     }
+  }
 
-    return c;
-  });
+  const discardedCount =
+    (judgment.contradictions.length - fixedContradictions.length) +
+    (judgment.overlappingContent.length - fixedOverlaps.length);
 
-  const fixedOverlaps = judgment.overlappingContent.map(o => {
-    if (!o.evidenceInNewDoc) return o;
-
-    const matchNew = findBestMatch(newDocumentText, o.evidenceInNewDoc);
-    if (matchNew) {
-      return { ...o, evidenceInNewDoc: matchNew };
-    }
-
-    if (o.evidence) {
-      const matchSwapped = findBestMatch(newDocumentText, o.evidence);
-      if (matchSwapped) {
-        return {
-          ...o,
-          evidenceInNewDoc: matchSwapped,
-          evidence: o.evidenceInNewDoc,
-        };
-      }
-    }
-
-    return o;
-  });
+  if (discardedCount > 0) {
+    console.warn(`[judge] Descartados ${discardedCount} hallazgos no verificables en "${judgment.documentName}"`);
+  }
 
   return {
     ...judgment,
@@ -267,7 +264,8 @@ Responde con este JSON (sin bloques de código, sin texto adicional):
       uniqueToNewDoc: response.uniqueToNewDoc || [],
     };
 
-    return fixQuotesInJudgment(rawJudgment, newDocumentText);
+    const existingDocumentText = candidate.fragments.map(f => f.text).join('\n\n');
+    return fixQuotesInJudgment(rawJudgment, newDocumentText, existingDocumentText);
   } catch (err) {
     console.warn(`[judge] Failed for "${candidate.documentName}":`, err);
     return {
