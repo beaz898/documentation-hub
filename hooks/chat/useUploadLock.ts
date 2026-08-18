@@ -166,6 +166,32 @@ export function useUploadLock(session: SessionInfo | null) {
     }
   }, [session, lockState.locked]);
 
+  /**
+   * Libera el candado SIN alternar (a diferencia de toggleLock, que invierte
+   * el estado y podria activarlo por error). No mira el estado local: el
+   * backend rechaza con 403 si no eres el portador, asi que llamarla de mas
+   * es inofensivo. Se usa al terminar el flujo de subida.
+   */
+  const releaseLock = useCallback(async () => {
+    if (!session) return;
+    try {
+      const res = await fetch('/api/org/upload-lock', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ locked: false }),
+      });
+      if (res.ok) {
+        setLockState({ locked: false, lockedBy: null, isMe: false });
+        clearReminderTimer();
+        lockStartRef.current = null;
+        setShowReminder(false);
+      }
+    } catch {
+      // Error transitorio: la expiracion de 60 min sigue de red de seguridad
+    }
+  }, [session]);
+
   const dismissReminder = useCallback(() => {
     setShowReminder(false);
   }, []);
@@ -180,6 +206,7 @@ export function useUploadLock(session: SessionInfo | null) {
     showReminder,
     toggleLock,
     activateLock,
+    releaseLock,
     dismissReminder,
     refreshLock: fetchLockState,
   };

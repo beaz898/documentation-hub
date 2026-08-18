@@ -9,6 +9,7 @@ export function useDocuments(
   session: SessionInfo | null,
   addMessage: (msg: Message) => void,
   loadCredits: () => Promise<void>,
+  releaseLock: () => Promise<void>,
 ) {
   const [documents, setDocuments] = useState<Document[]>([]);
   const [docsLoading, setDocsLoading] = useState(true);
@@ -61,6 +62,7 @@ export function useDocuments(
         } else {
           await supabase.storage.from('documents').remove([storagePath]);
           addMessage({ id: crypto.randomUUID(), role: 'assistant', content: `**${fileName}** descartado. No se ha añadido al corpus.` });
+          await releaseLock();
           return;
         }
       }
@@ -70,6 +72,7 @@ export function useDocuments(
       const data = await res.json();
       await supabase.storage.from('documents').remove([storagePath]);
       addMessage({ id: crypto.randomUUID(), role: 'error', content: data.error || 'Error procesando' });
+      await releaseLock();
       return;
     }
     const data = await res.json();
@@ -80,6 +83,7 @@ export function useDocuments(
         : `Documento **${data.document.name}** indexado (${data.document.chunks} fragmentos).`,
     });
     await loadDocuments();
+    await releaseLock();
   }
 
   async function handleUpload(file: File) {
@@ -95,6 +99,7 @@ export function useDocuments(
       setAnalysisProgress(0);
       setAnalysisPhase('');
       addMessage({ id: crypto.randomUUID(), role: 'error', content: `Error subiendo archivo: ${uploadError.message}` });
+      await releaseLock();
       throw new Error(uploadError.message);
     }
 
@@ -189,6 +194,7 @@ export function useDocuments(
     await supabase.storage.from('documents').remove([pendingAnalysis.storagePath]);
     addMessage({ id: crypto.randomUUID(), role: 'assistant', content: `**${pendingAnalysis.fileName}** descartado. No se ha añadido al corpus.` });
     setPendingAnalysis(null);
+    await releaseLock();
   }
 
   async function handleAnalysisImprove() {
@@ -351,6 +357,7 @@ export function useDocuments(
       // y el documento SIGUE en el corpus. Solo se cerró el modal.
       addMessage({ id: crypto.randomUUID(), role: 'assistant', content: `Se cerró la mejora de **${name}**. El documento sigue en el corpus, sin cambios.` });
     }
+    await releaseLock();
   }
 
   async function handleImprovementIndexed(finalName: string, wasReplaced: boolean) {
@@ -362,6 +369,7 @@ export function useDocuments(
         : `Versión corregida indexada como **${finalName}**.`,
     });
     await loadDocuments();
+    await releaseLock();
   }
 
   async function handleDelete(id: string) {
