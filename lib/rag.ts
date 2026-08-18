@@ -25,7 +25,7 @@ import { getActiveRulesText } from '@/lib/learning/rules';
 const TOP_K = 15;
 
 /** Máximo de documentos completos a pasar como contexto. */
-const MAX_DOCUMENTS = 4;
+const MAX_DOCUMENTS = 6;
 
 /** Máximo de caracteres totales de contexto (seguridad contra documentos enormes). */
 const MAX_CONTEXT_CHARS = 30000;
@@ -82,6 +82,10 @@ export interface RAGResult {
     outputTokens: number;
   };
   noContext: boolean;
+  /** Documentos relevantes encontrados antes de recortar a MAX_DOCUMENTS. */
+  relevantDocsFound: number;
+  /** Documentos que finalmente entraron en el contexto del LLM. */
+  documentsUsed: number;
 }
 
 /**
@@ -176,6 +180,8 @@ export async function queryRAG(
       sources: [],
       usage: { inputTokens: 0, outputTokens: 0 },
       noContext: true,
+      relevantDocsFound: 0,
+      documentsUsed: 0,
     };
   }
 
@@ -200,6 +206,11 @@ export async function queryRAG(
     }
   }
 
+  // Cuantos documentos relevantes habia antes de recortar a MAX_DOCUMENTS.
+  // Si se descartan, hay que decirselo al usuario (A.1): una respuesta
+  // incompleta en silencio es peor que una respuesta con aviso.
+  const relevantDocsFound = docScores.size;
+
   // Ordenar por score y limitar
   const topDocs = [...docScores.values()]
     .sort((a, b) => b.maxScore - a.maxScore)
@@ -211,6 +222,8 @@ export async function queryRAG(
       sources: [],
       usage: { inputTokens: 0, outputTokens: 0 },
       noContext: true,
+      relevantDocsFound: 0,
+      documentsUsed: 0,
     };
   }
 
@@ -272,6 +285,8 @@ PREGUNTA DEL USUARIO: ${question}`;
     })),
     usage,
     noContext: false,
+    relevantDocsFound,
+    documentsUsed: topDocs.length,
   };
 }
 

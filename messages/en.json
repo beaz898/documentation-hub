@@ -68,6 +68,7 @@
     "sourceChunks": "{count}/{total} chunks",
     "errorTitle": "Error",
     "loadingTitle": "Processing...",
+    "docLimitWarning": "I answered using {used} of the {found} relevant documents available. For questions that span a lot of documentation, the agent gives more complete answers: it searches in multiple passes and reads full documents.",
     "docGap": {
       "markMissing": "Report missing documentation",
       "wasMissing": "Was documentation missing for this?",

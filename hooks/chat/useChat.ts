@@ -34,7 +34,7 @@ export function useChat(session: SessionInfo | null, onCreditsChange: () => void
         onCreditsChange();
         return;
       }
-      setMessages(prev => prev.filter(m => m.id !== loadingMsg.id).concat({ id: crypto.randomUUID(), role: 'assistant', content: data.answer, sources: data.sources, question, noContext: data.noContext === true }));
+      setMessages(prev => prev.filter(m => m.id !== loadingMsg.id).concat({ id: crypto.randomUUID(), role: 'assistant', content: data.answer, sources: data.sources, question, noContext: data.noContext === true, relevantDocsFound: data.relevantDocsFound, documentsUsed: data.documentsUsed }));
       onCreditsChange();
     } catch {
       setMessages(prev => prev.filter(m => m.id !== loadingMsg.id).concat({ id: crypto.randomUUID(), role: 'error', content: 'Error de conexión.' }));

@@ -5,6 +5,8 @@ export interface Message {
   sources?: Array<{ documentName: string; score: number }>;
   question?: string;
   noContext?: boolean;
+  relevantDocsFound?: number;
+  documentsUsed?: number;
 }
 
 export interface Document {

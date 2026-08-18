@@ -16,9 +16,11 @@ interface ChatMessageProps {
   sources?: Source[];
   question?: string;
   noContext?: boolean;
+  relevantDocsFound?: number;
+  documentsUsed?: number;
 }
 
-export default function ChatMessage({ role, content, sources, question, noContext }: ChatMessageProps) {
+export default function ChatMessage({ role, content, sources, question, noContext, relevantDocsFound, documentsUsed }: ChatMessageProps) {
   const t = useTranslations('chat');
 
   if (role === 'loading') {
@@ -126,6 +128,33 @@ export default function ChatMessage({ role, content, sources, question, noContex
                 {source.documentName}
               </span>
             ))}
+          </div>
+        )}
+
+        {typeof relevantDocsFound === 'number' &&
+         typeof documentsUsed === 'number' &&
+         relevantDocsFound > documentsUsed && (
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'flex-start',
+              gap: 6,
+              marginTop: 8,
+              fontSize: 12,
+              color: 'var(--text-secondary)',
+              lineHeight: 1.45,
+            }}
+          >
+            <svg
+              width="13" height="13" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" strokeWidth="2"
+              style={{ flexShrink: 0, marginTop: 1 }}
+            >
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="16" x2="12" y2="12" />
+              <line x1="12" y1="8" x2="12.01" y2="8" />
+            </svg>
+            <span>{t('docLimitWarning', { used: documentsUsed, found: relevantDocsFound })}</span>
           </div>
         )}
 

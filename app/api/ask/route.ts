@@ -119,6 +119,8 @@ export async function POST(req: NextRequest) {
       })),
       usage: result.usage,
       noContext: result.noContext,
+      relevantDocsFound: result.relevantDocsFound,
+      documentsUsed: result.documentsUsed,
     });
   } catch (error: unknown) {
     console.error('Error in /api/ask:', error);

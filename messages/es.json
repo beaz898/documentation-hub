@@ -68,6 +68,7 @@
     "sourceChunks": "{count}/{total} fragmentos",
     "errorTitle": "Error",
     "loadingTitle": "Procesando...",
+    "docLimitWarning": "He respondido con {used} de los {found} documentos relevantes que había. Para preguntas que abarcan mucha documentación, el agente da respuestas más completas: busca en varias vueltas y lee los documentos enteros.",
     "docGap": {
       "markMissing": "Marcar que falta esta documentación",
       "wasMissing": "¿Faltaba documentación para esto?",
