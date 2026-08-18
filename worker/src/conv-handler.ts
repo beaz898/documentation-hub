@@ -129,10 +129,15 @@ async function processConversationTurn(
 
     if (convMeta) {
       void persistLLMUsage({
-        accumulator: llmAcc,
-        orgId:       convMeta.org_id as string,
-        userId:      convMeta.user_id as string,
-        operation:   'agent',
+        accumulator:    llmAcc,
+        orgId:          convMeta.org_id as string,
+        userId:         convMeta.user_id as string,
+        operation:      'agent',
+        // Solo viene con valor si el turno reconcilio creditos en esta
+        // invocacion. En pausas (awaiting_*) y fallos sin reconciliar queda
+        // undefined -> credits_charged NULL, que es lo correcto: el coste
+        // real aun no es final.
+        creditsCharged: result.creditsCharged,
       });
     }
   } catch (err) {

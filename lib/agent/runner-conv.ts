@@ -362,7 +362,7 @@ async function reconcileTurnCredits(
   creditsEstimated: number,
   totalInputTokens: number,
   totalOutputTokens: number,
-): Promise<void> {
+): Promise<number> {
   const creditsReal = tokensToCredits(totalInputTokens, totalOutputTokens);
   const refund      = reconcileCredits(creditsEstimated, creditsReal);
 
@@ -394,6 +394,8 @@ async function reconcileTurnCredits(
   if (refund > 0) {
     await adjustCredits(supabase, orgId, refund, `agent_turn_underrun:${messageId}`);
   }
+
+  return creditsReal;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -439,6 +441,11 @@ export interface TurnInput {
 export interface TurnOutput {
   status: MessageStatus;
   error?: string;
+  /** Creditos realmente cobrados por este turno. Solo se rellena si hubo
+   *  reconciliacion en esta invocacion: en turnos que quedan en pausa
+   *  (awaiting_*) o que fallan antes de reconciliar, el coste aun no es
+   *  final y este campo queda undefined a proposito. */
+  creditsCharged?: number;
 }
 
 export async function runAgentTurn(input: TurnInput): Promise<TurnOutput> {
@@ -555,8 +562,8 @@ export async function runAgentTurn(input: TurnInput): Promise<TurnOutput> {
         await setMessageContent(supabase, messageId, result.output);
         await updateMessageStatus(supabase, messageId, 'completed');
         await updateConversationStatus(supabase, conversationId, 'idle');
-        await reconcileTurnCredits(supabase, orgId, conversationId, messageId, creditsEstimated, totalInputTokens, totalOutputTokens);
-        return { status: 'completed' };
+        const creditsCharged = await reconcileTurnCredits(supabase, orgId, conversationId, messageId, creditsEstimated, totalInputTokens, totalOutputTokens);
+        return { status: 'completed', creditsCharged };
       }
 
       if (result.kind === 'pause') {
@@ -653,8 +660,8 @@ export async function runAgentTurn(input: TurnInput): Promise<TurnOutput> {
       await setMessageContent(supabase, messageId, contentToSave);
       await updateMessageStatus(supabase, messageId, 'completed');
       await updateConversationStatus(supabase, conversationId, 'idle');
-      await reconcileTurnCredits(supabase, orgId, conversationId, messageId, creditsEstimated, totalInputTokens, totalOutputTokens);
-      return { status: 'completed' };
+      const creditsCharged = await reconcileTurnCredits(supabase, orgId, conversationId, messageId, creditsEstimated, totalInputTokens, totalOutputTokens);
+      return { status: 'completed', creditsCharged };
     }
 
     // Procesar cada tool call
@@ -671,9 +678,9 @@ export async function runAgentTurn(input: TurnInput): Promise<TurnOutput> {
       // con contenido cortado.
       if (toolName === 'finalize' && llmResponse.stop_reason === 'max_tokens') {
         await updateMessageStatus(supabase, messageId, 'failed', { error_message: TRUNCATION_MESSAGE });
-        await reconcileTurnCredits(supabase, orgId, conversationId, messageId, creditsEstimated, totalInputTokens, totalOutputTokens);
+        const creditsCharged = await reconcileTurnCredits(supabase, orgId, conversationId, messageId, creditsEstimated, totalInputTokens, totalOutputTokens);
         await updateConversationStatus(supabase, conversationId, 'idle');
-        return { status: 'failed', error: TRUNCATION_MESSAGE };
+        return { status: 'failed', error: TRUNCATION_MESSAGE, creditsCharged };
       }
 
       const needsConfirm = shouldConfirm({
@@ -745,8 +752,8 @@ export async function runAgentTurn(input: TurnInput): Promise<TurnOutput> {
         await setMessageContent(supabase, messageId, result.output);
         await updateMessageStatus(supabase, messageId, 'completed');
         await updateConversationStatus(supabase, conversationId, 'idle');
-        await reconcileTurnCredits(supabase, orgId, conversationId, messageId, creditsEstimated, totalInputTokens, totalOutputTokens);
-        return { status: 'completed' };
+        const creditsCharged = await reconcileTurnCredits(supabase, orgId, conversationId, messageId, creditsEstimated, totalInputTokens, totalOutputTokens);
+        return { status: 'completed', creditsCharged };
       }
 
       if (result.kind === 'pause') {
