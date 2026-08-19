@@ -24,6 +24,15 @@ const EXHAUSTIVE_CONCURRENCY = 5;
 /** Pausa entre rondas en modo exhaustivo. */
 const EXHAUSTIVE_ROUND_DELAY_MS = 500;
 
+/** Prefijos de descripciones de solapamiento genéricas (rasgos que compartirían
+ *  casi todos los documentos de la empresa, no contenido concreto compartido). */
+const GENERIC_OVERLAP_PREFIXES = [
+  'ambos documentos mencionan',
+  'ambos documentos hacen referencia',
+  'ambos documentos son',
+  'ambos documentos tratan',
+];
+
 interface JudgeResponse {
   overlapPercent: number;
   verdict: 'duplicado_exacto' | 'reformulacion' | 'solapamiento_parcial' | 'tema_similar' | 'sin_relacion';
@@ -133,6 +142,15 @@ function fixQuotesInJudgment(
 
   const fixedOverlaps: DocumentJudgment['overlappingContent'] = [];
   for (const o of judgment.overlappingContent) {
+    const normalizedDescription = o.description.toLowerCase().trim();
+    const isGenericOverlap = GENERIC_OVERLAP_PREFIXES.some(prefix => normalizedDescription.startsWith(prefix));
+    if (isGenericOverlap) {
+      console.warn(
+        `[judge] Solapamiento descartado en "${judgment.documentName}" (descripción genérica): "${o.description.slice(0, 60)}"`
+      );
+      continue;
+    }
+
     const matchNew = o.evidenceInNewDoc ? findBestMatch(newDocumentText, o.evidenceInNewDoc) : null;
     const matchExisting = o.evidence ? findBestMatch(existingDocumentText, o.evidence) : null;
 
@@ -230,6 +248,10 @@ REGLAS DE FORMATO:
 - En newDocSays y evidenceInNewDoc: copia LITERALMENTE un fragmento del DOCUMENTO NUEVO.
 - En existingDocSays y evidence: copia literalmente un fragmento del DOCUMENTO EXISTENTE.
 - Máximo 1 frase por cita. NO copies párrafos enteros.
+- Las citas deben ser TEXTO COPIADO tal cual del documento, sin comentarios, sin explicaciones y sin referirse a los fragmentos por su número. Prohibido escribir cosas como "El fragmento [2] muestra que...", "El corpus especifica que...", "Este documento no menciona...".
+- Si no puedes copiar una frase literal que sustente el hallazgo, no emitas ese hallazgo.
+- En description: describe QUÉ contenido concreto comparten los dos documentos, en una frase. No vale describir características genéricas que compartirían casi todos los documentos de la empresa (mismo autor, misma plantilla, ambos citan normativa, ambos tienen sección de referencias). Si lo único en común es de ese tipo, NO emitas el solapamiento.
+- Una REMISIÓN no es solapamiento ni contradicción. Si el documento nuevo se limita a remitir a otro documento ("ver CLI-03", "conforme a NOR-01", "según el protocolo X") sin afirmar contenido propio sobre ese tema, no emitas hallazgo con ese documento por esa remisión.
 - Máximo 10 contradicciones, 5 inconsistencias menores y 5 solapamientos.
 - El campo "severity" es obligatorio en cada contradicción: "contradiction" si son incompatibles, "minor_inconsistency" si son diferencias de enfoque o matiz.
 
@@ -242,7 +264,7 @@ Responde con este JSON (sin bloques de código, sin texto adicional):
     { "topic": "tema", "newDocSays": "cita literal del nuevo", "existingDocSays": "cita literal del existente", "severity": "minor_inconsistency" }
   ],
   "overlappingContent": [
-    { "description": "qué se solapa", "evidence": "cita literal del existente", "evidenceInNewDoc": "cita literal del nuevo" }
+    { "description": "qué contenido concreto comparten (no rasgos genéricos)", "evidence": "cita literal del existente", "evidenceInNewDoc": "cita literal del nuevo" }
   ],
   "uniqueToNewDoc": ["aspecto 1", "aspecto 2"]
 }`;
