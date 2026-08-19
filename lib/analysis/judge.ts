@@ -128,6 +128,7 @@ function fixQuotesInJudgment(
   judgment: DocumentJudgment,
   newDocumentText: string,
   existingDocumentText: string,
+  existingTextSource: 'completo' | 'fragmentos',
 ): DocumentJudgment {
   const fixedContradictions: DocumentJudgment['contradictions'] = [];
   for (const c of judgment.contradictions) {
@@ -144,8 +145,9 @@ function fixQuotesInJudgment(
     } else {
       const failedSide = !matchNew ? 'newDocSays' : 'existingDocSays';
       const failedText = !matchNew ? c.newDocSays : c.existingDocSays;
+      const sourceNote = failedSide === 'existingDocSays' ? `, verificado contra ${existingTextSource}` : '';
       console.warn(
-        `[judge] Contradicción descartada en "${judgment.documentName}" (cita no verificable, lado=${failedSide}): "${(failedText || '').slice(0, 60)}"`
+        `[judge] Contradicción descartada en "${judgment.documentName}" (cita no verificable, lado=${failedSide}${sourceNote}): "${(failedText || '').slice(0, 60)}"`
       );
     }
   }
@@ -165,8 +167,9 @@ function fixQuotesInJudgment(
     } else {
       const failedSide = !matchNew ? 'evidenceInNewDoc' : 'evidence';
       const failedText = !matchNew ? o.evidenceInNewDoc : o.evidence;
+      const sourceNote = failedSide === 'evidence' ? `, verificado contra ${existingTextSource}` : '';
       console.warn(
-        `[judge] Solapamiento descartado en "${judgment.documentName}" (cita no verificable, lado=${failedSide}): "${(failedText || '').slice(0, 60)}"`
+        `[judge] Solapamiento descartado en "${judgment.documentName}" (cita no verificable, lado=${failedSide}${sourceNote}): "${(failedText || '').slice(0, 60)}"`
       );
     }
   }
@@ -194,8 +197,9 @@ async function judgeSingleDocument(args: {
   newDocumentName: string;
   newDocumentText: string;
   candidate: RerankedCandidate;
+  fullTexts?: Map<string, string>;
 }): Promise<DocumentJudgment> {
-  const { newDocumentName, newDocumentText, candidate } = args;
+  const { newDocumentName, newDocumentText, candidate, fullTexts } = args;
 
   const existingFragsBlock = candidate.fragments
     .map((f, i) => `[Fragmento ${i + 1} de "${candidate.documentName}"]\n${f.text}`)
@@ -292,8 +296,19 @@ Responde con este JSON (sin bloques de código, sin texto adicional):
       uniqueToNewDoc: response.uniqueToNewDoc || [],
     };
 
-    const existingDocumentText = candidate.fragments.map(f => f.text).join('\n\n');
-    return fixQuotesInJudgment(rawJudgment, newDocumentText, existingDocumentText);
+    const fullText = fullTexts?.get(candidate.documentId);
+    let existingDocumentText: string;
+    let existingTextSource: 'completo' | 'fragmentos';
+    if (fullText) {
+      existingDocumentText = fullText;
+      existingTextSource = 'completo';
+    } else {
+      existingDocumentText = candidate.fragments.map(f => f.text).join('\n\n');
+      existingTextSource = 'fragmentos';
+      console.warn(`[judge] Sin full_text para "${candidate.documentName}", usando fragmentos recuperados como fallback`);
+    }
+
+    return fixQuotesInJudgment(rawJudgment, newDocumentText, existingDocumentText, existingTextSource);
   } catch (err) {
     console.warn(`[judge] Failed for "${candidate.documentName}":`, err);
     return {
@@ -321,6 +336,7 @@ export async function judgeAllDocuments(args: {
   newDocumentSample: string;
   candidates: RerankedCandidate[];
   options?: PipelineOptions;
+  fullTexts?: Map<string, string>;
 }): Promise<DocumentJudgment[]> {
   if (args.candidates.length === 0) return [];
 
@@ -350,6 +366,7 @@ export async function judgeAllDocuments(args: {
             newDocumentName: args.newDocumentName,
             newDocumentText,
             candidate: args.candidates[i],
+            fullTexts: args.fullTexts,
           }).then(judgment => { results[i] = judgment; })
         );
       }
@@ -368,6 +385,7 @@ export async function judgeAllDocuments(args: {
       newDocumentName: args.newDocumentName,
       newDocumentText,
       candidate: args.candidates[i],
+      fullTexts: args.fullTexts,
     });
     results.push(judgment);
   }

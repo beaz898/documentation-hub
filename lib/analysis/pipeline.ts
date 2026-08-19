@@ -10,6 +10,41 @@ import { doubleCheckContradictions } from './double-check';
 import { analyzeStyle } from './style-check';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
+/**
+ * Carga el texto completo de los documentos candidatos en un único lote.
+ * Réplica local del patrón de fetchFullTexts en lib/rag.ts: no se importa
+ * de ahí para no acoplar el pipeline de análisis al del chat.
+ *
+ * Un documento sin full_text (o si la consulta entera falla) simplemente
+ * no entra en el mapa — el llamador debe caer a su propio fallback, nunca
+ * romper el análisis por esto.
+ */
+async function fetchCandidateFullTexts(
+  supabase: SupabaseClient,
+  documentIds: string[],
+): Promise<Map<string, string>> {
+  const result = new Map<string, string>();
+  if (documentIds.length === 0) return result;
+
+  const { data, error } = await supabase
+    .from('documents')
+    .select('id, full_text')
+    .in('id', documentIds);
+
+  if (error) {
+    console.warn('[pipeline] Error cargando full_text de candidatos:', error.message);
+    return result;
+  }
+
+  for (const row of data || []) {
+    if (row.full_text && row.full_text.trim().length > 0) {
+      result.set(row.id, row.full_text);
+    }
+  }
+
+  return result;
+}
+
 export interface AnalyzePipelineInput {
   newDocumentText: string;
   newDocumentName: string;
@@ -67,12 +102,15 @@ async function runCorePipeline(
     return synthesizeFinalAnalysis({ newDocumentName: input.newDocumentName, judgments: [] });
   }
 
+  const fullTexts = await fetchCandidateFullTexts(input.supabase, reranked.map(c => c.documentId));
+
   const t2 = Date.now();
   const judgments = await judgeAllDocuments({
     newDocumentName: input.newDocumentName,
     newDocumentSample: input.newDocumentText,
     candidates: reranked,
     options,
+    fullTexts,
   });
   console.log(`[${label}] Judge: ${judgments.length} juicios emitidos (${Date.now() - t2}ms)`);
 
