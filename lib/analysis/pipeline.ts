@@ -84,6 +84,7 @@ async function runCorePipeline(
   const final = await synthesizeFinalAnalysis({
     newDocumentName: input.newDocumentName,
     judgments,
+    excludeDocumentId: input.excludeDocumentId,
   });
   console.log(`[${label}] Synthesize (${Date.now() - t3}ms). Total: ${Date.now() - t0}ms`);
 
@@ -162,7 +163,7 @@ export async function runExhaustiveAnalysisPipeline(input: ExhaustivePipelineInp
 
   // ── Análisis completo: sin corte temprano ────────────────────
   const atomicClaims = await extractAtomicClaims(input.newDocumentText, input.newDocumentName);
-  const atomicContradictions = await verifyClaimsAgainstCorpus(atomicClaims, input.orgId);
+  const atomicContradictions = await verifyClaimsAgainstCorpus(atomicClaims, input.orgId, input.excludeDocumentId);
 
   const mergedDiscrepancies = mergeContradictions(
     pipelineResult.discrepancies,

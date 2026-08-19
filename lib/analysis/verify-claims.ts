@@ -1,4 +1,4 @@
-import { queryVectors } from '@/lib/pinecone/vectors';
+import { queryVectors, CORPUS_ACTIVO } from '@/lib/pinecone/vectors';
 import { generateEmbeddings } from '@/lib/embeddings';
 import { callLLMJson } from './llm-client';
 import type { AtomicClaim } from './extract-claims';
@@ -42,7 +42,7 @@ export interface AtomicContradiction {
 interface VerifyResponse {
   verdict: 'contradiccion' | 'inconsistencia_menor' | 'confirmado' | 'sin_datos';
   corpusSays?: string;
-  existingDocument?: string;
+  fragmentIndex?: number;
 }
 
 /** Umbral de similitud para buscar fragmentos relevantes del corpus. */
@@ -70,6 +70,7 @@ const DELAY_BETWEEN_ROUNDS_MS = 200;
 export async function verifyClaimsAgainstCorpus(
   claims: AtomicClaim[],
   orgId: string,
+  excludeDocumentId?: string,
 ): Promise<AtomicContradiction[]> {
   if (claims.length === 0) return [];
 
@@ -88,7 +89,7 @@ export async function verifyClaimsAgainstCorpus(
 
   // ── Paso 2: Buscar fragmentos del corpus para cada claim ──────
   const corpusResults = await Promise.all(
-    embeddings.map((emb, i) => findCorpusFragmentsByEmbedding(emb, orgId, claims[i].claim))
+    embeddings.map((emb, i) => findCorpusFragmentsByEmbedding(emb, orgId, claims[i].claim, excludeDocumentId))
   );
 
   // ── Paso 3: Filtrar claims que tienen fragmentos relevantes ───
@@ -148,7 +149,7 @@ async function verifySingleClaimWithFragments(
 AFIRMACIÓN DEL DOCUMENTO NUEVO:
 "${claim.claim}"
 
-CONTEXTO ORIGINAL: "${claim.sourceQuote}"
+CONTEXTO EN EL DOCUMENTO NUEVO: "${claim.sourceQuote}"
 
 FRAGMENTOS DEL CORPUS EXISTENTE:
 ${corpusBlock}
@@ -176,7 +177,7 @@ Responde EXCLUSIVAMENTE con este JSON:
 {
   "verdict": "contradiccion" | "inconsistencia_menor" | "confirmado" | "sin_datos",
   "corpusSays": "<qué dice el corpus, solo si es contradiccion o inconsistencia_menor>",
-  "existingDocument": "<nombre del documento del corpus, solo si es contradiccion o inconsistencia_menor>"
+  "fragmentIndex": <número del fragmento [N] listado arriba, solo si es contradiccion o inconsistencia_menor>
 }`;
 
   try {
@@ -185,11 +186,24 @@ Responde EXCLUSIVAMENTE con este JSON:
       temperature: 0.1,
     });
 
+    let existingDocument: string | undefined;
+    if (response.verdict === 'contradiccion' || response.verdict === 'inconsistencia_menor') {
+      const frag = typeof response.fragmentIndex === 'number'
+        ? corpusFragments[response.fragmentIndex - 1]
+        : undefined;
+      if (frag) {
+        existingDocument = frag.documentName;
+      } else {
+        console.warn(`[verify-claims] Contradicción descartada (fragmentIndex inválido) para "${claim.claim.slice(0, 60)}"`);
+        return { ...claim, verdict: 'sin_datos' };
+      }
+    }
+
     return {
       ...claim,
       verdict: response.verdict || 'sin_datos',
       corpusSays: response.corpusSays,
-      existingDocument: response.existingDocument,
+      existingDocument,
     };
   } catch (err) {
     console.warn(`[verify-claims] Falló verificación de "${claim.claim.slice(0, 50)}...":`, err);
@@ -211,20 +225,23 @@ async function findCorpusFragmentsByEmbedding(
   embedding: number[],
   orgId: string,
   claimText: string,
+  excludeDocumentId?: string,
 ): Promise<CorpusFragment[]> {
   try {
     const matches = await queryVectors(orgId, {
       vector: embedding,
       topK: MAX_CORPUS_FRAGMENTS * 2,
       includeMetadata: true,
+      filter: CORPUS_ACTIVO,
     });
 
     const fragments: CorpusFragment[] = [];
     for (const m of matches) {
       if (!m.metadata || typeof m.score !== 'number') continue;
       if (m.score < CORPUS_SCORE_THRESHOLD) continue;
-      const meta = m.metadata as { text?: string; documentName?: string };
+      const meta = m.metadata as { text?: string; documentName?: string; documentId?: string };
       if (!meta.text || !meta.documentName) continue;
+      if (excludeDocumentId && meta.documentId === excludeDocumentId) continue;
       fragments.push({
         text: meta.text,
         documentName: meta.documentName,

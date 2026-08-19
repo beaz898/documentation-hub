@@ -15,8 +15,19 @@ interface SynthesisResponse {
 export async function synthesizeFinalAnalysis(args: {
   newDocumentName: string;
   judgments: DocumentJudgment[];
+  excludeDocumentId?: string;
 }): Promise<FinalAnalysis> {
-  const { newDocumentName, judgments } = args;
+  const { newDocumentName, excludeDocumentId } = args;
+
+  const judgments = excludeDocumentId
+    ? args.judgments.filter(j => {
+        if (j.documentId === excludeDocumentId) {
+          console.warn(`[synthesize] Judgment descartado (documentId coincide con el analizado): "${j.documentName}"`);
+          return false;
+        }
+        return true;
+      })
+    : args.judgments;
 
   // Caso sin candidatos: todo limpio
   if (judgments.length === 0) {
