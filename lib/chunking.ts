@@ -105,6 +105,44 @@ export function chunkText(
   return chunks;
 }
 
+/**
+ * Deshace el escapado de caracteres especiales que mammoth.convertToMarkdown
+ * aplica al texto (p. ej. "\." -> ".", "\(" -> "("). Sin esto, las citas
+ * literales que el judge copia del documento no coinciden con el texto real
+ * (findBestMatch busca "1. Introducción", no "1\. Introducción").
+ */
+function unescapeMarkdown(text: string): string {
+  return text.replace(/\\([.()[\]{}\-_*#+!`>~|])/g, '$1');
+}
+
+/**
+ * Detecta líneas de título numerado ("1. Introducción", "3.1 Menores e
+ * incapacitados") y las convierte en encabezados Markdown. Verificado en
+ * muestras reales de PDF y DOCX: estos documentos numeran sus secciones a
+ * mano sin usar estilos de encabezado reconocibles por el extractor.
+ * Un nivel de numeración ("1.") -> "#". Dos niveles ("3.1") -> "##".
+ */
+function normalizeNumberedHeadings(text: string): string {
+  const HEADING_LINE = /^(\d+(?:\.\d+)?)\.?\s+\S/;
+  return text
+    .split('\n')
+    .map(line => {
+      if (line.startsWith('#')) return line;
+      if (line.length >= 80) return line;
+      if (line.trim().endsWith('.')) return line;
+
+      const match = line.match(HEADING_LINE);
+      if (!match) return line;
+
+      // Se conserva la línea original tal cual (solo se antepone el marcador):
+      // reescribir el separador numérico alteraría el texto literal que
+      // findBestMatch necesita encontrar verbatim en el documento.
+      const level = match[1].includes('.') ? '##' : '#';
+      return `${level} ${line}`;
+    })
+    .join('\n');
+}
+
 function extractTextFromExcel(buffer: Buffer): string {
   // Dynamic import avoided here — xlsx is a sync library, require works fine.
   // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -149,20 +187,28 @@ export async function extractText(
   const ext = filename.toLowerCase().split('.').pop();
 
   switch (ext) {
-    case 'txt':
     case 'md':
     case 'csv':
     case 'json':
     case 'html':
       return buffer.toString('utf-8');
 
+    case 'txt':
+      return normalizeNumberedHeadings(buffer.toString('utf-8'));
+
     case 'pdf':
-      return extractPdfText(buffer);
+      return normalizeNumberedHeadings(await extractPdfText(buffer));
 
     case 'docx': {
       const mammoth = await import('mammoth');
-      const result = await mammoth.extractRawText({ buffer });
-      return result.value;
+      try {
+        const result = await mammoth.convertToMarkdown({ buffer });
+        return normalizeNumberedHeadings(unescapeMarkdown(result.value));
+      } catch (err) {
+        console.warn('[extractText] convertToMarkdown falló, usando extractRawText de reserva:', err);
+        const fallback = await mammoth.extractRawText({ buffer });
+        return normalizeNumberedHeadings(fallback.value);
+      }
     }
 
     case 'xlsx':
