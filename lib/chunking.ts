@@ -338,72 +338,102 @@ export function stripDocumentFrontMatter(text: string): string {
   return stripped;
 }
 
-/** Presupuesto de caracteres por bloque de tabla (cabecera de hoja + fila de
- *  cabecera de columnas + separador + filas acumuladas). Con margen por
- *  debajo de MAX_CHUNK_SIZE para que subdivideSection nunca llegue a
- *  trocear un bloque ya construido: si lo hiciera, los subtrozos
- *  posteriores al primero perderían la fila de cabecera de columnas. */
-const EXCEL_BLOCK_CHAR_BUDGET = MAX_CHUNK_SIZE - 300;
+/** Nº mínimo de celdas rellenas para considerar que una fila es de tabla. */
+const MIN_TABLE_COLUMNS = 2;
+
+/** Filas contiguas no vacías. Una fila vacía separa islas. */
+function splitSheetIntoIslands(rows: string[][]): Array<{ rowNumber: number; cells: string[] }[]> {
+  const islands: Array<{ rowNumber: number; cells: string[] }[]> = [];
+  let current: { rowNumber: number; cells: string[] }[] = [];
+  rows.forEach((cells, index) => {
+    const isBlank = cells.every(cell => cell === '');
+    if (isBlank) {
+      if (current.length > 0) { islands.push(current); current = []; }
+      return;
+    }
+    current.push({ rowNumber: index + 1, cells });
+  });
+  if (current.length > 0) islands.push(current);
+  return islands;
+}
+
+/** Nombres de columna limpios y sin duplicados. */
+function normalizeColumnNames(headerCells: string[]): string[] {
+  const used = new Map<string, number>();
+  return headerCells.map((raw, index) => {
+    const base = raw.replace(/\s+/g, ' ').trim() || `Columna ${index + 1}`;
+    const seen = used.get(base);
+    if (seen === undefined) { used.set(base, 1); return base; }
+    used.set(base, seen + 1);
+    return `${base} (${seen + 1})`;
+  });
+}
+
+function countFilledCells(cells: string[]): number {
+  return cells.filter(cell => cell !== '').length;
+}
 
 function extractTextFromExcel(buffer: Buffer): string {
-  // Dynamic import avoided here — xlsx is a sync library, require works fine.
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const xlsx = require('xlsx') as typeof import('xlsx');
   const workbook = xlsx.read(buffer, { type: 'buffer' });
   if (!workbook.SheetNames.length) return '';
 
-  return workbook.SheetNames
-    .map((name: string) => {
-      const sheet = workbook.Sheets[name];
-      const rows = xlsx.utils.sheet_to_json(sheet, { header: 1 }) as unknown[][];
-      if (rows.length < 2) return '';
+  const fragments: string[] = [];
 
-      const header = rows[0].map(cell => String(cell ?? ''));
-      const dataRows = rows.slice(1).map(row =>
-        header.map((_, i) => String((row as unknown[])[i] ?? ''))
+  for (const sheetName of workbook.SheetNames) {
+    const sheet = workbook.Sheets[sheetName];
+    const rawRows = xlsx.utils.sheet_to_json(sheet, { header: 1 }) as unknown[][];
+    const rows = rawRows.map(row =>
+      (row ?? []).map(cell => String(cell ?? '').trim())
+    );
+    const prefix = `[Hoja "${sheetName}"]`;
+
+    for (const island of splitSheetIntoIslands(rows)) {
+      const headerPosition = island.findIndex(
+        row => countFilledCells(row.cells) >= MIN_TABLE_COLUMNS
+      );
+      const dataRows =
+        headerPosition === -1
+          ? []
+          : island
+              .slice(headerPosition + 1)
+              .filter(row => countFilledCells(row.cells) >= MIN_TABLE_COLUMNS);
+
+      // Isla sin forma de tabla (título, leyenda, totales): se emite tal cual.
+      // Nunca se descarta texto: en el peor caso se indexa con menos estructura.
+      if (headerPosition === -1 || dataRows.length === 0) {
+        for (const row of island) {
+          const line = row.cells.filter(cell => cell !== '').join(' · ');
+          if (line) fragments.push(`${prefix} ${line}`);
+        }
+        continue;
+      }
+
+      const headerCells = island[headerPosition].cells;
+      let width = headerCells.length;
+      while (width > 0 && headerCells[width - 1] === '') width--;
+      const columns = normalizeColumnNames(headerCells.slice(0, width));
+
+      fragments.push(
+        `${prefix} Tabla con ${dataRows.length} filas y ${columns.length} columnas. ` +
+        `Columnas: ${columns.join(', ')}.`
       );
 
-      const toMdRow = (cells: string[]) => `| ${cells.join(' | ')} |`;
-      const headerBlock = [toMdRow(header), toMdRow(header.map(() => '---'))].join('\n');
-
-      // Bloques por presupuesto de caracteres, no por número fijo de filas:
-      // el ancho de una fila depende del contenido, así que un número fijo
-      // puede superar MAX_CHUNK_SIZE y perder la cabecera al subdividirse.
-      const blocks: string[] = [];
-      let blockRows: string[][] = [];
-      let blockCharCount = headerBlock.length;
-      let blockFirstRow = 1;
-
-      for (let i = 0; i < dataRows.length; i++) {
-        const rowNumber = i + 1;
-        const rowLength = toMdRow(dataRows[i]).length + 1; // + salto de línea
-
-        // Solo cerramos el bloque si YA tiene alguna fila: una fila que por
-        // sí sola supere el presupuesto se emite igualmente, en su propio
-        // bloque con cabecera, en vez de descartarla o partirla.
-        if (blockRows.length > 0 && blockCharCount + rowLength > EXCEL_BLOCK_CHAR_BUDGET) {
-          const table = [headerBlock, ...blockRows.map(toMdRow)].join('\n');
-          blocks.push(`## Hoja: ${name} (filas ${blockFirstRow}-${rowNumber - 1})\n\n${table}`);
-          blockRows = [];
-          blockCharCount = headerBlock.length;
-          blockFirstRow = rowNumber;
-        }
-
-        blockRows.push(dataRows[i]);
-        blockCharCount += rowLength;
+      for (const row of dataRows) {
+        const pairs = columns
+          .map((column, index) => {
+            const value = row.cells[index] ?? '';
+            return value === '' ? null : `${column}: ${value}`;
+          })
+          .filter((pair): pair is string => pair !== null);
+        if (pairs.length > 0) fragments.push(`${prefix} ${pairs.join(' | ')}`);
       }
+    }
+  }
 
-      if (blockRows.length > 0) {
-        const table = [headerBlock, ...blockRows.map(toMdRow)].join('\n');
-        blocks.push(`## Hoja: ${name} (filas ${blockFirstRow}-${blockFirstRow + blockRows.length - 1})\n\n${table}`);
-      }
-
-      return blocks.join('\n\n');
-    })
-    .filter(Boolean)
-    .join('\n\n')
-    // PostgreSQL rejects null bytes in text columns; strip them.
-    .replace(/\u0000/g, '');
+  // PostgreSQL rejects null bytes in text columns; strip them.
+  return fragments.join('\n\n').replace(/\u0000/g, '');
 }
 
 /**
