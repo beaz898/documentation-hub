@@ -51,6 +51,14 @@ export interface AnalyzePipelineInput {
   sampleTexts: string[];
   orgId: string;
   excludeDocumentId?: string;
+  /**
+   * IDs de otros documentos de la misma tanda de la bandeja de revisión,
+   * aún sin validar (analysisStatus='pendiente') pero ya indexados. Se
+   * incluyen en el corpus consultado SOLO para este análisis, para que los
+   * documentos de una tanda se comparen entre sí sin esperar a que cada
+   * uno se valide.
+   */
+  batchDocumentIds?: string[];
   supabase: SupabaseClient;
   /**
    * Huellas de contradicciones descartadas en reanálisis anteriores.
@@ -81,6 +89,7 @@ async function runCorePipeline(
     sampleTexts: input.sampleTexts,
     orgId: input.orgId,
     excludeDocumentId: input.excludeDocumentId,
+    batchDocumentIds: input.batchDocumentIds,
     options,
   });
   console.log(`[${label}] Retrieval: ${candidates.length} candidatos (${Date.now() - t0}ms)`);
@@ -201,7 +210,7 @@ export async function runExhaustiveAnalysisPipeline(input: ExhaustivePipelineInp
 
   // ── Análisis completo: sin corte temprano ────────────────────
   const atomicClaims = await extractAtomicClaims(input.newDocumentText, input.newDocumentName);
-  const atomicContradictions = await verifyClaimsAgainstCorpus(atomicClaims, input.orgId, input.excludeDocumentId);
+  const atomicContradictions = await verifyClaimsAgainstCorpus(atomicClaims, input.orgId, input.excludeDocumentId, input.batchDocumentIds);
 
   const mergedDiscrepancies = mergeContradictions(
     pipelineResult.discrepancies,

@@ -1,4 +1,4 @@
-import { queryVectors, CORPUS_ACTIVO } from '@/lib/pinecone/vectors';
+import { queryVectors, buildCorpusFilter } from '@/lib/pinecone/vectors';
 import { generateEmbeddings } from '@/lib/embeddings';
 import { callLLMJson } from './llm-client';
 import type { AtomicClaim } from './extract-claims';
@@ -71,6 +71,7 @@ export async function verifyClaimsAgainstCorpus(
   claims: AtomicClaim[],
   orgId: string,
   excludeDocumentId?: string,
+  batchDocumentIds?: string[],
 ): Promise<AtomicContradiction[]> {
   if (claims.length === 0) return [];
 
@@ -89,7 +90,7 @@ export async function verifyClaimsAgainstCorpus(
 
   // ── Paso 2: Buscar fragmentos del corpus para cada claim ──────
   const corpusResults = await Promise.all(
-    embeddings.map((emb, i) => findCorpusFragmentsByEmbedding(emb, orgId, claims[i].claim, excludeDocumentId))
+    embeddings.map((emb, i) => findCorpusFragmentsByEmbedding(emb, orgId, claims[i].claim, excludeDocumentId, batchDocumentIds))
   );
 
   // ── Paso 3: Filtrar claims que tienen fragmentos relevantes ───
@@ -226,13 +227,14 @@ async function findCorpusFragmentsByEmbedding(
   orgId: string,
   claimText: string,
   excludeDocumentId?: string,
+  batchDocumentIds?: string[],
 ): Promise<CorpusFragment[]> {
   try {
     const matches = await queryVectors(orgId, {
       vector: embedding,
       topK: MAX_CORPUS_FRAGMENTS * 2,
       includeMetadata: true,
-      filter: CORPUS_ACTIVO,
+      filter: buildCorpusFilter(batchDocumentIds),
     });
 
     const fragments: CorpusFragment[] = [];

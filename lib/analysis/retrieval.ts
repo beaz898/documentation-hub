@@ -1,4 +1,4 @@
-import { queryVectors, CORPUS_ACTIVO } from '@/lib/pinecone/vectors';
+import { queryVectors, buildCorpusFilter } from '@/lib/pinecone/vectors';
 import { generateEmbeddings } from '@/lib/embeddings';
 import type { CandidateDocument, DocumentFragment, PipelineOptions } from './types';
 
@@ -31,13 +31,15 @@ export async function retrieveCandidates(args: {
   sampleTexts: string[];
   orgId: string;
   excludeDocumentId?: string;
+  batchDocumentIds?: string[];
   options?: PipelineOptions;
 }): Promise<CandidateDocument[]> {
-  const { sampleTexts, orgId, excludeDocumentId, options } = args;
+  const { sampleTexts, orgId, excludeDocumentId, batchDocumentIds, options } = args;
   const isExhaustive = options?.exhaustive === true;
 
   const embeddings = await generateEmbeddings(sampleTexts);
   const scoreThreshold = isExhaustive ? SCORE_THRESHOLD_EXHAUSTIVE : SCORE_THRESHOLD_QUICK;
+  const corpusFilter = buildCorpusFilter(batchDocumentIds);
 
   // Recoger todos los matches de Pinecone
   const allMatches: DocumentFragment[] = [];
@@ -47,7 +49,7 @@ export async function retrieveCandidates(args: {
     for (let batchStart = 0; batchStart < embeddings.length; batchStart += QUERY_BATCH_SIZE) {
       const batch = embeddings.slice(batchStart, batchStart + QUERY_BATCH_SIZE);
       const batchResults = await Promise.all(
-        batch.map(emb => queryVectors(orgId, { vector: emb, topK: 25, includeMetadata: true, filter: CORPUS_ACTIVO }))
+        batch.map(emb => queryVectors(orgId, { vector: emb, topK: 25, includeMetadata: true, filter: corpusFilter }))
       );
       for (const matches of batchResults) {
         collectMatches(matches as Array<{ metadata?: Record<string, unknown>; score?: number }>, allMatches, scoreThreshold, excludeDocumentId);
@@ -56,7 +58,7 @@ export async function retrieveCandidates(args: {
   } else {
     // Secuencial — menos presión sobre Pinecone free tier
     for (const emb of embeddings) {
-      const matches = await queryVectors(orgId, { vector: emb, topK: 25, includeMetadata: true, filter: CORPUS_ACTIVO });
+      const matches = await queryVectors(orgId, { vector: emb, topK: 25, includeMetadata: true, filter: corpusFilter });
       collectMatches(matches as Array<{ metadata?: Record<string, unknown>; score?: number }>, allMatches, scoreThreshold, excludeDocumentId);
     }
   }

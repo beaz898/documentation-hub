@@ -72,7 +72,7 @@ export async function POST(req: NextRequest) {
     }
     
     const body = await req.json();
-    const { storagePath, fileName, text: directText, exhaustive, excludeFingerprints: rawExcludeFps, documentId } = body;
+    const { storagePath, fileName, text: directText, exhaustive, excludeFingerprints: rawExcludeFps, documentId, batchDocumentIds: rawBatchDocumentIds } = body;
 
     // Auto-exclusión derivada del endpoint (no del caller): un documento que YA
     // existe en el corpus (tiene documentId) NUNCA se compara consigo mismo.
@@ -81,6 +81,15 @@ export async function POST(req: NextRequest) {
     // una versión nueva excluye los vectores de su propia versión anterior").
     // En la subida no hay documentId (el doc aún no existe) → undefined → no excluye.
     const excludeDocumentId = typeof documentId === 'string' ? documentId : undefined;
+
+    // IDs de otros documentos de la misma tanda de la bandeja de revisión
+    // (aún sin validar, pero ya indexados). Solo la bandeja los manda; si el
+    // body no trae un array de strings, queda undefined = comportamiento
+    // idéntico al de hoy (solo corpus validado).
+    const batchDocumentIds: string[] | undefined =
+      Array.isArray(rawBatchDocumentIds) && rawBatchDocumentIds.every((v: unknown): v is string => typeof v === 'string')
+        ? (rawBatchDocumentIds as string[])
+        : undefined;
 
     // Convertir array de huellas descartadas a Set (si viene del frontend)
     const excludeFingerprints = Array.isArray(rawExcludeFps)
@@ -305,7 +314,7 @@ export async function POST(req: NextRequest) {
     const avgChunkSize = chunks.length > 0
       ? Math.round(chunks.reduce((sum, c) => sum + c.text.length, 0) / chunks.length)
       : 0;
-    console.log(`[analyze-v2] "${fileName}" — ${chunks.length} chunks, ${sampleTexts.length} samples, ${text.length} chars totales, ${avgChunkSize} chars/chunk de media (rápido)`);
+    console.log(`[analyze-v2] "${fileName}" — ${chunks.length} chunks, ${sampleTexts.length} samples, ${text.length} chars totales, ${avgChunkSize} chars/chunk de media, ${batchDocumentIds?.length ?? 0} ids de tanda (rápido)`);
 
     const llmAcc = new Map();
     const analysis = await usageContext.run(llmAcc, () =>
@@ -315,6 +324,7 @@ export async function POST(req: NextRequest) {
         sampleTexts,
         orgId,
         excludeDocumentId,
+        batchDocumentIds,
         supabase,
       })
     );

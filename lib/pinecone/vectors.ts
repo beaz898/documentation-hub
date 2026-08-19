@@ -15,6 +15,28 @@ import type {
  *  (mark-analyzed, sync/C.3, ingest, index-text lo hacen — verificado). */
 export const CORPUS_ACTIVO = { analysisStatus: { $eq: 'analizado' } };
 
+/**
+ * Filtro del corpus servible, ampliado opcionalmente con documentos concretos
+ * aún sin validar. Permite que los documentos de una misma tanda en la
+ * bandeja de revisión (analysisStatus='pendiente', pero con vectores ya
+ * indexados y embeddings calculados) se comparen entre sí durante el
+ * análisis, sin abrir el corpus general a todo lo pendiente.
+ *
+ * Sin ids (o array vacío): devuelve CORPUS_ACTIVO tal cual — mismo
+ * comportamiento que hoy, sin cambio de filtro.
+ */
+export function buildCorpusFilter(includePendingIds?: string[]): object {
+  if (!includePendingIds || includePendingIds.length === 0) {
+    return CORPUS_ACTIVO;
+  }
+  return {
+    $or: [
+      CORPUS_ACTIVO,
+      { documentId: { $in: includePendingIds } },
+    ],
+  };
+}
+
 const UPSERT_BATCH = 100;
 const DELETE_BATCH = 1000;
 

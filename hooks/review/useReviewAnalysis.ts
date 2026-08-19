@@ -27,7 +27,7 @@ interface Progress {
   currentName: string;
 }
 
-async function analyzeOneDocument(doc: ReviewDocument): Promise<void> {
+async function analyzeOneDocument(doc: ReviewDocument, batchDocumentIds: string[]): Promise<void> {
   // 1) Leer el texto del documento.
   const textRes = await fetch(`/api/documents/${doc.id}/text`, {
     credentials: 'include',
@@ -42,7 +42,9 @@ async function analyzeOneDocument(doc: ReviewDocument): Promise<void> {
     throw new Error('El documento no tiene texto para analizar.');
   }
 
-  // 2) Analizar, pasando el documentId (rellena la columna del analisis).
+  // 2) Analizar, pasando el documentId (rellena la columna del analisis) y
+  // los ids de los OTROS documentos de la tanda, para que se comparen entre
+  // sí aunque ninguno esté aún validado.
   const analyzeRes = await fetch('/api/analyze-v2', {
     method: 'POST',
     credentials: 'include',
@@ -51,6 +53,7 @@ async function analyzeOneDocument(doc: ReviewDocument): Promise<void> {
       fileName: doc.name,
       text,
       documentId: doc.id,
+      batchDocumentIds,
     }),
   });
   if (!analyzeRes.ok) {
@@ -80,7 +83,8 @@ export function useReviewAnalysis() {
         const doc = documents[i];
         setProgress({ current: i + 1, total: documents.length, currentName: doc.name });
         try {
-          await analyzeOneDocument(doc);
+          const batchDocumentIds = documents.filter(d => d.id !== doc.id).map(d => d.id);
+          await analyzeOneDocument(doc, batchDocumentIds);
           analyzed++;
         } catch (err) {
           const blocked = Boolean((err as Error & { blocked?: boolean })?.blocked);
