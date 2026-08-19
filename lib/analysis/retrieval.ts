@@ -18,9 +18,13 @@ const QUERY_BATCH_SIZE = 5;
 const FRAGS_PER_DOC_QUICK = 4;
 
 /** Umbral mínimo de similitud.
- *  Rápido: 0.60 (menos ruido, suficiente para detección básica).
+ *  Rápido: 0.50 — calibrado para chunks de ~500 caracteres tras el troceado
+ *  por sección (chunking.ts): con chunks más pequeños y concretos, el score
+ *  de similitud de cada uno es naturalmente más bajo que con los chunks de
+ *  ~2000 caracteres de antes, así que el umbral bajó en la misma calibración.
+ *  No subir a ciegas sin volver a medir con el troceado actual.
  *  Exhaustivo: 0.45 (más permisivo — el rerank filtra el ruido temático). */
-const SCORE_THRESHOLD_QUICK = 0.60;
+const SCORE_THRESHOLD_QUICK = 0.50;
 const SCORE_THRESHOLD_EXHAUSTIVE = 0.45;
 
 export async function retrieveCandidates(args: {
