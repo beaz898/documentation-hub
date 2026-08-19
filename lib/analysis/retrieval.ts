@@ -14,8 +14,20 @@ import type { CandidateDocument, DocumentFragment, PipelineOptions } from './typ
 /** Tamaño del lote de queries paralelas a Pinecone. */
 const QUERY_BATCH_SIZE = 5;
 
-/** Fragmentos por documento en modo rápido. */
-const FRAGS_PER_DOC_QUICK = 4;
+/**
+ * Presupuesto de contenido por documento candidato en modo rápido.
+ * Antes se recortaba a un número fijo de fragmentos, lo que penalizaba a los
+ * documentos troceados en piezas pequeñas (una fila de hoja de cálculo es un
+ * fragmento) frente a los troceados en secciones largas. Se mide contenido,
+ * no piezas.
+ */
+const FRAGMENT_BUDGET_CHARS_QUICK = 3000;
+
+/**
+ * Red de seguridad: un documento con miles de fragmentos diminutos no debe
+ * inundar el juicio aunque quepa en el presupuesto.
+ */
+const MAX_FRAGMENTS_PER_DOC_QUICK = 25;
 
 /** Umbral mínimo de similitud.
  *  Rápido: 0.50 — calibrado para chunks de ~500 caracteres tras el troceado
@@ -76,8 +88,8 @@ export async function retrieveCandidates(args: {
     const unique = deduplicateFragments(frags);
     const sorted = unique.sort((a, b) => b.score - a.score);
 
-    // Exhaustivo: todos los fragmentos únicos. Rápido: solo los top 4.
-    const selected = isExhaustive ? sorted : sorted.slice(0, FRAGS_PER_DOC_QUICK);
+    // Exhaustivo: todos los fragmentos únicos. Rápido: los que quepan en el presupuesto.
+    const selected = isExhaustive ? sorted : selectFragmentsWithinBudget(sorted);
 
     candidates.push({
       documentId,
@@ -122,6 +134,29 @@ function collectMatches(
       chunkIndex: meta.chunkIndex ?? 0,
     });
   }
+}
+
+/**
+ * Selecciona fragmentos por orden de score hasta agotar el presupuesto de
+ * caracteres. Un fragmento NUNCA se parte: si no cabe entero, se descarta y se
+ * sigue con el siguiente, que puede ser más corto. Se garantiza al menos un
+ * fragmento aunque por sí solo supere el presupuesto.
+ */
+function selectFragmentsWithinBudget(sortedFragments: DocumentFragment[]): DocumentFragment[] {
+  if (sortedFragments.length === 0) return sortedFragments;
+
+  const selected: DocumentFragment[] = [sortedFragments[0]];
+  let usedChars = sortedFragments[0].text.length;
+
+  for (let i = 1; i < sortedFragments.length; i++) {
+    if (selected.length >= MAX_FRAGMENTS_PER_DOC_QUICK) break;
+    const fragment = sortedFragments[i];
+    if (usedChars + fragment.text.length > FRAGMENT_BUDGET_CHARS_QUICK) continue;
+    selected.push(fragment);
+    usedChars += fragment.text.length;
+  }
+
+  return selected;
 }
 
 /** Elimina fragmentos del mismo chunk (pueden aparecer si distintos embeddings los recuperan). */
