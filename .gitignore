@@ -1,1 +1,25 @@
+# dependencias
+/node_modules
+
+# build
+/.next
+/out
+next-env.d.ts
+tsconfig.tsbuildinfo
+
+# entorno
+.env
+.env.local
+.env*.local
+
+# sistema
+.DS_Store
+*.pem
+
+# logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# temporal de sesión
 .git-commit-msg.txt
