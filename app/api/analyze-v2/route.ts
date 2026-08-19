@@ -302,7 +302,10 @@ export async function POST(req: NextRequest) {
 
     const sampleTexts = pickSampledTexts(chunks);
 
-    console.log(`[analyze-v2] "${fileName}" — ${chunks.length} chunks, ${sampleTexts.length} samples (rápido)`);
+    const avgChunkSize = chunks.length > 0
+      ? Math.round(chunks.reduce((sum, c) => sum + c.text.length, 0) / chunks.length)
+      : 0;
+    console.log(`[analyze-v2] "${fileName}" — ${chunks.length} chunks, ${sampleTexts.length} samples, ${text.length} chars totales, ${avgChunkSize} chars/chunk de media (rápido)`);
 
     const llmAcc = new Map();
     const analysis = await usageContext.run(llmAcc, () =>
@@ -510,11 +513,11 @@ export async function POST(req: NextRequest) {
 /** Extrae textos muestreados de los chunks para el análisis rápido. */
 function pickSampledTexts(chunks: Array<{ text: string }>): string[] {
   const total = chunks.length;
-  const targetSamples = total <= 20
-    ? Math.min(8, total)
-    : total <= 60
-      ? 15
-      : 25;
+  const targetSamples = total <= 40
+    ? total
+    : total <= 80
+      ? 30
+      : 40;
   const indices = pickSampleIndices(total, targetSamples);
   return indices.map(i => chunks[i].text);
 }
