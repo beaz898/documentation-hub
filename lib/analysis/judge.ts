@@ -59,11 +59,18 @@ interface JudgeResponse {
 // Post-procesamiento: corregir citas del LLM contra el texto real
 // ============================================================
 
+/**
+ * Normaliza para comparación fuzzy. La clase de caracteres ignorados incluye
+ * el marcado Markdown (* _ # ` ~) junto a la puntuación: el LLM cita el
+ * texto VISIBLE del documento ("24 HORAS"), no el marcado que lo envuelve
+ * en la fuente ("**24 HORAS**"), así que ambos deben normalizar igual para
+ * que la comparación coincida.
+ */
 function normalize(s: string): string {
   return s
     .toLowerCase()
     .replace(/\s+/g, ' ')
-    .replace(/[.,;:!?"""''«»()[\]{}\-—–…]/g, '')
+    .replace(/[.,;:!?"""''«»()[\]{}\-—–…*_#`~]/g, '')
     .trim();
 }
 
@@ -81,7 +88,9 @@ function findBestMatch(haystack: string, needle: string): string | null {
   for (let i = 0; i < haystack.length; i++) {
     const ch = haystack[i];
     const isSpace = /\s/.test(ch);
-    const isPunct = /[.,;:!?"""''«»()[\]{}\-—–…]/.test(ch);
+    // Misma clase que normalize(): debe coincidir carácter a carácter o el
+    // mapping de índices haystack-normalizado -> haystack-original se desincroniza.
+    const isPunct = /[.,;:!?"""''«»()[\]{}\-—–…*_#`~]/.test(ch);
     if (isPunct) continue;
     if (isSpace) {
       if (normHaystack.length > 0 && !normHaystack.endsWith(' ')) {
