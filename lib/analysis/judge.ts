@@ -24,14 +24,19 @@ const EXHAUSTIVE_CONCURRENCY = 5;
 /** Pausa entre rondas en modo exhaustivo. */
 const EXHAUSTIVE_ROUND_DELAY_MS = 500;
 
-/** Prefijos de descripciones de solapamiento genéricas (rasgos que compartirían
- *  casi todos los documentos de la empresa, no contenido concreto compartido). */
-const GENERIC_OVERLAP_PREFIXES = [
-  'ambos documentos mencionan',
-  'ambos documentos hacen referencia',
-  'ambos documentos son',
-  'ambos documentos tratan',
+/** Patrones que delatan que el LLM narró en vez de copiar la cita literal
+ *  (p. ej. "El fragmento [2] muestra que..." o menciones a "el corpus"/
+ *  "el documento nuevo" dentro del propio texto citado). */
+const NARRATION_PATTERNS: RegExp[] = [
+  /fragmento\s*\[\d+\]/i,
+  /\bel corpus\b/i,
+  /\bel documento nuevo\b/i,
 ];
+
+function containsNarration(text: string | undefined): boolean {
+  if (!text) return false;
+  return NARRATION_PATTERNS.some(pattern => pattern.test(text));
+}
 
 interface JudgeResponse {
   overlapPercent: number;
@@ -126,6 +131,11 @@ function fixQuotesInJudgment(
 ): DocumentJudgment {
   const fixedContradictions: DocumentJudgment['contradictions'] = [];
   for (const c of judgment.contradictions) {
+    if (containsNarration(c.newDocSays) || containsNarration(c.existingDocSays)) {
+      console.warn(`[judge] Contradicción descartada en "${judgment.documentName}" (narración en la cita)`);
+      continue;
+    }
+
     const matchNew = c.newDocSays ? findBestMatch(newDocumentText, c.newDocSays) : null;
     const matchExisting = c.existingDocSays ? findBestMatch(existingDocumentText, c.existingDocSays) : null;
 
@@ -142,12 +152,8 @@ function fixQuotesInJudgment(
 
   const fixedOverlaps: DocumentJudgment['overlappingContent'] = [];
   for (const o of judgment.overlappingContent) {
-    const normalizedDescription = o.description.toLowerCase().trim();
-    const isGenericOverlap = GENERIC_OVERLAP_PREFIXES.some(prefix => normalizedDescription.startsWith(prefix));
-    if (isGenericOverlap) {
-      console.warn(
-        `[judge] Solapamiento descartado en "${judgment.documentName}" (descripción genérica): "${o.description.slice(0, 60)}"`
-      );
+    if (containsNarration(o.evidenceInNewDoc) || containsNarration(o.evidence)) {
+      console.warn(`[judge] Solapamiento descartado en "${judgment.documentName}" (narración en la cita)`);
       continue;
     }
 

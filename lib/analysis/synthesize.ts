@@ -104,7 +104,7 @@ Responde EXCLUSIVAMENTE con este JSON:
   // Se busca el primer evidenceInNewDoc no vacío para usarlo como textRef
   // (permite que la tarjeta de duplicidad sea clickable en el editor).
   const overlaps = judgments
-    .filter(j => j.overlapPercent >= 15 || j.overlappingContent.length > 0)
+    .filter(j => j.overlappingContent.some(o => o.description.trim().length > 0))
     .map(j => {
       // Buscar la primera cita literal del documento nuevo entre los solapamientos
       const firstEvidence = j.overlappingContent.find(
@@ -112,9 +112,10 @@ Responde EXCLUSIVAMENTE con este JSON:
       );
       return {
         existingDocument: j.documentName,
-        description: j.overlappingContent.length > 0
-          ? j.overlappingContent.map(o => o.description).join('. ')
-          : `Solapamiento ${j.verdict.replace('_', ' ')}`,
+        description: j.overlappingContent
+          .filter(o => o.description.trim().length > 0)
+          .map(o => o.description)
+          .join('. '),
         severity: (j.overlapPercent >= 60 ? 'alta' : j.overlapPercent >= 30 ? 'media' : 'baja') as 'alta' | 'media' | 'baja',
         overlapPercent: j.overlapPercent,
         textRef: firstEvidence?.evidenceInNewDoc || undefined,
