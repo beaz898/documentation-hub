@@ -289,6 +289,55 @@ function normalizeNumberedHeadings(text: string): string {
     .join('\n');
 }
 
+/**
+ * Elimina el bloque de portada (empresa, departamento, título, versión) antes
+ * del primer encabezado, si tiene FORMA de rótulo (líneas cortas sin oraciones)
+ * y no de prosa. Es metadato del documento, no contenido: si se indexa, compite
+ * como candidato en el análisis y genera solapamientos y contradicciones
+ * espurias entre documentos que solo comparten membrete.
+ */
+export function stripDocumentFrontMatter(text: string): string {
+  if (!HAS_ANY_HEADING_RE.test(text)) return text;
+
+  const lines = text.split('\n');
+  const firstHeadingIndex = lines.findIndex(line => /^#{1,6}\s/.test(line));
+  if (firstHeadingIndex <= 0) return text;
+
+  const preamble = lines.slice(0, firstHeadingIndex);
+  const body = lines.slice(firstHeadingIndex);
+  const meaningful = preamble.filter(line => line.trim().length > 0);
+
+  if (meaningful.length === 0) return text;
+
+  // Regla de FORMA, no de vocabulario: un rótulo son etiquetas cortas sin
+  // frases. Prosa real tiene oraciones. Si el preámbulo parece prosa, se queda.
+  const MAX_PREAMBLE_CHARS = 400;
+  const MAX_PREAMBLE_LINES = 8;
+  const MAX_LINE_CHARS = 120;
+
+  const totalChars = meaningful.join('\n').length;
+  if (totalChars > MAX_PREAMBLE_CHARS) return text;
+  if (meaningful.length > MAX_PREAMBLE_LINES) return text;
+
+  const looksLikeLabels = meaningful.every(line => {
+    const t = line.trim();
+    if (t.length > MAX_LINE_CHARS) return false;
+    if (/\.\s/.test(t)) return false;  // contiene fin de oración interno
+    return !/\.$/.test(t);             // termina en punto = oración
+  });
+  if (!looksLikeLabels) return text;
+
+  const stripped = body.join('\n').trim();
+  // Red de seguridad: nunca dejar el documento sin contenido.
+  if (stripped.length < 200) return text;
+
+  console.log('[stripDocumentFrontMatter] preámbulo eliminado', {
+    lineas: meaningful.length,
+    caracteres: totalChars,
+  });
+  return stripped;
+}
+
 /** Presupuesto de caracteres por bloque de tabla (cabecera de hoja + fila de
  *  cabecera de columnas + separador + filas acumuladas). Con margen por
  *  debajo de MAX_CHUNK_SIZE para que subdivideSection nunca llegue a
@@ -375,20 +424,20 @@ export async function extractText(
       return buffer.toString('utf-8');
 
     case 'txt':
-      return normalizeNumberedHeadings(buffer.toString('utf-8'));
+      return stripDocumentFrontMatter(normalizeNumberedHeadings(buffer.toString('utf-8')));
 
     case 'pdf':
-      return normalizeNumberedHeadings(await extractPdfText(buffer));
+      return stripDocumentFrontMatter(normalizeNumberedHeadings(await extractPdfText(buffer)));
 
     case 'docx': {
       const mammoth = await import('mammoth');
       try {
         const result = await mammoth.convertToMarkdown({ buffer });
-        return normalizeNumberedHeadings(unescapeMarkdown(result.value));
+        return stripDocumentFrontMatter(normalizeNumberedHeadings(unescapeMarkdown(result.value)));
       } catch (err) {
         console.warn('[extractText] convertToMarkdown falló, usando extractRawText de reserva:', err);
         const fallback = await mammoth.extractRawText({ buffer });
-        return normalizeNumberedHeadings(fallback.value);
+        return stripDocumentFrontMatter(normalizeNumberedHeadings(fallback.value));
       }
     }
 
