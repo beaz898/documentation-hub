@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import { getAuthenticatedUserHybrid } from '@/lib/supabase-server';
-import { chunkText, extractText } from '@/lib/chunking';
+import { chunkText, extractText, stripSegmentationMarkers } from '@/lib/chunking';
 import { runAnalysisPipeline } from '@/lib/analysis/pipeline';
 import { logUsage } from '@/lib/usage-logger';
 import { checkRateLimit } from '@/lib/rate-limiter';
@@ -269,7 +269,7 @@ export async function POST(req: NextRequest) {
           user_id: userId,
           status: 'pending',
           document_name: fileName,
-          document_text: text,
+          document_text: stripSegmentationMarkers(text),
           sample_texts: JSON.stringify(sampleTexts),
           exclude_document_id: excludeDocumentId ?? null,
           document_id: documentId ?? null,
@@ -319,7 +319,7 @@ export async function POST(req: NextRequest) {
     const llmAcc = new Map();
     const analysis = await usageContext.run(llmAcc, () =>
       runAnalysisPipeline({
-        newDocumentText: text,
+        newDocumentText: stripSegmentationMarkers(text),
         newDocumentName: fileName,
         sampleTexts,
         orgId,
@@ -402,7 +402,7 @@ export async function POST(req: NextRequest) {
     if (typeof documentId === 'string' && !staged) {
       const { error: hashError } = await supabase
         .from('documents')
-        .update({ analyzed_content_hash: generateContentHash(text) })
+        .update({ analyzed_content_hash: generateContentHash(stripSegmentationMarkers(text)) })
         .eq('id', documentId)
         .eq('org_id', orgId);
       if (hashError) {

@@ -5,7 +5,7 @@ import { upsertVectors, deleteVectorsByIds, listVectorIdsByPrefix, buildVectorId
 import { deleteDocument, getTombstonedIdentities, tombstoneKey } from '@/lib/delete-document';
 import { checkUploadLock } from '@/lib/upload-lock';
 import { generateEmbeddings } from '@/lib/embeddings';
-import { chunkText } from '@/lib/chunking';
+import { chunkText, stripSegmentationMarkers } from '@/lib/chunking';
 import { randomUUID } from 'crypto';
 import { decrypt, encrypt } from '@/lib/crypto';
 import { generateContentHash } from '@/lib/analysis/hash-check';
@@ -220,8 +220,11 @@ export async function POST(req: NextRequest) {
         }
 
         // El hash ANTES de chunkear/embeber: si el contenido no cambio, la guarda de
-        // abajo corta sin pagar embeddings.
-        const contentHash = generateContentHash(text);
+        // abajo corta sin pagar embeddings. Sobre el texto limpio: el marcador de
+        // segmentacion (hojas de calculo) es una senal interna de chunkText, no
+        // contenido -- si entrara en el hash, el mismo archivo sin cambios reales
+        // parecería "tocado" en cada sync.
+        const contentHash = generateContentHash(stripSegmentationMarkers(text));
 
         // Toque-sin-cambio (F-16 Q2): el archivo se re-guardo en Drive (modifiedTime
         // avanzo) pero el texto es IDENTICO al del staged en vuelo. Reemplazar el
@@ -308,7 +311,7 @@ export async function POST(req: NextRequest) {
                 document_id: documentId,
                 org_id: orgId,
                 generation: targetGen,
-                full_text: text,
+                full_text: stripSegmentationMarkers(text),
                 content_hash: contentHash,
                 chunk_count: chunks.length,
                 size_bytes: Buffer.byteLength(text, 'utf8'),
@@ -349,7 +352,7 @@ export async function POST(req: NextRequest) {
                 source_modified_at: file.modifiedTime,
                 folder_path: file.folderPath ?? '/',
                 folder_id: file.parentId ?? null,
-                full_text: text,
+                full_text: stripSegmentationMarkers(text),
                 content_hash: contentHash,
               })
               .eq('id', documentId)
@@ -382,7 +385,7 @@ export async function POST(req: NextRequest) {
             source_modified_at: file.modifiedTime,
             folder_path: file.folderPath ?? '/',
             folder_id: file.parentId ?? null,
-            full_text: text,
+            full_text: stripSegmentationMarkers(text),
             content_hash: contentHash,
           });
 

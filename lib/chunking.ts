@@ -33,6 +33,29 @@ const HEADING_LINE_RE = /^(#{1,6})\s/;
 /** Detección de si el texto completo tiene ALGÚN encabezado, en cualquier línea. */
 const HAS_ANY_HEADING_RE = /^#{1,6}\s/m;
 
+/**
+ * Separador entre piezas ya decididas por el extractor.
+ * Las hojas de cálculo llegan con sus cortes hechos (una fila = una pieza) y
+ * chunkText no debe volver a decidirlos: si se reagrupan, cada chunk mezcla
+ * registros distintos y deja de parecerse a nada concreto en la búsqueda.
+ * Es un marcador técnico, no texto presentable: se elimina antes de indexar.
+ * No se usa '\n\n' porque una celda con saltos de línea internos lo
+ * reproduciría y partiría la fila.
+ */
+const PRE_SEGMENTED_SEPARATOR = '\u241E';
+
+/**
+ * Elimina el marcador de segmentación del texto que se persiste o se envía a
+ * un LLM (full_text, contenido del documento nuevo en el análisis, hash de
+ * contenido). El marcador es una señal interna para chunkText, no texto
+ * presentable: nunca debe llegar a Supabase ni a un prompt. Se sustituye por
+ * '\n\n' porque es la separación visual equivalente que tendría el texto si
+ * no existiera el marcador.
+ */
+export function stripSegmentationMarkers(text: string): string {
+  return text.split(PRE_SEGMENTED_SEPARATOR).join('\n\n');
+}
+
 interface Section {
   /** Línea de encabezado que abre la sección (incluida en `text`). null = preámbulo sin título antes del primer encabezado. */
   title: string | null;
@@ -211,6 +234,23 @@ export function chunkText(
   documentName: string,
   orgId: string
 ): Chunk[] {
+  // Camino 0: el extractor ya decidió las piezas (hojas de cálculo).
+  // Se respetan tal cual; solo se subdividen las que por sí solas superen
+  // MAX_CHUNK_SIZE.
+  if (text.includes(PRE_SEGMENTED_SEPARATOR)) {
+    const pieces: string[] = [];
+    for (const raw of text.split(PRE_SEGMENTED_SEPARATOR)) {
+      const piece = raw.replace(/\r\n/g, '\n').replace(/[ \t]+/g, ' ').trim();
+      if (!piece) continue;
+      if (piece.length > MAX_CHUNK_SIZE) {
+        pieces.push(...splitByLength(piece, CHUNK_SIZE, CHUNK_OVERLAP));
+      } else {
+        pieces.push(piece);
+      }
+    }
+    return buildChunks(pieces, documentId, documentName, orgId);
+  }
+
   // Limpiar texto
   const cleaned = text
     .replace(/\r\n/g, '\n')
@@ -433,7 +473,7 @@ function extractTextFromExcel(buffer: Buffer): string {
   }
 
   // PostgreSQL rejects null bytes in text columns; strip them.
-  return fragments.join('\n\n').replace(/\u0000/g, '');
+  return fragments.join(PRE_SEGMENTED_SEPARATOR).replace(/\u0000/g, '');
 }
 
 /**

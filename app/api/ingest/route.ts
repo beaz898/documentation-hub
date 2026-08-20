@@ -3,7 +3,7 @@ import { createServiceClient } from '@/lib/supabase';
 import { getAuthenticatedUserHybrid } from '@/lib/supabase-server';
 import { upsertVectors, deleteVectorsByIds, buildVectorId } from '@/lib/pinecone/vectors';
 import { generateEmbeddings } from '@/lib/embeddings';
-import { chunkText, extractText } from '@/lib/chunking';
+import { chunkText, extractText, stripSegmentationMarkers } from '@/lib/chunking';
 import { randomUUID } from 'crypto';
 import { generateContentHash } from '@/lib/analysis/hash-check';
 import { resolveOrg } from '@/lib/org';
@@ -179,8 +179,11 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // 5. Generar hash del contenido para detección futura de duplicados exactos
-    const contentHash = generateContentHash(text);
+    // 5. Generar hash del contenido para detección futura de duplicados exactos.
+    // Sobre el texto limpio: el marcador de segmentación (hojas de cálculo) es
+    // una señal interna de chunkText, no contenido — si entrara en el hash, el
+    // mismo documento sin ningún cambio real cambiaría de hash entre sync/sync.
+    const contentHash = generateContentHash(stripSegmentationMarkers(text));
 
     // 6. Trocear en chunks
     const chunks = chunkText(text, documentId, fileName, orgId);
@@ -221,7 +224,7 @@ export async function POST(req: NextRequest) {
       source: 'manual',
       analysis_status: analysisStatus,
       content_hash: contentHash,
-      full_text: text,
+      full_text: stripSegmentationMarkers(text),
       // Si el analisis se completo OK, fue sobre ESTE mismo texto (el frontend
       // analiza y luego indexa lo mismo), asi que el hash analizado coincide con
       // el de identidad. Si el analisis fallo o no hubo, queda null = "esta

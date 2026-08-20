@@ -4,7 +4,7 @@ import { getAuthenticatedUserHybrid } from '@/lib/supabase-server';
 import { upsertVectors, deleteVectorsByIds, buildVectorId } from '@/lib/pinecone/vectors';
 import { deleteDocument } from '@/lib/delete-document';
 import { generateEmbeddings } from '@/lib/embeddings';
-import { chunkText } from '@/lib/chunking';
+import { chunkText, stripSegmentationMarkers } from '@/lib/chunking';
 import { randomUUID } from 'crypto';
 import { resolveOrg } from '@/lib/org';
 import { generateContentHash } from '@/lib/analysis/hash-check';
@@ -192,7 +192,7 @@ export async function POST(req: NextRequest) {
     // NO confundir con analyzed_content_hash = "que texto SE ANALIZO por ultima
     // vez" (verificacion). Son campos primos, nunca el mismo: fusionarlos haria
     // que un documento se declare analizado por el mero hecho de indexarse.
-    const contentHash = generateContentHash(text);
+    const contentHash = generateContentHash(stripSegmentationMarkers(text));
 
     // Save to Supabase
     await supabase.from('documents').insert({
@@ -207,7 +207,7 @@ export async function POST(req: NextRequest) {
       // por el usuario, así que nace analizado (no va a la bandeja de revisión).
       analysis_status: 'analizado',
       content_hash: contentHash,
-      full_text: text,
+      full_text: stripSegmentationMarkers(text),
     });
 
     // Clean up the original uploaded file from Storage if provided
