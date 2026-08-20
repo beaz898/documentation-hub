@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import { getAuthenticatedUserHybrid } from '@/lib/supabase-server';
 import { resolveOrg } from '@/lib/org';
-import { updateVectorMetadata } from '@/lib/pinecone/vectors';
+import { updateVectorMetadata, buildVectorId } from '@/lib/pinecone/vectors';
 import { swapDocumentVectors } from '@/lib/document-swap';
 
 /**
@@ -43,7 +43,7 @@ export async function POST(
   // 1) Documento de la org + su chunk_count.
   const { data: doc, error: docError } = await supabase
     .from('documents')
-    .select('id, chunk_count')
+    .select('id, chunk_count, active_generation')
     .eq('id', id)
     .eq('org_id', orgId)
     .single();
@@ -59,6 +59,7 @@ export async function POST(
       { status: 422 },
     );
   }
+  const activeGeneration = (doc.active_generation as number | null) ?? 1;
 
   // d-2b (F-11): flag de aprobacion explicita de una version staged con hallazgos.
   const body = await req.json().catch(() => ({}));
@@ -132,7 +133,7 @@ export async function POST(
   // 2) Pinecone PRIMERO: actualizar la metadata de cada vector. Abortar si falla.
   try {
     for (let i = 0; i < chunkCount; i++) {
-      const vectorId = `${id}-${i}`;
+      const vectorId = buildVectorId(id, activeGeneration, i);
       await updateVectorMetadata(orgId, vectorId, { analysisStatus: 'analizado' });
     }
   } catch (err) {
