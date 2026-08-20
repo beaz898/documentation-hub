@@ -480,6 +480,7 @@ export async function POST(req: NextRequest) {
         summary: analysis.summary,
         analysisMode: analysis.analysisMode,
         styleProblems: analysis.styleProblems,
+        discardedFindings: analysis.discardedFindings,
       },
       documentSources,
       versionPromoted,

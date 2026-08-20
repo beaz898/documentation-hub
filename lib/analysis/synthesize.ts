@@ -1,5 +1,5 @@
 import { callLLMJson } from './llm-client';
-import type { DocumentJudgment, FinalAnalysis } from './types';
+import type { DocumentJudgment, FinalAnalysis, DiscardedFindings } from './types';
 
 /**
  * Etapa 4 — Síntesis final.
@@ -133,6 +133,27 @@ Responde EXCLUSIVAMENTE con este JSON:
     }))
   );
 
+  // Recuento de hallazgos descartados: suma de los ya contados en judge.ts
+  // (solo de los judgments que sobrevivieron al filtro de excludeDocumentId,
+  // el documento no debe compararse consigo mismo) más los solapamientos sin
+  // descripción, que nunca llegan a `overlaps` — a nivel de cada entrada, no
+  // solo de judgment, para contar todo lo que de verdad se pierde.
+  const discardedFindings: DiscardedFindings = {};
+  for (const j of judgments) {
+    if (!j.discarded) continue;
+    for (const [reason, count] of Object.entries(j.discarded)) {
+      discardedFindings[reason] = (discardedFindings[reason] ?? 0) + count;
+    }
+  }
+  const solapamientoSinDescripcion = judgments.reduce(
+    (sum, j) => sum + j.overlappingContent.filter(o => o.description.trim().length === 0).length,
+    0,
+  );
+  if (solapamientoSinDescripcion > 0) {
+    discardedFindings.solapamientoSinDescripcion =
+      (discardedFindings.solapamientoSinDescripcion ?? 0) + solapamientoSinDescripcion;
+  }
+
   return {
     isDuplicate,
     duplicateOf: isDuplicate ? topJudgment.documentName : null,
@@ -143,5 +164,6 @@ Responde EXCLUSIVAMENTE con este JSON:
     recommendation: synthesis.recommendation,
     summary: synthesis.summary,
     judgments,
+    ...(Object.keys(discardedFindings).length > 0 ? { discardedFindings } : {}),
   };
 }

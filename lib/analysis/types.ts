@@ -29,6 +29,14 @@ export interface RerankedCandidate {
   rerankConfidence: 'alta' | 'media' | 'baja';
 }
 
+/**
+ * Recuento de hallazgos descartados durante el análisis, por motivo.
+ * Solo el número: el texto de un hallazgo descartado NO está verificado y no
+ * debe persistirse ni mostrarse como si lo estuviera. Sirve para que un
+ * descarte deje rastro visible en vez de morir en un console.warn.
+ */
+export type DiscardedFindings = Record<string, number>;
+
 export interface DocumentJudgment {
   documentId: string;
   documentName: string;
@@ -47,6 +55,7 @@ export interface DocumentJudgment {
     evidenceInNewDoc?: string;
   }>;
   uniqueToNewDoc: string[];
+  discarded?: DiscardedFindings;
 }
 
 /** Modo de análisis: rápido (v2 con muestreo) o exhaustivo (multicapa, sin muestreo). */
@@ -130,4 +139,10 @@ export interface FinalAnalysis {
    * - 'heavy':  >30 contradicciones o pipeline completo con 50 candidatas
    */
   estimatedCost?: 'light' | 'medium' | 'heavy';
+  /**
+   * Recuento de hallazgos descartados por motivo, sumado de todos los
+   * judgments. Solo el número; el texto descartado no está verificado.
+   * Ausente si no se descartó nada.
+   */
+  discardedFindings?: DiscardedFindings;
 }

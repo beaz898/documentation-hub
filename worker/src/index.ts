@@ -121,6 +121,7 @@ async function processJob(job: AnalysisJob): Promise<void> {
       styleProblems: analysis.styleProblems,
       earlyStop: analysis.earlyStop,
       documentSources,
+      discardedFindings: analysis.discardedFindings,
     };
 
     const latencyMs = Date.now() - t0;

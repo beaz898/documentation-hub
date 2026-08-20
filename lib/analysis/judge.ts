@@ -1,5 +1,5 @@
 import { callLLMJson } from './llm-client';
-import type { RerankedCandidate, DocumentJudgment, PipelineOptions } from './types';
+import type { RerankedCandidate, DocumentJudgment, PipelineOptions, DiscardedFindings } from './types';
 
 /**
  * Etapa 3 — Juicio individual por documento.
@@ -202,10 +202,14 @@ function fixQuotesInJudgment(
   existingDocumentText: string,
   existingTextSource: 'completo' | 'fragmentos',
 ): DocumentJudgment {
+  let narracionEnCita = 0;
+  let citaNoVerificable = 0;
+
   const fixedContradictions: DocumentJudgment['contradictions'] = [];
   for (const c of judgment.contradictions) {
     if (containsNarration(c.newDocSays) || containsNarration(c.existingDocSays)) {
       console.warn(`[judge] Contradicción descartada en "${judgment.documentName}" (narración en la cita)`);
+      narracionEnCita++;
       continue;
     }
 
@@ -221,6 +225,7 @@ function fixQuotesInJudgment(
       console.warn(
         `[judge] Contradicción descartada en "${judgment.documentName}" (cita no verificable, lado=${failedSide}${sourceNote}): "${(failedText || '').slice(0, 60)}"`
       );
+      citaNoVerificable++;
     }
   }
 
@@ -228,6 +233,7 @@ function fixQuotesInJudgment(
   for (const o of judgment.overlappingContent) {
     if (containsNarration(o.evidenceInNewDoc) || containsNarration(o.evidence)) {
       console.warn(`[judge] Solapamiento descartado en "${judgment.documentName}" (narración en la cita)`);
+      narracionEnCita++;
       continue;
     }
 
@@ -243,21 +249,25 @@ function fixQuotesInJudgment(
       console.warn(
         `[judge] Solapamiento descartado en "${judgment.documentName}" (cita no verificable, lado=${failedSide}${sourceNote}): "${(failedText || '').slice(0, 60)}"`
       );
+      citaNoVerificable++;
     }
   }
 
-  const discardedCount =
-    (judgment.contradictions.length - fixedContradictions.length) +
-    (judgment.overlappingContent.length - fixedOverlaps.length);
+  const discardedCount = narracionEnCita + citaNoVerificable;
 
   if (discardedCount > 0) {
     console.warn(`[judge] Descartados ${discardedCount} hallazgos no verificables en "${judgment.documentName}"`);
   }
 
+  const discarded: DiscardedFindings = {};
+  if (narracionEnCita > 0) discarded.narracionEnCita = narracionEnCita;
+  if (citaNoVerificable > 0) discarded.citaNoVerificable = citaNoVerificable;
+
   return {
     ...judgment,
     contradictions: fixedContradictions,
     overlappingContent: fixedOverlaps,
+    ...(Object.keys(discarded).length > 0 ? { discarded } : {}),
   };
 }
 
