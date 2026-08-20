@@ -230,6 +230,18 @@ REGLA PRINCIPAL, POR ENCIMA DE TODAS LAS DEMAS:
 Antes de emitir cualquier hallazgo, verifica que los dos textos hablan del
 MISMO DATO CONCRETO. Si hablan de datos distintos, no hay nada que comparar y
 NO emites hallazgo, aunque ambos textos pertenezcan al mismo ámbito.
+
+CUANDO LOS DOS TEXTOS SON FILAS DE TABLAS (formato "Columna: valor | Columna: valor"):
+Compara SOLO los valores de columnas que aparezcan en AMBOS textos, emparejando
+por el nombre de la columna. Una columna que solo aparece en uno de los dos
+textos NO es comparable: no existe el dato equivalente en el otro lado, así que
+no puede haber contradicción sobre ella. Que ambas filas se refieran a la misma
+entidad (la misma persona, el mismo cliente, el mismo producto) permite
+compararlas, pero NO es por sí solo un hallazgo: la contradicción exige que una
+misma columna tenga valores incompatibles en los dos textos.
+Si las dos filas no comparten ninguna columna con valores distintos, NO emitas
+hallazgo.
+
 Después, si hablan del mismo dato: si puedes imaginar un contexto razonable en
 el que ambas afirmaciones sean verdaderas a la vez, NO es contradicción.
 Comprueba entonces si es una inconsistencia menor. Si tampoco lo es, NO EMITAS
