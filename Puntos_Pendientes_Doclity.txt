@@ -1150,6 +1150,92 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     lee el modelo real de llm_usage; si el agente cambiara de modelo, los créditos
     cobrados quedarían desalineados del coste real sin que nada lo detecte.
 
+  B.73 — [SEGURIDAD/CORRECCIÓN, mismo fallo que mark-analyzed] Ocho puntos construyen
+    IDs de vector asumiendo generación 1. Detectado en la exploración del paso 3 de
+    F-20 (agosto 2026), hermano directo del fallo ya corregido en mark-analyzed
+    (commit b8d0df63). Construyen `${id}-${i}` a mano en vez de usar buildVectorId
+    con la generación activa del documento: para un documento en generación >= 2
+    esos IDs no existen.
+      - lib/delete-document.ts:144 — borra, CON red de seguridad (hace también
+        deleteVectorsByFilter por documentId en paralelo; el borrado real no
+        depende de estos IDs).
+      - app/api/drive/disconnect/route.ts — borra, SIN red de seguridad confirmada,
+        y opera sobre documentos de Drive, los únicos que versionan. REVISAR PRIMERO.
+      - app/api/documents/coverage/[id]/route.ts:92,97 — lee; el panel de cobertura
+        mostraría todos los chunks vacíos.
+      - app/api/improve/route.ts:108 — lee; el modal de mejora recuperaría texto vacío.
+      - app/api/ingest/route.ts:178 — borra vectores de un manual viejo por colisión
+        de nombre; correcto hoy por accidente (los manuales nunca versionan), no por
+        diseño.
+      - app/api/admin/cleanup-orphans/route.ts — el backfill de analysisStatus
+        etiquetaría IDs inexistentes.
+      - app/api/admin/diagnose-vectors/route.ts:46 — herramienta de diagnóstico:
+        mentiría para generación >= 2.
+      - lib/pinecone/vectors.ts:150 — NO es un fallo, es el prefijo de
+        listVectorIdsByPrefix, correcto por diseño; se anota para que no se
+        "arregle" por error.
+    HORIZONTE 0: hoy el corpus está entero en generación 1 y no muerde; en cuanto se
+    apruebe una versión de Drive habrá documentos en generación >= 2 y estos ocho
+    empiezan a fallar sin avisar. Fix: buildVectorId(id, activeGeneration, i)
+    leyendo documents.active_generation, igual que b8d0df63. Uno por uno, build
+    verde entre medias. Empezar por drive/disconnect.
+
+  B.74 — [OBSERVABILIDAD] El filtro de 50 caracteres (lib/chunking.ts:436, y su
+    gemelo en chunkText) descarta toda pieza de <=50 caracteres sin log ni contador:
+    nadie puede saber cuántas piezas perdió un documento. MEDIDO EMPÍRICAMENTE sobre
+    los 5 ficheros de muestra del piloto (agosto 2026): 133 filas de tabla extraídas
+    entre OPE-06, OPE-02 y RRHH-06, CERO descartadas; los dos únicos descartes
+    fueron ruido real (una leyenda de hoja y un membrete de empresa). Longitud
+    mínima de una fila que pasa el filtro: 78 caracteres, 28 por encima del umbral —
+    el corpus de muestra NO está al borde. RIESGO VIVO: un Excel de cliente con
+    columnas de nombre corto y pocos valores podría caer por debajo de 50 y perder
+    filas reales EN SILENCIO; el umbral se diseñó para prosa y se aplica igual a
+    filas de tabla, que son información completa aunque sean cortas. Fix propuesto
+    (no construir aún): no aplicar el filtro a chunk_type 'table_row' (o un umbral
+    distinto), y en cualquier caso contar los descartes y exponerlos igual que
+    unreadableCount en el sync.
+
+  B.75 — [MEDICIÓN PENDIENTE] La medición de B.74 cubre 5 ficheros de muestra en
+    local, no los 40 del piloto. Antes de dar por bueno que el corpus real no pierde
+    filas de tabla, repetir la medición sobre los 40 — idealmente instrumentando el
+    propio filtro con un contador, que es el fix de B.74 y resuelve las dos cosas de
+    una vez.
+
+  B.76 — [PRERREQUISITO DEL PRIMER CLIENTE DE PAGO] Reprocesado del corpus sin
+    intervención del cliente. El paso 3 de F-20 (job de reprocesado por revisión de
+    extracción) se RETIRÓ por decisión del director, validada por Fable en F-21: sin
+    clientes, el corpus se rehace borrando y resubiendo, que es gratis. Con un
+    cliente real deja de serlo. SE AGRUPA CON la retención del original en Storage
+    para el camino de ingest (hoy ingest borra el fichero y no hay columna con su
+    ruta, así que los documentos manuales no son reprocesables en absoluto). Fable
+    (F-21): "son la misma necesidad — poder rehacer el corpus de un tercero sin su
+    intervención — vista desde los dos caminos de entrada, y deben resolverse
+    juntas".
+    LO QUE YA SE SABE, para que quien lo retome no repita la exploración:
+      - analysis_jobs NO admite otro tipo de job: no tiene columna job_type y su
+        esquema exige document_text, sample_texts y credits_consumed. Además el
+        worker recoge esa cola solo por polling de 10s (el trigger HTTP sirve
+        únicamente a la cola del agente) y veta más de un job en curso por
+        organización.
+      - El worker de Railway NO puede hablar con Drive: le faltan las variables
+        (DRIVE_ENCRYPTION_KEY y credenciales de Google/Microsoft), le faltan las
+        librerías de extracción (xlsx, mammoth) y el refresco del token OAuth no es
+        un helper de lib/ sino código duplicado dentro de
+        app/api/drive/sync/route.ts (ramas POST y GET).
+      - swapDocumentVectors NO es reutilizable tal cual: cuelga entero de que exista
+        una fila document_staged, que es el mecanismo del portero de calidad que un
+        reprocesado NO debe atravesar (el contenido no ha cambiado). Fable (F-21):
+        el trabajo no es "reutilizar el swap" sino "extraer del swap la parte de
+        relevo y dejar el portero fuera".
+
+  F-20 [ESTADO, agosto 2026] Extracción estructurada. Paso 1 (extractSegments +
+    EXTRACTOR_VERSION, commit 509e15d4) y paso 2 (persistencia en document_chunks,
+    commit d00b085b) HECHOS. Paso 3 (job de reprocesado) RETIRADO — ver B.76. El
+    siguiente paso del plan, si se retoma, es el paso 4. Registro SQL a posteriori
+    del DDL de los pasos 1-2 (deuda documental, no ejecuta nada):
+    supabase-f20-chunks-estructurados.sql (commit b84cd317). Fix de generación en
+    mark-analyzed: commit b8d0df63 (ver B.73).
+
   C.8 — [NUEVO, diseño de Fable, S35] Ciclo de vida por conexión. Al cambiar o perder
     el proveedor de nube, los documentos del proveedor anterior NO se borran ni se
     siguen sirviendo: se INERTIZAN (perviven en BD pero fuera del chat y de los

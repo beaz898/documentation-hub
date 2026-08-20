@@ -4129,3 +4129,85 @@ ningún cliente.
 ESTADO: bloque cerrado. Siguiente: la FOTO DE CONJUNTO que Fable pide desde
 F-12 (qué queda de C para un piloto real, qué de D es imprescindible para
 onboardear a un cliente, y qué puede esperar a que haya alguien pagando).
+
+
+────────────────────────────────────────────────────────────────
+SESIÓN 45 — 20/08/2026
+Título: F-21 — retirada del paso 3 de F-20, fix de generación en
+mark-analyzed, medición del filtro de 50 caracteres
+────────────────────────────────────────────────────────────────
+
+EXPLORACIÓN DEL PASO 3 DE F-20 (job de reprocesado por revisión de
+extracción): se verificaron las dos condiciones de las que dependía, y las
+dos fallaron. (1) La cola: analysis_jobs no admite otro tipo de job — sin
+columna job_type, su esquema exige document_text, sample_texts y
+credits_consumed, propios de un análisis exhaustivo; el worker la recoge
+solo por polling de 10s (el trigger HTTP sirve únicamente a la cola del
+agente) y veta más de un job en curso por organización. (2) Drive desde el
+worker: faltan las variables (DRIVE_ENCRYPTION_KEY, credenciales
+Google/Microsoft), faltan las librerías de extracción (xlsx, mammoth), y el
+refresco de token OAuth no es un helper de lib/ — está duplicado dentro de
+app/api/drive/sync/route.ts (ramas POST y GET).
+
+DECISIÓN DEL DIRECTOR: retirar el paso 3. Sin clientes todavía, el corpus se
+rehace borrando y resubiendo los documentos, que es gratis y más simple que
+construir la cola de reprocesado. Validada por Fable en F-21.
+
+F-21 responde P1 (¿un solo ciclo de resubida, o repetible?): un único ciclo,
+y solo después de confirmar que el esquema de chunk es el definitivo —
+repetirlo por descubrir un campo que falta habría obligado a rehacerlo todo.
+CONFIRMADO que lo es: se verificó en código que chunkSegments propaga cells,
+sheet_name, table_id y row_index completos para chunk_type='table_row', y
+persist-chunks los guarda sin perder ninguno. No hay cambio de esquema
+pendiente; EXTRACTOR_VERSION se queda en 1.
+
+F-21 responde P2 (¿objeción a saltar del paso 2 al paso 4?): ninguna. La
+dependencia que señalaba Fable —¿escribe chunks la rama VERSIONAR del sync,
+la que crea document_staged?— se verificó en código: SÍ los escribe
+(saveDocumentChunks con generation=targetGen, tras
+deleteDocumentChunksForGeneration), y el swap (lib/document-swap.ts, P3)
+solo borra las generaciones INFERIORES a la que promueve. No hay agujero: la
+generación que queda activa tras un swap siempre tiene sus chunks.
+
+FIX APLICADO (commit b8d0df63): mark-analyzed construía los IDs de vector
+del camino sin staged como `${id}-${i}`, que equivale a asumir siempre
+generación 1. Un documento que ya pasó por un swap queda en
+active_generation >= 2 y SIN fila en document_staged (el swap la borra en su
+pata P4) — exactamente la combinación que entra por ese camino. Los IDs
+escritos no existían: los vectores reales se quedaban en 'pendiente', salían
+de CORPUS_ACTIVO, y el documento desaparecía del chat y del análisis
+mientras el endpoint devolvía success:true. Ahora lee
+documents.active_generation y usa buildVectorId(id, activeGeneration, i);
+para generación 1 la salida es idéntica byte a byte, sin cambio de
+comportamiento en el corpus actual.
+
+REGISTRO SQL PENDIENTE (commit b84cd317): los pasos 1 y 2 de F-20
+(extractor_version, document_chunks) se ejecutaron a mano en el SQL Editor
+de Supabase sin dejar el fichero de registro que sí tienen las demás
+columnas de fases anteriores. Fichero nuevo
+supabase-f20-chunks-estructurados.sql, redactado a partir del esquema real
+consultado en Supabase (no del código): no cambia nada en la base de datos.
+
+MEDICIÓN DEL FILTRO DE 50 CARACTERES (lib/chunking.ts:436): sobre los 5
+ficheros de muestra del piloto (OPE-01, NOR-01, OPE-06, OPE-02, RRHH-06),
+133 filas de tabla extraídas entre los tres Excel, CERO descartadas por el
+filtro. Los dos únicos descartes fueron ruido real (una leyenda de hoja y un
+membrete de empresa), ambos chunk_type='text'. Longitud mínima observada en
+una fila de tabla que SÍ pasa el filtro: 78 caracteres (OPE-06), 28 por
+encima del umbral — la muestra no está al borde. Medición hecha con un
+script temporal fuera del repo, borrado al terminar, sin tocar ningún
+fichero versionado.
+
+PENDIENTES DESTAPADOS (Puntos_Pendientes_Doclity.txt, B.73-B.76): B.73 ocho
+puntos que construyen IDs de vector a mano asumiendo generación 1 (hermano
+de mark-analyzed; drive/disconnect es el más expuesto, sin red de
+seguridad). B.74 el filtro de 50 caracteres descarta piezas sin dejar
+rastro (observabilidad). B.75 la medición de B.74 cubre 5 ficheros, no los
+40 del piloto. B.76 el reprocesado del corpus sin intervención del cliente
+es prerrequisito del primer cliente de pago, agrupado con la retención del
+original en Storage para ingest (misma necesidad, dos caminos de entrada —
+Fable, F-21).
+
+ESTADO: paso 3 de F-20 cerrado como RETIRADO (ver Puntos_Pendientes.txt,
+entrada F-20). Fix de generación en producción (b8d0df63); registro SQL en
+producción documental (b84cd317). Commits: b8d0df63, b84cd317.
