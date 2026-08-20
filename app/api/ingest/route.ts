@@ -3,7 +3,9 @@ import { createServiceClient } from '@/lib/supabase';
 import { getAuthenticatedUserHybrid } from '@/lib/supabase-server';
 import { upsertVectors, deleteVectorsByIds, buildVectorId } from '@/lib/pinecone/vectors';
 import { generateEmbeddings } from '@/lib/embeddings';
-import { chunkText, extractText, stripSegmentationMarkers, EXTRACTOR_VERSION } from '@/lib/chunking';
+import { extractSegments, joinSegments, chunkSegments, stripSegmentationMarkers, EXTRACTOR_VERSION } from '@/lib/chunking';
+import type { ExtractedSegment } from '@/lib/chunking';
+import { saveDocumentChunks } from '@/lib/persist-chunks';
 import { randomUUID } from 'crypto';
 import { generateContentHash } from '@/lib/analysis/hash-check';
 import { resolveOrg } from '@/lib/org';
@@ -139,18 +141,19 @@ export async function POST(req: NextRequest) {
     // 2. Extraer texto — envuelto en try/catch propio para detectar archivos ilegibles.
     // Si falla aquí, el documento anterior (en caso de reemplazo) NO se ha tocado.
     const buffer = Buffer.from(await fileData.arrayBuffer());
-    let text: string;
+    let segments: ExtractedSegment[];
     try {
-      text = await extractText(buffer, fileName);
+      segments = await extractSegments(buffer, fileName);
     } catch (extractErr) {
       const detail = extractErr instanceof Error ? extractErr.message : 'formato no legible';
-      console.error('[INGEST] extractText falló:', detail);
+      console.error('[INGEST] extractSegments falló:', detail);
       // El documento anterior (si había colisión) NO se ha tocado: seguimos intactos.
       return NextResponse.json(
         { error: 'No se pudo leer el archivo. El documento anterior sigue intacto. Comprueba que el PDF no esté dañado.', errorType: 'unreadable_file' },
         { status: 400 }
       );
     }
+    const text = joinSegments(segments);
 
     // 3. Validar que el texto sea suficiente. También aquí el viejo sigue intacto.
     if (!text || text.trim().length < 50) {
@@ -185,8 +188,8 @@ export async function POST(req: NextRequest) {
     // mismo documento sin ningún cambio real cambiaría de hash entre sync/sync.
     const contentHash = generateContentHash(stripSegmentationMarkers(text));
 
-    // 6. Trocear en chunks
-    const chunks = chunkText(text, documentId, fileName, orgId);
+    // 6. Trocear en chunks (derivados de los segmentos, no del texto plano)
+    const chunks = chunkSegments(segments, documentId, fileName, orgId);
     console.log(`[INGEST] Created ${chunks.length} chunks`);
 
     // 7. Generar embeddings
@@ -233,6 +236,11 @@ export async function POST(req: NextRequest) {
       // coincidir aqui en valor: no los fusiones.
       analyzed_content_hash: analysisStatus === 'analizado' ? contentHash : null,
     });
+
+    // 9b. Chunks tipados (F-20 Paso 2). AL FINAL: la fila de documents ya
+    // existe (la FK lo exige) y un fallo aquí nunca debe tumbar una
+    // indexación que ya funcionó — saveDocumentChunks solo loguea, no lanza.
+    await saveDocumentChunks(supabase, { orgId, documentId, generation: 1, chunks });
 
     // 10. Limpiar archivo de storage
     await supabase.storage.from('documents').remove([storagePath]);

@@ -1,4 +1,5 @@
-import { extractText } from '@/lib/chunking';
+import { extractSegments } from '@/lib/chunking';
+import type { ExtractedSegment } from '@/lib/chunking';
 import type { DriveFile, DriveFolder, DriveProvider, DriveTokens } from './types';
 
 const ALLOWED_MIME_TYPES: Record<string, string> = {
@@ -192,13 +193,13 @@ export const oneDriveProvider: DriveProvider = {
     }
   },
 
-  async downloadFile(accessToken: string, fileId: string, mimeType: string): Promise<string> {
+  async downloadFile(accessToken: string, fileId: string, mimeType: string): Promise<ExtractedSegment[]> {
     const res = await fetch(`${GRAPH_BASE}/me/drive/items/${fileId}/content`, {
       headers: { Authorization: `Bearer ${accessToken}` },
     });
     if (!res.ok) throw new Error(`OneDrive download failed: ${res.status}`);
     const ext = ALLOWED_MIME_TYPES[mimeType] || 'txt';
     const fileBuffer = Buffer.from(await res.arrayBuffer());
-    return extractText(fileBuffer, `file.${ext}`);
+    return extractSegments(fileBuffer, `file.${ext}`);
   },
 };

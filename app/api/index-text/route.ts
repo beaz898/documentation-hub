@@ -4,7 +4,9 @@ import { getAuthenticatedUserHybrid } from '@/lib/supabase-server';
 import { upsertVectors, deleteVectorsByIds, buildVectorId } from '@/lib/pinecone/vectors';
 import { deleteDocument } from '@/lib/delete-document';
 import { generateEmbeddings } from '@/lib/embeddings';
-import { chunkText, stripSegmentationMarkers, EXTRACTOR_VERSION } from '@/lib/chunking';
+import { chunkSegments, stripSegmentationMarkers, EXTRACTOR_VERSION } from '@/lib/chunking';
+import type { ExtractedSegment } from '@/lib/chunking';
+import { saveDocumentChunks } from '@/lib/persist-chunks';
 import { randomUUID } from 'crypto';
 import { resolveOrg } from '@/lib/org';
 import { generateContentHash } from '@/lib/analysis/hash-check';
@@ -162,8 +164,12 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Chunk the corrected text
-    const chunks = chunkText(text, documentId, name, orgId);
+    // Chunk the corrected text. No hay fichero origen aquí (texto ya editado
+    // por el usuario o mejorado por IA): se envuelve como un único segmento
+    // 'text' — chunkSegments lo trocea con la misma lógica que chunkText
+    // (secciones/longitud), sin campos de tabla.
+    const segments: ExtractedSegment[] = [{ type: 'text', text }];
+    const chunks = chunkSegments(segments, documentId, name, orgId);
     console.log(`[INDEX-TEXT] ${name}: ${chunks.length} chunks from ${text.length} chars`);
 
     // Embed
@@ -210,6 +216,10 @@ export async function POST(req: NextRequest) {
       full_text: stripSegmentationMarkers(text),
       extractor_version: EXTRACTOR_VERSION,
     });
+
+    // Chunks tipados (F-20 Paso 2), al final: la fila de documents ya existe
+    // y un fallo aquí no debe tumbar una indexación que ya funcionó.
+    await saveDocumentChunks(supabase, { orgId, documentId, generation: 1, chunks });
 
     // Clean up the original uploaded file from Storage if provided
     if (originalStoragePath) {

@@ -1,4 +1,5 @@
-import { extractText } from '@/lib/chunking';
+import { extractSegments } from '@/lib/chunking';
+import type { ExtractedSegment } from '@/lib/chunking';
 import type { DriveFile, DriveFolder, DriveProvider, DriveTokens } from './types';
 
 const ALLOWED_MIME_TYPES: Record<string, string> = {
@@ -157,7 +158,7 @@ export const googleDriveProvider: DriveProvider = {
     return folders;
   },
 
-  async downloadFile(accessToken: string, fileId: string, mimeType: string): Promise<string> {
+  async downloadFile(accessToken: string, fileId: string, mimeType: string): Promise<ExtractedSegment[]> {
     let fileBuffer: Buffer;
     let ext: string;
 
@@ -191,7 +192,7 @@ export const googleDriveProvider: DriveProvider = {
       ext = ALLOWED_MIME_TYPES[mimeType] || 'txt';
     }
 
-    return extractText(fileBuffer, `file.${ext}`);
+    return extractSegments(fileBuffer, `file.${ext}`);
   },
 
   async getUserEmail(accessToken: string): Promise<string> {

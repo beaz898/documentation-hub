@@ -85,6 +85,20 @@ export type ExtractedSegment =
       cells: Record<string, string>;
     };
 
+/**
+ * Chunk con la información estructural de su segmento de origen. chunkSegments
+ * (más abajo) lo produce derivando cada chunk directamente de un
+ * ExtractedSegment — nunca por correlación de texto contra chunkText, que es
+ * frágil justo en el caso raro (una fila subdividida por tamaño).
+ */
+export interface TypedChunk extends Chunk {
+  chunkType: ExtractedSegment['type'];
+  sheetName?: string;
+  tableId?: string;
+  rowIndex?: number;
+  cells?: Record<string, string>;
+}
+
 interface Section {
   /** Línea de encabezado que abre la sección (incluida en `text`). null = preámbulo sin título antes del primer encabezado. */
   title: string | null;
@@ -318,6 +332,127 @@ export function chunkText(
   }
 
   return buildChunks(pieces, documentId, documentName, orgId);
+}
+
+/**
+ * Piezas de un texto de prosa, con las mismas reglas que aplica chunkText a
+ * ese caso (secciones si hay encabezados, longitud si no): mismo umbral de
+ * chunk único, misma detección de encabezados, mismas primitivas de troceado
+ * (splitByLength/splitIntoSections/mergeSmallSections/subdivideSection).
+ * Extraída aparte porque chunkSegments (más abajo) también necesita trocear
+ * prosa — los segmentos 'text' — sin tocar chunkText, que sigue con esta
+ * misma lógica escrita inline tal como estaba. No es una segunda
+ * implementación del troceado: las primitivas que de verdad deciden dónde
+ * cortar son las mismas: solo se repite el árbol de decisión que las combina,
+ * porque chunkText no puede delegar en esta función sin modificarse.
+ */
+function buildProsePieces(text: string): string[] {
+  const cleaned = text
+    .replace(/\r\n/g, '\n')
+    .replace(/\n{3,}/g, '\n\n')
+    .replace(/[ \t]+/g, ' ')
+    .trim();
+
+  if (cleaned.length <= CHUNK_SIZE) {
+    return [cleaned];
+  }
+
+  if (!HAS_ANY_HEADING_RE.test(cleaned)) {
+    return splitByLength(cleaned, CHUNK_SIZE, CHUNK_OVERLAP);
+  }
+
+  const sections = mergeSmallSections(splitIntoSections(cleaned));
+  const pieces: string[] = [];
+  for (const section of sections) {
+    if (section.text.length > MAX_CHUNK_SIZE) {
+      pieces.push(...subdivideSection(section));
+    } else {
+      pieces.push(section.text);
+    }
+  }
+  return pieces;
+}
+
+interface RawTypedPiece {
+  text: string;
+  chunkType: ExtractedSegment['type'];
+  sheetName?: string;
+  tableId?: string;
+  rowIndex?: number;
+  cells?: Record<string, string>;
+}
+
+/**
+ * Trocea segmentos tipados directamente, sin pasar por texto plano ni por
+ * correlación de ningún tipo. Cada chunk se DERIVA de su segmento de origen:
+ * - 'text': se trocea con buildProsePieces (misma lógica que chunkText).
+ *   Cada trozo resultante es chunkType 'text', sin campos de tabla.
+ * - 'table_summary' / 'table_row': es UN chunk. Solo se subdivide si por sí
+ *   solo supera MAX_CHUNK_SIZE (splitByLength, igual que hace hoy chunkText
+ *   con una pieza pre-segmentada demasiado larga); todos sus trozos heredan
+ *   los mismos campos de tabla, porque siguen siendo la misma fila/resumen.
+ * La numeración de chunkIndex es continua a lo largo de todos los segmentos,
+ * y se respeta el mismo filtro de piezas de menos de 50 caracteres que aplica
+ * buildChunks (no se reutiliza buildChunks tal cual porque su tipo de retorno,
+ * Chunk[], no lleva los campos de tabla que necesita TypedChunk).
+ */
+export function chunkSegments(
+  segments: ExtractedSegment[],
+  documentId: string,
+  documentName: string,
+  orgId: string,
+): TypedChunk[] {
+  const rawPieces: RawTypedPiece[] = [];
+
+  for (const segment of segments) {
+    if (segment.type === 'text') {
+      for (const piece of buildProsePieces(segment.text)) {
+        rawPieces.push({ text: piece, chunkType: 'text' });
+      }
+      continue;
+    }
+
+    const pieces = segment.text.length > MAX_CHUNK_SIZE
+      ? splitByLength(segment.text, CHUNK_SIZE, CHUNK_OVERLAP)
+      : [segment.text];
+
+    for (const piece of pieces) {
+      const rawPiece: RawTypedPiece = {
+        text: piece,
+        chunkType: segment.type,
+        sheetName: segment.sheetName,
+        tableId: segment.tableId,
+      };
+      if (segment.type === 'table_row') {
+        rawPiece.rowIndex = segment.rowIndex;
+        rawPiece.cells = segment.cells;
+      }
+      rawPieces.push(rawPiece);
+    }
+  }
+
+  const chunks: TypedChunk[] = [];
+  for (const piece of rawPieces) {
+    if (piece.text.length > 50) { // mismo umbral que buildChunks
+      chunks.push({
+        text: piece.text,
+        chunkType: piece.chunkType,
+        sheetName: piece.sheetName,
+        tableId: piece.tableId,
+        rowIndex: piece.rowIndex,
+        cells: piece.cells,
+        metadata: {
+          documentId,
+          documentName,
+          chunkIndex: chunks.length,
+          totalChunks: 0, // se actualiza después
+          orgId,
+        },
+      });
+    }
+  }
+  chunks.forEach(c => { c.metadata.totalChunks = chunks.length; });
+  return chunks;
 }
 
 /**
@@ -574,11 +709,25 @@ export async function extractSegments(
 }
 
 /**
+ * Une segments[].text con el mismo separador y limpieza que usaba la
+ * extracción de Excel, de forma que el resultado es idéntico al que
+ * devolvía extractText antes de existir extractSegments. Extraída como
+ * función propia para que los puntos de indexación puedan llamar a
+ * extractSegments UNA vez y derivar el texto plano localmente (full_text,
+ * hash) sin tener que volver a extraer el fichero para conseguirlo.
+ */
+export function joinSegments(segments: ExtractedSegment[]): string {
+  return segments
+    .map(s => s.text)
+    .join(PRE_SEGMENTED_SEPARATOR)
+    .replace(/\u0000/g, '');
+}
+
+/**
  * Extrae texto de diferentes formatos de archivo, como string plano.
- * Envoltorio delgado sobre extractSegments: une segments[].text con el mismo
- * separador y limpieza que usaba la extracción de Excel, de forma que el
- * resultado es idéntico al de antes de existir extractSegments para los
- * nueve formatos soportados.
+ * Envoltorio delgado sobre extractSegments: une segments[].text con
+ * joinSegments, de forma que el resultado es identico al de antes de existir
+ * extractSegments para los nueve formatos soportados.
  * Soporta: .txt, .md, .pdf, .docx, .xlsx, .xlsm
  */
 export async function extractText(
@@ -586,8 +735,5 @@ export async function extractText(
   filename: string
 ): Promise<string> {
   const segments = await extractSegments(buffer, filename);
-  return segments
-    .map(s => s.text)
-    .join(PRE_SEGMENTED_SEPARATOR)
-    .replace(/\u0000/g, '');
+  return joinSegments(segments);
 }

@@ -6,6 +6,7 @@ import {
   deleteVectorsByIds,
 } from '@/lib/pinecone/vectors';
 import { EXTRACTOR_VERSION } from '@/lib/chunking';
+import { deleteDocumentChunksBelowGeneration } from '@/lib/persist-chunks';
 
 /**
  * Promueve la generación "staged" (ya validada) de un documento a ACTIVA, de forma
@@ -139,6 +140,14 @@ export async function swapDocumentVectors(
       return result;
     }
   }
+
+  // ── P3 (chunks): borrar document_chunks de generaciones < N. Es el único
+  // de los seis caminos de borrado del corpus donde la fila de `documents`
+  // NO se borra (solo se actualiza), así que la cascada de la FK no cubre
+  // este caso — hace falta este borrado explícito. NO fatal: document_chunks
+  // todavía no lo lee nadie (F-20 Paso 2), así que un fallo aquí se registra
+  // y el swap sigue — nunca debe impedir que la generación nueva se active.
+  await deleteDocumentChunksBelowGeneration(supabase, { orgId, documentId, belowGeneration: newGeneration });
 
   // ── P4: borrar el marcador (document_staged). Lo último.
   const { error: delStagedError } = await supabase

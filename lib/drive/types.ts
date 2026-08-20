@@ -1,3 +1,5 @@
+import type { ExtractedSegment } from '@/lib/chunking';
+
 export interface DriveProvider {
   name: string;
   displayName: string;
@@ -6,7 +8,7 @@ export interface DriveProvider {
   refreshAccessToken(refreshToken: string): Promise<DriveTokens>;
   listFiles(accessToken: string, folderId: string): Promise<DriveFile[]>;
   listFolders(accessToken: string, parentId: string): Promise<DriveFolder[]>;
-  downloadFile(accessToken: string, fileId: string, mimeType: string): Promise<string>;
+  downloadFile(accessToken: string, fileId: string, mimeType: string): Promise<ExtractedSegment[]>;
   getUserEmail(accessToken: string): Promise<string>;
 }
 

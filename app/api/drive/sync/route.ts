@@ -5,7 +5,8 @@ import { upsertVectors, deleteVectorsByIds, listVectorIdsByPrefix, buildVectorId
 import { deleteDocument, getTombstonedIdentities, tombstoneKey } from '@/lib/delete-document';
 import { checkUploadLock } from '@/lib/upload-lock';
 import { generateEmbeddings } from '@/lib/embeddings';
-import { chunkText, stripSegmentationMarkers, EXTRACTOR_VERSION } from '@/lib/chunking';
+import { chunkSegments, joinSegments, stripSegmentationMarkers, EXTRACTOR_VERSION } from '@/lib/chunking';
+import { saveDocumentChunks, deleteDocumentChunksForGeneration } from '@/lib/persist-chunks';
 import { randomUUID } from 'crypto';
 import { decrypt, encrypt } from '@/lib/crypto';
 import { generateContentHash } from '@/lib/analysis/hash-check';
@@ -188,7 +189,8 @@ export async function POST(req: NextRequest) {
       // se cuenta como failed y el sync SIGUE con los demás (aislamiento honesto).
       // La fila vieja NUNCA se borra en reemplazo: se actualiza en sitio (C.3).
       try {
-        const text = await provider.downloadFile(accessToken, file.id, file.mimeType);
+        const segments = await provider.downloadFile(accessToken, file.id, file.mimeType);
+        const text = joinSegments(segments);
         if (!text || text.trim().length < 50) {
           // Se cuenta: antes este continue no incrementaba NINGUN contador, asi que un
           // archivo ilegible (formato que el extractor no entiende, PDF escaneado sin
@@ -247,7 +249,7 @@ export async function POST(req: NextRequest) {
           continue;
         }
 
-        const chunks = chunkText(text, documentId, file.name, orgId);
+        const chunks = chunkSegments(segments, documentId, file.name, orgId);
         const embeddings = await generateEmbeddings(chunks.map(c => c.text));
 
         const vectors = chunks.map((chunk, i) => ({
@@ -327,6 +329,16 @@ export async function POST(req: NextRequest) {
               failedCount++;
               continue;
             }
+            // Chunks tipados (F-20 Paso 2). La fila de documents YA existe
+            // (rama versionar: doc ya indexado antes), la FK está satisfecha.
+            // Borra-y-reinserta: esta (documentId, targetGen) puede haberse
+            // escrito ya en un sync anterior si hubo un staged previo con la
+            // misma generación (F-4(2)) — sin el borrado quedarían chunks
+            // zombis con chunk_index que ya no corresponde a nada, igual que
+            // ya se resuelve para los vectores de Pinecone más arriba.
+            await deleteDocumentChunksForGeneration(supabase, { orgId, documentId, generation: targetGen });
+            await saveDocumentChunks(supabase, { orgId, documentId, generation: targetGen, chunks });
+
             versionedCount++;
             if (stagedRow) {
               stagedReplacedCount++;
@@ -367,6 +379,13 @@ export async function POST(req: NextRequest) {
               failedCount++;
               continue;
             }
+            // Chunks tipados (F-20 Paso 2). La fila de documents ya existe
+            // (se acaba de actualizar en sitio). Borra-y-reinserta: la
+            // generación se reutiliza sync tras sync y el número de chunks
+            // puede cambiar — mismo motivo que en la rama versionar.
+            await deleteDocumentChunksForGeneration(supabase, { orgId, documentId, generation: targetGen });
+            await saveDocumentChunks(supabase, { orgId, documentId, generation: targetGen, chunks });
+
             updatedCount++;
             console.log(`[DRIVE SYNC] Actualizado en sitio: ${file.name} (${chunks.length} chunks)`);
           }
@@ -400,6 +419,11 @@ export async function POST(req: NextRequest) {
             failedCount++;
             continue;
           }
+          // Chunks tipados (F-20 Paso 2). La fila de documents se acaba de
+          // insertar (documentId nuevo): sin delete previo, no hay nada que
+          // reutilizar todavía.
+          await saveDocumentChunks(supabase, { orgId, documentId, generation: targetGen, chunks });
+
           newCount++;
           console.log(`[DRIVE SYNC] Indexed: ${file.name} (${chunks.length} chunks) [${file.folderPath ?? '/'}]`);
         }
