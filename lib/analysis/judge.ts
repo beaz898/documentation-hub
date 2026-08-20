@@ -226,14 +226,27 @@ DOCUMENTO EXISTENTE: "${candidate.documentName}" (fuente: ${candidate.source})
 ${existingFragsBlock}
 """
 
+REGLA PRINCIPAL, POR ENCIMA DE TODAS LAS DEMAS:
+Antes de emitir cualquier hallazgo, verifica que los dos textos hablan del
+MISMO DATO CONCRETO. Si hablan de datos distintos, no hay nada que comparar y
+NO emites hallazgo, aunque ambos textos pertenezcan al mismo ámbito.
+Después, si hablan del mismo dato: si puedes imaginar un contexto razonable en
+el que ambas afirmaciones sean verdaderas a la vez, NO es contradicción.
+Comprueba entonces si es una inconsistencia menor. Si tampoco lo es, NO EMITAS
+NADA sobre ese punto.
+Que dos documentos no tengan ninguna contradicción entre sí es un resultado
+NORMAL y frecuente. Devolver las listas vacías es una respuesta correcta y
+esperada, no un fallo. NO fuerces hallazgos para justificar el análisis.
+
 INSTRUCCIONES CRÍTICAS:
 1. "Solapamiento" significa contenido que se repite, aunque esté redactado con palabras distintas. NO significa compartir tema general.
 2. "Contradicción" significa que ambos documentos afirman cosas INCOMPATIBLES sobre el mismo dato concreto. Es decir: es IMPOSIBLE que ambas afirmaciones sean verdaderas a la vez.
 3. "Inconsistencia menor" significa que ambos documentos hablan del mismo tema con enfoques, matices o énfasis diferentes, pero no son estrictamente incompatibles.
 4. El porcentaje de solapamiento debe reflejar CUÁNTO del documento nuevo ya está en el existente, no la similitud temática.
 5. Si los documentos hablan del mismo tema pero con contenido distinto, veredicto = "tema_similar", overlapPercent < 20.
-6. Solo marca "duplicado_exacto" si el contenido es prácticamente idéntico (>85% del nuevo ya está en el existente).
-7. Busca contradicciones en TODO el documento nuevo, no solo en las primeras líneas.
+6. Si los documentos NO comparten contenido concreto —solo el ámbito general, o hablan de datos distintos—, veredicto = "sin_relacion", overlapPercent = 0, y las listas de contradicciones y solapamientos VACÍAS. Es una respuesta válida y frecuente.
+7. Solo marca "duplicado_exacto" si el contenido es prácticamente idéntico (>85% del nuevo ya está en el existente).
+8. Revisa TODO el documento nuevo, no solo las primeras líneas. Revisarlo entero no implica que tengas que encontrar algo.
 
 EJEMPLOS DE LO QUE SÍ ES CONTRADICCIÓN:
 - "El plazo de entrega es 30 días" vs "El plazo de entrega es 15 días"
@@ -247,8 +260,12 @@ EJEMPLOS DE LO QUE NO ES CONTRADICCIÓN (usar inconsistencia menor si aplica):
 - "El proyecto tiene 3 fases" vs "El proyecto tiene 3 fases principales y 2 secundarias" → la segunda amplía la primera, no la contradice
 - "Se recomienda usar Python" vs "Se recomienda usar TypeScript" → pueden ser recomendaciones para contextos diferentes
 - Afirmaciones genéricas vs específicas que son compatibles entre sí
+- "Horas semana: 8" vs "Fecha evaluación: 2026-06-11" → son datos DISTINTOS (una jornada y una fecha). No hay nada que comparar: no se emite hallazgo.
+- "Empleado: Laura Núñez | Puesto: Higienista" vs "Tratamiento: Tartrectomía | Profesional: Higienista" → CONCUERDAN. Que coincidan no es un hallazgo.
+- "Total horas equipo/semana: 256" vs "las horas por encima de la jornada deben estar autorizadas previamente" → un total y una norma de autorización no son el mismo dato: no se contradicen.
+- El mismo empleado con datos distintos en dos tablas de temas distintos (turnos y evaluaciones) no es contradicción: son datos complementarios sobre la misma persona.
 
-TIPOS DE DISCREPANCIA QUE DEBES BUSCAR ACTIVAMENTE:
+TIPOS DE DISCREPANCIA QUE CUENTAN COMO HALLAZGO (solo si superan la regla principal):
 - CONTRADICCIÓN DIRECTA: "El plazo es 30 días" vs "El plazo es 15 días".
 - OMISIÓN SIGNIFICATIVA: el documento nuevo menciona una lista o conjunto INCOMPLETO respecto al existente. Ejemplo: "Los principios son Confidencialidad e Integridad" cuando el existente dice "Los principios son Confidencialidad, Integridad y Disponibilidad". Falta un elemento clave.
 - DISTORSIÓN CONCEPTUAL: el documento nuevo redefine un concepto usando términos similares pero incorrectos. Ejemplo: "Automatización cognitiva (machine learning)" cuando el existente define el concepto como "Automatización inteligente (uso de IA con capacidad de adaptación)". Los términos suenan parecidos pero el significado es diferente.
