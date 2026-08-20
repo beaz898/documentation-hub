@@ -15,6 +15,7 @@ import { generateContentHash } from '@/lib/analysis/hash-check';
 import { getStagedForDocument } from '@/lib/document-staged';
 import { swapDocumentVectors } from '@/lib/document-swap';
 import { checkAndAcquireAnalysisLock, releaseAnalysisLock, analysisLockMessage } from '@/lib/analysis-lock';
+import { getDocumentChunks, getActiveGeneration } from '@/lib/read-chunks';
 
 // Un job en 'pending'/'processing' mas viejo que esto se considera muerto: el
 // worker cayo sin marcarlo 'failed' y bloqueaba el 409 de toda la organizacion
@@ -224,6 +225,27 @@ export async function POST(req: NextRequest) {
     // Chunking
     const chunks = chunkText(text, 'temp-id', fileName, orgId);
 
+    // F-20 paso 4b: si el documento ya está indexado y tiene chunks
+    // persistidos, esos son la fuente buena — vienen separados fila a fila
+    // desde chunkSegments. El chunkText de arriba trabaja sobre full_text, que
+    // se guardó sin el marcador de segmentación, así que reagrupa las filas de
+    // tabla por longitud (~13 por chunk) y degrada la búsqueda. Cuando no hay
+    // chunks (documento nuevo aún sin indexar, o indexado antes de F-20) se
+    // sigue usando el troceado de chunkText: mismo comportamiento que antes.
+    let storedChunkTexts: string[] | null = null;
+    if (typeof documentId === 'string' && documentId.length > 0) {
+      const activeGeneration = await getActiveGeneration(supabase, { orgId, documentId });
+      const storedChunks = await getDocumentChunks(supabase, {
+        orgId,
+        documentId,
+        generation: activeGeneration,
+      });
+      if (storedChunks.length > 0) {
+        storedChunkTexts = storedChunks.map(c => c.text);
+      }
+      console.log(`[analyze-v2] chunks persistidos | doc=${documentId} | gen=${activeGeneration} | encontrados=${storedChunks.length} | fallback=${storedChunkTexts === null}`);
+    }
+
     if (isExhaustive) {
       // ── EXHAUSTIVO: crear job y devolver inmediatamente ──────
 
@@ -259,7 +281,7 @@ export async function POST(req: NextRequest) {
       // se mantiene: limpia jobs zombis de analysis_jobs, cosa distinta del semaforo.)
 
       // Todos los chunks para exhaustivo
-      const sampleTexts = chunks.map(c => c.text);
+      const sampleTexts = storedChunkTexts ?? chunks.map(c => c.text);
 
       // Crear el job
       const { data: job, error: jobError } = await supabase
@@ -309,7 +331,9 @@ export async function POST(req: NextRequest) {
 
     // ── RÁPIDO: ejecutar síncrono como siempre ──────────────────
 
-    const sampleTexts = pickSampledTexts(chunks);
+    const sampleTexts = storedChunkTexts
+      ? pickSampledTexts(storedChunkTexts.map(text => ({ text })))
+      : pickSampledTexts(chunks);
 
     const avgChunkSize = chunks.length > 0
       ? Math.round(chunks.reduce((sum, c) => sum + c.text.length, 0) / chunks.length)
