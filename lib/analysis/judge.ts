@@ -133,6 +133,69 @@ function findBestMatch(haystack: string, needle: string): string | null {
   return null;
 }
 
+/** Prefijo con el que la extracción de hojas de cálculo abre cada fila. */
+const SPREADSHEET_ROW_PREFIX = /^\[Hoja "/;
+
+/**
+ * Trocea una cita por "|" para verificarla segmento a segmento.
+ * No exige que la propia cita lleve el prefijo de hoja: el modelo trata ese
+ * prefijo como una etiqueta técnica de límite de fragmento, no como contenido
+ * que copiar, así que casi nunca lo reproduce. La garantía de seguridad no
+ * está aquí — está en findRowContainingSegments, que solo acepta como fila
+ * válida un bloque del documento que SÍ empiece por el prefijo de hoja. Eso
+ * basta para que "compartir bloque" siga significando "mismo registro",
+ * quedando fuera tanto la prosa como el formato Markdown antiguo.
+ */
+function splitTabularSegments(quote: string): string[] | null {
+  if (!quote.includes('|')) return null;
+  const segments = quote.split('|').map(s => s.trim()).filter(Boolean);
+  if (segments.length < 2) return null;
+  if (segments.some(s => s.length < 10)) return null;
+  return segments;
+}
+
+/**
+ * Verifica una cita que enumera columnas de una fila de tabla.
+ * El modelo cita las columnas comparables y omite las intermedias, así que la
+ * cadena literal no existe aunque el contenido sea correcto. Se verifica cada
+ * segmento por separado y se exige que TODOS estén en la MISMA fila del
+ * documento (un bloque entre líneas en blanco). Es más estricto que aceptar
+ * la cita entera por aproximación: cada columna se comprueba una a una y no
+ * se admiten segmentos repartidos entre filas distintas.
+ * Devuelve la fila real completa, que es la cita honesta.
+ */
+function findRowContainingSegments(haystack: string, segments: string[]): string | null {
+  for (const row of haystack.split(/\n\s*\n/)) {
+    const trimmed = row.trim();
+    if (!trimmed) continue;
+    // Única barrera real: el bloque candidato tiene que ser una fila
+    // generada por nuestra extracción de hojas de cálculo. Solo entonces
+    // "todos los segmentos están en este bloque" implica "todos pertenecen
+    // al mismo registro" — en un párrafo de prosa, dos frases sin relación
+    // pueden convivir en el mismo bloque, y en el formato Markdown antiguo
+    // un bloque podía agrupar varias filas distintas. Ninguno de los dos
+    // empieza por este prefijo (verificado contra su código real), así que
+    // basta para dejarlos fuera sin tener que reconocer su formato exacto.
+    if (!SPREADSHEET_ROW_PREFIX.test(trimmed)) continue;
+    if (segments.every(segment => findBestMatch(trimmed, segment) !== null)) {
+      // El prefijo de hoja es fontanería del extractor, no contenido del
+      // documento: se usa para validar la fila, pero no debe aparecer dentro
+      // de una cita que lee el usuario.
+      return trimmed.replace(/^\[Hoja "[^"]*"\]\s*/, '');
+    }
+  }
+  return null;
+}
+
+function verifyQuote(haystack: string, quote: string | undefined): string | null {
+  if (!quote) return null;
+  const direct = findBestMatch(haystack, quote);
+  if (direct) return direct;
+  const segments = splitTabularSegments(quote);
+  if (!segments) return null;
+  return findRowContainingSegments(haystack, segments);
+}
+
 function fixQuotesInJudgment(
   judgment: DocumentJudgment,
   newDocumentText: string,
@@ -146,8 +209,8 @@ function fixQuotesInJudgment(
       continue;
     }
 
-    const matchNew = c.newDocSays ? findBestMatch(newDocumentText, c.newDocSays) : null;
-    const matchExisting = c.existingDocSays ? findBestMatch(existingDocumentText, c.existingDocSays) : null;
+    const matchNew = verifyQuote(newDocumentText, c.newDocSays);
+    const matchExisting = verifyQuote(existingDocumentText, c.existingDocSays);
 
     if (matchNew && matchExisting) {
       fixedContradictions.push({ ...c, newDocSays: matchNew, existingDocSays: matchExisting });
@@ -168,8 +231,8 @@ function fixQuotesInJudgment(
       continue;
     }
 
-    const matchNew = o.evidenceInNewDoc ? findBestMatch(newDocumentText, o.evidenceInNewDoc) : null;
-    const matchExisting = o.evidence ? findBestMatch(existingDocumentText, o.evidence) : null;
+    const matchNew = verifyQuote(newDocumentText, o.evidenceInNewDoc);
+    const matchExisting = verifyQuote(existingDocumentText, o.evidence);
 
     if (matchNew && matchExisting) {
       fixedOverlaps.push({ ...o, evidenceInNewDoc: matchNew, evidence: matchExisting });
