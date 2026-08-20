@@ -3,7 +3,7 @@ import { createServiceClient } from '@/lib/supabase';
 import { getAuthenticatedUserHybrid } from '@/lib/supabase-server';
 import { upsertVectors, deleteVectorsByIds, buildVectorId } from '@/lib/pinecone/vectors';
 import { generateEmbeddings } from '@/lib/embeddings';
-import { chunkText, extractText, stripSegmentationMarkers } from '@/lib/chunking';
+import { chunkText, extractText, stripSegmentationMarkers, EXTRACTOR_VERSION } from '@/lib/chunking';
 import { randomUUID } from 'crypto';
 import { generateContentHash } from '@/lib/analysis/hash-check';
 import { resolveOrg } from '@/lib/org';
@@ -225,6 +225,7 @@ export async function POST(req: NextRequest) {
       analysis_status: analysisStatus,
       content_hash: contentHash,
       full_text: stripSegmentationMarkers(text),
+      extractor_version: EXTRACTOR_VERSION,
       // Si el analisis se completo OK, fue sobre ESTE mismo texto (el frontend
       // analiza y luego indexa lo mismo), asi que el hash analizado coincide con
       // el de identidad. Si el analisis fallo o no hubo, queda null = "esta

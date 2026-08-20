@@ -5,7 +5,7 @@ import { upsertVectors, deleteVectorsByIds, listVectorIdsByPrefix, buildVectorId
 import { deleteDocument, getTombstonedIdentities, tombstoneKey } from '@/lib/delete-document';
 import { checkUploadLock } from '@/lib/upload-lock';
 import { generateEmbeddings } from '@/lib/embeddings';
-import { chunkText, stripSegmentationMarkers } from '@/lib/chunking';
+import { chunkText, stripSegmentationMarkers, EXTRACTOR_VERSION } from '@/lib/chunking';
 import { randomUUID } from 'crypto';
 import { decrypt, encrypt } from '@/lib/crypto';
 import { generateContentHash } from '@/lib/analysis/hash-check';
@@ -354,6 +354,7 @@ export async function POST(req: NextRequest) {
                 folder_id: file.parentId ?? null,
                 full_text: stripSegmentationMarkers(text),
                 content_hash: contentHash,
+                extractor_version: EXTRACTOR_VERSION,
               })
               .eq('id', documentId)
               .eq('org_id', orgId);
@@ -387,6 +388,7 @@ export async function POST(req: NextRequest) {
             folder_id: file.parentId ?? null,
             full_text: stripSegmentationMarkers(text),
             content_hash: contentHash,
+            extractor_version: EXTRACTOR_VERSION,
           });
 
           if (insertError) {

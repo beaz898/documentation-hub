@@ -28,6 +28,15 @@ const CHUNK_OVERLAP = 200;    // solapamiento; solo dentro de un trozo por longi
 const MAX_CHUNK_SIZE = 1500;  // por encima de esto, una sección se subdivide
 const MIN_CHUNK_SIZE = 300;   // por debajo de esto, una sección se fusiona con la siguiente
 
+/**
+ * Versión del extractor (extractText/extractSegments/chunkText). Se sube a
+ * mano cada vez que cambia cómo se lee o trocea un documento. Subirla marca
+ * TODOS los documentos ya indexados (con una versión anterior o sin ninguna)
+ * como desactualizados frente al lector actual — es la señal que permite
+ * saber cuáles habría que reprocesar.
+ */
+export const EXTRACTOR_VERSION = 1;
+
 /** Línea de encabezado Markdown individual (sin flag 'm': para probar una línea suelta). */
 const HEADING_LINE_RE = /^(#{1,6})\s/;
 /** Detección de si el texto completo tiene ALGÚN encabezado, en cualquier línea. */
@@ -55,6 +64,26 @@ const PRE_SEGMENTED_SEPARATOR = '\u241E';
 export function stripSegmentationMarkers(text: string): string {
   return text.split(PRE_SEGMENTED_SEPARATOR).join('\n\n');
 }
+
+/**
+ * Segmento tipado de la extracción. extractText sigue devolviendo un string
+ * plano (join de segments[].text) para no romper a ningún llamante; esto es
+ * la forma estructurada, todavía sin consumidores, pensada para cuando el
+ * análisis necesite razonar sobre "esto es una fila de la tabla X" en vez de
+ * un fragmento de texto suelto.
+ */
+export type ExtractedSegment =
+  | { type: 'text'; text: string }
+  | { type: 'table_summary'; text: string; sheetName: string; tableId: string }
+  | {
+      type: 'table_row';
+      text: string;
+      sheetName: string;
+      tableId: string;
+      /** Posición de la fila DENTRO de los datos de la tabla (0-based), no el número de fila de Excel. */
+      rowIndex: number;
+      cells: Record<string, string>;
+    };
 
 interface Section {
   /** Línea de encabezado que abre la sección (incluida en `text`). null = preámbulo sin título antes del primer encabezado. */
@@ -413,13 +442,13 @@ function countFilledCells(cells: string[]): number {
   return cells.filter(cell => cell !== '').length;
 }
 
-function extractTextFromExcel(buffer: Buffer): string {
+function extractSegmentsFromExcel(buffer: Buffer): ExtractedSegment[] {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const xlsx = require('xlsx') as typeof import('xlsx');
   const workbook = xlsx.read(buffer, { type: 'buffer' });
-  if (!workbook.SheetNames.length) return '';
+  if (!workbook.SheetNames.length) return [];
 
-  const fragments: string[] = [];
+  const segments: ExtractedSegment[] = [];
 
   for (const sheetName of workbook.SheetNames) {
     const sheet = workbook.Sheets[sheetName];
@@ -428,6 +457,9 @@ function extractTextFromExcel(buffer: Buffer): string {
       (row ?? []).map(cell => String(cell ?? '').trim())
     );
     const prefix = `[Hoja "${sheetName}"]`;
+    // Cuenta solo islas con forma de tabla, en orden de aparición dentro de
+    // la hoja: mismo fichero -> mismo orden siempre -> mismo tableId siempre.
+    let tableIndex = 0;
 
     for (const island of splitSheetIntoIslands(rows)) {
       const headerPosition = island.findIndex(
@@ -445,7 +477,7 @@ function extractTextFromExcel(buffer: Buffer): string {
       if (headerPosition === -1 || dataRows.length === 0) {
         for (const row of island) {
           const line = row.cells.filter(cell => cell !== '').join(' · ');
-          if (line) fragments.push(`${prefix} ${line}`);
+          if (line) segments.push({ type: 'text', text: `${prefix} ${line}` });
         }
         continue;
       }
@@ -455,35 +487,55 @@ function extractTextFromExcel(buffer: Buffer): string {
       while (width > 0 && headerCells[width - 1] === '') width--;
       const columns = normalizeColumnNames(headerCells.slice(0, width));
 
-      fragments.push(
-        `${prefix} Tabla con ${dataRows.length} filas y ${columns.length} columnas. ` +
-        `Columnas: ${columns.join(', ')}.`
-      );
+      const tableId = `${sheetName}#${tableIndex}`;
+      tableIndex++;
 
-      for (const row of dataRows) {
-        const pairs = columns
-          .map((column, index) => {
-            const value = row.cells[index] ?? '';
-            return value === '' ? null : `${column}: ${value}`;
-          })
-          .filter((pair): pair is string => pair !== null);
-        if (pairs.length > 0) fragments.push(`${prefix} ${pairs.join(' | ')}`);
-      }
+      segments.push({
+        type: 'table_summary',
+        text:
+          `${prefix} Tabla con ${dataRows.length} filas y ${columns.length} columnas. ` +
+          `Columnas: ${columns.join(', ')}.`,
+        sheetName,
+        tableId,
+      });
+
+      dataRows.forEach((row, rowIndex) => {
+        const cells: Record<string, string> = {};
+        const pairs: string[] = [];
+        columns.forEach((column, index) => {
+          const value = row.cells[index] ?? '';
+          if (value === '') return;
+          cells[column] = value;
+          pairs.push(`${column}: ${value}`);
+        });
+        if (pairs.length > 0) {
+          segments.push({
+            type: 'table_row',
+            text: `${prefix} ${pairs.join(' | ')}`,
+            sheetName,
+            tableId,
+            rowIndex,
+            cells,
+          });
+        }
+      });
     }
   }
 
-  // PostgreSQL rejects null bytes in text columns; strip them.
-  return fragments.join(PRE_SEGMENTED_SEPARATOR).replace(/\u0000/g, '');
+  return segments;
 }
 
 /**
- * Extrae texto de diferentes formatos de archivo.
+ * Extrae los segmentos tipados de un documento. extractText (debajo) se
+ * construye encima de esta función y sigue devolviendo un string plano para
+ * no romper a ningún llamante existente — esta es la forma estructurada,
+ * todavía sin consumidores.
  * Soporta: .txt, .md, .pdf, .docx, .xlsx, .xlsm
  */
-export async function extractText(
+export async function extractSegments(
   buffer: Buffer,
   filename: string
-): Promise<string> {
+): Promise<ExtractedSegment[]> {
   const ext = filename.toLowerCase().split('.').pop();
 
   switch (ext) {
@@ -491,32 +543,51 @@ export async function extractText(
     case 'csv':
     case 'json':
     case 'html':
-      return buffer.toString('utf-8');
+      return [{ type: 'text', text: buffer.toString('utf-8') }];
 
     case 'txt':
-      return stripDocumentFrontMatter(normalizeNumberedHeadings(buffer.toString('utf-8')));
+      return [{ type: 'text', text: stripDocumentFrontMatter(normalizeNumberedHeadings(buffer.toString('utf-8'))) }];
 
     case 'pdf':
-      return stripDocumentFrontMatter(normalizeNumberedHeadings(await extractPdfText(buffer)));
+      return [{ type: 'text', text: stripDocumentFrontMatter(normalizeNumberedHeadings(await extractPdfText(buffer))) }];
 
     case 'docx': {
       const mammoth = await import('mammoth');
       try {
         const result = await mammoth.convertToMarkdown({ buffer });
-        return stripDocumentFrontMatter(normalizeNumberedHeadings(unescapeMarkdown(result.value)));
+        return [{ type: 'text', text: stripDocumentFrontMatter(normalizeNumberedHeadings(unescapeMarkdown(result.value))) }];
       } catch (err) {
-        console.warn('[extractText] convertToMarkdown falló, usando extractRawText de reserva:', err);
+        console.warn('[extractSegments] convertToMarkdown falló, usando extractRawText de reserva:', err);
         const fallback = await mammoth.extractRawText({ buffer });
-        return stripDocumentFrontMatter(normalizeNumberedHeadings(fallback.value));
+        return [{ type: 'text', text: stripDocumentFrontMatter(normalizeNumberedHeadings(fallback.value)) }];
       }
     }
 
     case 'xlsx':
     case 'xlsm':
-      return extractTextFromExcel(buffer);
+      return extractSegmentsFromExcel(buffer);
 
     default:
       // Intentar como texto plano
-      return buffer.toString('utf-8');
+      return [{ type: 'text', text: buffer.toString('utf-8') }];
   }
+}
+
+/**
+ * Extrae texto de diferentes formatos de archivo, como string plano.
+ * Envoltorio delgado sobre extractSegments: une segments[].text con el mismo
+ * separador y limpieza que usaba la extracción de Excel, de forma que el
+ * resultado es idéntico al de antes de existir extractSegments para los
+ * nueve formatos soportados.
+ * Soporta: .txt, .md, .pdf, .docx, .xlsx, .xlsm
+ */
+export async function extractText(
+  buffer: Buffer,
+  filename: string
+): Promise<string> {
+  const segments = await extractSegments(buffer, filename);
+  return segments
+    .map(s => s.text)
+    .join(PRE_SEGMENTED_SEPARATOR)
+    .replace(/\u0000/g, '');
 }

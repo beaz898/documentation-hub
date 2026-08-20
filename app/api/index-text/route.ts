@@ -4,7 +4,7 @@ import { getAuthenticatedUserHybrid } from '@/lib/supabase-server';
 import { upsertVectors, deleteVectorsByIds, buildVectorId } from '@/lib/pinecone/vectors';
 import { deleteDocument } from '@/lib/delete-document';
 import { generateEmbeddings } from '@/lib/embeddings';
-import { chunkText, stripSegmentationMarkers } from '@/lib/chunking';
+import { chunkText, stripSegmentationMarkers, EXTRACTOR_VERSION } from '@/lib/chunking';
 import { randomUUID } from 'crypto';
 import { resolveOrg } from '@/lib/org';
 import { generateContentHash } from '@/lib/analysis/hash-check';
@@ -208,6 +208,7 @@ export async function POST(req: NextRequest) {
       analysis_status: 'analizado',
       content_hash: contentHash,
       full_text: stripSegmentationMarkers(text),
+      extractor_version: EXTRACTOR_VERSION,
     });
 
     // Clean up the original uploaded file from Storage if provided

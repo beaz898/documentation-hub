@@ -5,6 +5,7 @@ import {
   updateVectorMetadata,
   deleteVectorsByIds,
 } from '@/lib/pinecone/vectors';
+import { EXTRACTOR_VERSION } from '@/lib/chunking';
 
 /**
  * Promueve la generación "staged" (ya validada) de un documento a ACTIVA, de forma
@@ -104,6 +105,12 @@ export async function swapDocumentVectors(
       source_modified_at: staged.source_modified_at,
       active_generation: newGeneration,
       analysis_status: 'analizado',
+      // document_staged no tiene columna extractor_version propia: el texto que
+      // se promueve se extrajo y trocheo con el extractor vigente en el momento
+      // del sync que lo genero, que en la practica casi siempre coincide con el
+      // vigente ahora (EXTRACTOR_VERSION solo sube a mano, rara vez). Si subiera
+      // entre el sync y este swap, esta fecha quedaria ligeramente optimista.
+      extractor_version: EXTRACTOR_VERSION,
       // d-2b (F-7): esta version se acaba de analizar; su hash pasa a ser el
       // "ultimo texto analizado". Unico escritor de analyzed_content_hash en el
       // camino con staged (analyze-v2 lo salta cuando hay staged, Commit 5) —
