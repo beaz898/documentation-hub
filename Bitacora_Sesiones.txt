@@ -4267,3 +4267,62 @@ el sync los salta indefinidamente. Borrar los 40 desde Doclity habría dejado el
 corpus vacío y sin vía de recuperación salvo pulsar "recuperar" 40 veces en el
 panel de admin. El método correcto es borrar y resubir EN DRIVE: los ficheros
 nuevos reciben provider_file_id nuevos y las lápidas viejas no casan.
+
+
+────────────────────────────────────────────────────────────────
+SESIÓN 46 — 21/08/2026
+Título: B.77 (tope de muestreo), evidencia de falsos positivos del juez y
+consulta F-22
+────────────────────────────────────────────────────────────────
+
+B.77 CORREGIDO (commit bf05e7de). pickSampledTexts recortaba a 40 los
+documentos con más de 80 chunks. Con un chunk = una fila de tabla (tras 4b),
+eso era ignorar dos tercios de los datos. Tope subido a 120.
+
+MEDICIÓN EN PRODUCCIÓN TRAS bf05e7de (21/08, modo rápido, corpus reducido de
+4 documentos):
+  OPE-02: 16 encontrados -> 16 samples. Retrieval 1,1 s. Total 8,9 s.
+  OPE-06: 114 encontrados -> 114 samples (antes 40). Retrieval 20,4 s.
+          Total 38,9 s.
+fallback=false en ambos. Dentro del maxDuration de 120 s con margen.
+
+DÓNDE SE VA EL TIEMPO EN OPE-06: de los 20,4 s de retrieval, unos 17 son
+esperas fijas — generateEmbeddings trocea en lotes de 20 con pausa de 3 s entre
+lotes (6 lotes = 5 pausas = 15 s de reloj sin trabajo). Las consultas a Pinecone
+del modo rápido son además secuenciales (retrieval.ts:70-76), a diferencia del
+exhaustivo que las paraleliza. PENDIENTE DESTAPADO: si el tiempo llegara a
+molestar, el arreglo es paralelizar el rápido como ya hace el exhaustivo, no
+bajar el tope.
+
+RESULTADO DE CONTENIDO: OPE-06 sigue sin incidencias, ahora mirándolo entero
+(antes el "limpio" no era fiable porque veía un tercio). RRHH-06 da exactamente
+los mismos tres hallazgos que el día anterior: consistente.
+
+SIETE FALSOS POSITIVOS DEL JUEZ, tres patrones (detalle completo en la consulta
+F-22, fichero claude/Consulta_Fable_F22_Juez.md). Junto a dos aciertos precisos:
+autoclave 134 °C/18 min vs 121 °C/30 min (CLI-01 vs OPE-01) y conservación de
+historia clínica 15 años vs 5 años (CLI-03 vs NOR-01) — este último es el falso
+negativo que figuraba como frente abierto en el documento de relevo desde el
+19/08, y AHORA SE DETECTA. Causa probable: corpus de prueba reducido (menos
+competencia por las 6 plazas del rerank), no una mejora real. Pendiente de
+reconfirmar con el corpus completo.
+
+EXPLORACIÓN DEL PROMPT DEL JUEZ: la hipótesis obvia (prompt pobre al que le
+faltan opciones) quedó DESCARTADA. El prompt es extenso y ya contiene una regla
+principal sobre "mismo dato concreto", una regla de oro sobre contextos
+compatibles, una sección específica para filas de tabla y trece ejemplos —
+incluido uno literalmente idéntico al caso que falló ("el mismo empleado con
+datos distintos en dos tablas de temas distintos no es contradicción"). El
+modelo tiene la instrucción delante y no la aplica. NO SE TOCÓ NADA: añadir más
+instrucciones sería perseguir el síntoma. Se elevó a Fable como F-22.
+
+TRES HALLAZGOS ESTRUCTURALES (material de F-22): el topic del juez no se
+verifica contra sus propias citas (fixQuotesInJudgment comprueba que la cita
+exista, no que el título la describa); DocumentFragment no lleva contexto
+alguno del fragmento (ni sección, ni hoja, ni fila — el .map(c => c.text) de 4b
+los descarta), lo que explica los emparejamientos sin relación semántica; y el
+modo rápido —el que ve el cliente en la bandeja— no tiene ninguna verificación
+posterior al juez salvo la de citas.
+
+ESTADO: F-22 enviada, a la espera de respuesta. Sin tocar el juez. Commits de
+la sesión: bf05e7de.
