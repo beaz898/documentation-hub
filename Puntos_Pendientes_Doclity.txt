@@ -1363,6 +1363,32 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     Nota: el filtro de duplicados por content_hash (C.2) tampoco lo evita, porque
     actúa al analizar, no al indexar.
 
+  B.86 — [DIAGNÓSTICO, conteo de descartes] "Cita inventada" y "cita real
+    atribuida al documento equivocado" se cuentan como el mismo motivo. Detectado
+    al investigar un descarte del 21/08: en un exhaustivo de RRHH-06, el juez
+    emitió un solapamiento contra CLI-05 poniendo en el campo `evidence` —que debe
+    ser una cita LITERAL del documento existente— la frase "Pendiente reciclaje de
+    protección radiológica", que pertenece en realidad a RRHH-06, el documento
+    ANALIZADO (hoja "Evaluaciones", fila del Dr. Pablo Reyes, columna
+    "Comentarios": "Buen nivel general, pendiente reciclaje de protección
+    radiológica."). CLI-05 no contiene esa frase ni nada parecido: no aparece la
+    palabra "reciclaje" en todo el documento.
+    El descarte fue CORRECTO: verifyQuote buscó la cita en CLI-05, no la encontró
+    y la rechazó. La capa de procedencia funciona y no descarta de más — se
+    verificó reproduciendo findBestMatch contra el texto real, que SÍ la encuentra
+    cuando el haystack es el documento correcto.
+    LO QUE FALTA: fixQuotesInJudgment incrementa `citaNoVerificable` sea cual sea
+    la causa, y no intenta buscar la cita fallida en el haystack CONTRARIO. Son
+    dos fallos distintos del juez —alucinación de la cita frente a confusión de
+    campos— con implicaciones distintas, y hoy son indistinguibles en el conteo.
+    FIX PROPUESTO (para el verificador de hallazgos, F-22/F-25): cuando verifyQuote
+    falle en un lado, reintentar contra el texto del otro lado. Si aparece allí, el
+    motivo es `cita_lado_cruzado`, no `cita_no_localizada`. Es una llamada más a
+    una función que ya existe, y convierte el conteo en diagnóstico: si predomina
+    el lado cruzado, el problema está en cómo se le presentan los dos documentos al
+    juez; si predomina la no localizada, en el modelo. Encaja con la petición de
+    F-25 de registrar también qué lado falló.
+
   F-20 [ESTADO, agosto 2026] Extracción estructurada. Paso 1 (extractSegments +
     EXTRACTOR_VERSION, commit 509e15d4) y paso 2 (persistencia en document_chunks,
     commit d00b085b) HECHOS. Paso 3 (job de reprocesado) RETIRADO — ver B.76. El

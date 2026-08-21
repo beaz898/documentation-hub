@@ -4428,3 +4428,25 @@ que el rápido no daba: ver B.84.
 Concurrencia: helper runInBatches creado y judge.ts migrado (27deb751);
 verify-claims.ts y retrieval.ts pendientes de migrar, en commits aparte, antes
 del verificador de hallazgos (F-24 P3).
+
+EL CABLE TENDIDO (F-24 P1 opción b), en cuatro commits. runInBatches y las tres
+migraciones (27deb751, 0d19d45a, 232ae187): no queda ninguna copia del patrón de
+rondas. b1af0c20: types.d.ts entra en el grafo del worker, cuya comprobación de
+tipos llevaba ciega a todo lib/ —el código que ejecuta en Railway— porque su
+include solo cubría src/. add45f14: AnalyzePipelineInput gana
+newDocumentChunks (StoredChunk[]), con dos orígenes y misma forma —
+getDocumentChunks si el documento está indexado, extractSegments +
+chunkSegments + toStoredChunks si es subida inicial; extractText resultó ser
+literalmente joinSegments(await extractSegments()), así que la estructura ya se
+generaba y se tiraba. Columna nueva analysis_jobs.new_document_chunks (jsonb) en
+vez de reutilizar sample_texts; F-25 dio la razón a la desviación ("reutilizarla
+obligaba a distinguir en runtime string de objeto, que es la estructura viviendo
+en un string con otro disfraz"). a0343b47: `npm run typecheck` cubre las dos
+configuraciones — el worker arranca con tsx, que transpila sin comprobar tipos,
+así que su tsc no se ejecutaba nunca solo.
+VERIFICADO: rápido idéntico a antes del cable (16/16 de contexto); exhaustivo
+completo en Railway con la columna nueva, 40,9 s, créditos devueltos.
+Investigado y CERRADO el descarte de cita del exhaustivo: no era la capa de
+procedencia descartando de más, era el juez cruzando los lados. Ver B.86.
+PENDIENTE DE F-25 para el método de trabajo: la verificación de cualquier paso
+que toque lib/ debe incluir `npm run typecheck`, no solo el build de Vercel.
