@@ -4326,3 +4326,79 @@ posterior al juez salvo la de citas.
 
 ESTADO: F-22 enviada, a la espera de respuesta. Sin tocar el juez. Commits de
 la sesión: bf05e7de.
+
+RESPUESTA F-21 Y F-22 RECIBIDAS. F-22 descarta la hipótesis del prompt y nombra
+la causa de los siete falsos positivos: "una única pasada de generación no puede
+vigilarse a sí misma". Trece ejemplos en el prompt no cambian eso; la pieza que
+falta es que generar y verificar sean dos llamadas distintas con dos posturas
+distintas — y ya existe construida (double-check), solo que corre únicamente en
+exhaustivo.
+
+CORRECCIONES DE FABLE AL PLANTEAMIENTO PROPIO:
+- El paso 5 NO cubre estos casos. Verifica PROCEDENCIA ("¿la cita existe, y en
+  tablas, en esa fila?"); los siete falsos positivos tienen procedencia
+  perfecta y fallan en el CONTRATO ("¿el hallazgo es lo que dice ser?"). Son dos
+  verificadores distintos; mezclarlos haría del paso 5 un monstruo. Aparece una
+  pieza nueva: el VERIFICADOR DE HALLAZGOS.
+- El modo rápido NO puede carecer de verificación de contrato. La distinción
+  entre modos es recall contra precisión, no "con red / sin red": el exhaustivo
+  paga por encontrar MÁS, pero la precisión de lo que se muestra no es una
+  prestación premium. "Un cliente que ve siete falsos en la bandeja del modo
+  barato no contrata el caro, se va."
+- Diseño en cascada del verificador: primero determinista (patrón 1 —dos citas
+  equivalentes— se reclasifica a solapamiento, sin LLM), luego una llamada corta
+  por hallazgo con el chunk anterior y posterior de cada cita como único
+  contexto, leídos de document_chunks en verificación (no se persiste, no
+  requiere rehacer el corpus). Devuelve confirmado / mismo_dato_sin_oposicion /
+  sin_relacion. Coste: ~1/10 de lo que ya cuesta juzgar.
+- Nada desaparece en silencio: lo no confirmado se cuenta por motivo en
+  analysis_results. Mismo agujero que el severity:'none'.
+
+ORDEN FIJADO POR F-22: B.73 -> 4d -> 4c -> verificador de hallazgos (en ambos
+modos, con contador) -> paso 5 -> paso 6. B.73 primero por ser el único que
+puede hacer desaparecer documentos en silencio y porque cualquier prueba de
+versionado lo activaría. Criterio de éxito del verificador: el corpus del piloto
+en rápido con los dos aciertos (autoclave, conservación) intactos y cero de los
+siete falsos positivos.
+
+ANOTADO PARA MÁS ADELANTE (F-22): MAX_SELECTED_QUICK = 6 es un techo de recall
+sin instrumentar — el siguiente lugar donde un verdadero positivo se pierde sin
+dejar rastro. Medir cuando el corpus esté completo. Y un positivo perdido que no
+estaba en nuestro registro: 44 horas contra RRHH-02.
+
+B.73 CERRADO — seis commits. La causa no era que siete puntos se equivocaran por
+separado, sino que no existía ninguna función que respondiera a "qué IDs de
+vector tiene este documento", así que cada uno la reinventaba inline y todos
+igual de mal. Primero el constructor común, luego los siete puntos.
+  47974739 — buildAllVectorIds en lib/pinecone/vectors.ts, inerte.
+  c4f32867 — drive/disconnect. El peor: borraba con IDs de generación 1 y a
+    continuación borraba las FILAS de documents, dejando vectores vivos sin
+    ninguna referencia que permitiera localizarlos.
+  a46512b9 — ingest (reemplazo por colisión de nombre).
+  34cc8f37 — cleanup-orphans (backfill de metadata) + byGeneration en el informe.
+  193c0735 — coverage, improve y delete-document (los tres de lectura).
+  767f08e7 — diagnose-vectors, arreglado Y registrado en git.
+
+DOS FALLOS DESTAPADOS AL HILO, sin relación con las generaciones y ambos
+corregidos: drive/disconnect e ingest borraban la fila del documento SIN
+comprobar que el borrado de vectores hubiera funcionado. Ahora ambos abortan con
+502 antes de tocar nada si fallan las dos vías de borrado (filtro + IDs).
+
+DECISIÓN CERRADA DESDE S38: app/api/admin/diagnose-vectors/ registrado en git
+tras arreglar su reconstrucción de IDs, con revisión de seguridad previa (exige
+sesión y rol admin, aislado por org_id y por namespace de Pinecone, solo lee, no
+expone los valores de los vectores). Compila limpio en su primera pasada real
+por tsc: llevaba sin pasar por el build al no estar trackeado.
+
+PENDIENTE NUEVO: B.80 (el fichero subido no se limpia de Storage en los caminos
+de error de ingest; inconsistencia preexistente detectada al revisar B.73).
+
+PREGUNTA ABIERTA: no se puede determinar desde el código propio si
+updateVectorMetadata lanza excepción ante un ID inexistente o falla en silencio
+(depende del SDK de Pinecone). Decide si el fallo de cleanup-orphans era ruidoso
+o silencioso. Verificable empíricamente cuando haya un documento en generación
+>= 2.
+
+ESTADO AL CIERRE: B.73 cerrado, árbol de trabajo limpio por primera vez en la
+sesión. Siguiente según F-22: paso 4d (llevar chunkType, sheetName, tableId y
+rowIndex hasta el juez), prerrequisito del paso 5 y del contexto del verificador.
