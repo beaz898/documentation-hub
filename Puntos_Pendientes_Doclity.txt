@@ -1228,6 +1228,35 @@ NOTAS DE ORDEN (propuesta, a confirmar)
         el trabajo no es "reutilizar el swap" sino "extraer del swap la parte de
         relevo y dejar el portero fuera".
 
+  B.77 — [F-20, paso 4 pendiente] El muestreo corta a 40 los documentos con muchos
+    chunks. pickSampledTexts (app/api/analyze-v2/route.ts) devuelve todos si hay
+    <=40 chunks, 30 si hay 41-80, y 40 si hay más. Medido en OPE-06: 114 chunks
+    persistidos, 40 samples — se descartan 74 filas y se busca con una de cada
+    tres. El criterio (índices distribuidos uniformemente) se diseñó para prosa,
+    donde muestrear un documento largo es razonable; para una tabla significa
+    ignorar dos tercios de las filas. No es una regresión: antes el problema
+    quedaba oculto porque el reagrupado nunca producía tantos chunks. Decidir si
+    las filas de tabla deben quedar exentas del muestreo o si el tope sube.
+
+  B.78 — [CALIDAD DEL JUICIO] Falso positivo por proximidad entre filas de la
+    misma persona. En el análisis de RRHH-06 contra OPE-02 el juez emitió una
+    "contradicción" titulada "Horas semanales de Nuria Ferrer" citando dos filas
+    que NO se contradicen: una de evaluaciones (empleado, puesto, clínica, fecha)
+    y otra de turnos (empleado, puesto, box, días, horas). Coinciden en empleado y
+    puesto; el título anuncia una discrepancia de horas que no aparece en el texto
+    citado. Hipótesis: al ver filas sueltas, el juez confunde "hablan de la misma
+    entidad" con "se contradicen" — efecto colateral del troceado por fila, no del
+    troceado viejo. Es justo lo que el paso 5 (citas estructuradas {sheet, rowKey,
+    cells} + verificador sobre celdas) debería cortar. Anotado como caso de prueba
+    concreto para validar el paso 5.
+
+  B.79 — [TIPOS] El análisis etiqueta los documentos de OneDrive como 'manual'.
+    DocumentFragment y CandidateDocument (lib/analysis/types.ts) tipan source como
+    'manual' | 'google_drive', sin 'onedrive', y lib/analysis/retrieval.ts:132
+    mapea `meta.source === 'google_drive' ? 'google_drive' : 'manual'`. Un
+    documento de OneDrive llega al pipeline marcado como manual. Hoy no rompe
+    nada visible, pero falsea el origen en cualquier decisión que lo consulte.
+
   F-20 [ESTADO, agosto 2026] Extracción estructurada. Paso 1 (extractSegments +
     EXTRACTOR_VERSION, commit 509e15d4) y paso 2 (persistencia en document_chunks,
     commit d00b085b) HECHOS. Paso 3 (job de reprocesado) RETIRADO — ver B.76. El

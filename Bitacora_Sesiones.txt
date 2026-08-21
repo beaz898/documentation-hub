@@ -4211,3 +4211,59 @@ Fable, F-21).
 ESTADO: paso 3 de F-20 cerrado como RETIRADO (ver Puntos_Pendientes.txt,
 entrada F-20). Fix de generación en producción (b8d0df63); registro SQL en
 producción documental (b84cd317). Commits: b8d0df63, b84cd317.
+
+PASO 4 TROCEADO EN CUATRO. La exploración reveló que no era un cambio en un
+punto: retrieval y su tipo DocumentFragment, el punto de re-chunking con su
+fallback, y la entrada del documentId al pipeline. Partido en 4a (lectura),
+4b (consumo), 4c (recorte del agente), 4d (campos de tabla hasta el juez).
+Hechos 4a y 4b; 4c y 4d quedan pendientes.
+
+CAUSA RAÍZ DEL "3 CANDIDATOS DE 40", localizada con precisión: el texto que
+llega a analyze-v2 por directText sale de documents.full_text, que se guarda
+con stripSegmentationMarkers aplicado. Sin marcador, chunkText no entra en su
+Camino 0 y corta por longitud, juntando ~13 filas de tabla por chunk de 1200
+caracteres. El mismo Excel se analizaba bien o mal según el camino de entrada:
+por storagePath (subida nueva) el marcador sobrevive porque extractText no lo
+quita; por directText (bandeja) no.
+
+4a — commit 20e5dfcc. lib/read-chunks.ts: getDocumentChunks (filtra por
+document_id + org_id + generation, ordena por chunk_index) y
+getActiveGeneration (?? 1). No lanzan: [] y 1 ante error, para permitir el
+fallback. Inerte al commitear.
+
+4b — commit 44043be6. analyze-v2 usa los chunks persistidos como sampleTexts
+en ambas ramas cuando existen; fallback a chunkText cuando no. Solo cambia la
+fuente de las muestras: newDocumentText y document_text del job intactos.
+
+MEDICIÓN EN PRODUCCIÓN (20/08/2026, modo rápido, los tres .xlsx del piloto):
+  OPE-02:  3 chunks -> 16 samples (16 encontrados).  8,7 s
+  RRHH-06: 6 chunks -> 19 samples (19 encontrados). 14,7 s
+  OPE-06: 25 chunks -> 40 samples (114 encontrados). 13,0 s
+fallback=false en los tres. El tiempo NO se dispara: no hace falta el tope de
+filas por documento que se barajó antes de medir.
+
+PRIMERA DETECCIÓN REAL ENTRE TABLAS. RRHH-06 (evaluaciones) contra OPE-02
+(cuadro de turnos), comparando fila a fila por empleado: contradicción correcta
+en el puesto de Dr. Pablo Reyes ("Implantólogo" vs "Implantólogo / Cirujano
+oral") y un solapamiento correcto sobre cinco empleados compartidos. Imposible
+con el troceado viejo. También UN FALSO POSITIVO (ver pendiente nuevo).
+
+VERIFICACIÓN FUNCIONAL DEL CICLO DE RESUBIDA: el chat responde correctamente a
+una pregunta que exige leer una fila concreta ("¿en qué box trabaja Ana
+Belmonte?" -> Box 3), y el agente cruza filas distintas de la misma tabla
+(suma 256 h/semana, ordena los diez empleados por carga, detecta que Gil y
+Reyes comparten Box 1 en turnos opuestos). Ninguno de esos cruces está escrito
+en el Excel.
+
+INCIDENTE DEL DOBLE OPE-02: quitar y volver a poner el fichero en Drive y
+sincronizar UNA sola vez dejó dos copias conviviendo; el análisis comparó el
+documento contra su propio duplicado y el juez avisó "Sin full_text ... usando
+fragmentos recuperados como fallback". Se resolvió sincronizando por separado
+el borrado y el alta. NOTA DE MÉTODO: un sync por operación.
+
+TOMBSTONES — comprobación que evitó un atasco: borrar documentos desde la
+interfaz de Doclity escribe una lápida por (org_id, source, provider_file_id) y
+el sync los salta indefinidamente. Borrar los 40 desde Doclity habría dejado el
+corpus vacío y sin vía de recuperación salvo pulsar "recuperar" 40 veces en el
+panel de admin. El método correcto es borrar y resubir EN DRIVE: los ficheros
+nuevos reciben provider_file_id nuevos y las lápidas viejas no casan.
