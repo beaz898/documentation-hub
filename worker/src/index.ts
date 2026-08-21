@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { runExhaustiveAnalysisPipeline } from '../../lib/analysis/pipeline';
 import type { ExhaustivePipelineInput } from '../../lib/analysis/pipeline';
+import type { StoredChunk } from '../../lib/read-chunks';
 import { saveAnalysisResult } from '../../lib/persist-analysis';
 import { purgeOrganization, type PurgeResult } from '../../lib/purge-org';
 import { refundCredits } from '../../lib/credits';
@@ -59,6 +60,7 @@ interface AnalysisJob {
   document_id: string | null;
   exclude_fingerprints: string;
   credits_consumed: number;
+  new_document_chunks: string | null;
 }
 
 // ============================================================
@@ -78,6 +80,9 @@ async function processJob(job: AnalysisJob): Promise<void> {
     const sampleTexts: string[] = JSON.parse(job.sample_texts);
     const excludeFpArray: string[] = JSON.parse(job.exclude_fingerprints);
     const excludeFingerprints = new Set<string>(excludeFpArray);
+    const newDocumentChunks: StoredChunk[] | undefined = job.new_document_chunks
+      ? JSON.parse(job.new_document_chunks) ?? undefined
+      : undefined;
 
     const input: ExhaustivePipelineInput = {
       newDocumentText: job.document_text,
@@ -87,6 +92,7 @@ async function processJob(job: AnalysisJob): Promise<void> {
       excludeDocumentId: job.exclude_document_id || undefined,
       supabase,
       excludeFingerprints,
+      newDocumentChunks,
     };
 
     const llmAcc = new Map();
@@ -258,7 +264,7 @@ async function pollAndProcess(): Promise<void> {
     // descartaran por tener su organizacion ocupada.
     const { data: candidates, error } = await supabase
       .from('analysis_jobs')
-      .select('id, org_id, user_id, document_name, document_text, sample_texts, exclude_document_id, document_id, exclude_fingerprints, credits_consumed')
+      .select('id, org_id, user_id, document_name, document_text, sample_texts, exclude_document_id, document_id, exclude_fingerprints, credits_consumed, new_document_chunks')
       .eq('status', 'pending')
       .order('created_at', { ascending: true })
       .limit(slotsAvailable * 4);

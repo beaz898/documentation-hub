@@ -9,6 +9,7 @@ import { verifyClaimsAgainstCorpus } from './verify-claims';
 import { doubleCheckContradictions } from './double-check';
 import { analyzeStyle } from './style-check';
 import { loadFragmentContexts, fragmentContextKey } from './fragment-context';
+import type { StoredChunk } from '@/lib/read-chunks';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
 /**
@@ -66,6 +67,12 @@ export interface AnalyzePipelineInput {
    * Se pasan al double-check para no gastar Sonnet re-verificándolas.
    */
   excludeFingerprints?: Set<string>;
+  /** Chunks del documento analizado, en su forma persistida (la misma que
+   *  devuelve getDocumentChunks y que escribe document_chunks). Necesarios para
+   *  que el verificador de hallazgos pueda comparar `cells` de los dos lados
+   *  (F-24). Opcional: el camino de mejora sobre texto no indexado no tiene
+   *  estructura de tabla que aportar. */
+  newDocumentChunks?: StoredChunk[];
 }
 
 export type ExhaustivePipelineInput = AnalyzePipelineInput;

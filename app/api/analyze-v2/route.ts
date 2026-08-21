@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import { getAuthenticatedUserHybrid } from '@/lib/supabase-server';
-import { chunkText, extractText, stripSegmentationMarkers } from '@/lib/chunking';
+import { chunkText, extractSegments, joinSegments, chunkSegments, stripSegmentationMarkers } from '@/lib/chunking';
+import type { ExtractedSegment } from '@/lib/chunking';
 import { runAnalysisPipeline } from '@/lib/analysis/pipeline';
 import { logUsage } from '@/lib/usage-logger';
 import { checkRateLimit } from '@/lib/rate-limiter';
@@ -15,7 +16,8 @@ import { generateContentHash } from '@/lib/analysis/hash-check';
 import { getStagedForDocument } from '@/lib/document-staged';
 import { swapDocumentVectors } from '@/lib/document-swap';
 import { checkAndAcquireAnalysisLock, releaseAnalysisLock, analysisLockMessage } from '@/lib/analysis-lock';
-import { getDocumentChunks, getActiveGeneration } from '@/lib/read-chunks';
+import { getDocumentChunks, getActiveGeneration, toStoredChunks } from '@/lib/read-chunks';
+import type { StoredChunk } from '@/lib/read-chunks';
 
 // Un job en 'pending'/'processing' mas viejo que esto se considera muerto: el
 // worker cayo sin marcarlo 'failed' y bloqueaba el 409 de toda la organizacion
@@ -189,6 +191,7 @@ export async function POST(req: NextRequest) {
 
     // Obtener texto: desde storage o directo
     let text: string;
+    let extractedSegments: ExtractedSegment[] | null = null;
     if (directText && typeof directText === 'string') {
       text = directText;
     } else if (storagePath) {
@@ -202,7 +205,9 @@ export async function POST(req: NextRequest) {
           const { data: fileData, error: dlErr } = await supabase.storage.from('documents').download(storagePath);
           if (dlErr || !fileData) { lastErr = dlErr; continue; }
           const buffer = Buffer.from(await fileData.arrayBuffer());
-          extracted = await extractText(buffer, fileName);
+          const segments = await extractSegments(buffer, fileName);
+          extracted = joinSegments(segments);
+          extractedSegments = segments;
           break;
         } catch (e) {
           lastErr = e;
@@ -233,17 +238,31 @@ export async function POST(req: NextRequest) {
     // chunks (documento nuevo aún sin indexar, o indexado antes de F-20) se
     // sigue usando el troceado de chunkText: mismo comportamiento que antes.
     let storedChunkTexts: string[] | null = null;
+    let storedChunks: StoredChunk[] | null = null;
     if (typeof documentId === 'string' && documentId.length > 0) {
       const activeGeneration = await getActiveGeneration(supabase, { orgId, documentId });
-      const storedChunks = await getDocumentChunks(supabase, {
+      const fetchedChunks = await getDocumentChunks(supabase, {
         orgId,
         documentId,
         generation: activeGeneration,
       });
-      if (storedChunks.length > 0) {
-        storedChunkTexts = storedChunks.map(c => c.text);
+      if (fetchedChunks.length > 0) {
+        storedChunkTexts = fetchedChunks.map(c => c.text);
+        storedChunks = fetchedChunks;
       }
-      console.log(`[analyze-v2] chunks persistidos | doc=${documentId} | gen=${activeGeneration} | encontrados=${storedChunks.length} | fallback=${storedChunkTexts === null}`);
+      console.log(`[analyze-v2] chunks persistidos | doc=${documentId} | gen=${activeGeneration} | encontrados=${fetchedChunks.length} | fallback=${storedChunkTexts === null}`);
+    }
+
+    // F-24 "el cable": chunks tipados del documento analizado, para que el
+    // verificador de hallazgos pueda comparar `cells` de los dos lados. Si el
+    // documento ya está indexado, storedChunks (arriba) es la fuente. Si es un
+    // documento nuevo aún sin indexar, se derivan aquí de los segments ya
+    // extraídos con el mismo camino que usa el indexado (chunkSegments), para
+    // no duplicar la lógica de troceado tipado en un segundo sitio.
+    let newDocChunks: StoredChunk[] | null = null;
+    if (!storedChunks && extractedSegments) {
+      const typedChunks = chunkSegments(extractedSegments, 'temp-id', fileName, orgId);
+      newDocChunks = toStoredChunks(typedChunks);
     }
 
     if (isExhaustive) {
@@ -297,6 +316,7 @@ export async function POST(req: NextRequest) {
           document_id: documentId ?? null,
           exclude_fingerprints: JSON.stringify(Array.from(excludeFingerprints)),
           credits_consumed: creditsConsumed,
+          new_document_chunks: JSON.stringify(storedChunks ?? newDocChunks ?? null),
         })
         .select('id')
         .single();
@@ -350,6 +370,7 @@ export async function POST(req: NextRequest) {
         excludeDocumentId,
         batchDocumentIds,
         supabase,
+        newDocumentChunks: storedChunks ?? newDocChunks ?? undefined,
       })
     );
     void persistLLMUsage({

@@ -1,4 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
+import type { TypedChunk } from './chunking';
 
 /**
  * Lectura de los chunks tipados de un documento (F-20 Paso 4).
@@ -99,4 +100,26 @@ export async function getActiveGeneration(
   }
 
   return (data.active_generation as number | null) ?? 1;
+}
+
+/**
+ * Convierte TypedChunk[] (la forma en vuelo, en el momento de indexar) a
+ * StoredChunk[] (la forma persistida). Es el mismo mapeo campo a campo que
+ * lib/persist-chunks.ts ya hace al escribir document_chunks — extraído aquí
+ * para que un documento aún no indexado (sin fila en document_chunks todavía)
+ * pueda ofrecer al pipeline de análisis la misma forma que un documento ya
+ * persistido, sin duplicar la conversión en dos sitios. Misma lección que
+ * buildAllVectorIds en B.73: una función común en vez de que cada llamador la
+ * reinvente.
+ */
+export function toStoredChunks(chunks: TypedChunk[]): StoredChunk[] {
+  return chunks.map((c) => ({
+    chunkIndex: c.metadata.chunkIndex,
+    chunkType: c.chunkType,
+    text: c.text,
+    sheetName: c.sheetName ?? null,
+    tableId: c.tableId ?? null,
+    rowIndex: c.rowIndex ?? null,
+    cells: c.cells ?? null,
+  }));
 }
