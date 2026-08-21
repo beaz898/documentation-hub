@@ -176,6 +176,31 @@ export function buildVectorId(documentId: string, generation: number, chunkIndex
 }
 
 /**
+ * Todos los IDs de vector de un documento, en su generación activa.
+ *
+ * Existe para que ningún punto del repo vuelva a construir `${id}-${i}` a mano:
+ * ese patrón asume generación 1 y, en un documento que ya pasó por un swap
+ * (active_generation >= 2), produce IDs que NO EXISTEN en Pinecone. Según el
+ * caso eso significa leer vacío, escribir metadata al vacío o —lo más grave—
+ * creer que se ha borrado algo que sigue ahí.
+ *
+ * `generation` debe venir de documents.active_generation. Cuando esa columna
+ * es NULL (corpus anterior al modelo de generaciones) el valor correcto es 1,
+ * y para generación 1 la salida es idéntica byte a byte al patrón antiguo.
+ */
+export function buildAllVectorIds(
+  documentId: string,
+  chunkCount: number,
+  generation: number,
+): string[] {
+  if (!Number.isFinite(chunkCount) || chunkCount <= 0) return [];
+  const safeGeneration = Number.isFinite(generation) && generation >= 1 ? generation : 1;
+  return Array.from({ length: chunkCount }, (_, i) =>
+    buildVectorId(documentId, safeGeneration, i),
+  );
+}
+
+/**
  * Descompone un ID de vector en { documentId, generation, chunkIndex }.
  * Tolerante: un ID sin marca -g{N}- es generación 1 implícita. Se ancla al FINAL
  * del string para no tropezar con los guiones del UUID del documentId.
