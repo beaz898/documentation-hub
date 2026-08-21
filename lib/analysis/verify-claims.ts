@@ -1,6 +1,7 @@
 import { queryVectors, buildCorpusFilter } from '@/lib/pinecone/vectors';
 import { generateEmbeddings } from '@/lib/embeddings';
 import { callLLMJson } from './llm-client';
+import { runInBatches } from '@/lib/run-in-batches';
 import type { AtomicClaim } from './extract-claims';
 
 /**
@@ -102,26 +103,21 @@ export async function verifyClaimsAgainstCorpus(
   }
 
   // ── Paso 4: Verificar en rondas de CONCURRENCY en paralelo ────
-  for (let roundStart = 0; roundStart < claimsToVerify.length; roundStart += CONCURRENCY) {
-    if (roundStart > 0) {
-      await new Promise(r => setTimeout(r, DELAY_BETWEEN_ROUNDS_MS));
-    }
+  const verifyResults = await runInBatches(
+    claimsToVerify,
+    ({ claim, fragments }) => verifySingleClaimWithFragments(claim, fragments),
+    { batchSize: CONCURRENCY, delayMs: DELAY_BETWEEN_ROUNDS_MS },
+  );
 
-    const round = claimsToVerify.slice(roundStart, roundStart + CONCURRENCY);
-    const results = await Promise.all(
-      round.map(({ claim, fragments }) => verifySingleClaimWithFragments(claim, fragments))
-    );
-
-    for (const result of results) {
-      if ((result.verdict === 'contradiccion' || result.verdict === 'inconsistencia_menor') && result.corpusSays && result.existingDocument) {
-        contradictions.push({
-          topic: result.category,
-          newDocSays: result.claim,
-          existingDocSays: result.corpusSays,
-          existingDocument: result.existingDocument,
-          severity: result.verdict === 'contradiccion' ? 'contradiction' : 'minor_inconsistency',
-        });
-      }
+  for (const result of verifyResults) {
+    if ((result.verdict === 'contradiccion' || result.verdict === 'inconsistencia_menor') && result.corpusSays && result.existingDocument) {
+      contradictions.push({
+        topic: result.category,
+        newDocSays: result.claim,
+        existingDocSays: result.corpusSays,
+        existingDocument: result.existingDocument,
+        severity: result.verdict === 'contradiccion' ? 'contradiction' : 'minor_inconsistency',
+      });
     }
   }
 
