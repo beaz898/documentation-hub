@@ -1077,8 +1077,9 @@ NOTAS DE ORDEN (propuesta, a confirmar)
           añadir proveedor: revisar veto de index-text (F-9-rev)".
         - mark-analyzed no comprueba el veto de concurrencia (lib/analysis-lock.ts):
           ventana confusa, no corruptora (el swap es idempotente). Para Fase D.
-        - Carpeta sin trackear app/api/admin/diagnose-vectors/: decidir si se retira
-          (como el test-swap de C.4c) o se registra.
+        - [✓ RESUELTO 21/08/2026, ver B.73] Carpeta sin trackear
+          app/api/admin/diagnose-vectors/: registrada en git tras arreglar su
+          reconstrucción manual de IDs de vector.
         - Import huérfano deleteVectorsByIds en index-text/route.ts (sin uso tras
           1661958a).
         - window.alert() de errores de indexado en el modal de mejora → sustituir
@@ -1150,7 +1151,7 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     lee el modelo real de llm_usage; si el agente cambiara de modelo, los créditos
     cobrados quedarían desalineados del coste real sin que nada lo detecte.
 
-  B.73 — [SEGURIDAD/CORRECCIÓN, mismo fallo que mark-analyzed] Ocho puntos construyen
+  B.73 — [✓ HECHO 21/08/2026] [SEGURIDAD/CORRECCIÓN, mismo fallo que mark-analyzed] Ocho puntos construyen
     IDs de vector asumiendo generación 1. Detectado en la exploración del paso 3 de
     F-20 (agosto 2026), hermano directo del fallo ya corregido en mark-analyzed
     (commit b8d0df63). Construyen `${id}-${i}` a mano en vez de usar buildVectorId
@@ -1179,6 +1180,11 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     empiezan a fallar sin avisar. Fix: buildVectorId(id, activeGeneration, i)
     leyendo documents.active_generation, igual que b8d0df63. Uno por uno, build
     verde entre medias. Empezar por drive/disconnect.
+    RESUELTO en siete puntos + el constructor común: 47974739 (buildAllVectorIds),
+    c4f32867 (drive/disconnect, + aborta si falla el borrado), a46512b9 (ingest,
+    ídem), 34cc8f37 (cleanup-orphans, + byGeneration en el informe), 193c0735
+    (coverage, improve, delete-document) y este commit (diagnose-vectors, que
+    además queda registrado en git).
 
   B.74 — [OBSERVABILIDAD] El filtro de 50 caracteres (lib/chunking.ts:436, y su
     gemelo en chunkText) descarta toda pieza de <=50 caracteres sin log ni contador:
