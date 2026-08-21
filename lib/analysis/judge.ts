@@ -1,5 +1,5 @@
 import { callLLMJson } from './llm-client';
-import type { RerankedCandidate, DocumentJudgment, PipelineOptions, DiscardedFindings } from './types';
+import type { RerankedCandidate, DocumentJudgment, PipelineOptions, DiscardedFindings, DocumentFragment } from './types';
 
 /**
  * Etapa 3 — Juicio individual por documento.
@@ -275,6 +275,36 @@ function fixQuotesInJudgment(
 // Juicio individual
 // ============================================================
 
+/**
+ * Etiqueta de procedencia de un fragmento. Sin contexto persistido (documentos
+ * indexados antes de F-20) se comporta exactamente como antes: solo el número
+ * de fragmento y el nombre del documento.
+ *
+ * Para filas de tabla añade hoja y fila, y las columnas con su valor. Es lo que
+ * permite al juez saber que dos filas hablan de la misma entidad sin que eso
+ * signifique que se contradigan, y es la base de las citas estructuradas del
+ * paso 5.
+ */
+function describeFragment(fragment: DocumentFragment, position: number, documentName: string): string {
+  const ctx = fragment.context;
+  if (!ctx) return `[Fragmento ${position} de "${documentName}"]`;
+
+  if (ctx.chunkType === 'table_row') {
+    const sheet = ctx.sheetName ? ` hoja "${ctx.sheetName}"` : '';
+    const row = ctx.rowIndex !== null ? `, fila ${ctx.rowIndex + 1}` : '';
+    const columns = ctx.cells ? Object.keys(ctx.cells).join(', ') : '';
+    const columnsPart = columns ? `. Columnas: ${columns}` : '';
+    return `[Fragmento ${position} de "${documentName}" — FILA DE TABLA:${sheet}${row}${columnsPart}]`;
+  }
+
+  if (ctx.chunkType === 'table_summary') {
+    const sheet = ctx.sheetName ? ` de la hoja "${ctx.sheetName}"` : '';
+    return `[Fragmento ${position} de "${documentName}" — RESUMEN DE TABLA${sheet}]`;
+  }
+
+  return `[Fragmento ${position} de "${documentName}"]`;
+}
+
 async function judgeSingleDocument(args: {
   newDocumentName: string;
   newDocumentText: string;
@@ -284,7 +314,7 @@ async function judgeSingleDocument(args: {
   const { newDocumentName, newDocumentText, candidate, fullTexts } = args;
 
   const existingFragsBlock = candidate.fragments
-    .map((f, i) => `[Fragmento ${i + 1} de "${candidate.documentName}"]\n${f.text}`)
+    .map((f, i) => `${describeFragment(f, i + 1, candidate.documentName)}\n${f.text}`)
     .join('\n\n');
 
   const prompt = `Eres un auditor de documentación. Tu tarea es comparar CONTENIDO CONCRETO entre dos documentos y emitir un juicio preciso, no una impresión general.
