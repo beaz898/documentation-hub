@@ -548,11 +548,17 @@ export async function POST(req: NextRequest) {
 /** Extrae textos muestreados de los chunks para el análisis rápido. */
 function pickSampledTexts(chunks: Array<{ text: string }>): string[] {
   const total = chunks.length;
-  const targetSamples = total <= 40
+  // B.77 — Tras el paso 4b un chunk de hoja de cálculo es UNA FILA, y saltarse
+  // una fila es perder un dato entero, no un matiz (a diferencia de la prosa,
+  // donde párrafos vecinos se solapan). Se sube el tope para que los documentos
+  // tabulares del corpus entren completos: OPE-06, el mayor medido, tiene 114
+  // chunks. Cada muestra cuesta una consulta a Pinecone y su parte de un lote de
+  // embeddings, pero CERO llamadas a LLM (el rerank y el judge trabajan sobre
+  // newDocumentText, no sobre las muestras), así que el tope lo pone el tiempo
+  // de la función (maxDuration 120s), no el coste.
+  const targetSamples = total <= 120
     ? total
-    : total <= 80
-      ? 30
-      : 40;
+    : 120;
   const indices = pickSampleIndices(total, targetSamples);
   return indices.map(i => chunks[i].text);
 }
