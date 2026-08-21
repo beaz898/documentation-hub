@@ -8,6 +8,7 @@ import { extractAtomicClaims } from './extract-claims';
 import { verifyClaimsAgainstCorpus } from './verify-claims';
 import { doubleCheckContradictions } from './double-check';
 import { analyzeStyle } from './style-check';
+import { loadFragmentContexts, fragmentContextKey } from './fragment-context';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
 /**
@@ -112,6 +113,33 @@ async function runCorePipeline(
   }
 
   const fullTexts = await fetchCandidateFullTexts(input.supabase, reranked.map(c => c.documentId));
+
+  // F-20 4d: enriquecer los fragmentos con su contexto de document_chunks
+  // (tipo de chunk, hoja/fila si es tabla, y texto vecino). No-fatal: si la
+  // carga falla o el documento no tiene chunks persistidos, los fragmentos se
+  // quedan sin `context` y todo sigue como antes.
+  const fragmentRefs = reranked.flatMap(c =>
+    c.fragments.map(f => ({
+      documentId: f.documentId,
+      generation: f.generation ?? 1,
+      chunkIndex: f.chunkIndex,
+    })),
+  );
+  const contexts = await loadFragmentContexts(input.supabase, {
+    orgId: input.orgId,
+    refs: fragmentRefs,
+  });
+  if (contexts.size > 0) {
+    for (const candidate of reranked) {
+      candidate.fragments = candidate.fragments.map(f => {
+        const ctx = contexts.get(
+          fragmentContextKey(f.documentId, f.generation ?? 1, f.chunkIndex),
+        );
+        return ctx ? { ...f, context: ctx } : f;
+      });
+    }
+  }
+  console.log(`[${label}] Contexto de fragmentos: ${contexts.size}/${fragmentRefs.length} resueltos`);
 
   const t2 = Date.now();
   const judgments = await judgeAllDocuments({

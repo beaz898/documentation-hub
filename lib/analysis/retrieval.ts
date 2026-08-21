@@ -121,6 +121,7 @@ function collectMatches(
     const meta = m.metadata as {
       documentId?: string; documentName?: string;
       source?: string; chunkIndex?: number; text?: string;
+      generation?: number;
     };
     if (!meta.documentId || !meta.documentName || !meta.text) continue;
     if (excludeDocumentId && meta.documentId === excludeDocumentId) continue;
@@ -132,6 +133,12 @@ function collectMatches(
       source: meta.source === 'google_drive' ? 'google_drive' : 'manual',
       score: m.score,
       chunkIndex: meta.chunkIndex ?? 0,
+      // C.4b escribe `generation` en la metadata de todos los vectores desde
+      // hace varias fases, pero hasta ahora nadie la leía. Sin ella no se puede
+      // localizar el chunk correcto en document_chunks: los chunks de
+      // generaciones distintas del mismo documento comparten chunk_index.
+      // Ausente = g1 implícita, igual que en parseVectorId.
+      generation: meta.generation ?? 1,
     });
   }
 }

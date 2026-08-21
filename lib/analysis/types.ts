@@ -3,6 +3,8 @@
  * Diseñado para ser agnóstico de proveedor: hoy Claude+Pinecone, mañana Claude+Voyage+Cohere.
  */
 
+import type { FragmentContext } from './fragment-context';
+
 export interface DocumentFragment {
   text: string;
   documentId: string;
@@ -10,6 +12,14 @@ export interface DocumentFragment {
   source: 'manual' | 'google_drive';
   score: number;
   chunkIndex: number;
+  /** Generación del vector del que salió este fragmento (F-20 4d). Viene de la
+   *  metadata de Pinecone, donde ya se escribía desde C.4b pero no se leía.
+   *  Necesaria para localizar el chunk correcto en document_chunks. */
+  generation?: number;
+  /** Contexto leído de document_chunks (tipo de chunk, localizadores de tabla y
+   *  texto vecino). Ausente en documentos indexados antes de F-20, que no
+   *  tienen chunks persistidos. */
+  context?: FragmentContext;
 }
 
 export interface CandidateDocument {
