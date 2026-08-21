@@ -1272,6 +1272,53 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     ficheros huérfanos en el bucket que nadie borra. Barato: un finally o un
     helper de limpieza compartido por los cuatro caminos.
 
+  B.81 — [PRODUCTO / ASIMETRÍA DEL ANÁLISIS] Encontrar una contradicción depende
+    de cuál de los dos documentos analices. El juez recibe el documento NUEVO
+    entero (newDocumentText, hasta NEW_DOC_LIMIT_QUICK = 6000 chars) pero del
+    documento EXISTENTE solo los fragmentos que el retrieval recuperó (máximo
+    MAX_FRAGMENTS_PER_DOC_QUICK = 25, con presupuesto FRAGMENT_BUDGET_CHARS_QUICK
+    = 3000). Analizar A contra B NO es la misma operación que analizar B contra A.
+    MEDIDO EN PRODUCCIÓN (21/08): analizando RRHH-06 aparece la discrepancia del
+    puesto de Dr. Pablo Reyes contra OPE-02; analizando OPE-02 con RRHH-06 en el
+    corpus, el emparejamiento SÍ ocurre (2 candidatos, 1 seleccionado por el
+    rerank, 1 juicio emitido) pero el juez no emite nada — porque la fila
+    correspondiente de RRHH-06 no está entre los fragmentos que se le muestran.
+    NO ES UN BUG: es consecuencia directa del diseño asimétrico. Pero es un límite
+    del producto que un cliente percibiría como incoherencia ("¿por qué me lo dice
+    en un documento y no en el otro?"). Decidir si se documenta como
+    comportamiento esperado, si el análisis debe ser simétrico para pares
+    seleccionados, o si basta con avisar en la bandeja. Relacionado con B.47
+    (análisis obsoletos al cambiar el corpus) y con el techo de recall de
+    MAX_SELECTED_QUICK = 6.
+
+  B.82 — [CALIDAD DEL JUICIO, refuerza B.78] El juez no es estable ni consigo
+    mismo: el mismo par de documentos, con el mismo prompt byte a byte, produce
+    falsos positivos DISTINTOS entre ejecuciones. Medido el 21/08 sobre RRHH-06 vs
+    OPE-02: una ejecución emitió "Horas semanales de Nuria Ferrer" y otra "Horas
+    semanales de Dra. Ana Belmonte" — el mismo patrón de falso positivo (título
+    que anuncia una discrepancia de horas que las citas no contienen; en la
+    segunda las citas son literalmente "Fecha evaluación: 2026-06-11" contra
+    "Horas semana: 8", dos datos distintos que el propio prompt pone como ejemplo
+    de lo que NO es contradicción), con distinto empleado. El prompt no cambió
+    entre ambas (verificado en código: 4d-2 no toca judge.ts). Es evidencia
+    adicional para F-22: no es un problema de instrucciones, es que una sola
+    pasada de generación no puede vigilarse a sí misma. Se resuelve con el
+    verificador de hallazgos, no con un ejemplo más en el prompt.
+
+  B.83 — [FRENTE ABIERTO, localizado] El falso negativo NOR-01 / CLI-03 muere en
+    el RERANK, no en el juez. La contradicción sembrada (conservación de historia
+    clínica: 15 años en CLI-03 contra 5 en NOR-01) apareció el 20/08 con un corpus
+    de 4 documentos y NO aparece el 21/08 con el corpus ampliado. Log del
+    21/08 analizando CLI-03: "Retrieval: 2 candidatos" seguido de "Rerank: 0
+    seleccionados" — el par llega al rerank y el rerank lo DESCARTA, así que el
+    juez nunca ve esos documentos juntos. Confirma la lectura prudente que ya se
+    había anotado: la detección del 20/08 fue efecto del corpus reducido (menos
+    competencia por las plazas del rerank), no una mejora real. El frente sigue
+    abierto, pero ahora se sabe DÓNDE: la etapa de rerank (lib/analysis/rerank.ts,
+    MAX_SELECTED_QUICK = 6 y el criterio con el que el LLM elige). Es el mismo
+    techo de recall que F-22 señaló como "el siguiente lugar donde un verdadero
+    positivo se pierde sin dejar rastro".
+
   F-20 [ESTADO, agosto 2026] Extracción estructurada. Paso 1 (extractSegments +
     EXTRACTOR_VERSION, commit 509e15d4) y paso 2 (persistencia en document_chunks,
     commit d00b085b) HECHOS. Paso 3 (job de reprocesado) RETIRADO — ver B.76. El

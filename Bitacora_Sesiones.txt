@@ -4402,3 +4402,18 @@ o silencioso. Verificable empíricamente cuando haya un documento en generación
 ESTADO AL CIERRE: B.73 cerrado, árbol de trabajo limpio por primera vez en la
 sesión. Siguiente según F-22: paso 4d (llevar chunkType, sheetName, tableId y
 rowIndex hasta el juez), prerrequisito del paso 5 y del contexto del verificador.
+
+PASO 4d EN CURSO. 4d-1 (cc23bffc): lib/analysis/fragment-context.ts con
+loadFragmentContexts — lee chunkType, sheetName, tableId, rowIndex, cells y el
+texto vecino de document_chunks, en una sola consulta, con índice anidado por
+(document_id, generation) para que los vecinos nunca vengan de otra generación.
+Vía B: no se escriben esos campos en la metadata de Pinecone porque exigiría
+otro ciclo de resubida (F-21 lo fijó como único) y duplicaría el dato.
+4d-2 (02ad5db6): DocumentFragment gana `generation` y `context`; runCorePipeline
+—compartido por rápido y exhaustivo— los adjunta tras fetchCandidateFullTexts.
+judge.ts sin tocar: el prompt sigue siendo idéntico byte a byte.
+VERIFICADO EN PRODUCCIÓN: "Contexto de fragmentos: 16/16 resueltos" (RRHH-06) y
+"12/12" (OPE-02) — todos los fragmentos encuentran su chunk. Primera vez que se
+ve actuar el verificador de citas en los logs: descartó un solapamiento cuyo
+lado `evidence` no se pudo verificar contra el texto completo.
+Pendientes nuevos destapados al medir: B.81, B.82, B.83.
