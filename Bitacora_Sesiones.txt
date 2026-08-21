@@ -4417,3 +4417,14 @@ VERIFICADO EN PRODUCCIÓN: "Contexto de fragmentos: 16/16 resueltos" (RRHH-06) y
 ve actuar el verificador de citas en los logs: descartó un solapamiento cuyo
 lado `evidence` no se pudo verificar contra el texto completo.
 Pendientes nuevos destapados al medir: B.81, B.82, B.83.
+
+RONDA DE NO-REGRESIÓN (21/08, tras 20 commits en dos días): chat, agente,
+subida manual y análisis exhaustivo verificados en producción, ninguno roto.
+El chat cita ahora la hoja de procedencia de una fila ("Hoja 'Cuadro de
+turnos'"), efecto colateral del troceado por filas. El agente reproduce el
+mismo análisis cruzado de OPE-02 que antes de los cambios. Subida manual de un
+fichero nuevo (CLI-05) correcta. Exhaustivo funcional, con dos hallazgos nuevos
+que el rápido no daba: ver B.84.
+Concurrencia: helper runInBatches creado y judge.ts migrado (27deb751);
+verify-claims.ts y retrieval.ts pendientes de migrar, en commits aparte, antes
+del verificador de hallazgos (F-24 P3).

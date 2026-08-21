@@ -1319,6 +1319,50 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     techo de recall que F-22 señaló como "el siguiente lugar donde un verdadero
     positivo se pierde sin dejar rastro".
 
+  B.84 — [CALIDAD DEL JUICIO, exhaustivo] El double-check emite "inconsistencias
+    menores" que son el patrón 1 de F-23, y con narración dentro de la cita.
+    Medido el 21/08 en un exhaustivo de RRHH-06 contra OPE-02, con el rápido
+    dando 0 hallazgos de ese tipo sobre el mismo par:
+      "Dra. Marta Gil es Odontóloga general en la clínica Chamberí." contra
+      "Dra. Marta Gil es Odontóloga general en Clínica Dentavia Chamberí (no solo
+      'Chamberí')."
+    Dos problemas en un solo hallazgo:
+    (1) NO es una inconsistencia: las dos afirmaciones dicen lo mismo con distinto
+        grado de detalle. Es exactamente el patrón 1 (equivalencia) que F-23 manda
+        RECLASIFICAR a solapamiento mediante la regla determinista R1.
+    (2) La segunda "cita" NO es una cita: contiene un comentario del modelo
+        —"(no solo 'Chamberí')"— dentro del texto entrecomillado. El prompt del
+        juez lo prohíbe explícitamente ("Las citas deben ser TEXTO COPIADO tal
+        cual del documento, sin comentarios, sin explicaciones") y
+        fixQuotesInJudgment tiene un filtro de narración (NARRATION_PATTERNS) que
+        lo debería haber descartado. Averiguar por qué no lo hizo: o esos
+        hallazgos vienen del camino atómico / double-check y NO pasan por
+        fixQuotesInJudgment (F-20 ya anotó que verify-claims nunca pasa por el
+        verificador de citas), o el patrón no cubre esta forma concreta.
+    Ambos casos mueren con el verificador de hallazgos, aplicado también sobre el
+    camino atómico como fija F-24 (P2). Anotado como caso de prueba concreto para
+    validarlo.
+
+  B.85 — [BUG, ingest] Subir a mano un documento que ya existe en Drive crea un
+    duplicado al 100%. Detectado por el usuario el 21/08 y coherente con el
+    incidente del doble OPE-02 del 20/08. app/api/ingest/route.ts detecta
+    colisiones por nombre SOLO entre documentos manuales: la consulta filtra
+    .or('source.is.null,source.neq.google_drive') y después manualCollisions
+    vuelve a filtrar d.source !== 'google_drive'. Un fichero con el mismo nombre
+    ya sincronizado desde Drive no cuenta como colisión, así que se indexa una
+    segunda copia y el análisis del nuevo documento encuentra un duplicado exacto
+    consigo mismo.
+    El filtro es deliberado —viene del veto por origen de F-9-rev/F-15, que saca a
+    los documentos de Drive del camino de reemplazo manual para no romper la
+    identidad de origen— pero la consecuencia no lo es: hoy el usuario acaba con
+    dos documentos idénticos y sin aviso. Mínimo aceptable: detectar la colisión
+    con un documento de Drive y AVISAR ("ya existe un documento con este nombre
+    sincronizado desde Drive; si quieres reemplazarlo, hazlo en Drive y
+    sincroniza"), en vez de indexar en silencio. No debe reemplazarlo: el veto por
+    origen sigue siendo correcto.
+    Nota: el filtro de duplicados por content_hash (C.2) tampoco lo evita, porque
+    actúa al analizar, no al indexar.
+
   F-20 [ESTADO, agosto 2026] Extracción estructurada. Paso 1 (extractSegments +
     EXTRACTOR_VERSION, commit 509e15d4) y paso 2 (persistencia en document_chunks,
     commit d00b085b) HECHOS. Paso 3 (job de reprocesado) RETIRADO — ver B.76. El
