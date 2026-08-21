@@ -67,7 +67,7 @@ interface JudgeResponse {
  * en la fuente ("**24 HORAS**"), así que ambos deben normalizar igual para
  * que la comparación coincida.
  */
-function normalize(s: string): string {
+export function normalize(s: string): string {
   return s
     .toLowerCase()
     .replace(/\s+/g, ' ')
