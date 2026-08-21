@@ -1257,6 +1257,15 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     documento de OneDrive llega al pipeline marcado como manual. Hoy no rompe
     nada visible, pero falsea el origen en cualquier decisión que lo consulte.
 
+  B.80 — [FLECO, ingest] El fichero subido no se limpia de Storage en los caminos
+    de error. app/api/ingest/route.ts sube el fichero a Supabase Storage y lo
+    borra al final del camino feliz (paso 10). De los caminos de error, solo el de
+    "texto insuficiente" limpia; los de descarga fallida (500), extracción fallida
+    (400) y el nuevo de borrado de vectores fallido (502, B.73) dejan el fichero
+    en Storage. Inconsistencia preexistente, detectada al revisar B.73. Efecto:
+    ficheros huérfanos en el bucket que nadie borra. Barato: un finally o un
+    helper de limpieza compartido por los cuatro caminos.
+
   F-20 [ESTADO, agosto 2026] Extracción estructurada. Paso 1 (extractSegments +
     EXTRACTOR_VERSION, commit 509e15d4) y paso 2 (persistencia en document_chunks,
     commit d00b085b) HECHOS. Paso 3 (job de reprocesado) RETIRADO — ver B.76. El

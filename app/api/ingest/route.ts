@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import { getAuthenticatedUserHybrid } from '@/lib/supabase-server';
-import { upsertVectors, deleteVectorsByIds, buildVectorId } from '@/lib/pinecone/vectors';
+import { upsertVectors, deleteVectorsByIds, buildVectorId, deleteVectorsByFilter, buildAllVectorIds } from '@/lib/pinecone/vectors';
 import { generateEmbeddings } from '@/lib/embeddings';
 import { extractSegments, joinSegments, chunkSegments, stripSegmentationMarkers, EXTRACTOR_VERSION } from '@/lib/chunking';
 import type { ExtractedSegment } from '@/lib/chunking';
@@ -75,7 +75,7 @@ export async function POST(req: NextRequest) {
 
     const { data: existingManualDocs, error: queryError } = await supabase
       .from('documents')
-      .select('id, name, chunk_count, source')
+      .select('id, name, chunk_count, source, active_generation')
       .eq('org_id', orgId)
       .eq('name', fileName)
       .or('source.is.null,source.neq.google_drive');
@@ -173,11 +173,51 @@ export async function POST(req: NextRequest) {
     if (manualCollisions.length > 0 && force) {
       for (const oldDoc of manualCollisions) {
         console.log(`[INGEST] Replacing manual doc id=${oldDoc.id}`);
-        const idsToDelete = Array.from(
-          { length: oldDoc.chunk_count },
-          (_, i) => `${oldDoc.id}-${i}`
+
+        // Borrado por dos vías (B.73), igual que en lib/delete-document.ts y
+        // drive/disconnect: filtro por documentId, que no depende de conocer la
+        // generación, más los IDs explícitos de la generación activa. Los manuales
+        // están hoy siempre en generación 1, pero eso es una consecuencia del flujo
+        // actual, no una garantía del código: C.4e prevé migrarlos al swap.
+        const oldDocumentId = oldDoc.id as string;
+        let filterOk = false;
+        let idsOk = false;
+
+        try {
+          await deleteVectorsByFilter(orgId, { documentId: { $eq: oldDocumentId } });
+          filterOk = true;
+        } catch (err) {
+          console.warn(`[INGEST] fallo borrado por filtro | doc=${oldDocumentId} |`, err);
+        }
+
+        const generation = (oldDoc.active_generation as number | null) ?? 1;
+        const idsToDelete = buildAllVectorIds(
+          oldDocumentId,
+          (oldDoc.chunk_count as number | null) ?? 0,
+          generation,
         );
-        await deleteVectorsByIds(orgId, idsToDelete);
+        if (idsToDelete.length > 0) {
+          try {
+            await deleteVectorsByIds(orgId, idsToDelete);
+            idsOk = true;
+          } catch (err) {
+            console.warn(`[INGEST] fallo borrado por IDs | doc=${oldDocumentId} | gen=${generation} |`, err);
+          }
+        }
+
+        // La fila solo se borra si los vectores se han podido borrar: sin la fila no
+        // queda referencia para localizar vectores huérfanos.
+        if (!filterOk && !idsOk) {
+          console.error(`[INGEST] ABORTADO | no se pudieron borrar los vectores del documento a reemplazar | doc=${oldDocumentId}`);
+          return NextResponse.json(
+            {
+              error: 'No se pudo retirar la versión anterior del índice de búsqueda. No se ha modificado nada; inténtalo de nuevo.',
+              errorType: 'vector_delete_failed',
+            },
+            { status: 502 },
+          );
+        }
+
         await supabase.from('documents').delete().eq('id', oldDoc.id);
       }
     }
