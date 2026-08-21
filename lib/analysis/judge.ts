@@ -1,4 +1,5 @@
 import { callLLMJson } from './llm-client';
+import { runInBatches } from '@/lib/run-in-batches';
 import type { RerankedCandidate, DocumentJudgment, PipelineOptions, DiscardedFindings, DocumentFragment } from './types';
 
 /**
@@ -491,31 +492,16 @@ export async function judgeAllDocuments(args: {
 
   if (isExhaustive) {
     // Paralelo controlado: EXHAUSTIVE_CONCURRENCY a la vez con pausa entre rondas
-    const results: DocumentJudgment[] = new Array(args.candidates.length);
-
-    for (let roundStart = 0; roundStart < args.candidates.length; roundStart += EXHAUSTIVE_CONCURRENCY) {
-      if (roundStart > 0) {
-        await new Promise(r => setTimeout(r, EXHAUSTIVE_ROUND_DELAY_MS));
-      }
-
-      const roundEnd = Math.min(roundStart + EXHAUSTIVE_CONCURRENCY, args.candidates.length);
-      const roundPromises = [];
-
-      for (let i = roundStart; i < roundEnd; i++) {
-        roundPromises.push(
-          judgeSingleDocument({
-            newDocumentName: args.newDocumentName,
-            newDocumentText,
-            candidate: args.candidates[i],
-            fullTexts: args.fullTexts,
-          }).then(judgment => { results[i] = judgment; })
-        );
-      }
-
-      await Promise.all(roundPromises);
-    }
-
-    return results;
+    return runInBatches(
+      args.candidates,
+      candidate => judgeSingleDocument({
+        newDocumentName: args.newDocumentName,
+        newDocumentText,
+        candidate,
+        fullTexts: args.fullTexts,
+      }),
+      { batchSize: EXHAUSTIVE_CONCURRENCY, delayMs: EXHAUSTIVE_ROUND_DELAY_MS },
+    );
   }
 
   // Secuencial con pausa (modo rápido)
