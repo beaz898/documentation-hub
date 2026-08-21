@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import { getAuthenticatedUserHybrid } from '@/lib/supabase-server';
-import { fetchVectors, queryVectors } from '@/lib/pinecone/vectors';
+import { fetchVectors, queryVectors, buildAllVectorIds } from '@/lib/pinecone/vectors';
 import { generateEmbeddings } from '@/lib/embeddings';
 import { callLLMWithUsage } from '@/lib/analysis/llm-client';
 import { logUsage } from '@/lib/usage-logger';
@@ -80,6 +80,7 @@ interface DocRow {
   name: string;
   source: string | null;
   chunk_count: number;
+  active_generation: number | null;
 }
 
 function detectMentionedDoc(userMessage: string, orgDocs: DocRow[]): DocRow | null {
@@ -105,7 +106,10 @@ async function loadFullDocumentText(
     const chunkCount = doc.chunk_count;
     if (!chunkCount || chunkCount === 0) return null;
 
-    const allIds = Array.from({ length: chunkCount }, (_, i) => `${doc.id}-${i}`);
+    // B.73: la generación activa del documento, no la 1 implícita. Con el patrón
+    // antiguo, en un documento ya promocionado por un swap el fetch no devolvía
+    // nada y el modal de mejora trabajaba sobre texto vacío sin avisar.
+    const allIds = buildAllVectorIds(doc.id, chunkCount, doc.active_generation ?? 1);
     const batches: string[][] = [];
     for (let i = 0; i < allIds.length; i += 100) {
       batches.push(allIds.slice(i, i + 100));
@@ -210,7 +214,7 @@ export async function POST(req: NextRequest) {
 
     const { data: orgDocsRaw } = await supabase
       .from('documents')
-      .select('id, name, source, chunk_count')
+      .select('id, name, source, chunk_count, active_generation')
       .eq('org_id', orgId);
     const orgDocs: DocRow[] = orgDocsRaw || [];
 

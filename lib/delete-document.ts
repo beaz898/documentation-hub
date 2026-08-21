@@ -1,5 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { deleteVectorsByFilter, deleteVectorsByIds } from '@/lib/pinecone/vectors';
+import { deleteVectorsByFilter, deleteVectorsByIds, buildAllVectorIds } from '@/lib/pinecone/vectors';
 import { checkUploadLock } from '@/lib/upload-lock';
 
 /**
@@ -41,6 +41,7 @@ interface DocumentRow {
   provider_file_id: string | null;
   name: string;
   chunk_count: number | null;
+  active_generation: number | null;
 }
 
 /**
@@ -88,7 +89,7 @@ export async function deleteDocument(
   // 1. Leer el documento (identidad de origen + chunk_count).
   const { data: doc, error: readError } = await supabase
     .from('documents')
-    .select('id, source, provider_file_id, name, chunk_count')
+    .select('id, source, provider_file_id, name, chunk_count, active_generation')
     .eq('id', documentId)
     .eq('org_id', orgId)
     .single<DocumentRow>();
@@ -141,7 +142,11 @@ export async function deleteDocument(
 
   const chunkCount = doc.chunk_count ?? 0;
   if (chunkCount > 0) {
-    const ids = Array.from({ length: chunkCount }, (_, i) => `${documentId}-${i}`);
+    // B.73: IDs de la generación activa. El borrado por filtro de arriba ya cubre
+    // cualquier generación, así que esto era una segunda vía degradada, no un
+    // agujero: con el patrón antiguo simplemente no borraba nada en documentos
+    // con generación >= 2, y el resultado dependía solo del filtro.
+    const ids = buildAllVectorIds(documentId, chunkCount, doc.active_generation ?? 1);
     try {
       await deleteVectorsByIds(orgId, ids);
       idsOk = true;

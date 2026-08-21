@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import { getAuthenticatedUserHybrid } from '@/lib/supabase-server';
 import { resolveOrg } from '@/lib/org';
-import { fetchVectors } from '@/lib/pinecone/vectors';
+import { fetchVectors, buildVectorId } from '@/lib/pinecone/vectors';
 
 /**
  * GET /api/documents/coverage/[id]?days=30
@@ -35,7 +35,7 @@ export async function GET(
     // Verify the document belongs to this org
     const { data: docRow, error: docErr } = await supabase
       .from('documents')
-      .select('id, name, org_id')
+      .select('id, name, org_id, active_generation')
       .eq('id', documentId)
       .eq('org_id', org.orgId)
       .single();
@@ -89,12 +89,17 @@ export async function GET(
     let usedChunks: Array<{ chunkIndex: number; text: string }> = [];
     if (usedChunkIndices.length > 0) {
       try {
-        const vectorIds = usedChunkIndices.map(i => `${documentId}-${i}`);
+        // B.73: los IDs deben corresponder a la generación ACTIVA. Con el patrón
+        // `${documentId}-${i}` (generación 1 implícita), en un documento ya
+        // promocionado por un swap el fetch no encontraba nada y el panel de
+        // cobertura mostraba todos los fragmentos vacíos, sin ningún aviso.
+        const generation = (docRow.active_generation as number | null) ?? 1;
+        const vectorIds = usedChunkIndices.map(i => buildVectorId(documentId, generation, i));
         const records = await fetchVectors(org.orgId, vectorIds);
 
         usedChunks = usedChunkIndices.map(i => ({
           chunkIndex: i,
-          text: String((records[`${documentId}-${i}`]?.metadata?.text) ?? ''),
+          text: String((records[buildVectorId(documentId, generation, i)]?.metadata?.text) ?? ''),
         }));
       } catch (err) {
         console.warn('[coverage] Pinecone fetch failed:', err instanceof Error ? err.message : err);
