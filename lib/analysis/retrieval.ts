@@ -1,5 +1,6 @@
 import { queryVectors, buildCorpusFilter } from '@/lib/pinecone/vectors';
 import { generateEmbeddings } from '@/lib/embeddings';
+import { runInBatches } from '@/lib/run-in-batches';
 import type { CandidateDocument, DocumentFragment, PipelineOptions } from './types';
 
 /**
@@ -57,15 +58,15 @@ export async function retrieveCandidates(args: {
   const allMatches: DocumentFragment[] = [];
 
   if (isExhaustive) {
-    // Paralelo por lotes — menor latencia total
-    for (let batchStart = 0; batchStart < embeddings.length; batchStart += QUERY_BATCH_SIZE) {
-      const batch = embeddings.slice(batchStart, batchStart + QUERY_BATCH_SIZE);
-      const batchResults = await Promise.all(
-        batch.map(emb => queryVectors(orgId, { vector: emb, topK: 25, includeMetadata: true, filter: corpusFilter }))
-      );
-      for (const matches of batchResults) {
-        collectMatches(matches as Array<{ metadata?: Record<string, unknown>; score?: number }>, allMatches, scoreThreshold, excludeDocumentId);
-      }
+    // Paralelo por lotes — menor latencia total. Sin delayMs: aquí se
+    // paraleliza contra Pinecone, no contra un LLM con límite de peticiones.
+    const batchResults = await runInBatches(
+      embeddings,
+      emb => queryVectors(orgId, { vector: emb, topK: 25, includeMetadata: true, filter: corpusFilter }),
+      { batchSize: QUERY_BATCH_SIZE },
+    );
+    for (const matches of batchResults) {
+      collectMatches(matches as Array<{ metadata?: Record<string, unknown>; score?: number }>, allMatches, scoreThreshold, excludeDocumentId);
     }
   } else {
     // Secuencial — menos presión sobre Pinecone free tier
