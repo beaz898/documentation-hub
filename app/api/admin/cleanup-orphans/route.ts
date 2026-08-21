@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import { getAuthenticatedUserHybrid } from '@/lib/supabase-server';
 import { resolveOrg } from '@/lib/org';
-import { queryVectors, deleteVectorsByIds, updateVectorMetadata } from '@/lib/pinecone/vectors';
+import { queryVectors, deleteVectorsByIds, updateVectorMetadata, buildAllVectorIds } from '@/lib/pinecone/vectors';
 
 export const maxDuration = 300;
 
@@ -110,7 +110,7 @@ export async function POST(req: NextRequest) {
     // Fuente de verdad: el estado de cada documento en Supabase.
     const { data: orgDocs, error: docsErr } = await supabase
       .from('documents')
-      .select('id, name, chunk_count, analysis_status')
+      .select('id, name, chunk_count, analysis_status, active_generation')
       .eq('org_id', org.orgId);
 
     if (docsErr) throw new Error('No se pudieron leer los documentos: ' + docsErr.message);
@@ -119,6 +119,7 @@ export async function POST(req: NextRequest) {
     let vectorsToUpdate = 0;
     let vectorsUpdated = 0;
     const byStatus: Record<string, number> = {};
+    const byGeneration: Record<number, number> = {};
     const skipped: Array<{ id: string; name: string; reason: string }> = [];
     const failed: Array<{ id: string; name: string; error: string }> = [];
 
@@ -133,9 +134,16 @@ export async function POST(req: NextRequest) {
         continue;
       }
 
-      const ids = Array.from({ length: chunkCount }, (_, i) => `${doc.id}-${i}`);
+      // B.73: los IDs deben corresponder a la generación ACTIVA del documento.
+      // Con `${doc.id}-${i}` (generación 1 implícita) esta herramienta escribía
+      // metadata sobre IDs inexistentes en cualquier documento ya promocionado
+      // por un swap, dejando sin etiquetar los vectores reales — precisamente lo
+      // que viene a reparar.
+      const generation = (doc.active_generation as number | null) ?? 1;
+      const ids = buildAllVectorIds(doc.id as string, chunkCount, generation);
       vectorsToUpdate += ids.length;
       byStatus[status] = (byStatus[status] || 0) + ids.length;
+      byGeneration[generation] = (byGeneration[generation] || 0) + ids.length;
 
       if (dryRun) continue;
 
@@ -157,6 +165,7 @@ export async function POST(req: NextRequest) {
         documentsScanned: docs.length,
         vectorsToUpdate,
         byStatus,
+        byGeneration,
         skipped,
       });
     }
@@ -168,6 +177,7 @@ export async function POST(req: NextRequest) {
       vectorsToUpdate,
       vectorsUpdated,
       byStatus,
+      byGeneration,
       skipped,
       failed,
     });
