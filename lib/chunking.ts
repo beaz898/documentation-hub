@@ -29,13 +29,23 @@ const MAX_CHUNK_SIZE = 1500;  // por encima de esto, una sección se subdivide
 const MIN_CHUNK_SIZE = 300;   // por debajo de esto, una sección se fusiona con la siguiente
 
 /**
+ * Umbral mínimo de una pieza nacida del corte por tamaño (F-29). Vive aquí,
+ * dentro de splitByLength, y en ningún otro sitio: es el único corte que
+ * parte el texto sin mirar el contenido, así que es el único que puede
+ * producir un residuo sin sentido. Un segmento del extractor o una sección
+ * delimitada por un encabezado son cortes deliberados — se conservan enteros
+ * aunque midan menos que esto.
+ */
+const MIN_PIECE_LENGTH = 50;
+
+/**
  * Versión del extractor (extractText/extractSegments/chunkText). Se sube a
  * mano cada vez que cambia cómo se lee o trocea un documento. Subirla marca
  * TODOS los documentos ya indexados (con una versión anterior o sin ninguna)
  * como desactualizados frente al lector actual — es la señal que permite
  * saber cuáles habría que reprocesar.
  */
-export const EXTRACTOR_VERSION = 1;
+export const EXTRACTOR_VERSION = 2;
 
 /** Línea de encabezado Markdown individual (sin flag 'm': para probar una línea suelta). */
 const HEADING_LINE_RE = /^(#{1,6})\s/;
@@ -106,12 +116,41 @@ interface Section {
 }
 
 /**
+ * Acumulador de piezas descartadas por longitud mínima. Se crea uno nuevo por
+ * llamada a chunkSegments/chunkText (nunca a nivel de módulo: se contaminaría
+ * entre llamadas concurrentes) y se pasa por parámetro a través de
+ * subdivideSection/buildProsePieces hasta cada llamada a splitByLength, que
+ * es la única que incrementa `discarded`.
+ */
+interface SplitStats {
+  discarded: number;
+}
+
+function logDiscarded(fn: string, documentName: string, stats: SplitStats): void {
+  if (stats.discarded > 0) {
+    console.log(`[${fn}] piezas descartadas por longitud mínima`, { documentName, descartadas: stats.discarded });
+  }
+}
+
+/**
  * Corte por longitud con los criterios de siempre (párrafo, punto, salto de
  * línea). Usado tanto para documentos sin estructura como para subdividir
  * secciones que superan MAX_CHUNK_SIZE.
+ *
+ * Es el único sitio que aplica MIN_PIECE_LENGTH (F-29): el único corte que
+ * parte sin mirar el contenido es el único que puede dejar un residuo. Si se
+ * pasa `stats`, cada pieza descartada por quedar demasiado corta se cuenta
+ * ahí en vez de perderse en silencio.
  */
-function splitByLength(text: string, maxSize: number, overlap: number): string[] {
-  if (text.length <= maxSize) return [text.trim()];
+function splitByLength(text: string, maxSize: number, overlap: number, stats?: SplitStats): string[] {
+  if (text.length <= maxSize) {
+    const piece = text.trim();
+    if (piece.length <= MIN_PIECE_LENGTH) {
+      if (stats) stats.discarded++;
+      return [];
+    }
+    return [piece];
+  }
 
   const pieces: string[] = [];
   let start = 0;
@@ -141,7 +180,12 @@ function splitByLength(text: string, maxSize: number, overlap: number): string[]
       end = text.length;
     }
 
-    pieces.push(text.slice(start, end).trim());
+    const piece = text.slice(start, end).trim();
+    if (piece.length > MIN_PIECE_LENGTH) {
+      pieces.push(piece);
+    } else if (stats) {
+      stats.discarded++;
+    }
 
     start = end - overlap;
     if (start < 0) start = 0;
@@ -230,41 +274,38 @@ function mergeSmallSections(sections: Section[]): Section[] {
 }
 
 /** Subdivide una sección que supera MAX_CHUNK_SIZE, conservando su línea de título al principio de cada subtrozo. */
-function subdivideSection(section: Section): string[] {
+function subdivideSection(section: Section, stats?: SplitStats): string[] {
   if (!section.title) {
-    return splitByLength(section.text, CHUNK_SIZE, CHUNK_OVERLAP);
+    return splitByLength(section.text, CHUNK_SIZE, CHUNK_OVERLAP, stats);
   }
 
   const body = section.text.slice(section.title.length).replace(/^\n+/, '');
   if (!body) return [section.title];
 
-  return splitByLength(body, CHUNK_SIZE, CHUNK_OVERLAP)
+  return splitByLength(body, CHUNK_SIZE, CHUNK_OVERLAP, stats)
     .map(piece => `${section.title}\n\n${piece}`);
 }
 
+// Sin filtro de longitud aquí (F-29): cada pieza que llega ya pasó por
+// MIN_PIECE_LENGTH dentro de splitByLength si venía de un corte por tamaño; la
+// que no, es un segmento o una sección tal cual se decidió, y se conserva
+// entera sea cual sea su longitud.
 function buildChunks(
   pieces: string[],
   documentId: string,
   documentName: string,
   orgId: string,
 ): Chunk[] {
-  const chunks: Chunk[] = [];
-  for (const piece of pieces) {
-    if (piece.length > 50) { // ignorar chunks muy pequeños
-      chunks.push({
-        text: piece,
-        metadata: {
-          documentId,
-          documentName,
-          chunkIndex: chunks.length,
-          totalChunks: 0, // se actualiza después
-          orgId,
-        },
-      });
-    }
-  }
-  chunks.forEach(c => { c.metadata.totalChunks = chunks.length; });
-  return chunks;
+  return pieces.map((piece, index) => ({
+    text: piece,
+    metadata: {
+      documentId,
+      documentName,
+      chunkIndex: index,
+      totalChunks: pieces.length,
+      orgId,
+    },
+  }));
 }
 
 /**
@@ -277,6 +318,8 @@ export function chunkText(
   documentName: string,
   orgId: string
 ): Chunk[] {
+  const stats: SplitStats = { discarded: 0 };
+
   // Camino 0: el extractor ya decidió las piezas (hojas de cálculo).
   // Se respetan tal cual; solo se subdividen las que por sí solas superen
   // MAX_CHUNK_SIZE.
@@ -286,11 +329,12 @@ export function chunkText(
       const piece = raw.replace(/\r\n/g, '\n').replace(/[ \t]+/g, ' ').trim();
       if (!piece) continue;
       if (piece.length > MAX_CHUNK_SIZE) {
-        pieces.push(...splitByLength(piece, CHUNK_SIZE, CHUNK_OVERLAP));
+        pieces.push(...splitByLength(piece, CHUNK_SIZE, CHUNK_OVERLAP, stats));
       } else {
         pieces.push(piece);
       }
     }
+    logDiscarded('chunkText', documentName, stats);
     return buildChunks(pieces, documentId, documentName, orgId);
   }
 
@@ -316,7 +360,8 @@ export function chunkText(
 
   if (!HAS_ANY_HEADING_RE.test(cleaned)) {
     // Caso 4: sin estructura detectable, corte por longitud de siempre.
-    const pieces = splitByLength(cleaned, CHUNK_SIZE, CHUNK_OVERLAP);
+    const pieces = splitByLength(cleaned, CHUNK_SIZE, CHUNK_OVERLAP, stats);
+    logDiscarded('chunkText', documentName, stats);
     return buildChunks(pieces, documentId, documentName, orgId);
   }
 
@@ -325,12 +370,13 @@ export function chunkText(
   const pieces: string[] = [];
   for (const section of sections) {
     if (section.text.length > MAX_CHUNK_SIZE) {
-      pieces.push(...subdivideSection(section));
+      pieces.push(...subdivideSection(section, stats));
     } else {
       pieces.push(section.text);
     }
   }
 
+  logDiscarded('chunkText', documentName, stats);
   return buildChunks(pieces, documentId, documentName, orgId);
 }
 
@@ -346,7 +392,7 @@ export function chunkText(
  * cortar son las mismas: solo se repite el árbol de decisión que las combina,
  * porque chunkText no puede delegar en esta función sin modificarse.
  */
-function buildProsePieces(text: string): string[] {
+function buildProsePieces(text: string, stats?: SplitStats): string[] {
   const cleaned = text
     .replace(/\r\n/g, '\n')
     .replace(/\n{3,}/g, '\n\n')
@@ -358,14 +404,14 @@ function buildProsePieces(text: string): string[] {
   }
 
   if (!HAS_ANY_HEADING_RE.test(cleaned)) {
-    return splitByLength(cleaned, CHUNK_SIZE, CHUNK_OVERLAP);
+    return splitByLength(cleaned, CHUNK_SIZE, CHUNK_OVERLAP, stats);
   }
 
   const sections = mergeSmallSections(splitIntoSections(cleaned));
   const pieces: string[] = [];
   for (const section of sections) {
     if (section.text.length > MAX_CHUNK_SIZE) {
-      pieces.push(...subdivideSection(section));
+      pieces.push(...subdivideSection(section, stats));
     } else {
       pieces.push(section.text);
     }
@@ -391,10 +437,13 @@ interface RawTypedPiece {
  *   solo supera MAX_CHUNK_SIZE (splitByLength, igual que hace hoy chunkText
  *   con una pieza pre-segmentada demasiado larga); todos sus trozos heredan
  *   los mismos campos de tabla, porque siguen siendo la misma fila/resumen.
- * La numeración de chunkIndex es continua a lo largo de todos los segmentos,
- * y se respeta el mismo filtro de piezas de menos de 50 caracteres que aplica
- * buildChunks (no se reutiliza buildChunks tal cual porque su tipo de retorno,
- * Chunk[], no lleva los campos de tabla que necesita TypedChunk).
+ * La numeración de chunkIndex es continua a lo largo de todos los segmentos.
+ * No se filtra ninguna pieza aquí (F-29): MIN_PIECE_LENGTH vive dentro de
+ * splitByLength, así que una pieza que llega hasta rawPieces ya pasó ese
+ * umbral si nació de un corte por tamaño, o nunca tuvo que pasarlo porque es
+ * un segmento (o una sección) tal como se decidió más arriba (no se reutiliza
+ * buildChunks tal cual porque su tipo de retorno, Chunk[], no lleva los
+ * campos de tabla que necesita TypedChunk).
  */
 export function chunkSegments(
   segments: ExtractedSegment[],
@@ -403,17 +452,18 @@ export function chunkSegments(
   orgId: string,
 ): TypedChunk[] {
   const rawPieces: RawTypedPiece[] = [];
+  const stats: SplitStats = { discarded: 0 };
 
   for (const segment of segments) {
     if (segment.type === 'text') {
-      for (const piece of buildProsePieces(segment.text)) {
+      for (const piece of buildProsePieces(segment.text, stats)) {
         rawPieces.push({ text: piece, chunkType: 'text' });
       }
       continue;
     }
 
     const pieces = segment.text.length > MAX_CHUNK_SIZE
-      ? splitByLength(segment.text, CHUNK_SIZE, CHUNK_OVERLAP)
+      ? splitByLength(segment.text, CHUNK_SIZE, CHUNK_OVERLAP, stats)
       : [segment.text];
 
     for (const piece of pieces) {
@@ -431,27 +481,22 @@ export function chunkSegments(
     }
   }
 
-  const chunks: TypedChunk[] = [];
-  for (const piece of rawPieces) {
-    if (piece.text.length > 50) { // mismo umbral que buildChunks
-      chunks.push({
-        text: piece.text,
-        chunkType: piece.chunkType,
-        sheetName: piece.sheetName,
-        tableId: piece.tableId,
-        rowIndex: piece.rowIndex,
-        cells: piece.cells,
-        metadata: {
-          documentId,
-          documentName,
-          chunkIndex: chunks.length,
-          totalChunks: 0, // se actualiza después
-          orgId,
-        },
-      });
-    }
-  }
-  chunks.forEach(c => { c.metadata.totalChunks = chunks.length; });
+  const chunks: TypedChunk[] = rawPieces.map((piece, index) => ({
+    text: piece.text,
+    chunkType: piece.chunkType,
+    sheetName: piece.sheetName,
+    tableId: piece.tableId,
+    rowIndex: piece.rowIndex,
+    cells: piece.cells,
+    metadata: {
+      documentId,
+      documentName,
+      chunkIndex: index,
+      totalChunks: rawPieces.length,
+      orgId,
+    },
+  }));
+  logDiscarded('chunkSegments', documentName, stats);
   return chunks;
 }
 

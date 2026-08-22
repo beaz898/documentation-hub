@@ -1389,6 +1389,36 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     juez; si predomina la no localizada, en el modelo. Encaja con la petición de
     F-25 de registrar también qué lado falló.
 
+  B.87 — [DEUDA CONDENADA, F-29] chunkText, en su camino del marcador
+    PRE_SEGMENTED_SEPARATOR, es un duplicado estructural de la rama de tabla de
+    chunkSegments: las dos parten el mismo texto pieza por pieza respetando lo que
+    decidió extractSegments. Hoy la subida inicial de un documento (analyze-v2,
+    caso rápido y exhaustivo, cuando aún no está indexado) trocea el MISMO
+    documento DOS VECES con DOS funciones distintas en la misma request:
+    chunkSegments(extractedSegments) produce newDocChunks (los chunks tipados
+    correctos, con chunkType/cells, que sí llegan al verificador de hallazgos vía
+    new_document_chunks/newDocumentChunks), pero sampleTexts —lo que de verdad ve
+    el LLM en el análisis, tanto rápido (pickSampledTexts(chunks)) como exhaustivo
+    (chunks.map(c => c.text))— sigue saliendo de chunks, que es
+    chunkText(joinSegments(segments)): la ruta vieja, re-derivada del texto plano
+    en vez de reutilizar newDocChunks que ya está calculado un poco más abajo en
+    el mismo fichero (app/api/analyze-v2/route.ts:231 vs 262-266).
+    NO SE ARREGLA AHORA: está condenado. La pieza aplazada de F-25 (derivar
+    sampleTexts de los chunks ya calculados, en vez de rehacerlos con chunkText)
+    es lo que lo cierra. En cuanto eso se haga, chunkText pierde su único
+    llamador externo (ver B.88) y se retira en el paso 6.
+
+  B.88 — [PARA EL PASO 6, grep de referencia] Todos los llamadores de chunkText
+    en el repo, a fecha de F-29 (22/08/2026), para que su retirada no sorprenda a
+    nadie: UNO SOLO fuera de lib/chunking.ts —
+    app/api/analyze-v2/route.ts:231 (`const chunks = chunkText(text, 'temp-id',
+    fileName, orgId);`), alimentado por `text`, que es o bien `directText` (ya
+    sin marcador, texto plano) o `joinSegments(segments)` (con marcador, para el
+    caso storagePath de F-29:B.87). Ningún otro fichero del repo la llama — grep
+    `chunkText\(` sobre *.ts, único resultado externo a chunking.ts. El día que
+    B.87 se cierre, retirar chunkText (y buildChunks, que solo ella usa) es
+    borrar código sin tocar ningún otro llamador.
+
   F-20 [ESTADO, agosto 2026] Extracción estructurada. Paso 1 (extractSegments +
     EXTRACTOR_VERSION, commit 509e15d4) y paso 2 (persistencia en document_chunks,
     commit d00b085b) HECHOS. Paso 3 (job de reprocesado) RETIRADO — ver B.76. El
