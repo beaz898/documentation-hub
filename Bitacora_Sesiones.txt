@@ -4450,3 +4450,26 @@ Investigado y CERRADO el descarte de cita del exhaustivo: no era la capa de
 procedencia descartando de más, era el juez cruzando los lados. Ver B.86.
 PENDIENTE DE F-25 para el método de trabajo: la verificación de cualquier paso
 que toque lib/ debe incluir `npm run typecheck`, no solo el build de Vercel.
+
+B.74 CERRADO (f401390e) y CICLO DE RESUBIDA HECHO. El filtro de longitud mínima
+pasa a vivir solo dentro de splitByLength: es el único corte que parte sin mirar
+el contenido, y por tanto el único que puede producir residuos. Un segmento del
+extractor o una sección bajo un encabezado se conservan enteros aunque midan 20
+caracteres. Colocarlo ahí resolvió de paso el tercer origen de pieza que la
+regla enunciada no cubría (sección por encabezado), porque lo que no pasa por
+splitByLength queda exento por construcción; y arregló los dos caminos de
+troceado con un solo cambio, al ser splitByLength compartida. EXTRACTOR_VERSION
+2. Lo descartado ahora se cuenta (SplitStats por llamada, no contador de módulo).
+CONTRATO VERIFICADO EN EL CORPUS REAL tras resubir: OPE-02 17 chunks (antes 16),
+RRHH-06 20 (antes 19), OPE-06 114 (sin cambio: ninguno de sus segmentos bajaba
+de 50). 13 documentos en extractor_version 2.
+Incidencia del ciclo, no del sistema: OPE-02 y OPE-06 aparecieron con el doble
+de chunks. Investigado con SQL: eran DOS documentos distintos con el mismo
+nombre, subidos en dos carpetas distintas de Drive, 17 chunks cada uno. La
+restricción UNIQUE (document_id, generation, chunk_index) estaba intacta y el
+sistema hizo lo correcto. Resuelto por el usuario retirando el duplicado.
+LÍNEA DE BASE MEDIDA con los 13 documentos: ver B.89 — el acierto de control
+desaparece al crecer el corpus. B.90 fija cómo comprobar la corrección del
+rerank cuando llegue.
+PENDIENTES NUEVOS: B.87, B.88 (deuda condenada de chunkText, para el paso 6),
+B.89, B.90.

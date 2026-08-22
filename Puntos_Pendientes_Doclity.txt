@@ -1419,6 +1419,50 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     B.87 se cierre, retirar chunkText (y buildChunks, que solo ella usa) es
     borrar código sin tocar ningún otro llamador.
 
+  B.89 — [LÍNEA DE BASE MEDIDA, 22/08] Con el corpus ampliado a 13 documentos, el
+    acierto de control DESAPARECE. Medición hecha tras el ciclo de resubida de
+    B.74 (extractor_version 2), en modo rápido y con los 13 documentos en la
+    tanda:
+      RRHH-06 → 20 samples, "Contexto de fragmentos: 1/1 resueltos",
+                1 juicio emitido, SIN INCIDENCIAS.
+      OPE-08  → 35 samples, 3 candidatos, "Rerank: 0 seleccionados", sin juicio.
+      RRHH-02 → 1 sample (el convenio entero es UN chunk), 3 candidatos,
+                1 seleccionado, 1 juicio, sin incidencias.
+    Con solo 4 documentos en el corpus, ese mismo RRHH-06 emparejaba con OPE-02
+    recuperando 16 fragmentos y encontraba la discrepancia del puesto de Dr. Pablo
+    Reyes ("Implantólogo" contra "Implantólogo / Cirujano oral"), que es el único
+    acierto verificado que teníamos como control. Con 13 documentos, empareja con
+    UN solo fragmento y no encuentra nada.
+    CON MÁS CORPUS ENCUENTRA MENOS. No es un fallo introducido por los cambios de
+    esta sesión: el rerank descarta desde siempre, y con 4 documentos no había
+    nada que descartar. El problema estaba tapado por el tamaño del corpus.
+    Es el mismo techo de recall de B.83 (MAX_SELECTED_QUICK = 6), ahora medido
+    sobre un acierto real y no solo sobre una contradicción sembrada.
+    LO QUE NO SABEMOS, y decide si la corrección planificada basta: el log cuenta
+    cuántos candidatos hubo, pero no CUÁLES. No consta si OPE-02 estaba entre los
+    candidatos de RRHH-06 y el rerank lo descartó, o si ni siquiera llegó a
+    candidato. En el primer caso, la corrección del rerank lo devuelve; en el
+    segundo, la causa está antes —en el retrieval— y el rerank no la toca.
+    NO SE ARREGLA AHORA. Está planificado: F-22/F-23 fijan que el rerank se salte
+    cuando candidatos <= MAX_SELECTED_QUICK (cuando hay menos candidatos que
+    presupuesto, esa llamada solo puede perder verdaderos positivos), y que vaya
+    DESPUÉS del verificador de hallazgos — sin verificador, dejar pasar más
+    candidatos abre la puerta a más falsos positivos sin nada que los filtre.
+
+  B.90 — [CRITERIO DE COMPROBACIÓN, atado a B.89] Cómo verificar la corrección del
+    rerank cuando se haga, para no darla por buena sin datos:
+    PRUEBA: analizar RRHH-06 en modo rápido con los 13 documentos en la tanda.
+    ÉXITO: reaparece la discrepancia del puesto de Dr. Pablo Reyes, con las citas
+    "Puesto: Implantólogo" y "Puesto: Implantólogo / Cirujano oral".
+    SI NO REAPARECE: la causa no era el rerank sino el retrieval, y hay que
+    investigar por qué OPE-02 no llega a candidato. Antes de concluir nada,
+    repetir 2-3 veces: el juez no es estable entre ejecuciones (B.82), así que una
+    sola pasada no demuestra ni una cosa ni la otra.
+    MEJORA DE INSTRUMENTACIÓN QUE HARÍA FALTA: el log de retrieval y rerank
+    debería nombrar los documentos candidatos y los seleccionados, no solo
+    contarlos. Hoy no se puede distinguir "el rerank lo descartó" de "nunca fue
+    candidato" sin instrumentar. Barato y desbloquea el diagnóstico.
+
   F-20 [ESTADO, agosto 2026] Extracción estructurada. Paso 1 (extractSegments +
     EXTRACTOR_VERSION, commit 509e15d4) y paso 2 (persistencia en document_chunks,
     commit d00b085b) HECHOS. Paso 3 (job de reprocesado) RETIRADO — ver B.76. El
