@@ -9,19 +9,26 @@ import { verifyClaimsAgainstCorpus } from './verify-claims';
 import { doubleCheckContradictions } from './double-check';
 import { analyzeStyle } from './style-check';
 import { loadFragmentContexts, fragmentContextKey } from './fragment-context';
+import { getChunksForDocuments } from '@/lib/read-chunks';
 import type { StoredChunk } from '@/lib/read-chunks';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
 /**
- * Carga el texto completo de los documentos candidatos en un único lote.
- * Réplica local del patrón de fetchFullTexts en lib/rag.ts: no se importa
- * de ahí para no acoplar el pipeline de análisis al del chat.
+ * Carga full_text de un lote de documentos. Réplica local del patrón de
+ * fetchFullTexts en lib/rag.ts: no se importa de ahí para no acoplar el
+ * pipeline de análisis al del chat.
+ *
+ * F-27: los chunks (getChunksForDocuments, más abajo) son el haystack contra
+ * el que se verifican las citas del juez — esta función ya NO es la fuente
+ * primaria. Queda como FALLBACK, y se llama solo con los documentIds de los
+ * candidatos que volvieron sin chunks (documento indexado antes de F-20, o
+ * sin chunks por cualquier otro motivo).
  *
  * Un documento sin full_text (o si la consulta entera falla) simplemente
  * no entra en el mapa — el llamador debe caer a su propio fallback, nunca
  * romper el análisis por esto.
  */
-async function fetchCandidateFullTexts(
+async function fetchFallbackFullTexts(
   supabase: SupabaseClient,
   documentIds: string[],
 ): Promise<Map<string, string>> {
@@ -68,10 +75,12 @@ export interface AnalyzePipelineInput {
    */
   excludeFingerprints?: Set<string>;
   /** Chunks del documento analizado, en su forma persistida (la misma que
-   *  devuelve getDocumentChunks y que escribe document_chunks). Necesarios para
-   *  que el verificador de hallazgos pueda comparar `cells` de los dos lados
-   *  (F-24). Opcional: el camino de mejora sobre texto no indexado no tiene
-   *  estructura de tabla que aportar. */
+   *  devuelve getDocumentChunks y que escribe document_chunks). Es el
+   *  haystack contra el que se verifican las citas del lado nuevo (F-27), y
+   *  el que permite al verificador de hallazgos comparar `cells` de los dos
+   *  lados (F-24). Opcional: el camino de mejora sobre texto no indexado no
+   *  tiene estructura de tabla que aportar; sin ellos, verifyQuote cae al
+   *  fallback de newDocumentText. */
   newDocumentChunks?: StoredChunk[];
 }
 
@@ -119,7 +128,23 @@ async function runCorePipeline(
     return synthesizeFinalAnalysis({ newDocumentName: input.newDocumentName, judgments: [] });
   }
 
-  const fullTexts = await fetchCandidateFullTexts(input.supabase, reranked.map(c => c.documentId));
+  // F-27: los chunks son el haystack contra el que se verifican las citas del
+  // juez. Una sola consulta por lote (getChunksForDocuments), igual que
+  // loadFragmentContexts un poco más abajo. Solo se lee full_text para los
+  // documentos que vuelvan SIN chunks (indexados antes de F-20, o sin chunks
+  // por cualquier otro motivo) — fallback, no fuente primaria.
+  const chunksByDocument = await getChunksForDocuments(input.supabase, {
+    orgId: input.orgId,
+    documents: reranked.map(c => ({
+      documentId: c.documentId,
+      generation: c.fragments[0]?.generation ?? 1,
+    })),
+  });
+  const documentsWithoutChunks = reranked
+    .map(c => c.documentId)
+    .filter(id => !chunksByDocument.get(id)?.length);
+  const fallbackTexts = await fetchFallbackFullTexts(input.supabase, documentsWithoutChunks);
+  console.log(`[${label}] Chunks para verificación: ${chunksByDocument.size}/${reranked.length} documentos con chunks (${documentsWithoutChunks.length} por full_text de respaldo)`);
 
   // F-20 4d: enriquecer los fragmentos con su contexto de document_chunks
   // (tipo de chunk, hoja/fila si es tabla, y texto vecino). No-fatal: si la
@@ -154,7 +179,9 @@ async function runCorePipeline(
     newDocumentSample: input.newDocumentText,
     candidates: reranked,
     options,
-    fullTexts,
+    newDocumentChunks: input.newDocumentChunks ?? [],
+    chunksByDocument,
+    fallbackTexts,
   });
   console.log(`[${label}] Judge: ${judgments.length} juicios emitidos (${Date.now() - t2}ms)`);
 

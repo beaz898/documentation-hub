@@ -1,6 +1,7 @@
 import { callLLMJson } from './llm-client';
 import { runInBatches } from '@/lib/run-in-batches';
 import type { RerankedCandidate, DocumentJudgment, PipelineOptions, DiscardedFindings, DocumentFragment } from './types';
+import type { StoredChunk } from '@/lib/read-chunks';
 
 /**
  * Etapa 3 — Juicio individual por documento.
@@ -188,20 +189,70 @@ function findRowContainingSegments(haystack: string, segments: string[]): string
   return null;
 }
 
-function verifyQuote(haystack: string, quote: string | undefined): string | null {
+/**
+ * Verifica una cita contra la lista de chunks de un documento — los chunks
+ * SON el haystack (F-27): es el mismo contenido que full_text, pero ya
+ * dividido en las unidades que decidió el extractor (una fila de tabla, una
+ * sección de prosa), así que devolver DE QUÉ CHUNK salió la cita es gratis en
+ * vez de exigir una búsqueda aparte.
+ *
+ * Dos pasadas sobre los chunks: primero match directo (findBestMatch) en
+ * cada uno; si ninguno casa así, el puente tabular actual (splitTabularSegments
+ * + findRowContainingSegments) sobre el texto de cada chunk — se mantiene tal
+ * cual por ahora, su retirada es un commit posterior, tras verificar en
+ * producción que el haystack por chunks ya cubre lo que cubría.
+ *
+ * FALLBACK: solo si la lista de chunks viene VACÍA (documento indexado antes
+ * de F-20, o sin chunks por cualquier otro motivo) se verifica contra
+ * fallbackText, con chunk: null. Una sola vía de decidirlo — nunca las dos
+ * fuentes a la vez para un mismo documento.
+ */
+function verifyQuote(
+  chunks: StoredChunk[],
+  fallbackText: string | null,
+  quote: string | undefined,
+): { text: string; chunk: StoredChunk | null } | null {
   if (!quote) return null;
-  const direct = findBestMatch(haystack, quote);
-  if (direct) return direct;
+
+  if (chunks.length === 0) {
+    if (!fallbackText) return null;
+    const direct = findBestMatch(fallbackText, quote);
+    if (direct) return { text: direct, chunk: null };
+    const segments = splitTabularSegments(quote);
+    if (!segments) return null;
+    const row = findRowContainingSegments(fallbackText, segments);
+    return row ? { text: row, chunk: null } : null;
+  }
+
+  for (const chunk of chunks) {
+    const direct = findBestMatch(chunk.text, quote);
+    if (direct) return { text: direct, chunk };
+  }
+
   const segments = splitTabularSegments(quote);
-  if (!segments) return null;
-  return findRowContainingSegments(haystack, segments);
+  if (segments) {
+    for (const chunk of chunks) {
+      const row = findRowContainingSegments(chunk.text, segments);
+      if (row) return { text: row, chunk };
+    }
+  }
+
+  return null;
+}
+
+/** Lado(s) que fallaron la verificación, comprobados de forma independiente
+ *  (F-27 3.1): antes, si fallaban los dos, solo se reportaba el primero. */
+function describeFailedSide(newFailed: boolean, existingFailed: boolean): 'nuevo' | 'existente' | 'ambos' {
+  if (newFailed && existingFailed) return 'ambos';
+  return newFailed ? 'nuevo' : 'existente';
 }
 
 function fixQuotesInJudgment(
   judgment: DocumentJudgment,
-  newDocumentText: string,
-  existingDocumentText: string,
-  existingTextSource: 'completo' | 'fragmentos',
+  newDocumentChunks: StoredChunk[],
+  newDocumentFallbackText: string | null,
+  existingDocumentChunks: StoredChunk[],
+  existingDocumentFallbackText: string | null,
 ): DocumentJudgment {
   let narracionEnCita = 0;
   let citaNoVerificable = 0;
@@ -214,17 +265,18 @@ function fixQuotesInJudgment(
       continue;
     }
 
-    const matchNew = verifyQuote(newDocumentText, c.newDocSays);
-    const matchExisting = verifyQuote(existingDocumentText, c.existingDocSays);
+    const matchNew = verifyQuote(newDocumentChunks, newDocumentFallbackText, c.newDocSays);
+    const matchExisting = verifyQuote(existingDocumentChunks, existingDocumentFallbackText, c.existingDocSays);
 
     if (matchNew && matchExisting) {
-      fixedContradictions.push({ ...c, newDocSays: matchNew, existingDocSays: matchExisting });
+      fixedContradictions.push({ ...c, newDocSays: matchNew.text, existingDocSays: matchExisting.text });
     } else {
-      const failedSide = !matchNew ? 'newDocSays' : 'existingDocSays';
-      const failedText = !matchNew ? c.newDocSays : c.existingDocSays;
-      const sourceNote = failedSide === 'existingDocSays' ? `, verificado contra ${existingTextSource}` : '';
+      const failedSide = describeFailedSide(!matchNew, !matchExisting);
+      const failedText = failedSide === 'ambos'
+        ? `nuevo="${(c.newDocSays || '').slice(0, 60)}" existente="${(c.existingDocSays || '').slice(0, 60)}"`
+        : `"${((failedSide === 'nuevo' ? c.newDocSays : c.existingDocSays) || '').slice(0, 60)}"`;
       console.warn(
-        `[judge] Contradicción descartada en "${judgment.documentName}" (cita no verificable, lado=${failedSide}${sourceNote}): "${(failedText || '').slice(0, 60)}"`
+        `[judge] Contradicción descartada en "${judgment.documentName}" (cita no verificable, lado=${failedSide}): ${failedText}`
       );
       citaNoVerificable++;
     }
@@ -238,17 +290,18 @@ function fixQuotesInJudgment(
       continue;
     }
 
-    const matchNew = verifyQuote(newDocumentText, o.evidenceInNewDoc);
-    const matchExisting = verifyQuote(existingDocumentText, o.evidence);
+    const matchNew = verifyQuote(newDocumentChunks, newDocumentFallbackText, o.evidenceInNewDoc);
+    const matchExisting = verifyQuote(existingDocumentChunks, existingDocumentFallbackText, o.evidence);
 
     if (matchNew && matchExisting) {
-      fixedOverlaps.push({ ...o, evidenceInNewDoc: matchNew, evidence: matchExisting });
+      fixedOverlaps.push({ ...o, evidenceInNewDoc: matchNew.text, evidence: matchExisting.text });
     } else {
-      const failedSide = !matchNew ? 'evidenceInNewDoc' : 'evidence';
-      const failedText = !matchNew ? o.evidenceInNewDoc : o.evidence;
-      const sourceNote = failedSide === 'evidence' ? `, verificado contra ${existingTextSource}` : '';
+      const failedSide = describeFailedSide(!matchNew, !matchExisting);
+      const failedText = failedSide === 'ambos'
+        ? `nuevo="${(o.evidenceInNewDoc || '').slice(0, 60)}" existente="${(o.evidence || '').slice(0, 60)}"`
+        : `"${((failedSide === 'nuevo' ? o.evidenceInNewDoc : o.evidence) || '').slice(0, 60)}"`;
       console.warn(
-        `[judge] Solapamiento descartado en "${judgment.documentName}" (cita no verificable, lado=${failedSide}${sourceNote}): "${(failedText || '').slice(0, 60)}"`
+        `[judge] Solapamiento descartado en "${judgment.documentName}" (cita no verificable, lado=${failedSide}): ${failedText}`
       );
       citaNoVerificable++;
     }
@@ -309,10 +362,13 @@ function describeFragment(fragment: DocumentFragment, position: number, document
 async function judgeSingleDocument(args: {
   newDocumentName: string;
   newDocumentText: string;
+  newDocumentFallbackText: string;
+  newDocumentChunks: StoredChunk[];
   candidate: RerankedCandidate;
-  fullTexts?: Map<string, string>;
+  chunksByDocument?: Map<string, StoredChunk[]>;
+  fallbackTexts?: Map<string, string>;
 }): Promise<DocumentJudgment> {
-  const { newDocumentName, newDocumentText, candidate, fullTexts } = args;
+  const { newDocumentName, newDocumentText, candidate } = args;
 
   const existingFragsBlock = candidate.fragments
     .map((f, i) => `${describeFragment(f, i + 1, candidate.documentName)}\n${f.text}`)
@@ -438,19 +494,16 @@ Responde con este JSON (sin bloques de código, sin texto adicional):
       uniqueToNewDoc: response.uniqueToNewDoc || [],
     };
 
-    const fullText = fullTexts?.get(candidate.documentId);
-    let existingDocumentText: string;
-    let existingTextSource: 'completo' | 'fragmentos';
-    if (fullText) {
-      existingDocumentText = fullText;
-      existingTextSource = 'completo';
-    } else {
-      existingDocumentText = candidate.fragments.map(f => f.text).join('\n\n');
-      existingTextSource = 'fragmentos';
-      console.warn(`[judge] Sin full_text para "${candidate.documentName}", usando fragmentos recuperados como fallback`);
-    }
+    const existingChunks = args.chunksByDocument?.get(candidate.documentId) ?? [];
+    const existingFallbackText = args.fallbackTexts?.get(candidate.documentId) ?? null;
 
-    return fixQuotesInJudgment(rawJudgment, newDocumentText, existingDocumentText, existingTextSource);
+    return fixQuotesInJudgment(
+      rawJudgment,
+      args.newDocumentChunks,
+      args.newDocumentFallbackText,
+      existingChunks,
+      existingFallbackText,
+    );
   } catch (err) {
     console.warn(`[judge] Failed for "${candidate.documentName}":`, err);
     return {
@@ -478,14 +531,20 @@ export async function judgeAllDocuments(args: {
   newDocumentSample: string;
   candidates: RerankedCandidate[];
   options?: PipelineOptions;
-  fullTexts?: Map<string, string>;
+  newDocumentChunks?: StoredChunk[];
+  chunksByDocument?: Map<string, StoredChunk[]>;
+  fallbackTexts?: Map<string, string>;
 }): Promise<DocumentJudgment[]> {
   if (args.candidates.length === 0) return [];
 
   const isExhaustive = args.options?.exhaustive === true;
 
-  // Modo rápido: truncar para ahorrar tokens
-  // Modo exhaustivo: documento completo
+  // Modo rápido: truncar para ahorrar tokens (solo el texto del PROMPT).
+  // Modo exhaustivo: documento completo.
+  // El fallback de verificación (newDocumentFallbackText) usa SIEMPRE
+  // args.newDocumentSample sin truncar: el LLM no pudo citar más allá de lo
+  // que vio en el prompt, pero recortar también el haystack de verificación
+  // no aporta nada y solo arriesga rechazar una cita real.
   const newDocumentText = isExhaustive
     ? args.newDocumentSample
     : args.newDocumentSample.slice(0, NEW_DOC_LIMIT_QUICK);
@@ -497,8 +556,11 @@ export async function judgeAllDocuments(args: {
       candidate => judgeSingleDocument({
         newDocumentName: args.newDocumentName,
         newDocumentText,
+        newDocumentFallbackText: args.newDocumentSample,
+        newDocumentChunks: args.newDocumentChunks ?? [],
         candidate,
-        fullTexts: args.fullTexts,
+        chunksByDocument: args.chunksByDocument,
+        fallbackTexts: args.fallbackTexts,
       }),
       { batchSize: EXHAUSTIVE_CONCURRENCY, delayMs: EXHAUSTIVE_ROUND_DELAY_MS },
     );
@@ -511,8 +573,11 @@ export async function judgeAllDocuments(args: {
     const judgment = await judgeSingleDocument({
       newDocumentName: args.newDocumentName,
       newDocumentText,
+      newDocumentFallbackText: args.newDocumentSample,
+      newDocumentChunks: args.newDocumentChunks ?? [],
       candidate: args.candidates[i],
-      fullTexts: args.fullTexts,
+      chunksByDocument: args.chunksByDocument,
+      fallbackTexts: args.fallbackTexts,
     });
     results.push(judgment);
   }

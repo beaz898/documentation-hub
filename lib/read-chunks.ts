@@ -103,6 +103,69 @@ export async function getActiveGeneration(
 }
 
 /**
+ * Lee los chunks de varios documentos en una sola consulta (verificador de
+ * hallazgos, F-27): sustituye a fetchCandidateFullTexts como fuente del
+ * haystack contra el que se verifican las citas del juez — los chunks pasan a
+ * SER el haystack, en vez de leer full_text aparte.
+ *
+ * Mismo patrón de lote que loadFragmentContexts (.in('document_id', ...) +
+ * .eq('org_id', ...), una sola ida a Supabase), pero con salida distinta
+ * (StoredChunk[] por documento, no un mapa de contexto por fragmento) porque
+ * son dos consumidores con necesidades distintas: forzarlos a compartir una
+ * función los acoplaría sin necesidad.
+ *
+ * El filtro de generación es POR DOCUMENTO, no uno compartido para todos —
+ * mismo cuidado que loadFragmentContexts, necesario porque los candidatos de
+ * un mismo análisis pueden estar en generaciones distintas.
+ *
+ * No lanza: ante error de Supabase, o un documento sin chunks (indexado antes
+ * de F-20, o cualquier otro motivo), ese documento simplemente no aparece en
+ * el mapa devuelto — quien llama debe caer a su propio fallback (full_text).
+ */
+export async function getChunksForDocuments(
+  supabase: SupabaseClient,
+  params: { orgId: string; documents: Array<{ documentId: string; generation: number }> },
+): Promise<Map<string, StoredChunk[]>> {
+  const { orgId, documents } = params;
+  const result = new Map<string, StoredChunk[]>();
+  if (documents.length === 0) return result;
+
+  const documentIds = [...new Set(documents.map((d) => d.documentId))];
+
+  const { data, error } = await supabase
+    .from('document_chunks')
+    .select('document_id, generation, chunk_index, chunk_type, text, sheet_name, table_id, row_index, cells')
+    .eq('org_id', orgId)
+    .in('document_id', documentIds)
+    .order('chunk_index', { ascending: true });
+
+  if (error) {
+    console.error(`[read-chunks] getChunksForDocuments falló | docs=${documentIds.length} | ${error.message}`);
+    return result;
+  }
+
+  const generationByDocument = new Map(documents.map((d) => [d.documentId, d.generation]));
+  const rows = (data ?? []) as Array<DocumentChunkRow & { document_id: string; generation: number }>;
+
+  for (const row of rows) {
+    if (row.generation !== generationByDocument.get(row.document_id)) continue; // otra generación: no es la activa para este documento
+    const list = result.get(row.document_id) ?? [];
+    list.push({
+      chunkIndex: row.chunk_index,
+      chunkType: row.chunk_type,
+      text: row.text,
+      sheetName: row.sheet_name,
+      tableId: row.table_id,
+      rowIndex: row.row_index,
+      cells: row.cells,
+    });
+    result.set(row.document_id, list);
+  }
+
+  return result;
+}
+
+/**
  * Convierte TypedChunk[] (la forma en vuelo, en el momento de indexar) a
  * StoredChunk[] (la forma persistida). Es el mismo mapeo campo a campo que
  * lib/persist-chunks.ts ya hace al escribir document_chunks — extraído aquí
