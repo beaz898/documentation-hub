@@ -20,6 +20,19 @@ import { normalize } from './judge';
  * identidad exacta tras normalizar), no se decide aquí — baja a la llamada
  * corta.
  *
+ * CORRECCIÓN DE F-36: "Puesto: Implantólogo" contra "Puesto: Implantólogo /
+ * Cirujano oral" —el mismo caso que motivó F-26— seguía muriendo después de
+ * R2, pero no en esta capa: llegaba a 'pass' (correcto), bajaba a la llamada
+ * corta, y allí la mataba 'mismo_dato_sin_oposicion' en las cuatro ejecuciones
+ * medidas. La causa: 'pass' cargaba dos significados distintos — "no he
+ * podido decidir, decide tú" y "he demostrado que hay oposición estructural,
+ * ya no queda nada que juzgar". En el segundo caso, preguntarle a la llamada
+ * corta deshace en la capa cara lo que la barata ya había resuelto. Misma
+ * columna con valores distintos en la misma fila de la misma entidad ya es la
+ * discrepancia — dos valores no pueden ser ambos el valor de un mismo dato —,
+ * así que R2 gana una cuarta salida, 'confirm', y el hallazgo sobrevive sin
+ * pasar por la llamada corta.
+ *
  * TRES TIPOS DE PAR, según de dónde venga cada cita:
  *   fila / fila   → R2, comparando VALORES de la(s) columna(s) citada(s).
  *   prosa / prosa → identidad exacta tras normalizar. Cualquier otra
@@ -37,6 +50,12 @@ import { normalize } from './judge';
 
 export type DeterministicVerdict =
   | { outcome: 'pass' }
+  | {
+      outcome: 'confirm';
+      reason: 'valores_distintos_misma_columna';
+      entity: string | null;
+      column: string;
+    }
   | { outcome: 'reclassify'; reason: 'equivalentes' }
   | { outcome: 'discard'; reason: 'sin_columna_comun' };
 
@@ -74,8 +93,9 @@ export function findCitedColumns(
  *
  * fila / fila (ambos `cells` no nulos): se localiza la columna citada de cada
  * lado con findCitedColumns.
- *   - Si algún lado no permite determinar su columna citada, no se adivina:
- *     pass, y que lo resuelva el juicio con la fila entera.
+ *   - Si algún lado no permite determinar su columna citada: pass — "columna
+ *     indeterminable", el único significado que le queda a 'pass' desde F-36
+ *     ("no puedo decidir"). Que lo resuelva el juicio con la fila entera.
  *   - Si no comparten ninguna columna citada: discard/'sin_columna_comun'.
  *     Caso real (B.82, 21/08): "Fecha evaluación: 2026-06-13" contra "Horas
  *     semana: 12", presentadas como contradicción bajo el título "Horas
@@ -83,10 +103,18 @@ export function findCitedColumns(
  *     mismo dato.
  *   - Si comparten alguna columna citada y TODOS los valores compartidos son
  *     idénticos: reclassify/'equivalentes'.
- *   - Si al menos un valor compartido difiere: pass — es una contradicción
- *     tabular legítima (basta un dato en oposición). Caso real: "Puesto:
- *     Implantólogo" contra "Puesto: Implantólogo / Cirujano oral": comparten
- *     la columna Puesto y difieren en ella.
+ *   - Si al menos un valor compartido difiere: confirm/'valores_distintos_misma_columna'
+ *     (F-36, antes 'pass'). Caso real: "Puesto: Implantólogo" contra "Puesto:
+ *     Implantólogo / Cirujano oral": comparten la columna Puesto y difieren en
+ *     ella — dos valores distintos en la misma columna de la misma fila YA es
+ *     la discrepancia, no queda nada que la llamada corta pueda añadir o
+ *     quitar. `column` es la primera columna compartida que difiere. `entity`
+ *     es siempre null: `cells` es un Record<string,string> sin ninguna
+ *     columna marcada como identificadora de la fila, y no hay forma
+ *     estructural de saber cuál lo sería sin comparar nombres de columna
+ *     (buscar "Nombre", "Empleado", "Código"...) — exactamente el juicio
+ *     semántico disfrazado de estructura que F-23/F-26 prohíben. El título
+ *     por plantilla (F-36, pipeline.ts) se construye sin entidad.
  *
  * prosa / prosa (ambos `cells` nulos): reclassify/'equivalentes' solo si las
  * dos citas son idénticas tras normalizar. Cualquier otra cosa, pass.
@@ -114,10 +142,17 @@ export function applyDeterministicRules(finding: {
       return { outcome: 'discard', reason: 'sin_columna_comun' };
     }
 
-    const anyDiffers = sharedColumns.some(c => newCells[c] !== existingCells[c]);
-    return anyDiffers
-      ? { outcome: 'pass' }
-      : { outcome: 'reclassify', reason: 'equivalentes' };
+    const differingColumns = sharedColumns.filter(c => newCells[c] !== existingCells[c]);
+    if (differingColumns.length === 0) {
+      return { outcome: 'reclassify', reason: 'equivalentes' };
+    }
+
+    return {
+      outcome: 'confirm',
+      reason: 'valores_distintos_misma_columna',
+      entity: null,
+      column: differingColumns[0],
+    };
   }
 
   if (!newCells && !existingCells) {
@@ -127,4 +162,23 @@ export function applyDeterministicRules(finding: {
   }
 
   return { outcome: 'pass' };
+}
+
+/**
+ * Título determinista para un hallazgo confirmado por estructura (F-36): si
+ * la estructura decidió el veredicto, la estructura escribe el título — es
+ * verdadero por construcción (la misma columna, dos valores distintos) y más
+ * informativo que lo que redactaría el juez a partir de las mismas dos citas.
+ * Se usa solo para el veredicto 'confirm'; el topic del juez se conserva para
+ * todo lo que baja a la llamada corta, que ya lo evalúa contra las citas.
+ */
+export function buildStructuralTopic(
+  entity: string | null,
+  column: string,
+  newDocumentName: string,
+  existingDocumentName: string,
+): string {
+  return entity
+    ? `${column} de ${entity} difiere entre ${newDocumentName} y ${existingDocumentName}`
+    : `${column} difiere entre ${newDocumentName} y ${existingDocumentName}`;
 }

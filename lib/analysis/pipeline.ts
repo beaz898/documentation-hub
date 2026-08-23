@@ -10,7 +10,7 @@ import { verifyClaimsAgainstCorpus } from './verify-claims';
 import { doubleCheckContradictions } from './double-check';
 import { analyzeStyle } from './style-check';
 import { loadFragmentContexts, fragmentContextKey } from './fragment-context';
-import { applyDeterministicRules, findCitedColumns } from './finding-rules';
+import { applyDeterministicRules, findCitedColumns, buildStructuralTopic } from './finding-rules';
 import { verifyFindings } from './verify-findings';
 import type { FindingToVerify, FindingNeighbours } from './verify-findings';
 import { getChunksForDocuments } from '@/lib/read-chunks';
@@ -121,6 +121,11 @@ function bumpCount(counts: DiscardedFindings, key: string): void {
 interface CascadeTally {
   total: number;
   confirmados: number;
+  /** De los confirmados: cuántos por la capa determinista (F-36, 'confirm'). */
+  confirmadosPorEstructura: number;
+  /** De los confirmados: cuántos por la llamada corta. F-36: "es la métrica
+   *  que os dirá cuánto trabajo hace cada capa". */
+  confirmadosPorJuicio: number;
   descartados: number;
   reclasificados: number;
 }
@@ -146,17 +151,26 @@ interface CascadeOutcome {
  *
  * `evidence` muere al final de esta función: no sale en el `judgment` que
  * devuelve, que es la única pieza que sigue viaje hacia synthesize.
+ *
+ * F-36: la capa determinista gana una cuarta salida, 'confirm' — misma
+ * columna, valores distintos, ya no queda nada que la llamada corta pueda
+ * decidir. Sobrevive directamente, sin pasar por verifyFindings, con un
+ * título escrito por plantilla desde los propios datos (buildStructuralTopic)
+ * en vez del topic que redactó el juez.
  */
 async function applyCascadeToCandidate(
   judgment: DocumentJudgment,
   evidence: JudgmentEvidence,
   newDocumentChunks: StoredChunk[],
   existingChunks: StoredChunk[],
+  newDocumentName: string,
 ): Promise<CascadeOutcome> {
   const counts: DiscardedFindings = {};
   const tally: CascadeTally = {
     total: judgment.contradictions.length,
     confirmados: 0,
+    confirmadosPorEstructura: 0,
+    confirmadosPorJuicio: 0,
     descartados: 0,
     reclasificados: 0,
   };
@@ -185,6 +199,18 @@ async function applyCascadeToCandidate(
     if (verdict.outcome === 'discard') {
       bumpCount(counts, `descartado.${verdict.reason}`);
       tally.descartados++;
+      return;
+    }
+
+    if (verdict.outcome === 'confirm') {
+      bumpCount(counts, 'confirmado.por_estructura');
+      tally.confirmados++;
+      tally.confirmadosPorEstructura++;
+      keptContradictions.push({
+        ...c,
+        topic: buildStructuralTopic(verdict.entity, verdict.column, newDocumentName, judgment.documentName),
+        severity: 'contradiction',
+      });
       return;
     }
 
@@ -235,7 +261,9 @@ async function applyCascadeToCandidate(
     results.forEach((r, i) => {
       const original = toVerify[i].contradiction;
       if (r.verdict === 'confirmado') {
+        bumpCount(counts, 'confirmado.por_juicio');
         tally.confirmados++;
+        tally.confirmadosPorJuicio++;
         keptContradictions.push({ ...original, severity: r.severity ?? original.severity });
       } else {
         // 'mismo_dato_sin_oposicion' y 'sin_relacion' mueren aquí — sus
@@ -368,6 +396,8 @@ async function runCorePipeline(
   const judgments: DocumentJudgment[] = [];
   let totalHallazgos = 0;
   let totalConfirmados = 0;
+  let totalConfirmadosPorEstructura = 0;
+  let totalConfirmadosPorJuicio = 0;
   let totalDescartados = 0;
   let totalReclasificados = 0;
   for (let i = 0; i < rawJudgments.length; i++) {
@@ -379,16 +409,20 @@ async function runCorePipeline(
       evidence,
       newDocumentChunksForCascade,
       existingChunksForCascade,
+      input.newDocumentName,
     );
     judgments.push(outcome.judgment);
     totalHallazgos += outcome.tally.total;
     totalConfirmados += outcome.tally.confirmados;
+    totalConfirmadosPorEstructura += outcome.tally.confirmadosPorEstructura;
+    totalConfirmadosPorJuicio += outcome.tally.confirmadosPorJuicio;
     totalDescartados += outcome.tally.descartados;
     totalReclasificados += outcome.tally.reclasificados;
   }
   console.log(
     `[${label}] Verificador: ${totalHallazgos} hallazgos → ${totalConfirmados} confirmados ` +
-    `(${totalDescartados} descartados, ${totalReclasificados} reclasificados) (${Date.now() - t2b}ms)`
+    `(${totalConfirmadosPorEstructura} por estructura, ${totalConfirmadosPorJuicio} por juicio), ` +
+    `${totalDescartados} descartados, ${totalReclasificados} reclasificados (${Date.now() - t2b}ms)`
   );
 
   const t3 = Date.now();
