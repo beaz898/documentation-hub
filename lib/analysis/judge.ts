@@ -420,6 +420,39 @@ async function judgeSingleDocument(args: {
 }): Promise<{ judgment: DocumentJudgment; evidence: JudgmentEvidence }> {
   const { newDocumentName, newDocumentText, candidate } = args;
 
+  // Diagnóstico (F-36-bis): qué fragmentos recibe el juez por candidato, para
+  // distinguir "no lo ve teniéndolo delante" (inestabilidad, B.82) de "no
+  // llegó entre los fragmentos" (recuperación). Mismo `context` que usa
+  // describeFragment más abajo — sin consulta nueva, sin recorrer nada que no
+  // esté ya en memoria.
+  const fragmentTypeCounts: Record<'text' | 'table_summary' | 'table_row', number> = {
+    text: 0,
+    table_summary: 0,
+    table_row: 0,
+  };
+  const tableRowIndexes: number[] = [];
+  let fragmentsSinContexto = 0;
+  for (const f of candidate.fragments) {
+    const type = f.context?.chunkType;
+    if (!type) {
+      fragmentsSinContexto++;
+      continue;
+    }
+    fragmentTypeCounts[type]++;
+    if (type === 'table_row' && f.context?.rowIndex !== null && f.context?.rowIndex !== undefined) {
+      tableRowIndexes.push(f.context.rowIndex);
+    }
+  }
+  const fragmentTypesLog = (['text', 'table_summary', 'table_row'] as const)
+    .map(t => `${t}: ${fragmentTypeCounts[t]}`)
+    .join(', ');
+  const sinContextoLog = fragmentsSinContexto > 0 ? `, sin_contexto: ${fragmentsSinContexto}` : '';
+  const filasLog = tableRowIndexes.length > 0 ? ` filas: [${tableRowIndexes.join(', ')}]` : '';
+  console.log(
+    `[judge] "${candidate.documentName}": ${candidate.fragments.length} fragmentos ` +
+    `(${fragmentTypesLog}${sinContextoLog})${filasLog}`
+  );
+
   const existingFragsBlock = candidate.fragments
     .map((f, i) => `${describeFragment(f, i + 1, candidate.documentName)}\n${f.text}`)
     .join('\n\n');
