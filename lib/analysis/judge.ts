@@ -274,17 +274,34 @@ function describeFailedSide(newFailed: boolean, existingFailed: boolean): 'nuevo
   return newFailed ? 'nuevo' : 'existente';
 }
 
+/**
+ * Chunks localizados por verifyQuote para cada hallazgo que sobrevivió a
+ * fixQuotesInJudgment, en el MISMO orden e índice que
+ * DocumentJudgment.contradictions/overlappingContent (F-35). Es EVIDENCIA de
+ * verificación, no contenido del hallazgo: no entra en DocumentJudgment (que
+ * se persiste entero en analysis_results) porque no le debe nada al jsonb —
+ * existe para que la cascada del verificador (finding-rules.ts +
+ * verify-findings.ts) decida, y muere en cuanto la cascada termina.
+ * null en un lado cuando verifyQuote no pudo asociar chunk (fallback de texto
+ * plano, documento sin persistir en F-20).
+ */
+export interface JudgmentEvidence {
+  contradictions: Array<{ newChunk: StoredChunk | null; existingChunk: StoredChunk | null }>;
+  overlaps: Array<{ newChunk: StoredChunk | null; existingChunk: StoredChunk | null }>;
+}
+
 function fixQuotesInJudgment(
   judgment: DocumentJudgment,
   newDocumentChunks: StoredChunk[],
   newDocumentFallbackText: string | null,
   existingDocumentChunks: StoredChunk[],
   existingDocumentFallbackText: string | null,
-): DocumentJudgment {
+): { judgment: DocumentJudgment; evidence: JudgmentEvidence } {
   let narracionEnCita = 0;
   let citaNoVerificable = 0;
 
   const fixedContradictions: DocumentJudgment['contradictions'] = [];
+  const contradictionEvidence: JudgmentEvidence['contradictions'] = [];
   for (const c of judgment.contradictions) {
     if (containsNarration(c.newDocSays) || containsNarration(c.existingDocSays)) {
       console.warn(`[judge] Contradicción descartada en "${judgment.documentName}" (narración en la cita)`);
@@ -297,6 +314,7 @@ function fixQuotesInJudgment(
 
     if (matchNew && matchExisting) {
       fixedContradictions.push({ ...c, newDocSays: matchNew.text, existingDocSays: matchExisting.text });
+      contradictionEvidence.push({ newChunk: matchNew.chunk, existingChunk: matchExisting.chunk });
     } else {
       const failedSide = describeFailedSide(!matchNew, !matchExisting);
       const failedText = failedSide === 'ambos'
@@ -310,6 +328,7 @@ function fixQuotesInJudgment(
   }
 
   const fixedOverlaps: DocumentJudgment['overlappingContent'] = [];
+  const overlapEvidence: JudgmentEvidence['overlaps'] = [];
   for (const o of judgment.overlappingContent) {
     if (containsNarration(o.evidenceInNewDoc) || containsNarration(o.evidence)) {
       console.warn(`[judge] Solapamiento descartado en "${judgment.documentName}" (narración en la cita)`);
@@ -322,6 +341,7 @@ function fixQuotesInJudgment(
 
     if (matchNew && matchExisting) {
       fixedOverlaps.push({ ...o, evidenceInNewDoc: matchNew.text, evidence: matchExisting.text });
+      overlapEvidence.push({ newChunk: matchNew.chunk, existingChunk: matchExisting.chunk });
     } else {
       const failedSide = describeFailedSide(!matchNew, !matchExisting);
       const failedText = failedSide === 'ambos'
@@ -345,10 +365,13 @@ function fixQuotesInJudgment(
   if (citaNoVerificable > 0) discarded.citaNoVerificable = citaNoVerificable;
 
   return {
-    ...judgment,
-    contradictions: fixedContradictions,
-    overlappingContent: fixedOverlaps,
-    ...(Object.keys(discarded).length > 0 ? { discarded } : {}),
+    judgment: {
+      ...judgment,
+      contradictions: fixedContradictions,
+      overlappingContent: fixedOverlaps,
+      ...(Object.keys(discarded).length > 0 ? { discarded } : {}),
+    },
+    evidence: { contradictions: contradictionEvidence, overlaps: overlapEvidence },
   };
 }
 
@@ -394,7 +417,7 @@ async function judgeSingleDocument(args: {
   candidate: RerankedCandidate;
   chunksByDocument?: Map<string, StoredChunk[]>;
   fallbackTexts?: Map<string, string>;
-}): Promise<DocumentJudgment> {
+}): Promise<{ judgment: DocumentJudgment; evidence: JudgmentEvidence }> {
   const { newDocumentName, newDocumentText, candidate } = args;
 
   const existingFragsBlock = candidate.fragments
@@ -534,16 +557,29 @@ Responde con este JSON (sin bloques de código, sin texto adicional):
   } catch (err) {
     console.warn(`[judge] Failed for "${candidate.documentName}":`, err);
     return {
-      documentId: candidate.documentId,
-      documentName: candidate.documentName,
-      source: candidate.source,
-      overlapPercent: 0,
-      verdict: 'sin_relacion',
-      contradictions: [],
-      overlappingContent: [{ description: 'No se pudo emitir juicio (error del LLM)', evidence: '', evidenceInNewDoc: '' }],
-      uniqueToNewDoc: [],
+      judgment: {
+        documentId: candidate.documentId,
+        documentName: candidate.documentName,
+        source: candidate.source,
+        overlapPercent: 0,
+        verdict: 'sin_relacion',
+        contradictions: [],
+        overlappingContent: [{ description: 'No se pudo emitir juicio (error del LLM)', evidence: '', evidenceInNewDoc: '' }],
+        uniqueToNewDoc: [],
+      },
+      // Un elemento de evidencia vacío por cada entrada de overlappingContent
+      // (aquí, la única: el marcador de error), para mantener el emparejamiento
+      // por índice — este "hallazgo" no tiene cita real que verificar.
+      evidence: { contradictions: [], overlaps: [{ newChunk: null, existingChunk: null }] },
     };
   }
+}
+
+/** Judgments y su evidencia de verificación, emparejados por POSICIÓN con
+ *  `candidates` — evidences[i] corresponde a judgments[i] (F-35). */
+export interface JudgeAllResult {
+  judgments: DocumentJudgment[];
+  evidences: JudgmentEvidence[];
 }
 
 /**
@@ -559,8 +595,8 @@ export async function judgeAllDocuments(args: {
   newDocumentChunks?: StoredChunk[];
   chunksByDocument?: Map<string, StoredChunk[]>;
   fallbackTexts?: Map<string, string>;
-}): Promise<DocumentJudgment[]> {
-  if (args.candidates.length === 0) return [];
+}): Promise<JudgeAllResult> {
+  if (args.candidates.length === 0) return { judgments: [], evidences: [] };
 
   const isExhaustive = args.options?.exhaustive === true;
 
@@ -574,7 +610,7 @@ export async function judgeAllDocuments(args: {
     ? args.newDocumentSample
     : args.newDocumentSample.slice(0, NEW_DOC_LIMIT_QUICK);
 
-  return runInBatches(
+  const results = await runInBatches(
     args.candidates,
     candidate => judgeSingleDocument({
       newDocumentName: args.newDocumentName,
@@ -587,4 +623,9 @@ export async function judgeAllDocuments(args: {
     }),
     { batchSize: JUDGE_CONCURRENCY },
   );
+
+  return {
+    judgments: results.map(r => r.judgment),
+    evidences: results.map(r => r.evidence),
+  };
 }
