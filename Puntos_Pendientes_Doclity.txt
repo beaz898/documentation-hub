@@ -1508,6 +1508,42 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     ver F-27 P3), y sin este criterio escrito se vuelve permanente por inercia,
     igual que casi le pasa a chunkText (B.87/B.88).
 
+  B.93 — [OPTIMIZACIÓN MEDIDA, 23/08] Concurrencia igualada y pausas
+    incondicionales retiradas del modo rápido (F-31 P1+P3, commits 090ab79f y
+    88aa2abe). Medición sobre la misma tanda de 14 documentos, antes y después:
+      OPE-08  18s → 9s     OPE-07  28s → 10s
+      OPE-02  33s → 15s    OPE-03  38s → 16s
+      OPE-04  43s → 13s    OPE-05  44s → 20s
+      OPE-06  55s → 17s
+    Tres veces más rápido de media; la tanda entera pasa de ~6 minutos a ~4.
+    En OPE-06 el retrieval cae de 23,6s a 3,1s: los seis lotes de embeddings, que
+    antes se separaban con 3s de espera fija cada uno, se despachan en dos
+    segundos.
+    NI UN SOLO 429 en toda la tanda, así que la pausa incondicional no protegía
+    nada — era el precio del peor caso pagado siempre. El backoff nuevo (con
+    jitter, hasta 6 reintentos) loggea cuándo actúa, así que si alguna vez satura
+    quedará registrado: es la instrumentación que Pinecone no tenía.
+    RESULTADOS IDÉNTICOS: mismas contradicciones (puesto de Pablo Reyes y
+    conservación de historia clínica, ambas en los dos sentidos), mismos
+    descartes, mismos recuentos de contexto. Optimización pura, sin cambio de
+    comportamiento.
+    DATO NUEVO QUE ESTO DESTAPA: el rerank es ahora la etapa MÁS LENTA del modo
+    rápido — 3 a 8,5 segundos en una sola llamada, y en varios análisis tarda más
+    que todos los juicios juntos (8,5s frente a 8,6s de SEIS juicios en OPE-05).
+    La corrección de B.83 ya planificada (saltar el rerank cuando
+    candidatos <= MAX_SELECTED_QUICK) se lleva esa etapa entera en corpus
+    pequeños, y ahora se sabe cuánto vale: es la mayor ganancia de latencia que
+    queda sobre la mesa.
+    CONTEXTO COMERCIAL (F-31): el coste y el tiempo NO escalan con el tamaño del
+    corpus —Pinecone busca igual de rápido en 40 que en 4000 vectores— sino con
+    el número de candidatos que superan el umbral, que está topado en
+    MAX_SELECTED_QUICK. El coste por documento analizado es esencialmente plano y
+    predecible, lo que es un argumento directo para el modelo de precios. Lo que
+    sí escala con el corpus es cuántos documentos hay que analizar en una
+    incorporación inicial (40 de golpe al dar de alta a un cliente), y ahí la
+    pieza es el worker y la cola — no por velocidad, sino para no depender de que
+    el navegador del cliente siga abierto.
+
   F-20 [ESTADO, agosto 2026] Extracción estructurada. Paso 1 (extractSegments +
     EXTRACTOR_VERSION, commit 509e15d4) y paso 2 (persistencia en document_chunks,
     commit d00b085b) HECHOS. Paso 3 (job de reprocesado) RETIRADO — ver B.76. El

@@ -4485,3 +4485,19 @@ muestra, ningún camino de indexación desacopla las dos fuentes, y el prefijo
 MEDIDO EN PRODUCCIÓN con 14 documentos: ver B.91. Lo más relevante, la
 contradicción de conservación de historia clínica se detecta en los dos
 sentidos, y el rerank selecciona 3-4 candidatos en vez de descartarlo todo.
+
+OPTIMIZACIÓN DEL MODO RÁPIDO (F-31), adelantada al verificador por decisión de
+Fable: el piloto existe para medir coste y fijar precio, y medirlo con 15s de
+pausas muertas daría una cifra falsa que acabaría en la tarifa. Retrieval y
+judge pasan a una sola rama con runInBatches para los dos modos (la
+secuencialidad del rápido era residuo de cuando manejaba 3 candidatos), y las
+pausas incondicionales —1200ms entre juicios, 500ms entre rondas del
+exhaustivo, 3s entre lotes de embeddings, 1500ms entre juez y síntesis— se
+retiran todas. En su lugar, backoff exponencial con jitter solo ante 429. La
+red de seguridad real ya existía un nivel más abajo y no se toca: el retry de
+callAnthropicRaw y el rate-limiter propio contra el 80% del Tier 2.
+Resultado medido: ver B.93. F-32 enviada: el caché de prompts del juez (B.38)
+queda bloqueado a la espera de respuesta, porque los documentos están EN MEDIO
+del prompt y activarlo obligaría a que las reglas se lean antes que los
+documentos — un cambio de comportamiento en la etapa donde más medición
+acumulamos, no una optimización neutra.
