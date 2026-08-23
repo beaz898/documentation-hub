@@ -164,6 +164,7 @@ async function applyCascadeToCandidate(
   newDocumentChunks: StoredChunk[],
   existingChunks: StoredChunk[],
   newDocumentName: string,
+  label: string,
 ): Promise<CascadeOutcome> {
   const counts: DiscardedFindings = {};
   const tally: CascadeTally = {
@@ -199,6 +200,7 @@ async function applyCascadeToCandidate(
     if (verdict.outcome === 'discard') {
       bumpCount(counts, `descartado.${verdict.reason}`);
       tally.descartados++;
+      console.log(`[${label}] · "${c.topic.slice(0, 60)}" → descartado: ${verdict.reason}`);
       return;
     }
 
@@ -206,6 +208,7 @@ async function applyCascadeToCandidate(
       bumpCount(counts, 'confirmado.por_estructura');
       tally.confirmados++;
       tally.confirmadosPorEstructura++;
+      console.log(`[${label}] · "${c.topic.slice(0, 60)}" → confirmado por estructura (columna: ${verdict.column})`);
       keptContradictions.push({
         ...c,
         topic: buildStructuralTopic(verdict.entity, verdict.column, newDocumentName, judgment.documentName),
@@ -217,6 +220,7 @@ async function applyCascadeToCandidate(
     if (verdict.outcome === 'reclassify') {
       bumpCount(counts, 'descartado.equivalentes');
       tally.reclasificados++;
+      console.log(`[${label}] · "${c.topic.slice(0, 60)}" → reclasificado a solapamiento`);
       // Se mueve de contradicción a solapamiento: no hay "description" propia
       // en una contradicción, así que el topic hace ese papel — es lo más
       // cercano a una frase que resuma qué comparten los dos lados.
@@ -229,11 +233,13 @@ async function applyCascadeToCandidate(
     // se da si falta un chunk).
     if (!ev.newChunk || !ev.existingChunk) {
       bumpCount(counts, 'a_juicio.chunk_no_localizado');
+      console.log(`[${label}] · "${c.topic.slice(0, 60)}" → baja a juicio: chunk_no_localizado`);
     } else if (ev.newChunk.cells && ev.existingChunk.cells) {
       const newColumns = findCitedColumns(c.newDocSays, ev.newChunk.cells);
       const existingColumns = findCitedColumns(c.existingDocSays, ev.existingChunk.cells);
       if (newColumns.length === 0 || existingColumns.length === 0) {
         bumpCount(counts, 'a_juicio.columna_indeterminada');
+        console.log(`[${label}] · "${c.topic.slice(0, 60)}" → baja a juicio: columna_indeterminada`);
       }
     }
 
@@ -264,11 +270,13 @@ async function applyCascadeToCandidate(
         bumpCount(counts, 'confirmado.por_juicio');
         tally.confirmados++;
         tally.confirmadosPorJuicio++;
+        console.log(`[${label}] · "${original.topic.slice(0, 60)}" → confirmado por juicio`);
         keptContradictions.push({ ...original, severity: r.severity ?? original.severity });
       } else {
         // 'mismo_dato_sin_oposicion' y 'sin_relacion' mueren aquí — sus
         // motivos ya están contados dentro de verifyCounts.
         tally.descartados++;
+        console.log(`[${label}] · "${original.topic.slice(0, 60)}" → descartado: ${r.verdict}`);
       }
     });
   }
@@ -410,6 +418,7 @@ async function runCorePipeline(
       newDocumentChunksForCascade,
       existingChunksForCascade,
       input.newDocumentName,
+      label,
     );
     judgments.push(outcome.judgment);
     totalHallazgos += outcome.tally.total;
