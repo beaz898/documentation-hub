@@ -1463,6 +1463,40 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     contarlos. Hoy no se puede distinguir "el rerank lo descartó" de "nunca fue
     candidato" sin instrumentar. Barato y desbloquea el diagnóstico.
 
+  B.91 — [LÍNEA DE BASE, 23/08 — sustituye a la de B.89] Con 14 documentos
+    analizados en tanda (extractor_version 2, tras el ciclo de resubida de B.74 y
+    con los chunks ya como haystack de verificación), el cuadro cambia respecto a
+    B.89 y a favor:
+      · REAPARECE el falso negativo histórico: la contradicción de conservación de
+        historia clínica (15 años en CLI-03 contra 5 en NOR-01) se detecta, y en
+        LOS DOS SENTIDOS. Con el corpus de 4 documentos había aparecido una vez y
+        se atribuyó al tamaño reducido; con 14 ya no cabe esa explicación.
+      · El RERANK deja de descartarlo todo: selecciona 3-4 candidatos por
+        análisis, frente a los "0 seleccionados" repetidos que motivaron B.83 y
+        B.89. Con más corpus hay material que repartir, que es para lo que existe
+        esa etapa.
+      · Los chunks como haystack funcionan: "Chunks para verificación: N/N
+        documentos con chunks (0 por full_text de respaldo)" en todos los
+        análisis. Ningún candidato cae al fallback.
+      · 3 contradicciones sobre 14 documentos; el resto, solapamientos o sin
+        incidencias.
+    CONFIRMA B.81 (asimetría) CON UN CASO LIMPIO: RRHH-06 NO detecta la
+    discrepancia del puesto de Dr. Pablo Reyes contra OPE-02, pero OPE-02 SÍ la
+    detecta contra RRHH-06. Los logs lo explican: RRHH-06 seleccionó 3 candidatos
+    y OPE-02 seleccionó 4 — distinto material delante, distinto resultado. No es
+    un fallo nuevo: es el diseño asimétrico ya anotado.
+    EL LOG DE LADOS INDEPENDIENTES (F-27 3.1) YA ACTÚA: en el análisis de OPE-06,
+    dos solapamientos descartados con lado=nuevo, y la cita descartada era
+    literalmente el nombre del fichero ("OPE-06_presupuestos-y-financiacion.xlsx")
+    donde debía ir una cita del documento. El verificador lo cazó correctamente.
+    TIEMPOS: 41s (CLI-03) y 48s (OPE-06), frente a los 9-15s del corpus pequeño.
+    Con 4 candidatos hay 4 juicios, cada uno una llamada al LLM. Dentro del
+    maxDuration de 120s, pero el margen se estrecha: anotar como dato a vigilar
+    cuando el corpus crezca a los 40 documentos del piloto.
+    VALOR PARA LO QUE VIENE: por primera vez el corpus produce hallazgos con los
+    que medir el verificador de hallazgos. Con 4 documentos no producía ninguno y
+    eso lo dejaba a ciegas.
+
   F-20 [ESTADO, agosto 2026] Extracción estructurada. Paso 1 (extractSegments +
     EXTRACTOR_VERSION, commit 509e15d4) y paso 2 (persistencia en document_chunks,
     commit d00b085b) HECHOS. Paso 3 (job de reprocesado) RETIRADO — ver B.76. El

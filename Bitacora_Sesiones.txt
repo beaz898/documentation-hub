@@ -4473,3 +4473,15 @@ desaparece al crecer el corpus. B.90 fija cómo comprobar la corrección del
 rerank cuando llegue.
 PENDIENTES NUEVOS: B.87, B.88 (deuda condenada de chunkText, para el paso 6),
 B.89, B.90.
+
+PASO 2a DEL VERIFICADOR (los chunks son el haystack). verifyQuote pasa de
+operar sobre un string a recorrer la lista de chunks del documento y devolver
+{ text, chunk }. getChunksForDocuments sustituye a la lectura de full_text, que
+queda como fallback solo para documentos sin chunks. Desaparece el camino
+'fragmentos' como camino distinto. Premisa verificada ANTES de escribir: cero
+contenido perdido entre full_text y los chunks en los cinco ficheros de
+muestra, ningún camino de indexación desacopla las dos fuentes, y el prefijo
+[Hoja "..."] va dentro del texto del segmento, así que llega idéntico a ambos.
+MEDIDO EN PRODUCCIÓN con 14 documentos: ver B.91. Lo más relevante, la
+contradicción de conservación de historia clínica se detecta en los dos
+sentidos, y el rerank selecciona 3-4 candidatos en vez de descartarlo todo.
