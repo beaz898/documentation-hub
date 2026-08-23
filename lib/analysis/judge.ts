@@ -6,9 +6,16 @@ import type { StoredChunk } from '@/lib/read-chunks';
 /**
  * Etapa 3 — Juicio individual por documento.
  *
- * Modo rápido: secuencial con pausa (1200ms), documento truncado a 6000 chars.
- * Modo exhaustivo: 2 en paralelo con pausa entre rondas (500ms),
- *   documento completo.
+ * Los dos modos juzgan en paralelo por lotes de JUDGE_CONCURRENCY, sin pausa
+ * entre rondas (F-31 P2): la pausa fija de 1200ms del modo rápido y los
+ * 500ms del exhaustivo eran ambos residuo, no una protección medida. La red
+ * de seguridad real ya existe un nivel más abajo — callAnthropicRaw reintenta
+ * con backoff progresivo ante 429/529 (lib/llm/anthropic-client.ts), y el
+ * rate-limiter propio (lib/llm/rate-limiter.ts) trackea uso contra el 80% del
+ * Tier 2 de Anthropic y avisa por log si se satura. Si en producción aparecen
+ * 429 reales, la pausa se reintroduce ahí — con el dato delante, no antes.
+ * Modo rápido: documento truncado a NEW_DOC_LIMIT_QUICK. Modo exhaustivo:
+ * documento completo.
  *
  * Post-procesamiento: las citas del LLM se verifican contra el texto real
  * del documento y se corrigen con match fuzzy si no coinciden exactamente.
@@ -17,14 +24,8 @@ import type { StoredChunk } from '@/lib/read-chunks';
 /** Límite de texto del doc nuevo en modo rápido (ahorra tokens). */
 const NEW_DOC_LIMIT_QUICK = 6000;
 
-/** Pausa entre juicios secuenciales en modo rápido. */
-const SEQUENTIAL_DELAY_QUICK_MS = 1200;
-
-/** Concurrencia en modo exhaustivo. */
-const EXHAUSTIVE_CONCURRENCY = 5;
-
-/** Pausa entre rondas en modo exhaustivo. */
-const EXHAUSTIVE_ROUND_DELAY_MS = 500;
+/** Concurrencia de juicios en paralelo, en los dos modos (F-31 P2). */
+const JUDGE_CONCURRENCY = 5;
 
 /** Patrones que delatan que el LLM narró en vez de copiar la cita literal
  *  (p. ej. "El fragmento [2] muestra que..." o menciones a "el corpus"/
@@ -546,11 +547,9 @@ Responde con este JSON (sin bloques de código, sin texto adicional):
 }
 
 /**
- * Lanza juicios para todos los candidatos.
- *
- * Modo rápido: secuencial con pausa de 1200ms, documento truncado.
- * Modo exhaustivo: 5 en paralelo con pausa de 500ms entre rondas,
- *   documento completo.
+ * Lanza juicios para todos los candidatos: JUDGE_CONCURRENCY en paralelo, sin
+ * pausa entre rondas, en los dos modos (F-31 P2). Documento truncado en
+ * rápido, completo en exhaustivo — ver constantes arriba.
  */
 export async function judgeAllDocuments(args: {
   newDocumentName: string;
@@ -575,37 +574,17 @@ export async function judgeAllDocuments(args: {
     ? args.newDocumentSample
     : args.newDocumentSample.slice(0, NEW_DOC_LIMIT_QUICK);
 
-  if (isExhaustive) {
-    // Paralelo controlado: EXHAUSTIVE_CONCURRENCY a la vez con pausa entre rondas
-    return runInBatches(
-      args.candidates,
-      candidate => judgeSingleDocument({
-        newDocumentName: args.newDocumentName,
-        newDocumentText,
-        newDocumentFallbackText: args.newDocumentSample,
-        newDocumentChunks: args.newDocumentChunks ?? [],
-        candidate,
-        chunksByDocument: args.chunksByDocument,
-        fallbackTexts: args.fallbackTexts,
-      }),
-      { batchSize: EXHAUSTIVE_CONCURRENCY, delayMs: EXHAUSTIVE_ROUND_DELAY_MS },
-    );
-  }
-
-  // Secuencial con pausa (modo rápido)
-  const results: DocumentJudgment[] = [];
-  for (let i = 0; i < args.candidates.length; i++) {
-    if (i > 0) await new Promise(r => setTimeout(r, SEQUENTIAL_DELAY_QUICK_MS));
-    const judgment = await judgeSingleDocument({
+  return runInBatches(
+    args.candidates,
+    candidate => judgeSingleDocument({
       newDocumentName: args.newDocumentName,
       newDocumentText,
       newDocumentFallbackText: args.newDocumentSample,
       newDocumentChunks: args.newDocumentChunks ?? [],
-      candidate: args.candidates[i],
+      candidate,
       chunksByDocument: args.chunksByDocument,
       fallbackTexts: args.fallbackTexts,
-    });
-    results.push(judgment);
-  }
-  return results;
+    }),
+    { batchSize: JUDGE_CONCURRENCY },
+  );
 }

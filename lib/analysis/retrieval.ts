@@ -6,10 +6,16 @@ import type { CandidateDocument, DocumentFragment, PipelineOptions } from './typ
 /**
  * Etapa 1 — Retrieval amplio.
  *
- * Modo rápido: umbral 0.60, secuencial, 4 fragmentos por documento.
- * Modo exhaustivo: umbral 0.45, paralelo por lotes, TODOS los fragmentos únicos.
- *   El umbral bajo en exhaustivo permite recuperar candidatos que los embeddings
- *   puntúan bajo pero que pueden contener contradicciones. El rerank filtra el ruido.
+ * Los dos modos consultan Pinecone en paralelo por lotes de QUERY_BATCH_SIZE
+ * (F-31 P1): la secuencialidad que tenía el modo rápido era residuo de cuando
+ * manejaba pocos candidatos, no una protección deliberada — no había ningún
+ * manejo de 429 detrás que la necesitara, y el exhaustivo ya paraleliza igual
+ * en producción sin incidentes. Una sola vía de código para los dos modos.
+ *
+ * Modo rápido: umbral SCORE_THRESHOLD_QUICK, presupuesto de caracteres por
+ *   documento (FRAGMENT_BUDGET_CHARS_QUICK, tope MAX_FRAGMENTS_PER_DOC_QUICK).
+ * Modo exhaustivo: umbral SCORE_THRESHOLD_EXHAUSTIVE (más bajo — el rerank
+ *   filtra el ruido), TODOS los fragmentos únicos.
  */
 
 /** Tamaño del lote de queries paralelas a Pinecone. */
@@ -54,26 +60,17 @@ export async function retrieveCandidates(args: {
   const scoreThreshold = isExhaustive ? SCORE_THRESHOLD_EXHAUSTIVE : SCORE_THRESHOLD_QUICK;
   const corpusFilter = buildCorpusFilter(batchDocumentIds);
 
-  // Recoger todos los matches de Pinecone
+  // Recoger todos los matches de Pinecone. Paralelo por lotes en los dos
+  // modos (F-31 P1) — sin delayMs: aquí se paraleliza contra Pinecone, no
+  // contra un LLM con límite de peticiones.
   const allMatches: DocumentFragment[] = [];
-
-  if (isExhaustive) {
-    // Paralelo por lotes — menor latencia total. Sin delayMs: aquí se
-    // paraleliza contra Pinecone, no contra un LLM con límite de peticiones.
-    const batchResults = await runInBatches(
-      embeddings,
-      emb => queryVectors(orgId, { vector: emb, topK: 25, includeMetadata: true, filter: corpusFilter }),
-      { batchSize: QUERY_BATCH_SIZE },
-    );
-    for (const matches of batchResults) {
-      collectMatches(matches as Array<{ metadata?: Record<string, unknown>; score?: number }>, allMatches, scoreThreshold, excludeDocumentId);
-    }
-  } else {
-    // Secuencial — menos presión sobre Pinecone free tier
-    for (const emb of embeddings) {
-      const matches = await queryVectors(orgId, { vector: emb, topK: 25, includeMetadata: true, filter: corpusFilter });
-      collectMatches(matches as Array<{ metadata?: Record<string, unknown>; score?: number }>, allMatches, scoreThreshold, excludeDocumentId);
-    }
+  const batchResults = await runInBatches(
+    embeddings,
+    emb => queryVectors(orgId, { vector: emb, topK: 25, includeMetadata: true, filter: corpusFilter }),
+    { batchSize: QUERY_BATCH_SIZE },
+  );
+  for (const matches of batchResults) {
+    collectMatches(matches as Array<{ metadata?: Record<string, unknown>; score?: number }>, allMatches, scoreThreshold, excludeDocumentId);
   }
 
   // Agrupar por documento y deduplicar chunks
