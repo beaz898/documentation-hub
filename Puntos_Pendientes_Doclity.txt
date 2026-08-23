@@ -683,6 +683,24 @@ Leyenda: [ ] pendiente · [~] en curso · [✓] hecho
       volumen de análisis exhaustivos crezca o cuando el coste de Haiku sea un
       porcentaje relevante de los costes totales.
 
+      ESTADO (F-33, 23/08): CONDICIONADO AL PASO 5, no cerrado.
+      Estructura decidida: `system` con reglas y esquema, primer bloque del mensaje
+      de usuario con el DOCUMENTO NUEVO, breakpoint de cache_control ahí, y el
+      candidato después. La clave que se nos había escapado: en un análisis el juez
+      hace hasta 6 llamadas y en todas se repiten DOS cosas —las instrucciones y el
+      documento nuevo (hasta 6.000 caracteres, idéntico en las 6)—; solo cambia el
+      candidato. El caché no es para "instrucciones estáticas" sino para todo lo
+      que no cambia entre llamadas consecutivas. Prefijo cacheable estimado:
+      ~8.700 + ~6.000 caracteres ≈ 4.000-4.500 tokens, en el umbral o por encima, y
+      el prompt del paso 5 además crece.
+      AL IMPLEMENTARLO, CEBAR EL CACHÉ: los juicios van ahora de 5 en 5 (B.93), y
+      el caché lo crea la primera llamada que responde. Cinco simultáneas pueden
+      salir todas antes de que exista la entrada y ninguna leerla. Lanzar el juicio
+      1 solo y los 2-6 en lote después. Un `if` en el fan-out, no un rediseño.
+      CRITERIO DE CIERRE: medir cache_creation_input_tokens > 0 Y
+      cache_read_input_tokens > 0 en llm_usage con el prompt real del paso 5. Si no
+      alcanza el mínimo de Haiku, cerrar como NO APLICABLE anotando el conteo real.
+
 [ ] B.37 — (Funcionalidad, SECUNDARIO) Idioma de las respuestas del LLM en el chat
       El i18n de la interfaz (next-intl) ya funciona, pero solo traduce textos FIJOS.
       Las respuestas del chat las genera el LLM al vuelo y salen en español aunque la
@@ -1543,6 +1561,21 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     incorporación inicial (40 de golpe al dar de alta a un cliente), y ahí la
     pieza es el worker y la cola — no por velocidad, sino para no depender de que
     el navegador del cliente siga abierto.
+
+  B.94 — [CERRADO COMO NO APLICABLE, 23/08] Caché de prompt en style-check.
+    Descartado por umbral del modelo, no por diseño. STYLE_PROMPT mide 2.293
+    caracteres (~570-700 tokens) y el mínimo cacheable de Claude Haiku 4.5 es
+    4.096 tokens — verificado en la documentación de Anthropic, no de memoria:
+    nuestra suposición era la contraria (creíamos que Haiku exigía MENOS que
+    Sonnet, y es al revés; Sonnet son 1.024).
+    LO IMPORTANTE, y la razón de anotarlo con el número delante: la API acepta
+    cache_control sobre un bloque demasiado corto SIN ERROR y lo ignora en
+    silencio ("no error is returned"). El commit habría parecido correcto para
+    siempre y no habría cacheado nada. Cualquiera que reabra esto debe tener
+    el conteo delante antes de tocar.
+    DESCARTADA TAMBIÉN la vía de mover style-check (o el juez) a Sonnet para
+    alcanzar el umbral de 1.024: es comprar un descuento subiendo el precio
+    base.
 
   F-20 [ESTADO, agosto 2026] Extracción estructurada. Paso 1 (extractSegments +
     EXTRACTOR_VERSION, commit 509e15d4) y paso 2 (persistencia en document_chunks,

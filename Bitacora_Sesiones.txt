@@ -4501,3 +4501,17 @@ queda bloqueado a la espera de respuesta, porque los documentos están EN MEDIO
 del prompt y activarlo obligaría a que las reglas se lean antes que los
 documentos — un cambio de comportamiento en la etapa donde más medición
 acumulamos, no una optimización neutra.
+
+FRENTE DE CACHÉ CERRADO SIN COMMITS DE CÓDIGO (F-32/F-33). El caché del juez
+se fusiona con el paso 5 en vez de aplazarse: ese paso ya reescribe el prompt
+—citas estructuradas, esquema nuevo—, así que el cambio de comportamiento se
+paga una vez y hay una sola remedición. Reordenarlo ahora habría contaminado
+la medición del verificador, que es la que decide si todo este frente ha
+valido la pena. Apunte de F-32 para cuando llegue: reglas antes que
+documentos no es un riesgo a minimizar sino la estructura recomendada; si la
+línea de base cambia, lo esperable es que cambie a mejor.
+style-check se descartó tras comprobar el umbral real en la documentación
+(B.94): la API acepta y calla, así que sin esa comprobación el commit habría
+sido un placebo permanente. rerank NO se cachea: está en la lista de muerte
+de B.83. verify-claims va en el mismo tren que el juez, en el paso 5.
+Cero commits de código en este frente, y un commit placebo evitado.
