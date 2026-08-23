@@ -13,6 +13,19 @@ import type { DiscrepancyConfidence } from './types';
  * - Nunca se descarta: en el peor caso baja de confianza.
  */
 
+/**
+ * Por qué Sonnet aquí y Haiku en el juez (F-34): no es que Sonnet verifique
+ * mejor, es que responde a otra pregunta. El verificador de hallazgos —el que
+ * corre en los dos modos, antes de la síntesis— es un FILTRO DE VOLUMEN en el
+ * camino barato: descarta hallazgos malformados mirando dos citas aisladas, y
+ * eso Haiku lo hace bien porque el fallo del juez es de POSTURA (le muestran
+ * 6.000 caracteres y le piden buscar), no de capacidad. Este double-check es
+ * un SELLO DE CALIDAD en el camino caro: la última palabra sobre hallazgos que
+ * ya pasaron todo lo demás, y su valor está en que un modelo distinto y
+ * superior confirme antes de dar máxima confianza.
+ * Filtro barato, sello caro.
+ */
+
 /** Contradicción con confianza asignada tras doble verificación. */
 export interface DoubleCheckedDiscrepancy {
   topic: string;
