@@ -135,58 +135,60 @@ function findBestMatch(haystack: string, needle: string): string | null {
   return null;
 }
 
-/** Prefijo con el que la extracción de hojas de cálculo abre cada fila. */
-const SPREADSHEET_ROW_PREFIX = /^\[Hoja "/;
-
 /**
- * Trocea una cita por "|" para verificarla segmento a segmento.
- * No exige que la propia cita lleve el prefijo de hoja: el modelo trata ese
- * prefijo como una etiqueta técnica de límite de fragmento, no como contenido
- * que copiar, así que casi nunca lo reproduce. La garantía de seguridad no
- * está aquí — está en findRowContainingSegments, que solo acepta como fila
- * válida un bloque del documento que SÍ empiece por el prefijo de hoja. Eso
- * basta para que "compartir bloque" siga significando "mismo registro",
- * quedando fuera tanto la prosa como el formato Markdown antiguo.
+ * Trocea una cita por "|" para verificarla segmento a segmento (F-30). El
+ * modelo cita las columnas comparables y omite las intermedias, así que la
+ * cadena literal de la cita entera no existe en el chunk aunque cada dato sea
+ * correcto: "estos N trozos aparecen, en cualquier posición, dentro de la
+ * misma fila" es un predicado distinto al de contigüidad que resuelve
+ * findBestMatch, y hace falta trocear para comprobarlo trozo a trozo.
+ *
+ * Sin suelo de longitud por segmento: el que existía (10 caracteres) era
+ * defensa contra falsos emparejamientos en un haystack del tamaño del
+ * documento entero. Ahora cada segmento se verifica dentro de un único chunk
+ * — una fila —, así que esa defensa ya no hace falta aquí; el suelo real que
+ * queda es el de findBestMatch (needle.length < 10), que no se toca. Un
+ * segmento por debajo de eso (p. ej. "Sábado: L", 9 caracteres) sigue sin
+ * poder verificarse — límite heredado, no nuevo.
  */
 function splitTabularSegments(quote: string): string[] | null {
   if (!quote.includes('|')) return null;
   const segments = quote.split('|').map(s => s.trim()).filter(Boolean);
   if (segments.length < 2) return null;
-  if (segments.some(s => s.length < 10)) return null;
   return segments;
 }
 
+/** Por debajo de esto, un segmento es un valor suelto sin sustancia propia
+ *  ("M", "L", un dígito) y casa con casi cualquier fila por casualidad —
+ *  medido: las 10 filas de OPE-02 contienen una "m" en algún sitio. El par
+ *  "Columna: valor" más corto real medido en el corpus (los tres .xlsx de
+ *  muestra) es "Lunes: M", de 8 caracteres — este suelo se queda muy por
+ *  debajo para no rozar ningún caso real. */
+const MIN_SEGMENT_LENGTH = 3;
+
 /**
- * Verifica una cita que enumera columnas de una fila de tabla.
- * El modelo cita las columnas comparables y omite las intermedias, así que la
- * cadena literal no existe aunque el contenido sea correcto. Se verifica cada
- * segmento por separado y se exige que TODOS estén en la MISMA fila del
- * documento (un bloque entre líneas en blanco). Es más estricto que aceptar
- * la cita entera por aproximación: cada columna se comprueba una a una y no
- * se admiten segmentos repartidos entre filas distintas.
- * Devuelve la fila real completa, que es la cita honesta.
+ * Coincidencia puramente booleana de un segmento dentro del texto de un chunk
+ * (F-30-bis): normalize().includes(), sin el suelo de 10 caracteres de
+ * findBestMatch. Existe porque la vía por segmentos de verifyQuote nunca usa
+ * el recorte que devuelve findBestMatch —se descarta; lo que se persiste es
+ * el chunk entero—, así que ahí solo hace falta un sí/no, no una extracción
+ * de posición. Sin el suelo de 10 porque protege algo que aquí no existe:
+ * estaba pensado para un haystack del tamaño del documento entero, y un
+ * segmento corto y genérico ahí sí puede colisionar por casualidad. Dentro de
+ * UNA fila (~150-300 caracteres) la superficie de colisión es mínima, y el
+ * segmento real nunca es un valor suelto: siempre viene emparejado con su
+ * nombre de columna ("Lunes: M", no "M"). Medido en OPE-02 (el cuadro de
+ * turnos, el documento del acierto de control): 33 de sus 100 pares
+ * "Columna: valor" miden menos de 10 caracteres — todos los días de la
+ * semana. No es una columna residual, es el patrón dominante de esa tabla.
+ * Sí conserva MIN_SEGMENT_LENGTH: un segmento de 1-2 caracteres no es un dato
+ * verificable, es ruido — y medido, "M" suelto casa con el 100% de las filas
+ * de OPE-02 (contienen la letra en algún sitio), justo el falso positivo que
+ * un segmento con su nombre de columna nunca produce.
  */
-function findRowContainingSegments(haystack: string, segments: string[]): string | null {
-  for (const row of haystack.split(/\n\s*\n/)) {
-    const trimmed = row.trim();
-    if (!trimmed) continue;
-    // Única barrera real: el bloque candidato tiene que ser una fila
-    // generada por nuestra extracción de hojas de cálculo. Solo entonces
-    // "todos los segmentos están en este bloque" implica "todos pertenecen
-    // al mismo registro" — en un párrafo de prosa, dos frases sin relación
-    // pueden convivir en el mismo bloque, y en el formato Markdown antiguo
-    // un bloque podía agrupar varias filas distintas. Ninguno de los dos
-    // empieza por este prefijo (verificado contra su código real), así que
-    // basta para dejarlos fuera sin tener que reconocer su formato exacto.
-    if (!SPREADSHEET_ROW_PREFIX.test(trimmed)) continue;
-    if (segments.every(segment => findBestMatch(trimmed, segment) !== null)) {
-      // El prefijo de hoja es fontanería del extractor, no contenido del
-      // documento: se usa para validar la fila, pero no debe aparecer dentro
-      // de una cita que lee el usuario.
-      return trimmed.replace(/^\[Hoja "[^"]*"\]\s*/, '');
-    }
-  }
-  return null;
+function chunkContainsSegment(chunkText: string, segment: string): boolean {
+  if (segment.length < MIN_SEGMENT_LENGTH) return false;
+  return normalize(chunkText).includes(normalize(segment));
 }
 
 /**
@@ -196,16 +198,35 @@ function findRowContainingSegments(haystack: string, segments: string[]): string
  * sección de prosa), así que devolver DE QUÉ CHUNK salió la cita es gratis en
  * vez de exigir una búsqueda aparte.
  *
- * Dos pasadas sobre los chunks: primero match directo (findBestMatch) en
- * cada uno; si ninguno casa así, el puente tabular actual (splitTabularSegments
- * + findRowContainingSegments) sobre el texto de cada chunk — se mantiene tal
- * cual por ahora, su retirada es un commit posterior, tras verificar en
- * producción que el haystack por chunks ya cubre lo que cubría.
+ * Dos pasadas sobre los chunks:
+ * 1. Match directo (findBestMatch) en cada uno — el predicado de contigüidad,
+ *    correcto para prosa y para una cita de fila que sí copia columnas
+ *    consecutivas.
+ * 2. Si ninguno casa así, la vía por segmentos (F-30): el disparador es
+ *    `chunk.chunkType === 'table_row'` — la naturaleza del CHUNK (dato), no la
+ *    forma de la cita (texto). Una cita de prosa que contenga "|" por
+ *    casualidad nunca entra aquí, porque su chunk no es table_row. Dentro de
+ *    un chunk table_row, cada segmento de la cita se verifica por separado
+ *    contra el texto del chunk con findBestMatch O, si esa falla,
+ *    chunkContainsSegment (F-30-bis) — NUNCA al revés: findBestMatch cubre
+ *    todo lo que chunkContainsSegment cubre y además su rama de aproximación
+ *    por cabeza/cola para segmentos largos con alguna diferencia interna, así
+ *    que probarlo primero no pierde nada; chunkContainsSegment solo rescata
+ *    los segmentos que findBestMatch rechaza de entrada por su suelo de 10
+ *    caracteres. La condición es que TODOS los segmentos casen (por
+ *    cualquiera de las dos vías) en ESE chunk — el "mismo registro" lo da la
+ *    iteración (ya se está dentro de un único chunk), no un parser que
+ *    reconstruya filas partiendo un string. Con varios chunks candidatos
+ *    (filas casi idénticas), gana el que localice más segmentos y, a
+ *    igualdad, el primero — importa porque el `chunk` devuelto es de donde la
+ *    capa determinista sacará la columna citada, y no debe salir de una
+ *    mezcla entre filas.
  *
  * FALLBACK: solo si la lista de chunks viene VACÍA (documento indexado antes
  * de F-20, o sin chunks por cualquier otro motivo) se verifica contra
- * fallbackText, con chunk: null. Una sola vía de decidirlo — nunca las dos
- * fuentes a la vez para un mismo documento.
+ * fallbackText, con chunk: null, solo por match directo — ese camino es para
+ * corpus ya migrado por completo y lo retira el paso 6 entero, así que no
+ * conserva una vía por segmentos propia.
  */
 function verifyQuote(
   chunks: StoredChunk[],
@@ -217,11 +238,7 @@ function verifyQuote(
   if (chunks.length === 0) {
     if (!fallbackText) return null;
     const direct = findBestMatch(fallbackText, quote);
-    if (direct) return { text: direct, chunk: null };
-    const segments = splitTabularSegments(quote);
-    if (!segments) return null;
-    const row = findRowContainingSegments(fallbackText, segments);
-    return row ? { text: row, chunk: null } : null;
+    return direct ? { text: direct, chunk: null } : null;
   }
 
   for (const chunk of chunks) {
@@ -231,10 +248,19 @@ function verifyQuote(
 
   const segments = splitTabularSegments(quote);
   if (segments) {
+    let best: StoredChunk | null = null;
+    let bestMatchedCount = -1;
     for (const chunk of chunks) {
-      const row = findRowContainingSegments(chunk.text, segments);
-      if (row) return { text: row, chunk };
+      if (chunk.chunkType !== 'table_row') continue;
+      const matchedCount = segments.filter(segment =>
+        findBestMatch(chunk.text, segment) !== null || chunkContainsSegment(chunk.text, segment)
+      ).length;
+      if (matchedCount === segments.length && matchedCount > bestMatchedCount) {
+        best = chunk;
+        bestMatchedCount = matchedCount;
+      }
     }
+    if (best) return { text: best.text, chunk: best };
   }
 
   return null;

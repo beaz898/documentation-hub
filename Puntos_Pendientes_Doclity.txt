@@ -1497,6 +1497,17 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     que medir el verificador de hallazgos. Con 4 documentos no producía ninguno y
     eso lo dejaba a ciegas.
 
+  B.92 — [CRITERIO DE CIERRE DEL PASO 5, fijado por F-30] El paso 5 (citas
+    estructuradas {sheet, rowKey, cells} — ver B.78) NO está terminado hasta que
+    se borre la localización de filas por texto: splitTabularSegments y la vía
+    por segmentos de verifyQuote (lib/analysis/judge.ts). Cuando el juez cite
+    {sheet, rowKey, cells}, la fila se localiza por datos — una consulta directa
+    a la fila, no un troceado de cadena buscando coincidencias — y esta vía
+    muere con su troceador. Es un mecanismo puente (F-30 lo dejó reducido a la
+    semántica mínima que hacía falta tras retirar findRowContainingSegments,
+    ver F-27 P3), y sin este criterio escrito se vuelve permanente por inercia,
+    igual que casi le pasa a chunkText (B.87/B.88).
+
   F-20 [ESTADO, agosto 2026] Extracción estructurada. Paso 1 (extractSegments +
     EXTRACTOR_VERSION, commit 509e15d4) y paso 2 (persistencia en document_chunks,
     commit d00b085b) HECHOS. Paso 3 (job de reprocesado) RETIRADO — ver B.76. El
