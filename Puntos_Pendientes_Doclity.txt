@@ -1577,6 +1577,32 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     alcanzar el umbral de 1.024: es comprar un descuento subiendo el precio
     base.
 
+  B.95 — [FALSO NEGATIVO CONOCIDO, por diseño] Columnas sinónimas entre tablas
+    distintas no se cruzan. R2 (finding-rules.ts) exige que el nombre de la
+    columna citada coincida EXACTO entre los dos lados. Si dos tablas nombran el
+    mismo concepto de forma distinta —"Puesto" en una y "Oficio" en otra— no
+    comparten columna citada y el hallazgo muere con
+    descartado.sin_columna_comun, aunque los valores sean genuinamente
+    incompatibles ("Higienista" contra "Médico de familia" para la misma
+    persona).
+    Es un falso negativo SILENCIOSO: el juez sí podría emitirlo —él lee y puede
+    ver la incompatibilidad—, y es nuestra regla la que lo mata después.
+    NO SE ARREGLA EMPAREJANDO NOMBRES PARECIDOS. Reconocer que "Puesto" y
+    "Oficio" significan lo mismo exige entender palabras, que es exactamente lo
+    que F-23 y F-26 descartaron dos veces: fue lo que tumbó la primera versión de
+    la regla de equivalencia. Aflojar ahí devuelve un sistema que empareja por
+    parecido y falla con sinónimos, abreviaturas o columnas en otro idioma.
+    POSIBLE VÍA, sin trabajo nuevo: el paso 5 (citas estructuradas {sheet,
+    rowKey, cells}) cambia el terreno — el juez pasará a declarar de qué hoja y
+    fila viene cada cita en vez de que se deduzca del texto. Revisar entonces si
+    el caso encaja solo; no antes.
+    DECISIÓN COMERCIAL (director, 23/08): no se aborda en esta versión. Con un
+    corpus de ~40 documentos de una clínica no es lo que decide si el producto
+    sirve, y si aparece hay respuesta honesta que dar: "el sistema compara
+    columnas con el mismo nombre; si tus tablas usan nombres distintos para lo
+    mismo, no las cruza". Limitación explicable, no fallo. Anotado para que, si un
+    cliente lo reporta, ya esté diagnosticado.
+
   F-20 [ESTADO, agosto 2026] Extracción estructurada. Paso 1 (extractSegments +
     EXTRACTOR_VERSION, commit 509e15d4) y paso 2 (persistencia en document_chunks,
     commit d00b085b) HECHOS. Paso 3 (job de reprocesado) RETIRADO — ver B.76. El
