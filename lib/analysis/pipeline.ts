@@ -185,10 +185,6 @@ async function runCorePipeline(
   });
   console.log(`[${label}] Judge: ${judgments.length} juicios emitidos (${Date.now() - t2}ms)`);
 
-  if (!options.exhaustive) {
-    await new Promise(r => setTimeout(r, 1500));
-  }
-
   const t3 = Date.now();
   const final = await synthesizeFinalAnalysis({
     newDocumentName: input.newDocumentName,
