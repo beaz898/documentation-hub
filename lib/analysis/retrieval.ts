@@ -64,13 +64,22 @@ export async function retrieveCandidates(args: {
   // modos (F-31 P1) — sin delayMs: aquí se paraleliza contra Pinecone, no
   // contra un LLM con límite de peticiones.
   const allMatches: DocumentFragment[] = [];
+  // F-40: agregado, no por match — collectMatches se llama una vez POR
+  // CONSULTA (una por sampleText, no por lote de QUERY_BATCH_SIZE), y cada
+  // una trae hasta topK=25 matches crudos. Loggear cada descarte individual
+  // podría ser cientos de líneas por análisis en un corpus real; el recuento
+  // por documento basta para saber si un score ronda el umbral.
+  const discardedByThreshold = new Map<string, { count: number; maxScore: number }>();
   const batchResults = await runInBatches(
     embeddings,
     emb => queryVectors(orgId, { vector: emb, topK: 25, includeMetadata: true, filter: corpusFilter }),
     { batchSize: QUERY_BATCH_SIZE },
   );
   for (const matches of batchResults) {
-    collectMatches(matches as Array<{ metadata?: Record<string, unknown>; score?: number }>, allMatches, scoreThreshold, excludeDocumentId);
+    collectMatches(matches as Array<{ metadata?: Record<string, unknown>; score?: number }>, allMatches, scoreThreshold, excludeDocumentId, discardedByThreshold);
+  }
+  for (const [docName, stats] of discardedByThreshold) {
+    console.log(`[retrieval] Descartados por umbral (${scoreThreshold}) en "${docName}": ${stats.count}, score máximo: ${stats.maxScore.toFixed(3)}`);
   }
 
   // Agrupar por documento y deduplicar chunks
@@ -86,8 +95,25 @@ export async function retrieveCandidates(args: {
     const unique = deduplicateFragments(frags);
     const sorted = unique.sort((a, b) => b.score - a.score);
 
+    console.log(
+      `[retrieval] "${sorted[0].documentName}": ${unique.length} fragmentos únicos — ` +
+      sorted.map(f => `${f.chunkIndex}=${f.score.toFixed(3)}`).join(', ')
+    );
+
     // Exhaustivo: todos los fragmentos únicos. Rápido: los que quepan en el presupuesto.
     const selected = isExhaustive ? sorted : selectFragmentsWithinBudget(sorted);
+
+    if (!isExhaustive) {
+      const usedChars = selected.reduce((sum, f) => sum + f.text.length, 0);
+      const motivo =
+        selected.length === sorted.length ? 'sin recorte'
+        : selected.length >= MAX_FRAGMENTS_PER_DOC_QUICK ? 'tope de 25'
+        : 'presupuesto de 3000 caracteres';
+      console.log(
+        `[retrieval] "${sorted[0].documentName}" recorte: ${selected.length}/${sorted.length} fragmentos, ` +
+        `${usedChars}/${FRAGMENT_BUDGET_CHARS_QUICK} caracteres, corte: ${motivo}`
+      );
+    }
 
     candidates.push({
       documentId,
@@ -111,11 +137,20 @@ function collectMatches(
   matches: Array<{ metadata?: Record<string, unknown>; score?: number }> | undefined,
   out: DocumentFragment[],
   scoreThreshold: number,
-  excludeDocumentId?: string,
+  excludeDocumentId: string | undefined,
+  discardedByThreshold: Map<string, { count: number; maxScore: number }>,
 ): void {
   for (const m of matches || []) {
     if (!m.metadata || typeof m.score !== 'number') continue;
-    if (m.score < scoreThreshold) continue;
+    if (m.score < scoreThreshold) {
+      const rawName = m.metadata.documentName;
+      const docName = typeof rawName === 'string' ? rawName : '(sin nombre)';
+      const stats = discardedByThreshold.get(docName) ?? { count: 0, maxScore: -Infinity };
+      stats.count++;
+      if (m.score > stats.maxScore) stats.maxScore = m.score;
+      discardedByThreshold.set(docName, stats);
+      continue;
+    }
     const meta = m.metadata as {
       documentId?: string; documentName?: string;
       source?: string; chunkIndex?: number; text?: string;
