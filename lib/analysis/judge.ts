@@ -1,5 +1,6 @@
 import { callLLMJson } from './llm-client';
 import { runInBatches } from '@/lib/run-in-batches';
+import { sanitizeJudgeContradictions } from './llm-boundary';
 import type { RerankedCandidate, DocumentJudgment, PipelineOptions, DiscardedFindings, DocumentFragment } from './types';
 import type { StoredChunk } from '@/lib/read-chunks';
 
@@ -360,9 +361,13 @@ function fixQuotesInJudgment(
     console.warn(`[judge] Descartados ${discardedCount} hallazgos no verificables en "${judgment.documentName}"`);
   }
 
-  const discarded: DiscardedFindings = {};
-  if (narracionEnCita > 0) discarded.narracionEnCita = narracionEnCita;
-  if (citaNoVerificable > 0) discarded.citaNoVerificable = citaNoVerificable;
+  // Fusión, no sustitución (F-39): judgment.discarded puede traer ya los
+  // motivos de la frontera LLM→pipeline (sanitizeJudgeContradictions, antes
+  // de esta función) — machacarlo aquí los perdería en cuanto esta función
+  // también tuviera algo que contar para el mismo candidato.
+  const discarded: DiscardedFindings = { ...(judgment.discarded ?? {}) };
+  if (narracionEnCita > 0) discarded.narracionEnCita = (discarded.narracionEnCita ?? 0) + narracionEnCita;
+  if (citaNoVerificable > 0) discarded.citaNoVerificable = (discarded.citaNoVerificable ?? 0) + citaNoVerificable;
 
   return {
     judgment: {
@@ -562,19 +567,26 @@ Responde con este JSON (sin bloques de código, sin texto adicional):
 
   try {
     const response = await callLLMJson<JudgeResponse>(prompt, { maxOutputTokens: 4096, temperature: 0.1 });
+
+    // Frontera LLM→pipeline (F-39): contradictions es el único de los dos
+    // arrays de la respuesta sin saneado por elemento — overlappingContent ya
+    // lo tiene, dos líneas más abajo, con el .map() de siempre.
+    const { contradictions, discarded: boundaryDiscarded } = sanitizeJudgeContradictions(response.contradictions);
+
     const rawJudgment: DocumentJudgment = {
       documentId: candidate.documentId,
       documentName: candidate.documentName,
       source: candidate.source,
       overlapPercent: Math.max(0, Math.min(100, Math.round(response.overlapPercent || 0))),
       verdict: response.verdict || 'sin_relacion',
-      contradictions: response.contradictions || [],
+      contradictions,
       overlappingContent: (response.overlappingContent || []).map(o => ({
         description: o.description || '',
         evidence: o.evidence || '',
         evidenceInNewDoc: o.evidenceInNewDoc || '',
       })),
       uniqueToNewDoc: response.uniqueToNewDoc || [],
+      ...(Object.keys(boundaryDiscarded).length > 0 ? { discarded: boundaryDiscarded } : {}),
     };
 
     const existingChunks = args.chunksByDocument?.get(candidate.documentId) ?? [];
