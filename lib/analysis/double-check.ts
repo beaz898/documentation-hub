@@ -1,5 +1,5 @@
 import { callLLMJson } from './llm-client';
-import type { DiscrepancyConfidence } from './types';
+import type { DiscrepancyConfidence, ConfirmedBy } from './types';
 
 /**
  * Fase 5 — Doble verificación LLM (progresiva).
@@ -34,6 +34,7 @@ export interface DoubleCheckedDiscrepancy {
   existingDocument: string;
   confidence: DiscrepancyConfidence;
   severity?: 'contradiction' | 'minor_inconsistency';
+  confirmedBy?: ConfirmedBy;
 }
 
 interface Discrepancy {
@@ -43,6 +44,7 @@ interface Discrepancy {
   existingDocument: string;
   confidence?: DiscrepancyConfidence;
   severity?: 'contradiction' | 'minor_inconsistency';
+  confirmedBy?: ConfirmedBy;
 }
 
 interface BatchVerifyResponse {
@@ -237,6 +239,7 @@ Responde EXCLUSIVAMENTE con este JSON:
         existingDocument: d.existingDocument,
         confidence: (isContradiction ? 'alta' : 'posible') as DiscrepancyConfidence,
         ...(sev && sev !== 'none' ? { severity: sev as 'contradiction' | 'minor_inconsistency' } : {}),
+        ...(isContradiction ? { confirmedBy: 'double_check' as ConfirmedBy } : {}),
       };
     });
   } catch (err) {

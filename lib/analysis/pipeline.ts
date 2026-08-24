@@ -220,6 +220,7 @@ async function applyCascadeToCandidate(
           ? c.topic
           : buildStructuralTopic(verdict.entity, verdict.column, newDocumentName, judgment.documentName),
         severity: 'contradiction',
+        confirmedBy: 'estructura',
       });
       return;
     }
@@ -278,7 +279,7 @@ async function applyCascadeToCandidate(
         tally.confirmados++;
         tally.confirmadosPorJuicio++;
         console.log(`[${label}] · "${original.topic.slice(0, 60)}" → confirmado por juicio`);
-        keptContradictions.push({ ...original, severity: r.severity ?? original.severity });
+        keptContradictions.push({ ...original, severity: r.severity ?? original.severity, confirmedBy: 'juicio' });
       } else {
         // 'mismo_dato_sin_oposicion' y 'sin_relacion' mueren aquí — sus
         // motivos ya están contados dentro de verifyCounts.

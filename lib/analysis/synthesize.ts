@@ -130,6 +130,7 @@ Responde EXCLUSIVAMENTE con este JSON:
       existingDocSays: c.existingDocSays,
       existingDocument: j.documentName,
       severity: c.severity,
+      confirmedBy: c.confirmedBy,
     }))
   );
 

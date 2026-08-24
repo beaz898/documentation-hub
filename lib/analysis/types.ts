@@ -58,6 +58,7 @@ export interface DocumentJudgment {
     newDocSays: string;
     existingDocSays: string;
     severity?: 'contradiction' | 'minor_inconsistency';
+    confirmedBy?: ConfirmedBy;
   }>;
   overlappingContent: Array<{
     description: string;
@@ -83,6 +84,17 @@ export interface PipelineOptions {
 /** Nivel de confianza de una contradicción detectada. */
 export type DiscrepancyConfidence = 'alta' | 'posible';
 
+/**
+ * Quién confirmó un hallazgo (F-39/F-40, Fable). Registra QUIÉN, no CUÁNTA
+ * confianza hay — eso lo sigue diciendo `confidence`, un dato distinto.
+ * 'estructura': la capa determinista (finding-rules.ts, veredicto 'confirm').
+ * 'juicio': la llamada corta (verify-findings.ts, veredicto 'confirmado').
+ * 'double_check': Sonnet en el modo exhaustivo (double-check.ts) — el
+ * veredicto más caro y el último en pronunciarse, así que si sella un hallazgo
+ * que ya traía 'estructura' o 'juicio', su valor gana.
+ */
+export type ConfirmedBy = 'estructura' | 'juicio' | 'double_check';
+
 /** Motivo por el que el análisis exhaustivo se detuvo antes de completar todas las capas. */
 export type EarlyStopReason = 'high_overlap' | 'too_many_contradictions';
 
@@ -106,6 +118,7 @@ export interface FinalAnalysis {
      *  Opcional para compatibilidad: el pipeline rápido no hace doble verificación. */
     confidence?: DiscrepancyConfidence;
     severity?: 'contradiction' | 'minor_inconsistency';
+    confirmedBy?: ConfirmedBy;
   }>;
   /** Diferencias de enfoque o matiz confirmadas como no estrictamente incompatibles (solo modo exhaustivo). */
   minorInconsistencies?: Array<{

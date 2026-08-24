@@ -49,7 +49,7 @@ export async function saveAnalysisResult(
     document_name: documentName,
     analysis_type: analysisType,
     contradictions_found: analysis.discrepancies.length,
-    contradictions_confirmed: analysis.discrepancies.filter(d => d.confidence === 'alta').length,
+    contradictions_confirmed: analysis.discrepancies.filter(d => d.confirmedBy !== undefined).length,
     minor_inconsistencies_found: analysis.minorInconsistencies?.length ?? 0,
     duplicates_found: analysis.isDuplicate ? 1 : 0,
     overlaps_found: analysis.overlaps.length,
