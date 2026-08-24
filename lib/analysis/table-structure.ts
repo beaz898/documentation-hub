@@ -102,3 +102,103 @@ export function getOrderedColumns(tableId: string | null, docChunks: StoredChunk
   }
   return [...realKeys].sort();
 }
+
+/**
+ * Una tabla completa, agrupada — todas sus filas (chunkType='table_row'),
+ * ordenadas por rowIndex, más su orden de columnas real y su recuento total.
+ * F-53: el sitio natural para esto es este módulo, no retrieval.ts —
+ * `buildUnits` (retrieval.ts) agrupa fragmentos YA PUNTUADOS por Pinecone y
+ * produce solo lo RECUPERADO (`recoveredRows`, un subconjunto); esta función
+ * es más simple a propósito: sin score, sin distinción recuperado/no, agrupa
+ * TODAS las filas que de verdad tiene el documento. Sirve para el lado
+ * analizado, que no pasa por Pinecone — se presenta entero, no se recupera.
+ */
+export interface TableGroup {
+  tableId: string;
+  sheetName: string | null;
+  columns: string[];
+  totalRows: number;
+  rows: StoredChunk[];
+}
+
+export function groupChunksByTable(docChunks: StoredChunk[]): TableGroup[] {
+  const byTable = new Map<string, StoredChunk[]>();
+  for (const c of docChunks) {
+    if (c.chunkType !== 'table_row' || !c.tableId) continue;
+    const arr = byTable.get(c.tableId) ?? [];
+    arr.push(c);
+    byTable.set(c.tableId, arr);
+  }
+
+  const groups: TableGroup[] = [];
+  for (const [tableId, rows] of byTable) {
+    rows.sort((a, b) => (a.rowIndex ?? 0) - (b.rowIndex ?? 0));
+    groups.push({
+      tableId,
+      sheetName: rows[0]?.sheetName ?? null,
+      columns: getOrderedColumns(tableId, docChunks),
+      totalRows: rows.length,
+      rows,
+    });
+  }
+  return groups;
+}
+
+/** La cabecera sola — expuesta aparte de renderTableBlock porque F-53 la
+ *  necesita también para PRESUPUESTO (retrieval.ts): cuánto cuesta avisar de
+ *  la tabla, antes de saber cuántas filas van a caber. */
+export function renderTableHeader(
+  sheetName: string | null,
+  tableId: string,
+  documentName: string,
+  columns: string[],
+  totalRows: number,
+): string {
+  const label = sheetName ?? tableId;
+  return `[TABLA "${label}" — hoja de ${documentName} — ${totalRows} filas. Columnas: ${columns.join(', ')}]`;
+}
+
+/** Una fila sola — expuesta aparte por el mismo motivo: retrieval.ts necesita
+ *  el coste de UNA fila para decidir cuántas caben, no el bloque entero. */
+export function renderTableRow(
+  rowIndex: number | null,
+  cells: Record<string, string> | null,
+  columns: string[],
+): string {
+  const c = cells ?? {};
+  const values = columns.map(col => c[col] ?? '');
+  return `[F${rowIndex ?? '?'}] ${values.join(' | ')}`;
+}
+
+/**
+ * Formato barato de tabla (F-53): cabecera UNA VEZ con el recuento total y
+ * las columnas en su orden real (getOrderedColumns), filas debajo con solo
+ * sus valores — sin repetir nombre de documento ni lista de columnas en cada
+ * una. La fila conserva `[F<rowIndex>]`: es el anclaje que la alineación
+ * posicional necesitará en el commit siguiente, no un contador de posición
+ * en el bloque (que cambiaría si algún día se omite una fila).
+ *
+ * `totalRows` es un parámetro, no `rows.length`: el llamador puede pasar
+ * MENOS filas que el total real de la tabla (el candidato, si el reparto por
+ * presupuesto solo incluyó una parte) — la cabecera debe seguir diciendo la
+ * verdad sobre cuántas filas TIENE la tabla, no cuántas se están mostrando
+ * aquí. Cada fila renderiza un valor por cada columna de `columns`, en ese
+ * orden, aunque esté vacío (`''` entre pipes) — sin eso, la posición N del
+ * pipe-list de una fila con celdas en blanco no correspondería de forma
+ * fiable a la columna N de la cabecera.
+ */
+export function renderTableBlock(
+  sheetName: string | null,
+  tableId: string,
+  documentName: string,
+  columns: string[],
+  totalRows: number,
+  rows: Array<{ rowIndex: number | null; cells: Record<string, string> | null }>,
+): string {
+  const header = renderTableHeader(sheetName, tableId, documentName, columns, totalRows);
+  const rowLines = rows
+    .slice()
+    .sort((a, b) => (a.rowIndex ?? 0) - (b.rowIndex ?? 0))
+    .map(r => renderTableRow(r.rowIndex, r.cells, columns));
+  return [header, ...rowLines].join('\n');
+}

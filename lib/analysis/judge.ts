@@ -1,7 +1,7 @@
 import { callLLMJson } from './llm-client';
 import { runInBatches } from '@/lib/run-in-batches';
 import { sanitizeJudgeContradictions, hashCitationPair } from './llm-boundary';
-import { getOrderedColumns } from './table-structure';
+import { getOrderedColumns, groupChunksByTable, renderTableBlock } from './table-structure';
 import type { RerankedCandidate, DocumentJudgment, PipelineOptions, DiscardedFindings, DocumentFragment } from './types';
 import type { StoredChunk } from '@/lib/read-chunks';
 
@@ -464,12 +464,7 @@ function fixQuotesInJudgment(
  * signifique que se contradigan, y es la base de las citas estructuradas del
  * paso 5.
  */
-function describeFragment(
-  fragment: DocumentFragment,
-  position: number,
-  documentName: string,
-  columnOrderByTable: Map<string, string[]>,
-): string {
+function describeFragment(fragment: DocumentFragment, position: number, documentName: string): string {
   // F-44: la línea de contexto que colapsa filas idénticas (retrieval.ts) no
   // tiene `context` — no describe una fila real de document_chunks — así que
   // caería al genérico de abajo sin este chequeo, perdiendo justo la marca
@@ -483,19 +478,15 @@ function describeFragment(
   const ctx = fragment.context;
   if (!ctx) return `[Fragmento ${position} de "${documentName}"]`;
 
-  if (ctx.chunkType === 'table_row') {
-    const sheet = ctx.sheetName ? ` hoja "${ctx.sheetName}"` : '';
-    const row = ctx.rowIndex !== null ? `, fila ${ctx.rowIndex + 1}` : '';
-    // F-51: orden real de la tabla, no Object.keys(ctx.cells) — ver
-    // table-structure.ts. Filtrado a las columnas que ESTA fila tiene
-    // rellenas (cells puede tener menos claves que la tabla completa).
-    const order = ctx.tableId ? columnOrderByTable.get(ctx.tableId) : undefined;
-    const columns = ctx.cells
-      ? (order && order.length > 0 ? order.filter(c => ctx.cells![c] !== undefined) : Object.keys(ctx.cells)).join(', ')
-      : '';
-    const columnsPart = columns ? `. Columnas: ${columns}` : '';
-    return `[Fragmento ${position} de "${documentName}" — FILA DE TABLA:${sheet}${row}${columnsPart}]`;
-  }
+  // F-53: la rama 'table_row' que vivía aquí desaparece — buildExistingFragsBlock
+  // agrupa toda fila de tabla en el bloque de su tabla (formato barato) antes
+  // de que describeFragment vea nada; esta función ya solo describe lo que
+  // queda SUELTO: table_summary de una tabla sin filas incluidas (nivel 3),
+  // la línea de contexto de arriba, y el genérico. Un fragmento con
+  // ctx.chunkType==='table_row' que llegara aquí sería un error de
+  // enrutamiento en el llamador, no un caso a degradar en silencio — por eso
+  // no hay rama 'table_row': si faltara, el genérico de abajo lo etiquetaría
+  // mal y de forma visible, no lo escondería.
 
   if (ctx.chunkType === 'table_summary') {
     const sheet = ctx.sheetName ? ` de la hoja "${ctx.sheetName}"` : '';
@@ -503,6 +494,67 @@ function describeFragment(
   }
 
   return `[Fragmento ${position} de "${documentName}"]`;
+}
+
+/**
+ * F-53: el bloque del documento existente, en formato barato — cabecera de
+ * tabla una vez, filas numeradas debajo, sin repetir nombre de documento ni
+ * columnas por fila. Reemplaza el `.map(describeFragment)` de siempre.
+ *
+ * Agrupa por tableId en orden de PRIMERA aparición (no reordena
+ * `candidate.fragments`: solo decide qué bloques salen y en qué orden salen
+ * los bloques, que es el de su primer fragmento). Una fila de tabla NUNCA
+ * llega a describeFragment — se agrupa aquí. Un table_summary cuya tabla YA
+ * tiene filas en este bloque se OMITE (su información vive en la cabecera
+ * del grupo); esto asume que las filas de una tabla preceden a su resumen
+ * dentro de `fragments`, cierto por construcción en retrieval.ts
+ * (`assembleTable` siempre devuelve `[...filas, resumen]`, nunca al revés) —
+ * si esa función cambiara ese orden, este bloque duplicaría el resumen en
+ * vez de perderlo, un fallo visible, no silencioso. Un table_summary de una
+ * tabla SIN filas en este candidato (nivel 3) sí llega a describeFragment,
+ * sin cambios.
+ */
+function buildExistingFragsBlock(
+  fragments: DocumentFragment[],
+  documentName: string,
+  docChunks: StoredChunk[],
+  columnOrderByTable: Map<string, string[]>,
+): string {
+  const rowsByTable = new Map<string, DocumentFragment[]>();
+  const blocks: Array<{ kind: 'table'; tableId: string } | { kind: 'standalone'; fragment: DocumentFragment }> = [];
+
+  for (const f of fragments) {
+    const ctx = f.context;
+    if (!f.isContext && ctx?.chunkType === 'table_row' && ctx.tableId) {
+      if (!rowsByTable.has(ctx.tableId)) {
+        rowsByTable.set(ctx.tableId, []);
+        blocks.push({ kind: 'table', tableId: ctx.tableId });
+      }
+      rowsByTable.get(ctx.tableId)!.push(f);
+      continue;
+    }
+    if (!f.isContext && ctx?.chunkType === 'table_summary' && ctx.tableId && rowsByTable.has(ctx.tableId)) {
+      continue;
+    }
+    blocks.push({ kind: 'standalone', fragment: f });
+  }
+
+  let position = 0;
+  const parts: string[] = [];
+  for (const block of blocks) {
+    position++;
+    if (block.kind === 'standalone') {
+      parts.push(`${describeFragment(block.fragment, position, documentName)}\n${block.fragment.text}`);
+      continue;
+    }
+    const rows = rowsByTable.get(block.tableId)!;
+    const columns = columnOrderByTable.get(block.tableId) ?? [];
+    const sheetName = rows[0].context?.sheetName ?? null;
+    const totalRows = docChunks.filter(c => c.tableId === block.tableId && c.chunkType === 'table_row').length;
+    const rowData = rows.map(f => ({ rowIndex: f.context?.rowIndex ?? null, cells: f.context?.cells ?? null }));
+    parts.push(renderTableBlock(sheetName, block.tableId, documentName, columns, totalRows, rowData));
+  }
+  return parts.join('\n\n');
 }
 
 async function judgeSingleDocument(args: {
@@ -573,9 +625,7 @@ async function judgeSingleDocument(args: {
     }
   }
 
-  const existingFragsBlock = candidate.fragments
-    .map((f, i) => `${describeFragment(f, i + 1, candidate.documentName, columnOrderByTable)}\n${f.text}`)
-    .join('\n\n');
+  const existingFragsBlock = buildExistingFragsBlock(candidate.fragments, candidate.documentName, candidateChunks, columnOrderByTable);
 
   const prompt = `Eres un auditor de documentación. Tu tarea es comparar CONTENIDO CONCRETO entre dos documentos y emitir un juicio preciso, no una impresión general.
 
@@ -762,6 +812,40 @@ Responde con este JSON (sin bloques de código, sin texto adicional):
   }
 }
 
+/**
+ * F-53: el lado ANALIZADO, en el mismo formato barato que el candidato — sin
+ * esto, el commit habría corregido un solo lado de la asimetría de
+ * presentación que motiva todo el paso 5 (F-47). Recorre los chunks en orden
+ * de documento (chunkIndex), no agrupados de antemano: una tabla se renderiza
+ * ENTERA (todas sus filas, no una selección) la primera vez que aparece
+ * cualquiera de sus chunks, y las tablas siguientes se saltan (`rendered`).
+ * Un chunk de prosa se muestra tal cual, sin etiqueta — es la continuación
+ * natural del texto corrido de siempre; la simetría que importa aquí es la de
+ * las TABLAS, no la de envolver cada párrafo en un `[Fragmento N]` que hoy no
+ * existe en este lado y que este commit no añade (fuera de alcance, ver
+ * mensaje de commit).
+ */
+function buildAnalyzedDocumentText(chunks: StoredChunk[], documentName: string): string {
+  const groups = groupChunksByTable(chunks);
+  const groupByTableId = new Map(groups.map(g => [g.tableId, g]));
+  const rendered = new Set<string>();
+  const sorted = [...chunks].sort((a, b) => a.chunkIndex - b.chunkIndex);
+
+  const pieces: string[] = [];
+  for (const c of sorted) {
+    if (c.chunkType === 'table_row' || c.chunkType === 'table_summary') {
+      if (!c.tableId || rendered.has(c.tableId)) continue;
+      const group = groupByTableId.get(c.tableId);
+      if (!group) continue; // table_summary sin filas propias: no debería darse (F-44), degrada omitiéndolo, no inventando filas.
+      rendered.add(c.tableId);
+      pieces.push(renderTableBlock(group.sheetName, group.tableId, documentName, group.columns, group.totalRows, group.rows));
+      continue;
+    }
+    pieces.push(c.text);
+  }
+  return pieces.join('\n\n');
+}
+
 /** Judgments y su evidencia de verificación, emparejados por POSICIÓN con
  *  `candidates` — evidences[i] corresponde a judgments[i] (F-35). */
 export interface JudgeAllResult {
@@ -787,15 +871,40 @@ export async function judgeAllDocuments(args: {
 
   const isExhaustive = args.options?.exhaustive === true;
 
+  // F-53: el texto del documento analizado sale de sus chunks, en el mismo
+  // formato barato que el candidato — no de args.newDocumentSample (texto
+  // plano). FALLBACK, declarado y contado: si no hay chunks (documento
+  // indexado antes de F-20 llegado por la bandeja o el camino de mejora, sin
+  // storagePath en esa petición — ver mensaje de commit, es una limitación
+  // real, no una omisión), se usa args.newDocumentSample tal cual, como
+  // siempre. No hay tercera vía: trocear "al vuelo" exigiría el fichero
+  // original, que esos dos caminos no tienen.
+  const hasChunks = (args.newDocumentChunks?.length ?? 0) > 0;
+  if (!hasChunks) {
+    console.warn(`[judge] "${args.newDocumentName}": sin newDocumentChunks — documento analizado en texto plano (fallback_sin_chunks)`);
+  }
+  const fullDocumentText = hasChunks
+    ? buildAnalyzedDocumentText(args.newDocumentChunks!, args.newDocumentName)
+    : args.newDocumentSample;
+
   // Modo rápido: truncar para ahorrar tokens (solo el texto del PROMPT).
   // Modo exhaustivo: documento completo.
   // El fallback de verificación (newDocumentFallbackText) usa SIEMPRE
   // args.newDocumentSample sin truncar: el LLM no pudo citar más allá de lo
   // que vio en el prompt, pero recortar también el haystack de verificación
-  // no aporta nada y solo arriesga rechazar una cita real.
+  // no aporta nada y solo arriesga rechazar una cita real. Cuando no hay
+  // chunks, newDocumentFallbackText y el prompt son EL MISMO texto plano —
+  // consistente con el caso de chunks, donde también son dos vistas del
+  // mismo documento.
+  if (!isExhaustive && fullDocumentText.length > NEW_DOC_LIMIT_QUICK) {
+    // F-53: antes pasaba en silencio (slice puro). El formato barato reduce
+    // cuánto ocurre esto (medido: RRHH-06 deja de necesitarlo), pero no lo
+    // elimina — OPE-06 lo sigue necesitando, y ahora queda dicho.
+    console.warn(`[judge] "${args.newDocumentName}": documento analizado truncado a ${NEW_DOC_LIMIT_QUICK} de ${fullDocumentText.length} caracteres`);
+  }
   const newDocumentText = isExhaustive
-    ? args.newDocumentSample
-    : args.newDocumentSample.slice(0, NEW_DOC_LIMIT_QUICK);
+    ? fullDocumentText
+    : fullDocumentText.slice(0, NEW_DOC_LIMIT_QUICK);
 
   const results = await runInBatches(
     args.candidates,
