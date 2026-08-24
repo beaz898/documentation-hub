@@ -100,27 +100,60 @@ Responde EXCLUSIVAMENTE con este JSON:
     };
   }
 
-  // Construir overlaps a partir de los juicios.
-  // Se busca el primer evidenceInNewDoc no vacío para usarlo como textRef
-  // (permite que la tarjeta de duplicidad sea clickable en el editor).
-  const overlaps = judgments
-    .filter(j => j.overlappingContent.some(o => o.description.trim().length > 0))
-    .map(j => {
-      // Buscar la primera cita literal del documento nuevo entre los solapamientos
-      const firstEvidence = j.overlappingContent.find(
-        o => o.evidenceInNewDoc && o.evidenceInNewDoc.trim().length > 0
-      );
-      return {
+  // Construir overlaps a partir de los juicios — F-45: por GRUPO, no por
+  // documento. Un documento puede aportar dos overlaps: uno con lo que el
+  // juez detectó y pudo citar (sin confirmedBy, como siempre) y otro con lo
+  // que el colapso de filas idénticas confirmó estructuralmente
+  // (confirmedBy==='estructura', F-44/F-45) — fusionarlos en un solo overlap
+  // por documento, como antes de F-45, perdería la identidad de la entrada
+  // estructural: su severidad y su porcentaje no dependen de lo que el juez
+  // haya podido decir, y no deben diluirse en un join de texto. La UI ya
+  // agrupa por existingDocument en el cliente (AnalysisModal.tsx), así que
+  // los dos caen en el mismo desplegable sin tocar nada ahí.
+  //
+  // Se busca el primer evidenceInNewDoc no vacío de CADA montón para usarlo
+  // como textRef (permite que la tarjeta de duplicidad sea clickable en el
+  // editor) — el montón estructural nunca tiene uno (evidence/evidenceInNewDoc
+  // van vacíos a propósito, ver pipeline.ts), así que su overlap sale sin
+  // textRef.
+  const overlaps: FinalAnalysis['overlaps'] = [];
+  for (const j of judgments) {
+    const judgeEntries = j.overlappingContent.filter(o => !o.confirmedBy && o.description.trim().length > 0);
+    const structuralEntries = j.overlappingContent.filter(o => o.confirmedBy && o.description.trim().length > 0);
+
+    if (judgeEntries.length > 0) {
+      const firstEvidence = judgeEntries.find(o => o.evidenceInNewDoc && o.evidenceInNewDoc.trim().length > 0);
+      overlaps.push({
         existingDocument: j.documentName,
-        description: j.overlappingContent
-          .filter(o => o.description.trim().length > 0)
-          .map(o => o.description)
-          .join('. '),
+        description: judgeEntries.map(o => o.description).join('. '),
         severity: (j.overlapPercent >= 60 ? 'alta' : j.overlapPercent >= 30 ? 'media' : 'baja') as 'alta' | 'media' | 'baja',
         overlapPercent: j.overlapPercent,
         textRef: firstEvidence?.evidenceInNewDoc || undefined,
-      };
-    });
+      });
+    }
+
+    if (structuralEntries.length > 0) {
+      // F-46: MÁXIMO entre lo que midió el juez (j.overlapPercent, el mismo
+      // número que arriba) y lo que midió el colapso — no la media: son dos
+      // mediciones de cosas distintas (impresión del LLM sobre lo que vio vs.
+      // proporción real de filas idénticas verificadas celda a celda) y el
+      // solapamiento real es, como mínimo, el mayor de los dos. Si una misma
+      // tabla colapsara en más de un tramo (raro, pero posible con varias
+      // consultas de retrieval), se toma la de mayor proporción.
+      const structuralPercent = Math.max(...structuralEntries.map(o => o.structuralPercent ?? 0));
+      const firstEvidence = structuralEntries.find(o => o.evidenceInNewDoc && o.evidenceInNewDoc.trim().length > 0);
+      overlaps.push({
+        existingDocument: j.documentName,
+        description: structuralEntries.map(o => o.description).join('. '),
+        // 'alta' de fábrica (F-46): nueve filas idénticas verificadas celda a
+        // celda no es una severidad estimada por umbral, como la del juez.
+        severity: 'alta',
+        overlapPercent: Math.max(j.overlapPercent, structuralPercent),
+        textRef: firstEvidence?.evidenceInNewDoc || undefined,
+        confirmedBy: 'estructura',
+      });
+    }
+  }
 
   // Construir discrepancies con las claves que el frontend espera
   const discrepancies = judgments.flatMap(j =>

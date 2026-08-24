@@ -1,5 +1,6 @@
 import type { FinalAnalysis, PipelineOptions, DiscardedFindings } from './types';
 import { retrieveCandidates } from './retrieval';
+import type { StructuralOverlap } from './retrieval';
 import { rerankCandidates } from './rerank';
 import { judgeAllDocuments } from './judge';
 import type { JudgmentEvidence } from './judge';
@@ -142,12 +143,18 @@ interface CascadeOutcome {
  * judgeSingleDocument, para que generar y verificar no compartan ámbito de
  * ejecución.
  *
- * Solo contradictions[], no overlappingContent[], en este commit: 'reclassify'
- * solo tiene sentido literal como contradicción→solapamiento (así lo describe
- * F-35), y la pregunta de verifyFindings ("¿se oponen sobre el mismo dato?")
- * encaja con lo que una contradicción afirma — no con lo que afirma un
- * solapamiento (acuerdo, no oposición). Extender la cascada a solapamientos
- * es una decisión de diseño aparte, no tomada aquí.
+ * Solo contradictions[] pasa por verifyFindings, no overlappingContent[]: la
+ * pregunta de verifyFindings ("¿se oponen sobre el mismo dato?") encaja con
+ * lo que una contradicción afirma — no con lo que afirma un solapamiento
+ * (acuerdo, no oposición). Extender la VERIFICACIÓN a solapamientos es una
+ * decisión de diseño aparte, no tomada aquí. overlappingContent sí gana
+ * entradas nuevas aquí, por dos vías que no pasan por esa pregunta: la
+ * reclasificación de 'reclassify' (contradicción→solapamiento, como antes) y,
+ * desde F-45, el solapamiento estructural que ya trae `structuralOverlaps` —
+ * ninguna de las dos necesita verifyFindings porque ninguna es un veredicto
+ * del juez sobre el que dudar: una viene de la capa determinista, la otra del
+ * colapso de filas idénticas (F-44), verificado celda a celda antes de llegar
+ * aquí.
  *
  * `evidence` muere al final de esta función: no sale en el `judgment` que
  * devuelve, que es la única pieza que sigue viaje hacia synthesize.
@@ -170,6 +177,7 @@ async function applyCascadeToCandidate(
   existingChunks: StoredChunk[],
   newDocumentName: string,
   label: string,
+  structuralOverlaps: StructuralOverlap[],
 ): Promise<CascadeOutcome> {
   const counts: DiscardedFindings = {};
   const tally: CascadeTally = {
@@ -311,11 +319,33 @@ async function applyCascadeToCandidate(
     mergedDiscarded[key] = (mergedDiscarded[key] ?? 0) + n;
   }
 
+  // F-45: un solapamiento por tabla colapsada (retrieval.ts F-44) — nunca
+  // pasó por el juez, así que tampoco pasa por fixQuotesInJudgment (esa
+  // verificación ya corrió antes, dentro de judgeSingleDocument, sobre lo que
+  // el juez emitió). `evidence`/`evidenceInNewDoc` quedan vacíos a propósito:
+  // no hay una cita única que resuma N filas colapsadas — el texto que sí
+  // sostiene el hallazgo va en `description`, con las columnas y el valor de
+  // cada fila que coincidió.
+  const structuralEntries: DocumentJudgment['overlappingContent'] = structuralOverlaps.map(s => {
+    const structuralPercent = s.rowsTotal > 0 ? Math.round((s.collapsedCount / s.rowsTotal) * 100) : 0;
+    const tableLabel = s.sheetName ? `"${s.sheetName}"` : 'una tabla';
+    return {
+      description:
+        `${s.collapsedCount} de ${s.rowsTotal} filas de ${tableLabel} de "${judgment.documentName}" ` +
+        `coinciden exactamente, celda a celda, en ${s.columns.join(' y ')} con filas de "${newDocumentName}": ` +
+        `${s.labels.join(', ')}.`,
+      evidence: '',
+      evidenceInNewDoc: '',
+      confirmedBy: 'estructura',
+      structuralPercent,
+    };
+  });
+
   return {
     judgment: {
       ...judgment,
       contradictions: keptContradictions,
-      overlappingContent: [...judgment.overlappingContent, ...movedToOverlaps],
+      overlappingContent: [...judgment.overlappingContent, ...movedToOverlaps, ...structuralEntries],
       ...(Object.keys(mergedDiscarded).length > 0 ? { discarded: mergedDiscarded } : {}),
     },
     tally,
@@ -333,7 +363,7 @@ async function runCorePipeline(
 ): Promise<FinalAnalysis> {
   const t0 = Date.now();
 
-  const { candidates, chunksByDocument: chunksFromRetrieval } = await retrieveCandidates({
+  const { candidates, chunksByDocument: chunksFromRetrieval, structuralOverlaps } = await retrieveCandidates({
     sampleTexts: input.sampleTexts,
     orgId: input.orgId,
     excludeDocumentId: input.excludeDocumentId,
@@ -440,6 +470,7 @@ async function runCorePipeline(
       existingChunksForCascade,
       input.newDocumentName,
       label,
+      structuralOverlaps.get(judgment.documentId) ?? [],
     );
     judgments.push(outcome.judgment);
     totalHallazgos += outcome.tally.total;

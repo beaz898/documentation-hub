@@ -69,6 +69,16 @@ interface JudgeResponse {
  * texto VISIBLE del documento ("24 HORAS"), no el marcado que lo envuelve
  * en la fuente ("**24 HORAS**"), así que ambos deben normalizar igual para
  * que la comparación coincida.
+ *
+ * F-46: el colapso de filas idénticas (retrieval.ts, F-44) y el solapamiento
+ * estructural que construye sobre él (F-45) descansan enteros en esta
+ * función — "idéntica" significa "igual tras normalize()", nada más. Hoy NO
+ * toca tildes (deliberado, "fallo del lado seguro": un acento distinto
+ * rompe el match exacto). Cualquier ampliación de esta función — tildes,
+ * sinónimos, distancia de edición — es una ampliación de lo que ese colapso
+ * considera "la misma fila", y debe pasar por su batería de medición antes
+ * de tocarse: ensancharla sin medir podría hacer que una discrepancia real
+ * (la propia contradicción que el sistema busca) se trague como idéntica.
  */
 export function normalize(s: string): string {
   return s

@@ -73,6 +73,18 @@ export interface DocumentJudgment {
     description: string;
     evidence: string;
     evidenceInNewDoc?: string;
+    /** F-45: quién generó esta entrada. Ausente = el juez (como siempre, sin
+     *  cambios). 'estructura' = code-generada desde el colapso de filas
+     *  idénticas (retrieval.ts F-44, vía applyCascadeToCandidate) — no
+     *  depende de que el juez pueda citarla, así que sobrevive aunque el
+     *  presupuesto haya sacado las filas reales del prompt. */
+    confirmedBy?: ConfirmedBy;
+    /** F-45/F-46: SOLO presente en entradas con confirmedBy==='estructura'.
+     *  Filas idénticas / filas totales de la tabla que colapsó, como entero
+     *  0-100. No es el overlapPercent del documento entero (ese lo sigue
+     *  fijando el juez en overlapPercent, más abajo) — es la medida de UNA
+     *  tabla, calculada sin LLM de por medio. */
+    structuralPercent?: number;
   }>;
   uniqueToNewDoc: string[];
   discarded?: DiscardedFindings;
@@ -117,6 +129,10 @@ export interface FinalAnalysis {
     severity: 'alta' | 'media' | 'baja';
     overlapPercent: number;
     textRef?: string;
+    /** F-45: presente ('estructura') cuando esta entrada viene del montón
+     *  estructural (synthesize.ts) — ausente cuando viene del montón del
+     *  juez, igual que en discrepancies. */
+    confirmedBy?: ConfirmedBy;
   }>;
   discrepancies: Array<{
     topic: string;

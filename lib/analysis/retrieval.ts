@@ -108,7 +108,15 @@ export async function retrieveCandidates(args: {
    *  F-27/F-24. Aquí solo se usa para indexar sus valores por columna; no se
    *  lee nada de Supabase por esto, el dato ya viaja cargado. */
   newDocumentChunks?: StoredChunk[];
-}): Promise<{ candidates: CandidateDocument[]; chunksByDocument: Map<string, StoredChunk[]> }> {
+}): Promise<{
+  candidates: CandidateDocument[];
+  chunksByDocument: Map<string, StoredChunk[]>;
+  /** F-45: colapsos de filas idénticas por documento candidato — vacío si el
+   *  candidato no tuvo ninguna tabla colapsada (el caso normal). Solo se
+   *  llena en modo rápido: el exhaustivo nunca pasa por selectUnitsWithinBudget
+   *  (sin recorte, no hay nada que colapsar). */
+  structuralOverlaps: Map<string, StructuralOverlap[]>;
+}> {
   const { sampleTexts, orgId, excludeDocumentId, batchDocumentIds, options, supabase, newDocumentChunks } = args;
   const isExhaustive = options?.exhaustive === true;
 
@@ -191,6 +199,7 @@ export async function retrieveCandidates(args: {
   });
 
   const candidates: CandidateDocument[] = [];
+  const structuralOverlapsByDocument = new Map<string, StructuralOverlap[]>();
   for (const [documentId, frags] of byDoc) {
     const unique = deduplicateFragments(frags);
     const sorted = unique.sort((a, b) => b.score - a.score);
@@ -234,6 +243,9 @@ export async function retrieveCandidates(args: {
 
       const result = selectUnitsWithinBudget(units, docChunks, sorted[0], analyzedValueIndex, analyzedRows);
       selected = result.selected;
+      if (result.structuralOverlaps.length > 0) {
+        structuralOverlapsByDocument.set(documentId, result.structuralOverlaps);
+      }
 
       const usedChars = selected.reduce((sum, f) => sum + f.text.length, 0);
       for (const t of result.tableLog) {
@@ -264,6 +276,7 @@ export async function retrieveCandidates(args: {
   return {
     candidates: candidates.sort((a, b) => b.maxScore - a.maxScore).slice(0, 25),
     chunksByDocument,
+    structuralOverlaps: structuralOverlapsByDocument,
   };
 }
 
@@ -500,7 +513,7 @@ function buildContextFragment(
   sharedColumns: Map<string, string>,
   like: DocumentFragment,
   score: number,
-): DocumentFragment {
+): { fragment: DocumentFragment; columns: string[]; labels: string[] } {
   const orderedCols = [...sharedColumns.values()];
   const labels = identicalRows
     .slice()
@@ -512,15 +525,39 @@ function buildContextFragment(
     });
   const text = `[CONTEXTO — no citar: ${identicalRows.length} filas coinciden en ${orderedCols.join(' y ')}: ${labels.join(', ')}]`;
   return {
-    text,
-    documentId: like.documentId,
-    documentName: like.documentName,
-    source: like.source,
-    score,
-    chunkIndex: -1,
-    generation: like.generation,
-    isContext: true,
+    fragment: {
+      text,
+      documentId: like.documentId,
+      documentName: like.documentName,
+      source: like.source,
+      score,
+      chunkIndex: -1,
+      generation: like.generation,
+      isContext: true,
+    },
+    columns: orderedCols,
+    labels,
   };
+}
+
+/**
+ * F-45: lo que el colapso de filas idénticas (F-44) sabe de UNA tabla, en
+ * forma que puede viajar fuera de retrieval.ts — hasta ahora moría entero en
+ * los console.log de abajo. `columns`/`labels` son literalmente los mismos
+ * datos que ya construye la línea de contexto (buildContextFragment): las
+ * columnas compartidas y la etiqueta por fila colapsada, en el mismo orden.
+ * Sirve para que la cascada (pipeline.ts) pueda emitir un solapamiento
+ * verificado sin depender de que el juez lo cite — el colapso ya verificó
+ * celda a celda que esas filas son la misma entidad; no hace falta que un
+ * LLM lo redescubra desde un prompt que, por presupuesto, puede no llevarlas.
+ */
+export interface StructuralOverlap {
+  tableId: string;
+  sheetName: string | null;
+  columns: string[];
+  labels: string[];
+  collapsedCount: number;
+  rowsTotal: number;
 }
 
 /**
@@ -554,7 +591,17 @@ function assembleTable(
   remainingCount: number,
   analyzedValueIndex: Map<string, Set<string>>,
   analyzedRows: StoredChunk[],
-): { level: 1 | 2 | 3; fragments: DocumentFragment[]; usedChars: number; belongingUsed: number; collapsedCount: number } | null {
+): {
+  level: 1 | 2 | 3;
+  fragments: DocumentFragment[];
+  usedChars: number;
+  belongingUsed: number;
+  collapsedCount: number;
+  /** F-45: solo presente cuando el colapso SÍ entró (la línea agregada cupo
+   *  en presupuesto) — no en el caso patológico donde las idénticas vuelven
+   *  a competir sueltas, porque ahí no hubo colapso real que reportar. */
+  structural?: { columns: string[]; labels: string[]; rowsTotal: number };
+} | null {
   const allRowChunks = docChunks
     .filter(c => c.tableId === unit.tableId && c.chunkType === 'table_row')
     .sort((a, b) => a.chunkIndex - b.chunkIndex);
@@ -603,17 +650,20 @@ function assembleTable(
       let usedRowChars = 0;
       let belongingUsed = 0;
       let collapsedCount = 0;
+      let structural: { columns: string[]; labels: string[]; rowsTotal: number } | undefined;
 
       if (identicalRows.length > 0) {
         const aggregated = buildContextFragment(identicalRows, docChunks, sharedCols, like, unit.score);
-        if (aggregated.text.length <= budgetForRows && packedRows.length < countForRows) {
-          packedRows.push(aggregated);
-          usedRowChars += aggregated.text.length;
+        if (aggregated.fragment.text.length <= budgetForRows && packedRows.length < countForRows) {
+          packedRows.push(aggregated.fragment);
+          usedRowChars += aggregated.fragment.text.length;
           collapsedCount = identicalRows.length;
+          structural = { columns: aggregated.columns, labels: aggregated.labels, rowsTotal: allRowChunks.length };
         } else {
           // Caso patológico: ni la línea agregada cupo. Las idénticas vuelven
           // a competir como cualquier otra fila, sin colapsar — mejor una
-          // fila entera que ninguna.
+          // fila entera que ninguna. Sin colapso real, no hay dato estructural
+          // que reportar (structural queda undefined).
           restRows = [...restRows, ...identicalRows].sort(byRestOrder);
         }
       }
@@ -626,7 +676,7 @@ function assembleTable(
         if ((crossingsByIndex.get(rowFragment.chunkIndex) ?? 0) > 0) belongingUsed++;
       }
       if (packedRows.length > 0) {
-        return { level: 2, fragments: [...packedRows, summaryFragment], usedChars: summaryChars + usedRowChars, belongingUsed, collapsedCount };
+        return { level: 2, fragments: [...packedRows, summaryFragment], usedChars: summaryChars + usedRowChars, belongingUsed, collapsedCount, structural };
       }
     }
     if (summaryChars <= remainingBudget && remainingCount >= 1) {
@@ -685,9 +735,10 @@ function selectUnitsWithinBudget(
   like: DocumentFragment,
   analyzedValueIndex: Map<string, Set<string>>,
   analyzedRows: StoredChunk[],
-): { selected: DocumentFragment[]; tableLog: TableLevelLog[]; unitsIn: number; unitsOut: number } {
+): { selected: DocumentFragment[]; tableLog: TableLevelLog[]; unitsIn: number; unitsOut: number; structuralOverlaps: StructuralOverlap[] } {
   const selected: DocumentFragment[] = [];
   const tableLog: TableLevelLog[] = [];
+  const structuralOverlaps: StructuralOverlap[] = [];
   let usedChars = 0;
   let unitsIn = 0;
 
@@ -730,6 +781,16 @@ function selectUnitsWithinBudget(
         collapsedCount: assembled.collapsedCount,
         chars: assembled.usedChars,
       });
+      if (assembled.structural) {
+        structuralOverlaps.push({
+          tableId: unit.tableId,
+          sheetName: unit.sheetName,
+          columns: assembled.structural.columns,
+          labels: assembled.structural.labels,
+          collapsedCount: assembled.collapsedCount,
+          rowsTotal: assembled.structural.rowsTotal,
+        });
+      }
       continue;
     }
 
@@ -752,5 +813,5 @@ function selectUnitsWithinBudget(
     }
   }
 
-  return { selected, tableLog, unitsIn, unitsOut: units.length - unitsIn };
+  return { selected, tableLog, unitsIn, unitsOut: units.length - unitsIn, structuralOverlaps };
 }
