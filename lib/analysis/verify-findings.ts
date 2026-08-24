@@ -144,16 +144,6 @@ function bump(counts: DiscardedFindings, key: string): void {
  * sepa qué valor concreto disparó el hallazgo dentro de la fila completa.
  * Si no hay chunk, o el chunk no es una fila con celdas, se muestra la cita
  * con su contexto vecino (prosa) — o sola, si tampoco hay vecinos.
- *
- * F-58: la fila se presenta en el MISMO formato que ve el juez (cabecera con
- * las columnas en orden, valores posicionales debajo) — antes iba en pares
- * "Columna: valor" mientras la cita, desde F-56, llega ya en formato nuevo
- * (solo valores). Fila y cita quedaban en dos idiomas distintos, en líneas
- * consecutivas del mismo bloque, y este prompt le pide al verificador
- * emparejar la una con la otra por columna: un emparejamiento translingüe
- * que nadie decidió, efecto colateral de dejar de sustituir la cita. Si no
- * hay `columnOrder` (documento sin orden resuelto), se cae a las claves de
- * `cells` — mismo criterio degradado que ya tenía, no una vía nueva.
  */
 function describeSide(quote: string, chunk: StoredChunk | null, neighbours: FindingNeighbours, columnOrder: string[] | null): string {
   if (chunk && chunk.chunkType === 'table_row' && chunk.cells) {
@@ -164,8 +154,8 @@ function describeSide(quote: string, chunk: StoredChunk | null, neighbours: Find
     const orderedKeys = columnOrder && columnOrder.length > 0
       ? columnOrder.filter(c => cells[c] !== undefined)
       : Object.keys(cells);
-    const values = orderedKeys.map(k => cells[k]).join(' | ');
-    return `Fila de tabla${sheet}${row}. Columnas: ${orderedKeys.join(', ')}\nLa fila: ${values}\nValor que señaló el auditor: "${quote}"`;
+    const allCells = orderedKeys.map(k => `${k}: ${cells[k]}`).join(' | ');
+    return `Fila de tabla${sheet}${row}. Todas sus columnas: ${allCells}\nValor que señaló el auditor: "${quote}"`;
   }
   const prev = neighbours.previous ? `(...) ${neighbours.previous}\n` : '';
   const next = neighbours.next ? `\n${neighbours.next} (...)` : '';
@@ -200,7 +190,6 @@ VEREDICTOS POSIBLES:
 - "mismo_dato_sin_oposicion": hablan del mismo dato concreto, pero no son incompatibles (una amplía, matiza, o coincide con la otra).
 - "sin_relacion": no hablan del mismo dato concreto, aunque compartan tema, entidad o vocabulario.
 
-Una fila de tabla se te muestra como "Columnas: A, B, C" y debajo "La fila: valor de A | valor de B | valor de C", en ese mismo orden. El emparejamiento valor→columna es POSICIONAL: el primer valor es el de A, el segundo el de B, y así.
 Si un lado es una fila de tabla, compara SOLO columnas que también aparezcan citadas o mencionadas en el otro lado. Una columna que solo existe en un lado no es un dato compartido: no la uses para decidir.
 
 Para "confirmado", añade además severity: "contradiction" si son incompatibles sin matices, "minor_inconsistency" si la oposición es de enfoque, grado o énfasis.

@@ -682,31 +682,16 @@ Antes de emitir cualquier hallazgo, verifica que los dos textos hablan del
 MISMO DATO CONCRETO. Si hablan de datos distintos, no hay nada que comparar y
 NO emites hallazgo, aunque ambos textos pertenezcan al mismo ámbito.
 
-CÓMO SE PRESENTAN LAS TABLAS:
-Una tabla llega como una cabecera y sus filas debajo:
-[TABLA "nombre de la hoja" — hoja de NOMBRE_DEL_DOCUMENTO — N filas. Columnas: A, B, C]
-[F0] valor de A | valor de B | valor de C
-[F3] valor de A | valor de B | valor de C
-La cabecera nombra las columnas UNA vez y en orden; cada fila lleva sus valores
-en ESE MISMO ORDEN, separados por "|". El primer valor de una fila es la
-columna A, el segundo la B, y así. "[Fk]" es el número de la fila dentro de su
-tabla: sirve para que sepas de qué fila hablas, NO se copia dentro de las citas
-(igual que no se citan los fragmentos por su número).
-
-CUANDO LOS DOS TEXTOS SON FILAS DE TABLAS:
-Empareja los valores con su columna usando la cabecera de cada tabla, y compara
-SOLO las columnas que aparezcan en AMBAS cabeceras. Una columna que solo
-aparece en una de las dos tablas NO es comparable: no existe el dato
-equivalente en el otro lado, así que no puede haber contradicción sobre ella.
-Que ambas filas se refieran a la misma entidad (la misma persona, el mismo
-cliente, el mismo producto) permite compararlas, pero NO es por sí solo un
-hallazgo: la contradicción exige que una misma columna tenga valores
-incompatibles en los dos textos.
+CUANDO LOS DOS TEXTOS SON FILAS DE TABLAS (formato "Columna: valor | Columna: valor"):
+Compara SOLO los valores de columnas que aparezcan en AMBOS textos, emparejando
+por el nombre de la columna. Una columna que solo aparece en uno de los dos
+textos NO es comparable: no existe el dato equivalente en el otro lado, así que
+no puede haber contradicción sobre ella. Que ambas filas se refieran a la misma
+entidad (la misma persona, el mismo cliente, el mismo producto) permite
+compararlas, pero NO es por sí solo un hallazgo: la contradicción exige que una
+misma columna tenga valores incompatibles en los dos textos.
 Si las dos filas no comparten ninguna columna con valores distintos, NO emitas
 hallazgo.
-Algunos documentos antiguos presentan sus filas como pares "Columna: valor |
-Columna: valor", con el nombre repetido en cada una. La misma regla aplica:
-compara por columna, no por tema de tabla.
 
 Después, si hablan del mismo dato: si puedes imaginar un contexto razonable en
 el que ambas afirmaciones sean verdaderas a la vez, NO es contradicción.
@@ -738,10 +723,10 @@ EJEMPLOS DE LO QUE NO ES CONTRADICCIÓN (usar inconsistencia menor si aplica):
 - "El proyecto tiene 3 fases" vs "El proyecto tiene 3 fases principales y 2 secundarias" → la segunda amplía la primera, no la contradice
 - "Se recomienda usar Python" vs "Se recomienda usar TypeScript" → pueden ser recomendaciones para contextos diferentes
 - Afirmaciones genéricas vs específicas que son compatibles entre sí
-- El "8" de la columna Horas semana de una tabla vs el "2026-06-11" de la columna Fecha evaluación de otra → son columnas DISTINTAS (una jornada y una fecha). No hay nada que comparar: no se emite hallazgo.
-- "Laura Núñez | Higienista" (columnas Empleado, Puesto) vs "Tartrectomía | Higienista" (columnas Tratamiento, Profesional) → CONCUERDAN. Que coincidan no es un hallazgo.
-- El "256" de la columna Total horas equipo/semana vs "las horas por encima de la jornada deben estar autorizadas previamente" → un total y una norma de autorización no son el mismo dato: no se contradicen.
-- Dos tablas de temas distintos (turnos y evaluaciones) comparten a las mismas personas: que una fila tenga datos que la otra no tiene NO es contradicción — son complementarios. Pero si la MISMA columna aparece en ambas con valores distintos para la misma persona (el mismo Puesto en dos tablas, con dos valores), eso SÍ es contradicción, aunque las tablas traten de temas distintos.
+- "Horas semana: 8" vs "Fecha evaluación: 2026-06-11" → son datos DISTINTOS (una jornada y una fecha). No hay nada que comparar: no se emite hallazgo.
+- "Empleado: Laura Núñez | Puesto: Higienista" vs "Tratamiento: Tartrectomía | Profesional: Higienista" → CONCUERDAN. Que coincidan no es un hallazgo.
+- "Total horas equipo/semana: 256" vs "las horas por encima de la jornada deben estar autorizadas previamente" → un total y una norma de autorización no son el mismo dato: no se contradicen.
+- El mismo empleado con datos distintos en dos tablas de temas distintos (turnos y evaluaciones) no es contradicción: son datos complementarios sobre la misma persona.
 
 TIPOS DE DISCREPANCIA QUE CUENTAN COMO HALLAZGO (solo si superan la regla principal):
 - CONTRADICCIÓN DIRECTA: "El plazo es 30 días" vs "El plazo es 15 días".
