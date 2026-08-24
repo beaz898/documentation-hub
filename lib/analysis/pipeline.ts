@@ -185,6 +185,12 @@ async function applyCascadeToCandidate(
   const movedToOverlaps: DocumentJudgment['overlappingContent'] = [];
   const toVerify: Array<{
     contradiction: DocumentJudgment['contradictions'][number];
+    // Índice en judgment.contradictions/evidence.contradictions (F-40):
+    // toVerify es un array COMPACTADO (solo lo que cayó a 'pass'), así que su
+    // propia posición diverge de ese índice en cuanto un hallazgo anterior
+    // tomó otra rama. Sin esto, no hay forma de recuperar el hash correcto
+    // más abajo, en results.forEach.
+    sourceIndex: number;
     finding: FindingToVerify;
   }> = [];
 
@@ -256,6 +262,7 @@ async function applyCascadeToCandidate(
 
     toVerify.push({
       contradiction: c,
+      sourceIndex: i,
       finding: {
         topic: c.topic,
         newDocSays: c.newDocSays,
@@ -277,17 +284,21 @@ async function applyCascadeToCandidate(
     }
     results.forEach((r, i) => {
       const original = toVerify[i].contradiction;
+      // Hash leído, no recalculado (F-40): mismo sitio que las otras cinco
+      // líneas (evidence.contradictions), pero indexado por sourceIndex —
+      // el índice de toVerify[i] no sirve aquí, es el de un array compactado.
+      const hash = evidence.contradictions[toVerify[i].sourceIndex]?.hash ?? '????????';
       if (r.verdict === 'confirmado') {
         bumpCount(counts, 'confirmado.por_juicio');
         tally.confirmados++;
         tally.confirmadosPorJuicio++;
-        console.log(`[${label}] · "${original.topic.slice(0, 60)}" → confirmado por juicio`);
+        console.log(`[${label}] · [${hash}] "${original.topic.slice(0, 60)}" → confirmado por juicio`);
         keptContradictions.push({ ...original, severity: r.severity ?? original.severity, confirmedBy: 'juicio' });
       } else {
         // 'mismo_dato_sin_oposicion' y 'sin_relacion' mueren aquí — sus
         // motivos ya están contados dentro de verifyCounts.
         tally.descartados++;
-        console.log(`[${label}] · "${original.topic.slice(0, 60)}" → descartado: ${r.verdict}`);
+        console.log(`[${label}] · [${hash}] "${original.topic.slice(0, 60)}" → descartado: ${r.verdict}`);
       }
     });
   }

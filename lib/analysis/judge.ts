@@ -621,12 +621,13 @@ Responde con este JSON (sin bloques de código, sin texto adicional):
     // todavía por verifyQuote) — porque es el único punto en el que ese texto
     // crudo sigue disponible sin ambigüedad.
     console.log(
-      `[judge] RAW "${candidate.documentName}": overlap=${rawJudgment.overlapPercent}%, ` +
-      `${rawJudgment.contradictions.length} contradicciones, ${rawJudgment.overlappingContent.length} solapamientos`
+      `[judge] RAW analizado="${newDocumentName}" candidato="${candidate.documentName}": ` +
+      `overlap=${rawJudgment.overlapPercent}%, ${rawJudgment.contradictions.length} contradicciones, ` +
+      `${rawJudgment.overlappingContent.length} solapamientos`
     );
     for (const c of rawJudgment.contradictions) {
       const hash = hashCitationPair(c.newDocSays, c.existingDocSays);
-      console.log(`[judge] RAW "${candidate.documentName}" · [${hash}] "${c.topic.slice(0, 60)}"`);
+      console.log(`[judge] RAW analizado="${newDocumentName}" candidato="${candidate.documentName}" · [${hash}] "${c.topic.slice(0, 60)}"`);
     }
 
     const existingChunks = args.chunksByDocument?.get(candidate.documentId) ?? [];

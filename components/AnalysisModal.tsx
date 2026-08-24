@@ -139,29 +139,6 @@ function AnalysisModeBadge({ mode }: { mode: 'quick' | 'exhaustive' }) {
 }
 
 // ============================================================
-// Confidence badge (defined but available for future use)
-// ============================================================
-function ConfidenceBadge({ confidence }: { confidence: 'alta' | 'posible' }) {
-  const t = useTranslations('analysis');
-  const isHigh = confidence === 'alta';
-  return (
-    <span style={{
-      fontSize: 8, fontWeight: 600, textTransform: 'uppercase',
-      letterSpacing: 0.3, padding: '1px 5px', borderRadius: 3,
-      background: isHigh ? 'rgba(220,38,38,0.12)' : 'rgba(245,158,11,0.12)',
-      color: isHigh ? 'var(--danger-text)' : 'var(--warning-text)',
-      border: `0.5px solid ${isHigh ? 'rgba(220,38,38,0.3)' : 'rgba(245,158,11,0.3)'}`,
-      flexShrink: 0,
-    }}>
-      {isHigh ? t('confidenceHigh') : t('confidencePossible')}
-    </span>
-  );
-}
-
-// Suppress unused warning — ConfidenceBadge is kept for future use
-void ConfidenceBadge;
-
-// ============================================================
 // Main modal
 // ============================================================
 export default function AnalysisModal({ fileName, analysis, onConfirm, onCancel, onImprove, onExhaustive, onMinimize, mode = 'upload', onMarkAnalyzed, onRemove, stagedDecision = false, onApproveStaged, onDiscardStaged }: AnalysisModalProps) {
