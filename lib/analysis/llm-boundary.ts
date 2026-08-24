@@ -1,3 +1,4 @@
+import { createHash } from 'crypto';
 import type { DocumentJudgment, DiscardedFindings } from './types';
 
 /**
@@ -130,4 +131,32 @@ export function sanitizeJudgeContradictions(raw: unknown): {
   }
 
   return { contradictions, discarded };
+}
+
+/**
+ * Hash corto (8 hex) de un par de citas — el identificador que sobrevive a un
+ * retitulado. F-38: `topic` no vale como identificador porque una etapa puede
+ * reescribirlo (y lo hacía: costó día y medio de diagnóstico rastrear un
+ * hallazgo por su nombre y no encontrarlo). Las citas identifican el
+ * hallazgo, y cuando cambian —en verifyQuote, judge.ts, al sustituirse por el
+ * texto real del chunk— es una sustitución de FORMA, no un retitulado de
+ * CONTENIDO: por eso el hash se calcula siempre sobre las citas tal como las
+ * emitió el juez, antes de esa sustitución, nunca después.
+ *
+ * Extiende el patrón de `generateContentHash` (hash-check.ts): mismo
+ * `createHash('sha256')`, recortado a 8 caracteres — sobra para distinguir
+ * entre los pocos hallazgos de una sola ejecución, y un hash largo en cada
+ * línea de log sería ruido.
+ *
+ * Normaliza igual que `hash-check.ts` (minúsculas, espacios colapsados) para
+ * que el mismo hallazgo dé el mismo hash entre ejecuciones si el texto no
+ * cambió. Normalización propia, no importada de `hash-check.ts` ni de
+ * `judge.ts`: judge.ts ya importa de este fichero
+ * (`sanitizeJudgeContradictions`), e importar `normalize()` de judge.ts aquí
+ * crearía un ciclo.
+ */
+export function hashCitationPair(newDocSays: string, existingDocSays: string): string {
+  const normalizeForHash = (s: string) => s.toLowerCase().replace(/\s+/g, ' ').trim();
+  const combined = `${normalizeForHash(newDocSays)}|${normalizeForHash(existingDocSays)}`;
+  return createHash('sha256').update(combined, 'utf8').digest('hex').slice(0, 8);
 }

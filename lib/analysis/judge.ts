@@ -1,6 +1,6 @@
 import { callLLMJson } from './llm-client';
 import { runInBatches } from '@/lib/run-in-batches';
-import { sanitizeJudgeContradictions } from './llm-boundary';
+import { sanitizeJudgeContradictions, hashCitationPair } from './llm-boundary';
 import type { RerankedCandidate, DocumentJudgment, PipelineOptions, DiscardedFindings, DocumentFragment } from './types';
 import type { StoredChunk } from '@/lib/read-chunks';
 
@@ -285,10 +285,16 @@ function describeFailedSide(newFailed: boolean, existingFailed: boolean): 'nuevo
  * verify-findings.ts) decida, y muere en cuanto la cascada termina.
  * null en un lado cuando verifyQuote no pudo asociar chunk (fallback de texto
  * plano, documento sin persistir en F-20).
+ *
+ * `hash` (F-38): el identificador que sobrevive a un retitulado — arrastra el
+ * mismo hash que ya calculó fixQuotesInJudgment sobre las citas CRUDAS, antes
+ * de que este mismo bloque las sustituya por el texto del chunk. Viaja aquí en
+ * vez de recalcularse en la cascada porque en la cascada esas citas crudas ya
+ * no existen (judgment.contradictions, en ese punto, ya está sustituido).
  */
 export interface JudgmentEvidence {
-  contradictions: Array<{ newChunk: StoredChunk | null; existingChunk: StoredChunk | null }>;
-  overlaps: Array<{ newChunk: StoredChunk | null; existingChunk: StoredChunk | null }>;
+  contradictions: Array<{ hash: string; newChunk: StoredChunk | null; existingChunk: StoredChunk | null }>;
+  overlaps: Array<{ hash: string; newChunk: StoredChunk | null; existingChunk: StoredChunk | null }>;
 }
 
 function fixQuotesInJudgment(
@@ -304,8 +310,16 @@ function fixQuotesInJudgment(
   const fixedContradictions: DocumentJudgment['contradictions'] = [];
   const contradictionEvidence: JudgmentEvidence['contradictions'] = [];
   for (const c of judgment.contradictions) {
+    // Hash sobre las citas de ENTRADA, antes de que verifyQuote (más abajo)
+    // las sustituya por el texto real del chunk — es el mismo identificador
+    // que el log crudo de judgeSingleDocument calculó para este hallazgo.
+    const hash = hashCitationPair(c.newDocSays, c.existingDocSays);
+
     if (containsNarration(c.newDocSays) || containsNarration(c.existingDocSays)) {
-      console.warn(`[judge] Contradicción descartada en "${judgment.documentName}" (narración en la cita)`);
+      console.warn(
+        `[judge] Contradicción descartada en "${judgment.documentName}" [${hash}] (narración en la cita): ` +
+        `nuevo="${(c.newDocSays || '').slice(0, 200)}" existente="${(c.existingDocSays || '').slice(0, 200)}"`
+      );
       narracionEnCita++;
       continue;
     }
@@ -315,14 +329,14 @@ function fixQuotesInJudgment(
 
     if (matchNew && matchExisting) {
       fixedContradictions.push({ ...c, newDocSays: matchNew.text, existingDocSays: matchExisting.text });
-      contradictionEvidence.push({ newChunk: matchNew.chunk, existingChunk: matchExisting.chunk });
+      contradictionEvidence.push({ hash, newChunk: matchNew.chunk, existingChunk: matchExisting.chunk });
     } else {
       const failedSide = describeFailedSide(!matchNew, !matchExisting);
       const failedText = failedSide === 'ambos'
-        ? `nuevo="${(c.newDocSays || '').slice(0, 60)}" existente="${(c.existingDocSays || '').slice(0, 60)}"`
-        : `"${((failedSide === 'nuevo' ? c.newDocSays : c.existingDocSays) || '').slice(0, 60)}"`;
+        ? `nuevo="${(c.newDocSays || '').slice(0, 200)}" existente="${(c.existingDocSays || '').slice(0, 200)}"`
+        : `"${((failedSide === 'nuevo' ? c.newDocSays : c.existingDocSays) || '').slice(0, 200)}"`;
       console.warn(
-        `[judge] Contradicción descartada en "${judgment.documentName}" (cita no verificable, lado=${failedSide}): ${failedText}`
+        `[judge] Contradicción descartada en "${judgment.documentName}" [${hash}] (cita no verificable, lado=${failedSide}): ${failedText}`
       );
       citaNoVerificable++;
     }
@@ -331,8 +345,15 @@ function fixQuotesInJudgment(
   const fixedOverlaps: DocumentJudgment['overlappingContent'] = [];
   const overlapEvidence: JudgmentEvidence['overlaps'] = [];
   for (const o of judgment.overlappingContent) {
+    // Mismo criterio que en el bucle de contradicciones: hash sobre las citas
+    // de ENTRADA, antes de verifyQuote.
+    const hash = hashCitationPair(o.evidenceInNewDoc || '', o.evidence);
+
     if (containsNarration(o.evidenceInNewDoc) || containsNarration(o.evidence)) {
-      console.warn(`[judge] Solapamiento descartado en "${judgment.documentName}" (narración en la cita)`);
+      console.warn(
+        `[judge] Solapamiento descartado en "${judgment.documentName}" [${hash}] (narración en la cita): ` +
+        `nuevo="${(o.evidenceInNewDoc || '').slice(0, 200)}" existente="${(o.evidence || '').slice(0, 200)}"`
+      );
       narracionEnCita++;
       continue;
     }
@@ -342,14 +363,14 @@ function fixQuotesInJudgment(
 
     if (matchNew && matchExisting) {
       fixedOverlaps.push({ ...o, evidenceInNewDoc: matchNew.text, evidence: matchExisting.text });
-      overlapEvidence.push({ newChunk: matchNew.chunk, existingChunk: matchExisting.chunk });
+      overlapEvidence.push({ hash, newChunk: matchNew.chunk, existingChunk: matchExisting.chunk });
     } else {
       const failedSide = describeFailedSide(!matchNew, !matchExisting);
       const failedText = failedSide === 'ambos'
-        ? `nuevo="${(o.evidenceInNewDoc || '').slice(0, 60)}" existente="${(o.evidence || '').slice(0, 60)}"`
-        : `"${((failedSide === 'nuevo' ? o.evidenceInNewDoc : o.evidence) || '').slice(0, 60)}"`;
+        ? `nuevo="${(o.evidenceInNewDoc || '').slice(0, 200)}" existente="${(o.evidence || '').slice(0, 200)}"`
+        : `"${((failedSide === 'nuevo' ? o.evidenceInNewDoc : o.evidence) || '').slice(0, 200)}"`;
       console.warn(
-        `[judge] Solapamiento descartado en "${judgment.documentName}" (cita no verificable, lado=${failedSide}): ${failedText}`
+        `[judge] Solapamiento descartado en "${judgment.documentName}" [${hash}] (cita no verificable, lado=${failedSide}): ${failedText}`
       );
       citaNoVerificable++;
     }
@@ -589,6 +610,25 @@ Responde con este JSON (sin bloques de código, sin texto adicional):
       ...(Object.keys(boundaryDiscarded).length > 0 ? { discarded: boundaryDiscarded } : {}),
     };
 
+    // Log crudo (F-38/F-39): lo que el juez emitió ANTES de la verificación de
+    // citas — el número que hoy no existe en ningún sitio (la línea
+    // "Judge: N juicios emitidos" cuenta documentos, no hallazgos; la línea
+    // "Verificador: N hallazgos" de la cascada cuenta lo que sobrevivió a esta
+    // misma verificación). Sin esto, "0 hallazgos" no distingue "el juez no
+    // emitió nada" de "el juez emitió y las citas los mataron". El hash se
+    // calcula aquí, sobre `rawJudgment.contradictions` — las citas tal como
+    // las devolvió el juez (ya saneadas por la frontera, pero sin pasar
+    // todavía por verifyQuote) — porque es el único punto en el que ese texto
+    // crudo sigue disponible sin ambigüedad.
+    console.log(
+      `[judge] RAW "${candidate.documentName}": overlap=${rawJudgment.overlapPercent}%, ` +
+      `${rawJudgment.contradictions.length} contradicciones, ${rawJudgment.overlappingContent.length} solapamientos`
+    );
+    for (const c of rawJudgment.contradictions) {
+      const hash = hashCitationPair(c.newDocSays, c.existingDocSays);
+      console.log(`[judge] RAW "${candidate.documentName}" · [${hash}] "${c.topic.slice(0, 60)}"`);
+    }
+
     const existingChunks = args.chunksByDocument?.get(candidate.documentId) ?? [];
     const existingFallbackText = args.fallbackTexts?.get(candidate.documentId) ?? null;
 
@@ -614,8 +654,10 @@ Responde con este JSON (sin bloques de código, sin texto adicional):
       },
       // Un elemento de evidencia vacío por cada entrada de overlappingContent
       // (aquí, la única: el marcador de error), para mantener el emparejamiento
-      // por índice — este "hallazgo" no tiene cita real que verificar.
-      evidence: { contradictions: [], overlaps: [{ newChunk: null, existingChunk: null }] },
+      // por índice — este "hallazgo" no tiene cita real que verificar, así que
+      // no hay nada que hashear: '????????' deja constancia visible de que es
+      // el marcador de fallo del LLM, no un hash real ni un emparejamiento roto.
+      evidence: { contradictions: [], overlaps: [{ hash: '????????', newChunk: null, existingChunk: null }] },
     };
   }
 }

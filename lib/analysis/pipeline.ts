@@ -189,7 +189,10 @@ async function applyCascadeToCandidate(
   }> = [];
 
   judgment.contradictions.forEach((c, i) => {
-    const ev = evidence.contradictions[i] ?? { newChunk: null, existingChunk: null };
+    // '????????' salta a la vista si esto alguna vez dispara: significa que
+    // evidence.contradictions se desalineó con judgment.contradictions, no que
+    // no hay chunks. No se hace opcional en silencio (F-38).
+    const ev = evidence.contradictions[i] ?? { hash: '????????', newChunk: null, existingChunk: null };
 
     // 2.2 — capa determinista, con las cells de los dos lados (null si el
     // chunk falta o si no es una fila de tabla: applyDeterministicRules trata
@@ -205,7 +208,7 @@ async function applyCascadeToCandidate(
     if (verdict.outcome === 'discard') {
       bumpCount(counts, `descartado.${verdict.reason}`);
       tally.descartados++;
-      console.log(`[${label}] · "${c.topic.slice(0, 60)}" → descartado: ${verdict.reason}`);
+      console.log(`[${label}] · [${ev.hash}] "${c.topic.slice(0, 60)}" → descartado: ${verdict.reason}`);
       return;
     }
 
@@ -213,7 +216,7 @@ async function applyCascadeToCandidate(
       bumpCount(counts, 'confirmado.por_estructura');
       tally.confirmados++;
       tally.confirmadosPorEstructura++;
-      console.log(`[${label}] · "${(c.topic ?? '(sin titulo)').slice(0, 60)}" → confirmado por estructura (columna: ${verdict.column})`);
+      console.log(`[${label}] · [${ev.hash}] "${(c.topic ?? '(sin titulo)').slice(0, 60)}" → confirmado por estructura (columna: ${verdict.column})`);
       keptContradictions.push({
         ...c,
         topic: c.topic?.trim()
@@ -228,7 +231,7 @@ async function applyCascadeToCandidate(
     if (verdict.outcome === 'reclassify') {
       bumpCount(counts, 'descartado.equivalentes');
       tally.reclasificados++;
-      console.log(`[${label}] · "${c.topic.slice(0, 60)}" → reclasificado a solapamiento`);
+      console.log(`[${label}] · [${ev.hash}] "${c.topic.slice(0, 60)}" → reclasificado a solapamiento`);
       // Se mueve de contradicción a solapamiento: no hay "description" propia
       // en una contradicción, así que el topic hace ese papel — es lo más
       // cercano a una frase que resuma qué comparten los dos lados.
@@ -241,13 +244,13 @@ async function applyCascadeToCandidate(
     // se da si falta un chunk).
     if (!ev.newChunk || !ev.existingChunk) {
       bumpCount(counts, 'a_juicio.chunk_no_localizado');
-      console.log(`[${label}] · "${c.topic.slice(0, 60)}" → baja a juicio: chunk_no_localizado`);
+      console.log(`[${label}] · [${ev.hash}] "${c.topic.slice(0, 60)}" → baja a juicio: chunk_no_localizado`);
     } else if (ev.newChunk.cells && ev.existingChunk.cells) {
       const newColumns = findCitedColumns(c.newDocSays, ev.newChunk.cells);
       const existingColumns = findCitedColumns(c.existingDocSays, ev.existingChunk.cells);
       if (newColumns.length === 0 || existingColumns.length === 0) {
         bumpCount(counts, 'a_juicio.columna_indeterminada');
-        console.log(`[${label}] · "${c.topic.slice(0, 60)}" → baja a juicio: columna_indeterminada`);
+        console.log(`[${label}] · [${ev.hash}] "${c.topic.slice(0, 60)}" → baja a juicio: columna_indeterminada`);
       }
     }
 
