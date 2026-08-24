@@ -11,7 +11,7 @@ import { verifyClaimsAgainstCorpus } from './verify-claims';
 import { doubleCheckContradictions } from './double-check';
 import { analyzeStyle } from './style-check';
 import { loadFragmentContexts, fragmentContextKey } from './fragment-context';
-import { applyDeterministicRules, findCitedColumns, buildStructuralTopic } from './finding-rules';
+import { applyDeterministicRules, buildStructuralTopic } from './finding-rules';
 import { getOrderedColumns } from './table-structure';
 import { verifyFindings } from './verify-findings';
 import type { FindingToVerify, FindingNeighbours } from './verify-findings';
@@ -225,17 +225,20 @@ async function applyCascadeToCandidate(
     // '????????' salta a la vista si esto alguna vez dispara: significa que
     // evidence.contradictions se desalineó con judgment.contradictions, no que
     // no hay chunks. No se hace opcional en silencio (F-38).
-    const ev = evidence.contradictions[i] ?? { hash: '????????', newChunk: null, existingChunk: null };
+    const ev = evidence.contradictions[i] ?? { hash: '????????', newChunk: null, existingChunk: null, newColumns: null, existingColumns: null };
 
     // 2.2 — capa determinista, con las cells de los dos lados (null si el
     // chunk falta o si no es una fila de tabla: applyDeterministicRules trata
     // ambos casos igual, ya que solo le importan las cells, no si el chunk
-    // existe).
+    // existe) y las columnas ya resueltas por la alineación (F-56) — esta
+    // capa no vuelve a buscarlas.
     const verdict = applyDeterministicRules({
       newDocSays: c.newDocSays,
       existingDocSays: c.existingDocSays,
       newCells: ev.newChunk?.cells ?? null,
       existingCells: ev.existingChunk?.cells ?? null,
+      newColumns: ev.newColumns,
+      existingColumns: ev.existingColumns,
     });
 
     if (verdict.outcome === 'discard') {
@@ -279,9 +282,11 @@ async function applyCascadeToCandidate(
       bumpCount(counts, 'a_juicio.chunk_no_localizado');
       console.log(`[${label}] · [${ev.hash}] "${c.topic.slice(0, 60)}" → baja a juicio: chunk_no_localizado`);
     } else if (ev.newChunk.cells && ev.existingChunk.cells) {
-      const newColumns = findCitedColumns(c.newDocSays, ev.newChunk.cells);
-      const existingColumns = findCitedColumns(c.existingDocSays, ev.existingChunk.cells);
-      if (newColumns.length === 0 || existingColumns.length === 0) {
+      // F-56: mismas columnas que ya recibió applyDeterministicRules arriba
+      // (ev.newColumns/ev.existingColumns) — se leen, no se recalculan. Antes
+      // de este commit esto llamaba a findCitedColumns por segunda vez con
+      // los mismos datos, solo para decidir el motivo del log.
+      if (!ev.newColumns?.length || !ev.existingColumns?.length) {
         bumpCount(counts, 'a_juicio.columna_indeterminada');
         console.log(`[${label}] · [${ev.hash}] "${c.topic.slice(0, 60)}" → baja a juicio: columna_indeterminada`);
       }
