@@ -13,7 +13,6 @@ import { loadFragmentContexts, fragmentContextKey } from './fragment-context';
 import { applyDeterministicRules, findCitedColumns, buildStructuralTopic } from './finding-rules';
 import { verifyFindings } from './verify-findings';
 import type { FindingToVerify, FindingNeighbours } from './verify-findings';
-import { getChunksForDocuments } from '@/lib/read-chunks';
 import type { StoredChunk } from '@/lib/read-chunks';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { DocumentJudgment } from './types';
@@ -23,11 +22,12 @@ import type { DocumentJudgment } from './types';
  * fetchFullTexts en lib/rag.ts: no se importa de ahí para no acoplar el
  * pipeline de análisis al del chat.
  *
- * F-27: los chunks (getChunksForDocuments, más abajo) son el haystack contra
- * el que se verifican las citas del juez — esta función ya NO es la fuente
- * primaria. Queda como FALLBACK, y se llama solo con los documentIds de los
- * candidatos que volvieron sin chunks (documento indexado antes de F-20, o
- * sin chunks por cualquier otro motivo).
+ * F-27: los chunks (chunksByDocument, más abajo — desde F-41, lo trae
+ * retrieveCandidates, no una llamada propia de este fichero) son el haystack
+ * contra el que se verifican las citas del juez — esta función ya NO es la
+ * fuente primaria. Queda como FALLBACK, y se llama solo con los documentIds
+ * de los candidatos que volvieron sin chunks (documento indexado antes de
+ * F-20, o sin chunks por cualquier otro motivo).
  *
  * Un documento sin full_text (o si la consulta entera falla) simplemente
  * no entra en el mapa — el llamador debe caer a su propio fallback, nunca
@@ -333,12 +333,13 @@ async function runCorePipeline(
 ): Promise<FinalAnalysis> {
   const t0 = Date.now();
 
-  const candidates = await retrieveCandidates({
+  const { candidates, chunksByDocument: chunksFromRetrieval } = await retrieveCandidates({
     sampleTexts: input.sampleTexts,
     orgId: input.orgId,
     excludeDocumentId: input.excludeDocumentId,
     batchDocumentIds: input.batchDocumentIds,
     options,
+    supabase: input.supabase,
   });
   console.log(`[${label}] Retrieval: ${candidates.length} candidatos (${Date.now() - t0}ms)`);
 
@@ -360,17 +361,14 @@ async function runCorePipeline(
   }
 
   // F-27: los chunks son el haystack contra el que se verifican las citas del
-  // juez. Una sola consulta por lote (getChunksForDocuments), igual que
-  // loadFragmentContexts un poco más abajo. Solo se lee full_text para los
+  // juez. F-41: ya no se vuelve a consultar — retrieveCandidates hace
+  // exactamente esta misma lectura, con getChunksForDocuments, para TODOS sus
+  // candidatos (necesaria para el reparto por unidades); reranked es siempre
+  // un subconjunto de esos candidatos, así que el mapa que ya trajo retrieval
+  // los cubre sin una segunda ida a Supabase. Solo se lee full_text para los
   // documentos que vuelvan SIN chunks (indexados antes de F-20, o sin chunks
   // por cualquier otro motivo) — fallback, no fuente primaria.
-  const chunksByDocument = await getChunksForDocuments(input.supabase, {
-    orgId: input.orgId,
-    documents: reranked.map(c => ({
-      documentId: c.documentId,
-      generation: c.fragments[0]?.generation ?? 1,
-    })),
-  });
+  const chunksByDocument = chunksFromRetrieval;
   const documentsWithoutChunks = reranked
     .map(c => c.documentId)
     .filter(id => !chunksByDocument.get(id)?.length);
