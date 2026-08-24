@@ -1,9 +1,16 @@
 import { callLLMJson } from './llm-client';
 import { runInBatches } from '@/lib/run-in-batches';
 import { sanitizeJudgeContradictions, hashCitationPair } from './llm-boundary';
-import { getOrderedColumns, groupChunksByTable, renderTableBlock } from './table-structure';
+import { getOrderedColumns, groupChunksByTable, renderTableBlock, alignQuoteToCells } from './table-structure';
+import { normalize } from './normalize';
 import type { RerankedCandidate, DocumentJudgment, PipelineOptions, DiscardedFindings, DocumentFragment } from './types';
 import type { StoredChunk } from '@/lib/read-chunks';
+
+// F-61: normalize se extrajo a su propio fichero (ver normalize.ts) para
+// evitar un ciclo con table-structure.ts. Se re-exporta aquí para que
+// retrieval.ts y finding-rules.ts (`import { normalize } from './judge'`)
+// no tengan que cambiar su import.
+export { normalize };
 
 /**
  * Etapa 3 — Juicio individual por documento.
@@ -63,31 +70,6 @@ interface JudgeResponse {
 // ============================================================
 // Post-procesamiento: corregir citas del LLM contra el texto real
 // ============================================================
-
-/**
- * Normaliza para comparación fuzzy. La clase de caracteres ignorados incluye
- * el marcado Markdown (* _ # ` ~) junto a la puntuación: el LLM cita el
- * texto VISIBLE del documento ("24 HORAS"), no el marcado que lo envuelve
- * en la fuente ("**24 HORAS**"), así que ambos deben normalizar igual para
- * que la comparación coincida.
- *
- * F-46: el colapso de filas idénticas (retrieval.ts, F-44) y el solapamiento
- * estructural que construye sobre él (F-45) descansan enteros en esta
- * función — "idéntica" significa "igual tras normalize()", nada más. Hoy NO
- * toca tildes (deliberado, "fallo del lado seguro": un acento distinto
- * rompe el match exacto). Cualquier ampliación de esta función — tildes,
- * sinónimos, distancia de edición — es una ampliación de lo que ese colapso
- * considera "la misma fila", y debe pasar por su batería de medición antes
- * de tocarse: ensancharla sin medir podría hacer que una discrepancia real
- * (la propia contradicción que el sistema busca) se trague como idéntica.
- */
-export function normalize(s: string): string {
-  return s
-    .toLowerCase()
-    .replace(/\s+/g, ' ')
-    .replace(/[.,;:!?"""''«»()[\]{}\-—–…*_#`~]/g, '')
-    .trim();
-}
 
 function findBestMatch(haystack: string, needle: string): string | null {
   if (!needle || needle.length < 10) return null;
@@ -226,14 +208,35 @@ function chunkContainsSegment(chunkText: string, segment: string): boolean {
  *    por cabeza/cola para segmentos largos con alguna diferencia interna, así
  *    que probarlo primero no pierde nada; chunkContainsSegment solo rescata
  *    los segmentos que findBestMatch rechaza de entrada por su suelo de 10
- *    caracteres. La condición es que TODOS los segmentos casen (por
- *    cualquiera de las dos vías) en ESE chunk — el "mismo registro" lo da la
- *    iteración (ya se está dentro de un único chunk), no un parser que
- *    reconstruya filas partiendo un string. Con varios chunks candidatos
- *    (filas casi idénticas), gana el que localice más segmentos y, a
- *    igualdad, el primero — importa porque el `chunk` devuelto es de donde la
- *    capa determinista sacará la columna citada, y no debe salir de una
- *    mezcla entre filas.
+ *    caracteres.
+ *
+ *    F-61, DOS FASES DENTRO DE ESTA VÍA — localizar y comprobar:
+ *    a) LOCALIZAR: la exigencia de que casen TODOS los segmentos pasa a
+ *       aplicarse solo a los TESTABLES (los que llegan a MIN_SEGMENT_LENGTH).
+ *       Con el formato barato (7cb7038d) una cita de fila son valores sueltos
+ *       y muchos miden uno o dos caracteres ("T", "MT", "L", "8"): bajo la
+ *       regla anterior ninguno pasaba el suelo, `matchedCount` nunca llegaba a
+ *       `segments.length`, y la cita entera moría como citaNoVerificable
+ *       aunque fuera literal. Un segmento de una letra no tiene evidencia
+ *       suficiente para decidir QUÉ FILA es, así que ni se le pide que lo
+ *       haga. Si NINGÚN segmento es testable, no se acepta ningún chunk:
+ *       aceptar sin evidencia sería la permisividad que el control negativo
+ *       existe para descartar.
+ *    b) COMPROBAR: localizada la fila, `alignQuoteToCells` (table-structure.ts)
+ *       exige que TODOS los valores de la cita —también los cortos— coincidan
+ *       exactamente con las celdas de esa fila, por posición y sin suelos.
+ *       Es la contrapartida de (a): lo que la localización deja de exigir, la
+ *       alineación lo comprueba contra el dato real. Sin este paso, (a) sola
+ *       sería más permisiva que hoy.
+ *    Con varios chunks candidatos (filas casi idénticas), gana el que localice
+ *    más segmentos testables y, a igualdad, el primero — importa porque el
+ *    `chunk` devuelto es de donde la capa determinista sacará la columna
+ *    citada, y no debe salir de una mezcla entre filas.
+ *
+ *    `text` NO cambia: se sigue devolviendo `best.text`, el chunk entero. Esa
+ *    sustitución es la segunda mitad de este frente y espera al harness de
+ *    tasas — es lo único que cambiaría lo que el juez y el verificador LEEN
+ *    después, y por tanto lo único capaz de mover la detección.
  *
  * FALLBACK: solo si la lista de chunks viene VACÍA (documento indexado antes
  * de F-20, o sin chunks por cualquier otro motivo) se verifica contra
@@ -245,35 +248,47 @@ function verifyQuote(
   chunks: StoredChunk[],
   fallbackText: string | null,
   quote: string | undefined,
-): { text: string; chunk: StoredChunk | null } | null {
+): { text: string; chunk: StoredChunk | null; porCeldas: boolean } | null {
   if (!quote) return null;
 
   if (chunks.length === 0) {
     if (!fallbackText) return null;
     const direct = findBestMatch(fallbackText, quote);
-    return direct ? { text: direct, chunk: null } : null;
+    return direct ? { text: direct, chunk: null, porCeldas: false } : null;
   }
 
   for (const chunk of chunks) {
     const direct = findBestMatch(chunk.text, quote);
-    if (direct) return { text: direct, chunk };
+    if (direct) return { text: direct, chunk, porCeldas: false };
   }
 
   const segments = splitTabularSegments(quote);
   if (segments) {
-    let best: StoredChunk | null = null;
-    let bestMatchedCount = -1;
-    for (const chunk of chunks) {
-      if (chunk.chunkType !== 'table_row') continue;
-      const matchedCount = segments.filter(segment =>
-        findBestMatch(chunk.text, segment) !== null || chunkContainsSegment(chunk.text, segment)
-      ).length;
-      if (matchedCount === segments.length && matchedCount > bestMatchedCount) {
-        best = chunk;
-        bestMatchedCount = matchedCount;
+    // (a) LOCALIZAR — solo los segmentos testables deciden qué fila es.
+    const testable = segments.filter(s => s.length >= MIN_SEGMENT_LENGTH);
+    if (testable.length > 0) {
+      let best: StoredChunk | null = null;
+      let bestMatchedCount = -1;
+      for (const chunk of chunks) {
+        if (chunk.chunkType !== 'table_row') continue;
+        const matchedCount = testable.filter(segment =>
+          findBestMatch(chunk.text, segment) !== null || chunkContainsSegment(chunk.text, segment)
+        ).length;
+        if (matchedCount === testable.length && matchedCount > bestMatchedCount) {
+          best = chunk;
+          bestMatchedCount = matchedCount;
+        }
+      }
+      // (b) COMPROBAR — todos los valores contra las celdas de esa fila. El
+      // array de columnas que devuelve se DESCARTA a propósito: aquí solo se
+      // usa como puerta (null = rechaza). Ver alignQuoteToCells.
+      if (best && best.tableId) {
+        const aligned = alignQuoteToCells(quote, best.cells, getOrderedColumns(best.tableId, chunks));
+        if (aligned) {
+          return { text: best.text, chunk: best, porCeldas: testable.length < segments.length };
+        }
       }
     }
-    if (best) return { text: best.text, chunk: best };
   }
 
   return null;
@@ -339,6 +354,16 @@ function fixQuotesInJudgment(
   let narracionEnCita = 0;
   let citaNoVerificable = 0;
   let citaDeContexto = 0;
+  // F-61: instrumentación permanente — cuánto trabajo hace cada fase de la
+  // vía por segmentos. Por LADO verificado (hasta dos por hallazgo), no por
+  // hallazgo: "cuánto trabajo hace cada fase" es una pregunta sobre el
+  // mecanismo, no sobre el hallazgo. por_localizacion: la cita se resolvió
+  // sin necesitar la fase nueva (vía directa, o todos sus segmentos eran
+  // testables). por_celdas: la cita traía al menos un valor demasiado corto
+  // para localizar, y solo la comprobación contra celdas pudo confirmarlo —
+  // es el trabajo que antes no existía y que rescata "T"/"MT"/"8".
+  let verificadoPorLocalizacion = 0;
+  let verificadoPorCeldas = 0;
 
   const fixedContradictions: DocumentJudgment['contradictions'] = [];
   const contradictionEvidence: JudgmentEvidence['contradictions'] = [];
@@ -363,6 +388,8 @@ function fixQuotesInJudgment(
     if (matchNew && matchExisting) {
       fixedContradictions.push({ ...c, newDocSays: matchNew.text, existingDocSays: matchExisting.text });
       contradictionEvidence.push({ hash, newChunk: matchNew.chunk, existingChunk: matchExisting.chunk });
+      if (matchNew.porCeldas) verificadoPorCeldas++; else verificadoPorLocalizacion++;
+      if (matchExisting.porCeldas) verificadoPorCeldas++; else verificadoPorLocalizacion++;
     } else if (!matchExisting && isContextCitation(c.existingDocSays, existingContextTexts)) {
       // F-44: citó la línea de contexto pese a la marca de "no citar". Se
       // descarta igual (no hay chunk real que verifique esto), pero con un
@@ -406,6 +433,8 @@ function fixQuotesInJudgment(
     if (matchNew && matchExisting) {
       fixedOverlaps.push({ ...o, evidenceInNewDoc: matchNew.text, evidence: matchExisting.text });
       overlapEvidence.push({ hash, newChunk: matchNew.chunk, existingChunk: matchExisting.chunk });
+      if (matchNew.porCeldas) verificadoPorCeldas++; else verificadoPorLocalizacion++;
+      if (matchExisting.porCeldas) verificadoPorCeldas++; else verificadoPorLocalizacion++;
     } else if (!matchExisting && isContextCitation(o.evidence, existingContextTexts)) {
       console.warn(
         `[judge] Solapamiento descartado en "${judgment.documentName}" [${hash}] (cita de línea de contexto, no citable): ` +
@@ -438,6 +467,12 @@ function fixQuotesInJudgment(
   if (narracionEnCita > 0) discarded.narracionEnCita = (discarded.narracionEnCita ?? 0) + narracionEnCita;
   if (citaNoVerificable > 0) discarded.citaNoVerificable = (discarded.citaNoVerificable ?? 0) + citaNoVerificable;
   if (citaDeContexto > 0) discarded.citaDeContexto = (discarded.citaDeContexto ?? 0) + citaDeContexto;
+  // F-61: mismo campo que los descartes de arriba (DiscardedFindings ya es,
+  // de facto, "recuento por motivo", no solo descartes — ver
+  // 'confirmado.por_estructura' en pipeline.ts). 'verificado.*' en vez de
+  // 'descartado.*' dice, con el propio nombre, que estas dos no son un fallo.
+  if (verificadoPorLocalizacion > 0) discarded['verificado.por_localizacion'] = (discarded['verificado.por_localizacion'] ?? 0) + verificadoPorLocalizacion;
+  if (verificadoPorCeldas > 0) discarded['verificado.por_celdas'] = (discarded['verificado.por_celdas'] ?? 0) + verificadoPorCeldas;
 
   return {
     judgment: {
