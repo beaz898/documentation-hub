@@ -213,7 +213,7 @@ async function applyCascadeToCandidate(
       bumpCount(counts, 'confirmado.por_estructura');
       tally.confirmados++;
       tally.confirmadosPorEstructura++;
-      console.log(`[${label}] · "${c.topic.slice(0, 60)}" → confirmado por estructura (columna: ${verdict.column})`);
+      console.log(`[${label}] · "${(c.topic ?? '(sin titulo)').slice(0, 60)}" → confirmado por estructura (columna: ${verdict.column})`);
       keptContradictions.push({
         ...c,
         topic: c.topic?.trim()
