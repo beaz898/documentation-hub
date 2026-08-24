@@ -165,12 +165,11 @@ export function applyDeterministicRules(finding: {
 }
 
 /**
- * Título determinista para un hallazgo confirmado por estructura (F-36): si
- * la estructura decidió el veredicto, la estructura escribe el título — es
- * verdadero por construcción (la misma columna, dos valores distintos) y más
- * informativo que lo que redactaría el juez a partir de las mismas dos citas.
- * Se usa solo para el veredicto 'confirm'; el topic del juez se conserva para
- * todo lo que baja a la llamada corta, que ya lo evalúa contra las citas.
+ * Título de RESPALDO para un hallazgo confirmado por estructura, cuando el
+ * topic que puso el juez viene vacío (F-36, corregido por F-38). El topic del
+ * juez es un campo que identifica el hallazgo — ninguna etapa lo reescribe si
+ * ya trae contenido; esta plantilla solo entra cuando no hay nada que
+ * conservar.
  */
 export function buildStructuralTopic(
   entity: string | null,

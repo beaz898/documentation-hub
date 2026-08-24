@@ -154,9 +154,14 @@ interface CascadeOutcome {
  *
  * F-36: la capa determinista gana una cuarta salida, 'confirm' — misma
  * columna, valores distintos, ya no queda nada que la llamada corta pueda
- * decidir. Sobrevive directamente, sin pasar por verifyFindings, con un
- * título escrito por plantilla desde los propios datos (buildStructuralTopic)
- * en vez del topic que redactó el juez.
+ * decidir. Sobrevive directamente, sin pasar por verifyFindings.
+ *
+ * F-38: el topic que sobrevive es el del juez, sin tocar — ninguna etapa
+ * reescribe un campo que identifica el hallazgo (costó día y medio de
+ * diagnóstico: se buscaba por el nombre de una persona y daba negativo porque
+ * una etapa posterior había sustituido ese campo por una plantilla).
+ * buildStructuralTopic queda solo como respaldo para cuando el topic del juez
+ * venga vacío.
  */
 async function applyCascadeToCandidate(
   judgment: DocumentJudgment,
@@ -211,7 +216,9 @@ async function applyCascadeToCandidate(
       console.log(`[${label}] · "${c.topic.slice(0, 60)}" → confirmado por estructura (columna: ${verdict.column})`);
       keptContradictions.push({
         ...c,
-        topic: buildStructuralTopic(verdict.entity, verdict.column, newDocumentName, judgment.documentName),
+        topic: c.topic?.trim()
+          ? c.topic
+          : buildStructuralTopic(verdict.entity, verdict.column, newDocumentName, judgment.documentName),
         severity: 'contradiction',
       });
       return;
