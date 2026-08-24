@@ -3,6 +3,7 @@ import { generateEmbeddings } from '@/lib/embeddings';
 import { runInBatches } from '@/lib/run-in-batches';
 import { getChunksForDocuments } from '@/lib/read-chunks';
 import { normalize } from './judge';
+import { getOrderedColumns } from './table-structure';
 import type { CandidateDocument, DocumentFragment, PipelineOptions } from './types';
 import type { StoredChunk } from '@/lib/read-chunks';
 import type { SupabaseClient } from '@supabase/supabase-js';
@@ -441,19 +442,20 @@ function countCrossings(
  *  ESTA tabla) que también existen en alguna tabla del documento analizado —
  *  "compartidas" para esta tabla concreta, no para el candidato en conjunto.
  *  El nombre real (no el normalizado) es para mostrarlo en la línea agregada
- *  con su capitalización original. */
+ *  con su capitalización original.
+ *  F-51: recorre `getOrderedColumns` (el orden real de la tabla), no
+ *  `Object.keys(cells)` de cada fila — así el Map resultante inserta sus
+ *  claves en el orden verdadero, y buildContextFragment (que solo consume
+ *  `sharedColumns.values()`, sin tocar `cells` para orden) lo hereda gratis. */
 function sharedColumnsForTable(
   tableId: string,
   docChunks: StoredChunk[],
   analyzedValueIndex: Map<string, Set<string>>,
 ): Map<string, string> {
   const shared = new Map<string, string>();
-  for (const c of docChunks) {
-    if (c.tableId !== tableId || !c.cells) continue;
-    for (const col of Object.keys(c.cells)) {
-      const normCol = normalize(col);
-      if (analyzedValueIndex.has(normCol) && !shared.has(normCol)) shared.set(normCol, col);
-    }
+  for (const col of getOrderedColumns(tableId, docChunks)) {
+    const normCol = normalize(col);
+    if (analyzedValueIndex.has(normCol) && !shared.has(normCol)) shared.set(normCol, col);
   }
   return shared;
 }

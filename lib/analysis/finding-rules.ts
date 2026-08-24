@@ -54,7 +54,10 @@ export type DeterministicVerdict =
       outcome: 'confirm';
       reason: 'valores_distintos_misma_columna';
       entity: string | null;
-      column: string;
+      /** F-51/F-53: TODAS las columnas compartidas que difieren, no una
+       *  elegida — elegir "la relevante" sería el juicio semántico que F-23
+       *  veta, entrando por el título en vez de por la regla. */
+      columns: string[];
     }
   | { outcome: 'reclassify'; reason: 'equivalentes' }
   | { outcome: 'discard'; reason: 'sin_columna_comun' };
@@ -108,7 +111,11 @@ export function findCitedColumns(
  *     Implantólogo / Cirujano oral": comparten la columna Puesto y difieren en
  *     ella — dos valores distintos en la misma columna de la misma fila YA es
  *     la discrepancia, no queda nada que la llamada corta pueda añadir o
- *     quitar. `column` es la primera columna compartida que difiere. `entity`
+ *     quitar. `columns` (F-51) son TODAS las columnas compartidas que
+ *     difieren, no una elegida — antes de F-51 se reportaba solo
+ *     `differingColumns[0]`, una elección arbitraria de facto (el orden de
+ *     `findCitedColumns` dependía del de `Object.keys(cells)`, que ni jsonb
+ *     ni JavaScript garantizan). `entity`
  *     es siempre null: `cells` es un Record<string,string> sin ninguna
  *     columna marcada como identificadora de la fila, y no hay forma
  *     estructural de saber cuál lo sería sin comparar nombres de columna
@@ -151,7 +158,7 @@ export function applyDeterministicRules(finding: {
       outcome: 'confirm',
       reason: 'valores_distintos_misma_columna',
       entity: null,
-      column: differingColumns[0],
+      columns: differingColumns,
     };
   }
 
@@ -170,14 +177,26 @@ export function applyDeterministicRules(finding: {
  * juez es un campo que identifica el hallazgo — ninguna etapa lo reescribe si
  * ya trae contenido; esta plantilla solo entra cuando no hay nada que
  * conservar.
+ *
+ * F-51/F-53: `columns` en vez de `column` — todas las que difieren, ninguna
+ * elegida (ver DeterministicVerdict). El sustantivo pluraliza solo con la
+ * lista ("Discrepancia en Puesto" / "Discrepancias en Puesto y Horas
+ * semana"); no hay verbo que concuerde en número, así que no hace falta
+ * distinguir singular/plural en ningún otro punto de la frase. Con `entity`
+ * no nulo, se añade "para <entity>"; con null se omite, como ya degradaba
+ * antes de F-51. CAMBIA el título que ve el cliente incluso con una sola
+ * columna ("Puesto difiere entre..." pasa a "Discrepancia en Puesto
+ * entre...") — aceptado, no es no-regresión de texto, es no-regresión de
+ * comportamiento (mismo caso, misma columna, mismo confirmedBy).
  */
 export function buildStructuralTopic(
   entity: string | null,
-  column: string,
+  columns: string[],
   newDocumentName: string,
   existingDocumentName: string,
 ): string {
-  return entity
-    ? `${column} de ${entity} difiere entre ${newDocumentName} y ${existingDocumentName}`
-    : `${column} difiere entre ${newDocumentName} y ${existingDocumentName}`;
+  const noun = columns.length === 1 ? 'Discrepancia' : 'Discrepancias';
+  const columnList = columns.join(' y ');
+  const entityPart = entity ? ` para ${entity}` : '';
+  return `${noun} en ${columnList}${entityPart} entre ${newDocumentName} y ${existingDocumentName}`;
 }

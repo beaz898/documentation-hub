@@ -25,9 +25,21 @@ interface DocumentChunkRow {
   table_id: string | null;
   row_index: number | null;
   cells: Record<string, string> | null;
+  column_order: string[] | null;
 }
 
-/** Una fila de document_chunks, con los nombres de campo en camelCase. */
+/**
+ * Una fila de document_chunks, con los nombres de campo en camelCase.
+ *
+ * `cells`: el orden de sus claves NO está garantizado (F-51) — es jsonb, y
+ * Postgres no preserva el orden de inserción de un objeto jsonb; además,
+ * JavaScript reordena por su cuenta las claves que parecen índice numérico
+ * ("94"), delante de cualquier clave de texto, sin importar en qué orden se
+ * insertaron. Dos garantías rotas, no una. `cells` responde "¿qué vale la
+ * columna X?" — para "¿cómo se presenta la tabla?", usar
+ * `getOrderedColumns` de lib/analysis/table-structure.ts, el único origen de
+ * orden.
+ */
 export interface StoredChunk {
   chunkIndex: number;
   chunkType: 'text' | 'table_summary' | 'table_row';
@@ -36,6 +48,12 @@ export interface StoredChunk {
   tableId: string | null;
   rowIndex: number | null;
   cells: Record<string, string> | null;
+  /** F-51: solo presente en chunkType='table_summary' — las columnas de la
+   *  tabla en su orden real, escritas en persist-chunks.ts desde el mismo
+   *  array que chunkSegments produce, antes de que jsonb o JavaScript puedan
+   *  reordenar nada. null en chunks de generaciones anteriores a este commit
+   *  (escritos sin esta columna) y en 'text'/'table_row'. */
+  columnOrder: string[] | null;
 }
 
 /**
@@ -51,7 +69,7 @@ export async function getDocumentChunks(
 
   const { data, error } = await supabase
     .from('document_chunks')
-    .select('chunk_index, chunk_type, text, sheet_name, table_id, row_index, cells')
+    .select('chunk_index, chunk_type, text, sheet_name, table_id, row_index, cells, column_order')
     .eq('document_id', documentId)
     .eq('org_id', orgId)
     .eq('generation', generation)
@@ -71,6 +89,7 @@ export async function getDocumentChunks(
     tableId: row.table_id,
     rowIndex: row.row_index,
     cells: row.cells,
+    columnOrder: row.column_order,
   }));
 }
 
@@ -134,7 +153,7 @@ export async function getChunksForDocuments(
 
   const { data, error } = await supabase
     .from('document_chunks')
-    .select('document_id, generation, chunk_index, chunk_type, text, sheet_name, table_id, row_index, cells')
+    .select('document_id, generation, chunk_index, chunk_type, text, sheet_name, table_id, row_index, cells, column_order')
     .eq('org_id', orgId)
     .in('document_id', documentIds)
     .order('chunk_index', { ascending: true });
@@ -158,6 +177,7 @@ export async function getChunksForDocuments(
       tableId: row.table_id,
       rowIndex: row.row_index,
       cells: row.cells,
+      columnOrder: row.column_order,
     });
     result.set(row.document_id, list);
   }
@@ -184,5 +204,6 @@ export function toStoredChunks(chunks: TypedChunk[]): StoredChunk[] {
     tableId: c.tableId ?? null,
     rowIndex: c.rowIndex ?? null,
     cells: c.cells ?? null,
+    columnOrder: c.columnOrder ?? null,
   }));
 }

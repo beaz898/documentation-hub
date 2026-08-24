@@ -84,6 +84,13 @@ export interface FindingToVerify {
   existingChunk: StoredChunk | null;
   newNeighbours: FindingNeighbours;
   existingNeighbours: FindingNeighbours;
+  /** F-51: orden real de columnas de la tabla de newChunk/existingChunk (si
+   *  son filas de tabla), resuelto por quien construye este objeto —
+   *  describeSide no tiene el docChunks completo para llamar a
+   *  getOrderedColumns por sí solo. null si no aplica (no es fila de tabla)
+   *  o no se pudo determinar. */
+  newColumnOrder: string[] | null;
+  existingColumnOrder: string[] | null;
 }
 
 export type FindingVerdict = 'confirmado' | 'mismo_dato_sin_oposicion' | 'sin_relacion';
@@ -138,11 +145,16 @@ function bump(counts: DiscardedFindings, key: string): void {
  * Si no hay chunk, o el chunk no es una fila con celdas, se muestra la cita
  * con su contexto vecino (prosa) — o sola, si tampoco hay vecinos.
  */
-function describeSide(quote: string, chunk: StoredChunk | null, neighbours: FindingNeighbours): string {
+function describeSide(quote: string, chunk: StoredChunk | null, neighbours: FindingNeighbours, columnOrder: string[] | null): string {
   if (chunk && chunk.chunkType === 'table_row' && chunk.cells) {
     const sheet = chunk.sheetName ? ` de la hoja "${chunk.sheetName}"` : '';
     const row = chunk.rowIndex !== null ? `, fila ${chunk.rowIndex + 1}` : '';
-    const allCells = Object.entries(chunk.cells).map(([k, v]) => `${k}: ${v}`).join(' | ');
+    // F-51: orden real, no Object.entries(cells) — ver table-structure.ts.
+    const cells = chunk.cells;
+    const orderedKeys = columnOrder && columnOrder.length > 0
+      ? columnOrder.filter(c => cells[c] !== undefined)
+      : Object.keys(cells);
+    const allCells = orderedKeys.map(k => `${k}: ${cells[k]}`).join(' | ');
     return `Fila de tabla${sheet}${row}. Todas sus columnas: ${allCells}\nValor que señaló el auditor: "${quote}"`;
   }
   const prev = neighbours.previous ? `(...) ${neighbours.previous}\n` : '';
@@ -151,8 +163,8 @@ function describeSide(quote: string, chunk: StoredChunk | null, neighbours: Find
 }
 
 function buildFindingBlock(finding: FindingToVerify, index: number): string {
-  const newSide = describeSide(finding.newDocSays, finding.newChunk, finding.newNeighbours);
-  const existingSide = describeSide(finding.existingDocSays, finding.existingChunk, finding.existingNeighbours);
+  const newSide = describeSide(finding.newDocSays, finding.newChunk, finding.newNeighbours, finding.newColumnOrder);
+  const existingSide = describeSide(finding.existingDocSays, finding.existingChunk, finding.existingNeighbours, finding.existingColumnOrder);
   return `[${index}] Tema: ${finding.topic}
 DOCUMENTO NUEVO:
 ${newSide}

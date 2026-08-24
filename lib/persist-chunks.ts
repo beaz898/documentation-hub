@@ -32,6 +32,10 @@ export async function saveDocumentChunks(
     table_id: c.tableId ?? null,
     row_index: c.rowIndex ?? null,
     cells: c.cells ?? null,
+    // F-51: solo TypedChunk de chunkType='table_summary' trae columnOrder
+    // (chunking.ts) — para 'text'/'table_row' es undefined, y aquí se
+    // persiste como null, igual que el resto de campos de tabla ausentes.
+    column_order: c.columnOrder ?? null,
   }));
 
   const { error } = await supabase.from('document_chunks').insert(rows);

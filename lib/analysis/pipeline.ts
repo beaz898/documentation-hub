@@ -12,6 +12,7 @@ import { doubleCheckContradictions } from './double-check';
 import { analyzeStyle } from './style-check';
 import { loadFragmentContexts, fragmentContextKey } from './fragment-context';
 import { applyDeterministicRules, findCitedColumns, buildStructuralTopic } from './finding-rules';
+import { getOrderedColumns } from './table-structure';
 import { verifyFindings } from './verify-findings';
 import type { FindingToVerify, FindingNeighbours } from './verify-findings';
 import type { StoredChunk } from '@/lib/read-chunks';
@@ -202,6 +203,24 @@ async function applyCascadeToCandidate(
     finding: FindingToVerify;
   }> = [];
 
+  // F-51: orden de columnas para describeSide (verify-findings.ts), cacheado
+  // por tabla — varios hallazgos de este candidato pueden citar la misma
+  // tabla, y sin caché se recalcularía (y se volvería a loggear
+  // orden_no_parseable) una vez por hallazgo. 'new'/'existing' porque son dos
+  // documentos distintos y un mismo tableId literal no podría darse en los
+  // dos a la vez, pero el prefijo lo deja explícito igualmente.
+  const columnOrderCache = new Map<string, string[]>();
+  function orderedColumnsFor(chunk: StoredChunk | null, docChunks: StoredChunk[], side: 'new' | 'existing'): string[] | null {
+    if (!chunk || chunk.chunkType !== 'table_row' || !chunk.tableId) return null;
+    const cacheKey = `${side}:${chunk.tableId}`;
+    let order = columnOrderCache.get(cacheKey);
+    if (!order) {
+      order = getOrderedColumns(chunk.tableId, docChunks);
+      columnOrderCache.set(cacheKey, order);
+    }
+    return order;
+  }
+
   judgment.contradictions.forEach((c, i) => {
     // '????????' salta a la vista si esto alguna vez dispara: significa que
     // evidence.contradictions se desalineó con judgment.contradictions, no que
@@ -230,12 +249,12 @@ async function applyCascadeToCandidate(
       bumpCount(counts, 'confirmado.por_estructura');
       tally.confirmados++;
       tally.confirmadosPorEstructura++;
-      console.log(`[${label}] · [${ev.hash}] "${(c.topic ?? '(sin titulo)').slice(0, 60)}" → confirmado por estructura (columna: ${verdict.column})`);
+      console.log(`[${label}] · [${ev.hash}] "${(c.topic ?? '(sin titulo)').slice(0, 60)}" → confirmado por estructura (columnas: ${verdict.columns.join(', ')})`);
       keptContradictions.push({
         ...c,
         topic: c.topic?.trim()
           ? c.topic
-          : buildStructuralTopic(verdict.entity, verdict.column, newDocumentName, judgment.documentName),
+          : buildStructuralTopic(verdict.entity, verdict.columns, newDocumentName, judgment.documentName),
         severity: 'contradiction',
         confirmedBy: 'estructura',
       });
@@ -280,6 +299,8 @@ async function applyCascadeToCandidate(
         existingChunk: ev.existingChunk,
         newNeighbours: buildNeighbours(newDocumentChunks, ev.newChunk),
         existingNeighbours: buildNeighbours(existingChunks, ev.existingChunk),
+        newColumnOrder: orderedColumnsFor(ev.newChunk, newDocumentChunks, 'new'),
+        existingColumnOrder: orderedColumnsFor(ev.existingChunk, existingChunks, 'existing'),
       },
     });
   });

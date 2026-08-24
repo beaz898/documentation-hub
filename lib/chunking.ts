@@ -84,7 +84,18 @@ export function stripSegmentationMarkers(text: string): string {
  */
 export type ExtractedSegment =
   | { type: 'text'; text: string }
-  | { type: 'table_summary'; text: string; sheetName: string; tableId: string }
+  | {
+      type: 'table_summary';
+      text: string;
+      sheetName: string;
+      tableId: string;
+      /** F-51: las columnas en el orden REAL de la hoja — el mismo array que
+       *  ya construye normalizeColumnNames, capturado aquí antes de que se
+       *  pierda. Es el origen que persist-chunks.ts escribe en
+       *  document_chunks.column_order; getOrderedColumns lo prioriza sobre
+       *  cualquier otra fuente. */
+      columns: string[];
+    }
   | {
       type: 'table_row';
       text: string;
@@ -107,6 +118,12 @@ export interface TypedChunk extends Chunk {
   tableId?: string;
   rowIndex?: number;
   cells?: Record<string, string>;
+  /** F-51: solo presente en chunkType='table_summary' — las columnas de la
+   *  tabla en su orden real. Ausente en 'table_row'/'text', no null: una fila
+   *  no tiene columnas propias que ordenar, tiene datos de las columnas de su
+   *  tabla (ver document_chunks.column_order, que getOrderedColumns lee del
+   *  chunk table_summary de esa misma tabla, no del de la fila). */
+  columnOrder?: string[];
 }
 
 interface Section {
@@ -426,6 +443,7 @@ interface RawTypedPiece {
   tableId?: string;
   rowIndex?: number;
   cells?: Record<string, string>;
+  columnOrder?: string[];
 }
 
 /**
@@ -433,10 +451,22 @@ interface RawTypedPiece {
  * correlación de ningún tipo. Cada chunk se DERIVA de su segmento de origen:
  * - 'text': se trocea con buildProsePieces (misma lógica que chunkText).
  *   Cada trozo resultante es chunkType 'text', sin campos de tabla.
- * - 'table_summary' / 'table_row': es UN chunk. Solo se subdivide si por sí
- *   solo supera MAX_CHUNK_SIZE (splitByLength, igual que hace hoy chunkText
- *   con una pieza pre-segmentada demasiado larga); todos sus trozos heredan
- *   los mismos campos de tabla, porque siguen siendo la misma fila/resumen.
+ * - 'table_row': es UN chunk. Solo se subdivide si por sí solo supera
+ *   MAX_CHUNK_SIZE (splitByLength, igual que hace hoy chunkText con una pieza
+ *   pre-segmentada demasiado larga); todos sus trozos heredan los mismos
+ *   campos de tabla, porque siguen siendo la misma fila.
+ * - 'table_summary': NUNCA se subdivide, aunque supere MAX_CHUNK_SIZE (F-51).
+ *   Es la única excepción a la regla de arriba: splitByLength corta por
+ *   longitud con CHUNK_OVERLAP=200 entre trozos, y la línea "Columnas: ..." es
+ *   la que persist-chunks.ts (vía document_chunks.column_order) y
+ *   getOrderedColumns necesitan leer ENTERA — partida a la mitad de un nombre
+ *   de columna, con solape duplicando texto entre trozos, no hay forma de
+ *   reconstruirla en la lectura sin adivinar dónde empieza cada nombre. Medido
+ *   con una tabla sintética de 60 columnas (2.401 caracteres): partida en 3
+ *   chunks, la concatenación da 400 caracteres de más por el solape, y el
+ *   parseo falla. Mantenerla íntegra en un único chunk, aunque exceda el tope
+ *   nominal, es más simple y más seguro que enseñar a la lectura a deshacer
+ *   una división con pérdida.
  * La numeración de chunkIndex es continua a lo largo de todos los segmentos.
  * No se filtra ninguna pieza aquí (F-29): MIN_PIECE_LENGTH vive dentro de
  * splitByLength, así que una pieza que llega hasta rawPieces ya pasó ese
@@ -462,7 +492,10 @@ export function chunkSegments(
       continue;
     }
 
-    const pieces = segment.text.length > MAX_CHUNK_SIZE
+    // F-51: table_summary nunca pasa por splitByLength — ver el comentario de
+    // cabecera de esta función. Es la única excepción a "se subdivide si
+    // supera MAX_CHUNK_SIZE".
+    const pieces = segment.type !== 'table_summary' && segment.text.length > MAX_CHUNK_SIZE
       ? splitByLength(segment.text, CHUNK_SIZE, CHUNK_OVERLAP, stats)
       : [segment.text];
 
@@ -477,6 +510,9 @@ export function chunkSegments(
         rawPiece.rowIndex = segment.rowIndex;
         rawPiece.cells = segment.cells;
       }
+      if (segment.type === 'table_summary') {
+        rawPiece.columnOrder = segment.columns;
+      }
       rawPieces.push(rawPiece);
     }
   }
@@ -488,6 +524,7 @@ export function chunkSegments(
     tableId: piece.tableId,
     rowIndex: piece.rowIndex,
     cells: piece.cells,
+    columnOrder: piece.columnOrder,
     metadata: {
       documentId,
       documentName,
@@ -677,6 +714,7 @@ function extractSegmentsFromExcel(buffer: Buffer): ExtractedSegment[] {
           `Columnas: ${columns.join(', ')}.`,
         sheetName,
         tableId,
+        columns,
       });
 
       dataRows.forEach((row, rowIndex) => {

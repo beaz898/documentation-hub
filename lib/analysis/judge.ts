@@ -1,6 +1,7 @@
 import { callLLMJson } from './llm-client';
 import { runInBatches } from '@/lib/run-in-batches';
 import { sanitizeJudgeContradictions, hashCitationPair } from './llm-boundary';
+import { getOrderedColumns } from './table-structure';
 import type { RerankedCandidate, DocumentJudgment, PipelineOptions, DiscardedFindings, DocumentFragment } from './types';
 import type { StoredChunk } from '@/lib/read-chunks';
 
@@ -463,7 +464,12 @@ function fixQuotesInJudgment(
  * signifique que se contradigan, y es la base de las citas estructuradas del
  * paso 5.
  */
-function describeFragment(fragment: DocumentFragment, position: number, documentName: string): string {
+function describeFragment(
+  fragment: DocumentFragment,
+  position: number,
+  documentName: string,
+  columnOrderByTable: Map<string, string[]>,
+): string {
   // F-44: la línea de contexto que colapsa filas idénticas (retrieval.ts) no
   // tiene `context` — no describe una fila real de document_chunks — así que
   // caería al genérico de abajo sin este chequeo, perdiendo justo la marca
@@ -480,7 +486,13 @@ function describeFragment(fragment: DocumentFragment, position: number, document
   if (ctx.chunkType === 'table_row') {
     const sheet = ctx.sheetName ? ` hoja "${ctx.sheetName}"` : '';
     const row = ctx.rowIndex !== null ? `, fila ${ctx.rowIndex + 1}` : '';
-    const columns = ctx.cells ? Object.keys(ctx.cells).join(', ') : '';
+    // F-51: orden real de la tabla, no Object.keys(ctx.cells) — ver
+    // table-structure.ts. Filtrado a las columnas que ESTA fila tiene
+    // rellenas (cells puede tener menos claves que la tabla completa).
+    const order = ctx.tableId ? columnOrderByTable.get(ctx.tableId) : undefined;
+    const columns = ctx.cells
+      ? (order && order.length > 0 ? order.filter(c => ctx.cells![c] !== undefined) : Object.keys(ctx.cells)).join(', ')
+      : '';
     const columnsPart = columns ? `. Columnas: ${columns}` : '';
     return `[Fragmento ${position} de "${documentName}" — FILA DE TABLA:${sheet}${row}${columnsPart}]`;
   }
@@ -502,7 +514,7 @@ async function judgeSingleDocument(args: {
   chunksByDocument?: Map<string, StoredChunk[]>;
   fallbackTexts?: Map<string, string>;
 }): Promise<{ judgment: DocumentJudgment; evidence: JudgmentEvidence }> {
-  const { newDocumentName, newDocumentText, candidate } = args;
+  const { newDocumentName, newDocumentText, candidate, chunksByDocument } = args;
 
   // Diagnóstico (F-36-bis): qué fragmentos recibe el juez por candidato, para
   // distinguir "no lo ve teniéndolo delante" (inestabilidad, B.82) de "no
@@ -548,8 +560,21 @@ async function judgeSingleDocument(args: {
     `(${fragmentTypesLog}${sinContextoLog}${deContextoLog})${filasLog}`
   );
 
+  // F-51: orden de columnas, UNA VEZ por tabla distinta entre los fragmentos
+  // de este candidato — no una vez por fragmento, para no recalcular ni
+  // volver a loggear orden_no_parseable N veces por las N filas de la misma
+  // tabla. chunksByDocument ya trae column_order (lib/read-chunks.ts).
+  const candidateChunks = chunksByDocument?.get(candidate.documentId) ?? [];
+  const columnOrderByTable = new Map<string, string[]>();
+  for (const f of candidate.fragments) {
+    const tableId = f.context?.tableId;
+    if (tableId && !columnOrderByTable.has(tableId)) {
+      columnOrderByTable.set(tableId, getOrderedColumns(tableId, candidateChunks));
+    }
+  }
+
   const existingFragsBlock = candidate.fragments
-    .map((f, i) => `${describeFragment(f, i + 1, candidate.documentName)}\n${f.text}`)
+    .map((f, i) => `${describeFragment(f, i + 1, candidate.documentName, columnOrderByTable)}\n${f.text}`)
     .join('\n\n');
 
   const prompt = `Eres un auditor de documentación. Tu tarea es comparar CONTENIDO CONCRETO entre dos documentos y emitir un juicio preciso, no una impresión general.

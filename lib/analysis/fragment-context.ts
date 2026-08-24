@@ -46,6 +46,10 @@ export interface FragmentContext {
   sheetName: string | null;
   tableId: string | null;
   rowIndex: number | null;
+  /** F-51: el orden de sus claves NO está garantizado — jsonb no preserva
+   *  orden de inserción, y JavaScript reordena por su cuenta las claves que
+   *  parecen índice numérico. Para orden de presentación, usar
+   *  getOrderedColumns de lib/analysis/table-structure.ts con `tableId`. */
   cells: Record<string, string> | null;
   previousText: string | null;
   nextText: string | null;
