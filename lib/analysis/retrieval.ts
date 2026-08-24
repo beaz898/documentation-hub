@@ -2,6 +2,7 @@ import { queryVectors, buildCorpusFilter } from '@/lib/pinecone/vectors';
 import { generateEmbeddings } from '@/lib/embeddings';
 import { runInBatches } from '@/lib/run-in-batches';
 import { getChunksForDocuments } from '@/lib/read-chunks';
+import { normalize } from './judge';
 import type { CandidateDocument, DocumentFragment, PipelineOptions } from './types';
 import type { StoredChunk } from '@/lib/read-chunks';
 import type { SupabaseClient } from '@supabase/supabase-js';
@@ -102,9 +103,38 @@ export async function retrieveCandidates(args: {
   batchDocumentIds?: string[];
   options?: PipelineOptions;
   supabase: SupabaseClient;
+  /** Chunks del documento ANALIZADO (F-41), en su forma persistida — el mismo
+   *  array que ya recibe runCorePipeline como input.newDocumentChunks para
+   *  F-27/F-24. Aquí solo se usa para indexar sus valores por columna; no se
+   *  lee nada de Supabase por esto, el dato ya viaja cargado. */
+  newDocumentChunks?: StoredChunk[];
 }): Promise<{ candidates: CandidateDocument[]; chunksByDocument: Map<string, StoredChunk[]> }> {
-  const { sampleTexts, orgId, excludeDocumentId, batchDocumentIds, options, supabase } = args;
+  const { sampleTexts, orgId, excludeDocumentId, batchDocumentIds, options, supabase, newDocumentChunks } = args;
   const isExhaustive = options?.exhaustive === true;
+
+  // F-42: índice de VALORES (normalizados) del documento analizado, por
+  // columna (normalizada) — no de nombres de columna sueltos (F-41 medía eso
+  // y no discriminaba: 15/15 filas de una tabla real compartían columna con
+  // cualquier otra tabla de personas). Una sola pasada sobre newDocumentChunks
+  // aquí, no por candidato; cada fila candidata consulta el Set de su columna
+  // — lineal, no producto cartesiano (medido: <1ms para 108 filas). Se
+  // indexan TODAS las columnas del analizado sin restringir a "compartidas":
+  // una columna que ningún candidato tenga nunca se consulta, así que
+  // restringir de antemano no cambiaría el resultado y evitaría tener que
+  // recalcular qué es "compartido" por candidato. Comparación ESTRUCTURAL,
+  // igualdad exacta tras normalize — nunca semántica (B.95: "Puesto" con
+  // "Implantólogo" no cruza con "Implantólogo / Cirujano oral", y es
+  // deliberado: son valores distintos, no el mismo dato mal escrito).
+  const analyzedValueIndex = new Map<string, Set<string>>();
+  for (const c of newDocumentChunks ?? []) {
+    if (!c.cells) continue;
+    for (const [column, value] of Object.entries(c.cells)) {
+      const normCol = normalize(column);
+      const set = analyzedValueIndex.get(normCol) ?? new Set<string>();
+      set.add(normalize(value));
+      analyzedValueIndex.set(normCol, set);
+    }
+  }
 
   const embeddings = await generateEmbeddings(sampleTexts);
   const scoreThreshold = isExhaustive ? SCORE_THRESHOLD_EXHAUSTIVE : SCORE_THRESHOLD_QUICK;
@@ -169,16 +199,42 @@ export async function retrieveCandidates(args: {
       selected = sorted;
     } else {
       const docChunks = chunksByDocument.get(documentId) ?? [];
+
+      // F-42: dos números distintos, no uno — "la regla no aplicó" (ningún
+      // cruce, el orden queda igual que por score puro) es un caso diferente
+      // de "aplicó y ordenó" (hay cruces, alguna fila se antepuso). Sobre
+      // unit.recoveredRows de todas las tablas del candidato — el mismo
+      // conjunto que compite dentro del nivel 2, no todas las filas de la
+      // tabla (las no recuperadas por Pinecone no compiten por espacio).
       const units = buildUnits(sorted, docChunks);
-      const result = selectUnitsWithinBudget(units, docChunks, sorted[0]);
+      let rowsWithCrossing = 0;
+      let rowsWithoutCrossing = 0;
+      for (const unit of units) {
+        if (unit.kind !== 'table') continue;
+        for (const rowFragment of unit.recoveredRows) {
+          const crossings = countCrossings(rowFragment, docChunks, analyzedValueIndex);
+          if (crossings > 0) rowsWithCrossing++;
+          else rowsWithoutCrossing++;
+        }
+      }
+      if (rowsWithCrossing + rowsWithoutCrossing > 0) {
+        console.log(
+          rowsWithCrossing === 0
+            ? `[retrieval] "${sorted[0].documentName}" pertenencia: 0 cruces, orden por score`
+            : `[retrieval] "${sorted[0].documentName}" pertenencia: ${rowsWithCrossing} filas con cruce, ${rowsWithoutCrossing} sin`
+        );
+      }
+
+      const result = selectUnitsWithinBudget(units, docChunks, sorted[0], analyzedValueIndex);
       selected = result.selected;
 
       const usedChars = selected.reduce((sum, f) => sum + f.text.length, 0);
       for (const t of result.tableLog) {
         const levelDesc =
           t.level === 1 ? `completa, ${t.rowsUsed} filas`
-          : t.level === 2 ? `resumen + ${t.rowsUsed}/${t.rowsTotal} filas`
-          : 'solo resumen';
+          : t.level === 2 ? `resumen + ${t.rowsUsed}/${t.rowsTotal} filas, ${t.belongingUsed} por pertenencia`
+          : t.level === 3 ? 'solo resumen'
+          : 'fila única sin resumen (caso raro)';
         console.log(`[retrieval] "${sorted[0].documentName}" tabla "${t.sheetName ?? t.tableId}": nivel ${t.level} (${levelDesc}, ${t.chars} chars)`);
       }
       console.log(
@@ -341,13 +397,44 @@ function toSyntheticFragment(chunk: StoredChunk, like: DocumentFragment, score: 
   };
 }
 
+/** Cuántas columnas (compartidas, normalizadas) de una fila del candidato
+ *  tienen el MISMO VALOR normalizado que alguna fila del documento analizado
+ *  (F-42). Consulta el índice, no recorre las filas del analizado — lineal
+ *  por fila del candidato. Igualdad exacta: sin parecido, sin sinónimos. */
+function countCrossings(
+  rowFragment: DocumentFragment,
+  docChunks: StoredChunk[],
+  analyzedValueIndex: Map<string, Set<string>>,
+): number {
+  const stored = docChunks.find(c => c.chunkIndex === rowFragment.chunkIndex);
+  if (!stored?.cells) return 0;
+  let crossings = 0;
+  for (const [column, value] of Object.entries(stored.cells)) {
+    const values = analyzedValueIndex.get(normalize(column));
+    if (values?.has(normalize(value))) crossings++;
+  }
+  return crossings;
+}
+
 /**
  * Intenta encajar una tabla en el presupuesto que queda, en cascada:
  *   Nivel 1 — completa (todas sus filas de document_chunks + su
- *     table_summary si existe), si cabe entera.
+ *     table_summary si existe), si cabe entera. El orden no importa: entra
+ *     todo, así que la prioridad por pertenencia no tiene nada que decidir.
  *   Nivel 2 — table_summary (no compite, se resta primero) + las filas
- *     RECUPERADAS que quepan en lo que sobra, por score.
- *   Nivel 3 — solo table_summary, si ni las filas recuperadas caben.
+ *     RECUPERADAS que quepan en lo que sobra. F-42: dentro de este nivel, las
+ *     filas se ordenan por CUÁNTAS columnas cruzan VALOR con el documento
+ *     analizado (countCrossings), descendente, y el score desempata dentro
+ *     de cada grupo de igual número de cruces — "el score decide entre lo
+ *     incomparable, la estructura entre lo comparable". F-41 comparaba solo
+ *     nombres de columna y no discriminaba nada (15/15 filas de una tabla de
+ *     personas comparten columna con cualquier otra tabla de personas);
+ *     comparar VALOR sí distingue. Comparación puramente estructural:
+ *     igualdad exacta tras normalizar, sin sinónimos ni distancia de edición
+ *     (B.95) — un valor que difiere legítimamente (la propia contradicción
+ *     que se busca) cuenta como NO cruce, a propósito.
+ *   Nivel 3 — solo table_summary, si ni las filas recuperadas caben. Sin
+ *     filas, tampoco hay nada que ordenar.
  * Devuelve null si ni el resumen solo cabe — la tabla no entra en absoluto.
  */
 function assembleTable(
@@ -356,7 +443,8 @@ function assembleTable(
   like: DocumentFragment,
   remainingBudget: number,
   remainingCount: number,
-): { level: 1 | 2 | 3; fragments: DocumentFragment[]; usedChars: number } | null {
+  analyzedValueIndex: Map<string, Set<string>>,
+): { level: 1 | 2 | 3; fragments: DocumentFragment[]; usedChars: number; belongingUsed: number } | null {
   const allRowChunks = docChunks
     .filter(c => c.tableId === unit.tableId && c.chunkType === 'table_row')
     .sort((a, b) => a.chunkIndex - b.chunkIndex);
@@ -373,6 +461,7 @@ function assembleTable(
       level: 1,
       fragments: summaryFragment ? [...allRowFragments, summaryFragment] : allRowFragments,
       usedChars: level1Chars,
+      belongingUsed: 0,
     };
   }
 
@@ -380,20 +469,36 @@ function assembleTable(
     const budgetForRows = remainingBudget - summaryChars;
     const countForRows = remainingCount - 1;
     if (budgetForRows >= 0 && countForRows >= 0) {
+      // F-42: cruces desc, score desc como desempate. Un solo `.sort()`
+      // estable — para el mismo (cruces, score), que solo ocurriría con
+      // scores idénticos, conserva el orden de entrada (por score, ya que
+      // unit.recoveredRows llega ordenado así desde buildUnits).
+      const crossingsByIndex = new Map<number, number>();
+      for (const rowFragment of unit.recoveredRows) {
+        crossingsByIndex.set(rowFragment.chunkIndex, countCrossings(rowFragment, docChunks, analyzedValueIndex));
+      }
+      const orderedRows = [...unit.recoveredRows].sort((a, b) => {
+        const ca = crossingsByIndex.get(a.chunkIndex) ?? 0;
+        const cb = crossingsByIndex.get(b.chunkIndex) ?? 0;
+        return ca !== cb ? cb - ca : b.score - a.score;
+      });
+
       const packedRows: DocumentFragment[] = [];
       let usedRowChars = 0;
-      for (const rowFragment of unit.recoveredRows) {
+      let belongingUsed = 0;
+      for (const rowFragment of orderedRows) {
         if (packedRows.length >= countForRows) break;
         if (usedRowChars + rowFragment.text.length > budgetForRows) continue;
         packedRows.push(rowFragment);
         usedRowChars += rowFragment.text.length;
+        if ((crossingsByIndex.get(rowFragment.chunkIndex) ?? 0) > 0) belongingUsed++;
       }
       if (packedRows.length > 0) {
-        return { level: 2, fragments: [...packedRows, summaryFragment], usedChars: summaryChars + usedRowChars };
+        return { level: 2, fragments: [...packedRows, summaryFragment], usedChars: summaryChars + usedRowChars, belongingUsed };
       }
     }
     if (summaryChars <= remainingBudget && remainingCount >= 1) {
-      return { level: 3, fragments: [summaryFragment], usedChars: summaryChars };
+      return { level: 3, fragments: [summaryFragment], usedChars: summaryChars, belongingUsed: 0 };
     }
   }
 
@@ -403,9 +508,20 @@ function assembleTable(
 interface TableLevelLog {
   tableId: string;
   sheetName: string | null;
-  level: 1 | 2 | 3;
+  /** '3-forzado' (F-43): último recurso cuando la tabla no tiene
+   *  table_summary (inalcanzable hoy — toda tabla con tableId lo tiene por
+   *  construcción, ver chunking.ts) y ni siquiera su fila más corta cabría
+   *  por la vía normal. Entra igual, forzada, como única fila sin resumen —
+   *  no es nivel 2 (eso implicaría resumen) ni nivel 3 (eso implicaría CERO
+   *  filas): etiquetarlo como cualquiera de los dos habría hecho mentir al
+   *  log justo en el caso raro que existe para detectar. */
+  level: 1 | 2 | 3 | '3-forzado';
   rowsUsed: number;
   rowsTotal: number;
+  /** Solo tiene sentido en nivel 2: de las filas usadas, cuántas entraron
+   *  por pertenencia — F-42, cruce de VALOR, no solo de columna — en vez de
+   *  por hueco tras agotarse ese grupo. */
+  belongingUsed: number;
   chars: number;
 }
 
@@ -430,6 +546,7 @@ function selectUnitsWithinBudget(
   units: Unit[],
   docChunks: StoredChunk[],
   like: DocumentFragment,
+  analyzedValueIndex: Map<string, Set<string>>,
 ): { selected: DocumentFragment[]; tableLog: TableLevelLog[]; unitsIn: number; unitsOut: number } {
   const selected: DocumentFragment[] = [];
   const tableLog: TableLevelLog[] = [];
@@ -452,7 +569,7 @@ function selectUnitsWithinBudget(
       continue;
     }
 
-    const assembled = assembleTable(unit, docChunks, like, remainingBudget, remainingCount);
+    const assembled = assembleTable(unit, docChunks, like, remainingBudget, remainingCount, analyzedValueIndex);
     if (assembled) {
       selected.push(...assembled.fragments);
       usedChars += assembled.usedChars;
@@ -462,7 +579,15 @@ function selectUnitsWithinBudget(
         const stored = docChunks.find(c => c.chunkIndex === f.chunkIndex);
         return stored?.chunkType === 'table_row';
       }).length;
-      tableLog.push({ tableId: unit.tableId, sheetName: unit.sheetName, level: assembled.level, rowsUsed, rowsTotal, chars: assembled.usedChars });
+      tableLog.push({
+        tableId: unit.tableId,
+        sheetName: unit.sheetName,
+        level: assembled.level,
+        rowsUsed,
+        rowsTotal,
+        belongingUsed: assembled.belongingUsed,
+        chars: assembled.usedChars,
+      });
       continue;
     }
 
@@ -474,13 +599,13 @@ function selectUnitsWithinBudget(
         selected.push(f);
         usedChars += f.text.length;
         unitsIn++;
-        tableLog.push({ tableId: unit.tableId, sheetName: unit.sheetName, level: 3, rowsUsed: 0, rowsTotal, chars: f.text.length });
+        tableLog.push({ tableId: unit.tableId, sheetName: unit.sheetName, level: 3, rowsUsed: 0, rowsTotal, belongingUsed: 0, chars: f.text.length });
       } else if (unit.recoveredRows.length > 0) {
         const shortest = [...unit.recoveredRows].sort((a, b) => a.text.length - b.text.length)[0];
         selected.push(shortest);
         usedChars += shortest.text.length;
         unitsIn++;
-        tableLog.push({ tableId: unit.tableId, sheetName: unit.sheetName, level: 2, rowsUsed: 1, rowsTotal, chars: shortest.text.length });
+        tableLog.push({ tableId: unit.tableId, sheetName: unit.sheetName, level: '3-forzado', rowsUsed: 1, rowsTotal, belongingUsed: 0, chars: shortest.text.length });
       }
     }
   }

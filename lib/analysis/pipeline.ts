@@ -340,6 +340,7 @@ async function runCorePipeline(
     batchDocumentIds: input.batchDocumentIds,
     options,
     supabase: input.supabase,
+    newDocumentChunks: input.newDocumentChunks,
   });
   console.log(`[${label}] Retrieval: ${candidates.length} candidatos (${Date.now() - t0}ms)`);
 
