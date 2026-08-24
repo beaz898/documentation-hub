@@ -1,5 +1,4 @@
 import type { StoredChunk } from '@/lib/read-chunks';
-import { normalize } from './normalize';
 
 /**
  * Origen ÚNICO del orden de columnas de una tabla (F-51).
@@ -202,54 +201,4 @@ export function renderTableBlock(
     .sort((a, b) => (a.rowIndex ?? 0) - (b.rowIndex ?? 0))
     .map(r => renderTableRow(r.rowIndex, r.cells, columns));
   return [header, ...rowLines].join('\n');
-}
-
-/**
- * F-56: alinea los valores de una cita ya LOCALIZADA (en un chunk concreto)
- * contra sus celdas, por POSICIÓN. Paso único post-localización — no una
- * rama de una vía de `verifyQuote` en particular: recibe `cells` y
- * `columns` ya resueltos, nunca un chunk ni un tableId, así que cualquier
- * vía de localización futura (directa, por segmentos, o una que no exista
- * todavía) llama a esto igual, sin tener que enterarse de cómo se construye.
- *
- * SIN SUELOS DE LONGITUD (F-50): la garantía de que la fila es la correcta
- * ya la dio la localización que llamó a esta función — comparar aquí contra
- * la celda exacta no es buscar en un pajar, es leer un valor conocido. "T" y
- * "MT" verifican igual que "Implantólogo".
- *
- * Prueba TODOS los desplazamientos posibles dentro de `columns` — la cita
- * puede ser un prefijo, un sufijo o un tramo intermedio de la fila, según
- * cuántas columnas decidiera citar el juez — y exige COINCIDENCIA TOTAL en
- * algún desplazamiento, no mayoritaria: es lo que impide que una cita con
- * valores de dos filas distintas (dos de tres correctos) cuele como si
- * fuera literal. Medido en la batería F-55: el control negativo se rechaza
- * por este mecanismo, no por casualidad.
- *
- * Devuelve `null` si la cita no trae ningún valor, si trae más valores que
- * columnas tiene la tabla, o si ningún desplazamiento alinea al 100%.
- */
-export function alignQuoteToCells(
-  quote: string,
-  cells: Record<string, string> | null,
-  columns: string[],
-): string[] | null {
-  const segments = quote.split('|').map(s => s.trim()).filter(Boolean);
-  if (segments.length === 0 || segments.length > columns.length) return null;
-  const c = cells ?? {};
-
-  let bestOffset = -1;
-  let bestMatches = -1;
-  for (let offset = 0; offset <= columns.length - segments.length; offset++) {
-    let matches = 0;
-    for (let i = 0; i < segments.length; i++) {
-      if (normalize(segments[i]) === normalize(c[columns[offset + i]] ?? '')) matches++;
-    }
-    if (matches > bestMatches) {
-      bestMatches = matches;
-      bestOffset = offset;
-    }
-  }
-
-  if (bestMatches !== segments.length) return null;
-  return columns.slice(bestOffset, bestOffset + segments.length);
 }

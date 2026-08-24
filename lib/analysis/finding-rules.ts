@@ -44,16 +44,8 @@ import { normalize } from './judge';
  *   fila / prosa  → siempre pass. No hay estructura comparable entre los dos
  *                   lados; lo resuelve la llamada corta con la fila entera.
  *
- * F-56: `newColumns`/`existingColumns` llegan ya resueltos — los calculó
- * `alignQuoteToCells` dentro de `verifyQuote` (judge.ts), al localizar el
- * chunk, y viajan por `JudgmentEvidence` hasta pipeline.ts, que se los pasa a
- * `applyDeterministicRules` como dato. Esta función ya no busca "Columna:
- * valor" dentro de ningún texto — `findCitedColumns` (que lo hacía) se
- * retira: su único llamador real era este, y el otro (el log de diagnóstico
- * en pipeline.ts) pasa a leer las mismas columnas que ya trae la evidencia,
- * en vez de recalcularlas.
- *
  * Funciones puras: sin llamadas a modelo, sin base de datos, sin efectos.
+ * Nadie las invoca todavía.
  */
 
 export type DeterministicVerdict =
@@ -71,11 +63,40 @@ export type DeterministicVerdict =
   | { outcome: 'discard'; reason: 'sin_columna_comun' };
 
 /**
+ * Columnas cuyo par serializado `Columna: valor` (la misma forma que
+ * chunking.ts genera al construir una fila — ver `pairs.push(\`${column}: ${value}\`)`,
+ * unidas con ` | `) aparece contenido en la cita. Se busca el par completo, no
+ * el valor suelto: en un cuadro de turnos el valor "M" aparece en cinco
+ * columnas distintas, pero "Lunes: M" solo en una. La clave de búsqueda es la
+ * misma cadena que el propio sistema generó, así que no hay ambigüedad que
+ * adivinar (F-24: "lo primero inventa, lo segundo consulta"). Comparación
+ * sobre texto normalizado (mismo criterio que findBestMatch en judge.ts) para
+ * tolerar diferencias de espaciado o mayúsculas, no para emparejar por
+ * parecido. Puede haber más de una columna citada por lado: devuelve el
+ * conjunto. Array vacío si `cells` es null o si no se localiza ninguna.
+ */
+export function findCitedColumns(
+  quote: string,
+  cells: Record<string, string> | null,
+): string[] {
+  if (!cells) return [];
+  const normQuote = normalize(quote);
+  const cited: string[] = [];
+  for (const [column, value] of Object.entries(cells)) {
+    const normPair = normalize(`${column}: ${value}`);
+    if (normQuote.includes(normPair)) {
+      cited.push(column);
+    }
+  }
+  return cited;
+}
+
+/**
  * Aplica la regla que corresponda según el tipo de par.
  *
- * fila / fila (ambos `cells` no nulos): las columnas citadas de cada lado
- * llegan ya resueltas en `newColumns`/`existingColumns` (F-56, alineación).
- *   - Si algún lado no trae columnas (null o vacío): pass — "columna
+ * fila / fila (ambos `cells` no nulos): se localiza la columna citada de cada
+ * lado con findCitedColumns.
+ *   - Si algún lado no permite determinar su columna citada: pass — "columna
  *     indeterminable", el único significado que le queda a 'pass' desde F-36
  *     ("no puedo decidir"). Que lo resuelva el juicio con la fila entera.
  *   - Si no comparten ninguna columna citada: discard/'sin_columna_comun'.
@@ -113,15 +134,13 @@ export function applyDeterministicRules(finding: {
   existingDocSays: string;
   newCells: Record<string, string> | null;
   existingCells: Record<string, string> | null;
-  /** F-56: ya resueltas por la alineación (judge.ts, `verifyQuote` ->
-   *  `alignQuoteToCells`) — esta función no busca nada, solo lee. */
-  newColumns: string[] | null;
-  existingColumns: string[] | null;
 }): DeterministicVerdict {
-  const { newDocSays, existingDocSays, newCells, existingCells, newColumns, existingColumns } = finding;
+  const { newDocSays, existingDocSays, newCells, existingCells } = finding;
 
   if (newCells && existingCells) {
-    if (!newColumns || newColumns.length === 0 || !existingColumns || existingColumns.length === 0) {
+    const newColumns = findCitedColumns(newDocSays, newCells);
+    const existingColumns = findCitedColumns(existingDocSays, existingCells);
+    if (newColumns.length === 0 || existingColumns.length === 0) {
       return { outcome: 'pass' };
     }
 
