@@ -20,6 +20,15 @@ export interface DocumentFragment {
    *  texto vecino). Ausente en documentos indexados antes de F-20, que no
    *  tienen chunks persistidos. */
   context?: FragmentContext;
+  /** F-44: fragmento sintetizado en retrieval (no una fila/resumen real de
+   *  document_chunks) cuya función es dar contexto al juez, no ser citado.
+   *  `context` queda ausente a propósito (no hay fila real que describir) —
+   *  este campo es la señal explícita que lo distingue de un fragmento sin
+   *  contexto por documento antiguo (F-20), que también tiene `context`
+   *  ausente pero SÍ es una fila real y SÍ es citable. Sin este campo,
+   *  describeFragment y el diagnóstico F-36-bis no podrían distinguir los
+   *  dos casos. Ausente (no `false`) en todo fragmento real. */
+  isContext?: boolean;
 }
 
 export interface CandidateDocument {

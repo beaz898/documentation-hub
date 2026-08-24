@@ -297,15 +297,37 @@ export interface JudgmentEvidence {
   overlaps: Array<{ hash: string; newChunk: StoredChunk | null; existingChunk: StoredChunk | null }>;
 }
 
+/**
+ * ¿Esta cita es literalmente el texto (o un fragmento de él) de una línea de
+ * contexto del candidato (F-44)? Solo para CONTAR el motivo del descarte con
+ * precisión — nunca se registra como haystack de verifyQuote: meter en el
+ * verificador texto que no existe en el corpus real desandaría F-27 (los
+ * chunks SON el haystack). El hallazgo se descarta igual, tenga esta forma o
+ * no; esto solo decide con qué nombre.
+ */
+function isContextCitation(quote: string | undefined, contextTexts: string[]): boolean {
+  if (!quote) return false;
+  const normQuote = normalize(quote);
+  if (!normQuote) return false;
+  return contextTexts.some(text => normalize(text).includes(normQuote));
+}
+
 function fixQuotesInJudgment(
   judgment: DocumentJudgment,
   newDocumentChunks: StoredChunk[],
   newDocumentFallbackText: string | null,
   existingDocumentChunks: StoredChunk[],
   existingDocumentFallbackText: string | null,
+  // F-44: texto literal de las líneas de contexto del CANDIDATO (retrieval.ts,
+  // fragmentos con isContext) — solo existen del lado existente, nunca del
+  // lado analizado (ese no pasa por el reparto de retrieval). Sirve solo
+  // para distinguir el MOTIVO del descarte si el juez cita una pese a la
+  // marca — no participa en verifyQuote.
+  existingContextTexts: string[] = [],
 ): { judgment: DocumentJudgment; evidence: JudgmentEvidence } {
   let narracionEnCita = 0;
   let citaNoVerificable = 0;
+  let citaDeContexto = 0;
 
   const fixedContradictions: DocumentJudgment['contradictions'] = [];
   const contradictionEvidence: JudgmentEvidence['contradictions'] = [];
@@ -330,6 +352,15 @@ function fixQuotesInJudgment(
     if (matchNew && matchExisting) {
       fixedContradictions.push({ ...c, newDocSays: matchNew.text, existingDocSays: matchExisting.text });
       contradictionEvidence.push({ hash, newChunk: matchNew.chunk, existingChunk: matchExisting.chunk });
+    } else if (!matchExisting && isContextCitation(c.existingDocSays, existingContextTexts)) {
+      // F-44: citó la línea de contexto pese a la marca de "no citar". Se
+      // descarta igual (no hay chunk real que verifique esto), pero con un
+      // motivo propio en vez de mezclarlo con una cita genuinamente inventada.
+      console.warn(
+        `[judge] Contradicción descartada en "${judgment.documentName}" [${hash}] (cita de línea de contexto, no citable): ` +
+        `"${(c.existingDocSays || '').slice(0, 200)}"`
+      );
+      citaDeContexto++;
     } else {
       const failedSide = describeFailedSide(!matchNew, !matchExisting);
       const failedText = failedSide === 'ambos'
@@ -364,6 +395,12 @@ function fixQuotesInJudgment(
     if (matchNew && matchExisting) {
       fixedOverlaps.push({ ...o, evidenceInNewDoc: matchNew.text, evidence: matchExisting.text });
       overlapEvidence.push({ hash, newChunk: matchNew.chunk, existingChunk: matchExisting.chunk });
+    } else if (!matchExisting && isContextCitation(o.evidence, existingContextTexts)) {
+      console.warn(
+        `[judge] Solapamiento descartado en "${judgment.documentName}" [${hash}] (cita de línea de contexto, no citable): ` +
+        `"${(o.evidence || '').slice(0, 200)}"`
+      );
+      citaDeContexto++;
     } else {
       const failedSide = describeFailedSide(!matchNew, !matchExisting);
       const failedText = failedSide === 'ambos'
@@ -376,7 +413,7 @@ function fixQuotesInJudgment(
     }
   }
 
-  const discardedCount = narracionEnCita + citaNoVerificable;
+  const discardedCount = narracionEnCita + citaNoVerificable + citaDeContexto;
 
   if (discardedCount > 0) {
     console.warn(`[judge] Descartados ${discardedCount} hallazgos no verificables en "${judgment.documentName}"`);
@@ -389,6 +426,7 @@ function fixQuotesInJudgment(
   const discarded: DiscardedFindings = { ...(judgment.discarded ?? {}) };
   if (narracionEnCita > 0) discarded.narracionEnCita = (discarded.narracionEnCita ?? 0) + narracionEnCita;
   if (citaNoVerificable > 0) discarded.citaNoVerificable = (discarded.citaNoVerificable ?? 0) + citaNoVerificable;
+  if (citaDeContexto > 0) discarded.citaDeContexto = (discarded.citaDeContexto ?? 0) + citaDeContexto;
 
   return {
     judgment: {
@@ -416,6 +454,16 @@ function fixQuotesInJudgment(
  * paso 5.
  */
 function describeFragment(fragment: DocumentFragment, position: number, documentName: string): string {
+  // F-44: la línea de contexto que colapsa filas idénticas (retrieval.ts) no
+  // tiene `context` — no describe una fila real de document_chunks — así que
+  // caería al genérico de abajo sin este chequeo, perdiendo justo la marca
+  // que le dice al juez que no la cite. `isContext` es la señal explícita
+  // (ver DocumentFragment en types.ts) que la distingue de un fragmento sin
+  // contexto por documento antiguo (F-20), que sí es una fila real citable.
+  if (fragment.isContext) {
+    return `[Fragmento ${position} de "${documentName}" — RESUMEN DE COINCIDENCIAS, NO CITAR LITERALMENTE]`;
+  }
+
   const ctx = fragment.context;
   if (!ctx) return `[Fragmento ${position} de "${documentName}"]`;
 
@@ -458,7 +506,17 @@ async function judgeSingleDocument(args: {
   };
   const tableRowIndexes: number[] = [];
   let fragmentsSinContexto = 0;
+  // F-44: la línea agregada tampoco tiene `context` (no es una fila real),
+  // pero no es lo mismo que "sin_contexto" — ese motivo significa "documento
+  // sin persistir en F-20, fila real igual citable". Mezclarlos habría hecho
+  // parecer, en el diagnóstico, que faltan filas de un documento antiguo
+  // cuando en realidad es la línea de contexto haciendo su trabajo.
+  let fragmentsDeContexto = 0;
   for (const f of candidate.fragments) {
+    if (f.isContext) {
+      fragmentsDeContexto++;
+      continue;
+    }
     const type = f.context?.chunkType;
     if (!type) {
       fragmentsSinContexto++;
@@ -473,10 +531,11 @@ async function judgeSingleDocument(args: {
     .map(t => `${t}: ${fragmentTypeCounts[t]}`)
     .join(', ');
   const sinContextoLog = fragmentsSinContexto > 0 ? `, sin_contexto: ${fragmentsSinContexto}` : '';
+  const deContextoLog = fragmentsDeContexto > 0 ? `, contexto_no_citable: ${fragmentsDeContexto}` : '';
   const filasLog = tableRowIndexes.length > 0 ? ` filas: [${tableRowIndexes.join(', ')}]` : '';
   console.log(
     `[judge] "${candidate.documentName}": ${candidate.fragments.length} fragmentos ` +
-    `(${fragmentTypesLog}${sinContextoLog})${filasLog}`
+    `(${fragmentTypesLog}${sinContextoLog}${deContextoLog})${filasLog}`
   );
 
   const existingFragsBlock = candidate.fragments
@@ -632,6 +691,10 @@ Responde con este JSON (sin bloques de código, sin texto adicional):
 
     const existingChunks = args.chunksByDocument?.get(candidate.documentId) ?? [];
     const existingFallbackText = args.fallbackTexts?.get(candidate.documentId) ?? null;
+    // F-44: texto de las líneas de contexto ya está en candidate.fragments —
+    // sin consulta nueva, es el mismo array que ya se recorrió para
+    // existingFragsBlock más arriba.
+    const existingContextTexts = candidate.fragments.filter(f => f.isContext).map(f => f.text);
 
     return fixQuotesInJudgment(
       rawJudgment,
@@ -639,6 +702,7 @@ Responde con este JSON (sin bloques de código, sin texto adicional):
       args.newDocumentFallbackText,
       existingChunks,
       existingFallbackText,
+      existingContextTexts,
     );
   } catch (err) {
     console.warn(`[judge] Failed for "${candidate.documentName}":`, err);

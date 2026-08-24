@@ -135,6 +135,13 @@ export async function retrieveCandidates(args: {
       analyzedValueIndex.set(normCol, set);
     }
   }
+  // F-43/F-44: filas reales del analizado (no solo el índice de valores) —
+  // hace falta para "idéntica" en el sentido estricto: que TODAS las columnas
+  // compartidas coincidan con LA MISMA fila del analizado, no con filas
+  // distintas que cada una casualmente comparte una columna. El índice de
+  // valores (arriba) no distingue eso — es un cruce por columna, independiente
+  // fila a fila del lado analizado.
+  const analyzedRows = (newDocumentChunks ?? []).filter(c => c.chunkType === 'table_row');
 
   const embeddings = await generateEmbeddings(sampleTexts);
   const scoreThreshold = isExhaustive ? SCORE_THRESHOLD_EXHAUSTIVE : SCORE_THRESHOLD_QUICK;
@@ -225,14 +232,15 @@ export async function retrieveCandidates(args: {
         );
       }
 
-      const result = selectUnitsWithinBudget(units, docChunks, sorted[0], analyzedValueIndex);
+      const result = selectUnitsWithinBudget(units, docChunks, sorted[0], analyzedValueIndex, analyzedRows);
       selected = result.selected;
 
       const usedChars = selected.reduce((sum, f) => sum + f.text.length, 0);
       for (const t of result.tableLog) {
+        const colapsoDesc = t.collapsedCount > 0 ? `, ${t.collapsedCount} colapsadas en 1 línea` : '';
         const levelDesc =
           t.level === 1 ? `completa, ${t.rowsUsed} filas`
-          : t.level === 2 ? `resumen + ${t.rowsUsed}/${t.rowsTotal} filas, ${t.belongingUsed} por pertenencia`
+          : t.level === 2 ? `resumen + ${t.rowsUsed}/${t.rowsTotal} filas, ${t.belongingUsed} por pertenencia${colapsoDesc}`
           : t.level === 3 ? 'solo resumen'
           : 'fila única sin resumen (caso raro)';
         console.log(`[retrieval] "${sorted[0].documentName}" tabla "${t.sheetName ?? t.tableId}": nivel ${t.level} (${levelDesc}, ${t.chars} chars)`);
@@ -416,25 +424,126 @@ function countCrossings(
   return crossings;
 }
 
+/** Columnas (normalizado -> nombre real, tal como aparece en las cells de
+ *  ESTA tabla) que también existen en alguna tabla del documento analizado —
+ *  "compartidas" para esta tabla concreta, no para el candidato en conjunto.
+ *  El nombre real (no el normalizado) es para mostrarlo en la línea agregada
+ *  con su capitalización original. */
+function sharedColumnsForTable(
+  tableId: string,
+  docChunks: StoredChunk[],
+  analyzedValueIndex: Map<string, Set<string>>,
+): Map<string, string> {
+  const shared = new Map<string, string>();
+  for (const c of docChunks) {
+    if (c.tableId !== tableId || !c.cells) continue;
+    for (const col of Object.keys(c.cells)) {
+      const normCol = normalize(col);
+      if (analyzedValueIndex.has(normCol) && !shared.has(normCol)) shared.set(normCol, col);
+    }
+  }
+  return shared;
+}
+
+/**
+ * F-43/F-44: ¿esta fila coincide EXACTAMENTE con ALGUNA fila concreta del
+ * documento analizado, en TODAS las columnas compartidas? No es lo mismo que
+ * countCrossings > 0 en todas las compartidas de forma independiente — eso
+ * admitiría un cruce "Frankenstein" (columna A coincide con la fila X del
+ * analizado, columna B con la fila Y). Aquí se exige que sea LA MISMA fila
+ * del analizado en las dos, que es lo que de verdad significa "es la misma
+ * entidad, no hay contradicción posible sobre estas columnas".
+ */
+function findIdenticalAnalyzedRow(
+  rowChunk: StoredChunk,
+  analyzedRows: StoredChunk[],
+  sharedColumns: Map<string, string>,
+): boolean {
+  if (sharedColumns.size === 0 || !rowChunk.cells) return false;
+  for (const analyzedRow of analyzedRows) {
+    if (!analyzedRow.cells) continue;
+    let allMatch = true;
+    for (const normCol of sharedColumns.keys()) {
+      const candKey = Object.keys(rowChunk.cells).find(k => normalize(k) === normCol);
+      const anaKey = Object.keys(analyzedRow.cells).find(k => normalize(k) === normCol);
+      const candVal = candKey ? normalize(rowChunk.cells[candKey]) : null;
+      const anaVal = anaKey ? normalize(analyzedRow.cells[anaKey]) : null;
+      if (candVal === null || anaVal === null || candVal !== anaVal) {
+        allMatch = false;
+        break;
+      }
+    }
+    if (allMatch) return true;
+  }
+  return false;
+}
+
+/**
+ * F-44: la línea de contexto que colapsa las filas idénticas. `chunkIndex:
+ * -1` — centinela negativo, verificado (exploración previa) que todo el
+ * camino (loadFragmentContexts, deduplicateFragments, rerank, la cascada)
+ * degrada con seguridad ante un valor que ningún chunk real tiene nunca. Si
+ * un candidato tuviera más de una tabla colapsando, las dos compartirían el
+ * mismo -1: inofensivo, ambas resuelven igual a "sin chunk real" en
+ * cualquier lookup por chunkIndex.
+ *
+ * La etiqueta por fila NO elige una columna como "la identidad" — eso sería
+ * la heurística por nombre que F-23/F-26/F-36 prohíben. Muestra el VALOR de
+ * TODAS las columnas compartidas, en el orden en que aparecen en la propia
+ * fila, separados por " / ". Con Empleado+Puesto da nombres reconocibles
+ * ("Nuria Ferrer / Odontopediatra") sin que el código sepa ni necesite saber
+ * que "Empleado" identifica a una persona.
+ */
+function buildContextFragment(
+  identicalRows: DocumentFragment[],
+  docChunks: StoredChunk[],
+  sharedColumns: Map<string, string>,
+  like: DocumentFragment,
+  score: number,
+): DocumentFragment {
+  const orderedCols = [...sharedColumns.values()];
+  const labels = identicalRows
+    .slice()
+    .sort((a, b) => b.score - a.score)
+    .map(f => {
+      const stored = docChunks.find(c => c.chunkIndex === f.chunkIndex);
+      if (!stored?.cells) return '(?)';
+      return orderedCols.map(col => stored.cells![col] ?? '?').join(' / ');
+    });
+  const text = `[CONTEXTO — no citar: ${identicalRows.length} filas coinciden en ${orderedCols.join(' y ')}: ${labels.join(', ')}]`;
+  return {
+    text,
+    documentId: like.documentId,
+    documentName: like.documentName,
+    source: like.source,
+    score,
+    chunkIndex: -1,
+    generation: like.generation,
+    isContext: true,
+  };
+}
+
 /**
  * Intenta encajar una tabla en el presupuesto que queda, en cascada:
  *   Nivel 1 — completa (todas sus filas de document_chunks + su
  *     table_summary si existe), si cabe entera. El orden no importa: entra
- *     todo, así que la prioridad por pertenencia no tiene nada que decidir.
- *   Nivel 2 — table_summary (no compite, se resta primero) + las filas
- *     RECUPERADAS que quepan en lo que sobra. F-42: dentro de este nivel, las
- *     filas se ordenan por CUÁNTAS columnas cruzan VALOR con el documento
- *     analizado (countCrossings), descendente, y el score desempata dentro
- *     de cada grupo de igual número de cruces — "el score decide entre lo
- *     incomparable, la estructura entre lo comparable". F-41 comparaba solo
- *     nombres de columna y no discriminaba nada (15/15 filas de una tabla de
- *     personas comparten columna con cualquier otra tabla de personas);
- *     comparar VALOR sí distingue. Comparación puramente estructural:
- *     igualdad exacta tras normalizar, sin sinónimos ni distancia de edición
- *     (B.95) — un valor que difiere legítimamente (la propia contradicción
- *     que se busca) cuenta como NO cruce, a propósito.
- *   Nivel 3 — solo table_summary, si ni las filas recuperadas caben. Sin
- *     filas, tampoco hay nada que ordenar.
+ *     todo, así que ni la pertenencia ni el colapso tienen nada que decidir.
+ *   Nivel 2 — table_summary (no compite, se resta primero) + filas. F-44: las
+ *     filas RECUPERADAS se parten primero en IDÉNTICAS (coinciden con una
+ *     misma fila del analizado en TODAS las columnas compartidas — no pueden
+ *     sustentar contradicción sobre esas columnas, y R2 las descartaría por
+ *     sin_columna_comun sobre el resto) y EL RESTO. Las idénticas se
+ *     colapsan en una única línea de contexto (buildContextFragment), que
+ *     entra primero — son, por definición, el grupo de mayor cruce posible.
+ *     El resto entra entera, ordenada por cuántas columnas cruzan VALOR con
+ *     el documento analizado (countCrossings, F-42), descendente, score como
+ *     desempate — "el score decide entre lo incomparable, la estructura
+ *     entre lo comparable". Comparación puramente estructural: igualdad
+ *     exacta tras normalizar, sin sinónimos ni distancia de edición (B.95) —
+ *     un valor que difiere legítimamente (la propia contradicción que se
+ *     busca) cuenta como NO cruce ni como idéntica, a propósito.
+ *   Nivel 3 — solo table_summary, si ni las filas caben. Sin filas, tampoco
+ *     hay nada que ordenar ni que colapsar.
  * Devuelve null si ni el resumen solo cabe — la tabla no entra en absoluto.
  */
 function assembleTable(
@@ -444,7 +553,8 @@ function assembleTable(
   remainingBudget: number,
   remainingCount: number,
   analyzedValueIndex: Map<string, Set<string>>,
-): { level: 1 | 2 | 3; fragments: DocumentFragment[]; usedChars: number; belongingUsed: number } | null {
+  analyzedRows: StoredChunk[],
+): { level: 1 | 2 | 3; fragments: DocumentFragment[]; usedChars: number; belongingUsed: number; collapsedCount: number } | null {
   const allRowChunks = docChunks
     .filter(c => c.tableId === unit.tableId && c.chunkType === 'table_row')
     .sort((a, b) => a.chunkIndex - b.chunkIndex);
@@ -462,6 +572,7 @@ function assembleTable(
       fragments: summaryFragment ? [...allRowFragments, summaryFragment] : allRowFragments,
       usedChars: level1Chars,
       belongingUsed: 0,
+      collapsedCount: 0,
     };
   }
 
@@ -469,24 +580,45 @@ function assembleTable(
     const budgetForRows = remainingBudget - summaryChars;
     const countForRows = remainingCount - 1;
     if (budgetForRows >= 0 && countForRows >= 0) {
-      // F-42: cruces desc, score desc como desempate. Un solo `.sort()`
-      // estable — para el mismo (cruces, score), que solo ocurriría con
-      // scores idénticos, conserva el orden de entrada (por score, ya que
-      // unit.recoveredRows llega ordenado así desde buildUnits).
+      const sharedCols = sharedColumnsForTable(unit.tableId, docChunks, analyzedValueIndex);
       const crossingsByIndex = new Map<number, number>();
+      const identicalRows: DocumentFragment[] = [];
+      let restRows: DocumentFragment[] = [];
       for (const rowFragment of unit.recoveredRows) {
-        crossingsByIndex.set(rowFragment.chunkIndex, countCrossings(rowFragment, docChunks, analyzedValueIndex));
+        const crossings = countCrossings(rowFragment, docChunks, analyzedValueIndex);
+        crossingsByIndex.set(rowFragment.chunkIndex, crossings);
+        const stored = docChunks.find(c => c.chunkIndex === rowFragment.chunkIndex);
+        const isIdentical = crossings > 0 && stored && findIdenticalAnalyzedRow(stored, analyzedRows, sharedCols);
+        if (isIdentical) identicalRows.push(rowFragment);
+        else restRows.push(rowFragment);
       }
-      const orderedRows = [...unit.recoveredRows].sort((a, b) => {
+      const byRestOrder = (a: DocumentFragment, b: DocumentFragment) => {
         const ca = crossingsByIndex.get(a.chunkIndex) ?? 0;
         const cb = crossingsByIndex.get(b.chunkIndex) ?? 0;
         return ca !== cb ? cb - ca : b.score - a.score;
-      });
+      };
+      restRows.sort(byRestOrder);
 
       const packedRows: DocumentFragment[] = [];
       let usedRowChars = 0;
       let belongingUsed = 0;
-      for (const rowFragment of orderedRows) {
+      let collapsedCount = 0;
+
+      if (identicalRows.length > 0) {
+        const aggregated = buildContextFragment(identicalRows, docChunks, sharedCols, like, unit.score);
+        if (aggregated.text.length <= budgetForRows && packedRows.length < countForRows) {
+          packedRows.push(aggregated);
+          usedRowChars += aggregated.text.length;
+          collapsedCount = identicalRows.length;
+        } else {
+          // Caso patológico: ni la línea agregada cupo. Las idénticas vuelven
+          // a competir como cualquier otra fila, sin colapsar — mejor una
+          // fila entera que ninguna.
+          restRows = [...restRows, ...identicalRows].sort(byRestOrder);
+        }
+      }
+
+      for (const rowFragment of restRows) {
         if (packedRows.length >= countForRows) break;
         if (usedRowChars + rowFragment.text.length > budgetForRows) continue;
         packedRows.push(rowFragment);
@@ -494,11 +626,11 @@ function assembleTable(
         if ((crossingsByIndex.get(rowFragment.chunkIndex) ?? 0) > 0) belongingUsed++;
       }
       if (packedRows.length > 0) {
-        return { level: 2, fragments: [...packedRows, summaryFragment], usedChars: summaryChars + usedRowChars, belongingUsed };
+        return { level: 2, fragments: [...packedRows, summaryFragment], usedChars: summaryChars + usedRowChars, belongingUsed, collapsedCount };
       }
     }
     if (summaryChars <= remainingBudget && remainingCount >= 1) {
-      return { level: 3, fragments: [summaryFragment], usedChars: summaryChars, belongingUsed: 0 };
+      return { level: 3, fragments: [summaryFragment], usedChars: summaryChars, belongingUsed: 0, collapsedCount: 0 };
     }
   }
 
@@ -522,6 +654,11 @@ interface TableLevelLog {
    *  por pertenencia — F-42, cruce de VALOR, no solo de columna — en vez de
    *  por hueco tras agotarse ese grupo. */
   belongingUsed: number;
+  /** F-44: filas REALES representadas por la línea de contexto colapsada (0
+   *  si no hubo colapso). rowsUsed las incluye — sin esto, rowsUsed contaría
+   *  solo las filas que entraron sueltas y parecería que faltan las que en
+   *  realidad están, resumidas, en una sola línea. */
+  collapsedCount: number;
   chars: number;
 }
 
@@ -547,6 +684,7 @@ function selectUnitsWithinBudget(
   docChunks: StoredChunk[],
   like: DocumentFragment,
   analyzedValueIndex: Map<string, Set<string>>,
+  analyzedRows: StoredChunk[],
 ): { selected: DocumentFragment[]; tableLog: TableLevelLog[]; unitsIn: number; unitsOut: number } {
   const selected: DocumentFragment[] = [];
   const tableLog: TableLevelLog[] = [];
@@ -569,16 +707,19 @@ function selectUnitsWithinBudget(
       continue;
     }
 
-    const assembled = assembleTable(unit, docChunks, like, remainingBudget, remainingCount, analyzedValueIndex);
+    const assembled = assembleTable(unit, docChunks, like, remainingBudget, remainingCount, analyzedValueIndex, analyzedRows);
     if (assembled) {
       selected.push(...assembled.fragments);
       usedChars += assembled.usedChars;
       unitsIn++;
       const rowsTotal = docChunks.filter(c => c.tableId === unit.tableId && c.chunkType === 'table_row').length;
-      const rowsUsed = assembled.fragments.filter(f => {
+      // F-44: rowsUsed cuenta filas REALES representadas, no fragmentos — la
+      // línea agregada es un fragmento pero representa collapsedCount filas.
+      const individualRowsUsed = assembled.fragments.filter(f => {
         const stored = docChunks.find(c => c.chunkIndex === f.chunkIndex);
         return stored?.chunkType === 'table_row';
       }).length;
+      const rowsUsed = individualRowsUsed + assembled.collapsedCount;
       tableLog.push({
         tableId: unit.tableId,
         sheetName: unit.sheetName,
@@ -586,6 +727,7 @@ function selectUnitsWithinBudget(
         rowsUsed,
         rowsTotal,
         belongingUsed: assembled.belongingUsed,
+        collapsedCount: assembled.collapsedCount,
         chars: assembled.usedChars,
       });
       continue;
@@ -599,13 +741,13 @@ function selectUnitsWithinBudget(
         selected.push(f);
         usedChars += f.text.length;
         unitsIn++;
-        tableLog.push({ tableId: unit.tableId, sheetName: unit.sheetName, level: 3, rowsUsed: 0, rowsTotal, belongingUsed: 0, chars: f.text.length });
+        tableLog.push({ tableId: unit.tableId, sheetName: unit.sheetName, level: 3, rowsUsed: 0, rowsTotal, belongingUsed: 0, collapsedCount: 0, chars: f.text.length });
       } else if (unit.recoveredRows.length > 0) {
         const shortest = [...unit.recoveredRows].sort((a, b) => a.text.length - b.text.length)[0];
         selected.push(shortest);
         usedChars += shortest.text.length;
         unitsIn++;
-        tableLog.push({ tableId: unit.tableId, sheetName: unit.sheetName, level: '3-forzado', rowsUsed: 1, rowsTotal, belongingUsed: 0, chars: shortest.text.length });
+        tableLog.push({ tableId: unit.tableId, sheetName: unit.sheetName, level: '3-forzado', rowsUsed: 1, rowsTotal, belongingUsed: 0, collapsedCount: 0, chars: shortest.text.length });
       }
     }
   }
