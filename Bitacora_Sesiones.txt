@@ -4515,3 +4515,164 @@ style-check se descartó tras comprobar el umbral real en la documentación
 sido un placebo permanente. rerank NO se cachea: está en la lista de muerte
 de B.83. verify-claims va en el mismo tren que el juez, en el paso 5.
 Cero commits de código en este frente, y un commit placebo evitado.
+
+────────────────────────────────────────────────────────────────
+SESIÓN 47 — 24/08/2026
+Título: F-43 a F-47 — colapso de idénticas, solapamiento estructural y el
+paso 5 adelantado
+────────────────────────────────────────────────────────────────
+
+EL FRENTE, CERRADO. Objetivo: que la evidencia llegue al juez. CONSEGUIDO Y
+MEDIDO: la fila 3 de RRHH-06 (Dr. Pablo Reyes) llega, tres ejecuciones
+seguidas, con 379 caracteres de presupuesto sobrante (log de las 11:41:
+"unidades: 5 dentro, 0 fuera, 2621/3000 caracteres" — 3000-2621; distinto del
+603 sobrante que medía 9c8c44bd, que era el sub-presupuesto de FILAS dentro de
+una tabla, no el de unidades del candidato completo). NO CONSEGUIDO, Y POR QUÉ
+NO ERA ESTE FRENTE: que el juez la reconozca es presentación, no recuperación
+— es el paso 5.
+
+CINCO CAUSAS DESCARTADAS, cada una con su número, porque es lo que hace que la
+explicación superviviente valga:
+  - topK y umbral: la fila llega de Pinecone con score 0,825 (a3cf6bfc).
+  - Presupuesto: sobran 379 caracteres tras el colapso (mismo dato y origen
+    que arriba) — no es agotamiento.
+  - Competencia entre filas casi idénticas: 17 fragmentos de RRHH-06 en dos
+    centésimas de score, cuatro empatados al milésimo (a3cf6bfc) — retirada
+    por el colapso al dejar de competir fila contra fila dentro de la tabla.
+  - Corte temporal del 23/08 ("por la mañana detectaba, por la noche no"):
+    artefacto de contar mal, no un régimen distinto — lectura de producción,
+    no de código: 3 ejecuciones de 3 detectaban por la mañana, 1 de 11 por la
+    noche. Tres ejecuciones no distinguen una racha de un régimen; diagnóstico
+    de Fable en F-38, aceptado.
+  - Verificación de citas: el log crudo del juez (e4aea241) dice que NO
+    emitió el hallazgo — no que lo emitiera y las citas lo mataran.
+
+COMMITS DE ESTA SESIÓN
+13 commits, orden cronológico:
+
+  1.  83d041cb (00:20) — diag(judge): qué fragmentos recibe el juez por
+      candidato. Arranca la investigación: distingue "no la ve teniéndola
+      delante" (inestabilidad) de "no está entre los fragmentos" (recuperación).
+  2.  a4c5e6b7 (00:25) — diag(pipeline): decisión de la cascada hallazgo a
+      hallazgo, con topic y motivo — antes solo había recuentos agregados.
+  3.  51e2111b (08:12) — fix(cascada): conservar el título del juez cuando la
+      estructura confirma. Fija la regla F-38 (ver más abajo).
+  4.  a1eeb4a7 (08:15) — fix(cascada): guarda en el log que lee el topic antes
+      del respaldo — la línea anterior a 51e2111b lanzaba sin la misma guarda.
+  5.  d1491f23 (09:04) — feat(frontera): primera función de la aduana
+      LLM→pipeline (F-39) — contradictions gana el saneado por elemento que
+      overlappingContent ya tenía.
+  6.  3dd8670c (09:17) — feat(análisis): confirmedBy — registrar quién
+      confirmó cada hallazgo (estructura/juicio/double_check), no cuánta
+      confianza hay.
+  7.  e4aea241 (09:35) — feat(diagnóstico): log crudo del juez y hash de traza
+      de 8 hex entre etapas — distingue "no emitió" de "emitió y las citas lo
+      mataron".
+  8.  74d3a522 (10:11) — diag(retrieval): scores de Pinecone y motivo del
+      recorte (F-40) — descarta presupuesto y deduplicación como causa.
+  9.  983d2023 (10:36) — fix(diagnóstico): cierra la traza del hash en las dos
+      líneas que quedaban sin él (pendiente de F-40) y dos limpiezas menores.
+  10. a3cf6bfc (11:05) — feat(retrieval): la unidad de selección pasa a ser la
+      tabla, no la fila (F-41) — tres niveles en cascada, siempre declarados.
+  11. 61000590 (11:44) — feat(retrieval): pertenencia por valor cruzado, no
+      por columna compartida (F-42), y el nivel '3-forzado'.
+  12. 9c8c44bd (13:06) — feat(retrieval): colapso de filas idénticas en una
+      línea de contexto — F-43 el teorema de descarte, F-44 el mecanismo
+      (línea agregada, etiqueta, centinela -1, motivo cita_de_contexto).
+  13. e16296e1 (13:35) — feat(análisis): solapamiento estructural, confirmedBy
+      en overlaps y porcentaje tabular — F-45 el cable y la fusión por grupo,
+      F-46 el máximo (no media) y el límite anotado junto a normalize.
+
+DECISIONES QUE PARECERÁN ARBITRARIAS SI NO SE EXPLICAN:
+  - confirmedBy y no dos columnas (3dd8670c): confidence tenía doble uso en
+    exhaustivo —filtro de Sonnet y proxy de "confirmado" a la vez— y ese doble
+    uso fue el que explotó. Dos columnas habrían congelado en el esquema la
+    implementación de hoy; confirmedBy describe el HECHO (quién dio el sello)
+    y sobrevive a que mañana haya otra vía de confirmación.
+  - Pertenencia por VALOR y no por columna (61000590): medido que compartir
+    columna no discriminaba nada, 15 de 15 filas de RRHH-06 "pertenecían" —
+    compartir columna es propiedad de la TABLA, no de la fila. Lo que varía
+    entre filas es el valor.
+  - La etiqueta del colapso muestra TODAS las columnas compartidas, no solo un
+    nombre (9c8c44bd): elegir una columna como "la identidad" (p. ej.
+    "Empleado") habría sido la heurística semántica por nombre que F-23/F-26/
+    F-36 prohíben. Cuesta 139 caracteres más que mostrar solo el nombre; se
+    pagan.
+  - La entrada estructural no lleva citas (e16296e1): nunca pasa por
+    fixQuotesInJudgment —esa verificación corre antes, dentro de
+    judgeSingleDocument, sobre lo que el juez emitió—, así que no necesita
+    citabilidad. No hay una frase única que resuma N filas colapsadas; forzar
+    una habría sido fabricar una cita que no existe.
+  - El porcentaje es el MÁXIMO y no la media (e16296e1): son mediciones de
+    cosas distintas —impresión del modelo sobre lo que vio, contra proporción
+    real verificada celda a celda— y el solapamiento real es al menos el
+    mayor de los dos.
+  - Dos líneas de la cascada leen el hash por sourceIndex EN VEZ de
+    recalcularlo, y eso ya no es un pendiente: e4aea241 dejó sin hash las
+    líneas de "confirmado por juicio" y "descartado" dentro de
+    results.forEach, porque toVerify es un array COMPACTADO cuyo índice
+    diverge del de evidence.contradictions en cuanto un hallazgo anterior toma
+    otra rama. 983d2023, el mismo día, lo cerró guardando el índice original
+    (sourceIndex) al compactar y leyendo el hash de esa misma entrada — nunca
+    recalculado: un hash mal indexado señalaría al hallazgo equivocado, "una
+    traza falsa, peor que ninguna". Verificado en el código actual
+    (pipeline.ts, applyCascadeToCandidate): las dos líneas tienen hash hoy.
+
+LA REGLA NUEVA, la más importante para quien venga: ninguna etapa reescribe un
+campo que identifica un hallazgo; si necesita otro valor, añade un campo
+nuevo. Fijada como F-38 en 51e2111b. Origen: día y medio de diagnóstico
+buscando un hallazgo por el nombre de una persona (Dr. Pablo Reyes) a través
+de analysis_results, con resultado negativo — una etapa posterior (la capa
+determinista, rama 'confirm') había sustituido el topic por una plantilla
+("Puesto difiere entre OPE-02... y RRHH-06..."), y AnalysisModal.tsx pinta ese
+campo tal cual, sin transformarlo, así que el cliente también veía la
+plantilla en vez del título del juez.
+
+EL LÍMITE DEL TEOREMA DEL COLAPSO: el colapso (F-43/F-44) y el solapamiento
+estructural que se apoya en él (F-45) descansan enteros en normalize() —
+"idéntica" significa "igual tras normalize()", nada más. Hoy NO toca tildes
+(deliberado: fallo del lado seguro). Anotado junto a la función en judge.ts
+(F-46): cualquier ampliación —tildes, sinónimos, distancia de edición— es una
+ampliación de lo que el colapso considera "la misma fila", y debe pasar por su
+batería de medición antes de tocarse.
+
+PENDIENTES VIVOS que salieron hoy y siguen abiertos:
+  - discardedFindings lleva las claves 'confirmado.por_estructura' y
+    'confirmado.por_juicio' dentro de un campo llamado "descartados" — el
+    nombre miente: no todo lo que hay ahí dentro se descartó. Confirmado en
+    código: bumpCount(counts, 'confirmado.por_estructura') escribe en
+    `counts: DiscardedFindings`, que se fusiona en judgment.discarded y de ahí
+    en FinalAnalysis.discardedFindings.
+  - narracionEnCita: 0 en 351 filas, en observación — el log pasó de 60 a 200
+    caracteres en e4aea241 para poder ver la forma real si aparece. Sin dato
+    nuevo todavía sobre si el patrón está muerto o llega en una forma que los
+    tres regex no reconocen.
+  - contradictions_confirmed: las filas anteriores a 3dd8670c miden otra cosa
+    (en rápido eran 0 por construcción; en exhaustivo contaban el sello de
+    Sonnet) — no comparables con las posteriores. Aviso ya dejado en el propio
+    commit.
+  - La línea `[CONTEXTO — no citar]` vive en un VACÍO NORMATIVO: el prompt del
+    juez no contiene ninguna instrucción sobre fragmentos no citables, así que
+    la marca es una convención visual sin respaldo. Si el juez copiara de ahí,
+    su cita cumpliría las REGLAS DE FORMATO tal como están escritas. Hay red
+    debajo (el descarte se cuenta como cita_de_contexto, e16296e1 / 9c8c44bd),
+    así que no llega al cliente. La regla explícita entra en el paso 5 (F-46),
+    no se parchea antes.
+
+ESTADO SIGUIENTE: paso 5 ADELANTADO por decisión de F-47 (Fable), por delante
+de 4c y B.83 — nuevo orden: paso 5 → remedición y cierre de B.81 → 4c → B.83
+→ paso 6. La asimetría de presentación queda como la ÚNICA hipótesis en pie
+tras tres semanas de medición (F-37 la tenía como una de tres); firma medida:
+2,3 s de retrieval contra 10 s en la dirección inversa — un modelo que no
+encontró nada que comparar, no uno que comparó y dudó. El par OPE-02/RRHH-06
+queda como banco de pruebas del paso 5, con condición dura: ambas direcciones,
+par aislado, 1 candidato. Especificación completa en
+claude/Consulta_Fable_F47_Paso5.md (mismo patrón que F-22).
+Lo que el paso 5 debe probar: que la contradicción del puesto de Dr. Pablo
+Reyes aparece analizando OPE-02, no solo analizando RRHH-06. Hoy, con la fila
+delante y presupuesto de sobra, el juez responde "0 contradicciones, 0
+solapamientos" en 2,3 segundos.
+
+ESTADO: frente de recuperación CERRADO. Commits: 83d041cb, a4c5e6b7, 51e2111b,
+a1eeb4a7, d1491f23, 3dd8670c, e4aea241, 74d3a522, 983d2023, a3cf6bfc, 61000590,
+9c8c44bd, e16296e1.
