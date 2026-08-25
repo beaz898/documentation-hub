@@ -508,31 +508,6 @@ function findIdenticalAnalyzedRow(
  * fila, separados por " / ". Con Empleado+Puesto da nombres reconocibles
  * ("Nuria Ferrer / Odontopediatra") sin que el código sepa ni necesite saber
  * que "Empleado" identifica a una persona.
- *
- * [EXPERIMENTO F-64 — SE REVIERTE TRAS MEDIR] El texto ya no NOMBRA las
- * columnas en las que coinciden. Regla de F-64: el texto que el código
- * inyecta en un prompt informa de HECHOS, nunca de CONCLUSIONES sobre lo que
- * el modelo debe evaluar. "Estas filas coinciden con filas del documento
- * analizado" es un hecho; "coinciden en Empleado y Puesto" es el veredicto de
- * una columna —la misma en la que vive la contradicción que el juez debe
- * encontrar— entregado antes del juicio.
- * MEDIDO (4 tandas): el overlapPercent de OPE-02 -> RRHH-06 pasó de 0% a 45%
- * las cuatro veces y el juez dejó de responder `sin_relacion`; la
- * contradicción del puesto siguió sin aparecer (0/4).
- *
- * [EXPERIMENTO F-64b — SE REVIERTE TRAS MEDIR] El texto tampoco lista ya los
- * VALORES: queda solo el recuento. La hipótesis es que ver nueve pares
- * "Nombre / Puesto" seguidos permite inferir "el puesto cuadra" aunque nadie
- * lo afirme — la misma conclusión, por inferencia en vez de por enunciado.
- * Cambia UNA variable respecto a F-64 (la frase ya salió allí).
- * RIESGO CONOCIDO, y por eso es experimento y no arreglo: sin valores, la
- * línea pierde su función original de F-44 — que el juez sepa QUÉ personas
- * existen en los dos lados y no confabule ausencias. Si la contradicción
- * aparece, conservar las dos cosas a la vez es una decisión de diseño que no
- * se toma aquí.
- *
- * `columns` y `labels` (lo que consume el solapamiento estructural de F-45)
- * NO cambian en ninguno de los dos experimentos — solo cambia `text`.
  */
 function buildContextFragment(
   identicalRows: DocumentFragment[],
@@ -550,7 +525,7 @@ function buildContextFragment(
       if (!stored?.cells) return '(?)';
       return orderedCols.map(col => stored.cells![col] ?? '?').join(' / ');
     });
-  const text = `[CONTEXTO — no citar: ${identicalRows.length} filas de esta tabla coinciden con filas del documento analizado]`;
+  const text = `[CONTEXTO — no citar: ${identicalRows.length} filas coinciden en ${orderedCols.join(' y ')}: ${labels.join(', ')}]`;
   return {
     fragment: {
       text,
