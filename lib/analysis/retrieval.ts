@@ -508,6 +508,19 @@ function findIdenticalAnalyzedRow(
  * fila, separados por " / ". Con Empleado+Puesto da nombres reconocibles
  * ("Nuria Ferrer / Odontopediatra") sin que el código sepa ni necesite saber
  * que "Empleado" identifica a una persona.
+ *
+ * [EXPERIMENTO F-64 — SE REVIERTE TRAS MEDIR] El texto ya no NOMBRA las
+ * columnas en las que coinciden. Regla de F-64: el texto que el código
+ * inyecta en un prompt informa de HECHOS, nunca de CONCLUSIONES sobre lo que
+ * el modelo debe evaluar. "Estas filas coinciden con filas del documento
+ * analizado" es un hecho; "coinciden en Empleado y Puesto" es el veredicto de
+ * una columna —la misma en la que vive la contradicción que el juez debe
+ * encontrar— entregado antes del juicio.
+ *
+ * Los VALORES por fila se conservan todos: quitar el segundo exigiría elegir
+ * cuál de las dos columnas compartidas es "la identidad", que es exactamente
+ * lo que el párrafo anterior prohíbe. `columns` y `labels` (lo que consume el
+ * solapamiento estructural de F-45) NO cambian — solo cambia `text`.
  */
 function buildContextFragment(
   identicalRows: DocumentFragment[],
@@ -525,7 +538,7 @@ function buildContextFragment(
       if (!stored?.cells) return '(?)';
       return orderedCols.map(col => stored.cells![col] ?? '?').join(' / ');
     });
-  const text = `[CONTEXTO — no citar: ${identicalRows.length} filas coinciden en ${orderedCols.join(' y ')}: ${labels.join(', ')}]`;
+  const text = `[CONTEXTO — no citar: ${identicalRows.length} filas de esta tabla coinciden con filas del documento analizado: ${labels.join(', ')}]`;
   return {
     fragment: {
       text,
