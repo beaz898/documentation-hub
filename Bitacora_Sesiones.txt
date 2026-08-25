@@ -4861,3 +4861,107 @@ ESTADO: B.81 CERRADO. Abierto el 21/08 como "asimetría del análisis" (sesión 
 al medir el paso 4d), confirmado el 23/08 con un caso limpio (B.91), se cierra
 el 25/08 como "una instrucción del prompt escrita sobre el caso equivocado".
 Historia completa en claude/Cierre_B81.md.
+
+
+────────────────────────────────────────────────────────────────────────────────
+SESIÓN 49 — 25/08/2026
+Título: F-70 — la ficha legible del modal de mejora
+────────────────────────────────────────────────────────────────
+
+OBJETIVO: que el cliente entienda un hallazgo de tabla sin descifrarlo. La ficha
+volcaba la cita cruda de una fila —valores sin etiqueta, columnas irrelevantes de
+más, ninguna frase que dijera QUÉ difiere— y era la primera vez en tres semanas
+que se miraba lo que ve el cliente. Todo lo anterior (F-51 a F-69) fue en
+detectar bien; nada en enseñarlo bien.
+Lo que pidió el director, literal: "necesito que diga que en un documento viene
+como puesto Implantólogo y en el otro como Implantólogo y Cirujano".
+
+LO MEDIDO ANTES DE ESCRIBIR CÓDIGO, y es lo que decidió el diseño entero. Tanda
+del 25/08 en producción sobre d384a315, leyendo el jsonb persistido. La MISMA
+fila del MISMO documento se cita con distinto número de valores según la
+dirección del análisis:
+  "existingDocSays": "Dr. Pablo Reyes | Implantólogo / Cirujano oral | Box 1"  (3)
+  "newDocSays":      "Dr. Pablo Reyes | Implantólogo / Cirujano oral"          (2)
+La cita lleva un SUBCONJUNTO de columnas, y el subconjunto varía entre
+ejecuciones. Desde ese texto la posición NO es deducible: nada en la cadena dice
+que el segundo valor sea "Puesto". Prueba de que el frontend no podía resolverlo
+solo — hacía falta que el backend mandara el emparejamiento ya hecho.
+
+LO DECIDIDO (respuesta de Fable a F-70): opción B, los valores enfrentados como
+dato calculado por el código, sin campo explicativo del modelo. Y el giro de su
+respuesta: LA PROSA NO NECESITABA NADA. Dos citas de lenguaje natural ya se leen
+solas ("se conservará 15 años" contra "durante 5 años") y el topic del juez hace
+de titular. El "problema de la prosa" era un problema imaginado mirando la
+solución de las tablas. La bifurcación de F-69 no había que ampliarla: había que
+alimentarla.
+
+COMMITS DE ESTA SESIÓN, en orden:
+  1. d384a315 (14:57) — F-70: los valores enfrentados viajan hasta la respuesta.
+     types.ts, pipeline.ts, synthesize.ts, double-check.ts (+79/-4).
+     applyCascadeToCandidate era el único punto con los cuatro datos a la vez
+     (columna, valor de cada lado, texto de cada fila) y solo guardaba el nombre
+     de la columna. Pasa a guardar comparedValues, newDocRow y existingDocRow.
+     TRES listas cerradas abiertas, no una: synthesize.ts (por la que pasan los
+     dos modos) y las DOS de double-check.ts, la del éxito y la del catch. Sin
+     esas dos últimas el campo habría llegado SOLO al modo rápido, que es
+     justamente el único donde la ficha detallada de AnalysisModal no se pinta.
+     El peor reparto posible, e invisible sin recorrer el camino entero.
+  2. 36a56524 (16:10) — F-70: la ficha del modal de mejora enseña qué difiere.
+     ProblemDetail.tsx (nuevo, 138 líneas), ChatPanel.tsx, problems.ts, es.json,
+     en.json (+165/-1). Componente de presentación puro que bifurca por presencia
+     de comparedValues. Fichero propio en vez de engordar ChatPanel.tsx, ya en
+     578 líneas.
+  3. 8f151aff (16:34) — F-70: la ficha explica la discrepancia en una frase.
+     ProblemDetail.tsx, es.json, en.json (+73/-21). Una frase por columna
+     discrepante, compuesta con next-intl y t.rich.
+
+ORDEN, y por qué: el dato antes que la ficha, y la ficha antes que su redacción.
+Cada commit deja el sistema en verde y no depende de que el siguiente exista.
+d384a315 no cambia un píxel (nadie itera campos, un campo de más es invisible), y
+36a56524 funciona con o sin él: sin él, comparedValues llega undefined y la ficha
+cae en la forma de siempre.
+
+`Problem.description` NO CAMBIÓ en ningún momento, y es la restricción que
+gobernó los dos commits de frontend: ni su plantilla en problems.ts:158, ni las
+tres llamadas al LLM de ImprovementModal (:66, :309, :340), que siguen leyendo
+esa cadena y solo esa. Los campos nuevos son SOLO para pintar. Presentación para
+quien presenta, F-53.
+
+EL CRITERIO QUE SE PAGÓ, y es la lección de la sesión: HICIERON FALTA DOS FORMAS.
+La primera —tres líneas apiladas, columna arriba y un valor de cada lado debajo—
+era correcta, verificada y legible, y aun así árida: un formulario al lado de los
+solapamientos, que van en prosa. La forma buena era la que el director había
+descrito en su frase original, desde el primer día. "QUE DIGA" no describía solo
+qué datos hacían falta: describía que tenían que ir dicho, en prosa.
+REGLA: cuando el director describe lo que quiere VER, la descripción ya lleva
+dentro la FORMA, no solo el contenido. Su frase se lee como especificación de
+formato, no solo de datos.
+Y no fue un error de lectura de un solo lado: Fable escribió "debe leerse en TRES
+LÍNEAS" en su último párrafo. La primera forma fue LA QUE ÉL ESPECIFICÓ. Ni el
+arquitecto ni Fable acertaron la forma desde la especificación; la acertó el
+director en su frase, y solo se vio al mirarla puesta. Eso refuerza la regla en
+vez de debilitarla.
+EL MATIZ que evita malinterpretarlo: pasar a prosa NO reabrió lo que Fable vetó.
+La frase la compone el CÓDIGO desde plantillas de traducción, con datos
+verificados en origen. Cambió el molde, no el dato.
+
+DOS SUPOSICIONES DEL ARQUITECTO QUE LO COMPROBADO DESMONTÓ:
+  - La insignia de la tarjeta (getDocSourceBadge) no dice contra qué documento se
+    compara: devuelve el ORIGEN del fichero (Drive/Manual). Se pidió quitar el
+    nombre del documento de la etiqueta y no procedía — mirando la tarjeta
+    entera, era el ÚNICO sitio de la rama de contradicciones donde ese nombre
+    aparece. Quitarlo habría dejado dos valores enfrentados sin decir de dónde
+    sale el segundo.
+  - El nombre de fichero completo SÍ estorbaba dentro de la frase (cae justo
+    entre los dos valores a comparar), pero solo se supo al ver la frase escrita.
+    En la forma de tres líneas iba en su propia línea y no molestaba a nadie.
+    Solución: el código (OPE-02) dentro de la frase, el nombre íntegro en el
+    plegado. shortDocumentName con respaldo que devuelve el nombre ENTERO si no
+    encaja el patrón — es convención de nombres del cliente, no del sistema.
+
+PENDIENTES ABIERTOS EN ESTA SESIÓN: B.96 (la misma ficha en AnalysisModal),
+B.97 (el !== crudo de applyDeterministicRules, EN OBSERVACIÓN) y B.98 (peso del
+jsonb con dos filas completas por hallazgo).
+
+ESTADO: F-70 CERRADO en la parte que el cliente usa a diario. Historia completa,
+con la respuesta de Fable entera y el JSON medido, en claude/Cierre_F70.md.

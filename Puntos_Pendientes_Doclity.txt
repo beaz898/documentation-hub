@@ -1603,6 +1603,58 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     mismo, no las cruza". Limitación explicable, no fallo. Anotado para que, si un
     cliente lo reporta, ya esté diagnosticado.
 
+  B.96 — [ABIERTO, 25/08] La misma ficha en el modal de análisis.
+    AnalysisModal.tsx:250-263 pinta las contradicciones del modo exhaustivo con
+    dos <p> de citas crudas: exactamente la forma que F-70 acaba de retirar del
+    modal de mejora. El dato ya llega (comparedValues, newDocRow y
+    existingDocRow viajan desde d384a315 y sobreviven al double-check, que es el
+    camino del exhaustivo).
+    LA PREGUNTA NO ES SI COPIAR ProblemDetail, sino si ESE modal debería
+    reutilizarlo. Son dos fichas con propósitos distintos: la de AnalysisModal se
+    ve una vez, al terminar un análisis, y decide si indexar; la del modal de
+    mejora es donde el cliente convive con los hallazgos y los resuelve uno a
+    uno. Puede que la primera quiera ser más escueta, no más rica. Decidirlo
+    antes de escribir nada.
+    Ojo si se reutiliza: ProblemDetail recibe un `Problem`, no una discrepancia
+    de FinalAnalysis, y usa el namespace 'analysis' de next-intl (el mismo que
+    AnalysisModal). Y CollapsibleSection de AnalysisModal no está exportado —
+    ProblemDetail lleva su propio plegado, copiado del patrón de ChatPanel.
+    SIN URGENCIA: el sitio donde el cliente convive con los hallazgos es el de
+    mejora, y ese ya está.
+
+  B.97 — [EN OBSERVACIÓN, 25/08] El !== crudo de la capa determinista.
+    finding-rules.ts:155 compara los valores de la columna compartida con
+    `newCells[c] !== existingCells[c]`, sin normalizar. Dos celdas que difieran
+    solo en un espacio de más, un acento o una mayúscula cuentan hoy como
+    discrepancia y llegan a la ficha como contradicción confirmada por
+    estructura.
+    CON CITAS NO SE NOTABA: la ficha volcaba las dos filas enteras y el ojo no
+    iba a la diferencia. CON LA FRASE DE F-70 QUEDARÁ EN EVIDENCIA — un par
+    visualmente idéntico se leerá "figura como «Implantólogo»; en X, como
+    «Implantólogo»", y el cliente pensará que el sistema está roto.
+    NO APARECIÓ EN LA TANDA DEL 25/08: los dos hallazgos medidos (las dos
+    direcciones de Pablo Reyes) difieren de verdad. Es un riesgo razonado, no un
+    fallo observado.
+    NO ARREGLAR A CIEGAS. Normalizar aquí es aflojar una regla determinista, y
+    F-23/F-26 ya tumbaron dos veces una regla que empezó "tolerando pequeñas
+    diferencias" y acabó siendo juicio semántico disfrazado. Si aparece un caso
+    real, medirlo primero: cuántos, de qué tipo (espacios, acentos,
+    mayúsculas, cero a la izquierda) y si normalizar mata algún verdadero
+    positivo. Con el dato delante, decidir. Sin él, no.
+
+  B.98 — [ANOTADO SIN MEDIR, 25/08] Peso del jsonb con las filas completas.
+    Desde d384a315 cada contradicción confirmada por estructura carga DOS filas
+    de tabla enteras (newDocRow + existingDocRow) dentro de
+    analysis_results.analysis. Una fila de RRHH-06 son ~300 caracteres; una de
+    OPE-02, ~210. Con varios hallazgos por análisis y documentos como OPE-06 (94
+    filas en su tarifa), eso suma en cada fila persistida.
+    SIN MEDIR TODAVÍA. Antes de tocar nada hace falta el dato: pg_column_size
+    sobre analysis_results.analysis antes y después de d384a315, y cuántos
+    hallazgos por estructura trae un análisis típico. Puede que sea irrelevante.
+    Si resultara que no lo es, la salida NO es dejar de mandarlas —la ficha las
+    usa— sino no persistirlas: son contexto de presentación, no hallazgo, y la
+    bandeja las relee del jsonb precisamente porque ahí están.
+
   F-20 [ESTADO, agosto 2026] Extracción estructurada. Paso 1 (extractSegments +
     EXTRACTOR_VERSION, commit 509e15d4) y paso 2 (persistencia en document_chunks,
     commit d00b085b) HECHOS. Paso 3 (job de reprocesado) RETIRADO — ver B.76. El
