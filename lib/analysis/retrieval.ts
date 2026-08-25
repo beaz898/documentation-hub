@@ -78,22 +78,8 @@ const QUERY_BATCH_SIZE = 5;
  * documentos troceados en piezas pequeñas (una fila de hoja de cálculo es un
  * fragmento) frente a los troceados en secciones largas. Se mide contenido,
  * no piezas.
- *
- * [EXPERIMENTO F-65 — SE REVIERTE TRAS MEDIR] 3.000 -> 5.200. No es una
- * recalibración: es el experimento que separa las dos últimas hipótesis del
- * caso OPE-02/RRHH-06. Con 3.000, la tabla de RRHH-06 (4.574 caracteres de
- * filas) no cabe y colapsa a nivel 2 — el juez ve 6 de 15 filas y no emite
- * la contradicción; la de OPE-02 (1.950) entra entera y esa dirección emite
- * 4/4. Con 5.200 las dos direcciones ven la tabla completa del candidato.
- * La cuenta, medida con el código real: 4.574 de filas + 225 del
- * table_summary (que en nivel 1 entra siempre con su tabla, F-41) + 224 de
- * prosa que gana a la tabla por score = 5.023 mínimo; 5.200 deja 177 de
- * margen para que el resultado no dependa de qué prosa recupere Pinecone.
- * NO sirve para OPE-06: su tabla son 19.613 caracteres y además topa antes
- * el límite de MAX_FRAGMENTS_PER_DOC_QUICK. Ese caso lo resuelve la
- * selección, no el presupuesto.
  */
-const FRAGMENT_BUDGET_CHARS_QUICK = 5200;
+const FRAGMENT_BUDGET_CHARS_QUICK = 3000;
 
 /**
  * Red de seguridad: un documento con miles de fragmentos diminutos no debe
