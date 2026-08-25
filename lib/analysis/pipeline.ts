@@ -257,6 +257,12 @@ async function applyCascadeToCandidate(
           : buildStructuralTopic(verdict.entity, verdict.columns, newDocumentName, judgment.documentName),
         severity: 'contradiction',
         confirmedBy: 'estructura',
+        // F-69: hasta ahora `verdict.columns` se calculaba, se imprimía en el
+        // log, alimentaba el título por plantilla y se tiraba. Es el único
+        // punto del pipeline que sabe QUÉ columna difiere, y la ficha lo
+        // necesita para no volcar la fila entera. Mismo patrón por el que
+        // `confidence` no llegaba antes de 3dd8670c.
+        columns: verdict.columns,
       });
       return;
     }
@@ -665,6 +671,10 @@ interface Discrepancy {
   existingDocSays: string;
   existingDocument: string;
   severity?: 'contradiction' | 'minor_inconsistency';
+  /** F-69: mergeContradictions conserva el objeto entero (spread + push), así
+   *  que en tiempo de ejecución el campo ya pasaba; declararlo evita que el
+   *  tipo lo borre al entrar en el double-check, que sí reconstruye. */
+  columns?: string[];
 }
 
 function mergeContradictions(listA: Discrepancy[], listB: Discrepancy[]): Discrepancy[] {

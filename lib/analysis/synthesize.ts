@@ -164,6 +164,9 @@ Responde EXCLUSIVAMENTE con este JSON:
       existingDocument: j.documentName,
       severity: c.severity,
       confirmedBy: c.confirmedBy,
+      // F-69: lista CERRADA — un campo que no se nombre aquí muere en este
+      // punto, pasen los dos modos por él. Ver `confidence` antes de 3dd8670c.
+      columns: c.columns,
     }))
   );
 

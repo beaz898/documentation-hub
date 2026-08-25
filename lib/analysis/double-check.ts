@@ -35,6 +35,11 @@ export interface DoubleCheckedDiscrepancy {
   confidence: DiscrepancyConfidence;
   severity?: 'contradiction' | 'minor_inconsistency';
   confirmedBy?: ConfirmedBy;
+  /** F-69: se arrastra tal cual. Sonnet decide CONFIANZA y SEVERIDAD, no qué
+   *  columna difiere — eso lo estableció la capa determinista mucho antes y
+   *  no se revisa aquí. Sin esta línea el campo moriría en el modo exhaustivo,
+   *  que es justo el único donde la ficha detallada se pinta. */
+  columns?: string[];
 }
 
 interface Discrepancy {
@@ -45,6 +50,7 @@ interface Discrepancy {
   confidence?: DiscrepancyConfidence;
   severity?: 'contradiction' | 'minor_inconsistency';
   confirmedBy?: ConfirmedBy;
+  columns?: string[];
 }
 
 interface BatchVerifyResponse {
@@ -240,6 +246,7 @@ Responde EXCLUSIVAMENTE con este JSON:
         confidence: (isContradiction ? 'alta' : 'posible') as DiscrepancyConfidence,
         ...(sev && sev !== 'none' ? { severity: sev as 'contradiction' | 'minor_inconsistency' } : {}),
         ...(isContradiction ? { confirmedBy: 'double_check' as ConfirmedBy } : {}),
+        ...(d.columns ? { columns: d.columns } : {}),
       };
     });
   } catch (err) {
@@ -251,6 +258,7 @@ Responde EXCLUSIVAMENTE con este JSON:
       existingDocument: d.existingDocument,
       confidence: 'posible' as DiscrepancyConfidence,
       severity: d.severity,
+      ...(d.columns ? { columns: d.columns } : {}),
     }));
   }
 }

@@ -68,6 +68,14 @@ export interface DocumentJudgment {
     existingDocSays: string;
     severity?: 'contradiction' | 'minor_inconsistency';
     confirmedBy?: ConfirmedBy;
+    /** F-69: columnas de la fila en las que los dos lados difieren, tal como
+     *  las identificó la capa determinista (finding-rules.ts, veredicto
+     *  'confirm'). Ausente cuando no hay columnas identificables: prosa, tabla
+     *  sin columna determinable, o hallazgo que no pasó por R2 (los que
+     *  confirma el juicio o el double-check no producen este dato).
+     *  Es el dato con el que la ficha podrá enseñar QUÉ difiere en vez de
+     *  volcar la fila entera; este commit solo lo transporta. */
+    columns?: string[];
   }>;
   overlappingContent: Array<{
     description: string;
@@ -144,6 +152,12 @@ export interface FinalAnalysis {
     confidence?: DiscrepancyConfidence;
     severity?: 'contradiction' | 'minor_inconsistency';
     confirmedBy?: ConfirmedBy;
+    /** F-69: mismo campo que en DocumentJudgment.contradictions, transportado
+     *  sin tocar por synthesize.ts. Llega al jsonb de analysis_results por el
+     *  mismo camino que confirmedBy (persist-analysis.ts guarda `analysis`
+     *  entero) y de ahí a lo que lee el cliente. Ausente en los análisis
+     *  guardados antes de este commit. */
+    columns?: string[];
   }>;
   /** Diferencias de enfoque o matiz confirmadas como no estrictamente incompatibles (solo modo exhaustivo). */
   minorInconsistencies?: Array<{
