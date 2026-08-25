@@ -4676,3 +4676,188 @@ solapamientos" en 2,3 segundos.
 ESTADO: frente de recuperación CERRADO. Commits: 83d041cb, a4c5e6b7, 51e2111b,
 a1eeb4a7, d1491f23, 3dd8670c, e4aea241, 74d3a522, 983d2023, a3cf6bfc, 61000590,
 9c8c44bd, e16296e1.
+
+
+────────────────────────────────────────────────────────────────
+SESIÓN 48 — 25/08/2026
+Título: B.81 CERRADO — el ejemplo del prompt que mataba el hallazgo, y el
+harness de tasas como infraestructura permanente
+────────────────────────────────────────────────────────────────
+
+LO PRIMERO QUE EL PROYECTO TUVO Y NO TENÍA: una LÍNEA DE BASE con tasas, no una
+tanda suelta.
+  OPE-02 → RRHH-06:              0/4
+  RRHH-06 → OPE-02:              4/4
+  Prosa CLI-03/NOR-01:           3/3 en ambas direcciones
+  MKT-01 (documento limpio):     0 hallazgos
+Medida en DOS configuraciones distintas con el mismo resultado, y eso probó lo
+que ninguna ejecución suelta podía probar: el caso es DETERMINISTA, no una
+moneda. Corrige la conclusión de F-60, que había atribuido la intermitencia a
+aleatoriedad del juez. 4/4 y 0/4 no son ruido; son dos comportamientos estables.
+
+CUATRO EXPERIMENTOS, cada uno de UNA variable, cada uno con su revert. El árbol
+volvió byte a byte a 6eafdc84 tras cada uno (verificado con `git diff <base>
+HEAD --stat` vacío las tres veces).
+
+  F-64 (2880d987) — la línea de contexto deja de NOMBRAR las columnas.
+    La hipótesis: "9 filas coinciden en Empleado y Puesto" entrega al juez el
+    veredicto de la columna en disputa antes del juicio. Resultado: el overlap
+    sube de 0% a 45% las cuatro veces y el juez deja de responder sin_relacion
+    — pero las contradicciones siguen 0/4.
+  F-64b (32d1d907) — tampoco lista los VALORES, solo el recuento.
+    Resultado: overlap de vuelta a 0%, contradicciones 0/4.
+  Revert de los dos: 0894d8f9. LÍNEA DESCARTADA como causa.
+    HALLAZGO LATERAL, y es el más valioso de los dos experimentos: la curva
+    0% → 45% → 0% aísla los NOMBRES como la variable, no la frase. Los nombres
+    de la línea valen 45 puntos de overlapPercent: le dicen al juez "estos
+    documentos hablan de la misma gente". La línea de F-44 queda EXONERADA y
+    CONFIRMADA en su función original. Solo fue visible porque los experimentos
+    se encadenaron y cada uno cambió una sola cosa; con los dos cambios juntos
+    habría quedado invisible.
+
+  F-65 (77dbc646) — presupuesto del candidato de 3.000 a 5.200.
+    La hipótesis: la dirección que falla ve 6 de 15 filas y la que funciona ve
+    la tabla entera. Con 5.200 las dos ven lo mismo. El log lo confirmó: "nivel
+    1 (completa, 15 filas, 4799 chars)" y el juez recibió las quince filas.
+    Resultado: 0/4, y en 2,2 segundos — EL MISMO TIEMPO QUE CON SEIS FILAS. No
+    estaba mirando más y decidiendo que no: decidía lo mismo antes de mirar.
+    Revert: 8f382e68. MATERIAL DESCARTADO DEL TODO.
+    (La cuenta del presupuesto se corrigió antes de desplegar: 4.600 no bastaba
+    — faltaban el table_summary, 225, y la prosa que gana a la tabla por score,
+    224. Mínimo real 5.023; se usó 5.200 por margen.)
+
+  LA COPIA CON OTRO NOMBRE (ZZZ-02), comprobación del director: se subió una
+    copia idéntica de OPE-02 con otro nombre y otro document_id. Resultado
+    idéntico — ZZZ-02 → RRHH-06: 0 contradicciones en 2,5 s; RRHH-06 → ZZZ-02:
+    2 contradicciones, la del puesto confirmada por estructura. NI EL NOMBRE NI
+    EL ORDEN.
+
+  F-66 (78c9097c) — campo "razonamiento" como PRIMER campo del JSON.
+    Dos decisiones de diseño medidas leyendo el código antes de escribirlo: el
+    razonamiento va DENTRO del JSON porque sanitizeJsonResponse recorta desde el
+    primer "{" o "[" y las preguntas invitaban a citar filas como [F3] (el fallo
+    habría sido intermitente, justo sobre la variable a leer); y porque
+    callAnthropicJson añade a todo prompt un sufijo que ordena "sin
+    explicaciones", que habría competido con un bloque externo. Primer campo y
+    no último: al final sería justificación a posteriori de una decisión ya
+    tomada.
+    DOS RESULTADOS. El aviso se cumplió: pedir razonamiento CAMBIÓ el
+    comportamiento — la dirección que emitía 4/4 dejó de emitir, las dos a 0.
+    Prueba empírica de que el balance emisión/contención del prompt es real y
+    sensible hasta al formato de la respuesta; dato para la fase 2.
+    Y la confesión, idéntica en las DOS direcciones:
+      "las columnas que comparten son solo 'Empleado' y 'Puesto'. Los datos
+      concretos en ambas tablas son de naturaleza completamente distinta y no
+      pueden compararse. La coincidencia de empleados y puestos es
+      complementaria, no contradictoria."
+    Identifica correctamente que Puesto es columna compartida y acto seguido la
+    descarta razonando sobre el TEMA de las tablas.
+    Revert: daaaa925.
+
+LA CAUSA: el ejemplo de judge.ts:729, escrito en F-22 para matar el falso
+positivo de Nuria Ferrer, REDACTADO SOBRE LAS TABLAS CUANDO DEBÍA ESTARLO SOBRE
+LAS COLUMNAS. Decía "el mismo empleado con datos distintos en dos tablas de
+temas distintos (turnos y evaluaciones) no es contradicción" — describiendo por
+su nombre el par de prueba del proyecto.
+El prompt tenía DOS instrucciones que aplicaban al mismo caso y decían lo
+contrario: la regla operativa ("la misma columna con valores incompatibles es
+contradicción") y este ejemplo. El juez no tenía una regla: tenía dos y elegía,
+y qué lado ganaba dependía de detalles frágiles. Eso explica tres semanas de
+intermitencia sin invocar aleatoriedad.
+Y llevaba semanas contradiciendo al CÓDIGO: R2 aplica desde F-26 "misma columna,
+valores distintos → contradicción, sin importar de qué traten las tablas". Pero
+la capa barata no puede confirmar lo que la instrucción mata antes de nacer.
+
+LA CURA (de158abd): el ejemplo se acota a columnas. Conserva la mitad que
+funcionaba —una fecha de evaluación contra unas horas semanales siguen siendo
+complementarias, columnas distintas, el falso positivo de Nuria Ferrer sigue
+muerto— e invierte la que no: el mismo Puesto con dos valores pasa a reportarse.
+Una línea del prompt. Entró SOLA, sin la regla de emparejamiento de F-57, para
+no regalar la atribución.
+
+EL RESULTADO:
+  OPE-02 → RRHH-06:    0/4 → 3/3
+  RRHH-06 → OPE-02:    3/3 (NO SE MOVIÓ)
+  Prosa CLI-03/NOR-01: 2/2 (NO SE MOVIÓ — no es una bajada respecto al 3/3 de la
+                       línea de base: son tandas de distinto tamaño, 3
+                       ejecuciones en un momento y 2 en otro, las dos al 100%.
+                       La prosa no se movió en todo el caso.)
+  Tiempo de la dirección que fallaba: de 2,2 s a 5,8-6,8 s — de descartar a
+  comparar de verdad. Era la firma del fallo y es la firma de la cura.
+
+EL EFECTO BELMONTE, y es VALIDACIÓN, no colateral (F-68): el ejemplo viejo hacía
+dos daños simétricos — mataba un verdadero positivo Y permitía un falso. El
+corregido arregla LOS DOS: desbloquea a Pablo Reyes (0/4 → 3/3) y reduce a
+Belmonte de 4/4 a 1/4. Es la prueba de que la corrección fue al CRITERIO y no al
+caso: un parche escrito para Pablo Reyes no habría tocado a Belmonte.
+
+DOCTRINA QUE FIJA F-67 (del director): los datos de una misma entidad se
+presumen aunados entre documentos; toda divergencia en columna compartida se
+reporta; la legitimidad de la divergencia la decide el USUARIO, no el sistema.
+Su ejemplo: si un documento dice mi puesto en una sede y otro dice otro puesto
+en otra sede, puede ser legítimo — o puede ser que esté mal escrito en uno de
+los dos, y quiero saberlo. El "No es error" de la bandeja es la otra mitad: el
+sistema señala, el humano resuelve.
+
+DOCTRINA QUE FIJA F-65 (del director) — PRESUPUESTO POR DECIDIBILIDAD: el
+presupuesto se gasta en orden inverso a lo decidido. Lo que la estructura ya
+decidió se colapsa a una línea de hechos; lo indecidible entra entero; y entre
+lo indecidible, primero lo que más cruza. Unifica cuatro piezas que nacieron
+sueltas y parecían independientes: el colapso de idénticas (F-43), el descarte
+de ajenas (pendiente), la pertenencia como orden (F-42) y las líneas de hechos
+(F-44).
+
+LA MORALEJA (F-68): el fallo estaba en UNA FRASE, pero encontrar QUÉ frase costó
+descartar con experimentos todo lo que no era. El grep no lo habría encontrado —
+la frase era CORRECTA para su caso original. El método que parecía lento —una
+hipótesis, un experimento, un revert— era el camino más corto.
+Corolario para la casa: las instrucciones redactadas sobre el caso equivocado
+generalizan de más, y la defensa es que todo cambio de prompt pase por el
+harness. Si hubiera existido en F-22, este ejemplo habría enseñado su doble filo
+el primer día.
+
+CORRECCIÓN AL PROPIO B.81, y va explícita a propósito: su texto original
+diagnosticaba la causa como "la fila correspondiente de RRHH-06 no está entre los
+fragmentos que se le muestran". F-65 lo desmiente — con las quince filas delante,
+0/4. La asimetría del diseño que B.81 describe es real y sigue documentada, pero
+NO era la causa de este caso.
+Un pendiente con diagnóstico erróneo es peor que uno sin diagnóstico: alguien lo
+reabriría creyéndolo, y volvería a perseguir el retrieval.
+
+EL HARNESS COMO INFRAESTRUCTURA PERMANENTE — y esto es lo que cierra B.81 de
+verdad. Cinco casos con tasas, protocolo fijo, y una regla vigente para siempre:
+NADA QUE TOQUE LO QUE UN MODELO LEE ENTRA SIN SU TANDA. No es que el caso esté
+resuelto: es que su clase entera de fallos ya tiene detector.
+
+COMMITS DE ESTA SESIÓN, en orden:
+  1. 6eafdc84 (00:05) — fix(verificacion): rescatar las citas de fila que mueren
+     por desfase de formato. Cierre del frente anterior (la mitad determinista
+     de la alineación), commiteado ya entrado el día 25.
+  2. 2880d987 — [EXPERIMENTO F-64] la línea de contexto deja de nombrar las
+     columnas.
+  3. 32d1d907 — [EXPERIMENTO F-64b] tampoco lista los valores.
+  4. 0894d8f9 — revert de los dos experimentos de la línea.
+  5. 77dbc646 — [EXPERIMENTO F-65] presupuesto del candidato a 5.200.
+  6. 8f382e68 — revert del experimento del presupuesto.
+  7. 78c9097c — [EXPERIMENTO F-66] campo de razonamiento en el juez.
+  8. daaaa925 — revert del experimento del razonamiento.
+  9. de158abd — fix(prompt): el ejemplo de tablas de temas distintos se acota a
+     columnas. LA CURA.
+
+PENDIENTES VIVOS, en el orden que fija F-68:
+  - SEGUNDA MITAD DE LA ALINEACIÓN (lo que quedó de fa5c4adc al partirlo):
+    retirar la sustitución de la cita y que R2 reciba las columnas como dato.
+    PRIMERO, porque el descarte de citaNoVerificable que apareció hoy en la
+    dirección recuperada es exactamente el daño que repara. Con harness.
+  - DESCARTE DE FILAS AJENAS (F-65), con su batería propia y OPE-06 como caso:
+    su tabla son 19.613 caracteres y topa antes el límite de 25 piezas, así que
+    ese caso lo resuelve la selección, no el presupuesto.
+  - REGLA DE EMPAREJAMIENTO DE F-57 ("emparejando por el nombre de la columna",
+    y desde el formato barato esos nombres no están en las filas): el
+    diagnóstico sigue siendo verdadero, pero ya no es sospechosa de esto. Con su
+    tanda, o dentro de la fase 2.
+
+ESTADO: B.81 CERRADO. Abierto el 21/08 como "asimetría del análisis" (sesión 46,
+al medir el paso 4d), confirmado el 23/08 con un caso limpio (B.91), se cierra
+el 25/08 como "una instrucción del prompt escrita sobre el caso equivocado".
+Historia completa en claude/Cierre_B81.md.
