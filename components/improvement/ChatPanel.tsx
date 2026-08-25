@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl';
 import VoiceInput from '@/components/VoiceInput';
 import ReanalyzeButtons from './ReanalyzeButtons';
 import FilterMenu from './FilterMenu';
+import ProblemDetail from './ProblemDetail';
 import type { ProblemType, Problem } from './problems';
 import type { ChatMessage } from './useImprovementChat';
 import { applyReplacement } from './useImprovementChat';
@@ -381,7 +382,7 @@ export default function ChatPanel({
                             }}
                           >{t('solve')}</button>
                         </div>
-                        <p style={{ fontSize: 10, color: 'var(--text-secondary)', margin: 0, lineHeight: 1.4 }}>{p.description}</p>
+                        <ProblemDetail p={p} />
                       </div>
                     );
                   });

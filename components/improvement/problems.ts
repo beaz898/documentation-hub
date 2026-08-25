@@ -1,5 +1,9 @@
 // Shared types and helpers for problem detection in ImprovementModal.
 
+import type { ComparedValue } from '@/lib/analysis/types';
+
+export type { ComparedValue };
+
 export type ProblemType =
   | 'contradiccion'
   | 'inconsistencia_menor'
@@ -19,6 +23,12 @@ export interface Problem {
   confidence?: 'alta' | 'posible';
   /** Si el usuario marcó este problema como "no es un error". */
   dismissed?: boolean;
+  /** F-70: valores enfrentados por columna. Solo en contradicciones
+   *  confirmadas por estructura. Es material de PRESENTACIÓN: no entra en
+   *  `description` ni en nada que lea un modelo. */
+  comparedValues?: ComparedValue[];
+  newDocRow?: string;
+  existingDocRow?: string;
 }
 
 export interface RawAnalysis {
@@ -33,6 +43,10 @@ export interface RawAnalysis {
     existingDocument: string;
     confidence?: 'alta' | 'posible';
     severity?: 'contradiction' | 'minor_inconsistency';
+    /** F-70: presentes desde d384a315; undefined en análisis anteriores. */
+    comparedValues?: ComparedValue[];
+    newDocRow?: string;
+    existingDocRow?: string;
   }>;
   minorInconsistencies?: Array<{
     topic: string;
@@ -159,6 +173,11 @@ export function problemsFromAnalysis(analysis: RawAnalysis): Problem[] {
           textRef: d.newDocSays,
           relatedDoc: d.existingDocument,
           confidence: d.confidence,
+          // F-70: solo para pintar. `description` (arriba) queda intacta, y con
+          // ella lo que leen los tres prompts de ImprovementModal.
+          comparedValues: d.comparedValues,
+          newDocRow: d.newDocRow,
+          existingDocRow: d.existingDocRow,
         });
       });
   }
