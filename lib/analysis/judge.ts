@@ -723,7 +723,7 @@ EJEMPLOS DE LO QUE NO ES CONTRADICCIÓN (usar inconsistencia menor si aplica):
 - "Horas semana: 8" vs "Fecha evaluación: 2026-06-11" → son datos DISTINTOS (una jornada y una fecha). No hay nada que comparar: no se emite hallazgo.
 - "Empleado: Laura Núñez | Puesto: Higienista" vs "Tratamiento: Tartrectomía | Profesional: Higienista" → CONCUERDAN. Que coincidan no es un hallazgo.
 - "Total horas equipo/semana: 256" vs "las horas por encima de la jornada deben estar autorizadas previamente" → un total y una norma de autorización no son el mismo dato: no se contradicen.
-- El mismo empleado con datos distintos en dos tablas de temas distintos (turnos y evaluaciones) no es contradicción: son datos complementarios sobre la misma persona.
+- Dos tablas de temas distintos comparten a las mismas personas: que una tenga datos que la otra no tiene NO es contradicción — son complementarios (una fecha de evaluación y unas horas semanales no se comparan). Pero si la MISMA columna aparece en ambas con valores distintos para la misma persona — el mismo Puesto con dos valores — eso SÍ se reporta, aunque las tablas traten de temas distintos: puede haber razón legítima (contextos distintos) o error, y quien decide es el usuario, no tú.
 
 TIPOS DE DISCREPANCIA QUE CUENTAN COMO HALLAZGO (solo si superan la regla principal):
 - CONTRADICCIÓN DIRECTA: "El plazo es 30 días" vs "El plazo es 15 días".
