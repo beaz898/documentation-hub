@@ -516,11 +516,23 @@ function findIdenticalAnalyzedRow(
  * analizado" es un hecho; "coinciden en Empleado y Puesto" es el veredicto de
  * una columna —la misma en la que vive la contradicción que el juez debe
  * encontrar— entregado antes del juicio.
+ * MEDIDO (4 tandas): el overlapPercent de OPE-02 -> RRHH-06 pasó de 0% a 45%
+ * las cuatro veces y el juez dejó de responder `sin_relacion`; la
+ * contradicción del puesto siguió sin aparecer (0/4).
  *
- * Los VALORES por fila se conservan todos: quitar el segundo exigiría elegir
- * cuál de las dos columnas compartidas es "la identidad", que es exactamente
- * lo que el párrafo anterior prohíbe. `columns` y `labels` (lo que consume el
- * solapamiento estructural de F-45) NO cambian — solo cambia `text`.
+ * [EXPERIMENTO F-64b — SE REVIERTE TRAS MEDIR] El texto tampoco lista ya los
+ * VALORES: queda solo el recuento. La hipótesis es que ver nueve pares
+ * "Nombre / Puesto" seguidos permite inferir "el puesto cuadra" aunque nadie
+ * lo afirme — la misma conclusión, por inferencia en vez de por enunciado.
+ * Cambia UNA variable respecto a F-64 (la frase ya salió allí).
+ * RIESGO CONOCIDO, y por eso es experimento y no arreglo: sin valores, la
+ * línea pierde su función original de F-44 — que el juez sepa QUÉ personas
+ * existen en los dos lados y no confabule ausencias. Si la contradicción
+ * aparece, conservar las dos cosas a la vez es una decisión de diseño que no
+ * se toma aquí.
+ *
+ * `columns` y `labels` (lo que consume el solapamiento estructural de F-45)
+ * NO cambian en ninguno de los dos experimentos — solo cambia `text`.
  */
 function buildContextFragment(
   identicalRows: DocumentFragment[],
@@ -538,7 +550,7 @@ function buildContextFragment(
       if (!stored?.cells) return '(?)';
       return orderedCols.map(col => stored.cells![col] ?? '?').join(' / ');
     });
-  const text = `[CONTEXTO — no citar: ${identicalRows.length} filas de esta tabla coinciden con filas del documento analizado: ${labels.join(', ')}]`;
+  const text = `[CONTEXTO — no citar: ${identicalRows.length} filas de esta tabla coinciden con filas del documento analizado]`;
   return {
     fragment: {
       text,
