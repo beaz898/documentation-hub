@@ -1,4 +1,4 @@
-import type { FinalAnalysis, PipelineOptions, DiscardedFindings } from './types';
+import type { FinalAnalysis, PipelineOptions, DiscardedFindings, ComparedValue } from './types';
 import { retrieveCandidates } from './retrieval';
 import type { StructuralOverlap } from './retrieval';
 import { rerankCandidates } from './rerank';
@@ -237,11 +237,16 @@ async function applyCascadeToCandidate(
     // chunk falta o si no es una fila de tabla: applyDeterministicRules trata
     // ambos casos igual, ya que solo le importan las cells, no si el chunk
     // existe).
+    // F-70: se izan a constantes porque ahora las leen dos cosas — la regla y,
+    // si confirma, el emparejamiento de valores. Un solo origen para las dos.
+    const newCells = ev.newChunk?.cells ?? null;
+    const existingCells = ev.existingChunk?.cells ?? null;
+
     const verdict = applyDeterministicRules({
       newDocSays: c.newDocSays,
       existingDocSays: c.existingDocSays,
-      newCells: ev.newChunk?.cells ?? null,
-      existingCells: ev.existingChunk?.cells ?? null,
+      newCells,
+      existingCells,
       newColumns: ev.newColumns,
       existingColumns: ev.existingColumns,
     });
@@ -258,6 +263,31 @@ async function applyCascadeToCandidate(
       tally.confirmados++;
       tally.confirmadosPorEstructura++;
       console.log(`[${label}] · [${ev.hash}] "${(c.topic ?? '(sin titulo)').slice(0, 60)}" → confirmado por estructura (columnas: ${verdict.columns.join(', ')})`);
+
+      // F-70: los valores enfrentados y las dos filas completas. Todo sale de
+      // lo que YA está en este ámbito: ni se recalcula ni se deriva nada.
+      //
+      // La guarda es redundante en tiempo de ejecución — applyDeterministicRules
+      // solo devuelve 'confirm' desde la rama `if (newCells && existingCells)`,
+      // y unas cells no nulas implican su chunk no nulo, porque salen de
+      // `ev.newChunk?.cells`. Pero el compilador no puede deducir eso desde
+      // `verdict.outcome`, y se escribe como comprobación real y no como
+      // aserción a propósito: si algún día la invariante se rompiera, los tres
+      // campos se quedan SIN PONER en vez de colarse a medias.
+      const paired = newCells && existingCells && ev.newChunk && ev.existingChunk
+        ? {
+            comparedValues: verdict.columns.map(column => ({
+              column,
+              // Celda ausente = cadena vacía. Cómo se presenta un hueco (guion,
+              // "sin dato", nada) es decisión de la ficha, no de aquí.
+              newDocValue: newCells[column] ?? '',
+              existingDocValue: existingCells[column] ?? '',
+            })),
+            newDocRow: ev.newChunk.text,
+            existingDocRow: ev.existingChunk.text,
+          }
+        : {};
+
       keptContradictions.push({
         ...c,
         topic: c.topic?.trim()
@@ -271,6 +301,7 @@ async function applyCascadeToCandidate(
         // necesita para no volcar la fila entera. Mismo patrón por el que
         // `confidence` no llegaba antes de 3dd8670c.
         columns: verdict.columns,
+        ...paired,
       });
       return;
     }
@@ -684,6 +715,11 @@ interface Discrepancy {
    *  que en tiempo de ejecución el campo ya pasaba; declararlo evita que el
    *  tipo lo borre al entrar en el double-check, que sí reconstruye. */
   columns?: string[];
+  /** F-70: mismo motivo que columns — el runtime ya los conserva, el tipo los
+   *  declara para que no desaparezcan del contrato al pasar por aquí. */
+  comparedValues?: ComparedValue[];
+  newDocRow?: string;
+  existingDocRow?: string;
 }
 
 function mergeContradictions(listA: Discrepancy[], listB: Discrepancy[]): Discrepancy[] {

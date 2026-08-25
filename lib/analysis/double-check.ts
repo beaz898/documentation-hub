@@ -1,5 +1,5 @@
 import { callLLMJson } from './llm-client';
-import type { DiscrepancyConfidence, ConfirmedBy } from './types';
+import type { DiscrepancyConfidence, ConfirmedBy, ComparedValue } from './types';
 
 /**
  * Fase 5 — Doble verificación LLM (progresiva).
@@ -40,6 +40,12 @@ export interface DoubleCheckedDiscrepancy {
    *  no se revisa aquí. Sin esta línea el campo moriría en el modo exhaustivo,
    *  que es justo el único donde la ficha detallada se pinta. */
   columns?: string[];
+  /** F-70: los valores enfrentados y las dos filas completas, arrastrados sin
+   *  tocar. Sonnet decide confianza y severidad; qué vale cada celda es un
+   *  hecho medido por la capa determinista mucho antes, no un veredicto suyo. */
+  comparedValues?: ComparedValue[];
+  newDocRow?: string;
+  existingDocRow?: string;
 }
 
 interface Discrepancy {
@@ -51,6 +57,9 @@ interface Discrepancy {
   severity?: 'contradiction' | 'minor_inconsistency';
   confirmedBy?: ConfirmedBy;
   columns?: string[];
+  comparedValues?: ComparedValue[];
+  newDocRow?: string;
+  existingDocRow?: string;
 }
 
 interface BatchVerifyResponse {
@@ -247,6 +256,9 @@ Responde EXCLUSIVAMENTE con este JSON:
         ...(sev && sev !== 'none' ? { severity: sev as 'contradiction' | 'minor_inconsistency' } : {}),
         ...(isContradiction ? { confirmedBy: 'double_check' as ConfirmedBy } : {}),
         ...(d.columns ? { columns: d.columns } : {}),
+        ...(d.comparedValues ? { comparedValues: d.comparedValues } : {}),
+        ...(d.newDocRow !== undefined ? { newDocRow: d.newDocRow } : {}),
+        ...(d.existingDocRow !== undefined ? { existingDocRow: d.existingDocRow } : {}),
       };
     });
   } catch (err) {
@@ -259,6 +271,9 @@ Responde EXCLUSIVAMENTE con este JSON:
       confidence: 'posible' as DiscrepancyConfidence,
       severity: d.severity,
       ...(d.columns ? { columns: d.columns } : {}),
+      ...(d.comparedValues ? { comparedValues: d.comparedValues } : {}),
+      ...(d.newDocRow !== undefined ? { newDocRow: d.newDocRow } : {}),
+      ...(d.existingDocRow !== undefined ? { existingDocRow: d.existingDocRow } : {}),
     }));
   }
 }

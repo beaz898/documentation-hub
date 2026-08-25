@@ -76,6 +76,12 @@ export interface DocumentJudgment {
      *  Es el dato con el que la ficha podrá enseñar QUÉ difiere en vez de
      *  volcar la fila entera; este commit solo lo transporta. */
     columns?: string[];
+    /** F-70: valores enfrentados por columna. Solo en hallazgos con
+     *  confirmedBy: 'estructura', igual que columns. */
+    comparedValues?: ComparedValue[];
+    /** F-70: fila completa de cada lado, para plegar en la ficha. */
+    newDocRow?: string;
+    existingDocRow?: string;
   }>;
   overlappingContent: Array<{
     description: string;
@@ -112,6 +118,14 @@ export interface PipelineOptions {
 
 /** Nivel de confianza de una contradicción detectada. */
 export type DiscrepancyConfidence = 'alta' | 'posible';
+
+/** F-70: valor de una columna enfrentado entre los dos documentos.
+ *  Lo calcula el código en el punto de la alineación, nunca el modelo. */
+export interface ComparedValue {
+  column: string;
+  newDocValue: string;
+  existingDocValue: string;
+}
 
 /**
  * Quién confirmó un hallazgo (F-39/F-40, Fable). Registra QUIÉN, no CUÁNTA
@@ -158,6 +172,12 @@ export interface FinalAnalysis {
      *  entero) y de ahí a lo que lee el cliente. Ausente en los análisis
      *  guardados antes de este commit. */
     columns?: string[];
+    /** F-70: valores enfrentados por columna. Solo en hallazgos con
+     *  confirmedBy: 'estructura', igual que columns. */
+    comparedValues?: ComparedValue[];
+    /** F-70: fila completa de cada lado, para plegar en la ficha. */
+    newDocRow?: string;
+    existingDocRow?: string;
   }>;
   /** Diferencias de enfoque o matiz confirmadas como no estrictamente incompatibles (solo modo exhaustivo). */
   minorInconsistencies?: Array<{
