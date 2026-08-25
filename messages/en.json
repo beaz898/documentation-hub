@@ -182,6 +182,8 @@
     "goToFragment": "Go to fragment in text",
     "detailThisDoc": "In this document",
     "detailOtherDoc": "In the other document",
+    "detailEmptyValue": "no value",
+    "detailSentence": "In this document, <hl>{column}</hl> appears as “<hl>{newValue}</hl>”; in {doc}, as “<hl>{existingValue}</hl>”.",
     "viewFullRow": "View full row",
     "cannotLocate": "Could not locate the exact fragment in the text.",
     "discardedCount": "Dismissed ({count})",
