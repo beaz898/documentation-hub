@@ -51,6 +51,14 @@ function containsNarration(text: string | undefined): boolean {
 }
 
 interface JudgeResponse {
+  /** [EXPERIMENTO F-66 — SE REVIERTE TRAS MEDIR] Campo de diagnóstico: lo que
+   *  el juez se dice a sí mismo ANTES de decidir. Va PRIMERO en el esquema del
+   *  prompt a propósito — al final sería una justificación a posteriori de una
+   *  decisión ya tomada, y lo que se quiere leer es lo anterior a ella.
+   *  NO SE CONSUME: solo se loggea. No entra en `rawJudgment`, no viaja a
+   *  DocumentJudgment, no llega al jsonb de analysis_results. Opcional porque
+   *  el modelo puede omitirlo y eso no debe romper nada. */
+  razonamiento?: string;
   overlapPercent: number;
   verdict: 'duplicado_exacto' | 'reformulacion' | 'solapamiento_parcial' | 'tema_similar' | 'sin_relacion';
   contradictions: Array<{
@@ -753,6 +761,7 @@ REGLAS DE FORMATO:
 
 Responde con este JSON (sin bloques de código, sin texto adicional):
 {
+  "razonamiento": "<3-5 frases, ANTES de decidir nada: qué relación ves entre los dos documentos, qué filas o datos concretos has comparado, y por qué emites o no emites hallazgos>",
   "overlapPercent": 25,
   "verdict": "tema_similar",
   "contradictions": [
@@ -808,6 +817,15 @@ Responde con este JSON (sin bloques de código, sin texto adicional):
       const hash = hashCitationPair(c.newDocSays, c.existingDocSays);
       console.log(`[judge] RAW analizado="${newDocumentName}" candidato="${candidate.documentName}" · [${hash}] "${c.topic.slice(0, 60)}"`);
     }
+    // [EXPERIMENTO F-66 — SE REVIERTE TRAS MEDIR] El razonamiento, ENTERO y
+    // sin recortar: es el objeto de la medición, y recortarlo a 200 caracteres
+    // como las citas descartadas dejaría fuera justo la parte donde el modelo
+    // explica por qué NO emite. Se lee de `response`, no de `rawJudgment` —
+    // el campo no entra en el judgment ni en el jsonb.
+    console.log(
+      `[judge] RAZONAMIENTO analizado="${newDocumentName}" candidato="${candidate.documentName}": ` +
+      (response.razonamiento ?? '(el modelo no lo emitió)')
+    );
 
     const existingChunks = args.chunksByDocument?.get(candidate.documentId) ?? [];
     const existingFallbackText = args.fallbackTexts?.get(candidate.documentId) ?? null;
