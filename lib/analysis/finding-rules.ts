@@ -63,40 +63,28 @@ export type DeterministicVerdict =
   | { outcome: 'discard'; reason: 'sin_columna_comun' };
 
 /**
- * Columnas cuyo par serializado `Columna: valor` (la misma forma que
- * chunking.ts genera al construir una fila — ver `pairs.push(\`${column}: ${value}\`)`,
- * unidas con ` | `) aparece contenido en la cita. Se busca el par completo, no
- * el valor suelto: en un cuadro de turnos el valor "M" aparece en cinco
- * columnas distintas, pero "Lunes: M" solo en una. La clave de búsqueda es la
- * misma cadena que el propio sistema generó, así que no hay ambigüedad que
- * adivinar (F-24: "lo primero inventa, lo segundo consulta"). Comparación
- * sobre texto normalizado (mismo criterio que findBestMatch en judge.ts) para
- * tolerar diferencias de espaciado o mayúsculas, no para emparejar por
- * parecido. Puede haber más de una columna citada por lado: devuelve el
- * conjunto. Array vacío si `cells` es null o si no se localiza ninguna.
- */
-export function findCitedColumns(
-  quote: string,
-  cells: Record<string, string> | null,
-): string[] {
-  if (!cells) return [];
-  const normQuote = normalize(quote);
-  const cited: string[] = [];
-  for (const [column, value] of Object.entries(cells)) {
-    const normPair = normalize(`${column}: ${value}`);
-    if (normQuote.includes(normPair)) {
-      cited.push(column);
-    }
-  }
-  return cited;
-}
-
-/**
  * Aplica la regla que corresponda según el tipo de par.
  *
- * fila / fila (ambos `cells` no nulos): se localiza la columna citada de cada
- * lado con findCitedColumns.
- *   - Si algún lado no permite determinar su columna citada: pass — "columna
+ * COLUMNAS CITADAS — DE DÓNDE VIENEN (F-55). Ya no se buscan aquí: llegan
+ * calculadas desde la verificación de la cita (`alignQuoteToCells`, que las
+ * alinea por POSICIÓN contra las celdas de la fila) y viajan en
+ * `JudgmentEvidence`. Hasta F-55 las buscaba `findCitedColumns`, por texto:
+ * localizaba el par serializado `Columna: valor` dentro de la cita. Esa
+ * función se retira por dos motivos, ambos medidos:
+ *   1. Ya no hay dónde buscar. Buscaba la forma que chunking.ts genera al
+ *      persistir una fila (`pairs.push(\`${column}: ${value}\`)`), y solo
+ *      funcionaba porque verifyQuote devolvía el CHUNK ENTERO en ese formato.
+ *      Desde F-55 devuelve la cita del juez, que viene del formato barato
+ *      (valores sueltos separados por `|`, sin nombres de columna).
+ *   2. Sobre-declaraba. Al recibir el chunk entero, la cita hacía que TODAS
+ *      las columnas de la fila contaran como citadas, las hubiera citado el
+ *      juez o no. Medido sobre 250 citas del corpus de muestra (RRHH-06,
+ *      OPE-02, OPE-06): de las 225 aceptadas, 161 declaraban MÁS columnas de
+ *      las citadas y solo 44 coincidían con las reales.
+ * `null` en un lado = esa cita no es una fila alineable (prosa, o sin chunk).
+ *
+ * fila / fila (ambos `cells` no nulos):
+ *   - Si algún lado llega sin columnas (null o vacío): pass — "columna
  *     indeterminable", el único significado que le queda a 'pass' desde F-36
  *     ("no puedo decidir"). Que lo resuelva el juicio con la fila entera.
  *   - Si no comparten ninguna columna citada: discard/'sin_columna_comun'.
@@ -114,8 +102,9 @@ export function findCitedColumns(
  *     quitar. `columns` (F-51) son TODAS las columnas compartidas que
  *     difieren, no una elegida — antes de F-51 se reportaba solo
  *     `differingColumns[0]`, una elección arbitraria de facto (el orden de
- *     `findCitedColumns` dependía del de `Object.keys(cells)`, que ni jsonb
- *     ni JavaScript garantizan). `entity`
+ *     las columnas citadas dependía del de `Object.keys(cells)`, que ni jsonb
+ *     ni JavaScript garantizan; desde F-51 lo fija `getOrderedColumns`, y
+ *     desde F-55 llega ya en ese orden). `entity`
  *     es siempre null: `cells` es un Record<string,string> sin ninguna
  *     columna marcada como identificadora de la fila, y no hay forma
  *     estructural de saber cuál lo sería sin comparar nombres de columna
@@ -134,13 +123,13 @@ export function applyDeterministicRules(finding: {
   existingDocSays: string;
   newCells: Record<string, string> | null;
   existingCells: Record<string, string> | null;
+  newColumns: string[] | null;
+  existingColumns: string[] | null;
 }): DeterministicVerdict {
-  const { newDocSays, existingDocSays, newCells, existingCells } = finding;
+  const { newDocSays, existingDocSays, newCells, existingCells, newColumns, existingColumns } = finding;
 
   if (newCells && existingCells) {
-    const newColumns = findCitedColumns(newDocSays, newCells);
-    const existingColumns = findCitedColumns(existingDocSays, existingCells);
-    if (newColumns.length === 0 || existingColumns.length === 0) {
+    if (!newColumns?.length || !existingColumns?.length) {
       return { outcome: 'pass' };
     }
 

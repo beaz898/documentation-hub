@@ -224,19 +224,22 @@ export function renderTableBlock(
  * literal, y lo que compensa que la localización (judge.ts) haya dejado de
  * exigir que TODOS los segmentos casen.
  *
- * DEVUELVE las columnas que la cita cubre, pero HOY NADIE LAS CONSUME: su
- * único llamador (`verifyQuote`) usa el resultado como puerta booleana —
- * `null` rechaza, no-`null` acepta — y descarta el array. Es deliberado
- * (F-61): `findCitedColumns` sigue determinando las columnas de R2 leyendo
- * el par "Columna: valor" del texto sustituido, exactamente como hoy, y
- * cambiar eso exige antes retirar la sustitución de la cita — la segunda
- * mitad de este frente, que espera al harness de tasas. Alimentar a R2 desde
- * aquí AHORA lo dejaría peor: medido, la alineación devuelve `null` para
- * toda cita en formato viejo (`"Puesto: Implantólogo"`) y para el chunk
- * entero, que es justo lo que R2 recibe hoy.
+ * DEVUELVE las columnas que la cita cubre, y desde F-55 SE CONSUMEN: son las
+ * columnas citadas con las que decide R2 (`applyDeterministicRules`), a las
+ * que llegan por `JudgmentEvidence`. Hasta F-55 el array se descartaba y el
+ * resultado servía solo de puerta booleana, porque R2 las obtenía por texto
+ * (`findCitedColumns`, retirada) leyendo el par "Columna: valor" del chunk
+ * entero que `verifyQuote` devolvía. Alimentarlo desde aquí exigía retirar
+ * antes esa sustitución: medido en su momento, la alineación devuelve `null`
+ * para una cita en formato viejo (`"Puesto: Implantólogo"`) y para el chunk
+ * entero. Las dos mitades van juntas por eso, no por gusto.
+ *
+ * Sigue siendo además la PUERTA de la vía por segmentos: allí `null` rechaza
+ * la cita. En la vía directa no lo es —la verificación ya la hizo
+ * `findBestMatch`— y `null` significa solo "sin columnas".
  *
  * `null` si la cita no trae ningún valor, si trae más valores que columnas
- * tiene la tabla, o si ningún desplazamiento alinea al 100%.
+ * tiene la tabla, o si ningún desplazamiento alinea al 100%. Nunca `[]`.
  */
 export function alignQuoteToCells(
   quote: string,

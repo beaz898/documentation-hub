@@ -233,33 +233,78 @@ function chunkContainsSegment(chunkText: string, segment: string): boolean {
  *    `chunk` devuelto es de donde la capa determinista sacará la columna
  *    citada, y no debe salir de una mezcla entre filas.
  *
- *    `text` NO cambia: se sigue devolviendo `best.text`, el chunk entero. Esa
- *    sustitución es la segunda mitad de este frente y espera al harness de
- *    tasas — es lo único que cambiaría lo que el juez y el verificador LEEN
- *    después, y por tanto lo único capaz de mover la detección.
+ * F-55 (segunda mitad), `text` DEJA DE SER TEXTO DEL CHUNK: las tres vías
+ * devuelven ahora la CITA DEL JUEZ, ya verificada. Antes, la de segmentos
+ * devolvía `best.text` —el chunk entero, formato viejo— y la directa el
+ * recorte de `findBestMatch`. Consecuencia visible para el cliente: la ficha
+ * mostraba la fila con sus diez columnas donde el juez citó tres valores.
+ * Verdadero, pero no es la cita. Lo que se verifica es que la cita EXISTE en
+ * el documento; una vez verificada, lo que debe mostrarse es lo que el juez
+ * dijo, no la fila de la que salió.
+ * EFECTO COLATERAL BUSCADO: la rama de aproximación por cabeza/cola de
+ * findBestMatch devolvía MÁS texto del citado para citas de 25+ caracteres
+ * normalizados ("Dr. Pablo Reyes | Implantólogo" volvía como "Dr. Pablo
+ * Reyes | Puesto: Implantólogo"). Era el pendiente anotado en F-56 y deja de
+ * manifestarse, porque ese recorte ya no se devuelve.
+ * EFECTO COLATERAL ACEPTADO: para PROSA se pierde la corrección fuzzy — hasta
+ * ahora, una cita con la puntuación o el marcado ligeramente distintos del
+ * original se sustituía por el texto exacto del documento. Ahora se muestra la
+ * del juez. Sigue estando verificada (existe en el documento); solo puede
+ * diferir en forma.
+ *
+ * COLUMNAS COMO DATO (F-55): la alineación se llama ahora desde LAS DOS vías
+ * de localización, no solo desde la de segmentos, y su resultado deja de
+ * descartarse: viaja en `JudgmentEvidence.newColumns/existingColumns` hasta
+ * la cascada, y R2 lo lee en vez de volver a buscar el par "Columna: valor"
+ * en un texto que ya no lo contiene. Llamarla también desde la vía directa es
+ * imprescindible: sin eso, toda cita que resuelva por ahí llegaría a R2 con
+ * `columns: null` y bajaría a juicio.
  *
  * FALLBACK: solo si la lista de chunks viene VACÍA (documento indexado antes
  * de F-20, o sin chunks por cualquier otro motivo) se verifica contra
- * fallbackText, con chunk: null, solo por match directo — ese camino es para
- * corpus ya migrado por completo y lo retira el paso 6 entero, así que no
- * conserva una vía por segmentos propia.
+ * fallbackText, con chunk: null y columns: null, solo por match directo — ese
+ * camino es para corpus ya migrado por completo y lo retira el paso 6 entero,
+ * así que no conserva alineación propia.
  */
+interface VerifiedQuote {
+  /** La cita del juez, ya verificada. NO el texto del chunk (F-55). */
+  text: string;
+  /** De qué chunk salió, o null en el fallback de texto plano. */
+  chunk: StoredChunk | null;
+  /** Columnas que la cita ocupa en la fila, en el orden de la fila, o null si
+   *  no es una fila alineable. `[]` es imposible: alignQuoteToCells exige
+   *  match TOTAL, así que o devuelve las columnas o devuelve null. */
+  columns: string[] | null;
+  porCeldas: boolean;
+}
+
 function verifyQuote(
   chunks: StoredChunk[],
   fallbackText: string | null,
   quote: string | undefined,
-): { text: string; chunk: StoredChunk | null; porCeldas: boolean } | null {
+): VerifiedQuote | null {
   if (!quote) return null;
+
+  /** Columnas que la cita ocupa en ESE chunk, o null si no es una fila
+   *  alineable (prosa, chunk sin tabla, o valores que no cuadran con las
+   *  celdas). Se llama desde las DOS vías: la directa también produce
+   *  columnas, porque si no toda cita resuelta por ahí llegaría a R2 sin
+   *  ellas. Que devuelva null no invalida la cita en la vía directa — ahí la
+   *  verificación ya la hizo findBestMatch; solo significa "sin columnas". */
+  const columnsFor = (chunk: StoredChunk): string[] | null => {
+    if (!chunk.tableId) return null;
+    return alignQuoteToCells(quote, chunk.cells, getOrderedColumns(chunk.tableId, chunks));
+  };
 
   if (chunks.length === 0) {
     if (!fallbackText) return null;
     const direct = findBestMatch(fallbackText, quote);
-    return direct ? { text: direct, chunk: null, porCeldas: false } : null;
+    return direct ? { text: quote, chunk: null, columns: null, porCeldas: false } : null;
   }
 
   for (const chunk of chunks) {
     const direct = findBestMatch(chunk.text, quote);
-    if (direct) return { text: direct, chunk, porCeldas: false };
+    if (direct) return { text: quote, chunk, columns: columnsFor(chunk), porCeldas: false };
   }
 
   const segments = splitTabularSegments(quote);
@@ -279,13 +324,13 @@ function verifyQuote(
           bestMatchedCount = matchedCount;
         }
       }
-      // (b) COMPROBAR — todos los valores contra las celdas de esa fila. El
-      // array de columnas que devuelve se DESCARTA a propósito: aquí solo se
-      // usa como puerta (null = rechaza). Ver alignQuoteToCells.
-      if (best && best.tableId) {
-        const aligned = alignQuoteToCells(quote, best.cells, getOrderedColumns(best.tableId, chunks));
+      // (b) COMPROBAR — todos los valores contra las celdas de esa fila. Aquí
+      // la alineación sigue siendo PUERTA (null = rechaza la cita), y además
+      // su resultado se transporta: son las columnas que el juez citó.
+      if (best) {
+        const aligned = columnsFor(best);
         if (aligned) {
-          return { text: best.text, chunk: best, porCeldas: testable.length < segments.length };
+          return { text: quote, chunk: best, columns: aligned, porCeldas: testable.length < segments.length };
         }
       }
     }
@@ -317,10 +362,32 @@ function describeFailedSide(newFailed: boolean, existingFailed: boolean): 'nuevo
  * de que este mismo bloque las sustituya por el texto del chunk. Viaja aquí en
  * vez de recalcularse en la cascada porque en la cascada esas citas crudas ya
  * no existen (judgment.contradictions, en ese punto, ya está sustituido).
+ *
+ * `newColumns`/`existingColumns` (F-55): las columnas que cada cita ocupa en su
+ * fila, tal como las devolvió alignQuoteToCells durante la verificación. Viajan
+ * por la misma razón que el hash: en la cascada ya no se pueden recalcular. R2
+ * las buscaba por texto (findCitedColumns, retirada) sobre el par
+ * "Columna: valor", y eso solo funcionaba porque verifyQuote devolvía el chunk
+ * entero en formato viejo. Con la cita del juez como texto, ese par ya no está
+ * ahí; y con el chunk entero, R2 recibía TODAS las columnas de la fila aunque
+ * el juez hubiera citado tres.
+ * null = esa cita no es una fila alineable (prosa, o sin chunk).
  */
 export interface JudgmentEvidence {
-  contradictions: Array<{ hash: string; newChunk: StoredChunk | null; existingChunk: StoredChunk | null }>;
-  overlaps: Array<{ hash: string; newChunk: StoredChunk | null; existingChunk: StoredChunk | null }>;
+  contradictions: Array<{
+    hash: string;
+    newChunk: StoredChunk | null;
+    existingChunk: StoredChunk | null;
+    newColumns: string[] | null;
+    existingColumns: string[] | null;
+  }>;
+  overlaps: Array<{
+    hash: string;
+    newChunk: StoredChunk | null;
+    existingChunk: StoredChunk | null;
+    newColumns: string[] | null;
+    existingColumns: string[] | null;
+  }>;
 }
 
 /**
@@ -387,7 +454,13 @@ function fixQuotesInJudgment(
 
     if (matchNew && matchExisting) {
       fixedContradictions.push({ ...c, newDocSays: matchNew.text, existingDocSays: matchExisting.text });
-      contradictionEvidence.push({ hash, newChunk: matchNew.chunk, existingChunk: matchExisting.chunk });
+      contradictionEvidence.push({
+        hash,
+        newChunk: matchNew.chunk,
+        existingChunk: matchExisting.chunk,
+        newColumns: matchNew.columns,
+        existingColumns: matchExisting.columns,
+      });
       if (matchNew.porCeldas) verificadoPorCeldas++; else verificadoPorLocalizacion++;
       if (matchExisting.porCeldas) verificadoPorCeldas++; else verificadoPorLocalizacion++;
     } else if (!matchExisting && isContextCitation(c.existingDocSays, existingContextTexts)) {
@@ -432,7 +505,13 @@ function fixQuotesInJudgment(
 
     if (matchNew && matchExisting) {
       fixedOverlaps.push({ ...o, evidenceInNewDoc: matchNew.text, evidence: matchExisting.text });
-      overlapEvidence.push({ hash, newChunk: matchNew.chunk, existingChunk: matchExisting.chunk });
+      overlapEvidence.push({
+        hash,
+        newChunk: matchNew.chunk,
+        existingChunk: matchExisting.chunk,
+        newColumns: matchNew.columns,
+        existingColumns: matchExisting.columns,
+      });
       if (matchNew.porCeldas) verificadoPorCeldas++; else verificadoPorLocalizacion++;
       if (matchExisting.porCeldas) verificadoPorCeldas++; else verificadoPorLocalizacion++;
     } else if (!matchExisting && isContextCitation(o.evidence, existingContextTexts)) {
@@ -842,7 +921,10 @@ Responde con este JSON (sin bloques de código, sin texto adicional):
       // por índice — este "hallazgo" no tiene cita real que verificar, así que
       // no hay nada que hashear: '????????' deja constancia visible de que es
       // el marcador de fallo del LLM, no un hash real ni un emparejamiento roto.
-      evidence: { contradictions: [], overlaps: [{ hash: '????????', newChunk: null, existingChunk: null }] },
+      evidence: {
+        contradictions: [],
+        overlaps: [{ hash: '????????', newChunk: null, existingChunk: null, newColumns: null, existingColumns: null }],
+      },
     };
   }
 }
