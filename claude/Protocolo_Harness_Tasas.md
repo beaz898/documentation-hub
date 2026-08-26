@@ -58,7 +58,7 @@ Drive del piloto):
 | 2 | Tabla, dirección B | Analizar **OPE-02** contra **RRHH-06** | Lo mismo, con los lados intercambiados. **Es la dirección que falló tres semanas** (B.81) |
 | 3 | Prosa, dirección A | Analizar **CLI-03** contra **NOR-01** | Contradicción en la conservación de la historia clínica: **15 años** frente a **5 años**. Confirmada por juicio |
 | 4 | Prosa, dirección B | Analizar **NOR-01** contra **CLI-03** | Lo mismo, lados intercambiados |
-| 5 | Control negativo | **MKT-01**, documento limpio | **Cero hallazgos.** Es el único caso cuyo criterio no es una fracción |
+| 5 | Control negativo | **MKT-01** **con los otros cuatro** en la tanda | **Cero hallazgos.** Es el único caso cuyo criterio no es una fracción |
 
 **El falso positivo de Belmonte NO es un sexto caso**: es una comprobación que
 se aplica **dentro de los casos 1 y 2**. Consiste en mirar si, además de la
@@ -69,21 +69,33 @@ contienen, con citas como `Fecha evaluación: 2026-06-11` contra `Horas semana: 
 contradicción). Está documentado en **B.82**. Su histórico: `4/4` con el ejemplo
 viejo del prompt, `1/4` tras la cura `de158abd`.
 
-**Nombres de fichero exactos** (corpus de muestra):
+**Nombres de fichero exactos**:
 
 ```
 RRHH-06_evaluacion-del-desempeno.xlsx
 OPE-02_agenda-y-gestion-de-citas.xlsx
+CLI-03_historia-clinica-consentimiento-informado.txt
 NOR-01_rgpd-proteccion-datos-pacientes.pdf
+MKT-01_manual-identidad-corporativa.docx
 ```
 
-**POR DECIDIR** — no consta en ningún documento del repositorio:
+### El caso 5 va CON COMPAÑÍA, y es lo contrario de una excepción al vaciado
 
-- El nombre de fichero exacto de **CLI-03** y de **MKT-01**. Aparecen citados
-  por su código en la bitácora y en `Cierre_B81.md`, nunca con su nombre
-  completo, y no están en `E:\doclity-muestras`.
-- Si el caso 5 usa **solo** MKT-01 o si necesita compañía en la tanda para que
-  el retrieval tenga contra qué buscar. Ver §3, el punto del vaciado.
+MKT-01 se lanza **con los otros cuatro documentos del harness en la misma
+tanda**, no solo. El motivo importa más que la regla:
+
+> Con corpus vacío y MKT-01 solo, «cero hallazgos» es **trivialmente cierto** y
+> no prueba nada — no hay contra qué equivocarse. Lo que este caso mide es que
+> el sistema **NO inventa hallazgos teniendo material delante**, y para eso
+> necesita material delante.
+
+Un control negativo sin nada que comparar no es un control: es una pregunta sin
+enunciado. Por eso los cuatro documentos del harness son parte del caso 5, no
+contaminación de él.
+
+Los casos 1 a 4 son lo contrario: cada par se mide **aislado**, porque lo que
+miden es una detección concreta entre dos documentos y cualquier tercero cambia
+lo que el retrieval y el rerank ven.
 
 ---
 
@@ -97,9 +109,10 @@ Fijado por el director el 26/08:
   ejecución. (Mecanismo: la bandeja manda `batchDocumentIds` con los ids de los
   otros documentos seleccionados, y `buildCorpusFilter` los añade al corpus
   consultado aunque estén en `pendiente`.)
-- **Se vacía el corpus entre pares.** Medido el 26/08: no vaciar cambia las
-  condiciones — **MKT-01 se midió contra cuatro documentos en vez de contra
-  ninguno**, que es una prueba distinta de la que se pretendía hacer.
+- **Se vacía el corpus entre pares** (casos 1 a 4). No vaciar cambia las
+  condiciones: un par que se mide con documentos ajenos en la tanda no está
+  midiendo la detección entre esos dos, porque el retrieval y el rerank ven otra
+  cosa. El caso 5 es la excepción razonada, y por el motivo opuesto: ver §2.
 - **Cuatro pasadas por dirección** cuando se comparen tasas entre estados
   distintos del código. **Una pasada basta** para comprobar que algo no se ha
   roto, pero **NO** para afirmar que una tasa cambió: B.81 era intermitente y
@@ -125,9 +138,16 @@ Por cada ejecución:
 - **Caídas de etapa**: desde `38d3fd22`, si el análisis trae `stageFailures`,
   **la pasada no vale** — el LLM falló y las tasas no miden lo que se cree.
 
-**Dónde queda el resultado**: cada análisis se persiste solo en
-`analysis_results` (columna `analysis`, jsonb, con el `FinalAnalysis` entero) y
-en los logs de Vercel. La consulta que se ha venido usando:
+**Dónde se acumulan las tandas**: en **`claude/Tandas_Harness.md`**, una entrada
+por tanda, **creciendo por arriba** — lo más reciente primero. Ese fichero es el
+histórico y no repite este protocolo; este protocolo no repite sus cifras.
+
+Antes de que existiera, el resultado se copiaba a mano al mensaje de commit o a
+la bitácora, y así se perdió la tabla del relevo del 25/08 (ver §5).
+
+**De dónde salen los datos**: cada análisis se persiste en `analysis_results`
+(columna `analysis`, jsonb, con el `FinalAnalysis` entero) y en los logs de
+Vercel. La consulta que se ha venido usando:
 
 ```sql
 select created_at, document_name, contradictions_found, contradictions_confirmed,
@@ -137,36 +157,20 @@ where org_id = '5a82712f-6740-4792-b291-3fdea8e6edb1'
 order by created_at desc limit 10;
 ```
 
-**POR DECIDIR**: no hay ningún sitio donde se acumulen las tandas. Hoy el
-resultado se copia a mano al mensaje de commit o a la bitácora, y por eso se
-perdió la tabla del relevo del 25/08 (ver §5). Falta decidir si se anota en este
-mismo fichero, en la bitácora, o en una tabla propia.
-
 ---
 
-## 5. La última medición
+## 5. Las mediciones
 
-**26/08/2026, sobre `a775a7c7`** (después de F-70, antes de F-71):
+El histórico completo, con sus cifras y sus anomalías, está en
+**`claude/Tandas_Harness.md`**, con la más reciente arriba.
 
-| Caso | Resultado |
-|---|---|
-| Tabla, las dos direcciones | Detectada. Columna `Puesto`, confirmada por **estructura** |
-| Prosa, las dos direcciones | Detectada, confirmada por **juicio** |
-| MKT-01 (control negativo) | **Limpio, cero hallazgos** — contra cuatro documentos |
-| Falsos positivos de Belmonte | **Cero** |
-| `columna_indeterminada` | **Cero** |
-| Fallos de LLM | **Ninguno** |
+La última: **26/08/2026, sobre `a775a7c7`** — tabla y prosa detectadas en las
+dos direcciones, MKT-01 limpio, cero falsos positivos, cero
+`columna_indeterminada`, sin fallos de LLM. **Una sola pasada por caso**, así
+que confirma que nada se rompió con F-69/F-70 pero **no** afirma que ninguna
+tasa se haya movido.
 
-**UNA sola pasada por caso.** Queda dicho para que nadie la lea como una
-medición de cuatro: sirve para confirmar que nada se rompió con F-69/F-70, **no**
-para afirmar que ninguna tasa se movió.
-
-Y una anomalía del propio protocolo, anotada porque es la que motivó fijar el
-vaciado: el caso de MKT-01 se midió **contra cuatro documentos**, no contra un
-corpus vacío. El resultado (cero hallazgos) es bueno y probablemente más
-exigente que la prueba pretendida, pero **no es la misma prueba**.
-
-### Mediciones anteriores documentadas
+### Mediciones anteriores documentadas fuera de ese fichero
 
 | Fecha | Commit | Dónde está |
 |---|---|---|
