@@ -130,6 +130,27 @@ export interface StageFailure {
   detail?: string;
 }
 
+/**
+ * F-74 P2: filas de una tabla que el reparto por unidades dejó fuera del
+ * prompt por tamaño. Es el ALCANCE del análisis, no un hallazgo — declara qué
+ * no se llegó a comparar.
+ *
+ * `rowsLeftOut` de `rowsRecovered`: el denominador son las filas que Pinecone
+ * DEVOLVIÓ para esa tabla, no todas las que tiene. Las que nunca fueron
+ * candidatas no se «quedaron fuera por tamaño»: no compitieron.
+ *
+ * NO dice cuántas de esas filas eran interesantes. Decirlo exige el predicado
+ * de F-65 (claude/Descarte_Filas_Ajenas.md), que aún no está implementado; ver
+ * B.104.
+ */
+export interface SelectionLimit {
+  documentName: string;
+  sheetName: string | null;
+  tableId: string;
+  rowsLeftOut: number;
+  rowsRecovered: number;
+}
+
 /** F-70: valor de una columna enfrentado entre los dos documentos.
  *  Lo calcula el código en el punto de la alineación, nunca el modelo. */
 export interface ComparedValue {
@@ -247,4 +268,11 @@ export interface FinalAnalysis {
    * los créditos se devuelven íntegros.
    */
   stageFailures?: StageFailure[];
+  /**
+   * F-74 P2: tablas cuyas filas recuperadas no cupieron enteras en el reparto.
+   * Ausente o vacío = todo lo recuperado se comparó. Es el ALCANCE declarado,
+   * no un hallazgo: se cobra igual y volver a lanzarlo NO cambia el resultado,
+   * a diferencia de stageFailures.
+   */
+  selectionLimits?: SelectionLimit[];
 }

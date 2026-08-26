@@ -4,7 +4,7 @@ import { runInBatches } from '@/lib/run-in-batches';
 import { getChunksForDocuments } from '@/lib/read-chunks';
 import { normalize } from './judge';
 import { getOrderedColumns } from './table-structure';
-import type { CandidateDocument, DocumentFragment, PipelineOptions } from './types';
+import type { CandidateDocument, DocumentFragment, PipelineOptions, SelectionLimit } from './types';
 import type { StoredChunk } from '@/lib/read-chunks';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
@@ -167,6 +167,10 @@ export async function retrieveCandidates(args: {
    *  exhaustivo no pasaba por selectUnitsWithinBudget; con el camino unificado
    *  la entrada de solapamiento estructural (F-45/F-46) existe también ahí. */
   structuralOverlaps: Map<string, StructuralOverlap[]>;
+  /** F-74 P2: por documento candidato, las tablas cuyas filas RECUPERADAS no
+   *  cupieron enteras en el reparto. Sin clave = todo cupo (el caso normal).
+   *  Mismo patrón y mismo camino que structuralOverlaps. */
+  selectionLimits: Map<string, SelectionLimit[]>;
 }> {
   const { sampleTexts, orgId, excludeDocumentId, batchDocumentIds, options, supabase, newDocumentChunks } = args;
   const isExhaustive = options?.exhaustive === true;
@@ -262,6 +266,7 @@ export async function retrieveCandidates(args: {
 
   const candidates: CandidateDocument[] = [];
   const structuralOverlapsByDocument = new Map<string, StructuralOverlap[]>();
+  const selectionLimitsByDocument = new Map<string, SelectionLimit[]>();
   for (const [documentId, frags] of byDoc) {
     const unique = deduplicateFragments(frags);
     const sorted = unique.sort((a, b) => b.score - a.score);
@@ -315,6 +320,22 @@ export async function retrieveCandidates(args: {
         structuralOverlapsByDocument.set(documentId, result.structuralOverlaps);
       }
 
+      // F-74 P2: el alcance declarado. Solo las tablas que dejaron algo fuera —
+      // el caso normal es que no haya ninguna, y una lista vacía se distingue
+      // de "no se miró" porque el mapa simplemente no tiene esa clave.
+      const limits: SelectionLimit[] = result.tableLog
+        .filter(t => t.rowsLeftOut > 0)
+        .map(t => ({
+          documentName: sorted[0].documentName,
+          sheetName: t.sheetName,
+          tableId: t.tableId,
+          rowsLeftOut: t.rowsLeftOut,
+          rowsRecovered: t.rowsRecovered,
+        }));
+      if (limits.length > 0) {
+        selectionLimitsByDocument.set(documentId, limits);
+      }
+
       const usedChars = selected.reduce((sum, f) => sum + f.text.length, 0);
       for (const t of result.tableLog) {
         const colapsoDesc = t.collapsedCount > 0 ? `, ${t.collapsedCount} colapsadas en 1 línea` : '';
@@ -323,7 +344,8 @@ export async function retrieveCandidates(args: {
           : t.level === 2 ? `resumen + ${t.rowsUsed}/${t.rowsTotal} filas, ${t.belongingUsed} por pertenencia${colapsoDesc}`
           : t.level === 3 ? 'solo resumen'
           : 'fila única sin resumen (caso raro)';
-        console.log(`[retrieval] "${sorted[0].documentName}" tabla "${t.sheetName ?? t.tableId}": nivel ${t.level} (${levelDesc}, ${t.chars} chars)`);
+        const fueraDesc = t.rowsLeftOut > 0 ? `, ${t.rowsLeftOut}/${t.rowsRecovered} recuperadas FUERA por tamaño` : '';
+        console.log(`[retrieval] "${sorted[0].documentName}" tabla "${t.sheetName ?? t.tableId}": nivel ${t.level} (${levelDesc}, ${t.chars} chars${fueraDesc})`);
       }
       // F-73: DESGLOSE POR TIPO, no solo el total. Subir el presupuesto del
       // exhaustivo mueve DOS cosas a la vez — caben más filas de tabla Y caben
@@ -359,6 +381,7 @@ export async function retrieveCandidates(args: {
     candidates: candidates.sort((a, b) => b.maxScore - a.maxScore).slice(0, 25),
     chunksByDocument,
     structuralOverlaps: structuralOverlapsByDocument,
+    selectionLimits: selectionLimitsByDocument,
   };
 }
 
@@ -684,6 +707,9 @@ function assembleTable(
    *  en presupuesto) — no en el caso patológico donde las idénticas vuelven
    *  a competir sueltas, porque ahí no hubo colapso real que reportar. */
   structural?: { columns: string[]; labels: string[]; rowsTotal: number };
+  /** F-74 P2: filas RECUPERADAS que no entraron. 0 en nivel 1 (entran todas,
+   *  incluidas las que Pinecone no devolvió). */
+  rowsLeftOut: number;
 } | null {
   const allRowChunks = docChunks
     .filter(c => c.tableId === unit.tableId && c.chunkType === 'table_row')
@@ -703,6 +729,7 @@ function assembleTable(
       usedChars: level1Chars,
       belongingUsed: 0,
       collapsedCount: 0,
+      rowsLeftOut: 0,
     };
   }
 
@@ -751,19 +778,44 @@ function assembleTable(
         }
       }
 
-      for (const rowFragment of restRows) {
-        if (packedRows.length >= countForRows) break;
-        if (usedRowChars + rowFragment.text.length > budgetForRows) continue;
+      // F-74 P2: `rowsLeftOut` — las filas RECUPERADAS que no entraron. Los dos
+      // caminos van bajo el mismo número porque para quien lee el aviso
+      // significan lo mismo ("no se comparó por tamaño"), y el nivel del
+      // tableLog ya distingue el caso extremo: el `continue` salta una fila que
+      // no cabe y sigue probando, el `break` se lleva de golpe todo lo que
+      // queda por detrás.
+      //
+      // SOLO recuperadas, a propósito. Las filas que Pinecone nunca devolvió no
+      // se quedaron fuera "por tamaño": no llegaron a competir. Contarlas
+      // inflaría el aviso con un problema distinto (el del retrieval).
+      //
+      // Las idénticas NO se cuentan cuando el colapso entró: están
+      // representadas en la línea de contexto, no perdidas. Si el colapso NO
+      // cupo (caso patológico de arriba) vuelven a `restRows` y compiten como
+      // cualquiera, así que se cuentan igual que el resto.
+      let rowsLeftOut = 0;
+      for (let ri = 0; ri < restRows.length; ri++) {
+        const rowFragment = restRows[ri];
+        if (packedRows.length >= countForRows) {
+          rowsLeftOut += restRows.length - ri;
+          break;
+        }
+        if (usedRowChars + rowFragment.text.length > budgetForRows) {
+          rowsLeftOut++;
+          continue;
+        }
         packedRows.push(rowFragment);
         usedRowChars += rowFragment.text.length;
         if ((crossingsByIndex.get(rowFragment.chunkIndex) ?? 0) > 0) belongingUsed++;
       }
       if (packedRows.length > 0) {
-        return { level: 2, fragments: [...packedRows, summaryFragment], usedChars: summaryChars + usedRowChars, belongingUsed, collapsedCount, structural };
+        return { level: 2, fragments: [...packedRows, summaryFragment], usedChars: summaryChars + usedRowChars, belongingUsed, collapsedCount, structural, rowsLeftOut };
       }
     }
+    // Nivel 3: no cupo NINGUNA fila. Es el extremo del mismo fenómeno, así que
+    // va bajo la misma clave — se quedan fuera todas las recuperadas.
     if (summaryChars <= remainingBudget && remainingCount >= 1) {
-      return { level: 3, fragments: [summaryFragment], usedChars: summaryChars, belongingUsed: 0, collapsedCount: 0 };
+      return { level: 3, fragments: [summaryFragment], usedChars: summaryChars, belongingUsed: 0, collapsedCount: 0, rowsLeftOut: unit.recoveredRows.length };
     }
   }
 
@@ -792,6 +844,12 @@ interface TableLevelLog {
    *  solo las filas que entraron sueltas y parecería que faltan las que en
    *  realidad están, resumidas, en una sola línea. */
   collapsedCount: number;
+  /** F-74 P2: filas RECUPERADAS que no entraron. 0 en nivel 1. */
+  rowsLeftOut: number;
+  /** F-74 P2: cuántas filas de la tabla devolvió Pinecone. Es el DENOMINADOR
+   *  del aviso, y NO es rowsTotal: las filas que nunca fueron candidatas no se
+   *  quedaron fuera «por tamaño», no llegaron a competir. */
+  rowsRecovered: number;
   chars: number;
 }
 
@@ -866,6 +924,8 @@ function selectUnitsWithinBudget(
         rowsTotal,
         belongingUsed: assembled.belongingUsed,
         collapsedCount: assembled.collapsedCount,
+        rowsLeftOut: assembled.rowsLeftOut,
+        rowsRecovered: unit.recoveredRows.length,
         chars: assembled.usedChars,
       });
       if (assembled.structural) {
@@ -889,13 +949,13 @@ function selectUnitsWithinBudget(
         selected.push(f);
         usedChars += f.text.length;
         unitsIn++;
-        tableLog.push({ tableId: unit.tableId, sheetName: unit.sheetName, level: 3, rowsUsed: 0, rowsTotal, belongingUsed: 0, collapsedCount: 0, chars: f.text.length });
+        tableLog.push({ tableId: unit.tableId, sheetName: unit.sheetName, level: 3, rowsUsed: 0, rowsTotal, belongingUsed: 0, collapsedCount: 0, rowsLeftOut: unit.recoveredRows.length, rowsRecovered: unit.recoveredRows.length, chars: f.text.length });
       } else if (unit.recoveredRows.length > 0) {
         const shortest = [...unit.recoveredRows].sort((a, b) => a.text.length - b.text.length)[0];
         selected.push(shortest);
         usedChars += shortest.text.length;
         unitsIn++;
-        tableLog.push({ tableId: unit.tableId, sheetName: unit.sheetName, level: '3-forzado', rowsUsed: 1, rowsTotal, belongingUsed: 0, collapsedCount: 0, chars: shortest.text.length });
+        tableLog.push({ tableId: unit.tableId, sheetName: unit.sheetName, level: '3-forzado', rowsUsed: 1, rowsTotal, belongingUsed: 0, collapsedCount: 0, rowsLeftOut: Math.max(0, unit.recoveredRows.length - 1), rowsRecovered: unit.recoveredRows.length, chars: shortest.text.length });
       }
     }
   }

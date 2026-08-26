@@ -148,6 +148,8 @@ async function processJob(job: AnalysisJob): Promise<void> {
       // amplió con stageFailures, así que el aviso de análisis incompleto no
       // salía tras un reanálisis desde el modal de mejora.
       stageFailures: analysis.stageFailures,
+      // F-74 P2: el alcance declarado, por el mismo camino.
+      selectionLimits: analysis.selectionLimits,
     };
 
     const latencyMs = Date.now() - t0;

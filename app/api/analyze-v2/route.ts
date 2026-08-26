@@ -555,6 +555,9 @@ export async function POST(req: NextRequest) {
         // incompleto solo aparecía por la bandeja —que relee el jsonb entero—
         // y nunca tras una subida.
         stageFailures: analysis.stageFailures,
+        // F-74 P2: el alcance declarado, por el mismo camino que el aviso de
+        // incompleto — y añadido a la vez para no repetir el olvido de arriba.
+        selectionLimits: analysis.selectionLimits,
       },
       documentSources,
       versionPromoted,

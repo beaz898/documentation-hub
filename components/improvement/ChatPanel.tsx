@@ -7,6 +7,8 @@ import ReanalyzeButtons from './ReanalyzeButtons';
 import FilterMenu from './FilterMenu';
 import ProblemDetail from './ProblemDetail';
 import IncompleteAnalysisNotice from '@/components/IncompleteAnalysisNotice';
+import SelectionLimitNotice from '@/components/SelectionLimitNotice';
+import type { SelectionLimitItem } from '@/components/SelectionLimitNotice';
 import type { ProblemType, Problem } from './problems';
 import type { ChatMessage } from './useImprovementChat';
 import { applyReplacement } from './useImprovementChat';
@@ -44,6 +46,8 @@ interface ChatPanelProps {
   onDismissProblem: (p: Problem) => void;
   /** F-71: número de etapas que cayeron a su fallback. >0 pinta el aviso. */
   stageFailureCount?: number;
+  /** F-74 P2: tablas cuyas filas no cupieron enteras. Alcance, no hallazgo. */
+  selectionLimits?: SelectionLimitItem[];
 }
 
 export default function ChatPanel({
@@ -54,6 +58,7 @@ export default function ChatPanel({
   onToggleType, onSelectAllTypes, onClearTypes,
   getDocSourceBadge, onGoToProblem, onSolveOne, onSolveGroup, onDismissProblem,
   stageFailureCount = 0,
+  selectionLimits,
 }: ChatPanelProps) {
   const t = useTranslations('analysis');
 
@@ -187,6 +192,15 @@ export default function ChatPanel({
       {stageFailureCount > 0 && (
         <div style={{ padding: '10px 16px 0', flexShrink: 0 }}>
           <IncompleteAnalysisNotice count={stageFailureCount} />
+        </div>
+      )}
+
+      {/* F-74 P2: DESPUES del de incompleto, y tambien fuera del bloque de
+          problemas — el recorte por presupuesto puede dejar cero hallazgos, que
+          es justo cuando mas falta hace decir que no se miro todo. */}
+      {selectionLimits && selectionLimits.length > 0 && (
+        <div style={{ padding: '10px 16px 0', flexShrink: 0 }}>
+          <SelectionLimitNotice limits={selectionLimits} />
         </div>
       )}
 

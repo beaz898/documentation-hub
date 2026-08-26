@@ -61,6 +61,16 @@ export interface RawAnalysis {
   /** F-71: etapas que cayeron a su fallback por fallo del LLM. No vacío = el
    *  resultado está incompleto y la lista de problemas no es exhaustiva. */
   stageFailures?: Array<{ stage: string; detail?: string }>;
+  /** F-74 P2: alcance del análisis. NO se convierte en Problem — no es un
+   *  hallazgo sobre el documento, es una nota sobre qué no se llegó a
+   *  comparar. Lo pinta ChatPanel aparte, como el aviso de incompleto. */
+  selectionLimits?: Array<{
+    documentName: string;
+    sheetName: string | null;
+    tableId: string;
+    rowsLeftOut: number;
+    rowsRecovered: number;
+  }>;
 }
 
 function normalizeWhitespace(s: string): string {

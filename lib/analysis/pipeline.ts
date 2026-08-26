@@ -465,7 +465,7 @@ async function runCorePipeline(
 ): Promise<FinalAnalysis> {
   const t0 = Date.now();
 
-  const { candidates, chunksByDocument: chunksFromRetrieval, structuralOverlaps } = await retrieveCandidates({
+  const { candidates, chunksByDocument: chunksFromRetrieval, structuralOverlaps, selectionLimits } = await retrieveCandidates({
     sampleTexts: input.sampleTexts,
     orgId: input.orgId,
     excludeDocumentId: input.excludeDocumentId,
@@ -596,7 +596,33 @@ async function runCorePipeline(
   });
   console.log(`[${label}] Synthesize (${Date.now() - t3}ms). Total: ${Date.now() - t0}ms`);
 
-  return final;
+  // F-74 P2: EL ALCANCE DECLARADO. Se funde DESPUÉS del return de synthesize —
+  // mismo criterio que exhaustiveCounts en el exhaustivo, para no tocar la
+  // firma de synthesizeFinalAnalysis. Vale para LOS DOS MODOS: el rápido
+  // recorta igual, y desde F-73 con la misma maquinaria.
+  //
+  // SOLO de los candidatos que llegaron al JUEZ. retrieveCandidates devuelve
+  // límites de todos los que recuperó, pero el rerank descarta antes de juzgar:
+  // avisar de que no se compararon filas de un documento que nunca se comparó
+  // con nada sería una nota sobre un análisis que no ocurrió.
+  const judgedIds = new Set(reranked.map(c => c.documentId));
+  const limits = [...selectionLimits.entries()]
+    .filter(([documentId]) => judgedIds.has(documentId))
+    .flatMap(([, l]) => l);
+
+  if (limits.length === 0) return final;
+
+  const rowsLeftOut = limits.reduce((sum, l) => sum + l.rowsLeftOut, 0);
+  console.log(`[${label}] Alcance: ${rowsLeftOut} fila(s) recuperada(s) fuera por tamaño, en ${limits.length} tabla(s)`);
+
+  // El contador va con prefijo `seleccion.` porque es MATERIAL descartado, no
+  // un hallazgo: lo separa de descartado.* (hallazgos que la cascada tiró) y de
+  // exhaustivo.* (lo que se pierde en el tramo caro).
+  const withLimits: DiscardedFindings = { ...(final.discardedFindings ?? {}) };
+  withLimits['seleccion.filas_fuera_por_tamano'] =
+    (withLimits['seleccion.filas_fuera_por_tamano'] ?? 0) + rowsLeftOut;
+
+  return { ...final, selectionLimits: limits, discardedFindings: withLimits };
 }
 
 // ============================================================

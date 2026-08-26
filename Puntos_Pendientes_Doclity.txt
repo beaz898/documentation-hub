@@ -1796,6 +1796,34 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     comportamiento en el mismo diff. Cruzar con B.97 y B.98 al tocar
     double-check.ts.
 
+  B.104 — [AFINAR CUANDO EXISTA F-65, 28/08] El aviso de alcance dice cuántas
+    filas quedaron fuera, no cuántas eran DISCREPANTES.
+    LO QUE PIDIÓ FABLE en F-74 P2 era el contador con clasificación —
+    "seleccion.discrepantes_fuera: N" y el aviso "N filas discrepantes no
+    mostradas por tamaño"—. Lo desplegado cuenta las filas RECUPERADAS que no
+    entraron, a secas, sin decir si eran interesantes.
+    POR QUÉ NO SE HIZO HOY, y el motivo es el que importa: sin el predicado de
+    F-65 (claude/Descarte_Filas_Ajenas.md) la aproximación disponible es
+    "cruza y no es idéntica" (crossingsByIndex > 0 en restRows), y esa falla en
+    los DOS sentidos:
+      · POR ARRIBA: una fila que solo cruza en una columna trivial (Clínica:
+        Chamberí, cardinalidad ~1) contaría como discrepante siendo ajena.
+      · POR ABAJO, y este es el que decide: el caso de los totales — "Total
+        horas equipo/semana: 256" contra "248" — comparte columna y DIFIERE en
+        el valor, pero countCrossings cuenta COINCIDENCIAS y devuelve 0. La
+        llamaría ajena y el aviso callaría justo el tipo de fila que más
+        importa no perder.
+    Un aviso que se equivoca en el sentido que OCULTA es peor que no avisar,
+    así que se desplegó la versión que no depende del predicado: honesta,
+    medible hoy, y sin afirmar de más.
+    QUÉ HACER CUANDO F-65 ESTÉ: añadir el desglose sobre lo que ya viaja —
+    SelectionLimit (lib/analysis/types.ts) ya lleva rowsLeftOut y rowsRecovered
+    por tabla, así que basta un tercer número y ajustar el texto del aviso en
+    components/SelectionLimitNotice.tsx. El camino arriba ya está abierto.
+    CRUZAR CON B.102: el tope de 25 piezas es hoy la otra vía por la que se
+    queda material fuera, y los casos D (ni el resumen cupo) y E (la unidad ni
+    se intenta) siguen contando solo en unitsOut, sin clave propia.
+
   F-74 [ALCANCE DEL MVP, 27/08] Lo que entra y lo que NO entra antes de salir.
     DOCTRINA DE PRODUCTO DEL DIRECTOR, literal y por delante de todo lo demás:
       "el sistema no puede esconder hallazgos y confiar en que el usuario los

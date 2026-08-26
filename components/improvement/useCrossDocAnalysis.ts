@@ -59,6 +59,10 @@ export function useCrossDocAnalysis(
   const [stageFailureCount, setStageFailureCount] = useState<number>(
     () => initialAnalysis.stageFailures?.length ?? 0
   );
+  // F-74 P2: el alcance declarado, mismo ciclo de vida que stageFailureCount.
+  const [selectionLimits, setSelectionLimits] = useState<RawAnalysis['selectionLimits']>(
+    () => initialAnalysis.selectionLimits
+  );
   const [reanalyzingAll, setReanalyzingAll] = useState(false);
   const [lastError, setLastError] = useState<string | null>(null);
   const [reanalyzePhase, setReanalyzePhase] = useState<string | null>(null);
@@ -144,6 +148,7 @@ export function useCrossDocAnalysis(
         const dismissedCount = withDismissed.filter(p => p.dismissed).length;
 
         setStageFailureCount(analysis.stageFailures?.length ?? 0);
+        setSelectionLimits(analysis.selectionLimits);
         setCrossDocProblems(withDismissed);
 
         return { activeCount, dismissedCount, totalCount: withDismissed.length };
@@ -189,7 +194,7 @@ export function useCrossDocAnalysis(
     return isDismissing;
   }, []);
 
-  return { crossDocProblems, setCrossDocProblems, reanalyzeAll, reanalyzingAll, reanalyzePhase, lastError, dismissProblem, stageFailureCount };
+  return { crossDocProblems, setCrossDocProblems, reanalyzeAll, reanalyzingAll, reanalyzePhase, lastError, dismissProblem, stageFailureCount, selectionLimits };
 }
 
 // ============================================================

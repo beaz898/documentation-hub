@@ -5,6 +5,8 @@ import { useTranslations } from 'next-intl';
 import UploadActions from './AnalysisModal/UploadActions';
 import ReviewActions from './AnalysisModal/ReviewActions';
 import IncompleteAnalysisNotice from './IncompleteAnalysisNotice';
+import SelectionLimitNotice from './SelectionLimitNotice';
+import type { SelectionLimitItem } from './SelectionLimitNotice';
 
 interface AnalysisResult {
   isDuplicate?: boolean;
@@ -40,6 +42,8 @@ interface AnalysisResult {
   /** F-71: etapas que cayeron a su fallback. No vacío = el resultado no es
    *  una foto completa del corpus. */
   stageFailures?: Array<{ stage: string; detail?: string }>;
+  /** F-74 P2: tablas cuyas filas no cupieron enteras. Alcance, no hallazgo. */
+  selectionLimits?: SelectionLimitItem[];
 }
 
 interface AnalysisModalProps {
@@ -202,6 +206,10 @@ export default function AnalysisModal({ fileName, analysis, onConfirm, onCancel,
         {/* F-71: el aviso va ANTES del resumen — si el análisis está incompleto,
             el resumen que sigue habla de algo que no se llegó a comprobar. */}
         <IncompleteAnalysisNotice count={analysis.stageFailures?.length ?? 0} />
+
+        {/* F-74 P2: DESPUES del de incompleto. Si el analisis fallo, lo que no
+            se miro por presupuesto es lo de menos. */}
+        <SelectionLimitNotice limits={analysis.selectionLimits} />
 
         {/* General summary */}
         {analysis.summary && (
