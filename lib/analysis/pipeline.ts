@@ -1,4 +1,4 @@
-import type { FinalAnalysis, PipelineOptions, DiscardedFindings, ComparedValue } from './types';
+import type { FinalAnalysis, PipelineOptions, DiscardedFindings, ComparedValue, ConfirmedBy } from './types';
 import { stageFailureContext } from './stage-failures';
 import { retrieveCandidates } from './retrieval';
 import type { StructuralOverlap } from './retrieval';
@@ -10,6 +10,7 @@ import { checkContentHash } from './hash-check';
 import { extractAtomicClaims } from './extract-claims';
 import { verifyClaimsAgainstCorpus } from './verify-claims';
 import { doubleCheckContradictions } from './double-check';
+import type { DoubleCheckedDiscrepancy } from './double-check';
 import { analyzeStyle } from './style-check';
 import { loadFragmentContexts, fragmentContextKey } from './fragment-context';
 import { applyDeterministicRules, buildStructuralTopic } from './finding-rules';
@@ -755,14 +756,58 @@ async function runExhaustivePipelineInner(input: ExhaustivePipelineInput): Promi
     }
   }
 
-  const { results: doubleChecked, counts: doubleCheckCounts, alreadyDismissed } = await doubleCheckContradictions(
-    cappedCandidates,
+  // ── LA FRONTERA DEL DOUBLE-CHECK (F-71 paso 3) ───────────────
+  //
+  // REGLA DEL PIPELINE: ninguna llamada a un modelo puede revertir un veredicto
+  // DETERMINISTA. Un `confirmedBy: 'estructura'` es un teorema sobre celdas —
+  // R2 comprobó que la misma columna de la misma fila tiene dos valores
+  // distintos—, y que Sonnet opine lo contrario no es información sobre el
+  // hallazgo: es información sobre Sonnet.
+  //
+  // Medido el 28/08 sobre 5fa72955, tres pasadas seguidas: la contradicción del
+  // Puesto de Pablo Reyes llega confirmada por estructura y Sonnet la degrada a
+  // 'posible' en DOS de las tres. El hallazgo mejor verificado del sistema
+  // desaparecía por opinión de un modelo.
+  //
+  // Ni se le envían: además de la corrección, es el ahorro directo de las
+  // llamadas más caras del pipeline. A Sonnet solo va lo confirmado por JUICIO,
+  // que es donde una segunda opinión de un modelo superior vale lo que cuesta.
+  const structuralCandidates = cappedCandidates.filter(d => d.confirmedBy === 'estructura');
+  const toDoubleCheck = cappedCandidates.filter(d => d.confirmedBy !== 'estructura');
+  console.log(
+    `[pipeline-exhaustive] Frontera del double-check: ${structuralCandidates.length} por estructura NO se envian a Sonnet, ` +
+    `${toDoubleCheck.length} por juicio si`
+  );
+
+  const { results: checked, counts: doubleCheckCounts, alreadyDismissed } = await doubleCheckContradictions(
+    toDoubleCheck,
     0, // sin objetivo → verificar todas
     excludeFps,
   );
   for (const [key, count] of Object.entries(doubleCheckCounts)) {
     exhaustiveCounts[key] = (exhaustiveCounts[key] ?? 0) + count;
   }
+
+  // Y VUELVEN A JUNTARSE AQUÍ, con su confianza puesta.
+  //
+  // `confidence: 'alta'` explícita porque HOY NO LA TIENEN: DocumentJudgment
+  // no declara el campo y el .map() de synthesize tampoco lo añade, así que
+  // quien se la asignaba era justo la línea del double-check que acaban de
+  // esquivar. Sin esto saldrían con `confidence: undefined` y los dos filtros
+  // de abajo —uno exige 'alta', el otro 'posible'— los dejarían fuera de los
+  // dos arrays: el hallazgo mejor verificado del sistema desaparecería del
+  // todo, que es lo contrario de lo que esta frontera persigue.
+  // Y el valor no es una elección: si 'estructura' es un teorema sobre celdas,
+  // 'alta' es su confianza POR DEFINICIÓN, no una opinión que haya que pedir.
+  //
+  // ANTES de los tres filtros, nunca después: si se juntaran al final
+  // quedarían fuera del cálculo de huérfanos y perderíamos la garantía de
+  // F-71 paso 1 —«sale publicado o sale contado»— justo para este grupo.
+  const structuralPassthrough: DoubleCheckedDiscrepancy[] = structuralCandidates.map(d => ({
+    ...d,
+    confidence: 'alta',
+  }));
+  const doubleChecked: DoubleCheckedDiscrepancy[] = [...checked, ...structuralPassthrough];
 
   // Separar contradicciones confirmadas de inconsistencias menores
   const confirmedContradictions = doubleChecked.filter(d => d.confidence === 'alta');
@@ -790,9 +835,33 @@ async function runExhaustivePipelineInner(input: ExhaustivePipelineInput): Promi
   // dice por qué se quedaron sin veredicto, no que alguien decidiera tirarlas.
   const published = new Set<typeof doubleChecked[number]>(confirmedContradictions);
   const decided = new Set<typeof doubleChecked[number]>(alreadyDismissed);
+
+  // F-71 paso 3: EL DESACUERDO, contado con su nombre. Hasta ahora un hallazgo
+  // confirmado por la llamada corta y degradado por Sonnet caía en
+  // `exhaustivo.sin_destino.*`, y ese nombre miente — dice literalmente "nadie
+  // decidió nada sobre esto" y aquí SÍ decidió alguien. Mismo argumento por el
+  // que las de huella ya descartada salieron de ese cálculo.
+  //
+  // Con la frontera puesta el contador tiene un sentido limpio que antes no
+  // podía tener: a Sonnet solo le llega lo confirmado por JUICIO, así que
+  // cualquier resultado suyo que no salga 'alta' es exactamente eso, un juicio
+  // degradado. No hace falta emparejar nada con la lista de entrada.
+  //
+  // OJO al leerlo: un lote que FALLÓ vuelve también como 'posible' y cuenta
+  // aquí, aunque Sonnet no llegara a opinar. `exhaustivo.lote_sin_veredicto` es
+  // el desambiguador — si los dos números coinciden, no hubo desacuerdo real,
+  // hubo avería.
+  const degradedByDoubleCheck = checked.filter(d => d.confidence !== 'alta' && !decided.has(d));
+  for (const d of degradedByDoubleCheck) {
+    bumpCount(exhaustiveCounts, 'exhaustivo.juicio_degradado_por_sonnet');
+    console.log(`[pipeline-exhaustive] · juicio degradado por Sonnet: "${d.topic.slice(0, 60)}" contra "${d.existingDocument}"`);
+  }
+  const degraded = new Set<typeof doubleChecked[number]>(degradedByDoubleCheck);
+
   const orphans = doubleChecked.filter(
     d => !published.has(d)
       && !decided.has(d)
+      && !degraded.has(d)
       && !(d.confidence === 'posible' && d.severity === 'minor_inconsistency'),
   );
   if (orphans.length > 0) {
@@ -854,6 +923,11 @@ interface Discrepancy {
   existingDocSays: string;
   existingDocument: string;
   severity?: 'contradiction' | 'minor_inconsistency';
+  /** F-71 paso 3: mismo motivo que los de abajo — el runtime ya lo traía
+   *  (viene de FinalAnalysis['discrepancies'], que sí lo declara), pero este
+   *  tipo local lo borraba. Sin declararlo aquí, la frontera del double-check
+   *  no puede preguntar por él. */
+  confirmedBy?: ConfirmedBy;
   /** F-69: mergeContradictions conserva el objeto entero (spread + push), así
    *  que en tiempo de ejecución el campo ya pasaba; declararlo evita que el
    *  tipo lo borre al entrar en el double-check, que sí reconstruye. */

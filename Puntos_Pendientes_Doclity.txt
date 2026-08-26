@@ -1767,6 +1767,35 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     diminutos), porque una tabla de 40 filas cortas y un documento de 40
     fragmentos de ruido no son el mismo riesgo.
 
+  B.103 — [DEUDA MEDIDA, 28/08] El double-check no copia confirmedBy: cuando
+    Sonnet no confirma, la procedencia del hallazgo DESAPARECE. Y contamina una
+    columna de la base de datos desde que existe.
+    EL MECANISMO. verifyBatch (lib/analysis/double-check.ts) reconstruye el
+    objeto con lista cerrada y `d.confirmedBy` NO se copia nunca; el campo solo
+    se escribe en una rama:
+        ...(isContradiction ? { confirmedBy: 'double_check' as ConfirmedBy } : {}),
+    Con lo cual:
+      · Sonnet confirma  → confirmedBy: 'double_check', PISA al anterior.
+      · Sonnet NO confirma → confirmedBy AUSENTE: el 'juicio' se pierde.
+    El catch del mismo fichero tampoco lo copia. La única vía que sí lo conserva
+    es el push de las de huella ya descartada, que usa spread — inconsistente
+    con las otras dos, y por accidente, no por decisión.
+    LA CONTAMINACIÓN DE LA MÉTRICA, que es lo que lo hace deuda y no manía:
+    lib/persist-analysis.ts:52 cuenta
+        contradictions_confirmed: analysis.discrepancies.filter(d => d.confirmedBy !== undefined).length
+    así que un hallazgo degradado por Sonnet TAMBIÉN sale de esa cuenta. La
+    columna analysis_results.contradictions_confirmed no mide "confirmadas":
+    mide "lo que Sonnet no tumbó", y lleva haciéndolo desde que el double-check
+    existe. Cualquier análisis histórico sobre esa columna arrastra el sesgo.
+    ALCANCE TRAS LA FRONTERA DE F-71 PASO 3: los confirmedBy 'estructura' ya NO
+    pasan por esas ramas —no se envían a Sonnet—, así que a ellos deja de
+    tocarles. SIGUE VIVO PARA LOS DE 'juicio', que son los únicos que quedan
+    yendo al double-check.
+    NO SE ARREGLÓ EN F-71 PASO 3 a propósito: aquel commit fijaba una frontera,
+    y abrir además la lista cerrada habría mezclado dos cambios de
+    comportamiento en el mismo diff. Cruzar con B.97 y B.98 al tocar
+    double-check.ts.
+
   F-74 [ALCANCE DEL MVP, 27/08] Lo que entra y lo que NO entra antes de salir.
     DOCTRINA DE PRODUCTO DEL DIRECTOR, literal y por delante de todo lo demás:
       "el sistema no puede esconder hallazgos y confiar en que el usuario los
