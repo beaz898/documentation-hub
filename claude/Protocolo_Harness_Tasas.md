@@ -24,6 +24,51 @@ todo ha mejorado muchísimo, probablemente se esté comparando contra el síntom
 
 ---
 
+## ⚠️ REGLA DE ADMISIÓN: ninguna medición cuenta sin su ground truth en el repositorio
+
+*Añadida el 27/08/2026, tras la tercera pérdida de evidencia en una semana.*
+
+> **Una medición cuyo ground truth no esté en el repositorio NO cuenta.** No se
+> cita, no se compara contra ella, no se usa para aprobar ni para revertir un
+> commit. Se vuelve a medir cuando la evidencia esté dentro.
+
+«Ground truth» es todo lo necesario para reproducir la medición sin la memoria
+de nadie: **los documentos** sobre los que se midió y el **registro de qué debía
+encontrarse** en ellos. Si un par se mide sobre ficheros que solo existen en un
+disco local o en una carpeta de Drive, la tasa no es verificable: es un recuerdo
+con forma de fracción.
+
+**POR QUÉ ESTÁ AQUÍ.** No es prudencia abstracta. En una sola semana la
+evidencia faltó **tres veces**, siempre en el momento de ir a usarla:
+
+| Qué faltó | Cuándo se descubrió | Cómo acabó |
+|---|---|---|
+| La tabla «LÍNEA DE BASE MEDIDA (harness, 25/08, `e43fbc8c`)» del documento de relevo | 26/08, al ir a comparar contra ella | **Perdida.** Buscada por título, por `e43fbc8c` y por `Belmonte`: sin resultado. Ver §5 |
+| La batería de casos de F-65 (descarte de filas ajenas) | 27/08, al ir a implementar el predicado | **Recuperada**, escribiéndola en `claude/Descarte_Filas_Ajenas.md` antes de tocar código |
+| `SIEMBRA_corpus_ampliado.md` y los cuatro documentos del corpus ampliado | 27/08, al analizar los falsos negativos de prosa (F-76) | **Recuperada**, creando `corpus-pruebas/` |
+
+Tres veces en siete días no es mala suerte: es lo que pasa por defecto cuando el
+sitio donde vive la evidencia es «fuera». El único sitio que sobrevive a un
+cambio de máquina, a un vaciado de Drive y a la memoria del que midió es el
+repositorio.
+
+**Consecuencia práctica**: antes de lanzar una tanda, comprobar que los
+documentos y su registro de siembra están commiteados. Si no lo están, subirlos
+es el **primer** paso de la medición, no el último.
+
+### Dónde vive el material de prueba
+
+**`corpus-pruebas/`, en la raíz del repositorio.** Ahí están los documentos del
+corpus ampliado y su registro de siembra.
+
+**NUNCA en `public/`, y esta es una trampa fácil de pisar.** Todo lo que entra
+en `public/` lo sirve Vercel abierto en internet, sin autenticación: un
+documento clínico de muestra colocado ahí queda descargable por cualquiera que
+acierte la URL, e indexable. Es la carpeta que uno elige por instinto para
+«ficheros que no son código», y es justo la que no hay que usar.
+
+---
+
 ## 1. Para qué sirve
 
 La regla que fijaron F-59 y F-61, y que este harness existe para hacer cumplible:
@@ -96,6 +141,75 @@ contaminación de él.
 Los casos 1 a 4 son lo contrario: cada par se mide **aislado**, porque lo que
 miden es una detección concreta entre dos documentos y cualquier tercero cambia
 lo que el retrieval y el rerank ven.
+
+### Los casos 6 a 9: el corpus ampliado
+
+Los cinco casos de arriba son el corpus piloto dental: tablas de 15 filas y
+prosa corta. El corpus ampliado añade **documentos de tamaño real** y siembra
+deliberada, y es el primero que mide lo que la lista de cierre (§4-bis) venía
+declarando como dominio NO cubierto: **prosa larga**.
+
+| # | Caso | Documentos | Qué debe encontrar |
+|---|---|---|---|
+| 6 | Tabla ampliada, dirección A | Analizar **OPE-10** contra **OPE-11** | Las **15** discrepancias sembradas, con la columna concreta que difiere en cada una. Y **25 filas propias sin pareja** que no debe forzar |
+| 7 | Tabla ampliada, dirección B | Analizar **OPE-11** contra **OPE-10** | Las mismas 15, lados intercambiados. Y sus **25 filas `SEG-` sin pareja** |
+| 8 | Prosa larga, dirección A | Analizar **NOR-10** contra **CLI-12** | Las **3** contradicciones sembradas: responsable de la esterilización, periodicidad del control biológico, caducidad del material |
+| 9 | Prosa larga, dirección B | Analizar **CLI-12** contra **NOR-10** | Las mismas 3, lados intercambiados |
+
+**El registro de siembra manda.** Este protocolo da el número y la dirección;
+qué dice exactamente cada siembra, en qué página y apartado está, y cuál es su
+par en el otro documento, se lee en
+**`corpus-pruebas/SIEMBRA_corpus_ampliado.md`**. No se duplica aquí para que no
+puedan divergir.
+
+**Nombres de fichero exactos** (literales de los logs de ingesta):
+
+```
+NOR-10_protocolo-esterilizacion-instrumental.docx
+CLI-12_manual-calidad-clinica.docx
+OPE-10_tarifario-tratamientos-2026.xlsx
+OPE-11_tarifario-tratamientos-seguros.xlsx
+```
+
+**Tamaños**: NOR-10 y CLI-12 son `.docx` de ~60.000 y ~51.000 caracteres (18 y
+17 páginas). OPE-10 y OPE-11 son `.xlsx` de 60 filas cada uno, estructurados de
+forma simétrica: 35 comunes (20 idénticas + 15 discrepantes) y 25 exclusivas por
+lado. Es un orden de magnitud por encima del corpus piloto, y por eso estos
+cuatro casos no son «más de lo mismo»: miden el régimen que el piloto no
+alcanza.
+
+**El control negativo va dentro de los casos 6 y 7**, como el falso positivo de
+Belmonte va dentro del 1 y el 2: las 25 filas exclusivas de cada lado no deben
+producir hallazgo. Las de OPE-11 comparten todas el valor `Chamberí` en
+`Clínica`, sembrado a propósito para ver si un valor repetido se confunde con
+una señal de coincidencia.
+
+#### LÍNEA DE BASE — es el síntoma, no el objetivo
+
+Primera medición del corpus ampliado, **26/08/2026, logs 21:37–21:48 UTC
+(23:37–23:48 hora local), sobre el commit `87a76112`**:
+
+| Caso | Sembradas | Publicadas |
+|---|---|---|
+| Tablas, una dirección | 15 | **1** |
+| Tablas, la otra dirección | 15 | **2** |
+| Prosa larga | 3 | **0** |
+
+Léase con la advertencia del principio del fichero: esto es **la enfermedad
+documentada**, el estado del que se parte, no una tasa sana. Una medición
+posterior que dé más que estas cifras no prueba que nada se haya arreglado
+mientras no cumpla §3 (cuatro pasadas por dirección).
+
+**Lo que ya se sabe de por qué**, del análisis de F-76 sobre los dos casos de
+prosa que se rastrearon hasta el final: los dos hallazgos murieron **después**
+de que el juez los emitiera —uno en el verificador corto, como
+`mismo_dato_sin_oposicion`; otro en la verificación de cita, como
+`citaNoVerificable`—, pero por debajo hay un cuello anterior. De **66**
+fragmentos recuperados de NOR-10 entraron **3**: unos 2.800 caracteres de
+60.000, el **4,7 %** del documento. En prosa la selección es **solo score de
+embedding y presupuesto**: no hay pertenencia por valor ni colapso de idénticas,
+que es lo que F-73 midió como el mecanismo que hace posible la detección en
+tablas.
 
 ---
 
@@ -190,7 +304,12 @@ nadie tuviera que acordarse.
 El histórico completo, con sus cifras y sus anomalías, está en
 **`claude/Tandas_Harness.md`**, con la más reciente arriba.
 
-La última: **26/08/2026, sobre `a775a7c7`** — tabla y prosa detectadas en las
+**La medición del corpus ampliado (casos 6 a 9) no está aquí ni en
+`Tandas_Harness.md`: está en §2**, junto a los casos que mide, porque es su
+línea de base y se lee con ellos. Es del **26/08/2026, 21:37–21:48 UTC, sobre
+`87a76112`** — posterior a la que sigue.
+
+La del corpus piloto: **26/08/2026, sobre `a775a7c7`** — tabla y prosa detectadas en las
 dos direcciones, MKT-01 limpio, cero falsos positivos, cero
 `columna_indeterminada`, sin fallos de LLM. **Una sola pasada por caso**, así
 que confirma que nada se rompió con F-69/F-70 pero **no** afirma que ninguna
