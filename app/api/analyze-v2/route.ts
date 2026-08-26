@@ -550,6 +550,11 @@ export async function POST(req: NextRequest) {
         analysisMode: analysis.analysisMode,
         styleProblems: analysis.styleProblems,
         discardedFindings: analysis.discardedFindings,
+        // F-71: esta lista es CERRADA. 38d3fd22 añadió stageFailures a
+        // FinalAnalysis y al jsonb pero no aquí, así que el aviso de análisis
+        // incompleto solo aparecía por la bandeja —que relee el jsonb entero—
+        // y nunca tras una subida.
+        stageFailures: analysis.stageFailures,
       },
       documentSources,
       versionPromoted,

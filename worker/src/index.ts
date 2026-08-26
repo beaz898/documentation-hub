@@ -144,6 +144,10 @@ async function processJob(job: AnalysisJob): Promise<void> {
       earlyStop: analysis.earlyStop,
       documentSources,
       discardedFindings: analysis.discardedFindings,
+      // F-71: mismo hueco que en el endpoint — lista cerrada que 38d3fd22 no
+      // amplió con stageFailures, así que el aviso de análisis incompleto no
+      // salía tras un reanálisis desde el modal de mejora.
+      stageFailures: analysis.stageFailures,
     };
 
     const latencyMs = Date.now() - t0;
