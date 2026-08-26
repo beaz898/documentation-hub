@@ -1,3 +1,4 @@
+import { recordStageFailure } from './stage-failures';
 import { callLLMJson } from './llm-client';
 import { runInBatches } from '@/lib/run-in-batches';
 import { sanitizeJudgeContradictions, hashCitationPair } from './llm-boundary';
@@ -905,6 +906,7 @@ Responde con este JSON (sin bloques de código, sin texto adicional):
     );
   } catch (err) {
     console.warn(`[judge] Failed for "${candidate.documentName}":`, err);
+    recordStageFailure('judge', err);
     return {
       judgment: {
         documentId: candidate.documentId,
@@ -913,18 +915,23 @@ Responde con este JSON (sin bloques de código, sin texto adicional):
         overlapPercent: 0,
         verdict: 'sin_relacion',
         contradictions: [],
-        overlappingContent: [{ description: 'No se pudo emitir juicio (error del LLM)', evidence: '', evidenceInNewDoc: '' }],
+        // F-71: VACÍO. Hasta ahora aquí se emitía un overlap sintético con la
+        // descripción "No se pudo emitir juicio (error del LLM)", y synthesize
+        // lo convertía en una tarjeta de solapamiento — un FALLO DEL SISTEMA
+        // presentado al cliente como un HALLAZGO SOBRE SU DOCUMENTO, con su
+        // severidad y su documento asociado. Que el juez no pudiera responder
+        // es estado del análisis, y ahora viaja como tal en
+        // FinalAnalysis.stageFailures (ver recordStageFailure, arriba).
+        // El juicio se queda vacío: sin este documento no se sabe nada, y eso
+        // es exactamente lo que dice un juicio sin contradicciones ni overlaps.
+        overlappingContent: [],
         uniqueToNewDoc: [],
       },
-      // Un elemento de evidencia vacío por cada entrada de overlappingContent
-      // (aquí, la única: el marcador de error), para mantener el emparejamiento
-      // por índice — este "hallazgo" no tiene cita real que verificar, así que
-      // no hay nada que hashear: '????????' deja constancia visible de que es
-      // el marcador de fallo del LLM, no un hash real ni un emparejamiento roto.
-      evidence: {
-        contradictions: [],
-        overlaps: [{ hash: '????????', newChunk: null, existingChunk: null, newColumns: null, existingColumns: null }],
-      },
+      // La evidencia va emparejada por índice con overlappingContent, así que
+      // al vaciar aquella se vacía esta. Nadie la leía: `evidence.overlaps` no
+      // se consulta en ningún punto del pipeline (solo `evidence.contradictions`,
+      // en applyCascadeToCandidate).
+      evidence: { contradictions: [], overlaps: [] },
     };
   }
 }

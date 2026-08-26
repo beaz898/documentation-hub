@@ -119,6 +119,17 @@ export interface PipelineOptions {
 /** Nivel de confianza de una contradicción detectada. */
 export type DiscrepancyConfidence = 'alta' | 'posible';
 
+/** Etapas que cayeron a su fallback por fallo del LLM (F-71). Una entrada por
+ *  caída, no por etapa: si el juicio cae 3 veces, hay 3 entradas. */
+export interface StageFailure {
+  /** 'rerank' | 'judge' | 'synthesize' | 'verify-findings' | 'style-check' |
+   *  'extract-claims' | 'verify-claims-embeddings' | 'verify-claims' |
+   *  'verify-claims-pinecone' | 'double-check' */
+  stage: string;
+  /** El mensaje de error, recortado. */
+  detail?: string;
+}
+
 /** F-70: valor de una columna enfrentado entre los dos documentos.
  *  Lo calcula el código en el punto de la alineación, nunca el modelo. */
 export interface ComparedValue {
@@ -227,4 +238,13 @@ export interface FinalAnalysis {
    * Ausente si no se descartó nada.
    */
   discardedFindings?: DiscardedFindings;
+  /**
+   * F-71: etapas que cayeron a su fallback por fallo del LLM. Ausente o vacío
+   * = el análisis se completó con todas sus etapas. No vacío = el resultado
+   * está INCOMPLETO y no se puede leer como una foto del corpus: lo que no se
+   * encontró puede ser que no exista o que no se llegara a mirar.
+   * Cuando trae entradas: la recomendación es 'REVISAR', el resumen lo dice, y
+   * los créditos se devuelven íntegros.
+   */
+  stageFailures?: StageFailure[];
 }

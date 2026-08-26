@@ -53,6 +53,11 @@ export function useCrossDocAnalysis(
   const [crossDocProblems, setCrossDocProblems] = useState<Problem[]>(
     () => problemsFromAnalysis(initialAnalysis)
   );
+  // F-71: el aviso de análisis incompleto. Arranca con lo que traiga el
+  // análisis inicial y se reemplaza en cada reanálisis, igual que los problemas.
+  const [stageFailureCount, setStageFailureCount] = useState<number>(
+    () => initialAnalysis.stageFailures?.length ?? 0
+  );
   const [reanalyzingAll, setReanalyzingAll] = useState(false);
   const [lastError, setLastError] = useState<string | null>(null);
   const [reanalyzePhase, setReanalyzePhase] = useState<string | null>(null);
@@ -146,6 +151,7 @@ export function useCrossDocAnalysis(
         const activeCount = withDismissed.filter(p => !p.dismissed).length;
         const dismissedCount = withDismissed.filter(p => p.dismissed).length;
 
+        setStageFailureCount(analysis.stageFailures?.length ?? 0);
         setCrossDocProblems(withDismissed);
 
         return { activeCount, dismissedCount, totalCount: withDismissed.length };
@@ -191,7 +197,7 @@ export function useCrossDocAnalysis(
     return isDismissing;
   }, []);
 
-  return { crossDocProblems, setCrossDocProblems, reanalyzeAll, reanalyzingAll, reanalyzePhase, lastError, dismissProblem };
+  return { crossDocProblems, setCrossDocProblems, reanalyzeAll, reanalyzingAll, reanalyzePhase, lastError, dismissProblem, stageFailureCount };
 }
 
 // ============================================================
@@ -200,7 +206,7 @@ export function useCrossDocAnalysis(
 
 interface JobStatus {
   id: string;
-  status: 'pending' | 'processing' | 'completed' | 'failed';
+  status: 'pending' | 'processing' | 'completed' | 'completed_with_errors' | 'failed';
   result: Record<string, unknown> | null;
   errorMessage: string | null;
 }
@@ -228,7 +234,8 @@ async function pollJobUntilDone(
 
       const job: JobStatus = await res.json();
 
-      if (job.status === 'completed') return job;
+      // F-71: incompleto también termina el polling; el aviso va en el result.
+      if (job.status === 'completed' || job.status === 'completed_with_errors') return job;
       if (job.status === 'failed') {
         throw new Error(job.errorMessage || 'El reanálisis falló.');
       }

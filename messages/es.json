@@ -180,6 +180,8 @@
     "improvementAssistant": "Asistente de mejora",
     "instructionPlaceholder": "Escribe una instrucción...",
     "goToFragment": "Ir al fragmento en el texto",
+    "incompleteTitle": "Análisis incompleto",
+    "incompleteBody": "{count, plural, one {Una etapa del análisis falló} other {# etapas del análisis fallaron}} y el documento no se pudo comprobar entero. Lo que no aparece aquí puede ser que no exista o que no se llegara a mirar. Este análisis no costó créditos: puedes volver a lanzarlo.",
     "detailThisDoc": "En este documento",
     "detailOtherDoc": "En el otro documento",
     "detailEmptyValue": "sin dato",

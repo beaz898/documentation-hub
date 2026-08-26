@@ -132,11 +132,21 @@ async function processJob(job: AnalysisJob): Promise<void> {
 
     const latencyMs = Date.now() - t0;
 
+    // F-71: si alguna etapa cayó a su fallback, el job NO queda 'completed'.
+    // 'failed' tampoco sirve: el job SÍ produjo un resultado utilizable y con
+    // 'failed' el endpoint de polling devolvería result:null y el frontend lo
+    // trataría como error, tirando el análisis parcial. Estado propio.
+    const stageFailures = analysis.stageFailures ?? [];
+    const incomplete = stageFailures.length > 0;
+
     await supabase
       .from('analysis_jobs')
       .update({
-        status: 'completed',
+        status: incomplete ? 'completed_with_errors' : 'completed',
         result,
+        ...(incomplete
+          ? { error_message: `Análisis incompleto: ${stageFailures.length} etapa(s) fallaron (${[...new Set(stageFailures.map(f => f.stage))].join(', ')})` }
+          : {}),
         completed_at: new Date().toISOString(),
       })
       .eq('id', job.id);
@@ -159,7 +169,18 @@ async function processJob(job: AnalysisJob): Promise<void> {
     const isReanalysis = job.exclude_fingerprints !== '[]';
     const confirmedCount = analysis.discrepancies?.length ?? 0;
 
-    if (isReanalysis && confirmedCount < 2) {
+    if (incomplete) {
+      // F-71: análisis incompleto → devolución ÍNTEGRA de lo consumido, y ni
+      // reembolso de reanálisis ni precio variable: los dos son descuentos
+      // sobre un análisis que sí se hizo, y aquí no se hizo entero. Un fallo
+      // del proveedor no lo paga el cliente.
+      const refundResult = await refundCredits(supabase, job.org_id, job.credits_consumed);
+      if (refundResult.success) {
+        console.warn(`[worker] Job ${job.id}: INCOMPLETO (${stageFailures.length} caídas) — devueltos ${job.credits_consumed} créditos íntegros (credits_extra ahora: ${refundResult.creditsExtra})`);
+      } else {
+        console.error(`[worker] Job ${job.id}: INCOMPLETO — FALLO al devolver ${job.credits_consumed} créditos a la org ${job.org_id}`);
+      }
+    } else if (isReanalysis && confirmedCount < 2) {
       // Reanálisis con pocos errores → reembolso fijo para todos los planes
       const refundResult = await refundCredits(supabase, job.org_id, 20);
       if (refundResult.success) {

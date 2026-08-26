@@ -6,6 +6,7 @@ import VoiceInput from '@/components/VoiceInput';
 import ReanalyzeButtons from './ReanalyzeButtons';
 import FilterMenu from './FilterMenu';
 import ProblemDetail from './ProblemDetail';
+import IncompleteAnalysisNotice from '@/components/IncompleteAnalysisNotice';
 import type { ProblemType, Problem } from './problems';
 import type { ChatMessage } from './useImprovementChat';
 import { applyReplacement } from './useImprovementChat';
@@ -41,6 +42,8 @@ interface ChatPanelProps {
   onSolveOne: (p: Problem) => void;
   onSolveGroup: (type: ProblemType, problems: Problem[]) => void;
   onDismissProblem: (p: Problem) => void;
+  /** F-71: número de etapas que cayeron a su fallback. >0 pinta el aviso. */
+  stageFailureCount?: number;
 }
 
 export default function ChatPanel({
@@ -50,6 +53,7 @@ export default function ChatPanel({
   problems, visibleProblems, allTypes, activeTypes, typeMeta,
   onToggleType, onSelectAllTypes, onClearTypes,
   getDocSourceBadge, onGoToProblem, onSolveOne, onSolveGroup, onDismissProblem,
+  stageFailureCount = 0,
 }: ChatPanelProps) {
   const t = useTranslations('analysis');
 
@@ -175,6 +179,16 @@ export default function ChatPanel({
           totalCount={problems.length}
         />
       </div>
+
+      {/* F-71: FUERA del bloque de problemas, y a propósito. Ese bloque solo se
+          pinta si visibleProblems.length > 0, y el caso peor —todas las etapas
+          caídas— produce CERO problemas: el aviso habría desaparecido justo
+          cuando más falta hace. */}
+      {stageFailureCount > 0 && (
+        <div style={{ padding: '10px 16px 0', flexShrink: 0 }}>
+          <IncompleteAnalysisNotice count={stageFailureCount} />
+        </div>
+      )}
 
       {visibleProblems.length > 0 && (
         <div style={{

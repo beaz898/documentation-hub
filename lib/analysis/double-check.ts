@@ -1,3 +1,4 @@
+import { recordStageFailure } from './stage-failures';
 import { callLLMJson } from './llm-client';
 import type { DiscrepancyConfidence, ConfirmedBy, ComparedValue } from './types';
 
@@ -263,6 +264,7 @@ Responde EXCLUSIVAMENTE con este JSON:
     });
   } catch (err) {
     console.warn(`[double-check] Sonnet falló para lote de ${batch.length} contradicciones:`, err);
+    recordStageFailure('double-check', err);
     return batch.map(d => ({
       topic: d.topic,
       newDocSays: d.newDocSays,

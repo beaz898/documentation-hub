@@ -1,3 +1,4 @@
+import { recordStageFailure } from './stage-failures';
 import { callLLMJson } from './llm-client';
 import { runInBatches } from '@/lib/run-in-batches';
 import type { StoredChunk } from '@/lib/read-chunks';
@@ -251,6 +252,7 @@ async function verifyBatch(batch: FindingToVerify[]): Promise<BatchOutcome[]> {
     return batch.map((finding, i) => toOutcome(finding, byIndex.get(i + 1)));
   } catch (err) {
     console.warn(`[verify-findings] Falló lote de ${batch.length} hallazgos:`, err);
+    recordStageFailure('verify-findings', err);
     return batch.map(finding => toOutcome(finding, undefined));
   }
 }

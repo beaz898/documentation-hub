@@ -58,6 +58,9 @@ export interface RawAnalysis {
   recommendation?: string;
   suggestedActions?: Array<{ action: string; target: string; reason: string }>;
   summary?: string;
+  /** F-71: etapas que cayeron a su fallback por fallo del LLM. No vacío = el
+   *  resultado está incompleto y la lista de problemas no es exhaustiva. */
+  stageFailures?: Array<{ stage: string; detail?: string }>;
 }
 
 function normalizeWhitespace(s: string): string {

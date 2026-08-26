@@ -1,3 +1,4 @@
+import { recordStageFailure } from './stage-failures';
 import { callLLMJson } from './llm-client';
 
 /**
@@ -128,6 +129,7 @@ Si no hay afirmaciones factuales concretas, devuelve {"claims": []}.`;
       }));
   } catch (err) {
     console.warn(`[extract-claims] Falló extracción del segmento ${segmentNumber}:`, err);
+    recordStageFailure('extract-claims', err);
     return [];
   }
 }

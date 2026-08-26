@@ -180,6 +180,8 @@
     "improvementAssistant": "Improvement Assistant",
     "instructionPlaceholder": "Write an instruction...",
     "goToFragment": "Go to fragment in text",
+    "incompleteTitle": "Incomplete analysis",
+    "incompleteBody": "{count, plural, one {One analysis stage failed} other {# analysis stages failed}} and the document was not checked in full. What is missing here may not exist, or may simply not have been looked at. This analysis cost no credits: you can run it again.",
     "detailThisDoc": "In this document",
     "detailOtherDoc": "In the other document",
     "detailEmptyValue": "no value",

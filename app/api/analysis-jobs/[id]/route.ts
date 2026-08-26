@@ -56,8 +56,12 @@ export async function GET(
       id: job.id,
       status: job.status,
       documentName: job.document_name,
-      result: job.status === 'completed' ? job.result : null,
-      errorMessage: job.status === 'failed' ? job.error_message : null,
+      // F-71: 'completed_with_errors' TAMBIÉN devuelve result — el análisis se
+      // hizo y es utilizable, solo que incompleto. Tratarlo como 'failed' aquí
+      // tiraría un resultado parcial que el cliente ya tiene pagado (y
+      // reembolsado). El aviso viaja dentro, en result.stageFailures.
+      result: job.status === 'completed' || job.status === 'completed_with_errors' ? job.result : null,
+      errorMessage: job.status === 'failed' || job.status === 'completed_with_errors' ? job.error_message : null,
       createdAt: job.created_at,
       startedAt: job.started_at,
       completedAt: job.completed_at,

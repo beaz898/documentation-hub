@@ -1,3 +1,4 @@
+import { recordStageFailure } from './stage-failures';
 import { queryVectors, buildCorpusFilter } from '@/lib/pinecone/vectors';
 import { generateEmbeddings } from '@/lib/embeddings';
 import { callLLMJson } from './llm-client';
@@ -86,6 +87,7 @@ export async function verifyClaimsAgainstCorpus(
     embeddings = await generateEmbeddings(claimTexts);
   } catch (err) {
     console.warn('[verify-claims] Falló el batch de embeddings:', err);
+    recordStageFailure('verify-claims-embeddings', err);
     return [];
   }
 
@@ -204,6 +206,7 @@ Responde EXCLUSIVAMENTE con este JSON:
     };
   } catch (err) {
     console.warn(`[verify-claims] Falló verificación de "${claim.claim.slice(0, 50)}...":`, err);
+    recordStageFailure('verify-claims', err);
     return { ...claim, verdict: 'sin_datos' };
   }
 }
@@ -257,6 +260,7 @@ async function findCorpusFragmentsByEmbedding(
     }).slice(0, MAX_CORPUS_FRAGMENTS);
   } catch (err) {
     console.warn(`[verify-claims] Pinecone query failed for "${claimText.slice(0, 40)}...":`, err);
+    recordStageFailure('verify-claims-pinecone', err);
     return [];
   }
 }

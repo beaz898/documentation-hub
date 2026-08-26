@@ -1,3 +1,4 @@
+import { recordStageFailure } from './stage-failures';
 import { callLLMJson } from './llm-client';
 import type { CandidateDocument, RerankedCandidate, PipelineOptions } from './types';
 
@@ -104,6 +105,7 @@ ${candidates.map((c, i) => `[${i + 1}] → ${c.documentId}`).join('\n')}`;
     return selected.slice(0, maxSelected);
   } catch (err) {
     console.warn('[rerank] LLM failed, falling back to top candidates by embedding score:', err);
+    recordStageFailure('rerank', err);
     // Fallback: en exhaustivo top 5, en rápido top 3
     const fallbackCount = isExhaustive ? 5 : 3;
     const fallbackCandidates = candidates.slice(0, fallbackCount);

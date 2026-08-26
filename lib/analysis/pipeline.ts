@@ -1,10 +1,11 @@
 import type { FinalAnalysis, PipelineOptions, DiscardedFindings, ComparedValue } from './types';
+import { stageFailureContext } from './stage-failures';
 import { retrieveCandidates } from './retrieval';
 import type { StructuralOverlap } from './retrieval';
 import { rerankCandidates } from './rerank';
 import { judgeAllDocuments } from './judge';
 import type { JudgmentEvidence } from './judge';
-import { synthesizeFinalAnalysis } from './synthesize';
+import { synthesizeFinalAnalysis, markIncompleteAnalysis } from './synthesize';
 import { checkContentHash } from './hash-check';
 import { extractAtomicClaims } from './extract-claims';
 import { verifyClaimsAgainstCorpus } from './verify-claims';
@@ -604,8 +605,14 @@ export async function runAnalysisPipeline(input: AnalyzePipelineInput): Promise<
 
   console.log(`[pipeline-v2] Hash check: sin duplicado exacto (${Date.now() - t0}ms)`);
 
-  const result = await runCorePipeline(input, { exhaustive: false }, 'pipeline-v2');
-  return { ...result, analysisMode: 'quick' };
+  // F-71: el contexto de caídas se abre AQUÍ, no en el llamador, para que cada
+  // análisis tenga el suyo sin que route.ts ni el worker tengan que saber que
+  // existe. AsyncLocalStorage lo aísla por árbol de llamadas: dos análisis
+  // simultáneos no comparten array.
+  return stageFailureContext.run([], async () => {
+    const result = await runCorePipeline(input, { exhaustive: false }, 'pipeline-v2');
+    return { ...result, analysisMode: 'quick' };
+  });
 }
 
 // ============================================================
@@ -613,6 +620,13 @@ export async function runAnalysisPipeline(input: AnalyzePipelineInput): Promise<
 // ============================================================
 
 export async function runExhaustiveAnalysisPipeline(input: ExhaustivePipelineInput): Promise<FinalAnalysis> {
+  // F-71: mismo motivo que en el rápido — un contexto de caídas por análisis,
+  // abierto aquí para que el worker no tenga que conocerlo. El cuerpo va en una
+  // función aparte solo para no indentar noventa líneas.
+  return stageFailureContext.run([], () => runExhaustivePipelineInner(input));
+}
+
+async function runExhaustivePipelineInner(input: ExhaustivePipelineInput): Promise<FinalAnalysis> {
   const t0 = Date.now();
   console.log(`[pipeline-exhaustive] Iniciando análisis exhaustivo de "${input.newDocumentName}" con ${input.sampleTexts.length} fragmentos`);
 
@@ -689,7 +703,11 @@ export async function runExhaustiveAnalysisPipeline(input: ExhaustivePipelineInp
 
   console.log(`[pipeline-exhaustive] estimatedCost: ${estimatedCost} (${n} contradicciones, candidatesOverLimit=${candidatesOverLimit ?? 'no'})`);
 
-  return {
+  // F-71: SEGUNDA aplicación, y hace falta. synthesize ya marcó lo que había
+  // caído hasta él, pero el estilo, la rama atómica y el double-check corren
+  // DESPUÉS: sus caídas no existían cuando synthesize miró. markIncompleteAnalysis
+  // recalcula desde la lista completa, así que llamarla dos veces no acumula.
+  return markIncompleteAnalysis({
     ...pipelineResult,
     discrepancies: confirmedContradictions,
     ...(minorInconsistencies.length > 0 && { minorInconsistencies }),
@@ -698,7 +716,7 @@ export async function runExhaustiveAnalysisPipeline(input: ExhaustivePipelineInp
     styleProblems,
     estimatedCost,
     ...(candidatesOverLimit !== undefined && { candidatesOverLimit }),
-  };
+  }, stageFailureContext.getStore() ?? []);
 }
 
 // ============================================================

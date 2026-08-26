@@ -7,7 +7,7 @@ import { runAnalysisPipeline } from '@/lib/analysis/pipeline';
 import { logUsage } from '@/lib/usage-logger';
 import { checkRateLimit } from '@/lib/rate-limiter';
 import { resolveOrg } from '@/lib/org';
-import { consumeCredits, getCreditCost } from '@/lib/credits';
+import { consumeCredits, getCreditCost, refundCredits } from '@/lib/credits';
 import { checkUploadLock } from '@/lib/upload-lock';
 import { saveAnalysisResult } from '@/lib/persist-analysis';
 import { usageContext } from '@/lib/observability/usage-context';
@@ -380,6 +380,22 @@ export async function POST(req: NextRequest) {
       operation:      'analyze_quick',
       creditsCharged: creditsConsumed,
     });
+
+    // F-71: si alguna etapa cayó a su fallback, el análisis está incompleto y
+    // NO se cobra. Íntegro, sin proporción al número de etapas caídas: un fallo
+    // del proveedor no lo paga el cliente, y un reembolso parcial sería
+    // imposible de explicar en una factura.
+    // Va aquí, después del pipeline y antes de responder, para que el cliente
+    // reciba el aviso y el saldo ya devuelto en la misma respuesta.
+    if (analysis.stageFailures && analysis.stageFailures.length > 0 && creditsConsumed > 0) {
+      const stages = analysis.stageFailures.map(f => f.stage).join(', ');
+      const refund = await refundCredits(supabase, orgId, creditsConsumed);
+      if (refund.success) {
+        console.warn(`[analyze-v2] Análisis INCOMPLETO (${analysis.stageFailures.length} caídas: ${stages}) — devueltos ${creditsConsumed} créditos (credits_extra ahora: ${refund.creditsExtra})`);
+      } else {
+        console.error(`[analyze-v2] Análisis INCOMPLETO (${stages}) — FALLO al devolver ${creditsConsumed} créditos a la org ${orgId}`);
+      }
+    }
 
     // Construir documentSources para compatibilidad con frontend
     const documentSources: Record<string, 'manual' | 'google_drive'> = {};

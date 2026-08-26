@@ -177,6 +177,7 @@ function ImprovementModalDesktop({
     reanalyzeAll,
     reanalyzingAll,
     reanalyzePhase,
+    stageFailureCount,
     dismissProblem,
   } = useCrossDocAnalysis(analysis);
 
@@ -525,6 +526,7 @@ function ImprovementModalDesktop({
           {/* CHAT PANEL */}
           <div className="order-1 md:order-2 flex flex-col flex-1 min-h-0 overflow-hidden">
           <ChatPanel
+            stageFailureCount={stageFailureCount}
             messages={chatMessages}
             sending={chatSending}
             sendMessage={handleManualSend}

@@ -5,7 +5,7 @@ import { useCallback, useRef } from 'react';
 /** Resultado devuelto por el endpoint /api/analysis-jobs/[id] */
 interface JobStatus {
   id: string;
-  status: 'pending' | 'processing' | 'completed' | 'failed';
+  status: 'pending' | 'processing' | 'completed' | 'completed_with_errors' | 'failed';
   documentName: string;
   result: Record<string, unknown> | null;
   errorMessage: string | null;
@@ -55,7 +55,8 @@ export function useJobPolling() {
 
         const job: JobStatus = await res.json();
 
-        if (job.status === 'completed') {
+        // F-71: incompleto cuenta como terminado — trae resultado utilizable.
+        if (job.status === 'completed' || job.status === 'completed_with_errors') {
           return job;
         }
 

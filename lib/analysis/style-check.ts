@@ -1,3 +1,4 @@
+import { recordStageFailure } from './stage-failures';
 import { callLLMJson } from './llm-client';
 
 /**
@@ -104,6 +105,7 @@ Devuelve el JSON con los problemas internos detectados.`;
     return problems;
   } catch (err) {
     console.warn('[style-check] LLM/parse failed:', err instanceof Error ? err.message : err);
+    recordStageFailure('style-check', err);
     return [];
   }
 }

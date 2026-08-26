@@ -1,5 +1,48 @@
+import { recordStageFailure, stageFailureContext } from './stage-failures';
 import { callLLMJson } from './llm-client';
-import type { DocumentJudgment, FinalAnalysis, DiscardedFindings } from './types';
+import type { DocumentJudgment, FinalAnalysis, DiscardedFindings, StageFailure } from './types';
+
+/**
+ * F-71: marca un análisis como INCOMPLETO cuando alguna etapa cayó a su
+ * fallback. Devuelve el mismo objeto si no hubo caídas.
+ *
+ * RECOMENDACIÓN → 'REVISAR', y no hizo falta un valor nuevo: el CHECK de
+ * analysis_results.recommendation admite INDEXAR / REVISAR / NO_INDEXAR, y
+ * 'REVISAR' significa exactamente lo que aquí ocurre — que hace falta una
+ * persona antes de dar el documento por bueno. 'INDEXAR' está vetado por
+ * definición: solo se emite por AUSENCIA de hallazgos, y esa ausencia no está
+ * medida cuando una etapa no llegó a ejecutarse. 'NO_INDEXAR' afirmaría un
+ * duplicado que tampoco se ha comprobado.
+ *
+ * Se exporta porque hay que aplicarla DOS veces en el modo exhaustivo: aquí,
+ * al sintetizar, y otra vez al final del pipeline exhaustivo — el
+ * double-check y la rama atómica corren DESPUÉS de synthesize, así que sus
+ * caídas no existen todavía cuando esta función se llama la primera vez. Es
+ * idempotente: recalcula desde la lista completa, no acumula.
+ */
+export function markIncompleteAnalysis(
+  final: FinalAnalysis,
+  failures: StageFailure[],
+): FinalAnalysis {
+  if (failures.length === 0) return final;
+
+  const stages = [...new Set(failures.map(f => f.stage))].join(', ');
+  const plural = failures.length === 1 ? 'etapa' : 'etapas';
+
+  return {
+    ...final,
+    recommendation: 'REVISAR',
+    // En PASADO: este resumen se persiste en el jsonb y la bandeja lo relee
+    // días después. "No se han descontado créditos" se leería como si el
+    // reembolso estuviera ocurriendo ahora.
+    summary:
+      `El análisis NO llegó a completarse: ${failures.length} ${plural} del proceso fallaron ` +
+      `(${stages}). Lo que no aparece aquí puede ser que no exista o que no se llegara a ` +
+      `comprobar, así que este resultado no debe leerse como una revisión completa. ` +
+      `No costó créditos: se devolvieron íntegros.`,
+    stageFailures: failures,
+  };
+}
 
 /**
  * Etapa 4 — Síntesis final.
@@ -31,7 +74,9 @@ export async function synthesizeFinalAnalysis(args: {
 
   // Caso sin candidatos: todo limpio
   if (judgments.length === 0) {
-    return {
+    // F-71: también aquí. "No se encontraron documentos solapados" es una
+    // afirmación sobre el corpus, y si una etapa cayó no está comprobada.
+    return markIncompleteAnalysis({
       isDuplicate: false,
       duplicateOf: null,
       duplicateConfidence: 0,
@@ -41,7 +86,7 @@ export async function synthesizeFinalAnalysis(args: {
       recommendation: 'INDEXAR',
       summary: `No se encontraron documentos con contenido solapado. "${newDocumentName}" puede indexarse sin conflicto.`,
       judgments: [],
-    };
+    }, stageFailureContext.getStore() ?? []);
   }
 
   // Detectar duplicado exacto
@@ -80,6 +125,7 @@ Responde EXCLUSIVAMENTE con este JSON:
     synthesis = await callLLMJson<SynthesisResponse>(prompt, { maxOutputTokens: 1024, temperature: 0.2 });
   } catch (err) {
     console.warn('[synthesize] LLM failed, using deterministic fallback:', err);
+    recordStageFailure('synthesize', err);
     const totalOverlaps = judgments.filter(j => j.overlapPercent >= 15).length;
     const totalContradictions = judgments.reduce((sum, j) => sum + j.contradictions.length, 0);
     const hasSignificantOverlap = judgments.some(j => j.overlapPercent >= 30);
@@ -195,7 +241,7 @@ Responde EXCLUSIVAMENTE con este JSON:
       (discardedFindings.solapamientoSinDescripcion ?? 0) + solapamientoSinDescripcion;
   }
 
-  return {
+  return markIncompleteAnalysis({
     isDuplicate,
     duplicateOf: isDuplicate ? topJudgment.documentName : null,
     duplicateConfidence: isDuplicate ? topJudgment.overlapPercent : 0,
@@ -206,5 +252,5 @@ Responde EXCLUSIVAMENTE con este JSON:
     summary: synthesis.summary,
     judgments,
     ...(Object.keys(discardedFindings).length > 0 ? { discardedFindings } : {}),
-  };
+  }, stageFailureContext.getStore() ?? []);
 }

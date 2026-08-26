@@ -4,6 +4,7 @@ import { useState, ReactNode } from 'react';
 import { useTranslations } from 'next-intl';
 import UploadActions from './AnalysisModal/UploadActions';
 import ReviewActions from './AnalysisModal/ReviewActions';
+import IncompleteAnalysisNotice from './IncompleteAnalysisNotice';
 
 interface AnalysisResult {
   isDuplicate?: boolean;
@@ -36,6 +37,9 @@ interface AnalysisResult {
     textRef: string;
   }>;
   earlyStop?: 'high_overlap' | 'too_many_contradictions';
+  /** F-71: etapas que cayeron a su fallback. No vacío = el resultado no es
+   *  una foto completa del corpus. */
+  stageFailures?: Array<{ stage: string; detail?: string }>;
 }
 
 interface AnalysisModalProps {
@@ -194,6 +198,10 @@ export default function AnalysisModal({ fileName, analysis, onConfirm, onCancel,
             </svg>
           </button>
         </div>
+
+        {/* F-71: el aviso va ANTES del resumen — si el análisis está incompleto,
+            el resumen que sigue habla de algo que no se llegó a comprobar. */}
+        <IncompleteAnalysisNotice count={analysis.stageFailures?.length ?? 0} />
 
         {/* General summary */}
         {analysis.summary && (
