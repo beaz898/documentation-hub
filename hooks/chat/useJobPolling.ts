@@ -14,6 +14,30 @@ interface JobStatus {
   completedAt: string | null;
 }
 
+/**
+ * Frase de progreso para una espera de job, por tramos de tiempo (F-71 paso 2).
+ *
+ * Extraída de useCrossDocAnalysis, que la tenía en línea: la bandeja necesita
+ * exactamente la misma —es el mismo pipeline el que corre detrás— y duplicarla
+ * habría dejado dos listas de frases que se irían separando. Función pura, sin
+ * estado ni React: el llamador decide dónde la pinta.
+ *
+ * 'pending' NO es "analizando": el job está encolado y el worker aún no lo ha
+ * tocado, cosa que pasa cuando otro análisis de la misma organización está en
+ * curso. Decir "analizando" ahí sería mentir.
+ */
+export function describeJobPhase(
+  status: 'pending' | 'processing' | 'completed' | 'completed_with_errors' | 'failed',
+  elapsedMs: number,
+): string {
+  if (status === 'pending') return 'En cola: hay otro análisis en curso. Empezará en cuanto termine.';
+  const seconds = Math.floor(elapsedMs / 1000);
+  if (seconds < 15) return 'Analizando fragmentos...';
+  if (seconds < 40) return 'Comparando contra el corpus...';
+  if (seconds < 70) return 'Verificando contradicciones...';
+  return 'Generando informe...';
+}
+
 /** Intervalo de polling en ms. */
 const POLL_INTERVAL = 5000;
 

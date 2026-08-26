@@ -23,6 +23,7 @@ export default function ReviewPage() {
     selectedIds,
     selectedCount,
     estimatedCost,
+    exhaustiveCost,
     limitReached,
     totalPending,
     maxSelection,
@@ -33,6 +34,11 @@ export default function ReviewPage() {
   } = useReviewList();
 
   const creditsRemaining = credits?.remaining ?? null;
+  // F-71 paso 2: espejo del veto del endpoint (analyze-v2/route.ts:141,
+  // 'plan === free'). No hay feature hasExhaustive en PLAN_FEATURES; mientras
+  // no la haya, comparar el plan es lo unico que evita ofrecer el boton a
+  // quien recibiria un 403. null mientras el resumen de cuenta carga.
+  const planAllowsExhaustive = credits ? credits.plan !== 'free' : null;
 
   const { analyze, analyzing, progress, summary, clearSummary } = useReviewAnalysis();
 
@@ -235,16 +241,19 @@ export default function ReviewPage() {
     }
   };
 
-  const handleAnalyze = async () => {
+  const runAnalysis = async (exhaustive: boolean) => {
     // Documentos seleccionados, en el orden de la lista.
     const selectedDocs = groups
       .flatMap((g) => g.documents)
       .filter((d) => selectedIds.has(d.id));
     if (selectedDocs.length === 0) return;
     clearSummary();
-    await analyze(selectedDocs);
+    await analyze(selectedDocs, { exhaustive });
     await refetch();
   };
+
+  const handleAnalyze = () => runAnalysis(false);
+  const handleAnalyzeExhaustive = () => runAnalysis(true);
 
   return (
     <div style={{ height: vvHeight != null ? `${vvHeight}px` : '100dvh', overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
@@ -341,6 +350,9 @@ export default function ReviewPage() {
                 {summary.analyzed} analizado{summary.analyzed === 1 ? '' : 's'}
                 {summary.failed > 0 && `, ${summary.failed} con error`}
                 {summary.blocked > 0 && `, ${summary.blocked} sin analizar (hay un análisis en curso)`}
+                {/* F-71 paso 2: incompleto NO es error — el análisis existe y sus
+                    créditos se devolvieron. Se dice aparte, como blocked. */}
+                {summary.incomplete > 0 && `, ${summary.incomplete} incompleto${summary.incomplete === 1 ? '' : 's'} (fallaron etapas; no se cobraron)`}
                 {summary.blocked > 0 && (
                   <div style={{ marginTop: 4 }}>
                     {summary.errors.find((e) => e.blocked)?.message}
@@ -406,11 +418,14 @@ export default function ReviewPage() {
             <ReviewSelectionBar
               selectedCount={selectedCount}
               estimatedCost={estimatedCost}
+              exhaustiveCost={exhaustiveCost}
               creditsRemaining={creditsRemaining}
+              planAllowsExhaustive={planAllowsExhaustive}
               maxSelection={maxSelection}
               analyzing={analyzing}
               progress={progress}
               onAnalyze={handleAnalyze}
+              onAnalyzeExhaustive={handleAnalyzeExhaustive}
             />
           </>
         )}

@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useRef } from 'react';
 import { problemsFromAnalysis, type Problem, type RawAnalysis } from './problems';
+import { describeJobPhase } from '@/hooks/chat/useJobPolling';
 
 /**
  * Genera huella para una discrepancia/duplicidad descartada.
@@ -104,20 +105,11 @@ export function useCrossDocAnalysis(
           // ── Reanálisis asíncrono: polling hasta que termine ──────
           setReanalyzePhase('Reanálisis en curso...');
 
+          // F-71 paso 2: las frases por tramos salen ahora de describeJobPhase
+          // (hooks/chat/useJobPolling.ts). Mismo texto, un solo sitio — la
+          // bandeja necesita las mismas y dos copias se habrían separado.
           const job = await pollJobUntilDone(crossData.jobId, (status, elapsed) => {
-            // 'pending' = encolado, el worker aun no lo ha tocado. Puede pasar cuando
-            // otro analisis de la misma organizacion esta en curso (veto por org).
-            // No mentir diciendo que se esta analizando.
-            if (status === 'pending') {
-              setReanalyzePhase('En cola: hay otro análisis en curso. Empezará en cuanto termine.');
-              return;
-            }
-
-            const seconds = Math.floor(elapsed / 1000);
-            if (seconds < 15) setReanalyzePhase('Analizando fragmentos...');
-            else if (seconds < 40) setReanalyzePhase('Comparando contra el corpus...');
-            else if (seconds < 70) setReanalyzePhase('Verificando contradicciones...');
-            else setReanalyzePhase('Generando informe...');
+            setReanalyzePhase(describeJobPhase(status, elapsed));
           });
 
           const result = job.result as Record<string, unknown> | null;

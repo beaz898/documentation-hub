@@ -158,6 +158,9 @@ export function useReviewList() {
 
   const selectedCount = selectedIds.size;
   const estimatedCost = selectedCount * getCreditCost(ANALYSIS_ENDPOINT, false);
+  // F-71 paso 2: getCreditCost ya sabe el coste exhaustivo (30); solo habia
+  // que pedirselo con isExhaustive=true en vez de hardcodear un numero.
+  const exhaustiveCost = selectedCount * getCreditCost(ANALYSIS_ENDPOINT, true);
   const totalPending = documents.length;
 
   return {
@@ -167,6 +170,7 @@ export function useReviewList() {
     selectedIds,
     selectedCount,
     estimatedCost,
+    exhaustiveCost,
     limitReached,
     totalPending,
     maxSelection: MAX_SELECTION,

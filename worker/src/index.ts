@@ -59,6 +59,10 @@ interface AnalysisJob {
   exclude_document_id: string | null;
   document_id: string | null;
   exclude_fingerprints: string;
+  /** F-71 paso 2: jsonb con los ids de los otros documentos de la tanda.
+   *  `string | null` porque un job encolado ANTES de la migración no tiene
+   *  la columna en su fila y Supabase la devuelve null. */
+  batch_document_ids: string | null;
   credits_consumed: number;
   new_document_chunks: string | null;
 }
@@ -84,12 +88,24 @@ async function processJob(job: AnalysisJob): Promise<void> {
       ? JSON.parse(job.new_document_chunks) ?? undefined
       : undefined;
 
+    // F-71 paso 2: los ids de la tanda. `ExhaustivePipelineInput` ya declaraba
+    // el campo desde que existe —lo hereda del input base—, pero llegaba
+    // siempre undefined porque nadie lo leía. Lista vacía → undefined, para que
+    // buildCorpusFilter reciba lo mismo que recibía antes (CORPUS_ACTIVO sin
+    // ampliar) y un job sin tanda no cambie de conducta.
+    const batchIdsArray: string[] = job.batch_document_ids
+      ? JSON.parse(job.batch_document_ids)
+      : [];
+    const batchDocumentIds = batchIdsArray.length > 0 ? batchIdsArray : undefined;
+    console.log(`[worker] Job ${job.id}: ${batchIdsArray.length} ids de tanda (exhaustivo)`);
+
     const input: ExhaustivePipelineInput = {
       newDocumentText: job.document_text,
       newDocumentName: job.document_name,
       sampleTexts,
       orgId: job.org_id,
       excludeDocumentId: job.exclude_document_id || undefined,
+      batchDocumentIds,
       supabase,
       excludeFingerprints,
       newDocumentChunks,
@@ -285,7 +301,7 @@ async function pollAndProcess(): Promise<void> {
     // descartaran por tener su organizacion ocupada.
     const { data: candidates, error } = await supabase
       .from('analysis_jobs')
-      .select('id, org_id, user_id, document_name, document_text, sample_texts, exclude_document_id, document_id, exclude_fingerprints, credits_consumed, new_document_chunks')
+      .select('id, org_id, user_id, document_name, document_text, sample_texts, exclude_document_id, document_id, exclude_fingerprints, batch_document_ids, credits_consumed, new_document_chunks')
       .eq('status', 'pending')
       .order('created_at', { ascending: true })
       .limit(slotsAvailable * 4);

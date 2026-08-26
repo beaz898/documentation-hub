@@ -315,6 +315,14 @@ export async function POST(req: NextRequest) {
           exclude_document_id: excludeDocumentId ?? null,
           document_id: documentId ?? null,
           exclude_fingerprints: JSON.stringify(Array.from(excludeFingerprints)),
+          // F-71 paso 2: la tanda viaja también al exhaustivo. Hasta aquí solo
+          // la usaba el rápido (más abajo, en runAnalysisPipeline), así que los
+          // dos modos veían conjuntos distintos de documentos. Misma semántica
+          // que en el rápido: AMPLÍA el corpus consultado con estos ids aunque
+          // estén en 'pendiente'; no lo restringe. `?? []` para que un job sin
+          // tanda escriba lista vacía, que es lo que buildCorpusFilter trata
+          // como "sin cambio de filtro".
+          batch_document_ids: JSON.stringify(batchDocumentIds ?? []),
           credits_consumed: creditsConsumed,
           new_document_chunks: JSON.stringify(storedChunks ?? newDocChunks ?? null),
         })
