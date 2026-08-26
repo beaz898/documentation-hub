@@ -652,6 +652,11 @@ async function runExhaustivePipelineInner(input: ExhaustivePipelineInput): Promi
   const atomicClaims = await extractAtomicClaims(input.newDocumentText, input.newDocumentName);
   const atomicContradictions = await verifyClaimsAgainstCorpus(atomicClaims, input.orgId, input.excludeDocumentId, input.batchDocumentIds);
 
+  // F-71 paso 1: recuento de todo lo que se pierde en el tramo exclusivo del
+  // exhaustivo. Se funde al final con el discardedFindings que ya trae
+  // pipelineResult (el del núcleo, calculado en synthesize).
+  const exhaustiveCounts: DiscardedFindings = {};
+
   const mergedDiscrepancies = mergeContradictions(
     pipelineResult.discrepancies,
     atomicContradictions.map(c => ({
@@ -661,6 +666,7 @@ async function runExhaustivePipelineInner(input: ExhaustivePipelineInput): Promi
       existingDocument: c.existingDocument,
       severity: c.severity,
     })),
+    exhaustiveCounts,
   );
 
   console.log(`[pipeline-exhaustive] Fusión: ${pipelineResult.discrepancies.length} v2 + ${atomicContradictions.length} atómicas → ${mergedDiscrepancies.length} totales`);
@@ -671,13 +677,22 @@ async function runExhaustivePipelineInner(input: ExhaustivePipelineInput): Promi
 
   if (candidatesOverLimit !== undefined) {
     console.log(`[pipeline-exhaustive] Candidatas limitadas a ${MAX_DOUBLE_CHECK_CANDIDATES} (había ${totalCandidates})`);
+    // F-71 paso 1 [1]: `candidatesOverLimit` dice cuántas HABÍA; esto dice
+    // cuántas se QUEDARON FUERA, que es el dato que faltaba, y cuáles.
+    for (const d of mergedDiscrepancies.slice(MAX_DOUBLE_CHECK_CANDIDATES)) {
+      bumpCount(exhaustiveCounts, 'exhaustivo.sobre_tope_double_check');
+      console.log(`[pipeline-exhaustive] · sobre el tope: "${d.topic.slice(0, 60)}" contra "${d.existingDocument}"`);
+    }
   }
 
-  const doubleChecked = await doubleCheckContradictions(
+  const { results: doubleChecked, counts: doubleCheckCounts, alreadyDismissed } = await doubleCheckContradictions(
     cappedCandidates,
     0, // sin objetivo → verificar todas
     excludeFps,
   );
+  for (const [key, count] of Object.entries(doubleCheckCounts)) {
+    exhaustiveCounts[key] = (exhaustiveCounts[key] ?? 0) + count;
+  }
 
   // Separar contradicciones confirmadas de inconsistencias menores
   const confirmedContradictions = doubleChecked.filter(d => d.confidence === 'alta');
@@ -686,6 +701,37 @@ async function runExhaustivePipelineInner(input: ExhaustivePipelineInput): Promi
     .map(({ topic, newDocSays, existingDocSays, existingDocument }) => ({
       topic, newDocSays, existingDocSays, existingDocument,
     }));
+
+  // F-71 paso 1 [6][7]: EL RESTO. La regla que este paso hace cierta es que
+  // toda candidata que entra al double-check sale publicada o contada, sin
+  // tercera puerta. Se calcula por DIFERENCIA —lo que no cayó en ninguno de
+  // los dos arrays— y no con un tercer filtro con su propia condición: un
+  // filtro más sería otra lista de casos que acertar, y la lista es justo lo
+  // que ha fallado hasta ahora. Así, una combinación nueva de
+  // confidence+severity se cuenta sola en vez de evaporarse.
+  // NO se publican: contarlas es visibilidad, publicarlas sería cambiar una
+  // decisión, y este commit no cambia decisiones.
+  //
+  // Las de huella ya descartada quedan FUERA del resto, y no por comodidad:
+  // «sin destino» significa "nadie decidió nada sobre esto", y sobre ellas SÍ
+  // se decidió — lo hizo el usuario. Ya tienen su motivo propio
+  // (exhaustivo.huella_ya_descartada); contarlas otra vez aquí las duplicaría
+  // y describiría mal lo que pasó. Las de [4] y [5] sí entran: su contador
+  // dice por qué se quedaron sin veredicto, no que alguien decidiera tirarlas.
+  const published = new Set<typeof doubleChecked[number]>(confirmedContradictions);
+  const decided = new Set<typeof doubleChecked[number]>(alreadyDismissed);
+  const orphans = doubleChecked.filter(
+    d => !published.has(d)
+      && !decided.has(d)
+      && !(d.confidence === 'posible' && d.severity === 'minor_inconsistency'),
+  );
+  if (orphans.length > 0) {
+    console.warn(`[pipeline-exhaustive] ${orphans.length} hallazgo(s) SIN DESTINO: nadie los publicó y nadie decidió tirarlos`);
+    for (const d of orphans) {
+      bumpCount(exhaustiveCounts, `exhaustivo.sin_destino.${d.confidence}_${d.severity ?? 'sin_severidad'}`);
+      console.warn(`[pipeline-exhaustive] · sin destino (${d.confidence}/${d.severity ?? 'sin severidad'}): "${d.topic.slice(0, 60)}" contra "${d.existingDocument}"`);
+    }
+  }
 
   let recommendation = pipelineResult.recommendation;
   if (recommendation === 'INDEXAR' && (confirmedContradictions.length > 0 || minorInconsistencies.length > 0)) {
@@ -707,6 +753,14 @@ async function runExhaustivePipelineInner(input: ExhaustivePipelineInput): Promi
   // caído hasta él, pero el estilo, la rama atómica y el double-check corren
   // DESPUÉS: sus caídas no existían cuando synthesize miró. markIncompleteAnalysis
   // recalcula desde la lista completa, así que llamarla dos veces no acumula.
+  // F-71 paso 1: los contadores del tramo exclusivo se FUNDEN con los del
+  // núcleo (que synthesize ya dejó en pipelineResult.discardedFindings), no lo
+  // sustituyen. Mismo criterio de fusión que judge.ts:546 y pipeline.ts:385.
+  const mergedDiscardedFindings: DiscardedFindings = { ...(pipelineResult.discardedFindings ?? {}) };
+  for (const [key, count] of Object.entries(exhaustiveCounts)) {
+    mergedDiscardedFindings[key] = (mergedDiscardedFindings[key] ?? 0) + count;
+  }
+
   return markIncompleteAnalysis({
     ...pipelineResult,
     discrepancies: confirmedContradictions,
@@ -716,6 +770,7 @@ async function runExhaustivePipelineInner(input: ExhaustivePipelineInput): Promi
     styleProblems,
     estimatedCost,
     ...(candidatesOverLimit !== undefined && { candidatesOverLimit }),
+    ...(Object.keys(mergedDiscardedFindings).length > 0 ? { discardedFindings: mergedDiscardedFindings } : {}),
   }, stageFailureContext.getStore() ?? []);
 }
 
@@ -740,7 +795,11 @@ interface Discrepancy {
   existingDocRow?: string;
 }
 
-function mergeContradictions(listA: Discrepancy[], listB: Discrepancy[]): Discrepancy[] {
+function mergeContradictions(
+  listA: Discrepancy[],
+  listB: Discrepancy[],
+  counts?: DiscardedFindings,
+): Discrepancy[] {
   const result = [...listA];
   const existingKeys = new Set(listA.map(d => makeContradictionKey(d)));
 
@@ -749,6 +808,13 @@ function mergeContradictions(listA: Discrepancy[], listB: Discrepancy[]): Discre
     if (!existingKeys.has(key)) {
       result.push(d);
       existingKeys.add(key);
+    } else if (counts) {
+      // F-71 paso 1 [8]: la clave usa solo los 50 primeros caracteres de la
+      // cita, así que dos hallazgos distintos pueden colapsar en uno. La
+      // decisión no cambia —se sigue quedando el primero— pero deja de ser
+      // muda: hasta ahora un hallazgo atómico podía desaparecer aquí sin log.
+      bumpCount(counts, 'exhaustivo.duplicada_por_clave');
+      console.log(`[pipeline-exhaustive] · duplicada por clave: "${d.topic.slice(0, 60)}" contra "${d.existingDocument}"`);
     }
   }
 

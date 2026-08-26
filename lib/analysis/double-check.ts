@@ -1,6 +1,6 @@
 import { recordStageFailure } from './stage-failures';
 import { callLLMJson } from './llm-client';
-import type { DiscrepancyConfidence, ConfirmedBy, ComparedValue } from './types';
+import type { DiscrepancyConfidence, ConfirmedBy, ComparedValue, DiscardedFindings } from './types';
 
 /**
  * Fase 5 — Doble verificación LLM (progresiva).
@@ -63,6 +63,28 @@ interface Discrepancy {
   existingDocRow?: string;
 }
 
+/**
+ * F-71 paso 1: el resultado deja de ser el array pelado. La regla que este
+ * paso hace cierta — «un hallazgo sale publicado o sale contado, ninguna
+ * tercera puerta» — necesita que lo que se pierde aquí dentro salga con él.
+ * Mismo patrón que VerifyFindingsResult (verify-findings.ts:110-115): las
+ * claves son compatibles con DiscardedFindings y el llamador las funde.
+ */
+export interface DoubleCheckResult {
+  results: DoubleCheckedDiscrepancy[];
+  counts: DiscardedFindings;
+  /** Las que se saltaron por tener huella en excludeFingerprints. Van aparte
+   *  —aunque estén también dentro de `results`— porque el llamador necesita
+   *  distinguirlas al calcular el resto: ya tienen su motivo propio
+   *  (`exhaustivo.huella_ya_descartada`) y contarlas otra vez como «sin
+   *  destino» sería contarlas dos veces y mentir sobre lo que pasó. */
+  alreadyDismissed: DoubleCheckedDiscrepancy[];
+}
+
+function bump(counts: DiscardedFindings, key: string): void {
+  counts[key] = (counts[key] ?? 0) + 1;
+}
+
 interface BatchVerifyResponse {
   results: Array<{
     index: number;
@@ -94,10 +116,15 @@ export async function doubleCheckContradictions(
   discrepancies: Discrepancy[],
   targetConfirmed: number = 0,
   excludeFingerprints: Set<string> = new Set(),
-): Promise<DoubleCheckedDiscrepancy[]> {
-  if (discrepancies.length === 0) return [];
+): Promise<DoubleCheckResult> {
+  if (discrepancies.length === 0) return { results: [], counts: {}, alreadyDismissed: [] };
 
   const t0 = Date.now();
+  // F-71 paso 1: recuento de todo lo que se pierde o se degrada aquí dentro.
+  // Sale por el return en vez de por AsyncLocalStorage porque esta función
+  // tiene UN llamador (pipeline.ts) y el patrón de `counts` en el resultado ya
+  // existe en el proyecto — ver VerifyFindingsResult en verify-findings.ts.
+  const counts: DiscardedFindings = {};
 
   // Separar candidatas nuevas de las ya descartadas anteriormente
   const newCandidates: Discrepancy[] = [];
@@ -106,14 +133,26 @@ export async function doubleCheckContradictions(
   for (const d of discrepancies) {
     const fp = makeDiscrepancyFingerprint(d);
     if (excludeFingerprints.has(fp)) {
-      // Ya fue descartada antes → marcar como posible sin gastar Sonnet
-      skippedAsAlreadyDismissed.push({
-        topic: d.topic,
-        newDocSays: d.newDocSays,
-        existingDocSays: d.existingDocSays,
-        existingDocument: d.existingDocument,
-        confidence: 'posible',
-      });
+      // Ya fue descartada antes → marcar como posible sin gastar Sonnet.
+      //
+      // F-71 paso 1 [3]: la lista cerrada de cinco campos que había aquí —la
+      // CUARTA de este fichero, no contada en d384a315— tiraba severity,
+      // confirmedBy, columns, comparedValues y las dos filas. Se abre, pero
+      // NO del todo, y la excepción no es obvia:
+      //
+      //   `severity: undefined` A PROPÓSITO. Un hallazgo con huella en
+      //   excludeFingerprints ya recibió el veredicto del USUARIO ("No es
+      //   error"). Conservar columns, comparedValues y las filas es recuperar
+      //   datos verificados que no deciden nada. Conservar `severity` sería
+      //   devolverle al sistema la capacidad de REPUBLICARLO por otra sección:
+      //   con severity 'minor_inconsistency' pasaría el segundo filtro de
+      //   pipeline.ts y reaparecería en minorInconsistencies. Eso contradice
+      //   F-67 —la legitimidad de una divergencia la decide el usuario, no el
+      //   sistema, y el "No es error" de la bandeja es la otra mitad de esa
+      //   regla—. El sistema no reabre lo que el usuario cerró.
+      skippedAsAlreadyDismissed.push({ ...d, confidence: 'posible', severity: undefined });
+      bump(counts, 'exhaustivo.huella_ya_descartada');
+      console.log(`[double-check] · huella ya descartada: "${d.topic.slice(0, 60)}" contra "${d.existingDocument}"`);
     } else {
       newCandidates.push(d);
     }
@@ -121,7 +160,7 @@ export async function doubleCheckContradictions(
 
   if (newCandidates.length === 0) {
     console.log(`[double-check] Todas las ${discrepancies.length} candidatas ya fueron descartadas anteriormente (${Date.now() - t0}ms)`);
-    return skippedAsAlreadyDismissed;
+    return { results: skippedAsAlreadyDismissed, counts, alreadyDismissed: skippedAsAlreadyDismissed };
   }
 
   // Verificación progresiva: primer lote de 20, segundo de 10 si hace falta
@@ -130,7 +169,7 @@ export async function doubleCheckContradictions(
 
   // Primer lote
   const firstBatch = newCandidates.slice(0, FIRST_BATCH_SIZE);
-  const firstResults = await verifyBatch(firstBatch);
+  const firstResults = await verifyBatch(firstBatch, counts);
   allResults.push(...firstResults);
   confirmedSoFar = firstResults.filter(r => r.confidence === 'alta').length;
 
@@ -142,7 +181,7 @@ export async function doubleCheckContradictions(
     while (offset < newCandidates.length) {
       await new Promise(r => setTimeout(r, DELAY_BETWEEN_BATCHES_MS));
       const batch = newCandidates.slice(offset, offset + FIRST_BATCH_SIZE);
-      const results = await verifyBatch(batch);
+      const results = await verifyBatch(batch, counts);
       allResults.push(...results);
       const batchConfirmed = results.filter(r => r.confidence === 'alta').length;
       confirmedSoFar += batchConfirmed;
@@ -157,7 +196,7 @@ export async function doubleCheckContradictions(
     if (needsMore && hasMore) {
       await new Promise(r => setTimeout(r, DELAY_BETWEEN_BATCHES_MS));
       const secondBatch = newCandidates.slice(FIRST_BATCH_SIZE, FIRST_BATCH_SIZE + SECOND_BATCH_SIZE);
-      const secondResults = await verifyBatch(secondBatch);
+      const secondResults = await verifyBatch(secondBatch, counts);
       allResults.push(...secondResults);
       const newConfirmed = secondResults.filter(r => r.confidence === 'alta').length;
       confirmedSoFar += newConfirmed;
@@ -172,7 +211,7 @@ export async function doubleCheckContradictions(
   const totalPossible = finalResults.filter(r => r.confidence === 'posible').length;
   console.log(`[double-check] ${finalResults.length} totales: ${totalConfirmed} confirmadas, ${totalPossible} posibles (${skippedAsAlreadyDismissed.length} saltadas por memoria) (${Date.now() - t0}ms)`);
 
-  return finalResults;
+  return { results: finalResults, counts, alreadyDismissed: skippedAsAlreadyDismissed };
 }
 
 /**
@@ -195,7 +234,7 @@ export function makeDiscrepancyFingerprint(d: { newDocSays: string; existingDocu
 // Internos
 // ============================================================
 
-async function verifyBatch(batch: Discrepancy[]): Promise<DoubleCheckedDiscrepancy[]> {
+async function verifyBatch(batch: Discrepancy[], counts: DiscardedFindings): Promise<DoubleCheckedDiscrepancy[]> {
   const contradictionsBlock = batch
     .map((d, i) => `[${i + 1}] Tema: ${d.topic}
    Documento nuevo dice: "${d.newDocSays}"
@@ -246,6 +285,15 @@ Responde EXCLUSIVAMENTE con este JSON:
 
     return batch.map((d, i) => {
       const result = resultMap.get(i + 1);
+      // F-71 paso 1 [4]: Sonnet puede no devolver un índice. Antes eso caía en
+      // el `?? false` de abajo sin dejar rastro: la candidata salía 'posible' y
+      // SIN severity, la combinación que no entra en ninguno de los dos filtros
+      // finales. Se sigue tratando igual — no se cambia la decisión — pero se
+      // cuenta y se dice cuál fue.
+      if (result === undefined) {
+        bump(counts, 'exhaustivo.indice_omitido_por_sonnet');
+        console.warn(`[double-check] · Sonnet omitió el índice ${i + 1}: "${d.topic.slice(0, 60)}" contra "${d.existingDocument}"`);
+      }
       const isContradiction = result?.isContradiction ?? false;
       const sev = result?.severity;
       return {
@@ -265,6 +313,13 @@ Responde EXCLUSIVAMENTE con este JSON:
   } catch (err) {
     console.warn(`[double-check] Sonnet falló para lote de ${batch.length} contradicciones:`, err);
     recordStageFailure('double-check', err);
+    // F-71 paso 1 [5]: además del stageFailure (que ya dispara el reembolso),
+    // una entrada por candidata del lote — el stageFailure dice que la etapa
+    // cayó, este contador dice a cuántos hallazgos les costó su veredicto.
+    for (const d of batch) {
+      bump(counts, 'exhaustivo.lote_sin_veredicto');
+      console.warn(`[double-check] · sin veredicto por fallo del lote: "${d.topic.slice(0, 60)}" contra "${d.existingDocument}"`);
+    }
     return batch.map(d => ({
       topic: d.topic,
       newDocSays: d.newDocSays,
