@@ -279,7 +279,11 @@ interface VerifiedQuote {
   porCeldas: boolean;
 }
 
-function verifyQuote(
+// F-74: exportada. El portero de la rama atómica (pipeline.ts) la necesita para
+// comprobar si sus citas existen en el documento — es la MISMA pregunta que se
+// le hace a las del juez, y responderla con otra función sería tener dos
+// criterios de "cita verificable" en el mismo pipeline.
+export function verifyQuote(
   chunks: StoredChunk[],
   fallbackText: string | null,
   quote: string | undefined,

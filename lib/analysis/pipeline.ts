@@ -3,7 +3,7 @@ import { stageFailureContext } from './stage-failures';
 import { retrieveCandidates } from './retrieval';
 import type { StructuralOverlap } from './retrieval';
 import { rerankCandidates } from './rerank';
-import { judgeAllDocuments } from './judge';
+import { judgeAllDocuments, verifyQuote } from './judge';
 import type { JudgmentEvidence } from './judge';
 import { synthesizeFinalAnalysis, markIncompleteAnalysis } from './synthesize';
 import { checkContentHash } from './hash-check';
@@ -98,6 +98,39 @@ const HIGH_OVERLAP_THRESHOLD = 30;
 
 /** Máximo de candidatas enviadas al double-check en modo exhaustivo. */
 const MAX_DOUBLE_CHECK_CANDIDATES = 50;
+
+/**
+ * Rama atómica — MEDICIÓN, NO FUNCIONALIDAD (F-74).
+ *
+ * Sus hallazgos DEJAN DE PUBLICARSE (F-72 P2): ya no entran en la fusión, así
+ * que no llegan al cliente por ninguna vía. Lo medido que lo motiva: 4 de 4
+ * inventaban afirmaciones sobre la ESTRUCTURA del documento ("la tabla contiene
+ * 15 filas y 10 columnas") en vez de citar su contenido, ninguno citaba texto
+ * existente, y en las tandas del 27/08 produjo 1, 3 y 5 sobre los mismos
+ * documentos. El modo caro estaba publicando eso como contradicción de
+ * confianza alta.
+ *
+ * PERO LA RAMA NO SE BORRA: lo que la justificaba —encontrar contradicciones
+ * con documentos que el retrieval nunca emparejaría— es valor real que ESTA
+ * implementación no entrega. Queda tras el portero, contada, hasta que se
+ * decida si se rediseña o se retira.
+ *
+ * Y APAGADA POR DEFECTO, que es lo que decide esta variable. La rama es la
+ * etapa más cara del tramo exclusivo del exhaustivo —hasta 40 llamadas a Haiku,
+ * decenas de segundos— y va a estar desconectada semanas, hasta que exista el
+ * corpus nuevo. Dejarla corriendo sería cobrarle a cada cliente una medición
+ * NUESTRA. Se enciende en el harness y solo ahí.
+ *
+ * Se retira, con la variable, el día que se decida rediseñar o retirar la rama.
+ */
+const ATOMIC_MEASURE_ENV = 'ANALYSIS_ATOMIC_MEASURE';
+
+function atomicBranchEnabled(): boolean {
+  const raw = process.env[ATOMIC_MEASURE_ENV];
+  if (!raw) return false;
+  const v = raw.trim().toLowerCase();
+  return v === '1' || v === 'true' || v === 'on';
+}
 
 // ============================================================
 // Verificador de hallazgos: la cascada (F-35)
@@ -648,28 +681,65 @@ async function runExhaustivePipelineInner(input: ExhaustivePipelineInput): Promi
 
   const excludeFps = input.excludeFingerprints || new Set<string>();
 
-  // ── Análisis completo: sin corte temprano ────────────────────
-  const atomicClaims = await extractAtomicClaims(input.newDocumentText, input.newDocumentName);
-  const atomicContradictions = await verifyClaimsAgainstCorpus(atomicClaims, input.orgId, input.excludeDocumentId, input.batchDocumentIds);
-
   // F-71 paso 1: recuento de todo lo que se pierde en el tramo exclusivo del
   // exhaustivo. Se funde al final con el discardedFindings que ya trae
   // pipelineResult (el del núcleo, calculado en synthesize).
   const exhaustiveCounts: DiscardedFindings = {};
 
+  // ── Rama atómica: MEDIDA, NO PUBLICADA (F-74) ────────────────
+  // Ver ATOMIC_MEASURE_ENV arriba. Apagada, ni se ejecuta: son las dos etapas
+  // más caras del tramo exclusivo y ya no alimentan nada que el cliente vea.
+  if (atomicBranchEnabled()) {
+    const atomicClaims = await extractAtomicClaims(input.newDocumentText, input.newDocumentName);
+    const atomicContradictions = await verifyClaimsAgainstCorpus(atomicClaims, input.orgId, input.excludeDocumentId, input.batchDocumentIds);
+
+    // EL PORTERO. La misma pregunta que se le hace a las citas del juez: ¿esta
+    // cita EXISTE en el documento? Se comprueba el lado NUEVO (`newDocSays`,
+    // que es `result.claim` en verify-claims.ts) contra los chunks del
+    // documento analizado, porque es justo ahí donde está el fallo medido: las
+    // afirmaciones inventan la ESTRUCTURA del documento que se analiza.
+    //
+    // Solo ese lado, y no por comodidad: los chunks de los documentos del
+    // corpus (`chunksByDocument`) viven DENTRO de runCorePipeline y no salen de
+    // ahí —devuelve un FinalAnalysis—, así que `existingDocSays` no tiene
+    // haystack disponible en este ámbito. Comprobar la mitad que sí se puede
+    // responde la pregunta que se hizo; comprobar la otra exigiría cambiar lo
+    // que runCorePipeline devuelve, y eso es rediseño, no medición.
+    let confirmadas = 0;
+    let noVerificables = 0;
+    for (const c of atomicContradictions) {
+      const match = verifyQuote(
+        input.newDocumentChunks ?? [],
+        input.newDocumentText,
+        c.newDocSays,
+      );
+      if (match) {
+        bumpCount(exhaustiveCounts, 'atomica.confirmado');
+        confirmadas++;
+      } else {
+        bumpCount(exhaustiveCounts, 'atomica.cita_no_verificable');
+        noVerificables++;
+        console.log(`[pipeline-exhaustive] · atomica sin cita verificable: "${c.topic.slice(0, 60)}" — "${(c.newDocSays ?? '').slice(0, 80)}"`);
+      }
+    }
+    console.log(
+      `[pipeline-exhaustive] Rama atomica (MEDICION, no se publica): ${atomicContradictions.length} producidas, ` +
+      `${confirmadas} con cita verificable, ${noVerificables} sin`
+    );
+  } else {
+    console.log(`[pipeline-exhaustive] Rama atomica APAGADA (${ATOMIC_MEASURE_ENV} sin poner): 0 llamadas al LLM por esta via`);
+  }
+
+  // F-74: la fusión se queda SOLO con lo del núcleo. Aquí entraban las atómicas
+  // por un .map() de cinco campos que además les quitaba la procedencia —
+  // llegaban sin confirmedBy, indistinguibles de las del juez río abajo.
   const mergedDiscrepancies = mergeContradictions(
     pipelineResult.discrepancies,
-    atomicContradictions.map(c => ({
-      topic: c.topic,
-      newDocSays: c.newDocSays,
-      existingDocSays: c.existingDocSays,
-      existingDocument: c.existingDocument,
-      severity: c.severity,
-    })),
+    [],
     exhaustiveCounts,
   );
 
-  console.log(`[pipeline-exhaustive] Fusión: ${pipelineResult.discrepancies.length} v2 + ${atomicContradictions.length} atómicas → ${mergedDiscrepancies.length} totales`);
+  console.log(`[pipeline-exhaustive] Candidatas al double-check: ${mergedDiscrepancies.length} (solo del nucleo; la rama atomica ya no se fusiona)`);
 
   const totalCandidates = mergedDiscrepancies.length;
   const cappedCandidates = mergedDiscrepancies.slice(0, MAX_DOUBLE_CHECK_CANDIDATES);
