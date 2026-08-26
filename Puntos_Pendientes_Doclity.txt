@@ -1742,6 +1742,31 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     `planAllowsExhaustive` en components/review/ReviewSelectionBar.tsx:25-37 ya
     apunta a este pendiente.
 
+  B.102 — [ABIERTO, 27/08] El tope de 25 piezas se come el presupuesto antes que
+    los caracteres. MAX_FRAGMENTS_PER_DOC_QUICK = 25
+    (lib/analysis/retrieval.ts:97) es una "red de seguridad" contra documentos
+    con miles de fragmentos diminutos, y hoy limita a los DOS modos: es la única
+    constante del reparto que no se parametrizó en F-73.
+    APARECE EN DOS FRENTES A LA VEZ, y por eso es pendiente propio:
+      · F-65 (descarte de ajenas). El caso que se creía de referencia, OPE-06,
+        no lo es porque su tabla son 94 filas + resumen = 95 piezas: topa en 25
+        con cualquier presupuesto, así que descartar ajenas no libera nada
+        medible ahí. Ver claude/Descarte_Filas_Ajenas.md §6.
+      · La medición de "destilado y grande" (la esquina sin medir de la tanda
+        del 27/08, ver claude/Tandas_Harness.md). El nivel 1 exige
+        `level1Count <= remainingCount`, así que una tabla de más de ~24 filas
+        NO puede alcanzarlo por mucho presupuesto que se le dé. Medir esa
+        esquina sin tocar el tope mide el tope, no la destilación.
+    EL CASO QUE LO HACE URGENTE, y no es teórico: 15-20 discrepantes REALES en
+    la misma tabla se comen el tope antes que el presupuesto. Ahí el descarte de
+    ajenas no ayuda —las ajenas ya no estaban entrando— y el sistema recorta
+    hallazgos legítimos por una constante escrita contra otro problema.
+    NO SE TOCA A CIEGAS: subirlo cambia lo que un modelo lee, así que entra la
+    regla de F-59/F-61 y exige su tanda. Y antes de subirlo hay que decidir si
+    el tope debe contar PIEZAS o algo más cercano a lo que protege (fragmentos
+    diminutos), porque una tabla de 40 filas cortas y un documento de 40
+    fragmentos de ruido no son el mismo riesgo.
+
   F-74 [ALCANCE DEL MVP, 27/08] Lo que entra y lo que NO entra antes de salir.
     DOCTRINA DE PRODUCTO DEL DIRECTOR, literal y por delante de todo lo demás:
       "el sistema no puede esconder hallazgos y confiar en que el usuario los
