@@ -1742,6 +1742,49 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     `planAllowsExhaustive` en components/review/ReviewSelectionBar.tsx:25-37 ya
     apunta a este pendiente.
 
+  F-74 [ALCANCE DEL MVP, 27/08] Lo que entra y lo que NO entra antes de salir.
+    DOCTRINA DE PRODUCTO DEL DIRECTOR, literal y por delante de todo lo demás:
+      "el sistema no puede esconder hallazgos y confiar en que el usuario los
+       encuentre repitiendo."
+    Es el criterio que decide las cuatro exclusiones de abajo: ninguna puede
+    justificarse con "el usuario siempre puede volver a lanzarlo".
+
+    DENTRO DEL MVP, en orden:
+      1. La ficha de AnalysisModal (B.96) — el modal de análisis sigue con dos
+         <p> de citas crudas, la forma que F-70 ya retiró del modal de mejora.
+      2. El !== crudo de applyDeterministicRules (B.97), EN OBSERVACIÓN: con la
+         frase de F-70, un par visualmente idéntico queda en evidencia.
+      3. El cobro sin devolución al lanzar excepción (B.99). Es el que peor
+         queda con la doctrina de arriba: el cliente paga y no recibe nada.
+      4. refund_credits como RPC atómica (B.100).
+
+    FUERA DEL MVP, con su nombre para que nadie las dé por olvidadas:
+      · PASADAS MÚLTIPLES (v2). Repetir el análisis del mismo par disparado por
+        el contador de discrepantes-fuera. Fuera del MVP porque hoy no hay
+        criterio medido de cuándo repetir; con uno malo, repetir es gastar
+        créditos por si suena la flauta.
+      · BOTÓN RÁPIDO/EXHAUSTIVO EN EL MODAL DE MEJORA. Hoy el "Reanalizar todo"
+        de ese modal es siempre exhaustivo (useCrossDocAnalysis.ts:89), sin
+        opción. La bandeja ya tiene los dos desde ff652755; el modal de mejora
+        no.
+      · onlyDocumentIds (F-61). La semántica que RESTRINGE el corpus, frente al
+        batchDocumentIds de hoy que lo AMPLÍA. Con su propia batería: tocar el
+        filtro de retrieval en medio de una auditoría serían dos variables a la
+        vez.
+      · FASE 2 DEL PROMPT. Todo lo que quedó del frente del juez y no era la
+        cura de B.81.
+
+    MEDICIÓN PENDIENTE QUE PROPONE FABLE — control comercial: RÁPIDO×N contra
+    EXHAUSTIVO. Lanzar tres rápidos sobre el mismo par y comparar el resultado
+    agregado con un exhaustivo. Si tres rápidos (15 créditos) consiguen casi lo
+    mismo que un exhaustivo (30), eso FIJA EL PRECIO — y si lo consiguen del
+    todo, cuestiona que el exhaustivo deba existir como producto aparte. Hoy no
+    hay ningún dato que sostenga la diferencia de precio salvo el coste de
+    Sonnet.
+    OJO al diseñarla: desde 94ad06a0 los dos modos seleccionan igual, así que la
+    comparación por fin mide alcance y garantía, no selección. Antes de F-73 no
+    habría significado nada.
+
   F-20 [ESTADO, agosto 2026] Extracción estructurada. Paso 1 (extractSegments +
     EXTRACTOR_VERSION, commit 509e15d4) y paso 2 (persistencia en document_chunks,
     commit d00b085b) HECHOS. Paso 3 (job de reprocesado) RETIRADO — ver B.76. El

@@ -13,6 +13,73 @@ principio del protocolo.
 
 ---
 
+## 27/08/2026 — `94ad06a0` — EXPERIMENTO F-73, tres estados
+
+**Qué se lanzó**: el par de tablas **RRHH-06 / OPE-02**, los dos sentidos,
+**cuatro pasadas por dirección y por estado**. Tres estados del mismo commit,
+alternados con la variable `ANALYSIS_EXHAUSTIVE_BUDGET_CHARS` en el worker de
+Railway.
+
+**La pregunta**: por qué el modo exhaustivo NO detectaba la contradicción del
+Puesto de Dr. Pablo Reyes en la dirección `OPE-02 → RRHH-06`, cuando el rápido
+sí. Hasta `94ad06a0` el exhaustivo se saltaba entera la selección y se llevaba
+los fragmentos en bruto.
+
+### Dirección OPE-02 → RRHH-06 (la que fallaba)
+
+| Estado | Qué ve el juez | Tasa |
+|---|---|---|
+| **Base** — sin selección | 15 filas en bruto | **0/4** |
+| **Estado 1** — 3000, destilado | resumen + 9 filas, de las cuales 9 colapsadas → 6 líneas | **4/4** |
+| **Estado 2** — 6000, nivel 1 | la tabla entera, 15 filas sin colapsar | **0/4** |
+
+### Dirección RRHH-06 → OPE-02 (la que ya funcionaba)
+
+**Detecta en los tres estados.** Y el motivo importa para leer bien la tabla de
+arriba: la tabla de OPE-02 tiene **10 filas y cabe entera** en cualquiera de los
+tres presupuestos, así que **la destilación nunca llega a actuar** en ese
+sentido. No es que el estado no le afecte: es que para esa tabla los tres
+estados son el mismo.
+
+### El mecanismo aislado: EL COLAPSO DE IDÉNTICAS
+
+Los tres estados dibujan una curva que no es monótona —0, 4, 0— y eso descarta
+«más material es mejor» y también «menos material es mejor». Lo que separa al
+estado 1 de los otros dos no es el volumen: es que **es el único donde el
+colapso de filas idénticas actúa**. En base no hay selección; en estado 2 la
+tabla entra completa por nivel 1, y el nivel 1 no colapsa nada.
+
+Nueve filas que colapsan a seis líneas es lo que hace visible la fila que
+difiere: las que coinciden se resumen en una línea de contexto y la discrepante
+queda sola, en vez de enterrada entre catorce vecinas del mismo formato.
+
+**Y NO es la prosa.** El desglose por tipo del log (añadido en `94ad06a0`
+justo para poder responder esto) confirma que **la prosa entró igual en los dos
+estados, 4/4 unidades**. La diferencia entre 4/4 y 0/4 no puede atribuirse a
+material de prosa que entrara en uno y no en otro.
+
+### Lo que esta tanda NO mide
+
+**La esquina «destilado y grande».** Los tres estados cubren tres de las cuatro
+combinaciones:
+
+| | Sin destilar | Destilado |
+|---|---|---|
+| **Poco material** | — | Estado 1 ✅ medido |
+| **Mucho material** | Base y Estado 2 ✅ medidos | **❌ SIN MEDIR** |
+
+No se ha medido qué pasa con **una tabla grande que además se destila** — por
+ejemplo, un presupuesto alto sobre una tabla de cuarenta o noventa filas, donde
+el nivel 1 no cabe y el colapso sí actúa sobre muchas filas. Toda la conclusión
+de esta tanda descansa en una tabla de 15 filas.
+
+**Y el tope de piezas es un confundidor conocido para esa esquina**:
+`MAX_FRAGMENTS_PER_DOC_QUICK = 25` bloquea el nivel 1 con cualquier
+presupuesto en una tabla de más de ~24 filas (OPE-06 son 94 + resumen = 95
+piezas), así que medir ahí sin parametrizarlo mediría otra cosa.
+
+---
+
 ## 26/08/2026 — `a775a7c7`
 
 **Qué se lanzó**: los cinco casos, modo rápido, desde la bandeja de revisión.

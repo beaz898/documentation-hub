@@ -4965,3 +4965,105 @@ jsonb con dos filas completas por hallazgo).
 
 ESTADO: F-70 CERRADO en la parte que el cliente usa a diario. Historia completa,
 con la respuesta de Fable entera y el JSON medido, en claude/Cierre_F70.md.
+
+────────────────────────────────────────────────────────────────────────────────
+SESIÓN 50 — 26-27/08/2026
+Título: F-71 — el análisis deja de mentir, y F-73 — un solo camino de selección
+────────────────────────────────────────────────────────────────────────────────
+
+DOS FRENTES EN LA MISMA SESIÓN, y el segundo solo fue posible por el primero: sin
+la tanda del exhaustivo con la misma selección que el rápido, comparar los modos
+no decía nada.
+
+F-71 — UN ANÁLISIS CON ETAPAS CAÍDAS NO SE ENTREGA COMO BUENO NI SE COBRA.
+El punto de partida: diez etapas del pipeline atrapaban el error de su llamada al
+LLM y seguían con un valor por defecto. El cliente leía "Se evaluaron 3
+documentos relacionados pero ninguno presenta solapamiento significativo. Puede
+indexarse" —con recomendación INDEXAR— cuando no se evaluó ninguno, y pagaba por
+ello. Si el juez respondía bien y caían la síntesis, el double-check o la rama
+atómica, la pantalla no decía absolutamente nada.
+  38d3fd22 — las diez caídas se registran (stage-failures.ts, AsyncLocalStorage
+    con el mismo patrón que usage-context) y viajan en FinalAnalysis.stageFailures.
+    Con caídas: recommendation 'REVISAR' (sin valor nuevo — INDEXAR solo se emite
+    por AUSENCIA de hallazgos, y esa ausencia no está medida), resumen que lo
+    dice, aviso en la ficha, job en 'completed_with_errors' y DEVOLUCIÓN ÍNTEGRA
+    de los créditos. Migración: supabase-f71-job-incomplete.sql.
+    Se retira el overlap sintético "No se pudo emitir juicio (error del LLM)": era
+    un fallo del sistema presentado al cliente como un hallazgo sobre SU documento.
+    EL SALDO QUE SE AGOTA EN ESE ESCENARIO ES EL DE ANTHROPIC, no los créditos de
+    la organización: esos sí se comprueban antes de arrancar. El cliente paga y la
+    llamada falla por algo que él no puede ver.
+  74ff6c1b (paso 1) — un hallazgo sale publicado o sale contado, ninguna tercera
+    puerta. Ocho puntos del tramo exclusivo del exhaustivo podían perder o degradar
+    un hallazgo, SEIS de ellos sin dejar rastro. Lo importante es el hueco entre
+    los dos filtros finales: de seis combinaciones de confidence+severity, DOS no
+    caían en ningún array y desaparecían — y una es la salida del catch de Sonnet,
+    que mandaba al vacío precisamente los hallazgos que más verificación habían
+    pasado. Se cierra calculando el RESTO, no añadiendo un tercer filtro: un filtro
+    más sería otra lista de casos que acertar, y la lista es justo lo que ha
+    fallado. Una combinación nueva se cuenta sola.
+    Y la CUARTA lista cerrada de double-check.ts (las de huella ya descartada), no
+    contada en d384a315, se abre — pero con severity: undefined a propósito. Un
+    hallazgo que el usuario marcó como "No es error" no puede reaparecer por otra
+    sección: F-67, la legitimidad la decide el usuario y el sistema no reabre lo
+    que él cerró.
+  ff652755 (paso 2) — el exhaustivo recibe la tanda. La columna
+    batch_document_ids no existía en analysis_jobs, el worker no la leía y ningún
+    llamador la mandaba: los dos modos veían conjuntos DISTINTOS de documentos, así
+    que compararlos no decía nada. No era solo instrumental — que el exhaustivo no
+    vea los documentos que el cliente acaba de subir era un hueco funcional.
+    Migración: supabase-f71-batch-document-ids.sql. Y segundo botón en la bandeja,
+    con doble clic para confirmar y tope de TRES documentos: el bucle es en serie
+    por obligación (el semáforo es por organización) y cada exhaustivo tarda de 1 a
+    6 minutos.
+
+F-73 — EL EXPERIMENTO, y es el hallazgo de la sesión.
+94ad06a0 borra el `if (isExhaustive)` de retrieval.ts que se llevaba los
+fragmentos en bruto y saltaba ENTERA la maquinaria de selección: buildUnits, la
+pertenencia de F-42, selectUnitsWithinBudget, los niveles, el colapso de idénticas
+y los structuralOverlaps. No era otro presupuesto: era NINGUNA selección.
+  LA TANDA (27/08, tres estados, cuatro pasadas por dirección y estado), en la
+  dirección OPE-02 → RRHH-06:
+    Base (sin selección, 15 filas en bruto) ........... 0/4
+    Estado 1 (3000, destilado, 9 colapsadas → 6) ...... 4/4
+    Estado 2 (6000, nivel 1, 15 sin colapsar) ......... 0/4
+  La dirección contraria detecta en los TRES, y el motivo importa para leer la
+  tabla: la tabla de OPE-02 tiene 10 filas y cabe entera en cualquier presupuesto,
+  así que la destilación nunca llega a actuar en ese sentido.
+  EL MECANISMO AISLADO: EL COLAPSO DE IDÉNTICAS. La curva 0-4-0 no es monótona, y
+  eso descarta a la vez "más material es mejor" y "menos material es mejor". Lo
+  único que el estado 1 tiene y los otros dos no es el colapso: en base no hay
+  selección, y en estado 2 la tabla entra por nivel 1, que no colapsa nada. Nueve
+  filas resumidas en seis líneas dejan sola a la que difiere, en vez de enterrada
+  entre catorce vecinas del mismo formato.
+  Y NO ES LA PROSA: el desglose por tipo del log —añadido en 94ad06a0 justo para
+  poder responder esto— confirma que la prosa entró igual en los dos estados (4/4
+  unidades). Sin ese desglose la conclusión habría quedado ambigua y las ocho
+  pasadas se habrían gastado para volver a discutir.
+  LO QUE LA TANDA NO MIDE, y queda anotado: la esquina "destilado y grande" —una
+  tabla de cuarenta o noventa filas donde el nivel 1 no quepa y el colapso sí
+  actúe—. Toda la conclusión descansa en una tabla de 15 filas.
+
+COMMITS DE ESTA SESIÓN, en orden:
+  1. 38d3fd22 — F-71: un analisis con etapas caidas no se entrega como bueno ni
+     se cobra.
+  2. 4c5ffc2e — docs: pendientes de creditos (B.99, B.100) y protocolo del
+     harness.
+  3. 84ebbf67 — docs: cierra los pendientes del protocolo del harness
+     (claude/Tandas_Harness.md).
+  4. 74ff6c1b — F-71 paso 1: un hallazgo sale publicado o sale contado.
+  5. ff652755 — F-71 paso 2: el exhaustivo ve la tanda, y se puede lanzar desde
+     la bandeja.
+  6. 2254531f — docs: B.101, el veto del exhaustivo vive en dos sitios.
+  7. 94ad06a0 — F-73: un solo camino de seleccion para los dos modos.
+
+LO QUE FIJA F-74 P5, y sale de un fallo de método de esta misma sesión: antes de
+dar una conclusión por cerrada se escriben SIEMPRE dos cosas, aunque no se midan
+ese día — el caso extremo ("¿y si en vez de uno hay cuarenta?") y el dominio no
+cubierto ("todo lo medido aquí es una tabla de Excel"). En F-73 los dos huecos
+existían y no aparecieron hasta que el director preguntó. Escrito en el protocolo
+del harness, sección 4-bis.
+
+ESTADO: F-71 CERRADO. F-73 CERRADO con su mecanismo identificado y su límite
+anotado. Detalle de la tanda en claude/Tandas_Harness.md; protocolo en
+claude/Protocolo_Harness_Tasas.md.

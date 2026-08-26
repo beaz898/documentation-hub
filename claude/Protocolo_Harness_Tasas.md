@@ -159,6 +159,32 @@ order by created_at desc limit 10;
 
 ---
 
+## 4-bis. La lista de cierre (F-74 P5)
+
+**Antes de dar una conclusión por cerrada, se escriben estas dos cosas — aunque
+no se midan ese día.** Escribirlas es obligatorio; medirlas, no. El valor está
+en que la pregunta quede planteada por escrito, porque una conclusión con su
+límite anotado es útil y una conclusión sin él es una trampa para quien la lea
+dentro de dos meses.
+
+**1. El caso extremo.** *«¿Qué pasa si en vez de uno hay cuarenta?»*
+Toda tasa se mide sobre un tamaño concreto. Decir cuál es, y qué se espera —o
+qué se ignora— al multiplicarlo por diez.
+
+**2. El dominio no cubierto.** *«¿Sobre qué NO generaliza esto?»*
+Todo lo que este harness mide hoy es **una tabla de Excel**. Un hallazgo sobre
+prosa larga, sobre un PDF escaneado o sobre una tabla de noventa filas no está
+medido por el hecho de que este par lo esté.
+
+**POR QUÉ ESTÁ AQUÍ**: en F-73 estos dos huecos existían y **no aparecieron
+hasta que el director preguntó**. La conclusión del experimento —que lo que
+detecta es el colapso de idénticas— se había dado por cerrada sin anotar que
+descansaba en una tabla de 15 filas (caso extremo) ni que todo el corpus medido
+son hojas de cálculo (dominio). Las dos plantillas los habrían cazado sin que
+nadie tuviera que acordarse.
+
+---
+
 ## 5. Las mediciones
 
 El histórico completo, con sus cifras y sus anomalías, está en
