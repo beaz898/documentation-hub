@@ -1655,6 +1655,57 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     usa— sino no persistirlas: son contexto de presentación, no hallazgo, y la
     bandeja las relee del jsonb precisamente porque ahí están.
 
+  B.99 — [COBRO INDEBIDO, 26/08] Si el pipeline lanza una EXCEPCIÓN, los créditos
+    no vuelven. Distinto de lo que arregló 38d3fd22: aquello eran FALLBACKS (la
+    etapa atrapa el error y sigue con un valor por defecto); esto es un THROW que
+    se propaga y aborta el análisis entero.
+    RÁPIDO: el catch de app/api/analyze-v2/route.ts:550 hace tres cosas —
+    console.error, logUsage(success:false, creditsConsumed) y responder 500. No
+    llama a refundCredits. El finally (:570) solo libera el semáforo.
+    EXHAUSTIVO: el catch del worker marca el job 'failed' y tampoco reembolsa.
+    Ya estaba anotado como gotcha en CLAUDE.md, o sea que se sabía.
+    LA VENTANA DEL RÁPIDO SON 230 LÍNEAS: se cobra en :159 y el reembolso de
+    F-71 está en :392. En medio caben la descarga de Storage con sus tres
+    reintentos, extractSegments (donde caen los "bad XRef" de B.39), chunkText y
+    la lectura de chunks persistidos. Cualquiera de ellos lanza y el cliente paga.
+    ES PEOR QUE LO QUE ARREGLÓ 38d3fd22: allí el cliente recibía un informe
+    engañoso; aquí no recibe nada y paga igual.
+    DOS PREGUNTAS QUE HAY QUE DECIDIR ANTES DE TOCAR:
+      1. ¿Se devuelve en TODO el tramo posterior al cobro, o solo si la excepción
+         ocurre después del pipeline? Devolver siempre es lo honesto con el
+         cliente, pero convierte el catch en un punto de escritura de créditos
+         que corre también cuando el fallo es suyo (fichero corrupto, texto
+         insuficiente) — aunque esos casos hoy salen por `return`, no por throw.
+      2. ¿El catch del worker hace lo propio? Ahí el job ya está marcado
+         'failed' y credits_consumed está en la fila, así que el dato para
+         devolver existe; falta decidir si el worker es el sitio o si debe
+         hacerlo un barrido aparte sobre jobs 'failed' con credits_consumed > 0.
+    Cruzar con B.100 antes de implementar: cuantos más caminos de reembolso,
+    más ocasiones de que muerda la falta de atomicidad.
+
+  B.100 — [PREEXISTENTE, agravado por F-71, 26/08] refundCredits no es atómico.
+    lib/credits.ts hace read-modify-write sobre organizations.credits_extra: lee
+    el valor, suma y escribe. El COBRO, en cambio, es la RPC atómica
+    consume_credits — asimetría que CLAUDE.md ya declara doctrina ("nunca
+    decrementar créditos directamente: peticiones paralelas pueden sobregirar"),
+    y que el reembolso incumple.
+    QUÉ PUEDE PASAR: un cobro concurrente de otro endpoint (p. ej. /api/ask, 1
+    crédito, sin semáforo de análisis) entre el read y el write de un reembolso
+    pisa el reembolso, o al revés. Dos reembolsos entre sí son menos probables —
+    el semáforo de concurrencia por organización separa los análisis— pero el
+    semáforo protege el ANÁLISIS, no la escritura de créditos: el reembolso del
+    worker ocurre después de marcar el job, y el del rápido dentro del try.
+    NO LO INTRODUCE 38d3fd22: los dos reembolsos del worker (reanálisis con
+    pocos hallazgos y precio variable) llevan con este defecto desde que
+    existen. Lo que cambia es la frecuencia — ahora hay un tercer camino de
+    reembolso y se dispara con cada fallo del proveedor.
+    LO QUE HARÍA FALTA: una RPC `refund_credits(p_org_id, p_amount)` con
+    `UPDATE organizations SET credits_extra = credits_extra + p_amount WHERE
+    id = p_org_id`, atómica como su gemela, y que refundCredits pase a llamarla.
+    Es SQL en Supabase antes del push, como consume_credits.
+    Cruzar con B.99: si se añade el reembolso en los dos catch, este pasa de
+    deuda latente a defecto con tres llamadores.
+
   F-20 [ESTADO, agosto 2026] Extracción estructurada. Paso 1 (extractSegments +
     EXTRACTOR_VERSION, commit 509e15d4) y paso 2 (persistencia en document_chunks,
     commit d00b085b) HECHOS. Paso 3 (job de reprocesado) RETIRADO — ver B.76. El
