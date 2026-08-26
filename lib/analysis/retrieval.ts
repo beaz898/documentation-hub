@@ -17,12 +17,21 @@ import type { SupabaseClient } from '@supabase/supabase-js';
  * manejo de 429 detrás que la necesitara, y el exhaustivo ya paraleliza igual
  * en producción sin incidentes. Una sola vía de código para los dos modos.
  *
- * Modo rápido: umbral SCORE_THRESHOLD_QUICK, presupuesto de caracteres por
- *   documento (FRAGMENT_BUDGET_CHARS_QUICK, tope MAX_FRAGMENTS_PER_DOC_QUICK),
- *   repartido por UNIDADES (F-41, ver más abajo).
- * Modo exhaustivo: umbral SCORE_THRESHOLD_EXHAUSTIVE (más bajo — el rerank
- *   filtra el ruido), TODOS los fragmentos únicos — el reparto por unidades
- *   no se aplica aquí: no hay recorte que repartir.
+ * UN SOLO CAMINO DE SELECCIÓN (F-73). Los dos modos pasan por el reparto por
+ * UNIDADES (más abajo): buildUnits, la pertenencia por valor de F-42,
+ * selectUnitsWithinBudget con sus niveles, el colapso de idénticas y los
+ * structuralOverlaps. Hasta F-73 el exhaustivo saltaba todo eso y se llevaba
+ * los fragmentos únicos en bruto, y quince filas sin destilar detectan PEOR
+ * que nueve destiladas — medido el 26/08 en la dirección OPE-02 → RRHH-06.
+ *
+ * Lo que SÍ sigue diferenciando a los modos es alcance, no selección:
+ *   Rápido: umbral SCORE_THRESHOLD_QUICK (0,50), presupuesto
+ *     FRAGMENT_BUDGET_CHARS_QUICK, hasta 6 candidatos tras el rerank.
+ *   Exhaustivo: umbral SCORE_THRESHOLD_EXHAUSTIVE (0,45 — el rerank filtra el
+ *     ruido), presupuesto de resolveExhaustiveBudget (hoy variable de
+ *     experimento, ver abajo), hasta 25 candidatos, documento nuevo sin
+ *     truncar, y el double-check de Sonnet al final.
+ * El tope de piezas (MAX_FRAGMENTS_PER_DOC_QUICK) es el mismo en los dos.
  *
  * REPARTO POR UNIDADES (F-41, primera mitad): medido que los scores de filas
  * de una misma tabla son ruido — 17 fragmentos de RRHH-06 en dos centésimas,
@@ -97,6 +106,46 @@ const MAX_FRAGMENTS_PER_DOC_QUICK = 25;
 const SCORE_THRESHOLD_QUICK = 0.50;
 const SCORE_THRESHOLD_EXHAUSTIVE = 0.45;
 
+/**
+ * Presupuesto del candidato en modo EXHAUSTIVO — VARIABLE DE EXPERIMENTO, no
+ * decisión de diseño (F-73 P3).
+ *
+ * Se lee de `ANALYSIS_EXHAUSTIVE_BUDGET_CHARS` para poder medir los dos
+ * estados sin un despliegue por cada uno: el exhaustivo corre en el worker de
+ * Railway, y allí cambiar una variable de entorno reinicia el servicio en
+ * segundos, sin rebuild. Sin la variable vale lo mismo que el rápido, así que
+ * el estado desplegado por defecto es "los dos modos seleccionan igual".
+ *
+ * Los dos estados a medir:
+ *   Estado 1 → sin variable (3000): idéntico al rápido.
+ *   Estado 2 → 6000: el doble, para ver si la tabla del par de prueba alcanza
+ *              nivel 1 y si eso mueve la detección.
+ *
+ * 6000 es un valor ELEGIDO PARA AISLAR LA VARIABLE, no una decisión tomada.
+ * F-73 P3 fija que el exhaustivo quedará idéntico al rápido en SELECCIÓN, y
+ * que su diferencia con él es de ALCANCE (25 candidatos frente a 6, umbral
+ * 0,45 frente a 0,50, documento nuevo sin truncar) y de GARANTÍA (Sonnet en el
+ * double-check) — nunca de VOLUMEN por par. Si el experimento dijera que 6000
+ * detecta mejor, la conclusión no sería "súbelo": sería que hay algo que
+ * entender antes de fijar nada.
+ *
+ * Cuando el experimento cierre, esta función y su variable se retiran.
+ */
+const EXHAUSTIVE_BUDGET_ENV = 'ANALYSIS_EXHAUSTIVE_BUDGET_CHARS';
+
+function resolveExhaustiveBudget(): number {
+  const raw = process.env[EXHAUSTIVE_BUDGET_ENV];
+  if (!raw) return FRAGMENT_BUDGET_CHARS_QUICK;
+  const parsed = Number.parseInt(raw, 10);
+  if (!Number.isFinite(parsed) || parsed <= 0) {
+    console.warn(
+      `[retrieval] ${EXHAUSTIVE_BUDGET_ENV}="${raw}" no es un entero positivo — se usa el valor del rápido (${FRAGMENT_BUDGET_CHARS_QUICK})`
+    );
+    return FRAGMENT_BUDGET_CHARS_QUICK;
+  }
+  return parsed;
+}
+
 export async function retrieveCandidates(args: {
   sampleTexts: string[];
   orgId: string;
@@ -113,9 +162,10 @@ export async function retrieveCandidates(args: {
   candidates: CandidateDocument[];
   chunksByDocument: Map<string, StoredChunk[]>;
   /** F-45: colapsos de filas idénticas por documento candidato — vacío si el
-   *  candidato no tuvo ninguna tabla colapsada (el caso normal). Solo se
-   *  llena en modo rápido: el exhaustivo nunca pasa por selectUnitsWithinBudget
-   *  (sin recorte, no hay nada que colapsar). */
+   *  candidato no tuvo ninguna tabla colapsada (el caso normal).
+   *  F-73: se llena en LOS DOS MODOS. Hasta entonces solo en rápido, porque el
+   *  exhaustivo no pasaba por selectUnitsWithinBudget; con el camino unificado
+   *  la entrada de solapamiento estructural (F-45/F-46) existe también ahí. */
   structuralOverlaps: Map<string, StructuralOverlap[]>;
 }> {
   const { sampleTexts, orgId, excludeDocumentId, batchDocumentIds, options, supabase, newDocumentChunks } = args;
@@ -199,6 +249,17 @@ export async function retrieveCandidates(args: {
     })),
   });
 
+  // F-73: el presupuesto por candidato. El rápido conserva el suyo intacto; el
+  // exhaustivo lee la variable de experimento (ver resolveExhaustiveBudget).
+  // Se resuelve UNA vez por análisis, no por candidato, y se registra: sin esta
+  // línea en el log no hay forma de saber, al leer una tanda, con qué
+  // presupuesto se midió.
+  const budgetChars = isExhaustive ? resolveExhaustiveBudget() : FRAGMENT_BUDGET_CHARS_QUICK;
+  console.log(
+    `[retrieval] presupuesto por candidato: ${budgetChars} chars, tope ${MAX_FRAGMENTS_PER_DOC_QUICK} piezas ` +
+    `(modo ${isExhaustive ? 'exhaustivo' : 'rapido'})`
+  );
+
   const candidates: CandidateDocument[] = [];
   const structuralOverlapsByDocument = new Map<string, StructuralOverlap[]>();
   for (const [documentId, frags] of byDoc) {
@@ -211,10 +272,16 @@ export async function retrieveCandidates(args: {
     );
 
     let selected: DocumentFragment[];
-    if (isExhaustive) {
-      // Exhaustivo: todos los fragmentos únicos, sin recorte ni reparto.
-      selected = sorted;
-    } else {
+    // F-73: UN SOLO CAMINO DE SELECCIÓN. Aquí había un `if (isExhaustive)` que
+    // se llevaba `sorted` en bruto y saltaba ENTERA la maquinaria de abajo:
+    // buildUnits, la pertenencia por valor de F-42, selectUnitsWithinBudget,
+    // los niveles, el colapso de idénticas y los structuralOverlaps. Medido el
+    // 26/08 en la dirección OPE-02 → RRHH-06: quince filas sin destilar
+    // detectan PEOR que nueve destiladas.
+    // Los structuralOverlaps entran con él, y es correcto: mantenerlos apagados
+    // exigiría un `if` nuevo dentro del camino recién unificado, o sea escribir
+    // código para conservar un defecto (F-73 P2).
+    {
       const docChunks = chunksByDocument.get(documentId) ?? [];
 
       // F-42: dos números distintos, no uno — "la regla no aplicó" (ningún
@@ -242,7 +309,7 @@ export async function retrieveCandidates(args: {
         );
       }
 
-      const result = selectUnitsWithinBudget(units, docChunks, sorted[0], analyzedValueIndex, analyzedRows);
+      const result = selectUnitsWithinBudget(units, docChunks, sorted[0], analyzedValueIndex, analyzedRows, budgetChars);
       selected = result.selected;
       if (result.structuralOverlaps.length > 0) {
         structuralOverlapsByDocument.set(documentId, result.structuralOverlaps);
@@ -258,9 +325,23 @@ export async function retrieveCandidates(args: {
           : 'fila única sin resumen (caso raro)';
         console.log(`[retrieval] "${sorted[0].documentName}" tabla "${t.sheetName ?? t.tableId}": nivel ${t.level} (${levelDesc}, ${t.chars} chars)`);
       }
+      // F-73: DESGLOSE POR TIPO, no solo el total. Subir el presupuesto del
+      // exhaustivo mueve DOS cosas a la vez — caben más filas de tabla Y caben
+      // unidades de prosa que antes se quedaban fuera—, así que un log que
+      // solo dijera "3 dentro, 0 fuera" dejaría la lectura del experimento
+      // ambigua: no se sabría si detectó por la tabla completa o por la prosa
+      // que entró con ella. Se deriva de lo que ya se tiene: cada tabla que
+      // entra empuja exactamente una entrada en tableLog (las cuatro vías lo
+      // hacen), así que el resto de unitsIn es prosa.
+      const tableUnitsTotal = units.filter(u => u.kind === 'table').length;
+      const proseUnitsTotal = units.length - tableUnitsTotal;
+      const tableUnitsIn = result.tableLog.length;
+      const proseUnitsIn = result.unitsIn - tableUnitsIn;
+      const tableChars = result.tableLog.reduce((sum, t) => sum + t.chars, 0);
       console.log(
-        `[retrieval] "${sorted[0].documentName}" unidades: ${result.unitsIn} dentro, ${result.unitsOut} fuera, ` +
-        `${usedChars}/${FRAGMENT_BUDGET_CHARS_QUICK} caracteres`
+        `[retrieval] "${sorted[0].documentName}" unidades: ${result.unitsIn} dentro, ${result.unitsOut} fuera ` +
+        `(tabla ${tableUnitsIn}/${tableUnitsTotal}, prosa ${proseUnitsIn}/${proseUnitsTotal}), ` +
+        `${usedChars}/${budgetChars} caracteres (tabla ${tableChars}, prosa ${usedChars - tableChars})`
       );
     }
 
@@ -737,6 +818,10 @@ function selectUnitsWithinBudget(
   like: DocumentFragment,
   analyzedValueIndex: Map<string, Set<string>>,
   analyzedRows: StoredChunk[],
+  /** F-73: el presupuesto entra por parámetro. Antes se leía
+   *  FRAGMENT_BUDGET_CHARS_QUICK directo del módulo, lo que impedía que el
+   *  exhaustivo tuviera uno propio sin duplicar la función. */
+  budgetChars: number,
 ): { selected: DocumentFragment[]; tableLog: TableLevelLog[]; unitsIn: number; unitsOut: number; structuralOverlaps: StructuralOverlap[] } {
   const selected: DocumentFragment[] = [];
   const tableLog: TableLevelLog[] = [];
@@ -747,7 +832,7 @@ function selectUnitsWithinBudget(
   for (let i = 0; i < units.length; i++) {
     if (selected.length >= MAX_FRAGMENTS_PER_DOC_QUICK) break;
     const unit = units[i];
-    const remainingBudget = FRAGMENT_BUDGET_CHARS_QUICK - usedChars;
+    const remainingBudget = budgetChars - usedChars;
     const remainingCount = MAX_FRAGMENTS_PER_DOC_QUICK - selected.length;
 
     if (unit.kind === 'prose') {
