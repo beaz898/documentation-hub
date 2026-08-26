@@ -1706,6 +1706,42 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     Cruzar con B.99: si se añade el reembolso en los dos catch, este pasa de
     deuda latente a defecto con tres llamadores.
 
+  B.101 — [REGLA DUPLICADA, 26/08] El veto del exhaustivo se comprueba por
+    NOMBRE DE PLAN, y en dos sitios. El backend lo hace en
+    app/api/analyze-v2/route.ts:141 (`if (orgPlan?.plan === 'free')` → 403), y
+    desde ff652755 el frontend hace el espejo en
+    app/(authenticated)/settings/review/page.tsx:41
+    (`credits.plan !== 'free'`) para no ofrecer un botón de 30 créditos por
+    documento a quien va a recibir un 403.
+    NO LO INTRODUCE ff652755: el backend lleva comparando el plan a pelo desde
+    que existe el exhaustivo. Lo que ese commit añade es el segundo sitio, y con
+    él el problema real — una regla viviendo en dos lugares se rompe CALLADA el
+    día que cambien los planes: se añade un plan nuevo sin exhaustivo, o 'free'
+    pasa a llamarse de otra forma, y una de las dos mitades se entera y la otra
+    no. El síntoma sería un botón ofrecido que devuelve 403, o uno escondido a
+    quien sí puede pagarlo.
+    CONTRADICE LA DOCTRINA QUE EL PROPIO PROYECTO YA TIENE ESCRITA. CLAUDE.md,
+    en la sección de créditos y facturación: "Use getOrgFeatures(supabase,
+    orgId) from lib/plan-features.ts to gate Drive, analytics panel, and
+    variable pricing — never hardcode plan names in feature checks". Y en las
+    reglas de trabajo: "Always gate Drive and analytics panel features via
+    getOrgFeatures(), never hardcode plan names". Drive y el panel de analíticas
+    SÍ tienen su flag (hasDrive, hasAnalyticsPanel); el exhaustivo es la
+    excepción, y por eso es el único que se compara por nombre.
+    LO QUE HARÍA FALTA, y son tres piezas pequeñas en el mismo commit:
+      1. `hasExhaustive` en PLAN_FEATURES (lib/stripe.ts:68) y por tanto en lo
+         que devuelve getOrgFeatures (lib/plan-features.ts:36).
+      2. Exponerlo en /api/usage/summary, junto a hasAgent y hasAnalyticsPanel,
+         y añadirlo a AccountFeatures (contexts/types.ts:37) — que ya declara
+         hasDrive "for forward-compatibility", así que el patrón está hecho.
+      3. Que los DOS lados pregunten por él: el endpoint sustituye su consulta
+         a organizations.plan por getOrgFeatures, y la bandeja lee
+         features.hasExhaustive en vez de credits.plan.
+    Mientras no exista, el espejo se queda: ofrecer algo que el usuario no puede
+    comprar es peor que duplicar una comparación. El comentario de la prop
+    `planAllowsExhaustive` en components/review/ReviewSelectionBar.tsx:25-37 ya
+    apunta a este pendiente.
+
   F-20 [ESTADO, agosto 2026] Extracción estructurada. Paso 1 (extractSegments +
     EXTRACTOR_VERSION, commit 509e15d4) y paso 2 (persistencia en document_chunks,
     commit d00b085b) HECHOS. Paso 3 (job de reprocesado) RETIRADO — ver B.76. El
