@@ -2,9 +2,11 @@
 
 Histórico de mediciones. **Crece por arriba: lo más reciente, primero.**
 
-El protocolo —los cinco casos, cómo se lanzan, qué se apunta— está en
-`claude/Protocolo_Harness_Tasas.md`. **Este fichero no lo repite**: aquí solo van
-las cifras.
+Los **once casos** —qué documentos entran en cada uno y qué debe encontrar—
+están en `claude/Casos_Harness.md`. El **método** —cómo se lanza una tanda, qué
+se apunta de cada pasada, la regla de admisión— está en
+`claude/Protocolo_Harness_Tasas.md`. **Este fichero no repite ninguno de los
+dos**: aquí solo van las cifras.
 
 Al leer una tasa, mirar siempre contra qué commit se midió. Y recordar que
 «línea de base» significa cosas opuestas en `Cierre_B81.md` (el síntoma, ANTES

@@ -14,5 +14,13 @@
 # (la siembra de los 15 anos esta en su linea 82). Sin conversion.
 *.txt   -text
 
-# Esto si es documentacion nuestra, texto normal.
-SIEMBRA_corpus_ampliado.md text
+# Los registros de siembra si son documentacion nuestra: texto normal, con sus
+# finales de linea normalizados y su diff legible. La regla va por extension y
+# no por nombre a proposito — antes nombraba un fichero concreto, y al aparecer
+# el segundo registro este quedo sin regla y cayendo en la heuristica. Que es
+# exactamente lo que este fichero existe para impedir.
+*.md    text
+
+# Y este mismo fichero, para que no quede un solo elemento de la carpeta
+# decidido por la heuristica.
+.gitattributes text

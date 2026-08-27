@@ -306,7 +306,7 @@ tampoco debe contarse como falso positivo.
 | 3 · Negación categórica (contenedor negro) | prohibición | **EL JUEZ NUNCA LA EMITE** |
 
 **Línea de base: 2 de 3.** Detalle de la tanda en `claude/Tandas_Harness.md`;
-los casos 10 y 11 del protocolo, en `claude/Protocolo_Harness_Tasas.md`.
+los casos 10 y 11, en `claude/Casos_Harness.md`.
 
 ### La tercera no es un fallo de selección
 
