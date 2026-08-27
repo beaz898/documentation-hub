@@ -1,0 +1,106 @@
+DENTAVIA CLÍNICAS DENTALES
+Departamento Legal y Compliance
+
+HISTORIA CLÍNICA Y CONSENTIMIENTO INFORMADO
+Versión 1.0 · Revisado junio 2023 · Departamento Legal y Compliance
+Aplicable a: todas las clínicas de la red
+
+============================================================
+1. OBJETO
+============================================================
+Este documento regula el contenido, la custodia y el acceso a la
+historia clínica dental, así como los requisitos del consentimiento
+informado, conforme a la Ley 41/2002 básica reguladora de la autonomía
+del paciente y de derechos y obligaciones en materia de información y
+documentación clínica.
+
+============================================================
+2. CONTENIDO MÍNIMO DE LA HISTORIA CLÍNICA
+============================================================
+- Datos de identificación del paciente y del profesional responsable.
+- Anamnesis general y odontológica (antecedentes médicos, alergias,
+  medicación habitual).
+- Odontograma y periodontograma actualizados.
+- Ficha de tratamiento por sesión: procedimiento realizado, material
+  empleado, anestesia utilizada y lote cuando proceda.
+- Pruebas complementarias (radiografías, fotografías clínicas).
+- Presupuestos aceptados y consentimientos informados firmados.
+- Evolución y complicaciones, si las hubiera.
+
+Toda anotación debe quedar fechada y firmada (o validada
+electrónicamente) por el profesional que la realiza. No se permite
+borrar ni sobrescribir anotaciones previas: las correcciones se anotan
+como entradas nuevas con referencia a la anotación corregida.
+
+============================================================
+3. CONSENTIMIENTO INFORMADO
+============================================================
+Es obligatorio disponer de consentimiento informado específico y por
+escrito, firmado antes de iniciar el tratamiento, para:
+
+- Exodoncias quirúrgicas y cirugía oral.
+- Endodoncia.
+- Colocación de implantes dentales.
+- Tratamientos de ortodoncia con aparatología fija o alineadores.
+- Sedación consciente, cuando se ofrezca en la clínica.
+- Cualquier procedimiento con riesgo relevante de complicación.
+
+El consentimiento debe recoger, como mínimo: naturaleza y objetivo del
+tratamiento, riesgos típicos y personalizados, alternativas
+terapéuticas razonables y consecuencias previsibles de no tratarse.
+
+3.1 Menores e incapacitados
+En menores de edad, firma el representante legal. A partir de los 16
+años, el propio menor puede prestar consentimiento salvo en
+situaciones de grave riesgo, en las que se informa también a los
+padres o tutores. En pacientes con capacidad modificada judicialmente,
+firma quien ostente la representación legal, facilitando además una
+explicación adaptada al paciente en la medida de lo posible.
+
+3.2 Revocación
+El paciente puede revocar el consentimiento en cualquier momento antes
+del inicio del tratamiento, y debe quedar constancia escrita de dicha
+revocación en la historia clínica.
+
+============================================================
+4. ACCESO Y RECTIFICACIÓN
+============================================================
+El paciente tiene derecho a acceder a su historia clínica completa,
+solicitar copia y pedir la rectificación de datos inexactos. Las
+solicitudes se atienden en un plazo máximo de 30 días naturales desde
+su recepción, conforme al procedimiento descrito en NOR-01 (RGPD y
+protección de datos de pacientes).
+
+============================================================
+5. CONSERVACIÓN Y CUSTODIA
+============================================================
+La historia clínica se conserva en soporte electrónico dentro del
+sistema de gestión clínica de Dentavia, con copia de seguridad diaria
+cifrada.
+
+El plazo mínimo de conservación de la historia clínica completa es de
+QUINCE (15) AÑOS desde la fecha de la última asistencia prestada al
+paciente. En el caso de procedimientos quirúrgicos relevantes
+(implantología, cirugía oral compleja), se recomienda la conservación
+indefinida de la documentación asociada dada la posible relevancia
+médico-legal a largo plazo.
+
+Transcurrido el plazo mínimo, la documentación solo podrá eliminarse
+previa autorización expresa del Departamento Legal y Compliance, que
+verificará que no existe ningún procedimiento judicial o reclamación
+en curso relacionada con el paciente.
+
+============================================================
+6. TRASLADO DE HISTORIA CLÍNICA
+============================================================
+Ante la solicitud de traslado a otro centro, se entrega copia completa
+o resumen clínico según lo solicite el paciente, en un plazo máximo de
+15 días hábiles, sin coste para el paciente por la primera copia.
+
+============================================================
+7. REFERENCIAS
+============================================================
+- Ley 41/2002, de 14 de noviembre, básica reguladora de la autonomía
+  del paciente.
+- NOR-01, RGPD y protección de datos de pacientes.
+- NOR-02, LOPDGDD aplicada a clínica.
