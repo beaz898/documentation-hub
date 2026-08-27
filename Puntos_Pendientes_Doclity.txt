@@ -1824,6 +1824,47 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     queda material fuera, y los casos D (ni el resumen cupo) y E (la unidad ni
     se intenta) siguen contando solo en unitsOut, sin clave propia.
 
+  B.105 — [REGLA ABIERTA, 27/08] Una batería sobre un PROMPT tiene que
+    EJECUTARSE contra el modelo, no trazarse a mano.
+    LA BATERÍA DE 87db03cc (verificador de hallazgos, la llamada corta) se
+    trazó, en palabras de su propio mensaje de commit, "a mano, sin llamar al
+    LLM": once casos —los siete falsos positivos de F-22 en sus tres patrones,
+    los dos aciertos vivos (Puesto de Pablo Reyes y conservación 15/5 años), el
+    caso mixto de las 44 horas y un lote con respuesta incompleta simulada—, y
+    su conclusión fue "ninguno reveló falta de información en el prompt".
+    ESA CONCLUSIÓN ES CIERTA Y ES INSUFICIENTE. "El prompt CONTIENE la
+    información para decidir" y "un modelo delante de este prompt DECIDE bien"
+    son dos afirmaciones distintas, y solo la primera estaba medida. Trazar a
+    mano vale para verificar código determinista; no vale para verificar una
+    instrucción que lee un LLM, porque el trazador es quien decide, no el
+    modelo.
+    ES LA CAUSA DE QUE F-77 LLEGARA A PRODUCCIÓN. En el fallo del 26/08 sobre
+    87a76112 la información estaba entera delante del modelo —las dos citas
+    correctas, con "no el Director Clínico" explícito en la de CLI-12— y
+    respondió mismo_dato_sin_oposicion igual. Una batería trazada a mano no
+    podía cazarlo: trazándolo a mano, ese caso se decide bien.
+    LA OBJECIÓN QUE YA NO VALE: hasta hoy faltaba corpus de prueba versionado
+    para poder ejecutar una batería de verdad. Desde los commits de corpus del
+    27/08 los ONCE documentos del harness están en corpus-pruebas/ —los cinco
+    del piloto, los cuatro del ampliado y los dos del control NOR-11/CLI-13—,
+    con su registro de siembra. La regla de admisión del protocolo del harness
+    (claude/Protocolo_Harness_Tasas.md) se cumple. No queda excusa material.
+    QUÉ QUEDA POR DECIDIR: cómo se ejecuta. Los once documentos dan el ground
+    truth, pero no hay todavía forma de lanzar una batería de prompt sin pasar
+    por un análisis completo desde la bandeja. Decidir si se hace así —caro y
+    lento pero real— o con un arnés que llame a verifyFindings con hallazgos
+    construidos a mano y citas sacadas de los documentos del repo.
+    APLICA YA AL BLOQUE DE F-77 (commit del 27/08, lib/analysis/verify-findings.ts):
+    se escribió con el ground truth delante y comprobado contra los siete de
+    F-22 uno por uno, que es más de lo que tuvo 87db03cc, pero NO se ha
+    ejecutado contra el modelo. Mientras no haya tanda, no se puede afirmar que
+    arregle el 0 de 3 de prosa.
+    Y UNA ADVERTENCIA PARA CUANDO SE MIDA: el ejemplo del bloque es "mismo rol,
+    dos personas", que es el mismo objeto que la siembra A. Si la siembra A pasa
+    a detectarse, eso NO prueba que el bloque generalice — prueba que el modelo
+    aplica un ejemplo casi idéntico. La parte no circular son las siembras B
+    (frecuencia semanal/mensual) y C (plazo 6/12 meses).
+
   F-74 [ALCANCE DEL MVP, 27/08] Lo que entra y lo que NO entra antes de salir.
     DOCTRINA DE PRODUCTO DEL DIRECTOR, literal y por delante de todo lo demás:
       "el sistema no puede esconder hallazgos y confiar en que el usuario los
