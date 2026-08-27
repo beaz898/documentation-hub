@@ -1938,6 +1938,45 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     hacer: es la misma pieza que el módulo interino, y hoy sabemos que por sí
     sola no movía ninguna de las tres siembras de prosa.
 
+  B.108 — [ENCONTRADO 27/08, DOS CAUSAS Y SOLO UNA ES DEL PROYECTO] El build
+    local no se puede ejecutar, así que no da veredicto antes de un push.
+    Reproducido con el árbol limpio antes de instalar vitest: NO lo introduce
+    esa infraestructura.
+    CAUSA 1 — SIN CI=true, la fase de lint se para en un prompt interactivo. No
+    hay configuración de ESLint en el repositorio y next lint pregunta cómo
+    configurarlo ("How would you like to configure ESLint?") dentro de un
+    worker que lo mata (exit 3221226505). Es del proyecto y tiene su propio
+    punto: B.109.
+    CAUSA 2 — CON CI=true el prompt se salta, el type-check pasa limpio, y
+    muere después en "Generating static pages" con JavaScript heap out of
+    memory (exit 134). Sube el heap a 6 GB con NODE_OPTIONS y muere igual. Es
+    RAM de la máquina, no del proyecto: AQUÍ NO HAY NADA QUE ARREGLAR.
+    CONSECUENCIA, que es lo que lo hace pendiente: el único gate real antes de
+    un push es npm run typecheck. El build solo se verifica en Vercel, DESPUÉS
+    del push, que es al revés de lo que conviene. Un error que typecheck no
+    caza —un import roto en tiempo de build, una página que no compila— llega a
+    producción y se descubre por el correo de Vercel.
+    CRUZAR CON LA INFRAESTRUCTURA DE VITEST (commit bf95dc5a): la suite corre
+    en local y da veredicto; el build no. Son dos huecos distintos y solo uno
+    está tapado.
+
+  B.109 — [PREEXISTENTE, encontrado 27/08] "lint" figura en package.json y no
+    es una puerta. next lint está declarado como script pero el repositorio no
+    tiene NINGUNA configuración de ESLint, así que lanza un asistente
+    interactivo en vez de comprobar nada.
+    No es de hoy: lleva así desde que existe el script, y cualquiera que lo lea
+    en package.json creerá que hay linting. CLAUDE.md lo documenta además como
+    "Lint + type-check".
+    DOS SALIDAS Y NINGUNA ELEGIDA:
+      · Configurar ESLint de verdad. Decisión con alcance propio, porque un
+        linter mal calibrado sobre código existente produce cientos de avisos
+        que nadie va a atender.
+      · Retirar el script y dejar constancia de que este proyecto no tiene
+        linter. Es honesto y cuesta una línea.
+    LO QUE NO VALE ES DEJARLO COMO ESTÁ: declara una garantía que no existe,
+    que es la misma familia que contradictions_confirmed midiendo "lo que
+    Sonnet no tumbó" (B.103).
+
   F-74 [ALCANCE DEL MVP, 27/08] Lo que entra y lo que NO entra antes de salir.
     DOCTRINA DE PRODUCTO DEL DIRECTOR, literal y por delante de todo lo demás:
       "el sistema no puede esconder hallazgos y confiar en que el usuario los
