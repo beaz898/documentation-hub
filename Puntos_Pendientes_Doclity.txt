@@ -1977,6 +1977,33 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     que es la misma familia que contradictions_confirmed midiendo "lo que
     Sonnet no tumbó" (B.103).
 
+  B.110 — [ABIERTO 27/08, LO EXIGE LA REGLA DE ENTRADA] La condición 3 de la
+    regla de entrada no tiene dónde cumplirse. Esa regla (protocolo,
+    claude/Protocolo_Harness_Tasas.md, 27/08) exige que todo cambio deje
+    CONTADOR EN PRODUCCIÓN: cuántas veces actúa. Hoy no hay sitio para eso.
+      · logUsage registra endpoint, modelo, tokens y latencia
+        (lib/usage-logger.ts, una fila por llamada a endpoint). No es una pieza
+        del pipeline actuando.
+      · analysis_results guarda el resultado del análisis. discardedFindings
+        cuenta hallazgos que se DESCARTAN, no piezas que se EJECUTAN.
+      · Y discardedFindings ya arrastra su propia mezcla: descartes, recuentos
+        de camino y averías bajo el mismo nombre — 'confirmado.por_estructura'
+        y 'confirmado.por_juicio' viven dentro de un campo llamado
+        "descartados". Ver el pendiente del renombrado, abierto desde la
+        SESIÓN 47 (Bitacora_Sesiones.txt, 24/08) y todavía sin cerrar.
+    EL RIESGO CONCRETO, que es lo que lo hace pendiente y no nota: el primer
+    cambio que invoque la regla tendrá que decidir dónde va su contador BAJO LA
+    PRESIÓN DE QUERER COMMITEAR. Así se acaba con un contador por cambio, cada
+    uno en un sitio, y ninguna forma de leerlos juntos — que es exactamente el
+    estado del que discardedFindings viene.
+    QUÉ HARÍA FALTA, sin elegir: decidir si los contadores de incidencia viven
+    en el jsonb del análisis, en una tabla propia, o en el sistema de
+    observabilidad que la deuda técnica del proyecto lleva pidiendo desde el
+    principio. Y sobre todo, decidirlo ANTES de que llegue el primer cambio que
+    los necesite.
+    CRUZAR con la regla de entrada, que es quien lo exige, y con el pendiente
+    del renombrado de discardedFindings.
+
   F-74 [ALCANCE DEL MVP, 27/08] Lo que entra y lo que NO entra antes de salir.
     DOCTRINA DE PRODUCTO DEL DIRECTOR, literal y por delante de todo lo demás:
       "el sistema no puede esconder hallazgos y confiar en que el usuario los
