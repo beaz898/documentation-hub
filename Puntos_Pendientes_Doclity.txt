@@ -2003,6 +2003,36 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     los necesite.
     CRUZAR con la regla de entrada, que es quien lo exige, y con el pendiente
     del renombrado de discardedFindings.
+    CONFIRMADO POR LA FASE 1 (commit fa22ca4e, 27/08): KeyCounts ya existe, con
+    los contadores del consenso —candidatasSimples, candidatasCompuestas,
+    consensoVacuo, biyectivas, el reparto en pares/soloNueva/soloExistente, las
+    cinco clases de ambigüedad y discrepanciaPorNormalizar—, y NO TIENE DÓNDE
+    VOLCARSE. Hoy no molesta porque la fase 1 no tiene
+    consumidores: nadie la llama, así que nadie tiene que decidir dónde va su
+    log. La fase 3 va a chocar con eso, y ESE es el momento en que la decisión
+    de este punto deja de ser aplazable.
+
+  B.111 — [LÍMITE DE EVIDENCIA, abierto 27/08 con la fase 1] El consenso del
+    diff SOLO está validado con casos construidos. Ninguno de los dos pares
+    reales del corpus lo ejercita: OPE-10/OPE-11 tiene candidatas biyectivas
+    —Código y Tratamiento, que no pueden discrepar— y OPE-02/RRHH-06 tiene una
+    sola (Empleado). Los once casos que validan el mecanismo central son
+    literales dentro de lib/analysis/table-key.test.ts, escritos a propósito.
+    El 35/0 de OPE-10/OPE-11 no es el consenso funcionando: es el consenso sin
+    nada que hacer.
+    NO ES UN DEFECTO DEL CORPUS: dos candidatas que discrepan es un accidente
+    en un Excel real, y no se puede sembrar sin fabricar un documento con un
+    renombrado de columna a propósito.
+    QUÉ MIRAR CUANDO LLEGUE UN CORPUS DE CLIENTE, y es lo PRIMERO que hay que
+    mirar: cuántas veces saltan candidatas_discrepan, candidatas_parciales,
+    valor_repetido_enfrente y valor_repetido_en_su_tabla.
+      · Si NUNCA saltan, el consenso es maquinaria que no actúa y habrá que
+        decidir si se conserva.
+      · Si saltan MUCHO, la regla («se conserva lo que coincide bajo todas»)
+        es demasiado estricta, y eso también es dato.
+    CRUZAR con la condición 3 de la regla de entrada (protocolo,
+    claude/Protocolo_Harness_Tasas.md), que es quien exige el contador, y con
+    B.110, que es donde ese contador todavía no tiene sitio.
 
   F-74 [ALCANCE DEL MVP, 27/08] Lo que entra y lo que NO entra antes de salir.
     DOCTRINA DE PRODUCTO DEL DIRECTOR, literal y por delante de todo lo demás:
