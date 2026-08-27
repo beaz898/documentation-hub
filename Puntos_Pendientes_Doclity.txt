@@ -2034,6 +2034,40 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     claude/Protocolo_Harness_Tasas.md), que es quien exige el contador, y con
     B.110, que es donde ese contador todavía no tiene sitio.
 
+  F-81 [CONVERGENCIA — leer ANTES de planificar la fase 3 del diff, 27/08] No
+    es un pendiente nuevo: es el sitio donde se juntan tres que ya existen, más
+    una consecuencia. Se anota aquí porque el momento en que importan es el de
+    planificar la fase 3, no el de descubrirlos a mitad del commit.
+    Estado al escribirlo: fase 1 (fa22ca4e) y fase 2 (beaf075f) en main, 34
+    casos deterministas, y SIN CONSUMIDORES — nada del pipeline las llama.
+
+    1. B.110 DEJA DE SER APLAZABLE. KeyCounts y TableDiffCounts existen los
+       dos, con dieciocho contadores fijos entre ambos (más dos banderas y un
+       mapa por columna), y ninguno tiene dónde volcarse. La fase 3 no se puede
+       escribir sin decidir eso, y decidirlo con el commit a medias es cómo se
+       acaba con un contador por sitio — que es exactamente el estado del que
+       B.110 viene. Ver B.110.
+
+    2. B.111 EMPIEZA A PODER RESPONDERSE. Los cuatro contadores de ambigüedad
+       del consenso (candidatas_discrepan, candidatas_parciales y los dos de
+       valor repetido) solo dicen algo cuando esto corre contra documentos
+       reales; con el corpus de pruebas son cero por construcción. Ver B.111.
+
+    3. B.97 SE TOCA DE LADO, Y ESTA ES LA QUE MÁS CUIDADO PIDE. Si la fase 3
+       emite igualTrasNormalizar como algo distinto de una discrepancia plena,
+       está tomando por su cuenta la decisión que B.97 tiene abierta para R2.
+       QUE SEA LA MISMA DECISIÓN, NO DOS — y si se toma en la fase 3, que
+       CIERRE B.97 en el mismo movimiento, en vez de dejar dos criterios
+       conviviendo en el mismo sistema. Ver B.97.
+
+    4. Y LA CONSECUENCIA: la fase 3 es la que hace que el diff ACTÚE, y por
+       tanto la PRIMERA que puede cumplir la condición 3 de la regla de entrada
+       (protocolo, claude/Protocolo_Harness_Tasas.md). Hasta ahora el diff
+       cumple mecanismo (condición 1, con los casos construidos) y no-regresión
+       (condición 2) de forma TRIVIAL, porque no se ejecuta: no hay nada que
+       pueda empeorar en algo que nadie llama. La fase 3 es donde las tres
+       condiciones se vuelven exigibles de verdad.
+
   F-74 [ALCANCE DEL MVP, 27/08] Lo que entra y lo que NO entra antes de salir.
     DOCTRINA DE PRODUCTO DEL DIRECTOR, literal y por delante de todo lo demás:
       "el sistema no puede esconder hallazgos y confiar en que el usuario los
