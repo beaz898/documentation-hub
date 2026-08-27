@@ -1,0 +1,18 @@
+# Los documentos del harness se guardan y se recuperan BYTE A BYTE.
+#
+# NOR-01.pdf no contiene ningun byte NUL en sus primeros 8 KB, asi que la
+# heuristica de git lo clasifica como TEXTO. Con core.autocrlf=true eso
+# significa que el proximo checkout le inyectaria CR en sus 99 saltos de
+# linea y el PDF dejaria de abrir. Los .docx y .xlsx si se detectan solos,
+# pero se declaran igual: una heuristica no es una garantia, y el ground
+# truth de una medicion no puede depender de ella.
+*.pdf   binary
+*.docx  binary
+*.xlsx  binary
+
+# CLI-03 es texto, pero es un DOCUMENTO DEL CORPUS: sus bytes son el dato
+# (la siembra de los 15 anos esta en su linea 82). Sin conversion.
+*.txt   -text
+
+# Esto si es documentacion nuestra, texto normal.
+SIEMBRA_corpus_ampliado.md text
