@@ -260,6 +260,63 @@ embedding y presupuesto**: no hay pertenencia por valor ni colapso de idénticas
 que es lo que F-73 midió como el mecanismo que hace posible la detección en
 tablas.
 
+### Los casos 10 y 11: el caso de control de superficies
+
+Los casos 8 y 9 miden prosa larga; los 6 y 7, tablas grandes. **Este par mide
+otra cosa: si el sistema razona por el MECANISMO o memoriza el patrón
+superficial.** Todo lo confirmado hasta el 27/08 en prosa era sobre *quién ocupa
+un cargo* (Director Clínico vs Coordinador de Calidad). Si solo detectara esa
+forma, no sabríamos si detecta contradicciones o si reconoce un molde.
+
+| # | Caso | Documentos | Qué debe encontrar |
+|---|---|---|---|
+| 10 | Control de superficies, dirección A | Analizar **NOR-11** contra **CLI-13** | Las **3** sembradas, **ninguna sobre personas ni cargos**: un plazo (72 h vs 7 días naturales), un topónimo (Chamberí vs Retiro) y una negación categórica (contenedor negro) |
+| 11 | Control de superficies, dirección B | Analizar **CLI-13** contra **NOR-11** | Las mismas 3, lados intercambiados |
+
+**Nombres de fichero exactos**:
+
+```
+NOR-11_gestion-de-residuos-sanitarios.docx
+CLI-13_instrucciones-clinicas-residuos.docx
+```
+
+**El detalle está en `corpus-pruebas/SIEMBRA_caso_control.md`**, y ahí hay tres
+cosas que hay que leer ANTES de contar una tanda de este par:
+
+- **La coartada jerárquica**: los dos documentos declaran, en su propio texto,
+  que prevalece NOR-11 y que CLI-13 no altera sus criterios. Un modelo puede
+  leerlo como «hay jerarquía, no contradicción». Las confirmaciones se logran
+  **pese** a eso.
+- **La tensión sobre quién cierra el contenedor** no es una cuarta
+  contradicción, pero un hallazgo sobre ella **no es un falso positivo**: sale
+  del texto. Está anotada para que no se cuente al revés.
+- La **siembra 3 es doblemente contradictoria**: además del color, los dos
+  documentos discrepan sobre qué ES el contenedor negro.
+
+**A diferencia del corpus ampliado, aquí la auditoría de consistencia es
+COMPLETA**: 4 y 5 páginas, 163 líneas leídas enteras. Cuando el registro dice
+«cero adicionales», no significa «no encontré más».
+
+#### LÍNEA DE BASE — 27/08/2026, sobre `8cf73e23`
+
+| Contradicción | Superficie | Resultado |
+|---|---|---|
+| 1 · 72 h vs 7 días | plazo | **CONFIRMADA** |
+| 2 · Chamberí vs Retiro | topónimo | **CONFIRMADA** |
+| 3 · contenedor negro | negación categórica | **EL JUEZ NUNCA LA EMITE** |
+
+**2 de 3.** Y la lectura, que es lo que este par existía para dar: **el sistema
+RAZONA por el mecanismo, no memoriza la superficie.** Dos superficies nuevas,
+ninguna sobre roles, confirmadas. Con eso queda descartada la circularidad que
+B.105 temía sobre el bloque de F-77.
+
+**La tercera no contesta esa pregunta, porque muere antes**: no llega a
+razonarse. El juez no la emite pese a tener el material delante —el descarte de
+un solapamiento de esa misma pasada cita literalmente «contenedor negro
+habilitado en cada gabinete»—. Es **B.106**, un techo distinto del de la
+selección, y hasta que se resuelva, la superficie «negación categórica» sigue
+**sin medir**.
+
 ---
 
 ## 3. Cómo se lanza
