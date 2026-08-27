@@ -103,6 +103,70 @@ sale `i/lf` en algo que no sea texto nuestro, declararlo en el
 
 ---
 
+## ⚠️ REGLA DE ENTRADA: ningún cambio entra sin mecanismo, no-regresión e incidencia
+
+*Añadida el 27/08/2026 (F-81 P3). Va aquí, pegada a la regla de admisión, porque
+las dos son condiciones de entrada: aquella para las MEDICIONES, esta para los
+CAMBIOS.*
+
+**EL ORIGEN, literal, porque la formulación importa.** Es una cautela del
+director:
+
+> «Que no haya mejoría en el caso de prueba no quiere decir al cien por cien que
+> esa mejora no funcione, sino que para el caso de prueba no funciona. Puede ser
+> que no funcione para ningún caso, pero eso no lo podemos certificar. Algo que
+> ahora no da mejoría, cuando tengamos cincuenta documentos de otra dimensión o
+> de otro tipo, puede cambiar — para bien o para mal.»
+
+Es la **asimetría de la evidencia negativa**: una tanda que no se mueve no dice
+«esto no sirve», dice «esto no sirve AQUÍ». Y hasta hoy la tratábamos mal en
+**las dos direcciones**:
+
+- Aplazamos el commit de normalización de citas **porque no movía ninguna
+  siembra** —aunque el fallo que arregla está diagnosticado y es real—.
+- Damos por bueno el bloque del verificador **porque funciona en cinco
+  documentos de prueba**, que no dice nada de qué hará con cincuenta de un
+  cliente.
+
+Las dos son el mismo error de lectura: confundir el alcance del corpus con el
+alcance de la verdad.
+
+### La regla, en tres condiciones. Ningún cambio entra sin las tres
+
+**1. MECANISMO DEMOSTRADO.** Existe al menos un caso —sembrado en el corpus o
+test determinista— que **falla sin el cambio y pasa con él**.
+
+Esta condición cierra los dos extremos a la vez. Muere «no lo mide el corpus,
+así que no entra», porque la condición admite casos **construidos**. Y muere «yo
+creo que sirve», porque si no puedes construir ni un caso que tu arreglo
+arregle, es fe.
+
+**2. NO-REGRESIÓN MEDIDA.** La tanda del harness (§3, para lo que un modelo lee)
+o la suite determinista (§1-bis, para lo demás) **no empeora en nada**.
+
+**3. INCIDENCIA OBSERVABLE.** El cambio deja **contador en producción** —cuántas
+veces actúa— para que «¿sirvió de verdad?» tenga respuesta con datos dentro de
+tres meses, en vez de opiniones hoy.
+
+El porqué de la tercera es la dirección inversa de la cautela, y es la que se
+olvida: **producción es la tanda que nunca termina.** Un cambio que funciona en
+cinco documentos y **no actúa nunca** en cincuenta no es un acierto: es una pieza
+que no sabemos si sirve, y sin contador no lo sabremos jamás.
+
+### Los dos ejemplos del proyecto, que valen más que la regla abstracta
+
+**Cómo se hace BIEN — el bloque del verificador (F-77).** Entró con la siembra A
+demostrando el mecanismo, y se validó su generalización con NOR-11/CLI-13. **No
+entró por fe.**
+
+**El caso que la regla desatasca — la normalización de citas.** El fallo del
+«quince (15) años» está diagnosticado y la batería diseñada. Cuando esa batería
+corra como test y pase, el cambio **entra declarado y demostrado —aunque ninguna
+tanda del corpus mueva su aguja—**, porque la condición 1 admite el test. Antes
+de esta regla llevaba aplazado por la razón equivocada.
+
+---
+
 ## 1. Para qué sirve
 
 La regla que fijaron F-59 y F-61, y que este harness existe para hacer cumplible:
