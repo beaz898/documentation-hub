@@ -1,10 +1,18 @@
 # SIEMBRA — Corpus ampliado Dentavia (ampliación piloto)
 
-> **Nota del repositorio (27/08/2026).** Este registro se incorpora **literal**,
-> tal como lo entregó su autor, con **una sola adición**: el bloque marcado
-> «NOTA AÑADIDA AL REPOSITORIO» al final del §4, que documenta las 25 filas
-> exclusivas de OPE-10 —verificadas leyendo los ficheros el 27/08/2026— y que el
-> registro original no menciona. Nada más se ha tocado.
+> **Nota del repositorio (27/08/2026).** Este registro se incorporó **literal**,
+> tal como lo entregó su autor. Todo lo añadido o corregido después va **marcado
+> en su sitio** y fechado. Hasta hoy son tres cosas, las tres verificadas leyendo
+> los ficheros:
+>
+> 1. **§4** — el bloque «NOTA AÑADIDA AL REPOSITORIO»: OPE-10 también tiene 25
+>    filas exclusivas, que el registro original no menciona.
+> 2. **§1** — la **CONTRADICCIÓN D**, no sembrada a propósito, descubierta al
+>    investigar un descarte del juez.
+> 3. **§1 y §5** — corregida la afirmación de que fuera de las tres sembradas los
+>    dos documentos son consistentes. **No lo son.**
+>
+> El resto del texto no se ha tocado.
 
 Registro de auditoría de los problemas sembrados deliberadamente en los cinco
 ficheros de esta ampliación del corpus piloto Dentavia. Permite verificar los
@@ -21,12 +29,24 @@ Ficheros de esta ampliación:
 
 ---
 
-## 1. Las tres contradicciones de prosa (NOR-10 vs CLI-12)
+## 1. Las contradicciones de prosa (NOR-10 vs CLI-12): TRES sembradas y UNA que no
 
-Sembradas deliberadamente, una cerca del principio, una hacia la mitad y una
-cerca del final de **ambos** documentos. Fuera de estas tres, los dos
-documentos son consistentes entre sí: cualquier otra cifra, plazo o
-responsable que aparezca en ambos coincide.
+Las tres primeras (A, B y C) están sembradas deliberadamente, una cerca del
+principio, una hacia la mitad y una cerca del final de **ambos** documentos.
+
+> ### ⚠️ CORRECCIÓN DEL 27/08/2026 — este párrafo decía algo falso
+>
+> El registro original continuaba así: *«Fuera de estas tres, los dos documentos
+> son consistentes entre sí: cualquier otra cifra, plazo o responsable que
+> aparezca en ambos coincide.»*
+>
+> **No es cierto.** Hay una **CUARTA** contradicción, la **D**, que nadie sembró
+> y que se descubrió el 27/08 al investigar por qué el juez descartaba un
+> hallazgo. Está documentada abajo con los dos pasajes literales.
+>
+> Consecuencia para medir: **detectar la D es un ACIERTO, no un falso positivo.**
+> Y no se puede afirmar que no haya una quinta: los dos documentos no se han
+> auditado enteros, solo se ha comprobado lo que el registro declaraba.
 
 ### Contradicción A — Responsable último de la esterilización
 
@@ -60,6 +80,84 @@ frecuencia de 1:4, tajante y verificable.
 
 **Naturaleza del conflicto:** el doble de plazo (6 meses frente a 12 meses)
 para el mismo tipo de envase y las mismas condiciones de almacenaje.
+
+### Contradicción D — ¿pueden coincidir las dos figuras? · **NO SEMBRADA**
+
+> **AÑADIDA AL REPOSITORIO EL 27/08/2026.** No figura en el registro original y
+> **nadie la sembró**: apareció al investigar por qué el verificador descartaba
+> la contradicción A. Es una contradicción real entre los dos documentos, así
+> que **detectarla cuenta como acierto**.
+
+| | Documento | Apartado | Afirmación |
+|---|---|---|---|
+| Versión 1 | NOR-10 | **2.4 · Coordinador de Calidad** | El Coordinador de Calidad es una «figura que **puede recaer en el propio Director Clínico** o en otro profesional designado por él». |
+| Versión 2 | CLI-12 | **3.5 · Sustitución temporal del Coordinador de Calidad** | En ausencia del Coordinador de Calidad, sus funciones las asume el Coordinador de otra clínica de la red, «**nunca por el Director Clínico del propio centro**, precisamente para mantener la separación de funciones». |
+
+**Los dos pasajes, literales:**
+
+> **NOR-10 · 2.4:** «Cada clínica cuenta con un Coordinador de Calidad, figura
+> que **puede recaer en el propio Director Clínico** o en otro profesional
+> designado por él, encargado de supervisar el cumplimiento documental del
+> protocolo: mantener actualizados los registros, preparar la documentación para
+> auditorías internas y externas, y proponer mejoras al protocolo basadas en la
+> experiencia diaria del centro. El Coordinador de Calidad **no sustituye** al
+> Director Clínico en la responsabilidad última descrita en el apartado 2.1, sino
+> que actúa como apoyo operativo directo.»
+
+> **CLI-12 · 3.5:** «En ausencia programada o imprevista del Coordinador de
+> Calidad (vacaciones, baja), sus funciones son asumidas temporalmente por el
+> Coordinador de Calidad de otra clínica de la red, **nunca por el Director
+> Clínico del propio centro**, precisamente para mantener la **separación de
+> funciones** descrita en el apartado 3.1. Esta sustitución se comunica
+> formalmente a todo el personal del centro afectado.»
+
+**Naturaleza del conflicto:** NOR-10 permite expresamente que las dos figuras
+sean la misma persona; CLI-12 lo prohíbe expresamente y da el motivo (separación
+de funciones). Es el mismo dato —¿pueden coincidir?— con dos valores opuestos.
+
+CLI-12 lo refuerza en **3.4 (Resolución de conflictos de criterio)**, que fija
+qué pasa «cuando el Coordinador de Calidad y el Director Clínico de un centro
+discrepan» y hace prevalecer al Coordinador: un documento no escribe un
+procedimiento de arbitraje entre dos figuras que pueden ser la misma persona.
+
+**Localización en el texto extraído** (para poder reencontrar los pasajes sin
+abrir Word). Extrayendo con
+`unzip -p FICHERO.docx word/document.xml | sed -e 's#</w:p>#\n#g' -e 's/<[^>]*>//g'`:
+
+| | Apartado 2.1 / 3.1 (siembra A) | Apartado 2.4 / 3.5 (contradicción D) |
+|---|---|---|
+| NOR-10 | línea **25** (título en 24) | línea **32** (título en 31) |
+| CLI-12 | línea **31** (título en 30) | línea **40** (título en 39) |
+
+*(No se dan páginas: la extracción a texto plano pierde la paginación, y no se
+inventa un número que no se ha verificado. Las páginas de A, B y C son las del
+registro original.)*
+
+#### ⚠️ LA D VIVE PEGADA A LA A, Y ESO LA HACE DELICADA
+
+**Los apartados son contiguos: 2.4 va siete líneas después de 2.1 en NOR-10, y
+3.5 va nueve después de 3.1 en CLI-12.** Con el troceado en chunks de ~1.200
+caracteres, los dos pares caen en el mismo chunk o en chunks vecinos, así que el
+retrieval **los trae juntos** y el verificador de hallazgos, que recibe el chunk
+anterior y el posterior de cada cita como contexto, tiene muy probablemente el
+pasaje de la D delante mientras decide sobre la A.
+
+Tres consecuencias al leer una tanda:
+
+1. **Un juez que cite «puede recaer en el propio Director Clínico» NO está
+   alucinando.** Está copiando NOR-10. Cualquier descarte por «cita no
+   verificable» sobre esa frase hay que mirarlo dos veces: la cita existe.
+2. **Antes de contar un hallazgo, decidir si es sobre la A o sobre la D.** Los
+   dos hablan del Director Clínico y del Coordinador de Calidad, y se parecen
+   mucho leídos por encima. La A es *quién tiene la responsabilidad última*; la
+   D es *si las dos figuras pueden ser la misma persona*. Contar uno por otro
+   falsea la tasa en los dos sentidos.
+3. **La D NO invalida la A, la agrava.** La lectura «son dos nombres para la
+   misma persona, luego no se contradicen» no se sostiene: NOR-10 cierra esa
+   puerta él mismo en 2.4 («no sustituye al Director Clínico en la
+   responsabilidad última»), y CLI-12 la cierra en 3.5 («nunca por el Director
+   Clínico»). No hay ninguna lectura en la que A diga lo mismo en los dos
+   documentos.
 
 ---
 
@@ -169,13 +267,26 @@ más fáciles de confundir con las comunes por prefijo y por vocabulario.
 ## 5. Resumen — qué debería encontrar un sistema perfecto
 
 **Prosa (NOR-10 vs CLI-12):**
-- Exactamente **3 contradicciones**, ni más ni menos: responsable de la
-  esterilización (Director Clínico vs Coordinador de Calidad), periodicidad
-  del control biológico (semanal vs mensual) y caducidad del material
-  esterilizado (6 meses vs 12 meses).
-- **0 contradicciones adicionales** en el resto de contenido: cualquier otro
-  hallazgo de tipo "contradicción" entre estos dos documentos es un falso
-  positivo.
+
+> **⚠️ CORREGIDO EL 27/08/2026.** Este apartado decía «exactamente **3**
+> contradicciones, ni más ni menos» y que «cualquier otro hallazgo de tipo
+> contradicción entre estos dos documentos es un falso positivo». **Las dos
+> frases eran falsas**: hay una cuarta, la **D**, que no se sembró. Bajo la
+> redacción antigua, un sistema que la detectara quedaba penalizado por acertar.
+
+- **4 contradicciones**, de las cuales **3 sembradas** y **1 no**:
+  - **A** *(sembrada)* — responsable último de la esterilización: Director
+    Clínico vs Coordinador de Calidad.
+  - **B** *(sembrada)* — periodicidad del control biológico: semanal vs mensual.
+  - **C** *(sembrada)* — caducidad del material esterilizado: 6 vs 12 meses.
+  - **D** *(NO sembrada, descubierta el 27/08)* — si las dos figuras pueden ser
+    la misma persona: NOR-10 lo permite (2.4), CLI-12 lo prohíbe (3.5).
+- **Detectar la D es un acierto**, no un falso positivo. Y al contarla, no
+  confundirla con la A: ver la advertencia de proximidad en el §1.
+- **Sobre hallazgos adicionales, ya no se afirma nada.** Los dos documentos no
+  se han auditado enteros: solo se comprobó lo que el registro declaraba, y ese
+  registro ya se equivocó una vez. Un hallazgo que no sea A, B, C o D **no se
+  puede dar por falso positivo sin ir al texto a comprobarlo**.
 - Ambos documentos comparten de forma consistente (no contradictoria) datos
   como el ciclo estándar de autoclave a 134 °C/18 min, la validación anual de
   equipos, el mantenimiento técnico trimestral, la conservación de registros

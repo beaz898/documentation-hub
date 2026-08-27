@@ -67,6 +67,40 @@ documento clínico de muestra colocado ahí queda descargable por cualquiera que
 acierte la URL, e indexable. Es la carpeta que uno elige por instinto para
 «ficheros que no son código», y es justo la que no hay que usar.
 
+### Estar en el repositorio NO BASTA: tiene que sobrevivir al checkout
+
+*Añadido el 27/08/2026, el mismo día que la regla de admisión, porque el primer
+intento de cumplirla ya falló por aquí.*
+
+> Un documento de prueba no está a salvo por estar commiteado. Está a salvo
+> cuando **vuelve del repositorio byte a byte**, y eso hay que declararlo, no
+> suponerlo.
+
+**El caso, medido**: `NOR-01_rgpd-proteccion-datos-pacientes.pdf` son 4.333 bytes
+y **no contiene ni un byte `NUL` en sus primeros 8 KB** —sus streams van sin
+comprimir—, así que la heurística de git lo clasificó como **texto**
+(`git ls-files --eol` lo delataba: `i/lf w/lf`, no `-text`). Con
+`core.autocrlf=true`, que es lo que tiene este repositorio, el siguiente
+checkout le habría metido `CR` en sus **99** saltos de línea: 4.432 bytes en vez
+de 4.333, la tabla `xref` desplazada, y un PDF que no abre. El blob commiteado
+era correcto; **el daño ocurría al recuperarlo**, que es justo cuando hace falta.
+
+**La cura**: `corpus-pruebas/.gitattributes` declara `binary` para `.pdf`,
+`.docx` y `.xlsx`, y `-text` para el `.txt` del corpus —CLI-03 es texto plano,
+pero sus bytes son el dato: la siembra de los 15 años vive en su línea 82—.
+Los `.docx` y `.xlsx` se detectan solos, y se declaran igual: **una heurística
+no es una garantía, y el ground truth de una medición no puede depender de
+ella.**
+
+**Cómo se comprueba**, y no basta con mirar el atributo: se hace el viaje
+entero. Borrar el fichero, `git checkout --` y comparar `sha256sum` y tamaño
+contra el original. Así se verificó el `.gitattributes` antes de commitearlo
+(`205eaf01…`, 4.333 bytes, idéntico).
+
+**Al añadir un documento nuevo al corpus**: mirar `git ls-files --eol` y, si
+sale `i/lf` en algo que no sea texto nuestro, declararlo en el
+`.gitattributes` antes de empujar.
+
 ---
 
 ## 1. Para qué sirve
@@ -153,8 +187,18 @@ declarando como dominio NO cubierto: **prosa larga**.
 |---|---|---|---|
 | 6 | Tabla ampliada, dirección A | Analizar **OPE-10** contra **OPE-11** | Las **15** discrepancias sembradas, con la columna concreta que difiere en cada una. Y **25 filas propias sin pareja** que no debe forzar |
 | 7 | Tabla ampliada, dirección B | Analizar **OPE-11** contra **OPE-10** | Las mismas 15, lados intercambiados. Y sus **25 filas `SEG-` sin pareja** |
-| 8 | Prosa larga, dirección A | Analizar **NOR-10** contra **CLI-12** | Las **3** contradicciones sembradas: responsable de la esterilización, periodicidad del control biológico, caducidad del material |
-| 9 | Prosa larga, dirección B | Analizar **CLI-12** contra **NOR-10** | Las mismas 3, lados intercambiados |
+| 8 | Prosa larga, dirección A | Analizar **NOR-10** contra **CLI-12** | **4 contradicciones**: las 3 sembradas —responsable de la esterilización, periodicidad del control biológico, caducidad del material— **y la D, que nadie sembró** |
+| 9 | Prosa larga, dirección B | Analizar **CLI-12** contra **NOR-10** | Las mismas 4, lados intercambiados |
+
+**Ojo con la cuarta (casos 8 y 9)**: la contradicción **D** —si el Coordinador
+de Calidad puede ser el propio Director Clínico: NOR-10 lo permite en 2.4,
+CLI-12 lo prohíbe en 3.5— **no está sembrada**. Se descubrió el 27/08
+investigando un descarte del juez, y el registro afirmaba hasta ese día que
+fuera de las tres sembradas los documentos eran consistentes. **Detectarla es un
+acierto**, no un falso positivo. Y vive en el apartado contiguo a la siembra A,
+así que al contar hay que distinguir cuál de las dos es cada hallazgo: la A es
+*quién responde*, la D es *si pueden ser la misma persona*. El detalle, en el
+registro.
 
 **El registro de siembra manda.** Este protocolo da el número y la dirección;
 qué dice exactamente cada siembra, en qué página y apartado está, y cuál es su
@@ -194,6 +238,11 @@ Primera medición del corpus ampliado, **26/08/2026, logs 21:37–21:48 UTC
 | Tablas, una dirección | 15 | **1** |
 | Tablas, la otra dirección | 15 | **2** |
 | Prosa larga | 3 | **0** |
+
+*El `0 de 3` de prosa se midió contra las tres sembradas, que era lo único que
+el registro declaraba entonces. **La contradicción D no estaba contada** ni a
+favor ni en contra: se descubrió al día siguiente. Una medición futura tiene un
+denominador de 4, no de 3, y no es comparable con esta sin decirlo.*
 
 Léase con la advertencia del principio del fichero: esto es **la enfermedad
 documentada**, el estado del que se parte, no una tasa sana. Una medición
