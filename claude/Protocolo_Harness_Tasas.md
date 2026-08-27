@@ -216,16 +216,42 @@ Toda tasa se mide sobre un tamaño concreto. Decir cuál es, y qué se espera �
 qué se ignora— al multiplicarlo por diez.
 
 **2. El dominio no cubierto.** *«¿Sobre qué NO generaliza esto?»*
-Todo lo que este harness mide hoy es **una tabla de Excel**. Un hallazgo sobre
-prosa larga, sobre un PDF escaneado o sobre una tabla de noventa filas no está
-medido por el hecho de que este par lo esté.
+Una tasa se mide sobre un corpus concreto. Decir cuál, y qué queda fuera.
+
+**Lo que el harness cubre hoy** (27/08/2026), para poder restarlo: once
+documentos —5 `.docx`, 4 `.xlsx`, 1 `.pdf`, 1 `.txt`—, todos en español, el
+mayor de 60.000 caracteres, la mayor tabla de 60 filas y una sola hoja por
+libro, y **nunca más de cinco documentos en una misma tanda**.
+
+**El ejemplo, y es el que más pesa: el rerank nunca ha tenido que elegir de
+verdad.** Con cinco documentos como mucho, y un tope de 6 candidatos en rápido
+(`MAX_SELECTED_QUICK`) y 25 en exhaustivo, todo lo recuperado cabe siempre. En
+un corpus de cuarenta documentos el rerank pasa a descartar, y **ninguna tasa
+de este harness dice qué ocurre entonces**. Un hallazgo que hoy sobrevive puede
+no ser seleccionado mañana sin que nada del pipeline haya cambiado.
+
+Detrás de ese, y por el mismo razonamiento: un **PDF escaneado sin capa de
+texto** (el único `.pdf` del corpus la tiene, y sin comprimir), un documento en
+**otro idioma**, una tabla de **miles de filas** frente a las 60 medidas, un
+libro con **varias hojas**, o una contradicción **repartida entre tres
+documentos** en vez de dos.
+
+> **ESTE EJEMPLO CADUCA.** El dominio no cubierto se define por resta del
+> corpus, así que **cambia cada vez que el harness crece**. Al añadir un caso,
+> revisar esta lista: lo que ayer no estaba medido puede estarlo hoy, y una
+> plantilla que enseña con un ejemplo falso enseña a equivocarse.
+>
+> Ya pasó una vez: hasta el 27/08 esta sección decía «todo lo que este harness
+> mide hoy es una tabla de Excel», cierto cuando se escribió y falso desde que
+> entraron el corpus ampliado y el caso de control. Sobrevivió a la incorporación
+> de seis casos nuevos porque nadie la miró al añadirlos.
 
 **POR QUÉ ESTÁ AQUÍ**: en F-73 estos dos huecos existían y **no aparecieron
 hasta que el director preguntó**. La conclusión del experimento —que lo que
 detecta es el colapso de idénticas— se había dado por cerrada sin anotar que
-descansaba en una tabla de 15 filas (caso extremo) ni que todo el corpus medido
-son hojas de cálculo (dominio). Las dos plantillas los habrían cazado sin que
-nadie tuviera que acordarse.
+descansaba en una tabla de 15 filas (caso extremo) ni que, **en aquel momento**,
+todo el corpus medido eran hojas de cálculo (dominio). Las dos plantillas los
+habrían cazado sin que nadie tuviera que acordarse.
 
 ---
 
