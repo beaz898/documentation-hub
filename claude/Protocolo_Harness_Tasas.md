@@ -126,6 +126,51 @@ un régimen.
 
 ---
 
+## 1-bis. Dónde vive la mitad determinista: Vitest, y para qué NO
+
+*Añadido el 27/08/2026, el día que se instaló Vitest. El alcance se escribió
+antes de instalarlo, para que la herramienta no acabe definiendo su propio uso.*
+
+El criterio de §1 reparte en dos, pero hasta hoy solo una mitad tenía casa. Lo
+que un modelo lee se mide con **tandas** (§3). Lo determinista se medía con «su
+batería determinista» —y esa batería no existía en ningún sitio ejecutable: las
+de F-65/F-75 vivían escritas en prosa en `Descarte_Filas_Ajenas.md`, que es
+mejor que la memoria de nadie pero no se lanza. **Vitest es esa casa.**
+
+> **Vitest existe en este proyecto para EJECUTAR BATERÍAS DETERMINISTAS: código
+> puro, entrada conocida, salida conocida.**
+
+**NO se testean aquí**: componentes de React, rutas de API, hooks, nada que
+necesite Supabase, Pinecone o Anthropic, ni **mocks** de ninguno de los tres.
+Para lo que necesita estado real hay endpoints de diagnóstico
+(`app/api/admin/diagnose-vectors` es el precedente). Para lo que lee un modelo
+hay tandas.
+
+Si un día alguien quiere testear otra cosa, que sea **una decisión discutida y
+escrita**, no una consecuencia de que la herramienta ya esté ahí.
+
+**Dónde viven los tests**: al lado de su módulo (`lib/chunking.test.ts` junto a
+`lib/chunking.ts`), no en una carpeta propia. Se agrupa por dominio, no por tipo
+de fichero — y así el módulo y su batería **se borran juntos** el día que se
+retiren. La fase 1 nace pudiendo morir.
+
+**Los fixtures son `corpus-pruebas/`**, los mismos documentos de las tandas, con
+sus registros de siembra ya versionados. No se duplican datos de prueba: la
+regla de admisión (arriba) vale igual para una batería que para una tasa.
+
+**Cómo se lanza**: `npm test` (`vitest run`, una pasada, sin modo interactivo).
+La configuración —el alias de `@/*` y este mismo alcance, en comentario— está en
+`vitest.config.mts`.
+
+**Los tests entran en `npm run typecheck`.** Importan `describe`/`it`/`expect`
+explícitamente desde `'vitest'` en vez de declarar globals, así que `tsc` los
+compila como cualquier otro `.ts` sin tocar `tsconfig.json` — verificado
+metiendo un error de tipos a propósito en un test y comprobando que
+`tsc --noEmit` lo caza. Es donde se quiere el gate: cubriendo también la
+batería.
+
+---
+
 ## 2. Los casos
 
 **Están en `claude/Casos_Harness.md`.** Once casos, en tres grupos: el piloto
