@@ -13,6 +13,90 @@ principio del protocolo.
 
 ---
 
+## 27/08/2026 — `8cf73e23` — CASO DE CONTROL NOR-11 / CLI-13
+
+**Qué se lanzó**: el par de prosa del caso de control, con el bloque del
+verificador (F-77) ya desplegado. *Hora exacta no anotada; posterior a la tanda
+que sigue.*
+
+**La pregunta**: la de B.105. El ejemplo del bloque es «mismo rol, dos personas»,
+que es el mismo objeto que la siembra A. Si solo se movía la A, el acierto sería
+circular — el modelo aplicando un ejemplo casi idéntico, no el mecanismo. Este
+par existe para preguntar si **generaliza a superficies que el bloque no enseña**.
+
+| # | Contradicción sembrada | Superficie | Resultado |
+|---|---|---|---|
+| 1 | Plazo: **72 h** frente a **7 días** | dos cifras de tiempo enfrentadas | **CONFIRMADA** |
+| 2 | Lugar: **Chamberí** frente a **Retiro** | dos topónimos | **CONFIRMADA** |
+| 3 | Negación categórica sobre el contenedor negro | una prohibición frente a una autorización | **EL JUEZ NUNCA LA EMITE** |
+
+### EL BLOQUE GENERALIZA. La pregunta de B.105 queda contestada
+
+**Dos superficies nuevas, ninguna sobre roles ni personas, confirmadas.** Un
+plazo y un topónimo no se parecen al ejemplo del prompt («la responsable del área
+es Ana Ruiz» frente a «es Beatriz Soler»): lo único que comparten con él es el
+mecanismo —mismo dato, dos valores—, que es exactamente lo que el bloque enseña.
+
+Es la respuesta que este par existía para dar, y es afirmativa. La sospecha de
+circularidad anotada en B.105 queda descartada **para el verificador**.
+
+**Lo que NO contesta**: la tercera no llega a medirse aquí, porque **el juez no
+la emite**. Eso es un techo anterior al verificador y tiene pendiente propio —
+ver **B.106**: en documentos de 4 y 5 páginas el juez devuelve exactamente una
+contradicción por par, y no es la selección.
+
+---
+
+## 27/08/2026 — `8cf73e23`, logs 12:04–12:31 UTC — EL BLOQUE DEL VERIFICADOR (F-77)
+
+**Qué se lanzó**: cuatro pasadas, modo rápido desde la bandeja, con el bloque
+nuevo de `verify-findings.ts` desplegado.
+
+> **⚠️ MARGEN DE DESPLIEGUE SIN CERRAR.** El push de `8cf73e23` fue a las
+> **11:59:48 UTC** (reflog de `origin/main`) y la tanda arranca a las **12:04
+> UTC**: **4 min 12 s**. No se comprobó la hora de «Ready» del deployment en
+> Vercel ni el redeploy del worker en Railway. Si alguno terminó después de
+> 12:04, las primeras pasadas midieron el prompt viejo. Los resultados sugieren
+> que sí estaba vivo —la A pasa a confirmarse, cosa que no hacía el 26/08—, pero
+> eso es inferencia, no el dato.
+
+| # | Qué entró | Resultado |
+|---|---|---|
+| 1 | **NOR-10 / CLI-12 solos** | Siembra A **DESCARTADA** (`mismo_dato_sin_oposicion`). Hallazgo `[04ed1945]` |
+| 2 | **CLI-03 / NOR-01** (control de regresión) | **Confirmado en todas las pasadas.** El acierto histórico de prosa sigue vivo |
+| 3 | **Con el resto del piloto en la tanda** | Siembra A **CONFIRMADA**, dos pasadas. Hallazgo `[9b37aa92]` |
+| 4 | **MKT-01** | **Cero hallazgos** |
+
+### EL MATIZ QUE MANDA: no es el mismo hallazgo
+
+**Los hashes son distintos.** En la pasada 1 el hallazgo es `[04ed1945]` y muere;
+en la 3 es `[9b37aa92]` y sobrevive. El hash se calcula sobre las citas crudas
+(F-38), así que **hashes distintos significa citas distintas**.
+
+> **El bloque NO rescató el par de citas de la pasada 1. Confirmó OTRO par**, que
+> apareció porque con más documentos en la tanda el retrieval trajo fragmentos
+> distintos de NOR-10 — entró el **chunk 2, score 0,932**.
+
+Leerlo como «el bloque arregla la siembra A» sería exactamente el error que la
+advertencia de F-73 describe: atribuir a la etapa que se tocó un cambio que
+produjo otra. Lo que estas cuatro pasadas dicen, con precisión:
+
+- **El bloque funciona cuando le llegan las citas buenas.** La pasada 3 lo
+  demuestra, y el caso de control NOR-11/CLI-13 lo confirma sobre superficies que
+  el bloque no enseña.
+- **Qué citas llegan lo decide la SELECCIÓN**, y eso no lo toca F-77. La misma
+  contradicción, en el mismo par de documentos, produce citas verificables o no
+  según qué fragmentos de NOR-10 entren — y eso depende de con cuántos documentos
+  se lance la tanda, que es una variable que nada en el sistema controla.
+- Es la confirmación, ahora sobre prosa, de lo que el análisis de F-76 dejó
+  dicho: **en prosa larga el cuello es la selección**, no la verificación.
+
+**Lo que NO afirma**: que la siembra A esté detectada. Está detectada *en una
+configuración de tanda*, por un par de citas distinto del que falló, y con dos
+pasadas. El protocolo pide cuatro por dirección para hablar de tasas.
+
+---
+
 ## 27/08/2026 — `94ad06a0` — EXPERIMENTO F-73, tres estados
 
 **Qué se lanzó**: el par de tablas **RRHH-06 / OPE-02**, los dos sentidos,

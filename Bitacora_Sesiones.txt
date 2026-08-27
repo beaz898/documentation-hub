@@ -5067,3 +5067,113 @@ del harness, sección 4-bis.
 ESTADO: F-71 CERRADO. F-73 CERRADO con su mecanismo identificado y su límite
 anotado. Detalle de la tanda en claude/Tandas_Harness.md; protocolo en
 claude/Protocolo_Harness_Tasas.md.
+
+────────────────────────────────────────────────────────────────
+
+SESIÓN 51 — 27/08/2026
+Título: El corpus entra en el repositorio, y el verificador aprende el mecanismo
+────────────────────────────────────────────────────────────────────────────────
+
+EL DÍA EMPEZÓ CON UNA PREGUNTA QUE NO SE PUDO RESPONDER. Al investigar por qué
+en prosa larga el juez encuentra las contradicciones sembradas y la cascada las
+mata (F-76), hizo falta el registro de siembra del corpus ampliado. No estaba en
+el repositorio. Ni él, ni los cuatro documentos que describe. Era la TERCERA vez
+en una semana que faltaba la evidencia justo al ir a usarla: la tabla del relevo
+del 25/08 (perdida para siempre), la batería de F-65 (recuperada escribiéndola)
+y ahora esto. Tres veces en siete días no es mala suerte: es lo que pasa por
+defecto cuando el sitio donde vive la evidencia es "fuera".
+
+EL CORPUS ENTRA EN EL REPOSITORIO. Se creó corpus-pruebas/ en la raíz — nunca
+public/, que Vercel sirve abierto en internet, y esa es una trampa fácil de
+pisar con documentos clínicos de muestra.
+  b9c7432d — el registro de siembra, y la REGLA DE ADMISIÓN en el protocolo del
+    harness: una medición cuyo ground truth no esté en el repositorio NO CUENTA.
+    No se cita, no se compara contra ella, no se usa para aprobar ni revertir.
+  6f407c9c — ocho documentos. Comprobados de verdad antes de commitear, no por
+    la extensión: cabecera ZIP y word/document.xml o xl/workbook.xml dentro. El
+    26/08 unos .docx resultaron ser markdown renombrado y costaron una tanda.
+  2994827b — los tres que faltaban del piloto (CLI-03, NOR-01, MKT-01). Con
+    ellos los ONCE casos del harness quedan reproducibles por primera vez.
+  8cf73e23 — y la lección que faltaba: ESTAR EN EL REPOSITORIO NO BASTA.
+    NOR-01.pdf no tiene ningún byte NUL en sus primeros 8 KB, así que la
+    heurística de git lo clasificó como TEXTO; con core.autocrlf=true el
+    siguiente checkout le habría inyectado CR en sus 99 saltos de línea y el PDF
+    no abriría. El blob era correcto: el daño ocurría al RECUPERARLO.
+    corpus-pruebas/.gitattributes lo declara binario, verificado con un checkout
+    real (mismo sha256, mismos 4.333 bytes). Un ground truth que depende de una
+    heurística no es un ground truth.
+
+F-77 — EL VERIFICADOR APRENDE QUE DOS VALORES DISTINTOS SE OPONEN.
+El fallo medido: las dos citas CORRECTAS llegan al verificador —NOR-10 dice que
+el responsable último es el Director Clínico, CLI-12 que es el Coordinador de
+Calidad "no el Director Clínico"— y responde mismo_dato_sin_oposicion. La
+información estaba entera delante y decidió mal.
+  La causa: el prompt no tenía NINGUNA instrucción sobre el mecanismo. Sus
+  únicos ejemplos eran el paréntesis "una amplía, matiza, o coincide con la
+  otra", escrito en 87db03cc contra los siete falsos positivos de F-22 — sus
+  tres veredictos son los tres patrones de F-22, uno por uno.
+  2bec98c7 — nueve líneas AÑADIDAS, cero tocadas. El bloque enseña el mecanismo
+    (mismo dato, valores distintos: R2 dicho en prosa), no el patrón superficial.
+    La negación entra como FORMA DE ASIGNAR VALOR, no como categoría aparte: el
+    729 tropezó por generalizar por la superficie del ejemplo.
+    POSICIÓN, que no es neutra: bloque aparte tras la lista de veredictos y
+    ANTES de la regla de columnas. Junto a "confirmado" estrecharía un veredicto
+    general al alcance del ejemplo; detrás de la regla tabular heredaría un
+    marco que no le toca — la población que llega a esta llamada es prosa y el
+    caso mixto, porque el fila-contra-fila sano lo resuelve la capa determinista
+    y nunca pasa por aquí.
+    Dos decisiones de redacción que salvaron falsos positivos: fuera la palabra
+    "amplio" (la misma raíz que el paréntesis intocable usa para el veredicto
+    CONTRARIO), y la frase de la justificación como CONDICIÓN y no como
+    afirmación — en afirmativo arrastraba el patrón 2 de F-22, donde una
+    referencia cruzada dispara la precondición sin que haya valor distinto.
+
+UNA CUARTA CONTRADICCIÓN QUE NADIE SEMBRÓ.
+  d51a68b4 — investigando un descarte apareció que NOR-10 (2.4) permite que el
+    Coordinador de Calidad "pueda recaer en el propio Director Clínico" y
+    CLI-12 (3.5) lo prohíbe expresamente, "nunca por el Director Clínico del
+    propio centro". El registro afirmaba que fuera de las tres sembradas los dos
+    documentos eran consistentes. Era FALSO, y bajo la regla de admisión eso
+    invalidaba cualquier medición del par: un sistema que detectara la D quedaba
+    penalizado por acertar.
+    NO INVALIDA LA SIEMBRA A, LA AGRAVA: NOR-10 cierra él mismo la lectura
+    benévola ("no sustituye al Director Clínico en la responsabilidad última") y
+    CLI-12 escribe en 3.4 un procedimiento de arbitraje entre las dos figuras,
+    que nadie redacta para dos nombres de la misma persona.
+    Y VIVE PEGADA A LA A: 2.4 va siete líneas después de 2.1, 3.5 nueve después
+    de 3.1. Con chunks de ~1.200 caracteres el retrieval las trae juntas y el
+    verificador tiene el pasaje de la D delante mientras decide sobre la A. Un
+    juez que cite "puede recaer en el propio Director Clínico" NO alucina: copia
+    el documento.
+    Se retiró además la afirmación de que no hay más: los documentos no se han
+    auditado enteros, y el registro ya se equivocó una vez.
+
+LAS DOS TANDAS, Y EL MATIZ QUE MANDA (detalle en claude/Tandas_Harness.md).
+  Con el bloque desplegado, la siembra A pasa a confirmarse — pero NO es el
+  mismo hallazgo. En la pasada con NOR-10/CLI-12 solos el hallazgo es [04ed1945]
+  y muere; con más documentos en la tanda es [9b37aa92] y sobrevive. Hashes
+  distintos = citas distintas. El bloque no rescató el par de citas que falló:
+  confirmó OTRO par, que apareció porque el retrieval trajo fragmentos distintos
+  de NOR-10 (entró el chunk 2, score 0,932).
+  LA CONCLUSIÓN, con precisión: el bloque funciona cuando le llegan las citas
+  buenas; qué citas llegan lo decide la SELECCIÓN, que F-77 no toca. Es lo que
+  F-76 dejó dicho, ahora confirmado sobre prosa.
+  EL CASO DE CONTROL NOR-11/CLI-13 contesta la pregunta de circularidad de
+  B.105: dos superficies nuevas —un plazo (72 h vs 7 días) y un topónimo
+  (Chamberí vs Retiro)—, ninguna sobre roles, CONFIRMADAS. El bloque generaliza
+  por MECANISMO. La tercera sembrada, una negación categórica, no llega a
+  medirse: el juez nunca la emite.
+
+PENDIENTES ABIERTOS HOY: B.105 (una batería sobre un prompt se EJECUTA contra el
+modelo, no se traza a mano — es la razón de que F-77 llegara a producción; su
+parte de circularidad queda contestada), B.106 (el juez emite UNA SOLA
+contradicción por par, medido en documentos de 4 y 5 páginas con el material de
+la tercera delante — un techo distinto del de la selección) y B.107 (los dos
+fallos de cita del día, glosa entre corchetes y narración que esquiva el
+detector: misma enfermedad, y la cura estructural de F-80 es que la cita la
+extraiga el CÓDIGO, no el modelo).
+
+ESTADO: corpus versionado y reproducible. F-77 desplegado y generalizando, con
+su límite anotado. El cuello de la prosa está identificado y es la SELECCIÓN.
+Margen sin cerrar: el push de 8cf73e23 fue a las 11:59:48 UTC y la tanda arrancó
+a las 12:04; no se comprobó la hora de "Ready" del deploy.

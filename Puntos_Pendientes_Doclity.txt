@@ -1864,6 +1864,79 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     a detectarse, eso NO prueba que el bloque generalice — prueba que el modelo
     aplica un ejemplo casi idéntico. La parte no circular son las siembras B
     (frecuencia semanal/mensual) y C (plazo 6/12 meses).
+    [CONTESTADO 27/08 por el caso de control NOR-11/CLI-13: dos superficies
+    nuevas —un plazo (72 h vs 7 días) y un topónimo (Chamberí vs Retiro)—
+    confirmadas, ninguna sobre roles. El bloque generaliza POR MECANISMO y la
+    circularidad queda descartada para el verificador. Detalle en
+    claude/Tandas_Harness.md. Lo que sigue abierto es el resto de B.105: la
+    batería como tal sigue sin ejecutarse contra el modelo de forma sistemática;
+    una tanda de producción no es una batería.]
+
+  B.106 — [MEDIDO 27/08, SIN DIAGNOSTICAR] El juez emite UNA SOLA contradicción
+    por par de documentos.
+    LA MEDIDA: en el caso de control NOR-11/CLI-13 —documentos de 4 y 5
+    páginas, los más pequeños del corpus, con TRES contradicciones sembradas—
+    cada análisis devuelve exactamente "1 contradicciones" en el log crudo del
+    juez, ANTES de cualquier filtro de la cascada. Y cada dirección devuelve una
+    DISTINTA. Nunca dos.
+    NO ES LA SELECCIÓN, y esto es lo que lo hace interesante: entran 4
+    fragmentos de 16 y 4 de 11, y el descarte de un solapamiento cita
+    literalmente "contenedor negro habilitado en cada gabinete" — es decir, el
+    material de la TERCERA contradicción estaba delante del juez y no lo emitió
+    como contradicción. No se puede echar la culpa a lo que no llegó.
+    HIPÓTESIS A INVESTIGAR, ninguna elegida todavía:
+      · Que el prompt del juez empuje a devolver EL hallazgo más claro en vez de
+        TODOS los que encuentre.
+      · Que una negación categórica en párrafo separado ("nunca en el contenedor
+        negro") sea más difícil de emparejar que dos cifras enfrentadas, que se
+        alinean solas.
+      · Que el overlapPercent que el juez calcula primero acote implícitamente
+        cuánto sigue buscando después.
+    POR QUÉ IMPORTA: es un techo DISTINTO del de la selección (F-76) y aparece
+    en el caso MÁS FÁCIL del corpus. Si con cinco páginas y tres siembras emite
+    una, en documentos de dieciocho páginas el problema no es solo qué llega al
+    prompt: también cuánto devuelve el juez de lo que sí llegó. Los dos techos
+    se multiplican, y hasta hoy solo se estaba mirando el primero.
+    DÓNDE MEDIR MÁS: NOR-11/CLI-13 es el par barato para esto — tres siembras,
+    documentos pequeños, todo el material entra. Contar cuántas emite el juez
+    crudo en cuatro pasadas por dirección antes de tocar nada.
+
+  B.107 — [DOS FALLOS MEDIDOS 27/08, UNA SOLA ENFERMEDAD — doctrina F-80] La
+    cita literal la escribe el MODELO, y por eso se rompe de dos maneras.
+    FALLO 1 — LA GLOSA ENTRE CORCHETES. El juez cita "...recae siempre sobre
+    esta figura [Director Clínico]": añade una aclaración propia para
+    desambiguar un pronombre, en beneficio del lector, y la verificación
+    literal la rechaza porque esos corchetes no están en el documento. DOS de
+    CUATRO contradicciones de una misma pasada murieron así.
+    FALLO 2 — LA NARRACIÓN QUE ESQUIVA EL DETECTOR. El juez escribe "No se
+    especifica un criterio de caducidad de 12 meses en el fragmento disponible
+    del protocolo NOR-10". El prompt lo prohíbe con esas palabras ("Prohibido
+    escribir cosas como... 'Este documento no menciona...'") y existe
+    NARRATION_PATTERNS (judge.ts) para cazarlo, pero sus tres patrones exigen
+    "fragmento[N]", "el corpus" o "el documento nuevo": "el fragmento
+    disponible" no casa con ninguno. Pasa el detector y muere después en
+    verifyQuote como citaNoVerificable — con el NOMBRE EQUIVOCADO: no es que la
+    cita no se localice, es que no era una cita.
+    LA DOCTRINA (Fable, F-80): son la misma enfermedad. El error de diseño es
+    que el TEXTO de la cita lo escriba el modelo. Mientras lo escriba, habrá una
+    familia infinita de formas de escribirlo mal, y cada parche cubre una.
+    SOLUCIÓN ESTRUCTURAL: citas POR REFERENCIA — el modelo devuelve
+    {fragmentId, ancla} y el CÓDIGO extrae el texto del documento. La cita deja
+    de poder ser incorrecta porque deja de ser generada. Existe además la API de
+    Citations de Anthropic, que da offsets garantizados por el servidor y no
+    contados por el modelo; evaluar si encaja antes de construir lo propio.
+    MÓDULO INTERINO, si hace falta antes: una normalización de BÚSQUEDA DE
+    CITAS (solo findBestMatch, nunca el normalize global — regla de F-46) que
+    agrupe las glosas entre corchetes y el quince/15 de F-77, con batería
+    conjunta. ETIQUETADO COMO DESTINADO A MORIR cuando lleguen las citas por
+    referencia: es andamio, no cimiento, y hay que escribirlo sabiéndolo.
+    RECHAZADO EXPLÍCITAMENTE: ampliar NARRATION_PATTERNS con más patrones. Es
+    perseguir síntomas —la lista nunca estará completa— y con citas por
+    referencia el detector entero se vuelve innecesario, porque el modelo ya no
+    escribe texto que pueda narrar.
+    CRUZAR CON F-77 commit 1 (la normalización del quince/15), que quedó sin
+    hacer: es la misma pieza que el módulo interino, y hoy sabemos que por sí
+    sola no movía ninguna de las tres siembras de prosa.
 
   F-74 [ALCANCE DEL MVP, 27/08] Lo que entra y lo que NO entra antes de salir.
     DOCTRINA DE PRODUCTO DEL DIRECTOR, literal y por delante de todo lo demás:
