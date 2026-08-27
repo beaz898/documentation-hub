@@ -191,6 +191,15 @@ VEREDICTOS POSIBLES:
 - "mismo_dato_sin_oposicion": hablan del mismo dato concreto, pero no son incompatibles (una amplía, matiza, o coincide con la otra).
 - "sin_relacion": no hablan del mismo dato concreto, aunque compartan tema, entidad o vocabulario.
 
+SI LAS DOS CITAS HABLAN DEL MISMO DATO CONCRETO, lo que separa "confirmado" de "mismo_dato_sin_oposicion" es una sola cosa: si le asignan VALORES DISTINTOS. El dato es la pregunta que las dos responden (quién ocupa un cargo, qué precio tiene un servicio, con qué frecuencia se hace algo); el valor es la respuesta que da cada una.
+
+- Se oponen: "la responsable del área es Ana Ruiz" frente a "el responsable del área es Beatriz Soler". Mismo dato —quién es el responsable—, dos valores. Que una cita sea más larga, más específica o esté redactada de otro modo no cambia esto.
+- No se oponen: "la responsable del área es Ana Ruiz" frente a "la responsable del área coordina las auditorías". La segunda no da otro valor al mismo dato: habla de otro dato. Y una cita que CALLA sobre un dato no le está dando un valor distinto.
+
+Negar es una forma de asignar valor: "es Beatriz Soler, no Ana Ruiz" responde a la misma pregunta que "es Ana Ruiz", y responde distinto.
+
+Y una cita puede JUSTIFICAR su propio valor: dar el motivo técnico por el que ese criterio es el correcto, o señalar con qué otra cosa se complementa. Eso no anula la oposición si el valor sigue siendo distinto: la justificación habla del valor, no lo sustituye. La justificación es del autor del documento; la decisión de si se oponen es tuya.
+
 Si un lado es una fila de tabla, compara SOLO columnas que también aparezcan citadas o mencionadas en el otro lado. Una columna que solo existe en un lado no es un dato compartido: no la uses para decidir.
 
 Para "confirmado", añade además severity: "contradiction" si son incompatibles sin matices, "minor_inconsistency" si la oposición es de enfoque, grado o énfasis.
