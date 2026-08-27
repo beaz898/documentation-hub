@@ -52,20 +52,32 @@ contradicción por par, y no es la selección.
 **Qué se lanzó**: cuatro pasadas, modo rápido desde la bandeja, con el bloque
 nuevo de `verify-findings.ts` desplegado.
 
-> **⚠️ MARGEN DE DESPLIEGUE SIN CERRAR.** El push de `8cf73e23` fue a las
-> **11:59:48 UTC** (reflog de `origin/main`) y la tanda arranca a las **12:04
-> UTC**: **4 min 12 s**. No se comprobó la hora de «Ready» del deployment en
-> Vercel ni el redeploy del worker en Railway. Si alguno terminó después de
-> 12:04, las primeras pasadas midieron el prompt viejo. Los resultados sugieren
-> que sí estaba vivo —la A pasa a confirmarse, cosa que no hacía el 26/08—, pero
-> eso es inferencia, no el dato.
+> **⚠️ MARGEN DE DESPLIEGUE SIN CERRAR, y ya no se puede cerrar.** El push de
+> `8cf73e23` fue a las **11:59:48 UTC** (reflog de `origin/main`) y la tanda
+> arranca a las **12:04 UTC**: **4 min 12 s**. No se comprobó a tiempo la hora de
+> «Ready» del deployment en Vercel ni el redeploy del worker en Railway. Si
+> alguno terminó después de 12:04, las primeras pasadas midieron el prompt viejo.
+>
+> **QUÉ ACOTA ESE MARGEN, Y QUÉ NO.** Las pasadas 1 y 3 corrieron con **el mismo
+> código, fuera el que fuera**: doce minutos separan una de otra, dentro de la
+> misma ventana. Así que **la diferencia entre ellas no puede atribuirse al
+> despliegue** — se explica por las citas distintas, que es lo que dice la
+> sección siguiente. El margen afecta a **si el bloque estaba vivo en absoluto**,
+> no a la comparación entre las dos pasadas, que es de donde sale la conclusión
+> de esta entrada.
 
 | # | Qué entró | Resultado |
 |---|---|---|
 | 1 | **NOR-10 / CLI-12 solos** | Siembra A **DESCARTADA** (`mismo_dato_sin_oposicion`). Hallazgo `[04ed1945]` |
 | 2 | **CLI-03 / NOR-01** (control de regresión) | **Confirmado en todas las pasadas.** El acierto histórico de prosa sigue vivo |
-| 3 | **Con el resto del piloto en la tanda** | Siembra A **CONFIRMADA**, dos pasadas. Hallazgo `[9b37aa92]` |
+| 3 | **Los CINCO juntos**: NOR-10, CLI-12, CLI-03, NOR-01 y MKT-01 | Siembra A **CONFIRMADA**, dos pasadas. Hallazgo `[9b37aa92]` |
 | 4 | **MKT-01** | **Cero hallazgos** |
+
+> **CINCO Y CUATRO NO SE CONTRADICEN, cuentan cosas distintas.** En la pasada 3
+> hay **cinco documentos en la tanda**, y el log de cada análisis dice **«4 ids
+> de tanda»**: son los **compañeros** de ese análisis, es decir, los otros cuatro
+> vistos desde el documento que se está analizando. Cinco en la tanda, cuatro
+> compañeros para cada uno. Las dos cifras son correctas.
 
 ### EL MATIZ QUE MANDA: no es el mismo hallazgo
 
@@ -74,8 +86,8 @@ en la 3 es `[9b37aa92]` y sobrevive. El hash se calcula sobre las citas crudas
 (F-38), así que **hashes distintos significa citas distintas**.
 
 > **El bloque NO rescató el par de citas de la pasada 1. Confirmó OTRO par**, que
-> apareció porque con más documentos en la tanda el retrieval trajo fragmentos
-> distintos de NOR-10 — entró el **chunk 2, score 0,932**.
+> apareció porque con los cinco documentos en la tanda el retrieval trajo
+> fragmentos distintos de NOR-10 — entró el **chunk 2, score 0,932**.
 
 Leerlo como «el bloque arregla la siembra A» sería exactamente el error que la
 advertencia de F-73 describe: atribuir a la etapa que se tocó un cambio que
@@ -86,8 +98,9 @@ produjo otra. Lo que estas cuatro pasadas dicen, con precisión:
   el bloque no enseña.
 - **Qué citas llegan lo decide la SELECCIÓN**, y eso no lo toca F-77. La misma
   contradicción, en el mismo par de documentos, produce citas verificables o no
-  según qué fragmentos de NOR-10 entren — y eso depende de con cuántos documentos
-  se lance la tanda, que es una variable que nada en el sistema controla.
+  según qué fragmentos de NOR-10 entren — y eso depende de **con qué compañía se
+  lance la tanda**: dos documentos en la pasada 1, cinco en la pasada 3. Es una
+  variable que nada en el sistema controla y que el cliente no ve.
 - Es la confirmación, ahora sobre prosa, de lo que el análisis de F-76 dejó
   dicho: **en prosa larga el cuello es la selección**, no la verificación.
 
