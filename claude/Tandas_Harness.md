@@ -15,6 +15,68 @@ principio del protocolo.
 
 ---
 
+## 28/08/2026 — `d13e125f`, 14:24 UTC — EL TERCER PUNTO DE SERIALIZACIÓN (F-86 paso 0)
+
+> **NO ES UNA TANDA DE TASAS**, y conviene que se lea distinta desde la primera
+> línea: no mide QUÉ encuentra el sistema, sino si un campo SOBREVIVE el viaje
+> hasta el jsonb. Se apunta aquí igualmente porque el §4 del protocolo manda
+> que las mediciones se acumulen en este fichero, y porque dejarla solo en el
+> mensaje de commit es exactamente cómo se perdió la tabla del relevo del 25/08.
+
+**Qué se lanzó**: dos análisis en modo **rápido** desde la interfaz, sobre los
+casos 1 y 2 del corpus piloto (**RRHH-06** y **OPE-02**) — el par de tabla, con
+la contradicción sembrada de siempre.
+
+**La pregunta**: `d13e125f` propaga `existingDocumentId` al lado del nombre por
+los nueve sitios del recorrido, y su batería
+(`lib/analysis/recorrido-id-documento.test.ts`) sigue el dato hasta
+`Problem.relatedDocId` cruzando un ida y vuelta por JSON. Lo que la batería
+**no alcanza** son los tres puntos de serialización reales, que son rutas de API
+y worker. El tercero —`analysis_results.analysis`, el jsonb que la bandeja
+relee meses después— es el que sostiene el commit siguiente (la persistencia de
+descartes). ¿Llega el campo de verdad, o solo lo parece al leer el código?
+
+**MARGEN DE DESPLIEGUE — CERRADO, y con holgura.** Push de `d13e125f` a las
+**13:40:30 UTC** (reflog de `origin/main`); el primer análisis medido, a las
+**14:24 UTC**. **43 minutos.** Es el margen que la tanda del 27/08 no pudo
+cerrar (4 min 12 s), y aquí no hay duda de qué código corrió.
+
+| Análisis | Hora (UTC) | Código | discrepancias | con id | solapamientos | con id |
+|---|---|---|---|---|---|---|
+| RRHH-06, rápido | 14:24 | `d13e125f` | 1 | **1** | 1 | **1** |
+| OPE-02, rápido | 14:24 | `d13e125f` | 1 | **1** | 2 | **2** |
+| *(control negativo)* | 07:49 | anterior | 1 | **0** | *no anotado* | — |
+| *(control negativo)* | 07:49 | anterior | 1 | **0** | *no anotado* | — |
+
+**El detalle de la última fila**, nombre e id enfrentados sobre la misma
+contradicción:
+
+| nombre | id | asunto |
+|---|---|---|
+| `OPE-02_agenda-y-gestion-de-citas.xlsx` | `099ffac9-7ba6-437e-8bc4-b5624cb0f695` | Puesto de Dr. Pablo Reyes |
+
+### EL CONTROL NEGATIVO ES LO QUE HACE VALER ESTA MEDICIÓN
+
+Sin él, «el campo está» no distingue entre **el commit funciona** y **la
+consulta miente** — y una consulta con `jsonb_exists` sobre un campo que se
+escribiera solo se habría visto igual de verde. Los dos análisis de las 07:49
+corrieron con el código anterior, sobre el **mismo corpus** y la **misma
+contradicción sembrada**, y salen con **0 de 1**. La consulta discrimina, y por
+tanto el 1 de 1 de las 14:24 significa algo.
+
+### LO QUE ESTA MEDICIÓN NO CONTESTA
+
+- **Los otros dos puntos de serialización siguen sin medir.** El literal de
+  respuesta de `app/api/analyze-v2/route.ts:545` es un objeto **distinto** del
+  que se persiste (`:453` pasa el `analysis` entero), así que ver el jsonb NO
+  prueba lo que llega a la pantalla. Y el `result` del job
+  (`worker/src/index.ts:137`) es un tercero.
+- **El camino EXHAUSTIVO no se ha tocado.** Las dos pasadas son rápidas: corren
+  en Vercel. El exhaustivo corre dentro del worker de Railway, cuyo redespliegue
+  no se ha comprobado. Que el rápido llegue no dice nada del exhaustivo.
+
+---
+
 ## 27/08/2026 — `8cf73e23` — CASO DE CONTROL NOR-11 / CLI-13
 
 **Qué se lanzó**: el par de prosa del caso de control, con el bloque del

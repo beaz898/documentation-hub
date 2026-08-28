@@ -27,13 +27,20 @@ import type { DocumentJudgment } from './types';
  * en components/improvement/problems.ts. El camino es de lib/analysis; el
  * último eslabón se importa.
  *
- * LO QUE ESTA BATERÍA NO ALCANZA, dicho aquí y no solo en el informe: los dos
- * eslabones de serialización —app/api/analyze-v2/route.ts:545 y
- * worker/src/index.ts:137— son rutas de API y el alcance los prohíbe. Son
- * listas CERRADAS, pero de campos de FinalAnalysis, y el campo nuevo va
- * ANIDADO dentro de arrays que esas listas ya nombran y pasan enteros. El paso
- * por JSON que hacen los casos de abajo cubre lo único que esa frontera le
- * hace al dato: serializarlo.
+ * LO QUE ESTA BATERÍA NO ALCANZA, dicho aquí y no solo en el informe: los TRES
+ * eslabones de serialización —app/api/analyze-v2/route.ts:545, el `analysis`
+ * entero que persiste :453, y worker/src/index.ts:137— son rutas de API y
+ * worker, y el alcance los prohíbe. Son listas CERRADAS, pero de campos de
+ * FinalAnalysis, y el campo nuevo va ANIDADO dentro de arrays que esas listas
+ * ya nombran y pasan enteros. El paso por JSON que hacen los casos de abajo
+ * cubre lo único que esa frontera le hace al dato: serializarlo.
+ *
+ * EL TERCERO YA NO ES UNA SUPOSICIÓN: se midió en producción el 28/08/2026
+ * sobre `d13e125f`, leyendo el jsonb de `analysis_results`, y con control
+ * negativo (dos análisis anteriores al deploy, sobre el mismo corpus y la misma
+ * contradicción sembrada, que salen sin el campo). Las cifras y sus límites
+ * —los otros dos eslabones siguen sin medir, y el camino exhaustivo tampoco—
+ * están en `claude/Tandas_Harness.md`, entrada del 28/08. No se repiten aquí.
  */
 
 const IDENTIDAD = { id: 'doc-7f3a-2291', nombre: 'Política de vacaciones v2.pdf' };
