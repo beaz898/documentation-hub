@@ -25,6 +25,8 @@ describe('el catálogo', () => {
    */
   it('es exactamente la lista declarada', () => {
     expect([...COUNTER_CATALOGUE]).toEqual([
+      'seleccion.candidatos_recuperados',
+      'seleccion.candidatos_seleccionados',
       'verificador.hallazgos_entrantes',
       'verificador.confirmados',
       'verificador.confirmados_por_estructura',
@@ -95,6 +97,57 @@ describe('mergeCounters — cláusula 4', () => {
 
   it('conserva los ceros: «actuó cero veces» es un dato, no una ausencia', () => {
     expect(mergeCounters({ 'verificador.confirmados': 0 })).toEqual({ 'verificador.confirmados': 0 });
+  });
+
+  /**
+   * LAS TRES FORMAS QUE PRODUCE runCorePipeline, una por salida. Este bloque
+   * existe por lo que el commit anterior NO cubría: su batería probaba
+   * `mergeCounters` —la pieza— y ni un caso sobre lo que llega a la salida, así
+   * que una salida temprana sin contadores pasó los siete tests y se descubrió
+   * en producción, con `pipeline_counters` en null.
+   *
+   * Que las tres salidas pasen por `withCounters` lo garantiza ahora el TIPO
+   * (`CountedAnalysis` en pipeline.ts: un `return` que no pase por ahí no
+   * compila, comprobado mutando el fichero). Lo que fija este bloque es lo
+   * otro: que cada forma es DISTINGUIBLE y que ninguna llega vacía. Un
+   * `pipeline_counters` que no distinga «no había corpus» de «el rerank no dejó
+   * nada» no responde la pregunta para la que existe el campo.
+   */
+  describe('las tres formas de una salida de runCorePipeline', () => {
+    it('salida temprana 1 — cero candidatos: no llega vacía', () => {
+      const out = mergeCounters({ 'seleccion.candidatos_recuperados': 0 });
+      expect(Object.keys(out).length).toBeGreaterThan(0);
+      expect(out['seleccion.candidatos_recuperados']).toBe(0);
+      // AUSENTE, no 0: el rerank no llegó a correr, y un 0 diría que corrió y
+      // no seleccionó nada. La distinción es el dato.
+      expect('seleccion.candidatos_seleccionados' in out).toBe(false);
+      expect('verificador.hallazgos_entrantes' in out).toBe(false);
+    });
+
+    it('salida temprana 2 — el rerank no dejó ninguno: se distingue de la anterior', () => {
+      const out = mergeCounters({
+        'seleccion.candidatos_recuperados': 5,
+        'seleccion.candidatos_seleccionados': 0,
+      });
+      expect(out['seleccion.candidatos_recuperados']).toBe(5);
+      expect(out['seleccion.candidatos_seleccionados']).toBe(0);
+      expect('verificador.hallazgos_entrantes' in out).toBe(false);
+    });
+
+    it('salida normal — las dos etapas y la cascada', () => {
+      const out = mergeCounters({
+        'seleccion.candidatos_recuperados': 5,
+        'seleccion.candidatos_seleccionados': 3,
+        'verificador.hallazgos_entrantes': 4,
+        'verificador.confirmados': 2,
+        'verificador.confirmados_por_estructura': 1,
+        'verificador.confirmados_por_juicio': 1,
+        'verificador.descartados': 2,
+        'verificador.reclasificados': 0,
+      });
+      expect(Object.keys(out)).toHaveLength(8);
+      expect(out['verificador.reclasificados']).toBe(0);
+    });
   });
 
   it('ignora las partes ausentes y no muta ninguna', () => {

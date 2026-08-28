@@ -1,5 +1,6 @@
 import type { FinalAnalysis, PipelineOptions, DiscardedFindings, ComparedValue, ConfirmedBy } from './types';
 import { mergeCounters } from './counters';
+import type { PipelineCounters } from './counters';
 import { stageFailureContext } from './stage-failures';
 import { retrieveCandidates } from './retrieval';
 import type { StructuralOverlap } from './retrieval';
@@ -459,12 +460,44 @@ async function applyCascadeToCandidate(
 // Núcleo compartido: retrieve → rerank → judge → verificar → synthesize
 // ============================================================
 
+/**
+ * F-82: un `FinalAnalysis` que YA lleva contadores, y el tipo que impide
+ * repetir el fallo que motivó este arreglo.
+ *
+ * La primera versión colgaba los contadores del único punto donde el pipeline
+ * «termina bien», así que las dos salidas tempranas de `runCorePipeline`
+ * devolvían el objeto de synthesize sin ellos — medido en producción: tres
+ * análisis seguidos con `pipeline_counters` en null.
+ *
+ * Ahora `runCorePipeline` declara que devuelve esto, y `pipelineCounters` es
+ * OBLIGATORIO aquí (no opcional, como en `FinalAnalysis`). Consecuencia: un
+ * `return` que no pase por `withCounters` NO COMPILA. La garantía no depende de
+ * que alguien se acuerde de mirar las salidas, igual que el `satisfies` del
+ * catálogo no depende de que alguien se acuerde del prefijo.
+ */
+type CountedAnalysis = FinalAnalysis & { pipelineCounters: PipelineCounters };
+
+/** Único constructor de CountedAnalysis, y por tanto el único camino a las
+ *  salidas de runCorePipeline. Pasa por mergeCounters —el punto de
+ *  estrangulamiento de la cláusula 4— aunque hoy el acumulador venga de un solo
+ *  sitio: así el día que otra etapa aporte contadores, se añade como argumento
+ *  y no como un sitio nuevo por el que colarse. */
+function withCounters(analysis: FinalAnalysis, counters: PipelineCounters): CountedAnalysis {
+  return { ...analysis, pipelineCounters: mergeCounters(counters) };
+}
+
 async function runCorePipeline(
   input: AnalyzePipelineInput,
   options: PipelineOptions,
   label: string,
-): Promise<FinalAnalysis> {
+): Promise<CountedAnalysis> {
   const t0 = Date.now();
+
+  // F-82: EL ACUMULADOR, creado al principio y adjuntado en LAS TRES salidas.
+  // No se construye al final: eso fue el fallo. Cada etapa deja aquí lo que
+  // decidió en cuanto lo decide, así que un análisis que se para antes conserva
+  // lo que sí llegó a decidirse — que es justo lo más informativo.
+  const counters: PipelineCounters = {};
 
   const { candidates, chunksByDocument: chunksFromRetrieval, structuralOverlaps, selectionLimits } = await retrieveCandidates({
     sampleTexts: input.sampleTexts,
@@ -476,9 +509,16 @@ async function runCorePipeline(
     newDocumentChunks: input.newDocumentChunks,
   });
   console.log(`[${label}] Retrieval: ${candidates.length} candidatos (${Date.now() - t0}ms)`);
+  counters['seleccion.candidatos_recuperados'] = candidates.length;
 
+  // SALIDA TEMPRANA 1 — el corpus activo no tenía nada que comparar. Es la
+  // decisión más informativa que puede tomar un análisis, y hasta F-82 no
+  // dejaba rastro fuera del console.log de arriba.
   if (candidates.length === 0) {
-    return synthesizeFinalAnalysis({ newDocumentName: input.newDocumentName, judgments: [] });
+    return withCounters(
+      await synthesizeFinalAnalysis({ newDocumentName: input.newDocumentName, judgments: [] }),
+      counters,
+    );
   }
 
   const t1 = Date.now();
@@ -489,9 +529,17 @@ async function runCorePipeline(
     options,
   });
   console.log(`[${label}] Rerank: ${reranked.length} seleccionados (${Date.now() - t1}ms)`);
+  counters['seleccion.candidatos_seleccionados'] = reranked.length;
 
+  // SALIDA TEMPRANA 2 — había candidatos y el rerank no dejó ninguno. Se
+  // distingue de la anterior por los DOS contadores: aquí `recuperados` es > 0
+  // y `seleccionados` es 0; allí `seleccionados` ni siquiera existe, porque
+  // esta etapa no llegó a correr.
   if (reranked.length === 0) {
-    return synthesizeFinalAnalysis({ newDocumentName: input.newDocumentName, judgments: [] });
+    return withCounters(
+      await synthesizeFinalAnalysis({ newDocumentName: input.newDocumentName, judgments: [] }),
+      counters,
+    );
   }
 
   // F-27: los chunks son el haystack contra el que se verifican las citas del
@@ -597,31 +645,23 @@ async function runCorePipeline(
   });
   console.log(`[${label}] Synthesize (${Date.now() - t3}ms). Total: ${Date.now() - t0}ms`);
 
-  // F-82: LOS CONTADORES DE INCIDENCIA DEL VERIFICADOR. Los seis recuentos de
-  // arriba se imprimían en el console.log anterior y se tiraban; ahora cruzan a
-  // la persistencia. Son recuentos de DECISIÓN —cuántos hallazgos tomaron cada
-  // salida de la cascada—, que es lo único que el contrato admite
-  // (claude/Contrato_Contadores.md, cláusula 2).
-  //
-  // Se funden AQUÍ, antes del bloque de F-74 P2, para que los lleven las dos
-  // salidas de esta función: aquel bloque tiene un `return final` temprano
-  // cuando no hay límites, y adjuntarlos después los perdería en el caso normal.
-  //
-  // Pasa por mergeCounters aunque hoy haya un solo emisor: es el punto de
-  // estrangulamiento de la cláusula 4, y quiere estar en el camino desde el
-  // primer día — así el segundo emisor (el diff de tablas) se añade como un
-  // argumento más y no como un sitio nuevo por el que colarse.
-  const final: FinalAnalysis = {
-    ...synthesized,
-    pipelineCounters: mergeCounters({
-      'verificador.hallazgos_entrantes': totalHallazgos,
-      'verificador.confirmados': totalConfirmados,
-      'verificador.confirmados_por_estructura': totalConfirmadosPorEstructura,
-      'verificador.confirmados_por_juicio': totalConfirmadosPorJuicio,
-      'verificador.descartados': totalDescartados,
-      'verificador.reclasificados': totalReclasificados,
-    }),
-  };
+  // F-82: los seis recuentos de la cascada, que hasta este commit se imprimían
+  // en el console.log de arriba y se tiraban. Son recuentos de DECISIÓN
+  // —cuántos hallazgos tomaron cada salida—, lo único que el contrato admite
+  // (claude/Contrato_Contadores.md, cláusula 2). Entran en el acumulador AQUÍ,
+  // que es cuando se conocen: quien salga antes no los lleva, y no llevarlos es
+  // la verdad — la cascada no corrió.
+  counters['verificador.hallazgos_entrantes'] = totalHallazgos;
+  counters['verificador.confirmados'] = totalConfirmados;
+  counters['verificador.confirmados_por_estructura'] = totalConfirmadosPorEstructura;
+  counters['verificador.confirmados_por_juicio'] = totalConfirmadosPorJuicio;
+  counters['verificador.descartados'] = totalDescartados;
+  counters['verificador.reclasificados'] = totalReclasificados;
+
+  // SALIDA 3 (la normal). Se adjuntan aquí, antes del bloque de F-74 P2,
+  // porque aquel tiene un `return final` temprano cuando no hay límites;
+  // hacerlo después los perdería en el caso corriente.
+  const final = withCounters(synthesized, counters);
 
   // F-74 P2: EL ALCANCE DECLARADO. Se funde DESPUÉS del return de synthesize —
   // mismo criterio que exhaustiveCounts en el exhaustivo, para no tocar la

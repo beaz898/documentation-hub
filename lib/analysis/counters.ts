@@ -51,6 +51,24 @@ type Stage = 'diff.clave' | 'diff.celdas' | 'seleccion' | 'verificador' | 'averi
  * de depender de que alguien se acuerde.
  */
 export const COUNTER_CATALOGUE = [
+  // seleccion — cuántas cosas dejó pasar cada filtro antes del juez. Son
+  // recuentos de DECISIÓN y no resultados: miden el caudal de un filtro (qué
+  // dejó pasar la etapa), no qué dicen los documentos. `contradictions_found`
+  // es un resultado; esto es throughput.
+  //
+  // NO SON BANDERAS DISFRAZADAS, y es deliberado: la primera versión de este
+  // arreglo iba a declarar `seleccion.sin_candidatos: 1`, un booleano vestido
+  // de contador que solo dice algo cuando el análisis falla. Contar el CAUDAL
+  // dice lo mismo —«no había candidatos» es `candidatos_recuperados: 0`— y
+  // además dice algo en las pasadas normales: cuántos trae el retrieval de
+  // media y cuántos descarta el rerank. Un contador que solo se mueve en el
+  // caso malo no responde «¿sirvió de verdad?», que es para lo que existe el
+  // campo (condición 3 de la regla de entrada).
+  //
+  // El descarte del rerank NO tiene contador propio: es la resta de los dos, y
+  // un contador derivable es un contador que puede contradecir a sus fuentes.
+  'seleccion.candidatos_recuperados',
+  'seleccion.candidatos_seleccionados',
   // verificador — la cascada de F-25 (pipeline.ts). Recuentos de DECISIÓN:
   // cuántos hallazgos tomaron cada salida, no qué se encontró.
   'verificador.hallazgos_entrantes',
@@ -63,9 +81,18 @@ export const COUNTER_CATALOGUE = [
 
 export type CounterName = (typeof COUNTER_CATALOGUE)[number];
 
-/** Lo que se persiste en `analysis_results.pipeline_counters`. Parcial: un
- *  contador ausente significa «esa etapa no corrió o no actuó», y se lee por
- *  NOMBRE (cláusula 3) — nunca por posición ni por cuántos hay. */
+/**
+ * Lo que se persiste en `analysis_results.pipeline_counters`. Parcial, y la
+ * distinción entre AUSENTE y CERO es información, no un detalle:
+ *   · ausente = esa etapa NO CORRIÓ.
+ *   · 0       = corrió y decidió que no pasaba nada.
+ * Un análisis que se para por falta de candidatos deja
+ * `seleccion.candidatos_recuperados: 0` y NO deja
+ * `seleccion.candidatos_seleccionados` — porque el rerank no llegó a
+ * ejecutarse, y escribir un 0 ahí diría que se ejecutó y no seleccionó nada,
+ * que es falso.
+ * Se lee siempre por NOMBRE (cláusula 3), nunca por posición ni por cuántos hay.
+ */
 export type PipelineCounters = Partial<Record<CounterName, number>>;
 
 const CATALOGUE = new Set<string>(COUNTER_CATALOGUE);
