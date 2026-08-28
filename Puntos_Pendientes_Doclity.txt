@@ -2060,6 +2060,24 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     ficheros, no de memoria — el mismo criterio de la regla de admisión. Y
     F-82 va a añadir uno más (pipeline_counters).
 
+  B.113 — [MANTENIMIENTO, anotado 28/08] El protocolo del harness ha vuelto a
+    cruzar las 400 líneas: claude/Protocolo_Harness_Tasas.md son 403 desde que
+    F-82 le añadió el puntero al contrato de contadores.
+    ES LA TERCERA VEZ EN TRES DÍAS que ese fichero crece por un frente distinto:
+    el 27/08 se partió sacando el catálogo de casos a claude/Casos_Harness.md
+    (39d15163), ese mismo día entró la regla de entrada de F-81 P3 (8632576e),
+    y hoy el puntero de F-82. No es un fichero que engorde solo: engorda porque
+    es donde se escriben las reglas, que es lo que tiene que pasar.
+    NO SE PARTE AHORA, y es una decisión, no un olvido: hacerlo en medio de un
+    frente es cómo se decide mal un corte. Cuando se mire con calma, la
+    pregunta es qué se separa —el método de las tandas de las reglas de
+    entrada/admisión, que hoy conviven ahí— y no simplemente por dónde cortar
+    para bajar de 400.
+    PRECEDENTE ÚTIL: el corte del 27/08 salió bien porque separó por DOMINIO
+    (el método en uno, el catálogo en otro) y dejó escrito en los dos cuál es
+    cuál. El de F-82 también: el contrato de contadores es código, no tandas, y
+    por eso fue a claude/Contrato_Contadores.md en vez de a una sección más.
+
   F-81 [CONVERGENCIA — leer ANTES de planificar la fase 3 del diff, 27/08] No
     es un pendiente nuevo: es el sitio donde se juntan tres que ya existen, más
     una consecuencia. Se anota aquí porque el momento en que importan es el de
