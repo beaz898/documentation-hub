@@ -1,5 +1,5 @@
 import type { StoredChunk } from '@/lib/read-chunks';
-import { normalize } from './normalize';
+import { esVarianteDeEscritura } from './normalize';
 import type { RowPair, TableKeyResult } from './table-key';
 import { renderTableRow, type TableGroup } from './table-structure';
 import type { ComparedValue } from './types';
@@ -59,7 +59,7 @@ import type { ComparedValue } from './types';
  * Comparar en crudo además NO abre un segundo criterio de «difieren» en el
  * sistema: es el MISMO `!==` que ya usa `applyDeterministicRules`
  * (finding-rules.ts). Lo que esta fase añade es una etiqueta que R2 no tiene
- * —`igualTrasNormalizar`—, que es justo lo que B.97 pide.
+ * —`varianteDeEscritura`—, que es justo lo que B.97 pide.
  *
  * 2 ── POR QUÉ SE EXCLUYE LA CLAVE. Una pareja existe PORQUE su clave
  * coincidió. Reportar la clave como columna discrepante sería decir «estas dos
@@ -103,18 +103,33 @@ export interface RowDiff {
   newDocRow: string;
   existingDocRow: string;
   /**
-   * Subconjunto de `columns` cuyos valores COINCIDEN tras `normalize`.
+   * Subconjunto de `columns` que son EL MISMO VALOR ESCRITO DE OTRA MANERA:
+   * difieren en crudo y coinciden bajo el nivel seguro
+   * (`esVarianteDeEscritura`, normalize.ts) — o sea, solo en caja o espacios.
    *
-   * ⚠️ EL NOMBRE DICE LO QUE MIDE, NO POR QUÉ. Se llamó `soloFormato` mientras
-   * se diseñaba y se cambió a propósito: ahí caen tanto «Dr. Pablo Reyes»
-   * contra «Dr Pablo Reyes» (que sí es formato) como «25,00» contra «2500»
-   * (que es un factor de cien, porque `normalize` borra el separador decimal).
-   * Un campo llamado «solo formato» mentiría exactamente en el caso peligroso,
-   * y este proyecto ya tiene abiertos dos puntos por nombres que prometen lo
-   * que no cumplen (B.103, B.110). Quien consuma este campo tiene que decidir
-   * qué hacer con él SABIENDO que mezcla las dos cosas.
+   * EL RECORRIDO DEL NOMBRE, que es la historia de una decisión y no una
+   * indecisión:
+   *
+   *   `soloFormato`            — descartado al diseñarlo (F-81 fase 2). Con la
+   *                              comparación de entonces (`normalize`) el campo
+   *                              recogía «Dr. Pablo Reyes» contra «Dr Pablo
+   *                              Reyes», que sí es formato, Y «25,00» contra
+   *                              «2500», que es un factor de cien. El nombre
+   *                              habría mentido justo en el caso peligroso, e
+   *                              invitado a degradar el hallazgo más grave.
+   *   `igualTrasNormalizar`    — el nombre que decía QUÉ mide y no POR QUÉ,
+   *                              porque con aquella comparación no se podía
+   *                              afirmar la causa sin mentir.
+   *   `varianteDeEscritura`    — el actual (F-82 P2). Al pasar a comparar con el
+   *                              nivel seguro, «25,00»/«2500» dejó de caer aquí
+   *                              y pasó a ser discrepancia plena. Ya no hay dos
+   *                              cosas dentro, así que el campo PUEDE llamarse
+   *                              por su causa sin prometer lo que no cumple.
+   *
+   * El nombre no se movió tres veces por indecisión: se movió porque cambió lo
+   * que había dentro.
    */
-  igualTrasNormalizar: string[];
+  varianteDeEscritura: string[];
 }
 
 export interface TableDiffCounts {
@@ -123,8 +138,9 @@ export interface TableDiffCounts {
   discrepantes: number;
   /** Cuántas parejas difieren en cada columna. */
   porColumna: Record<string, number>;
-  /** Discrepancias en las que TODAS las columnas coinciden tras normalizar. */
-  discrepanciasIgualTrasNormalizar: number;
+  /** Discrepancias en las que TODAS las columnas son variantes de escritura:
+   *  la fila difiere, pero en nada que cambie un valor. */
+  discrepanciasVarianteDeEscritura: number;
   columnasComparadas: number;
   /** Compartidas por nombre pero excluidas por haber servido de clave. */
   columnasExcluidasPorClave: number;
@@ -181,7 +197,7 @@ export function diffPairedRows(
   const identical: RowPair[] = [];
   const differing: RowDiff[] = [];
   const porColumna: Record<string, number> = {};
-  let discrepanciasIgualTrasNormalizar = 0;
+  let discrepanciasVarianteDeEscritura = 0;
 
   for (const pair of key.pairs) {
     const columns = comparedColumns.filter(c => raw(pair.nueva, c) !== raw(pair.existente, c));
@@ -190,10 +206,13 @@ export function diffPairedRows(
       continue;
     }
 
-    const igualTrasNormalizar = columns.filter(
-      c => normalize(raw(pair.nueva, c)) === normalize(raw(pair.existente, c)),
+    // Nivel intermedio de los tres: el mismo valor escrito de otra manera.
+    // El predicado vive en normalize.ts junto a la comparación agresiva, para
+    // que no se pueda leer una sin ver la otra.
+    const varianteDeEscritura = columns.filter(
+      c => esVarianteDeEscritura(raw(pair.nueva, c), raw(pair.existente, c)),
     );
-    if (igualTrasNormalizar.length === columns.length) discrepanciasIgualTrasNormalizar++;
+    if (varianteDeEscritura.length === columns.length) discrepanciasVarianteDeEscritura++;
     for (const c of columns) porColumna[c] = (porColumna[c] ?? 0) + 1;
 
     differing.push({
@@ -210,7 +229,7 @@ export function diffPairedRows(
       // distintas (OPE-02 y RRHH-06 comparten 2 de 18).
       newDocRow: renderTableRow(pair.nueva.rowIndex, pair.nueva.cells, nueva.columns),
       existingDocRow: renderTableRow(pair.existente.rowIndex, pair.existente.cells, existente.columns),
-      igualTrasNormalizar,
+      varianteDeEscritura,
     });
   }
 
@@ -224,7 +243,7 @@ export function diffPairedRows(
       identicas: identical.length,
       discrepantes: differing.length,
       porColumna,
-      discrepanciasIgualTrasNormalizar,
+      discrepanciasVarianteDeEscritura,
       columnasComparadas: comparedColumns.length,
       columnasExcluidasPorClave: excludedAsKey.length,
       columnasNoCompartidas: todas.size - shared.length,

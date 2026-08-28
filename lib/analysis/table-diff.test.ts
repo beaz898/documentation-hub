@@ -131,7 +131,7 @@ describe('OPE-10 / OPE-11 — el reparto de la siembra', () => {
     expect(hig04!.newDocRow.startsWith(`[F${hig04!.nueva.rowIndex}] `)).toBe(true);
     expect(hig04!.existingDocRow.startsWith(`[F${hig04!.existente.rowIndex}] `)).toBe(true);
     expect(hig04!.newDocRow.split(' | ')).toHaveLength(a.columns.length);
-    expect(hig04!.igualTrasNormalizar).toEqual([]);
+    expect(hig04!.varianteDeEscritura).toEqual([]);
   });
 
   it('D7 ninguna columna clave aparece jamás entre las que difieren', async () => {
@@ -210,7 +210,38 @@ describe('lo que el corpus no tiene — casos construidos', () => {
     expect(r.differing.some(d => d.columns.includes('Código'))).toBe(false);
   });
 
-  it('E2 diferencia real de formato: se emite, y se etiqueta', () => {
+  it('E2 variante de escritura real (caja): se emite, y se etiqueta', () => {
+    const a = tabla(['Código', 'Clínica'], [
+      { 'Código': 'A1', 'Clínica': 'CHAMBERÍ' },
+      { 'Código': 'A2', 'Clínica': 'Retiro' },
+      { 'Código': 'A3', 'Clínica': 'Retiro' },
+    ]);
+    const b = tabla(['Código', 'Clínica'], [
+      { 'Código': 'A1', 'Clínica': 'Chamberí' }, // misma clínica, otra caja
+      { 'Código': 'A2', 'Clínica': 'Retiro' },
+      { 'Código': 'A3', 'Clínica': 'Retiro' },
+    ]);
+    const r = diff(a, b);
+
+    expect(r.differing).toHaveLength(1);
+    expect(r.differing[0].columns).toEqual(['Clínica']);
+    expect(r.differing[0].varianteDeEscritura).toEqual(['Clínica']);
+    expect(r.counts.discrepanciasVarianteDeEscritura).toBe(1);
+  });
+
+  /**
+   * E2-bis — LA CONSECUENCIA VISIBLE DE ELEGIR EL NIVEL SEGURO. Hasta F-82 P2
+   * este caso era el fixture de E2 y salía como variante de escritura, porque
+   * la comparación de entonces (`normalize`) borraba el punto. Ahora es
+   * DISCREPANCIA PLENA, y eso es el precio pagado a conciencia: el mismo punto
+   * que hace inocuo «Dr.» contra «Dr» es el que convierte «45.0» en «450», así
+   * que no hay subconjunto de caracteres que salve a uno y condene al otro.
+   *
+   * Se paga porque el coste es asimétrico: equivocarse aquí cuesta al usuario
+   * una mirada; equivocarse con «25,00» contra «2500» esconde un factor de
+   * cien, y esconder hallazgos es lo que F-74 prohíbe.
+   */
+  it('E2-bis «Dr.» contra «Dr» es discrepancia plena, no variante', () => {
     const a = tabla(['Código', 'Profesional'], [
       { 'Código': 'A1', Profesional: 'Dr. Pablo Reyes' },
       { 'Código': 'A2', Profesional: 'Laura Núñez' },
@@ -225,8 +256,8 @@ describe('lo que el corpus no tiene — casos construidos', () => {
 
     expect(r.differing).toHaveLength(1);
     expect(r.differing[0].columns).toEqual(['Profesional']);
-    expect(r.differing[0].igualTrasNormalizar).toEqual(['Profesional']);
-    expect(r.counts.discrepanciasIgualTrasNormalizar).toBe(1);
+    expect(r.differing[0].varianteDeEscritura).toEqual([]);
+    expect(r.counts.discrepanciasVarianteDeEscritura).toBe(0);
   });
 
   /**
@@ -244,11 +275,14 @@ describe('lo que el corpus no tiene — casos construidos', () => {
    * revierte la comparación. Un precio que se traga porque «normaliza igual»
    * es exactamente el hallazgo escondido que F-74 prohíbe.
    *
-   * Y fíjate en la segunda aserción: esta discrepancia cae en
-   * `igualTrasNormalizar` junto a la de E2, que sí es formato. Por eso ese
-   * campo no se llama «soloFormato»: mentiría justo aquí.
+   * Y LA SEGUNDA ASERCIÓN SE INVIRTIÓ EN F-82 P2, que es lo que este commit
+   * arregla. Antes esta discrepancia caía en `varianteDeEscritura` junto a la
+   * de una abreviatura, y por eso el campo no podía llamarse por su causa. Con
+   * el nivel seguro NO cae ahí: un factor de cien es discrepancia plena, y el
+   * campo ya no mezcla dos cosas. Si alguien vuelve a meterla en la bolsa, esta
+   * línea se pone roja.
    */
-  it('E3 «25,00» contra «2500» es una discrepancia, y normalizar la ocultaría', () => {
+  it('E3 «25,00» contra «2500» es discrepancia PLENA, no variante de escritura', () => {
     const a = tabla(['Código', 'Precio'], [
       { 'Código': 'A1', Precio: '25,00' },
       { 'Código': 'A2', Precio: '10' },
@@ -265,7 +299,8 @@ describe('lo que el corpus no tiene — casos construidos', () => {
     expect(r.differing[0].comparedValues).toEqual([
       { column: 'Precio', newDocValue: '25,00', existingDocValue: '2500' },
     ]);
-    expect(r.differing[0].igualTrasNormalizar).toEqual(['Precio']);
+    expect(r.differing[0].varianteDeEscritura).toEqual([]);
+    expect(r.counts.discrepanciasVarianteDeEscritura).toBe(0);
   });
 
   it('E4 celda vacía en un lado y con valor en el otro, en columna compartida: discrepa', () => {
@@ -318,7 +353,7 @@ describe('lo que el corpus no tiene — casos construidos', () => {
   });
 
   /**
-   * E8 — el contador de `igualTrasNormalizar` es POR FILA y exige que TODAS
+   * E8 — el contador de `varianteDeEscritura` es POR FILA y exige que TODAS
    * sus columnas coincidan al normalizar. Una fila que difiere de verdad en
    * una columna no deja de ser una discrepancia real porque otra de sus
    * columnas sea solo formato. Este caso se añadió porque la mutación que
@@ -340,8 +375,8 @@ describe('lo que el corpus no tiene — casos construidos', () => {
 
     expect(r.differing).toHaveLength(1);
     expect(r.differing[0].columns).toEqual(['Zona', 'Precio']);
-    expect(r.differing[0].igualTrasNormalizar).toEqual(['Zona']);
-    expect(r.counts.discrepanciasIgualTrasNormalizar).toBe(0);
+    expect(r.differing[0].varianteDeEscritura).toEqual(['Zona']);
+    expect(r.counts.discrepanciasVarianteDeEscritura).toBe(0);
   });
 
   it('E7 todas las compartidas son clave: cero columnas comparables, contado', () => {

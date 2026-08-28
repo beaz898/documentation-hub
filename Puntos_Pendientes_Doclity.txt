@@ -2078,6 +2078,30 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     cuál. El de F-82 también: el contrato de contadores es código, no tandas, y
     por eso fue a claude/Contrato_Contadores.md en vez de a una sección más.
 
+  B.114 — [PREEXISTENTE, encontrado 28/08 al medir F-82 P2] Las comillas
+    tipográficas NO están en la clase de caracteres de normalize, pese a que su
+    cabecera dice que quita «el marcado Markdown junto a la puntuación».
+    EL RASTRO: en el fuente (lib/analysis/normalize.ts) la clase tiene `"` TRES
+    veces y `'` DOS. Son 27 posiciones y 24 caracteres distintos. Esos
+    duplicados son lo que queda de unas comillas tipográficas que se quisieron
+    poner y que algún editor convirtió en rectas al escribirlas.
+    MEDIDO: `"Caso A"` se funde con `Caso A` y `“Caso A”` NO; `O'Brien` se funde
+    con `OBrien` y `O’Brien` NO. Y las tipográficas son justo las que produce
+    cualquier procesador de textos, así que son la forma que más va a llegar
+    desde un .docx real — el caso frecuente es el que no está cubierto.
+    DÓNDE MUERDE: normalize es la comparación AGRESIVA, la que localiza citas
+    (verifyQuote) y la que decide el colapso de filas idénticas de F-44/F-45.
+    Una cita del juez con comillas tipográficas puede no localizarse hoy.
+    NO SE ARREGLA A LA LIGERA: F-46 dice que cualquier ampliación de normalize
+    —tildes, sinónimos, distancia de edición— amplía lo que el colapso
+    considera «la misma fila» y debe pasar por su batería de medición antes de
+    tocarse. Añadir `“ ” ’` es una ampliación, aunque parezca una errata.
+    ESTADO: el comportamiento de hoy está FIJADO en lib/analysis/normalize.test.ts
+    ("las comillas tipográficas NO están en la clase"). Si alguien las añade,
+    ese test se pone rojo y le manda aquí antes de darlo por bueno.
+    NO AFECTA al nivel seguro de F-82 P2 (esVarianteDeEscritura): ése no toca
+    puntuación de ninguna clase, así que las dos formas le dan igual.
+
   F-81 [CONVERGENCIA — leer ANTES de planificar la fase 3 del diff, 27/08] No
     es un pendiente nuevo: es el sitio donde se juntan tres que ya existen, más
     una consecuencia. Se anota aquí porque el momento en que importan es el de
