@@ -66,14 +66,16 @@ queda superado, pero **no administra su propio estado**.
 | F-82 | 28/08/2026 | Los contadores de pipeline y su contrato | **pendiente de archivar** · *su corte de commits, superado por F-84* | Las tres primeras cláusulas — `Contrato_Contadores.md` |
 | **[F-83](F-83.md)** | 28/08/2026 | La huella frente a la cláusula 5, la emisión de las filas sin pareja, y el corte en tres commits | **parcialmente superada** · *su corte de tres commits, por F-84* · consulta NO CONSERVADA | La distinción huella/contador y el saneo de `porColumna` — `Contrato_Contadores.md`, cláusula 5 (`2c998111`) |
 | **[F-84](F-84.md)** | 28/08/2026 | La columna de contradicciones y el número de la bandeja, la asimetría del criterio de igualdad, y la huella frente a la dirección | **vigente** · PAR COMPLETO | El criterio de igualdad unificado (`e4c1f8a7`); la huella bidireccional (`e6a27a58`); la reutilización de la columna de contradicciones — **pendiente de consumar en la emisión** |
-| F-85 | 28/08/2026 | El archivo de consultas | **pendiente de archivar** (falta el texto) | La custodia y la verificación al usar — protocolo |
+| **[F-85](F-85.md)** | 28/08/2026 | Dónde viven las respuestas de Fable: custodia, qué sigue vinculante, cómo se marca lo superado, y qué no debe decidir Fable | **vigente** · PAR COMPLETO | La custodia y la verificación al usar — protocolo (`cd00738c`) |
 
 ---
 
 ## EL AGUJERO, MEDIDO EL 28/08/2026
 
-**Un solo par completo de F-70 a F-85: F-84.** El resto, o a medias o nada:
+**Dos pares completos de F-70 a F-85: F-84 y F-85.** El resto, o a medias o nada:
 
+- **F-85 — PAR COMPLETO**, en `F-85.md` (28/08/2026). Es la consulta que creó
+  este archivo, así que queda archivada dentro de sí misma.
 - **F-84 — EL PRIMER PAR COMPLETO DEL ARCHIVO**: consulta y respuesta, las dos
   íntegras, en `F-84.md` (28/08/2026). La consulta llegó en un segundo envío,
   después de la respuesta.
@@ -91,7 +93,7 @@ queda superado, pero **no administra su propio estado**.
   especificación y no se declara literal. No cuenta como archivada.
 - **F-82 — una frase literal**, citada en `Contrato_Contadores.md:19` («el
   contrato es barato, el sistema grande es caro»). Una frase no es un archivo.
-- **F-72 y F-85 — cero rastro** de ningún tipo en todo el repositorio.
+- **F-72 — cero rastro** de ningún tipo en todo el repositorio.
 - **El resto (F-71, F-73, F-74, F-76 a F-80)** existe solo como
   REFERENCIAS y resúmenes en la bitácora, los pendientes y el protocolo. Un
   resumen no cuenta: es exactamente lo que F-85 descarta.

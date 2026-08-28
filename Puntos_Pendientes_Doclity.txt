@@ -2229,6 +2229,9 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     completará, y el fichero lo declara en su cabecera.
     F-84 QUEDA COMPLETO el 28/08: consulta y respuesta, las dos íntegras. Es el
     PRIMER PAR COMPLETO del archivo. La consulta llegó en un segundo envío.
+    F-85 TAMBIÉN COMPLETO el 28/08 — es la consulta que creó el archivo, así que
+    queda archivada dentro de sí misma. Quedan DOS pares completos de F-70 a
+    F-85; el resto del rango sigue siendo la deuda de este punto.
     EL AGUJERO, MEDIDO: de F-70 a F-85 no hay NI UN SOLO PAR completo archivado.
     El archivo y su índice están creados (claude/consultas-fable/), con cada
     entrada en estado «pendiente de archivar», así que el hueco queda visible en
