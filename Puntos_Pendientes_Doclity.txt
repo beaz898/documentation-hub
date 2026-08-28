@@ -2034,6 +2034,32 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     claude/Protocolo_Harness_Tasas.md), que es quien exige el contador, y con
     B.110, que es donde ese contador todavía no tiene sitio.
 
+  B.112 — [PREEXISTENTE, encontrado 28/08 al explorar F-82] supabase-setup.sql
+    está desfasado: quien reconstruya la base desde ese fichero obtiene una
+    tabla que el código no puede usar.
+    SU CREATE TABLE public.analysis_results (línea 392) NO incluye dos columnas
+    que llevan meses en la base de producción:
+      · `analysis jsonb` — añadida por supabase-analysis-jsonb.sql (B.5,
+        ejecutada el 13/07/2026). Es la que guarda el FinalAnalysis entero y de
+        la que vive la bandeja de revisión.
+      · `document_id` — añadida por B.1. Es el match preciso de
+        app/api/documents/[id]/analysis/route.ts.
+    Sin las dos, saveAnalysisResult falla al insertar y la bandeja no tiene de
+    dónde leer.
+    NO ES DE HOY y no lo introduce F-82: el patrón del repositorio es que cada
+    cambio de esquema vive en su propio supabase-*.sql como registro de lo ya
+    ejecutado, y setup.sql quedó como la foto del día que se escribió. El
+    problema no es tener ficheros de ALTER —eso está bien— sino que setup.sql
+    se PRESENTA como el esquema completo y no lo es.
+    QUÉ HARÍA FALTA, sin elegir: o se regenera setup.sql desde la base real, o
+    se le pone una cabecera que diga que es la foto inicial y que hay que
+    aplicar los supabase-*.sql posteriores en orden, con la lista. Lo segundo
+    cuesta diez líneas y es honesto; lo primero es mejor y hay que hacerlo con
+    la base delante.
+    OJO AL ARREGLARLO: la lista de ALTERs posteriores hay que sacarla de los
+    ficheros, no de memoria — el mismo criterio de la regla de admisión. Y
+    F-82 va a añadir uno más (pipeline_counters).
+
   F-81 [CONVERGENCIA — leer ANTES de planificar la fase 3 del diff, 27/08] No
     es un pendiente nuevo: es el sitio donde se juntan tres que ya existen, más
     una consecuencia. Se anota aquí porque el momento en que importan es el de
