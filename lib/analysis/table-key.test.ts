@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest';
 
 import { chunkSegments, extractSegments } from '@/lib/chunking';
 import { toStoredChunks, type StoredChunk } from '@/lib/read-chunks';
+import { esVarianteDeEscritura } from './normalize';
 import { groupChunksByTable, type TableGroup } from './table-structure';
 import { columnUniqueness, discoverTableKey, type TableKeyResult } from './table-key';
 
@@ -390,5 +391,77 @@ describe('cuándo se rinde', () => {
     const llena = tabla(['K'], [{ K: 'A1' }]);
     expect(discoverTableKey(vacia, llena)).toMatchObject({ status: 'sin_clave', reason: 'tabla_vacia' });
     expect(discoverTableKey(llena, vacia)).toMatchObject({ status: 'sin_clave', reason: 'tabla_vacia' });
+  });
+});
+
+// ── la medición de F-84 1a ─────────────────────────────────────────────────
+
+/**
+ * F-84 PASO 1a — ¿CUÁNTAS PAREJAS DEPENDEN DE LA NORMALIZACIÓN AGRESIVA?
+ *
+ * La fase 1 empareja hoy con `normalize`: minúsculas, colapso de espacios y
+ * borrado de 24 caracteres de puntuación. F-84 propone bajarla al NIVEL SEGURO
+ * del comparador de tres niveles, porque la asimetría del error manda —
+ * emparejar de MÁS fabrica una discrepancia falsa con sello de «verificada por
+ * estructura»; emparejar de MENOS solo manda la fila a la sección de cobertura,
+ * donde el usuario la ve.
+ *
+ * Este caso es la CIFRA que hay que conocer antes de hacer ese cambio: cuántas
+ * parejas existen hoy SOLO porque se borró puntuación, se colapsaron espacios o
+ * se bajó a minúsculas. Se mide sobre los 12 pares ORDENADOS de los cuatro
+ * .xlsx del corpus, no solo sobre OPE-10/OPE-11.
+ *
+ * NO CAMBIA EL CRITERIO: lo mide. Cuando F-84 1b lo cambie, este caso sigue
+ * valiendo, porque lo que afirma es una propiedad del CORPUS —que sus claves no
+ * tienen suciedad de escritura— y no del código.
+ *
+ * SI ALGÚN DÍA SE PONE ROJO con un corpus nuevo, eso NO es un fallo: es el
+ * primer caso real de F-84, y hay que mirarlo antes que nada.
+ */
+describe('F-84 1a — la medición previa al cambio de emparejamiento', () => {
+  /** Igualdad bajo el nivel seguro, preguntada al predicado exportado en vez
+   *  de reimplementar la normalización aquí. */
+  const mismoValorSeguro = (a: string, b: string) => a === b || esVarianteDeEscritura(a, b);
+  const val = (r: StoredChunk, c: string) => r.cells?.[c] ?? '';
+  const clave = (r: StoredChunk, cols: string[]) => cols.map(c => val(r, c)).join('|');
+
+  const XLSX = [
+    'OPE-10_tarifario-tratamientos-2026.xlsx',
+    'OPE-11_tarifario-tratamientos-seguros.xlsx',
+    'OPE-02_agenda-y-gestion-de-citas.xlsx',
+    'RRHH-06_evaluacion-del-desempeno.xlsx',
+  ];
+
+  it('ninguna pareja del corpus depende de la normalización agresiva', async () => {
+    const tablas = new Map<string, TableGroup>();
+    for (const f of XLSX) tablas.set(f, await tablaDeCorpus(f));
+
+    let parejas = 0;
+    const frágiles: string[] = [];
+
+    for (const a of XLSX) {
+      for (const b of XLSX) {
+        if (a === b) continue;
+        const r = discoverTableKey(tablas.get(a)!, tablas.get(b)!);
+        if (r.status !== 'emparejado') continue;
+        parejas += r.pairs.length;
+        for (const p of r.pairs) {
+          // El consenso exige TODAS las candidatas: basta que una deje de
+          // casar bajo el nivel seguro para que la pareja no sobreviva.
+          const sobrevive = r.candidates.every(c =>
+            mismoValorSeguro(clave(p.nueva, c.columns), clave(p.existente, c.columns)));
+          if (!sobrevive) {
+            frágiles.push(`${a} → ${b}: ${JSON.stringify(p.nueva.cells)} / ${JSON.stringify(p.existente.cells)}`);
+          }
+        }
+      }
+    }
+
+    // El corpus empareja 90 filas en los 12 pares ordenados (35+35 de
+    // OPE-10/OPE-11 y 10+10 de OPE-02/RRHH-06; los otros ocho pares no llegan
+    // a tener clave). Va fijado como canario: si cambia, cambió la extracción
+    // o la nominación, y esta medición dejó de medir lo que dice.
+    expect(parejas).toBe(90);
+    expect(frágiles, `parejas frágiles:\n${frágiles.join('\n')}`).toEqual([]);
   });
 });
