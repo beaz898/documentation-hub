@@ -1,4 +1,5 @@
 import type { FinalAnalysis, PipelineOptions, DiscardedFindings, ComparedValue, ConfirmedBy } from './types';
+import { mergeCounters } from './counters';
 import { stageFailureContext } from './stage-failures';
 import { retrieveCandidates } from './retrieval';
 import type { StructuralOverlap } from './retrieval';
@@ -589,12 +590,38 @@ async function runCorePipeline(
   );
 
   const t3 = Date.now();
-  const final = await synthesizeFinalAnalysis({
+  const synthesized = await synthesizeFinalAnalysis({
     newDocumentName: input.newDocumentName,
     judgments,
     excludeDocumentId: input.excludeDocumentId,
   });
   console.log(`[${label}] Synthesize (${Date.now() - t3}ms). Total: ${Date.now() - t0}ms`);
+
+  // F-82: LOS CONTADORES DE INCIDENCIA DEL VERIFICADOR. Los seis recuentos de
+  // arriba se imprimían en el console.log anterior y se tiraban; ahora cruzan a
+  // la persistencia. Son recuentos de DECISIÓN —cuántos hallazgos tomaron cada
+  // salida de la cascada—, que es lo único que el contrato admite
+  // (claude/Contrato_Contadores.md, cláusula 2).
+  //
+  // Se funden AQUÍ, antes del bloque de F-74 P2, para que los lleven las dos
+  // salidas de esta función: aquel bloque tiene un `return final` temprano
+  // cuando no hay límites, y adjuntarlos después los perdería en el caso normal.
+  //
+  // Pasa por mergeCounters aunque hoy haya un solo emisor: es el punto de
+  // estrangulamiento de la cláusula 4, y quiere estar en el camino desde el
+  // primer día — así el segundo emisor (el diff de tablas) se añade como un
+  // argumento más y no como un sitio nuevo por el que colarse.
+  const final: FinalAnalysis = {
+    ...synthesized,
+    pipelineCounters: mergeCounters({
+      'verificador.hallazgos_entrantes': totalHallazgos,
+      'verificador.confirmados': totalConfirmados,
+      'verificador.confirmados_por_estructura': totalConfirmadosPorEstructura,
+      'verificador.confirmados_por_juicio': totalConfirmadosPorJuicio,
+      'verificador.descartados': totalDescartados,
+      'verificador.reclasificados': totalReclasificados,
+    }),
+  };
 
   // F-74 P2: EL ALCANCE DECLARADO. Se funde DESPUÉS del return de synthesize —
   // mismo criterio que exhaustiveCounts en el exhaustivo, para no tocar la

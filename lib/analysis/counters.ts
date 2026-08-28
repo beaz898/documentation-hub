@@ -1,0 +1,117 @@
+/**
+ * CONTADORES DE PIPELINE (F-82) — el mecanismo que hace cumplir el contrato.
+ *
+ * El contrato entero, con su diagnóstico y sus cinco cláusulas, está en
+ * `claude/Contrato_Contadores.md`, escrito ANTES que este fichero y antes que
+ * la columna que los guarda. Aquí va lo que el código puede hacer cumplir.
+ *
+ * QUÉ RESUELVE. La condición 3 de la regla de entrada (protocolo) exige que
+ * todo cambio deje contador en producción. No había dónde: `logUsage` registra
+ * llamadas a endpoints —una fila por llamada—, no piezas del pipeline
+ * decidiendo; y `discardedFindings` es lo que NO hay que repetir, porque mezcla
+ * descartes, recuentos de camino y averías bajo un nombre que dice
+ * «descartados».
+ *
+ * CÓMO SE ESTROPEÓ AQUEL, porque es lo que este fichero existe para evitar. No
+ * fue el nombre: fue que `bumpCount(counts, key: string)` aceptaba cualquier
+ * cadena y que dos fusiones ciegas sobre `Object.entries`
+ * (`pipeline.ts` y `synthesize.ts`) vuelcan la bolsa entera hacia arriba.
+ * `verificado.por_celdas` no llegó a `discardedFindings` porque alguien lo
+ * decidiera: llegó porque el destino de un contador lo decidía el CONTENEDOR y
+ * no su autor.
+ */
+
+/**
+ * Las etapas que pueden emitir contadores. CERRADA a propósito: añadir una es
+ * una decisión que se toma aquí, no el efecto de escribir una cadena nueva en
+ * otro fichero.
+ *
+ * `averia` está RESERVADA Y VACÍA a propósito (cláusula 2 del contrato): las
+ * averías no se cuentan junto a las decisiones, porque una suma que mezcla un
+ * fallo de etapa con un descarte legítimo no significa nada, y esa suma es
+ * justo lo que alguien mirará dentro de tres meses. Hoy no la emite nadie; el
+ * namespace queda apartado para que el día que haga falta no se invente sobre
+ * la marcha.
+ */
+type Stage = 'diff.clave' | 'diff.celdas' | 'seleccion' | 'verificador' | 'averia';
+
+/**
+ * EL CATÁLOGO (cláusula 4). Un contador que no esté aquí no llega arriba: ni lo
+ * acepta el compilador al emitirlo, ni lo transporta `mergeCounters` al
+ * fundirlo. Añadir uno es añadirlo AQUÍ primero y emitirlo después; al revés no
+ * viaja, y esa es toda la garantía.
+ *
+ * CLÁUSULA 5 — los nombres son literales y de vocabulario cerrado. Nada
+ * derivado de datos del cliente puede entrar en esta lista: un espacio de
+ * claves ilimitado haría el campo inagregable entre organizaciones (que es para
+ * lo que existe) y metería contenido del cliente en telemetría.
+ *
+ * El `satisfies` de abajo es la CLÁUSULA 1 en el sistema de tipos: si alguien
+ * añade un nombre sin apellido de etapa, esa línea NO COMPILA. El prefijo deja
+ * de depender de que alguien se acuerde.
+ */
+export const COUNTER_CATALOGUE = [
+  // verificador — la cascada de F-25 (pipeline.ts). Recuentos de DECISIÓN:
+  // cuántos hallazgos tomaron cada salida, no qué se encontró.
+  'verificador.hallazgos_entrantes',
+  'verificador.confirmados',
+  'verificador.confirmados_por_estructura',
+  'verificador.confirmados_por_juicio',
+  'verificador.descartados',
+  'verificador.reclasificados',
+] as const satisfies readonly `${Stage}.${string}`[];
+
+export type CounterName = (typeof COUNTER_CATALOGUE)[number];
+
+/** Lo que se persiste en `analysis_results.pipeline_counters`. Parcial: un
+ *  contador ausente significa «esa etapa no corrió o no actuó», y se lee por
+ *  NOMBRE (cláusula 3) — nunca por posición ni por cuántos hay. */
+export type PipelineCounters = Partial<Record<CounterName, number>>;
+
+const CATALOGUE = new Set<string>(COUNTER_CATALOGUE);
+
+/**
+ * NO HAY UN `bump(counters, name)` TODAVÍA, y es deliberado. El equivalente de
+ * `bumpCount` haría falta el día que una etapa cuente de forma incremental (el
+ * diff de tablas lo hará); hoy el único emisor construye su objeto de una vez.
+ * Exportar un ayudante que no llama nadie es construir el sistema grande antes
+ * que el contrato, que es justo lo que este fichero existe para no repetir.
+ *
+ * Cuando llegue, su firma es la del contrato: `name: CounterName`, nunca
+ * `key: string` — ahí estuvo el agujero de `bumpCount`.
+ */
+
+/**
+ * CLÁUSULA 4, y el punto de estrangulamiento del contrato. Tiene la misma forma
+ * que las fusiones ciegas que viene a sustituir —recorre `Object.entries` y
+ * suma— con una sola diferencia, que es la que importa: **lo que no está en el
+ * catálogo se descarta y se avisa, en vez de viajar.** Hoy lo predeterminado es
+ * «todo viaja»; aquí es «nada viaja si no se declaró».
+ *
+ * LA COMPROBACIÓN EN TIEMPO DE EJECUCIÓN NO SOBRA PESE AL TIPO: un
+ * `PipelineCounters` releído del jsonb de `analysis_results`, o cruzado desde
+ * el worker, llega como DATOS y no como código — ahí el tipo ya no protege
+ * nada. El compilador cuida al que escribe; este `Set` cuida a lo que vuelve.
+ *
+ * Devuelve un objeto nuevo: ninguna parte se muta, para que fundir no pueda
+ * cambiar lo que otra etapa ya emitió.
+ */
+export function mergeCounters(...partes: Array<PipelineCounters | undefined>): PipelineCounters {
+  const out: PipelineCounters = {};
+  for (const parte of partes) {
+    if (!parte) continue;
+    for (const [key, value] of Object.entries(parte)) {
+      if (!CATALOGUE.has(key)) {
+        console.warn(`[counters] contador_no_declarado "${key}" — descartado (ver claude/Contrato_Contadores.md, cláusula 4)`);
+        continue;
+      }
+      if (typeof value !== 'number' || !Number.isFinite(value)) {
+        console.warn(`[counters] contador_no_numerico "${key}" (${typeof value}) — descartado`);
+        continue;
+      }
+      const name = key as CounterName;
+      out[name] = (out[name] ?? 0) + value;
+    }
+  }
+  return out;
+}

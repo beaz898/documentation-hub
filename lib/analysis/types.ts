@@ -4,6 +4,7 @@
  */
 
 import type { FragmentContext } from './fragment-context';
+import type { PipelineCounters } from './counters';
 
 export interface DocumentFragment {
   text: string;
@@ -275,4 +276,22 @@ export interface FinalAnalysis {
    * a diferencia de stageFailures.
    */
   selectionLimits?: SelectionLimit[];
+  /**
+   * F-82: contadores de INCIDENCIA de las etapas del pipeline — cuántas veces
+   * actuó cada pieza, no qué encontró. Es lo que exige la condición 3 de la
+   * regla de entrada (protocolo), y su contrato está en
+   * `claude/Contrato_Contadores.md`: catálogo cerrado, apellido de etapa
+   * obligatorio y fusión que solo transporta lo declarado.
+   *
+   * NO ES `discardedFindings` con otro nombre, y la diferencia es la que aquel
+   * campo perdió: aquí solo entran RECUENTOS DE DECISIÓN, y solo los que están
+   * en el catálogo de `counters.ts`.
+   *
+   * Viaja aquí dentro porque `FinalAnalysis` es el único objeto que cruza a la
+   * persistencia; `saveAnalysisResult` lo iza a su propia columna
+   * (`analysis_results.pipeline_counters`), igual que ya iza
+   * `contradictions_found` y las otras seis. Ausente en los análisis anteriores
+   * a F-82.
+   */
+  pipelineCounters?: PipelineCounters;
 }

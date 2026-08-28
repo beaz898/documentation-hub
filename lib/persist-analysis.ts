@@ -57,6 +57,12 @@ export async function saveAnalysisResult(
     recommendation: analysis.recommendation,
     involved_documents: involvedSet.size > 0 ? [...involvedSet] : null,
     document_id: documentId ?? null,
+    // F-82: la octava columna izada desde `analysis`, y la unica que se iza
+    // LITERAL en vez de calculada — las siete de arriba se derivan del objeto,
+    // esta ya viene contada del pipeline. Va a columna propia y no solo dentro
+    // del jsonb para poder agregarse entre analisis sin abrir cada `analysis`.
+    // Su contrato esta en claude/Contrato_Contadores.md.
+    pipeline_counters: analysis.pipelineCounters ?? null,
     analysis,
   }).select('id').single();
 

@@ -1,0 +1,38 @@
+-- ============================================================
+-- F-82 · Columna pipeline_counters (jsonb) en analysis_results
+--
+-- Contadores de INCIDENCIA de las etapas del pipeline: cuántas veces actuó
+-- cada pieza, no qué encontró. Es lo que exige la condición 3 de la regla de
+-- entrada (claude/Protocolo_Harness_Tasas.md), y su contrato —catálogo
+-- cerrado, apellido de etapa obligatorio, fusión que solo transporta lo
+-- declarado— está en claude/Contrato_Contadores.md, escrito ANTES que este
+-- fichero a propósito.
+--
+-- Mismo movimiento que la columna `analysis` de B.5
+-- (supabase-analysis-jsonb.sql): jsonb, sin NOT NULL y sin DEFAULT.
+--
+-- SIN ÍNDICE, y es deliberado: un GIN solo haría falta el día que se consulte
+-- POR CLAVE dentro del jsonb, y eso es otro ALTER cuando llegue. Ponerlo ahora
+-- es pagar coste de escritura en cada análisis por una consulta que todavía no
+-- existe.
+--
+-- LOS ANÁLISIS VIEJOS NO ROMPEN: ninguna lectura de analysis_results usa
+-- select('*') — las cuatro rutas que la leen enumeran sus columnas
+-- (ANALYSIS_COLUMNS en app/api/analysis-results/[id] y
+-- app/api/documents/[id]/analysis, ANALYSIS_SUMMARY_COLUMNS en
+-- app/api/documents/review-list, y su propia lista en app/api/usage/analytics).
+-- La columna es invisible hasta que alguien la añada a una de esas listas, y
+-- cuando se añada llegará NULL en todo lo anterior, igual que `analysis` llega
+-- NULL en las filas previas a julio.
+--
+-- No toca RLS: las políticas de analysis_results son por fila (org_id) y una
+-- columna nueva las hereda. Tampoco toca purgeOrganization, que ya borra la
+-- tabla entera por org.
+--
+-- OJO (B.112): supabase-setup.sql NO refleja este ALTER, igual que no refleja
+-- los de `analysis` ni `document_id`. Reconstruir desde aquel fichero da una
+-- tabla que el código no puede usar.
+-- ============================================================
+
+ALTER TABLE public.analysis_results
+  ADD COLUMN pipeline_counters jsonb;

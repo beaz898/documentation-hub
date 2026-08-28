@@ -558,6 +558,14 @@ export async function POST(req: NextRequest) {
         // F-74 P2: el alcance declarado, por el mismo camino que el aviso de
         // incompleto — y añadido a la vez para no repetir el olvido de arriba.
         selectionLimits: analysis.selectionLimits,
+        // F-82: `pipelineCounters` NO entra en esta lista, y la omisión es
+        // DELIBERADA — no el olvido que documenta el comentario de arriba. Son
+        // contadores de incidencia (claude/Contrato_Contadores.md): telemetría
+        // para agregar entre análisis, no algo que ningún componente pinte. Van
+        // a su columna propia por saveAnalysisResult y se leen desde ahí.
+        // Si algún día la UI tiene que enseñarlos, añadirlos aquí es lo
+        // correcto; hasta entonces, meterlos sería enviar al cliente un objeto
+        // que nadie lee en cada respuesta de análisis.
       },
       documentSources,
       versionPromoted,
