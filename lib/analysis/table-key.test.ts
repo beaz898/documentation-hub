@@ -346,7 +346,8 @@ describe('lo que el corpus no tiene — casos construidos', () => {
     // se movió. Antes iba con "1.500" contra "1,500": `normalize` los fundía,
     // así que la fila emparejaba y el contador se movía. Con el nivel seguro
     // esos dos son valores DISTINTOS y la fila deja de emparejar — ese caso vive
-    // ahora en N1, donde demuestra el mecanismo.
+    // ahora en N5, con el motivo de por que se acepta perderla; N1 demuestra el
+    // mecanismo con una errata (IMP-01 / IMP01), que no es lo mismo.
     // Lo que separa hoy al nivel seguro del crudo es la CAJA y los espacios
     // internos, así que el contador se ejercita con eso.
     const a = tabla(['K', 'V'], [{ K: 'CHAMBERÍ', V: 'x' }, { K: 'A2', V: 'x' }, { K: 'A3', V: 'x' }]);
@@ -425,6 +426,40 @@ describe('lo que el corpus no tiene — casos construidos', () => {
     expect(r.candidates.map(c => c.columns)).toEqual([['K']]);
     expect(r.candidates[0].uniqueNueva).toBeCloseTo(100.0, 1);
     expect(r.counts.pares).toBe(10);
+    particionCorrecta(r, a, b);
+  });
+
+  /**
+   * N5 — LA CONSECUENCIA DECLARADA DEL NIVEL SEGURO, con el caso que de verdad
+   * duele. N1 usa «IMP-01» contra «IMP01», que es una errata; éste es otra
+   * cosa: «1.500» y «1,500» son EL MISMO NÚMERO escrito con la convención
+   * española y con la inglesa, y un humano diría sin dudar que son la misma
+   * fila.
+   *
+   * El nivel seguro NO las empareja, y eso está aceptado a conciencia. El punto
+   * y la coma de millares son los mismos caracteres que convierten «25,00» en
+   * «2500» (un factor de cien) y «45.0» en «450»: no hay forma de salvar este
+   * caso sin abrir aquéllos. Se paga porque la dirección del error manda —
+   * emparejar de más fabrica una discrepancia sellada por estructura;
+   * emparejar de menos manda las dos filas a cobertura, donde el usuario las ve
+   * y decide.
+   *
+   * ESTE CASO ERA EL FIXTURE DE C7 hasta F-84 1b. Al reescribir C7 se dijo que
+   * «vivía ahora en N1», y era impreciso: N1 tiene un caso equivalente, no
+   * éste. Queda aquí como lo que es — el precio conocido del criterio, no un
+   * efecto colateral que nadie miró.
+   */
+  it('N5 «1.500» y «1,500» son el mismo número y el nivel seguro NO los empareja', () => {
+    // La premisa: el criterio viejo sí los fundía. Comprobada, no recordada.
+    expect(normalize('1.500'), 'premisa: normalize los fundía').toBe(normalize('1,500'));
+
+    const a = tabla(['Importe', 'V'], [{ Importe: '1.500', V: 'x' }, { Importe: 'A2', V: 'x' }, { Importe: 'A3', V: 'x' }]);
+    const b = tabla(['Importe', 'V'], [{ Importe: '1,500', V: 'x' }, { Importe: 'A2', V: 'x' }, { Importe: 'A3', V: 'x' }]);
+    const r = emparejado(discoverTableKey(a, b));
+
+    expect(r.counts.pares).toBe(2);
+    expect(r.onlyNueva.map(x => x.cells?.['Importe'])).toEqual(['1.500']);
+    expect(r.onlyExistente.map(x => x.cells?.['Importe'])).toEqual(['1,500']);
     particionCorrecta(r, a, b);
   });
 });
