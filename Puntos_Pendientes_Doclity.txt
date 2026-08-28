@@ -1642,6 +1642,57 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     mayúsculas, cero a la izquierda) y si normalizar mata algún verdadero
     positivo. Con el dato delante, decidir. Sin él, no.
 
+    ────────────────────────────────────────────────────────────────────────
+    MEDIDO EL 28/08 (F-82 P3). SE ACTUALIZA, NO SE CIERRA. Se preparó el
+    commit que hacía a R2 adoptar el comparador de tres niveles de F-82 P2, y
+    SE RETIRÓ antes de escribirlo, con estos datos:
+
+    CERO FILAS LO MUEVEN. Sobre los cuatro .xlsx del corpus —1.330 celdas, 26
+    columnas— se compararon TODOS los pares de valores de una misma columna:
+    10.174 comparaciones, CERO variantes de escritura. Y con la cota más
+    ancha posible (los 330 valores distintos contra todos los demás, sin
+    exigir misma columna): también cero.
+
+    EL MOTIVO, que es lo que importa y es un límite del corpus y no una
+    propiedad del mundo: las variantes de escritura nacen de que DOS PERSONAS
+    escriban lo mismo de forma distinta, y estas tablas se generaron
+    programáticamente. Con documentos de un cliente real la cifra puede ser
+    otra, y probablemente lo sea.
+
+    DOS SUPOSICIONES QUE LA MEDICIÓN DESMINTIÓ, anotadas porque las dos
+    parecían razonables:
+      · «La comparación es de fila entera, así que una variante en una columna
+        enterraría una discrepancia real en otra.» NO. R2 ya compara COLUMNA A
+        COLUMNA: `sharedColumns.filter(c => newCells[c] !== existingCells[c])`.
+        No hay ningún JSON.stringify en el camino. El riesgo no existe, y
+        adoptar el comparador sería sustituir un predicado dentro de ese
+        filtro, no rediseñar la capa.
+      · «Una fila marcada como equivalentes desaparece.» NO. `reclassify` hace
+        `movedToOverlaps.push(...)` (pipeline.ts:353) y eso entra en
+        `overlappingContent` (pipeline.ts:452): el hallazgo pasa de
+        contradicción a SOLAPAMIENTO. El cliente lo sigue viendo, en otra
+        sección.
+
+    POR QUÉ SE RETIRÓ AUN ASÍ: tocar la única capa que sostiene la detección
+    tabular desde B.81 sin una sola fila que lo mueva es riesgo sin
+    contrapartida. Un test que dice «si existiera una variante, se
+    clasificaría así» es una tautología del propio test, no una demostración
+    de que el cambio sirve — la condición 1 de la regla de entrada pide un
+    caso que FALLE sin el cambio, y ninguno existe.
+
+    QUÉ HACE FALTA PARA REABRIRLO, como condición de entrada y no como deseo:
+    AL MENOS UNA FILA REAL, de un corpus de cliente, donde la variante de
+    escritura cambie el veredicto. Y el mecanismo que la va a encontrar ya
+    existe: `TableDiffCounts.discrepanciasVarianteDeEscritura` (fase 2 del
+    diff, commit b735fe33) cuenta exactamente eso. OJO: ese contador NO está
+    todavía en el catálogo de counters.ts ni tiene dónde volcarse — hace falta
+    resolver B.110 y que la fase 3 lo conecte. Hasta entonces no hay de dónde
+    sacar el caso, y una tanda ad hoc no sirve: mediría este corpus otra vez.
+
+    CORRECCIÓN DE REFERENCIA: la línea ya no es finding-rules.ts:155 sino
+    :141.
+    ────────────────────────────────────────────────────────────────────────
+
   B.98 — [ANOTADO SIN MEDIR, 25/08] Peso del jsonb con las filas completas.
     Desde d384a315 cada contradicción confirmada por estructura carga DOS filas
     de tabla enteras (newDocRow + existingDocRow) dentro de
@@ -2101,6 +2152,31 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     ese test se pone rojo y le manda aquí antes de darlo por bueno.
     NO AFECTA al nivel seguro de F-82 P2 (esVarianteDeEscritura): ése no toca
     puntuación de ninguna clase, así que las dos formas le dan igual.
+
+  B.115 — [FALLO MEDIDO 28/08, no arreglado] La rama de PROSA de R2 tiene la
+    misma enfermedad que F-82 P2 curó en la de celdas: declara equivalentes
+    dos frases que difieren en un factor de cien.
+    finding-rules.ts:154-158 reclasifica a solapamiento cuando
+    `normalize(newDocSays) === normalize(existingDocSays)`. Y `normalize`
+    borra los separadores decimales. Medido llamando a la función:
+      "La tarifa es de 25,00 euros" vs "La tarifa es de 2500 euros" -> reclassify
+      "Conservar 1.500 unidades"    vs "Conservar 1500 unidades"    -> reclassify
+      "Abre a las 10:30"            vs "Abre a las 1030"            -> reclassify
+    Las tres se mueven de contradicción a solapamiento sin que nadie lo mire.
+    NO SE ARREGLA CON EL NIVEL SEGURO de F-82 P2, y por eso no entró en aquel
+    commit: `esVarianteDeEscritura` no toca puntuación de ninguna clase, así
+    que en prosa perdería el borrado de MARCADO, que ahí sí hace falta y no es
+    teórico — medido sobre el corpus: NOR-10 tiene 82 encabezados `#` y 7
+    cursivas `_`, CLI-12 tiene 105 y 7, CLI-03 tiene 9. (Negritas `**`: cero
+    en todo el corpus, así que el ejemplo de la cabecera de normalize no es el
+    caso que ocurre.)
+    LO QUE HARÍA FALTA: un TERCER comparador, que quite marcado y NO toque la
+    puntuación numérica. Es otra decisión y otro commit; no se improvisa
+    dentro de uno que iba de otra cosa.
+    CRUZAR con B.97 (la rama de celdas, en observación) y con F-82 P2
+    (b735fe33), que es donde está medida la asimetría entre las dos ramas. La
+    advertencia para quien quiera unificarlas está en la cabecera de
+    finding-rules.ts.
 
   F-81 [CONVERGENCIA — leer ANTES de planificar la fase 3 del diff, 27/08] No
     es un pendiente nuevo: es el sitio donde se juntan tres que ya existen, más

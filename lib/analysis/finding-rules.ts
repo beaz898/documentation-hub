@@ -46,6 +46,39 @@ import { normalize } from './judge';
  *
  * Funciones puras: sin llamadas a modelo, sin base de datos, sin efectos.
  * Nadie las invoca todavía.
+ *
+ * ─────────────────────────────────────────────────────────────────────────
+ * ⚠️ LAS DOS RAMAS COMPARAN DISTINTO, Y NO ES UN DESCUIDO (F-82 P3, 28/08).
+ *
+ * La rama de CELDAS usa `!==` crudo. La de PROSA usa `normalize`. Alguien va a
+ * querer unificarlas; esto es lo que rompería.
+ *
+ * NO SON DOS CRITERIOS PARA LA MISMA PREGUNTA: SON DOS PREGUNTAS DISTINTAS.
+ *   · En celdas, dos valores o son el mismo dato o no lo son. «25,00» y «2500»
+ *     no son el mismo precio, y cualquier tolerancia que los iguale esconde un
+ *     factor de cien.
+ *   · En prosa, dos citas del mismo hecho pueden estar redactadas distinto y
+ *     seguir diciendo lo mismo. Ahí la tolerancia no sobra: hace falta.
+ *
+ * Y EL BORRADO DE MARCADO DE `normalize` NO ES TEÓRICO EN PROSA, medido sobre
+ * el corpus de pruebas: NOR-10 trae 82 encabezados `#` y 7 cursivas `_`,
+ * CLI-12 trae 105 y 7, CLI-03 trae 9. (Negritas `**`: CERO en todo el corpus
+ * — el ejemplo de la cabecera de normalize.ts no es el caso que de verdad
+ * ocurre.) Poner aquí el nivel seguro de F-82 P2 (`esVarianteDeEscritura`, que
+ * no toca puntuación de ninguna clase) haría que dos citas separadas por un
+ * `#` dejaran de reclasificarse.
+ *
+ * LO QUE SÍ ESTÁ ROTO EN PROSA, y no se arregla unificando: `normalize` borra
+ * los separadores decimales, así que hoy esta rama declara equivalentes «La
+ * tarifa es de 25,00 euros» y «...2500 euros». Es B.115, y necesita un TERCER
+ * comparador —que quite marcado y no toque la puntuación numérica—, no el de
+ * celdas.
+ *
+ * ANTES DE TOCAR LA RAMA DE CELDAS: leer B.97. Se midió el 28/08 y no la mueve
+ * ni una fila del corpus (10.174 comparaciones, cero variantes de escritura),
+ * así que el cambio se retiró por no tener contrapartida — no por no haberse
+ * pensado.
+ * ─────────────────────────────────────────────────────────────────────────
  */
 
 export type DeterministicVerdict =
