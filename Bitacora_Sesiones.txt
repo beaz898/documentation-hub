@@ -5177,3 +5177,129 @@ ESTADO: corpus versionado y reproducible. F-77 desplegado y generalizando, con
 su límite anotado. El cuello de la prosa está identificado y es la SELECCIÓN.
 Margen sin cerrar: el push de 8cf73e23 fue a las 11:59:48 UTC y la tanda arrancó
 a las 12:04; no se comprobó la hora de "Ready" del deploy.
+
+SESIÓN 52 — 28/08/2026
+Título: El emparejamiento se vuelve estricto, y la huella deja de depender de
+quién subió primero
+────────────────────────────────────────────────────────────────────────────────
+
+EL FRENTE F-84, en seis commits:
+  f58e74e4 — instrumentación de 1a: la medición previa al cambio de criterio.
+  e4c1f8a7 — 1b: el emparejamiento de filas pasa al nivel seguro.
+  dcc28feb — N5: la pareja que el criterio estricto deja caer, declarada.
+  e6a27a58 — paso 2: la huella de un hallazgo, bidireccional.
+  e052c29b — cierre del paso 2: la condición de `columna`, el aviso sin datos
+    del cliente, y la cuarta plantilla de cierre.
+  2c998111 — F-83: el reparto por columna sale de los contadores.
+
+1. EL CRITERIO DE IGUALDAD, UNIFICADO (opción A). Los CUATRO consumidores de
+`compare` pasan al nivel seguro, no solo el emparejamiento: también la
+nominación de candidatas (`uniquePct`), la detección de biyección
+(`allBijective`) y el diagnóstico exportado (`columnUniqueness`).
+
+Se eligió A sobre B —cambiar solo el emparejamiento— para no tener que
+reescribir la regla de la cabecera, «NOMINAR Y EMPAREJAR SE HACEN CON LA MISMA
+COMPARACIÓN. SIEMPRE», que con A sigue siendo literalmente cierta.
+
+La razón de fondo es la ASIMETRÍA DE RIESGO: emparejar de MÁS enfrenta dos filas
+que no son la misma cosa y publica la diferencia como discrepancia verificada
+por estructura, el sello más fuerte que emite el producto, y el usuario no tiene
+cómo saber que las filas no eran la misma. Emparejar de MENOS manda la fila a la
+sección de cobertura, donde el usuario la ve y decide. Cuando una dirección del
+error es catastrófica e invisible y la otra benigna y visible, el criterio se
+pega a la benigna.
+
+LA MEDICIÓN PREVIA DIO CERO. Sobre los 12 pares ordenados de los cuatro .xlsx
+del corpus: 90 parejas, ninguna dependiente de la normalización agresiva, y las
+mismas candidatas nominadas. Así que el corpus NO movió esta decisión: entró por
+mecanismo demostrado y por asimetría de riesgo. Su condición 3 queda pendiente
+(ver Puntos_Pendientes).
+
+2. EL ANÁLISIS DIRECCIONAL, Y POR QUÉ NO ESTÁ EN LA CABECERA DEL MÓDULO. La
+regla prohíbe mezclar comparaciones sin distinguir dirección, pero su
+razonamiento solo cubre una: nominar fino y emparejar grueso anula la garantía.
+La mezcla contraria —nominar grueso, emparejar fino— la REFUERZA: la columna fue
+admitida bajo una lente más basta de la que luego se usa para casar, así que es
+al menos tan única como se creyó al admitirla.
+
+Con la opción A esto queda como observación de bitácora y NO como excepción
+escrita en el código, deliberadamente: una regla sin excepciones no invita a que
+alguien busque la suya dentro de seis meses.
+
+3. `claveSegura` SE EXPORTA, revirtiendo una decisión de dos días antes. Nació
+privada con la prohibición «no se exporta para que nadie construya una clave con
+su salida ni indexe por ella», escrita desde la fase 2, donde lo único que se
+hace es PREGUNTAR si dos valores son el mismo. Era demasiado ancha: la fase 1
+INDEXA filas, y un Map necesita una cadena, no un predicado.
+
+La condición que sustituye a la prohibición: quien indexe con esto no puede
+después comparar con una función MÁS GRUESA. Respaldada por el contrato de 361
+pares en normalize.test.ts —claveSegura(a)===claveSegura(b) ⟺ a===b ||
+esVarianteDeEscritura(a,b)— que impide que el predicado y la clave se separen.
+
+Y el modo pasa a llamarse 'seguro' en vez de 'normalizado': una etiqueta que
+dice «normalizado» apuntando a algo que no es `normalize` es la misma enfermedad
+de `discardedFindings`.
+
+4. N5 — LA CONSECUENCIA DECLARADA DEL CRITERIO ESTRICTO. «1.500» contra «1,500»
+es el MISMO NÚMERO en convención española e inglesa, y ya no empareja: cae a
+cobertura, cada fila a su lado. Se acepta a sabiendas, porque el punto y la coma
+de millares son los mismos caracteres que convierten «25,00» en «2500» y «45.0»
+en «450»; no hay forma de salvar este caso sin abrir aquéllos.
+
+NO ES EQUIVALENTE A «IMP-01»/«IMP01», que es una errata. Éste es el primer
+ejemplo realista de pareja LEGÍTIMA que el criterio deja caer, y por eso tiene
+caso propio: al reescribir C7 se dijo que el fixture viejo «vivía ahora en N1», y
+era impreciso.
+
+5. EL HALLAZGO DE LA TABLA, Y DE QUIÉN FUE EL FALLO. La tupla de la huella se
+ESPECIFICÓ con la tabla suelta en la cabecera —error de la especificación, no de
+la implementación—. La invariante de dirección lo tumbó en la primera pasada:
+OPE-10 es «Tarifas#0» y OPE-11 «Tarifas concertadas#0», así que pasar la tabla
+del lado «nuevo» hacía que la huella cambiara al invertir el análisis. El mismo
+defecto que el módulo existe para evitar, colado por la puerta de al lado.
+
+Corrección: los tres datos —id, tabla, clave— atados en `LadoDeLaHuella`.
+Lección escrita en el tipo: TODO LO QUE PERTENECE A UN DOCUMENTO VIAJA CON SU
+ID; lo que quede suelto en la cabecera tiene que ser común a los dos lados de
+verdad, no por casualidad.
+
+LO ENCONTRÓ LA PRUEBA PUESTA POR DELANTE, no la remedición. La invariante se
+escribió recorriendo el camino entero —emparejar en las dos direcciones y
+hashear— en vez de llamar a la función con datos a mano, que habría sido una
+tautología: la función ordena, luego el resultado no depende del orden.
+
+6. LA CUARTA PLANTILLA DE CIERRE, adoptada tras TRES casos en dos días:
+«¿EL CASO COLISIONARÍA DE VERDAD SI EL MECANISMO ESTUVIERA ROTO?». No es «¿tengo
+un test?», es «¿mi test puede fallar?».
+
+Los tres: las dos mutaciones que sobrevivieron a catorce casos verdes en la fase
+2 del diff (soloFormato/igualTrasNormalizar); el medidor de 1a validado con
+«DIA-01» contra «dia-01», que da cero frágiles porque una diferencia de CAJA la
+funde también el nivel seguro; y el separador de la huella, donde la ambigüedad
+del fixture estaba entre componentes NO contiguos —y el segundo intento tampoco
+valía, porque un componente vacío mete un separador de más.
+
+ESTRENADA EL MISMO DÍA, en S4: comprobar que las claves de los contadores están
+en el catálogo NO discrimina, porque `mergeCounters` descarta lo no declarado y
+las claves resultantes siempre son legales. Lo que sí discrimina es comprobar
+que NO AVISA, porque avisa de cada clave que descarta.
+
+UNA CORRECCIÓN AL REGISTRO. La víctima de la cláusula 5 del contrato de
+contadores estaba descrita como si `porColumna` ya viviera en
+`pipeline_counters`. No era así: vivía en `TableDiffCounts`, una estructura de la
+fase 2 que no se persiste en ninguna parte (B.110) y que nunca llegó al
+catálogo. El incumplimiento era REAL pero FUTURO —se habría consumado el día que
+la fase 3 conectara el diff— y se saneó antes de consumarse. El contrato queda
+corregido para que no describa una deuda que aún no se había contraído.
+
+ESTADO DEL FRENTE: fases 1 y 2 cerradas, huella escrita y probada, contadores
+saneados. NADIE LLAMA AL DIFF TODAVÍA. Lo siguiente es EMISIÓN + FICHA en un
+solo commit: F-84 confirmó el corte por el lado OCULTA de la regla — la bandeja
+no rompe ante un tipo de hallazgo desconocido, lo esconde, así que emitir sin
+pintar dejaría hallazgos invisibles y contados como cero.
+
+PENDIENTES ABIERTOS HOY: B.116 (table-key.ts y su batería por encima de las 400
+líneas) y la condición 3 del criterio seguro (contador
+`rechazadas_por_escritura`, a añadir en el commit de emisión).
+

@@ -2114,6 +2114,9 @@ NOTAS DE ORDEN (propuesta, a confirmar)
   B.113 — [MANTENIMIENTO, anotado 28/08] El protocolo del harness ha vuelto a
     cruzar las 400 líneas: claude/Protocolo_Harness_Tasas.md son 403 desde que
     F-82 le añadió el puntero al contrato de contadores.
+    ACTUALIZADO 28/08 (tarde): son 466 líneas — el protocolo creció otra vez con
+    la CUARTA plantilla de cierre (F-84). La cifra de arriba es la del momento
+    en que se anotó; el patrón es lo que importa, pero que el número no mienta.
     ES LA TERCERA VEZ EN TRES DÍAS que ese fichero crece por un frente distinto:
     el 27/08 se partió sacando el catálogo de casos a claude/Casos_Harness.md
     (39d15163), ese mismo día entró la regla de entrada de F-81 P3 (8632576e),
@@ -2177,6 +2180,46 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     (b735fe33), que es donde está medida la asimetría entre las dos ramas. La
     advertencia para quien quiera unificarlas está en la cabecera de
     finding-rules.ts.
+
+  B.116 — [MANTENIMIENTO, anotado 28/08] table-key.ts y su batería superan el
+    límite de 400 líneas del proyecto: 498 el módulo, 575 el test.
+    NO SE PARTEN, y es una decisión con motivo, no un olvido. La batería y su
+    módulo tienen que poder BORRARSE JUNTOS —el argumento con el que nació la
+    fase 1 el 27/08— y en el módulo el corte natural que quedaría, separar la
+    nominación del consenso, es precisamente el que no debe hacerse: son las dos
+    mitades de una misma decisión, y leerlas en ficheros distintos es cómo se
+    acaba nominando con una comparación y emparejando con otra. Está escrito en
+    la cabecera del propio fichero.
+    ES LA SEGUNDA VEZ que un fichero de este frente cruza el umbral: table-key.ts
+    lo cruzó al nacer (F-81, 469 líneas) y su batería lo cruzó en F-84 1a (467).
+    Desde entonces los dos han seguido creciendo con la huella y con N5.
+    DECIDIR APARTE Y CON CALMA, no en medio de un frente — mismo criterio que
+    B.113, que es el mismo problema en el protocolo del harness. La pregunta al
+    mirarlo no es por dónde cortar para bajar de 400: es si hay dos dominios ahí
+    dentro o uno solo que ocupa mucho.
+    NO CONFUNDIR CON B.113: aquel es sobre claude/Protocolo_Harness_Tasas.md.
+    Los mensajes de commit de F-84 1b y del paso 2 citan «B.113» refiriéndose a
+    este punto, que entonces no existía; la referencia correcta es ésta.
+
+  B.117 — [CONDICIÓN 3 PENDIENTE, abierto 28/08 con F-84 1b] El criterio de
+    emparejamiento seguro no tiene contador de incidencia:
+    `rechazadas_por_escritura`.
+    QUÉ FALTA: cuántas parejas rechaza el criterio estricto por una diferencia
+    que `normalize` habría fundido. Es el coste conocido de F-84 1b, el que N5
+    declara con «1.500» contra «1,500».
+    POR QUÉ NO LO PUEDE RESPONDER EL CORPUS: la medición de F-84 1a dio CERO
+    sobre los 12 pares ordenados —90 parejas, ninguna dependiente de la
+    normalización agresiva— y ese cero no es una propiedad del mundo. Estas
+    tablas se generaron PROGRAMÁTICAMENTE y no pueden producir un separador de
+    millares mal escrito por accidente. Solo los clientes reales pueden.
+    CUÁNDO: EN EL COMMIT DE EMISIÓN, que es cuando se tocan contadores de todas
+    formas. Vocabulario cerrado, en el catálogo de counters.ts antes de emitirse
+    (cláusula 4).
+    SIN ÉL, esta pieza se queda con condición 1 (mecanismo demostrado, N1 y N4)
+    y condición 2 (no-regresión medida) y SIN condición 3 — la cuarta seguida de
+    este frente, después del consenso de la fase 1, del comparador de F-82 P2 y
+    del emparejamiento de 1b. Cuatro veces no es casualidad: es que este corpus
+    se sembró para medir discrepancias de CONTENIDO, no de escritura.
 
   F-81 [CONVERGENCIA — leer ANTES de planificar la fase 3 del diff, 27/08] No
     es un pendiente nuevo: es el sitio donde se juntan tres que ya existen, más
