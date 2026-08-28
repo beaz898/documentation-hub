@@ -99,7 +99,7 @@ describe('OPE-10 / OPE-11 — el reparto de la siembra', () => {
   it('D4 reproduce las 15 discrepancias con sus valores de celda', async () => {
     const { a, b } = await cargar();
     const r = diff(a, b);
-    const real = r.differing.map(d => [d.keyValues[0], d.columns[0], d.comparedValues[0].newDocValue, d.comparedValues[0].existingDocValue]);
+    const real = r.differing.map(d => [d.keyValues.nueva[0], d.columns[0], d.comparedValues[0].newDocValue, d.comparedValues[0].existingDocValue]);
     expect(real).toEqual([
       ['DIA-02', 'Duración (min)', '20', '15'],
       ['DIA-04', 'Profesional asignado', 'Cristina Ibáñez', 'Sonia Prats'],
@@ -122,7 +122,7 @@ describe('OPE-10 / OPE-11 — el reparto de la siembra', () => {
   it('D5 entrega los campos de F-70 listos para la ficha', async () => {
     const { a, b } = await cargar();
     const r = diff(a, b);
-    const hig04 = r.differing.find(d => d.keyValues[0] === 'HIG-04');
+    const hig04 = r.differing.find(d => d.keyValues.nueva[0] === 'HIG-04');
     expect(hig04).toBeDefined();
     expect(hig04!.comparedValues).toEqual([
       { column: 'Precio base', newDocValue: '25', existingDocValue: '30' },
@@ -157,7 +157,9 @@ describe('OPE-02 / RRHH-06 — dos columnas de dieciocho', () => {
     expect(r.counts.columnasNoCompartidas).toBe(16);
     expect(r.identical).toHaveLength(9);
     expect(r.differing).toHaveLength(1);
-    expect(r.differing[0].keyValues).toEqual(['Dr. Pablo Reyes']);
+    // F-84 paso 2: las DOS claves. Aqui coinciden porque el emparejamiento fue
+    // exacto; el campo existe para cuando no lo sea.
+    expect(r.differing[0].keyValues).toEqual({ nueva: ['Dr. Pablo Reyes'], existente: ['Dr. Pablo Reyes'] });
     expect(r.differing[0].comparedValues).toEqual([
       { column: 'Puesto', newDocValue: 'Implantólogo / Cirujano oral', existingDocValue: 'Implantólogo' },
     ]);
@@ -206,7 +208,7 @@ describe('lo que el corpus no tiene — casos construidos', () => {
     expect(r.comparedColumns).toEqual(['Zona', 'Precio']);
     // DIA-01 difiere en Código EN CRUDO y aun así sale como idéntica: la
     // pareja existe porque la clave coincidía, y reportarla se contradiría.
-    expect(r.differing.map(d => d.keyValues[0])).toEqual(['DIA-03']);
+    expect(r.differing.map(d => d.keyValues.nueva[0])).toEqual(['DIA-03']);
     expect(r.identical).toHaveLength(2);
     expect(r.differing.some(d => d.columns.includes('Código'))).toBe(false);
   });

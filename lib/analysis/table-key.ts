@@ -118,8 +118,21 @@ export interface KeyCandidate {
 export interface RowPair {
   nueva: StoredChunk;
   existente: StoredChunk;
-  /** Los valores CRUDOS que emparejaron, en el orden de candidates[0].columns. */
-  keyValues: string[];
+  /**
+   * Los valores CRUDOS que emparejaron, en el orden de candidates[0].columns,
+   * DE LOS DOS LADOS.
+   *
+   * Etiquetados por ROL (nueva/existente) y no por un orden canónico, porque
+   * dentro de la fase 1 el rol es lo único que existe: aquí no hay identidad de
+   * documento y no tiene por qué haberla. Quien necesite un orden estable en el
+   * tiempo —la huella de F-84 paso 2— lo aplica después, donde los ids existen.
+   *
+   * Hasta F-84 paso 2 este campo era `string[]` y traía SOLO el lado nuevo: la
+   * clave del existente era recuperable de `existente.cells` pero no estaba en
+   * el campo de la clave, y eso obligaba a que quien la quisiera supiera con qué
+   * columnas buscarla.
+   */
+  keyValues: { nueva: string[]; existente: string[] };
 }
 
 export type AmbiguityReason =
@@ -443,7 +456,10 @@ export function discoverTableKey(nueva: TableGroup, existente: TableGroup): Tabl
     pairs.push({
       nueva: row,
       existente: out.row,
-      keyValues: candidates[0].columns.map(c => cellValue(row, c)),
+      keyValues: {
+        nueva: candidates[0].columns.map(c => cellValue(row, c)),
+        existente: candidates[0].columns.map(c => cellValue(out.row, c)),
+      },
     });
     pairedExistente.add(out.row);
   }

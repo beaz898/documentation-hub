@@ -95,8 +95,12 @@ import type { ComparedValue } from './types';
 export interface RowDiff {
   nueva: StoredChunk;
   existente: StoredChunk;
-  /** Los valores de clave que emparejaron, tal como los dio la fase 1. */
-  keyValues: string[];
+  /** Los valores de clave que emparejaron, tal como los dio la fase 1: los DOS
+   *  lados, etiquetados por rol. Desde F-84 paso 2 llegan los dos, porque la
+   *  huella de un hallazgo necesita la clave de cada documento — la del
+   *  existente no es deducible de la del nuevo cuando el criterio de
+   *  emparejamiento tolera variantes de escritura. */
+  keyValues: { nueva: string[]; existente: string[] };
   /** Las columnas que difieren, en el orden real de la tabla nueva. */
   columns: string[];
   comparedValues: ComparedValue[];

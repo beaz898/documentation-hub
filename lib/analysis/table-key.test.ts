@@ -230,7 +230,7 @@ describe('OPE-02 / RRHH-06 — una sola candidata', () => {
     // difiere en Puesto exactamente uno.
     const difieren = r.pairs.filter(p => p.nueva.cells?.['Puesto'] !== p.existente.cells?.['Puesto']);
     expect(difieren).toHaveLength(1);
-    expect(difieren[0].keyValues).toEqual(['Dr. Pablo Reyes']);
+    expect(difieren[0].keyValues).toEqual({ nueva: ['Dr. Pablo Reyes'], existente: ['Dr. Pablo Reyes'] });
   });
 });
 
