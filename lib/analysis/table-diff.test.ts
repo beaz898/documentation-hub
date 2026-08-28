@@ -1,11 +1,11 @@
 import { readFileSync } from 'node:fs';
 
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import { chunkSegments, extractSegments } from '@/lib/chunking';
 import { toStoredChunks, type StoredChunk } from '@/lib/read-chunks';
 import { normalize } from './normalize';
-import { diffPairedRows, type TableDiffResult } from './table-diff';
+import { contadoresDelDiff, diffPairedRows, type TableDiffResult } from './table-diff';
 import { discoverTableKey, type TableKeyResult } from './table-key';
 import { groupChunksByTable, type TableGroup } from './table-structure';
 
@@ -73,7 +73,7 @@ describe('OPE-10 / OPE-11 — el reparto de la siembra', () => {
   it('D2 clava el reparto por columna del registro de siembra', async () => {
     const { a, b } = await cargar();
     const r = diff(a, b);
-    expect(r.counts.porColumna).toEqual({
+    expect(r.porColumna).toEqual({
       'Precio base': 4,
       'Duración (min)': 4,
       'Profesional asignado': 4,
@@ -333,7 +333,7 @@ describe('lo que el corpus no tiene — casos construidos', () => {
     expect(r.comparedColumns).toEqual(['Notas']);
     expect(r.differing).toHaveLength(0);
     expect(r.identical).toHaveLength(3);
-    expect(r.counts.porColumna).toEqual({});
+    expect(r.porColumna).toEqual({});
   });
 
   it('E6 varias columnas discrepantes: todas, en el orden de la tabla', () => {
@@ -352,7 +352,7 @@ describe('lo que el corpus no tiene — casos construidos', () => {
     // Orden de tabla, no alfabético: alfabéticamente iría ['Precio','Zona'].
     expect(r.differing[0].columns).toEqual(['Zona', 'Precio']);
     expect(r.differing[0].comparedValues.map(v => v.column)).toEqual(['Zona', 'Precio']);
-    expect(r.counts.porColumna).toEqual({ Zona: 1, Precio: 1 });
+    expect(r.porColumna).toEqual({ Zona: 1, Precio: 1 });
   });
 
   /**
@@ -446,3 +446,69 @@ describe('lo que el corpus no tiene — casos construidos', () => {
     expect(r.differing).toHaveLength(0);
   });
 });
+
+describe('F-83 — el saneo de porColumna', () => {
+  it('S1 el reparto por columna vive en el RESULTADO, no en los contadores', async () => {
+    const a = await tablaDeCorpus('OPE-10_tarifario-tratamientos-2026.xlsx');
+    const b = await tablaDeCorpus('OPE-11_tarifario-tratamientos-seguros.xlsx');
+    const r = diff(a, b);
+    // El dato no se pierde ni cambia de forma: cambia de sitio.
+    expect(r.porColumna).toEqual({
+      'Precio base': 4,
+      'Duración (min)': 4,
+      'Profesional asignado': 4,
+      'Clínica': 3,
+    });
+    expect('porColumna' in r.counts).toBe(false);
+  });
+
+  /** El reparto es DERIVABLE de `differing`, así que puede contradecirlo. Esto
+   *  lo impide: si alguien toca uno de los dos y no el otro, se pone rojo. */
+  it('S2 el reparto cuadra fila a fila con las discrepantes', async () => {
+    const a = await tablaDeCorpus('OPE-10_tarifario-tratamientos-2026.xlsx');
+    const b = await tablaDeCorpus('OPE-11_tarifario-tratamientos-seguros.xlsx');
+    const r = diff(a, b);
+    const recontado: Record<string, number> = {};
+    for (const d of r.differing) for (const c of d.columns) recontado[c] = (recontado[c] ?? 0) + 1;
+    expect(recontado).toEqual(r.porColumna);
+  });
+
+  it('S3 los contadores agregables salen con vocabulario cerrado', async () => {
+    const a = await tablaDeCorpus('OPE-10_tarifario-tratamientos-2026.xlsx');
+    const b = await tablaDeCorpus('OPE-11_tarifario-tratamientos-seguros.xlsx');
+    const key = discoverTableKey(a, b);
+    if (key.status !== 'emparejado') throw new Error('inalcanzable');
+    const r = diffPairedRows(key, a, b);
+
+    expect(contadoresDelDiff(key, r)).toEqual({
+      'diff.clasificacion.identicas': 20,
+      'diff.clasificacion.discrepantes': 15,
+      // EL NÚMERO de columnas afectadas, no sus nombres: eso es lo agregable.
+      'diff.clasificacion.columnas_afectadas': 4,
+      'diff.clasificacion.solo_en_a': 25,
+      'diff.clasificacion.solo_en_b': 25,
+    });
+  });
+
+  /**
+   * S4 — EL CASO QUE COLISIONA SI EL MECANISMO SE ROMPE (cuarta plantilla del
+   * protocolo). Comprobar que las claves están en el catálogo NO discrimina:
+   * `mergeCounters` descarta lo no declarado, así que aunque alguien volcara
+   * `porColumna` dentro, las claves resultantes seguirían siendo legales.
+   *
+   * Lo que sí discrimina es el AVISO: `mergeCounters` avisa de cada clave que
+   * descarta. Si un nombre de columna intentara viajar, este caso lo vería.
+   */
+  it('S4 ningún nombre de columna intenta colarse en los contadores', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const a = await tablaDeCorpus('OPE-10_tarifario-tratamientos-2026.xlsx');
+    const b = await tablaDeCorpus('OPE-11_tarifario-tratamientos-seguros.xlsx');
+    const key = discoverTableKey(a, b);
+    if (key.status !== 'emparejado') throw new Error('inalcanzable');
+
+    contadoresDelDiff(key, diffPairedRows(key, a, b));
+    expect(warn, `mergeCounters descartó algo: ${JSON.stringify(warn.mock.calls)}`).not.toHaveBeenCalled();
+    warn.mockRestore();
+  });
+});
+

@@ -33,7 +33,7 @@
  * namespace queda apartado para que el día que haga falta no se invente sobre
  * la marcha.
  */
-type Stage = 'diff.clave' | 'diff.celdas' | 'seleccion' | 'verificador' | 'averia';
+type Stage = 'diff.clave' | 'diff.celdas' | 'diff.clasificacion' | 'seleccion' | 'verificador' | 'averia';
 
 /**
  * EL CATÁLOGO (cláusula 4). Un contador que no esté aquí no llega arriba: ni lo
@@ -69,6 +69,22 @@ export const COUNTER_CATALOGUE = [
   // un contador derivable es un contador que puede contradecir a sus fuentes.
   'seleccion.candidatos_recuperados',
   'seleccion.candidatos_seleccionados',
+  // diff.clasificacion — el reparto de la fase 2 del diff de tablas, con
+  // VOCABULARIO CERRADO (cláusula 5). El reparto POR COLUMNA no está aquí a
+  // propósito: sus claves serían nombres de columna del cliente, o sea
+  // contenido del documento, y eso haría el campo inagregable entre
+  // organizaciones además de meter datos del cliente en telemetría. Vive en
+  // `TableDiffResult.porColumna`, que es el resultado de ESTE análisis.
+  // `columnas_afectadas` es el NÚMERO, que sí es agregable.
+  //
+  // `solo_en_a` / `solo_en_b` son posicionales —a = documento analizado,
+  // b = candidato— y no llevan el nombre ni el id de ningún documento: la
+  // identidad de cada lado va en el valor del hallazgo, nunca en la clave.
+  'diff.clasificacion.identicas',
+  'diff.clasificacion.discrepantes',
+  'diff.clasificacion.columnas_afectadas',
+  'diff.clasificacion.solo_en_a',
+  'diff.clasificacion.solo_en_b',
   // verificador — la cascada de F-25 (pipeline.ts). Recuentos de DECISIÓN:
   // cuántos hallazgos tomaron cada salida, no qué se encontró.
   'verificador.hallazgos_entrantes',

@@ -27,6 +27,11 @@ describe('el catálogo', () => {
     expect([...COUNTER_CATALOGUE]).toEqual([
       'seleccion.candidatos_recuperados',
       'seleccion.candidatos_seleccionados',
+      'diff.clasificacion.identicas',
+      'diff.clasificacion.discrepantes',
+      'diff.clasificacion.columnas_afectadas',
+      'diff.clasificacion.solo_en_a',
+      'diff.clasificacion.solo_en_b',
       'verificador.hallazgos_entrantes',
       'verificador.confirmados',
       'verificador.confirmados_por_estructura',
@@ -39,7 +44,10 @@ describe('el catálogo', () => {
   /** Cláusula 1, comprobada también en ejecución: el `satisfies` la garantiza
    *  al compilar, pero este test explica QUÉ garantiza a quien lea la batería. */
   it('todo nombre lleva apellido de una etapa conocida', () => {
-    const etapas = ['diff.clave', 'diff.celdas', 'seleccion', 'verificador', 'averia'];
+    // La lista va DUPLICADA del tipo Stage a proposito, con el mismo criterio
+    // que el canario del catalogo: anadir una etapa tiene que pasar por aqui.
+    // Derivarla exportando Stage la haria automatica y dejaria de avisar.
+    const etapas = ['diff.clave', 'diff.celdas', 'diff.clasificacion', 'seleccion', 'verificador', 'averia'];
     for (const name of COUNTER_CATALOGUE) {
       expect(etapas.some(e => name.startsWith(`${e}.`)), `"${name}" sin apellido de etapa`).toBe(true);
     }

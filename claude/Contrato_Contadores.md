@@ -124,18 +124,42 @@ variable va en el VALOR, o se agrupa en cubos. Dos motivos, los dos concretos:
    vigila: `lib/agent/tools/usage-stats.ts:14` dice literalmente «Campos de
    analysis_results — sin texto de usuario».
 
-**SU VÍCTIMA, DECLARADA:** `porColumna: Record<string, number>` de
-`TableDiffCounts` (`lib/analysis/table-diff.ts`, commit `beaf075f`) **incumple
-esta cláusula**. Está indexado por **nombre de columna**, o sea por contenido del
-documento del cliente: conectar el diff tal cual metería los nombres de columna
-de las hojas de cada organización en la base como claves de telemetría.
+**LA REGLA, EN UNA FRASE, para que no vuelva a dudarse:**
 
-> **HAY QUE RESOLVERLO ANTES DE QUE LA FASE 3 LO CONECTE.** No es urgente hoy
-> —la fase 2 no tiene consumidores— y por eso no se arregló al escribir esta
-> cláusula: se deja escrito aquí, que es donde lo va a leer quien vaya a
-> conectarlo. Es además el ejemplo de por qué la cláusula existe, y de por qué
-> el contrato se escribió antes que la columna: escrito después, esto ya sería
-> deuda en producción en vez de una nota.
+> **Las CLAVES de un contador son vocabulario cerrado del sistema. Los
+> IDENTIFICADORES DE DATOS —nombres de columna, de documento, valores de
+> celda— derivan del contenido del cliente y viven en el VALOR.**
+
+Cuando dudes de dónde va algo, la pregunta es: *¿puedo sumar esto entre
+cincuenta clientes sin conocer sus documentos?* Si la respuesta es no, es un
+identificador de datos y su casa es el resultado del análisis, no
+`pipeline_counters`.
+
+**SU VÍCTIMA, DECLARADA Y RESUELTA:** `porColumna: Record<string, number>` de
+`TableDiffCounts` (`lib/analysis/table-diff.ts`, commit `beaf075f`) incumplía
+esta cláusula. Estaba indexado por **nombre de columna**, o sea por contenido
+del documento del cliente.
+
+**Resuelto en F-83 (28/08/2026)**, y el arreglo fue de **DOMICILIO, no de
+formato**: el dato no se pierde ni cambia de forma, cambia de sitio. `porColumna`
+sale de `counts` y pasa al nivel superior de `TableDiffResult` —el resultado de
+ESE análisis, que es donde el contrato siempre dijo que va lo variable— y en
+`pipeline_counters` queda lo agregable con vocabulario cerrado:
+`diff.clasificacion.identicas`, `.discrepantes`, `.columnas_afectadas` (el
+NÚMERO, no los nombres), `.solo_en_a` y `.solo_en_b`.
+
+Nótese que `solo_en_a`/`solo_en_b` son **posicionales** —a es el documento
+analizado, b el candidato— y no llevan el nombre ni el id de ningún documento:
+la identidad de cada lado va en el valor del hallazgo. Es la misma regla
+aplicada a un sitio donde apetecía saltársela.
+
+**LA CORRECCIÓN DE UN DATO, para que el registro no mienta**: mientras estuvo
+abierta, esta víctima se describió como si `porColumna` ya estuviera dentro de
+`pipeline_counters`. No lo estaba: vivía en `TableDiffCounts`, una estructura de
+la fase 2 que **no se persiste en ninguna parte** (ver B.110) y que nunca llegó
+al catálogo. El incumplimiento era real pero **futuro** — se habría consumado el
+día que la fase 3 conectara el diff, y se sanea antes de que eso ocurra, que es
+lo que la nota original pedía.
 
 ---
 

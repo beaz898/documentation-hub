@@ -1,4 +1,5 @@
 import type { StoredChunk } from '@/lib/read-chunks';
+import { mergeCounters, type PipelineCounters } from './counters';
 import { esVarianteDeEscritura } from './normalize';
 import type { RowPair, TableKeyResult } from './table-key';
 import { renderTableRow, type TableGroup } from './table-structure';
@@ -140,8 +141,6 @@ export interface TableDiffCounts {
   parejas: number;
   identicas: number;
   discrepantes: number;
-  /** Cuántas parejas difieren en cada columna. */
-  porColumna: Record<string, number>;
   /** Discrepancias en las que TODAS las columnas son variantes de escritura:
    *  la fila difiere, pero en nada que cambie un valor. */
   discrepanciasVarianteDeEscritura: number;
@@ -167,6 +166,22 @@ export interface TableDiffResult {
    */
   identical: RowPair[];
   differing: RowDiff[];
+  /**
+   * Cuántas parejas difieren en cada columna.
+   *
+   * VIVE AQUÍ Y NO EN `counts` (F-83): sus claves son NOMBRES DE COLUMNA del
+   * cliente, o sea contenido del documento, y la cláusula 5 del contrato de
+   * contadores lo prohíbe en `pipeline_counters` por dos motivos — un espacio de
+   * claves ilimitado hace el campo inagregable entre organizaciones, que es
+   * para lo que existe, y mete datos del cliente en un esquema que debería ser
+   * anónimo.
+   *
+   * No es un arreglo de formato sino de DOMICILIO: el dato no se pierde ni
+   * cambia de forma, cambia de sitio. Su casa es el RESULTADO de este análisis,
+   * que es donde el contrato siempre dijo que va lo variable. Lo agregable —el
+   * NÚMERO de columnas afectadas— sí sale en `contadoresDelDiff`.
+   */
+  porColumna: Record<string, number>;
   comparedColumns: string[];
   excludedAsKey: string[];
   counts: TableDiffCounts;
@@ -240,17 +255,50 @@ export function diffPairedRows(
   return {
     identical,
     differing,
+    porColumna,
     comparedColumns,
     excludedAsKey,
     counts: {
       parejas: key.pairs.length,
       identicas: identical.length,
       discrepantes: differing.length,
-      porColumna,
       discrepanciasVarianteDeEscritura,
       columnasComparadas: comparedColumns.length,
       columnasExcluidasPorClave: excludedAsKey.length,
       columnasNoCompartidas: todas.size - shared.length,
     },
   };
+}
+
+/**
+ * Los contadores AGREGABLES del diff, en la forma que `pipeline_counters`
+ * admite (F-83). Es una traducción pura: no calcula nada que el resultado no
+ * tenga ya.
+ *
+ * LA DISTINCIÓN QUE APLICA, y es la que el contrato de contadores fija: las
+ * CLAVES de un contador son vocabulario cerrado del sistema; los
+ * IDENTIFICADORES DE DATOS —nombres de columna, de documento, valores de
+ * celda— derivan del contenido del cliente y viven en el VALOR. Por eso aquí
+ * sale `columnas_afectadas` con el número y no `porColumna` con los nombres:
+ * el número se puede sumar entre cincuenta clientes, los nombres no.
+ *
+ * `solo_en_a` / `solo_en_b` son posicionales a propósito —a = el documento
+ * analizado, b = el candidato—: nombrar los documentos en la clave sería
+ * meter identidad en el vocabulario. Quién es cada uno va en el hallazgo.
+ *
+ * Recibe también el resultado de la FASE 1 porque las filas sin pareja las
+ * decide el emparejamiento, no la clasificación: `TableDiffResult` no las
+ * tiene y fabricárselas aquí sería recalcular lo que otro ya decidió.
+ */
+export function contadoresDelDiff(
+  key: Extract<TableKeyResult, { status: 'emparejado' }>,
+  diff: TableDiffResult,
+): PipelineCounters {
+  return mergeCounters({
+    'diff.clasificacion.identicas': diff.counts.identicas,
+    'diff.clasificacion.discrepantes': diff.counts.discrepantes,
+    'diff.clasificacion.columnas_afectadas': Object.keys(diff.porColumna).length,
+    'diff.clasificacion.solo_en_a': key.counts.soloNueva,
+    'diff.clasificacion.solo_en_b': key.counts.soloExistente,
+  });
 }
