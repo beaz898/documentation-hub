@@ -2223,6 +2223,10 @@ NOTAS DE ORDEN (propuesta, a confirmar)
 
   B.118 — [ABIERTO 28/08 con F-85] Completar el archivo retrospectivo de
     consultas a Fable, F-70 a F-84.
+    ARCHIVADO EL 28/08: F-83, con su respuesta íntegra (claude/consultas-fable/
+    F-83.md). Su CONSULTA ENVIADA NO SE CONSERVA y no se puede reconstruir: es
+    una pérdida PERMANENTE, no una deuda de este punto. Ese par nunca se
+    completará, y el fichero lo declara en su cabecera.
     EL AGUJERO, MEDIDO: de F-70 a F-85 no hay NI UN SOLO PAR completo archivado.
     El archivo y su índice están creados (claude/consultas-fable/), con cada
     entrada en estado «pendiente de archivar», así que el hueco queda visible en
