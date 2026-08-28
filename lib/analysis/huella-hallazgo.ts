@@ -102,10 +102,25 @@ function codificar(componentes: string[]): string {
  * FIJO: idA, tablaA, claveA, idB, tablaB, claveB, columna — con A y B ya
  * ordenados canónicamente.
  *
- * `columna` es lo ÚNICO que queda fuera de los lados, y con razón: la fase 2
- * solo compara columnas COMPARTIDAS por nombre, así que la columna en la que
- * difieren es literalmente la misma cadena en los dos documentos. La tabla no
- * lo es, y el id tampoco.
+ * `columna` es lo ÚNICO que queda fuera de los lados, y eso NO es una propiedad
+ * del dato: es una CONDICIÓN que hoy se cumple y mañana podría no cumplirse.
+ *
+ *   `columna` puede estar en la cabecera SOLO mientras las columnas se
+ *   emparejen por IGUALDAD EXACTA DE NOMBRE. Si eso cambia, `columna` pasa a
+ *   los lados, como la tabla.
+ *
+ * Verificado hoy: la fase 2 decide qué columnas compara con
+ * `nueva.columns.filter(c => existente.columns.includes(c))`
+ * (table-diff.ts:186), e `includes` compara con igualdad estricta — la misma
+ * cadena en los dos documentos, byte a byte. La nominación de la fase 1 usa el
+ * mismo criterio (table-key.ts:395).
+ *
+ * PERO ES LA MISMA PUERTA POR LA QUE ENTRÓ LA TABLA. Si algún día el
+ * emparejamiento de COLUMNAS tolerara variantes de escritura —justo lo que
+ * F-84 1b acaba de hacer con las FILAS—, «Precio base» y «precio base» serían
+ * la misma columna con dos nombres, y la huella volvería a depender de qué
+ * documento llegó primero. La tabla ya está blindada por estar atada a su lado;
+ * la columna lo está solo por esta condición, que por eso se escribe aquí.
  *
  * VALORES EN CRUDO, SIN NORMALIZAR, y es deliberado: normalizar antes de
  * hashear fundiría identidades distintas. Dos filas cuyas claves sean «IMP-01»
@@ -151,6 +166,12 @@ export function huellaDeHallazgo(params: {
  */
 function ordenCanonico(a: LadoDeLaHuella, b: LadoDeLaHuella): [LadoDeLaHuella, LadoDeLaHuella] {
   if (a.id === b.id) {
+    // EL AVISO NOMBRA LA CONDICIÓN, NO EL VALOR. Lleva el `documentId` —un
+    // identificador interno, que es lo que hace el aviso accionable— y NO la
+    // `claveCruda` ni ninguna celda: eso es contenido del documento del cliente
+    // y no va a los logs. Si alguien añade la clave aquí para «depurar mejor»,
+    // está metiendo texto del cliente en la telemetría, que es la misma regla
+    // que vigila usage-stats.ts:14 y la cláusula 5 del contrato de contadores.
     console.warn(
       `[huella-hallazgo] id_repetido "${a.id}" — los dos lados son el mismo documento; ` +
       `se desempata por clave. Señala un fallo en quien construyó el par.`,

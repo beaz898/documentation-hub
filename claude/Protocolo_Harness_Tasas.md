@@ -321,7 +321,7 @@ order by created_at desc limit 10;
 
 ## 4-bis. La lista de cierre (F-74 P5)
 
-**Antes de dar una conclusión por cerrada, se escriben estas tres cosas — aunque
+**Antes de dar una conclusión por cerrada, se escriben estas cuatro cosas — aunque
 no se midan ese día.** Escribirlas es obligatorio; medirlas, no. El valor está
 en que la pregunta quede planteada por escrito, porque una conclusión con su
 límite anotado es útil y una conclusión sin él es una trampa para quien la lea
@@ -397,6 +397,40 @@ con los contadores OBLIGATORIOS y un único constructor. Una salida sin
 contadores dejó de compilar. Un test avisa a quien lo ejecuta; el tipo **para el
 gate** antes de que nadie ejecute nada — y en este repositorio el único gate que
 corre en local es `npm run typecheck` (B.108).
+
+**4. ¿El caso colisionaría de verdad si el mecanismo estuviera roto?**
+*«No es "¿tengo un test?", es "¿mi test puede fallar?"».*
+
+Antes de dar por probado un mecanismo, comprobar que su caso **discrimina**:
+romperlo a propósito y ver el rojo. Un caso que pasa con el mecanismo y también
+sin él no prueba nada, y se lee exactamente igual que uno que sí prueba.
+
+*Añadida el 28/08/2026 (F-84 paso 2). Es hermana de la 3 —aquella pregunta por
+dónde sale el dato, ésta si el caso que lo vigila puede fallar— y sale de TRES
+veces en dos días, todas con el mismo aspecto: el caso parecía discriminar y no
+discriminaba.*
+
+- **`soloFormato` / `igualTrasNormalizar` (fase 2 del diff).** Dos mutaciones
+  plausibles sobrevivían a catorce casos verdes: renderizar los dos lados con
+  las columnas de la misma tabla —invisible porque las dos tienen diez— y contar
+  el campo cuando ALGUNA columna coincide en vez de todas, invisible porque las
+  filas del corpus discrepan en una sola columna.
+- **El medidor de F-84 1a.** Se validó con «DIA-01» contra «dia-01» y dio cero
+  frágiles. No era que el medidor fallara: **una diferencia de caja la funde
+  también el nivel seguro**, así que esa pareja sobrevive y no es frágil. El
+  fixture que discrimina es el que necesita BORRAR PUNTUACIÓN («IMP-01» contra
+  «IMP01»), y con él detecta 1 de 3.
+- **El separador de la huella (F-84 paso 2).** Sustituir el prefijo de longitud
+  por un `|` pasaba los doce casos: la ambigüedad del fixture estaba entre las
+  dos claves, que **no son contiguas** en la tupla. El segundo intento tampoco
+  discriminaba, porque dejar un componente **vacío** mete un separador de más.
+
+**CÓMO SE RESPONDE, y es barato: MUTAR.** Romper el mecanismo a propósito y
+mirar qué se pone rojo. Con dos cautelas que ya han hecho falta las dos:
+**comprobar que la mutación se aplicó** antes de leer el resultado —una que no
+se aplica es indistinguible de un test que no muerde—, y mirar **qué** casos
+mueren, no solo cuántos: si mueren más de los que vigilan ese mecanismo, el
+caso está midiendo de más.
 
 ---
 
