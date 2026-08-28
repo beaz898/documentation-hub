@@ -2232,6 +2232,9 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     F-85 TAMBIÉN COMPLETO el 28/08 — es la consulta que creó el archivo, así que
     queda archivada dentro de sí misma. Quedan DOS pares completos de F-70 a
     F-85; el resto del rango sigue siendo la deuda de este punto.
+    F-86 y F-87 archivados el 28/08, los dos COMPLETOS. Van CUATRO pares
+    completos (F-84 a F-87) y el rango del índice se amplía hasta F-87; la
+    deuda de este punto sigue siendo F-70..F-83.
     EL AGUJERO, MEDIDO: de F-70 a F-85 no hay NI UN SOLO PAR completo archivado.
     El archivo y su índice están creados (claude/consultas-fable/), con cada
     entrada en estado «pendiente de archivar», así que el hueco queda visible en
