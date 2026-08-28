@@ -2221,6 +2221,40 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     del emparejamiento de 1b. Cuatro veces no es casualidad: es que este corpus
     se sembró para medir discrepancias de CONTENIDO, no de escritura.
 
+  B.118 — [ABIERTO 28/08 con F-85] Completar el archivo retrospectivo de
+    consultas a Fable, F-70 a F-84.
+    EL AGUJERO, MEDIDO: de F-70 a F-85 no hay NI UN SOLO PAR completo archivado.
+    El archivo y su índice están creados (claude/consultas-fable/), con cada
+    entrada en estado «pendiente de archivar», así que el hueco queda visible en
+    vez de olvidado — pero los textos no están en el repositorio y no se pueden
+    reconstruir: hay que pegarlos.
+    LO QUE SÍ HAY, para no volver a buscarlo:
+      · F-70 — la RESPUESTA íntegra y literal, en claude/Cierre_F70.md §2. Ese
+        fichero existe porque la respuesta se perdió una vez al migrar el chat.
+        FALTA LA CONSULTA ENVIADA.
+      · F-81 — la CONSULTA íntegra, en claude/Consulta_Fable_F81.md. FALTA LA
+        RESPUESTA.
+      · F-75 — rastro indirecto: claude/Descarte_Filas_Ajenas.md dice ser «lo
+        que vino de vuelta» al pedir la batería, pero está reformateado como
+        especificación y no se declara literal. No cuenta.
+      · F-82 — una sola frase literal, citada en Contrato_Contadores.md:19. Una
+        frase no es un archivo.
+    LO QUE NO HAY EN ABSOLUTO: F-72 y F-85 no tienen ni una mención en todo el
+    repositorio. F-71, F-73, F-74, F-76, F-77, F-78, F-79, F-80, F-83 y F-84
+    existen solo como REFERENCIAS y resúmenes en la bitácora, los pendientes y
+    el protocolo — y un resumen no cuenta, que es lo que F-85 descarta con todas
+    las letras.
+    FUERA DE RANGO, mismo patrón incompleto: Consulta_Fable_F22_Juez.md
+    (consulta sin respuesta) y Consulta_Fable_F47_Paso5.md (veredicto sin
+    consulta).
+    CÓMO SE CIERRA: pegando los textos, uno por consulta, en el formato del
+    índice. No es trabajo de código y no lo puede hacer nadie que no tenga los
+    originales. Cada uno que entre actualiza su línea del índice y su cabecera
+    de estado.
+    OJO AL CERRARLO: la cabecera de estado la escribe quien cierra el hecho, y
+    el estado solo cambia con un HECHO —una medición, un commit, una consulta
+    posterior—. Archivar un texto no es opinar sobre su vigencia.
+
   F-81 [CONVERGENCIA — leer ANTES de planificar la fase 3 del diff, 27/08] No
     es un pendiente nuevo: es el sitio donde se juntan tres que ya existen, más
     una consecuencia. Se anota aquí porque el momento en que importan es el de

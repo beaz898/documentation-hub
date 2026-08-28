@@ -174,6 +174,74 @@ de esta regla llevaba aplazado por la razón equivocada.
 
 ---
 
+---
+
+## ⚠️ REGLA DE CUSTODIA: toda consulta a Fable se archiva íntegra
+
+*Añadida el 28/08/2026 (F-85). Es la primera de las dos reglas que aquella
+consulta declara vinculantes.*
+
+> **Toda consulta a Fable se archiva ÍNTEGRA al cerrarse, junto con la consulta
+> enviada.** Y toda regla que una respuesta declare vinculante **se promueve al
+> protocolo en el commit que la adopta**, con referencia a la consulta que la
+> originó.
+
+**DOS CAPAS, y la separación es el punto.** El PROTOCOLO es la ley vigente: qué
+se hace hoy. El ARCHIVO (`claude/consultas-fable/`) es la jurisprudencia: el caso
+concreto, la evidencia y la exposición de motivos de cada regla.
+
+**Quien quiera saber QUÉ es ley lee el protocolo; quien quiera saber POR QUÉ,
+sigue la referencia.** Sin la primera capa, la ley se busca leyendo doce
+consultas. Sin la segunda, la ley queda sin motivos y el primero que la
+encuentre incómoda la cambiará sin saber qué compraba.
+
+**SE ARCHIVA EL PAR, NO LA RESPUESTA.** Una respuesta sin su consulta delante es
+ilegible: no se sabe qué se preguntó ni con qué evidencia. El agujero medido el
+día que se escribió esta regla lo enseña — de F-70 a F-85 no había **ni un solo
+par completo**: de F-70 estaba la respuesta y faltaba la consulta; de F-81, la
+consulta y faltaba la respuesta.
+
+**Y SE ARCHIVA ÍNTEGRO, nunca resumido**: el resumen es donde muere el matiz.
+
+---
+
+## ⚠️ REGLA DE VERIFICACIÓN AL USAR: un documento normativo se comprueba antes de apoyarse en él
+
+*Añadida el 28/08/2026 (F-85), con dos casos de la misma semana.*
+
+**LA TAXONOMÍA, que es lo que hace operativa la regla.** Los documentos de este
+repositorio no son todos iguales, y se pudren de forma distinta:
+
+| | qué afirma | ¿se pudre? |
+|---|---|---|
+| **NORMATIVOS** — el protocolo, `Contrato_Contadores.md`, `Puntos_Pendientes_Doclity.txt` | «así es el sistema HOY» | **Sí, POR DISEÑO**: el sistema cambia después de escribirlos |
+| **HISTÓRICOS** — las consultas archivadas, `Bitacora_Sesiones.txt` | «esto se dijo el día tal» | **No pueden**: lo dicho sigue habiéndose dicho |
+
+> **Un documento NORMATIVO que se vaya a usar como PREMISA de una decisión se
+> verifica contra la realidad antes de apoyarse en él.**
+
+No es desconfianza: es que un normativo describe un sistema que sigue moviéndose,
+y el que lo escribió no podía saber lo que vendría después. Un HISTÓRICO no
+necesita verificación —solo su lectura puede pudrirse, si alguien lo toma por
+presente—, y para eso está la cabecera de estado de cada consulta archivada.
+
+**LOS DOS CASOS DE ESTA SEMANA, que son lo que hace creíble la regla:**
+
+- **El contrato de contadores** declaraba una víctima de la cláusula 5 como si
+  `porColumna` ya viviera en `pipeline_counters`. No vivía ahí: estaba en
+  `TableDiffCounts`, una estructura que **no se persiste en ninguna parte**. El
+  incumplimiento era real pero FUTURO. Se descubrió **al ir a sanearlo**, o sea
+  al usarlo como premisa.
+- **B.113** decía que el protocolo tenía 403 líneas cuando ya tenía 466 — **y su
+  trabajo era precisamente vigilar ese crecimiento**. Un vigilante con el número
+  desactualizado. Se descubrió al ir a citarlo.
+
+**LOS DOS SE CORRIGIERON SIN REESCRIBIR HISTORIA**: el contrato explica qué se
+creyó y qué era; B.113 conserva su cifra original y añade la de hoy. Corregir un
+normativo es actualizar lo que afirma del presente, nunca borrar lo que se creyó
+en su momento — eso es lo que hace el archivo, y para eso está.
+
+
 ## 1. Para qué sirve
 
 La regla que fijaron F-59 y F-61, y que este harness existe para hacer cumplible:
