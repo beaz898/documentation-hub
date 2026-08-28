@@ -153,6 +153,13 @@ olvida: **producción es la tanda que nunca termina.** Un cambio que funciona en
 cinco documentos y **no actúa nunca** en cincuenta no es un acierto: es una pieza
 que no sabemos si sirve, y sin contador no lo sabremos jamás.
 
+**Cómo se escribe ese contador: `claude/Contrato_Contadores.md`** (F-82,
+28/08/2026). Cinco cláusulas —apellido de etapa, solo recuentos de decisión,
+lectura por nombre, la fusión solo transporta lo declarado, y la clave nunca
+lleva datos del cliente— escritas antes de crear el campo que los guarda. La
+condición 3 exige el contador; aquel fichero dice cómo tiene que ser para que no
+acabe como `discardedFindings`.
+
 ### Los dos ejemplos del proyecto, que valen más que la regla abstracta
 
 **Cómo se hace BIEN — el bloque del verificador (F-77).** Entró con la siembra A
