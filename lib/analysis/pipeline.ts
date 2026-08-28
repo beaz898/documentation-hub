@@ -456,6 +456,35 @@ async function applyCascadeToCandidate(
   };
 }
 
+/**
+ * LA FRONTERA DEL DOUBLE-CHECK (F-71 paso 3), con nombre para poder probarla.
+ *
+ * REGLA DEL PIPELINE: ninguna llamada a un modelo puede revertir un veredicto
+ * DETERMINISTA. Un `confirmedBy: 'estructura'` es un teorema sobre celdas, y que
+ * Sonnet opine lo contrario no es información sobre el hallazgo: es información
+ * sobre Sonnet.
+ *
+ * POR QUÉ ES UNA FUNCIÓN Y NO DOS `filter` EN SU SITIO (F-86): la frontera
+ * estaba viva POR CONSTRUCCIÓN —dos filtros correctos escritos en línea— y sin
+ * un solo caso que la vigilara. Un filtro en línea no se puede probar sin
+ * ejecutar el pipeline entero, que el alcance de la suite prohíbe. Con nombre,
+ * la frontera pasa a ser verdad POR CONTRATO.
+ *
+ * FILTRA POR EL VALOR DEL CAMPO, no por el tipo ni por la procedencia del
+ * hallazgo: cualquier cosa que llegue con `confirmedBy: 'estructura'` queda
+ * fuera de Sonnet automáticamente, incluidos los hallazgos del diff de tablas
+ * cuando la emisión los conecte. Eso NO es casualidad y no debe «mejorarse»
+ * enumerando tipos conocidos: enumerar tipos es lo que haría que un tipo nuevo
+ * se colara.
+ */
+export function particionDoubleCheck<T extends { confirmedBy?: ConfirmedBy }>(
+  candidatas: T[],
+): { estructurales: T[]; aJuicio: T[] } {
+  return {
+    estructurales: candidatas.filter(d => d.confirmedBy === 'estructura'),
+    aJuicio: candidatas.filter(d => d.confirmedBy !== 'estructura'),
+  };
+}
 // ============================================================
 // Núcleo compartido: retrieve → rerank → judge → verificar → synthesize
 // ============================================================
@@ -865,8 +894,7 @@ async function runExhaustivePipelineInner(input: ExhaustivePipelineInput): Promi
   // Ni se le envían: además de la corrección, es el ahorro directo de las
   // llamadas más caras del pipeline. A Sonnet solo va lo confirmado por JUICIO,
   // que es donde una segunda opinión de un modelo superior vale lo que cuesta.
-  const structuralCandidates = cappedCandidates.filter(d => d.confirmedBy === 'estructura');
-  const toDoubleCheck = cappedCandidates.filter(d => d.confirmedBy !== 'estructura');
+  const { estructurales: structuralCandidates, aJuicio: toDoubleCheck } = particionDoubleCheck(cappedCandidates);
   console.log(
     `[pipeline-exhaustive] Frontera del double-check: ${structuralCandidates.length} por estructura NO se envian a Sonnet, ` +
     `${toDoubleCheck.length} por juicio si`

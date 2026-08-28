@@ -1,7 +1,23 @@
 import { createHash } from 'crypto';
 
 /**
- * HUELLA DE UN HALLAZGO ESTRUCTURAL (F-84 paso 2).
+ * HUELLA DE UN HALLAZGO (F-84 paso 2, ampliado en F-86 paso 2).
+ *
+ * DOS ESPECIES BAJO UN CONTRATO COMÚN. El descarte del usuario opera sobre
+ * TODAS las discrepancias, y no todas tienen fila ni clave:
+ *
+ *   TABULAR — `huellaDeHallazgo`. Tabla + las dos claves crudas + columna.
+ *   PROSA   — `huellaDeProsa`. Los dos textos citados, uno por lado.
+ *
+ * NO SE FUERZA UNA SOLA FUNCIÓN, y el motivo es que forzarla obligaría a la
+ * tabular a degradarse a texto o a la prosa a fingir una estructura que no
+ * tiene. Lo que SÍ es uno solo es el contrato, y vale para las dos:
+ *
+ *   · Par de documentos en ORDEN CANÓNICO POR ID, nunca por rol.
+ *   · Los dos lados dentro de la tupla, cada dato ATADO a su lado.
+ *   · Componentes con PREFIJO DE LONGITUD, nunca un separador.
+ *   · sha256.
+ *   · CÁLCULO SOLO EN SERVIDOR. El cliente pide, no calcula.
  *
  * QUÉ RESPONDE, y no es lo que responde el diff. La fase 1 responde «qué fila
  * va con qué fila» y la fase 2 «qué difiere». Ésta responde otra cosa:
@@ -135,7 +151,7 @@ export function huellaDeHallazgo(params: {
   columna: string;
 }): string {
   const { a, b, columna } = params;
-  const [primero, segundo] = ordenCanonico(a, b);
+  const [primero, segundo] = ordenCanonico(a, b, x => x.claveCruda);
 
   const tupla = codificar([
     primero.id, primero.tabla, primero.claveCruda,
@@ -164,7 +180,9 @@ export function huellaDeHallazgo(params: {
  * por `claveCruda`, que mantiene la huella determinista Y simétrica también en
  * ese caso, y se avisa por consola porque señala un fallo más arriba.
  */
-function ordenCanonico(a: LadoDeLaHuella, b: LadoDeLaHuella): [LadoDeLaHuella, LadoDeLaHuella] {
+function ordenCanonico<T extends { id: string }>(
+  a: T, b: T, desempate: (x: T) => string,
+): [T, T] {
   if (a.id === b.id) {
     // EL AVISO NOMBRA LA CONDICIÓN, NO EL VALOR. Lleva el `documentId` —un
     // identificador interno, que es lo que hace el aviso accionable— y NO la
@@ -176,7 +194,65 @@ function ordenCanonico(a: LadoDeLaHuella, b: LadoDeLaHuella): [LadoDeLaHuella, L
       `[huella-hallazgo] id_repetido "${a.id}" — los dos lados son el mismo documento; ` +
       `se desempata por clave. Señala un fallo en quien construyó el par.`,
     );
-    return a.claveCruda <= b.claveCruda ? [a, b] : [b, a];
+    return desempate(a) <= desempate(b) ? [a, b] : [b, a];
   }
   return a.id < b.id ? [a, b] : [b, a];
+}
+
+// ── LA ESPECIE PROSA (F-86 paso 2) ─────────────────────────────────────────
+
+/**
+ * Un lado de un hallazgo de PROSA: el documento y el texto que se citó de él.
+ * Atados, por la misma razón que en la tabular — al reordenar por id hay que
+ * reordenar el texto con él, y que eso sea imposible de olvidar es la propiedad
+ * entera del módulo.
+ */
+export interface LadoDeProsa {
+  /** `documents.id` del documento de este lado. */
+  id: string;
+  /** La cita, EN CRUDO. Sin normalizar y sin recortar. */
+  textoCitado: string;
+}
+
+/**
+ * La huella de un hallazgo de prosa. Mismo contrato que la tabular: orden
+ * canónico por id, los dos lados dentro, prefijo de longitud, sha256.
+ *
+ * QUÉ SUSTITUYE. `makeDiscrepancyFingerprint` (double-check.ts) hacía esto
+ * mismo con cinco defectos, todos verificados en F-86: se construía SOLO con el
+ * texto del lado analizado —así que invertir la dirección cambiaba la huella—,
+ * estaba duplicada a mano en cliente y servidor, viajaba sin hashear, usaba una
+ * barra como separador sobre texto en crudo, y recortaba la cita a 80
+ * caracteres. Ésta arregla los cinco.
+ *
+ * ⚠️ EL LÍMITE DECLARADO DE ESTA ESPECIE, y es peor que el de la tabular.
+ *
+ *   LA IDENTIDAD DE PROSA DERIVA DE TEXTO ESCRITO POR UN MODELO.
+ *
+ * La tabular se construye con claves de celda: el cliente las escribió y no
+ * cambian solas. Ésta se construye con la CITA que el juez emitió, y una
+ * paráfrasis del modelo —la misma contradicción citada con otras palabras en un
+ * análisis posterior— produce OTRA huella. El usuario vería volver algo que ya
+ * cerró.
+ *
+ * SE DECLARA, NO SE RESUELVE HOY, y tiene sucesor conocido: cuando las citas
+ * pasen a ser POR REFERENCIA (`{fragmentId, ancla}`, la cura estructural de
+ * F-80/B.107 — que el texto lo extraiga el CÓDIGO y no el modelo), la identidad
+ * de prosa dejará de derivar de texto generado y este límite desaparecerá sin
+ * tocar esta función: solo cambia qué se le pasa.
+ *
+ * Y AUN CON ESE LÍMITE MEJORA A LA QUE SUSTITUYE en lo que importa: es
+ * bidireccional, lleva los DOS lados —la vieja solo el analizado— y va hasheada.
+ * Un límite conocido es mejor que cuatro defectos y un límite.
+ */
+export function huellaDeProsa(params: { a: LadoDeProsa; b: LadoDeProsa }): string {
+  const { a, b } = params;
+  const [primero, segundo] = ordenCanonico(a, b, x => x.textoCitado);
+
+  const tupla = codificar([
+    primero.id, primero.textoCitado,
+    segundo.id, segundo.textoCitado,
+  ]);
+
+  return createHash('sha256').update(tupla, 'utf8').digest('hex');
 }

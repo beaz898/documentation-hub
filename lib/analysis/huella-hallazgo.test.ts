@@ -4,7 +4,7 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { chunkSegments, extractSegments } from '@/lib/chunking';
 import { toStoredChunks, type StoredChunk } from '@/lib/read-chunks';
-import { huellaDeHallazgo, unirClave } from './huella-hallazgo';
+import { huellaDeHallazgo, huellaDeProsa, unirClave } from './huella-hallazgo';
 import { discoverTableKey } from './table-key';
 import { groupChunksByTable, type TableGroup } from './table-structure';
 
@@ -239,3 +239,98 @@ describe('la codificación es inyectiva: no depende de ningún separador', () =>
       .not.toBe(huellaDeHallazgo({ ...base, a: { id: 'A', tabla: 'T', claveCruda: 'IMP01' } }));
   });
 });
+
+// ── LA ESPECIE PROSA (F-86 paso 2) ─────────────────────────────────────────
+
+describe('huellaDeProsa — la invariante de dirección', () => {
+  const A = 'f0000000-0000-0000-0000-0000000000aa';
+  const B = 'a0000000-0000-0000-0000-0000000000ff';
+  const citaA = 'La historia clínica se conservará quince (15) años.';
+  const citaB = 'La historia clínica se conservará durante 5 años.';
+
+  /**
+   * EL CASO QUE JUSTIFICA LA ESPECIE. La huella vieja se construía SOLO con el
+   * texto del lado analizado, así que invertir la dirección producía otra
+   * identidad para el mismo hallazgo — y el descarte del usuario se perdía.
+   * Aquí los dos lados entran en la tupla y el orden lo pone el id.
+   */
+  it('analizar el par en las dos direcciones da la MISMA huella', () => {
+    const ida = huellaDeProsa({ a: { id: A, textoCitado: citaA }, b: { id: B, textoCitado: citaB } });
+    const vuelta = huellaDeProsa({ a: { id: B, textoCitado: citaB }, b: { id: A, textoCitado: citaA } });
+    expect(vuelta).toBe(ida);
+  });
+
+  it('cruzar los textos entre los ids SÍ cambia la huella', () => {
+    const bien = huellaDeProsa({ a: { id: A, textoCitado: citaA }, b: { id: B, textoCitado: citaB } });
+    const cruzado = huellaDeProsa({ a: { id: A, textoCitado: citaB }, b: { id: B, textoCitado: citaA } });
+    expect(cruzado).not.toBe(bien);
+  });
+
+  it('dos hallazgos distintos no comparten huella', () => {
+    const uno = huellaDeProsa({ a: { id: A, textoCitado: citaA }, b: { id: B, textoCitado: citaB } });
+    const otro = huellaDeProsa({ a: { id: A, textoCitado: 'El plazo es de 72 horas.' }, b: { id: B, textoCitado: 'El plazo es de 7 días.' } });
+    expect(otro).not.toBe(uno);
+  });
+
+  it('es sha256 en hexadecimal', () => {
+    expect(huellaDeProsa({ a: { id: A, textoCitado: 'x' }, b: { id: B, textoCitado: 'y' } })).toMatch(/^[0-9a-f]{64}$/);
+  });
+
+  /**
+   * EL LÍMITE DECLARADO DE ESTA ESPECIE, fijado como caso para que sea una
+   * propiedad conocida y no una sorpresa: la identidad de prosa deriva de texto
+   * ESCRITO POR UN MODELO, así que una paráfrasis del juez —la misma
+   * contradicción citada con otras palabras— produce otra huella y el usuario
+   * vería volver algo que ya cerró.
+   *
+   * Se acepta hoy y tiene sucesor conocido: con citas POR REFERENCIA
+   * ({fragmentId, ancla}) la identidad de prosa pasa a ser estructural y el
+   * límite desaparece sin tocar esta función — solo cambia qué se le pasa.
+   */
+  it('una paráfrasis del modelo cambia la huella: el límite, declarado', () => {
+    const original = huellaDeProsa({ a: { id: A, textoCitado: citaA }, b: { id: B, textoCitado: citaB } });
+    const parafraseado = huellaDeProsa({
+      a: { id: A, textoCitado: 'La historia clínica se conservará 15 años.' },
+      b: { id: B, textoCitado: citaB },
+    });
+    expect(parafraseado).not.toBe(original);
+  });
+
+  /** NO RECORTA. La vieja cortaba a 80 caracteres, así que dos citas largas que
+   *  solo difirieran a partir del carácter 81 compartían identidad. */
+  it('no recorta: dos citas que solo difieren después del carácter 80 son distintas', () => {
+    const base = 'x'.repeat(90);
+    const uno = huellaDeProsa({ a: { id: A, textoCitado: base + 'AAA' }, b: { id: B, textoCitado: 'y' } });
+    const otro = huellaDeProsa({ a: { id: A, textoCitado: base + 'BBB' }, b: { id: B, textoCitado: 'y' } });
+    expect(otro).not.toBe(uno);
+  });
+
+  it('comparte codificación inyectiva con la tabular: la ambigüedad contigua no colisiona', () => {
+    const uno = huellaDeProsa({ a: { id: 'A', textoCitado: 'X|Y' }, b: { id: 'B', textoCitado: 'k' } });
+    const otro = huellaDeProsa({ a: { id: 'A|X', textoCitado: 'Y' }, b: { id: 'B', textoCitado: 'k' } });
+    expect(otro).not.toBe(uno);
+  });
+
+  it('con los dos ids iguales desempata por texto, avisa y sigue siendo simétrico', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const x = { id: 'mismo', textoCitado: 'b' };
+    const y = { id: 'mismo', textoCitado: 'a' };
+    expect(huellaDeProsa({ a: x, b: y })).toBe(huellaDeProsa({ a: y, b: x }));
+    expect(warn).toHaveBeenCalledTimes(2);
+    warn.mockRestore();
+  });
+
+  /** Las dos especies son ESPECIES DISTINTAS: el mismo par de documentos con
+   *  los mismos textos no puede producir la misma huella que un hallazgo
+   *  tabular, o juzgar uno silenciaría el otro. */
+  it('una huella de prosa nunca coincide con una tabular', () => {
+    const prosa = huellaDeProsa({ a: { id: 'A', textoCitado: 'k1' }, b: { id: 'B', textoCitado: 'k1' } });
+    const tabular = huellaDeHallazgo({
+      a: { id: 'A', tabla: 'T', claveCruda: 'k1' },
+      b: { id: 'B', tabla: 'T', claveCruda: 'k1' },
+      columna: 'C',
+    });
+    expect(prosa).not.toBe(tabular);
+  });
+});
+
