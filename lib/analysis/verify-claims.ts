@@ -30,6 +30,10 @@ export interface ClaimVerification {
   corpusSays?: string;
   /** Solo si verdict es 'contradiccion' o 'inconsistencia_menor': nombre del documento del corpus. */
   existingDocument?: string;
+  /** F-86 paso 0: el id del mismo documento, hermano del nombre. Sale de
+   *  `meta.documentId` del vector de Pinecone, que ya se leía aquí para
+   *  excluir el documento analizado pero se tiraba sin copiarlo. */
+  existingDocumentId?: string;
 }
 
 /** Contradicción detectada por verificación atómica (formato compatible con synthesize). */
@@ -38,6 +42,16 @@ export interface AtomicContradiction {
   newDocSays: string;
   existingDocSays: string;
   existingDocument: string;
+  /** F-86 paso 0. Ver la nota de arriba.
+   *
+   *  ⚠️ ESTE CAMPO NO LLEGA HOY A NINGUNA PARTE, y no por un fallo de este
+   *  módulo: la rama atómica está DOBLEMENTE desconectada en pipeline.ts —
+   *  detrás de `atomicBranchEnabled()` (env ANALYSIS_ATOMIC_MEASURE, sin poner
+   *  en producción) y, aunque se encendiera, F-74 dejó su fusión con un array
+   *  vacío como listB. Estas contradicciones se cuentan y se loguean; no se
+   *  publican. Se propaga el id igualmente para que el día que la rama se
+   *  reconecte no haya que acordarse de esto. */
+  existingDocumentId?: string;
   severity?: 'contradiction' | 'minor_inconsistency';
 }
 
@@ -69,6 +83,50 @@ const DELAY_BETWEEN_ROUNDS_MS = 200;
  * 2. Buscar fragmentos del corpus para cada embedding (Pinecone, sin LLM).
  * 3. Verificar en rondas de CONCURRENCY llamadas LLM en paralelo.
  */
+/**
+ * ÚLTIMO ESLABÓN DEL SEGUNDO PRODUCTOR (F-86 paso 0), con nombre para poder
+ * probarlo.
+ *
+ * POR QUÉ SE EXTRAE. Esto era una LISTA CERRADA de seis campos escrita dentro
+ * de `verifyClaimsAgainstCorpus`, que llama a embeddings, a Pinecone y al LLM
+ * — o sea, IMPOSIBLE de ejecutar bajo el alcance de vitest
+ * (vitest.config.mts prohíbe los tres). Era el único eslabón de este productor
+ * con la forma exacta que ya mató a tres campos en la otra tubería, y el único
+ * que no se podía vigilar. Fuera, es una función pura.
+ *
+ * MISMA TÉCNICA que `construirDiscrepancias` (synthesize.ts) y `conVeredicto`
+ * (double-check.ts), y por la misma razón.
+ *
+ * LA GUARDA NO CAMBIA, ni un carácter: el veredicto tiene que ser de los dos
+ * que producen contradicción, y `corpusSays` y `existingDocument` tienen que
+ * ser NO VACÍOS (comprobación de veracidad, no de `undefined` — una cadena
+ * vacía sigue sin pasar, como antes). `existingDocumentId` queda FUERA de la
+ * guarda a propósito: el nombre es requisito porque sin él la contradicción es
+ * impresentable; el id puede faltar (un vector viejo sin `documentId` en su
+ * metadata) y eso no es motivo para tirar el hallazgo. Hermano, no requisito.
+ *
+ * DEVUELVE null en vez de lanzar: el llamador filtraba con un `if` y sigue
+ * filtrando con un `if`. Mismo comportamiento, mismo orden, mismo resultado.
+ */
+export function aContradiccionAtomica(result: ClaimVerification): AtomicContradiction | null {
+  if (
+    (result.verdict !== 'contradiccion' && result.verdict !== 'inconsistencia_menor') ||
+    !result.corpusSays ||
+    !result.existingDocument
+  ) {
+    return null;
+  }
+  return {
+    topic: result.category,
+    newDocSays: result.claim,
+    existingDocSays: result.corpusSays,
+    existingDocument: result.existingDocument,
+    // F-86 paso 0: hermano del nombre, y por eso viaja en la línea de al lado.
+    existingDocumentId: result.existingDocumentId,
+    severity: result.verdict === 'contradiccion' ? 'contradiction' : 'minor_inconsistency',
+  };
+}
+
 export async function verifyClaimsAgainstCorpus(
   claims: AtomicClaim[],
   orgId: string,
@@ -112,15 +170,8 @@ export async function verifyClaimsAgainstCorpus(
   );
 
   for (const result of verifyResults) {
-    if ((result.verdict === 'contradiccion' || result.verdict === 'inconsistencia_menor') && result.corpusSays && result.existingDocument) {
-      contradictions.push({
-        topic: result.category,
-        newDocSays: result.claim,
-        existingDocSays: result.corpusSays,
-        existingDocument: result.existingDocument,
-        severity: result.verdict === 'contradiccion' ? 'contradiction' : 'minor_inconsistency',
-      });
-    }
+    const contradiccion = aContradiccionAtomica(result);
+    if (contradiccion) contradictions.push(contradiccion);
   }
 
   console.log(`[verify-claims] ${claims.length} afirmaciones verificadas (${claimsToVerify.length} con corpus), ${contradictions.length} contradicciones encontradas (${Date.now() - t0}ms)`);
@@ -186,12 +237,17 @@ Responde EXCLUSIVAMENTE con este JSON:
     });
 
     let existingDocument: string | undefined;
+    // F-86 paso 0: se declara AL LADO del nombre y se asigna en la misma rama,
+    // del MISMO fragmento. Separarlos daría pie a que un futuro cambio moviera
+    // uno y no el otro, que es el fallo que huella-hallazgo.ts documenta.
+    let existingDocumentId: string | undefined;
     if (response.verdict === 'contradiccion' || response.verdict === 'inconsistencia_menor') {
       const frag = typeof response.fragmentIndex === 'number'
         ? corpusFragments[response.fragmentIndex - 1]
         : undefined;
       if (frag) {
         existingDocument = frag.documentName;
+        existingDocumentId = frag.documentId;
       } else {
         console.warn(`[verify-claims] Contradicción descartada (fragmentIndex inválido) para "${claim.claim.slice(0, 60)}"`);
         return { ...claim, verdict: 'sin_datos' };
@@ -203,6 +259,7 @@ Responde EXCLUSIVAMENTE con este JSON:
       verdict: response.verdict || 'sin_datos',
       corpusSays: response.corpusSays,
       existingDocument,
+      existingDocumentId,
     };
   } catch (err) {
     console.warn(`[verify-claims] Falló verificación de "${claim.claim.slice(0, 50)}...":`, err);
@@ -214,6 +271,10 @@ Responde EXCLUSIVAMENTE con este JSON:
 interface CorpusFragment {
   text: string;
   documentName: string;
+  /** F-86 paso 0: `documentId` de la metadata del vector. OPCIONAL porque los
+   *  vectores indexados antes de que la metadata lo incluyera no lo traen, y
+   *  un fragmento sin id sigue siendo un fragmento válido. */
+  documentId?: string;
   score: number;
 }
 
@@ -246,6 +307,10 @@ async function findCorpusFragmentsByEmbedding(
       fragments.push({
         text: meta.text,
         documentName: meta.documentName,
+        // F-86 paso 0: `meta.documentId` YA se leía dos líneas más arriba para
+        // excluir el documento analizado — se usaba y se tiraba. Copiarlo aquí
+        // es todo lo que hacía falta para que el id acompañe al nombre.
+        documentId: meta.documentId,
         score: m.score,
       });
     }

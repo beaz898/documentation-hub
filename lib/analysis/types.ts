@@ -180,6 +180,9 @@ export interface FinalAnalysis {
   duplicateConfidence: number;
   overlaps: Array<{
     existingDocument: string;
+    /** F-86 paso 0: el ID del documento existente, HERMANO del nombre y no su
+     *  sustituto. Ver la nota extensa en `discrepancies` justo debajo. */
+    existingDocumentId?: string;
     description: string;
     severity: 'alta' | 'media' | 'baja';
     overlapPercent: number;
@@ -194,6 +197,31 @@ export interface FinalAnalysis {
     newDocSays: string;
     existingDocSays: string;
     existingDocument: string;
+    /**
+     * F-86 paso 0 — EL ID DEL DOCUMENTO EXISTENTE.
+     *
+     * CAMPO HERMANO, NO SUSTITUTO. `existingDocument` (el nombre) SE QUEDA: es
+     * lo que el usuario lee en la tarjeta y en los tres prompts de
+     * ImprovementModal. Este campo se añade AL LADO para lo que un nombre no
+     * puede hacer: identificar el documento cuando lo renombran.
+     *
+     * PARA QUÉ SE PROPAGA HOY, si nadie lo pinta: lo necesita la huella
+     * bidireccional (huella-hallazgo.ts). `huellaDeProsa` pide el `id` de los
+     * dos lados, y hoy el servidor no puede dárselo porque synthesize pone el
+     * NOMBRE y el id se pierde ahí mismo. Sin este campo, la persistencia de
+     * descartes no tiene con qué construir la identidad.
+     *
+     * OPCIONAL, y para siempre: los análisis guardados en el jsonb antes de
+     * este commit no lo tienen, y la bandeja los relee meses después.
+     *
+     * LO QUE NO CAMBIA EN ESTE COMMIT, a propósito (F-87, frente del ciclo de
+     * vida): `involved_documents` sigue guardando nombres, `makeContradictionKey`
+     * sigue construyendo su clave con el nombre, y `documentSources` sigue
+     * indexado por nombre. Son el mismo patrón y se arreglan juntos o no se
+     * arreglan: cambiar `makeContradictionKey` al id cambiaría QUÉ se considera
+     * duplicado, que es comportamiento, y este commit no cambia comportamiento.
+     */
+    existingDocumentId?: string;
     /** Nivel de confianza: 'alta' si dos modelos coinciden, 'posible' si solo uno la detectó.
      *  Opcional para compatibilidad: el pipeline rápido no hace doble verificación. */
     confidence?: DiscrepancyConfidence;
@@ -218,6 +246,11 @@ export interface FinalAnalysis {
     newDocSays: string;
     existingDocSays: string;
     existingDocument: string;
+    /** F-86 paso 0: hermano del nombre, igual que en `discrepancies`. Este es
+     *  el que más fácil se pierde: se construye con un destructuring de lista
+     *  CERRADA en pipeline.ts, que es la puerta por la que murieron los campos
+     *  de F-69, F-70 y F-71. */
+    existingDocumentId?: string;
   }>;
   newInformation: string;
   recommendation: 'INDEXAR' | 'REVISAR' | 'NO_INDEXAR';

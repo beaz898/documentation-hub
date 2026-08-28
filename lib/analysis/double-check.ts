@@ -33,6 +33,10 @@ export interface DoubleCheckedDiscrepancy {
   newDocSays: string;
   existingDocSays: string;
   existingDocument: string;
+  /** F-86 paso 0: el id del documento existente, arrastrado sin tocar. Sonnet
+   *  decide confianza y severidad; de QUÉ documento viene el otro lado es un
+   *  hecho establecido por el retrieval mucho antes, no un veredicto suyo. */
+  existingDocumentId?: string;
   confidence: DiscrepancyConfidence;
   severity?: 'contradiction' | 'minor_inconsistency';
   confirmedBy?: ConfirmedBy;
@@ -54,6 +58,9 @@ interface Discrepancy {
   newDocSays: string;
   existingDocSays: string;
   existingDocument: string;
+  /** F-86 paso 0. Sin esta línea el tipo lo borra al entrar, y la
+   *  reconstrucción de abajo no tendría de dónde copiarlo. */
+  existingDocumentId?: string;
   confidence?: DiscrepancyConfidence;
   severity?: 'contradiction' | 'minor_inconsistency';
   confirmedBy?: ConfirmedBy;
@@ -61,6 +68,44 @@ interface Discrepancy {
   comparedValues?: ComparedValue[];
   newDocRow?: string;
   existingDocRow?: string;
+}
+
+/**
+ * LO QUE SOBREVIVE A SONNET (F-86 paso 0), en UN solo sitio.
+ *
+ * POR QUÉ EXISTE ESTA FUNCIÓN. Esta reconstrucción estaba escrita DOS VECES —
+ * una en el camino feliz y otra en el `catch` del lote fallido— con la lista de
+ * campos copiada a mano en las dos. Dos listas cerradas que hay que acordarse
+ * de ampliar a la vez son exactamente la forma en la que un campo se propaga
+ * por un camino y se pierde por el otro, y el `catch` es el camino que nadie
+ * mira: solo se recorre cuando Sonnet ya ha fallado.
+ *
+ * LA REGLA QUE FIJA: Sonnet decide CONFIANZA y SEVERIDAD. Todo lo demás del
+ * hallazgo es un hecho establecido antes y se arrastra sin tocar. Por eso el
+ * veredicto entra como parámetro y el resto sale de `d`.
+ */
+export function conVeredicto(
+  d: Discrepancy,
+  veredicto: {
+    confidence: DiscrepancyConfidence;
+    severity?: 'contradiction' | 'minor_inconsistency';
+    confirmedBy?: ConfirmedBy;
+  },
+): DoubleCheckedDiscrepancy {
+  return {
+    topic: d.topic,
+    newDocSays: d.newDocSays,
+    existingDocSays: d.existingDocSays,
+    existingDocument: d.existingDocument,
+    ...(d.existingDocumentId !== undefined ? { existingDocumentId: d.existingDocumentId } : {}),
+    confidence: veredicto.confidence,
+    ...(veredicto.severity ? { severity: veredicto.severity } : {}),
+    ...(veredicto.confirmedBy ? { confirmedBy: veredicto.confirmedBy } : {}),
+    ...(d.columns ? { columns: d.columns } : {}),
+    ...(d.comparedValues ? { comparedValues: d.comparedValues } : {}),
+    ...(d.newDocRow !== undefined ? { newDocRow: d.newDocRow } : {}),
+    ...(d.existingDocRow !== undefined ? { existingDocRow: d.existingDocRow } : {}),
+  };
 }
 
 /**
@@ -296,19 +341,11 @@ Responde EXCLUSIVAMENTE con este JSON:
       }
       const isContradiction = result?.isContradiction ?? false;
       const sev = result?.severity;
-      return {
-        topic: d.topic,
-        newDocSays: d.newDocSays,
-        existingDocSays: d.existingDocSays,
-        existingDocument: d.existingDocument,
+      return conVeredicto(d, {
         confidence: (isContradiction ? 'alta' : 'posible') as DiscrepancyConfidence,
         ...(sev && sev !== 'none' ? { severity: sev as 'contradiction' | 'minor_inconsistency' } : {}),
         ...(isContradiction ? { confirmedBy: 'double_check' as ConfirmedBy } : {}),
-        ...(d.columns ? { columns: d.columns } : {}),
-        ...(d.comparedValues ? { comparedValues: d.comparedValues } : {}),
-        ...(d.newDocRow !== undefined ? { newDocRow: d.newDocRow } : {}),
-        ...(d.existingDocRow !== undefined ? { existingDocRow: d.existingDocRow } : {}),
-      };
+      });
     });
   } catch (err) {
     console.warn(`[double-check] Sonnet falló para lote de ${batch.length} contradicciones:`, err);
@@ -320,17 +357,12 @@ Responde EXCLUSIVAMENTE con este JSON:
       bump(counts, 'exhaustivo.lote_sin_veredicto');
       console.warn(`[double-check] · sin veredicto por fallo del lote: "${d.topic.slice(0, 60)}" contra "${d.existingDocument}"`);
     }
-    return batch.map(d => ({
-      topic: d.topic,
-      newDocSays: d.newDocSays,
-      existingDocSays: d.existingDocSays,
-      existingDocument: d.existingDocument,
+    // EL CAMINO QUE NADIE MIRA: solo se recorre cuando Sonnet ya ha fallado.
+    // Por eso pasa por la MISMA función que el camino feliz — una lista de
+    // campos copiada a mano aquí es la que se olvidaría de ampliar.
+    return batch.map(d => conVeredicto(d, {
       confidence: 'posible' as DiscrepancyConfidence,
       severity: d.severity,
-      ...(d.columns ? { columns: d.columns } : {}),
-      ...(d.comparedValues ? { comparedValues: d.comparedValues } : {}),
-      ...(d.newDocRow !== undefined ? { newDocRow: d.newDocRow } : {}),
-      ...(d.existingDocRow !== undefined ? { existingDocRow: d.existingDocRow } : {}),
     }));
   }
 }

@@ -19,6 +19,22 @@ export interface Problem {
   description: string;
   textRef?: string;
   relatedDoc?: string;
+  /**
+   * F-86 paso 0 — el ID del documento relacionado, HERMANO de `relatedDoc`.
+   *
+   * `relatedDoc` (el nombre) sigue siendo lo que se pinta y lo que entra en los
+   * prompts de ImprovementModal; esto NO se enseña ni se le da a ningún modelo.
+   *
+   * ES EL FINAL DEL RECORRIDO de este commit: aquí es donde el id tiene que
+   * llegar para que el commit siguiente —la persistencia de descartes— pueda
+   * pedirle al servidor una huella bidireccional en vez de calcularla en el
+   * cliente con el nombre, que es lo que hace hoy `makeDiscrepancyFingerprint`
+   * en useCrossDocAnalysis.ts.
+   *
+   * OPCIONAL PARA SIEMPRE: los análisis del jsonb anteriores a este commit no
+   * lo traen, y la bandeja los relee meses después.
+   */
+  relatedDocId?: string;
   /** Nivel de confianza de la contradicción (solo para type 'contradiccion'). */
   confidence?: 'alta' | 'posible';
   /** Si el usuario marcó este problema como "no es un error". */
@@ -35,12 +51,15 @@ export interface RawAnalysis {
   isDuplicate?: boolean;
   duplicateOf?: string;
   duplicateConfidence?: number;
-  overlaps?: Array<{ existingDocument: string; description: string; severity: string; textRef?: string }>;
+  /** F-86 paso 0: `existingDocumentId` en las tres listas — hermano del nombre,
+   *  undefined en los análisis guardados antes de este commit. */
+  overlaps?: Array<{ existingDocument: string; existingDocumentId?: string; description: string; severity: string; textRef?: string }>;
   discrepancies?: Array<{
     topic: string;
     newDocSays: string;
     existingDocSays: string;
     existingDocument: string;
+    existingDocumentId?: string;
     confidence?: 'alta' | 'posible';
     severity?: 'contradiction' | 'minor_inconsistency';
     /** F-70: presentes desde d384a315; undefined en análisis anteriores. */
@@ -53,6 +72,7 @@ export interface RawAnalysis {
     newDocSays: string;
     existingDocSays: string;
     existingDocument: string;
+    existingDocumentId?: string;
   }>;
   newInformation?: string;
   recommendation?: string;
@@ -170,6 +190,7 @@ export function problemsFromAnalysis(analysis: RawAnalysis): Problem[] {
         description: `${o.description} (severidad: ${o.severity})`,
         textRef: o.textRef || undefined,
         relatedDoc: o.existingDocument,
+        relatedDocId: o.existingDocumentId,
       });
     });
   }
@@ -185,6 +206,9 @@ export function problemsFromAnalysis(analysis: RawAnalysis): Problem[] {
           description: `En este documento: "${d.newDocSays}". En "${d.existingDocument}": "${d.existingDocSays}".`,
           textRef: d.newDocSays,
           relatedDoc: d.existingDocument,
+          // F-86 paso 0: hermano de relatedDoc. NO entra en `description` ni en
+          // `title` — no se enseña y ningún prompt lo lee.
+          relatedDocId: d.existingDocumentId,
           confidence: d.confidence,
           // F-70: solo para pintar. `description` (arriba) queda intacta, y con
           // ella lo que leen los tres prompts de ImprovementModal.
@@ -204,6 +228,7 @@ export function problemsFromAnalysis(analysis: RawAnalysis): Problem[] {
         description: `En este documento: "${d.newDocSays}". En "${d.existingDocument}": "${d.existingDocSays}".`,
         textRef: d.newDocSays,
         relatedDoc: d.existingDocument,
+        relatedDocId: d.existingDocumentId,
       });
     });
   }

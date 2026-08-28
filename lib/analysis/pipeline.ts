@@ -934,9 +934,7 @@ async function runExhaustivePipelineInner(input: ExhaustivePipelineInput): Promi
   const confirmedContradictions = doubleChecked.filter(d => d.confidence === 'alta');
   const minorInconsistencies = doubleChecked
     .filter(d => d.confidence === 'posible' && d.severity === 'minor_inconsistency')
-    .map(({ topic, newDocSays, existingDocSays, existingDocument }) => ({
-      topic, newDocSays, existingDocSays, existingDocument,
-    }));
+    .map(aInconsistenciaMenor);
 
   // F-71 paso 1 [6][7]: EL RESTO. La regla que este paso hace cierta es que
   // toda candidata que entra al double-check sale publicada o contada, sin
@@ -1043,6 +1041,12 @@ interface Discrepancy {
   newDocSays: string;
   existingDocSays: string;
   existingDocument: string;
+  /** F-86 paso 0: mismo motivo que todos los de abajo. El runtime ya lo trae
+   *  (synthesize lo pone y mergeContradictions conserva el objeto entero), pero
+   *  este tipo local lo borraría al entrar al double-check, que SÍ reconstruye.
+   *  Cuarto campo que pasa por esta puerta después de los de F-69, F-70 y F-71:
+   *  el listado de abajo es el historial de todo lo que casi muere aquí. */
+  existingDocumentId?: string;
   severity?: 'contradiction' | 'minor_inconsistency';
   /** F-71 paso 3: mismo motivo que los de abajo — el runtime ya lo traía
    *  (viene de FinalAnalysis['discrepancies'], que sí lo declara), pero este
@@ -1060,7 +1064,36 @@ interface Discrepancy {
   existingDocRow?: string;
 }
 
-function mergeContradictions(
+/**
+ * ÚLTIMO ESLABÓN DE LAS INCONSISTENCIAS MENORES (F-86 paso 0), con nombre para
+ * poder probarlo.
+ *
+ * ESTA ES LA PUERTA QUE MÁS CAMPOS HA MATADO. Era un destructuring de lista
+ * CERRADA —`.map(({ topic, newDocSays, existingDocSays, existingDocument }) =>
+ * ({ topic, newDocSays, existingDocSays, existingDocument }))`— y un campo que
+ * no se nombrara ahí moría sin ruido y sin error de tipos, porque el tipo de
+ * destino también lo tenía todo opcional. F-69, F-70 y F-71 pasaron por aquí.
+ *
+ * SIGUE SIENDO UNA LISTA CERRADA, y a propósito: `minorInconsistencies` publica
+ * MENOS que `discrepancies` (no lleva confirmedBy, ni columns, ni las filas) y
+ * un spread lo cambiaría. Lo que cambia es que ahora la lista tiene nombre, un
+ * tipo de retorno explícito y una batería que la vigila.
+ */
+export function aInconsistenciaMenor(
+  d: DoubleCheckedDiscrepancy,
+): NonNullable<FinalAnalysis['minorInconsistencies']>[number] {
+  return {
+    topic: d.topic,
+    newDocSays: d.newDocSays,
+    existingDocSays: d.existingDocSays,
+    existingDocument: d.existingDocument,
+    ...(d.existingDocumentId !== undefined ? { existingDocumentId: d.existingDocumentId } : {}),
+  };
+}
+
+/** Exportada SOLO para que la batería pueda recorrer la cadena entera (F-86
+ *  paso 0). No la llama nadie más: es un helper del pipeline. */
+export function mergeContradictions(
   listA: Discrepancy[],
   listB: Discrepancy[],
   counts?: DiscardedFindings,

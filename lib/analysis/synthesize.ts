@@ -45,6 +45,50 @@ export function markIncompleteAnalysis(
 }
 
 /**
+ * PRIMER ESLABÓN DEL CAMINO DE UNA DISCREPANCIA (F-86 paso 0), con nombre
+ * para poder probarlo.
+ *
+ * POR QUÉ SE EXTRAE. Esta es la LISTA CERRADA original: el sitio donde un
+ * `DocumentJudgment` se convierte en la discrepancia que verá el cliente, y
+ * donde un campo que no se nombre muere sin ruido. Ya mató a `confidence`
+ * (antes de 3dd8670c) y por poco a los de F-69 y F-70. Vivía dentro de
+ * `synthesizeFinalAnalysis`, que llama al LLM, así que era IMPOSIBLE de probar
+ * bajo el alcance de vitest (vitest.config.mts prohíbe Anthropic). Fuera, es
+ * una función pura con entrada y salida conocidas.
+ *
+ * MISMA TÉCNICA QUE `particionDoubleCheck` (pipeline.ts, F-86 paso 1) y por la
+ * misma razón: la corrección estaba viva por CONSTRUCCIÓN y sin un caso que la
+ * vigilara. No cambia comportamiento — es el mismo `flatMap` movido de sitio.
+ *
+ * EL ID SALE DE `j`, NO DE `c`. La contradicción (`c`) no sabe de qué documento
+ * viene; lo sabe el juicio (`j`) que la contiene. Nombre e id salen de la misma
+ * variable y en líneas contiguas: es la regla que huella-hallazgo.ts aprendió
+ * a golpes —todo lo que pertenece a un documento viaja con su id— aplicada
+ * aquí.
+ */
+export function construirDiscrepancias(judgments: DocumentJudgment[]): FinalAnalysis['discrepancies'] {
+  return judgments.flatMap(j =>
+    j.contradictions.map(c => ({
+      topic: c.topic,
+      newDocSays: c.newDocSays,
+      existingDocSays: c.existingDocSays,
+      existingDocument: j.documentName,
+      // F-86 paso 0: hermano del de arriba, de la misma variable.
+      existingDocumentId: j.documentId,
+      severity: c.severity,
+      confirmedBy: c.confirmedBy,
+      // F-69: lista CERRADA — un campo que no se nombre aquí muere en este
+      // punto, pasen los dos modos por él. Ver `confidence` antes de 3dd8670c.
+      columns: c.columns,
+      // F-70: los valores enfrentados y las dos filas, propagados tal cual.
+      comparedValues: c.comparedValues,
+      newDocRow: c.newDocRow,
+      existingDocRow: c.existingDocRow,
+    }))
+  );
+}
+
+/**
  * Etapa 4 — Síntesis final.
  * Agrega los juicios individuales en una recomendación global con resumen para el usuario.
  */
@@ -53,6 +97,84 @@ interface SynthesisResponse {
   recommendation: 'INDEXAR' | 'REVISAR' | 'NO_INDEXAR';
   summary: string;
   newInformation: string;
+}
+
+/**
+ * SEGUNDO Y TERCER ESLABÓN DEL JUEZ (F-86 paso 0), con nombre para poder
+ * probarlos.
+ *
+ * POR QUÉ SE EXTRAE, exactamente igual que `construirDiscrepancias`: los dos
+ * `overlaps.push` son LISTAS CERRADAS —el sitio donde un juicio se convierte
+ * en el solapamiento que verá el cliente— y vivían dentro de
+ * `synthesizeFinalAnalysis`, que llama al LLM, así que ninguna batería podía
+ * llegar a ellas bajo el alcance de vitest. Este bucle no depende del LLM: solo
+ * de `judgments`. Fuera, es una función pura, y las dos listas cerradas del
+ * fichero quedan vigiladas por la misma batería.
+ *
+ * NO CAMBIA COMPORTAMIENTO: es el mismo bucle, con el mismo comentario, movido
+ * de sitio.
+ */
+export function construirOverlaps(judgments: DocumentJudgment[]): FinalAnalysis['overlaps'] {
+  // Construir overlaps a partir de los juicios — F-45: por GRUPO, no por
+  // documento. Un documento puede aportar dos overlaps: uno con lo que el
+  // juez detectó y pudo citar (sin confirmedBy, como siempre) y otro con lo
+  // que el colapso de filas idénticas confirmó estructuralmente
+  // (confirmedBy==='estructura', F-44/F-45) — fusionarlos en un solo overlap
+  // por documento, como antes de F-45, perdería la identidad de la entrada
+  // estructural: su severidad y su porcentaje no dependen de lo que el juez
+  // haya podido decir, y no deben diluirse en un join de texto. La UI ya
+  // agrupa por existingDocument en el cliente (AnalysisModal.tsx), así que
+  // los dos caen en el mismo desplegable sin tocar nada ahí.
+  //
+  // Se busca el primer evidenceInNewDoc no vacío de CADA montón para usarlo
+  // como textRef (permite que la tarjeta de duplicidad sea clickable en el
+  // editor) — el montón estructural nunca tiene uno (evidence/evidenceInNewDoc
+  // van vacíos a propósito, ver pipeline.ts), así que su overlap sale sin
+  // textRef.
+  const overlaps: FinalAnalysis['overlaps'] = [];
+  for (const j of judgments) {
+    const judgeEntries = j.overlappingContent.filter(o => !o.confirmedBy && o.description.trim().length > 0);
+    const structuralEntries = j.overlappingContent.filter(o => o.confirmedBy && o.description.trim().length > 0);
+
+    if (judgeEntries.length > 0) {
+      const firstEvidence = judgeEntries.find(o => o.evidenceInNewDoc && o.evidenceInNewDoc.trim().length > 0);
+      overlaps.push({
+        existingDocument: j.documentName,
+        // F-86 paso 0: el id sale de la MISMA variable que el nombre. Los dos
+        // juntos y en la misma línea, para que separarlos requiera un acto
+        // deliberado y no un descuido.
+        existingDocumentId: j.documentId,
+        description: judgeEntries.map(o => o.description).join('. '),
+        severity: (j.overlapPercent >= 60 ? 'alta' : j.overlapPercent >= 30 ? 'media' : 'baja') as 'alta' | 'media' | 'baja',
+        overlapPercent: j.overlapPercent,
+        textRef: firstEvidence?.evidenceInNewDoc || undefined,
+      });
+    }
+
+    if (structuralEntries.length > 0) {
+      // F-46: MÁXIMO entre lo que midió el juez (j.overlapPercent, el mismo
+      // número que arriba) y lo que midió el colapso — no la media: son dos
+      // mediciones de cosas distintas (impresión del LLM sobre lo que vio vs.
+      // proporción real de filas idénticas verificadas celda a celda) y el
+      // solapamiento real es, como mínimo, el mayor de los dos. Si una misma
+      // tabla colapsara en más de un tramo (raro, pero posible con varias
+      // consultas de retrieval), se toma la de mayor proporción.
+      const structuralPercent = Math.max(...structuralEntries.map(o => o.structuralPercent ?? 0));
+      const firstEvidence = structuralEntries.find(o => o.evidenceInNewDoc && o.evidenceInNewDoc.trim().length > 0);
+      overlaps.push({
+        existingDocument: j.documentName,
+        existingDocumentId: j.documentId,
+        description: structuralEntries.map(o => o.description).join('. '),
+        // 'alta' de fábrica (F-46): nueve filas idénticas verificadas celda a
+        // celda no es una severidad estimada por umbral, como la del juez.
+        severity: 'alta',
+        overlapPercent: Math.max(j.overlapPercent, structuralPercent),
+        textRef: firstEvidence?.evidenceInNewDoc || undefined,
+        confirmedBy: 'estructura',
+      });
+    }
+  }
+  return overlaps;
 }
 
 export async function synthesizeFinalAnalysis(args: {
@@ -146,79 +268,10 @@ Responde EXCLUSIVAMENTE con este JSON:
     };
   }
 
-  // Construir overlaps a partir de los juicios — F-45: por GRUPO, no por
-  // documento. Un documento puede aportar dos overlaps: uno con lo que el
-  // juez detectó y pudo citar (sin confirmedBy, como siempre) y otro con lo
-  // que el colapso de filas idénticas confirmó estructuralmente
-  // (confirmedBy==='estructura', F-44/F-45) — fusionarlos en un solo overlap
-  // por documento, como antes de F-45, perdería la identidad de la entrada
-  // estructural: su severidad y su porcentaje no dependen de lo que el juez
-  // haya podido decir, y no deben diluirse en un join de texto. La UI ya
-  // agrupa por existingDocument en el cliente (AnalysisModal.tsx), así que
-  // los dos caen en el mismo desplegable sin tocar nada ahí.
-  //
-  // Se busca el primer evidenceInNewDoc no vacío de CADA montón para usarlo
-  // como textRef (permite que la tarjeta de duplicidad sea clickable en el
-  // editor) — el montón estructural nunca tiene uno (evidence/evidenceInNewDoc
-  // van vacíos a propósito, ver pipeline.ts), así que su overlap sale sin
-  // textRef.
-  const overlaps: FinalAnalysis['overlaps'] = [];
-  for (const j of judgments) {
-    const judgeEntries = j.overlappingContent.filter(o => !o.confirmedBy && o.description.trim().length > 0);
-    const structuralEntries = j.overlappingContent.filter(o => o.confirmedBy && o.description.trim().length > 0);
-
-    if (judgeEntries.length > 0) {
-      const firstEvidence = judgeEntries.find(o => o.evidenceInNewDoc && o.evidenceInNewDoc.trim().length > 0);
-      overlaps.push({
-        existingDocument: j.documentName,
-        description: judgeEntries.map(o => o.description).join('. '),
-        severity: (j.overlapPercent >= 60 ? 'alta' : j.overlapPercent >= 30 ? 'media' : 'baja') as 'alta' | 'media' | 'baja',
-        overlapPercent: j.overlapPercent,
-        textRef: firstEvidence?.evidenceInNewDoc || undefined,
-      });
-    }
-
-    if (structuralEntries.length > 0) {
-      // F-46: MÁXIMO entre lo que midió el juez (j.overlapPercent, el mismo
-      // número que arriba) y lo que midió el colapso — no la media: son dos
-      // mediciones de cosas distintas (impresión del LLM sobre lo que vio vs.
-      // proporción real de filas idénticas verificadas celda a celda) y el
-      // solapamiento real es, como mínimo, el mayor de los dos. Si una misma
-      // tabla colapsara en más de un tramo (raro, pero posible con varias
-      // consultas de retrieval), se toma la de mayor proporción.
-      const structuralPercent = Math.max(...structuralEntries.map(o => o.structuralPercent ?? 0));
-      const firstEvidence = structuralEntries.find(o => o.evidenceInNewDoc && o.evidenceInNewDoc.trim().length > 0);
-      overlaps.push({
-        existingDocument: j.documentName,
-        description: structuralEntries.map(o => o.description).join('. '),
-        // 'alta' de fábrica (F-46): nueve filas idénticas verificadas celda a
-        // celda no es una severidad estimada por umbral, como la del juez.
-        severity: 'alta',
-        overlapPercent: Math.max(j.overlapPercent, structuralPercent),
-        textRef: firstEvidence?.evidenceInNewDoc || undefined,
-        confirmedBy: 'estructura',
-      });
-    }
-  }
+  const overlaps = construirOverlaps(judgments);
 
   // Construir discrepancies con las claves que el frontend espera
-  const discrepancies = judgments.flatMap(j =>
-    j.contradictions.map(c => ({
-      topic: c.topic,
-      newDocSays: c.newDocSays,
-      existingDocSays: c.existingDocSays,
-      existingDocument: j.documentName,
-      severity: c.severity,
-      confirmedBy: c.confirmedBy,
-      // F-69: lista CERRADA — un campo que no se nombre aquí muere en este
-      // punto, pasen los dos modos por él. Ver `confidence` antes de 3dd8670c.
-      columns: c.columns,
-      // F-70: los valores enfrentados y las dos filas, propagados tal cual.
-      comparedValues: c.comparedValues,
-      newDocRow: c.newDocRow,
-      existingDocRow: c.existingDocRow,
-    }))
-  );
+  const discrepancies = construirDiscrepancias(judgments);
 
   // Recuento de hallazgos descartados: suma de los ya contados en judge.ts
   // (solo de los judgments que sobrevivieron al filtro de excludeDocumentId,
