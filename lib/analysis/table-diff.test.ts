@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest';
 
 import { chunkSegments, extractSegments } from '@/lib/chunking';
 import { toStoredChunks, type StoredChunk } from '@/lib/read-chunks';
+import { normalize } from './normalize';
 import { diffPairedRows, type TableDiffResult } from './table-diff';
 import { discoverTableKey, type TableKeyResult } from './table-key';
 import { groupChunksByTable, type TableGroup } from './table-structure';
@@ -379,6 +380,53 @@ describe('lo que el corpus no tiene — casos construidos', () => {
     expect(r.counts.discrepanciasVarianteDeEscritura).toBe(0);
   });
 
+
+  /**
+   * N2 — EL DAÑO QUE F-84 1b EVITA, y es el caso que de verdad justifica el
+   * cambio de criterio. No mide una salida bonita: mide que el sistema DEJA DE
+   * FABRICAR una discrepancia.
+   *
+   * Dos tratamientos DISTINTOS —un implante unitario y uno múltiple— cuyos
+   * códigos solo se funden borrando el guion. Hasta F-84 1b la fase 1 los
+   * emparejaba, y entonces la fase 2 enfrentaba sus precios (900 contra 1500) y
+   * emitía una discrepancia CON SELLO DE VERIFICADA POR ESTRUCTURA sobre dos
+   * filas que no son la misma cosa: el falso positivo más caro que puede emitir
+   * el producto, porque el usuario no tiene cómo saber que las filas no eran la
+   * misma.
+   *
+   * Con el nivel seguro no emparejan, así que cada una cae a su lado y la fase 2
+   * no tiene nada que enfrentar. El usuario las ve en cobertura y decide — el
+   * error benigno y visible, en vez del catastrófico e invisible.
+   */
+  it('N2 no fabrica una discrepancia entre dos filas que no son la misma', () => {
+    const a = tabla(['Código', 'Tratamiento', 'Precio'], [
+      { 'Código': 'IMP-01', Tratamiento: 'Implante unitario', Precio: '900' },
+      { 'Código': 'A2', Tratamiento: 'Z', Precio: '10' },
+      { 'Código': 'A3', Tratamiento: 'Z', Precio: '10' },
+    ]);
+    const b = tabla(['Código', 'Tratamiento', 'Precio'], [
+      { 'Código': 'IMP01', Tratamiento: 'Implante múltiple', Precio: '1500' },
+      { 'Código': 'A2', Tratamiento: 'Z', Precio: '10' },
+      { 'Código': 'A3', Tratamiento: 'Z', Precio: '10' },
+    ]);
+    // La premisa, comprobada y no recordada: el criterio viejo los fundía.
+    expect(normalize('IMP-01')).toBe(normalize('IMP01'));
+
+    const key = discoverTableKey(a, b);
+    expect(key.status).toBe('emparejado');
+    if (key.status !== 'emparejado') throw new Error('inalcanzable');
+    const r = diffPairedRows(key, a, b);
+
+    // Las dos filas caen a su lado, no a una pareja.
+    expect(key.onlyNueva.map(x => x.cells?.['Código'])).toEqual(['IMP-01']);
+    expect(key.onlyExistente.map(x => x.cells?.['Código'])).toEqual(['IMP01']);
+
+    // Y LO QUE IMPORTA: cero discrepancias fabricadas. Ni una sola pareja
+    // enfrenta los dos implantes ni sus precios.
+    expect(r.differing).toHaveLength(0);
+    expect(r.identical).toHaveLength(2);
+    expect(JSON.stringify(r.differing)).not.toContain('Implante');
+  });
   it('E7 todas las compartidas son clave: cero columnas comparables, contado', () => {
     const a = tabla(['K'], [{ K: 'A1' }, { K: 'A2' }, { K: 'A3' }]);
     const b = tabla(['K', 'Otra'], [

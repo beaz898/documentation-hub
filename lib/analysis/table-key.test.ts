@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest';
 
 import { chunkSegments, extractSegments } from '@/lib/chunking';
 import { toStoredChunks, type StoredChunk } from '@/lib/read-chunks';
-import { esVarianteDeEscritura } from './normalize';
+import { esVarianteDeEscritura, normalize } from './normalize';
 import { groupChunksByTable, type TableGroup } from './table-structure';
 import { columnUniqueness, discoverTableKey, type TableKeyResult } from './table-key';
 
@@ -341,17 +341,90 @@ describe('lo que el corpus no tiene — casos construidos', () => {
     particionCorrecta(r, a, b);
   });
 
-  it('C7 el contador de la condición 3 se mueve cuando normalizar cambia el emparejamiento', () => {
-    // "1.500" y "1,500" son valores DISTINTOS en crudo y el MISMO tras
-    // normalize. Emparejando normalizado esta fila tiene pareja; en crudo no la
-    // tendría — y el contador es lo que hará esa diferencia visible en
-    // producción, donde este corpus no llega.
-    const a = tabla(['K', 'V'], [{ K: '1.500', V: 'x' }, { K: 'A2', V: 'x' }, { K: 'A3', V: 'x' }]);
-    const b = tabla(['K', 'V'], [{ K: '1,500', V: 'x' }, { K: 'A2', V: 'x' }, { K: 'A3', V: 'x' }]);
+  it('C7 el contador de la condición 3 se mueve cuando la comparación cambia el emparejamiento', () => {
+    // F-84 1b CAMBIÓ ESTE FIXTURE, y el cambio es la prueba de que el criterio
+    // se movió. Antes iba con "1.500" contra "1,500": `normalize` los fundía,
+    // así que la fila emparejaba y el contador se movía. Con el nivel seguro
+    // esos dos son valores DISTINTOS y la fila deja de emparejar — ese caso vive
+    // ahora en N1, donde demuestra el mecanismo.
+    // Lo que separa hoy al nivel seguro del crudo es la CAJA y los espacios
+    // internos, así que el contador se ejercita con eso.
+    const a = tabla(['K', 'V'], [{ K: 'CHAMBERÍ', V: 'x' }, { K: 'A2', V: 'x' }, { K: 'A3', V: 'x' }]);
+    const b = tabla(['K', 'V'], [{ K: 'Chamberí', V: 'x' }, { K: 'A2', V: 'x' }, { K: 'A3', V: 'x' }]);
     const r = emparejado(discoverTableKey(a, b));
 
     expect(r.counts.pares).toBe(3);
     expect(r.counts.discrepanciaPorNormalizar).toBe(1);
+    particionCorrecta(r, a, b);
+  });
+
+  /**
+   * N1 — EL MECANISMO DE F-84 1b. Es el caso que falla sin el cambio y pasa con
+   * él, o sea la condición 1 de la regla de entrada.
+   *
+   * `normalize` borra el guion, así que hasta este commit «IMP-01» e «IMP01»
+   * eran LA MISMA FILA. Con el nivel seguro son dos filas distintas y cada una
+   * cae a su lado. La premisa se comprueba aquí mismo llamando a `normalize`,
+   * para que el caso no dependa de que alguien recuerde qué borraba.
+   */
+  it('N1 dos claves que solo se funden borrando puntuación YA NO emparejan', () => {
+    expect(normalize('IMP-01'), 'premisa: normalize las fundía').toBe(normalize('IMP01'));
+
+    const a = tabla(['Código', 'V'], [{ 'Código': 'IMP-01', V: 'x' }, { 'Código': 'A2', V: 'x' }, { 'Código': 'A3', V: 'x' }]);
+    const b = tabla(['Código', 'V'], [{ 'Código': 'IMP01', V: 'x' }, { 'Código': 'A2', V: 'x' }, { 'Código': 'A3', V: 'x' }]);
+    const r = emparejado(discoverTableKey(a, b));
+
+    expect(r.counts.pares).toBe(2);
+    expect(r.onlyNueva.map(x => x.cells?.['Código'])).toEqual(['IMP-01']);
+    expect(r.onlyExistente.map(x => x.cells?.['Código'])).toEqual(['IMP01']);
+    particionCorrecta(r, a, b);
+  });
+
+  /**
+   * N3 — LA GUARDIA EN LA DIRECCIÓN CONTRARIA. El nivel seguro sigue fundiendo
+   * lo que SÍ es la misma clave escrita de otra manera. Si alguien lo apretara
+   * hasta la igualdad literal, estas tres parejas se romperían y este caso lo
+   * diría.
+   */
+  it('N3 caja y espacios siguen emparejando después del cambio', () => {
+    const a = tabla(['K', 'V'], [{ K: 'CHAMBERÍ', V: 'x' }, { K: 'Dr  Pablo', V: 'x' }, { K: ' A3 ', V: 'x' }]);
+    const b = tabla(['K', 'V'], [{ K: 'Chamberí', V: 'x' }, { K: 'Dr Pablo', V: 'x' }, { K: 'A3', V: 'x' }]);
+    const r = emparejado(discoverTableKey(a, b));
+
+    expect(r.counts.pares).toBe(3);
+    expect(r.counts.soloNueva).toBe(0);
+    expect(r.counts.soloExistente).toBe(0);
+    particionCorrecta(r, a, b);
+  });
+
+  /**
+   * N4 — LA NOMINACIÓN, que es el alcance ampliado de la opción A y hay que
+   * ejercitarlo, no solo arrastrarlo. `uniquePct` mide la cardinalidad con la
+   * MISMA lente que empareja, así que cambiarla cambia qué columnas se admiten.
+   *
+   * Esta columna tiene DOS pares que `normalize` funde: 8 valores distintos de
+   * 10 (80%, por debajo del umbral) contra 10 de 10 con el nivel seguro (100%).
+   * Con el criterio viejo esto era `sin_clave: 'ninguna_supera_el_umbral'`; con
+   * el nuevo, la columna entra y las diez filas emparejan.
+   *
+   * Y va en la dirección conservadora: el nivel seguro solo puede SUBIR la
+   * cardinalidad, así que solo puede admitir MÁS candidatas — y más candidatas
+   * es un consenso más estricto, nunca más laxo.
+   */
+  it('N4 una columna que el criterio viejo no admitía ahora supera el umbral', () => {
+    expect(normalize('IMP-01')).toBe(normalize('IMP01'));
+    expect(normalize('ORT-02')).toBe(normalize('ORT02'));
+
+    const claves = ['IMP-01', 'IMP01', 'ORT-02', 'ORT02', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10'];
+    const filas = claves.map(K => ({ K, V: 'x' }));
+    const a = tabla(['K', 'V'], filas);
+    const b = tabla(['K', 'V'], filas.map(f => ({ ...f })));
+    const r = emparejado(discoverTableKey(a, b));
+
+    // 10 de 10 con el nivel seguro. Con normalize eran 8 de 10 = 80%.
+    expect(r.candidates.map(c => c.columns)).toEqual([['K']]);
+    expect(r.candidates[0].uniqueNueva).toBeCloseTo(100.0, 1);
+    expect(r.counts.pares).toBe(10);
     particionCorrecta(r, a, b);
   });
 });

@@ -94,12 +94,31 @@ export function normalize(s: string): string {
  */
 export function esVarianteDeEscritura(a: string, b: string): boolean {
   if (a === b) return false;
-  return compararSeguro(a) === compararSeguro(b);
+  return claveSegura(a) === claveSegura(b);
 }
 
-/** El nivel seguro. Privado: no se exporta para que nadie pueda construir una
- *  clave con su salida ni indexar por ella — la comparación se pregunta con el
- *  predicado, no se hace a mano. */
-function compararSeguro(s: string): string {
+/**
+ * La forma canónica del nivel seguro: minúsculas, espacios colapsados y `trim`.
+ * Nada más — ver el aviso de `esVarianteDeEscritura` sobre por qué no toca
+ * puntuación.
+ *
+ * NACIÓ PRIVADA Y SE EXPORTÓ EN F-84 1b, y conviene decir por qué cambió. El
+ * comentario original decía «no se exporta para que nadie pueda construir una
+ * clave con su salida ni indexar por ella». Esa prohibición se escribió desde
+ * la fase 2, donde lo único que se hace es PREGUNTAR si dos valores son el
+ * mismo, y era demasiado ancha: la fase 1 indexa filas por su clave, y para eso
+ * un predicado no sirve — un `Map` necesita una cadena.
+ *
+ * LA CONDICIÓN QUE SUSTITUYE A LA PROHIBICIÓN: quien indexe con esto no puede
+ * después comparar con una función MÁS GRUESA, porque emparejaría filas cuyas
+ * claves eran distintas al indexarlas. Es la regla de la cabecera de
+ * table-key.ts, y sigue siendo la que manda.
+ *
+ * Y LAS DOS SE MANTIENEN JUNTAS POR CONTRATO:
+ *   claveSegura(a) === claveSegura(b)  ⟺  a === b || esVarianteDeEscritura(a, b)
+ * La equivalencia está fijada en normalize.test.ts para que no puedan
+ * separarse: si alguien toca una y no la otra, se pone rojo.
+ */
+export function claveSegura(s: string): string {
   return s.toLowerCase().replace(/\s+/g, ' ').trim();
 }

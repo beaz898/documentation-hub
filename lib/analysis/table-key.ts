@@ -1,5 +1,5 @@
 import type { StoredChunk } from '@/lib/read-chunks';
-import { normalize } from './normalize';
+import { claveSegura } from './normalize';
 import type { TableGroup } from './table-structure';
 
 /**
@@ -42,9 +42,10 @@ import type { TableGroup } from './table-structure';
  * el campo que dice si hubo algo que decidir.
  * ─────────────────────────────────────────────────────────────────────────
  *
- * LA NORMALIZACIÓN, y la regla que la gobierna. Se usa `normalize` en LOS DOS
- * sitios —al contar únicos para nominar y al comparar valores para
- * emparejar—, con la MISMA función, y eso es una regla, no una casualidad:
+ * LA COMPARACIÓN, y la regla que la gobierna. Se usa `claveSegura` —el nivel
+ * seguro del comparador de tres niveles (normalize.ts)— en LOS DOS sitios: al
+ * contar únicos para nominar y al comparar valores para emparejar. Con la MISMA
+ * función, y eso es una regla, no una casualidad:
  *
  *   NOMINAR Y EMPAREJAR SE HACEN CON LA MISMA COMPARACIÓN. SIEMPRE.
  *
@@ -53,23 +54,35 @@ import type { TableGroup } from './table-structure';
  * emparejaría filas cuyas claves eran DISTINTAS en el momento de nominarlas —
  * se anula la garantía que la hizo clave, justo en el punto donde se usa.
  *
- * Las dos flechas son opuestas, y conviene tenerlas presentes: `normalize` es
- * una función, así que solo puede FUNDIR valores. Al contar únicos eso solo
- * puede BAJAR el porcentaje —solo descarta candidatas, nunca las inventa:
- * falla del lado seguro—. Al comparar para emparejar solo puede AÑADIR
- * coincidencias: falla del lado peligroso. Medido: "1.500" y "1,500"
- * colisionan, y "25,00" normaliza a "2500" porque la coma decimal se borra —
- * dos valores que difieren en un factor de cien. La red de seguridad real no
- * es la normalización sino que el umbral es 90% y NO 100%: los duplicados
- * están permitidos por construcción, así que el emparejamiento tiene que
- * tratar los multi-hits de todas formas. Normalizar solo cambia cuántos hay.
+ * POR QUÉ EL NIVEL SEGURO Y NO `normalize` (F-84 1b, 28/08). Hasta este commit
+ * la comparación era `normalize`, que además de caja y espacios borra 24
+ * caracteres de puntuación. Se bajó al nivel seguro por la ASIMETRÍA DEL ERROR,
+ * no por una medición:
+ *
+ *   emparejar de MÁS   enfrenta dos filas que no son la misma cosa y publica la
+ *                      diferencia como discrepancia VERIFICADA POR ESTRUCTURA —
+ *                      un falso positivo con el sello más fuerte del producto,
+ *                      y el usuario no tiene cómo saber que las filas no eran
+ *                      la misma.
+ *   emparejar de MENOS manda la fila a la sección de cobertura, donde el
+ *                      usuario la ve y decide.
+ *
+ * Cuando una dirección del error es catastrófica e invisible y la otra benigna
+ * y visible, el criterio se pega a la benigna. Con `normalize`, «IMP-01» e
+ * «IMP01» eran la misma fila; con el nivel seguro son dos.
+ *
+ * Y LA MEDICIÓN DICE QUE DA IGUAL, que es justo por qué esto va escrito: sobre
+ * los 12 pares ordenados del corpus, CERO parejas de 90 dependían de la
+ * normalización agresiva y las candidatas nominadas son las mismas (F-84 1a,
+ * fijado en table-key.test.ts). El cambio no entró porque el corpus lo pidiera:
+ * entró porque la dirección del riesgo lo pide.
  *
  * `counts.discrepanciaPorNormalizar` (condición 3 de la regla de entrada del
- * protocolo) cuenta en cuántas filas el emparejamiento cambiaría si se
- * comparara en crudo. Sobre el corpus de pruebas es 0 y no puede ser otra
- * cosa —sus valores no tienen nada que normalizar—, que es justo por qué el
- * contador existe: con cincuenta documentos de un cliente, dentro de tres
- * meses, esa pregunta tendrá respuesta con datos en vez de opiniones.
+ * protocolo) cuenta en cuántas filas el emparejamiento cambiaría comparando en
+ * CRUDO. Desde este commit mide lo que separa el nivel seguro del crudo —caja y
+ * espacios internos—, no la puntuación. Sobre el corpus es 0, que es justo por
+ * qué existe: con cincuenta documentos de un cliente esa pregunta tendrá
+ * respuesta con datos en vez de opiniones.
  *
  * SOBRE LA LONGITUD DE ESTE FICHERO. Pasa de las 400 líneas que fija la regla
  * del proyecto, y lo hace A PROPÓSITO: unas 90 son esta cabecera de doctrina,
@@ -172,7 +185,7 @@ export type TableKeyResult =
       counts: KeyCounts;
     };
 
-type Mode = 'normalizado' | 'crudo';
+type Mode = 'seguro' | 'crudo';
 
 function emptyCounts(): KeyCounts {
   return {
@@ -199,7 +212,7 @@ function cellValue(row: StoredChunk, column: string): string {
 }
 
 function compare(raw: string, mode: Mode): string {
-  return mode === 'normalizado' ? normalize(raw) : raw.trim();
+  return mode === 'seguro' ? claveSegura(raw) : raw.trim();
 }
 
 /** Clave de una fila bajo una candidata. Cadena vacía = la fila no tiene clave
@@ -246,7 +259,7 @@ function uniquePct(rows: StoredChunk[], columns: string[], mode: Mode): number {
 export function columnUniqueness(table: TableGroup): Array<{ column: string; uniquePct: number }> {
   return table.columns.map(column => ({
     column,
-    uniquePct: uniquePct(table.rows, [column], 'normalizado'),
+    uniquePct: uniquePct(table.rows, [column], 'seguro'),
   }));
 }
 
@@ -314,8 +327,8 @@ function consensusFor(
 function nominate(nueva: TableGroup, existente: TableGroup, columnSets: string[][]): KeyCandidate[] {
   const out: KeyCandidate[] = [];
   for (const columns of columnSets) {
-    const uniqueNueva = uniquePct(nueva.rows, columns, 'normalizado');
-    const uniqueExistente = uniquePct(existente.rows, columns, 'normalizado');
+    const uniqueNueva = uniquePct(nueva.rows, columns, 'seguro');
+    const uniqueExistente = uniquePct(existente.rows, columns, 'seguro');
     if (uniqueNueva >= MIN_UNIQUE_PCT && uniqueExistente >= MIN_UNIQUE_PCT) {
       out.push({ columns, uniqueNueva, uniqueExistente });
     }
@@ -337,8 +350,8 @@ function allBijective(candidates: KeyCandidate[], rows: StoredChunk[]): boolean 
       const forward = new Map<string, string>();
       const backward = new Map<string, string>();
       for (const row of rows) {
-        const a = keyOf(row, candidates[i].columns, 'normalizado');
-        const b = keyOf(row, candidates[j].columns, 'normalizado');
+        const a = keyOf(row, candidates[i].columns, 'seguro');
+        const b = keyOf(row, candidates[j].columns, 'seguro');
         if (a === '' || b === '') continue;
         if (forward.has(a) && forward.get(a) !== b) return false;
         if (backward.has(b) && backward.get(b) !== a) return false;
@@ -392,16 +405,16 @@ export function discoverTableKey(nueva: TableGroup, existente: TableGroup): Tabl
 
   const indexesFor = (rows: StoredChunk[], mode: Mode) =>
     candidates.map(c => buildIndex(rows, c.columns, mode));
-  const idxNueva = indexesFor(nueva.rows, 'normalizado');
-  const idxExistente = indexesFor(existente.rows, 'normalizado');
+  const idxNueva = indexesFor(nueva.rows, 'seguro');
+  const idxExistente = indexesFor(existente.rows, 'seguro');
 
   const forward = new Map<StoredChunk, Outcome>();
   for (const row of nueva.rows) {
-    forward.set(row, consensusFor(row, candidates, idxNueva, idxExistente, 'normalizado'));
+    forward.set(row, consensusFor(row, candidates, idxNueva, idxExistente, 'seguro'));
   }
   const backward = new Map<StoredChunk, Outcome>();
   for (const row of existente.rows) {
-    backward.set(row, consensusFor(row, candidates, idxExistente, idxNueva, 'normalizado'));
+    backward.set(row, consensusFor(row, candidates, idxExistente, idxNueva, 'seguro'));
   }
 
   const pairs: RowPair[] = [];

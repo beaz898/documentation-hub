@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { esVarianteDeEscritura, normalize } from './normalize';
+import { claveSegura, esVarianteDeEscritura, normalize } from './normalize';
 
 /**
  * BATERÍA DEL COMPARADOR DE TRES NIVELES (F-82 P2).
@@ -164,3 +164,38 @@ describe('las comillas tipográficas NO están en la clase (B.114)', () => {
     expect(nivel('“Caso A”', 'Caso A')).toBe('plena');
   });
 });
+
+/**
+ * EL CONTRATO QUE MANTIENE JUNTAS LAS DOS FORMAS DEL NIVEL SEGURO (F-84 1b).
+ *
+ * `esVarianteDeEscritura` es para PREGUNTAR y `claveSegura` para INDEXAR — la
+ * fase 1 necesita una cadena porque un `Map` no acepta un predicado. Son la
+ * misma comparación con dos formas, y si alguien toca una y no la otra, la
+ * nominación y el emparejamiento dejarían de usar el mismo criterio: justo el
+ * fallo contra el que avisa la regla de la cabecera de table-key.ts.
+ */
+describe('claveSegura y esVarianteDeEscritura no pueden separarse', () => {
+  const VALORES = [
+    'Chamberí', 'CHAMBERÍ', 'Chamberí ', ' Chamberí', 'Chamberi',
+    'IMP-01', 'IMP01', 'imp-01', 'Dr. Pablo', 'Dr Pablo',
+    '25,00', '2500', '1.500', '1,500', '-5', '5', 'A  B', 'A B', '',
+  ];
+
+  it('la equivalencia se cumple en los 361 pares', () => {
+    let comprobados = 0;
+    for (const a of VALORES) {
+      for (const b of VALORES) {
+        const porClave = claveSegura(a) === claveSegura(b);
+        const porPredicado = a === b || esVarianteDeEscritura(a, b);
+        expect(porClave, `${JSON.stringify(a)} / ${JSON.stringify(b)}`).toBe(porPredicado);
+        comprobados++;
+      }
+    }
+    expect(comprobados).toBe(VALORES.length * VALORES.length);
+  });
+
+  it('claveSegura es idempotente: indexar dos veces da lo mismo', () => {
+    for (const v of VALORES) expect(claveSegura(claveSegura(v))).toBe(claveSegura(v));
+  });
+});
+
