@@ -321,7 +321,7 @@ order by created_at desc limit 10;
 
 ## 4-bis. La lista de cierre (F-74 P5)
 
-**Antes de dar una conclusión por cerrada, se escriben estas dos cosas — aunque
+**Antes de dar una conclusión por cerrada, se escriben estas tres cosas — aunque
 no se midan ese día.** Escribirlas es obligatorio; medirlas, no. El valor está
 en que la pregunta quede planteada por escrito, porque una conclusión con su
 límite anotado es útil y una conclusión sin él es una trampa para quien la lea
@@ -368,6 +368,35 @@ detecta es el colapso de idénticas— se había dado por cerrada sin anotar que
 descansaba en una tabla de 15 filas (caso extremo) ni que, **en aquel momento**,
 todo el corpus medido eran hojas de cálculo (dominio). Las dos plantillas los
 habrían cazado sin que nadie tuviera que acordarse.
+
+**3. ¿Por dónde sale el dato?** *«¿Hay algún camino por el que no pase?»*
+Antes de dar una pieza por probada, seguir su salida hasta donde se consume y
+preguntarse por qué caminos puede salir. **Probar el MECANISMO no es probar el
+CAMINO.**
+
+*Añadida el 28/08/2026 (F-82). A diferencia de las dos anteriores, ésta no es
+sobre el ALCANCE de una medición sino sobre si la medición toca lo que dice
+tocar. Sale de dos casos de la misma semana:*
+
+- **Los contadores de pipeline (F-82).** Siete casos sobre `mergeCounters`,
+  todos verdes — y las **dos salidas tempranas** de `runCorePipeline` devolvían
+  sin contadores. La pieza estaba probada; el camino, no. Se descubrió en la
+  primera consulta a producción, con tres análisis seguidos dejando
+  `pipeline_counters` en null.
+- **El diff de tablas, fase 2.** Catorce casos verdes, y **dos mutaciones
+  plausibles sobrevivían**: renderizar los dos lados con las columnas de la
+  MISMA tabla (invisible en el corpus, porque las dos tienen diez columnas y el
+  recuento no cambia) y contar `igualTrasNormalizar` cuando ALGUNA columna
+  coincide en vez de todas. Las cazó preguntar por dónde sale el dato, no un
+  test más.
+
+**Y LA FORMA DE RESPONDERLA, que es lo que la hace útil: cuando la respuesta se
+pueda dar con el TIPO en vez de con un test, mejor con el tipo.** El arreglo de
+F-82 no fue añadir casos: fue que `runCorePipeline` devuelva `CountedAnalysis`,
+con los contadores OBLIGATORIOS y un único constructor. Una salida sin
+contadores dejó de compilar. Un test avisa a quien lo ejecuta; el tipo **para el
+gate** antes de que nadie ejecute nada — y en este repositorio el único gate que
+corre en local es `npm run typecheck` (B.108).
 
 ---
 
