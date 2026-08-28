@@ -2227,6 +2227,8 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     F-83.md). Su CONSULTA ENVIADA NO SE CONSERVA y no se puede reconstruir: es
     una pérdida PERMANENTE, no una deuda de este punto. Ese par nunca se
     completará, y el fichero lo declara en su cabecera.
+    ARCHIVADO TAMBIÉN F-84, con su respuesta íntegra (F-84.md). Su CONSULTA
+    ENVIADA sigue faltando y sí es deuda de este punto: no consta perdida.
     EL AGUJERO, MEDIDO: de F-70 a F-85 no hay NI UN SOLO PAR completo archivado.
     El archivo y su índice están creados (claude/consultas-fable/), con cada
     entrada en estado «pendiente de archivar», así que el hueco queda visible en

@@ -65,7 +65,7 @@ queda superado, pero **no administra su propio estado**.
 | F-81 | 27/08/2026 | El criterio de clave se rinde; no hay dónde medir la fase 1 | **pendiente de archivar** (falta la respuesta) | La regla de entrada (P3) — protocolo; el consenso sin elegir clave (P1) |
 | F-82 | 28/08/2026 | Los contadores de pipeline y su contrato | **pendiente de archivar** · *su corte de commits, superado por F-84* | Las tres primeras cláusulas — `Contrato_Contadores.md` |
 | **[F-83](F-83.md)** | 28/08/2026 | La huella frente a la cláusula 5, la emisión de las filas sin pareja, y el corte en tres commits | **parcialmente superada** · *su corte de tres commits, por F-84* · consulta NO CONSERVADA | La distinción huella/contador y el saneo de `porColumna` — `Contrato_Contadores.md`, cláusula 5 (`2c998111`) |
-| F-84 | 28/08/2026 | El emparejamiento estricto y la huella bidireccional | **pendiente de archivar** | — |
+| **[F-84](F-84.md)** | 28/08/2026 | La columna de contradicciones y el número de la bandeja, la asimetría del criterio de igualdad, y la huella frente a la dirección | **vigente** (falta la consulta) | El criterio de igualdad unificado (`e4c1f8a7`); la huella bidireccional (`e6a27a58`); la reutilización de la columna de contradicciones — **pendiente de consumar en la emisión** |
 | F-85 | 28/08/2026 | El archivo de consultas | **pendiente de archivar** (falta el texto) | La custodia y la verificación al usar — protocolo |
 
 ---
@@ -74,6 +74,9 @@ queda superado, pero **no administra su propio estado**.
 
 **Ninguna consulta de F-70 a F-85 está archivada como PAR completo.** Lo que hay:
 
+- **F-84 — la RESPUESTA, archivada** en `F-84.md` (28/08/2026). **Falta la
+  consulta enviada**, que sigue siendo deuda de B.118: a diferencia de F-83, no
+  consta que se haya perdido.
 - **F-83 — la RESPUESTA, archivada** en `F-83.md` (28/08/2026). Su consulta
   enviada **NO SE CONSERVA**, y eso es un hecho PERMANENTE: no se puede
   reconstruir, así que ese par nunca se completará. No cuenta como deuda de
@@ -89,7 +92,7 @@ queda superado, pero **no administra su propio estado**.
 - **F-82 — una frase literal**, citada en `Contrato_Contadores.md:19` («el
   contrato es barato, el sistema grande es caro»). Una frase no es un archivo.
 - **F-72 y F-85 — cero rastro** de ningún tipo en todo el repositorio.
-- **El resto (F-71, F-73, F-74, F-76 a F-80, F-84)** existe solo como
+- **El resto (F-71, F-73, F-74, F-76 a F-80)** existe solo como
   REFERENCIAS y resúmenes en la bitácora, los pendientes y el protocolo. Un
   resumen no cuenta: es exactamente lo que F-85 descarta.
 
