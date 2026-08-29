@@ -181,6 +181,7 @@ El dueño del proyecto NO es programador. Vercel deploya automáticamente al hac
 ### Quién sube qué
 - **Los commits los pushea Claude directamente** con `git push`. NO hay que dar ficheros completos ni fragmentos para que el usuario los pegue a mano en GitHub: el repositorio está delante y se sube desde aquí. La regla antigua —«el usuario sube los archivos a mano copiando y pegando»— es anterior a tener el repo local y ya NO aplica.
 - **El SQL lo ejecuta el usuario en Supabase, y ANTES del push.** Es lo único que no pasa por Claude. Si un commit depende de un cambio de esquema, se le entrega el SQL al usuario y se espera a que confirme que lo ha ejecutado antes de subir el código que lo necesita.
+- **El fichero `supabase-*.sql` del repo nace diciendo PENDIENTE DE EJECUTAR**, y solo pasa a EJECUTADO cuando el usuario lo confirma. Un documento no puede afirmar un hecho antes de que ocurra, ni aunque sea seguro que va a ocurrir en cinco minutos: si el usuario decide no ejecutarlo, el fichero se queda mintiendo en el repositorio. Es la misma clase de fallo que B.113 (el protocolo decía tener 403 líneas cuando tenía 466). La corrección va en el mismo commit que se pushea.
 
 ### Reglas obligatorias
 - Archivos completos siempre, no diffs ni fragmentos, salvo archivos largos con cambios mínimos e inequívocos.
