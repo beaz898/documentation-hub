@@ -3,7 +3,7 @@ PENDIENTES — Doclity (Agente IA)
 Documento vivo. Se actualiza al completar tareas (marcar [✓]) y se
 sustituye por la versión nueva. Más ligero que la Bitácora: aquí va
 lo que falta y la visión que lo guía, no el detalle de cada sesión.
-Última actualización: 27/08/2026 (v40)
+Última actualización: 29/08/2026 (v41)
 
 
 ════════════════════════════════════════════════════════════════
@@ -2266,6 +2266,93 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     OJO AL CERRARLO: la cabecera de estado la escribe quien cierra el hecho, y
     el estado solo cambia con un HECHO —una medición, un commit, una consulta
     posterior—. Archivar un texto no es opinar sobre su vigencia.
+
+  B.119 — [ABIERTO 29/08 con F-86 paso 3] LOS CINCO CAMINOS QUE SIGUEN
+    OLVIDANDO. El commit de la persistencia de descartes (F-86 paso 3) hace que un
+    «No es error» sobreviva a recargar, pero NO en todos los caminos. Se anotan
+    los cinco aquí porque el hueco que no se escribe se redescubre a mitad del
+    commit siguiente.
+    LO QUE SÍ PERSISTE HOY: contradicciones e inconsistencias menores (especie
+    PROSA), por las dos entradas — directa desde la bandeja (al instante) y en
+    la indexación desde el chat (al pulsar indexar).
+
+    1. SOLAPAMIENTOS / DUPLICIDAD — DECISIÓN DE DISEÑO PENDIENTE, no descuido.
+       El usuario los descarta con el mismo botón que todo lo demás y se
+       olvidan igual que antes. Motivo: un solapamiento NO TIENE DOS CITAS
+       ENFRENTADAS — no hay «lo que dice este documento» contra «lo que dice el
+       otro», hay una descripción generada. Ninguna de las dos especies de
+       huella de huella-hallazgo.ts le sirve: la tabular pide tabla y clave de
+       fila, la de prosa pide las dos citas. Necesita una TERCERA ESPECIE o
+       redefinir qué identifica a un solapamiento. No se puede parchear sin
+       decidir eso antes.
+       Y OJO con la salida fácil: usar la "description" del solapamiento como
+       si fuera la cita del otro lado haría que la identidad dependiera de
+       texto GENERADO en los DOS lados — peor que el límite ya declarado en la
+       especie prosa, que al menos tiene una mitad escrita por el cliente.
+
+    2. PROBLEMAS DE ESTILO — DECISIÓN DE DISEÑO PENDIENTE. Van por otra rama
+       del código (setStyleProblems en ImprovementModal) y no se guardan. Son
+       hallazgos de UN SOLO DOCUMENTO, y toda la maquinaria de huellas está
+       construida sobre PARES de documentos: el orden canónico, los dos lados
+       atados a su id, el desempate. Nada de eso significa nada con un solo
+       documento. Necesitan su propio mecanismo, no una adaptación del que hay.
+
+    3. CHAT SIN INDEXAR — bendecido por el encargo de F-86 paso 3 («durante la
+       revisión los descartes son estado de la pantalla, legítimamente y sin
+       fingir persistencia»), pero se escribe para que no sorprenda: si el
+       usuario revisa, marca diez cosas y CIERRA SIN INDEXAR, se pierden las
+       diez. También si recarga a mitad de la revisión. Muere con el frente del
+       ciclo de vida (F-87 P4): con la fila creada en la subida, el documento
+       tiene identidad desde el primer momento y no hay nada que aplazar.
+
+    4. ANÁLISIS ANTERIORES A d13e125f — sus discrepancias guardadas en el jsonb
+       no traen "existingDocumentId", así que no tienen identidad posible. Se
+       descartan en pantalla y se olvidan. No tiene arreglo retroactivo: el id
+       no está en ninguna parte de esas filas. Se cura solo, según se
+       reanalicen los documentos.
+
+    5. LA PARÁFRASIS DEL JUEZ — es el límite YA DECLARADO en huella-hallazgo.ts
+       (cabecera de huellaDeProsa) y el ÚNICO de los cinco que el usuario
+       percibirá como «el sistema ha olvidado». La identidad de prosa se
+       construye con la CITA QUE ESCRIBIÓ UN MODELO; si en un análisis
+       posterior el juez cita la misma contradicción con otras palabras, la
+       huella es otra y el hallazgo VUELVE A APARECER aunque el usuario ya lo
+       cerrara. Sucesor conocido: las citas por REFERENCIA ({fragmentId,
+       ancla}), la cura estructural de F-80/B.107 — que el texto lo extraiga el
+       CÓDIGO y no el modelo. Cuando eso exista, la identidad de prosa deja de
+       derivar de texto generado y este punto desaparece sin tocar la función.
+
+  B.120 — [ABIERTO 29/08 con F-86 paso 3] LA MUERTE DE
+    makeDiscrepancyFingerprint: sin fecha, con dos salidas escritas.
+    QUÉ ES LA DEUDA, con precisión: NO es que la función vieja conviva con la
+    huella nueva. Hacen DOS TRABAJOS DISTINTOS y el segundo no necesita
+    identidad estable:
+      · Trabajo 1 — IDENTIDAD EN EL TIEMPO. «¿Este hallazgo es el mismo que el
+        usuario ya juzgó, quizá con los documentos al revés?» Lo hace
+        huellaDeProsa: los dos ids, hasheada, bidireccional.
+      · Trabajo 2 — MEMORIA DE PANTALLA. «El usuario acaba de marcar tres
+        cosas; al reanalizar, no gastes Sonnet en esas tres.» Lo hace
+        makeDiscrepancyFingerprint, y le basta una clave que cliente y servidor
+        calculen igual y que dure lo que dura la pestaña.
+    La deuda es que el trabajo 2 NO TIENE FECHA NI SALIDA. Se escriben las dos:
+
+    SALIDA PRINCIPAL — el frente del ciclo de vida del documento (F-87 P4). Con
+    la fila creada en la subida, el documento en revisión tiene id SIEMPRE, así
+    que el servidor puede mandar la huella real pegada a cada discrepancia y el
+    trabajo 2 pasa a usarla. La función vieja muere ahí, y con ella la entrada
+    de escritura en la indexación, que F-87 P4 declaró PUENTE INTERINO CON
+    SUCESOR CONOCIDO. OJO: la emisión del diff NO mata esta función — no le da
+    un id a nadie. Esa promesa se llegó a escribir y se corrigió.
+
+    SALIDA ALTERNATIVA — la opción (b), si el frente del ciclo de vida tarda.
+    El trabajo 2 deja de usar huellas: el cliente manda las CITAS EN CRUDO
+    (newDocSays + existingDocumentId) y el double-check compara sobre eso. No
+    necesita el id del documento nuevo PORQUE NO ES UNA IDENTIDAD PERSISTENTE,
+    solo una lista de «esto ya lo miré» dentro de un análisis. Coste: toca la
+    columna analysis_jobs.exclude_fingerprints y su significado (deja de
+    guardar huellas y pasa a guardar coordenadas), y hay que decidir qué se
+    hace con los jobs en vuelo al desplegar. Se descartó en F-86 paso 3 por no
+    meter ese cambio de semántica en un commit que ya llevaba SQL.
 
   F-81 [CONVERGENCIA — leer ANTES de planificar la fase 3 del diff, 27/08] No
     es un pendiente nuevo: es el sitio donde se juntan tres que ya existen, más

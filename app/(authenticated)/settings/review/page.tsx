@@ -471,6 +471,9 @@ export default function ReviewPage() {
           initialText={improveTarget.text}
           analysis={improveTarget.analysis as never}
           existingDocWithSameName={{ id: improveTarget.id, name: improveTarget.name }}
+          // F-86 paso 3: la bandeja SÍ tiene el id del documento en revisión, así
+          // que sus descartes se registran en el momento. El chat no lo pasa.
+          reviewedDocumentId={improveTarget.id}
           onClose={() => setImproveTarget(null)}
           onIndexed={async () => {
             setImproveTarget(null);

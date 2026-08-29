@@ -48,8 +48,24 @@ export interface ReanalyzeResult {
   totalCount: number;
 }
 
+/**
+ * LAS COORDENADAS DE UN DESCARTE (F-86 paso 3). Lo que el servidor necesita
+ * para calcular la huella, y lo único que el cliente puede aportar: nunca la
+ * huella, que es de servidor.
+ */
+export interface CoordenadasDeDescarte {
+  existingDocumentId: string;
+  newDocSays: string;
+  existingDocSays: string;
+}
+
 export function useCrossDocAnalysis(
   initialAnalysis: RawAnalysis,
+  /** F-86 paso 3: el id del documento EN REVISIÓN, presente solo en los caminos
+   *  que lo tienen (la bandeja). Con él, cada descarte se registra en el
+   *  momento; sin él —la subida desde el chat— se acumulan y viajan a la
+   *  indexación, que es cuando el documento nace y su identidad con él. */
+  reviewedDocumentId?: string,
 ) {
   const [crossDocProblems, setCrossDocProblems] = useState<Problem[]>(
     () => problemsFromAnalysis(initialAnalysis)
@@ -73,6 +89,16 @@ export function useCrossDocAnalysis(
    * Se envían al backend para que el double-check no los re-verifique.
    */
   const dismissedFingerprintsRef = useRef<Set<string>>(new Set());
+
+  /**
+   * F-86 paso 3 — LAS COORDENADAS DE LO DESCARTADO, por huella de sesión.
+   *
+   * Existe ADEMÁS del Set de arriba y no en su lugar: aquél identifica dentro
+   * de la sesión (y es lo que sigue viajando en `excludeFingerprints`), éste
+   * guarda lo que el SERVIDOR necesitará para construir la identidad
+   * permanente. Son dos preguntas distintas y por eso son dos estructuras.
+   */
+  const coordenadasDescartadasRef = useRef<Map<string, CoordenadasDeDescarte>>(new Map());
 
   const reanalyzeAll = useCallback(
     async (currentText: string, fileName: string, documentId?: string | null): Promise<ReanalyzeResult | null> => {
@@ -169,7 +195,8 @@ export function useCrossDocAnalysis(
    * Toggle de "no es un error" en un problema.
    * Añade o quita su huella de la memoria de descartados.
    */
-  const dismissProblem = useCallback((problemId: string, textRef?: string, relatedDoc?: string) => {
+  const dismissProblem = useCallback((problem: Problem) => {
+    const { id: problemId, textRef, relatedDoc, relatedDocId, relatedDocSays } = problem;
     let isDismissing = false;
 
     setCrossDocProblems(prev => {
@@ -186,15 +213,58 @@ export function useCrossDocAnalysis(
         } else {
           dismissedFingerprintsRef.current.delete(fp);
         }
+
+        // F-86 paso 3: las coordenadas, por si este descarte tiene que
+        // sobrevivir. Solo si están COMPLETAS — un hallazgo de un análisis
+        // anterior a d13e125f no trae `relatedDocId`, y sin él no hay
+        // identidad posible. Se descarta en pantalla igualmente: perder la
+        // memoria es peor que no poder guardarla.
+        if (relatedDocId && relatedDocSays) {
+          if (isDismissing) {
+            coordenadasDescartadasRef.current.set(fp, {
+              existingDocumentId: relatedDocId,
+              newDocSays: textRef,
+              existingDocSays: relatedDocSays,
+            });
+          } else {
+            coordenadasDescartadasRef.current.delete(fp);
+          }
+
+          // LA ENTRADA DIRECTA: solo cuando el documento en revisión ya existe.
+          // Sin `await` a propósito — el usuario no debe esperar a la red para
+          // ver tachado lo que acaba de marcar, y si la petición falla lo tiene
+          // igualmente en pantalla durante la sesión.
+          if (reviewedDocumentId) {
+            void fetch('/api/findings/dismiss', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              credentials: 'include',
+              body: JSON.stringify({
+                documentId: reviewedDocumentId,
+                existingDocumentId: relatedDocId,
+                newDocSays: textRef,
+                existingDocSays: relatedDocSays,
+                dismissed: isDismissing,
+              }),
+            }).catch(() => { /* el descarte de sesión ya está aplicado */ });
+          }
+        }
       }
 
       return prev.map(p => p.id === problemId ? { ...p, dismissed: isDismissing } : p);
     });
 
     return isDismissing;
-  }, []);
+  }, [reviewedDocumentId]);
 
-  return { crossDocProblems, setCrossDocProblems, reanalyzeAll, reanalyzingAll, reanalyzePhase, lastError, dismissProblem, stageFailureCount, selectionLimits };
+  /** F-86 paso 3: lo que la indexación tiene que llevarse. Vacío en la bandeja,
+   *  donde cada descarte ya se registró en el momento. */
+  const coordenadasDescartadas = useCallback(
+    (): CoordenadasDeDescarte[] => (reviewedDocumentId ? [] : [...coordenadasDescartadasRef.current.values()]),
+    [reviewedDocumentId],
+  );
+
+  return { crossDocProblems, setCrossDocProblems, reanalyzeAll, reanalyzingAll, reanalyzePhase, lastError, dismissProblem, coordenadasDescartadas, stageFailureCount, selectionLimits };
 }
 
 // ============================================================

@@ -3,6 +3,7 @@ import { runExhaustiveAnalysisPipeline } from '../../lib/analysis/pipeline';
 import type { ExhaustivePipelineInput } from '../../lib/analysis/pipeline';
 import type { StoredChunk } from '../../lib/read-chunks';
 import { saveAnalysisResult } from '../../lib/persist-analysis';
+import { leerDescartes } from '../../lib/analysis/descartes';
 import { purgeOrganization, type PurgeResult } from '../../lib/purge-org';
 import { refundCredits } from '../../lib/credits';
 import { PLANS_WITH_VARIABLE_PRICING } from '../../lib/stripe';
@@ -99,6 +100,12 @@ async function processJob(job: AnalysisJob): Promise<void> {
     const batchDocumentIds = batchIdsArray.length > 0 ? batchIdsArray : undefined;
     console.log(`[worker] Job ${job.id}: ${batchIdsArray.length} ids de tanda (exhaustivo)`);
 
+    // F-86 paso 3: los descartes permanentes de la organización. El exhaustivo
+    // corre AQUÍ, así que si no se leen en el worker no se leen en absoluto —
+    // la ruta que encola el job no llega a este punto del pipeline.
+    const descartesPersistidos = await leerDescartes(supabase, job.org_id);
+    console.log(`[worker] Job ${job.id}: ${descartesPersistidos.size} descartes permanentes de la org`);
+
     const input: ExhaustivePipelineInput = {
       newDocumentText: job.document_text,
       newDocumentName: job.document_name,
@@ -108,6 +115,7 @@ async function processJob(job: AnalysisJob): Promise<void> {
       batchDocumentIds,
       supabase,
       excludeFingerprints,
+      descartesPersistidos,
       newDocumentChunks,
     };
 

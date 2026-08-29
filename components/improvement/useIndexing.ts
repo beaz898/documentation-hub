@@ -8,11 +8,23 @@ export interface ExistingDocForIndexing {
   name: string;
 }
 
+/** F-86 paso 3: lo que el servidor necesita para construir la identidad de un
+ *  descarte. Coordenadas, nunca la huella. */
+export interface CoordenadasDeDescarte {
+  existingDocumentId: string;
+  newDocSays: string;
+  existingDocSays: string;
+}
+
 interface UseIndexingParams {
   fileName: string;
   storagePath?: string;
   existingDocWithSameName?: ExistingDocForIndexing | null;
   onIndexed: (docName: string, wasReplaced: boolean) => void;
+  /** F-86 paso 3: los «No es error» marcados durante la revisión de un
+   *  documento que todavía no existía. Se resuelve al pulsar indexar, no antes:
+   *  el usuario puede seguir marcando y desmarcando hasta ese momento. */
+  dismissedFindings?: () => CoordenadasDeDescarte[];
 }
 
 export function useIndexing({
@@ -20,6 +32,7 @@ export function useIndexing({
   storagePath,
   existingDocWithSameName,
   onIndexed,
+  dismissedFindings,
 }: UseIndexingParams) {
   const [indexing, setIndexing] = useState(false);
   const [showReplaceDialog, setShowReplaceDialog] = useState(false);
@@ -50,6 +63,10 @@ export function useIndexing({
             ...(storagePath ? { originalStoragePath: storagePath } : {}),
             replaceExistingId: replaceExisting ? existingDocWithSameName?.id : undefined,
             sizeBytes: new Blob([currentText]).size,
+            // F-86 paso 3, LA ENTRADA POR INDEXACIÓN: aquí es donde el
+            // documento nace y su identidad con él, así que aquí es donde sus
+            // descartes pueden dejar de ser estado de pantalla.
+            ...(dismissedFindings ? { dismissedFindings: dismissedFindings() } : {}),
           }),
         });
 
@@ -68,7 +85,7 @@ export function useIndexing({
         setIndexing(false);
       }
     },
-    [fileName, storagePath, existingDocWithSameName, onIndexed]
+    [fileName, storagePath, existingDocWithSameName, onIndexed, dismissedFindings]
   );
 
   const handleIndexClick = useCallback(() => {

@@ -41,6 +41,19 @@ interface ImprovementModalProps {
   analysis: RawAnalysis & { styleProblems?: AnalysisStyleProblem[] };
   documentSources?: Record<string, string[]>;
   storagePath?: string;   // ausente en documentos ya indexados (Drive): no hay archivo temporal
+  /**
+   * F-86 paso 3 — EL ID DEL DOCUMENTO QUE SE ESTÁ REVISANDO.
+   *
+   * PROP PROPIA, y no `existingDocWithSameName.id`, aunque en la bandeja
+   * valgan lo mismo: esa prop significa DOS COSAS distintas según quién abra el
+   * modal. Desde la bandeja es el documento en revisión; desde el chat es OTRO
+   * documento que casualmente comparte nombre. Usarla aquí escribiría la
+   * identidad del descarte contra el documento equivocado.
+   *
+   * Ausente = el documento aún no existe (la subida desde el chat). Sus
+   * descartes viajan a la indexación.
+   */
+  reviewedDocumentId?: string;
   existingDocWithSameName?: ExistingDocForDialog | null;
   onClose: () => void;
   onIndexed: (docName: string, wasReplaced: boolean) => void;
@@ -147,6 +160,7 @@ function ImprovementModalDesktop({
   analysis,
   documentSources,
   storagePath,
+  reviewedDocumentId,
   existingDocWithSameName,
   onClose,
   onIndexed,
@@ -180,7 +194,8 @@ function ImprovementModalDesktop({
     stageFailureCount,
     selectionLimits,
     dismissProblem,
-  } = useCrossDocAnalysis(analysis);
+    coordenadasDescartadas,
+  } = useCrossDocAnalysis(analysis, reviewedDocumentId);
 
   const {
     styleProblems,
@@ -356,7 +371,7 @@ function ImprovementModalDesktop({
         : t('problemRestored', { title: p.title })
       );
     } else {
-      const isDismissing = dismissProblem(p.id, p.textRef, p.relatedDoc);
+      const isDismissing = dismissProblem(p);
       addAssistantMessage(isDismissing
         ? t('problemDismissedPersist', { title: p.title })
         : t('problemRestoredPersist', { title: p.title })
@@ -414,6 +429,10 @@ function ImprovementModalDesktop({
     storagePath,
     existingDocWithSameName,
     onIndexed,
+    // F-86 paso 3: se pasa la FUNCIÓN, no la lista. El usuario puede seguir
+    // marcando y desmarcando hasta el momento de pulsar indexar, y una lista
+    // capturada antes sería la de un instante anterior a su última decisión.
+    dismissedFindings: coordenadasDescartadas,
   });
 
   const handleIndexClick = useCallback(() => {

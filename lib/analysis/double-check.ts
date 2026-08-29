@@ -1,5 +1,6 @@
 import { recordStageFailure } from './stage-failures';
 import { callLLMJson } from './llm-client';
+import { huellaDeDescarte } from './descartes';
 import type { DiscrepancyConfidence, ConfirmedBy, ComparedValue, DiscardedFindings } from './types';
 
 /**
@@ -149,6 +150,42 @@ const SECOND_BATCH_SIZE = 10;
 const DELAY_BETWEEN_BATCHES_MS = 1000;
 
 /**
+ * ¿ESTE HALLAZGO YA LO JUZGÓ EL USUARIO, EN CUALQUIER SESIÓN ANTERIOR?
+ * (F-86 paso 3, con nombre para poder probarlo.)
+ *
+ * Es la MISMA pregunta que hace `excludeFingerprints` dos líneas más abajo, con
+ * otra memoria detrás: aquélla dura lo que dura la pestaña, ésta es de la
+ * organización y permanente. Por eso comparten rama y contador.
+ *
+ * DEVUELVE false CUANDO NO PUEDE SABERLO, que es lo que ocurre en la subida
+ * desde el chat: sin id del documento en revisión no hay huella que calcular
+ * (F-87 P2, la identidad «pendiente de nacer»). Un hallazgo que no se puede
+ * identificar se manda a verificar, que es lo conservador: presentar de más es
+ * molesto, callar un hallazgo real es el fallo que importa.
+ */
+export function esDescartePermanente(
+  d: { newDocSays: string; existingDocSays: string; existingDocumentId?: string },
+  descartes?: { conjunto: Set<string>; documentoEnRevision?: string },
+): boolean {
+  if (!descartes || descartes.conjunto.size === 0) return false;
+
+  // NO SE COMPRUEBA AQUÍ que `existingDocumentId` exista, y la ausencia es
+  // deliberada: `huellaDeDescarte` ya impone ese invariante y devuelve null sin
+  // él. Una guarda repetida aquí sobrevivía a la mutación —quitarla no rompía
+  // ningún caso— porque no decidía nada. Un solo sitio impone la regla.
+  const huella = huellaDeDescarte({
+    documentoEnRevision: descartes.documentoEnRevision,
+    coordenadas: {
+      existingDocumentId: d.existingDocumentId ?? '',
+      newDocSays: d.newDocSays,
+      existingDocSays: d.existingDocSays,
+    },
+  });
+
+  return huella !== null && descartes.conjunto.has(huella);
+}
+
+/**
  * Verifica contradicciones con Sonnet de forma progresiva.
  *
  * @param discrepancies - Candidatas a verificar (hasta 30).
@@ -156,11 +193,17 @@ const DELAY_BETWEEN_BATCHES_MS = 1000;
  *   con el primer lote, no se envía el segundo. 0 = verificar todas.
  * @param excludeFingerprints - Huellas de contradicciones ya descartadas
  *   en reanálisis anteriores. Se saltan sin enviar a Sonnet.
+ * @param descartes - F-86 paso 3: los descartes PERMANENTES de la organización,
+ *   leídos de `finding_dismissals`, más el id del documento en revisión (la
+ *   mitad de la identidad que `huellaDeProsa` exige). Entran por la MISMA
+ *   puerta que los de sesión y reciben el MISMO trato: este commit cambia
+ *   dónde viven los descartes, no qué se hace con ellos.
  */
 export async function doubleCheckContradictions(
   discrepancies: Discrepancy[],
   targetConfirmed: number = 0,
   excludeFingerprints: Set<string> = new Set(),
+  descartes?: { conjunto: Set<string>; documentoEnRevision?: string },
 ): Promise<DoubleCheckResult> {
   if (discrepancies.length === 0) return { results: [], counts: {}, alreadyDismissed: [] };
 
@@ -177,7 +220,7 @@ export async function doubleCheckContradictions(
 
   for (const d of discrepancies) {
     const fp = makeDiscrepancyFingerprint(d);
-    if (excludeFingerprints.has(fp)) {
+    if (excludeFingerprints.has(fp) || esDescartePermanente(d, descartes)) {
       // Ya fue descartada antes → marcar como posible sin gastar Sonnet.
       //
       // F-71 paso 1 [3]: la lista cerrada de cinco campos que había aquí —la

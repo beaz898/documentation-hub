@@ -12,6 +12,7 @@ import { resolveOrg } from '@/lib/org';
 import { generateContentHash } from '@/lib/analysis/hash-check';
 import { checkUploadLock } from '@/lib/upload-lock';
 import { getStagedForDocument } from '@/lib/document-staged';
+import { huellaDeDescarte, registrarDescartes } from '@/lib/analysis/descartes';
 
 export const maxDuration = 300;
 
@@ -26,6 +27,10 @@ export const maxDuration = 300;
  *  - replaceExistingId?: string - if present, the existing document with that id will be deleted first
  *                                 (use this when the user chose "replace" in the prompt)
  *  - sizeBytes?: number
+ *  - dismissedFindings?: Array<{ existingDocumentId, newDocSays, existingDocSays }>
+ *      F-86 paso 3: los "No es error" marcados durante la revisión de un
+ *      documento que aún no existía. Coordenadas, no huellas: la huella la
+ *      calcula el servidor cuando ya tiene los dos ids.
  */
 export async function POST(req: NextRequest) {
   try {
@@ -55,7 +60,7 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { text, name, originalStoragePath, replaceExistingId, sizeBytes } = body;
+    const { text, name, originalStoragePath, replaceExistingId, sizeBytes, dismissedFindings } = body;
 
     if (!text || typeof text !== 'string' || text.trim().length < 50) {
       return NextResponse.json({ error: 'Texto insuficiente para indexar (mínimo 50 caracteres)' }, { status: 400 });
@@ -216,6 +221,41 @@ export async function POST(req: NextRequest) {
       full_text: stripSegmentationMarkers(text),
       extractor_version: EXTRACTOR_VERSION,
     });
+
+    // ── LA ENTRADA POR INDEXACIÓN (F-86 paso 3, F-87 P2) ──────────────
+    //
+    // AQUÍ Y NO ANTES: es la primera línea del sistema en la que el documento
+    // en revisión TIENE id. Hasta este punto su identidad estaba «pendiente de
+    // nacer» (F-87 P2), y por eso sus descartes viajaron como COORDENADAS —las
+    // dos citas y el id del documento del corpus—, que el cliente sí tiene sin
+    // necesitar ningún id propio. Con los dos ids en la mano, el servidor
+    // calcula las huellas y las persiste.
+    //
+    // DESPUÉS del insert de documents y ANTES de los chunks, por el mismo
+    // criterio que la línea de abajo: la fila del documento ya existe, así que
+    // un fallo aquí no puede tumbar una indexación que ya funcionó. Se loguea.
+    if (Array.isArray(dismissedFindings) && dismissedFindings.length > 0) {
+      const huellas: string[] = [];
+      for (const d of dismissedFindings) {
+        if (!d || typeof d !== 'object') continue;
+        const { existingDocumentId, newDocSays, existingDocSays } = d as Record<string, unknown>;
+        if (
+          typeof existingDocumentId !== 'string' ||
+          typeof newDocSays !== 'string' ||
+          typeof existingDocSays !== 'string'
+        ) continue;
+        const huella = huellaDeDescarte({
+          documentoEnRevision: documentId,
+          coordenadas: { existingDocumentId, newDocSays, existingDocSays },
+        });
+        if (huella) huellas.push(huella);
+      }
+      const res = await registrarDescartes(supabase, { orgId, userId: user.id, huellas });
+      console.log(
+        `[INDEX-TEXT] descartes | recibidos=${dismissedFindings.length} | ` +
+        `identificados=${huellas.length} | persistidos=${res.ok ? res.insertadas : 'FALLO'}`
+      );
+    }
 
     // Chunks tipados (F-20 Paso 2), al final: la fila de documents ya existe
     // y un fallo aquí no debe tumbar una indexación que ya funcionó.

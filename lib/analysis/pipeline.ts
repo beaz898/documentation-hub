@@ -85,6 +85,12 @@ export interface AnalyzePipelineInput {
    * Se pasan al double-check para no gastar Sonnet re-verificándolas.
    */
   excludeFingerprints?: Set<string>;
+  /** F-86 paso 3: los descartes PERMANENTES de la organización
+   *  (`finding_dismissals`). Van aparte de `excludeFingerprints` porque son
+   *  otra especie de huella —sha256 bidireccional en vez de la vieja
+   *  `nombre|texto`— y mezclarlos en un solo Set haría que ninguno de los dos
+   *  emparejara. Mismo destino, distinta memoria. */
+  descartesPersistidos?: Set<string>;
   /** Chunks del documento analizado, en su forma persistida (la misma que
    *  devuelve getDocumentChunks y que escribe document_chunks). Es el
    *  haystack contra el que se verifican las citas del lado nuevo (F-27), y
@@ -904,6 +910,11 @@ async function runExhaustivePipelineInner(input: ExhaustivePipelineInput): Promi
     toDoubleCheck,
     0, // sin objetivo → verificar todas
     excludeFps,
+    // F-86 paso 3: `excludeDocumentId` ES el id del documento en revisión —
+    // analyze-v2 lo fija con el `documentId` del cuerpo (route.ts:86) para que
+    // un documento no se compare consigo mismo. Que sea además la mitad de la
+    // identidad de la huella no es casualidad: es el mismo documento.
+    { conjunto: input.descartesPersistidos ?? new Set(), documentoEnRevision: input.excludeDocumentId },
   );
   for (const [key, count] of Object.entries(doubleCheckCounts)) {
     exhaustiveCounts[key] = (exhaustiveCounts[key] ?? 0) + count;

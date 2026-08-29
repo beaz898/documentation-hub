@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import { getAuthenticatedUserHybrid } from '@/lib/supabase-server';
 import { resolveOrg } from '@/lib/org';
+import { leerDescartes, marcarDescartadas } from '@/lib/analysis/descartes';
 
 interface AnalysisRow {
   id: string;
@@ -121,13 +122,27 @@ export async function GET(
     });
   }
 
+  // ── LA LECTURA: MARCAR LO QUE EL USUARIO YA JUZGÓ (F-86 paso 3) ──────
+  //
+  // MARCA, NO FILTRA. El encargo lo fija: este commit cambia DÓNDE viven los
+  // descartes, no qué se hace con ellos. Las discrepancias ya juzgadas vuelven
+  // con `dismissed: true` y el cliente las pinta tachadas, igual que durante la
+  // sesión en la que se marcaron. Quitarlas de la lista le impediría al usuario
+  // cambiar de opinión, que es la otra mitad de F-67.
+  //
+  // AQUÍ SÍ SE PUEDE, y en la subida desde el chat no: este camino tiene el id
+  // del documento en revisión (`doc.id`), que es la mitad de la identidad que
+  // `huellaDeProsa` exige. Por eso «marcar, recargar y seguir marcado» se
+  // demuestra por la bandeja.
+  const analysisMarcado = await marcarAnalisis(supabase, org.orgId, doc.id, result.analysis);
+
   return NextResponse.json({
     documentId: doc.id,
     documentName: doc.name,
     analysisResultId: result.id,
     matchedBy: result.document_id === id ? 'id' : 'name',
     analysisType: result.analysis_type,
-    analysis: result.analysis ?? null,
+    analysis: analysisMarcado,
     counts: {
       contradictions: result.contradictions_found,
       contradictionsConfirmed: result.contradictions_confirmed,
@@ -140,4 +155,46 @@ export async function GET(
     involvedDocuments: result.involved_documents ?? null,
     analyzedAt: result.created_at,
   });
+}
+
+/**
+ * Aplica los descartes de la organización al análisis guardado.
+ *
+ * DEVUELVE EL ANÁLISIS TAL CUAL SI ALGO NO CUADRA —no hay descartes, el jsonb
+ * no tiene la forma esperada, la consulta falló— porque un análisis sin marcar
+ * es peor experiencia pero sigue siendo correcto; uno que no se abre, no.
+ *
+ * NO MUTA el jsonb guardado: marca una COPIA de camino al cliente. El descarte
+ * es estado del usuario, no del análisis, y escribirlo dentro de
+ * `analysis_results.analysis` mezclaría las dos cosas para siempre.
+ */
+async function marcarAnalisis(
+  supabase: ReturnType<typeof createServiceClient>,
+  orgId: string,
+  documentId: string,
+  analysis: unknown,
+): Promise<unknown> {
+  if (!analysis || typeof analysis !== 'object') return analysis ?? null;
+
+  const a = analysis as Record<string, unknown>;
+  const discrepancias = a.discrepancies;
+  const menores = a.minorInconsistencies;
+  if (!Array.isArray(discrepancias) && !Array.isArray(menores)) return analysis;
+
+  const descartes = await leerDescartes(supabase, orgId);
+  if (descartes.size === 0) return analysis;
+
+  const marcar = (lista: unknown) =>
+    Array.isArray(lista)
+      ? marcarDescartadas(lista as Array<Record<string, unknown>>, {
+          documentoEnRevision: documentId,
+          descartes,
+        })
+      : lista;
+
+  return {
+    ...a,
+    ...(Array.isArray(discrepancias) ? { discrepancies: marcar(discrepancias) } : {}),
+    ...(Array.isArray(menores) ? { minorInconsistencies: marcar(menores) } : {}),
+  };
 }

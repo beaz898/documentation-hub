@@ -35,6 +35,19 @@ export interface Problem {
    * lo traen, y la bandeja los relee meses después.
    */
   relatedDocId?: string;
+  /**
+   * F-86 paso 3 — LO QUE DICE EL OTRO DOCUMENTO, en crudo.
+   *
+   * Hasta ahora esto solo existía EMBEBIDO dentro de `description` («En "X":
+   * "…"»), o sea inseparable de una frase pensada para leerse. La huella de
+   * prosa lo necesita SUELTO: `huellaDeProsa` se construye con las citas de
+   * los DOS lados, y sacarlo de la descripción a base de expresiones regulares
+   * habría hecho la identidad dependiente del formato de una frase.
+   *
+   * HERMANO, como `relatedDocId`: `description` no cambia y sigue siendo lo
+   * que el usuario lee y lo que leen los tres prompts de ImprovementModal.
+   */
+  relatedDocSays?: string;
   /** Nivel de confianza de la contradicción (solo para type 'contradiccion'). */
   confidence?: 'alta' | 'posible';
   /** Si el usuario marcó este problema como "no es un error". */
@@ -60,6 +73,11 @@ export interface RawAnalysis {
     existingDocSays: string;
     existingDocument: string;
     existingDocumentId?: string;
+    /** F-86 paso 3: lo pone el SERVIDOR al releer un análisis guardado, cuando
+     *  su huella está entre los descartes de la organización. El cliente no lo
+     *  calcula —la huella es de servidor— y en el jsonb guardado no existe:
+     *  es estado del usuario, no del análisis. */
+    dismissed?: boolean;
     confidence?: 'alta' | 'posible';
     severity?: 'contradiction' | 'minor_inconsistency';
     /** F-70: presentes desde d384a315; undefined en análisis anteriores. */
@@ -73,6 +91,8 @@ export interface RawAnalysis {
     existingDocSays: string;
     existingDocument: string;
     existingDocumentId?: string;
+    /** F-86 paso 3: igual que en `discrepancies`. */
+    dismissed?: boolean;
   }>;
   newInformation?: string;
   recommendation?: string;
@@ -209,6 +229,10 @@ export function problemsFromAnalysis(analysis: RawAnalysis): Problem[] {
           // F-86 paso 0: hermano de relatedDoc. NO entra en `description` ni en
           // `title` — no se enseña y ningún prompt lo lee.
           relatedDocId: d.existingDocumentId,
+          // F-86 paso 3: los dos hermanos que la huella de prosa necesita, más
+          // el veredicto que el servidor ya dio sobre este hallazgo.
+          relatedDocSays: d.existingDocSays,
+          dismissed: d.dismissed,
           confidence: d.confidence,
           // F-70: solo para pintar. `description` (arriba) queda intacta, y con
           // ella lo que leen los tres prompts de ImprovementModal.
@@ -229,6 +253,8 @@ export function problemsFromAnalysis(analysis: RawAnalysis): Problem[] {
         textRef: d.newDocSays,
         relatedDoc: d.existingDocument,
         relatedDocId: d.existingDocumentId,
+        relatedDocSays: d.existingDocSays,
+        dismissed: d.dismissed,
       });
     });
   }

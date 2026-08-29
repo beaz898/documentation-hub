@@ -10,6 +10,7 @@ import { resolveOrg } from '@/lib/org';
 import { consumeCredits, getCreditCost, refundCredits } from '@/lib/credits';
 import { checkUploadLock } from '@/lib/upload-lock';
 import { saveAnalysisResult } from '@/lib/persist-analysis';
+import { leerDescartes, marcarDescartadas } from '@/lib/analysis/descartes';
 import { usageContext } from '@/lib/observability/usage-context';
 import { persistLLMUsage } from '@/lib/observability/record-usage';
 import { generateContentHash } from '@/lib/analysis/hash-check';
@@ -532,6 +533,25 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    // ── LA LECTURA EN EL MODO RÁPIDO (F-86 paso 3) ────────────────────
+    //
+    // MARCA, NO FILTRA, y va DESPUÉS de saveAnalysisResult a propósito: lo que
+    // se persiste en el jsonb es EL ANÁLISIS, y el descarte es estado del
+    // USUARIO. Escribirlo dentro de `analysis_results.analysis` mezclaría las
+    // dos cosas para siempre — y un reanálisis futuro no podría distinguir lo
+    // que el sistema encontró de lo que una persona decidió sobre ello.
+    //
+    // El exhaustivo no pasa por aquí: allí el descarte se aplica antes, en el
+    // double-check, saltándose a Sonnet — que es lo que ya hacía con los de
+    // sesión y lo que este commit se comprometió a no cambiar.
+    const descartesOrg = await leerDescartes(supabase, orgId);
+    const marcarSalida = <T extends { newDocSays?: string; existingDocSays?: string; existingDocumentId?: string }>(
+      lista: T[] | undefined,
+    ): T[] | undefined =>
+      lista && lista.length > 0
+        ? marcarDescartadas(lista, { documentoEnRevision: excludeDocumentId, descartes: descartesOrg })
+        : lista;
+
     return NextResponse.json({
       success: true,
       async: false,
@@ -542,8 +562,8 @@ export async function POST(req: NextRequest) {
         duplicateOf: analysis.duplicateOf,
         duplicateConfidence: analysis.duplicateConfidence,
         overlaps: analysis.overlaps,
-        discrepancies: analysis.discrepancies,
-        minorInconsistencies: analysis.minorInconsistencies,
+        discrepancies: marcarSalida(analysis.discrepancies),
+        minorInconsistencies: marcarSalida(analysis.minorInconsistencies),
         newInformation: analysis.newInformation,
         recommendation: analysis.recommendation,
         summary: analysis.summary,
