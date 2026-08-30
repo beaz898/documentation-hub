@@ -2386,6 +2386,105 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     el corpus no ha podido responder la condición 3, y las tres por la misma
     causa: se sembró para medir discrepancias de CONTENIDO.
 
+  B.122 — [ABIERTO 30/08 con la emisión del diff, F-88 paso 2] EL AVISO DE
+    ALCANCE Y EL SOLAPAMIENTO ESTRUCTURAL: UN SOLO FRENTE, NO DOS PENDIENTES.
+    Los dos aparecieron en la MISMA pantalla al mirar la primera emisión en
+    producción (OPE-10 contra OPE-11, 30/08), y no es casualidad.
+
+    ══ LA CAUSA ÚNICA ══
+    QUE LA TABLA NO CUPO EN EL PROMPT DEL JUEZ. Si hubiera cabido entera
+    (nivel 1 del reparto), NO EXISTIRÍA NINGUNO DE LOS DOS: ni el aviso de
+    alcance —no habría filas fuera que declarar— ni el solapamiento con las
+    veinte filas dentro —el colapso de idénticas solo se construye en el nivel
+    2, retrieval.ts:765—. Son dos síntomas del mismo recorte, y por eso se
+    arreglan juntos o no se arreglan.
+
+    ══ 1. EL AVISO DE ALCANCE DICE ALGO QUE YA NO ES VERDAD ══
+    LO QUE SE VE: «38 de 60 filas de OPE-10 no se han comparado por tamaño»,
+    arriba del análisis. Pero el diff comparó las SESENTA: 15 discrepantes +
+    20 idénticas + 25 ajenas.
+    QUÉ MIDE DE VERDAD, y su medida es correcta: cuántas filas RECUPERADAS no
+    cupieron en el PROMPT DEL JUEZ. Nada más.
+      selectUnitsWithinBudget → result.tableLog[].rowsLeftOut
+      → selectionLimits (retrieval.ts:326-333)
+      → FinalAnalysis.selectionLimits → SelectionLimitNotice.tsx
+    Su contador hermano se llama "seleccion.filas_fuera_por_tamano", con
+    prefijo "seleccion." precisamente porque es material descartado de la
+    SELECCIÓN, no un hallazgo.
+    POR QUÉ EL DIFF NO PASA POR ESE PRESUPUESTO: lee de otro sitio. El juez ve
+    "selected" (lo que cupo); el diff ve "chunksByDocument", que viene de
+    getChunksForDocuments (read-chunks.ts:144) y trae TODAS las filas de
+    document_chunks sin filtro. Ese mapa ya existía —lo necesita el reparto por
+    unidades— y el diff lo reutiliza.
+    EL AVISO NO HA CAMBIADO NI MIENTE SOBRE LO SUYO. Lo que ha cambiado es que
+    ya no es lo único que mira el documento, y su frase —«no se han
+    comparado»— habla del análisis EN CONJUNTO cuando solo sabe del juez.
+
+    LAS TRES OPCIONES:
+      (a) Acotar la frase: «no las ha visto el juez». Barato y honesto, pero
+          deja al usuario con una distinción interna que no le importa.
+      (b) RESTAR LO QUE EL DIFF SÍ COMPARÓ. ← RECOMENDADA. El emparejador sabe
+          qué filas emparejó; una tabla cubierta por un par emitido no tiene
+          filas «sin mirar» aunque el juez no las viera: se compararon celda a
+          celda, que es MÁS de lo que el juez hace. Para OPE-10/OPE-11 el aviso
+          desaparecería, y desaparecer es lo correcto.
+      (c) Declarar dos alcances, el del juez y el del diff, porque miden cosas
+          distintas.
+
+    EL MATIZ DE LA (b), QUE NO SE PUEDE PERDER: ES POR TABLA, NO POR DOCUMENTO.
+    El diff solo cubre la tabla que emparejó. Las filas de OTRAS tablas del
+    mismo documento siguen fuera del prompt del juez y nadie las ha mirado: el
+    aviso tiene que seguir hablando de ellas. Restar por documento apagaría un
+    aviso verdadero.
+
+    EL ARGUMENTO QUE HAY QUE CONSERVAR, que es el que decide entre las tres:
+    el aviso existe (F-74 P2) para convertir un recorte INVISIBLE en un límite
+    DECLARADO. Si el recorte ya no implica ceguera —porque otra etapa cubrió
+    ese terreno, y mejor— declararlo es el FALLO INVERSO: una promesa de más
+    sobre nuestra propia incompetencia. Decir que no miramos algo que sí
+    miramos es tan falso como callar lo que no miramos.
+
+    ══ 2. EL SOLAPAMIENTO F-45 VUELCA VEINTE FILAS DEL CLIENTE EN UN TEXTO ══
+    LO QUE SE VE: un solapamiento cuya descripción lista las 20 filas
+    idénticas ENTERAS, celda a celda, con nombres y precios dentro de la
+    frase.
+    LA CADENA ENTERA:
+      buildContextFragment (retrieval.ts:616-646)
+        labels = por cada fila idéntica, el VALOR de TODAS las columnas
+                 compartidas, unidas por " / "   (retrieval.ts:630)
+      → StructuralOverlap.labels
+      → pipeline.ts:442-447, que las mete en la "description" del
+        overlappingContent:
+        «20 de 60 filas de "Tarifas" de "OPE-11" coinciden exactamente, celda
+         a celda, en Código y Tratamiento y Precio con filas de "OPE-10":
+         CIR-01 / Implante unitario / 950, CIR-02 / …»
+    POR QUÉ MUESTRA TODAS LAS COLUMNAS, y NO es un descuido: elegir una
+    columna como «la identidad» sería la heurística por nombre que F-23, F-26
+    y F-36 prohíben. El comentario de retrieval.ts:609-614 lo justifica —«sin
+    que el código sepa ni necesite saber que Empleado identifica a una
+    persona»—. La decisión es correcta; lo que ha cambiado es que ahora hay
+    otra forma de decir lo mismo.
+
+    LOS DOS AGRAVANTES, encontrados al investigar esto:
+      · Esa "description" ES LO QUE LEEN LOS TRES PROMPTS de ImprovementModal
+        (dicho en components/improvement/problems.ts). O sea, las veinte filas
+        del cliente se le mandan a un modelo como texto.
+      · Y se PERSISTE EN EL JSONB de analysis_results, que la bandeja relee
+        meses después.
+
+    NINGUNA DE LAS DOS COSAS ES NUEVA NI LA INTRODUJO EL DIFF. Vienen de
+    F-44/F-45. LO QUE EL DIFF HACE ES VOLVER REDUNDANTE LA FORMA CARA: la
+    misma verdad —«estas 20 filas son idénticas»— cabe en un NÚMERO más una
+    lista estructurada que la ficha puede plegar, sin volcarla en una frase que
+    viaja a tres prompts y a la base de datos.
+
+    ══ CUÁNDO ══
+    DESPUÉS DE LA FICHA, en commit propio. Decidido el 30/08 con el usuario:
+    las dos son consecuencias de que el diff exista y se entienden mejor con la
+    ficha delante. La segunda además RETIRA información que hoy se enseña
+    —aunque sea para enseñarla mejor—, y eso no entra de rebote en un commit
+    que va de otra cosa.
+
   F-81 [CONVERGENCIA — leer ANTES de planificar la fase 3 del diff, 27/08] No
     es un pendiente nuevo: es el sitio donde se juntan tres que ya existen, más
     una consecuencia. Se anota aquí porque el momento en que importan es el de
