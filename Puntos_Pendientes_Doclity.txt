@@ -2526,6 +2526,107 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     selección ninguna. Lo que queda sin resolver es la PROSA, que es donde el
     presupuesto sigue mandando y donde nadie sabe qué párrafo importa más.
 
+  B.124 — [FALLO MEDIDO EN PRODUCCIÓN 30/08, VA A FABLE — no arreglar sin
+    consultar] R2 CONFIRMA POR ESTRUCTURA UN EMPAREJAMIENTO FALSO DEL JUEZ.
+    Es «fabricar mentiras con sello matemático», que es como F-84 P2 llamó al
+    riesgo más grave del sistema. Lo curamos en el emparejamiento del DIFF y la
+    puerta del JUEZ quedó abierta.
+
+    ══ EL CASO, visto en pantalla ══
+    Análisis de OPE-11 contra OPE-10. El juez emitió:
+      "Profesional asignado para Carilla de composite (EST-03)"
+      En este documento, Código figura como «EST-02»; en OPE-10, como «EST-03».
+      ...y siete columnas más, TODAS distintas.
+    Y la cascada lo selló CONFIRMADO POR ESTRUCTURA. Del log:
+      [dc678e1b] ... -> confirmado por estructura (columnas: Código,
+      Tratamiento, Precio base, Precio con seguro, Duración (min),
+      Profesional asignado, Clínica, Revisión)  <- las OCHO.
+
+    ══ EL GROUND TRUTH, del registro de siembra ══
+    corpus-pruebas/SIEMBRA_corpus_ampliado.md §2 y §3:
+      · EST-02 es una de las 20 FILAS IDÉNTICAS — "mismo código, mismo
+        tratamiento y mismo valor en TODAS las columnas en ambos ficheros".
+      · EST-03 es una de las 15 SEMBRADAS, y difiere en EXACTAMENTE UNA
+        columna: Precio base, 180 € contra 160 €.
+    O sea: el juez cogió una fila que es IDÉNTICA en los dos documentos y la
+    enfrentó a otra distinta. El título miente en los dos sentidos — dice
+    "EST-03" sobre una fila que en el documento analizado es EST-02.
+
+    ══ EL MECANISMO: cada eslabón es correcto por separado ══
+    El emparejamiento lo hace EL JUEZ, en su cabeza. No hay ninguna etapa que
+    empareje filas antes de él: ve las filas de las dos tablas en el prompt y
+    decide qué enfrenta con qué.
+      1. verifyQuote        -> ¿la cita existe en el documento? SÍ, las dos
+                               filas son reales.
+      2. alignQuoteToCells  -> alinea la cita contra las celdas por POSICIÓN y
+                               exige que TODOS los segmentos casen
+                               (table-structure.ts:266). Las ocho columnas son
+                               legítimamente de esa fila.
+      3. applyDeterministicRules (R2) -> comparten columnas citadas y difiere
+                               algún valor -> confirm.
+    NINGUNA GUARDA DEBIÓ SALTAR, PORQUE NO EXISTE NINGUNA QUE PUDIERA. R2 tiene
+    cuatro salidas para fila/fila (finding-rules.ts:154-190):
+      · sin columnas citadas          -> pass
+      · sin columnas comunes          -> discard 'sin_columna_comun'
+      · todos los valores iguales     -> reclassify 'equivalentes'
+      · AL MENOS UNO DIFIERE          -> confirm 'valores_distintos_misma_columna'
+    Ninguna pregunta si las dos filas SON LA MISMA FILA. R2 nunca fue una
+    verificación del emparejamiento: fue diseñada CONFIANDO en que el juez
+    empareja bien, y solo comprueba que los valores difieran.
+
+    ══ LA SEÑAL ESTÁ INVERTIDA, y es el corazón del fallo ══
+    Hoy, cuanto MÁS difieren las filas, más se «confirma» el hallazgo: una
+    columna distinta y ocho distintas entran por la misma puerta. Pero difieren
+    en las OCHO, INCLUIDA LA QUE SERÍA CLAVE. Dos filas de la misma tabla que
+    no comparten ni el código no son la misma fila con valores distintos: son
+    DOS FILAS DISTINTAS. Diferir en TODO es la firma de un emparejamiento
+    falso, no la de un hallazgo fuerte.
+
+    ══ POR QUÉ R2 NO PODÍA — Y POR QUÉ AHORA SÍ ══
+    ES LO QUE HACE ESTO ACCIONABLE. R2 escribió su propia razón para no
+    identificar la fila, en el comentario de la función:
+      «entity es siempre null: ... no hay forma estructural de saber cuál lo
+       sería sin comparar nombres de columna (buscar "Nombre", "Empleado",
+       "Código"...) — exactamente el juicio semántico disfrazado de estructura
+       que F-23/F-26 prohíben.»
+    ERA CIERTO CUANDO SE ESCRIBIÓ. HA DEJADO DE SERLO. discoverTableKey
+    (table-key.ts, F-78/F-81) determina la clave ESTRUCTURALMENTE, por unicidad
+    >=90% en AMBAS tablas, SIN NINGUNA heurística de nombres. Es exactamente la
+    pieza que R2 declaró imposible, y lleva en main desde F-81.
+
+    ══ Y EL DIFF LO DESMIENTE EN LA MISMA PASADA ══
+    Sobre la MISMA tabla y en el MISMO análisis, el diff emparejó por Código:
+      EST-02 <-> EST-02  -> idénticas
+      EST-03 <-> EST-03  -> discrepante en Precio base
+    El diff SABE que EST-02<->EST-03 no es una pareja. No hay que ir a buscar
+    la verdad a ninguna parte: ya está calculada, en el mismo resultado.
+
+    ══ EL APUNTE QUE AGRAVA: DOS PRODUCTORES, UN SOLO ARRAY ══
+    Desde el commit de emisión (d1a94d71), una MISMA pareja de tablas produce
+    hallazgos por DOS VÍAS —el juez y el diff— y los dos caen en el array de
+    contradicciones, INDISTINGUIBLES para el contador plano. Este falso
+    positivo del juez SUMA a las quince del diff: el usuario ve dieciséis donde
+    hay quince, y la de más lleva el sello más fuerte del producto.
+
+    ══ NO ESTÁ CUBIERTO POR NINGÚN PENDIENTE. Los tres vecinos, y por qué no ══
+      · B.82 — el juez no es estable ni consigo mismo, con falsos positivos
+        DISTINTOS entre pasadas. Aquello es INESTABILIDAD; esto es un fallo
+        SISTEMÁTICO que la cascada SELLA.
+      · B.115 — R2 tiene una enfermedad en su rama de PROSA (declara
+        equivalentes dos frases que difieren en un factor de cien). Ésta es la
+        rama de CELDAS y es otra distinta.
+      · B.103 — el double-check pierde confirmedBy. Otro asunto.
+
+    ══ QUÉ HACER: NADA TODAVÍA ══
+    VA A FABLE. R2 lleva años en producción y toca TODO el sistema, no solo las
+    tablas: la rama de celdas la usan todos los hallazgos fila/fila vengan de
+    donde vengan. Cualquier arreglo cambia qué se confirma en el producto
+    entero, y eso no se decide desde un caso.
+    LO QUE SÍ ESTÁ ESTABLECIDO y no hace falta volver a averiguar: el
+    diagnóstico completo de arriba, el ground truth del registro de siembra, y
+    que la pieza que R2 declaró imposible existe desde F-81 y ya corre en la
+    misma pasada.
+
   F-81 [CONVERGENCIA — leer ANTES de planificar la fase 3 del diff, 27/08] No
     es un pendiente nuevo: es el sitio donde se juntan tres que ya existen, más
     una consecuencia. Se anota aquí porque el momento en que importan es el de
