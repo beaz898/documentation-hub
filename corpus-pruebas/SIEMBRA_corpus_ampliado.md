@@ -262,6 +262,34 @@ son continuación de las familias de código que ya existen en ambos ficheros
 (CIR-, CON-, DIA-, END-, EST-, HIG-, IMP-, ORT-, PRO-, URG-), lo que las hace
 más fáciles de confundir con las comunes por prefijo y por vocabulario.
 
+#### AÑADIDO 30/08/2026 (F-88 paso 1) — LA SIMETRÍA TIENE UN PRECIO AL MEDIR
+
+*Encontrado por mutación al escribir la batería del emparejador de tablas.
+Anotado también como B.121.*
+
+Esa simetría —25 y 25— hace este par **incapaz de detectar una confusión de
+lados**. Se comprobó: intercambiar los dos argumentos del descubrimiento de
+clave (pasar el candidato donde va el documento analizado y al revés) **no
+rompía ningún caso** mientras la batería se apoyara en el corpus, porque los
+dos montones tienen el mismo tamaño y salen iguales del derecho y del revés.
+
+**Qué se rompería de verdad si esa confusión llegara a producción**: el
+indicativo de F-83 P2, que es innegociable. El sistema diría «presente solo en
+OPE-10» donde toca decir «solo en OPE-11». La cifra seguiría siendo 25, el
+recuento cuadraría, y la frase estaría invertida — un fallo que ningún contador
+puede ver porque no cambia ningún número.
+
+**No es un defecto del corpus.** Dos tarifarios de la misma clínica con el mismo
+número de exclusivas es un dato realista, y sembrar la asimetría a propósito
+solo para poder medir esto sería fabricar un documento contra la regla de
+admisión. Es un **límite del instrumento**: un corpus simétrico no puede cazar
+una confusión de lados, y por eso ese caso vive como fixture construido en
+`lib/analysis/table-pairing.test.ts` («los LADOS no se pueden intercambiar»),
+con montones de 0 y 2 a propósito.
+
+**Qué mirar cuando llegue un corpus de cliente**: cualquier par cuyos dos
+montones de exclusivas difieran en tamaño sirve para lo que éste no puede.
+
 ---
 
 ## 5. Resumen — qué debería encontrar un sistema perfecto

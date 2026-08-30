@@ -2360,6 +2360,32 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     hace con los jobs en vuelo al desplegar. Se descartó en F-86 paso 3 por no
     meter ese cambio de semántica en un commit que ya llevaba SQL.
 
+  B.121 — [LÍMITE DE EVIDENCIA, abierto 30/08 con F-88 paso 1] El par real del
+    corpus NO PUEDE CAZAR una confusión de lados, porque es simétrico.
+    QUÉ SE COMPROBÓ: al mutar el emparejador de tablas intercambiando los dos
+    argumentos del descubrimiento de clave —pasar el candidato donde va el
+    documento analizado, y al revés— NO FALLABA NINGÚN CASO apoyado en el
+    corpus. OPE-10 y OPE-11 tienen 25 filas exclusivas CADA UNO (verificado en
+    corpus-pruebas/SIEMBRA_corpus_ampliado.md §4), así que los dos montones
+    salen iguales del derecho y del revés.
+    QUÉ SE ROMPERÍA EN PRODUCCIÓN, y por qué importa más de lo que parece: el
+    indicativo de F-83 P2, que esa respuesta declaró innegociable. El sistema
+    diría «presente solo en OPE-10» donde toca «solo en OPE-11». La cifra
+    seguiría siendo 25, el recuento cuadraría, y la frase estaría invertida —
+    un fallo que NINGÚN CONTADOR puede ver, porque no mueve ningún número.
+    NO ES UN DEFECTO DEL CORPUS, igual que en B.111: dos tarifarios de la misma
+    clínica con el mismo número de exclusivas es un dato realista, y sembrar la
+    asimetría solo para poder medir esto sería fabricar un documento contra la
+    regla de admisión.
+    LO QUE SE HIZO: el caso vive como fixture CONSTRUIDO en
+    lib/analysis/table-pairing.test.ts («los LADOS no se pueden intercambiar»),
+    con montones de 0 y 2 a propósito. La mutación que lo destapó ahora muere.
+    QUÉ MIRAR CUANDO LLEGUE UN CORPUS DE CLIENTE: cualquier par cuyos dos
+    montones de exclusivas difieran en tamaño sirve para lo que éste no puede.
+    Es la misma familia que B.111 y B.117 — tres veces seguidas en este frente
+    el corpus no ha podido responder la condición 3, y las tres por la misma
+    causa: se sembró para medir discrepancias de CONTENIDO.
+
   F-81 [CONVERGENCIA — leer ANTES de planificar la fase 3 del diff, 27/08] No
     es un pendiente nuevo: es el sitio donde se juntan tres que ya existen, más
     una consecuencia. Se anota aquí porque el momento en que importan es el de
