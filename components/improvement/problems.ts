@@ -1,6 +1,6 @@
 // Shared types and helpers for problem detection in ImprovementModal.
 
-import type { ComparedValue } from '@/lib/analysis/types';
+import type { ComparedValue, GrupoDeTablas } from '@/lib/analysis/types';
 
 export type { ComparedValue };
 
@@ -64,6 +64,19 @@ export interface Problem {
    * producto (F-88 P2).
    */
   origen?: 'diff_tabular';
+  /**
+   * F-88 ficha A — CON QUÉ TARJETA SE JUNTA ESTA FILA.
+   *
+   * OPACO, y su oficio es ensamblar dentro de UN resultado: la huella
+   * recuerda, el groupId ensambla (F-88 P3). Lo genera el servidor al emitir y
+   * lo comparten las filas de una misma pareja de tablas con su entrada en
+   * `tableDiffs`.
+   *
+   * NO SE USA COMO MEMORIA. Si algún día alguien lo guarda para reconocer un
+   * hallazgo entre análisis, tendrá dos memorias que divergen — para eso está
+   * la huella, que sí es estable.
+   */
+  groupId?: string;
   /** Nivel de confianza de la contradicción (solo para type 'contradiccion'). */
   confidence?: 'alta' | 'posible';
   /** Si el usuario marcó este problema como "no es un error". */
@@ -91,6 +104,8 @@ export interface RawAnalysis {
     existingDocumentId?: string;
     /** F-88 paso 2: ver `Problem.origen`. */
     origen?: 'diff_tabular';
+    /** F-88 ficha A: ver `Problem.groupId`. */
+    groupId?: string;
     /** F-86 paso 3: lo pone el SERVIDOR al releer un análisis guardado, cuando
      *  su huella está entre los descartes de la organización. El cliente no lo
      *  calcula —la huella es de servidor— y en el jsonb guardado no existe:
@@ -112,6 +127,14 @@ export interface RawAnalysis {
     /** F-86 paso 3: igual que en `discrepancies`. */
     dismissed?: boolean;
   }>;
+  /**
+   * F-88 ficha A — LAS TARJETAS AGRUPADAS que emitió el servidor.
+   *
+   * Opcional PARA SIEMPRE: los análisis guardados antes de la emisión no las
+   * traen, y la bandeja los relee meses después. Un análisis sin `tableDiffs`
+   * se pinta exactamente como antes.
+   */
+  tableDiffs?: GrupoDeTablas[];
   newInformation?: string;
   recommendation?: string;
   suggestedActions?: Array<{ action: string; target: string; reason: string }>;
@@ -252,6 +275,7 @@ export function problemsFromAnalysis(analysis: RawAnalysis): Problem[] {
           relatedDocSays: d.existingDocSays,
           dismissed: d.dismissed,
           origen: d.origen,
+          groupId: d.groupId,
           confidence: d.confidence,
           // F-70: solo para pintar. `description` (arriba) queda intacta, y con
           // ella lo que leen los tres prompts de ImprovementModal.

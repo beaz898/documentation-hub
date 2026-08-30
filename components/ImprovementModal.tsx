@@ -545,9 +545,15 @@ function ImprovementModalDesktop({
 
           {/* CHAT PANEL */}
           <div className="order-1 md:order-2 flex flex-col flex-1 min-h-0 overflow-hidden">
+          {/* F-88 ficha A: las tarjetas del diff salen del análisis tal cual lo
+              devolvió el servidor. `fileName` es el documento EN REVISIÓN, que
+              es lo que el indicativo de las filas ajenas necesita para nombrar
+              SU montón — el grupo solo trae el nombre del candidato. */}
           <ChatPanel
             stageFailureCount={stageFailureCount}
             selectionLimits={selectionLimits}
+            tableDiffs={analysis.tableDiffs}
+            documentName={fileName}
             messages={chatMessages}
             sending={chatSending}
             sendMessage={handleManualSend}

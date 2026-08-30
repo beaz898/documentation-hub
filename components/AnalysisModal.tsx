@@ -6,6 +6,9 @@ import UploadActions from './AnalysisModal/UploadActions';
 import ReviewActions from './AnalysisModal/ReviewActions';
 import IncompleteAnalysisNotice from './IncompleteAnalysisNotice';
 import SelectionLimitNotice from './SelectionLimitNotice';
+// F-88 ficha A: extraida a componente propio — la ficha del diff necesita el
+// mismo plegado, y copiarlo habria dejado dos que se separan a la primera.
+import CollapsibleSection from './CollapsibleSection';
 import type { SelectionLimitItem } from './SelectionLimitNotice';
 
 interface AnalysisResult {
@@ -60,55 +63,6 @@ interface AnalysisModalProps {
   stagedDecision?: boolean;
   onApproveStaged?: () => void | Promise<void>;
   onDiscardStaged?: () => void | Promise<void>;
-}
-
-// ============================================================
-// Collapsible section
-// ============================================================
-interface CollapsibleSectionProps {
-  title: string;
-  count?: number;
-  color?: string;
-  defaultOpen?: boolean;
-  children: ReactNode;
-}
-
-function CollapsibleSection({
-  title,
-  count,
-  color = 'var(--text-secondary)',
-  defaultOpen = false,
-  children,
-}: CollapsibleSectionProps) {
-  const [open, setOpen] = useState(defaultOpen);
-  return (
-    <div style={{ marginBottom: 8 }}>
-      <button
-        type="button"
-        onClick={() => setOpen(o => !o)}
-        style={{
-          width: '100%',
-          display: 'flex', alignItems: 'center', gap: 6,
-          padding: '6px 8px', borderRadius: 6,
-          border: 'none', background: 'transparent',
-          cursor: 'pointer', textAlign: 'left',
-          color, fontSize: 12, fontWeight: 600,
-        }}
-      >
-        <span style={{ fontSize: 10, width: 12, display: 'inline-block' }}>
-          {open ? '▾' : '▸'}
-        </span>
-        <span>
-          {title}{typeof count === 'number' ? ` (${count})` : ''}
-        </span>
-      </button>
-      {open && (
-        <div style={{ padding: '4px 4px 0 22px' }}>
-          {children}
-        </div>
-      )}
-    </div>
-  );
 }
 
 // ============================================================

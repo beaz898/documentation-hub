@@ -9,7 +9,10 @@ import ProblemDetail from './ProblemDetail';
 import IncompleteAnalysisNotice from '@/components/IncompleteAnalysisNotice';
 import SelectionLimitNotice from '@/components/SelectionLimitNotice';
 import type { SelectionLimitItem } from '@/components/SelectionLimitNotice';
+import TableDiffCard from './TableDiffCard';
+import { mostrarAccionesDeFila, repartirEnTarjetas } from './table-diff-card';
 import type { ProblemType, Problem } from './problems';
+import type { GrupoDeTablas } from '@/lib/analysis/types';
 import type { ChatMessage } from './useImprovementChat';
 import { applyReplacement } from './useImprovementChat';
 
@@ -33,6 +36,14 @@ interface ChatPanelProps {
 
   problems: Problem[];
   visibleProblems: Problem[];
+  /** F-88 ficha A: las tarjetas agrupadas del diff de tablas, si el análisis
+   *  las trae. Ausente en todo lo anterior a la emisión, y en los documentos
+   *  sin tablas — la pantalla se pinta entonces exactamente como antes. */
+  tableDiffs?: GrupoDeTablas[];
+  /** El nombre del documento QUE SE ESTÁ REVISANDO. Lo necesita el indicativo
+   *  de las filas ajenas: cada montón se nombra con SU documento, y el del lado
+   *  analizado no está en el grupo (el grupo solo lleva el del candidato). */
+  documentName: string;
   allTypes: ProblemType[];
   activeTypes: Set<ProblemType>;
   typeMeta: Record<ProblemType, TypeMeta>;
@@ -54,7 +65,7 @@ export default function ChatPanel({
   messages, sending, sendMessage, setMessages,
   currentText, onApplyText, chatInput, setChatInput,
   onReanalyzeStyle, onReanalyzeAll, styleLoading, reanalyzingAll,
-  problems, visibleProblems, allTypes, activeTypes, typeMeta,
+  problems, visibleProblems, tableDiffs, documentName, allTypes, activeTypes, typeMeta,
   onToggleType, onSelectAllTypes, onClearTypes,
   getDocSourceBadge, onGoToProblem, onSolveOne, onSolveGroup, onDismissProblem,
   stageFailureCount = 0,
@@ -125,15 +136,34 @@ export default function ChatPanel({
     return acc;
   }, {} as Record<ProblemType, string>);
 
+  /**
+   * F-88 ficha A — «QUINCE FUERA, QUINCE DENTRO, UNA TARJETA» (F-84 P1).
+   *
+   * Las filas del diff SALEN de la lista por tipo y se pintan DENTRO de su
+   * tarjeta. No es una elección estética: dejarlas en los dos sitios las
+   * enseñaría dos veces y el usuario contaría treinta donde hay quince.
+   *
+   * EL CONTADOR PLANO NO SE TOCA — sigue contando el array de contradicciones,
+   * que es lo que la bandeja enseña. Lo que cambia es dónde se PINTAN, no
+   * cuántas hay.
+   *
+   * Y LO QUE NO ES DE NINGUNA TARJETA SIGUE EN SU SITIO: las contradicciones de
+   * prosa del mismo análisis se quedan en la lista por tipo, como siempre.
+   */
+  const { tarjetas, sueltos } = useMemo(
+    () => repartirEnTarjetas(visibleProblems, tableDiffs),
+    [visibleProblems, tableDiffs],
+  );
+
   const groupedProblems = useMemo(() => {
-    const indexed = visibleProblems.map((p, globalIndex) => ({ p, globalIndex }));
+    const indexed = sueltos.map((p, globalIndex) => ({ p, globalIndex }));
     return allTypes
       .map(type => ({
         type,
         items: indexed.filter(({ p }) => p.type === type),
       }))
       .filter(g => g.items.length > 0);
-  }, [visibleProblems, allTypes]);
+  }, [sueltos, allTypes]);
 
   const handleSend = async () => {
     const text = chatInput.trim();
@@ -204,7 +234,21 @@ export default function ChatPanel({
         </div>
       )}
 
-      {visibleProblems.length > 0 && (
+      {/* F-88 ficha A: las tarjetas agrupadas, ANTES de la lista por tipo. Cada
+          una es una pareja de tablas con sus cuatro secciones. */}
+      {tarjetas.length > 0 && (
+        <div style={{ padding: '10px 16px 0', flexShrink: 0, maxHeight: 320, overflowY: 'auto' }}>
+          {tarjetas.map(tarjeta => (
+            <TableDiffCard
+              key={tarjeta.grupo.groupId}
+              tarjeta={tarjeta}
+              nombreDocumentoAnalizado={documentName}
+            />
+          ))}
+        </div>
+      )}
+
+      {groupedProblems.length > 0 && (
         <div style={{
           padding: '10px 16px', borderBottom: '0.5px solid var(--border)',
           display: 'flex', flexDirection: 'column', gap: 10,
@@ -330,15 +374,11 @@ export default function ChatPanel({
                                     }}>{srcBadge.label}</span>
                                   )}
                                   <span style={{ fontSize: 11, fontWeight: 500, color: 'var(--text-primary)', flex: 1, minWidth: 0 }}>{p.title}</span>
-                                  {/* F-88 P2: SIN ACCIONES POR FILA en los
-                                      hallazgos del diff de tablas. El botón de
-                                      descarte de aquí va respaldado por la
-                                      huella de PROSA, y pulsarlo sobre una fila
-                                      tabular registraría el juicio con una
-                                      identidad de texto — el desajuste que F-86
-                                      acaba de matar. Llegan con la ficha, sobre
-                                      huella tabular. */}
-                                  {p.origen !== 'diff_tabular' && (
+                                  {/* F-88 P2: sin acciones por fila en los
+                                      hallazgos del diff. El porqué, y por qué la
+                                      condición no vive aquí dentro, en
+                                      mostrarAccionesDeFila. */}
+                                  {mostrarAccionesDeFila(p) && (
                                     <>
                                   <button
                                     onClick={(e) => { e.stopPropagation(); onDismissProblem(p); }}
@@ -402,7 +442,7 @@ export default function ChatPanel({
                           )}
                           <span style={{ fontSize: 11, fontWeight: 500, color: 'var(--text-primary)', flex: 1, minWidth: 0 }}>{p.title}</span>
                           {/* F-88 P2: ver la nota del bloque compacto. */}
-                          {p.origen !== 'diff_tabular' && (
+                          {mostrarAccionesDeFila(p) && (
                             <>
                           <button
                             onClick={(e) => { e.stopPropagation(); onDismissProblem(p); }}

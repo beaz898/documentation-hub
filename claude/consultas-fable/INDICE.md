@@ -26,7 +26,7 @@ de cada fichero.
 
 ### LO QUE FABLE DA POR EXISTENTE — un patrón, no tres accidentes
 
-**Tres veces ha dado por construida una pieza que no estaba**, y las tres con la
+**Cuatro veces ha dado por construida una pieza que no estaba**, y las cuatro con la
 misma forma: una subordinada de paso —«que ya existe», «que ya viaja»— sobre
 algo que el repositorio no tenía. No son errores de criterio: las tres
 decisiones eran correctas y se implementaron enteras. Lo que era falso es que
@@ -37,6 +37,7 @@ fueran gratis.
 | **F-84 P3** | «el orden canónico **que ya existe** — por id, no por rol» (F-84.md:169) | No existía. Hubo que escribir `ordenCanonico` en `huella-hallazgo.ts` |
 | **F-83 P2 / F-84 P1** | «**la** pareja de tablas», en singular — un emparejador entre documentos | No existía. La fase 1 recibía dos tablas ya elegidas y nadie las elegía. Lo destapó F-88 y lo escribió su paso 1 |
 | **F-88 P2** | «es un `if` sobre un campo **que ya viaja**» | No viajaba. Ni la discrepancia ni `Problem` decían de qué materia es un hallazgo; hubo que crear `origen` |
+| **F-88 P2** (2.º) | «las coordenadas que el payload debe llevar son **exactamente las que la fila ya tiene**» | No las tiene. La clave de fila (`keyValues`) muere dentro de `diff-emision.ts` y nunca llega al cliente; el `tableId` tampoco. **ENCONTRADO APLICANDO LA REGLA**, no tropezando |
 
 **Por qué pasa, y por qué importa poco y mucho a la vez.** Fable razona sobre la
 descripción que le damos, y una descripción correcta a nivel de diseño puede
@@ -49,6 +50,16 @@ un commit leyendo «es un if» presupuestará mal.
 **Qué hacer al leer una respuesta**: cuando diga «que ya existe» o «que ya
 viaja», **comprobarlo en el repositorio antes de estimar**. Es la regla de
 verificación al usar (F-85 P3) aplicada a un caso concreto que se repite.
+
+**Y LA REGLA YA SIRVIÓ, que es lo que la valida.** El cuarto caso es distinto de
+los tres primeros en algo que importa: **se encontró aplicándola**. El 30/08, al
+arrancar la ficha, la exploración previa comprobó una por una las coordenadas
+que F-88 P2 daba por disponibles — y faltaban dos de cuatro, una de ellas
+inexistente fuera de una función. Los tres primeros se descubrieron a mitad de
+un commit, con el coste ya comprometido; éste se descubrió ANTES de escribir una
+línea, y su consecuencia fue partir el trabajo en dos (ficha A y ficha B) en vez
+de encallar. Una regla que solo describe fallos pasados no vale nada; ésta
+previno el cuarto.
 
 ---
 
