@@ -2166,6 +2166,22 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     consumidores: nadie la llama, así que nadie tiene que decidir dónde va su
     log. La fase 3 va a chocar con eso, y ESE es el momento en que la decisión
     de este punto deja de ser aplazable.
+    AGRAVADO POR F-91 (30/08): AHORA HAY UN CENTINELA EN LA BOLSA LIBRE. La
+    clase de contadores CENTINELA —los que vigilan un invariante declarado y
+    cuyo cero es su forma de funcionar— quedó escrita en el contrato con dos
+    miembros fundacionales, y SOLO UNO está en COUNTER_CATALOGUE:
+    verificador.confirmados_por_estructura. El otro, r2.sin_ancla, vive en
+    DiscardedFindings, o sea en bumpCount(counts, key: string) — la bolsa de
+    cadena libre que este mismo punto describe.
+    POR QUÉ ES PEOR QUE UN CONTADOR CORRIENTE EN EL MISMO SITIO: un centinela
+    sin garantía de transporte puede DESAPARECER de una fusión sin que nadie se
+    entere, y desaparecer es indistinguible de valer cero — que es justo lo que
+    se lee como «funcionando». Un contador normal perdido se echa de menos
+    cuando alguien va a mirarlo; un centinela perdido no se echa de menos nunca.
+    NO SE ARREGLÓ EN SU COMMIT, y con razón escrita: el vocabulario entero de la
+    cascada (descartado.*, a_juicio.*) vive en esa bolsa, así que mover un solo
+    nombre al catálogo dejaría la cascada contando en dos sitios. La decisión de
+    este punto es la que desatasca eso, no un parche por nombre.
 
   B.111 — [LÍMITE DE EVIDENCIA, abierto 27/08 con la fase 1] El consenso del
     diff SOLO está validado con casos construidos. Ninguno de los dos pares

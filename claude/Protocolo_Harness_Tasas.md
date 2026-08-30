@@ -242,6 +242,35 @@ normativo es actualizar lo que afirma del presente, nunca borrar lo que se crey�
 en su momento — eso es lo que hace el archivo, y para eso está.
 
 
+## ⚠️ REGLA DE LA DOBLE LECTURA: una regla dictada se ejerce contra un caso medido ANTES de implementarla
+
+*Promovida de F-91 el 30/08/2026. Es la HERMANA de F-79 —«si la respuesta no
+cita el asunto exacto, paradla»—: aquella vigila que la respuesta hable **de lo
+que se preguntó**; ésta, que lo que dice signifique **una sola cosa**.*
+
+> **Antes de implementar una regla dictada, se EJERCE contra un caso MEDIDO. Si
+> dos lecturas razonables de la misma frase dan resultados distintos sobre ese
+> caso, no se elige: se pregunta.**
+
+**EL CASO QUE LA FUNDA.** F-90 P3 dictó: «si todas las columnas COMUNES
+difieren, R2 no confirma». «Comunes» admitía dos lecturas —las columnas que el
+juez CITÓ, o todas las que las dos filas COMPARTEN— y sobre el caso real de
+B.124 la primera **descartaba un hallazgo VERDADERO**: el de la misma pasada que
+motivó el frente entero. Ninguna de las dos suena mal leída de corrido. Ver
+F-91.
+
+**Y EL DETALLE QUE LA HACE OPERATIVA**, porque sin él la regla es un consejo: la
+ambigüedad **NO se encontró leyendo**. Se encontró **EJECUTANDO** — un caso de la
+batería devolvió «1 columna de ancla» donde se esperaba cero, y esa cifra medida
+fue la que destapó que había dos lecturas. Releer una regla buscando
+ambigüedades no funciona: **las dos lecturas parecen la misma hasta que un número
+las separa.** Por eso la regla dice EJERCER, no revisar.
+
+**QUÉ CUENTA COMO CASO MEDIDO**: uno del corpus, con sus cifras tomadas. No un
+ejemplo inventado — un ejemplo inventado se construye, sin querer, para que salga
+bien la lectura que uno ya tenía en la cabeza.
+
+
 ## ⚠️ REGLA DE CIERRE: qué bloquea y qué se declara
 
 *Promovida de F-89 P6 el 30/08/2026. Se promueve ANTES que las otras dos reglas

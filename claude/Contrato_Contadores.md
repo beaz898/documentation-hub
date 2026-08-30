@@ -182,6 +182,102 @@ lo que la nota original pedía.
 
 ---
 
+## 2-bis. UNA CLASE APARTE: LOS CONTADORES CENTINELA (F-91)
+
+*Añadida el 30/08/2026, cuando F-91 P2 le puso nombre a algo que el proyecto ya
+tenía sin nombrar. **Con una corrección nuestra a su lista**, abajo.*
+
+> **Un contador centinela vigila un INVARIANTE DECLARADO. Su valor esperado es
+> cero, no porque se haya observado cero, sino porque hay una afirmación escrita
+> que su movimiento REFUTARÍA. Leerlo a cero es leerlo funcionando; que se mueva
+> es la noticia.**
+
+**El invariante es lo que define la clase, NO el cero observado.** Es la
+distinción que hay que tener clara antes de usar la palabra, y se ganó
+corrigiendo la lista de F-91 (ver abajo): un contador puede llevar meses a cero
+sin ser centinela — está a cero porque todavía no ha pasado, no porque no pueda
+pasar. Confundir las dos cosas convierte «no lo hemos visto» en «no ocurre», que
+es exactamente el error que este proyecto lleva un mes persiguiendo.
+
+**Por qué la clase necesita estar escrita y no basta un comentario.** El cero de
+un contador normal y el cero de un centinela **se escriben igual y significan lo
+contrario**: en el primero dice «este camino no se recorre» —candidato a
+retirar—; en el segundo dice «el supuesto aguanta», que es justo lo que se quería
+saber. Sin la clase declarada, el segundo se lee como el primero y alguien lo
+borra por código muerto. **Borrar un centinela es quitar la alarma, no limpiar el
+panel.**
+
+Y responde con el signo corregido a una duda que se planteó al revés: se preguntó
+si una rama que casi nunca se activa merece contador propio. Sí — **un contador
+que casi siempre vale cero no es un contador que falla: es un invariante
+vigilado.**
+
+### Los dos fundacionales
+
+| Contador | Tipo | El invariante que vigila | Dónde vive hoy |
+|---|---|---|---|
+| `verificador.confirmados_por_estructura` | **CENTINELA PURO** — moverse **es** un bug | Desde F-91 P3 el juez no tiene NINGÚN camino al sello `'estructura'`: es exclusivo del diff. Si se mueve, alguien está firmando sin derecho | Catálogo (`lib/analysis/counters.ts`) |
+| `r2.sin_ancla` | **CASI-CENTINELA** — puede moverse legítimamente, poco | Dos filas sin un solo valor compartido no exhiben identidad, y se descartan sin gastar modelo. Que ocurra es raro, no imposible | `DiscardedFindings` (`lib/analysis/pipeline.ts`) |
+
+**La distinción puro/casi no es decorativa.** Un centinela puro que se mueve es un
+fallo del sistema y se investiga. Un casi-centinela que se mueve es un caso raro
+que ocurrió, y se anota. Confundirlos produce las dos averías simétricas:
+perseguir un fantasma, o no perseguir nada.
+
+### ⚠️ EL QUE NO ES: `narracionEnCita`, y por eso la clase se entiende
+
+F-91 propuso **tres** fundacionales, y el tercero era `narracionEnCita` — «cero
+descartes en 351 filas, en observación desde entonces». **Las dos mitades son
+ciertas y la conclusión no.**
+
+- La observación existe: `Bitacora_Sesiones.txt:4646`, verificada. Pero lo que
+  dice es **una pregunta abierta**, no un invariante: *«sin dato nuevo todavía
+  sobre si el patrón está muerto o llega en una forma que los tres regex no
+  reconocen»*. Nadie afirmó nunca que el juez no narrara. **B.107 afirma lo
+  contrario**, y es su pendiente.
+- Y la pregunta **se contestó el 30/08**: en las dos pasadas rápidas de OPE-11 el
+  juez escribió «No aparece EST-03 en el documento nuevo» donde iba una cita, el
+  patrón lo cazó y **el contador se movió** — primera aparición de B.107 fuera
+  del laboratorio (`claude/Tandas_Harness.md`, 30/08).
+
+F-91 no podía saberlo: esa medición es del día anterior a la consulta y la
+consulta no se la llevaba. **Lo que se corrige no es su criterio —la clase es
+buena— sino un miembro de su lista.**
+
+Y de paso deja el mejor ejemplo posible de la frontera: `narracionEnCita` estuvo
+351 filas a cero **y nunca fue un centinela**, porque su cero era provisional. Un
+contador en observación mide una pregunta; un centinela custodia una respuesta.
+
+### La regla
+
+**Un centinela NO se retira por estar a cero, nunca.** Se retira el día que
+desaparece el invariante que vigila, y ese día se retiran los dos juntos. Y quien
+lea la columna de contadores tiene que poder distinguir un cero de otro: por eso
+la lista de arriba vive **aquí** y no solo en un comentario del código.
+
+### ⚠️ EL HUECO: este contrato solo gobierna a UNO de los dos
+
+F-91 dio por hecho que la clase «se resuelve donde se resuelven estas cosas: en el
+contrato de contadores». **La cláusula 4 solo obliga a lo que pasa por
+`COUNTER_CATALOGUE`**, y de los dos fundacionales solo
+`verificador.confirmados_por_estructura` está ahí.
+
+`r2.sin_ancla` vive en `DiscardedFindings`, la bolsa de cadena libre que este
+mismo fichero señala en §1 como lo que NO hay que repetir —`bumpCount(counts,
+key: string)`, «ahí estuvo el agujero»—. Para él, **esta sección es DESCRIPCIÓN,
+no garantía**: nada impide hoy renombrarlo, duplicarlo o perderlo en una fusión
+ciega. Un centinela sin garantía de transporte es un centinela que puede
+desaparecer sin que nadie se entere — que es precisamente lo que no queremos de
+un centinela.
+
+**No se arregla aquí**, y por una razón concreta: el vocabulario entero de la
+cascada (`descartado.*`, `a_juicio.*`) vive en esa bolsa, así que mover un solo
+nombre al catálogo dejaría la cascada contando en dos sitios distintos — peor que
+contar mal en uno. Es exactamente el territorio de **B.110**, y allí queda
+anotado.
+
+---
+
 ## 3. LO QUE SE DESCARTÓ, dicho para que no se vuelva a proponer
 
 **Retención y versionado del esquema de contadores.** Es lo primero que apetece
