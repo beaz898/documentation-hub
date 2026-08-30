@@ -657,6 +657,38 @@ async function runCorePipeline(
     const judgment = rawJudgments[i];
     const evidence = evidences[i];
     const existingChunksForCascade = chunksByDocument.get(judgment.documentId) ?? [];
+
+    // ── EL EMPAREJAMIENTO DE TABLAS, ANTES DE LA CASCADA (F-89, frente 1) ──
+    //
+    // SUBE AQUÍ Y LA EMISIÓN NO SE MUEVE. Son dos cosas y solo una tiene que
+    // adelantarse, así que conviene decir cuál y por qué:
+    //
+    //   · EL EMPAREJAMIENTO (esto) sube porque R2 lo necesita DELANTE al
+    //     decidir. F-89 P2 le encarga verificar que las dos filas de un
+    //     hallazgo son la misma fila, y eso se comprueba con la CLAVE
+    //     descubierta — que hasta ahora no existía cuando la cascada corría.
+    //     Es puro y barato (13,9 ms medidos para 48 pares), así que
+    //     adelantarlo no cuesta nada.
+    //
+    //   · LA EMISIÓN se queda DESPUÉS, y su razón sigue intacta: la cascada
+    //     verifica citas y aplica reglas pensadas para hallazgos del JUEZ, y
+    //     meter por ahí un veredicto determinista sería exponerlo a que una
+    //     etapa lo degrade — lo que F-64 prohíbe y lo que la frontera del
+    //     double-check ya evita río abajo.
+    //
+    // LO QUE RECIBE LA EMISIÓN NO CAMBIA, y se comprobó leyendo antes de
+    // mover: `applyCascadeToCandidate` no muta ninguna de las dos entradas del
+    // emparejamiento. Las lee para los vecinos (`buildNeighbours`: find) y
+    // para el orden de columnas (`getOrderedColumns`: filter/find/some), y
+    // nada más. Entradas idénticas, salida idéntica.
+    //
+    // Los dos lados salen de aquí sin buscar nada: las tablas del documento
+    // analizado de sus chunks, las del candidato de los suyos.
+    const emparejamiento = emparejarTablas(
+      groupChunksByTable(newDocumentChunksForCascade),
+      groupChunksByTable(existingChunksForCascade),
+    );
+
     const outcome = await applyCascadeToCandidate(
       judgment,
       evidence,
@@ -666,23 +698,9 @@ async function runCorePipeline(
       label,
       structuralOverlaps.get(judgment.documentId) ?? [],
     );
-    // ── LA EMISIÓN DEL DIFF DE TABLAS (F-88 paso 2) ───────────────────
-    //
-    // DESPUÉS DE LA CASCADA Y NO ANTES, y no es una comodidad: la cascada
-    // verifica citas y aplica reglas pensadas para hallazgos del JUEZ. Meter
-    // por ahí un veredicto determinista sería exponerlo a que una etapa lo
-    // degrade, que es lo que F-64 prohíbe y lo que la frontera del
-    // double-check ya evita río abajo. Entra con su `confirmedBy: 'estructura'`
-    // puesto y nadie se lo discute.
-    //
-    // Los dos lados salen de aquí sin buscar nada: las tablas del documento
-    // analizado de sus chunks, las del candidato de los suyos, y los ids de
-    // `input.excludeDocumentId` (el analizado, que puede faltar — F-87) y
-    // `judgment.documentId` (el del corpus, que nunca falta).
-    const emparejamiento = emparejarTablas(
-      groupChunksByTable(newDocumentChunksForCascade),
-      groupChunksByTable(existingChunksForCascade),
-    );
+
+    // La emisión, con los ids: `input.excludeDocumentId` (el analizado, que
+    // puede faltar — F-87) y `judgment.documentId` (el del corpus, que nunca).
     const emision = emitirDiffDeTablas(
       emparejamiento.pares,
       {
