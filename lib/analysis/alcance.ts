@@ -20,6 +20,18 @@ import type { SelectionLimit } from './types';
  * como callar lo que no miramos.
  * ─────────────────────────────────────────────────────────────────────────
  *
+ * ⚠️ LA RESTA SE APLICA AL ANALIZAR, NO AL LEER — y por eso los análisis
+ * VIEJOS SIGUEN ENSEÑANDO SU AVISO PARA SIEMPRE. Es correcto que lo enseñen:
+ * se hicieron sin la resta, así que sus `selectionLimits` guardados en el jsonb
+ * son los de entonces y describen fielmente lo que aquel análisis miró.
+ *
+ * Costó un susto el 30/08 —el aviso seguía en pantalla y parecía un fallo— y
+ * conviene saberlo antes de buscar un fallo que no está: reabrir un análisis
+ * de la bandeja NO recalcula nada. Para ver el efecto de la resta hay que
+ * LANZAR UN ANÁLISIS NUEVO. La misma naturaleza que el marcado de descartes de
+ * F-86: lo que se persiste es EL ANÁLISIS; lo que se decide al vuelo es otra
+ * cosa.
+ *
  * ⚠️ ES POR TABLA, NO POR DOCUMENTO. Es la parte delicada y la razón de que
  * esto sea una función con nombre y no un `filter` en línea: el diff solo
  * cubre LAS TABLAS QUE EMPAREJÓ. Las filas de otras tablas del mismo documento

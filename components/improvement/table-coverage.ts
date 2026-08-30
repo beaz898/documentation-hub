@@ -114,3 +114,38 @@ export function tieneCobertura(grupo: GrupoDeTablas): boolean {
 export function contarSinCorrespondencia(grupos: GrupoDeTablas[]): number {
   return grupos.reduce((n, g) => n + g.soloEnNuevo.length + g.soloEnOtro.length, 0);
 }
+
+/**
+ * EL ORDEN DE LOS GRUPOS DE LA LISTA, con «Sin correspondencia» EN SEGUNDO
+ * LUGAR (decisión de producto, 30/08).
+ *
+ * LA REGLA: la cobertura va JUSTO DESPUÉS de las contradicciones, que son la
+ * alarma. No al final, donde estaba —el usuario que abre el modal mira arriba,
+ * y las cincuenta filas sin pareja son lo segundo que quiere saber— pero
+ * tampoco antes, porque no reclama juicio.
+ *
+ * SI NO HAY CONTRADICCIONES, VA PRIMERA. Es el caso que un `indexOf` ingenuo
+ * rompe: sin grupo de contradicciones no hay «después de» que valga, y colocar
+ * la cobertura al final por descarte la escondería justo en el análisis donde
+ * es lo único que hay que enseñar — el par cuyo único resultado fue cobertura,
+ * que F-84 P1 declaró caso aceptable.
+ *
+ * ES UNA FUNCIÓN Y NO UN `map` EN EL JSX por la razón de siempre en este
+ * módulo: el alcance de la suite prohíbe React, así que una regla escrita
+ * dentro del pintado es una regla sin vigilancia. Ya pasó dos veces.
+ */
+export type RanuraDeGrupo =
+  | { clase: 'tipo'; tipo: string }
+  | { clase: 'cobertura' };
+
+export function ordenDeGrupos(tiposPresentes: string[], hayCobertura: boolean): RanuraDeGrupo[] {
+  const ranuras: RanuraDeGrupo[] = tiposPresentes.map(tipo => ({ clase: 'tipo' as const, tipo }));
+  if (!hayCobertura) return ranuras;
+
+  const cobertura: RanuraDeGrupo = { clase: 'cobertura' };
+  const iContradicciones = tiposPresentes.indexOf('contradiccion');
+
+  // Sin contradicciones, primera. Con ellas, justo detrás.
+  const posicion = iContradicciones === -1 ? 0 : iContradicciones + 1;
+  return [...ranuras.slice(0, posicion), cobertura, ...ranuras.slice(posicion)];
+}

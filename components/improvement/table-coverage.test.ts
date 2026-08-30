@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import type { GrupoDeTablas } from '@/lib/analysis/types';
 import type { Problem } from './problems';
 import { mostrarAccionesDeFila } from './problems';
-import { contarSinCorrespondencia, etiquetasDeMontones, indiceDeColumnas, tieneCobertura } from './table-coverage';
+import { contarSinCorrespondencia, etiquetasDeMontones, indiceDeColumnas, ordenDeGrupos, tieneCobertura } from './table-coverage';
 
 /**
  * BATERÍA DEL BLOQUE DE COBERTURA (F-88, ficha A revisada).
@@ -211,5 +211,50 @@ describe('contarSinCorrespondencia — el recuento cuenta lo que el nombre dice'
    *  recuento — sus quince ya están arriba, como cajas sueltas. */
   it('un grupo solo con discrepancias e idénticas cuenta cero', () => {
     expect(contarSinCorrespondencia([grupo({ identicas: 20 })])).toBe(0);
+  });
+});
+
+describe('ordenDeGrupos — «Sin correspondencia» en segundo lugar', () => {
+  const TIPOS = ['contradiccion', 'inconsistencia_menor', 'duplicidad', 'ambiguedad'];
+
+  it('va JUSTO DESPUÉS de las contradicciones', () => {
+    const r = ordenDeGrupos(TIPOS, true);
+
+    expect(r[0]).toEqual({ clase: 'tipo', tipo: 'contradiccion' });
+    expect(r[1]).toEqual({ clase: 'cobertura' });
+    expect(r[2]).toEqual({ clase: 'tipo', tipo: 'inconsistencia_menor' });
+  });
+
+  /**
+   * EL CASO QUE UN `indexOf` INGENUO ROMPE. Sin grupo de contradicciones no hay
+   * «después de» que valga, y dejar la cobertura al final por descarte la
+   * escondería justo en el análisis donde es lo único que hay que enseñar — el
+   * par cuyo único resultado fue cobertura, que F-84 P1 declaró caso aceptable.
+   */
+  it('si NO hay contradicciones, va la PRIMERA', () => {
+    const r = ordenDeGrupos(['duplicidad', 'ambiguedad'], true);
+
+    expect(r[0]).toEqual({ clase: 'cobertura' });
+    expect(r[1]).toEqual({ clase: 'tipo', tipo: 'duplicidad' });
+  });
+
+  it('sin ningún grupo, la cobertura es lo único', () => {
+    expect(ordenDeGrupos([], true)).toEqual([{ clase: 'cobertura' }]);
+  });
+
+  it('sin cobertura, el orden es el de siempre y nada se mueve', () => {
+    const r = ordenDeGrupos(TIPOS, false);
+
+    expect(r).toHaveLength(4);
+    expect(r.map(x => x.clase === 'tipo' ? x.tipo : 'COBERTURA')).toEqual(TIPOS);
+  });
+
+  /** No se pierde ni se duplica ningún grupo: el orden REORDENA, no filtra. */
+  it('están todos los grupos, una sola vez', () => {
+    const r = ordenDeGrupos(TIPOS, true);
+    const tipos = r.filter(x => x.clase === 'tipo').map(x => (x as { tipo: string }).tipo);
+
+    expect(tipos).toEqual(TIPOS);
+    expect(r.filter(x => x.clase === 'cobertura')).toHaveLength(1);
   });
 });

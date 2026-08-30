@@ -10,7 +10,7 @@ import IncompleteAnalysisNotice from '@/components/IncompleteAnalysisNotice';
 import SelectionLimitNotice from '@/components/SelectionLimitNotice';
 import type { SelectionLimitItem } from '@/components/SelectionLimitNotice';
 import TableCoverageBlock from './TableCoverageBlock';
-import { contarSinCorrespondencia } from './table-coverage';
+import { contarSinCorrespondencia, ordenDeGrupos } from './table-coverage';
 import type { ProblemType, Problem } from './problems';
 import { mostrarAccionesDeFila } from './problems';
 import type { GrupoDeTablas } from '@/lib/analysis/types';
@@ -83,6 +83,7 @@ export default function ChatPanel({
    */
   const [coberturaAbierta, setCoberturaAbierta] = useState(false);
   const hayCobertura = Boolean(tableDiffs && tableDiffs.length > 0);
+  const hayAlcance = Boolean(selectionLimits && selectionLimits.length > 0);
 
   // Translated labels for group headers (plural) and type badges
   const groupLabels: Record<ProblemType, string> = {
@@ -229,25 +230,66 @@ export default function ChatPanel({
         </div>
       )}
 
-      {/* F-74 P2: DESPUES del de incompleto, y tambien fuera del bloque de
-          problemas — el recorte por presupuesto puede dejar cero hallazgos, que
-          es justo cuando mas falta hace decir que no se miro todo. */}
-      {selectionLimits && selectionLimits.length > 0 && (
-        <div style={{ padding: '10px 16px 0', flexShrink: 0 }}>
-          <SelectionLimitNotice limits={selectionLimits} />
-        </div>
-      )}
-
-      {/* La caja se pinta si hay problemas O si hay cobertura: un par de
-          tablas cuyo único resultado fuera cobertura —caso que F-84 P1 declaró
-          aceptable— dejaría la caja vacía y las cincuenta ajenas sin enseñar. */}
-      {(groupedProblems.length > 0 || hayCobertura) && (
+      {/* La caja se pinta si hay CUALQUIERA de las tres cosas. El aviso de
+          alcance cuenta: el recorte por presupuesto puede dejar cero hallazgos,
+          que es justo cuando más falta hace decir que no se miró todo — antes
+          vivía fuera de la caja por ese motivo, y ahora entra con su propia
+          condición para que ese caso siga cubierto.
+          Y un par de tablas cuyo único resultado fuera cobertura —caso que
+          F-84 P1 declaró aceptable— dejaría la caja vacía y las cincuenta
+          ajenas sin enseñar. */}
+      {(groupedProblems.length > 0 || hayCobertura || hayAlcance) && (
         <div style={{
           padding: '10px 16px', borderBottom: '0.5px solid var(--border)',
           display: 'flex', flexDirection: 'column', gap: 10,
           flexShrink: 0, maxHeight: 300, overflowY: 'auto',
         }}>
-          {groupedProblems.map(({ type, items }) => {
+          {/* EL PRIMERO DE TODOS. Es una nota sobre qué NO se llegó a mirar, y
+              leerla después de los hallazgos invitaría a creer que la lista
+              está completa. Dentro de la caja, como todo lo que produce el
+              análisis. */}
+          {hayAlcance && <SelectionLimitNotice limits={selectionLimits!} />}
+          {/* F-88, 30/08 — EL ORDEN DE LOS GRUPOS, decidido fuera del pintado.
+              «Sin correspondencia» va SEGUNDA, justo tras las contradicciones;
+              si no hay contradicciones, primera. La regla y su porqué están en
+              `ordenDeGrupos` (table-coverage.ts), con sus casos: una regla de
+              colocación escrita dentro del JSX es una regla sin vigilancia, y
+              en este módulo ya ha pasado dos veces. */}
+          {ordenDeGrupos(groupedProblems.map(g => g.type), hayCobertura).map(ranura => {
+            if (ranura.clase === 'cobertura') {
+              return (
+                <div key="cobertura" style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  <div
+                    onClick={() => setCoberturaAbierta(o => !o)}
+                    style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', userSelect: 'none' }}
+                  >
+                    <svg
+                      width="12" height="12" viewBox="0 0 24 24" fill="none"
+                      stroke="var(--text-muted)" strokeWidth="2.5"
+                      strokeLinecap="round" strokeLinejoin="round"
+                      style={{
+                        transform: coberturaAbierta ? 'rotate(0deg)' : 'rotate(-90deg)',
+                        transition: 'transform 0.15s', flexShrink: 0,
+                      }}
+                    >
+                      <polyline points="6 9 12 15 18 9" />
+                    </svg>
+                    <span style={{
+                      fontSize: 11, fontWeight: 700, color: 'var(--text-muted)',
+                      textTransform: 'uppercase', letterSpacing: 0.4, flex: 1,
+                    }}>
+                      {t('tableCoverageGroup')} ({contarSinCorrespondencia(tableDiffs!)})
+                    </span>
+                  </div>
+                  {coberturaAbierta && (
+                    <TableCoverageBlock grupos={tableDiffs!} nombreDocumentoAnalizado={documentName} />
+                  )}
+                </div>
+              );
+            }
+
+            const type = ranura.tipo as ProblemType;
+            const items = groupedProblems.find(g => g.type === type)!.items;
             const meta = typeMeta[type];
             const isCollapsed = collapsedGroups.has(type);
             return (
@@ -527,51 +569,6 @@ export default function ChatPanel({
               </div>
             );
           })}
-
-          {/* F-88 ficha A, 2ª REVISIÓN — «SIN CORRESPONDENCIA», UN GRUPO MÁS.
-
-              Dentro de la lista, al lado de Contradicciones y las demás, con el
-              mismo plegado y el mismo titular. Antes vivía en un bloque aparte
-              debajo y le comía sitio al chat, que es la otra mitad útil del
-              modal — el criterio de esta pantalla es que todo lo que produce el
-              análisis va DENTRO de la caja de problemas.
-
-              NO ES UN ProblemType, y por eso no usa `collapsedGroups` ni entra
-              en el filtro por tipo: es COBERTURA, información sin botón (F-84
-              P1). Meterlo en la taxonomía lo haría contar como un hallazgo, que
-              es justo lo que esa respuesta decidió que no fuera. */}
-          {hayCobertura && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-              <div
-                onClick={() => setCoberturaAbierta(o => !o)}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: 6,
-                  cursor: 'pointer', userSelect: 'none',
-                }}
-              >
-                <svg
-                  width="12" height="12" viewBox="0 0 24 24" fill="none"
-                  stroke="var(--text-muted)" strokeWidth="2.5"
-                  strokeLinecap="round" strokeLinejoin="round"
-                  style={{
-                    transform: coberturaAbierta ? 'rotate(0deg)' : 'rotate(-90deg)',
-                    transition: 'transform 0.15s', flexShrink: 0,
-                  }}
-                >
-                  <polyline points="6 9 12 15 18 9" />
-                </svg>
-                <span style={{
-                  fontSize: 11, fontWeight: 700, color: 'var(--text-muted)',
-                  textTransform: 'uppercase', letterSpacing: 0.4, flex: 1,
-                }}>
-                  {t('tableCoverageGroup')} ({contarSinCorrespondencia(tableDiffs!)})
-                </span>
-              </div>
-              {coberturaAbierta && (
-                <TableCoverageBlock grupos={tableDiffs!} nombreDocumentoAnalizado={documentName} />
-              )}
-            </div>
-          )}
         </div>
       )}
 
