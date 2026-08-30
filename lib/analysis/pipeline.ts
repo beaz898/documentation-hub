@@ -14,6 +14,8 @@ import { verifyClaimsAgainstCorpus } from './verify-claims';
 import { emparejarTablas } from './table-pairing';
 import { emitirDiffDeTablas } from './diff-emision';
 import { restarTablasCubiertas, type TablaCubierta } from './alcance';
+import { veredictoDeEmparejamiento } from './emparejamiento-juez';
+import type { ParDeTablas } from './table-pairing';
 import { groupChunksByTable } from './table-structure';
 import { doubleCheckContradictions } from './double-check';
 import type { DoubleCheckedDiscrepancy } from './double-check';
@@ -226,6 +228,12 @@ async function applyCascadeToCandidate(
   newDocumentName: string,
   label: string,
   structuralOverlaps: StructuralOverlap[],
+  /** F-89 P2 (frente 1): los pares de tablas que el diff EMITIÓ, o sea sobre
+   *  los que comparó celda a celda. Con ellos, R2 puede comprobar la tercera
+   *  condición que llevaba desde F-22 sin verificar: que las dos filas del
+   *  hallazgo sean LA MISMA FILA. Vacío = el diff no comparó nada (documentos
+   *  de prosa, tablas sin clave), y entonces R2 decide como siempre. */
+  paresDelDiff: ParDeTablas[],
 ): Promise<CascadeOutcome> {
   const counts: DiscardedFindings = {};
   const tally: CascadeTally = {
@@ -288,6 +296,31 @@ async function applyCascadeToCandidate(
     // si confirma, el emparejamiento de valores. Un solo origen para las dos.
     const newCells = ev.newChunk?.cells ?? null;
     const existingCells = ev.existingChunk?.cells ?? null;
+
+    // ── LA TERCERA CONDICIÓN, POR FIN COMPROBADA (F-89 P2, B.124) ──────
+    //
+    // ANTES DE R2 Y NO DESPUÉS, y el orden es la mitad del arreglo: si las dos
+    // filas no son la misma fila, no hay nada que R2 pueda decir sobre ellas.
+    // Comprobarlo después dejaría el sello puesto y lo quitaría a
+    // continuación, que es otra cosa — y en el camino ya habría contado un
+    // `confirmado.por_estructura` que no lo era.
+    //
+    // SOLO DESCARTA CUANDO EL DIFF TIENE AUTORIDAD. 'sin_cobertura' significa
+    // que ningún par emitido cubre esas tablas: el diff no comparó nada ahí y
+    // no puede desmentir a nadie. Ése es el caso de las tablas sin clave y de
+    // todo lo que no es tabla, y ahí R2 sigue exactamente como siempre — la
+    // guarda del ancla que F-89 P3 propone para ese hueco NO entra en este
+    // commit.
+    const emparejado = veredictoDeEmparejamiento(paresDelDiff, ev.newChunk, ev.existingChunk);
+    if (emparejado === 'no_pareja') {
+      bumpCount(counts, 'descartado.emparejamiento_invalido');
+      tally.descartados++;
+      console.log(
+        `[${label}] · [${ev.hash}] "${(c.topic ?? '(sin titulo)').slice(0, 60)}" → descartado: ` +
+        `emparejamiento_invalido (el diff dice que esas dos filas no van juntas)`
+      );
+      return;
+    }
 
     const verdict = applyDeterministicRules({
       newDocSays: c.newDocSays,
@@ -697,6 +730,8 @@ async function runCorePipeline(
       input.newDocumentName,
       label,
       structuralOverlaps.get(judgment.documentId) ?? [],
+      // F-89 P2: por esto subió el emparejamiento en el commit anterior.
+      emparejamiento.pares,
     );
 
     // La emisión, con los ids: `input.excludeDocumentId` (el analizado, que
