@@ -290,6 +290,25 @@ export function diffPairedRows(
  * decide el emparejamiento, no la clasificación: `TableDiffResult` no las
  * tiene y fabricárselas aquí sería recalcular lo que otro ya decidió.
  */
+/**
+ * ⚠️ `discrepantes` NO ES LO QUE EL USUARIO VE, y quien compare los dos
+ * números tiene que saberlo antes de creer que hay un fallo (F-88 P4).
+ *
+ * Este contador cuenta TODAS las filas que difieren, incluidas aquellas cuyas
+ * diferencias son todas variantes de escritura. Ésas NO se emiten como
+ * discrepancia —no significan nada distinto—, así que:
+ *
+ *     filas en el array de contradicciones = discrepantes − variantes_escritura
+ *
+ * NO SE REDEFINE `discrepantes` PARA QUE CUADRE: es un número medido, con
+ * batería propia, y cambiar qué significa para que encaje con otro es mover el
+ * termómetro. Lo que se hace es escribir la relación.
+ *
+ * SOBRE EL CORPUS LOS DOS NÚMEROS COINCIDEN, porque sus tablas se generaron
+ * programáticamente y no producen variantes de escritura (cero medido, ver
+ * B.117). La divergencia aparecerá el día que un cliente real tenga una: ese
+ * día, ver 17 aquí y 15 en la bandeja NO es un fallo.
+ */
 export function contadoresDelDiff(
   key: Extract<TableKeyResult, { status: 'emparejado' }>,
   diff: TableDiffResult,

@@ -24,6 +24,32 @@ tal», y eso sigue siendo cierto para siempre. Lo que sí puede pudrirse es su
 LECTURA, si alguien lo toma por presente — para eso está la cabecera de estado
 de cada fichero.
 
+### LO QUE FABLE DA POR EXISTENTE — un patrón, no tres accidentes
+
+**Tres veces ha dado por construida una pieza que no estaba**, y las tres con la
+misma forma: una subordinada de paso —«que ya existe», «que ya viaja»— sobre
+algo que el repositorio no tenía. No son errores de criterio: las tres
+decisiones eran correctas y se implementaron enteras. Lo que era falso es que
+fueran gratis.
+
+| Consulta | Lo que dio por existente | Qué había en realidad |
+|---|---|---|
+| **F-84 P3** | «el orden canónico **que ya existe** — por id, no por rol» (F-84.md:169) | No existía. Hubo que escribir `ordenCanonico` en `huella-hallazgo.ts` |
+| **F-83 P2 / F-84 P1** | «**la** pareja de tablas», en singular — un emparejador entre documentos | No existía. La fase 1 recibía dos tablas ya elegidas y nadie las elegía. Lo destapó F-88 y lo escribió su paso 1 |
+| **F-88 P2** | «es un `if` sobre un campo **que ya viaja**» | No viajaba. Ni la discrepancia ni `Problem` decían de qué materia es un hallazgo; hubo que crear `origen` |
+
+**Por qué pasa, y por qué importa poco y mucho a la vez.** Fable razona sobre la
+descripción que le damos, y una descripción correcta a nivel de diseño puede
+omitir que la pieza está a medio construir — el caso de la pareja de tablas es
+el más claro: era CIERTO en el corpus, donde cada documento tiene una sola
+tabla. Importa poco porque las decisiones se sostienen. Importa mucho porque el
+COSTE estimado en la respuesta se apoya en esa subordinada, y quien planifique
+un commit leyendo «es un if» presupuestará mal.
+
+**Qué hacer al leer una respuesta**: cuando diga «que ya existe» o «que ya
+viaja», **comprobarlo en el repositorio antes de estimar**. Es la regla de
+verificación al usar (F-85 P3) aplicada a un caso concreto que se repite.
+
 ---
 
 ## LAS REGLAS DE LA CASA
