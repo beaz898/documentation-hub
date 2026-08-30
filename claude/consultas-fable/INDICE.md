@@ -107,14 +107,20 @@ queda superado, pero **no administra su propio estado**.
 | **[F-86](F-86.md)** | 28/08/2026 | La segunda huella del sistema (la del «No es error»), el orden del arreglo, la persistencia de los descartes y el id del documento | **parcialmente superada** · *su rama del «si falta», por F-87* · PAR COMPLETO | Ninguna todavía: son el plan del frente que queda |
 | **[F-87](F-87.md)** | 28/08/2026 | El camino sin id existe y es el más usado: el diff corre igual, lo que no puede es recordar | **vigente** · PAR COMPLETO | Ninguna todavía: son el plan del frente que queda |
 | **[F-88](F-88.md)** | 29/08/2026 | Nadie empareja tablas entre documentos: N×M con tres puertas, el groupId opaco, y las variantes de escritura como cuarta clase | **vigente** · PAR COMPLETO | Ninguna todavía: son el plan de los dos commits que quedan |
-| **[F-89](F-89.md)** | 30/08/2026 | El sello «confirmado por estructura» sobre un emparejamiento que el juez inventó — y EL MAPA DEL MVP: cuatro frentes, cuáles bloquean | **vigente** · PAR COMPLETO | La REGLA DE CIERRE (bloqueante/declarable) — protocolo. La jerarquía simétrica y la regla del ancla, pendientes del frente 1 |
+| **[F-89](F-89.md)** | 30/08/2026 | El sello «confirmado por estructura» sobre un emparejamiento que el juez inventó — y EL MAPA DEL MVP: cuatro frentes, cuáles bloquean | **parcialmente superada** · *el margen del ancla y qué hace el ancla, por F-90* · PAR COMPLETO | La REGLA DE CIERRE (bloqueante/declarable) — protocolo. La jerarquía simétrica, pendiente del frente 1 |
+| **[F-90](F-90.md)** | 30/08/2026 | Qué pasa donde el diff no pudo comparar: el margen del ancla MEDIDO, y sin clave la estructura no firma | **vigente** · PAR COMPLETO | Ninguna todavía: son el plan de lo que queda del frente 1 |
 
 ---
 
-## EL AGUJERO, MEDIDO EL 28/08/2026 (rango ampliado a F-89 el 30/08)
+## EL AGUJERO, MEDIDO EL 28/08/2026 (rango ampliado a F-90 el 30/08)
 
-**Seis pares completos de F-70 a F-89: F-84, F-85, F-86, F-87, F-88 y F-89.** El resto, o a medias o nada:
+**Siete pares completos de F-70 a F-90: F-84, F-85, F-86, F-87, F-88, F-89 y F-90.** El resto, o a medias o nada:
 
+- **F-90 — PAR COMPLETO**, en `F-90.md` (30/08/2026). LA PRIMERA VEZ QUE UNA
+  MEDICIÓN NUESTRA CORRIGE UNA CIFRA DE FABLE: llamó «mucho más estrecho» a un
+  margen que medido resultó ser del 77% en tablas anchas. Lo reconoce sin
+  rodeos, y la consecuencia no fue reforzar la guarda sino retirar una
+  pretensión.
 - **F-89 — PAR COMPLETO**, en `F-89.md` (30/08/2026). LA ENTRADA MÁS CARGADA
   del archivo: trae doctrina nueva (la jerarquía determinista cerrada por los dos
   lados, la regla del ancla, el criterio bloqueante/declarable) Y el mapa entero
