@@ -124,8 +124,15 @@ describe('la cascada descarta el emparejamiento inválido — camino completo', 
   /**
    * EL CASO DE B.124, ENTERO. Es el falso positivo que llegó a producción con
    * el sello más fuerte del producto: EST-02 contra EST-03, ocho columnas
-   * citadas, todas distintas. Antes de este arreglo salía
+   * citadas, todas distintas. Antes del frente 1 salía
    * `confirmado.por_estructura`.
+   *
+   * SALE POR `cubierto_por_diff` Y NO POR `emparejamiento_invalido`, y el
+   * matiz importa: sobre un par EMITIDO la supresión de F-89 P4 llega ANTES que
+   * la verificación de identidad — no hace falta demostrar que el
+   * emparejamiento es falso para tirarlo, basta con que el diff ya haya
+   * comparado esas tablas mejor. La verificación de identidad conserva su
+   * territorio en los caídos por la 3ª puerta (punto 3).
    */
   it('EST-02 contra EST-03 sale DESCARTADO, no confirmado', async () => {
     const { pares, nueva, existente } = await corpus();
@@ -139,7 +146,7 @@ describe('la cascada descarta el emparejamiento inválido — camino completo', 
     expect(r.judgment.contradictions).toHaveLength(0);
     expect(r.tally.descartados).toBe(1);
     expect(r.tally.confirmados).toBe(0);
-    expect(r.judgment.discarded?.['descartado.emparejamiento_invalido']).toBe(1);
+    expect(r.judgment.discarded?.['descartado.cubierto_por_diff']).toBe(1);
   });
 
   /**
@@ -161,15 +168,19 @@ describe('la cascada descarta el emparejamiento inválido — camino completo', 
   });
 
   /**
-   * LA OTRA MITAD, y sin ella el caso de arriba no valdría nada: la
-   * discrepancia REAL sobre la misma tabla SIGUE CONFIRMÁNDOSE. EST-03 contra
-   * EST-03 difiere en Precio base —es una de las quince sembradas— y tiene que
-   * sobrevivir con su sello.
+   * EL DUPLICADO — Y ES EL PUNTO ENTERO DE F-89 P4, no un daño colateral.
    *
-   * Un guardián que descartara las dos sería tan falso como el que confirmaba
-   * las dos, y el contador de la bandeja no lo distinguiría.
+   * EST-03 contra EST-03 difiere en Precio base: es una de las quince
+   * sembradas y el juez ACIERTA. Aun así SE SUPRIME, porque esa misma
+   * discrepancia ya está entre las quince que el diff emitió, con mejor
+   * evidencia. Publicarla dos veces es el «diecisiete donde hay quince» medido
+   * en producción el 30/08 (15 del diff + 2 del juez, las dos legítimas y las
+   * dos ya dentro de las quince).
+   *
+   * NO SE PIERDE NADA: lo que este hallazgo dice sigue publicado, por la vía
+   * del diff. Lo que desaparece es el duplicado.
    */
-  it('la discrepancia REAL de la misma tabla sigue confirmándose por estructura', async () => {
+  it('el hallazgo LEGÍTIMO del juez también se suprime: es el duplicado del 17→15', async () => {
     const { pares, nueva, existente } = await corpus();
     // Solo la columna que de verdad difiere, que es lo que el juez cita cuando
     // acierta — medido en producción el 30/08 en el exhaustivo.
@@ -178,10 +189,32 @@ describe('la cascada descarta el emparejamiento inválido — camino completo', 
       pares, nueva.rows, existente.rows,
     );
 
-    expect(r.judgment.contradictions).toHaveLength(1);
-    expect(r.judgment.contradictions[0].confirmedBy).toBe('estructura');
-    expect(r.tally.confirmadosPorEstructura).toBe(1);
-    expect(r.judgment.discarded?.['descartado.emparejamiento_invalido']).toBeUndefined();
+    expect(r.judgment.contradictions).toHaveLength(0);
+    expect(r.tally.confirmadosPorEstructura).toBe(0);
+    expect(r.judgment.discarded?.['descartado.cubierto_por_diff']).toBe(1);
+  });
+
+  /**
+   * ⚠️ EL CRUCE TABLA-PROSA NO SE SUPRIME, y sale gratis por cómo está escrita
+   * la condición: `veredictoDeEmparejamiento` devuelve 'sin_cobertura' en
+   * cuanto un lado no es fila de tabla. F-78 y F-90 le reservan expresamente
+   * ese territorio al juez —«el precio de la tabla contra el párrafo que dice
+   * otro»— y ahí el diff no tiene nada que decir.
+   */
+  it('un cruce TABLA-PROSA sobre la misma tabla NO se suprime', async () => {
+    const { pares, nueva, existente } = await corpus();
+    const { judgment, evidence } = juicioConHallazgo(
+      fila(nueva, 'EST-03'), fila(existente, 'EST-03'), ['Precio base'],
+    );
+    // El lado existente deja de ser una fila de tabla: es prosa.
+    evidence.contradictions[0].existingChunk = null;
+    evidence.contradictions[0].existingColumns = null;
+
+    const r = await applyCascadeToCandidate(
+      judgment, evidence, nueva.rows, existente.rows, OPE11, 'test', [], pares,
+    );
+
+    expect(r.judgment.discarded?.['descartado.cubierto_por_diff']).toBeUndefined();
   });
 
   /**
@@ -199,7 +232,7 @@ describe('la cascada descarta el emparejamiento inválido — camino completo', 
       [], nueva.rows, existente.rows,
     );
 
-    expect(r.judgment.discarded?.['descartado.emparejamiento_invalido']).toBeUndefined();
+    expect(r.judgment.discarded?.['descartado.cubierto_por_diff']).toBeUndefined();
     // Y sigue el camino de siempre: ocho columnas distintas, R2 lo confirma.
     // Es exactamente el fallo de B.124, vivo donde el diff no llega — y así
     // seguirá hasta que entre la degradación universal sin clave (F-90 P2).

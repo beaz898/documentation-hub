@@ -310,27 +310,37 @@ export async function applyCascadeToCandidate(
     const newCells = ev.newChunk?.cells ?? null;
     const existingCells = ev.existingChunk?.cells ?? null;
 
-    // ── LA TERCERA CONDICIÓN, POR FIN COMPROBADA (F-89 P2, B.124) ──────
+    // ── EL DIFF ES LA AUTORIDAD SOBRE LO QUE COMPARÓ (F-89 P4) ─────────
     //
-    // ANTES DE R2 Y NO DESPUÉS, y el orden es la mitad del arreglo: si las dos
-    // filas no son la misma fila, no hay nada que R2 pueda decir sobre ellas.
-    // Comprobarlo después dejaría el sello puesto y lo quitaría a
-    // continuación, que es otra cosa — y en el camino ya habría contado un
-    // `confirmado.por_estructura` que no lo era.
+    // SE SUPRIME TODO FILA-CONTRA-FILA SOBRE UN PAR EMITIDO, no solo lo falso,
+    // y el argumento es de DOMINANCIA ESTRICTA: sobre ese par el diff vio
+    // SESENTA filas completas y el juez VEINTIDÓS truncadas. Todo lo verdadero
+    // que el juez pueda decir ahí, el diff ya lo dijo con mejor evidencia; todo
+    // lo que añada es, en el mejor caso, un DUPLICADO —el «diecisiete donde hay
+    // quince» medido en producción el 30/08— y en el peor, un emparejamiento
+    // inventado (B.124). Un segundo opinador que solo puede empatar o fabricar
+    // no aporta: resta.
     //
-    // SOLO DESCARTA CUANDO EL DIFF TIENE AUTORIDAD. 'sin_cobertura' significa
-    // que ningún par emitido cubre esas tablas: el diff no comparó nada ahí y
-    // no puede desmentir a nadie. Ése es el caso de las tablas sin clave y de
-    // todo lo que no es tabla, y ahí R2 sigue exactamente como siempre — la
-    // guarda del ancla que F-89 P3 propone para ese hueco NO entra en este
-    // commit.
-    const emparejado = veredictoDeEmparejamiento(paresDelDiff, ev.newChunk, ev.existingChunk);
-    if (emparejado === 'no_pareja') {
-      bumpCount(counts, 'descartado.emparejamiento_invalido');
+    // ANTES DE R2, como la comprobación que sustituye: si el hallazgo no va a
+    // publicarse, no hay nada que R2 tenga que decidir sobre él — y decidirlo
+    // primero contaría un `confirmado.por_estructura` que nadie va a ver.
+    //
+    // ⚠️ LA CONDICIÓN ES «CUBIERTO», NO «NO ES PAREJA». 'sin_cobertura'
+    // significa que ningún par EMITIDO cubre esas dos tablas, y ahí el juez
+    // conserva su hallazgo: es el territorio que F-78 y F-90 le reservan
+    // —prosa, cruces tabla-prosa, tablas sin clave— y suprimir ahí sería tirar
+    // hallazgos de terreno que el diff nunca miró, un fallo peor que el que
+    // esto cura.
+    // Los cruces TABLA-PROSA quedan fuera SOLOS, sin condición aparte:
+    // `veredictoDeEmparejamiento` ya devuelve 'sin_cobertura' cuando un lado no
+    // es fila de tabla.
+    const cobertura = veredictoDeEmparejamiento(paresDelDiff, ev.newChunk, ev.existingChunk);
+    if (cobertura !== 'sin_cobertura') {
+      bumpCount(counts, 'descartado.cubierto_por_diff');
       tally.descartados++;
       console.log(
         `[${label}] · [${ev.hash}] "${(c.topic ?? '(sin titulo)').slice(0, 60)}" → descartado: ` +
-        `emparejamiento_invalido (el diff dice que esas dos filas no van juntas)`
+        `cubierto_por_diff (el diff ya comparó esas dos tablas celda a celda)`
       );
       return;
     }
