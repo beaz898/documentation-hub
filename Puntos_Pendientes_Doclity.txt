@@ -2723,6 +2723,46 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     que la pieza que R2 declaró imposible existe desde F-81 y ya corre en la
     misma pasada.
 
+  B.125 — [LÍMITE DE EVIDENCIA, abierto 30/08 con el frente 1] LA REMEDIACIÓN
+    DE UN FALLO DEL JUEZ DEPENDE DE QUE EL JUEZ LO REPRODUZCA, Y NO LO HACE.
+    QUÉ SE INTENTÓ: verificar en pantalla el arreglo de B.124 —R2 descarta el
+    emparejamiento inválido— lanzando el análisis de OPE-11 contra OPE-10.
+    QUÉ PASÓ: en CUATRO pasadas (tres rápidas y una exhaustiva) el juez NO
+    volvió a emitir el falso EST-02/EST-03 ni una sola vez. En el rápido emitió
+    UNA contradicción; en el exhaustivo DOS, y las dos legítimas —EST-03 se
+    confirmó con UNA sola columna (Precio base), que es la discrepancia real
+    sembrada, mientras que la falsa citaba ocho—.
+    Los contadores lo confirman: hallazgos_entrantes 1, descartados 0, ningún
+    emparejamiento_invalido. LA GUARDA NO CAZÓ NADA PORQUE NO TUVO NADA QUE
+    CAZAR. Eso NO es que el arreglo funcione: es que la pasada no lo pisa.
+    LA CAUSA es B.82: el juez no es estable ni consigo mismo — el mismo par de
+    documentos, con el mismo prompt byte a byte, produce falsos positivos
+    DISTINTOS entre ejecuciones. Un fallo que aparece de forma intermitente no
+    se puede usar como prueba de su propia cura.
+    ES LA MISMA CLASE DE LÍMITE QUE B.121, y conviene verlos juntos: un
+    INSTRUMENTO QUE NO PUEDE FALLAR DONDE DEBERÍA.
+      · B.121 — el corpus es simétrico (25 y 25), así que no puede detectar una
+        confusión de lados por mucho que se mire.
+      · B.125 — el juez es intermitente, así que no puede reproducir su propio
+        fallo por mucho que se lance.
+    En los dos casos el verde de la verificación NO ES EVIDENCIA, y en los dos
+    la salida fue la misma: construir el caso a mano.
+    LO QUE SE HIZO: lib/analysis/cascada-emparejamiento.test.ts fabrica el
+    hallazgo TAL COMO EL JUEZ LO EMITIÓ —título, citas y las ocho columnas,
+    copiados del log— y ejerce la cascada ENTERA sin tocar ningún modelo
+    (applyCascadeToCandidate solo alcanza verifyFindings si un hallazgo
+    sobrevive hasta toVerify, y el del caso se descarta antes).
+    LO QUE ESE CASO DEMUESTRA Y LO QUE NO, escrito también en su cabecera
+    porque es lo que se leerá mal dentro de seis meses:
+      · DEMUESTRA el CABLEADO — si llega, se descarta.
+      · NO DEMUESTRA la INCIDENCIA — con qué frecuencia llega. Eso solo lo
+        puede decir un corpus de cliente, o muchas pasadas contadas.
+    REGLA PRÁCTICA QUE DEJA, para no volver a discutirlo: la verificación en
+    pantalla de un arreglo sobre un fallo INTERMITENTE del juez no es
+    concluyente por diseño. Sirve para detectar regresiones en lo que sí es
+    estable (que las quince sigan siendo quince, que el reparto no cambie),
+    NUNCA para dar por bueno el arreglo. Lo que concluye es el caso fabricado.
+
   F-81 [CONVERGENCIA — leer ANTES de planificar la fase 3 del diff, 27/08] No
     es un pendiente nuevo: es el sitio donde se juntan tres que ya existen, más
     una consecuencia. Se anota aquí porque el momento en que importan es el de

@@ -181,7 +181,7 @@ interface CascadeTally {
   reclasificados: number;
 }
 
-interface CascadeOutcome {
+export interface CascadeOutcome {
   judgment: DocumentJudgment;
   tally: CascadeTally;
 }
@@ -220,7 +220,20 @@ interface CascadeOutcome {
  * buildStructuralTopic queda solo como respaldo para cuando el topic del juez
  * venga vacío.
  */
-async function applyCascadeToCandidate(
+/**
+ * EXPORTADA SOLO PARA PODER PROBAR EL CABLEADO (F-89 frente 1, 30/08).
+ *
+ * No la llama nadie más que `runCorePipeline`. Se exporta porque la decisión de
+ * descartar un emparejamiento inválido se podía probar en su función pura pero
+ * NO en su camino — y un arreglo cuyo camino no se puede ejercer depende de que
+ * el juez repita el fallo, que es justo lo que B.82 dice que no hace.
+ *
+ * SE PUEDE LLAMAR DESDE LA SUITE sin tocar ningún modelo: esta función solo
+ * llega a `verifyFindings` —la única llamada al LLM que tiene— si algún hallazgo
+ * sobrevive hasta `toVerify`. Un caso construido para que su único hallazgo se
+ * descarte antes no la alcanza nunca.
+ */
+export async function applyCascadeToCandidate(
   judgment: DocumentJudgment,
   evidence: JudgmentEvidence,
   newDocumentChunks: StoredChunk[],
