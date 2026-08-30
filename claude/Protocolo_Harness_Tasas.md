@@ -349,6 +349,25 @@ regla de admisión (arriba) vale igual para una batería que para una tasa.
 La configuración —el alias de `@/*` y este mismo alcance, en comentario— está en
 `vitest.config.mts`.
 
+**El alcance lo hace cumplir una guarda, desde el 30/08.** Estuvo tres días
+escrito aquí y en `vitest.config.mts` sin que lo vigilara nadie, y se rompió sin
+que saltara nada: un caso llamaba a api.anthropic.com, volvía 401, el fail-open
+del cliente se lo tragaba y **pasaba en verde**. Un test que no puede fallar por
+la razón que vigila. Ver B.126.
+
+`vitest.setup.ts` intercepta `fetch` —por ahí pasan los tres— **anota** la
+violación y rompe el caso **desde `afterEach`**, no desde la excepción: el código
+de producción está diseñado para tragarse los fallos de red y se tragaría también
+el de la guarda. **Que un test no pueda silenciar a su propia guarda es la única
+forma de que la guarda sirva de algo** — comprobado mutándola: sin el `afterEach`,
+el caso sucio vuelve a pasar en verde.
+
+De ahí sale una regla de escritura, no solo de herramienta: **en la batería solo
+caben caminos que terminen en descarte.** Lo que sobrevive, sobrevive *hacia el
+modelo*, y eso no se mide aquí — se mide en una tanda (§3). Si un caso rompe
+contra la guarda, la salida no es apagarla ni añadir un mock: es que el caso se
+salió del alcance.
+
 **Los tests entran en `npm run typecheck`.** Importan `describe`/`it`/`expect`
 explícitamente desde `'vitest'` en vez de declarar globals, así que `tsc` los
 compila como cualquier otro `.ts` sin tocar `tsconfig.json` — verificado

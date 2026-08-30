@@ -2759,7 +2759,10 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     hallazgo TAL COMO EL JUEZ LO EMITIÓ —título, citas y las ocho columnas,
     copiados del log— y ejerce la cascada ENTERA sin tocar ningún modelo
     (applyCascadeToCandidate solo alcanza verifyFindings si un hallazgo
-    sobrevive hasta toVerify, y el del caso se descarta antes).
+    sobrevive hasta toVerify, y el del caso se descarta antes). ⚠️ ESA
+    GARANTÍA ERA UNA FRASE Y NO SE CUMPLÍA: otro caso del mismo fichero sí la
+    alcanzaba y pasaba en verde. Corregido el 30/08 con la guarda de red — ver
+    B.126. Ahora lo garantiza la guarda, no el paréntesis.
     LO QUE ESE CASO DEMUESTRA Y LO QUE NO, escrito también en su cabecera
     porque es lo que se leerá mal dentro de seis meses:
       · DEMUESTRA el CABLEADO — si llega, se descarta.
@@ -2770,6 +2773,64 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     concluyente por diseño. Sirve para detectar regresiones en lo que sí es
     estable (que las quince sigan siendo quince, que el reparto no cambie),
     NUNCA para dar por bueno el arreglo. Lo que concluye es el caso fabricado.
+
+  B.126 — [HALLAZGO SOBRE LA BATERÍA ENTERA, abierto y cerrado el 30/08] UN
+    TEST QUE LLAMABA AL MODELO, FALLABA CON 401 Y PASABA EN VERDE. LA
+    BATERÍA NO PODÍA AVISAR, Y LO QUE LO GARANTIZABA ERA UNA FRASE.
+    CÓMO SALIÓ: preparando el punto 4 del frente 1, un caso nuevo empezó a
+    alcanzar verifyFindings. La llamada salió DE VERDAD a api.anthropic.com,
+    volvió 401 «invalid x-api-key», el fail-open del cliente se la tragó —que
+    es lo CORRECTO en producción— y el caso pasó. Un test que no puede fallar
+    por la razón que vigila: vigilaba un descarte determinista y lo daba por
+    bueno porque el modelo no había contestado.
+    LA AUDITORÍA, porque el hallazgo no era del caso sino de la batería: se
+    escribió la guarda y se pasó la batería ENTERA con ella. Cayó UN caso de
+    234, ya commiteado y verde desde el frente 1:
+      · «un cruce TABLA-PROSA sobre la misma tabla NO se suprime»
+        (cascada-emparejamiento.test.ts). Dos llamadas externas por pasada, y
+        cinco segundos de backoff que nadie había mirado.
+    Ningún test toca Supabase ni Pinecone: verificado en la misma pasada.
+    LA CAUSA DE FONDO, que es la que importa: EL ALCANCE ESTABA DECLARADO Y NO
+    VIGILADO. vitest.config.mts y el §1-bis del protocolo dicen desde el 27/08
+    «nada que necesite Supabase, Pinecone o Anthropic». Estaba escrito en dos
+    sitios y no lo hacía cumplir nadie, así que se rompió sin que saltara nada.
+    Y LA CABECERA DEL FICHERO AFIRMABA LO CONTRARIO DE LO QUE PASABA — escrita
+    por Claude en el mismo frente:
+      «SIN LLAMAR A NINGÚN MODELO, y por construcción... Si algún día un caso
+       de este fichero intentara alcanzarla, fallaría por falta de clave de
+       API, que es un aviso ruidoso y no un falso verde.»
+    Falsa en las dos mitades: un caso ya la alcanzaba, y no avisaba. La misma
+    frase se había propagado a B.125, entre paréntesis, y también se corrigió.
+    ES LA CUARTA PLANTILLA EN SU FORMA MÁS PURA —dar por existente algo que no
+    está— pero con un agravante que las otras tres no tienen: aquí lo daba por
+    existente UNA GARANTÍA ESCRITA POR NOSOTROS, no una consulta a Fable.
+    LO QUE SE HIZO: vitest.setup.ts, guarda de red.
+      1. Intercepta fetch — por ahí pasan los tres, Anthropic, Supabase y
+         Pinecone, así que se cierran de una vez.
+      2. ANOTA la violación y rompe el caso DESDE afterEach, NO desde la
+         excepción. Ésta es la pieza que importa: el código de producción está
+         DISEÑADO para tragarse los fallos de red, así que se tragaría también
+         el de la guarda. Que un test no pueda silenciar a su propia guarda es
+         la única forma de que la guarda sirva de algo.
+    LA GUARDA SE MUTÓ, porque una guarda que no puede dispararse es decoración:
+      · caso sucio que llama y hace catch, igual que el fail-open real → ROJO.
+        El caso limpio de detrás, verde: no se contagia.
+      · (m1) quitar el afterEach y dejar solo la excepción → EL CASO SUCIO PASA
+        EN VERDE. Es la demostración directa de que la frase vieja era falsa.
+      · (m2) no anotar la violación → EL CASO SUCIO PASA EN VERDE.
+      Las dos mitades cargan peso.
+    LÍMITE DECLARADO: la guarda ve la llamada que SALE, no la intención de
+    llamar. Supabase revienta al CONSTRUIR el cliente (supabaseUrl is required)
+    antes de tocar fetch, así que un caso que solo pisara el rate-limiter no
+    sería detectado. Hoy no hay ninguno — está declarado por si mañana lo hay.
+    LA REGLA QUE DEJA, escrita en la cabecera del fichero y en el §1-bis:
+    EN LA BATERÍA SOLO CABEN CAMINOS QUE TERMINEN EN DESCARTE. Lo que
+    sobrevive, sobrevive HACIA EL MODELO, y eso no se mide en una batería
+    determinista — se mide en una tanda. La propiedad del cruce tabla-prosa se
+    quedó donde sí es determinista, sobre la función pura.
+    LO QUE SE PIERDE, dicho y no escondido: el cableado del lado de prosa, o
+    sea que la cascada le pase a veredictoDeEmparejamiento los argumentos que
+    cree. No tiene forma determinista de probarse.
 
   F-81 [CONVERGENCIA — leer ANTES de planificar la fase 3 del diff, 27/08] No
     es un pendiente nuevo: es el sitio donde se juntan tres que ya existen, más

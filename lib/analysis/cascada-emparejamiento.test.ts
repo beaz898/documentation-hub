@@ -35,12 +35,27 @@ import type { DocumentJudgment } from './types';
  * recorre.
  * ═══════════════════════════════════════════════════════════════════════
  *
- * SIN LLAMAR A NINGÚN MODELO, y por construcción: `applyCascadeToCandidate`
- * solo alcanza `verifyFindings` —su única llamada al LLM— si algún hallazgo
- * sobrevive hasta `toVerify`. Los casos de aquí están hechos para que su único
- * hallazgo se descarte antes, así que esa llamada no se produce. Si algún día
- * un caso de este fichero intentara alcanzarla, fallaría por falta de clave de
- * API, que es un aviso ruidoso y no un falso verde.
+ * ⚠️ SIN LLAMAR A NINGÚN MODELO — pero NO «por construcción». Esa frase estaba
+ * escrita aquí, en este mismo sitio, y ERA FALSA.
+ *
+ * `applyCascadeToCandidate` alcanza `verifyFindings` —su única llamada al LLM—
+ * en cuanto un hallazgo sobrevive hasta `toVerify`, y un caso de este fichero
+ * lo hacía: salía a api.anthropic.com de verdad, volvía 401 «invalid
+ * x-api-key», el fail-open del cliente se lo tragaba —que es lo CORRECTO en
+ * producción— y el caso PASABA EN VERDE.
+ *
+ * La frase decía además que una llamada así «fallaría por falta de clave de
+ * API, que es un aviso ruidoso y no un falso verde». No era ruidoso: el código
+ * de producción está DISEÑADO para tragarse los fallos de red. El aviso no
+ * existía, y por eso nadie lo oyó.
+ *
+ * Lo que ahora lo garantiza no es una frase, es una guarda: `vitest.setup.ts`
+ * rompe cualquier caso que haga una llamada externa, y lo rompe desde
+ * `afterEach` para que ningún `catch` de producción pueda silenciarla.
+ *
+ * LA REGLA QUE SALE DE AQUÍ, y vale para todo el fichero: SOLO CABEN CAMINOS
+ * QUE TERMINEN EN DESCARTE. Lo que sobrevive, sobrevive HACIA EL MODELO, y eso
+ * no se mide en una batería determinista — se mide en una tanda.
  */
 
 const OPE10 = 'OPE-10_tarifario-tratamientos-2026.xlsx';
@@ -197,29 +212,29 @@ describe('la cascada descarta el emparejamiento inválido — camino completo', 
   });
 
   /**
-   * ⚠️ EL CRUCE TABLA-PROSA NO SE SUPRIME, y sale gratis por cómo está escrita
-   * la condición: `veredictoDeEmparejamiento` devuelve 'sin_cobertura' en
-   * cuanto un lado no es fila de tabla. F-78 y F-90 le reservan expresamente
-   * ese territorio al juez —«el precio de la tabla contra el párrafo que dice
-   * otro»— y ahí el diff no tiene nada que decir.
+   * ⚠️ EL CRUCE TABLA-PROSA NO TIENE CASO AQUÍ, Y ES DELIBERADO: lo tuvo, y era
+   * el falso verde que destapó la guarda de red.
+   *
+   * La propiedad es buena — un hallazgo con un lado de prosa NO se suprime, y
+   * sale gratis por cómo está escrita la condición: `veredictoDeEmparejamiento`
+   * devuelve 'sin_cobertura' en cuanto un lado no es fila de tabla. F-78 y F-90
+   * le reservan ese territorio al juez —«el precio de la tabla contra el
+   * párrafo que dice otro»— y ahí el diff no tiene nada que decir.
+   *
+   * PERO «NO SE SUPRIME» QUIERE DECIR QUE SOBREVIVE, y sobrevivir en esta
+   * cascada es llegar a `verifyFindings`. El caso llamaba al modelo, la llamada
+   * fallaba, el fail-open se la tragaba y el verde no significaba nada.
+   *
+   * DÓNDE VIVE AHORA: en la función pura, que es donde la propiedad es
+   * determinista — `emparejamiento-juez.test.ts`, «un hallazgo de PROSA —sin
+   * fila de tabla— no se toca», con los dos lados.
+   *
+   * QUÉ SE PIERDE, dicho y no escondido: el CABLEADO del lado de prosa, o sea
+   * que la cascada le pase a `veredictoDeEmparejamiento` los argumentos que
+   * cree. El cableado de la supresión sí queda probado por los dos casos de
+   * arriba, que terminan en descarte y por eso no tocan ningún modelo; el del
+   * lado de prosa no tiene forma determinista de probarse aquí.
    */
-  it('un cruce TABLA-PROSA sobre la misma tabla NO se suprime', async () => {
-    const { pares, nueva, existente } = await corpus();
-    const { judgment, evidence } = juicioConHallazgo(
-      fila(nueva, 'EST-03'), fila(existente, 'EST-03'), ['Precio base'],
-    );
-    // El lado existente deja de ser una fila de tabla: es prosa.
-    evidence.contradictions[0].existingChunk = null;
-    evidence.contradictions[0].existingColumns = null;
-
-    const r = await applyCascadeToCandidate(
-      judgment, evidence, nueva.rows, existente.rows, OPE11, 'test', [],
-      { emitidos: pares, sinInterseccion: [] },
-    );
-
-    expect(r.judgment.discarded?.['descartado.cubierto_por_diff']).toBeUndefined();
-  });
-
   /**
    * ⚠️ EL FRENO, ejercido en el camino y no solo en la función pura: sin pares
    * del diff, la cascada NO descarta nada. Es el estado normal de la prosa y de

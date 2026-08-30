@@ -37,6 +37,11 @@ import { defineConfig } from 'vitest/config';
  * estar, y el type-check de `next build` no se rompe por símbolos sin declarar.
  */
 export default defineConfig({
+  test: {
+    // La guarda de red: hace cumplir el alcance declarado arriba en vez de
+    // dejarlo escrito y sin vigilar. Ver vitest.setup.ts.
+    setupFiles: ["./vitest.setup.ts"],
+  },
   resolve: {
     alias: [
       // tsconfig.json tiene `"paths": { "@/*": ["./*"] }` y Vitest no lee
