@@ -107,13 +107,18 @@ queda superado, pero **no administra su propio estado**.
 | **[F-86](F-86.md)** | 28/08/2026 | La segunda huella del sistema (la del «No es error»), el orden del arreglo, la persistencia de los descartes y el id del documento | **parcialmente superada** · *su rama del «si falta», por F-87* · PAR COMPLETO | Ninguna todavía: son el plan del frente que queda |
 | **[F-87](F-87.md)** | 28/08/2026 | El camino sin id existe y es el más usado: el diff corre igual, lo que no puede es recordar | **vigente** · PAR COMPLETO | Ninguna todavía: son el plan del frente que queda |
 | **[F-88](F-88.md)** | 29/08/2026 | Nadie empareja tablas entre documentos: N×M con tres puertas, el groupId opaco, y las variantes de escritura como cuarta clase | **vigente** · PAR COMPLETO | Ninguna todavía: son el plan de los dos commits que quedan |
+| **[F-89](F-89.md)** | 30/08/2026 | El sello «confirmado por estructura» sobre un emparejamiento que el juez inventó — y EL MAPA DEL MVP: cuatro frentes, cuáles bloquean | **vigente** · PAR COMPLETO | La REGLA DE CIERRE (bloqueante/declarable) — protocolo. La jerarquía simétrica y la regla del ancla, pendientes del frente 1 |
 
 ---
 
-## EL AGUJERO, MEDIDO EL 28/08/2026 (rango ampliado a F-88 el 29/08)
+## EL AGUJERO, MEDIDO EL 28/08/2026 (rango ampliado a F-89 el 30/08)
 
-**Cinco pares completos de F-70 a F-88: F-84, F-85, F-86, F-87 y F-88.** El resto, o a medias o nada:
+**Seis pares completos de F-70 a F-89: F-84, F-85, F-86, F-87, F-88 y F-89.** El resto, o a medias o nada:
 
+- **F-89 — PAR COMPLETO**, en `F-89.md` (30/08/2026). LA ENTRADA MÁS CARGADA
+  del archivo: trae doctrina nueva (la jerarquía determinista cerrada por los dos
+  lados, la regla del ancla, el criterio bloqueante/declarable) Y el mapa entero
+  del MVP. Es la primera que contiene un PLAN DE CIERRE y no solo una decisión.
 - **F-88 — PAR COMPLETO**, en `F-88.md` (29/08/2026). Es la TERCERA superación
   que marca el archivo, y la primera que supera a DOS consultas a la vez y por
   el MISMO supuesto tácito: F-83 P2 y F-84 P1 hablaban de «la pareja de tablas»

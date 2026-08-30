@@ -242,6 +242,54 @@ normativo es actualizar lo que afirma del presente, nunca borrar lo que se crey�
 en su momento — eso es lo que hace el archivo, y para eso está.
 
 
+## ⚠️ REGLA DE CIERRE: qué bloquea y qué se declara
+
+*Promovida de F-89 P6 el 30/08/2026. Se promueve ANTES que las otras dos reglas
+de esa consulta —la jerarquía simétrica y la regla del ancla, que esperan a su
+commit— porque ésta la usa el director ANTES de que se cierre ningún frente, y
+una vara que vive solo dentro de una respuesta no se puede aplicar sola.*
+
+**LA PROMESA VENDIBLE TIENE TRES PATAS:**
+
+1. **Lo mostrado es real.**
+2. **Lo estructural es completo.**
+3. **Lo no examinado se declara.**
+
+**EL CRITERIO, en una línea cada uno:**
+
+> Es **BLOQUEANTE** todo lo que hace **falso lo mostrado** o **pierde un juicio
+> del usuario**.
+>
+> Es **DECLARABLE** todo lo que sea **límite de cobertura contado y dicho**.
+
+**POR QUÉ ESTA FRONTERA Y NO OTRA.** No separa lo grave de lo leve ni lo caro de
+lo barato: separa lo que **rompe una promesa** de lo que **la promesa ya prevé**.
+Un límite de cobertura no es un defecto si está contado y dicho — la promesa
+nunca fue exhaustividad. Un falso con sello sí lo es, por pequeño que sea,
+porque desmiente la primera pata. Y perder un juicio del usuario desmiente F-67,
+que es de donde sale la segunda mitad del criterio.
+
+**CÓMO SE APLICA.** Ante cualquier pendiente, dos preguntas:
+  · ¿Hace que algo mostrado sea falso? → bloqueante.
+  · ¿Pierde una decisión que el usuario ya tomó? → bloqueante.
+  · ¿Es cobertura que no llega, CONTADA y DICHA? → declarable.
+  · ¿Es cobertura que no llega y NO se cuenta ni se dice? → bloqueante, hasta
+    que se cuente y se diga. Contarlo y decirlo es lo que la vuelve declarable.
+
+**EL ÚLTIMO PUNTO ES EL QUE MÁS SE OLVIDA**, y es el que convierte esta regla en
+trabajo y no en excusa: declarar no es callar con permiso. Un límite declarable
+que nadie ha contado ni escrito **no está declarado**, y mientras no lo esté,
+bloquea igual. Es la misma exigencia que la condición 3 de la regla de entrada
+—todo cambio deja contador— vista desde el cierre en vez de desde la entrada.
+
+**EL LISTÓN, textual de F-89:** «esto se le enseña a un cliente diciendo la
+verdad entera — que es el único listón que este producto se ha puesto».
+
+El reparto vigente de los cuatro frentes del MVP —cuáles bloquean y cuáles se
+declaran— está en `Puntos_Pendientes_Doclity.txt`, «EL MAPA DEL MVP». Aquí vive
+el criterio; allí, su aplicación.
+
+
 ## 1. Para qué sirve
 
 La regla que fijaron F-59 y F-61, y que este harness existe para hacer cumplible:

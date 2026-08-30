@@ -167,6 +167,102 @@ LO QUE NO HACEMOS (límite explícito)
 ════════════════════════════════════════════════════════════════
 PARTE B — TAREAS PENDIENTES (orden a confirmar)
 ════════════════════════════════════════════════════════════════
+EL MAPA DEL MVP — los cuatro frentes (F-89 P5/P6, 30/08/2026)
+════════════════════════════════════════════════════════════════
+
+PARA QUÉ ESTÁ ESTO AQUÍ. La lista de pendientes de abajo se lee como deuda
+suelta, y no lo es: casi ningún pendiente vivo necesita arreglo propio —
+necesita QUE SU FRENTE LLEGUE. Este mapa dice de qué frente es cada uno.
+Es el plan de cierre de F-89, y se lee ANTES que la lista.
+
+EL PATRÓN QUE LO JUSTIFICA, verificado dos veces esta semana: un frente futuro
+resuelve un problema presente. El ciclo de vida del documento mata el camino sin
+id; las citas por referencia matan el límite de la huella de prosa. Arreglar el
+síntoma antes de que llegue su frente es trabajo que se tira.
+
+EL CRITERIO PARA LEER LA COLUMNA «bloquea»: está en el protocolo,
+claude/Protocolo_Harness_Tasas.md, «REGLA DE CIERRE». En una línea: bloquea lo
+que hace FALSO lo mostrado o PIERDE un juicio del usuario; se declara lo que sea
+límite de cobertura CONTADO Y DICHO.
+
+────────────────────────────────────────────────────────────────
+FRENTE 1 — R2 y el emparejamiento          [BLOQUEA]   ← EL SIGUIENTE
+────────────────────────────────────────────────────────────────
+  Qué: R2 verifica el emparejamiento donde hay clave; guarda del ancla donde no
+       la hay; supresión del juez sobre pares que el diff ya comparó.
+  Absorbe: B.124, y de propina el «dieciséis donde hay quince».
+  Forma: tres commits deterministas con suite (la cascada es código puro), y
+         TANDA DE HARNESS después — cambia qué se confirma en el producto
+         entero, no solo en tablas.
+  Por qué bloquea: publica falsos con el sello más fuerte. Rompe la primera pata.
+
+────────────────────────────────────────────────────────────────
+FRENTE 2 — cierre de la emisión            [BLOQUEA]
+────────────────────────────────────────────────────────────────
+  Qué: Ficha B (acciones por fila sobre huella tabular + extensión del payload
+       de F-87 a tablas) y el saneo de B.122 segunda mitad.
+  Absorbe: Ficha B, B.122 (2ª mitad).
+  Después: REMEDICIÓN COMPLETA, que ahora es también la validación del Frente 1.
+  Por qué bloquea: el saneo de B.122 es HIGIENE DE DATOS DEL CLIENTE —veinte
+       filas suyas viajando a tres prompts y a la persistencia—, y eso es cara
+       al MVP, no opcional.
+
+────────────────────────────────────────────────────────────────
+FRENTE 3 — ciclo de vida del documento     [BLOQUEA]
+────────────────────────────────────────────────────────────────
+  Qué: la fila nace en la subida con estado (en_revision → indexado/descartado).
+       Especificado en intención en F-87 P4.
+  Absorbe: B.112 (huérfanos: la identidad pasa a ser la FILA y no el nombre),
+       el camino sin id (jubila el puente del payload de F-87), y B.119 en sus
+       caminos restantes —la persistencia de descartes de F-86 se extiende a
+       solapamientos, estilo y demás cuando todo hallazgo cuelga de un documento
+       con identidad estable.
+  Por qué bloquea: B.112 enseña el análisis de un documento MUERTO —información
+       falsa en pantalla— y eso no puede vivir declarado.
+  NOTA: era «frente propio, y no va ahora» en F-87 P4. F-89 lo asciende a
+       tercer frente del MVP. Ya no es futuro.
+
+────────────────────────────────────────────────────────────────
+FRENTE 4 — prosa                           [SE DECLARA]  post-MVP
+────────────────────────────────────────────────────────────────
+  Qué: segmentación estructural, apartado como unidad, small-to-big, citas por
+       referencia. Especificación de F-80/F-81, en papel.
+  Absorbe: B.106 (el techo de una-por-par se disuelve con apartado-contra-
+       apartado y pasadas múltiples), B.107 (las citas por referencia matan la
+       glosa y la narración de raíz), B.123 en su mitad de prosa, la selección
+       al 4,7%, y la medición del exhaustivo en prosa larga.
+  Por qué se declara: la promesa NUNCA FUE exhaustividad en prosa. Vive
+       declarado CON SUS CONTADORES Y SUS AVISOS — y ojo, sin ellos no está
+       declarado y entonces sí bloquea (ver la regla de cierre).
+
+────────────────────────────────────────────────────────────────
+DÓNDE CAE CADA PENDIENTE VIVO
+────────────────────────────────────────────────────────────────
+  B.106  → Frente 4     (declarable)
+  B.107  → Frente 4     (declarable)
+  B.112  → Frente 3     (BLOQUEA)
+  B.119  → Frente 3     (BLOQUEA en el flujo principal)
+  B.122  → Frente 2     (BLOQUEA — 1ª mitad ya hecha el 30/08)
+  B.123  → tablas: RESUELTO por el diff · prosa: Frente 4 (declarable)
+  B.124  → Frente 1     (BLOQUEA)
+  Ficha B → Frente 2    (BLOQUEA)
+  Selección de prosa al 4,7%      → Frente 4 (declarable)
+  Exhaustivo en prosa larga       → Frente 4 (declarable, sin medir)
+
+  LOS QUE NO TIENEN FRENTE porque son de otra especie: B.102, B.104, B.105,
+  B.108, B.109, B.110, B.111, B.113, B.114, B.115, B.116, B.117, B.118, B.121.
+  Son límites de evidencia, deuda documental o mantenimiento — no cambian lo que
+  el cliente ve. Se leen aparte y no entran en esta cuenta.
+
+────────────────────────────────────────────────────────────────
+QUÉ FALTA PARA ENSEÑÁRSELO A UN CLIENTE, en una línea
+────────────────────────────────────────────────────────────────
+  LOS FRENTES 1, 2 Y 3 CERRADOS, Y LA REMEDICIÓN EN VERDE.
+  El 4 se declara. Textual de F-89: «esto se le enseña a un cliente diciendo la
+  verdad entera — que es el único listón que este producto se ha puesto».
+
+
+════════════════════════════════════════════════════════════════
 
 Leyenda: [ ] pendiente · [~] en curso · [✓] hecho
 
