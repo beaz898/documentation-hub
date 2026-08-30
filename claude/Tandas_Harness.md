@@ -15,6 +15,103 @@ principio del protocolo.
 
 ---
 
+## 31/08/2026 — `cceddf86` — PREDICCIÓN ESCRITA ANTES DE LANZAR
+
+*Este bloque se escribe y se commitea ANTES de la primera pasada. Los
+resultados se añaden debajo, en esta misma entrada, sin tocar lo de arriba: si
+una predicción falla, es HALLAZGO y se cuenta, no se acomoda.*
+
+**Qué valida esta tanda**: los cuatro puntos del frente 1 (supresión del juez,
+verificación de la 3ª puerta, la traza, y «sin clave la estructura no firma»),
+más la emisión del diff de F-88. Es todo lo que cambió el 29, el 30 y el 31.
+
+### LO QUE NO ES PREDICCIÓN, SINO CÁLCULO
+
+Cuatro cifras salen de correr el emparejador y la emisión sobre los mismos
+ficheros de `corpus-pruebas/`, así que **no se estiman: se computan**. Si
+producción no las da, no es que la predicción falle — es que producción no está
+haciendo lo que el código hace con los mismos bytes.
+
+| Dirección | Emite el diff | Clave |
+|---|---|---|
+| OPE-11 contra OPE-10 | **15** | sí |
+| OPE-10 contra OPE-11 | **15** | sí |
+| RRHH-06 contra OPE-02 | **1** — «Discrepancia en Puesto», la sembrada | `Empleado`, 100% única en los dos lados, 10 filas emparejadas |
+| OPE-02 contra RRHH-06 | **1** | ídem |
+
+### P1 — LAS TRES DE F-90, que son contra lo que se contrasta
+
+1. **Quince exactas** en el contador, las dos direcciones del par grande.
+2. **Cero fila-contra-fila del juez confirmados por estructura**, o sea
+   `verificador.confirmados_por_estructura` = **0 en TODAS las pasadas de TODOS
+   los casos**. Desde el punto 4 el juez no tiene camino a ese sello: si se
+   mueve, alguien firma sin derecho.
+3. **Ningún hallazgo del registro de siembra perdido.**
+
+### P2 — LOS CASOS 1 Y 2 CAMBIAN DE PRODUCTOR, y su ficha no lo dice todavía
+
+`Casos_Harness.md` dice de los casos 1 y 2 «confirmada **por estructura**», y
+seguirá siendo verdad — pero **la firma otro**. RRHH-06/OPE-02 empareja con
+clave, luego el diff emite la discrepancia de `Puesto` y **el hallazgo del juez
+sobre ese mismo par sale suprimido** (`descartado.cubierto_por_diff`), igual que
+pasó con OPE-11 el 30/08.
+
+⚠️ **Cómo NO leer un cero aquí**: si `descartado.cubierto_por_diff` vale 0 en
+alguna pasada, eso NO es un fallo — es que el juez no emitió nada sobre ese par,
+y es intermitente por B.82. Lo que **no puede** aparecer es un
+`confirmado.por_estructura` del juez. Ése sí sería el hallazgo.
+
+### P3 — EL CONTROL DE REGRESIÓN NO SE MUEVE
+
+Casos 3, 4, 8, 9, 10 y 11 y el control negativo 5 dan **lo mismo que su línea de
+base**. El diff no toca prosa, así que cualquier cambio ahí es hallazgo — no hay
+mecanismo previsto por el que pudiera moverse.
+
+### P4 — EL COSTE: la cifra que Fable espera, y por qué el harness NO PODÍA DARLA
+
+Fable predijo «de una a cinco llamadas cortas de Haiku por análisis, y si sale de
+ahí, traedlo». **Con el harness tal como está escrito, esa cifra habría salido
+CERO, y el cero habría sido del instrumento y no del sistema.**
+
+El punto 4 solo actúa en **territorio sin clave**, y los dos pares de tablas del
+harness **tienen clave los dos** — computado arriba. Todo hallazgo
+fila-contra-fila cae antes, en la supresión. Luego `a_juicio.sin_clave` = 0 en
+los casos 1, 2, 6 y 7, **por construcción del corpus**.
+
+Es la misma clase de límite que B.121 (el corpus es simétrico, no puede detectar
+una confusión de lados) y B.125 (el juez es intermitente, no puede reproducir su
+propio fallo): **un instrumento que no puede fallar donde debería.**
+
+**LA SALIDA, computada**: los cuatro cruces de tablas que NO son los pares del
+harness caen por la PRIMERA puerta, con cero pares y cero tablas sin
+intersección — OPE-10↔OPE-02, OPE-11↔OPE-02, OPE-10↔RRHH-06, OPE-11↔RRHH-06. Ahí
+sí hay territorio sin clave. De ahí sale la **pasada extra** del plan, que no es
+ningún caso del catálogo y no sustituye a ninguno.
+
+### P5 — LA TRADUCCIÓN QUE HAY QUE HACER ANTES DE CONTESTARLE A FABLE
+
+**`a_juicio.sin_clave` NO es «llamadas cortas», y confundirlos daría una cifra
+inflada.** `verifyFindings` mete hasta **15 hallazgos por llamada**
+(`MAX_PER_CALL`), y se invoca **una vez por documento candidato** con lo que haya
+sobrevivido. Luego:
+
+> cinco hallazgos degradados en un documento son **UNA** llamada, no cinco.
+
+La cifra de Fable —1 a 5 llamadas— se corresponde con **1 a 5 documentos
+candidatos que tengan al menos un degradado**, no con el contador. Las dos se
+apuntan por separado.
+
+Y el otro lado del balance, medido el 30/08 y que va en la misma resta: la
+supresión bajó las candidatas al double-check de **17 a 15**.
+
+### P6 — QUÉ HARÍA FALTA PARA QUE UNA PASADA NO VALGA
+
+`stageFailures` presente. Es la regla del protocolo §4 y no se negocia: si el LLM
+se cayó, las tasas no miden lo que se cree.
+
+
+---
+
 ## 30/08/2026 — `06952da4` — LA SUPRESIÓN DEL JUEZ: 17 → 15
 
 **Qué se lanzó**: dos pasadas exhaustivas y dos rápidas de OPE-11 contra
