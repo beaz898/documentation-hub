@@ -11,6 +11,9 @@ import { synthesizeFinalAnalysis, markIncompleteAnalysis } from './synthesize';
 import { checkContentHash } from './hash-check';
 import { extractAtomicClaims } from './extract-claims';
 import { verifyClaimsAgainstCorpus } from './verify-claims';
+import { emparejarTablas } from './table-pairing';
+import { emitirDiffDeTablas } from './diff-emision';
+import { groupChunksByTable } from './table-structure';
 import { doubleCheckContradictions } from './double-check';
 import type { DoubleCheckedDiscrepancy } from './double-check';
 import { analyzeStyle } from './style-check';
@@ -658,7 +661,57 @@ async function runCorePipeline(
       label,
       structuralOverlaps.get(judgment.documentId) ?? [],
     );
-    judgments.push(outcome.judgment);
+    // ── LA EMISIÓN DEL DIFF DE TABLAS (F-88 paso 2) ───────────────────
+    //
+    // DESPUÉS DE LA CASCADA Y NO ANTES, y no es una comodidad: la cascada
+    // verifica citas y aplica reglas pensadas para hallazgos del JUEZ. Meter
+    // por ahí un veredicto determinista sería exponerlo a que una etapa lo
+    // degrade, que es lo que F-64 prohíbe y lo que la frontera del
+    // double-check ya evita río abajo. Entra con su `confirmedBy: 'estructura'`
+    // puesto y nadie se lo discute.
+    //
+    // Los dos lados salen de aquí sin buscar nada: las tablas del documento
+    // analizado de sus chunks, las del candidato de los suyos, y los ids de
+    // `input.excludeDocumentId` (el analizado, que puede faltar — F-87) y
+    // `judgment.documentId` (el del corpus, que nunca falta).
+    const emparejamiento = emparejarTablas(
+      groupChunksByTable(newDocumentChunksForCascade),
+      groupChunksByTable(existingChunksForCascade),
+    );
+    const emision = emitirDiffDeTablas(
+      emparejamiento.pares,
+      {
+        nuevo: { id: input.excludeDocumentId, nombre: input.newDocumentName },
+        existente: { id: judgment.documentId, nombre: judgment.documentName },
+      },
+    );
+
+    const conDiff: DocumentJudgment = emision.contradicciones.length > 0 || emision.grupos.length > 0
+      ? {
+          ...outcome.judgment,
+          contradictions: [...outcome.judgment.contradictions, ...emision.contradicciones],
+          tableDiffs: [...(outcome.judgment.tableDiffs ?? []), ...emision.grupos],
+        }
+      : outcome.judgment;
+
+    if (emision.grupos.length > 0) {
+      console.log(
+        `[${label}] Diff de tablas contra "${judgment.documentName}": ` +
+        `${emision.grupos.length} pareja(s), ${emision.contradicciones.length} discrepancia(s) emitida(s)`
+      );
+    }
+
+    // LOS CONTADORES DEL DIFF, sumados candidato a candidato. Van al mismo
+    // acumulador que el resto: `mergeCounters` los funde por nombre y descarta
+    // lo no declarado (cláusula 4). Se suman AQUÍ, en cuanto se conocen, por
+    // el mismo criterio que los de la cascada — quien salga antes no los lleva,
+    // y no llevarlos es la verdad.
+    for (const [k, v] of Object.entries({ ...emparejamiento.counts, ...emision.counts })) {
+      const clave = k as keyof typeof counters;
+      counters[clave] = (counters[clave] ?? 0) + (v as number);
+    }
+
+    judgments.push(conDiff);
     totalHallazgos += outcome.tally.total;
     totalConfirmados += outcome.tally.confirmados;
     totalConfirmadosPorEstructura += outcome.tally.confirmadosPorEstructura;

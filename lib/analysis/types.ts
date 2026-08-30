@@ -83,7 +83,41 @@ export interface DocumentJudgment {
     /** F-70: fila completa de cada lado, para plegar en la ficha. */
     newDocRow?: string;
     existingDocRow?: string;
+    /**
+     * F-88 paso 2 — DE DÓNDE VIENE ESTE HALLAZGO, para poder bifurcar por tipo.
+     *
+     * NO SIRVE `confirmedBy: 'estructura'` PARA ESTO, y conviene decirlo porque
+     * es el error natural: R2 ya emite hallazgos estructurales sobre PROSA, y
+     * ésos SÍ deben conservar sus acciones por fila. Lo que hay que distinguir
+     * no es quién lo confirmó sino de qué MATERIA es.
+     *
+     * Ausente = como siempre (juez o R2). Su único consumidor hoy es la
+     * supresión de acciones de F-88 P2.
+     */
+    origen?: 'diff_tabular';
+    /**
+     * F-88 paso 2 — LA CLAVE DE AGRUPACIÓN, OPACA a propósito.
+     *
+     * LA HUELLA RECUERDA, EL groupId ENSAMBLA. Compartido por las filas de una
+     * misma pareja de tablas y por su entrada en `tableDiffs`, para que la
+     * ficha pueda volver a juntarlas. No cruza análisis y no identifica nada
+     * ante nadie: su vida entera es el ensamblaje de UNA emisión.
+     * Ver el contrato en diff-emision.ts sobre por qué NO deriva del contenido.
+     */
+    groupId?: string;
+    /**
+     * F-88 paso 2 — LA HUELLA TABULAR de esta fila (huellaDeHallazgo).
+     *
+     * AUSENTE EN EL CAMINO PRE-INDEXADO, y no es un fallo: sin el id del
+     * documento analizado no hay orden canónico posible (F-87 P4). El hallazgo
+     * se emite igual —«justo ahí es donde más vale», F-87 P1—; lo que falta es
+     * la memoria, no el hallazgo. Se cuenta en `diff.clasificacion.pre_indexado`.
+     */
+    huella?: string;
   }>;
+  /** F-88 paso 2: la estructura agrupada de cada pareja de tablas de este
+   *  candidato. Vacío en los documentos sin tablas, que es el caso normal. */
+  tableDiffs?: GrupoDeTablas[];
   overlappingContent: Array<{
     description: string;
     evidence: string;
@@ -239,6 +273,37 @@ export interface FinalAnalysis {
     /** F-70: fila completa de cada lado, para plegar en la ficha. */
     newDocRow?: string;
     existingDocRow?: string;
+    /**
+     * F-88 paso 2 — DE DÓNDE VIENE ESTE HALLAZGO, para poder bifurcar por tipo.
+     *
+     * NO SIRVE `confirmedBy: 'estructura'` PARA ESTO, y conviene decirlo porque
+     * es el error natural: R2 ya emite hallazgos estructurales sobre PROSA, y
+     * ésos SÍ deben conservar sus acciones por fila. Lo que hay que distinguir
+     * no es quién lo confirmó sino de qué MATERIA es.
+     *
+     * Ausente = como siempre (juez o R2). Su único consumidor hoy es la
+     * supresión de acciones de F-88 P2.
+     */
+    origen?: 'diff_tabular';
+    /**
+     * F-88 paso 2 — LA CLAVE DE AGRUPACIÓN, OPACA a propósito.
+     *
+     * LA HUELLA RECUERDA, EL groupId ENSAMBLA. Compartido por las filas de una
+     * misma pareja de tablas y por su entrada en `tableDiffs`, para que la
+     * ficha pueda volver a juntarlas. No cruza análisis y no identifica nada
+     * ante nadie: su vida entera es el ensamblaje de UNA emisión.
+     * Ver el contrato en diff-emision.ts sobre por qué NO deriva del contenido.
+     */
+    groupId?: string;
+    /**
+     * F-88 paso 2 — LA HUELLA TABULAR de esta fila (huellaDeHallazgo).
+     *
+     * AUSENTE EN EL CAMINO PRE-INDEXADO, y no es un fallo: sin el id del
+     * documento analizado no hay orden canónico posible (F-87 P4). El hallazgo
+     * se emite igual —«justo ahí es donde más vale», F-87 P1—; lo que falta es
+     * la memoria, no el hallazgo. Se cuenta en `diff.clasificacion.pre_indexado`.
+     */
+    huella?: string;
   }>;
   /** Diferencias de enfoque o matiz confirmadas como no estrictamente incompatibles (solo modo exhaustivo). */
   minorInconsistencies?: Array<{
@@ -252,6 +317,20 @@ export interface FinalAnalysis {
      *  de F-69, F-70 y F-71. */
     existingDocumentId?: string;
   }>;
+  /**
+   * F-88 paso 2 — LA ESTRUCTURA AGRUPADA del diff de tablas, una por pareja.
+   *
+   * VIAJA AUNQUE NADIE LA PINTE TODAVÍA: la ficha es el commit siguiente. Se
+   * emite ya porque las CINCUENTA AJENAS no tienen otro domicilio —F-84 P1 las
+   * dejó fuera de todos los contadores planos a propósito— y un dato que no
+   * viaja es un dato que hay que volver a calcular.
+   *
+   * ⚠️ CAMPO DE PRIMER NIVEL, así que hay que añadirlo A MANO en las dos listas
+   * CERRADAS de serialización: app/api/analyze-v2/route.ts y
+   * worker/src/index.ts. Es exactamente el hueco por el que `stageFailures` no
+   * llegó al cliente en F-71.
+   */
+  tableDiffs?: GrupoDeTablas[];
   newInformation: string;
   recommendation: 'INDEXAR' | 'REVISAR' | 'NO_INDEXAR';
   summary: string;
@@ -327,4 +406,59 @@ export interface FinalAnalysis {
    * a F-82.
    */
   pipelineCounters?: PipelineCounters;
+}
+
+
+/**
+ * Una fila de tabla tal como la enseña la ficha (F-88 paso 2).
+ * `clave` es para que el usuario reconozca la fila de un vistazo; `texto` es la
+ * fila renderizada por la fase 2 con el orden real de columnas de SU tabla — si
+ * la ficha la volviera a componer, podría elegir otro orden que el usado para
+ * comparar.
+ */
+export interface FilaDeTabla {
+  clave: string;
+  texto: string;
+}
+
+/**
+ * LA TARJETA AGRUPADA de una pareja de tablas (F-83 P2 + F-88 P4), con sus
+ * CUATRO secciones:
+ *
+ *   1. DISCREPANTES — la alarma. No viven aquí sino en el array de
+ *      contradicciones, una por fila (F-84 P1); aquí va solo su recuento y el
+ *      `groupId` que permite volver a juntarlas.
+ *   2. VARIANTES DE ESCRITURA — información, plegada. La fila difiere pero en
+ *      nada que signifique algo distinto.
+ *   3. SOLO EN UNO — información, plegada. En INDICATIVO PURO: «presente solo
+ *      en X», jamás «nueva» ni «eliminada» (F-83 P2, innegociable).
+ *   4. IDÉNTICAS — solo el recuento.
+ */
+export interface GrupoDeTablas {
+  /** Opaco. La huella recuerda; esto ensambla. Ver diff-emision.ts. */
+  groupId: string;
+  tablaNueva: string;
+  tablaExistente: string;
+  documentoExistente: string;
+  documentoExistenteId: string;
+  /** Cuántas filas discrepantes de este grupo hay en el array de
+   *  contradicciones. NO incluye las variantes de escritura. */
+  discrepantes: number;
+  identicas: number;
+  /** Cuántas parejas difieren en cada columna — el índice del titular. Vive en
+   *  el RESULTADO y no en los contadores porque sus claves son nombres de
+   *  columna del cliente (cláusula 5 del contrato de contadores). */
+  porColumna: Record<string, number>;
+  variantesDeEscritura: Array<{
+    clave: string;
+    columnas: string[];
+    enNuevo: string;
+    enOtro: string;
+  }>;
+  /** ⚠️ LOS DOS MONTONES NO SON INTERCAMBIABLES: `soloEnNuevo` es del documento
+   *  que se ANALIZA y `soloEnOtro` del candidato. Confundirlos invierte el
+   *  indicativo sin mover ni un número. El corpus no puede detectarlo porque
+   *  sus montones son simétricos — ver B.121. */
+  soloEnNuevo: FilaDeTabla[];
+  soloEnOtro: FilaDeTabla[];
 }

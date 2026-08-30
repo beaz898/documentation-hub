@@ -144,6 +144,9 @@ async function processJob(job: AnalysisJob): Promise<void> {
       overlaps: analysis.overlaps,
       discrepancies: analysis.discrepancies,
       minorInconsistencies: analysis.minorInconsistencies,
+      // F-88 paso 2: mismo hueco que en el endpoint, y por eso se añade en el
+      // mismo commit que crea el campo. Es la lista que F-71 no amplió.
+      tableDiffs: analysis.tableDiffs,
       newInformation: analysis.newInformation,
       recommendation: analysis.recommendation,
       summary: analysis.summary,

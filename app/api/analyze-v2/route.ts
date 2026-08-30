@@ -564,6 +564,11 @@ export async function POST(req: NextRequest) {
         overlaps: analysis.overlaps,
         discrepancies: marcarSalida(analysis.discrepancies),
         minorInconsistencies: marcarSalida(analysis.minorInconsistencies),
+        // F-88 paso 2: la estructura agrupada del diff. ENTRA EN ESTA LISTA
+        // CERRADA a la vez que nace, que es lo que F-71 documentó no haber
+        // hecho con stageFailures — aquel se añadió a FinalAnalysis y al jsonb
+        // pero no aquí, y el aviso solo aparecía por la bandeja.
+        tableDiffs: analysis.tableDiffs,
         newInformation: analysis.newInformation,
         recommendation: analysis.recommendation,
         summary: analysis.summary,

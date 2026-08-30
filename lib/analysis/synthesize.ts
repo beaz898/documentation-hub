@@ -84,8 +84,27 @@ export function construirDiscrepancias(judgments: DocumentJudgment[]): FinalAnal
       comparedValues: c.comparedValues,
       newDocRow: c.newDocRow,
       existingDocRow: c.existingDocRow,
+      // F-88 paso 2: los tres del diff de tablas. Misma lista CERRADA de
+      // siempre — el cuarto, quinto y sexto campo que pasan por esta puerta
+      // después de los de F-69, F-70, F-71 y F-86.
+      origen: c.origen,
+      groupId: c.groupId,
+      huella: c.huella,
     }))
   );
+}
+
+/**
+ * LAS TARJETAS AGRUPADAS DEL DIFF (F-88 paso 2), recogidas de los juicios.
+ *
+ * Mismo patrón que `construirOverlaps`: una función pura con nombre, para que
+ * el transporte se pueda probar sin llamar al LLM. Aplana porque un candidato
+ * puede aportar varias parejas de tablas — el doble emparejamiento legítimo de
+ * F-88 P1 llega hasta aquí.
+ */
+export function construirTableDiffs(judgments: DocumentJudgment[]): FinalAnalysis['tableDiffs'] {
+  const grupos = judgments.flatMap(j => j.tableDiffs ?? []);
+  return grupos.length > 0 ? grupos : undefined;
 }
 
 /**
@@ -269,6 +288,7 @@ Responde EXCLUSIVAMENTE con este JSON:
   }
 
   const overlaps = construirOverlaps(judgments);
+  const tableDiffs = construirTableDiffs(judgments);
 
   // Construir discrepancies con las claves que el frontend espera
   const discrepancies = construirDiscrepancias(judgments);
@@ -300,6 +320,10 @@ Responde EXCLUSIVAMENTE con este JSON:
     duplicateConfidence: isDuplicate ? topJudgment.overlapPercent : 0,
     overlaps,
     discrepancies,
+    // F-88 paso 2: solo si hay. Ausente significa «no hubo diff de tablas», que
+    // es el caso normal en documentos de prosa — y es distinto de un array
+    // vacío, que diría que sí lo hubo y no encontró nada.
+    ...(tableDiffs ? { tableDiffs } : {}),
     newInformation: synthesis.newInformation,
     recommendation: synthesis.recommendation,
     summary: synthesis.summary,

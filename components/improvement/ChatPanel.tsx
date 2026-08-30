@@ -330,6 +330,16 @@ export default function ChatPanel({
                                     }}>{srcBadge.label}</span>
                                   )}
                                   <span style={{ fontSize: 11, fontWeight: 500, color: 'var(--text-primary)', flex: 1, minWidth: 0 }}>{p.title}</span>
+                                  {/* F-88 P2: SIN ACCIONES POR FILA en los
+                                      hallazgos del diff de tablas. El botón de
+                                      descarte de aquí va respaldado por la
+                                      huella de PROSA, y pulsarlo sobre una fila
+                                      tabular registraría el juicio con una
+                                      identidad de texto — el desajuste que F-86
+                                      acaba de matar. Llegan con la ficha, sobre
+                                      huella tabular. */}
+                                  {p.origen !== 'diff_tabular' && (
+                                    <>
                                   <button
                                     onClick={(e) => { e.stopPropagation(); onDismissProblem(p); }}
                                     title={t('markNotError')}
@@ -349,6 +359,8 @@ export default function ChatPanel({
                                       cursor: sending ? 'not-allowed' : 'pointer', fontWeight: 600, flexShrink: 0, opacity: sending ? 0.5 : 1,
                                     }}
                                   >{t('solve')}</button>
+                                    </>
+                                  )}
                                 </div>
                                 <p style={{ fontSize: 10, color: 'var(--text-secondary)', margin: 0, lineHeight: 1.4 }}>{p.description}</p>
                               </div>
@@ -389,6 +401,9 @@ export default function ChatPanel({
                             }}>{srcBadge.label}</span>
                           )}
                           <span style={{ fontSize: 11, fontWeight: 500, color: 'var(--text-primary)', flex: 1, minWidth: 0 }}>{p.title}</span>
+                          {/* F-88 P2: ver la nota del bloque compacto. */}
+                          {p.origen !== 'diff_tabular' && (
+                            <>
                           <button
                             onClick={(e) => { e.stopPropagation(); onDismissProblem(p); }}
                             title={t('markNotError')}
@@ -409,6 +424,8 @@ export default function ChatPanel({
                               fontWeight: 600, flexShrink: 0, opacity: sending ? 0.5 : 1,
                             }}
                           >{t('solve')}</button>
+                            </>
+                          )}
                         </div>
                         <ProblemDetail p={p} />
                       </div>

@@ -134,6 +134,15 @@ export const COUNTER_CATALOGUE = [
   'diff.clasificacion.solo_en_a',
   'diff.clasificacion.solo_en_b',
   'diff.clasificacion.pre_indexado',
+  // F-88 P4: las filas que difieren SOLO en la escritura. No son
+  // discrepancias —no entran al array ni a las columnas planas— pero tampoco
+  // se callan. OJO AL LEERLO: `discrepantes` (arriba) las INCLUYE, porque lo
+  // produce la fase 2 y cuenta todo lo que difiere. Lo que llega al array es
+  // la resta: discrepantes − variantes_escritura. No se redefine
+  // `discrepantes` para que cuadre: es un número medido con batería propia.
+  // Es además la incidencia observable que B.97 dejó pendiente de ver en el
+  // mundo real — el corpus no puede moverla, solo los clientes.
+  'diff.clasificacion.variantes_escritura',
   // verificador — la cascada de F-25 (pipeline.ts). Recuentos de DECISIÓN:
   // cuántos hallazgos tomaron cada salida, no qué se encontró.
   'verificador.hallazgos_entrantes',

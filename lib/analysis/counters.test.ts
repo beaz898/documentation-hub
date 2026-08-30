@@ -45,6 +45,8 @@ describe('el catálogo', () => {
       // antes de emitir. Que esté aquí sin quien lo incremente es el contrato
       // funcionando, no un olvido.
       'diff.clasificacion.pre_indexado',
+      // F-88 P4. `discrepantes` las incluye; el array recibe la resta.
+      'diff.clasificacion.variantes_escritura',
       'verificador.hallazgos_entrantes',
       'verificador.confirmados',
       'verificador.confirmados_por_estructura',

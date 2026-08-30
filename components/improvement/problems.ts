@@ -48,6 +48,22 @@ export interface Problem {
    * que el usuario lee y lo que leen los tres prompts de ImprovementModal.
    */
   relatedDocSays?: string;
+  /**
+   * F-88 paso 2 — DE QUÉ MATERIA ES ESTE HALLAZGO.
+   *
+   * `diff_tabular` = viene del diff de tablas. Su única consecuencia HOY es
+   * que se le SUPRIMEN LAS ACCIONES POR FILA, y el motivo no es estético: la
+   * tarjeta actual trae el botón de descarte respaldado por la maquinaria de
+   * huella de PROSA. Un usuario que lo pulsara sobre una fila tabular
+   * registraría el juicio con una identidad de texto — el desajuste exacto que
+   * F-86 acaba de matar.
+   *
+   * Las acciones de verdad llegan con la ficha (commit siguiente), sobre huella
+   * TABULAR. Mientras tanto el hallazgo se ve, que es lo que importa: verdad
+   * sin promesa de memoria, y es un intervalo de obra, no un estado del
+   * producto (F-88 P2).
+   */
+  origen?: 'diff_tabular';
   /** Nivel de confianza de la contradicción (solo para type 'contradiccion'). */
   confidence?: 'alta' | 'posible';
   /** Si el usuario marcó este problema como "no es un error". */
@@ -73,6 +89,8 @@ export interface RawAnalysis {
     existingDocSays: string;
     existingDocument: string;
     existingDocumentId?: string;
+    /** F-88 paso 2: ver `Problem.origen`. */
+    origen?: 'diff_tabular';
     /** F-86 paso 3: lo pone el SERVIDOR al releer un análisis guardado, cuando
      *  su huella está entre los descartes de la organización. El cliente no lo
      *  calcula —la huella es de servidor— y en el jsonb guardado no existe:
@@ -233,6 +251,7 @@ export function problemsFromAnalysis(analysis: RawAnalysis): Problem[] {
           // el veredicto que el servidor ya dio sobre este hallazgo.
           relatedDocSays: d.existingDocSays,
           dismissed: d.dismissed,
+          origen: d.origen,
           confidence: d.confidence,
           // F-70: solo para pintar. `description` (arriba) queda intacta, y con
           // ella lo que leen los tres prompts de ImprovementModal.
