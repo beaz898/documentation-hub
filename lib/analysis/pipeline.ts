@@ -241,12 +241,27 @@ export async function applyCascadeToCandidate(
   newDocumentName: string,
   label: string,
   structuralOverlaps: StructuralOverlap[],
-  /** F-89 P2 (frente 1): los pares de tablas que el diff EMITIÓ, o sea sobre
-   *  los que comparó celda a celda. Con ellos, R2 puede comprobar la tercera
-   *  condición que llevaba desde F-22 sin verificar: que las dos filas del
-   *  hallazgo sean LA MISMA FILA. Vacío = el diff no comparó nada (documentos
-   *  de prosa, tablas sin clave), y entonces R2 decide como siempre. */
-  paresDelDiff: ParDeTablas[],
+  /**
+   * LAS DOS LISTAS DEL EMPAREJADOR, EN UN OBJETO Y NO SUELTAS.
+   *
+   * ⚠️ NO ES ESTILO: son dos `ParDeTablas[]` con el MISMO TIPO y destinos
+   * OPUESTOS, así que pasarlas posicionalmente permitiría intercambiarlas sin
+   * que el compilador dijera nada — y el resultado sería suprimir hallazgos
+   * donde hay que verificarlos y al revés. Con nombres, el error tiene que
+   * escribirse a propósito.
+   * Se hizo tras una mutación que confirmó que el cableado de `runCorePipeline`
+   * no lo puede vigilar ninguna batería: esa línea vive donde la suite no llega.
+   */
+  tablasDelDiff: {
+    /** F-89 P4: los que el diff EMITIÓ, o sea sobre los que comparó celda a
+     *  celda. Ahí tiene DOMINANCIA y el juez no emite fila-contra-fila.
+     *  Vacío = el diff no comparó nada (prosa, tablas sin clave). */
+    emitidos: ParDeTablas[];
+    /** F-90 P1: los caídos por la TERCERA puerta — clave descubierta y cero
+     *  filas comunes. El diff NO comparó nada ahí, así que no hay dominancia
+     *  que invocar; lo que hay es una clave que VERIFICA. */
+    sinInterseccion: ParDeTablas[];
+  },
 ): Promise<CascadeOutcome> {
   const counts: DiscardedFindings = {};
   const tally: CascadeTally = {
@@ -334,13 +349,45 @@ export async function applyCascadeToCandidate(
     // Los cruces TABLA-PROSA quedan fuera SOLOS, sin condición aparte:
     // `veredictoDeEmparejamiento` ya devuelve 'sin_cobertura' cuando un lado no
     // es fila de tabla.
-    const cobertura = veredictoDeEmparejamiento(paresDelDiff, ev.newChunk, ev.existingChunk);
+    const cobertura = veredictoDeEmparejamiento(tablasDelDiff.emitidos, ev.newChunk, ev.existingChunk);
     if (cobertura !== 'sin_cobertura') {
       bumpCount(counts, 'descartado.cubierto_por_diff');
       tally.descartados++;
       console.log(
         `[${label}] · [${ev.hash}] "${(c.topic ?? '(sin titulo)').slice(0, 60)}" → descartado: ` +
         `cubierto_por_diff (el diff ya comparó esas dos tablas celda a celda)`
+      );
+      return;
+    }
+
+    // ── LA VERIFICACIÓN DE IDENTIDAD, DONDE HAY CLAVE PERO NO HUBO
+    //    COMPARACIÓN (F-90 P1) ────────────────────────────────────────────
+    //
+    // Un par caído por la TERCERA puerta tiene clave descubierta y CERO filas
+    // comunes: dos poblaciones distintas que comparten estructura. El diff no
+    // comparó nada ahí, así que NO hay dominancia que invocar — pero la
+    // estructura sabe muchísimo: sabe que ninguna fila de una tabla es la misma
+    // entidad que ninguna de la otra. Si el juez empareja dos de esas filas, la
+    // clave lo desmiente SIEMPRE, por definición de la puerta.
+    //
+    // ⚠️ POR QUÉ NO ES LO MISMO QUE LA SUPRESIÓN DE ARRIBA, aunque en la
+    // práctica todo muera igual: allí no se comprueba nada del hallazgo —el
+    // diff comparó mejor, punto—; aquí cada hallazgo muere VERIFICADO, con su
+    // razón y su contador. Es «supresión por la vía limpia» (F-90 P1), y la
+    // distinción vive en el contador: quien lea emparejamiento_invalido sabe
+    // que se comprobó, y quien lea cubierto_por_diff sabe que no hizo falta.
+    //
+    // LAS DOS LISTAS SON EXCLUYENTES por construcción —un par o pasó las tres
+    // puertas o cayó en la tercera, nunca las dos— así que el orden entre las
+    // dos comprobaciones no cambia el resultado. La supresión va primera por
+    // ser la más barata de leer y la del caso frecuente.
+    const identidad = veredictoDeEmparejamiento(tablasDelDiff.sinInterseccion, ev.newChunk, ev.existingChunk);
+    if (identidad === 'no_pareja') {
+      bumpCount(counts, 'descartado.emparejamiento_invalido');
+      tally.descartados++;
+      console.log(
+        `[${label}] · [${ev.hash}] "${(c.topic ?? '(sin titulo)').slice(0, 60)}" → descartado: ` +
+        `emparejamiento_invalido (la clave dice que esas dos filas no son la misma entidad)`
       );
       return;
     }
@@ -753,8 +800,9 @@ async function runCorePipeline(
       input.newDocumentName,
       label,
       structuralOverlaps.get(judgment.documentId) ?? [],
-      // F-89 P2: por esto subió el emparejamiento en el commit anterior.
-      emparejamiento.pares,
+      // F-89 P2 y F-90 P1: por esto subió el emparejamiento antes de la
+      // cascada, y por esto la traza devuelve los caídos con su clave.
+      { emitidos: emparejamiento.pares, sinInterseccion: emparejamiento.sinInterseccion },
     );
 
     // La emisión, con los ids: `input.excludeDocumentId` (el analizado, que

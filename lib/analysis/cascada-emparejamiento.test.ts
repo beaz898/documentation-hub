@@ -113,10 +113,12 @@ async function correrCascada(
   pares: ParDeTablas[],
   chunksNuevos: StoredChunk[],
   chunksExistentes: StoredChunk[],
+  sinInterseccion: ParDeTablas[] = [],
 ) {
   const { judgment, evidence } = juicioConHallazgo(nueva, existente, columnas);
   return applyCascadeToCandidate(
-    judgment, evidence, chunksNuevos, chunksExistentes, OPE11, 'test', [], pares,
+    judgment, evidence, chunksNuevos, chunksExistentes, OPE11, 'test', [],
+    { emitidos: pares, sinInterseccion },
   );
 }
 
@@ -211,7 +213,8 @@ describe('la cascada descarta el emparejamiento inválido — camino completo', 
     evidence.contradictions[0].existingColumns = null;
 
     const r = await applyCascadeToCandidate(
-      judgment, evidence, nueva.rows, existente.rows, OPE11, 'test', [], pares,
+      judgment, evidence, nueva.rows, existente.rows, OPE11, 'test', [],
+      { emitidos: pares, sinInterseccion: [] },
     );
 
     expect(r.judgment.discarded?.['descartado.cubierto_por_diff']).toBeUndefined();
@@ -238,5 +241,83 @@ describe('la cascada descarta el emparejamiento inválido — camino completo', 
     // seguirá hasta que entre la degradación universal sin clave (F-90 P2).
     expect(r.tally.confirmadosPorEstructura).toBe(1);
     void pares;
+  });
+});
+
+describe('la 3ª puerta: verificación de identidad, no supresión por decreto', () => {
+  /**
+   * UN PAR CAÍDO POR LA TERCERA PUERTA se construye a mano, porque el corpus no
+   * lo tiene: OPE-10/OPE-11 empareja, y OPE-10 contra RRHH-06 cae por la
+   * PRIMERA (sin columnas comunes con unicidad suficiente). Dos tarifarios con
+   * la misma columna Código y CERO códigos comunes son dos poblaciones
+   * distintas que comparten estructura — que es exactamente lo que la tercera
+   * puerta detecta.
+   */
+  function tarifas(id: string, desde: number, precio: string, desdeIndice: number): TableGroup {
+    const filas = Array.from({ length: 5 }, (_, i) => ({
+      Código: `T-${String(desde + i).padStart(3, '0')}`,
+      Precio: precio,
+    }));
+    return {
+      tableId: `${id}#0`, sheetName: id, columns: ['Código', 'Precio'], totalRows: filas.length,
+      rows: filas.map((cells, i): StoredChunk => ({
+        chunkIndex: desdeIndice + i, chunkType: 'table_row', text: Object.values(cells).join(' | '),
+        sheetName: id, tableId: `${id}#0`, rowIndex: i, cells, columnOrder: null,
+      })),
+    };
+  }
+
+  function parDeTerceraPuerta() {
+    const nueva = tarifas('Nueva', 1, '100', 0);
+    const existente = tarifas('Existente', 500, '120', 100);
+    const r = emparejarTablas([nueva], [existente]);
+    return { ...r, nueva, existente };
+  }
+
+  it('el fixture es de verdad un caído por la 3ª puerta', () => {
+    const r = parDeTerceraPuerta();
+
+    expect(r.pares).toHaveLength(0);
+    expect(r.sinInterseccion).toHaveLength(1);
+    expect(r.sinInterseccion[0].clave.pairs).toHaveLength(0);
+  });
+
+  /**
+   * EL HALLAZGO MUERE VERIFICADO, no suprimido. La clave dice que esas dos
+   * filas no son la misma entidad —por definición de la puerta, ninguna lo
+   * es— y el contador lo declara: `emparejamiento_invalido`, que es el que
+   * recuperó su territorio aquí después de perderlo con la supresión.
+   */
+  it('un hallazgo del juez sobre un par de 3ª puerta sale por emparejamiento_invalido', async () => {
+    const r = parDeTerceraPuerta();
+
+    const out = await correrCascada(
+      r.nueva.rows[0], r.existente.rows[0], ['Precio'],
+      [], r.nueva.rows, r.existente.rows,
+      r.sinInterseccion,
+    );
+
+    expect(out.judgment.contradictions).toHaveLength(0);
+    expect(out.judgment.discarded?.['descartado.emparejamiento_invalido']).toBe(1);
+    // Y NO por la otra vía: la distinción entre verificación y dominancia vive
+    // en el contador, y confundirlas perdería la razón por la que murió.
+    expect(out.judgment.discarded?.['descartado.cubierto_por_diff']).toBeUndefined();
+  });
+
+  /**
+   * SIN LA LISTA, NO PASA NADA. Es el mismo hallazgo y las mismas tablas: lo
+   * único que cambia es que la traza no llega. Fija que el efecto viene de la
+   * lista y no de otra cosa del camino.
+   */
+  it('sin la lista de la 3ª puerta, el mismo hallazgo NO se descarta', async () => {
+    const r = parDeTerceraPuerta();
+
+    const out = await correrCascada(
+      r.nueva.rows[0], r.existente.rows[0], ['Precio'],
+      [], r.nueva.rows, r.existente.rows,
+      [],
+    );
+
+    expect(out.judgment.discarded?.['descartado.emparejamiento_invalido']).toBeUndefined();
   });
 });
