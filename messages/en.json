@@ -246,15 +246,13 @@
     "reanalyzeStyleTitle": "Re-analyze only the style of the current text",
     "reanalyzeAllTitle": "Re-analyze contradictions and duplicates against the corpus",
     "fragmentNotFound": "This fragment is no longer in the text (you may have edited it).",
-    "tableCardTitle": "Table comparison with \"{doc}\"",
     "tableCardColumnIndex": "Differences in: {index}",
-    "tableCardNoColumns": "No columns with differences",
-    "tableCardDiscrepancies": "Discrepancies",
     "tableCardWritingVariants": "Spelling-only differences",
     "tableCardWritingVariantsHint": "The row differs, but in nothing that means anything different.",
     "tableCardOnlyIn": "Present only in {doc}",
     "tableCardIdentical": "{count} identical rows in both documents.",
-    "tableCardRowsColumns": "Columns: {columns}"
+    "tableCardRowsColumns": "Columns: {columns}",
+    "tableCoverageTitle": "Coverage against \"{doc}\""
   },
   "improvement": {
     "title": "Improvement Mode",

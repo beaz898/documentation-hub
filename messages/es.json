@@ -246,15 +246,13 @@
     "reanalyzeStyleTitle": "Volver a analizar solo el estilo del texto actual",
     "reanalyzeAllTitle": "Volver a analizar contradicciones y duplicados contra el corpus",
     "fragmentNotFound": "Ese fragmento ya no se encuentra en el texto (quizá lo editaste).",
-    "tableCardTitle": "Comparación de tablas con \"{doc}\"",
     "tableCardColumnIndex": "Difieren en: {index}",
-    "tableCardNoColumns": "Sin columnas con diferencias",
-    "tableCardDiscrepancies": "Discrepancias",
     "tableCardWritingVariants": "Diferencias solo de escritura",
     "tableCardWritingVariantsHint": "La fila difiere, pero en nada que signifique algo distinto.",
     "tableCardOnlyIn": "Presente solo en {doc}",
     "tableCardIdentical": "{count} filas idénticas en ambos documentos.",
-    "tableCardRowsColumns": "Columnas: {columns}"
+    "tableCardRowsColumns": "Columnas: {columns}",
+    "tableCoverageTitle": "Cobertura frente a \"{doc}\""
   },
   "improvement": {
     "title": "Modo mejora",

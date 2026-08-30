@@ -304,3 +304,32 @@ export function problemsFromAnalysis(analysis: RawAnalysis): Problem[] {
 
   return out;
 }
+
+/**
+ * ¿LLEVA ESTA FILA SUS ACCIONES (descartar y resolver)?
+ *
+ * VIVE AQUÍ, AL LADO DEL TIPO DEL QUE HABLA, y no en el módulo de la pantalla
+ * que la usa hoy: decide sobre un `Problem`, así que sobrevive a cualquier
+ * reorganización de cómo se pinten los problemas — y ya ha sobrevivido a una.
+ *
+ * SALIÓ DEL JSX por una mutación que sobrevivió: mientras la condición vivía
+ * dentro del pintado, devolverle los botones a una fila tabular NO ROMPÍA
+ * NINGÚN CASO, porque el alcance de la suite prohíbe React y ahí dentro no hay
+ * nada que vigile.
+ *
+ * POR QUÉ SE LAS QUITAMOS A LAS TABULARES (F-88 P2): el botón de descarte que
+ * pinta la tarjeta actual va respaldado por la maquinaria de huella de PROSA.
+ * Pulsarlo sobre una fila de tabla registraría el juicio con una identidad de
+ * texto — el desajuste exacto que F-86 mató. Y «resolver» propondría un
+ * reemplazo de párrafo sobre una fila de hoja de cálculo.
+ *
+ * NO SIRVE MIRAR `confirmedBy` NI EL TIPO: R2 emite hallazgos estructurales
+ * sobre PROSA y ésos SÍ conservan sus acciones. Lo que decide es la MATERIA,
+ * que es lo que `origen` dice.
+ *
+ * ES TEMPORAL Y ESTÁ FECHADO: la ficha B trae las acciones de verdad, sobre
+ * huella TABULAR. Hasta entonces, verdad sin promesa de memoria.
+ */
+export function mostrarAccionesDeFila(p: Problem): boolean {
+  return p.origen !== 'diff_tabular';
+}

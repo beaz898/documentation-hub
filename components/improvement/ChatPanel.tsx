@@ -9,9 +9,9 @@ import ProblemDetail from './ProblemDetail';
 import IncompleteAnalysisNotice from '@/components/IncompleteAnalysisNotice';
 import SelectionLimitNotice from '@/components/SelectionLimitNotice';
 import type { SelectionLimitItem } from '@/components/SelectionLimitNotice';
-import TableDiffCard from './TableDiffCard';
-import { mostrarAccionesDeFila, repartirEnTarjetas } from './table-diff-card';
+import TableCoverageBlock from './TableCoverageBlock';
 import type { ProblemType, Problem } from './problems';
+import { mostrarAccionesDeFila } from './problems';
 import type { GrupoDeTablas } from '@/lib/analysis/types';
 import type { ChatMessage } from './useImprovementChat';
 import { applyReplacement } from './useImprovementChat';
@@ -137,33 +137,26 @@ export default function ChatPanel({
   }, {} as Record<ProblemType, string>);
 
   /**
-   * F-88 ficha A — «QUINCE FUERA, QUINCE DENTRO, UNA TARJETA» (F-84 P1).
+   * F-88 ficha A REVISADA — LAS QUINCE VUELVEN A SER CAJAS SUELTAS.
    *
-   * Las filas del diff SALEN de la lista por tipo y se pintan DENTRO de su
-   * tarjeta. No es una elección estética: dejarlas en los dos sitios las
-   * enseñaría dos veces y el usuario contaría treinta donde hay quince.
+   * F-83 P2 especificó un hallazgo agrupado con las filas dentro, y así se
+   * implementó (f7361ac8). Al verlo en pantalla SE LEÍA PEOR que la lista de
+   * siempre: las quince se distinguen mejor sueltas. Así que vuelven aquí, y
+   * lo informativo —las cincuenta ajenas y las variantes— se va a su bloque
+   * propio debajo, que es lo único que la tarjeta aportaba y no se pierde.
    *
-   * EL CONTADOR PLANO NO SE TOCA — sigue contando el array de contradicciones,
-   * que es lo que la bandeja enseña. Lo que cambia es dónde se PINTAN, no
-   * cuántas hay.
-   *
-   * Y LO QUE NO ES DE NINGUNA TARJETA SIGUE EN SU SITIO: las contradicciones de
-   * prosa del mismo análisis se quedan en la lista por tipo, como siempre.
+   * NO ES UNA SUPERACIÓN DE F-83 P2: qué se emite y cómo se nombra sigue
+   * entero. Cambia dónde se pinta, que es presentación (F-53).
    */
-  const { tarjetas, sueltos } = useMemo(
-    () => repartirEnTarjetas(visibleProblems, tableDiffs),
-    [visibleProblems, tableDiffs],
-  );
-
   const groupedProblems = useMemo(() => {
-    const indexed = sueltos.map((p, globalIndex) => ({ p, globalIndex }));
+    const indexed = visibleProblems.map((p, globalIndex) => ({ p, globalIndex }));
     return allTypes
       .map(type => ({
         type,
         items: indexed.filter(({ p }) => p.type === type),
       }))
       .filter(g => g.items.length > 0);
-  }, [sueltos, allTypes]);
+  }, [visibleProblems, allTypes]);
 
   const handleSend = async () => {
     const text = chatInput.trim();
@@ -231,20 +224,6 @@ export default function ChatPanel({
       {selectionLimits && selectionLimits.length > 0 && (
         <div style={{ padding: '10px 16px 0', flexShrink: 0 }}>
           <SelectionLimitNotice limits={selectionLimits} />
-        </div>
-      )}
-
-      {/* F-88 ficha A: las tarjetas agrupadas, ANTES de la lista por tipo. Cada
-          una es una pareja de tablas con sus cuatro secciones. */}
-      {tarjetas.length > 0 && (
-        <div style={{ padding: '10px 16px 0', flexShrink: 0, maxHeight: 320, overflowY: 'auto' }}>
-          {tarjetas.map(tarjeta => (
-            <TableDiffCard
-              key={tarjeta.grupo.groupId}
-              tarjeta={tarjeta}
-              nombreDocumentoAnalizado={documentName}
-            />
-          ))}
         </div>
       )}
 
@@ -534,6 +513,17 @@ export default function ChatPanel({
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* F-88 ficha A revisada: EL BLOQUE DE COBERTURA, DEBAJO de las
+          discrepancias. Lo informativo va después de lo que reclama juicio —
+          las cincuenta ajenas y las variantes de escritura no tienen otro
+          domicilio (F-84 P1 las dejó fuera de todo contador plano), pero no
+          pueden enterrar la alarma. Plegado por defecto. */}
+      {tableDiffs && tableDiffs.length > 0 && (
+        <div style={{ padding: '10px 16px', borderBottom: '0.5px solid var(--border)', flexShrink: 0, maxHeight: 260, overflowY: 'auto' }}>
+          <TableCoverageBlock grupos={tableDiffs} nombreDocumentoAnalizado={documentName} />
         </div>
       )}
 
