@@ -53,8 +53,14 @@ import type { TableGroup } from './table-structure';
  * quien los use es el commit de emisión. Aquí no se compara ni una celda.
  */
 
-/** Un par de tablas que pasó las tres puertas, con la clave ya descubierta
- *  para que la emisión no la vuelva a calcular. */
+/**
+ * Un par de tablas CON CLAVE DESCUBIERTA. Lo usan las DOS listas del resultado
+ * —emitidos y caídos por la 3ª puerta— porque llevan exactamente lo mismo: las
+ * dos tablas y el resultado de la fase 1. Lo que los distingue no es su forma
+ * sino EN QUÉ LISTA están, y por eso no hay un tipo hermano: inventarlo sería
+ * duplicar una forma que ya existe para marcar una diferencia que el nombre de
+ * la lista ya marca.
+ */
 export interface ParDeTablas {
   nueva: TableGroup;
   existente: TableGroup;
@@ -66,7 +72,33 @@ export interface ParDeTablas {
 }
 
 export interface EmparejamientoDeTablas {
+  /** Los que pasaron LAS TRES puertas. Sobre éstos el diff comparó celda a
+   *  celda, y por eso es el único territorio donde tiene dominancia. */
   pares: ParDeTablas[];
+  /**
+   * LOS CAÍDOS POR LA 3ª PUERTA, CON SU CLAVE (F-90 P1).
+   *
+   * Clave descubierta y CERO filas comunes: dos poblaciones distintas que
+   * comparten estructura. Hasta F-90 solo se contaban, y eso perdía algo que
+   * la estructura SÍ sabe — y sabe muchísimo: que ninguna fila de una tabla es
+   * la misma entidad que ninguna de la otra.
+   *
+   * PARA QUÉ SIRVEN, y es lo que justifica listarlos: si el juez empareja dos
+   * filas de un par así, R2 puede verificarlo con la clave y el emparejamiento
+   * FALLA SIEMPRE, por definición de la puerta. Así que estos pares no se
+   * suprimen por decreto —como sí se hará con los emitidos, donde el diff tiene
+   * dominancia— sino que cada hallazgo muere VERIFICADO, caso a caso y con
+   * contador. Supresión por la vía limpia.
+   *
+   * La lista de parejas de filas viene VACÍA en todos ellos, por definición.
+   *
+   * LOS CAÍDOS POR LA 1ª PUERTA NO SE LISTAN, y no es asimetría: sin clave no
+   * hay NADA VERIFICABLE que transportar —discoverTableKey devuelve
+   * sin_clave y ahí no hay candidatas ni parejas— así que listarlos sería
+   * mover un objeto que nadie puede usar. Su declaración es la de F-74:
+   * contador, y el límite dicho.
+   */
+  sinInterseccion: ParDeTablas[];
   counts: PipelineCounters;
 }
 
@@ -84,9 +116,10 @@ export function emparejarTablas(
   existentes: TableGroup[],
 ): EmparejamientoDeTablas {
   const pares: ParDeTablas[] = [];
+  const sinInterseccion: ParDeTablas[] = [];
   let candidatos = 0;
   let sinClave = 0;
-  let sinInterseccion = 0;
+  let sinIntersecionCount = 0;
   let rechazadasPorEscritura = 0;
 
   for (const nueva of nuevas) {
@@ -108,8 +141,13 @@ export function emparejarTablas(
 
       // 3ª PUERTA. La 2ª ya ocurrió dentro de `discoverTableKey`: si el
       // consenso no emparejó ninguna fila, `pairs` viene vacío.
+      //
+      // SE CUENTA Y SE LISTA (F-90 P1). El contador dice cuántos; la lista
+      // lleva su CLAVE, que es lo que permite a R2 verificar después que un
+      // emparejamiento del juez sobre esas tablas es imposible.
       if (clave.pairs.length === 0) {
-        sinInterseccion++;
+        sinIntersecionCount++;
+        sinInterseccion.push({ nueva, existente, clave });
         continue;
       }
 
@@ -129,10 +167,10 @@ export function emparejarTablas(
   const counts: PipelineCounters = {
     'diff.tablas.candidatos': candidatos,
     'diff.tablas.sin_clave': sinClave,
-    'diff.tablas.sin_interseccion': sinInterseccion,
+    'diff.tablas.sin_interseccion': sinIntersecionCount,
     'diff.tablas.emitidos': pares.length,
     'diff.clave.rechazadas_por_escritura': rechazadasPorEscritura,
   };
 
-  return { pares, counts };
+  return { pares, sinInterseccion, counts };
 }

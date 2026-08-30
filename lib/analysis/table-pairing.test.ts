@@ -91,6 +91,10 @@ function invariante(r: ReturnType<typeof emparejarTablas>): void {
     (c['diff.tablas.emitidos'] ?? 0),
   ).toBe(c['diff.tablas.candidatos']);
   expect(c['diff.tablas.emitidos']).toBe(r.pares.length);
+
+  // F-90 P1: cada contador con SU LISTA. Un contador sin su lista —o al revés—
+  // sería la misma clase de desajuste que este frente viene a cerrar.
+  expect(c['diff.tablas.sin_interseccion']).toBe(r.sinInterseccion.length);
 }
 
 describe('emparejarTablas — todo par es candidato, y nadie elige', () => {
@@ -141,6 +145,21 @@ describe('emparejarTablas — todo par es candidato, y nadie elige', () => {
     expect(r.pares).toHaveLength(0);
     expect(r.counts['diff.tablas.sin_interseccion']).toBe(1);
     expect(r.counts['diff.tablas.sin_clave']).toBe(0);
+
+    // F-90 P1: SE LISTA, CON SU CLAVE. Hasta F-90 solo se contaba, y eso perdía
+    // lo que la estructura sí sabe aquí: que ninguna fila de una tabla es la
+    // misma entidad que ninguna de la otra. Con la clave delante, R2 puede
+    // verificar caso a caso que cualquier emparejamiento del juez es imposible.
+    expect(r.sinInterseccion).toHaveLength(1);
+    expect(r.sinInterseccion[0].clave.status).toBe('emparejado');
+    expect(r.sinInterseccion[0].clave.candidates.length).toBeGreaterThan(0);
+    expect(r.sinInterseccion[0].nueva.tableId).toBe('Nueva#0');
+    expect(r.sinInterseccion[0].existente.tableId).toBe('Existente#0');
+
+    // Y VIENE SIN PAREJAS DE FILAS, por definición de la puerta. Es justo lo
+    // que hace que todo emparejamiento del juez ahí falle siempre.
+    expect(r.sinInterseccion[0].clave.pairs).toHaveLength(0);
+
     invariante(r);
   });
 
@@ -153,6 +172,13 @@ describe('emparejarTablas — todo par es candidato, y nadie elige', () => {
 
     expect(r.pares).toHaveLength(0);
     expect(r.counts['diff.tablas.sin_clave']).toBe(1);
+
+    // F-90 P1: LOS DE LA 1ª PUERTA NO SE LISTAN, y no es asimetría. Sin clave
+    // no hay NADA VERIFICABLE que transportar: discoverTableKey devuelve
+    // 'sin_clave' y ahí no hay candidatas ni parejas. Listarlo sería mover un
+    // objeto que nadie puede usar; su declaración es la de F-74, un contador.
+    expect(r.sinInterseccion).toHaveLength(0);
+
     invariante(r);
   });
 
@@ -186,6 +212,18 @@ describe('emparejarTablas — todo par es candidato, y nadie elige', () => {
     expect(r.counts['diff.tablas.candidatos']).toBe(6);
     expect(r.pares).toHaveLength(1);
     expect(r.pares[0].existente.tableId).toBe('Coincide#0');
+
+    // F-90 P1: CADA CAÍDO LLEVA SU PROPIA CLAVE, y este caso es el único que
+    // puede comprobarlo — aquí COEXISTE un par emitido (con su clave, que sí
+    // tiene parejas de filas) con uno caído por la 3ª puerta. Una mutación que
+    // listara el caído con la clave del emitido pasaba todos los demás casos,
+    // porque en ellos no había ninguna otra clave que confundir.
+    expect(r.sinInterseccion).toHaveLength(1);
+    expect(r.sinInterseccion[0].existente.tableId).toBe('Ajena#0');
+    expect(r.sinInterseccion[0].clave.pairs).toHaveLength(0);
+    // Y la del emitido SÍ tiene parejas: son claves distintas de verdad.
+    expect(r.pares[0].clave.pairs.length).toBeGreaterThan(0);
+
     invariante(r);
   });
 
