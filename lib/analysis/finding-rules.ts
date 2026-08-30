@@ -85,6 +85,21 @@ export type DeterministicVerdict =
   | { outcome: 'pass' }
   | {
       outcome: 'confirm';
+      /**
+       * EL ANCLA (F-90 P3, desambiguado por F-91 P1). Las columnas donde las
+       * dos FILAS coinciden — NO las que el juez citó. Su ausencia total es la
+       * firma de una identidad estructuralmente imposible: la oposición
+       * necesita un punto fijo, y el punto fijo lo pone la fila.
+       *
+       * El porqué de la lectura y el caso medido que la decidió están en
+       * `anclasDeLasFilas`, aquí arriba.
+       *
+       * LA CALCULA R2 Y NO SU LLAMADOR, aunque sea el llamador quien decide qué
+       * hacer con ella: R2 ya tiene las dos filas delante. Recalcularla fuera
+       * sería una SEGUNDA implementación del mismo criterio — lo que la regla
+       * de CLAUDE.md prohíbe desde el frente 1.
+       */
+      anclas: string[];
       reason: 'valores_distintos_misma_columna';
       entity: string | null;
       /** F-51/F-53: TODAS las columnas compartidas que difieren, no una
@@ -151,6 +166,40 @@ export type DeterministicVerdict =
  * fila / prosa (un solo lado con `cells`): pass siempre — caso mixto, sin
  * estructura comparable entre los dos lados.
  */
+/**
+ * EL ANCLA (F-90 P3, DESAMBIGUADO POR F-91 P1): las columnas donde las dos
+ * FILAS coinciden.
+ *
+ * ⚠️ SOBRE LAS COLUMNAS DE LAS FILAS, NO SOBRE LAS QUE EL JUEZ CITÓ. La
+ * diferencia no es de matiz: la otra lectura descartaba hallazgos VERDADEROS.
+ * El juez, cuando acierta, cita SOLO la columna que difiere —es literalmente lo
+ * que se le pide, señalar la oposición—, así que sobre las citadas el ancla
+ * salía vacía justo en su acierto típico. Medido sobre el caso real del corpus:
+ * EST-03 contra EST-03, citando solo «Precio base», da CERO anclas por citadas
+ * y OCHO por filas. Un descarte determinista cuyo caso frecuente es el acierto
+ * no es una guarda: es una trituradora con contador.
+ *
+ * Y LA RAZÓN DE FONDO, que vale más que la consecuencia: la cita es TEXTO
+ * EMITIDO POR UN MODELO. Usarla como insumo de una regla estructural sería
+ * CONTAMINAR LA GEOMETRÍA CON TESTIMONIO — la misma frontera de F-23/F-26. La
+ * identidad es una propiedad de las FILAS; lo que el juez mencionó es un hecho
+ * sobre el JUEZ.
+ *
+ * QUÉ AFIRMA Y QUÉ NO, que es lo que hace que una sola baste: con al menos un
+ * ancla la estructura NO dice «son la misma entidad» — dice «no puedo descartar
+ * que lo sean», y para bajar a juicio eso sobra. Por eso no hay umbral
+ * proporcional: no es que no sepamos ponerle cifra, es que no hay nada que la
+ * cifra mediría (F-91 P1).
+ */
+function anclasDeLasFilas(
+  newCells: Record<string, string>,
+  existingCells: Record<string, string>,
+): string[] {
+  return Object.keys(newCells).filter(
+    c => existingCells[c] !== undefined && newCells[c] === existingCells[c],
+  );
+}
+
 export function applyDeterministicRules(finding: {
   newDocSays: string;
   existingDocSays: string;
@@ -181,6 +230,7 @@ export function applyDeterministicRules(finding: {
       reason: 'valores_distintos_misma_columna',
       entity: null,
       columns: differingColumns,
+      anclas: anclasDeLasFilas(newCells, existingCells),
     };
   }
 

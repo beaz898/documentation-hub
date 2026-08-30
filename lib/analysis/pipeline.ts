@@ -408,50 +408,76 @@ export async function applyCascadeToCandidate(
       return;
     }
 
+    // ── SIN CLAVE, LA ESTRUCTURA NO FIRMA (F-90 P2/P3) ─────────────────
+    //
+    // TODO `confirm` QUE LLEGA AQUÍ ES YA SIN CLAVE, y no hace falta
+    // comprobarlo aparte: las dos puertas de arriba devolvieron
+    // 'sin_cobertura' —si no, habrían salido por `return`— y 'pareja' es
+    // imposible en la lista de la 3ª puerta, cuya lista de parejas está vacía
+    // por definición. Luego llegar aquí significa que NINGÚN par cubre esas
+    // dos tablas: cayeron por la PRIMERA puerta, y no hay clave.
+    //
+    // Y SIN CLAVE LA ESTRUCTURA NO PUEDE VERIFICAR IDENTIDAD, luego no puede
+    // confirmar. No es que la guarda del ancla sea débil —medido: caza el
+    // 22,6% de los emparejamientos falsos en tablas anchas— es que la
+    // pretensión era ilegítima. El sello significa exactamente lo verificado,
+    // y aquí la tercera condición de R2 no se verificó.
+    //
+    // EL ANCLA QUEDA COMO FILTRO QUE DESCARTA, no como guarda que confirma:
+    // si NINGUNA columna compartida coincide, las dos filas no exhiben ni un
+    // punto fijo y el hallazgo se va SIN GASTAR MODELO. Todo lo demás baja a
+    // la llamada corta y saldrá, como mucho, con 'juicio' — que es la verdad:
+    // lo confirmó un juicio, no una estructura.
+    //
+    // ⚠️ LO QUE SE RETIRÓ AQUÍ, y hay que saber leerlo: este bloque construía
+    // el hallazgo confirmado por estructura del JUEZ, con su título por
+    // plantilla (F-36) y sus valores enfrentados (F-69/F-70). Deja de existir
+    // porque el juez YA NO TIENE NINGÚN CAMINO a ese sello: par emitido →
+    // suprimido; 3ª puerta → verificado y muerto; sin clave → esto.
+    // `confirmedBy: 'estructura'` pasa a ser EXCLUSIVO de lo que emite el
+    // diff, que lo construye por su cuenta con mejor evidencia
+    // (diff-emision.ts) — así que ni el título ni los valores enfrentados se
+    // pierden: cambian de productor.
+    // CONSECUENCIA MEDIBLE: `verificador.confirmados_por_estructura` vale CERO
+    // SIEMPRE desde este commit. No es una regresión, es el diseño. El
+    // contador NO se retira: si algún día vuelve a moverse, algo está mal.
     if (verdict.outcome === 'confirm') {
-      bumpCount(counts, 'confirmado.por_estructura');
-      tally.confirmados++;
-      tally.confirmadosPorEstructura++;
-      console.log(`[${label}] · [${ev.hash}] "${(c.topic ?? '(sin titulo)').slice(0, 60)}" → confirmado por estructura (columnas: ${verdict.columns.join(', ')})`);
+      if (verdict.anclas.length === 0) {
+      // ⚠️ `r2.` Y NO `descartado.` COMO SUS VECINOS, y es deliberado: el
+      // nombre lo fijó F-91 P2 al declararlo CENTINELA y así está escrito en
+      // `claude/Contrato_Contadores.md`. Renombrarlo dejaría el contrato
+      // mintiendo. La bolsa donde caen los dos —`DiscardedFindings`— no
+      // impone prefijo (por eso B.110 sigue abierto), así que conviven.
+        bumpCount(counts, 'r2.sin_ancla');
+        tally.descartados++;
+        console.log(
+          `[${label}] · [${ev.hash}] "${(c.topic ?? '(sin titulo)').slice(0, 60)}" → descartado: ` +
+          `r2.sin_ancla (sin clave y sin ninguna columna que coincida: no hay identidad que oponer)`
+        );
+        return;
+      }
 
-      // F-70: los valores enfrentados y las dos filas completas. Todo sale de
-      // lo que YA está en este ámbito: ni se recalcula ni se deriva nada.
-      //
-      // La guarda es redundante en tiempo de ejecución — applyDeterministicRules
-      // solo devuelve 'confirm' desde la rama `if (newCells && existingCells)`,
-      // y unas cells no nulas implican su chunk no nulo, porque salen de
-      // `ev.newChunk?.cells`. Pero el compilador no puede deducir eso desde
-      // `verdict.outcome`, y se escribe como comprobación real y no como
-      // aserción a propósito: si algún día la invariante se rompiera, los tres
-      // campos se quedan SIN PONER en vez de colarse a medias.
-      const paired = newCells && existingCells && ev.newChunk && ev.existingChunk
-        ? {
-            comparedValues: verdict.columns.map(column => ({
-              column,
-              // Celda ausente = cadena vacía. Cómo se presenta un hueco (guion,
-              // "sin dato", nada) es decisión de la ficha, no de aquí.
-              newDocValue: newCells[column] ?? '',
-              existingDocValue: existingCells[column] ?? '',
-            })),
-            newDocRow: ev.newChunk.text,
-            existingDocRow: ev.existingChunk.text,
-          }
-        : {};
-
-      keptContradictions.push({
-        ...c,
-        topic: c.topic?.trim()
-          ? c.topic
-          : buildStructuralTopic(verdict.entity, verdict.columns, newDocumentName, judgment.documentName),
-        severity: 'contradiction',
-        confirmedBy: 'estructura',
-        // F-69: hasta ahora `verdict.columns` se calculaba, se imprimía en el
-        // log, alimentaba el título por plantilla y se tiraba. Es el único
-        // punto del pipeline que sabe QUÉ columna difiere, y la ficha lo
-        // necesita para no volcar la fila entera. Mismo patrón por el que
-        // `confidence` no llegaba antes de 3dd8670c.
-        columns: verdict.columns,
-        ...paired,
+      bumpCount(counts, 'a_juicio.sin_clave');
+      tally.reclasificados++;
+      console.log(
+        `[${label}] · [${ev.hash}] "${(c.topic ?? '(sin titulo)').slice(0, 60)}" → baja a juicio: ` +
+        `sin_clave (${verdict.anclas.length} columna(s) de ancla, pero la estructura no puede firmar)`
+      );
+      toVerify.push({
+        contradiction: c,
+        sourceIndex: i,
+        finding: {
+          topic: c.topic,
+          newDocSays: c.newDocSays,
+          existingDocSays: c.existingDocSays,
+          existingDocumentName: judgment.documentName,
+          newChunk: ev.newChunk,
+          existingChunk: ev.existingChunk,
+          newNeighbours: buildNeighbours(newDocumentChunks, ev.newChunk),
+          existingNeighbours: buildNeighbours(existingChunks, ev.existingChunk),
+          newColumnOrder: orderedColumnsFor(ev.newChunk, newDocumentChunks, 'new'),
+          existingColumnOrder: orderedColumnsFor(ev.existingChunk, existingChunks, 'existing'),
+        },
       });
       return;
     }

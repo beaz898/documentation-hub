@@ -56,6 +56,17 @@ import type { DocumentJudgment } from './types';
  * LA REGLA QUE SALE DE AQUÍ, y vale para todo el fichero: SOLO CABEN CAMINOS
  * QUE TERMINEN EN DESCARTE. Lo que sobrevive, sobrevive HACIA EL MODELO, y eso
  * no se mide en una batería determinista — se mide en una tanda.
+ *
+ * ⚠️ Y LO QUE ESO DEJA SIN PROBAR, DECLARADO Y NO ESCONDIDO: la rama de la
+ * DEGRADACIÓN del punto 4 —sin clave pero CON ancla, que baja a la llamada
+ * corta— no tiene caso aquí y no puede tenerlo. Degradar es SOBREVIVIR, y
+ * sobrevivir es alcanzar el modelo. De las cuatro ramas del punto 4, tres
+ * terminan en descarte y están ejercidas; la cuarta solo se puede ver en
+ * producción.
+ * Lo que SÍ está probado de ella, en `finding-rules.test.ts`: que R2 devuelve el
+ * ancla correcta, que es la entrada de la decisión. Lo que NO: que la cascada
+ * lea esa entrada y empuje el hallazgo a `toVerify`. F-91 acepta ese límite al
+ * dar por buena la degradación universal.
  */
 
 const OPE10 = 'OPE-10_tarifario-tratamientos-2026.xlsx';
@@ -237,25 +248,104 @@ describe('la cascada descarta el emparejamiento inválido — camino completo', 
    */
   /**
    * ⚠️ EL FRENO, ejercido en el camino y no solo en la función pura: sin pares
-   * del diff, la cascada NO descarta nada. Es el estado normal de la prosa y de
-   * las tablas sin clave, y tratarlo como emparejamiento inválido tiraría
-   * hallazgos de territorio que el diff nunca miró.
+   * del diff, la supresión NO dispara. Es el estado normal de la prosa y de las
+   * tablas sin clave, y tratarlo como emparejamiento inválido tiraría hallazgos
+   * de territorio que el diff nunca miró.
+   *
+   * SE MIDE CON SEG-01/HIG-05 Y NO CON EST-02/EST-03, y la razón hay que
+   * saberla: desde F-91 un hallazgo CON ancla DEGRADA a la llamada corta, o sea
+   * SOBREVIVE, y sobrevivir aquí es llamar al modelo (ver la cabecera). Con un
+   * par sin ancla el hallazgo muere igual, pero POR OTRA PUERTA — que es
+   * exactamente lo que este caso quiere enseñar: la del diff no se abrió.
    */
-  it('sin pares del diff, el mismo hallazgo NO se descarta', async () => {
-    const { pares, nueva, existente } = await corpus();
+  it('sin pares del diff, no se descarta por cubierto_por_diff', async () => {
+    const { nueva, existente } = await corpus();
     const columnas = nueva.columns.filter(c => existente.columns.includes(c));
 
     const r = await correrCascada(
-      fila(nueva, 'EST-02'), fila(existente, 'EST-03'), columnas,
+      fila(nueva, 'SEG-01'), fila(existente, 'HIG-05'), columnas,
       [], nueva.rows, existente.rows,
     );
 
     expect(r.judgment.discarded?.['descartado.cubierto_por_diff']).toBeUndefined();
-    // Y sigue el camino de siempre: ocho columnas distintas, R2 lo confirma.
-    // Es exactamente el fallo de B.124, vivo donde el diff no llega — y así
-    // seguirá hasta que entre la degradación universal sin clave (F-90 P2).
-    expect(r.tally.confirmadosPorEstructura).toBe(1);
-    void pares;
+    // Muere, pero por la otra puerta. Que muera no es lo que se afirma aquí.
+    expect(r.judgment.discarded?.['r2.sin_ancla']).toBe(1);
+  });
+
+  /**
+   * ESTE CASO AVISÓ DOS VECES, y las dos eran su oficio.
+   *
+   * AVISO 1 — el previsto. Hasta el punto 4 aseguraba que sin pares del diff el
+   * mismo hallazgo SE CONFIRMABA POR ESTRUCTURA —B.124 vivo donde el diff no
+   * llegaba— y se escribió diciendo «el día que se arregle, el caso avisa».
+   * Avisó: al entrar la degradación universal sin clave, se puso rojo.
+   *
+   * AVISO 2 — EL QUE NADIE ESPERABA, y es el que hay que leer. Reescrito para
+   * el punto 4, seguía usando EST-02/EST-03 dando por hecho que sus ocho
+   * columnas citadas y distintas eran «ningún punto fijo». FALLÓ, con una cifra
+   * en el log: «1 columna(s) de ancla». Esa columna es `Categoría` —los dos son
+   * tratamientos de estética— y destapó que «todas las columnas comunes» de
+   * F-90 P3 admitía DOS LECTURAS con resultados opuestos, una de las cuales
+   * descartaba hallazgos verdaderos. Ver F-91.
+   * Las dos lecturas parecían la misma hasta que un número las separó. De ahí
+   * sale la regla de la doble lectura del protocolo, y por eso el caso fijo de
+   * la ambigüedad resuelta vive en `finding-rules.test.ts`, sobre R2 puro.
+   *
+   * LO QUE ASEGURA HOY: SEG-01 contra HIG-05 no comparte NI UN valor en las
+   * nueve columnas comunes —uno de los 807 pares así que hay en el corpus—, así
+   * que no hay identidad que oponer y el hallazgo se va por `r2.sin_ancla` SIN
+   * GASTAR MODELO.
+   */
+  it('sin clave y sin ancla: se descarta por r2.sin_ancla, sin gastar modelo', async () => {
+    const { nueva, existente } = await corpus();
+    const columnas = nueva.columns.filter(c => existente.columns.includes(c));
+
+    const r = await correrCascada(
+      fila(nueva, 'SEG-01'), fila(existente, 'HIG-05'), columnas,
+      [], nueva.rows, existente.rows,
+    );
+
+    expect(r.judgment.contradictions).toHaveLength(0);
+    expect(r.judgment.discarded?.['r2.sin_ancla']).toBe(1);
+    expect(r.tally.descartados).toBe(1);
+  });
+
+  /**
+   * ⚠️ Y LA CONSECUENCIA GRANDE DEL FRENTE 1, fijada donde se pueda ver: EL
+   * JUEZ YA NO RECIBE `confirmedBy: 'estructura'` POR NINGÚN CAMINO.
+   *
+   *   · par EMITIDO      → suprimido            (punto 2)
+   *   · par de 3ª PUERTA → verificado, muerto   (punto 3)
+   *   · SIN CLAVE        → descartado si no hay ancla, degradado a juicio si la
+   *                        hay — pero NUNCA firmado                (punto 4)
+   *
+   * El sello pasa a ser EXCLUSIVO de lo que emite el diff. Por eso
+   * `verificador.confirmados_por_estructura` vale CERO SIEMPRE desde aquí: no
+   * es una regresión, es el diseño — es la separación de poderes hecha número, y
+   * si algún día vuelve a moverse, alguien está firmando sin derecho.
+   *
+   * ⚠️ LOS TRES ESCENARIOS DE AQUÍ SON LOS TRES QUE TERMINAN EN DESCARTE. La
+   * cuarta rama —sin clave CON ancla, que degrada— no está y no puede estar:
+   * degradar es sobrevivir, y sobrevivir es alcanzar el modelo. Queda declarado
+   * en la cabecera del fichero como no probado aquí.
+   */
+  it('EL JUEZ NO RECIBE «estructura» POR NINGÚN CAMINO', async () => {
+    const { pares, nueva, existente } = await corpus();
+    const todas = nueva.columns.filter(c => existente.columns.includes(c));
+
+    const escenarios = [
+      // par emitido, hallazgo falso
+      correrCascada(fila(nueva, 'EST-02'), fila(existente, 'EST-03'), todas, pares, nueva.rows, existente.rows),
+      // par emitido, hallazgo legítimo
+      correrCascada(fila(nueva, 'EST-03'), fila(existente, 'EST-03'), ['Precio base'], pares, nueva.rows, existente.rows),
+      // sin clave y sin ancla
+      correrCascada(fila(nueva, 'SEG-01'), fila(existente, 'HIG-05'), todas, [], nueva.rows, existente.rows),
+    ];
+
+    for (const r of await Promise.all(escenarios)) {
+      expect(r.tally.confirmadosPorEstructura).toBe(0);
+      expect(r.judgment.contradictions.filter(c => c.confirmedBy === 'estructura')).toHaveLength(0);
+    }
   });
 });
 
