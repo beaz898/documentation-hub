@@ -2085,6 +2085,14 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     hacer: es la misma pieza que el módulo interino, y hoy sabemos que por sí
     sola no movía ninguna de las tres siembras de prosa.
 
+    VISTO EN PRODUCCIÓN EL 30/08, y es la primera vez: hasta hoy este pendiente
+    tenía casos CONSTRUIDOS y ninguna aparición medida. En las dos pasadas
+    rápidas de OPE-11 contra OPE-10, el juez escribió «No aparece EST-03 en el
+    documento nuevo» donde debía ir una CITA — el FALLO 2, la narración— y el
+    detector lo descartó bien.
+    CONFIRMA LAS DOS MITADES: que el juez narra en vez de citar, y que el
+    detector lo caza. El fallo es real y no una posibilidad teórica.
+    Registrado también en claude/Tandas_Harness.md, entrada del 30/08.
   B.108 — [ENCONTRADO 27/08, DOS CAUSAS Y SOLO UNA ES DEL PROYECTO] El build
     local no se puede ejecutar, así que no da veredicto antes de un push.
     Reproducido con el árbol limpio antes de instalar vitest: NO lo introduce

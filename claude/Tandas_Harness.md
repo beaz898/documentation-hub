@@ -15,6 +15,58 @@ principio del protocolo.
 
 ---
 
+## 30/08/2026 — `06952da4` — LA SUPRESIÓN DEL JUEZ: 17 → 15
+
+**Qué se lanzó**: dos pasadas exhaustivas y dos rápidas de OPE-11 contra
+OPE-10, con la supresión de F-89 P4 desplegada y NADA MÁS que cambiara
+comportamiento — los otros dos commits del despliegue eran batería
+(`7989e0aa`) y una traza sin consumidor (`1924cb5a`). La cifra es atribuible a
+un solo cambio, y se separó a propósito del punto 3 para que lo siguiera
+siendo.
+
+**La pregunta**: F-89 P4 dice que el juez no aporta nada sobre un par de tablas
+que el diff ya comparó — «en el mejor caso un duplicado, en el peor un
+emparejamiento inventado». La línea de base, medida el mismo día ANTES de la
+supresión, era **17 contradicciones: las 15 del diff más 2 del juez**. Las dos
+del juez eran LEGÍTIMAS y las dos ya estaban dentro de las quince.
+
+| | antes | después |
+|---|---|---|
+| contradicciones publicadas | **17** | **15** |
+| del juez, fila-contra-fila sobre el par emitido | 2 | **0** |
+
+Del log de las dos pasadas exhaustivas:
+
+    [4e18e79b] IMP-03 → descartado: cubierto_por_diff
+    [0f3269d9] EST-03 → descartado: cubierto_por_diff
+    Completo — 15 contradicciones
+
+Y en los dos rápidos, lo mismo: verificador con **0 confirmados, 1 descartado
+por cubierto_por_diff**.
+
+### LA GANANCIA QUE NO ESTABA PREVISTA: el duplicado tampoco iba a Sonnet
+
+Las candidatas al double-check bajan **de 17 a 15**. No se había anticipado —
+la supresión se diseñó para no publicar duplicados, y resulta que además NO SE
+LOS ENVÍA al modelo caro. Cada duplicado suprimido es una candidata menos en el
+lote de Sonnet del exhaustivo.
+
+No cambia ninguna decisión, pero conviene tenerlo escrito: al estimar el coste
+del punto 4 —que va en la dirección contraria, mandando MÁS cosas a la llamada
+corta— este ahorro está en el mismo balance.
+
+### B.107, EN VIVO Y EN PRODUCCIÓN
+
+En los dos rápidos el juez escribió **«No aparece EST-03 en el documento
+nuevo»** donde debía ir una CITA, y el detector de narración lo descartó bien.
+
+Es la primera vez que B.107 se ve fuera del laboratorio: hasta hoy tenía casos
+construidos y ninguna aparición medida. Confirma las dos mitades del pendiente
+—que el juez narra en vez de citar, y que el detector lo caza— y que el fallo
+es real y no una posibilidad teórica. Anotado también en B.107.
+
+---
+
 ## 28/08/2026 — `d13e125f`, 14:24 UTC — EL TERCER PUNTO DE SERIALIZACIÓN (F-86 paso 0)
 
 > **NO ES UNA TANDA DE TASAS**, y conviene que se lea distinta desde la primera
