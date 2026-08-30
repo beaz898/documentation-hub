@@ -72,10 +72,29 @@ impedido nada de lo anterior. Por eso hacen falta la 4 y la 5.
 
 ### 1 — Prefijo de etapa y namespace en todo contador. Nada sin apellido.
 
-Todo nombre lleva la etapa que lo emite: `diff.clave.*`, `diff.celdas.*`,
-`seleccion.*`, `verificador.*`. Un contador sin apellido no se sabe de quién es,
-y lo que no se sabe de quién es no se puede retirar: para comprobar que
-`discardedFindings` no lo lee nadie hubo que recorrer el repositorio entero.
+Todo nombre lleva la etapa que lo emite: `diff.tablas.*`, `diff.clave.*`,
+`diff.celdas.*`, `diff.clasificacion.*`, `seleccion.*`, `verificador.*`. Un
+contador sin apellido no se sabe de quién es, y lo que no se sabe de quién es no
+se puede retirar: para comprobar que `discardedFindings` no lo lee nadie hubo
+que recorrer el repositorio entero.
+
+**Abrir una etapa es una decisión, no el efecto de escribir una cadena.** La
+lista de etapas vive en el tipo `Stage` de `lib/analysis/counters.ts` y está
+CERRADA; ampliarla se hace ahí y se justifica aquí. Registro de las que se han
+abierto después del contrato:
+
+- **`diff.tablas` — abierta el 30/08/2026 (F-88 paso 1), con el emparejador de
+  tablas.** Ninguna de las que había podía alojar sus contadores, y el motivo
+  es de fronteras, no de gusto: `diff.clave` cuenta lo que decide el
+  descubrimiento de clave DENTRO de un par de tablas ya elegido, `diff.celdas`
+  compara celdas y `diff.clasificacion` reparte filas ya emparejadas. El par de
+  TABLAS no tenía etapa porque hasta F-88 nadie elegía pares: la fase 1 recibía
+  dos tablas ya escogidas y el repositorio no tenía quién las escogiera.
+  La etapa nace con la pieza que la necesita.
+  Sus cuatro contadores sostienen una invariante que su batería vigila:
+  `candidatos === sin_clave + sin_interseccion + emitidos`. Es lo que hace
+  cierta la regla de F-88 «todo lo demás se cuenta» — un par evaluado no puede
+  desaparecer sin dejar rastro en exactamente uno de los tres destinos.
 
 ### 2 — Solo recuentos de decisión.
 

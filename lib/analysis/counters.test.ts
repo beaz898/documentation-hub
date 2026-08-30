@@ -27,11 +27,24 @@ describe('el catálogo', () => {
     expect([...COUNTER_CATALOGUE]).toEqual([
       'seleccion.candidatos_recuperados',
       'seleccion.candidatos_seleccionados',
+      // F-88 paso 1: la etapa nueva. El emparejador de tablas y su invariante
+      // candidatos === sin_clave + sin_interseccion + emitidos.
+      'diff.tablas.candidatos',
+      'diff.tablas.sin_clave',
+      'diff.tablas.sin_interseccion',
+      'diff.tablas.emitidos',
+      // B.117: el productor existía desde F-84 y se tiraba.
+      'diff.clave.rechazadas_por_escritura',
       'diff.clasificacion.identicas',
       'diff.clasificacion.discrepantes',
       'diff.clasificacion.columnas_afectadas',
       'diff.clasificacion.solo_en_a',
       'diff.clasificacion.solo_en_b',
+      // F-87 P3. DECLARADO SIN PRODUCTOR a propósito: el diff no corre en el
+      // pipeline hasta el commit de emisión, y la cláusula 4 manda catalogar
+      // antes de emitir. Que esté aquí sin quien lo incremente es el contrato
+      // funcionando, no un olvido.
+      'diff.clasificacion.pre_indexado',
       'verificador.hallazgos_entrantes',
       'verificador.confirmados',
       'verificador.confirmados_por_estructura',
@@ -47,7 +60,7 @@ describe('el catálogo', () => {
     // La lista va DUPLICADA del tipo Stage a proposito, con el mismo criterio
     // que el canario del catalogo: anadir una etapa tiene que pasar por aqui.
     // Derivarla exportando Stage la haria automatica y dejaria de avisar.
-    const etapas = ['diff.clave', 'diff.celdas', 'diff.clasificacion', 'seleccion', 'verificador', 'averia'];
+    const etapas = ['diff.tablas', 'diff.clave', 'diff.celdas', 'diff.clasificacion', 'seleccion', 'verificador', 'averia'];
     for (const name of COUNTER_CATALOGUE) {
       expect(etapas.some(e => name.startsWith(`${e}.`)), `"${name}" sin apellido de etapa`).toBe(true);
     }

@@ -33,7 +33,14 @@
  * namespace queda apartado para que el día que haga falta no se invente sobre
  * la marcha.
  */
-type Stage = 'diff.clave' | 'diff.celdas' | 'diff.clasificacion' | 'seleccion' | 'verificador' | 'averia';
+type Stage =
+  | 'diff.tablas'
+  | 'diff.clave'
+  | 'diff.celdas'
+  | 'diff.clasificacion'
+  | 'seleccion'
+  | 'verificador'
+  | 'averia';
 
 /**
  * EL CATÁLOGO (cláusula 4). Un contador que no esté aquí no llega arriba: ni lo
@@ -69,6 +76,47 @@ export const COUNTER_CATALOGUE = [
   // un contador derivable es un contador que puede contradecir a sus fuentes.
   'seleccion.candidatos_recuperados',
   'seleccion.candidatos_seleccionados',
+  // diff.tablas — ETAPA NUEVA (F-88 P1). El emparejador de tablas: qué pares
+  // se evaluaron y por qué puerta cayó cada uno.
+  //
+  // POR QUÉ HACE FALTA UNA ETAPA Y NO CABÍA EN LAS QUE HABÍA. `diff.clave`
+  // cuenta lo que decide el descubrimiento de clave DENTRO de un par de tablas
+  // ya elegido; `diff.celdas` compara celdas; `diff.clasificacion` reparte
+  // filas ya emparejadas. Ninguna de las tres puede contar el par de TABLAS,
+  // porque hasta F-88 nadie elegía pares: se recibían dos TableGroup ya
+  // escogidos. La etapa nace con el emparejador, que es lo que la cabecera de
+  // `Stage` exige — abrir una etapa es una decisión que se toma aquí.
+  //
+  // LA INVARIANTE QUE SOSTIENEN, y que su batería vigila:
+  //   candidatos === sin_clave + sin_interseccion + emitidos
+  // Es lo que hace cierta la regla de F-88 «todo lo demás se cuenta»: un par
+  // evaluado no puede desaparecer sin dejar rastro en exactamente uno de los
+  // tres destinos.
+  //
+  // NINGUNO LLEVA NOMBRE NI ID DE TABLA, y no por descuido: un `tableId` es
+  // contenido del documento del cliente (cláusula 5). La identidad de las
+  // tablas de un par viaja en el VALOR del hallazgo, nunca en la clave de un
+  // contador.
+  'diff.tablas.candidatos',
+  'diff.tablas.sin_clave',
+  'diff.tablas.sin_interseccion',
+  'diff.tablas.emitidos',
+  // B.117: la incidencia que el criterio de emparejamiento seguro (F-84 1b) no
+  // tenía. Cuántas filas habrían emparejado distinto con la normalización
+  // agresiva — el coste conocido de comparar en el nivel seguro. El productor
+  // existía desde F-84 (`KeyCounts.discrepanciaPorNormalizar`, table-key.ts) y
+  // se tiraba; el emparejador lo suma sobre todos los pares que evalúa.
+  // El corpus dio CERO y ese cero no es una propiedad del mundo: estas tablas
+  // se generaron programáticamente y no pueden producir un separador de
+  // millares mal escrito. Solo los clientes reales pueden mover este número, y
+  // por eso es la condición 3 de esa pieza.
+  'diff.clave.rechazadas_por_escritura',
+  // F-87 P3: cuántos diffs corren sobre documentos que todavía no están
+  // indexados — el camino sin id, que es el más usado. NO se llama
+  // `emitido_sin_identidad`: la identidad no falta, está PENDIENTE DE NACER
+  // (F-87 P4). Declarado aquí y SIN PRODUCTOR TODAVÍA, a propósito: el diff no
+  // corre en el pipeline hasta el commit de emisión, y la cláusula 4 manda
+  // catalogar antes de emitir, nunca al revés.
   // diff.clasificacion — el reparto de la fase 2 del diff de tablas, con
   // VOCABULARIO CERRADO (cláusula 5). El reparto POR COLUMNA no está aquí a
   // propósito: sus claves serían nombres de columna del cliente, o sea
@@ -85,6 +133,7 @@ export const COUNTER_CATALOGUE = [
   'diff.clasificacion.columnas_afectadas',
   'diff.clasificacion.solo_en_a',
   'diff.clasificacion.solo_en_b',
+  'diff.clasificacion.pre_indexado',
   // verificador — la cascada de F-25 (pipeline.ts). Recuentos de DECISIÓN:
   // cuántos hallazgos tomaron cada salida, no qué se encontró.
   'verificador.hallazgos_entrantes',
