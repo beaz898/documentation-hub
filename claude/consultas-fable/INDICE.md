@@ -69,13 +69,18 @@ queda superado, pero **no administra su propio estado**.
 | **[F-85](F-85.md)** | 28/08/2026 | Dónde viven las respuestas de Fable: custodia, qué sigue vinculante, cómo se marca lo superado, y qué no debe decidir Fable | **vigente** · PAR COMPLETO | La custodia y la verificación al usar — protocolo (`cd00738c`) |
 | **[F-86](F-86.md)** | 28/08/2026 | La segunda huella del sistema (la del «No es error»), el orden del arreglo, la persistencia de los descartes y el id del documento | **parcialmente superada** · *su rama del «si falta», por F-87* · PAR COMPLETO | Ninguna todavía: son el plan del frente que queda |
 | **[F-87](F-87.md)** | 28/08/2026 | El camino sin id existe y es el más usado: el diff corre igual, lo que no puede es recordar | **vigente** · PAR COMPLETO | Ninguna todavía: son el plan del frente que queda |
+| **[F-88](F-88.md)** | 29/08/2026 | Nadie empareja tablas entre documentos: N×M con tres puertas, el groupId opaco, y las variantes de escritura como cuarta clase | **vigente** · PAR COMPLETO | Ninguna todavía: son el plan de los dos commits que quedan |
 
 ---
 
-## EL AGUJERO, MEDIDO EL 28/08/2026 (rango ampliado a F-87)
+## EL AGUJERO, MEDIDO EL 28/08/2026 (rango ampliado a F-88 el 29/08)
 
-**Cuatro pares completos de F-70 a F-87: F-84, F-85, F-86 y F-87.** El resto, o a medias o nada:
+**Cinco pares completos de F-70 a F-88: F-84, F-85, F-86, F-87 y F-88.** El resto, o a medias o nada:
 
+- **F-88 — PAR COMPLETO**, en `F-88.md` (29/08/2026). Es la TERCERA superación
+  que marca el archivo, y la primera que supera a DOS consultas a la vez y por
+  el MISMO supuesto tácito: F-83 P2 y F-84 P1 hablaban de «la pareja de tablas»
+  en singular. El supuesto no se veía porque el corpus de pruebas lo cumple.
 - **F-86 y F-87 — PARES COMPLETOS**, en `F-86.md` y `F-87.md` (28/08/2026).
   F-87 es la segunda superación que marca el archivo y la PRIMERA CON LA
   CONSULTA DELANTE: el cambio de especificación se lee sin reconstruirlo.

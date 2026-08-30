@@ -2235,6 +2235,12 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     F-86 y F-87 archivados el 28/08, los dos COMPLETOS. Van CUATRO pares
     completos (F-84 a F-87) y el rango del índice se amplía hasta F-87; la
     deuda de este punto sigue siendo F-70..F-83.
+    F-88 archivado el 29/08, COMPLETO. Van CINCO pares (F-84 a F-88) y el rango
+    llega a F-88. La deuda NO se mueve: sigue siendo F-70..F-83. F-88 es además
+    la primera entrada que supera a DOS consultas a la vez —F-83 y F-84— y por
+    el mismo supuesto tácito, que es justo lo que el archivo íntegro permite
+    ver: el supuesto no estaba en ninguna de las dos como afirmación, estaba en
+    un singular.
     EL AGUJERO, MEDIDO: de F-70 a F-85 no hay NI UN SOLO PAR completo archivado.
     El archivo y su índice están creados (claude/consultas-fable/), con cada
     entrada en estado «pendiente de archivar», así que el hueco queda visible en
