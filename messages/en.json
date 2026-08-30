@@ -252,7 +252,8 @@
     "tableCardOnlyIn": "Present only in {doc}",
     "tableCardIdentical": "{count} identical rows in both documents.",
     "tableCardRowsColumns": "Columns: {columns}",
-    "tableCoverageTitle": "Coverage against \"{doc}\""
+    "tableCoverageTitle": "Coverage against \"{doc}\"",
+    "tableCoverageGroup": "No counterpart"
   },
   "improvement": {
     "title": "Improvement Mode",

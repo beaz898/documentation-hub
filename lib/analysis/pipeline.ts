@@ -13,6 +13,7 @@ import { extractAtomicClaims } from './extract-claims';
 import { verifyClaimsAgainstCorpus } from './verify-claims';
 import { emparejarTablas } from './table-pairing';
 import { emitirDiffDeTablas } from './diff-emision';
+import { restarTablasCubiertas, type TablaCubierta } from './alcance';
 import { groupChunksByTable } from './table-structure';
 import { doubleCheckContradictions } from './double-check';
 import type { DoubleCheckedDiscrepancy } from './double-check';
@@ -642,6 +643,10 @@ async function runCorePipeline(
   const t2b = Date.now();
   const newDocumentChunksForCascade = input.newDocumentChunks ?? [];
   const judgments: DocumentJudgment[] = [];
+  // B.122: las tablas que el diff SÍ comparó, para restarlas del alcance
+  // declarado. Se acumulan aquí porque es donde se sabe: la emisión ocurre
+  // candidato a candidato, y el bloque de F-74 P2 corre mucho después.
+  const tablasCubiertas: TablaCubierta[] = [];
   let totalHallazgos = 0;
   let totalConfirmados = 0;
   let totalConfirmadosPorEstructura = 0;
@@ -711,6 +716,13 @@ async function runCorePipeline(
       counters[clave] = (counters[clave] ?? 0) + (v as number);
     }
 
+    // B.122: solo las de los pares EMITIDOS. Un par que cayó por alguna de las
+    // tres puertas no comparó nada, así que sus tablas siguen sin mirar y su
+    // aviso sigue siendo verdad.
+    for (const par of emparejamiento.pares) {
+      tablasCubiertas.push({ documentId: judgment.documentId, tableId: par.existente.tableId });
+    }
+
     judgments.push(conDiff);
     totalHallazgos += outcome.tally.total;
     totalConfirmados += outcome.tally.confirmados;
@@ -761,9 +773,18 @@ async function runCorePipeline(
   // avisar de que no se compararon filas de un documento que nunca se comparó
   // con nada sería una nota sobre un análisis que no ocurrió.
   const judgedIds = new Set(reranked.map(c => c.documentId));
-  const limits = [...selectionLimits.entries()]
-    .filter(([documentId]) => judgedIds.has(documentId))
-    .flatMap(([, l]) => l);
+
+  // B.122: el alcance se declara SOBRE LO QUE NADIE MIRÓ. Las tablas que el
+  // diff comparó celda a celda —que es MÁS de lo que hace el juez— dejan de
+  // tener filas «sin mirar», así que salen del aviso. Ver la cabecera de
+  // alcance.ts sobre por qué es POR TABLA y no por documento: restar por
+  // documento apagaría el aviso de las otras tablas, que sí es verdad.
+  const limits = restarTablasCubiertas(
+    [...selectionLimits.entries()]
+      .filter(([documentId]) => judgedIds.has(documentId))
+      .flatMap(([documentId, ls]) => ls.map(limit => ({ documentId, limit }))),
+    tablasCubiertas,
+  );
 
   if (limits.length === 0) return final;
 

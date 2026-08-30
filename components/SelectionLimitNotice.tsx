@@ -34,6 +34,22 @@ export interface SelectionLimitItem {
  * sería el fallo invisible que este aviso existe para convertir en límite
  * declarado.
  *
+ * ─────────────────────────────────────────────────────────────────────────
+ * DESDE B.122 (30/08) DECLARA MENOS, Y POR ESO VUELVE A SER VERDAD.
+ *
+ * El diff de tablas NO pasa por el presupuesto del prompt —lee los chunks
+ * enteros— así que las tablas que compara quedan miradas celda a celda, que es
+ * MÁS de lo que hace el juez. Esas tablas se RESTAN del alcance antes de
+ * llegar aquí (`restarTablasCubiertas`, lib/analysis/alcance.ts), y la resta
+ * es POR TABLA: las filas de otras tablas del mismo documento siguen sin mirar
+ * y este aviso las sigue cubriendo.
+ *
+ * Lo que queda, por tanto, es lo que NADIE miró — y decirlo ya no es una
+ * promesa de más sobre nuestra propia incompetencia. El arreglo fue la resta,
+ * no la redacción; la redacción solo se comprimió a una línea porque ocupaba
+ * demasiado en una pantalla donde el chat es la otra mitad útil.
+ * ─────────────────────────────────────────────────────────────────────────
+ *
  * En castellano, sin next-intl, como sus vecinos de la bandeja. En
  * AnalysisModal se envuelve con su propia traducción.
  */
@@ -44,31 +60,23 @@ export default function SelectionLimitNotice({ limits }: { limits?: SelectionLim
     <div
       role="note"
       style={{
-        padding: '10px 12px',
-        borderRadius: 8,
-        marginBottom: 10,
+        padding: '6px 10px',
+        borderRadius: 6,
+        marginBottom: 8,
         background: 'var(--warning-light)',
         border: '0.5px solid var(--warning)',
       }}
     >
-      <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--warning-text)', margin: '0 0 3px 0' }}>
-        Alcance del analisis
-      </p>
-      <ul style={{ margin: 0, paddingLeft: 18 }}>
-        {limits.map((l, i) => (
-          <li
-            key={`${l.documentName}-${l.tableId}-${i}`}
-            style={{ fontSize: 11, color: 'var(--warning-text)', lineHeight: 1.45, wordBreak: 'break-word' }}
-          >
-            {l.rowsLeftOut} de {l.rowsRecovered} filas de{' '}
-            {l.sheetName ? `la hoja "${l.sheetName}"` : 'una tabla'} de {l.documentName}{' '}
-            no se han comparado por tamano.
-          </li>
-        ))}
-      </ul>
-      <p style={{ fontSize: 11, color: 'var(--warning-text)', margin: '4px 0 0 0', lineHeight: 1.45 }}>
-        Volver a lanzarlo no cambiaria el resultado: el limite es del tamano del analisis, no un fallo.
-      </p>
+      {limits.map((l, i) => (
+        <p
+          key={`${l.documentName}-${l.tableId}-${i}`}
+          style={{ fontSize: 11, color: 'var(--warning-text)', margin: 0, lineHeight: 1.45, wordBreak: 'break-word' }}
+        >
+          <strong>Alcance:</strong> {l.rowsLeftOut} de {l.rowsRecovered} filas de{' '}
+          {l.sheetName ? `la hoja "${l.sheetName}"` : 'una tabla'} de {l.documentName}{' '}
+          quedaron fuera por tamano y no se han revisado. Relanzarlo no lo cambia.
+        </p>
+      ))}
     </div>
   );
 }

@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import type { GrupoDeTablas } from '@/lib/analysis/types';
 import type { Problem } from './problems';
 import { mostrarAccionesDeFila } from './problems';
-import { etiquetasDeMontones, indiceDeColumnas, tieneCobertura } from './table-coverage';
+import { contarSinCorrespondencia, etiquetasDeMontones, indiceDeColumnas, tieneCobertura } from './table-coverage';
 
 /**
  * BATERÍA DEL BLOQUE DE COBERTURA (F-88, ficha A revisada).
@@ -175,5 +175,41 @@ describe('mostrarAccionesDeFila — la supresión de F-88 P2', () => {
    */
   it('una contradicción de prosa SÍ las lleva', () => {
     expect(mostrarAccionesDeFila(fila('prosa'))).toBe(true);
+  });
+});
+
+describe('contarSinCorrespondencia — el recuento cuenta lo que el nombre dice', () => {
+  /**
+   * HUECO ENCONTRADO POR MUTACIÓN: la regla estaba escrita en el comentario de
+   * la función y en ningún caso, así que sumarle las idénticas no rompía nada.
+   *
+   * LA REGLA: el titular dice «Sin correspondencia (N)», y N tiene que ser las
+   * filas SIN PAREJA. Las idénticas y las variantes van dentro del mismo grupo
+   * pero no cuentan aquí: «Sin correspondencia (73)» sobre 50 sin pareja más 20
+   * idénticas más 3 variantes sería un número que no significa nada.
+   * Es la misma disciplina que F-84 P1 aplicó a los contadores planos.
+   */
+  it('suma los DOS montones y nada más', () => {
+    const g = grupo({
+      soloEnNuevo: [{ clave: 'A', texto: 'a' }, { clave: 'B', texto: 'b' }],
+      soloEnOtro: [{ clave: 'C', texto: 'c' }],
+      identicas: 20,
+      variantesDeEscritura: [{ clave: 'V', columnas: ['X'], enNuevo: 'v', enOtro: 'V' }],
+    });
+
+    expect(contarSinCorrespondencia([g])).toBe(3);
+  });
+
+  it('suma a través de varias parejas de tablas', () => {
+    const a = grupo({ groupId: 'g-1', soloEnNuevo: [{ clave: 'A', texto: 'a' }], identicas: 0 });
+    const b = grupo({ groupId: 'g-2', soloEnOtro: [{ clave: 'C', texto: 'c' }, { clave: 'D', texto: 'd' }], identicas: 0 });
+
+    expect(contarSinCorrespondencia([a, b])).toBe(3);
+  });
+
+  /** Un grupo cuyo único resultado fueron discrepancias no aporta nada al
+   *  recuento — sus quince ya están arriba, como cajas sueltas. */
+  it('un grupo solo con discrepancias e idénticas cuenta cero', () => {
+    expect(contarSinCorrespondencia([grupo({ identicas: 20 })])).toBe(0);
   });
 });

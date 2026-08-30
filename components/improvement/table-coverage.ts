@@ -98,3 +98,19 @@ export function tieneCobertura(grupo: GrupoDeTablas): boolean {
     grupo.identicas > 0
   );
 }
+
+/**
+ * EL RECUENTO DEL TITULAR del grupo «Sin correspondencia».
+ *
+ * CUENTA LAS FILAS AJENAS DE LOS DOS MONTONES, y nada más — ni las variantes
+ * de escritura ni las idénticas, aunque vayan dentro del mismo grupo. La regla
+ * es que EL RECUENTO CUENTE LO QUE EL NOMBRE DICE: un titular «Sin
+ * correspondencia (73)» sobre 50 filas sin pareja más 20 idénticas más 3
+ * variantes sería un número que no significa nada.
+ *
+ * Es la misma disciplina que F-84 P1 aplicó a los contadores planos: los
+ * números tienen que medir lo que dicen medir.
+ */
+export function contarSinCorrespondencia(grupos: GrupoDeTablas[]): number {
+  return grupos.reduce((n, g) => n + g.soloEnNuevo.length + g.soloEnOtro.length, 0);
+}

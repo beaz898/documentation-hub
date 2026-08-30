@@ -7,10 +7,17 @@ import CollapsibleSection from '../CollapsibleSection';
 import { etiquetasDeMontones, indiceDeColumnas, tieneCobertura } from './table-coverage';
 
 /**
- * EL BLOQUE DE COBERTURA de una comparación de tablas (F-88, ficha A revisada).
+ * EL CONTENIDO DEL GRUPO «SIN CORRESPONDENCIA» (F-88, ficha A, 2ª revisión).
  *
- * VA DEBAJO DE LAS DISCREPANCIAS, que se pintan como cajas sueltas en la lista
- * de siempre. Aquí solo va lo INFORMATIVO — lo que no reclama juicio:
+ * VIVE DENTRO DE LA LISTA DE PROBLEMAS, como un grupo más al lado de
+ * Contradicciones, Duplicidades y las demás: plegable igual que ellos y con su
+ * recuento en el titular. Antes era un bloque aparte debajo, y le comía sitio
+ * al chat — que es la otra mitad útil del modal.
+ *
+ * EL CRITERIO GENERAL DE ESTA PANTALLA, para no repetirlo: todo lo que produce
+ * el análisis va DENTRO de la caja de problemas. El chat no cede más espacio.
+ *
+ * Aquí solo va lo INFORMATIVO — lo que no reclama juicio:
  *
  *   · el índice de columnas: dónde están las diferencias, de un vistazo;
  *   · presente solo en X: los dos montones, cada uno con SU documento;
@@ -49,16 +56,11 @@ export default function TableCoverageBlock({
         const montones = etiquetasDeMontones(grupo, nombreDocumentoAnalizado);
 
         return (
-          <div
-            key={grupo.groupId}
-            style={{
-              border: '0.5px solid var(--border)',
-              borderRadius: 8,
-              padding: '10px 12px',
-              background: 'var(--surface)',
-            }}
-          >
-            <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-secondary)', margin: '0 0 2px 0', textTransform: 'uppercase', letterSpacing: 0.4 }}>
+          // SIN CAJA PROPIA: ya está dentro del grupo de la lista, y una caja
+          // dentro de otra solo añade ruido. El título queda para distinguir
+          // parejas cuando hay más de una.
+          <div key={grupo.groupId} style={{ marginBottom: 8 }}>
+            <p style={{ fontSize: 10, fontWeight: 600, color: 'var(--text-muted)', margin: '0 0 2px 0' }}>
               {t('tableCoverageTitle', { doc: grupo.documentoExistente })}
             </p>
 

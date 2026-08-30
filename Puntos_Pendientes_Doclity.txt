@@ -2478,12 +2478,53 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     lista estructurada que la ficha puede plegar, sin volcarla en una frase que
     viaja a tres prompts y a la base de datos.
 
+    ══ ESTADO ══
+    LA PRIMERA MITAD (el aviso de alcance) QUEDA HECHA el 30/08, adelantada
+    porque el aviso estaba en pantalla diciendo algo falso y ocupaba mucho: se
+    aplicó la opción (b) —restar lo que el diff sí comparó, POR TABLA— en
+    lib/analysis/alcance.ts, con su batería y su mutación. El texto se comprimió
+    a una línea. Para OPE-10/OPE-11 el aviso desaparece, que es lo correcto.
+    LA SEGUNDA MITAD (el solapamiento F-45 que vuelca las veinte filas) SIGUE
+    ABIERTA.
+
     ══ CUÁNDO ══
     DESPUÉS DE LA FICHA, en commit propio. Decidido el 30/08 con el usuario:
     las dos son consecuencias de que el diff exista y se entienden mejor con la
     ficha delante. La segunda además RETIRA información que hoy se enseña
     —aunque sea para enseñarla mejor—, y eso no entra de rebote en un commit
     que va de otra cosa.
+
+  B.123 — [ABIERTO 30/08, nombrado por el director] «AUNQUE NO SE REVISEN
+    TODAS, SE REVISARÁN LAS MÁS IMPORTANTES». Hoy NO es así.
+    LO QUE SE DICE, y es una promesa razonable de producto: si el análisis no
+    puede mirarlo todo, que al menos mire lo que importa.
+    LO QUE HACE EL SISTEMA: la selección elige las filas que CABEN, no las que
+    IMPORTAN. El reparto por unidades (retrieval.ts) ordena por score de
+    Pinecone y mete unidades ENTERAS hasta agotar el presupuesto; dentro de una
+    tabla que entra a nivel 2, las filas se ordenan por cruce y score y entran
+    las que quepan. Ninguno de esos criterios sabe si una fila es DISCREPANTE:
+    saben si se parece a lo que se buscó.
+    POR QUÉ NO ES UN FALLO SINO UN LÍMITE: para elegir «las más importantes»
+    haría falta saber cuáles lo son ANTES de compararlas, y eso es exactamente
+    el predicado de F-65 (claude/Descarte_Filas_Ajenas.md), que no existe. La
+    aproximación disponible —«cruza y no es idéntica»— falla en los dos
+    sentidos, y está medida en B.104.
+    NO SE RESUELVE AQUÍ, y decirlo importa: mientras no exista el predicado, el
+    sistema NO PUEDE prometer que revisa lo importante. Lo que sí puede —y hace
+    desde F-74 P2— es DECLARAR lo que no miró. Prometer selección por
+    importancia sin el predicado sería la misma clase de promesa de más que
+    B.122 acaba de quitar del aviso de alcance, con el signo cambiado.
+    DÓNDE SE JUNTA CON LO QUE YA HAY:
+      · B.104 — el aviso dice cuántas filas quedaron fuera, no cuántas eran
+        DISCREPANTES. Es este mismo hueco visto desde el aviso.
+      · B.102 — el tope de 25 piezas se come el presupuesto antes que los
+        caracteres, y es la otra mitad del frente de la selección.
+      · F-65 — el predicado que falta, del que dependen los tres.
+    QUÉ MIRAR CUANDO SE RETOME: si con el diff de tablas corriendo (F-88) la
+    pregunta cambia de sitio. El diff NO pasa por el presupuesto —compara la
+    tabla entera— así que en documentos TABULARES la promesa ya se cumple sin
+    selección ninguna. Lo que queda sin resolver es la PROSA, que es donde el
+    presupuesto sigue mandando y donde nadie sabe qué párrafo importa más.
 
   F-81 [CONVERGENCIA — leer ANTES de planificar la fase 3 del diff, 27/08] No
     es un pendiente nuevo: es el sitio donde se juntan tres que ya existen, más

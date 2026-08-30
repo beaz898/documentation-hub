@@ -252,7 +252,8 @@
     "tableCardOnlyIn": "Presente solo en {doc}",
     "tableCardIdentical": "{count} filas idénticas en ambos documentos.",
     "tableCardRowsColumns": "Columnas: {columns}",
-    "tableCoverageTitle": "Cobertura frente a \"{doc}\""
+    "tableCoverageTitle": "Cobertura frente a \"{doc}\"",
+    "tableCoverageGroup": "Sin correspondencia"
   },
   "improvement": {
     "title": "Modo mejora",

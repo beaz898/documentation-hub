@@ -10,6 +10,7 @@ import IncompleteAnalysisNotice from '@/components/IncompleteAnalysisNotice';
 import SelectionLimitNotice from '@/components/SelectionLimitNotice';
 import type { SelectionLimitItem } from '@/components/SelectionLimitNotice';
 import TableCoverageBlock from './TableCoverageBlock';
+import { contarSinCorrespondencia } from './table-coverage';
 import type { ProblemType, Problem } from './problems';
 import { mostrarAccionesDeFila } from './problems';
 import type { GrupoDeTablas } from '@/lib/analysis/types';
@@ -72,6 +73,16 @@ export default function ChatPanel({
   selectionLimits,
 }: ChatPanelProps) {
   const t = useTranslations('analysis');
+
+  /**
+   * F-88 ficha A, 2ª revisión: el grupo «Sin correspondencia» arranca PLEGADO,
+   * como los demás informativos. Estado propio y no `collapsedGroups`, que está
+   * tipado por `ProblemType` — y esto NO es un tipo de problema: es cobertura,
+   * información sin botón (F-84 P1). Meterlo en la taxonomía lo haría contar
+   * como un hallazgo.
+   */
+  const [coberturaAbierta, setCoberturaAbierta] = useState(false);
+  const hayCobertura = Boolean(tableDiffs && tableDiffs.length > 0);
 
   // Translated labels for group headers (plural) and type badges
   const groupLabels: Record<ProblemType, string> = {
@@ -227,7 +238,10 @@ export default function ChatPanel({
         </div>
       )}
 
-      {groupedProblems.length > 0 && (
+      {/* La caja se pinta si hay problemas O si hay cobertura: un par de
+          tablas cuyo único resultado fuera cobertura —caso que F-84 P1 declaró
+          aceptable— dejaría la caja vacía y las cincuenta ajenas sin enseñar. */}
+      {(groupedProblems.length > 0 || hayCobertura) && (
         <div style={{
           padding: '10px 16px', borderBottom: '0.5px solid var(--border)',
           display: 'flex', flexDirection: 'column', gap: 10,
@@ -513,19 +527,55 @@ export default function ChatPanel({
               </div>
             );
           })}
+
+          {/* F-88 ficha A, 2ª REVISIÓN — «SIN CORRESPONDENCIA», UN GRUPO MÁS.
+
+              Dentro de la lista, al lado de Contradicciones y las demás, con el
+              mismo plegado y el mismo titular. Antes vivía en un bloque aparte
+              debajo y le comía sitio al chat, que es la otra mitad útil del
+              modal — el criterio de esta pantalla es que todo lo que produce el
+              análisis va DENTRO de la caja de problemas.
+
+              NO ES UN ProblemType, y por eso no usa `collapsedGroups` ni entra
+              en el filtro por tipo: es COBERTURA, información sin botón (F-84
+              P1). Meterlo en la taxonomía lo haría contar como un hallazgo, que
+              es justo lo que esa respuesta decidió que no fuera. */}
+          {hayCobertura && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              <div
+                onClick={() => setCoberturaAbierta(o => !o)}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 6,
+                  cursor: 'pointer', userSelect: 'none',
+                }}
+              >
+                <svg
+                  width="12" height="12" viewBox="0 0 24 24" fill="none"
+                  stroke="var(--text-muted)" strokeWidth="2.5"
+                  strokeLinecap="round" strokeLinejoin="round"
+                  style={{
+                    transform: coberturaAbierta ? 'rotate(0deg)' : 'rotate(-90deg)',
+                    transition: 'transform 0.15s', flexShrink: 0,
+                  }}
+                >
+                  <polyline points="6 9 12 15 18 9" />
+                </svg>
+                <span style={{
+                  fontSize: 11, fontWeight: 700, color: 'var(--text-muted)',
+                  textTransform: 'uppercase', letterSpacing: 0.4, flex: 1,
+                }}>
+                  {t('tableCoverageGroup')} ({contarSinCorrespondencia(tableDiffs!)})
+                </span>
+              </div>
+              {coberturaAbierta && (
+                <TableCoverageBlock grupos={tableDiffs!} nombreDocumentoAnalizado={documentName} />
+              )}
+            </div>
+          )}
         </div>
       )}
 
-      {/* F-88 ficha A revisada: EL BLOQUE DE COBERTURA, DEBAJO de las
-          discrepancias. Lo informativo va después de lo que reclama juicio —
-          las cincuenta ajenas y las variantes de escritura no tienen otro
-          domicilio (F-84 P1 las dejó fuera de todo contador plano), pero no
-          pueden enterrar la alarma. Plegado por defecto. */}
-      {tableDiffs && tableDiffs.length > 0 && (
-        <div style={{ padding: '10px 16px', borderBottom: '0.5px solid var(--border)', flexShrink: 0, maxHeight: 260, overflowY: 'auto' }}>
-          <TableCoverageBlock grupos={tableDiffs} nombreDocumentoAnalizado={documentName} />
-        </div>
-      )}
+
 
       <div style={{
         flex: '1 1 auto', overflowY: 'auto', padding: '12px 16px',
