@@ -192,6 +192,18 @@ El dueño del proyecto NO es programador. Vercel deploya automáticamente al hac
 - Ningún archivo debería superar 400 líneas. Si crece, dividir.
 - TypeScript estricto, sin any salvo justificación.
 - Toda integración externa pasa por función intermedia.
+- **Un criterio se implementa UNA VEZ. Quien lo necesita PREGUNTA a quien lo
+  decidió, no lo recalcula.** Si una etapa ya decidió algo —qué fila va con
+  cuál, qué identidad tiene un hallazgo, qué columna es la clave— la siguiente
+  le pregunta el resultado en vez de volver a derivarlo con sus propias reglas.
+  Dos implementaciones del mismo criterio no se mantienen sincronizadas: se
+  separan, y el día que se separan nadie se entera porque las dos siguen
+  pareciendo correctas por su cuenta.
+  Casos del proyecto: el `groupId` es OPACO y no derivado del contenido, para
+  que no exista una segunda identidad paralela a la huella (F-88 P3); y R2
+  comprueba si dos filas son la misma fila PREGUNTANDO al emparejamiento en vez
+  de recomparar la clave (F-89 P2), lo que además cubre gratis el caso de una
+  fila sin pareja ninguna.
 - Retry con backoff y fallback determinista.
 - Cero dependencias nuevas sin razón.
 - Idioma del proyecto: español.
