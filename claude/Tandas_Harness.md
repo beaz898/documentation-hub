@@ -436,6 +436,72 @@ mismo en el harness. **Hizo falta la primera pasada con tres documentos.**
 la línea seguirá mintiendo en el **caso 5** (MKT-01 con los otros cuatro), que
 es el único con más de dos documentos. En los demás pares no se nota.
 
+---
+
+### RESULTADOS — TANDA 3, control de regresión, `cceddf86`
+
+**Once pasadas.** Seis con **un solo candidato** (los tres pares de prosa, las
+dos direcciones) y cinco con cuatro documentos marcados (el grupo del piloto,
+que es donde vive el caso 5).
+
+| Caso | Dirección | Resultado |
+|---|---|---|
+| 3 · CLI-03 → NOR-01 | aislada | **confirmado por juicio** (`57fbe32c`) |
+| 4 · NOR-01 → CLI-03 | aislada | **confirmado por juicio** (`b4768783`) |
+| 8 · NOR-10 → CLI-12 | aislada | **0** — ver abajo |
+| 9 · CLI-12 → NOR-10 | aislada | **0** — ver abajo |
+| 10 · NOR-11 → CLI-13 | aislada | **confirmado por juicio** (`14123c6f`) |
+| 11 · CLI-13 → NOR-11 | aislada | **confirmado por juicio** (`9d19a20b`) |
+| 5 · MKT-01 con los otros cuatro | condición del caso | **0 y 0** con dos documentos juzgados |
+
+`confirmados_por_estructura` = **0** en las once. **Sin regresión en prosa.**
+
+#### EL AISLAMIENTO FUNCIONÓ, Y ES LA PRUEBA DE LA MANIOBRA DEL `pendiente`
+
+Las seis pasadas de prosa dieron **`Retrieval: 1 candidatos`** con `1 ids de
+tanda`. No es suerte: con `CORPUS_ACTIVO` vacío —los once documentos puestos a
+`pendiente` en Supabase y proyectado a Pinecone con el reconciliador—, el `$or`
+de `buildCorpusFilter` deja pasar **exactamente** el id marcado.
+
+La maniobra sustituye al vaciado y resincronización de Drive, y es **reversible**
+sin tocar `reviewed_at`.
+
+Las cinco pasadas con **cuatro** ids son otra cosa y no contaminan nada:
+· **El caso 5 EXIGE cuatro acompañantes.** Es su condición, no ruido. El rerank
+  seleccionó **2 de 4** (OPE-02 y RRHH-06) y los juzgó con 0 y 0. El caso se
+  cumple —tenía material delante y no inventó— pero es **un control más débil**
+  que si hubiera juzgado los cuatro. Anotado.
+· **Las otras cuatro son REPETICIONES** de casos ya medidos aislados (3 y 4 hoy
+  a las 15:07; 1 y 2 en la tanda 2). Dieron **los mismos hashes** y el mismo
+  resultado. Corroboran en condiciones más ruidosas; no sustituyen a nada.
+
+⚠️ **Lo frágil, dicho**: en esas cuatro el rerank **pudo elegir mal y no lo
+hizo**. Si alguna hubiera dado 0, no se habría podido distinguir «regresión» de
+«el rerank eligió otro candidato» — que es exactamente lo que pasó en la pasada
+extra con RRHH-06.
+
+#### NOR-10 / CLI-12 DA CERO — Y NO ES REGRESIÓN
+
+Está registrado desde el **26/08/2026** en `claude/Casos_Harness.md`, sección
+«LÍNEA DE BASE» de los casos 6-9, medido sobre `87a76112`: **prosa larga, 3
+sembradas, 0 publicadas**.
+
+Y no coincide solo el número: **las dos causas de muerte estaban nombradas allí**
+y son las de hoy — `mismo_dato_sin_oposicion` en una dirección,
+`citaNoVerificable` en la otra. El cuello también: *«de 66 fragmentos
+recuperados de NOR-10 entraron 3»*, y hoy `3 dentro, 63 fuera (prosa 3/66),
+2616/3000 caracteres`.
+
+Es el **frente 4 del mapa del MVP** —la prosa— intacto. El frente 1 no lo tocó
+ni pretendía tocarlo.
+
+#### EL `4/1` SALIÓ DONDE SE PREDIJO
+
+Las cinco pasadas de cuatro documentos son las únicas que enseñaron
+`Chunks para verificación: 4/1` y `4/2`. La corrección está hecha desde el 31/08
+y **sin desplegar**, porque la tanda medía `cceddf86`.
+
+
 
 
 

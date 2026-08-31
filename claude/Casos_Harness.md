@@ -159,6 +159,41 @@ embedding y presupuesto**: no hay pertenencia por valor ni colapso de idénticas
 que es lo que F-73 midió como el mecanismo que hace posible la detección en
 tablas.
 
+**REMEDIDO EL 31/08/2026 sobre `cceddf86`, tanda 3 — SIGUE EN CERO, y las dos
+causas de muerte son LAS MISMAS.** Una pasada por dirección, aisladas (un solo
+candidato en las dos):
+
+| Dirección | Qué emitió el juez | Cómo murió |
+|---|---|---|
+| CLI-12 → NOR-10 | «Responsabilidad última de la esterilización» | `mismo_dato_sin_oposicion` |
+| NOR-10 → CLI-12 | «Responsabilidad última en decisiones de esterilización» | `cita no verificable, lado=nuevo` |
+
+Y el cuello del retrieval, idéntico cinco días después: `3 dentro, 63 fuera
+(prosa 3/66), 2616/3000 caracteres`. Aquella medición decía «de 66 entraron 3,
+el 4,7 %»; hoy son los mismos 66 y los mismos 3.
+
+**NO ES REGRESIÓN**, y conviene que quede escrito porque la tanda del frente 1
+lo hizo sospechar: el frente 1 no tocó la prosa ni pretendía tocarla.
+
+**DOS AÑADIDOS A ESTA LÍNEA DE BASE, que hoy se ven y aquel día no se anotaron:**
+
+1. **El denominador es 4, no 3.** Lo avisaba la nota de arriba —la contradicción
+   D se descubrió al día siguiente—, así que la cifra de hoy es **0 de 4**.
+
+2. **HAY UN SEGUNDO CUELLO, INDEPENDIENTE DEL RETRIEVAL, y no está en la nota de
+   F-76: el documento ANALIZADO también se recorta.**
+
+       "CLI-12": documento analizado truncado a 6000 de 60840   →  9,9 %
+       "NOR-10": documento analizado truncado a 6000 de 73962   →  8,1 %
+
+   Es `NEW_DOC_LIMIT_QUICK` (judge.ts:35), deliberado y solo del modo rápido. La
+   nota de F-76 documenta el estrangulamiento del CANDIDATO; éste es del
+   ANALIZADO. Sumados: **el juez compara ~8 % de un documento contra ~4 % del
+   otro.** Con eso, que no encuentre las sembradas no necesita más explicación
+   que la aritmética.
+   No se sabe si el recorte del analizado estaba ya en `87a76112`: no se
+   comprobó, y no se afirma.
+
 ### Los casos 10 y 11: el caso de control de superficies
 
 Los casos 8 y 9 miden prosa larga; los 6 y 7, tablas grandes. **Este par mide
