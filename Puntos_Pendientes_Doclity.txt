@@ -2237,6 +2237,23 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     ACTUALIZADO 28/08 (tarde): son 466 líneas — el protocolo creció otra vez con
     la CUARTA plantilla de cierre (F-84). La cifra de arriba es la del momento
     en que se anotó; el patrón es lo que importa, pero que el número no mienta.
+    ACTUALIZADO 31/08 (cierre del frente 1): son 729 LÍNEAS. En tres días ha
+    pasado de 466 a 729 —un 56% más— y otra vez por la misma razón buena: el
+    frente 1 promovió SEIS reglas nuevas. La regla de cierre (F-89), la de la
+    doble lectura (F-91), la guarda de red en el §1-bis (B.126), y de F-92 las
+    tres piezas por regla dictada, la ambigüedad de alcance del cuantificador y
+    el «cero en N» con su tasa.
+    LA CIFRA SE ACTUALIZA AQUÍ CADA VEZ QUE SE MIDE, y no es burocracia: este
+    pendiente es un vigilante, y un vigilante con el número viejo es
+    exactamente el fallo que lo hizo nacer.
+    SIGUE SIN PARTIRSE, y sigue siendo decisión: el frente 1 acaba de cerrar y
+    los frentes 2 y 3 van a promover más reglas. Partir ahora obligaría a
+    decidir dos veces dónde va cada una. LA PREGUNTA DEL CORTE NO HA CAMBIADO
+    —separar el método de las tandas de las reglas de entrada y admisión— pero
+    el material sí: ahora hay un bloque entero de REGLAS DE ESPECIFICACIÓN
+    (doble lectura, tres piezas, alcance del cuantificador) que no existía el
+    28/08 y que probablemente sea el corte natural: no hablan de cómo se mide,
+    hablan de cómo se escribe una regla antes de implementarla.
     ES LA TERCERA VEZ EN TRES DÍAS que ese fichero crece por un frente distinto:
     el 27/08 se partió sacando el catálogo de casos a claude/Casos_Harness.md
     (39d15163), ese mismo día entró la regla de entrada de F-81 P3 (8632576e),

@@ -271,6 +271,105 @@ ejemplo inventado — un ejemplo inventado se construye, sin querer, para que sa
 bien la lectura que uno ya tenía en la cabeza.
 
 
+## ⚠️ LA AMBIGÜEDAD DE ALCANCE DEL CUANTIFICADOR, y las TRES PIEZAS que la matan
+
+*Promovida de F-92 P4 el 31/08/2026. **Complementa a la regla de la doble
+lectura de arriba; no la sustituye.** Aquella caza la ambigüedad EJERCIENDO, o
+sea después de que exista; ésta intenta que no llegue a existir.*
+
+**EL PATRÓN TIENE NOMBRE, y no lo inventamos nosotros**: *ambigüedad de alcance
+del cuantificador*. «Todas las X» está indefinido hasta que se dice **de qué
+conjunto sale X**. Las dos veces que nos pasó en el frente 1, la palabra estaba
+dentro de una regla por lo demás precisa:
+
+| Regla | La palabra | Los dos universos |
+|---|---|---|
+| F-90 P3 | «todas las columnas **COMUNES**» | ¿las que el juez CITÓ, o las que las dos FILAS comparten? |
+| F-89 P4 | «un par de tablas que el diff ya **COMPARÓ**» | ¿las TABLAS, o ESE DATO? |
+
+Las dos suenan inequívocas leídas de corrido. Las dos **separaban hallazgos
+verdaderos de falsos** según cómo se leyeran. Y ninguna se vio leyendo.
+
+El diagnóstico es de Fable y vale para cualquiera que escriba una
+especificación: **«el universo obvio es exactamente el que no se escribe.»**
+
+### LAS TRES PIEZAS — lo que una regla dictada debe traer
+
+> Toda regla dictada se entrega en **tres piezas**:
+> 1. **el predicado**, con sus variables;
+> 2. **el universo de cada nombre cuantificado** — columnas ¿de qué? de las
+>    filas / citadas / compartidas / comparadas;
+> 3. **un caso a cada lado de la frontera**, nombrado con datos del corpus.
+
+El ejemplo canónico es la respuesta de F-92 P1:
+
+    suprimir(h) ⇔ par(h) ∈ emitidos
+                  ∧ (fila_a, fila_b)(h) ∈ emparejadas(par)
+                  ∧ columnas(h) ⊆ comparadas(par)
+
+con sus universos declarados y sus dos casos: «Precio base» en EST-03/EST-03
+(dentro, se suprime) y «Horas semana» en Belmonte/Belmonte (fuera, sigue).
+
+**Fable lo asume como regla de la casa para su lado.** Y pone dos límites
+honestos que se conservan para que nadie la crea infalible: **no cazará
+ambigüedades en nombres que no PARECEN cuantificados** («el dato», «el par»), y
+**no sustituye a la regla de la doble lectura**.
+
+### LO QUE NOS TOCA A NOSOTROS, que es la mitad que podemos controlar
+
+> **Una regla en prosa NO SE IMPLEMENTA: SE TRADUCE a predicado.** Y si al
+> traducirla aparece un nombre sin universo, **se pregunta en vez de elegir**.
+
+Es la disciplina de F-57 —cambiar el formato obliga a revisar las
+instrucciones— aplicada a la frontera entre lenguaje y código: **la traducción
+es donde se ve el hueco**. Elegir un universo «porque es el obvio» es
+exactamente lo que produjo los dos fallos: las dos veces se eligió sin saber
+que se estaba eligiendo.
+
+---
+
+## ⚠️ UN CERO NO ES UNA AUSENCIA: SE REPORTA CON LA TASA QUE EXCLUYE
+
+*Promovida de F-92 el 31/08/2026, con un caso propio que costó una conclusión
+equivocada.*
+
+> **«Cero en N pasadas» no significa «no ocurre». Significa «descarta tasas por
+> encima de X». Se reporta con la X, siempre.**
+
+**EL CASO QUE LA FUNDA, y es nuestro.** El 30/08 se lanzaron **cuatro** pasadas
+buscando el falso positivo de B.124, salieron **cero**, y de ahí se concluyó
+«no se puede reproducir» (B.125). El 31/08, con seis pasadas, apareció **tres
+veces**: una tasa del **50 %**.
+
+Aquel cero no era una tasa baja: **era mala suerte**. Un fallo que ocurre la
+mitad de las veces sale cero en cuatro pasadas el **6 %** de las veces.
+
+**LA TABLA**, calculada al 95 % de confianza — un cero en N pasadas solo
+descarta tasas por encima de:
+
+| N | descarta tasas > |
+|---|---|
+| 2 | 78 % |
+| 3 | 63 % |
+| **4** | **53 %** |
+| 6 | 39 % |
+| 10 | 26 % |
+| 20 | 14 % |
+| 30 | 10 % |
+
+*(la fórmula: `1 − 0,05^(1/N)`, de exigir que `(1−p)^N ≤ 0,05`)*
+
+**Léase la fila del 4 al lado de la tasa real de B.124.** Cuatro ceros
+descartaban tasas por encima del 53 %; la real era el 50 %. **Estaba dentro de
+lo que aquella medición no podía excluir, por poco.** No fue mala suerte
+extraordinaria: fue el instrumento haciendo justo lo que podía.
+
+**CONSECUENCIA PRÁCTICA**: para afirmar que algo es *raro* —por debajo del 10 %—
+hacen falta **treinta pasadas**, no cuatro. Si no se van a lanzar treinta, la
+frase correcta no es «no ocurre» sino «cero en cuatro: no descarta nada por
+debajo del 53 %».
+
+
 ## ⚠️ REGLA DE CIERRE: qué bloquea y qué se declara
 
 *Promovida de F-89 P6 el 30/08/2026. Se promueve ANTES que las otras dos reglas

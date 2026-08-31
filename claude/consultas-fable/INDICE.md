@@ -107,16 +107,29 @@ queda superado, pero **no administra su propio estado**.
 | **[F-86](F-86.md)** | 28/08/2026 | La segunda huella del sistema (la del «No es error»), el orden del arreglo, la persistencia de los descartes y el id del documento | **parcialmente superada** · *su rama del «si falta», por F-87* · PAR COMPLETO | Ninguna todavía: son el plan del frente que queda |
 | **[F-87](F-87.md)** | 28/08/2026 | El camino sin id existe y es el más usado: el diff corre igual, lo que no puede es recordar | **vigente** · PAR COMPLETO | Ninguna todavía: son el plan del frente que queda |
 | **[F-88](F-88.md)** | 29/08/2026 | Nadie empareja tablas entre documentos: N×M con tres puertas, el groupId opaco, y las variantes de escritura como cuarta clase | **vigente** · PAR COMPLETO | Ninguna todavía: son el plan de los dos commits que quedan |
-| **[F-89](F-89.md)** | 30/08/2026 | El sello «confirmado por estructura» sobre un emparejamiento que el juez inventó — y EL MAPA DEL MVP: cuatro frentes, cuáles bloquean | **parcialmente superada** · *el margen del ancla y qué hace el ancla, por F-90* · PAR COMPLETO | La REGLA DE CIERRE (bloqueante/declarable) — protocolo. La jerarquía simétrica, pendiente del frente 1 |
-| **[F-90](F-90.md)** | 30/08/2026 | Qué pasa donde el diff no pudo comparar: el margen del ancla MEDIDO, y sin clave la estructura no firma | **vigente** · *su P3 DESAMBIGUADO por F-91 — no superado: aclarado* · PAR COMPLETO | Ninguna todavía: son el plan de lo que queda del frente 1 |
+| **[F-89](F-89.md)** | 30/08/2026 | El sello «confirmado por estructura» sobre un emparejamiento que el juez inventó — y EL MAPA DEL MVP: cuatro frentes, cuáles bloquean | **parcialmente superada** · *el margen del ancla y qué hace el ancla, por F-90; su P4 DESAMBIGUADO por F-92* · PAR COMPLETO | La REGLA DE CIERRE (bloqueante/declarable) — protocolo. La jerarquía simétrica, pendiente del frente 1 |
+| **[F-90](F-90.md)** | 30/08/2026 | Qué pasa donde el diff no pudo comparar: el margen del ancla MEDIDO, y sin clave la estructura no firma | **vigente** · *su P3 DESAMBIGUADO por F-91; su P4 SUPERADO EN LA PREMISA por F-92 — la cifra no se podía medir* · PAR COMPLETO | Ninguna todavía: son el plan de lo que queda del frente 1 |
 | **[F-91](F-91.md)** | 30/08/2026 | «Todas las columnas comunes» admitía dos lecturas, y la mala descartaba hallazgos VERDADEROS: la geometría no se contamina con testimonio. Y la clase de contadores CENTINELA | **vigente** · PAR COMPLETO | La clase CENTINELA — `Contrato_Contadores.md`; la hermana de F-79 (una regla con dos lecturas se ejerce contra un caso medido) — protocolo |
+| **[F-92](F-92.md)** | 31/08/2026 | La supresión suprime por FILA y el diff compara por COLUMNA: el hueco es el territorio de las omisiones —y del mismo dato bajo otro nombre—. Y por qué la cifra de coste no se podía medir | **vigente** · PAR COMPLETO | MOTIVO LITERAL — `Contrato_Contadores.md`. TRES PIEZAS POR REGLA DICTADA, «CERO EN N» con la tasa que excluye, y la AMBIGÜEDAD DE ALCANCE DEL CUANTIFICADOR — protocolo |
 
 ---
 
-## EL AGUJERO, MEDIDO EL 28/08/2026 (rango ampliado a F-91 el 30/08)
+## EL AGUJERO, MEDIDO EL 28/08/2026 (rango ampliado a F-92 el 31/08)
 
-**Ocho pares completos de F-70 a F-91: F-84, F-85, F-86, F-87, F-88, F-89, F-90 y F-91.** El resto, o a medias o nada:
+**Nueve pares completos de F-70 a F-92: F-84, F-85, F-86, F-87, F-88, F-89, F-90, F-91 y F-92.** El resto, o a medias o nada:
 
+- **F-92 — PAR COMPLETO**, en `F-92.md` (31/08/2026). LA PRIMERA VEZ QUE FABLE
+  ASUME UNA REGLA DE FORMA PARA SÍ MISMO: «toda regla dictada se entrega en tres
+  piezas —predicado, universo de cada nombre cuantificado, y un caso a cada lado
+  de la frontera—», con su diagnóstico en una frase que vale para cualquiera:
+  **«el universo obvio es exactamente el que no se escribe»**. Y la primera en
+  que un aviso nuestro NO se desmiente ni se acepta, sino que **se contesta**:
+  advertimos que la lectura C reabría B.124 y la respuesta explica por qué no —la
+  verificación de identidad corre antes y mata la fila mal emparejada—. La
+  respuesta además nos enseña un hueco que no habíamos visto: el juez no solo
+  cubre omisiones, es **el emparejador de esquemas de último recurso**, porque el
+  diff empareja columnas por igualdad de nombre y no ve «Horas semana» contra
+  «Jornada semanal».
 - **F-91 — PAR COMPLETO**, en `F-91.md` (30/08/2026). LA PRIMERA VEZ QUE UNA
   AMBIGÜEDAD DE FABLE SE ENCUENTRA EJECUTANDO Y NO LEYENDO: una palabra suya
   —«comunes»— admitía dos lecturas, y la de al lado descartaba el hallazgo

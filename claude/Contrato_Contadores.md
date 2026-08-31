@@ -278,6 +278,49 @@ anotado.
 
 ---
 
+## 2-ter. EL MOTIVO LITERAL: un descarte dice EL PREDICADO QUE SE VERIFICÓ (F-92 P2)
+
+*Añadida el 31/08/2026. Nace de encontrar en producción un motivo de descarte
+que era falso — y de que nadie lo hubiera notado en dos días, porque los
+motivos de descarte no los lee nadie.*
+
+> **El motivo de un descarte es el predicado que se comprobó, literal. Ninguna
+> cadena de log afirma más de lo que el código verificó.**
+
+Es la regla del sello —`'estructura'` significa exactamente lo verificado
+(F-89 P1)— aplicada a los logs. Y responde a algo que el proyecto ya tenía como
+doctrina hacia fuera y no hacia dentro: **«lo mostrado es real» vale también
+para lo que TIRAMOS.** Un motivo de descarte que no es verdad es una mentira
+interna, y las internas son peores **porque nadie las revisa**.
+
+### El caso que la funda
+
+`descartado.cubierto_por_diff` escribía:
+
+    el diff ya comparó esas dos tablas celda a celda
+
+Y era falso para toda columna que existiera en un solo documento: **el diff
+compara la intersección de nombres menos la clave, y no mira las demás nunca**.
+En RRHH-06/OPE-02 eso son **dieciocho columnas de veinte** sobre las que el
+mensaje mentía. Ver B.128 y F-92.
+
+**Cómo se arregla, y es la forma general**: no se acota la frase — se hace que
+el predicado del código coincida con lo que la frase dice. La supresión pasó a
+comprobar la tripleta entera (par emitido ∧ filas emparejadas ∧ columnas ⊆
+comparadas), y entonces el motivo **vuelve a ser verdad por construcción**.
+
+Cuando eso no sea posible, la salida es la contraria: **cambiar la frase hasta
+que diga solo lo comprobado**, aunque quede fea. Un motivo feo y cierto es
+mejor que uno elegante y falso.
+
+### Qué comprobar al escribir un descarte nuevo
+
+Leer la cadena del log **como si fuera una afirmación bajo juramento** y
+preguntarse qué condición del código la respalda. Si hay alguna palabra que el
+`if` no comprueba —«ya», «todas», «celda a celda»—, sobra o falta código.
+
+---
+
 ## 3. LO QUE SE DESCARTÓ, dicho para que no se vuelva a proponer
 
 **Retención y versionado del esquema de contadores.** Es lo primero que apetece
