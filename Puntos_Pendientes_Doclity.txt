@@ -3102,6 +3102,45 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     y arreglarlo cambia lo que se publica. Necesita su consulta, su predicción
     y su tanda propias. Frente aparte.
 
+  B.129 — [LÍMITE DE INSTRUMENTO, computado el 31/08 antes de gastar la
+    pasada] EL CORPUS DEL HARNESS NO PUEDE MEDIR LA DEGRADACIÓN DEL PUNTO 4.
+    NO ES QUE SALGA CERO: ES QUE NO PUEDE SALIR OTRA COSA.
+    QUÉ HACE FALTA PARA QUE `a_juicio.sin_clave` SE ACTIVE, las tres a la vez:
+      1. Un par de tablas SIN clave (cae por la 1ª puerta), y
+      2. con AL MENOS DOS columnas compartidas, y
+      3. que el juez cite filas donde una compartida DIFIERA (para que R2
+         confirme) y otra COINCIDA (para que haya ancla).
+    Con UNA sola columna compartida las dos condiciones se pisan:
+      · si esa columna difiere → R2 confirma, pero el ancla se calcula sobre
+        las mismas columnas compartidas y sale VACÍA → r2.sin_ancla, descarte.
+      · si coincide → differingColumns vacío → reclassify 'equivalentes'.
+    Nunca `confirm` CON ancla. La degradación es IMPOSIBLE.
+    LO MEDIDO EN EL CORPUS, los cuatro cruces de tablas sin clave:
+      OPE-10 × OPE-02 → 0 columnas compartidas
+      OPE-11 × OPE-02 → 0
+      OPE-10 × RRHH-06 → 1 (Clínica)
+      OPE-11 × RRHH-06 → 1 (Clínica)
+    MÁXIMO UNA. Luego no hay ni un par en todo el corpus donde la rama pueda
+    dispararse, y la «pasada extra» que se había planificado para medir el
+    coste habría devuelto cero POR CONSTRUCCIÓN.
+    SE PILLÓ ANTES DE GASTARLA, calculándolo en vez de lanzándolo. Es la
+    tercera vez que el instrumento no puede fallar donde debería —B.121 (corpus
+    simétrico), B.125 (juez intermitente), y ésta— y la primera que se detecta
+    ANTES de la medición y no después.
+    CONSECUENCIA PARA FABLE: su predicción de F-90 —«de una a cinco llamadas
+    cortas por análisis»— NO SE PUEDE CONTRASTAR con este corpus. Lo que se le
+    debe no es una cifra: es este porqué. Va en F-92.
+    QUÉ HARÍA FALTA, sin decidirlo aquí: un documento de siembra nuevo, con una
+    tabla que comparta DOS O MÁS columnas con el tarifario y NO tenga clave
+    común con él (p. ej. columnas repetidas que no alcancen el 90% de
+    unicidad). Es una pieza de corpus con su registro de siembra, no una
+    pasada. Mientras no exista, la rama de degradación solo se ve en la batería
+    —donde tampoco puede ejercerse, porque degradar es sobrevivir y sobrevivir
+    llama al modelo (B.126)— o en un corpus de cliente.
+    ⚠️ LEER JUNTO A ESO: la rama está SIN PROBAR por los dos lados a la vez —ni
+    batería ni tanda—. Es el hueco de verificación más grande que deja el
+    frente 1, y está declarado, no escondido.
+
   F-81 [CONVERGENCIA — leer ANTES de planificar la fase 3 del diff, 27/08] No
     es un pendiente nuevo: es el sitio donde se juntan tres que ya existen, más
     una consecuencia. Se anota aquí porque el momento en que importan es el de
