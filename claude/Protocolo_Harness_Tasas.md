@@ -326,6 +326,51 @@ es donde se ve el hueco**. Elegir un universo «porque es el obvio» es
 exactamente lo que produjo los dos fallos: las dos veces se eligió sin saber
 que se estaba eligiendo.
 
+### LA CUARTA PIEZA: el comportamiento en VACÍO y en AUSENTE (F-93)
+
+*Añadida el 31/08/2026, el mismo día que las otras tres y por el mismo frente.
+Las tres de arriba no habrían cazado lo que sigue, y eso lo dice la respuesta
+que las dictó.*
+
+> **Toda variable de conjunto declara qué pasa cuando está VACÍA y cuando está
+> AUSENTE. Y la regla se escribe en forma EXISTENCIAL cuando su sentido es «hay
+> algo cubierto».**
+>
+> **Un `⊆` o un `∀` en una regla de cobertura es sospechoso por defecto: CUMPLE
+> EN VACÍO. Un `∃` o un `≠ ∅` fracasa en vacío, que es lo que una regla de
+> cobertura debe hacer.**
+
+**LA TRAMPA TIENE NOMBRE VIEJO: la verdad vacua.** «Todos los elementos de ∅
+están en X» es cierto para cualquier X, y `⊆` es una afirmación universal.
+
+**EL CASO QUE LA FUNDA**, y es el más incómodo posible. F-92 P1 dictó:
+
+    columnas(h) ⊆ comparadas(par)      → suprimir
+
+y una frase más abajo, en prosa: *«hallazgo SIN columns: no se suprime»*. **La
+fórmula decía suprimir exactamente en el caso que la prosa exceptuaba.** Dos
+fuentes de verdad, y la que manda al implementar es la fórmula.
+
+**Y el detalle que lo vuelve serio**: el hallazgo que motivó F-92 entero
+—Belmonte— devuelve **el conjunto vacío**. El caso que dio origen a la consulta
+caía en el agujero degenerado de su propia respuesta.
+
+**La forma correcta** de la misma regla, ya con la cuarta pieza aplicada:
+
+    R2.differingColumns(h) ≠ ∅        → suprimir
+
+**LAS TRES FORMAS QUE HAY QUE DECLARAR**, medidas en este proyecto y no
+inventadas: una lista, la lista vacía, y `null` — `alignQuoteToCells` devuelve
+`null` cuando no casan todos los segmentos, así que «no hay columnas» y «no se
+pudo saber qué columnas» son estados distintos y llegan por caminos distintos.
+
+**LÍMITE HONESTO, de quien la dicta**: sigue sin cazar nombres sin universo en
+términos que **no parecen conjuntos** («el dato», «el par»), y **no sustituye a
+la traducción-y-pregunta**. Las cuatro juntas —predicado, universos, casos a
+cada lado, comportamiento en vacío y ausente— habrían cazado las tres
+ambigüedades del frente 1; ninguna de las cuatro por su cuenta lo habría hecho.
+
+
 ---
 
 ## ⚠️ UN CERO NO ES UNA AUSENCIA: SE REPORTA CON LA TASA QUE EXCLUYE

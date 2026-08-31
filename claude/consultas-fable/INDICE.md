@@ -110,14 +110,28 @@ queda superado, pero **no administra su propio estado**.
 | **[F-89](F-89.md)** | 30/08/2026 | El sello «confirmado por estructura» sobre un emparejamiento que el juez inventó — y EL MAPA DEL MVP: cuatro frentes, cuáles bloquean | **parcialmente superada** · *el margen del ancla y qué hace el ancla, por F-90; su P4 DESAMBIGUADO por F-92* · PAR COMPLETO | La REGLA DE CIERRE (bloqueante/declarable) — protocolo. La jerarquía simétrica, pendiente del frente 1 |
 | **[F-90](F-90.md)** | 30/08/2026 | Qué pasa donde el diff no pudo comparar: el margen del ancla MEDIDO, y sin clave la estructura no firma | **vigente** · *su P3 DESAMBIGUADO por F-91; su P4 SUPERADO EN LA PREMISA por F-92 — la cifra no se podía medir* · PAR COMPLETO | Ninguna todavía: son el plan de lo que queda del frente 1 |
 | **[F-91](F-91.md)** | 30/08/2026 | «Todas las columnas comunes» admitía dos lecturas, y la mala descartaba hallazgos VERDADEROS: la geometría no se contamina con testimonio. Y la clase de contadores CENTINELA | **vigente** · PAR COMPLETO | La clase CENTINELA — `Contrato_Contadores.md`; la hermana de F-79 (una regla con dos lecturas se ejerce contra un caso medido) — protocolo |
-| **[F-92](F-92.md)** | 31/08/2026 | La supresión suprime por FILA y el diff compara por COLUMNA: el hueco es el territorio de las omisiones —y del mismo dato bajo otro nombre—. Y por qué la cifra de coste no se podía medir | **vigente** · PAR COMPLETO | MOTIVO LITERAL — `Contrato_Contadores.md`. TRES PIEZAS POR REGLA DICTADA, «CERO EN N» con la tasa que excluye, y la AMBIGÜEDAD DE ALCANCE DEL CUANTIFICADOR — protocolo |
+| **[F-92](F-92.md)** | 31/08/2026 | La supresión suprime por FILA y el diff compara por COLUMNA: el hueco es el territorio de las omisiones —y del mismo dato bajo otro nombre—. Y por qué la cifra de coste no se podía medir | **vigente** · *su P1 CORREGIDO por F-93 en universo y predicado* · PAR COMPLETO | MOTIVO LITERAL — `Contrato_Contadores.md`. TRES PIEZAS POR REGLA DICTADA, «CERO EN N» con la tasa que excluye, y la AMBIGÜEDAD DE ALCANCE DEL CUANTIFICADOR — protocolo |
+| **[F-93](F-93.md)** | 31/08/2026 | `columnas(h)` no tenía universo y las dos lecturas naturales fallan cada una uno de los tres casos: el dato es LA OPOSICIÓN, no la cita. Y la trampa de `'equivalentes'` | **vigente** · PAR COMPLETO | LA CUARTA PIEZA (vacío y ausente; forma existencial) — protocolo. Un comentario que justifica un orden CITA SU INVARIANTE — `CLAUDE.md` |
 
 ---
 
-## EL AGUJERO, MEDIDO EL 28/08/2026 (rango ampliado a F-92 el 31/08)
+## EL AGUJERO, MEDIDO EL 28/08/2026 (rango ampliado a F-93 el 31/08)
 
-**Nueve pares completos de F-70 a F-92: F-84, F-85, F-86, F-87, F-88, F-89, F-90, F-91 y F-92.** El resto, o a medias o nada:
+**Diez pares completos de F-70 a F-93: F-84, F-85, F-86, F-87, F-88, F-89, F-90, F-91, F-92 y F-93.** El resto, o a medias o nada:
 
+- **F-93 — PAR COMPLETO**, en `F-93.md` (31/08/2026). **LA PRIMERA VEZ QUE UNA
+  AMBIGÜEDAD SE CAZA ANTES DE LA PRIMERA LÍNEA DE CÓDIGO**, y con la técnica que
+  F-92 P4 acababa de prescribir: traducir la regla a predicado, encontrar un
+  nombre sin universo, preguntar. Las tres anteriores se destaparon a mitad de
+  commit o ejecutando.
+  Trae además la corrección más incómoda del archivo: **el predicado de F-92 era
+  VERDADERO en vacío** —`⊆` cumple sobre el conjunto vacío— y decía suprimir
+  justo en el caso que su propia prosa exceptuaba; y **el hallazgo que motivó
+  F-92 entero devuelve exactamente ese conjunto vacío**. Es la única entrada
+  donde una respuesta cae en el agujero degenerado de sí misma.
+  Y la respuesta ve una trampa que la consulta no vio, una etapa más allá:
+  `'equivalentes'` afirma sobre las filas enteras cuando la estructura solo miró
+  las columnas citadas comunes. Ver B.130.
 - **F-92 — PAR COMPLETO**, en `F-92.md` (31/08/2026). LA PRIMERA VEZ QUE FABLE
   ASUME UNA REGLA DE FORMA PARA SÍ MISMO: «toda regla dictada se entrega en tres
   piezas —predicado, universo de cada nombre cuantificado, y un caso a cada lado

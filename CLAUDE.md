@@ -204,6 +204,16 @@ El dueño del proyecto NO es programador. Vercel deploya automáticamente al hac
   comprueba si dos filas son la misma fila PREGUNTANDO al emparejamiento en vez
   de recomparar la clave (F-89 P2), lo que además cubre gratis el caso de una
   fila sin pareja ninguna.
+- **Un comentario que justifica un ORDEN cita el INVARIANTE del que depende.**
+  Si una etapa va antes que otra por una razón, la razón se escribe nombrando
+  la pieza concreta de la que depende —un contador, un campo, una garantía— para
+  que el día que esa pieza muera, un `grep` la encuentre.
+  El caso: la supresión del juez se puso antes de R2 porque «decidirlo primero
+  contaría un `confirmado.por_estructura` que nadie va a ver». Era verdad al
+  escribirlo. El punto 4 del frente 1 retiró ese contador, y la única aparición
+  de esa cadena en `pipeline.ts` pasó a ser **el comentario que la invocaba** —
+  un orden sostenido por un invariante muerto, y nadie se enteró hasta que hizo
+  falta reordenar. Regla promovida en F-93.
 - Retry con backoff y fallback determinista.
 - Cero dependencias nuevas sin razón.
 - Idioma del proyecto: español.

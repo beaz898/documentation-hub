@@ -3205,6 +3205,60 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     batería ni tanda—. Es el hueco de verificación más grande que deja el
     frente 1, y está declarado, no escondido.
 
+  B.130 — [DEFECTO DE UNIVERSO DENTRO DE R2, señalado por F-93 P2 el 31/08 ·
+    ENTRA CON SU PROPIO COMMIT] `'equivalentes'` AFIRMA SOBRE LAS FILAS ENTERAS
+    CUANDO LA ESTRUCTURA SOLO MIRÓ LAS COLUMNAS CITADAS COMUNES.
+    ES EL DEFECTO DE UNIVERSO POR TERCERA VEZ EN ESTE FRENTE, y las tres veces
+    la misma pregunta sin respuesta escrita:
+      · «todas las columnas COMUNES» (F-90 P3) → ¿comunes entre qué? → F-91
+      · «el par de tablas que el diff ya COMPARÓ» (F-89 P4) → ¿comparó qué? → F-92
+      · «todos los valores IGUALES» (R2) → ¿iguales entre qué? → aquí
+    Las dos primeras eran de Fable. ESTA ES NUESTRA, y lleva en el código desde
+    F-55.
+
+    ══ EL MECANISMO ══
+    R2 calcula `sharedColumns` = las columnas CITADAS por los dos lados, y si
+    ninguna difiere devuelve `reclassify: 'equivalentes'`. La palabra afirma
+    que las dos FILAS dicen lo mismo; lo que se comprobó es que coinciden en
+    las columnas CITADAS COMUNES. No se miró nada de las demás.
+
+    ══ POR QUÉ NO SE VE HOY, Y POR QUÉ SE VERÁ MAÑANA ══
+    Hoy la supresión corre ANTES que R2, así que sobre un par emitido el
+    hallazgo muere antes de llegar aquí. Con el reordenado de F-93 —R2 primero,
+    la supresión consume su veredicto— este camino pasa a recorrerse SIEMPRE.
+    El defecto no nace con el reordenado: se DESTAPA con él.
+
+    ══ EL CASO MALO Y EL CASO BUENO, que dan el mismo resultado por razones
+       opuestas ══
+    · BELMONTE (hallazgo malo): columnas citadas comunes = {Empleado, Puesto},
+      las dos coinciden → 'equivalentes' → desaparece. El resultado es correcto
+      POR ACCIDENTE: no había nada que oponer, pero la estructura no lo sabía.
+    · 44 CONTRA 40 HORAS bajo «Horas semana» y «Jornada semanal» (hallazgo
+      BUENO, y es exactamente el territorio que F-92 le acaba de reservar al
+      juez): las compartidas coinciden igual → 'equivalentes' → DESAPARECE UN
+      HALLAZGO VERDADERO, enterrado bajo una palabra que afirma de más.
+
+    ══ LA CORRECCIÓN, de F-93 P2 ══
+    `'equivalentes'` solo se emite cuando TODAS las columnas citadas, DE LOS DOS
+    LADOS, son compartidas —ninguna asimétrica citada— y todas coinciden.
+    Entonces sí: la estructura vio todo lo que el hallazgo trata.
+    Si el juez citó columnas que solo existen en un lado y las compartidas
+    coinciden, lo único que la estructura puede decir es «sin oposición en lo
+    compartido; columnas asimétricas citadas: [...]» → pasa a la llamada corta
+    con ESE motivo, literal. Es la regla de MOTIVO LITERAL (F-92 P2) aplicada a
+    una reclasificación en vez de a un descarte.
+    Y `a_juicio.columna_no_comparada` —creado en F-92 para la supresión— pasa a
+    contarse AQUÍ, que es donde de verdad ocurre.
+
+    ══ LO QUE OBLIGA EN LA BATERÍA ══
+    El caso 1 de F-92 se reescribe con su objetivo COMPLETO: no «sobrevive a la
+    supresión» sino «LLEGA A LA LLAMADA CORTA con motivo columnas asimétricas
+    citadas». Es la plantilla de «probamos el mecanismo y no el camino»
+    aplicada a un caso de prueba: un test que verifica una puerta y no el
+    destino no prueba lo que cree.
+    Y hace falta un tercer caso que la corrección NO puede llevarse por
+    delante: todo-compartido-todo-igual sigue siendo 'equivalentes'.
+
   F-81 [CONVERGENCIA — leer ANTES de planificar la fase 3 del diff, 27/08] No
     es un pendiente nuevo: es el sitio donde se juntan tres que ya existen, más
     una consecuencia. Se anota aquí porque el momento en que importan es el de
