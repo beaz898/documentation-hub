@@ -3137,6 +3137,32 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     pasada. Mientras no exista, la rama de degradación solo se ve en la batería
     —donde tampoco puede ejercerse, porque degradar es sobrevivir y sobrevivir
     llama al modelo (B.126)— o en un corpus de cliente.
+    ⚠️ SEGUNDA BARRERA, MEDIDA EL 31/08 EN LA PASADA EXTRA: EL RERANK.
+    La pasada se lanzó igual —OPE-11 analizado con OPE-10 y RRHH-06 en el
+    corpus— sabiendo que no daría la cifra, para ver moverse r2.sin_ancla al
+    menos una vez. Del log:
+      Retrieval: 2 candidatos
+      Rerank: 1 seleccionados
+    RRHH-06 LLEGÓ AL RETRIEVAL Y EL RERANK LO DESCARTÓ. El juez no lo vio
+    nunca, así que el cruce sin clave NO SE EJERCIÓ. La pasada no mide nada, y
+    así queda anotada: no se reinterpreta.
+    SON DOS BARRERAS INDEPENDIENTES, y conviene verlas juntas porque una sola
+    no explicaría el bloqueo:
+      1. NINGÚN cruce del corpus tiene DOS columnas compartidas sin clave —el
+         máximo es una, Clínica—, así que aunque el juez comparara, la rama no
+         podría dispararse.
+      2. Y el único cruce que tiene ESA una, el rerank no lo deja llegar al
+         juez, porque un tarifario y unas evaluaciones de desempeño no se
+         parecen.
+    La segunda es la que hace fútil cualquier intento de forzarlo con los
+    documentos actuales: aunque se construyera el par de columnas, si los dos
+    documentos no se parecen el rerank los separa. EL DOCUMENTO DE SIEMBRA QUE
+    HAGA FALTA TIENE QUE PARECERSE AL TARIFARIO Y NO COMPARTIR CLAVE CON ÉL, y
+    eso es más difícil de sembrar de lo que parecía.
+    LO QUE SÍ VALIÓ LA PASADA, y no es nada: 15 discrepancias contra OPE-10 y
+    el hallazgo del juez suprimido, CON TRES DOCUMENTOS EN EL CORPUS en vez de
+    dos. El diff no se despista con más candidatos. Control de regresión
+    gratis, aunque no fuera el objetivo.
     ⚠️ LEER JUNTO A ESO: la rama está SIN PROBAR por los dos lados a la vez —ni
     batería ni tanda—. Es el hueco de verificación más grande que deja el
     frente 1, y está declarado, no escondido.

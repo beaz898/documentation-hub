@@ -735,7 +735,20 @@ async function runCorePipeline(
     .map(c => c.documentId)
     .filter(id => !chunksByDocument.get(id)?.length);
   const fallbackTexts = await fetchFallbackFullTexts(input.supabase, documentsWithoutChunks);
-  console.log(`[${label}] Chunks para verificación: ${chunksByDocument.size}/${reranked.length} documentos con chunks (${documentsWithoutChunks.length} por full_text de respaldo)`);
+  // ⚠️ EL NUMERADOR SE CUENTA SOBRE `reranked`, NO SOBRE EL MAPA. Decía
+  // `chunksByDocument.size`, y eso es el tamaño del mapa de RETRIEVAL —que
+  // trae de más a propósito, ver el comentario de arriba— contra un
+  // denominador que es la población del RERANK. Dos conjuntos distintos en la
+  // misma fracción: con tres documentos en el corpus salió «2/1», que no
+  // significa nada.
+  // Nunca se había visto porque hasta el 31/08 retrieval y rerank devolvían
+  // siempre lo mismo en el harness. Lo destapó la primera pasada con tres
+  // documentos, donde el rerank descartó uno.
+  // El comportamiento era correcto —los dos consumidores usan el mapa como
+  // DICCIONARIO, recorriendo `reranked` y `rawJudgments`, así que un documento
+  // que el rerank tiró no se procesa—. Lo falso era la línea.
+  const conChunks = reranked.length - documentsWithoutChunks.length;
+  console.log(`[${label}] Chunks para verificación: ${conChunks}/${reranked.length} documentos con chunks (${documentsWithoutChunks.length} por full_text de respaldo)`);
 
   // F-20 4d: enriquecer los fragmentos con su contexto de document_chunks
   // (tipo de chunk, hoja/fila si es tabla, y texto vecino). No-fatal: si la

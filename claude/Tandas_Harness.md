@@ -391,6 +391,51 @@ Las dos exhaustivas: `estimatedCost: light (1 contradicciones)` → **devueltos 
 créditos** cada una. Coste neto 20, con 3 y 4 problemas de estilo entregados.
 Es el tramo que B.127 decía que había que mirar, comportándose bien.
 
+---
+
+### RESULTADOS — PASADA EXTRA (territorio sin clave), `cceddf86`
+
+**OPE-11 analizado, con OPE-10 y RRHH-06 en el corpus. Una pasada.**
+
+**NO MIDIÓ LO QUE SE BUSCABA, y así queda.**
+
+    Retrieval: 2 candidatos
+    Rerank: 1 seleccionados
+
+RRHH-06 llegó al retrieval y **el rerank lo descartó**. El juez no lo vio, así
+que el cruce sin clave no se ejerció. Era el caso que la instrucción de la
+pasada anunciaba como invalidante — y se declara, no se reinterpreta.
+
+**La rama sin clave sigue sin ejercerse en producción, y ahora se sabe que hay
+DOS barreras independientes**: ningún cruce del corpus tiene dos columnas
+compartidas (B.129), y el único que tiene una, el rerank no lo deja pasar. La
+segunda es la peor noticia: un documento de siembra futuro tendría que
+**parecerse** al tarifario y **no compartir clave** con él, y eso es más difícil
+de sembrar de lo que parecía.
+
+**Lo que sí valió**: 15 discrepancias contra OPE-10 y el hallazgo del juez
+suprimido, **con tres documentos en el corpus en vez de dos**. El diff no se
+despista con más candidatos. Control de regresión gratis, aunque no fuera el
+objetivo.
+
+#### Y un mensaje de log que mentía: «Chunks para verificación: 2/1»
+
+Numerador y denominador contaban **poblaciones distintas** —
+`chunksByDocument.size` es el mapa de **retrieval** (2, que trae de más a
+propósito por F-41) contra `reranked.length`, la población del **rerank** (1).
+
+**El comportamiento era correcto**: los dos consumidores usan el mapa como
+diccionario, recorriendo `reranked` y `rawJudgments`, así que un documento que
+el rerank tiró no se procesa. Lo falso era la línea. **Corregido** — el
+numerador se cuenta ya sobre `reranked`.
+
+Nunca se había visto porque hasta hoy retrieval y rerank devolvían siempre lo
+mismo en el harness. **Hizo falta la primera pasada con tres documentos.**
+
+⚠️ **La corrección NO está desplegada**: la tanda mide `cceddf86`. En la tanda 3
+la línea seguirá mintiendo en el **caso 5** (MKT-01 con los otros cuatro), que
+es el único con más de dos documentos. En los demás pares no se nota.
+
 
 
 
