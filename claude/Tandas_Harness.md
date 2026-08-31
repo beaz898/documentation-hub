@@ -152,6 +152,74 @@ cazando el caso que motivó el frente, está de reserva.** Su contador a cero no
 dice que el falso no ocurra; dice que muere antes. Anotado junto a las dos
 guardas en `pipeline.ts`.
 
+### RESULTADOS — TANDA 1, casos 6 y 7, `cceddf86`
+
+Once pasadas contando la 0: **OPE-11 → OPE-10** cinco rápidas y una exhaustiva;
+**OPE-10 → OPE-11** cuatro rápidas y una exhaustiva. **Quince en todas.**
+
+| Predicción | Resultado |
+|---|---|
+| **15 exactas** (número CALCULADO antes de lanzar) | **✔ en las once**, las dos direcciones |
+| **Cero fila-contra-fila del juez confirmados por estructura** | **✔** — todo hallazgo del juez salió descartado |
+| **Ningún hallazgo del registro de siembra perdido** | **✔** — las 15 sembradas |
+| `a_juicio.sin_clave` = 0 *(predicho, y predicho como inútil)* | **✔ 0**, porque el par tiene clave. La cifra del coste sigue sin medirse |
+
+#### LA SUPRESIÓN ACTÚA SOBRE LO QUE EL JUEZ ENCUENTRE, NO SOBRE UN CASO
+
+Es el resultado más importante de la tanda y no estaba en la predicción.
+
+| Dirección | Lo que emitió el juez | Destino |
+|---|---|---|
+| OPE-11 → OPE-10 | IMP-03, EST-03 | descartados: `cubierto_por_diff` |
+| OPE-10 → OPE-11 | **PRO-03** — hallazgo distinto, nunca visto antes | descartado: `cubierto_por_diff` |
+
+`cascada-emparejamiento.test.ts` demuestra el CABLEADO sobre un hallazgo
+fabricado. **PRO-03 es la generalización que un caso fabricado no podía dar**:
+un hallazgo que nadie previó, en la dirección contraria, tratado igual. La
+guarda no reconoce un caso — reconoce una situación.
+
+#### LA INCIDENCIA DEL FALSO DE B.124, MEDIDA POR PRIMERA VEZ
+
+En OPE-11 → OPE-10, de seis pasadas: **`dc678e1b` en tres**, las tres
+descartadas. Y en dos más el detector de narración mató antes lo que parecía el
+mismo hallazgo.
+
+⚠️ **Precisión sobre esas dos**: el hash es `hashCitationPair` sobre las dos
+citas, y una narración NO es una cita — luego esas dos **no llevan el mismo
+hash** y no se pueden afirmar como el mismo hallazgo. Cuentan como «el juez
+volvió a enfrentar esas filas», no como `dc678e1b`.
+
+**Lo que esto le hace a B.125**: el 30/08, cuatro pasadas dieron CERO
+apariciones y de ahí salió «no se puede reproducir». Hoy, tres de seis con hash
+idéntico. **El cero de aquel día era mala suerte, no una tasa baja.** El límite
+de B.125 sigue siendo real —no se puede PEDIR que ocurra— pero su premisa
+implícita, que el fallo es raro, queda desmentida: es frecuente.
+
+#### LAS DOS EXHAUSTIVAS: 15 candidatas, 0 a Sonnet
+
+`particionDoubleCheck` separa por `confirmedBy === 'estructura'`, y las quince lo
+son. Ninguna llega al modelo caro: es F-64/F-71 funcionando —ningún modelo
+revierte un veredicto determinista—, no una avería.
+
+El **17 → 15** queda confirmado en las dos direcciones.
+
+⚠️ Y deja una consecuencia de producto que no es de este frente: **el exhaustivo
+no hizo NADA que el rápido no hiciera**, y cuesta 30 créditos frente a 5. Ver
+B.127.
+
+#### CINCO SOLAPAMIENTOS DESCARTADOS, Y SOLO EN UNA DIRECCIÓN
+
+En OPE-10 → OPE-11, cinco por pasada, todos por **«cita de línea de contexto, no
+citable»** (`citaDeContexto`, judge.ts:522). Son las filas idénticas otra vez,
+por una tercera puerta. Ver B.122, donde se anota: es el mismo recorte, no un
+pendiente nuevo.
+
+**La asimetría no está explicada, y la explicación obvia está REFUTADA**: las dos
+tablas tienen **60 filas** y OPE-11 es incluso mayor (15.459 caracteres frente a
+14.540), así que no es que una quepa en el prompt y la otra no. Qué haría falta
+para cerrarlo, en B.122.
+
+
 
 
 ---

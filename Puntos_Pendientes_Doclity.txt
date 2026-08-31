@@ -2614,6 +2614,40 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     —aunque sea para enseñarla mejor—, y eso no entra de rebote en un commit
     que va de otra cosa.
 
+
+    ══ 3. TERCER SÍNTOMA, MEDIDO EL 31/08: CINCO SOLAPAMIENTOS QUE CITAN LA
+       LÍNEA DE CONTEXTO Y MUEREN ══
+    LO QUE SE VE, en la tanda 1 del frente 1 y SOLO en la dirección OPE-10 →
+    OPE-11: cinco solapamientos POR PASADA, todos descartados con «cita de
+    línea de contexto, no citable» (citaDeContexto, judge.ts:522).
+    ES LA MISMA CAUSA ÚNICA de arriba y por eso vive aquí y no en un pendiente
+    nuevo: el fragmento de contexto con las filas idénticas colapsadas SOLO se
+    construye en el nivel 2 del reparto, o sea porque la tabla no cupo. Si
+    cupiera entera no habría fragmento, no habría línea marcada «no citar», y no
+    habría nada que citar mal.
+    LO QUE AÑADE AL PENDIENTE, y es lo que lo hace anotable: el síntoma 2 es un
+    solapamiento que SOBREVIVE y vuelca veinte filas del cliente en su
+    descripción; éste es el juez CITANDO la línea marcada y muriendo por ello.
+    El mismo fragmento produce las dos cosas según por dónde entre. Arreglar el
+    recorte los apaga los tres; arreglar solo el volcado deja éste vivo.
+    Y ES GASTO PURO: cinco hallazgos por pasada que el juez produce, viajan, y
+    se tiran. No es un falso positivo publicado —el detector hace su trabajo—
+    pero sí trabajo del modelo pagado para nada.
+
+    ⚠️ LA ASIMETRÍA NO ESTÁ EXPLICADA, Y LA HIPÓTESIS OBVIA ESTÁ REFUTADA.
+    Cinco por pasada en OPE-10 → OPE-11 y ninguno en la dirección contraria, con
+    seis pasadas de un lado y cinco del otro: no es intermitencia, es asimetría.
+    LA EXPLICACIÓN QUE PARECÍA EVIDENTE —que una tabla cupiera en el prompt y la
+    otra no— SE COMPROBÓ Y ES FALSA: las dos tienen 60 filas y OPE-11 es incluso
+    MAYOR (15.459 caracteres frente a 14.540 de OPE-10). Anotado antes de
+    escribir ninguna teoría, que es lo que manda «datos antes que hipótesis».
+    QUÉ HARÍA FALTA PARA CERRARLO, sin lanzar nada nuevo: comparar en el jsonb de
+    las dos direcciones (a) selectionLimits —cuántas filas quedaron fuera del
+    prompt en cada una— y (b) el recuento de citaDeContexto en discardedFindings.
+    Si selectionLimits es parecido en las dos, la asimetría es del JUEZ y no del
+    reparto, y eso es otro asunto.
+
+
   B.123 — [ABIERTO 30/08, nombrado por el director] «AUNQUE NO SE REVISEN
     TODAS, SE REVISARÁN LAS MÁS IMPORTANTES». Hoy NO es así.
     LO QUE SE DICE, y es una promesa razonable de producto: si el análisis no
@@ -2836,6 +2870,19 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     que la fabricación no era «parecida» — era el mismo hallazgo por la función
     de identidad del sistema. Es la mejor prueba posible de que construir el
     caso a mano fue la salida correcta y no un apaño.
+    ⚠️ 31/08, TANDA 1 — SU PREMISA IMPLÍCITA, DESMENTIDA: EL FALLO ES FRECUENTE.
+    De seis pasadas de OPE-11 → OPE-10, dc678e1b apareció en TRES con hash
+    idéntico, y en dos más el detector de narración mató antes lo que parecía el
+    mismo enfrentamiento (esas dos NO llevan el mismo hash: una narración no es
+    una cita, y el hash es hashCitationPair — así que no se pueden contar como
+    dc678e1b).
+    El 30/08, cuatro pasadas dieron CERO, y de ahí salió «no se puede
+    reproducir». AQUEL CERO ERA MALA SUERTE, NO UNA TASA BAJA.
+    EL LÍMITE NO CAMBIA y por eso el pendiente no se cierra: sigue sin poderse
+    PEDIR que ocurra, y una pasada verde sigue sin distinguir «arreglado» de
+    «hoy no tocó». Lo que cambia es que ya no se puede decir «el fallo es raro»
+    para restarle importancia: es frecuente, y estuvo publicándose.
+
 
   B.126 — [HALLAZGO SOBRE LA BATERÍA ENTERA, abierto y cerrado el 30/08] UN
     TEST QUE LLAMABA AL MODELO, FALLABA CON 401 Y PASABA EN VERDE. LA
@@ -2894,6 +2941,30 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     LO QUE SE PIERDE, dicho y no escondido: el cableado del lado de prosa, o
     sea que la cascada le pase a veredictoDeEmparejamiento los argumentos que
     cree. No tiene forma determinista de probarse.
+
+  B.127 — [OBSERVACIÓN DE PRODUCTO, medida el 31/08 en la tanda del frente 1]
+    EL EXHAUSTIVO NO HACE NADA QUE EL RÁPIDO NO HAGA SOBRE UN PAR DE TABLAS
+    EMPAREJADO, Y CUESTA SEIS VECES MÁS.
+    LO MEDIDO: las dos exhaustivas de OPE-10/OPE-11 dieron 15 contradicciones,
+    15 candidatas al double-check y CERO enviadas a Sonnet.
+    POR QUÉ, y es correcto: particionDoubleCheck (pipeline.ts:631) separa por
+    confirmedBy === 'estructura', y desde el frente 1 las quince lo son —el
+    sello es exclusivo del diff—. Ningún modelo revierte un veredicto
+    determinista (F-64/F-71), así que ninguna llega al modelo caro.
+    NO ES UNA AVERÍA. Es la doctrina funcionando. Lo que sí es, es un cambio de
+    valor del producto que nadie decidió: 30 créditos frente a 5, por un
+    análisis que en este tipo de par produce exactamente lo mismo.
+    ⚠️ ALCANCE, para no exagerarlo: esto vale para un par de tablas que
+    EMPAREJA y donde todo lo publicado viene del diff. En cuanto haya prosa,
+    tablas sin clave o hallazgos de juicio, el exhaustivo vuelve a tener qué
+    hacer — y el corpus del harness es el caso extremo, no el típico.
+    QUÉ HARÍA FALTA, sin decidirlo aquí: (a) medir en un corpus de cliente qué
+    fracción de análisis acaba con cero candidatas a Sonnet; (b) si es alta,
+    decidir si el reembolso variable ya lo cubre —hoy 15 contradicciones cae en
+    el tramo medio y reembolsa 5, no 25— o si hace falta que el propio worker
+    detecte «no hubo nada que hacer» y devuelva más.
+    CRUZAR con la lógica de reembolso del exhaustivo (CLAUDE.md) y con B.110:
+    la fracción de (a) es justo el tipo de cifra que hoy no tiene dónde vivir.
 
   F-81 [CONVERGENCIA — leer ANTES de planificar la fase 3 del diff, 27/08] No
     es un pendiente nuevo: es el sitio donde se juntan tres que ya existen, más
