@@ -2246,14 +2246,35 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     LA CIFRA SE ACTUALIZA AQUÍ CADA VEZ QUE SE MIDE, y no es burocracia: este
     pendiente es un vigilante, y un vigilante con el número viejo es
     exactamente el fallo que lo hizo nacer.
-    SIGUE SIN PARTIRSE, y sigue siendo decisión: el frente 1 acaba de cerrar y
-    los frentes 2 y 3 van a promover más reglas. Partir ahora obligaría a
-    decidir dos veces dónde va cada una. LA PREGUNTA DEL CORTE NO HA CAMBIADO
-    —separar el método de las tandas de las reglas de entrada y admisión— pero
-    el material sí: ahora hay un bloque entero de REGLAS DE ESPECIFICACIÓN
-    (doble lectura, tres piezas, alcance del cuantificador) que no existía el
-    28/08 y que probablemente sea el corte natural: no hablan de cómo se mide,
-    hablan de cómo se escribe una regla antes de implementarla.
+
+    ══ EL CORTE NATURAL, IDENTIFICADO EL 31/08 — no se ejecuta, se deja escrito ══
+    El 28/08 la pregunta del corte era «separar el método de las tandas de las
+    reglas de entrada y admisión». HA CAMBIADO, porque el material ha cambiado:
+    el frente 1 metió en el protocolo un bloque que el 28/08 no existía.
+
+    HAY DOS ESPECIES DE REGLA AHÍ DENTRO, Y NO SE PARECEN:
+      · REGLAS DE MEDICIÓN — cómo se lanza una tanda, qué se apunta, cuántas
+        pasadas hacen falta, qué invalida una pasada, el alcance de Vitest, la
+        lista de cierre. Hablan de CÓMO SE MIDE.
+      · REGLAS DE ESPECIFICACIÓN — la doble lectura (F-91), las tres piezas por
+        regla dictada y la ambigüedad de alcance del cuantificador (F-92 P4).
+        Hablan de CÓMO SE ESCRIBE UNA REGLA ANTES DE IMPLEMENTARLA.
+
+    LA DIFERENCIA NO ES DE TEMA, ES DE MOMENTO. Las primeras se usan cuando ya
+    hay código y se quiere saber si funciona. Las segundas se usan ANTES de que
+    exista el código, leyendo una respuesta de Fable con la intención de
+    traducirla. Quien va a implementar una regla dictada no necesita saber
+    cuántas pasadas lleva una tanda, y quien va a lanzar una tanda no necesita
+    la ambigüedad de alcance del cuantificador. Hoy tienen que leerse las dos.
+
+    UN CASO FRONTERIZO, para que el corte no se decida creyéndolo limpio: el
+    «cero en N con la tasa que excluye» (F-92) es de MEDICIÓN —se aplica al
+    reportar una tanda— aunque naciera en la misma consulta que las otras dos.
+    Va con las de medición, no con las de especificación.
+
+    NO SE PARTE HOY, y la razón sigue siendo la del 28/08 con un motivo más: los
+    frentes 2 y 3 van a promover reglas, y partir antes obliga a decidir dos
+    veces dónde va cada una. Pero el corte ya no hay que buscarlo: está aquí.
     ES LA TERCERA VEZ EN TRES DÍAS que ese fichero crece por un frente distinto:
     el 27/08 se partió sacando el catálogo de casos a claude/Casos_Harness.md
     (39d15163), ese mismo día entró la regla de entrada de F-81 P3 (8632576e),
