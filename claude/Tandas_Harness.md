@@ -219,6 +219,100 @@ tablas tienen **60 filas** y OPE-11 es incluso mayor (15.459 caracteres frente a
 14.540), así que no es que una quepa en el prompt y la otra no. Qué haría falta
 para cerrarlo, en B.122.
 
+#### CON EL LOG DELANTE: TRES COSAS QUE EL RESUMEN NO DECÍA
+
+*Añadido el 31/08, al recibir los logs. Lo de arriba se escribió sobre el
+resumen de la pasada; esto lo corrige donde hacía falta.*
+
+**1. ⚠️ EL EXHAUSTIVO SÍ HIZO ALGO QUE EL RÁPIDO NO — me equivoqué.** El bloque
+de arriba decía «no hizo NADA que el rápido no hiciera». El log dice:
+
+    [style-check] "OPE-11...": 15 problemas de estilo (9255ms)
+
+Nueve segundos de modelo y quince problemas de estilo que el rápido no produce.
+Lo cierto es lo otro: **cero enviadas a Sonnet**, y por la razón correcta. La
+cuenta real es 25 créditos netos (30 menos 5 de precio variable) contra 7 de
+rápido + estilo por tarifa — no 30 contra 5. B.127 corregido.
+
+**2. LA ASIMETRÍA DE LOS SOLAPAMIENTOS: ES DEL JUEZ, y se resuelve por el
+criterio escrito ANTES de tener el dato.** `selectionLimits` es prácticamente
+igual en las dos direcciones —38/60 y 39/60 fuera por tamaño— y **las dos
+construyen la línea de contexto** (`contexto_no_citable: 1` en ambas). El
+fragmento marcado existe siempre.
+
+Y el juez emite **cinco solapamientos en las dos**. Lo que cambia es dónde
+aterriza la cita:
+
+| Dirección | Cinco solapamientos | Destino |
+|---|---|---|
+| OPE-11 → OPE-10 | sí | **ninguno descartado: se publican** — es el síntoma 2 de B.122, el volcado |
+| OPE-10 → OPE-11 | sí | **los cinco por `citaDeContexto`** — el síntoma 3 |
+
+**No son dos problemas: es uno con dos salidas.** Anotado en B.122.
+
+**3. LÍMITE DE LECTURA DEL MODO RÁPIDO, que acota lo que el juez puede decir:**
+
+    [judge] "OPE-11...": documento analizado truncado a 6000 de 7342 caracteres
+
+`NEW_DOC_LIMIT_QUICK = 6000` (judge.ts:35), deliberado. **El juez vio el 82 % del
+documento analizado en todas las rápidas de esta tanda.** No afecta al diff —lee
+todos los chunks, no el prompt— pero sí a cualquier lectura del tipo «el juez no
+encontró X». El exhaustivo no trunca.
+
+**De propina, dos cosas del log del worker que no se buscaban:**
+
+    [worker] Job 82cc28ad...: 1 descartes permanentes de la org
+
+La persistencia de descartes de F-86 paso 3 **está viva en producción** y tiene
+su primer registro. Primera evidencia fuera del laboratorio.
+
+Y `0 ids de tanda (rápido)` en todas: el documento del corpus ya estaba indexado,
+así que se encontró como candidato sin pasar por `batchDocumentIds`. El
+resultado es equivalente —1 candidato en todas— pero conviene saberlo para
+reproducir: no se ejercitó ese mecanismo.
+
+---
+
+## PREDICCIÓN — TANDA 2 (casos 1 y 2), escrita antes de lanzar
+
+**Calculado, no estimado**: el diff emite **1** en cada dirección, y es la
+sembrada — *«Discrepancia en Puesto entre RRHH-06 y OPE-02»*, el `Puesto` de Dr.
+Pablo Reyes. Clave `Empleado`, 100 % única en los dos lados, **10 filas
+emparejadas** y **5 de RRHH-06 sin pareja**.
+
+| Qué mirar | Esperado |
+|---|---|
+| `contradictions_found` | **1** en las dos direcciones |
+| `confirmedBy` / `origen` | `estructura` / `diff_tabular` |
+| `verificador.confirmados_por_estructura` | **0** |
+| `a_juicio.sin_clave` | **0** — el par tiene clave |
+| Si el juez emite el mismo hallazgo | `descartado: cubierto_por_diff` |
+| Grupo «Sin correspondencia» en la ficha | 5 filas |
+
+**La ficha del caso dirá la verdad con otro firmante.** `Casos_Harness.md` dice
+«confirmada por estructura» y lo seguirá siendo — pero la firma el diff, no el
+juez. Si aparece un `confirmado.por_estructura` del juez, **eso sí es hallazgo**.
+
+**Y la dirección B (OPE-02 contra RRHH-06) es la que falló tres semanas** (B.81).
+Ahora la produce el diff, que es simétrico por construcción: si una dirección da
+1 y la otra 0, el fallo no sería del juez esta vez.
+
+### ⚠️ Y UNA PREDICCIÓN QUE PONE A PRUEBA LA «CAUSA ÚNICA» DE B.122, GRATIS
+
+B.122 sostiene que sus tres síntomas existen **porque la tabla no cupo en el
+prompt**. Este par lo comprueba sin lanzar nada extra, porque **las dos tablas
+caen a lados distintos del presupuesto de 3.000 caracteres**:
+
+| Documento del corpus | Tamaño de su tabla | Predicción |
+|---|---|---|
+| **OPE-02** (en RRHH-06 → OPE-02) | 10 filas, **1.950 car.** — cabe | **nivel 1**: sin colapso, sin línea de contexto, sin aviso de alcance, sin `citaDeContexto` |
+| **RRHH-06** (en OPE-02 → RRHH-06) | 15 filas, **4.574 car.** — no cabe | **nivel 2**: colapso, línea de contexto, aviso de alcance |
+
+Si sale así, la causa única de B.122 queda demostrada con un caso que no se
+diseñó para eso. **Si en la dirección de OPE-02 aparece nivel 2 o una línea de
+contexto, la causa única es falsa** y hay que reabrir el pendiente entero.
+
+
 
 
 
