@@ -312,6 +312,86 @@ Si sale así, la causa única de B.122 queda demostrada con un caso que no se
 diseñó para eso. **Si en la dirección de OPE-02 aparece nivel 2 o una línea de
 contexto, la causa única es falsa** y hay que reabrir el pendiente entero.
 
+---
+
+### RESULTADOS — TANDA 2, casos 1 y 2, `cceddf86`
+
+**Diez pasadas**: ocho rápidas y dos exhaustivas, las dos direcciones.
+
+| Predicción | Resultado |
+|---|---|
+| **1** contradicción por pasada (número CALCULADO) | **✔ en las diez** |
+| `confirmedBy: estructura` / `origen: diff_tabular` | **✔** |
+| `verificador.confirmados_por_estructura` | **✔ 0** en todas |
+| `a_juicio.sin_clave` | **✔ 0** — el par tiene clave |
+| El juez emite lo mismo → `cubierto_por_diff` | **✔** — `19f92748` y `77c04c10`, las dos direcciones |
+
+**El cambio de productor funcionó sin perder nada.** La ficha del caso sigue
+diciendo la verdad —«confirmada por estructura»— con otro firmante. Y la
+dirección B, la que falló tres semanas (B.81), da 1 igual que la A: el diff es
+simétrico por construcción.
+
+#### LA CAUSA ÚNICA DE B.122, DEMOSTRADA POR UN CASO QUE NO SE DISEÑÓ PARA ESO
+
+Predicción escrita antes de lanzar, y el corte cae donde se dijo:
+
+| Corpus | Su tabla | Nivel | `contexto_no_citable` | Solapamientos |
+|---|---|---|---|---|
+| **OPE-02** | 2.116 car. | **1**, completa, 10 filas | **no** | ninguno descartado |
+| **RRHH-06** | 2.397 car. tras colapsar | **2**, 9 colapsadas | **sí** | descartados |
+
+Las dos tablas caen a lados distintos del presupuesto de 3.000 y **el
+comportamiento se separa justo por ahí**. B.122 sostenía que sus síntomas
+existen porque la tabla no cupo; aquí se ve con el mismo par, las mismas dos
+direcciones y nada más cambiando.
+
+#### ⚠️ Y UNA PARTE DE LA PREDICCIÓN, FALLADA — se cuenta, no se acomoda
+
+Predije «aviso de alcance» para la dirección de RRHH-06. **No lo hay**: el log
+dice `resumen + 15/15 filas`, **ninguna fuera por tamaño**.
+
+**El colapso de las 9 idénticas es LO QUE HACE QUE QUEPA.** Luego los síntomas
+de B.122 no son un trío fijo: el aviso de alcance es un cuarto escalón que
+necesita que **ni siquiera después de colapsar** quepa — el caso de OPE-10 /
+OPE-11 (38/60 fuera), no éste. Anotado en B.122.
+
+#### EL HALLAZGO DE LA TANDA: B.128
+
+El juez emitió **«Horas semanales de Dra. Ana Belmonte»** en dos pasadas, y
+`Horas semana` **existe solo en OPE-02**. Comprobado contra el corpus: las
+columnas compartidas del par son **dos** —`Empleado` y `Puesto`— de **dieciocho**
+distintas, y el diff compara **una** (`Puesto`, porque `Empleado` es la clave).
+
+El hallazgo **pasó la verificación de citas** y murió por `cubierto_por_diff`
+con un motivo que **para esa columna es literalmente falso**.
+
+**La supresión suprime por FILA; el diff compara por COLUMNA COMPARTIDA.** El
+hueco es el territorio de las omisiones. Hoy no se pierde nada porque el caso
+era malo; el mecanismo se llevaría igual uno bueno. **B.128, y va a Fable** por
+la regla de la doble lectura: «que el diff ya comparó» admite las mismas dos
+lecturas que «todas las columnas comunes», y ya hay caso medido que las separa.
+
+#### «cita no verificable, lado=ambos»: forma nueva, no mecanismo nuevo
+
+Es `citaNoVerificable` con `failedSide='ambos'` (judge.ts:534) — las dos citas
+fallan a la vez. Lo nuevo es lo que el juez escribió: **se fabricó una tabla
+propia en cada lado** y la presentó como cita.
+
+    nuevo="Dra. Marta Gil | Odontóloga general | Box 1, Dr. Javier Soto | ..."
+    existente="Dra. Marta Gil | Odontóloga general, Dr. Javier Soto | ..."
+
+No es narración, no es la línea de contexto: es **enumeración**. Tercera forma
+de la enfermedad de B.107 —la cita literal la escribe el modelo— y la primera
+vista en la vía de solapamientos, alimentada otra vez por el material de las
+filas idénticas de B.122.
+
+#### DE PASO: el precio variable, funcionando
+
+Las dos exhaustivas: `estimatedCost: light (1 contradicciones)` → **devueltos 10
+créditos** cada una. Coste neto 20, con 3 y 4 problemas de estilo entregados.
+Es el tramo que B.127 decía que había que mirar, comportándose bien.
+
+
 
 
 
