@@ -2668,6 +2668,22 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     la línea prohibida», pero eso es una HIPÓTESIS y no está medida — dos
     direcciones no son una tasa. Queda escrita como hipótesis, no como causa.
 
+    ⚠️ REFINADO EL 31/08 CON LA TANDA 2: LOS SÍNTOMAS NO SON UN TRÍO FIJO, SON
+    DOS ESCALONES. La predicción de aquella tanda acertó el corte —OPE-02 con
+    2.116 caracteres da nivel 1 y ni colapso ni línea de contexto; RRHH-06 con
+    2.397 da nivel 2 con las dos cosas— pero FALLÓ en el aviso de alcance: en
+    RRHH-06 no lo hay, porque el log dice «resumen + 15/15 filas», NINGUNA
+    fuera.
+    LA RAZÓN, y es la que hay que retener: EL COLAPSO DE LAS IDÉNTICAS ES LO
+    QUE HACE QUE QUEPA. Nivel 2 no implica filas fuera.
+      · ESCALÓN 1 — no cabe entera → colapso + línea de contexto. De aquí salen
+        el volcado de filas (síntoma 2) y el citaDeContexto (síntoma 3).
+      · ESCALÓN 2 — no cabe NI DESPUÉS de colapsar → además, filas fuera y
+        aviso de alcance (síntoma 1). Es el caso de OPE-10/OPE-11, 38/60.
+    La causa única sigue en pie —el recorte— pero produce dos, tres o cuatro
+    síntomas según cuánto se pase de presupuesto, y un arreglo que solo mire el
+    aviso de alcance no toca los otros dos.
+
   B.123 — [ABIERTO 30/08, nombrado por el director] «AUNQUE NO SE REVISEN
     TODAS, SE REVISARÁN LAS MÁS IMPORTANTES». Hoy NO es así.
     LO QUE SE DICE, y es una promesa razonable de producto: si el análisis no
@@ -2998,6 +3014,93 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     «cero enviadas al double-check» y devolver más.
     CRUZAR con la lógica de reembolso del exhaustivo (CLAUDE.md) y con B.110:
     la fracción de (a) es justo el tipo de cifra que hoy no tiene dónde vivir.
+
+  B.128 — [AGUJERO MEDIDO EN PRODUCCIÓN 31/08, tanda 2 · VA A FABLE, no
+    arreglar sin consultar] LA SUPRESIÓN SUPRIME POR **FILA**; EL DIFF COMPARA
+    POR **COLUMNA COMPARTIDA**. EL HUECO ENTRE LAS DOS COSAS ES EXACTAMENTE EL
+    TERRITORIO DE LAS OMISIONES.
+
+    ══ EL FILO, y es lo que hace importante al pendiente ══
+    Una columna que SOLO EXISTE EN UN DOCUMENTO es territorio que F-78 y F-90
+    le reservaron AL JUEZ —el diff no puede decir nada de ella, porque no tiene
+    con qué compararla—. Y es precisamente ahí donde la supresión se lleva sus
+    hallazgos, diciendo en el log que el diff ya los comparó.
+    ES LO CONTRARIO DE «LO MOSTRADO ES REAL», APLICADO A NUESTROS PROPIOS
+    DESCARTES. La regla vale para lo que publicamos y también para lo que
+    tiramos: un motivo de descarte que no es verdad es una mentira interna, y
+    las internas son peores porque nadie las revisa.
+
+    ══ LOS DOS CRITERIOS, uno al lado del otro ══
+    LA SUPRESIÓN (emparejamiento-juez.ts, veredictoDeEmparejamiento):
+      mismo par de tablas  Y  las dos filas son una PAREJA de filas
+      → 'pareja' → descartado.cubierto_por_diff
+      NO MIRA NINGUNA COLUMNA. Ni una.
+    EL DIFF (table-diff.ts:201-204):
+      shared          = nueva.columns ∩ existente.columns
+      comparedColumns = shared MENOS las columnas clave
+      → solo compara ESO.
+    La mitad de la clave es inofensiva —dos filas emparejadas coinciden en la
+    clave por construcción, no pueden discrepar ahí—. LO QUE NO ES INOFENSIVO
+    ES LA DIFERENCIA SIMÉTRICA: las columnas que están en una tabla y no en la
+    otra. El diff no las mira NUNCA, y la supresión se lleva igual lo que el
+    juez diga de ellas.
+
+    ══ LA CIFRA DEL PAR QUE LO DESTAPÓ (RRHH-06 / OPE-02) ══
+      RRHH-06: 10 columnas (Empleado, Puesto, Clínica, Fecha evaluación,
+               Puntualidad, Calidad técnica, Trabajo en equipo, Atención al
+               paciente, Media, Comentarios)
+      OPE-02:  10 columnas (Empleado, Puesto, Box asignado, Lunes..Sábado,
+               Horas semana)
+      compartidas: 2 (Empleado, Puesto) · clave: Empleado
+      → EL DIFF COMPARA **UNA** COLUMNA (Puesto) DE **DIECIOCHO** DISTINTAS.
+      → LA SUPRESIÓN CUBRE HALLAZGOS SOBRE LAS DIECIOCHO.
+
+    ══ CÓMO SE DESTAPÓ ══
+    El juez emitió "Horas semanales de Dra. Ana Belmonte" en dos pasadas.
+    `Horas semana` existe SOLO en OPE-02; RRHH-06 no tiene esa columna. El
+    hallazgo PASÓ la verificación de citas —no hay descarte en judge.ts para
+    8fd17cb9— y murió después por cubierto_por_diff, con el motivo
+    «el diff ya comparó esas dos tablas celda a celda», que para esa columna es
+    LITERALMENTE FALSO.
+    HOY NO SE PIERDE NADA: ese hallazgo era malo, porque no hay nada en RRHH-06
+    que pueda contradecir un dato que RRHH-06 no tiene. PERO EL MECANISMO SE
+    LLEVARÍA IGUAL UNO BUENO, y el caso bueno tiene nombre: una omisión.
+
+    ══ ⚠️ POR QUÉ NO SE ARREGLA AQUÍ: LA MISMA AMBIGÜEDAD DE F-91, OTRA VEZ ══
+    F-89 P4 dice «el juez no aporta nada sobre un par de tablas QUE EL DIFF YA
+    COMPARÓ». Y «comparó» admite dos lecturas:
+      Lectura T — comparó LAS TABLAS. Se suprime todo hallazgo sobre ese par de
+                  filas, mire la columna que mire. Es lo implementado.
+      Lectura C — comparó ESE DATO. Se suprime solo lo que cae dentro de
+                  comparedColumns; lo demás sigue siendo del juez.
+    Es EXACTAMENTE la forma de «todas las columnas comunes» de F-90 P3, que
+    F-91 tuvo que desambiguar. Y ya tenemos el caso medido que las separa: una
+    columna de dieciocho.
+    LA REGLA DE LA DOBLE LECTURA (protocolo, promovida de F-91 el 30/08) manda
+    lo que hay que hacer: EJERCERLA CONTRA UN CASO MEDIDO Y PREGUNTAR. Hecho lo
+    primero; queda lo segundo. VA A FABLE.
+    LO QUE HAY QUE LLEVARLE, además de la cifra: que la lectura C tiene un
+    coste evidente —vuelve a dejar pasar al juez sobre filas emparejadas, que
+    es de donde salía B.124— y que por tanto no es «la buena» sin más; es una
+    frontera que hay que trazar sabiendo las dos consecuencias.
+
+    ══ ALCANCE: DÓNDE MUERDE Y DÓNDE NO ══
+    Solo muerde donde las dos tablas emparejadas tienen columnas DISTINTAS.
+      · OPE-10 / OPE-11 (tanda 1): 9 columnas y las 9 compartidas. Diferencia
+        simétrica VACÍA → el agujero no existe ahí, y por eso la tanda 1 no lo
+        vio ni podía verlo.
+      · RRHH-06 / OPE-02 (tanda 2): 2 compartidas de 18 → el agujero es casi
+        todo el par.
+    NINGUNA MEDICIÓN TOMADA QUEDA INVALIDADA: la supresión se comportó igual en
+    las veintiuna pasadas, y en la tanda 1 no había hueco que pisar.
+
+    ══ QUÉ ES DEL FRENTE 1 Y QUÉ NO ══
+    EL DEFECTO ES DE CÓDIGO DEL FRENTE 1 —punto 2, la supresión—, pero NO
+    reabre el frente: su objetivo era que el juez no volviera a firmar
+    'estructura', y eso está conseguido y verificado en veintiuna pasadas.
+    Esto es un defecto de ALCANCE de la supresión, con especificación ambigua,
+    y arreglarlo cambia lo que se publica. Necesita su consulta, su predicción
+    y su tanda propias. Frente aparte.
 
   F-81 [CONVERGENCIA — leer ANTES de planificar la fase 3 del diff, 27/08] No
     es un pendiente nuevo: es el sitio donde se juntan tres que ya existen, más
