@@ -2646,12 +2646,44 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     selección ninguna. Lo que queda sin resolver es la PROSA, que es donde el
     presupuesto sigue mandando y donde nadie sabe qué párrafo importa más.
 
-  B.124 — [FALLO MEDIDO EN PRODUCCIÓN 30/08, VA A FABLE — no arreglar sin
-    consultar] R2 CONFIRMA POR ESTRUCTURA UN EMPAREJAMIENTO FALSO DEL JUEZ.
+  B.124 — [FALLO MEDIDO EN PRODUCCIÓN 30/08 · CURADO Y VERIFICADO EN
+    PRODUCCIÓN EL 31/08 · la consulta a Fable ya se hizo y volvió: F-89, F-90 y
+    F-91] R2 CONFIRMA POR ESTRUCTURA UN EMPAREJAMIENTO FALSO DEL JUEZ.
     Es «fabricar mentiras con sello matemático», que es como F-84 P2 llamó al
     riesgo más grave del sistema. Lo curamos en el emparejamiento del DIFF y la
     puerta del JUEZ quedó abierta.
 
+    ══ VERIFICADO EN PRODUCCIÓN EL 31/08, y llegó por SUERTE ══
+    En la pasada 0 de la tanda del frente 1 (commit cceddf86) EL JUEZ VOLVIÓ A
+    EMITIR EL MISMO FALSO, y esta vez salió descartado. Del log:
+      [dc678e1b] "Profesional asignado para Carilla de composite (EST-03)"
+         → descartado: cubierto_por_diff
+    `dc678e1b` es el identificador del falso ORIGINAL del 30/08 — el hash es
+    `hashCitationPair(newDocSays, existingDocSays)`, o sea las dos citas, así
+    que es literalmente el mismo hallazgo y no uno parecido.
+    LO QUE ESTO CAMBIA Y LO QUE NO: la verificación en producción EXISTE, y
+    B.125 decía que no se podía garantizar que ocurriera. No se equivocaba: lo
+    que no se podía garantizar era que OCURRIERA, no que FUNCIONARA. B.125 sigue
+    vigente como límite; lo que caduca es la frase «no hay verificación en
+    producción», no su razonamiento.
+    Y DE PROPINA, LA FABRICACIÓN QUEDÓ VALIDADA: el caso de
+    `cascada-emparejamiento.test.ts` produce EL MISMO HASH `dc678e1b` que
+    producción. No es «un hallazgo parecido al del log»: es el mismo por la
+    función de identidad del propio sistema. Lo que la fabricación reprodujo
+    fiel son las DOS CITAS —que es lo que el hash cubre—; las columnas citadas y
+    su alineación no entran en él y no quedan verificadas por esta vía.
+
+    ══ ⚠️ MUERE POR DOMINANCIA, NO POR VERIFICACIÓN — nota de método ══
+    Salió por `cubierto_por_diff`, NO por `emparejamiento_invalido`. Es
+    correcto: el par EST/OPE-10 está EMITIDO, así que la supresión (F-89 P4) se
+    lo lleva antes de que R2 llegue a verificar identidad.
+    CONSECUENCIA QUE HAY QUE TENER ESCRITA: la guarda de identidad de la 3ª
+    puerta NO está cazando el caso que motivó el frente — está DE RESERVA. Si
+    algún día se suprimiera menos (una 3ª puerta más estricta, un emparejador
+    que emita menos), sería ella quien lo cazaría. Su contador a cero NO
+    significa que el falso positivo no ocurra: significa que muere antes.
+    Está anotado también junto a las dos guardas en `pipeline.ts`, que es donde
+    lo leerá quien vaya a tocarlas.
     ══ EL CASO, visto en pantalla ══
     Análisis de OPE-11 contra OPE-10. El juez emitió:
       "Profesional asignado para Carilla de composite (EST-03)"
@@ -2789,6 +2821,21 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     concluyente por diseño. Sirve para detectar regresiones en lo que sí es
     estable (que las quince sigan siendo quince, que el reparto no cambie),
     NUNCA para dar por bueno el arreglo. Lo que concluye es el caso fabricado.
+    ⚠️ ACTUALIZADO EL 31/08 — EL JUEZ REPITIÓ, UNA VEZ, Y POR SUERTE.
+    En la pasada 0 de la tanda del frente 1 volvió a emitir el falso
+    EST-02/EST-03 (hash dc678e1b, el mismo) y salió descartado. Ver B.124.
+    ESTE PENDIENTE NO SE CIERRA, y la distinción es exactamente la que lo
+    fundó: lo que no se podía garantizar era que el fallo OCURRIERA, no que la
+    guarda FUNCIONARA. Cinco pasadas sin él y una con él siguen sin ser una
+    tasa; siguen siendo un juez intermitente (B.82). Que esta vez tocara no
+    convierte la pantalla en instrumento — mañana vuelve a no tocar.
+    LO QUE SÍ CADUCA: la frase «no hay verificación en producción». La hay.
+    Lo que no hay es forma de PEDIRLA.
+    Y LA REMEDIACIÓN QUEDÓ VALIDADA POR EL CAMINO: el caso fabricado de
+    cascada-emparejamiento.test.ts da EL MISMO HASH que el hallazgo real, así
+    que la fabricación no era «parecida» — era el mismo hallazgo por la función
+    de identidad del sistema. Es la mejor prueba posible de que construir el
+    caso a mano fue la salida correcta y no un apaño.
 
   B.126 — [HALLAZGO SOBRE LA BATERÍA ENTERA, abierto y cerrado el 30/08] UN
     TEST QUE LLAMABA AL MODELO, FALLABA CON 401 Y PASABA EN VERDE. LA

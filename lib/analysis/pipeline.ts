@@ -349,6 +349,18 @@ export async function applyCascadeToCandidate(
     // Los cruces TABLA-PROSA quedan fuera SOLOS, sin condición aparte:
     // `veredictoDeEmparejamiento` ya devuelve 'sin_cobertura' cuando un lado no
     // es fila de tabla.
+    //
+    // ⚠️ MEDIDO EL 31/08, Y CONVIENE SABERLO ANTES DE TOCAR CUALQUIERA DE LAS
+    // DOS GUARDAS: EL FALSO POSITIVO DE B.124 MUERE AQUÍ, POR DOMINANCIA, Y NO
+    // ABAJO POR VERIFICACIÓN. El juez volvió a emitirlo en producción —hash
+    // dc678e1b, el mismo del original— y salió por `cubierto_por_diff`, porque
+    // el par EST/OPE-10 está emitido y la supresión se lo lleva antes de que
+    // nadie verifique nada.
+    // O sea que la guarda de identidad de abajo NO está cazando el caso que
+    // motivó el frente: está de reserva. Si algún día se suprimiera menos —una
+    // 3ª puerta más estricta, un emparejador que emita menos— sería ella la que
+    // lo cazaría, y por eso no sobra. Pero su contador a cero NO significa que
+    // el falso positivo no ocurra: significa que muere antes.
     const cobertura = veredictoDeEmparejamiento(tablasDelDiff.emitidos, ev.newChunk, ev.existingChunk);
     if (cobertura !== 'sin_cobertura') {
       bumpCount(counts, 'descartado.cubierto_por_diff');

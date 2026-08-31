@@ -109,6 +109,50 @@ supresión bajó las candidatas al double-check de **17 a 15**.
 `stageFailures` presente. Es la regla del protocolo §4 y no se negocia: si el LLM
 se cayó, las tasas no miden lo que se cree.
 
+### RESULTADOS — PASADA 0 (humo), `cceddf86`
+
+**OPE-11 contra OPE-10, rápido, corpus solo con esos dos.**
+
+| | esperado | medido |
+|---|---|---|
+| `contradictions_found` | 15 (calculado) | **15** ✔ |
+| `stageFailures` | ausente | **null** ✔ |
+| `verificador.confirmados_por_estructura` | 0 | **0** ✔ |
+| hallazgos con `origen: diff_tabular` | 15 | **15** ✔ |
+
+P1 cumplida en sus tres puntos, en esta pasada. **Una pasada no es una tasa**
+—la afirmación necesita las cuatro— pero el número calculado y el medido
+coinciden, que es lo que la pasada 0 tenía que decidir.
+
+#### ⚠️ EL FALSO POSITIVO DE B.124 REAPARECIÓ, Y SALIÓ DESCARTADO
+
+    [dc678e1b] "Profesional asignado para Carilla de composite (EST-03)"
+       → descartado: cubierto_por_diff
+
+`dc678e1b` es el hash del falso ORIGINAL del 30/08. El hash es
+`hashCitationPair(newDocSays, existingDocSays)` — las dos citas—, así que es
+**el mismo hallazgo**, no uno parecido.
+
+**Lo que cambia**: B.124 pasa a tener verificación en producción. **Lo que no**:
+B.125 sigue vigente. Lo que no se podía garantizar era que el fallo OCURRIERA,
+no que la guarda FUNCIONARA — y sigue sin poderse pedir. Que hoy tocara no
+convierte la pantalla en instrumento.
+
+**Y la fabricación quedó validada de paso**: el caso de
+`cascada-emparejamiento.test.ts` produce **el mismo hash `dc678e1b`**. Construir
+el caso a mano no era un apaño: era el mismo hallazgo por la función de
+identidad del propio sistema.
+
+#### NOTA DE MÉTODO: muere por DOMINANCIA, no por verificación
+
+Salió por `cubierto_por_diff`, no por `emparejamiento_invalido`. Correcto —el
+par está emitido y la supresión se lo lleva antes de que R2 verifique nada— pero
+hay que tenerlo escrito: **la guarda de identidad de la 3ª puerta no está
+cazando el caso que motivó el frente, está de reserva.** Su contador a cero no
+dice que el falso no ocurra; dice que muere antes. Anotado junto a las dos
+guardas en `pipeline.ts`.
+
+
 
 ---
 
