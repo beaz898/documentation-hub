@@ -3,7 +3,7 @@ PENDIENTES — Doclity (Agente IA)
 Documento vivo. Se actualiza al completar tareas (marcar [✓]) y se
 sustituye por la versión nueva. Más ligero que la Bitácora: aquí va
 lo que falta y la visión que lo guía, no el detalle de cada sesión.
-Última actualización: 01/09/2026 (v42)
+Última actualización: 01/09/2026 (v43)
 
 
 ════════════════════════════════════════════════════════════════
@@ -4070,6 +4070,61 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     NO SE ARREGLA AQUÍ. Qué debe decir CLAUDE.md del agente es decisión del
     director, y tocarlo sin él sería escribir la premisa de las sesiones
     siguientes por mi cuenta.
+
+  B.137 — [ABIERTO 01/09 · LA BATERÍA PIERDE VIGILANCIA SIN DECIRLO · PREGUNTA
+    SIN RESPUESTA] SIETE CASOS DESAPARECIERON Y LA SUITE SIGUIÓ EN VERDE
+
+    ══ QUÉ PASÓ ══
+    Al reescribir el guardián de `components/improvement/table-coverage.test.ts`
+    partiéndolo en tres mitades, la edición reemplazó HASTA EL FINAL DEL FICHERO
+    en vez de hasta el cierre del `describe`. Se llevó por delante siete casos
+    que vivían debajo.
+    LA SUITE SE QUEDÓ EN VERDE. 253 pasando, ni un rojo, ni un aviso. Lo único
+    que lo delató fue que el recuento había BAJADO respecto a la corrida
+    anterior — y lo único que hizo que alguien mirara el recuento fue la
+    costumbre de anotarlo en cada informe. Restaurado desde HEAD reemplazando
+    solo el `describe` de destino: 261.
+
+    ══ POR QUÉ ES LO MÁS GRAVE DEL DÍA ══
+    Es LA MISMA ENFERMEDAD que este frente lleva una semana persiguiendo en el
+    código —una pieza deja de vigilar y nada lo dice— pero en el INSTRUMENTO que
+    la vigila, que es el sitio donde no puede pasar.
+    Y esta vez POR ACCIDENTE DE EDICIÓN, no por diseño. Un mecanismo retirado a
+    propósito deja rastro en un commit y alguien puede leerlo; una edición que
+    se come el final de un fichero no deja ninguno, y puede repetirse mañana
+    exactamente igual sin que nadie se entere.
+
+    ⚠️ ══ LA COINCIDENCIA QUE LO EMPEORA, y es la parte que hay que retener ══
+    Pasó EN EL MISMO COMMIT en el que la mutación acababa de destapar que MEDIA
+    FUNCIONALIDAD iba a entrar sin prueba (m1: el `Problem` dejaba de llevar la
+    huella y la suite no se enteraba).
+    Las dos cosas juntas se anulan: **si alguno de los siete casos perdidos
+    hubiera sido de los que vigilan una mitad, esa mutación habría dado VERDE y
+    la habríamos dado por buena.** La mutación no distingue entre «no hay caso
+    que lo vigile» y «había uno y lo borré hace diez minutos». Lo que protege
+    contra media funcionalidad sin prueba deja de proteger en cuanto la batería
+    puede encoger en silencio, y el 01/09 las dos condiciones se dieron a la vez
+    en el mismo fichero de trabajo.
+
+    ══ LA PREGUNTA QUE HAY QUE CONTESTAR ══
+    ¿HAY FORMA DE QUE LA SUITE AVISE CUANDO EL NÚMERO DE CASOS BAJA?
+    Hoy el único guardián es que yo me fije en el recuento y lo compare con el
+    de la corrida anterior de memoria. Eso no es un guardián: es una costumbre,
+    y las costumbres no fallan en rojo.
+
+    Lo que la pregunta tiene que resolver, y por eso NO se anota con solución:
+    · un número que baja legítimamente (un test que se retira a propósito, un
+      fichero que se divide) no puede ser un fallo, o el guardián se desactiva
+      solo por ruido;
+    · el umbral tiene que vivir en algún sitio que se actualice con el commit
+      que sube el número, o caduca como caducó el protocolo de B.113;
+    · y tiene que cazar el caso REAL, que no es «bajó de 261 a 253» sino «este
+      fichero tenía 12 casos y ahora tiene 5», porque el total puede quedarse
+      igual si otro commit añade siete en otra parte.
+
+    NO SE DECIDE AQUÍ. Va con el frente de la regla 6 o donde el director lo
+    ponga; lo que no puede es quedarse sin anotar, porque el accidente no dejó
+    rastro en ningún sitio salvo este párrafo.
 
   F-81 [CONVERGENCIA — leer ANTES de planificar la fase 3 del diff, 27/08] No
     es un pendiente nuevo: es el sitio donde se juntan tres que ya existen, más

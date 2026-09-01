@@ -930,6 +930,17 @@ se aplica es indistinguible de un test que no muerde—, y mirar **qué** casos
 mueren, no solo cuántos: si mueren más de los que vigilan ese mecanismo, el
 caso está midiendo de más.
 
+⚠️ **Y UNA TERCERA CAUTELA, del 01/09, que anula a las otras dos si no se
+cumple: LA BATERÍA TIENE QUE SEGUIR SIENDO LA MISMA ENTRE LA CORRIDA LIMPIA Y
+LA MUTADA.** Ese día una edición se comió el final de un fichero de tests y
+**siete casos desaparecieron con la suite en verde**; solo el recuento lo
+delató. Una mutación contra una batería que ha encogido en silencio da verde
+por la razón equivocada, y verde es exactamente lo que se busca no encontrar.
+La mutación no distingue entre «no hay caso que vigile esto» y «lo había y lo
+borré hace diez minutos». **El recuento total antes y después es lo mínimo, y
+hoy es lo único.** La pregunta de cómo hacerlo automático está abierta en
+B.137.
+
 ---
 
 ## 5. Las mediciones
