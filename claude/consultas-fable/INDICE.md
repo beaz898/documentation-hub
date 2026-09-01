@@ -26,7 +26,7 @@ de cada fichero.
 
 ### LO QUE FABLE DA POR EXISTENTE — un patrón, no tres accidentes
 
-**Cuatro veces ha dado por construida una pieza que no estaba**, y las cuatro con la
+**SEIS veces ha dado por construida una pieza que no estaba**, y las seis con la
 misma forma: una subordinada de paso —«que ya existe», «que ya viaja»— sobre
 algo que el repositorio no tenía. No son errores de criterio: las tres
 decisiones eran correctas y se implementaron enteras. Lo que era falso es que
@@ -38,6 +38,28 @@ fueran gratis.
 | **F-83 P2 / F-84 P1** | «**la** pareja de tablas», en singular — un emparejador entre documentos | No existía. La fase 1 recibía dos tablas ya elegidas y nadie las elegía. Lo destapó F-88 y lo escribió su paso 1 |
 | **F-88 P2** | «es un `if` sobre un campo **que ya viaja**» | No viajaba. Ni la discrepancia ni `Problem` decían de qué materia es un hallazgo; hubo que crear `origen` |
 | **F-88 P2** (2.º) | «las coordenadas que el payload debe llevar son **exactamente las que la fila ya tiene**» | No las tiene. La clave de fila (`keyValues`) muere dentro de `diff-emision.ts` y nunca llega al cliente; el `tableId` tampoco. **ENCONTRADO APLICANDO LA REGLA**, no tropezando |
+| **F-92 P1** | «Universo de `columnas(h)`: las que el hallazgo declara — **el campo `columns` de F-70**» | Ese campo no existe donde corre la supresión. Hay DOS listas, de F-55 (`newColumns`/`existingColumns`), una por lado y con TRES estados. **ENCONTRADO TRADUCIENDO**, antes de escribir una línea — la regla de F-92 P4 cazando algo por primera vez |
+| **F-93 P1** ⚠️ **la más cara** | «EST-02 contra EST-03 tiene claves distintas → `descartado.emparejamiento_invalido`, fuera, **sin que la supresión intervenga**» | No era cierto en nuestro código: la guarda de identidad **solo miraba los pares de la 3ª puerta**, y sobre pares emitidos no se verificaba identidad ninguna — la supresión conflaba `pareja` y `no_pareja` y se llevaba las dos. Su contador llevaba a cero desde que se creó |
+
+**LA SEXTA MERECE PÁRRAFO PROPIO, porque no era una pieza que faltara: era un
+ARGUMENTO apoyado en una pieza que no existía.** Nuestro aviso decía que la
+lectura C reabría B.124; Fable lo desmontó explicando que una fila mal
+emparejada muere antes, en identidad. **El argumento es correcto en su diseño y
+falso en nuestra implementación.**
+
+Y el precio de no haberlo comprobado estaba escrito: al reordenar, EST-02/EST-03
+deja de suprimirse —no son pareja—, cae a R2, sale `confirm` con su ancla, y el
+punto 4 lo degrada a la llamada corta. **B.124 vivo otra vez, por la puerta que
+abría la corrección que veníamos a hacer.** Se cazó traduciendo el predicado
+antes de escribir el commit; de no haberlo hecho, habría entrado con la suite
+en verde, porque el caso que lo vigilaba asertaba el contador VIEJO.
+
+**La lección que separa esta de las cinco anteriores**: en aquéllas faltaba una
+pieza y el coste era trabajo imprevisto. Aquí lo que fallaba era **la premisa de
+un razonamiento que ya habíamos aceptado**, y el coste habría sido una
+regresión silenciosa del fallo más grave del proyecto. **Cuando una respuesta
+desmonte un aviso nuestro, la pieza en la que se apoya para desmontarlo es
+justo la que hay que verificar.**
 
 **Por qué pasa, y por qué importa poco y mucho a la vez.** Fable razona sobre la
 descripción que le damos, y una descripción correcta a nivel de diseño puede

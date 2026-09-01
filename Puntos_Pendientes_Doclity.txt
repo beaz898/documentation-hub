@@ -3279,6 +3279,51 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     mismo hueco que dejó el punto 4, no uno nuevo — y ya van tres ramas que solo
     se pueden ver en producción.
 
+  B.131 — [LÍMITE DE VERIFICACIÓN, abierto 01/09 · VA A FABLE] TRES RAMAS DEL
+    FRENTE 1 SOLO SE PUEDEN VER EN PRODUCCIÓN, Y LAS TRES POR LA MISMA CAUSA.
+    TRES NO ES UNA EXCEPCIÓN: ES UN PATRÓN.
+
+    ══ LAS TRES ══
+    1. LA DEGRADACIÓN DEL PUNTO 4 — sin clave pero con ancla, el hallazgo baja
+       a la llamada corta. Ni batería ni tanda (B.129: el corpus no puede
+       producirla, y el rerank tapa el único cruce que se acercaba).
+    2. EL DESTINO DE B.130 — que el hallazgo con columnas asimétricas citadas
+       LLEGUE a la llamada corta con su motivo. F-93 P2 lo pedía expresamente
+       —«el caso verifica el destino, no la puerta»— y no se pudo. Se probó la
+       DECISIÓN de R2; el contador `a_juicio.columna_no_comparada` y su motivo
+       viven en la rama `pass` de la cascada, sin ejercer.
+    3. EL CONTADOR DE LA JUNTA — `r2.degradado` al salir y
+       `juicio.recibido_tabular` al entrar, que F-93 pide para que una junta
+       rota se vea en el primer análisis real. Mismo problema: para verlos
+       moverse hay que atravesar la junta, y atravesarla es sobrevivir.
+
+    ══ LA CAUSA ÚNICA ══
+    SOBREVIVIR ALCANZA EL MODELO. Todo lo que no muere en la capa determinista
+    acaba en `verifyFindings`, y desde B.126 la guarda de red rompe cualquier
+    test que llame fuera — que es lo correcto y no se toca: la guarda nació
+    porque un test llevaba días llamando a la API, fallando con 401 y pasando
+    en verde.
+    Luego la batería puede probar TODO LO QUE MUERE y NADA DE LO QUE VIVE. Es
+    una asimetría del instrumento, no de las ramas.
+
+    ══ POR QUÉ IMPORTA MÁS DE LO QUE PARECE ══
+    Las tres ramas no son casos raros: son EL DESTINO NORMAL del territorio que
+    el frente 1 acaba de reservarle al juez. La degradación es lo que pasa en
+    todas las tablas sin clave; el destino de B.130 es lo que pasa con toda
+    columna asimétrica citada. O sea que lo NO verificable no es el margen: es
+    la mitad viva del sistema.
+    Y la regla de entrada exige mecanismo demostrado. Hoy se cumple para la
+    mitad que muere y se DECLARA para la que vive.
+
+    ══ LO QUE YA SE INTENTÓ, para que no se repita ══
+    · Ejercerlo en la cascada → la guarda de red lo rompe (correctamente).
+    · Ejercerlo en una tanda → B.129, el corpus no puede producir el caso.
+    · Partirlo en decisión y junta (F-93 P3) → la decisión SÍ se prueba; la
+      junta sigue sin probarse, solo con contadores a los extremos, que es
+      vigilancia y no demostración.
+
+    NO SE PROPONE SOLUCIÓN AQUÍ, a propósito. Va a Fable en la próxima consulta.
+
   F-81 [CONVERGENCIA — leer ANTES de planificar la fase 3 del diff, 27/08] No
     es un pendiente nuevo: es el sitio donde se juntan tres que ya existen, más
     una consecuencia. Se anota aquí porque el momento en que importan es el de

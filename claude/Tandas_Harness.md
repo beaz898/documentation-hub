@@ -15,6 +15,35 @@ principio del protocolo.
 
 ---
 
+## ⚠️ PARA LA PRÓXIMA TANDA — EL REPARTO DE CONTADORES CAMBIA (01/09, F-93)
+
+*Escrito antes de lanzarla, para que nadie lea el cambio como una avería.*
+
+El reordenado de F-93 partió una guarda que estaba conflada. **Las cifras
+publicadas no cambian; cambia POR DÓNDE muere cada cosa.**
+
+| Contador | Antes | Después |
+|---|---|---|
+| `descartado.cubierto_por_diff` | se llevaba las filas que ERAN pareja **y las que no** | solo las que **son pareja y R2 confirma** → **baja** |
+| `descartado.emparejamiento_invalido` | **cero desde que se creó** | **pasa a moverse** |
+| `a_juicio.columna_no_comparada` | no existía | aparece donde antes se decía `equivalentes` de más (B.130) |
+
+**Lo esperado en el par grande**, con lo medido el 31/08 delante:
+
+- IMP-03 y EST-03 legítimos —filas pareja, el precio difiere— siguen saliendo
+  por **`cubierto_por_diff`**.
+- **`dc678e1b`** (EST-02 contra EST-03, el falso de B.124) pasa a
+  **`emparejamiento_invalido`**. Mismo hash, otro contador.
+- **Las quince siguen siendo quince**, y `confirmados_por_estructura` sigue en
+  cero.
+
+**No es que empiece a fallar algo: empieza a contarse con su nombre lo que
+siempre ocurría bajo otro.** Si `emparejamiento_invalido` sigue a cero en el par
+grande, ESO sí sería el hallazgo — querría decir que la identidad no se está
+verificando sobre pares emitidos, que es justo lo que este commit arregló.
+
+---
+
 ## 31/08/2026 — `cceddf86` — PREDICCIÓN ESCRITA ANTES DE LANZAR
 
 *Este bloque se escribe y se commitea ANTES de la primera pasada. Los
