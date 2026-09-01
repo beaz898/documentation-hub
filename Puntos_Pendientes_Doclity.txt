@@ -3205,8 +3205,7 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     batería ni tanda—. Es el hueco de verificación más grande que deja el
     frente 1, y está declarado, no escondido.
 
-  B.130 — [DEFECTO DE UNIVERSO DENTRO DE R2, señalado por F-93 P2 el 31/08 ·
-    ENTRA CON SU PROPIO COMMIT] `'equivalentes'` AFIRMA SOBRE LAS FILAS ENTERAS
+  B.130 — [DEFECTO DE UNIVERSO DENTRO DE R2 · ARREGLADO EL 01/09] `'equivalentes'` AFIRMA SOBRE LAS FILAS ENTERAS
     CUANDO LA ESTRUCTURA SOLO MIRÓ LAS COLUMNAS CITADAS COMUNES.
     ES EL DEFECTO DE UNIVERSO POR TERCERA VEZ EN ESTE FRENTE, y las tres veces
     la misma pregunta sin respuesta escrita:
@@ -3258,6 +3257,27 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     destino no prueba lo que cree.
     Y hace falta un tercer caso que la corrección NO puede llevarse por
     delante: todo-compartido-todo-igual sigue siendo 'equivalentes'.
+
+    ══ ARREGLADO EL 01/09, EN COMMIT PROPIO ══
+    R2 renuncia a 'equivalentes' cuando el juez citó columnas asimétricas: la
+    salida es `pass` con `asimetricasCitadas`, y la cascada baja el hallazgo a
+    la llamada corta contando `a_juicio.columna_no_comparada` y nombrando esas
+    columnas en el motivo (motivo literal, F-92 P2).
+    LOS TRES CASOS, en finding-rules.test.ts: Belmonte (asimétricas citadas →
+    pass), el construido 44 contra 40 bajo «Horas semana» y «Jornada semanal»
+    (→ pass, y es el que de verdad justifica el arreglo: Belmonte sola se
+    arreglaba «por accidente» porque era un hallazgo malo), y todo-compartido-
+    todo-igual (sigue siendo 'equivalentes').
+    MUTACIÓN: volver a la regla vieja → 2 rojos. Mirar las asimétricas de un
+    solo lado → 2 rojos. Pasar siempre → 2 rojos, y caen los dos casos que
+    protegen 'equivalentes'.
+    ⚠️ LÍMITE DECLARADO, y es el mismo de siempre: F-93 P2 pedía que el caso
+    verificara EL DESTINO —«llega a la llamada corta»— y NO SE PUEDE. Llegar a
+    la llamada corta es SOBREVIVIR, y sobrevivir alcanza el modelo, que la
+    guarda de red rompe (B.126). Lo probado es LA DECISIÓN de R2; el contador y
+    el motivo viven en la rama `pass` de la cascada y quedan sin probar. Es el
+    mismo hueco que dejó el punto 4, no uno nuevo — y ya van tres ramas que solo
+    se pueden ver en producción.
 
   F-81 [CONVERGENCIA — leer ANTES de planificar la fase 3 del diff, 27/08] No
     es un pendiente nuevo: es el sitio donde se juntan tres que ya existen, más

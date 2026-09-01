@@ -82,7 +82,21 @@ import { normalize } from './judge';
  */
 
 export type DeterministicVerdict =
-  | { outcome: 'pass' }
+  | {
+      outcome: 'pass';
+      /**
+       * B.130 — LAS COLUMNAS CITADAS QUE SOLO EXISTEN EN UN LADO.
+       *
+       * Presente SOLO cuando R2 renunció a decir 'equivalentes': ninguna
+       * columna compartida citada difiere, pero el juez citó además columnas
+       * asimétricas, así que la estructura no vio el asunto del hallazgo y no
+       * puede afirmar equivalencia.
+       * Ausente en todos los demás `pass` —celdas nulas, listas vacías—, donde
+       * R2 no llegó a comparar nada. Su presencia es lo que distingue «no pude
+       * mirar» de «miré y no me alcanza».
+       */
+      asimetricasCitadas?: string[];
+    }
   | {
       outcome: 'confirm';
       /**
@@ -222,6 +236,35 @@ export function applyDeterministicRules(finding: {
 
     const differingColumns = sharedColumns.filter(c => newCells[c] !== existingCells[c]);
     if (differingColumns.length === 0) {
+      // ── B.130 — 'equivalentes' NO PUEDE AFIRMAR SOBRE LAS FILAS ENTERAS ──
+      //
+      // Que ninguna columna compartida CITADA difiera no significa que las dos
+      // filas digan lo mismo: significa que dicen lo mismo EN LO QUE SE MIRÓ.
+      // Es el defecto de universo por tercera vez en el frente —«todos
+      // iguales» ¿entre qué?— y el primero que es nuestro: lleva aquí desde
+      // F-55.
+      //
+      // SI EL JUEZ CITÓ COLUMNAS QUE SOLO EXISTEN EN UN LADO, la estructura no
+      // vio el asunto del hallazgo. Lo único que puede decir es «sin oposición
+      // en lo compartido», y eso NO es equivalencia: pasa a la llamada corta
+      // con ese motivo, literal (F-92 P2).
+      //
+      // EL CASO QUE LO HACE GRAVE, y no es Belmonte: la misma empleada con 44
+      // horas en «Horas semana» y 40 en «Jornada semanal». El diff empareja
+      // columnas por igualdad de nombre y no las compara nunca (F-78); si aquí
+      // se dijera 'equivalentes', una contradicción REAL desaparecería bajo una
+      // palabra que afirma de más. Es el territorio que F-92 le reservó al juez
+      // —el emparejador de esquemas de último recurso— y el sitio exacto donde
+      // se estaba cegando.
+      const asimetricasCitadas = [
+        ...newColumns.filter(c => !existingColumns.includes(c)),
+        ...existingColumns.filter(c => !newColumns.includes(c)),
+      ];
+      if (asimetricasCitadas.length > 0) {
+        return { outcome: 'pass', asimetricasCitadas };
+      }
+      // Todas las citadas de los dos lados son compartidas y todas coinciden:
+      // AHORA SÍ, la estructura vio todo lo que el hallazgo trata.
       return { outcome: 'reclassify', reason: 'equivalentes' };
     }
 

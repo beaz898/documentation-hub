@@ -201,3 +201,94 @@ describe('el ancla de R2 — la ambigüedad de F-90 P3, resuelta por F-91', () =
     expect(r2(n, n, comunes).outcome).toBe('reclassify');
   });
 });
+
+describe('B.130 — «equivalentes» deja de afirmar sobre las filas enteras', () => {
+  /**
+   * ⚠️ QUÉ SE PRUEBA AQUÍ Y QUÉ NO, y hay que leerlo antes de apoyarse.
+   *
+   * F-93 P2 pide que estos casos verifiquen EL DESTINO —«llega a la llamada
+   * corta»— y no la puerta. NO SE PUEDE, y por la misma razón que la
+   * degradación: llegar a la llamada corta es SOBREVIVIR, y sobrevivir alcanza
+   * el modelo, que la guarda de red rompe (B.126).
+   * Lo que se prueba es LA DECISIÓN: que R2 devuelve `pass` en vez de
+   * `equivalentes`, y CON QUÉ columnas asimétricas. El contador
+   * `a_juicio.columna_no_comparada` y su motivo viven en la rama `pass` de la
+   * cascada y quedan DECLARADOS SIN PROBAR — es el mismo hueco que el punto 4
+   * dejó abierto, no uno nuevo.
+   */
+
+  /**
+   * BELMONTE, el hallazgo que destapó B.128 y que hoy moriría callado.
+   *
+   * El juez cita las filas enteras. Las compartidas son `Empleado` y `Puesto`,
+   * y las dos COINCIDEN — es la misma persona con el mismo puesto. Con la regla
+   * vieja eso era 'equivalentes' y el hallazgo desaparecía; y desaparecía
+   * afirmando que las dos filas dicen lo mismo, cuando de las dieciocho
+   * columnas restantes la estructura no miró ni una.
+   */
+  it('Belmonte: las compartidas coinciden, pero hay asimétricas citadas → pass', async () => {
+    const rrhh = await tabla('RRHH-06_evaluacion-del-desempeno.xlsx');
+    const ope02 = await tabla('OPE-02_agenda-y-gestion-de-citas.xlsx');
+    const n = rrhh.rows.find(r => (r.cells?.['Empleado'] ?? '').includes('Belmonte'))!.cells!;
+    const e = ope02.rows.find(r => (r.cells?.['Empleado'] ?? '').includes('Belmonte'))!.cells!;
+
+    const v = applyDeterministicRules({
+      newDocSays: 'da igual', existingDocSays: 'da igual',
+      newCells: n, existingCells: e,
+      newColumns: rrhh.columns, existingColumns: ope02.columns,
+    });
+
+    expect(v.outcome).toBe('pass');
+    if (v.outcome !== 'pass') return;
+    // Y nombra las asimétricas, que es lo que el motivo del log tiene que decir.
+    expect(v.asimetricasCitadas).toContain('Horas semana');
+    expect(v.asimetricasCitadas).toContain('Puntualidad (1-5)');
+    expect(v.asimetricasCitadas).not.toContain('Empleado');
+    expect(v.asimetricasCitadas).not.toContain('Puesto');
+  });
+
+  /**
+   * ⚠️ EL CASO QUE DE VERDAD IMPORTA, y es construido porque el corpus no lo
+   * tiene: LA MISMA EMPLEADA CON 44 HORAS EN UNA COLUMNA Y 40 EN OTRA DE NOMBRE
+   * DISTINTO.
+   *
+   * Es una contradicción REAL. El diff no la ve nunca —empareja columnas por
+   * igualdad de nombre (F-78, sin fuzzy, deliberado)— y con la regla vieja R2
+   * la enterraba bajo 'equivalentes' porque lo único compartido, el nombre de
+   * la empleada, coincide.
+   * Es el territorio que F-92 le reservó al juez: el emparejador de esquemas de
+   * último recurso. Sin este caso, la corrección de B.130 no tiene sentido —
+   * Belmonte sola se arregla «por accidente», porque era un hallazgo malo.
+   */
+  it('44 contra 40 horas bajo nombres de columna distintos: NO es equivalencia', () => {
+    const v = applyDeterministicRules({
+      newDocSays: 'da igual', existingDocSays: 'da igual',
+      newCells: { 'Empleado': 'Dra. Ana Belmonte', 'Horas semana': '44' },
+      existingCells: { 'Empleado': 'Dra. Ana Belmonte', 'Jornada semanal': '40' },
+      newColumns: ['Empleado', 'Horas semana'],
+      existingColumns: ['Empleado', 'Jornada semanal'],
+    });
+
+    expect(v.outcome).toBe('pass');
+    if (v.outcome !== 'pass') return;
+    expect(v.asimetricasCitadas).toEqual(['Horas semana', 'Jornada semanal']);
+  });
+
+  /**
+   * ⚠️ Y EL QUE PROTEGE LO QUE YA FUNCIONABA. Sin este caso, la corrección se
+   * lleva por delante 'equivalentes' entero.
+   *
+   * Todas las columnas citadas de los dos lados son compartidas y todas
+   * coinciden: aquí la estructura SÍ vio todo lo que el hallazgo trata, y
+   * afirmar equivalencia es legítimo.
+   */
+  it('todo compartido y todo igual SIGUE siendo equivalentes', async () => {
+    const { nueva, existente } = await corpus();
+    // `Categoría` coincide entre EST-03 y EST-03 — medido.
+    const v = r2(celdas(nueva, 'EST-03'), celdas(existente, 'EST-03'), ['Categoría']);
+
+    expect(v.outcome).toBe('reclassify');
+    if (v.outcome !== 'reclassify') return;
+    expect(v.reason).toBe('equivalentes');
+  });
+});

@@ -529,6 +529,17 @@ export async function applyCascadeToCandidate(
     if (!ev.newChunk || !ev.existingChunk) {
       bumpCount(counts, 'a_juicio.chunk_no_localizado');
       console.log(`[${label}] · [${ev.hash}] "${c.topic.slice(0, 60)}" → baja a juicio: chunk_no_localizado`);
+    } else if (verdict.asimetricasCitadas?.length) {
+      // B.130 — R2 renunció a 'equivalentes' porque el juez citó columnas que
+      // solo existen en un lado. El motivo NOMBRA ESAS COLUMNAS: es lo único
+      // que la estructura comprobó, y decir más sería la mentira que la regla
+      // de motivo literal (F-92 P2) prohíbe.
+      bumpCount(counts, 'a_juicio.columna_no_comparada');
+      console.log(
+        `[${label}] · [${ev.hash}] "${c.topic.slice(0, 60)}" → baja a juicio: ` +
+        `columna_no_comparada (sin oposición en lo compartido; columnas asimétricas citadas: ` +
+        `${verdict.asimetricasCitadas.join(', ')})`
+      );
     } else if (ev.newChunk.cells && ev.existingChunk.cells) {
       // F-55: LEE las columnas que trae la evidencia; no las recalcula. Antes
       // repetía aquí la búsqueda por texto de findCitedColumns, con el riesgo
