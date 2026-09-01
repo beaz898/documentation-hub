@@ -3457,6 +3457,52 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     entero. Con más chunks el daño sería parcial y más visible; con pocos, es
     todo o nada y silencioso.
 
+    ══ ⚠️ EL FICHERO QUEDA EXONERADO — investigación cerrada el 01/09 ══
+    Cuando OPE-13 falló por CUARTA vez, y esta vez en un endpoint DISTINTO, se
+    revisó el .xlsx byte a byte contra RRHH-08, que nunca falla.
+    LOS DOS SON GEMELOS: mismo generador, las mismas 9 entradas en el zip,
+    5.571 contra 5.567 bytes, 15 chunks cada uno, ninguno vacío, y —lo que
+    cierra la vía— EL MISMO INVENTARIO DE CODEPOINTS, 61 distintos en los dos,
+    SIN NI UN CODEPOINT QUE ESTÉ EN UNO Y NO EN EL OTRO. Se buscaron control
+    (U+0000-1F), DEL, C1, BOM, U+FFFD, zero-width, marcas RTL, surrogates
+    sueltos y U+00A0: cero en los dos.
+
+    ══ EL ARGUMENTO QUE LO CIERRA, y no es la limpieza del fichero ══
+    LA CUARTA LLAMADA NO LLEVABA NI UN BYTE DEL DOCUMENTO.
+    `https://api.pinecone.io/indexes/documentation-hub` NO es upsert ni query:
+    es el PLANO DE CONTROL, `describeIndex`. Y se llama porque
+    `lib/pinecone.ts` pide el índice POR NOMBRE y sin host:
+        return pc.index(process.env.PINECONE_INDEX || 'documentation-hub');
+    así que el SDK tiene que preguntar dónde vive el índice antes de cualquier
+    operación de datos. Esa petición lleva el NOMBRE DEL ÍNDICE y la CLAVE, y
+    nada más.
+    Un fallo ahí NO PUEDE CAUSARLO EL CONTENIDO DE UN DOCUMENTO. Es la clase de
+    argumento que cierra una hipótesis sin depender de haber buscado bien.
+
+    ══ Y LA METADATA TAMPOCO PUDO SER, por orden de ejecución ══
+    En el sync el embed corre en la línea 253 y el upsert en la 273. Al fallar
+    el embed, LA METADATA NUNCA SE ENVIÓ. Los tres fallos de `/embed` no
+    pudieron deberse a los vectores ni a su metadata: no habían salido.
+
+    ══ CORRECCIÓN A LO ESCRITO MÁS ARRIBA ══
+    El bloque «CONFIRMADO TRANSITORIO» dedujo que las tres sincronizaciones
+    manuales equivalían a un reintento automático. ERA PREMATURO: con un cuarto
+    fallo en otro endpoint no se puede afirmar que el caso estuviera resuelto
+    por insistir. Lo que SÍ se sostiene sin depender de eso es el hueco de este
+    pendiente — el retry solo casa 429 y un 5xx lanza al primer intento, venga
+    de donde venga.
+
+    ══ LO QUE QUEDA POR DISCRIMINAR, con su experimento ══
+    Si el patrón «siempre OPE-13» es CAUSAL o POSICIONAL. Tres pruebas, de más
+    barata a menos:
+      C. `GET /api/admin/diagnose-vectors?names=…` varias veces. Resuelve el
+         índice por la MISMA llamada del cuarto fallo y no manda ni un byte de
+         documento. Un 500 ahí cierra el caso: es de ellos.
+      B. Sincronizar cada documento EN SOLITARIO. Si los dos entran solos, el
+         fallo es de la segunda posición del lote y no del documento.
+      A. Una copia byte a byte de OPE-13 con otro nombre. Si la copia entra y
+         el original no, es del nombre o del id.
+
 
   F-81 [CONVERGENCIA — leer ANTES de planificar la fase 3 del diff, 27/08] No
     es un pendiente nuevo: es el sitio donde se juntan tres que ya existen, más
