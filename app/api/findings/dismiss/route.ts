@@ -16,11 +16,19 @@ import { huellaSolicitada, registrarDescartes, borrarDescarte } from '@/lib/anal
  * revisión sus descartes son estado de la pantalla, legítimamente y sin fingir
  * persistencia.
  *
- * EL CLIENTE MANDA COORDENADAS, NO HUELLAS. La huella la calcula el servidor
- * (F-86). Si el cliente pudiera mandarla ya hecha, podría fabricar descartes
- * para hallazgos que nunca ha visto.
+ * QUÉ MANDA EL CLIENTE, POR ESPECIE — y cambió en F-94, ficha B:
+ *   · PROSA → COORDENADAS, y la huella la calcula el servidor (F-86). Si el
+ *     cliente pudiera mandarla hecha, podría fabricar descartes de hallazgos
+ *     que nunca ha visto.
+ *   · TABULAR → LA HUELLA YA HECHA, porque el servidor se la dio dentro del
+ *     hallazgo. Recalcularla desde coordenadas sería una segunda
+ *     implementación del mismo criterio (CLAUDE.md). Se pierde poder
+ *     comprobar que el cliente no miente, y se acepta: una huella inventada
+ *     descarta un hallazgo que no existe, y el `org_id` acota el alcance.
+ *   En las dos, el cliente NUNCA manda el texto de una fila de tabla.
  *
- * Body: { documentId, existingDocumentId, newDocSays, existingDocSays, dismissed }
+ * Body: { documentId, tipo?, huella?, existingDocumentId?, newDocSays?,
+ *         existingDocSays?, dismissed }
  *   `dismissed: false` DESHACE el descarte. El usuario puede cambiar de
  *   opinión, y si desmarcar no borrase, el sistema le ocultaría el hallazgo
  *   para siempre — el fallo de F-67 con el signo cambiado.
@@ -102,6 +110,9 @@ export async function POST(req: NextRequest) {
       orgId: org.orgId,
       userId: user.id,
       huellas: [huella],
+      // La especie la decidió `huellaSolicitada`; aquí se pregunta, no se
+      // recalcula. Las dos huellas son sha256 y no se distinguen mirándolas.
+      especie: solicitada.especie,
     });
     if (!res.ok) return NextResponse.json({ error: 'No se pudo registrar el descarte' }, { status: 500 });
 

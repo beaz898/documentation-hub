@@ -238,7 +238,18 @@ export async function POST(req: NextRequest) {
       const huellas: string[] = [];
       for (const d of dismissedFindings) {
         if (!d || typeof d !== 'object') continue;
-        const { existingDocumentId, newDocSays, existingDocSays } = d as Record<string, unknown>;
+        const { origen, existingDocumentId, newDocSays, existingDocSays } = d as Record<string, unknown>;
+        // ⚠️ NADA TABULAR POR AQUÍ (F-94, ficha B). Esta entrada solo sabe
+        // construir huellas de PROSA a partir de citas, y una fila de tabla
+        // trae en `newDocSays` el texto de la fila: dejarla pasar le fabricaría
+        // una identidad de prosa sobre valores de celda, que es la identidad
+        // accidental que la ficha B vino a matar.
+        // HOY NO LLEGA NINGUNA —el camino pre-indexado no lleva huella, así que
+        // `mostrarAccionesDeFila` no pinta su botón—, y esta línea existe para
+        // que siga sin llegar el día que aquello cambie. Un hallazgo tabular de
+        // este camino NO TIENE MEMORIA, y es lo correcto: le falta identidad,
+        // no le sobra una prestada.
+        if (origen === 'diff_tabular') continue;
         if (
           typeof existingDocumentId !== 'string' ||
           typeof newDocSays !== 'string' ||
@@ -250,7 +261,9 @@ export async function POST(req: NextRequest) {
         });
         if (huella) huellas.push(huella);
       }
-      const res = await registrarDescartes(supabase, { orgId, userId: user.id, huellas });
+      const res = await registrarDescartes(supabase, {
+        orgId, userId: user.id, huellas, especie: 'prosa',
+      });
       console.log(
         `[INDEX-TEXT] descartes | recibidos=${dismissedFindings.length} | ` +
         `identificados=${huellas.length} | persistidos=${res.ok ? res.insertadas : 'FALLO'}`

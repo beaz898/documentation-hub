@@ -15,14 +15,21 @@ import { huellaDeProsa } from './huella-hallazgo';
  * fabricar huellas es lo que impide que se invente descartes ajenos.
  *
  * ─────────────────────────────────────────────────────────────────────────
- * SOLO LA ESPECIE PROSA, HOY, y no por olvido.
+ * LAS DOS ESPECIES, desde F-94 (ficha B). Antes solo prosa.
  *
- * `huellaDeHallazgo` (la tabular) exige `tabla` y `claveCruda` POR LADO, y la
- * discrepancia que sale del pipeline no las lleva: transporta `columns`,
- * `comparedValues` y las dos filas en crudo (F-69/F-70), pero ni el `tableId`
- * ni la clave. Su productor natural es la emisión del diff, que es el commit
- * siguiente. La tabla ya admite `kind='tabular'` para que ese día no haya que
- * migrar nada.
+ * `huellaDeProsa` se construye AQUÍ con las dos citas; `huellaDeHallazgo` —la
+ * tabular— NO se construye aquí: la calcula la emisión del diff con la clave
+ * cruda de los dos lados, y llega hecha. Es la misma decisión en los dos
+ * sentidos del viaje: quien necesita la identidad se la PREGUNTA a quien la
+ * decidió en vez de rederivarla (CLAUDE.md, F-89 P2).
+ *
+ * QUIÉN DECIDE LA ESPECIE: `origen === 'diff_tabular'`, y nada más. NO «tiene
+ * huella o no la tiene» — un hallazgo tabular del camino PRE-INDEXADO no lleva
+ * huella (F-87 P1), y si la especie se dedujera de la presencia, ése caería a
+ * la rama de prosa y se le calcularía una identidad sobre el texto de la fila.
+ * Que es EXACTAMENTE la identidad accidental que F-94 vino a matar, resucitada
+ * por el lado de la lectura. Un hallazgo tabular sin huella no tiene memoria, y
+ * eso es lo correcto: le falta la identidad, no le sobra otra.
  * ─────────────────────────────────────────────────────────────────────────
  */
 
@@ -97,16 +104,27 @@ export async function leerDescartes(
   return new Set((data ?? []).map(r => r.fingerprint as string));
 }
 
+/** Las dos especies del contrato de `huella-hallazgo.ts`, que son también los
+ *  dos valores que admite `finding_dismissals.kind`. */
+export type EspecieDeHuella = 'tabular' | 'prosa';
+
 /**
  * Registra un descarte. IDEMPOTENTE por `(org_id, fingerprint)`: descartar dos
  * veces el mismo hallazgo es UNA decisión, no dos filas. La entrada de
  * indexación puede reenviar lo mismo si el usuario indexa dos veces.
+ *
+ * LA ESPECIE SE PIDE, NO SE ADIVINA (F-94, ficha B). Hasta hoy escribía
+ * `'prosa'` fijo, y era verdad porque solo había prosa. Ahora quien llama ya ha
+ * decidido la especie —`huellaSolicitada` la devuelve— y la pasa: rederivarla
+ * aquí a partir de la huella sería imposible (las dos son sha256 de 64 hex,
+ * indistinguibles) y adivinarla sería peor que no guardarla.
+ * La columna admite las dos desde F-86 paso 3, así que no hay migración.
  */
 export async function registrarDescartes(
   supabase: SupabaseClient,
-  params: { orgId: string; userId: string; huellas: string[] },
+  params: { orgId: string; userId: string; huellas: string[]; especie: EspecieDeHuella },
 ): Promise<{ ok: boolean; insertadas: number; error?: string }> {
-  const { orgId, userId, huellas } = params;
+  const { orgId, userId, huellas, especie } = params;
   const unicas = [...new Set(huellas)];
   if (unicas.length === 0) return { ok: true, insertadas: 0 };
 
@@ -116,7 +134,7 @@ export async function registrarDescartes(
       unicas.map(fingerprint => ({
         org_id: orgId,
         fingerprint,
-        kind: 'prosa',
+        kind: especie,
         dismissed_by: userId,
       })),
       { onConflict: 'org_id,fingerprint', ignoreDuplicates: true },
@@ -160,6 +178,39 @@ interface DiscrepanciaMarcable {
   existingDocSays?: string;
   existingDocumentId?: string;
   dismissed?: boolean;
+  /** F-88 paso 2: la especie del hallazgo. Ausente = prosa. */
+  origen?: 'diff_tabular';
+  /** F-88 paso 2: la huella tabular, YA CALCULADA por la emisión del diff.
+   *  Ausente en el camino pre-indexado, y ahí no hay memoria posible. */
+  huella?: string;
+}
+
+/**
+ * LA IDENTIDAD DE UN HALLAZGO GUARDADO, o `null` si no tiene ninguna.
+ *
+ * UN SOLO SITIO, que es la regla: la rama por especie está aquí y no repartida
+ * por el `map`, para que la lea entera quien venga a cambiarla. Ver la cabecera
+ * del fichero sobre por qué decide `origen` y no la presencia de la huella.
+ */
+function identidadDeDescarte(
+  d: DiscrepanciaMarcable,
+  documentoEnRevision: string | null | undefined,
+): string | null {
+  if (d.origen === 'diff_tabular') {
+    // VIENE HECHA O NO VIENE. No se recalcula ni se sustituye por otra cosa.
+    return typeof d.huella === 'string' && d.huella.length > 0 ? d.huella : null;
+  }
+
+  if (!d.newDocSays || !d.existingDocSays || !d.existingDocumentId) return null;
+
+  return huellaDeDescarte({
+    documentoEnRevision,
+    coordenadas: {
+      existingDocumentId: d.existingDocumentId,
+      newDocSays: d.newDocSays,
+      existingDocSays: d.existingDocSays,
+    },
+  });
 }
 
 /**
@@ -170,6 +221,17 @@ interface DiscrepanciaMarcable {
  * usuario ya juzgó vuelven con `dismissed: true` y el cliente las pinta
  * tachadas, exactamente como durante la sesión en la que las marcó. No se le
  * quita nada de la lista: quitarlas le impediría cambiar de opinión.
+ *
+ * LAS DOS ESPECIES EN LA MISMA PASADA, y no hacen falta dos conjuntos:
+ * `finding_dismissals` tiene una sola clave `(org_id, fingerprint)`, así que
+ * `descartes` es un espacio MEZCLADO. Cada hallazgo pregunta por su identidad y
+ * el conjunto contesta sin saber de qué especie era.
+ *
+ * ⚠️ UNA ASIMETRÍA REAL ENTRE LAS RAMAS, declarada porque no es evidente: sin
+ * `documentoEnRevision` la prosa no puede identificar nada, pero LO TABULAR
+ * SIGUE MARCANDO —su huella no necesita ese id, ya viene hecha—. En la práctica
+ * los dos caminos sin id coinciden con el pre-indexado, que tampoco trae huella;
+ * el predicado no los ata, y por eso se escribe.
  *
  * FUNCIÓN PURA A PROPÓSITO: es el único eslabón de esta cadena que vitest puede
  * ejecutar —los tres endpoints están fuera de su alcance— y es donde el
@@ -182,18 +244,8 @@ export function marcarDescartadas<T extends DiscrepanciaMarcable>(
   if (params.descartes.size === 0) return discrepancias;
 
   return discrepancias.map(d => {
-    if (!d.newDocSays || !d.existingDocSays || !d.existingDocumentId) return d;
-
-    const huella = huellaDeDescarte({
-      documentoEnRevision: params.documentoEnRevision,
-      coordenadas: {
-        existingDocumentId: d.existingDocumentId,
-        newDocSays: d.newDocSays,
-        existingDocSays: d.existingDocSays,
-      },
-    });
-
-    if (huella && params.descartes.has(huella)) return { ...d, dismissed: true };
+    const identidad = identidadDeDescarte(d, params.documentoEnRevision);
+    if (identidad && params.descartes.has(identidad)) return { ...d, dismissed: true };
     return d;
   });
 }
@@ -217,6 +269,11 @@ export function marcarDescartadas<T extends DiscrepanciaMarcable>(
  *     es exactamente lo que hacía antes. Declarado para que la compatibilidad
  *     no sea un accidente.
  *
+ * DEVUELVE TAMBIÉN LA ESPECIE, y no es un extra: `registrarDescartes` tiene que
+ * escribirla en `kind` y NO PUEDE DEDUCIRLA —las dos huellas son sha256 de 64
+ * hex, indistinguibles—. Aquí es donde se decide, luego aquí es donde se
+ * pregunta (CLAUDE.md: un criterio se implementa una vez).
+ *
  * Y ES LO QUE CIERRA EL CAMINO ACCIDENTAL: con `tipo: 'tabular'` NO se acepta
  * texto. Un hallazgo de tabla no puede registrarse con una identidad de prosa
  * ni aunque alguien mande las tres cadenas.
@@ -227,7 +284,7 @@ export function marcarDescartadas<T extends DiscrepanciaMarcable>(
  * legítimas. El tipo lo sabe el cliente sin adivinar.
  */
 export type HuellaSolicitada =
-  | { ok: true; huella: string }
+  | { ok: true; huella: string; especie: EspecieDeHuella }
   | { ok: false; error: string };
 
 export function huellaSolicitada(params: {
@@ -244,7 +301,7 @@ export function huellaSolicitada(params: {
     if (typeof huella !== 'string' || !/^[0-9a-f]{64}$/.test(huella)) {
       return { ok: false, error: 'Huella tabular ausente o mal formada.' };
     }
-    return { ok: true, huella };
+    return { ok: true, huella, especie: 'tabular' };
   }
 
   const { existingDocumentId, newDocSays, existingDocSays } = params;
@@ -261,5 +318,5 @@ export function huellaSolicitada(params: {
     coordenadas: { existingDocumentId, newDocSays, existingDocSays },
   });
   if (!deProsa) return { ok: false, error: 'No se pudo identificar el hallazgo.' };
-  return { ok: true, huella: deProsa };
+  return { ok: true, huella: deProsa, especie: 'prosa' };
 }
