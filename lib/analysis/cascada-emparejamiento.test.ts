@@ -63,6 +63,12 @@ import type { DocumentJudgment } from './types';
  * sobrevivir es alcanzar el modelo. De las cuatro ramas del punto 4, tres
  * terminan en descarte y están ejercidas; la cuarta solo se puede ver en
  * producción.
+ *
+ * ⚠️ Y EL TERCER ESTADO DE `differingColumns` TAMPOCO: cuando las listas de
+ * columnas son `null`, R2 sale por `pass` y el hallazgo SOBREVIVE hasta la
+ * llamada corta. Mismo motivo que la degradación — sobrevivir alcanza el
+ * modelo. Lo que sí se prueba, en `finding-rules.test.ts`, es que R2 devuelve
+ * `pass`; que la supresión no lo toque, no. *
  * Lo que SÍ está probado de ella, en `finding-rules.test.ts`: que R2 devuelve el
  * ancla correcta, que es la entrada de la decisión. Lo que NO: que la cascada
  * lea esa entrada y empuje el hallazgo a `toVerify`. F-91 acepta ese límite al
@@ -155,14 +161,23 @@ describe('la cascada descarta el emparejamiento inválido — camino completo', 
    * citadas, todas distintas. Antes del frente 1 salía
    * `confirmado.por_estructura`.
    *
-   * SALE POR `cubierto_por_diff` Y NO POR `emparejamiento_invalido`, y el
-   * matiz importa: sobre un par EMITIDO la supresión de F-89 P4 llega ANTES que
-   * la verificación de identidad — no hace falta demostrar que el
-   * emparejamiento es falso para tirarlo, basta con que el diff ya haya
-   * comparado esas tablas mejor. La verificación de identidad conserva su
-   * territorio en los caídos por la 3ª puerta (punto 3).
+   * ⚠️ CAMBIÓ DE CONTADOR EL 01/09, Y EL CAMBIO ES EL ARREGLO. Hasta el
+   * reordenado de F-93 moría por `cubierto_por_diff`: la supresión estaba
+   * escrita `if (cobertura !== 'sin_cobertura')` y se llevaba por igual a las
+   * filas que ERAN pareja y a las que NO. Ahora muere por
+   * `emparejamiento_invalido`, que es lo que siempre fue — dos filas con claves
+   * distintas no son la misma entidad, y eso se COMPRUEBA en vez de darse por
+   * cubierto.
+   * F-93 P1 daba por hecho que ya ocurría así. No ocurría: sobre pares emitidos
+   * no se verificaba identidad ninguna. Por eso `emparejamiento_invalido`
+   * llevaba a cero desde que se creó, y por eso ahora se mueve.
+   *
+   * Y ES LA CONDICIÓN DE QUE B.124 NO VUELVA POR LA PUERTA QUE ABRIÓ LA LECTURA
+   * C: con la supresión exigiendo que las filas sean pareja, este hallazgo ya
+   * no se suprime — si no muriera aquí, caería a R2, saldría `confirm` y el
+   * punto 4 lo mandaría a la llamada corta. Vivo.
    */
-  it('EST-02 contra EST-03 sale DESCARTADO, no confirmado', async () => {
+  it('EST-02 contra EST-03 muere en IDENTIDAD, no por cobertura', async () => {
     const { pares, nueva, existente } = await corpus();
     const columnas = nueva.columns.filter(c => existente.columns.includes(c));
 
@@ -174,7 +189,10 @@ describe('la cascada descarta el emparejamiento inválido — camino completo', 
     expect(r.judgment.contradictions).toHaveLength(0);
     expect(r.tally.descartados).toBe(1);
     expect(r.tally.confirmados).toBe(0);
-    expect(r.judgment.discarded?.['descartado.cubierto_por_diff']).toBe(1);
+    expect(r.judgment.discarded?.['descartado.emparejamiento_invalido']).toBe(1);
+    // Y NO por la otra puerta: si volviera a contarse como cubierto, sería que
+    // alguien reconflagró las dos condiciones.
+    expect(r.judgment.discarded?.['descartado.cubierto_por_diff']).toBeUndefined();
   });
 
   /**
@@ -202,16 +220,14 @@ describe('la cascada descarta el emparejamiento inválido — camino completo', 
    * sembradas y el juez ACIERTA. Aun así SE SUPRIME, porque esa misma
    * discrepancia ya está entre las quince que el diff emitió, con mejor
    * evidencia. Publicarla dos veces es el «diecisiete donde hay quince» medido
-   * en producción el 30/08 (15 del diff + 2 del juez, las dos legítimas y las
-   * dos ya dentro de las quince).
+   * en producción el 30/08.
    *
-   * NO SE PIERDE NADA: lo que este hallazgo dice sigue publicado, por la vía
-   * del diff. Lo que desaparece es el duplicado.
+   * ⚠️ CON LA CITA DE UNA SOLA COLUMNA, que es lo que el juez hace cuando
+   * acierta — medido el 30/08 en el exhaustivo. El caso de la fila entera va
+   * justo debajo, y bajo la lectura vieja habrían dado resultados distintos.
    */
-  it('el hallazgo LEGÍTIMO del juez también se suprime: es el duplicado del 17→15', async () => {
+  it('el duplicado se suprime — cita de UNA columna', async () => {
     const { pares, nueva, existente } = await corpus();
-    // Solo la columna que de verdad difiere, que es lo que el juez cita cuando
-    // acierta — medido en producción el 30/08 en el exhaustivo.
     const r = await correrCascada(
       fila(nueva, 'EST-03'), fila(existente, 'EST-03'), ['Precio base'],
       pares, nueva.rows, existente.rows,
@@ -219,6 +235,32 @@ describe('la cascada descarta el emparejamiento inválido — camino completo', 
 
     expect(r.judgment.contradictions).toHaveLength(0);
     expect(r.tally.confirmadosPorEstructura).toBe(0);
+    expect(r.judgment.discarded?.['descartado.cubierto_por_diff']).toBe(1);
+  });
+
+  /**
+   * ⚠️ EL MISMO DUPLICADO CON LA FILA ENTERA CITADA, y es el caso que decidió
+   * la lectura C sobre las otras dos.
+   *
+   * El juez cita las nueve columnas; la oposición es UNA (`Precio base`). Bajo
+   * la lectura por columnas CITADAS, la intersección incluye las dos columnas
+   * clave —Código y Tratamiento—, que nunca están en `comparadas`, así que la
+   * inclusión fallaba y esto NO se suprimía: el 17→15 se deshacía sin que nada
+   * pareciera roto.
+   * Bajo la lectura C se mira la OPOSICIÓN, no la cita, y las dos formas de
+   * citar dan el mismo resultado — que es lo que se quiere de una regla que no
+   * debe depender de cómo de hablador esté el modelo.
+   */
+  it('el mismo duplicado con la FILA ENTERA citada se suprime igual', async () => {
+    const { pares, nueva, existente } = await corpus();
+    const todas = nueva.columns.filter(c => existente.columns.includes(c));
+
+    const r = await correrCascada(
+      fila(nueva, 'EST-03'), fila(existente, 'EST-03'), todas,
+      pares, nueva.rows, existente.rows,
+    );
+
+    expect(r.judgment.contradictions).toHaveLength(0);
     expect(r.judgment.discarded?.['descartado.cubierto_por_diff']).toBe(1);
   });
 

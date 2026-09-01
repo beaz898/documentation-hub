@@ -325,76 +325,34 @@ export async function applyCascadeToCandidate(
     const newCells = ev.newChunk?.cells ?? null;
     const existingCells = ev.existingChunk?.cells ?? null;
 
-    // ── EL DIFF ES LA AUTORIDAD SOBRE LO QUE COMPARÓ (F-89 P4) ─────────
+    // ── LA VERIFICACIÓN DE IDENTIDAD, ANTES QUE NADA (F-89 P2, F-93 P1) ──
     //
-    // SE SUPRIME TODO FILA-CONTRA-FILA SOBRE UN PAR EMITIDO, no solo lo falso,
-    // y el argumento es de DOMINANCIA ESTRICTA: sobre ese par el diff vio
-    // SESENTA filas completas y el juez VEINTIDÓS truncadas. Todo lo verdadero
-    // que el juez pueda decir ahí, el diff ya lo dijo con mejor evidencia; todo
-    // lo que añada es, en el mejor caso, un DUPLICADO —el «diecisiete donde hay
-    // quince» medido en producción el 30/08— y en el peor, un emparejamiento
-    // inventado (B.124). Un segundo opinador que solo puede empatar o fabricar
-    // no aporta: resta.
+    // Dos filas que el juez enfrenta son la misma entidad, o no lo son. Eso lo
+    // dice la CLAVE, y se comprueba antes de cualquier otra cosa porque ninguna
+    // decisión posterior significa nada sobre un emparejamiento inventado: era
+    // el fallo de B.124, sellar por estructura una oposición entre dos filas
+    // distintas.
     //
-    // ANTES DE R2, como la comprobación que sustituye: si el hallazgo no va a
-    // publicarse, no hay nada que R2 tenga que decidir sobre él — y decidirlo
-    // primero contaría un `confirmado.por_estructura` que nadie va a ver.
+    // ⚠️ SE COMPRUEBA SOBRE LAS DOS LISTAS, Y HASTA EL 01/09 SOLO SE HACÍA
+    // SOBRE UNA. La guarda de la 3ª puerta miraba `sinInterseccion`; sobre los
+    // pares EMITIDOS no se verificaba identidad ninguna, porque la supresión
+    // estaba escrita `if (cobertura !== 'sin_cobertura')` y se llevaba por
+    // `cubierto_por_diff` tanto a las filas que ERAN pareja como a las que NO.
+    // Medido en producción el 31/08: dc678e1b —EST-02 contra EST-03, el falso
+    // de B.124— murió como `cubierto_por_diff`, no como emparejamiento
+    // inválido, y por eso este contador llevaba a cero desde que se creó.
+    // F-93 P1 da por hecho que ese caso «muere en identidad»; no era cierto, y
+    // esto lo hace cierto. Su contador PASA A MOVERSE: no es que algo empiece a
+    // fallar, es que empieza a contarse con su nombre.
     //
-    // ⚠️ LA CONDICIÓN ES «CUBIERTO», NO «NO ES PAREJA». 'sin_cobertura'
-    // significa que ningún par EMITIDO cubre esas dos tablas, y ahí el juez
-    // conserva su hallazgo: es el territorio que F-78 y F-90 le reservan
-    // —prosa, cruces tabla-prosa, tablas sin clave— y suprimir ahí sería tirar
-    // hallazgos de terreno que el diff nunca miró, un fallo peor que el que
-    // esto cura.
-    // Los cruces TABLA-PROSA quedan fuera SOLOS, sin condición aparte:
-    // `veredictoDeEmparejamiento` ya devuelve 'sin_cobertura' cuando un lado no
-    // es fila de tabla.
-    //
-    // ⚠️ MEDIDO EL 31/08, Y CONVIENE SABERLO ANTES DE TOCAR CUALQUIERA DE LAS
-    // DOS GUARDAS: EL FALSO POSITIVO DE B.124 MUERE AQUÍ, POR DOMINANCIA, Y NO
-    // ABAJO POR VERIFICACIÓN. El juez volvió a emitirlo en producción —hash
-    // dc678e1b, el mismo del original— y salió por `cubierto_por_diff`, porque
-    // el par EST/OPE-10 está emitido y la supresión se lo lleva antes de que
-    // nadie verifique nada.
-    // O sea que la guarda de identidad de abajo NO está cazando el caso que
-    // motivó el frente: está de reserva. Si algún día se suprimiera menos —una
-    // 3ª puerta más estricta, un emparejador que emita menos— sería ella la que
-    // lo cazaría, y por eso no sobra. Pero su contador a cero NO significa que
-    // el falso positivo no ocurra: significa que muere antes.
-    const cobertura = veredictoDeEmparejamiento(tablasDelDiff.emitidos, ev.newChunk, ev.existingChunk);
-    if (cobertura !== 'sin_cobertura') {
-      bumpCount(counts, 'descartado.cubierto_por_diff');
-      tally.descartados++;
-      console.log(
-        `[${label}] · [${ev.hash}] "${(c.topic ?? '(sin titulo)').slice(0, 60)}" → descartado: ` +
-        `cubierto_por_diff (el diff ya comparó esas dos tablas celda a celda)`
-      );
-      return;
-    }
-
-    // ── LA VERIFICACIÓN DE IDENTIDAD, DONDE HAY CLAVE PERO NO HUBO
-    //    COMPARACIÓN (F-90 P1) ────────────────────────────────────────────
-    //
-    // Un par caído por la TERCERA puerta tiene clave descubierta y CERO filas
-    // comunes: dos poblaciones distintas que comparten estructura. El diff no
-    // comparó nada ahí, así que NO hay dominancia que invocar — pero la
-    // estructura sabe muchísimo: sabe que ninguna fila de una tabla es la misma
-    // entidad que ninguna de la otra. Si el juez empareja dos de esas filas, la
-    // clave lo desmiente SIEMPRE, por definición de la puerta.
-    //
-    // ⚠️ POR QUÉ NO ES LO MISMO QUE LA SUPRESIÓN DE ARRIBA, aunque en la
-    // práctica todo muera igual: allí no se comprueba nada del hallazgo —el
-    // diff comparó mejor, punto—; aquí cada hallazgo muere VERIFICADO, con su
-    // razón y su contador. Es «supresión por la vía limpia» (F-90 P1), y la
-    // distinción vive en el contador: quien lea emparejamiento_invalido sabe
-    // que se comprobó, y quien lea cubierto_por_diff sabe que no hizo falta.
-    //
-    // LAS DOS LISTAS SON EXCLUYENTES por construcción —un par o pasó las tres
-    // puertas o cayó en la tercera, nunca las dos— así que el orden entre las
-    // dos comprobaciones no cambia el resultado. La supresión va primera por
-    // ser la más barata de leer y la del caso frecuente.
-    const identidad = veredictoDeEmparejamiento(tablasDelDiff.sinInterseccion, ev.newChunk, ev.existingChunk);
-    if (identidad === 'no_pareja') {
+    // POR QUÉ IMPORTA AHORA Y NO ANTES: con el orden nuevo, un hallazgo sobre
+    // filas no emparejadas de un par emitido ya no se suprime —la supresión
+    // exige que sean pareja— así que sin esta comprobación caería a R2, saldría
+    // `confirm` y el punto 4 lo degradaría a la llamada corta. El falso de
+    // B.124 volvería vivo por la puerta que abrió la lectura C.
+    const identidadEmitidos = veredictoDeEmparejamiento(tablasDelDiff.emitidos, ev.newChunk, ev.existingChunk);
+    const identidadTerceraPuerta = veredictoDeEmparejamiento(tablasDelDiff.sinInterseccion, ev.newChunk, ev.existingChunk);
+    if (identidadEmitidos === 'no_pareja' || identidadTerceraPuerta === 'no_pareja') {
       bumpCount(counts, 'descartado.emparejamiento_invalido');
       tally.descartados++;
       console.log(
@@ -420,14 +378,74 @@ export async function applyCascadeToCandidate(
       return;
     }
 
+    // ── LA SUPRESIÓN, DESPUÉS DE R2 Y CONSUMIENDO SU VEREDICTO (F-93 P1) ──
+    //
+    // F-89 P4: el juez no aporta nada sobre un dato que el diff ya comparó —en
+    // el mejor caso un duplicado, en el peor un emparejamiento inventado—.
+    //
+    // ⚠️ EL DATO ES LA OPOSICIÓN, NO LA CITA, y ahí estaba el error de F-92 P1
+    // que F-93 corrige. Lo que el juez CITA es testimonio sobre su propio
+    // comportamiento —a veces la fila entera, a veces una celda—; lo que el
+    // hallazgo TRATA es dónde difieren los valores. Medido: con la fila entera
+    // citada, las columnas declaradas son NUEVE y la oposición es UNA.
+    //
+    // EL PREDICADO (F-93 P1):
+    //   suprimir(h) ⇔ par(h) ∈ emitidos
+    //               ∧ (fila_a, fila_b)(h) ∈ emparejadas(par)
+    //               ∧ R2.differingColumns(h) ≠ ∅
+    //
+    // Las dos primeras condiciones son `identidadEmitidos === 'pareja'`, ya
+    // calculado arriba. La tercera es `verdict.outcome === 'confirm'`, y la
+    // equivalencia no es casual: R2 solo devuelve `confirm` cuando alguna
+    // columna citada común difiere; si ninguna difiere devuelve `equivalentes`,
+    // y si no hay comunes, `sin_columna_comun`.
+    //
+    // LAS TRES FORMAS DEL CONJUNTO, declaradas (la cuarta pieza, F-93):
+    //   · NO VACÍO  → hay oposición y el diff la comparó → se suprime.
+    //   · VACÍO     → `equivalentes` o `sin_columna_comun`: no hay oposición
+    //                 que el diff pueda haber cubierto → NO se suprime.
+    //   · AUSENTE   → `pass`: R2 no llegó a calcularlo (celdas nulas o listas
+    //                 de columnas vacías) → NO se suprime. No se puede afirmar
+    //                 cobertura de algo que no se comparó.
+    //
+    // LA TERCERA CONDICIÓN NO NECESITA «⊆ comparadas», y la prueba es de F-93:
+    // sobre un par emparejado, una columna citada común que difiera no puede
+    // ser la clave —misma clave por definición de emparejada— y está en la
+    // intersección por definición de común; luego está en `comparadas` siempre.
+    //
+    // ⚠️ POR QUÉ VA DESPUÉS DE R2, Y DE QUÉ DEPENDE ESE ORDEN: depende de que
+    // la supresión necesite `differingColumns`, que es un dato que SOLO R2
+    // calcula. Si algún día la supresión deja de consumir el veredicto de R2,
+    // este orden pierde su razón y hay que revisarlo.
+    // (Antes iba ANTES de R2, «porque decidirlo primero contaría un
+    // `confirmado.por_estructura` que nadie va a ver». Ese contador lo retiró
+    // el punto 4 del frente 1, así que la razón llevaba días muerta y solo
+    // vivía en el comentario que la invocaba. De ahí la regla de CLAUDE.md: un
+    // comentario que justifica un orden cita el invariante del que depende.)
+    if (verdict.outcome === 'confirm' && identidadEmitidos === 'pareja') {
+      bumpCount(counts, 'descartado.cubierto_por_diff');
+      tally.descartados++;
+      console.log(
+        `[${label}] · [${ev.hash}] "${(c.topic ?? '(sin titulo)').slice(0, 60)}" → descartado: ` +
+        `cubierto_por_diff (el diff comparó ${verdict.columns.join(', ')} en esas dos filas)`
+      );
+      return;
+    }
+
     // ── SIN CLAVE, LA ESTRUCTURA NO FIRMA (F-90 P2/P3) ─────────────────
     //
     // TODO `confirm` QUE LLEGA AQUÍ ES YA SIN CLAVE, y no hace falta
-    // comprobarlo aparte: las dos puertas de arriba devolvieron
-    // 'sin_cobertura' —si no, habrían salido por `return`— y 'pareja' es
-    // imposible en la lista de la 3ª puerta, cuya lista de parejas está vacía
-    // por definición. Luego llegar aquí significa que NINGÚN par cubre esas
-    // dos tablas: cayeron por la PRIMERA puerta, y no hay clave.
+    // comprobarlo aparte. La deducción CAMBIÓ con el reordenado de F-93 y hay
+    // que rehacerla entera, porque la de antes se apoyaba en el orden viejo:
+    //   · si el par estuviera EMITIDO y las filas fueran pareja, la supresión
+    //     de aquí arriba se lo habría llevado —`confirm` es su condición—;
+    //   · si estuviera emitido y NO fueran pareja, habría muerto antes por
+    //     `emparejamiento_invalido`;
+    //   · si fuera un par de la 3ª puerta, igual: su lista de parejas está
+    //     vacía por definición, así que cualquier hallazgo sobre él es
+    //     `no_pareja` y muere en identidad.
+    // Luego llegar aquí con `confirm` significa que NINGÚN par cubre esas dos
+    // tablas: cayeron por la PRIMERA puerta, y no hay clave.
     //
     // Y SIN CLAVE LA ESTRUCTURA NO PUEDE VERIFICAR IDENTIDAD, luego no puede
     // confirmar. No es que la guarda del ancla sea débil —medido: caza el

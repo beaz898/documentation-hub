@@ -150,6 +150,44 @@ describe('el ancla de R2 — la ambigüedad de F-90 P3, resuelta por F-91', () =
     expect(v.anclas).toEqual([]);
   });
 
+
+  /**
+   * ⚠️ EL TERCER ESTADO DEL CONJUNTO: AUSENTE, no vacío (F-93, la cuarta pieza).
+   *
+   * `alignQuoteToCells` devuelve `null` —no una lista vacía— cuando la cita no
+   * casa segmento a segmento contra las celdas. R2 sale entonces por `pass`: no
+   * calculó `differingColumns`, así que NO EXISTE, y la supresión no puede
+   * afirmar que el diff cubriera nada.
+   *
+   * LAS TRES FORMAS, y las tres decididas:
+   *   · no vacío → se suprime (hay oposición y el diff la comparó)
+   *   · vacío    → NO se suprime (`equivalentes` / `sin_columna_comun`)
+   *   · ausente  → NO se suprime (esto)
+   *
+   * EL CABLEADO NO SE PRUEBA AQUÍ Y QUEDA DECLARADO: un `pass` sobrevive hasta
+   * `toVerify`, o sea alcanza el modelo, y la guarda de red rompe cualquier
+   * caso de la batería que llame fuera (B.126). Lo que se prueba es que R2
+   * devuelve `pass` —la entrada de la decisión—; que la cascada no lo suprima,
+   * no.
+   */
+  it('listas NULL: R2 sale por «pass» y no hay differingColumns que consumir', async () => {
+    const { nueva, existente } = await corpus();
+    const n = celdas(nueva, 'EST-03');
+    const e = celdas(existente, 'EST-03');
+
+    expect(applyDeterministicRules({
+      newDocSays: 'da igual', existingDocSays: 'da igual',
+      newCells: n, existingCells: e,
+      newColumns: null, existingColumns: null,
+    }).outcome).toBe('pass');
+
+    // Y con UN solo lado nulo, igual: hacen falta las dos listas.
+    expect(applyDeterministicRules({
+      newDocSays: 'da igual', existingDocSays: 'da igual',
+      newCells: n, existingCells: e,
+      newColumns: ['Precio base'], existingColumns: null,
+    }).outcome).toBe('pass');
+  });
   /**
    * LA MISMA FILA CONTRA SÍ MISMA no llega a `confirm`: R2 la reclasifica como
    * equivalente antes. Se deja escrito porque es la frontera de arriba del
