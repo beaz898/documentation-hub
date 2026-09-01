@@ -541,6 +541,35 @@ dato NO falla, eso tampoco exonera a la infraestructura** — es un cero, y un
 cero se reporta con la tasa que excluye (regla de arriba), no como ausencia.
 
 
+## ⚠️ LO QUE SE AFIRMA DEL REPOSITORIO VIAJA CON SU EVIDENCIA
+
+*Promovida de F-94 el 01/09/2026. Nace de una acusación que estuvo a punto de
+enviarse.*
+
+> **Toda afirmación sobre el repositorio que viaje en una consulta lleva su
+> evidencia: el comando que la produjo y la línea que la sostiene.**
+
+**EL CASO.** La exploración previa al frente 2 iba a reportar que
+`verify-findings` se tragaba los fallos sin registrarlos. **Era falso**:
+`verify-findings.ts:264` llama a `recordStageFailure`. Lo que había pasado es
+que el `grep` que enumeraba las etapas llevaba un `head -12` y esa línea caía
+justo fuera.
+
+**Por qué es distinto de un error cualquiera**: una afirmación sobre el
+repositorio, dentro de una consulta, **se convierte en premisa de una decisión
+de diseño**, y nadie al otro lado puede comprobarla. Un `grep` cortado no se
+distingue de un hecho si viaja sin su comando.
+
+**Y cierra la puerta simétrica de un patrón que ya teníamos medido**: seis veces
+una respuesta dio por existente una pieza que no estaba (ver el índice del
+archivo). Esta regla vigila lo contrario — que seamos NOSOTROS quienes demos por
+inexistente algo que sí está.
+
+**Cómo se cumple**: al escribir «X no hace Y», pegar el comando. Si la salida
+está truncada, o el patrón puede no casar, decirlo. Es más barato que
+retractarse en la consulta siguiente.
+
+
 ## ⚠️ REGLA DE CIERRE: qué bloquea y qué se declara
 
 *Promovida de F-89 P6 el 30/08/2026. Se promueve ANTES que las otras dos reglas

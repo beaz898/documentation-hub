@@ -214,6 +214,29 @@ El dueño del proyecto NO es programador. Vercel deploya automáticamente al hac
   de esa cadena en `pipeline.ts` pasó a ser **el comentario que la invocaba** —
   un orden sostenido por un invariante muerto, y nadie se enteró hasta que hizo
   falta reordenar. Regla promovida en F-93.
+- **UNA IDENTIDAD POR ESPECIE, CALCULADA EN UN SITIO.** Y nunca se añade la
+  nueva sin retirar la vieja — es la única forma de que no queden dos. Si dos
+  caminos pueden identificar el mismo hallazgo, se comportarán distinto según
+  por dónde entre, y el día que se separen nadie se entera.
+  El caso: descartar una fila de tabla funcionaba por una huella de PROSA
+  calculada sobre el texto renderizado de la fila. Nadie la diseñó, y por eso
+  nadie declaró que era frágil — incluía todas las columnas y el índice de fila,
+  así que reordenar un Excel habría borrado todos los descartes de golpe.
+  Promovida en F-94 P1.
+- **LECTURA DUAL CON CADUCIDAD, desde el primer cliente real.** Ningún cambio de
+  identidad entra sin camino de reconocimiento doble ACOTADO: se lee la vieja y
+  la nueva durante una ventana CON FECHA, y se escribe solo la nueva. No son dos
+  identidades vivas: es una migración con reloj.
+  Hoy no hace falta —los únicos juicios registrados son del corpus piloto— y por
+  eso el corte de F-94 se hace con fecha declarada. Es la última vez que sale
+  gratis. Promovida en F-94 P1.
+- **DATOS DEL CLIENTE: se persisten donde se MUESTRAN, y se envían a un modelo
+  solo donde DECIDEN. Ninguna copia sin lector.**
+  Es la regla que separa dos casos que parecían el mismo: cincuenta filas ajenas
+  en el jsonb son EL RESULTADO —el usuario las ve, y sin ellas el análisis no
+  sería consultable después—; las mismas filas volcadas en la descripción de un
+  solapamiento que nadie pinta eran una FUGA, ~2.200 caracteres a tres prompts.
+  Promovida en F-94 P3.
 - Retry con backoff y fallback determinista.
 - Cero dependencias nuevas sin razón.
 - Idioma del proyecto: español.

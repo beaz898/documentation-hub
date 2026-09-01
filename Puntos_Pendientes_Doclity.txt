@@ -3652,6 +3652,31 @@ NOTAS DE ORDEN (propuesta, a confirmar)
         decidir dónde viven los contadores de incidencia.
     CRUZAR con B.110 (los contadores no tienen dónde vivir) y con la higiene
     que F-93 mandó al frente 2.
+    ══ LA REGLA MÁS VIEJA DEL PROYECTO, MEDIDA POR PRIMERA VEZ (F-94 P4) ══
+    Esto NO ES DEUDA NUEVA. `CLAUDE.md` dice, en «Reglas obligatorias»,
+    «RETRY CON BACKOFF Y FALLBACK DETERMINISTA», y lleva ahí desde el principio.
+    Lo que nunca se había hecho es medir cuánto se cumple. Medido el 01/09:
+
+      Anthropic (llm/anthropic-client.ts:135)  5 intentos  429, 529 y todo >=500  ✔
+      Pinecone embed (embeddings.ts:24)        6 intentos  SOLO 429 / RESOURCE_EXHAUSTED
+      Pinecone datos (pinecone/vectors.ts)     ninguno     —
+      Drive / OneDrive (lib/drive/*.ts)        ninguno     —
+
+    CUATRO CAMINOS EXTERNOS, UNO CON RETRY DE 5xx, DOS SIN RETRY NINGUNO. Y el
+    único que lo cubre es el que menos falta hacía: Anthropic ya era el más
+    robusto. La laguna del de indexación —cubrir el límite de peticiones y no el
+    5xx— es EXACTAMENTE por la que se perdió OPE-13 el 01/09.
+
+    ⚠️ Y UNA PRECISIÓN SOBRE EL TEXTO DE LA REGLA, que hay que tener delante al
+    implementarla: F-94 la cita como «regla 6» y con una tercera cláusula —«y
+    mensaje útil al usuario si falla»— que NO ESTÁ ESCRITA EN EL REPOSITORIO. En
+    CLAUDE.md la regla tiene dos cláusulas y es el punto DUODÉCIMO de la lista,
+    no el sexto. El número y la tercera cláusula vienen del documento
+    fundacional que vive FUERA del repositorio — el mismo sitio del que venía la
+    lista de deuda técnica (B.134).
+    Se anota porque el frente 2 va a construir cuatro commits sobre esta regla, y
+    LA VERSIÓN QUE SE VA A IMPLEMENTAR ES MÁS LARGA QUE LA QUE ESTÁ ESCRITA.
+
     ══ ⚠️ CONFIRMADO TRANSITORIO — Y ESO AGRAVA EL PUNTO 3 ══
     Dato del director, mismo día: OPE-13 falló DOS VECES con el mismo 500 y
     entró A LA TERCERA sincronización, sin cambiar nada.
@@ -3818,6 +3843,23 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     proveedor no es un problema del modelo: es un problema de cada pieza
     externa del camino, y el vectorial tiene la particularidad de que sin él no
     hay ni chat ni análisis.
+
+
+    ══ IDEA PARA EL ARCHIVO, NO PARA AHORA (F-94 P5) ══
+    MODO DEGRADADO DE RECUPERACIÓN POR BÚSQUEDA LÉXICA. Los textos de los chunks
+    ya viven en Postgres (`document_chunks`), así que la búsqueda léxica que
+    Postgres trae de serie permitiría recuperar candidatos y ANALIZAR CON EL
+    ÍNDICE CAÍDO, declarándolo como degradado. Es «fallback determinista» en el
+    sentido literal de la regla de CLAUDE.md.
+    ⚠️ SU FLECHA DE RIESGO, que va pegada a la idea y no aparte:
+        candidatos distintos → resultados distintos → DECLARAR SIEMPRE.
+    Un análisis hecho en modo degradado no es el mismo análisis: la recuperación
+    léxica y la semántica no eligen los mismos documentos. Si eso no se declara
+    en pantalla y en el jsonb, el modo degradado se convierte en dos productos
+    con el mismo nombre.
+    NO SE DISEÑA AHORA y no es de este frente. Se mide cuando toque, y antes de
+    medir hay que saber contra qué: la comparación es «qué candidatos elige cada
+    modo sobre el mismo corpus», no «funciona o no funciona».
 
     CRUZAR con B.132 (la memoria del fallo y el retry) y con B.110 (dónde viven
     los contadores de incidencia, que sigue sin decidir).

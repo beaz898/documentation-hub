@@ -134,13 +134,27 @@ queda superado, pero **no administra su propio estado**.
 | **[F-91](F-91.md)** | 30/08/2026 | «Todas las columnas comunes» admitía dos lecturas, y la mala descartaba hallazgos VERDADEROS: la geometría no se contamina con testimonio. Y la clase de contadores CENTINELA | **vigente** · PAR COMPLETO | La clase CENTINELA — `Contrato_Contadores.md`; la hermana de F-79 (una regla con dos lecturas se ejerce contra un caso medido) — protocolo |
 | **[F-92](F-92.md)** | 31/08/2026 | La supresión suprime por FILA y el diff compara por COLUMNA: el hueco es el territorio de las omisiones —y del mismo dato bajo otro nombre—. Y por qué la cifra de coste no se podía medir | **vigente** · *su P1 CORREGIDO por F-93 en universo y predicado* · PAR COMPLETO | MOTIVO LITERAL — `Contrato_Contadores.md`. TRES PIEZAS POR REGLA DICTADA, «CERO EN N» con la tasa que excluye, y la AMBIGÜEDAD DE ALCANCE DEL CUANTIFICADOR — protocolo |
 | **[F-93](F-93.md)** | 31/08/2026 | `columnas(h)` no tenía universo y las dos lecturas naturales fallan cada una uno de los tres casos: el dato es LA OPOSICIÓN, no la cita. Y la trampa de `'equivalentes'` | **vigente** · PAR COMPLETO | LA CUARTA PIEZA (vacío y ausente; forma existencial) — protocolo. Un comentario que justifica un orden CITA SU INVARIANTE — `CLAUDE.md` |
+| **[F-94](F-94.md)** | 01/09/2026 | Abre el FRENTE 2: la identidad accidental de los descartes tabulares, el volcado de filas, las averías silenciosas, y el prefijo de fila que resulta ser la cita por referencia de F-80 | **vigente** · PAR COMPLETO | UNA IDENTIDAD POR ESPECIE, LECTURA DUAL CON CADUCIDAD y DATOS DEL CLIENTE — `CLAUDE.md`. LO QUE SE AFIRMA DEL REPO VIAJA CON SU EVIDENCIA — protocolo |
 
 ---
 
-## EL AGUJERO, MEDIDO EL 28/08/2026 (rango ampliado a F-93 el 31/08)
+## EL AGUJERO, MEDIDO EL 28/08/2026 (rango ampliado a F-94 el 01/09)
 
-**Diez pares completos de F-70 a F-93: F-84, F-85, F-86, F-87, F-88, F-89, F-90, F-91, F-92 y F-93.** El resto, o a medias o nada:
+**Once pares completos de F-70 a F-94: F-84 a F-94, todas menos las que no llegaron.** El resto, o a medias o nada:
 
+- **F-94 — PAR COMPLETO**, en `F-94.md` (01/09/2026). **LA PRIMERA VEZ QUE UNA
+  EXPLORACIÓN PREVIA EVITA UNA CONSULTA EQUIVOCADA**, y no solo un commit: cazó
+  que los descartes de tablas YA funcionaban por un camino accidental con la
+  identidad equivocada —lo que cambia qué es la ficha B— y cazó además **una
+  acusación falsa nuestra antes de enviarla**, un `grep` con `head -12` que
+  cortaba justo la línea que desmentía la tesis.
+  Y trae la vuelta más valiosa del frente: **el prefijo `[F3]` no era ruido**.
+  Propusimos quitarlo o limpiarlo, y las dos eran malas — es el puntero que
+  permite localizar la fila por posición, y cuando el juez lo copia «está
+  señalando la fila y citando sus valores en el mismo gesto: es la cita por
+  referencia que F-80 P2 pedía, ya ocurriendo sola». **Se parsea, no se borra.**
+  Segunda vez en el frente que lo que parecía un fallo del modelo era el modelo
+  haciendo lo correcto y nosotros castigándolo.
 - **F-93 — PAR COMPLETO**, en `F-93.md` (31/08/2026). **LA PRIMERA VEZ QUE UNA
   AMBIGÜEDAD SE CAZA ANTES DE LA PRIMERA LÍNEA DE CÓDIGO**, y con la técnica que
   F-92 P4 acababa de prescribir: traducir la regla a predicado, encontrar un
