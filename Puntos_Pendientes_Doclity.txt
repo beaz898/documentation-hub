@@ -201,7 +201,15 @@ FRENTE 2 — cierre de la emisión            [BLOQUEA]
 ────────────────────────────────────────────────────────────────
   Qué: Ficha B (acciones por fila sobre huella tabular + extensión del payload
        de F-87 a tablas) y el saneo de B.122 segunda mitad.
-  Absorbe: Ficha B, B.122 (2ª mitad).
+  Absorbe: Ficha B, B.122 (2ª mitad), y LA HIGIENE DE LAS AVERÍAS SILENCIOSAS —
+       la que F-93 mandó aquí («toda avería de red deja contador aunque el flujo
+       siga con fallback») más B.132, que es la misma especie vista en el camino
+       de INDEXACIÓN: el sync cuenta sus fallos en una variable local y tira el
+       nombre del documento, y el embed no reintenta un 5xx.
+       LA FRASE QUE UNE LOS TRES CASOS, y es el criterio para saber si el frente
+       está cerrado: EL AISLAMIENTO DEL FALLO SE IMPLEMENTÓ Y LA MEMORIA DEL
+       FALLO NO. Mientras haya un camino donde algo se caiga y no quede rastro
+       consultable, esta mitad del frente sigue abierta.
   Después: REMEDICIÓN COMPLETA, que ahora es también la validación del Frente 1.
   Por qué bloquea: el saneo de B.122 es HIGIENE DE DATOS DEL CLIENTE —veinte
        filas suyas viajando a tres prompts y a la persistencia—, y eso es cara
@@ -243,6 +251,9 @@ DÓNDE CAE CADA PENDIENTE VIVO
   B.112  → Frente 3     (BLOQUEA)
   B.119  → Frente 3     (BLOQUEA en el flujo principal)
   B.122  → Frente 2     (BLOQUEA — 1ª mitad ya hecha el 30/08)
+  B.126  → Frente 2     (higiene: el fail-open que se traga los fallos de red)
+  B.132  → Frente 2     (BLOQUEA — entra por el camino de indexación, que es
+                         por donde llega TODO al corpus; medido en producción)
   B.123  → tablas: RESUELTO por el diff · prosa: Frente 4 (declarable)
   B.124  → Frente 1     (BLOQUEA)
   Ficha B → Frente 2    (BLOQUEA)
@@ -3433,6 +3444,19 @@ NOTAS DE ORDEN (propuesta, a confirmar)
         decidir dónde viven los contadores de incidencia.
     CRUZAR con B.110 (los contadores no tienen dónde vivir) y con la higiene
     que F-93 mandó al frente 2.
+    ══ ⚠️ CONFIRMADO TRANSITORIO — Y ESO AGRAVA EL PUNTO 3 ══
+    Dato del director, mismo día: OPE-13 falló DOS VECES con el mismo 500 y
+    entró A LA TERCERA sincronización, sin cambiar nada.
+    LUEGO EL 500 ERA TRANSITORIO Y EL DOCUMENTO ERA INDEXABLE. Lo que hicieron
+    tres sincronizaciones manuales es exactamente lo que un reintento con
+    backoff habría hecho solo, en segundos y sin que nadie se enterara. No es
+    que faltara una mejora: es que la que hay estaba escrita para el 429 y este
+    caso pasó por al lado.
+    Y EL TAMAÑO LO EMPEORA: los dos documentos tienen 15 chunks, o sea UN SOLO
+    LOTE de embeddings (BATCH_SIZE = 20). Un único 500 se llevó el documento
+    entero. Con más chunks el daño sería parcial y más visible; con pocos, es
+    todo o nada y silencioso.
+
 
   F-81 [CONVERGENCIA — leer ANTES de planificar la fase 3 del diff, 27/08] No
     es un pendiente nuevo: es el sitio donde se juntan tres que ya existen, más
