@@ -259,6 +259,19 @@ El dueño del proyecto NO es programador. Vercel deploya automáticamente al hac
   estaba; éste es el INVERSO y es NUESTRO — damos por inexistente algo que sí
   está, y proponemos construir lo construido. Se caza igual y solo así: abriendo
   el consumidor antes de escribir la premisa. Promovida el 01/09/2026 (F-94).
+- **UN TIPO QUE NO PUEDE EXPRESAR EL FALLO OBLIGA A INVENTARSE UN VALOR QUE LO
+  SIGNIFIQUE, Y ESE VALOR YA SIGNIFICA OTRA COSA.** Si una función puede fallar,
+  el fallo va EN EL TIPO DE RETORNO. Lo que no cabe en la firma lo acaba
+  representando el vecino: la lista vacía, el cero, la cadena vacía, el `null`
+  — valores que ya tenían dueño, y que aguas abajo se leen como lo que
+  significaban antes.
+  El caso: `DriveProvider.listFiles(): Promise<DriveFile[]>` no tenía sitio para
+  «falló», así que las dos implementaciones devolvían la lista vacía ante un
+  error. Doce líneas más abajo, lista vacía significa «el usuario vació la
+  carpeta» — o sea BORRAR EL CORPUS. Un 500 de un segundo bastaba (B.138).
+  Y la firma no solo escondía el fallo: lo habría hecho repetir. Con ella, el
+  siguiente proveedor no tenía forma de enterarse de que había un caso que
+  atender. Promovida el 01/09/2026.
 - Retry con backoff y fallback determinista.
 - Cero dependencias nuevas sin razón.
 - Idioma del proyecto: español.

@@ -4159,13 +4159,18 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     este frente persigue —dos sitios que deciden lo mismo y se separan— pero
     con daño irreversible en vez de un número mal contado.
 
-    ══ LA CAUSA RAÍZ ERA EL TIPO ══
+    ══ LA CAUSA RAÍZ ERA EL TIPO — y es la parte que vale fuera de este caso ══
     `listFiles(): Promise<DriveFile[]>` no tenía sitio para «falló». Una lista
     vacía era la ÚNICA forma que las implementaciones tenían de volver de un
     error, y una lista vacía significa aguas abajo «el usuario vació la
     carpeta». Por eso el arreglo empieza en el tipo (`ResultadoDelListado`) y no
     en un `if`: con la firma vieja, el siguiente proveedor habría repetido el
     fallo sin enterarse.
+    PROMOVIDA A REGLA en CLAUDE.md el 01/09: un tipo que no puede expresar el
+    fallo obliga a inventarse un valor que lo signifique, y ese valor SIEMPRE
+    significa ya otra cosa. Aquí la lista vacía significaba «carpeta vacía»; en
+    otros sitios el cero significa «ninguno», la cadena vacía «sin nombre» y el
+    `null` «todavía no». El fallo se disfraza del vecino y nadie lo ve venir.
 
     ══ POR QUÉ NO HABÍA EXPLOTADO, y no es un arreglo ══
     `grep -rn "api/drive"` sobre `app/**.tsx` y `components/` no devuelve NADA.
@@ -4183,6 +4188,15 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     ficheros — y a los que faltaban se les borraba. Por eso el predicado no es
     «lista vacía» sino «lista no fiable», y por eso el fallo descarta la lista
     ENTERA.
+    ⚠️⚠️ Y ESTO NO ESTABA EN EL DIAGNÓSTICO: UNA GUARDA DE «SI VIENE VACÍA,
+    ABORTA» NO LO HABRÍA CAZADO. Es el arreglo que pedía el sentido común, es el
+    que estuvo a punto de escribirse, y habría dejado vivo el caso peor —el que
+    borra unos cuantos ficheros en vez de todos, que además es el que nadie
+    notaría—. Se encontró abriendo las dos implementaciones para ver si OneDrive
+    tenía «la misma forma»: no la tenía igual, la tenía peor.
+    LA LECCIÓN DE MÉTODO: el diagnóstico de un fallo describe el CAMINO POR EL
+    QUE SE VIO, no el conjunto de casos que lo producen. Comprobar el hermano
+    —la otra implementación de la misma interfaz— es lo que reveló la variante.
 
     ══ QUÉ SE HIZO ══
     · `lib/drive/sync-guard.ts` — `ResultadoDelListado` y
