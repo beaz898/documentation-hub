@@ -3331,6 +3331,39 @@ NOTAS DE ORDEN (propuesta, a confirmar)
       junta sigue sin probarse, solo con contadores a los extremos, que es
       vigilancia y no demostración.
 
+    ══ ⚠️ REDUCIDO A LA MITAD EL 01/09, Y LA MITAD QUE SE FUE NO ERA DEL
+       INSTRUMENTO: ERA DE LA FORMA DEL CÓDIGO ══
+    La decisión de degradar vivía dentro de un `if` de la cascada, así que solo
+    se observaba recorriendo un camino que acaba en el modelo. Extraída a
+    `destinoSinClave(anclas)` —sin cambiar comportamiento ninguno, misma
+    condición y mismo destino— la decisión quedó observable y mutable.
+    LA MEDIDA, y es una cifra y no una impresión: la mutación «con ancla se
+    descarta en vez de degradar» SOBREVIVIÓ el 31/08 y se declaró aquí como
+    límite; hoy CAE con dos rojos. La mitad de este pendiente se arregló
+    moviendo código de sitio.
+    LO QUE ESO CAMBIA EN LO QUE HAY QUE CONSULTAR: la pregunta ya no es «cómo
+    probamos estas tres ramas». Es más estrecha y más útil:
+      · LAS DECISIONES SÍ SE PUEDEN PROBAR, y si no se podían era porque
+        estaban escritas donde no se podía mirar. Eso lo arreglamos nosotros y
+        no necesita consulta.
+      · LAS JUNTAS NO. Que la cascada empuje el hallazgo hasta `toVerify`, que
+        el contador se emita, que el motivo llegue — todo eso exige sobrevivir,
+        y sobrevivir alcanza el modelo.
+    ESTADO DE LAS TRES, con esa distinción aplicada:
+      1. Degradación del punto 4 → DECISIÓN probada (destinoSinClave). Junta,
+         no.
+      2. Destino de B.130 → DECISIÓN probada (R2 devuelve `pass` con las
+         asimétricas nombradas). Junta —contador y motivo en la cascada—, no.
+      3. Contadores de la junta → son la junta por definición. Enteros sin
+         probar.
+    LA PREGUNTA PARA FABLE QUEDA ASÍ: ¿hay forma de ejercer una JUNTA que
+    termina en el modelo sin llamar al modelo y sin mocks —que el alcance de
+    Vitest prohíbe— o las juntas son declarables por naturaleza y lo que
+    corresponde es exigirles contador en los dos extremos y una siembra?
+    Antes de preguntarlo conviene aplicar la lección de esta reducción: mirar
+    si lo que parece un límite del instrumento no es una decisión escrita en el
+    sitio equivocado. Dos de las tres lo eran.
+
     NO SE PROPONE SOLUCIÓN AQUÍ, a propósito. Va a Fable en la próxima consulta.
 
   F-81 [CONVERGENCIA — leer ANTES de planificar la fase 3 del diff, 27/08] No
