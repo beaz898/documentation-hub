@@ -435,6 +435,27 @@ donde el sistema acertaba.
 lado, comportamiento en vacío — y ahora también **población, cuando lo que se
 escribe es lo que va a decidir si una medición se da por buena**.
 
+**SEGUNDA VEZ, 01/09 por la tarde, y la población falló POR ESTRECHA en vez de
+por ancha** — que es la otra forma de equivocarse y no se parece a la primera.
+
+En el commit 2 de la ficha B escribí: «los SEIS casos de `marcarDescartadas`
+siguen verdes». Se puso rojo uno que no estaba en esa lista, de
+`huellaSolicitada`: un `toEqual` sobre la forma ENTERA del valor devuelto, que
+revienta en cuanto la forma crece un campo. El código estaba bien; la
+predicción había cuantificado sobre los casos de UNA función cuando el cambio
+tocaba DOS.
+
+> La primera vez la población era más ancha de lo que yo creía y por eso la
+> predicción declaraba falso positivo un acierto. Esta vez era más ESTRECHA que
+> el cambio, y por eso el rojo pareció un fallo del código durante los treinta
+> segundos que tardé en leerlo. **Las dos veces el error estaba en la frase, no
+> en el sistema.**
+
+Y hay una regla práctica que sale de ésta y no de la primera: **cuando un
+cambio altera la FORMA de un valor devuelto, la población incluye a todo el que
+lo compara entero.** Un `toEqual` es una aserción sobre la forma, no sobre el
+contenido, y no vive donde vive la función que se está cambiando.
+
 
 ---
 
@@ -940,6 +961,42 @@ La mutación no distingue entre «no hay caso que vigile esto» y «lo había y 
 borré hace diez minutos». **El recuento total antes y después es lo mínimo, y
 hoy es lo único.** La pregunta de cómo hacerlo automático está abierta en
 B.137.
+
+### LAS TRES CAUTELAS PAGARON EL DÍA QUE SE ESCRIBIERON (01/09/2026)
+
+*Se anota junto porque las tres son de la misma familia —lo que hace que una
+mutación MIENTA— y porque estrenarse el mismo día que se escriben dice algo.*
+
+**LA TERCERA, la del 01/09: la batería tiene que ser la misma entre la corrida
+limpia y la mutada.** Nació de que una edición se comió el final de
+`table-coverage.test.ts` y **siete casos desaparecieron con la suite en verde**.
+No la delató ningún rojo: la delató el RECUENTO. Y la coincidencia que la hace
+grave es que pasó en el mismo commit en que una mutación acababa de destapar
+media funcionalidad sin prueba — si alguno de los siete hubiera vigilado una
+mitad, esa mutación habría dado verde y la habríamos dado por buena. **La
+mutación no distingue entre «no hay caso que vigile esto» y «lo había y lo borré
+hace diez minutos».** La pregunta de cómo automatizarlo está abierta en B.137.
+
+**LA PRIMERA, comprobar que la mutación se APLICÓ, cobró dos veces el mismo
+día.** En el commit 1 de la ficha B, m2 no casó el patrón por un problema de
+comillas; en el commit 2, m1 tampoco. Las dos veces la línea siguiente del
+informe era un verde de 31 casos — **que era la corrida LIMPIA**, no la mutada.
+Sin la cautela, «no se rompió nada» habría entrado en el commit como si el
+mecanismo estuviera vigilado.
+El remedio que funcionó las dos veces: la mutación va en un fichero `.cjs` que
+FALLA RUIDOSAMENTE si el patrón no aparece exactamente una vez, y que imprime
+la comprobación de que la cadena ya no está. Una mutación silenciosa es
+indistinguible de un test que no muerde, y las dos se leen igual: verde.
+
+**LA SEGUNDA, mirar QUÉ casos mueren y no solo cuántos**, es la que dio la
+única respuesta valiosa del commit 2: m2 —deducir la especie de «tiene huella»
+en vez de leer `origen`— mató **un** caso, y era exactamente el que vigila que
+la identidad accidental no vuelva por la lectura. Un solo rojo, en el sitio
+exacto: eso es lo que dice que el caso no era decorado.
+
+> **Una regla que se estrena el día que se escribe no es una regla que sobre:
+> es una que llegaba tarde.** Las tres describen fallos que ya estaban pasando
+> sin que nadie los contara.
 
 ---
 
