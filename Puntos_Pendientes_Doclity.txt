@@ -3614,6 +3614,83 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     CRUZAR con B.132 (la memoria del fallo y el retry) y con B.110 (dónde viven
     los contadores de incidencia, que sigue sin decidir).
 
+  B.134 — [AUDITORÍA, hecha el 01/09] LA LISTA DE DEUDA TÉCNICA VIVE FUERA DEL
+    REPOSITORIO, Y DE SUS CINCO PUNTOS **DOS ESTÁN RESUELTOS Y DOS ESTÁN MAL
+    ENUNCIADOS**. Solo uno se sostiene tal como está escrito.
+
+    ══ POR QUÉ SE HIZO ══
+    Al abrir B.133 hubo que cruzar la deuda de «sin fallback entre proveedores»
+    y NO SE ENCONTRÓ EN EL REPOSITORIO. Eso destapó lo de fondo: la lista de
+    deuda no está versionada, así que nadie la verifica al usarla — y ya había
+    precedente, el punto de los tokens OAuth se arrastró meses estando resuelto.
+    Se revisaron los cinco contra el código. UNO A UNO Y CON RUTA, para que
+    quien los cite pueda comprobarlo sin repetir el trabajo.
+
+    ══ 1 · TOKENS OAUTH EN TEXTO PLANO — RESUELTO, y ya se sabía ══
+    `lib/crypto.ts` (AES-256-GCM, clave `DRIVE_ENCRYPTION_KEY`) se usa en los
+    cuatro puntos de escritura, y una consulta a `drive_connections` confirmó
+    las dos filas cifradas. Retirado sin código (Bitacora_Sesiones.txt:4002).
+    Es el precedente que justifica esta auditoría: se arrastraba en la lista
+    SIN HABERSE COMPROBADO.
+
+    ══ 2 · SIN OBSERVABILIDAD DE USO DE LLM POR USUARIO — ENUNCIADO FALSO ══
+    Está registrado **por partida doble**, y las dos con `user_id`:
+      · `logUsage` → tabla `usage_logs` (`lib/usage-logger.ts`): user_id, org_id,
+        endpoint, modelo, tokens de entrada/salida, tokens de caché de escritura
+        y lectura, latencia, éxito, créditos y la consulta del usuario.
+      · `persistLLMUsage` → tabla `llm_usage` (`lib/observability/record-usage.ts`):
+        además **coste en dólares calculado** (`computeCostUsd`, `llm-pricing.ts`).
+    Los dos están CABLEADOS en los cuatro endpoints —ask, analyze-v2,
+    analyze-style, improve— y `recordUsage` se llama desde tres puntos del
+    cliente de Anthropic.
+    LO QUE DE VERDAD FALTA, y es otra frase: **una VISTA por usuario**. La
+    pantalla de `/settings/usage` agrega por organización y no desglosa por
+    persona. El dato está; la pregunta no se puede hacer desde la interfaz.
+    ⚠️ Y DE PASO, UN HALLAZGO QUE NADIE BUSCABA: hay **DOS SISTEMAS PARALELOS**
+    de registro de uso escribiendo en dos tablas. No se ha mirado si uno
+    sustituye al otro o si conviven a propósito. Merece decidirse antes de
+    construir la vista, o la vista nacerá eligiendo tabla a ciegas.
+
+    ══ 3 · ANÁLISIS SÍNCRONO CON EL USUARIO ESPERANDO — RESUELTO A MEDIAS ══
+    El EXHAUSTIVO ya no lo es: crea un job en `analysis_jobs` y lo ejecuta el
+    worker de Railway, con sondeo desde el cliente
+    (`app/api/analysis-jobs/[id]/route.ts`).
+    El RÁPIDO sí sigue siendo síncrono, con `maxDuration = 120` en
+    `analyze-v2/route.ts`. Medido en las tandas de esta semana: **10 a 18
+    segundos** con un candidato. Hay margen contra el tope, pero el margen no
+    está medido con muchos candidatos.
+    El enunciado hay que partirlo en dos: la mitad cara está hecha.
+
+    ══ 4 · SIN FALLBACK ENTRE PROVEEDORES — VIVO, Y ES EL ÚNICO INTACTO ══
+    Sin rastro en el repositorio: se buscó en Puntos_Pendientes_Doclity.txt,
+    Bitacora_Sesiones.txt, Decisiones_Fase_C.txt y claude/*.md.
+    `lib/pinecone.ts` y `lib/llm/anthropic-client.ts` tienen un solo proveedor
+    cada uno, sin alternativa ni degradación.
+    Y HOY SE HA ENSANCHADO: estaba escrito para el LLM, y la caída de Pinecone
+    del 01/09 enseñó que aplica igual al vectorial — con el agravante de que sin
+    él no hay ni chat ni análisis. Ver B.133.
+
+    ══ 5 · MEMORIA CONVERSACIONAL DEL RAG — ENUNCIADO IMPRECISO ══
+    La memoria conversacional EXISTE: `MAX_HISTORY_MESSAGES = 6` en `lib/rag.ts`,
+    la reescritura de la consulta usa el historial (`rewriteQueryForSearch`) y
+    el historial viaja al modelo en la llamada final.
+    LO QUE NO SE REUTILIZA SON LOS DOCUMENTOS RECUPERADOS: cada turno vuelve a
+    hacer el retrieval desde cero, aunque la pregunta siga siendo sobre los
+    mismos documentos del turno anterior. Ese es el punto vivo, y es más
+    estrecho que «no hay memoria conversacional».
+
+    ══ EL RECUENTO, y la lección ══
+      RESUELTO ENTERO ......... 1 (tokens OAuth)
+      RESUELTO A MEDIAS ....... 1 (análisis síncrono: falta el rápido)
+      MAL ENUNCIADO ........... 2 (observabilidad, memoria del RAG)
+      VIVO TAL COMO ESTÁ ...... 1 (fallback entre proveedores)
+    **Cuatro de cinco dirían algo falso si se citaran hoy en una consulta.**
+    LA CAUSA ES ESTRUCTURAL Y NO DESCUIDO: la lista vive fuera del repositorio,
+    así que no la toca ningún commit y nadie la verifica al usarla. Es
+    exactamente la regla de verificación al usar (F-85 P3, protocolo) aplicada
+    a un documento normativo que además **no está donde se verifica**.
+    NO SE PROPONE DÓNDE DEBE VIVIR: es decisión del director.
+
   F-81 [CONVERGENCIA — leer ANTES de planificar la fase 3 del diff, 27/08] No
     es un pendiente nuevo: es el sitio donde se juntan tres que ya existen, más
     una consecuencia. Se anota aquí porque el momento en que importan es el de
