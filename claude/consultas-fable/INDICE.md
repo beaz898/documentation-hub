@@ -148,7 +148,12 @@ queda superado, pero **no administra su propio estado**.
   identidad equivocada —lo que cambia qué es la ficha B— y cazó además **una
   acusación falsa nuestra antes de enviarla**, un `grep` con `head -12` que
   cortaba justo la línea que desmentía la tesis.
-  ⚠️ **Y la exploración no llegó al final: la premisa era falsa.** Los descartes
+  ⚠️ **Y la exploración metió DOS premisas falsas, las dos nuestras.**
+  La segunda: su sección 5 daba por no pintadas las variantes de escritura, y
+  se pintan desde `17614166` — el mismo commit que, según la consulta, las dejó
+  por el camino. Mismo defecto las dos veces: **leer el productor y no el
+  consumidor.** Sirve para lo que mira, no para lo que da por sabido.
+  La primera: Los descartes
   tabulares NO funcionaban — `mostrarAccionesDeFila` nunca pintó el botón, así
   que la huella de prosa que el endpoint calculaba era una tubería sin grifo.
   **Verificamos la tubería y no el grifo.** La cláusula de F-88 P2 —suprimir las

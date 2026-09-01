@@ -10,7 +10,7 @@ import IncompleteAnalysisNotice from '@/components/IncompleteAnalysisNotice';
 import SelectionLimitNotice from '@/components/SelectionLimitNotice';
 import type { SelectionLimitItem } from '@/components/SelectionLimitNotice';
 import TableCoverageBlock from './TableCoverageBlock';
-import { contarSinCorrespondencia, ordenDeGrupos } from './table-coverage';
+import { contarSinCorrespondencia, hayRanuraDeCobertura, ordenDeGrupos } from './table-coverage';
 import type { ProblemType, Problem } from './problems';
 import { mostrarAccionesDeFila } from './problems';
 import type { GrupoDeTablas } from '@/lib/analysis/types';
@@ -82,7 +82,10 @@ export default function ChatPanel({
    * como un hallazgo.
    */
   const [coberturaAbierta, setCoberturaAbierta] = useState(false);
-  const hayCobertura = Boolean(tableDiffs && tableDiffs.length > 0);
+  // SE PREGUNTA, NO SE RECALCULA (CLAUDE.md, F-89 P2). Antes esto era
+  // `tableDiffs.length > 0`, que no es la misma pregunta que la que responde el
+  // bloque al pintar: un grupo sin nada informativo daba una ranura vacía.
+  const hayCobertura = hayRanuraDeCobertura(tableDiffs);
   const hayAlcance = Boolean(selectionLimits && selectionLimits.length > 0);
 
   // Translated labels for group headers (plural) and type badges

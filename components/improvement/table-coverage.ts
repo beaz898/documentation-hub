@@ -99,6 +99,30 @@ export function tieneCobertura(grupo: GrupoDeTablas): boolean {
   );
 }
 
+
+/**
+ * ¿EXISTE LA RANURA «SIN CORRESPONDENCIA» EN LA LISTA? (F-94, ficha B, commit 3)
+ *
+ * ⚠️ UN CRITERIO, UN SITIO. Hasta hoy `ChatPanel` lo decidía con SU regla
+ * —«hay grupos»— y lo que de verdad se pintaba lo decidía `tieneCobertura` en
+ * `TableCoverageBlock`. Dos implementaciones del mismo criterio, que es lo que
+ * CLAUDE.md prohíbe desde F-89 P2, y ya discrepaban:
+ *
+ *   un grupo con discrepancias pero SIN nada informativo —todas las filas
+ *   emparejan y todas difieren, ni idénticas ni ajenas ni variantes— pintaba el
+ *   titular «Sin correspondencia (0)» y al desplegarlo NO HABÍA NADA DENTRO,
+ *   porque el bloque devuelve `null` cuando ningún grupo tiene cobertura.
+ *
+ * Ahora la pregunta se hace UNA VEZ y la contesta quien la decidió. Y como
+ * `tieneCobertura` es exactamente el filtro que aplica el bloque, la ranura y su
+ * contenido no pueden volver a discrepar sin que este fichero se entere.
+ *
+ * EN AUSENCIA Y EN VACÍO: sin tablas —el caso normal— no hay ranura.
+ */
+export function hayRanuraDeCobertura(grupos: GrupoDeTablas[] | undefined): boolean {
+  return (grupos ?? []).some(tieneCobertura);
+}
+
 /**
  * EL RECUENTO DEL TITULAR del grupo «Sin correspondencia».
  *

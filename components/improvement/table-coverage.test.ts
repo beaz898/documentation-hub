@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import type { GrupoDeTablas } from '@/lib/analysis/types';
 import type { Problem } from './problems';
 import { mostrarAccionesDeFila } from './problems';
-import { contarSinCorrespondencia, etiquetasDeMontones, indiceDeColumnas, ordenDeGrupos, tieneCobertura } from './table-coverage';
+import { contarSinCorrespondencia, etiquetasDeMontones, hayRanuraDeCobertura, indiceDeColumnas, ordenDeGrupos, tieneCobertura } from './table-coverage';
 
 /**
  * BATERÍA DEL BLOQUE DE COBERTURA (F-88, ficha A revisada).
@@ -273,5 +273,76 @@ describe('ordenDeGrupos — «Sin correspondencia» en segundo lugar', () => {
 
     expect(tipos).toEqual(TIPOS);
     expect(r.filter(x => x.clase === 'cobertura')).toHaveLength(1);
+  });
+});
+
+/**
+ * LA RANURA Y SU CONTENIDO, LA MISMA PREGUNTA (F-94, ficha B, commit 3).
+ *
+ * ⚠️ QUÉ CAZA ESTA BATERÍA, y no es hipotético: `ChatPanel` decidía si pintar la
+ * ranura con «hay grupos» y el bloque decidía qué pintar con `tieneCobertura`.
+ * Dos reglas para una pregunta. Cuando discrepaban, el usuario veía un titular
+ * «Sin correspondencia (0)» que al desplegarse estaba VACÍO.
+ *
+ * EL CORPUS NO PUEDE EJERCER ESTO, y por eso las tablas van construidas
+ * (legítimo para código determinista, F-83 P3): OPE-10 contra OPE-11 da
+ * 20 idénticas y 50 filas ajenas, así que SIEMPRE tiene cobertura. Medido antes
+ * de escribir el caso, no supuesto.
+ */
+describe('hayRanuraDeCobertura — la ranura pregunta lo mismo que el bloque', () => {
+  /**
+   * EL CASO QUE DISCRIMINA. Dos tablas cuyas filas emparejan TODAS y difieren
+   * TODAS: quince discrepancias, ni una idéntica, ni una ajena, ni una variante.
+   * Sus quince ya están en la lista de arriba como contradicciones; aquí no hay
+   * nada que enseñar.
+   * NO ES DE LABORATORIO: un tarifario pequeño en el que cambió cada precio es
+   * exactamente esto.
+   */
+  it('un grupo con discrepancias y NADA informativo no abre ranura', () => {
+    const soloDiscrepancias = grupo({ identicas: 0, soloEnNuevo: [], soloEnOtro: [], variantesDeEscritura: [] });
+
+    expect(tieneCobertura(soloDiscrepancias)).toBe(false);
+    expect(hayRanuraDeCobertura([soloDiscrepancias])).toBe(false);
+    // La regla vieja decía que sí, y ahí estaba la ranura vacía.
+    expect([soloDiscrepancias].length > 0).toBe(true);
+  });
+
+  /**
+   * Y LAS VARIANTES SOLAS BASTAN. Es la clase que F-88 P4 especificó y la que
+   * F-94 P7 mandó conservar: «nada desaparece en silencio». Un grupo cuyo único
+   * resultado sea que los dos ficheros escriben distinto el mismo dato SIGUE
+   * teniendo algo que enseñar.
+   * El corpus da CERO variantes en 10.174 comparaciones, así que esta tabla es
+   * el único sitio donde esa rama se ejerce.
+   */
+  it('un grupo con SOLO variantes de escritura abre ranura', () => {
+    const soloVariantes = grupo({
+      discrepantes: 0,
+      identicas: 0,
+      soloEnNuevo: [],
+      soloEnOtro: [],
+      variantesDeEscritura: [
+        { clave: 'IMP01', columnas: ['Clínica'], enNuevo: 'Chamberí', enOtro: 'CHAMBERI' },
+      ],
+    });
+
+    expect(hayRanuraDeCobertura([soloVariantes])).toBe(true);
+  });
+
+  it('basta con que UNO de los grupos tenga algo', () => {
+    const vacio = grupo({ identicas: 0, soloEnNuevo: [], soloEnOtro: [], variantesDeEscritura: [] });
+    const conIdenticas = grupo({ groupId: 'g-2', identicas: 20, soloEnNuevo: [], soloEnOtro: [], variantesDeEscritura: [] });
+
+    expect(hayRanuraDeCobertura([vacio, conIdenticas])).toBe(true);
+  });
+
+  /**
+   * COMPORTAMIENTO EN AUSENCIA Y EN VACÍO (la cuarta pieza, F-93). `undefined`
+   * es el caso NORMAL, no el raro: la inmensa mayoría de los documentos no
+   * llevan tablas y nunca traen `tableDiffs`.
+   */
+  it('sin tablas no hay ranura, ni con undefined ni con lista vacía', () => {
+    expect(hayRanuraDeCobertura(undefined)).toBe(false);
+    expect(hayRanuraDeCobertura([])).toBe(false);
   });
 });
