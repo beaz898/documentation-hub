@@ -415,6 +415,67 @@ frase correcta no es «no ocurre» sino «cero en cuatro: no descarta nada por
 debajo del 53 %».
 
 
+## ⚠️ PARA SABER SI LA CULPA ES DEL DATO, EJECUTA EL CAMINO SIN EL DATO
+
+*Promovida el 01/09/2026. Nace de atribuir a un documento, durante cuatro
+intentos, un fallo que era del proveedor.*
+
+> **Cuando un fallo se repite siempre con el mismo dato, antes de examinar el
+> dato hay que buscar un camino que recorra la misma infraestructura SIN
+> LLEVARLO. Si ese camino también falla, el dato queda exonerado por una
+> prueba que no lo contiene — y eso es más fuerte que cualquier inspección
+> del dato.**
+
+**EL CASO.** `OPE-13_cobertura-por-clinica.xlsx` falló cuatro veces con un 500 de
+Pinecone; `RRHH-08`, su gemelo, ninguna. Tres fallos en `/embed` y uno en
+`/indexes/documentation-hub`. Durante los cuatro, la hipótesis viva fue «el
+fichero tiene algo raro dentro».
+
+Se comparó byte a byte contra su gemelo: mismas 9 entradas del zip, 15 chunks,
+**el mismo inventario de 61 codepoints sin ni una diferencia**, cero caracteres
+de las nueve familias sospechosas. Limpio. **Pero una comparación limpia no
+demuestra nada**: solo dice que no se encontró, y quien la lee no sabe si es
+que no había o que se buscó mal.
+
+**LO QUE SÍ LO DEMOSTRÓ**, en un minuto y sin escribir código: llamar a
+`/api/admin/diagnose-vectors`, que **resuelve el mismo índice por la misma
+llamada del cuarto fallo y no manda ni un byte de documento**. Dio 500. Caso
+cerrado por experimento.
+
+### POR QUÉ SE TARDÓ CUATRO INTENTOS — y es la parte que vale para la próxima
+
+**El único camino donde el fallo se veía llevaba un documento dentro.** Sincronizar
+y analizar mezclan dos variables —el documento y la infraestructura— en la misma
+observación, así que ninguna de las cuatro podía separarlas. No fue mala
+deducción: fue **un instrumento que confunde dos causas**, y con él la
+correlación «siempre OPE-13» parecía significar algo.
+
+**ES UNA ESPECIE DISTINTA DE LOS LÍMITES YA CONOCIDOS**, y conviene no
+mezclarlas:
+
+| | El instrumento no puede… |
+|---|---|
+| B.121 | …detectar una confusión de lados: el corpus es simétrico |
+| B.125 | …reproducir el fallo: el juez es intermitente |
+| B.129 | …producir el caso: el corpus no lo contiene |
+| **ésta** | **…separar dos variables: todas las observaciones las llevaban juntas** |
+
+Las tres primeras son **ceguera**. Ésta es **confusión**, y se cura distinto: no
+hace falta un corpus mejor ni más pasadas, hace falta **una observación con una
+variable menos**.
+
+### CÓMO SE APLICA
+
+Buscar la llamada **más pobre** que recorra la misma infraestructura: la que no
+lleve el dato, o lleve el mínimo. Suele existir ya —un endpoint de diagnóstico,
+una comprobación de salud, una operación de solo lectura— y suele ser gratis.
+**Antes de inspeccionar el dato, ejecútala.**
+
+Y su reverso, que es la otra mitad de la misma disciplina: **si el camino sin el
+dato NO falla, eso tampoco exonera a la infraestructura** — es un cero, y un
+cero se reporta con la tasa que excluye (regla de arriba), no como ausencia.
+
+
 ## ⚠️ REGLA DE CIERRE: qué bloquea y qué se declara
 
 *Promovida de F-89 P6 el 30/08/2026. Se promueve ANTES que las otras dos reglas

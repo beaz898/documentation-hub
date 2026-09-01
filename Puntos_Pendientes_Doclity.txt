@@ -3502,6 +3502,42 @@ NOTAS DE ORDEN (propuesta, a confirmar)
          fallo es de la segunda posición del lote y no del documento.
       A. Una copia byte a byte de OPE-13 con otro nombre. Si la copia entra y
          el original no, es del nombre o del id.
+    ⚠️ NO HIZO FALTA PASAR DE LA C. Ver el cierre justo debajo.
+    ══════════════════════════════════════════════════════════════════════
+    ⚠️ CERRADO POR EXPERIMENTO EL 01/09: ES PINECONE. NO ES NUESTRO FICHERO
+       NI NUESTRO CÓDIGO.
+    ══════════════════════════════════════════════════════════════════════
+    LA PRUEBA: `GET /api/admin/diagnose-vectors?names=RRHH-08…` —el documento
+    que NUNCA falla— devolvió **500**, en el mismo endpoint del cuarto fallo y
+    SIN NINGÚN DOCUMENTO DE POR MEDIO. El plano de control de Pinecone estaba
+    caído.
+    CERRADO POR EXPERIMENTO Y NO POR DESCARTE, y la distinción importa: la
+    comparación byte a byte del fichero solo decía «no encontré nada», que es
+    compatible con haber buscado mal. Una llamada que NO LLEVA EL FICHERO y
+    falla igual lo exonera sin depender de la calidad de la búsqueda.
+
+    LO QUE ESTO LE HACE A ESTE PENDIENTE: lo REFUERZA con evidencia de
+    producción del peor caso posible. No es que se pierda el rastro de un fallo
+    raro: ES QUE UN PROVEEDOR PUEDE ESTAR CAÍDO Y EL SYNC LO CUENTA EN UNA
+    VARIABLE LOCAL Y LO TIRA. Cuatro fallos del mismo documento, tres
+    sincronizaciones y un análisis, y al día siguiente la única señal habría
+    sido que OPE-13 no está en el corpus.
+    Y LA OTRA MITAD, igual de concreta: SI EL RETRY CUBRIERA LOS 5xx, ESTO SE
+    HABRÍA REINTENTADO SOLO. Los cinco intentos con backoff ya están escritos;
+    solo la condición los deja fuera.
+    Las dos mitades siguen enrutadas al frente 2 y NO SE ARREGLAN HOY: tocan el
+    camino de indexación, por donde entra todo al corpus.
+
+    LA LECCIÓN DE INSTRUMENTO está promovida al protocolo — «para saber si la
+    culpa es del dato, ejecuta el camino sin el dato». El fallo se atribuyó al
+    documento durante cuatro intentos porque el único camino donde se veía
+    llevaba un documento dentro; la prueba de carga cero lo separó en un minuto.
+
+    ESTADO DE LA SIEMBRA: los dos documentos están indexados con 15 chunks cada
+    uno y la siembra está verificada (ver corpus-pruebas/SIEMBRA_guardias_
+    cobertura.md). La tanda queda PARADA hasta que Pinecone se recupere, y
+    cuando vuelva se lanza sin más — no hay nada que rehacer.
+
 
 
   F-81 [CONVERGENCIA — leer ANTES de planificar la fase 3 del diff, 27/08] No
