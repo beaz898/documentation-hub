@@ -172,6 +172,36 @@ export function renderTableRow(
 }
 
 /**
+ * EL PUNTERO DE FILA — `[F3] ` delante de los valores (F-48, leído por F-94 P6).
+ *
+ * `renderTableRow` lo pone para que el juez pueda señalar una fila. Y el juez
+ * LO COPIA: cuando escribe «[F3] a | b | c» está señalando la fila y citando
+ * sus valores en el mismo gesto — es la cita por referencia que F-80 P2 pedía,
+ * ocurriendo sola.
+ *
+ * ⚠️ HASTA EL 01/09 LO CASTIGÁBAMOS. La verificación de citas parte por `|` y
+ * exige que TODOS los segmentos casen contra la fila; «[F3] a» no casa con la
+ * celda «a», así que fallaba UN segmento de cinco y la cita entera se
+ * rechazaba. Medido en la siembra: cuatro solapamientos de cuatro. El modelo
+ * era máximamente fiel y le decíamos que mentía.
+ *
+ * DESPEGAR VA AQUÍ, al lado de `renderTableRow`, porque quien pone el prefijo
+ * es quien sabe quitarlo: un criterio se implementa una vez (CLAUDE.md).
+ *
+ * COMPORTAMIENTO EN AUSENCIA, declarado: una cita SIN puntero devuelve
+ * `{ rowIndex: null, texto }` con el texto INTACTO. El puntero es opcional y
+ * nunca obligatorio — la prosa y las citas de una sola celda siguen su camino
+ * de siempre.
+ */
+const PUNTERO_DE_FILA = /^\[F(\d+)\]\s*/;
+
+export function despegarPunteroDeFila(cita: string): { rowIndex: number | null; texto: string } {
+  const m = PUNTERO_DE_FILA.exec(cita);
+  if (!m) return { rowIndex: null, texto: cita };
+  return { rowIndex: Number(m[1]), texto: cita.slice(m[0].length) };
+}
+
+/**
  * Formato barato de tabla (F-53): cabecera UNA VEZ con el recuento total y
  * las columnas en su orden real (getOrderedColumns), filas debajo con solo
  * sus valores — sin repetir nombre de documento ni lista de columnas en cada

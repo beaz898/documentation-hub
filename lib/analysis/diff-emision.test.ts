@@ -160,6 +160,32 @@ describe('LA PRUEBA DEL CORPUS — OPE-10 contra OPE-11', () => {
     expect(r.counts['diff.clasificacion.pre_indexado']).toBe(15);
   });
 
+
+  /**
+   * ⚠️ EL PUNTERO DE FILA NO VIAJA AGUAS ABAJO (F-94 P6), y hay que ver las dos
+   * mitades juntas para entender por qué no es cosmética.
+   *
+   * `newDocSays` es EL TEXTO QUE VIAJA: a los tres prompts del cliente y a
+   * cualquier huella que se calcule sobre él. Con el `[F3]` dentro, una huella
+   * quedaría atada al ORDEN de las filas — insertar una arriba desplazaría los
+   * índices y borraría descartes que nadie tocó. Es justo la fragilidad de la
+   * identidad accidental que F-94 P1 vino a matar.
+   *
+   * `newDocRow` es EL CAMPO ESTRUCTURADO y SE QUEDA CON EL ÍNDICE: F-94 dice
+   * «el índice vive en un campo estructurado si alguien lo necesita», y éste es
+   * ese sitio. Los dos campos existen a propósito y no son el mismo dato.
+   */
+  it('newDocSays viaja SIN puntero; newDocRow lo conserva', async () => {
+    const r = await emitirCorpus(OPE10, OPE11);
+
+    expect(r.contradicciones.every(c => !c.newDocSays.startsWith('[F'))).toBe(true);
+    expect(r.contradicciones.every(c => !c.existingDocSays.startsWith('[F'))).toBe(true);
+    // Y el campo estructurado sí lo lleva — si esto cayera, el índice se habría
+    // perdido del todo en vez de haberse movido de sitio.
+    expect(r.contradicciones.every(c => /^\[F\d+\] /.test(c.newDocRow ?? ''))).toBe(true);
+    expect(r.contradicciones.every(c => /^\[F\d+\] /.test(c.existingDocRow ?? ''))).toBe(true);
+  });
+
   it('el groupId es el mismo para las quince y para su grupo', async () => {
     const r = await emitirCorpus(OPE10, OPE11);
     const ids = new Set(r.contradicciones.map(c => c.groupId));

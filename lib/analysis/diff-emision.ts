@@ -2,6 +2,7 @@ import { randomUUID } from 'crypto';
 
 import type { PipelineCounters } from './counters';
 import { huellaDeHallazgo, unirClave } from './huella-hallazgo';
+import { despegarPunteroDeFila } from './table-structure';
 import { contadoresDelDiff, diffPairedRows, type RowDiff } from './table-diff';
 import type { ParDeTablas } from './table-pairing';
 import type { DocumentJudgment, FilaDeTabla, GrupoDeTablas } from './types';
@@ -164,8 +165,14 @@ export function emitirDiffDeTablas(
 
       contradicciones.push({
         topic: `Discrepancia en ${d.columns.join(' y ')} entre ${lados.nuevo.nombre} y ${lados.existente.nombre}`,
-        newDocSays: d.newDocRow,
-        existingDocSays: d.existingDocRow,
+        // F-94 P6: el TEXTO que viaja va con los valores solos. El puntero de
+        // fila es del prompt del juez, no del cliente ni de los prompts de
+        // mejora — aguas abajo es ruido, y en una huella sería peor: la ataría
+        // al orden de las filas.
+        // El índice sigue vivo en `newDocRow`/`existingDocRow`, aquí debajo,
+        // que es el campo estructurado donde F-94 dice que debe estar.
+        newDocSays: despegarPunteroDeFila(d.newDocRow).texto,
+        existingDocSays: despegarPunteroDeFila(d.existingDocRow).texto,
         severity: 'contradiction',
         // LA PUERTA DE F-71 MIRA ESTE CAMPO Y NADA MÁS: un veredicto
         // determinista no se le envía a Sonnet. No se toca esa puerta; se
@@ -193,8 +200,9 @@ export function emitirDiffDeTablas(
       variantesDeEscritura: variantes.map(d => ({
         clave: unirClave(d.keyValues.nueva),
         columnas: d.columns,
-        enNuevo: d.newDocRow,
-        enOtro: d.existingDocRow,
+        // Las variantes SE ENSEÑAN al usuario (F-88 P4): sin puntero.
+        enNuevo: despegarPunteroDeFila(d.newDocRow).texto,
+        enOtro: despegarPunteroDeFila(d.existingDocRow).texto,
       })),
       // EL INDICATIVO. Los dos montones, cada uno con SU documento — no «nueva»
       // ni «eliminada», que presupondrían un linaje que el sistema no conoce.

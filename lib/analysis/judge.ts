@@ -2,7 +2,7 @@ import { recordStageFailure } from './stage-failures';
 import { callLLMJson } from './llm-client';
 import { runInBatches } from '@/lib/run-in-batches';
 import { sanitizeJudgeContradictions, hashCitationPair } from './llm-boundary';
-import { getOrderedColumns, groupChunksByTable, renderTableBlock, alignQuoteToCells } from './table-structure';
+import { getOrderedColumns, groupChunksByTable, renderTableBlock, alignQuoteToCells, despegarPunteroDeFila } from './table-structure';
 import { normalize } from './normalize';
 import type { RerankedCandidate, DocumentJudgment, PipelineOptions, DiscardedFindings, DocumentFragment } from './types';
 import type { StoredChunk } from '@/lib/read-chunks';
@@ -290,6 +290,25 @@ export function verifyQuote(
 ): VerifiedQuote | null {
   if (!quote) return null;
 
+  // ── EL PUNTERO DE FILA, DESPEGADO ANTES DE NADA (F-94 P6) ──────────────
+  //
+  // El juez copia la fila tal como se la enseñamos, `[F3]` incluido. A partir
+  // de aquí se trabaja con `cita` —los valores solos— y el índice se guarda
+  // aparte para LOCALIZAR.
+  //
+  // ⚠️ EL PUNTERO ESTRECHA, LOS VALORES DECIDEN, y no es una cautela: es la
+  // única lectura implementable. `rowIndex` es único DENTRO DE SU TABLA, y el
+  // puntero no dice de qué tabla es — un documento con dos tablas tiene dos
+  // filas con índice 3. «El índice como única autoridad» no se puede escribir
+  // sin un identificador de tabla que el puntero no lleva.
+  // Así que el índice elige entre candidatas y la comprobación de valores
+  // contra las celdas sigue siendo puerta, igual que antes. No se pierde
+  // ninguna garantía —los valores ya decidían solos— y se gana la
+  // localización, que es lo que F-94 quería.
+  // SI ALGÚN DÍA EL PUNTERO DEBE SER AUTORIDAD, tendrá que llevar la tabla
+  // dentro.
+  const { rowIndex: punteroDeFila, texto: cita } = despegarPunteroDeFila(quote);
+
   /** Columnas que la cita ocupa en ESE chunk, o null si no es una fila
    *  alineable (prosa, chunk sin tabla, o valores que no cuadran con las
    *  celdas). Se llama desde las DOS vías: la directa también produce
@@ -298,21 +317,21 @@ export function verifyQuote(
    *  verificación ya la hizo findBestMatch; solo significa "sin columnas". */
   const columnsFor = (chunk: StoredChunk): string[] | null => {
     if (!chunk.tableId) return null;
-    return alignQuoteToCells(quote, chunk.cells, getOrderedColumns(chunk.tableId, chunks));
+    return alignQuoteToCells(cita, chunk.cells, getOrderedColumns(chunk.tableId, chunks));
   };
 
   if (chunks.length === 0) {
     if (!fallbackText) return null;
-    const direct = findBestMatch(fallbackText, quote);
-    return direct ? { text: quote, chunk: null, columns: null, porCeldas: false } : null;
+    const direct = findBestMatch(fallbackText, cita);
+    return direct ? { text: cita, chunk: null, columns: null, porCeldas: false } : null;
   }
 
   for (const chunk of chunks) {
-    const direct = findBestMatch(chunk.text, quote);
-    if (direct) return { text: quote, chunk, columns: columnsFor(chunk), porCeldas: false };
+    const direct = findBestMatch(chunk.text, cita);
+    if (direct) return { text: cita, chunk, columns: columnsFor(chunk), porCeldas: false };
   }
 
-  const segments = splitTabularSegments(quote);
+  const segments = splitTabularSegments(cita);
   if (segments) {
     // (a) LOCALIZAR — solo los segmentos testables deciden qué fila es.
     const testable = segments.filter(s => s.length >= MIN_SEGMENT_LENGTH);
@@ -321,6 +340,8 @@ export function verifyQuote(
       let bestMatchedCount = -1;
       for (const chunk of chunks) {
         if (chunk.chunkType !== 'table_row') continue;
+        // EL PUNTERO ESTRECHA: con índice, solo compiten las filas que lo llevan.
+        if (punteroDeFila !== null && chunk.rowIndex !== punteroDeFila) continue;
         const matchedCount = testable.filter(segment =>
           findBestMatch(chunk.text, segment) !== null || chunkContainsSegment(chunk.text, segment)
         ).length;
@@ -335,7 +356,7 @@ export function verifyQuote(
       if (best) {
         const aligned = columnsFor(best);
         if (aligned) {
-          return { text: quote, chunk: best, columns: aligned, porCeldas: testable.length < segments.length };
+          return { text: cita, chunk: best, columns: aligned, porCeldas: testable.length < segments.length };
         }
       }
     }
