@@ -15,6 +15,81 @@ principio del protocolo.
 
 ---
 
+## 01/09/2026 — `a2db84e0` — PREDICCIÓN DE LA TANDA DE LA SIEMBRA, escrita antes de lanzar
+
+**Dos pasadas rápidas**: RRHH-08 en corpus analizando OPE-13, y al revés. Es la
+primera vez que el corpus puede producir las dos ramas que B.131 declara sin
+ejercer.
+
+### S1 — LO QUE NO PUEDE FALLAR, porque está computado sobre los ficheros
+
+- **`0 pareja(s)`** contra el otro documento, en las dos direcciones. El par cae
+  por la primera puerta.
+- **NO habrá línea `Diff de tablas contra …`**: solo se imprime si
+  `emision.grupos.length > 0`, y sin pares no hay grupos. **Su ausencia es lo
+  esperado, no un fallo.**
+- `verificador.confirmados_por_estructura` = **0**.
+- **`descartado.cubierto_por_diff` = 0** y **`descartado.emparejamiento_invalido`
+  = 0**. ⚠️ Y esto NO contradice la predicción escrita para el par grande: allí
+  el par está EMITIDO y la identidad se verifica; aquí no hay par en ninguna de
+  las dos listas, así que las dos guardas devuelven `sin_cobertura` y nadie
+  muere en ellas. Un cero aquí es correcto; un cero allí sería el hallazgo.
+- Tabla en **nivel 1** (1.737 y 1.792 caracteres) y documento **sin truncar**
+  (1.854 y 1.913 < 6.000). El juez ve las catorce filas de los dos lados.
+
+### S2 — LA RAMA QUE NUNCA SE HA VISTO
+
+Si el juez enfrenta **Ana Belmonte** —`Turno` Mañana contra Tarde, con `Clínica`
+y `Especialidad` iguales—:
+
+    → baja a juicio: sin_clave (2 columna(s) de ancla, pero la estructura no
+      puede firmar)
+
+Sería **la primera aparición en producción de `a_juicio.sin_clave`**, y con ella
+la degradación del punto 4 deja de estar solo declarada.
+
+### S3 — LA OTRA RAMA, B.130, Y CÓMO NO LEERLA MAL
+
+Si el juez enfrenta **cualquier otra fila**, las tres compartidas coinciden y
+salta la otra:
+
+    → baja a juicio: columna_no_comparada (sin oposición en lo compartido;
+      columnas asimétricas citadas: Profesional, Horas semana, Responsable,
+      Jornada semanal)
+
+⚠️ **Eso vale para las trece filas, no solo para Carlos Medina.** `Profesional`/
+`Responsable` y `Horas semana`/`Jornada semanal` son asimétricas en TODAS. Lo
+que distingue a Medina **no es la rama, es que él lleva una discrepancia real
+detrás** (44 contra 40). La llamada corta debería confirmarlo **a él y solo a
+él**; si confirma a otro, es falso positivo.
+
+### S4 — LA CIFRA QUE FABLE PIDIÓ EN F-90 P4, por fin medible
+
+Con **un candidato**, el techo es **una llamada corta por pasada**
+(`verifyFindings` mete hasta 15 hallazgos por llamada). Su predicción era «de
+una a cinco por análisis»: aquí no puede pasar de una, así que esta tanda **no
+puede desmentirla, solo puede confirmar el extremo bajo**. Se apunta lo que
+salga y se dice con ese límite delante.
+
+### S5 — LO QUE PUEDE SALIR MAL, y ya está declarado
+
+1. **Que el rerank aparte el candidato.** Es la única condición que la sonda no
+   pudo verificar y la que invalidó la pasada extra del 31/08. Si sale
+   `Rerank: 0 seleccionados`, **la pasada no mide nada** y se dice así.
+2. **Que el juez no emita nada.** B.82: es intermitente. Un cero se reporta con
+   la tasa que excluye —con dos pasadas, no descarta nada por debajo del 78%—,
+   nunca como ausencia.
+
+### S6 — QUÉ SERÍA HALLAZGO
+
+- Que aparezca **`descartado.cubierto_por_diff`**: significaría que el
+  emparejador encontró clave donde la sonda midió que no la hay.
+- Que Belmonte salga por **`equivalentes`**: sería B.130 sin arreglar, o el
+  reordenado mal cableado.
+- Que la llamada corta **confirme una fila que no es Medina**.
+
+---
+
 ## ⚠️ PARA LA PRÓXIMA TANDA — EL REPARTO DE CONTADORES CAMBIA (01/09, F-93)
 
 *Escrito antes de lanzarla, para que nadie lea el cambio como una avería.*
