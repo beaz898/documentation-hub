@@ -3366,6 +3366,74 @@ NOTAS DE ORDEN (propuesta, a confirmar)
 
     NO SE PROPONE SOLUCIÓN AQUÍ, a propósito. Va a Fable en la próxima consulta.
 
+  B.132 — [AVERÍA MEDIDA EN PRODUCCIÓN 01/09 · FRENTE 2, higiene] EL SYNC
+    CUENTA SUS FALLOS EN UNA VARIABLE LOCAL Y LOS TIRA. Y EL CAMINO DE
+    EMBEDDINGS NO REINTENTA UN 5xx: SOLO EL 429.
+    ES EL MISMO PATRÓN QUE F-93 MANDÓ AL FRENTE 2 —«toda avería de red deja
+    contador aunque el flujo continúe con fallback»— visto en un TERCER camino,
+    y con evidencia de producción en vez de con un caso construido.
+
+    ══ EL CASO ══
+    Sincronizando la siembra de RRHH-08/OPE-13 (01/09): OPE-13 falló con un 500
+    del endpoint de embed de Pinecone. RRHH-08 se indexó bien. El sync reportó
+    «1 failed» y siguió con los demás — que es el aislamiento correcto y no se
+    discute.
+
+    ══ 1. LO QUE SE PIERDE, verificado en el código ══
+    `failedCount` es una VARIABLE LOCAL de la función (sync/route.ts:159), se
+    incrementa en cinco sitios y muere en dos salidas:
+      · `console.log([DRIVE SYNC] Complete: ... N failed ...)` — vive lo que
+        viva la retención de logs de Vercel.
+      · el `stats.failed` de la respuesta HTTP — muere al cerrar la pestaña.
+    NADA SE PERSISTE. Ni una fila, ni un contador, ni un campo en `documents`.
+    QUÉ SE PIERDE EXACTAMENTE, y no es el número: es QUÉ DOCUMENTO falló y POR
+    QUÉ. El nombre solo está en la línea de `console.error` de arriba. Mañana,
+    la única señal de que OPE-13 no está en el corpus será que no está.
+
+    ══ 2. LO QUE SÍ SE HIZO BIEN, y conviene decirlo ══
+    El embed corre ANTES de escribir en Supabase (`generateEmbeddings` en la
+    línea 253; el update y el insert en la 356 y la 394). Al fallar, la
+    excepción sale por el `catch` del bucle SIN haber insertado la fila. NO
+    QUEDA DOCUMENTO FANTASMA — nada de B.112 por esta vía. El aislamiento es
+    correcto; lo que falta es la memoria.
+
+    ══ 3. ⚠️ Y LO PEOR, QUE NO ES EL CONTADOR: EL 5xx NO SE REINTENTA ══
+    `lib/embeddings.ts`:
+        if (!isPineconeRateLimitError(error) || attempt >= MAX_EMBED_RETRIES)
+          throw error;
+    y `isPineconeRateLimitError` solo casa `429` o `RESOURCE_EXHAUSTED`. UN 500
+    LANZA AL PRIMER INTENTO. El backoff exponencial con jitter que hay montado
+    encima —cinco intentos— no cubre el caso que acaba de ocurrir.
+    ES UNA REGLA DE CLAUDE.md INCUMPLIDA EN EL CAMINO DE INDEXACIÓN: «retry con
+    backoff y fallback determinista». El retry existe y está bien hecho; su
+    condición es demasiado estrecha.
+    Y LA COMPARACIÓN QUE LO SITÚA: el cliente de análisis SÍ reintenta 5xx —
+    cinco intentos, 2→5→10→15→20s (`lib/analysis/llm-client.ts`). O sea que el
+    mismo proyecto trata mejor una caída de Anthropic que una de Pinecone, y no
+    porque se decidiera: porque una condición se escribió pensando solo en el
+    rate limit.
+    UN 500 ES TRANSITORIO POR DEFINICIÓN. Reintentarlo habría metido OPE-13 sin
+    que nadie se enterara.
+
+    ══ EL PATRÓN, ya con tres apariciones ══
+      · B.126 — el cliente del LLM se traga los fallos de red con fail-open, y
+        un test llevaba días en verde sobre un 401.
+      · F-93 → frente 2 — «toda avería de red deja contador aunque el flujo
+        continúe con fallback».
+      · ÉSTA — el sync cuenta y tira, y encima no reintenta.
+    Las tres son la misma especie: ALGO FALLA, EL FLUJO SIGUE —correctamente— Y
+    NO QUEDA RASTRO CONSULTABLE. Lo que las une no es la red: es que el
+    aislamiento del fallo se implementó y la memoria del fallo no.
+
+    ══ QUÉ HARÍA FALTA, sin decidirlo aquí ══
+    (a) Ampliar la condición del reintento a 5xx en el camino de embeddings.
+        Es el arreglo pequeño y probablemente el primero.
+    (b) Que el sync deje constancia persistente de qué documentos fallaron y
+        por qué — el sitio natural es el mismo debate de B.110, que sigue sin
+        decidir dónde viven los contadores de incidencia.
+    CRUZAR con B.110 (los contadores no tienen dónde vivir) y con la higiene
+    que F-93 mandó al frente 2.
+
   F-81 [CONVERGENCIA — leer ANTES de planificar la fase 3 del diff, 27/08] No
     es un pendiente nuevo: es el sitio donde se juntan tres que ya existen, más
     una consecuencia. Se anota aquí porque el momento en que importan es el de
