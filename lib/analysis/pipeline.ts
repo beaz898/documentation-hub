@@ -21,7 +21,7 @@ import { doubleCheckContradictions } from './double-check';
 import type { DoubleCheckedDiscrepancy } from './double-check';
 import { analyzeStyle } from './style-check';
 import { loadFragmentContexts, fragmentContextKey } from './fragment-context';
-import { applyDeterministicRules, buildStructuralTopic } from './finding-rules';
+import { applyDeterministicRules, buildStructuralTopic, destinoSinClave } from './finding-rules';
 import { getOrderedColumns } from './table-structure';
 import { verifyFindings } from './verify-findings';
 import type { FindingToVerify, FindingNeighbours } from './verify-findings';
@@ -472,7 +472,7 @@ export async function applyCascadeToCandidate(
     // SIEMPRE desde este commit. No es una regresión, es el diseño. El
     // contador NO se retira: si algún día vuelve a moverse, algo está mal.
     if (verdict.outcome === 'confirm') {
-      if (verdict.anclas.length === 0) {
+      if (destinoSinClave(verdict.anclas) === 'descartar_sin_ancla') {
       // ⚠️ `r2.` Y NO `descartado.` COMO SUS VECINOS, y es deliberado: el
       // nombre lo fijó F-91 P2 al declararlo CENTINELA y así está escrito en
       // `claude/Contrato_Contadores.md`. Renombrarlo dejaría el contrato

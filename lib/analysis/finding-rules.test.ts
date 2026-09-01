@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest';
 
 import { chunkSegments, extractSegments } from '@/lib/chunking';
 import { toStoredChunks } from '@/lib/read-chunks';
-import { applyDeterministicRules } from './finding-rules';
+import { applyDeterministicRules, destinoSinClave } from './finding-rules';
 import { groupChunksByTable, type TableGroup } from './table-structure';
 
 /**
@@ -290,5 +290,68 @@ describe('B.130 — «equivalentes» deja de afirmar sobre las filas enteras', (
     expect(v.outcome).toBe('reclassify');
     if (v.outcome !== 'reclassify') return;
     expect(v.reason).toBe('equivalentes');
+  });
+});
+
+describe('el destino en territorio SIN CLAVE — la decisión, partida de la junta', () => {
+  /**
+   * ⚠️ POR QUÉ ESTOS CASOS EXISTEN, y qué límite levantan.
+   *
+   * El 31/08, al mutar el punto 4, la mutación «con ancla se DESCARTA en vez de
+   * degradar» SOBREVIVIÓ: ningún caso podía distinguirlo, porque degradar es
+   * sobrevivir y sobrevivir alcanza el modelo. Se declaró como límite.
+   * Extraída la decisión a `destinoSinClave`, esa mutación PASA A CAER — y ése
+   * es el único motivo de la extracción: no cambia comportamiento ninguno,
+   * cambia lo que el instrumento alcanza.
+   *
+   * LO QUE SIGUE SIN PROBARSE, declarado: que la cascada, con el destino
+   * `degradar_a_juicio`, empuje de verdad el hallazgo hasta la llamada corta.
+   * Eso es LA JUNTA, y sigue en B.131 con las otras dos ramas.
+   */
+  it('sin ancla se DESCARTA — el conjunto vacío decide, y decide fuera', () => {
+    expect(destinoSinClave([])).toBe('descartar_sin_ancla');
+  });
+
+  /**
+   * UNA BASTA, y no es un umbral perezoso: con un ancla la estructura no dice
+   * «son la misma entidad», dice «no puedo descartar que lo sean», y para bajar
+   * a juicio eso sobra (F-91 P1). Por eso no hay ancla proporcional.
+   */
+  it('con UNA sola ancla ya se degrada, no se descarta', () => {
+    expect(destinoSinClave(['Categoría'])).toBe('degradar_a_juicio');
+  });
+
+  /**
+   * EL CASO REAL, con las cifras del corpus: el falso de B.124 tiene UN ancla
+   * —`Categoría`, los dos son tratamientos de estética— así que en territorio
+   * sin clave se degradaría, no se descartaría. Es la medición que hizo que
+   * F-91 retirara la pretensión en vez de reforzar la guarda: el ancla no caza
+   * este caso, y no tiene por qué.
+   */
+  it('EST-02 contra EST-03 en territorio sin clave: se DEGRADA, con su único ancla', async () => {
+    const { nueva, existente } = await corpus();
+    const comunes = Object.keys(celdas(nueva, 'EST-02'))
+      .filter(c => celdas(existente, 'EST-03')[c] !== undefined);
+    const v = r2(celdas(nueva, 'EST-02'), celdas(existente, 'EST-03'), comunes);
+
+    if (v.outcome !== 'confirm') throw new Error('R2 debería confirmar: ocho columnas difieren');
+    expect(v.anclas).toEqual(['Categoría']);
+    expect(destinoSinClave(v.anclas)).toBe('degradar_a_juicio');
+  });
+
+  /**
+   * Y EL PAR SIN NI UN VALOR EN COMÚN, que es el caso que el ancla sí ejecuta:
+   * SEG-01 contra HIG-05, nueve columnas comunes y ninguna igual — uno de los
+   * 807 pares así que hay en el corpus.
+   */
+  it('SEG-01 contra HIG-05: cero anclas, se descarta sin gastar modelo', async () => {
+    const { nueva, existente } = await corpus();
+    const comunes = Object.keys(celdas(nueva, 'SEG-01'))
+      .filter(c => celdas(existente, 'HIG-05')[c] !== undefined);
+    const v = r2(celdas(nueva, 'SEG-01'), celdas(existente, 'HIG-05'), comunes);
+
+    if (v.outcome !== 'confirm') throw new Error('R2 debería confirmar');
+    expect(v.anclas).toEqual([]);
+    expect(destinoSinClave(v.anclas)).toBe('descartar_sin_ancla');
   });
 });

@@ -3287,6 +3287,15 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     1. LA DEGRADACIÓN DEL PUNTO 4 — sin clave pero con ancla, el hallazgo baja
        a la llamada corta. Ni batería ni tanda (B.129: el corpus no puede
        producirla, y el rerank tapa el único cruce que se acercaba).
+       ⚠️ REDUCIDA EL 01/09, y conviene saber cuánto: la DECISIÓN se extrajo a
+       `destinoSinClave` y HOY SE PRUEBA — la mutación «con ancla se descarta
+       en vez de degradar», que había SOBREVIVIDO el 31/08 y se declaró como
+       límite, ahora cae con dos rojos. Lo que queda sin probar es LA JUNTA:
+       que la cascada, con el destino `degradar_a_juicio`, empuje de verdad el
+       hallazgo hasta la llamada corta.
+       Es la plantilla de F-93 P3 funcionando —partir en decisión y junta— y
+       mide cuánto de este pendiente era el instrumento y cuánto la forma del
+       código: la mitad.
     2. EL DESTINO DE B.130 — que el hallazgo con columnas asimétricas citadas
        LLEGUE a la llamada corta con su motivo. F-93 P2 lo pedía expresamente
        —«el caso verifica el destino, no la puerta»— y no se pudo. Se probó la

@@ -315,3 +315,45 @@ export function buildStructuralTopic(
   const entityPart = entity ? ` para ${entity}` : '';
   return `${noun} en ${columnList}${entityPart} entre ${newDocumentName} y ${existingDocumentName}`;
 }
+
+/**
+ * EL DESTINO DE UN HALLAZGO EN TERRITORIO SIN CLAVE (F-90 P2/P3, F-93 P3).
+ *
+ * Dos filas que R2 confirma pero cuyo par de tablas no tiene clave: la
+ * estructura no pudo verificar identidad, luego no puede firmar. Solo quedan
+ * dos destinos, y esta función es la que elige.
+ *
+ * ⚠️ POR QUÉ ES UNA FUNCIÓN Y NO UN `if` DENTRO DE LA CASCADA, que es donde
+ * estaba hasta el 01/09. Los dos destinos son asimétricos para el instrumento:
+ *   · DESCARTAR es observable en la batería — el hallazgo muere y deja contador.
+ *   · DEGRADAR es SOBREVIVIR, y sobrevivir alcanza `verifyFindings`, o sea el
+ *     modelo, que la guarda de red rompe (B.126).
+ * Con la decisión metida en la cascada, la mitad que degrada NO SE PODÍA
+ * EJERCER: la mutación «con ancla se descarta en vez de degradar» SOBREVIVIÓ el
+ * 31/08 y se declaró como límite. Extraída aquí, la DECISIÓN queda observable y
+ * mutable aunque la JUNTA —que el hallazgo llegue de verdad a la llamada
+ * corta— siga sin poder probarse (B.131).
+ *
+ * Es la plantilla de F-93 P3 aplicada: partir en DECISIÓN, que es determinista
+ * y se prueba hoy, y JUNTA, que necesita contadores y una siembra.
+ *
+ * EL CRITERIO ES DE UNA SOLA PIEZA, y no se recalcula en ningún otro sitio: el
+ * ancla la calcula R2 (`anclasDeLasFilas`), el destino lo decide esto, y la
+ * cascada PREGUNTA. Es la regla de CLAUDE.md — quien lo necesita pregunta a
+ * quien lo decidió.
+ */
+export type DestinoSinClave = 'descartar_sin_ancla' | 'degradar_a_juicio';
+
+/**
+ * @param anclas Las columnas donde las dos FILAS coinciden, tal como las
+ *   devuelve R2 en su veredicto `confirm`. NO se recalculan aquí.
+ *
+ * COMPORTAMIENTO EN VACÍO, declarado (la cuarta pieza, F-93): el conjunto vacío
+ * significa que las dos filas no exhiben NI UN punto fijo, así que no hay
+ * identidad que oponer y el hallazgo se va sin gastar modelo. Es el único caso
+ * en que la ausencia de ancla decide, y decide DESCARTANDO — un `∃` que fracasa
+ * en vacío, no un `∀` que se cumple.
+ */
+export function destinoSinClave(anclas: string[]): DestinoSinClave {
+  return anclas.length === 0 ? 'descartar_sin_ancla' : 'degradar_a_juicio';
+}
