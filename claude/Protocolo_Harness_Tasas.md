@@ -967,9 +967,9 @@ borré hace diez minutos». **El recuento total antes y después es lo mínimo, 
 hoy es lo único.** La pregunta de cómo hacerlo automático está abierta en
 B.137.
 
-### LAS TRES CAUTELAS PAGARON EL DÍA QUE SE ESCRIBIERON (01/09/2026)
+### LAS CUATRO CAUTELAS PAGARON EL DÍA QUE SE ESCRIBIERON (01/09/2026)
 
-*Se anota junto porque las tres son de la misma familia —lo que hace que una
+*Se anota junto porque las cuatro son de la misma familia —lo que hace que una
 mutación MIENTA— y porque estrenarse el mismo día que se escriben dice algo.*
 
 **LA TERCERA, la del 01/09: la batería tiene que ser la misma entre la corrida
@@ -1011,6 +1011,28 @@ Un script que grita cuesta cuatro líneas; un verde falso cuesta un commit.
 en vez de leer `origen`— mató **un** caso, y era exactamente el que vigila que
 la identidad accidental no vuelva por la lectura. Un solo rojo, en el sitio
 exacto: eso es lo que dice que el caso no era decorado.
+
+**LA CUARTA, del mismo día por la tarde: LA MUTACIÓN TIENE QUE SER DISTINGUIBLE
+DEL ORIGINAL.** No basta con que el patrón aparezca exactamente una vez.
+
+EL CASO, y es lo que la hace reconocible la próxima vez: para probar que las
+idénticas van al final se intentó mutar
+
+    if (informativas.cobertura) aInsertar.push({ clase: 'cobertura' });
+
+insertando DELANTE una línea nueva y CONSERVANDO la vieja. El texto nuevo
+CONTENÍA al viejo, así que la comprobación «la cadena vieja ya no está» no podía
+cumplirse nunca — y el script se bloqueó a sí mismo con un ✗.
+
+Fue un acierto, no un estorbo: **una mutación cuyo texto contiene al original es
+indistinguible de una que no se aplicó**, y las dos habrían que dado en el mismo
+sitio si la comprobación hubiera sido más laxa. La reformulación limpia salió
+sola: mutar la POSICIÓN en el `return` en vez de la línea que empuja, y hacerlo
+en las dos mitades —el camino con informativas y el que no— que resultaron ser
+dos caminos distintos del mismo `ordenDeGrupos`.
+
+> Regla práctica: si para mutar hay que CONSERVAR el original en el texto nuevo,
+> la mutación está mal elegida. Se muta lo que decide, no lo que se añade.
 
 > **Una regla que se estrena el día que se escribe no es una regla que sobre:
 > es una que llegaba tarde.** Las tres describen fallos que ya estaban pasando
