@@ -86,9 +86,12 @@ export function indiceDeColumnas(porColumna: Record<string, number>): Array<{ co
  * idénticas— no aporta nada a este bloque: sus quince ya están en la lista de
  * arriba. Pintarle un bloque vacío sería ruido.
  *
- * LAS IDÉNTICAS CUENTAN COMO ALGO QUE ENSEÑAR, aunque sean solo un número: «20
- * filas idénticas en ambos documentos» es cobertura verificada, y es la mitad
- * de la respuesta a «¿esto ya lo tenía?».
+ * ⚠️ LAS IDÉNTICAS TAMPOCO CUENTAN AQUÍ desde el 01/09 (tarde): ranura propia,
+ * la cuarta. Y con su salida esta pregunta queda por fin alineada con el
+ * recuento del titular —`contarSinCorrespondencia` cuenta filas ajenas y ya no
+ * hay nada más dentro—, así que «Sin correspondencia (N)» no puede volver a
+ * anunciar un cero con cosas debajo. El defecto se cierra por las DOS mitades:
+ * variantes por la mañana, idénticas ahora.
  *
  * ⚠️ LAS VARIANTES DE ESCRITURA YA NO CUENTAN AQUÍ (decisión de producto,
  * 01/09/2026). Tienen ranura propia, hermana de ésta. Antes vivían dentro y
@@ -102,11 +105,7 @@ export function indiceDeColumnas(porColumna: Record<string, number>): Array<{ co
  * abre VACÍA. `tieneVariantes` es la otra mitad, y hay un caso que las ata.
  */
 export function tieneCobertura(grupo: GrupoDeTablas): boolean {
-  return (
-    grupo.soloEnNuevo.length > 0 ||
-    grupo.soloEnOtro.length > 0 ||
-    grupo.identicas > 0
-  );
+  return grupo.soloEnNuevo.length > 0 || grupo.soloEnOtro.length > 0;
 }
 
 /**
@@ -183,6 +182,55 @@ export function hayRanuraDeVariantes(grupos: GrupoDeTablas[] | undefined): boole
   return (grupos ?? []).some(tieneVariantes);
 }
 /**
+ * ¿TIENE ESTE GRUPO FILAS IDÉNTICAS? La pregunta de la cuarta ranura.
+ *
+ * ⚠️ ES SOLO UN NÚMERO, Y ESO DECIDE LA FORMA DE LA RANURA. `identicas` es un
+ * `number` y las filas idénticas NO SE GUARDAN EN NINGUNA PARTE — el contrato
+ * de `GrupoDeTablas` lo dice en su punto 4: «IDÉNTICAS — solo el recuento».
+ * Por eso esta ranura NO es un grupo plegable como las otras tres: un
+ * desplegable solo podría repetir su propio titular. Es una LÍNEA.
+ */
+export function tieneIdenticas(grupo: GrupoDeTablas): boolean {
+  return grupo.identicas > 0;
+}
+
+/**
+ * EL RECUENTO DE LA LÍNEA. Filas, no grupos — la misma regla que los otros dos
+ * recuentos (F-84 P1b: los números miden lo que dicen medir).
+ */
+export function contarIdenticas(grupos: GrupoDeTablas[]): number {
+  return grupos.reduce((n, g) => n + g.identicas, 0);
+}
+
+/** ¿Existe la línea de idénticas? Misma disciplina que las otras dos ranuras:
+ *  pregunta exactamente lo que el pintado filtra. */
+export function hayRanuraDeIdenticas(grupos: GrupoDeTablas[] | undefined): boolean {
+  return (grupos ?? []).some(tieneIdenticas);
+}
+
+/**
+ * QUÉ LÍNEAS SE PINTAN, y CUÁNDO HACE FALTA NOMBRAR EL DOCUMENTO.
+ *
+ * Vive aquí y no en el JSX porque DECIDE algo: con una sola pareja de tablas el
+ * nombre sobra —la línea ya dice «en ambos documentos» y no hay otro par con el
+ * que confundirla—, pero con varias, tres líneas idénticas no distinguirían
+ * nada. `documento: null` significa «no hace falta nombrarlo», no «no se sabe».
+ *
+ * Los grupos SIN idénticas no producen línea: un «0 filas idénticas» sería
+ * exactamente el cero sin contenido que este commit viene a quitar.
+ */
+export function lineasDeIdenticas(
+  grupos: GrupoDeTablas[] | undefined,
+): Array<{ documento: string | null; filas: number }> {
+  const conIdenticas = (grupos ?? []).filter(tieneIdenticas);
+  const hazFalta = conIdenticas.length > 1;
+  return conIdenticas.map(g => ({
+    documento: hazFalta ? g.documentoExistente : null,
+    filas: g.identicas,
+  }));
+}
+
+/**
  * EL ORDEN DE LOS GRUPOS DE LA LISTA, con las dos ranuras informativas JUSTO
  * DETRÁS DE LAS CONTRADICCIONES (decisión de producto, 30/08 y 01/09).
  *
@@ -190,7 +238,12 @@ export function hayRanuraDeVariantes(grupos: GrupoDeTablas[] | undefined): boole
  * son la alarma. No al final —el usuario que abre el modal mira arriba, y las
  * cincuenta filas sin pareja son lo segundo que quiere saber— pero tampoco
  * antes, porque no reclaman juicio. Entre ellas, LA COBERTURA PRIMERO: las
- * variantes son la información menos accionable de las cuatro clases.
+ * variantes son menos accionables.
+ *
+ * LAS IDÉNTICAS VAN LAS ÚLTIMAS DE TODO, detrás incluso de los tipos, y no con
+ * las otras dos informativas. Son un RECUENTO, no una lista de cosas que
+ * revisar: la menos accionable de las cuatro clases. Decisión de producto del
+ * 01/09 (tarde).
  *
  * SI NO HAY CONTRADICCIONES, VAN PRIMERO. Es el caso que un `indexOf` ingenuo
  * rompe: sin grupo de contradicciones no hay «después de» que valga, y
@@ -214,22 +267,32 @@ export function hayRanuraDeVariantes(grupos: GrupoDeTablas[] | undefined): boole
 export type RanuraDeGrupo =
   | { clase: 'tipo'; tipo: string }
   | { clase: 'cobertura' }
-  | { clase: 'variantes' };
+  | { clase: 'variantes' }
+  | { clase: 'identicas' };
 
 export function ordenDeGrupos(
   tiposPresentes: string[],
-  informativas: { cobertura: boolean; variantes: boolean },
+  informativas: { cobertura: boolean; variantes: boolean; identicas: boolean },
 ): RanuraDeGrupo[] {
   const ranuras: RanuraDeGrupo[] = tiposPresentes.map(tipo => ({ clase: 'tipo' as const, tipo }));
 
   const aInsertar: RanuraDeGrupo[] = [];
   if (informativas.cobertura) aInsertar.push({ clase: 'cobertura' });
   if (informativas.variantes) aInsertar.push({ clase: 'variantes' });
-  if (aInsertar.length === 0) return ranuras;
+  // Y LAS IDÉNTICAS, AL FINAL DE TODO. Fuera del bloque de arriba a propósito:
+  // no comparten sitio con las otras dos informativas.
+  const alFinal: RanuraDeGrupo[] = informativas.identicas ? [{ clase: 'identicas' }] : [];
+
+  if (aInsertar.length === 0) return [...ranuras, ...alFinal];
 
   const iContradicciones = tiposPresentes.indexOf('contradiccion');
 
   // Sin contradicciones, primeras. Con ellas, justo detrás.
   const posicion = iContradicciones === -1 ? 0 : iContradicciones + 1;
-  return [...ranuras.slice(0, posicion), ...aInsertar, ...ranuras.slice(posicion)];
+  return [
+    ...ranuras.slice(0, posicion),
+    ...aInsertar,
+    ...ranuras.slice(posicion),
+    ...alFinal,
+  ];
 }

@@ -21,7 +21,11 @@ import { etiquetasDeMontones, indiceDeColumnas, tieneCobertura } from './table-c
  *
  *   · el índice de columnas: dónde están las diferencias, de un vistazo;
  *   · presente solo en X: los dos montones, cada uno con SU documento;
- *   · idénticas: el recuento.
+ *
+ * ⚠️ Y LAS IDÉNTICAS SALIERON DETRÁS, la misma tarde, a una LÍNEA al final de la
+ * lista —no a un grupo plegable: son solo un número y un desplegable no tendría
+ * qué desplegar—. Con su salida el titular de este bloque cuenta exactamente lo
+ * que hay dentro, que era el objeto de las dos decisiones.
  *
  * ⚠️ LAS DIFERENCIAS SOLO DE ESCRITURA SALIERON DE AQUÍ el 01/09/2026, a ranura
  * propia (`WritingVariantsBlock`). Vivían dentro y eran la causa del defecto que
@@ -102,11 +106,6 @@ export default function TableCoverageBlock({
               </CollapsibleSection>
             ))}
 
-            {grupo.identicas > 0 && (
-              <p style={{ fontSize: 10, color: 'var(--text-muted)', margin: '4px 0 0 8px', lineHeight: 1.45 }}>
-                {t('tableCardIdentical', { count: grupo.identicas })}
-              </p>
-            )}
           </div>
         );
       })}

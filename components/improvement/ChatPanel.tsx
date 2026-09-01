@@ -11,7 +11,7 @@ import SelectionLimitNotice from '@/components/SelectionLimitNotice';
 import type { SelectionLimitItem } from '@/components/SelectionLimitNotice';
 import TableCoverageBlock from './TableCoverageBlock';
 import WritingVariantsBlock from './WritingVariantsBlock';
-import { contarSinCorrespondencia, contarVariantes, hayRanuraDeCobertura, hayRanuraDeVariantes, ordenDeGrupos } from './table-coverage';
+import { contarSinCorrespondencia, contarVariantes, hayRanuraDeCobertura, hayRanuraDeIdenticas, hayRanuraDeVariantes, lineasDeIdenticas, ordenDeGrupos } from './table-coverage';
 import type { ProblemType, Problem } from './problems';
 import { mostrarAccionesDeFila } from './problems';
 import type { GrupoDeTablas } from '@/lib/analysis/types';
@@ -91,6 +91,7 @@ export default function ChatPanel({
   // bloque al pintar: un grupo sin nada informativo daba una ranura vacía.
   const hayCobertura = hayRanuraDeCobertura(tableDiffs);
   const hayVariantes = hayRanuraDeVariantes(tableDiffs);
+  const hayIdenticas = hayRanuraDeIdenticas(tableDiffs);
   const hayAlcance = Boolean(selectionLimits && selectionLimits.length > 0);
 
   // Translated labels for group headers (plural) and type badges
@@ -246,7 +247,7 @@ export default function ChatPanel({
           Y un par de tablas cuyo único resultado fuera cobertura —caso que
           F-84 P1 declaró aceptable— dejaría la caja vacía y las cincuenta
           ajenas sin enseñar. */}
-      {(groupedProblems.length > 0 || hayCobertura || hayVariantes || hayAlcance) && (
+      {(groupedProblems.length > 0 || hayCobertura || hayVariantes || hayIdenticas || hayAlcance) && (
         <div style={{
           padding: '10px 16px', borderBottom: '0.5px solid var(--border)',
           display: 'flex', flexDirection: 'column', gap: 10,
@@ -263,7 +264,7 @@ export default function ChatPanel({
               `ordenDeGrupos` (table-coverage.ts), con sus casos: una regla de
               colocación escrita dentro del JSX es una regla sin vigilancia, y
               en este módulo ya ha pasado dos veces. */}
-          {ordenDeGrupos(groupedProblems.map(g => g.type), { cobertura: hayCobertura, variantes: hayVariantes }).map(ranura => {
+          {ordenDeGrupos(groupedProblems.map(g => g.type), { cobertura: hayCobertura, variantes: hayVariantes, identicas: hayIdenticas }).map(ranura => {
             if (ranura.clase === 'cobertura') {
               return (
                 <div key="cobertura" style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
@@ -328,6 +329,30 @@ export default function ChatPanel({
                     </span>
                   </div>
                   {variantesAbiertas && <WritingVariantsBlock grupos={tableDiffs!} />}
+                </div>
+              );
+            }
+
+            /* LA CUARTA CLASE, Y NO ES UN GRUPO PLEGABLE (decisión de producto,
+               01/09 tarde). Las filas idénticas NO SE GUARDAN —el contrato de
+               `GrupoDeTablas` dice «solo el recuento»—, así que un desplegable
+               solo podría repetir su propio titular. Es una LÍNEA, al final de
+               todo, porque es un recuento y no una lista que revisar.
+               Cuándo lleva el nombre del documento lo decide `lineasDeIdenticas`
+               y no este JSX: con una sola pareja sobra, con varias hace falta. */
+            if (ranura.clase === 'identicas') {
+              return (
+                <div key="identicas" style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  {lineasDeIdenticas(tableDiffs).map((linea, i) => (
+                    <p
+                      key={linea.documento ?? i}
+                      style={{ fontSize: 10, color: 'var(--text-muted)', margin: 0, lineHeight: 1.45 }}
+                    >
+                      {linea.documento
+                        ? `${linea.documento} — ${t('tableCardIdentical', { count: linea.filas })}`
+                        : t('tableCardIdentical', { count: linea.filas })}
+                    </p>
+                  ))}
                 </div>
               );
             }

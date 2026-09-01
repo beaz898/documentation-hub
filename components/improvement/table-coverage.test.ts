@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import type { GrupoDeTablas } from '@/lib/analysis/types';
 import type { Problem } from './problems';
 import { mostrarAccionesDeFila } from './problems';
-import { contarSinCorrespondencia, contarVariantes, etiquetasDeMontones, hayRanuraDeCobertura, hayRanuraDeVariantes, indiceDeColumnas, ordenDeGrupos, tieneCobertura, tieneVariantes } from './table-coverage';
+import { contarIdenticas, contarSinCorrespondencia, contarVariantes, etiquetasDeMontones, hayRanuraDeCobertura, hayRanuraDeIdenticas, hayRanuraDeVariantes, indiceDeColumnas, lineasDeIdenticas, ordenDeGrupos, tieneCobertura, tieneIdenticas, tieneVariantes } from './table-coverage';
 
 /**
  * BATERÍA DEL BLOQUE DE COBERTURA (F-88, ficha A revisada).
@@ -135,10 +135,20 @@ describe('tieneCobertura — ¿tiene este grupo algo que enseñar?', () => {
     expect(tieneCobertura(grupo({ identicas: 0 }))).toBe(false);
   });
 
-  /** Las idénticas cuentan, aunque sean solo un número: «20 filas idénticas»
-   *  es cobertura verificada, y media respuesta a «¿esto ya lo tenía?». */
-  it('las idénticas solas ya son algo que enseñar', () => {
-    expect(tieneCobertura(grupo({ identicas: 20 }))).toBe(true);
+  /**
+   * ⚠️ LAS IDÉNTICAS TAMPOCO, Y ESTE CASO AFIRMABA LO CONTRARIO HASTA EL 01/09
+   * por la tarde. No se puso rojo por descuido: la decisión de producto lo
+   * invirtió, igual que hizo con las variantes por la mañana.
+   * Se queda como GUARDIA de la mitad que se movió, y como la prueba de que el
+   * titular y su contenido vuelven a decir lo mismo: si alguien devuelve las
+   * idénticas a este OR, «Sin correspondencia» puede volver a anunciar un cero
+   * con cosas debajo, que es el defecto que las dos decisiones cierran.
+   */
+  it('las idénticas YA NO: tienen su propia línea al final', () => {
+    const soloIdenticas = grupo({ identicas: 20, soloEnNuevo: [], soloEnOtro: [], variantesDeEscritura: [] });
+
+    expect(tieneCobertura(soloIdenticas)).toBe(false);
+    expect(tieneIdenticas(soloIdenticas)).toBe(true);
   });
 
   it('las filas ajenas de cualquiera de los dos lados bastan', () => {
@@ -245,7 +255,7 @@ describe('ordenDeGrupos — las dos informativas tras las contradicciones', () =
   const TIPOS = ['contradiccion', 'inconsistencia_menor', 'duplicidad', 'ambiguedad'];
 
   it('va JUSTO DESPUÉS de las contradicciones', () => {
-    const r = ordenDeGrupos(TIPOS, { cobertura: true, variantes: false });
+    const r = ordenDeGrupos(TIPOS, { cobertura: true, variantes: false, identicas: false });
 
     expect(r[0]).toEqual({ clase: 'tipo', tipo: 'contradiccion' });
     expect(r[1]).toEqual({ clase: 'cobertura' });
@@ -259,18 +269,18 @@ describe('ordenDeGrupos — las dos informativas tras las contradicciones', () =
    * par cuyo único resultado fue cobertura, que F-84 P1 declaró caso aceptable.
    */
   it('si NO hay contradicciones, va la PRIMERA', () => {
-    const r = ordenDeGrupos(['duplicidad', 'ambiguedad'], { cobertura: true, variantes: false });
+    const r = ordenDeGrupos(['duplicidad', 'ambiguedad'], { cobertura: true, variantes: false, identicas: false });
 
     expect(r[0]).toEqual({ clase: 'cobertura' });
     expect(r[1]).toEqual({ clase: 'tipo', tipo: 'duplicidad' });
   });
 
   it('sin ningún grupo, la cobertura es lo único', () => {
-    expect(ordenDeGrupos([], { cobertura: true, variantes: false })).toEqual([{ clase: 'cobertura' }]);
+    expect(ordenDeGrupos([], { cobertura: true, variantes: false, identicas: false })).toEqual([{ clase: 'cobertura' }]);
   });
 
   it('sin cobertura, el orden es el de siempre y nada se mueve', () => {
-    const r = ordenDeGrupos(TIPOS, { cobertura: false, variantes: false });
+    const r = ordenDeGrupos(TIPOS, { cobertura: false, variantes: false, identicas: false });
 
     expect(r).toHaveLength(4);
     expect(r.map(x => x.clase === 'tipo' ? x.tipo : 'COBERTURA')).toEqual(TIPOS);
@@ -278,7 +288,7 @@ describe('ordenDeGrupos — las dos informativas tras las contradicciones', () =
 
   /** No se pierde ni se duplica ningún grupo: el orden REORDENA, no filtra. */
   it('están todos los grupos, una sola vez', () => {
-    const r = ordenDeGrupos(TIPOS, { cobertura: true, variantes: false });
+    const r = ordenDeGrupos(TIPOS, { cobertura: true, variantes: false, identicas: false });
     const tipos = r.filter(x => x.clase === 'tipo').map(x => (x as { tipo: string }).tipo);
 
     expect(tipos).toEqual(TIPOS);
@@ -343,9 +353,12 @@ describe('hayRanuraDeCobertura — la ranura pregunta lo mismo que el bloque', (
 
   it('basta con que UNO de los grupos tenga algo', () => {
     const vacio = grupo({ identicas: 0, soloEnNuevo: [], soloEnOtro: [], variantesDeEscritura: [] });
-    const conIdenticas = grupo({ groupId: 'g-2', identicas: 20, soloEnNuevo: [], soloEnOtro: [], variantesDeEscritura: [] });
+    // ⚠️ ANTES ESTE SEGUNDO GRUPO ERAN IDÉNTICAS, y desde el 01/09 (tarde) las
+    // idénticas ya no abren ESTA ranura: tienen la suya. Filas ajenas, que es
+    // lo único que este grupo mira ahora.
+    const conAjenas = grupo({ groupId: 'g-2', identicas: 0, soloEnNuevo: [{ clave: 'A', texto: 'a' }], soloEnOtro: [], variantesDeEscritura: [] });
 
-    expect(hayRanuraDeCobertura([vacio, conIdenticas])).toBe(true);
+    expect(hayRanuraDeCobertura([vacio, conAjenas])).toBe(true);
   });
 
   /**
@@ -431,7 +444,7 @@ describe('ordenDeGrupos — dónde entra la ranura de variantes', () => {
   const TIPOS = ['contradiccion', 'inconsistencia_menor', 'duplicidad'];
 
   it('va DESPUÉS de la cobertura, y las dos tras las contradicciones', () => {
-    const r = ordenDeGrupos(TIPOS, { cobertura: true, variantes: true });
+    const r = ordenDeGrupos(TIPOS, { cobertura: true, variantes: true, identicas: false });
 
     expect(r[0]).toEqual({ clase: 'tipo', tipo: 'contradiccion' });
     expect(r[1]).toEqual({ clase: 'cobertura' });
@@ -446,7 +459,7 @@ describe('ordenDeGrupos — dónde entra la ranura de variantes', () => {
    * faltara — que es el mismo fallo que el `indexOf` ingenuo de aquí al lado.
    */
   it('sin cobertura, las variantes ocupan el sitio de la cobertura', () => {
-    const r = ordenDeGrupos(TIPOS, { cobertura: false, variantes: true });
+    const r = ordenDeGrupos(TIPOS, { cobertura: false, variantes: true, identicas: false });
 
     expect(r[0]).toEqual({ clase: 'tipo', tipo: 'contradiccion' });
     expect(r[1]).toEqual({ clase: 'variantes' });
@@ -454,7 +467,7 @@ describe('ordenDeGrupos — dónde entra la ranura de variantes', () => {
   });
 
   it('sin contradicciones, las dos informativas van primero y en su orden', () => {
-    const r = ordenDeGrupos(['duplicidad'], { cobertura: true, variantes: true });
+    const r = ordenDeGrupos(['duplicidad'], { cobertura: true, variantes: true, identicas: false });
 
     expect(r[0]).toEqual({ clase: 'cobertura' });
     expect(r[1]).toEqual({ clase: 'variantes' });
@@ -462,7 +475,7 @@ describe('ordenDeGrupos — dónde entra la ranura de variantes', () => {
   });
 
   it('sin ninguna de las dos, el orden es el de siempre', () => {
-    const r = ordenDeGrupos(TIPOS, { cobertura: false, variantes: false });
+    const r = ordenDeGrupos(TIPOS, { cobertura: false, variantes: false, identicas: false });
 
     expect(r).toHaveLength(3);
     expect(r.every(x => x.clase === 'tipo')).toBe(true);
@@ -470,10 +483,172 @@ describe('ordenDeGrupos — dónde entra la ranura de variantes', () => {
 
   /** Ni se pierde ni se duplica nada: el orden REORDENA, no filtra. */
   it('con las dos ranuras siguen estando todos los grupos, una sola vez', () => {
-    const r = ordenDeGrupos(TIPOS, { cobertura: true, variantes: true });
+    const r = ordenDeGrupos(TIPOS, { cobertura: true, variantes: true, identicas: false });
 
     expect(r.filter(x => x.clase === 'tipo').map(x => (x as { tipo: string }).tipo)).toEqual(TIPOS);
     expect(r.filter(x => x.clase === 'cobertura')).toHaveLength(1);
     expect(r.filter(x => x.clase === 'variantes')).toHaveLength(1);
+  });
+});
+
+/**
+ * LAS IDÉNTICAS, LA CUARTA CLASE (decisión de producto, 01/09/2026 por la tarde).
+ *
+ * ⚠️ Y LA ÚNICA QUE NO ES UN GRUPO PLEGABLE, por una razón que está en el
+ * contrato y no en el gusto: `GrupoDeTablas.identicas` es un `number` y las
+ * filas idénticas NO SE GUARDAN EN NINGUNA PARTE —«IDÉNTICAS: solo el
+ * recuento», punto 4 del contrato en `types.ts`—. Un desplegable no tendría qué
+ * desplegar salvo su propio titular. Es una LÍNEA.
+ *
+ * LO QUE CIERRA DEL TODO: con las idénticas fuera, `contarSinCorrespondencia`
+ * cuenta EXACTAMENTE lo que hay dentro de su ranura. El titular no puede volver
+ * a anunciar un cero con cosas debajo — ni por variantes ni por idénticas.
+ */
+describe('las idénticas, en su propia línea al final', () => {
+  const soloIdenticas = () => grupo({
+    discrepantes: 0, identicas: 20, soloEnNuevo: [], soloEnOtro: [], variantesDeEscritura: [],
+  });
+
+  it('tieneIdenticas mira solo su número', () => {
+    expect(tieneIdenticas(soloIdenticas())).toBe(true);
+    expect(tieneIdenticas(grupo({ identicas: 0 }))).toBe(false);
+    // Ni las ajenas ni las variantes la abren: cada ranura mira lo suyo.
+    expect(tieneIdenticas(grupo({
+      identicas: 0,
+      soloEnNuevo: [{ clave: 'A', texto: 'a' }],
+      variantesDeEscritura: [{ clave: 'B', columnas: ['C'], enNuevo: 'a', enOtro: 'A' }],
+    }))).toBe(false);
+  });
+
+  it('hayRanuraDeIdenticas: basta con uno, y en ausencia no hay línea', () => {
+    expect(hayRanuraDeIdenticas([grupo({ identicas: 0 }), soloIdenticas()])).toBe(true);
+    expect(hayRanuraDeIdenticas([grupo({ identicas: 0 })])).toBe(false);
+    expect(hayRanuraDeIdenticas(undefined)).toBe(false);
+    expect(hayRanuraDeIdenticas([])).toBe(false);
+  });
+
+  it('contarIdenticas suma filas de todos los grupos, no grupos', () => {
+    const a = grupo({ identicas: 20 });
+    const b = grupo({ groupId: 'g-2', identicas: 7 });
+
+    expect(contarIdenticas([a, b])).toBe(27);
+    expect(contarIdenticas([])).toBe(0);
+    expect(contarIdenticas([grupo({ identicas: 0 })])).toBe(0);
+  });
+
+  /**
+   * ⚠️ EL PAR QUE ATA LAS DOS MITADES, como en las variantes: un grupo cuyo
+   * único contenido sean idénticas tiene que abrir UNA cosa y solo una — su
+   * línea. Si abriera la ranura de cobertura, saldría con un cero y sin
+   * contenido; si no abriera nada, el recuento DESAPARECERÍA.
+   */
+  it('un grupo con SOLO idénticas no abre la ranura de cobertura: abre su línea', () => {
+    expect(hayRanuraDeCobertura([soloIdenticas()])).toBe(false);
+    expect(hayRanuraDeIdenticas([soloIdenticas()])).toBe(true);
+  });
+
+  it('un grupo con ajenas E idénticas abre las dos, con su número cada una', () => {
+    const ambas = grupo({
+      identicas: 20,
+      soloEnNuevo: [{ clave: 'A', texto: 'a' }, { clave: 'B', texto: 'b' }],
+      soloEnOtro: [],
+      variantesDeEscritura: [],
+    });
+
+    expect(hayRanuraDeCobertura([ambas])).toBe(true);
+    expect(hayRanuraDeIdenticas([ambas])).toBe(true);
+    // Dos números distintos, no uno de 22.
+    expect(contarSinCorrespondencia([ambas])).toBe(2);
+    expect(contarIdenticas([ambas])).toBe(20);
+  });
+});
+
+/**
+ * CUÁNDO LA LÍNEA NOMBRA EL DOCUMENTO, que es lo único que esta ranura DECIDE
+ * y por eso no vive en el JSX.
+ */
+describe('lineasDeIdenticas — el nombre solo cuando hace falta', () => {
+  it('con UNA pareja el nombre sobra: la línea ya dice «en ambos documentos»', () => {
+    const r = lineasDeIdenticas([grupo({ identicas: 20 })]);
+
+    expect(r).toEqual([{ documento: null, filas: 20 }]);
+  });
+
+  /**
+   * CON VARIAS, HACE FALTA: tres líneas diciendo «en ambos documentos» sin
+   * nombre no distinguirían de qué pareja habla cada una.
+   */
+  it('con VARIAS parejas cada línea lleva su documento', () => {
+    const r = lineasDeIdenticas([
+      grupo({ identicas: 20, documentoExistente: 'OPE-11.xlsx' }),
+      grupo({ groupId: 'g-2', identicas: 7, documentoExistente: 'RRHH-08.xlsx' }),
+    ]);
+
+    expect(r).toEqual([
+      { documento: 'OPE-11.xlsx', filas: 20 },
+      { documento: 'RRHH-08.xlsx', filas: 7 },
+    ]);
+  });
+
+  /**
+   * ⚠️ LOS GRUPOS SIN IDÉNTICAS NO PRODUCEN LÍNEA. Un «0 filas idénticas» sería
+   * exactamente el cero sin contenido que estas dos decisiones vienen a quitar.
+   * Y el que no cuenta tampoco cuenta para decidir si hace falta el nombre: con
+   * un solo grupo CON idénticas, el nombre sobra aunque haya otros grupos.
+   */
+  it('los grupos sin idénticas no salen, ni hacen que los demás se nombren', () => {
+    const r = lineasDeIdenticas([grupo({ identicas: 0 }), grupo({ groupId: 'g-2', identicas: 20 })]);
+
+    expect(r).toEqual([{ documento: null, filas: 20 }]);
+  });
+
+  it('en vacío y en ausencia, ninguna línea', () => {
+    expect(lineasDeIdenticas([])).toEqual([]);
+    expect(lineasDeIdenticas(undefined)).toEqual([]);
+    expect(lineasDeIdenticas([grupo({ identicas: 0 })])).toEqual([]);
+  });
+});
+
+describe('ordenDeGrupos — las idénticas, las últimas de todo', () => {
+  const TIPOS = ['contradiccion', 'inconsistencia_menor', 'duplicidad'];
+
+  /**
+   * ⚠️ DETRÁS INCLUSO DE LOS TIPOS, y no pegadas a las otras dos informativas.
+   * Es un recuento, no una lista que revisar: la menos accionable de las cuatro.
+   */
+  it('van al final, después del último tipo', () => {
+    const r = ordenDeGrupos(TIPOS, { cobertura: true, variantes: true, identicas: true });
+
+    expect(r).toHaveLength(6);
+    expect(r[1]).toEqual({ clase: 'cobertura' });
+    expect(r[2]).toEqual({ clase: 'variantes' });
+    expect(r[r.length - 1]).toEqual({ clase: 'identicas' });
+    // Y el último TIPO va antes que ellas.
+    expect(r[r.length - 2]).toEqual({ clase: 'tipo', tipo: 'duplicidad' });
+  });
+
+  /**
+   * EL CASO QUE UN «AL FINAL» INGENUO ROMPE: sin ninguna de las otras dos
+   * informativas, las idénticas siguen yendo al final y no se cuelan arriba por
+   * herencia del bloque que ya no existe.
+   */
+  it('sin cobertura ni variantes, siguen al final', () => {
+    const r = ordenDeGrupos(TIPOS, { cobertura: false, variantes: false, identicas: true });
+
+    expect(r).toHaveLength(4);
+    expect(r.slice(0, 3).map(x => (x as { tipo: string }).tipo)).toEqual(TIPOS);
+    expect(r[3]).toEqual({ clase: 'identicas' });
+  });
+
+  it('sin ningún tipo, las idénticas son lo único y van solas', () => {
+    expect(ordenDeGrupos([], { cobertura: false, variantes: false, identicas: true }))
+      .toEqual([{ clase: 'identicas' }]);
+  });
+
+  it('sin idénticas no hay ranura, y nada más se mueve', () => {
+    const r = ordenDeGrupos(TIPOS, { cobertura: true, variantes: false, identicas: false });
+
+    expect(r.filter(x => x.clase === 'identicas')).toHaveLength(0);
+    expect(r).toHaveLength(4);
   });
 });
