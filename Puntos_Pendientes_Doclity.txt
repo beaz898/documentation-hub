@@ -2203,6 +2203,27 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     CONFIRMA LAS DOS MITADES: que el juez narra en vez de citar, y que el
     detector lo caza. El fallo es real y no una posibilidad teórica.
     Registrado también en claude/Tandas_Harness.md, entrada del 30/08.
+    ⚠️ CUARTA FORMA, MEDIDA EL 01/09 — Y LA ÚNICA CON CAUSA NUESTRA: EL JUEZ
+    COPIA LA ETIQUETA DE LA FILA DENTRO DE LA CITA.
+    En la tanda de la siembra, cuatro solapamientos murieron por «cita no
+    verificable, lado=ambos» con las dos citas IDÉNTICAS entre sí:
+        nuevo    = "[F0] Dra. Marta Gil | Chamberí | Cirugía | Mañana | 35"
+        existente= "[F0] Dra. Marta Gil | Chamberí | Cirugía | Mañana | 35"
+    LA CAUSA, verificada en el código: `renderTableRow` (table-structure.ts:171)
+    prefija cada fila con `[F{rowIndex}] ` para enseñársela al juez. El juez la
+    copió ENTERA, etiqueta incluida — o sea que fue MÁXIMAMENTE FIEL— y
+    `alignQuoteToCells` la rechaza por eso: parte por `|` y compara segmento a
+    segmento, así que «[F0] Dra. Marta Gil» no casa con la celda «Dra. Marta
+    Gil». Falla UN segmento de cinco y la función devuelve null.
+    POR QUÉ ES DISTINTA DE LAS OTRAS TRES: la glosa, la narración y la
+    enumeración son cosas que el modelo hace de su cosecha. Ésta no: nosotros
+    etiquetamos la línea y él copió la etiqueta. LA FIRMA ES INCONFUNDIBLE —
+    falla exactamente un segmento, siempre el primero, siempre por el prefijo.
+    Y NO NECESITA EL FRENTE 4: las otras tres esperan a las citas por
+    referencia; ésta se cura quitando el prefijo antes de alinear. No se arregla
+    hoy porque toca el camino del juez y hay medición en curso, pero conviene
+    saber que NO comparte destino con las otras tres.
+
   B.108 — [ENCONTRADO 27/08, DOS CAUSAS Y SOLO UNA ES DEL PROYECTO] El build
     local no se puede ejecutar, así que no da veredicto antes de un push.
     Reproducido con el árbol limpio antes de instalar vitest: NO lo introduce
@@ -3250,8 +3271,7 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     y arreglarlo cambia lo que se publica. Necesita su consulta, su predicción
     y su tanda propias. Frente aparte.
 
-  B.129 — [LÍMITE DE INSTRUMENTO, computado el 31/08 antes de gastar la
-    pasada] EL CORPUS DEL HARNESS NO PUEDE MEDIR LA DEGRADACIÓN DEL PUNTO 4.
+  B.129 — [LÍMITE DE INSTRUMENTO · CERRADO EL 01/09 POR LA SIEMBRA] EL CORPUS DEL HARNESS NO PUEDE MEDIR LA DEGRADACIÓN DEL PUNTO 4.
     NO ES QUE SALGA CERO: ES QUE NO PUEDE SALIR OTRA COSA.
     QUÉ HACE FALTA PARA QUE `a_juicio.sin_clave` SE ACTIVE, las tres a la vez:
       1. Un par de tablas SIN clave (cae por la 1ª puerta), y
@@ -3311,6 +3331,27 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     el hallazgo del juez suprimido, CON TRES DOCUMENTOS EN EL CORPUS en vez de
     dos. El diff no se despista con más candidatos. Control de regresión
     gratis, aunque no fuera el objetivo.
+    ══════════════════════════════════════════════════════════════════════
+    ✅ CERRADO EL 01/09 — LA SIEMBRA LO RESOLVIÓ, Y LAS DOS BARRERAS A LA VEZ
+    ══════════════════════════════════════════════════════════════════════
+    `RRHH-08_asignacion-de-guardias.xlsx` y `OPE-13_cobertura-por-clinica.xlsx`
+    (ver corpus-pruebas/SIEMBRA_guardias_cobertura.md) tienen TRES columnas
+    compartidas —Clínica, Especialidad, Turno—, ninguna clave simple ni
+    compuesta, y se parecen lo bastante para pasar el rerank: score máximo
+    0,956 y candidato seleccionado EN LAS DOS DIRECCIONES.
+    LA RAMA SE EJERCIÓ: «Turno de Dra. Ana Belmonte» bajó por `a_juicio.
+    sin_clave` con 2 anclas y salió confirmada por juicio, en las dos pasadas.
+    LO QUE RESOLVIÓ CADA BARRERA:
+      · la primera —ningún cruce con dos columnas compartidas sin clave— se
+        resolvió sembrando el par.
+      · la segunda —el rerank— se resolvió con la pieza de diseño: LA COLUMNA DE
+        IDENTIDAD SE LLAMA DISTINTO EN CADA DOCUMENTO (Profesional /
+        Responsable), así que los dos hablan de las mismas personas —y por eso
+        se parecen— pero esa columna no es compartida y no puede ser clave.
+    LA LECCIÓN SOBREVIVE AL CIERRE, y es la que hizo que la siembra saliera a la
+    primera: se calculó antes de gastar créditos. La sonda verificó unicidad
+    simple y compuesta, columnas compartidas, nivel del reparto y el veredicto
+    de R2 sobre las dos filas sembradas, todo sin lanzar nada.
     ⚠️ LEER JUNTO A ESO: la rama está SIN PROBAR por los dos lados a la vez —ni
     batería ni tanda—. Es el hueco de verificación más grande que deja el
     frente 1, y está declarado, no escondido.
@@ -3473,6 +3514,36 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     Antes de preguntarlo conviene aplicar la lección de esta reducción: mirar
     si lo que parece un límite del instrumento no es una decisión escrita en el
     sitio equivocado. Dos de las tres lo eran.
+
+
+    ══════════════════════════════════════════════════════════════════════
+    ⚠️ ESTADO EL 01/09: DOS DE LAS TRES, MEDIDAS EN PRODUCCIÓN. QUEDA UNA, Y
+       CAMBIA DE NATURALEZA.
+    ══════════════════════════════════════════════════════════════════════
+    La tanda de la siembra (RRHH-08/OPE-13) ejerció las dos ramas que este
+    pendiente declaraba imposibles de ver:
+      1. DEGRADACIÓN DEL PUNTO 4 → MEDIDA. «Turno de Dra. Ana Belmonte» bajó
+         por `a_juicio.sin_clave` con 2 anclas y salió confirmada por juicio, en
+         las dos direcciones.
+      2. DESTINO DE B.130 → MEDIDO. «Jornada semanal de Dr. Carlos Medina» bajó
+         por `a_juicio.columna_no_comparada` con las cuatro columnas asimétricas
+         nombradas en el motivo, y también salió confirmada.
+      3. CONTADORES DE LA JUNTA → SIGUEN SIN EXISTIR. Verificado: `r2.degradado`
+         y `juicio.recibido_tabular` no están en el código. F-93 P3 los pidió y
+         no se escribieron.
+    EL TERCERO YA NO ES «NO SE PUEDE VERIFICAR», ES «FALTA ESCRIBIRLOS». Y lo
+    que iban a vigilar —que la junta funcione— ACABA DE VERSE FUNCIONAR: los dos
+    hallazgos atravesaron la cascada entera hasta la llamada corta y volvieron
+    confirmados. Los contadores siguen valiendo la pena, pero para el día que se
+    rompa, no para demostrar que hoy funciona.
+    LA PROPIEDAD DEL INSTRUMENTO SOBREVIVE Y SE QUEDA DECLARADA: la batería
+    prueba todo lo que muere y nada de lo que vive. Lo que cambia es que ya no
+    es un pendiente sin salida — LA SIEMBRA ES LA SALIDA, y está demostrada.
+    LO QUE HAY QUE LLEVARLE A FABLE, ya sin la parte resuelta: su plantilla de
+    F-93 P3 —partir en decisión y junta, probar la decisión en la suite y la
+    junta con contadores y siembra— FUNCIONÓ ENTERA. La decisión se probó al
+    extraer `destinoSinClave`, y la junta se probó sembrando. Lo único que queda
+    de la receta sin aplicar son los contadores.
 
     NO SE PROPONE SOLUCIÓN AQUÍ, a propósito. Va a Fable en la próxima consulta.
 

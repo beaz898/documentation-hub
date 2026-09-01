@@ -15,6 +15,92 @@ principio del protocolo.
 
 ---
 
+### RESULTADOS — TANDA DE LA SIEMBRA (RRHH-08 / OPE-13), `9b0d7eb7`
+
+**Dos pasadas rápidas, las dos direcciones. LAS DOS RAMAS SE EJERCEN.** Es la
+primera vez que se ven en producción la degradación del punto 4 y el destino de
+B.130, que era lo que B.131 declaraba imposible de ver.
+
+| | OPE-13 → RRHH-08 | RRHH-08 → OPE-13 |
+|---|---|---|
+| Retrieval | 1 candidato, score máx **0,956** | 1 candidato, **0,956** |
+| Rerank | **1 seleccionado** | **1 seleccionado** |
+| Nivel del reparto | **1** (14 filas, 1.854 car.) | **1** (14 filas, 1.913 car.) |
+| Fragmentos al juez | 15 — `table_row: 14`, todas | 15 — `table_row: 14`, todas |
+| Overlap | **93 %** | **93 %** |
+| Contradicciones del juez | 2 | 2 |
+| Verificador | 2 → **2 confirmados (0 estructura, 2 juicio)**, 0 descartados, 1 reclasificado | ídem |
+| Tiempo | 13.659 ms | 9.700 ms |
+
+    [129c6113] "Turno de Dra. Ana Belmonte"
+       → baja a juicio: sin_clave (2 columna(s) de ancla)   → confirmado por juicio
+    [f1ab305a] "Jornada semanal de Dr. Carlos Medina"
+       → baja a juicio: columna_no_comparada (columnas asimétricas citadas:
+         Responsable, Jornada semanal, Profesional, Horas semana)
+       → confirmado por juicio
+
+#### LA PREDICCIÓN, PUNTO POR PUNTO
+
+| Predicho | Medido |
+|---|---|
+| `0 pareja(s)`, sin línea `Diff de tablas contra …` | ✔ **ausente en las dos**, como se dijo |
+| `cubierto_por_diff` = 0 y `emparejamiento_invalido` = 0 | ✔ 0 descartados en el verificador |
+| `confirmados_por_estructura` = 0 | ✔ en las dos |
+| Nivel 1, documentos sin truncar | ✔ sin aviso de truncado |
+| **Que el rerank deje pasar el par** | ✔ **en las dos** — era la única condición que la sonda no podía verificar |
+| Belmonte → `a_juicio.sin_clave` | ✔ con **2 anclas**, como calculó la sonda |
+| Medina → `a_juicio.columna_no_comparada` | ✔ con las cuatro asimétricas nombradas |
+| Techo de **una** llamada corta por pasada | ✔ los 2 hallazgos en un lote |
+
+**Y el control negativo aguantó**: de catorce filas, el juez emitió exactamente
+las **dos sembradas** y **ninguna de las doce que coinciden en todo**. Cero
+falsos positivos.
+
+#### ⚠️ UNA PREDICCIÓN FALLADA, Y ERA PELIGROSA
+
+Escribí que la llamada corta debía confirmar a Medina **«y solo a él»**, y que
+confirmar a otro sería hallazgo. **Confirmó a los dos, y las dos
+confirmaciones son correctas**: el `Turno` Mañana/Tarde de Belmonte es una
+discrepancia sembrada, y está escrita en el registro de siembra que redacté yo.
+
+**Si el director llega a leer solo esa línea, habríamos declarado falso positivo
+un acierto del sistema.** No era una predicción imprecisa: era una trampa,
+porque las predicciones se usan como criterio de aceptación.
+
+El defecto es el **alcance del cuantificador** —«solo a él» ¿de entre quiénes?—
+cometido en una PREDICCIÓN y no en una regla dictada. De ahí sale la extensión
+de la cuarta pieza que va al protocolo.
+
+#### EL COSTE, la cifra que F-90 P4 pedía
+
+**Una llamada corta por pasada.** Los dos hallazgos viajan en el mismo lote
+(`MAX_PER_CALL = 15`), así que con un candidato el techo es uno y se alcanzó.
+Confirma **el extremo bajo** de «de una a cinco», con el límite ya declarado:
+este corpus no puede desmentir la cifra, solo tocarla por abajo.
+
+Tiempos totales de 9,7 y 13,7 segundos, muy por debajo de `maxDuration = 120`.
+
+#### LOS SOLAPAMIENTOS RECHAZADOS: cuatro, y con causa mecánica
+
+Tres en una dirección y uno en la otra, todos por `cita no verificable,
+lado=ambos`, y **con las dos citas idénticas entre sí**:
+
+    nuevo    = "[F0] Dra. Marta Gil | Chamberí | Cirugía | Mañana | 35"
+    existente= "[F0] Dra. Marta Gil | Chamberí | Cirugía | Mañana | 35"
+
+**El juez copió la fila EXACTAMENTE como se la enseñamos, incluida la etiqueta
+`[F0]`** que le pone `renderTableRow` (`table-structure.ts:171`). Y por eso la
+cita no verifica: `alignQuoteToCells` parte por `|` y compara segmento a
+segmento, así que `«[F0] Dra. Marta Gil»` no casa con la celda `«Dra. Marta
+Gil»`; falla UN segmento de cinco y la función devuelve `null`.
+
+Es la cuarta forma de B.107 y **la única con causa nuestra**: no es que el
+modelo narre o enumere — es que **etiquetamos la línea y el modelo copió la
+etiqueta**. Anotado en B.107.
+
+
+---
+
 ## 01/09/2026 — `a2db84e0` — PREDICCIÓN DE LA TANDA DE LA SIEMBRA, escrita antes de lanzar
 
 **Dos pasadas rápidas**: RRHH-08 en corpus analizando OPE-13, y al revés. Es la

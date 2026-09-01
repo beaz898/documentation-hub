@@ -398,6 +398,44 @@ cada lado, comportamiento en vacío y ausente— habrían cazado las tres
 ambigüedades del frente 1; ninguna de las cuatro por su cuenta lo habría hecho.
 
 
+### LA QUINTA PIEZA: y también cuando lo que se escribe es una PREDICCIÓN
+
+*Añadida el 01/09/2026, tres días después de las otras cuatro, porque el mismo
+defecto apareció en un sitio que aquéllas no cubrían.*
+
+Las cuatro piezas de arriba hablan de **reglas dictadas** — lo que se convierte
+en código. Pero el defecto de alcance del cuantificador no distingue de
+artefactos, y en la tanda de la siembra apareció en una **predicción**:
+
+> «La llamada corta debería confirmar a Medina **y solo a él**; si confirma a
+> otro, es falso positivo.»
+
+**«Solo a él» ¿de entre quiénes?** De las trece filas que caen por
+`columna_no_comparada`, cierto. De las catorce del documento, falso — porque
+Belmonte va por la OTRA rama y su discrepancia también está sembrada. La
+predicción confirmó a los dos, y las dos confirmaciones eran correctas.
+
+> **Una regla mal cuantificada produce código equivocado, y las pruebas pueden
+> cazarlo. Una PREDICCIÓN mal cuantificada produce un VEREDICTO equivocado sobre
+> un sistema correcto, y no la caza nada: las predicciones se usan como criterio
+> de aceptación, así que su error se convierte en el hallazgo.**
+
+Aquella predicción no era imprecisa: **era una trampa**. Añadía «si confirma a
+otro, es falso positivo», así que leerla sola habría hecho declarar un fallo
+donde el sistema acertaba.
+
+**LO QUE AÑADE, y es lo único que hay que recordar:**
+
+> Toda predicción que use «solo», «ninguno», «todos» o «siempre» **declara la
+> POBLACIÓN sobre la que cuantifica**, con el mismo rigor que un predicado
+> declara su universo. Y si la predicción dice además qué la falsaría, la
+> población tiene que ser la misma en las dos frases.
+
+**Es la misma disciplina, no una nueva**: predicado, universos, casos a cada
+lado, comportamiento en vacío — y ahora también **población, cuando lo que se
+escribe es lo que va a decidir si una medición se da por buena**.
+
+
 ---
 
 ## ⚠️ UN CERO NO ES UNA AUSENCIA: SE REPORTA CON LA TASA QUE EXCLUYE
