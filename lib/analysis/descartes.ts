@@ -197,3 +197,69 @@ export function marcarDescartadas<T extends DiscrepanciaMarcable>(
     return d;
   });
 }
+
+/**
+ * QUÉ HUELLA PIDE UN DESCARTE — la decisión, separada de la ruta (F-94, ficha B).
+ *
+ * ⚠️ VIVE AQUÍ Y NO EN EL ENDPOINT POR LA MISMA RAZÓN QUE `destinoSinClave`:
+ * dentro de una ruta de API no hay nada que la vigile —el alcance de Vitest
+ * prohíbe Supabase y las rutas—, así que una mitad de la bifurcación podría
+ * entrar sin prueba. Extraída, se muta y se comprueba. Es la lección de la
+ * plantilla 4 aplicada antes de tropezar, no después.
+ *
+ * LA BIFURCACIÓN, y el tipo es quien decide:
+ *   · `tabular` → la huella VIENE HECHA. La calculó el diff con la clave cruda
+ *     de los dos lados, sus tablas y la columna; aquí solo se comprueba la
+ *     FORMA. No se recalcula: sería una segunda implementación del mismo
+ *     criterio (CLAUDE.md) y exigiría más datos que la propia huella.
+ *   · `prosa` → se construye con las citas, como hasta hoy.
+ *   · sin tipo → PROSA. Es el cuerpo de un cliente anterior al despliegue, y
+ *     es exactamente lo que hacía antes. Declarado para que la compatibilidad
+ *     no sea un accidente.
+ *
+ * Y ES LO QUE CIERRA EL CAMINO ACCIDENTAL: con `tipo: 'tabular'` NO se acepta
+ * texto. Un hallazgo de tabla no puede registrarse con una identidad de prosa
+ * ni aunque alguien mande las tres cadenas.
+ * No se intenta DETECTAR «texto de fila», que era como estaba escrito el
+ * encargo: no tiene frontera nítida —desde el saneo del prefijo una fila
+ * emitida es `valor | valor` y una cita de prosa puede llevar barras—, así que
+ * cualquier detección sería una adivinanza con falsos positivos sobre citas
+ * legítimas. El tipo lo sabe el cliente sin adivinar.
+ */
+export type HuellaSolicitada =
+  | { ok: true; huella: string }
+  | { ok: false; error: string };
+
+export function huellaSolicitada(params: {
+  tipo: unknown;
+  huella: unknown;
+  documentoEnRevision: string;
+  existingDocumentId: unknown;
+  newDocSays: unknown;
+  existingDocSays: unknown;
+}): HuellaSolicitada {
+  const { tipo, huella, documentoEnRevision } = params;
+
+  if (tipo === 'tabular') {
+    if (typeof huella !== 'string' || !/^[0-9a-f]{64}$/.test(huella)) {
+      return { ok: false, error: 'Huella tabular ausente o mal formada.' };
+    }
+    return { ok: true, huella };
+  }
+
+  const { existingDocumentId, newDocSays, existingDocSays } = params;
+  if (
+    typeof existingDocumentId !== 'string' ||
+    typeof newDocSays !== 'string' ||
+    typeof existingDocSays !== 'string'
+  ) {
+    return { ok: false, error: 'Coordenadas incompletas del hallazgo.' };
+  }
+
+  const deProsa = huellaDeDescarte({
+    documentoEnRevision,
+    coordenadas: { existingDocumentId, newDocSays, existingDocSays },
+  });
+  if (!deProsa) return { ok: false, error: 'No se pudo identificar el hallazgo.' };
+  return { ok: true, huella: deProsa };
+}

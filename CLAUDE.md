@@ -218,18 +218,24 @@ El dueño del proyecto NO es programador. Vercel deploya automáticamente al hac
   nueva sin retirar la vieja — es la única forma de que no queden dos. Si dos
   caminos pueden identificar el mismo hallazgo, se comportarán distinto según
   por dónde entre, y el día que se separen nadie se entera.
-  El caso: descartar una fila de tabla funcionaba por una huella de PROSA
-  calculada sobre el texto renderizado de la fila. Nadie la diseñó, y por eso
-  nadie declaró que era frágil — incluía todas las columnas y el índice de fila,
-  así que reordenar un Excel habría borrado todos los descartes de golpe.
+  El caso: al llevar los descartes a las tablas había ya una huella de PROSA
+  calculada sobre el texto renderizado de la fila, esperando en el endpoint.
+  Nadie la diseñó, y por eso nadie declaró que era frágil — incluía todas las
+  columnas y el índice de fila, así que reordenar un Excel habría borrado todos
+  los descartes de golpe. Se estrenó la huella tabular y se retiró aquélla, que
+  es la parte que no se salta: añadir la nueva sin quitar la vieja deja dos.
   Promovida en F-94 P1.
 - **LECTURA DUAL CON CADUCIDAD, desde el primer cliente real.** Ningún cambio de
   identidad entra sin camino de reconocimiento doble ACOTADO: se lee la vieja y
   la nueva durante una ventana CON FECHA, y se escribe solo la nueva. No son dos
   identidades vivas: es una migración con reloj.
-  Hoy no hace falta —los únicos juicios registrados son del corpus piloto— y por
-  eso el corte de F-94 se hace con fecha declarada. Es la última vez que sale
-  gratis. Promovida en F-94 P1.
+  ⚠️ HOY NO HACE FALTA, Y EL 01/09 CASI LA APLICAMOS DE MÁS: F-94 planificó un
+  corte con fecha para migrar la identidad vieja de los descartes tabulares, y
+  al implementarlo resultó que NO HABÍA IDENTIDAD VIEJA — el botón nunca se
+  pintó, así que no hay un solo descarte guardado. Se retiró por inexistente.
+  Lo que hizo que saliera gratis fue haber suprimido las acciones en F-88 P2 en
+  vez de dejarlas funcionando a medias: la deuda que no se contrae no se migra.
+  Es la última vez que sale gratis. Promovida en F-94 P1.
 - **DATOS DEL CLIENTE: se persisten donde se MUESTRAN, y se envían a un modelo
   solo donde DECIDEN. Ninguna copia sin lector.**
   Es la regla que separa dos casos que parecían el mismo: cincuenta filas ajenas

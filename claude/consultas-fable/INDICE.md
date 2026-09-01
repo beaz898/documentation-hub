@@ -134,7 +134,7 @@ queda superado, pero **no administra su propio estado**.
 | **[F-91](F-91.md)** | 30/08/2026 | «Todas las columnas comunes» admitía dos lecturas, y la mala descartaba hallazgos VERDADEROS: la geometría no se contamina con testimonio. Y la clase de contadores CENTINELA | **vigente** · PAR COMPLETO | La clase CENTINELA — `Contrato_Contadores.md`; la hermana de F-79 (una regla con dos lecturas se ejerce contra un caso medido) — protocolo |
 | **[F-92](F-92.md)** | 31/08/2026 | La supresión suprime por FILA y el diff compara por COLUMNA: el hueco es el territorio de las omisiones —y del mismo dato bajo otro nombre—. Y por qué la cifra de coste no se podía medir | **vigente** · *su P1 CORREGIDO por F-93 en universo y predicado* · PAR COMPLETO | MOTIVO LITERAL — `Contrato_Contadores.md`. TRES PIEZAS POR REGLA DICTADA, «CERO EN N» con la tasa que excluye, y la AMBIGÜEDAD DE ALCANCE DEL CUANTIFICADOR — protocolo |
 | **[F-93](F-93.md)** | 31/08/2026 | `columnas(h)` no tenía universo y las dos lecturas naturales fallan cada una uno de los tres casos: el dato es LA OPOSICIÓN, no la cita. Y la trampa de `'equivalentes'` | **vigente** · PAR COMPLETO | LA CUARTA PIEZA (vacío y ausente; forma existencial) — protocolo. Un comentario que justifica un orden CITA SU INVARIANTE — `CLAUDE.md` |
-| **[F-94](F-94.md)** | 01/09/2026 | Abre el FRENTE 2: la identidad accidental de los descartes tabulares, el volcado de filas, las averías silenciosas, y el prefijo de fila que resulta ser la cita por referencia de F-80 | **vigente** · PAR COMPLETO | UNA IDENTIDAD POR ESPECIE, LECTURA DUAL CON CADUCIDAD y DATOS DEL CLIENTE — `CLAUDE.md`. LO QUE SE AFIRMA DEL REPO VIAJA CON SU EVIDENCIA — protocolo |
+| **[F-94](F-94.md)** | 01/09/2026 | Abre el FRENTE 2: la identidad accidental de los descartes tabulares (⚠️ premisa nuestra FALSA — no había ninguna: nunca hubo botón), el volcado de filas, las averías silenciosas, y el prefijo de fila que resulta ser la cita por referencia de F-80 | **vigente** · PAR COMPLETO | UNA IDENTIDAD POR ESPECIE y DATOS DEL CLIENTE — `CLAUDE.md`. LECTURA DUAL CON CADUCIDAD, retirada del frente 2 por inexistente. LO QUE SE AFIRMA DEL REPO VIAJA CON SU EVIDENCIA — protocolo |
 
 ---
 
@@ -148,6 +148,12 @@ queda superado, pero **no administra su propio estado**.
   identidad equivocada —lo que cambia qué es la ficha B— y cazó además **una
   acusación falsa nuestra antes de enviarla**, un `grep` con `head -12` que
   cortaba justo la línea que desmentía la tesis.
+  ⚠️ **Y la exploración no llegó al final: la premisa era falsa.** Los descartes
+  tabulares NO funcionaban — `mostrarAccionesDeFila` nunca pintó el botón, así
+  que la huella de prosa que el endpoint calculaba era una tubería sin grifo.
+  **Verificamos la tubería y no el grifo.** La cláusula de F-88 P2 —suprimir las
+  acciones hasta tener la identidad correcta— pagó aquí: no hay nada que migrar,
+  y por eso la lectura dual se retira del frente.
   Y trae la vuelta más valiosa del frente: **el prefijo `[F3]` no era ruido**.
   Propusimos quitarlo o limpiarlo, y las dos eran malas — es el puntero que
   permite localizar la fila por posición, y cuando el juez lo copia «está

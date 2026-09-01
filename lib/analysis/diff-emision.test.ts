@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 
 import { describe, expect, it } from 'vitest';
 
-import { problemsFromAnalysis, type RawAnalysis } from '@/components/improvement/problems';
+import { mostrarAccionesDeFila, problemsFromAnalysis, type RawAnalysis } from '@/components/improvement/problems';
 import { chunkSegments, extractSegments } from '@/lib/chunking';
 import { toStoredChunks, type StoredChunk } from '@/lib/read-chunks';
 import { emitirDiffDeTablas, type LadosDeLaEmision } from './diff-emision';
@@ -308,17 +308,48 @@ describe('EL RECORRIDO hasta el cliente', () => {
   });
 
   /**
-   * LA CLÁUSULA DE F-88 P2, comprobada donde importa: al final del recorrido.
-   * Si `origen` se perdiera por el camino —y esta tubería ya ha borrado cuatro
-   * campos en tránsito—, la supresión de acciones no ocurriría y el usuario
-   * tendría delante un botón que registraría un juicio con la identidad
-   * equivocada.
+   * `origen` COMPROBADO DONDE IMPORTA: al final del recorrido. Esta tubería ya
+   * ha borrado cuatro campos en tránsito.
+   * Hasta el 01/09 este campo era lo que SUPRIMÍA las acciones (F-88 P2). Ya no:
+   * desde F-94 lo que decide es la huella, y `origen` se queda como lo que
+   * siempre fue — de qué materia es el hallazgo.
    */
-  it('llegan marcadas como diff_tabular, que es lo que suprime sus acciones', async () => {
+  it('llegan marcadas como diff_tabular', async () => {
     const problemas = problemsFromAnalysis(await hastaElCliente());
     expect(problemas.every(p => p.origen === 'diff_tabular')).toBe(true);
   });
 
+
+  /**
+   * ⚠️ Y LA HUELLA TABULAR TIENE QUE LLEGAR CON ELLAS (F-94, ficha B).
+   *
+   * ES EL ESLABÓN QUE FALTABA y el que la mutación destapó: `origen` viajaba y
+   * la huella no, así que el hallazgo llegaba marcado como tabular pero SIN LA
+   * IDENTIDAD con la que recordarlo. Con la supresión de F-88 P2 en pie eso no
+   * se notaba —no había botón— pero al levantarla, un hallazgo sin huella
+   * habría enseñado un botón que no puede cumplir lo que promete.
+   *
+   * Esta tubería ya ha borrado cuatro campos en tránsito. Es el sitio donde se
+   * comprueba: al final del recorrido, no en el origen.
+   */
+  it('y la HUELLA tabular llega con ellas, que es lo que las hace descartables', async () => {
+    const problemas = problemsFromAnalysis(await hastaElCliente());
+
+    expect(problemas).toHaveLength(15);
+    expect(problemas.every(p => typeof p.huella === 'string' && /^[0-9a-f]{64}$/.test(p.huella!))).toBe(true);
+    // Quince filas distintas, quince identidades distintas.
+    expect(new Set(problemas.map(p => p.huella)).size).toBe(15);
+  });
+
+  /**
+   * Y LA CONSECUENCIA, comprobada donde el usuario la nota: con huella, la fila
+   * lleva acciones. Es la mitad de `mostrarAccionesDeFila` que cambió el 01/09,
+   * verificada de punta a punta y no solo sobre un objeto de mentira.
+   */
+  it('con la huella puesta, las quince llevan acciones por fila', async () => {
+    const problemas = problemsFromAnalysis(await hastaElCliente());
+    expect(problemas.every(mostrarAccionesDeFila)).toBe(true);
+  });
   it('la estructura agrupada sobrevive al viaje', async () => {
     const a = await hastaElCliente();
     expect(a.tableDiffs).toHaveLength(1);

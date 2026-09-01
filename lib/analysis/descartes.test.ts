@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { huellaDeDescarte, marcarDescartadas } from './descartes';
+import { huellaDeDescarte, marcarDescartadas, huellaSolicitada } from './descartes';
 import { esDescartePermanente } from './double-check';
 
 /**
@@ -215,5 +215,73 @@ describe('marcarDescartadas — lo que el usuario ve al volver', () => {
 
     expect(r[0].dismissed).toBeUndefined();
     expect(r[1].dismissed).toBe(true);
+  });
+});
+
+describe('huellaSolicitada — el tipo decide la identidad (F-94, ficha B)', () => {
+  const SHA = 'a'.repeat(64);
+  const prosa = {
+    documentoEnRevision: 'doc-nuevo',
+    existingDocumentId: 'doc-viejo',
+    newDocSays: 'el plazo es de quince años',
+    existingDocSays: 'el plazo es de cinco años',
+  };
+
+  it('tabular: devuelve la huella que vino, sin recalcular nada', () => {
+    const r = huellaSolicitada({ tipo: 'tabular', huella: SHA, ...prosa });
+    expect(r).toEqual({ ok: true, huella: SHA });
+  });
+
+  /**
+   * ⚠️ EL CASO QUE CIERRA EL CAMINO ACCIDENTAL. Con `tipo: 'tabular'` las
+   * coordenadas de texto NO se miran: aunque vengan las tres cadenas completas
+   * y perfectamente válidas para prosa, sin huella no hay descarte.
+   * Es la puerta por la que un hallazgo de tabla habría quedado registrado con
+   * una identidad de texto — frágil ante un cambio de columna cualquiera y ante
+   * una reordenación de filas.
+   */
+  it('tabular SIN huella: rechaza, aunque las coordenadas de prosa sean válidas', () => {
+    const r = huellaSolicitada({ tipo: 'tabular', huella: undefined, ...prosa });
+    expect(r.ok).toBe(false);
+  });
+
+  it('tabular con huella MAL FORMADA: rechaza', () => {
+    for (const mala of ['', 'no-es-un-hash', SHA.slice(0, 63), SHA + 'a', SHA.toUpperCase(), 'g'.repeat(64)]) {
+      expect(huellaSolicitada({ tipo: 'tabular', huella: mala, ...prosa }).ok, `aceptó: ${mala}`).toBe(false);
+    }
+  });
+
+  it('prosa: construye la huella con las citas, como siempre', () => {
+    const r = huellaSolicitada({ tipo: 'prosa', huella: undefined, ...prosa });
+    expect(r.ok).toBe(true);
+    if (!r.ok) return;
+    expect(r.huella).toMatch(/^[0-9a-f]{64}$/);
+    // Y es la MISMA que calcula la huella de prosa por su cuenta: no hay una
+    // segunda implementación escondida aquí.
+    expect(r.huella).toBe(huellaDeDescarte({
+      documentoEnRevision: prosa.documentoEnRevision,
+      coordenadas: {
+        existingDocumentId: prosa.existingDocumentId,
+        newDocSays: prosa.newDocSays,
+        existingDocSays: prosa.existingDocSays,
+      },
+    }));
+  });
+
+  /**
+   * COMPATIBILIDAD, declarada y no accidental: un cliente anterior a este
+   * despliegue —una pestaña abierta— manda el cuerpo de siempre, sin `tipo`.
+   * Se trata como PROSA, que es exactamente lo que hacía. Y no abre la puerta
+   * tabular, porque para lo tabular ese cliente no tenía botón.
+   */
+  it('SIN tipo se trata como prosa', () => {
+    const conTipo = huellaSolicitada({ tipo: 'prosa', huella: undefined, ...prosa });
+    const sinTipo = huellaSolicitada({ tipo: undefined, huella: undefined, ...prosa });
+    expect(sinTipo).toEqual(conTipo);
+  });
+
+  it('prosa con coordenadas incompletas: rechaza', () => {
+    expect(huellaSolicitada({ ...prosa, tipo: 'prosa', huella: undefined, existingDocumentId: undefined }).ok).toBe(false);
+    expect(huellaSolicitada({ ...prosa, tipo: 'prosa', huella: undefined, newDocSays: 42 }).ok).toBe(false);
   });
 });

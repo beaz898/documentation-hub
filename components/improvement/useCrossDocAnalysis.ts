@@ -196,7 +196,7 @@ export function useCrossDocAnalysis(
    * Añade o quita su huella de la memoria de descartados.
    */
   const dismissProblem = useCallback((problem: Problem) => {
-    const { id: problemId, textRef, relatedDoc, relatedDocId, relatedDocSays } = problem;
+    const { id: problemId, textRef, relatedDoc, relatedDocId, relatedDocSays, huella } = problem;
     let isDismissing = false;
 
     setCrossDocProblems(prev => {
@@ -219,6 +219,28 @@ export function useCrossDocAnalysis(
         // anterior a d13e125f no trae `relatedDocId`, y sin él no hay
         // identidad posible. Se descarta en pantalla igualmente: perder la
         // memoria es peor que no poder guardarla.
+        // ── LA RAMA TABULAR (F-94, ficha B) ──────────────────────────
+        //
+        // Se manda LA HUELLA QUE VINO CON EL HALLAZGO, no el texto de la
+        // fila. La calculó el diff con la clave cruda de los dos lados y su
+        // columna; aquí solo se devuelve. Mandar el texto sería atar el
+        // juicio del usuario al orden de las filas y a columnas que no le
+        // importaban — la identidad frágil que F-88 P2 impidió suprimiendo
+        // el botón, y que ahora no hace falta impedir porque ya no se usa.
+        if (reviewedDocumentId && huella) {
+          void fetch('/api/findings/dismiss', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({
+              documentId: reviewedDocumentId,
+              tipo: 'tabular',
+              huella,
+              dismissed: isDismissing,
+            }),
+          }).catch(() => { /* el descarte de sesión ya está aplicado */ });
+        }
+
         if (relatedDocId && relatedDocSays) {
           if (isDismissing) {
             coordenadasDescartadasRef.current.set(fp, {

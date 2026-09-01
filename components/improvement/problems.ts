@@ -81,6 +81,30 @@ export interface Problem {
   confidence?: 'alta' | 'posible';
   /** Si el usuario marcó este problema como "no es un error". */
   dismissed?: boolean;
+  /**
+   * F-94 — LA HUELLA TABULAR DE ESTA FILA, tal como la calculó el diff.
+   *
+   * ⚠️ NO SE RECALCULA EN NINGÚN SITIO, y ésa es toda la decisión: la calcula
+   * `huellaDeFila` en `diff-emision.ts` con la clave cruda de los dos lados, sus
+   * dos `tableId` y la columna, y viaja hasta aquí por `synthesize.ts`. El
+   * cliente la DEVUELVE al descartar; el servidor comprueba que es un sha256
+   * bien formado y la registra.
+   *
+   * POR QUÉ ASÍ Y NO MANDANDO COORDENADAS, que es lo que F-94 P1 proponía:
+   * recalcularla en el servidor sería una SEGUNDA implementación del mismo
+   * criterio —lo que CLAUDE.md prohíbe y lo que costó B.124— y exigiría mandar
+   * las dos claves crudas, los dos tableId y la columna, o sea MÁS datos que la
+   * propia huella. Y no gana nada en confianza: una huella inventada registra un
+   * descarte que no casa con nada, igual que unas coordenadas inventadas.
+   * Lo que Fable decidió —una identidad por especie, calculada en UN sitio— se
+   * cumple mejor así, porque el sitio es el diff.
+   *
+   * AUSENTE en los hallazgos de prosa (usan la huella de prosa) y en los
+   * tabulares del camino PRE-INDEXADO, donde no hay id del documento analizado
+   * y no se puede construir (F-87 P1). Su ausencia decide: sin huella no hay
+   * acciones por fila — ver `mostrarAccionesDeFila`.
+   */
+  huella?: string;
   /** F-70: valores enfrentados por columna. Solo en contradicciones
    *  confirmadas por estructura. Es material de PRESENTACIÓN: no entra en
    *  `description` ni en nada que lea un modelo. */
@@ -114,6 +138,8 @@ export interface RawAnalysis {
     confidence?: 'alta' | 'posible';
     severity?: 'contradiction' | 'minor_inconsistency';
     /** F-70: presentes desde d384a315; undefined en análisis anteriores. */
+    /** F-94: la huella tabular que calculó el diff. Ver `Problem.huella`. */
+    huella?: string;
     comparedValues?: ComparedValue[];
     newDocRow?: string;
     existingDocRow?: string;
@@ -279,6 +305,9 @@ export function problemsFromAnalysis(analysis: RawAnalysis): Problem[] {
           confidence: d.confidence,
           // F-70: solo para pintar. `description` (arriba) queda intacta, y con
           // ella lo que leen los tres prompts de ImprovementModal.
+          // F-94: se TRANSPORTA, no se recalcula. Es la identidad con la que
+          // el descarte tabular se recordará.
+          huella: d.huella,
           comparedValues: d.comparedValues,
           newDocRow: d.newDocRow,
           existingDocRow: d.existingDocRow,
@@ -330,6 +359,33 @@ export function problemsFromAnalysis(analysis: RawAnalysis): Problem[] {
  * ES TEMPORAL Y ESTÁ FECHADO: la ficha B trae las acciones de verdad, sobre
  * huella TABULAR. Hasta entonces, verdad sin promesa de memoria.
  */
+/**
+ * ¿ESTA TARJETA LLEVA ACCIONES POR FILA (descartar, resolver)?
+ *
+ * VIVE FUERA DEL JSX A PROPÓSITO, y no es estilo: dentro no hay nada que la
+ * vigile, porque el alcance de Vitest prohíbe React. Salió de ahí por una
+ * mutación que sobrevivió, y ya le ha valido la pena una vez — sobrevivió a la
+ * reorganización de la ficha A sin que nadie la mirara.
+ *
+ * ⚠️ CAMBIÓ EL 01/09 (F-94, ficha B) Y CONVIENE LEER LAS DOS ÉPOCAS:
+ *
+ * ANTES devolvía `origen !== 'diff_tabular'`: NINGÚN hallazgo del diff llevaba
+ * acciones. Era correcto y deliberado (F-88 P2) — el botón de descarte estaba
+ * respaldado por la maquinaria de huella de PROSA, y pulsarlo sobre una fila
+ * habría registrado el juicio con una identidad de texto, el desajuste que F-86
+ * mató. La cláusula PAGÓ: durante todo el frente 1 no se registró ni un juicio
+ * tabular con la identidad equivocada, porque el botón no existía.
+ *
+ * AHORA la condición es OTRA y más estrecha: lo que decide no es la materia del
+ * hallazgo sino SI TIENE IDENTIDAD CON LA QUE RECORDARSE.
+ *   · prosa → sí, siempre: su identidad son las citas, que siempre están.
+ *   · tabular CON huella → sí: la huella tabular ya viajó desde el diff.
+ *   · tabular SIN huella → NO. Es el camino pre-indexado de F-87 P1: sin id del
+ *     documento analizado no hay huella, el hallazgo se emite igual —«justo ahí
+ *     es donde más vale»— pero no se puede recordar. Un botón que promete
+ *     memoria sin poder cumplirla es peor que no tener botón.
+ */
 export function mostrarAccionesDeFila(p: Problem): boolean {
-  return p.origen !== 'diff_tabular';
+  if (p.origen !== 'diff_tabular') return true;
+  return typeof p.huella === 'string' && p.huella.length > 0;
 }

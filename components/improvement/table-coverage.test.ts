@@ -154,30 +154,47 @@ describe('tieneCobertura — ¿tiene este grupo algo que enseñar?', () => {
   });
 });
 
-describe('mostrarAccionesDeFila — la supresión de F-88 P2', () => {
+describe('mostrarAccionesDeFila — de la supresión de F-88 P2 a la identidad de F-94', () => {
   /**
-   * ES EL RIESGO REAL DE ESTE COMMIT: las quince vuelven a la lista por tipo,
-   * que es DONDE ESTÁN LOS BOTONES. Si la supresión no siguiera en pie, volver
-   * a las cajas sueltas las habría reintroducido por la puerta de atrás — con
-   * la maquinaria de huella de PROSA detrás, que es el desajuste que F-86 mató.
+   * ⚠️ EL CASO QUE NO PUEDE PERDERSE, y ya sobrevivió a una reorganización de
+   * pantalla: LA PROSA CONSERVA SUS BOTONES. R2 emite hallazgos estructurales
+   * sobre prosa y ésos siempre tienen identidad —sus citas—, así que nunca
+   * dependieron de nada de esto. Suprimirlas a todo sería tan falso como no
+   * suprimirlas a nada.
    *
-   * Y la condición salió del JSX por una mutación que sobrevivió: ahí dentro no
-   * hay nada que vigile, porque el alcance de la suite prohíbe React.
-   */
-  it('una fila del diff de tablas NO lleva acciones', () => {
-    expect(mostrarAccionesDeFila(fila('a', true))).toBe(false);
-  });
-
-  /**
-   * Y LA OTRA MITAD, que es la que hace útil el caso: R2 emite hallazgos
-   * estructurales sobre PROSA y ésos SÍ conservan sus acciones. Suprimirlas a
-   * todo sería tan falso como no suprimirlas a nada.
+   * Vive fuera del JSX por una mutación que sobrevivió: ahí dentro no hay nada
+   * que lo vigile, porque el alcance de Vitest prohíbe React.
    */
   it('una contradicción de prosa SÍ las lleva', () => {
     expect(mostrarAccionesDeFila(fila('prosa'))).toBe(true);
   });
-});
 
+  /**
+   * LA MITAD QUE CAMBIÓ EL 01/09. Antes esto era `false` para TODO lo tabular
+   * (F-88 P2): el botón estaba respaldado por la huella de PROSA y pulsarlo
+   * sobre una fila habría registrado el juicio con una identidad de texto.
+   * Aquella cláusula PAGÓ —durante todo el frente 1 no se registró ni un juicio
+   * tabular equivocado, porque el botón no existía— y por eso no hubo nada que
+   * migrar al cambiarla.
+   * Ahora lo que decide no es la materia sino LA IDENTIDAD: con huella tabular,
+   * el descarte se puede recordar.
+   */
+  it('una fila del diff CON huella SÍ lleva acciones', () => {
+    expect(mostrarAccionesDeFila({ ...fila('a', true), huella: 'f'.repeat(64) })).toBe(true);
+  });
+
+  /**
+   * Y LA OTRA MITAD, que es la que impide prometer memoria sin poder cumplirla:
+   * el camino PRE-INDEXADO de F-87 P1 emite el hallazgo sin huella —no hay id
+   * del documento analizado con el que construirla— y ahí el botón no debe
+   * aparecer. Un descarte que no se puede recordar es peor que ninguno: el
+   * usuario cree haber cerrado algo que volverá.
+   */
+  it('una fila del diff SIN huella NO lleva acciones', () => {
+    expect(mostrarAccionesDeFila(fila('a', true))).toBe(false);
+    expect(mostrarAccionesDeFila({ ...fila('a', true), huella: '' })).toBe(false);
+  });
+});
 describe('contarSinCorrespondencia — el recuento cuenta lo que el nombre dice', () => {
   /**
    * HUECO ENCONTRADO POR MUTACIÓN: la regla estaba escrita en el comentario de
