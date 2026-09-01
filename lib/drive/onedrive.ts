@@ -1,6 +1,7 @@
 import { extractSegments } from '@/lib/chunking';
 import type { ExtractedSegment } from '@/lib/chunking';
 import type { DriveFile, DriveFolder, DriveProvider, DriveTokens } from './types';
+import type { ResultadoDelListado } from './sync-guard';
 
 const ALLOWED_MIME_TYPES: Record<string, string> = {
   'application/pdf': 'pdf',
@@ -64,7 +65,11 @@ async function listItemsRecursive(
       data = await graphGet(url, accessToken) as GraphListResponse;
     } catch (err) {
       console.error(`[ONEDRIVE SYNC] Error listing folder ${folderId}:`, err);
-      break;
+      // ⚠️ LANZA, NO ROMPE EL BUCLE. El `break` devolvía lo acumulado, y aquí
+      // eso es peor que en Google porque esto PAGINA: un fallo en la página 3
+      // de 5 devolvía las dos primeras, y a los ficheros de las otras tres se
+      // les borraba como «desaparecidos de OneDrive».
+      throw err;
     }
 
     const items = data.value || [];
@@ -171,8 +176,14 @@ export const oneDriveProvider: DriveProvider = {
     }
   },
 
-  async listFiles(accessToken: string, folderId: string): Promise<DriveFile[]> {
-    return listItemsRecursive(accessToken, folderId, '', null);
+  async listFiles(accessToken: string, folderId: string): Promise<ResultadoDelListado> {
+    try {
+      return { ok: true, archivos: await listItemsRecursive(accessToken, folderId, '', null) };
+    } catch (err) {
+      // Igual que en Google: único sitio donde el fallo se vuelve resultado, y
+      // la lista incompleta se descarta entera.
+      return { ok: false, motivo: err instanceof Error ? err.message : String(err) };
+    }
   },
 
   async listFolders(accessToken: string, parentId: string): Promise<DriveFolder[]> {

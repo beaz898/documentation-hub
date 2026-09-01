@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import { getAuthenticatedUserHybrid } from '@/lib/supabase-server';
 import { upsertVectors, deleteVectorsByIds, listVectorIdsByPrefix, buildVectorId, parseVectorId } from '@/lib/pinecone/vectors';
+import { decidirSincronizacion } from '@/lib/drive/sync-guard';
 import { deleteDocument, getTombstonedIdentities, tombstoneKey } from '@/lib/delete-document';
 import { checkUploadLock } from '@/lib/upload-lock';
 import { generateEmbeddings } from '@/lib/embeddings';
@@ -112,8 +113,7 @@ export async function POST(req: NextRequest) {
     const targetFolderId = folderId || connection.folder_id;
     console.log(`[DRIVE SYNC] Starting sync for folder: ${targetFolderId}`);
 
-    const allFiles = await provider.listFiles(accessToken, targetFolderId);
-    console.log(`[DRIVE SYNC] Found ${allFiles.length} files`);
+    const listado = await provider.listFiles(accessToken, targetFolderId);
 
     const { data: existingDocs, error: existingError } = await supabase.from('documents')
       .select('id, name, provider_file_id, source_modified_at, chunk_count, analysis_status, active_generation')
@@ -126,6 +126,25 @@ export async function POST(req: NextRequest) {
       console.error(`[DRIVE SYNC] select-existing fallo | org=${orgId} | source=${provider.name} | code=${existingError.code ?? '?'} | ${existingError.message}`);
       return NextResponse.json({ error: 'Error al leer los documentos existentes; sync cancelado' }, { status: 500 });
     }
+
+    // ⚠️ LA GUARDA DEL LISTADO (01/09/2026). Aquí, en cuanto se tienen las dos
+    // listas, y por el MISMO criterio que el bloque de arriba aplica a la
+    // lectura de Supabase: si una de las dos no se pudo leer, abortar es la
+    // única opción segura. La de Supabase ya abortaba; la del proveedor
+    // devolvía lista vacía, y una lista vacía significa aquí «el usuario borró
+    // todo» — o sea BORRAR EL CORPUS ENTERO por un 500 de un segundo.
+    // Quién se borra lo decide `decidirSincronizacion` y solo él: cruzar los
+    // ids otra vez aquí sería la segunda implementación del mismo criterio.
+    const decision = decidirSincronizacion(listado, existingDocs || []);
+    if (decision.aborta) {
+      console.error(`[DRIVE SYNC] listado no fiable | org=${orgId} | source=${provider.name} | ${decision.motivo}`);
+      return NextResponse.json(
+        { error: 'No se pudo leer la lista de archivos del proveedor; sync cancelado sin cambios.' },
+        { status: 502 },
+      );
+    }
+    const allFiles = decision.archivos;
+    console.log(`[DRIVE SYNC] Found ${allFiles.length} files`);
 
     const existingMap = new Map(
       (existingDocs || []).map(d => [d.provider_file_id, d])
@@ -157,10 +176,8 @@ export async function POST(req: NextRequest) {
     let skippedCount = 0;
     let skippedExcludedCount = 0;
     let failedCount = 0;
-    const seenDriveIds = new Set<string>();
 
     for (const file of allFiles) {
-      seenDriveIds.add(file.id);
       const existing = existingMap.get(file.id);
       // C.4d-2b (T2, F-16): el staged es el CERROJO cuando existe, asi que hay que
       // leerlo ANTES del chequeo de salto, no dentro del try.
@@ -436,7 +453,7 @@ export async function POST(req: NextRequest) {
 
     // Detect deletions: docs whose provider_file_id is no longer in Drive
     let deletedCount = 0;
-    const docsToDelete = (existingDocs || []).filter(d => !seenDriveIds.has(d.provider_file_id));
+    const docsToDelete = decision.borrar;
 
     let deleteFailedCount = 0;
     for (const doc of docsToDelete) {

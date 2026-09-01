@@ -3,7 +3,7 @@ PENDIENTES — Doclity (Agente IA)
 Documento vivo. Se actualiza al completar tareas (marcar [✓]) y se
 sustituye por la versión nueva. Más ligero que la Bitácora: aquí va
 lo que falta y la visión que lo guía, no el detalle de cada sesión.
-Última actualización: 01/09/2026 (v43)
+Última actualización: 01/09/2026 (v44)
 
 
 ════════════════════════════════════════════════════════════════
@@ -4125,6 +4125,82 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     NO SE DECIDE AQUÍ. Va con el frente de la regla 6 o donde el director lo
     ponga; lo que no puede es quedarse sin anotar, porque el accidente no dejó
     rastro en ningún sitio salvo este párrafo.
+
+  B.138 — [ARREGLADO EL 01/09 EN EL MISMO DÍA QUE SE ENCONTRÓ · DAÑO
+    IRREVERSIBLE, NUNCA OCURRIDO] UN 500 DE UN SEGUNDO BORRABA EL CORPUS DE
+    DRIVE ENTERO DE LA ORGANIZACIÓN
+
+    ══ LA CADENA, y cada eslabón era razonable por su cuenta ══
+    1. `lib/drive/google.ts` — ante CUALQUIER respuesta no-2xx del listado:
+       `console.error` y `return allFiles`, que estaba VACÍO. Sin lanzar y sin
+       reintentar. En OneDrive lo mismo con otra forma: `graphGet` lanzaba, el
+       bucle lo atrapaba y hacía `break` devolviendo lo acumulado.
+    2. `app/api/drive/sync/route.ts` — ninguna guarda de listado vacío.
+    3. Doce líneas más abajo: `docsToDelete` = todo `documents` con
+       `source = provider.name` que no estuviera en el listado → TODO.
+    4. `deleteDocument(..., reason: remote_deleted)`: vectores, fila y los
+       análisis que colgaban. Y con el comentario «sin lápida», así que ni
+       siquiera quedaba rastro de exclusión.
+
+    Un 429 o un 500 de un segundo en la llamada a la carpeta raíz —el mismo
+    tipo de incidente que Pinecone nos dio esta misma semana— y el corpus
+    sincronizado de la organización desaparecía.
+
+    ⚠️ ══ LO QUE LO HACE ENSEÑABLE, y es lo que hay que retener ══
+    EL MISMO RAZONAMIENTO ESTABA RESUELTO BIEN A DOCE LÍNEAS. La lectura
+    equivalente contra Supabase, en la misma función, aborta — y con el porqué
+    escrito:
+      «Critico: sin la lista de documentos existentes, el sync trataria todo el
+       corpus como nuevo (reindexando y duplicando) y no detectaria borrados.
+       Abortar es la unica opcion segura.»
+    Mismo razonamiento, misma consecuencia, y en la lectura del proveedor
+    externo se hacía lo contrario. NO FUE IGNORANCIA: alguien pensó el caso
+    para una de las dos lecturas y nadie lo llevó a la otra. Es la especie que
+    este frente persigue —dos sitios que deciden lo mismo y se separan— pero
+    con daño irreversible en vez de un número mal contado.
+
+    ══ LA CAUSA RAÍZ ERA EL TIPO ══
+    `listFiles(): Promise<DriveFile[]>` no tenía sitio para «falló». Una lista
+    vacía era la ÚNICA forma que las implementaciones tenían de volver de un
+    error, y una lista vacía significa aguas abajo «el usuario vació la
+    carpeta». Por eso el arreglo empieza en el tipo (`ResultadoDelListado`) y no
+    en un `if`: con la firma vieja, el siguiente proveedor habría repetido el
+    fallo sin enterarse.
+
+    ══ POR QUÉ NO HABÍA EXPLOTADO, y no es un arreglo ══
+    `grep -rn "api/drive"` sobre `app/**.tsx` y `components/` no devuelve NADA.
+    El endpoint no tiene llamador en el repositorio: ni UI, ni herramienta del
+    agente, ni cron (`vercel.json` no tiene `crons`). Solo se alcanza por HTTP
+    directo, que es como se hicieron las sincronizaciones manuales de B.132.
+    LA BOMBA ESTABA ARMADA Y NADIE TENÍA EL BOTÓN A MANO. Eso es suerte, y del
+    tipo que se acaba el día que alguien pinte el botón.
+
+    ══ EL PELIGRO DE VERDAD NO ERA «VACÍO»: ERA «INCOMPLETO» ══
+    No hacía falta que fallara la primera llamada. En Google, el fallo de una
+    SUBCARPETA devolvía una lista vacía en ese nivel y el padre seguía con el
+    hueco dentro. En OneDrive, que PAGINA, un fallo en la página 3 de 5
+    devolvía las dos primeras. La lista llegaba con contenido y le faltaban
+    ficheros — y a los que faltaban se les borraba. Por eso el predicado no es
+    «lista vacía» sino «lista no fiable», y por eso el fallo descarta la lista
+    ENTERA.
+
+    ══ QUÉ SE HIZO ══
+    · `lib/drive/sync-guard.ts` — `ResultadoDelListado` y
+      `decidirSincronizacion`, el único sitio donde se decide qué se borra. La
+      ruta ya no cruza ids por su cuenta (`seenDriveIds` retirado: era la
+      segunda implementación del mismo criterio).
+    · Los dos proveedores convierten cualquier fallo en `ok: false`, en un solo
+      punto cada uno.
+    · La ruta aborta con 502 sin tocar nada, igual que hace con Supabase.
+    · Siete casos deterministas. El listado LEGÍTIMAMENTE vacío SIGUE BORRANDO
+      —vaciar la carpeta es cómo el usuario quita documentos— y eso queda
+      declarado en un caso, no heredado por descuido.
+
+    ══ LO QUE ESTO NO ARREGLA ══
+    NO ES EL RETRY, y no lo sustituye. Con el proveedor caído cuarenta minutos
+    el reintento se agotaría y —antes de hoy— el borrado habría ocurrido igual.
+    Son las dos mitades de la regla 6 y ésta es la de «fallar bien». El retry de
+    Drive sigue sin existir y va en su turno.
 
   F-81 [CONVERGENCIA — leer ANTES de planificar la fase 3 del diff, 27/08] No
     es un pendiente nuevo: es el sitio donde se juntan tres que ya existen, más

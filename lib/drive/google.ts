@@ -1,6 +1,7 @@
 import { extractSegments } from '@/lib/chunking';
 import type { ExtractedSegment } from '@/lib/chunking';
 import type { DriveFile, DriveFolder, DriveProvider, DriveTokens } from './types';
+import type { ResultadoDelListado } from './sync-guard';
 
 const ALLOWED_MIME_TYPES: Record<string, string> = {
   'application/pdf': 'pdf',
@@ -39,7 +40,11 @@ async function listFilesRecursive(
   if (!res.ok) {
     const errText = await res.text().catch(() => 'no body');
     console.error(`[DRIVE SYNC] Google API error ${res.status}:`, errText);
-    return allFiles;
+    // ⚠️ LANZA, NO DEVUELVE LO QUE LLEVA. Devolver la lista parcial haría que
+    // la sincronización tomara por «borrados en Drive» los ficheros que no
+    // llegaron a listarse. Y aquí importa la RECURSIÓN: esto puede ser una
+    // subcarpeta, y hasta el 01/09 el padre seguía con el hueco dentro.
+    throw new Error(`Google Drive listado ${res.status}: ${errText.slice(0, 200)}`);
   }
 
   const data = await res.json();
@@ -134,8 +139,15 @@ export const googleDriveProvider: DriveProvider = {
     };
   },
 
-  async listFiles(accessToken: string, folderId: string): Promise<DriveFile[]> {
-    return listFilesRecursive(accessToken, folderId, '', null);
+  async listFiles(accessToken: string, folderId: string): Promise<ResultadoDelListado> {
+    try {
+      return { ok: true, archivos: await listFilesRecursive(accessToken, folderId, '', null) };
+    } catch (err) {
+      // ÚNICO SITIO donde el fallo se convierte en resultado. Cualquier nivel de
+      // la recursión que lance llega aquí, y la lista entera se descarta: una
+      // lista incompleta es peor que ninguna (ver sync-guard.ts).
+      return { ok: false, motivo: err instanceof Error ? err.message : String(err) };
+    }
   },
 
   async listFolders(accessToken: string, parentId: string): Promise<DriveFolder[]> {
