@@ -3,7 +3,7 @@ PENDIENTES — Doclity (Agente IA)
 Documento vivo. Se actualiza al completar tareas (marcar [✓]) y se
 sustituye por la versión nueva. Más ligero que la Bitácora: aquí va
 lo que falta y la visión que lo guía, no el detalle de cada sesión.
-Última actualización: 29/08/2026 (v41)
+Última actualización: 01/09/2026 (v42)
 
 
 ════════════════════════════════════════════════════════════════
@@ -271,6 +271,105 @@ QUÉ FALTA PARA ENSEÑÁRSELO A UN CLIENTE, en una línea
   LOS FRENTES 1, 2 Y 3 CERRADOS, Y LA REMEDICIÓN EN VERDE.
   El 4 se declara. Textual de F-89: «esto se le enseña a un cliente diciendo la
   verdad entera — que es el único listón que este producto se ha puesto».
+
+════════════════════════════════════════════════════════════════
+LA DEUDA TÉCNICA — los cinco puntos, medidos el 01/09/2026
+════════════════════════════════════════════════════════════════
+
+POR QUÉ ESTÁ AQUÍ Y NO FUERA. Hasta hoy esta lista vivía FUERA del
+repositorio, y ésa era la causa —no el síntoma— de que se pudriera: ningún
+commit la tocaba, ningún `grep` la encontraba, y nadie la verificaba al usarla.
+Al auditarla contra el código (B.134) resultó que CUATRO DE LOS CINCO PUNTOS
+DIRÍAN ALGO FALSO si se citaran. Se trae al repositorio y se reescribe con el
+estado real.
+
+VA EN LA CABECERA DE LA PARTE B por la misma razón que el mapa del MVP: es
+contexto estructural que se lee ANTES que la lista numerada, no un hallazgo
+suelto. La lista de abajo dice qué está roto; esto dice qué está a medio
+construir.
+
+⚠️ CADA PUNTO LLEVA LA FECHA EN QUE SE COMPROBÓ. Sin esa fecha, un estado es
+una opinión: dice lo que alguien creyó, no lo que el código hacía. Quien lo cite
+después de un cambio grande, que lo vuelva a mirar y actualice la fecha.
+
+────────────────────────────────────────────────────────────────
+D1 · TOKENS OAUTH EN TEXTO PLANO            ✅ RESUELTO
+────────────────────────────────────────────────────────────────
+  Comprobado: 29/08/2026 · reconfirmado 01/09/2026
+  `lib/crypto.ts` (AES-256-GCM, clave `DRIVE_ENCRYPTION_KEY`) se usa en los
+  cuatro puntos de escritura, y una consulta a `drive_connections` confirmó las
+  dos filas —google_drive y onedrive— con `access_token` y `refresh_token`
+  cifrados.
+  SE ARRASTRÓ MESES ESTANDO RESUELTO, sin que nadie lo comprobara. Es el
+  precedente que justifica esta sección entera.
+
+────────────────────────────────────────────────────────────────
+D2 · OBSERVABILIDAD DE USO DE LLM POR USUARIO   ⚠️ MAL ENUNCIADO
+────────────────────────────────────────────────────────────────
+  Comprobado: 01/09/2026
+  EL DATO EXISTE, y por partida doble, las dos con `user_id`:
+    · `logUsage` → tabla `usage_logs` (`lib/usage-logger.ts`): usuario, org,
+      endpoint, modelo, tokens de entrada/salida, tokens de caché de escritura
+      y lectura, latencia, éxito, créditos consumidos y la consulta del usuario.
+    · `persistLLMUsage` → tabla `llm_usage` (`lib/observability/record-usage.ts`):
+      lo anterior más el COSTE EN DÓLARES calculado (`computeCostUsd`).
+  Los dos CABLEADOS en ask, analyze-v2, analyze-style e improve; `recordUsage`
+  además desde tres puntos de `lib/llm/anthropic-client.ts`.
+  LO QUE FALTA ES LA VISTA, no la observabilidad: `/settings/usage` agrega por
+  ORGANIZACIÓN y no desglosa por persona. La pregunta «cuánto gasta cada
+  usuario» tiene respuesta en la base de datos y no en la interfaz.
+  ⚠️ BLOQUEADO POR B.135: hay dos sistemas paralelos y no se sabe si uno
+  sustituye al otro. Construir la vista antes de decidirlo es elegir tabla a
+  ciegas.
+
+────────────────────────────────────────────────────────────────
+D3 · ANÁLISIS SÍNCRONO CON EL USUARIO ESPERANDO  ◐ A MEDIAS
+────────────────────────────────────────────────────────────────
+  Comprobado: 01/09/2026
+  HECHO — el EXHAUSTIVO: crea un job en `analysis_jobs`, lo ejecuta el worker de
+  Railway y el cliente sondea (`app/api/analysis-jobs/[id]/route.ts`). Era la
+  mitad cara.
+  VIVO — el RÁPIDO: sigue siendo síncrono, con `maxDuration = 120` en
+  `app/api/analyze-v2/route.ts`. Medido en las tandas del 30-31/08: **10 a 18
+  segundos con UN candidato**. Hay margen contra el tope, pero NO ESTÁ MEDIDO
+  con muchos candidatos, que es cuando se acercaría.
+
+────────────────────────────────────────────────────────────────
+D4 · SIN FALLBACK ENTRE PROVEEDORES          🔴 VIVO — el único intacto
+────────────────────────────────────────────────────────────────
+  Comprobado: 01/09/2026
+  `lib/pinecone.ts` y `lib/llm/anthropic-client.ts` tienen UN SOLO proveedor
+  cada uno, sin alternativa ni degradación.
+  ESTABA ESCRITO PARA EL LLM Y HOY SE ENSANCHA: la caída de Pinecone del 01/09
+  —control plane, 5xx, más de cuarenta minutos— enseñó que aplica igual al
+  vectorial, con el agravante de que sin él NO HAY NI CHAT NI ANÁLISIS. El LLM
+  caído degrada una función; el vectorial caído apaga el producto.
+  Ver B.133, que es este punto visto desde la incidencia.
+
+────────────────────────────────────────────────────────────────
+D5 · MEMORIA CONVERSACIONAL DEL RAG          ⚠️ MAL ENUNCIADO
+────────────────────────────────────────────────────────────────
+  Comprobado: 01/09/2026
+  LA MEMORIA CONVERSACIONAL EXISTE: `MAX_HISTORY_MESSAGES = 6` en `lib/rag.ts`,
+  la reescritura de la consulta usa el historial (`rewriteQueryForSearch`), y el
+  historial viaja al modelo en la llamada final.
+  LO QUE NO SE REUTILIZA SON LOS DOCUMENTOS RECUPERADOS: cada turno rehace el
+  retrieval desde cero, aunque la conversación siga sobre los mismos documentos
+  del turno anterior. Cuesta una consulta a Pinecone y una reescritura por
+  turno, y puede cambiar de fuentes a mitad de conversación sin motivo.
+  EL PUNTO VIVO ES ÉSE, y es más estrecho que «no hay memoria conversacional».
+
+────────────────────────────────────────────────────────────────
+EL RECUENTO DEL 01/09, para que se vea de un vistazo
+────────────────────────────────────────────────────────────────
+  RESUELTO ............ 1   (D1)
+  A MEDIAS ............ 1   (D3, falta el rápido)
+  MAL ENUNCIADO ....... 2   (D2, D5 — el problema existe, la frase no)
+  VIVO TAL CUAL ....... 1   (D4)
+
+  CUATRO DE CINCO DIRÍAN ALGO FALSO si se citaran con el texto viejo.
+
+
 
 
 ════════════════════════════════════════════════════════════════
@@ -3690,6 +3789,50 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     exactamente la regla de verificación al usar (F-85 P3, protocolo) aplicada
     a un documento normativo que además **no está donde se verifica**.
     NO SE PROPONE DÓNDE DEBE VIVIR: es decisión del director.
+
+  B.135 — [ABIERTO 01/09 al auditar la deuda · BLOQUEA A D2] DOS SISTEMAS
+    PARALELOS REGISTRAN EL USO DE LLM, EN DOS TABLAS, Y NADIE SABE SI UNO
+    SUSTITUYE AL OTRO.
+
+    ══ LO QUE HAY ══
+    · `logUsage` (`lib/usage-logger.ts`) → tabla **`usage_logs`**
+      user_id, org_id, endpoint, model, input/output tokens, cache_creation y
+      cache_read, latency_ms, success, credits_consumed, error_message,
+      user_query.
+    · `persistLLMUsage` / `recordUsage` (`lib/observability/record-usage.ts`)
+      → tabla **`llm_usage`**
+      org_id, user_id, operation, model, tokens (incluido cache_write), y
+      **cost_usd calculado** con `llm-pricing.ts`.
+
+    LOS DOS ESTÁN VIVOS Y CABLEADOS EN LOS MISMOS CUATRO ENDPOINTS —ask,
+    analyze-v2, analyze-style, improve— y `recordUsage` se llama además desde
+    tres puntos de `lib/llm/anthropic-client.ts`. O sea que una misma llamada al
+    modelo puede quedar registrada DOS VECES, en dos tablas, con dos formas
+    distintas de nombrar lo mismo (`endpoint` contra `operation`,
+    `cache_creation_tokens` contra `cache_write_tokens`).
+
+    ══ LO QUE NO SE SABE, y es lo que hay que decidir ══
+    Si `llm_usage` nació para SUSTITUIR a `usage_logs` y la sustitución quedó a
+    medias, o si conviven a propósito porque miden cosas distintas —uno el
+    endpoint de cara al usuario, otro cada llamada al modelo—. Las dos lecturas
+    son plausibles con el código delante y NO SE HA INVESTIGADO: se encontró
+    auditando otra cosa.
+
+    ══ POR QUÉ BLOQUEA ══
+    D2 pide una vista de uso por usuario. **Construirla antes de decidir esto es
+    elegir tabla a ciegas**, y la elección no es inocua: solo `llm_usage` tiene
+    coste en dólares, y solo `usage_logs` tiene créditos consumidos y la
+    consulta del usuario. Una vista sobre la tabla equivocada nace incompleta y
+    con datos que parecen totales sin serlo.
+
+    ══ Y UN RIESGO QUE NO SE HA MEDIDO ══
+    Si las dos registran la misma llamada, **cualquier suma que cruce las dos
+    tablas cuenta doble**. Hoy nadie las cruza, pero es exactamente el tipo de
+    trampa que espera a la primera consulta de analítica que las junte sin
+    saberlo.
+
+    NO SE PROPONE CUÁL SE QUEDA: hace falta mirar cuándo nació cada una y qué
+    consume cada tabla, y eso no se ha hecho.
 
   F-81 [CONVERGENCIA — leer ANTES de planificar la fase 3 del diff, 27/08] No
     es un pendiente nuevo: es el sitio donde se juntan tres que ya existen, más

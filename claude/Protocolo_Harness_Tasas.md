@@ -236,6 +236,33 @@ presente—, y para eso está la cabecera de estado de cada consulta archivada.
   trabajo era precisamente vigilar ese crecimiento**. Un vigilante con el número
   desactualizado. Se descubrió al ir a citarlo.
 
+
+**LA TERCERA VEZ EN UNA SEMANA, y las tres cazadas por esta regla.** No es una
+cautela teórica: es lo que más ha rendido del protocolo en siete días.
+
+| Documento | Dónde vivía | Qué afirmaba de falso |
+|---|---|---|
+| `Contrato_Contadores.md` | **dentro** del repo | una víctima de la cláusula 5 como si `porColumna` ya viviera en `pipeline_counters`. Vivía en una estructura que no se persiste |
+| **B.113** | **dentro** del repo | que el protocolo tenía 403 líneas cuando tenía 466 — **y su trabajo era vigilar ese crecimiento** |
+| La lista de **deuda técnica** | **FUERA** del repo | cuatro de sus cinco puntos. Uno resuelto hacía meses, dos mal enunciados, uno a medias |
+
+**LO QUE ENSEÑA LA TERCERA, y no lo enseñaban las dos primeras**: estar dentro
+del repositorio **no basta** —las dos primeras se pudrieron estando dentro— pero
+estar FUERA lo hace **inevitable**. Un documento que ningún commit toca y ningún
+`grep` encuentra no tiene forma de corregirse: no hay ocasión en que alguien
+tropiece con él mientras hace otra cosa.
+
+> **Un documento normativo que vive donde nadie lo verifica se pudre entero.
+> Dentro del repositorio se pudre a trozos, y de vez en cuando alguien lo pilla.**
+
+Por eso la lista de deuda se trajo al repositorio el 01/09 (cabecera de la parte
+B de `Puntos_Pendientes_Doclity.txt`) **con la fecha de comprobación en cada
+punto**. La fecha es la mitad que faltaba: sin ella, un estado dice lo que
+alguien creyó, no lo que el código hacía.
+
+**Y las tres se cazaron igual**: yendo a usar el documento como premisa y
+comprobándolo antes de apoyarse. Ninguna se encontró releyendo.
+
 **LOS DOS SE CORRIGIERON SIN REESCRIBIR HISTORIA**: el contrato explica qué se
 creyó y qué era; B.113 conserva su cifra original y añade la de hoy. Corregir un
 normativo es actualizar lo que afirma del presente, nunca borrar lo que se creyó
