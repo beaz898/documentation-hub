@@ -5,7 +5,7 @@ import { queryRAG } from '@/lib/rag';
 import { logUsage } from '@/lib/usage-logger';
 import { checkRateLimit } from '@/lib/rate-limiter';
 import { resolveOrg } from '@/lib/org';
-import { consumeCredits, getCreditCost } from '@/lib/credits';
+import { consumeCredits, devolverSiNoSeEntrego, getCreditCost } from '@/lib/credits';
 import { saveChatQuery } from '@/lib/persist-analysis';
 import { usageContext } from '@/lib/observability/usage-context';
 import { persistLLMUsage } from '@/lib/observability/record-usage';
@@ -127,6 +127,15 @@ export async function POST(req: NextRequest) {
 
     const message = error instanceof Error ? error.message : 'Error interno';
     const latencyMs = Date.now() - startedAt;
+
+    // LA MITAD SIMÉTRICA DEL COBRO (01/09). Llegar aquí significa que no hubo
+    // respuesta: el crédito se cobró antes de la operación —correcto contra el
+    // sobregiro— y sin esto se quedaba cobrado por un fallo de Pinecone o de
+    // Anthropic que no es del usuario. Va ANTES de responder el error, para que
+    // el saldo ya esté devuelto cuando el usuario reintente.
+    await devolverSiNoSeEntrego(supabase, {
+      orgId, creditosCobrados: creditsConsumed, entregado: false, contexto: '/api/ask',
+    });
 
     // Registrar uso fallido
     if (userId) {

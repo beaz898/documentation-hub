@@ -5,7 +5,7 @@ import { analyzeStyle } from '@/lib/analysis/style-check';
 import { logUsage } from '@/lib/usage-logger';
 import { checkRateLimit } from '@/lib/rate-limiter';
 import { resolveOrg } from '@/lib/org';
-import { consumeCredits, getCreditCost } from '@/lib/credits';
+import { consumeCredits, devolverSiNoSeEntrego, getCreditCost } from '@/lib/credits';
 import { saveStyleResult } from '@/lib/persist-analysis';
 import { usageContext } from '@/lib/observability/usage-context';
 import { persistLLMUsage } from '@/lib/observability/record-usage';
@@ -101,6 +101,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: true, problems });
   } catch (error: unknown) {
     console.error('Error in /api/analyze-style:', error);
+
+    // La mitad simétrica del cobro (01/09): aquí no se entregó nada.
+    await devolverSiNoSeEntrego(supabase, {
+      orgId, creditosCobrados: creditsConsumed, entregado: false, contexto: '/api/analyze-style',
+    });
 
     if (userId) {
       await logUsage(supabase, {

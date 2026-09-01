@@ -196,6 +196,78 @@ export function getCreditCost(endpoint: string, isExhaustive = false): number {
 }
 
 /**
+ * LA MITAD SIMÉTRICA DEL COBRO: SE DEVUELVE SI NO SE ENTREGA (01/09/2026).
+ *
+ * CLAUDE.md manda descontar créditos ANTES de la operación, y es correcto —
+ * hacerlo después deja que dos peticiones paralelas sobregiren. Pero esa regla
+ * tiene una mitad que nadie escribió: **quien cobra por adelantado devuelve si
+ * no entrega**. Hasta hoy solo la cumplían `/api/analyze-v2` y el agente;
+ * `/api/ask`, `/api/analyze-style` y `/api/improve` cobraban y no devolvían
+ * nunca. Si Pinecone o Anthropic caían, el usuario pagaba por un error que no
+ * era suyo — y el reintento le costaba otro crédito.
+ *
+ * LAS DOS CONDICIONES, y las dos hacen falta:
+ *
+ *   · NO ENTREGADO. Una operación que respondió bien no devuelve nada, por
+ *     obvio que parezca: sin esta mitad, un criterio que dijera «devuelve
+ *     siempre» pasaría igual de verde y regalaría el producto entero.
+ *
+ *   · SE COBRÓ ALGO. `creditosCobrados` vale 0 cuando el fallo ocurrió ANTES
+ *     del cobro —org no resuelta, límite de tasa, saldo insuficiente—, y es un
+ *     caso frecuente: las rutas inicializan el contador a 0 y lo asignan
+ *     después de `consumeCredits`. Devolver ahí regalaría créditos que nunca
+ *     se cobraron.
+ *
+ * NO SIRVE PARA `/api/analyze-v2`, y por eso no se aplica allí: ese endpoint SÍ
+ * tiene entrega parcial —un análisis con etapas caídas se entrega igual— y su
+ * criterio es `stageFailures`, que es otra pregunta. Aquí «entregado» es
+ * booleano porque en estos tres endpoints o hay respuesta o hay error.
+ */
+export function debeDevolverse(params: {
+  entregado: boolean;
+  creditosCobrados: number;
+}): boolean {
+  return !params.entregado && params.creditosCobrados > 0;
+}
+
+/**
+ * Devuelve lo cobrado cuando la operación no llegó a entregarse, y lo deja
+ * dicho en el log de las dos formas — devuelto o fallido al devolver.
+ *
+ * NO LANZA: se llama desde dentro de un `catch`, y un fallo aquí no puede tapar
+ * el error original que el usuario está esperando. Si el reembolso falla, queda
+ * el `console.error` con la org y el importe, que es lo que permite repararlo a
+ * mano.
+ */
+export async function devolverSiNoSeEntrego(
+  supabase: SupabaseClient,
+  params: { orgId: string; creditosCobrados: number; entregado: boolean; contexto: string },
+): Promise<void> {
+  if (!debeDevolverse(params)) return;
+
+  const { orgId, creditosCobrados, contexto } = params;
+  try {
+    const r = await refundCredits(supabase, orgId, creditosCobrados);
+    if (r.success) {
+      console.warn(
+        `[credits] ${contexto}: no se entregó — devueltos ${creditosCobrados} créditos ` +
+        `(credits_extra ahora: ${r.creditsExtra})`,
+      );
+    } else {
+      console.error(
+        `[credits] ${contexto}: no se entregó — FALLO al devolver ${creditosCobrados} ` +
+        `créditos a la org ${orgId}`,
+      );
+    }
+  } catch (err) {
+    console.error(
+      `[credits] ${contexto}: excepción al devolver ${creditosCobrados} créditos a la org ${orgId}:`,
+      err,
+    );
+  }
+}
+
+/**
  * Devuelve créditos a una organización (inverso de consumeCredits).
  *
  * Los créditos devueltos se añaden a credits_extra (no al pool del plan),

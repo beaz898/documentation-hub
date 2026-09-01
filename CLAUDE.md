@@ -272,6 +272,17 @@ El dueño del proyecto NO es programador. Vercel deploya automáticamente al hac
   Y la firma no solo escondía el fallo: lo habría hecho repetir. Con ella, el
   siguiente proveedor no tenía forma de enterarse de que había un caso que
   atender. Promovida el 01/09/2026.
+- **ANTES DE METER ESPERAS EN UN SITIO, PREGUNTAR: ¿CUÁNTO TIEMPO TENGO AQUÍ, Y
+  CUÁNTO CONSUME LO QUE VOY A METER?** Un arreglo puede empeorar lo que arregla
+  si no cabe en el presupuesto de tiempo del sitio donde va.
+  El caso: copiar los seis reintentos de la indexación —61 s solo en esperas— a
+  `/api/ask`, que tiene `maxDuration: 30` en `vercel.json`. Habría convertido un
+  error limpio en un TIMEOUT DE PLATAFORMA: sin `catch`, sin registro de uso,
+  sin mensaje al usuario y con el crédito ya cobrado.
+  El presupuesto se mira en `vercel.json` (o en el worker, que no lo tiene) y se
+  cuenta ENTERO: en esos mismos 30 s corre también la llamada al modelo con su
+  propio retry. De ahí que los reintentos de embeddings sean DOS presupuestos
+  con nombre y no uno. Promovida el 01/09/2026.
 - Retry con backoff y fallback determinista.
 - Cero dependencias nuevas sin razón.
 - Idioma del proyecto: español.

@@ -398,6 +398,35 @@ cada lado, comportamiento en vacío y ausente— habrían cazado las tres
 ambigüedades del frente 1; ninguna de las cuatro por su cuenta lo habría hecho.
 
 
+### «REUTILIZA X» SE TRADUCE IGUAL QUE UNA REGLA DICTADA
+
+*Añadida el 01/09/2026 por el director, sobre un encargo suyo.*
+
+La disciplina de traducir antes de escribir se aplicaba a las reglas —lo que se
+convierte en código— y a las predicciones. Falta el tercer artefacto, y es el
+más frecuente: **la instrucción de reutilizar algo que ya existe.**
+
+> «Reutiliza `embedBatchWithBackoff`, que ya está escrito y probado.»
+
+Razonable, y **falsa por dentro**: la función llevaba el `inputType` CLAVADO en
+`'passage'`. Reutilizarla habría mandado toda pregunta del chat con el prefijo de
+pasaje, sacándola del espacio en el que se compara contra el corpus: **la
+recuperación se habría degradado en TODAS las preguntas, sin un solo error en
+los logs**.
+
+**ES LA MISMA ESPECIE QUE LAS PREMISAS FALSAS DE F-94**, con una diferencia que
+la hace más difícil: aquéllas eran nuestras y ésta venía en un encargo, o sea
+con la autoridad de quien manda. Un encargo no se audita menos por venir de
+arriba — se audita igual, y quien lo dictó lo agradece antes que nadie.
+
+> **«Reutiliza X» hay que traducirlo: qué hace X exactamente, qué lleva DENTRO
+> que aquí no valga, y qué parte es la que de verdad se comparte.** Casi siempre
+> lo compartible es la POLÍTICA, no la llamada.
+
+Y el remate: si la parte reutilizable no se puede separar sin tocar X, eso ya es
+la respuesta — X estaba mezclando dos cosas, y separarlas es el trabajo.
+
+
 ### LA QUINTA PIEZA: y también cuando lo que se escribe es una PREDICCIÓN
 
 *Añadida el 01/09/2026, tres días después de las otras cuatro, porque el mismo

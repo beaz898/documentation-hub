@@ -7,7 +7,7 @@ import { callLLMWithUsage } from '@/lib/analysis/llm-client';
 import { logUsage } from '@/lib/usage-logger';
 import { checkRateLimit } from '@/lib/rate-limiter';
 import { resolveOrg } from '@/lib/org';
-import { consumeCredits, getCreditCost } from '@/lib/credits';
+import { consumeCredits, devolverSiNoSeEntrego, getCreditCost } from '@/lib/credits';
 import { usageContext } from '@/lib/observability/usage-context';
 import { persistLLMUsage } from '@/lib/observability/record-usage';
 
@@ -308,6 +308,13 @@ Recuerda: si propones REPLACEMENT(s), el "find" debe ser copia literal del TEXTO
       const message = err instanceof Error ? err.message : String(err);
       console.error('[IMPROVE] LLM call failed:', message);
 
+      // ⚠️ ESTA SALIDA NO PASA POR EL `catch` EXTERIOR: devuelve 503 aquí mismo,
+      // así que necesita su propio reembolso. Es la segunda de las dos salidas
+      // de no entrega de esta ruta (01/09).
+      await devolverSiNoSeEntrego(supabase, {
+        orgId, creditosCobrados: creditsConsumed, entregado: false, contexto: '/api/improve (LLM)',
+      });
+
       await logUsage(supabase, {
         userId,
         orgId,
@@ -395,6 +402,13 @@ Recuerda: si propones REPLACEMENT(s), el "find" debe ser copia literal del TEXTO
   } catch (error: unknown) {
     console.error('Error in /api/improve:', error);
     const message = error instanceof Error ? error.message : 'Error interno';
+
+    // La mitad simétrica del cobro (01/09). Ojo: el `catch` de la recuperación
+    // de contexto NO lleva reembolso a propósito — ahí se sigue sin contexto y
+    // SÍ se entrega respuesta.
+    await devolverSiNoSeEntrego(supabase, {
+      orgId, creditosCobrados: creditsConsumed, entregado: false, contexto: '/api/improve',
+    });
 
     if (userId) {
       await logUsage(supabase, {
