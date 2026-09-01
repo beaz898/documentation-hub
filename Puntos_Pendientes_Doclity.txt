@@ -2223,6 +2223,44 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     referencia; ésta se cura quitando el prefijo antes de alinear. No se arregla
     hoy porque toca el camino del juez y hay medición en curso, pero conviene
     saber que NO comparte destino con las otras tres.
+    LA FRASE QUE LA SEPARA DE LAS OTRAS TRES, y conviene citarla entera:
+    COPIÓ LA FILA EXACTAMENTE COMO SE LA ENSEÑAMOS Y LO PENALIZAMOS.
+    La glosa, la narración y la enumeración son cosas que el modelo añade de su
+    cosecha; ésta es obediencia castigada. Cualquier arreglo que se plantee para
+    las otras tres —enseñarle a citar mejor— aquí sobra: el modelo ya citó
+    perfecto.
+
+    ══ CANDIDATO A ARREGLARSE ANTES DEL FRENTE 4 ══
+    No lo necesita: las otras tres esperan a las citas por referencia, y ésta se
+    cura quitando el prefijo `[F\d+] ` antes de alinear. Arreglo pequeño, causa
+    nuestra, y devuelve hallazgos que hoy se tiran.
+    NO SE HACE HASTA SABER CUÁNTO PESA. La decisión del director es medir
+    primero, y con razón: el dato que hay es de UN par de documentos.
+
+    ══ LO QUE SE SABE DE SU FRECUENCIA, con las cifras exactas ══
+    ⚠️ EN LA SIEMBRA FUE 4 DE 4, NO 4 DE 5. Contado del log: la pasada de
+    OPE-13 emitió 3 solapamientos y descartó los 3; la de RRHH-08 emitió 1 y
+    descartó 1. CIEN POR CIEN de los solapamientos del par, las dos direcciones.
+    PERO NO SE HA VISTO EN NINGÚN OTRO PAR, y eso es la mitad importante del
+    dato:
+      · OPE-10 / OPE-11 (31/08): 5 solapamientos por pasada, muertos por
+        `citaDeContexto` — el juez citaba LA LÍNEA DE CONTEXTO de las filas
+        colapsadas, no una fila con prefijo. Causa distinta.
+      · RRHH-06 / OPE-02 (31/08): un `lado=ambos`, pero con las dos citas
+        CONCATENADAS a mano por el juez —la forma de enumeración— sin ningún
+        `[F`. Causa distinta.
+    LUEGO LA FORMA DEL PREFIJO SOLO HA APARECIDO DONDE LAS FILAS SON CASI
+    IDÉNTICAS entre los dos documentos, que es lo que empuja al juez a emitir
+    solapamientos citando FILAS ENTERAS. Extrapolar el 100% al corpus de tablas
+    sería exactamente el error que el protocolo prohíbe: una tasa de un par no
+    es una tasa.
+
+    ══ CÓMO MEDIRLO, cuando toque ══
+    Contar, sobre las tandas de pares TABULARES, cuántos `citaNoVerificable`
+    con `lado=ambos` llevan una cita que empieza por `[F` y cuántos no. El
+    prefijo hace la firma inconfundible, así que la cuenta es mecánica y no
+    necesita juicio: si empieza por `[F` y falla exactamente un segmento, es
+    ésta.
 
   B.108 — [ENCONTRADO 27/08, DOS CAUSAS Y SOLO UNA ES DEL PROYECTO] El build
     local no se puede ejecutar, así que no da veredicto antes de un push.

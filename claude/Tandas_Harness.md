@@ -82,8 +82,9 @@ Tiempos totales de 9,7 y 13,7 segundos, muy por debajo de `maxDuration = 120`.
 
 #### LOS SOLAPAMIENTOS RECHAZADOS: cuatro, y con causa mecánica
 
-Tres en una dirección y uno en la otra, todos por `cita no verificable,
-lado=ambos`, y **con las dos citas idénticas entre sí**:
+Tres en una dirección y uno en la otra —**4 de 4, el cien por cien de los
+solapamientos del par**— todos por `cita no verificable, lado=ambos`, y **con
+las dos citas idénticas entre sí**:
 
     nuevo    = "[F0] Dra. Marta Gil | Chamberí | Cirugía | Mañana | 35"
     existente= "[F0] Dra. Marta Gil | Chamberí | Cirugía | Mañana | 35"
