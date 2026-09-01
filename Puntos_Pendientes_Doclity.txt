@@ -2822,6 +2822,42 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     que va de otra cosa.
 
 
+
+    ══ 2ª MITAD, HECHA EL 01/09 — el volcado fuera (F-94 P2) ══
+    La plantilla del solapamiento ya no lleva `labels.join(', ')`. La frase
+    conserva lo que informa —recuento, total y columnas, que son CAMPOS PROPIOS
+    y no se derivan de las filas— y pierde ~2.200 caracteres de datos del
+    cliente que viajaban a los tres prompts y al jsonb SIN QUE NADIE LOS LEYERA
+    en pantalla.
+    Y DE PASO SE RETIRÓ LA PROPAGACIÓN: `labels` subía desde
+    `buildContextFragment` hasta `StructuralOverlap` solo para esa plantilla.
+    Sin lector, la copia sobra — es la regla de F-94 P3 aplicada literalmente.
+    LAS FILAS SIGUEN DONDE SÍ TIENEN LECTOR: dentro del fragmento de contexto
+    del prompt del juez, que las necesita. Ese fragmento es la 1ª mitad de este
+    pendiente y solo desaparece si la tabla cabe.
+    EL HALLAZGO NO SE RETIRA, con sucesor declarado: dice dos cosas que el diff
+    aún no dice —en qué columnas coinciden y qué porcentaje—. Cuando el diff las
+    calcule por celdas sobre los pares que cubre, absorbe el solapamiento como
+    una sección más de su tarjeta (F-94 P2). Va a la especificación del diff.
+    CASO QUE LO VIGILA: `solapamiento-estructural.test.ts`, «NINGUNA fila del
+    cliente aparece en la descripción». Mutado devolviendo el volcado: 1 rojo.
+    Hacía falta, porque el volcado NO SE VE en pantalla y nadie lo echaría de
+    menos si volviera.
+
+    ══ Y LA COMPROBACIÓN DE P3: LAS FILAS AJENAS NO LLEGAN A NINGÚN PROMPT ══
+    Verificado con grep sobre `soloEnNuevo`/`soloEnOtro`: sus únicos
+    consumidores son `diff-emision.ts:209-210` (donde se construyen), `types.ts`
+    (donde se declaran) y `components/improvement/table-coverage.ts` (LA
+    INTERFAZ, el bloque de cobertura). Ningún prompt.
+    Luego se quedan: es el criterio de F-94 P3 —se persisten porque SE MUESTRAN,
+    y el jsonb del análisis es el resultado—. Cincuenta filas ajenas
+    persistidas son el resultado; cincuenta de solapamiento en tres prompts eran
+    una fuga.
+    Y la higiene que Fable pedía para ellas —que su texto vaya sin el prefijo de
+    fila— YA SE CUMPLÍA: `aFila` usa `r.text`, que es el texto ALMACENADO
+    («[Hoja "X"] Columna: valor | …»), no el renderizado con `[F0]`. El prefijo
+    nunca estuvo ahí.
+
     ══ 3. TERCER SÍNTOMA, MEDIDO EL 31/08: CINCO SOLAPAMIENTOS QUE CITAN LA
        LÍNEA DE CONTEXTO Y MUEREN ══
     LO QUE SE VE, en la tanda 1 del frente 1 y SOLO en la dirección OPE-10 →

@@ -873,6 +873,41 @@ dónde sale el dato, ésta si el caso que lo vigila puede fallar— y sale de TR
 veces en dos días, todas con el mismo aspecto: el caso parecía discriminar y no
 discriminaba.*
 
+**AMPLIACIÓN DEL 01/09/2026 — la 4 no solo caza casos que no discriminan: caza
+FUNCIONALIDAD QUE ENTRA SIN PRUEBA.**
+
+Hasta hoy los cuatro casos de esta plantilla eran de la misma forma: un test que
+parecía vigilar algo y no podía fallar. El del prefijo de fila es distinto y
+merece quedar escrito.
+
+El cambio tenía **dos mitades**: despegar el puntero del texto, y usar el índice
+para ESTRECHAR la búsqueda de la fila. La suite pasaba entera. Al mutar:
+
+    m1  no despegar el puntero      → 6 rojos
+    m2  despegar pero NO estrechar  → NINGÚN ROJO
+
+**La segunda mitad no estaba probada, y no por falta de un caso: porque el
+corpus no puede distinguirla.** En los documentos medidos no hay dos filas
+iguales dentro de la misma tabla, así que la búsqueda por valores acierta
+siempre y el índice no cambia ningún resultado. Media funcionalidad iba a entrar
+en producción sin que nada la vigilara, con la batería en verde y sin que
+faltara ningún test «obvio».
+
+Se construyó el caso donde sí importa —dos filas idénticas en la misma tabla, el
+puntero desempata— y m2 pasó a caer.
+
+> **Lo que la 4 pregunta al mutar no es «¿tengo un caso para esto?» sino «¿QUÉ
+> PARTE DE LO QUE ACABO DE ESCRIBIR PODRÍA BORRAR SIN QUE NADIE SE ENTERE?».**
+> Si la respuesta es «esta mitad», o falta el caso o el corpus no puede darlo —
+> y en el segundo supuesto se construye, que para lo determinista es legítimo
+> (F-83 P3).
+
+**Y hay que mutar POR MITADES, no el cambio entero.** Una mutación que rompe
+todo el mecanismo siempre da rojo y no distingue: sale verde el informe y la
+mitad muerta sigue ahí.
+
+
+
 - **`soloFormato` / `igualTrasNormalizar` (fase 2 del diff).** Dos mutaciones
   plausibles sobrevivían a catorce casos verdes: renderizar los dos lados con
   las columnas de la misma tabla —invisible porque las dos tienen diez— y contar

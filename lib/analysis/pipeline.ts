@@ -613,11 +613,33 @@ export async function applyCascadeToCandidate(
   const structuralEntries: DocumentJudgment['overlappingContent'] = structuralOverlaps.map(s => {
     const structuralPercent = s.rowsTotal > 0 ? Math.round((s.collapsedCount / s.rowsTotal) * 100) : 0;
     const tableLabel = s.sheetName ? `"${s.sheetName}"` : 'una tabla';
+  // ⚠️ SIN LA LISTA DE FILAS (B.122, 2ª mitad — F-94 P2).
+  //
+  // Hasta el 01/09 esta frase terminaba con `${s.labels.join(', ')}`: las VEINTE
+  // FILAS DEL CLIENTE, enteras, nombres y precios incluidos. Medido en el par
+  // grande: ~2.200 caracteres que viajaban a los TRES prompts del cliente
+  // —`description` es la única cadena que leen— y al jsonb persistido.
+  //
+  // Y NO SE VEÍAN EN PANTALLA: `ProblemDetail` pinta `comparedValues` cuando los
+  // hay y solo cae a `description` si no. Viajaban a todos los prompts y no las
+  // leía nadie. Es la peor combinación posible.
+  //
+  // LA FRASE NO PIERDE INFORMACIÓN AL QUITARLAS, y ésa es la razón de que se
+  // pueda: el recuento, el total y las columnas son CAMPOS PROPIOS
+  // (`collapsedCount`, `rowsTotal`, `columns`), no se derivan de las filas. Lo
+  // que se va es una copia sin lector — la regla de F-94 P3: los datos del
+  // cliente se persisten donde se MUESTRAN y van a un modelo solo donde
+  // DECIDEN.
+  //
+  // EL HALLAZGO NO SE RETIRA TODAVÍA, y tiene sucesor declarado: dice dos cosas
+  // que el diff aún no dice —en qué columnas coinciden y qué porcentaje—. El día
+  // que el diff las calcule por celdas sobre los pares que cubre, este
+  // solapamiento se absorbe como una sección más de su tarjeta (F-94 P2). Va a
+  // la especificación del diff, no aquí.
     return {
       description:
         `${s.collapsedCount} de ${s.rowsTotal} filas de ${tableLabel} de "${judgment.documentName}" ` +
-        `coinciden exactamente, celda a celda, en ${s.columns.join(' y ')} con filas de "${newDocumentName}": ` +
-        `${s.labels.join(', ')}.`,
+        `coinciden exactamente, celda a celda, en ${s.columns.join(' y ')} con filas de "${newDocumentName}".`,
       evidence: '',
       evidenceInNewDoc: '',
       confirmedBy: 'estructura',

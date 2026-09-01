@@ -661,7 +661,14 @@ export interface StructuralOverlap {
   tableId: string;
   sheetName: string | null;
   columns: string[];
-  labels: string[];
+  /** ⚠️ AQUÍ YA NO VIAJAN LAS FILAS (B.122, 01/09). `labels` se calculaba, subía
+   *  hasta aquí y solo lo leía la plantilla del solapamiento — que dejó de
+   *  volcarlas. Sin lector, la copia sobra: es la regla de F-94 P3 aplicada
+   *  literalmente.
+   *  LAS FILAS SIGUEN VIVAS DONDE SÍ TIENEN LECTOR: dentro del fragmento de
+   *  contexto que `buildContextFragment` arma para el prompt del juez, que las
+   *  necesita para decirle qué filas coinciden. Ese fragmento es otro asunto —
+   *  el de la 1ª mitad de B.122, que solo desaparece si la tabla cabe. */
   collapsedCount: number;
   rowsTotal: number;
 }
@@ -706,7 +713,7 @@ function assembleTable(
   /** F-45: solo presente cuando el colapso SÍ entró (la línea agregada cupo
    *  en presupuesto) — no en el caso patológico donde las idénticas vuelven
    *  a competir sueltas, porque ahí no hubo colapso real que reportar. */
-  structural?: { columns: string[]; labels: string[]; rowsTotal: number };
+  structural?: { columns: string[]; rowsTotal: number };
   /** F-74 P2: filas RECUPERADAS que no entraron. 0 en nivel 1 (entran todas,
    *  incluidas las que Pinecone no devolvió). */
   rowsLeftOut: number;
@@ -760,7 +767,7 @@ function assembleTable(
       let usedRowChars = 0;
       let belongingUsed = 0;
       let collapsedCount = 0;
-      let structural: { columns: string[]; labels: string[]; rowsTotal: number } | undefined;
+      let structural: { columns: string[]; rowsTotal: number } | undefined;
 
       if (identicalRows.length > 0) {
         const aggregated = buildContextFragment(identicalRows, docChunks, sharedCols, like, unit.score);
@@ -768,7 +775,7 @@ function assembleTable(
           packedRows.push(aggregated.fragment);
           usedRowChars += aggregated.fragment.text.length;
           collapsedCount = identicalRows.length;
-          structural = { columns: aggregated.columns, labels: aggregated.labels, rowsTotal: allRowChunks.length };
+          structural = { columns: aggregated.columns, rowsTotal: allRowChunks.length };
         } else {
           // Caso patológico: ni la línea agregada cupo. Las idénticas vuelven
           // a competir como cualquier otra fila, sin colapsar — mejor una
@@ -933,7 +940,6 @@ function selectUnitsWithinBudget(
           tableId: unit.tableId,
           sheetName: unit.sheetName,
           columns: assembled.structural.columns,
-          labels: assembled.structural.labels,
           collapsedCount: assembled.collapsedCount,
           rowsTotal: assembled.structural.rowsTotal,
         });
