@@ -10,7 +10,8 @@ import IncompleteAnalysisNotice from '@/components/IncompleteAnalysisNotice';
 import SelectionLimitNotice from '@/components/SelectionLimitNotice';
 import type { SelectionLimitItem } from '@/components/SelectionLimitNotice';
 import TableCoverageBlock from './TableCoverageBlock';
-import { contarSinCorrespondencia, hayRanuraDeCobertura, ordenDeGrupos } from './table-coverage';
+import WritingVariantsBlock from './WritingVariantsBlock';
+import { contarSinCorrespondencia, contarVariantes, hayRanuraDeCobertura, hayRanuraDeVariantes, ordenDeGrupos } from './table-coverage';
 import type { ProblemType, Problem } from './problems';
 import { mostrarAccionesDeFila } from './problems';
 import type { GrupoDeTablas } from '@/lib/analysis/types';
@@ -82,10 +83,14 @@ export default function ChatPanel({
    * como un hallazgo.
    */
   const [coberturaAbierta, setCoberturaAbierta] = useState(false);
+  // Estado propio, como el de al lado: son dos grupos informativos distintos y
+  // plegar uno no dice nada del otro.
+  const [variantesAbiertas, setVariantesAbiertas] = useState(false);
   // SE PREGUNTA, NO SE RECALCULA (CLAUDE.md, F-89 P2). Antes esto era
   // `tableDiffs.length > 0`, que no es la misma pregunta que la que responde el
   // bloque al pintar: un grupo sin nada informativo daba una ranura vacía.
   const hayCobertura = hayRanuraDeCobertura(tableDiffs);
+  const hayVariantes = hayRanuraDeVariantes(tableDiffs);
   const hayAlcance = Boolean(selectionLimits && selectionLimits.length > 0);
 
   // Translated labels for group headers (plural) and type badges
@@ -241,7 +246,7 @@ export default function ChatPanel({
           Y un par de tablas cuyo único resultado fuera cobertura —caso que
           F-84 P1 declaró aceptable— dejaría la caja vacía y las cincuenta
           ajenas sin enseñar. */}
-      {(groupedProblems.length > 0 || hayCobertura || hayAlcance) && (
+      {(groupedProblems.length > 0 || hayCobertura || hayVariantes || hayAlcance) && (
         <div style={{
           padding: '10px 16px', borderBottom: '0.5px solid var(--border)',
           display: 'flex', flexDirection: 'column', gap: 10,
@@ -258,7 +263,7 @@ export default function ChatPanel({
               `ordenDeGrupos` (table-coverage.ts), con sus casos: una regla de
               colocación escrita dentro del JSX es una regla sin vigilancia, y
               en este módulo ya ha pasado dos veces. */}
-          {ordenDeGrupos(groupedProblems.map(g => g.type), hayCobertura).map(ranura => {
+          {ordenDeGrupos(groupedProblems.map(g => g.type), { cobertura: hayCobertura, variantes: hayVariantes }).map(ranura => {
             if (ranura.clase === 'cobertura') {
               return (
                 <div key="cobertura" style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
@@ -287,6 +292,42 @@ export default function ChatPanel({
                   {coberturaAbierta && (
                     <TableCoverageBlock grupos={tableDiffs!} nombreDocumentoAnalizado={documentName} />
                   )}
+                </div>
+              );
+            }
+
+            /* LA RANURA HERMANA (decisión de producto, 01/09). Va DESPUÉS de
+               «Sin correspondencia» —lo decide `ordenDeGrupos`, no este JSX— y
+               tiene su propio recuento porque el de al lado cuenta filas
+               ajenas: un titular que anuncia un cero con cosas debajo se lee
+               como avería, y era lo que pasaba cuando las variantes vivían
+               dentro del otro grupo. */
+            if (ranura.clase === 'variantes') {
+              return (
+                <div key="variantes" style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  <div
+                    onClick={() => setVariantesAbiertas(o => !o)}
+                    style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', userSelect: 'none' }}
+                  >
+                    <svg
+                      width="12" height="12" viewBox="0 0 24 24" fill="none"
+                      stroke="var(--text-muted)" strokeWidth="2.5"
+                      strokeLinecap="round" strokeLinejoin="round"
+                      style={{
+                        transform: variantesAbiertas ? 'rotate(0deg)' : 'rotate(-90deg)',
+                        transition: 'transform 0.15s', flexShrink: 0,
+                      }}
+                    >
+                      <polyline points="6 9 12 15 18 9" />
+                    </svg>
+                    <span style={{
+                      fontSize: 11, fontWeight: 700, color: 'var(--text-muted)',
+                      textTransform: 'uppercase', letterSpacing: 0.4, flex: 1,
+                    }}>
+                      {t('tableCardWritingVariants')} ({contarVariantes(tableDiffs!)})
+                    </span>
+                  </div>
+                  {variantesAbiertas && <WritingVariantsBlock grupos={tableDiffs!} />}
                 </div>
               );
             }

@@ -430,6 +430,11 @@ donde el sistema acertaba.
 > POBLACIÓN sobre la que cuantifica**, con el mismo rigor que un predicado
 > declara su universo. Y si la predicción dice además qué la falsaría, la
 > población tiene que ser la misma en las dos frases.
+>
+> Y su forma práctica, que es la que de verdad se usa: **cuando un cambio altera
+> la FORMA de un valor devuelto o de una firma, la población incluye a todo el
+> que la compara o la llama ENTERA** — un `toEqual` es una aserción sobre la
+> forma, y no vive donde vive la función que se está cambiando.
 
 **Es la misma disciplina, no una nueva**: predicado, universos, casos a cada
 lado, comportamiento en vacío — y ahora también **población, cuando lo que se
@@ -977,16 +982,29 @@ mitad, esa mutación habría dado verde y la habríamos dado por buena. **La
 mutación no distingue entre «no hay caso que vigile esto» y «lo había y lo borré
 hace diez minutos».** La pregunta de cómo automatizarlo está abierta en B.137.
 
-**LA PRIMERA, comprobar que la mutación se APLICÓ, cobró dos veces el mismo
-día.** En el commit 1 de la ficha B, m2 no casó el patrón por un problema de
+**LA PRIMERA, comprobar que la mutación se APLICÓ, cobró CUATRO veces el mismo
+día** —dos por comillas, una por índices de `process.argv` mal contados y una
+por el patrón partido en dos líneas—.
+Las dos primeras: En el commit 1 de la ficha B, m2 no casó el patrón por un problema de
 comillas; en el commit 2, m1 tampoco. Las dos veces la línea siguiente del
 informe era un verde de 31 casos — **que era la corrida LIMPIA**, no la mutada.
 Sin la cautela, «no se rompió nada» habría entrado en el commit como si el
 mecanismo estuviera vigilado.
-El remedio que funcionó las dos veces: la mutación va en un fichero `.cjs` que
-FALLA RUIDOSAMENTE si el patrón no aparece exactamente una vez, y que imprime
-la comprobación de que la cadena ya no está. Una mutación silenciosa es
-indistinguible de un test que no muerde, y las dos se leen igual: verde.
+Una mutación silenciosa es indistinguible de un test que no muerde, y las dos se
+leen igual: verde.
+
+**LA FORMA ESTÁNDAR DE MUTAR, y no es una nota al margen: es el procedimiento.**
+La mutación se aplica con un script `.cjs` que
+
+  1. cuenta las apariciones del patrón y **aborta si no es exactamente una**,
+  2. escribe el cambio,
+  3. **relee el fichero** y comprueba que la cadena vieja ya no está y la nueva
+     sí, imprimiendo el resultado.
+
+No es ceremonia. Las comillas dentro de `node -e`, los índices de `process.argv`
+y los saltos de línea CRLF han roto el patrón CUATRO veces en un solo día, y las
+cuatro el siguiente renglón del informe era un verde que no significaba nada.
+Un script que grita cuesta cuatro líneas; un verde falso cuesta un commit.
 
 **LA SEGUNDA, mirar QUÉ casos mueren y no solo cuántos**, es la que dio la
 única respuesta valiosa del commit 2: m2 —deducir la especie de «tiene huella»

@@ -243,6 +243,22 @@ El dueño del proyecto NO es programador. Vercel deploya automáticamente al hac
   sería consultable después—; las mismas filas volcadas en la descripción de un
   solapamiento que nadie pinta eran una FUGA, ~2.200 caracteres a tres prompts.
   Promovida en F-94 P3.
+- **UNA EXPLORACIÓN QUE VERIFICA EL PRODUCTOR NO HA VERIFICADO LA
+  FUNCIONALIDAD.** El grifo y la tubería: que algo se calcule, se guarde y viaje
+  no dice NADA sobre si alguien lo consume. Antes de afirmar que una
+  funcionalidad existe —o que no existe— se abre el CONSUMIDOR: quién llama a
+  esa función, qué componente pinta ese campo.
+  Los dos casos, el mismo día y los dos nuestros: dijimos que descartar una fila
+  de tabla «ya funciona hoy» tras leer el endpoint, y `mostrarAccionesDeFila`
+  nunca pintó el botón; y dijimos que las variantes de escritura «no las pinta
+  nadie» tras leer el cálculo y los contadores, y se pintaban desde el mismo
+  commit que supuestamente las retiró.
+  ⚠️ LO QUE LO HACE ACCIONABLE, y es lo que distingue este patrón del anterior:
+  **las dos veces la pieza EXISTÍA**. El patrón de los seis casos de «lo que
+  Fable da por existente» era que el modelo daba por hecha una pieza que no
+  estaba; éste es el INVERSO y es NUESTRO — damos por inexistente algo que sí
+  está, y proponemos construir lo construido. Se caza igual y solo así: abriendo
+  el consumidor antes de escribir la premisa. Promovida el 01/09/2026 (F-94).
 - Retry con backoff y fallback determinista.
 - Cero dependencias nuevas sin razón.
 - Idioma del proyecto: español.

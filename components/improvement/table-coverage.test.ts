@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import type { GrupoDeTablas } from '@/lib/analysis/types';
 import type { Problem } from './problems';
 import { mostrarAccionesDeFila } from './problems';
-import { contarSinCorrespondencia, etiquetasDeMontones, hayRanuraDeCobertura, indiceDeColumnas, ordenDeGrupos, tieneCobertura } from './table-coverage';
+import { contarSinCorrespondencia, contarVariantes, etiquetasDeMontones, hayRanuraDeCobertura, hayRanuraDeVariantes, indiceDeColumnas, ordenDeGrupos, tieneCobertura, tieneVariantes } from './table-coverage';
 
 /**
  * BATERÍA DEL BLOQUE DE COBERTURA (F-88, ficha A revisada).
@@ -146,11 +146,21 @@ describe('tieneCobertura — ¿tiene este grupo algo que enseñar?', () => {
     expect(tieneCobertura(grupo({ identicas: 0, soloEnOtro: [{ clave: 'C', texto: 'c' }] }))).toBe(true);
   });
 
-  it('las variantes de escritura también', () => {
-    expect(tieneCobertura(grupo({
+  /**
+   * ⚠️ LAS VARIANTES YA NO, Y ESTE CASO AFIRMABA LO CONTRARIO HASTA EL 01/09.
+   * No se puso rojo por descuido: la decisión de producto lo invirtió. Se queda
+   * como GUARDIA de la mitad que se movió — si alguien devuelve las variantes a
+   * este OR sin devolverlas al bloque, la ranura «Sin correspondencia» se abre
+   * con un cero y nada dentro, que es el defecto que la decisión cierra.
+   */
+  it('las variantes de escritura YA NO: tienen ranura propia', () => {
+    const soloVariantes = grupo({
       identicas: 0,
       variantesDeEscritura: [{ clave: 'A', columnas: ['Clínica'], enNuevo: 'a', enOtro: 'A' }],
-    }))).toBe(true);
+    });
+
+    expect(tieneCobertura(soloVariantes)).toBe(false);
+    expect(tieneVariantes(soloVariantes)).toBe(true);
   });
 });
 
@@ -231,11 +241,11 @@ describe('contarSinCorrespondencia — el recuento cuenta lo que el nombre dice'
   });
 });
 
-describe('ordenDeGrupos — «Sin correspondencia» en segundo lugar', () => {
+describe('ordenDeGrupos — las dos informativas tras las contradicciones', () => {
   const TIPOS = ['contradiccion', 'inconsistencia_menor', 'duplicidad', 'ambiguedad'];
 
   it('va JUSTO DESPUÉS de las contradicciones', () => {
-    const r = ordenDeGrupos(TIPOS, true);
+    const r = ordenDeGrupos(TIPOS, { cobertura: true, variantes: false });
 
     expect(r[0]).toEqual({ clase: 'tipo', tipo: 'contradiccion' });
     expect(r[1]).toEqual({ clase: 'cobertura' });
@@ -249,18 +259,18 @@ describe('ordenDeGrupos — «Sin correspondencia» en segundo lugar', () => {
    * par cuyo único resultado fue cobertura, que F-84 P1 declaró caso aceptable.
    */
   it('si NO hay contradicciones, va la PRIMERA', () => {
-    const r = ordenDeGrupos(['duplicidad', 'ambiguedad'], true);
+    const r = ordenDeGrupos(['duplicidad', 'ambiguedad'], { cobertura: true, variantes: false });
 
     expect(r[0]).toEqual({ clase: 'cobertura' });
     expect(r[1]).toEqual({ clase: 'tipo', tipo: 'duplicidad' });
   });
 
   it('sin ningún grupo, la cobertura es lo único', () => {
-    expect(ordenDeGrupos([], true)).toEqual([{ clase: 'cobertura' }]);
+    expect(ordenDeGrupos([], { cobertura: true, variantes: false })).toEqual([{ clase: 'cobertura' }]);
   });
 
   it('sin cobertura, el orden es el de siempre y nada se mueve', () => {
-    const r = ordenDeGrupos(TIPOS, false);
+    const r = ordenDeGrupos(TIPOS, { cobertura: false, variantes: false });
 
     expect(r).toHaveLength(4);
     expect(r.map(x => x.clase === 'tipo' ? x.tipo : 'COBERTURA')).toEqual(TIPOS);
@@ -268,7 +278,7 @@ describe('ordenDeGrupos — «Sin correspondencia» en segundo lugar', () => {
 
   /** No se pierde ni se duplica ningún grupo: el orden REORDENA, no filtra. */
   it('están todos los grupos, una sola vez', () => {
-    const r = ordenDeGrupos(TIPOS, true);
+    const r = ordenDeGrupos(TIPOS, { cobertura: true, variantes: false });
     const tipos = r.filter(x => x.clase === 'tipo').map(x => (x as { tipo: string }).tipo);
 
     expect(tipos).toEqual(TIPOS);
@@ -308,14 +318,15 @@ describe('hayRanuraDeCobertura — la ranura pregunta lo mismo que el bloque', (
   });
 
   /**
-   * Y LAS VARIANTES SOLAS BASTAN. Es la clase que F-88 P4 especificó y la que
-   * F-94 P7 mandó conservar: «nada desaparece en silencio». Un grupo cuyo único
-   * resultado sea que los dos ficheros escriben distinto el mismo dato SIGUE
-   * teniendo algo que enseñar.
+   * ⚠️ EL CASO QUE ATA LAS DOS MITADES, y es el que el encargo pide escribir
+   * primero. Un grupo cuyo único resultado sean variantes tiene que abrir UNA
+   * ranura y solo una: la suya. Si abriera la de cobertura, saldría con un cero
+   * y sin contenido; si no abriera ninguna, sus variantes DESAPARECERÍAN — y
+   * «nada desaparece en silencio» es lo que F-88 P4 y F-94 P7 mandan conservar.
    * El corpus da CERO variantes en 10.174 comparaciones, así que esta tabla es
    * el único sitio donde esa rama se ejerce.
    */
-  it('un grupo con SOLO variantes de escritura abre ranura', () => {
+  it('un grupo con SOLO variantes de escritura NO abre ESTA ranura: abre la suya', () => {
     const soloVariantes = grupo({
       discrepantes: 0,
       identicas: 0,
@@ -326,7 +337,8 @@ describe('hayRanuraDeCobertura — la ranura pregunta lo mismo que el bloque', (
       ],
     });
 
-    expect(hayRanuraDeCobertura([soloVariantes])).toBe(true);
+    expect(hayRanuraDeCobertura([soloVariantes])).toBe(false);
+    expect(hayRanuraDeVariantes([soloVariantes])).toBe(true);
   });
 
   it('basta con que UNO de los grupos tenga algo', () => {
@@ -344,5 +356,124 @@ describe('hayRanuraDeCobertura — la ranura pregunta lo mismo que el bloque', (
   it('sin tablas no hay ranura, ni con undefined ni con lista vacía', () => {
     expect(hayRanuraDeCobertura(undefined)).toBe(false);
     expect(hayRanuraDeCobertura([])).toBe(false);
+  });
+});
+
+/**
+ * LA RANURA PROPIA DE LAS VARIANTES (decisión de producto, 01/09/2026).
+ *
+ * QUÉ ARREGLA: «Sin correspondencia» cuenta FILAS AJENAS, así que un par cuyo
+ * único resultado fueran variantes anunciaba un titular (0) con cosas debajo.
+ * Un cero en un titular con contenido se lee como avería.
+ *
+ * EL CORPUS NO PUEDE EJERCER NADA DE ESTO: cero variantes en 10.174
+ * comparaciones —medido, no supuesto—, así que las tablas van construidas
+ * (F-83 P3). Es el único sitio donde esta rama se ejerce.
+ */
+describe('las variantes de escritura, en su propia ranura', () => {
+  const UNA_VARIANTE = [{ clave: 'IMP01', columnas: ['Clínica'], enNuevo: 'Chamberí', enOtro: 'CHAMBERI' }];
+
+  const soloVariantes = () => grupo({
+    discrepantes: 0, identicas: 0, soloEnNuevo: [], soloEnOtro: [],
+    variantesDeEscritura: UNA_VARIANTE,
+  });
+
+  it('tieneVariantes mira solo su lista', () => {
+    expect(tieneVariantes(soloVariantes())).toBe(true);
+    expect(tieneVariantes(grupo({ variantesDeEscritura: [] }))).toBe(false);
+    // Ni las idénticas ni las ajenas la abren: cada ranura mira lo suyo.
+    expect(tieneVariantes(grupo({ identicas: 20, soloEnNuevo: [{ clave: 'A', texto: 'a' }] }))).toBe(false);
+  });
+
+  it('hayRanuraDeVariantes: basta con que uno la tenga, y en ausencia no hay ranura', () => {
+    expect(hayRanuraDeVariantes([grupo({ variantesDeEscritura: [] }), soloVariantes()])).toBe(true);
+    expect(hayRanuraDeVariantes([grupo({ variantesDeEscritura: [] })])).toBe(false);
+    // `undefined` es el caso NORMAL: la mayoría de documentos no llevan tablas.
+    expect(hayRanuraDeVariantes(undefined)).toBe(false);
+    expect(hayRanuraDeVariantes([])).toBe(false);
+  });
+
+  /**
+   * EL RECUENTO CUENTA FILAS, NO GRUPOS — la misma regla que hace fiable el de
+   * al lado (F-84 P1b: los números miden lo que dicen medir). Dos parejas con
+   * tres variantes cada una son SEIS diferencias de escritura, no dos.
+   */
+  it('contarVariantes suma las filas de todos los grupos', () => {
+    const tres = grupo({ variantesDeEscritura: [...UNA_VARIANTE, ...UNA_VARIANTE, ...UNA_VARIANTE] });
+    const dos = grupo({ groupId: 'g-2', variantesDeEscritura: [...UNA_VARIANTE, ...UNA_VARIANTE] });
+
+    expect(contarVariantes([tres, dos])).toBe(5);
+    expect(contarVariantes([])).toBe(0);
+    expect(contarVariantes([grupo({ variantesDeEscritura: [] })])).toBe(0);
+  });
+
+  /**
+   * ⚠️ LAS DOS RANURAS SON INDEPENDIENTES Y NO SE ROBAN CONTENIDO. Un grupo con
+   * las dos cosas abre las dos, y cada titular cuenta lo suyo: veinticinco
+   * filas ajenas y una variante son dos números distintos, no uno de 26.
+   */
+  it('un grupo con ajenas Y variantes abre las dos, con su número cada una', () => {
+    const ambas = grupo({
+      identicas: 0,
+      soloEnNuevo: [{ clave: 'A', texto: 'a' }, { clave: 'B', texto: 'b' }],
+      soloEnOtro: [],
+      variantesDeEscritura: UNA_VARIANTE,
+    });
+
+    expect(hayRanuraDeCobertura([ambas])).toBe(true);
+    expect(hayRanuraDeVariantes([ambas])).toBe(true);
+    expect(contarSinCorrespondencia([ambas])).toBe(2);
+    expect(contarVariantes([ambas])).toBe(1);
+  });
+});
+
+describe('ordenDeGrupos — dónde entra la ranura de variantes', () => {
+  const TIPOS = ['contradiccion', 'inconsistencia_menor', 'duplicidad'];
+
+  it('va DESPUÉS de la cobertura, y las dos tras las contradicciones', () => {
+    const r = ordenDeGrupos(TIPOS, { cobertura: true, variantes: true });
+
+    expect(r[0]).toEqual({ clase: 'tipo', tipo: 'contradiccion' });
+    expect(r[1]).toEqual({ clase: 'cobertura' });
+    expect(r[2]).toEqual({ clase: 'variantes' });
+    expect(r[3]).toEqual({ clase: 'tipo', tipo: 'inconsistencia_menor' });
+  });
+
+  /**
+   * SIN COBERTURA, LAS VARIANTES OCUPAN SU SITIO. La posición la decide el
+   * bloque informativo entero, no cada ranura por su cuenta: si cada una
+   * calculara la suya, la de variantes acabaría al final el día que la otra
+   * faltara — que es el mismo fallo que el `indexOf` ingenuo de aquí al lado.
+   */
+  it('sin cobertura, las variantes ocupan el sitio de la cobertura', () => {
+    const r = ordenDeGrupos(TIPOS, { cobertura: false, variantes: true });
+
+    expect(r[0]).toEqual({ clase: 'tipo', tipo: 'contradiccion' });
+    expect(r[1]).toEqual({ clase: 'variantes' });
+    expect(r.filter(x => x.clase === 'cobertura')).toHaveLength(0);
+  });
+
+  it('sin contradicciones, las dos informativas van primero y en su orden', () => {
+    const r = ordenDeGrupos(['duplicidad'], { cobertura: true, variantes: true });
+
+    expect(r[0]).toEqual({ clase: 'cobertura' });
+    expect(r[1]).toEqual({ clase: 'variantes' });
+    expect(r[2]).toEqual({ clase: 'tipo', tipo: 'duplicidad' });
+  });
+
+  it('sin ninguna de las dos, el orden es el de siempre', () => {
+    const r = ordenDeGrupos(TIPOS, { cobertura: false, variantes: false });
+
+    expect(r).toHaveLength(3);
+    expect(r.every(x => x.clase === 'tipo')).toBe(true);
+  });
+
+  /** Ni se pierde ni se duplica nada: el orden REORDENA, no filtra. */
+  it('con las dos ranuras siguen estando todos los grupos, una sola vez', () => {
+    const r = ordenDeGrupos(TIPOS, { cobertura: true, variantes: true });
+
+    expect(r.filter(x => x.clase === 'tipo').map(x => (x as { tipo: string }).tipo)).toEqual(TIPOS);
+    expect(r.filter(x => x.clase === 'cobertura')).toHaveLength(1);
+    expect(r.filter(x => x.clase === 'variantes')).toHaveLength(1);
   });
 });

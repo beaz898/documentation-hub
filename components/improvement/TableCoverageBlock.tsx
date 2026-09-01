@@ -21,9 +21,14 @@ import { etiquetasDeMontones, indiceDeColumnas, tieneCobertura } from './table-c
  *
  *   · el índice de columnas: dónde están las diferencias, de un vistazo;
  *   · presente solo en X: los dos montones, cada uno con SU documento;
- *   · diferencias solo de escritura: la fila difiere en nada que signifique
- *     algo distinto (F-88 P4);
  *   · idénticas: el recuento.
+ *
+ * ⚠️ LAS DIFERENCIAS SOLO DE ESCRITURA SALIERON DE AQUÍ el 01/09/2026, a ranura
+ * propia (`WritingVariantsBlock`). Vivían dentro y eran la causa del defecto que
+ * la decisión cierra: el titular de este grupo cuenta FILAS AJENAS, así que un
+ * par cuyo único resultado fueran variantes anunciaba «Sin correspondencia (0)»
+ * con cosas debajo. El cálculo y su contador siguen intactos — se retiró la
+ * carga, nunca la medida (F-94 P7).
  *
  * TODO PLEGADO POR DEFECTO. Es información, no alarma, y desplegada enterraría
  * lo que sí lo es.
@@ -96,30 +101,6 @@ export default function TableCoverageBlock({
                 ))}
               </CollapsibleSection>
             ))}
-
-            {grupo.variantesDeEscritura.length > 0 && (
-              <CollapsibleSection
-                title={t('tableCardWritingVariants')}
-                count={grupo.variantesDeEscritura.length}
-              >
-                <p style={{ fontSize: 10, color: 'var(--text-muted)', margin: '0 0 6px 0', lineHeight: 1.45 }}>
-                  {t('tableCardWritingVariantsHint')}
-                </p>
-                {grupo.variantesDeEscritura.map((v, i) => (
-                  <div key={`${v.clave}-${i}`} style={{ marginBottom: 6 }}>
-                    <p style={{ fontSize: 10, color: 'var(--text-secondary)', margin: 0, lineHeight: 1.45 }}>
-                      {t('tableCardRowsColumns', { columns: v.columnas.join(', ') })}
-                    </p>
-                    <p style={{ fontSize: 10, color: 'var(--text-muted)', margin: 0, lineHeight: 1.45, wordBreak: 'break-word' }}>
-                      {v.enNuevo}
-                    </p>
-                    <p style={{ fontSize: 10, color: 'var(--text-muted)', margin: 0, lineHeight: 1.45, wordBreak: 'break-word' }}>
-                      {v.enOtro}
-                    </p>
-                  </div>
-                ))}
-              </CollapsibleSection>
-            )}
 
             {grupo.identicas > 0 && (
               <p style={{ fontSize: 10, color: 'var(--text-muted)', margin: '4px 0 0 8px', lineHeight: 1.45 }}>

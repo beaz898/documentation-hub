@@ -80,23 +80,45 @@ export function indiceDeColumnas(porColumna: Record<string, number>): Array<{ co
 }
 
 /**
- * ¿TIENE ESTE GRUPO ALGO QUE ENSEÑAR?
+ * ¿TIENE ESTE GRUPO ALGO QUE ENSEÑAR EN «SIN CORRESPONDENCIA»?
  *
  * Un grupo cuyo único resultado fueron discrepancias —sin filas ajenas, sin
- * variantes, sin idénticas— no aporta nada a este bloque: sus quince ya están
- * en la lista de arriba. Pintarle un bloque vacío sería ruido.
+ * idénticas— no aporta nada a este bloque: sus quince ya están en la lista de
+ * arriba. Pintarle un bloque vacío sería ruido.
  *
  * LAS IDÉNTICAS CUENTAN COMO ALGO QUE ENSEÑAR, aunque sean solo un número: «20
  * filas idénticas en ambos documentos» es cobertura verificada, y es la mitad
  * de la respuesta a «¿esto ya lo tenía?».
+ *
+ * ⚠️ LAS VARIANTES DE ESCRITURA YA NO CUENTAN AQUÍ (decisión de producto,
+ * 01/09/2026). Tienen ranura propia, hermana de ésta. Antes vivían dentro y
+ * eran la causa del defecto que la decisión cierra: un grupo cuyo único
+ * contenido fueran variantes abría un titular «Sin correspondencia (0)» con
+ * cosas debajo, porque el recuento cuenta filas ajenas y las variantes no lo
+ * son.
+ * LAS DOS MITADES VAN JUNTAS: si esto deja de contarlas y el bloque las sigue
+ * pintando, un grupo de solo variantes no abre ranura y SUS VARIANTES
+ * DESAPARECEN; si el bloque deja de pintarlas y esto las cuenta, la ranura se
+ * abre VACÍA. `tieneVariantes` es la otra mitad, y hay un caso que las ata.
  */
 export function tieneCobertura(grupo: GrupoDeTablas): boolean {
   return (
     grupo.soloEnNuevo.length > 0 ||
     grupo.soloEnOtro.length > 0 ||
-    grupo.variantesDeEscritura.length > 0 ||
     grupo.identicas > 0
   );
+}
+
+/**
+ * ¿TIENE ESTE GRUPO VARIANTES DE ESCRITURA? La pregunta de la ranura hermana.
+ *
+ * Trivial a propósito, y aun así vive aquí y no dentro del componente: es el
+ * filtro que aplica `WritingVariantsBlock` y la base de `hayRanuraDeVariantes`,
+ * y si cada uno la escribiera por su cuenta volveríamos al defecto que este
+ * mismo commit cierra — la ranura y su contenido decidiendo por separado.
+ */
+export function tieneVariantes(grupo: GrupoDeTablas): boolean {
+  return grupo.variantesDeEscritura.length > 0;
 }
 
 
@@ -140,19 +162,50 @@ export function contarSinCorrespondencia(grupos: GrupoDeTablas[]): number {
 }
 
 /**
- * EL ORDEN DE LOS GRUPOS DE LA LISTA, con «Sin correspondencia» EN SEGUNDO
- * LUGAR (decisión de producto, 30/08).
+ * EL RECUENTO DEL TITULAR de «Diferencias solo de escritura».
  *
- * LA REGLA: la cobertura va JUSTO DESPUÉS de las contradicciones, que son la
- * alarma. No al final, donde estaba —el usuario que abre el modal mira arriba,
- * y las cincuenta filas sin pareja son lo segundo que quiere saber— pero
- * tampoco antes, porque no reclama juicio.
+ * CUENTA FILAS, NO GRUPOS, por la misma regla que el de al lado: el número dice
+ * lo que el nombre promete. Dos parejas de tablas con tres variantes cada una
+ * son SEIS diferencias de escritura, no dos.
+ */
+export function contarVariantes(grupos: GrupoDeTablas[]): number {
+  return grupos.reduce((n, g) => n + g.variantesDeEscritura.length, 0);
+}
+
+/**
+ * ¿EXISTE LA RANURA «DIFERENCIAS SOLO DE ESCRITURA»?
  *
- * SI NO HAY CONTRADICCIONES, VA PRIMERA. Es el caso que un `indexOf` ingenuo
- * rompe: sin grupo de contradicciones no hay «después de» que valga, y colocar
- * la cobertura al final por descarte la escondería justo en el análisis donde
- * es lo único que hay que enseñar — el par cuyo único resultado fue cobertura,
+ * Misma disciplina que `hayRanuraDeCobertura`, y por la misma razón: la ranura
+ * pregunta exactamente lo que el bloque filtra. Ver allí el caso que hizo falta
+ * escribir esta tarde.
+ */
+export function hayRanuraDeVariantes(grupos: GrupoDeTablas[] | undefined): boolean {
+  return (grupos ?? []).some(tieneVariantes);
+}
+/**
+ * EL ORDEN DE LOS GRUPOS DE LA LISTA, con las dos ranuras informativas JUSTO
+ * DETRÁS DE LAS CONTRADICCIONES (decisión de producto, 30/08 y 01/09).
+ *
+ * LA REGLA: cobertura y variantes van JUSTO DESPUÉS de las contradicciones, que
+ * son la alarma. No al final —el usuario que abre el modal mira arriba, y las
+ * cincuenta filas sin pareja son lo segundo que quiere saber— pero tampoco
+ * antes, porque no reclaman juicio. Entre ellas, LA COBERTURA PRIMERO: las
+ * variantes son la información menos accionable de las cuatro clases.
+ *
+ * SI NO HAY CONTRADICCIONES, VAN PRIMERO. Es el caso que un `indexOf` ingenuo
+ * rompe: sin grupo de contradicciones no hay «después de» que valga, y
+ * colocarlas al final por descarte las escondería justo en el análisis donde
+ * son lo único que hay que enseñar — el par cuyo único resultado fue cobertura,
  * que F-84 P1 declaró caso aceptable.
+ *
+ * LA POSICIÓN LA DECIDE EL BLOQUE INFORMATIVO, NO CADA RANURA: si falta la
+ * cobertura, las variantes ocupan su sitio en vez de irse a otro lado. Por eso
+ * se calcula UNA posición y las dos se insertan ahí, en orden.
+ *
+ * ⚠️ LAS DOS BANDERAS VAN EN UN OBJETO Y NO SUELTAS. Dos booleanos posicionales
+ * adyacentes del mismo tipo se intercambian solos en la primera refactorización
+ * y ninguna prueba lo nota si los dos casos son simétricos — que es justo la
+ * clase de fallo que B.121 midió con los montones.
  *
  * ES UNA FUNCIÓN Y NO UN `map` EN EL JSX por la razón de siempre en este
  * módulo: el alcance de la suite prohíbe React, así que una regla escrita
@@ -160,16 +213,23 @@ export function contarSinCorrespondencia(grupos: GrupoDeTablas[]): number {
  */
 export type RanuraDeGrupo =
   | { clase: 'tipo'; tipo: string }
-  | { clase: 'cobertura' };
+  | { clase: 'cobertura' }
+  | { clase: 'variantes' };
 
-export function ordenDeGrupos(tiposPresentes: string[], hayCobertura: boolean): RanuraDeGrupo[] {
+export function ordenDeGrupos(
+  tiposPresentes: string[],
+  informativas: { cobertura: boolean; variantes: boolean },
+): RanuraDeGrupo[] {
   const ranuras: RanuraDeGrupo[] = tiposPresentes.map(tipo => ({ clase: 'tipo' as const, tipo }));
-  if (!hayCobertura) return ranuras;
 
-  const cobertura: RanuraDeGrupo = { clase: 'cobertura' };
+  const aInsertar: RanuraDeGrupo[] = [];
+  if (informativas.cobertura) aInsertar.push({ clase: 'cobertura' });
+  if (informativas.variantes) aInsertar.push({ clase: 'variantes' });
+  if (aInsertar.length === 0) return ranuras;
+
   const iContradicciones = tiposPresentes.indexOf('contradiccion');
 
-  // Sin contradicciones, primera. Con ellas, justo detrás.
+  // Sin contradicciones, primeras. Con ellas, justo detrás.
   const posicion = iContradicciones === -1 ? 0 : iContradicciones + 1;
-  return [...ranuras.slice(0, posicion), cobertura, ...ranuras.slice(posicion)];
+  return [...ranuras.slice(0, posicion), ...aInsertar, ...ranuras.slice(posicion)];
 }
