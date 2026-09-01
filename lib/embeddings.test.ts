@@ -2,7 +2,10 @@ import { describe, expect, it } from 'vitest';
 
 import {
   debeReintentar,
+  hayPresupuestoParaEsperar,
   planDeEmbedding,
+  PRESUPUESTO_ESPERA_CONSULTA,
+  PRESUPUESTO_ESPERA_INDEXACION,
   esErrorPasajeroDePinecone,
   esperaDeReintento,
   REINTENTOS_CONSULTA,
@@ -38,15 +41,32 @@ describe('esErrorPasajeroDePinecone — qué merece otro intento', () => {
   });
 
   /**
-   * ⚠️ UN 5xx NO CUENTA HOY, y el caso lo deja escrito en vez de dejarlo al
-   * descuido: un corte del proveedor —como el del 01/09— se trata como error
-   * definitivo. Ampliarlo es otra decisión, porque esta función la usa también
-   * la indexación. Cuando se amplíe, ESTE caso será el que se ponga rojo, que es
-   * como debe enterarse quien lo cambie.
+   * ⚠️ EL CASO CUMPLIÓ SU FUNCIÓN. Se dejó escrito el 01/09 fijando que un 5xx
+   * NO era pasajero, con la nota de que quien ampliara la política se enteraría
+   * en rojo. El 02/09 se amplió y SE PUSO ROJO. Vigilaba lo que decía vigilar.
+   *
+   * Ahora fija lo contrario, y conserva la mitad que no cambia: **un 400 no será
+   * pasajero nunca**. Reintentar una petición mal formada es repetir seis veces
+   * contra la misma pared.
    */
-  it('un 500 NO es pasajero todavía, y un 400 no lo será nunca', () => {
-    expect(esErrorPasajeroDePinecone(new Error('PineconeUnmappedHttpError: 500'))).toBe(false);
+  it('los 5xx SÍ son pasajeros desde el 02/09; un 400 no lo será nunca', () => {
+    expect(esErrorPasajeroDePinecone(new Error('PineconeUnmappedHttpError: 500'))).toBe(true);
+    expect(esErrorPasajeroDePinecone(new Error('PineconeUnmappedHttpError: 503 upstream'))).toBe(true);
+    expect(esErrorPasajeroDePinecone(new Error('status: 502'))).toBe(true);
+
     expect(esErrorPasajeroDePinecone(new Error('HTTP 400: bad request'))).toBe(false);
+    expect(esErrorPasajeroDePinecone(new Error('HTTP 404: not found'))).toBe(false);
+  });
+
+  /**
+   * ⚠️ LA MITAD QUE IMPIDE REINTENTAR LO PERMANENTE, y no es teórica: un
+   * `includes('500')` habría dado verdadero para este mensaje, y entonces un
+   * error definitivo se habría reintentado hasta agotar el presupuesto entero.
+   * El número tiene que ir precedido de algo que lo declare estado.
+   */
+  it('un 500 que NO es un estado no engaña a nadie', () => {
+    expect(esErrorPasajeroDePinecone(new Error('procesados 500 fragmentos'))).toBe(false);
+    expect(esErrorPasajeroDePinecone(new Error('chunk 5000 too long'))).toBe(false);
   });
 
   /** El SDK de Pinecone no siempre lanza `Error`. Nada de esto puede romper. */
@@ -79,21 +99,39 @@ describe('debeReintentar — las dos condiciones, en un solo sitio', () => {
   const cuatroCientos = new Error('HTTP 400: bad request');
   const rate = new Error('429 Too Many Requests');
 
-  it('con el presupuesto de CONSULTA se rinde al segundo reintento', () => {
-    expect(debeReintentar(rate, 0, REINTENTOS_CONSULTA)).toBe(true);
-    expect(debeReintentar(rate, 1, REINTENTOS_CONSULTA)).toBe(true);
-    expect(debeReintentar(rate, 2, REINTENTOS_CONSULTA)).toBe(false);
+  const CONSULTA = planDeEmbedding('consulta');
+  const INDEXACION = planDeEmbedding('indexacion');
+
+  it('con el plan de CONSULTA se rinde al segundo reintento', () => {
+    expect(debeReintentar(rate, 0, CONSULTA, 0)).toBe(true);
+    expect(debeReintentar(rate, 1, CONSULTA, 1000)).toBe(true);
+    expect(debeReintentar(rate, 2, CONSULTA, 3000)).toBe(false);
   });
 
-  it('con el de INDEXACIÓN aguanta hasta el sexto', () => {
-    expect(debeReintentar(rate, 5, REINTENTOS_INDEXACION)).toBe(true);
-    expect(debeReintentar(rate, 6, REINTENTOS_INDEXACION)).toBe(false);
+  it('con el de INDEXACIÓN aguanta hasta el sexto si hay presupuesto', () => {
+    expect(debeReintentar(rate, 5, INDEXACION, 0)).toBe(true);
+    expect(debeReintentar(rate, 6, INDEXACION, 0)).toBe(false);
+  });
+
+  /**
+   * ⚠️ LA MITAD NUEVA DEL 02/09: EL PRESUPUESTO MANDA AUNQUE QUEDEN INTENTOS.
+   *
+   * Sin ella, los seis reintentos son POR LOTE y `generateEmbeddings` recorre
+   * los lotes en serie: un documento de 200 chunks son diez lotes, o sea 610 s
+   * de espera pura contra un proveedor caído. El techo acota la LLAMADA, no el
+   * lote, y por eso el peor caso ya no crece con el tamaño del documento.
+   */
+  it('sin presupuesto no se reintenta, aunque el error sea pasajero y queden intentos', () => {
+    // Intento 4: la espera de 16 s no cabe en lo que queda (30 − 15).
+    expect(debeReintentar(rate, 4, INDEXACION, 15000)).toBe(false);
+    // Y con presupuesto de sobra, el mismo intento sí.
+    expect(debeReintentar(rate, 4, INDEXACION, 0)).toBe(true);
   });
 
   /** La otra mitad: un error definitivo no se reintenta ni con presupuesto de
    *  sobra. Sin esto, un 400 se repetiría seis veces contra la misma pared. */
   it('un error definitivo no se reintenta ni en el primer intento', () => {
-    expect(debeReintentar(cuatroCientos, 0, REINTENTOS_INDEXACION)).toBe(false);
+    expect(debeReintentar(cuatroCientos, 0, INDEXACION, 0)).toBe(false);
   });
 });
 
@@ -139,12 +177,20 @@ describe('los dos presupuestos caben donde tienen que caber', () => {
  * Convertido en un valor, se compara.
  */
 describe('planDeEmbedding — el prefijo y el presupuesto son UNA decisión', () => {
-  it('la consulta va como query, y con el presupuesto corto', () => {
-    expect(planDeEmbedding('consulta')).toEqual({ inputType: 'query', maxIntentos: REINTENTOS_CONSULTA });
+  it('la consulta va como query, con pocos intentos y su techo de espera', () => {
+    expect(planDeEmbedding('consulta')).toEqual({
+      inputType: 'query',
+      maxIntentos: REINTENTOS_CONSULTA,
+      presupuestoEsperaMs: PRESUPUESTO_ESPERA_CONSULTA,
+    });
   });
 
-  it('la indexación va como passage, y con el largo', () => {
-    expect(planDeEmbedding('indexacion')).toEqual({ inputType: 'passage', maxIntentos: REINTENTOS_INDEXACION });
+  it('la indexación va como passage, con muchos y su techo', () => {
+    expect(planDeEmbedding('indexacion')).toEqual({
+      inputType: 'passage',
+      maxIntentos: REINTENTOS_INDEXACION,
+      presupuestoEsperaMs: PRESUPUESTO_ESPERA_INDEXACION,
+    });
   });
 
   /** Los dos caminos NO se pueden confundir: ni el prefijo ni el presupuesto
@@ -155,5 +201,74 @@ describe('planDeEmbedding — el prefijo y el presupuesto son UNA decisión', ()
 
     expect(consulta.inputType).not.toBe(indexacion.inputType);
     expect(consulta.maxIntentos).not.toBe(indexacion.maxIntentos);
+  });
+});
+
+/**
+ * EL TECHO TOTAL DE ESPERA (02/09/2026), que es lo que hace seguro ampliar la
+ * cobertura a los 5xx.
+ *
+ * ⚠️ EL NÚMERO DE REINTENTOS NO ACOTABA NADA: los seis de indexación son POR
+ * LOTE y `generateEmbeddings` recorre los lotes en serie. Un documento de 200
+ * chunks son diez lotes — **610 s de espera pura** contra un proveedor caído,
+ * para fallar igual al final. El peor caso crecía con el tamaño del documento.
+ *
+ * ⚠️ Y EL PRESUPUESTO DE `/api/ingest` ESTÁ DECLARADO DOS VECES Y DISTINTO:
+ * `vercel.json` dice 60 y la ruta dice 300. No se puede resolver desde el
+ * repositorio, así que el techo se elige para el MENOR — si gana 300, sobra.
+ */
+describe('hayPresupuestoParaEsperar — el techo compartido entre lotes', () => {
+  it('cabe lo que cabe, y el límite exacto cuenta como que cabe', () => {
+    expect(hayPresupuestoParaEsperar(0, 1000, 30000)).toBe(true);
+    expect(hayPresupuestoParaEsperar(15000, 15000, 30000)).toBe(true);
+  });
+
+  it('no cabe lo que se pasa, ni por un milisegundo', () => {
+    expect(hayPresupuestoParaEsperar(15000, 15001, 30000)).toBe(false);
+    expect(hayPresupuestoParaEsperar(30000, 1, 30000)).toBe(false);
+  });
+
+  /** En vacío: sin nada gastado y sin espera, siempre cabe. */
+  it('con cero gastado y cero espera, cabe', () => {
+    expect(hayPresupuestoParaEsperar(0, 0, 0)).toBe(true);
+  });
+});
+
+describe('el peor caso de espera queda acotado', () => {
+  const suma = (n: number) =>
+    Array.from({ length: n }, (_, i) => esperaDeReintento(i)).reduce((a, b) => a + b, 0);
+
+  /**
+   * ⚠️ EL NÚMERO QUE JUSTIFICA EL COMMIT: los seis reintentos suman MÁS del doble
+   * del techo. Sin techo, eso era el gasto de UN lote; con techo, es el de toda
+   * la llamada.
+   */
+  it('los seis reintentos NO caben en el techo de indexación: por eso hay techo', () => {
+    expect(suma(REINTENTOS_INDEXACION)).toBe(61000);
+    expect(suma(REINTENTOS_INDEXACION)).toBeGreaterThan(PRESUPUESTO_ESPERA_INDEXACION);
+  });
+
+  /** Cuántas esperas caben de verdad: 1+2+4+8 = 15 s, y la de 16 ya no. */
+  it('en el techo de indexación caben cuatro esperas, no seis', () => {
+    let gastado = 0;
+    let caben = 0;
+    for (let i = 0; i < REINTENTOS_INDEXACION; i++) {
+      const espera = esperaDeReintento(i);
+      if (!hayPresupuestoParaEsperar(gastado, espera, PRESUPUESTO_ESPERA_INDEXACION)) break;
+      gastado += espera;
+      caben++;
+    }
+
+    expect(caben).toBe(4);
+    expect(gastado).toBe(15000);
+  });
+
+  /**
+   * EL DE CONSULTA NO ATA NUNCA, y se dice para que nadie lo lea como una
+   * segunda regla: sus dos reintentos suman 3 s y el techo son 5 s. Está para
+   * que el plan sea completo.
+   */
+  it('el techo de consulta no ata: sus reintentos caben de sobra', () => {
+    expect(suma(REINTENTOS_CONSULTA)).toBeLessThan(PRESUPUESTO_ESPERA_CONSULTA);
   });
 });

@@ -3,7 +3,7 @@ PENDIENTES — Doclity (Agente IA)
 Documento vivo. Se actualiza al completar tareas (marcar [✓]) y se
 sustituye por la versión nueva. Más ligero que la Bitácora: aquí va
 lo que falta y la visión que lo guía, no el detalle de cada sesión.
-Última actualización: 01/09/2026 (v44)
+Última actualización: 02/09/2026 (v45)
 
 
 ════════════════════════════════════════════════════════════════
@@ -4215,6 +4215,50 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     el reintento se agotaría y —antes de hoy— el borrado habría ocurrido igual.
     Son las dos mitades de la regla 6 y ésta es la de «fallar bien». El retry de
     Drive sigue sin existir y va en su turno.
+
+  B.139 — [ABIERTO 02/09 · NO TOCAR TODAVÍA · CAMINO DE DINERO] EL AGENTE COBRA
+    Y DEVUELVE POR SU PROPIA VÍA, DISTINTA DE LA DE TODOS LOS DEMÁS
+
+    Encontrado al hacer el censo de reembolsos de la regla 6, no buscándolo.
+
+    ══ LAS DOS IMPLEMENTACIONES ══
+    · TODOS LOS DEMÁS: `consumeCredits()` de `lib/credits.ts` para cobrar y
+      `refundCredits()` para devolver.
+    · EL AGENTE: `supabase.rpc('consume_credits')` DIRECTAMENTE
+      (`app/api/agent/conversations/[id]/message/route.ts:162`) y `adjustCredits()`
+      para devolver — en cinco sitios: cancelación, rechazo, parada, infraconsumo
+      y fallo al insertar la fila.
+
+    Es exactamente lo que CLAUDE.md prohíbe desde F-89 P2: dos caminos que
+    deciden lo mismo —cuánto se cobra, cuánto se devuelve, dónde se apunta— y
+    que el día que se separen nadie notará, porque los dos seguirán pareciendo
+    correctos por su cuenta.
+
+    ⚠️ ══ Y AQUÍ LA DUPLICACIÓN NO ESTÁ EN EL LADO MALO ══
+    El agente es el que MEJOR lo hace de todo el sistema. Estima antes,
+    reconcilia por tokens reales después y devuelve en cinco situaciones
+    distintas. Los otros tres endpoints no devolvían NADA hasta el 01/09.
+    O sea que unificar no es «llevar el agente al camino bueno»: es decidir
+    cuál de los dos es el bueno, y probablemente sea el suyo.
+
+    ══ POR QUÉ NO SE TOCA AHORA ══
+    Es el camino de DINERO del subsistema mejor protegido. Un cambio ahí no se
+    puede probar con la batería —`consume_credits` es una RPC y las rutas están
+    fuera del alcance de Vitest— así que la verificación tendría que ser por
+    lectura y por tanda, y merece su propia predicción y sus propias mitades.
+    Decisión del director el 02/09: su commit, no ahora.
+
+    ══ QUÉ HAY QUE DECIDIR CUANDO SE TOQUE ══
+    1. Cuál de las dos vías queda: la del agente (estimar → reconciliar) es más
+       fina, pero exige conocer los tokens reales, que los otros endpoints no
+       tienen hasta después de responder.
+    2. Si `adjustCredits` y `refundCredits` se funden. Hoy escriben en sitios
+       distintos —conviene comprobar cuál toca `credits_extra` y cuál no— y esa
+       diferencia puede ser deliberada o puede ser el primer síntoma de que ya
+       se separaron.
+    3. Qué pasa con el motivo: `adjustCredits` lleva `reason` y `refundCredits`
+       no. Si la unificación pierde el motivo, se pierde la trazabilidad del
+       único camino que hoy la tiene.
 
   F-81 [CONVERGENCIA — leer ANTES de planificar la fase 3 del diff, 27/08] No
     es un pendiente nuevo: es el sitio donde se juntan tres que ya existen, más

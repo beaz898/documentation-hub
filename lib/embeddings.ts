@@ -21,9 +21,11 @@ const JITTER_RATIO = 0.3;
  * DOS PRESUPUESTOS DE REINTENTO, Y NO ES UN CAPRICHO: ES EL TIEMPO QUE TIENE
  * CADA FUNCIÓN (01/09/2026).
  *
- * `vercel.json` da 60 s a `/api/ingest` y **30 s a `/api/ask`**. La política de
- * indexación son seis reintentos con topes 1→2→4→8→16→30 s: **más de 60 s solo
- * en esperas**. Copiarla al camino de consulta no habría dado un error limpio
+ * `/api/ask` tiene **30 s** (`vercel.json`), y `/api/ingest` tiene 60 o 300
+ * según dónde se mire — ver la nota del presupuesto de espera, más abajo. La
+ * política de indexación son seis reintentos con topes 1→2→4→8→16→30 s: **61 s
+ * solo en esperas, POR LOTE**. Copiarla al camino de consulta no habría dado un
+ * error limpio
  * sino un TIMEOUT DE PLATAFORMA — sin `catch`, sin `logUsage`, sin mensaje y con
  * el crédito ya cobrado. El arreglo habría empeorado lo que dice arreglar.
  *
@@ -36,6 +38,34 @@ const JITTER_RATIO = 0.3;
  */
 export const REINTENTOS_INDEXACION = 6;
 export const REINTENTOS_CONSULTA = 2;
+
+/**
+ * ⚠️ Y UN TECHO TOTAL DE ESPERA POR LLAMADA, COMPARTIDO ENTRE LOTES (02/09/2026).
+ *
+ * EL NÚMERO DE REINTENTOS NO BASTA, y esto es lo que se vio al ampliar la
+ * cobertura a los 5xx: los seis de indexación son **por lote**, y
+ * `generateEmbeddings` recorre los lotes en serie. Un documento de 200 chunks
+ * son diez lotes: con el proveedor caído, **610 s de espera pura** antes de
+ * fallar igual. Sin techo agregado, el peor caso crece con el tamaño del
+ * documento.
+ *
+ * ⚠️ Y EL PRESUPUESTO DE `/api/ingest` ESTÁ DECLARADO DOS VECES Y DISTINTO:
+ * `vercel.json` dice 60 y `app/api/ingest/route.ts:14` dice 300. Cuál gana no se
+ * puede resolver desde el repositorio, así que ESTE NÚMERO SE ELIGE PARA EL
+ * MENOR: si gana 300, sobra; si gana 60, el diseño sigue en pie. Con 30 s de
+ * espera como techo, queda sitio para las peticiones y para el resto de la
+ * indexación aunque el presupuesto real sea el corto.
+ *
+ * Y ALARGAR AQUÍ NO ES SOLO ESPERAR: en el camino de REEMPLAZO, `ingest` borra
+ * el documento viejo (`route.ts:221`) ANTES de generar los embeddings del nuevo
+ * (`:237`). Entre esas dos líneas la organización no tiene ninguno de los dos, y
+ * cada segundo de reintento ensancha esa ventana.
+ *
+ * EL DE CONSULTA NO ATA NUNCA: sus dos reintentos suman 3 s. Está para que el
+ * plan sea completo, no para que haya dos reglas — y su caso lo dice.
+ */
+export const PRESUPUESTO_ESPERA_INDEXACION = 30_000;
+export const PRESUPUESTO_ESPERA_CONSULTA = 5_000;
 
 /**
  * EL PLAN DE CADA CAMINO: con qué prefijo se embebe y cuántos reintentos caben.
@@ -58,29 +88,69 @@ export const REINTENTOS_CONSULTA = 2;
 export interface PlanDeEmbedding {
   inputType: 'passage' | 'query';
   maxIntentos: number;
+  /** Techo TOTAL de espera para una llamada entera, compartido entre lotes. */
+  presupuestoEsperaMs: number;
 }
 
 export function planDeEmbedding(camino: 'indexacion' | 'consulta'): PlanDeEmbedding {
   return camino === 'consulta'
-    ? { inputType: 'query', maxIntentos: REINTENTOS_CONSULTA }
-    : { inputType: 'passage', maxIntentos: REINTENTOS_INDEXACION };
+    ? { inputType: 'query', maxIntentos: REINTENTOS_CONSULTA, presupuestoEsperaMs: PRESUPUESTO_ESPERA_CONSULTA }
+    : { inputType: 'passage', maxIntentos: REINTENTOS_INDEXACION, presupuestoEsperaMs: PRESUPUESTO_ESPERA_INDEXACION };
 }
 
 /**
- * ¿ES UN FALLO PASAJERO? Hoy: solo 429/RESOURCE_EXHAUSTED.
+ * ⚠️ UN ESTADO 5xx, NO «UN 5 SEGUIDO DE DOS DÍGITOS».
  *
- * ⚠️ UN 5xx NO CUENTA, y no es un olvido: es la política de HOY, la misma desde
- * F-31 P3. Un corte del proveedor —como el del 01/09— se trata como error
- * definitivo y se relanza al primer intento. Ampliarlo es una decisión aparte
- * porque esta función la usa TAMBIÉN la indexación, y alargar seis reintentos
- * contra un proveedor roto tiene su propio coste. Va en su commit.
+ * `message.includes('500')` daría verdadero para «procesados 500 fragmentos», y
+ * entonces un error PERMANENTE se reintentaría hasta agotar el presupuesto. El
+ * número tiene que ir precedido de algo que lo declare estado — que es como lo
+ * formatea el SDK: «PineconeUnmappedHttpError: 503 …».
+ */
+const ESTADO_5XX = /(?:status|http|error)[^0-9]{0,12}(5\d{2})\b/i;
+
+/**
+ * ¿ES UN FALLO PASAJERO? 429, RESOURCE_EXHAUSTED **y, desde el 02/09, los 5xx**.
+ *
+ * HASTA HOY UN CORTE DEL PROVEEDOR ERA UN ERROR DEFINITIVO: el incidente de
+ * plano de control del 01/09 —el que se llevó la indexación de OPE-13— se
+ * relanzaba al primer intento aunque durara segundos. Un 5xx es casi siempre lo
+ * más transitorio que hay.
+ *
+ * NO ENTRÓ CON LOS 429 Y NO ERA UN OLVIDO: esta función la usa TAMBIÉN la
+ * indexación, así que ampliarla multiplica cuántas veces se llega al backoff —
+ * y por eso el mismo commit trae el techo total de espera. Ampliar sin acotar
+ * habría cambiado un fallo rápido por un timeout de plataforma.
+ *
+ * UN 5xx PERMANENTE se reintentará igual (un 501 de un endpoint que no existe).
+ * Aceptado y declarado: cuesta el presupuesto acotado y no más, y distinguirlo
+ * no se puede con lo que el SDK expone.
  *
  * TOLERA CUALQUIER COSA: el SDK de Pinecone no siempre lanza `Error`, así que
  * `null`, `undefined` y una cadena suelta tienen que contestar sin romper.
  */
+
 export function esErrorPasajeroDePinecone(error: unknown): boolean {
   const message = error instanceof Error ? error.message : String(error);
-  return message.includes('429') || message.includes('RESOURCE_EXHAUSTED');
+  return (
+    message.includes('429') ||
+    message.includes('RESOURCE_EXHAUSTED') ||
+    ESTADO_5XX.test(message)
+  );
+}
+
+/**
+ * ¿CABE ESTA ESPERA EN LO QUE QUEDA DE PRESUPUESTO?
+ *
+ * ACOTA LA ESPERA, NO EL TIEMPO TOTAL: las peticiones en sí pueden tardar lo que
+ * quieran. Es lo que se puede controlar sin un reloj —y sin un reloj se puede
+ * comprobar—, y se dice en vez de fingirse.
+ */
+export function hayPresupuestoParaEsperar(
+  gastadoMs: number,
+  esperaMs: number,
+  presupuestoMs: number,
+): boolean {
+  return gastadoMs + esperaMs <= presupuestoMs;
 }
 
 /**
@@ -98,8 +168,17 @@ export function esperaDeReintento(intento: number): number {
 
 /** ¿Se reintenta? Las dos condiciones juntas, en un solo sitio, para que ningún
  *  camino se invente la suya. */
-export function debeReintentar(error: unknown, intento: number, maxIntentos: number): boolean {
-  return esErrorPasajeroDePinecone(error) && intento < maxIntentos;
+export function debeReintentar(
+  error: unknown,
+  intento: number,
+  plan: PlanDeEmbedding,
+  gastadoMs: number,
+): boolean {
+  return (
+    esErrorPasajeroDePinecone(error) &&
+    intento < plan.maxIntentos &&
+    hayPresupuestoParaEsperar(gastadoMs, esperaDeReintento(intento), plan.presupuestoEsperaMs)
+  );
 }
 
 /**
@@ -124,21 +203,34 @@ export function debeReintentar(error: unknown, intento: number, maxIntentos: num
  * verdad haría falta esquivar el SDK y hablar con la API de inferencia por
  * HTTP directo — fuera de alcance aquí.
  */
+/** El presupuesto gastado hasta ahora, COMPARTIDO por todos los lotes de una
+ *  misma llamada. Es un objeto y no un número porque tiene que sobrevivir al
+ *  bucle de lotes: ahí está la diferencia entre acotar la llamada y acotar cada
+ *  lote por su cuenta, que es lo que no acotaba nada. */
+interface EsperaGastada { ms: number }
+
 async function embedConBackoff(
   pc: ReturnType<typeof getPinecone>,
   textos: string[],
   plan: PlanDeEmbedding,
   etiqueta: string,
+  gastada: EsperaGastada,
 ): ReturnType<typeof pc.inference.embed> {
   const { inputType, maxIntentos } = plan;
   for (let attempt = 0; ; attempt++) {
     try {
       return await pc.inference.embed(EMBEDDING_MODEL, textos, { inputType, truncate: 'END' });
     } catch (error) {
-      if (!debeReintentar(error, attempt, maxIntentos)) throw error;
+      if (!debeReintentar(error, attempt, plan, gastada.ms)) throw error;
       const backoffMs = esperaDeReintento(attempt);
       const waitMs = Math.round(backoffMs + Math.random() * backoffMs * JITTER_RATIO);
-      console.log(`[EMBED] 429 en ${etiqueta} (intento ${attempt + 1}/${maxIntentos}) — backoff ${waitMs}ms`);
+      // Se cuenta el backoff calculado, no el jitter: el presupuesto es una
+      // decisión y el jitter es ruido antiaglomeración.
+      gastada.ms += backoffMs;
+      console.log(
+        `[EMBED] fallo pasajero en ${etiqueta} (intento ${attempt + 1}/${maxIntentos}) — ` +
+        `backoff ${waitMs}ms | espera acumulada ${gastada.ms}/${plan.presupuestoEsperaMs}ms`,
+      );
       await new Promise(resolve => setTimeout(resolve, waitMs));
     }
   }
@@ -148,6 +240,9 @@ async function embedConBackoff(
 export async function generateEmbeddings(texts: string[]): Promise<number[][]> {
   const pc = getPinecone();
   const allEmbeddings: number[][] = [];
+  // UNO PARA TODA LA LLAMADA, no uno por lote: es lo que acota el peor caso
+  // independientemente del tamaño del documento.
+  const gastada = { ms: 0 };
 
   for (let i = 0; i < texts.length; i += BATCH_SIZE) {
     const batch = texts.slice(i, i + BATCH_SIZE);
@@ -156,7 +251,7 @@ export async function generateEmbeddings(texts: string[]): Promise<number[][]> {
 
     console.log(`[EMBED] Processing batch ${batchNum}/${totalBatches} (${batch.length} chunks)`);
 
-    const response = await embedConBackoff(pc, batch, planDeEmbedding('indexacion'), `lote ${batchNum}`);
+    const response = await embedConBackoff(pc, batch, planDeEmbedding('indexacion'), `lote ${batchNum}`, gastada);
     for (const item of response.data) {
       allEmbeddings.push(item.values as number[]);
     }
@@ -186,7 +281,7 @@ export async function generateQueryEmbedding(text: string): Promise<number[]> {
   // repetirla devuelve el mismo vector. No vale para todo lo de Pinecone — un
   // `upsert` por lotes no se reintenta con este criterio (ver B.138 y el mapa
   // de la regla 6).
-  const response = await embedConBackoff(pc, [text], planDeEmbedding('consulta'), 'consulta');
+  const response = await embedConBackoff(pc, [text], planDeEmbedding('consulta'), 'consulta', { ms: 0 });
 
   return response.data[0].values as number[];
 }
