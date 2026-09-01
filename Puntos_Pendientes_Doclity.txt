@@ -3533,12 +3533,86 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     documento durante cuatro intentos porque el único camino donde se veía
     llevaba un documento dentro; la prueba de carga cero lo separó en un minuto.
 
+
+    ══ CONFIRMADO POR EL PROVEEDOR — el desenlace, con horas ══
+    Pinecone abrió incidencia a las **15:04 UTC**: «5xx errors on some control
+    plane operations», con **Index Management y Console en Partial Outage**.
+    El primer fallo de OPE-13 fue a las **15:27**, veintitrés minutos después.
+    A la hora de escribir esto, **sin resolver, más de cuarenta minutos abierta**.
+    EL EXPERIMENTO APUNTÓ AL PLANO DE CONTROL Y EL PROVEEDOR LO CONFIRMA CON ESE
+    NOMBRE. No es una coincidencia interpretada a favor: la prueba de carga cero
+    señaló `api.pinecone.io/indexes/…` —control plane— antes de que hubiera
+    ninguna incidencia publicada que leer.
+
+    ══ ⚠️ Y ESTO AFINA EL PENDIENTE, no lo debilita: DOS MITADES DISTINTAS ══
+    Escrito arriba quedó que «si el retry cubriera los 5xx, esto se habría
+    reintentado solo». CON CUARENTA MINUTOS DE CAÍDA, ESO ES FALSO: cinco
+    intentos con backoff exponencial cubren segundos, no una hora. El retry
+    habría salvado un pico y no habría salvado esto.
+    LA DISTINCIÓN QUE ORDENA EL PROBLEMA, y es la que hay que conservar:
+      · EL RETRY cubre LO TRANSITORIO. Sigue faltando y sigue valiendo la pena
+        —la mayoría de los 5xx son picos— pero su alcance es de segundos.
+      · LA MEMORIA DEL FALLO cubre LO QUE DURA. Cuando la caída es larga, el
+        reintento no puede hacer nada y lo único que queda es que el fallo deje
+        rastro consultable: qué documento no entró, cuándo y por qué.
+    Hoy no hay ninguna de las dos. Y son mitades independientes: arreglar el
+    retry no quita la necesidad de la memoria, y al revés tampoco.
+
     ESTADO DE LA SIEMBRA: los dos documentos están indexados con 15 chunks cada
     uno y la siembra está verificada (ver corpus-pruebas/SIEMBRA_guardias_
     cobertura.md). La tanda queda PARADA hasta que Pinecone se recupere, y
     cuando vuelva se lanza sin más — no hay nada que rehacer.
 
 
+
+  B.133 — [ABIERTO 01/09 CON EVIDENCIA DE PRODUCCIÓN · SIN RESOLVER · VA A
+    FABLE CON EL FRENTE 2] QUÉ PASA CUANDO EL PROVEEDOR DE VECTORES ESTÁ CAÍDO
+    MÁS DE LO QUE AGUANTA UN REINTENTO.
+
+    ══ EL CASO QUE LO ABRE ══
+    Pinecone, 01/09: incidencia abierta a las 15:04 UTC —«5xx errors on some
+    control plane operations», Index Management y Console en Partial Outage—,
+    **más de cuarenta minutos sin resolver**. Primer fallo nuestro a las 15:27.
+    No es un supuesto: es lo que acaba de pasar.
+
+    ══ LO QUE HOY SABEMOS QUE OCURRE, las tres cosas ══
+    1. **LA APLICACIÓN NO PUEDE ANALIZAR NADA.** Todo el análisis pasa por
+       recuperar candidatos, y recuperar pasa por resolver el índice. Sin
+       Pinecone no hay pipeline.
+    2. **EL DOCUMENTO QUE ESTABA ENTRANDO SE PIERDE SIN RASTRO CONSULTABLE.**
+       El sync lo cuenta en una variable local y lo tira (B.132). Mañana la
+       única señal de que no está en el corpus es que no está.
+    3. **EL USUARIO VE UN ERROR TÉCNICO DE PINECONE.** No una frase que le diga
+       qué ha pasado ni qué puede hacer: el mensaje del proveedor.
+
+    ══ LA DISTINCIÓN QUE ORDENA EL PROBLEMA, aprendida hoy ══
+    UN RETRY CUBRE LO TRANSITORIO; UNA CAÍDA LARGA NECESITA OTRA COSA.
+    Cinco intentos con backoff exponencial cubren segundos. Con cuarenta
+    minutos de caída no habrían salvado nada. Son dos problemas distintos con
+    dos soluciones distintas, y confundirlos lleva a creer que arreglando el
+    retry queda cubierto:
+      · lo transitorio  → reintento (falta, y es B.132)
+      · lo que dura     → memoria del fallo, y lo que decida esta entrada
+    Ninguna de las dos sustituye a la otra.
+
+    ══ NO SE PROPONE SOLUCIÓN AQUÍ, a propósito ══
+    Va a Fable cuando toque el frente 2, junto con B.132 y la deuda de «SIN
+    FALLBACK ENTRE PROVEEDORES».
+    ⚠️ SOBRE ESA DEUDA, un aviso para quien vaya a cruzarla: **no la he
+    encontrado escrita en el repositorio.** Se buscó en
+    Puntos_Pendientes_Doclity.txt, Bitacora_Sesiones.txt, Decisiones_Fase_C.txt
+    y claude/*.md. Existe en la lista del director; si va a citarse en una
+    consulta, hay que traerla o escribirla, porque hoy no está donde se
+    buscaría. (Es la regla de verificación al usar, aplicada a nuestra propia
+    lista en vez de a una respuesta de Fable.)
+    LO QUE SÍ APORTA HOY ESE CRUCE: esa deuda está escrita PARA EL LLM, y hoy
+    hemos visto que **aplica igual a Pinecone**. La dependencia de un solo
+    proveedor no es un problema del modelo: es un problema de cada pieza
+    externa del camino, y el vectorial tiene la particularidad de que sin él no
+    hay ni chat ni análisis.
+
+    CRUZAR con B.132 (la memoria del fallo y el retry) y con B.110 (dónde viven
+    los contadores de incidencia, que sigue sin decidir).
 
   F-81 [CONVERGENCIA — leer ANTES de planificar la fase 3 del diff, 27/08] No
     es un pendiente nuevo: es el sitio donde se juntan tres que ya existen, más
