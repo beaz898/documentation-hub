@@ -3985,6 +3985,56 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     NO SE PROPONE CUÁL SE QUEDA: hace falta mirar cuándo nació cada una y qué
     consume cada tabla, y eso no se ha hecho.
 
+  B.136 — [HUECO DOCUMENTAL CON CONSECUENCIA MEDIDA, abierto 01/09] EXISTE UN
+    SUBSISTEMA ENTERO —EL AGENTE— QUE `CLAUDE.md` NO NOMBRA NI UNA VEZ, Y ESA
+    OMISIÓN YA HA VIAJADO EN UNA CONSULTA.
+
+    ══ LO MEDIDO ══
+    `grep -ci "agente\|/api/agent" CLAUDE.md` → **0**.
+    Y lo que existe en el repositorio:
+      · `lib/agent/` — runner-conv.ts, system-prompt.ts, llm-call.ts,
+        credit-calc.ts, persist-conv.ts, should-confirm.ts, types.ts
+      · `lib/agent/tools/` — NUEVE herramientas: search-docs, read-doc,
+        list-docs, usage-stats, escalate, finalize, ask-user, warn, index
+      · `app/api/agent/conversations/` — con su endpoint de mensaje
+      · `hasAgent` es CARACTERÍSTICA DE PLAN (`lib/stripe.ts:72,75,76`), al
+        mismo nivel que hasDrive y hasAnalyticsPanel, y su endpoint la comprueba
+        con `getOrgFeatures()` (message/route.ts:95)
+      · TIENE RECONCILIACIÓN DE CRÉDITOS PROPIA, desde el worker
+        (`lib/credits.ts:145`: «uso exclusivo: reconciliación final de tareas
+        del agente»)
+    Y `CLAUDE.md` enumera CUATRO endpoints con coste —ask, analyze-v2,
+    analyze-style, improve— sin el agente; y lista las características de plan
+    —Drive, Analytics, VariablePricing— sin `hasAgent`.
+
+    ══ ⚠️ LA CONSECUENCIA, Y NO ES HIPOTÉTICA: YA OCURRIÓ ══
+    La exploración previa al frente 2 enumeró «TODOS los puntos donde una
+    llamada externa puede fallar» leyendo el repositorio con `CLAUDE.md` como
+    mapa, y salieron CUATRO caminos: Anthropic, Pinecone embed, Pinecone datos,
+    Drive. **Faltaba el del agente** — `lib/agent/llm-call.ts` llama al modelo
+    por su propia vía.
+    Esa enumeración viajó en F-94 y volvió contestada. **LA DECISIÓN DE LA
+    REGLA 6 NO CAMBIA; SU ALCANCE SÍ**: cuando llegue el commit de los retries,
+    el camino del agente entra en la cuenta, y hay que mirar además si su
+    reconciliación de créditos desde el worker tiene los mismos huecos de
+    memoria del fallo que B.132 encontró en el sync.
+
+    ══ POR QUÉ PASÓ, que es lo que hay que retener ══
+    `CLAUDE.md` es el documento que se carga como instrucciones del proyecto:
+    lo que no está ahí no existe para quien empieza. No es que estuviera
+    desactualizado en un detalle — es que un subsistema con su propia llamada al
+    modelo, sus propios créditos y su propia característica de plan **no aparece
+    en la arquitectura, ni en la tabla de costes, ni en la de planes, ni en la
+    de ficheros clave**.
+    ES LA TERCERA VEZ ESTA SEMANA que un documento normativo falla como premisa
+    —el contrato de contadores, B.113, la lista de deuda (B.134)— pero las tres
+    anteriores AFIRMABAN algo falso. Ésta CALLA algo cierto, que es más difícil
+    de cazar: un `grep` que no devuelve nada parece una respuesta.
+
+    NO SE ARREGLA AQUÍ. Qué debe decir CLAUDE.md del agente es decisión del
+    director, y tocarlo sin él sería escribir la premisa de las sesiones
+    siguientes por mi cuenta.
+
   F-81 [CONVERGENCIA — leer ANTES de planificar la fase 3 del diff, 27/08] No
     es un pendiente nuevo: es el sitio donde se juntan tres que ya existen, más
     una consecuencia. Se anota aquí porque el momento en que importan es el de
