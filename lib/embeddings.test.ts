@@ -139,8 +139,10 @@ describe('debeReintentar — las dos condiciones, en un solo sitio', () => {
  * ⚠️ EL PRESUPUESTO TIENE QUE CABER EN EL TIEMPO DE LA FUNCIÓN, y esto es lo que
  * impidió copiar la política de indexación al camino de consulta.
  *
- * `vercel.json` da **30 s a `/api/ask`** y 60 a `/api/ingest`. Los seis
- * reintentos de indexación suman **61 s solo en esperas**: en `/api/ask` no
+ * `/api/ask` tiene **30 s** y `/api/ingest` **300** (comprobado en Vercel el
+ * 03/09; cuando este techo se eligió, el de ingest estaba declarado dos veces y
+ * distinto y se eligió para el menor — B.141). Los seis reintentos de indexación
+ * suman **61 s solo en esperas**: en `/api/ask` no
  * habrían dado un error limpio sino un TIMEOUT DE PLATAFORMA — sin `catch`, sin
  * `logUsage`, sin mensaje, y con el crédito ya cobrado.
  * Y en esos mismos 30 s corre además la llamada a Anthropic con su propio retry.
@@ -213,9 +215,9 @@ describe('planDeEmbedding — el prefijo y el presupuesto son UNA decisión', ()
  * chunks son diez lotes — **610 s de espera pura** contra un proveedor caído,
  * para fallar igual al final. El peor caso crecía con el tamaño del documento.
  *
- * ⚠️ Y EL PRESUPUESTO DE `/api/ingest` ESTÁ DECLARADO DOS VECES Y DISTINTO:
- * `vercel.json` dice 60 y la ruta dice 300. No se puede resolver desde el
- * repositorio, así que el techo se elige para el MENOR — si gana 300, sobra.
+ * El presupuesto de `/api/ingest` son 300 s (Vercel, 03/09). Cuando este techo
+ * se eligió estaba declarado dos veces y distinto y se eligió para el MENOR;
+ * resultó ser el mayor, y la decisión no cambia — 30 s caben igual (B.141).
  */
 describe('hayPresupuestoParaEsperar — el techo compartido entre lotes', () => {
   it('cabe lo que cabe, y el límite exacto cuenta como que cabe', () => {

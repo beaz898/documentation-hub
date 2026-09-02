@@ -21,10 +21,10 @@ const JITTER_RATIO = 0.3;
  * DOS PRESUPUESTOS DE REINTENTO, Y NO ES UN CAPRICHO: ES EL TIEMPO QUE TIENE
  * CADA FUNCIÓN (01/09/2026).
  *
- * `/api/ask` tiene **30 s** (`vercel.json`), y `/api/ingest` tiene 60 o 300
- * según dónde se mire — ver la nota del presupuesto de espera, más abajo. La
- * política de indexación son seis reintentos con topes 1→2→4→8→16→30 s: **61 s
- * solo en esperas, POR LOTE**. Copiarla al camino de consulta no habría dado un
+ * `/api/ask` tiene **30 s** (`vercel.json`) y `/api/ingest` **300**
+ * (`app/api/ingest/route.ts`, comprobado en Vercel el 03/09 — ver la nota del
+ * presupuesto de espera, más abajo). La política de indexación son seis
+ * reintentos con topes 1→2→4→8→16→30 s: **61 s solo en esperas, POR LOTE**. Copiarla al camino de consulta no habría dado un
  * error limpio
  * sino un TIMEOUT DE PLATAFORMA — sin `catch`, sin `logUsage`, sin mensaje y con
  * el crédito ya cobrado. El arreglo habría empeorado lo que dice arreglar.
@@ -49,12 +49,20 @@ export const REINTENTOS_CONSULTA = 2;
  * fallar igual. Sin techo agregado, el peor caso crece con el tamaño del
  * documento.
  *
- * ⚠️ Y EL PRESUPUESTO DE `/api/ingest` ESTÁ DECLARADO DOS VECES Y DISTINTO:
- * `vercel.json` dice 60 y `app/api/ingest/route.ts:14` dice 300. Cuál gana no se
- * puede resolver desde el repositorio, así que ESTE NÚMERO SE ELIGE PARA EL
- * MENOR: si gana 300, sobra; si gana 60, el diseño sigue en pie. Con 30 s de
- * espera como techo, queda sitio para las peticiones y para el resto de la
- * indexación aunque el presupuesto real sea el corto.
+ * EL PRESUPUESTO DE `/api/ingest` SON 300 s, comprobados en Vercel el 03/09
+ * (Deployments → el despliegue Current → Functions). Con 30 s de espera como
+ * techo queda sitio de sobra para las peticiones y para el resto de la
+ * indexación.
+ *
+ * ⚠️ CUANDO ESTE NÚMERO SE ELIGIÓ (02/09) NO SE SABÍA: el tope estaba declarado
+ * DOS VECES Y DISTINTO —60 en `vercel.json` y 300 en la ruta— y no se podía
+ * resolver leyendo el repositorio, así que **se eligió para el MENOR**. Al
+ * comprobarlo resultó ser el mayor y la línea de `vercel.json` estaba muerta
+ * (B.141, retirada).
+ * LA DECISIÓN NO CAMBIA, y por eso el 30 sigue aquí: elegir para el menor sigue
+ * siendo lo correcto cuando hay duda, y 30 s caben igual en 300. Lo que cambia
+ * es que ya no hay duda — y se deja escrito para que nadie lea este número como
+ * si fuera un cálculo sobre 300.
  *
  * Y ALARGAR AQUÍ NO ES SOLO ESPERAR: en el camino de REEMPLAZO, `ingest` borra
  * el documento viejo (`route.ts:221`) ANTES de generar los embeddings del nuevo
