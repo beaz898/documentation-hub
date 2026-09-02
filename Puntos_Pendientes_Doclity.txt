@@ -4381,6 +4381,17 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     prueba que cubría el otro campo. La entrada no era una cosa: eran dos, y solo
     una mentía.
 
+    ⚠️ Y LA INSTRUCCIÓN QUE PEDÍA BORRARLA ESTABA MAL CUANTIFICADA, y era del
+    director: «se borra la entrada de vercel.json, que es la que no está en
+    vigor». La prueba cubría UN campo y la instrucción hablaba de la entrada
+    ENTERA. Es el mismo defecto de alcance que este frente lleva una semana
+    cazando —el cuantificador sin universo: «la entrada» ¿de qué, de sus dos
+    campos o del que se probó?— y esta vez venía de arriba.
+    LO QUE LO CAZÓ fue leer el fichero antes de ejecutar la orden, que es la
+    misma disciplina que el protocolo pide para una regla dictada o para un
+    «reutiliza X». UNA INSTRUCCIÓN NO SE AUDITA MENOS POR VENIR DEL DIRECTOR — y
+    él lo confirmó al verlo.
+
     ⚠️⚠️ LO QUE ESTE CASO ENSEÑA, y es lo que hay que retener: EL NÚMERO QUE
     SOBREVIVIÓ ES EL QUE LA RAZÓN DE PRODUCTO PEDÍA, PERO POR SUERTE.
     El director recomendaba 300 por un motivo propio —la indexación puede gastar
