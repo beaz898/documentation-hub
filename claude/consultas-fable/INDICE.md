@@ -134,6 +134,7 @@ queda superado, pero **no administra su propio estado**.
 | **[F-91](F-91.md)** | 30/08/2026 | «Todas las columnas comunes» admitía dos lecturas, y la mala descartaba hallazgos VERDADEROS: la geometría no se contamina con testimonio. Y la clase de contadores CENTINELA | **vigente** · PAR COMPLETO | La clase CENTINELA — `Contrato_Contadores.md`; la hermana de F-79 (una regla con dos lecturas se ejerce contra un caso medido) — protocolo |
 | **[F-92](F-92.md)** | 31/08/2026 | La supresión suprime por FILA y el diff compara por COLUMNA: el hueco es el territorio de las omisiones —y del mismo dato bajo otro nombre—. Y por qué la cifra de coste no se podía medir | **vigente** · *su P1 CORREGIDO por F-93 en universo y predicado* · PAR COMPLETO | MOTIVO LITERAL — `Contrato_Contadores.md`. TRES PIEZAS POR REGLA DICTADA, «CERO EN N» con la tasa que excluye, y la AMBIGÜEDAD DE ALCANCE DEL CUANTIFICADOR — protocolo |
 | **[F-93](F-93.md)** | 31/08/2026 | `columnas(h)` no tenía universo y las dos lecturas naturales fallan cada una uno de los tres casos: el dato es LA OPOSICIÓN, no la cita. Y la trampa de `'equivalentes'` | **vigente** · PAR COMPLETO | LA CUARTA PIEZA (vacío y ausente; forma existencial) — protocolo. Un comentario que justifica un orden CITA SU INVARIANTE — `CLAUDE.md` |
+| **[F-95](F-95.md)** | 02/09/2026 | Cierra el FRENTE 2 y abre el 3. Fable RETIRA una receta suya por insostenible, acepta las dos desviaciones, y ante B.147 contesta «ni una ni otra»: cambiar la forma de la operación para que la propiedad sobre | **vigente** · PAR COMPLETO | DESTRUCTIVO SOBRE RESPUESTA AJENA, CADA DECLARADO SU CONTADOR, NINGÚN ENDPOINT ACEPTA OBJETOS DE NEGOCIO y CUOTA NO ES ANALÍTICA — `CLAUDE.md` |
 | **[F-94](F-94.md)** | 01/09/2026 | Abre el FRENTE 2: la identidad accidental de los descartes tabulares (⚠️ premisa nuestra FALSA — no había ninguna: nunca hubo botón), el volcado de filas, las averías silenciosas, y el prefijo de fila que resulta ser la cita por referencia de F-80 | **vigente** · PAR COMPLETO | UNA IDENTIDAD POR ESPECIE y DATOS DEL CLIENTE — `CLAUDE.md`. LECTURA DUAL CON CADUCIDAD, retirada del frente 2 por inexistente. LO QUE SE AFIRMA DEL REPO VIAJA CON SU EVIDENCIA — protocolo |
 
 ---
@@ -142,6 +143,18 @@ queda superado, pero **no administra su propio estado**.
 
 **Once pares completos de F-70 a F-94: F-84 a F-94, todas menos las que no llegaron.** El resto, o a medias o nada:
 
+- **F-95 — PAR COMPLETO**, en `F-95.md` (02/09/2026). **EL PRIMERO EN QUE FABLE
+  RETIRA UNA RECETA SUYA** antes de que la implementáramos mal: «búfer durable en
+  el propio análisis» era amortiguar un fallo de Supabase dentro de Supabase, y
+  queda superada con esta consulta como causa.
+  Y **la primera vez que una pregunta binaria nuestra se contesta cambiando la
+  forma de la operación**: ante «¿declaro la propiedad o me quedo sin retry?»
+  (B.147), partir el borrado por filtro en dos —enumerar los ids, borrar el
+  conjunto fijo— hace que la propiedad DEJE DE IMPORTAR. Las dos opciones que
+  traíamos eran malas.
+  Deja además la escala que ordena «declarado»: **escrito, contado, ejercido**, y
+  desmonta la excusa de «no se puede provocar sin romper producción» — desde
+  B.126 los simulacros son viables.
 - **F-94 — PAR COMPLETO**, en `F-94.md` (01/09/2026). **LA PRIMERA VEZ QUE UNA
   EXPLORACIÓN PREVIA EVITA UNA CONSULTA EQUIVOCADA**, y no solo un commit: cazó
   que los descartes de tablas YA funcionaban por un camino accidental con la

@@ -283,6 +283,40 @@ El dueño del proyecto NO es programador. Vercel deploya automáticamente al hac
   cuenta ENTERO: en esos mismos 30 s corre también la llamada al modelo con su
   propio retry. De ahí que los reintentos de embeddings sean DOS presupuestos
   con nombre y no uno. Promovida el 01/09/2026.
+- **TODA OPERACIÓN DESTRUCTIVA CUYA CONDICIÓN DE DISPARO DEPENDA DE UNA
+  RESPUESTA AJENA VERIFICA QUE LA RESPUESTA ES VÁLIDA ANTES DE ACTUAR.** La
+  ausencia de datos POR FALLO no es ausencia de datos: un listado que no llegó no
+  significa «no hay nada», y leerlo así convierte un error de red en un borrado.
+  Y SU HERMANA PERMISIVA: una guarda cuya condición dependa de una respuesta
+  ajena **falla CERRADA por defecto**; si falla abierta, se declara y se cuenta.
+  Los dos casos, y son la misma forma con el signo cambiado: el listado de Drive
+  devolvía lista vacía ante un fallo y se borraba el corpus entero (B.138); el
+  veto por hash devuelve «no es duplicado» ante un fallo y el duplicado entra
+  (B.149). Promovida en F-95 P3.
+  ⚠️ Y EL PELIGRO NO ES LA RESPUESTA VACÍA, ES LA INCOMPLETA: un fallo de
+  subcarpeta o de página devuelve contenido AL QUE LE FALTAN COSAS, y una guarda
+  de «si viene vacío, aborta» no lo caza.
+- **CADA LÍMITE DECLARADO LLEVA SU CONTADOR.** Lo escrito documenta que lo
+  sabíamos; el contador es lo que avisa el día que ocurra. «Declarado» tiene tres
+  grados —ESCRITO, CONTADO, EJERCIDO— y el segundo es exigible a todos sin
+  excepción: un declarado sin contador es callar con permiso. El tercero es
+  obligatorio para lo que guarde una operación destructiva o un camino de
+  pérdida, y desde B.126 «no se puede provocar sin romper producción» ya no vale
+  como excusa. Promovida en F-95 P5.
+- **NINGÚN ENDPOINT ACEPTA COMO ENTRADA UN OBJETO DEL QUE SE DERIVEN COLUMNAS DE
+  NEGOCIO.** Se aceptan referencias e identificadores; el servidor reconstruye.
+  El caso: un endpoint de «reintentar el guardado» tendría que aceptar el objeto
+  de análisis del cliente, y de él se derivan siete columnas —contradicciones,
+  duplicados, solapamientos, estilo, recomendación—. Cualquiera con sesión
+  escribiría filas fabricadas que alimentan la analítica, la bandeja y **los
+  contadores con los que este proyecto se mide a sí mismo**. Contaminar el
+  instrumento de medida es el coste inaceptable, no el abuso hipotético.
+  Promovida en F-95 P1.
+- **UN DATO QUE GOBIERNA CUOTA SE TRATA COMO CUOTA, NO COMO ANALÍTICA.**
+  `usage_logs` parece un registro de uso y es lo que el limitador cuenta para
+  saber cuántas llamadas lleva hoy un usuario: cada fila perdida es una llamada
+  regalada, y regalada justo cuando la base va peor. Antes de tocar una tabla,
+  mirar quién la LEE — no qué nombre tiene. Promovida en F-95 P2 (B.145).
 - Retry con backoff y fallback determinista.
 - Cero dependencias nuevas sin razón.
 - Idioma del proyecto: español.

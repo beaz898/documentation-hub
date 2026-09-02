@@ -3,7 +3,7 @@ PENDIENTES — Doclity (Agente IA)
 Documento vivo. Se actualiza al completar tareas (marcar [✓]) y se
 sustituye por la versión nueva. Más ligero que la Bitácora: aquí va
 lo que falta y la visión que lo guía, no el detalle de cada sesión.
-Última actualización: 02/09/2026 (v50)
+Última actualización: 02/09/2026 (v51)
 
 
 ════════════════════════════════════════════════════════════════
@@ -4705,6 +4705,96 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     reparar en que no tiene ni una prueba, ni un retry, ni un solo caso de uso
     real detrás. Si el backfill de B.4 sigue previsto, entra con él y con su
     retry; si no, se retira. Decidirlo cuesta menos que mantenerla.
+
+  B.149 — [ABIERTO 02/09 · LA MISMA FORMA QUE B.138, CON EL SIGNO CAMBIADO ·
+    DESTAPADO POR F-95 P3] EL VETO POR HASH SE DESACTIVA SOLO CUANDO SU CONSULTA
+    FALLA
+
+    ══ EL CASO ══
+    `checkContentHash` decide si un documento es duplicado exacto de otro ya
+    indexado. Sus DOS caminos de fallo devuelven lo mismo:
+
+      lib/analysis/hash-check.ts:83-86   error de consulta → isDuplicateExact: false
+      lib/analysis/hash-check.ts:97-100  excepción         → isDuplicateExact: false
+
+    O sea: **un fallo se lee como «no es duplicado»**, y el documento entra al
+    corpus. Silencioso las dos veces — un `console.warn` y ningún contador.
+
+    ⚠️ ══ ES LA MISMA FORMA QUE EL BORRADO DE DRIVE, PERMISIVA ══
+    En B.138 un fallo ajeno se leía como «este documento ya no está en Drive» y
+    disparaba una DESTRUCCIÓN. Aquí un fallo se lee como «este documento no es
+    duplicado» y desactiva una GUARDA. Las dos veces:
+      · la respuesta que no llegó se toma por un dato;
+      · el resultado por defecto es el que deja pasar la acción;
+      · y no queda rastro.
+    Cambia el signo —una borra de más, la otra admite de más— y no la especie.
+    Por eso la regla que F-95 promueve tiene dos mitades, y ésta es la segunda:
+    **una guarda cuya condición dependa de una respuesta ajena falla CERRADA por
+    defecto; si falla abierta, se declara y se cuenta.**
+
+    ══ QUÉ CUESTA, para dimensionarlo sin dramatizar ══
+    Mucho menos que B.138: admitir un duplicado no borra nada. El corpus queda
+    con dos documentos idénticos, el chat los recupera a los dos y el análisis
+    los emparejará como duplicado en la siguiente pasada. Es SUCIEDAD, no
+    pérdida. Pero es suciedad que entra por la puerta que existe justamente para
+    impedirlo, y sin dejar constancia: nadie puede saber después si un duplicado
+    entró porque el veto falló o porque nadie lo miró.
+
+    ══ QUÉ HAY QUE DECIDIR ══
+    1. FALLAR CERRADO — ante un fallo de la consulta, tratar el documento como
+       sospechoso y no dejarlo entrar sin más. Es lo que la regla pide por
+       defecto, y hay que mirar qué significa exactamente aquí: ¿abortar el
+       análisis, o entrar marcándolo?
+    2. FALLAR ABIERTO, DECLARADO Y CONTADO — si se decide que la disponibilidad
+       manda (que es defendible: es suciedad, no pérdida), entonces la avería
+       deja fila, como ya la deja el limitador desde el 02/09.
+    En los dos casos el comentario de la línea 81 —«si la columna no existe,
+    Supabase devuelve un error 400»— envejeció: esa columna existe desde hace
+    meses, así que hoy ese `catch` cubre averías de verdad y no una migración
+    pendiente. Es otra afirmación caducada de las que este frente lleva cazando.
+
+  B.150 — [ENCARGO DE F-95 P3 · SOLO LECTURA, UNA VEZ] EL BARRIDO DE LAS
+    OPERACIONES DESTRUCTIVAS
+
+    La pregunta, tal como Fable la formula: **«¿qué operaciones irreversibles
+    dependen de una respuesta ajena, y puede un fallo fabricar la entrada que las
+    dispara?»** Con el matiz que la vuelve seria: la entrada peligrosa no es la
+    respuesta VACÍA sino la INCOMPLETA — la ausencia leída como evidencia de
+    ausencia.
+
+    ══ QUÉ HAY QUE HACER ══
+    Una sesión en SOLO LECTURA que enumere TODA operación destructiva —borrar
+    vectores, filas, ficheros, análisis— y trace, para cada una:
+      · qué entrada la dispara;
+      · de dónde viene esa entrada;
+      · y qué pasa si esa entrada llega mal, incompleta o vacía por un fallo.
+    UNA VEZ, NO PERIÓDICO. Y cada hallazgo, su pendiente propio.
+
+    ══ LO QUE YA SE SABE, para no volver a encontrarlo ══
+    · B.138 — el listado de Drive. CERRADO el 02/09.
+    · B.149 — el veto por hash (permisivo, no destructivo, pero misma forma).
+    · B.140 — el reemplazo de `ingest` borra el viejo antes de saber si el nuevo
+      existirá. No lo dispara una respuesta ajena, pero es destructivo y su
+      ventana está abierta: entra en el barrido por la otra puerta.
+    · B.147 — los borrados por filtro. F-95 P6 los resuelve cambiando su forma.
+
+    ══ Y LAS DOS CURAS ESTRUCTURALES QUE F-95 PRESCRIBE, porque la vigilancia no
+    escala ══
+    1. DE TIPOS: toda función cuyo resultado condicione una operación destructiva
+       debe hacer el fallo IRREPRESENTABLE como dato válido — lanza, o devuelve
+       resultado-o-error explícito; **jamás un centinela**. Es lo que se hizo con
+       `listFiles` en B.138, elevado a contrato.
+    2. DE FORMA: todo borrado dirigido por un listado externo pasa a DOS FASES —
+       marcar como ausente en esta pasada, borrar solo lo que siga ausente en la
+       siguiente. Un fallo transitorio produce marcas que la pasada sana deshace;
+       el borrado real exige dos confirmaciones separadas EN EL TIEMPO. Es el
+       mismo patrón que el camino de Drive ya usa (versionar antes de borrar),
+       aplicado a la otra dirección.
+
+    ══ Y EL LEMA, que Fable manda al contrato ══
+    **LO AJENO MERECE LA MISMA DESCONFIANZA QUE LO PROPIO.** El código la tenía
+    para nuestra base —«sin la lista de documentos existentes, abortar es la
+    única opción segura»— y no para la de Google, a doce líneas de distancia.
 
   F-81 [CONVERGENCIA — leer ANTES de planificar la fase 3 del diff, 27/08] No
     es un pendiente nuevo: es el sitio donde se juntan tres que ya existen, más
