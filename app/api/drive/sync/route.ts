@@ -3,6 +3,7 @@ import { createServiceClient } from '@/lib/supabase';
 import { getAuthenticatedUserHybrid } from '@/lib/supabase-server';
 import { upsertVectors, deleteVectorsByIds, listVectorIdsByPrefix, buildVectorId, parseVectorId } from '@/lib/pinecone/vectors';
 import { decidirSincronizacion } from '@/lib/drive/sync-guard';
+import { registrarIncidenciaDeSync } from '@/lib/usage-logger';
 import { deleteDocument, getTombstonedIdentities, tombstoneKey } from '@/lib/delete-document';
 import { checkUploadLock } from '@/lib/upload-lock';
 import { generateEmbeddings } from '@/lib/embeddings';
@@ -214,6 +215,15 @@ export async function POST(req: NextRequest) {
           // OCR, documento practicamente vacio) desaparecia del recuento y el usuario
           // creia que se habia indexado. El corpus quedaba incompleto en silencio.
           unreadableCount++;
+          // ⚠️ Y CON NOMBRE (02/09). El recuento seguía sin decir CUÁL, y éste
+          // es el caso más accionable de los tres: lo arregla el usuario
+          // —convertir el PDF, arreglar el fichero— pero solo si sabe cuál es.
+          // No es una avería: el fichero se descargó bien. Su motivo lo dice.
+          await registrarIncidenciaDeSync(supabase, {
+            especie: 'ilegible', documento: file.name,
+            detalle: `${text?.trim().length ?? 0} caracteres`,
+            orgId, userId: user.id, endpoint: '/api/drive/sync',
+          });
           console.warn(`[DRIVE SYNC] Texto vacío o muy corto, se omite: ${file.name} | chars=${text?.trim().length ?? 0}`);
           continue;
         }
@@ -447,6 +457,13 @@ export async function POST(req: NextRequest) {
       } catch (err) {
         console.error(`[DRIVE SYNC] Fallo procesando ${file.name} | doc-file=${file.id} |`, err);
         failedCount++;
+        // El documento no entró al corpus, y hasta hoy eso solo se sabía
+        // mirando este log EN EL MOMENTO. Pasó con OPE-13.
+        await registrarIncidenciaDeSync(supabase, {
+          especie: 'fallo_al_procesar', documento: file.name,
+          detalle: err instanceof Error ? err.message : String(err),
+          orgId, userId: user.id, endpoint: '/api/drive/sync',
+        });
         continue;
       }
     }
@@ -473,6 +490,14 @@ export async function POST(req: NextRequest) {
       } else {
         console.error(`[DRIVE SYNC] delete failed | doc=${doc.id} | name=${doc.name} | ${result.error ?? 'error desconocido'}`);
         deleteFailedCount++;
+        // Divergencia que DURA: el documento ya no está en Drive y sigue en el
+        // corpus. Se autocorrige en el siguiente sync, pero hasta entonces el
+        // chat lo sirve como si existiera.
+        await registrarIncidenciaDeSync(supabase, {
+          especie: 'fallo_al_borrar', documento: doc.name,
+          detalle: result.error ?? 'error desconocido',
+          orgId, userId: user.id, endpoint: '/api/drive/sync',
+        });
       }
     }
 

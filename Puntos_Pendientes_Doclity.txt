@@ -197,7 +197,7 @@ FRENTE 1 — R2 y el emparejamiento          [BLOQUEA]   ← EL SIGUIENTE
   Por qué bloquea: publica falsos con el sello más fuerte. Rompe la primera pata.
 
 ────────────────────────────────────────────────────────────────
-FRENTE 2 — cierre de la emisión            [CASI CERRADO — 02/09]
+FRENTE 2 — cierre de la emisión            [HECHO — falta remedición 02/09]
 ────────────────────────────────────────────────────────────────
   Qué: Ficha B (acciones por fila sobre huella tabular + extensión del payload
        de F-87 a tablas) y el saneo de B.122 segunda mitad.
@@ -220,13 +220,13 @@ FRENTE 2 — cierre de la emisión            [CASI CERRADO — 02/09]
        · La higiene de las averías silenciosas — HECHA en lo que era la regla 6
          entera: retry, memoria del fallo y mensaje al usuario. Ver la sesión 53
          de la bitácora.
-       ⚠️ LO QUE FALTA, y lo nombra este mismo mapa: LA MITAD DEL SYNC DE B.132.
-         El sync de Drive sigue contando sus fallos en variables locales
-         (`failedCount`, `unreadableCount`, `deleteFailedCount`), los escribe en
-         un `console.log` y los devuelve en la respuesta — sin rastro
-         consultable y SIN EL NOMBRE del documento que falló. Por el criterio de
-         cierre de aquí abajo, esa mitad sigue abierta.
-         (La otra mitad de B.132 —«el embed no reintenta un 5xx»— sí está hecha.)
+       · B.132 — CERRADO EN SUS DOS MITADES. El 5xx del embed, y el sync, que
+         ya no tira el nombre: cada documento que no entra al corpus deja una
+         fila con su nombre y su motivo, y los tres recuentos anónimos resultaron
+         ser TRES ESPECIES distintas (ilegible = hecho sobre el documento;
+         fallo al procesar = sobre la ejecución; fallo al borrar = sobre el
+         estado).
+       ⚠️ QUEDA LA REMEDICIÓN, y solo eso.
   Después: REMEDICIÓN COMPLETA, que ahora es también la validación del Frente 1.
   Por qué bloquea: el saneo de B.122 es HIGIENE DE DATOS DEL CLIENTE —veinte
        filas suyas viajando a tres prompts y a la persistencia—, y eso es cara
@@ -3638,7 +3638,7 @@ NOTAS DE ORDEN (propuesta, a confirmar)
 
     NO SE PROPONE SOLUCIÓN AQUÍ, a propósito. Va a Fable en la próxima consulta.
 
-  B.132 — [AVERÍA MEDIDA EN PRODUCCIÓN 01/09 · FRENTE 2, higiene] EL SYNC
+  B.132 — [CERRADO EL 02/09 · LAS DOS MITADES] EL SYNC
     CUENTA SUS FALLOS EN UNA VARIABLE LOCAL Y LOS TIRA. Y EL CAMINO DE
     EMBEDDINGS NO REINTENTA UN 5xx: SOLO EL 429.
     ES EL MISMO PATRÓN QUE F-93 MANDÓ AL FRENTE 2 —«toda avería de red deja
