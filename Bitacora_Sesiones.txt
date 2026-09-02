@@ -5303,3 +5303,81 @@ PENDIENTES ABIERTOS HOY: B.116 (table-key.ts y su batería por encima de las 400
 líneas) y la condición 3 del criterio seguro (contador
 `rechazadas_por_escritura`, a añadir en el commit de emisión).
 
+────────────────────────────────────────────────────────────────
+SESIÓN 53 — 01–02/09/2026
+Título: La regla 6, la más vieja del proyecto, cerrada en sus tres cláusulas —
+y diez pendientes que salieron de mirar caminos que ya estaban ahí
+────────────────────────────────────────────────────────────────
+
+LO QUE ERA. «Toda llamada a un servicio externo debe tener retry con backoff,
+fallback determinista y mensaje útil al usuario si falla.» Escrita el primer
+día, en el documento fundacional, y sin cumplir desde entonces. F-94 P4 la
+ordenó en dos mitades independientes —el retry cubre lo transitorio, segundos;
+la memoria del fallo cubre lo que dura— y advirtió que arreglar una no cubre la
+otra.
+
+LO QUE HAY AHORA, por cláusula:
+
+  RETRY. Anthropic ya lo tenía (y se documentó que su quinta espera de 20 s no
+    se usa nunca: el techo real son 32 s, no 52). Se le suman:
+    · `generateQueryEmbedding` — la llamada externa MÁS FRECUENTE del producto,
+      la del chat y el agente, y la única sin NADA, ni siquiera ante un 429.
+    · los 5xx en indexación, que hasta hoy se trataban como error definitivo —
+      el incidente de plano de control del 01/09 se relanzaba al primer intento.
+    · los datos vectoriales: cinco de las ocho funciones, con el nivel razonado
+      por función y tres exclusiones con su razón escrita.
+    Y con techos de espera POR CAMINO, elegidos para el llamador más apretado:
+    3 s consulta, 30 s indexación, 10 s vectores.
+
+  MENSAJE ÚTIL AL USUARIO. El aviso de análisis no guardado, en los dos caminos
+    —el síncrono y el exhaustivo de 30 créditos—, separado del aviso de análisis
+    degradado para no mentir sobre la calidad ni disparar un reembolso que no
+    toca. Y el reembolso que faltaba: `/api/ask`, `/api/analyze-style` e
+    `/api/improve` cobraban y no devolvían NUNCA.
+
+  MEMORIA DEL FALLO. Las tres pérdidas de registro de F-94 P4:
+    · persistencia — el análisis se entrega marcado y la interfaz lo dice;
+    · limitador — falla abierto (bien elegido, no se toca) pero ya no mudo;
+    · uso — las pérdidas de las dos tablas son contables, con un marcador único.
+
+LOS COMMITS: f3f59f43, 366872e2, cca1be08, 64780b19, d552e751 (memoria del
+fallo y vectores), db60bd3c y 6e8d5acd (retry), 08028910 (reembolso), de0a2c53
+(la guarda del listado), más los de la ficha B y las dos decisiones de producto
+de la mañana del 01/09.
+
+UN SQL, ejecutado por el usuario antes del push:
+`supabase-b143-job-result-saved.sql` — una columna, no un estado nuevo. La
+opción que se traía escrita era el estado; razonarla antes de escribir el SQL la
+cambió, porque `status` codifica CÓMO FUE EL ANÁLISIS y si se guardó es una
+dimensión independiente. Cuatro valores para dos booleanos, dentro de un CHECK.
+
+⚠️ LO QUE DEJÓ ABIERTO — DIEZ PENDIENTES QUE NO EXISTÍAN ESTA MAÑANA, y ninguno
+inventado: todos salieron de mirar un camino que ya estaba ahí.
+
+  B.137  la batería puede encoger en verde; solo el recuento lo dijo.
+  B.139  el agente cobra y devuelve por su propia vía. Y la duplicación NO está
+         en el lado malo: es el que mejor lo hace.
+  B.140  el reemplazo borra el viejo antes de saber si el nuevo va a existir.
+  B.141  el timeout de /api/ingest, escrito dos veces y distinto.
+  B.142  los dos riesgos de ofrecer «reintentar el guardado».
+  B.144  un campo perdido cuyo valor por defecto es el caso bueno no deja
+         síntoma. La sexta pérdida de esa tubería, la primera cazada a tiempo.
+  B.145  `usage_logs` no es analítica: es CUOTA. Cada fila perdida es una
+         llamada regalada, y regalada cuando la base va peor.
+  B.146  un bucle de lotes que falla a mitad no se lo dice a nadie. El peligro
+         no es la duplicación, es el silencio.
+  B.147  la propiedad no escrita que haría seguro reintentar los borrados por
+         filtro.
+  B.148  `updateVectorMetadata` sin llamador: o tiene uno previsto o sobra.
+  (Y B.138 se abrió y se cerró el mismo día: un 500 de un segundo borraba el
+  corpus de Drive entero de la organización.)
+
+LO QUE ESTA SESIÓN VALE COMO MÉTODO, y es lo que explica los diez:
+NINGUNO SE BUSCÓ. Salieron de abrir el consumidor antes de escribir —la regla
+que F-94 dejó en CLAUDE.md—, de razonar una opción antes de tocar un esquema, y
+de traducir «reutiliza X» en vez de obedecerlo. Las tres veces lo que se
+encontró era más grande que lo que se iba a hacer.
+
+LA BATERÍA: de 267 casos a 366.
+
+────────────────────────────────────────────────────────────────

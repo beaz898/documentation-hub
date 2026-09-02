@@ -197,7 +197,7 @@ FRENTE 1 — R2 y el emparejamiento          [BLOQUEA]   ← EL SIGUIENTE
   Por qué bloquea: publica falsos con el sello más fuerte. Rompe la primera pata.
 
 ────────────────────────────────────────────────────────────────
-FRENTE 2 — cierre de la emisión            [BLOQUEA]
+FRENTE 2 — cierre de la emisión            [CASI CERRADO — 02/09]
 ────────────────────────────────────────────────────────────────
   Qué: Ficha B (acciones por fila sobre huella tabular + extensión del payload
        de F-87 a tablas) y el saneo de B.122 segunda mitad.
@@ -210,6 +210,23 @@ FRENTE 2 — cierre de la emisión            [BLOQUEA]
        está cerrado: EL AISLAMIENTO DEL FALLO SE IMPLEMENTÓ Y LA MEMORIA DEL
        FALLO NO. Mientras haya un camino donde algo se caiga y no quede rastro
        consultable, esta mitad del frente sigue abierta.
+  ESTADO 02/09/2026:
+       · Ficha B — HECHA, en tres commits. Y con dos decisiones de producto que
+         no estaban en el plan: las variantes de escritura y las idénticas salen
+         a ranura propia, con lo que «Sin correspondencia» deja de anunciar un
+         cero con cosas debajo.
+       · B.122 2ª mitad — HECHA: el solapamiento estructural ya no vuelca las
+         filas del cliente a tres prompts.
+       · La higiene de las averías silenciosas — HECHA en lo que era la regla 6
+         entera: retry, memoria del fallo y mensaje al usuario. Ver la sesión 53
+         de la bitácora.
+       ⚠️ LO QUE FALTA, y lo nombra este mismo mapa: LA MITAD DEL SYNC DE B.132.
+         El sync de Drive sigue contando sus fallos en variables locales
+         (`failedCount`, `unreadableCount`, `deleteFailedCount`), los escribe en
+         un `console.log` y los devuelve en la respuesta — sin rastro
+         consultable y SIN EL NOMBRE del documento que falló. Por el criterio de
+         cierre de aquí abajo, esa mitad sigue abierta.
+         (La otra mitad de B.132 —«el embed no reintenta un 5xx»— sí está hecha.)
   Después: REMEDICIÓN COMPLETA, que ahora es también la validación del Frente 1.
   Por qué bloquea: el saneo de B.122 es HIGIENE DE DATOS DEL CLIENTE —veinte
        filas suyas viajando a tres prompts y a la persistencia—, y eso es cara
