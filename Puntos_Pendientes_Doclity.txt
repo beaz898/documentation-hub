@@ -3,7 +3,7 @@ PENDIENTES — Doclity (Agente IA)
 Documento vivo. Se actualiza al completar tareas (marcar [✓]) y se
 sustituye por la versión nueva. Más ligero que la Bitácora: aquí va
 lo que falta y la visión que lo guía, no el detalle de cada sesión.
-Última actualización: 02/09/2026 (v45)
+Última actualización: 02/09/2026 (v46)
 
 
 ════════════════════════════════════════════════════════════════
@@ -4259,6 +4259,90 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     3. Qué pasa con el motivo: `adjustCredits` lleva `reason` y `refundCredits`
        no. Si la unificación pierde el motivo, se pierde la trazabilidad del
        único camino que hoy la tiene.
+
+  B.140 — [ABIERTO 02/09 · MISMA FAMILIA QUE B.138 · NO ARREGLAR SIN PREDICCIÓN]
+    EL REEMPLAZO BORRA EL DOCUMENTO VIEJO ANTES DE SABER SI EL NUEVO VA A
+    EXISTIR
+
+    ══ LA VENTANA ══
+    En `app/api/ingest/route.ts`, camino de REEMPLAZO:
+
+      :187-201  se borran los VECTORES del documento viejo
+      :221      `supabase.from('documents').delete()` — se borra la FILA
+      :237      `generateEmbeddings(chunkTexts)` — se generan los del nuevo
+      :256      `upsertVectors` — el nuevo entra en Pinecone
+      :259      `insert` — la fila del nuevo
+
+    Entre la 221 y la 259 la organización **no tiene ninguno de los dos**. Si la
+    generación falla —o si la función se agota antes de llegar— el usuario se
+    queda sin el viejo y sin el nuevo, y no hay nada que lo deshaga: el borrado
+    ya está confirmado en Pinecone y en Supabase.
+
+    ══ ES LA MISMA FAMILIA QUE B.138 ══
+    Una operación DESTRUCTIVA que ocurre ANTES de saber si la que la sustituye
+    va a funcionar. En B.138 se borraba el corpus porque un listado fallido se
+    leía como «el usuario vació la carpeta»; aquí se borra el documento viejo
+    porque se da por hecho que el nuevo va a llegar. Las dos veces el orden
+    supone un éxito que todavía no ha ocurrido.
+    Y las dos veces hay un ejemplo del orden correcto A LA VISTA: doce líneas
+    más arriba, en la 210, el propio `ingest` **aborta si no se pudieron borrar
+    los vectores**, con su razón escrita —«sin la fila no queda referencia para
+    localizar vectores huérfanos»—. Se pensó el fallo del borrado y no el de lo
+    que viene después.
+
+    ⚠️ ══ Y ESTE FRENTE LA EMPEORA UN POCO, dicho sin maquillar ══
+    El commit de los 5xx (02/09) mete hasta **30 s de reintentos** entre la 221
+    y la 256, y encima amplía qué errores llegan a reintentarse. La ventana
+    existía antes y era más estrecha; ahora es más ancha A PROPÓSITO, porque el
+    techo de espera es lo que hace seguro ampliar la cobertura.
+    Es un intercambio consciente, no un descuido: se cambia «fallar rápido y
+    perder el documento por un corte de un segundo» por «aguantar hasta 30 s el
+    corte, y si aun así falla, perder el documento igual pero habiéndolo
+    intentado». Lo primero pasaba más veces. Pero el saldo neto en ESTA ventana
+    es negativo, y por eso se anota aquí y no en la nota del commit.
+
+    ══ LO QUE HAY QUE DECIDIR, y por qué no se hace de madrugada ══
+    Reordenar un camino que BORRA es lo que más cuidado pide de todo lo que
+    queda. Las opciones no son equivalentes:
+    1. Generar embeddings y subir los nuevos ANTES de borrar los viejos. Es lo
+       correcto, y choca con los ids: `buildVectorId(documentId, generation,
+       chunkIndex)` — si el documento nuevo reutiliza el id del viejo, los dos
+       juegos colisionan salvo que se use la GENERACIÓN, que es justo para lo
+       que existe (F-4(2)) y que el camino de Drive ya usa.
+    2. Borrar solo al final, y dejar huérfanos si el proceso muere. Hay
+       `cleanup-orphans` para eso, pero es admin y manual.
+    3. No tocar el orden y aceptar la ventana, avisando al usuario. Es la peor:
+       el aviso no le devuelve el documento.
+    NINGUNA se elige sin predicción y sin mirar qué hace el camino de Drive, que
+    tiene el mismo problema resuelto de otra forma (versiona en vez de borrar).
+
+  B.141 — [ABIERTO 02/09 · NO ES DE ESTE FRENTE · TRAMPA ESPERANDO] EL TIMEOUT
+    DE `/api/ingest` ESTÁ DECLARADO DOS VECES Y CON VALORES DISTINTOS
+
+      vercel.json:4-7             "app/api/ingest/route.ts": { "maxDuration": 60 }
+      app/api/ingest/route.ts:14  export const maxDuration = 300;
+
+    Sesenta segundos en un sitio y trescientos en el otro, para el mismo
+    proceso. **Cuál gana no se puede resolver leyendo el repositorio**: depende
+    de cómo Vercel compone la configuración de `vercel.json` con la del segmento
+    de ruta de Next, y eso no está aquí.
+
+    ══ POR QUÉ IMPORTA MÁS DE LO QUE PARECE ══
+    Es un número que GOBIERNA UN TIMEOUT, o sea que decide si una indexación
+    larga termina o si la mata la plataforma a media faena — y `ingest` borra
+    cosas por el camino (ver B.140). Un desarrollador que lea uno de los dos
+    sitios diseñará para un presupuesto que puede no existir. Ya pasó el 02/09:
+    el techo de espera de los embeddings se calculó dos veces, una por cada
+    número, hasta que apareció la contradicción.
+    Es la especie de B.113 —un documento que afirma un hecho que no se cumple—
+    pero en configuración, donde no hay quien lo lea en una revisión.
+
+    ══ CÓMO SE CIERRA ══
+    Comprobando en Vercel cuál está en vigor —el panel lo muestra por función— y
+    dejando UNO SOLO, con el otro retirado. No hace falta decidir cuál es el
+    valor bueno para saber que no puede haber dos.
+    Mientras tanto, lo que dependa de esto se diseña para el MENOR, que es lo
+    que hizo el techo de espera de `lib/embeddings.ts` y queda dicho allí.
 
   F-81 [CONVERGENCIA — leer ANTES de planificar la fase 3 del diff, 27/08] No
     es un pendiente nuevo: es el sitio donde se juntan tres que ya existen, más
