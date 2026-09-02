@@ -197,7 +197,7 @@ FRENTE 1 — R2 y el emparejamiento          [BLOQUEA]   ← EL SIGUIENTE
   Por qué bloquea: publica falsos con el sello más fuerte. Rompe la primera pata.
 
 ────────────────────────────────────────────────────────────────
-FRENTE 2 — cierre de la emisión            [HECHO — falta remedición 02/09]
+FRENTE 2 — cierre de la emisión            [CERRADO — 02/09/2026]
 ────────────────────────────────────────────────────────────────
   Qué: Ficha B (acciones por fila sobre huella tabular + extensión del payload
        de F-87 a tablas) y el saneo de B.122 segunda mitad.
@@ -226,7 +226,14 @@ FRENTE 2 — cierre de la emisión            [HECHO — falta remedición 02/09
          ser TRES ESPECIES distintas (ilegible = hecho sobre el documento;
          fallo al procesar = sobre la ejecución; fallo al borrar = sobre el
          estado).
-       ⚠️ QUEDA LA REMEDICIÓN, y solo eso.
+       · REMEDICIÓN HECHA el 02/09 sobre `daca6dbf`: cinco pasadas, todas
+         limpias. 15 y 15 en el par grande con `por_estructura = 0`; las dos
+         ramas del territorio sin clave en las dos direcciones; prosa sin
+         regresión; y la ficha B de punta a punta — un descarte de fila de tabla
+         sobrevive al reanálisis. Cifras en `claude/Tandas_Harness.md`.
+       · LO QUE EL FRENTE DEJA DECLARADO Y NO MEDIDO está en el protocolo, con
+         el motivo concreto de cada uno: casi todo se activa CUANDO ALGO SE
+         ROMPE, y las averías no se provocan a voluntad.
   Después: REMEDICIÓN COMPLETA, que ahora es también la validación del Frente 1.
   Por qué bloquea: el saneo de B.122 es HIGIENE DE DATOS DEL CLIENTE —veinte
        filas suyas viajando a tres prompts y a la persistencia—, y eso es cara

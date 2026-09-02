@@ -1099,3 +1099,64 @@ tasa se haya movido.
 repositorio** — buscada el 26/08 por su título, por `e43fbc8c` y por
 `Belmonte`, sin resultado. Solo existió fuera. Es la razón concreta de que este
 fichero exista.
+
+
+---
+
+## LO QUE EL FRENTE 2 DEJA DECLARADO Y NO MEDIDO (02/09/2026)
+
+*Escrito para leerse dentro de seis meses. No es una excusa: es la lista de lo
+que se sabe que funciona por construcción y no por observación, con el motivo
+concreto de por qué no se pudo observar.*
+
+**LA RAZÓN COMÚN, y es una sola:** casi todo lo que el frente 2 construyó se
+activa **cuando algo se rompe**, y las averías no se provocan a voluntad. No
+podemos hacer que Pinecone devuelva un 429 ni que Anthropic dé un 529 cuando nos
+conviene, y **no se rompe la base de un cliente para ver un aviso**.
+
+| qué | con qué se declara | por qué no se mide |
+|---|---|---|
+| El retry de Anthropic, embeddings y vectores | casos deterministas de política, presupuesto y nivel, más la lectura de cada sitio de llamada | un fallo real del proveedor no es reproducible a voluntad |
+| Los tres techos de espera (3 s consulta / 30 s indexación / 10 s vectores) | los casos que cuentan cuántas esperas caben y dónde cortan | verlo exige un proveedor caído DURANTE la prueba |
+| El limitador que falla abierto | cinco casos del criterio; las cuatro rutas por `grep` | provocarlo exige romper la consulta contra la base real |
+| El aviso de análisis no guardado | seis casos del criterio, más cuatro del camino exhaustivo | exige romper el guardado. **Se decidió no hacerlo** |
+| El reembolso de los tres endpoints | la tabla de verdad de `debeDevolverse`; las cuatro salidas por `grep` | exige un fallo real después de cobrar |
+| La guarda del listado de Drive (B.138) | siete casos deterministas | exige que Google falle durante la prueba |
+| La memoria del fallo del sync | seis casos del criterio; las tres ramas por `grep` | ídem |
+| Las variantes de escritura (la ranura) | los casos del reparto y del recuento | **cero en 10.174 comparaciones del corpus**. Ver la tarea de siembra en los pendientes |
+| El `select` pide su columna, y los DOS consumidores de polling recogen el aviso | **solo lectura** | no son ejecutables en la suite. Son de la especie de B.144: la que no deja síntoma |
+
+**LO ÚNICO DE ESTA LISTA QUE SE HA VISTO FUNCIONAR EN PRODUCCIÓN**, y no se
+buscó: ver más abajo, el incidente del 02/09 a las 12:31.
+
+**Y UNO QUE NO SE DECLARA PARA SIEMPRE: LAS PÉRDIDAS DE REGISTRO.** El marcador
+`[perdida-de-registro]` ya está en producción. Eso no se provoca — **se espera**.
+Dentro de unas semanas se grepea sobre Vercel y Railway y hay número, y ese
+número decide si hace falta un búfer, un reintento o nada. Es lo único de la
+lista que se convierte en medición por sí solo.
+
+---
+
+## EL INCIDENTE DEL 02/09, 12:31 — LO QUE SE VIO SIN BUSCARLO
+
+Durante un intento fallido de la remedición, **Anthropic devolvió 529 en masa**.
+No fue una prueba: fue una avería real, y en ella se vieron funcionar tres cosas
+de la lista de arriba a la vez:
+
+  1. **El aviso de análisis incompleto SE PINTÓ.** El resultado degradado no se
+     entregó como si fuera bueno.
+  2. **El reembolso automático devolvió los créditos, LAS DOS VECES.** El fallo
+     del proveedor no lo pagó el cliente.
+  3. **El diff siguió emitiendo sus 15.** El aislamiento del fallo funcionó: la
+     caída del juez no se llevó por delante lo que no dependía de él.
+
+⚠️ **NO CONVIERTE NADA DE ESTO EN MEDIDO**, y por eso está en esta sección y no
+en la tabla: una avería observada por casualidad no es un experimento —no hubo
+control, ni repetición, ni predicción previa—. Lo que hace es más modesto y vale
+igual: **demuestra que el camino existe y se recorre**. La diferencia entre «el
+código está probado» y «lo he visto ocurrir» es real, y hasta hoy de esta lista
+no teníamos ni un caso del segundo tipo.
+
+Y deja una lección sobre el método: **la mejor observación del frente llegó de un
+intento que salió mal.** No se puede planificar; sí se puede estar mirando
+cuando pasa, y anotarlo en vez de repetir la pasada y olvidarlo.

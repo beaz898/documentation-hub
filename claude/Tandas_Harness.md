@@ -15,6 +15,133 @@ principio del protocolo.
 
 ---
 
+### RESULTADOS — REMEDICIÓN DEL FRENTE 2, `daca6dbf` (02/09/2026, 13:29–13:34)
+
+**Cinco pasadas, todas en modo rápido, todas limpias.** Es la validación del
+frente 1 (que se dejó pendiente al cerrarlo) y la primera medición del frente 2.
+
+MANIOBRA: todo pendiente y **solo la pareja de cada pasada en la bandeja** — el
+corpus visible es `analysisStatus=analizado` MÁS los demás documentos de la
+bandeja, así que acotar la bandeja es lo que aísla la pasada.
+
+| pasada | qué | resultado |
+|---|---|---|
+| 0 | limpia, sin pareja | cero candidatos |
+| 1 | OPE-10 ↔ OPE-11 | **15 y 15**, `por_estructura = 0` |
+| 2 | RRHH-08 ↔ OPE-13 | las dos ramas, 2 por juicio, 0 por estructura |
+| 3 | NOR-10 ↔ NOR-11 (prosa) | 0 / 0, sin regresión |
+| 4 | descarte de fila + reanálisis | la fila vuelve marcada sola |
+
+---
+
+#### PASADA 1 — el par grande, las dos direcciones
+
+| | OPE-10 → OPE-11 | OPE-11 → OPE-10 |
+|---|---|---|
+| Retrieval | 1 candidato, score máx **0,988** | 1 candidato, **0,988** |
+| Nivel del reparto | **2** (21/60 filas, 39 fuera por tamaño) | **2** (22/60 filas, 38 fuera) |
+| Fragmentos al juez | 6 — `table_row: 1` | 5 — `table_row: 2` |
+| Overlap | 33 % | 33 % |
+| Contradicciones del juez | 1 | 1 |
+| **Diff** | **15 emitidas** | **15 emitidas** |
+| Verificador | 1 → **0 confirmados (0 estructura, 0 juicio)**, 1 descartado | ídem |
+| Tiempo | 16.868 ms | 15.608 ms |
+
+    [fef525d3] "Duración de Prótesis parcial removible (PRO-03)"
+       → descartado: cubierto_por_diff (el diff comparó Duración (min) en esas dos filas)
+    [4e18e79b] "Profesional asignado para Regeneración ósea guiada (IMP-03)"
+       → descartado: cubierto_por_diff (el diff comparó Profesional asignado en esas dos filas)
+
+**LA LECTURA C, EN PRODUCCIÓN.** El motivo del descarte **nombra la columna**
+—«el diff comparó *Duración (min)*»— en vez de decir solo «cubierto». Es la
+diferencia entre un descarte que se puede auditar y uno que hay que creerse.
+
+**Y EL HALLAZGO DEL JUEZ ES DISTINTO EN CADA DIRECCIÓN** (PRO-03 en una, IMP-03
+en la otra) y los dos caen por lo mismo. La supresión no depende de QUÉ mire el
+juez: depende de que el diff ya lo comparara. Es la generalización que B.124
+pedía y que un caso fabricado no puede enseñar.
+
+⚠️ LETRA PEQUEÑA DEL «1 hallazgo del juez»: el reparto fue de **nivel 2** — el
+juez vio 21 de 60 filas en una dirección y 22 de 60 en la otra. Que solo emitiera
+una contradicción se lee sobre ESE tercio, no sobre la tabla entera. El diff sí
+vio las 60, y por eso emite 15: **las dos cifras miden cosas distintas y no se
+comparan entre sí.**
+
+---
+
+#### PASADA 2 — el territorio sin clave, las dos direcciones
+
+| | OPE-13 → RRHH-08 | RRHH-08 → OPE-13 |
+|---|---|---|
+| Retrieval | 1 candidato, **0,956** | 1 candidato, **0,956** |
+| Nivel del reparto | **1** (14 filas completas) | **1** (14 filas completas) |
+| Fragmentos al juez | 15 — `table_row: 14`, todas | 15 — `table_row: 14`, todas |
+| Overlap | 93 % | 93 % |
+| Contradicciones del juez | 2 | 2 |
+| Verificador | 2 → **2 por juicio, 0 por estructura**, 1 reclasificado | *(línea no capturada)* |
+| Tiempo | 9.834 ms | — |
+
+    OPE-13 → RRHH-08
+      [129c6113] "Turno y jornada semanal de Dra. Ana Belmonte"
+         → baja a juicio: sin_clave (2 columna(s) de ancla, pero la estructura no puede firmar)
+      [f1ab305a] "Jornada semanal de Dr. Carlos Medina"
+         → baja a juicio: columna_no_comparada (sin oposición en lo compartido;
+           columnas asimétricas citadas: Responsable, Jornada semanal, Profesional, Horas semana)
+
+    RRHH-08 → OPE-13
+      [25bf5508] "Turno de Dra. Ana Belmonte"          → sin_clave
+      [eb3b7c97] "Horas semanales de Dr. Carlos Medina" → columna_no_comparada
+
+**LAS DOS RAMAS EN LAS DOS DIRECCIONES.** Es la tercera vez que se ven —la
+siembra las estrenó el 01/09— y la primera con la cascada reordenada de F-93
+detrás. Ninguna baja se convirtió en confirmación por estructura, que es lo que
+el frente 1 tenía que garantizar.
+
+---
+
+#### PASADA 3 — prosa, el control de no-regresión
+
+| | NOR-10 → NOR-11 | NOR-11 → NOR-10 |
+|---|---|---|
+| Overlap | **0 %** | **0 %** |
+| Contradicciones / solapamientos | 0 / 0 | 0 / 0 |
+| Verificador | 0 → 0 | 0 → 0 |
+| Tiempo | 9.144 ms | 7.531 ms |
+
+El frente 2 no tocó la prosa y el control lo confirma.
+
+⚠️ Y CON SU LETRA PEQUEÑA, que es la misma de siempre y conviene no perder:
+**NOR-10 se truncó a 6.000 de 73.962 caracteres** (un 8 %), y NOR-11 a 6.000 de
+15.417. «Cero contradicciones en prosa» significa cero **en lo que el juez llegó
+a leer**. No es una regresión ni un fallo: es el techo declarado que el frente 4
+viene a levantar. Anotarlo como «prosa a cero» a secas diría más de lo que el
+dato dice.
+
+---
+
+#### PASADA 4 — la ficha B, de punta a punta
+
+Observada en pantalla: se marcó una fila de tabla de OPE-10 como «no es un
+error», se relanzó OPE-10 contra OPE-11 en rápido, y **la fila volvió marcada
+sola**.
+
+Es el ciclo entero de la ficha B en producción: el botón aparece (commit 1), la
+huella TABULAR viaja al servidor y se registra (commit 1), y `marcarDescartadas`
+la reconoce al volver por su identidad tabular (commit 2). Hasta el 01/09 ese
+botón no existía para las filas de tabla.
+
+---
+
+#### LO QUE FALTA EN ESTA ENTRADA, dicho para que no se lea como completo
+
+Los logs de las pasadas **0** y **4** no llegaron al registro, y de la pasada 2
+falta la línea del verificador de la dirección RRHH-08 → OPE-13 (sí están sus
+dos bajadas a juicio). Las tres cosas están **observadas por el director** y
+ninguna contradice lo medido; se anotan como observación, no como cifra
+capturada, que es la distinción que este fichero mantiene.
+
+---
+
 ### RESULTADOS — TANDA DE LA SIEMBRA (RRHH-08 / OPE-13), `9b0d7eb7`
 
 **Dos pasadas rápidas, las dos direcciones. LAS DOS RAMAS SE EJERCEN.** Es la
