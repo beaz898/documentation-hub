@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import { getAuthenticatedUserHybrid } from '@/lib/supabase-server';
 import { queryRAG } from '@/lib/rag';
-import { logUsage } from '@/lib/usage-logger';
+import { logUsage, registrarAveriaDeLimitador } from '@/lib/usage-logger';
 import { checkRateLimit } from '@/lib/rate-limiter';
 import { resolveOrg } from '@/lib/org';
 import { consumeCredits, devolverSiNoSeEntrego, getCreditCost } from '@/lib/credits';
@@ -36,6 +36,12 @@ export async function POST(req: NextRequest) {
 
     // Rate limiting
     const rateCheck = await checkRateLimit(supabase, userId, '/api/ask');
+    // El limitador falla ABIERTO cuando su consulta falla, y eso está bien
+    // elegido. Lo que no puede es ser mudo: si dejó de limitar, queda una fila
+    // en `usage_logs` con el motivo. No hace nada cuando no hubo avería.
+    await registrarAveriaDeLimitador(supabase, {
+      averia: rateCheck.averia, orgId, userId, endpoint: '/api/ask',
+    });
     if (!rateCheck.allowed) {
       return NextResponse.json(
         { error: `Has alcanzado el límite diario de consultas (${rateCheck.limit}). Inténtalo mañana.`, remaining: 0 },

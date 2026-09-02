@@ -4,7 +4,7 @@ import { getAuthenticatedUserHybrid } from '@/lib/supabase-server';
 import { fetchVectors, queryVectors, buildAllVectorIds } from '@/lib/pinecone/vectors';
 import { generateEmbeddings } from '@/lib/embeddings';
 import { callLLMWithUsage } from '@/lib/analysis/llm-client';
-import { logUsage } from '@/lib/usage-logger';
+import { logUsage, registrarAveriaDeLimitador } from '@/lib/usage-logger';
 import { checkRateLimit } from '@/lib/rate-limiter';
 import { resolveOrg } from '@/lib/org';
 import { consumeCredits, devolverSiNoSeEntrego, getCreditCost } from '@/lib/credits';
@@ -169,6 +169,12 @@ export async function POST(req: NextRequest) {
 
     // Rate limiting
     const rateCheck = await checkRateLimit(supabase, userId, '/api/improve');
+    // El limitador falla ABIERTO cuando su consulta falla, y eso está bien
+    // elegido. Lo que no puede es ser mudo: si dejó de limitar, queda una fila
+    // en `usage_logs` con el motivo. No hace nada cuando no hubo avería.
+    await registrarAveriaDeLimitador(supabase, {
+      averia: rateCheck.averia, orgId, userId, endpoint: '/api/improve',
+    });
     if (!rateCheck.allowed) {
       return NextResponse.json(
         { error: `Has alcanzado el límite diario de mejoras (${rateCheck.limit}). Inténtalo mañana.`, remaining: 0 },

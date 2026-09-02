@@ -3,7 +3,7 @@ PENDIENTES — Doclity (Agente IA)
 Documento vivo. Se actualiza al completar tareas (marcar [✓]) y se
 sustituye por la versión nueva. Más ligero que la Bitácora: aquí va
 lo que falta y la visión que lo guía, no el detalle de cada sesión.
-Última actualización: 02/09/2026 (v47)
+Última actualización: 02/09/2026 (v48)
 
 
 ════════════════════════════════════════════════════════════════
@@ -4431,6 +4431,57 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     razonarla la cambió. El director pidió ver el porqué antes del SQL «porque
     un CHECK luego cuesta cambiarlo», y esa pregunta es la que lo cazó. Un
     esquema no se toca con la opción que uno traía escrita.
+
+  B.144 — [ANOTADO EL 02/09 · LA SEXTA, Y LA PRIMERA CAZADA ANTES DE
+    PRODUCCIÓN] UN CAMPO PERDIDO CUYO VALOR POR DEFECTO ES EL CASO BUENO NO
+    DEJA SÍNTOMA
+
+    ══ QUÉ PASÓ ══
+    Implementando B.143, el `select` de `app/api/analysis-jobs/[id]/route.ts`
+    no pedía la columna nueva:
+
+      .select('id, org_id, status, document_name, result, error_message, …')
+
+    Sin `result_saved` en esa lista, `job.result_saved` llega `undefined`. Y la
+    convención de este frente —bien elegida, y por eso el fallo era invisible—
+    dice que AUSENTE SIGNIFICA GUARDADO. Resultado: el aviso no habría salido
+    nunca, en ninguna circunstancia.
+
+    ⚠️ ══ POR QUÉ ES PEOR QUE LAS CINCO ANTERIORES ══
+    Typecheck verde. Batería verde —los casos del criterio pasan, porque el
+    criterio está bien—. Y el comportamiento observable idéntico al de antes del
+    commit: ningún aviso, que es lo que se ve el 99,9 % de las veces.
+    **EL COMMIT HABRÍA ENTRADO EN VERDE SIN HACER ABSOLUTAMENTE NADA.**
+
+    Es la diferencia con las cinco pérdidas anteriores de esta misma tubería
+    —`stageFailures` (F-71), `selectionLimits` (F-74 P2), y las que documenta
+    `diff-emision.test.ts`—: aquéllas quitaban algo que se veía, así que antes o
+    después alguien echaba en falta un aviso o una lista. Ésta quita un aviso
+    QUE CASI NUNCA SE PINTA, y cuya ausencia es indistinguible del caso normal.
+
+    > UN CAMPO QUE SE PIERDE Y CUYO VALOR POR DEFECTO ES EL CASO BUENO NO DEJA
+    > SÍNTOMA. No hay usuario que lo note, no hay log que lo diga y no hay caso
+    > que lo cace: el sistema se comporta exactamente como si el commit no
+    > existiera.
+
+    ══ LO QUE LA CAZÓ ══
+    Ninguna herramienta. Se cazó leyendo el `select` al ir a escribir la línea
+    de al lado — o sea, por haber abierto el consumidor y no solo el productor,
+    que es la regla que F-94 dejó en `CLAUDE.md`. Es la primera de las seis que
+    se caza ANTES de producción, y la única razón es que la regla ya estaba
+    escrita.
+
+    ══ QUÉ HACER CON ESTO ══
+    NO se propone mecanismo todavía, y a propósito: el reflejo sería «que la
+    batería cubra el `select`», y eso choca con el alcance de Vitest (nada de
+    Supabase, nada de rutas). Las opciones reales —un tipo generado desde el
+    esquema, o un caso de integración fuera de la suite— son de otro tamaño y
+    van con la conversación de B.137 (que la suite avise cuando pierde
+    vigilancia), porque son la misma pregunta: **cómo se detecta lo que deja de
+    mirarse.**
+    Lo que sí queda dicho, y es accionable hoy: cuando se añade un campo que
+    viaja desde la base de datos, **el `select` es el primer sitio donde
+    mirar**, y la convención «ausente = caso bueno» hace que el fallo sea mudo.
 
   F-81 [CONVERGENCIA — leer ANTES de planificar la fase 3 del diff, 27/08] No
     es un pendiente nuevo: es el sitio donde se juntan tres que ya existen, más

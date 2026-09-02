@@ -1,4 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
+import type { AveriaDeLimitador } from './usage-logger';
 
 /**
  * Rate limiter por usuario y endpoint.
@@ -37,6 +38,23 @@ export interface RateLimitResult {
   limit: number;
   /** Cuántas le quedan. */
   remaining: number;
+  /**
+   * ⚠️ LA AVERÍA, cuando este limitador FALLÓ ABIERTO (02/09/2026).
+   *
+   * Fallar abierto está bien elegido y no cambia: no se bloquea al usuario por
+   * un error nuestro. Lo que cambia es que deja de ser MUDO — hasta hoy nadie
+   * sabía cuántas veces el limitador dejó de limitar.
+   *
+   * SE REPORTA, NO SE ESCRIBE: `usage_logs.org_id` es NOT NULL y aquí no se
+   * conoce la organización. Pasársela convertiría al que DECIDE en el que
+   * ESCRIBE; en vez de eso lo registra la ruta, que ya tiene `orgId` y ya llama
+   * a `logUsage`. Ver `registrarAveriaDeLimitador`.
+   *
+   * AUSENTE = no hubo avería, que es lo normal. Y `limit === 0` —«este endpoint
+   * no tiene límite configurado»— NO es una avería: es una decisión, y marcarla
+   * pondría una fila por cada petición de esos endpoints.
+   */
+  averia?: AveriaDeLimitador;
 }
 
 /**
@@ -86,7 +104,7 @@ export async function checkRateLimit(
     if (error) {
       // Si falla la consulta, permitir (no bloquear al usuario por un error nuestro)
       console.warn('[rate-limiter] Query failed, allowing request:', error.message);
-      return { allowed: true, current: 0, limit, remaining: limit };
+      return { allowed: true, current: 0, limit, remaining: limit, averia: 'consulta_fallida' };
     }
 
     const current = count ?? 0;
@@ -100,7 +118,7 @@ export async function checkRateLimit(
     };
   } catch (err) {
     console.warn('[rate-limiter] Unexpected error, allowing request:', err);
-    return { allowed: true, current: 0, limit, remaining: limit };
+    return { allowed: true, current: 0, limit, remaining: limit, averia: 'error_inesperado' };
   }
 }
 

@@ -4,7 +4,7 @@ import { getAuthenticatedUserHybrid } from '@/lib/supabase-server';
 import { chunkText, extractSegments, joinSegments, chunkSegments, stripSegmentationMarkers } from '@/lib/chunking';
 import type { ExtractedSegment } from '@/lib/chunking';
 import { runAnalysisPipeline } from '@/lib/analysis/pipeline';
-import { logUsage } from '@/lib/usage-logger';
+import { logUsage, registrarAveriaDeLimitador } from '@/lib/usage-logger';
 import { checkRateLimit } from '@/lib/rate-limiter';
 import { resolveOrg } from '@/lib/org';
 import { consumeCredits, getCreditCost, refundCredits } from '@/lib/credits';
@@ -148,6 +148,12 @@ export async function POST(req: NextRequest) {
     }
 
     const rateCheck = await checkRateLimit(supabase, userId, '/api/analyze-v2', isExhaustive);
+    // El limitador falla ABIERTO cuando su consulta falla, y eso está bien
+    // elegido. Lo que no puede es ser mudo: si dejó de limitar, queda una fila
+    // en `usage_logs` con el motivo. No hace nada cuando no hubo avería.
+    await registrarAveriaDeLimitador(supabase, {
+      averia: rateCheck.averia, orgId, userId, endpoint: '/api/analyze-v2',
+    });
     if (!rateCheck.allowed) {
       const modeLabel = isExhaustive ? 'análisis exhaustivos' : 'análisis';
       return NextResponse.json(
