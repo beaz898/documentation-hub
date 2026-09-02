@@ -3,7 +3,7 @@ PENDIENTES — Doclity (Agente IA)
 Documento vivo. Se actualiza al completar tareas (marcar [✓]) y se
 sustituye por la versión nueva. Más ligero que la Bitácora: aquí va
 lo que falta y la visión que lo guía, no el detalle de cada sesión.
-Última actualización: 02/09/2026 (v46)
+Última actualización: 02/09/2026 (v47)
 
 
 ════════════════════════════════════════════════════════════════
@@ -4343,6 +4343,81 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     valor bueno para saber que no puede haber dos.
     Mientras tanto, lo que dependa de esto se diseña para el MENOR, que es lo
     que hizo el techo de espera de `lib/embeddings.ts` y queda dicho allí.
+
+  B.142 — [ABIERTO 02/09 · DECISIÓN TOMADA: EL REINTENTO NO ENTRA · PARA QUIEN
+    LO RETOME] LOS DOS RIESGOS DE OFRECER «REINTENTAR EL GUARDADO»
+
+    F-94 P4 pedía tres cosas para la persistencia: marcar, avisar y OFRECER
+    REINTENTAR. Las dos primeras entraron el 02/09. La tercera se dejó fuera a
+    propósito, y esto existe para que quien la retome no redescubra por qué.
+
+    EL MECANISMO SERÍA: un endpoint que recibe el `analysis` que el cliente ya
+    tiene en memoria y lo persiste. No hace falta esquema. Pero:
+
+    ══ RIESGO 1 — ESCRITURA FABRICADA, acotada a la propia org ══
+    `saveAnalysisResult` (`lib/persist-analysis.ts:32-75`) no solo guarda el
+    jsonb: DERIVA SIETE COLUMNAS del payload —contradictions_found,
+    contradictions_confirmed, minor_inconsistencies_found, duplicates_found,
+    overlaps_found, style_problems_found, recommendation— y copia
+    `pipeline_counters` LITERAL. Quien llame al endpoint puede escribir filas
+    arbitrarias en `analysis_results`.
+    QUÉ TOCA, verificado: la analítica de calidad de `/settings/usage` que ve el
+    admin de la org; la bandeja, que relee el jsonb; y **`pipeline_counters`, de
+    donde salen nuestras propias mediciones del harness** — filas fabricadas
+    contaminan las tandas.
+    QUÉ NO TOCA, y acota el daño: es de la propia org (sin fuga entre tenants) y
+    NO afecta a créditos — los reembolsos se calculan en `analyze-v2` y en el
+    worker sobre su análisis en memoria, no releyendo la tabla.
+
+    ⚠️ ══ RIESGO 2 — EL DUPLICADO SIN MALICIA, que es el más probable ══
+    `analysis_results` NO TIENE RESTRICCIÓN DE UNICIDAD por nada. Si el guardado
+    sí funcionó pero la respuesta se perdió —un timeout de red, un cierre de
+    pestaña— el reintento inserta UNA SEGUNDA FILA del mismo análisis, y todos
+    los recuentos de la analítica lo cuentan dos veces.
+    Este no necesita a nadie con mala intención: pasa solo, y pasa más veces que
+    el otro.
+
+    ══ LA SALIDA QUE MATA EL PRIMERO, con su coste ══
+    PAYLOAD FIRMADO: el servidor emite un HMAC del análisis al responder, y el
+    endpoint solo acepta payloads que él mismo firmó. Sin estado y sin esquema —
+    el cliente no puede fabricar lo que no puede firmar.
+    SU COSTE: **una variable de entorno nueva** que hay que poner en Vercel
+    ANTES del despliegue. Es la misma clase de dependencia que el SQL, así que
+    entra por el mismo camino: se avisa y se espera.
+    NO MATA EL SEGUNDO. Para el duplicado hace falta idempotencia — una clave
+    única en la tabla, o incluir en la firma algo que identifique el análisis y
+    comprobarlo antes de insertar. Eso sí es esquema.
+
+    ══ POR QUÉ NO ENTRÓ ══
+    El aviso resuelve el daño real —creer que existe algo que no existe—. El
+    reintento solo añade comodidad, y la paga abriendo una vía de escritura al
+    cliente y pudiendo duplicar filas en la tabla con la que este proyecto se
+    mide. Decisión del director el 02/09.
+
+  B.143 — [ABIERTO 02/09 · HUECO DECLARADO, NO ESCONDIDO] EL AVISO DE «NO
+    GUARDADO» NO LLEGA AL CAMINO EXHAUSTIVO
+
+    El commit del 02/09 cubre el camino SÍNCRONO: `/api/analyze-v2` devuelve
+    `guardado` en el sobre y el modal lo pinta. El EXHAUSTIVO no queda cubierto:
+    lo guarda el worker (`worker/src/index.ts:187`) y para entonces ya ha
+    escrito la fila del job con su `result` (`:175-185`). Si el guardado falla,
+    el usuario recibe su análisis exhaustivo —30 créditos— sin saber que no ha
+    quedado en ninguna parte.
+
+    ══ LAS TRES SALIDAS, y por qué ninguna cabía en aquel commit ══
+    1. UN ESTADO NUEVO de `analysis_jobs` (`completed_not_saved`). Hay un CHECK
+       sobre la columna —`completed_with_errors` llegó con
+       `supabase-f71-job-incomplete.sql`—, así que es SQL.
+    2. METER LA BANDERA DENTRO DE `result`. El cliente lee `result` COMO el
+       análisis (`useCrossDocAnalysis:150`), así que sería meterla dentro de
+       `analysis` — y eso se descartó con su razón: no es propiedad del
+       análisis, y esa lista ya ha perdido dos campos (F-71, F-74 P2).
+    3. DEDUCIRLA releyendo `analysis_results`, que no tiene `job_id`: habría que
+       emparejar por documento y fecha. Es inventar una segunda identidad, que
+       es justo lo que CLAUDE.md prohíbe.
+
+    LA 1 ES LA BUENA y solo cuesta una migración pequeña. Se anota en vez de
+    hacerse porque el encargo del 02/09 decía «sin SQL, y si aparece, paras».
 
   F-81 [CONVERGENCIA — leer ANTES de planificar la fase 3 del diff, 27/08] No
     es un pendiente nuevo: es el sitio donde se juntan tres que ya existen, más

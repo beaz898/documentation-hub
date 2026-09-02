@@ -555,6 +555,19 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       success: true,
       async: false,
+      // ⚠️ REGLA 6, MEMORIA DEL FALLO (02/09): si la fila no se pudo escribir, el
+      // análisis se entrega igual —el usuario pagó y la información es
+      // verdadera— pero MARCADO. Hasta hoy el fallo solo iba a consola y el
+      // usuario cerraba creyendo que su análisis estaba en la bandeja.
+      //
+      // VA EN EL SOBRE Y NO DENTRO DE `analysis`, por dos razones: no es una
+      // propiedad del análisis sino del intento de guardarlo —dentro del jsonb
+      // solo podría valer `true`, porque si valiera `false` no habría jsonb— y
+      // esa lista de abajo es CERRADA, con dos campos ya olvidados en ella
+      // (stageFailures y selectionLimits).
+      //
+      // Qué se hace con esto lo decide `avisosDelAnalisis`, no el pintado.
+      guardado: saveResult.ok,
       hasIssues,
       analysisMode: analysis.analysisMode,
       analysis: {

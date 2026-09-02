@@ -35,6 +35,9 @@ export interface PendingAnalysis {
   fileSize: number;
   analysis: Record<string, unknown>;
   documentSources?: Record<string, string[]>;
+  /** Regla 6 (02/09): `false` si la fila de `analysis_results` no se pudo
+   *  escribir. AUSENTE = se asume guardado — ver `avisosDelAnalisis`. */
+  guardado?: boolean;
 }
 
 export interface ImprovementTarget {

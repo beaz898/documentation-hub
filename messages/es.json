@@ -253,7 +253,9 @@
     "tableCardIdentical": "{count} filas idénticas en ambos documentos.",
     "tableCardRowsColumns": "Columnas: {columns}",
     "tableCoverageTitle": "Cobertura frente a \"{doc}\"",
-    "tableCoverageGroup": "Sin correspondencia"
+    "tableCoverageGroup": "Sin correspondencia",
+    "unsavedTitle": "Este análisis no se ha guardado",
+    "unsavedBody": "El resultado que tienes delante es correcto, pero no se ha podido guardar: no aparecerá en la bandeja de revisión ni en las estadísticas de uso. Si necesitas conservarlo, cópialo antes de cerrar."
   },
   "improvement": {
     "title": "Modo mejora",

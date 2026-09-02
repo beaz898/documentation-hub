@@ -253,7 +253,9 @@
     "tableCardIdentical": "{count} identical rows in both documents.",
     "tableCardRowsColumns": "Columns: {columns}",
     "tableCoverageTitle": "Coverage against \"{doc}\"",
-    "tableCoverageGroup": "No counterpart"
+    "tableCoverageGroup": "No counterpart",
+    "unsavedTitle": "This analysis was not saved",
+    "unsavedBody": "The result you are looking at is correct, but it could not be saved: it will not appear in the review tray or in the usage statistics. If you need to keep it, copy it before closing."
   },
   "improvement": {
     "title": "Improvement Mode",

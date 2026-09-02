@@ -142,6 +142,10 @@ export function useDocuments(
           setPendingAnalysis({
             fileName: file.name, storagePath, fileSize: file.size,
             analysis: analyzeData.analysis, documentSources: analyzeData.documentSources,
+            // Del SOBRE, no de `analysis`: es el estado del guardado, no del
+            // análisis. Esta tubería ya ha perdido campos en tránsito, y por eso
+            // se recoge en la misma línea en que nace.
+            guardado: analyzeData.guardado,
           });
           loadCredits();
           return;

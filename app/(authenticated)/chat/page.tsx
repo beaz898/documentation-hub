@@ -224,6 +224,7 @@ export default function ChatPage() {
           <AnalysisModal
             fileName={pendingAnalysis.fileName}
             analysis={pendingAnalysis.analysis}
+            guardado={pendingAnalysis.guardado}
             onConfirm={handleAnalysisConfirm}
             onCancel={handleAnalysisCancel}
             onImprove={handleAnalysisImprove}

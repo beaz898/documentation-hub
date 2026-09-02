@@ -5,6 +5,8 @@ import { useTranslations } from 'next-intl';
 import UploadActions from './AnalysisModal/UploadActions';
 import ReviewActions from './AnalysisModal/ReviewActions';
 import IncompleteAnalysisNotice from './IncompleteAnalysisNotice';
+import UnsavedAnalysisNotice from './UnsavedAnalysisNotice';
+import { avisosDelAnalisis } from '@/lib/analysis/avisos';
 import SelectionLimitNotice from './SelectionLimitNotice';
 // F-88 ficha A: extraida a componente propio — la ficha del diff necesita el
 // mismo plegado, y copiarlo habria dejado dos que se separan a la primera.
@@ -52,6 +54,10 @@ interface AnalysisResult {
 interface AnalysisModalProps {
   fileName: string;
   analysis: AnalysisResult;
+  /** Regla 6 (02/09): `false` si el análisis no se pudo guardar. AUSENTE = se
+   *  asume guardado, que es lo que corresponde a la bandeja —lo que ella lee
+   *  está guardado por definición— y a cualquier cliente anterior. */
+  guardado?: boolean;
   onConfirm: () => void;
   onCancel: () => void;
   onImprove: () => void;
@@ -103,8 +109,13 @@ function AnalysisModeBadge({ mode }: { mode: 'quick' | 'exhaustive' }) {
 // ============================================================
 // Main modal
 // ============================================================
-export default function AnalysisModal({ fileName, analysis, onConfirm, onCancel, onImprove, onExhaustive, onMinimize, mode = 'upload', onMarkAnalyzed, onRemove, stagedDecision = false, onApproveStaged, onDiscardStaged }: AnalysisModalProps) {
+export default function AnalysisModal({ fileName, analysis, guardado, onConfirm, onCancel, onImprove, onExhaustive, onMinimize, mode = 'upload', onMarkAnalyzed, onRemove, stagedDecision = false, onApproveStaged, onDiscardStaged }: AnalysisModalProps) {
   const t = useTranslations('analysis');
+
+  // Los dos avisos se deciden en un solo sitio y con batería (lib/analysis/
+  // avisos.ts). Aquí no se recalcula ninguno: son independientes y mezclarlos
+  // dispararía el reembolso automático sobre un análisis que no lo merece.
+  const avisos = avisosDelAnalisis({ guardado, stageFailures: analysis.stageFailures });
 
   const recColor = analysis.recommendation === 'NO_INDEXAR'
     ? { bg: 'var(--danger-light)', text: 'var(--danger-text)', border: 'var(--danger)' }
@@ -159,7 +170,13 @@ export default function AnalysisModal({ fileName, analysis, onConfirm, onCancel,
 
         {/* F-71: el aviso va ANTES del resumen — si el análisis está incompleto,
             el resumen que sigue habla de algo que no se llegó a comprobar. */}
-        <IncompleteAnalysisNotice count={analysis.stageFailures?.length ?? 0} />
+        <IncompleteAnalysisNotice count={avisos.etapasCaidas} />
+
+        {/* Regla 6 (02/09): DESPUÉS del de incompleto. Si el análisis está
+            degradado, eso es peor noticia que dónde ha quedado guardado. Los
+            dos avisos son INDEPENDIENTES y los decide `avisosDelAnalisis`, que
+            sí tiene batería: aquí no se recalcula ninguno. */}
+        <UnsavedAnalysisNotice visible={avisos.noGuardado} />
 
         {/* F-74 P2: DESPUES del de incompleto. Si el analisis fallo, lo que no
             se miro por presupuesto es lo de menos. */}
