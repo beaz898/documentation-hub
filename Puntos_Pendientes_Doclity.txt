@@ -3,7 +3,7 @@ PENDIENTES — Doclity (Agente IA)
 Documento vivo. Se actualiza al completar tareas (marcar [✓]) y se
 sustituye por la versión nueva. Más ligero que la Bitácora: aquí va
 lo que falta y la visión que lo guía, no el detalle de cada sesión.
-Última actualización: 02/09/2026 (v49)
+Última actualización: 02/09/2026 (v50)
 
 
 ════════════════════════════════════════════════════════════════
@@ -4529,6 +4529,90 @@ NOTAS DE ORDEN (propuesta, a confirmar)
        como está.
     En los dos casos la respuesta sale del mismo recuento, y por eso el commit de
     medición va antes que cualquier pieza.
+
+  B.146 — [ABIERTO 02/09 · SALE DEL COMMIT DE VECTORES, NO ES ÉL] UN BUCLE DE
+    LOTES QUE FALLA A MITAD NO SE LO DICE A NADIE
+
+    ══ EL CASO ══
+    `upsertVectors` y `deleteVectorsByIds` recorren sus lotes en serie —de 100 y
+    de 1000— y no devuelven nada. Si el lote 7 de 12 falla y la excepción sube,
+    el llamador ve un error y aborta: bien. Pero si algún día alguien atrapa esa
+    excepción —o si el proceso muere entre lotes— **quedan lotes escritos y
+    lotes que no, y NADA lo detecta**: la función no lleva cuenta de cuántos
+    lotes completó, y su firma (`Promise<void>`) no tiene sitio para decirlo.
+
+    ⚠️ ══ EL PELIGRO NO ES LA DUPLICACIÓN, ES EL SILENCIO ══
+    Al mapearlo dije que reintentar el bucle entero «deja un estado que nadie ha
+    declarado», y al analizarlo resultó inexacto: los ids son deterministas, así
+    que repetir un lote deja EXACTAMENTE el mismo estado. Repetir no corrompe.
+    Lo que corrompe es lo contrario: **un documento que se cree indexado y solo
+    tiene siete lotes de doce**. El chat y el análisis lo encontrarán a medias,
+    con menos fragmentos de los que tiene, y responderán sobre lo que hay como si
+    fuera todo. Es la misma familia que B.144 — el fallo cuyo síntoma es
+    indistinguible del caso normal.
+
+    ══ QUÉ CAMBIA EL RETRY DEL 02/09, Y QUÉ NO ══
+    · LO HACE MENOS PROBABLE: un corte pasajero en el lote 7 ahora se reintenta
+      hasta tres veces dentro del techo de 10 s, así que muchos casos que antes
+      dejaban el bucle a medias ahora terminan.
+    · NO LO HACE MENOS SILENCIOSO: cuando el reintento se agota, el bucle sigue
+      cortándose exactamente igual y sigue sin decir por dónde. **El retry
+      reduce la frecuencia, no la ceguera.**
+    Y hay un matiz nuevo del propio retry: ahora el bucle puede tardar hasta
+    10 s más, así que la ventana en la que el proceso puede morir a mitad es
+    algo mayor. Es el mismo intercambio que B.140.
+
+    ══ LO QUE HARÍA FALTA, y por qué no entró ══
+    Que las dos funciones digan qué hicieron: cuántos lotes de cuántos, o el
+    índice del primero que falló. Eso es cambiar `Promise<void>` por un
+    resultado, y con él **los ~15 llamadores** — que hoy no miran nada porque no
+    hay nada que mirar. Es un commit propio, con su predicción, y probablemente
+    con una decisión de producto detrás: qué hace `ingest` cuando sabe que
+    escribió siete de doce (¿borrar los siete? ¿reintentar solo los cinco?
+    ¿marcar el documento como incompleto?). Ninguna de esas tres es obvia.
+
+  B.147 — [ABIERTO 02/09 · LA PROPIEDAD QUE NADIE ESCRIBIÓ] LOS BORRADOS POR
+    FILTRO NO SE PUEDEN REINTENTAR PORQUE NO SE HA DECLARADO QUIÉN ESCRIBE
+
+    `deleteVectorsByFilter` y `deleteAllVectors` se quedaron SIN retry el 02/09,
+    y la razón no es que reintentarlos sea imposible: es que **no borran un
+    conjunto fijo, borran lo que exista al ejecutarse**. Un reintento diez
+    segundos después no es la misma operación — si entre medias alguien escribió
+    vectores que casan el filtro, el reintento se los lleva.
+
+    HOY SE CUMPLE POR CASUALIDAD: nada escribe en el namespace de una
+    organización mientras se purga o se borra un documento, porque esas
+    operaciones no corren en paralelo con una indexación. Pero **eso no está
+    escrito en ninguna parte** — ni un comentario, ni un cerrojo, ni el candado
+    de subida (`checkUploadLock`), que cubre las subidas y no las purgas.
+
+    ══ QUÉ HAY QUE DECIDIR ══
+    1. Si la propiedad se DECLARA y se garantiza —con el candado existente
+       extendido, o con uno propio—, los dos borrados pueden reintentarse como
+       los demás.
+    2. Si no se puede garantizar, se quedan sin retry para siempre y eso también
+       hay que escribirlo, porque entonces su fallo es definitivo y el llamador
+       tiene que saberlo.
+    NO ES URGENTE: hoy funcionan igual que antes del 02/09. Lo que este pendiente
+    evita es que alguien les ponga retry «por simetría» sin ver el problema — y
+    para eso hay además un caso en la batería que se pone rojo si lo hace.
+
+  B.148 — [ABIERTO 02/09 · CÓDIGO SIN LECTOR] `updateVectorMetadata` NO TIENE
+    LLAMADOR
+
+    Nació para el backfill de estado (B.4) y su propio comentario lo dice: «aún
+    no la usa nadie». Verificado el 02/09 con grep sobre `app/`, `lib/`,
+    `worker/` y `components/`: sigue sin tener uno.
+
+    Se quedó fuera del retry por eso —dar reintento a código muerto es añadir
+    superficie sin lector—, y esa exclusión deja a la vista la pregunta de
+    fondo: **o tiene un llamador previsto, o sobra.**
+
+    Lo que la hace distinta de otro código muerto: es una ESCRITURA contra
+    Pinecone, exportada, y por tanto disponible para que alguien la use sin
+    reparar en que no tiene ni una prueba, ni un retry, ni un solo caso de uso
+    real detrás. Si el backfill de B.4 sigue previsto, entra con él y con su
+    retry; si no, se retira. Decidirlo cuesta menos que mantenerla.
 
   F-81 [CONVERGENCIA — leer ANTES de planificar la fase 3 del diff, 27/08] No
     es un pendiente nuevo: es el sitio donde se juntan tres que ya existen, más
