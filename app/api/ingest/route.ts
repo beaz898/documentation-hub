@@ -11,6 +11,21 @@ import { generateContentHash } from '@/lib/analysis/hash-check';
 import { resolveOrg } from '@/lib/org';
 import { checkUploadLock } from '@/lib/upload-lock';
 
+/**
+ * ⚠️ EL PRESUPUESTO DE ESTA RUTA, Y VIVE SOLO AQUÍ (B.141, 02/09/2026).
+ *
+ * Hasta hoy estaba declarado DOS VECES Y DISTINTO: 300 en esta línea y 60 en
+ * `vercel.json`. Cuál ganaba no se podía resolver leyendo el repositorio, y es un
+ * número que gobierna un TIMEOUT en una ruta que BORRA por el camino. Se retiró
+ * el de `vercel.json` —que conserva la memoria, que no está duplicada— y queda
+ * este.
+ *
+ * POR QUÉ 300 Y NO 60: la indexación puede gastar hasta 30 s de reintentos de
+ * embeddings (techo de `lib/embeddings.ts`) más el tiempo de las peticiones, y
+ * esta ruta BORRA EL DOCUMENTO VIEJO ANTES de generar el nuevo (B.140). Un
+ * timeout en medio deja al usuario sin ninguno de los dos. Con 300 hay margen; el
+ * coste es que una función colgada tarde más en morir, que es mucho menos grave.
+ */
 export const maxDuration = 300;
 
 export async function POST(req: NextRequest) {

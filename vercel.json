@@ -2,8 +2,7 @@
   "framework": "nextjs",
   "functions": {
     "app/api/ingest/route.ts": {
-      "memory": 1024,
-      "maxDuration": 60
+      "memory": 1024
     },
     "app/api/ask/route.ts": {
       "memory": 512,

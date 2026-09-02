@@ -4340,7 +4340,7 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     NINGUNA se elige sin predicción y sin mirar qué hace el camino de Drive, que
     tiene el mismo problema resuelto de otra forma (versiona en vez de borrar).
 
-  B.141 — [ABIERTO 02/09 · NO ES DE ESTE FRENTE · TRAMPA ESPERANDO] EL TIMEOUT
+  B.141 — [CERRADO EL 02/09] EL TIMEOUT
     DE `/api/ingest` ESTÁ DECLARADO DOS VECES Y CON VALORES DISTINTOS
 
       vercel.json:4-7             "app/api/ingest/route.ts": { "maxDuration": 60 }
@@ -4361,12 +4361,23 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     Es la especie de B.113 —un documento que afirma un hecho que no se cumple—
     pero en configuración, donde no hay quien lo lea en una revisión.
 
-    ══ CÓMO SE CIERRA ══
-    Comprobando en Vercel cuál está en vigor —el panel lo muestra por función— y
-    dejando UNO SOLO, con el otro retirado. No hace falta decidir cuál es el
-    valor bueno para saber que no puede haber dos.
-    Mientras tanto, lo que dependa de esto se diseña para el MENOR, que es lo
-    que hizo el techo de espera de `lib/embeddings.ts` y queda dicho allí.
+    ══ CÓMO SE CERRÓ (02/09) ══
+    Sin necesidad de averiguar cuál ganaba, y ése es el punto: EL ARREGLO NO
+    DEPENDÍA DE LA RESPUESTA. Saber quién manda servía para elegir QUÉ VALOR
+    conservar, no para decidir si podía haber dos.
+    Queda 300, en `app/api/ingest/route.ts` y solo ahí. `vercel.json` conserva la
+    MEMORIA de esa ruta, que no estaba duplicada.
+    LA RAZÓN DEL 300, del director: la indexación puede gastar hasta 30 s de
+    reintentos de embeddings más el tiempo de las peticiones, y esta ruta BORRA
+    EL DOCUMENTO VIEJO ANTES de generar el nuevo (B.140). Un timeout en medio
+    deja al usuario sin ninguno de los dos. Con 300 hay margen, y el coste es que
+    una función colgada tarde más en morir — mucho menos grave.
+    ⚠️ SI EL VALOR EN VIGOR ERA EL DE 60, esto CAMBIA el comportamiento de
+    producción: `ingest` pasa a poder durar cinco minutos. Es deliberado y por la
+    razón de arriba, no un efecto colateral.
+    QUEDA EN PIE lo de diseñar para el menor cuando haya duda: es lo que hizo el
+    techo de espera de `lib/embeddings.ts`, y esa decisión no se revisa — 30 s de
+    espera siguen cabiendo de sobra en 300.
 
   B.142 — [ABIERTO 02/09 · DECISIÓN TOMADA: EL REINTENTO NO ENTRA · PARA QUIEN
     LO RETOME] LOS DOS RIESGOS DE OFRECER «REINTENTAR EL GUARDADO»
@@ -4595,8 +4606,8 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     escribió siete de doce (¿borrar los siete? ¿reintentar solo los cinco?
     ¿marcar el documento como incompleto?). Ninguna de esas tres es obvia.
 
-  B.147 — [ABIERTO 02/09 · LA PROPIEDAD QUE NADIE ESCRIBIÓ] LOS BORRADOS POR
-    FILTRO NO SE PUEDEN REINTENTAR PORQUE NO SE HA DECLARADO QUIÉN ESCRIBE
+  B.147 — [ABIERTO 02/09 · ⚠️ LA PROPIEDAD NO ES QUE FALTE: ES FALSA] LOS
+    BORRADOS POR FILTRO NO SE PUEDEN REINTENTAR
 
     `deleteVectorsByFilter` y `deleteAllVectors` se quedaron SIN retry el 02/09,
     y la razón no es que reintentarlos sea imposible: es que **no borran un
@@ -4604,19 +4615,35 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     segundos después no es la misma operación — si entre medias alguien escribió
     vectores que casan el filtro, el reintento se los lleva.
 
-    HOY SE CUMPLE POR CASUALIDAD: nada escribe en el namespace de una
-    organización mientras se purga o se borra un documento, porque esas
-    operaciones no corren en paralelo con una indexación. Pero **eso no está
-    escrito en ninguna parte** — ni un comentario, ni un cerrojo, ni el candado
-    de subida (`checkUploadLock`), que cubre las subidas y no las purgas.
+    ⚠️ AL IR A DECLARARLA, EL 02/09, RESULTÓ QUE NO SE CUMPLE. Se escribió aquí
+    que «hoy se cumple por casualidad»; comprobarlo antes de escribirlo la
+    desmintió, y eso cambia el pendiente entero.
+    `purgeOrganization` tiene TRES llamadores, no uno:
+      · `app/api/admin/purge-expired/route.ts:51` — el barrido de orgs con la
+        gracia expirada;
+      · `worker/src/index.ts:428` — el mismo barrido desde Railway;
+      · `app/api/org/purge/route.ts:60` — UN USUARIO BORRANDO SU PROPIA
+        ORGANIZACIÓN, EN EL MOMENTO.
+    Los dos primeros tocan orgs canceladas hace noventa días: ahí no sube nadie y
+    la propiedad se cumple de hecho. EL TERCERO NO: un miembro pulsa «borrar la
+    organización» mientras otro miembro está subiendo un documento, y las dos
+    cosas corren a la vez. Es alcanzable hoy, sin nada raro.
+    Y el cerrojo que existe no lo cubre: `checkUploadLock` impide dos SUBIDAS
+    simultáneas, no una subida contra una purga.
+    CONSECUENCIA: declarar la propiedad sería PROMETER ALGO QUE NO SE SOSTIENE.
+    Y la decisión del commit de vectores —dejar los dos borrados sin retry— se
+    sostiene con el dato en la mano, no por prudencia.
 
-    ══ QUÉ HAY QUE DECIDIR ══
-    1. Si la propiedad se DECLARA y se garantiza —con el candado existente
-       extendido, o con uno propio—, los dos borrados pueden reintentarse como
-       los demás.
-    2. Si no se puede garantizar, se quedan sin retry para siempre y eso también
-       hay que escribirlo, porque entonces su fallo es definitivo y el llamador
-       tiene que saberlo.
+    ══ LAS TRES SALIDAS, en orden de coste ══
+    1. GUARDARLA — que la purga tome el mismo cerrojo que las subidas, o uno
+       propio. Entonces la propiedad es cierta PORQUE SE GARANTIZA, y los dos
+       borrados pueden llevar retry. NO ES UN CINCO MINUTOS: meter un cerrojo en
+       un camino que borra es de lo más delicado que queda, y va con predicción.
+    2. ACOTAR EL CASO — retry solo en el camino del barrido, donde sí se cumple.
+       Posible, pero deja DOS COMPORTAMIENTOS para la misma función, que es la
+       clase de cosa que este proyecto lleva una semana evitando.
+    3. DEJARLO COMO ESTÁ y escribir por qué: sin retry, hasta que alguien
+       garantice la propiedad. ES LO QUE HAY HOY.
     NO ES URGENTE: hoy funcionan igual que antes del 02/09. Lo que este pendiente
     evita es que alguien les ponga retry «por simetría» sin ver el problema — y
     para eso hay además un caso en la batería que se pone rojo si lo hace.
