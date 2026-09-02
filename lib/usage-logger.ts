@@ -1,4 +1,5 @@
 import { SupabaseClient } from '@supabase/supabase-js';
+import { registrarPerdida } from './observability/perdidas';
 
 export interface UsageLogEntry {
   userId: string;
@@ -122,9 +123,17 @@ export async function logUsage(
       });
 
     if (error) {
-      console.warn('[usage-logger] Insert failed:', error.message);
+      // La base contesto y dijo que no. Se cuenta; no se propaga.
+      registrarPerdida({
+        tabla: 'usage_logs', causa: 'consulta_fallida',
+        orgId: entry.orgId, referencia: entry.endpoint, detalle: error.message,
+      });
     }
   } catch (err) {
-    console.warn('[usage-logger] Unexpected error:', err);
+    registrarPerdida({
+      tabla: 'usage_logs', causa: 'excepcion',
+      orgId: entry.orgId, referencia: entry.endpoint,
+      detalle: err instanceof Error ? err.message : String(err),
+    });
   }
 }

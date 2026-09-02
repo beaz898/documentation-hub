@@ -3,7 +3,7 @@ PENDIENTES — Doclity (Agente IA)
 Documento vivo. Se actualiza al completar tareas (marcar [✓]) y se
 sustituye por la versión nueva. Más ligero que la Bitácora: aquí va
 lo que falta y la visión que lo guía, no el detalle de cada sesión.
-Última actualización: 02/09/2026 (v48)
+Última actualización: 02/09/2026 (v49)
 
 
 ════════════════════════════════════════════════════════════════
@@ -4482,6 +4482,53 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     Lo que sí queda dicho, y es accionable hoy: cuando se añade un campo que
     viaja desde la base de datos, **el `select` es el primer sitio donde
     mirar**, y la convención «ausente = caso bueno» hace que el fallo sea mudo.
+
+  B.145 — [HALLAZGO DEL 02/09 · CAMBIA LO QUE SIGNIFICA PERDER UNA FILA]
+    `usage_logs` NO ES ANALÍTICA: ES CUOTA
+
+    Encontrado al preparar el tercer commit de la memoria del fallo, no
+    buscándolo.
+
+    ══ EL DATO ══
+    `checkRateLimit` (`lib/rate-limiter.ts:66-80`) cuenta las filas de
+    `usage_logs` con `success = true` del día para saber cuántas llamadas lleva
+    un usuario. No es un panel: es el contador que decide si la siguiente
+    llamada pasa.
+
+    ⚠️ ══ LA CONSECUENCIA, que es lo que hay que retener ══
+    **CADA FILA PERDIDA ES UNA LLAMADA REGALADA.** `logUsage` se traga su fallo
+    —correctamente, para no tumbar la petición— y esa llamada deja de contar
+    para el límite del día. El usuario se lleva una gratis.
+
+    Y CON EL SIGNO MALO: se pierde justo cuando la base de datos va peor, o sea
+    exactamente cuando menos conviene dejar pasar carga extra. El sistema es más
+    generoso cuanto peor está.
+
+    ══ POR QUÉ NO SE VEÍA ══
+    Porque `usage_logs` se lee como «la tabla de registro» y se piensa como
+    analítica. La otra tabla de uso —`llm_usage`— sí es solo analítica: escribe
+    `cost_usd` y **no tiene ni un lector en el código** (grep sobre `app/`,
+    `lib/` y `worker/`: solo un comentario). Las dos se pierden igual de
+    silenciosamente y perderlas no cuesta lo mismo, y hasta hoy se hablaba de
+    ellas como si fueran la misma cosa.
+
+    ══ QUÉ SE HIZO CON ESTO ══
+    Decidió el commit de medición del 02/09: el marcador de pérdida lleva SIEMPRE
+    la tabla, aunque para la pregunta de ingeniería —¿búfer, reintento o nada?—
+    bastara con la causa. Sin la tabla, el recuento no puede separar la cuota
+    regalada de un número que nadie lee.
+    Y decidió descartar la salida de «el búfer en la fila del job»: cubre solo el
+    camino del worker y NO TOCA `usage_logs`, o sea deja fuera justo la única de
+    las dos con consecuencia.
+
+    ══ LO QUE QUEDA POR DECIDIR, cuando haya números ══
+    1. Si la cuota regalada es material, `checkRateLimit` puede estar contando de
+       menos por otras razones además de ésta —una fila que se escribe tarde, un
+       `success` mal puesto— y merece su propia revisión.
+    2. Si no lo es, el reintento de `logUsage` basta y `llm_usage` puede seguir
+       como está.
+    En los dos casos la respuesta sale del mismo recuento, y por eso el commit de
+    medición va antes que cualquier pieza.
 
   F-81 [CONVERGENCIA — leer ANTES de planificar la fase 3 del diff, 27/08] No
     es un pendiente nuevo: es el sitio donde se juntan tres que ya existen, más

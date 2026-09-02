@@ -1,6 +1,7 @@
 import { createServiceClient } from '@/lib/supabase';
 import { computeCostUsd } from './llm-pricing';
 import type { UsageAccumulator } from './usage-context';
+import { registrarPerdida } from './perdidas';
 
 export type OperationType =
   | 'chat'
@@ -62,9 +63,16 @@ export async function persistLLMUsage(params: {
     const supabase = createServiceClient();
     const { error } = await supabase.from('llm_usage').insert(rows);
     if (error) {
-      console.warn('[record-usage] Insert en llm_usage falló:', error.message);
+      registrarPerdida({
+        tabla: 'llm_usage', causa: 'consulta_fallida',
+        orgId: params.orgId, referencia: params.operation, detalle: error.message,
+      });
     }
   } catch (err) {
-    console.warn('[record-usage] Error inesperado al persistir llm_usage:', err instanceof Error ? err.message : err);
+    registrarPerdida({
+      tabla: 'llm_usage', causa: 'excepcion',
+      orgId: params.orgId, referencia: params.operation,
+      detalle: err instanceof Error ? err.message : String(err),
+    });
   }
 }
