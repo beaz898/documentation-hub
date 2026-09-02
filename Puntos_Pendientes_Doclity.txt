@@ -4361,6 +4361,37 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     Es la especie de B.113 —un documento que afirma un hecho que no se cumple—
     pero en configuración, donde no hay quien lo lea en una revisión.
 
+    ══ COMPROBADO EN VERCEL (03/09) ══
+    DÓNDE SE MIRA, para que nadie tenga que redescubrirlo:
+      Deployments → el despliegue marcado **Current** → **Functions**.
+    Ahí sale una fila por función con su runtime, su tope y su región. La de
+    `/api/ingest` decía:
+
+      /api/ingest — Node.js 24.x — ≤300s — iad1
+
+    MANDA EL `export` DE LA RUTA, NO `vercel.json`. Los 60 de `vercel.json`
+    llevaban ahí sin efecto: era la línea que mentía, y se retiró.
+
+    ⚠️ SE RETIRÓ SOLO EL `maxDuration`, NO LA ENTRADA. Esa entrada declara además
+    `memory: 1024`, y ése es OTRO CAMPO: Next.js no tiene configuración de
+    memoria por segmento de ruta, así que esa línea es la ÚNICA declaración que
+    existe y casi con seguridad sí está en vigor. La fila del panel no muestra la
+    memoria, así que la prueba que mató al `maxDuration` NO DICE NADA de ella.
+    Borrar «la entrada» entera se habría llevado los 1024 MB apoyándose en una
+    prueba que cubría el otro campo. La entrada no era una cosa: eran dos, y solo
+    una mentía.
+
+    ⚠️⚠️ LO QUE ESTE CASO ENSEÑA, y es lo que hay que retener: EL NÚMERO QUE
+    SOBREVIVIÓ ES EL QUE LA RAZÓN DE PRODUCTO PEDÍA, PERO POR SUERTE.
+    El director recomendaba 300 por un motivo propio —la indexación puede gastar
+    30 s de reintentos más los embeddings, y esa ruta BORRA EL DOCUMENTO VIEJO
+    ANTES de generar el nuevo (B.140), así que un timeout deja al usuario sin
+    ninguno de los dos—. Y el valor en vigor resultó ser 300.
+    SI HUBIERAN DISCREPADO, esto no se cerraba borrando una línea: habría hecho
+    falta CAMBIAR EL CÓDIGO para subir el tope, y el pendiente habría sido otro.
+    La coincidencia entre «lo que conviene» y «lo que está pasando» fue casual, y
+    conviene no leerla como confirmación de nada — ni del valor, ni del método.
+
     ══ CÓMO SE CERRÓ (02/09) ══
     Sin necesidad de averiguar cuál ganaba, y ése es el punto: EL ARREGLO NO
     DEPENDÍA DE LA RESPUESTA. Saber quién manda servía para elegir QUÉ VALOR
@@ -4372,9 +4403,8 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     EL DOCUMENTO VIEJO ANTES de generar el nuevo (B.140). Un timeout en medio
     deja al usuario sin ninguno de los dos. Con 300 hay margen, y el coste es que
     una función colgada tarde más en morir — mucho menos grave.
-    ⚠️ SI EL VALOR EN VIGOR ERA EL DE 60, esto CAMBIA el comportamiento de
-    producción: `ingest` pasa a poder durar cinco minutos. Es deliberado y por la
-    razón de arriba, no un efecto colateral.
+    Y LA DUDA DE SI ESTO CAMBIABA PRODUCCIÓN queda resuelta: NO la cambia. El
+    tope en vigor ya era 300; lo único que se retiró fue una línea sin efecto.
     QUEDA EN PIE lo de diseñar para el menor cuando haya duda: es lo que hizo el
     techo de espera de `lib/embeddings.ts`, y esa decisión no se revisa — 30 s de
     espera siguen cabiendo de sobra en 300.
