@@ -192,6 +192,7 @@ function ImprovementModalDesktop({
     reanalyzingAll,
     reanalyzePhase,
     stageFailureCount,
+    noGuardado,
     selectionLimits,
     dismissProblem,
     coordenadasDescartadas,
@@ -551,6 +552,7 @@ function ImprovementModalDesktop({
               SU montón — el grupo solo trae el nombre del candidato. */}
           <ChatPanel
             stageFailureCount={stageFailureCount}
+            noGuardado={noGuardado}
             selectionLimits={selectionLimits}
             tableDiffs={analysis.tableDiffs}
             documentName={fileName}

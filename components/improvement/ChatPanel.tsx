@@ -7,6 +7,7 @@ import ReanalyzeButtons from './ReanalyzeButtons';
 import FilterMenu from './FilterMenu';
 import ProblemDetail from './ProblemDetail';
 import IncompleteAnalysisNotice from '@/components/IncompleteAnalysisNotice';
+import UnsavedAnalysisNotice from '@/components/UnsavedAnalysisNotice';
 import SelectionLimitNotice from '@/components/SelectionLimitNotice';
 import type { SelectionLimitItem } from '@/components/SelectionLimitNotice';
 import TableCoverageBlock from './TableCoverageBlock';
@@ -59,6 +60,8 @@ interface ChatPanelProps {
   onDismissProblem: (p: Problem) => void;
   /** F-71: número de etapas que cayeron a su fallback. >0 pinta el aviso. */
   stageFailureCount?: number;
+  /** B.143: el reanalisis exhaustivo termino pero su resultado no se guardo. */
+  noGuardado?: boolean;
   /** F-74 P2: tablas cuyas filas no cupieron enteras. Alcance, no hallazgo. */
   selectionLimits?: SelectionLimitItem[];
 }
@@ -71,6 +74,7 @@ export default function ChatPanel({
   onToggleType, onSelectAllTypes, onClearTypes,
   getDocSourceBadge, onGoToProblem, onSolveOne, onSolveGroup, onDismissProblem,
   stageFailureCount = 0,
+  noGuardado = false,
   selectionLimits,
 }: ChatPanelProps) {
   const t = useTranslations('analysis');
@@ -233,6 +237,10 @@ export default function ChatPanel({
           pinta si visibleProblems.length > 0, y el caso peor —todas las etapas
           caídas— produce CERO problemas: el aviso habría desaparecido justo
           cuando más falta hace. */}
+      {/* B.143: el mismo par de avisos que en AnalysisModal y en el mismo
+          orden. Independientes: uno dice que el analisis esta degradado, el
+          otro que es bueno y no se ha conservado. */}
+      <UnsavedAnalysisNotice visible={noGuardado} />
       {stageFailureCount > 0 && (
         <div style={{ padding: '10px 16px 0', flexShrink: 0 }}>
           <IncompleteAnalysisNotice count={stageFailureCount} />

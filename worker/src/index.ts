@@ -172,18 +172,17 @@ async function processJob(job: AnalysisJob): Promise<void> {
     const stageFailures = analysis.stageFailures ?? [];
     const incomplete = stageFailures.length > 0;
 
-    await supabase
-      .from('analysis_jobs')
-      .update({
-        status: incomplete ? 'completed_with_errors' : 'completed',
-        result,
-        ...(incomplete
-          ? { error_message: `Análisis incompleto: ${stageFailures.length} etapa(s) fallaron (${[...new Set(stageFailures.map(f => f.stage))].join(', ')})` }
-          : {}),
-        completed_at: new Date().toISOString(),
-      })
-      .eq('id', job.id);
-
+    // ⚠️ B.143 (02/09): GUARDAR PRIMERO, ESCRIBIR EL JOB DESPUES. Antes era al
+    // reves y por eso `result_saved` no se sabia cuando se escribia la fila.
+    //
+    // EL REORDENAMIENTO ES SEGURO, y se dice por contraste con B.140: NO BORRA
+    // NADA. Si el guardado falla, el job se escribe igual —con
+    // `result_saved: false`— y el usuario recibe su analisis. Lo unico que
+    // cambia es que un dato que ya se calculaba llega a tiempo de escribirse.
+    // Lo que si cambia: entre el final del pipeline y el update hay ahora un
+    // INSERT mas. Si el proceso muere justo ahi, el job se queda en
+    // 'processing' — igual que si moria entre el pipeline y el update de antes.
+    // La ventana se mueve, no se abre, y la barre el umbral de jobs zombis.
     const saveResult = await saveAnalysisResult(supabase, {
       orgId: job.org_id,
       userId: job.user_id,
@@ -193,10 +192,29 @@ async function processJob(job: AnalysisJob): Promise<void> {
       documentId: job.document_id ?? undefined,
     });
     if (!saveResult.ok) {
-      // El exhaustivo no dispara swap: perder la fila es malo pero no bloquea el
-      // job (ya marcado completed). Se loguea con contexto (F-10) en vez de tragar.
+      // Se loguea con contexto (F-10) en vez de tragar, y ADEMAS viaja en la
+      // fila del job: el exhaustivo cuesta 30 creditos y hasta hoy el usuario
+      // cerraba creyendo que lo tenia guardado.
       console.error(`[worker] Job ${job.id}: no se pudo persistir el analisis: ${saveResult.error}`);
     }
+
+    await supabase
+      .from('analysis_jobs')
+      .update({
+        status: incomplete ? 'completed_with_errors' : 'completed',
+        result,
+        // Columna PROPIA y no un estado nuevo: `status` dice COMO FUE EL
+        // ANALISIS y esto dice si quedo guardado. Son dos dimensiones que se
+        // combinan de verdad —un analisis puede estar incompleto Y sin
+        // guardar—, y meterlas en la misma columna obligaria a cuatro valores
+        // para dos booleanos. Ver supabase-b143-job-result-saved.sql.
+        result_saved: saveResult.ok,
+        ...(incomplete
+          ? { error_message: `Análisis incompleto: ${stageFailures.length} etapa(s) fallaron (${[...new Set(stageFailures.map(f => f.stage))].join(', ')})` }
+          : {}),
+        completed_at: new Date().toISOString(),
+      })
+      .eq('id', job.id);
 
     // Precio variable / descuento reanálisis
     const isReanalysis = job.exclude_fingerprints !== '[]';

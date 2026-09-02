@@ -8,6 +8,11 @@ interface JobStatus {
   status: 'pending' | 'processing' | 'completed' | 'completed_with_errors' | 'failed';
   documentName: string;
   result: Record<string, unknown> | null;
+  /** B.143: `false` si el worker no pudo guardar el resultado. AUSENTE = se
+   *  asume guardado (ver `guardadoDeJob`). UNO DE LOS DOS CONSUMIDORES DE
+   *  POLLING — el otro es el de `useCrossDocAnalysis`, y los dos tienen que
+   *  recogerlo o el aviso existiria por un camino y no por el otro. */
+  guardado?: boolean;
   errorMessage: string | null;
   createdAt: string;
   startedAt: string | null;

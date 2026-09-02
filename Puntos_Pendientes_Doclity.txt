@@ -4394,8 +4394,8 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     cliente y pudiendo duplicar filas en la tabla con la que este proyecto se
     mide. Decisión del director el 02/09.
 
-  B.143 — [ABIERTO 02/09 · HUECO DECLARADO, NO ESCONDIDO] EL AVISO DE «NO
-    GUARDADO» NO LLEGA AL CAMINO EXHAUSTIVO
+  B.143 — [CERRADO EL 02/09, EN EL COMMIT SIGUIENTE AL QUE LO ABRIÓ] EL AVISO
+    DE «NO GUARDADO» NO LLEGABA AL CAMINO EXHAUSTIVO
 
     El commit del 02/09 cubre el camino SÍNCRONO: `/api/analyze-v2` devuelve
     `guardado` en el sobre y el modal lo pinta. El EXHAUSTIVO no queda cubierto:
@@ -4416,8 +4416,21 @@ NOTAS DE ORDEN (propuesta, a confirmar)
        emparejar por documento y fecha. Es inventar una segunda identidad, que
        es justo lo que CLAUDE.md prohíbe.
 
-    LA 1 ES LA BUENA y solo cuesta una migración pequeña. Se anota en vez de
-    hacerse porque el encargo del 02/09 decía «sin SQL, y si aparece, paras».
+    ⚠️ Y AL RAZONARLAS ANTES DE ESCRIBIR EL SQL, LA 1 RESULTÓ NO SER LA BUENA.
+    `status` codifica CÓMO FUE EL ANÁLISIS; si se guardó o no es una dimensión
+    INDEPENDIENTE, y las dos se combinan de verdad —un análisis puede estar
+    incompleto Y sin guardar—. Un estado nuevo habría obligado a
+    `completed_not_saved` Y `completed_with_errors_not_saved`: cuatro valores
+    para dos booleanos, y la siguiente dimensión los vuelve a doblar. Una
+    columna decidiendo dos criterios, y encima dentro de un CHECK.
+    LO QUE SE HIZO: columna propia `analysis_jobs.result_saved boolean NOT NULL
+    DEFAULT true` (`supabase-b143-job-result-saved.sql`, ejecutada por el
+    usuario el 02/09). Ortogonal al estado, y `DEFAULT true` porque ausente
+    significa guardado — la misma convención que el camino síncrono.
+    LA LECCIÓN DE MÉTODO: la recomendación estaba escrita ANTES de razonarla, y
+    razonarla la cambió. El director pidió ver el porqué antes del SQL «porque
+    un CHECK luego cuesta cambiarlo», y esa pregunta es la que lo cazó. Un
+    esquema no se toca con la opción que uno traía escrita.
 
   F-81 [CONVERGENCIA — leer ANTES de planificar la fase 3 del diff, 27/08] No
     es un pendiente nuevo: es el sitio donde se juntan tres que ya existen, más

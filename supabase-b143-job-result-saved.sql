@@ -1,0 +1,34 @@
+-- B.143 — analysis_jobs.result_saved: si la fila de analysis_results se escribió.
+--
+-- ESTADO: EJECUTADO por el usuario en Supabase el 02/09/2026, antes del push.
+--
+-- MOTIVO: cuando el worker termina un análisis exhaustivo, guarda el resultado
+-- en `analysis_results`. Si ese INSERT falla, hasta hoy solo quedaba un
+-- console.error: el usuario recibía su análisis de 30 créditos y lo cerraba
+-- creyendo que estaba en la bandeja y en la analítica. No estaba en ninguna
+-- parte. El camino síncrono ya avisaba desde el 02/09; este es el caro.
+--
+-- POR QUÉ UNA COLUMNA Y NO UN ESTADO NUEVO: `status` codifica CÓMO FUE EL
+-- ANÁLISIS (completed / completed_with_errors / failed). Si se guardó o no es
+-- una dimensión INDEPENDIENTE, y las dos se combinan de verdad — un análisis
+-- puede estar incompleto y además sin guardar. Meterlo en `status` obligaría a
+-- `completed_not_saved` Y `completed_with_errors_not_saved`: cuatro valores
+-- para dos booleanos, y la siguiente dimensión los volvería a doblar. Es una
+-- columna decidiendo dos criterios, con la agravante de que un CHECK cuesta
+-- deshacerlo. Ver CLAUDE.md, «un criterio se implementa UNA VEZ».
+--
+-- POR QUÉ `DEFAULT true` Y NO `false`: todas las filas que ya existen SÍ se
+-- guardaron —o al menos nadie sabe lo contrario—, y arrancarlas en `false`
+-- llenaría la pantalla de avisos sobre análisis que existen perfectamente. Es
+-- la misma convención que el campo `guardado` del camino síncrono: AUSENTE (o
+-- por defecto) significa guardado, y por eso el código pregunta `=== false` y
+-- nunca `!x`.
+--
+-- EJECUTAR ANTES DEL PUSH. Sin esta migración el UPDATE del worker falla por
+-- columna inexistente, y ese UPDATE es el que marca el job como terminado: el
+-- job se quedaría colgado en 'processing' hasta el barrido de zombis.
+--
+-- No toca datos existentes ni ninguna restricción: solo añade una columna.
+
+ALTER TABLE public.analysis_jobs
+  ADD COLUMN IF NOT EXISTS result_saved boolean NOT NULL DEFAULT true;

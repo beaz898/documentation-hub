@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { avisosDelAnalisis } from './avisos';
+import { avisosDelAnalisis, guardadoDeJob } from './avisos';
 
 /**
  * LOS DOS AVISOS, Y QUE NO SE MEZCLEN (regla 6, memoria del fallo, 02/09/2026).
@@ -84,5 +84,55 @@ describe('avisosDelAnalisis — dos avisos, y separados', () => {
     for (const c of casos) {
       expect(avisosDelAnalisis(c), JSON.stringify(c)).toEqual(c.esperado);
     }
+  });
+});
+
+/**
+ * EL CAMINO EXHAUSTIVO (B.143, 02/09/2026), que es el de 30 créditos.
+ *
+ * ⚠️ POR QUÉ HACE FALTA ESTA TRADUCCIÓN Y NO SE LEE LA COLUMNA A PELO: el dato
+ * viaja desde el worker —fuera de Vercel— por la fila del job, el endpoint, el
+ * tipo `JobStatus` y DOS consumidores de polling distintos. En cualquiera de
+ * esos saltos llega `undefined`: mientras el job no ha terminado, en los jobs
+ * `failed`, y en cualquier lector que no pida la columna en su `select`.
+ * AUSENTE tiene que significar GUARDADO, o el aviso saldría sobre análisis que
+ * existen perfectamente.
+ */
+describe('guardadoDeJob — la columna del worker, traducida', () => {
+  it('la columna en false: NO guardado', () => {
+    expect(guardadoDeJob(false)).toBe(false);
+  });
+
+  /** ⚠️ MITAD CONTRARIA A: un job que guarda bien no marca nada. */
+  it('la columna en true: guardado', () => {
+    expect(guardadoDeJob(true)).toBe(true);
+  });
+
+  /**
+   * ⚠️ MITAD CONTRARIA B: un análisis viejo, o una fila leída sin pedir la
+   * columna, tampoco marca nada. Es la que un `!x` dejaría pasar — y con ella
+   * se llenaría de avisos todo el histórico anterior a la migración, que nació
+   * con `DEFAULT true` precisamente para eso.
+   */
+  it('sin dato: se asume guardado', () => {
+    expect(guardadoDeJob(undefined)).toBe(true);
+    expect(guardadoDeJob(null)).toBe(true);
+  });
+
+  /**
+   * Y ENGANCHA CON EL CRITERIO DE AYER: lo que sale de aquí es exactamente lo
+   * que `avisosDelAnalisis` espera en `guardado`. Un solo vocabulario para los
+   * dos caminos — el síncrono y el exhaustivo — que es lo que impide que el
+   * aviso salga por uno y no por el otro.
+   */
+  it('encaja con avisosDelAnalisis sin traducir dos veces', () => {
+    expect(avisosDelAnalisis({ guardado: guardadoDeJob(false) })).toEqual({
+      noGuardado: true,
+      etapasCaidas: 0,
+    });
+    expect(avisosDelAnalisis({ guardado: guardadoDeJob(undefined) })).toEqual({
+      noGuardado: false,
+      etapasCaidas: 0,
+    });
   });
 });

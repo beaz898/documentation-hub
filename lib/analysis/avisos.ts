@@ -44,6 +44,23 @@ export interface AvisosDelAnalisis {
   etapasCaidas: number;
 }
 
+/**
+ * ¿SE GUARDÓ EL RESULTADO DE ESTE JOB? (B.143, 02/09/2026)
+ *
+ * El camino EXHAUSTIVO no pasa por la respuesta de `/api/analyze-v2`: lo guarda
+ * el worker, fuera de Vercel, y el dato viaja por la fila del job. Esta función
+ * es la traducción de esa columna al mismo vocabulario que usa el resto.
+ *
+ * ⚠️ `=== false` Y NO `!x`, por la misma razón que en `avisosDelAnalisis`: llega
+ * `undefined` mientras el job no ha terminado, en los jobs `failed`, y por
+ * cualquier lector que no pida la columna. AUSENTE = guardado, y la columna
+ * nace con `DEFAULT true` justamente para que las filas anteriores a la
+ * migración no disparen avisos sobre análisis que existen.
+ */
+export function guardadoDeJob(resultSaved: boolean | null | undefined): boolean {
+  return resultSaved !== false;
+}
+
 export function avisosDelAnalisis(entrada: EntradaDeAvisos): AvisosDelAnalisis {
   return {
     noGuardado: entrada.guardado === false,

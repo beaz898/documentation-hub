@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import { getAuthenticatedUserHybrid } from '@/lib/supabase-server';
 import { resolveOrg } from '@/lib/org';
+import { guardadoDeJob } from '@/lib/analysis/avisos';
 
 /**
  * GET /api/analysis-jobs/[id]
@@ -39,7 +40,10 @@ export async function GET(
     // Consultar el job (RLS no aplica con service role, verificamos org manualmente)
     const { data: job, error: jobError } = await supabase
       .from('analysis_jobs')
-      .select('id, org_id, status, document_name, result, error_message, created_at, started_at, completed_at')
+      // ⚠️ `result_saved` VA EN EL SELECT (B.143). Sin pedirlo llega
+      // `undefined`, y `undefined` significa GUARDADO: el aviso no saldria
+      // nunca y no lo notaria nadie. Es el fallo silencioso de este camino.
+      .select('id, org_id, status, document_name, result, result_saved, error_message, created_at, started_at, completed_at')
       .eq('id', id)
       .single();
 
@@ -61,6 +65,11 @@ export async function GET(
       // tiraría un resultado parcial que el cliente ya tiene pagado (y
       // reembolsado). El aviso viaja dentro, en result.stageFailures.
       result: job.status === 'completed' || job.status === 'completed_with_errors' ? job.result : null,
+      // B.143: en el SOBRE, junto a `status` y `result`, y no dentro de
+      // `result` — que el cliente lee COMO el analisis. Es estado del guardado,
+      // no del analisis. Traducido por `guardadoDeJob` y no aqui: ausente
+      // significa guardado, y esa regla vive en un solo sitio.
+      guardado: guardadoDeJob(job.result_saved),
       errorMessage: job.status === 'failed' || job.status === 'completed_with_errors' ? job.error_message : null,
       createdAt: job.created_at,
       startedAt: job.started_at,

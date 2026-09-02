@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useCallback, useRef } from 'react';
+import { guardadoDeJob } from '@/lib/analysis/avisos';
 import { problemsFromAnalysis, type Problem, type RawAnalysis } from './problems';
 import { describeJobPhase } from '@/hooks/chat/useJobPolling';
 
@@ -75,6 +76,10 @@ export function useCrossDocAnalysis(
   const [stageFailureCount, setStageFailureCount] = useState<number>(
     () => initialAnalysis.stageFailures?.length ?? 0
   );
+  // B.143: el aviso de NO GUARDADO, mismo ciclo de vida que el de arriba y
+  // decidido por el mismo sitio. Arranca en `false` porque lo que abre este
+  // modal ya venia guardado; lo que puede cambiarlo es un reanalisis.
+  const [noGuardado, setNoGuardado] = useState(false);
   // F-74 P2: el alcance declarado, mismo ciclo de vida que stageFailureCount.
   const [selectionLimits, setSelectionLimits] = useState<RawAnalysis['selectionLimits']>(
     () => initialAnalysis.selectionLimits
@@ -147,6 +152,10 @@ export function useCrossDocAnalysis(
             throw new Error('El reanálisis terminó pero no devolvió resultados.');
           }
           analysis = result as unknown as RawAnalysis;
+          // Del SOBRE del job. El otro consumidor de polling hace lo mismo en
+          // `useDocuments`: si solo lo hiciera uno, el aviso saldria en la
+          // subida y no en el reanalisis, que es el fallo que esto evita.
+          setNoGuardado(!guardadoDeJob(job.guardado));
         } else {
           // Respuesta síncrona (fallback)
           analysis = crossData?.analysis || crossData || {};
@@ -286,7 +295,7 @@ export function useCrossDocAnalysis(
     [reviewedDocumentId],
   );
 
-  return { crossDocProblems, setCrossDocProblems, reanalyzeAll, reanalyzingAll, reanalyzePhase, lastError, dismissProblem, coordenadasDescartadas, stageFailureCount, selectionLimits };
+  return { crossDocProblems, setCrossDocProblems, reanalyzeAll, reanalyzingAll, reanalyzePhase, lastError, dismissProblem, coordenadasDescartadas, stageFailureCount, noGuardado, selectionLimits };
 }
 
 // ============================================================
@@ -297,6 +306,11 @@ interface JobStatus {
   id: string;
   status: 'pending' | 'processing' | 'completed' | 'completed_with_errors' | 'failed';
   result: Record<string, unknown> | null;
+  /** B.143: `false` si el worker no pudo guardar el resultado. AUSENTE = se
+   *  asume guardado (ver `guardadoDeJob`). UNO DE LOS DOS CONSUMIDORES DE
+   *  POLLING — el otro es el de `useCrossDocAnalysis`, y los dos tienen que
+   *  recogerlo o el aviso existiria por un camino y no por el otro. */
+  guardado?: boolean;
   errorMessage: string | null;
 }
 

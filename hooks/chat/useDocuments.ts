@@ -314,6 +314,10 @@ export function useDocuments(
             fileName, storagePath, fileSize,
             analysis: result as PendingAnalysis['analysis'],
             documentSources: (result.documentSources as PendingAnalysis['documentSources']) ?? savedDocumentSources,
+            // B.143: del SOBRE del job, no de `result` —que es el analisis—.
+            // Sin esta linea el exhaustivo, que cuesta 30 creditos, seria el
+            // unico camino sin aviso.
+            guardado: job.guardado,
           });
         } else {
           addMessage({ id: crypto.randomUUID(), role: 'error', content: 'El análisis terminó pero no devolvió resultados.' });
