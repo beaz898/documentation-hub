@@ -4307,9 +4307,20 @@ NOTAS DE ORDEN (propuesta, a confirmar)
        no. Si la unificación pierde el motivo, se pierde la trazabilidad del
        único camino que hoy la tiene.
 
-  B.140 — [ABIERTO 02/09 · MISMA FAMILIA QUE B.138 · NO ARREGLAR SIN PREDICCIÓN]
-    EL REEMPLAZO BORRA EL DOCUMENTO VIEJO ANTES DE SABER SI EL NUEVO VA A
-    EXISTIR
+  B.140 — [ABIERTO 02/09 · CERRADO EL 03/09 POR LA OPCIÓN 1 · MISMA FAMILIA QUE
+    B.138] EL REEMPLAZO BORRABA EL DOCUMENTO VIEJO ANTES DE SABER SI EL NUEVO
+    IBA A EXISTIR
+
+    ══ CERRADO — 03/09/2026, Y POR LA OPCIÓN 1 DE LAS DE ABAJO ══
+    Se reutiliza el id del documento viejo y la versión nueva entra como una
+    GENERACIÓN más, que es justo para lo que existe la generación. Orden nuevo:
+    embeddings → subir la generación N → conmutar la fila → retirar lo anterior.
+    La ventana no se estrecha, DEJA DE EXISTIR: en todo momento hay una versión
+    servible. Y los 30 s de reintentos que este mismo frente metió pasan a
+    ocurrir ANTES de tocar nada viejo, donde alargar es gratis — el intercambio
+    negativo que se anota más abajo queda saldado.
+    Lo que la nota decía sobre la colisión de ids era exacto, y es lo que se
+    hizo: `lib/documents/plan-de-reemplazo.ts`.
 
     ══ LA VENTANA ══
     En `app/api/ingest/route.ts`, camino de REEMPLAZO:
@@ -4819,7 +4830,7 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     para nuestra base —«sin la lista de documentos existentes, abortar es la
     única opción segura»— y no para la de Google, a doce líneas de distancia.
 
-  B.152 — [ABIERTO Y CERRADO EL 02/09 · LA VENTANA DE B.140 ERA INDEFINIDA, NO
+  B.152 — [ABIERTO 02/09 · CERRADO EL 03/09 · LA VENTANA DE B.140 ERA INDEFINIDA, NO
     DE SEGUNDOS] EL REEMPLAZO MANUAL PUEDE DEJAR UN DOCUMENTO FANTASMA
     RESPONDIENDO EN EL CHAT
 
@@ -4878,8 +4889,8 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     que no se pensó es el escalón anterior: que el borrado entero ocurra antes de
     que exista el reemplazo.
 
-    ══ CÓMO SE CIERRA ══
-    Con el commit del 02/09 que lleva `ingest` al patrón de `document-swap.ts`:
+    ══ CÓMO SE CERRÓ — 03/09/2026 ══
+    Con el commit que lleva `ingest` al patrón de `document-swap.ts`:
     crear la generación nueva → conmutar → borrar la vieja. Con ese orden la
     ventana no se estrecha: DEJA DE EXISTIR — en todo momento hay una versión
     servible, y si el proceso muere a mitad sobra basura y no falta nada.
@@ -5001,6 +5012,73 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     - Unificar el retrieval de app y worker en un módulo compartido (hoy el worker
       importa lib/analysis de la app; funciona, pero conviene formalizarlo). Fable
       lo situó en Fase D.
+
+  B.153 — [ABIERTO 03/09 · CAMBIO OBSERVABLE INTRODUCIDO A PROPÓSITO, Y LA
+    PREGUNTA QUE DEJA] UN DOCUMENTO REEMPLAZADO YA NO SALTA AL PRINCIPIO DE LA
+    LISTA
+
+    Se anota como lo que es: no un fallo encontrado, sino una CONSECUENCIA
+    ELEGIDA del reemplazo por generaciones, declarada aquí para que no aparezca
+    dentro de seis meses como si fuera un fallo.
+
+    ══ QUÉ CAMBIÓ ══
+    Hasta el 03/09 un reemplazo manual BORRABA la fila vieja e INSERTABA una
+    nueva, así que `created_at` era la fecha de la subida más reciente. Desde el
+    reemplazo por generaciones la fila es LA MISMA —el id se reutiliza— y
+    `created_at` conserva la fecha de la PRIMERA subida.
+    La lista de documentos ordena por `created_at` descendente
+    (`app/api/documents/route.ts:29`), así que el documento reemplazado se queda
+    donde estaba en lugar de subir al principio.
+
+    ══ POR QUÉ NO SE TOCÓ `created_at` ══
+    Porque significa cuándo NACIÓ el documento, no cuándo nació esta versión. Es
+    el mismo criterio que `document-swap.ts`, que tampoco lo toca. Escribirle la
+    fecha de hoy para conservar el orden de la lista sería falsear el dato para
+    arreglar una vista.
+
+    ⚠️ ══ LA PREGUNTA QUE HAY QUE CONTESTAR, no la solución ══
+    **¿Qué orden espera el usuario en la lista de documentos: el de entrada al
+    corpus, o el de última modificación?** No es evidente, y las dos respuestas
+    tienen sentido — la primera es un archivo, la segunda un escritorio. Hasta
+    hoy el sistema contestaba «última modificación» SIN HABERLO DECIDIDO, como
+    efecto de borrar e insertar; y ese contestar sin decidir es lo que se acaba.
+    Si la respuesta es la segunda, la fila ya tiene `updated_at` y este commit lo
+    escribe; falta solo cambiar el `order`. **No se cambia de paso: es producto,
+    no higiene.**
+
+  B.154 — [ABIERTO 03/09 · ANTERIOR A ESTE COMMIT, PERO CAMBIA DE FORMA CON ÉL]
+    UN DOCUMENTO DE ONEDRIVE HOMÓNIMO ENTRA EN LAS COLISIONES «MANUALES»
+
+    ══ EL DATO ══
+    La consulta de colisiones de `app/api/ingest/route.ts` pide
+    `.or('source.is.null,source.neq.google_drive')` y luego filtra
+    `d.source !== 'google_drive'`. Las dos condiciones nombran UN SOLO origen,
+    así que un documento con `source = 'onedrive'` y el mismo nombre cuenta como
+    colisión manual. El comentario de encima dice «SOLO entre documentos
+    MANUALES», y eso no es lo que hace el código.
+
+    ══ QUÉ PASABA Y QUÉ PASA ══
+    · ANTES: la subida manual BORRABA ese documento de OneDrive —fila y
+      vectores— como si fuera un homónimo manual.
+    · AHORA: si es el más reciente, se VERSIONA: conserva su id, su contenido
+      pasa a ser el del fichero subido y su procedencia se limpia a null, o sea
+      se convierte en un documento manual. Si no es el más reciente, se sigue
+      borrando entero.
+    Ninguna de las dos es peor que la otra de forma evidente, y por eso no se
+    decide de paso.
+
+    ══ POR QUÉ NO HA EXPLOTADO ══
+    La interfaz de OneDrive está deshabilitada (`lib/drive/onedrive.ts`
+    implementado, UI apagada), así que hoy no hay filas con ese `source`. Es un
+    agujero esperando a que se encienda la integración.
+
+    ⚠️ ══ LA PREGUNTA ══
+    **¿Un documento sincronizado desde un proveedor debe poder ser reemplazado
+    por una subida manual del mismo nombre, o deben coexistir como coexisten hoy
+    los de Google Drive?** La regla ya existe para Google —coexisten— y lo único
+    que falta es saber si es una regla sobre GOOGLE o sobre LOS PROVEEDORES. Si
+    es lo segundo, el arreglo es una lista de orígenes sincronizados en un solo
+    sitio, no un `neq` más.
 
 Forma de trabajo: diagnóstico con datos reales antes de arreglar; un
 cambio lógico cada vez; build verde entre medias; SQL en Supabase antes

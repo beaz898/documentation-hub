@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import { getAuthenticatedUserHybrid } from '@/lib/supabase-server';
-import { upsertVectors, deleteVectorsByIds, buildVectorId, deleteVectorsByFilter, buildAllVectorIds } from '@/lib/pinecone/vectors';
+import { upsertVectors, deleteVectorsByIds, buildVectorId } from '@/lib/pinecone/vectors';
 import { generateEmbeddings } from '@/lib/embeddings';
 import { extractSegments, joinSegments, chunkSegments, stripSegmentationMarkers, EXTRACTOR_VERSION } from '@/lib/chunking';
 import type { ExtractedSegment } from '@/lib/chunking';
 import { saveDocumentChunks } from '@/lib/persist-chunks';
+import { planDeReemplazo } from '@/lib/documents/plan-de-reemplazo';
+import { retirarLoViejo } from '@/lib/documents/retirar-version';
 import { randomUUID } from 'crypto';
 import { generateContentHash } from '@/lib/analysis/hash-check';
 import { resolveOrg } from '@/lib/org';
@@ -22,9 +24,16 @@ import { checkUploadLock } from '@/lib/upload-lock';
  *
  * POR QUÉ 300 Y NO 60: la indexación puede gastar hasta 30 s de reintentos de
  * embeddings (techo de `lib/embeddings.ts`) más el tiempo de las peticiones, y
- * esta ruta BORRA EL DOCUMENTO VIEJO ANTES de generar el nuevo (B.140). Un
- * timeout en medio deja al usuario sin ninguno de los dos. Con 300 hay margen; el
- * coste es que una función colgada tarde más en morir, que es mucho menos grave.
+ * esta ruta REEMPLAZA documentos.
+ *
+ * ⚠️ LA RAZÓN QUE SE ESCRIBIÓ AQUÍ EL 02/09 YA NO ES VERDAD, y se corrige en el
+ * mismo commit que la mata: decía «esta ruta BORRA EL DOCUMENTO VIEJO ANTES de
+ * generar el nuevo (B.140), y un timeout en medio deja al usuario sin ninguno de
+ * los dos». Desde el reemplazo por generaciones el viejo se retira DESPUÉS, así
+ * que un timeout en medio ya no deja al usuario sin nada: deja basura.
+ * EL 300 SIGUE, con la razón que le queda: el techo de reintentos más las
+ * peticiones no cabe holgadamente en 60, y el coste de pasarse es solo que una
+ * función colgada tarde más en morir.
  */
 export const maxDuration = 300;
 
@@ -79,8 +88,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const documentId = randomUUID();
-
     // ============================================================
     // Comprobar colisiones de nombre SOLO entre documentos MANUALES
     // Los documentos de Google Drive (source = 'google_drive') NUNCA se tocan
@@ -90,7 +97,11 @@ export async function POST(req: NextRequest) {
 
     const { data: existingManualDocs, error: queryError } = await supabase
       .from('documents')
-      .select('id, name, chunk_count, source, active_generation')
+      // created_at ENTRA AQUÍ PORQUE DECIDE: con varios homónimos es el criterio
+      // de cuál se versiona y cuáles se borran. Es la sexta especie del select que
+      // pierde un campo (B.144), y aquí el defecto silencioso sería versionar el
+      // documento equivocado.
+      .select('id, name, chunk_count, source, active_generation, created_at')
       .eq('org_id', orgId)
       .eq('name', fileName)
       .or('source.is.null,source.neq.google_drive');
@@ -116,6 +127,19 @@ export async function POST(req: NextRequest) {
         },
       }, { status: 409 });
     }
+
+    // ============================================================
+    // EL PLAN: alta o reemplazo, y con qué identidad y qué generación.
+    // Aquí, después del 409: si hay colisiones y seguimos, es que `force` es true.
+    //
+    // ⚠️ EN UN REEMPLAZO EL ID NO ES NUEVO — se reutiliza el del documento
+    // reemplazado, que gana una generación. Sin eso no habría nada que conmutar:
+    // viejo y nuevo serían dos documentos distintos y el orden crear→conmutar→
+    // borrar no tendría sentido. Ver `lib/documents/plan-de-reemplazo.ts`.
+    // ============================================================
+    const plan = planDeReemplazo(manualCollisions);
+    const documentId = plan.tipo === 'reemplazo' ? plan.documentId : randomUUID();
+    const generation = plan.generacion;
 
     // Límite de 5 documentos en plan free (solo aplica a documentos nuevos, no a reemplazos)
     if (manualCollisions.length === 0) {
@@ -183,59 +207,19 @@ export async function POST(req: NextRequest) {
 
     console.log(`[INGEST] Extracted ${text.length} chars from ${fileName}`);
 
-    // 4. Ahora que tenemos texto válido del nuevo, borrar el documento viejo (si procede).
-    // Este es el único punto donde se modifica el corpus: solo cuando el nuevo está listo.
-    if (manualCollisions.length > 0 && force) {
-      for (const oldDoc of manualCollisions) {
-        console.log(`[INGEST] Replacing manual doc id=${oldDoc.id}`);
-
-        // Borrado por dos vías (B.73), igual que en lib/delete-document.ts y
-        // drive/disconnect: filtro por documentId, que no depende de conocer la
-        // generación, más los IDs explícitos de la generación activa. Los manuales
-        // están hoy siempre en generación 1, pero eso es una consecuencia del flujo
-        // actual, no una garantía del código: C.4e prevé migrarlos al swap.
-        const oldDocumentId = oldDoc.id as string;
-        let filterOk = false;
-        let idsOk = false;
-
-        try {
-          await deleteVectorsByFilter(orgId, { documentId: { $eq: oldDocumentId } });
-          filterOk = true;
-        } catch (err) {
-          console.warn(`[INGEST] fallo borrado por filtro | doc=${oldDocumentId} |`, err);
-        }
-
-        const generation = (oldDoc.active_generation as number | null) ?? 1;
-        const idsToDelete = buildAllVectorIds(
-          oldDocumentId,
-          (oldDoc.chunk_count as number | null) ?? 0,
-          generation,
-        );
-        if (idsToDelete.length > 0) {
-          try {
-            await deleteVectorsByIds(orgId, idsToDelete);
-            idsOk = true;
-          } catch (err) {
-            console.warn(`[INGEST] fallo borrado por IDs | doc=${oldDocumentId} | gen=${generation} |`, err);
-          }
-        }
-
-        // La fila solo se borra si los vectores se han podido borrar: sin la fila no
-        // queda referencia para localizar vectores huérfanos.
-        if (!filterOk && !idsOk) {
-          console.error(`[INGEST] ABORTADO | no se pudieron borrar los vectores del documento a reemplazar | doc=${oldDocumentId}`);
-          return NextResponse.json(
-            {
-              error: 'No se pudo retirar la versión anterior del índice de búsqueda. No se ha modificado nada; inténtalo de nuevo.',
-              errorType: 'vector_delete_failed',
-            },
-            { status: 502 },
-          );
-        }
-
-        await supabase.from('documents').delete().eq('id', oldDoc.id);
-      }
-    }
+    // 4. AQUÍ NO SE BORRA NADA, Y ÉSA ES LA INVERSIÓN (B.140, B.152).
+    //
+    // Hasta el 03/09/2026 este punto borraba los vectores y la fila del documento
+    // viejo ANTES de generar el nuevo. Entre ese borrado y el insert final la
+    // organización no tenía NINGUNA de las dos versiones, y si algo fallaba en
+    // medio —incluidos los hasta 30 s de reintentos de embeddings— se quedaba sin
+    // las dos. Peor: el borrado iba por dos vías y bastaba con que UNA funcionara
+    // para continuar, así que podían sobrevivir vectores en Pinecone con la fila
+    // ya borrada — un documento fantasma respondiendo en el chat, invisible en la
+    // interfaz y que ninguna sincronización recupera.
+    //
+    // Ahora el viejo se retira en el punto 10, DESPUÉS de que la fila sirva la
+    // generación nueva. La ventana no se estrecha: deja de existir.
 
     // 5. Generar hash del contenido para detección futura de duplicados exactos.
     // Sobre el texto limpio: el marcador de segmentación (hojas de cálculo) es
@@ -253,7 +237,7 @@ export async function POST(req: NextRequest) {
 
     // 8. Subir a Pinecone
     const vectors = chunks.map((chunk, i) => ({
-      id: buildVectorId(documentId, 1, i),
+      id: buildVectorId(documentId, generation, i),
       values: embeddings[i],
       metadata: {
         text: chunk.text,
@@ -264,22 +248,21 @@ export async function POST(req: NextRequest) {
         orgId: chunk.metadata.orgId,
         source: 'manual',
         analysisStatus,
-        generation: 1,
+        generation,
       },
     }));
 
     await upsertVectors(orgId, vectors);
 
-    // 9. Guardar metadatos en Supabase (con content_hash y full_text)
-    await supabase.from('documents').insert({
-      id: documentId,
+    // 9. LA CONMUTACIÓN: lo que la generación nueva pasa a ser para la fila.
+    const contenidoNuevo = {
       name: fileName,
       size_bytes: fileSize || 0,
       chunk_count: chunks.length,
-      org_id: orgId,
       user_id: user.id,
       status: 'indexed',
       source: 'manual',
+      active_generation: generation,
       analysis_status: analysisStatus,
       content_hash: contentHash,
       full_text: stripSegmentationMarkers(text),
@@ -290,14 +273,79 @@ export async function POST(req: NextRequest) {
       // version nunca se ha analizado". Campo distinto de content_hash pese a
       // coincidir aqui en valor: no los fusiones.
       analyzed_content_hash: analysisStatus === 'analizado' ? contentHash : null,
-    });
+    };
+
+    if (plan.tipo === 'reemplazo') {
+      // ⚠️ UN UPDATE NO ES UN INSERT: lo que no se nombra SE QUEDA COMO ESTABA, y
+      // ahí es donde un campo olvidado sobrevive callado (B.144). Las columnas de
+      // `documents`, decididas una por una:
+      //  · las que trae `contenidoNuevo` — las que cambian con la versión;
+      //  · `id`, `name`, `org_id` — la identidad, que es justo lo que se conserva;
+      //  · `created_at` — NO SE TOCA: es el nacimiento del documento, no el de
+      //    esta versión. ⚠️ CAMBIO OBSERVABLE: la lista ordena por `created_at`
+      //    (`app/api/documents/route.ts:29`), así que un documento reemplazado ya
+      //    NO salta al principio de la lista, se queda donde estaba;
+      //  · `updated_at` — a ahora: no hay trigger, el DEFAULT solo aplica al insert;
+      //  · `provider_file_id`, `source_modified_at`, `folder_path`, `folder_id` —
+      //    a null: tras un reemplazo manual el documento ES manual, y conservar la
+      //    procedencia de otro origen sería un dato que ya no describe nada;
+      //  · `reviewed_at`, `reviewed_by` — a null: el contenido cambió, nadie ha
+      //    revisado ESTA versión. Mismo criterio que `document-swap.ts`.
+      const { error: updateError } = await supabase
+        .from('documents')
+        .update({
+          ...contenidoNuevo,
+          updated_at: new Date().toISOString(),
+          provider_file_id: null,
+          source_modified_at: null,
+          folder_path: null,
+          folder_id: null,
+          reviewed_at: null,
+          reviewed_by: null,
+        })
+        .eq('id', documentId)
+        .eq('org_id', orgId);
+
+      if (updateError) {
+        // La conmutación falló: la fila sigue sirviendo la generación vieja, que
+        // está INTACTA. Lo único que sobra es la generación nueva recién subida, y
+        // se retira para dejar las cosas exactamente como estaban. Si la retirada
+        // también falla, sobran vectores de una generación que la fila no sirve:
+        // basura, no pérdida.
+        console.error(`[INGEST] ABORTADO | no se pudo conmutar la fila | doc=${documentId} | gen=${generation} |`, updateError);
+        try {
+          await deleteVectorsByIds(orgId, vectors.map(v => v.id));
+        } catch (err) {
+          console.warn(`[INGEST] generación nueva sin retirar tras conmutación fallida | doc=${documentId} | gen=${generation} |`, err);
+        }
+        return NextResponse.json(
+          {
+            error: 'No se pudo activar la nueva versión del documento. La versión anterior sigue intacta; inténtalo de nuevo.',
+            errorType: 'swap_failed',
+          },
+          { status: 502 },
+        );
+      }
+    } else {
+      await supabase.from('documents').insert({
+        id: documentId,
+        org_id: orgId,
+        ...contenidoNuevo,
+      });
+    }
 
     // 9b. Chunks tipados (F-20 Paso 2). AL FINAL: la fila de documents ya
     // existe (la FK lo exige) y un fallo aquí nunca debe tumbar una
     // indexación que ya funcionó — saveDocumentChunks solo loguea, no lanza.
-    await saveDocumentChunks(supabase, { orgId, documentId, generation: 1, chunks });
+    await saveDocumentChunks(supabase, { orgId, documentId, generation, chunks });
 
-    // 10. Limpiar archivo de storage
+    // 10. LA RETIRADA DE LO VIEJO — vectores de las generaciones anteriores,
+    //     sus chunks tipados, y los homónimos que no se versionan.
+    //     Vive en `lib/documents/retirar-version.ts`, y allí está escrito por
+    //     qué nada de eso puede abortar esta petición.
+    await retirarLoViejo(supabase, { orgId, documentId, generation, plan, colisiones: manualCollisions });
+
+    // 11. Limpiar archivo de storage
     await supabase.storage.from('documents').remove([storagePath]);
 
     const wasReplaced = manualCollisions.length > 0 && force === true;
