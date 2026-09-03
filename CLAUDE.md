@@ -317,14 +317,40 @@ El dueño del proyecto NO es programador. Vercel deploya automáticamente al hac
   saber cuántas llamadas lleva hoy un usuario: cada fila perdida es una llamada
   regalada, y regalada justo cuando la base va peor. Antes de tocar una tabla,
   mirar quién la LEE — no qué nombre tiene. Promovida en F-95 P2 (B.145).
-- **UN DOCUMENTO EN REVISIÓN ES UN CANDIDATO A ENTRAR EN EL CORPUS, no un
-  miembro con etiqueta que lo excluya.** Su exclusión no depende de que un filtro
-  esté bien escrito, sino de que NO HAYA NADA QUE FILTRAR.
-  La razón de fondo: `analysisStatus` no es un estado duplicado, es una
-  PARTICIÓN — `'analizado'` es elegible y todo lo demás no, y el filtro no
-  distingue entre los «demás». Y un documento en revisión no necesita estar en el
-  índice: **se compara CONTRA el corpus, no el corpus contra él.** Promovida en
-  F-96.
+- **EL CORPUS ES LO QUE PARTICIPA SIN SER NOMBRADO.** Un documento participa en
+  una recuperación por una de dos vías: por PERTENENCIA —su estado lo incluye en
+  el default— o por NOMINACIÓN —un análisis lo nombra por su id—.
+  `en_revision` participa SOLO NOMINADO; `analizado` participa SIN SER
+  NOMBRADO; `descartado` no participa por ninguna vía, ni es nominable.
+  Y describe el chat sin excepción: **el chat no nombra ids, luego solo ve
+  pertenencia** — que es la promesa de producto deducida del enunciado en vez de
+  sostenida aparte.
+  ⚠️ SUSTITUYE AL ENUNCIADO DE F-96 —«su exclusión no depende del filtro sino de
+  que no haya nada que filtrar»—, que era FALSO: hay 27 documentos no analizados
+  CON vectores, y la vía de ids amplía el filtro. Aquél era espacial
+  (dentro/fuera) y la metáfora correcta es de modo de participación. F-97 P2.
+- **LA VÍA NOMINAL ES UN CONTRATO, NO UN ACCIDENTE**, con tres cláusulas:
+  ORIGEN —la lista de ids se construye SOLO EN SERVIDOR, derivada del contexto
+  del análisis, jamás de una lista del cliente—; ALCANCE —la concesión es POR
+  ANÁLISIS: no persiste, no promociona, no cambia el estado—; RASTRO —contador,
+  para distinguir «candidato por corpus» de «candidato por concesión»—.
+  Promovida en F-97 P1.
+- **UN CAMPO QUE RESPONDE A DOS PREGUNTAS DISTINTAS ES UN CAMPO QUE VA A
+  CONTESTAR MAL A UNA DE LAS DOS.** Y su consecuencia práctica: **antes de añadir
+  un valor a un campo existente, enunciar QUÉ PREGUNTA RESPONDE ese campo.** Si
+  responde a más de una, el valor nuevo se añade a la ambigüedad en vez de
+  resolverla.
+  El caso: `analysis_status` parecía responder «¿participa en el corpus?» y en
+  realidad responde «¿participa POR DEFECTO?» — la otra mitad la contesta la vía
+  de ids. Añadir `en_revision` sin enunciarlo habría metido un valor nuevo en un
+  campo que ya contestaba a dos cosas. Promovida en F-97.
+- **LA AUTORIZACIÓN EXPLÍCITA DEL USUARIO SOBRE UN DOCUMENTO CONCRETO VENCE AL
+  ESTADO POR DEFECTO. Y SE REGISTRA:** quién autorizó qué y cuándo.
+  Es F-67 aplicado a la pertenencia: cuando alguien sube dos tarifarios y pide
+  compararlos antes de indexar ninguno, está diciendo «para este análisis, estos
+  dos existen el uno para el otro». **Un estado que no pudiera excepcionarse por
+  orden explícita del usuario sería el sistema decidiendo por encima de él.**
+  Promovida en F-97 P1.
 - **LA PERTENENCIA AL CORPUS SE ESCRIBE EN UN SOLO SITIO.** La función que indexa
   la escribe al crear los vectores; la que promociona la actualiza en los dos
   sistemas —VECTORES PRIMERO, y solo si TODOS van bien, la fila después— y falla

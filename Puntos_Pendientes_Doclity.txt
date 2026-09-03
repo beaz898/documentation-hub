@@ -240,7 +240,7 @@ FRENTE 2 — cierre de la emisión            [CERRADO — 02/09/2026]
        al MVP, no opcional.
 
 ────────────────────────────────────────────────────────────────
-FRENTE 3 — ciclo de vida del documento     [BLOQUEA]
+FRENTE 3 — ciclo de vida del documento     [EN CURSO — 02/09]
 ────────────────────────────────────────────────────────────────
   Qué: la fila nace en la subida con estado (en_revision → indexado/descartado).
        Especificado en intención en F-87 P4.
@@ -253,6 +253,29 @@ FRENTE 3 — ciclo de vida del documento     [BLOQUEA]
        falsa en pantalla— y eso no puede vivir declarado.
   NOTA: era «frente propio, y no va ahora» en F-87 P4. F-89 lo asciende a
        tercer frente del MVP. Ya no es futuro.
+
+  ⚠️ CAMBIO DE ORDEN, decidido por el director el 02/09: EL PASO 2 —LA
+       CORRECCIÓN DEL REEMPLAZO— PASA A SER EL PASO 1. El corte de F-95 P7 lo
+       ponía el cuarto; se adelanta al primero por tres razones que pesan las
+       tres:
+       · ES UNA CORRECCIÓN DE SEGURIDAD, no una pieza de arquitectura: hoy
+         `ingest` borra los vectores y la fila del documento viejo ANTES de
+         generar los del nuevo, y entre esas dos líneas la organización no tiene
+         ninguna de las dos versiones (B.140).
+       · NO DEPENDE DE `en_revision`, así que no espera a la pregunta previa de
+         F-97 P3 —si el estado nuevo existe o es el nombre de `pendiente`—.
+       · Y LA VENTANA LA ENSANCHAMOS NOSOTROS al añadir hasta 30 s de reintentos
+         de embeddings dentro de ella. Arreglar lo que uno acaba de empeorar va
+         antes que lo que uno viene a construir.
+       LA FORMA DE LA SOLUCIÓN YA ESTÁ EN CASA: el camino de Drive resolvió lo
+       mismo VERSIONANDO EN VEZ DE BORRANDO —crear la generación nueva,
+       conmutar, borrar la vieja—, y `document-swap.ts` es ese patrón escrito.
+
+  LO QUE QUEDA POR DECIDIR ANTES DEL RESTO (F-97 P3): ¿es `en_revision` un
+       estado nuevo o EL NOMBRE VERDADERO de `pendiente`? Encargo en solo
+       lectura: ¿algún consumidor distingue —o necesita distinguir— «pendiente
+       sin análisis» de «pendiente con análisis esperando decisión»? Si ninguno,
+       se adopta el que hay y el único valor nuevo es `descartado`.
 
 ────────────────────────────────────────────────────────────────
 FRENTE 4 — prosa                           [SE DECLARA]  post-MVP
