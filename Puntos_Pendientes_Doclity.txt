@@ -5817,6 +5817,62 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     Nada por trabajo hecho: es una entrada de memoria. Se cierra si pasa un mes
     sin que una premisa fáctica entre al registro sin su comando y su línea.
 
+  B.167 — [LÍMITE DECLARADO 03/09 · NO ES DEUDA · CON CONTADOR] LA LISTA DE
+    EXCLUIDOS EXISTE EN EL BORDE; EL PIPELINE RECIBE UNO
+
+    ══ LA DECISIÓN, Y SE ANOTA COMO LÍMITE Y NO COMO DEUDA ══
+    `documentosExcluidos` es una LISTA en el borde de `analyze-v2`, que es donde
+    se decide quién es quién. Los cuatro módulos del pipeline —`retrieval`,
+    `verify-claims`, `synthesize`, `hash-check`— siguen recibiendo UN `string?`.
+
+    ══ POR QUÉ NO SE EXTENDIÓ, con las dos razones ══
+    · La lista NUNCA tiene más de un elemento: las dos referencias que la
+      alimentan —el documento en revisión y el que se va a sustituir— son
+      excluyentes por construcción, y ningún llamador manda las dos.
+    · Y extender cuatro módulos **del camino que decide contra qué se compara**
+      para un caso que hoy no puede darse es SUPERFICIE SIN LECTOR, en el sitio
+      donde equivocarse sale más caro. La regla de la casa sobre no construir lo
+      que nadie consume, aplicada al camino más delicado que hay.
+
+    ⚠️ ══ LO QUE LO CONVIERTE EN LÍMITE Y NO EN DEUDA: EL CONTADOR ══
+    `unicoExcluido` GRITA si algún día llegan dos —`LÍMITE SUPERADO`, con los ids
+    en el mensaje— en vez de tirar el segundo en silencio. Esa es la diferencia
+    entera: un corte con contador se entera el día que ocurre; un corte sin
+    contador es una deuda que nadie sabe que ha vencido.
+    Es el grado CONTADO de F-95 P5, y aquí es lo que hace segura la decisión.
+
+    ══ CUÁNDO DEJA DE APLICAR ══
+    El día que el contador se mueva. No antes: no hay que ir a buscarlo.
+
+  B.168 — [HALLAZGO 03/09 · SALIÓ AL REPARTIR, NO SE BUSCABA] LA IDENTIDAD DE LAS
+    HUELLAS COLGABA DE LA VARIABLE EQUIVOCADA DE LAS TRES
+
+    ══ EL DATO ══
+    `analyze-v2` construía la identidad de un descarte con `excludeDocumentId`:
+        marcarDescartadas(lista, { documentoEnRevision: excludeDocumentId, ... })
+    El nombre del campo dice `documentoEnRevision` y el valor era EL EXCLUIDO.
+    Corregido en el mismo commit que separó los tres sujetos.
+
+    ⚠️ ══ LA FORMA COMPLETA, QUE ES LO QUE HAY QUE GUARDAR ══
+    **Funcionaba porque tres cosas coincidían en el único camino donde se
+    probaba.** En la bandeja, el documento en revisión, el propietario del
+    análisis y el excluido de los candidatos son el mismo id — así que daba igual
+    de cuál de los tres colgara la huella. El error era invisible por
+    construcción: ninguna prueba podía distinguirlos porque en ese camino no hay
+    nada que distinguir.
+    Y es EXACTAMENTE LO MISMO que el commit vino a arreglar —un valor sirviendo
+    para varias preguntas porque casualmente coinciden—, **escondido en un sitio
+    donde no lo buscábamos**: se fue a partir un parámetro de entrada y apareció
+    la misma enfermedad en un parámetro de salida.
+
+    ══ LO QUE ENSEÑA, y no es «revisar mejor» ══
+    Que un valor pase todas las pruebas no dice que sea el valor correcto: dice
+    que en los caminos probados es indistinguible del correcto. **La coincidencia
+    de varios significados en el camino principal es lo que hace que un error de
+    atribución sea INDETECTABLE por pruebas** — solo se ve al abrir un camino
+    donde los significados se separan, o al enunciar qué pregunta responde cada
+    valor, que es lo que la regla de F-100 P2 obliga a hacer.
+
 Forma de trabajo: diagnóstico con datos reales antes de arreglar; un
 cambio lógico cada vez; build verde entre medias; SQL en Supabase antes
 del push; plan completo antes de tocar varios archivos.
