@@ -7,6 +7,7 @@ import { getOrderedColumns } from './table-structure';
 import type { CandidateDocument, DocumentFragment, PipelineOptions, SelectionLimit } from './types';
 import type { StoredChunk } from '@/lib/read-chunks';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { generacionesMuertas, soloGeneracionActiva } from '@/lib/analysis/generacion-activa';
 
 /**
  * Etapa 1 — Retrieval amplio.
@@ -232,9 +233,55 @@ export async function retrieveCandidates(args: {
     console.log(`[retrieval] Descartados por umbral (${scoreThreshold}) en "${docName}": ${stats.count}, score máximo: ${stats.maxScore.toFixed(3)}`);
   }
 
+  // ══ SOLO LA GENERACIÓN QUE CADA DOCUMENTO SIRVE (F-102) ══
+  //
+  // ⚠️ AQUÍ Y NO EN EL FILTRO DE PINECONE: la generación activa es un dato POR
+  // DOCUMENTO que vive en Supabase, y un filtro de metadata no puede
+  // consultarlo. `CORPUS_ACTIVO` mira `analysisStatus` y nada más — el
+  // retrieval leía la generación y la arrastraba, pero jamás filtraba por ella.
+  //
+  // Es la SEGUNDA CAPA de la misma protección: la primera —que las generaciones
+  // viejas no se queden— la hacen los borrados de cada camino de reemplazo;
+  // ésta es que NO SE VEAN si se quedan. Sin ella, un vector de una generación
+  // anterior que sobreviva entra en la recuperación como si fuera el contenido
+  // actual, y el diff lo compara contra el presente del mismo documento.
+  //
+  // ⚠️ Y CIERRA UNA VENTANA QUE HOY SOLO ESTABA DECLARADA: en el swap, entre P1
+  // —que voltea la generación nueva a 'analizado'— y P3 —que borra la vieja—,
+  // las DOS son 'analizado' a la vez.
+  const idsRecuperados = [...new Set(allMatches.map(f => f.documentId))];
+  const activas = new Map<string, number>();
+  if (idsRecuperados.length > 0) {
+    const { data: filas, error: errGen } = await supabase
+      .from('documents')
+      .select('id, active_generation')
+      .eq('org_id', orgId)
+      .in('id', idsRecuperados);
+    if (errGen) {
+      // ⚠️ FALLA HACIA CONSERVAR: sin el mapa no se descarta nada (el mapa vacío
+      // deja pasar todo). Un fallo de lectura no puede convertirse en pérdida de
+      // candidatos — la ausencia de dato no es dato.
+      console.warn(`[retrieval] no se pudieron leer las generaciones activas; no se filtra: ${errGen.message}`);
+    } else {
+      for (const fila of filas ?? []) {
+        activas.set(fila.id as string, (fila.active_generation as number | null) ?? 1);
+      }
+    }
+  }
+  const muertas = generacionesMuertas(allMatches, activas);
+  if (muertas.size > 0) {
+    // Esperado CERO en régimen normal. Si esto suena, hay vectores de
+    // generaciones muertas vivos en el índice — que es lo que contaminó una
+    // medición sin que nadie lo viera, porque no había quien lo contara.
+    for (const [docId, n] of muertas) {
+      console.warn(`[retrieval] GENERACIÓN MUERTA descartada | doc=${docId} | fragmentos=${n}`);
+    }
+  }
+  const vivos = soloGeneracionActiva(allMatches, activas);
+
   // Agrupar por documento y deduplicar chunks
   const byDoc = new Map<string, DocumentFragment[]>();
-  for (const f of allMatches) {
+  for (const f of vivos) {
     const arr = byDoc.get(f.documentId) ?? [];
     arr.push(f);
     byDoc.set(f.documentId, arr);
