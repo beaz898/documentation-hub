@@ -285,7 +285,12 @@ export async function POST(req: NextRequest) {
       //    esta versión. ⚠️ CAMBIO OBSERVABLE: la lista ordena por `created_at`
       //    (`app/api/documents/route.ts:29`), así que un documento reemplazado ya
       //    NO salta al principio de la lista, se queda donde estaba;
-      //  · `updated_at` — a ahora: no hay trigger, el DEFAULT solo aplica al insert;
+      //  · `updated_at` — se escribe a ahora, aunque es REDUNDANTE: hay un
+      //    trigger `documents_updated_at BEFORE UPDATE` (`supabase-setup.sql:621`)
+      //    que lo pone igual. ⚠️ El comentario que había aquí decía «no hay
+      //    trigger» y era FALSO — corregido el 03/09 al mirar los triggers por
+      //    otra cosa. Se deja la escritura explícita: no depender de un trigger
+      //    para un campo que esta línea ya sabe poner;
       //  · `provider_file_id`, `source_modified_at`, `folder_path`, `folder_id` —
       //    a null: tras un reemplazo manual el documento ES manual, y conservar la
       //    procedencia de otro origen sería un dato que ya no describe nada;

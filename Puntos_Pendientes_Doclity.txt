@@ -328,7 +328,7 @@ DÓNDE CAE CADA PENDIENTE VIVO
 ────────────────────────────────────────────────────────────────
   B.106  → Frente 4     (declarable)
   B.107  → Frente 4     (declarable)
-  B.112  → Frente 3     (BLOQUEA)
+  B.112  → Frente 3     (CERRADO 03/09 — la fuente; el parque en B.156)
   B.119  → Frente 3     (BLOQUEA en el flujo principal)
   B.122  → Frente 2     (BLOQUEA — 1ª mitad ya hecha el 30/08)
   B.126  → Frente 2     (higiene: el fail-open que se traga los fallos de red)
@@ -5197,6 +5197,91 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     pregunta responde `analysis_status`, y la responde ya alguien?** Con la
     respuesta de hoy —«¿participa por defecto en el corpus?»— un documento sin
     indexar sigue contestando lo mismo que `'pendiente'`: no.
+
+  B.156 — [ABIERTO 03/09 · LA FUENTE YA ESTÁ CERRADA · SE HACE EN SQL, Y HOY
+    SALE GRATIS] LA LIMPIEZA DEL PARQUE DE ANÁLISIS HUÉRFANOS
+
+    ══ QUÉ QUEDA DESPUÉS DEL COMMIT DE B.112 ══
+    El commit del 03/09 hace que borrar un documento se lleve sus análisis, POR
+    `document_id`. Eso cierra la FUENTE: a partir de hoy no se fabrican
+    huérfanos nuevos. Lo que no toca, a propósito, es lo que ya está guardado.
+
+    Y no lo toca porque el código NO PUEDE distinguirlo sin adivinar. Las filas
+    viejas tienen `document_id = null` —el documento no existía cuando se
+    guardaron— y la única pista es el nombre. Adivinar por nombre en una
+    operación destructiva es exactamente cómo se borra lo que no se quería
+    borrar. Por eso la limpieza es SQL, mirada antes, y no una función.
+
+    ⚠️ ══ DOS POBLACIONES, MISMA BASURA, CAUSAS DISTINTAS ══
+    · SIN ID — análisis de subida desde el chat. Nacieron sin identidad porque el
+      documento aún no existía. IRRECUPERABLES: no hay forma de saber a qué
+      documento pertenecían salvo por el nombre y la fecha.
+    · CON ID APUNTANDO A UN DOCUMENTO QUE YA NO EXISTE — modernas. Tienen
+      identidad y la identidad no lleva a ninguna parte: son análisis de
+      documentos borrados ANTES de que el commit de hoy existiera. Éstas SÍ se
+      pueden borrar con certeza total: su `document_id` no casa con ninguna fila.
+    Se separan en la consulta porque la certeza con la que se puede actuar sobre
+    cada una es distinta, y mezclarlas convertiría una decisión segura en una
+    dudosa.
+
+    ⚠️ ══ POR QUÉ HOY SALE GRATIS, Y HAY QUE DEJARLO ESCRITO ══
+    **TODO EL PARQUE ES DE LA ORGANIZACIÓN DE PRUEBAS, y todo es material de las
+    tandas de estos días. NO HAY NINGÚN CLIENTE QUE PUEDA PERDER NADA.**
+    Con un solo cliente real esto habría sido otra conversación: habría que haber
+    decidido si se borra la memoria de análisis de alguien que pagó por ella,
+    avisarle, o dejar las filas y declararlas. La limpieza se hace hoy sin riesgo
+    PRECISAMENTE porque no hay clientes, y ésa es una ventana que se cierra sola
+    el día que entre el primero.
+
+    ══ EL ORDEN, QUE NO SE SALTA ══
+    1. La consulta que LISTA lo que se va a borrar, separando las dos
+       poblaciones. Se mira. No borra nada.
+    2. Solo después, y con la lista delante, la que borra.
+    Es el mismo orden que este frente lleva tres días defendiendo: mirar antes de
+    tocar. Un borrado de parque no es una excepción por ser pequeño.
+
+    ══ LO QUE ESTA LIMPIEZA NO ARREGLA ══
+    La analítica agrega por `document_name` sin mirar `document_id` jamás
+    (`app/api/usage/analytics/route.ts:69`, `lib/agent/tools/usage-stats.ts:95`).
+    Dos documentos homónimos seguirán sumando en la misma fila del ranking de
+    calidad documental después de esto. Es otro pendiente y no éste.
+
+  B.157 — [ABIERTO 03/09 · MISMA FAMILIA QUE B.152, EN LA FUNCIÓN COMPARTIDA]
+    `deleteDocument` BORRA LA FILA AUNQUE LAS DOS VÍAS DE VECTORES HAYAN FALLADO
+
+    ══ EL DATO ══
+    `lib/delete-document.ts`: las dos estrategias de borrado de vectores se
+    envuelven en `try/catch` y su resultado se guarda en `filterOk`/`idsOk`. Si
+    fallan LAS DOS, `result.vectorsDeleted` queda en `false` — **y el código
+    continúa y borra la fila igual**, reportando `ok: false` al final.
+
+    ══ POR QUÉ IMPORTA ══
+    Fila borrada + vectores vivos es el FANTASMA de B.152: el chat sigue
+    recuperándolos porque el corpus se filtra por la metadata de Pinecone, no por
+    la existencia de la fila; la interfaz no lo enseña porque no hay fila; y
+    ninguna sincronización lo recupera.
+    ⚠️ Y LO QUE LO HACE PEOR QUE B.152: esto está en la función COMPARTIDA, la que
+    usan el sync de Drive, `DELETE /api/documents` y el reemplazo de
+    `index-text`. B.152 vivía en un solo camino.
+
+    ══ EL AGRAVANTE DE PROCEDENCIA ══
+    `ingest` SÍ tenía la guarda —abortaba con 502 si ambas vías fallaban, con su
+    razón escrita: «sin la fila no queda referencia para localizar vectores
+    huérfanos»—. O sea que la guarda buena estaba escrita en el camino
+    particular y NO en la función compartida que vino después a unificarlos.
+
+    ══ POR QUÉ NO SE ARREGLA EN EL COMMIT DE B.112 ══
+    Porque es otro cambio, sobre el mismo fichero, en un camino que borra. Este
+    frente lleva tres días demostrando lo que pasa cuando se encadenan arreglos
+    sobre un borrado sin verificar entre medias.
+
+    ⚠️ ══ LA PREGUNTA, no la solución ══
+    **¿Debe un borrado que no pudo retirar los vectores dejar el documento VIVO
+    (abortar) o BORRARLO igual y registrar la pérdida?** No es evidente: abortar
+    deja al usuario sin poder borrar un documento que quiere quitar —y en el sync,
+    con un fichero que ya no existe en Drive—; borrar igual fabrica el fantasma.
+    Puede que la respuesta dependa del `reason`, que ya existe y ya distingue los
+    dos casos.
 
 Forma de trabajo: diagnóstico con datos reales antes de arreglar; un
 cambio lógico cada vez; build verde entre medias; SQL en Supabase antes

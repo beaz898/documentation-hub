@@ -1,6 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { deleteVectorsByFilter, deleteVectorsByIds, buildAllVectorIds } from '@/lib/pinecone/vectors';
 import { checkUploadLock } from '@/lib/upload-lock';
+import { criterioDeAnalisisDelDocumento } from '@/lib/documents/analisis-del-documento';
 
 /**
  * Motivo del borrado. Decide si se escribe lápida:
@@ -28,6 +29,8 @@ export interface DeleteDocumentResult {
   ok: boolean;
   tombstoned: boolean;
   vectorsDeleted: boolean;
+  /** B.112: las filas de `analysis_results` del documento, borradas por id. */
+  analysesDeleted: boolean;
   rowDeleted: boolean;
   error?: string;
   /** true si el borrado se rechazó porque el corpus está bloqueado por otro (B.64). */
@@ -50,12 +53,19 @@ interface DocumentRow {
  * (exclusión voluntaria). Nace con el patrón de C.1c: comprueba .error en cada
  * escritura y NUNCA reporta éxito parcial como éxito.
  *
- * NO borra analysis_results en ningún caso — decisión de Fable, ver
- * Decisiones_Fase_C.txt. Son memoria de la organización; C.7 se apoya en ellos,
- * y un análisis que menciona un documento ya borrado sigue siendo un hecho
- * histórico verdadero.
+ * ⚠️ SÍ BORRA analysis_results, POR document_id, DESDE EL 03/09/2026 (B.112).
+ * Hasta ese día NO los borraba en ningún caso, y estaba escrito aquí con su
+ * razón —«son memoria de la organización; un análisis que menciona un documento
+ * ya borrado sigue siendo un hecho histórico verdadero»—. El enunciado sigue
+ * siendo cierto; lo que lo vence es la consecuencia: esa memoria SE LA QUEDA EL
+ * SIGUIENTE DOCUMENTO QUE SE LLAME IGUAL. La bandeja empareja los análisis de
+ * subida por NOMBRE —nacen sin id—, así que borrar un documento y subir otro
+ * homónimo le enseña al usuario, con sus contradicciones y sus contadores, un
+ * análisis que no es del suyo. Memoria que se atribuye mal no es memoria.
+ * El criterio de QUÉ análisis son de este documento vive aparte, en
+ * `lib/documents/analisis-del-documento.ts`, para poder ponerlo a prueba.
  *
- * Borrar = (lápida si procede) -> vectores (capa B.0) -> fila de documents.
+ * Borrar = (lápida si procede) -> ANÁLISIS -> vectores (capa B.0) -> fila.
  * El caller crea el SupabaseClient con service role y resuelve el orgId.
  */
 export async function deleteDocument(
@@ -68,6 +78,7 @@ export async function deleteDocument(
     ok: false,
     tombstoned: false,
     vectorsDeleted: false,
+    analysesDeleted: false,
     rowDeleted: false,
   };
 
@@ -127,6 +138,37 @@ export async function deleteDocument(
     result.tombstoned = true;
   }
 
+  // 2b. Borrar los análisis del documento (B.112). Verificando .error, patrón
+  //     C.1c, y ABORTANDO si falla.
+  //
+  // ⚠️ VA ANTES DE LOS VECTORES Y DE LA FILA, y el orden depende de un
+  // invariante concreto: NUNCA PUEDE TERMINAR CON LA FILA BORRADA Y SUS ANÁLISIS
+  // VIVOS. Ese estado es exactamente B.112 —un análisis huérfano esperando a que
+  // alguien suba un documento con el mismo nombre para heredarlo—, y sería el
+  // arreglo fabricando el fallo que viene a cerrar. Poniéndolo aquí, un fallo
+  // aborta con el documento todavía entero y el usuario reintenta.
+  //
+  // EL COSTE DEL ORDEN, dicho entero: si los análisis se borran y luego falla el
+  // borrado de la fila, queda un documento VIVO SIN SU ANÁLISIS. Es una pérdida
+  // real, pero visible —la bandeja lo enseña sin contadores— y reparable
+  // reanalizando. El error contrario es silencioso y hereditario. Se elige el
+  // visible.
+  //
+  // El puntero `document_staged.analysis_result_id` referencia estas filas con
+  // ON DELETE SET NULL, así que si había una versión en vuelo su puntero se
+  // vacía en vez de romper — y da igual, porque la fila de `document_staged`
+  // cuelga de `documents` con ON DELETE CASCADE y se va en el paso 4.
+  const { error: analysisError } = await supabase
+    .from('analysis_results')
+    .delete()
+    .match(criterioDeAnalisisDelDocumento(orgId, documentId));
+
+  if (analysisError) {
+    result.error = `No se pudieron borrar los análisis del documento: ${analysisError.message}. No se borró el documento.`;
+    return result;
+  }
+  result.analysesDeleted = true;
+
   // 3. Borrar vectores por la capa B.0, estrategia robusta (filtro + IDs).
   //    A diferencia del código de hoy (que se traga los errores), aquí solo es
   //    fallo si AMBAS estrategias fallan.
@@ -170,9 +212,12 @@ export async function deleteDocument(
   }
   result.rowDeleted = true;
 
-  // 5. NO se tocan analysis_results — decisión de Fable (ver cabecera).
+  // 5. Los analysis_results ya se borraron en el paso 2b (B.112).
 
   // Éxito solo si TODO lo que debía pasar pasó. Éxito parcial no es éxito.
+  // `analysesDeleted` no entra en la conjunción porque su fallo YA abortó arriba:
+  // si se llega hasta aquí, es true. Ponerlo sería una comprobación que no puede
+  // ser falsa, y las que no pueden ser falsas esconden que otra sí puede.
   result.ok = result.vectorsDeleted && result.rowDeleted;
   if (!result.ok && !result.error) {
     result.error = 'No se pudieron borrar los vectores del documento (ambas estrategias fallaron).';
