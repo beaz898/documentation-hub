@@ -317,6 +317,31 @@ El dueño del proyecto NO es programador. Vercel deploya automáticamente al hac
   saber cuántas llamadas lleva hoy un usuario: cada fila perdida es una llamada
   regalada, y regalada justo cuando la base va peor. Antes de tocar una tabla,
   mirar quién la LEE — no qué nombre tiene. Promovida en F-95 P2 (B.145).
+- **UNA FILA AFIRMA LA EXISTENCIA DE AQUELLO DE LO QUE ES FILA, NO DE AQUELLO A
+  LO QUE APUNTA.** Un análisis existe desde que ocurre — no desde que se decide
+  qué hacer con su resultado. Su propietario es lo que ya existe cuando ocurre, y
+  si eso no es el documento, es otra cosa: **el propietario se busca, no se
+  presupone.**
+  El caso costó cuatro consultas: se leyó «propietario» como «documento» y se
+  concluyó que el análisis del chat no debía persistirse, cuando tenía dueño
+  desde el primer segundo — el fichero subido, durable y con ruta única. Los
+  huérfanos no eran malos por estar persistidos: **eran malos por estar
+  persistidos SIN DUEÑO NI PUERTA**, y no persistir curaba la orfandad matando la
+  persistencia. Promovida en F-101 P1.
+- **UNA OPERACIÓN QUE CUESTA DINERO DEJA REGISTRO EN EL MOMENTO EN QUE SE COBRA,**
+  no cuando se decide qué hacer con su resultado. Si se cobró, ocurrió; y lo que
+  ocurrió se escribe.
+  El caso: dieciséis análisis exhaustivos pagados cuyo resultado quedó
+  inalcanzable — no perdido, INALCANZABLE, que es peor de contar y peor de
+  arreglar. Promovida en F-101 P1.
+- **«HOY NO HAY CLIENTE» ES RAZÓN PARA NO GASTAR EN MIGRAR LO VIEJO, Y NO ES
+  RAZÓN PARA DEJAR UNA FUGA ABIERTA.** Cuando aparezca la frase, hay que escribir
+  cuál de las dos cosas significa — porque sirve para las dos y solo es legítima
+  en una.
+  ⚠️ Y su fecha de caducidad: es una razón PRESTADA. No es coincidencia —es el
+  corpus piloto corriendo en producción real antes de vender, exactamente para
+  que esto ocurra con la sala vacía—, pero **el día que firme el primer cliente
+  la frase pasa de razón a suerte retrospectiva.** Promovida en F-101 P3.
 - **PARAR Y MEDIR ES MEJOR QUE PARAR Y PREGUNTAR CUANDO LA MEDICIÓN ESTÁ A UN
   GREP DE DISTANCIA.** Parar ante algo inesperado es correcto y no se discute; lo
   que se corrige es qué se hace en la parada. Si la duda se resuelve con una

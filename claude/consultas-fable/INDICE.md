@@ -134,6 +134,7 @@ queda superado, pero **no administra su propio estado**.
 | **[F-91](F-91.md)** | 30/08/2026 | «Todas las columnas comunes» admitía dos lecturas, y la mala descartaba hallazgos VERDADEROS: la geometría no se contamina con testimonio. Y la clase de contadores CENTINELA | **vigente** · PAR COMPLETO | La clase CENTINELA — `Contrato_Contadores.md`; la hermana de F-79 (una regla con dos lecturas se ejerce contra un caso medido) — protocolo |
 | **[F-92](F-92.md)** | 31/08/2026 | La supresión suprime por FILA y el diff compara por COLUMNA: el hueco es el territorio de las omisiones —y del mismo dato bajo otro nombre—. Y por qué la cifra de coste no se podía medir | **vigente** · *su P1 CORREGIDO por F-93 en universo y predicado* · PAR COMPLETO | MOTIVO LITERAL — `Contrato_Contadores.md`. TRES PIEZAS POR REGLA DICTADA, «CERO EN N» con la tasa que excluye, y la AMBIGÜEDAD DE ALCANCE DEL CUANTIFICADOR — protocolo |
 | **[F-93](F-93.md)** | 31/08/2026 | `columnas(h)` no tenía universo y las dos lecturas naturales fallan cada una uno de los tres casos: el dato es LA OPOSICIÓN, no la cita. Y la trampa de `'equivalentes'` | **vigente** · PAR COMPLETO | LA CUARTA PIEZA (vacío y ausente; forma existencial) — protocolo. Un comentario que justifica un orden CITA SU INVARIANTE — `CLAUDE.md` |
+| **[F-101](F-101.md)** | 03/09/2026 | El propietario existía desde el principio y era EL FICHERO. La (c): se persiste desde que el análisis ocurre, y el documento adopta al nacer. El payload firmado se jubila antes de nacer. | **vigente** · PAR COMPLETO | UNA FILA AFIRMA LO QUE ES, NO A LO QUE APUNTA; LO QUE CUESTA DINERO DEJA REGISTRO AL COBRARSE; y «HOY NO HAY CLIENTE» — `CLAUDE.md` |
 | **[F-100](F-100.md)** | 03/09/2026 | El análisis nace atado o no nace: una sola escritura, en la indexación, con el id en el INSERT. El parámetro se parte en dos, la exclusión pasa a identidad, y el worker resulta ser la condición de reapertura de F-98 cumplida antes de tiempo. | **vigente** · PAR COMPLETO | LA FILA NACE ATADA O NO NACE, UN PARÁMETRO QUE RESPONDE A DOS PREGUNTAS SE SEPARA y EL CRITERIO DE CIERRE — `CLAUDE.md` |
 | **[F-99](F-99.md)** | 03/09/2026 | El análisis del chat persistía una fila antes de la decisión: F-98 no se revoca, estaba a medio aplicar. Régimen efímero completo y payload firmado, que despierta la especificación dormida de F-95 P1. | **vigente** · PAR COMPLETO | SEGUIR LAS ESCRITURAS, NO LOS USOS y LAS PREMISAS DE INACCIÓN PAGAN LA MISMA EVIDENCIA — `CLAUDE.md` |
 | **[F-98](F-98.md)** | 02/09/2026 | La fila nace AL INDEXAR, no antes: el paso 2 del frente 3 queda retirado por su propio autor. El «puente interino» de F-87 era el edificio. El «no» del usuario debe ser gratis. | **vigente** · PAR COMPLETO | UNA FILA ES UNA AFIRMACIÓN DE EXISTENCIA, COMPROBAR SI LA IDENTIDAD YA ESTÁ RESUELTA POR OTRA VÍA y ¿QUIÉN LIMPIA ESTO? — `CLAUDE.md` |
@@ -148,6 +149,22 @@ queda superado, pero **no administra su propio estado**.
 
 **Once pares completos de F-70 a F-94: F-84 a F-94, todas menos las que no llegaron.** El resto, o a medias o nada:
 
+- **F-101 — PAR COMPLETO**, en `F-101.md` (03/09/2026). **CUATRO CONSULTAS
+  BUSCANDO UN PROPIETARIO QUE ESTABA A LA VISTA.** F-98, F-99 y F-100 leyeron
+  «propietario» como «documento»; el camino del chat tenía uno desde el primer
+  segundo — EL FICHERO SUBIDO, durable, con ruta única y anterior a todo.
+  ⚠️ **Los huérfanos no eran malos por estar persistidos: eran malos por estar
+  persistidos SIN DUEÑO NI PUERTA.** No persistir curaba la orfandad matando la
+  persistencia — «amputar para no vendar».
+  **El error de Fable, dicho por él**: «diseñé para un flujo que no existe. Es la
+  misma especie que el universo sin escribir: esta vez el universo era EL
+  TIEMPO — di por hecho que revisión y decisión eran un momento, y son un
+  intervalo.»
+  ⚠️ **El payload firmado se jubila ANTES DE NACER**: si el servidor persiste el
+  análisis, en la indexación LEE SU PROPIA FILA — la fabricación muere por
+  ausencia de viaje. Vuelve al archivo como especificación dormida, por segunda
+  vez.
+  Y el abandono pasa **de fuga a función**: «tu revisión te espera».
 - **F-100 — PAR COMPLETO**, en `F-100.md` (03/09/2026). **LA CONSULTA NÚMERO
   CIEN, y llega corrigiendo a la noventa y nueve.** La (a) de F-99 sobrevive
   porque su principio no dependía de la premisa falsa; lo que la premisa tapaba
