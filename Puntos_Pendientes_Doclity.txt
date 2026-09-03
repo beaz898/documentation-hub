@@ -5370,6 +5370,54 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     Es el grado «ESCRITO» sin el grado «CONTADO» de F-95 P5, en la pieza que
     mide el fallo que este frente vino a cerrar.
 
+  B.160 — [ABIERTO 03/09 · NO ES UN ARREGLO: ES UNA GUARDIA] LA AVERÍA DEL
+    REEMPLAZO NO SE PROVOCA, SE CAPTURA — Y HAY QUE ESTAR LISTO EL DÍA QUE PASE
+
+    ══ POR QUÉ EXISTE ESTA ENTRADA ══
+    El commit del reemplazo sin ventana (03/09) declara un sesgo de fallo: si el
+    proceso muere a mitad, SOBRA basura y NO FALTA la versión servida. Una pasada
+    limpia NO comprueba eso — confirma el camino bueno, no verifica el fantasma.
+    Y la avería no se provoca a voluntad: haría falta que Pinecone o Supabase se
+    caigan en el tramo exacto.
+
+    ⚠️ ══ LA OCASIÓN QUE CASI SE PIERDE, Y POR ESO ESTO SE ESCRIBE ══
+    La caída de Anthropic durante las tandas del frente 2 fue una avería real,
+    gratis, del tipo que llevamos semanas sin poder fabricar — y estuvo a punto
+    de pasar como «un intento fallido» en vez de como una MEDICIÓN. Se salvó
+    porque alguien anotó lo que se vio sin buscarlo.
+    **Una avería real es material caro y perecedero.** Si no se captura en el
+    momento, no se recupera: los logs rotan, el estado se repara solo, y lo que
+    queda es el recuerdo de que «aquel día falló algo».
+
+    ══ QUÉ HACER SI OCURRE — un reemplazo manual que se corta a mitad ══
+    ESO ES LA PASADA QUE NO PODEMOS LANZAR. En el momento, y antes de reintentar
+    nada:
+      1. NO REINTENTAR TODAVÍA. Un reintento repara el estado y borra la prueba.
+      2. La fila: `SELECT id, name, chunk_count, active_generation, analysis_status,
+         content_hash, updated_at FROM documents WHERE name = '<el que falló>';`
+         → LO QUE HAY QUE VER: la fila EXISTE. Si falta, el sesgo declarado es
+         falso y es un hallazgo mayor.
+      3. Los vectores: `/api/admin/diagnose-vectors` sobre ese documento
+         → LO QUE HAY QUE VER: o solo la generación vieja (murió antes de
+         conmutar) o las dos (murió entre conmutar y retirar). Las dos son el
+         error benigno. Ninguna generación es el fallo grave.
+      4. El chat: preguntar por ese documento
+         → LO QUE HAY QUE VER: responde con UNA de las dos versiones, nunca
+         mezcladas y nunca «no lo encuentro».
+      5. Los logs de Vercel de esa ruta, copiados enteros ANTES de que roten.
+      6. Y solo entonces, reintentar — y comprobar que converge a una sola
+         generación.
+
+    ══ LO MISMO VALE PARA B.157 ══
+    Si algún día fallan las dos vías de borrado de vectores en `deleteDocument`,
+    ésa es la captura del fantasma en la función compartida. Mismo protocolo:
+    mirar antes de reparar.
+
+    ══ QUÉ CIERRA ESTA ENTRADA ══
+    Nada la cierra por trabajo hecho: se cierra el día que se capture una avería
+    real y se anote en `claude/Tandas_Harness.md` con el formato de siempre. Es
+    una guardia, no una tarea.
+
 Forma de trabajo: diagnóstico con datos reales antes de arreglar; un
 cambio lógico cada vez; build verde entre medias; SQL en Supabase antes
 del push; plan completo antes de tocar varios archivos.
