@@ -317,6 +317,44 @@ El dueño del proyecto NO es programador. Vercel deploya automáticamente al hac
   saber cuántas llamadas lleva hoy un usuario: cada fila perdida es una llamada
   regalada, y regalada justo cuando la base va peor. Antes de tocar una tabla,
   mirar quién la LEE — no qué nombre tiene. Promovida en F-95 P2 (B.145).
+- **UNA FILA EN LA BASE DE DATOS ES UNA AFIRMACIÓN DE EXISTENCIA. No se crea
+  antes de que la existencia esté decidida.** Y su forma corta, que es la que se
+  va a recordar: **el «no» del usuario debe ser gratis.**
+  La identidad de algo en revisión es DE SESIÓN: vive en la pantalla, viaja en el
+  payload si el usuario dice que sí, y se evapora si dice que no o si se va.
+  Y la distinción que evita aplicarla de más: **se persiste lo que refleja el
+  MUNDO; no se persiste lo que refleja un QUIZÁ.** La fila de un documento de
+  Drive registra una realidad externa que persiste —revisarla ES el producto—;
+  una fila creada al empezar a revisar registraría una intención que la mayoría
+  de las veces se retira.
+  El caso: el paso 2 del frente 3 iba a crear la fila al SUBIR el documento, y
+  medido salían 108 fragmentos generados frente a 6 documentos indexados —
+  dieciocho a uno. **Un diseño en el que el caso MAYORITARIO fabrica residuo es
+  un diseño al revés.** Y habría matado una propiedad que nadie había enunciado:
+  hoy cerrar la pestaña sin decidir no deja rastro porque no había nada.
+  Promovida en F-98 P2.
+- **ANTES DE CONSTRUIR UN MECANISMO PARA DAR IDENTIDAD A ALGO, COMPROBAR SI LO
+  QUE SE QUERÍA HACER CON ESA IDENTIDAD YA ESTÁ RESUELTO POR OTRA VÍA.**
+  Se reconstruye promesa por promesa: para qué servía la identidad, y quién
+  atiende hoy cada uno de esos usos. Si la lista se queda vacía, el mecanismo no
+  hace falta — y lo que iba a ser «la solución definitiva» resulta ser trabajo
+  sobre algo ya resuelto.
+  El caso: la fila temprana existía para dar id a los descartes por fila durante
+  la revisión, y eso lo resuelve desde F-87 el payload de la indexación, que
+  llevaba dos días funcionando de punta a punta. ⚠️ Y el giro que conviene
+  guardar: aquel payload se había declarado «PUENTE INTERINO CON SUCESOR
+  CONOCIDO», con su retirada ya programada. **El sucesor fabricaba basura y el
+  puente era el edificio.** Un interino que lleva meses funcionando merece que se
+  compruebe si sigue siendo interino antes de jubilarlo. Promovida en F-98 P2.
+- **SI LA RESPUESTA A «¿QUIÉN LIMPIA ESTO?» NO ES EVIDENTE, LA PREGUNTA ANTERIOR
+  ES POR QUÉ SE CREÓ.** No se diseña el recolector antes de preguntarse si hay
+  que fabricar la basura: el mejor recolector es no fabricarla.
+  Y cuando la limpieza sea inevitable, el orden ya está decidido y no se
+  redecide: **nada se borra solo.** Se enseña con su edad y borrarlo es un acto
+  del usuario. Un barrido periódico que borra por su cuenta es la última opción,
+  y si alguna vez existe entra con el patrón de dos fases —marcar en una pasada,
+  borrar en la siguiente lo que siga marcado— y sobre CONJUNTO FIJO.
+  Promovida en F-98 P1.
 - **EL CORPUS ES LO QUE PARTICIPA SIN SER NOMBRADO.** Un documento participa en
   una recuperación por una de dos vías: por PERTENENCIA —su estado lo incluye en
   el default— o por NOMINACIÓN —un análisis lo nombra por su id—.

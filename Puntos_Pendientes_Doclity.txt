@@ -240,10 +240,29 @@ FRENTE 2 — cierre de la emisión            [CERRADO — 02/09/2026]
        al MVP, no opcional.
 
 ────────────────────────────────────────────────────────────────
-FRENTE 3 — ciclo de vida del documento     [EN CURSO — 02/09]
+FRENTE 3 — ciclo de vida del documento     [EN CURSO — 03/09]
 ────────────────────────────────────────────────────────────────
-  Qué: la fila nace en la subida con estado (en_revision → indexado/descartado).
-       Especificado en intención en F-87 P4.
+  ⚠️ ══ EL FRENTE 3 NO SE ESTÁ HACIENDO: SE ESTÁ DISOLVIENDO (03/09) ══
+  De los CINCO pasos que ordenó F-95 P7, tres han cambiado de naturaleza en dos
+  días, y ninguno por haberlos construido:
+    · uno era una CORRECCIÓN DE SEGURIDAD y está HECHO (el reemplazo sin
+      ventana, adelantado a paso 1 — cierra B.140 y B.152);
+    · otro resultó ser UN ESTADO QUE YA EXISTÍA CON OTRO NOMBRE — `en_revision`
+      es `pendiente` palabra por palabra (F-97, y el censo del 03/09);
+    · y otro —la fila que nace al subir— resultó estar CUBIERTO DESDE HACE DOS
+      DÍAS por el payload de descartes de F-86/F-87. RETIRADO por F-98 P2, por
+      su propio autor.
+  LO QUE ESTO SIGNIFICA, y no conviene suavizarlo: **el sistema tenía MENOS
+  DEUDA de la que su propia documentación decía.** El plan describía agujeros
+  que el código ya había tapado sin que el plan se enterara. Las tres veces se
+  descubrió igual: MIRANDO ANTES DE ESCRIBIR.
+
+  Qué (ENUNCIADO ORIGINAL, ya no vigente): la fila nace en la subida con estado
+       (en_revision → indexado/descartado). Especificado en intención en F-87 P4.
+       ⚠️ RETIRADO POR F-98 P2. La fila sigue naciendo AL INDEXAR, como hoy. El
+       payload de descartes de F-87 deja de ser «puente interino» y pasa a ser el
+       DISEÑO PERMANENTE del camino del chat. Reabre solo con D3 (análisis en
+       background), y con F-98 delante.
   Absorbe: B.112 (huérfanos: la identidad pasa a ser la FILA y no el nombre),
        el camino sin id (jubila el puente del payload de F-87), y B.119 en sus
        caminos restantes —la persistencia de descartes de F-86 se extiende a
@@ -271,11 +290,25 @@ FRENTE 3 — ciclo de vida del documento     [EN CURSO — 02/09]
        mismo VERSIONANDO EN VEZ DE BORRANDO —crear la generación nueva,
        conmutar, borrar la vieja—, y `document-swap.ts` es ese patrón escrito.
 
-  LO QUE QUEDA POR DECIDIR ANTES DEL RESTO (F-97 P3): ¿es `en_revision` un
-       estado nuevo o EL NOMBRE VERDADERO de `pendiente`? Encargo en solo
-       lectura: ¿algún consumidor distingue —o necesita distinguir— «pendiente
-       sin análisis» de «pendiente con análisis esperando decisión»? Si ninguno,
-       se adopta el que hay y el único valor nuevo es `descartado`.
+  ══ RESUELTO (F-97 P3, censo del 03/09) ══ `en_revision` ES el nombre de
+       `pendiente`. NO SE AÑADE ESTADO. Nadie lee el literal `'pendiente'`: los
+       dos lectores que existen preguntan `!= 'analizado'` (la bandeja) y
+       `== 'analizado'` (el corpus). El CHECK ejecutado el 02/09 se queda con un
+       valor que nadie escribirá — anotado en B.155 con su fecha y su motivo, en
+       vez de revertirse.
+
+  ══ LO QUE QUEDA DEL FRENTE, tras los dos encogimientos ══
+    · PASO 1 — reemplazo sin ventana. HECHO el 03/09 (258d0f64). B.140 y B.152
+      cerrados.
+    · PASO 2 — RETIRADO (F-98 P2). No se implementa.
+    · PASO 3 — emparejamiento por id en la bandeja. **Pasa a ser el corazón del
+      frente**: es lo único que queda que mate B.112, y B.112 es la razón por la
+      que este frente bloquea el MVP.
+    · PASO 4 — era el reemplazo sin ventana: ES EL PASO 1, ya hecho.
+    · PASO 5 — retirada del emparejamiento por nombre. Encoge: ya no incluye la
+      retirada del puente de F-87 (que se queda) ni la recolección de filas
+      abandonadas (que no existirán).
+    Después: REMEDICIÓN COMPLETA.
 
 ────────────────────────────────────────────────────────────────
 FRENTE 4 — prosa                           [SE DECLARA]  post-MVP
@@ -5112,6 +5145,58 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     que falta es saber si es una regla sobre GOOGLE o sobre LOS PROVEEDORES. Si
     es lo segundo, el arreglo es una lista de orígenes sincronizados en un solo
     sitio, no un `neq` más.
+
+  B.155 — [ANOTADO 03/09 · NO HAY QUE HACER NADA · ES LA EXPLICACIÓN QUE VA A
+    HACER FALTA] EL CHECK DE `analysis_status` ADMITE `'en_revision'` Y NADIE LO
+    ESCRIBE, A PROPÓSITO
+
+    ══ SI HAS LLEGADO AQUÍ BUSCANDO QUIÉN USA `en_revision` ══
+    Nadie, y no es un olvido. El valor entró en la restricción
+    `documents_analysis_status_check` el 02/09/2026 (`supabase-f3-en-revision.sql`)
+    y el 03/09 se decidió DEJARLO ADMITIDO Y NO ESCRIBIRLO NUNCA. No hay filas
+    con ese valor y no las va a haber mientras esta nota siga vigente.
+
+    ══ POR QUÉ SE AÑADIÓ ══
+    El paso 1 del frente 3 iba a distinguir un documento «subido y en revisión,
+    todavía sin indexar» del `'pendiente'` de siempre. La distinción parecía
+    real: `'pendiente'` sonaba a «indexado y aprobado a medias» y el caso nuevo
+    era «ni siquiera indexado».
+
+    ⚠️ ══ POR QUÉ NO SE ESCRIBE, Y ES LO QUE ENSEÑA ══
+    Al hacer el censo de qué significaba `'pendiente'` —el 03/09, en solo
+    lectura— salió que YA ERA ESO:
+      · Nadie lee el literal `'pendiente'`. Los dos lectores que existen
+        preguntan otra cosa: `review-list` filtra `!= 'analizado'` y el corpus
+        filtra `== 'analizado'`. La partición es BINARIA y `'pendiente'` es solo
+        el nombre del miembro por defecto del lado «todo lo demás».
+      · Los tres `insert` que existen sobre `documents` van DESPUÉS de
+        `upsertVectors`, así que ningún camino del repositorio puede crear una
+        fila sin vectores. La situación que `en_revision` nombraba NO SE PUEDE
+        PRODUCIR.
+    O sea: SE EJECUTÓ UN SQL PARA UN ESTADO QUE YA EXISTÍA CON OTRO NOMBRE, y se
+    descubrió al preguntar qué significaba el que ya había. La pregunta llegó
+    después del SQL, y ése es el fallo — no el SQL.
+
+    ══ POR QUÉ NO SE RETIRA ══
+    Retirarlo es otro SQL sobre `documents` y no gana nada: un valor admitido que
+    nadie escribe no molesta. Lo que hacía falta era esta nota, no la reversión.
+
+    ⚠️ ══ LO QUE SÍ HAY QUE CORREGIR CUANDO SE TOQUE `lib/documents/estado.ts` ══
+    Ese fichero contiene `estaEnElIndice(estado) = estado !== 'en_revision'` con
+    un comentario que dice que `en_revision` es «el único estado sin vectores».
+    **Esa función no la llama nadie y describe una situación que ningún camino
+    puede producir.** Se escribió el 02/09 como «la distinción que justifica el
+    valor nuevo», y el censo del día siguiente mostró que la justificación se
+    había escrito en vez de encontrarse. Mientras no exista un camino que cree la
+    fila antes de indexar, esa función y su comentario afirman más de lo que hay.
+
+    ══ CUÁNDO DEJARÍA DE APLICAR ESTA NOTA ══
+    El día que exista un camino que CREE LA FILA ANTES DE INDEXAR — el paso 2 del
+    frente 3 lo contempla para el chat. Si ese camino llega, la pregunta a
+    contestar NO es «¿le pongo `en_revision`?» sino la de siempre: **¿qué
+    pregunta responde `analysis_status`, y la responde ya alguien?** Con la
+    respuesta de hoy —«¿participa por defecto en el corpus?»— un documento sin
+    indexar sigue contestando lo mismo que `'pendiente'`: no.
 
 Forma de trabajo: diagnóstico con datos reales antes de arreglar; un
 cambio lógico cada vez; build verde entre medias; SQL en Supabase antes

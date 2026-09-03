@@ -2,6 +2,18 @@
 -- Frente 3, paso 1 — estado `en_revision` en documents.analysis_status
 --
 -- ESTADO: EJECUTADO por el usuario en Supabase el 02/09/2026, antes del push.
+--
+-- ⚠️ CORREGIDO EL 03/09/2026 — EL VALOR SE QUEDA ADMITIDO Y NO SE ESCRIBE NUNCA.
+-- Lo que este fichero da por sentado más abajo —que 'pendiente' significa YA
+-- INDEXADO Y ESPERANDO VALIDACIÓN, y que por eso no valía— NO SE SOSTUVO al
+-- censarlo: nadie lee el literal 'pendiente', los dos lectores que existen
+-- preguntan `!= analizado` y `== analizado`, y los tres INSERT sobre `documents`
+-- van después de subir los vectores, así que la situación que `en_revision`
+-- nombraba no se puede producir. Se decidió NO revertir el CHECK: un valor
+-- admitido que nadie escribe no molesta. La explicación entera está en B.155 de
+-- `Puntos_Pendientes_Doclity.txt`, y ahí va lo que enseña.
+-- Lo de abajo se conserva TAL CUAL porque es lo que se ejecutó: no se reescribe
+-- la historia de un SQL ya corrido, se le pone la corrección delante.
 -- ============================================================
 --
 -- MOTIVO: la fila del documento pasa a nacer AL SUBIRLO, antes de analizar y

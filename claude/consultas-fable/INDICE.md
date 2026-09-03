@@ -134,6 +134,7 @@ queda superado, pero **no administra su propio estado**.
 | **[F-91](F-91.md)** | 30/08/2026 | «Todas las columnas comunes» admitía dos lecturas, y la mala descartaba hallazgos VERDADEROS: la geometría no se contamina con testimonio. Y la clase de contadores CENTINELA | **vigente** · PAR COMPLETO | La clase CENTINELA — `Contrato_Contadores.md`; la hermana de F-79 (una regla con dos lecturas se ejerce contra un caso medido) — protocolo |
 | **[F-92](F-92.md)** | 31/08/2026 | La supresión suprime por FILA y el diff compara por COLUMNA: el hueco es el territorio de las omisiones —y del mismo dato bajo otro nombre—. Y por qué la cifra de coste no se podía medir | **vigente** · *su P1 CORREGIDO por F-93 en universo y predicado* · PAR COMPLETO | MOTIVO LITERAL — `Contrato_Contadores.md`. TRES PIEZAS POR REGLA DICTADA, «CERO EN N» con la tasa que excluye, y la AMBIGÜEDAD DE ALCANCE DEL CUANTIFICADOR — protocolo |
 | **[F-93](F-93.md)** | 31/08/2026 | `columnas(h)` no tenía universo y las dos lecturas naturales fallan cada una uno de los tres casos: el dato es LA OPOSICIÓN, no la cita. Y la trampa de `'equivalentes'` | **vigente** · PAR COMPLETO | LA CUARTA PIEZA (vacío y ausente; forma existencial) — protocolo. Un comentario que justifica un orden CITA SU INVARIANTE — `CLAUDE.md` |
+| **[F-98](F-98.md)** | 02/09/2026 | La fila nace AL INDEXAR, no antes: el paso 2 del frente 3 queda retirado por su propio autor. El «puente interino» de F-87 era el edificio. El «no» del usuario debe ser gratis. | **vigente** · PAR COMPLETO | UNA FILA ES UNA AFIRMACIÓN DE EXISTENCIA, COMPROBAR SI LA IDENTIDAD YA ESTÁ RESUELTA POR OTRA VÍA y ¿QUIÉN LIMPIA ESTO? — `CLAUDE.md` |
 | **[F-97](F-97.md)** | 02/09/2026 | La partición del corpus NO es binaria: la vía de ids convive con el filtro. Falsa el enunciado de F-96 y sustituye la metáfora espacial por una de PARTICIPACIÓN. Y abre la pregunta previa: ¿es `en_revision` el nombre verdadero de `pendiente`? | **vigente** · PAR COMPLETO | UN CAMPO CON DOS PREGUNTAS, ENUNCIAR LA PREGUNTA ANTES DE AÑADIR UN VALOR y LA AUTORIZACIÓN EXPLÍCITA VENCE AL DEFECTO — `CLAUDE.md` |
 | **[F-96](F-96.md)** | 02/09/2026 | El estado del documento vive en dos sistemas y QUIEN FILTRA ES QUIEN DECIDE. `analysisStatus` no es un estado duplicado: es una PARTICIÓN. La duplicación se degrada de dos-fuentes a fuente-más-espejo | **vigente** · PAR COMPLETO | EL CANDIDATO NO ES MIEMBRO, LA PERTENENCIA SE ESCRIBE EN UN SITIO y DOS SISTEMAS QUE COINCIDEN NECESITAN QUIEN LO COMPRUEBE — `CLAUDE.md` |
 | **[F-95](F-95.md)** | 02/09/2026 | Cierra el FRENTE 2 y abre el 3. Fable RETIRA una receta suya por insostenible, acepta las dos desviaciones, y ante B.147 contesta «ni una ni otra»: cambiar la forma de la operación para que la propiedad sobre | **vigente** · PAR COMPLETO | DESTRUCTIVO SOBRE RESPUESTA AJENA, CADA DECLARADO SU CONTADOR, NINGÚN ENDPOINT ACEPTA OBJETOS DE NEGOCIO y CUOTA NO ES ANALÍTICA — `CLAUDE.md` |
@@ -145,6 +146,26 @@ queda superado, pero **no administra su propio estado**.
 
 **Once pares completos de F-70 a F-94: F-84 a F-94, todas menos las que no llegaron.** El resto, o a medias o nada:
 
+- **F-98 — PAR COMPLETO**, en `F-98.md` (02/09/2026). **UN PASO ENTERO DEL
+  FRENTE, RETIRADO POR QUIEN LO DISEÑÓ.** F-95 P7 ordenó que la fila del
+  documento naciera al SUBIRLO; F-98 P2 lo retira con su nombre —«el error era
+  mío: confundí identidad DURANTE la revisión con identidad DURABLE»— y la fila
+  se queda naciendo al INDEXAR, como hoy.
+  ⚠️ **EL PUENTE ERA EL EDIFICIO**: F-87 P4 llamó al payload de descartes «puente
+  interino con sucesor conocido» y F-95 P7 programó su retirada. El sucesor
+  fabricaba basura. El payload es el diseño permanente.
+  **La medición que lo decide**: 108 fragmentos generados frente a 6 documentos
+  indexados —dieciocho a uno—. La mayoría de las revisiones terminan en «no», y
+  un diseño en el que el caso MAYORITARIO fabrica residuo es un diseño al revés.
+  **La virtud sin nombre que estuvimos a un commit de matar**: hoy cerrar la
+  pestaña sin decidir no deja rastro PORQUE NO HABÍA NADA. Ahora tiene nombre —
+  «el "no" del usuario debe ser gratis»—.
+  ⚠️ **Y lo que dice del frente entero, que es el resultado y no una nota al
+  margen**: de los cinco pasos de F-95, uno era corrección de seguridad (hecho),
+  otro resultó ser un estado que YA EXISTÍA con otro nombre (F-97), y otro
+  —éste— estaba CUBIERTO desde hacía dos días. **El frente 3 no se está
+  haciendo: se está disolviendo**, y eso significa que el sistema tenía MENOS
+  DEUDA de la que su propia documentación decía.
 - **F-97 — PAR COMPLETO**, en `F-97.md` (02/09/2026). **UN CENSO DESTAPA UN
   MECANISMO ENTERO FUNCIONANDO SIN PARTIDA DE NACIMIENTO**: la vía de inclusión
   por ids amplía el filtro del corpus, y con ella el enunciado de F-96 es falso.
