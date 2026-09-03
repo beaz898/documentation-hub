@@ -13,6 +13,7 @@ import { randomUUID } from 'crypto';
 import { generateContentHash } from '@/lib/analysis/hash-check';
 import { resolveOrg } from '@/lib/org';
 import { checkUploadLock } from '@/lib/upload-lock';
+import { criterioDeAdopcion } from '@/lib/analysis/adopcion';
 
 /**
  * ⚠️ EL PRESUPUESTO DE ESTA RUTA, Y VIVE SOLO AQUÍ (B.141, 02/09/2026).
@@ -359,6 +360,36 @@ export async function POST(req: NextRequest) {
     //     Vive en `lib/documents/retirar-version.ts`, y allí está escrito por
     //     qué nada de eso puede abortar esta petición.
     await retirarLoViejo(supabase, { orgId, documentId, generation, plan, colisiones: manualCollisions });
+
+    // 10b. LA ADOPCIÓN (F-101). El análisis de este fichero ya existía —nació
+    //      colgado de su ruta, que es su propietario mientras se revisa— y ahora
+    //      el documento recién creado lo adopta.
+    //
+    // ⚠️ VA DESPUÉS DE QUE LA FILA EXISTA, porque `document_id` apunta a ella; y
+    // NO ABORTA SI FALLA: el documento está indexado y el análisis sigue teniendo
+    // dueño —el fichero—, así que un fallo aquí lo deja alcanzable por su RUTA en
+    // vez de por su documento. Degradado y reparable, no perdido. Abortar la
+    // indexación por no poder adoptar sería cambiar una molestia por una pérdida.
+    //
+    // ⚠️ Y `.is(document_id, null)` NO ES DECORATIVO: sin esa condición,
+    // reindexar un fichero reasignaría análisis que YA pertenecen a otro
+    // documento. Con ella la adopción es idempotente.
+    //
+    // La ruta NO se borra al adoptar: es la historia de ese fichero y lo que
+    // permite reabrir su revisión. Los dos propietarios conviven.
+    const criterio = criterioDeAdopcion(orgId, storagePath);
+    if (criterio) {
+      const { error: adopcionError, count } = await supabase
+        .from('analysis_results')
+        .update({ document_id: documentId }, { count: 'exact' })
+        .match(criterio)
+        .is('document_id', null);
+      if (adopcionError) {
+        console.error(`[INGEST] adopción fallida | doc=${documentId} | ruta=${storagePath} | ${adopcionError.message}`);
+      } else {
+        console.log(`[INGEST] adopción | doc=${documentId} | análisis adoptados=${count ?? 0}`);
+      }
+    }
 
     // 11. Limpiar archivo de storage
     await supabase.storage.from('documents').remove([storagePath]);
