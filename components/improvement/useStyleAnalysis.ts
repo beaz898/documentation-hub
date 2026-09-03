@@ -11,6 +11,11 @@ type StyleApiProblem = {
 interface UseStyleAnalysisArgs {
   initialText: string;
   fileName: string;
+  /** F-100 — DE QUIÉN es el análisis de estilo: el documento EN REVISIÓN.
+   *  Ausente en el camino del chat, donde el documento todavía no existe.
+   *  ⚠️ Es `reviewedDocumentId` y JAMÁS `existingDocWithSameName`: desde el chat
+   *  aquélla es OTRO documento que casualmente comparte nombre (B.163). */
+  reviewedDocumentId?: string;
   /**
    * Problemas de estilo precargados (vienen del análisis exhaustivo previo).
    * Si se proporcionan, se mapean al tipo Problem y se usan como estado inicial,
@@ -35,6 +40,7 @@ export function useStyleAnalysis({
   initialText,
   fileName,
   initialStyleProblems,
+  reviewedDocumentId,
 }: UseStyleAnalysisArgs) {
   // Mapeamos los problemas iniciales una sola vez (no en cada render),
   // así los IDs no cambian con cada render y React no se confunde.
@@ -64,7 +70,15 @@ export function useStyleAnalysis({
             'Content-Type': 'application/json',
           },
           credentials: 'include',
-          body: JSON.stringify({ text: currentText, fileName: currentFileName }),
+          // F-100: DE QUIÉN es este análisis. Es `reviewedDocumentId` —el
+          // documento EN REVISIÓN— y jamás `existingDocWithSameName`, que desde
+          // el chat es OTRO documento que comparte nombre (B.163). Ausente en el
+          // camino del chat: allí el documento todavía no existe.
+          body: JSON.stringify({
+            text: currentText,
+            fileName: currentFileName,
+            documentoPropietario: reviewedDocumentId ?? null,
+          }),
         });
         if (!res.ok) {
           console.warn('[useStyleAnalysis] HTTP error', res.status);

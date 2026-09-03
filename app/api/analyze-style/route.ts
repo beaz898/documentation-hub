@@ -9,6 +9,7 @@ import { consumeCredits, devolverSiNoSeEntrego, getCreditCost } from '@/lib/cred
 import { saveStyleResult } from '@/lib/persist-analysis';
 import { usageContext } from '@/lib/observability/usage-context';
 import { persistLLMUsage } from '@/lib/observability/record-usage';
+import { documentoPropietario } from '@/lib/analysis/propietario';
 
 export const maxDuration = 60;
 
@@ -65,7 +66,7 @@ export async function POST(req: NextRequest) {
     }
     creditsConsumed = getCreditCost('/api/analyze-style');
 
-    const { text, fileName } = await req.json();
+    const { text, fileName, documentoPropietario: propietarioPedido } = await req.json();
     if (!text || typeof text !== 'string' || text.trim().length < 50) {
       return NextResponse.json({ error: 'Texto insuficiente' }, { status: 400 });
     }
@@ -82,11 +83,38 @@ export async function POST(req: NextRequest) {
       creditsCharged: creditsConsumed,
     });
 
+    // F-100 — DE QUIÉN ES ESTE ANÁLISIS. El id viene del cliente, así que se
+    // COMPRUEBA antes de escribirlo: aceptar una referencia es legítimo, pero
+    // escribirla sin comprobarla dejaría atribuir un análisis a cualquier
+    // documento cuyo id se conozca — y la bandeja, que se queda con el análisis
+    // más reciente de cada documento, TAPARÍA el análisis real del ajeno.
+    //
+    // ⚠️ FALLA CERRADA (F-95 P3): si la consulta no contesta, `pertenece` queda
+    // en false y el análisis se guarda SIN propietario. Entre degradar —no poder
+    // releerlo por documento— y corromper la atribución de otro, se degrada.
+    let pertenece = false;
+    if (typeof propietarioPedido === 'string' && propietarioPedido.length > 0) {
+      const { data: doc, error: docError } = await supabase
+        .from('documents')
+        .select('id')
+        .eq('id', propietarioPedido)
+        .eq('org_id', orgId)
+        .maybeSingle();
+      if (docError) {
+        console.warn(`[analyze-style] no se pudo comprobar el propietario | doc=${propietarioPedido} | ${docError.message}`);
+      }
+      pertenece = !docError && doc !== null;
+    }
+
     void saveStyleResult(supabase, {
       orgId,
       userId,
       documentName: fileName || 'sin nombre',
       problemsCount: problems.length,
+      documentoPropietario: documentoPropietario({
+        idPedido: propietarioPedido,
+        perteneceALaOrg: pertenece,
+      }),
     });
 
     const latencyMs = Date.now() - startedAt;

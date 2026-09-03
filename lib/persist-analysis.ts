@@ -15,6 +15,11 @@ interface StyleResultInput {
   userId: string;
   documentName: string;
   problemsCount: number;
+  /** F-100: DE QUIÉN ES ESTE ANÁLISIS. `null` = de nadie todavía (el camino del
+   *  chat, donde el documento aún no existe). Lo resuelve
+   *  `documentoPropietario` en la ruta, que además comprueba la pertenencia a la
+   *  organización: aquí llega ya decidido. */
+  documentoPropietario: string | null;
 }
 
 interface ChatQueryInput {
@@ -97,6 +102,11 @@ export async function saveStyleResult(
     style_problems_found: input.problemsCount,
     recommendation: null,
     involved_documents: null,
+    // F-100: hasta el 03/09/2026 esta columna NO se escribía aquí — ni siquiera
+    // estaba en el tipo de entrada—, así que TODO análisis de estilo nacía
+    // huérfano, también desde la bandeja, donde el documento sí existe. No era
+    // el problema de F-99 (no es que no hubiera id): es que no se pasaba.
+    document_id: input.documentoPropietario,
   });
 
   if (error) console.error('[persist-analysis] saveStyleResult:', error.message);

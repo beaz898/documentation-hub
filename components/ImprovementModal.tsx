@@ -207,6 +207,10 @@ function ImprovementModalDesktop({
     initialText,
     fileName,
     initialStyleProblems: analysis.styleProblems,
+    // F-100: el propietario del análisis de estilo. La MISMA prop que usan los
+    // descartes desde F-86 —la que existe justamente para no confundirla con
+    // `existingDocWithSameName`—, ahora también aquí.
+    reviewedDocumentId,
   });
 
   useEffect(() => {
