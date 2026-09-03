@@ -3,7 +3,7 @@ PENDIENTES — Doclity (Agente IA)
 Documento vivo. Se actualiza al completar tareas (marcar [✓]) y se
 sustituye por la versión nueva. Más ligero que la Bitácora: aquí va
 lo que falta y la visión que lo guía, no el detalle de cada sesión.
-Última actualización: 02/09/2026 (v51)
+Última actualización: 02/09/2026 (v52)
 
 
 ════════════════════════════════════════════════════════════════
@@ -4818,6 +4818,73 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     **LO AJENO MERECE LA MISMA DESCONFIANZA QUE LO PROPIO.** El código la tenía
     para nuestra base —«sin la lista de documentos existentes, abortar es la
     única opción segura»— y no para la de Google, a doce líneas de distancia.
+
+  B.152 — [ABIERTO Y CERRADO EL 02/09 · LA VENTANA DE B.140 ERA INDEFINIDA, NO
+    DE SEGUNDOS] EL REEMPLAZO MANUAL PUEDE DEJAR UN DOCUMENTO FANTASMA
+    RESPONDIENDO EN EL CHAT
+
+    Se anota ANTES de arreglarlo, y se anota aunque el commit que lo cierra vaya
+    detrás: lo que se descubrió es de otra magnitud que lo que B.140 decía, y el
+    arreglo no debe borrar el diagnóstico.
+
+    ══ LO QUE B.140 DECÍA, Y SE QUEDABA CORTO ══
+    «Entre la 221 y la 259 la organización no tiene ninguno de los dos.» Eso
+    describe una ventana TEMPORAL: mala mientras dura, cerrada cuando el proceso
+    termina de una forma o de otra.
+
+    ⚠️ ══ LO QUE PASA DE VERDAD ══
+    El borrado del documento viejo va por DOS VÍAS y basta con que UNA funcione
+    para seguir (`app/api/ingest/route.ts:201-231`):
+      · `deleteVectorsByFilter` — por `documentId`, cubre TODAS las generaciones;
+      · `deleteVectorsByIds` — solo los ids de la generación ACTIVA, y calculados
+        con el `chunk_count` de la fila.
+    Si la primera falla y la segunda funciona, el camino CONTINÚA — y borra la
+    fila (`:236`). Sobreviven en Pinecone los vectores que los ids no cubrían:
+    los de otras generaciones, o los que `chunk_count` no contaba por estar
+    desactualizado.
+
+    Y esos vectores supervivientes llevan `analysisStatus: 'analizado'`, porque
+    pertenecían a un documento activo. Con la fila borrada:
+      · EL CHAT LOS SIGUE RECUPERANDO. El filtro del corpus mira la METADATA de
+        Pinecone, no la existencia de la fila (`CORPUS_ACTIVO`).
+      · Y RESPONDE CON ELLOS. `lib/rag.ts:344-352` — cuando el texto completo no
+        está en Supabase, `buildContext` LO RECONSTRUYE desde los chunks de
+        Pinecone. Es un mecanismo legítimo (hay documentos viejos sin
+        `full_text`) y aquí es justo lo que mantiene vivo al fantasma.
+      · La cita al usuario lleva el `documentName` de la metadata: **verá en las
+        fuentes un documento que no aparece en su lista de documentos.**
+      · LA INTERFAZ NO LO MUESTRA — no hay fila.
+      · Y NINGUNA SINCRONIZACIÓN LO RECUPERA: es un documento MANUAL, la sync de
+        Drive no lo toca, y el barrido de huérfanos es admin y manual.
+
+    **LA PÉRDIDA ES SILENCIOSA Y PERMANENTE**, y no del documento nuevo: del
+    control sobre el viejo. Queda contestando preguntas para siempre, y el
+    usuario no tiene ninguna forma de verlo ni de quitarlo.
+
+    ══ Y LA DISTINCIÓN QUE HAY QUE CONSERVAR SOBRE B.140 ══
+    LOS REINTENTOS NO ABRIERON LA VENTANA: LA HICIERON MÁS PROBABLE. La ventana
+    existe desde que se escribió el camino — el borrado va antes de la creación,
+    y eso no lo puso el frente de la regla 6. Lo que el retry hizo fue alargar el
+    tramo en el que el proceso puede morir a mitad, y con ello subir la
+    frecuencia de un fallo que ya era posible.
+    Es una distinción que importa para no aprender la lección equivocada: si se
+    contara como «lo rompió el retry», el arreglo sería quitar el retry, y el
+    retry no es el problema.
+
+    ══ POR QUÉ NO SE VE ══
+    El orden dentro del borrado SÍ está pensado: la fila se borra después de los
+    vectores, con su razón escrita —«sin la fila no queda referencia para
+    localizar vectores huérfanos»—. Alguien pensó el caso de los huérfanos. Lo
+    que no se pensó es el escalón anterior: que el borrado entero ocurra antes de
+    que exista el reemplazo.
+
+    ══ CÓMO SE CIERRA ══
+    Con el commit del 02/09 que lleva `ingest` al patrón de `document-swap.ts`:
+    crear la generación nueva → conmutar → borrar la vieja. Con ese orden la
+    ventana no se estrecha: DEJA DE EXISTIR — en todo momento hay una versión
+    servible, y si el proceso muere a mitad sobra basura y no falta nada.
+    Y los 30 s de reintentos pasan a ocurrir ANTES de tocar nada viejo, donde
+    alargar es gratis: el retry deja de ser un agravante.
 
   F-81 [CONVERGENCIA — leer ANTES de planificar la fase 3 del diff, 27/08] No
     es un pendiente nuevo: es el sitio donde se juntan tres que ya existen, más
