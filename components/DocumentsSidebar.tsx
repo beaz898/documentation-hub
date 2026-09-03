@@ -13,7 +13,11 @@ interface Document {
   status: string;
   source?: string;
   folder_path?: string | null;
-  analysis_status?: string; // 'pendiente' | 'en_analisis' | 'analizado' | 'desactualizado'
+  /** El vocabulario vive en `lib/documents/estado.ts` — NO se reenumera aquí.
+   *  Hasta el 02/09 este comentario listaba los valores y ya estaba
+   *  desactualizado: le faltaba `en_revision`. Tres copias y ninguna
+   *  autoritativa era el problema, no la falta de una cuarta. */
+  analysis_status?: string;
 }
 
 interface DriveFolder {
