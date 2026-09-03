@@ -3,6 +3,7 @@
 import { useState, useRef, useMemo } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
 import CreditsIndicator from '@/components/shared/CreditsIndicator';
+import { ORIGENES_SINCRONIZADOS } from '@/lib/documents/origen';
 
 interface Document {
   id: string;
@@ -133,7 +134,11 @@ function statusBadge(status: string | undefined, t: (k: string) => string) {
   );
 }
 
-const DRIVE_SOURCES = new Set(['google_drive', 'onedrive']);
+// B.162: la lista vivía aquí como tercera copia del mismo criterio, y era la
+// única de las tres que estaba completa. Ahora las tres preguntan al mismo sitio
+// —`lib/documents/origen.ts`, que no importa nada para poder usarse también
+// desde el cliente— y la que decidía el borrado ya no puede quedarse corta.
+const DRIVE_SOURCES = new Set<string>(ORIGENES_SINCRONIZADOS);
 
 export default function DocumentsSidebar({
   documents,

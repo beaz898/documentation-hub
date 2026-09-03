@@ -5112,7 +5112,7 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     escribe; falta solo cambiar el `order`. **No se cambia de paso: es producto,
     no higiene.**
 
-  B.154 — [ABIERTO 03/09 · ANTERIOR A ESTE COMMIT, PERO CAMBIA DE FORMA CON ÉL]
+  B.154 — [ABIERTO Y CERRADO EL 03/09 POR B.162 · ⚠️ SE MIDIÓ MAL EL RIESGO]
     UN DOCUMENTO DE ONEDRIVE HOMÓNIMO ENTRA EN LAS COLISIONES «MANUALES»
 
     ══ EL DATO ══
@@ -5565,6 +5565,82 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     CONGELADO A PROPÓSITO: las dos filas de CLI-01 se dejan en la base como
     EVIDENCIA para la consulta a Fable. No se limpia nada y las pasadas 2 y 3 de
     la remedición quedan detenidas hasta que haya respuesta.
+
+  B.162 — [ABIERTO Y CERRADO EL 03/09 · VISTO EN PRODUCCIÓN, NO DEDUCIDO] UNA
+    SUBIDA MANUAL SE LLEVABA POR DELANTE EL DOCUMENTO SINCRONIZADO DEL MISMO
+    NOMBRE, CONTRA LO QUE SU PROPIO AVISO PROMETE
+
+    ══ LO QUE SE VIO, en la pasada 3 de la remedición ══
+    Un CLI-01 manual y un CLI-01 sincronizado coexistiendo, cada uno con su
+    etiqueta. Se sube CLI-01 a mano, se acepta el reemplazo, y **desaparece
+    también el sincronizado**. Hubo que sincronizar para recuperarlo, y el sync lo
+    trajo como «1 nuevo» — o sea que se había ido de verdad.
+    El aviso que el usuario acepta dice literalmente que los documentos de Drive
+    con el mismo nombre NO se tocan.
+
+    ⚠️ ══ LA FORMA: NO FALTABA UN VALOR, HABÍA TRES LISTAS ══
+    El criterio de «qué documentos son reemplazables a mano» estaba implementado
+    TRES VECES, en tres lenguajes:
+      · `.or('source.is.null,source.neq.google_drive')` — PostgREST;
+      · `.filter(d => d.source !== 'google_drive')` — JavaScript;
+      · `new Set(['google_drive','onedrive'])` — la interfaz.
+    Las dos primeras nombraban UN origen; la tercera, DOS. Así que un documento
+    de OneDrive se pintaba bajo «Drive» y el reemplazo lo trataba como manual.
+    **La lista completa era justo la que NO decidía nada, y la corta era la que
+    borraba.**
+    Añadir el valor que faltaba habría arreglado el caso y dejado la forma
+    intacta: el día que el registro de proveedores ganase un tercero, vuelve.
+
+    ══ CÓMO SE CERRÓ ══
+    Un solo criterio en `lib/documents/origen.ts`, sin imports para que lo pueda
+    usar también el cliente, y los tres sitios preguntan. La consulta deja de
+    filtrar —traía media verdad— y decide el predicado. Y un caso ATA la lista al
+    registro de proveedores: si alguien añade uno y no toca la lista, se pone
+    rojo (F-96 P3).
+
+    ⚠️ ══ NO LO INTRODUJO NINGÚN COMMIT DE ESTA SEMANA. VERIFICADO ══
+    Se comprobó antes de escribir nada, porque la sospecha razonable era que lo
+    hubiéramos metido nosotros:
+      · el commit del reemplazo (258d0f64) tocó ese bloque para AÑADIR
+        `created_at` al `select`. La línea del `.or()` no la tocó.
+      · el commit de B.112 (6904aea1) no tocó `ingest` más que un COMENTARIO.
+    El `.or()` con un solo origen es anterior a los dos.
+    LO QUE SÍ CAMBIÓ el commit del reemplazo es LA FORMA DEL DAÑO, no su
+    existencia: antes se borraban TODAS las colisiones, así que el sincronizado
+    se borraba; después, por ser el más reciente, se VERSIONABA —conservaba el id,
+    se quedaba con el contenido nuevo y su `provider_file_id` pasaba a null—, o
+    sea dejaba de ser de Drive. El síntoma que ve el usuario es el mismo y el
+    sync reacciona igual: lo reimporta como nuevo.
+
+    ⚠️ ══ Y LA EQUIVOCACIÓN QUE SÍ ES NUESTRA, con su nombre ══
+    **B.154, abierto el 03/09, DESCRIBÍA ESTE MECANISMO ENTERO Y CORRECTAMENTE** —
+    incluido el detalle de que el más reciente se versiona y pierde la
+    procedencia— y se archivó como no urgente con esta razón: «la interfaz de
+    OneDrive está deshabilitada, así que hoy no hay filas con ese source».
+    ESO ERA UNA EVALUACIÓN DE RIESGO, NO UN HECHO VERIFICADO, y estaba mal: **el
+    mecanismo no mira la interfaz, mira el valor de la columna.** Se dio por
+    imposible una fila que nadie había ido a contar.
+    El fallo no fue no verlo —se vio, y se escribió bien—: fue GRADUARLO por un
+    supuesto sobre qué está encendido en vez de por una consulta.
+
+    ══ Y EL CASO QUE NO EXISTÍA ══
+    Ninguna de las 412 pruebas montaba DOS HOMÓNIMOS DE ORIGEN DISTINTO. Los
+    casos del reemplazo cubrían un homónimo, varios homónimos y ninguno — todos
+    del mismo origen, porque el origen no parecía una variable del problema. La
+    pasada 3 existía justamente para mirar lo que ninguna prueba miraba, y por eso
+    lo encontró.
+
+    ══ SOBRE «LA REGRESIÓN LA CAUSÓ MI ENCARGO» ══
+    Se consideró y NO ENCAJA en este caso, y se deja escrito para que no se
+    apunte en la columna equivocada: el encargo de «pasar el borrado a id» se
+    ejecutó sobre `deleteDocument` y `analysis_results`, y este fallo vive en el
+    filtro de colisiones de `ingest`, que aquel commit no tocó (verificado
+    arriba, fichero por fichero).
+    El patrón «una instrucción que nombraba una condición y se llevó otra por
+    delante» SÍ es real y tiene su caso: `vercel.json`, donde «borra la entrada»
+    eran dos campos y solo uno estaba justificado. Aquí la instrucción y el fallo
+    están en ficheros distintos, así que juntarlos escondería la causa verdadera,
+    que es la de arriba: un riesgo bien descrito y mal graduado.
 
 Forma de trabajo: diagnóstico con datos reales antes de arreglar; un
 cambio lógico cada vez; build verde entre medias; SQL en Supabase antes

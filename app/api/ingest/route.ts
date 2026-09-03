@@ -7,6 +7,7 @@ import { extractSegments, joinSegments, chunkSegments, stripSegmentationMarkers,
 import type { ExtractedSegment } from '@/lib/chunking';
 import { saveDocumentChunks } from '@/lib/persist-chunks';
 import { planDeReemplazo } from '@/lib/documents/plan-de-reemplazo';
+import { esReemplazableAMano } from '@/lib/documents/origen';
 import { retirarLoViejo } from '@/lib/documents/retirar-version';
 import { randomUUID } from 'crypto';
 import { generateContentHash } from '@/lib/analysis/hash-check';
@@ -89,9 +90,19 @@ export async function POST(req: NextRequest) {
     }
 
     // ============================================================
-    // Comprobar colisiones de nombre SOLO entre documentos MANUALES
-    // Los documentos de Google Drive (source = 'google_drive') NUNCA se tocan
-    // al subir manualmente, aunque tengan el mismo nombre. Coexisten.
+    // Comprobar colisiones de nombre SOLO entre documentos REEMPLAZABLES A MANO.
+    // Los documentos SINCRONIZADOS —Google Drive, OneDrive— NUNCA se tocan al
+    // subir manualmente, aunque tengan el mismo nombre. Coexisten, y es lo que
+    // el aviso de reemplazo le promete al usuario.
+    //
+    // ⚠️ EL CRITERIO NO SE FILTRA EN LA CONSULTA, Y ES DELIBERADO (B.162). Antes
+    // había un `.or('source.is.null,source.neq.google_drive')` aquí: una SEGUNDA
+    // implementación del mismo criterio, en otro lenguaje, que se separó de la de
+    // abajo y de la de la interfaz. Nombraba UN origen donde la pantalla nombraba
+    // DOS, así que un documento de OneDrive se pintaba bajo «Drive» y el
+    // reemplazo se lo llevaba por delante.
+    // Ahora la consulta trae los homónimos SIN filtrar y decide
+    // `esReemplazableAMano`, una sola vez y en un solo sitio.
     // ============================================================
     console.log(`[INGEST] Checking manual collisions for name="${fileName}" org="${orgId}"`);
 
@@ -103,15 +114,14 @@ export async function POST(req: NextRequest) {
       // documento equivocado.
       .select('id, name, chunk_count, source, active_generation, created_at')
       .eq('org_id', orgId)
-      .eq('name', fileName)
-      .or('source.is.null,source.neq.google_drive');
+      .eq('name', fileName);
 
     if (queryError) {
       console.error('[INGEST] Query error:', queryError);
     }
 
     const manualCollisions = (existingManualDocs || []).filter(
-      d => d.source !== 'google_drive'
+      d => esReemplazableAMano(d.source),
     );
 
     console.log(`[INGEST] Found ${manualCollisions.length} manual collision(s)`);
