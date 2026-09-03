@@ -123,7 +123,11 @@ export function useCrossDocAnalysis(
             fileName,
             exhaustive: true,
             excludeFingerprints: Array.from(dismissedFingerprintsRef.current),
-            documentId: documentId ?? undefined,
+            // ⚠️ F-100 / B.163: esto es «a quién va a SUSTITUIR este texto», no
+            // «de quién es este análisis». Se llamaba `documentId` y el servidor
+            // lo usaba para las dos cosas, así que el análisis del texto nuevo se
+            // guardaba bajo el id del documento VIEJO.
+            documentoAReemplazar: documentId ?? undefined,
           }),
         });
 

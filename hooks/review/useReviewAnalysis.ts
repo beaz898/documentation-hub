@@ -72,7 +72,9 @@ async function analyzeOneDocument(
     body: JSON.stringify({
       fileName: doc.name,
       text,
-      documentId: doc.id,
+      // F-100: desde la bandeja el documento EXISTE — es su propio revisado y su
+      // propio propietario, y el servidor deriva de ahí que se excluya a sí mismo.
+      documentoEnRevision: doc.id,
       batchDocumentIds,
       ...(exhaustive ? { exhaustive: true } : {}),
     }),

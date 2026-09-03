@@ -5795,6 +5795,24 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     escritas por costumbre y no por medición.** Ninguna venía de no saber
     buscar: las dos estaban a un `grep` de distancia.
 
+    ⚠️ ══ Y LA TERCERA DEL MISMO DÍA, QUE ES LA QUE ENSEÑA EL CONTRASTE ══
+    La tercera fue deducir una URL del nombre de un fichero en vez de
+    preguntarla: se probó `/api/health/analysis-token`, que no existe, en vez de
+    `/api/admin/config`, que sí. **Costó un 404 y treinta segundos.**
+    No merece ficha propia — es la misma especie— pero sí merece estar aquí por
+    lo que se ve al ponerla al lado de las otras dos:
+      · las tres son la misma forma: afirmar algo sobre el repositorio sin
+        comprobarlo;
+      · **las dos caras salieron gratis y la barata falló RUIDOSA.** Una URL
+        inventada devuelve 404 en el acto. Las dos peligrosas —«es código
+        muerto», «se descarta por nombre»— eran TRANQUILIZADORAS, y una premisa
+        tranquilizadora no tiene 404: se queda en el registro pareciendo
+        verdad hasta que alguien tropieza con ella meses después.
+    LA REGLA QUE SALE DE AHÍ: **el coste de no verificar no lo fija el esfuerzo
+    de verificar, lo fija hacia dónde se equivoca la suposición.** Una suposición
+    que, de ser falsa, produce un error inmediato, se puede arriesgar. Una que,
+    de ser falsa, produce silencio, no.
+
     ══ QUÉ LO CIERRA ══
     Nada por trabajo hecho: es una entrada de memoria. Se cierra si pasa un mes
     sin que una premisa fáctica entre al registro sin su comando y su línea.

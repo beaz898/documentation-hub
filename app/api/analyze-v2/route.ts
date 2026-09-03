@@ -19,6 +19,7 @@ import { swapDocumentVectors } from '@/lib/document-swap';
 import { checkAndAcquireAnalysisLock, releaseAnalysisLock, analysisLockMessage } from '@/lib/analysis-lock';
 import { getDocumentChunks, getActiveGeneration, toStoredChunks } from '@/lib/read-chunks';
 import type { StoredChunk } from '@/lib/read-chunks';
+import { sujetosDelAnalisis, unicoExcluido } from '@/lib/analysis/sujetos';
 
 // Un job en 'pending'/'processing' mas viejo que esto se considera muerto: el
 // worker cayo sin marcarlo 'failed' y bloqueaba el 409 de toda la organizacion
@@ -76,15 +77,39 @@ export async function POST(req: NextRequest) {
     }
     
     const body = await req.json();
-    const { storagePath, fileName, text: directText, exhaustive, excludeFingerprints: rawExcludeFps, documentId, batchDocumentIds: rawBatchDocumentIds } = body;
+    const { storagePath, fileName, text: directText, exhaustive, excludeFingerprints: rawExcludeFps, batchDocumentIds: rawBatchDocumentIds } = body;
+
+    // ════════════════════════════════════════════════════════════════════
+    // LOS TRES SUJETOS (F-100 P2, B.163). Hasta el 03/09/2026 esto era UN
+    // `documentId` que contestaba a las tres preguntas a la vez. Coincidían
+    // siempre… menos en el reanálisis desde el chat, donde el valor es EL
+    // HOMÓNIMO: respuesta correcta a «¿contra quién no compararme?» y falsa a
+    // «¿de quién es este análisis?».
+    //
+    // El cliente manda DOS REFERENCIAS y el servidor deriva los tres sujetos —
+    // la lista de excluidos NO viaja desde el cliente, que es la cláusula de
+    // ORIGEN de F-97.
+    // ════════════════════════════════════════════════════════════════════
+    const sujetos = sujetosDelAnalisis({
+      documentoEnRevision: body.documentoEnRevision,
+      documentoAReemplazar: body.documentoAReemplazar,
+    });
+    /** ¿DE QUIÉN ES EL RESULTADO? Solo lo posee un documento que ya existe. */
+    const documentoPropietario = sujetos.documentoPropietario;
+    /** ¿QUÉ DOCUMENTO REVISO? Gobierna su staged, el veto del exhaustivo, su
+     *  generación, sus chunks, su hash y el swap. Vacío = no toco a nadie. */
+    const documentoEnRevision = sujetos.documentoEnRevision;
 
     // Auto-exclusión derivada del endpoint (no del caller): un documento que YA
-    // existe en el corpus (tiene documentId) NUNCA se compara consigo mismo.
+    // existe en el corpus NUNCA se compara consigo mismo.
     // La garantía vive aquí, no en el frontend, para que todo llamador la herede:
     // la bandeja, la cola de Fase D, y el reemplazo manual de D5 ("el análisis de
     // una versión nueva excluye los vectores de su propia versión anterior").
-    // En la subida no hay documentId (el doc aún no existe) → undefined → no excluye.
-    const excludeDocumentId = typeof documentId === 'string' ? documentId : undefined;
+    // En la subida no hay a quién excluir (el doc aún no está indexado) → undefined.
+    // ⚠️ CORTE DECLARADO: `documentosExcluidos` es una lista y el pipeline recibe
+    // UNO. Se puede hoy porque nunca hay más de uno —las dos referencias son
+    // excluyentes por construcción—, y `unicoExcluido` lo grita si deja de serlo.
+    const excludeDocumentId = unicoExcluido(sujetos);
 
     // IDs de otros documentos de la misma tanda de la bandeja de revisión
     // (aún sin validar, pero ya indexados). Solo la bandeja los manda; si el
@@ -110,11 +135,13 @@ export async function POST(req: NextRequest) {
     // d-2b: ¿el documento tiene una versión nueva en vuelo (staged)? Se lee una
     // sola vez aquí (arriba, antes de cobrar créditos) y sirve para las dos ramas:
     // la exhaustiva la niega (más abajo) y la rápida disparará el swap (C.4d-2b).
-    // Solo puede haber staged si el documento ya existe (documentId presente).
-    const staged =
-      typeof documentId === 'string'
-        ? await getStagedForDocument(supabase, documentId, orgId)
-        : null;
+    // Solo puede haber staged si el documento ya existe (hay documento en revisión).
+    // ⚠️ Y ES `documentoEnRevision`, NO el excluido: con el excluido, un reanálisis
+    // desde el chat leería el staged del HOMÓNIMO — vetaría el exhaustivo por una
+    // versión en vuelo ajena y, abajo, promocionaría la versión de otro documento.
+    const staged = documentoEnRevision
+      ? await getStagedForDocument(supabase, documentoEnRevision, orgId)
+      : null;
 
     // d-2b (F-8): con una versión staged pendiente, el exhaustivo queda vetado.
     // El exhaustivo se completa en el worker, que no sabe de swaps: dejaría el
@@ -246,7 +273,8 @@ export async function POST(req: NextRequest) {
     // sigue usando el troceado de chunkText: mismo comportamiento que antes.
     let storedChunkTexts: string[] | null = null;
     let storedChunks: StoredChunk[] | null = null;
-    if (typeof documentId === 'string' && documentId.length > 0) {
+    if (documentoEnRevision) {
+      const documentId = documentoEnRevision;
       const activeGeneration = await getActiveGeneration(supabase, { orgId, documentId });
       const fetchedChunks = await getDocumentChunks(supabase, {
         orgId,
@@ -320,7 +348,10 @@ export async function POST(req: NextRequest) {
           document_text: stripSegmentationMarkers(text),
           sample_texts: JSON.stringify(sampleTexts),
           exclude_document_id: excludeDocumentId ?? null,
-          document_id: documentId ?? null,
+          // ⚠️ LAS DOS COLUMNAS YA EXISTÍAN Y EL WORKER YA LAS LEÍA POR SEPARADO;
+          // lo único que estaba mal es que se rellenaban de la MISMA variable.
+          // Por eso el worker no se toca en este commit.
+          document_id: documentoPropietario,
           exclude_fingerprints: JSON.stringify(Array.from(excludeFingerprints)),
           // F-71 paso 2: la tanda viaja también al exhaustivo. Hasta aquí solo
           // la usaba el rápido (más abajo, en runAnalysisPipeline), así que los
@@ -459,7 +490,7 @@ export async function POST(req: NextRequest) {
       documentName: fileName,
       analysis,
       analysisType: 'quick',
-      documentId: typeof documentId === 'string' ? documentId : null,
+      documentId: documentoPropietario,
     });
     if (!saveResult.ok) {
       // Camino sin staged: el usuario recibe su analisis igual (lo tiene en
@@ -475,11 +506,11 @@ export async function POST(req: NextRequest) {
     // d-2b (F-7/F-8): con staged, este hash NO se escribe aqui; lo escribe la P2
     // del swap con staged.content_hash (unico escritor). Escribirlo aqui pondria
     // el hash del texto nuevo sobre la fila que aun describe la generacion vieja.
-    if (typeof documentId === 'string' && !staged) {
+    if (documentoEnRevision && !staged) {
       const { error: hashError } = await supabase
         .from('documents')
         .update({ analyzed_content_hash: generateContentHash(stripSegmentationMarkers(text)) })
-        .eq('id', documentId)
+        .eq('id', documentoEnRevision)
         .eq('org_id', orgId);
       if (hashError) {
         console.error('[analyze-v2] analyzed_content_hash:', hashError.message);
@@ -496,7 +527,7 @@ export async function POST(req: NextRequest) {
     // como marcador reparable y cleanup lo remata (sin boton de reintento, F-6/F-9).
     let versionPromoted: boolean | undefined;
     let versionPromotedMessage: string | undefined;
-    if (staged && typeof documentId === 'string') {
+    if (staged && documentoEnRevision) {
       if (!saveResult.ok) {
         versionPromoted = false;
         versionPromotedMessage =
@@ -518,14 +549,14 @@ export async function POST(req: NextRequest) {
           const { error: ptrError } = await supabase
             .from('document_staged')
             .update({ analysis_result_id: saveResult.id })
-            .eq('document_id', documentId)
+            .eq('document_id', documentoEnRevision)
             .eq('org_id', orgId);
           if (ptrError) {
             console.error('[analyze-v2] puntero staged->analisis:', ptrError.message);
           }
         }
       } else {
-        const swapResult = await swapDocumentVectors(supabase, orgId, documentId);
+        const swapResult = await swapDocumentVectors(supabase, orgId, documentoEnRevision);
         if (swapResult.swapped) {
           versionPromoted = true;
         } else {
@@ -555,7 +586,10 @@ export async function POST(req: NextRequest) {
       lista: T[] | undefined,
     ): T[] | undefined =>
       lista && lista.length > 0
-        ? marcarDescartadas(lista, { documentoEnRevision: excludeDocumentId, descartes: descartesOrg })
+        // ⚠️ LA IDENTIDAD DE UNA HUELLA ES EL DOCUMENTO EN REVISIÓN, no el excluido.
+        // Colgaba de `excludeDocumentId` y funcionaba solo porque en la bandeja
+        // los dos coinciden — en el chat ya no.
+        ? marcarDescartadas(lista, { documentoEnRevision, descartes: descartesOrg })
         : lista;
 
     return NextResponse.json({
