@@ -328,7 +328,7 @@ DÓNDE CAE CADA PENDIENTE VIVO
 ────────────────────────────────────────────────────────────────
   B.106  → Frente 4     (declarable)
   B.107  → Frente 4     (declarable)
-  B.112  → Frente 3     (⚠️ MEDIO CERRADO 03/09 — ver B.158)
+  B.112  → Frente 3     (⚠️ MENOS CERRADO DE LO QUE SE ESCRIBIÓ — B.158 y B.161)
   B.119  → Frente 3     (BLOQUEA en el flujo principal)
   B.122  → Frente 2     (BLOQUEA — 1ª mitad ya hecha el 30/08)
   B.126  → Frente 2     (higiene: el fail-open que se traga los fallos de red)
@@ -5210,7 +5210,23 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     Se hizo en el orden que este frente defiende: la consulta que LISTA primero,
     mirada fila a fila, y solo después la que borra.
 
-    ⚠️ UNA CONSECUENCIA QUE HAY QUE DEJAR ESCRITA: la población «sin id» incluye
+    ⚠️⚠️ ══ EL PREDICADO DE ESTA LIMPIEZA ERA DEMASIADO ANCHO. NO SE REPITA TAL
+    CUAL ══ (visto el 03/09, horas después, al aparecer huérfanos nuevos)
+    La consulta metía `document_id IS NULL` entera en la población a borrar, como
+    si «sin id» significara «de un documento que ya no existe». NO LO SIGNIFICA:
+    los análisis del camino del chat nacen sin id SIEMPRE —el documento todavía
+    no existe cuando se analizan— y siguen sin él aunque el documento se indexe y
+    esté vivo hoy.
+    En la org de pruebas fue inocuo porque todo era desechable. **En una
+    organización real ese DELETE se habría llevado los análisis de documentos
+    VIVOS**, que son la mayoría. El aviso que sí se dio fue el de `style`, que es
+    la misma forma en pequeño; el grande se pasó.
+    LO QUE SE PUEDE BORRAR CON CERTEZA es solo la población B —`document_id` que
+    no casa con ninguna fila de `documents`—. La población A NO ES DECIDIBLE desde
+    la base: no hay forma de distinguir «análisis de un documento borrado» de
+    «análisis de un documento vivo que nunca tuvo id». Ver B.161.
+
+    ⚠️ OTRA CONSECUENCIA QUE HAY QUE DEJAR ESCRITA: la población «sin id» incluye
     por construcción TODOS los análisis de estilo — `saveStyleResult`
     (`lib/persist-analysis.ts:88-100`) nunca escribe `document_id`, ni hoy ni
     nunca. Si había alguno entre los 28, se fue con ellos. Da igual aquí porque
@@ -5370,6 +5386,16 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     Es el grado «ESCRITO» sin el grado «CONTADO» de F-95 P5, en la pieza que
     mide el fallo que este frente vino a cerrar.
 
+  ══ LA PASADA 1 DE LA REMEDICIÓN: VÁLIDA (03/09) ══
+    Se ejecutó un reemplazo manual real de punta a punta —lo nunca visto hasta
+    hoy— y el camino salió bien. Los huérfanos que aparecieron después NO son
+    suyos, y lo que lo demuestra es la CRONOLOGÍA: la primera fila de análisis
+    nació 25 segundos ANTES de que existiera ningún documento.
+    Y no es una coincidencia del reloj, es el mecanismo: el camino del chat
+    analiza ANTES de indexar, así que la fila del análisis PRECEDE por fuerza a
+    la del documento. Medido por el usuario en la base; el mecanismo, verificado
+    en `useDocuments.ts:124` y `analyze-v2:462`. Ver B.161.
+
   B.160 — [ABIERTO 03/09 · NO ES UN ARREGLO: ES UNA GUARDIA] LA AVERÍA DEL
     REEMPLAZO NO SE PROVOCA, SE CAPTURA — Y HAY QUE ESTAR LISTO EL DÍA QUE PASE
 
@@ -5417,6 +5443,83 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     Nada la cierra por trabajo hecho: se cierra el día que se capture una avería
     real y se anote en `claude/Tandas_Harness.md` con el formato de siempre. Es
     una guardia, no una tarea.
+
+  B.161 — [ABIERTO 03/09 · ⚠️ NO ES UN PARQUE: ES UNA FUGA CON CAUDAL · VA A
+    FABLE] EL CAMINO DEL CHAT FABRICA ANÁLISIS SIN IDENTIDAD EN CADA ANÁLISIS, Y
+    EL BORRADO POR ID NO PUEDE LIMPIARLOS NUNCA
+
+    ══ CÓMO APARECIÓ ══
+    En la pasada 1 de la remedición, con la limpieza de B.156 recién hecha (0
+    huérfanos) y el arreglo de B.112 recién pusheado, la comprobación volvió a
+    dar 2. Dos filas de `analysis_results` con `document_id` a NULL, creadas ese
+    mismo día con 25 segundos de diferencia, del documento CLI-01 que se acababa
+    de subir y reemplazar. Huérfanos NUEVOS, no restos: la columna existe desde
+    el 26 de julio.
+
+    ══ QUIÉN LAS ESCRIBE, Y POR QUÉ NO ES UN FALLO DE ESA LÍNEA ══
+    El camino del chat. `hooks/chat/useDocuments.ts:124` manda al análisis
+    `{ storagePath, fileName }` — SIN `documentId`, porque cuando el análisis
+    corre el documento TODAVÍA NO EXISTE: se analiza antes de indexar. Y
+    `app/api/analyze-v2/route.ts:462` guarda en consecuencia:
+    `documentId: typeof documentId === 'string' ? documentId : null`.
+    Es la forma del camino, no un olvido. Y **la dejamos permanente el mismo día**:
+    F-98 P2 retiró la fila temprana y declaró que la identidad de un documento en
+    revisión es de sesión.
+
+    ⚠️ ══ LO QUE ESTO DEMUESTRA, Y ES LA PARTE QUE HAY QUE LLEVAR A FABLE ══
+    F-98 retiró el paso 2 dando por cubierta LA NECESIDAD DE IDENTIDAD. Y estaba
+    cubierta **la de los descartes por fila** —que viajan en el payload de la
+    indexación desde F-87—, que no es la misma. **La identidad del ANÁLISIS
+    GUARDADO no la cubre nadie.** Se reconstruyeron las promesas una por una y
+    ésta no estaba en la lista, porque nadie la había enunciado como promesa.
+
+    ══ EL CAUDAL, con la cifra que ya teníamos delante ══
+    No se fabrica una fila por documento indexado: **se fabrica una por ANÁLISIS**,
+    y la mayoría de los análisis terminan en «no indexar». La medición de F-98:
+    **108 fragmentos generados frente a 6 documentos indexados.** Las filas de los
+    otros nacen sin id y se quedan sin id PARA SIEMPRE — el documento al que
+    pertenecían no llegó a existir.
+    Y las de los que SÍ se indexan tampoco lo adquieren: nada las actualiza al
+    indexar.
+
+    ⚠️ ══ LA CONSECUENCIA QUE LO HACE URGENTE ══
+    **UN ANÁLISIS QUE NACE SIN ID NO LO PUEDE LIMPIAR EL BORRADO POR ID QUE
+    ACABAMOS DE ESCRIBIR.** El criterio de `lib/documents/analisis-del-documento.ts`
+    es `{ org_id, document_id }`; una fila con NULL no casa con eso por
+    construcción, jamás.
+    Por lo tanto:
+      · el cierre de la FUENTE de B.112 vale solo para los análisis CON id —los
+        relanzados desde la bandeja—, y el mensaje de aquel commit dice «la fuente
+        cerrada», que es más de lo que cubre;
+      · **la limpieza de esta mañana volverá a hacer falta, y volverá a hacer
+        falta siempre.** No es un parque que se vacía una vez: es una fuga con
+        caudal;
+      · y mientras tanto esas filas son material de herencia por nombre (B.158),
+        porque `review-list` empareja por `document_name`.
+
+    ══ EL MATERIAL QUE YA ESTÁ EN CASA Y NADIE HA JUNTADO ══
+    · `saveResult.id` existe en `analyze-v2:456` y SE TIRA — al cliente solo le
+      llega `guardado: saveResult.ok`, un booleano (`:576`).
+    · El payload de la indexación ya transporta los descartes desde F-87, y
+      F-98 lo declaró diseño permanente.
+    Nadie ha decidido si el id del análisis debe viajar por ahí para que `ingest`
+    lo selle al crear la fila.
+
+    ⚠️ ══ LA PREGUNTA, no la solución ══
+    **¿Debe un análisis que termina en «no indexar» persistir?** Son las dos
+    respuestas posibles y ninguna es obvia:
+      · si NO —se guarda solo al indexar—, desaparece la fuga entera y se pierde
+        la telemetría de calidad de lo que se rechazó, que es justo lo que la
+        analítica enseña;
+      · si SÍ, hace falta que adquiera identidad al indexarse y que se sepa qué
+        es una fila cuyo documento nunca existió — que no es un huérfano, es el
+        registro de un rechazo, y merece nombre propio en vez de contarse como
+        basura.
+
+    ══ ESTADO ══
+    CONGELADO A PROPÓSITO: las dos filas de CLI-01 se dejan en la base como
+    EVIDENCIA para la consulta a Fable. No se limpia nada y las pasadas 2 y 3 de
+    la remedición quedan detenidas hasta que haya respuesta.
 
 Forma de trabajo: diagnóstico con datos reales antes de arreglar; un
 cambio lógico cada vez; build verde entre medias; SQL en Supabase antes
