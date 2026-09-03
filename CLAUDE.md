@@ -317,6 +317,17 @@ El dueño del proyecto NO es programador. Vercel deploya automáticamente al hac
   saber cuántas llamadas lleva hoy un usuario: cada fila perdida es una llamada
   regalada, y regalada justo cuando la base va peor. Antes de tocar una tabla,
   mirar quién la LEE — no qué nombre tiene. Promovida en F-95 P2 (B.145).
+- **PARAR Y MEDIR ES MEJOR QUE PARAR Y PREGUNTAR CUANDO LA MEDICIÓN ESTÁ A UN
+  GREP DE DISTANCIA.** Parar ante algo inesperado es correcto y no se discute; lo
+  que se corrige es qué se hace en la parada. Si la duda se resuelve con una
+  búsqueda que cuesta un minuto, se resuelve ANTES de devolver la pregunta: quien
+  pregunta con la medición al alcance traslada trabajo y, peor, invita a que el
+  hueco se rellene de memoria.
+  El caso: aparecieron cinco usos de un parámetro que nadie había clasificado. Se
+  paró bien y se preguntó sin trazar cuáles eran alcanzables — y en el hueco de
+  esa pregunta se coló una conclusión tranquilizadora que el código desmentía.
+  Con la traza hecha primero, la pregunta habría llegado con la respuesta al
+  lado. Promovida el 03/09/2026.
 - **LA FILA NACE ATADA O NO NACE.** Ninguna fila derivada se crea con la
   intención de completarla después. No existe el estado intermedio «persistido
   esperando identidad»: ese estado ES la fábrica de huérfanos.

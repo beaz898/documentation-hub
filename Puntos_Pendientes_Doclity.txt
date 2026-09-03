@@ -5758,6 +5758,47 @@ NOTAS DE ORDEN (propuesta, a confirmar)
       antes de tocar ninguno de los dos.**
     · Corrige de paso «escritura sin lector»: tienen lector, y load-bearing.
 
+  B.166 — [ANOTADO 03/09 · ERROR DE MÉTODO, SIN NOMBRES] UNA CONCLUSIÓN
+    TRANQUILIZADORA QUE NADIE MIDIÓ ESTUVO A UN COMMIT DE BORRAR DOS PELIGROS
+    VIVOS DEL REGISTRO
+
+    ══ QUÉ PASÓ ══
+    Al separar un parámetro sobrecargado aparecieron cinco usos de una familia
+    que nadie había clasificado. Se paró —correcto— y se preguntó sin trazar
+    cuáles eran alcanzables. En el hueco de esa pregunta se formuló una
+    conclusión que nadie había medido: «apareció, y resultó ser código muerto».
+    NO LO ERA. Al trazarlo después: de los cinco usos, DOS son alcanzables hoy
+    —la lectura del `staged` ajeno y el veto del exhaustivo que depende de
+    ella— y uno de los otros tres DISPARA UN SWAP, a un solo parámetro de
+    distancia de ser alcanzable.
+    Anotar aquella frase habría BORRADO DEL REGISTRO un veto vivo y un
+    disparador de promoción de versiones, y los habría borrado con la etiqueta
+    más difícil de reabrir que existe: «ya está comprobado».
+
+    ⚠️ ══ POR QUÉ SE ANOTA SIN NOMBRES ══
+    Porque la lección no es de quién la dijo. El hueco lo abrió una parada bien
+    hecha pero incompleta, y lo rellenó una hipótesis razonable. Las dos cosas
+    son normales; lo que no puede ser normal es que la hipótesis entre al
+    registro con la forma de un hecho.
+    Es la regla de F-99 P3 —las premisas de inacción pagan la misma evidencia
+    que las de acción— cobrada por segunda vez en el mismo día, y con la
+    variante peor: una premisa de inacción sobre un peligro que ya estaba
+    identificado.
+
+    ══ Y LA MISMA ESPECIE, LA MISMA TARDE, EN EL OTRO SENTIDO ══
+    Ese mismo día se escribió en `Tandas_Harness.md` que las contradicciones de
+    un documento consigo mismo «se descartaban por nombre idéntico». Tampoco
+    existía: no hay una sola comparación de nombres en `lib/analysis/`. Se copió
+    de una consulta sin comprobarla, UN TURNO DESPUÉS de promover la regla que
+    lo prohíbe. Corregido en el mismo fichero, con su nombre.
+    **Dos premisas falsas en una tarde, las dos tranquilizadoras, las dos
+    escritas por costumbre y no por medición.** Ninguna venía de no saber
+    buscar: las dos estaban a un `grep` de distancia.
+
+    ══ QUÉ LO CIERRA ══
+    Nada por trabajo hecho: es una entrada de memoria. Se cierra si pasa un mes
+    sin que una premisa fáctica entre al registro sin su comando y su línea.
+
 Forma de trabajo: diagnóstico con datos reales antes de arreglar; un
 cambio lógico cada vez; build verde entre medias; SQL en Supabase antes
 del push; plan completo antes de tocar varios archivos.

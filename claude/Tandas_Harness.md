@@ -6,12 +6,29 @@ POR NOMBRE ACTIVA?
 NO ES UNA CONCLUSIÓN: es una condición que hay que poder declarar en cada
 entrada y que hasta hoy no se registraba.
 
-**LA CONDICIÓN**: hasta el arreglo del parámetro, un documento YA INDEXADO
-analizado DESDE EL CHAT se encontraba a sí mismo entre sus candidatos —el
-parámetro de exclusión viaja nulo en ese camino— y sus contradicciones consigo
-mismo se descartaban aguas abajo por NOMBRE IDÉNTICO, sin dejar rastro en
-ningún contador. Una pasada corrida así midió con una red puesta, y la red se
-va a retirar.
+⚠️ **CORREGIDO EL MISMO DÍA, Y LA PREMISA ERA MÍA**: la primera versión de esta
+entrada decía que las contradicciones consigo mismo «se descartaban aguas abajo
+por NOMBRE IDÉNTICO, sin dejar rastro». **ESO NO EXISTE.** Verificado sobre
+`lib/analysis/` entero: la autoexclusión se hace por `documentId` en cuatro
+sitios —`retrieval.ts:417`, `verify-claims.ts:306`, `synthesize.ts:208`,
+`hash-check.ts:76`— y NO hay una sola comparación de nombres en el pipeline.
+La frase venía de la consulta y se copió sin comprobarla, un turno después de
+promover a `CLAUDE.md` la regla de que toda premisa fáctica viaja con su comando
+y su línea.
+
+**LA CONDICIÓN, como es de verdad**: hasta el arreglo del parámetro, un documento
+YA INDEXADO analizado DESDE EL CHAT se encuentra a sí mismo entre sus candidatos
+—el parámetro de exclusión viaja nulo en ese camino—, y lo que pasa después
+depende del contenido:
+· **contenido IDÉNTICO** → `checkContentHash` corre el primero
+  (`pipeline.ts:1060`) y CORTOCIRCUITA el pipeline entero: el informe dice «este
+  documento es idéntico a X», siendo X él mismo. Resultado VISIBLE y engañoso, no
+  un descarte silencioso.
+· **contenido CAMBIADO** (el caso normal al reanalizar) → el hash no casa, **no
+  hay red ninguna**, y las contradicciones consigo mismo salen como hallazgos
+  reales.
+Así que no hay «red que retirar»: la exclusión por identidad no sustituye a nada
+en ese camino — **es la primera que va a existir ahí**.
 
 **LO QUE DICE EL FICHERO, y es todo lo que dice**:
 · Tres entradas declaran el camino explícitamente y las tres dicen BANDEJA:
@@ -25,12 +42,15 @@ va a retirar.
 · Pero **la mayoría de las entradas no declaran el camino**, así que el fichero
   no puede cerrar la pregunta por sí solo.
 
-**EL DISCRIMINADOR, para aplicarlo a lo viejo y para registrarlo en lo nuevo**:
-si un documento se hubiera comparado consigo mismo, aparecería un candidato
-EXTRA con score ≈ 1,0. En la pasada 1 de la remedición el log dice «1 candidato,
-score máx 0,988» en las dos direcciones — un solo candidato, y el de la pareja.
-Eso es INCOMPATIBLE con la autocomparación, y es la evidencia más fuerte que hay
-en el fichero.
+**EL DISCRIMINADOR, para aplicarlo a lo viejo y para registrarlo en lo nuevo**, y
+con la corrección de arriba es MÁS FUERTE de lo que se escribió: una pasada
+corrida en esa condición habría dejado huella imposible de perder —o un informe
+de «duplicado exacto» de un documento consigo mismo, o un candidato EXTRA con
+score ≈ 1,0—. **Ninguna de las dos aparece en este fichero.** En la pasada 1 de la
+remedición el log dice «1 candidato, score máx 0,988» en las dos direcciones: un
+solo candidato, el de la pareja, incompatible con la autocomparación.
+Sigue sin ser una conclusión —la mayoría de entradas no declaran el camino— pero
+la evidencia negativa es sólida.
 
 **QUÉ HACER**: (1) revisar los logs guardados de las tandas que no declaran
 camino, buscando un candidato con score ≈ 1,0; (2) y desde ahora, **toda entrada
