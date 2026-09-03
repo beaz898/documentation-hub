@@ -134,6 +134,7 @@ queda superado, pero **no administra su propio estado**.
 | **[F-91](F-91.md)** | 30/08/2026 | «Todas las columnas comunes» admitía dos lecturas, y la mala descartaba hallazgos VERDADEROS: la geometría no se contamina con testimonio. Y la clase de contadores CENTINELA | **vigente** · PAR COMPLETO | La clase CENTINELA — `Contrato_Contadores.md`; la hermana de F-79 (una regla con dos lecturas se ejerce contra un caso medido) — protocolo |
 | **[F-92](F-92.md)** | 31/08/2026 | La supresión suprime por FILA y el diff compara por COLUMNA: el hueco es el territorio de las omisiones —y del mismo dato bajo otro nombre—. Y por qué la cifra de coste no se podía medir | **vigente** · *su P1 CORREGIDO por F-93 en universo y predicado* · PAR COMPLETO | MOTIVO LITERAL — `Contrato_Contadores.md`. TRES PIEZAS POR REGLA DICTADA, «CERO EN N» con la tasa que excluye, y la AMBIGÜEDAD DE ALCANCE DEL CUANTIFICADOR — protocolo |
 | **[F-93](F-93.md)** | 31/08/2026 | `columnas(h)` no tenía universo y las dos lecturas naturales fallan cada una uno de los tres casos: el dato es LA OPOSICIÓN, no la cita. Y la trampa de `'equivalentes'` | **vigente** · PAR COMPLETO | LA CUARTA PIEZA (vacío y ausente; forma existencial) — protocolo. Un comentario que justifica un orden CITA SU INVARIANTE — `CLAUDE.md` |
+| **[F-96](F-96.md)** | 02/09/2026 | El estado del documento vive en dos sistemas y QUIEN FILTRA ES QUIEN DECIDE. `analysisStatus` no es un estado duplicado: es una PARTICIÓN. La duplicación se degrada de dos-fuentes a fuente-más-espejo | **vigente** · PAR COMPLETO | EL CANDIDATO NO ES MIEMBRO, LA PERTENENCIA SE ESCRIBE EN UN SITIO y DOS SISTEMAS QUE COINCIDEN NECESITAN QUIEN LO COMPRUEBE — `CLAUDE.md` |
 | **[F-95](F-95.md)** | 02/09/2026 | Cierra el FRENTE 2 y abre el 3. Fable RETIRA una receta suya por insostenible, acepta las dos desviaciones, y ante B.147 contesta «ni una ni otra»: cambiar la forma de la operación para que la propiedad sobre | **vigente** · PAR COMPLETO | DESTRUCTIVO SOBRE RESPUESTA AJENA, CADA DECLARADO SU CONTADOR, NINGÚN ENDPOINT ACEPTA OBJETOS DE NEGOCIO y CUOTA NO ES ANALÍTICA — `CLAUDE.md` |
 | **[F-94](F-94.md)** | 01/09/2026 | Abre el FRENTE 2: la identidad accidental de los descartes tabulares (⚠️ premisa nuestra FALSA — no había ninguna: nunca hubo botón), el volcado de filas, las averías silenciosas, y el prefijo de fila que resulta ser la cita por referencia de F-80 | **vigente** · PAR COMPLETO | UNA IDENTIDAD POR ESPECIE y DATOS DEL CLIENTE — `CLAUDE.md`. LECTURA DUAL CON CADUCIDAD, retirada del frente 2 por inexistente. LO QUE SE AFIRMA DEL REPO VIAJA CON SU EVIDENCIA — protocolo |
 
@@ -143,6 +144,20 @@ queda superado, pero **no administra su propio estado**.
 
 **Once pares completos de F-70 a F-94: F-84 a F-94, todas menos las que no llegaron.** El resto, o a medias o nada:
 
+- **F-96 — PAR COMPLETO**, en `F-96.md` (02/09/2026). **LA CORRECCIÓN DE PREMISA
+  QUE DECIDE EL FRENTE 3**: `analysisStatus` no es un estado duplicado, es una
+  PARTICIÓN — `'analizado'` significa elegible y todo lo demás no elegible, y el
+  filtro no distingue entre los «demás». Con eso, la pregunta deja de ser «¿qué
+  valor escribo?» y pasa a ser «¿hay algo que filtrar?».
+  Y mata la opción A sola: **un documento en revisión no necesita estar en el
+  índice, porque se compara CONTRA el corpus, no el corpus contra él.**
+  La decisión: el estado operativo vive en UN sitio —Pinecone, porque quien
+  filtra decide— y la columna pasa a reflejo declarado. «La duplicación no se
+  elimina: se degrada de dos-fuentes a fuente-más-espejo, que es la diferencia
+  entre un conflicto y una copia.»
+  ⚠️ Y LLEVA UNA PREMISA NUESTRA SIN VERIFICAR —el punto (3), «ya están
+  desincronizados, verificado»— que al ir a comprobarla resultó no estarlo, y con
+  un mecanismo declarado FALSO. Ver la cabecera del fichero.
 - **F-95 — PAR COMPLETO**, en `F-95.md` (02/09/2026). **EL PRIMERO EN QUE FABLE
   RETIRA UNA RECETA SUYA** antes de que la implementáramos mal: «búfer durable en
   el propio análisis» era amortiguar un fallo de Supabase dentro de Supabase, y

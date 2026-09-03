@@ -317,6 +317,26 @@ El dueño del proyecto NO es programador. Vercel deploya automáticamente al hac
   saber cuántas llamadas lleva hoy un usuario: cada fila perdida es una llamada
   regalada, y regalada justo cuando la base va peor. Antes de tocar una tabla,
   mirar quién la LEE — no qué nombre tiene. Promovida en F-95 P2 (B.145).
+- **UN DOCUMENTO EN REVISIÓN ES UN CANDIDATO A ENTRAR EN EL CORPUS, no un
+  miembro con etiqueta que lo excluya.** Su exclusión no depende de que un filtro
+  esté bien escrito, sino de que NO HAYA NADA QUE FILTRAR.
+  La razón de fondo: `analysisStatus` no es un estado duplicado, es una
+  PARTICIÓN — `'analizado'` es elegible y todo lo demás no, y el filtro no
+  distingue entre los «demás». Y un documento en revisión no necesita estar en el
+  índice: **se compara CONTRA el corpus, no el corpus contra él.** Promovida en
+  F-96.
+- **LA PERTENENCIA AL CORPUS SE ESCRIBE EN UN SOLO SITIO.** La función que indexa
+  la escribe al crear los vectores; la que promociona la actualiza en los dos
+  sistemas —VECTORES PRIMERO, y solo si TODOS van bien, la fila después— y falla
+  ruidosamente si el primero falla. Nadie más la toca.
+  Es el patrón EFECTO-ESPEJO, y sus tres piezas son la conjunción: (1) efecto
+  antes que registro —se escribe primero donde la escritura DECIDE y después
+  donde INFORMA, porque un espejo atrasado es el error benigno y una pantalla que
+  promete lo que el corpus no cumple es el grave—; (2) todo-o-nada en el efecto;
+  (3) fallo ruidoso, jamás continuar al registro. Promovida en F-96 P4.
+- **DOS SISTEMAS QUE DEBEN COINCIDIR NECESITAN UN PUNTO QUE COMPRUEBE QUE
+  COINCIDEN.** Sin verificación, la consistencia es una promesa. Promovida en
+  F-96 P3.
 - Retry con backoff y fallback determinista.
 - Cero dependencias nuevas sin razón.
 - Idioma del proyecto: español.
