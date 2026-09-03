@@ -5497,6 +5497,51 @@ NOTAS DE ORDEN (propuesta, a confirmar)
       · y mientras tanto esas filas son material de herencia por nombre (B.158),
         porque `review-list` empareja por `document_name`.
 
+    ⚠️⚠️ ══ EL WORKER ES OTRA COSA, Y NO SE LE APLICA LA MISMA RESPUESTA ══
+    Son CUATRO los escritores de `analysis_results`, no dos, y tres de ellos se
+    parecen: `analyze-v2` desde el chat, `analyze-style` y el modal de mejora
+    escriben mientras el resultado ESTÁ EN LA PANTALLA DEL USUARIO. Para ésos, «no
+    persistir hasta indexar» no pierde nada: el análisis vive en memoria, como
+    viven los descartes por fila desde F-87, y si el guardado falla se reintenta
+    sin exponer nada.
+
+    EL WORKER NO (`worker/src/index.ts:186`, `documentId: job.document_id ?? undefined`).
+    **Es el único donde el resultado NO ESTÁ EN LA MEMORIA DE NADIE.** El
+    exhaustivo corre en Railway, fuera de la petición; el usuario está esperando
+    con un polling y su navegador no tiene el resultado hasta que lo lee de la
+    fila del job. Si se le retira la escritura «porque no hay documento», **se
+    borra un análisis exhaustivo que ya se ha cobrado y calculado**: 30 créditos
+    por adelantado (`lib/credits.ts:10`), entre 10 y 30 netos según el reembolso
+    que aplique. No es la misma operación con otro nombre: allí se decide no
+    escribir algo que se puede rehacer gratis, y aquí se tiraría trabajo pagado.
+
+    ══ LAS DOS SALIDAS, sin elegir ══
+    · **QUE LA FILA SE CREE CUANDO EL DOCUMENTO EXISTA** — lo que obliga a que el
+      exhaustivo lanzado desde el chat ESPERE A LA INDEXACIÓN. Cambia el orden de
+      un camino que hoy analiza antes de decidir, y hay que mirar qué pasa si el
+      usuario no indexa nunca: el trabajo ya está hecho y pagado.
+    · **QUE SE PERSISTA IGUAL Y ALGO LA LIMPIE** — que es exactamente lo que este
+      frente lleva días evitando: un proceso que borra por su cuenta. Si fuera
+      ésta, entra con el patrón de dos fases de F-95 P3 y sobre conjunto fijo,
+      nunca de otra forma.
+    Va a Fable con la evidencia de las dos filas de hoy delante.
+
+    ══ Y LOS OTROS DOS ESCRITORES QUE TAMPOCO ESTABAN EN EL REPARTO ══
+    · `analyze-style` (`app/api/analyze-style/route.ts:85` → `saveStyleResult`)
+      **nunca escribe `document_id`, venga de donde venga** — también desde la
+      bandeja, donde el documento SÍ existe. Es otra especie: no es que no tenga
+      id disponible, es que no lo pide. No debe mezclarse en el mismo commit.
+    · El modal de mejora abierto desde una subida
+      (`components/ImprovementModal.tsx:406`) pasa `existingDocWithSameName?.id`,
+      que es **el id del HOMÓNIMO del corpus, no el del documento que se analiza**.
+      Para excluirlo del corpus es correcto; para GUARDAR sería atribuirle al
+      documento viejo el análisis del texto nuevo — peor que un NULL, porque un
+      NULL no miente.
+      ⚠️ La causa es la regla de la casa al pie de la letra: en `analyze-v2` el
+      parámetro `documentId` responde a DOS PREGUNTAS —«de quién es este
+      análisis» (`:462`) y «qué documento excluyo del corpus» (`:87`)— y en este
+      camino las dos respuestas no coinciden.
+
     ══ EL MATERIAL QUE YA ESTÁ EN CASA Y NADIE HA JUNTADO ══
     · `saveResult.id` existe en `analyze-v2:456` y SE TIRA — al cliente solo le
       llega `guardado: saveResult.ok`, un booleano (`:576`).
