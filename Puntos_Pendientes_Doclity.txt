@@ -6016,6 +6016,46 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     las de acción— extendida a su tercer caso: **también las premisas de un
     encargo, y también cuando el encargo parece devolverte lo que dijiste.**
 
+  B.173 — [ABIERTO 03/09 · DECISIÓN DE PRODUCTO · VA A FABLE · NO SE ARREGLA]
+    EL EMPAREJAMIENTO POR UNA COLUMNA GENÉRICA COMPARA DOCUMENTOS QUE NO TIENEN
+    RELACIÓN
+
+    ══ LO QUE SE VIO, con las cifras de los logs del 03/09 (21:25 y 21:26) ══
+    En la tanda del par grande entró un tercer documento del corpus,
+    `SIEMBRA_corpus_ampliado.md`, y el juez emitió contradicciones contra él:
+      · OPE-10 → SIEMBRA: overlap 45 %, **10 contradicciones, las 10
+        confirmadas por juicio** — 10 de las 25 guardadas.
+      · OPE-11 → SIEMBRA: overlap 35 %, **2 contradicciones, las 2 confirmadas**
+        — 2 de las 17.
+    Las diez, por columna: Duración ×3, Precio base ×3, Profesional asignado ×2,
+    Clínica ×2. Todas del mismo molde: «Duración de DIA-02», «Clínica para
+    HIG-03», «Precio base para END-03».
+
+    ⚠️ ══ POR QUÉ ES LEGÍTIMO Y AUN ASÍ ESTÁ MAL ══
+    Según F-88 el emparejamiento es correcto: dos tablas que comparten una
+    columna con valores comparables SE EMPAREJAN, y eso es lo que hace que el
+    sistema encuentre discrepancias reales entre tarifarios. La regla no falla.
+    **Lo que falla es lo que el usuario lee.** A él le aparecen como
+    contradicciones entre dos documentos que no tienen relación de contenido —
+    y no tiene forma de saber que el emparejamiento se hizo por una columna
+    genérica y no por el asunto del documento.
+    Es el mismo tipo de problema que un falso positivo, pero por otra causa: el
+    hallazgo es CIERTO celda a celda y FALSO como afirmación sobre esos dos
+    documentos.
+
+    ══ POR QUÉ NO SE ARREGLA AQUÍ ══
+    Cualquier arreglo —exigir más columnas coincidentes, pedir similitud de
+    asunto, umbral de solapamiento— **cambia qué se considera comparable**, que
+    es la decisión de producto más central del sistema. Tocarla desde un
+    incidente de medición sería exactamente lo que este proyecto evita.
+
+    ⚠️ ══ Y EL DATO QUE HACE FALTA ANTES DE DECIDIR ══
+    No sabemos **cuántos de los hallazgos que el sistema ha emitido en su vida
+    son de este tipo**. Las diez de hoy salieron porque el montaje de la tanda
+    dejó un documento de más; en uso normal el corpus tiene decenas, y cada
+    análisis se compara con todos los que pasen el umbral. **La cifra de hoy es
+    un caso, no una tasa.**
+
 Forma de trabajo: diagnóstico con datos reales antes de arreglar; un
 cambio lógico cada vez; build verde entre medias; SQL en Supabase antes
 del push; plan completo antes de tocar varios archivos.

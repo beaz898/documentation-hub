@@ -28,6 +28,7 @@ import type { FindingToVerify, FindingNeighbours } from './verify-findings';
 import type { StoredChunk } from '@/lib/read-chunks';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { DocumentJudgment } from './types';
+import { lineaDeAgregado, lineaDeCandidato } from '@/lib/analysis/traza-diff';
 
 /**
  * Carga full_text de un lote de documentos. Réplica local del patrón de
@@ -858,6 +859,13 @@ async function runCorePipeline(
   let totalConfirmadosPorJuicio = 0;
   let totalDescartados = 0;
   let totalReclasificados = 0;
+  // F-102: el diff imprime una línea POR CANDIDATO, y con un solo candidato esa
+  // línea ERA el total. Estos dos acumuladores existen para que nunca vuelva a
+  // serlo por accidente: la parcial viaja siempre con su acumulado, y al final
+  // se imprime el agregado aunque haya un único candidato.
+  let totalDiffParejas = 0;
+  let totalDiffEmitidas = 0;
+  let candidatosConDiff = 0;
   for (let i = 0; i < rawJudgments.length; i++) {
     const judgment = rawJudgments[i];
     const evidence = evidences[i];
@@ -926,10 +934,16 @@ async function runCorePipeline(
       : outcome.judgment;
 
     if (emision.grupos.length > 0) {
-      console.log(
-        `[${label}] Diff de tablas contra "${judgment.documentName}": ` +
-        `${emision.grupos.length} pareja(s), ${emision.contradicciones.length} discrepancia(s) emitida(s)`
-      );
+      candidatosConDiff++;
+      totalDiffParejas += emision.grupos.length;
+      totalDiffEmitidas += emision.contradicciones.length;
+      console.log(`[${label}] ` + lineaDeCandidato({
+        candidato: judgment.documentName,
+        parejas: emision.grupos.length,
+        emitidas: emision.contradicciones.length,
+        emitidasAcumuladas: totalDiffEmitidas,
+        candidatoNumero: candidatosConDiff,
+      }));
     }
 
     // LOS CONTADORES DEL DIFF, sumados candidato a candidato. Van al mismo
@@ -957,6 +971,13 @@ async function runCorePipeline(
     totalDescartados += outcome.tally.descartados;
     totalReclasificados += outcome.tally.reclasificados;
   }
+  console.log(
+    `[${label}] ` + lineaDeAgregado({
+      candidatos: candidatosConDiff,
+      parejasTotales: totalDiffParejas,
+      emitidasTotales: totalDiffEmitidas,
+    }),
+  );
   console.log(
     `[${label}] Verificador: ${totalHallazgos} hallazgos → ${totalConfirmados} confirmados ` +
     `(${totalConfirmadosPorEstructura} por estructura, ${totalConfirmadosPorJuicio} por juicio), ` +
