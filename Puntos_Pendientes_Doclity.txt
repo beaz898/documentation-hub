@@ -4897,6 +4897,39 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     Y los 30 s de reintentos pasan a ocurrir ANTES de tocar nada viejo, donde
     alargar es gratis: el retry deja de ser un agravante.
 
+    ⚠️ ══ LA LECCIÓN QUE SOBREVIVE AL COMMIT: HEREDAR UN PATRÓN NO ES HEREDAR SU
+    ORDEN ══
+    Se anota aquí, pegada al fallo, porque es lo único de este arreglo que sirve
+    para el siguiente sitio donde se copie un patrón.
+
+    Los dos caminos hacen las mismas tres cosas —crear la versión nueva,
+    CONMUTAR cuál se sirve, retirar la vieja— y las ponen en orden DISTINTO:
+
+      · `document-swap.ts` conmuta PRONTO: P1 marca la generación nueva, P2
+        actualiza la fila, y solo después P3 borra lo viejo. Puede permitírselo
+        porque lo que viene después de conmutar NO PUEDE FALLAR DE UNA FORMA QUE
+        IMPORTE: el contenido nuevo ya está escrito en `document_staged`, así que
+        un fallo posterior deja el marcador puesto y el swap se vuelve a intentar.
+      · `ingest` conmuta AL FINAL: sube la generación nueva, conmuta la fila, y
+        entonces retira. Aquí lo que viene después SÍ puede fallar de forma que
+        importe, porque no hay marcador ni segunda petición: el contenido nuevo
+        vive en la MEMORIA de esta petición y si algo aborta en medio no queda
+        nada de donde reconstruirlo. Por eso la fila no se toca hasta que la
+        generación nueva está entera en el índice.
+
+    EL CRITERIO, dicho para reusarlo: **el punto de conmutación va lo más tarde
+    que se pueda dentro de lo que todavía es recuperable, y lo más pronto que se
+    pueda dentro de lo que ya no lo es.** Lo que decide dónde cae no es el patrón:
+    es SI EXISTE UN SITIO DURABLE del que rehacer el trabajo. En el swap lo hay
+    (`document_staged`); en `ingest` no lo hay, y ésa —no el parecido de los tres
+    pasos— es la diferencia que fija el orden.
+
+    Y es también la razón por la que `swapDocumentVectors` NO se llama desde
+    `ingest` aunque hagan lo mismo: copiar la función habría copiado su orden, y
+    su orden depende de un marcador que aquí no existe. Copiar el patrón sin
+    copiar la pregunta que lo sostiene es cómo se hereda un fallo con aspecto de
+    buena práctica.
+
   F-81 [CONVERGENCIA — leer ANTES de planificar la fase 3 del diff, 27/08] No
     es un pendiente nuevo: es el sitio donde se juntan tres que ya existen, más
     una consecuencia. Se anota aquí porque el momento en que importan es el de
