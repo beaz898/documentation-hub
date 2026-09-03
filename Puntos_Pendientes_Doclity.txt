@@ -328,7 +328,7 @@ DÓNDE CAE CADA PENDIENTE VIVO
 ────────────────────────────────────────────────────────────────
   B.106  → Frente 4     (declarable)
   B.107  → Frente 4     (declarable)
-  B.112  → Frente 3     (CERRADO 03/09 — la fuente; el parque en B.156)
+  B.112  → Frente 3     (⚠️ MEDIO CERRADO 03/09 — ver B.158)
   B.119  → Frente 3     (BLOQUEA en el flujo principal)
   B.122  → Frente 2     (BLOQUEA — 1ª mitad ya hecha el 30/08)
   B.126  → Frente 2     (higiene: el fail-open que se traga los fallos de red)
@@ -5198,8 +5198,25 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     respuesta de hoy —«¿participa por defecto en el corpus?»— un documento sin
     indexar sigue contestando lo mismo que `'pendiente'`: no.
 
-  B.156 — [ABIERTO 03/09 · LA FUENTE YA ESTÁ CERRADA · SE HACE EN SQL, Y HOY
-    SALE GRATIS] LA LIMPIEZA DEL PARQUE DE ANÁLISIS HUÉRFANOS
+  B.156 — [ABIERTO Y EJECUTADO EL 03/09 · 43 FILAS BORRADAS · 0 HUÉRFANOS
+    DESPUÉS] LA LIMPIEZA DEL PARQUE DE ANÁLISIS HUÉRFANOS
+
+    ══ EJECUTADA — 03/09/2026, por el usuario en Supabase ══
+    43 filas borradas, y las dos poblaciones cuadran con lo previsto:
+      · 28 SIN ID — análisis de subida desde el chat, irrecuperables.
+      · 15 CON ID apuntando a documentos que ya no existen — certeza total.
+    Comprobación posterior: 0 huérfanos. Todo el parque era del corpus de
+    pruebas, como se había verificado antes de tocar nada.
+    Se hizo en el orden que este frente defiende: la consulta que LISTA primero,
+    mirada fila a fila, y solo después la que borra.
+
+    ⚠️ UNA CONSECUENCIA QUE HAY QUE DEJAR ESCRITA: la población «sin id» incluye
+    por construcción TODOS los análisis de estilo — `saveStyleResult`
+    (`lib/persist-analysis.ts:88-100`) nunca escribe `document_id`, ni hoy ni
+    nunca. Si había alguno entre los 28, se fue con ellos. Da igual aquí porque
+    era la org de pruebas, pero **el día que esta limpieza se repita con un
+    cliente delante, esa cláusula tiene que ir en el WHERE**: los de estilo no son
+    parque, son producción normal.
 
     ══ QUÉ QUEDA DESPUÉS DEL COMMIT DE B.112 ══
     El commit del 03/09 hace que borrar un documento se lleve sus análisis, POR
@@ -5270,6 +5287,17 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     huérfanos»—. O sea que la guarda buena estaba escrita en el camino
     particular y NO en la función compartida que vino después a unificarlos.
 
+    ⚠️ ══ Y LO QUE ENSEÑA SOBRE EL MÉTODO, que es la mitad transferible ══
+    NO LO ENCONTRÓ LA EXPLORACIÓN EN SOLO LECTURA. La exploración leyó este
+    fichero, lo resumió y no lo vio. Apareció al REESCRIBIRLO — al meter el paso
+    nuevo hubo que decidir dónde iba, y decidir dónde va una cosa obliga a leer
+    qué pasa si falla la de al lado.
+    **Mirar un código y reescribirlo no son la misma operación.** La lectura
+    contesta «qué hace»; la reescritura obliga a contestar «qué pasa si esto
+    falla», que es otra pregunta y es la que caza esta especie. No sustituye a la
+    exploración —sin ella no se sabe dónde meter la mano— pero tampoco al revés:
+    una exploración limpia no certifica que no queden fallos en lo explorado.
+
     ══ POR QUÉ NO SE ARREGLA EN EL COMMIT DE B.112 ══
     Porque es otro cambio, sobre el mismo fichero, en un camino que borra. Este
     frente lleva tres días demostrando lo que pasa cuando se encadenan arreglos
@@ -5282,6 +5310,65 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     con un fichero que ya no existe en Drive—; borrar igual fabrica el fantasma.
     Puede que la respuesta dependa del `reason`, que ya existe y ya distingue los
     dos casos.
+
+  B.158 — [ABIERTO 03/09 · ES LA MITAD DE B.112 QUE NO CIERRA] DOS DOCUMENTOS
+    VIVOS CON EL MISMO NOMBRE SIGUEN COMPARTIENDO CONTADORES EN LA BANDEJA
+
+    ══ QUÉ SE CERRÓ EL 03/09 Y QUÉ NO ══
+    B.112 tenía dos formas y solo una está muerta:
+      · HERENCIA DE UN DOCUMENTO BORRADO — se borra un documento, se sube otro
+        con el mismo nombre, y el nuevo hereda el análisis del viejo. **CERRADA**:
+        la fuente, porque borrar un documento se lleva ahora sus análisis; y el
+        parque, con las 43 filas de B.156.
+      · HERENCIA ENTRE DOS DOCUMENTOS VIVOS HOMÓNIMOS — **SIGUE ABIERTA**, y no
+        la toca nada de lo hecho hoy.
+
+    ══ EL MECANISMO, VERIFICADO ══
+    `app/api/documents/review-list/route.ts` empareja los análisis POR NOMBRE
+    (`:132` `.in('document_name', names)`) y se queda con el más reciente de cada
+    nombre (`:144` `latestByName`). Si hay dos documentos vivos llamados igual,
+    **los dos reciben los contadores del mismo análisis**: el más nuevo de los
+    dos, sea de quien sea.
+    ⚠️ Y `ANALYSIS_SUMMARY_COLUMNS` (`:29-32`) **NI SIQUIERA PIDE `document_id`**,
+    así que la bandeja empareja por nombre incluso cuando el análisis lleva su id
+    correcto. No es que no pueda distinguir: es que no mira.
+
+    ⚠️ ══ Y NO ES UN CASO RARO: ES UN ESTADO DISEÑADO ══
+    `ingest` excluye a propósito los documentos de Drive de la detección de
+    colisiones — «Los documentos de Google Drive NUNCA se tocan al subir
+    manualmente, aunque tengan el mismo nombre. Coexisten.» Es decir que **dos
+    documentos vivos homónimos son una situación que el producto permite por
+    diseño**, no un accidente. Y no hay unicidad por `(org_id, name)` en la base.
+
+    ══ POR QUÉ NO SE ARREGLA CON «EMPAREJAR POR ID» A SECAS ══
+    Porque los análisis de subida desde el chat nacen SIN id y seguirán naciendo
+    así: F-98 P2 retiró la fila temprana y declaró permanente el diseño actual.
+    Exigir id dejaría sin contadores al caso mayoritario de la bandeja.
+
+    ⚠️ ══ LA PREGUNTA, no la solución ══
+    **¿Cómo adquiere su id un análisis que se hizo antes de que el documento
+    existiera?** El material está en casa y no se ha juntado: `saveResult.id`
+    existe en `analyze-v2:456` y hoy se tira —al cliente solo le llega
+    `guardado: saveResult.ok`, un booleano—, y el payload de la indexación ya
+    transporta los descartes desde F-87. Nadie ha decidido si el id del análisis
+    debe viajar por ahí.
+
+  B.159 — [ABIERTO 03/09 · CÓDIGO SIN LECTOR, EN EL SITIO QUE MÁS DUELE]
+    `matchedBy` CONFIESA EL EMPAREJAMIENTO POR NOMBRE Y NO LO LEE NADIE
+
+    `app/api/documents/[id]/analysis/route.ts:143` devuelve en cada respuesta:
+        matchedBy: result.document_id === id ? 'id' : 'name'
+    Un solo escritor, CERO lectores — verificado en todo el repositorio, `.ts` y
+    `.tsx`. El único consumidor de esa ruta
+    (`app/(authenticated)/settings/review/page.tsx:71`) lee `data.analysis` y
+    descarta el resto del sobre.
+
+    ⚠️ LO QUE LO HACE ANOTABLE Y NO UNA CURIOSIDAD: es la única pieza del sistema
+    que sabe distinguir un emparejamiento fiable de uno adivinado, y es
+    exactamente la medición que hace falta para saber cuánto queda de B.158 en
+    producción. Está escrita, es correcta, viaja en cada respuesta y no avisa.
+    Es el grado «ESCRITO» sin el grado «CONTADO» de F-95 P5, en la pieza que
+    mide el fallo que este frente vino a cerrar.
 
 Forma de trabajo: diagnóstico con datos reales antes de arreglar; un
 cambio lógico cada vez; build verde entre medias; SQL en Supabase antes
