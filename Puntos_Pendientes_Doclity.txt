@@ -5873,6 +5873,55 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     donde los significados se separan, o al enunciar qué pregunta responde cada
     valor, que es lo que la regla de F-100 P2 obliga a hacer.
 
+  B.169 — [ABIERTO 03/09 · ES ESQUEMA, NO SE ARREGLA AHORA · ⚠️ PEOR QUE LA FUGA
+    DE AYER] `org_id` TIENE DOS TIPOS REPARTIDOS ENTRE TRECE TABLAS, Y EL CÓDIGO
+    FUNCIONA POR CASUALIDAD
+
+    ══ EL DATO, VERIFICADO SOBRE `supabase-setup.sql` ══
+    · `documents.org_id`         → **text**   (línea 284)
+    · `analysis_results.org_id`  → **text**   (línea 394)
+    · `analysis_jobs.org_id`     → **uuid**   (línea 370)
+    Y en el resto del esquema el reparto sigue: trece tablas con `org_id`, siete
+    en `uuid` y seis en `text`. No hay criterio visible que las separe.
+
+    ══ CÓMO APARECIÓ ══
+    Al ejecutar la consulta de atribución de los dieciséis: unía `documents` con
+    `analysis_jobs` por `org_id` y **no compara** — hubo que meter una conversión
+    a mano. La consulta la escribí yo sin mirar los tipos; el hallazgo es del
+    director al ejecutarla.
+
+    ⚠️ ══ POR QUÉ EL CÓDIGO NO SE ENTERA: PORQUE EL CLIENTE SERIALIZA ══
+    `resolveOrg` devuelve una cadena y supabase-js la manda como JSON. PostgreSQL
+    la coacciona AL TIPO DE CADA COLUMNA en cada consulta por separado: contra
+    una columna `uuid` la interpreta como uuid, contra una `text` como texto. Las
+    dos funcionan. **Nunca hay dos columnas en la misma comparación**, así que la
+    incoherencia no tiene dónde manifestarse… hasta que alguien une dos tablas.
+
+    ⚠️ ══ Y POR QUÉ ES PEOR QUE LA FUGA DE AYER, que es la comparación que hay que
+    conservar ══
+    En la fuga del origen (B.162) **faltaba una condición**: el criterio estaba
+    incompleto y se veía leyéndolo. Aquí **la condición puede estar escrita y no
+    comparar** — el `JOIN` está ahí, dice lo que quiere decir, y no hace lo que
+    dice. Un fallo que se lee bien es más difícil de encontrar que uno que falta.
+    Y hay una forma SILENCIOSA, que es la que de verdad preocupa: `text` acepta
+    cualquier cadena, no solo uuids. Una fila de `documents` con un `org_id` que
+    no sea un uuid válido **jamás casará** con una de `analysis_jobs`, y el JOIN
+    devolverá cero filas SIN ERROR. Eso no es un fallo de tipos: es un resultado
+    vacío que parece un dato.
+
+    ══ POR QUÉ NO SE ARREGLA AHORA ══
+    Es un cambio de esquema sobre trece tablas con sus políticas RLS colgando —
+    varias comparan `org_id` con `auth.uid()::text`— y el frente 3 está a un
+    commit de cerrarse. Meterlo aquí sería mezclar la pieza grande con la
+    urgente, que es el error que este proyecto lleva cinco consultas evitando.
+
+    ⚠️ ══ LA PREGUNTA, no la solución ══
+    **¿Cuál de los dos tipos es el correcto, y qué se rompe al unificar?** No es
+    evidente: las RLS comparan con `auth.uid()::text`, así que `text` puede ser
+    deliberado en las tablas que las tienen. Antes de tocar nada hay que saber si
+    los dos grupos se corresponden con algo —tablas con RLS de usuario frente a
+    tablas de servicio— o si es sedimento.
+
 Forma de trabajo: diagnóstico con datos reales antes de arreglar; un
 cambio lógico cada vez; build verde entre medias; SQL en Supabase antes
 del push; plan completo antes de tocar varios archivos.
