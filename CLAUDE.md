@@ -317,6 +317,43 @@ El dueño del proyecto NO es programador. Vercel deploya automáticamente al hac
   saber cuántas llamadas lleva hoy un usuario: cada fila perdida es una llamada
   regalada, y regalada justo cuando la base va peor. Antes de tocar una tabla,
   mirar quién la LEE — no qué nombre tiene. Promovida en F-95 P2 (B.145).
+- **LA FILA NACE ATADA O NO NACE.** Ninguna fila derivada se crea con la
+  intención de completarla después. No existe el estado intermedio «persistido
+  esperando identidad»: ese estado ES la fábrica de huérfanos.
+  ⚠️ Y LA CONSECUENCIA PRÁCTICA, que es donde estaba el error: **la manera de no
+  producir huérfanos no es limpiarlos mejor — es que la forma de la escritura los
+  haga imposibles.** Si algo tiene que atarse «luego», el «luego» no llega: se
+  creyó dos consultas seguidas en un mecanismo de actualización posterior que no
+  existía en ninguna línea del repositorio.
+  El caso: el análisis del chat se guardaba sin `document_id` y se daba por hecho
+  que la indexación se lo pondría. No hay un solo UPDATE sobre esa columna. La
+  forma correcta es una sola escritura, en la indexación, con el id recién nacido
+  puesto EN EL INSERT. Promovida en F-100 P1.
+- **UN PARÁMETRO QUE RESPONDE A DOS PREGUNTAS SE SEPARA EN DOS, Y LOS NOMBRES
+  DICEN QUÉ PREGUNTA RESPONDE CADA UNO.** Es la forma accionable de la regla de
+  F-97 sobre el campo con dos preguntas: no basta con detectarlo, hay que partirlo
+  — y bautizar cada mitad, porque un nombre neutro invita a reutilizarla para lo
+  que no es.
+  El caso: `documentId` en `analyze-v2` decidía a la vez «de quién es este
+  análisis» y «qué documento excluyo del corpus». Coinciden siempre… menos en el
+  reanálisis desde el chat, donde la primera respuesta es falsa y la segunda
+  correcta — y el resultado se guardaba con el id del documento VIEJO, que es
+  peor que un nulo. Las dos mitades pasan a llamarse `documentoPropietario` y
+  `documentosExcluidos`.
+  ⚠️ Y EL AGRAVANTE QUE LO HACE REGLA: la casa YA había pagado esta lección en el
+  mismo fichero —existía la prop específica, existía el comentario en mayúsculas,
+  y los descartes la usaban bien—. **La distinción se hizo para una mitad y no se
+  llevó a la otra: un aviso escrito no protege al vecino.** Promovida en F-100 P2.
+- **CERRAR NO ES QUE DEJEN DE APARECER HALLAZGOS: ES QUE LOS QUE APARECEN SEAN DE
+  LA CLASE QUE SE CORRIGE Y NO DE LA QUE DESTRUYE.** El ritmo de hallazgos no es
+  el indicador; la ESPECIE sí.
+  La escala, de peor a mejor, con sus casos: «el producto MIENTE al cliente»
+  (F-89, falso positivo con sello máximo) → «el producto puede PERDER datos»
+  (F-95, el corpus borrado por un listado fallido; B.152, el documento fantasma)
+  → «contabilidad interna sucia» (F-100: filas sin dueño que ningún cliente ve).
+  **Un sistema está listo no cuando deja de tener fallos, sino cuando los que le
+  quedan son de la clase que el cliente no puede sufrir.** Si un hallazgo nuevo
+  vuelve a la primera familia, la respuesta cambia y se dice. Promovida en F-100.
 - **ANTES DE RETIRAR ALGO, SEGUIR LAS ESCRITURAS DEL CAMINO, NO LOS USOS DE LA
   PIEZA.** Enumerar usos es semántico y sin fondo: siempre puede quedar uno fuera
   de la lista, y en el frente 3 pasó tres veces. Trazar las escrituras es finito y
