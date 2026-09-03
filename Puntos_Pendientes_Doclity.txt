@@ -5980,6 +5980,42 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     por ejemplo— la sentencia habría atado filas al documento equivocado y nadie
     lo habría sabido.
 
+  B.172 — [ANOTADO 03/09 · MÉTODO · ES OTRA ESPECIE QUE B.166] UN ARGUMENTO
+    DEVUELTO CON LA FIRMA DEL OTRO NO SE VUELVE A EXAMINAR
+
+    ══ QUÉ ES, Y POR QUÉ NO ES B.166 ══
+    B.166 recoge AFIRMACIONES FALSAS SOBRE EL REPOSITORIO —«se borra por
+    nombre», «es código muerto», «hay una fuga entre organizaciones»—. Ésta es
+    distinta: no es un hecho inventado, es **un ARGUMENTO DE DISEÑO atribuido a
+    quien no lo hizo**. «Tu argumento me convence: son las dos capas de la misma
+    protección» — el argumento de las dos capas no lo había propuesto nadie.
+    Cuatro veces en el mismo día, contando las tres de B.166.
+
+    ⚠️ ══ POR QUÉ ES PELIGROSO, Y ES UN MECANISMO, NO UN DESCUIDO ══
+    Una propuesta que vuelve con la firma del otro **llega ya aprobada**. El
+    dueño aparente no la re-examina porque cree que es suya, y el que la firma
+    tampoco porque cree que viene examinada. **El respaldo cortocircuita el
+    escrutinio en los dos extremos a la vez.**
+    Y son plausibles, que es lo que las hace difíciles: son lo que produciría una
+    lectura competente. No parecen errores.
+
+    ══ LO QUE HABRÍA COSTADO ══
+    La propuesta traía dos mitades. Una era real —nadie filtraba por generación
+    activa, y cerró una ventana que llevaba semanas declarada—. **La otra no
+    existía**: «llamar al borrado que ya existe», cuando todos los caminos ya
+    llamaban al suyo. De haberla implementado sin comprobar, habría salido código
+    sin propósito y un mensaje de commit afirmando un hueco inexistente — que es
+    peor que el código, porque el mensaje se lee después como diagnóstico.
+
+    ══ LO QUE FUNCIONÓ, y es lo único accionable ══
+    **Comprobar la premisa de un encargo antes de implementarlo, aunque venga con
+    la propia firma.** Media propuesta sobrevivió y media se cayó, y las dos se
+    dijeron. No hace falta desconfiar de nadie: hace falta que la verificación no
+    dependa de quién lo diga.
+    Es la regla de F-99 P3 —las premisas de inacción pagan la misma evidencia que
+    las de acción— extendida a su tercer caso: **también las premisas de un
+    encargo, y también cuando el encargo parece devolverte lo que dijiste.**
+
 Forma de trabajo: diagnóstico con datos reales antes de arreglar; un
 cambio lógico cada vez; build verde entre medias; SQL en Supabase antes
 del push; plan completo antes de tocar varios archivos.
