@@ -5718,6 +5718,46 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     la coincidencia.** Y cuando dos personas discuten si un arreglo está vivo, el
     desempate no es la memoria de ninguna: es `git log -S`.
 
+  B.165 — [ENCARGO P2 DE F-99, CONTESTADO EL 03/09 · ⚠️ LA PREDICCIÓN DE FABLE
+    FALLA A MEDIAS] SÍ HAY PUERTA PARA UN ANÁLISIS SIN ID, Y ES LA QUE HACE
+    FUNCIONAR LA BANDEJA HOY
+
+    ══ LA PREGUNTA ══
+    «¿Algún camino permite hoy a un usuario reencontrar, tras recargar, un
+    análisis con id de documento nulo?» Predicción escrita de Fable: NINGUNO —«la
+    bandeja lista por documento, y sin documento no hay puerta; esas filas son
+    escritura sin lector, basura desde el primer byte».
+
+    ══ LA RESPUESTA: DEPENDE DE SI EL DOCUMENTO LLEGÓ A EXISTIR ══
+    Los cinco lectores de `analysis_results`, trazados:
+      · `/api/analysis-results/[id]` — por la clave primaria de la fila.
+      · `review-list:116` — por los ids de los punteros del staged.
+      · `review-list:132` — **POR `document_name`**, sobre los nombres de los
+        documentos existentes.
+      · `/api/documents/[id]/analysis:98` — por id, y **respaldo POR NOMBRE**.
+      · analítica y `usage-stats` — agregan por nombre, no reabren nada.
+
+    ⚠️ ACIERTA para el análisis cuyo nombre NO casa con ningún documento vivo: no
+    hay puerta, es inalcanzable, basura desde el primer byte. Ése es el caso del
+    ABANDONO, que es el mayoritario.
+    ⚠️ FALLA para el que SÍ se indexa: en cuanto existe un documento con ese
+    nombre, se abren DOS puertas —los contadores de la bandeja y el objeto entero
+    del análisis—, las dos por NOMBRE. **Y no es un accidente: es el mecanismo por
+    el que hoy un documento subido desde el chat enseña su análisis en la
+    bandeja.** La «relectura» que la persistencia parecía dar SÍ se cobra, y se
+    cobra por la puerta que B.158 quiere cerrar.
+
+    ══ LO QUE ESO CAMBIA ══
+    · La (a) NO pierde nada **siempre que la mitad de arriba se implemente**: el
+      payload de la indexación tiene que persistir el análisis, o el documento
+      recién indexado se queda sin contadores en la bandeja. No es opcional ni
+      es «de regalo»: es lo que sostiene lo que hoy funciona.
+    · Y confirma el enclavamiento ya anotado en B.158: emparejar por id SIN el
+      cambio de F-99 dejaría sin contadores a todo documento subido por el chat.
+      **Los dos cambios se hacen juntos o el orden importa, y hay que decidirlo
+      antes de tocar ninguno de los dos.**
+    · Corrige de paso «escritura sin lector»: tienen lector, y load-bearing.
+
 Forma de trabajo: diagnóstico con datos reales antes de arreglar; un
 cambio lógico cada vez; build verde entre medias; SQL en Supabase antes
 del push; plan completo antes de tocar varios archivos.

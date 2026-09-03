@@ -317,6 +317,30 @@ El dueño del proyecto NO es programador. Vercel deploya automáticamente al hac
   saber cuántas llamadas lleva hoy un usuario: cada fila perdida es una llamada
   regalada, y regalada justo cuando la base va peor. Antes de tocar una tabla,
   mirar quién la LEE — no qué nombre tiene. Promovida en F-95 P2 (B.145).
+- **ANTES DE RETIRAR ALGO, SEGUIR LAS ESCRITURAS DEL CAMINO, NO LOS USOS DE LA
+  PIEZA.** Enumerar usos es semántico y sin fondo: siempre puede quedar uno fuera
+  de la lista, y en el frente 3 pasó tres veces. Trazar las escrituras es finito y
+  mecánico — `grep` de los `insert`, `upsert` y `update` de la ruta, de punta a
+  punta— y a cada una se le hace UNA pregunta: **¿qué queda escrito si el usuario
+  dice que no?**
+  Los usos responden «¿quién necesita esto?»; las escrituras responden «¿qué
+  queda?», y para cualquier principio sobre residuos la segunda es la pregunta.
+  El caso: F-98 retiró la fila temprana del documento dando por hecho que el
+  abandono no dejaba rastro, y la escritura del ANÁLISIS estaba ahí, a la vista,
+  greppable en minutos. Promovida en F-99 P3.
+- **LAS PREMISAS DE INACCIÓN PAGAN LA MISMA EVIDENCIA QUE LAS DE ACCIÓN.** Es la
+  simétrica de F-51: antes de construir sobre una propiedad hay que verificar que
+  el sistema la garantiza — y antes de NO construir apoyándose en una propiedad
+  («no queda nada», «ya está cubierto», «eso no se puede producir»), la misma
+  verificación, con su comando y su línea.
+  ⚠️ SON MÁS TRAICIONERAS PORQUE NO PRODUCEN COMMIT QUE LAS EJERCITE: una premisa
+  de acción se rompe en cuanto el código corre; una de inacción falla en silencio
+  hasta que una remedición la pisa, meses después.
+  Los casos, los dos del mismo frente y con dos días de diferencia: «cerrar la
+  pestaña no deja nada porque no había nada» (F-98, falsada por dos filas de
+  análisis) y «la UI de OneDrive está deshabilitada, así que no hay filas con ese
+  source» (B.154, falsada por un documento absorbido en producción). Las dos eran
+  evaluaciones de riesgo escritas como hechos. Promovida en F-99 P3.
 - **UNA FILA EN LA BASE DE DATOS ES UNA AFIRMACIÓN DE EXISTENCIA. No se crea
   antes de que la existencia esté decidida.** Y su forma corta, que es la que se
   va a recordar: **el «no» del usuario debe ser gratis.**

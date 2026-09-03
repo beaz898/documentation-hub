@@ -134,6 +134,7 @@ queda superado, pero **no administra su propio estado**.
 | **[F-91](F-91.md)** | 30/08/2026 | «Todas las columnas comunes» admitía dos lecturas, y la mala descartaba hallazgos VERDADEROS: la geometría no se contamina con testimonio. Y la clase de contadores CENTINELA | **vigente** · PAR COMPLETO | La clase CENTINELA — `Contrato_Contadores.md`; la hermana de F-79 (una regla con dos lecturas se ejerce contra un caso medido) — protocolo |
 | **[F-92](F-92.md)** | 31/08/2026 | La supresión suprime por FILA y el diff compara por COLUMNA: el hueco es el territorio de las omisiones —y del mismo dato bajo otro nombre—. Y por qué la cifra de coste no se podía medir | **vigente** · *su P1 CORREGIDO por F-93 en universo y predicado* · PAR COMPLETO | MOTIVO LITERAL — `Contrato_Contadores.md`. TRES PIEZAS POR REGLA DICTADA, «CERO EN N» con la tasa que excluye, y la AMBIGÜEDAD DE ALCANCE DEL CUANTIFICADOR — protocolo |
 | **[F-93](F-93.md)** | 31/08/2026 | `columnas(h)` no tenía universo y las dos lecturas naturales fallan cada una uno de los tres casos: el dato es LA OPOSICIÓN, no la cita. Y la trampa de `'equivalentes'` | **vigente** · PAR COMPLETO | LA CUARTA PIEZA (vacío y ausente; forma existencial) — protocolo. Un comentario que justifica un orden CITA SU INVARIANTE — `CLAUDE.md` |
+| **[F-99](F-99.md)** | 03/09/2026 | El análisis del chat persistía una fila antes de la decisión: F-98 no se revoca, estaba a medio aplicar. Régimen efímero completo y payload firmado, que despierta la especificación dormida de F-95 P1. | **vigente** · PAR COMPLETO | SEGUIR LAS ESCRITURAS, NO LOS USOS y LAS PREMISAS DE INACCIÓN PAGAN LA MISMA EVIDENCIA — `CLAUDE.md` |
 | **[F-98](F-98.md)** | 02/09/2026 | La fila nace AL INDEXAR, no antes: el paso 2 del frente 3 queda retirado por su propio autor. El «puente interino» de F-87 era el edificio. El «no» del usuario debe ser gratis. | **vigente** · PAR COMPLETO | UNA FILA ES UNA AFIRMACIÓN DE EXISTENCIA, COMPROBAR SI LA IDENTIDAD YA ESTÁ RESUELTA POR OTRA VÍA y ¿QUIÉN LIMPIA ESTO? — `CLAUDE.md` |
 | **[F-97](F-97.md)** | 02/09/2026 | La partición del corpus NO es binaria: la vía de ids convive con el filtro. Falsa el enunciado de F-96 y sustituye la metáfora espacial por una de PARTICIPACIÓN. Y abre la pregunta previa: ¿es `en_revision` el nombre verdadero de `pendiente`? | **vigente** · PAR COMPLETO | UN CAMPO CON DOS PREGUNTAS, ENUNCIAR LA PREGUNTA ANTES DE AÑADIR UN VALOR y LA AUTORIZACIÓN EXPLÍCITA VENCE AL DEFECTO — `CLAUDE.md` |
 | **[F-96](F-96.md)** | 02/09/2026 | El estado del documento vive en dos sistemas y QUIEN FILTRA ES QUIEN DECIDE. `analysisStatus` no es un estado duplicado: es una PARTICIÓN. La duplicación se degrada de dos-fuentes a fuente-más-espejo | **vigente** · PAR COMPLETO | EL CANDIDATO NO ES MIEMBRO, LA PERTENENCIA SE ESCRIBE EN UN SITIO y DOS SISTEMAS QUE COINCIDEN NECESITAN QUIEN LO COMPRUEBE — `CLAUDE.md` |
@@ -146,6 +147,22 @@ queda superado, pero **no administra su propio estado**.
 
 **Once pares completos de F-70 a F-94: F-84 a F-94, todas menos las que no llegaron.** El resto, o a medias o nada:
 
+- **F-99 — PAR COMPLETO**, en `F-99.md` (03/09/2026). **UNA DOCTRINA CORRECTA
+  APOYADA EN UNA PREMISA FALSA.** F-98 dijo «el "no" del usuario debe ser gratis»
+  y dio por hecho que ya lo era; el camino del chat llevaba meses persistiendo
+  una fila antes de la decisión —la del ANÁLISIS—, en la única tabla donde no se
+  miró. Las huérfanas de la remedición son el paso 2 existiendo sin permiso.
+  **La respuesta**: régimen efímero completo — análisis, descartes y decisión
+  viven y mueren juntos. El régimen MIXTO de hoy (descartes en memoria, análisis
+  en base) es lo que fabrica huérfanas.
+  ⚠️ **Y la pieza que lo hace viable ya estaba escrita**: el payload FIRMADO de
+  F-95 P1, archivado «por si algún día», encuentra su día tres consultas después.
+  Sin él, aceptar el análisis del cliente sería la vía de fabricación que aquella
+  consulta prohibió.
+  ⚠️ **CORRECCIÓN POSTERIOR AL PAR**: su premisa de que «si el usuario indexa, la
+  fila se actualiza» es FALSA — no hay un solo UPDATE sobre esa columna en el
+  repositorio. Segunda premisa fáctica del mismo par que se cae por el mismo
+  motivo, lo que refuerza su P3 en vez de contradecirla.
 - **F-98 — PAR COMPLETO**, en `F-98.md` (02/09/2026). **UN PASO ENTERO DEL
   FRENTE, RETIRADO POR QUIEN LO DISEÑÓ.** F-95 P7 ordenó que la fila del
   documento naciera al SUBIRLO; F-98 P2 lo retira con su nombre —«el error era
