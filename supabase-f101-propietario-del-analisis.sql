@@ -1,8 +1,13 @@
 -- ============================================================
 -- F-101 paso 1 — EL PROPIETARIO PRIMARIO DEL ANÁLISIS
 --
--- ESTADO: ⚠️ PENDIENTE DE EJECUTAR por el usuario en Supabase.
---         Se marcará EJECUTADO cuando él lo confirme, y no antes.
+-- ESTADO: EJECUTADO por el usuario en Supabase el 03/09/2026, antes del push.
+--
+-- ⚠️ INCOMPLETO, Y SE DICE AQUÍ: este SQL cubre `analysis_results` y NO la fila
+--    del job. El worker del exhaustivo escribe su propio análisis y no tiene de
+--    dónde sacar la ruta, así que el camino exhaustivo del chat sigue sin poder
+--    persistir hasta que se ejecute
+--    `supabase-f101b-ruta-en-el-job.sql`. La omisión fue mía al escribirlo.
 -- ============================================================
 --
 -- MOTIVO. Un análisis del chat existe desde que ocurre y se cobra, pero hasta

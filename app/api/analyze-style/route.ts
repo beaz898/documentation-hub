@@ -66,7 +66,7 @@ export async function POST(req: NextRequest) {
     }
     creditsConsumed = getCreditCost('/api/analyze-style');
 
-    const { text, fileName, documentoPropietario: propietarioPedido } = await req.json();
+    const { text, fileName, documentoPropietario: propietarioPedido, storagePath } = await req.json();
     if (!text || typeof text !== 'string' || text.trim().length < 50) {
       return NextResponse.json({ error: 'Texto insuficiente' }, { status: 400 });
     }
@@ -111,6 +111,8 @@ export async function POST(req: NextRequest) {
       userId,
       documentName: fileName || 'sin nombre',
       problemsCount: problems.length,
+      // F-101: desde el chat el dueño es el fichero; desde la bandeja, el documento.
+      storagePath: typeof storagePath === 'string' ? storagePath : null,
       documentoPropietario: documentoPropietario({
         idPedido: propietarioPedido,
         perteneceALaOrg: pertenece,

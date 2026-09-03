@@ -491,6 +491,10 @@ export async function POST(req: NextRequest) {
       analysis,
       analysisType: 'quick',
       documentId: documentoPropietario,
+      // F-101: el propietario PRIMARIO. En el camino del chat el documento no
+      // existe todavía, pero el FICHERO sí — y el análisis es suyo desde que
+      // ocurre. Desde la bandeja llega ausente y manda el documento.
+      storagePath: typeof storagePath === 'string' ? storagePath : null,
     });
     if (!saveResult.ok) {
       // Camino sin staged: el usuario recibe su analisis igual (lo tiene en

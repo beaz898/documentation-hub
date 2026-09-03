@@ -196,7 +196,7 @@ function ImprovementModalDesktop({
     selectionLimits,
     dismissProblem,
     coordenadasDescartadas,
-  } = useCrossDocAnalysis(analysis, reviewedDocumentId);
+  } = useCrossDocAnalysis(analysis, storagePath, reviewedDocumentId);
 
   const {
     styleProblems,
@@ -207,6 +207,7 @@ function ImprovementModalDesktop({
     initialText,
     fileName,
     initialStyleProblems: analysis.styleProblems,
+    storagePath,
     // F-100: el propietario del análisis de estilo. La MISMA prop que usan los
     // descartes desde F-86 —la que existe justamente para no confundirla con
     // `existingDocWithSameName`—, ahora también aquí.

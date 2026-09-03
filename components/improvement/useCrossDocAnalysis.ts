@@ -62,6 +62,8 @@ export interface CoordenadasDeDescarte {
 
 export function useCrossDocAnalysis(
   initialAnalysis: RawAnalysis,
+  /** F-101: la ruta del fichero — propietario primario del análisis en revisión. */
+  storagePath: string | undefined,
   /** F-86 paso 3: el id del documento EN REVISIÓN, presente solo en los caminos
    *  que lo tienen (la bandeja). Con él, cada descarte se registra en el
    *  momento; sin él —la subida desde el chat— se acumulan y viajan a la
@@ -128,6 +130,10 @@ export function useCrossDocAnalysis(
             // lo usaba para las dos cosas, así que el análisis del texto nuevo se
             // guardaba bajo el id del documento VIEJO.
             documentoAReemplazar: documentId ?? undefined,
+            // ⚠️ F-101: SIN ESTO ESTE REANÁLISIS NO TIENE PROPIETARIO NINGUNO —
+            // el documento nuevo no existe y el homónimo no es su dueño—, y la
+            // fila la rechaza el CHECK de la base. El dueño es el fichero.
+            storagePath: storagePath ?? undefined,
           }),
         });
 

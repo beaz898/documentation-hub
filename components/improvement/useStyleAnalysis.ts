@@ -16,6 +16,9 @@ interface UseStyleAnalysisArgs {
    *  ⚠️ Es `reviewedDocumentId` y JAMÁS `existingDocWithSameName`: desde el chat
    *  aquélla es OTRO documento que casualmente comparte nombre (B.163). */
   reviewedDocumentId?: string;
+  /** F-101: la ruta del fichero en almacenamiento — el propietario PRIMARIO del
+   *  análisis mientras se revisa. Ausente en la bandeja, donde manda el documento. */
+  storagePath?: string;
   /**
    * Problemas de estilo precargados (vienen del análisis exhaustivo previo).
    * Si se proporcionan, se mapean al tipo Problem y se usan como estado inicial,
@@ -41,6 +44,7 @@ export function useStyleAnalysis({
   fileName,
   initialStyleProblems,
   reviewedDocumentId,
+  storagePath,
 }: UseStyleAnalysisArgs) {
   // Mapeamos los problemas iniciales una sola vez (no en cada render),
   // así los IDs no cambian con cada render y React no se confunde.
@@ -78,6 +82,9 @@ export function useStyleAnalysis({
             text: currentText,
             fileName: currentFileName,
             documentoPropietario: reviewedDocumentId ?? null,
+            // F-101: desde el chat no hay documento, pero sí fichero — y el
+            // análisis es suyo. Sin esto la fila no tendría propietario ninguno.
+            storagePath: storagePath ?? null,
           }),
         });
         if (!res.ok) {
