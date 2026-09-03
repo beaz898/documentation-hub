@@ -5922,6 +5922,64 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     los dos grupos se corresponden con algo —tablas con RLS de usuario frente a
     tablas de servicio— o si es sedimento.
 
+  B.170 — [DECLARADO 03/09 · NO SON «PERDIDOS»: SON INALCANZABLES] DOCE
+    ANÁLISIS EXHAUSTIVOS PAGADOS CUYO RESULTADO LA INTERFAZ NO REABRE
+
+    ══ LO QUE SE DECLARA, con el cuidado de no llamarlo lo que no es ══
+    Doce análisis exhaustivos lanzados desde el chat, pagados, **cuyo resultado
+    SÍ EXISTE**: vive en la fila del trabajo (`analysis_jobs.result`). Lo que
+    falta no es el dato — **es el camino para verlo**: el `jobId` solo vivía en
+    una variable del navegador y no hay ninguna ruta que liste trabajos, así que
+    solo se llega a un job si ya se sabe su identificador.
+    NO se llaman perdidos a propósito. Perdido es lo que no está; esto está y no
+    se alcanza, que es otro problema y tiene otro arreglo — una pantalla, no una
+    recuperación.
+
+    ══ EL REPARTO, medido ══
+    · 16 exhaustivos del chat en total.
+    · 4 con documento vivo cuyo texto coincide EXACTO con el analizado.
+    · 12 sin documento al que pertenecer: casi todos reanálisis sucesivos del
+      mismo fichero —RRHH-05 aparece cinco veces—, texto corregido que nunca se
+      indexó.
+
+    ⚠️ ══ POR QUÉ DECLARARLO ES LEGÍTIMO Y NO ES APLAZAR ══
+    Porque **la fuga ya está cerrada**, y no por una promesa: por el `CHECK`
+    `analysis_results_tiene_propietario`, que impide escribir una fila sin dueño
+    desde el momento en que se ejecutó. Declarar lo viejo mientras lo nuevo sigue
+    entrando sería aplazar; declararlo con la puerta ya cerrada es cerrar.
+    Es la regla de F-101 P3 aplicada en su mitad legítima: «hoy no hay cliente»
+    vale para NO GASTAR EN MIGRAR LO VIEJO, y no habría valido para dejar la
+    fuga abierta.
+
+    ══ QUÉ LOS HARÍA ALCANZABLES ══
+    La lista de revisiones con su edad (F-101 P2, paso 5 del cierre). No es una
+    migración: es una pantalla. El día que exista, estos doce se ven — su dato
+    nunca se movió de sitio.
+
+  B.171 — [ANOTADO 03/09 · MÉTODO] UNA CONSULTA QUE NO DEVUELVE NADA PUEDE SER LA
+    RESPUESTA, NO LA AVERÍA
+
+    ══ EL CASO ══
+    La sentencia de atribución devolvió CERO filas donde se esperaban cuatro. La
+    reacción natural —y estuvo a punto de ser la de los dos— fue tratarlo como un
+    fallo de la consulta. No lo era: **el cero era el dato**. Decía que las dos
+    tablas no comparten el objeto que yo había dado por común, y con eso deshizo
+    una premisa mía que iba dentro de una sentencia que MODIFICABA DATOS.
+
+    ⚠️ ══ LO QUE ENSEÑA ══
+    Un resultado vacío tiene dos lecturas —«la consulta está mal» y «no hay nada
+    que casar»— y **la segunda es una medición**. Descartarla por incómoda es
+    perder el hallazgo y, peor, arreglar la consulta hasta que devuelva algo, que
+    es como se fabrica un resultado.
+    LA REGLA PRÁCTICA: ante un vacío inesperado, **descomponer antes de
+    corregir** — un tramo por eslabón, con la predicción de cada uno escrita
+    delante. Donde la predicción falle está lo que no se sabía; si se corrige la
+    consulta primero, esa información se borra.
+    Y el agravante que lo hace anotable: aquel vacío protegió un `UPDATE`. Si el
+    enlace hubiera casado por casualidad —dos análisis con el mismo contenido,
+    por ejemplo— la sentencia habría atado filas al documento equivocado y nadie
+    lo habría sabido.
+
 Forma de trabajo: diagnóstico con datos reales antes de arreglar; un
 cambio lógico cada vez; build verde entre medias; SQL en Supabase antes
 del push; plan completo antes de tocar varios archivos.
