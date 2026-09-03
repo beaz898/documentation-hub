@@ -5542,6 +5542,15 @@ NOTAS DE ORDEN (propuesta, a confirmar)
       análisis» (`:462`) y «qué documento excluyo del corpus» (`:87`)— y en este
       camino las dos respuestas no coinciden.
 
+    ⚠️ ══ Y EL DATO QUE CAMBIA LA CONSULTA (03/09, verificado) ══
+    INDEXAR DESPUÉS NO RELLENA EL ID. Nada actualiza `analysis_results.document_id`
+    en el momento de la indexación — no hay un solo UPDATE sobre esa columna en
+    todo el repositorio. Así que un documento que SÍ se indexa se queda igual con
+    su análisis sin identificar, para siempre.
+    Importa porque deshace un supuesto cómodo: no es «se identifica si el usuario
+    indexa». No se identifica nunca. La fuga no depende de que el usuario diga
+    que no.
+
     ══ EL MATERIAL QUE YA ESTÁ EN CASA Y NADIE HA JUNTADO ══
     · `saveResult.id` existe en `analyze-v2:456` y SE TIRA — al cliente solo le
       llega `guardado: saveResult.ok`, un booleano (`:576`).
@@ -5641,6 +5650,73 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     eran dos campos y solo uno estaba justificado. Aquí la instrucción y el fallo
     están en ficheros distintos, así que juntarlos escondería la causa verdadera,
     que es la de arriba: un riesgo bien descrito y mal graduado.
+
+  B.163 — [ABIERTO 03/09 · LA DISTINCIÓN SE HIZO Y NO SE LLEVÓ A TODAS PARTES]
+    EL REANÁLISIS DESDE EL MODAL DE MEJORA GUARDA EL ANÁLISIS BAJO EL ID DE OTRO
+    DOCUMENTO
+
+    ══ EL DATO ══
+    `components/ImprovementModal.tsx:406`:
+        reanalyzeAll(textRef.current, fileName, existingDocWithSameName?.id)
+    Ese tercer argumento viaja como `documentId` a `/api/analyze-v2`
+    (`useCrossDocAnalysis.ts:126`) y de ahí a `document_id` (`analyze-v2:462`).
+    Abierto desde el chat, `existingDocWithSameName` NO es el documento que se
+    está analizando —que todavía no existe— sino OTRO del corpus que comparte
+    nombre. El análisis del texto nuevo se guarda atribuido al documento viejo.
+    Y como la llamada va con `exhaustive: true`, quien lo escribe es EL WORKER.
+
+    ⚠️ ══ LO QUE LO HACE ANOTABLE: NO ES QUE NADIE LO PENSARA ══
+    El propio fichero lo advierte, en mayúsculas, desde F-86 paso 3
+    (`ImprovementModal.tsx:44-55`): «PROP PROPIA, y no `existingDocWithSameName.id`
+    … esa prop significa DOS COSAS distintas según quién abra el modal. Desde la
+    bandeja es el documento en revisión; desde el chat es OTRO documento que
+    casualmente comparte nombre. Usarla aquí escribiría la identidad del descarte
+    contra el documento equivocado.»
+    Se creó `reviewedDocumentId` para eso, y LOS DESCARTES LA USAN BIEN
+    (`useCrossDocAnalysis:239, :268, :294`). **La distinción se hizo para los
+    descartes y no se llevó al análisis.** Un aviso escrito no protege al vecino.
+
+    ⚠️ ══ Y NO SE ARREGLA PASANDO OTRO ID ══
+    En `analyze-v2`, `documentId` contesta a DOS preguntas: «de quién es este
+    análisis» (`:462`) y «qué documento excluyo del corpus para no compararlo
+    consigo mismo» (`:87`). En este camino la segunda respuesta es CORRECTA —no
+    quieres compararte contra el que vas a reemplazar— y la primera es falsa.
+    Separar los dos parámetros es el arreglo; cambiar el valor rompería la
+    comparación. Es la regla de la casa sobre el campo con dos preguntas, con un
+    caso donde las dos respuestas divergen de verdad.
+
+    ══ Y UN RESTO DE B.162 ══
+    `hooks/chat/useDocuments.ts:221` calcula ese homónimo con
+    `d.source !== 'google_drive'` — la lista corta, en el único sitio del repo
+    donde sobrevive tras B.162. Un homónimo de OneDrive puede acabar ahí, y de
+    ahí al diálogo de reemplazo y a este `documentId`.
+
+  B.164 — [ANOTADO 03/09 · MÉTODO, NO CÓDIGO] ANTES DE EXPLICAR UN SÍNTOMA CON
+    UN DESPLIEGUE, COMPROBAR QUÉ SE DESPLEGÓ
+
+    ══ EL CASO ══
+    Durante la remedición se explicaron tres huérfanos como «residuo anterior al
+    commit que cierra el camino del chat», con la hora del despliegue delante.
+    **Ese commit no existía**: nunca se escribió, y el despliegue de esa hora era
+    el del criterio de origen (B.162), que no toca la persistencia.
+    La confusión sobrevivió a que se dijera dos veces, porque la hora del
+    despliegue ERA REAL y encajaba — lo que no encajaba era qué había dentro.
+
+    ══ LAS DOS COMPROBACIONES QUE LO CIERRAN EN UN MINUTO ══
+    · **Qué está desplegado**: Vercel → Deployments → el despliegue `Current` →
+      el SHA del commit, arriba. Si el SHA no es el que se cree, la conversación
+      se acaba ahí.
+    · **Si un comportamiento cambió alguna vez**:
+      `git log -S "<la línea exacta>" -- <fichero>`. Devuelve los commits que
+      añadieron o quitaron esa línea, y no depende de horas ni de zonas horarias.
+      En este caso devolvió UNO —el que la introdujo en julio— y eso cerró la
+      pregunta sin discutir relojes.
+
+    ══ LO QUE ENSEÑA ══
+    Una hora de despliegue es un dato verdadero que puede sostener una conclusión
+    falsa: dice CUÁNDO salió algo, no QUÉ salió. **El SHA es el dato, la hora es
+    la coincidencia.** Y cuando dos personas discuten si un arreglo está vivo, el
+    desempate no es la memoria de ninguna: es `git log -S`.
 
 Forma de trabajo: diagnóstico con datos reales antes de arreglar; un
 cambio lógico cada vez; build verde entre medias; SQL en Supabase antes
