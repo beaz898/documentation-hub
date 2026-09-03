@@ -1,5 +1,45 @@
 # Tandas del harness de tasas
 
+## ⚠️ PENDIENTE DE VERIFICACIÓN (03/09/2026) — ¿MIDIÓ ALGUNA TANDA CON LA RED
+POR NOMBRE ACTIVA?
+
+NO ES UNA CONCLUSIÓN: es una condición que hay que poder declarar en cada
+entrada y que hasta hoy no se registraba.
+
+**LA CONDICIÓN**: hasta el arreglo del parámetro, un documento YA INDEXADO
+analizado DESDE EL CHAT se encontraba a sí mismo entre sus candidatos —el
+parámetro de exclusión viaja nulo en ese camino— y sus contradicciones consigo
+mismo se descartaban aguas abajo por NOMBRE IDÉNTICO, sin dejar rastro en
+ningún contador. Una pasada corrida así midió con una red puesta, y la red se
+va a retirar.
+
+**LO QUE DICE EL FICHERO, y es todo lo que dice**:
+· Tres entradas declaran el camino explícitamente y las tres dicen BANDEJA:
+  la remedición del frente 2 (su maniobra se monta sobre la bandeja), el bloque
+  del verificador («cuatro pasadas, modo rápido desde la bandeja») y F-73
+  («los cinco casos, desde la bandeja de revisión»). Desde la bandeja el
+  parámetro SÍ viaja, así que la exclusión por identidad ya estaba activa y la
+  red no hacía falta.
+· **NINGUNA entrada menciona el chat ni una subida.** Verificado con grep sobre
+  el fichero entero.
+· Pero **la mayoría de las entradas no declaran el camino**, así que el fichero
+  no puede cerrar la pregunta por sí solo.
+
+**EL DISCRIMINADOR, para aplicarlo a lo viejo y para registrarlo en lo nuevo**:
+si un documento se hubiera comparado consigo mismo, aparecería un candidato
+EXTRA con score ≈ 1,0. En la pasada 1 de la remedición el log dice «1 candidato,
+score máx 0,988» en las dos direcciones — un solo candidato, y el de la pareja.
+Eso es INCOMPATIBLE con la autocomparación, y es la evidencia más fuerte que hay
+en el fichero.
+
+**QUÉ HACER**: (1) revisar los logs guardados de las tandas que no declaran
+camino, buscando un candidato con score ≈ 1,0; (2) y desde ahora, **toda entrada
+nueva declara DESDE DÓNDE se lanzó**, que es un dato de una línea que hoy falta
+y que habría contestado esto sin abrir un pendiente.
+
+---
+
+
 Histórico de mediciones. **Crece por arriba: lo más reciente, primero.**
 
 Los **once casos** —qué documentos entran en cada uno y qué debe encontrar—
