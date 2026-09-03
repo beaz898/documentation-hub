@@ -134,6 +134,7 @@ queda superado, pero **no administra su propio estado**.
 | **[F-91](F-91.md)** | 30/08/2026 | «Todas las columnas comunes» admitía dos lecturas, y la mala descartaba hallazgos VERDADEROS: la geometría no se contamina con testimonio. Y la clase de contadores CENTINELA | **vigente** · PAR COMPLETO | La clase CENTINELA — `Contrato_Contadores.md`; la hermana de F-79 (una regla con dos lecturas se ejerce contra un caso medido) — protocolo |
 | **[F-92](F-92.md)** | 31/08/2026 | La supresión suprime por FILA y el diff compara por COLUMNA: el hueco es el territorio de las omisiones —y del mismo dato bajo otro nombre—. Y por qué la cifra de coste no se podía medir | **vigente** · *su P1 CORREGIDO por F-93 en universo y predicado* · PAR COMPLETO | MOTIVO LITERAL — `Contrato_Contadores.md`. TRES PIEZAS POR REGLA DICTADA, «CERO EN N» con la tasa que excluye, y la AMBIGÜEDAD DE ALCANCE DEL CUANTIFICADOR — protocolo |
 | **[F-93](F-93.md)** | 31/08/2026 | `columnas(h)` no tenía universo y las dos lecturas naturales fallan cada una uno de los tres casos: el dato es LA OPOSICIÓN, no la cita. Y la trampa de `'equivalentes'` | **vigente** · PAR COMPLETO | LA CUARTA PIEZA (vacío y ausente; forma existencial) — protocolo. Un comentario que justifica un orden CITA SU INVARIANTE — `CLAUDE.md` |
+| **[F-102](F-102.md)** | 03/09/2026 | Un documento se comparaba con su propia versión reemplazada. El fallo no está en el portero, está en el PADRÓN. Y el sello de estructura no mentía sobre la verificación: mentía sobre la CUSTODIA. | **vigente** · PAR COMPLETO | LO QUE NO DEBE SER CANDIDATO NO SE EXCLUYE, UN CONTADOR CUENTA LO QUE SE DECLARA y LA CIFRA ES LA QUE SE GUARDA — `CLAUDE.md` |
 | **[F-101](F-101.md)** | 03/09/2026 | El propietario existía desde el principio y era EL FICHERO. La (c): se persiste desde que el análisis ocurre, y el documento adopta al nacer. El payload firmado se jubila antes de nacer. | **vigente** · PAR COMPLETO | UNA FILA AFIRMA LO QUE ES, NO A LO QUE APUNTA; LO QUE CUESTA DINERO DEJA REGISTRO AL COBRARSE; y «HOY NO HAY CLIENTE» — `CLAUDE.md` |
 | **[F-100](F-100.md)** | 03/09/2026 | El análisis nace atado o no nace: una sola escritura, en la indexación, con el id en el INSERT. El parámetro se parte en dos, la exclusión pasa a identidad, y el worker resulta ser la condición de reapertura de F-98 cumplida antes de tiempo. | **vigente** · PAR COMPLETO | LA FILA NACE ATADA O NO NACE, UN PARÁMETRO QUE RESPONDE A DOS PREGUNTAS SE SEPARA y EL CRITERIO DE CIERRE — `CLAUDE.md` |
 | **[F-99](F-99.md)** | 03/09/2026 | El análisis del chat persistía una fila antes de la decisión: F-98 no se revoca, estaba a medio aplicar. Régimen efímero completo y payload firmado, que despierta la especificación dormida de F-95 P1. | **vigente** · PAR COMPLETO | SEGUIR LAS ESCRITURAS, NO LOS USOS y LAS PREMISAS DE INACCIÓN PAGAN LA MISMA EVIDENCIA — `CLAUDE.md` |
@@ -149,6 +150,23 @@ queda superado, pero **no administra su propio estado**.
 
 **Once pares completos de F-70 a F-94: F-84 a F-94, todas menos las que no llegaron.** El resto, o a medias o nada:
 
+- **F-102 — PAR COMPLETO**, en `F-102.md` (03/09/2026). **EL FALLO NO ESTÁ EN EL
+  PORTERO, ESTÁ EN EL PADRÓN.** Una versión reemplazada seguía participando en el
+  corpus, y la corrección no es excluirla —eso sería parchear al portero— sino que
+  no esté. Con el enunciado de F-97 delante: participó sin ser nombrada, luego
+  para el sistema ERA corpus; y un documento reemplazado es HISTORIA, no
+  membresía.
+  ⚠️ **La frase que cierra la puerta al nombre**: «el linaje entre versiones se
+  escribe por id en el momento en que ambas existen; el nombre no es vínculo, es
+  coincidencia». El swap tiene los dos ids en la mano — el nombre nunca fue el
+  único vínculo, solo el único ESCRITO.
+  ⚠️ **Y el nudo que cambia el diagnóstico del sello**: no mentía sobre la
+  verificación —las diez discrepancias eran estructuralmente ciertas— sino sobre
+  la CUSTODIA: la persistencia lo estampaba por defecto en vez de recibirlo del
+  productor. «Cuando el error está en el padrón de candidatos, todo lo de aguas
+  abajo procesa correctamente basura correcta.»
+  Y la regla del harness que sale del apunte de método: **las tandas se validan
+  contra el dato PERSISTIDO, jamás contra el registro de ejecución.**
 - **F-101 — PAR COMPLETO**, en `F-101.md` (03/09/2026). **CUATRO CONSULTAS
   BUSCANDO UN PROPIETARIO QUE ESTABA A LA VISTA.** F-98, F-99 y F-100 leyeron
   «propietario» como «documento»; el camino del chat tenía uno desde el primer

@@ -317,6 +317,28 @@ El dueño del proyecto NO es programador. Vercel deploya automáticamente al hac
   saber cuántas llamadas lleva hoy un usuario: cada fila perdida es una llamada
   regalada, y regalada justo cuando la base va peor. Antes de tocar una tabla,
   mirar quién la LEE — no qué nombre tiene. Promovida en F-95 P2 (B.145).
+- **LO QUE NO DEBE SER CANDIDATO NO SE EXCLUYE: NO SE INDEXA.** Una exclusión es
+  un filtro que hay que ACERTAR CADA VEZ —en cada consulta, en cada camino nuevo,
+  y el día que alguien añada uno sin saberlo—; la ausencia no se puede fallar.
+  Antes de escribir una exclusión, la pregunta es por qué eso está en el conjunto.
+  El caso: un documento se comparaba con su propia versión reemplazada, que
+  seguía viva en el índice. La corrección no es excluirla —eso es parchear al
+  portero cuando el error está en el PADRÓN— sino que no esté. Promovida en
+  F-102 P1/P2.
+- **UN CONTADOR CUENTA LO QUE CADA ELEMENTO DECLARA, NO DE DÓNDE VIENE.** Si se
+  rellena por PROCEDENCIA —«esto viene del diff, luego es estructural»— deja de
+  medir en cuanto la procedencia cambia, y lo hace en silencio: el emisor nuevo
+  hereda el sello sin que nadie lo decida.
+  El sello lo escribe QUIEN VERIFICA y viaja con el hallazgo; quien persiste
+  AUDITA la procedencia, no la regala. Promovida en F-102 P3.
+- **LA CIFRA QUE SE MIDE ES LA QUE SE GUARDA, NO LA QUE SE IMPRIME.** Un registro
+  de ejecución describe el CAMINO; la base describe el RESULTADO. Las tandas se
+  validan contra el dato persistido —contadores y filas—, jamás contra el log.
+  ⚠️ Y su corolario para quien escriba logs: **todo registro por-unidad imprime
+  además su AGREGADO, o no imprime cifras.** El caso: una línea por candidato que
+  con un candidato ERA el total y con dos dejó de serlo — «un registro que era
+  completo cuando se escribió deja de serlo cuando cambia lo que describe, y no
+  avisa». Promovida en F-102.
 - **UNA FILA AFIRMA LA EXISTENCIA DE AQUELLO DE LO QUE ES FILA, NO DE AQUELLO A
   LO QUE APUNTA.** Un análisis existe desde que ocurre — no desde que se decide
   qué hacer con su resultado. Su propietario es lo que ya existe cuando ocurre, y
