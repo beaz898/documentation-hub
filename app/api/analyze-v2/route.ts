@@ -345,6 +345,11 @@ export async function POST(req: NextRequest) {
           user_id: userId,
           status: 'pending',
           document_name: fileName,
+          // F-101: LA RUTA VIAJA AL JOB porque el exhaustivo lo escribe el WORKER,
+          // en otro proceso, y su única fuente es esta fila. Sin ella, el análisis
+          // más caro del sistema nacería sin dueño — que es donde nacieron los
+          // dieciséis. Nula desde la bandeja: allí el dueño es el documento.
+          storage_path: typeof storagePath === 'string' ? storagePath : null,
           document_text: stripSegmentationMarkers(text),
           sample_texts: JSON.stringify(sampleTexts),
           exclude_document_id: excludeDocumentId ?? null,

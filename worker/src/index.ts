@@ -3,6 +3,7 @@ import { runExhaustiveAnalysisPipeline } from '../../lib/analysis/pipeline';
 import type { ExhaustivePipelineInput } from '../../lib/analysis/pipeline';
 import type { StoredChunk } from '../../lib/read-chunks';
 import { saveAnalysisResult } from '../../lib/persist-analysis';
+import { propietariosDelJob } from '../../lib/analysis/propietarios';
 import { leerDescartes } from '../../lib/analysis/descartes';
 import { purgeOrganization, type PurgeResult } from '../../lib/purge-org';
 import { refundCredits } from '../../lib/credits';
@@ -58,7 +59,11 @@ interface AnalysisJob {
   document_text: string;
   sample_texts: string;
   exclude_document_id: string | null;
+  /** F-101 — PROPIETARIO ADOPTIVO del análisis que produzca este job. */
   document_id: string | null;
+  /** F-101 — PROPIETARIO PRIMARIO: la ruta del fichero que se analizó. Nula en
+   *  los jobs de la bandeja, donde el dueño es el documento. */
+  storage_path: string | null;
   exclude_fingerprints: string;
   /** F-71 paso 2: jsonb con los ids de los otros documentos de la tanda.
    *  `string | null` porque un job encolado ANTES de la migración no tiene
@@ -183,13 +188,25 @@ async function processJob(job: AnalysisJob): Promise<void> {
     // INSERT mas. Si el proceso muere justo ahi, el job se queda en
     // 'processing' — igual que si moria entre el pipeline y el update de antes.
     // La ventana se mueve, no se abre, y la barre el umbral de jobs zombis.
+    const propietarios = propietariosDelJob(job);
+    if (!propietarios.tienePropietario) {
+      // No debería ocurrir: todo job nuevo trae uno de los dos. Si ocurre, es un
+      // job encolado ANTES de la migración, y se dice en voz alta en vez de
+      // dejar que la base lo rechace con el nombre de un CHECK.
+      console.error(`[worker] Job ${job.id}: SIN PROPIETARIO (ni ruta ni documento) — el análisis no se podrá persistir`);
+    }
+
     const saveResult = await saveAnalysisResult(supabase, {
       orgId: job.org_id,
       userId: job.user_id,
       documentName: job.document_name,
       analysis,
       analysisType: 'exhaustive',
-      documentId: job.document_id ?? undefined,
+      // F-101: el worker YA NO DECIDE el propietario por su cuenta. Hasta hoy
+      // ponía `job.document_id ?? undefined`, que para un job del chat es NULO —
+      // y ahí nacieron los dieciséis análisis pagados sin dueño.
+      documentId: propietarios.documentId,
+      storagePath: propietarios.storagePath,
     });
     if (!saveResult.ok) {
       // Se loguea con contexto (F-10) en vez de tragar, y ADEMAS viaja en la
@@ -336,7 +353,11 @@ async function pollAndProcess(): Promise<void> {
     // descartaran por tener su organizacion ocupada.
     const { data: candidates, error } = await supabase
       .from('analysis_jobs')
-      .select('id, org_id, user_id, document_name, document_text, sample_texts, exclude_document_id, document_id, exclude_fingerprints, batch_document_ids, credits_consumed, new_document_chunks')
+      // ⚠️ `storage_path` ENTRA AQUÍ PORQUE DECIDE: es el propietario del análisis
+      // en los jobs del chat. Séptima vez que esta tubería pierde un campo en un
+      // select (B.144) — y aquí el defecto silencioso sería un análisis de 30
+      // créditos que la base rechaza por no tener dueño.
+      .select('id, org_id, user_id, document_name, document_text, sample_texts, exclude_document_id, document_id, storage_path, exclude_fingerprints, batch_document_ids, credits_consumed, new_document_chunks')
       .eq('status', 'pending')
       .order('created_at', { ascending: true })
       .limit(slotsAvailable * 4);

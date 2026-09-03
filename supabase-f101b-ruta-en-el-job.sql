@@ -1,7 +1,7 @@
 -- ============================================================
 -- F-101 paso 2b — LA RUTA DEL FICHERO EN LA FILA DEL TRABAJO
 --
--- ESTADO: ⚠️ PENDIENTE DE EJECUTAR por el usuario en Supabase.
+-- ESTADO: EJECUTADO por el usuario en Supabase el 03/09/2026, antes del push.
 -- ============================================================
 --
 -- POR QUÉ HACE FALTA UN SEGUNDO SQL, Y LA OMISIÓN FUE MÍA: el primero dio a

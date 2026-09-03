@@ -61,3 +61,30 @@ export function propietariosDelAnalisis(entrada: Propietarios): PropietariosDeci
     tienePropietario: storagePath !== null || documentId !== null,
   };
 }
+
+/** Lo mínimo que hace falta de una fila de `analysis_jobs` para saber de quién
+ *  será su análisis. */
+export interface FilaDeJob {
+  storage_path?: string | null;
+  document_id?: string | null;
+}
+
+/**
+ * DE QUIÉN SERÁ EL ANÁLISIS QUE PRODUZCA ESTE TRABAJO.
+ *
+ * ⚠️ EXISTE PARA QUE EL WORKER NO DECIDA POR SU CUENTA. El exhaustivo se escribe
+ * en OTRO PROCESO, y hasta hoy ese proceso resolvía el propietario solo —
+ * `documentId: job.document_id ?? undefined`— que para un job del chat es NULO, y
+ * ahí nacían los dieciséis análisis pagados sin dueño. El criterio de quién es el
+ * propietario se implementa una vez, y el worker pregunta.
+ *
+ * ⚠️ Y UN JOB DE LA BANDEJA NO TIENE RUTA, legítimamente: su documento ya existe
+ * y es su dueño. Que falte la ruta no es un fallo — lo que sería un fallo es que
+ * faltaran las dos, y de eso se encarga la comprobación de arriba.
+ */
+export function propietariosDelJob(job: FilaDeJob): PropietariosDecididos {
+  return propietariosDelAnalisis({
+    storagePath: job.storage_path,
+    documentId: job.document_id,
+  });
+}

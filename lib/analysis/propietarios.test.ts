@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { propietariosDelAnalisis } from './propietarios';
+import { propietariosDelAnalisis, propietariosDelJob } from './propietarios';
 
 /**
  * F-101 — LA FILA NACE CON DUEÑO, Y HAY DOS.
@@ -68,5 +68,33 @@ describe('SIN DUEÑO NO SE ESCRIBE', () => {
   /** Un dueño vacío no anula al otro que sí existe. */
   it('un dueño válido y otro vacío sigue teniendo dueño', () => {
     expect(propietariosDelAnalisis({ storagePath: '  ', documentId: 'doc-1' }).tienePropietario).toBe(true);
+  });
+});
+
+describe('el worker no decide el propietario por su cuenta', () => {
+  /**
+   * ⚠️ EL CASO DE LOS DIECISÉIS. El worker resolvía el dueño solo —
+   * `job.document_id ?? undefined`— y para un job del chat eso es NULO. Ahí
+   * nacieron dieciséis análisis exhaustivos pagados y sin dueño.
+   */
+  it('un job del chat: el dueño es el fichero', () => {
+    const p = propietariosDelJob({ storage_path: 'u/1-doc.pdf', document_id: null });
+    expect(p.tienePropietario).toBe(true);
+    expect(p.storagePath).toBe('u/1-doc.pdf');
+    expect(p.documentId).toBeNull();
+  });
+
+  /** Un job de la bandeja no tiene ruta, y no es un fallo: su documento existe. */
+  it('un job de la bandeja: el dueño es el documento, sin ruta', () => {
+    const p = propietariosDelJob({ storage_path: null, document_id: 'doc-1' });
+    expect(p.tienePropietario).toBe(true);
+    expect(p.documentId).toBe('doc-1');
+  });
+
+  /** ⚠️ MITAD CONTRARIA: un job encolado ANTES de la migración no tiene ninguno,
+   *  y eso tiene que verse — no colarse hasta que la base lo rechace. */
+  it('un job anterior a la migración se ve venir', () => {
+    expect(propietariosDelJob({ storage_path: null, document_id: null }).tienePropietario).toBe(false);
+    expect(propietariosDelJob({}).tienePropietario).toBe(false);
   });
 });
