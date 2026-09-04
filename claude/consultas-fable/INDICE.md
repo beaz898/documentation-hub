@@ -134,6 +134,7 @@ queda superado, pero **no administra su propio estado**.
 | **[F-91](F-91.md)** | 30/08/2026 | «Todas las columnas comunes» admitía dos lecturas, y la mala descartaba hallazgos VERDADEROS: la geometría no se contamina con testimonio. Y la clase de contadores CENTINELA | **vigente** · PAR COMPLETO | La clase CENTINELA — `Contrato_Contadores.md`; la hermana de F-79 (una regla con dos lecturas se ejerce contra un caso medido) — protocolo |
 | **[F-92](F-92.md)** | 31/08/2026 | La supresión suprime por FILA y el diff compara por COLUMNA: el hueco es el territorio de las omisiones —y del mismo dato bajo otro nombre—. Y por qué la cifra de coste no se podía medir | **vigente** · *su P1 CORREGIDO por F-93 en universo y predicado* · PAR COMPLETO | MOTIVO LITERAL — `Contrato_Contadores.md`. TRES PIEZAS POR REGLA DICTADA, «CERO EN N» con la tasa que excluye, y la AMBIGÜEDAD DE ALCANCE DEL CUANTIFICADOR — protocolo |
 | **[F-93](F-93.md)** | 31/08/2026 | `columnas(h)` no tenía universo y las dos lecturas naturales fallan cada una uno de los tres casos: el dato es LA OPOSICIÓN, no la cita. Y la trampa de `'equivalentes'` | **vigente** · PAR COMPLETO | LA CUARTA PIEZA (vacío y ausente; forma existencial) — protocolo. Un comentario que justifica un orden CITA SU INVARIANTE — `CLAUDE.md` |
+| **[F-103](F-103.md)** | 04/09/2026 | La curva no es descendente: es descendente en los caminos MEDIDOS y desconocida en los no medidos. Un cero solo confirma con control positivo o visión declarada. El modo Mejora, en cuarentena. | **vigente** · PAR COMPLETO | UN CERO SE GANA, EL CIERRE ES COBERTURA y LA CURVA DESCRIBE DÓNDE SE MIRÓ — `CLAUDE.md` |
 | **[F-102](F-102.md)** | 03/09/2026 | Un documento se comparaba con su propia versión reemplazada. El fallo no está en el portero, está en el PADRÓN. Y el sello de estructura no mentía sobre la verificación: mentía sobre la CUSTODIA. | **vigente** · PAR COMPLETO | LO QUE NO DEBE SER CANDIDATO NO SE EXCLUYE, UN CONTADOR CUENTA LO QUE SE DECLARA y LA CIFRA ES LA QUE SE GUARDA — `CLAUDE.md` |
 | **[F-101](F-101.md)** | 03/09/2026 | El propietario existía desde el principio y era EL FICHERO. La (c): se persiste desde que el análisis ocurre, y el documento adopta al nacer. El payload firmado se jubila antes de nacer. | **vigente** · PAR COMPLETO | UNA FILA AFIRMA LO QUE ES, NO A LO QUE APUNTA; LO QUE CUESTA DINERO DEJA REGISTRO AL COBRARSE; y «HOY NO HAY CLIENTE» — `CLAUDE.md` |
 | **[F-100](F-100.md)** | 03/09/2026 | El análisis nace atado o no nace: una sola escritura, en la indexación, con el id en el INSERT. El parámetro se parte en dos, la exclusión pasa a identidad, y el worker resulta ser la condición de reapertura de F-98 cumplida antes de tiempo. | **vigente** · PAR COMPLETO | LA FILA NACE ATADA O NO NACE, UN PARÁMETRO QUE RESPONDE A DOS PREGUNTAS SE SEPARA y EL CRITERIO DE CIERRE — `CLAUDE.md` |
@@ -150,6 +151,20 @@ queda superado, pero **no administra su propio estado**.
 
 **Once pares completos de F-70 a F-94: F-84 a F-94, todas menos las que no llegaron.** El resto, o a medias o nada:
 
+- **F-103 — PAR COMPLETO**, en `F-103.md` (04/09/2026). **FABLE CORRIGE SU PROPIA
+  CURVA**: «no es descendente — es descendente en los caminos MEDIDOS y
+  desconocida en los no medidos». El hallazgo de hoy no es la curva subiendo: es
+  **un camino entrando por primera vez en la población medida** y trayendo su
+  deuda de origen.
+  ⚠️ **La respuesta al director**: ni sí ni no — «se enseña esto, no se enseña
+  esto otro, y la lista existe por escrito». **Mejora con IA queda en
+  cuarentena** hasta tener su tanda contra las quince.
+  ⚠️ **La regla del cero**: confirma solo con CONTROL POSITIVO (el camino ya
+  produjo un no-cero) o con VISIÓN DECLARADA. «Un cero sin control positivo es
+  una pantalla apagada, no una medición.»
+  Y la frase que Fable pide conservar literal: «el argumento del cero de
+  anteanoche era correcto pero no verificable con lo que teníamos — es la
+  distinción que separa un equipo que se mide de uno que se convence».
 - **F-102 — PAR COMPLETO**, en `F-102.md` (03/09/2026). **EL FALLO NO ESTÁ EN EL
   PORTERO, ESTÁ EN EL PADRÓN.** Una versión reemplazada seguía participando en el
   corpus, y la corrección no es excluirla —eso sería parchear al portero— sino que

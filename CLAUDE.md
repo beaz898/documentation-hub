@@ -317,6 +317,32 @@ El dueño del proyecto NO es programador. Vercel deploya automáticamente al hac
   saber cuántas llamadas lleva hoy un usuario: cada fila perdida es una llamada
   regalada, y regalada justo cuando la base va peor. Antes de tocar una tabla,
   mirar quién la LEE — no qué nombre tiene. Promovida en F-95 P2 (B.145).
+- **UN CERO ES UN RESULTADO VÁLIDO SOLO SI EL SISTEMA PUEDE DEMOSTRAR QUE
+  BUSCÓ.** Todo contador cuyo cero se lea como confirmación va acompañado del
+  DENOMINADOR: cuántos candidatos había, cuántos se evaluaron, cuántos se
+  descartaron y por qué.
+  LA FORMA OPERATIVA: un cero confirma si y solo si **(a)** el camino que lo
+  produjo ha producido un NO-cero en las mismas condiciones —control positivo— o
+  **(b)** la visión está declarada y es positiva. Sin (a) ni (b) se registra como
+  NO VERIFICADO: ni bueno ni malo, pendiente.
+  ⚠️ «Un cero sin control positivo es una pantalla apagada, no una medición.»
+  El contraste que la enseña: el cero de huérfanos tenía control —se habían visto
+  y limpiado huérfanos reales—; el cero de «esa pareja no tiene clave» no lo
+  tenía, y **el mismo camino, ciego, habría dado el mismo cero.** Promovida en
+  F-103 P2.
+- **EL CRITERIO DE CIERRE NO ES LA AUSENCIA DE HALLAZGOS: ES LA COBERTURA DE LA
+  BÚSQUEDA.** Se cierra cuando se ha buscado donde el usuario va a ir, no cuando
+  se deja de encontrar. «No aparecen más» y «no hemos mirado donde están» se
+  parecen mucho desde dentro.
+  Corolario: a un camino sin medir no se le audita buscando fallos — **se le da
+  tanda**. Promovida en F-103 P4.
+- **LA CURVA DE GRAVEDAD NO DESCRIBE EL SISTEMA: DESCRIBE DÓNDE SE HA MIRADO.**
+  Un hallazgo grave nuevo no significa que el sistema empeore — significa que se
+  miró en un sitio nuevo. **La frontera del riesgo no está en el tiempo («cada
+  semana mejores») sino en la COBERTURA** («cada camino medido, mejor; cada
+  camino sin medir, incógnita»).
+  ⚠️ Corrige el enunciado de F-100, que la presentaba como descendente-monótona,
+  y lo corrige su propio autor. Promovida en F-103 P3.
 - **LO QUE NO DEBE SER CANDIDATO NO SE EXCLUYE: NO SE INDEXA.** Una exclusión es
   un filtro que hay que ACERTAR CADA VEZ —en cada consulta, en cada camino nuevo,
   y el día que alguien añada uno sin saberlo—; la ausencia no se puede fallar.
