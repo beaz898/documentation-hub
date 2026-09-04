@@ -6398,6 +6398,62 @@ NOTAS DE ORDEN (propuesta, a confirmar)
        contador— un documento indexado sin estructura teniendo un origen que sí
        la tenía es exactamente el tipo de cosa que debería contarse.
 
+  B.180 — [ABIERTO 04/09 · DECISIÓN DE PRODUCTO SIN ESCRIBIR] LOS DOS BOTONES DEL
+    MODAL COBRAN Y NO DICEN LO QUE CUESTAN, Y EL PRODUCTO SÍ SABE DECIRLO EN OTRO
+    SITIO
+
+    ⚠️ ══ EMPIEZA POR UNA CORRECCIÓN MÍA, PORQUE LA PREGUNTA NACIÓ DE UN ERROR ══
+    Escribí en el material del censo que `analyze-style` «se dispara con un
+    `useEffect` al abrir el modal» y que «abrir el modal cuesta 2 créditos sin que
+    nadie pulse». **Es FALSO.** `useStyleAnalysis.ts` no tiene un solo `useEffect`;
+    `reanalyzeStyle` es un `useCallback` que solo invoca `handleReanalyzeStyle`
+    (`ImprovementModal.tsx:392`), colgado del `onClick`. **Nadie cobra nada por
+    abrir el modal.**
+    El error salió de un `grep` cuyo patrón llevaba `exhaustive` y casó con el
+    `eslint-disable` de `react-hooks/exhaustive-deps` (`:57`), que está sobre un
+    `useMemo`. Leí «deps» y escribí «efecto». Es una premisa de riesgo escrita
+    como hecho, de las de F-99: no hay commit que la ejercite, así que no chilla.
+
+    ══ Y LO QUE QUEDA EN PIE AL QUITAR EL ERROR, que sí es real ══
+    Los dos botones del modal cuestan dinero y **no lo dicen**:
+      · «Re-analizar todo» → **30 créditos** (exhaustivo, siempre).
+      · «Reanalizar estilo» → **2 créditos**.
+    Sus `title` describen la acción y no el precio: «Volver a analizar
+    contradicciones y duplicados contra el corpus» y «Volver a analizar solo el
+    estilo del texto actual» (`messages/es.json:246-247`). En todo
+    `components/improvement/` **no hay ni una cadena que mencione créditos**.
+
+    ⚠️ ══ POR QUÉ ESTO ES UNA DECISIÓN Y NO UN OLVIDO ══
+    **El producto sabe declarar precios, y lo hace: `exhaustiveDesc` dice «Coste:
+    30 créditos» (`es.json:202`) en el diálogo del análisis exhaustivo.** O sea:
+    el MISMO importe, 30 créditos, se declara cuando se pide desde el diálogo y no
+    se declara cuando se pide desde el botón del modal. No es que nadie supiera
+    hacerlo — es que en un sitio se hizo y en el otro no, y **nadie escribió por
+    qué**. Eso es exactamente lo que la pregunta del usuario perseguía.
+
+    ══ Y HAY UN AGRAVANTE DE DISEÑO, verificado ══
+    **El pipeline RÁPIDO no analiza estilo**: `runAnalysisPipeline` solo llama a
+    `runCorePipeline` (`pipeline.ts:1096`); `analyzeStyle` únicamente corre en el
+    exhaustivo (`:1129`). Luego quien abra el modal tras un análisis rápido —el
+    camino común— **ve la sección de estilo VACÍA y un botón al lado**. El diseño
+    invita a pulsar justo el botón cuyo precio no se enseña.
+
+    ══ LO QUE NO SE HA COMPROBADO, y se declara ══
+    NO consta que ninguno de los dos botones se haya pulsado nunca en producción:
+    cero apariciones de `analyze-style` y de `/api/improve` en los tres ficheros
+    del harness. **No se afirma que nadie los haya pulsado** —quien estuvo delante
+    de la pantalla puede desmentirlo—; se afirma que no hay registro.
+
+    ══ LAS PREGUNTAS QUE HAY QUE CONTESTAR, no la solución ══
+    1. ¿Fue deliberado declarar el precio en el diálogo del exhaustivo y no en el
+       botón que lanza ese mismo exhaustivo? Si lo fue, no está escrito en ningún
+       sitio; si no lo fue, son dos sitios que decidieron distinto sin saberlo.
+    2. ¿El precio va en el `title`, en la etiqueta, o en una confirmación? No es lo
+       mismo: un `title` no se lee en móvil ni con teclado.
+    3. ¿Y el estilo vacío del camino rápido es una carencia o una oferta? Si el
+       rápido no hace estilo a propósito, el botón es el modo de comprarlo — y
+       entonces el precio es todavía más obligatorio.
+
 Forma de trabajo: diagnóstico con datos reales antes de arreglar; un
 cambio lógico cada vez; build verde entre medias; SQL en Supabase antes
 del push; plan completo antes de tocar varios archivos.

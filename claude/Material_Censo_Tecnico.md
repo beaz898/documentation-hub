@@ -4,6 +4,21 @@
 son reales; el cruce lo hace el usuario. Aquí no hay plan y no hay orden de
 prioridad: solo lo que el repositorio dice, con su fichero y su línea.
 
+> ⚠️ **CORRECCIÓN DEL 04/09, POSTERIOR A LA PRIMERA VERSIÓN DE ESTE FICHERO.**
+> Escribí que `analyze-style` «se dispara con un `useEffect` al abrir el modal» y
+> que «abrir el modal ya cuesta 2 créditos sin que nadie pulse». **Las dos cosas
+> son falsas.** `useStyleAnalysis.ts` **no tiene un solo `useEffect`** — cero
+> apariciones—: `reanalyzeStyle` es un `useCallback` que solo llama
+> `handleReanalyzeStyle` (`ImprovementModal.tsx:392`), colgado del `onClick` del
+> botón. Nadie cobra nada por abrir el modal.
+> **De dónde salió el error**: mi primer `grep` sobre ese fichero llevaba
+> `exhaustive` en el patrón y casó con el `eslint-disable` de
+> `react-hooks/exhaustive-deps` de la línea 57 —que está sobre un `useMemo`—.
+> Leí «deps» y escribí «efecto». **Es exactamente una premisa de riesgo escrita
+> como hecho**, y de las que fallan en silencio: no había commit que la
+> ejercitara. Lo corregido está marcado abajo; lo que la corrección deja en pie
+> —que es una decisión de producto sin escribir— está en B.180.
+
 ## Los cuatro estados de prueba, y por qué son cuatro y no dos
 
 La condición era distinguir producción de suite. Al aplicarla aparece un tercer
@@ -36,8 +51,8 @@ maquinaria que ese camino usa está probada»*, jamás *«ese camino está proba
 |---|---|---|---|---|---|---|
 | `/api/analyze-v2` | **rápido** | Vercel | `maxDuration 120` | 5 cr | 30 | **P** |
 | `/api/analyze-v2` | **exhaustivo** | crea job → **worker Railway** | worker sin límite | 30 cr (reembolso parcial) | 10 | **P** |
-| `/api/analyze-style` | único | Vercel | `maxDuration 60` | 2 cr | 20 | **e** (deducción) |
-| `/api/improve` | único | Vercel | `maxDuration 120` | 1 cr | 50 | **e** (deducción) |
+| `/api/analyze-style` | único | Vercel | `maxDuration 60` | 2 cr | 20 | **∅** ⚠️ corregido |
+| `/api/improve` | único | Vercel | `maxDuration 120` | 1 cr | 50 | **∅** ⚠️ corregido |
 | `/api/ask` | único | Vercel | **`maxDuration 30`** (`vercel.json`) | 1 cr | 100 | **e** |
 | `/api/agent/conversations/[id]/message` | conversacional | Vercel | — | **por tokens**, estimado + reconciliado | — | **∅** ⚠️ |
 
@@ -87,16 +102,24 @@ Ocho disparadores. Los dos que importan son los que **se disparan solos**.
 | `useDocuments` (chat) | `useDocuments.ts:254` | `analyze-v2` exhaustivo | botón, tras el rápido |
 | `useReviewAnalysis` | `useReviewAnalysis.ts:68` | `analyze-v2` rápido **o** exhaustivo | botón de la bandeja, **en bucle** |
 | `useCrossDocAnalysis` | `useCrossDocAnalysis.ts:117` | `analyze-v2` **siempre exhaustivo** | «Reanalizar todo» |
-| `useStyleAnalysis` | `useStyleAnalysis.ts:71` | `analyze-style` | ⚠️ **`useEffect` al abrir el modal** |
+| `useStyleAnalysis` | `useStyleAnalysis.ts:71` | `analyze-style` | **`onClick` del botón**, y solo eso |
 | `useImprovementChat` | `useImprovementChat.ts:110` | `improve` | mensaje del usuario |
 | `DocGapButton` | `DocGapButton.tsx:24` | `documentation-gaps` | **no llama a un modelo** |
 | `useIndexing` | `useIndexing.ts:54` | `index-text` | «Guardar versión corregida» |
 
-⚠️ **`useStyleAnalysis` se dispara con un `useEffect`**: abrir el modal ya cuesta
-2 créditos, sin que nadie pulse nada. Por eso su estado es `e` y no `∅` — ha
-corrido en cada pasada del 04/09 que abriera el modal. Que haya corrido es
-deducción sólida; **qué devolvió no lo sabe nadie**: cero apariciones de
-`analyze-style` en los tres ficheros del harness.
+⚠️ **`useStyleAnalysis` NO se dispara solo** —ver la corrección de la cabecera—,
+y al comprobarlo aparece algo que sí es cierto y es más interesante: **de dónde
+salen los problemas de estilo que el modal enseña al abrirse.** No de este
+endpoint, sino de `analysis.styleProblems`, que produce **el pipeline
+EXHAUSTIVO** (`pipeline.ts:1129`).
+**Y el rápido no hace estilo**: `runAnalysisPipeline` solo llama a
+`runCorePipeline` (`:1096`). Luego un modal abierto tras un análisis rápido
+—el camino más común— **enseña la sección de estilo vacía, con un botón al lado
+que cuesta 2 créditos**. Eso no es un cobro oculto: es un botón sin precio, y es
+B.180.
+Su estado corregido es `∅` y no `e`: el `e` lo sostenía la premisa falsa. **Cero
+apariciones de `analyze-style` en los tres ficheros del harness**, y ninguna
+evidencia de que se haya pulsado nunca. Lo mismo vale para `/api/improve`.
 
 ⚠️ **`ReanalyzeButtons` se pinta sin condición** (`ChatPanel.tsx:219`), y el
 modal se abre desde dos sitios con cuerpos distintos. Es B.177.
@@ -200,6 +223,20 @@ prueba **la guarda misma**, no solo la maquinaria de debajo.
 
 Ni tanda, ni test, ni evidencia de que haya corrido. **Doce.**
 
+⚠️ **Y LA FRASE QUE HAY QUE LLEVARLE AL DIRECTOR, porque es lo que la lista
+significa y no se ve leyéndola de arriba abajo: NO SON DOCE AGUJEROS SUELTOS.
+SON DOCE CON EL PRINCIPAL DENTRO.**
+Las entradas 1, 2 y 12 son **la misma superficie** —el modal de mejora—, y esa
+superficie no es una función lateral: es **a la que el producto empuja al cliente
+en cuanto sube un documento con problemas**. `hasIssues` abre el modal de
+decisión y ofrece «Mejorar con IA» (`UploadActions.tsx:71`); la bandeja ofrece el
+mismo botón (`ReviewActions.tsx:162`). Las dos puertas del producto llevan al
+mismo sitio, y ese sitio está entero en esta lista.
+Dicho de la forma en que cambia la prioridad: **el problema no es que falten doce
+caminos por medir — es que el camino PRINCIPAL es uno de ellos**, y lleva dentro
+un fallo confirmado (B.177), otro deducido (B.179) y un botón sin precio (B.180).
+Los otros nueve son periferia real; éste no.
+
 **Caminos completos (4)**
 1. **A6** — MODAL(bandeja) · Reanalizar todo. Además **roto** (B.177).
 2. **`/api/index-text`** — guardar la versión corregida. Cero en el harness.
@@ -227,11 +264,14 @@ Ni tanda, ni test, ni evidencia de que haya corrido. **Doce.**
 11. **Cualquier análisis con `.pdf`, `.docx`, `.txt` o `.md` en la SUITE.** En
     producción sí; por la suite, ni uno. La extracción de cuatro de las cinco
     ramas no tiene una sola prueba determinista.
-12. **`/api/analyze-style` y `/api/improve` con cifra.** Han corrido —el estilo
-    se dispara solo al abrir el modal— y **no existe una sola cifra suya**: cero
+12. **`/api/analyze-style` y `/api/improve`.** ⚠️ **CORREGIDO**: los daba por
+    ejercidos porque creí que el estilo se disparaba solo. **No se dispara.** Los
+    dos cuelgan de un gesto explícito del usuario —el botón y el mensaje del
+    chat— y no hay ninguna evidencia de que ese gesto se haya hecho nunca: cero
     apariciones en `Tandas_Harness.md`, `Casos_Harness.md` y
-    `Protocolo_Harness_Tasas.md`. Son `e`, no `∅`, y por eso van aparte: no hay
-    que estrenarlos, hay que **mirarlos**.
+    `Protocolo_Harness_Tasas.md`. **Son `∅` como los otros once**, y con la
+    corrección la lista queda por fin homogénea: los doce lo son de verdad.
+    Quien puede desmentirlo es quien estuvo delante de la pantalla, no yo.
 
 ---
 
@@ -247,27 +287,35 @@ manda al cliente.** Un análisis con `hasIssues` abre el modal de decisión y
 ofrece «Mejorar con IA» (`UploadActions.tsx:71`), y la bandeja ofrece el mismo
 botón (`ReviewActions.tsx:162`). Las dos puertas empujan al mismo sitio.
 
-**1 · `analyze-style` — no es probabilidad, es certeza.** (entrada 12)
-Se dispara con un `useEffect` al abrir el modal (`useStyleAnalysis.ts:71`): el
-cliente no tiene que decidir nada ni pulsar nada. **El primer documento con
-problemas que suba ya lo ejecuta**, y le cobra 2 créditos. Ha corrido cientos de
-veces y no existe una sola cifra suya. No hay que estrenarlo: hay que mirarlo.
+⚠️ **ESTE ORDEN ESTÁ REHECHO TRAS LA CORRECCIÓN.** En la primera versión
+`analyze-style` era el número 1 «por certeza, no por probabilidad», y esa certeza
+no existía. Baja al 4, y lo que era su argumento —que se ejecuta sin que nadie
+decida— **desaparece de la lista entera**: hoy no hay ni un solo camino de pago
+que se dispare sin un gesto del usuario. Es una buena noticia que solo aparece al
+corregir el error.
 
-**2 · `index-text` — el final del único flujo que el producto empuja.** (entrada 2)
+**1 · `index-text` — el final del único flujo que el producto empuja.** (entrada 2)
 Si el modal es la acción recomendada, «guardar la versión corregida» es como
 termina. Es el camino que **cierra** el gesto que el producto sugiere, y es `∅`:
 ni tanda, ni test, ni evidencia de haber corrido. **Y ahora lleva B.179 colgando.**
 
-**3 · A6 — el mismo botón, desde la puerta por la que entran los documentos.** (entrada 1)
+**2 · A6 — el mismo botón, desde la puerta por la que entran los documentos.** (entrada 1)
 Quien conecte Drive se encuentra la bandeja llena; abrir uno y pulsar «Reanalizar
 todo» es el gesto natural. **Hoy está roto** (B.177) y cobra 30 créditos por una
 fracción silenciosa.
 
-**4 · `csv` — el formato que sale de cualquier otro sistema.** (entrada 5)
+**3 · `csv` — el formato que sale de cualquier otro sistema.** (entrada 5)
 Está en el `accept` del selector y en la lista de `ingest`. Un cliente que exporte
 de su ERP, de su CRM o de su gestor de turnos produce CSV sin pensarlo. **Y es
 donde el daño es total y mudo**: un CSV es una tabla y entra por la rama cruda
 como un churro de texto, sin una sola celda.
+
+**4 · `analyze-style` — el botón que rellena una sección vacía.** (entrada 12)
+Ya no es certeza, pero sigue arriba, y por una razón que solo se ve al mirar de
+dónde vienen los problemas de estilo: **el pipeline rápido no los produce**. Quien
+abra el modal tras un análisis rápido —el camino común— ve la sección de estilo
+vacía y un botón «Reanalizar estilo» al lado. **El diseño invita a pulsarlo**, y
+el botón no dice que cuesta 2 créditos (B.180).
 
 ## Y las que NO se pisan el primer día, dicho para que no ocupen sitio
 
