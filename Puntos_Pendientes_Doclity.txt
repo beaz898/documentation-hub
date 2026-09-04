@@ -6146,6 +6146,90 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     variable que la agrupación no fijó, y decide entre «el sync solo mira su
     organización» y «el source de hoy no era el de entonces».
 
+  B.175 — [ABIERTO 04/09 · ⚠️ PRIMERA FAMILIA: EL PRODUCTO ENSEÑA UN RESULTADO
+    PLAUSIBLE E INCOMPLETO · DECISIÓN DE PRODUCTO] «MEJORAR CON IA» SOBRE UNA HOJA
+    DE CÁLCULO DEVUELVE UNA FRACCIÓN, Y NO LO DECLARA
+
+    ══ EL DATO, MEDIDO ══
+    Mismo par, mismo modo exhaustivo, dos caminos:
+      · Por el CHAT (subida del fichero): **15 contradicciones**, del diff de
+        tablas, celda contra celda.
+      · Por el MODAL de mejora: **4 contradicciones** —END-03, EST-03, URG-03,
+        PRO-03— más un duplicado y un solapamiento. **Todas del JUEZ**, ninguna
+        del diff: `Diff de tablas — TOTAL: 0 sobre 0 parejas`.
+
+    ⚠️ ══ POR QUÉ ES PEOR QUE DEVOLVER CERO ══
+    **El usuario no ve un fallo evidente: ve un resultado plausible.** Cuatro
+    contradicciones con sus citas, su duplicado y su solapamiento — un informe
+    que parece completo. **Sin un solo aviso de que faltan once.**
+    Un cero habría sido sospechoso y habría hecho preguntar. Una fracción
+    razonable no despierta a nadie, y encima **cuesta 30 créditos** (20 netos
+    tras el reembolso «light»).
+    ⚠️ POR LA ESCALA DE F-100 ESTO NO ES «CONTABILIDAD INTERNA SUCIA»: es la
+    PRIMERA familia, la de «el producto miente al cliente» — la misma de F-89. Y
+    la regla del criterio de cierre dice qué significa que un hallazgo vuelva ahí.
+
+    ══ LA CAUSA, VERIFICADA EN EL CÓDIGO ══
+    `analyze-v2:227-231`: con `directText` —que es lo que manda el modal—
+    `extractedSegments` se queda en `null`; NO se llama a `extractSegments`, y el
+    troceado es `chunkText` (plano) en vez de `chunkSegments`. Sin
+    `table_row`/`table_summary`/`cells`, `groupChunksByTable` devuelve vacío y
+    `emparejarTablas` recibe CERO grupos. **No es que no encuentre parejas: es que
+    no tiene tablas.** El juez sigue viendo el texto aplanado y de ahí salen las
+    cuatro.
+
+    ══ Y LA SEGUNDA CAUSA, QUE ES NUESTRA, DEL 03/09 ══
+    Hay un rescate (`analyze-v2:270-283`) que lee los chunks tipados si el
+    documento ya está indexado, pero condicionado a `documentoEnRevision` — y al
+    partir el parámetro en tres hicimos que el modal mandara
+    `documentoAReemplazar` y dejara aquél nulo.
+    **Antes del 03/09 ese rescate traía los chunks tipados del HOMÓNIMO** y los
+    trataba como los del texto nuevo: producía tablas, y eran las equivocadas.
+    **Nuestro arreglo fue correcto y dejó el camino sin ninguna fuente de
+    estructura.** Quien mire solo el «antes emitía y ahora no» leerá una regresión
+    donde hay una corrección.
+
+    ⚠️ ══ POR QUÉ NO TIENE ARREGLO BARATO ══
+    El modal edita una representación APLANADA del xlsx, y el aplanado NO ES
+    REVERSIBLE: de un texto editado a mano no se puede reconstruir qué celda es
+    qué columna de qué fila. Usar la estructura del fichero original con el texto
+    editado sería incoherente en cuanto el usuario toque algo. El arreglo de
+    verdad —que el modal edite la tabla COMO TABLA— es un frente de producto.
+
+    ══ LAS DOS SALIDAS, sin elegir ══
+    · **Ocultar «Mejorar con IA» para `.xlsx`/`.xlsm`.** No puede decepcionar.
+    · **Dejarlo y DECLARARLO ANTES DE COBRAR**: «este reanálisis compara el texto;
+      para diferencias de tabla, sube el fichero corregido». Conserva una función
+      que a veces sirve.
+    Lo que NO es aceptable es lo de hoy: cobrar 30 por una fracción silenciosa.
+
+  B.176 — [ABIERTO 04/09 · ⚠️ PENDIENTE DE VERIFICACIÓN, NO ES CONCLUSIÓN] LO
+    GUARDADO Y LO MOSTRADO NO COINCIDEN EN EL REANÁLISIS DEL MODAL
+
+    ══ EL DATO ══
+    En pantalla, cuatro contradicciones. En `analysis_results`, las filas
+    exhaustivas del modal daban `contradictions_found = 0`.
+
+    ══ POR QUÉ NO DEBERÍA PODER PASAR ══
+    Las dos cifras salen del MISMO objeto: el worker construye `result` en
+    `worker/src/index.ts:145` a partir de `analysis`, y llama a
+    `saveAnalysisResult` con ese mismo `analysis` (`:186`). El cliente pinta
+    `job.result` (`useCrossDocAnalysis:161-165`). **Si las dos difieren, no pueden
+    venir de la misma ejecución.**
+
+    ══ LA HIPÓTESIS, Y ES SOLO ESO ══
+    Que las filas consultadas fueran de OTROS análisis —en el mismo log había dos
+    jobs con `Retrieval: 0 candidatos`, que legítimamente guardan 0— y que la del
+    reanálisis no estuviera entre las miradas, o no se escribiera.
+    **Si el guardado hubiera fallado, el modal lo diría**: `setNoGuardado` existe
+    y viene del sobre del job (B.143).
+
+    ⚠️ ══ Y LA AUSENCIA QUE LO HACE DIFÍCIL, que es parte del hallazgo ══
+    `analysis_results` **NO TIENE NINGUNA COLUMNA QUE APUNTE AL JOB**. No hay
+    forma exacta de saber qué fila produjo qué trabajo; solo nombre y ventana de
+    tiempo, que es débil. **Es la misma ausencia que obligó a abandonar la
+    atribución retroactiva de los dieciséis** (B.170).
+
 Forma de trabajo: diagnóstico con datos reales antes de arreglar; un
 cambio lógico cada vez; build verde entre medias; SQL en Supabase antes
 del push; plan completo antes de tocar varios archivos.
