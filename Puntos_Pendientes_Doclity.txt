@@ -6157,6 +6157,15 @@ NOTAS DE ORDEN (propuesta, a confirmar)
       · Por el MODAL de mejora: **4 contradicciones** —END-03, EST-03, URG-03,
         PRO-03— más un duplicado y un solapamiento. **Todas del JUEZ**, ninguna
         del diff: `Diff de tablas — TOTAL: 0 sobre 0 parejas`.
+    ⚠️ MEDIDO SOBRE LO PERSISTIDO, no sobre logs de días distintos: los dos jobs
+    del MISMO documento, `612062e8` (subida) con **15 guardadas** y `1c7bcfe6`
+    (modal) con **4 guardadas**. Misma pareja, mismo modo, dos caminos.
+
+    ⚠️ UNA SOLA CAUSA, no dos: **el modal no recibe la estructura de tabla.** Lo
+    de `documentoEnRevision` no es una causa aparte — era un rescate que traía
+    los chunks del documento EQUIVOCADO, y quitarlo fue correcto. Sin él, la
+    única fuente de estructura sería `extractSegments`, y con `directText` no se
+    llama.
 
     ⚠️ ══ POR QUÉ ES PEOR QUE DEVOLVER CERO ══
     **El usuario no ve un fallo evidente: ve un resultado plausible.** Cuatro
@@ -6203,12 +6212,35 @@ NOTAS DE ORDEN (propuesta, a confirmar)
       que a veces sirve.
     Lo que NO es aceptable es lo de hoy: cobrar 30 por una fracción silenciosa.
 
-  B.176 — [ABIERTO 04/09 · ⚠️ PENDIENTE DE VERIFICACIÓN, NO ES CONCLUSIÓN] LO
-    GUARDADO Y LO MOSTRADO NO COINCIDEN EN EL REANÁLISIS DEL MODAL
+  B.176 — [ABIERTO Y CERRADO EL 04/09 · NO HABÍA DIVERGENCIA] LO GUARDADO Y LO
+    MOSTRADO SÍ COINCIDEN
 
-    ══ EL DATO ══
+    ══ CERRADO — la medición ══
+    Cruzados los jobs con sus filas, coinciden en todas:
+      1c7bcfe6  OPE-10   **4 mostradas / 4 guardadas**  ← el del modal
+      612062e8  OPE-10   **15 / 15**                    ← el exhaustivo directo
+      4825bfc5  RRHH-08  2 / 2
+      f3ef3fbc  OPE-13   0 / 0
+    Las filas que se habían mirado eran de OTROS jobs — en el mismo log había dos
+    con `Retrieval: 0 candidatos`, que legítimamente guardan 0.
+
+    ⚠️ ══ Y LO QUE ESTA MEDICIÓN DEJA, que vale más que el cierre ══
+    `1c7bcfe6` y `612062e8` son **el MISMO documento en el MISMO modo exhaustivo
+    por dos caminos**: 4 por el modal, 15 por la subida. Los dos persistidos, los
+    dos verificables. **Es la medición definitiva de B.175**, y ya no depende de
+    comparar logs de días distintos.
+
+    ⚠️ ══ LA AUSENCIA QUE OBLIGÓ A EMPAREJAR MAL, y sigue abierta ══
+    La consulta que lo resolvió empareja **por nombre y ventana de tiempo**,
+    porque **`analysis_results` NO TIENE COLUMNA QUE APUNTE A `analysis_jobs`**.
+    No hay forma exacta de saber qué fila produjo qué trabajo.
+    **Es la misma ausencia que ayer obligó a atribuir POR CONTENIDO** los
+    dieciséis exhaustivos (B.170), y la segunda vez en dos días que cuesta una
+    consulta débil. No se arregla aquí; queda escrito que ya ha costado dos veces.
+
+    ══ EL DATO ORIGINAL, conservado ══
     En pantalla, cuatro contradicciones. En `analysis_results`, las filas
-    exhaustivas del modal daban `contradictions_found = 0`.
+    exhaustivas MIRADAS daban `contradictions_found = 0`.
 
     ══ POR QUÉ NO DEBERÍA PODER PASAR ══
     Las dos cifras salen del MISMO objeto: el worker construye `result` en
