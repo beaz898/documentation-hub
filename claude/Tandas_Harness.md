@@ -75,6 +75,59 @@ principio del protocolo.
 
 ---
 
+### RESULTADOS — SIEMBRA (RRHH-08 / OPE-13), `aa3c6d06` (04/09/2026)
+
+**LANZADA DESDE LA BANDEJA.** Se declara el camino porque desde hoy es
+obligatorio: sin él, una entrada no se puede volver a interpretar (ver el
+pendiente de la cabecera de este fichero).
+
+⚠️ **LEÍDA DE LA TABLA, NO DEL LOG.** Es la primera entrada que cumple la regla de
+F-102: las cifras que siguen son las de `analysis_results`, y el log solo se usa
+para el mecanismo. La entrada del 02/09 de esta misma pareja registró cifras del
+log —«2 por juicio, 0 por estructura»—, que NO son `contradictions_found`.
+
+**LÍNEA DE BASE DE ESTA PAREJA.** No contrasta contra nada: la crea.
+
+| GUARDADO en `analysis_results` | OPE-13 → RRHH-08 | RRHH-08 → OPE-13 |
+|---|---|---|
+| `contradictions_found` | **2** | **2** |
+| `contradictions_confirmed` | **2** | **2** |
+| `overlaps_found` | **0** | **0** |
+
+| MECANISMO (log) | |
+|---|---|
+| Retrieval | **1 candidato** en las dos direcciones |
+| Las dos ramas | presentes |
+| Verificador | 0 por estructura, **2 por juicio** |
+| Diff de tablas | **0 parejas** |
+
+⚠️ **EL CERO DE PAREJAS ES CORRECTO Y ESTÁ DOCUMENTADO**: es «el territorio sin
+clave» del 02/09. RRHH-08 y OPE-13 comparten Clínica, Especialidad y Turno, pero
+**ninguna identifica una FILA** — son anclas, no clave—, así que el par cae por la
+primera puerta de `emparejarTablas` (`table-pairing.ts:135`). El emparejador SÍ
+lo intentó. **Compartir columnas no es tener clave**, y ésa es la distinción que
+esta pareja existe para medir.
+
+⚠️ **Y `contradictions_confirmed` = `contradictions_found`, otra vez.** No es una
+coincidencia de esta tanda: es estructural — todo lo que sobrevive lleva
+`confirmedBy`. **Esa columna no puede diferir de `found` en este camino**, así
+que no mide nada. Sigue sin ficha propia.
+
+══ LO QUE ESTA PASADA COMPRUEBA Y LO QUE NO ══
+· **COMPRUEBA** que con la bandeja acotada de verdad el retrieval trae UN
+  candidato, y que el aislamiento de una tanda se puede conseguir. En el intento
+  anterior aparecieron terceros —SIEMBRA_corpus_ampliado.md y CLI-01— porque
+  estaban en `analizado` con vectores.
+· ⚠️ **NO COMPRUEBA que un documento fantasma no interfiera.** Los 32 en
+  `analizado` sin vectores están **en otras organizaciones**, y una recuperación
+  jamás los habría visto: el espacio de nombres de Pinecone es por organización.
+  Lo que aísla aquí es la ORGANIZACIÓN, no la ausencia de vectores.
+  **Para probar lo otro haría falta un fantasma en la organización propia**, y hoy
+  no hay ninguno. La afirmación «sin vectores no puede ser candidato» sigue
+  sostenida por LECTURA del filtro, no por medición.
+
+---
+
 ### RESULTADOS — REMEDICIÓN DEL FRENTE 2, `daca6dbf` (02/09/2026, 13:29–13:34)
 
 **Cinco pasadas, todas en modo rápido, todas limpias.** Es la validación del
