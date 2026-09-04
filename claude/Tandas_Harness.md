@@ -75,6 +75,39 @@ principio del protocolo.
 
 ---
 
+### RESULTADOS — PAR GRANDE (OPE-10 / OPE-11), `a99c8999` (04/09/2026)
+
+**LANZADA DESDE LA BANDEJA**, con la pareja participando POR NOMINACIÓN (`ids de
+tanda`) y **el corpus de la organización VACÍO** — ningún documento en
+`analizado`, cero duplicados. Es la primera vez que el aislamiento no depende de
+que el rerank descarte a nadie.
+
+**LÍNEA DE BASE SOBRE LO GUARDADO.** La del 02/09 registró «15 emitidas», que es
+la línea del LOG del diff, no `contradictions_found`. Ésta es la primera cifra
+persistida de esta pareja.
+
+| GUARDADO en `analysis_results` | OPE-10 → OPE-11 | OPE-11 → OPE-10 |
+|---|---|---|
+| `contradictions_found` | **15** | **15** |
+| `contradictions_confirmed` | **15** | **15** |
+| `overlaps_found` | **2** | **2** |
+
+⚠️ **PREDICCIÓN ESCRITA ANTES Y CUMPLIDA.** Se predijo 15/15 sobre la TABLA, no
+sobre el log, y salió 15/15. Es la primera predicción de esta serie que se
+contrasta contra el dato persistido — y la que cierra el hueco del 03/09, cuando
+25 y 17 se dieron por 15 leyendo una línea por candidato.
+
+⚠️ **Y LO QUE ESTO DEMUESTRA DEL CAMINO DE RECUPERACIÓN**: los 15 no se han
+movido tras SIETE commits sobre ese camino (reemplazo, borrado por id, criterio
+de origen, tres sujetos, propietario, adopción, filtro por generación). **No hay
+regresión**, que era lo que la remedición del frente 3 venía a medir.
+
+⚠️ **LOS 25 Y 17 DEL 03/09 QUEDAN EXPLICADOS**, y no eran un fallo: 15 del diff
+contra la pareja + 10 y 2 del JUEZ contra un tercer documento del corpus
+(`SIEMBRA_corpus_ampliado.md`). El montaje no estaba aislado. Ver B.173.
+
+---
+
 ### RESULTADOS — SIEMBRA (RRHH-08 / OPE-13), `aa3c6d06` (04/09/2026)
 
 **LANZADA DESDE LA BANDEJA.** Se declara el camino porque desde hoy es

@@ -6073,8 +6073,8 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     análisis se compara con todos los que pasen el umbral. **La cifra de hoy es
     un caso, no una tasa.**
 
-  B.174 — [ABIERTO 04/09 · ⚠️ NO BLOQUEA HOY Y LA LIMPIEZA ES URGENTE, QUE NO ES
-    CONTRADICTORIO] EL SYNC DE ONEDRIVE CREÓ FILAS NUEVAS TENIENDO LA CLAVE PARA
+  B.174 — [ABIERTO 04/09 · ⚠️ CORREGIDO EL MISMO DÍA: ES DE OTRA ORGANIZACIÓN,
+    NO DE LA DEL PILOTO · SIGUE SIENDO UN FALLO REAL DEL SYNC] EL SYNC DE ONEDRIVE CREÓ FILAS NUEVAS TENIENDO LA CLAVE PARA
     EMPAREJAR
 
     ══ EL DATO, MEDIDO ══
@@ -6117,7 +6117,17 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     vectores. No sale como candidato, no se compara, no aparece en ningún
     informe.
 
-    ⚠️⚠️ ══ Y POR QUÉ LA LIMPIEZA ES URGENTE IGUALMENTE ══
+    ⚠️ ══ CORRECCIÓN DEL 04/09: LA URGENCIA ERA DE OTRO ══
+    Filtrado por la organización del piloto: **CERO duplicados y ningún documento
+    en `analizado`**. Los 30 y los 33 salieron de consultas SIN filtro de
+    organización — mías— y pertenecen a otra. Así que la urgencia que sigue
+    escrita abajo **no aplica hoy a este corpus**: la bandeja es por
+    organización, así que nadie de aquí puede promover esas filas sin querer.
+    LO QUE NO CAMBIA: el fallo del sync es real y está sin explicar, y el día que
+    esa organización tenga usuario, la urgencia es suya. Lo que cambia es de
+    quién es el problema y cuándo hay que gastar en limpiarlo.
+
+    ══ LA URGENCIA, TAL COMO SE ESCRIBIÓ (aplica a la organización afectada) ══
     **Las filas fantasma están en `pendiente`, y basta con que alguien las
     analice desde la bandeja para que pasen a `analizado` y empiecen a
     competir.** La limpieza no es cosmética: **es cerrar la puerta antes de que
