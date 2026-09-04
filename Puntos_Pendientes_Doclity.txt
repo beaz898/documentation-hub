@@ -6016,9 +6016,26 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     las de acción— extendida a su tercer caso: **también las premisas de un
     encargo, y también cuando el encargo parece devolverte lo que dijiste.**
 
-  B.173 — [ABIERTO 03/09 · DECISIÓN DE PRODUCTO · VA A FABLE · NO SE ARREGLA]
-    EL EMPAREJAMIENTO POR UNA COLUMNA GENÉRICA COMPARA DOCUMENTOS QUE NO TIENEN
-    RELACIÓN
+  B.173 — [ABIERTO 03/09 · ⚠️ RETITULADO EL 04/09, EL DIAGNÓSTICO ERA FALSO ·
+    DECISIÓN DE PRODUCTO · VA A FABLE · NO SE ARREGLA] EL JUEZ COMPARA LO QUE EL
+    RETRIEVAL LE PONE DELANTE, Y EL RETRIEVAL EMPAREJA POR SIMILITUD DE TEXTO
+
+    ⚠️ ══ LA CORRECCIÓN, Y VA PRIMERO PORQUE LA FICHA LLEGÓ A ESCRIBIRSE MAL ══
+    El título original decía «el emparejamiento por una columna genérica compara
+    documentos que no tienen relación», y **culpaba al emparejador de tablas, que
+    no tuvo nada que ver**.
+    LO QUE LO DESMIENTE, medido el 04/09 en la tanda de la siembra: el
+    emparejador NO PUEDE emparejar sin CLAVE. Compartir columnas —Clínica,
+    Especialidad, Turno— produce ANCLAS, no clave: ninguna identifica una FILA,
+    así que el par cae por la primera puerta de `emparejarTablas`
+    (`table-pairing.ts:135`) y el diff emite CERO. Se vio en vivo: «Diff de
+    tablas — TOTAL: 0 discrepancias sobre 0 parejas».
+    Y el log del 03/09 lo decía ya, sin que nadie lo leyera así: «Verificador: 11
+    hallazgos → 10 confirmados (0 POR ESTRUCTURA, 10 por juicio)». **Cero por
+    estructura significa que el diff no participó.**
+    LA CAUSA VERDADERA: el RETRIEVAL trae candidatos por SIMILITUD SEMÁNTICA de
+    fragmentos, y el JUEZ compara lo que le ponen delante. El emparejador de
+    tablas se portó bien las dos veces.
 
     ══ LO QUE SE VIO, con las cifras de los logs del 03/09 (21:25 y 21:26) ══
     En la tanda del par grande entró un tercer documento del corpus,
@@ -6032,9 +6049,9 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     HIG-03», «Precio base para END-03».
 
     ⚠️ ══ POR QUÉ ES LEGÍTIMO Y AUN ASÍ ESTÁ MAL ══
-    Según F-88 el emparejamiento es correcto: dos tablas que comparten una
-    columna con valores comparables SE EMPAREJAN, y eso es lo que hace que el
-    sistema encuentre discrepancias reales entre tarifarios. La regla no falla.
+    El retrieval hace su trabajo: trae lo que se parece, y un tarifario y otro
+    documento con vocabulario común se parecen de verdad. La recuperación no
+    falla.
     **Lo que falla es lo que el usuario lee.** A él le aparecen como
     contradicciones entre dos documentos que no tienen relación de contenido —
     y no tiene forma de saber que el emparejamiento se hizo por una columna
