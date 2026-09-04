@@ -75,6 +75,55 @@ principio del protocolo.
 
 ---
 
+### RESULTADOS — EL CAMINO DEL CHAT: PROPIETARIO Y ADOPCIÓN (04/09/2026)
+
+**LANZADA DESDE EL CHAT.** Mide lo que se escribió el 03/09 —F-101: el análisis
+nace colgado del FICHERO y el documento lo ADOPTA al nacer— y es la primera vez
+que se comprueba en producción.
+
+**LEÍDA DE LA TABLA.** Tres filas de `analysis_results`, mismo nombre de
+documento, tres momentos:
+
+| hora | documento | `storage_path` | `document_id` | qué se hizo |
+|---|---|---|---|---|
+| 10:28 | RRHH-08 | **✓** | **null** | analizado, NO indexado |
+| 10:30 | RRHH-08 | **✓** | **null** | analizado, NO indexado |
+| 10:33 | RRHH-08 | **✓** | **544a23b7** | analizado **e indexado** |
+
+⚠️ **LO QUE LO CONVIERTE EN MEDICIÓN Y NO EN OBSERVACIÓN**: las tres filas están
+EN LA MISMA TABLA, y **cada una tiene exactamente lo que le corresponde según si
+se indexó o no**. No es que la última salga bien: es que las tres salen
+distintas, y la diferencia es la única variable que se movió.
+
+⚠️ **Y LA ADOPCIÓN ES POR FICHERO, NO POR NOMBRE** — lo demuestran las dos
+primeras: comparten nombre con la tercera y **NO fueron adoptadas**. Cada subida
+tiene su propia ruta en Storage, y la adopción alcanza solo a los análisis de
+*esa* ruta. Si hubiera emparejado por nombre, las tres habrían acabado colgadas
+del mismo documento — que es justo lo que este frente vino a retirar.
+
+⚠️ **Y `storage_path` SIGUE PRESENTE en la fila adoptada.** Los dos propietarios
+conviven: la ruta es la historia del fichero, el documento es el dueño adoptivo.
+No se sustituye uno por otro.
+
+**LO QUE ESTO CIERRA, del 03/09**: los análisis del chat ya no nacen huérfanos
+—nacen con la ruta— y **el «sí» del usuario ya ata**, que era la mitad que F-100
+dio por hecha y no existía: no había un solo UPDATE sobre esa columna en el
+repositorio.
+
+#### PASADA 3 — reanálisis desde la bandeja
+
+Un candidato. La contradicción de Pablo Reyes **descartada por
+`cubierto_por_diff`, con el motivo NOMBRANDO LA COLUMNA** — la lectura C de F-90
+sigue viva en producción y sigue siendo auditable: dice *qué* comparó el diff, no
+solo que lo cubrió.
+
+#### PENDIENTE DE ESTA SERIE
+
+La pasada 4 —el reanálisis desde el modal de mejora, que es la que comprueba
+B.163— y el control de identidad de cierre.
+
+---
+
 ### RESULTADOS — PAR GRANDE (OPE-10 / OPE-11), `a99c8999` (04/09/2026)
 
 **LANZADA DESDE LA BANDEJA**, con la pareja participando POR NOMINACIÓN (`ids de
