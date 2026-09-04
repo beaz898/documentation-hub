@@ -6262,6 +6262,77 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     tiempo, que es débil. **Es la misma ausencia que obligó a abandonar la
     atribución retroactiva de los dieciséis** (B.170).
 
+  B.177 — [ABIERTO 04/09 · ⚠️ PRIMERA FAMILIA · SALIÓ DEL CENSO, NO SE BUSCABA]
+    EL ARREGLO DE B.175 SE COLGÓ DE `storagePath`, Y LA BANDEJA ABRE EL MISMO
+    MODAL SIN ÉL
+
+    ══ EL DATO, VERIFICADO EN EL CÓDIGO ══
+    `ImprovementModal` se abre desde DOS sitios, y **no manda lo mismo**:
+      · CHAT — `chat/page.tsx:253` pasa `storagePath` (subida sin confirmar).
+      · BANDEJA — `review/page.tsx:469` **NO lo pasa**; el propio tipo lo dice
+        en `ImprovementModal.tsx:43`: «ausente en documentos ya indexados».
+    `useCrossDocAnalysis` manda `storagePath: storagePath ?? undefined`
+    (`:136`) y **no manda `documentoEnRevision` en ningún caso** — solo
+    `documentoAReemplazar`. Desde la bandeja, por tanto:
+      · sin `storagePath` → la guarda de B.175 no entra (`analyze-v2:252`),
+      · sin `documentoEnRevision` → el rescate de chunks tipados tampoco
+        (`analyze-v2:~310`).
+    **Cero estructura por las dos vías.** Es B.175 exactamente, en la otra puerta.
+
+    ⚠️ ══ Y EL BOTÓN SE PINTA SIN CONDICIÓN ══
+    `ChatPanel.tsx:219` renderiza `ReanalyzeButtons` sin ninguna guarda, y el
+    componente solo se deshabilita por `anyLoading`. **Se ofrece, se cobran los
+    30 créditos y se devuelve la fracción silenciosa** — la misma que F-103 puso
+    en la primera familia.
+
+    ══ POR QUÉ NO SE VIO EL 04/09 ══
+    El arreglo se midió por el camino que lo destapó —el modal del chat— y se
+    colgó del dato que ese camino tenía a mano. **La pieza que decide si hay
+    estructura no es del modal: es del cuerpo de la petición**, y hay dos cuerpos.
+    Es la forma que el censo existe para cazar: se cerró un camino creyendo cerrar
+    una funcionalidad.
+
+    ══ LO QUE NO SE HA COMPROBADO, y se declara ══
+    NO se ha lanzado un reanálisis desde la bandeja para verlo emitir cero
+    parejas. La afirmación se sostiene en LECTURA del código, no en medición.
+    Por la regla del cero, eso la deja en verificable, no en verificada.
+
+    ══ LA PREGUNTA QUE HAY QUE CONTESTAR, no la solución ══
+    ¿De dónde saca el servidor la estructura cuando el cliente solo tiene un id?
+    Hay al menos dos fuentes posibles —el `storage_path` de la fila del documento
+    y los `document_chunks` tipados— y **elegir la fuente es elegir qué pasa
+    cuando el usuario ya editó el texto**, que es lo que la guarda de B.175 vino a
+    proteger. Contestar eso primero.
+
+    ⚠️ ══ Y LO QUE ESTO LE HACE A LA CUARENTENA ══
+    **La refuerza, no la levanta.** «Mejora con IA» queda fuera de lo enseñable
+    por DOS caminos, no por uno, y el que faltaba ni siquiera está arreglado.
+
+  B.178 — [ABIERTO 04/09 · SALIÓ DEL CENSO] LAS TANDAS DECLARAN EL CAMINO, PERO
+    NO EL MODO — Y SIN MODO UNA CIFRA NO SE ATRIBUYE
+
+    ══ EL DATO ══
+    Las dos entradas del 04/09 con cifra buena —par grande 15/15/2 y siembra
+    2/2/0— declaran «LANZADA DESDE LA BANDEJA», que desde ayer es obligatorio.
+    **Ninguna de las dos dice si fue modo rápido o exhaustivo.**
+
+    ══ POR QUÉ IMPORTA, y no es burocracia ══
+    Rápido y exhaustivo **no son el mismo código**: `runAnalysisPipeline` corre en
+    Vercel y `runExhaustiveAnalysisPipeline` en el worker de Railway, que se
+    despliega aparte. En el censo son filas distintas (A3 y A4). Una cifra sin
+    modo **no se puede colgar de ninguna de las dos**, y las dos siguen contando
+    como no medidas.
+
+    ══ Y SE JUNTA CON UNA AUSENCIA YA REGISTRADA ══
+    `analysis_results` no tiene columna que apunte a `analysis_jobs` (B.176), así
+    que el modo tampoco se puede recuperar después cruzando tablas. La declaración
+    en el registro es hoy la única fuente.
+
+    ══ LA PREGUNTA ══
+    ¿El modo se declara a mano en la entrada, o se deriva de un dato persistido?
+    Lo segundo es mejor y depende de la ausencia de B.176; lo primero se puede
+    hacer hoy y es lo que ya se hizo con el camino.
+
 Forma de trabajo: diagnóstico con datos reales antes de arreglar; un
 cambio lógico cada vez; build verde entre medias; SQL en Supabase antes
 del push; plan completo antes de tocar varios archivos.
