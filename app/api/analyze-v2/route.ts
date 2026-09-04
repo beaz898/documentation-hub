@@ -20,6 +20,7 @@ import { checkAndAcquireAnalysisLock, releaseAnalysisLock, analysisLockMessage }
 import { getDocumentChunks, getActiveGeneration, toStoredChunks } from '@/lib/read-chunks';
 import type { StoredChunk } from '@/lib/read-chunks';
 import { sujetosDelAnalisis, unicoExcluido } from '@/lib/analysis/sujetos';
+import { puedeUsarLaEstructura } from '@/lib/analysis/estructura-del-modal';
 
 // Un job en 'pending'/'processing' mas viejo que esto se considera muerto: el
 // worker cayo sin marcarlo 'failed' y bloqueaba el 409 de toda la organizacion
@@ -228,6 +229,42 @@ export async function POST(req: NextRequest) {
     let extractedSegments: ExtractedSegment[] | null = null;
     if (directText && typeof directText === 'string') {
       text = directText;
+
+      // ⚠️ B.175 — LA ESTRUCTURA DEL ORIGINAL, CUANDO EL TEXTO NO HA CAMBIADO.
+      //
+      // El reanálisis del modal manda TEXTO, no fichero. Sin `extractSegments`
+      // no hay celdas, y sin celdas `emparejarTablas` recibe cero grupos: el
+      // diff no emite nada. Medido — el mismo documento, mismo modo exhaustivo:
+      // 15 discrepancias por la subida, 4 por el modal, y las 4 del juez leyendo
+      // texto aplanado. Lo grave no era el número: era que nadie lo declaraba.
+      //
+      // El modal SÍ manda la ruta, así que aquí se recupera la estructura.
+      //
+      // ⚠️ Y LA CONDICIÓN ES EL ARREGLO, NO UN ADORNO: solo si el texto a
+      // analizar es EL MISMO que el del fichero. Si el usuario editó, los
+      // segmentos describen el original y el texto la edición — el diff emitiría
+      // diferencias sobre celdas QUE YA SE CORRIGIERON. Eso no es medio arreglo:
+      // es un informe falso con sello de estructura.
+      //
+      // FALLA HACIA HOY: si el fichero no se puede leer, o el texto cambió, se
+      // sigue en plano exactamente como antes. Nada de esto puede empeorar el
+      // camino que ya existía.
+      if (storagePath) {
+        try {
+          const { data: fileData } = await supabase.storage.from('documents').download(storagePath);
+          if (fileData) {
+            const segments = await extractSegments(Buffer.from(await fileData.arrayBuffer()), fileName);
+            if (puedeUsarLaEstructura(text, joinSegments(segments))) {
+              extractedSegments = segments;
+              console.log(`[analyze-v2] estructura del original recuperada | "${fileName}" | ${segments.length} segmento(s)`);
+            } else {
+              console.log(`[analyze-v2] SIN ESTRUCTURA: el texto difiere del fichero | "${fileName}" — se analiza en plano`);
+            }
+          }
+        } catch (err) {
+          console.warn(`[analyze-v2] no se pudo recuperar la estructura del original | "${fileName}" |`, err);
+        }
+      }
     } else if (storagePath) {
       // El archivo puede no estar completamente escrito en Storage justo tras el upload;
       // reintentamos con espera creciente para evitar falsos "bad XRef" por lectura prematura.
