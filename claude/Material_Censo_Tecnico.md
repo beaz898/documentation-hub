@@ -235,6 +235,56 @@ Ni tanda, ni test, ni evidencia de que haya corrido. **Doce.**
 
 ---
 
+# 4.2 · ⚠️ EL ORDEN DE CONTACTO — qué pisaría un cliente el primer día
+
+No es el orden de riesgo técnico. Es la probabilidad de que **alguien lo toque**,
+que es otra pregunta y da otra lista.
+
+⚠️ **Y LA CONCLUSIÓN VA ANTES QUE LA LISTA, porque es lo que la lista significa:
+las TRES primeras son la misma superficie — el modal de mejora.** Lo que está en
+cuarentena no es una función accesoria: **es el primer sitio al que el producto
+manda al cliente.** Un análisis con `hasIssues` abre el modal de decisión y
+ofrece «Mejorar con IA» (`UploadActions.tsx:71`), y la bandeja ofrece el mismo
+botón (`ReviewActions.tsx:162`). Las dos puertas empujan al mismo sitio.
+
+**1 · `analyze-style` — no es probabilidad, es certeza.** (entrada 12)
+Se dispara con un `useEffect` al abrir el modal (`useStyleAnalysis.ts:71`): el
+cliente no tiene que decidir nada ni pulsar nada. **El primer documento con
+problemas que suba ya lo ejecuta**, y le cobra 2 créditos. Ha corrido cientos de
+veces y no existe una sola cifra suya. No hay que estrenarlo: hay que mirarlo.
+
+**2 · `index-text` — el final del único flujo que el producto empuja.** (entrada 2)
+Si el modal es la acción recomendada, «guardar la versión corregida» es como
+termina. Es el camino que **cierra** el gesto que el producto sugiere, y es `∅`:
+ni tanda, ni test, ni evidencia de haber corrido. **Y ahora lleva B.179 colgando.**
+
+**3 · A6 — el mismo botón, desde la puerta por la que entran los documentos.** (entrada 1)
+Quien conecte Drive se encuentra la bandeja llena; abrir uno y pulsar «Reanalizar
+todo» es el gesto natural. **Hoy está roto** (B.177) y cobra 30 créditos por una
+fracción silenciosa.
+
+**4 · `csv` — el formato que sale de cualquier otro sistema.** (entrada 5)
+Está en el `accept` del selector y en la lista de `ingest`. Un cliente que exporte
+de su ERP, de su CRM o de su gestor de turnos produce CSV sin pensarlo. **Y es
+donde el daño es total y mudo**: un CSV es una tabla y entra por la rama cruda
+como un churro de texto, sin una sola celda.
+
+## Y las que NO se pisan el primer día, dicho para que no ocupen sitio
+
+· **OneDrive** — la UI está deshabilitada. Solo se llega por un accidente como el
+  de B.154, no por uso.
+· **La rama `default`** — necesita una extensión fuera de las nueve, y el
+  selector de ficheros no la deja elegir. Se llega por `analyze-v2`, que no
+  valida — pero eso no es un gesto de cliente.
+· **La reserva de `docx`** — necesita un `.docx` que rompa a mammoth. Ocurrirá;
+  no el primer día.
+· **`json` y `html`** — aceptados, improbables. `html` antes que `json`, si acaso:
+  alguien puede volcar una wiki.
+· **El AGENTE** — no lo decide la probabilidad sino el plan. Si el piloto no es
+  Business, no es que sea improbable: **es que no está encendido.**
+
+---
+
 # LO QUE NO PUEDO APORTAR, Y ES DEL DIRECTOR
 
 · **Si la organización piloto tiene plan Business**, que decide si el agente es

@@ -6333,6 +6333,71 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     Lo segundo es mejor y depende de la ausencia de B.176; lo primero se puede
     hacer hoy y es lo que ya se hizo con el camino.
 
+  B.179 — [ABIERTO 04/09 · ⚠️ PRIMERA FAMILIA, LATENTE · SALIÓ DEL MATERIAL DEL
+    CENSO] GUARDAR UNA VERSIÓN CORREGIDA CIEGA LA ESTRUCTURA DEL DOCUMENTO, EN
+    LOS DOS SENTIDOS, Y EL LOG DICE QUE TODO FUE BIEN
+
+    ⚠️ ══ POR QUÉ TIENE FICHA Y NO UNA LÍNEA ══
+    Es la especie de B.175 —el sistema deja de ver algo y nadie se entera— pero
+    con una vuelta de tuerca que B.175 no tenía: **allí el rescate no entraba;
+    aquí ENTRA, tiene éxito, y el registro imprime que tomó el buen camino.**
+    No hay un cero sospechoso ni un fallback declarado. Hay un `fallback=false`.
+
+    ══ LA CADENA, VERIFICADA ESLABÓN A ESLABÓN ══
+    1. `index-text/route.ts:176` envuelve el texto corregido en **un único
+       segmento `'text'`**. Está escrito en el propio comentario —«sin campos de
+       tabla»— y **es correcto**: el texto lo editó una persona y las celdas no se
+       pueden reconstruir de un aplanado. Este eslabón no es el fallo.
+    2. `index-text/route.ts:275` llama a `saveDocumentChunks`. **Las filas SE
+       ESCRIBEN**, con `chunk_type='text'` y `cells=null`
+       (`persist-chunks.ts:29,34`). No faltan: existen y están vacías de
+       estructura. **Ésa es la diferencia que lo hace silencioso.**
+    3. `analyze-v2:316` las lee. `fetchedChunks.length > 0` es **verdadero**, así
+       que `storedChunkTexts` se rellena y el registro imprime
+       `chunks persistidos | encontrados=N | fallback=false`. **El log afirma
+       que se tomó el camino bueno.**
+    4. `table-structure.ts:128` descarta todo lo que no sea `table_row`:
+       **cero grupos**.
+    5. `pipeline.ts:901` le pasa esos cero grupos a `emparejarTablas`. El diff no
+       emite nada, y el juez sigue trabajando sobre el texto aplanado — el mismo
+       resultado plausible y pequeño de B.175.
+
+    ⚠️ ══ Y VA EN LOS DOS SENTIDOS, que es lo que no vi al apuntarlo ══
+    El lado CANDIDATO sale del mismo sitio: `retrieval.ts:295` llena
+    `chunksByDocument` desde `document_chunks`, y `pipeline.ts:872` lo usa para el
+    candidato. **Un documento guardado como versión corregida deja de tener
+    estructura también CUANDO ES EL OTRO LADO**, en el análisis de cualquier
+    documento futuro. El daño no se queda en su propia ficha: contamina las
+    comparaciones de todo lo que venga después.
+
+    ══ «PARA SIEMPRE» ERA IMPRECISO, y la precisión importa ══
+    Se repara: volver a subir el fichero a mano pasa por `ingest`, que llama a
+    `extractSegments` sobre el BINARIO y vuelve a tipar los chunks en una
+    generación nueva. **Lo que no existe es nada que le diga a nadie que hay que
+    hacerlo.** No es irreversible: es invisible, que a efectos del cliente se
+    parece bastante.
+
+    ⚠️ ══ LO QUE NO SE HA MEDIDO, Y POR LA REGLA DEL CERO SE DECLARA ══
+    **Esto no se ha visto ocurrir.** El camino C3 —guardar versión corregida— es
+    `∅` en el censo: ni tanda, ni test, ni evidencia de que haya corrido nunca.
+    La cadena está VERIFICADA EN CÓDIGO, eslabón por eslabón y con línea, pero
+    **no hay control positivo**: nadie ha visto un Excel corregido dar cero
+    parejas donde antes daba quince. Es una deducción sólida, no una medición, y
+    se registra como tal.
+    Diferencia con B.175, que sí se midió: allí hubo 4 contra 15 en la tabla.
+
+    ══ LAS PREGUNTAS QUE HAY QUE CONTESTAR, no la solución ══
+    1. ¿Un documento que perdió la estructura debe poder DECIRLO? Hoy no hay
+       campo que distinga «este documento nunca tuvo tablas» de «las tuvo y las
+       perdió al corregirse». Sin esa distinción, ningún aviso es posible.
+    2. ¿La versión corregida de un Excel debería poder guardarse como texto, o
+       ese camino no debería ofrecerse para hojas de cálculo? Es la misma
+       pregunta de producto que dejó abierta B.175, ahora por el otro extremo:
+       allí era el reanálisis, aquí es el guardado.
+    3. ¿Y el contador? Por la regla de F-95 —cada límite declarado lleva su
+       contador— un documento indexado sin estructura teniendo un origen que sí
+       la tenía es exactamente el tipo de cosa que debería contarse.
+
 Forma de trabajo: diagnóstico con datos reales antes de arreglar; un
 cambio lógico cada vez; build verde entre medias; SQL en Supabase antes
 del push; plan completo antes de tocar varios archivos.
