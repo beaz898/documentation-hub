@@ -6056,6 +6056,69 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     análisis se compara con todos los que pasen el umbral. **La cifra de hoy es
     un caso, no una tasa.**
 
+  B.174 — [ABIERTO 04/09 · ⚠️ NO BLOQUEA HOY Y LA LIMPIEZA ES URGENTE, QUE NO ES
+    CONTRADICTORIO] EL SYNC DE ONEDRIVE CREÓ FILAS NUEVAS TENIENDO LA CLAVE PARA
+    EMPAREJAR
+
+    ══ EL DATO, MEDIDO ══
+    30 documentos duplicados, todos de OneDrive, concentrados en TRES
+    sincronizaciones: 15/08, 18/08 y 25/08. Ejemplo:
+      Facturacion_2025: 958980d7 analizado (15/08) · ee82df72 pendiente (18/08)
+                        · 69deb310 pendiente, 80 chunks (25/08)
+    ⚠️ **El `provider_file_id` es EL MISMO en las tres filas** —medido con
+    `count(DISTINCT provider_file_id) = 1`, o sea idéntico byte a byte— y el
+    `source` también, porque la agrupación fue por `(name, source)`.
+
+    ══ DOS POBLACIONES QUE NO SE MEZCLAN ══
+    · **ids_de_proveedor = 1** (la mayoría): el emparejamiento FALLÓ TENIENDO LA
+      CLAVE. Es el hallazgo.
+    · **ids_de_proveedor = 2** (CLI-03, MKT-01, NOR-01, OPE-02, RRHH-06): el
+      fichero cambió de identidad en el proveedor, y ahí el sync hizo LO QUE
+      DEBÍA al insertar. La pregunta en ésos es otra: por qué no borró el viejo.
+
+    ══ LA CONDICIÓN, TAL COMO ESTÁ ESCRITA, Y POR QUÉ NO LA EXPLICA ══
+    `sync/route.ts:119-122` acota el universo con `.eq(org_id).eq(source,
+    provider.name)`; `:150` indexa por `provider_file_id`; `:182` busca con
+    `existingMap.get(file.id)`; `:231` decide `isReplacement = Boolean(existing)`
+    y el `insert` vive en su `else` (`:421`).
+    Con mismo org, mismo source y mismo id, **la fila TENÍA que estar en el
+    mapa**. Y si la consulta del universo fallara, la ruta ABORTA con 500
+    (`:127`), no inserta. **La condición es correcta y el resultado es
+    imposible**: algo del estado de entonces no es lo que se ve hoy.
+
+    ══ LO QUE NO LO EXPLICA, verificado ══
+    · **No es el código**: ningún commit del 18/08 ni del 25/08 toca `drive/`.
+    · **No es el nombre del proveedor**: `onedrive` no ha cambiado nunca desde
+      que se implementó.
+    · **No es el lote del 15/08**: ese día se estrenó el soporte de `.xlsx` en el
+      sync (`9d198063`, 15/08 12:53). Esa primera fila es EL NACIMIENTO, no un
+      duplicado.
+
+    ⚠️ ══ POR QUÉ NO BLOQUEA HOY ══
+    Una fila en `analizado` SIN vectores es INVISIBLE para la recuperación: el
+    filtro del corpus es de metadata de Pinecone y Pinecone solo devuelve
+    vectores. No sale como candidato, no se compara, no aparece en ningún
+    informe.
+
+    ⚠️⚠️ ══ Y POR QUÉ LA LIMPIEZA ES URGENTE IGUALMENTE ══
+    **Las filas fantasma están en `pendiente`, y basta con que alguien las
+    analice desde la bandeja para que pasen a `analizado` y empiecen a
+    competir.** La limpieza no es cosmética: **es cerrar la puerta antes de que
+    alguien la abra sin saberlo** — y quien la abriría no estaría haciendo nada
+    raro, estaría usando la bandeja para lo que es.
+
+    ⚠️ ══ Y LA INVERSIÓN QUE LO EMPEORA ══
+    En Facturacion_2025 las filas tienen 2, 2 y 80 chunks, **y la de 80 NO es la
+    que está en `analizado`**. O sea: **el corpus da por servible la fila vacía y
+    tiene invisible la que lleva el contenido.** Por eso el criterio de cuál
+    conservar NO puede ser una regla general —«la más reciente»— sino caso a
+    caso, con las cifras delante.
+
+    ══ LO QUE FALTA PARA CERRAR EL DIAGNÓSTICO ══
+    El `org_id` y el `source` literales de las filas de un grupo. Es la única
+    variable que la agrupación no fijó, y decide entre «el sync solo mira su
+    organización» y «el source de hoy no era el de entonces».
+
 Forma de trabajo: diagnóstico con datos reales antes de arreglar; un
 cambio lógico cada vez; build verde entre medias; SQL en Supabase antes
 del push; plan completo antes de tocar varios archivos.
