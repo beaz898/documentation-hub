@@ -6499,6 +6499,61 @@ NOTAS DE ORDEN (propuesta, a confirmar)
        llega un string. Contestar que sí abre la puerta a la rama de tablas, y
        eso ya no es un test, es un frente.
 
+  B.182 — [ABIERTO 05/09 · PREDICCIÓN FALLADA EN B0, SE CUENTA] EL SOLAPE ABRE
+    CADA TROZO A MEDIA FILA, Y EL TROZO RESULTANTE PARECE UNA FILA ENTERA
+
+    ══ LA PREDICCIÓN, ESCRITA ANTES ══
+    «Un CSV se corta en FIN DE FILA, no en mitad de una fila», con su razón
+    mecánica: un CSV no tiene `\n\n` ni `. `, pero tiene un `\n` cada pocos
+    caracteres, así que `lastIndexOf('\n', end)` cae en la segunda mitad y el
+    corte se mueve ahí. Se predijo además que, de cumplirse, **la alarma de
+    B.181 bajaba de grado**.
+
+    ⚠️ ══ FALLÓ A MEDIAS, Y LA MITAD QUE FALLA ES LA QUE IMPORTA ══
+    Medido sobre un CSV de 121 filas y 6.423 caracteres, siete trozos:
+      · **La COLA es limpia en los siete.** El corte SÍ se mueve al `\n`.
+      · **La CABEZA no lo es en seis de siete.** El trozo siguiente arranca en
+        `end - CHUNK_OVERLAP`, y esos 200 caracteres hacia atrás **caen donde
+        caen**: a media fila.
+    El razonamiento sobre el FINAL del trozo era correcto; lo que no se miró es
+    que el principio no lo decide el mismo mecanismo. **El solape se aplica a
+    ciegas.**
+
+    ⚠️ ══ POR QUÉ NO ES PÉRDIDA SINO ALGO PEOR ══
+    No se pierde nada: la fila entera está en el trozo anterior, y el caso C1 lo
+    comprueba. **Lo que pasa es que se AÑADE una fila falsa.** Trozo #1:
+      `Odontologia general,Manana,118,Parcial 18`
+    Eso, para cualquiera que lo lea —un embedding, el juez, una recuperación—,
+    es una fila cuya PRIMERA COLUMNA vale «Odontologia general». La fila real
+    empezaba por `Clinica 18`. En un CSV cuya primera columna es el nombre de la
+    entidad, **cada trozo menos el primero se abre con una entidad equivocada**.
+    Es la especie de B.175: no un error visible, un dato plausible y falso.
+
+    ══ POR QUÉ EN PROSA NO PASA NADA, y por eso nadie lo vio ══
+    En prosa, abrir a media frase es lo NORMAL y es para lo que existe el solape:
+    nadie confunde media frase con una frase. **En un formato de filas, un
+    fragmento de fila es indistinguible de una fila.** El defecto no está en el
+    solape: está en aplicar el solape de prosa a algo que no es prosa.
+    Y enlaza con B.181: el problema del CSV no es cómo se trocea — es que
+    **nunca llega a ser tabla**, y por eso se le aplica el troceado de prosa.
+
+    ══ LO QUE ESTÁ FIJADO ══
+    `lib/troceado-sin-encabezados.test.ts` tiene un caso que **documenta el
+    defecto** y rompe el día que se arregle, con la instrucción de venir aquí.
+    No se ha «arreglado en el test»: el criterio C6 asegura la cola, y el defecto
+    de la cabeza queda escrito como defecto.
+
+    ══ LAS PREGUNTAS QUE HAY QUE CONTESTAR ══
+    1. ¿El solape debería respetar la frontera de línea cuando el texto tiene
+       filas? Es `start = end - overlap` → retroceder al `\n` anterior. Barato,
+       pero cambia el troceado de TODO lo que va por el caso 4, no solo del CSV.
+    2. Si cambia, **¿qué pasa con lo ya indexado?** Los chunks viejos no se
+       reescriben solos, y dos documentos troceados con reglas distintas se
+       comparan entre sí.
+    3. ¿O la respuesta correcta está aguas arriba —que un CSV sea tabla— y esto
+       se queda como está? Entonces esta ficha no se arregla: se cierra
+       apuntando a la otra.
+
 Forma de trabajo: diagnóstico con datos reales antes de arreglar; un
 cambio lógico cada vez; build verde entre medias; SQL en Supabase antes
 del push; plan completo antes de tocar varios archivos.

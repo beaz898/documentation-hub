@@ -15,11 +15,18 @@ principal**. La estimación no era mala: es que describía un inventario más
 pequeño que el real. Es literalmente la regla de F-103: se estima desde lo
 conocido, y lo conocido es lo medido.
 
-**Lo que propongo es mantener las dos semanas y recortar el alcance por el sitio
-correcto**: **entra todo lo que el cliente pisa; se queda fuera la periferia.**
-No es un recorte cómodo, es el que dicta el criterio de cierre de F-103 —«se
-cierra cuando se ha buscado donde el usuario va a ir»—. Lo que se quede fuera se
-dice, y está en §5.
+✅ **DECIDIDO (05/09, aprobado): se mantienen las dos semanas y se recorta la
+PERIFERIA, no la puerta principal.** Entra todo lo que el cliente pisa.
+
+**Y la razón queda escrita, porque no es una excusa: es el propio enunciado de
+F-103 ocurriéndonos a nosotros.** La estimación de dos semanas no se quedó corta
+por optimismo — **describía un inventario más pequeño que el real**. Se estimó
+desde los caminos conocidos, y los caminos conocidos son los medidos: exactamente
+«la curva de gravedad no describe el sistema, describe dónde se ha mirado». El
+censo no encareció el trabajo; **enseñó el que ya existía**.
+Por eso el recorte va por la periferia y no por la puerta: recortar la puerta
+sería volver a estimar sobre un inventario reducido, que es el error que el censo
+vino a corregir. Lo que se quede fuera se dice, y está en §5.
 
 ---
 
@@ -37,6 +44,25 @@ donde no está el cliente.
 esto NO es una pieza paralela: es una PRECONDICIÓN.** Una tanda sin denominador
 que salga cero **no se puede interpretar**, y eso es gastar 30 créditos para no
 saber nada. Es la regla del cero aplicada a nuestro propio plan.
+
+⚠️ **Y NO ES UNA PRECAUCIÓN TEÓRICA: ESTA SEMANA DIMOS POR BUENO DOS VECES UN CERO
+QUE NO ERA INTERPRETABLE, Y LAS DOS VECES ERA EL MISMO CERO.**
+
+| dónde | lo que decía | lo que era |
+|---|---|---|
+| tanda de la siembra, 04/09 | `Diff de tablas · 0 parejas` — anotado como **«EL CERO DE PAREJAS ES CORRECTO Y ESTÁ DOCUMENTADO»** | **correcto**: RRHH-08 y OPE-13 comparten columnas pero ninguna identifica una fila |
+| exhaustivo del modal (B.175) | `Diff de tablas — TOTAL: 0 sobre 0 parejas` | **CEGUERA**: no es que no encontrara parejas, es que no tenía tablas |
+
+**Las dos frases están en el mismo registro, con una semana de diferencia, y son
+el mismo cero.** Una describe un emparejador que miró y no encontró clave; la
+otra, un emparejador al que no le llegó ni una tabla. **Desde fuera son
+indistinguibles**, y la segunda tardó semanas en salir — hizo falta que el
+director empujara.
+
+Con `diff.vision.*` delante, la segunda habría dicho `tablas_analizado: 0` y eso
+**es la alarma en sí misma**. Por eso los denominadores van antes: no para que las
+tandas queden bonitas, sino para que **un cero de la semana que viene se pueda
+leer el mismo día**.
 **Con una excepción declarada**: las tandas cuya predicción es un **no-cero
 conocido** pueden ir antes, porque su lectura no depende del denominador. La de
 la puerta principal es exactamente ése — hoy da 4 y debe dar 15.

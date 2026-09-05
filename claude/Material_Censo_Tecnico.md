@@ -363,8 +363,8 @@ memoria de quien lo usó está como «probado».
 | 3 | **staged** (aprobar/descartar) | ⚠️ **`e†`** | **se queda**: ejercido hace meses, código reescrito esta semana |
 | 4-7 | **el AGENTE**, 4 caminos | `∅` | ✅ **se quedan y SUBEN**: el director lo mete en el piloto |
 | 8 | **`csv`** | `∅` | **PROBAR** — ver abajo |
-| 9 | **`json`** | `∅` | **declarar o quitar** — decisión del director |
-| 10 | **`html`** | `∅` | **declarar o quitar** — decisión del director |
+| 9 | **`json`** | `∅` | ✅ **DECLARADOS, no retirados** (director, 05/09) |
+| 10 | **`html`** | `∅` | ✅ idem — duda que alguien los suba, prefiere no quitarlos |
 | 11 | reserva de `docx` | `∅` | se queda, abajo: necesita un fichero roto |
 | 12 | rama `default` | `∅` | se queda, abajo: no es un gesto de cliente |
 | 13 | **OneDrive** | `∅` | se queda, abajo: UI apagada |
@@ -442,9 +442,21 @@ la que la casa prefiere; si alguien sube HTML, no.
 · ~~Si alguien ha aprobado un staged.~~ ✅ **CONTESTADO 05/09: sí, cuando se
   desarrolló la funcionalidad — no en las pruebas recientes.** Pasa a `e†`, y el
   código de entonces no es el de ahora.
-· **Si `.json` y `.html` son formatos que un cliente vaya a subir.** De esa
-  respuesta depende si se declaran o **se quitan**, que es la salida que la casa
-  prefiere. (`csv` ya no está en esta pregunta: se prueba.)
+· ~~Si `.json` y `.html` son formatos que un cliente vaya a subir.~~
+  ✅ **CONTESTADO 05/09: el director DUDA que alguien los suba —son formatos de
+  código, no de documentación— y aun así prefiere NO retirarlos. Quedan
+  DECLARADOS.**
+  ⚠️ Queda anotado lo que esa decisión compra y lo que cuesta, sin discutirla:
+  compra que nadie se quede fuera por una lista corta; cuesta que la exclusión
+  haya que **acertarla cada vez** —en cada camino nuevo, y el día que alguien
+  añada uno sin saberlo—, que es justo lo que F-102 dice que una ausencia no
+  puede fallar. **La declaración, por tanto, lleva contador**: si algún día entra
+  un `.json`, hay que poder verlo.
+
+· ✅ **Y EL LISTÓN, contestado el 05/09:** el piloto lo prueba el director antes
+  que ningún cliente, **pero el listón no baja** — la medida es «cliente real».
+  Es la que manda: por F-101, «hoy no hay cliente» es razón para no gastar en
+  migrar lo viejo, **y no es razón para dejar una fuga abierta**.
 
 Tres de las cuatro entradas de arriba dependen de esas respuestas. Por eso el
 cruce es del usuario y no mío.
