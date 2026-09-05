@@ -433,6 +433,95 @@ la que la casa prefiere; si alguien sube HTML, no.
 
 ---
 
+# 5 · EL MÓVIL — exploración del 05/09, en solo lectura
+
+Pregunta del director, que no estaba en el censo. **La respuesta corta: el
+inventario NO cambia — no hay ni un camino que en móvil llame a algo distinto.**
+
+## 5.1 · ¿Código propio de móvil, o la misma interfaz adaptada?
+
+**Las dos cosas, en tres capas**, y hay código que solo corre en móvil:
+
+| capa | qué hay |
+|---|---|
+| **CSS** | dos bloques `@media` en `globals.css` (`:239`, `:271`) y doce clases `md:`/`sm:` sueltas |
+| **Hooks propios** | `useMediaQuery` (46 líneas), `useVisualViewportHeight` —en **las siete** páginas autenticadas— y `useScrollFocusedInputIntoView`, que reacciona al teclado |
+| **Componentes distintos** | `ConversationDrawer` (agente) e `ImprovementMobileNotice` |
+
+El `viewport` está declarado en `layout.tsx:11` con `maximum-scale=1`, y las
+alturas usan `visualViewport` con `100dvh` de reserva. **No es una web de
+escritorio encogida**: alguien se sentó a pensar el móvil.
+
+## 5.2 · ¿Qué se comporta distinto en pantalla pequeña?
+
+Cinco sitios, y **ninguno esconde una función sin decirlo**:
+
+- **Chat** — la barra lateral pasa a superponerse, con botón ☰ en `ChatHeader`.
+- **Agente** — la barra lateral se convierte en `ConversationDrawer`, más una
+  barra superior con ☰ y créditos.
+- **`ConversationInput`** — se oculta la pista «Enter para enviar · Shift+Enter»
+  (tres veces). Correcto: en un teléfono no hay ese gesto.
+- **`ConversationSidebar`** — los botones de cada fila, que en escritorio salen al
+  pasar por encima, **en móvil están siempre visibles** (`isHovered || isMobile`).
+  Es el detalle que delata que esto se pensó: en táctil no hay «pasar por encima».
+- **`AuthenticatedLayout`** — `overflow-y-auto` en móvil, `md:overflow-hidden` en
+  escritorio.
+
+## 5.3 · ⚠️ ¿Hay algún camino que en móvil llame a algo distinto? — **NO. CERO.**
+
+Era la pregunta que más preocupaba —dos implementaciones del mismo gesto— y la
+respuesta es limpia: **no hay ni un `fetch` gobernado por `isMobile`** en toda la
+aplicación. Comprobado sobre `app/`, `components/` y `hooks/`.
+
+La única divergencia real es que **el modal de mejora no se renderiza** en móvil.
+Eso es **AUSENCIA, no una segunda implementación**: las llamadas no ocurren, no
+ocurren de otra manera.
+
+**Consecuencia para el inventario, que sí la hay:** cinco caminos son **de
+escritorio** — A5, A6, A7, A8 y B3 (el chat de mejora). Y son la puerta principal.
+No son caminos nuevos: son los mismos, con una condición de pantalla que hasta hoy
+no estaba escrita en ninguna parte.
+
+## 5.4 · ¿Algo apagado sin decirlo? — **No: apagado y DICHO**
+
+`ImprovementModal.tsx:85` devuelve `ImprovementMobileNotice` antes de nada, con un
+texto explícito (`es.json:311-313`): *«Mejora con IA, mejor en ordenador… Abre
+este documento desde un ordenador para mejorarlo.»* Es un aviso, no un botón
+muerto.
+
+⚠️ **Con un matiz que conviene ver**: los botones que llevan ahí —«Mejorar con IA»
+en `UploadActions` y en `ReviewActions`— **no saben nada del móvil** (cero
+apariciones de `isMobile` en los dos). Así que en un teléfono el gesto se ofrece
+igual y el aviso llega **después de pulsar**. Está dicho, pero tarde.
+
+## 5.5 · Lo que sí merece anotarse (B.183)
+
+**(a) Dos criterios de «móvil», implementados tres veces** — `useMediaQuery
+('(max-width: 767px)')`, `window.innerWidth < 768` (`chat/page.tsx:64`) y
+`@media (max-width: 768px)`. Los dos primeros son equivalentes; **el tercero
+incluye el 768 y los otros no.**
+
+**(b) `.hide-mobile` está definida y no se usa en ningún sitio.**
+
+**(c) El `AppRail` no tiene variante móvil**: 64 px fijos (`w-16`) en toda
+pantalla. En un teléfono de 375 px es el 17 % del ancho, permanente. No es un
+fallo — es una decisión que nadie escribió.
+
+## 5.6 · ⚠️ LO QUE ESTA EXPLORACIÓN **NO** DICE
+
+**No he abierto la aplicación en un móvil.** Todo lo anterior es lectura de
+código, y por la regla de la casa —«una exploración que verifica el productor no
+ha verificado la funcionalidad»— eso **no dice si algo cabe en la pantalla**.
+
+Y hay dos candidatas concretas a no caber, que se nombran para que se miren:
+**la bandeja de revisión y `/settings/usage`** no tienen **ni una línea** de
+código de móvil más allá del alto del viewport —cero `isMobile`, cero
+`useMediaQuery`, cero clases responsive—, y las dos son pantallas de filas y
+columnas. Que estén maquetadas con flex y sin anchos fijos juega a favor; **no lo
+he visto**.
+
+---
+
 # LO QUE NO PUEDO APORTAR, Y ES DEL DIRECTOR
 
 · ~~Si la organización piloto tiene plan Business.~~ ✅ **CONTESTADO 05/09: el

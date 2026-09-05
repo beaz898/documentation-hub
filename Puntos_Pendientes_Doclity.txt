@@ -6554,6 +6554,65 @@ NOTAS DE ORDEN (propuesta, a confirmar)
        se queda como está? Entonces esta ficha no se arregla: se cierra
        apuntando a la otra.
 
+  B.183 — [ABIERTO 05/09 · EXPLORACIÓN DEL MÓVIL] «MÓVIL» ESTÁ DEFINIDO TRES
+    VECES Y UNA DE LAS TRES NO DICE LO MISMO
+
+    ══ LO QUE SE BUSCABA Y NO ESTÁ, que es la buena noticia ══
+    Se exploró el móvil temiendo DOS IMPLEMENTACIONES DEL MISMO GESTO. **No las
+    hay**: cero `fetch` gobernados por `isMobile` en toda la aplicación. El
+    inventario de caminos no cambia. Lo que sigue es lo que sí apareció.
+
+    ══ (a) EL CRITERIO, TRES VECES ══
+      · `useMediaQuery('(max-width: 767px)')` — `ImprovementModal`, agente.
+      · `window.innerWidth < 768` — `chat/page.tsx:64`.
+      · `@media (max-width: 768px)` — `globals.css:239`.
+    Los dos primeros son equivalentes. **El tercero incluye el 768 y los otros
+    dos no**, así que a exactamente 768 px de ancho el CSS cree que es móvil y el
+    JS cree que no.
+    Es la regla de la casa —«un criterio se implementa UNA VEZ; quien lo necesita
+    PREGUNTA a quien lo decidió»— con tres implementaciones en vez de dos.
+
+    ⚠️ ══ POR QUÉ SE ANOTA AUNQUE HOY SEA INERTE ══
+    Hoy no rompe nada: lo único que define ese bloque es `.hide-mobile` —que no
+    se usa— y `.sidebar-mobile*`, y el overlay solo se pinta si el JS ya ha dicho
+    que es móvil. **Es una trampa cargada, no un fallo activo**: quien añada
+    mañana una regla a ese bloque la verá aplicarse un píxel antes que el JS, y
+    depurar eso desde el síntoma es caro.
+
+    ══ (b) CSS MUERTO ══
+    `.hide-mobile` está definida (`globals.css:240`) y **no se usa en ningún
+    sitio**. Promete una capacidad —«esto no se enseña en móvil»— que nadie
+    ejerce. Quien la encuentre creerá que hay una convención y no la hay.
+
+    ══ (c) EL RAÍL NO TIENE VARIANTE MÓVIL ══
+    `AppRail` es `w-16` —64 px fijos— en toda pantalla (`AppRail.tsx:103`), sin
+    `hidden`, sin `md:`, sin barra inferior. En un teléfono de 375 px son el 17 %
+    del ancho, permanentes. **No es un fallo: es una decisión que nadie escribió**,
+    y por eso está aquí y no en un arreglo.
+
+    ══ (d) EL AVISO DE MÓVIL LLEGA DESPUÉS DE PULSAR ══
+    `ImprovementModal` avisa bien y con texto propio, pero **los botones que
+    llevan ahí no saben nada del móvil**: cero `isMobile` en `UploadActions` y en
+    `ReviewActions`. El gesto se ofrece igual y el aviso llega al pulsar.
+    Es coherente con B.180 —un botón que no dice lo que va a pasar— aunque aquí lo
+    que no dice no es el precio, sino que en esta pantalla no va a funcionar.
+
+    ══ LO QUE NO SE HA COMPROBADO, y se declara ══
+    **No se ha abierto la aplicación en un móvil.** Todo esto es lectura de
+    código, y por la regla de la casa eso no verifica la funcionalidad: no dice si
+    algo CABE.
+    Las dos candidatas a no caber, nombradas para que se miren: **la bandeja de
+    revisión y `/settings/usage`** no tienen ni una línea de código de móvil más
+    allá del alto del viewport, y las dos son pantallas de filas y columnas.
+
+    ══ LAS PREGUNTAS QUE HAY QUE CONTESTAR ══
+    1. ¿Cuál de los tres es EL criterio? Unificar es barato hoy y caro el día que
+       alguien se apoye en el que sobra.
+    2. ¿El móvil entra en el piloto? Si el director lo va a enseñar desde un
+       teléfono, la puerta principal —que es de escritorio— no está enseñable ahí,
+       y eso hay que saberlo antes y no en la demostración.
+    3. ¿Y la bandeja en un teléfono, cabe? Esa no la contesta el repositorio.
+
 Forma de trabajo: diagnóstico con datos reales antes de arreglar; un
 cambio lógico cada vez; build verde entre medias; SQL en Supabase antes
 del push; plan completo antes de tocar varios archivos.
