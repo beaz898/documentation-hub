@@ -244,8 +244,12 @@ Los otros nueve son periferia real; éste no.
    conmutación de generación del versionado de Drive.
 4. **El AGENTE entero** — cuatro herramientas sobre documentos
    (`search_docs`, `read_doc`, `list_docs`, `usage_stats`), cero apariciones en
-   los tres ficheros del harness. **Condicionado a que el piloto sea Business**:
-   si no lo es, el `∅` es total y no es una omisión, es que no existe todavía.
+   los tres ficheros del harness.
+   ✅ **RESPONDIDO POR EL DIRECTOR (05/09): EL AGENTE ENTRA EN EL PILOTO** — es
+   necesario para enseñar el potencial. **Sus cuatro caminos se quedan en la
+   lista y dejan de ser condicionales.** Ya no es «∅ porque quizá no esté
+   encendido»: es **∅ de una superficie que el cliente va a usar**, que es el
+   peor de los dos ∅.
 
 **Ramas de extracción (3)**
 5. **`csv`** — se acepta en la subida, y **una tabla entra como churro de texto**.
@@ -328,15 +332,17 @@ el botón no dice que cuesta 2 créditos (B.180).
   no el primer día.
 · **`json` y `html`** — aceptados, improbables. `html` antes que `json`, si acaso:
   alguien puede volcar una wiki.
-· **El AGENTE** — no lo decide la probabilidad sino el plan. Si el piloto no es
-  Business, no es que sea improbable: **es que no está encendido.**
+· ⚠️ **El AGENTE YA NO ESTÁ AQUÍ.** El director confirma el 05/09 que entra en el
+  piloto. No sé aún dónde cae en el orden de contacto —depende de cuánto se
+  empuje al cliente hacia él, y eso es de producto—, pero **sale de la lista de
+  «no se pisa el primer día» y sus cuatro caminos siguen en los doce**.
 
 ---
 
 # LO QUE NO PUEDO APORTAR, Y ES DEL DIRECTOR
 
-· **Si la organización piloto tiene plan Business**, que decide si el agente es
-  un camino real o una funcionalidad aún no encendida.
+· ~~Si la organización piloto tiene plan Business.~~ ✅ **CONTESTADO 05/09: el
+  agente entra en el piloto.** Sus cuatro caminos se quedan.
 · **Si alguien ha guardado alguna vez una versión corregida** (C3 / `index-text`)
   o **aprobado un staged** en producción. El código existe; la evidencia de uso
   no está en el repositorio.
