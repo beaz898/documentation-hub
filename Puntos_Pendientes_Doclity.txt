@@ -6454,6 +6454,51 @@ NOTAS DE ORDEN (propuesta, a confirmar)
        rápido no hace estilo a propósito, el botón es el modo de comprarlo — y
        entonces el precio es todavía más obligatorio.
 
+  B.181 — [ABIERTO 05/09 · SALIÓ AL MEDIR SI «PROBAR UNO CUBRE LOS CUATRO»]
+    `chunkText` NO TIENE NI UN SOLO TEST, Y ES POR DONDE PASA TODO LO QUE NO ES
+    EXCEL
+
+    ══ EL DATO ══
+    Cero apariciones de `chunkText`, `splitByLength`, `buildProsePieces` y
+    `HAS_ANY_HEADING_RE` en los 38 ficheros de test. `lib/chunking.test.ts` tiene
+    **40 líneas y un solo caso**: la sonda de `extractSegments` sobre un `.xlsx`,
+    que existe para vigilar el `require('xlsx')` — no para probar el troceado.
+    De los 499 tests, **ninguno trocea prosa**.
+
+    ⚠️ ══ POR QUÉ IMPORTA MÁS DE LO QUE PARECE ══
+    `chunkText` bifurca por encabezados MARKDOWN (`HEADING_LINE_RE` es
+    `/^(#{1,6})\s/`), y la rama sin encabezados —«Caso 4: sin estructura
+    detectable, corte por longitud de siempre», `chunking.ts:378`— **no es la rama
+    rara: es la de cualquier documento sin `#`, en cualquier formato**. Un PDF de
+    tablas, un `.txt` corrido, un `.docx` cuyos títulos no case
+    `normalizeNumberedHeadings`, y los tres formatos de la rama cruda.
+    El troceado decide qué se recupera: **un corte malo no da un error, da
+    respuestas peores para siempre**, y eso no lo ve nadie.
+
+    ══ CÓMO SALIÓ, que es parte del hallazgo ══
+    Buscando si «compartir extractor» implicaba «probar uno cubre los cuatro».
+    **La respuesta es que no**: `md`, `csv`, `json` y `html` comparten un `case`
+    de UNA LÍNEA —`buffer.toString`— y se separan en el paso siguiente, porque
+    `md` trae `#` y los otros tres no. **Comparten el eslabón que no hace nada y
+    divergen en el que decide.** Al mirar dónde divergían apareció que ese punto
+    de divergencia no está probado en absoluto.
+
+    ══ POR QUÉ ES BARATO, y por eso se anota con recomendación ══
+    Es una función PURA sobre un string. Encaja en la regla de vitest de la casa
+    sin rozarla: sin mocks, sin React, sin los tres servicios. **No hace falta
+    corpus nuevo**: los ficheros de `corpus-pruebas/` ya cubren los dos lados —
+    los `.md` de SIEMBRA tienen encabezados y un `.csv` de una línea larga se
+    escribe en el propio test.
+
+    ══ LAS PREGUNTAS QUE HAY QUE CONTESTAR ══
+    1. ¿Qué es un corte CORRECTO en el caso 4? Sin criterio escrito, un test solo
+       congela lo que hoy hace — que puede estar mal y quedar bendecido.
+    2. ¿El solape de `CHUNK_OVERLAP` basta para que una fila de CSV partida en dos
+       siga siendo recuperable, o hay pérdida? Es medible sin lanzar nada.
+    3. ¿Y debería `chunkText` saber que un CSV es un CSV? Hoy no lo sabe: le
+       llega un string. Contestar que sí abre la puerta a la rama de tablas, y
+       eso ya no es un test, es un frente.
+
 Forma de trabajo: diagnóstico con datos reales antes de arreglar; un
 cambio lógico cada vez; build verde entre medias; SQL en Supabase antes
 del push; plan completo antes de tocar varios archivos.

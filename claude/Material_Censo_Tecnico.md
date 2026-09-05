@@ -339,16 +339,112 @@ el botón no dice que cuesta 2 créditos (B.180).
 
 ---
 
+# 4.3 · CIERRE DEL INVENTARIO — cómo quedan las doce con las tres respuestas
+
+## Primero, un estado nuevo que hay que nombrar
+
+La respuesta sobre el reemplazo por sincronización no cabe en los cuatro estados:
+**se ejerció, pero contra un código que ya no existe**. Eso no es `e` —`e` dice
+«ha corrido», en presente— ni es `∅`.
+
+| `e†` | **EJERCIDO CONTRA CÓDIGO CADUCADO** | alguien lo recorrió, con una versión que ya se ha reescrito |
+|---|---|---|
+
+Vale más que `∅` y menos que `e`: **prueba que el camino se puede recorrer, no que
+hoy haga lo que hacía.** Es el estado más engañoso de los cinco, porque en la
+memoria de quien lo usó está como «probado».
+
+## Las doce, cerradas
+
+| # | entrada | estado | qué pasa con ella |
+|---|---|---|---|
+| 1 | **A6** — modal desde bandeja | `∅` + **roto** (B.177) | **se queda, arriba**: camino principal |
+| 2 | **`index-text`** | `∅` + B.179 | **se queda, arriba**: cierra el flujo que el producto empuja |
+| 3 | **staged** (aprobar/descartar) | ⚠️ **`e†`** | **se queda**: ejercido hace meses, código reescrito esta semana |
+| 4-7 | **el AGENTE**, 4 caminos | `∅` | ✅ **se quedan y SUBEN**: el director lo mete en el piloto |
+| 8 | **`csv`** | `∅` | **PROBAR** — ver abajo |
+| 9 | **`json`** | `∅` | **declarar o quitar** — decisión del director |
+| 10 | **`html`** | `∅` | **declarar o quitar** — decisión del director |
+| 11 | reserva de `docx` | `∅` | se queda, abajo: necesita un fichero roto |
+| 12 | rama `default` | `∅` | se queda, abajo: no es un gesto de cliente |
+| 13 | **OneDrive** | `∅` | se queda, abajo: UI apagada |
+| 14 | extracción de prosa en la suite | `∅` | **se AMPLÍA** — ver B.181 |
+| 15 | `analyze-style` / `improve` | `∅` + B.180 | se quedan |
+
+Las «doce» son quince filas porque el agente son cuatro caminos y los formatos
+tres. **Nada salió de la lista.** Una entrada mejoró de estado (staged, a `e†`) y
+una empeoró de significado (el agente: de «quizá no esté encendido» a «el cliente
+va a usarlo»).
+
+---
+
+# 4.4 · ⚠️ PROBAR O DECLARAR: la hipótesis del extractor compartido, medida
+
+**La hipótesis es correcta en el extractor y falsa un `fork` después.** Y la
+diferencia importa, porque es la que decide cuánto trabajo hay.
+
+**Lo compartido es exactamente una línea.** `md`, `csv`, `json` y `html` caen en
+el mismo `case` y devuelven `buffer.toString('utf-8')` sin tocar nada
+(`chunking.ts:760-764`). Ahí la intuición es exacta: probar uno prueba los cuatro.
+
+⚠️ **Pero divergen en el paso siguiente, y divergen del todo.** `chunkText`
+pregunta si el texto tiene encabezados **markdown** —`HEADING_LINE_RE` es
+`/^(#{1,6})\s/`— y bifurca:
+
+- **`md` tiene `#`** → se va por secciones: `splitIntoSections` +
+  `mergeSmallSections`, troceado por significado.
+- **`csv`, `json` y `html` no tienen `#`** → caen en **«Caso 4: sin estructura
+  detectable, corte por longitud de siempre»** (`chunking.ts:378`).
+
+**Y `md` es el único de los cuatro con producción.** O sea: **comparten el eslabón
+que no hace nada y se separan en el que decide.** La experiencia de `md` no cubre
+a los otros tres — cubre la línea que da igual.
+
+⚠️ **Y AL COMPROBARLO SALE ALGO MÁS GRANDE QUE LOS TRES FORMATOS.** El «caso 4» no
+es la rama de `csv`: es la rama de **todo documento sin encabezados markdown, en
+cualquier formato**. Un PDF de tablas, un `.txt` corrido, un `.docx` sin títulos
+numerados que `normalizeNumberedHeadings` pueda convertir — todos van por ahí. Y
+**`chunkText` no tiene ni un solo test**: es B.181.
+
+## La recomendación, que se pedía explícita
+
+**1 · PROBAR — pero el CASO 4, no `csv`.** Un test determinista sobre `chunkText`
+con texto sin encabezados. Es función pura: encaja en la regla de vitest sin
+rozarla. **No cubre tres formatos: cubre la mayoría del corpus real**, y es lo más
+barato de esta lista.
+
+**2 · PROBAR EN PRODUCCIÓN — `csv`, y solo `csv`.** Una tanda, con su predicción.
+Es el único de los tres con probabilidad real de contacto (nº 3 del orden) y el
+único donde **la expectativa del cliente se rompe**: sube una tabla y recibe prosa.
+Los otros dos no prometen nada que no cumplan.
+
+**3 · `json` y `html` — DECLARAR… o mejor, QUITARLOS.** Declarar es barato y
+cierto: «se aceptan, se indexan como texto plano, no se extrae estructura», con su
+contador (F-95).
+⚠️ **Pero la regla de la casa prefiere la otra salida, y hay que ponerla sobre la
+mesa**: F-102 dice que *lo que no debe ser candidato no se excluye, no se indexa* —
+**una ausencia no se puede fallar; una declaración hay que acertarla cada vez, en
+cada camino nuevo y el día que alguien añada uno sin saberlo**. Si el director dice
+que ningún cliente va a subir un `.json` o un `.html`, **lo correcto no es
+declararlos: es sacarlos de las cuatro listas**. Son dos líneas por lista y
+eliminan la rama entera en vez de documentarla.
+**Eso sí es del director y no mío**: yo puedo decir que la salida existe y que es
+la que la casa prefiere; si alguien sube HTML, no.
+
+---
+
 # LO QUE NO PUEDO APORTAR, Y ES DEL DIRECTOR
 
 · ~~Si la organización piloto tiene plan Business.~~ ✅ **CONTESTADO 05/09: el
   agente entra en el piloto.** Sus cuatro caminos se quedan.
-· **Si alguien ha guardado alguna vez una versión corregida** (C3 / `index-text`)
-  o **aprobado un staged** en producción. El código existe; la evidencia de uso
-  no está en el repositorio.
-· **Si `.csv`, `.json` y `.html` son formatos que un cliente vaya a subir.**
-  Están en el `accept` y en la lista de `ingest`; que estén aceptados no
-  significa que sean reales.
+· **Si alguien ha guardado alguna vez una versión corregida** (C3 / `index-text`).
+  El código existe; la evidencia de uso no está en el repositorio.
+· ~~Si alguien ha aprobado un staged.~~ ✅ **CONTESTADO 05/09: sí, cuando se
+  desarrolló la funcionalidad — no en las pruebas recientes.** Pasa a `e†`, y el
+  código de entonces no es el de ahora.
+· **Si `.json` y `.html` son formatos que un cliente vaya a subir.** De esa
+  respuesta depende si se declaran o **se quitan**, que es la salida que la casa
+  prefiere. (`csv` ya no está en esta pregunta: se prueba.)
 
 Tres de las cuatro entradas de arriba dependen de esas respuestas. Por eso el
 cruce es del usuario y no mío.
