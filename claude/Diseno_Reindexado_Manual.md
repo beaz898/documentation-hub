@@ -81,6 +81,49 @@ documento apagado. Es el sesgo de fallo que `swapDocumentVectors` ya declara.
 
 ---
 
+# 3-bis · ⚠️ QUÉ PASA SI FALLA A MITAD — punto por punto
+
+Es la pregunta correcta, porque reindexar deja **dos generaciones conviviendo**
+mientras dura. La respuesta corta: **en ningún punto de fallo queda el documento
+peor que antes**, y eso no es suerte — es el orden.
+
+| muere en… | qué queda | ¿lo ve el usuario? | cómo se sale |
+|---|---|---|---|
+| **troceado / embeddings** | nada escrito | no | reintentar |
+| **vectores de N+1 escritos** | vectores huérfanos en una generación que nadie sirve | **no**: la búsqueda filtra por la generación activa, que sigue siendo N | reintentar; el reintento los sobrescribe (`upsert` por id) |
+| **chunks de N+1 escritos** | filas huérfanas en `document_chunks` con `generation = N+1` | no: las lecturas piden la generación activa | reintentar |
+| **antes del marcador** | lo anterior, sin fila en `document_staged` | no | ⚠️ **se aborta a propósito**: sin marcador la conmutación no sería reparable |
+| **durante la conmutación** | el swap muerto a medias | no | **volver a llamar**: `swapDocumentVectors` es idempotente y el marcador sigue ahí |
+| **después de conmutar** | terminado | sí, mejorado | nada |
+
+**La propiedad que sostiene toda la columna «¿lo ve el usuario?»** es que la
+generación viaja **dentro del id del vector** y es columna en `document_chunks`:
+escribir N+1 **no puede pisar N**. Mientras no se conmuta, el documento sirve
+exactamente lo de antes.
+
+**Y el sesgo de fallo es el que `swapDocumentVectors` ya declaraba**: *«si muere a
+medias, sobra basura invisible, nunca falta la versión servida ni el documento se
+apaga»*. Aquí se hereda, no se reinventa.
+
+⚠️ **LO QUE SÍ QUEDA, Y HAY QUE DECIRLO: BASURA.** Un reindexado abortado deja
+chunks y vectores de una generación que nadie va a servir. No hacen daño —nadie
+los lee— pero **ocupan y nadie los limpia hoy**: la retirada de generaciones
+viejas es la pata 3 del swap, y si el swap no llegó a correr, no pasó. Por la
+regla de la casa —«si la respuesta a *quién limpia esto* no es evidente, la
+pregunta anterior es por qué se creó»— esto se anota en vez de taparse: **el
+reintento los sobrescribe** (mismos ids, mismo `(document_id, generation,
+chunk_index)`), así que la basura no se acumula por reintentar; solo se queda si
+el documento se abandona a medias y nunca se vuelve a intentar.
+
+⚠️ **Y EL CASO QUE NO ESTÁ RESUELTO, declarado**: si la conmutación falla
+**después** de la pata 1 (metadatos de N+1 marcados) pero antes de la 2, los
+vectores nuevos ya dicen `analizado` y la fila sigue apuntando a N. No es
+incoherente para el usuario —la búsqueda sigue filtrando por generación— pero es
+un estado intermedio que solo se sale volviendo a llamar. Está dentro del contrato
+de `swapDocumentVectors`, no lo añade este diseño.
+
+---
+
 # 4 · DÓNDE SE DISPARA
 
 **Propuesta: `POST /api/admin/reindexar` con el id del documento.** Solo-admin,
@@ -91,6 +134,35 @@ todavía. La bandeja es de uso normal y un botón ahí lo pulsa cualquiera; esta
 operación reescribe el índice de un documento y su primera ejecución en producción
 es, literalmente, la medición del coste (paso 3 del orden de F-104). Primero se
 mide con un admin delante, y después se decide si baja a la bandeja.
+
+## 4.1 · ⚠️ QUIÉN PUEDE DISPARARLO — las tres opciones, y por qué SOLO ADMIN
+
+**Cualquiera de la organización — NO.** No por permisos: por **presupuesto
+compartido**. Reindexar consume la cuota de embeddings de Pinecone, que es de la
+organización entera; un usuario reindexando a mano puede dejar sin margen la
+indexación de otro, y el que se queda sin margen no sabe por qué. Un botón que
+gasta un recurso común no se pone donde el que lo pulsa no ve el contador.
+
+**El sistema por su cuenta — NO, y es la que más tentaba.** Es exactamente lo que
+la regla de la casa prohíbe por defecto: **nada se hace solo**; un barrido
+periódico es *la última opción*, y si alguna vez existe entra con el patrón de dos
+fases sobre conjunto fijo. Aquí además hay una razón propia: **la primera
+ejecución es una MEDICIÓN** —el coste real de un reindexado no está medido (H4)—
+y una medición no se lanza sola. Automatizar antes de tener la cifra sería
+convertir un experimento en un proceso.
+
+**Solo admin — SÍ**, y con la propiedad que lo hace defendible: es una operación
+**reparadora y reversible en su efecto** —deja el documento mejor troceado o igual,
+nunca sin servir— pero **cara y compartida**. Ese par —bajo riesgo, alto consumo—
+es justo el perfil de lo que se da a quien administra y no a quien usa.
+
+⚠️ **Y una consecuencia que conviene aceptar en voz alta**: con esto, **el parque
+de un cliente no se repara solo**. Alguien tiene que entrar y pulsar, documento a
+documento. Para el piloto es una tarde; para un cliente con doscientos documentos
+no vale, y por eso F-104 P2 registra el frente de reprocesado en background como
+post-MVP con prioridad alta, y **con su condición de entrada: el primer cliente**.
+Esta pieza no pretende resolver aquello — pretende que aquello se pueda construir
+encima en vez de desde cero.
 
 ---
 
