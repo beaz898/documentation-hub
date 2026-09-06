@@ -6733,6 +6733,63 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     pase a 3 y el parque se repare — y entonces el 2 pasa a ser historia
     inalcanzable, que es la forma barata de resolverlo.
 
+  B.185 — [ABIERTO Y CERRADO EL 06/09 · ⚠️ LO CAZÓ LA PREGUNTA POR OTRA COSA] LA
+    CONMUTACIÓN PROMOVÍA A «ANALIZADO» SIEMPRE, Y UN REINDEXADO HABRÍA METIDO UN
+    DOCUMENTO EN EL CORPUS SIN QUE NADIE LO REVISARA
+
+    ══ CÓMO APARECIÓ, que es parte del hallazgo ══
+    Buscando otra cosa: si el veto por HASH cortaba el camino de reparación. **No
+    lo corta** —`checkContentHash` tiene exactamente dos llamantes, los dos en
+    `lib/analysis/pipeline.ts`, y no hay UNIQUE sobre `content_hash`—, así que la
+    respuesta a la pregunta era «no hay nada que esquivar». Pero al seguir el
+    camino hasta el final apareció esto, que es peor.
+
+    ══ EL DATO ══
+    `swapDocumentVectors` (P2) escribía SIEMPRE, sin mirar quién la llamaba:
+      · `analysis_status: 'analizado'`
+      · `analyzed_content_hash: staged.content_hash`
+      · `reviewed_at: null`, `reviewed_by: null`
+
+    ⚠️ **Y NO ERA UN FALLO: era una suposición correcta para los llamantes que
+    había.** Los dos —el análisis desde la bandeja y el marcado humano— significan
+    «este contenido acaba de validarse», y ahí promover y resetear la procedencia
+    es justo lo que toca. La suposición solo se ve **al aparecer el tercero**.
+
+    ══ QUÉ HABRÍA PASADO CON EL REINDEXADO ══
+    El reindexado no cambia el contenido: **solo lo trocea otra vez.** Con la
+    conmutación de antes:
+      1. Reparar un documento en `pendiente` lo habría promovido a `analizado` —
+         o sea **lo habría metido en el corpus sin que nadie lo revisara**. Sin
+         error, sin traza: un documento más respondiendo en el chat.
+      2. A un documento ya revisado le habría borrado `reviewed_at/by`,
+         devolviéndolo a la bandeja como si nadie lo hubiera visto.
+      3. Y habría dejado **los dos sistemas en desacuerdo**: los vectores
+         conservaban el estado viejo (el endpoint sí lo preservaba) y la fila
+         decía `analizado`. Es justo lo que F-96 P3 existe para impedir.
+
+    ⚠️ ══ Y ME DEJA MAL UNA AFIRMACIÓN QUE HICE ══
+    La cabecera del endpoint decía «NO re-analiza: no toca `analysis_status`».
+    **Era falso**: no lo tocaba el endpoint, lo tocaba la conmutación que el
+    endpoint llama. Verifiqué el fichero que escribía y no el que se ejecutaba —
+    la forma exacta de «una exploración que verifica el productor no ha verificado
+    la funcionalidad», cometida por quien escribió esa regla.
+
+    ══ EL ARREGLO ══
+    El motivo se PIDE, no se supone: `swapDocumentVectors(..., motivo)` con
+    vocabulario cerrado —`contenido_validado` | `mismo_contenido_retroceado`— y
+    los campos los decide `lib/documents/promocion.ts`, que es puro y tiene
+    batería. **Sin valor por defecto a propósito**: un defecto habría dejado al
+    llamante nuevo heredando en silencio la semántica del viejo, que es
+    exactamente cómo se cuela esto.
+    Los tres llamantes quedan explícitos: `analyze-v2` y `mark-analyzed` con
+    `contenido_validado`; `reindexar` con `mismo_contenido_retroceado`.
+
+    ══ LO QUE DEJA ══
+    Cinco mutaciones sobre `promocion.ts`, las cinco muertas. La que importa es la
+    que devuelve la promoción al retroceado: mata el caso que vigila la pérdida de
+    pertenencia. **La batería comprueba campos AUSENTES y no solo valores**,
+    porque de un retroceado lo que importa no es qué escribe: es qué NO escribe.
+
 Forma de trabajo: diagnóstico con datos reales antes de arreglar; un
 cambio lógico cada vez; build verde entre medias; SQL en Supabase antes
 del push; plan completo antes de tocar varios archivos.

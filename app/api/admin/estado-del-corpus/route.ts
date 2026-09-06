@@ -88,5 +88,13 @@ export async function GET(req: NextRequest) {
       : recuento.reparable_automaticamente === 0 && recuento.reparable_resubiendo === 0
         ? 'Todo el corpus está en la versión vigente del extractor.'
         : `${recuento.reparable_automaticamente} reparables automáticamente y ${recuento.reparable_resubiendo} que hay que resubir.`,
+    // ⚠️ EL LÍMITE DEL PILOTO, DICHO AQUÍ Y NO ESCONDIDO DETRÁS DEL BOTÓN.
+    // Reparar es UNA OPERACIÓN POR DOCUMENTO, disparada a mano por un admin. Con
+    // el corpus del piloto es una tarde; con los doscientos documentos de un
+    // cliente real son doscientas operaciones, y eso no lo resuelve esta
+    // pantalla. El reprocesado en background es post-MVP (F-104 P2) y su
+    // condición de entrada es el primer cliente. Se devuelve como campo para que
+    // quien mire la cifra vea el coste al lado, y no lo descubra pulsando.
+    operaciones_manuales_necesarias: recuento.reparable_automaticamente + recuento.reparable_resubiendo,
   });
 }

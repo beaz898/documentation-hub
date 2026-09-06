@@ -7,6 +7,8 @@ import {
 } from '@/lib/pinecone/vectors';
 import { EXTRACTOR_VERSION } from '@/lib/chunking';
 import { deleteDocumentChunksBelowGeneration } from '@/lib/persist-chunks';
+import { camposDePromocion } from '@/lib/documents/promocion';
+import type { MotivoDeConmutacion } from '@/lib/documents/promocion';
 
 /**
  * Promueve la generación "staged" (ya validada) de un documento a ACTIVA, de forma
@@ -39,6 +41,7 @@ export async function swapDocumentVectors(
   supabase: SupabaseClient,
   orgId: string,
   documentId: string,
+  motivo: MotivoDeConmutacion,
 ): Promise<SwapResult> {
   const result: SwapResult = { ok: false, swapped: false, noop: false };
 
@@ -98,31 +101,22 @@ export async function swapDocumentVectors(
   // ── P2: UPDATE atómico de la fila documents desde staged. Corte si falla.
   const { error: updateError } = await supabase
     .from('documents')
-    .update({
-      full_text: staged.full_text,
-      content_hash: staged.content_hash,
-      chunk_count: staged.chunk_count,
-      size_bytes: staged.size_bytes,
-      source_modified_at: staged.source_modified_at,
-      active_generation: newGeneration,
-      analysis_status: 'analizado',
-      // document_staged no tiene columna extractor_version propia: el texto que
-      // se promueve se extrajo y trocheo con el extractor vigente en el momento
-      // del sync que lo genero, que en la practica casi siempre coincide con el
-      // vigente ahora (EXTRACTOR_VERSION solo sube a mano, rara vez). Si subiera
-      // entre el sync y este swap, esta fecha quedaria ligeramente optimista.
-      extractor_version: EXTRACTOR_VERSION,
-      // d-2b (F-7): esta version se acaba de analizar; su hash pasa a ser el
-      // "ultimo texto analizado". Unico escritor de analyzed_content_hash en el
-      // camino con staged (analyze-v2 lo salta cuando hay staged, Commit 5) —
-      // asi la fila nunca mezcla el hash de un texto con el content_hash de otro.
-      analyzed_content_hash: staged.content_hash,
-      // El contenido cambio: nadie humano ha visto ESTA version. Reset de
-      // procedencia -> el colindante la mostrara en la bandeja como "hallazgos
-      // por revisar" (Commit 6). Solo mark-analyzed vuelve a rellenarlos.
-      reviewed_at: null,
-      reviewed_by: null,
-    })
+    // ⚠️ QUÉ SE ESCRIBE AQUÍ DEPENDE DEL MOTIVO, y vive en `promocion.ts`.
+    //
+    // Hasta el 06/09/2026 esta llamada escribía SIEMPRE `analysis_status:
+    // 'analizado'`, `analyzed_content_hash` y el reseteo de `reviewed_at/by`.
+    // Era correcto para los dos llamantes que había —análisis desde la bandeja
+    // y marcado humano—, porque los dos significan «este contenido acaba de
+    // validarse»: promover y devolver a revisión es justo lo que toca.
+    //
+    // El reindexado es el tercero y rompe la suposición: el contenido es EL
+    // MISMO y solo cambia el troceado. Con lo de antes, reparar un documento
+    // `pendiente` lo habría metido en el corpus SIN QUE NADIE LO REVISARA, y a
+    // uno ya revisado le habría borrado la procedencia. Sin error y sin traza.
+    //
+    // Los cuatro campos condicionales son AFIRMACIONES SOBRE EL CONTENIDO, y un
+    // retroceado no ha mirado el contenido: solo lo ha cortado.
+    .update(camposDePromocion(staged, newGeneration, EXTRACTOR_VERSION, motivo))
     .eq('id', documentId)
     .eq('org_id', orgId);
 

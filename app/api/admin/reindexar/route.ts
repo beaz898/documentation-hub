@@ -40,6 +40,14 @@ import { planDeReindexado, esReparacionCompleta } from '@/lib/documents/plan-de-
  * monedero del cliente. Y NO re-analiza: no toca `analysis_results`, ni
  * `analysis_status`, ni la bandeja. Reindexar no es opinar sobre el contenido.
  *
+ * ⚠️ ESO ÚLTIMO NO ERA CIERTO HASTA B.185, y conviene que quede aquí: el endpoint
+ * no tocaba `analysis_status`, pero la conmutación que llama SÍ lo escribía —
+ * siempre `analizado`, más el reseteo de `reviewed_at/by`—. Un reindexado de un
+ * documento `pendiente` lo habría metido en el corpus sin que nadie lo revisara.
+ * Por eso la conmutación pide ahora un MOTIVO, y aquí se le pasa
+ * `mismo_contenido_retroceado`: verificar el fichero que se escribe y no el que
+ * se ejecuta es cómo se cuela esto.
+ *
  * ⚠️ LÍMITE DECLARADO, con su contador: HOY SOLO IMPLEMENTA `retrocear`.
  * `reprocesar` —volver a descargar el original de un proveedor— necesita la
  * obtención y el refresco del token de Drive, que hoy vive dentro de
@@ -190,7 +198,7 @@ export async function POST(req: NextRequest) {
       }, { status: 500 });
     }
 
-    const swap = await swapDocumentVectors(supabase, org.orgId, documentId);
+    const swap = await swapDocumentVectors(supabase, org.orgId, documentId, 'mismo_contenido_retroceado');
     if (!swap.ok || !swap.swapped) {
       console.error(`[reindexar] fallo_conmutacion | doc=${documentId} | ${swap.error ?? 'sin detalle'}`);
       return NextResponse.json({

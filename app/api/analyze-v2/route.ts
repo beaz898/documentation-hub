@@ -602,7 +602,7 @@ export async function POST(req: NextRequest) {
           }
         }
       } else {
-        const swapResult = await swapDocumentVectors(supabase, orgId, documentoEnRevision);
+        const swapResult = await swapDocumentVectors(supabase, orgId, documentoEnRevision, 'contenido_validado');
         if (swapResult.swapped) {
           versionPromoted = true;
         } else {

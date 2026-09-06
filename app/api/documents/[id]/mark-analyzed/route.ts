@@ -98,7 +98,7 @@ export async function POST(
       );
     }
     // Aprobacion humana (F-11): activar la version nueva (swap) y marcarla revisada.
-    const swapResult = await swapDocumentVectors(supabase, orgId, id);
+    const swapResult = await swapDocumentVectors(supabase, orgId, id, 'contenido_validado');
     if (!swapResult.swapped && !swapResult.ok) {
       console.error('[mark-analyzed] swap fallo al aprobar:', swapResult.error);
       return NextResponse.json(
