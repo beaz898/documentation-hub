@@ -6444,6 +6444,18 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     del harness. **No se afirma que nadie los haya pulsado** —quien estuvo delante
     de la pantalla puede desmentirlo—; se afirma que no hay registro.
 
+    ⚠️ ══ Y LA FAMILIA A LA QUE PERTENECE, nombrada el 06/09 ══
+    **EL USUARIO DESCUBRE EL LÍMITE CUANDO YA HA ACTUADO.** No es exclusivo del
+    precio: es la forma. Dos casos, el mismo día y en el mismo botón:
+      · **El precio** — pulsas «Re-analizar todo» y te enteras de que costaba 30
+        cuando ya se han ido.
+      · **El móvil** (B.183 d) — pulsas «Mejorar con IA» en un teléfono y te
+        enteras de que ahí no funciona cuando ya has pulsado. El aviso es bueno
+        y está bien escrito; llega tarde.
+    Lo que une los dos: **el botón sabe algo que no dice hasta que es tarde.**
+    Un límite que solo se conoce después de actuar no es un límite declarado —
+    es una sorpresa con buenos modales.
+
     ══ LAS PREGUNTAS QUE HAY QUE CONTESTAR, no la solución ══
     1. ¿Fue deliberado declarar el precio en el diálogo del exhaustivo y no en el
        botón que lanza ese mismo exhaustivo? Si lo fue, no está escrito en ningún

@@ -482,6 +482,13 @@ escritorio** — A5, A6, A7, A8 y B3 (el chat de mejora). Y son la puerta princi
 No son caminos nuevos: son los mismos, con una condición de pantalla que hasta hoy
 no estaba escrita en ninguna parte.
 
+⚠️ **Y CONVIENE NO QUEDARSE EN «EL INVENTARIO NO CAMBIA», QUE ES LA MITAD
+CÓMODA.** El mapa técnico no cambia; **lo que el producto puede prometer, sí.**
+Un cliente que abra Doclity en el móvil **no puede hacer lo que el producto le
+empuja a hacer** — sube un documento, se le ofrece «Mejorar con IA», y ahí se
+acaba. Eso es una **CONDICIÓN DE PRODUCTO**, no un detalle de implementación, y
+por eso va también en la lista de lo declarado del plan (§4, punto 7).
+
 ## 5.4 · ¿Algo apagado sin decirlo? — **No: apagado y DICHO**
 
 `ImprovementModal.tsx:85` devuelve `ImprovementMobileNotice` antes de nada, con un

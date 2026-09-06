@@ -236,6 +236,19 @@ de ser indistinguible de un «no miré».
 
 **6. Hay una lista escrita de lo que NO se ha probado**, y no está escondida.
 
+**7. ⚠️ Y UNA CONDICIÓN DE PRODUCTO QUE HASTA HOY NO ESTABA ESCRITA EN NINGUNA
+PARTE: LA PUERTA PRINCIPAL ES DE ESCRITORIO.**
+El mapa técnico de caminos no cambia por el móvil —no hay ni un `fetch` distinto—
+pero **lo que el director puede enseñar sí cambia**: cinco caminos (A5, A6, A7, A8
+y B3) no existen en un teléfono, y son justo aquéllos a los que el producto empuja
+al cliente en cuanto sube un documento con problemas.
+**Un cliente que abra Doclity en el móvil no puede hacer lo que el producto le
+está pidiendo que haga.** Eso no es un camino más en el inventario: es una
+condición de uso, y va en la lista de lo declarado porque **enseñar el producto
+desde un teléfono sin saberlo sería enseñar algo que no se puede completar**.
+Está avisado en pantalla y con buen texto; lo que no estaba es **escrito como
+condición** en ningún documento del proyecto. Ahora lo está.
+
 ## Y la frase, que es lo que hay que poder decir en una sala
 
 > «Doclity tiene ocho caminos por los que un documento llega a producir un
