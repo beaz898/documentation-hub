@@ -92,6 +92,15 @@ De ahí hay que **aislar y congelar por nombre** las que ya son línea de base:
 
 ---
 
+⚠️ **Y LAS CIFRAS DE TABLA SE APUNTAN EN EL REGISTRO, no se dejan «referenciadas»
+— PRECISAMENTE PORQUE NO DEBEN MOVERSE.** Es contraintuitivo y por eso se escribe:
+lo que se espera que cambie casi siempre se anota, y lo que se espera que NO
+cambie casi nunca — y es justo al revés. Una cifra de control que no está
+congelada **no es un control**: el día que salga otra, nadie podrá demostrar cuál
+era la de antes, y una regresión real se leerá como «pues eso daba».
+Así que  va copiado en el registro, con su fecha y su modo, al mismo
+nivel que las cifras que sí se espera que se muevan.
+
 # 4 · ⚠️ LO EXPUESTO — y el problema que tiene, dicho antes de usarlo
 
 Las cifras del **juez** sí pueden cambiar con el troceado, porque el juez lee los
