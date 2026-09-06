@@ -403,6 +403,15 @@ El dueño del proyecto NO es programador. Vercel deploya automáticamente al hac
   **El nombre de la columna no es el criterio.** El criterio es el que se puede
   escribir en una frase y falsar con un caso — y si no se ha falsado nunca, la
   cifra no es una medición: es una etiqueta.
+  ⚠️ **Y EL SEGUNDO CASO, del 06/09, enseña por dónde entran de verdad**: un «95 %
+  de documentos irreparables» que **nadie midió** — se construyó cogiendo una cifra
+  suelta de una conversación y convirtiéndola en porcentaje con un razonamiento que
+  **ya había sido corregido dos mensajes antes**. Iba camino de una ficha, y de ahí
+  a una consulta externa, con toda la pinta de un dato.
+  Lo que enseña: **una cifra fabricada no nace de un error de cálculo — nace de
+  reutilizar un número cuyo contexto ya no se sostiene.** Por eso la defensa no es
+  revisar la aritmética: es **preguntar de qué medición sale**, y si la respuesta es
+  «de algo que dijimos antes», no sale de ninguna.
 - **EL CRITERIO DE CIERRE NO ES LA AUSENCIA DE HALLAZGOS: ES LA COBERTURA DE LA
   BÚSQUEDA.** Se cierra cuando se ha buscado donde el usuario va a ir, no cuando
   se deja de encontrar. «No aparecen más» y «no hemos mirado donde están» se

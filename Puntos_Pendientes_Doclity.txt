@@ -6871,11 +6871,37 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     CLAUDE.md —«el peligro no es la respuesta vacía, es la incompleta»— con una
     variante que no estaba prevista: **la respuesta COMPLETA de otra pregunta.**
 
+    ⚠️⚠️ ══ CORRECCIÓN DEL MISMO DÍA, ANTES DE QUE ESTO SALIERA HACIA FABLE:
+    ES LATENTE, NO ESTÁ VIVO. HOY NO HAY BOTÓN. ══
+    Al abrir el CONSUMIDOR —que es lo que faltaba— la rama del cambio de carpeta
+    resulta **inalcanzable desde la aplicación**:
+      · `drive/callback:53` fija `folder_id: 'root'` al conectar.
+      · `sync:63` es el ÚNICO sitio que lo cambia, y exige `folderId && folderName`
+        en el cuerpo del POST.
+      · **`useDrive.handleSyncDrive` manda `JSON.stringify({})`** — nunca envía
+        carpeta. No hay ningún otro cliente que llame a ese endpoint.
+      · Y el selector no existe: `DocumentsSidebar.tsx:35` declara una prop
+        `folders?: DriveFolder[]` que **nadie pasa y nadie pinta**. El GET del sync
+        sigue pagando una llamada `listFolders` a Drive en cada carga de estado
+        **para nada**.
+
+    **Así que el enunciado correcto NO es «un gesto legítimo del usuario borra el
+    corpus».** Es: **«el día que alguien construya el selector de carpetas, borrará
+    el corpus»** — una trampa puesta para una funcionalidad a medio construir.
+    La gravedad no baja de familia, cambia de tiempo verbal: de daño en curso a
+    daño armado.
+
+    ⚠️ Y LA IRONÍA QUE CONVIENE GUARDAR: lo único que ha impedido esto es que la
+    mitad de interfaz **no se construyó**. Es la forma de F-94 —«la deuda que no se
+    contrae no se migra»— con el signo cambiado: aquí la deuda SÍ se contrajo en el
+    servidor, y lo que no llegó fue el gatillo.
+
     ══ LO QUE NO SE HA COMPROBADO, y se declara ══
-    **No se ha reproducido.** La cadena está verificada en el código, línea a
-    línea, pero nadie ha cambiado una carpeta en producción para verlo ocurrir.
-    Por la regla del cero: es deducción con evidencia, no medición. Y NO conviene
-    reproducirla a la ligera — el experimento borra documentos de verdad.
+    **No se ha reproducido, y ahora ya no se puede sin escribir código**: no hay
+    forma de mandar `folderId` desde la aplicación. La cadena está verificada en el
+    código, línea a línea. Por la regla del cero: deducción con evidencia, no
+    medición. Y NO conviene reproducirla a la ligera — el experimento borra
+    documentos de verdad.
 
     ══ LAS PREGUNTAS QUE HAY QUE CONTESTAR ══
     1. ¿Cambiar de carpeta debe BORRAR o debe DESVINCULAR? Son dos productos
