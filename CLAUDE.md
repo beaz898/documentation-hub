@@ -330,6 +330,21 @@ El dueño del proyecto NO es programador. Vercel deploya automáticamente al hac
   indexación sin que nadie lo leyera. Al darle lector —la vista de estado de
   reparación— el contrato entró **en el mismo commit y en la línea donde alguien
   lo va a tocar**, no en un documento aparte. Promovida el 06/09/2026.
+  ⚠️ **Y EL CASO QUE LA DEMUESTRA VALE MÁS QUE LA REGLA, porque no es hipotético:
+  el sello EXISTÍA, era el mecanismo correcto, y no se usó cuando tocaba.**
+  El 22/08 un cambio del troceado subió la versión de 1 a 2, como debía. **El
+  24/08, `8c0675d3` volvió a cambiar lo que el troceador produce —los
+  `table_summary` dejaron de subdividirse por longitud, y nació
+  `column_order`— y la versión se quedó en 2.** Dos días.
+  Resultado: **el `2` cubre hoy DOS comportamientos distintos.** Un documento
+  indexado el 23 y otro el 25 llevan el mismo número y no se trocearon igual. Y
+  nadie lo decidió: simplemente el commit no pasó por esa línea.
+  **Lo que enseña no es «acuérdate de subir el número».** Es que un sello sin
+  lector **no tiene a nadie que se queje** — durante quince días el número estuvo
+  mal y el sistema siguió igual de callado, porque no había ningún consumidor al
+  que le doliera. El día que el sello gana lector, el olvido pasa a ser visible;
+  mientras no lo tiene, es gratis. Por eso el contrato va con el lector y no
+  antes ni después.
 - **UN CAMBIO QUE ALTERA LO QUE QUEDA GUARDADO NO ENTRA HASTA QUE EXISTA LA VÍA
   DE REPARACIÓN DE LO YA GUARDADO.** Cambiar sin ella no arregla: parte el parque
   en dos mitades y **crea una deuda que nadie puede saldar** — el que ya está
