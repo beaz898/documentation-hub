@@ -531,6 +531,15 @@ El dueño del proyecto NO es programador. Vercel deploya automáticamente al hac
   El caso: F-98 retiró la fila temprana del documento dando por hecho que el
   abandono no dejaba rastro, y la escritura del ANÁLISIS estaba ahí, a la vista,
   greppable en minutos. Promovida en F-99 P3.
+  ⚠️ **Y EL MISMO FALLO POR EL OTRO EXTREMO, del 07/09: no al retirar, al AÑADIR.**
+  Se dijo «los TRES puntos de indexación» —de memoria, y sonaba razonable— y son
+  **CUATRO**: faltaba el que escribe la versión nueva en `document_staged`.
+  Un `grep` de las escrituras lo daba en un minuto, y el que faltaba era
+  precisamente el peor: **habría dejado un documento sin segmentos justo al
+  CONMUTAR**, que es el momento en que el sistema lo da por actualizado.
+  La forma es la misma en las dos direcciones: **una enumeración de memoria que
+  nadie verifica porque suena completa.** Y la defensa también: no se enumera, se
+  grepea — la lista de escrituras es finita y mecánica; la de la memoria, no.
 - **LAS PREMISAS DE INACCIÓN PAGAN LA MISMA EVIDENCIA QUE LAS DE ACCIÓN.** Es la
   simétrica de F-51: antes de construir sobre una propiedad hay que verificar que
   el sistema la garantiza — y antes de NO construir apoyándose en una propiedad

@@ -58,6 +58,9 @@ export interface EntradaDelPlan {
   nombre: string | null | undefined;
   /** ¿Tiene chunks `table_row`/`table_summary` en su generación activa? */
   tieneChunksTabulares: boolean;
+  /** ¿Tiene sus segmentos persistidos? Lo contesta `tieneSegmentosPersistidos`
+   *  y NADIE MÁS: es la única razón por la que la guarda se relaja. */
+  tieneSegmentos: boolean;
   /** ¿Hay una fila viva en `document_staged` para este documento? */
   hayStagedVivo: boolean;
   /** El texto guardado, que es lo único que sobrevive a la indexación de un manual. */
@@ -131,7 +134,19 @@ export function esReparacionCompleta(plan: PlanDeReindexado): boolean {
  * `lib/formatos-con-tablas.test.ts`.
  */
 export function puedePerderEstructura(
-  entrada: Pick<EntradaDelPlan, 'nombre' | 'tieneChunksTabulares'>,
+  entrada: Pick<EntradaDelPlan, 'nombre' | 'tieneChunksTabulares' | 'tieneSegmentos'>,
 ): boolean {
+  // ⚠️ LA ÚNICA RELAJACIÓN, Y SU CONDICIÓN, ESCRITA AQUÍ PARA QUE NO SE MUEVA:
+  // se relaja **SOLO si el documento tiene sus segmentos persistidos**. No por
+  // ser Excel, no por tener trozos tabulares, no por venir de la nube — POR
+  // TENER LA ESTRUCTURA GUARDADA, que es la única razón por la que re-trocear
+  // deja de perder algo: los segmentos llevan las celdas, y `chunkSegments` las
+  // vuelve a emitir tal cual.
+  //
+  // Si alguien relaja esto por otro motivo, vuelve el caso que la guarda evita
+  // (B.191): un documento con tablas re-troceado desde texto plano se convierte
+  // en prosa PARA SIEMPRE, y después ni se nota que fue tabla.
+  if (entrada.tieneSegmentos) return false;
+
   return entrada.tieneChunksTabulares || produceTablas(entrada.nombre);
 }

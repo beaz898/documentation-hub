@@ -99,10 +99,23 @@ en rápido contra 15, y la decisión es tuya.
 PERTENENCIA**, así que participan en toda recuperación **sin que nadie los
 seleccione**.
 
-⚠️ **Y son homónimos de tres de los seis de la foto.** Con ellos dentro, una pasada
-que seleccione NOR-10 (manual) tendría a NOR-10 (OneDrive) de candidato por
-pertenencia: mismo contenido, otro documento. **Las cifras no serían comparables
-con nada.**
+⚠️ **CORREGIDO EL 07/09: NO HAY HOMÓNIMOS.** Comprobado en la base: hay **una sola
+fila de cada uno** de los cuatro, todas de OneDrive. Los manuales **ya no
+estaban** — se fueron con las limpiezas de estos días. Así que la contaminación
+por pareja de homónimos **no existe**, y este apartado se queda solo por lo que
+sigue siendo cierto.
+
+⚠️ **LO QUE SÍ QUEDA, Y ES OTRA COSA: TRES DE LOS SEIS DE LA FOTO SON AHORA ESTOS.**
+NOR-10, CLI-12 y RRHH-06 no son «copias que compiten con los originales»: **son
+los originales**, y están en `analizado`. Eso cambia el montaje, porque el
+montaje (i) pedía que no hubiera nada en `analizado`.
+
+⚠️ **Y DE AHÍ SALE UNA COMPROBACIÓN OBLIGATORIA ANTES DE LA FOTO**, que se anota
+aquí porque es donde se va a leer: **verificar que los seis documentos siguen
+existiendo y en qué estado**. Han pasado por limpiezas, por resubidas y por un
+cambio de origen en tres días. Dar por hecho que el corpus de la foto es el que
+era hace una semana es exactamente la clase de premisa que esta semana ha fallado
+tres veces.
 
 ⚠️ **Y no hay vuelta atrás desde **: el único escritor de 
 es la rama de *sobrescribir* del sync, que solo corre cuando el documento **no**

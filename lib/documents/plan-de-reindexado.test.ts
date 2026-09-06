@@ -20,6 +20,7 @@ function entrada(over: Partial<EntradaDelPlan> = {}): EntradaDelPlan {
     fila: { extractorVersion: 2, source: 'manual', providerFileId: null },
     nombre: 'manual-de-calidad.docx',
     tieneChunksTabulares: false,
+    tieneSegmentos: false,
     hayStagedVivo: false,
     fullText: 'x'.repeat(200),
     ...over,
@@ -140,10 +141,11 @@ describe('⚠️ B.191 — la guarda pregunta por TABLAS, no por trozos tabulare
   });
 
   it('puedePerderEstructura: basta con que UNA de las dos fuentes diga que sí', () => {
-    expect(puedePerderEstructura({ nombre: 'a.docx', tieneChunksTabulares: false })).toBe(false);
-    expect(puedePerderEstructura({ nombre: 'a.docx', tieneChunksTabulares: true })).toBe(true);
-    expect(puedePerderEstructura({ nombre: 'a.xlsx', tieneChunksTabulares: false })).toBe(true);
-    expect(puedePerderEstructura({ nombre: 'a.xlsx', tieneChunksTabulares: true })).toBe(true);
+    const sinSeg = { tieneSegmentos: false };
+    expect(puedePerderEstructura({ nombre: 'a.docx', tieneChunksTabulares: false, ...sinSeg })).toBe(false);
+    expect(puedePerderEstructura({ nombre: 'a.docx', tieneChunksTabulares: true, ...sinSeg })).toBe(true);
+    expect(puedePerderEstructura({ nombre: 'a.xlsx', tieneChunksTabulares: false, ...sinSeg })).toBe(true);
+    expect(puedePerderEstructura({ nombre: 'a.xlsx', tieneChunksTabulares: true, ...sinSeg })).toBe(true);
   });
 
   /**
@@ -156,5 +158,67 @@ describe('⚠️ B.191 — la guarda pregunta por TABLAS, no por trozos tabulare
       .toBe('retrocear');
     expect(planDeReindexado(entrada({ nombre: null, tieneChunksTabulares: true }), VIGENTE).via)
       .toBe('rechazado');
+  });
+});
+
+describe('⚠️ F-105 — la reparación que enriquece: la guarda se relaja SOLO por segmentos', () => {
+  /**
+   * LA RELAJACIÓN. Un Excel con trozos tabulares y con sus segmentos guardados
+   * SE REPARA: re-trocear no pierde nada porque las celdas están en los
+   * segmentos y `chunkSegments` las vuelve a emitir tal cual.
+   */
+  it('CON segmentos, un .xlsx con trozos tabulares se repara', () => {
+    expect(
+      planDeReindexado(
+        entrada({ nombre: 'tarifas.xlsx', tieneChunksTabulares: true, tieneSegmentos: true }),
+        VIGENTE,
+      ),
+    ).toEqual({ via: 'retrocear' });
+  });
+
+  /**
+   * ⚠️⚠️ EL CASO QUE PROTEGE, y es el 87 % del corpus hoy: SIN segmentos y con
+   * tablas se sigue rechazando. Si este caso muriera, volvería B.191 — un Excel
+   * convertido en prosa para siempre, sin rastro de que fue tabla.
+   */
+  it('SIN segmentos y con tablas se RECHAZA — por nombre y por trozos', () => {
+    expect(
+      planDeReindexado(
+        entrada({ nombre: 'tarifas.xlsx', tieneChunksTabulares: false, tieneSegmentos: false }),
+        VIGENTE,
+      ),
+    ).toEqual({ via: 'rechazado', motivo: 'sin_original_con_tablas' });
+
+    expect(
+      planDeReindexado(
+        entrada({ nombre: 'informe.pdf', tieneChunksTabulares: true, tieneSegmentos: false }),
+        VIGENTE,
+      ),
+    ).toEqual({ via: 'rechazado', motivo: 'sin_original_con_tablas' });
+  });
+
+  /**
+   * ⚠️ Y LA CONDICIÓN ES **SOLO** LOS SEGMENTOS. Este caso existe para que nadie
+   * relaje la guarda por otro motivo: ni el nombre, ni los trozos, ni nada más
+   * puede abrirla. Solo tener la estructura guardada.
+   */
+  it('la relajación no la activa nada que no sean los segmentos', () => {
+    const conTablas = { nombre: 'tarifas.xlsx', tieneChunksTabulares: true };
+    expect(puedePerderEstructura({ ...conTablas, tieneSegmentos: false })).toBe(true);
+    expect(puedePerderEstructura({ ...conTablas, tieneSegmentos: true })).toBe(false);
+
+    // Y sin tablas por ninguna vía, da igual el valor: no hay nada que perder.
+    const sinTablas = { nombre: 'protocolo.docx', tieneChunksTabulares: false };
+    expect(puedePerderEstructura({ ...sinTablas, tieneSegmentos: false })).toBe(false);
+    expect(puedePerderEstructura({ ...sinTablas, tieneSegmentos: true })).toBe(false);
+  });
+
+  it('los cinco de B.190 —prosa sin segmentos y sin trozos— siguen reparándose', () => {
+    expect(
+      planDeReindexado(
+        entrada({ nombre: 'Pauta 5-6-25.pdf', tieneChunksTabulares: false, tieneSegmentos: false }),
+        VIGENTE,
+      ),
+    ).toEqual({ via: 'retrocear' });
   });
 });

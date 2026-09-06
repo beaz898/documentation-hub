@@ -13,6 +13,7 @@ import { getDocumentChunks, getActiveGeneration } from '@/lib/read-chunks';
 import { getStagedForDocument } from '@/lib/document-staged';
 import { swapDocumentVectors } from '@/lib/document-swap';
 import { planDeReindexado, esReparacionCompleta } from '@/lib/documents/plan-de-reindexado';
+import { lecturaDelDocumento, textoDelDocumento, tieneSegmentosPersistidos } from '@/lib/documents/lectura-dual';
 
 /**
  * POST /api/admin/reindexar — EL ESCRITOR (F-104, paso 1 del orden).
@@ -88,7 +89,7 @@ export async function POST(req: NextRequest) {
 
   const { data: doc, error: docError } = await supabase
     .from('documents')
-    .select('id, name, org_id, source, provider_file_id, extractor_version, active_generation, analysis_status, full_text, size_bytes')
+    .select('id, name, org_id, source, provider_file_id, extractor_version, active_generation, analysis_status, full_text, segments, size_bytes')
     .eq('id', documentId)
     .eq('org_id', org.orgId)
     .maybeSingle();
@@ -114,6 +115,7 @@ export async function POST(req: NextRequest) {
       },
       nombre: doc.name,
       tieneChunksTabulares: chunksActuales.some(c => c.chunkType !== 'text'),
+      tieneSegmentos: tieneSegmentosPersistidos(doc),
       hayStagedVivo: staged !== null,
       fullText: doc.full_text,
     },
@@ -144,12 +146,24 @@ export async function POST(req: NextRequest) {
 
   // ── retrocear ────────────────────────────────────────────────────────────
   const generacionNueva = generacionActiva + 1;
-  const texto = (doc.full_text ?? '').trim();
 
   try {
-    // Un solo segmento de prosa: es exactamente lo que `full_text` es, y el plan
-    // ya ha garantizado que este documento NO tiene tablas que perder.
-    const segments: ExtractedSegment[] = [{ type: 'text', text: texto }];
+    // ⚠️ SE LEE CON EL LECTOR DUAL, NO SE FABRICA PROSA. Hasta el 07/09 aquí se
+    // construía `[{type:'text', text: full_text}]` a mano, y eso hacía la
+    // reparación SOLO-PROSA por definición: daba igual lo que el documento
+    // fuera, salía texto.
+    //
+    // Con `lecturaDelDocumento`, un documento que ya tiene sus segmentos se
+    // re-trocea desde SU ESTRUCTURA REAL —celdas incluidas—, y uno que no los
+    // tiene se sigue reconstruyendo desde el texto, exactamente como antes.
+    // Para prosa las dos formas dan lo mismo byte a byte: `full_text` se escribió
+    // como `stripSegmentationMarkers(joinSegments(...))`.
+    //
+    // Y ES LO QUE HACE LA REPARACIÓN «ENRIQUECEDORA» (F-105 P2): lo que se lea
+    // aquí se vuelve a escribir abajo, así que un documento sin segmentos sale
+    // de esta pasada CON ellos, y desde entonces es reparable desde casa.
+    const { segmentos: segments } = lecturaDelDocumento(doc);
+    const texto = textoDelDocumento(doc);
     const chunks = chunkSegments(segments, documentId, doc.name, org.orgId);
 
     const embeddings = await generateEmbeddings(chunks.map(c => c.text));
@@ -186,6 +200,10 @@ export async function POST(req: NextRequest) {
       generation: generacionNueva,
       full_text: stripSegmentationMarkers(texto),
       content_hash: generateContentHash(stripSegmentationMarkers(texto)),
+      // ⚠️ LO QUE CONVIERTE ESTA REPARACIÓN EN UNA MIGRACIÓN: los segmentos que
+      // se han usado para trocear se guardan. Un documento que entró sin ellos
+      // sale con ellos, y la siguiente reparación ya lee su estructura.
+      segments,
       chunk_count: chunks.length,
       size_bytes: doc.size_bytes ?? 0,
     });

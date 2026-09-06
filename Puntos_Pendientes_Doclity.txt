@@ -7147,6 +7147,45 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     ⚠️ Y conviene que la pregunta se llame por su nombre —«¿puede este documento
     perder estructura si lo re-troceo?»— en vez de por su implementación de hoy.
 
+  B.192 — [ABIERTO 07/09 · FAMILIA DE B.180: EL BOTÓN SABE ALGO QUE NO DICE HASTA
+    QUE ES TARDE] «MARCAR COMO ANALIZADO» DICE «LO HE REVISADO» Y HACE «ENTRA EN EL
+    CORPUS Y YA NO SALE NUNCA»
+
+    ══ EL DATO, con su hora ══
+    El 06/09 a las 22:23-22:24 el usuario marcó cuatro documentos desde la
+    bandeja. Los cuatro tienen `reviewed_by` con su id. **El sync no hizo nada** —
+    sus tres ramas escriben `pendiente` y el DEFAULT de la columna también lo es.
+
+    ══ LO QUE EL BOTÓN DICE Y LO QUE HACE ══
+    Dice: **«lo he revisado»**. Hace, además y sin decirlo:
+      1. **Mete el documento en el corpus por PERTENENCIA** — sus vectores pasan a
+         `analizado` y desde ese momento participa en TODA recuperación: el chat lo
+         cita y los análisis lo comparan, sin que nadie vuelva a nombrarlo.
+      2. **Y es irreversible.** No existe ningún camino —ni interfaz ni endpoint—
+         que devuelva un documento a `pendiente`: el único escritor de ese valor es
+         la rama de *sobrescribir* del sync, que solo corre cuando el documento
+         **no** está en `analizado`. Uno ya analizado que cambia va a *staged*.
+
+    ⚠️ ══ POR QUÉ ES DE LA FAMILIA DE B.180 ══
+    Es la misma forma exacta: **el botón sabe algo que no dice hasta que es
+    tarde**. Allí era el precio —pulsas y descubres que eran 30 créditos—; aquí es
+    el ALCANCE y la IRREVERSIBILIDAD. Y esta vez lo pagó quien escribió el
+    producto: *«yo lo pulsé sin saber que era irreversible ni que metía el
+    documento en las comparaciones»*.
+    ⚠️ Y hay un agravante que B.180 no tenía: **el precio se puede devolver; una
+    pertenencia no.** Un crédito mal gastado se reembolsa; un documento en el
+    corpus se queda, y contamina toda medición posterior — que es exactamente lo
+    que le acaba de pasar a la foto de prosa.
+
+    ══ LAS PREGUNTAS ══
+    1. ¿El botón debe decir lo que hace? «Marcar como analizado» describe un
+       estado interno; «Añadir al corpus» describiría la consecuencia. No es lo
+       mismo, y el usuario eligió creyendo lo primero.
+    2. ¿Debe ser reversible? Hoy no lo es, y **nadie lo decidió**: es la
+       consecuencia de que solo el sync escriba `pendiente`.
+    3. ¿Y qué pasa con los cuatro? No se pueden devolver. Cualquier medición
+       futura los tiene dentro, o se borran.
+
 Forma de trabajo: diagnóstico con datos reales antes de arreglar; un
 cambio lógico cada vez; build verde entre medias; SQL en Supabase antes
 del push; plan completo antes de tocar varios archivos.
