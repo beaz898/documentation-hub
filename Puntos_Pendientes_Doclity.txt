@@ -6790,6 +6790,47 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     pertenencia. **La batería comprueba campos AUSENTES y no solo valores**,
     porque de un retroceado lo que importa no es qué escribe: es qué NO escribe.
 
+  B.186 — [ABIERTO 06/09 · NOMBRE MÍO, DE ANTEAYER, Y YA HA CONFUNDIDO]
+    `reparable_resubiendo` CONTESTA UNA PREGUNTA Y SE LEE COMO OTRA
+
+    ══ EL DATO ══
+    El estado se calcula contestando **«¿se puede recuperar el ORIGINAL?»** — así
+    está escrito en `sePuedeRecuperarElOriginal`, y es el criterio correcto. Pero
+    el NOMBRE se lee como **«¿qué hay que hacer para repararlo?»**, y esas dos
+    preguntas **no tienen la misma respuesta**:
+
+      · Para un cambio del CORTADOR, un manual de prosa **no hay que resubirlo**:
+        `retrocear` lo repara desde `full_text`, y funciona.
+      · Para un cambio de la EXTRACCIÓN, sí hay que resubirlo, porque el original
+        no existe.
+
+    **El mismo documento, el mismo estado, y dos respuestas distintas según qué
+    haya cambiado.** El nombre solo acierta en el segundo caso.
+
+    ⚠️ ══ Y YA HA COSTADO ══
+    El 06/09 se leyó el estado como «estos documentos no se pueden reparar
+    solos», que es **al revés**: los manuales SÍ se reparan para este cambio, y los
+    que NO se pueden reparar hoy son los de la nube —`reparable_automaticamente`—
+    porque `reprocesar` devuelve 501. **El nombre que sonaba a bloqueo señalaba lo
+    que funciona, y el que sonaba a automático señalaba lo que no está construido.**
+
+    ══ ES LA REGLA DE LA CASA, APLICADA A MI PROPIO CÓDIGO ══
+    «Un campo que responde a dos preguntas distintas es un campo que va a
+    contestar mal a una de las dos» (F-97). Aquí no es un campo con dos preguntas:
+    es un campo con UNA pregunta y un nombre que promete OTRA — la variante
+    barata del mismo fallo, y la que no salta en ninguna batería porque el valor
+    es correcto.
+
+    ══ LAS PREGUNTAS QUE HAY QUE CONTESTAR ══
+    1. ¿El estado debe nombrar la CAPACIDAD («sin original» / «con original») o la
+       ACCIÓN («resubir» / «botón»)? Nombrar la capacidad es lo honesto, porque la
+       acción **depende de qué haya cambiado**, que el estado no sabe.
+    2. Si se nombra la capacidad, ¿quién traduce a acción? Hoy nadie: la vista
+       enseña el estado tal cual. La traducción necesita saber si lo que cambió
+       fue el cortador o el extractor — y eso **hoy no está en ningún sitio**.
+    3. ¿Y merece la pena antes de que haya interfaz? El coste de renombrar ahora
+       es tres ficheros; después de que alguien lo lea en pantalla, es más.
+
 Forma de trabajo: diagnóstico con datos reales antes de arreglar; un
 cambio lógico cada vez; build verde entre medias; SQL en Supabase antes
 del push; plan completo antes de tocar varios archivos.

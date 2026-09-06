@@ -135,6 +135,46 @@ fila del censo las dos cifras buenas que ya tenemos.
 
 ---
 
+# 5-bis · ⚠️ QUÉ SE PODRÁ REPARAR DE ESTOS SEIS CUANDO EL CORTADOR CAMBIE
+
+Va aquí, junto a la foto, porque decide si estas cifras se podrán volver a medir.
+
+## La premisa que hay que corregir antes: está al revés
+
+Es fácil leerlo mal —el nombre del estado invita a ello, ver B.186— así que va con
+su evidencia:
+
+| documento | estado | plan | **¿se repara hoy?** |
+|---|---|---|---|
+| los seis del harness (subida **manual**) | `reparable_resubiendo` | **`retrocear`** | ✅ **SÍ** |
+| cualquiera de **Drive / OneDrive** | `reparable_automaticamente` | `reprocesar` | ❌ **NO: 501** |
+
+**`reparable_resubiendo` no significa «hay que resubirlo».** Significa «no se puede
+recuperar el ORIGINAL». Y para un cambio del CORTADOR eso da igual: no hace falta
+el original, hace falta el texto — y el texto está en `full_text`. **`retrocear` es
+exactamente la reparación que este cambio necesita**, y funciona sobre los seis.
+
+**Lo que NO se puede reparar hoy es lo de la nube**, porque `reprocesar` no está
+construido y el endpoint responde 501 (`reindexar/route.ts:134-141`).
+
+## Y el dato de producto, que es real pero es otro
+
+Un cliente que sube a mano **sí puede re-trocear** su corpus. Lo que no puede es
+**re-extraerlo**: `ingest` borra el fichero de Storage al terminar y la fila no
+guarda `storage_path`, así que del original no queda nada.
+
+⚠️ **Y eso cae justo encima del frente que F-104 P1 ya decidió.** El día que la
+extracción cambie —«una tabla en un PDF debe llegar a ser tabla»— ese arreglo
+**no se podrá aplicar retroactivamente a ningún documento subido a mano**: harán
+falta las resubidas, una por documento. Los de Drive sí, en cuanto exista
+`reprocesar`.
+
+Dicho al revés, que es como hay que llevarlo a una decisión: **hoy el corpus más
+reparable es el de la nube, y es el único que el sistema todavía no sabe
+reparar.**
+
+---
+
 # 6 · LO QUE ESTA FOTO ES Y LO QUE NO
 
 · **Es una muestra de tamaño uno por par.** Las cifras del juez no son
