@@ -72,6 +72,39 @@ determinista cuesta cero y puede tumbar una hipótesis antes de pagarla.
 
 ---
 
+# ⚠️ B-1 · LA VÍA DE REPARACIÓN — antes que el cortador, y por regla
+
+**Añadido el 06/09 por F-104, y va DELANTE de todo lo demás.** No estaba en el
+plan porque el plan se escribió antes de saber que el cortador toca el índice.
+
+La regla que lo ordena es de F-104: **un cambio que altera lo que queda guardado
+no entra hasta que exista la vía de reparación de lo ya guardado.** El arreglo del
+cortador es de una línea; esa línea deja diez documentos del piloto troceados con
+la regla vieja y **sin forma de repararlos ni de saber cuáles son**.
+
+El orden, en tres pasos y en este orden:
+
+1. **LA VÍA DE REPARACIÓN** — reindexar un documento existente **sin borrarlo**,
+   con la firma escrita. Es lo único de aquí que no depende de nada.
+2. **EL CAMBIO DEL CORTADOR** — cortar en frontera de párrafo/sección dentro del
+   presupuesto de tamaño (doctrina F-80), subiendo la versión del extractor de
+   **2 a 3**, con batería —los diez documentos medidos son los fixtures y la firma
+   del solape es el verificador— y **tanda después**, porque cambia lo que el juez
+   lee (F-59, sin excepciones por obviedad).
+3. **LA REPARACIÓN DEL PILOTO como primera medición del coste** — y ⚠️ **no es
+   higiene, es PREREQUISITO del censo**: medir los once caminos sobre un corpus
+   mezclado contaminaría las cifras de referencia.
+
+Y dos cosas que entran aquí y no esperan al frente de extracción:
+· **EL LECTOR DEL SELLO** (F-104 P3): la consulta que agrupa el corpus por versión
+  de extractor, visible en administración, con su contador. Hoy es un sello sin
+  lector; sin lector, la política de P2 es una intención.
+· **EL AVISO VISIBLE** (F-104 P1): «este documento contiene tablas que no pudieron
+  compararse estructuralmente», con su contador. Del asterisco silencioso al aviso
+  visible.
+
+---
+
 # SEMANA 1 — CÓDIGO. Cero créditos hasta el bloque B4.
 
 ## B0 · El test del caso 4 (B.181) — *código, 0 cr*
@@ -216,8 +249,39 @@ medición caben en **menos del 8 % de un mes**. El presupuesto no es el problema
 
 # 4 · ⚠️ LO QUE QUEDA DECLARADO — lo que el director puede enseñar sin mentir
 
-Es el entregable de verdad. Al final de las dos semanas, esto será **cierto y
-comprobable abriendo un registro**:
+## 4.0 · EL CRITERIO DE SALIDA, reescrito por F-104 P4
+
+**El criterio anterior era «los once caminos medidos». Ya no.** Medir no es el
+final: es lo que produce la lista de lo que hay que arreglar. El criterio real
+tiene dos mitades y una consecuencia:
+
+> **Los caminos que el cliente pisa el primer día: MEDIDOS Y ARREGLADOS.**
+> **Todos los demás: MEDIDOS Y DECLARADOS.**
+
+Y cada camino termina en **uno de tres estados**, no en dos:
+
+| estado | qué significa |
+|---|---|
+| **MEDIDO-LIMPIO** | tanda en verde contra cifra de referencia; se archiva |
+| **MEDIDO-Y-ARREGLADO** | apareció un fallo, se corrigió, y la tanda posterior lo prueba |
+| **DECLARADO-FUERA** | contado y dicho, no escondido — como Mejora en cuarentena, o las tablas en PDF hasta su frente |
+
+**«Todo verde» deja de ser el producto final.** El producto es el mapa completo
+con cada camino en uno de los tres. El criterio de F-89 P6 no se mueve: **bloquea
+lo que un cliente puede sufrir; se declara lo que está contado y dicho.**
+
+⚠️ **Y LAS DOS SEMANAS CAMBIAN DE NOMBRE, que no es cosmética.** No son «la
+verificación del MVP» —eso sugiere un desfile, y un desfile con hallazgos parece
+un fracaso— sino **la primera AUDITORÍA DE COBERTURA del sistema**: un proceso
+cuyo resultado esperado **incluye hallazgos**, donde cada pieza puede *confirmar*
+o *descubrir*, y donde descubrir es la herramienta funcionando.
+
+⚠️ **LA SEÑAL DE ALARMA, para que el director la tenga y no se asuste de la que no
+es:** el problema no es que aparezcan fallos **en** la auditoría. Es que aparezcan
+**FUERA** de ella, en caminos ya auditados. Ese día la remedición habría fallado
+como institución, y eso sí sería otro problema.
+
+## 4.1 · Lo que será cierto y comprobable abriendo un registro
 
 **1. El inventario existe y es público.** Diecinueve caminos, cada uno con su
 estado. No es «creemos que están bien»: es una lista con nombres.
@@ -252,10 +316,11 @@ condición** en ningún documento del proyecto. Ahora lo está.
 ## Y la frase, que es lo que hay que poder decir en una sala
 
 > «Doclity tiene ocho caminos por los que un documento llega a producir un
-> informe, y cuatro herramientas de agente que lo leen. Los ocho están medidos
-> contra una cifra de referencia, con el camino y el modo anotados en un registro
-> que puedo abrir. Cuando el sistema no encuentra nada, dice también cuánto miró.
-> Y de lo que no hemos probado tenemos la lista.»
+> informe, y cuatro herramientas de agente que lo leen. **Los que un cliente pisa
+> el primer día están medidos y arreglados; el resto, medidos y declarados** — con
+> el camino y el modo anotados en un registro que puedo abrir. Cuando el sistema
+> no encuentra nada, dice también cuánto miró. Y de lo que hemos dejado fuera
+> tenemos la lista, con el motivo.»
 
 ⚠️ **Lo que esa frase NO dice, y no debe decir:**
 · **No dice «funciona».** Dice que está medido. Una tanda es un control positivo,

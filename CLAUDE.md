@@ -317,6 +317,40 @@ El dueño del proyecto NO es programador. Vercel deploya automáticamente al hac
   saber cuántas llamadas lleva hoy un usuario: cada fila perdida es una llamada
   regalada, y regalada justo cuando la base va peor. Antes de tocar una tabla,
   mirar quién la LEE — no qué nombre tiene. Promovida en F-95 P2 (B.145).
+- **UN CAMBIO QUE ALTERA LO QUE QUEDA GUARDADO NO ENTRA HASTA QUE EXISTA LA VÍA
+  DE REPARACIÓN DE LO YA GUARDADO.** Cambiar sin ella no arregla: parte el parque
+  en dos mitades y **crea una deuda que nadie puede saldar** — el que ya está
+  guardado no se entera de que cambió la regla, y no hay gesto que se lo diga.
+  El caso: el cortador de prosa se puede arreglar en una línea, y esa línea deja
+  diez documentos del piloto —y todos los de cualquier cliente— troceados con la
+  regla vieja, sin forma de repararlos ni de saber cuáles son. **La vía de
+  reparación va PRIMERO, aunque sea la parte aburrida.** Promovida en F-104.
+- **LO QUE SE GUARDA ARRASTRA SU FALLO; LO QUE SE CALCULA LO PIERDE AL
+  RECALCULAR.** Ante dos fallos, **primero el que ensucia el almacén** — un fallo
+  de cálculo desaparece en la siguiente ejecución; uno de escritura sigue ahí
+  cuando el código ya está bien.
+  Es lo que reordenó F-104: el troceado parecía un problema de análisis y era del
+  ÍNDICE, porque `chunkSegments` —el que usa la indexación— comparte el cortador.
+  Un análisis malo se repite; un chunk malo se queda. Promovida en F-104.
+- **UNA FIRMA DE COMPORTAMIENTO NO ES UN NÚMERO DE VERSIÓN.** Lo que se sella es
+  «qué produce esta versión», no «cuál es»: **si dos versiones producen lo mismo,
+  distinguirlas es ruido**, y si una sola versión produce dos cosas distintas, el
+  número miente aunque sea correcto.
+  El corolario que lo hace útil: un sello así **se puede comprobar** —se vuelve a
+  producir y se compara— mientras que un número solo se puede creer.
+  Promovida en F-104.
+- **LA PRIMERA PRUEBA DE UN CAMINO NO MEDIDO NO CONFIRMA: DESCUBRE.** Y su
+  consecuencia de calendario, que es la parte accionable: **un plan de medición
+  que no reserve tiempo para ARREGLAR lo que encuentre está mal presupuestado.**
+  El caso: la pieza 1 del plan de F-103 destapó un fallo estructural con daño
+  persistido **a las dos horas de empezar**, y el plan de dos semanas se había
+  escrito sin esa casilla.
+  ⚠️ Lo que separa congelar de descubrir es escribir el CRITERIO antes que los
+  casos: con criterio, lo que el código hace hoy o cumple o no cumple; sin
+  criterio, todo lo que hace es «lo correcto» por definición. Y es el argumento
+  contra la excusa más cómoda de esta casa —«esto lleva años funcionando»—:
+  llevaba años, y la primera vez que se le puso un criterio delante, falló.
+  Promovida en F-104.
 - **UN CERO ES UN RESULTADO VÁLIDO SOLO SI EL SISTEMA PUEDE DEMOSTRAR QUE
   BUSCÓ.** Todo contador cuyo cero se lea como confirmación va acompañado del
   DENOMINADOR: cuántos candidatos había, cuántos se evaluaron, cuántos se

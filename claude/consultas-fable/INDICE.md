@@ -134,6 +134,7 @@ queda superado, pero **no administra su propio estado**.
 | **[F-91](F-91.md)** | 30/08/2026 | «Todas las columnas comunes» admitía dos lecturas, y la mala descartaba hallazgos VERDADEROS: la geometría no se contamina con testimonio. Y la clase de contadores CENTINELA | **vigente** · PAR COMPLETO | La clase CENTINELA — `Contrato_Contadores.md`; la hermana de F-79 (una regla con dos lecturas se ejerce contra un caso medido) — protocolo |
 | **[F-92](F-92.md)** | 31/08/2026 | La supresión suprime por FILA y el diff compara por COLUMNA: el hueco es el territorio de las omisiones —y del mismo dato bajo otro nombre—. Y por qué la cifra de coste no se podía medir | **vigente** · *su P1 CORREGIDO por F-93 en universo y predicado* · PAR COMPLETO | MOTIVO LITERAL — `Contrato_Contadores.md`. TRES PIEZAS POR REGLA DICTADA, «CERO EN N» con la tasa que excluye, y la AMBIGÜEDAD DE ALCANCE DEL CUANTIFICADOR — protocolo |
 | **[F-93](F-93.md)** | 31/08/2026 | `columnas(h)` no tenía universo y las dos lecturas naturales fallan cada una uno de los tres casos: el dato es LA OPOSICIÓN, no la cita. Y la trampa de `'equivalentes'` | **vigente** · PAR COMPLETO | LA CUARTA PIEZA (vacío y ausente; forma existencial) — protocolo. Un comentario que justifica un orden CITA SU INVARIANTE — `CLAUDE.md` |
+| **[F-104](F-104.md)** | 06/09/2026 | El cortador ensucia lo GUARDADO, no un análisis. Una tabla en PDF debe llegar a ser tabla. El plan no cambia de contenido: cambia de contrato — no eran dos semanas de medir, eran dos de descubrir. | **vigente** · PAR COMPLETO | REPARACIÓN ANTES DEL CAMBIO, EL ALMACÉN PRIMERO, FIRMA ≠ VERSIÓN y LA PRIMERA PRUEBA DESCUBRE — `CLAUDE.md` |
 | **[F-103](F-103.md)** | 04/09/2026 | La curva no es descendente: es descendente en los caminos MEDIDOS y desconocida en los no medidos. Un cero solo confirma con control positivo o visión declarada. El modo Mejora, en cuarentena. | **vigente** · PAR COMPLETO | UN CERO SE GANA, EL CIERRE ES COBERTURA y LA CURVA DESCRIBE DÓNDE SE MIRÓ — `CLAUDE.md` |
 | **[F-102](F-102.md)** | 03/09/2026 | Un documento se comparaba con su propia versión reemplazada. El fallo no está en el portero, está en el PADRÓN. Y el sello de estructura no mentía sobre la verificación: mentía sobre la CUSTODIA. | **vigente** · PAR COMPLETO | LO QUE NO DEBE SER CANDIDATO NO SE EXCLUYE, UN CONTADOR CUENTA LO QUE SE DECLARA y LA CIFRA ES LA QUE SE GUARDA — `CLAUDE.md` |
 | **[F-101](F-101.md)** | 03/09/2026 | El propietario existía desde el principio y era EL FICHERO. La (c): se persiste desde que el análisis ocurre, y el documento adopta al nacer. El payload firmado se jubila antes de nacer. | **vigente** · PAR COMPLETO | UNA FILA AFIRMA LO QUE ES, NO A LO QUE APUNTA; LO QUE CUESTA DINERO DEJA REGISTRO AL COBRARSE; y «HOY NO HAY CLIENTE» — `CLAUDE.md` |
@@ -151,6 +152,23 @@ queda superado, pero **no administra su propio estado**.
 
 **Once pares completos de F-70 a F-94: F-84 a F-94, todas menos las que no llegaron.** El resto, o a medias o nada:
 
+- **F-104 — PAR COMPLETO**, en `F-104.md` (06/09/2026). **NACE DE LA PIEZA 1 DEL
+  PLAN DE F-103 Y LA PONE A PRUEBA A LAS DOS HORAS**: el primer test de una pieza
+  no medida se escribió para congelar el comportamiento y **documentó un fallo**.
+  ⚠️ **EL DAÑO NO ES A UN ANÁLISIS, ES AL ALMACÉN**: el mismo cortador lo usa el
+  camino que escribe el índice. Medido con control positivo previo —NOR-10 58/75,
+  CLI-12 40/59, los dos tenían que salir y salieron—, **diez documentos con prosa
+  cortada y TODAS las filas de tabla a cero**. Ese cero salva lo medido: 15/15 y
+  2/2 siguen válidas.
+  ⚠️ **LA DECISIÓN DE PRODUCTO**: una tabla en un PDF **debe llegar a ser tabla**
+  — «una clínica exporta PDF, no Excel: recibe la promesa entera aplicada a nada.
+  No es un límite declarado, es la promesa con un asterisco que nadie lee».
+  Ejecución tras el censo; el aviso visible, hoy.
+  ⚠️ **LA FRONTERA NO ES UNA FECHA: ES LA FIRMA DEL PRIMER CLIENTE.** Y la frase
+  que Fable pide conservar sobre el plan: **«"nunca mirado" más "cinco hallazgos
+  en cinco días, ninguno buscado" es una TASA, no una racha.»**
+  Las dos semanas pasan a ser **la primera AUDITORÍA DE COBERTURA**, con tres
+  estados por camino: medido-limpio, medido-y-arreglado, declarado-fuera.
 - **F-103 — PAR COMPLETO**, en `F-103.md` (04/09/2026). **FABLE CORRIGE SU PROPIA
   CURVA**: «no es descendente — es descendente en los caminos MEDIDOS y
   desconocida en los no medidos». El hallazgo de hoy no es la curva subiendo: es
