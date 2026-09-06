@@ -44,6 +44,27 @@ const MIN_PIECE_LENGTH = 50;
  * TODOS los documentos ya indexados (con una versión anterior o sin ninguna)
  * como desactualizados frente al lector actual — es la señal que permite
  * saber cuáles habría que reprocesar.
+ *
+ * ⚠️ ═══ CONTRATO, desde el 06/09/2026 — ESTE NÚMERO YA TIENE LECTOR ═══
+ * `lib/documents/estado-de-reparacion.ts` lo lee para clasificar cada documento
+ * del corpus en «al día», «reparable automáticamente» o «reparable resubiendo»,
+ * y esa clasificación se enseña. Desde que existe ese lector, esto dejó de ser
+ * una nota y es un contrato:
+ *
+ *   **ESTE NÚMERO SUBE SI Y SOLO SI CAMBIA LO QUE EL TROCEADOR PRODUCE.**
+ *
+ * No sube por refactorizar, ni por renombrar, ni por «ya que estamos». Y si un
+ * cambio altera lo producido, TIENE que subir aunque parezca menor.
+ * La razón es mecánica, no ceremonial: subirlo sin que cambie el troceado marca
+ * como desactualizado un parque que estaba bien —y manda a reindexar de balde—;
+ * cambiar el troceado sin subirlo deja el corpus mezclado y **el lector afirma
+ * que está sano**. Un lector que miente es peor que no tener lector.
+ *
+ * ⚠️ Y LO QUE NO ES: esto no es una firma de comportamiento, es un número que
+ * hay que CREER. Una firma se recalcula y se compara; este número solo se puede
+ * respetar. Mientras siga siendo un número, el contrato de arriba es la única
+ * cosa que lo sostiene — y por eso está escrito aquí, donde alguien lo va a
+ * tocar, y no en un documento aparte. Ver F-104, regla 3.
  */
 export const EXTRACTOR_VERSION = 2;
 

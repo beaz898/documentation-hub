@@ -317,6 +317,19 @@ El dueño del proyecto NO es programador. Vercel deploya automáticamente al hac
   saber cuántas llamadas lleva hoy un usuario: cada fila perdida es una llamada
   regalada, y regalada justo cuando la base va peor. Antes de tocar una tabla,
   mirar quién la LEE — no qué nombre tiene. Promovida en F-95 P2 (B.145).
+- **EL DÍA QUE UN SELLO GANA LECTOR, DEJA DE SER UNA NOTA Y PASA A SER UN
+  CONTRATO — Y EL CONTRATO SE ESCRIBE EN EL MISMO COMMIT QUE EL LECTOR.** No en
+  el siguiente: en ése, porque entre uno y otro cabe que alguien suba el número
+  por otro motivo y el lector empiece a mentir sin que nadie lo note.
+  La forma del contrato es siempre la misma: **el sello se mueve si y solo si
+  cambia aquello que sella**, y las dos mitades del «solo si» tienen coste. Si se
+  mueve sin que cambie nada, marca como enfermo un parque sano y manda a reparar
+  de balde; si cambia sin moverse, **el lector afirma que todo está bien**, que es
+  el fallo grave — un lector que miente es peor que no tener lector.
+  El caso: `EXTRACTOR_VERSION` llevaba meses escribiéndose en los cuatro puntos de
+  indexación sin que nadie lo leyera. Al darle lector —la vista de estado de
+  reparación— el contrato entró **en el mismo commit y en la línea donde alguien
+  lo va a tocar**, no en un documento aparte. Promovida el 06/09/2026.
 - **UN CAMBIO QUE ALTERA LO QUE QUEDA GUARDADO NO ENTRA HASTA QUE EXISTA LA VÍA
   DE REPARACIÓN DE LO YA GUARDADO.** Cambiar sin ella no arregla: parte el parque
   en dos mitades y **crea una deuda que nadie puede saldar** — el que ya está
