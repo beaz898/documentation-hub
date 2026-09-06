@@ -6679,6 +6679,60 @@ NOTAS DE ORDEN (propuesta, a confirmar)
        y eso hay que saberlo antes y no en la demostración.
     3. ¿Y la bandeja en un teléfono, cabe? Esa no la contesta el repositorio.
 
+  B.184 — [ABIERTO Y ACEPTADO EL 06/09 · DECLARADO, NO ESCONDIDO] LA VERSIÓN 2
+    DEL EXTRACTOR CUBRE DOS COMPORTAMIENTOS DISTINTOS
+
+    ══ EL DATO, VERIFICADO EN EL HISTORIAL ══
+    · **22/08, `f401390e`** — cambia el troceado y sube la versión de 1 a 2. Bien.
+    · **24/08, `8c0675d3`** — DOS DÍAS DESPUÉS vuelve a cambiar lo que el
+      troceador produce **y la versión se queda en 2**.
+    Y no fue solo un campo nuevo: cambió **la regla de corte**. El diff dice
+    `segment.text.length > MAX_CHUNK_SIZE` → `segment.type !== 'table_summary' &&
+    segment.text.length > MAX_CHUNK_SIZE`, o sea que un `table_summary` largo dejó
+    de subdividirse. **Los chunks resultantes son distintos**, no solo su metadato.
+
+    ⚠️ ══ CONSECUENCIA: UN DOCUMENTO INDEXADO EL 23 Y OTRO EL 25 LLEVAN EL MISMO
+    NÚMERO Y NO SE TROCEARON IGUAL ══
+    Es exactamente lo que anticipa la **regla 3 de F-104**: si una sola versión
+    produce dos cosas distintas, **el número miente aunque sea correcto**. El
+    problema no está en el 1 —que dice la verdad, «troceado con el extractor
+    anterior al 22/08»— sino **en el 2**.
+
+    ══ POR QUÉ SE ACEPTA, y es una decisión tomada, no un descuido ══
+    **En cuanto exista el 3, todo lo que no sea 3 se repara igual**, así que la
+    ambigüedad del 2 no cuesta nada para esta reparación. Separarla obligaría a
+    inventar un **criterio retroactivo por fecha** —«lo indexado antes del 24/08
+    es 2a, lo posterior 2b»—, que es decidir hoy sobre datos de agosto **sin poder
+    verificarlo**: no hay nada guardado que diga con qué cortador se troceó cada
+    fila, solo cuándo se escribió.
+    La ambigüedad solo costaría algo si alguien quisiera **fiarse de un 2**, y a
+    partir del 3 nadie va a querer.
+
+    ══ DOS PRECISIONES SOBRE EL PARQUE VIEJO ══
+    1. **Las filas más antiguas llevan `NULL`, no 1.** La columna nació con
+       `ADD COLUMN` sin `DEFAULT` ni relleno, **y a propósito**: el propio SQL lo
+       dice —«los documentos indexados antes de F-20 quedan en NULL, que significa
+       "leído con un extractor anterior, desactualizado". **Un default habría
+       mentido diciendo que ya estaban al día**»—. Es el mismo razonamiento que
+       sostiene esta ficha, escrito meses antes y aplicado al NULL.
+       Por eso `estadoDeReparacion` trata el `null` como atrasado y no como al día.
+    2. **Dejar el 1 como está no miente: es impreciso.** Afirma «troceado con el
+       extractor vigente antes del 22/08», que es cierto, y no afirma nada sobre
+       el cortador de hoy.
+
+    ⚠️ ══ Y LO QUE ESTO ENSEÑA, que vale más que el caso ══
+    El sello **existía, era el mecanismo correcto, y no se usó cuando tocaba**. No
+    por descuido de nadie en particular: **un sello sin lector no tiene a quien
+    le duela.** Quince días con el número mal y el sistema igual de callado,
+    porque no había consumidor. El día que gana lector, el olvido pasa a ser
+    visible; mientras no lo tiene, es gratis. Ver la regla de `CLAUDE.md`, donde
+    este caso está anotado.
+
+    ══ CÓMO SE CIERRA ══
+    No se cierra arreglando el 2. Se cierra cuando el cortador cambie, la versión
+    pase a 3 y el parque se repare — y entonces el 2 pasa a ser historia
+    inalcanzable, que es la forma barata de resolverlo.
+
 Forma de trabajo: diagnóstico con datos reales antes de arreglar; un
 cambio lógico cada vez; build verde entre medias; SQL en Supabase antes
 del push; plan completo antes de tocar varios archivos.
