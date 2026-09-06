@@ -6915,6 +6915,53 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     4. ¿Y el motivo? `remote_deleted` es falso en este caso, y de él cuelga la
        decisión de no poner lápida.
 
+  B.188 — [ABIERTO 06/09 · LO QUE EL ARREGLO DE B.187 **NO** CUBRE] TRES CAMINOS
+    MÁS AL MISMO BORRADO, Y UNO NO NECESITA QUE NADIE HAGA NADA
+
+    El arreglo del 06/09 cierra UN camino: cambiar de carpeta ya no borra. Quedan
+    éstos, y van juntos porque comparten el mismo eslabón final —«no está en el
+    listado» ⇒ «se borró en Drive»—.
+
+    ⚠️ ══ 1. GOOGLE NO PAGINA. Y éste no lo dispara nadie. ══
+    `google.ts:36` pide `pageSize=1000` y **no mira `nextPageToken`**: lee
+    `data.files` y tira el resto, con `res.ok` en true. Una carpeta con más de mil
+    hijos directos devuelve mil, **con éxito**, y los ausentes se borran.
+    **Nadie cambia nada, nadie hace nada mal: basta con que el corpus crezca.**
+    Y la asimetría lo delata como olvido y no como decisión: **OneDrive SÍ pagina**
+    (`onedrive.ts:100`, `@odata.nextLink`).
+    Coste del arreglo: el bucle de paginación, con el patrón ya escrito al lado.
+    **Es el que yo haría primero de los tres.**
+
+    ══ 2. LA PAPELERA SE LLEVA LOS ANÁLISIS, Y SIN LÁPIDA ══
+    Los listados piden `trashed=false`, así que mandar un fichero a la papelera lo
+    saca del listado y **el documento se borra del corpus**. Eso es CORRECTO como
+    intención —el usuario lo quitó— pero se lleva dos cosas más:
+      · **los análisis**: `delete-document.ts` borra `analysis_results` por
+        `document_id` desde el 03/09 (B.112). Se van con el documento.
+      · **y no deja lápida**: `reason: 'remote_deleted'` no la escribe, con su
+        razón declarada —«no hay reimportación que bloquear, y una lápida
+        impediría restaurarlo si el usuario lo recupera en su Drive»—.
+    Consecuencia: **restaurar el fichero en Drive lo devuelve al corpus, pero como
+    documento NUEVO** — id nuevo, `analysis_status` de vuelta a `pendiente`,
+    revisión perdida y análisis borrados. **Vuelve el contenido, no el trabajo.**
+    Y no está claro que la decisión de la lápida fuera pensada para este caso: fue
+    pensada para el borrado remoto, que es el mismo evento con otra intención.
+
+    ══ 3. EL PERMISO QUE SE PIERDE EN SILENCIO — NO VERIFICADO ══
+    Si al perder acceso a una subcarpeta compartida ésta **desaparece del listado
+    del padre** en vez de dar error, no hay `throw`, el listado es `ok` y le
+    faltan ficheros: se borran. **No sé qué hace Google ahí y el código no lo
+    dice.** Se registra como pregunta, no como hallazgo.
+    (El caso en que SÍ da error está cubierto: `google.ts:47` lanza y el listado
+    entero se descarta.)
+
+    ⚠️ ══ Y UNA CORRECCIÓN SOBRE EL ALCANCE, para que no se lea de más ══
+    **No existe «el sync automático».** Cero crons en `vercel.json` y un único
+    llamante —el botón de `useDrive`—. Así que la distinción no es «manual contra
+    automático»: es **«misma carpeta contra carpeta cambiada»**, que es lo que el
+    arreglo implementa. Un «no borrar en manual» habría sido «no borrar nunca», y
+    habría roto el caso legítimo del punto 2.
+
 Forma de trabajo: diagnóstico con datos reales antes de arreglar; un
 cambio lógico cada vez; build verde entre medias; SQL en Supabase antes
 del push; plan completo antes de tocar varios archivos.

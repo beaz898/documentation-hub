@@ -50,6 +50,27 @@ export type ResultadoDelListado =
   | { ok: true; archivos: DriveFile[] }
   | { ok: false; motivo: string };
 
+/**
+ * DE DÓNDE VIENE ESTA SINCRONIZACIÓN — y decide si el borrado está autorizado.
+ *
+ * ⚠️ SE PIDE, NO SE SUPONE, y sin valor por defecto: un defecto dejaría al
+ * llamante nuevo heredando en silencio la semántica del viejo, que es
+ * exactamente cómo se cuela un borrado que nadie decidió.
+ *
+ * ⚠️ Y LO QUE **NO** DISTINGUE, dicho aquí para que nadie lo lea de más: esto no
+ * es «manual contra automático». **No hay sincronización automática** —cero
+ * crons en `vercel.json`, y el único llamante del endpoint es el botón de
+ * `useDrive`—, así que esa distinción no existiría. Lo que distingue es si
+ * estamos mirando **la misma carpeta que la última vez**.
+ */
+export type OrigenDeLaSincronizacion =
+  /** La carpeta es la de siempre: lo que no está en el listado se borró de
+   *  verdad, y se borra. Es como el usuario quita documentos del corpus. */
+  | 'misma_carpeta'
+  /** La sincronización apunta a OTRA carpeta. Lo que no está en el listado no
+   *  ha desaparecido: hemos dejado de mirar donde estaba. No se borra nada. */
+  | 'carpeta_cambiada';
+
 /** Lo mínimo que hace falta de una fila de `documents` para decidir. */
 export interface DocumentoSincronizado {
   provider_file_id: string;
@@ -81,9 +102,25 @@ export type DecisionDeSincronizacion<T extends DocumentoSincronizado> =
 export function decidirSincronizacion<T extends DocumentoSincronizado>(
   listado: ResultadoDelListado,
   existentes: T[],
+  origen: OrigenDeLaSincronizacion,
 ): DecisionDeSincronizacion<T> {
   if (!listado.ok) {
     return { aborta: true, motivo: listado.motivo };
+  }
+
+  // ⚠️ B.187 — CAMBIAR DE CARPETA NO ES QUE LOS DOCUMENTOS HAYAN DESAPARECIDO.
+  //
+  // Hasta hoy, apuntar la sincronización a otra carpeta borraba el corpus de la
+  // anterior: sus ficheros no salían en el listado nuevo, y «no está en el
+  // listado» significaba «lo borraron en Drive». Se borraban sin tope, sin
+  // confirmación y sin lápida, con `reason: 'remote_deleted'` — un motivo FALSO:
+  // el fichero seguía intacto, lo que cambió es dónde miramos.
+  //
+  // La guarda de arriba no lo cubría, y no es un descuido suyo: aquélla
+  // pregunta «¿el listado LLEGÓ?», y aquí llega perfectamente. Es correcto,
+  // completo, y de otro sitio. **La respuesta completa de otra pregunta.**
+  if (origen === 'carpeta_cambiada') {
+    return { aborta: false, archivos: listado.archivos, borrar: [] };
   }
 
   const vistos = new Set(listado.archivos.map(f => f.id));

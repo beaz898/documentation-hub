@@ -58,15 +58,6 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { folderId, folderName } = body;
 
-    if (folderId && folderName) {
-      const { error: folderError } = await supabase.from('drive_connections')
-        .update({ folder_id: folderId, folder_name: folderName })
-        .eq('org_id', orgId);
-      if (folderError) {
-        console.error(`[DRIVE SYNC] update-folder fallo | org=${orgId} | code=${folderError.code ?? '?'} | ${folderError.message}`);
-      }
-    }
-
     const { data: connection, error: connectionError } = await supabase.from('drive_connections')
       .select('*')
       .eq('org_id', orgId)
@@ -74,6 +65,25 @@ export async function POST(req: NextRequest) {
     if (connectionError) {
       console.error(`[DRIVE SYNC] select-connection fallo | org=${orgId} | code=${connectionError.code ?? '?'} | ${connectionError.message}`);
       return NextResponse.json({ error: 'Error al leer la conexion de Drive' }, { status: 500 });
+    }
+
+    // ⚠️ B.187 — LA COMPARACIÓN VA ANTES DE ESCRIBIR, y ese orden ES el arreglo:
+    // si se actualizara primero, `connection.folder_id` ya sería la carpeta nueva
+    // y no habría forma de saber que cambió. Quien decide qué se borra
+    // (`decidirSincronizacion`) necesita este dato, y éste es el único momento en
+    // que todavía existe.
+    const carpetaCambiada = Boolean(folderId) && folderId !== connection.folder_id;
+    if (carpetaCambiada) {
+      console.warn(`[DRIVE SYNC] carpeta cambiada | org=${orgId} | ${connection.folder_id} -> ${folderId} | no se borra nada en esta pasada`);
+    }
+
+    if (folderId && folderName) {
+      const { error: folderError } = await supabase.from('drive_connections')
+        .update({ folder_id: folderId, folder_name: folderName })
+        .eq('org_id', orgId);
+      if (folderError) {
+        console.error(`[DRIVE SYNC] update-folder fallo | org=${orgId} | code=${folderError.code ?? '?'} | ${folderError.message}`);
+      }
     }
 
     if (!connection) {
@@ -136,7 +146,11 @@ export async function POST(req: NextRequest) {
     // todo» — o sea BORRAR EL CORPUS ENTERO por un 500 de un segundo.
     // Quién se borra lo decide `decidirSincronizacion` y solo él: cruzar los
     // ids otra vez aquí sería la segunda implementación del mismo criterio.
-    const decision = decidirSincronizacion(listado, existingDocs || []);
+    const decision = decidirSincronizacion(
+      listado,
+      existingDocs || [],
+      carpetaCambiada ? 'carpeta_cambiada' : 'misma_carpeta',
+    );
     if (decision.aborta) {
       console.error(`[DRIVE SYNC] listado no fiable | org=${orgId} | source=${provider.name} | ${decision.motivo}`);
       return NextResponse.json(
@@ -525,6 +539,14 @@ export async function POST(req: NextRequest) {
         deleteFailed: deleteFailedCount,
         total: allFiles.length,
       },
+      // ⚠️ B.187 — LO ÚNICO QUE EL USUARIO PUEDE SABER HOY, y por eso se
+      // devuelve: al cambiar de carpeta ya no se borra nada, así que los
+      // documentos de la anterior SIGUEN EN EL CORPUS. Eso es deliberado —
+      // borrarlos era el fallo— pero deja un estado que hay que poder contar:
+      // están indexados y ya no se sincronizan con ninguna carpeta.
+      // No se inventa aquí ningún texto de interfaz: se da el HECHO, y quien
+      // pinte decide cómo decirlo.
+      carpetaCambiada,
     });
   } catch (error: unknown) {
     console.error('Error in /api/drive/sync:', error);

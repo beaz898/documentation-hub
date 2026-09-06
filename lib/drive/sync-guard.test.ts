@@ -60,7 +60,7 @@ describe('decidirSincronizacion — un listado que falló no es un listado vací
   it('listado FALLIDO: aborta y no expone ninguna lista de borrado', () => {
     const fallo: ResultadoDelListado = { ok: false, motivo: 'Google Drive listado 500: upstream' };
 
-    const r = decidirSincronizacion(fallo, TRES);
+    const r = decidirSincronizacion(fallo, TRES, 'misma_carpeta');
 
     expect(r.aborta).toBe(true);
     expect('borrar' in r).toBe(false);
@@ -76,7 +76,7 @@ describe('decidirSincronizacion — un listado que falló no es un listado vací
   it('listado BUENO: borra lo que ya no está, y ni uno más', () => {
     const bueno: ResultadoDelListado = { ok: true, archivos: [archivo('a'), archivo('b')] };
 
-    const r = decidirSincronizacion(bueno, TRES);
+    const r = decidirSincronizacion(bueno, TRES, 'misma_carpeta');
 
     expect(r.aborta).toBe(false);
     if (r.aborta) return;
@@ -94,7 +94,7 @@ describe('decidirSincronizacion — un listado que falló no es un listado vací
   it('listado LEGÍTIMAMENTE vacío: borra todo, y es la decisión, no el fallo', () => {
     const vacio: ResultadoDelListado = { ok: true, archivos: [] };
 
-    const r = decidirSincronizacion(vacio, TRES);
+    const r = decidirSincronizacion(vacio, TRES, 'misma_carpeta');
 
     expect(r.aborta).toBe(false);
     if (r.aborta) return;
@@ -113,7 +113,7 @@ describe('decidirSincronizacion — un listado que falló no es un listado vací
   it('un listado incompleto borraría lo que falta — por eso el fallo no devuelve lista', () => {
     const parcial: ResultadoDelListado = { ok: true, archivos: [archivo('a'), archivo('c')] };
 
-    const r = decidirSincronizacion(parcial, TRES);
+    const r = decidirSincronizacion(parcial, TRES, 'misma_carpeta');
 
     expect(r.aborta).toBe(false);
     if (r.aborta) return;
@@ -127,11 +127,11 @@ describe('decidirSincronizacion — un listado que falló no es un listado vací
    * haya algo que perder.
    */
   it('sin documentos previos: nada que borrar, y el fallo sigue abortando', () => {
-    const bueno = decidirSincronizacion({ ok: true, archivos: [archivo('a')] }, []);
+    const bueno = decidirSincronizacion({ ok: true, archivos: [archivo('a')] }, [], 'misma_carpeta');
     expect(bueno.aborta).toBe(false);
     if (!bueno.aborta) expect(bueno.borrar).toEqual([]);
 
-    expect(decidirSincronizacion({ ok: false, motivo: 'x' }, []).aborta).toBe(true);
+    expect(decidirSincronizacion({ ok: false, motivo: 'x' }, [], 'misma_carpeta').aborta).toBe(true);
   });
 
   /** Ni se pierde ni se inventa: los que siguen estando no se tocan. */
@@ -139,10 +139,78 @@ describe('decidirSincronizacion — un listado que falló no es un listado vací
     const r = decidirSincronizacion(
       { ok: true, archivos: [archivo('a'), archivo('b'), archivo('c')] },
       TRES,
+      'misma_carpeta',
     );
 
     expect(r.aborta).toBe(false);
     if (r.aborta) return;
     expect(r.borrar).toEqual([]);
+  });
+
+  /**
+   * ⚠️⚠️ B.187 — EL CASO. La carpeta cambió: el listado nuevo NO contiene los
+   * documentos de la anterior, y aun así **no se borra ninguno**.
+   *
+   * Es el par exacto del caso de la carpeta vacía de más arriba: el MISMO
+   * listado —uno que no trae lo que había— significa cosas opuestas según de
+   * dónde venga. Con la carpeta de siempre, «no está» quiere decir que lo
+   * borraron en Drive. Con la carpeta cambiada, quiere decir que hemos dejado
+   * de mirar donde estaba.
+   */
+  it('CARPETA CAMBIADA: el listado no trae lo de antes y NO se borra nada', () => {
+    const otraCarpeta: ResultadoDelListado = { ok: true, archivos: [archivo('z')] };
+
+    const r = decidirSincronizacion(otraCarpeta, TRES, 'carpeta_cambiada');
+
+    expect(r.aborta).toBe(false);
+    if (r.aborta) return;
+    expect(r.borrar).toEqual([]);
+    // Y sigue indexando lo de la carpeta nueva: no borrar no es no hacer nada.
+    expect(r.archivos).toEqual([archivo('z')]);
+  });
+
+  /**
+   * LA MITAD CONTRARIA, y es la que impide que el arreglo se pase de frenada:
+   * con la carpeta de siempre se SIGUE borrando lo que desapareció de verdad.
+   * Si este caso muriera, el arreglo habría apagado la sincronización.
+   */
+  it('MISMA CARPETA: lo que desapareció de verdad se sigue borrando', () => {
+    const bueno: ResultadoDelListado = { ok: true, archivos: [archivo('a'), archivo('b')] };
+
+    const r = decidirSincronizacion(bueno, TRES, 'misma_carpeta');
+
+    expect(r.aborta).toBe(false);
+    if (r.aborta) return;
+    expect(r.borrar).toEqual([doc('c')]);
+  });
+
+  /**
+   * ⚠️ EL FALLO GANA A LA PROCEDENCIA. Un listado que no llegó no autoriza nada,
+   * venga de donde venga — y en particular la carpeta cambiada NO puede
+   * convertir una guarda en un permiso: sigue abortando, y sigue sin exponer
+   * lista de borrado.
+   */
+  it('listado FALLIDO con carpeta cambiada: aborta igual', () => {
+    const r = decidirSincronizacion({ ok: false, motivo: 'timeout' }, TRES, 'carpeta_cambiada');
+
+    expect(r.aborta).toBe(true);
+    expect('borrar' in r).toBe(false);
+  });
+
+  /**
+   * Y el vacío con carpeta cambiada, que es el que separa las dos semánticas sin
+   * ambigüedad: el MISMO listado vacío borra todo con la carpeta de siempre y
+   * nada con la carpeta cambiada.
+   */
+  it('vacío + carpeta cambiada: no borra; vacío + misma carpeta: borra todo', () => {
+    const vacio: ResultadoDelListado = { ok: true, archivos: [] };
+
+    const cambiada = decidirSincronizacion(vacio, TRES, 'carpeta_cambiada');
+    expect(cambiada.aborta).toBe(false);
+    if (!cambiada.aborta) expect(cambiada.borrar).toEqual([]);
+
+    const misma = decidirSincronizacion(vacio, TRES, 'misma_carpeta');
+    expect(misma.aborta).toBe(false);
+    if (!misma.aborta) expect(misma.borrar).toEqual(TRES);
   });
 });
