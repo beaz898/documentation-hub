@@ -219,6 +219,12 @@ export async function POST(req: NextRequest) {
       analysis_status: 'analizado',
       content_hash: contentHash,
       full_text: stripSegmentationMarkers(text),
+      // F-105 paso 0 — ESCRITURA DUAL. Los segmentos se guardan ADEMÁS del
+      // texto plano: sin ellos la reparación es solo-prosa, porque de
+      // `full_text` no salen celdas. El texto plano NO se retira todavía —
+      // los documentos ya indexados no tienen segmentos y la lectura acepta
+      // las dos formas durante la ventana (`lib/documents/lectura-dual.ts`).
+      segments,
       extractor_version: EXTRACTOR_VERSION,
     });
 

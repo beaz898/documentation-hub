@@ -48,7 +48,7 @@ export async function swapDocumentVectors(
   // 0. Leer el marcador (staged). Ausente → no-op verdadero (swap ya hecho o nada que promover).
   const { data: staged, error: stagedError } = await supabase
     .from('document_staged')
-    .select('document_id, org_id, generation, full_text, content_hash, chunk_count, size_bytes, source_modified_at')
+    .select('document_id, org_id, generation, full_text, content_hash, chunk_count, size_bytes, source_modified_at, segments')
     .eq('document_id', documentId)
     .eq('org_id', orgId)
     .maybeSingle();

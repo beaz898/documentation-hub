@@ -355,6 +355,9 @@ export async function POST(req: NextRequest) {
                 org_id: orgId,
                 generation: targetGen,
                 full_text: stripSegmentationMarkers(text),
+                // F-105 paso 0 — ESCRITURA DUAL: los segmentos, ademas del texto plano.
+                // Sin ellos la reparacion es solo-prosa: de full_text no salen celdas.
+                segments,
                 content_hash: contentHash,
                 chunk_count: chunks.length,
                 size_bytes: Buffer.byteLength(text, 'utf8'),
@@ -406,6 +409,9 @@ export async function POST(req: NextRequest) {
                 folder_path: file.folderPath ?? '/',
                 folder_id: file.parentId ?? null,
                 full_text: stripSegmentationMarkers(text),
+                // F-105 paso 0 — ESCRITURA DUAL: los segmentos, ademas del texto plano.
+                // Sin ellos la reparacion es solo-prosa: de full_text no salen celdas.
+                segments,
                 content_hash: contentHash,
                 extractor_version: EXTRACTOR_VERSION,
               })
@@ -447,6 +453,9 @@ export async function POST(req: NextRequest) {
             folder_path: file.folderPath ?? '/',
             folder_id: file.parentId ?? null,
             full_text: stripSegmentationMarkers(text),
+            // F-105 paso 0 — ESCRITURA DUAL: los segmentos, ademas del texto plano.
+            // Sin ellos la reparacion es solo-prosa: de full_text no salen celdas.
+            segments,
             content_hash: contentHash,
             extractor_version: EXTRACTOR_VERSION,
           });

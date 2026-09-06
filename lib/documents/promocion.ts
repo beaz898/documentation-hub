@@ -38,6 +38,9 @@ export type MotivoDeConmutacion =
 
 export interface DatosDelStaged {
   full_text: string;
+  /** F-105 paso 0. Puede faltar: las filas de `document_staged` escritas antes
+   *  de hoy no lo tienen, y esa ausencia es legítima durante la ventana. */
+  segments?: unknown;
   content_hash: string;
   chunk_count: number;
   size_bytes: number;
@@ -47,6 +50,7 @@ export interface DatosDelStaged {
 /** Los campos que la conmutación escribe, sin los que no le corresponden. */
 export interface CamposDePromocion {
   full_text: string;
+  segments: unknown;
   content_hash: string;
   chunk_count: number;
   size_bytes: number;
@@ -69,6 +73,12 @@ export function camposDePromocion(
   // servirse, y eso es cierto en los dos motivos.
   const comunes: CamposDePromocion = {
     full_text: staged.full_text,
+    // ⚠️ F-105 paso 0 — LOS SEGMENTOS VIAJAN CON LOS DOS MOTIVOS, y no es un
+    // descuido: describen EL CONTENIDO, y ninguno de los dos motivos cambia el
+    // contenido. Dejarlos fuera de `mismo_contenido_retroceado` haría que un
+    // documento PERDIERA sus segmentos justo al repararlo — el revés exacto de
+    // lo que la reparación existe para hacer.
+    segments: staged.segments ?? null,
     content_hash: staged.content_hash,
     chunk_count: staged.chunk_count,
     size_bytes: staged.size_bytes,

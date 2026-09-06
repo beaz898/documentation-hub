@@ -19,6 +19,7 @@ const STAGED: DatosDelStaged = {
   chunk_count: 7,
   size_bytes: 1234,
   source_modified_at: null,
+  segments: [{ type: 'text', text: 'contenido' }],
 };
 
 describe('camposDePromocion — lo común a los dos motivos', () => {
@@ -68,7 +69,38 @@ describe('camposDePromocion — mismo contenido, otro troceado', () => {
     const c = camposDePromocion(STAGED, 4, 3, 'mismo_contenido_retroceado');
     expect(Object.keys(c).sort()).toEqual([
       'active_generation', 'chunk_count', 'content_hash',
-      'extractor_version', 'full_text', 'size_bytes', 'source_modified_at',
+      'extractor_version', 'full_text', 'segments', 'size_bytes',
+      'source_modified_at',
     ]);
+  });
+});
+
+describe('⚠️ F-105 paso 0 — los segmentos viajan en la promoción', () => {
+  /**
+   * Van con LOS DOS motivos, y por eso hay caso en las dos direcciones: los
+   * segmentos describen EL CONTENIDO, y ninguno de los dos motivos lo cambia.
+   * Si un retroceado no los promoviera, un documento PERDERÍA sus segmentos
+   * justo al repararlo — el revés exacto de lo que la reparación hace.
+   */
+  it('con contenido validado', () => {
+    const c = camposDePromocion(STAGED, 4, 3, 'contenido_validado');
+    expect(c.segments).toEqual([{ type: 'text', text: 'contenido' }]);
+  });
+
+  it('y con mismo contenido retroceado', () => {
+    const c = camposDePromocion(STAGED, 4, 3, 'mismo_contenido_retroceado');
+    expect(c.segments).toEqual([{ type: 'text', text: 'contenido' }]);
+  });
+
+  /**
+   * ⚠️ Un staged de ANTES de hoy no los tiene, y eso es legítimo durante la
+   * ventana. Se promueve un `null` explícito y no `undefined`: la columna queda
+   * escrita diciendo «no hay», que es lo que el lector dual espera.
+   */
+  it('un staged sin segmentos promueve null, no undefined', () => {
+    const sinSeg = { ...STAGED, segments: undefined };
+    const c = camposDePromocion(sinSeg, 4, 3, 'contenido_validado');
+    expect(c.segments).toBeNull();
+    expect('segments' in c).toBe(true);
   });
 });
