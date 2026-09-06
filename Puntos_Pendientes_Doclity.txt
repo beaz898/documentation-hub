@@ -6534,8 +6534,60 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     nadie confunde media frase con una frase. **En un formato de filas, un
     fragmento de fila es indistinguible de una fila.** El defecto no está en el
     solape: está en aplicar el solape de prosa a algo que no es prosa.
-    Y enlaza con B.181: el problema del CSV no es cómo se trocea — es que
-    **nunca llega a ser tabla**, y por eso se le aplica el troceado de prosa.
+
+    ⚠️⚠️ ══ EL ALCANCE, Y ES MUCHO MAYOR QUE EL CASO QUE LO DESTAPÓ ══
+    Se descubrió con un CSV por el modal de mejora. **No es del modal, y no es del
+    CSV.** El defecto vive en `splitByLength` —el único sitio que corta por
+    longitud— y **lo hereda todo el que corta por longitud**, que son SEIS
+    llamadas y las tres funciones de troceado:
+
+      · `chunkText` caso 4 (`:380`) — todo documento sin encabezados markdown.
+      · `chunkText` camino 0 (`:349`) — piezas pre-segmentadas de más de 1500.
+      · `subdivideSection` (`:296`, `:302`) — ⚠️ **también CON encabezados**:
+        cualquier sección de más de MAX_CHUNK_SIZE se subdivide con el mismo
+        solape ciego. Tener títulos no protege a una tabla larga.
+      · `buildProsePieces` (`:424`) — el que usa **`chunkSegments`**.
+      · segmentos `table_row` de más de 1200 (`:499`).
+
+    ⚠️ **Y `chunkSegments` ES EL DE LA INDEXACIÓN REAL.** `chunkText` tiene UN
+    SOLO llamante —`analyze-v2:302`—, pero `chunkSegments` es el que usan
+    **`ingest`** y **`index-text`**, o sea el que escribe **Pinecone y
+    `document_chunks`**. Esto no afecta a un análisis: **afecta al índice**, y por
+    tanto a toda recuperación futura, incluido el chat.
+
+    ══ QUÉ DOCUMENTOS ENTRAN, dicho sin rodeos ══
+    **Cualquier documento sin encabezados markdown que contenga una tabla la
+    pierde troceada.** Eso es la rama cruda entera —`csv`, `json`, `html`— y
+    también los `.txt` corridos y los **PDF de tablas**, que son de los formatos
+    más probables en un corpus corporativo. Y con encabezados tampoco se salva si
+    la sección pasa de 1500.
+
+    ⚠️ ══ Y LA PRECISIÓN QUE CIERRA EL ASUNTO: DA IGUAL EL `chunk_type` ══
+    Podría pensarse que basta con tipar mejor. **No.** Lo que alimenta el diff no
+    es el tipo: son las **CELDAS**, y por esta rama no hay ninguna —solo
+    `extractSegmentsFromExcel` produce `cells`—. Así que una tabla dentro de un
+    PDF sufre **dos daños encadenados**:
+      1. **No se compara nunca**: sin `cells`, `groupChunksByTable` la descarta
+         (`table-structure.ts:128`) y el diff no la ve, esté bien o mal troceada.
+      2. **Y encima se indexa sucia**: cada trozo menos el primero se abre con un
+         fragmento de fila que parece una fila con el primer campo cambiado.
+    El daño 1 es de B.181/el censo; el 2 es de esta ficha. **Arreglar el troceado
+    no hace que la tabla se compare** — son dos cosas, y conviene no confundirlas
+    al priorizar.
+
+    ══ LO QUE ENSEÑA SOBRE EL MÉTODO, y puede que sea lo más útil de la ficha ══
+    **El caso se escribió para CONGELAR el comportamiento y acabó DOCUMENTANDO UN
+    FALLO.** La ficha de B.181 avisaba de lo primero —«sin criterio escrito, un
+    test sobre código viejo no prueba nada, congela lo que hoy hace»— y ese aviso
+    resultó ser solo la mitad.
+    **La otra mitad: la primera prueba de un camino no medido no confirma —
+    DESCUBRE.** Lo que separa congelar de descubrir es escribir el CRITERIO antes
+    que los casos: con criterio, lo que hoy hace o cumple o no cumple, y si no
+    cumple sale un hallazgo. Sin criterio, todo lo que hoy hace es «lo correcto»
+    por definición.
+    ⚠️ Y es el argumento contra la excusa más cómoda de este proyecto —«esto lleva
+    años funcionando»—: llevaba años, y la primera vez que se le puso un criterio
+    delante, falló. Candidata a regla.
 
     ══ LO QUE ESTÁ FIJADO ══
     `lib/troceado-sin-encabezados.test.ts` tiene un caso que **documenta el
@@ -6546,10 +6598,12 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     ══ LAS PREGUNTAS QUE HAY QUE CONTESTAR ══
     1. ¿El solape debería respetar la frontera de línea cuando el texto tiene
        filas? Es `start = end - overlap` → retroceder al `\n` anterior. Barato,
-       pero cambia el troceado de TODO lo que va por el caso 4, no solo del CSV.
+       —una linea en splitByLength— **pero cambia el troceado de TODO**: las
+       seis llamadas, ingest incluido. No es un arreglo local aunque lo parezca.
     2. Si cambia, **¿qué pasa con lo ya indexado?** Los chunks viejos no se
        reescriben solos, y dos documentos troceados con reglas distintas se
-       comparan entre sí.
+       comparan entre sí. ⚠️ Y ahora que se sabe que el afectado es ingest, esta
+       pregunta pesa más: lo ya indexado **es el corpus**, no un análisis suelto.
     3. ¿O la respuesta correcta está aguas arriba —que un CSV sea tabla— y esto
        se queda como está? Entonces esta ficha no se arregla: se cierra
        apuntando a la otra.
