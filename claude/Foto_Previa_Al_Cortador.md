@@ -98,7 +98,7 @@ lo que se espera que cambie casi siempre se anota, y lo que se espera que NO
 cambie casi nunca — y es justo al revés. Una cifra de control que no está
 congelada **no es un control**: el día que salga otra, nadie podrá demostrar cuál
 era la de antes, y una regresión real se leerá como «pues eso daba».
-Así que  va copiado en el registro, con su fecha y su modo, al mismo
+Así que `15 / 15 / 2` va copiado en el registro, con su fecha y su modo, al mismo
 nivel que las cifras que sí se espera que se muevan.
 
 # 4 · ⚠️ LO EXPUESTO — y el problema que tiene, dicho antes de usarlo
