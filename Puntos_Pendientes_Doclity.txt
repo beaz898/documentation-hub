@@ -7024,7 +7024,8 @@ NOTAS DE ORDEN (propuesta, a confirmar)
        código no lo pide. Si Graph devolviera elementos reciclados, el efecto
        sería el contrario —documentos fantasma— y tampoco lo veríamos.
 
-  B.190 — [ABIERTO 07/09] CINCO DOCUMENTOS CON TEXTO Y SIN TROZOS: HOY LOS TAPA
+  B.190 — [ABIERTO 07/09 · ✅ MEDIDO EL MISMO DÍA: SON HISTORIA, NO FALLO VIVO]
+    CINCO DOCUMENTOS CON TEXTO Y SIN TROZOS: HOY LOS TAPA
     EL TEXTO PLANO, Y EL DÍA QUE SE RETIRE SE QUEDAN SIN NADA
 
     ══ EL DATO ══
@@ -7052,8 +7053,32 @@ NOTAS DE ORDEN (propuesta, a confirmar)
       creó `extractor_version`. Un documento indexado antes **nunca tuvo trozos**,
       y eso no es un fallo: es historia.
 
-    ⚠️ **SE DISTINGUEN POR `extractor_version`**, que es el mismo NULL que ya
-    significa «leído con un extractor anterior»:
+    ✅ ══ EJECUTADA. LOS CINCO SON DE LA CAUSA (2) ══
+    **Los cinco tienen `extractor_version` NULL**: son anteriores a que existiera
+    `document_chunks`. Historia, no fallo.
+      · `2_Glosario_Terminos.pdf` — 26/05
+      · `A3-PICADILLO-CTURISMO-1125-DIGITAL` — 26/04
+      · `Pauta 5-6-25.pdf` — 26/04
+      · `carta-restaurante_07-2025-es.pdf` — 26/04
+      · `new 11.txt` — 26/05
+
+    ⚠️ **NINGUNA INDEXACIÓN HA FALLADO EN SILENCIO.** La causa (1) **existe en el
+    código** —`persist-chunks.ts:42` registra el error y no lanza— pero **no se
+    ha materializado en este corpus**. Queda como **RIESGO DECLARADO, no como
+    fallo medido**, y la distinción importa: el mecanismo es real y sigue ahí, así
+    que el día que ocurra producirá exactamente este estado. Lo que no se puede
+    decir es que haya ocurrido.
+    ⚠️ Y lo que sigue faltando es el CONTADOR: si ocurre, el único rastro es un
+    `console.error`. Por F-95, un límite declarado sin contador es callar con
+    permiso — y aquí el límite ya está declarado.
+
+    ══ Y SON TODOS PDF Y TXT, ninguno Excel ══
+    Así que el caso que B.191 temía **no se puede dar con estos cinco**. B.191 se
+    arregló igual, y por dos razones que no dependen de ellos: el agujero era real
+    en el código, y **desde el 07/09 hay un Excel de la nube en el corpus** que sí
+    lo habría atravesado.
+
+    ══ LA CONSULTA QUE LO DISCRIMINÓ, conservada ══
 
     ```sql
     SELECT d.name, d.source, d.extractor_version, d.created_at,
