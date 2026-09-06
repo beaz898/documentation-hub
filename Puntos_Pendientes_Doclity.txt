@@ -6932,7 +6932,10 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     Coste del arreglo: el bucle de paginación, con el patrón ya escrito al lado.
     **Es el que yo haría primero de los tres.**
 
-    ══ 2. LA PAPELERA SE LLEVA LOS ANÁLISIS, Y SIN LÁPIDA ══
+    ══ 2. LA PAPELERA — ⚠️ IZADA A FICHA PROPIA: VER B.189 ══
+    Se sacó de aquí el 06/09 porque no es una nota al pie de este arreglo: es un
+    camino de pérdida con el mismo peso que B.187, y con dos decisiones
+    enganchadas que hay que desenredar juntas. Lo que sigue queda como resumen.
     Los listados piden `trashed=false`, así que mandar un fichero a la papelera lo
     saca del listado y **el documento se borra del corpus**. Eso es CORRECTO como
     intención —el usuario lo quitó— pero se lleva dos cosas más:
@@ -6961,6 +6964,65 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     automático»: es **«misma carpeta contra carpeta cambiada»**, que es lo que el
     arreglo implementa. Un «no borrar en manual» habría sido «no borrar nunca», y
     habría roto el caso legítimo del punto 2.
+
+  B.189 — [ABIERTO 06/09 · ⚠️⚠️ PRIMERA FAMILIA · MISMO PESO QUE B.187, NO NOTA
+    AL PIE] MANDAR UN FICHERO A LA PAPELERA SE LLEVA SUS ANÁLISIS, SIN LÁPIDA Y
+    SIN AVISO
+
+    ══ LA CADENA, verificada ══
+    1. Los listados excluyen la papelera. Google lo hace explícito
+       —`trashed=false`, tres veces en `google.ts`—; **OneDrive no filtra nada**:
+       el código no menciona la papelera y depende de que Graph no devuelva los
+       elementos reciclados. ⚠️ Eso último **no está verificado aquí**: es el
+       comportamiento documentado de Graph, no una comprobación nuestra.
+    2. El fichero desaparece del listado → `decidirSincronizacion` lo mete en
+       `borrar` → `deleteDocument(..., reason: 'remote_deleted')`.
+    3. `delete-document.ts` **borra `analysis_results` por `document_id`** desde
+       el 03/09 (B.112).
+    4. **Y NO ESCRIBE LÁPIDA**: la lápida solo se pone si
+       `reason === 'user_excluded'` (`:118`). El borrado remoto no la lleva.
+
+    ══ LO QUE PIERDE EL CLIENTE, y en qué orden lo descubre ══
+    Restaurar el fichero desde la papelera lo devuelve al corpus en la siguiente
+    sincronización —no hay lápida que lo impida—, **pero como documento NUEVO**:
+    id nuevo, `analysis_status` de vuelta a `pendiente`, `reviewed_at/by`
+    vacíos, y **los análisis ya no existen**.
+    **Vuelve el contenido. No vuelve el trabajo.** Y el cliente no tiene forma de
+    saber que eso ha pasado: el sync le dirá «1 eliminado» primero y «1 nuevo»
+    después, que es exactamente lo que parece inofensivo.
+
+    ⚠️ ══ Y LAS DOS DECISIONES SE SOSTIENEN LA UNA A LA OTRA, que es lo que hay
+    que llevar a la consulta ══
+    No son dos descuidos independientes: **están enganchadas.**
+      · Los análisis se borran **porque** el documento puede volver — B.112 lo
+        dice con todas las letras: la memoria «SE LA QUEDA EL SIGUIENTE DOCUMENTO
+        QUE SE LLAME IGUAL», porque la bandeja empareja por NOMBRE.
+      · Y el documento puede volver **porque** no se pone lápida, decisión también
+        razonada: «una lápida impediría restaurarlo si el usuario lo recupera en
+        su Drive».
+    Cada una es correcta mirando a la otra. **Juntas producen una pérdida que
+    ninguna de las dos quería**, y por eso no se arregla tocando una sola: si se
+    conservan los análisis sin resolver la herencia por nombre, vuelve B.112; si
+    se pone lápida, se rompe la restauración.
+
+    ══ POR QUÉ ES DE LA MISMA FAMILIA QUE B.187 ══
+    El eslabón final es el mismo —«no está en el listado» ⇒ «se borró»— y el daño
+    también: **datos del cliente que desaparecen sin que él lo pida ni lo sepa.**
+    La diferencia es que aquí el gesto SÍ es suyo —mandó el fichero a la papelera—
+    pero **lo que pierde no es lo que creía estar tirando**: tiró un fichero, no
+    su historial de análisis.
+
+    ══ LAS PREGUNTAS ══
+    1. ¿La papelera del proveedor debe ser un borrado o una desvinculación? Es la
+       misma pregunta que el director contestó para las carpetas —«dejar de
+       sincronizar, no borrar»— aplicada a otro gesto.
+    2. Si sigue borrando, ¿pueden sobrevivir los análisis? Solo si la herencia por
+       nombre deja de ser posible, o sea si el emparejamiento por NOMBRE de la
+       bandeja se retira. Es B.112 otra vez, por el otro extremo.
+    3. ¿Y el aviso? Hoy el sync dice «1 eliminado» sin decir qué se fue con él.
+    4. ⚠️ ¿Y OneDrive filtra de verdad la papelera? **No lo sabemos**: nuestro
+       código no lo pide. Si Graph devolviera elementos reciclados, el efecto
+       sería el contrario —documentos fantasma— y tampoco lo veríamos.
 
 Forma de trabajo: diagnóstico con datos reales antes de arreglar; un
 cambio lógico cada vez; build verde entre medias; SQL en Supabase antes
