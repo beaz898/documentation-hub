@@ -7024,6 +7024,104 @@ NOTAS DE ORDEN (propuesta, a confirmar)
        código no lo pide. Si Graph devolviera elementos reciclados, el efecto
        sería el contrario —documentos fantasma— y tampoco lo veríamos.
 
+  B.190 — [ABIERTO 07/09] CINCO DOCUMENTOS CON TEXTO Y SIN TROZOS: HOY LOS TAPA
+    EL TEXTO PLANO, Y EL DÍA QUE SE RETIRE SE QUEDAN SIN NADA
+
+    ══ EL DATO ══
+    Cinco documentos del corpus tienen `full_text` y **cero filas en
+    `document_chunks`**. Hoy no molestan porque todo lo que necesita texto lo
+    saca de `full_text`; el día que el texto plano se retire —paso posterior de
+    F-105— **esos cinco se quedan sin ninguna fuente**.
+
+    ⚠️ ══ SON DOS CAUSAS DISTINTAS Y HAY QUE SEPARARLAS ANTES DE ARREGLAR ══
+    La lectura que llegó —«es la firma de una indexación que falló a mitad»— es
+    **mecánicamente correcta y está verificada**, pero **no es la única
+    explicación posible** y las dos se distinguen con una consulta.
+
+    **(1) LA INDEXACIÓN QUE FALLÓ A MITAD. Verificado:**
+      · `ingest:279` escribe `full_text` en la fila del documento.
+      · `ingest:356` llama a `saveDocumentChunks` **después**.
+      · Y `persist-chunks.ts:42` **solo registra el error, NO LANZA** — está
+        escrito con su razón: «un fallo aquí nunca debe tumbar una indexación que
+        ya funcionó».
+      Resultado: si el `insert` de los trozos falla, queda **exactamente este
+      estado** y la indexación **informa de éxito**. La firma es real.
+
+    **(2) LOS ANTERIORES A QUE EXISTIERA LA TABLA.** `document_chunks` nació con
+      F-20 (`supabase-f20-chunks-estructurados.sql`), en el mismo trabajo que
+      creó `extractor_version`. Un documento indexado antes **nunca tuvo trozos**,
+      y eso no es un fallo: es historia.
+
+    ⚠️ **SE DISTINGUEN POR `extractor_version`**, que es el mismo NULL que ya
+    significa «leído con un extractor anterior»:
+
+    ```sql
+    SELECT d.name, d.source, d.extractor_version, d.created_at,
+           length(d.full_text) AS chars,
+           (SELECT count(*) FROM document_chunks c WHERE c.document_id = d.id) AS trozos
+    FROM documents d
+    WHERE d.org_id = '<org>'
+      AND d.full_text IS NOT NULL
+      AND NOT EXISTS (SELECT 1 FROM document_chunks c WHERE c.document_id = d.id)
+    ORDER BY d.created_at;
+    ```
+    · `extractor_version IS NULL` → causa (2), anteriores a la tabla.
+    · `extractor_version` con valor → **causa (1): la indexación falló**, y
+      entonces hay que preguntarse cuántas veces más ha pasado sin que nadie mire.
+
+    ══ ¿SON REPARABLES? SÍ, LOS DE PROSA — y la reparación les da lo que nunca
+    tuvieron ══
+    `planDeReindexado` los manda a `retrocear`: no están al día, no tienen staged,
+    `full_text` pasa el mínimo, y **la guarda de tablas no los rechaza porque no
+    tienen trozos que mirar**. El retroceado les escribe sus `document_chunks`
+    desde el texto. Es la propiedad que F-105 llamó «reparación enriquecedora»,
+    aplicada al caso más simple.
+    ⚠️ Los que sean **de la nube** siguen dando 501 hasta el paso 2 de F-105.
+
+    ⚠️ ══ Y AHÍ ESTÁ EL AGUJERO, QUE ES MÍO: VER B.191 ══
+    Si alguno de los cinco es un `.xlsx`, **repararlo lo convertiría en prosa
+    para siempre** — y la guarda que existe para impedirlo **no puede verlo**.
+
+    ══ LAS PREGUNTAS ══
+    1. ¿Cuántos de los cinco son de cada causa? Una consulta.
+    2. Si alguno es de la causa (1), ¿cuántas indexaciones han fallado así sin que
+       nadie se enterara? El fallo solo deja rastro en un `console.error`.
+    3. ¿Debería `saveDocumentChunks` dejar de ser silencioso? Su razón original
+       sigue siendo buena —no tumbar una indexación que funcionó— pero «no tumbar»
+       y «no contar» son cosas distintas: hoy no hay contador.
+
+  B.191 — [ABIERTO 07/09 · AGUJERO EN LA GUARDA QUE ESCRIBÍ ANTEAYER] UN DOCUMENTO
+    SIN TROZOS PASA LA GUARDA DE TABLAS, AUNQUE SEA UN EXCEL
+
+    ══ EL DATO ══
+    `planDeReindexado` decide si re-trocear es seguro con
+    `tieneChunksTabulares`, y el endpoint lo calcula así
+    (`reindexar/route.ts:107`):
+    `chunksActuales.some(c => c.chunkType !== 'text')`.
+    **Con CERO trozos, eso es `false`.** La guarda pasa.
+
+    ⚠️ ══ POR QUÉ IMPORTA ══
+    La guarda existe para una sola cosa: impedir que un documento con tablas se
+    re-trocee desde `full_text`, porque el texto plano no tiene el marcador de
+    segmentación y **las celdas se perderían**. Un `.xlsx` de los cinco de B.190
+    la atravesaría sin rozarla, y la «reparación» lo dejaría convertido en prosa
+    **de forma permanente**: después ya tendría trozos de tipo `text`, así que ni
+    siquiera se notaría que alguna vez fue una tabla.
+
+    ══ LA CAUSA, y es una deriva de contrato de manual ══
+    La guarda pregunta **«¿este documento tiene trozos tabulares?»** creyendo
+    preguntar **«¿este documento tiene tablas?»**. Coinciden siempre… menos
+    cuando no hay trozos, que es justo el caso que B.190 destapa. Es la forma de
+    F-97: un predicado correcto para la pregunta con la que se escribió.
+
+    ══ LO QUE FALTA, sin implementarlo aquí ══
+    La segunda fuente para la misma pregunta es la **extensión del nombre**: solo
+    `.xlsx`/`.xlsm` producen celdas (`chunking.ts:784`), así que un documento con
+    esa extensión tiene tablas **aunque no tenga un solo trozo**. La guarda
+    debería mirar las dos, y ante la duda **fallar cerrada**.
+    ⚠️ Y conviene que la pregunta se llame por su nombre —«¿puede este documento
+    perder estructura si lo re-troceo?»— en vez de por su implementación de hoy.
+
 Forma de trabajo: diagnóstico con datos reales antes de arreglar; un
 cambio lógico cada vez; build verde entre medias; SQL en Supabase antes
 del push; plan completo antes de tocar varios archivos.

@@ -54,6 +54,43 @@ ALTER TABLE public.documents
 ALTER TABLE public.document_staged
   ADD COLUMN IF NOT EXISTS segments jsonb;
 
+-- ════════════════════════════════════════════════════════════════════════════
+-- LA RETIRADA DEL TEXTO PLANO — PASO POSTERIOR, CON SU CONDICIÓN ESCRITA
+-- ════════════════════════════════════════════════════════════════════════════
+--
+-- ⚠️ POR QUÉ NO SE RETIRA HOY, y la razón conviene que quede aquí y no en una
+-- conversación: F-105 decidió sobre el ESTADO FINAL —segmentos sí, texto plano
+-- no— y no sobre la TRANSICIÓN. Con 34 de 39 documentos sin segmentos, la
+-- transición no es un momento: es el estado normal durante meses. Retirar hoy
+-- el texto plano dejaría sin fuente a casi todo el corpus.
+-- Así que: ESCRITURA DUAL ahora —se escriben las dos formas—, LECTURA DUAL
+-- durante la ventana, y retirada cuando el corpus esté migrado. Es la lectura
+-- dual con caducidad de F-94, y es la primera vez que esta casa la ejerce.
+--
+-- LA CONDICIÓN DE RETIRADA, escrita para que se pueda comprobar y no opinar:
+--
+--     Se retira `documents.full_text` cuando la proporción de documentos con
+--     `segments IS NULL` sea CERO en todas las organizaciones.
+--
+-- ⚠️ Y LA CONDICIÓN ES MEDIBLE POR CONSTRUCCIÓN, que es lo que impide que esta
+-- retirada se quede aplazada para siempre: la propia columna es el contador.
+-- No hace falta inventar ningún registro — basta con preguntar:
+--
+--     SELECT count(*) FILTER (WHERE segments IS NULL) AS sin_segmentos,
+--            count(*)                                 AS total,
+--            round(100.0 * count(*) FILTER (WHERE segments IS NULL)
+--                  / nullif(count(*), 0), 1)          AS porcentaje
+--     FROM public.documents;
+--
+-- Un aplazamiento sin condición comprobable es un aplazamiento indefinido con
+-- otro nombre. Éste tiene un número que se puede mirar cualquier día.
+--
+-- ⚠️ Y EL DENOMINADOR TIENE UNA TRAMPA CONOCIDA: hay cinco documentos con texto
+-- y SIN TROZOS (B.190). Cuentan en el total y no se van a migrar solos — se
+-- migran cuando alguien los repare. Mientras estén, el porcentaje no llega a
+-- cero, y eso es CORRECTO: son exactamente los que se quedarían sin nada si el
+-- texto plano se retirara antes de tiempo.
+
 -- ── Qué NO hace este fichero, declarado ─────────────────────────────────────
 -- · NO rellena los documentos existentes. Se llenan al repararse, y esa misma
 --   pasada los deja con segmentos para siempre (F-105 P2: la reparación es
