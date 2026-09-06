@@ -6831,6 +6831,64 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     3. ¿Y merece la pena antes de que haya interfaz? El coste de renombrar ahora
        es tres ficheros; después de que alguien lo lea en pantalla, es más.
 
+  B.187 — [ABIERTO 06/09 · ⚠️⚠️ PRIMERA FAMILIA: PÉRDIDA DE DATOS POR UN GESTO
+    LEGÍTIMO] CAMBIAR LA CARPETA DE DRIVE BORRA EL CORPUS DE LA CARPETA ANTERIOR
+
+    ══ CÓMO APARECIÓ ══
+    Verificando una premisa ajena —«los documentos de la nube pierden el fichero
+    cuando cambia la carpeta»—. **La premisa es falsa y lo que hay debajo es
+    peor**: no pierden el fichero. **Se borran enteros.**
+
+    ══ LA CADENA, verificada línea a línea ══
+    1. `sync/route.ts:58-63` — el usuario elige otra carpeta y la conexión se
+       ACTUALIZA: `folder_id` pasa a ser la nueva. Es un gesto ofrecido por la
+       interfaz (`:590` lista las carpetas para elegir).
+    2. `:114-117` — el sync lista **la carpeta nueva**.
+    3. `sync-guard.ts:93` — `decidirSincronizacion` marca para borrar
+       **todo documento existente cuyo `provider_file_id` no esté en el listado**.
+       Los de la carpeta vieja no están.
+    4. `:475-487` — se borran con `deleteDocument`, **sin tope, sin confirmación
+       y sin lápida**, con `reason: 'remote_deleted'`.
+
+    ⚠️ ══ Y EL MOTIVO QUE SE REGISTRA ES FALSO ══
+    `remote_deleted` significa «el archivo desapareció del proveedor». **No
+    desapareció**: sigue en Drive, intacto. Lo que cambió es dónde miramos. El
+    registro del borrado, por tanto, **cuenta una historia que no ocurrió** — y el
+    comentario del código razona la ausencia de lápida sobre esa historia
+    («no hay reimportación que bloquear»), que en este caso tampoco se sostiene.
+
+    ══ POR QUÉ LA GUARDA DE B.138 NO LO CUBRE, y no es un descuido suyo ══
+    Aquella guarda contesta «¿el listado LLEGÓ?» y aborta si no. Aquí **el listado
+    llega perfectamente**: es correcto, completo y de otra carpeta. `listado.ok`
+    es `true`. La guarda hace exactamente lo que promete; **la pregunta que falta
+    es otra**: «¿este listado describe el MISMO conjunto que el anterior?».
+    Es la misma familia —un borrado disparado por una respuesta ajena— entrando
+    por una puerta que la guarda no mira.
+
+    ⚠️ ══ Y NO SE PUEDE ARREGLAR CON «SI VIENE VACÍO, ABORTA» ══
+    La carpeta nueva puede traer veinte ficheros. El listado no es vacío ni
+    sospechoso: es de otro sitio. Es exactamente el aviso que ya está escrito en
+    CLAUDE.md —«el peligro no es la respuesta vacía, es la incompleta»— con una
+    variante que no estaba prevista: **la respuesta COMPLETA de otra pregunta.**
+
+    ══ LO QUE NO SE HA COMPROBADO, y se declara ══
+    **No se ha reproducido.** La cadena está verificada en el código, línea a
+    línea, pero nadie ha cambiado una carpeta en producción para verlo ocurrir.
+    Por la regla del cero: es deducción con evidencia, no medición. Y NO conviene
+    reproducirla a la ligera — el experimento borra documentos de verdad.
+
+    ══ LAS PREGUNTAS QUE HAY QUE CONTESTAR ══
+    1. ¿Cambiar de carpeta debe BORRAR o debe DESVINCULAR? Son dos productos
+       distintos: uno dice «la carpeta ES el corpus», el otro «la carpeta es de
+       dónde traigo». Hoy es lo primero y nadie lo ha escrito.
+    2. Si sigue borrando, ¿con qué aviso? Un gesto que borra N documentos debería
+       decir cuántos ANTES, no contarlos después en un log.
+    3. ¿Y un tope? Hoy no hay ninguno: un sync puede borrar el corpus entero sin
+       que nada lo pare. Un tope no arregla la causa, pero convierte una pérdida
+       total en una parcial que alguien puede ver.
+    4. ¿Y el motivo? `remote_deleted` es falso en este caso, y de él cuelga la
+       decisión de no poner lápida.
+
 Forma de trabajo: diagnóstico con datos reales antes de arreglar; un
 cambio lógico cada vez; build verde entre medias; SQL en Supabase antes
 del push; plan completo antes de tocar varios archivos.
