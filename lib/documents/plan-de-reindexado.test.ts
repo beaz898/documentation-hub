@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { planDeReindexado, esReparacionCompleta } from './plan-de-reindexado';
+import { planDeReindexado, esReparacionCompleta, puedePerderEstructura } from './plan-de-reindexado';
 import type { EntradaDelPlan } from './plan-de-reindexado';
 
 /**
@@ -18,6 +18,7 @@ const VIGENTE = 3;
 function entrada(over: Partial<EntradaDelPlan> = {}): EntradaDelPlan {
   return {
     fila: { extractorVersion: 2, source: 'manual', providerFileId: null },
+    nombre: 'manual-de-calidad.docx',
     tieneChunksTabulares: false,
     hayStagedVivo: false,
     fullText: 'x'.repeat(200),
@@ -100,5 +101,60 @@ describe('esReparacionCompleta', () => {
     expect(esReparacionCompleta({ via: 'reprocesar' })).toBe(true);
     expect(esReparacionCompleta({ via: 'retrocear' })).toBe(false);
     expect(esReparacionCompleta({ via: 'rechazado', motivo: 'al_dia' })).toBe(false);
+  });
+});
+
+describe('⚠️ B.191 — la guarda pregunta por TABLAS, no por trozos tabulares', () => {
+  /**
+   * EL CASO QUE HOY PASABA. Un Excel sin un solo trozo —los cinco de B.190—
+   * atravesaba la guarda vieja porque `some()` sobre una lista vacía es
+   * `false`, y la «reparación» lo dejaba convertido en prosa PARA SIEMPRE.
+   */
+  it('un .xlsx SIN trozos se rechaza igual', () => {
+    expect(
+      planDeReindexado(entrada({ nombre: 'OPE-10_tarifario.xlsx', tieneChunksTabulares: false }), VIGENTE),
+    ).toEqual({ via: 'rechazado', motivo: 'sin_original_con_tablas' });
+  });
+
+  it('y un .xlsm también', () => {
+    expect(
+      planDeReindexado(entrada({ nombre: 'macros.xlsm', tieneChunksTabulares: false }), VIGENTE).via,
+    ).toBe('rechazado');
+  });
+
+  /**
+   * LA MITAD CONTRARIA, y es la que impide que el arreglo se pase de frenada:
+   * los cinco de B.190 que sean PROSA tienen que seguir siendo reparables. Si
+   * este caso muriera, habríamos cambiado un agujero por una puerta cerrada.
+   */
+  it('un documento de prosa sin trozos SIGUE siendo reparable', () => {
+    expect(
+      planDeReindexado(entrada({ nombre: 'protocolo.docx', tieneChunksTabulares: false }), VIGENTE),
+    ).toEqual({ via: 'retrocear' });
+  });
+
+  it('la fuente vieja sigue viva: con trozos tabulares se rechaza aunque el nombre sea de prosa', () => {
+    expect(
+      planDeReindexado(entrada({ nombre: 'informe.pdf', tieneChunksTabulares: true }), VIGENTE).via,
+    ).toBe('rechazado');
+  });
+
+  it('puedePerderEstructura: basta con que UNA de las dos fuentes diga que sí', () => {
+    expect(puedePerderEstructura({ nombre: 'a.docx', tieneChunksTabulares: false })).toBe(false);
+    expect(puedePerderEstructura({ nombre: 'a.docx', tieneChunksTabulares: true })).toBe(true);
+    expect(puedePerderEstructura({ nombre: 'a.xlsx', tieneChunksTabulares: false })).toBe(true);
+    expect(puedePerderEstructura({ nombre: 'a.xlsx', tieneChunksTabulares: true })).toBe(true);
+  });
+
+  /**
+   * ⚠️ EL LÍMITE, DECLARADO: un nombre ausente NO activa la fuente nueva. No es
+   * prueba de que haya tablas, y rechazar por su falta bloquearía reparaciones
+   * legítimas. La protección de esos casos viene de la otra fuente.
+   */
+  it('sin nombre, la guarda depende solo de los trozos', () => {
+    expect(planDeReindexado(entrada({ nombre: null, tieneChunksTabulares: false }), VIGENTE).via)
+      .toBe('retrocear');
+    expect(planDeReindexado(entrada({ nombre: null, tieneChunksTabulares: true }), VIGENTE).via)
+      .toBe('rechazado');
   });
 });

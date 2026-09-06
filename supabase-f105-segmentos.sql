@@ -1,9 +1,9 @@
 -- ════════════════════════════════════════════════════════════════════════════
 -- F-105 · PASO 0 — LOS SEGMENTOS SE PERSISTEN
 --
--- ⚠️ ESTADO: PENDIENTE DE EJECUTAR.
--- Este fichero pasa a EJECUTADO solo cuando el usuario lo confirme. Hasta
--- entonces no describe la base: describe lo que se le va a pedir.
+-- ✅ ESTADO: EJECUTADO — confirmado por el usuario el 07/09/2026.
+-- Las dos columnas existen en la base. Este fichero ya describe lo que HAY,
+-- no lo que se pide.
 -- ════════════════════════════════════════════════════════════════════════════
 --
 -- QUÉ RESUELVE. Los tres puntos de indexación llaman a `extractSegments`, usan

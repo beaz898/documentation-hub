@@ -36,7 +36,18 @@ const UMBRAL_DE_PARADA = 3;
 const ficheros = readdirSync('corpus-pruebas').filter(f => !f.startsWith('.'));
 
 describe('coste de persistir los segmentos (F-105, encargo 1)', () => {
-  it('mide el ratio segmentos/texto sobre el corpus de pruebas', async () => {
+  /**
+   * ⚠️ EL PRESUPUESTO DE TIEMPO ES EXPLÍCITO, y hace falta: este caso EXTRAE 16
+   * ficheros reales —PDF y docx incluidos— y tarda ~13 s. Con el límite de 5 s
+   * por defecto pasaba al ejecutarlo solo y **caía dentro de la batería
+   * completa**, que es la peor forma de fallar: verde cuando lo miras, rojo
+   * cuando no.
+   *
+   * Y se queda en la batería en vez de ser un cálculo de una vez, porque su
+   * aserción no es la cifra sino el UMBRAL: si alguien engorda los segmentos por
+   * encima de 3×, esto lo dice. La cifra se lee con VER_MEDICION=1.
+   */
+  it('mide el ratio segmentos/texto sobre el corpus de pruebas', { timeout: 60_000 }, async () => {
     const filas: Array<{ nombre: string; texto: number; segmentos: number; ratio: number }> = [];
 
     for (const nombre of ficheros) {

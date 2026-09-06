@@ -1,4 +1,5 @@
 import { estadoDeReparacion } from './estado-de-reparacion';
+import { produceTablas } from '@/lib/chunking';
 import type { FilaParaSello } from './estado-de-reparacion';
 
 /**
@@ -52,6 +53,9 @@ export type PlanDeReindexado =
 
 export interface EntradaDelPlan {
   fila: FilaParaSello;
+  /** El nombre del fichero. Su extensión es la SEGUNDA fuente de la guarda de
+   *  estructura — ver `puedePerderEstructura`. */
+  nombre: string | null | undefined;
   /** ¿Tiene chunks `table_row`/`table_summary` en su generación activa? */
   tieneChunksTabulares: boolean;
   /** ¿Hay una fila viva en `document_staged` para este documento? */
@@ -80,7 +84,7 @@ export function planDeReindexado(
   // NO se mira si hay tablas: reprocesar las reconstruye, no las pierde.
   if (estado === 'reparable_automaticamente') return { via: 'reprocesar' };
 
-  if (entrada.tieneChunksTabulares) {
+  if (puedePerderEstructura(entrada)) {
     return { via: 'rechazado', motivo: 'sin_original_con_tablas' };
   }
 
@@ -101,4 +105,33 @@ export function planDeReindexado(
  */
 export function esReparacionCompleta(plan: PlanDeReindexado): boolean {
   return plan.via === 'reprocesar';
+}
+
+/**
+ * ¿PUEDE ESTE DOCUMENTO PERDER ESTRUCTURA SI SE RE-TROCEA? (B.191)
+ *
+ * ⚠️ LA PREGUNTA CAMBIÓ DE NOMBRE PORQUE ESTABA MAL HECHA. Hasta el 07/09 la
+ * guarda preguntaba **«¿tiene trozos tabulares?»** creyendo preguntar **«¿tiene
+ * tablas?»**. Coinciden siempre… menos cuando el documento **no tiene trozos**,
+ * y ése es justo el caso que existe: cinco documentos del corpus tienen texto y
+ * cero `document_chunks` (B.190). Con la guarda vieja, un `.xlsx` de esos
+ * atravesaba sin rozarla —`some()` sobre una lista vacía es `false`— y la
+ * «reparación» lo convertía en prosa **para siempre**: después ya tendría trozos
+ * de tipo `text`, así que ni siquiera se notaría que fue una tabla.
+ *
+ * DOS FUENTES PARA LA MISMA PREGUNTA, y basta con que una diga que sí:
+ *   · los trozos ya persistidos — sirve para lo que está indexado;
+ *   · la EXTENSIÓN — sirve cuando no hay trozos que mirar.
+ *
+ * ⚠️ Y LA LISTA DE EXTENSIONES NO SE ESCRIBE AQUÍ: se le pregunta a
+ * `produceTablas`, que vive en `chunking.ts` junto al `switch` que decide qué
+ * extractor corre. Es donde está la verdad, y copiarla aquí habría sido la
+ * segunda implementación del mismo criterio — el fallo del que nació
+ * `origen.ts`. La lista está atada a la conducta por
+ * `lib/formatos-con-tablas.test.ts`.
+ */
+export function puedePerderEstructura(
+  entrada: Pick<EntradaDelPlan, 'nombre' | 'tieneChunksTabulares'>,
+): boolean {
+  return entrada.tieneChunksTabulares || produceTablas(entrada.nombre);
 }

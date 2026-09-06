@@ -771,6 +771,42 @@ function extractSegmentsFromExcel(buffer: Buffer): ExtractedSegment[] {
  * todavía sin consumidores.
  * Soporta: .txt, .md, .pdf, .docx, .xlsx, .xlsm
  */
+/**
+ * LAS EXTENSIONES QUE PRODUCEN TABLAS — y viven aquí porque aquí está la verdad.
+ *
+ * Es el espejo del `case` de `extractSegments` que llama a
+ * `extractSegmentsFromExcel`: **solo esas dos ramas emiten segmentos con
+ * `cells`**, y por tanto solo esos formatos pueden PERDER estructura si se
+ * re-trocean desde el texto plano.
+ *
+ * ⚠️ SE EXPORTA PARA QUE NADIE LA REESCRIBA. La guarda del reindexado necesita
+ * esta misma pregunta, y copiarla allí sería la segunda implementación del mismo
+ * criterio — el fallo del que nació `origen.ts` (B.162), donde la misma pregunta
+ * se contestaba en tres sitios con dos listas.
+ *
+ * ⚠️ Y NO SE ATA CON UN COMENTARIO, SE ATA CON UN CASO: `lib/formatos-con-tablas.test.ts`
+ * recorre `corpus-pruebas/` y comprueba que EXACTAMENTE los ficheros con estas
+ * extensiones producen segmentos no-`text`. Si mañana otro formato empieza a
+ * emitir tablas y nadie toca esta lista, ese caso se pone rojo.
+ */
+export const EXTENSIONES_CON_TABLAS = ['xlsx', 'xlsm'] as const;
+
+/**
+ * ¿Este fichero produce tablas al extraerse?
+ *
+ * ⚠️ EL NOMBRE AUSENTE NO ACTIVA LA GUARDA, y va declarado: un nombre vacío o
+ * sin extensión **no es prueba de que haya tablas**. Rechazar por falta de
+ * nombre bloquearía reparaciones legítimas de documentos de prosa, que es
+ * exactamente para lo que la reparación existe. Quien necesite protección
+ * adicional la busca en la otra fuente —los trozos ya persistidos—, que es
+ * independiente de ésta.
+ */
+export function produceTablas(fileName: string | null | undefined): boolean {
+  if (typeof fileName !== 'string') return false;
+  const ext = fileName.toLowerCase().split('.').pop() ?? '';
+  return (EXTENSIONES_CON_TABLAS as readonly string[]).includes(ext);
+}
+
 export async function extractSegments(
   buffer: Buffer,
   filename: string

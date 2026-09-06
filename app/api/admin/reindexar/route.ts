@@ -112,6 +112,7 @@ export async function POST(req: NextRequest) {
         source: doc.source,
         providerFileId: doc.provider_file_id,
       },
+      nombre: doc.name,
       tieneChunksTabulares: chunksActuales.some(c => c.chunkType !== 'text'),
       hayStagedVivo: staged !== null,
       fullText: doc.full_text,
