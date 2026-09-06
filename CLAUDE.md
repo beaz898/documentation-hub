@@ -330,6 +330,17 @@ El dueño del proyecto NO es programador. Vercel deploya automáticamente al hac
   y limpiado huérfanos reales—; el cero de «esa pareja no tiene clave» no lo
   tenía, y **el mismo camino, ciego, habría dado el mismo cero.** Promovida en
   F-103 P2.
+  ⚠️ **Y NO ES SOLO EL CERO: es cualquier cifra que se lea como medida.** El caso,
+  del 06/09 y a un día de promover la regla: una consulta titulada «cota inferior
+  de documentos cortados por longitud» devolvió **5**, y lo que contaba eran
+  documentos con VARIAS LÍNEAS SUELTAS — porque `chunkSegments` trocea por
+  SEGMENTO y no por documento, así que «más de un trozo» no implica «hubo un
+  reparto». Sin denominador y sin control, **un artefacto pasó por dato durante
+  media hora y por delante de dos personas**; lo destapó que los cinco nombres
+  fueran todos `.xlsx`, que es una forma de control positivo que llegó por suerte.
+  **El nombre de la columna no es el criterio.** El criterio es el que se puede
+  escribir en una frase y falsar con un caso — y si no se ha falsado nunca, la
+  cifra no es una medición: es una etiqueta.
 - **EL CRITERIO DE CIERRE NO ES LA AUSENCIA DE HALLAZGOS: ES LA COBERTURA DE LA
   BÚSQUEDA.** Se cierra cuando se ha buscado donde el usuario va a ir, no cuando
   se deja de encontrar. «No aparecen más» y «no hemos mirado donde están» se

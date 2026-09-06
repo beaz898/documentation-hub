@@ -169,6 +169,30 @@ ORDER BY 3 DESC;
   separar: al quitar el encabezado repetido, lo que queda del cuerpo sí solapa.
 - **No depende del tipo**: si algún día una fila de más de 1500 se parte, sale.
 
+## ⚠️ EL CONTROL POSITIVO, con nombre y predicción escrita
+
+Por la regla de F-103 este instrumento **no vale hasta que produzca un no-cero**
+donde tiene que producirlo. El control no es genérico: son dos documentos del
+corpus, y la predicción se escribe ANTES de ejecutar.
+
+**`NOR-10_protocolo-esterilizacion-instrumental.docx` y
+`CLI-12_manual-calidad-clinica.docx`** — `.docx` de **~60.000 y ~51.000
+caracteres**, 18 y 17 páginas (`claude/Casos_Harness.md:117`).
+
+**PREDICCIÓN: los dos tienen que salir, y con un número alto.** El razonamiento
+es de aritmética, no de fe: 60.000 caracteres no se convierten en trozos de
+`MAX_CHUNK_SIZE` (1500) sin que `splitByLength` intervenga, salvo que el
+documento tuviera cuarenta y tantas secciones **todas** por debajo de 1500. Da
+igual por qué rama vayan —caso 4 o `subdivideSection`—: las dos solapan.
+
+**QUÉ SIGNIFICA CADA RESULTADO, decidido antes de mirar:**
+· **Salen los dos** → el detector funciona, y el cero de los demás **sí confirma**.
+· **No sale ninguno** → ⚠️ **el instrumento está roto, no el corpus está limpio.**
+  Es el fallo que la regla del cero existe para impedir, y sería el tercero de
+  la semana. En ese caso no se concluye nada del resto de la tabla.
+· **Sale uno solo** → hay algo que entender antes de seguir: o el otro no está
+  indexado en esa organización, o su troceado fue distinto y hay que ver por qué.
+
 ⚠️ **Y su límite, declarado**: si el resultado es CERO, ese cero **solo confirma si
 el mismo camino ha dado un no-cero en algún sitio** — control positivo. Si sale
 cero en todo el corpus, no se puede concluir «no hay daño» sin comprobar antes que
