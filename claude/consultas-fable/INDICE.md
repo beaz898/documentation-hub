@@ -134,6 +134,7 @@ queda superado, pero **no administra su propio estado**.
 | **[F-91](F-91.md)** | 30/08/2026 | «Todas las columnas comunes» admitía dos lecturas, y la mala descartaba hallazgos VERDADEROS: la geometría no se contamina con testimonio. Y la clase de contadores CENTINELA | **vigente** · PAR COMPLETO | La clase CENTINELA — `Contrato_Contadores.md`; la hermana de F-79 (una regla con dos lecturas se ejerce contra un caso medido) — protocolo |
 | **[F-92](F-92.md)** | 31/08/2026 | La supresión suprime por FILA y el diff compara por COLUMNA: el hueco es el territorio de las omisiones —y del mismo dato bajo otro nombre—. Y por qué la cifra de coste no se podía medir | **vigente** · *su P1 CORREGIDO por F-93 en universo y predicado* · PAR COMPLETO | MOTIVO LITERAL — `Contrato_Contadores.md`. TRES PIEZAS POR REGLA DICTADA, «CERO EN N» con la tasa que excluye, y la AMBIGÜEDAD DE ALCANCE DEL CUANTIFICADOR — protocolo |
 | **[F-93](F-93.md)** | 31/08/2026 | `columnas(h)` no tenía universo y las dos lecturas naturales fallan cada una uno de los tres casos: el dato es LA OPOSICIÓN, no la cita. Y la trampa de `'equivalentes'` | **vigente** · PAR COMPLETO | LA CUARTA PIEZA (vacío y ausente; forma existencial) — protocolo. Un comentario que justifica un orden CITA SU INVARIANTE — `CLAUDE.md` |
+| **[F-105](F-105.md)** | 06/09/2026 | La reparacion tenia un SOTANO: los segmentos. Reparar lee de casa, sincronizar habla con el proveedor. Dos fases para el borrado automatico y lapida para la papelera. | **vigente** · PAR COMPLETO + ADENDA | DERIVA DE CONTRATO · secuencia de 6 pasos · coste medido 1,27x |
 | **[F-104](F-104.md)** | 06/09/2026 | El cortador ensucia lo GUARDADO, no un análisis. Una tabla en PDF debe llegar a ser tabla. El plan no cambia de contenido: cambia de contrato — no eran dos semanas de medir, eran dos de descubrir. | **vigente** · PAR COMPLETO | REPARACIÓN ANTES DEL CAMBIO, EL ALMACÉN PRIMERO, FIRMA ≠ VERSIÓN y LA PRIMERA PRUEBA DESCUBRE — `CLAUDE.md` |
 | **[F-103](F-103.md)** | 04/09/2026 | La curva no es descendente: es descendente en los caminos MEDIDOS y desconocida en los no medidos. Un cero solo confirma con control positivo o visión declarada. El modo Mejora, en cuarentena. | **vigente** · PAR COMPLETO | UN CERO SE GANA, EL CIERRE ES COBERTURA y LA CURVA DESCRIBE DÓNDE SE MIRÓ — `CLAUDE.md` |
 | **[F-102](F-102.md)** | 03/09/2026 | Un documento se comparaba con su propia versión reemplazada. El fallo no está en el portero, está en el PADRÓN. Y el sello de estructura no mentía sobre la verificación: mentía sobre la CUSTODIA. | **vigente** · PAR COMPLETO | LO QUE NO DEBE SER CANDIDATO NO SE EXCLUYE, UN CONTADOR CUENTA LO QUE SE DECLARA y LA CIFRA ES LA QUE SE GUARDA — `CLAUDE.md` |
@@ -152,6 +153,22 @@ queda superado, pero **no administra su propio estado**.
 
 **Once pares completos de F-70 a F-94: F-84 a F-94, todas menos las que no llegaron.** El resto, o a medias o nada:
 
+- **F-105 — PAR COMPLETO + ADENDA**, en  (06/09/2026). **LA REPARACION
+  TENIA UN PISO MAS ABAJO**: sin segmentos persistidos era una via solo-prosa, y
+  el cortador que se iba a arreglar es justo el que rompe tablas.
+  ⚠️ **EL NOMBRE QUE FABLE PONE Y QUE VA A VOLVER: DERIVA DE CONTRATO** — «una
+  pieza correcta para la pregunta con la que se escribio, respondiendo otra
+  cuando el contexto cambio». Y su lectura: **«no es una tasa de bugs: es la
+  arqueologia de un sistema que crecio mas rapido que sus contratos.»**
+  ⚠️ **P3, firmado**: P1(a) separa reparar de sincronizar POR CONSTRUCCION —
+  «la operacion que sincroniza en silencio deja de poder escribirse, no porque
+  un  lo impida, sino porque reparar ya no tiene de donde sacar contenido
+  nuevo».
+  ⚠️ **P4**: dos fases para el borrado automatico —«todo lo irreversible exige
+  dos miradas separadas en el tiempo»— y LAPIDA para la papelera: no el analisis
+  entero, **el certificado**.
+  ✅ **ENCARGO 1 MEDIDO**: ratio global **1,27x**, peor caso **2,68x**. Bimodal —
+  todo el coste esta en los tabulares, que son para los que sirve.
 - **F-104 — PAR COMPLETO**, en `F-104.md` (06/09/2026). **NACE DE LA PIEZA 1 DEL
   PLAN DE F-103 Y LA PONE A PRUEBA A LAS DOS HORAS**: el primer test de una pieza
   no medida se escribió para congelar el comportamiento y **documentó un fallo**.
