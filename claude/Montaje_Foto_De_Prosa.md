@@ -92,6 +92,29 @@ en rápido contra 15, y la decisión es tuya.
 
 ---
 
+# 3-bis · ⚠️ EL MONTAJE SE HA ENCARECIDO — TRES DOCUMENTOS NUEVOS EN «ANALIZADO»
+
+**07/09.** Entraron por OneDrive cuatro documentos y **tres quedaron en
+**: CLI-12, NOR-10 y RRHH-06. Eso los mete en el corpus **por
+PERTENENCIA**, así que participan en toda recuperación **sin que nadie los
+seleccione**.
+
+⚠️ **Y son homónimos de tres de los seis de la foto.** Con ellos dentro, una pasada
+que seleccione NOR-10 (manual) tendría a NOR-10 (OneDrive) de candidato por
+pertenencia: mismo contenido, otro documento. **Las cifras no serían comparables
+con nada.**
+
+⚠️ **Y no hay vuelta atrás desde **: el único escritor de 
+es la rama de *sobrescribir* del sync, que solo corre cuando el documento **no**
+está en . Un documento de Drive ya analizado que cambia va a *staged*,
+no a .
+
+**Antes de la foto hay que decidir qué se hace con esos tres**, y las salidas son
+borrarlos o aceptar que la foto se toma con ellos dentro —lo segundo solo si se
+declara, porque cambia el denominador de todas las pasadas—.
+
+---
+
 # 4 · LA PASADA, paso a paso (montaje (i), modo rápido)
 
 ```
