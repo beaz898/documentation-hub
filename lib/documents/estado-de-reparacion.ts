@@ -19,11 +19,22 @@ import { esOrigenSincronizado } from './origen';
  * consecuencia de cómo entra el documento, y lo que el sistema tiene que hacer es
  * DECIRLO en vez de ofrecer un botón que no funcione.
  *
- * ⚠️ EL DEFECTO ES `reparable_resubiendo`, y falla hacia el humano. Solo se
- * promete la vía automática cuando se puede demostrar: origen sincronizado Y un
- * identificador con el que volver a pedir el fichero. Cualquier duda cae en el
- * humano, que es el fallo seguro — prometer una reparación automática que luego
- * no existe es peor que pedir una resubida.
+ * ⚠️ EL DEFECTO ES `reparable_resubiendo`, y falla hacia el humano. Cualquier
+ * duda cae en el humano, que es el fallo seguro — prometer una reparación
+ * automática que luego no existe es peor que pedir una resubida.
+ *
+ * ⚠️⚠️ LA CONDICIÓN ES TENER EL FICHERO, NO EL ORIGEN. Es la distinción que
+ * ordena este módulo, y conviene no perderla: lo que decide si una reparación
+ * puede ser automática **no es de dónde vino el documento — es si el sistema
+ * puede volver a poner las manos sobre el original**. Que hoy la respuesta
+ * coincida con «viene de la nube» es una CONSECUENCIA de cómo entra cada cosa
+ * (`ingest` borra el fichero al terminar; un proveedor externo lo sigue
+ * teniendo), no el criterio.
+ * La diferencia se nota el día que cambie: si mañana una subida manual
+ * conservara su binario, **la única línea que hay que tocar es
+ * `sePuedeRecuperarElOriginal`** — ni un estado, ni un contador, ni la vista.
+ * Y al revés: un proveedor que dejara de permitir descargas no se arregla
+ * quitándolo de la lista de orígenes, porque la lista nunca fue el criterio.
  *
  * ⚠️ Y «DE LA NUBE» NO SE DECIDE AQUÍ: se le pregunta a `esOrigenSincronizado`
  * (B.162), que es donde ese criterio vive. Aquel módulo nació porque la misma
@@ -83,20 +94,44 @@ export function estadoDeReparacion(
     return { estado: 'al_dia' };
   }
 
-  // A partir de aquí el documento está atrasado: solo falta por dónde se repara.
+  // A partir de aquí el documento está atrasado: solo falta por dónde se repara,
+  // y eso lo decide UNA pregunta — ¿se puede recuperar el original?
   // `null` cae aquí a propósito — es una fila anterior a la columna, o sea de las
   // más viejas del parque, y darla por al día haría mentir al lector justo sobre
   // los documentos que más lo necesitan.
-  if (!esOrigenSincronizado(fila.source)) {
-    return { estado: 'reparable_resubiendo' };
-  }
+  const recuperable = sePuedeRecuperarElOriginal(fila);
+  if (recuperable.si) return { estado: 'reparable_automaticamente' };
+
+  return recuperable.anomalia
+    ? { estado: 'reparable_resubiendo', anomalia: recuperable.anomalia }
+    : { estado: 'reparable_resubiendo' };
+}
+
+/**
+ * ¿PUEDE EL SISTEMA VOLVER A PONER LAS MANOS SOBRE EL ORIGINAL?
+ *
+ * **Ésta es la pregunta que decide el estado**, y está aparte para que se vea que
+ * es una y no dos. Hoy se contesta mirando el origen y el identificador del
+ * proveedor, pero eso es la RESPUESTA DE HOY, no la pregunta:
+ *
+ *   · un manual no lo conserva — `ingest:395` borra el fichero de Storage al
+ *     terminar, y la fila de `documents` no guarda `storage_path`;
+ *   · un documento de un proveedor externo sí, porque su fuente de verdad vive
+ *     fuera y se puede volver a pedir con `provider_file_id`.
+ *
+ * El día que eso cambie —guardar el binario de las subidas manuales, o un
+ * proveedor que deje de servir descargas— **se cambia aquí y en ningún otro
+ * sitio**.
+ */
+function sePuedeRecuperarElOriginal(
+  fila: FilaParaSello,
+): { si: boolean; anomalia?: AnomaliaDeSello } {
+  if (!esOrigenSincronizado(fila.source)) return { si: false };
 
   const id = typeof fila.providerFileId === 'string' ? fila.providerFileId.trim() : '';
-  if (id.length === 0) {
-    return { estado: 'reparable_resubiendo', anomalia: 'sincronizado_sin_id' };
-  }
+  if (id.length === 0) return { si: false, anomalia: 'sincronizado_sin_id' };
 
-  return { estado: 'reparable_automaticamente' };
+  return { si: true };
 }
 
 /**
