@@ -7186,6 +7186,61 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     3. ¿Y qué pasa con los cuatro? No se pueden devolver. Cualquier medición
        futura los tiene dentro, o se borran.
 
+  B.193 — [ABIERTO 07/09 · ⚠️ UN CASO QUE FALLA UNA VEZ DE CADA CUATRO] LA BATERÍA
+    TIENE CASOS SIN LÍMITE DE TIEMPO ESCRITO QUE HACEN EXTRACCIÓN REAL
+
+    ══ EL DATO ══
+    Una ejecución de la batería completa dio **1 fallo de 589**; las **tres
+    siguientes, 589 en verde**. La corrida que falló tardó **41 s contra los 21 s
+    habituales** — el doble, con un `tsc` corriendo al lado.
+    ⚠️ **El nombre del caso que falló NO se capturó**, y eso es parte del problema:
+    cuando se detectó, ya no se reproducía.
+
+    ══ LA HIPÓTESIS, con su evidencia y su descarte ══
+    **SOSPECHOSO PRINCIPAL: `lib/formatos-con-tablas.test.ts:38`.**
+      · Es un `it.each` sobre los **16 ficheros reales** de `corpus-pruebas/`.
+      · Cada caso hace **extracción de verdad**: PDF por `pdf-parse`, `.docx` por
+        `mammoth`, Excel por SheetJS.
+      · **Y NO TIENE LÍMITE DE TIEMPO ESCRITO**, así que cada uno corre con el
+        defecto de vitest: **5 s**. Un `.docx` de 60.000 caracteres bajo carga
+        puede pasarse.
+
+    **DESCARTADO: `lib/chunking-tamano-segmentos.test.ts:50`**, que era el
+    sospechoso obvio por ser el más pesado. **Lleva `{ timeout: 60_000 }`
+    explícito** desde ayer, y la corrida entera duró 41 s: no le dio tiempo a
+    agotarlo.
+
+    ⚠️ **NO ESTÁ DEMOSTRADO.** Es la explicación que encaja con lo observado —caso
+    lento, sin presupuesto, fallo bajo carga— pero **no se ha reproducido**, y por
+    la regla del cero eso la deja en hipótesis con evidencia, no en causa medida.
+
+    ══ POR QUÉ IMPORTA MÁS QUE UN FALLO NORMAL ══
+    **Un caso que falla una vez de cada cuatro es peor que uno que falla
+    siempre.** El que falla siempre se arregla; éste **envenena la lectura de
+    todo lo demás**: el día que salga rojo durante una tanda real, nadie va a
+    saber si es el código, la tanda o esto. Y la duda cuesta más que el fallo.
+
+    ══ Y LO QUE DESTAPA, que es más grande que el caso ══
+    La batería tiene **dos casos que hacen trabajo pesado de verdad** —extracción
+    de ficheros— y **solo uno tiene presupuesto escrito**. El otro lo heredó por
+    descuido, no por decisión. Es la misma forma que la regla del presupuesto de
+    tiempo que ya está en `CLAUDE.md`: *antes de meter esperas en un sitio,
+    preguntar cuánto tiempo tengo aquí* — aplicada a la batería en vez de a un
+    endpoint.
+
+    ══ LAS SALIDAS, sin elegir ══
+    1. **Darle presupuesto explícito** al `it.each`, como ya lo tiene la medición.
+       Una línea, y deja el caso haciendo lo que hace bien: atar la lista a la
+       conducta con ficheros reales.
+    2. **Sacar la extracción del caso**: precalcular qué produce cada fichero y
+       comparar contra eso. Más rápido y más frágil — un fixture congelado deja de
+       vigilar el extractor, que es justo para lo que el caso existe.
+    3. **Que la medición de tamaño no viva en la batería.** Es la que sugirió el
+       usuario, y para ESA sí tiene sentido —es una medición, no una prueba— pero
+       no resuelve ésta: la que falla es la otra.
+    ⚠️ La 1 y la 3 no se estorban: se pueden hacer las dos, y arreglan cosas
+    distintas.
+
 Forma de trabajo: diagnóstico con datos reales antes de arreglar; un
 cambio lógico cada vez; build verde entre medias; SQL en Supabase antes
 del push; plan completo antes de tocar varios archivos.
