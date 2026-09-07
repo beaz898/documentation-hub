@@ -8,6 +8,12 @@ nuevo cambiarían a la vez, y el aislamiento se pierde.
 
 # 0 · ⚠️ LA PROPIEDAD QUE HACE QUE ESTA PRUEBA VALGA: HOY ES UN NO-OP CONTROLADO
 
+> ⚠️⚠️ **CADUCADO EL 07/09/2026, y se deja escrito en vez de borrarlo.** Esta
+> sección describe la ventana en la que reparar no cambiaba nada — el cortador
+> todavía no había cambiado. `fd30fc2f` la cerró. **Lo que hay que exigirle hoy
+> a una reparación está en la §8**, y el criterio de aquí, aplicado tal cual,
+> daría «reparación rota» ante el cortador funcionando.
+
 **El cortador todavía no ha cambiado**, así que re-trocear un documento con el
 mismo cortador produce **exactamente los mismos trozos**. Eso no resta valor a la
 prueba: **es lo que la hace buena.**
@@ -128,9 +134,9 @@ Se repiten (a), (b), (c) y (d) con la **generación nueva**.
 | qué | antes | esperado | si difiere |
 |---|---|---|---|
 | `active_generation` | N | **N+1** | la conmutación no llegó a la pata 2 |
-| `chunk_count` y (b) | C | **C, igual** | ⚠️ **HALLAZGO**: el cortador no ha cambiado, no debería repartir distinto |
-| las huellas de (c) | lista | **idénticas, en el mismo orden** | ⚠️ **HALLAZGO**, y el más importante de la prueba |
-| `extractor_version` | NULL o 1 | **2** (la vigente) | el sello no se escribió: mira el caso que lo vigila |
+| `chunk_count` y (b) | C | **C, igual** | ⚠️ **HALLAZGO**. Sigue valiendo DESPUÉS del cortador: la foto congelada dice que el número de piezas no cambió en ninguna de las cinco entradas |
+| las huellas de (c) | lista | ⚠️ **YA NO son idénticas — ver §8** | invertido el 07/09/2026: con el cortador nuevo, la huella del trozo 1 se conserva y las siguientes SE MUEVEN. Que no se muevan es el hallazgo ahora |
+| `extractor_version` | NULL, 1 o 2 | **3** (la vigente desde `d8b06d1b`) | el sello no se escribió: mira el caso que lo vigila |
 | **`analysis_status`** | X | **X, IGUAL** | ⚠️ **HALLAZGO GRAVE** — es B.185: reparar no puede meter un documento en el corpus |
 | **`reviewed_at` / `by`** | Y | **Y, IGUALES** | ⚠️ **HALLAZGO GRAVE** — reparar no puede devolver a la bandeja lo ya revisado |
 | `document_staged` (d) | 0 | **0** | la pata 4 no corrió: el swap quedó a medias, se puede reinvocar |
@@ -222,3 +228,72 @@ where org_id = '<TU_ORG>'
   segmentos. No hay control positivo hoy, y B.195 pasa de apunte a bloqueo.
 · `tiene_segmentos` falso → no es candidato de control: su reparación sería
   solo-prosa y no probaría lo que se quiere probar.
+
+---
+
+# 8 · ⚠️ EL CONTROL POSITIVO DESPUÉS DEL CORTADOR — la ventana de no-op está cerrada
+
+**07/09/2026, escrito ANTES de disparar.** Esta sección corrige el criterio de
+las §0 y §5, y la corrección no es un matiz: **es lo que separa un hallazgo de
+una falsa alarma.**
+
+## 8.1 · Lo que ya no se puede pedir
+
+El criterio original decía: *«new 9.txt es prosa corta, dos trozos, y el cortador
+nuevo no debería cambiar su troceado. Si al repararlo el resultado difiere, la
+reparación está rota.»*
+
+**Era cierto hasta `fd30fc2f` y hoy ya no lo es.** Ese criterio nació en la
+ventana en la que reparar era un **no-op** —mismo cortador, mismos trozos—, y esa
+ventana se cerró con el arreglo de B.182. Un documento de **dos** trozos entra en
+el bucle de `splitByLength`, y el bucle es exactamente lo que cambió: **el
+segundo trozo ya no empieza donde empezaba.**
+
+Aplicado tal cual, el criterio daría **«reparación rota» ante el cortador
+funcionando**. Es la forma clásica de un control que se quedó viejo: sigue
+midiendo, pero ya no mide lo que dice.
+
+## 8.2 · El criterio corregido, con las tres cosas separadas
+
+Un documento de **dos trozos** ya no es un control de identidad byte a byte: es
+un control del CORTADOR, que es más informativo y tiene tres afirmaciones
+distintas.
+
+| # | qué | esperado | si no |
+|---|---|---|---|
+| **P1** | `trozos.antes` / `trozos.ahora` | **2 → 2** | ⚠️ HALLAZGO. La foto congelada dice que el número de piezas no cambia en ninguna entrada: si aquí cambia, el cortador hace en producción algo que la batería no ve |
+| **P2** | huella del trozo **0** | **IDÉNTICA** | ⚠️ HALLAZGO, y el peor de los tres. El arreglo movió **dónde empieza el siguiente**, no dónde ACABA éste. Si el primero se mueve, el cambio llegó más lejos de lo que declaraba |
+| **P3** | huella del trozo **1** | **DISTINTA**, y su texto empieza en una frontera —tras `\n\n`, tras `. ` o tras `\n`— | ⚠️ HALLAZGO **al revés**: el cortador nuevo no llegó a producción. Verde donde se esperaba rojo es el que se descubre tarde |
+
+**La única excepción de P3, y va escrita para que no sirva de excusa después:**
+si en los ~200 caracteres anteriores al corte no hay **ni `\n\n`, ni `. `, ni
+`\n`**, no hay a dónde saltar y el trozo 1 sale idéntico — es el caso
+`sin fronteras` de la foto congelada. **En prosa castellana con puntos eso no
+pasa**, así que P3 idéntico se investiga; no se acepta como «bueno, puede ser».
+
+## 8.3 · ⚠️ LA FOTO DE ANTES HAY QUE TOMARLA ANTES, Y AHORA ES OBLIGATORIA
+
+`swapDocumentVectors` **borra los trozos de la generación vieja**
+(`deleteDocumentChunksBelowGeneration`, `document-swap.ts:144`) y sus vectores.
+Cuando la respuesta llegue, **la línea de base ya no existe**: P2 y P3 son
+incomparables y la prueba se ha perdido, no fallado.
+
+En la ventana de no-op esto era recuperable —el resultado tenía que ser idéntico,
+así que la foto de después servía de foto de antes—. **Ya no.** Ejecutar (c) de
+la §3 y guardar la salida deja de ser buena costumbre y pasa a ser un paso.
+
+## 8.4 · Y qué pasa con los quince
+
+**Siguen dando 501**, y el salto a 3 no lo ha cambiado: antes respondían `409
+al_dia` y ahora `501 reprocesar_no_implementado`. Han pasado de «no hay nada que
+reparar» a «hay que repararlos y esta vía no puede», que es peor de leer y mejor
+de saber.
+
+⚠️ **No hay una «vía barata» para ellos hoy**, ni la habrá por tener segmentos:
+es B.195 (§7) — el plan pregunta por el ORIGEN antes que por la estructura, y un
+documento de la nube se va a `reprocesar` aunque `retrocear` lo repararía.
+
+**La propiedad enriquecedora sigue viva, pero para los MANUALES**: un manual sin
+segmentos sale de esta pasada con ellos, y desde entonces se repara desde casa
+sin depender del proveedor. Es la vía por la que `new 9.txt` puede entrar **si es
+manual** — y eso es lo que decide la consulta de §7, que sigue sin ejecutarse.
