@@ -6,6 +6,7 @@ import { checkUploadLock } from '@/lib/upload-lock';
 import { EXTRACTOR_VERSION } from '@/lib/chunking';
 import { estadoDeReparacion } from '@/lib/documents/estado-de-reparacion';
 import { repararDocumento } from '@/lib/documents/reparar';
+import { tieneSegmentosPersistidos } from '@/lib/documents/lectura-dual';
 import {
   LIMITE_POR_LLAMADA, PRESUPUESTO_PARA_EMPEZAR_MS, EXAMINADOS_MAXIMO,
   decidirContinuacion, cuboDe, gastaPlaza, motivoDeBloqueo, restantesDelLote,
@@ -87,7 +88,9 @@ export async function POST(req: NextRequest) {
   // `estadoDeReparacion` y este fichero no va a ser el segundo sitio que lo sepa.
   const { data, error, count } = await supabase
     .from('documents')
-    .select('id, name, source, provider_file_id, extractor_version', { count: 'exact' })
+    // `segments` viaja porque desde B.195 decide la vía. Ver la nota de coste en
+    // `estado-del-corpus`, que hace esta misma lectura.
+    .select('id, name, source, provider_file_id, extractor_version, segments', { count: 'exact' })
     .eq('org_id', org.orgId)
     .order('name')
     .range(0, MAX_FILAS - 1);
@@ -102,6 +105,7 @@ export async function POST(req: NextRequest) {
     extractorVersion: d.extractor_version,
     source: d.source,
     providerFileId: d.provider_file_id,
+    tieneSegmentos: tieneSegmentosPersistidos(d),
   }, EXTRACTOR_VERSION).estado !== 'al_dia');
 
   // ── el bucle ──────────────────────────────────────────────────────────────

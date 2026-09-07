@@ -15,12 +15,15 @@ import type { EntradaDelPlan } from './plan-de-reindexado';
 
 const VIGENTE = 3;
 
+function sello(tieneSegmentos: boolean) {
+  return { extractorVersion: 2, source: 'manual', providerFileId: null, tieneSegmentos };
+}
+
 function entrada(over: Partial<EntradaDelPlan> = {}): EntradaDelPlan {
   return {
-    fila: { extractorVersion: 2, source: 'manual', providerFileId: null },
+    fila: { extractorVersion: 2, source: 'manual', providerFileId: null, tieneSegmentos: false },
     nombre: 'manual-de-calidad.docx',
     tieneChunksTabulares: false,
-    tieneSegmentos: false,
     hayStagedVivo: false,
     fullText: 'x'.repeat(200),
     ...over,
@@ -29,7 +32,7 @@ function entrada(over: Partial<EntradaDelPlan> = {}): EntradaDelPlan {
 
 describe('planDeReindexado — los rechazos', () => {
   it('lo que está al día no se toca', () => {
-    expect(planDeReindexado(entrada({ fila: { extractorVersion: VIGENTE, source: 'manual', providerFileId: null } }), VIGENTE))
+    expect(planDeReindexado(entrada({ fila: { extractorVersion: VIGENTE, source: 'manual', providerFileId: null, tieneSegmentos: false } }), VIGENTE))
       .toEqual({ via: 'rechazado', motivo: 'al_dia' });
   });
 
@@ -39,7 +42,7 @@ describe('planDeReindexado — los rechazos', () => {
     expect(
       planDeReindexado(
         entrada({
-          fila: { extractorVersion: VIGENTE, source: 'manual', providerFileId: null },
+          fila: { extractorVersion: VIGENTE, source: 'manual', providerFileId: null, tieneSegmentos: false },
           hayStagedVivo: true,
         }),
         VIGENTE,
@@ -69,7 +72,7 @@ describe('planDeReindexado — las dos vías', () => {
   it('con original recuperable se reprocesa desde el fichero', () => {
     expect(
       planDeReindexado(
-        entrada({ fila: { extractorVersion: 2, source: 'google_drive', providerFileId: 'abc' } }),
+        entrada({ fila: { extractorVersion: 2, source: 'google_drive', providerFileId: 'abc', tieneSegmentos: false } }),
         VIGENTE,
       ),
     ).toEqual({ via: 'reprocesar' });
@@ -79,7 +82,7 @@ describe('planDeReindexado — las dos vías', () => {
     expect(
       planDeReindexado(
         entrada({
-          fila: { extractorVersion: 2, source: 'google_drive', providerFileId: 'abc' },
+          fila: { extractorVersion: 2, source: 'google_drive', providerFileId: 'abc', tieneSegmentos: false },
           tieneChunksTabulares: true,
         }),
         VIGENTE,
@@ -141,7 +144,7 @@ describe('⚠️ B.191 — la guarda pregunta por TABLAS, no por trozos tabulare
   });
 
   it('puedePerderEstructura: basta con que UNA de las dos fuentes diga que sí', () => {
-    const sinSeg = { tieneSegmentos: false };
+    const sinSeg = { fila: sello(false) };
     expect(puedePerderEstructura({ nombre: 'a.docx', tieneChunksTabulares: false, ...sinSeg })).toBe(false);
     expect(puedePerderEstructura({ nombre: 'a.docx', tieneChunksTabulares: true, ...sinSeg })).toBe(true);
     expect(puedePerderEstructura({ nombre: 'a.xlsx', tieneChunksTabulares: false, ...sinSeg })).toBe(true);
@@ -170,7 +173,7 @@ describe('⚠️ F-105 — la reparación que enriquece: la guarda se relaja SOL
   it('CON segmentos, un .xlsx con trozos tabulares se repara', () => {
     expect(
       planDeReindexado(
-        entrada({ nombre: 'tarifas.xlsx', tieneChunksTabulares: true, tieneSegmentos: true }),
+        entrada({ nombre: 'tarifas.xlsx', tieneChunksTabulares: true, fila: { extractorVersion: 2, source: 'manual', providerFileId: null, tieneSegmentos: true } }),
         VIGENTE,
       ),
     ).toEqual({ via: 'retrocear' });
@@ -184,14 +187,14 @@ describe('⚠️ F-105 — la reparación que enriquece: la guarda se relaja SOL
   it('SIN segmentos y con tablas se RECHAZA — por nombre y por trozos', () => {
     expect(
       planDeReindexado(
-        entrada({ nombre: 'tarifas.xlsx', tieneChunksTabulares: false, tieneSegmentos: false }),
+        entrada({ nombre: 'tarifas.xlsx', tieneChunksTabulares: false }),
         VIGENTE,
       ),
     ).toEqual({ via: 'rechazado', motivo: 'sin_original_con_tablas' });
 
     expect(
       planDeReindexado(
-        entrada({ nombre: 'informe.pdf', tieneChunksTabulares: true, tieneSegmentos: false }),
+        entrada({ nombre: 'informe.pdf', tieneChunksTabulares: true }),
         VIGENTE,
       ),
     ).toEqual({ via: 'rechazado', motivo: 'sin_original_con_tablas' });
@@ -204,19 +207,19 @@ describe('⚠️ F-105 — la reparación que enriquece: la guarda se relaja SOL
    */
   it('la relajación no la activa nada que no sean los segmentos', () => {
     const conTablas = { nombre: 'tarifas.xlsx', tieneChunksTabulares: true };
-    expect(puedePerderEstructura({ ...conTablas, tieneSegmentos: false })).toBe(true);
-    expect(puedePerderEstructura({ ...conTablas, tieneSegmentos: true })).toBe(false);
+    expect(puedePerderEstructura({ ...conTablas, fila: sello(false) })).toBe(true);
+    expect(puedePerderEstructura({ ...conTablas, fila: sello(true) })).toBe(false);
 
     // Y sin tablas por ninguna vía, da igual el valor: no hay nada que perder.
     const sinTablas = { nombre: 'protocolo.docx', tieneChunksTabulares: false };
-    expect(puedePerderEstructura({ ...sinTablas, tieneSegmentos: false })).toBe(false);
-    expect(puedePerderEstructura({ ...sinTablas, tieneSegmentos: true })).toBe(false);
+    expect(puedePerderEstructura({ ...sinTablas, fila: sello(false) })).toBe(false);
+    expect(puedePerderEstructura({ ...sinTablas, fila: sello(true) })).toBe(false);
   });
 
   it('los cinco de B.190 —prosa sin segmentos y sin trozos— siguen reparándose', () => {
     expect(
       planDeReindexado(
-        entrada({ nombre: 'Pauta 5-6-25.pdf', tieneChunksTabulares: false, tieneSegmentos: false }),
+        entrada({ nombre: 'Pauta 5-6-25.pdf', tieneChunksTabulares: false }),
         VIGENTE,
       ),
     ).toEqual({ via: 'retrocear' });

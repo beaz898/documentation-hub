@@ -1,4 +1,5 @@
 import { esOrigenSincronizado } from './origen';
+import { soloCambioElTroceado } from '@/lib/chunking';
 
 /**
  * EL LECTOR DEL SELLO — en qué estado de reparación está un documento (F-104 P3).
@@ -61,12 +62,26 @@ export type AnomaliaDeSello =
   | 'version_futura'
   /** Origen sincronizado sin identificador del proveedor: no se puede volver a
    *  pedir el fichero, así que cae en el humano aunque «sea de la nube». */
-  | 'sincronizado_sin_id';
+  | 'sincronizado_sin_id'
+  /** ⚠️ DEUDA NUESTRA, NO DEL USUARIO (B.195): este documento se repararía solo
+   *  volviendo a por el original, y esa vía NO ESTÁ CONSTRUIDA. Hoy son quince, y
+   *  el lector no puede callarlo: durante una semana los dio por «reparables
+   *  automáticamente» y el escritor respondía 501. */
+  | 'via_no_construida';
 
 export interface FilaParaSello {
   extractorVersion: number | null | undefined;
   source: string | null | undefined;
   providerFileId: string | null | undefined;
+  /**
+   * ¿Tiene sus segmentos persistidos? Lo contesta `tieneSegmentosPersistidos` y
+   * NADIE MÁS.
+   *
+   * ⚠️ VIVE AQUÍ Y NO EN `EntradaDelPlan` desde B.195, y el motivo es que ahora
+   * DECIDE LA VÍA: tenerlo en dos sitios sería tener dos respuestas a la misma
+   * pregunta, y el día que se separaran las dos seguirían pareciendo correctas.
+   */
+  tieneSegmentos: boolean;
 }
 
 export interface EstadoConAnomalia {
@@ -75,11 +90,10 @@ export interface EstadoConAnomalia {
 }
 
 /**
- * ⚠️ LO QUE ESTE ESTADO **NO** PROMETE, y conviene que esté aquí y no en un
- * documento aparte: `reparable_automaticamente` describe **la VÍA, no una
- * garantía**. La descarga puede fallar igual —la conexión con el proveedor
- * caducó, el fichero se borró en origen—. El estado dice por dónde se intentaría
- * la reparación, no que vaya a salir bien.
+ * ⚠️ LO QUE ESTE ESTADO **NO** PROMETE: `reparable_automaticamente` describe **la
+ * VÍA, no una garantía**. Un re-troceado puede fallar igual —Pinecone caído, la
+ * conmutación a medias—. El estado dice que existe un camino construido, no que
+ * vaya a salir bien.
  */
 export function estadoDeReparacion(
   fila: FilaParaSello,
@@ -94,13 +108,37 @@ export function estadoDeReparacion(
     return { estado: 'al_dia' };
   }
 
-  // A partir de aquí el documento está atrasado: solo falta por dónde se repara,
-  // y eso lo decide UNA pregunta — ¿se puede recuperar el original?
-  // `null` cae aquí a propósito — es una fila anterior a la columna, o sea de las
-  // más viejas del parque, y darla por al día haría mentir al lector justo sobre
-  // los documentos que más lo necesitan.
+  // ⚠️ A PARTIR DE AQUÍ EL DOCUMENTO ESTÁ ATRASADO, Y LA PREGUNTA QUE DECIDE LA
+  // VÍA CAMBIÓ EL 07/09 (B.195). Antes era «¿se puede recuperar el original?», y
+  // eso mandaba a `reprocesar` —que no está construido— a QUINCE documentos que
+  // el botón podía reparar. La pregunta correcta es:
+  //
+  //     ¿TENGO LO QUE HACE FALTA PARA REPARARLO SIN EL ORIGINAL?
+  //
+  // Y son dos cosas, las dos necesarias: los SEGMENTOS guardados —de ellos salen
+  // las celdas otra vez— y que lo cambiado desde su sello sea SOLO TROCEADO, que
+  // es lo único que un re-troceado arregla.
+  //
+  // ⚠️ EL ORIGEN NO DECIDE NADA AQUÍ. Un `.xlsx` de OneDrive con sus segmentos se
+  // repara igual que uno subido a mano: la condición es tener la estructura, no
+  // venir de un sitio. Decidir por el atributo que suele acompañar a la condición
+  // es el fallo que B.191 costó, y no se repite.
+  if (fila.tieneSegmentos && soloCambioElTroceado(version, versionVigente)) {
+    return { estado: 'reparable_automaticamente' };
+  }
+
+  // Sin esa vía, ¿podría repararse volviendo a por el original? Sí — pero esa vía
+  // NO ESTÁ CONSTRUIDA, y decirlo es el punto entero de esta rama.
   const recuperable = sePuedeRecuperarElOriginal(fila);
-  if (recuperable.si) return { estado: 'reparable_automaticamente' };
+  if (recuperable.si) {
+    // ⚠️ ESTADO `reparable_resubiendo` CON ANOMALÍA, y no un estado nuevo: para el
+    // usuario la acción de hoy es la misma —resubirlo—, así que el estado no debe
+    // sugerir que hay un botón. Lo que NO puede callarse es que estos documentos
+    // son deuda nuestra y no suya: existiría una vía mejor si la construyéramos.
+    // Por eso va como anomalía, que es lo que esta casa usa para los límites que
+    // un lector no puede silenciar, y por eso lleva contador.
+    return { estado: 'reparable_resubiendo', anomalia: 'via_no_construida' };
+  }
 
   return recuperable.anomalia
     ? { estado: 'reparable_resubiendo', anomalia: recuperable.anomalia }
@@ -148,7 +186,7 @@ export function recuentoPorEstado(
     al_dia: 0,
     reparable_automaticamente: 0,
     reparable_resubiendo: 0,
-    anomalias: { version_futura: 0, sincronizado_sin_id: 0 },
+    anomalias: { version_futura: 0, sincronizado_sin_id: 0, via_no_construida: 0 },
   };
 
   for (const fila of filas) {

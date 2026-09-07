@@ -53,8 +53,8 @@ mitades que se comportan al revés:
 | `hay_mas` | `para_reintentar + sin_examinar > 0` | es lo único que hay que mirar |
 
 ⚠️ **Sumar los bloqueados a los pendientes daría un botón que no termina nunca.**
-Los 15 de la nube (501) y los `.xlsx` sin original van a salir bloqueados en cada
-llamada, para siempre, hasta que exista otra vía. Contarlos como pendientes es la
+Los de la nube SIN segmentos (501) y los `.xlsx` sin original van a salir
+bloqueados en cada llamada, para siempre, hasta que exista otra vía. Contarlos como pendientes es la
 forma exacta de un contador que jamás llega a cero.
 
 ---
@@ -133,8 +133,10 @@ patrón ya es que **estimo la población peor de lo que estimo el comportamiento
 
 # 8 · LO QUE ESTE LOTE NO HACE, declarado
 
-· **No repara los 15 de la nube.** Salen bloqueados con
-  `reprocesar_no_implementado`. Es B.195 y no lo arregla un bucle.
+· **De la nube, repara los que tengan SEGMENTOS y no los demás** — corregido el
+  07/09 con B.195: la vía la decide tener la estructura guardada, no el origen.
+  Los que no los tienen salen bloqueados con `reprocesar_no_implementado`, y el
+  lector los marca con la anomalía `via_no_construida` porque son deuda nuestra.
 · **No mira el cerrojo por documento**, solo al principio. Si alguien empieza a
   subir a mitad, el lote termina lo que tenía empezado y la siguiente llamada se
   rechaza limpia con 423.

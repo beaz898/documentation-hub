@@ -58,9 +58,6 @@ export interface EntradaDelPlan {
   nombre: string | null | undefined;
   /** ¿Tiene chunks `table_row`/`table_summary` en su generación activa? */
   tieneChunksTabulares: boolean;
-  /** ¿Tiene sus segmentos persistidos? Lo contesta `tieneSegmentosPersistidos`
-   *  y NADIE MÁS: es la única razón por la que la guarda se relaja. */
-  tieneSegmentos: boolean;
   /** ¿Hay una fila viva en `document_staged` para este documento? */
   hayStagedVivo: boolean;
   /** El texto guardado, que es lo único que sobrevive a la indexación de un manual. */
@@ -78,14 +75,19 @@ export function planDeReindexado(
   entrada: EntradaDelPlan,
   versionVigente: number,
 ): PlanDeReindexado {
-  const { estado } = estadoDeReparacion(entrada.fila, versionVigente);
+  const { estado, anomalia } = estadoDeReparacion(entrada.fila, versionVigente);
 
   if (estado === 'al_dia') return { via: 'rechazado', motivo: 'al_dia' };
   if (entrada.hayStagedVivo) return { via: 'rechazado', motivo: 'staged_vivo' };
 
-  // Con el original en la mano se rehace todo desde el binario, y por eso aquí
-  // NO se mira si hay tablas: reprocesar las reconstruye, no las pierde.
-  if (estado === 'reparable_automaticamente') return { via: 'reprocesar' };
+  // ⚠️ SE LE PREGUNTA AL LECTOR SI HACE FALTA EL ORIGINAL, no se vuelve a deducir
+  // (B.195). Hasta el 07/09 aquí se miraba `estado === 'reparable_automaticamente'`
+  // —o sea, EL ORIGEN— y eso mandaba a `reprocesar` a quince documentos que el
+  // botón podía reparar, incluidos los que tenían sus segmentos guardados.
+  //
+  // Ahora la pregunta la contesta quien la decidió: `via_no_construida` significa
+  // «esto necesita el original, y esa vía no existe». Todo lo demás se re-trocea.
+  if (anomalia === 'via_no_construida') return { via: 'reprocesar' };
 
   if (puedePerderEstructura(entrada)) {
     return { via: 'rechazado', motivo: 'sin_original_con_tablas' };
@@ -134,7 +136,7 @@ export function esReparacionCompleta(plan: PlanDeReindexado): boolean {
  * `lib/formatos-con-tablas.test.ts`.
  */
 export function puedePerderEstructura(
-  entrada: Pick<EntradaDelPlan, 'nombre' | 'tieneChunksTabulares' | 'tieneSegmentos'>,
+  entrada: Pick<EntradaDelPlan, 'nombre' | 'tieneChunksTabulares' | 'fila'>,
 ): boolean {
   // ⚠️ LA ÚNICA RELAJACIÓN, Y SU CONDICIÓN, ESCRITA AQUÍ PARA QUE NO SE MUEVA:
   // se relaja **SOLO si el documento tiene sus segmentos persistidos**. No por
@@ -146,7 +148,7 @@ export function puedePerderEstructura(
   // Si alguien relaja esto por otro motivo, vuelve el caso que la guarda evita
   // (B.191): un documento con tablas re-troceado desde texto plano se convierte
   // en prosa PARA SIEMPRE, y después ni se nota que fue tabla.
-  if (entrada.tieneSegmentos) return false;
+  if (entrada.fila.tieneSegmentos) return false;
 
   return entrada.tieneChunksTabulares || produceTablas(entrada.nombre);
 }

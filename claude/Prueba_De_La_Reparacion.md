@@ -297,3 +297,93 @@ documento de la nube se va a `reprocesar` aunque `retrocear` lo repararía.
 segmentos sale de esta pasada con ellos, y desde entonces se repara desde casa
 sin depender del proveedor. Es la vía por la que `new 9.txt` puede entrar **si es
 manual** — y eso es lo que decide la consulta de §7, que sigue sin ejecutarse.
+
+---
+
+# 9 · B.195 RESUELTO — la vía la decide tener segmentos, no de dónde viene
+
+**07/09/2026.** Lo destapó RRHH-06 devolviendo 501 con `segments` a true, sello 2
+y generación 2: un documento que el botón podía reparar y al que el sistema
+mandaba a una vía que no existe.
+
+## 9.1 · La política, tal como quedó escrita
+
+> Si el documento tiene segmentos persistidos **y** lo que cambió desde su sello
+> es solo el troceado, se repara por la vía barata. La condición es «tiene
+> segmentos», no «de dónde viene».
+
+Y donde estaba el problema: **la segunda mitad no era computable.** El sello es un
+entero; de «2 → 3» no se deduce qué cambió. Sin eso, la política no se puede
+escribir en código sin mentir.
+
+## 9.2 · Lo que hizo falta, y lo que NO hizo falta
+
+**No hizo falta la firma de comportamiento** que F-104 promovió. Bastó un **mapa
+declarado** —`CAMBIOS_POR_VERSION`, versión → `'troceado' | 'extraccion'`— escrito
+en la misma línea que el sello, y `soloCambioElTroceado(sello, vigente)`.
+
+⚠️ **Y la diferencia entre las dos cosas se dice, no se disimula:** una firma se
+recalcula y se compara; **esto se cree**. Tiene el mismo punto débil que el número
+—alguien tiene que acordarse— y por eso vive donde esa persona va a teclear, con
+un caso que se pone rojo si se sube la versión sin clasificarla.
+
+**La trampa se cierra sola**: la función **falla CERRADA**. Un sello ausente o una
+versión que el mapa no clasifica devuelven `false`, y entonces no hay vía barata.
+El día que una versión traiga `'extraccion'`, los documentos sellados por debajo
+dejan de ser reparables por lo barato **sin que nadie tenga que acordarse de
+nada** — se niega, en vez de sellar de más.
+
+## 9.3 · El lector mentía en las DOS direcciones
+
+Se pidió arreglar una mitad. Al abrirlo estaba la otra al lado:
+
+| caso | decía | era |
+|---|---|---|
+| nube SIN segmentos | `reparable_automaticamente` | **501**: la vía no existe |
+| **manual o nube CON segmentos** | `reparable_resubiendo` | **el botón lo repara hoy** |
+
+La segunda manda a alguien a resubir a mano lo que se arregla solo. **Arreglar una
+sola habría dejado el lector mintiendo**, así que las dos.
+
+Los que necesitan el original y no lo tienen salen ahora como
+`reparable_resubiendo` **con la anomalía `via_no_construida`** — estado por lo que
+el usuario tiene que hacer hoy, anomalía porque **es deuda nuestra y no suya**, y
+con contador, que es lo que esta casa hace con los límites que un lector no puede
+callar.
+
+## 9.4 · Y el plan pregunta en vez de deducir
+
+`planDeReindexado` miraba el ESTADO —o sea, el origen— para decidir la vía. Ahora
+mira la **anomalía**, que es la respuesta de quien decidió el criterio. Es la
+misma corrección que R2 y el `groupId`: quien necesita algo pregunta a quien lo
+decidió, no lo recalcula.
+
+## 9.5 · ⚠️ B.196, ABIERTO EN EL MISMO COMMIT — el sello ya se escribe de más
+
+**Y no lo introduce este cambio: existe desde antes y por el camino manual.**
+
+`camposDePromocion` escribe `extractor_version: VIGENTE` en **toda** conmutación,
+también tras un `retrocear`. Si algún día cambia la extracción, un re-troceado
+sellaría **al día** un documento reparado a medias — y eso es exactamente el
+«lector que miente» que el contrato del sello vino a prohibir.
+
+Hoy no puede pasar: `soloCambioElTroceado` no concede la vía barata si no puede
+afirmar que solo cambió el troceado. **La pregunta abierta es qué debe escribir el
+sello cuando la reparación es parcial**, y tiene su propia tensión:
+
+· **No avanzarlo** deja el documento pidiendo reparación para siempre, porque el
+  troceado ya está bien y volver a repararlo no cambia nada.
+· **Avanzarlo** afirma más de lo que se hizo.
+
+La tercera salida —dos sellos, uno de extracción y otro de troceado— es más
+honesta y es un cambio de esquema. **Se registra la pregunta, no la solución.**
+
+## 9.6 · La verificación
+
+**615 → 622 casos**, verdes, typecheck limpio. Siete mutaciones por mitades, **las
+siete muertas**: la vía decidida por el origen, la función sin fallar cerrada, la
+versión sin clasificar colándose, la anomalía callada, el plan mirando el estado,
+la guarda de estructura siempre relajada y el rango vacío.
+
+⚠️ **Predicción de población fallada otra vez, y al revés que ayer**: predije
+630-645 —alto a propósito, porque ayer me quedé corto— y salieron 622. Van seis.

@@ -5,6 +5,7 @@ import { resolveOrg } from '@/lib/org';
 import { EXTRACTOR_VERSION } from '@/lib/chunking';
 import { estadoDeReparacion, recuentoPorEstado } from '@/lib/documents/estado-de-reparacion';
 import type { FilaParaSello } from '@/lib/documents/estado-de-reparacion';
+import { tieneSegmentosPersistidos } from '@/lib/documents/lectura-dual';
 
 /**
  * GET /api/admin/estado-del-corpus — EL LECTOR DEL SELLO (F-104 P3).
@@ -45,7 +46,13 @@ export async function GET(req: NextRequest) {
   // semana cazando. Con él, «he mirado 1000 de 1500» se puede decir.
   const { data, error, count } = await supabase
     .from('documents')
-    .select('id, name, source, provider_file_id, extractor_version', { count: 'exact' })
+    // ⚠️ `segments` VIAJA EN ESTA LECTURA Y PESA, y va declarado: desde B.195 es
+    // lo que decide la vía, así que sin él este lector no puede decir la verdad
+    // sobre ningún documento. Con 38 documentos no se nota; con mil, esta consulta
+    // se trae todos los jsonb (~1,27x el texto) y hay que sustituirla por una
+    // columna generada `has_segments`. El techo de MAX_FILAS y `truncado` son el
+    // contador que avisará: el día que `truncado` salga true, esto ya pesa.
+    .select('id, name, source, provider_file_id, extractor_version, segments', { count: 'exact' })
     .eq('org_id', org.orgId)
     .order('name')
     .range(0, MAX_FILAS - 1);
@@ -63,6 +70,7 @@ export async function GET(req: NextRequest) {
     extractorVersion: d.extractor_version,
     source: d.source,
     providerFileId: d.provider_file_id,
+    tieneSegmentos: tieneSegmentosPersistidos(d),
   }));
 
   const recuento = recuentoPorEstado(paraSello, EXTRACTOR_VERSION);

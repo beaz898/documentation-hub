@@ -81,6 +81,63 @@ const MIN_PIECE_LENGTH = 50;
  */
 export const EXTRACTOR_VERSION = 3;
 
+/**
+ * QUÉ CAMBIÓ EN CADA VERSIÓN DEL EXTRACTOR — el mapa que hace decidible la vía
+ * de reparación (B.195, 07/09/2026).
+ *
+ * ═══════════════════════════════════════════════════════════════════════════
+ * ⚠️ ESTO NO ES UNA FIRMA DE COMPORTAMIENTO, Y LA DIFERENCIA IMPORTA. Una firma
+ * se recalcula y se compara; esto **se cree**. Es una DECLARACIÓN, con el mismo
+ * punto débil que el número de arriba: alguien tiene que acordarse de escribirla.
+ * Por eso vive aquí, en la línea que esa persona va a tocar, y no en un documento.
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ * PARA QUÉ SIRVE. Hay dos reparaciones: RE-TROCEAR —barata, desde los segmentos
+ * guardados, arregla el troceado y nada más— y REPROCESAR —cara, vuelve a
+ * descargar el original, arregla también la extracción, y HOY NO ESTÁ CONSTRUIDA—.
+ * Sin este mapa no se puede saber cuál hace falta: el sello es un entero, y de
+ * «2 → 3» no se deduce qué cambió. Con él, `soloCambioElTroceado` contesta.
+ *
+ * ⚠️ Y LA TRAMPA QUE CIERRA, declarada porque no se puede ignorar: la vía barata
+ * vale **mientras lo que haya cambiado desde el sello del documento sea troceado**.
+ * El día que una versión traiga `'extraccion'`, los documentos sellados por debajo
+ * dejan de ser reparables por lo barato — y hay que NEGARSE en vez de sellarlos de
+ * más. Eso lo hace la propia función, sin que nadie se acuerde: basta con
+ * clasificar bien la versión nueva aquí.
+ *
+ * ⚠️ EL `2` ES IMPRECISO Y SE DICE: cubre DOS comportamientos, porque el 24/08 el
+ * troceado volvió a cambiar (`table_summary` dejó de subdividirse, nació
+ * `column_order`) y el número no se movió. Los dos son de troceado, así que para
+ * lo que este mapa decide da igual — pero no se disimula.
+ */
+export type ClaseDeCambio = 'troceado' | 'extraccion';
+
+export const CAMBIOS_POR_VERSION: Record<number, ClaseDeCambio> = {
+  2: 'troceado', // 22/08 y 24/08 — dos cambios del troceado bajo el mismo número
+  3: 'troceado', // 07/09 — B.182: el arranque del trozo usa el criterio del final
+};
+
+/**
+ * ¿TODO LO QUE CAMBIÓ DESDE ESTE SELLO ES TROCEADO?
+ *
+ * ⚠️ FALLA CERRADA, y es la mitad que protege: un sello ausente (`null`, las filas
+ * anteriores a la columna) o una versión que no está en el mapa devuelven
+ * **false**. No saber qué cambió no es lo mismo que saber que fue poco, y
+ * confundirlos es cómo un documento se repara a medias y se sella entero.
+ */
+export function soloCambioElTroceado(
+  selloDelDocumento: number | null | undefined,
+  versionVigente: number,
+): boolean {
+  if (typeof selloDelDocumento !== 'number' || !Number.isFinite(selloDelDocumento)) return false;
+  if (selloDelDocumento >= versionVigente) return true; // nada cambió: cierto en vacío
+
+  for (let v = selloDelDocumento + 1; v <= versionVigente; v++) {
+    if (CAMBIOS_POR_VERSION[v] !== 'troceado') return false;
+  }
+  return true;
+}
+
 /** Línea de encabezado Markdown individual (sin flag 'm': para probar una línea suelta). */
 const HEADING_LINE_RE = /^(#{1,6})\s/;
 /** Detección de si el texto completo tiene ALGÚN encabezado, en cualquier línea. */
