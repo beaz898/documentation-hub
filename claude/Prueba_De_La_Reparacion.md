@@ -156,3 +156,69 @@ que los vectores nuevos quedaron servibles.
   `.xlsx`, en cuyo caso lo que se comprueba es **el rechazo**, no la reparación.
 · **Y no dice cuánto tarda un parque entero.** Da el coste de UNO, que es la cifra
   que faltaba (H4 del diseño); el resto es multiplicar y verlo.
+
+---
+
+# 7 · ⚠️ B.195 — EL PLAN PREFIERE LA REPARACIÓN COMPLETA A LA DISPONIBLE
+
+**Encontrado el 07/09/2026, al subir el sello a 3 y preguntarse qué documentos
+quedan reparables de verdad.**
+
+`planDeReindexado` pregunta por el ORIGEN **antes** que por la estructura:
+
+```
+estadoDeReparacion → 'reparable_automaticamente'  →  via 'reprocesar'  →  501
+```
+
+Esa rama se decide con `source` + `provider_file_id`, y está **por encima** de
+`puedePerderEstructura`. Consecuencia, que no estaba escrita en ningún sitio:
+
+> **Tener los segmentos persistidos NO hace reparable a un documento de la nube.**
+> Solo rescata a aquellos cuyo original no se puede recuperar — los manuales.
+
+Un documento de OneDrive **con segmentos** se rechaza hoy con 501 aunque
+`retrocear` lo repararía perfectamente: sus celdas están guardadas y
+`chunkSegments` las vuelve a emitir tal cual. La vía existe y no se usa.
+
+## La pregunta, que es lo que se registra — no la solución
+
+**¿Debe el plan caer a `retrocear` cuando `reprocesar` no está implementado y el
+documento tiene sus segmentos?**
+
+Y la tensión que impide contestarla de un plumazo, que es justo por lo que se
+escribe como pregunta:
+
+· **A favor** — hoy el ÚNICO cambio pendiente es del CORTADOR, y `retrocear`
+  repara exactamente eso. Rechazar con 501 deja sin reparar documentos que se
+  podrían reparar hoy, con la estructura intacta.
+· **En contra** — `reprocesar` repara también la EXTRACCIÓN. Una caída
+  automática a `retrocear` sería correcta hoy y **silenciosamente incorrecta el
+  día que cambie el extractor**: el documento saldría marcado «al día» habiendo
+  reparado media cosa. Es la forma exacta de un lector que miente.
+
+Si se implementa la caída, la condición no puede ser «reprocesar no está
+disponible»: tiene que ser **«lo que cambió es el cortador»**, y eso hoy nadie lo
+sabe decir — el sello es un número, no una firma de comportamiento (F-104).
+**Ahí es donde vuelve a doler que no lo sea.**
+
+## Y lo que decide AHORA MISMO
+
+**Cuál es el control positivo de la primera reparación.** Si `new 9.txt` y
+RRHH-06 entraron por OneDrive, los dos dan 501 y **hoy no hay control positivo**;
+si son subidas manuales, la vía funciona. No se da por sabido: se mide.
+
+```sql
+select name, source, provider_file_id is not null as tiene_id,
+       extractor_version, segments is not null as tiene_segmentos,
+       length(full_text) as chars
+from documents
+where org_id = '<TU_ORG>'
+  and (name ilike '%new 9%' or name ilike '%RRHH-06%');
+```
+
+**Cómo se lee, decidido antes de verlo:**
+· `source` manual **y** `tiene_segmentos` → `retrocear`. Hay control positivo.
+· `source` sincronizado **y** `tiene_id` → `reprocesar` → **501**, aunque tenga
+  segmentos. No hay control positivo hoy, y B.195 pasa de apunte a bloqueo.
+· `tiene_segmentos` falso → no es candidato de control: su reparación sería
+  solo-prosa y no probaría lo que se quiere probar.

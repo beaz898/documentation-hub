@@ -65,8 +65,21 @@ const MIN_PIECE_LENGTH = 50;
  * respetar. Mientras siga siendo un número, el contrato de arriba es la única
  * cosa que lo sostiene — y por eso está escrito aquí, donde alguien lo va a
  * tocar, y no en un documento aparte. Ver F-104, regla 3.
+ *
+ * ⚠️ ═══ EL PRIMER EJERCICIO DEL CONTRATO — 07/09/2026, 2 → 3 ═══
+ * El cortador cambió (B.182: el arranque del trozo pasó a usar el mismo criterio
+ * que el final), así que el número sube. **No es una ceremonia: sin subirlo, los
+ * documentos troceados con el cortador viejo serían indistinguibles de los
+ * nuevos** — que es exactamente lo que pasó el 22 de agosto y el 24, cuando el
+ * troceado cambió dos veces y el sello solo se movió una. El `2` cubre desde
+ * entonces DOS comportamientos distintos. Ese caso no se repite.
+ *
+ * ⚠️ Y LO QUE HACE AL SUBIRLO, dicho antes de que sorprenda: los 38 documentos
+ * del corpus pasan a «desactualizados» de golpe. **Eso no es una avería: es la
+ * primera vez que el sistema puede decirlo.** Antes también estaban mezclados —
+ * solo que en silencio.
  */
-export const EXTRACTOR_VERSION = 2;
+export const EXTRACTOR_VERSION = 3;
 
 /** Línea de encabezado Markdown individual (sin flag 'm': para probar una línea suelta). */
 const HEADING_LINE_RE = /^(#{1,6})\s/;
