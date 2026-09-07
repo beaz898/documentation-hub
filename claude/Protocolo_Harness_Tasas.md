@@ -535,6 +535,55 @@ frase correcta no es «no ocurre» sino «cero en cuatro: no descarta nada por
 debajo del 53 %».
 
 
+## ⚠️ TODA TANDA ANOTA LA VISIÓN DEL DIFF, Y UN CERO SIN ELLA NO SE APUNTA
+
+*Pieza 2 de F-103 P3, implementada el 07/09/2026. Es la hermana de la regla de
+arriba: aquélla dice cuánto excluye un cero repetido; ésta dice si el cero
+siquiera midió algo.*
+
+> **Un cero del diff se apunta CON su visión, o no se apunta.** Si en la fila del
+> registro no están `pares_con_vision` y `pares_ciegos`, esa tanda no puede
+> distinguir «miré y no había» de «no me llegó nada», y las dos frases se
+> parecen tanto que ya nos costaron semanas.
+
+**LOS DOS CASOS QUE LA FUNDAN, y están los dos en este registro:**
+
+| dónde | lo que decía | lo que era |
+|---|---|---|
+| tanda de la siembra, 04/09 | `Diff de tablas · 0 parejas` | **medición**: comparten columnas, ninguna identifica una fila |
+| exhaustivo del modal (B.175) | `Diff de tablas — TOTAL: 0 sobre 0 parejas` | **CEGUERA**: no le llegó ni una tabla |
+
+**QUÉ SE APUNTA**, y sale de `analysis_results.counters` — de la fila, no del log
+(F-102):
+
+| contador | qué dice |
+|---|---|
+| `diff.vision.pares_con_vision` | pares donde los DOS lados trajeron tablas. **Es el denominador** |
+| `diff.vision.pares_ciegos` | pares evaluados con algún lado a cero |
+| `diff.vision.ciegos_por_el_analizado` | de los ciegos, aquéllos donde el que no vio fue **el documento que se analiza** — o sea, avería nuestra |
+| `diff.vision.tablas_analizado` / `filas_analizado` | qué trajo el documento analizado |
+| `diff.vision.tablas_candidatos` / `filas_candidatos` | qué trajo el corpus |
+
+**CÓMO SE LEE, decidido antes de tener la primera tanda:**
+
+· `pares_con_vision > 0` y cero parejas → **medición**. Se apunta el cero.
+· `pares_ciegos > 0` con `ciegos_por_el_analizado > 0` → **avería**: la estructura
+  no llegó al documento que se analiza. Es la forma de B.175, y no se apunta como
+  resultado — se abre ficha.
+· `tablas_analizado > 0` y `tablas_candidatos === 0` → el corpus no tenía tablas
+  que comparar. No es avería y tampoco es una medición del diff.
+· Todo a cero **con pares > 0** → ni un lado trajo nada: el análisis no tocó
+  tablas en absoluto, y decirlo es más honesto que un `0 parejas` a secas.
+
+⚠️ **Y LO QUE ESTA PIEZA NO PRUEBA TODAVÍA, dicho aquí para que la primera tanda
+lo compruebe:** que el pipeline EMITE estos contadores está verificado **leyendo**
+—el módulo puro tiene batería y seis mutaciones muertas, pero el pipeline no es
+testable por la regla de alcance—. **La comprobación del consumidor es la primera
+tanda**: si la fila de `analysis_results` no trae las siete claves, el productor
+no llegó. Es la regla del grifo y la tubería, aplicada a nuestro propio
+instrumento.
+
+
 ## ⚠️ PARA SABER SI LA CULPA ES DEL DATO, EJECUTA EL CAMINO SIN EL DATO
 
 *Promovida el 01/09/2026. Nace de atribuir a un documento, durante cuatro

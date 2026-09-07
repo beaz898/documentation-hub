@@ -13,6 +13,8 @@ import { extractAtomicClaims } from './extract-claims';
 import { verifyClaimsAgainstCorpus } from './verify-claims';
 import { emparejarTablas } from './table-pairing';
 import { emitirDiffDeTablas } from './diff-emision';
+import { visionDeUnLado, contadoresDeVision } from './diff-vision';
+import type { VisionDelPar } from './diff-vision';
 import { restarTablasCubiertas, type TablaCubierta } from './alcance';
 import { veredictoDeEmparejamiento } from './emparejamiento-juez';
 import type { ParDeTablas } from './table-pairing';
@@ -866,6 +868,11 @@ async function runCorePipeline(
   let totalDiffParejas = 0;
   let totalDiffEmitidas = 0;
   let candidatosConDiff = 0;
+  // LA VISIÓN, par a par (F-103 P3, pieza 2). Se recoge aquí y se cuenta al
+  // final: los contadores de visión son del ANÁLISIS —cuántos pares vieron y
+  // cuántos fueron a ciegas— y no de cada par por separado, así que sumarlos
+  // dentro del bucle daría un producto donde hay un total.
+  const visiones: VisionDelPar[] = [];
   for (let i = 0; i < rawJudgments.length; i++) {
     const judgment = rawJudgments[i];
     const evidence = evidences[i];
@@ -897,10 +904,18 @@ async function runCorePipeline(
     //
     // Los dos lados salen de aquí sin buscar nada: las tablas del documento
     // analizado de sus chunks, las del candidato de los suyos.
-    const emparejamiento = emparejarTablas(
-      groupChunksByTable(newDocumentChunksForCascade),
-      groupChunksByTable(existingChunksForCascade),
-    );
+    // ⚠️ SE AGRUPA UNA VEZ Y SE MIDE DE LO AGRUPADO. Volver a agrupar para
+    // contar sería una segunda cuenta de lo mismo, y dos cuentas de lo mismo se
+    // separan sin avisar el día que una de las dos cambie.
+    const tablasDelAnalizado = groupChunksByTable(newDocumentChunksForCascade);
+    const tablasDelCandidato = groupChunksByTable(existingChunksForCascade);
+
+    visiones.push({
+      analizado: visionDeUnLado(tablasDelAnalizado),
+      candidato: visionDeUnLado(tablasDelCandidato),
+    });
+
+    const emparejamiento = emparejarTablas(tablasDelAnalizado, tablasDelCandidato);
 
     const outcome = await applyCascadeToCandidate(
       judgment,
@@ -971,6 +986,18 @@ async function runCorePipeline(
     totalDescartados += outcome.tally.descartados;
     totalReclasificados += outcome.tally.reclasificados;
   }
+  // ⚠️ LOS DENOMINADORES DE LOS CEROS DEL DIFF (F-103 P3, pieza 2). Van SIEMPRE,
+  // valgan cero o no: un contador que desaparece cuando vale cero es
+  // indistinguible de uno que nadie calculó — y entonces el denominador tampoco
+  // se puede leer, que es justo lo que esta pieza vino a arreglar.
+  //
+  // El caso que lo pidió: «0 sobre 0 parejas» de B.175 y «0 parejas» del 04/09
+  // eran indistinguibles en el registro, y uno era una medición y el otro
+  // ceguera. Con `pares_ciegos` se leen el mismo día.
+  for (const [k, v] of Object.entries(contadoresDeVision(visiones))) {
+    counters[`diff.vision.${k}` as keyof typeof counters] = v;
+  }
+
   console.log(
     `[${label}] ` + lineaDeAgregado({
       candidatos: candidatosConDiff,

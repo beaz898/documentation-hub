@@ -96,6 +96,21 @@ abierto después del contrato:
   cierta la regla de F-88 «todo lo demás se cuenta» — un par evaluado no puede
   desaparecer sin dejar rastro en exactamente uno de los tres destinos.
 
+- **`diff.vision` — abierta el 07/09/2026 (F-103 P3, pieza 2), con los
+  denominadores de los ceros del diff.** Y por la misma razón de fronteras que
+  abrió `diff.tablas`: aquella etapa cuenta lo que pasa **dentro** del
+  emparejador —cuántos pares se cayeron y por cuál de las tres puertas— y
+  ninguno de sus contadores puede decir **qué le llegó**. Son preguntas
+  distintas, y un cero de cada una significa lo contrario: «miré y no había
+  clave» frente a «no me llegó ni una tabla».
+  El caso que la funda no es hipotético: esas dos frases están en el registro de
+  tandas con una semana de diferencia —«0 parejas» (correcto) y «0 sobre 0
+  parejas» (B.175, ceguera)— y **desde fuera eran indistinguibles**.
+  Sus siete contadores cuentan **los dos lados por separado**, y eso también es
+  de fronteras: un total de «2 tablas» no distingue «una y una» —comparables— de
+  «dos y ninguna», que es ceguera con buena pinta. Ninguno lleva nombre ni id de
+  tabla (cláusula 5).
+
 ### 2 — Solo recuentos de decisión.
 
 Un contador dice **cuántas veces se tomó un camino**. No dice qué se encontró

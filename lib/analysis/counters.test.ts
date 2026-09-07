@@ -27,6 +27,18 @@ describe('el catálogo', () => {
     expect([...COUNTER_CATALOGUE]).toEqual([
       'seleccion.candidatos_recuperados',
       'seleccion.candidatos_seleccionados',
+      // F-103 P3 pieza 2: la etapa `diff.vision`, abierta el 07/09. Es la capa
+      // de ANTES del emparejador — qué le llegó— y por eso no cabía en
+      // `diff.tablas`, que cuenta lo que pasa dentro. Los dos lados van por
+      // separado a propósito: sumarlos borraría la diferencia entre «una y una»
+      // y «dos y ninguna», que es la diferencia entre medir y estar ciego.
+      'diff.vision.pares_con_vision',
+      'diff.vision.pares_ciegos',
+      'diff.vision.ciegos_por_el_analizado',
+      'diff.vision.tablas_analizado',
+      'diff.vision.filas_analizado',
+      'diff.vision.tablas_candidatos',
+      'diff.vision.filas_candidatos',
       // F-88 paso 1: la etapa nueva. El emparejador de tablas y su invariante
       // candidatos === sin_clave + sin_interseccion + emitidos.
       'diff.tablas.candidatos',
@@ -62,7 +74,7 @@ describe('el catálogo', () => {
     // La lista va DUPLICADA del tipo Stage a proposito, con el mismo criterio
     // que el canario del catalogo: anadir una etapa tiene que pasar por aqui.
     // Derivarla exportando Stage la haria automatica y dejaria de avisar.
-    const etapas = ['diff.tablas', 'diff.clave', 'diff.celdas', 'diff.clasificacion', 'seleccion', 'verificador', 'averia'];
+    const etapas = ['diff.tablas', 'diff.vision', 'diff.clave', 'diff.celdas', 'diff.clasificacion', 'seleccion', 'verificador', 'averia'];
     for (const name of COUNTER_CATALOGUE) {
       expect(etapas.some(e => name.startsWith(`${e}.`)), `"${name}" sin apellido de etapa`).toBe(true);
     }

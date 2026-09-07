@@ -35,6 +35,7 @@
  */
 type Stage =
   | 'diff.tablas'
+  | 'diff.vision'
   | 'diff.clave'
   | 'diff.celdas'
   | 'diff.clasificacion'
@@ -97,6 +98,24 @@ export const COUNTER_CATALOGUE = [
   // contenido del documento del cliente (cláusula 5). La identidad de las
   // tablas de un par viaja en el VALOR del hallazgo, nunca en la clave de un
   // contador.
+  // diff.vision — LA CAPA DE ANTES DEL EMPAREJADOR (F-103 P3, pieza 2). Etapa
+  // abierta el 07/09/2026, y por la misma razón de fronteras que abrió
+  // `diff.tablas`: aquellos contadores dicen qué pasó DENTRO del emparejador
+  // —cuántos pares se cayeron y por qué— y ninguno puede decir **qué le llegó**.
+  // Son preguntas distintas y un cero de cada una significa lo contrario:
+  // «miré y no había clave» frente a «no me llegó ni una tabla».
+  //
+  // Los dos lados se cuentan POR SEPARADO y no se suman: «2 tablas» no distingue
+  // «una y una» —comparables— de «dos y ninguna», que es ceguera con buena pinta.
+  // Y ninguna clave lleva nombre ni id de tabla (cláusula 5): la identidad viaja
+  // en el valor del hallazgo.
+  'diff.vision.pares_con_vision',
+  'diff.vision.pares_ciegos',
+  'diff.vision.ciegos_por_el_analizado',
+  'diff.vision.tablas_analizado',
+  'diff.vision.filas_analizado',
+  'diff.vision.tablas_candidatos',
+  'diff.vision.filas_candidatos',
   'diff.tablas.candidatos',
   'diff.tablas.sin_clave',
   'diff.tablas.sin_interseccion',
