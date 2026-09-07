@@ -42,7 +42,14 @@ nada.
 
 ---
 
-# 2 · ⚠️ LA GUARDA PREVENTIVA — ¿un hábito que produce código muerto?
+# 2 · ⚠️ LA GUARDA QUE SOBREVIVE A LA MUTACIÓN ES LA QUE NO TIENE CASO QUE LA EJERZA
+
+⚠️ **EL ENUNCIADO SE AFINÓ EL 07/09, y la corrección importa.** Se abrió como «la
+guarda preventiva es un hábito que produce código muerto», y eso acusa al hábito
+equivocado: el problema no es escribir guardas —una que se dispara es lo que
+impide un fallo— sino escribir una **que ninguna entrada puede hacer saltar**. La
+mutación no dice «esto sobra por preventivo»: dice **«esto no tiene caso»**, que
+es una propiedad comprobable en vez de un juicio sobre la intención.
 
 **Estado: DOS CASOS, los dos del 07/09. Falta uno para ser regla.**
 
@@ -60,10 +67,10 @@ razonables, que es justo lo que las hace duraderas.
 · **¿Es un hábito o son dos casualidades?** Dos casos en un día, en el mismo tipo
   de trabajo (funciones puras nuevas con aritmética de índices). Puede ser el
   contexto y no el hábito.
-· **¿Cuál sería la regla?** No «no escribas guardas»: una guarda que SÍ se
-  dispara es lo que impide un fallo. La candidata es más fina:
-  **«toda guarda nace con el caso que la dispara, o no nace»** — si no se puede
-  escribir el caso que la hace saltar, la guarda no tiene por qué existir.
+· **La regla candidata, ya afinada:** **«toda guarda nace con el caso que la
+  dispara, o no nace»**. Si no se puede escribir la entrada que la hace saltar,
+  la guarda no tiene por qué existir — y el que no se pueda escribir es un hecho
+  que se comprueba, no una opinión sobre si era preventiva.
 · **⚠️ Y el riesgo de aplicarla de más**, que es lo que obliga a esperar al tercer
   caso: hay guardas cuyo caso NO se puede escribir hoy y que aun así deben estar
   —las que protegen de datos que solo un cliente real puede producir—. Esta casa
