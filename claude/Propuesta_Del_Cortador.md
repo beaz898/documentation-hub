@@ -154,3 +154,84 @@ Es la predicción, y su gracia es que se puede fallar.
 · **Si el solape debe seguir siendo de 200.** No lo toco: cambiarlo sería un
   segundo cambio dentro del mismo commit, y luego no se sabría cuál movió qué.
 · **Nada de las tablas en PDF.** Es el frente de extracción, decidido y aplazado.
+
+---
+
+# 6 · EL RESULTADO — 07/09/2026, escrito después de ejecutar
+
+**La predicción se cumplió entera: cuatro rojos previstos, dos verdes de control,
+y el caso que venía avisando se puso rojo.** Ninguna sorpresa en la lista del
+punto 4 — que es el resultado bueno y también el aburrido, así que lo que queda
+por contar es lo que la lista NO preveía.
+
+## 6.1 · La foto se movió donde tenía que moverse
+
+| entrada | antes | después | lectura |
+|---|---|---|---|
+| prosa con puntos | 6 · 1188, 1130×4, 851 | 6 · 1188, 1115×4, 836 | misma cuenta de piezas, otra frontera |
+| parrafos dobles | 4 · 1158, 1175×2, 980 | 4 · 1158, 1168×2, 973 | ídem |
+| filas sin puntos | 5 · 1199, 1166×3, 1186 | 5 · 1199, 1175×3, 1027 | **el caso de B.182** |
+| **sin fronteras** | 3 · 1200, 1200, 1000 | **idéntico, mismo md5** | ⚠️ el control se mantuvo |
+| con secciones | 3 · 1132, 1139, 1028 | 3 · 1132, 1124, 1013 | ídem |
+
+**El número de piezas no cambió en ninguna de las cinco.** El arreglo movió
+fronteras, no el reparto grueso, que es exactamente lo que declaraba hacer.
+
+## 6.2 · ⚠️ B.193, cazado EN EL ACTO
+
+Durante la primera pasada, `formatos-con-tablas > CLI-12` falló **en 5021 ms**
+contra el límite por defecto de 5000. Era la hipótesis escrita: un caso que
+extrae un PDF real bajo carga no cabe en cinco segundos. Se le puso presupuesto
+propio de 30 s, con la razón dentro del fichero.
+
+Un caso que falla una de cada cuatro veces es peor que uno que falla siempre:
+envenena la lectura de todo lo demás, y las dos apariciones anteriores no se
+habían podido identificar porque no se reprodujeron.
+
+## 6.3 · LO QUE NO ESTABA EN LA PREDICCIÓN: una guarda que no guardaba nada
+
+Cinco mutaciones sobre el arreglo. Cuatro murieron con un reparto que dice qué
+vigila cada caso:
+
+| mutación | murió en |
+|---|---|
+| el arranque vuelve a ser ciego (el estado de ayer) | los 5: la foto entera + B.182 |
+| la frontera **más tardía** en vez de la más temprana | B.182 — y además revienta por **memoria**: `start` retrocede y el bucle no termina |
+| se retira la preferencia por `\n` | B.182 + `filas sin puntos`. **Solo esas dos**, que son justo las de filas |
+| se pierde la condición de ventana `i + salto < hasta` | `con secciones` — la única entrada donde la ventana se queda corta |
+| **se borra la guarda `desde <= 0`** | **NADIE. Sobrevivió a los 595.** |
+
+La quinta es el hallazgo. Se trazó en vez de acomodarla, y resultó que **las dos
+mitades de la guarda sobran, cada una por una razón distinta**:
+
+· `desde <= 0` es **inalcanzable**. `desde` es `end - overlap`, y `end` nunca baja
+  de `start + maxSize * 0.5` porque el retroceso a frontera solo acepta posiciones
+  por encima de esa mitad. La garantía real es **CHUNK_OVERLAP (200) <
+  CHUNK_SIZE * 0.5 (600)**, y es de las CONSTANTES, no del algoritmo.
+· `desde >= hasta` es una **rama sin diferencia observable**: con la ventana vacía,
+  ningún `i + salto` sería menor que `hasta` y la función devolvería `desde`
+  igual. Borrarla también sobrevivió, en la segunda tanda.
+
+**Las dos se retiraron, y la garantía que sí importa pasó de comentario a caso**:
+`CHUNK_OVERLAP se mantiene por debajo de la mitad del corte`. Mutar la constante
+a 600 lo pone rojo con el mensaje que dice a dónde ir.
+
+⚠️ **Y la prueba de que retirarlas no cambió nada no es un razonamiento: es la
+foto.** Los cinco md5 congelados salieron idénticos después de quitar la guarda.
+Para eso se congeló ayer.
+
+## 6.4 · La cuenta, y lo que sigue vivo
+
+**595 → 596 casos**, todos verdes, `tsc --noEmit` limpio. El caso nuevo no es del
+cortador: es el invariante que el cortador necesita.
+
+⚠️ **LA OPCIÓN A NO ARREGLA LAS TABLAS EN PDF NI EN CSV.** Sigue viva hasta la
+opción C. Lo que se gana es que cada pedazo lleve **filas enteras**; lo que no se
+gana es que la tabla deje de partirse — los pedazos posteriores al primero
+**siguen sin cabecera**. Está escrito en tres sitios para que no se pierda: el
+docblock de `arranqueEnFrontera`, el punto 3 de este documento y aquí.
+
+**Y lo que este commit no hace:** no sube `EXTRACTOR_VERSION` a 3 y no repara
+nada. El parque sigue indexado con el cortador viejo, y eso es deliberado — la
+conmutación y la pasada de reparación son el paso siguiente, con el primer
+documento reparado haciendo de control positivo.

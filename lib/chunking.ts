@@ -23,8 +23,8 @@ export interface Chunk {
   };
 }
 
-const CHUNK_SIZE = 1200;      // objetivo de tamaño por trozo (caso sin estructura y subdivisiones)
-const CHUNK_OVERLAP = 200;    // solapamiento; solo dentro de un trozo por longitud, nunca entre secciones
+export const CHUNK_SIZE = 1200;      // objetivo de tamaño por trozo (caso sin estructura y subdivisiones)
+export const CHUNK_OVERLAP = 200;    // solapamiento; solo dentro de un trozo por longitud, nunca entre secciones
 const MAX_CHUNK_SIZE = 1500;  // por encima de esto, una sección se subdivide
 const MIN_CHUNK_SIZE = 300;   // por debajo de esto, una sección se fusiona con la siguiente
 
@@ -171,6 +171,57 @@ function logDiscarded(fn: string, documentName: string, stats: SplitStats): void
 }
 
 /**
+ * DÓNDE EMPIEZA EL TROZO SIGUIENTE (B.182).
+ *
+ * Recibe la ventana del solape —desde `end - overlap` hasta `end`— y devuelve el
+ * primer punto de esa ventana en el que algo EMPIEZA. Si no hay ninguno, devuelve
+ * `desde`: el arranque ciego de siempre, que sigue siendo la salida por defecto y
+ * va declarada.
+ *
+ * ⚠️ LA FRONTERA MÁS TEMPRANA, NO LA MÁS CERCANA AL FINAL, y la razón es el
+ * solape: la temprana conserva el máximo de texto duplicado. Saltar a una pegada
+ * a `end` dejaría el solape en casi cero y mataría la propiedad por la que el
+ * solape existe — que una frase partida siga siendo recuperable desde los dos
+ * lados. Por eso se busca hacia delante (`indexOf`) y no hacia atrás.
+ *
+ * ⚠️ Y NO ARREGLA LAS TABLAS QUE VIVEN COMO TEXTO. Un CSV o una tabla dentro de
+ * un PDF se siguen repartiendo entre trozos: lo que se gana es que cada pedazo
+ * lleve FILAS ENTERAS, no que la tabla deje de partirse — los pedazos posteriores
+ * al primero siguen sin cabecera. Repetirla exige detectar el bloque, que es el
+ * arreglo de fondo (opción C) y sigue pendiente. Aquí se impide que el texto esté
+ * SUCIO; que esas tablas se COMPAREN es el frente de extracción de F-104 P1.
+ */
+function arranqueEnFrontera(text: string, desde: number, hasta: number): number {
+  // ⚠️ AQUÍ NO HAY GUARDA DE VENTANA, Y ES DELIBERADO — lo dijeron dos mutaciones
+  // el 07/09/2026. Había una, `if (desde <= 0 || desde >= hasta) return desde;`,
+  // y sus DOS mitades sobrevivieron a la batería entera por separado:
+  //
+  //   · `desde >= hasta` no puede decidir nada que no decida ya la condición de
+  //     aceptación de abajo: si la ventana estuviera vacía, ningún `i + salto`
+  //     sería menor que `hasta` y la función devolvería `desde` igual. Era una
+  //     rama sin diferencia observable, no una rama sin test.
+  //   · `desde <= 0` es INALCANZABLE: `desde` es `end - overlap`, y `end` nunca
+  //     baja de `start + maxSize * 0.5` —el retroceso a frontera de arriba solo
+  //     acepta posiciones por encima de esa mitad—, así que la garantía real es
+  //     CHUNK_OVERLAP (200) < CHUNK_SIZE * 0.5 (600).
+  //
+  // Esa garantía es de las CONSTANTES y no del algoritmo, así que se rompería
+  // callando el día que alguien suba el solape. Por eso no se queda en este
+  // comentario: la ejercita un caso de `troceado-sin-encabezados.test.ts`, que se
+  // pone rojo antes de que este código pueda recibir un `desde` negativo.
+
+  // Misma preferencia que el final del trozo, y en el mismo orden.
+  const candidatos: Array<[string, number]> = [['\n\n', 2], ['. ', 2], ['\n', 1]];
+
+  for (const [sep, salto] of candidatos) {
+    const i = text.indexOf(sep, desde);
+    if (i !== -1 && i + salto < hasta) return i + salto;
+  }
+
+  return desde;
+}
+
+/**
  * Corte por longitud con los criterios de siempre (párrafo, punto, salto de
  * línea). Usado tanto para documentos sin estructura como para subdividir
  * secciones que superan MAX_CHUNK_SIZE.
@@ -225,7 +276,22 @@ function splitByLength(text: string, maxSize: number, overlap: number, stats?: S
       stats.discarded++;
     }
 
-    start = end - overlap;
+    // ⚠️ B.182 — EL ARRANQUE USA EL MISMO CRITERIO QUE EL FINAL.
+    //
+    // Hasta el 07/09/2026 aquí solo estaba `start = end - overlap`, y esos 200
+    // caracteres se restaban A CIEGAS. El final del trozo SÍ retrocedía a una
+    // frontera —el bloque de arriba— pero el arranque del siguiente caía donde
+    // cayera: medido, seis de cada siete trozos abrían a media línea.
+    //
+    // En prosa eso no molesta: media frase no se confunde con una frase. En un
+    // texto de FILAS sí, y mucho — «Odontologia general,Manana,118,Parcial 18»
+    // es, para un embedding o para el juez, una fila cuya primera columna vale
+    // «Odontologia general». No se perdía nada: se AÑADÍA un dato plausible y
+    // falso, que es peor.
+    //
+    // La asimetría era el fallo, así que el arreglo es la simetría: se reutiliza
+    // la preferencia que ya existe (`\n\n`, `. `, `\n`) en vez de inventar otra.
+    start = arranqueEnFrontera(text, end - overlap, end);
     if (start < 0) start = 0;
     // Evitar bucle infinito
     if (end >= text.length) break;

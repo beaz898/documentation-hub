@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { chunkText } from './chunking';
+import { chunkText, CHUNK_SIZE, CHUNK_OVERLAP } from './chunking';
 
 /**
  * EL «CASO 4» DE `chunkText` — el troceado de todo lo que no trae encabezados.
@@ -134,35 +134,33 @@ describe('caso 4 — texto sin encabezados markdown', () => {
   });
 
   /**
-   * ⚠️ ESTE CASO DOCUMENTA UN DEFECTO, NO UNA PROPIEDAD DESEADA — B.182.
+   * ✅ B.182, ARREGLADO EL 07/09/2026 — Y ESTE CASO ESTÁ INVERTIDO.
    *
-   * La predicción escrita antes de ejecutar decía que un CSV se cortaría en fin
-   * de fila por los DOS lados. Falló, y el fallo se cuenta: la COLA sí es
-   * limpia —el corte se mueve al `\n` (`chunking.ts:190`)— pero la CABEZA no,
-   * porque el trozo siguiente arranca en `end - CHUNK_OVERLAP` y esos 200
-   * caracteres hacia atrás caen donde caen. Medido: 6 de 7 trozos empiezan a
-   * media fila.
+   * Aquí vivía el defecto fijado: la COLA de cada trozo era un fin de fila
+   * limpio, pero la CABEZA no —6 de 7 trozos abrían a media fila—, porque el
+   * trozo siguiente arrancaba en `end - CHUNK_OVERLAP` y esos 200 caracteres
+   * hacia atrás caían donde cayeran. No era pérdida: era que cada trozo se abría
+   * con un fragmento que PARECÍA una fila entera con el primer campo cambiado.
    *
-   * No es pérdida —la fila entera está en el trozo anterior, y C1 lo comprueba—:
-   * es que CADA trozo menos el primero se abre con un trozo de fila que PARECE
-   * una fila entera con el primer campo cambiado. En un CSV cuya primera
-   * columna es el nombre de la entidad, eso es una fila con la entidad
-   * equivocada.
+   * El arreglo es la SIMETRÍA: si el final del trozo retrocede a una frontera,
+   * el arranque del siguiente también (`arranqueEnFrontera`). Este caso llevaba
+   * escrito que el día que se arreglara había que invertirlo — y hoy es ese día,
+   * así que afirma la propiedad en vez del defecto.
    *
-   * SE FIJA AQUÍ PARA QUE EL DÍA QUE SE ARREGLE ESTE CASO ROMPA y mande a leer
-   * B.182, en vez de que el arreglo pase inadvertido. Si estás leyendo esto
-   * porque el test ha fallado: probablemente has arreglado B.182 — invierte la
-   * expectativa y borra este comentario.
+   * ⚠️ SIGUE SIENDO UN CASO CON DOS DIRECCIONES: la cabeza limpia se comprueba
+   * junto a C6 (la cola), porque un arreglo que arreglara una y rompiera la otra
+   * pasaría desapercibido mirando solo la mitad.
    */
-  it('⚠️ B.182: la CABEZA de los trozos siguientes NO lo es — defecto fijado', () => {
+  it('✅ B.182: la CABEZA de cada trozo es también un principio de fila', () => {
     const csv = csvDeFilas(120);
     const filas = new Set(csv.split('\n'));
     const chunks = chunkText(csv, DOC, 'tarifas.csv', ORG);
 
     expect(chunks.length).toBeGreaterThan(1);
-    expect(filas.has(chunks[0].text.split('\n')[0])).toBe(true);
-    for (const c of chunks.slice(1)) {
-      expect(filas.has(c.text.split('\n')[0])).toBe(false);
+    for (const c of chunks) {
+      const lineas = c.text.split('\n');
+      expect(filas.has(lineas[0]), `este trozo abre a media fila: "${lineas[0].slice(0, 50)}"`).toBe(true);
+      expect(filas.has(lineas[lineas.length - 1])).toBe(true);
     }
   });
 });
@@ -185,6 +183,32 @@ describe('caso 4 — las ramas vecinas, para que la frontera se vea', () => {
 
     expect(chunks.length).toBeGreaterThan(1);
     for (const c of chunks) expect(c.text.startsWith('# Seccion ')).toBe(true);
+  });
+
+  /**
+   * ⚠️ EL INVARIANTE DEL QUE DEPENDE `arranqueEnFrontera`, EJERCITADO — y está
+   * aquí porque lo pidió una mutación.
+   *
+   * La función que decide dónde empieza el trozo siguiente llevaba una guarda
+   * doble: `desde <= 0 || desde >= hasta`. La mitad de la izquierda resultó
+   * INALCANZABLE —borrarla no mataba ni uno de los 595 casos— y por eso se
+   * retiró: `desde` es `end - overlap`, y `end` nunca baja de
+   * `start + maxSize * 0.5`, así que `desde` no puede ser negativo MIENTRAS el
+   * solape se mantenga por debajo de la mitad del tamaño de corte.
+   *
+   * Eso es una garantía de las CONSTANTES, no del algoritmo, y por tanto se
+   * rompería en silencio el día que alguien suba `CHUNK_OVERLAP`. Aquí se rompe
+   * gritando, y el mensaje dice a dónde ir.
+   */
+  it('CHUNK_OVERLAP se mantiene por debajo de la mitad del corte', () => {
+    expect(
+      CHUNK_OVERLAP,
+      'Si el solape alcanza la mitad del corte, el arranque de la ventana puede ' +
+      'volverse negativo en arranqueEnFrontera (chunking.ts) y el trozo saltaría a ' +
+      'una frontera ANTERIOR a su ventana, perdiendo el texto de por medio. Antes ' +
+      'de subirlo, devuelve la guarda de "desde <= 0" que se retiró el 07/09/2026 ' +
+      'por inalcanzable.',
+    ).toBeLessThan(CHUNK_SIZE * 0.5);
   });
 
   it('un texto de 1200 o menos sale en un trozo único', () => {

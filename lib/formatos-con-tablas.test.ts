@@ -35,7 +35,18 @@ describe('EXTENSIONES_CON_TABLAS dice la verdad sobre el extractor', () => {
     expect(sinTablas.length).toBeGreaterThanOrEqual(2);
   });
 
-  it.each(ficheros)('%s: la lista coincide con lo que extractSegments produce', async nombre => {
+  /**
+   * ⚠️ EL PRESUPUESTO DE TIEMPO ES EXPLÍCITO — B.193, y no es precaución: se
+   * confirmó en directo. Cada caso extrae un fichero REAL (PDF por `pdf-parse`,
+   * `.docx` por `mammoth`), y con el límite de 5 s por defecto uno de ellos
+   * —`CLI-12`, 51.000 caracteres— falló en **5021 ms** bajo carga, tras dos
+   * apariciones previas que no se pudieron identificar porque no se reprodujeron.
+   *
+   * Un caso que falla una vez de cada cuatro es peor que uno que falla siempre:
+   * envenena la lectura de todo lo demás. Con presupuesto propio, si algún día
+   * falla será por lo que vigila y no por la máquina.
+   */
+  it.each(ficheros)('%s: la lista coincide con lo que extractSegments produce', { timeout: 30_000 }, async nombre => {
     const segmentos = await extractSegments(readFileSync(`corpus-pruebas/${nombre}`), nombre);
     const emiteEstructura = segmentos.some(s => s.type !== 'text');
 
