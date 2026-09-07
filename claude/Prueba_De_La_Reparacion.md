@@ -11,7 +11,7 @@ nuevo cambiarían a la vez, y el aislamiento se pierde.
 > ⚠️⚠️ **CADUCADO EL 07/09/2026, y se deja escrito en vez de borrarlo.** Esta
 > sección describe la ventana en la que reparar no cambiaba nada — el cortador
 > todavía no había cambiado. `fd30fc2f` la cerró. **Lo que hay que exigirle hoy
-> a una reparación está en la §8**, y el criterio de aquí, aplicado tal cual,
+> a una reparación está en la §7**, y el criterio de aquí, aplicado tal cual,
 > daría «reparación rota» ante el cortador funcionando.
 
 **El cortador todavía no ha cambiado**, así que re-trocear un documento con el
@@ -135,7 +135,7 @@ Se repiten (a), (b), (c) y (d) con la **generación nueva**.
 |---|---|---|---|
 | `active_generation` | N | **N+1** | la conmutación no llegó a la pata 2 |
 | `chunk_count` y (b) | C | **C, igual** | ⚠️ **HALLAZGO**. Sigue valiendo DESPUÉS del cortador: la foto congelada dice que el número de piezas no cambió en ninguna de las cinco entradas |
-| las huellas de (c) | lista | ⚠️ **YA NO son idénticas — ver §8** | invertido el 07/09/2026: con el cortador nuevo, la huella del trozo 1 se conserva y las siguientes SE MUEVEN. Que no se muevan es el hallazgo ahora |
+| las huellas de (c) | lista | ⚠️ **YA NO son idénticas — ver §7** | invertido el 07/09/2026: con el cortador nuevo, la huella del trozo 1 se conserva y las siguientes SE MUEVEN. Que no se muevan es el hallazgo ahora |
 | `extractor_version` | NULL, 1 o 2 | **3** (la vigente desde `d8b06d1b`) | el sello no se escribió: mira el caso que lo vigila |
 | **`analysis_status`** | X | **X, IGUAL** | ⚠️ **HALLAZGO GRAVE** — es B.185: reparar no puede meter un documento en el corpus |
 | **`reviewed_at` / `by`** | Y | **Y, IGUALES** | ⚠️ **HALLAZGO GRAVE** — reparar no puede devolver a la bandeja lo ya revisado |
@@ -224,13 +224,13 @@ reparar» a «hay que repararlos y esta vía no puede», que es peor de leer y m
 de saber.
 
 ⚠️ **No hay una «vía barata» para ellos hoy**, ni la habrá por tener segmentos:
-es B.195 (§7) — el plan pregunta por el ORIGEN antes que por la estructura, y un
+es B.195 (`B195_Via_Y_Catalogo.md`) — el plan preguntaba por el ORIGEN antes que por la estructura, y un
 documento de la nube se va a `reprocesar` aunque `retrocear` lo repararía.
 
 **La propiedad enriquecedora sigue viva, pero para los MANUALES**: un manual sin
 segmentos sale de esta pasada con ellos, y desde entonces se repara desde casa
 sin depender del proveedor. Es la vía por la que `new 9.txt` puede entrar **si es
-manual** — y eso es lo que decide la consulta de §7, que sigue sin ejecutarse.
+manual** — y eso lo decide la consulta de `B195_Via_Y_Catalogo.md` §1, que sigue sin ejecutarse.
 
 ---
 
