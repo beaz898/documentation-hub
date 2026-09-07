@@ -75,6 +75,96 @@ principio del protocolo.
 
 ---
 
+### FOTO PREVIA AL CORTADOR (07/09/2026) — `EXTRACTOR_VERSION = 2`
+
+**No es una tanda: es una LÍNEA DE BASE.** Se toma antes de tocar el cortador
+porque sin ella «se movió» y «lo arreglamos» son indistinguibles. Todo leído de la
+BASE, no de los logs (F-102).
+
+#### FAMILIA 1 — LA MEDIDA DEL DEFECTO. **Tiene que MOVERSE.**
+
+Instrumento validado con control positivo antes de medir: los dos `.docx` largos
+que TENÍAN que salir, salieron.
+
+| documento | tipo | cortados | trozos |
+|---|---|---|---|
+| NOR-10_protocolo-esterilizacion-instrumental | text | **58** | 75 |
+| CLI-12_manual-calidad-clinica.docx | text | **40** | 59 |
+| CLI-01_protocolo-esterilizacion-instrumental | text | **7** | 8 |
+| OPE-03_protocolo-acogida-al-paciente.txt | text | 6 | 7 |
+| CLI-03_historia-clinica-consentimiento-info | text | 5 | 6 |
+| NOR-11_gestion-de-residuos-sanitarios.docx | text | 4 | 16 |
+| OPE-05_atencion-telefonica.txt | text | 4 | 5 |
+| RRHH-03_vacaciones-y-permisos.txt | text | 3 | 4 |
+| OPE-07_cobros-y-facturacion.txt | text | 3 | 5 |
+| CLI-13_instrucciones-clinicas-residuos.docx | text | 1 | 11 |
+| **todo lo demás** (25 filas) | text / table_row / table_summary | **0** | — |
+
+**DIEZ documentos con prosa cortada. TODAS las filas de tabla a CERO**, en los
+ocho `.xlsx` del corpus y en sus tres tipos de trozo.
+
+⚠️ **Ese cero de las tablas es lo que salva la familia 2**: las celdas no pasan por
+el troceador de prosa, así que el cortador nuevo no puede moverlas. Y ya no es una
+lectura del código: está **medido sobre 24 documentos**.
+
+⚠️ **Y CLI-01 es el peor en proporción — 7 de 8.** Si tras el cortador sigue en 7,
+el arreglo no le llegó.
+
+#### FAMILIA 2 — LOS CONTROLES. **NO pueden moverse.**
+
+| control | 04/09 | 07/09 | lectura |
+|---|---|---|---|
+| OPE-10 → OPE-11, `contradictions_found` | **15** | **15** | ✅ se reproduce |
+| `contradictions_confirmed` | 15 | 15 | estructural: nunca difiere de `found` aquí |
+| `overlaps_found` | 2 | **1** | ⚠️ ver abajo |
+| `verificador.confirmados_por_estructura` | 0 | **0** | ✅ centinela invertido |
+
+⚠️ **EL CONTROL SE RESTAURÓ, Y NO ERA GRATIS.** OPE-10 se había perdido en una
+limpieza. Sin él, el 15/15 dejaba de ser un control —un control tiene que ser
+REPETIBLE— y pasaba a registro histórico. Se resubió por OneDrive, para que entrara
+en `pendiente` y no sumara otro documento por pertenencia, y se remidió en rápido:
+**5 créditos**. La remedición vale doble: **la cifra se reproduce sobre un corpus
+muy cambiado** —limpiezas, resubidas, cambio de origen y el paso 0 en medio—, que
+era la mitad valiosa de la prueba.
+
+⚠️ **EL CERO DE `por_estructura` ES EL VALOR CORRECTO, y casi se lee al revés.**
+Está declarado en `pipeline.ts:472-474`: «vale CERO SIEMPRE desde este commit. No
+es una regresión, es el diseño. El contador NO se retira: si algún día vuelve a
+moverse, algo está mal». **Las 15 del diff no pasan por la cascada** — el sello de
+estructura es exclusivo de lo que emite el diff, que lo construye por su cuenta.
+Así que el control es `contradictions_found`, y ese contador es un **centinela
+cuyo cero hay que vigilar**.
+
+⚠️ **LOS SOLAPAMIENTOS BAJARON DE 2 A 1, Y QUEDA ABIERTO.** No se ha investigado.
+Puede ser el corpus —OPE-10 es una subida nueva, y el segundo solapamiento del
+04/09 podría venir de un tercer documento que ya no está— o puede ser otra cosa.
+**Se anota como lo que es: una diferencia sin explicar en una cifra de control.**
+
+#### FAMILIA 3 — LA DE PROSA. **NO SE TOMA, y con su razón.**
+
+Se decidió **no gastar los 30 créditos**, y no por ahorro:
+
+· **Sería una muestra de tamaño uno sobre cifras NO DETERMINISTAS.** Las del juez
+  salen de un modelo; dos ejecuciones del mismo código pueden diferir. Sin una
+  segunda medición previa no hay banda de ruido, y sin banda no se puede separar
+  «lo movió el cortador» de «el modelo varió».
+· **Y el montaje ya no aísla.** NOR-10, CLI-12, RRHH-06 y `new 9.txt` están en
+  `analizado` y **no hay vuelta atrás**: participan por pertenencia en toda pasada.
+  Con ellos dentro, ninguna pareja queda aislada salvo la suya.
+
+**Consecuencia declarada**: tras el cortador, **un cambio en las cifras del juez no
+se podrá atribuir**. Se pierde detección de efectos sutiles, y se dice.
+
+#### LO QUE ESTA FOTO **NO** CONGELA
+
+· **La huella del troceado (md5 por chunk)** — pendiente. Sin ella se podrá decir
+  «el reparto cambió» pero no **en qué trozo empezó a diferir**.
+· **La recuperación del chat.** No hay cifra de si responde bien; un troceado mejor
+  debería notarse ahí y **no se va a poder demostrar**.
+· **Los diez caminos del censo** que siguen sin línea de base.
+
+---
+
 ### RESULTADOS — EL CAMINO DEL CHAT: PROPIETARIO Y ADOPCIÓN (04/09/2026)
 
 **LANZADA DESDE EL CHAT.** Mide lo que se escribió el 03/09 —F-101: el análisis
