@@ -80,7 +80,7 @@ primera vez que el sistema puede decirlo.**
 
 # 3 · LO QUE APARECIÓ SIN BUSCARLO
 
-Ocho fichas nuevas en cuatro días. **No significa que el sistema empeore: significa
+Nueve fichas nuevas en cuatro días. **No significa que el sistema empeore: significa
 que se miró en sitios nuevos** (F-103, regla 3).
 
 | ficha | qué es | estado |
@@ -93,6 +93,102 @@ que se miró en sitios nuevos** (F-103, regla 3).
 | **B.190** | cinco documentos con texto y sin trozos | 📋 medido: historia, no fallo vivo |
 | **B.194** | la reparación no se puede probar antes del cambio que la exige | 📋 declarado |
 | **B.195** | el plan prefiere la reparación COMPLETA a la DISPONIBLE: un documento de la nube con segmentos da 501 aunque re-trocearlo funcionaría | 📋 abierto, con la pregunta y sin solución |
+| **B.197** | un `export` de más en un `route.ts` tumbó el build de Vercel y dejó producción atrás — y `npm run typecheck` lo dio por verde | ✅ arreglado y con gate, `b9afe760` |
+
+
+## ⚠️ 3.1 · B.197 — y lo que «verde» ha significado esta semana
+
+El 07/09, `0e92faa` metió un `export function respuestaDeReparacion` dentro de
+`app/api/admin/reindexar/route.ts`. Next solo admite ahí los verbos HTTP y la
+configuración de segmento, así que **el build de Vercel murió y producción se
+quedó desactualizada** hasta `b9afe760`.
+
+> Type error: Route "app/api/admin/reindexar/route.ts" does not match the
+> required types of a Next.js Route.
+>   "respuestaDeReparacion" is not a valid Route export field.
+
+El arreglo es aburrido —la función se muda a `lib/documents/respuesta-de-reparacion.ts`—
+y **no es lo que hay que apuntar**. Lo que hay que apuntar es por qué pasó en verde.
+
+### La explicación fácil era falsa, y la medida es peor
+
+La primera lectura fue «`tsc` no ve esto porque es una regla del FRAMEWORK, no
+del lenguaje». **Es mentira, y se comprobó antes de escribirla en ningún sitio.**
+
+`tsc` sí la ve. La comprobación vive en `.next/types/app/…/route.ts` —que
+`tsconfig.json` incluye en su `include`, línea a la vista— donde Next escribe un
+`checkFields` por ruta contra `typeof import(la ruta)`. Medido el 07/09 volviendo
+a meter el export intruso a propósito:
+
+| `.next/types/…/reindexar/route.ts` | `tsc --noEmit` |
+|---|---|
+| **presente** | **ROJO**, en el acto, con el nombre del intruso |
+| **ausente** | **VERDE — con el fallo dentro** |
+
+**Y ese fichero lo escribe `next build`. `npm run typecheck` ni lo genera, ni
+comprueba que exista, ni se entera de que falta.**
+
+### Por qué esto es peor que «el gate no cubre esa clase»
+
+Un gate que no cubre una clase de error se sabe. **Éste la cubre para las rutas
+que ya existían la última vez que alguien construyó, y tiene un agujero con la
+forma exacta de una ruta NUEVA.** `app/api/admin/reindexar/route.ts` nació el
+06/09 (`378d985a`) y el export de más le entró el 07/09 (`0e92faa`): **nunca hubo
+comprobación que saltarse, porque para esa ruta nunca llegó a escribirse.**
+
+⚠️ Lo que aquí NO está medido, y se dice: cuándo fue la última vez que algo
+regeneró `.next/types` en esta máquina antes del fallo. Lo medido es el
+mecanismo —presente rojo, ausente verde— y que el artefacto solo lo escribe
+`next build`. Del estado exacto que tenía aquella tarde no queda registro.
+
+Es la forma de F-103 otra vez, y esta vez sobre el propio instrumento: **el verde
+no decía «lo he mirado y está bien», decía «no lo he mirado».** Una pantalla
+apagada, no una medición — sobre el gate con el que se ha validado todo lo demás.
+
+⚠️ **QUÉ SIGNIFICA PARA LO YA APROBADO ESTA SEMANA.** No hay que reabrir nada por
+esto: el agujero es de ESTA clase —lo que un `route.ts` exporta— y no toca los
+tipos del resto del repositorio, que sí se comprueban de punta a punta. Pero el
+enunciado «typecheck limpio» que aparece en `B195_Via_Y_Catalogo.md` y en varios
+mensajes de commit **significaba menos de lo que parecía en las rutas nuevas**.
+
+Y son **cuatro** desde el 01/09, no tres — `git log --diff-filter=A`, no la
+memoria, que es justo el fallo que esta casa ya tiene escrito («se dijo *los TRES
+puntos de indexación* y eran CUATRO»):
+
+| ruta | commit | día |
+|---|---|---|
+| `app/api/admin/config` | `bc4377c8` | 03/09 |
+| `app/api/admin/estado-del-corpus` | `af2d6efa` | 06/09 |
+| `app/api/admin/reindexar` | `378d985a` | 06/09 |
+| `app/api/admin/reindexar-lote` | `6030125d` | 07/09 |
+
+**Las cuatro pasan hoy el caso nuevo**, y con ellas los 58 `route.ts` del
+repositorio.
+
+### El gate que entra, y por qué lee la fuente
+
+`lib/rutas-solo-exportan-lo-permitido.test.ts`: barre los 58 `route.ts` de `app/`
+y comprueba que no exportan nada fuera de la lista cerrada de verbos y
+configuración. **Lee la FUENTE, no `.next/types`** — es la única forma de que el
+caso valga igual el día que la ruta se acaba de crear, que es justo el día en que
+hace falta.
+
+- **117 casos** (58 rutas × 2 comprobaciones + 1), con **control positivo del
+  barrido**: si encontrara menos de once ficheros, falla — un barrido vacío
+  pasaría todo sin comprobar nada, que es la forma exacta de un cero sin
+  denominador.
+  ⚠️ El mensaje de `b9afe760` dice «119» y **está mal**: 119 es lo que salió en
+  la ejecución de FALSACIÓN, que añadía una ruta de prueba. Un número copiado de
+  la corrida equivocada — la misma especie que la «cota inferior» del 06/09.
+- **Falsado**: con un `export` intruso metido a propósito en una ruta de prueba,
+  rojo con el nombre. Un caso que no se ha visto fallar no prueba nada.
+- Vigila aparte `export default` y `export { x }`, que el regex no ve.
+
+⚠️ **LO QUE NO ARREGLA, dicho:** esto cubre una clase, no el build. `next typegen`
+no sirve de sustituto —en 15.1 produce un validador más flojo que **no** mira los
+exports de un handler, comprobado con el mismo intruso— y `npm run build` sigue
+sin arrancar en la máquina (heap, ver el pendiente del 27/08). **El build entero
+se sigue verificando solo en Vercel, después del push.**
 
 ---
 

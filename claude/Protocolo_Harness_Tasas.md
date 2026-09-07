@@ -965,6 +965,22 @@ contadores dejó de compilar. Un test avisa a quien lo ejecuta; el tipo **para e
 gate** antes de que nadie ejecute nada — y en este repositorio el único gate que
 corre en local es `npm run typecheck` (B.108).
 
+⚠️ **CORREGIDO EL 07/09 POR B.197, y la corrección importa: `npm run typecheck`
+NO comprueba todo lo que parece.** Hay una clase —lo que un `route.ts` exporta—
+que `tsc` solo ve **a través de `.next/types`, un artefacto que escribe
+`next build` y que `typecheck` ni genera ni echa en falta**. Medido: con el
+fichero de esa ruta presente da rojo; ausente, verde con el fallo dentro. O sea
+que el gate **cubre las rutas viejas y tiene un agujero con la forma de una ruta
+nueva**, y por ahí se cayó el build de Vercel dejando producción atrás.
+
+La lección para este documento no es «hay un agujero menos». Es que **un gate que
+se apoya en un artefacto generado miente en silencio cuando el artefacto no
+está**, y el verde se lee igual en los dos casos. Cuando una comprobación pueda
+leer la FUENTE en vez de un derivado del build, que lea la fuente:
+`lib/rutas-solo-exportan-lo-permitido.test.ts` hace exactamente eso, y por eso
+vale el día que la ruta se acaba de crear — que es el único día en que hacía
+falta. La ficha entera está en `Estado_Del_MVP.md` §3.1.
+
 **4. ¿El caso colisionaría de verdad si el mecanismo estuviera roto?**
 *«No es "¿tengo un test?", es "¿mi test puede fallar?"».*
 
