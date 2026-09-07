@@ -70,7 +70,11 @@ export async function GET(req: NextRequest) {
   // La lista de los que NO están al día, con su vía. Es lo accionable: el
   // recuento dice cuánto, esto dice cuáles y por dónde.
   const aReparar = filas
-    .map((d, i) => ({ nombre: d.name, ...estadoDeReparacion(paraSello[i], EXTRACTOR_VERSION) }))
+    // ⚠️ EL ID VIAJA CON EL NOMBRE, y no es comodidad: sin el, esta lista es
+    // legible y NO ACCIONABLE — hay que volver a buscar cada documento por
+    // nombre para poder repararlo, que es como se cuelan los homonimos. El
+    // lector que dice cuales hay que reparar tiene que decir CUALES son.
+    .map((d, i) => ({ id: d.id, nombre: d.name, ...estadoDeReparacion(paraSello[i], EXTRACTOR_VERSION) }))
     .filter(d => d.estado !== 'al_dia');
 
   return NextResponse.json({

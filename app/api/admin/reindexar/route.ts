@@ -73,6 +73,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Solo los administradores pueden reindexar.' }, { status: 403 });
   }
 
+  // ⚠️ EL RELOJ ARRANCA AQUI. Nadie sabe hoy cuanto cuesta una reparacion —no se
+  // ha completado ninguna en produccion— y sin esa cifra no se puede decir
+  // cuantas caben en una llamada ni si un lote tiene sentido. La medicion sale
+  // gratis: es una resta en la linea que ya se imprime.
+  const arrancado = Date.now();
+
   const body = await req.json().catch(() => ({}));
   const documentId: unknown = body?.documentId;
   if (typeof documentId !== 'string' || documentId.length === 0) {
@@ -228,7 +234,7 @@ export async function POST(req: NextRequest) {
 
     console.log(
       `[reindexar] OK | doc=${documentId} | "${doc.name}" | gen ${generacionActiva}→${generacionNueva} | ` +
-      `${chunksActuales.length}→${chunks.length} trozos | completa=${esReparacionCompleta(plan)}`,
+      `${chunksActuales.length}→${chunks.length} trozos | completa=${esReparacionCompleta(plan)} | ${Date.now() - arrancado} ms | ${chunks.length} embeddings`,
     );
 
     return NextResponse.json({
