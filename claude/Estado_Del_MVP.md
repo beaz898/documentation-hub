@@ -184,11 +184,71 @@ hace falta.
   rojo con el nombre. Un caso que no se ha visto fallar no prueba nada.
 - Vigila aparte `export default` y `export { x }`, que el regex no ve.
 
-⚠️ **LO QUE NO ARREGLA, dicho:** esto cubre una clase, no el build. `next typegen`
-no sirve de sustituto —en 15.1 produce un validador más flojo que **no** mira los
-exports de un handler, comprobado con el mismo intruso— y `npm run build` sigue
-sin arrancar en la máquina (heap, ver el pendiente del 27/08). **El build entero
-se sigue verificando solo en Vercel, después del push.**
+⚠️ **LO QUE NO ARREGLA, dicho:** esto cubre una clase, no el build. Y
+`next typegen` no sirve de sustituto — en 15.1 produce un validador más flojo
+que **no** mira los exports de un handler, comprobado con el mismo intruso.
+
+### ⚠️ SÍ HAY GATE LOCAL, y llevaba desde el 27/08 delante de las narices
+
+**La creencia que hizo posible B.197 no fue sobre `tsc`: fue «el build no
+funciona en esta máquina, así que solo se puede ver en Vercel».** Es falsa. Tres
+ejecuciones medidas hoy, con y sin el export intruso:
+
+| ejecución | fase de tipos | resultado |
+|---|---|---|
+| intruso, heap por defecto | **falla** | `Failed to compile` + `Type error`, nombrando `intrusoDePrueba`, en ~60 s. **El error de Vercel, en local.** |
+| limpio, heap por defecto | **revienta** | `Zone Allocation failed`, `code: 134`, DENTRO de la fase de tipos. Sin veredicto. |
+| limpio, **`--max-old-space-size=8192`** | **pasa** | llega a `Collecting page data` y muere después, en `Generating static pages`. **Veredicto: aprobado.** |
+
+De donde sale el comando, y es lo más útil que deja esta ficha:
+
+> ```
+> NODE_OPTIONS="--max-old-space-size=8192" CI=true npx next build
+> ```
+> **Llegar a «Collecting page data» es el APROBADO.** Ahí ya ha corrido entera la
+> fase «Linting and checking validity of types», que es exactamente la que tumbó
+> `0e92faa`. El petardazo posterior en «Generating static pages» es la RAM de la
+> máquina y se ignora.
+
+⚠️ **Y EL HEAP NO ES UN DETALLE, ES LA DIFERENCIA ENTRE MEDIR Y NO MEDIR.** Con
+el heap por defecto la fase de tipos **no termina**: revienta por memoria y deja
+un final que **se parece muchísimo a haber acabado bien**. Es la misma trampa que
+esta ficha entera describe —un resultado que no distingue «he mirado» de «no he
+podido mirar»— y aquí estuvo a punto de hacerme escribir que el build local no
+servía como gate. Servía; le faltaba memoria.
+
+El apunte del 27/08 decía que 6 GB «no lo arregla». Es cierto para el build
+COMPLETO —la generación de páginas sigue sin caber— y **no** para lo único que
+hacía falta aquí, que es cruzar la fase de tipos.
+
+### El reparto que queda
+
+| lo que se quiere saber | cómo se comprueba en local |
+|---|---|
+| tipos del repo | `npm run typecheck` |
+| lógica y contadores | `npm run test` |
+| **que Next acepta las rutas** | `npm run test` (el caso nuevo): segundos, y **fiable en verde y en rojo** |
+| **la fase de tipos entera, como Vercel** | `NODE_OPTIONS=--max-old-space-size=8192 CI=true npx next build` → «Collecting page data» |
+| que el build entero pasa | **solo Vercel** |
+
+Los dos primeros son baratos y van siempre. El cuarto cuesta ~2 minutos y **es el
+que hay que correr antes de pushear una ruta nueva o tocada** — que es el hueco
+exacto por el que se cayó producción.
+
+⚠️ **PERO NO DE CUALQUIER MANERA, Y ESTO SE APRENDIÓ FALLANDO:** la primera sonda
+para medir todo esto se llamó `app/api/_prueba_b197/`, **con guion bajo — que en
+el App Router significa carpeta PRIVADA, no enrutada.** El build pasó la fase de
+tipos tan tranquilo y estuvo a punto de quedar escrito que «el build local
+tampoco lo caza». No lo cazaba porque **aquello no era una ruta**. Es otra vez la
+misma especie: un cero que no medía nada, salvado por rehacer la sonda con un
+nombre sin guion bajo. Sin ese segundo intento, esta tabla diría lo contrario.
+
+⚠️ **Y el artefacto miente en las DOS direcciones.** Al borrar la sonda,
+`.next/types` se quedó con los ficheros de una ruta que ya no existe y
+`npm run typecheck` empezó a dar errores **de una ruta inexistente**. Cuando
+falta una entrada esconde un fallo real; cuando le sobra una, **inventa uno
+falso**. Un gate colgado de un artefacto generado no es de fiar en ninguno de los
+dos sentidos, y por eso el caso nuevo lee la fuente.
 
 ---
 

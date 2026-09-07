@@ -60,6 +60,22 @@ const CONFIGURACION = [
 
 const PERMITIDOS = new Set([...VERBOS, ...CONFIGURACION]);
 
+/**
+ * Todos los `route.ts` de `app/`, sin excepciones.
+ *
+ * ⚠️ ES A PROPÓSITO MÁS ESTRICTO QUE NEXT, y conviene saberlo: una carpeta que
+ * empieza por `_` es PRIVADA en el App Router —Next no la enruta— así que un
+ * `app/api/_lo_que_sea/route.ts` no rompería ningún build y aquí sí falla.
+ *
+ * Se descubrió el 07/09 por accidente y de la peor manera: **la primera sonda
+ * para falsar todo esto se llamó `_prueba_b197`, y por eso un build local con
+ * el export intruso dentro pasó la fase de tipos tan campante.** El caso no
+ * medía lo que yo creía que medía. Se rehízo con un nombre sin guion bajo.
+ *
+ * Se deja estricto porque errar hacia el lado seguro no cuesta nada: nadie
+ * guarda ayudantes en un fichero llamado `route.ts`. Si algún día molesta, la
+ * decisión de aflojarlo se toma aquí y no por descuido.
+ */
 function rutas(raiz: string): string[] {
   const salida: string[] = [];
   const pila = [raiz];
