@@ -7241,6 +7241,62 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     ⚠️ La 1 y la 3 no se estorban: se pueden hacer las dos, y arreglan cosas
     distintas.
 
+  B.194 — [ABIERTO 07/09 · ⚠️ UNA CONDICIÓN QUE NO SE PUEDE CUMPLIR EN EL ORDEN EN
+    QUE ESTÁ ESCRITA] LA REPARACIÓN NO SE PUEDE PROBAR ANTES DEL CAMBIO QUE LA EXIGE
+
+    ══ EL DATO ══
+    Los 15 documentos del corpus dan **501**: todos son de la nube, así que el
+    plan los manda a `reprocesar`, que no está construido. Y **ninguno tiene
+    segmentos** salvo los dos aprobados ayer, que están **al día** (`sello 2`) y
+    por tanto el plan los rechaza con `al_dia`.
+
+    ⚠️ ══ Y NO ES UN PROBLEMA DE CANDIDATOS: ES ESTRUCTURAL ══
+    Para que un documento sea reparable hace falta que **su sello sea distinto del
+    vigente**. Y hoy:
+      · `ingest` e `index-text` escriben SIEMPRE `EXTRACTOR_VERSION`, así que
+        **un documento recién subido nace al día** — no sirve;
+      · lo único con sello viejo es lo anterior a agosto, y en este corpus es
+        **todo de la nube** → 501;
+      · y tocar la fila a mano para fabricar el hueco **no es medir: es fabricar
+        el caso**.
+    **La brecha de versión que hace reparable a un documento SOLO EXISTE DESPUÉS
+    del cambio que sube la versión.** Es decir: la condición de F-104 —«que exista
+    la vía de reparación antes de tocar el cortador»—, leída como «probada en
+    producción», **es inejecutable en ese orden**. Solo se puede cumplir después
+    del acto que la requiere.
+
+    ══ LO QUE SÍ SE HA PROBADO EN PRODUCCIÓN, y no es poco ══
+    Las dos aprobaciones del 07/09 —RRHH-06 y `new 9.txt`— ejercitaron **casi toda
+    la maquinaria de la reparación**, por el camino del sync: troceado en la
+    generación N+1, escritura del marcador `document_staged`, **las cuatro patas
+    de `swapDocumentVectors`**, promoción de los segmentos y escritura del sello.
+    Salieron con `gen 2`, `sello 2`, segmentos ✓.
+    **Lo que NUNCA ha corrido es la ENTRADA** —el endpoint, sus guardas y la
+    lectura dual de `retrocear`—, que es la parte barata; la parte que puede
+    romper algo es la conmutación, y ésa sí ha corrido.
+
+    ══ LA SALIDA, y su coste declarado ══
+    La única forma de tener un candidato legítimo es **subir la versión**, y eso
+    es precisamente el cambio del cortador. Por tanto:
+      · **el cortador NO se bloquea por esto**, porque bloquearlo sería esperar a
+        una condición que el propio bloqueo impide cumplir;
+      · **pero el primer documento que se repare después del salto tiene que ser
+        un CONTROL POSITIVO**: prosa corta cuyo troceado el cortador nuevo NO
+        cambie —un solo trozo, sin corte por longitud—, de modo que **el resultado
+        esperado sea BYTE A BYTE IDÉNTICO**. Si difiere, la reparación está rota;
+        y se sabe **antes** de que el cortador enturbie la lectura.
+    Sin ese control, el primer fallo de la reparación sería indistinguible de un
+    efecto del cortador — que es exactamente lo que la foto previa existe para
+    evitar, aplicado aquí.
+
+    ⚠️ ══ Y LO QUE ESTO LE HACE A LA REGLA DE F-104 ══
+    La regla sigue siendo buena, pero su enunciado tiene un hueco: dice **«que
+    exista la vía»** y se ha estado leyendo como **«que se haya demostrado»**. Las
+    dos lecturas son razonables y solo una es ejecutable. Conviene que Fable
+    decida cuál era, porque de eso depende cuándo se considera cumplida — y no es
+    la última vez que va a pasar: **cualquier reparación cuyo disparador sea un
+    cambio de versión tendrá esta misma forma.**
+
 Forma de trabajo: diagnóstico con datos reales antes de arreglar; un
 cambio lógico cada vez; build verde entre medias; SQL en Supabase antes
 del push; plan completo antes de tocar varios archivos.
