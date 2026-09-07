@@ -4,7 +4,7 @@ import { getAuthenticatedUserHybrid } from '@/lib/supabase-server';
 import { resolveOrg } from '@/lib/org';
 import { checkUploadLock } from '@/lib/upload-lock';
 import { repararDocumento } from '@/lib/documents/reparar';
-import type { ResultadoDeReparacion } from '@/lib/documents/reparar';
+import { respuestaDeReparacion } from '@/lib/documents/respuesta-de-reparacion';
 
 /**
  * POST /api/admin/reindexar — EL ESCRITOR (F-104, paso 1 del orden).
@@ -42,62 +42,6 @@ import type { ResultadoDeReparacion } from '@/lib/documents/reparar';
  */
 
 export const maxDuration = 300;
-
-/**
- * LA TRADUCCIÓN A HTTP, en un solo sitio para que la ruta de uno y la del lote
- * no puedan discrepar sobre qué significa cada final.
- */
-export function respuestaDeReparacion(resultado: ResultadoDeReparacion): NextResponse {
-  if (resultado.ok) {
-    return NextResponse.json({
-      reindexado: true,
-      via: 'retrocear',
-      generacion: resultado.generacion,
-      trozos: resultado.trozos,
-      // ⚠️ SE DICE QUE ES MEDIA REPARACIÓN, y no se vende como completa:
-      // re-trocear arregla el troceado, NO la extracción.
-      reparacion_completa: resultado.reparacionCompleta,
-      aviso: resultado.reparacionCompleta
-        ? undefined
-        : 'Se ha reparado el TROCEADO desde el texto guardado. Si lo que cambió fue cómo se LEE el documento, este documento sigue necesitando una resubida.',
-    });
-  }
-
-  if (resultado.clase === 'no_encontrado') {
-    return NextResponse.json({ error: 'Documento no encontrado.' }, { status: 404 });
-  }
-
-  if (resultado.clase === 'rechazado') {
-    return NextResponse.json({
-      reindexado: false,
-      via: 'rechazado',
-      // El motivo se devuelve tal cual para que quien lo enseñe no tenga que
-      // traducirlo aquí: `sin_original_con_tablas` es lo que le dice al usuario
-      // que ese documento se repara RESUBIÉNDOLO, no con un botón.
-      motivo: resultado.motivo,
-    }, { status: 409 });
-  }
-
-  if (resultado.clase === 'no_implementado') {
-    return NextResponse.json({
-      reindexado: false,
-      via: 'reprocesar',
-      motivo: 'reprocesar_no_implementado',
-      detalle: 'Este documento tiene su original en un proveedor externo y su reparación completa necesita volver a descargarlo. Esa vía todavía no está construida.',
-    }, { status: 501 });
-  }
-
-  if (resultado.motivo === 'fallo_lectura') {
-    return NextResponse.json({ error: 'No se pudo leer el documento.' }, { status: 500 });
-  }
-
-  return NextResponse.json({
-    reindexado: false,
-    via: 'retrocear',
-    motivo: resultado.motivo,
-    detalle: resultado.detalle,
-  }, { status: 500 });
-}
 
 export async function POST(req: NextRequest) {
   const user = await getAuthenticatedUserHybrid(req);
