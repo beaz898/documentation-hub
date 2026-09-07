@@ -387,3 +387,87 @@ la guarda de estructura siempre relajada y el rango vacío.
 
 ⚠️ **Predicción de población fallada otra vez, y al revés que ayer**: predije
 630-645 —alto a propósito, porque ayer me quedé corto— y salieron 622. Van seis.
+
+---
+
+# 10 · EL CATÁLOGO: subir la versión sin declarar el cambio es IMPOSIBLE
+
+**07/09/2026**, con las dos condiciones que se pidieron.
+
+## 10.1 · ⚠️ UNA CORRECCIÓN DE PREMISA, ANTES DE NADA
+
+Quedó dicho que «el sello ya sabe distinguirlos porque el extractor y el
+troceador comparten número». **Es al revés, y la diferencia decide si el
+catálogo puede retirarse algún día:**
+
+> **Compartir número es exactamente por lo que el sello NO puede distinguirlos.**
+> De «2 → 3» no se deduce si cambió el troceado o la extracción — el número es el
+> mismo para las dos cosas. **Lo que los distingue es el catálogo**, que es una
+> columna nueva, no una lectura más fina del número.
+
+Lo que sí es cierto es lo otro: **no hace falta la firma de comportamiento**. La
+firma se recalcula y se compara; el catálogo se declara y se cree. Es más barato
+y basta para esta decisión — pero **es lo único que sostiene la distinción**. El
+día que alguien retire el catálogo, `soloCambioElTroceado` se queda sin con qué
+contestar y hay que volver a la firma.
+
+## 10.2 · Condición 1 — en el código, no en un documento
+
+`CAMBIOS_POR_VERSION` vive en `lib/chunking.ts`, **pegado al sello**, en la línea
+por la que pasa quien sube la versión. No hay un documento paralelo que mantener.
+
+## 10.3 · Condición 2 — subirla sin declarar el cambio FALLA
+
+Y se cumple por una vía más fuerte que un aviso: **no hay número que subir.**
+
+```ts
+export const EXTRACTOR_VERSION = versionDelCatalogo(CAMBIOS_POR_VERSION);
+```
+
+La versión vigente **es la última entrada del catálogo**. Subirla es añadir una
+línea, y esa línea obliga a escribir `'troceado'` o `'extraccion'`. No está
+vigilado: es imposible.
+
+⚠️ **Y un hueco no arrastra la vigente detrás de él.** Si alguien escribe `10` de
+un dedazo, la vigente no salta a 10 — saltar marcaría todo el parque como
+desactualizado de golpe y mandaría a reparar de balde a un corpus sano. Se ignora
+lo que hay más allá del hueco, y un caso lo denuncia.
+
+## 10.4 · ⚠️ LO QUE UNA MUTACIÓN OBLIGÓ A AÑADIR
+
+Sustituir la derivación por el literal `3` —el estado de ayer— **sobrevivió a los
+627 casos**. Con razón: hoy los dos valen lo mismo, así que **ningún caso que
+mire el VALOR puede distinguirlos**.
+
+Y eso no es un detalle: lo que hay que impedir no es que el número esté mal hoy,
+sino que **vuelva a poder moverse sin tocar el catálogo** — que es exactamente
+como el sello se quedó atrás el 24/08.
+
+Lo que no se puede comprobar por el valor se comprueba por la **FUENTE**: un caso
+lee `lib/chunking.ts` y exige que la asignación contenga
+`versionDelCatalogo(CAMBIOS_POR_VERSION)`. Es el mismo mecanismo de
+`sello-en-cada-escritura.test.ts`, y nace de la misma necesidad — vigilar una
+propiedad del código y no de un resultado.
+
+## 10.5 · Y una guarda menos, otra vez por mutación
+
+El ternario del catálogo vacío también sobrevivió, y también con razón: el bucle
+arranca en `PRIMERA_VERSION_CATALOGADA` y no avanza si no hay nada, así que el
+ternario devolvía siempre lo que ya había. **Rama sin diferencia observable, no
+rama sin test.** Retirada, con el motivo escrito donde estaba.
+
+Es el segundo caso del mismo día — el primero fue la guarda doble de
+`arranqueEnFrontera`. Empieza a ser un patrón: **las guardas que escribo «por si
+acaso» suelen ser no-ops, y las mutaciones son lo único que lo destapa.**
+
+## 10.6 · La verificación
+
+**622 → 628 casos**, verdes, typecheck limpio. Cinco mutaciones, **las cinco
+muertas** tras añadir la guarda de fuente: el literal con el mismo valor, el
+literal adelantado, el máximo que arrastra huecos, el arranque del bucle y la
+retirada de una entrada del catálogo.
+
+⚠️ **Y una falta de método que se anota**: esta vez **no escribí la predicción de
+población antes de ejecutar**. La de comportamiento sí —«subir la versión sin
+declarar el cambio deja de ser posible»— y la mutación la confirma; la de
+población no existió, así que no se puede decir si habría acertado.

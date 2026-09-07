@@ -1,7 +1,11 @@
+import { readFileSync } from 'node:fs';
 import { describe, it, expect } from 'vitest';
 import { estadoDeReparacion, recuentoPorEstado } from './estado-de-reparacion';
 import type { FilaParaSello } from './estado-de-reparacion';
-import { soloCambioElTroceado, CAMBIOS_POR_VERSION, EXTRACTOR_VERSION } from '@/lib/chunking';
+import {
+  soloCambioElTroceado, CAMBIOS_POR_VERSION, EXTRACTOR_VERSION,
+  versionDelCatalogo, PRIMERA_VERSION_CATALOGADA,
+} from '@/lib/chunking';
 import { ORIGENES_SINCRONIZADOS } from './origen';
 
 /**
@@ -161,16 +165,92 @@ describe('soloCambioElTroceado — el mapa que hace decidible la vía', () => {
     expect(soloCambioElTroceado(4, 3)).toBe(true);
   });
 
+});
+
+describe('el catálogo: subir la versión sin declarar el cambio es IMPOSIBLE', () => {
   /**
-   * El mapa tiene que cubrir TODA versión viva. Si alguien sube
-   * `EXTRACTOR_VERSION` sin clasificarla, este caso lo dice — y lo dice antes de
-   * que un documento se quede sin poder repararse por lo barato sin motivo.
+   * ⚠️ EL CASO QUE SOSTIENE LA CONDICIÓN, y por eso va con la consecuencia
+   * dentro: la versión vigente **no es un literal**, es la última entrada del
+   * catálogo. Añadir una línea es la única forma de subirla, y esa línea obliga a
+   * declarar si cambió el troceado o la extracción.
+   *
+   * Antes esto era un aviso escrito, y el aviso ya falló una vez: el 24/08 el
+   * troceado cambió y el número se quedó en 2 porque el commit no pasó por esa
+   * línea. Ahora la línea por la que hay que pasar es la única que hay.
    */
-  it('el mapa cubre todas las versiones hasta la vigente', () => {
-    for (let v = 2; v <= EXTRACTOR_VERSION; v++) {
-      expect(CAMBIOS_POR_VERSION[v], `falta clasificar la versión ${v} en CAMBIOS_POR_VERSION`)
-        .toBeDefined();
+  it('la vigente ES la última entrada del catálogo', () => {
+    expect(EXTRACTOR_VERSION).toBe(versionDelCatalogo(CAMBIOS_POR_VERSION));
+    expect(CAMBIOS_POR_VERSION[EXTRACTOR_VERSION]).toBeDefined();
+    expect(CAMBIOS_POR_VERSION[EXTRACTOR_VERSION + 1]).toBeUndefined();
+  });
+
+/**
+   * ⚠️ EL VIGILANTE DE LA DERIVACIÓN, y existe porque una mutación lo pidió.
+   *
+   * Sustituir `versionDelCatalogo(CAMBIOS_POR_VERSION)` por el literal `3`
+   * **sobrevivió a los 627 casos**: hoy los dos valen lo mismo, así que ningún
+   * caso que mire el VALOR puede distinguirlos. Y eso es justo lo que hay que
+   * impedir — no que el número esté mal hoy, sino que **vuelva a poder moverse
+   * sin tocar el catálogo**, que es como el sello se quedó atrás en agosto.
+   *
+   * Lo que no se puede comprobar por el valor se comprueba por la FUENTE. Es el
+   * mismo mecanismo de `sello-en-cada-escritura.test.ts`, y nace de la misma
+   * necesidad: vigilar una propiedad del código, no de un resultado.
+   */
+  it('⚠️ la vigente se DERIVA del catálogo — vigilado sobre el fuente', () => {
+    const fuente = readFileSync('lib/chunking.ts', 'utf8');
+    const asignacion = fuente
+      .split('\n')
+      .find(l => l.startsWith('export const EXTRACTOR_VERSION'));
+
+    expect(asignacion, 'no se encuentra la declaración de EXTRACTOR_VERSION').toBeDefined();
+    expect(
+      asignacion,
+      'EXTRACTOR_VERSION ha vuelto a ser un literal. Si se puede subir el número ' +
+      'sin tocar CAMBIOS_POR_VERSION, el catálogo se queda atrás — que es ' +
+      'exactamente lo que le pasó al sello el 24/08/2026. Deriva la versión del ' +
+      'catálogo con versionDelCatalogo().',
+    ).toContain('versionDelCatalogo(CAMBIOS_POR_VERSION)');
+  });
+
+  it('añadir una entrada sube la vigente; no añadirla, no', () => {
+    expect(versionDelCatalogo({ 2: 'troceado' })).toBe(2);
+    expect(versionDelCatalogo({ 2: 'troceado', 3: 'troceado' })).toBe(3);
+    expect(versionDelCatalogo({ 2: 'troceado', 3: 'troceado', 4: 'extraccion' })).toBe(4);
+  });
+
+  /**
+   * ⚠️ UN HUECO NO ES UNA VERSIÓN NUEVA. Si alguien escribe `10` de un dedazo, la
+   * vigente NO salta a 10: saltar marcaría todo el parque como desactualizado de
+   * golpe y mandaría a reparar de balde a un corpus sano. Se ignora lo que hay
+   * más allá del hueco, y el caso de abajo denuncia que el catálogo está roto.
+   */
+  it('un hueco no arrastra la vigente detrás de él', () => {
+    expect(versionDelCatalogo({ 2: 'troceado', 10: 'troceado' })).toBe(2);
+    expect(versionDelCatalogo({ 2: 'troceado', 3: 'troceado', 7: 'extraccion' })).toBe(3);
+  });
+
+  it('⚠️ el catálogo NO tiene huecos: toda clave está en el tramo vigente', () => {
+    for (const clave of Object.keys(CAMBIOS_POR_VERSION).map(Number)) {
+      expect(clave, `la versión ${clave} está fuera del tramo ${PRIMERA_VERSION_CATALOGADA}..${EXTRACTOR_VERSION}: o es un dedazo, o falta la intermedia`)
+        .toBeLessThanOrEqual(EXTRACTOR_VERSION);
+      expect(clave).toBeGreaterThanOrEqual(PRIMERA_VERSION_CATALOGADA);
     }
+  });
+
+  it('el catálogo no está vacío, que es lo que hace válido todo lo demás', () => {
+    expect(Object.keys(CAMBIOS_POR_VERSION).length).toBeGreaterThan(0);
+    expect(EXTRACTOR_VERSION).toBeGreaterThanOrEqual(PRIMERA_VERSION_CATALOGADA);
+    expect(Number.isInteger(EXTRACTOR_VERSION)).toBe(true);
+  });
+
+  /**
+   * El vacío no puede ocurrir —lo impide el caso de arriba— pero se contesta algo
+   * estable en vez de un `NaN`, que se propagaría a las CUATRO escrituras del
+   * sello y de ahí a la base.
+   */
+  it('un catálogo vacío no produce NaN', () => {
+    expect(versionDelCatalogo({})).toBe(PRIMERA_VERSION_CATALOGADA);
   });
 });
 

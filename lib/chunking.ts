@@ -39,78 +39,43 @@ const MIN_CHUNK_SIZE = 300;   // por debajo de esto, una sección se fusiona con
 const MIN_PIECE_LENGTH = 50;
 
 /**
- * Versión del extractor (extractText/extractSegments/chunkText). Se sube a
- * mano cada vez que cambia cómo se lee o trocea un documento. Subirla marca
- * TODOS los documentos ya indexados (con una versión anterior o sin ninguna)
- * como desactualizados frente al lector actual — es la señal que permite
- * saber cuáles habría que reprocesar.
- *
- * ⚠️ ═══ CONTRATO, desde el 06/09/2026 — ESTE NÚMERO YA TIENE LECTOR ═══
- * `lib/documents/estado-de-reparacion.ts` lo lee para clasificar cada documento
- * del corpus en «al día», «reparable automáticamente» o «reparable resubiendo»,
- * y esa clasificación se enseña. Desde que existe ese lector, esto dejó de ser
- * una nota y es un contrato:
- *
- *   **ESTE NÚMERO SUBE SI Y SOLO SI CAMBIA LO QUE EL TROCEADOR PRODUCE.**
- *
- * No sube por refactorizar, ni por renombrar, ni por «ya que estamos». Y si un
- * cambio altera lo producido, TIENE que subir aunque parezca menor.
- * La razón es mecánica, no ceremonial: subirlo sin que cambie el troceado marca
- * como desactualizado un parque que estaba bien —y manda a reindexar de balde—;
- * cambiar el troceado sin subirlo deja el corpus mezclado y **el lector afirma
- * que está sano**. Un lector que miente es peor que no tener lector.
- *
- * ⚠️ Y LO QUE NO ES: esto no es una firma de comportamiento, es un número que
- * hay que CREER. Una firma se recalcula y se compara; este número solo se puede
- * respetar. Mientras siga siendo un número, el contrato de arriba es la única
- * cosa que lo sostiene — y por eso está escrito aquí, donde alguien lo va a
- * tocar, y no en un documento aparte. Ver F-104, regla 3.
- *
- * ⚠️ ═══ EL PRIMER EJERCICIO DEL CONTRATO — 07/09/2026, 2 → 3 ═══
- * El cortador cambió (B.182: el arranque del trozo pasó a usar el mismo criterio
- * que el final), así que el número sube. **No es una ceremonia: sin subirlo, los
- * documentos troceados con el cortador viejo serían indistinguibles de los
- * nuevos** — que es exactamente lo que pasó el 22 de agosto y el 24, cuando el
- * troceado cambió dos veces y el sello solo se movió una. El `2` cubre desde
- * entonces DOS comportamientos distintos. Ese caso no se repite.
- *
- * ⚠️ Y LO QUE HACE AL SUBIRLO, dicho antes de que sorprenda: los 38 documentos
- * del corpus pasan a «desactualizados» de golpe. **Eso no es una avería: es la
- * primera vez que el sistema puede decirlo.** Antes también estaban mezclados —
- * solo que en silencio.
- */
-export const EXTRACTOR_VERSION = 3;
-
-/**
- * QUÉ CAMBIÓ EN CADA VERSIÓN DEL EXTRACTOR — el mapa que hace decidible la vía
- * de reparación (B.195, 07/09/2026).
+ * EL CATÁLOGO DE VERSIONES DEL EXTRACTOR — y la versión vigente SALE DE ÉL.
  *
  * ═══════════════════════════════════════════════════════════════════════════
- * ⚠️ ESTO NO ES UNA FIRMA DE COMPORTAMIENTO, Y LA DIFERENCIA IMPORTA. Una firma
- * se recalcula y se compara; esto **se cree**. Es una DECLARACIÓN, con el mismo
- * punto débil que el número de arriba: alguien tiene que acordarse de escribirla.
- * Por eso vive aquí, en la línea que esa persona va a tocar, y no en un documento.
+ * ⚠️ NO HAY UN NÚMERO QUE SUBIR. La versión vigente es **la última entrada de
+ * este catálogo**, así que subirla sin declarar qué cambió no está vigilado: es
+ * IMPOSIBLE. Se sube añadiendo una línea aquí, y esa línea obliga a decir si lo
+ * que cambió fue el TROCEADO o la EXTRACCIÓN.
  * ═══════════════════════════════════════════════════════════════════════════
+ *
+ * ⚠️ POR QUÉ ASÍ Y NO CON UN AVISO. Porque el aviso ya falló: el 22/08 el
+ * troceado cambió y la versión subió, y el 24/08 volvió a cambiar —los
+ * `table_summary` dejaron de subdividirse, nació `column_order`— y **la versión
+ * se quedó en 2**. Nadie lo decidió: el commit no pasó por esa línea. Un
+ * catálogo aparte se habría quedado atrás exactamente igual. Con la versión
+ * derivada, la línea por la que hay que pasar es la única que hay.
+ *
+ * ⚠️ Y LO QUE ESTO **NO** ES: no es una firma de comportamiento. Una firma se
+ * recalcula y se compara — se puede COMPROBAR—; esto se declara, y se cree. Que
+ * el troceador y el extractor compartan número es justamente la razón por la que
+ * el número solo no puede distinguirlos: **lo que los distingue es esta columna,
+ * no el sello**. Si algún día se quita el catálogo, `soloCambioElTroceado` deja
+ * de tener con qué contestar y hay que volver a la firma.
  *
  * PARA QUÉ SIRVE. Hay dos reparaciones: RE-TROCEAR —barata, desde los segmentos
  * guardados, arregla el troceado y nada más— y REPROCESAR —cara, vuelve a
  * descargar el original, arregla también la extracción, y HOY NO ESTÁ CONSTRUIDA—.
- * Sin este mapa no se puede saber cuál hace falta: el sello es un entero, y de
- * «2 → 3» no se deduce qué cambió. Con él, `soloCambioElTroceado` contesta.
+ * Sin el catálogo no se puede saber cuál hace falta: de «2 → 3» no se deduce qué
+ * cambió. Con él, `soloCambioElTroceado` contesta.
  *
- * ⚠️ Y LA TRAMPA QUE CIERRA, declarada porque no se puede ignorar: la vía barata
- * vale **mientras lo que haya cambiado desde el sello del documento sea troceado**.
- * El día que una versión traiga `'extraccion'`, los documentos sellados por debajo
- * dejan de ser reparables por lo barato — y hay que NEGARSE en vez de sellarlos de
- * más. Eso lo hace la propia función, sin que nadie se acuerde: basta con
- * clasificar bien la versión nueva aquí.
- *
- * ⚠️ EL `2` ES IMPRECISO Y SE DICE: cubre DOS comportamientos, porque el 24/08 el
- * troceado volvió a cambiar (`table_summary` dejó de subdividirse, nació
- * `column_order`) y el número no se movió. Los dos son de troceado, así que para
- * lo que este mapa decide da igual — pero no se disimula.
+ * ⚠️ EL `2` ES IMPRECISO Y SE DICE: cubre DOS comportamientos, por lo del 24/08.
+ * Los dos son de troceado, así que para lo que este catálogo decide da igual —
+ * pero no se disimula.
  */
 export type ClaseDeCambio = 'troceado' | 'extraccion';
+
+/** La primera versión catalogada. La 1 es anterior al catálogo y no consta. */
+export const PRIMERA_VERSION_CATALOGADA = 2;
 
 export const CAMBIOS_POR_VERSION: Record<number, ClaseDeCambio> = {
   2: 'troceado', // 22/08 y 24/08 — dos cambios del troceado bajo el mismo número
@@ -118,10 +83,58 @@ export const CAMBIOS_POR_VERSION: Record<number, ClaseDeCambio> = {
 };
 
 /**
+ * LA VERSIÓN VIGENTE, DERIVADA. No se escribe: se deduce del catálogo, que es lo
+ * que hace imposible subirla sin declarar el cambio.
+ *
+ * ⚠️ EXIGE VERSIONES CONSECUTIVAS, y no es tiquismiquis: si alguien escribe `10`
+ * por un dedazo, la vigente pasaría a 10 y **todo el parque quedaría marcado como
+ * desactualizado de golpe**, mandando a reparar de balde. Un hueco es un error de
+ * catálogo, no una versión nueva, así que se ignora lo que hay más allá del hueco
+ * y un caso de la batería lo denuncia.
+ *
+ * El catálogo vacío devuelve la primera versión catalogada. No puede ocurrir
+ * —hay un caso que lo exige no vacío— y aun así se contesta algo estable en vez
+ * de un `NaN` que se propagaría a las cuatro escrituras del sello.
+ */
+export function versionDelCatalogo(catalogo: Record<number, ClaseDeCambio>): number {
+  let vigente = PRIMERA_VERSION_CATALOGADA;
+  while (catalogo[vigente + 1] !== undefined) vigente++;
+  // ⚠️ SIN GUARDA PARA EL CATÁLOGO VACÍO, y es deliberado: aquí había un
+  // ternario que devolvía `PRIMERA_VERSION_CATALOGADA` cuando faltaba la entrada
+  // 2, y una mutación que lo borró **sobrevivió a los 627 casos**. Con razón: el
+  // bucle arranca en esa misma constante y no avanza si no hay nada que seguir,
+  // así que el ternario devolvía siempre lo que ya había. Era una rama sin
+  // diferencia observable, no una rama sin test.
+  return vigente;
+}
+
+/**
+ * Versión del extractor (extractText/extractSegments/chunkText).
+ *
+ * ⚠️ ═══ CONTRATO, desde el 06/09/2026 — ESTE NÚMERO TIENE LECTOR ═══
+ * `lib/documents/estado-de-reparacion.ts` lo lee para clasificar cada documento
+ * del corpus, y esa clasificación se enseña. Desde que existe ese lector, esto
+ * dejó de ser una nota y es un contrato:
+ *
+ *   **ESTE NÚMERO SUBE SI Y SOLO SI CAMBIA LO QUE EL EXTRACTOR PRODUCE.**
+ *
+ * No sube por refactorizar, ni por renombrar, ni por «ya que estamos». Y si un
+ * cambio altera lo producido, TIENE que subir aunque parezca menor. Subirlo sin
+ * que cambie nada marca como desactualizado un parque sano —y manda a reindexar
+ * de balde—; cambiarlo sin subirlo deja el corpus mezclado y **el lector afirma
+ * que está sano**. Un lector que miente es peor que no tener lector.
+ *
+ * ⚠️ SUBIRLO ES AÑADIR UNA LÍNEA AL CATÁLOGO DE ARRIBA, con su clase de cambio.
+ * No hay otra forma, y es deliberado: el 07/09 dejó de ser un literal justamente
+ * para que no se pueda mover sin declarar qué cambió.
+ */
+export const EXTRACTOR_VERSION = versionDelCatalogo(CAMBIOS_POR_VERSION);
+
+/**
  * ¿TODO LO QUE CAMBIÓ DESDE ESTE SELLO ES TROCEADO?
  *
  * ⚠️ FALLA CERRADA, y es la mitad que protege: un sello ausente (`null`, las filas
- * anteriores a la columna) o una versión que no está en el mapa devuelven
+ * anteriores a la columna) o una versión que no está en el catálogo devuelven
  * **false**. No saber qué cambió no es lo mismo que saber que fue poco, y
  * confundirlos es cómo un documento se repara a medias y se sella entero.
  */
