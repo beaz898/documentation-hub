@@ -7210,6 +7210,15 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     explícito** desde ayer, y la corrida entera duró 41 s: no le dio tiempo a
     agotarlo.
 
+    ⚠️ ══ SEGUNDA OBSERVACIÓN, 07/09 ══
+    Vuelve a ocurrir: **1 fallo de 595**, y la corrida tardó **56 s** contra los
+    21 habituales. Otra vez bajo carga, y otra vez sin capturar el nombre.
+    **Van dos de dos con la misma firma** —lentitud extrema, un solo caso, no
+    reproducible después—, lo que refuerza la hipótesis del tiempo agotado sin
+    llegar a demostrarla.
+    ⚠️ Y sube de prioridad: **el cortador va a cambiar la batería**, y ése es
+    justo el momento en que un rojo intermitente cuesta más de leer.
+
     ⚠️ **NO ESTÁ DEMOSTRADO.** Es la explicación que encaja con lo observado —caso
     lento, sin presupuesto, fallo bajo carga— pero **no se ha reproducido**, y por
     la regla del cero eso la deja en hipótesis con evidencia, no en causa medida.
