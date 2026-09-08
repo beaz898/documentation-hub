@@ -428,6 +428,8 @@ function ImprovementModalDesktop({
   const {
     indexing,
     showReplaceDialog,
+    pendienteDeAplanar,
+    cancelarAplanado,
     setShowReplaceDialog,
     doIndex,
   } = useIndexing({
@@ -667,6 +669,73 @@ function ImprovementModalDesktop({
           onReplace={() => doIndex(text, true)}
           onCancel={() => setShowReplaceDialog(false)}
         />
+
+        {/* ⚠️ B.201 — EL AVISO DE APLANADO. Sale solo cuando el servidor dice que
+            guardar este texto le quitaría las filas y columnas al documento, y
+            NO se recuerda la respuesta: cada documento es distinto, y ésta es la
+            única vez que el usuario ve qué va a dejar de funcionar. */}
+        {pendienteDeAplanar && (
+          <div style={{
+            position: 'fixed', inset: 0, background: 'rgba(0,0,0,.45)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 60,
+          }}>
+            <div style={{
+              background: 'var(--bg-primary)', borderRadius: 12, padding: 24,
+              maxWidth: 460, margin: 16, boxShadow: '0 10px 40px rgba(0,0,0,.3)',
+            }}>
+              <h3 style={{ margin: '0 0 12px', fontSize: 16, fontWeight: 600 }}>
+                Este documento es una tabla
+              </h3>
+              {/* ⚠️ SE DICE QUÉ SE PIERDE, EN CONCRETO. Un genérico sobre
+                  «formato» o «estructura» no le sirve al usuario para decidir:
+                  lo que deja de funcionar es la comparación fila a fila. */}
+              <p style={{ margin: '0 0 10px', fontSize: 13, lineHeight: 1.5 }}>
+                Has cambiado el texto, así que ya no se corresponde con las filas y
+                columnas del original. Si lo guardas así, <strong>este documento
+                dejará de compararse por filas y columnas</strong>: los análisis
+                futuros no podrán señalar qué celda concreta discrepa de otro
+                documento, solo leerlo como texto corrido.
+              </p>
+              <p style={{ margin: '0 0 18px', fontSize: 13, lineHeight: 1.5, color: 'var(--text-muted)' }}>
+                No tiene vuelta atrás: al guardar se borra el fichero original.
+                Para conservar la tabla, descarta los cambios o vuelve a subir el
+                fichero corregido desde tu equipo.
+              </p>
+              <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', flexWrap: 'wrap' }}>
+                <button
+                  onClick={() => {
+                    const p = pendienteDeAplanar;
+                    cancelarAplanado();
+                    doIndex(p.texto, p.reemplazar, true);
+                  }}
+                  disabled={indexing}
+                  style={{
+                    fontSize: 13, padding: '9px 16px', borderRadius: 8, border: 'none',
+                    background: '#059669', color: '#fff', fontWeight: 600, cursor: 'pointer',
+                  }}
+                >Guardar como texto</button>
+                <button
+                  onClick={() => { cancelarAplanado(); onClose(); }}
+                  disabled={indexing}
+                  style={{
+                    fontSize: 13, padding: '9px 16px', borderRadius: 8,
+                    border: '1px solid var(--border)', background: 'transparent',
+                    color: 'var(--text-primary)', cursor: 'pointer',
+                  }}
+                >Descartar los cambios</button>
+                <button
+                  onClick={cancelarAplanado}
+                  disabled={indexing}
+                  style={{
+                    fontSize: 13, padding: '9px 16px', borderRadius: 8,
+                    border: 'none', background: 'transparent',
+                    color: 'var(--text-muted)', cursor: 'pointer',
+                  }}
+                >Cancelar</button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -4,7 +4,10 @@ import { getAuthenticatedUserHybrid } from '@/lib/supabase-server';
 import { upsertVectors, deleteVectorsByIds, buildVectorId } from '@/lib/pinecone/vectors';
 import { deleteDocument } from '@/lib/delete-document';
 import { generateEmbeddings } from '@/lib/embeddings';
-import { chunkSegments, stripSegmentationMarkers, EXTRACTOR_VERSION } from '@/lib/chunking';
+import { chunkSegments, stripSegmentationMarkers, EXTRACTOR_VERSION, extractSegments, joinSegments, produceTablas } from '@/lib/chunking';
+import { puedeUsarLaEstructura } from '@/lib/analysis/estructura-del-modal';
+import { queHacerConLaEstructura } from '@/lib/documents/estructura-al-guardar';
+import { lecturaDelDocumento } from '@/lib/documents/lectura-dual';
 import type { ExtractedSegment } from '@/lib/chunking';
 import { saveDocumentChunks } from '@/lib/persist-chunks';
 import { randomUUID } from 'crypto';
@@ -61,6 +64,14 @@ export async function POST(req: NextRequest) {
 
     const body = await req.json();
     const { text, name, originalStoragePath, replaceExistingId, sizeBytes, dismissedFindings } = body;
+    /**
+     * ⚠️ EL NOMBRE ORIGINAL, Y NO `name` — B.201. El cliente compone
+     * `"<nombre> (corregido dd/mm/aaaa)"`, así que en `name` la extensión ya
+     * NO es la última y `produceTablas` devolvería `false` sobre él. Decidir
+     * con `name` daría una guarda que no se dispara jamás.
+     */
+    const nombreOriginal: unknown = body.fileName;
+    const aplanarConfirmado = body.aplanarConfirmado === true;
 
     if (!text || typeof text !== 'string' || text.trim().length < 50) {
       return NextResponse.json({ error: 'Texto insuficiente para indexar (mínimo 50 caracteres)' }, { status: 400 });
@@ -169,11 +180,66 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Chunk the corrected text. No hay fichero origen aquí (texto ya editado
-    // por el usuario o mejorado por IA): se envuelve como un único segmento
-    // 'text' — chunkSegments lo trocea con la misma lógica que chunkText
-    // (secciones/longitud), sin campos de tabla.
-    const segments: ExtractedSegment[] = [{ type: 'text', text }];
+    // ══════════════════════════════════════════════════════════════════
+    // B.201 — LA ESTRUCTURA AL GUARDAR. Hasta el 09/09 esto era, siempre y sin
+    // condición, `[{ type: 'text', text }]`: guardar una hoja corregida la
+    // devolvía al corpus COMO PROSA, marcada al día y analizada, y nada volvía
+    // a ofrecer repararla. Nunca llegó a pasar —los 40 documentos salieron
+    // limpios— pero el botón de guardar no miraba el tipo de fichero.
+    // ══════════════════════════════════════════════════════════════════
+    let estructuraOriginal: ExtractedSegment[] | null = null;
+
+    // Fuente 1 — EL FICHERO, cuando la subida aún tiene su temporal (camino del
+    // chat). Es la misma recuperación que B.175 hace en `analyze-v2`.
+    if (typeof originalStoragePath === 'string' && originalStoragePath.length > 0 && typeof nombreOriginal === 'string') {
+      try {
+        const { data: fileData } = await supabase.storage.from('documents').download(originalStoragePath);
+        if (fileData) {
+          estructuraOriginal = await extractSegments(Buffer.from(await fileData.arrayBuffer()), nombreOriginal);
+        }
+      } catch (err) {
+        console.warn('[INDEX-TEXT] no se pudo leer el original para conservar la estructura:', err);
+      }
+    }
+
+    // Fuente 2 — LOS SEGMENTOS GUARDADOS del documento que se reemplaza (camino
+    // de la bandeja: ahí no hay fichero, `ingest` lo borró al indexar).
+    if (!estructuraOriginal && typeof replaceExistingId === 'string') {
+      const { data: previo } = await supabase
+        .from('documents')
+        .select('segments, full_text')
+        .eq('id', replaceExistingId)
+        .eq('org_id', orgId)
+        .maybeSingle();
+      if (previo) {
+        const lectura = lecturaDelDocumento(previo);
+        if (lectura.origen === 'segmentos') estructuraOriginal = lectura.segmentos;
+      }
+    }
+
+    const decision = queHacerConLaEstructura({
+      produceTablas: produceTablas(typeof nombreOriginal === 'string' ? nombreOriginal : null),
+      hayEstructuraRecuperable: estructuraOriginal !== null,
+      textoIntacto: estructuraOriginal !== null && puedeUsarLaEstructura(text, joinSegments(estructuraOriginal)),
+      aplanarConfirmado,
+    });
+
+    // ⚠️ NO SE APLANA POR CUENTA PROPIA. Si el texto se editó, el servidor no
+    // puede saber si los cambios respetan la estructura: decide el usuario, y
+    // para eso tiene que saber QUÉ pierde. El cliente reenvía con
+    // `aplanarConfirmado`.
+    if (decision === 'preguntar') {
+      return NextResponse.json({
+        error: 'Guardar este documento como texto le quitará las filas y columnas.',
+        motivo: 'aplanaria_una_tabla',
+      }, { status: 409 });
+    }
+
+    console.log(`[INDEX-TEXT] estructura | "${name}" | decision=${decision} | recuperada=${estructuraOriginal !== null}`);
+
+    const segments: ExtractedSegment[] = decision === 'conservar' && estructuraOriginal
+      ? estructuraOriginal
+      : [{ type: 'text', text }];
     const chunks = chunkSegments(segments, documentId, name, orgId);
     console.log(`[INDEX-TEXT] ${name}: ${chunks.length} chunks from ${text.length} chars`);
 

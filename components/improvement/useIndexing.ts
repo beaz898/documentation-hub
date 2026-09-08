@@ -36,9 +36,17 @@ export function useIndexing({
 }: UseIndexingParams) {
   const [indexing, setIndexing] = useState(false);
   const [showReplaceDialog, setShowReplaceDialog] = useState(false);
+  /**
+   * ⚠️ B.201 — lo que quedó pendiente de confirmar. Guarda el texto y el modo
+   * porque el reintento tiene que mandar EXACTAMENTE lo mismo: si se releyera
+   * el texto del editor al confirmar, el usuario estaría aceptando un aviso
+   * sobre un contenido y guardando otro.
+   */
+  const [pendienteDeAplanar, setPendienteDeAplanar] =
+    useState<{ texto: string; reemplazar: boolean } | null>(null);
 
   const doIndex = useCallback(
-    async (currentText: string, replaceExisting: boolean) => {
+    async (currentText: string, replaceExisting: boolean, aplanarConfirmado = false) => {
       setShowReplaceDialog(false);
       setIndexing(true);
       try {
@@ -63,6 +71,11 @@ export function useIndexing({
             ...(storagePath ? { originalStoragePath: storagePath } : {}),
             replaceExistingId: replaceExisting ? existingDocWithSameName?.id : undefined,
             sizeBytes: new Blob([currentText]).size,
+            // ⚠️ B.201: el nombre ORIGINAL, aparte del final. El servidor
+            // decide con éste si el documento producía tablas, porque en
+            // `name` la extensión ya no es la última.
+            fileName,
+            ...(aplanarConfirmado ? { aplanarConfirmado: true } : {}),
             // F-86 paso 3, LA ENTRADA POR INDEXACIÓN: aquí es donde el
             // documento nace y su identidad con él, así que aquí es donde sus
             // descartes pueden dejar de ser estado de pantalla.
@@ -72,6 +85,17 @@ export function useIndexing({
 
         if (!res.ok) {
           const err = await res.json().catch(() => ({ error: 'Error' }));
+
+          // ⚠️ B.201 — EL SERVIDOR NO APLANA SOLO. Si guardar este texto le
+          // quitaría las filas y columnas al documento, contesta 409 y aquí se
+          // le pregunta al usuario. No es fricción: es la única vez que puede
+          // saber qué deja de funcionar, y por eso NO se recuerda la respuesta
+          // — cada documento es distinto.
+          if (res.status === 409 && err.motivo === 'aplanaria_una_tabla') {
+            setPendienteDeAplanar({ texto: currentText, reemplazar: replaceExisting });
+            return;
+          }
+
           const lockMsg = uploadLockMessage(res.status, err);
           alert(lockMsg ?? `Error al indexar: ${err.error || 'desconocido'}`);
           return;
@@ -107,6 +131,8 @@ export function useIndexing({
   return {
     indexing,
     showReplaceDialog,
+    pendienteDeAplanar,
+    cancelarAplanado: () => setPendienteDeAplanar(null),
     setShowReplaceDialog,
     doIndex,
     handleIndexClick,
