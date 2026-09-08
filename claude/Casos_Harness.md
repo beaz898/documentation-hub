@@ -114,6 +114,48 @@ OPE-10_tarifario-tratamientos-2026.xlsx
 OPE-11_tarifario-tratamientos-seguros.xlsx
 ```
 
+## ⚠️ COMPROBAR QUE SIGUEN VIVOS EN EL CORPUS — y por qué hace falta
+
+**El 09/09/2026 OPE-10 había desaparecido del corpus y no lo vio nada.** Ni el
+censo —que cuenta lo que existe, así que un documento que falta le es
+invisible—, ni las tandas, ni el harness. Se descubrió por casualidad y volvió
+solo en la siguiente sincronización. Era la mitad del par que da las 15 del
+caso 6: sin él, esa cifra no se podía volver a medir.
+
+**Antes de cualquier tanda que use el corpus ampliado:**
+
+```sql
+SELECT nombre, (SELECT count(*) FROM documents d
+                WHERE d.org_id = :org AND d.name = nombre) AS vivo
+FROM (VALUES
+  ('RRHH-06_evaluacion-del-desempeno.xlsx'),
+  ('OPE-02_agenda-y-gestion-de-citas.xlsx'),
+  ('CLI-03_historia-clinica-consentimiento-informado.txt'),
+  ('NOR-01_rgpd-proteccion-datos-pacientes.pdf'),
+  ('MKT-01_manual-identidad-corporativa.docx'),
+  ('NOR-10_protocolo-esterilizacion-instrumental.docx'),
+  ('CLI-12_manual-calidad-clinica.docx'),
+  ('OPE-10_tarifario-tratamientos-2026.xlsx'),
+  ('OPE-11_tarifario-tratamientos-seguros.xlsx'),
+  ('NOR-11_gestion-de-residuos-sanitarios.docx'),
+  ('CLI-13_instrucciones-clinicas-residuos.docx')
+) AS esperados(nombre);
+```
+
+**Los ONCE tienen que dar `vivo = 1`.** Son tres grupos —piloto, ampliado y
+superficies— y los tres se pueden perder igual. Un cero es una tanda que no se puede
+medir, y hay que resolverlo ANTES de gastar créditos — no después de leer una
+cifra rara.
+
+⚠️ **Y LA CONSULTA NO SE PUEDE AUTOMATIZAR AQUÍ**: la batería corre sin
+credenciales y sin red. Lo que sí está automatizado es que esta lista y los
+ficheros del repositorio no se separen —`lib/corpus-del-harness.test.ts`—,
+porque **si la lista se pudre, esta consulta pregunta por los documentos
+equivocados y contesta que sí**. El caso guarda la entrada de la consulta, no
+su resultado.
+
+---
+
 **Tamaños**: NOR-10 y CLI-12 son `.docx` de ~60.000 y ~51.000 caracteres (18 y
 17 páginas). OPE-10 y OPE-11 son `.xlsx` de 60 filas cada uno, estructurados de
 forma simétrica: 35 comunes (20 idénticas + 15 discrepantes) y 25 exclusivas por
