@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { MessageSquare, Bot, Sun, Moon, Users, BarChart3, CreditCard, BookOpen, LogOut } from 'lucide-react';
+import { MessageSquare, Bot, Sun, Moon, Users, BarChart3, CreditCard, BookOpen, LogOut, Wrench } from 'lucide-react';
 import DoclityLogo from '@/components/DoclityLogo';
 import { useTheme } from '@/components/ThemeProvider';
 import { createClient } from '@/lib/supabase';
@@ -125,6 +125,11 @@ export default function AppRail() {
               ? <NavLink href="/settings/usage" icon={BarChart3} label="Analítica" active={isActive('/settings/usage')} />
               : <LockedNavItem icon={BarChart3} label="Analítica" minPlan="Business" onShow={showToast} />}
 
+          {/* B.199: la reparación deja de necesitar una consola. La página se
+              defiende sola con 403 si quien entra no es admin, así que aquí no
+              se duplica el criterio de permisos — sería el segundo sitio que
+              decide quién puede reparar. */}
+          <NavLink href="/settings/corpus" icon={Wrench} label="Corpus" active={isActive('/settings/corpus')} />
           <NavLink href="/settings/billing" icon={CreditCard} label="Facturación" active={isActive('/settings/billing')} />
           <NavLink href="/settings/learning" icon={BookOpen} label="Aprendizaje" active={isActive('/settings/learning')} />
         </nav>
