@@ -56,7 +56,7 @@ los que necesitan tanda contra cifra de referencia.**
 | **A3** | BANDEJA · analizar | `text, documentoEnRevision, batchDocumentIds` | **✓** rescate | rápido | ✅ **MEDIDA 08/09** — ver nota 2 |
 | **A4** | BANDEJA · analizar exhaustivo | `+ exhaustive` | **✓** rescate | exhaustivo | ⚠️ ver nota 2 |
 | **A5** | MODAL(chat) · Reanalizar todo | `text, storagePath, excludeFingerprints` | **✓** guarda B.175 | exhaustivo | ⚠️ **comprobado por LOG**, sin tanda · cuarentena |
-| **A6** | MODAL(bandeja) · Reanalizar todo | `text` **y nada más** | ❌ **PLANO** | exhaustivo | ✅ **MEDIDA 09/09** · roto (B.177), con evidencia |
+| **A6** | MODAL(bandeja) · Reanalizar todo | `text, documentoPropietario, documentoConEstructura` | **✓** rescate | exhaustivo | ✅ **MEDIDA 09/09** · **ARREGLADA** (B.177) |
 | **A7** | MODAL(chat) · Reanalizar estilo | `text, storagePath` | n/a | — | **NO** |
 | **A8** | MODAL(bandeja) · Reanalizar estilo | `text, documentoPropietario` | n/a | — | **NO** |
 
@@ -256,6 +256,37 @@ texto aplanado, no el diff**, que no emitió nada en absoluto.
 diff es determinista y compara las 60 filas sin pasar por la selección del juez —
 A3 lo demostró el 08/09 con `filas_analizado 60` y 3 de 3. El límite de alcance
 seguiría ahí y daría igual para las tablas.
+
+---
+
+## ✅ A6 ARREGLADA — EL ANTES Y EL DESPUÉS, MISMO DOCUMENTO (09/09/2026)
+
+Dos pasadas sobre **el mismo documento, el mismo camino y el mismo modo**, con el
+arreglo de `2f6265c0` como **única variable**. Es el contraste más limpio de
+todo el frente: no hay que argumentar la atribución, solo leerla.
+
+| | 06:56 · sin estructura | 07:34 · con estructura |
+|---|---|---|
+| `tablas_analizado` | **0** | **1** |
+| `filas_analizado` | **0** | **60** |
+| `pares_con_vision` | 0 | **1** |
+| `pares_ciegos` | **1** | **0** |
+| `ciegos_por_el_analizado` | **1** | **0** |
+| discrepantes · idénticas | 1 · — | **3 · 57** |
+| encontradas / confirmadas | 1 / 1 | **3 / 3** |
+
+**3 + 57 = 60**, y `solo_en_a` = `solo_en_b` = 0: el emparejamiento es completo
+y no queda una sola fila sin mirar.
+
+⚠️ **LA DEL 06:56 NO ERA UN 1 DE 3 «CASI BIEN».** El diff no encontró NADA: la
+que salió la vio el juez sobre texto aplanado, por casualidad de cobertura —leyó
+unas 10 filas de 59—. Las otras dos no se le escaparon: **no se las enseñó
+nadie.** Sin denominador, ese 1 se habría leído como «el sistema es flojo
+detectando»; con él se lee como lo que era, **ceguera declarada**.
+
+⚠️ Y LA PREDICCIÓN SE ESCRIBIÓ ANTES, las dos veces: los ocho contadores
+deterministas del 06:56 y los del 07:34, uno a uno. La única cifra no predicha
+—a propósito, por no ser determinista— fue la del juez.
 
 ---
 

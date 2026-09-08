@@ -1,4 +1,7 @@
-# Estado del MVP — 07/09/2026
+# Estado del MVP — 09/09/2026
+
+*(Actualizado el 09/09 con las tandas A1, A3 y A6 y con B.177 y B.198
+cerrados. Lo del 07/09 que sigue vigente se mantiene tal cual.)*
 
 Para decidir si esto se puede enseñar. **Sin plan: solo el estado.**
 
@@ -26,7 +29,7 @@ fichero, va la línea.
 |---|---|---|
 | **1 · El inventario de caminos** | ✅ **HECHA** | `Inventario_Caminos.md`, cerrado el 05/09. Diecinueve caminos en tres familias — ocho que producen informe, cuatro del agente, siete que cambian el corpus |
 | **2 · Los denominadores en los ceros** | ✅ **HECHA** | `lib/analysis/diff-vision.ts` + siete claves `diff.vision.*` en el catálogo. Entró en `0e92faa`, **no llegó a producción hasta `b9afe760`** porque aquel commit tumbó el build (B.197). Estrenada el 07/09 en A1 |
-| **3 · Una remedición por camino** | 🔄 **EMPEZADA** | **dos de ocho** (A1 y A3): A1 medida el 07/09 con denominador (1·60 vs 1·60, 0 ciegos, 16/19/25/25) y con el modo declarado. Las dos entradas viejas (15/15/2 y 2/2/0) siguen sin poderse asignar a una fila hasta B.178 |
+| **3 · Una remedición por camino** | 🔄 **EMPEZADA** | **tres de ocho** (A1, A3 y A6): A1 medida el 07/09 con denominador (1·60 vs 1·60, 0 ciegos, 16/19/25/25) y con el modo declarado. Las dos entradas viejas (15/15/2 y 2/2/0) siguen sin poderse asignar a una fila hasta B.178 |
 
 ⚠️ **La pieza 3 estaba bloqueada por la 2 por decisión propia**, no por
 casualidad: el plan fijó que los denominadores van ANTES de cualquier remedición
@@ -264,26 +267,36 @@ dos sentidos, y por eso el caso nuevo lee la fuente.
 
 # 4 · QUÉ BLOQUEA
 
-Dos cosas, **las dos en la misma pantalla**, y las dos de la familia que el
-cliente sufre — «el producto MIENTE al cliente», que es el peor escalón de F-100.
+**Queda UNA, y ha bajado de escalón.** Eran dos, las dos en la misma pantalla y
+las dos de la familia «el producto MIENTE al cliente» —el peor escalón de F-100—.
+La grave, B.177, está **arreglada y medida** (4.1). La que queda, B.180, no miente
+sobre el contenido: **calla un precio**, que es la familia de abajo.
 
-## ⚠️ 4.1 · B.177 — el reanálisis desde la bandeja analiza TEXTO PLANO y cobra 30
+⚠️ Y conviene decirlo entero: B.177 no se cerró sola. Al ir a medirla apareció
+B.198 —ese camino no había guardado NUNCA— y hubo que arreglar eso primero para
+que la medición fuera posible. **La curva de gravedad no bajó porque el sistema
+mejorara solo: bajó porque se miró donde no se había mirado** (F-103, regla 3).
 
-**Verificado hoy, abriendo los dos ficheros:**
+## ✅ 4.1 · B.177 — ARREGLADO Y MEDIDO EL 09/09 (era el bloqueo mayor)
 
-· `app/(authenticated)/settings/review/page.tsx:469` abre `ImprovementModal`
-  **sin `storagePath`**.
-· `components/improvement/useCrossDocAnalysis.ts:123-137` manda `text`,
-  `fileName`, `exhaustive` y `documentoAReemplazar` — y `storagePath: undefined`.
+El reanálisis desde la bandeja mandaba `text` y nada más: sin `storagePath` no
+hay fichero —`ingest:395` lo borra al indexar— y sin referencia al documento no
+se rescataban sus chunks. **El diff recibía cero tablas.** El juez seguía
+trabajando sobre texto aplanado, así que **el resultado no parecía roto: parecía
+pequeño**, que es lo que lo mantuvo escondido.
 
-Sin `storagePath` y sin `documentoEnRevision`, `analyze-v2` trocea con
-`chunkText`: **cero celdas, cero tablas emparejadas, el diff no emite nada.** El
-juez sigue funcionando sobre texto aplanado, así que **el resultado no parece
-roto: parece pequeño.**
+**Arreglado en `2f6265c0`** con `documentoConEstructura` —referencia propia, que
+NO sella el hash ni promociona versión— y la guarda de B.175 reusada tal cual,
+porque el modal es un editor.
 
-Es exactamente el fallo de B.175 —el que motivó F-103 entero— **sin arreglar, en
-la otra puerta**: el arreglo del 04/09 se colgó de `storagePath`, y esta puerta no
-lo pasa. El botón se pinta sin condición y cuesta 30 créditos.
+**Medido a los dos lados, mismo documento, misma puerta**: 06:56 con
+`tablas_analizado 0` y `pares_ciegos 1` → 1 de 3; 07:34 con `tablas_analizado 1`,
+`filas_analizado 60` y `pares_ciegos 0` → **3 de 3**.
+
+⚠️ **Y B.198 IBA DEBAJO**, encontrado al ir a medir esto: ese camino **no había
+guardado NUNCA** desde que existe la restricción de propietario, así que la
+tanda era imposible antes de arreglarlo (`b65ca59d`). Dos averías, una sola
+omisión: la petición no llevaba el id del documento que tenía delante.
 
 ## ⚠️ 4.2 · B.180 — los dos botones que cobran no dicen lo que cuestan
 
@@ -302,11 +315,12 @@ decirlos en voz alta si alguien pregunta.**
 
 | declarado | dónde está escrito |
 |---|---|
-| **El modo Mejora, en cuarentena** | F-103: *«hoy no se le enseña a un cliente el modo Mejora — el resto sí, y la diferencia no es matiz»* |
+| **El modo Mejora — cuarentena LEVANTABLE por una puerta, no por las dos** | «Reanalizar todo» desde la **bandeja** está arreglado y **medido** el 09/09 (3 de 3, con denominador). Desde el **chat** el arreglo es del 04/09 y solo hay evidencia de LOG, sin tanda (F-102). Los dos de **estilo** (A7, A8) siguen sin medir |
 | **Las tablas en PDF y CSV siguen partiéndose** | la opción A da filas enteras; la cabecera no se repite hasta la opción C |
 | **Los 15 documentos de la nube no tienen vía de reparación** | responden 501. B.195 |
 | **La puerta principal es de escritorio** | cinco caminos (A5-A8, B3) no existen en un teléfono — y son a los que el producto empuja al cliente |
-| **`json`, `html`, OneDrive y la rama `default`** | `∅`: nunca probados por ninguna vía |
+| **`json`, `html` y la rama `default`** | `∅`: nunca probados por ninguna vía |
+| **OneDrive — ingesta SÍ, sincronización NO** | OPE-14 entró por OneDrive, se indexó **con segmentos** y se analizó tres veces (A3 y A6 ×2). Lo que sigue sin probar es la SINCRONIZACIÓN: cambios, borrados y la vuelta del listado (B.138) |
 | **La extracción de prosa no tiene un solo test** | `pdf`, `docx`, `txt`. La batería cubre el TROCEADO, no la extracción |
 | **El presupuesto de tiempo del lote es una estimación** | 180 s de los 300, con `parada: 'tiempo'` de contador |
 
