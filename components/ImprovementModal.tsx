@@ -35,6 +35,17 @@ interface AnalysisStyleProblem {
   textRef: string;
 }
 
+/**
+ * ⚠️ EL MENSAJE, EN UN SOLO SITIO — B.202. Lo leen el `aria-label`, el `title`
+ * y el globo. Tres copias del mismo texto se separan en cuanto alguien retoque
+ * una, y entonces el lector de pantalla diría una cosa y la pantalla otra.
+ *
+ * Dice las DOS cosas que el usuario necesita: por qué no se puede guardar, y
+ * qué hacer en su lugar. Sin la segunda, es un «no» sin salida.
+ */
+const MENSAJE_ORIGEN_NUBE =
+  'Este documento tiene su original en la nube, así que no puede guardarse aquí: la próxima sincronización lo sobrescribiría con la versión sin corregir. Copia el texto corregido, súbelo a tu nube y se procesará en la siguiente sincronización.';
+
 interface ImprovementModalProps {
   fileName: string;
   initialText: string;
@@ -454,7 +465,7 @@ function ImprovementModalDesktop({
     dismissedFindings: coordenadasDescartadas,
   });
 
-  const [textoCopiado, setTextoCopiado] = useState(false);
+  const [mostrarPorQueNoSeGuarda, setMostrarPorQueNoSeGuarda] = useState(false);
 
   const handleIndexClick = useCallback(() => {
     if (existingDocWithSameName) {
@@ -643,35 +654,48 @@ function ImprovementModalDesktop({
               la salida, es una decisión. La salida es la única que de verdad
               arregla el documento: llevar el texto corregido a la nube, porque
               la nube es su fuente de verdad y el próximo sync manda. */}
+          {/* ⚠️ B.202 — UN ICONO, NO UN BLOQUE. La primera versión ponía aquí un
+              párrafo y un botón de «copiar texto corregido», y pesaban más que
+              el botón que sustituían: el usuario ya tiene el texto delante y
+              puede copiarlo él. Lo que NO se pierde es el mensaje — por qué no
+              se puede guardar y qué hacer en su lugar—, solo cambia de sitio.
+
+              ⚠️ RESPONDE A PULSACIÓN ADEMÁS DE A HOVER, y no es un adorno: en un
+              táctil no hay «pasar por encima», así que con solo `title` el
+              mensaje sería invisible justo para quien no puede leerlo de otra
+              forma. */}
           {tieneOriginalEnLaNube ? (
-            <div style={{
-              display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap',
-              maxWidth: 560, fontSize: 12, lineHeight: 1.5, color: 'var(--text-muted)',
-            }}>
-              <span>
-                Este documento tiene su original en la nube, así que{' '}
-                <strong>no puede guardarse aquí</strong>: la próxima sincronización
-                lo sobrescribiría con la versión sin corregir. Copia el texto y
-                súbelo a tu nube — se procesará en la siguiente sincronización.
-              </span>
+            <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
               <button
-                onClick={async () => {
-                  try {
-                    await navigator.clipboard.writeText(text);
-                    setTextoCopiado(true);
-                    setTimeout(() => setTextoCopiado(false), 2500);
-                  } catch {
-                    // Sin permiso de portapapeles no se deja al usuario sin salida:
-                    // el texto está en el editor y se puede seleccionar a mano.
-                    alert('No se pudo copiar automáticamente. Selecciona el texto del editor y cópialo.');
-                  }
-                }}
+                type="button"
+                aria-label={MENSAJE_ORIGEN_NUBE}
+                title={MENSAJE_ORIGEN_NUBE}
+                onClick={() => setMostrarPorQueNoSeGuarda(v => !v)}
+                onBlur={() => setMostrarPorQueNoSeGuarda(false)}
                 style={{
-                  fontSize: 13, padding: '9px 16px', borderRadius: 8, border: 'none',
-                  background: '#059669', color: '#fff', fontWeight: 600,
-                  cursor: 'pointer', whiteSpace: 'nowrap',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  width: 34, height: 34, borderRadius: '50%', border: 'none',
+                  background: 'transparent', color: '#0284c7', cursor: 'pointer',
                 }}
-              >{textoCopiado ? 'Texto copiado' : 'Copiar texto corregido'}</button>
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="12" y1="16" x2="12" y2="12" />
+                  <line x1="12" y1="8" x2="12.01" y2="8" />
+                </svg>
+              </button>
+              {mostrarPorQueNoSeGuarda && (
+                <div style={{
+                  position: 'absolute', bottom: '100%', right: 0, marginBottom: 8,
+                  width: 320, padding: '10px 12px', borderRadius: 8, zIndex: 20,
+                  background: 'var(--bg-primary)', color: 'var(--text-primary)',
+                  border: '1px solid var(--border)', boxShadow: '0 6px 24px rgba(0,0,0,.18)',
+                  fontSize: 12, lineHeight: 1.5,
+                }}>
+                  {MENSAJE_ORIGEN_NUBE}
+                </div>
+              )}
             </div>
           ) : (
           <button
