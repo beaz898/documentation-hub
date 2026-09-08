@@ -134,6 +134,14 @@ export function useCrossDocAnalysis(
             // el documento nuevo no existe y el homónimo no es su dueño—, y la
             // fila la rechaza el CHECK de la base. El dueño es el fichero.
             storagePath: storagePath ?? undefined,
+            // ⚠️ B.198: DESDE LA BANDEJA NO HAY FICHERO, Y SIN ESTO NO HABIA
+            // PROPIETARIO NINGUNO: la fila la rechazaba el CHECK y el reanalisis
+            // MAS CARO del sistema no se guardaba NUNCA. El id ya estaba aqui
+            // —se manda a /api/findings/dismiss unas lineas mas abajo—; lo unico
+            // que faltaba era ponerlo en este cuerpo. Es el mismo campo y el
+            // mismo nombre que usa el reanalisis de ESTILO (useStyleAnalysis.ts),
+            // que por eso si guardaba: dos botones al lado, uno lo mandaba.
+            documentoPropietario: reviewedDocumentId ?? undefined,
           }),
         });
 

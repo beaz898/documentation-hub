@@ -51,25 +51,97 @@ los que necesitan tanda contra cifra de referencia.**
 
 | # | camino | cuerpo que manda | estructura | modo | tanda |
 |---|---|---|---|---|---|
-| **A1** | CHAT · subida → análisis | `storagePath, fileName` | **✓** binario | rápido | ⚠️ ver nota 1 |
+| **A1** | CHAT · subida → análisis | `storagePath, fileName` | **✓** binario | rápido | ✅ **MEDIDA 07/09** — ver nota 1 |
 | **A2** | CHAT · subida → exhaustivo | `+ exhaustive` | **✓** binario | exhaustivo | ⚠️ parcial |
-| **A3** | BANDEJA · analizar | `text, documentoEnRevision, batchDocumentIds` | **✓** rescate | rápido | ⚠️ ver nota 2 |
+| **A3** | BANDEJA · analizar | `text, documentoEnRevision, batchDocumentIds` | **✓** rescate | rápido | ✅ **MEDIDA 08/09** — ver nota 2 |
 | **A4** | BANDEJA · analizar exhaustivo | `+ exhaustive` | **✓** rescate | exhaustivo | ⚠️ ver nota 2 |
-| **A5** | MODAL(chat) · Reanalizar todo | `text, storagePath, excludeFingerprints` | **✓** guarda B.175 | exhaustivo | **NO** · cuarentena |
+| **A5** | MODAL(chat) · Reanalizar todo | `text, storagePath, excludeFingerprints` | **✓** guarda B.175 | exhaustivo | ✅ **06/09** (4→15) · cuarentena |
 | **A6** | MODAL(bandeja) · Reanalizar todo | `text` **y nada más** | ❌ **PLANO** | exhaustivo | **NO** · roto (B.177) |
 | **A7** | MODAL(chat) · Reanalizar estilo | `text, storagePath` | n/a | — | **NO** |
 | **A8** | MODAL(bandeja) · Reanalizar estilo | `text, documentoPropietario` | n/a | — | **NO** |
 
-**Nota 1 — A1 no tiene tanda propia declarada.** La remedición del frente 2
-(02/09) fueron cinco pasadas en rápido, pero su maniobra de aislamiento describe
-la BANDEJA. Ninguna entrada del registro dice «lanzada desde el chat, modo
-rápido». No se afirma que falte: se afirma que **no consta**.
+**Nota 1 — A1 YA TIENE TANDA, del 07/09/2026.** Hasta ese día no constaba
+ninguna entrada que dijera «lanzada desde el chat, modo rápido»: la remedición
+del frente 2 (02/09) fueron cinco pasadas en rápido, pero su maniobra de
+aislamiento describe la BANDEJA.
 
-**Nota 2 — las dos entradas de la bandeja del 04/09 traen cifra pero NO declaran
-modo.** El par grande (15/15/2) y la siembra (2/2/0) declaran el camino —desde
-que es obligatorio— pero no si fueron rápido o exhaustivo. Como A3 y A4 son
-código distinto, **esas cifras no se pueden atribuir a una fila de esta tabla**.
-Es B.178.
+**LA CIFRA, Y SU DENOMINADOR — que es la novedad y no la cifra.** OPE-10-A1
+contra OPE-11, tres pasadas idénticas, modo **rápido** declarado:
+
+| visión | |
+|---|---|
+| `tablas_analizado` · `filas_analizado` | **1 · 60** |
+| `tablas_candidatos` · `filas_candidatos` | **1 · 60** |
+| `pares_con_vision` | **1** |
+| `pares_ciegos` · `ciegos_por_el_analizado` | **0 · 0** |
+
+| reparto de filas | |
+|---|---|
+| discrepantes | **16** |
+| idénticas | 19 |
+| solo en A · solo en B | 25 · 25 |
+
+**Las dos sumas cierran contra el denominador**, y por eso esto es una medición
+y no una impresión: `16 + 19 = 35` filas emparejadas, y `35 + 25 = 60` a cada
+lado, que es exactamente `filas_analizado` y `filas_candidatos`. Ninguna fila
+se perdió por el camino y ningún lado estaba ciego.
+
+**Las 16 son las 15 sembradas del caso 6 más una decimosexta creada a
+propósito**: al preparar la pasada hubo que esquivar la guarda de duplicado
+exacto y se cambió `DIA-01` de 40 a 55. Esa diferencia es real y el sistema la
+encontró; no es un falso positivo. Y los `25 · 25` son las filas propias sin
+pareja que el caso 6 exige **que no se fuercen**.
+
+⚠️ **NO HIZO FALTA NINGÚN ARREGLO, y conviene que conste porque se estuvo a
+punto de hacer uno.** Durante tres pasadas `tablas_analizado` pareció venir
+NULL y se diagnosticó que el contador medía el ÍNDICE y que en el camino del
+chat el documento no está indexado. **El contador ya contaba lo que decía.** La
+consulta pedía `diff.vision.tablas_documento`, una clave que no existe en el
+catálogo —la buena es `tablas_analizado`— y `->>` sobre una clave ausente
+devuelve NULL, que se lee igual que un cero medido.
+
+Lo que lo destapó no fue leer el contador otra vez, sino **abrir el consumidor**:
+`analyze-v2:461` es `storedChunks ?? newDocChunks`, con un comentario que
+explica que un documento sin indexar deriva sus chunks en memoria. Y la propia
+medición ya lo negaba antes que el código: `emparejarTablas` es un bucle N×M
+sobre las tablas del analizado, así que `pares 1` es imposible con cero tablas
+de ese lado. **Un arreglo habría reconstruido algo ya construido** — la forma de
+F-94, esta vez sobre nuestro propio diagnóstico.
+
+**Nota 2 — A3 MEDIDA el 08/09/2026, con modo declarado.** Las dos entradas
+viejas de la bandeja del 04/09 —el par grande (15/15/2) y la siembra (2/2/0)—
+declaran el camino pero **no el modo**, y como A3 y A4 son código distinto esas
+cifras siguen sin poderse atribuir a una fila de esta tabla. Es B.178, y sigue
+abierto. Lo que cierra aquí es A3, con entrada propia.
+
+**LA TANDA**: `OPE-14` contra `OPE-11`, modo **rápido** (5 créditos), 22:50.
+
+| | |
+|---|---|
+| `tablas_analizado` · `filas_analizado` | **1 · 60** |
+| `tablas_candidatos` · `filas_candidatos` | **1 · 60** |
+| `pares_ciegos` | **0** |
+| discrepantes · idénticas | **3 · 57** |
+| `solo_en_a` · `solo_en_b` | **0 · 0** |
+| `columnas_afectadas` · `variantes_escritura` | 1 · 0 |
+
+**Encontró 3, confirmó 3, y son las tres sembradas** —`DIA-01`, `END-01`,
+`PRO-01`— **ni una más**. `3 + 57 = 60`, que es `filas_analizado`: ninguna fila
+se quedó fuera y ningún lado estaba ciego.
+
+⚠️ **LA CIFRA SE PREDIJO ANTES DE GASTAR NADA.** Una sonda determinista corrió
+`emparejarTablas` + `emitirDiffDeTablas` + `contadoresDeVision` sobre los dos
+ficheros del repositorio —sin una sola llamada a un modelo, porque el diff de
+tablas no la necesita— y dio 3/57/0/0 con la clave `Código`. **La tanda no
+descubrió el número: lo confirmó.** Es la diferencia entre medir y mirar a ver
+qué sale, y aquí sí se puede porque el mecanismo es determinista.
+
+⚠️ **LO QUE ESTA TANDA NO MIDE, y hay que decirlo**: `solo_en_a` y `solo_en_b`
+valen **0**, o sea que **no hay control negativo**. OPE-14 es copia de OPE-11 y
+todas sus filas emparejan. El caso 6 lleva 25 filas sin pareja por lado
+precisamente para comprobar que el sistema **no fuerza** emparejamientos; eso
+aquí no se ha ejercido. A3 queda medida en DETECCIÓN, no en resistencia al falso
+positivo.
 
 **A2 es parcial, y conviene decir de qué.** La serie del 04/09 desde el chat midió
 **propiedad y adopción** —tres filas, `storage_path` y `document_id`— no cifras
@@ -144,9 +216,187 @@ Se apunta aquí porque salió del censo, y se registra como pendiente propio:
   (`useCrossDocAnalysis:123-137`). Cero estructura por las dos vías. El botón se
   pinta **sin condición** (`ChatPanel.tsx:219`) y cobra los 30.
 
+---
+
+## ⚠️ CORRECCIÓN A B.175 — SE CERRÓ CON LA MITAD MEDIDA (08/09/2026)
+
+**B.175 está arreglado en A5 y NO está arreglado en A6, y hasta hoy el registro
+no distinguía las dos mitades.** Quien lo leyera daba por cerrado el pendiente
+entero.
+
+**El arreglo SÍ existe y sigue en `main`**: `243c9f47` (04/09), verificado hoy
+—`git merge-base --is-ancestor` da ancestro— y vivo en
+`analyze-v2:251-262`, con su registro «estructura del original recuperada».
+**No se ha perdido nada.**
+
+**Lo que se verificó el 06/09**: OPE-10 contra OPE-11, de **4 a 15**
+discrepancias, con el log diciendo 64 segmentos y 62 celdas. Maniobra: subir el
+documento **por el chat** y abrir Mejora con IA desde ahí. **Eso es A5.**
+
+**Lo que NO se verificó**: A6, el mismo modal abierto desde la **bandeja**.
+
+| | quién abre el modal | `storagePath` | estado de B.175 |
+|---|---|---|---|
+| **A5** | `chat/page.tsx:253` — `storagePath={improvementTarget.storagePath}` | **sí** | ✅ arreglado y **medido** el 06/09 |
+| **A6** | `review/page.tsx:469-482` — **0 apariciones** de `storagePath` | **no** | ❌ **B.177**, sin medir hasta el 08/09 |
+
+⚠️ **Y NO ES UNA PROP OLVIDADA**, que es como se leía. `ImprovementModal.tsx:43`
+dice por qué: *«ausente en documentos ya indexados (Drive): no hay archivo
+temporal»*. Un documento de la bandeja **ya está indexado y no tiene fichero en
+Storage al que apuntar**. La bandeja no deja de pasar algo que tiene: no lo
+tiene. Por eso «que A6 mande `storagePath`» NO es el arreglo.
+
+**El arreglo que sí cabe, y es un campo**: la bandeja ya le da al modal
+`reviewedDocumentId` (`review/page.tsx:476`), el modal ya se lo pasa al hook
+(`ImprovementModal.tsx:199`) y el hook lo usa para los descartes… **pero no lo
+mete en el cuerpo de la petición**. Mandarlo como `documentoEnRevision` mete a
+A6 por el rescate de `analyze-v2:313` — el mismo que A3 acaba de medir
+funcionando el 08/09. Mecanismo probado, cero maquinaria nueva.
+
+### ⚠️ LO QUE ENSEÑA, y es la forma de siempre
+
+> **Una verificación correcta sobre una población más estrecha que la
+> afirmación.** La medición del 06/09 no tuvo ni un fallo: el par, el número, el
+> log, todo bueno. Lo que falló fue el ALCANCE de la conclusión — se midió *un*
+> camino y se cerró *el pendiente*.
+
+Y el detalle que lo hace reconocible la próxima vez: **las dos puertas son el
+MISMO COMPONENTE**. `ImprovementModal` se ve idéntico desde el chat y desde la
+bandeja —mismo botón, mismo texto, misma pantalla— y por eso «lo he probado en
+el modal» sonaba a haberlo probado entero. **La pantalla no es el camino**, que
+es literalmente el EJE 1 de este censo aplicado a quien lo escribió.
+
+**La defensa no es medir más**: es escribir la población ANTES de medir. «Queda
+verificado *para el modal*» y «queda verificado *para el modal abierto desde el
+chat*» cuestan lo mismo de escribir y solo una es cierta.
+
 · **B.178 — las tandas declaran camino pero no MODO.** Desde ayer el camino es
   obligatorio en el registro; el modo no lo es, y sin él una cifra no se puede
   atribuir a un camino de este censo.
+
+· **B.198 — A6 cobra 30 y NO PUEDE PERSISTIR EL RESULTADO.** Medido en
+  producción el 08/09: el reanálisis desde la bandeja se completó, enseñó
+  hallazgos, cobró los 30 (devueltos después) y **no escribió fila**. Sin fila no
+  hay `pipeline_counters`, así que la tanda que iba a estrenar los denominadores
+  se quedó sin nada que leer. Es la familia de F-101 —*una operación que cuesta
+  dinero deja registro en el momento en que se cobra*—, esta vez con el importe
+  más alto del sistema.
+
+---
+
+## ⚠️ B.198 · LA MISMA OMISIÓN CAUSA LAS DOS AVERÍAS (08/09/2026)
+
+La bandeja no manda `documentoEnRevision`. De ahí salen **las dos** cosas, y
+por eso no son dos fichas:
+
+| consecuencia | dónde | efecto |
+|---|---|---|
+| sin estructura | `analyze-v2:313` no rescata chunks | el diff recibe cero tablas → **0 de 3** |
+| **sin propietario** | `sujetos.ts:82`: `documentoPropietario = enRevision` | el CHECK rechaza la fila → **sin contadores** |
+
+`documentoAReemplazar` —que la bandeja SÍ manda— alimenta solo
+`documentosExcluidos`. Nunca la propiedad. Es el reparto de F-100 haciendo
+exactamente lo suyo.
+
+### ⚠️ EL FALLO SE ESCONDE A SÍ MISMO, y esto es lo que hay que guardar
+
+**El camino que no puede ver es el mismo que no puede dejar constancia de que no
+vio.** No hay forma de medir A6-roto y que quede registrado: el único campo que
+haría persistir la fila es el mismo que le devolvería la vista. **La medición de
+la ceguera es imposible en principio, no cara.**
+
+Por eso nadie lo cazó antes: **no deja fila de la que sospechar.** Una avería que
+produce filas malas se ve en la analítica; ésta produce AUSENCIA, y la ausencia
+no aparece en ninguna consulta que no la esté buscando a propósito.
+
+### ⚠️ NO SE PIERDE A VECES: ESE CAMINO NO PUEDE PERSISTIR
+
+**Ningún reanálisis desde la bandeja se ha guardado NUNCA desde que existe la
+restricción.** No es intermitencia ni mala suerte: el propietario se derivaba
+solo de `documentoEnRevision`, la bandeja no lo manda, y sin propietario la
+fila la rechaza el CHECK **siempre**. Cien ejecuciones habrían dado cien
+rechazos.
+
+### ⚠️ EL CONTRASTE QUE LO HACE EVIDENTE: DOS BOTONES AL LADO, UNO FUNCIONA
+
+En el **mismo modal**, a un centímetro el uno del otro:
+
+| botón | qué manda | ¿guarda? |
+|---|---|---|
+| **Reanalizar estilo** (A8) | `useStyleAnalysis.ts:84` → `documentoPropietario: reviewedDocumentId ?? null` | ✅ **sí** |
+| **Reanalizar todo** (A6) | `useCrossDocAnalysis.ts` → `text, fileName, exhaustive, excludeFingerprints, documentoAReemplazar, storagePath` | ❌ **no** |
+
+**El de estilo guarda porque a ése se le pasó el propietario al construirlo.**
+Mismo componente, mismo id disponible en el mismo ámbito, misma organización —
+y uno lo pone en el cuerpo y el otro no. El caro es el que no lo pone.
+
+⚠️ Y el id **ya estaba en la mano del que falla**: `useCrossDocAnalysis` lo
+recibe como parámetro (línea 71) y lo manda a `/api/findings/dismiss` unas
+líneas más abajo (línea 255). No era un dato que faltara: era un campo que no se
+escribió. **Es un olvido, no una limitación**, y el contraste con el vecino es lo
+que lo prueba — si fuera limitación, el de estilo tampoco podría.
+
+### ⚠️ Y NO ES «LA BANDEJA»: SON LAS DOS RAMAS DEL MISMO BOTÓN
+
+La primera redacción de esta ficha decía «el reanálisis desde la bandeja». El
+botón es uno, pero **`reanalyzeAll` se bifurca por dentro** y solo una de las
+dos ramas se miró:
+
+| rama | `useCrossDocAnalysis.ts` | ¿avisa de que no se guardó? |
+|---|---|---|
+| **asíncrona** (job) | línea 175 · `setNoGuardado(!guardadoDeJob(job.guardado))` | **sí** |
+| **síncrona** (fallback) | líneas 177-179 · no toca `noGuardado` | **NO** |
+
+**El aviso que destapó B.198 vive solo en la rama asíncrona.** Por la síncrona,
+un análisis que no se guarda no se lo dice a nadie: se enseña en pantalla como
+cualquier otro y desaparece.
+
+⚠️ **Y LA RAMA SÍNCRONA ES ALCANZABLE**, que es lo que la saca de «código
+muerto»: A6 pide siempre exhaustivo, pero **con una versión `staged` en vuelo el
+exhaustivo queda VETADO y se cae a rápido** (d-2b / F-8), y el rápido responde
+en la misma petición. O sea, exactamente el caso de un documento a medio
+reemplazar — que no es un caso raro, es el que la bandeja existe para gestionar.
+
+### ⚠️ LO QUE ENSEÑA, y es de método, no de código
+
+> **Di por buena una rama sin mirarla porque el síntoma apareció en la otra.**
+
+El aviso de «no guardado» salió por la rama asíncrona, se investigó la rama
+asíncrona, y la síncrona pasó sin que nadie la abriera — **no por descuido al
+enumerar, sino porque el síntoma la dejó fuera del foco**. Es la hermana de la
+corrección de B.175 del mismo día: allí una verificación correcta sobre una
+población más estrecha que la afirmación; aquí una investigación correcta sobre
+la rama que dio la señal, cerrada como si cubriera el botón entero.
+
+**La forma común a las dos: el punto por donde entra el síntoma decide dónde se
+mira, y no tiene por qué coincidir con dónde está el fallo.** La defensa es la
+misma en ambos casos y es barata — al escribir la conclusión, nombrar la
+población: «la rama asíncrona del botón», no «el botón».
+
+⚠️ Queda ABIERTO: el arreglo de B.198 hace que la fila persista, así que el aviso
+dejará de saltar por la rama asíncrona. **La rama síncrona sigue sin aviso**, y
+ahora con menos probabilidad de que algo la delate.
+
+### ⚠️ LO QUE ENSEÑA SOBRE LA RESTRICCIÓN, que es la parte importante
+
+La restricción de F-101 —que ningún análisis nazca huérfano— **acaba de impedir
+que se guarde el análisis más caro del sistema.** Y hay que leerlo al derecho:
+
+> **La restricción hace exactamente lo que debe. Lo que falla es que ese camino
+> no le da lo que necesita.**
+
+**Lo primero que hace una invariante nueva es encontrar a quien ya la
+incumplía.** El rechazo no es un efecto secundario de la restricción: es su
+primer hallazgo, cobrado en el sitio correcto —al escribir— en vez de dejar otro
+huérfano más en la tabla. Si la tentación algún día es relajar el CHECK para que
+«no moleste», lo que se estaría comprando es volver a los dieciséis exhaustivos
+inalcanzables de F-101.
+
+⚠️ **Y LA ASIMETRÍA QUE HAY QUE VIGILAR**: la restricción avisó al ESCRIBIR, que
+es tarde —el trabajo ya está hecho y cobrado—. Lo que no existe es una guarda que
+lo diga ANTES: un camino que no puede persistir su resultado **no debería poder
+cobrar**. Esa comprobación no está escrita, y es barata: los sujetos se conocen
+en `analyze-v2:95-102`, mucho antes de `consumeCredits`.
 
 ---
 

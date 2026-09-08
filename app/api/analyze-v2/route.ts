@@ -19,6 +19,7 @@ import { swapDocumentVectors } from '@/lib/document-swap';
 import { checkAndAcquireAnalysisLock, releaseAnalysisLock, analysisLockMessage } from '@/lib/analysis-lock';
 import { getDocumentChunks, getActiveGeneration, toStoredChunks } from '@/lib/read-chunks';
 import type { StoredChunk } from '@/lib/read-chunks';
+import { documentoPropietario as documentoPropietarioVerificado } from '@/lib/analysis/propietario';
 import { sujetosDelAnalisis, unicoExcluido } from '@/lib/analysis/sujetos';
 import { puedeUsarLaEstructura } from '@/lib/analysis/estructura-del-modal';
 
@@ -94,9 +95,42 @@ export async function POST(req: NextRequest) {
     const sujetos = sujetosDelAnalisis({
       documentoEnRevision: body.documentoEnRevision,
       documentoAReemplazar: body.documentoAReemplazar,
+      documentoPropietario: body.documentoPropietario,
     });
+
+    // ⚠️ B.198 — LA REFERENCIA PEDIDA SE COMPRUEBA ANTES DE ESCRIBIRLA, con el
+    // mismo criterio que `analyze-style` (`propietario.ts`): aceptar una
+    // referencia es legítimo (F-95 P1), escribirla sin verificarla no. La
+    // bandeja se queda con el análisis MÁS RECIENTE de cada `document_id`, así
+    // que una fila con propietario fabricado TAPA el análisis real de otro.
+    //
+    // ⚠️ SOLO SE COMPRUEBA LA PEDIDA. Cuando el propietario viene de
+    // `documentoEnRevision`, la ruta ya lo trata como suyo en todas sus
+    // escrituras (siempre con `.eq('org_id', orgId)`), y meterlo aquí añadiría
+    // una consulta que, al fallar CERRADA, dejaría de persistir análisis que hoy
+    // se persisten. El arreglo no puede empeorar el camino que ya funciona.
+    //
+    // FALLA CERRADA (F-95 P3): si la consulta no contesta, el análisis se guarda
+    // sin propietario. Entre degradar y corromper la atribución de otro, degrada.
+    let propietarioComprobado = sujetos.documentoPropietario;
+    if (sujetos.documentoEnRevision === null && propietarioComprobado !== null) {
+      const { data: doc, error: docError } = await supabase
+        .from('documents')
+        .select('id')
+        .eq('id', propietarioComprobado)
+        .eq('org_id', orgId)
+        .maybeSingle();
+      if (docError) {
+        console.warn(`[analyze-v2] no se pudo comprobar el propietario | doc=${propietarioComprobado} | ${docError.message}`);
+      }
+      propietarioComprobado = documentoPropietarioVerificado({
+        idPedido: propietarioComprobado,
+        perteneceALaOrg: !docError && doc !== null,
+      });
+    }
+
     /** ¿DE QUIÉN ES EL RESULTADO? Solo lo posee un documento que ya existe. */
-    const documentoPropietario = sujetos.documentoPropietario;
+    const documentoPropietario = propietarioComprobado;
     /** ¿QUÉ DOCUMENTO REVISO? Gobierna su staged, el veto del exhaustivo, su
      *  generación, sus chunks, su hash y el swap. Vacío = no toco a nadie. */
     const documentoEnRevision = sujetos.documentoEnRevision;

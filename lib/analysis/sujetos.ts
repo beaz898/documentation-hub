@@ -40,6 +40,32 @@ export interface ReferenciasDelAnalisis {
   documentoEnRevision?: unknown;
   /** El modal desde el chat: «este texto va a sustituir a ése». */
   documentoAReemplazar?: unknown;
+  /**
+   * ⚠️ EL MODAL DESDE LA BANDEJA: «este análisis es DE ese documento» — B.198.
+   *
+   * Nace de una avería medida el 08/09/2026: el reanálisis desde la bandeja
+   * mandaba `documentoAReemplazar` pero NO `documentoEnRevision`, y como el
+   * propietario se derivaba solo del segundo, la fila salía huérfana y **el
+   * CHECK la rechazaba**. Resultado: ese camino no ha persistido nunca desde que
+   * existe la restricción, y es el que cobra 30 créditos.
+   *
+   * ⚠️ ES UNA REFERENCIA APARTE Y NO `documentoEnRevision` REUTILIZADO, y la
+   * distinción es el arreglo, no un adorno: aquel campo contesta HOY a tres
+   * preguntas —de quién es el resultado, de dónde salen las celdas
+   * (`analyze-v2:313`) y a qué documento se le sella el hash o se le promociona
+   * la versión (`analyze-v2:555`, `576-605`)—. Mandarlo desde el modal para
+   * ganar el propietario encendería de paso el rescate SIN la guarda de B.175
+   * —`puedeUsarLaEstructura` solo se aplica en la rama de `storagePath`— sobre
+   * un texto que el usuario puede haber editado, y dispararía escrituras que un
+   * reanálisis no debe disparar. Es F-100 P2 otra vez y sobre el mismo
+   * parámetro: **un campo que responde a varias preguntas contestará mal a
+   * alguna.**
+   *
+   * Lo que este campo NO hace, y por eso es seguro: no toca el rescate de
+   * estructura ni el swap. B.177 sigue abierto a propósito — lo que se arregla
+   * aquí es que el resultado se pueda GUARDAR, no que se vea mejor.
+   */
+  documentoPropietario?: unknown;
 }
 
 export interface SujetosDelAnalisis {
@@ -73,13 +99,29 @@ export function sujetosDelAnalisis(refs: ReferenciasDelAnalisis): SujetosDelAnal
   const enRevision = referencia(refs.documentoEnRevision);
   const aReemplazar = referencia(refs.documentoAReemplazar);
 
+  const propietarioPedido = referencia(refs.documentoPropietario);
+
   const excluidos: string[] = [];
-  for (const id of [enRevision, aReemplazar]) {
+  for (const id of [enRevision, aReemplazar, propietarioPedido]) {
     if (id !== null && !excluidos.includes(id)) excluidos.push(id);
   }
 
   return {
-    documentoPropietario: enRevision,
+    /**
+     * ⚠️ LA PRECEDENCIA VIVE AQUÍ Y EN NINGÚN OTRO SITIO. `enRevision` manda
+     * porque es la referencia que el servidor ya trata como propia en el resto
+     * de la ruta; la pedida solo entra cuando no hay ninguna. Ponerla en la ruta
+     * dejaría DOS sitios decidiendo de quién es un análisis, y dos criterios del
+     * mismo se separan sin avisar.
+     *
+     * ⚠️ Y LA REFERENCIA PEDIDA NO BASTA POR SÍ SOLA: quien la use tiene que
+     * comprobar la pertenencia a la organización con `documentoPropietario()`
+     * (`propietario.ts`) antes de escribirla. Aquí solo se ELIGE cuál es la
+     * candidata; validarla es otra pregunta y tiene su propio módulo. Sin esa
+     * comprobación, cualquiera con sesión ataría su análisis a un documento
+     * ajeno y taparía el análisis real de otro en la bandeja.
+     */
+    documentoPropietario: enRevision ?? propietarioPedido,
     documentoEnRevision: enRevision,
     documentosExcluidos: excluidos,
   };

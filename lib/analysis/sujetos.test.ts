@@ -121,3 +121,59 @@ describe('el corte declarado: el pipeline recibe uno', () => {
     expect(avisos.join(' ')).toContain('LÍMITE SUPERADO');
   });
 });
+
+/**
+ * B.198 — EL REANÁLISIS DESDE LA BANDEJA, que hasta el 08/09/2026 no se guardaba
+ * NUNCA: mandaba `documentoAReemplazar` pero no `documentoEnRevision`, y el
+ * propietario salía de aquél nada más. Fila huérfana, CHECK, y el análisis más
+ * caro del sistema perdido en todas y cada una de sus ejecuciones.
+ */
+describe('B.198 — el modal de la bandeja declara de quién es el resultado', () => {
+  it('con la referencia pedida, el análisis tiene dueño', () => {
+    const s = sujetosDelAnalisis({ documentoPropietario: 'doc-bandeja' });
+    expect(s.documentoPropietario).toBe('doc-bandeja');
+  });
+
+  /**
+   * ⚠️ MITAD CONTRARIA: pedir el propietario NO enciende el camino del documento
+   * en revisión. Es lo que hace seguro el arreglo — `documentoEnRevision`
+   * gobierna el rescate de estructura (sin la guarda de B.175) y el swap, y un
+   * reanálisis del modal no debe disparar ninguno de los dos.
+   */
+  it('pedir el propietario NO pone documentoEnRevision', () => {
+    const s = sujetosDelAnalisis({ documentoPropietario: 'doc-bandeja' });
+    expect(s.documentoEnRevision).toBeNull();
+  });
+
+  /** El dueño tampoco se compara consigo mismo. */
+  it('el propietario pedido entra en los excluidos', () => {
+    expect(sujetosDelAnalisis({ documentoPropietario: 'doc-bandeja' }).documentosExcluidos)
+      .toEqual(['doc-bandeja']);
+  });
+
+  /** Misma referencia por dos vías: un solo excluido, no dos. */
+  it('si coincide con el reemplazado, no se duplica', () => {
+    const s = sujetosDelAnalisis({ documentoAReemplazar: 'doc-x', documentoPropietario: 'doc-x' });
+    expect(s.documentosExcluidos).toEqual(['doc-x']);
+  });
+
+  /**
+   * ⚠️ LA PRECEDENCIA, y es la mitad que protege a A3: cuando el documento en
+   * revisión existe, manda él. Si ganara la referencia pedida, un cliente podría
+   * atribuir a otro documento el análisis de uno que el servidor ya trata como
+   * propio.
+   */
+  it('documentoEnRevision manda sobre la referencia pedida', () => {
+    const s = sujetosDelAnalisis({ documentoEnRevision: 'el-de-verdad', documentoPropietario: 'el-pedido' });
+    expect(s.documentoPropietario).toBe('el-de-verdad');
+  });
+
+  /**
+   * ⚠️ MITAD CONTRARIA DEL CHAT — B.163 sigue en pie: sin referencia pedida, el
+   * homónimo NO se convierte en propietario por la puerta nueva.
+   */
+  it('el camino del chat sigue sin dueño', () => {
+    const s = sujetosDelAnalisis({ documentoAReemplazar: 'el-homonimo' });
+    expect(s.documentoPropietario).toBeNull();
+  });
+});

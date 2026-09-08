@@ -25,15 +25,25 @@ fichero, va la línea.
 | pieza | estado | evidencia |
 |---|---|---|
 | **1 · El inventario de caminos** | ✅ **HECHA** | `Inventario_Caminos.md`, cerrado el 05/09. Diecinueve caminos en tres familias — ocho que producen informe, cuatro del agente, siete que cambian el corpus |
-| **2 · Los denominadores en los ceros** | ❌ **NO EMPEZADA** | `diff.vision.*` no existe: `grep` de `vision` en `lib/analysis/diff-emision.ts` da **cero**. Los contadores que hay son de clasificación, no de visión |
-| **3 · Una remedición por camino** | ❌ **NO EMPEZADA** | **cero de ocho** de la familia A con cifra atribuible. Dos entradas traen cifra buena (15/15/2 y 2/2/0) y **no se pueden asignar a una fila** hasta que se resuelva B.178 |
+| **2 · Los denominadores en los ceros** | ✅ **HECHA** | `lib/analysis/diff-vision.ts` + siete claves `diff.vision.*` en el catálogo. Entró en `0e92faa`, **no llegó a producción hasta `b9afe760`** porque aquel commit tumbó el build (B.197). Estrenada el 07/09 en A1 |
+| **3 · Una remedición por camino** | 🔄 **EMPEZADA** | **dos de ocho** (A1 y A3): A1 medida el 07/09 con denominador (1·60 vs 1·60, 0 ciegos, 16/19/25/25) y con el modo declarado. Las dos entradas viejas (15/15/2 y 2/2/0) siguen sin poderse asignar a una fila hasta B.178 |
 
-⚠️ **Y la pieza 3 está bloqueada por la 2 por decisión propia**, no por
+⚠️ **La pieza 3 estaba bloqueada por la 2 por decisión propia**, no por
 casualidad: el plan fijó que los denominadores van ANTES de cualquier remedición
 que pueda dar cero, porque «una tanda sin denominador que salga cero no se puede
-interpretar, y eso es gastar 30 créditos para no saber nada».
+interpretar, y eso es gastar 30 créditos para no saber nada». **El bloqueo se
+levantó el 07/09**, y en el orden previsto: primero los denominadores, después la
+primera remedición.
 
-**Una de tres.** Y la que está hecha es la que no gasta créditos.
+⚠️ **Y LA PRIMERA TANDA CON DENOMINADOR DEMOSTRÓ QUE EL ORDEN ERA EL BUENO, por
+el camino que no se esperaba.** A1 no dio cero: dio 16 con los dos lados viendo.
+Lo que estuvo a punto de fallar fue **la lectura**, no la medida — una consulta
+pidió una clave inexistente, `->>` devolvió NULL, y ese NULL se leyó como «el
+contador no vio nada» durante tres pasadas. El denominador hizo justo su trabajo:
+`tablas_candidatos` volvió con un 1 en la misma fila, y ese 1 es lo que probó
+que la etapa había corrido y que el hueco estaba en la pregunta.
+
+**Dos de tres**, y la que falta es la larga.
 
 ---
 
