@@ -156,6 +156,19 @@ export function useReviewList() {
     });
   }, [documents]);
 
+  /**
+   * Los documentos seleccionados, en el orden de la lista.
+   *
+   * ⚠️ VIVE AQUÍ Y NO EN LA PÁGINA porque ya hay DOS consumidores —la tanda de
+   * análisis y la de indexado— y el segundo iba a copiar el `flatMap().filter()`
+   * del primero. Dos derivaciones de «quién está seleccionado» coinciden
+   * siempre… hasta que una de las dos aprenda a saltarse algo.
+   */
+  const selectedDocs = useMemo(
+    () => groups.flatMap((g) => g.documents).filter((d) => selectedIds.has(d.id)),
+    [groups, selectedIds],
+  );
+
   const selectedCount = selectedIds.size;
   const estimatedCost = selectedCount * getCreditCost(ANALYSIS_ENDPOINT, false);
   // F-71 paso 2: getCreditCost ya sabe el coste exhaustivo (30); solo habia
@@ -168,6 +181,7 @@ export function useReviewList() {
     loading,
     error,
     selectedIds,
+    selectedDocs,
     selectedCount,
     estimatedCost,
     exhaustiveCost,

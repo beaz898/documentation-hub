@@ -6,6 +6,8 @@ import { useAccount } from '@/contexts/AccountContext';
 import { useReviewList } from '@/hooks/review/useReviewList';
 import type { ReviewDocument } from '@/hooks/review/useReviewList';
 import { useReviewAnalysis } from '@/hooks/review/useReviewAnalysis';
+import { useIndexarSeleccion } from '@/hooks/review/useIndexarSeleccion';
+import { seleccionIndexable } from '@/lib/documents/seleccion-indexable';
 import AnalysisModal from '@/components/AnalysisModal';
 import ImprovementModal from '@/components/ImprovementModal';
 import ReviewFolderGroup from '@/components/review/ReviewFolderGroup';
@@ -21,6 +23,7 @@ export default function ReviewPage() {
     loading,
     error,
     selectedIds,
+    selectedDocs,
     selectedCount,
     estimatedCost,
     exhaustiveCost,
@@ -41,6 +44,13 @@ export default function ReviewPage() {
   const planAllowsExhaustive = credits ? credits.plan !== 'free' : null;
 
   const { analyze, analyzing, progress, summary, clearSummary } = useReviewAnalysis();
+  const {
+    indexar,
+    indexando,
+    progreso: progresoIndexado,
+    resumen: resumenIndexado,
+    limpiarResumen: limpiarResumenIndexado,
+  } = useIndexarSeleccion();
 
   // Modal de revision: documento abierto y su analisis guardado.
   const [reviewDoc, setReviewDoc] = useState<{ id: string; name: string } | null>(null);
@@ -249,10 +259,7 @@ export default function ReviewPage() {
   };
 
   const runAnalysis = async (exhaustive: boolean) => {
-    // Documentos seleccionados, en el orden de la lista.
-    const selectedDocs = groups
-      .flatMap((g) => g.documents)
-      .filter((d) => selectedIds.has(d.id));
+    // La lista de seleccionados la da useReviewList: aqui no se vuelve a derivar.
     if (selectedDocs.length === 0) return;
     clearSummary();
     await analyze(selectedDocs, { exhaustive });
@@ -261,6 +268,13 @@ export default function ReviewPage() {
 
   const handleAnalyze = () => runAnalysis(false);
   const handleAnalyzeExhaustive = () => runAnalysis(true);
+
+  const handleIndexar = async () => {
+    if (selectedDocs.length === 0) return;
+    limpiarResumenIndexado();
+    await indexar(selectedDocs);
+    await refetch();
+  };
 
   return (
     <div style={{ height: vvHeight != null ? `${vvHeight}px` : '100dvh', overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
@@ -377,6 +391,38 @@ export default function ReviewPage() {
               </div>
             )}
 
+            {/* Resultado de la tanda de indexado. Mismo formato que el del
+                análisis a propósito: la pantalla tiene dos tandas y no debe
+                obligar a leerlas de dos maneras distintas. */}
+            {resumenIndexado && (
+              <div
+                style={{
+                  marginBottom: 16,
+                  padding: '10px 12px',
+                  borderRadius: 8,
+                  fontSize: 12,
+                  background: resumenIndexado.fallidos > 0 ? '#fef3c7' : '#dcfce7',
+                  color: resumenIndexado.fallidos > 0 ? '#92400e' : '#166534',
+                  border: '0.5px solid var(--border)',
+                }}
+              >
+                {resumenIndexado.indexados} anadido{resumenIndexado.indexados === 1 ? '' : 's'} al corpus
+                {/* Los que fallaron siguen en la bandeja: no hay nada que
+                    recuperar, sólo que volver a pulsar. */}
+                {resumenIndexado.fallidos > 0 &&
+                  `, ${resumenIndexado.fallidos} con error (siguen en la bandeja)`}
+                {resumenIndexado.errores.length > 0 && (
+                  <ul style={{ margin: '6px 0 0', paddingLeft: 18 }}>
+                    {resumenIndexado.errores.map((e) => (
+                      <li key={e.documentId}>
+                        {e.documentName}: {e.message}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            )}
+
             {/* Controles superiores */}
             <div
               style={{
@@ -433,6 +479,12 @@ export default function ReviewPage() {
               progress={progress}
               onAnalyze={handleAnalyze}
               onAnalyzeExhaustive={handleAnalyzeExhaustive}
+              // El criterio se pregunta UNA vez, aquí, y la barra sólo lo pinta.
+              // La fila le pregunta lo mismo para decidir si abre el modal.
+              estadoIndexable={seleccionIndexable(selectedDocs)}
+              indexando={indexando}
+              progresoIndexado={progresoIndexado}
+              onIndexar={handleIndexar}
             />
           </>
         )}

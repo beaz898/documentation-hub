@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { sufijoDeTotal } from '@/lib/coste-visible';
+import { motivosDeNoIndexable, type SeleccionIndexable } from '@/lib/documents/seleccion-indexable';
 
 /**
  * TOPE DEL EXHAUSTIVO (F-71 paso 2). Tres documentos, no veinte como el rápido.
@@ -42,6 +43,20 @@ interface Props {
   progress?: { current: number; total: number; currentName: string; phase?: string } | null;
   onAnalyze?: () => void;
   onAnalyzeExhaustive?: () => void;
+
+  /**
+   * ¿Se puede meter la selección al corpus, y si no, por qué? Lo contesta
+   * `seleccionIndexable` en la página; aquí solo se pinta.
+   *
+   * ⚠️ LLEGA EL ESTADO ENTERO Y NO UN BOOLEANO: el botón necesita los recuentos
+   * para decir cuántos faltan y por qué. Un `disabled` a secas es lo que hace
+   * que un botón apagado parezca una aplicación rota.
+   */
+  estadoIndexable: SeleccionIndexable;
+  /** La tanda de indexado está corriendo (bloquea la pantalla, como el análisis). */
+  indexando: boolean;
+  progresoIndexado?: { current: number; total: number; currentName: string } | null;
+  onIndexar?: () => void;
 }
 
 export default function ReviewSelectionBar({
@@ -55,6 +70,10 @@ export default function ReviewSelectionBar({
   progress,
   onAnalyze,
   onAnalyzeExhaustive,
+  estadoIndexable,
+  indexando,
+  progresoIndexado,
+  onIndexar,
 }: Props) {
   // Doble clic: el primer clic ARMA el botón, el segundo lanza. 30 créditos por
   // documento contra 5 no puede irse en un clic despistado.
@@ -79,7 +98,9 @@ export default function ReviewSelectionBar({
 
   const insufficient =
     creditsRemaining !== null && estimatedCost > creditsRemaining;
-  const canAnalyze = !!onAnalyze && !analyzing && !insufficient;
+  // BLOQUEANTE en los dos sentidos: mientras corre una tanda de indexado no se
+  // lanza un analisis, igual que el indexado no se lanza durante un analisis.
+  const canAnalyze = !!onAnalyze && !analyzing && !indexando && !insufficient;
 
   const exhaustiveInsufficient =
     creditsRemaining !== null && exhaustiveCost > creditsRemaining;
@@ -87,7 +108,7 @@ export default function ReviewSelectionBar({
   // null (aun cargando) cuenta como permitido: ver el comentario de la prop.
   const planBlocked = planAllowsExhaustive === false;
   const canAnalyzeExhaustive =
-    !!onAnalyzeExhaustive && !analyzing && !planBlocked && !exhaustiveInsufficient && !overExhaustiveLimit;
+    !!onAnalyzeExhaustive && !analyzing && !indexando && !planBlocked && !exhaustiveInsufficient && !overExhaustiveLimit;
 
   // El plan va PRIMERO: si no puedes comprarlo, el coste y el tope sobran.
   const exhaustiveHint = planBlocked
@@ -97,6 +118,20 @@ export default function ReviewSelectionBar({
     : exhaustiveInsufficient
       ? `Exhaustivo: ${exhaustiveCost} creditos · no te alcanzan`
       : `Exhaustivo: ${exhaustiveCost} creditos · tarda minutos por documento y hay que dejar la pestana abierta`;
+
+  /**
+   * ⚠️ LAS DOS FRASES, NO LA PRIMERA. Si la selección falla por las dos razones
+   * y sólo se enseñara una, el usuario quitaría los sin-analizar, volvería a
+   * pulsar y CHOCARÍA otra vez contra la segunda sin haberla visto nunca.
+   *
+   * ⚠️ Y VAN EN LA PANTALLA, no sólo en el `title`: un mensaje al pasar el ratón
+   * no existe en un táctil, y el motivo sería invisible justo para quien no
+   * tiene otra forma de leerlo (es lo que corrigió B.202 en el icono de la nube
+   * y B.180 en el precio del exhaustivo).
+   */
+  const motivosIndexado = motivosDeNoIndexable(estadoIndexable);
+  const puedeIndexar =
+    !!onIndexar && !indexando && !analyzing && estadoIndexable.puede;
 
   const buttonBase = {
     flexShrink: 0,
@@ -139,6 +174,11 @@ export default function ReviewSelectionBar({
             Analizando {progress.current} de {progress.total}: {progress.currentName}
             {progress.phase && ` · ${progress.phase}`}
           </span>
+        ) : indexando && progresoIndexado ? (
+          <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+            Anadiendo al corpus {progresoIndexado.current} de {progresoIndexado.total}:{' '}
+            {progresoIndexado.currentName}
+          </span>
         ) : (
           <>
             <span style={{ fontSize: 11, color: insufficient ? '#991b1b' : 'var(--text-muted)' }}>
@@ -153,6 +193,11 @@ export default function ReviewSelectionBar({
             }}>
               {exhaustiveHint}
             </span>
+            {motivosIndexado.map((motivo) => (
+              <span key={motivo} style={{ fontSize: 11, color: '#991b1b' }}>
+                Anadir al corpus: {motivo}
+              </span>
+            ))}
           </>
         )}
       </div>
@@ -213,6 +258,31 @@ export default function ReviewSelectionBar({
           {exhaustiveArmed
             ? `Confirmar · ${sufijoDeTotal(exhaustiveCost)}`
             : `Analisis exhaustivo · ${sufijoDeTotal(exhaustiveCost)}`}
+        </button>
+
+        {/* ⚠️ SE VE APAGADO, NO SE ESCONDE. Un botón que aparece y desaparece
+            según la selección obliga al usuario a descubrir por prueba y error
+            que existe; uno apagado con su motivo al lado enseña qué le falta
+            para poder usarlo. Y no lleva precio: `mark-analyzed` no cobra
+            créditos, así que no hay nada que el usuario tenga que adivinar
+            (criterio de `lib/coste-visible.ts`). */}
+        <button
+          onClick={() => onIndexar?.()}
+          disabled={!puedeIndexar}
+          title={motivosIndexado.join(' ')}
+          style={{
+            ...buttonBase,
+            border: `0.5px solid var(--border)`,
+            background: 'transparent',
+            color: puedeIndexar ? 'var(--text-primary)' : 'var(--text-muted)',
+            cursor: puedeIndexar ? 'pointer' : 'not-allowed',
+          }}
+        >
+          {indexando
+            ? progresoIndexado
+              ? `Anadiendo ${progresoIndexado.current}/${progresoIndexado.total}...`
+              : 'Anadiendo...'
+            : `Anadir al corpus (${selectedCount})`}
         </button>
       </div>
     </div>

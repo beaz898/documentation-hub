@@ -1,6 +1,7 @@
 'use client';
 
 import type { ReviewDocument, ReviewAnalysisSummary } from '@/hooks/review/useReviewList';
+import { seleccionIndexable } from '@/lib/documents/seleccion-indexable';
 
 const STATUS_LABELS: Record<string, string> = {
   pendiente: 'Sin analizar',
@@ -66,6 +67,18 @@ export default function ReviewDocumentRow({ document: doc, selected, disabled, o
   // decision" con sus hallazgos exactos, en vez de "pendiente de analisis".
   const stagedDecided = stagedPending && doc.stagedAnalyzed && doc.stagedAnalysis != null;
 
+  /**
+   * ⚠️ LA MISMA PREGUNTA QUE EL BOTÓN DE INDEXAR EN LOTE, Y SE LE PREGUNTA A ÉL.
+   * Esta condición —analizado y sin versión pendiente— estaba escrita a mano
+   * aquí, en dos sitios de este mismo componente (el cursor y el onClick). El
+   * botón del lote la necesitaba también, y una tercera copia habría sido la
+   * tercera implementación del mismo criterio.
+   *
+   * Se pregunta por UN documento porque la función contesta igual de bien a uno
+   * que a veinte: es el mismo criterio, no una versión reducida.
+   */
+  const revisable = seleccionIndexable([doc]).puede;
+
   return (
     <div
       style={{
@@ -96,7 +109,7 @@ export default function ReviewDocumentRow({ document: doc, selected, disabled, o
         style={{
           flex: 1,
           minWidth: 0,
-          cursor: (stagedDecided && onDecide) || (!stagedPending && doc.lastAnalysis && onOpen) ? 'pointer' : 'default',
+          cursor: (stagedDecided && onDecide) || (revisable && onOpen) ? 'pointer' : 'default',
         }}
         onClick={() => {
           // Un staged AUN NO analizado (stagedPending sin stagedDecided) sigue inerte:
@@ -111,7 +124,7 @@ export default function ReviewDocumentRow({ document: doc, selected, disabled, o
             if (onDecide) onDecide(doc);
             return;
           }
-          if (!stagedPending && doc.lastAnalysis && onOpen) onOpen(doc);
+          if (revisable && onOpen) onOpen(doc);
         }}
       >
         <div
