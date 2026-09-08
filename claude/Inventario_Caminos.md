@@ -379,6 +379,38 @@ mete en el cuerpo de la petición**. Mandarlo como `documentoEnRevision` mete a
 A6 por el rescate de `analyze-v2:313` — el mismo que A3 acaba de medir
 funcionando el 08/09. Mecanismo probado, cero maquinaria nueva.
 
+### ⚠️ COMPROBAR UN FANTASMA NO ES TIEMPO PERDIDO — las dos mitades
+
+El 09/09, cerrando B.180, llegó un encargo con dos datos inventados: un séptimo
+botón que «mostraba 5 créditos y cobraba 50», y una decisión mía sobre unos
+umbrales que nunca existió. **Ninguna de las dos cosas era real**: los botones
+eran seis y de umbrales no se había hablado.
+
+**Y la comprobación encontró otra cosa.** Al ir a verificar ese séptimo botón
+—¿de dónde saldría un 5 donde se cobran 50?— se vio que `ReviewSelectionBar`
+**RECIBE** `estimatedCost` y `exhaustiveCost`, calculados en
+`useReviewList:160-163`, y que mi primera versión de B.180 los había ignorado
+para volver a multiplicar clave × unidades dentro del componente.
+
+**Dos caminos al mismo número, en el commit que existía para quitar exactamente
+eso.** Y sin síntoma: los dos daban `5 × n`, así que ninguna prueba habría
+fallado. Es de las que solo se ven mirando.
+
+**LAS DOS MITADES, y las dos cuentan:**
+
+· **El fantasma no existía**, y verificarlo antes de escribir fue lo correcto —
+  documentar un séptimo botón inventado habría metido una mentira en la ficha.
+· **La comprobación encontró un fallo real**, y mío. Ir a mirar por una razón
+  equivocada llevó a un sitio que nadie había mirado por la razón buena.
+
+⚠️ Lo que NO hay que sacar de aquí es «los datos inventados son útiles». Lo que
+hay que sacar es que **el gesto de verificar tiene valor por sí mismo**, aunque
+la premisa que lo motivó resulte falsa: se va a comprobar una cosa y se abre el
+fichero, y el fichero cuenta lo que cuenta. La alternativa —dar por buena la
+premisa y escribirla— no habría abierto nada.
+
+---
+
 ### ⚠️ Y UNA QUINTA, POR LA OTRA PUNTA: LA PREMISA FALSA VIENE EN LA INSTRUCCIÓN
 
 El 09/09, ya cerrado el día, llegó un encargo con tres datos: un commit

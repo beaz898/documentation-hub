@@ -358,10 +358,19 @@ ejecute nada.
 
 # 4 · QUÉ BLOQUEA
 
-**Queda UNA, y ha bajado de escalón.** Eran dos, las dos en la misma pantalla y
+**NADA. Las dos están cerradas** (09/09/2026). Eran dos, en la misma pantalla y
 las dos de la familia «el producto MIENTE al cliente» —el peor escalón de F-100—.
-La grave, B.177, está **arreglada y medida** (4.1). La que queda, B.180, no miente
-sobre el contenido: **calla un precio**, que es la familia de abajo.
+B.177 está arreglada y medida (4.1). **B.180 también**: los seis botones que
+cobran dicen ahora lo que cuestan, con el número derivado de `CREDIT_COSTS` y en
+la etiqueta, no en un `title` que en un móvil no existe.
+
+⚠️ **«NADA BLOQUEA» NO ES «ESTÁ TERMINADO», y la diferencia es la de F-103:** lo
+que queda no es una lista de fallos conocidos, es una lista de **caminos sin
+medir**. Cinco de los ocho de la familia A no tienen tanda, los otros dos grupos
+—cuatro del agente, siete que cambian el corpus— no tienen ninguna, y la
+frontera del riesgo sigue siendo la COBERTURA y no el tiempo. Un hallazgo grave
+nuevo no significaría que el sistema haya empeorado: significaría que se miró en
+un sitio nuevo.
 
 ⚠️ Y conviene decirlo entero: B.177 no se cerró sola. Al ir a medirla apareció
 B.198 —ese camino no había guardado NUNCA— y hubo que arreglar eso primero para
