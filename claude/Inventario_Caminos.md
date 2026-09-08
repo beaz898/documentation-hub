@@ -259,6 +259,43 @@ seguiría ahí y daría igual para las tablas.
 
 ---
 
+## ✅ LAS TRES, REMEDIDAS SOBRE UN CORPUS DE UN SOLO CORTADOR (09/09/2026)
+
+Antes de esto, **las tres mediciones de la semana tenían el lado candidato
+troceado con el cortador VIEJO** — OPE-11 no se reparó hasta hoy. No estaban
+mal; estaban hechas sobre material mixto, y eso no se podía afirmar de ninguna.
+Con el corpus entero en `extractor_version 3` se repitieron:
+
+| tanda | documento | disc · idént · solo_a · solo_b | candidatos |
+|---|---|---|---|
+| **A1** | OPE-15 | **8 · 12 · 10 · 40** | 1 |
+| **A3** | OPE-14 | **3 · 57 · 0 · 0** | 1 |
+| **A6** | OPE-14 | **3 · 57 · 0 · 0** | 1 |
+
+**Las tres con `candidatos 1`**, así que cada cifra es atribuible a su pareja y
+no una suma. Las tres con `pares_ciegos 0` y `tablas_analizado 1`: ningún lado
+ciego. Y las sumas cierran en las tres contra su denominador.
+
+⚠️ **EL RESULTADO ES QUE NO PASÓ NADA, Y ESO ES EL RESULTADO.** A3 y A6 dieron
+exactamente lo mismo que con el cortador viejo. **El cambio del troceado no
+movió una sola cifra en tablas** — lo que confirma que B.182 afectaba al
+troceado de PROSA y a los trozos por longitud, no al reparto fila a fila que el
+diff consume. Una remedición que confirma es tan medición como una que descubre;
+la diferencia es que ésta se puede afirmar, y antes no.
+
+⚠️ **A1 ES LÍNEA DE BASE NUEVA, NO UNA REPETICIÓN**, y se dice para que nadie la
+compare con el 16 del 07/09: aquél era OPE-10-A1, un documento que **ya no
+existe en el corpus**. OPE-15 tiene además lo que aquél no tenía: `solo_en_a 10`
+son diez filas `MUT-xx` que no deben emparejar con nada, o sea **control
+negativo**. A1 mide desde hoy detección Y resistencia a emparejar de más.
+
+⚠️ Y una confirmación que no se predijo: `columnas_afectadas` salió **5** en A1 y
+**1** en A3/A6. Coincide exactamente con las siembras —ocho mutaciones en cinco
+columnas; tres cambios en una sola columna de precio— sin que nadie se lo dijera
+al sistema. Es la siembra comprobada desde el otro extremo.
+
+---
+
 ## ✅ A6 ARREGLADA — EL ANTES Y EL DESPUÉS, MISMO DOCUMENTO (09/09/2026)
 
 Dos pasadas sobre **el mismo documento, el mismo camino y el mismo modo**, con el
