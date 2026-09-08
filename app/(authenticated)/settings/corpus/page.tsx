@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { AlertTriangle, RefreshCw, Wrench } from 'lucide-react';
 import { recorrerElLote } from '@/lib/documents/bucle-del-lote';
 import type { ResultadoDelBucle } from '@/lib/documents/bucle-del-lote';
+import type { recuentoPorEstado } from '@/lib/documents/estado-de-reparacion';
 
 /**
  * ESTADO DEL CORPUS Y REPARACIÓN — B.199.
@@ -39,15 +40,44 @@ interface DocumentoAReparar {
   anomalia?: string;
 }
 
+/**
+ * ⚠️ EL RECUENTO SE DERIVA DEL SERVIDOR, NO SE VUELVE A ESCRIBIR AQUÍ — y esto
+ * ES el arreglo de un fallo en producción (09/09/2026).
+ *
+ * La primera versión declaró `recuento: Record<string, number>` a mano. Es una
+ * SEGUNDA definición de un contrato que ya existía en código, y se separó de la
+ * primera al instante: `recuentoPorEstado` devuelve los tres estados **y
+ * además** un `anomalias` anidado. Recorrerlo con `Object.entries` y pintar el
+ * valor mandó un OBJETO a React — error #31, pantalla en blanco.
+ *
+ * Con el tipo derivado, ese mismo código no compila. **Un tipo lo caza siempre y
+ * antes; un caso habría hecho falta escribirlo, y no existe batería de páginas
+ * en este repositorio.** Donde se pueda contestar con el tipo, se contesta con
+ * el tipo (Protocolo §4).
+ */
+type Recuento = ReturnType<typeof recuentoPorEstado>;
+
 interface Censo {
   version_vigente: number;
   examinados: number;
   total_en_la_organizacion: number;
   truncado: boolean;
-  recuento: Record<string, number>;
+  recuento: Recuento;
   a_reparar: DocumentoAReparar[];
   veredicto: string;
 }
+
+/** Los tres estados, en el orden en que se leen. Las anomalías van aparte
+ *  porque no son estados: son el MOTIVO de que algo no se pueda reparar. */
+const ORDEN: Array<keyof Omit<Recuento, 'anomalias'>> = [
+  'al_dia', 'reparable_automaticamente', 'reparable_resubiendo',
+];
+
+const ANOMALIAS: Record<string, string> = {
+  version_futura: 'Sello más nuevo que el del servidor',
+  sincronizado_sin_id: 'Sincronizado, sin identificador del proveedor',
+  via_no_construida: 'Se repararía volviendo a por el original, y esa vía no existe',
+};
 
 const ESTADOS: Record<string, string> = {
   al_dia: 'Al día',
@@ -182,14 +212,26 @@ export default function CorpusPage() {
 
           <p className="text-sm">{censo.veredicto}</p>
 
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            {Object.entries(censo.recuento).map(([estado, n]) => (
+          <div className="grid grid-cols-3 gap-3">
+            {ORDEN.map(estado => (
               <div key={estado} className="p-3 rounded border border-gray-200 dark:border-gray-700">
-                <div className="text-2xl font-semibold">{n}</div>
-                <div className="text-xs text-gray-500">{ESTADOS[estado] ?? estado}</div>
+                <div className="text-2xl font-semibold">{censo.recuento[estado]}</div>
+                <div className="text-xs text-gray-500">{ESTADOS[estado]}</div>
               </div>
             ))}
           </div>
+
+          {/* Las anomalías no son estados: dicen POR QUÉ algo no se puede
+              reparar. Solo se pintan las que no valen cero. */}
+          {Object.entries(censo.recuento.anomalias).some(([, n]) => n > 0) && (
+            <ul className="text-xs text-gray-500 space-y-1">
+              {Object.entries(censo.recuento.anomalias)
+                .filter(([, n]) => n > 0)
+                .map(([clave, n]) => (
+                  <li key={clave}>{n} · {ANOMALIAS[clave] ?? clave}</li>
+                ))}
+            </ul>
+          )}
 
           <p className="text-xs text-gray-500">
             Versión del procesamiento: {censo.version_vigente}
