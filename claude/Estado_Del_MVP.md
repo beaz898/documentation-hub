@@ -312,6 +312,50 @@ documento tuviera una.
 
 ---
 
+# 3.3 · ✅ B.199 CERRADO — y lo que enseñó su propio fallo (09/09/2026)
+
+La reparación tiene interfaz: `settings/corpus`. Censo, reparar uno, reparar
+todo lo reparable con el bucle que pulsa hasta que `hay_mas` baja, contador
+entre rondas y botón de detener. Sin confirmación —no borra ni cambia
+contenido— y con los dos avisos separados, que dicen cosas distintas: uno que la
+reparación arregla el TROCEADO y no la lectura; el otro que **no vuelve a
+analizar nada**, así que los análisis anteriores pueden haber quedado
+incompletos.
+
+⚠️ **SE ENTREGA SIN EJERCER Y ESO SE DECLARA.** Cero reparables, nada que pulsar,
+primera prueba real en el próximo cambio de versión.
+
+## ⚠️ LA PANTALLA REVENTÓ EN EL PRIMER INTENTO, Y LA CAUSA NO FUE LA PANTALLA
+
+`Minified React error #31`: un objeto mandado a React como hijo. Pero el fallo
+no estaba en el render — estaba en un **tipo escrito a mano**:
+`recuento: Record<string, number>`, una SEGUNDA definición de un contrato que ya
+existía en código. `recuentoPorEstado` devuelve los tres estados **y además** un
+`anomalias` anidado, así que `Object.entries` lo arrastraba y lo pintaba.
+
+**Es la misma especie que este frente lleva la semana retirando** —dos
+definiciones de una cosa, que se separan sin avisar— y esta vez la escribí yo,
+en la pieza que acababa de declarar como «la que no se puede probar».
+
+⚠️ **Y ESA DECLARACIÓN ERA MEDIA MENTIRA, que es lo que hay que guardar.** Dije
+que la pantalla se verifica a ojo porque no hay batería de páginas. Cierto para
+un test; **falso para el tipo**. Con `type Recuento = ReturnType<typeof
+recuentoPorEstado>` el código exacto que reventó **no compila**:
+
+```
+error TS2322: Type 'number | Record<AnomaliaDeSello, number>'
+              is not assignable to type 'ReactNode'.
+```
+
+Comprobado restaurando el render malo con el tipo derivado puesto. **El fallo no
+estaba fuera del alcance de la herramienta: lo puse yo fuera de su alcance** al
+recopiar el tipo en vez de derivarlo. Y encaja con lo que el protocolo ya decía:
+cuando la respuesta se pueda dar con el TIPO en vez de con un test, mejor con el
+tipo — un test avisa a quien lo ejecuta; el tipo para el gate antes de que nadie
+ejecute nada.
+
+---
+
 # 4 · QUÉ BLOQUEA
 
 **Queda UNA, y ha bajado de escalón.** Eran dos, las dos en la misma pantalla y
@@ -370,7 +414,7 @@ decirlos en voz alta si alguien pregunta.**
 | **OneDrive — ingesta y SINCRONIZACIÓN ejercidas** | La ingesta desde el 07/09 (OPE-14) y **la sincronización el 09/09, sobre 36 documentos**: 33 sobrescritos en el sitio, 3 versionados y aprobados. Sigue sin ejercerse el BORRADO remoto y la vuelta del listado (B.138) |
 | **La extracción de prosa no tiene un solo test** | `pdf`, `docx`, `txt`. La batería cubre el TROCEADO, no la extracción |
 | **B.200 — la línea que decide mal, y hoy no la pisa nadie** | `plan-de-reindexado.ts:90` comprueba `via_no_construida` **antes** que la viabilidad de `retrocear`. **MEDIDO, no sospechado**: 36 documentos recibieron un 501 por una reparación que habría funcionado, y por eso el lote alcanzaba a 2. ⚠️ Que alcanzara a dos **es un hecho sobre esa línea, no sobre el corpus**. ⚠️ **Y HOY EL HUECO ESTÁ VACÍO, lo que lo hace MÁS peligroso y no menos**: el sync reparó a esos 28, así que nadie volverá a pisar esa rama hasta que llegue un documento sin segmentos — y para entonces la razón se habrá olvidado. **Alcance exacto**: afecta a documentos SIN segmentos y con original recuperable. Un documento CON segmentos nunca llega ahí — `estado-de-reparacion.ts:125` devuelve `reparable_automaticamente` sin anomalía y el plan va a `retrocear`; `new 9.txt` y RRHH-06 lo demuestran reparándose con el botón. **No se toca hoy**: el orden puede ser deliberado (preferir la reparación completa a la disponible es B.195, que se cerró decidiendo lo contrario) |
-| **La reparación NO TIENE INTERFAZ — B.199** | `reindexar`, `reindexar-lote` y `estado-del-corpus` no los llama ninguna `.tsx`: **hoy solo puede repararse quien sepa abrir una consola, y eso no es un producto.** Cuando llegue, va CON EL LOTE: un botón que repare todo lo reparable y **diga cuántos quedan** |
+| **B.199 CERRADO — con su límite declarado** | `settings/corpus` (`df46b8bb`, `aa3f6d90`): censo, botón de uno, botón de todo lo reparable con el bucle y el contador entre rondas. **Verificado en producción el 09/09**: carga, se lee como «no hay nada que hacer», los dos avisos se distinguen y la lista de anomalías no aparece con todo a cero. ⚠️ **LOS BOTONES NO SE HAN PODIDO EJERCER**: el corpus está a 0 reparables, así que no hay nada que pulsar. **La primera prueba real será el próximo cambio de `EXTRACTOR_VERSION`.** No se fabricó un corpus reparable subiendo el catálogo para poder probarlos — sería inventar la avería para enseñar el arreglo. Lo que SÍ está probado es el bucle (11 casos, 4 mutaciones), que es donde vivía el fallo silencioso |
 | **El presupuesto de tiempo del lote es una estimación** | 180 s de los 300, con `parada: 'tiempo'` de contador |
 
 ---
