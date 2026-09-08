@@ -1,4 +1,4 @@
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, it, expect } from 'vitest';
 
@@ -65,8 +65,27 @@ const GRUPOS = {
   ],
 } as const;
 
+/**
+ * ⚠️ EL CUARTO GRUPO — los que tienen registro de siembra PROPIO y no salen en
+ * ninguna de las tres listas de `Casos_Harness.md`.
+ *
+ * Van aparte y no repartidos entre los otros tres a propósito: OPE-13 y RRHH-08
+ * comparten un registro conjunto y OPE-15 tiene el suyo, así que meterlos en las
+ * listas existentes obligaría a decidir a cuál pertenece cada uno **sin que la
+ * respuesta sea evidente**. Un grupo propio dice lo que son sin forzar nada.
+ *
+ * Su atadura es la misma que la de los otros, contra otro sitio: cada uno tiene
+ * que estar nombrado en algún `corpus-pruebas/SIEMBRA_*.md`. Un fichero de
+ * referencia sin registro de siembra es material del que nadie sabe qué prueba.
+ */
+const CON_REGISTRO_PROPIO = [
+  'OPE-13_cobertura-por-clinica.xlsx',
+  'RRHH-08_asignacion-de-guardias.xlsx',
+  'OPE-15_tarifario-mutua-2026.xlsx',
+] as const;
+
 const DOC = 'claude/Casos_Harness.md';
-const TODOS = Object.values(GRUPOS).flat();
+const TODOS = [...Object.values(GRUPOS).flat(), ...CON_REGISTRO_PROPIO];
 
 /** Los bloques cercados que siguen a cada rótulo, en orden de aparición. */
 function listasDelDocumento(): string[][] {
@@ -86,11 +105,30 @@ function listasDelDocumento(): string[][] {
 }
 
 describe('los ficheros del harness siguen ahí (OPE-10)', () => {
-  /** Control positivo: con las listas vacías todo lo de abajo pasaría sin
-   *  comprobar nada, que es la forma exacta de un cero sin denominador. */
-  it('hay once ficheros repartidos en tres grupos', () => {
-    expect(TODOS.length).toBe(11);
-    expect(Object.keys(GRUPOS)).toHaveLength(3);
+  /**
+   * ⚠️ EL CONTROL YA NO CUENTA: EXIGE QUE NO SOBRE NADA.
+   *
+   * Antes decía «hay once». Un número se pudre en cuanto llega un fichero nuevo,
+   * y —peor— **un fichero nuevo sin declarar lo dejaba pasar**: el caso seguía
+   * verde con material de referencia que nadie sabía que existía.
+   *
+   * Ahora se compara contra el DIRECTORIO. Falla en las dos direcciones: si
+   * desaparece un fichero declarado, y si aparece uno sin declarar. La segunda
+   * es la que no se pudre — es OPE-10 al revés: allí faltaba lo que debía estar,
+   * aquí sobra lo que nadie declaró.
+   *
+   * Los `SIEMBRA_*.md` se excluyen porque son los REGISTROS, no el material.
+   */
+  it('nada en corpus-pruebas se queda sin declarar', () => {
+    const enDisco = readdirSync('corpus-pruebas')
+      .filter(n => !n.startsWith('.') && !n.startsWith('SIEMBRA'))
+      .sort();
+    expect(
+      enDisco,
+      'Un fichero de "corpus-pruebas" no está en ninguno de los cuatro grupos de ' +
+      'este caso. Si es material de referencia nuevo, declaralo en su grupo y ' +
+      'dale registro de siembra; si no lo es, no debería estar aquí.',
+    ).toEqual([...TODOS].sort());
   });
 
   it.each(TODOS)('%s existe en corpus-pruebas', fichero => {
@@ -99,6 +137,17 @@ describe('los ficheros del harness siguen ahí (OPE-10)', () => {
       `Falta "corpus-pruebas/${fichero}". Es material de referencia del harness: ` +
       `sin él, el caso que lo usa no se puede volver a medir. Si se renombró, hay ` +
       `que cambiarlo también en ${DOC} y en este fichero.`,
+    ).toBe(true);
+  });
+
+  it.each(CON_REGISTRO_PROPIO)('%s tiene registro de siembra', fichero => {
+    const registros = readdirSync('corpus-pruebas').filter(n => n.startsWith('SIEMBRA'));
+    const nombrado = registros.some(r =>
+      readFileSync(join('corpus-pruebas', r), 'utf8').includes(fichero));
+    expect(
+      nombrado,
+      `"${fichero}" no aparece en ningún corpus-pruebas/SIEMBRA_*.md. Es material ` +
+      `de referencia del que nadie sabe qué prueba ni con qué cifra.`,
     ).toBe(true);
   });
 
