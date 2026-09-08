@@ -342,6 +342,35 @@ mete en el cuerpo de la petición**. Mandarlo como `documentoEnRevision` mete a
 A6 por el rescate de `analyze-v2:313` — el mismo que A3 acaba de medir
 funcionando el 08/09. Mecanismo probado, cero maquinaria nueva.
 
+### ⚠️ TRES VECES LA MISMA FORMA EN UNA SEMANA — leí bien la rama y supuse la población
+
+No son tres despistes distintos: es un patrón, y las tres veces el código estaba
+bien leído.
+
+| # | la rama, leída bien | la población, supuesta | lo que costó |
+|---|---|---|---|
+| 1 · B.195 | `tieneSegmentos && soloCambioElTroceado`, y el origen no decide | «los 39 tienen segmentos» — **dos** los tenían | un plan entero: «lote sobre los 39 de una vez» |
+| 2 · el lote | `estadoDeReparacion` decide la vía | «alcanzará a los 36» — alcanzaba a **2** | la cuenta, otra vez |
+| 3 · el coste | `sync:255` versiona solo si `analizado` | «los 36 están `analizado`» — casi todos `pendiente` | **nada: salió barato** |
+
+**La tercera salió a favor** —una aprobación en vez de ocho, ~5 créditos en vez
+de ~40— y por eso conviene apuntarla: si solo se anotan los errores que duelen,
+el patrón parece más raro de lo que es. La forma es idéntica en las tres.
+
+⚠️ **LO QUE LAS DISTINGUE DE UN DESCUIDO NORMAL**: la parte verificada era
+siempre la difícil —la condición, el orden de las guardas, la rama— y la parte
+supuesta era siempre la fácil: **cuántas filas cumplen eso hoy**. Es más cómodo
+leer código que consultar datos, y el código estaba delante mientras que los
+datos exigían pedirle una consulta a otra persona.
+
+**La defensa no es leer mejor.** Es que toda afirmación de la forma «los N
+documentos que…» sale del censo o de una consulta, nunca de la lectura del
+código que decide sobre ellos. **El código dice qué CONDICIÓN se aplica; solo el
+dato dice a CUÁNTOS.** Y en las tres, la consulta que lo habría contestado
+cabía en una línea.
+
+---
+
 ### ⚠️ LO QUE ENSEÑA, y es la forma de siempre
 
 > **Una verificación correcta sobre una población más estrecha que la

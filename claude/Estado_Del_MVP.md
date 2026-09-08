@@ -265,6 +265,53 @@ dos sentidos, y por eso el caso nuevo lee la fuente.
 
 ---
 
+# 3.2 · ✅ LOS OCHO EXCEL, REPARADOS (09/09/2026)
+
+Sin borrar nada, sin lápidas y sin perder un análisis. La maniobra fue **un
+`UPDATE` de una columna**: `source_modified_at = NULL` sobre los ocho `.xlsx`
+sin segmentos, que es lo que `sync:214` mira para saltarse un fichero. Con el
+cerrojo a nulo, el sync los volvió a descargar.
+
+| censo | antes | después |
+|---|---|---|
+| `al_dia` | 2 | **10** |
+| `reparable_automaticamente` | 2 | 2 |
+| `reparable_resubiendo` | 36 | **28** |
+
+Los ocho salen con `extractor_version 3` y **segmentos guardados**: a partir de
+hoy, cualquier cambio del TROCEADO los repara desde casa sin resubir nada.
+
+⚠️ **SIETE SE ARREGLARON SOLOS Y UNO PIDIÓ APROBACIÓN**, y la diferencia no es
+casual: `sync:255` versiona **solo si el documento está `analizado`**. Los siete
+estaban `pendiente`, así que el sync sobrescribió su fila en el sitio
+(`sync:404`, con `segments` y `extractor_version`) — cero créditos, cero
+revisiones. OPE-11 sí estaba `analizado`, se guardó como versión en vuelo y su
+generación avanzó a 2 al aprobarla.
+
+## ⚠️ Y OPE-10 VOLVIÓ SOLO — la lápida no lo impidió
+
+Se había perdido antes y **nadie lo sabía**: no estaba en el corpus cuando se
+hizo el censo, que es la razón por la que la consulta de `.xlsx` devolvió ocho
+y no nueve. Volvió con el sync, con segmentos y en la versión vigente.
+
+**Lo que enseña no es que volviera: es que su ausencia no la detectó nada.** Ni
+el censo —que cuenta lo que existe, así que un documento que falta es invisible
+para él—, ni las tandas, ni el harness. Y OPE-10 es la mitad del par que da las
+15 discrepancias del caso 6: sin él, esa cifra no se podía volver a medir y
+nada lo habría dicho. El guardián más barato es que `Casos_Harness.md` nombra
+sus cuatro ficheros (`:110-116`): un caso que compruebe que esos nombres siguen
+resolviendo a documentos vivos lo habría cazado el día que pasó.
+
+⚠️ **Y LA LÁPIDA DE OPE-10 NUNCA SE VERIFICÓ.** Se dio por hecha —por el usuario
+al proponerlo y por mí al construir encima una maniobra segura de retirada— y el
+retorno la desmiente. El mecanismo sí está verificado y la advertencia sobre
+borrar el corpus entero SIGUE EN PIE: `documents/route.ts:71` manda
+`user_excluded`, así que borrar 40 documentos sincronizados escribiría 40
+lápidas y el corpus no volvería. Lo que no estaba verificado era que ESTE
+documento tuviera una.
+
+---
+
 # 4 · QUÉ BLOQUEA
 
 **Queda UNA, y ha bajado de escalón.** Eran dos, las dos en la misma pantalla y
