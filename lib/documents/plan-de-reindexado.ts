@@ -101,16 +101,6 @@ export function planDeReindexado(
   return { via: 'retrocear' };
 }
 
-/**
- * ⚠️ RE-TROCEAR ES MEDIA REPARACIÓN, y hay que llamarla por su nombre en vez de
- * venderla como completa: arregla el troceado, NO la extracción. Si algún día
- * cambia cómo se LEE un documento —no cómo se corta—, esta vía no lo repara y el
- * documento seguirá necesitando una resubida aunque el reindexado diga que fue
- * bien. Lo devuelve el propio plan para que quien lo enseñe no tenga que saberlo.
- */
-export function esReparacionCompleta(plan: PlanDeReindexado): boolean {
-  return plan.via === 'reprocesar';
-}
 
 /**
  * ¿PUEDE ESTE DOCUMENTO PERDER ESTRUCTURA SI SE RE-TROCEA? (B.191)

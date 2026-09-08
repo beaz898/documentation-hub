@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { planDeReindexado, esReparacionCompleta, puedePerderEstructura } from './plan-de-reindexado';
+import { planDeReindexado, puedePerderEstructura } from './plan-de-reindexado';
 import type { EntradaDelPlan } from './plan-de-reindexado';
 
 /**
@@ -97,14 +97,6 @@ describe('planDeReindexado — las dos vías', () => {
   it('el borde del mínimo de texto: 50 caracteres bastan', () => {
     expect(planDeReindexado(entrada({ fullText: 'x'.repeat(50) }), VIGENTE))
       .toEqual({ via: 'retrocear' });
-  });
-});
-
-describe('esReparacionCompleta', () => {
-  it('solo reprocesar repara del todo; re-trocear es media reparación', () => {
-    expect(esReparacionCompleta({ via: 'reprocesar' })).toBe(true);
-    expect(esReparacionCompleta({ via: 'retrocear' })).toBe(false);
-    expect(esReparacionCompleta({ via: 'rechazado', motivo: 'al_dia' })).toBe(false);
   });
 });
 

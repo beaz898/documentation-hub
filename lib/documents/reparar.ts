@@ -7,7 +7,7 @@ import { saveDocumentChunks } from '@/lib/persist-chunks';
 import { getDocumentChunks, getActiveGeneration } from '@/lib/read-chunks';
 import { getStagedForDocument } from '@/lib/document-staged';
 import { swapDocumentVectors } from '@/lib/document-swap';
-import { planDeReindexado, esReparacionCompleta } from './plan-de-reindexado';
+import { planDeReindexado } from './plan-de-reindexado';
 import type { MotivoDeRechazo } from './plan-de-reindexado';
 import { lecturaDelDocumento, textoDelDocumento, tieneSegmentosPersistidos } from './lectura-dual';
 
@@ -46,7 +46,6 @@ export type ResultadoDeReparacion =
       via: 'retrocear';
       generacion: { antes: number; ahora: number };
       trozos: { antes: number; ahora: number };
-      reparacionCompleta: boolean;
       ms: number;
     }
   | { ok: false; clase: 'no_encontrado' }
@@ -199,7 +198,7 @@ export async function repararDocumento(
     const ms = Date.now() - arrancado;
     console.log(
       `[reindexar] OK | doc=${documentId} | "${doc.name}" | gen ${generacionActiva}→${generacionNueva} | ` +
-      `${chunksActuales.length}→${chunks.length} trozos | completa=${esReparacionCompleta(plan)} | ` +
+      `${chunksActuales.length}→${chunks.length} trozos | ` +
       `${ms} ms | ${chunks.length} embeddings`,
     );
 
@@ -208,7 +207,6 @@ export async function repararDocumento(
       via: 'retrocear',
       generacion: { antes: generacionActiva, ahora: generacionNueva },
       trozos: { antes: chunksActuales.length, ahora: chunks.length },
-      reparacionCompleta: esReparacionCompleta(plan),
       ms,
     };
   } catch (err) {

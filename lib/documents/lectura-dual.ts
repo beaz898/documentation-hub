@@ -59,6 +59,29 @@ function esListaDeSegmentos(valor: unknown): valor is ExtractedSegment[] {
  * cero texto— teniendo un `full_text` perfectamente utilizable al lado.
  * Ante la duda se cae al texto plano, que es la forma que siempre funciona.
  */
+/**
+ * ⚠️ LA RAMA `texto_plano` NO ESTÁ MUERTA — LEE ESTO ANTES DE RETIRARLA (09/09/2026).
+ *
+ * Va a PARECER muerta, y por eso se escribe aquí: si el parque se repara por
+ * re-sincronización, todos los documentos vuelven CON segmentos, y a partir de
+ * ese día ningún caso real entra por este camino. Un `grep` mostrará una rama
+ * que nadie ejercita.
+ *
+ * **Sigue siendo la única vía para un documento cuyo fichero ya no existe.** Un
+ * manual no guarda el suyo —`ingest:395` lo borra de Storage al terminar— y uno
+ * de la nube puede haberse borrado allí. Para ésos no hay original al que
+ * volver: `full_text` es lo único que queda, y esto es lo que lo convierte en
+ * algo re-troceable.
+ *
+ * LA CONDICIÓN, para que se pueda comprobar en vez de creerse: retirar esto solo
+ * es correcto el día que TODO documento tenga o bien sus segmentos guardados, o
+ * bien un original recuperable. Mientras exista uno solo sin las dos cosas, esta
+ * rama es su única reparación posible.
+ *
+ * ⚠️ Y no protege de sí misma: reconstruir desde `full_text` da PROSA. Un
+ * documento con tablas re-troceado por aquí se convierte en prosa para siempre
+ * (B.191). Quien llega hasta aquí ya ha pasado por `puedePerderEstructura`.
+ */
 export function lecturaDelDocumento(fila: FilaConContenido): LecturaDelDocumento {
   if (esListaDeSegmentos(fila.segments)) {
     return { segmentos: fila.segments, origen: 'segmentos' };

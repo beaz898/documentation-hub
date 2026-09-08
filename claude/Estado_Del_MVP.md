@@ -322,6 +322,7 @@ decirlos en voz alta si alguien pregunta.**
 | **`json`, `html` y la rama `default`** | `∅`: nunca probados por ninguna vía |
 | **OneDrive — ingesta SÍ, sincronización NO** | OPE-14 entró por OneDrive, se indexó **con segmentos** y se analizó tres veces (A3 y A6 ×2). Lo que sigue sin probar es la SINCRONIZACIÓN: cambios, borrados y la vuelta del listado (B.138) |
 | **La extracción de prosa no tiene un solo test** | `pdf`, `docx`, `txt`. La batería cubre el TROCEADO, no la extracción |
+| **La reparación NO TIENE INTERFAZ — B.199** | `reindexar`, `reindexar-lote` y `estado-del-corpus` no los llama ninguna `.tsx`: **hoy solo puede repararse quien sepa abrir una consola, y eso no es un producto.** Cuando llegue, va CON EL LOTE: un botón que repare todo lo reparable y **diga cuántos quedan** |
 | **El presupuesto de tiempo del lote es una estimación** | 180 s de los 300, con `parada: 'tiempo'` de contador |
 
 ---

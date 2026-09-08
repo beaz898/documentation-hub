@@ -21,7 +21,7 @@ const LIMITES = { limite: 8, presupuestoMs: 180_000, maximoExaminados: 60 };
 
 const REPARADO: ResultadoDeReparacion = {
   ok: true, via: 'retrocear', generacion: { antes: 1, ahora: 2 },
-  trozos: { antes: 4, ahora: 4 }, reparacionCompleta: false, ms: 1200,
+  trozos: { antes: 4, ahora: 4 }, ms: 1200,
 };
 const RECHAZADO: ResultadoDeReparacion = { ok: false, clase: 'rechazado', motivo: 'sin_original_con_tablas' };
 const AL_DIA: ResultadoDeReparacion = { ok: false, clase: 'rechazado', motivo: 'al_dia' };

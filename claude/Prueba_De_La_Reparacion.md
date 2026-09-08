@@ -122,7 +122,7 @@ await (await fetch('/api/admin/reindexar', {
 ```
 
 La respuesta ya dice casi todo: `via`, `generacion.antes/ahora`,
-`trozos.antes/ahora`, `reparacion_completa` y el `aviso` de que es media
+`trozos.antes/ahora` y el `aviso` de que es media
 reparación.
 
 ---

@@ -38,10 +38,15 @@ export function respuestaDeReparacion(resultado: ResultadoDeReparacion): NextRes
       trozos: resultado.trozos,
       // ⚠️ SE DICE QUE ES MEDIA REPARACIÓN, y no se vende como completa:
       // re-trocear arregla el troceado, NO la extracción.
-      reparacion_completa: resultado.reparacionCompleta,
-      aviso: resultado.reparacionCompleta
-        ? undefined
-        : 'Se ha reparado el TROCEADO desde el texto guardado. Si lo que cambió fue cómo se LEE el documento, este documento sigue necesitando una resubida.',
+      //
+      // ⚠️ EL AVISO ES INCONDICIONAL, y lo era ya sin decirlo (09/09). Aquí hubo
+      // un ternario colgado de `reparacion_completa`, y ese valor SOLO podía ser
+      // cierto con la vía `reprocesar` — que `reparar.ts` devuelve mucho antes,
+      // en su propia rama. En este punto la vía es `retrocear` SIEMPRE, así que
+      // la rama "sin aviso" no se alcanzaba nunca y el campo era una constante
+      // disfrazada. El día que exista `reprocesar`, el aviso vuelve a ser
+      // condicional — pero se escribirá entonces, con su rama alcanzable.
+      aviso: 'Se ha reparado el TROCEADO desde el texto guardado. Si lo que cambió fue cómo se LEE el documento, este documento sigue necesitando una resubida.',
     });
   }
 
