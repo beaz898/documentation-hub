@@ -221,7 +221,12 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
   background: var(--surface);
   border: 0.5px solid var(--border);
   border-radius: 16px;
-  max-width: 520px;
+  /* ⚠️ 1400 EN ESCRITORIO, 520 ERA DE CUANDO ESTE MODAL ENSEÑABA POCO.
+     Lo usan `.modal-content` y `.modal-overlay`, y su UNICO consumidor es
+     `AnalysisModal` — comprobado antes de tocarlo, porque una clase
+     compartida es donde una mejora de una linea redimensiona en silencio
+     cinco pantallas que nadie miro. */
+  max-width: 1400px;
   width: 100%;
   max-height: 80vh;
   overflow-y: auto;

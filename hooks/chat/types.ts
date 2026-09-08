@@ -17,6 +17,10 @@ export interface Document {
   created_at: string;
   status: string;
   source?: string;
+  /** ⚠️ B.202 — LA MARCA DE QUE HAY ALGO AGUAS ARRIBA QUE PUEDE PISARLO. No se
+   *  interpreta aquí ni en ningún componente: la pregunta la contesta
+   *  `tieneOriginalEnLaNube`, la misma función que usa el veto del servidor. */
+  provider_file_id?: string | null;
   /** El vocabulario vive en `lib/documents/estado.ts` — NO se reenumera aquí.
    *  Hasta el 02/09 este comentario listaba los valores y ya estaba
    *  desactualizado: le faltaba `en_revision`. Tres copias y ninguna

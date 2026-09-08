@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
+import { tieneOriginalEnLaNube } from '@/lib/documents/origen-en-la-nube';
 import { createClient } from '@/lib/supabase';
 import { useJobPolling } from './useJobPolling';
 import type { SessionInfo, Document, Message, PendingAnalysis, ImprovementTarget } from './types';
@@ -218,7 +219,16 @@ export function useDocuments(
         return;
       }
       const data = await res.json();
-      const existing = documents.find(d => d.name === fileName && d.source !== 'google_drive');
+      // ⚠️ B.202 — EL HOMONIMO QUE SE PUEDE REEMPLAZAR NO PUEDE TENER ORIGINAL
+      // EN LA NUBE. Aquí decía `d.source !== 'google_drive'`: una lista
+      // explícita a la que le faltaba `onedrive`, así que un documento de
+      // OneDrive con el mismo nombre SÍ se ofrecía como reemplazable y el
+      // servidor lo rechazaba después con un 409. Es el mismo fallo-abierto de
+      // F-15 que B.202 retiró del servidor, vivo en el cliente.
+      //
+      // Se pregunta con la MISMA función que el veto: un proveedor nuevo queda
+      // fuera el día uno sin que nadie tenga que añadirlo a ninguna lista.
+      const existing = documents.find(d => d.name === fileName && !tieneOriginalEnLaNube(d));
 
       // Si viene de análisis rápido, quitar contradicciones sin verificar.
       // El chat de mejora solo debe trabajar con duplicidades (overlaps).
