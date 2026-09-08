@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { sufijoDeCoste } from '@/lib/coste-visible';
 import { useTranslations } from 'next-intl';
 
 interface ReanalyzeButtonsProps {
@@ -41,7 +42,13 @@ export default function ReanalyzeButtons({
         style={baseStyle}
         title={t('reanalyzeStyleTitle')}
       >
-        {styleLoading ? t('reanalyzingStyle') : t('reanalyzeStyle')}
+        {/* ⚠️ B.180 — EL PRECIO EN LA ETIQUETA, derivado de `CREDIT_COSTS`.
+            En el botón y no en el `title`: un mensaje al pasar el ratón no
+            existe en un móvil, y el precio sería invisible justo para quien
+            no tiene otra forma de verlo. */}
+        {styleLoading
+          ? t('reanalyzingStyle')
+          : `${t('reanalyzeStyle')} · ${sufijoDeCoste('/api/analyze-style')}`}
       </button>
       <button
         type="button"
@@ -50,7 +57,9 @@ export default function ReanalyzeButtons({
         style={baseStyle}
         title={t('reanalyzeAllTitle')}
       >
-        {reanalyzingAll ? t('reanalyzingAll') : t('reanalyzeCorpus')}
+        {reanalyzingAll
+          ? t('reanalyzingAll')
+          : `${t('reanalyzeCorpus')} · ${sufijoDeCoste('/api/analyze-v2:exhaustive')}`}
       </button>
     </div>
   );

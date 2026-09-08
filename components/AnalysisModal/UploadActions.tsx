@@ -1,6 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
+import { sufijoDeCoste } from '@/lib/coste-visible';
 
 interface UploadActionsProps {
   isExhaustive: boolean;
@@ -38,7 +39,10 @@ export default function UploadActions({
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
           </svg>
-          {t('exhaustiveButton')}
+          {/* ⚠️ B.180 — el precio en el BOTÓN y derivado. Antes vivía escrito
+              a mano en `exhaustiveDesc`, el texto de al lado: la información
+              estaba a un campo de distancia y el botón cobraba mudo. */}
+          {`${t('exhaustiveButton')} · ${sufijoDeCoste('/api/analyze-v2:exhaustive')}`}
         </button>
       )}
 

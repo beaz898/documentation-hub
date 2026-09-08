@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { sufijoDeCoste } from '@/lib/coste-visible';
 
 /**
  * TOPE DEL EXHAUSTIVO (F-71 paso 2). Tres documentos, no veinte como el rápido.
@@ -172,7 +173,12 @@ export default function ReviewSelectionBar({
             ? progress
               ? `Analizando ${progress.current}/${progress.total}...`
               : 'Analizando...'
-            : `Analizar seleccionados (${selectedCount})`}
+            // ⚠️ B.180 — ESTE ERA EL MUDO. Cobra 5 por documento y solo decía
+            // cuántos documentos había: el número que faltaba era el del dinero.
+            // `estimatedCost` ya se calculaba y se pasaba a este componente —
+            // la información estaba a un campo de distancia y el botón cobraba
+            // callado.
+            : `Analizar seleccionados (${selectedCount}) · ${sufijoDeCoste("/api/analyze-v2", selectedCount)}`}
         </button>
 
         <button
@@ -200,9 +206,13 @@ export default function ReviewSelectionBar({
             cursor: canAnalyzeExhaustive ? 'pointer' : 'not-allowed',
           }}
         >
+          {/* ⚠️ B.180 — EL PRECIO TAMBIÉN EN REPOSO. Estaba en el `title` y en
+              el paso de confirmación, o sea: invisible en un táctil hasta
+              después del primer clic. El doble clic sigue siendo la guarda; lo
+              que cambia es que ahora se sabe el coste ANTES de armarlo. */}
           {exhaustiveArmed
-            ? `Confirmar · ${exhaustiveCost} creditos`
-            : 'Analisis exhaustivo'}
+            ? `Confirmar · ${sufijoDeCoste("/api/analyze-v2:exhaustive", selectedCount)}`
+            : `Analisis exhaustivo · ${sufijoDeCoste("/api/analyze-v2:exhaustive", selectedCount)}`}
         </button>
       </div>
     </div>

@@ -199,7 +199,7 @@
     "exhaustiveRunning": "El análisis exhaustivo está en curso. Recibirás los resultados cuando termine.",
     "exhaustiveQueue": "En cola. El análisis tardará unos minutos.",
     "launchExhaustive": "Lanzar análisis exhaustivo",
-    "exhaustiveDesc": "Analiza todo el corpus con mayor profundidad. Coste: 30 créditos.",
+    "exhaustiveDesc": "Analiza todo el corpus con mayor profundidad.",
     "variablePricingNote": "Con tu plan, el coste final puede ser menor.",
     "confirmAnalysis": "Confirmar análisis",
     "cancelAnalysis": "Cancelar",
