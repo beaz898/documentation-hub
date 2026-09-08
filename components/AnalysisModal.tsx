@@ -13,6 +13,24 @@ import SelectionLimitNotice from './SelectionLimitNotice';
 import CollapsibleSection from './CollapsibleSection';
 import type { SelectionLimitItem } from './SelectionLimitNotice';
 
+/**
+ * ⚠️ ESTE MODAL NO GUARDA NADA, Y POR ESO NO TIENE LOS ARREGLOS DE B.201/B.202.
+ *
+ * Se escribe aquí porque es donde alguien vendrá a buscarlos. `AnalysisModal` y
+ * `ImprovementModal` son DOS COMPONENTES distintos —no uno envuelto en el otro—
+ * y sólo el segundo tiene camino de guardado (`index-text`). Aquí no hay
+ * `doIndex`, ni diálogo de aplanado, ni icono de origen en la nube.
+ *
+ * **Que falten no es un fallo: es que no hay nada que aplanar ni botón que
+ * esconder.** Lo que este modal hace es enseñar el análisis y ofrecer acciones
+ * —mejorar, marcar como analizado, reanalizar—; la que guarda es la otra
+ * pantalla, y ahí sí están los dos arreglos, para los dos caminos que la abren
+ * (el chat y la bandeja).
+ *
+ * Si algún día este modal gana un botón que escriba en el corpus, los dos
+ * arreglos vuelven a hacer falta aquí y esta nota deja de ser cierta.
+ */
+
 interface AnalysisResult {
   isDuplicate?: boolean;
   duplicateOf?: string;
