@@ -66,10 +66,41 @@ export interface ReferenciasDelAnalisis {
    * aquí es que el resultado se pueda GUARDAR, no que se vea mejor.
    */
   documentoPropietario?: unknown;
+  /**
+   * ⚠️ «ESTE TEXTO PUEDE REUSAR LA ESTRUCTURA GUARDADA DE ESE DOCUMENTO» — B.177.
+   *
+   * Es la tercera pregunta del modal de la bandeja, y va aparte de las otras dos
+   * por la misma razón que ellas: **de quién es el resultado**, **a quién
+   * sustituye** y **de dónde salen las celdas** son tres cosas distintas, y el
+   * día que compartan campo una contestará mal.
+   *
+   * ⚠️ POR QUÉ NO SE REUSA `documentoEnRevision`, que daría las celdas gratis:
+   * porque ese campo enciende además el sello de `analyzed_content_hash`
+   * (`analyze-v2:555`) y la promoción de la versión `staged`
+   * (`analyze-v2:576-605`). Un «Reanalizar todo» del modal **no debe promocionar
+   * nada**. Se pide la estructura y solo la estructura.
+   *
+   * ⚠️ POR QUÉ NO SE REUSA `documentoPropietario`, que ya viaja desde ayer:
+   * contesta «¿de quién es el resultado?». Usarlo también para «¿de dónde saco
+   * las celdas?» sería exactamente el error de F-100 P2 repetido un día después
+   * de invocarlo para no cometerlo.
+   *
+   * ⚠️ Y NO SIRVE MANDAR `storagePath` COMO HACE EL CHAT: al terminar la
+   * indexación, `ingest:395` BORRA el fichero de Storage y la fila de
+   * `documents` no guarda la ruta. Un documento de la bandeja no tiene fichero
+   * — su estructura solo existe ya en `document_chunks`.
+   *
+   * Quien lo use está OBLIGADO a comprobar antes que el texto a analizar sigue
+   * siendo el que produjo esos chunks (`puedeUsarLaEstructura`): el modal es un
+   * editor, y con el texto editado los chunks describen el original.
+   */
+  documentoConEstructura?: unknown;
 }
 
 export interface SujetosDelAnalisis {
   documentoPropietario: string | null;
+  /** B.177: de qué documento se pueden reusar los chunks tipados. Solo eso. */
+  documentoConEstructura: string | null;
   documentoEnRevision: string | null;
   documentosExcluidos: string[];
 }
@@ -122,6 +153,14 @@ export function sujetosDelAnalisis(refs: ReferenciasDelAnalisis): SujetosDelAnal
      * ajeno y taparía el análisis real de otro en la bandeja.
      */
     documentoPropietario: enRevision ?? propietarioPedido,
+    /**
+     * ⚠️ `enRevision` PRIMERO Y LUEGO LA PEDIDA, igual que el propietario: quien
+     * ya declara revisar un documento no necesita pedir su estructura aparte, y
+     * si pidiera otra distinta, mandaría la del documento que dice revisar.
+     * ⚠️ NO ENTRA EN LOS EXCLUIDOS: pedir la estructura de un documento no dice
+     * nada sobre contra quién compararse. Esa es otra pregunta y tiene su campo.
+     */
+    documentoConEstructura: enRevision ?? referencia(refs.documentoConEstructura),
     documentoEnRevision: enRevision,
     documentosExcluidos: excluidos,
   };

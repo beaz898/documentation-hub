@@ -12,9 +12,10 @@ import { sujetosDelAnalisis, unicoExcluido } from './sujetos';
  */
 
 describe('el chat con un documento nuevo: no hay nadie', () => {
-  it('sin referencias, los tres vacíos', () => {
+  it('sin referencias, los cuatro vacíos', () => {
     expect(sujetosDelAnalisis({})).toEqual({
       documentoPropietario: null,
+      documentoConEstructura: null,
       documentoEnRevision: null,
       documentosExcluidos: [],
     });
@@ -80,7 +81,8 @@ describe('lo que llega del cliente no se cuela', () => {
     for (const basura of [42, {}, [], true, null, undefined, '', '   ']) {
       const s = sujetosDelAnalisis({ documentoEnRevision: basura, documentoAReemplazar: basura });
       expect(s).toEqual({
-        documentoPropietario: null, documentoEnRevision: null, documentosExcluidos: [],
+        documentoPropietario: null, documentoConEstructura: null,
+        documentoEnRevision: null, documentosExcluidos: [],
       });
     }
   });
@@ -113,7 +115,7 @@ describe('el corte declarado: el pipeline recibe uno', () => {
     const original = console.error;
     console.error = (msg: string) => { avisos.push(String(msg)); };
     try {
-      const s = { documentoPropietario: null, documentoEnRevision: null, documentosExcluidos: ['a', 'b'] };
+      const s = { documentoPropietario: null, documentoConEstructura: null, documentoEnRevision: null, documentosExcluidos: ['a', 'b'] };
       expect(unicoExcluido(s)).toBe('a');
     } finally {
       console.error = original;
@@ -175,5 +177,56 @@ describe('B.198 — el modal de la bandeja declara de quién es el resultado', (
   it('el camino del chat sigue sin dueño', () => {
     const s = sujetosDelAnalisis({ documentoAReemplazar: 'el-homonimo' });
     expect(s.documentoPropietario).toBeNull();
+  });
+});
+
+/**
+ * B.177 — LA ESTRUCTURA PARA EL MODAL DE LA BANDEJA. El chat la saca del
+ * FICHERO; la bandeja no tiene fichero (`ingest:395` lo borra al indexar y
+ * `documents` no guarda la ruta), así que la saca de `document_chunks`.
+ */
+describe('B.177 — de dónde se reusan las celdas', () => {
+  it('con la referencia pedida, se puede reusar esa estructura', () => {
+    expect(sujetosDelAnalisis({ documentoConEstructura: 'doc-bandeja' }).documentoConEstructura)
+      .toBe('doc-bandeja');
+  });
+
+  /**
+   * ⚠️ MITAD CONTRARIA, y es la que hace seguro el arreglo: pedir la estructura
+   * NO enciende el camino del documento en revisión, que sella el hash
+   * (`analyze-v2:555`) y promociona la versión staged (`:576-605`). Un
+   * «Reanalizar todo» del modal no debe promocionar nada.
+   */
+  it('pedir estructura NO pone documentoEnRevision', () => {
+    expect(sujetosDelAnalisis({ documentoConEstructura: 'doc-bandeja' }).documentoEnRevision)
+      .toBeNull();
+  });
+
+  /**
+   * ⚠️ MITAD CONTRARIA B: tampoco convierte a nadie en propietario. Son dos
+   * preguntas y por eso son dos campos — de quién es el resultado y de dónde
+   * salen las celdas.
+   */
+  it('pedir estructura NO da propietario', () => {
+    expect(sujetosDelAnalisis({ documentoConEstructura: 'doc-bandeja' }).documentoPropietario)
+      .toBeNull();
+  });
+
+  /** Pedir la estructura de un documento no dice nada sobre a quién excluir. */
+  it('la estructura pedida NO entra en los excluidos', () => {
+    expect(sujetosDelAnalisis({ documentoConEstructura: 'doc-bandeja' }).documentosExcluidos)
+      .toEqual([]);
+  });
+
+  /** Quien ya declara revisar un documento no necesita pedir su estructura. */
+  it('documentoEnRevision manda sobre la estructura pedida', () => {
+    const s = sujetosDelAnalisis({ documentoEnRevision: 'el-de-verdad', documentoConEstructura: 'el-pedido' });
+    expect(s.documentoConEstructura).toBe('el-de-verdad');
+  });
+
+  /** ⚠️ El camino del chat no gana estructura por esta puerta: la suya es el fichero. */
+  it('sin referencia pedida no hay estructura que reusar', () => {
+    expect(sujetosDelAnalisis({ documentoAReemplazar: 'el-homonimo' }).documentoConEstructura)
+      .toBeNull();
   });
 });

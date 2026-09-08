@@ -96,6 +96,7 @@ export async function POST(req: NextRequest) {
       documentoEnRevision: body.documentoEnRevision,
       documentoAReemplazar: body.documentoAReemplazar,
       documentoPropietario: body.documentoPropietario,
+      documentoConEstructura: body.documentoConEstructura,
     });
 
     // ⚠️ B.198 — LA REFERENCIA PEDIDA SE COMPRUEBA ANTES DE ESCRIBIRLA, con el
@@ -134,6 +135,9 @@ export async function POST(req: NextRequest) {
     /** ¿QUÉ DOCUMENTO REVISO? Gobierna su staged, el veto del exhaustivo, su
      *  generación, sus chunks, su hash y el swap. Vacío = no toco a nadie. */
     const documentoEnRevision = sujetos.documentoEnRevision;
+    /** B.177: de qué documento se pueden reusar los chunks tipados. SOLO eso:
+     *  no sella el hash, no promociona versión, no excluye a nadie. */
+    const documentoConEstructura = sujetos.documentoConEstructura;
 
     // Auto-exclusión derivada del endpoint (no del caller): un documento que YA
     // existe en el corpus NUNCA se compara consigo mismo.
@@ -357,6 +361,51 @@ export async function POST(req: NextRequest) {
         storedChunks = fetchedChunks;
       }
       console.log(`[analyze-v2] chunks persistidos | doc=${documentId} | gen=${activeGeneration} | encontrados=${fetchedChunks.length} | fallback=${storedChunkTexts === null}`);
+    }
+
+    // ⚠️ B.177 — EL RESCATE DE ESTRUCTURA PARA EL MODAL DE LA BANDEJA.
+    //
+    // El chat recupera la estructura del FICHERO (arriba, rama `storagePath`).
+    // La bandeja no puede: `ingest:395` borra el fichero de Storage al terminar
+    // y `documents` no guarda la ruta. Su estructura ya solo existe aquí, en
+    // `document_chunks`, que es de donde la lee A3 desde siempre.
+    //
+    // ⚠️ CON LA MISMA GUARDA QUE EL CHAT, Y POR LA MISMA RAZÓN. El modal es un
+    // EDITOR: si el usuario corrigió una celda, los chunks describen el original
+    // y el texto la corrección, y el diff emitiría diferencias sobre celdas QUE
+    // EL USUARIO YA ARREGLÓ. B.175 lo dice mejor: «un informe falso con sello de
+    // estructura, que es peor que no emitir nada». Se reusa
+    // `puedeUsarLaEstructura` —el mismo hash que todo lo demás— en vez de
+    // inventar aquí una segunda definición de «el mismo texto».
+    //
+    // FALLA HACIA HOY: si la guarda dice que no, o no hay chunks, se sigue en
+    // plano exactamente como antes. Un falso «no» cuesta lo que ya costaba; el
+    // que no puede pasar es el falso «sí», y ése exige colisión de hash.
+    if (!storedChunks && documentoConEstructura) {
+      const activeGeneration = await getActiveGeneration(supabase, { orgId, documentId: documentoConEstructura });
+      const fetchedChunks = await getDocumentChunks(supabase, {
+        orgId,
+        documentId: documentoConEstructura,
+        generation: activeGeneration,
+      });
+      // ⚠️ SE UNEN CON `joinSegments`, NO CON '\n', y no es cosmético: la guarda
+      // compara por `generateContentHash(stripSegmentationMarkers(...))`, y ese
+      // `strip` solo sabe quitar el separador de segmentación. Con un '\n' entre
+      // trozos, el texto reconstruido NUNCA coincide con el del documento y la
+      // guarda diría «editado» SIEMPRE — el rescate quedaría muerto y su registro
+      // (`usada=false`) se leería como «el usuario editó», que es la mentira más
+      // cómoda de todas. Medido antes de subirlo: con '\n' da false; con
+      // `joinSegments`, true.
+      const textoDeLosChunks = joinSegments(fetchedChunks.map(c => ({ type: 'text', text: c.text })));
+      const mismoTexto = fetchedChunks.length > 0 && puedeUsarLaEstructura(text, textoDeLosChunks);
+      if (mismoTexto) {
+        storedChunkTexts = fetchedChunks.map(c => c.text);
+        storedChunks = fetchedChunks;
+      }
+      console.log(
+        `[analyze-v2] estructura de la bandeja | doc=${documentoConEstructura} | gen=${activeGeneration} | ` +
+        `chunks=${fetchedChunks.length} | usada=${mismoTexto}`,
+      );
     }
 
     // F-24 "el cable": chunks tipados del documento analizado, para que el

@@ -66,3 +66,32 @@ describe('lo que falta o no es texto no habilita nada', () => {
     expect(puedeUsarLaEstructura('   ', '   ')).toBe(false);
   });
 });
+
+/**
+ * ⚠️ EL CONTROL POSITIVO DE LA GUARDA — B.177.
+ *
+ * Sin esto, la guarda solo tiene casos que la ven decir QUE NO. Y una guarda que
+ * solo sabe decir que no es indistinguible de una rota: el rescate quedaría
+ * muerto y su registro —`usada=false`— se leería como «el usuario editó el
+ * texto», que es la explicación cómoda y falsa.
+ *
+ * El caso REAL que lo motivó, y por eso vale: la primera versión del rescate de
+ * la bandeja unía los chunks con `'\n'`. `stripSegmentationMarkers` solo sabe
+ * quitar el separador de segmentación, así que el hash NUNCA coincidía y la
+ * guarda decía «editado» siempre. Se cazó midiendo antes de desplegar; este caso
+ * es para que no haga falta volver a cazarlo.
+ */
+describe('la estructura rescatada de los chunks SÍ pasa la guarda', () => {
+  it('rejuntar los chunks reproduce el texto del fichero', async () => {
+    const { extractSegments, chunkSegments, joinSegments } = await import('../chunking');
+    const { toStoredChunks } = await import('../read-chunks');
+    const { readFileSync } = await import('node:fs');
+
+    const segs = await extractSegments(
+      readFileSync('corpus-pruebas/OPE-11_tarifario-tratamientos-seguros.xlsx'), 'OPE-11.xlsx');
+    const chunks = toStoredChunks(chunkSegments(segs, 'id', 'OPE-11.xlsx', 'org'));
+    const rejuntado = joinSegments(chunks.map(c => ({ type: 'text' as const, text: c.text })));
+
+    expect(puedeUsarLaEstructura(joinSegments(segs), rejuntado)).toBe(true);
+  });
+});

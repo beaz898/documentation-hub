@@ -142,6 +142,11 @@ export function useCrossDocAnalysis(
             // mismo nombre que usa el reanalisis de ESTILO (useStyleAnalysis.ts),
             // que por eso si guardaba: dos botones al lado, uno lo mandaba.
             documentoPropietario: reviewedDocumentId ?? undefined,
+            // B.177: y ademas, de donde salen las CELDAS. Campo aparte del de
+            // arriba a proposito: aquel dice de quien es el resultado, este de
+            // donde se reusa la estructura. El servidor comprueba que el texto
+            // no se haya editado antes de fiarse de ella.
+            documentoConEstructura: reviewedDocumentId ?? undefined,
           }),
         });
 

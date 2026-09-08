@@ -55,8 +55,8 @@ los que necesitan tanda contra cifra de referencia.**
 | **A2** | CHAT · subida → exhaustivo | `+ exhaustive` | **✓** binario | exhaustivo | ⚠️ parcial |
 | **A3** | BANDEJA · analizar | `text, documentoEnRevision, batchDocumentIds` | **✓** rescate | rápido | ✅ **MEDIDA 08/09** — ver nota 2 |
 | **A4** | BANDEJA · analizar exhaustivo | `+ exhaustive` | **✓** rescate | exhaustivo | ⚠️ ver nota 2 |
-| **A5** | MODAL(chat) · Reanalizar todo | `text, storagePath, excludeFingerprints` | **✓** guarda B.175 | exhaustivo | ✅ **06/09** (4→15) · cuarentena |
-| **A6** | MODAL(bandeja) · Reanalizar todo | `text` **y nada más** | ❌ **PLANO** | exhaustivo | **NO** · roto (B.177) |
+| **A5** | MODAL(chat) · Reanalizar todo | `text, storagePath, excludeFingerprints` | **✓** guarda B.175 | exhaustivo | ⚠️ **comprobado por LOG**, sin tanda · cuarentena |
+| **A6** | MODAL(bandeja) · Reanalizar todo | `text` **y nada más** | ❌ **PLANO** | exhaustivo | ✅ **MEDIDA 09/09** · roto (B.177), con evidencia |
 | **A7** | MODAL(chat) · Reanalizar estilo | `text, storagePath` | n/a | — | **NO** |
 | **A8** | MODAL(bandeja) · Reanalizar estilo | `text, documentoPropietario` | n/a | — | **NO** |
 
@@ -215,6 +215,64 @@ Se apunta aquí porque salió del censo, y se registra como pendiente propio:
   sin `storagePath`** (`review/page.tsx:469`) y sin `documentoEnRevision`
   (`useCrossDocAnalysis:123-137`). Cero estructura por las dos vías. El botón se
   pinta **sin condición** (`ChatPanel.tsx:219`) y cobra los 30.
+
+---
+
+## ✅ A6 MEDIDA — LOS DENOMINADORES EJERCEN POR PRIMERA VEZ (09/09/2026)
+
+`OPE-14`, exhaustivo, 06:56. **Con `document_id` puesto**: es la primera vez
+que un reanálisis desde la bandeja se guarda, y por tanto la primera vez que hay
+fila que leer. Antes de `b65ca59d` esta tanda era literalmente imposible.
+
+| | |
+|---|---|
+| `ciegos_por_el_analizado` · `pares_ciegos` | **1 · 1** |
+| `tablas_analizado` · `filas_analizado` | **0 · 0** |
+| `tablas_candidatos` · `filas_candidatos` | 1 · 60 |
+| `pares_con_vision` · `diff.tablas.candidatos` | 0 · 0 |
+| encontradas · confirmadas | 1 · 1 |
+
+**LO QUE ESTA FILA DICE, Y ES EL PUNTO ENTERO DE LA PIEZA 2:** el sistema afirma
+**«NO MIRÉ»**, no «no encontré». `tablas_analizado 0` con `tablas_candidatos 1`
+es ceguera de un lado, declarada, en una columna, para siempre. El mismo cero sin
+denominador habría sido indistinguible de un documento sin discrepancias.
+
+**La predicción se escribió antes y salió entera**: los ocho contadores
+deterministas, uno a uno. Lo único no predicho —a propósito, por no ser
+determinista— era el juez, que encontró 1.
+
+### ⚠️ DOS CEGUERAS APILADAS, y no son la misma
+
+| ceguera | qué la causa | a quién afecta |
+|---|---|---|
+| **estructural** (B.177) | sin `documentoEnRevision` no hay chunks tipados | **el diff**: recibe 0 tablas y no emite nada |
+| **de alcance** | 49 de 59 filas fuera por tamaño | **el juez**: solo leyó ~10 filas |
+
+Se apilan en el resultado —1 de 3— pero **no viven en el mismo mecanismo**, y por
+eso no se arreglan juntas. La que salió, `DIA-01`, **la encontró el juez leyendo
+texto aplanado, no el diff**, que no emitió nada en absoluto.
+
+⚠️ Y la consecuencia práctica: **arreglar B.177 no necesita tocar el alcance.** El
+diff es determinista y compara las 60 filas sin pasar por la selección del juez —
+A3 lo demostró el 08/09 con `filas_analizado 60` y 3 de 3. El límite de alcance
+seguiría ahí y daría igual para las tablas.
+
+---
+
+## ⚠️ CORRECCIÓN — LO DE A5 NO ERA UNA TANDA (09/09/2026)
+
+**Y la anotación de ayer era mía.** El 08/09 puse A5 como «✅ MEDIDA 06/09
+(4→15)». No lo estaba: aquella comprobación se leyó **del log** —«estructura del
+original recuperada … 62 celdas»—, no de `analysis_results`, y no declaró modo.
+
+F-102 no deja lugar: *la cifra que se mide es la que se guarda, no la que se
+imprime; las tandas se validan contra el dato persistido, jamás contra el log*.
+
+**Lo que sí quedó probado el 06/09**: que el arreglo de B.175 FUNCIONA en A5 —el
+log lo dice y el número subió de 4 a 15—. Eso es evidencia de comportamiento y
+vale como tal. **Lo que no hay es tanda**: ni fila leída, ni modo declarado, ni
+cifra atribuible a la fila A5 de este censo. Son dos cosas distintas y ayer las
+junté en una casilla verde.
 
 ---
 

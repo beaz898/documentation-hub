@@ -9,6 +9,24 @@ cero** (F-103 P3, pieza 2, implementada hoy).
 
 # 0 · CUÁLES SON LAS TRES, Y POR QUÉ ÉSAS
 
+⚠️ **ESTE DOCUMENTO SE NUMERA A SÍ MISMO DE DOS MANERAS, y hasta arreglarlo hay
+que leerlo con cuidado (visto el 09/09/2026).** La tabla de aquí abajo dice TRES
+tandas con `T2 = A5`; los apartados del §2 son CUATRO y ahí `T2 = A6 arreglado`
+y `A5` es la T3. **«T2» significa dos cosas distintas según dónde se lea.**
+
+La lista buena es la de CUATRO, porque A6-roto y A6-arreglado son dos pasadas
+distintas y no una: la primera mide el fallo, la segunda mide el arreglo, y
+ninguna sustituye a la otra. La tabla de §0 las colapsó en una fila.
+
+**Para no depender del número, el estado va por SUPERFICIE:**
+
+| superficie | estado 09/09 |
+|---|---|
+| **A6 roto** — modal desde la bandeja | ✅ **MEDIDA** el 09/09, con fila y denominadores |
+| **A6 arreglado** | ❌ no corrida — necesita arreglar B.177 antes |
+| **A5** — modal desde el chat | ⚠️ comprobado por LOG el 06/09; **sin tanda** (F-102) |
+| **`index-text`** | `∅` — ni tanda, ni test, ni evidencia. **No cuesta créditos** |
+
 El orden de contacto dice que **las tres primeras entradas son la misma
 superficie: el modal de mejora**. No es una función accesoria — es el primer
 sitio al que el producto manda al cliente en cuanto sube algo con problemas.
