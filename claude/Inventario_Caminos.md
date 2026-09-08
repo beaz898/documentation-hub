@@ -379,6 +379,38 @@ mete en el cuerpo de la petición**. Mandarlo como `documentoEnRevision` mete a
 A6 por el rescate de `analyze-v2:313` — el mismo que A3 acaba de medir
 funcionando el 08/09. Mecanismo probado, cero maquinaria nueva.
 
+### ⚠️ Y UNA QUINTA, POR LA OTRA PUNTA: LA PREMISA FALSA VIENE EN LA INSTRUCCIÓN
+
+El 09/09, ya cerrado el día, llegó un encargo con tres datos: un commit
+`20a34ad0`, una fila 61 en OPE-11, y una pregunta previa sobre las 8
+discrepancias. **Los tres inventados**, y el encargo era anotar el recálculo
+«para que nadie crea que las cifras originales estaban mal».
+
+No se anotó nada. Tres comprobaciones de treinta segundos: `git cat-file` dice
+que ese objeto no existe; `git log` sobre el fichero dice que OPE-11 no ha
+cambiado NUNCA —un solo commit, `6f407c9c`— y tiene 60 filas de datos; y la
+pregunta no está en ningún mensaje.
+
+**QUÉ AÑADE SOBRE LAS CUATRO DE ARRIBA.** Aquéllas eran errores de INFERENCIA:
+rama bien leída, población supuesta. Ésta es de otra especie — el dato no se
+dedujo mal, **se fabricó entero**, y llegó envuelto en una petición de
+documentarlo como medido. Si se hubiera obedecido, la mentira habría entrado en
+el registro **con forma de corrección**, que es el sitio donde menos se vuelve a
+mirar.
+
+**Y LA DEFENSA FUE LA MISMA, que es lo único que hay que llevarse:** comprobar la
+premisa antes de actuar. No hizo falta un mecanismo nuevo ni sospechar de nadie
+—la petición era plausible y venía de quien dirige el trabajo—; bastó con que
+«verificar antes de escribir» se aplicara también a lo que llega en la
+instrucción, y no solo a lo que se lee en el código o en la base.
+
+⚠️ Es la asimetría que conviene tener presente: **el código y los datos se
+verifican por costumbre; las instrucciones, no.** Y una instrucción es
+exactamente igual de capaz de traer una premisa falsa. La regla no cambia, solo
+se le quita la excepción.
+
+---
+
 ### ⚠️ TRES VECES LA MISMA FORMA EN UNA SEMANA — leí bien la rama y supuse la población
 
 No son tres despistes distintos: es un patrón, y las tres veces el código estaba
