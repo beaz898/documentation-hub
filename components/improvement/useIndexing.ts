@@ -96,6 +96,12 @@ export function useIndexing({
             return;
           }
 
+          // ⚠️ B.202 — EL 409 POR ORIGEN EN LA NUBE YA NO ES UN alert SUELTO.
+          // La interfaz no ofrece guardar para esos documentos (el botón se
+          // sustituye por la explicación y el botón de copiar), así que llegar
+          // aquí significa que el estado del cliente iba retrasado. Se dice lo
+          // mismo que dice la pantalla, palabra por palabra: un aviso que manda
+          // hacer algo tiene que coincidir con lo que la interfaz ofrece.
           const lockMsg = uploadLockMessage(res.status, err);
           alert(lockMsg ?? `Error al indexar: ${err.error || 'desconocido'}`);
           return;

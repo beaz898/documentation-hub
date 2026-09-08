@@ -55,9 +55,11 @@ export default function ReviewPage() {
     name: string;
     text: string;
     analysis: Record<string, unknown>;
+    /** B.202: lo contesta el servidor; aquí no se deriva nada. */
+    tieneOriginalEnLaNube: boolean;
   } | null>(null);
 
-  const handleOpenDocument = async (doc: { id: string; name: string }) => {
+  const handleOpenDocument = async (doc: { id: string; name: string; tiene_original_en_la_nube?: boolean }) => {
     setActionError(null);
     setReviewStagedDecision(false);
     setLoadingAnalysis(true);
@@ -231,7 +233,12 @@ export default function ReviewPage() {
       }
       const data = await res.json();
       if (!data.text) throw new Error('El documento no tiene texto guardado.');
-      setImproveTarget({ id: doc.id, name: doc.name, text: data.text, analysis });
+      setImproveTarget({
+        id: doc.id, name: doc.name, text: data.text, analysis,
+        tieneOriginalEnLaNube: Boolean(
+          (doc as { tiene_original_en_la_nube?: boolean }).tiene_original_en_la_nube,
+        ),
+      });
     } catch (err) {
       setActionError(
         err instanceof Error ? err.message : 'No se pudo abrir el editor de mejora.',
@@ -471,6 +478,7 @@ export default function ReviewPage() {
           initialText={improveTarget.text}
           analysis={improveTarget.analysis as never}
           existingDocWithSameName={{ id: improveTarget.id, name: improveTarget.name }}
+          tieneOriginalEnLaNube={improveTarget.tieneOriginalEnLaNube}
           // F-86 paso 3: la bandeja SÍ tiene el id del documento en revisión, así
           // que sus descartes se registran en el momento. El chat no lo pasa.
           reviewedDocumentId={improveTarget.id}

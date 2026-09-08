@@ -7,6 +7,7 @@ import { generateEmbeddings } from '@/lib/embeddings';
 import { chunkSegments, stripSegmentationMarkers, EXTRACTOR_VERSION, extractSegments, joinSegments, produceTablas } from '@/lib/chunking';
 import { puedeUsarLaEstructura } from '@/lib/analysis/estructura-del-modal';
 import { queHacerConLaEstructura } from '@/lib/documents/estructura-al-guardar';
+import { tieneOriginalEnLaNube } from '@/lib/documents/origen-en-la-nube';
 import { lecturaDelDocumento } from '@/lib/documents/lectura-dual';
 import type { ExtractedSegment } from '@/lib/chunking';
 import { saveDocumentChunks } from '@/lib/persist-chunks';
@@ -109,27 +110,37 @@ export async function POST(req: NextRequest) {
       console.log(`[INDEX-TEXT] Replacing existing document id=${replaceExistingId}`);
       const { data: oldDoc } = await supabase
         .from('documents')
-        .select('id, chunk_count, source')
+        .select('id, chunk_count, source, provider_file_id')
         .eq('id', replaceExistingId)
         .eq('org_id', orgId)
         .single();
 
       if (oldDoc) {
-        // d-2b (F-15): veto por ORIGEN. Un documento cuyo origen es Drive
-        // (google_drive/onedrive) NO se re-indexa desde aqui: Drive es su fuente de
-        // verdad. Re-indexarlo por esta via lo convertiria en 'manual' y le quitaria
-        // el provider_file_id, con lo que el siguiente sync no lo reconoceria y
-        // reimportaria el original sin corregir (duplicado huerfano). La correccion de
-        // un archivo de Drive vuelve POR Drive: se descarga el texto corregido desde
-        // "Mejorar con IA", se sube a Drive, y el sync lo procesa como version nueva.
-        // Lista explicita (no "!== manual") para que un proveedor futuro no quede
-        // vetado sin revision. Complementa el veto por staged de mas arriba (F-9): el
-        // de origen cubre Drive con y sin staged; ambos conviven.
-        if (oldDoc.source === 'google_drive' || oldDoc.source === 'onedrive') {
+        // ⚠️ B.202 — VETO POR «¿HAY ORIGINAL QUE PUEDA PISARLO?», no por marca.
+        // Un documento con original en la nube NO se re-indexa desde aquí: la
+        // nube es su fuente de verdad. Re-indexarlo por esta vía lo convertiría
+        // en 'manual' y le quitaría el `provider_file_id`, con lo que el
+        // siguiente sync no lo reconocería y reimportaría el original SIN
+        // CORREGIR — un duplicado huérfano. La corrección de un documento de la
+        // nube vuelve POR la nube: se copia el texto corregido, se sube, y el
+        // sync lo procesa como versión nueva.
+        //
+        // ⚠️ ANULA A PROPÓSITO LA RAZÓN DECLARADA DE F-15, que usaba una lista
+        // explícita de proveedores «para que un proveedor futuro no quede vetado
+        // sin revisión» — o sea, fallaba ABIERTA. El criterio vive ahora en
+        // `tieneOriginalEnLaNube` y falla CERRADA: un proveedor nuevo trae su
+        // identificador desde el primer documento y queda protegido el día uno.
+        // Es lo mismo que ya se aprendió en la reparación: el origen no decide,
+        // decide si algo puede pisarlo.
+        //
+        // Y ES LA MISMA LÍNEA QUE MIRA EL CLIENTE para no pintar el botón: dos
+        // criterios para una pregunta es cómo el botón y el veto acaban
+        // discrepando.
+        if (tieneOriginalEnLaNube(oldDoc)) {
           return NextResponse.json(
             {
               error:
-                'Este documento existe en Drive, así que no puede reindexarse desde aquí. Descarga el texto corregido y súbelo a Drive; se procesará en la próxima sincronización.',
+                'Este documento tiene su original en la nube, así que no puede guardarse desde aquí: la próxima sincronización lo sobrescribiría con la versión sin corregir. Copia el texto corregido y súbelo a tu nube; se procesará en la siguiente sincronización.',
               errorType: 'drive_origin',
             },
             { status: 409 },

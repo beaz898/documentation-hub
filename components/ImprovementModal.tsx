@@ -55,6 +55,16 @@ interface ImprovementModalProps {
    */
   reviewedDocumentId?: string;
   existingDocWithSameName?: ExistingDocForDialog | null;
+  /**
+   * ⚠️ B.202 — ¿HAY UN ORIGINAL EN LA NUBE QUE PUEDA PISAR ESTE DOCUMENTO?
+   *
+   * Lo contesta el SERVIDOR con `tieneOriginalEnLaNube`, la misma línea que
+   * usa el veto de `index-text`. Aquí no se deriva de `source` ni de nada:
+   * dos criterios para una pregunta es como el botón y el veto acaban
+   * discrepando — el botón diría que se puede guardar y el servidor
+   * contestaría 409, o al revés, que es peor.
+   */
+  tieneOriginalEnLaNube?: boolean;
   onClose: () => void;
   onIndexed: (docName: string, wasReplaced: boolean) => void;
   onMinimize?: () => void;
@@ -162,6 +172,7 @@ function ImprovementModalDesktop({
   storagePath,
   reviewedDocumentId,
   existingDocWithSameName,
+  tieneOriginalEnLaNube = false,
   onClose,
   onIndexed,
   onMinimize,
@@ -443,6 +454,8 @@ function ImprovementModalDesktop({
     dismissedFindings: coordenadasDescartadas,
   });
 
+  const [textoCopiado, setTextoCopiado] = useState(false);
+
   const handleIndexClick = useCallback(() => {
     if (existingDocWithSameName) {
       setShowReplaceDialog(true);
@@ -625,6 +638,42 @@ function ImprovementModalDesktop({
 
           <div style={{ flex: 1 }} />
 
+          {/* ⚠️ B.202 — NO DESAPARECE SIN MÁS. Un botón que falta se lee como un
+              fallo de la aplicación; uno que explica por qué no está, y ofrece
+              la salida, es una decisión. La salida es la única que de verdad
+              arregla el documento: llevar el texto corregido a la nube, porque
+              la nube es su fuente de verdad y el próximo sync manda. */}
+          {tieneOriginalEnLaNube ? (
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap',
+              maxWidth: 560, fontSize: 12, lineHeight: 1.5, color: 'var(--text-muted)',
+            }}>
+              <span>
+                Este documento tiene su original en la nube, así que{' '}
+                <strong>no puede guardarse aquí</strong>: la próxima sincronización
+                lo sobrescribiría con la versión sin corregir. Copia el texto y
+                súbelo a tu nube — se procesará en la siguiente sincronización.
+              </span>
+              <button
+                onClick={async () => {
+                  try {
+                    await navigator.clipboard.writeText(text);
+                    setTextoCopiado(true);
+                    setTimeout(() => setTextoCopiado(false), 2500);
+                  } catch {
+                    // Sin permiso de portapapeles no se deja al usuario sin salida:
+                    // el texto está en el editor y se puede seleccionar a mano.
+                    alert('No se pudo copiar automáticamente. Selecciona el texto del editor y cópialo.');
+                  }
+                }}
+                style={{
+                  fontSize: 13, padding: '9px 16px', borderRadius: 8, border: 'none',
+                  background: '#059669', color: '#fff', fontWeight: 600,
+                  cursor: 'pointer', whiteSpace: 'nowrap',
+                }}
+              >{textoCopiado ? 'Texto copiado' : 'Copiar texto corregido'}</button>
+            </div>
+          ) : (
           <button
             onClick={handleIndexClick}
             disabled={indexing}
@@ -659,6 +708,7 @@ function ImprovementModalDesktop({
               </>
             )}
           </button>
+          )}
         </div>
 
         <ReplaceDialog

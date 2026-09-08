@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { tieneOriginalEnLaNube } from '@/lib/documents/origen-en-la-nube';
 import { createServiceClient } from '@/lib/supabase';
 import { getAuthenticatedUserHybrid } from '@/lib/supabase-server';
 import { resolveOrg } from '@/lib/org';
@@ -79,7 +80,7 @@ export async function GET(req: NextRequest) {
   // 1) Documentos por revisar: no-analizados O con una version staged pendiente.
   const docsBase = supabase
     .from('documents')
-    .select('id, name, source, folder_path, folder_id, analysis_status, created_at')
+    .select('id, name, source, provider_file_id, folder_path, folder_id, analysis_status, created_at')
     .eq('org_id', orgId);
 
   const docsFiltered =
@@ -175,6 +176,12 @@ export async function GET(req: NextRequest) {
       id: doc.id,
       name: doc.name,
       source: doc.source,
+      // ⚠️ B.202 — LA PREGUNTA CONTESTADA, NO EL DATO CRUDO. El cliente no
+      // vuelve a derivar «¿tiene original en la nube?» a partir de `source`
+      // ni de nada: la contesta `tieneOriginalEnLaNube`, la MISMA línea que
+      // usa el veto de `index-text`. Si el botón y el veto preguntaran cada
+      // uno por su cuenta, acabarían discrepando.
+      tiene_original_en_la_nube: tieneOriginalEnLaNube(doc),
       folder_path: doc.folder_path,
       folder_id: doc.folder_id,
       analysis_status: doc.analysis_status,
