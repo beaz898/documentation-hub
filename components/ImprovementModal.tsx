@@ -496,7 +496,7 @@ function ImprovementModalDesktop({
     >
       <div
         onClick={e => e.stopPropagation()}
-        className="w-full h-full rounded-none md:max-w-[1400px] md:h-[90vh] md:max-h-[900px] md:rounded-[14px]"
+        className="w-full h-full rounded-none md:max-w-[1100px] md:h-[90vh] md:max-h-[900px] md:rounded-[14px]"
         style={{
           background: 'var(--bg)',
           border: '1px solid var(--border)',

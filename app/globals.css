@@ -221,12 +221,13 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
   background: var(--surface);
   border: 0.5px solid var(--border);
   border-radius: 16px;
-  /* ⚠️ 1400 EN ESCRITORIO, 520 ERA DE CUANDO ESTE MODAL ENSEÑABA POCO.
+  /* ⚠️ 1100 EN ESCRITORIO. 520 era de cuando este modal enseñaba poco; 1400 se
+     probó el 09/09 y quedaba DEMASIADO ancho para una lista de una columna.
      Lo usan `.modal-content` y `.modal-overlay`, y su UNICO consumidor es
      `AnalysisModal` — comprobado antes de tocarlo, porque una clase
      compartida es donde una mejora de una linea redimensiona en silencio
      cinco pantallas que nadie miro. */
-  max-width: 1400px;
+  max-width: 1100px;
   width: 100%;
   max-height: 80vh;
   overflow-y: auto;
