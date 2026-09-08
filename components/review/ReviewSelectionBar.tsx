@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { sufijoDeCoste } from '@/lib/coste-visible';
+import { sufijoDeTotal } from '@/lib/coste-visible';
 
 /**
  * TOPE DEL EXHAUSTIVO (F-71 paso 2). Tres documentos, no veinte como el rápido.
@@ -178,7 +178,7 @@ export default function ReviewSelectionBar({
             // `estimatedCost` ya se calculaba y se pasaba a este componente —
             // la información estaba a un campo de distancia y el botón cobraba
             // callado.
-            : `Analizar seleccionados (${selectedCount}) · ${sufijoDeCoste("/api/analyze-v2", selectedCount)}`}
+            : `Analizar seleccionados (${selectedCount}) · ${sufijoDeTotal(estimatedCost)}`}
         </button>
 
         <button
@@ -211,8 +211,8 @@ export default function ReviewSelectionBar({
               después del primer clic. El doble clic sigue siendo la guarda; lo
               que cambia es que ahora se sabe el coste ANTES de armarlo. */}
           {exhaustiveArmed
-            ? `Confirmar · ${sufijoDeCoste("/api/analyze-v2:exhaustive", selectedCount)}`
-            : `Analisis exhaustivo · ${sufijoDeCoste("/api/analyze-v2:exhaustive", selectedCount)}`}
+            ? `Confirmar · ${sufijoDeTotal(exhaustiveCost)}`
+            : `Analisis exhaustivo · ${sufijoDeTotal(exhaustiveCost)}`}
         </button>
       </div>
     </div>

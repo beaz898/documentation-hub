@@ -65,6 +65,23 @@ export function costeDe(clave: string, unidades = 1): number | null {
  * escribir `{sufijo ? \`Analizar · ${sufijo}\` : 'Analizar'}` sin inventarse un
  * caso vacío.
  */
+/**
+ * El texto de un total YA CALCULADO.
+ *
+ * ⚠️ EXISTE PARA NO RECALCULAR LO QUE YA ESTÁ CALCULADO, y lo escribo porque
+ * me lo salté: `ReviewSelectionBar` RECIBE `estimatedCost` y `exhaustiveCost`
+ * —los computa `useReviewList` con `getCreditCost`— y la primera versión de
+ * B.180 los ignoró y volvió a multiplicar clave × unidades dentro del
+ * componente. Dos caminos al mismo número, de acuerdo hoy, en el commit que
+ * existía para quitar exactamente eso.
+ *
+ * Quien ya tenga el total usa esto; quien no lo tenga usa `sufijoDeCoste`.
+ */
+export function sufijoDeTotal(total: number | null | undefined): string | null {
+  if (typeof total !== 'number' || !Number.isFinite(total) || total < 1) return null;
+  return total === 1 ? '1 crédito' : `${total} créditos`;
+}
+
 export function sufijoDeCoste(clave: string, unidades = 1): string | null {
   const total = costeDe(clave, unidades);
   if (total === null) return null;

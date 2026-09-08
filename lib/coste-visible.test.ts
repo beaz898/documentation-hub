@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { costeDe, sufijoDeCoste } from './coste-visible';
+import { costeDe, sufijoDeCoste, sufijoDeTotal } from './coste-visible';
 import { CREDIT_COSTS } from './credits';
 
 /**
@@ -59,5 +59,41 @@ describe('sufijoDeCoste', () => {
 
   it('sin precio conocido no hay sufijo', () => {
     expect(sufijoDeCoste('/api/lo-que-sea')).toBeNull();
+  });
+});
+
+/**
+ * ⚠️ EL FORMATEADOR DE UN TOTAL YA CALCULADO — y el caso que vigila que nadie
+ * vuelva a recalcularlo.
+ *
+ * La primera versión de B.180 hizo justo eso: `ReviewSelectionBar` recibía
+ * `estimatedCost` y `exhaustiveCost` ya computados por `useReviewList`, y el
+ * componente los ignoró para multiplicar clave × unidades por su cuenta. Dos
+ * caminos al mismo número, de acuerdo ese día — en el commit escrito para
+ * quitar exactamente eso.
+ */
+describe('sufijoDeTotal', () => {
+  it('formatea el total que le den', () => {
+    expect(sufijoDeTotal(50)).toBe('50 créditos');
+  });
+
+  it('singular en el uno', () => {
+    expect(sufijoDeTotal(1)).toBe('1 crédito');
+  });
+
+  /** ⚠️ MITAD CONTRARIA: sin total no hay precio. Cero se pintaría como
+   *  «0 créditos», un precio afirmado y falso. */
+  it('cero, negativo o ausente no tienen precio', () => {
+    expect(sufijoDeTotal(0)).toBeNull();
+    expect(sufijoDeTotal(-5)).toBeNull();
+    expect(sufijoDeTotal(null)).toBeNull();
+    expect(sufijoDeTotal(undefined)).toBeNull();
+  });
+
+  /** Los dos caminos tienen que dar lo mismo mientras coincidan: si algún día
+   *  dejan de hacerlo, será por una decisión y no por un descuido. */
+  it('coincide con sufijoDeCoste para el mismo total', () => {
+    const total = CREDIT_COSTS['/api/analyze-v2'] * 10;
+    expect(sufijoDeTotal(total)).toBe(sufijoDeCoste('/api/analyze-v2', 10));
   });
 });
