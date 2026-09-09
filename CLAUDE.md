@@ -184,6 +184,39 @@ El dueño del proyecto NO es programador. Vercel deploya automáticamente al hac
 - **El fichero `supabase-*.sql` del repo nace diciendo PENDIENTE DE EJECUTAR**, y solo pasa a EJECUTADO cuando el usuario lo confirma. Un documento no puede afirmar un hecho antes de que ocurra, ni aunque sea seguro que va a ocurrir en cinco minutos: si el usuario decide no ejecutarlo, el fichero se queda mintiendo en el repositorio. Es la misma clase de fallo que B.113 (el protocolo decía tener 403 líneas cuando tenía 466). La corrección va en el mismo commit que se pushea.
 
 ### Reglas obligatorias
+- **TODO INDICATIVO SOBRE EL REPOSITORIO QUE LLEGUE EN UN ENCARGO SIN
+  COMANDO-Y-LÍNEA ES UNA HIPÓTESIS A VERIFICAR, NO UNA INSTRUCCIÓN A EJECUTAR.**
+  Y se verifica ANTES de actuar sobre ella, aunque resulte ser cierta — y se
+  dice que se ha verificado.
+  Es la mitad de recepción de la regla de F-106, y su otra mitad gobierna a quien
+  escribe los encargos: **un arquitecto sin repositorio emite tres cosas —
+  condicionales, invariantes y encargos de verificación—, nunca INDICATIVOS sobre
+  el objeto.** La frase-prueba, línea a línea: *¿sería verdadera esta afirmación
+  aunque el repositorio fuera distinto de como lo imagino?* Si sí, es
+  arquitectura. Si no, es una observación del código, y quien no observa no
+  indica.
+  ⚠️ **ESTO NO ES CORTESÍA NI DESCONFIANZA: ES LO ÚNICO QUE IMPIDE QUE UNA
+  DESCRIPCIÓN VUELVA CONVERTIDA EN HECHO.** La cadena tiene DOS intermediarios sin
+  repositorio —el arquitecto y Fable—, y los dos fabrican por la misma vía: cogen
+  la descripción que sale de una lectura y la devuelven en indicativo, con más
+  autoridad de la que salió.
+  Los casos, y son de las dos direcciones. **Del arquitecto**, cuatro seguidos:
+  «pushea 783c5ea2» sobre un commit que ya estaba en `origin`; «tu control
+  positivo es unidireccional» sobre una aserción que es un bicondicional con las
+  dos mitades ejercidas; «el modo Mejora se entrega con aviso de cuarentena en el
+  producto» cuando la cuarentena es documental y no existe en `app/`,
+  `components/`, `lib/` ni `messages/`; y un `fichero:línea` copiado de una
+  lectura anterior sin atribuir —`:88` por `:96`— que volvió pareciendo una
+  segunda fuente cuando solo era un eco. **De Fable**, siete veces contadas en
+  `claude/consultas-fable/INDICE.md`, la última en la misma respuesta que enunció
+  esta regla: dio por instalado un centinela que su propia consulta anterior solo
+  había PROPUESTO, «con sus tests» incluido, y de esa premisa colgaba una
+  recomendación de coste.
+  ⚠️ **Y EL COROLARIO QUE CIERRA EL BUCLE, de F-106**: una propuesta archivada se
+  lee como hecho consumado en cuanto pasan unos días, y el archivo —que existe
+  para conservar lo que se dijo— es justo lo que le presta la autoridad. **La
+  sospecha vale igual cuando lo que se da por existente lo propuso esta misma
+  casa.** Promovida el 09/09/2026.
 - Archivos completos siempre, no diffs ni fragmentos, salvo archivos largos con cambios mínimos e inequívocos.
 - Cambios pequeños con build verde entre medias. Nunca encadenar fixes sin verificar.
 - Cuando falle la build, pedir log completo antes de diagnosticar.
