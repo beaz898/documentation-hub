@@ -1,5 +1,64 @@
 # Tandas del harness de tasas
 
+## 09/09/2026 — A5 · RESERVADA, NO LANZADA — treinta créditos con sus cuatro razones
+
+**No se lanza hasta después del arreglo de B.204** (F-106 P2: arreglar antes,
+medir después, porque medir un camino condenado compra evidencia perecedera).
+Esta entrada existe para que, cuando se lance, no haya que reconstruir de memoria
+ni por qué se gastan ni qué no cubre.
+
+### LA PREDICCIÓN, QUE SE HEREDA INTACTA
+
+**3 · 57 · 0 · 0** —discrepantes, idénticas, solo en A, solo en B— sobre el mismo
+par que A6, y con `tablas_analizado ≥ 1` y `pares_ciegos 0`.
+
+Se hereda porque **describe el resultado del análisis, no el transporte**: el
+arreglo de B.204 cambia cómo viaja el fichero, no qué dice. Si el A5 rehecho da
+3 · 57 · 0 · 0, el arreglo no rompió el análisis; si da otra cosa, es hallazgo.
+
+⚠️ **SU RIESGO DECLARADO**: que los chunks guardados de OPE-14 sean de un cortador
+anterior al de hoy. Los ocho `.xlsx` salieron con `extractor_version 3` el 09/09,
+pero **que OPE-14 sea uno de esos ocho NO está determinado**. Se resuelve con una
+consulta al censo **antes** de gastar; si su versión no es 3, la predicción no
+vale y hay que decirlo antes, no después.
+
+### POR QUÉ TREINTA CRÉDITOS SI EL NEGATIVO YA ESTÁ EN SUITE
+
+El control negativo de la puerta vive desde el 09/09 en
+`lib/analysis/diff-vision.test.ts` —guarda que cierra, lado analizado ciego,
+`pares_ciegos 1`, `ciegos_por_el_analizado 1`— **por cero créditos y en
+milisegundos**. Lo que la suite **no** puede ver, y es lo único que compran los
+treinta:
+
+| # | lo que sólo se ve en pasada real |
+|---|---|
+| 1 | que `analyze-v2` **entre de verdad** por la rama `storagePath`: la descarga desde Storage y `extractSegments` sobre el binario real |
+| 2 | que **el temporal siga en Storage** en ese momento |
+| 3 | que `new_document_chunks` **sobreviva al viaje** por `analysis_jobs` — JSON de ida y vuelta, en una tubería que por comentario propio «ya borró cuatro campos en tránsito» |
+| 4 | que los contadores queden **PERSISTIDOS**, que es la cifra que vale (F-102: el log es narrativa, la base es evidencia) |
+
+**Una vez, no una pareja de sesenta cada tanda.**
+
+### DOS DATOS QUE HAY QUE TENER DELANTE AL PLANIFICARLA
+
+⚠️ **EL `.xlsx` DE OPE-14 NO ESTÁ EN EL REPOSITORIO.** Sólo están su registro de
+siembra (`corpus-pruebas/SIEMBRA_OPE-14.md`) y su verificador
+(`scripts/verificar-ope14.mjs`); el fichero se hizo a mano y vive en OneDrive.
+`git log --all -- 'corpus-pruebas/OPE-14*'` no devuelve nada.
+
+⚠️ **CONSECUENCIA: EL NEGATIVO EN SUITE VA SOBRE OTRO PAR QUE LA GEMELA.** Usa
+OPE-10 / OPE-11, que sí están versionados. No lo invalida —lo que ejercita es la
+ceguera, no la cifra sembrada— pero **no se puede decir «negativo y positivo
+sobre el mismo par»**, y si alguien lo dice, será falso.
+
+⚠️ **Y LA RECETA DEL NEGATIVO YA SE CORRIGIÓ UNA VEZ, EN SUITE Y GRATIS**: decía
+«tocar un carácter», y con un ESPACIO la guarda no se rompe —
+`normalizeTextForHash` (`hash-check.ts:32-44`) colapsa espacios, unifica saltos,
+hace `trim()` y `toLowerCase()`. Si alguna vez este negativo se ejerce en
+producción, **la edición tiene que ser de CONTENIDO**, no de espaciado ni de caja.
+
+---
+
 ## ⚠️ PENDIENTE DE VERIFICACIÓN (03/09/2026) — ¿MIDIÓ ALGUNA TANDA CON LA RED
 POR NOMBRE ACTIVA?
 

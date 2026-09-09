@@ -531,6 +531,64 @@ A5 y A6.
 arregla aquí: decidir entre reembolsar en cada salida, cobrar más tarde o
 declararlo en la interfaz es una decisión de producto.
 
+## ⚠️ 5.3 · B.206 — el centinela que se propuso, se dio por hecho y nadie construyó (09/09/2026)
+
+⚠️ **ESTA FICHA REGISTRA QUE LA PIEZA FALTA. Que se CITARA como existente es otro
+hecho y tiene otra casa** — la sección «LO QUE FABLE DA POR EXISTENTE» de
+`claude/consultas-fable/INDICE.md`, donde es el séptimo caso. Dos hechos, dos
+casas: uno es una deuda técnica, el otro es un fallo de método, y fundirlos
+perdería el que menos duele hoy y más va a doler.
+
+**QUÉ PROPUSO F-103, literal** (`claude/consultas-fable/F-103.md:194`):
+
+> «De ahí la guarda que convierte el principio en cinturón: si `document_chunks`
+> registra chunks tabulares para ese documento […] y el diff declara cero tablas
+> vistas, el análisis no continúa en silencio: contador
+> `diff.ceguera_estructural` (centinela, esperado cero — el sexto de la familia)
+> y el análisis se marca incompleto, visible. El fallo de hoy habría sonado en el
+> primer reanálisis, no en la remedición del tercer frente.»
+
+**QUÉ SE IMPLANTÓ EN SU LUGAR.** La pieza 2 del plan: `lib/analysis/diff-vision.ts`
+y sus **siete** claves `diff.vision.*` en el catálogo
+(`lib/analysis/counters.ts:112-118`) — `pares_con_vision`, `pares_ciegos`,
+`ciegos_por_el_analizado`, `tablas_analizado`, `filas_analizado`,
+`tablas_candidatos`, `filas_candidatos`. Es el **denominador**: dice qué vio cada
+lado. **No es el centinela**: nadie compara esa visión contra lo que
+`document_chunks` dice que el documento tiene, y nadie marca nada como
+incompleto.
+
+**COMPROBADO el 09/09/2026 · LA PROPIEDAD, NO EL CENSO**: `ceguera_estructural`
+no existe en **ninguna línea ejecutable** del repositorio. No es clave del
+catálogo de contadores —`counters.ts` no la contiene; sus siete claves son las
+`diff.vision.*`— y sus únicas apariciones en `.ts` son comentarios que declaran
+su inexistencia. Se comprueba con `git log -S'ceguera_estructural' --
+lib/analysis/`, que devuelve un solo commit: el de ese comentario.
+
+⚠️ **ESTA FICHA DECÍA «no aparece en un solo `.ts` del repositorio», y era FALSO
+AL ESCRIBIRLO** — el comentario que lo comprobaba contiene la palabra, así que la
+frase se falsaba a sí misma en el acto. Corregido el 10/09/2026, antes del push.
+Y por eso el enunciado es de PROPIEDAD y no de CENSO: un recuento de apariciones
+en prosa caduca cada vez que alguien escribe la palabra, y **un criterio sobre
+`grep` que su propia escritura invalida no es una medición, es una etiqueta.**
+
+**QUÉ CUBRIRÍA SI SE CONSTRUYERA, y es la mitad que hoy falta.** Los contadores
+de visión dicen «el analizado trajo cero tablas»; **eso no es una alarma, es un
+dato**, y hay un caso legítimo en que vale cero — un documento de prosa. El
+centinela es lo que convierte el dato en alarma **cruzándolo con una segunda
+fuente**: si `document_chunks` tiene filas tabulares para ese documento y el diff
+declaró cero, las dos etapas se contradicen y eso no puede pasar en silencio.
+Hoy esa contradicción **sólo se ve si alguien mira los contadores a mano**, que
+es exactamente cómo B.175 tardó semanas.
+
+**Y LO QUE NO CUBRIRÍA, para que nadie lo presupuestee de más**: el camino del
+chat sin indexar no tiene `document_chunks` que consultar, así que ahí la segunda
+fuente tendría que ser otra —los segmentos recién extraídos— y eso es diseño, no
+transcripción de la propuesta.
+
+**No se construye aquí.** Es pieza propia con su decisión, y `diff-vision.test.ts`
+ya cubre por suite y a coste cero el caso concreto que preocupaba —la puerta
+ciega— sin necesitar el centinela.
+
 ---
 
 # 6 · EL CRITERIO DE SALIDA, PUNTO POR PUNTO
