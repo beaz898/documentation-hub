@@ -413,6 +413,11 @@ omisión: la petición no llevaba el id del documento que tenía delante.
 Contado y dicho, no escondido. **Ninguno de éstos bloquea; todos hay que poder
 decirlos en voz alta si alguien pregunta.**
 
+⚠️ **CON DOS EXCEPCIONES, y se dicen aquí para no colarlas bajo el «ninguno
+bloquea» de arriba: B.204 y B.205 entran SIN CLASIFICAR.** Están medidos y
+escritos, y decidir si bloquean es del director, no de quien los encuentra. Un
+hallazgo nuevo no se archiva en la casilla cómoda mientras nadie mira.
+
 | declarado | dónde está escrito |
 |---|---|
 | **El modo Mejora — cuarentena LEVANTABLE por una puerta, no por las dos** | «Reanalizar todo» desde la **bandeja** está arreglado y **medido** el 09/09 (3 de 3, con denominador). Desde el **chat** el arreglo es del 04/09 y solo hay evidencia de LOG, sin tanda (F-102). Los dos de **estilo** (A7, A8) siguen sin medir |
@@ -425,6 +430,99 @@ decirlos en voz alta si alguien pregunta.**
 | **B.200 — la línea que decide mal, y hoy no la pisa nadie** | `plan-de-reindexado.ts:90` comprueba `via_no_construida` **antes** que la viabilidad de `retrocear`. **MEDIDO, no sospechado**: 36 documentos recibieron un 501 por una reparación que habría funcionado, y por eso el lote alcanzaba a 2. ⚠️ Que alcanzara a dos **es un hecho sobre esa línea, no sobre el corpus**. ⚠️ **Y HOY EL HUECO ESTÁ VACÍO, lo que lo hace MÁS peligroso y no menos**: el sync reparó a esos 28, así que nadie volverá a pisar esa rama hasta que llegue un documento sin segmentos — y para entonces la razón se habrá olvidado. **Alcance exacto**: afecta a documentos SIN segmentos y con original recuperable. Un documento CON segmentos nunca llega ahí — `estado-de-reparacion.ts:125` devuelve `reparable_automaticamente` sin anomalía y el plan va a `retrocear`; `new 9.txt` y RRHH-06 lo demuestran reparándose con el botón. **No se toca hoy**: el orden puede ser deliberado (preferir la reparación completa a la disponible es B.195, que se cerró decidiendo lo contrario) |
 | **B.199 CERRADO — con su límite declarado** | `settings/corpus` (`df46b8bb`, `aa3f6d90`): censo, botón de uno, botón de todo lo reparable con el bucle y el contador entre rondas. **Verificado en producción el 09/09**: carga, se lee como «no hay nada que hacer», los dos avisos se distinguen y la lista de anomalías no aparece con todo a cero. ⚠️ **LOS BOTONES NO SE HAN PODIDO EJERCER**: el corpus está a 0 reparables, así que no hay nada que pulsar. **La primera prueba real será el próximo cambio de `EXTRACTOR_VERSION`.** No se fabricó un corpus reparable subiendo el catálogo para poder probarlos — sería inventar la avería para enseñar el arreglo. Lo que SÍ está probado es el bucle (11 casos, 4 mutaciones), que es donde vivía el fallo silencioso |
 | **El presupuesto de tiempo del lote es una estimación** | 180 s de los 300, con `parada: 'tiempo'` de contador |
+| **B.204 — SIN CLASIFICAR · tres endpoints se fían de la ruta que les manda el cliente** | ver 5.1 |
+| **B.205 — SIN CLASIFICAR · lo que se cobra y no se devuelve** | ver 5.2 |
+
+## ⚠️ 5.1 · B.204 — la ruta la elige el cliente y nadie comprueba de quién es
+
+`/api/extract-text` coge `storagePath` del cuerpo y lo descarga con el cliente de
+servicio (`app/api/extract-text/route.ts:20-31`). Autentica —`getAuthenticatedUserHybrid`,
+línea 14— y **no llama a `resolveOrg` ni compara la ruta con nadie**. Su hermano
+de la bandeja sí: `documents/[id]/text/route.ts:35` filtra por `.eq('org_id', org.orgId)`.
+
+**Y NO ES UNO, SON TRES.** La misma forma —ruta del cliente, descarga con
+servicio, ninguna comprobación de pertenencia— está en:
+
+| endpoint | línea de la descarga | qué devuelve o hace con el fichero ajeno |
+|---|---|---|
+| `/api/extract-text` | `:28` | **el texto plano, tal cual** — es la primitiva de lectura limpia |
+| `/api/ingest` | `:181` | lo **indexa en el corpus de quien llama**: lectura CON persistencia |
+| `/api/analyze-v2` | `:292`, `:314` | lo analiza y devuelve hallazgos que **citan el contenido** |
+
+⚠️ El peor de los tres no es el que señalamos primero: `extract-text` devuelve el
+texto y se acaba; **`ingest` se lo queda**.
+
+**QUÉ LE HACE FALTA A UN ATACANTE.** La ruta entera y exacta, porque no hay
+listado ni comodín: `${userId}/${Date.now()}-${file.name}` (`hooks/chat/useDocuments.ts:96`).
+Son tres piezas y la primera es la que manda: **un UUID de Supabase Auth, que no
+se adivina** (122 bits). El `Date.now()` en milisegundos tampoco ayuda —86,4
+millones por día— y el nombre del fichero habría que saberlo. **No es
+fuerza bruta: es «conocer la ruta».**
+
+**QUIÉN PUEDE CONOCERLA.** Comprobado endpoint por endpoint: **ningún endpoint
+devuelve `storage_path` a un cliente** —ni `analysis-jobs/[id]`, que además
+verifica la organización (`route.ts:55-57`)—. Y de los `user_id`: `team/members:50`
+y `usage/history:90` los devuelven, **pero solo los de la propia organización**.
+O sea: **de fuera no hay por dónde empezar**; de dentro, un miembro cualquiera
+puede leer el fichero temporal de un compañero de su propia organización — que
+es a donde ese documento iba de todas formas. **El caso caro es el ex-compañero:
+un `user_id` conocido no caduca cuando alguien se va de la organización.**
+
+**LA VENTANA, y es la mitad que no esperaba.** El fichero se borra al indexar
+(`ingest:401`), al cancelar (`useDocuments.ts:199`) y al cerrar el modal
+(`:371`). **No se borra si el usuario cierra la pestaña**, y no hay barrido
+periódico ninguno: el único `list`+`remove` del bucket está en `purge-org.ts:90`,
+que corre al borrar la cuenta. **Los temporales abandonados se quedan para
+siempre**, así que la ventana no es «los minutos de la subida».
+
+**NO DETERMINADO, y no lo doy por bueno en ninguna dirección:** las políticas RLS
+del bucket `documents` **no están en el repositorio** —`supabase-setup.sql` no
+menciona storage—, así que si un cliente con la clave anónima puede o no
+descargar la carpeta de otro **por su cuenta, sin pasar por nuestra API**, es una
+consulta al panel de Supabase que no he hecho. Nuestros tres endpoints usan el
+cliente de servicio y se saltan esas políticas de todos modos.
+
+**Consumidores de `extract-text`: uno solo**, `hooks/chat/useDocuments.ts:210` —
+la apertura del modal de Mejora desde el chat (A5). Nada más lo llama.
+
+**No se arregla en esta ficha.** La forma del arreglo se ve —comparar el primer
+segmento de la ruta con el que llama, o mejor, dejar de aceptar rutas— pero es
+una pieza con su propia decisión, y **son tres endpoints, no uno**.
+
+## ⚠️ 5.2 · B.205 — lo que se cobra y no se devuelve
+
+Los 30 créditos del exhaustivo se cobran en `analyze-v2/route.ts:232`, **antes**
+de descargar el fichero, extraer el texto, rescatar la estructura y encolar el
+job. **Ninguna salida de error posterior llama a `refundCredits`:**
+
+| salida | línea | reembolso |
+|---|---|---|
+| semáforo de concurrencia ocupado → 409 | `:258` | **no** |
+| la descarga o la extracción fallan → 400 | `:328` | **no** |
+| texto de menos de 50 caracteres → 400 | `:336` | **no** |
+| el `INSERT` del job falla → 500 | `:497` | **no** |
+| excepción → 500 | `:800` | **no** — solo `logUsage` con `creditsConsumed` |
+
+El único `refundCredits` de la ruta (`:563`) vive en la rama **síncrona**, y el
+exhaustivo ya ha retornado en `:515`. **Nunca lo alcanza.**
+
+⚠️ **Y EL WORKER TAMPOCO, cuando el job FALLA.** Devuelve en tres casos
+—incompleto `worker/src/index.ts:245`, reanálisis con pocos hallazgos `:253`,
+precio variable `:315`— y su `catch` (`:267-278`) escribe `status: 'failed'` y
+**no toca créditos**. Es el gotcha que `CLAUDE.md` ya avisaba, aquí con su línea.
+
+⚠️ **EL CASO DE LOS 60.** Desde el chat, pedir exhaustivo en el `AnalysisModal`
+(`useDocuments.ts:253`) y después «Reanalizar corpus» dentro del modal de Mejora
+son **dos exhaustivos del mismo texto: 30 + 30**. El segundo lleva
+`excludeFingerprints` y el primero no, así que el reembolso de reanálisis del
+worker (`:253`) solo puede aplicar al segundo.
+
+**Vale igual por las dos puertas**, chat y bandeja: no es una diferencia entre
+A5 y A6.
+
+**Hoy no está declarado en ninguna parte, y es dinero del cliente.** No se
+arregla aquí: decidir entre reembolsar en cada salida, cobrar más tarde o
+declararlo en la interfaz es una decisión de producto.
 
 ---
 
