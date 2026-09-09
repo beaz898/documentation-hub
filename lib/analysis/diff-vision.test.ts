@@ -1,8 +1,15 @@
+import { readFileSync } from 'node:fs';
+
 import { describe, it, expect } from 'vitest';
+import { chunkSegments, extractSegments, joinSegments } from '@/lib/chunking';
+import { toStoredChunks } from '@/lib/read-chunks';
 import {
   visionDeUnLado, clasificarVision, elCeroEsInterpretable, contadoresDeVision,
 } from './diff-vision';
 import type { VisionDelPar } from './diff-vision';
+import { puedeUsarLaEstructura } from './estructura-del-modal';
+import { emparejarTablas } from './table-pairing';
+import { groupChunksByTable } from './table-structure';
 import type { TableGroup } from './table-structure';
 
 /**
@@ -158,5 +165,121 @@ describe('contadoresDeVision — las siete cifras', () => {
     expect(c.tablas_analizado).toBe(0);
     // Y el dato que lo delata: el corpus SÍ tenía tablas que mirar.
     expect(c.tablas_candidatos).toBe(8);
+  });
+});
+
+/**
+ * ⚠️ EL CONTROL NEGATIVO DE LA PUERTA DE A5, EN SUITE — F-106 P3, y no como se
+ * propuso allí.
+ *
+ * ═══════════════════════════════════════════════════════════════════════════
+ * LA PROPUESTA DE F-106 P3 NO SE PODÍA ESCRIBIR: decía que la guarda
+ * «chunks tabulares + cero tablas vistas = incompleto visible» y su centinela
+ * `diff.ceguera_estructural` ya existían con sus tests. **No existen** — F-103
+ * los PROPUSO (`F-103.md:194`) y lo implantado fue la pieza 2, las siete claves
+ * `diff.vision.*`. Comprobado el 09/09/2026: `ceguera_estructural` no aparece en
+ * un solo `.ts` del repositorio. Queda anotado en `INDICE.md`.
+ *
+ * Así que el negativo se escribe contra lo que SÍ hay, que basta: la guarda de
+ * estructura (`puedeUsarLaEstructura`) y los contadores de visión.
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ * QUÉ DEMUESTRA, que es lo que una medición gemela no puede demostrar: que la
+ * PUERTA es capaz de producir otra cosa. A6 demostró que A6 ve; que A5 dé la
+ * misma cifra demuestra que entregó material equivalente, no que sepa
+ * distinguir. Esto último solo lo demuestra romper la puerta a propósito y ver
+ * que el instrumento lo canta.
+ *
+ * ⚠️ SOBRE OPE-10/OPE-11 Y NO SOBRE OPE-14, y hay que decir por qué: **el
+ * `.xlsx` de OPE-14 no está en el repositorio.** Solo están su registro de
+ * siembra (`corpus-pruebas/SIEMBRA_OPE-14.md`) y su verificador
+ * (`scripts/verificar-ope14.mjs`); el fichero se hizo a mano y vive en OneDrive.
+ * `git log` sobre `corpus-pruebas/OPE-14*` no devuelve NADA. El negativo no
+ * necesita ese par —lo que ejercita es la ceguera, no la cifra sembrada—, pero
+ * la consecuencia hay que tenerla escrita: **el negativo en suite no puede ir
+ * sobre el mismo par que la gemela.**
+ *
+ * LO QUE ESTO NO CUBRE, y por lo que la pasada real sigue valiendo una vez:
+ * que `analyze-v2` entre de verdad por la rama `storagePath`, que el temporal
+ * siga en Storage en ese momento, que `new_document_chunks` sobreviva al viaje
+ * por `analysis_jobs` (JSON de ida y vuelta, en una tubería que ya borró cuatro
+ * campos en tránsito) y que los contadores queden PERSISTIDOS — que es la cifra
+ * que vale (F-102).
+ */
+describe('CONTROL NEGATIVO DE LA PUERTA — texto editado, estructura perdida', () => {
+  const OPE11 = 'OPE-11_tarifario-tratamientos-seguros.xlsx';
+
+  async function segmentosDe(file: string) {
+    return extractSegments(readFileSync(`corpus-pruebas/${file}`), file);
+  }
+
+  async function tablasDe(file: string): Promise<TableGroup[]> {
+    const segments = await segmentosDe(file);
+    return groupChunksByTable(toStoredChunks(chunkSegments(segments, 'doc-test', file, 'org-test')));
+  }
+
+  it('CONTROL POSITIVO: sin editar, la guarda deja pasar y el analizado VE', async () => {
+    const texto = joinSegments(await segmentosDe(OPE11));
+    // Es la comparación exacta que hace `analyze-v2:295`: el texto que manda el
+    // modal contra el que se reconstruye del fichero. `extractText` ES
+    // `joinSegments(extractSegments(...))`, así que sin editar son idénticos.
+    expect(puedeUsarLaEstructura(texto, texto)).toBe(true);
+
+    const vision = visionDeUnLado(await tablasDe(OPE11));
+    expect(vision.tablas).toBeGreaterThan(0);
+    expect(vision.filas).toBeGreaterThan(0);
+  });
+
+  /**
+   * ⚠️ ESTE CASO CORRIGIÓ EL DISEÑO DE LA PASADA REAL, Y POR ESO SE ESCRIBE
+   * PRIMERO. El negativo redactado para producción decía «tocar un carácter»;
+   * con un ESPACIO no habría disparado, la pasada habría dado la misma cifra que
+   * la buena, y la lectura tranquilizadora habría sido «da igual, el instrumento
+   * es robusto» — cuando lo que pasaba es que el negativo no era negativo.
+   * Treinta créditos para no medir nada, cazados por 0 en suite.
+   */
+  it('la guarda NO se rompe con espacios ni mayúsculas: `normalizeTextForHash` los borra', async () => {
+    const texto = joinSegments(await segmentosDe(OPE11));
+    // `hash-check.ts:32-44` colapsa espacios, unifica saltos, hace `trim()` y
+    // `toLowerCase()`. Nada de eso es contenido, así que nada de eso cierra.
+    expect(puedeUsarLaEstructura(`${texto}   `, texto)).toBe(true);
+    expect(puedeUsarLaEstructura(texto.toUpperCase(), texto)).toBe(true);
+  });
+
+  it('EL NEGATIVO: con UN carácter de CONTENIDO cambiado, la guarda cierra', async () => {
+    const texto = joinSegments(await segmentosDe(OPE11));
+    const editado = texto.replace(/\d/, d => (d === '9' ? '8' : '9'));
+    // Que la edición haya ocurrido de verdad: sin esto, un fichero sin dígitos
+    // dejaría `editado === texto` y el caso pasaría diciendo lo contrario de lo
+    // que cree decir.
+    expect(editado).not.toBe(texto);
+    expect(puedeUsarLaEstructura(editado, texto)).toBe(false);
+  });
+
+  it('y con la guarda cerrada el analizado queda CIEGO, no vacío', async () => {
+    // Cuando la guarda dice que no, `analyze-v2` no rellena `extractedSegments`,
+    // así que `newDocChunks` es null y el lado analizado llega SIN tablas. El
+    // candidato sigue viéndose: esa asimetría es todo el hallazgo.
+    const par: VisionDelPar = {
+      analizado: { tablas: 0, filas: 0 },
+      candidato: visionDeUnLado(await tablasDe(OPE11)),
+    };
+
+    expect(clasificarVision(par)).toBe('solo_candidato');
+    expect(elCeroEsInterpretable(par)).toBe(false);
+
+    const c = contadoresDeVision([par]);
+    expect(c.tablas_analizado).toBe(0);
+    expect(c.pares_ciegos).toBe(1);
+    expect(c.ciegos_por_el_analizado).toBe(1);
+    // ⚠️ Y EL DENOMINADOR, que es lo que separa esto de una pantalla apagada:
+    // el corpus SÍ tenía tablas. Sin esta línea, un cero de los dos lados —un
+    // fixture roto, un fichero que no se lee— pasaría por «ceguera detectada».
+    expect(c.tablas_candidatos).toBeGreaterThan(0);
+  });
+
+  it('el emparejador no inventa parejas con un lado ciego', async () => {
+    const { pares } = emparejarTablas([], await tablasDe(OPE11));
+    expect(pares).toEqual([]);
   });
 });
