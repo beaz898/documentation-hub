@@ -55,7 +55,7 @@ los que necesitan tanda contra cifra de referencia.**
 | **A2** | CHAT · subida → exhaustivo | `+ exhaustive` | **✓** binario | exhaustivo | ⚠️ parcial |
 | **A3** | BANDEJA · analizar | `text, documentoEnRevision, batchDocumentIds` | **✓** rescate | rápido | ✅ **MEDIDA 08/09** — ver nota 2 |
 | **A4** | BANDEJA · analizar exhaustivo | `+ exhaustive` | **✓** rescate | exhaustivo | ⚠️ ver nota 2 |
-| **A5** | MODAL(chat) · Reanalizar todo | `text, storagePath, excludeFingerprints` | **✓** guarda B.175 | exhaustivo | ⚠️ **comprobado por LOG**, sin tanda · cuarentena |
+| **A5** | MODAL(chat) · Reanalizar todo | `text, fileName, storagePath, excludeFingerprints, documentoAReemplazar` — y **`documentoPropietario: undefined` y `documentoConEstructura: undefined` EXPLÍCITOS** (`useCrossDocAnalysis.ts:144` y `:149`; el cuerpo entero, `:123-150`): es lo que lo separa de A6 | **✓** guarda B.175, por la rama `storagePath` (`analyze-v2:290-305`) | exhaustivo | ⚠️ **comprobado por LOG**, sin tanda · cuarentena |
 | **A6** | MODAL(bandeja) · Reanalizar todo | `text, documentoPropietario, documentoConEstructura` | **✓** rescate | exhaustivo | ✅ **MEDIDA 09/09** · **ARREGLADA** (B.177) |
 | **A7** | MODAL(chat) · Reanalizar estilo | `text, storagePath` | n/a | — | **NO** |
 | **A8** | MODAL(bandeja) · Reanalizar estilo | `text, documentoPropietario` | n/a | — | **NO** |

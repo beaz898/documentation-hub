@@ -398,13 +398,20 @@ guardado NUNCA** desde que existe la restricción de propietario, así que la
 tanda era imposible antes de arreglarlo (`b65ca59d`). Dos averías, una sola
 omisión: la petición no llevaba el id del documento que tenía delante.
 
-## ⚠️ 4.2 · B.180 — los dos botones que cobran no dicen lo que cuestan
+## ✅ 4.2 · B.180 — ARREGLADO EL 08/09
 
-**Verificado hoy:** `components/improvement/ReanalyzeButtons.tsx` y
-`messages/es.json:245-247`. Ni la etiqueta ni el tooltip mencionan créditos:
+Los dos botones del modal —«Reanalizar estilo» y «Reanalizar corpus»— no decían
+lo que cuestan. **Arreglado en `a2b99c41`**: el precio va en la ETIQUETA, no en
+un `title` que en un móvil no existe, y sale de `sufijoDeCoste`
+(`components/improvement/ReanalyzeButtons.tsx:47-50, 61-63`), que lo deriva de
+`CREDIT_COSTS` — lo que el servidor cobra de verdad, sin una segunda definición
+del precio que pudiera separarse.
 
-> «Reanalizar estilo» → *«Volver a analizar solo el estilo del texto actual»* — **2 cr**
-> «Reanalizar corpus» → *«Volver a analizar contradicciones y duplicados contra el corpus»* — **30 cr**
+⚠️ **Y ESTA SECCIÓN ES SU PROPIA FICHA.** Hasta el 09/09 conservaba el titular en
+presente —«no dicen lo que cuestan»— y una cita diciendo que ni la etiqueta ni el
+tooltip mencionaban créditos, **un día después de que `a2b99c41` los pusiera**.
+El párrafo de arriba ya decía que estaba cerrada: el documento contestaba dos
+cosas distintas a la pregunta de qué bloquea, según por dónde se entrara.
 
 ---
 
@@ -420,7 +427,7 @@ hallazgo nuevo no se archiva en la casilla cómoda mientras nadie mira.
 
 | declarado | dónde está escrito |
 |---|---|
-| **El modo Mejora — cuarentena LEVANTABLE por una puerta, no por las dos** | «Reanalizar todo» desde la **bandeja** está arreglado y **medido** el 09/09 (3 de 3, con denominador). Desde el **chat** el arreglo es del 04/09 y solo hay evidencia de LOG, sin tanda (F-102). Los dos de **estilo** (A7, A8) siguen sin medir |
+| **El modo Mejora — cuarentena por DOS motivos, y hay que contarlos por separado** | **(1) «Reanalizar todo» le falta una puerta**: A6, desde la bandeja, está arreglado y **medido** el 09/09 (3 · 57 · 0 · 0, con denominador); **A5, desde el chat**, tiene el arreglo del 04/09 y solo evidencia de LOG, sin tanda (F-102). **(2) «Reanalizar estilo» no tiene NINGUNA**: ni A7 (chat) ni A8 (bandeja) se han medido nunca. ⚠️ **Medir A5 cierra (1) y deja (2) viva**: esta fila se reescribe entonces, no se borra. ⚠️ **Y la cuarentena es DOCUMENTAL**: no existe ningún aviso en el producto — `cuarentena`, `beta` y `experimental` no aparecen en `app/`, `components/`, `lib/` ni `messages/`. Lo único que el modal pinta es `stageFailureCount` y `noGuardado` (`ImprovementModal.tsx:585-586`) |
 | **Las tablas en PDF y CSV siguen partiéndose** | la opción A da filas enteras; la cabecera no se repite hasta la opción C |
 | **La vía del proveedor (`reprocesar`) es MOOT, no pendiente** | `via_no_construida` = **0**: ningún documento del corpus la necesita. Sus dos preguntas abiertas —el hash que pudo cambiar en la nube, el motivo de conmutación que no existe— vuelven el día que el catálogo declare un cambio de `extraccion`, no antes |
 | **La puerta principal es de escritorio** | cinco caminos (A5-A8, B3) no existen en un teléfono — y son a los que el producto empuja al cliente |
@@ -550,23 +557,37 @@ Lo que el plan dijo que tendría que ser cierto «abriendo un registro»:
 **No, todavía no se puede enseñar a un cliente. Y falta poco, pero no es
 cosmético.**
 
-**Lo que bloquea son dos cosas, no diez**, y están juntas: el modal de mejora
-cobra 30 créditos por un análisis estructuralmente ciego y no dice lo que cuesta.
-Las dos son de la primera familia. **Arreglarlas es de días, no de semanas** — la
-de los precios es texto; la de la estructura es pasar `storagePath` por una puerta
-que ya lo tiene.
+**Qué bloquea lo contesta el §4 y no se repite aquí** — hasta el 09/09 este
+párrafo llevaba su propia respuesta («son dos cosas: el modal cobra 30 créditos
+por un análisis estructuralmente ciego y no dice lo que cuesta»), y las dos
+mitades llevaban un día arregladas: B.177 en `2f6265c0` y B.180 en `a2b99c41`.
+**Dos sitios contestando a la misma pregunta se separan, y el que nadie mira
+miente primero.**
+
+Lo que falta no es una lista de fallos: es **cobertura**. Es la distinción que el
+propio §4 enuncia, y por eso el veredicto sigue siendo «todavía no» aunque no
+bloquee nada.
 
 **Lo que se puede enseñar hoy, sabiendo lo que se enseña:** subir un documento,
 preguntarle al chat, y la bandeja. Con dos avisos que no se pueden omitir — que
 **el modal se queda fuera de la demo** (ya está en cuarentena por F-103) y que
-**se enseña un camino no medido**: A1 y A3 no tienen cifra atribuible, así que lo
-que se vea funcionar será una anécdota, no una medición.
+**de lo que se enseña, la mitad está medida y la otra mitad no**: A1 (chat,
+rápido) y A3 (bandeja, rápido) tienen cifra con denominador desde el 07 y el
+08/09 — **A2 y A4, los exhaustivos de esas mismas dos puertas, no**. Lo que se
+vea correr en exhaustivo será una anécdota, no una medición.
+
+⚠️ Hasta el 09/09 este párrafo decía «A1 y A3 no tienen cifra atribuible», que
+era verdad cuando se escribió y dejó de serlo con las dos tandas — **en el mismo
+documento que ya las contaba en el §1**.
 
 ⚠️ **Y la distinción que decide la pregunta**: enseñar es una cosa y **ponerlo
-delante de un cliente es otra**. Para lo primero falta arreglar dos cosas. Para lo
+delante de un cliente es otra**. Para lo primero ya no falta arreglar nada: falta
+decir en voz alta lo que se enseña y lo que no. Para lo
 segundo faltan las piezas 2 y 3 de F-103 enteras — que son las que permiten decir
-la frase de la sala, y hoy no se puede decir: *«cada camino con su cifra, su
-camino y su modo»* sigue siendo cero de ocho, exactamente como el 05/09.
+la frase de la sala, y hoy todavía no se puede decir entera: *«cada camino con su
+cifra, su camino y su modo»* va por **tres de ocho** (A1, A3, A6). El 05/09 era
+cero; decir hoy que sigue en cero es la misma clase de frase caducada que las de
+arriba.
 
 **La buena noticia, y es real:** de los cuatro días que se han ido en algo que no
 estaba en el plan, ha salido la vía de reparación entera. Sin ella, el arreglo del
