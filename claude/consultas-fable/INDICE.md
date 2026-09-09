@@ -26,7 +26,7 @@ de cada fichero.
 
 ### LO QUE FABLE DA POR EXISTENTE — un patrón, no tres accidentes
 
-**SEIS veces ha dado por construida una pieza que no estaba**, y las seis con la
+**SIETE veces ha dado por construida una pieza que no estaba**, y las siete con la
 misma forma: una subordinada de paso —«que ya existe», «que ya viaja»— sobre
 algo que el repositorio no tenía. No son errores de criterio: las tres
 decisiones eran correctas y se implementaron enteras. Lo que era falso es que
@@ -40,6 +40,7 @@ fueran gratis.
 | **F-88 P2** (2.º) | «las coordenadas que el payload debe llevar son **exactamente las que la fila ya tiene**» | No las tiene. La clave de fila (`keyValues`) muere dentro de `diff-emision.ts` y nunca llega al cliente; el `tableId` tampoco. **ENCONTRADO APLICANDO LA REGLA**, no tropezando |
 | **F-92 P1** | «Universo de `columnas(h)`: las que el hallazgo declara — **el campo `columns` de F-70**» | Ese campo no existe donde corre la supresión. Hay DOS listas, de F-55 (`newColumns`/`existingColumns`), una por lado y con TRES estados. **ENCONTRADO TRADUCIENDO**, antes de escribir una línea — la regla de F-92 P4 cazando algo por primera vez |
 | **F-93 P1** ⚠️ **la más cara** | «EST-02 contra EST-03 tiene claves distintas → `descartado.emparejamiento_invalido`, fuera, **sin que la supresión intervenga**» | No era cierto en nuestro código: la guarda de identidad **solo miraba los pares de la 3ª puerta**, y sobre pares emitidos no se verificaba identidad ninguna — la supresión conflaba `pareja` y `no_pareja` y se llevaba las dos. Su contador llevaba a cero desde que se creó |
+| **F-106 P3** ⚠️ **la que se cazó AL ARCHIVARLA** | «el negativo de la guarda de estructura **ya existe como caso ejercido** — F-103 instaló el centinela `diff.ceguera_estructural` y la guarda “chunks tabulares + cero tablas vistas = incompleto visible”, **con sus tests**» | No existe. F-103 lo **PROPUSO** (`F-103.md:194`); lo implementado fue la pieza 2, las siete claves `diff.vision.*` (`counters.ts:112-118`). `ceguera_estructural` no aparece en un solo `.ts` del repositorio — solo en `F-103.md:43` y `Plan_F103_P3.md:145`, los dos documentos |
 
 **LA SEXTA MERECE PÁRRAFO PROPIO, porque no era una pieza que faltara: era un
 ARGUMENTO apoyado en una pieza que no existía.** Nuestro aviso decía que la
@@ -69,9 +70,25 @@ tabla. Importa poco porque las decisiones se sostienen. Importa mucho porque el
 COSTE estimado en la respuesta se apoya en esa subordinada, y quien planifique
 un commit leyendo «es un if» presupuestará mal.
 
+**Y LA SÉPTIMA AÑADE LO QUE FALTABA AL PATRÓN: la pieza no era ajena, era
+NUESTRA — y la subordinada la dio por hecha porque una consulta anterior la había
+PROPUESTO.** F-103 escribió el centinela `ceguera_estructural` como propuesta;
+del plan se implantó la pieza 2 y no aquélla; y tres días después F-106 la citó
+en indicativo, con «con sus tests» incluido. **Una propuesta archivada se lee
+como un hecho consumado en cuanto pasan unos días**, y el archivo —que existe
+para conservar lo que se dijo— es justo lo que le presta la autoridad.
+
+⚠️ **Y era la premisa de la que colgaba una recomendación de coste**: la vía de
+0 créditos de P3 («fixture roto, aserción de que la guarda dispara») no se puede
+escribir contra una guarda que no existe. **No era una subordinada de paso: era
+la carga.** Se cazó el 09/09/2026 al archivar la propia respuesta, comprobando
+sus citas una a una — que es el único motivo por el que se cazó.
+
 **Qué hacer al leer una respuesta**: cuando diga «que ya existe» o «que ya
 viaja», **comprobarlo en el repositorio antes de estimar**. Es la regla de
 verificación al usar (F-85 P3) aplicada a un caso concreto que se repite.
+Y desde F-106, con una precisión: **la sospecha vale igual cuando lo que se da
+por existente lo propuso una consulta anterior de esta misma casa.**
 
 **Y LA REGLA YA SIRVIÓ, que es lo que la valida.** El cuarto caso es distinto de
 los tres primeros en algo que importa: **se encontró aplicándola**. El 30/08, al
@@ -134,6 +151,7 @@ queda superado, pero **no administra su propio estado**.
 | **[F-91](F-91.md)** | 30/08/2026 | «Todas las columnas comunes» admitía dos lecturas, y la mala descartaba hallazgos VERDADEROS: la geometría no se contamina con testimonio. Y la clase de contadores CENTINELA | **vigente** · PAR COMPLETO | La clase CENTINELA — `Contrato_Contadores.md`; la hermana de F-79 (una regla con dos lecturas se ejerce contra un caso medido) — protocolo |
 | **[F-92](F-92.md)** | 31/08/2026 | La supresión suprime por FILA y el diff compara por COLUMNA: el hueco es el territorio de las omisiones —y del mismo dato bajo otro nombre—. Y por qué la cifra de coste no se podía medir | **vigente** · *su P1 CORREGIDO por F-93 en universo y predicado* · PAR COMPLETO | MOTIVO LITERAL — `Contrato_Contadores.md`. TRES PIEZAS POR REGLA DICTADA, «CERO EN N» con la tasa que excluye, y la AMBIGÜEDAD DE ALCANCE DEL CUANTIFICADOR — protocolo |
 | **[F-93](F-93.md)** | 31/08/2026 | `columnas(h)` no tenía universo y las dos lecturas naturales fallan cada una uno de los tres casos: el dato es LA OPOSICIÓN, no la cita. Y la trampa de `'equivalentes'` | **vigente** · PAR COMPLETO | LA CUARTA PIEZA (vacío y ausente; forma existencial) — protocolo. Un comentario que justifica un orden CITA SU INVARIANTE — `CLAUDE.md` |
+| **[F-106](F-106.md)** | 09/09/2026 | Una regla cuya verificación vive FUERA del repositorio, y el método que no la vio venir. LA REGLA DEL INDICATIVO: un arquitecto sin repo emite condicionales, invariantes y encargos — nunca indicativos sobre el objeto. Arreglar antes de medir; la gemela no sustituye al negativo; y la prosa se disciplina con estructura, no con mutaciones | **vigente** · PAR COMPLETO · ⚠️ **su P3 contiene el SÉPTIMO «lo que Fable da por existente»** (ver arriba) | LA REGLA DEL INDICATIVO y su contraparte de recepción — `CLAUDE.md` |
 | **[F-105](F-105.md)** | 06/09/2026 | La reparacion tenia un SOTANO: los segmentos. Reparar lee de casa, sincronizar habla con el proveedor. Dos fases para el borrado automatico y lapida para la papelera. | **vigente** · PAR COMPLETO + ADENDA | DERIVA DE CONTRATO · secuencia de 6 pasos · coste medido 1,27x |
 | **[F-104](F-104.md)** | 06/09/2026 | El cortador ensucia lo GUARDADO, no un análisis. Una tabla en PDF debe llegar a ser tabla. El plan no cambia de contenido: cambia de contrato — no eran dos semanas de medir, eran dos de descubrir. | **vigente** · PAR COMPLETO | REPARACIÓN ANTES DEL CAMBIO, EL ALMACÉN PRIMERO, FIRMA ≠ VERSIÓN y LA PRIMERA PRUEBA DESCUBRE — `CLAUDE.md` |
 | **[F-103](F-103.md)** | 04/09/2026 | La curva no es descendente: es descendente en los caminos MEDIDOS y desconocida en los no medidos. Un cero solo confirma con control positivo o visión declarada. El modo Mejora, en cuarentena. | **vigente** · PAR COMPLETO | UN CERO SE GANA, EL CIERRE ES COBERTURA y LA CURVA DESCRIBE DÓNDE SE MIRÓ — `CLAUDE.md` |
