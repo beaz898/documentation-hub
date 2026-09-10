@@ -3,7 +3,8 @@ import { createServiceClient } from '@/lib/supabase';
 import { getAuthenticatedUserHybrid } from '@/lib/supabase-server';
 import { extractText } from '@/lib/chunking';
 import { resolveOrg } from '@/lib/org';
-import { comprobarPertenencia, registrarRechazo } from '@/lib/subida/pertenencia';
+import { resolverOrigenDelFichero } from '@/lib/subida/referencia';
+import { secretoDeFirma } from '@/lib/analysis/secreto';
 
 export const maxDuration = 60;
 
@@ -32,22 +33,29 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { storagePath, fileName } = body;
+    const { ref, storagePath, fileName: fileNameDelCuerpo } = body;
 
-    if (!storagePath || !fileName) {
-      return NextResponse.json({ error: 'Parámetros inválidos' }, { status: 400 });
+    // B.204 commit 2 — LECTURA DUAL CON CADUCIDAD. Si viene `ref`, manda ella y
+    // el nombre sale de dentro de la firma; si no, sigue el camino viejo con la
+    // guarda de pertenencia del commit 1. El camino viejo se retira en el 4.
+    const origen = resolverOrigenDelFichero(
+      { ref, storagePath }, { userId: user.id, orgId: org.orgId },
+      'extract-text', secretoDeFirma(),
+    );
+    if (!origen.ok) {
+      return NextResponse.json({ error: 'Ruta no autorizada' }, { status: 403 });
     }
 
-    // B.204 — la ruta la elige el cliente, así que se comprueba de quién es.
-    const pertenencia = comprobarPertenencia(storagePath, user.id);
-    if (!pertenencia.ok) {
-      registrarRechazo('extract-text', pertenencia.motivo, user.id, storagePath);
-      return NextResponse.json({ error: 'Ruta no autorizada' }, { status: 403 });
+    // Por la ref el nombre lo puso el servidor; por el camino viejo sigue
+    // viniendo del cuerpo, que es lo que se acaba en el commit 4.
+    const fileName = origen.via === 'ref' ? origen.fileName : fileNameDelCuerpo;
+    if (!fileName) {
+      return NextResponse.json({ error: 'Parámetros inválidos' }, { status: 400 });
     }
 
     const { data: fileData, error: downloadError } = await supabase.storage
       .from('documents')
-      .download(pertenencia.ruta);
+      .download(origen.ruta);
 
     if (downloadError || !fileData) {
       return NextResponse.json({ error: 'Error descargando archivo' }, { status: 500 });

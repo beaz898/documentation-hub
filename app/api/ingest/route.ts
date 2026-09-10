@@ -13,7 +13,8 @@ import { randomUUID } from 'crypto';
 import { generateContentHash } from '@/lib/analysis/hash-check';
 import { resolveOrg } from '@/lib/org';
 import { checkUploadLock } from '@/lib/upload-lock';
-import { comprobarPertenencia, registrarRechazo } from '@/lib/subida/pertenencia';
+import { resolverOrigenDelFichero } from '@/lib/subida/referencia';
+import { secretoDeFirma } from '@/lib/analysis/secreto';
 import { criterioDeAdopcion } from '@/lib/analysis/adopcion';
 
 /**
@@ -69,20 +70,28 @@ export async function POST(req: NextRequest) {
     // Leer datos del body
     // force=true significa "el usuario ya confirmó que quiere reemplazar el manual existente"
     const body = await req.json();
-    const { storagePath, fileName, fileSize, force } = body;
-
-    if (!storagePath || !fileName) {
-      return NextResponse.json({ error: 'Parámetros inválidos' }, { status: 400 });
-    }
+    const { ref, storagePath: rutaDelCuerpo, fileName: fileNameDelCuerpo, fileSize, force } = body;
 
     // ⚠️ B.204 — EL PEOR DE LOS TRES, y no era el que señalamos primero:
-    // `extract-text` devuelve el texto y se acaba; ÉSTE SE LO QUEDA. Sin esta
+    // `extract-text` devuelve el texto y se acaba; ÉSTE SE LO QUEDA. Sin la
     // guarda, indexaba en el corpus de quien llama un fichero que podía no ser
     // suyo — lectura CON persistencia.
-    const pertenencia = comprobarPertenencia(storagePath, user.id);
-    if (!pertenencia.ok) {
-      registrarRechazo('ingest', pertenencia.motivo, user.id, storagePath);
+    // Commit 2: lectura dual. La `ref` manda si viene; si no, el camino viejo
+    // con la guarda de pertenencia del commit 1, que se retira en el 4.
+    const origen = resolverOrigenDelFichero(
+      { ref, storagePath: rutaDelCuerpo }, { userId: user.id, orgId },
+      'ingest', secretoDeFirma(),
+    );
+    if (!origen.ok) {
       return NextResponse.json({ error: 'Ruta no autorizada' }, { status: 403 });
+    }
+    const fileName = origen.via === 'ref' ? origen.fileName : fileNameDelCuerpo;
+    // Aguas abajo se usa SIEMPRE la ruta RESUELTA, nunca la del cuerpo: por la
+    // ref la compuso el servidor, y por el camino viejo ya pasó la guarda.
+    const storagePath: string = origen.ruta;
+
+    if (!fileName) {
+      return NextResponse.json({ error: 'Parámetros inválidos' }, { status: 400 });
     }
 
     // Estado de análisis con el que nace el documento. El frontend indica si el

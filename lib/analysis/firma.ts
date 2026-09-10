@@ -53,10 +53,56 @@ export function firmarAnalisis(
   secreto: string,
   analysisId: string = randomUUID(),
 ): AnalisisFirmado {
-  const cuerpo = JSON.stringify({ analysisId, analisis });
-  const codificado = Buffer.from(cuerpo, 'utf8').toString('base64url');
+  return { token: firmarCarga({ analysisId, analisis }, secreto), analysisId };
+}
+
+/**
+ * LA PRIMITIVA, SIN SABER QUÉ FIRMA — extraída el 10/09/2026 para B.204.
+ *
+ * ⚠️ POR QUÉ SE EXTRAE Y NO SE COPIA: la referencia de subida es OTRA ESPECIE
+ * —una ruta de Storage con su dueño y su caducidad, no un análisis— y merece su
+ * módulo y sus tipos. Lo que NO merece es una segunda implementación del HMAC:
+ * dos criptografías del mismo proyecto se separan el día que alguien toque una,
+ * y las dos seguirían pareciendo correctas por su cuenta.
+ * Dos especies, dos módulos, UNA criptografía.
+ *
+ * ⚠️ El texto que se firma es EXACTAMENTE el que viaja. Si se firmara un objeto
+ * y se verificara re-serializándolo, un cambio en el orden de las claves entre
+ * las dos operaciones rompería la firma y el síntoma sería «a veces no guarda».
+ */
+export function firmarCarga(cuerpo: unknown, secreto: string): string {
+  const codificado = Buffer.from(JSON.stringify(cuerpo), 'utf8').toString('base64url');
   const firma = createHmac('sha256', secreto).update(codificado).digest('base64url');
-  return { token: `${codificado}${SEPARADOR}${firma}`, analysisId };
+  return `${codificado}${SEPARADOR}${firma}`;
+}
+
+/**
+ * ¿LA EMITÍ YO? Devuelve la carga si la firma casa; `null` si no.
+ * Quien llama decide qué significa `null` para su especie — aquí no se sabe.
+ */
+export function verificarCarga(token: unknown, secreto: string): unknown | null {
+  if (typeof token !== 'string') return null;
+
+  const corte = token.indexOf(SEPARADOR);
+  if (corte <= 0 || corte === token.length - 1) return null;
+
+  const codificado = token.slice(0, corte);
+  const firmaRecibida = token.slice(corte + 1);
+  if (firmaRecibida.includes(SEPARADOR)) return null;
+
+  const esperada = createHmac('sha256', secreto).update(codificado).digest('base64url');
+  const a = Buffer.from(firmaRecibida, 'utf8');
+  const b = Buffer.from(esperada, 'utf8');
+  // `timingSafeEqual` LANZA si las longitudes no coinciden: la guarda de longitud
+  // va delante, y una firma de otro tamaño es inválida, no una excepción.
+  if (a.length !== b.length) return null;
+  if (!timingSafeEqual(a, b)) return null;
+
+  try {
+    return JSON.parse(Buffer.from(codificado, 'base64url').toString('utf8'));
+  } catch {
+    return null;
+  }
 }
 
 export interface AnalisisVerificado {
@@ -76,31 +122,12 @@ export interface AnalisisVerificado {
  * longitud — una firma de otro tamaño es una firma inválida, no una excepción.
  */
 export function verificarAnalisis(token: unknown, secreto: string): AnalisisVerificado | null {
-  if (typeof token !== 'string') return null;
+  const cuerpo = verificarCarga(token, secreto);
+  if (!cuerpo || typeof cuerpo !== 'object') return null;
 
-  const corte = token.indexOf(SEPARADOR);
-  if (corte <= 0 || corte === token.length - 1) return null;
-
-  const codificado = token.slice(0, corte);
-  const firmaRecibida = token.slice(corte + 1);
-  if (firmaRecibida.includes(SEPARADOR)) return null;
-
-  const esperada = createHmac('sha256', secreto).update(codificado).digest('base64url');
-  const a = Buffer.from(firmaRecibida, 'utf8');
-  const b = Buffer.from(esperada, 'utf8');
-  if (a.length !== b.length) return null;
-  if (!timingSafeEqual(a, b)) return null;
-
-  try {
-    const cuerpo = JSON.parse(Buffer.from(codificado, 'base64url').toString('utf8'));
-    if (!cuerpo || typeof cuerpo !== 'object') return null;
-    const { analysisId, analisis } = cuerpo as { analysisId?: unknown; analisis?: unknown };
-    if (typeof analysisId !== 'string' || analysisId.length === 0) return null;
-    return { analysisId, analisis };
-  } catch {
-    // Firma válida y contenido ilegible: imposible salvo corrupción en tránsito.
-    // Se trata como inválido por el mismo criterio que todo lo demás aquí — ante
-    // la duda, no se persiste.
-    return null;
-  }
+  const { analysisId, analisis } = cuerpo as { analysisId?: unknown; analisis?: unknown };
+  if (typeof analysisId !== 'string' || analysisId.length === 0) return null;
+  return { analysisId, analisis };
+  // Firma válida y contenido ilegible es imposible salvo corrupción en tránsito,
+  // y `verificarCarga` ya lo devuelve como `null`: ante la duda, no se persiste.
 }
