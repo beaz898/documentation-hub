@@ -600,6 +600,66 @@ transcripción de la propuesta.
 ya cubre por suite y a coste cero el caso concreto que preocupaba —la puerta
 ciega— sin necesitar el centinela.
 
+## ⚠️ 5.4 · B.207 — una ficha con casa en DOS documentos, y el chequeo solo mira uno (10/09/2026)
+
+⚠️ **EL TÍTULO DE ESTA FICHA NO NOMBRA A LA FICHA AFECTADA, Y ES A PROPÓSITO.**
+Nombrarla aquí le daría casa en este documento —un título que la nombra ES una
+casa— y la habría resuelto por accidente, que es justo lo que el encargo pedía no
+hacer. La afectada es **B.175**, y en esta ficha se la cita, no se la declara.
+
+**QUÉ SE MIDIÓ Y CÓMO.** Al estrenar la casa externa (`I1`, 10/09/2026) se pasó
+`invariantesDelDocumentoDeEstado` sobre los dos ficheros que las marcas nombran,
+filtrando por las tres fichas mudadas. B.175 aparece declarada **dos veces, en dos
+documentos distintos**:
+
+| dónde | qué forma tiene | ¿lleva fecha? |
+|---|---|---|
+| `claude/Inventario_Caminos.md:347` | título: «CORRECCIÓN A … — SE CERRÓ CON LA MITAD MEDIDA (08/09/2026)» | sí |
+| `claude/Plan_F103_P3.md:54` | fila de tabla cuya PRIMERA celda la nombra | no |
+
+**POR QUÉ EL CHEQUEO NO LO CANTA, y no es un fallo del chequeo sino su límite
+declarado**: la marca de este documento apunta a `Inventario_Caminos.md`, el
+chequeo abre ese fichero, encuentra una casa y para. El invariante que se
+implementó es **«una casa en este documento o en el fichero que su marca
+nombra»**, no «una casa en el mundo» — y está escrito así en la cabecera de
+`lib/documentacion/invariantes-de-estado.ts`, porque enumerar todos los `.md` del
+repositorio convertiría el archivo intocable de consultas en dependencia de la
+batería, con violaciones que nadie tiene permiso para corregir.
+
+**NO SE RESUELVE AQUÍ.** Cuál de las dos es la casa buena es una decisión sobre
+dónde vive ese hecho, no un arreglo mecánico: una es una corrección fechada y la
+otra una fila de un plan. Quien la tome retira la otra en el mismo commit — nunca
+se añade la nueva sin quitar la vieja, que es la única forma de que no queden dos.
+
+## ⚠️ 5.5 · B.208 — una ficha citada cuya casa no aparece por ninguna parte (10/09/2026)
+
+⚠️ **Mismo cuidado que la anterior: el título no nombra a la afectada.** Es
+**B.138**, y aquí se la cita.
+
+**QUÉ SE BUSCÓ, DÓNDE, Y CON QUÉ FORMA — para que el próximo no repita la
+búsqueda**, que es la mitad que suele faltar:
+
+| qué se buscó | expresión | dónde | resultado |
+|---|---|---|---|
+| casa por título | `^#{1,6}.*B\.138` | `claude/` y `CLAUDE.md` | **cero** |
+| casa por fila-índice | `^\| *\**B\.138` | `claude/` y `CLAUDE.md` | **cero** |
+
+Su única aparición en este documento (`:446`) está en una celda que **no es la
+primera**, o sea una referencia: apunta y no declara. En `CLAUDE.md` sale dos
+veces, las dos en prosa dentro de reglas de trabajo.
+
+**LAS DOS LECTURAS POSIBLES, y no elijo entre ellas sin más evidencia**: o es una
+ficha **sin casa de verdad** —se la cita y nunca se declaró—, o su casa es un
+**párrafo de prosa**, que el criterio no acepta como casa y con razón: si un
+párrafo declarara, cualquier mención sería una declaración y I1 no distinguiría
+nada.
+
+**QUÉ NO HAY QUE HACER, y por eso se declara en vez de arreglarse**: darle casa
+aquí. Inventarle una sección en el documento de estado sería declarar en este
+documento un hecho que casi seguro pertenece a otro, que es el fallo de I1 con el
+signo cambiado. **Es la única `ficha_sin_casa` que queda**, y el techo de 29 la
+lleva dentro: el día que se le encuentre o se le dé casa, el techo baja a 28.
+
 ---
 
 # 6 · EL CRITERIO DE SALIDA, PUNTO POR PUNTO
