@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { sufijoDeTotal } from '@/lib/coste-visible';
 import { motivosDeNoIndexable, type SeleccionIndexable } from '@/lib/documents/seleccion-indexable';
 
 /**
@@ -218,12 +217,17 @@ export default function ReviewSelectionBar({
             ? progress
               ? `Analizando ${progress.current}/${progress.total}...`
               : 'Analizando...'
-            // ⚠️ B.180 — ESTE ERA EL MUDO. Cobra 5 por documento y solo decía
-            // cuántos documentos había: el número que faltaba era el del dinero.
-            // `estimatedCost` ya se calculaba y se pasaba a este componente —
-            // la información estaba a un campo de distancia y el botón cobraba
-            // callado.
-            : `Analizar seleccionados (${selectedCount}) · ${sufijoDeTotal(estimatedCost)}`}
+            // ⚠️ B.180 SIGUE CUMPLIDA, Y AQUÍ ESTÁ POR QUÉ (10/09/2026). El
+            // precio salió de esta etiqueta y NO se fue a un `title`: sigue en
+            // la pantalla, en la línea «Coste estimado: N créditos» de este
+            // mismo componente, a la izquierda y siempre visible. Lo que exige
+            // B.180 es que se lea SIN RATÓN —un tooltip no existe en un táctil—
+            // y eso se cumple igual. Lo que cambia es dónde se pinta.
+            // EL MOTIVO DE QUITARLO: la línea ya lo decía, así que el botón lo
+            // DUPLICABA. Dos sitios diciendo el mismo precio se separan el día
+            // que alguien cambie uno, y entonces uno de los dos miente sobre
+            // dinero. Al quitarlo queda una sola.
+            : `Analizar seleccionados (${selectedCount})`}
         </button>
 
         <button
@@ -251,13 +255,18 @@ export default function ReviewSelectionBar({
             cursor: canAnalyzeExhaustive ? 'pointer' : 'not-allowed',
           }}
         >
-          {/* ⚠️ B.180 — EL PRECIO TAMBIÉN EN REPOSO. Estaba en el `title` y en
-              el paso de confirmación, o sea: invisible en un táctil hasta
-              después del primer clic. El doble clic sigue siendo la guarda; lo
-              que cambia es que ahora se sabe el coste ANTES de armarlo. */}
-          {exhaustiveArmed
-            ? `Confirmar · ${sufijoDeTotal(exhaustiveCost)}`
-            : `Analisis exhaustivo · ${sufijoDeTotal(exhaustiveCost)}`}
+          {/* ⚠️ B.180 SIGUE CUMPLIDA (10/09/2026), y en éste hay que decirlo con
+              más cuidado que en el de al lado, porque su precio NO está en la
+              línea de «Coste estimado» sino en `exhaustiveHint`, la línea de
+              debajo: «Exhaustivo: N creditos · …». Sigue siendo pantalla y no
+              `title`, que es lo que B.180 exige.
+              ⚠️ EL BORDE, MEDIDO Y DECLARADO: `exhaustiveHint` tiene dos ramas
+              que NO llevan el precio —plan insuficiente y tope de selección
+              superado—. En esas dos el botón está DESHABILITADO, así que el
+              precio falta exactamente cuando la acción no se puede lanzar; en
+              cuanto vuelve a poder lanzarse, el precio vuelve. Es la línea que
+              hay que mirar si algún día se habilita el botón en esos estados. */}
+          {exhaustiveArmed ? 'Confirmar' : 'Analisis exhaustivo'}
         </button>
 
         {/* ⚠️ SE VE APAGADO, NO SE ESCONDE. Un botón que aparece y desaparece
