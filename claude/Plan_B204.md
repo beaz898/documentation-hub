@@ -47,15 +47,32 @@ escrito en el módulo.
 
 ---
 
-## ✅ LA PUERTA DEL COMMIT 2 — abierta el 10/09/2026
+## ✅ EL ESTRENO, EJERCIDO CONTRA PRODUCCIÓN EL 10/09/2026
 
-El director verificó `ANALYSIS_TOKEN_SECRET` en Vercel y el commit 2 entró.
+⚠️ **CONTRA PRODUCCIÓN, NO CONTRA EL PANEL DE VERCEL, y la distinción no es
+pedante: es la que motivó que `/api/admin/config` existiera.** El panel dice que
+una variable EXISTE; no dice que sea correcta ni que el despliegue en curso la
+haya recogido. Sólo una lectura desde el runtime distingue «está puesta» de «está
+bien puesta».
 
-⚠️ **QUE EXISTA NO ES QUE SE HAYA EJERCIDO, y esa mitad sigue viva**: hasta este
-commit no la importaba ningún endpoint. Las tres comprobaciones del estreno están
-escritas en la cabecera de `app/api/subidas/autorizar/route.ts` y **se pueden
-hacer YA, antes del commit 3, porque todavía no llama nadie** — que es
-exactamente por qué el servidor va antes que el cliente.
+**SON DOS HECHOS Y SE ANOTAN POR SEPARADO**, porque uno puede ser cierto y el
+otro falso, y fundirlos haría que el fallo del segundo se leyera como cubierto
+por el primero:
+
+| # | qué se ejerció | resultado |
+|---|---|---|
+| **1 · el secreto llegó al runtime** | `GET /api/admin/config` contra producción | `presente: true · longitud: 72 · usable: true` — *«La variable llegó al runtime y es usable.»* |
+| **2 · el mecanismo EMITE** | `POST /api/subidas/autorizar` contra producción | `success: true`, con ref emitida, ruta compuesta por el servidor **empezando por el `user id` de quien llamó**, y el nombre del fichero **dentro de la firma** en vez del cuerpo |
+
+**Con eso queda cerrada la mitad que la suite no podía demostrar**: allí el
+secreto es de mentira, así que la suite prueba el criterio y nunca el
+despliegue.
+
+⚠️ **LO QUE NO ESTÁ EJERCIDO Y NO SE CUELA EN LA MISMA LÍNEA: RESOLVER esa ref en
+los tres endpoints.** Emitir y resolver son dos mitades del círculo, y sólo se ha
+ejercido la primera contra producción. La segunda llega con el commit 3, cuando
+el cliente mande la ref de verdad. Escribirlo junto sería exactamente el vicio
+que este plan persigue — dar por ejercido lo que sólo está construido.
 
 ---
 
