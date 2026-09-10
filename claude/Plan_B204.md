@@ -29,8 +29,15 @@ medias creyendo que ya no hay nada que hacer.
 |---|---|---|---|
 | **1** | La guarda de pertenencia en los tres endpoints, en función intermedia | servidor | ✅ **HECHO** — `dac6da2a`, 10/09/2026 |
 | **2** | `lib/subida/referencia.ts`, `POST /api/subidas/autorizar`, y los tres aceptan `ref` **o** la ruta vieja | servidor | ✅ **HECHO** — `228239d2`, 10/09/2026 |
-| **3** | El cliente pide autorización, sube a la ruta que le da el servidor y manda `ref` | frontend | pendiente |
+| **3** | El cliente pide autorización, sube a la ruta que le da el servidor y manda `ref` | frontend | ✅ **HECHO** — `99a4c450`, 10/09/2026 · **pendiente de ejercer en pantalla** |
 | **4** | Retirada del camino viejo, con su fecha escrita | servidor | pendiente |
+
+⚠️ **EL COMMIT 4 NO ENTRA HASTA QUE SE CUMPLAN DOS CONDICIONES, y ninguna es
+opcional**: que el commit 3 esté **ejercido en pantalla** —al cliente no lo cubre
+ninguna suite— y que el contador de `via` diga que **ya nadie entra por la ruta**.
+Retirar el camino viejo sin mirar quién lo usa es exactamente la apuesta que ese
+contador existe para no tener que hacer. Si `[SUBIDA] via=ruta` sigue apareciendo
+en los registros, queda una pestaña vieja abierta o un camino sin migrar.
 
 **No se funden.** Cuatro commits con build verde entre medias es la regla de la
 casa, y lo que se ahorraría fundiéndolos son dos `push`. Si al llegar al 3 apareciera
