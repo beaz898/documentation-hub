@@ -433,6 +433,48 @@ la que la casa prefiere; si alguien sube HTML, no.
 
 ---
 
+# 4.5 · AÑADIDO EL 10/09/2026 — el botón de lote, ejercido sin cifra
+
+**No entra en la tabla de «las doce, cerradas» de §4.3 a propósito**: aquélla es
+un cierre con fecha y meterle una fila hoy la volvería una lista viva que dice
+«cerrada». Va aquí, con la suya.
+
+| entrada | estado | qué se sabe |
+|---|---|---|
+| **botón de añadir varios al corpus** (bandeja, `useIndexarSeleccion`) | **`e`** | ejercido en pantalla el 10/09/2026, en cuatro casos, los cuatro conformes al diseño |
+
+**LOS CUATRO CASOS, porque «se probó» sin decir qué no es nada:**
+
+1. **Selección limpia** — todos analizados y sin versión pendiente: el botón
+   enciende y la tanda entra.
+2. **Uno sin análisis** — el botón apaga y aparece su frase, con su recuento.
+3. **Uno sin análisis MÁS otro con versión pendiente** — **las dos frases a la
+   vez y visibles**. Es el caso que importaba: si solo saliera la primera, el
+   usuario quitaría los sin-analizar, volvería a pulsar y chocaría contra el
+   segundo motivo sin haberlo visto nunca.
+4. **Un lote de varios** — recorre, no se para, y resume.
+
+⚠️ **ES `e` Y NO `P`, y conviene no leerlo de más**: no hay cifra, no hay tanda
+registrada, no hay comparación contra referencia. Hay una pantalla que hace lo
+que dice. La suite cubre el criterio por debajo —`seleccionIndexable` y
+`motivosDeNoIndexable` tienen sus casos, incluida la pareja bicondicional— pero
+**lo que se pintó en la pantalla no lo cubre ningún test**: no hay tests de
+componentes en el repositorio ni dependencias para tenerlos.
+
+⚠️ **Y UNA MATIZACIÓN SOBRE EL GRADO, dicha sin inventar símbolo nuevo:** el `e`
+de la escala es «consta que ha corrido, pero nadie apuntó qué salió». Éste es más
+fuerte —**hubo un observador deliberado**, con cuatro casos elegidos de antemano y
+un resultado esperado por caso—. Sigue sin ser `P` porque no hay cifra. Si algún
+día conviene distinguir «corrió y nadie miró» de «alguien lo ejerció a propósito»,
+ahí hay un grado que nombrar; hoy no se nombra, se anota.
+
+**LO QUE ESTO NO DICE**: que el camino tenga guardián en el servidor. Uno de los
+dos motivos por los que el botón apaga no lo tiene, y eso está a ficha aparte
+(`Estado_Del_MVP.md` §5.6). Ejercer la pantalla no cierra ese hueco: lo confirma,
+porque ahora el camino está pisado.
+
+---
+
 # 5 · EL MÓVIL — exploración del 05/09, en solo lectura
 
 Pregunta del director, que no estaba en el censo. **La respuesta corta: el
