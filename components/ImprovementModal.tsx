@@ -494,9 +494,38 @@ function ImprovementModalDesktop({
         display: 'flex', alignItems: 'center', justifyContent: 'center',
       }}
     >
+      {/* ⚠️ 1400 DE ANCHO (10/09/2026) — Y LO QUE HAY QUE SABER ES POR QUÉ ESTUVO
+          EN 900, PORQUE ES LO QUE EVITA EL PRÓXIMO ARRASTRE.
+
+          ESTE MODAL Y EL DE ANÁLISIS PREVIO NUNCA ESTUVIERON ACOPLADOS EN EL
+          CÓDIGO: aquél va por `.modal-content` (`globals.css`), cuyo único
+          consumidor es `AnalysisModal`, y éste va por esta línea. Lo que sí
+          estuvieron es acoplados EN LA HISTORIA: los cambios de ancho del 08/09
+          movieron los dos números en el mismo commit, 1400 → 1100 → 900.
+          Y la razón que quedó escrita —«1400 quedaba ancho para una LISTA DE UNA
+          SOLA COLUMNA»— describe al de análisis. **Éste es de dos columnas
+          (`md:grid-cols-2`), así que esa razón nunca le aplicó**: se estrechó de
+          paquete, no por un juicio sobre él.
+
+          De dónde sale el 1400 y no otro: el ancho real es
+          `min(pantalla − 40, techo)`, y cada panel es la mitad. En un portátil de
+          1366 —el más común— manda la pantalla y cualquier techo por encima de
+          ~1326 da lo mismo; el número solo se nota de 1440 para arriba, y ahí
+          1400 deja 700 por panel frente a los 450 de antes. 1600 solo cambiaría
+          algo en pantallas de 1640+, y sin techo un 1920 daría 940 por panel,
+          que es donde volvería el «demasiado ancho» ya juzgado una vez.
+
+          ⚠️ EL ALTO NO SE TOCA (95vh, sin tope en píxeles) y `globals.css`
+          tampoco: este cambio es de una línea a propósito.
+
+          ⚠️ Y LA MITAD SIN `md:` DE ESTA CLASE ES CÓDIGO MUERTO en la práctica:
+          por debajo de 768px el componente ya salió por `ImprovementMobileNotice`
+          y esta rama no se renderiza. Se deja porque describe la intención y
+          cubre el instante de hidratación, pero quien la lea que sepa que no es
+          el camino del móvil. */}
       <div
         onClick={e => e.stopPropagation()}
-        className="w-full h-full rounded-none md:max-w-[900px] md:h-[95vh] md:rounded-[14px]"
+        className="w-full h-full rounded-none md:max-w-[1400px] md:h-[95vh] md:rounded-[14px]"
         style={{
           background: 'var(--bg)',
           border: '1px solid var(--border)',
