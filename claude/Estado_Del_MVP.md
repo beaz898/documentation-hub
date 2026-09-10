@@ -450,6 +450,7 @@ hallazgo nuevo no se archiva en la casilla cómoda mientras nadie mira.
 | **El presupuesto de tiempo del lote es una estimación** | 180 s de los 300, con `parada: 'tiempo'` de contador |
 | **B.204 — SIN CLASIFICAR · tres endpoints se fían de la ruta que les manda el cliente** | ver 5.1 |
 | **B.205 — SIN CLASIFICAR · lo que se cobra y no se devuelve** | ver 5.2 |
+| **`sufijoDeTotal` se quedó sin consumidor de producción** | El 10/09 el precio salió de las etiquetas de la bandeja y esa función perdió su única llamada real: hoy solo la ejerce su propio test. Se retiró su `import`, que ya era código muerto, y **la función se deja en pie**: jubilarla es una decisión aparte y no se toma de paso. ⚠️ Lo que hay que mirar el día que se decida es si el precio va a volver a pintarse a partir de un total ya calculado — que es para lo que existe— o si esa forma ha muerto de verdad |
 
 ## ⚠️ 5.1 · B.204 — la ruta la elige el cliente y nadie comprueba de quién es
 
@@ -659,6 +660,48 @@ aquí. Inventarle una sección en el documento de estado sería declarar en este
 documento un hecho que casi seguro pertenece a otro, que es el fallo de I1 con el
 signo cambiado. **Es la única `ficha_sin_casa` que queda**, y el techo de 29 la
 lleva dentro: el día que se le encuentre o se le dé casa, el techo baja a 28.
+
+## ⚠️ 5.6 · B.203 — el botón de lote apaga por dos motivos y solo uno tiene guardián en el servidor (10/09/2026)
+
+*(El número es más antiguo que el de sus vecinas de arriba porque el hallazgo se
+decidió al construir el botón y se redacta hoy. La sección va la última porque las
+secciones van por orden de escritura, no de numeración.)*
+
+El botón de añadir varios al corpus se apaga por dos motivos, y `seleccionIndexable`
+los cuenta los dos. **Solo uno de los dos espeja algo que el servidor haga cumplir.**
+
+| motivo del cliente | ¿lo hace cumplir el servidor? | dónde |
+|---|---|---|
+| «tiene una versión pendiente» | **Sí** — 409 con `errorType: 'staged_pending_analysis'` | `mark-analyzed/route.ts:92-98` |
+| «no se ha analizado» | **NO. Nada.** | no existe la comprobación |
+
+**VERIFICADO EL 10/09/2026, abriendo el endpoint entero y no solo la parte que
+interesaba.** Lo que `mark-analyzed` comprueba antes de escribir es: sesión (401),
+organización (403), documento de esa organización (404), que tenga vectores
+—`chunk_count > 0`, 422— y la versión pendiente (409). **Ninguna mira si el
+documento pasó alguna vez por un análisis.** Lo único que hoy impide meterlo al
+corpus sin analizar es un booleano del cliente.
+
+⚠️ **Y EL 409 NO ES ABSOLUTO, que es la precisión que faltaba**: solo salta si
+`approveStaged !== true`. El servidor tiene una salida deliberada —la aprobación
+humana de F-11— así que el espejo es «hay veto y se puede levantar a propósito»,
+no «hay muro». Comprobado además que **el bucle del lote llama sin cuerpo**
+(`useIndexarSeleccion.ts:82-84`), luego nunca levanta ese veto por accidente.
+
+**ES UNA REGLA DE PRODUCTO QUE VIVE SOLO EN EL CLIENTE.** No se arregla aquí:
+poner el veto en `mark-analyzed` es otra pieza con su propia decisión, y la
+decisión tiene dos preguntas que no se contestan de paso —**qué código devuelve**,
+y **si el bucle del lote lo distingue del 409**—. Hoy no lo distinguiría: el bucle
+mete cualquier respuesta no-`ok` en la misma bolsa de errores y solo conserva el
+mensaje (`useIndexarSeleccion.ts:85-95`). Un veto nuevo que devolviera 409 sería
+indistinguible del de la versión pendiente para todo lo que no sea leer la frase.
+
+**ALCANCE, Y HA CAMBIADO HOY.** Cuando esto se decidió no había abuso conocido y
+**el camino no se había ejercido**. El 10/09/2026 el director ejerció el botón en
+pantalla, en cuatro casos, y los cuatro se comportaron como se diseñaron. Así que
+el enunciado de hoy es: **el camino ya está ejercido y sigue sin guardián en el
+servidor.** No es que nadie lo haya pisado; es que quien lo pise con un cliente
+manipulado no encuentra a nadie.
 
 ---
 
