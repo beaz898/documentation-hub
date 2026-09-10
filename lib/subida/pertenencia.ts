@@ -120,6 +120,16 @@ export function comprobarPertenencia(
  * un paso suyo antes del push. Queda DECLARADO y CONTADO —que es el segundo de
  * los tres grados— y sin fingir que está EJERCIDO.
  *
+ * ⚠️ DECIDIDO EL 10/09/2026: SE QUEDA EN LOG, Y CON SU DISPARADOR DE REVISIÓN
+ * ESCRITO, que es lo que separa una razón de una excusa. Lo que lo hace
+ * aceptable hoy es que **hay un solo usuario**: con uno solo, un rechazo de
+ * pertenencia no significa «alguien está intentando algo», significa que **algo
+ * va mal en nuestro propio cliente** — y para eso un registro basta.
+ * La razón es PRESTADA, así que no lleva fecha de calendario sino condición:
+ * **el día que haya más de un usuario, esto se revisa.** Ese día el mismo
+ * rechazo pasa a significar otra cosa, y un significado nuevo pide un lector
+ * nuevo — que es cuando toca la tabla.
+ *
  * El prefijo es estable y greppable a propósito: `[PERTENENCIA]`.
  *
  * ⚠️ NO SE REGISTRA LA RUTA ENTERA. Lleva el nombre del fichero, que es dato del
