@@ -28,7 +28,7 @@ medias creyendo que ya no hay nada que hacer.
 | # | qué | lado | estado |
 |---|---|---|---|
 | **1** | La guarda de pertenencia en los tres endpoints, en función intermedia | servidor | ✅ **HECHO** — `dac6da2a`, 10/09/2026 |
-| **2** | `lib/subida/referencia.ts`, `POST /api/subidas/autorizar`, y los tres aceptan `ref` **o** la ruta vieja | servidor | ⛔ **PARADO** — ver la puerta de abajo |
+| **2** | `lib/subida/referencia.ts`, `POST /api/subidas/autorizar`, y los tres aceptan `ref` **o** la ruta vieja | servidor | ✅ **HECHO** — `228239d2`, 10/09/2026 |
 | **3** | El cliente pide autorización, sube a la ruta que le da el servidor y manda `ref` | frontend | pendiente |
 | **4** | Retirada del camino viejo, con su fecha escrita | servidor | pendiente |
 
@@ -47,11 +47,15 @@ escrito en el módulo.
 
 ---
 
-## ⛔ LA PUERTA DEL COMMIT 2 — un paso del director, de la clase del SQL
+## ✅ LA PUERTA DEL COMMIT 2 — abierta el 10/09/2026
 
-**No se escribe hasta que el director confirme que `ANALYSIS_TOKEN_SECRET` está
-puesta en Vercel.** La vista de estado es `/api/admin/config`. Si falta, el módulo
-falla cerrado —a propósito— y **el modal de Mejora deja de abrirse**.
+El director verificó `ANALYSIS_TOKEN_SECRET` en Vercel y el commit 2 entró.
+
+⚠️ **QUE EXISTA NO ES QUE SE HAYA EJERCIDO, y esa mitad sigue viva**: hasta este
+commit no la importaba ningún endpoint. Las tres comprobaciones del estreno están
+escritas en la cabecera de `app/api/subidas/autorizar/route.ts` y **se pueden
+hacer YA, antes del commit 3, porque todavía no llama nadie** — que es
+exactamente por qué el servidor va antes que el cliente.
 
 ---
 
