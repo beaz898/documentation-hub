@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
     // guarda de pertenencia del commit 1. El camino viejo se retira en el 4.
     const origen = resolverOrigenDelFichero(
       { ref, storagePath }, { userId: user.id, orgId: org.orgId },
-      'extract-text', secretoDeFirma(),
+      'extract-text', secretoDeFirma,
     );
     if (!origen.ok) {
       return NextResponse.json({ error: 'Ruta no autorizada' }, { status: 403 });

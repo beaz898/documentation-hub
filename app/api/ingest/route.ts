@@ -80,7 +80,7 @@ export async function POST(req: NextRequest) {
     // con la guarda de pertenencia del commit 1, que se retira en el 4.
     const origen = resolverOrigenDelFichero(
       { ref, storagePath: rutaDelCuerpo }, { userId: user.id, orgId },
-      'ingest', secretoDeFirma(),
+      'ingest', secretoDeFirma,
     );
     if (!origen.ok) {
       return NextResponse.json({ error: 'Ruta no autorizada' }, { status: 403 });

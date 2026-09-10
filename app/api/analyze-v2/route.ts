@@ -100,7 +100,7 @@ export async function POST(req: NextRequest) {
     if (vieneFichero) {
       const origen = resolverOrigenDelFichero(
         { ref, storagePath: rutaDelCuerpo }, { userId, orgId },
-        'analyze-v2', secretoDeFirma(),
+        'analyze-v2', secretoDeFirma,
       );
       if (!origen.ok) {
         return NextResponse.json({ error: 'Ruta no autorizada' }, { status: 403 });

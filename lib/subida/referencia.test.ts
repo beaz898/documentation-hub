@@ -116,15 +116,34 @@ describe('la referencia de subida — LOS TRES NEGATIVOS DE LA PUERTA', () => {
 });
 
 describe('resolverOrigenDelFichero — la lectura dual, con su reloj', () => {
+  const dar = (s: string) => () => s;
+
+  /**
+   * ⚠️ EL CASO QUE HABRÍA CAZADO EL DEFECTO DE `228239d2`, y por eso va primero.
+   *
+   * Allí el secreto se pasaba YA RESUELTO, así que `secretoDeFirma()` —que LANZA
+   * con un despliegue mal configurado— se evaluaba en toda petición, viniera ref
+   * o no: un secreto malo habría tumbado el camino VIEJO, que no lo usa.
+   * Aquí el proveedor EXPLOTA si alguien lo llama, así que este caso está en
+   * verde si y solo si el camino viejo no toca el secreto.
+   */
+  it('⚠️ el camino VIEJO no pide el secreto: ni siquiera lo roza', () => {
+    const explota = () => { throw new Error('no se debe pedir el secreto por el camino viejo'); };
+    const r = resolverOrigenDelFichero(
+      { storagePath: `${YO.userId}/1757-informe.pdf` }, YO, 'test', explota, T0,
+    );
+    expect(r.ok).toBe(true);
+  });
+
   it('con ref válida entra por la ref', () => {
     const { ref, ruta } = emitirRefDeSubida(YO, 'x.pdf', SECRETO, T0, 'abc');
-    expect(resolverOrigenDelFichero({ ref }, YO, 'test', SECRETO, T0))
+    expect(resolverOrigenDelFichero({ ref }, YO, 'test', dar(SECRETO), T0))
       .toEqual({ ok: true, ruta, fileName: 'x.pdf', via: 'ref' });
   });
 
   it('sin ref, el camino VIEJO sigue vivo si la ruta es propia', () => {
     const r = resolverOrigenDelFichero(
-      { storagePath: `${YO.userId}/1757-informe.pdf` }, YO, 'test', SECRETO, T0,
+      { storagePath: `${YO.userId}/1757-informe.pdf` }, YO, 'test', dar(SECRETO), T0,
     );
     expect(r).toEqual({
       ok: true, ruta: `${YO.userId}/1757-informe.pdf`, fileName: '', via: 'ruta',
@@ -133,7 +152,7 @@ describe('resolverOrigenDelFichero — la lectura dual, con su reloj', () => {
 
   it('⚠️ sin ref y con ruta AJENA sigue rechazando: la guarda del commit 1 no se relaja', () => {
     const r = resolverOrigenDelFichero(
-      { storagePath: `${OTRO.userId}/1757-ajeno.pdf` }, YO, 'test', SECRETO, T0,
+      { storagePath: `${OTRO.userId}/1757-ajeno.pdf` }, YO, 'test', dar(SECRETO), T0,
     );
     expect(r.ok).toBe(false);
   });
@@ -141,7 +160,7 @@ describe('resolverOrigenDelFichero — la lectura dual, con su reloj', () => {
   it('si vienen las dos, gana la ref: durante la ventana el camino nuevo es el preferente', () => {
     const { ref, ruta } = emitirRefDeSubida(YO, 'firmado.pdf', SECRETO, T0, 'abc');
     const r = resolverOrigenDelFichero(
-      { ref, storagePath: `${YO.userId}/otra-cosa.pdf` }, YO, 'test', SECRETO, T0,
+      { ref, storagePath: `${YO.userId}/otra-cosa.pdf` }, YO, 'test', dar(SECRETO), T0,
     );
     expect(r).toEqual({ ok: true, ruta, fileName: 'firmado.pdf', via: 'ref' });
   });
@@ -150,7 +169,7 @@ describe('resolverOrigenDelFichero — la lectura dual, con su reloj', () => {
     // Si cayera, cualquiera con una ruta propia podría saltarse la ref mandando
     // una basura al lado — la ventana se convertiría en la puerta de atrás.
     const r = resolverOrigenDelFichero(
-      { ref: 'basura.basura', storagePath: `${YO.userId}/x.pdf` }, YO, 'test', SECRETO, T0,
+      { ref: 'basura.basura', storagePath: `${YO.userId}/x.pdf` }, YO, 'test', dar(SECRETO), T0,
     );
     expect(r.ok).toBe(false);
   });

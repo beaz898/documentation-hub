@@ -35,6 +35,30 @@ import { comprobarPertenencia, registrarRechazo } from './pertenencia';
  * un fallo mudo en mitad de una revisión legítima. Si caduca, el usuario ve
  * «vuelve a subirlo», y el contador de `caducada` es lo que diría si pasa de
  * verdad en vez de en nuestra cabeza.
+ *
+ * ═══════════════════════════════════════════════════════════════════════════
+ * ⚠️ UNA REF EMITIDA ES UNA CREDENCIAL, NO UN IDENTIFICADOR. Vale dos horas y
+ * abre una ruta concreta a quien la tenga. De ahí dos cosas:
+ *   · NO SE PEGA DONDE SE QUEDE ESCRITA — ni en un ticket, ni en un chat, ni en
+ *     una captura. Hoy da igual (fichero inexistente, cuenta propia, un solo
+ *     usuario), pero el día que haya clientes el gesto de diagnóstico tiene que
+ *     poder hacerse SIN manipular refs a mano. Por eso la comprobación del
+ *     despliegue vive en un botón que enseña que emitió, no la ref entera.
+ *   · Y por eso lleva reloj: una credencial sin caducidad es la que sigue
+ *     abriendo la puerta cuando ya nadie se acuerda de quién la tuvo.
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ * ⚠️ EL DEFECTO QUE ESTE MÓDULO YA TUVO, escrito aquí porque es donde se vuelve
+ * a cometer: `228239d2` pasaba el secreto YA RESUELTO a
+ * `resolverOrigenDelFichero`, así que `secretoDeFirma()` —que LANZA si el
+ * despliegue está mal configurado— se evaluaba en TODA petición, viniera ref o
+ * no. El commit afirmaba en su mensaje que un fallo del secreto «no rompe nada
+ * de lo que el usuario hace mientras el cliente siga mandando la ruta», y el
+ * código hacía lo contrario: habría tumbado subida, análisis y modal de Mejora
+ * por el camino viejo, que no usa el secreto para nada.
+ * Lo desmintió leer las tres líneas de llamada al preparar el estreno. Hoy el
+ * secreto se PIDE, y hay un caso en la batería que falla si alguien vuelve a
+ * pedirlo antes de tiempo.
  */
 
 /** Dos horas. Ver la cabecera: el número tiene razón escrita, no es redondeo. */
@@ -182,12 +206,21 @@ export function resolverOrigenDelFichero(
   entrada: { ref?: unknown; storagePath?: unknown },
   quien: { userId: string; orgId: string },
   endpoint: string,
-  secreto: string,
+  /**
+   * ⚠️ SE PIDE, NO SE PASA — y la firma lo dice para que no se pueda hacer mal.
+   *
+   * Recibir el secreto YA RESUELTO obliga a quien llama a pedirlo antes de saber
+   * si hace falta, y `secretoDeFirma()` LANZA cuando el despliegue está mal
+   * configurado. Con un `string` en esta posición, un secreto malo tumbaba
+   * también el camino VIEJO, que no lo usa para nada.
+   * No es hipotético: así entró en `228239d2`. Ver la cabecera del módulo.
+   */
+  pedirSecreto: () => string,
   ahora: number = Date.now(),
 ): Origen {
   // La ref GANA si viene: durante la ventana, el camino nuevo es el preferente.
   if (entrada.ref !== undefined && entrada.ref !== null) {
-    const r = resolverRefDeSubida(entrada.ref, quien, secreto, ahora);
+    const r = resolverRefDeSubida(entrada.ref, quien, pedirSecreto(), ahora);
     if (!r.ok) {
       registrarRefRechazada(endpoint, r.motivo, quien.userId);
       return { ok: false, motivo: `ref_${r.motivo}` };
