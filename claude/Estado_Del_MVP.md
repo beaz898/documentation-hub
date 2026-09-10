@@ -5,6 +5,17 @@ cerrados. Lo del 07/09 que sigue vigente se mantiene tal cual.)*
 
 Para decidir si esto se puede enseñar. **Sin plan: solo el estado.**
 
+<!-- CASAS EXTERNAS — fichas que este documento CITA y cuya casa vive fuera.
+     No son una excepción al invariante: son dónde buscarlo. El chequeo de
+     `lib/documentacion/invariantes-de-estado.ts` ABRE el fichero y comprueba que
+     la casa está ahí y que lleva fecha. Una marca que apunte a un sitio sin casa
+     es una violación propia, no un permiso; y si el fichero no se puede abrir,
+     tampoco concede. Sin número de línea: el fichero basta, y una línea en prosa
+     caduca al primer commit ajeno. -->
+<!-- CASA-EXTERNA: B.198 → claude/Inventario_Caminos.md -->
+<!-- CASA-EXTERNA: B.175 → claude/Inventario_Caminos.md -->
+<!-- CASA-EXTERNA: B.178 → claude/Plan_F103_P3.md -->
+
 ---
 
 # 0 · ⚠️ LO QUE TODAVÍA NO HA CORRIDO — dos celdas, y se dicen primero

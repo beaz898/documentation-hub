@@ -41,9 +41,50 @@
  * correcto: si la fila del índice repite el estado, es una segunda definición;
  * si solo apunta («ver 5.1»), que no lleve la ficha en su primera celda. La
  * regla no admite el término medio cómodo, que es justamente lo que se le pide.
+ *
+ * ═══════════════════════════════════════════════════════════════════════════
+ * LA CASA EXTERNA — I1 corregido el 10/09/2026.
+ *
+ * I1 sin esto obligaba al documento a ADOPTAR fichas que viven legítimamente en
+ * otro sitio: cuatro de sus violaciones eran citas correctas a fichas con casa
+ * fuera. Adoptarlas para callar el chequeo habría creado la segunda casa que I1
+ * existe para impedir — el instrumento empujando justo a lo que persigue.
+ *
+ * LA MARCA, y NO lleva número de línea a propósito: un `fichero:línea` en prosa
+ * caduca al primer commit ajeno, y el chequeo busca dentro del fichero de todos
+ * modos.
+ *     <!-- CASA-EXTERNA: B.198 → claude/Inventario_Caminos.md -->
+ *
+ * ⚠️ POR QUÉ NO ES UNA PUERTA POR LA QUE ESCAPAR DEL INVARIANTE. Tres cerrojos, y
+ * lo que los hace cerrojos es que ninguno depende de la buena fe de quien marca:
+ *   1 · LA MARCA SE SIGUE, NO SE CREE. La exención se concede solo si el chequeo
+ *       ENCUENTRA la casa en el fichero nombrado, con el MISMO criterio
+ *       (`casaDeLinea`, una sola definición de «casa» para dentro y para fuera).
+ *       Una marca que apunte a un sitio sin casa es `casa_externa_ausente`: una
+ *       violación nueva, no un permiso. Y si el fichero no se puede abrir,
+ *       TAMPOCO concede — falla cerrada, como toda guarda cuya condición depende
+ *       de una respuesta ajena.
+ *   2 · NO EXIME DE LA FECHA: LA MUEVE. I2 viaja con la casa. Si la casa está
+ *       fuera, la fecha se le exige allí (`casa_externa_sin_fecha`). Una ficha
+ *       que quisiera escapar del presente perpetuo no gana NADA sacando su casa
+ *       del documento: se lleva el requisito consigo.
+ *   3 · NO PUEDE CREAR UNA SEGUNDA CASA. Casa aquí + marca = dos casas, y sale
+ *       `ficha_con_dos_casas`. La marca SUSTITUYE la casa; no la duplica.
+ *
+ * ⚠️ EL LÍMITE, ESCRITO AQUÍ PORQUE ES PARTE DEL CONTRATO Y NO UNA NOTA AL PIE:
+ * el invariante pasa a ser **«una casa en este documento o en el fichero que su
+ * marca nombra»**, NO «una casa en el mundo». El chequeo no enumera todos los
+ * `.md` del repositorio, y no debe: eso convertiría el archivo intocable de
+ * consultas en dependencia de esta batería y podría producir violaciones que
+ * nadie tiene permiso para corregir.
+ * Y no es un límite teórico — se midió al estrenarlo: **B.175 tiene casa en DOS
+ * documentos** (`Inventario_Caminos.md` y una fila-índice de `Plan_F103_P3.md`),
+ * y con la marca apuntando al primero el chequeo ve una casa y calla sobre la
+ * otra. Eso está a ficha; aquí solo se declara que ESTE chequeo no lo ve.
+ * ═══════════════════════════════════════════════════════════════════════════
  */
 
-/** Las cuatro formas en que la forma se rompe. */
+/** Las seis formas en que la forma se rompe. */
 export type ClaseDeViolacion =
   /** Se la cita y no se declara en ninguna parte. */
   | 'ficha_sin_casa'
@@ -52,7 +93,11 @@ export type ClaseDeViolacion =
   /** Declarada sin fecha: presente perpetuo. */
   | 'casa_sin_fecha'
   /** Afirma o niega bloqueo fuera de una casa y fuera de un bloque derivado. */
-  | 'bloqueo_fuera_de_casa';
+  | 'bloqueo_fuera_de_casa'
+  /** La marca manda a un fichero que no se pudo abrir, o donde no hay casa. */
+  | 'casa_externa_ausente'
+  /** La casa existe fuera, pero sin fecha: el presente perpetuo, mudado. */
+  | 'casa_externa_sin_fecha';
 
 export interface Violacion {
   clase: ClaseDeViolacion;
@@ -76,6 +121,13 @@ const FECHA = /\b\d{2}\/\d{2}(?:\/\d{4})?\b/;
  * — un «no bloquea nada» en un sitio y un «bloquean dos cosas» en otro.
  */
 const BLOQUEO = /\bbloquea\w*\b/i;
+
+/**
+ * `<!-- CASA-EXTERNA: B.198 → claude/Inventario_Caminos.md -->`. Se acepta `->`
+ * además de `→` para que la flecha no sea una trampa de teclado. La ruta va tal
+ * cual, relativa a la raíz del repositorio, y SIN número de línea.
+ */
+const CASA_EXTERNA = /<!--\s*CASA-EXTERNA:\s*(B\.\d{1,4})\s*(?:→|->)\s*(\S+?)\s*-->/;
 
 const ABRE_DERIVADO = /<!--\s*DERIVADO\b/i;
 const CIERRA_DERIVADO = /<!--\s*\/DERIVADO\s*-->/i;
@@ -115,11 +167,95 @@ function recorte(linea: string): string {
 }
 
 /**
+ * LAS FICHAS QUE ESTA LÍNEA DECLARA, o vacío si la línea no es una casa.
+ *
+ * ⚠️ UNA SOLA DEFINICIÓN DE «CASA», y por eso está extraída: la usa el documento
+ * propio y la usa el fichero que una marca nombra. Dos implementaciones de esto
+ * se separarían el día que alguien tocara una, y las dos seguirían pareciendo
+ * correctas por su cuenta.
+ */
+function casaDeLinea(linea: string): string[] {
+  if (esTitulo(linea)) return fichasDe(linea);
+  const celda = primeraCelda(linea);
+  return celda !== null ? fichasDe(celda) : [];
+}
+
+/** Una marca leída: qué ficha manda fuera, a qué fichero, y desde qué línea. */
+interface Marca {
+  ficha: string;
+  ruta: string;
+  /** Línea de la marca, para poder señalarla el día que mienta. */
+  linea: number;
+}
+
+function marcasDe(texto: string): Marca[] {
+  const marcas: Marca[] = [];
+  texto.split(/\r?\n/).forEach((linea, i) => {
+    const m = CASA_EXTERNA.exec(linea);
+    if (m) marcas.push({ ficha: m[1], ruta: m[2], linea: i + 1 });
+  });
+  return marcas;
+}
+
+/**
+ * LAS RUTAS QUE LAS MARCAS DE ESTE TEXTO NOMBRAN, sin repetir.
+ *
+ * Existe para que quien lee del disco sepa QUÉ abrir sin volver a interpretar la
+ * marca por su cuenta: el que necesita el criterio PREGUNTA a quien lo decidió
+ * en vez de derivarlo otra vez con sus propias reglas.
+ */
+export function rutasDeCasasExternas(texto: string): string[] {
+  const rutas: string[] = [];
+  for (const m of marcasDe(texto)) if (!rutas.includes(m.ruta)) rutas.push(m.ruta);
+  return rutas;
+}
+
+/** Lo que el chequeo encuentra al SEGUIR una marca. Ningún caso es «pasa». */
+type Seguimiento =
+  | { estado: 'sin_fichero' }
+  | { estado: 'sin_casa' }
+  | { estado: 'casa'; lineas: number[]; sinFecha: boolean };
+
+/**
+ * ABRE EL FICHERO QUE LA MARCA NOMBRA Y BUSCA LA CASA DENTRO — el cerrojo 1.
+ *
+ * ⚠️ Si el texto no está en el mapa —nadie lo leyó, la ruta no existe, se borró
+ * el fichero— NO concede: `sin_fichero` es violación, no silencio. Una guarda
+ * que depende de una respuesta ajena falla CERRADA.
+ */
+function seguirMarca(m: Marca, externos: ReadonlyMap<string, string>): Seguimiento {
+  const texto = externos.get(m.ruta);
+  if (texto === undefined) return { estado: 'sin_fichero' };
+
+  const lineas: number[] = [];
+  let sinFecha = false;
+  texto.split(/\r?\n/).forEach((linea, i) => {
+    if (casaDeLinea(linea).includes(m.ficha)) {
+      lineas.push(i + 1);
+      if (!FECHA.test(linea)) sinFecha = true;
+    }
+  });
+
+  if (lineas.length === 0) return { estado: 'sin_casa' };
+  return { estado: 'casa', lineas, sinFecha };
+}
+
+/**
  * EL CHEQUEO. Función pura sobre el texto: quien lo lee del disco es el test,
  * no esto — así el criterio se puede ejercer sobre documentos sintéticos, que
  * es la única forma de saber que sabe disparar.
  */
-export function invariantesDelDocumentoDeEstado(texto: string): Violacion[] {
+export function invariantesDelDocumentoDeEstado(
+  texto: string,
+  /**
+   * ruta → contenido, para los ficheros que las marcas nombran. Se INYECTA en
+   * vez de leerse aquí para que la función siga siendo pura y se pueda ejercer
+   * contra documentos sintéticos — incluida una marca que miente.
+   * ⚠️ El defecto vacío falla CERRADO: llamarla sin mapa sobre un documento con
+   * marcas da violaciones, no silencio.
+   */
+  documentosExternos: ReadonlyMap<string, string> = new Map(),
+): Violacion[] {
   const lineas = texto.split(/\r?\n/);
   const violaciones: Violacion[] = [];
 
@@ -141,12 +277,7 @@ export function invariantesDelDocumentoDeEstado(texto: string): Violacion[] {
       return;
     }
 
-    const celda = primeraCelda(linea);
-    const fichasDeLaCasa = esTitulo(linea)
-      ? fichasDe(linea)
-      : celda !== null
-        ? fichasDe(celda)
-        : [];
+    const fichasDeLaCasa = casaDeLinea(linea);
     const esCasa = fichasDeLaCasa.length > 0;
 
     for (const ficha of fichasDe(linea)) {
@@ -182,21 +313,64 @@ export function invariantesDelDocumentoDeEstado(texto: string): Violacion[] {
 
   // I1 — un hecho, una casa. Se resuelve al final porque necesita el documento
   // entero: una ficha declarada en la línea 400 legitima su mención en la 20.
+  // Y desde el 10/09/2026 la casa puede estar FUERA: la marca se sigue.
+  const marcasPorFicha = new Map<string, Marca[]>();
+  for (const m of marcasDe(texto)) {
+    marcasPorFicha.set(m.ficha, [...(marcasPorFicha.get(m.ficha) ?? []), m]);
+  }
+
   for (const [ficha, linea] of primeraMencion) {
     const casas = casasPorFicha.get(ficha) ?? [];
-    if (casas.length === 0) {
+    /** Cuántas casas le encuentra el chequeo FUERA, siguiendo sus marcas. */
+    let externas = 0;
+    const donde: string[] = casas.map(l => `línea ${l}`);
+
+    for (const m of marcasPorFicha.get(ficha) ?? []) {
+      const hallado = seguirMarca(m, documentosExternos);
+      if (hallado.estado === 'sin_fichero') {
+        violaciones.push({
+          clase: 'casa_externa_ausente',
+          ficha,
+          linea: m.linea,
+          texto: `la marca manda a ${m.ruta} y el chequeo no pudo abrirlo: no concede`,
+        });
+      } else if (hallado.estado === 'sin_casa') {
+        violaciones.push({
+          clase: 'casa_externa_ausente',
+          ficha,
+          linea: m.linea,
+          texto: `la marca manda a ${m.ruta} y ahí ${ficha} no tiene casa`,
+        });
+      } else {
+        externas += hallado.lineas.length;
+        donde.push(`${m.ruta}:${hallado.lineas.join(',')}`);
+        // Cerrojo 2 — la marca MUEVE la fecha, no la perdona.
+        if (hallado.sinFecha) {
+          violaciones.push({
+            clase: 'casa_externa_sin_fecha',
+            ficha,
+            linea: m.linea,
+            texto: `su casa en ${m.ruta} (línea ${hallado.lineas[0]}) no lleva fecha`,
+          });
+        }
+      }
+    }
+
+    const total = casas.length + externas;
+    if (total === 0) {
       violaciones.push({
         clase: 'ficha_sin_casa',
         ficha,
         linea,
         texto: recorte(lineas[linea - 1] ?? ''),
       });
-    } else if (casas.length > 1) {
+    } else if (total > 1) {
+      // Cerrojo 3 — dentro o fuera, dos casas son dos casas.
       violaciones.push({
         clase: 'ficha_con_dos_casas',
         ficha,
-        linea: casas[0],
-        texto: `${ficha} declarada en ${casas.length} sitios: líneas ${casas.join(', ')}`,
+        linea: casas[0] ?? linea,
+        texto: `${ficha} declarada en ${total} sitios: ${donde.join(' · ')}`,
       });
     }
   }
@@ -213,6 +387,8 @@ export function repartoPorClase(
     ficha_con_dos_casas: 0,
     casa_sin_fecha: 0,
     bloqueo_fuera_de_casa: 0,
+    casa_externa_ausente: 0,
+    casa_externa_sin_fecha: 0,
   };
   for (const v of violaciones) reparto[v.clase] += 1;
   return reparto;
