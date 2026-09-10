@@ -22,6 +22,7 @@ import type { StoredChunk } from '@/lib/read-chunks';
 import { documentoPropietario as documentoPropietarioVerificado } from '@/lib/analysis/propietario';
 import { sujetosDelAnalisis, unicoExcluido } from '@/lib/analysis/sujetos';
 import { puedeUsarLaEstructura } from '@/lib/analysis/estructura-del-modal';
+import { comprobarPertenencia, registrarRechazo } from '@/lib/subida/pertenencia';
 
 // Un job en 'pending'/'processing' mas viejo que esto se considera muerto: el
 // worker cayo sin marcarlo 'failed' y bloqueaba el 409 de toda la organizacion
@@ -80,6 +81,19 @@ export async function POST(req: NextRequest) {
     
     const body = await req.json();
     const { storagePath, fileName, text: directText, exhaustive, excludeFingerprints: rawExcludeFps, batchDocumentIds: rawBatchDocumentIds } = body;
+
+    // ⚠️ B.204 — la ruta la elige el cliente. Aquí es OPCIONAL (existe la rama
+    // de `text` directo), así que la guarda solo corre cuando viene ruta: una
+    // guarda que rechazara su ausencia mataría la otra rama, que es legítima.
+    // Si viene, se comprueba de quién es antes de llegar a las dos descargas de
+    // más abajo, que hoy citan el contenido en los hallazgos que devuelven.
+    if (storagePath !== undefined && storagePath !== null) {
+      const pertenencia = comprobarPertenencia(storagePath, userId);
+      if (!pertenencia.ok) {
+        registrarRechazo('analyze-v2', pertenencia.motivo, userId, storagePath);
+        return NextResponse.json({ error: 'Ruta no autorizada' }, { status: 403 });
+      }
+    }
 
     // ════════════════════════════════════════════════════════════════════
     // LOS TRES SUJETOS (F-100 P2, B.163). Hasta el 03/09/2026 esto era UN

@@ -13,6 +13,7 @@ import { randomUUID } from 'crypto';
 import { generateContentHash } from '@/lib/analysis/hash-check';
 import { resolveOrg } from '@/lib/org';
 import { checkUploadLock } from '@/lib/upload-lock';
+import { comprobarPertenencia, registrarRechazo } from '@/lib/subida/pertenencia';
 import { criterioDeAdopcion } from '@/lib/analysis/adopcion';
 
 /**
@@ -72,6 +73,16 @@ export async function POST(req: NextRequest) {
 
     if (!storagePath || !fileName) {
       return NextResponse.json({ error: 'Parámetros inválidos' }, { status: 400 });
+    }
+
+    // ⚠️ B.204 — EL PEOR DE LOS TRES, y no era el que señalamos primero:
+    // `extract-text` devuelve el texto y se acaba; ÉSTE SE LO QUEDA. Sin esta
+    // guarda, indexaba en el corpus de quien llama un fichero que podía no ser
+    // suyo — lectura CON persistencia.
+    const pertenencia = comprobarPertenencia(storagePath, user.id);
+    if (!pertenencia.ok) {
+      registrarRechazo('ingest', pertenencia.motivo, user.id, storagePath);
+      return NextResponse.json({ error: 'Ruta no autorizada' }, { status: 403 });
     }
 
     // Estado de análisis con el que nace el documento. El frontend indica si el
