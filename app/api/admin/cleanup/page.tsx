@@ -36,6 +36,21 @@ interface Tombstone {
   excluded_at: string;
 }
 
+/**
+ * EL ESTADO DEL DESPLIEGUE — B.204.
+ *
+ * ⚠️ `veredicto` SE PINTA TAL CUAL LO DEVUELVE EL ENDPOINT. Interpretarlo aquí
+ * —«todo bien» si `usable`— sería una SEGUNDA implementación del criterio, en
+ * otro fichero y en otro lenguaje, que se separaría de la primera el día que
+ * alguien añada un motivo nuevo en `estadoDelSecreto`. El servidor decide y esta
+ * página transcribe.
+ */
+interface ConfigReport {
+  entorno: string;
+  secretos: Record<string, { presente: boolean; longitud: number; usable: boolean; motivo: string | null }>;
+  veredicto: string;
+}
+
 export default function CleanupPage() {
   const [loading, setLoading] = useState(false);
   const [report, setReport] = useState<Report | null>(null);
@@ -51,6 +66,50 @@ export default function CleanupPage() {
 
   const [tombstones, setTombstones] = useState<Tombstone[] | null>(null);
   const [tombBusy, setTombBusy] = useState(false);
+
+  const [config, setConfig] = useState<ConfigReport | null>(null);
+  const [emision, setEmision] = useState<string | null>(null);
+  const [despliegueBusy, setDespliegueBusy] = useState(false);
+
+  /** ¿Llegó el secreto al runtime? Solo lectura: no emite ni escribe nada. */
+  const comprobarConfig = async () => {
+    setDespliegueBusy(true); setError(null); setForbidden(false); setConfig(null);
+    try {
+      const res = await fetch('/api/admin/config', { credentials: 'include' });
+      if (res.status === 401 || res.status === 403) { setForbidden(true); return; }
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Error');
+      setConfig(data);
+    } catch (e) { setError(e instanceof Error ? e.message : 'Error'); }
+    finally { setDespliegueBusy(false); }
+  };
+
+  /**
+   * ¿El mecanismo EMITE? Pide una autorización de subida y NO sube nada: el
+   * fichero que nombra no existe y la ruta queda vacía.
+   *
+   * ⚠️ NO SE PINTA LA REF. Una ref emitida es una CREDENCIAL —vale dos horas y
+   * abre una ruta a quien la tenga—, así que enseñarla entera en una pantalla
+   * que alguien puede fotografiar o compartir sería repartirla. Se enseña que
+   * vino y cuánto mide, que es lo que contesta la pregunta.
+   */
+  const comprobarEmision = async () => {
+    setDespliegueBusy(true); setError(null); setForbidden(false); setEmision(null);
+    try {
+      const res = await fetch('/api/subidas/autorizar', {
+        method: 'POST', credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fileName: 'prueba-de-despliegue.pdf' }),
+      });
+      if (res.status === 401 || res.status === 403) { setForbidden(true); return; }
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Error');
+      setEmision(
+        `success: ${data.success} · ref recibida (${String(data.ref ?? '').length} caracteres, no se muestra) · ruta: ${data.ruta}`,
+      );
+    } catch (e) { setError(e instanceof Error ? e.message : 'Error'); }
+    finally { setDespliegueBusy(false); }
+  };
 
   const loadTombstones = async () => {
     setLoading(true); setError(null); setForbidden(false);
@@ -172,6 +231,49 @@ export default function CleanupPage() {
           Necesitas iniciar sesión como administrador de una organización para usar esta herramienta.
         </div>
       )}
+
+      {/* ⚠️ EL ESTADO DEL DESPLIEGUE — B.204. Existe porque el panel de Vercel
+          dice que una variable ESTÁ, no que sea correcta ni que el despliegue en
+          curso la haya recogido; y porque una línea de consola es un gesto de
+          una vez que nadie repetirá el día que el secreto rote o aparezca un
+          entorno nuevo. Un botón sí se vuelve a pulsar. */}
+      <div style={{ marginTop: 8, marginBottom: 32, padding: 16, border: '0.5px solid var(--border)', borderRadius: 10, background: 'var(--bg-secondary)' }}>
+        <h2 style={{ fontSize: 16, marginBottom: 6 }}>Estado del despliegue</h2>
+        <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 14 }}>
+          Dos preguntas distintas, y se contestan por separado: si el secreto de firma
+          llegó al runtime, y si el mecanismo llega a emitir. Ninguno de los dos botones
+          escribe nada ni sube ningún fichero.
+        </p>
+
+        <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 14 }}>
+          <button onClick={comprobarConfig} disabled={despliegueBusy}
+            style={{ padding: '10px 16px', borderRadius: 8, border: '0.5px solid var(--border)', background: 'var(--surface)', color: 'var(--text-primary)', cursor: despliegueBusy ? 'not-allowed' : 'pointer', fontSize: 14 }}>
+            {despliegueBusy ? '...' : '1. ¿Llegó el secreto al runtime?'}
+          </button>
+          <button onClick={comprobarEmision} disabled={despliegueBusy}
+            style={{ padding: '10px 16px', borderRadius: 8, border: '0.5px solid var(--border)', background: 'var(--surface)', color: 'var(--text-primary)', cursor: despliegueBusy ? 'not-allowed' : 'pointer', fontSize: 14 }}>
+            {despliegueBusy ? '...' : '2. ¿El mecanismo emite?'}
+          </button>
+        </div>
+
+        {config && (
+          <div style={{ fontSize: 13, marginBottom: 10 }}>
+            {/* El veredicto, TAL CUAL. Ver el comentario de `ConfigReport`. */}
+            <div style={{ fontWeight: 600, marginBottom: 6 }}>{config.veredicto}</div>
+            <div style={{ color: 'var(--text-muted)', marginBottom: 6 }}>entorno: {config.entorno}</div>
+            {Object.entries(config.secretos).map(([nombre, s]) => (
+              <div key={nombre} style={{ fontFamily: 'var(--font-mono)', fontSize: 12 }}>
+                {nombre} · presente: {String(s.presente)} · longitud: {s.longitud} ·
+                {' '}usable: {String(s.usable)}{s.motivo ? ` · motivo: ${s.motivo}` : ''}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {emision && (
+          <div style={{ fontSize: 12, fontFamily: 'var(--font-mono)', wordBreak: 'break-all' }}>{emision}</div>
+        )}
+      </div>
 
       {error && <div style={{ padding: 12, background: '#fee2e2', color: '#991b1b', borderRadius: 8, fontSize: 13, marginBottom: 16 }}>Error: {error}</div>}
 
