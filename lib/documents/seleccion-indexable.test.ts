@@ -144,6 +144,32 @@ describe('motivosDeNoIndexable', () => {
    * SIEMPRE juntos. Un botón apagado sin frase es exactamente el fallo que esta
    * función existe para no cometer, y sin este caso se colaría cualquier rama
    * futura que devolviera `false` sin motivo.
+   *
+   * ═══════════════════════════════════════════════════════════════════════════
+   * ⚠️ LA ASERCIÓN ES UN BICONDICIONAL, NO UNA COMPROBACIÓN DE UN SENTIDO — y
+   * esto está escrito porque ya se leyó a medias una vez, el 09/09/2026, en una
+   * consulta que dijo en indicativo «tu control positivo es unidireccional».
+   *
+   * `expect(frases.length > 0).toBe(!estado.puede)` ata las DOS direcciones a la
+   * vez, y cada una atrapa un fallo distinto:
+   *   · `!puede ⇒ hay frases` — un botón apagado y MUDO. El fallo que da nombre
+   *     al caso: el usuario ve el botón gris y no sabe qué le falta.
+   *   · `puede ⇒ NO hay frases` — la mitad que nadie mira y que es igual de
+   *     real: un botón ENCENDIDO con un motivo de error al lado. Sin ella,
+   *     un `motivosDeNoIndexable` que devolviera siempre las dos frases pasaría
+   *     el caso entero, y la pantalla diría «puedes» y «no puedes» a la vez.
+   *
+   * ⚠️ Y ATAR LAS DOS NO BASTA SI SOLO SE EJERCE UNA: un bicondicional cuyos
+   * casos caigan todos del mismo lado es unidireccional de hecho, aunque el
+   * `toBe` diga otra cosa. Por eso `combinaciones` está repartida a propósito y
+   * **el reparto es la mitad que hay que conservar al tocarla**:
+   *   · SIETE con `puede: false` — la vacía, cada motivo por separado, el
+   *     documento que tiene los dos, y las mezclas con uno bueno.
+   *   · DOS con `puede: true` — `[conAnalisis]` y `[conAnalisis, conAnalisis]`,
+   *     que son las únicas que ejercen la segunda dirección.
+   * Si alguien quita esas dos por parecer redundantes, la aserción sigue
+   * compilando, sigue en verde, y deja de comprobar la mitad que quitó.
+   * ═══════════════════════════════════════════════════════════════════════════
    */
   it('nunca hay un «no se puede» sin frase que lo explique', () => {
     const combinaciones: DocumentoSeleccionado[][] = [
