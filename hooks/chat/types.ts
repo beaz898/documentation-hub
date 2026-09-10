@@ -39,7 +39,15 @@ export interface DriveStatus {
 
 export interface PendingAnalysis {
   fileName: string;
+  /** Dónde está el fichero. Sirve para BORRARLO desde el cliente; para que el
+   *  servidor lo LEA va `ref`. */
   storagePath: string;
+  /**
+   * B.204 — la referencia firmada que emitió el servidor al autorizar la subida.
+   * ⚠️ OPCIONAL SOLO DURANTE LA VENTANA DE LECTURA DUAL: una pestaña abierta
+   * antes del despliegue sigue sin tenerla. Deja de ser opcional en el commit 4.
+   */
+  ref?: string;
   fileSize: number;
   analysis: Record<string, unknown>;
   documentSources?: Record<string, string[]>;
@@ -51,6 +59,9 @@ export interface PendingAnalysis {
 export interface ImprovementTarget {
   fileName: string;
   storagePath?: string;
+  /** B.204 — ver `PendingAnalysis.ref`. Ausente desde la bandeja: allí no hay
+   *  fichero temporal que autorizar. */
+  ref?: string;
   initialText: string;
   analysis: Record<string, unknown>;
   documentSources?: Record<string, string[]>;

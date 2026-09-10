@@ -251,6 +251,7 @@ export default function ChatPage() {
             analysis={improvementTarget.analysis}
             documentSources={improvementTarget.documentSources}
             storagePath={improvementTarget.storagePath}
+            refDeSubida={improvementTarget.ref}
             existingDocWithSameName={improvementTarget.existingDocWithSameName}
             onClose={handleImprovementClose}
             onIndexed={handleImprovementIndexed}

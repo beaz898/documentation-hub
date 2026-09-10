@@ -41,13 +41,16 @@ export function useDocuments(
     fileSize: number,
     force = false,
     analysisStatus: 'analizado' | 'pendiente' = 'pendiente',
+    ref?: string,
   ) {
     if (!session) return;
     const res = await fetch('/api/ingest', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
-      body: JSON.stringify({ storagePath, fileName, fileSize, force, analysisStatus }),
+      // B.204 — `ref` es lo que el servidor usa para LEER; `storagePath` viaja
+      // durante la ventana de lectura dual y se retira en el commit 4.
+      body: JSON.stringify({ ref, storagePath, fileName, fileSize, force, analysisStatus }),
     });
 
     if (res.status === 409) {
@@ -59,7 +62,7 @@ export function useDocuments(
           `(Los documentos de Google Drive con el mismo nombre NO se tocarán.)`
         );
         if (confirmed) {
-          return indexDocument(storagePath, fileName, fileSize, true, analysisStatus);
+          return indexDocument(storagePath, fileName, fileSize, true, analysisStatus, ref);
         } else {
           await supabase.storage.from('documents').remove([storagePath]);
           addMessage({ id: crypto.randomUUID(), role: 'assistant', content: `**${fileName}** descartado. No se ha añadido al corpus.` });
@@ -93,7 +96,42 @@ export function useDocuments(
     setAnalysisProgress(5);
     setAnalysisPhase('Subiendo documento...');
 
-    const storagePath = `${session.user.id}/${Date.now()}-${file.name}`;
+    // ⚠️ B.204 commit 3 — LA RUTA YA NO LA INVENTA EL CLIENTE. Antes esta línea
+    // era `${session.user.id}/${Date.now()}-${file.name}`: el cliente componía
+    // la ruta, la mandaba en el cuerpo, y tres endpoints se la creían. Ahora se
+    // PIDE AUTORIZACIÓN y el servidor devuelve dónde subir y una `ref` firmada
+    // que es lo único que esos tres aceptan para leer.
+    //
+    // ⚠️ Y VA ANTES DE LA SUBIDA A PROPÓSITO: si la autorización falla, no se ha
+    // subido nada y no queda ningún temporal huérfano. Al revés dejaría basura
+    // cada vez que fallara.
+    let ref: string;
+    let storagePath: string;
+    try {
+      const authRes = await fetch('/api/subidas/autorizar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ fileName: file.name }),
+      });
+      if (!authRes.ok) {
+        const err = await authRes.json().catch(() => ({}));
+        throw new Error(err.error || `Error ${authRes.status}`);
+      }
+      const auth = await authRes.json();
+      ref = auth.ref;
+      storagePath = auth.ruta;
+    } catch (err) {
+      setAnalysisProgress(0);
+      setAnalysisPhase('');
+      addMessage({
+        id: crypto.randomUUID(), role: 'error',
+        content: `No se pudo autorizar la subida: ${err instanceof Error ? err.message : 'error desconocido'}`,
+      });
+      await releaseLock();
+      throw err instanceof Error ? err : new Error('Error autorizando la subida');
+    }
+
     const { error: uploadError } = await supabase.storage.from('documents').upload(storagePath, file);
 
     if (uploadError) {
@@ -122,7 +160,7 @@ export function useDocuments(
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ storagePath, fileName: file.name }),
+        body: JSON.stringify({ ref, storagePath, fileName: file.name }),
       });
 
       clearInterval(progressInterval);
@@ -141,7 +179,7 @@ export function useDocuments(
           setAnalysisPhase('');
 
           setPendingAnalysis({
-            fileName: file.name, storagePath, fileSize: file.size,
+            fileName: file.name, storagePath, ref, fileSize: file.size,
             analysis: analyzeData.analysis, documentSources: analyzeData.documentSources,
             // Del SOBRE, no de `analysis`: es el estado del guardado, no del
             // análisis. Esta tubería ya ha perdido campos en tránsito, y por eso
@@ -184,14 +222,14 @@ export function useDocuments(
 
     setAnalysisProgress(0);
     setAnalysisPhase('');
-    await indexDocument(storagePath, file.name, file.size, false, analysisCompleted ? 'analizado' : 'pendiente');
+    await indexDocument(storagePath, file.name, file.size, false, analysisCompleted ? 'analizado' : 'pendiente', ref);
   }
 
   async function handleAnalysisConfirm() {
     if (!pendingAnalysis) return;
-    const { storagePath, fileName, fileSize } = pendingAnalysis;
+    const { storagePath, ref, fileName, fileSize } = pendingAnalysis;
     setPendingAnalysis(null);
-    await indexDocument(storagePath, fileName, fileSize, false, 'analizado');
+    await indexDocument(storagePath, fileName, fileSize, false, 'analizado', ref);
   }
 
   async function handleAnalysisCancel() {
@@ -204,14 +242,14 @@ export function useDocuments(
 
   async function handleAnalysisImprove() {
     if (!pendingAnalysis || !session) return;
-    const { storagePath, fileName, analysis, documentSources } = pendingAnalysis;
+    const { storagePath, ref, fileName, analysis, documentSources } = pendingAnalysis;
     setImprovementLoading(true);
     try {
       const res = await fetch('/api/extract-text', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ storagePath, fileName }),
+        body: JSON.stringify({ ref, storagePath, fileName }),
       });
       if (!res.ok) {
         const err = await res.json();
@@ -238,7 +276,7 @@ export function useDocuments(
         : analysis;
 
       setImprovementTarget({
-        fileName, storagePath, initialText: data.text,
+        fileName, storagePath, ref, initialText: data.text,
         analysis: analysisForImprovement, documentSources,
         existingDocWithSameName: existing ? { id: existing.id, name: existing.name } : null,
       });
@@ -252,7 +290,7 @@ export function useDocuments(
 
   async function handleExhaustiveAnalysis() {
     if (!pendingAnalysis || !session) return;
-    const { storagePath, fileName, fileSize } = pendingAnalysis;
+    const { storagePath, ref, fileName, fileSize } = pendingAnalysis;
     const savedDocumentSources = pendingAnalysis.documentSources;
     const savedAnalysis = pendingAnalysis.analysis;
     setPendingAnalysis(null);
@@ -265,7 +303,7 @@ export function useDocuments(
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ storagePath, fileName, exhaustive: true }),
+        body: JSON.stringify({ ref, storagePath, fileName, exhaustive: true }),
       });
 
       if (!analyzeRes.ok) {
@@ -273,7 +311,7 @@ export function useDocuments(
         setAnalysisPhase('');
         const errData = await analyzeRes.json().catch(() => ({ error: 'Error desconocido' }));
         addMessage({ id: crypto.randomUUID(), role: 'error', content: `Error en análisis exhaustivo: ${errData.error || `Error ${analyzeRes.status}`}` });
-        setPendingAnalysis({ fileName, storagePath, fileSize, analysis: savedAnalysis, documentSources: savedDocumentSources });
+        setPendingAnalysis({ fileName, storagePath, ref, fileSize, analysis: savedAnalysis, documentSources: savedDocumentSources });
         return;
       }
 
@@ -321,7 +359,7 @@ export function useDocuments(
         const result = job.result as Record<string, unknown> | null;
         if (result) {
           setPendingAnalysis({
-            fileName, storagePath, fileSize,
+            fileName, storagePath, ref, fileSize,
             analysis: result as PendingAnalysis['analysis'],
             documentSources: (result.documentSources as PendingAnalysis['documentSources']) ?? savedDocumentSources,
             // B.143: del SOBRE del job, no de `result` —que es el analisis—.
@@ -331,7 +369,7 @@ export function useDocuments(
           });
         } else {
           addMessage({ id: crypto.randomUUID(), role: 'error', content: 'El análisis terminó pero no devolvió resultados.' });
-          setPendingAnalysis({ fileName, storagePath, fileSize, analysis: savedAnalysis, documentSources: savedDocumentSources });
+          setPendingAnalysis({ fileName, storagePath, ref, fileSize, analysis: savedAnalysis, documentSources: savedDocumentSources });
         }
         loadCredits();
       } else {
@@ -345,7 +383,7 @@ export function useDocuments(
         setAnalysisPhase('');
 
         setPendingAnalysis({
-          fileName, storagePath, fileSize,
+          fileName, storagePath, ref, fileSize,
           analysis: analyzeData.analysis,
           documentSources: analyzeData.documentSources ?? savedDocumentSources,
         });
@@ -356,7 +394,7 @@ export function useDocuments(
       setAnalysisPhase('');
       const message = err instanceof Error ? err.message : 'Error de conexión';
       addMessage({ id: crypto.randomUUID(), role: 'error', content: `Error en análisis exhaustivo: ${message}` });
-      setPendingAnalysis({ fileName, storagePath, fileSize, analysis: savedAnalysis, documentSources: savedDocumentSources });
+      setPendingAnalysis({ fileName, storagePath, ref, fileSize, analysis: savedAnalysis, documentSources: savedDocumentSources });
     }
   }
 

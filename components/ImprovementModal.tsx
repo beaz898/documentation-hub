@@ -52,6 +52,10 @@ interface ImprovementModalProps {
   analysis: RawAnalysis & { styleProblems?: AnalysisStyleProblem[] };
   documentSources?: Record<string, string[]>;
   storagePath?: string;   // ausente en documentos ya indexados (Drive): no hay archivo temporal
+  /** B.204 — la referencia firmada de la subida. Se llama `refDeSubida` y NO
+   *  `ref` a proposito: `ref` es nombre reservado de prop en React y lo
+   *  interceptaria el runtime en vez de llegar al componente. */
+  refDeSubida?: string;
   /**
    * F-86 paso 3 — EL ID DEL DOCUMENTO QUE SE ESTÁ REVISANDO.
    *
@@ -181,6 +185,7 @@ function ImprovementModalDesktop({
   analysis,
   documentSources,
   storagePath,
+  refDeSubida,
   reviewedDocumentId,
   existingDocWithSameName,
   tieneOriginalEnLaNube = false,
@@ -218,7 +223,7 @@ function ImprovementModalDesktop({
     selectionLimits,
     dismissProblem,
     coordenadasDescartadas,
-  } = useCrossDocAnalysis(analysis, storagePath, reviewedDocumentId);
+  } = useCrossDocAnalysis(analysis, storagePath, refDeSubida, reviewedDocumentId);
 
   const {
     styleProblems,

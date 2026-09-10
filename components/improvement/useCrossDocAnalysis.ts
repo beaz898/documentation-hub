@@ -64,6 +64,8 @@ export function useCrossDocAnalysis(
   initialAnalysis: RawAnalysis,
   /** F-101: la ruta del fichero — propietario primario del análisis en revisión. */
   storagePath: string | undefined,
+  /** B.204 — la referencia firmada, cuando el fichero vino de una subida. */
+  refDeSubida: string | undefined,
   /** F-86 paso 3: el id del documento EN REVISIÓN, presente solo en los caminos
    *  que lo tienen (la bandeja). Con él, cada descarte se registra en el
    *  momento; sin él —la subida desde el chat— se acumulan y viajan a la
@@ -133,6 +135,7 @@ export function useCrossDocAnalysis(
             // ⚠️ F-101: SIN ESTO ESTE REANÁLISIS NO TIENE PROPIETARIO NINGUNO —
             // el documento nuevo no existe y el homónimo no es su dueño—, y la
             // fila la rechaza el CHECK de la base. El dueño es el fichero.
+            ref: refDeSubida ?? undefined,
             storagePath: storagePath ?? undefined,
             // ⚠️ B.198: DESDE LA BANDEJA NO HAY FICHERO, Y SIN ESTO NO HABIA
             // PROPIETARIO NINGUNO: la fila la rechazaba el CHECK y el reanalisis
