@@ -500,10 +500,24 @@ por la lectura dual. Lo que sí lo distingue y se ve sin terminal es el nombre d
 objeto en Storage: con el camino nuevo es `<marca de tiempo>-<uuid>`, **sin el
 nombre del documento dentro**.
 
-⚠️ **Y LO QUE NO SE EJERCIÓ, dicho aquí para que no se lea cubierto por lo de
-arriba**: los dos botones de «Estado del despliegue» de `/api/admin/cleanup`
-(`6adb2e7f`) **siguen sin pulsar**. Son la comprobación de configuración, no la
-del camino, y su cero no lo cubre ningún gesto de esta lista.
+**Y EL SEXTO GESTO, EJERCIDO EL 11/09/2026**: los dos botones de «Estado del
+despliegue» de `/api/admin/cleanup` (`6adb2e7f`), pulsados contra producción.
+Copiado literal de lo que pintaron:
+
+> «La variable llegó al runtime y es usable.» · entorno: production
+> `ANALYSIS_TOKEN_SECRET` · presente: true · longitud: 72 · usable: true
+> `success: true` · ref recibida (366 caracteres, **no se muestra**) · ruta: `3c628122-…`
+
+⚠️ **SIGUEN SIENDO OTRA PREGUNTA, y por eso se anotan aparte de los cinco de
+arriba**: aquéllos ejercen el CAMINO; éstos, la CONFIGURACIÓN. Uno puede estar
+bien y el otro mal.
+
+⚠️ **Y LO QUE EL BOTÓN CONSIGUIÓ Y LA CONSOLA NO, comprobado al usarlo y no al
+proponerlo**: enseñar que la ref vino y cuánto mide **sin enseñarla**. Una ref es
+una credencial —vale dos horas y abre una ruta—, y la línea de consola la habría
+volcado entera en una pantalla que se fotografía y se comparte. Era el argumento
+para hacerlo botón y resultó cierto en el primer uso; los 366 caracteres que
+aparecen ahí son el recuento, no el contenido.
 
 ---
 
