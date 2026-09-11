@@ -703,6 +703,117 @@ el enunciado de hoy es: **el camino ya está ejercido y sigue sin guardián en e
 servidor.** No es que nadie lo haya pisado; es que quien lo pise con un cliente
 manipulado no encuentra a nadie.
 
+## ⚠️ 5.7 · B.209 — el escaneo de huérfanos no enumera: muestrea, y su cero no lo dice (11/09/2026)
+
+**EL MECANISMO, línea a línea.** El botón «1. Analizar (sin borrar)» llama a
+`GET /api/admin/cleanup-orphans`, que hace **una sola consulta de SIMILITUD con
+un vector inventado**: `cleanup-orphans/route.ts:36-38` construye un vector de
+1024 ceros con un 1 en la primera posición y llama a
+`queryVectors(org.orgId, { vector: dummy, topK: 10000 })`, que por debajo es
+`ns.query(...)` (`lib/pinecone/vectors.ts:133`). **No hay paginación y no hay
+segunda vuelta.**
+
+**QUÉ DEVUELVE ESO REALMENTE**: los **10 000 vectores más cercanos a un punto
+arbitrario** del espacio. Es una muestra, no un inventario. Por encima de 10 000
+vectores en una organización, lo que no entre en esa vecindad no se mira — y qué
+queda fuera no lo decide nada comprensible, lo decide la geometría del índice.
+
+**QUÉ SIGNIFICA HOY SU CERO**: «no hay huérfanos **entre los que miré**». Que es
+otra cosa que «no hay huérfanos», y es exactamente la clase de cero que esta casa
+tiene prohibido leer como confirmación: un cero vale si el sistema puede
+demostrar que buscó, y aquí no puede.
+
+**POR QUÉ LA PANTALLA NO PERMITE DISTINGUIR LOS DOS SIGNIFICADOS**, que es la
+mitad que lo hace peligroso y no sólo incompleto:
+
+- El mensaje dice literalmente *«Se encontraron N vectores huérfanos **en tu
+  organización**»* (`cleanup-orphans/route.ts:64`). Dice «en tu organización», no
+  «entre los 10 000 que miré».
+- Y el informe trae un campo llamado **`totalVectorsInPinecone`** que no es el
+  total: es `matches.length` (`:39`), o sea **el recuento de lo que devolvió la
+  consulta, tapado a 10 000**. Un parque de 40 000 vectores se presenta como uno
+  de 10 000, y el nombre del campo afirma lo contrario.
+- No hay aviso al alcanzar el tope, ni contador, ni denominador.
+
+**⚠️ LA PREGUNTA QUE DECIDE LA FORMA DEL ARREGLO, CONTESTADA CONTRA EL SDK
+INSTALADO Y NO DE MEMORIA: SÍ SE PUEDE ENUMERAR.** El paquete
+`@pinecone-database/pinecone` **4.1.0** expone `listPaginated`
+(`dist/data/vectors/list.d.ts`, publicado en el índice en
+`dist/data/index.d.ts:240`), con `{ prefix, limit, paginationToken }` y por
+namespace. Su propia documentación dice que **sin `prefix` lista TODOS los ids
+del namespace**, y se pagina con `results.pagination.next`.
+
+Luego el arreglo **no es poner el denominador: es enumerar de verdad.** El
+denominador —«miré 10 000 de N»— queda como plan B, no como destino.
+
+Y hay una variante que conviene tener delante: nuestros ids llevan el documento
+por delante (`buildVectorId`, `pinecone/vectors.ts:314`), así que también se
+puede enumerar **por prefijo y documento a documento**, que reparte el trabajo en
+trozos del tamaño de un documento en vez de uno del tamaño del corpus.
+
+**LO ÚNICO QUE FALTA CONFIRMAR CUANDO SE CONSTRUYA**, y se dice ahora para que no
+se descubra a mitad: `listPaginated` está documentado para índices *serverless*, y
+**de qué tipo es nuestro índice no está en el repositorio** — es una consulta al
+panel de Pinecone, de la misma familia que las políticas del bucket.
+
+**No se arregla aquí.**
+
+## ⚠️ 5.8 · B.210 — el único botón que borra documentos es el único cuyo endpoint no mira el rol (11/09/2026)
+
+En la página de administración, los cinco endpoints propios comprueban lo mismo
+—sesión, organización y **`org.role !== 'admin'`**—: `cleanup-orphans/route.ts:27`
+y `:104`, `config/route.ts:31`, `duplicates/route.ts:36` y `tombstones/route.ts:18`.
+
+**El botón de «Eliminar duplicados» no llama a ninguno de ellos.** Llama a
+`DELETE /api/documents?id=`, que comprueba sesión (`documents/route.ts:45`) y
+organización (`:50`) **y no comprueba el rol**. Es decir: en una pantalla
+íntegramente sólo-admin, **la única acción que borra documentos enteros es la
+única que no exige ser admin**.
+
+⚠️ **Y NO ES UN OLVIDO, QUE ES LO QUE HAY QUE ENTENDER ANTES DE DECIDIR NADA.**
+Ese endpoint es el mismo que usa el chat para borrar un documento de la lista
+(`hooks/chat/useDocuments.ts:433`), que es un gesto de usuario corriente. Así que
+hay una **política de miembro** —cualquiera de la organización gestiona el
+corpus— conviviendo con una **pantalla de admin**, y ninguna de las dos está
+escrita en ninguna parte. Lo que falta no es una comprobación: es la decisión.
+
+**EL ALCANCE, DICHO ENTERO**: no es un agujero entre organizaciones. `deleteDocument`
+filtra por `org_id` al leer (`lib/delete-document.ts:105`) y al borrar (`:207`),
+y deja lápida. Lo que significa es que **un miembro cualquiera puede borrar
+documentos de SU organización**, hoy, por la interfaz normal — y eso no está
+escrito en ningún sitio.
+
+**No se arregla aquí**: si el borrado debe ser sólo-admin o no es una decisión de
+producto del director, no una omisión que se tapa de paso. Lo que sí se cierra
+hoy es el desconocimiento.
+
+## ⚠️ 5.9 · B.211 — la página de administración hace cinco cosas bajo un título que nombra una (11/09/2026)
+
+Mapeada entera el 11/09/2026. `app/api/admin/cleanup/page.tsx` tiene **441
+líneas** —por encima del límite de 400 de `CLAUDE.md`— y contiene **tres familias
+distintas** que se fueron colgando encima de una herramienta puntual:
+
+| familia | qué hay | vida |
+|---|---|---|
+| **Operación permanente** | duplicados exactos · exclusiones (la papelera de sincronización) | se queda |
+| **Diagnóstico de instalación** | estado del despliegue: secreto en runtime y emisión | se queda, pero es otra cosa: se usa al tocar infraestructura, no documentos |
+| **Restos de reparación puntual** | «Etiquetar vectores con su estado» (un *backfill* de metadata) · y la limpieza de huérfanos, hoy red de seguridad y no tarea | caduca, y **nada dice si el parque ya está etiquetado** |
+
+**LO QUE SE ARREGLA HOY Y ES GRATIS: EL TÍTULO.** Decía «Limpieza de vectores
+huérfanos» encima de un botón que borra documentos enteros y de otro que reescribe
+metadata de todo el parque. **Una etiqueta que miente por omisión se arregla
+cambiando la etiqueta, no partiendo nada.**
+
+**LO QUE QUEDA ANOTADO Y NO SE TOCA**: la página vive en
+`app/api/admin/cleanup/page.tsx`, o sea **una página bajo la ruta de la API**. Eso
+es lo que la deja fuera de cualquier `layout.tsx` autenticado —no existe ninguno
+en `app/api/`— y por eso **la ve cualquiera, incluso sin sesión**. Lo que no
+consigue quien no es admin es que ningún botón haga nada: todos devuelven 401/403
+y la página lo dice. La ubicación se corrige cuando se parta, no antes.
+
+**POR QUÉ NO SE PARTE HOY**: el commit 4 de B.204 sigue abierto y toca la misma
+zona. Dos frentes en la misma pantalla es cómo se pierde uno de los dos.
+
 ---
 
 # 6 · EL CRITERIO DE SALIDA, PUNTO POR PUNTO
