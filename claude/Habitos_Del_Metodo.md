@@ -28,6 +28,31 @@ siempre. La quinta no.
 | 07/09 · el catálogo | **no la escribí** | 628 | ⚠️ no se puede decir si habría acertado |
 | 07/09 · los denominadores | 640-650 | **640** | ✅ acertada, por el borde |
 
+⚠️ **11/09/2026 — UNA TERCERA ESPECIE, Y LA FALLÉ: LA PREDICCIÓN SOBRE UN
+LECTOR.**
+
+| fecha | predicho | real | cómo falló |
+|---|---|---|---|
+| 11/09 · el ancho del editor | ~95-99 caracteres por línea **incomodarían**; haría falta tope de columna | **se lee bien** | de plano, y con una medición correcta detrás |
+
+**Lo que hace que esta valga la pena guardar es que la MEDIDA no estaba mal.** El
+cálculo era bueno —~643 px de texto a 13 px de Inter son ~95-99 caracteres— y la
+banda que cité es la que cita toda la tipografía: 45-75, óptimo en 66. Lo que
+falló fue **deducir una experiencia a partir de un número correcto y una norma
+correcta**.
+
+La hipótesis de por qué, y va como hipótesis: la banda de 45-75 describe **prosa
+continua**, y esto es un documento que se revisa A SALTOS, buscando el fragmento
+que el panel de al lado señala. Nadie lo ha medido; puede ser otra cosa.
+
+⚠️ **Y LA LECCIÓN NO ES «MIDE MEJOR», porque la medida estaba bien: es que una
+norma de diseño no es un dato sobre TU usuario.** Las dos especies que ya estaban
+aquí —población y comportamiento— se comprueban contra el código. Ésta solo se
+comprueba enseñándosela a alguien, y **eso cuesta un minuto y yo no lo pedí: lo
+deduje**. La regla operativa que saco: cuando una predicción sea sobre lo que
+alguien va a SENTIR, no se escribe como conclusión sino como pregunta, y se
+pregunta antes de proponer el arreglo.
+
 **LO QUE ENSEÑA EL PATRÓN, y no es «calcula mejor»:** estimo la POBLACIÓN mucho
 peor que el COMPORTAMIENTO. Las predicciones de conducta —qué caso se pone rojo,
 qué mutación muere— llevan una racha larga de acertar; las de cuántos casos van a
