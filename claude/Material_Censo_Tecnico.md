@@ -473,6 +473,38 @@ dos motivos por los que el botón apaga no lo tiene, y eso está a ficha aparte
 (`Estado_Del_MVP.md` §5.6). Ejercer la pantalla no cierra ese hueco: lo confirma,
 porque ahora el camino está pisado.
 
+## AÑADIDO EL 11/09/2026 — la subida por referencia firmada, ejercida sin cifra
+
+| entrada | estado | qué se sabe |
+|---|---|---|
+| **la subida desde el chat con `ref`** (B.204 commit 3, `99a4c450`) | **`e`** | ejercida en pantalla el 11/09/2026, en cinco gestos, los cinco conformes |
+
+**LOS CINCO GESTOS, uno a uno**, porque «lo probé» sin decir qué no es nada:
+
+1. **Subir un documento desde el chat** — el camino entero, con la petición de
+   autorización nueva por delante de la subida.
+2. **Los tres botones del aviso de análisis** — añadir al corpus, mejorar con IA
+   (que el modal abra con el texto dentro) y análisis exhaustivo.
+3. **Colisión de nombre y reemplazo** — el que ejercita la SEGUNDA vuelta de la
+   indexación, que es donde la `ref` se pasa otra vez. Sin este gesto, un olvido
+   ahí habría dejado el reemplazo entrando por el camino viejo, funcionando y
+   mal.
+4. **Reanalizar todo desde el modal de Mejora.**
+5. **Cancelar y cerrar sin guardar** — que el temporal se borre y el mensaje de
+   descartado salga igual.
+
+⚠️ **ES `e` Y NO `P`, y aquí el aviso del grado vale doble**: la pantalla **no
+distingue** si la petición entró por la `ref` o por el camino viejo. Si la `ref`
+no hubiera llegado, los cinco gestos habrían salido igual de bien, en silencio,
+por la lectura dual. Lo que sí lo distingue y se ve sin terminal es el nombre del
+objeto en Storage: con el camino nuevo es `<marca de tiempo>-<uuid>`, **sin el
+nombre del documento dentro**.
+
+⚠️ **Y LO QUE NO SE EJERCIÓ, dicho aquí para que no se lea cubierto por lo de
+arriba**: los dos botones de «Estado del despliegue» de `/api/admin/cleanup`
+(`6adb2e7f`) **siguen sin pulsar**. Son la comprobación de configuración, no la
+del camino, y su cero no lo cubre ningún gesto de esta lista.
+
 ---
 
 # 5 · EL MÓVIL — exploración del 05/09, en solo lectura
