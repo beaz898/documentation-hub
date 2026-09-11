@@ -521,6 +521,38 @@ aparecen ahí son el recuento, no el contenido.
 
 ---
 
+# 4.6 · ⚠️ LO QUE CRUZA ORGANIZACIONES — mapeado el 11/09/2026
+
+**Escrito con este título para que se encuentre buscándolo.** La pregunta «¿qué
+puede tocar datos de otra organización?» se contestó una vez mirando endpoint por
+endpoint; sin dejarla escrita, el siguiente que la tenga que contestar la vuelve a
+mirar entera.
+
+**LA REGLA, y la cumple todo lo demás**: el `orgId` sale de
+`resolveOrg(supabase, user.id)` y **nunca de la petición**. Todas las consultas
+filtran `.eq('org_id', org.orgId)` y Pinecone está separado por *namespace* de
+organización. Comprobado uno a uno en los endpoints de administración
+(`cleanup-orphans`, `config`, `duplicates`, `tombstones`, `estado-del-corpus`,
+`reindexar`, `reindexar-lote`, `diagnose-vectors`) y en el borrado de documentos
+(`lib/delete-document.ts`, con `org_id` al leer y al borrar).
+
+**LA ÚNICA EXCEPCIÓN, Y ES DELIBERADA**:
+
+| pieza | dónde | cómo se autentica | qué alcanza |
+|---|---|---|---|
+| **`POST /api/admin/purge-expired`** | `app/api/admin/purge-expired/route.ts` | **NO por sesión.** Exige `Authorization: Bearer ${ADMIN_SECRET}` (`:21-25`), y devuelve 500 si la variable no está configurada | **TODAS** las organizaciones con `grace_period_ends_at` vencido y `purged_at` nulo. Llama a `purgeOrganization` para cada una: borra sus datos de Supabase, sus vectores y su usuario de Auth |
+
+⚠️ **NO ES ALCANZABLE DESDE UN NAVEGADOR**, y eso es lo que lo hace aceptable: no
+mira cookies, así que tener sesión —incluso de admin— no sirve de nada. Es el
+cron de borrado, pensado para que lo llame el worker o un programador externo.
+
+⚠️ **VIVE EN `app/api/admin/`, junto a las herramientas que sí son de sesión.** Ahí
+está el riesgo de lectura, no de ejecución: quien abra esa carpeta buscando «lo
+que usa el admin» se encuentra una pieza que no es de esa familia y que borra
+organizaciones enteras. Por eso queda aquí escrito, y no sólo allí.
+
+---
+
 # 5 · EL MÓVIL — exploración del 05/09, en solo lectura
 
 Pregunta del director, que no estaba en el censo. **La respuesta corta: el
