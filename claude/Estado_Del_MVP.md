@@ -450,7 +450,7 @@ hallazgo nuevo no se archiva en la casilla cómoda mientras nadie mira.
 | **El presupuesto de tiempo del lote es una estimación** | 180 s de los 300, con `parada: 'tiempo'` de contador |
 | **B.204 — SIN CLASIFICAR · tres endpoints se fían de la ruta que les manda el cliente** | ver 5.1 |
 | **B.205 — SIN CLASIFICAR · lo que se cobra y no se devuelve** | ver 5.2 |
-| **`sufijoDeTotal` se quedó sin consumidor de producción** | El 10/09 el precio salió de las etiquetas de la bandeja y esa función perdió su única llamada real: hoy solo la ejerce su propio test. Se retiró su `import`, que ya era código muerto, y **la función se deja en pie**: jubilarla es una decisión aparte y no se toma de paso. ⚠️ Lo que hay que mirar el día que se decida es si el precio va a volver a pintarse a partir de un total ya calculado — que es para lo que existe— o si esa forma ha muerto de verdad |
+| **`sufijoDeTotal` volvió a tener consumidor, y la pregunta que quedó abierta se contestó sola** | El 10/09 el precio salió de las etiquetas de la bandeja y la función se quedó sin una sola llamada de producción. Se declaró aquí que jubilarla era decisión aparte, y **lo que había que mirar era si el precio volvería a pintarse desde un total ya calculado**. Volvió al día siguiente: el 11/09 el paso de confirmación del exhaustivo la usa otra vez (`ReviewSelectionBar`). ⚠️ **Queda escrito porque la lección vale más que el caso: se estuvo a un commit de jubilar una función que hacía falta veinticuatro horas después.** Retirar algo el día que pierde su último consumidor es retirarlo en el peor momento — el de menos información |
 
 ## ⚠️ 5.1 · B.204 — la ruta la elige el cliente y nadie comprueba de quién es
 

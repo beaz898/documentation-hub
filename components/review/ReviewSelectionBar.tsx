@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { motivosDeNoIndexable, type SeleccionIndexable } from '@/lib/documents/seleccion-indexable';
+import { sufijoDeTotal } from '@/lib/coste-visible';
 
 /**
  * TOPE DEL EXHAUSTIVO (F-71 paso 2). Tres documentos, no veinte como el rápido.
@@ -265,8 +266,30 @@ export default function ReviewSelectionBar({
               superado—. En esas dos el botón está DESHABILITADO, así que el
               precio falta exactamente cuando la acción no se puede lanzar; en
               cuanto vuelve a poder lanzarse, el precio vuelve. Es la línea que
-              hay que mirar si algún día se habilita el botón en esos estados. */}
-          {exhaustiveArmed ? 'Confirmar' : 'Analisis exhaustivo'}
+              hay que mirar si algún día se habilita el botón en esos estados.
+
+              ⚠️ Y EL PRECIO VUELVE, PERO SOLO EN EL SEGUNDO PASO (11/09/2026).
+              No es deshacer lo de ayer: en REPOSO sigue fuera de la etiqueta,
+              porque la línea de debajo ya lo dice y el botón la duplicaba. Lo
+              que se añade es el número en el momento de COMPROMETERSE — una
+              confirmación que no nombra la cantidad es una confirmación débil.
+
+              Y NO ES LA DUPLICACIÓN QUE QUITAMOS EN EL MODAL: allí eran dos
+              representaciones del mismo valor conviviendo siempre; aquí la
+              redundancia dura los segundos que el botón está armado. Tampoco
+              puede derivar: los dos sitios leen `exhaustiveCost` por
+              `sufijoDeTotal`, no hay dos fuentes que puedan discrepar.
+
+              ⚠️ LO QUE HACE QUE ESTO SEA CONSISTENTE Y NO UNA EXCEPCIÓN, y por
+              eso va escrito aquí y no de palabra: las dos ramas sin precio de
+              `exhaustiveHint` son estados en que el botón está DESHABILITADO,
+              luego no se puede armar. **Siempre que hay «Confirmar», hay precio
+              también en la línea.** Si algún día se habilita el botón en esos
+              estados, el armado enseñaría el precio en un sitio y la línea no —
+              y esta línea es donde hay que enterarse. */}
+          {exhaustiveArmed
+            ? `Confirmar · ${sufijoDeTotal(exhaustiveCost)}`
+            : 'Analisis exhaustivo'}
         </button>
 
         {/* ⚠️ SE VE APAGADO, NO SE ESCONDE. Un botón que aparece y desaparece
