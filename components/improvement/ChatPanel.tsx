@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useTranslations } from 'next-intl';
 import VoiceInput from '@/components/VoiceInput';
-import ReanalyzeButtons from './ReanalyzeButtons';
+import ReanalyzeButtons, { CosteDeReanalisis } from './ReanalyzeButtons';
 import FilterMenu from './FilterMenu';
 import ProblemDetail from './ProblemDetail';
 import IncompleteAnalysisNotice from '@/components/IncompleteAnalysisNotice';
@@ -209,28 +209,47 @@ export default function ChatPanel({
 
   return (
     <div className="flex-1 min-h-0" style={{ display: 'flex', flexDirection: 'column', background: 'var(--bg-secondary)', minWidth: 0, overflow: 'hidden' }}>
+      {/* ⚠️ LA CABECERA ES UNA COLUMNA DE DOS: la FILA de controles y, debajo, el
+          coste — dentro del bloque y ENCIMA del borde, porque la línea explica
+          esos botones y va del lado de ellos.
+
+          ⚠️ LOS TRES CONTROLES SON HIJOS DE LA MISMA FILA, y eso es lo que se
+          arregla hoy (11/09/2026). El 10/09 el coste se metió DENTRO de
+          `ReanalyzeButtons`, que pasó de ser una fila a ser una columna de dos
+          alturas: centrada contra un `FilterMenu` de una sola altura, dejaba los
+          dos reanálisis a distinta altura que el filtro. El desnivel no lo
+          causaba el anidamiento sino las DOS ALTURAS — con `ReanalyzeButtons` y
+          `FilterMenu` otra vez del mismo alto, `alignItems: 'center'` los alinea
+          exacto y no a ojo.
+
+          Y la fila de los dos reanálisis se queda como fila propia a propósito:
+          si la cabecera llegara a envolver (`flexWrap`, comportamiento que ya
+          existía y no se toca), el par envuelve JUNTO en vez de partirse. */}
       <div style={{
         padding: '10px 16px', borderBottom: '0.5px solid var(--border)',
-        display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0, flexWrap: 'wrap',
+        display: 'flex', flexDirection: 'column', gap: 6, flexShrink: 0,
       }}>
-        <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', flex: 1, minWidth: 120 }}>
-          {t('improvementAssistant')}
-        </span>
-        <ReanalyzeButtons
-          onReanalyzeStyle={onReanalyzeStyle}
-          onReanalyzeAll={onReanalyzeAll}
-          styleLoading={styleLoading}
-          reanalyzingAll={reanalyzingAll}
-        />
-        <FilterMenu
-          allTypes={allTypes}
-          activeTypes={activeTypes}
-          onToggle={onToggleType}
-          onSelectAll={onSelectAllTypes}
-          onClear={onClearTypes}
-          labels={filterLabels}
-          totalCount={problems.length}
-        />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+          <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', flex: 1, minWidth: 120 }}>
+            {t('improvementAssistant')}
+          </span>
+          <ReanalyzeButtons
+            onReanalyzeStyle={onReanalyzeStyle}
+            onReanalyzeAll={onReanalyzeAll}
+            styleLoading={styleLoading}
+            reanalyzingAll={reanalyzingAll}
+          />
+          <FilterMenu
+            allTypes={allTypes}
+            activeTypes={activeTypes}
+            onToggle={onToggleType}
+            onSelectAll={onSelectAllTypes}
+            onClear={onClearTypes}
+            labels={filterLabels}
+            totalCount={problems.length}
+          />
+        </div>
+        <CosteDeReanalisis />
       </div>
 
       {/* F-71: FUERA del bloque de problemas, y a propósito. Ese bloque solo se
