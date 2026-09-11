@@ -814,6 +814,149 @@ y la página lo dice. La ubicación se corrige cuando se parta, no antes.
 **POR QUÉ NO SE PARTE HOY**: el commit 4 de B.204 sigue abierto y toca la misma
 zona. Dos frentes en la misma pantalla es cómo se pierde uno de los dos.
 
+## ⚠️ 5.10 · B.212 — la bandeja empareja análisis por NOMBRE, y once veces enseña el de otro fichero (11/09/2026)
+
+⚠️ **VA EL PRIMERO DE LOS HALLAZGOS DE HOY, y no por ser el más caro: no es
+trabajo perdido, es INFORMACIÓN EQUIVOCADA PRESENTADA COMO BUENA.** Un análisis
+que no se puede recuperar cuesta créditos; éste hace que el usuario decida sobre
+un documento mirando el informe de otro.
+
+**EL MECANISMO, línea a línea.** La bandeja trae los análisis con
+`.in('document_name', names)` (`review-list/route.ts:127-133`), donde `names` son
+los nombres de los documentos de la organización, y se queda con **el más
+reciente por NOMBRE** (`latestByName`, `:141-147`).
+
+⚠️ **Y NO ES QUE NO COMPARE EL DOCUMENTO: ES QUE NI SIQUIERA LO PIDE.**
+`ANALYSIS_SUMMARY_COLUMNS` (`:31-34`) no incluye `document_id`. El endpoint **no
+tiene con qué distinguirlos**, así que no es un `if` que falta: es una columna que
+nunca se trae.
+
+**LA POBLACIÓN ESTÁ MEDIDA, no deducida.** Ejecutado contra producción el
+11/09/2026: **once filas** con un análisis de fichero suelto más reciente que el
+del documento indexado del mismo nombre, sobre **tres documentos** —
+`OPE-02_agenda-y-gestion-de-citas.xlsx` (cinco), `OPE-13_cobertura-por-clinica.xlsx`
+(cuatro) y `OPE-10_tarifario-tratamientos-2026.xlsx` (dos)—, la más reciente del
+**10/09/2026**.
+
+**QUÉ SE ENSEÑA EXACTAMENTE** cuando pasa: `buildCountsSummary`
+(`ReviewDocumentRow.tsx:24-36`) pinta los recuentos —contradicciones, duplicados,
+solapamientos, menores, estilo—, más la recomendación y la fecha del análisis. Los
+del fichero suelto. **Nada en la pantalla lo distingue.**
+
+⚠️ **LO QUE ACOTA EL DAÑO Y HAY QUE MEDIR ANTES DE DIMENSIONARLO**: la bandeja
+**solo lista documentos que NO están `analizado`, o que tienen versión staged**
+(`review-list/route.ts:87-90`). Si esos tres están en `analizado` y sin staged,
+**hoy no aparecen ahí y nadie los está viendo mal**. Es la diferencia entre un
+fallo latente y uno a la vista, y no la tengo:
+
+```sql
+select d.name, d.analysis_status,
+       exists (select 1 from document_staged s where s.document_id = d.id) as tiene_staged
+from documents d
+where d.name in ('OPE-02_agenda-y-gestion-de-citas.xlsx',
+                 'OPE-13_cobertura-por-clinica.xlsx',
+                 'OPE-10_tarifario-tratamientos-2026.xlsx');
+```
+
+**EL ARREGLO NATURAL NO ROMPE EL CASO LEGÍTIMO, y está comprobado**: emparejar por
+`document_id` cuando lo hay funciona porque **la indexación ADOPTA** el análisis
+del fichero y le escribe su `document_id` (`ingest/route.ts:406-412`, con
+`.is('document_id', null)` para que sea idempotente). Las once filas tienen
+`document_id` nulo **precisamente porque su documento nunca se indexó**. No se
+arregla aquí.
+
+## ⚠️ 5.11 · B.213 — el cerrojo de subida lo consultan seis y no lo toma ninguno (11/09/2026)
+
+**LA RAÍZ DE CASI TODOS LOS SOLAPES.** Seis endpoints preguntan por el cerrojo y
+**ninguno lo adquiere**: `ingest:62`, `analyze-v2:75`, `drive/sync:42`,
+`reindexar:64`, `reindexar-lote:79` y `delete-document:91`. Todos llaman a
+`checkUploadLock`, que **sólo lee**.
+
+**El único que lo escribe es `POST /api/org/upload-lock`**, y lo llama **el
+cliente del chat** al subir (`chat/page.tsx:162`). Así que la exclusión mutua
+existe **sólo frente a una subida del chat**; entre sí, esas seis operaciones no
+se ven.
+
+**LO QUE ESO PERMITE HOY**, con su veredicto:
+
+| solape | ¿impedido? |
+|---|---|
+| dos sincronizaciones de Drive a la vez | **no** |
+| subir mientras sincroniza | **no** |
+| sincronizar mientras alguien sube | **sí** — el único sentido protegido |
+| borrar un documento durante un análisis | **no** |
+| reindexar durante un análisis | **no** |
+| dos exhaustivos seguidos | se degrada limpio: el worker serializa por organización |
+
+**LO QUE LA BASE SÍ PROTEGE, y por qué no llega a todo**: el índice único
+`documents_identity_unique` sobre `(org_id, source, provider_file_id)`
+(`supabase-identity-unique.sql:19`) impide que dos sincronizaciones dupliquen un
+fichero de Drive — al segundo `insert` le revienta. ⚠️ **Pero los documentos
+manuales tienen `provider_file_id` nulo, y en Postgres los nulos no colisionan en
+un índice único**: a ésos no los cubre. Por eso existe la herramienta de
+duplicados exactos.
+
+**EL SOLAPE QUE FALTABA POR TRAZAR, TRAZADO (11/09/2026)**: reindexar mientras
+corre un análisis. El análisis lee la generación activa y luego sus trozos de
+Supabase (`analyze-v2:383-388`); la conmutación promociona la generación nueva y
+**borra los trozos por debajo de ella** (`document-swap.ts:144`).
+· **No corrompe**: si los trozos ya no están, `fetchedChunks.length > 0` falla y
+  el análisis cae a texto plano, con `fallback=true` en el registro (`:392`).
+· **El exhaustivo es inmune**: sus trozos viajan DENTRO del job
+  (`analyze-v2:520` → `worker:93`), así que una conmutación posterior no lo toca.
+· **Lo que sí queda**: un informe que describe la generación vieja, guardado
+  contra un documento que ya está en la nueva. Degradación silenciosa para el
+  usuario, visible en el registro.
+
+**No se arregla aquí**: cómo se hace la exclusión mutua de verdad es una pieza con
+su propia decisión, y no está tomada.
+
+## ⚠️ 5.12 · B.214 — tres umbrales desajustados, medidos, sin población (11/09/2026)
+
+El cliente deja de preguntar a los **10 minutos** (`useJobPolling.ts:50` y
+`useCrossDocAnalysis.ts:44`, los dos en 600 000 ms). El semáforo del exhaustivo
+permite **20** (`analysis-lock.ts:23`) y el worker considera zombi a los **20**
+(`worker/src/index.ts:35`). **El del cliente es la mitad que los otros dos**, así
+que alguien esperando delante podría recibir un error por un análisis que fue
+bien.
+
+**MEDIDO CONTRA PRODUCCIÓN EL 11/09/2026: no tiene población.**
+
+| exhaustivos terminados | media | máximo | pasaron de 10 min |
+|---|---|---|---|
+| **168** | **44 s** | **365 s** (6 min) | **CERO** |
+
+El máximo real está a **menos de la mitad** del umbral que se rebasaría. **Se
+declara y no se arregla**, y queda escrito con la medición para que se sepa que
+**se midió y no que se olvidó**.
+
+⚠️ **QUÉ LO VOLVERÍA A PONER SOBRE LA MESA**, porque un cero de hoy no es un cero
+de siempre: documentos bastante mayores que los del corpus actual, o un corpus que
+crezca lo suficiente como para que el exhaustivo compare contra mucho más. El
+dato a vigilar es el máximo, no la media: hoy 365 s, y el umbral 600.
+
+## ⚠️ 5.13 · B.215 — dos pérdidas por cierre de pestaña, descartadas por decisión (11/09/2026)
+
+**DECISIÓN DEL DIRECTOR, 11/09/2026**: los dos casos siguientes se consideran
+**mal uso** y **no se arreglan hoy**. Se escriben como decisión con fecha y no
+como pendiente sin dueño, que es lo que permite releerla.
+
+| caso | qué deja | cómo sale |
+|---|---|---|
+| **Cerrar la pestaña durante una subida** | el cerrojo echado para toda la organización | caduca solo a los **60 min**; lo desactiva el primero que pase |
+| **Cerrar la pestaña con un análisis de un manual sin indexar** | el informe guardado y sin puerta; los créditos gastados | **no sale: se queda así** |
+
+**EL ALCANCE QUE LA HACE ACEPTABLE HOY, y es lo que hay que releer**: hay **un
+solo usuario**. El cerrojo no deja fuera a nadie más que a quien lo echó, y el
+análisis perdido lo paga quien lo abandonó. Las dos cosas dejan de ser verdad a la
+vez.
+
+⚠️ **EL DISPARADOR DE REVISIÓN, que es lo que la distingue de una excusa**: **el
+día que haya más de un usuario**, el cerrojo pasa a detener a gente que no hizo
+nada —hasta una hora, y con un mensaje que nombra a alguien que ya no está— y el
+análisis perdido pasa a poder pagarlo uno y perderlo otro. Ese día se relee esta
+ficha con los datos delante, no se redescubre el problema.
+
 ---
 
 # 6 · EL CRITERIO DE SALIDA, PUNTO POR PUNTO
