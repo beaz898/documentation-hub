@@ -205,10 +205,21 @@ export default function CleanupPage() {
 
   return (
     <div style={{ maxWidth: 720, margin: '40px auto', padding: 24, fontFamily: 'system-ui, sans-serif', color: 'var(--text-primary)' }}>
-      <h1 style={{ fontSize: 22, marginBottom: 8 }}>Limpieza de vectores huérfanos</h1>
+      {/* ⚠️ EL TÍTULO DESCRIBE EL CONJUNTO — B.211, 11/09/2026. Decía «Limpieza de
+          vectores huérfanos», que era verdad cuando la página tenía un solo
+          bloque y dejó de serlo sin que nadie lo notara: hoy hay cinco, y uno de
+          ellos BORRA DOCUMENTOS ENTEROS y otro REESCRIBE la metadata de todo el
+          parque. Una etiqueta que nombra una de cinco cosas —y no la más grave—
+          miente por omisión, y quien entre leyéndola no espera encontrarse eso.
+          Se arregla cambiando la etiqueta; partir la página es otra decisión y
+          está a ficha. */}
+      <h1 style={{ fontSize: 22, marginBottom: 8 }}>Herramientas de administración del corpus</h1>
       <p style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 24 }}>
-        Elimina vectores de Pinecone de tu organización que ya no tienen documento en la base de datos.
-        Primero analiza para ver qué hay, luego pulsa limpiar. Solo administradores.
+        Cinco bloques, y no todos son lo mismo: <b>reparación</b> (vectores huérfanos,
+        etiquetado de vectores), <b>operación</b> (duplicados exactos, exclusiones de
+        sincronización) y <b>diagnóstico de instalación</b> (estado del despliegue).
+        Cada bloque dice si sólo lee o si escribe. Los que borran piden confirmación.
+        Todo lo que hay aquí actúa <b>sólo sobre tu organización</b>. Solo administradores.
       </p>
 
       <div style={{ display: 'flex', gap: 12, marginBottom: 24, flexWrap: 'wrap' }}>
