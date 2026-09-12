@@ -23,7 +23,16 @@
  * otro problema —y su retirada, otra migración— y no se mezcla con esto.
  */
 export const ESTADOS_DE_ANALISIS = [
-  /** La fila existe y el documento AÚN NO HA ENTRADO: no hay vectores. */
+  /**
+   * La fila existe y el documento AÚN NO HA ENTRADO: no hay vectores.
+   *
+   * ⚠️ SI EMPIEZAS A ESCRIBIR ESTE VALOR, MIRA ANTES LA BANDEJA — B.217,
+   * 12/09/2026. Hoy no lo escribe nadie, y `ReviewDocumentRow` **no tiene
+   * etiqueta para él**: su mapa solo cubre `pendiente`, así que una fila en este
+   * estado pintaría la cadena `en_revision` EN CRUDO, en gris, en la insignia.
+   * No está roto porque no ocurre; ocurrirá el día que alguien lo escriba, y esta
+   * línea es donde se va a enterar.
+   */
   'en_revision',
   /** INDEXADO y esperando validación. SÍ tiene vectores — es lo que escribe la
    *  sincronización de Drive, y el 02/09 se midieron 27 documentos así. */

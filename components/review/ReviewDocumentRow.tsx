@@ -3,16 +3,31 @@
 import type { ReviewDocument, ReviewAnalysisSummary } from '@/hooks/review/useReviewList';
 import { seleccionIndexable } from '@/lib/documents/seleccion-indexable';
 
+/**
+ * LAS ETIQUETAS DE ESTADO QUE ESTA PANTALLA PUEDE PINTAR — B.217, 12/09/2026.
+ *
+ * ⚠️ SOLO QUEDA `pendiente`, Y NO ES UNA PODA COSMÉTICA. Había tres entradas y
+ * **dos eran imposibles de alcanzar**: `en_analisis` y `desactualizado` no los
+ * escribe nadie desde julio de 2026 —está dicho en `lib/documents/estado.ts:20`—
+ * así que eran etiquetas para estados que no existen. Un mapa que promete
+ * estados que nadie escribe es una promesa sin nada detrás.
+ *
+ * ⚠️ Y NO SE TOCA `ESTADOS_DE_ANALISIS`, que es otra cosa: aquella lista es el
+ * ESPEJO del `CHECK` de la base y tiene que admitir lo que la base admita, o una
+ * fila legítima fallaría su guarda. Esto es un mapa de ETIQUETAS de una pantalla.
+ * Retirar lo muerto de la base es otra migración y no se mezcla.
+ *
+ * ⚠️ `en_revision` NO TIENE ETIQUETA, y es deliberado: hoy tampoco lo escribe
+ * nadie. Si algún día alguien empieza a escribirlo, **esta pantalla pintaría la
+ * cadena `en_revision` en crudo** por el `?? status` de abajo. Queda declarado
+ * aquí y avisado en `lib/documents/estado.ts`, junto al valor.
+ */
 const STATUS_LABELS: Record<string, string> = {
   pendiente: 'Sin analizar',
-  en_analisis: 'Analizando',
-  desactualizado: 'Desactualizado',
 };
 
 const STATUS_COLORS: Record<string, { bg: string; fg: string }> = {
   pendiente: { bg: '#fef3c7', fg: '#92400e' },
-  en_analisis: { bg: '#dbeafe', fg: '#1e40af' },
-  desactualizado: { bg: '#fee2e2', fg: '#991b1b' },
 };
 
 const SOURCE_LABELS: Record<string, string> = {
@@ -59,6 +74,32 @@ export default function ReviewDocumentRow({ document: doc, selected, disabled, o
   const status = doc.analysis_status;
   const statusColor = STATUS_COLORS[status] ?? { bg: 'var(--bg-tertiary)', fg: 'var(--text-muted)' };
   const statusLabel = STATUS_LABELS[status] ?? status;
+
+  /**
+   * ⚠️ LA INSIGNIA PREGUNTA «¿TIENE ANÁLISIS?», NO «¿QUÉ ESTADO TIENE?» — B.217.
+   *
+   * Hasta el 12/09/2026 salía de `analysis_status`, y eso la volvía una
+   * CONSTANTE: la bandeja solo lista lo que no está `analizado`, y el único valor
+   * no-`analizado` que alguien escribe es `pendiente`. Así que **toda fila sin
+   * versión pendiente decía «Sin analizar»**, tuviera quince contradicciones al
+   * lado o ninguna. No es que mintiera a veces: es que no podía decir otra cosa,
+   * y una etiqueta que no puede cambiar no avisa de nada el día que haga falta.
+   *
+   * Es el mismo patrón que `analysis_status` respondiendo a dos preguntas —está
+   * escrito en `seleccion-indexable.ts:27-31`, a diez líneas de aquí— y el mismo
+   * que un campo llamado «total» que no era el total.
+   *
+   * ⚠️ SE PREGUNTA A `lastAnalysis`, que ya llega en el payload y que desde B.212
+   * apunta al documento correcto. No hace falta pedir nada nuevo.
+   *
+   * ⚠️ Y DICE QUÉ HACER, NO QUÉ ES: un documento analizado que sigue en la
+   * bandeja es exactamente uno que ya se puede añadir al corpus, así que lo útil
+   * es «Pendiente de decidir». El color es el que liberó `en_analisis`, no uno
+   * nuevo.
+   */
+  const insignia = doc.lastAnalysis !== null
+    ? { texto: 'Pendiente de decidir', bg: '#dbeafe', fg: '#1e40af' }
+    : { texto: statusLabel, bg: statusColor.bg, fg: statusColor.fg };
   const sourceLabel = SOURCE_LABELS[doc.source] ?? doc.source;
   const countsSummary = buildCountsSummary(doc);
   const hasDetail = doc.lastAnalysis?.hasDetail ?? true;
@@ -190,13 +231,13 @@ export default function ReviewDocumentRow({ document: doc, selected, disabled, o
           fontWeight: 600,
           padding: '2px 7px',
           borderRadius: 999,
-          background: stagedDecided ? '#fef3c7' : stagedPending ? '#ede9fe' : statusColor.bg,
-          color: stagedDecided ? '#b45309' : stagedPending ? '#5b21b6' : statusColor.fg,
+          background: stagedDecided ? '#fef3c7' : stagedPending ? '#ede9fe' : insignia.bg,
+          color: stagedDecided ? '#b45309' : stagedPending ? '#5b21b6' : insignia.fg,
           flexShrink: 0,
           whiteSpace: 'nowrap',
         }}
       >
-        {stagedDecided ? 'Requiere decisión' : stagedPending ? 'Versión nueva' : statusLabel}
+        {stagedDecided ? 'Requiere decisión' : stagedPending ? 'Versión nueva' : insignia.texto}
       </span>
     </div>
   );
