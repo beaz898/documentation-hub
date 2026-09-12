@@ -519,6 +519,29 @@ volcado entera en una pantalla que se fotografía y se comparte. Era el argument
 para hacerlo botón y resultó cierto en el primer uso; los 366 caracteres que
 aparecen ahí son el recuento, no el contenido.
 
+## AÑADIDO EL 12/09/2026 — el emparejamiento de la bandeja por id, ejercido sin cifra
+
+| entrada | estado | qué se sabe |
+|---|---|---|
+| **la bandeja empareja los análisis por `document_id`** (B.212, `1513e9cd`) | **`e`** | ejercida en pantalla el 12/09/2026, con **control positivo y negativo en la misma pasada** |
+
+**QUÉ SE VIO, literal**: `OPE-02_agenda-y-gestion-de-citas.xlsx` con **0
+contradicciones y 2 solapamientos**, `OPE-10_tarifario-tratamientos-2026.xlsx`
+con **15 y 1**, y `NOR-01`, que nunca se analizó, **sin ninguna cifra**.
+
+⚠️ **Y ESO ES MEJOR EVIDENCIA QUE TRES FILAS IGUALES, que es la razón de
+anotarlo así**: el mismo gesto trae el POSITIVO —dos documentos enseñando cifras
+propias, y distintas entre sí— y el NEGATIVO —uno que no enseña ninguna—. Un
+cambio que hiciera desaparecer todas las cifras habría pasado el positivo solo; y
+uno que las dejara todas, el negativo solo. Los dos a la vez es lo que distingue
+«empareja bien» de «dejó de emparejar».
+
+**LO QUE ESTO CIERRA Y LO QUE NO.** Cierra que las cifras son **del documento**:
+antes de `1513e9cd`, OPE-02 y OPE-10 enseñaban las de un fichero suelto del mismo
+nombre —once filas medidas—. **No cierra que sean recientes**: es el residuo
+declarado en la ficha, y en esta pantalla es invisible porque la fila **no pinta la
+fecha del análisis**, aunque `analyzedAt` viaje en la respuesta.
+
 ---
 
 # 4.6 · ⚠️ LO QUE CRUZA ORGANIZACIONES — mapeado el 11/09/2026
