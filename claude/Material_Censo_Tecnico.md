@@ -527,39 +527,53 @@ aparecen ahí son el recuento, no el contenido.
 
 **QUÉ SE VIO, literal**: `OPE-02_agenda-y-gestion-de-citas.xlsx` con **0
 contradicciones y 2 solapamientos**, `OPE-10_tarifario-tratamientos-2026.xlsx`
-con **15 y 1**, y **un tercer documento sin análisis propio, sin ninguna cifra**.
+con **15 y 1**, y **`new 1.txt`, sin análisis propio, sin ninguna cifra**.
 
-⚠️ **EL NOMBRE DE ESE TERCER DOCUMENTO ESTÁ SIN VERIFICAR, Y ESO ES LO QUE HAY
-QUE SABER DE ESTA LÍNEA (corregido el 12/09/2026).** Se escribió aquí como
-`NOR-01` y **era falso**: NOR-01 es un documento del piloto dental
-(`Casos_Harness.md:56`) y consta **analizado** muchas veces — es la mitad del caso
-de prosa CLI-03/NOR-01, con «3/3 en ambas direcciones» (`Cierre_B81.md:83`). Luego
-no pudo ser el negativo de esta pasada.
-
-Se dijo después que era `new 1.txt`, y **tampoco se escribe como hecho**: esa
-cadena **no aparece en ninguna línea del repositorio**. El que sí aparece, cinco
-veces, es `new 9.txt`. Así que el número puede estar mal igual que lo estaba el
-nombre.
-
-⚠️ **POR QUÉ SE CORRIGE ESTO Y NO SE DEJA COMO DETALLE**: una evidencia que nombra
-mal a su propio caso **no se puede volver a comprobar**. El positivo sigue siendo
-verificable —los dos documentos están nombrados y sus cifras también—; el negativo
-quedaba apuntando a un documento que lo contradice, y con él la pasada entera
-dejaba de ser re-ejecutable. Lo que vale del negativo es que **hubo un tercer
-documento sin cifras en la misma pantalla**, y eso se sostiene.
-
-**CÓMO SE CIERRA EL NOMBRE, sin adivinarlo** — es la bandeja con el recuento de
-análisis propios al lado, así que el negativo es el que salga con cero:
+**EL NOMBRE DEL NEGATIVO, CERRADO EL 12/09/2026 — y lo que lo cerró fue FILTRAR
+POR ORGANIZACIÓN**, que es lo que no había hecho ninguno de los dos. Con el
+filtro puesto (`org_id = 5a82712f-6740-4792-b291-3fdea8e6edb1`): la bandeja tiene
+**34 documentos**, **quince con cero análisis propios**, y `new 1.txt` es uno de
+ellos. Verificado, no dicho.
 
 ```sql
 select d.name, d.analysis_status,
        (select count(*) from analysis_results ar
          where ar.org_id = d.org_id and ar.document_id = d.id) as analisis_propios
 from documents d
-where d.analysis_status <> 'analizado'
-   or exists (select 1 from document_staged s where s.document_id = d.id)
+where d.org_id = '<la organización>'
+  and (d.analysis_status <> 'analizado'
+       or exists (select 1 from document_staged s where s.document_id = d.id))
 order by analisis_propios, d.name;
 ```
+
+⚠️ **Y QUEDA ESCRITO QUE ESTA LÍNEA DIJO ANTES `NOR-01`, Y ERA FALSO.** NOR-01 es
+un documento del piloto dental (`Casos_Harness.md:56`) y **tiene 13 análisis
+propios en esta organización** — es la mitad del caso de prosa CLI-03/NOR-01, «3/3
+en ambas direcciones» (`Cierre_B81.md:83`). La fila con cero que se vio antes **era
+de otra organización**: el mismo error de no filtrar.
+
+**POR QUÉ SE CORRIGIÓ Y NO SE DEJÓ COMO DETALLE**: una evidencia que nombra mal a
+su propio caso **no se puede volver a comprobar**. El positivo seguía siendo
+verificable —dos documentos nombrados con sus cifras—; el negativo apuntaba a un
+documento que lo contradice, y con él la pasada entera dejaba de ser
+re-ejecutable.
+
+## AÑADIDO EL 12/09/2026 — las tres insignias de la bandeja, ejercidas
+
+| entrada | estado | qué se sabe |
+|---|---|---|
+| **la insignia de la fila pregunta «¿tiene análisis?»** (B.217, `2ee73d13`) | **`e`** | ejercida en pantalla el 12/09/2026 |
+
+**QUÉ SE VIO**: «**Pendiente de decidir**» en azul donde hay análisis, «**Sin
+analizar**» donde no. Antes de `2ee73d13` las dos decían «Sin analizar», porque la
+insignia salía de `analysis_status` y en la bandeja ese campo **solo puede valer
+`pendiente`**: era una constante disfrazada de estado.
+
+⚠️ **Lo que este gesto cierra es que la insignia DISTINGUE**, que es lo único que
+no se podía saber sin mirarla: dos valores distintos en la misma pantalla. Lo que
+no cierra —y no lo cubre ninguna batería, porque no hay tests de componentes— es
+el tercer y cuarto camino, «Versión nueva» y «Requiere decisión», que dependen de
+que haya una versión staged.
 
 ⚠️ **Y ESO ES MEJOR EVIDENCIA QUE TRES FILAS IGUALES, que es la razón de
 anotarlo así**: el mismo gesto trae el POSITIVO —dos documentos enseñando cifras
@@ -605,6 +619,28 @@ cron de borrado, pensado para que lo llame el worker o un programador externo.
 está el riesgo de lectura, no de ejecución: quien abra esa carpeta buscando «lo
 que usa el admin» se encuentra una pieza que no es de esa familia y que borra
 organizaciones enteras. Por eso queda aquí escrito, y no sólo allí.
+
+## ⚠️ LA TRAMPA AL CONSULTAR A MANO: `documents` SIN `org_id` — 12/09/2026
+
+**No es una trampa del código: es de quien escribe el SQL, y ya nos costó una
+falsa alarma.** Una consulta sobre `documents` sin filtrar organización produjo
+«nombres duplicados por todas partes» y «casi todo en `pendiente`». Las dos cosas
+eran el **mismo artefacto**: el mismo documento en organizaciones distintas, y
+cada organización con su propio estado.
+
+**MEDIDO CON EL FILTRO PUESTO, y el dato vale por sí solo**: hay **cinco
+organizaciones**, y **dentro de cada una los nombres son únicos** — 41 y 41, 30 y
+30, 24 y 24, 15 y 15, 3 y 3 (total de nombres frente a nombres distintos). **Ni un
+duplicado dentro de ninguna.**
+
+⚠️ **Y ES EL MISMO ERROR QUE ESTA SECCIÓN DESCRIBE, VISTO DEL OTRO LADO.** Arriba
+se comprueba que el CÓDIGO nunca cruza organizaciones; aquí queda escrito que
+**una consulta a mano sí las cruza si se olvida el filtro**, y que el síntoma no
+es un error sino un HALLAZGO FALSO con buena pinta — duplicados que no existen.
+Por eso el primer `where` de cualquier consulta sobre estas tablas es `org_id`.
+
+**El mismo despiste puso un nombre falso en la evidencia de §4.5**: una fila con
+cero análisis que era de otra organización. Está contado allí.
 
 ---
 
