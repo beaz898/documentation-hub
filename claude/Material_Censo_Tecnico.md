@@ -527,7 +527,39 @@ aparecen ahí son el recuento, no el contenido.
 
 **QUÉ SE VIO, literal**: `OPE-02_agenda-y-gestion-de-citas.xlsx` con **0
 contradicciones y 2 solapamientos**, `OPE-10_tarifario-tratamientos-2026.xlsx`
-con **15 y 1**, y `NOR-01`, que nunca se analizó, **sin ninguna cifra**.
+con **15 y 1**, y **un tercer documento sin análisis propio, sin ninguna cifra**.
+
+⚠️ **EL NOMBRE DE ESE TERCER DOCUMENTO ESTÁ SIN VERIFICAR, Y ESO ES LO QUE HAY
+QUE SABER DE ESTA LÍNEA (corregido el 12/09/2026).** Se escribió aquí como
+`NOR-01` y **era falso**: NOR-01 es un documento del piloto dental
+(`Casos_Harness.md:56`) y consta **analizado** muchas veces — es la mitad del caso
+de prosa CLI-03/NOR-01, con «3/3 en ambas direcciones» (`Cierre_B81.md:83`). Luego
+no pudo ser el negativo de esta pasada.
+
+Se dijo después que era `new 1.txt`, y **tampoco se escribe como hecho**: esa
+cadena **no aparece en ninguna línea del repositorio**. El que sí aparece, cinco
+veces, es `new 9.txt`. Así que el número puede estar mal igual que lo estaba el
+nombre.
+
+⚠️ **POR QUÉ SE CORRIGE ESTO Y NO SE DEJA COMO DETALLE**: una evidencia que nombra
+mal a su propio caso **no se puede volver a comprobar**. El positivo sigue siendo
+verificable —los dos documentos están nombrados y sus cifras también—; el negativo
+quedaba apuntando a un documento que lo contradice, y con él la pasada entera
+dejaba de ser re-ejecutable. Lo que vale del negativo es que **hubo un tercer
+documento sin cifras en la misma pantalla**, y eso se sostiene.
+
+**CÓMO SE CIERRA EL NOMBRE, sin adivinarlo** — es la bandeja con el recuento de
+análisis propios al lado, así que el negativo es el que salga con cero:
+
+```sql
+select d.name, d.analysis_status,
+       (select count(*) from analysis_results ar
+         where ar.org_id = d.org_id and ar.document_id = d.id) as analisis_propios
+from documents d
+where d.analysis_status <> 'analizado'
+   or exists (select 1 from document_staged s where s.document_id = d.id)
+order by analisis_propios, d.name;
+```
 
 ⚠️ **Y ESO ES MEJOR EVIDENCIA QUE TRES FILAS IGUALES, que es la razón de
 anotarlo así**: el mismo gesto trae el POSITIVO —dos documentos enseñando cifras
