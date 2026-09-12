@@ -862,8 +862,83 @@ where d.name in ('OPE-02_agenda-y-gestion-de-citas.xlsx',
 `document_id` cuando lo hay funciona porque **la indexación ADOPTA** el análisis
 del fichero y le escribe su `document_id` (`ingest/route.ts:406-412`, con
 `.is('document_id', null)` para que sea idempotente). Las once filas tienen
-`document_id` nulo **precisamente porque su documento nunca se indexó**. No se
-arregla aquí.
+`document_id` nulo **precisamente porque su documento nunca se indexó**.
+
+## ✅ ARREGLADO — `1513e9cd`, 12/09/2026. Y el criterio llevaba nueve meses escrito
+
+⚠️ **B.212 ES LA OTRA MITAD DE B.112, Y ESO ES LO QUE HAY QUE RECORDAR.**
+`lib/documents/analisis-del-documento.ts` existe desde B.112 y su **primera
+línea** dice «la bandeja empareja los análisis de subida POR NOMBRE». Aquel commit
+escribió el criterio, lo aplicó al **BORRADO**, y dejó la bandeja como estaba. Su
+único consumidor era `delete-document.ts`.
+
+**La pieza existía, estaba probada, y la pantalla que la necesitaba nunca le
+preguntó.** Es el patrón de la casa por el lado que menos se ve: no es dar por
+inexistente algo que está —eso ya está en la lista— es **tenerlo y no cablearlo**.
+Nueve meses de una pantalla enseñando datos ajenos con el arreglo en el
+repositorio.
+
+**QUÉ ENTRÓ**: `review-list` cambia `.in('document_name', names)` por
+`.in('document_id', documentIds)` y le **pregunta** el criterio al módulo. Diez
+casos para los cuatro caminos de entrada, y `bloquesDeLaFila` extraída para que
+las dos fuentes —lo propio por id, lo del staged por su puntero— se puedan matar
+por separado: las dos mutaciones matan **conjuntos disjuntos** (tres casos una,
+cuatro la otra).
+
+⚠️ **LO QUE NO ARREGLA, Y NO SE PUEDE LEER COMO RESUELTO: que el análisis sea del
+documento no lo hace RECIENTE.** Un documento analizado el día 1 que vuelve a la
+bandeja el día 79 trae su propio informe, hecho contra un corpus que ya no existe,
+y la bandeja lo enseña sin decir de cuándo es. **Es el problema que B.212 estaba
+tapando**, y sigue vivo con su nombre: el caso del Drive sobrescrito en el sitio
+tiene su propio test, declarado como límite y no como virtud.
+
+**Y si algún día hace falta distinguirlo, los datos YA ESTÁN GUARDADOS** —queda
+anotado en la cabecera del módulo, donde lo verá quien lo intente—:
+`analysis_results.created_at` da la fecha, **`involved_documents` guarda contra
+qué documentos se comparó** (la foto del corpus de ese momento, no un recuento) y
+`documents.content_hash` dice si el documento cambió desde entonces. **No hace
+falta columna nueva ni migración.**
+
+**LA CONSECUENCIA QUE SE ACEPTA ENTERA**, por decisión del director del
+12/09/2026: un documento sin análisis propio llega sin bloque, la fila se cierra y
+el botón de añadir al corpus se apaga con su motivo. **No es una regresión: es una
+funcionalidad que se paga**, y sin análisis no hay nada que revisar. La fila ya lo
+explica —insignia ámbar «Sin analizar», `ReviewDocumentRow:7,13,199`— así que no
+hizo falta tocarla.
+
+⚠️ **Y LAS ONCE FILAS QUEDAN INERTES, no borradas**: nadie las lee ya. La bandeja
+las excluye por no tener `document_id`, y el único otro lector de
+`analysis_results` es la purga de la organización. Se quedan como historia de esos
+ficheros. Lo que sí sigue siendo verdad es que **son inalcanzables** —eso es B.205
+y su familia, no esto.
+
+## ⚠️ 5.14 · B.216 — subir a Drive lo que ya tienes a mano no lo mueve: lo duplica (12/09/2026)
+
+**QUÉ CREE EL USUARIO QUE HACE**: «pasar un manual a Drive», para que desde
+entonces se sincronice.
+
+**QUÉ HACE EL SISTEMA**: la indexación **exime a los documentos sincronizados de
+la comprobación de nombres duplicados** —es deliberado y está en `CLAUDE.md`: un
+manual y uno de Drive con el mismo nombre coexisten—, así que la sincronización
+**inserta una fila NUEVA** con `source='google_drive'` (`drive/sync/route.ts:441`)
+y el manual **se queda donde estaba**. El usuario acaba con **dos documentos
+idénticos** y nadie le avisa.
+
+**Y NO ES SOLO ORDEN**: los dos entran en el corpus, así que las búsquedas y los
+análisis ven el contenido **dos veces**. Es lo que alimenta la herramienta de
+duplicados exactos de la página de administración.
+
+⚠️ **EL ÍNDICE ÚNICO NO LO IMPIDE, y merece decirse por qué**:
+`documents_identity_unique` cubre `(org_id, source, provider_file_id)`
+(`supabase-identity-unique.sql:19`), y **los manuales tienen `provider_file_id`
+nulo** — en Postgres los nulos no colisionan en un índice único. Protege contra
+duplicar el mismo fichero de Drive dos veces; no contra esto.
+
+**Es un camino que un usuario va a intentar**, y hoy le deja el corpus contando
+doble sin decírselo. **No se arregla aquí**: si lo correcto es avisar, fundir o
+retirar el manual es una decisión de producto que no está tomada.
+
+---
 
 ## ⚠️ 5.11 · B.213 — el cerrojo de subida lo consultan seis y no lo toma ninguno (11/09/2026)
 
