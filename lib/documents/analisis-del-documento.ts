@@ -71,3 +71,95 @@ export function casaConElCriterio(
   };
   return Object.entries(criterio).every(([clave, valor]) => valores[clave] === valor);
 }
+
+/**
+ * ═══════════════════════════════════════════════════════════════════════════
+ * B.212 — LA OTRA MITAD DE B.112, Y LLEVABA AQUÍ TODO EL TIEMPO.
+ *
+ * B.112 escribió el criterio de arriba porque **la bandeja empareja por
+ * NOMBRE** —está en la primera línea de este fichero— y lo aplicó al BORRADO.
+ * La bandeja se quedó como estaba. El criterio existía, estaba probado, y su
+ * único consumidor era `delete-document.ts`: la pantalla que lo necesitaba
+ * nunca le preguntó.
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ * ⚠️ LA POBLACIÓN, MEDIDA CONTRA PRODUCCIÓN EL 11/09/2026 — no deducida: **once
+ * filas** en las que la bandeja enseñaba el análisis de un fichero suelto en vez
+ * del del documento, sobre **tres documentos** —`OPE-02_agenda-y-gestion-de-citas.xlsx`
+ * (cinco), `OPE-13_cobertura-por-clinica.xlsx` (cuatro) y
+ * `OPE-10_tarifario-tratamientos-2026.xlsx` (dos)—, la más reciente del
+ * **10/09/2026**. Con sus contradicciones y sus recuentos, presentados como del
+ * documento.
+ *
+ * ⚠️ Y UN CASO QUE NO NECESITA NINGÚN HUÉRFANO, que es el que enseña que el
+ * nombre nunca fue una identidad: **dos documentos INDEXADOS que compartan
+ * nombre reciben el mismo bloque**, el más reciente de los dos. Subir a Drive un
+ * fichero que ya tienes como manual crea exactamente eso — no lo convierte,
+ * añade un segundo documento— y entonces el análisis de uno se pinta en la fila
+ * del otro sin que intervenga nada roto.
+ *
+ * ⚠️ LO QUE ESTO NO ARREGLA, y se dice aquí para que no se lea como resuelto: que
+ * el análisis sea del documento **no lo hace reciente**. Un documento analizado
+ * el día 1 que vuelve a la bandeja el día 79 trae su propio informe, hecho contra
+ * un corpus que ya no existe, y esta función lo devuelve igual. Si algún día hace
+ * falta distinguirlo, **los datos ya están guardados**: `created_at` da la fecha,
+ * `analysis_results.involved_documents` guarda CONTRA QUÉ documentos se comparó
+ * —la foto del corpus de ese momento, no un recuento— y `documents.content_hash`
+ * dice si el documento cambió desde entonces. No hace falta columna nueva.
+ */
+/**
+ * LOS DOS BLOQUES DE UNA FILA DE LA BANDEJA, Y DE QUÉ FUENTE SALE CADA UNO.
+ *
+ * ⚠️ EXISTE PARA QUE SE PUEDAN MATAR POR SEPARADO. Son dos preguntas distintas
+ * con dos identidades distintas, y la tentación de fundirlas es permanente:
+ *   · `propio`  — el análisis DEL DOCUMENTO, por `document_id`.
+ *   · `staged`  — el análisis de la VERSIÓN NUEVA en vuelo, por el **id exacto**
+ *                 que el propio `document_staged` apunta (`analysis_result_id`).
+ *
+ * ⚠️ LA VERSIÓN STAGED NUNCA SE BUSCA POR DOCUMENTO. Un documento con versión
+ * nueva tiene DOS análisis vivos —el de lo que hay publicado y el de lo que
+ * espera— y el único que sabe cuál es cuál es el puntero. Buscar el del staged
+ * por `document_id` devolvería el más reciente de los dos, que es una moneda al
+ * aire.
+ *
+ * Con esto, vaciar la fuente del staged mata unos casos y volver a emparejar lo
+ * propio por nombre mata otros: era la razón de extraerlo.
+ */
+export function bloquesDeLaFila<T>(
+  documentId: string,
+  propioPorDocumento: ReadonlyMap<string, T>,
+  punteroDelStaged: string | null,
+  apuntadosPorId: ReadonlyMap<string, T>,
+): { propio: T | undefined; staged: T | undefined } {
+  return {
+    propio: propioPorDocumento.get(documentId),
+    staged: punteroDelStaged ? apuntadosPorId.get(punteroDelStaged) : undefined,
+  };
+}
+
+export function analisisMasRecientePorDocumento<
+  T extends FilaDeAnalisis & { created_at: string },
+>(
+  orgId: string,
+  documentIds: readonly string[],
+  filas: readonly T[],
+): Map<string, T> {
+  const porDocumento = new Map<string, T>();
+
+  for (const documentId of documentIds) {
+    // ⚠️ SE LE PREGUNTA AL CRITERIO, no se recalcula aquí. Escribir
+    // `f.document_id === documentId` sería la segunda implementación de «qué
+    // análisis son de este documento», y el día que una cambie la otra seguirá
+    // pareciendo correcta por su cuenta.
+    const criterio = criterioDeAnalisisDelDocumento(orgId, documentId);
+    for (const fila of filas) {
+      if (!casaConElCriterio(criterio, fila)) continue;
+      const actual = porDocumento.get(documentId);
+      if (!actual || fila.created_at > actual.created_at) {
+        porDocumento.set(documentId, fila);
+      }
+    }
+  }
+
+  return porDocumento;
+}

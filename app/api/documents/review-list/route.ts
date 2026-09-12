@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { tieneOriginalEnLaNube } from '@/lib/documents/origen-en-la-nube';
+import { analisisMasRecientePorDocumento, bloquesDeLaFila, type FilaDeAnalisis } from '@/lib/documents/analisis-del-documento';
 import { createServiceClient } from '@/lib/supabase';
 import { getAuthenticatedUserHybrid } from '@/lib/supabase-server';
 import { resolveOrg } from '@/lib/org';
@@ -11,8 +12,17 @@ import { resolveOrg } from '@/lib/org';
  * analisis de cada documento (si existe), pero NO el objeto analysis pesado
  * (ese se carga al abrir un documento via /api/documents/[id]/analysis).
  *
- * Match de contadores: por document_name (los analisis de subida tienen
- * document_id = null), quedandose con el mas reciente. Filtrado por org_id.
+ * Match de contadores: por `document_id` (B.212, 12/09/2026), preguntandole el
+ * criterio a `lib/documents/analisis-del-documento.ts`. Antes era por
+ * `document_name`, y el nombre colisiona: la bandeja enseñaba el analisis de
+ * otro fichero. Filtrado por org_id.
+ *
+ * ⚠️ CONSECUENCIA QUE SE ACEPTA ENTERA: los analisis de subida nacen con
+ * `document_id = null` y NO se ven aqui hasta que la indexacion los ADOPTA
+ * (`ingest`, que les escribe el id del documento recien nacido). Un documento
+ * sin analisis propio llega sin bloque, la fila se cierra y el boton de añadir
+ * al corpus se apaga con su motivo. **Eso es lo correcto, no una regresion**: es
+ * una funcionalidad que se paga, y sin analisis no hay nada que revisar.
  */
 
 interface AnalysisSummaryRow {
@@ -29,7 +39,7 @@ interface AnalysisSummaryRow {
 }
 
 const ANALYSIS_SUMMARY_COLUMNS =
-  'document_name, analysis, contradictions_found, contradictions_confirmed, ' +
+  'org_id, document_id, document_name, analysis, contradictions_found, contradictions_confirmed, ' +
   'minor_inconsistencies_found, duplicates_found, overlaps_found, ' +
   'style_problems_found, recommendation, created_at';
 
@@ -124,13 +134,30 @@ export async function GET(req: NextRequest) {
     }
   }
 
-  // 2) Una sola consulta de analisis para todo el lote (por nombre).
-  const names = [...new Set(documents.map((d) => d.name))];
+  // ══════════════════════════════════════════════════════════════════════════
+  // 2) Una sola consulta de analisis para todo el lote — POR ID (B.212).
+  //
+  // ⚠️ HASTA EL 12/09/2026 ESTO EMPAREJABA POR `document_name`, y el nombre no
+  // identifica: colisiona. La bandeja enseñaba, con sus contradicciones y sus
+  // recuentos, el analisis de OTRO fichero. Medido en produccion el 11/09: once
+  // filas sobre tres documentos, la mas reciente del 10/09.
+  //
+  // ⚠️ Y EL CRITERIO NO SE ESCRIBE AQUI: se le PREGUNTA a
+  // `analisis-del-documento.ts`, que existe desde B.112 y decia en su primera
+  // linea que la bandeja emparejaba por nombre. El criterio estaba escrito y
+  // probado; su unico consumidor era el borrado, y la pantalla que lo necesitaba
+  // nunca le pregunto. Esto es la otra mitad de aquel commit, no una pieza nueva.
+  //
+  // ⚠️ LO QUE ESTO NO ARREGLA, dicho aqui para que no se lea como resuelto: que
+  // el analisis sea del documento no lo hace RECIENTE. Ver la cabecera de
+  // `analisisMasRecientePorDocumento`.
+  // ══════════════════════════════════════════════════════════════════════════
+  const documentIds = documents.map((d) => d.id as string);
   const { data: analyses, error: analysesError } = await supabase
     .from('analysis_results')
     .select(ANALYSIS_SUMMARY_COLUMNS)
     .eq('org_id', orgId)
-    .in('document_name', names)
+    .in('document_id', documentIds)
     .order('created_at', { ascending: false });
 
   if (analysesError) {
@@ -138,14 +165,11 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Error al leer los analisis' }, { status: 500 });
   }
 
-  // Mapa nombre -> analisis mas reciente (la consulta viene ordenada desc,
-  // asi que el primero que se ve de cada nombre es el mas nuevo).
-  const latestByName = new Map<string, AnalysisSummaryRow>();
-  for (const row of ((analyses ?? []) as unknown as AnalysisSummaryRow[])) {
-    if (!latestByName.has(row.document_name)) {
-      latestByName.set(row.document_name, row);
-    }
-  }
+  const analisisPorDocumento = analisisMasRecientePorDocumento(
+    orgId,
+    documentIds,
+    (analyses ?? []) as unknown as (AnalysisSummaryRow & FilaDeAnalisis)[],
+  );
 
   // Construye el bloque de contadores desde una fila de analisis (mismo shape para
   // el analisis normal y para el apuntado por el staged).
@@ -165,13 +189,21 @@ export async function GET(req: NextRequest) {
 
   // 3) Cruce en memoria: cada documento con su bloque de analisis (o null).
   const result = documents.map((doc) => {
-    const a = latestByName.get(doc.name);
     const hasStaged = stagedGenById.has(doc.id);
     // Puntero del staged: si existe y apunta a un analisis cargado, esa version YA
     // se analizo y el portero la freno -> mostramos SUS contadores exactos. Si el
     // puntero es null, el staged esta pendiente de analisis.
     const stagedPtr = hasStaged ? (stagedPtrById.get(doc.id) ?? null) : null;
-    const stagedRow = stagedPtr ? stagedAnalysisById.get(stagedPtr) : undefined;
+    // ⚠️ LOS DOS BLOQUES SALEN DE FUENTES DISTINTAS, y quién sale de dónde lo
+    // decide `bloquesDeLaFila` y no esta línea: lo propio por `document_id`, el
+    // del staged por su PUNTERO exacto. Fundirlos devolvería «el más reciente de
+    // los dos», que en un documento con versión en vuelo es una moneda al aire.
+    const { propio: a, staged: stagedRow } = bloquesDeLaFila(
+      doc.id as string,
+      analisisPorDocumento,
+      stagedPtr,
+      stagedAnalysisById,
+    );
     return {
       id: doc.id,
       name: doc.name,
