@@ -912,7 +912,25 @@ las excluye por no tener `document_id`, y el único otro lector de
 ficheros. Lo que sí sigue siendo verdad es que **son inalcanzables** —eso es B.205
 y su familia, no esto.
 
-## ⚠️ 5.14 · B.216 — subir a Drive lo que ya tienes a mano no lo mueve: lo duplica (12/09/2026)
+## 5.14 · B.112 — el criterio que se escribió para el borrado y no se llevó a la pantalla (03/09/2026)
+
+*(Ficha escrita el 12/09/2026, con la fecha del hallazgo original. Existía citada
+y sin declarar en ninguna parte: es exactamente la clase que describe la 5.5, y se
+le da casa al tropezar con ella.)*
+
+**QUÉ FUE**: al borrar un documento, sus análisis no se borraban, y la pantalla los
+emparejaba por nombre. Borrar un documento y subir otro con el mismo nombre hacía
+que el nuevo **heredara el análisis del viejo**. Se arregló escribiendo el criterio
+de identidad —por `document_id` y `org_id`, nunca por nombre— en
+`lib/documents/analisis-del-documento.ts` (`6904aea1`, 03/09/2026).
+
+⚠️ **Y AQUÍ ESTÁ POR QUÉ MERECE FICHA HOY, nueve días después: se arregló el
+BORRADO y no la PANTALLA.** El criterio quedó escrito, probado, y con un solo
+consumidor. La primera línea de ese fichero dice que la bandeja empareja por
+nombre — y la bandeja siguió haciéndolo hasta el 12/09/2026, cuando B.212 midió
+once filas de datos ajenos en producción. **La pieza estaba; nadie la cableó.**
+
+## ⚠️ 5.15 · B.216 — subir a Drive lo que ya tienes a mano no lo mueve: lo duplica (12/09/2026)
 
 **QUÉ CREE EL USUARIO QUE HACE**: «pasar un manual a Drive», para que desde
 entonces se sincronice.
