@@ -30,14 +30,27 @@ medias creyendo que ya no hay nada que hacer.
 | **1** | La guarda de pertenencia en los tres endpoints, en función intermedia | servidor | ✅ **HECHO** — `dac6da2a`, 10/09/2026 |
 | **2** | `lib/subida/referencia.ts`, `POST /api/subidas/autorizar`, y los tres aceptan `ref` **o** la ruta vieja | servidor | ✅ **HECHO** — `228239d2`, 10/09/2026 |
 | **3** | El cliente pide autorización, sube a la ruta que le da el servidor y manda `ref` | frontend | ✅ **HECHO** — `99a4c450`, 10/09/2026 · **pendiente de ejercer en pantalla** |
-| **4** | Retirada del camino viejo, con su fecha escrita | servidor | pendiente |
+| **4** | Retirada del camino viejo, con su fecha escrita | servidor | ✅ **HECHO** — 14/09/2026 |
 
-⚠️ **EL COMMIT 4 NO ENTRA HASTA QUE SE CUMPLAN DOS CONDICIONES, y ninguna es
-opcional**: que el commit 3 esté **ejercido en pantalla** —al cliente no lo cubre
-ninguna suite— y que el contador de `via` diga que **ya nadie entra por la ruta**.
-Retirar el camino viejo sin mirar quién lo usa es exactamente la apuesta que ese
-contador existe para no tener que hacer. Si `[SUBIDA] via=ruta` sigue apareciendo
-en los registros, queda una pestaña vieja abierta o un camino sin migrar.
+**LAS DOS CONDICIONES DEL COMMIT 4, Y CÓMO SE CUMPLIÓ CADA UNA.** Se escribieron
+antes de llegar a él, a propósito, para no decidirlas mirando lo ya hecho:
+
+1. **Ejercido en pantalla** — ✅ 12/09/2026, cinco gestos, anotados en el censo.
+2. **Que nadie entre ya por la ruta** — ✅ **por gesto, no por contador**, y la
+   diferencia se dice: el 14/09/2026 se subió un documento desde el chat y se miró
+   el objeto en Storage. Se llama `1789366696828-c134bfe1-…`: marca de tiempo y
+   UUID, **sin el nombre del fichero dentro**, que es la firma de una ruta
+   compuesta por el servidor. Entró por la `ref`.
+
+⚠️ **LO QUE ESE GESTO NO DEMUESTRA, y por eso no se escribe como si fuera el
+contador**: dice que el camino NUEVO funciona, **no que nadie haya usado el viejo**
+en las horas anteriores. Eso lo decía `[SUBIDA] via=ruta`, y **vivía en los
+registros de Vercel, no en la base**: no es consultable por quien no entra ahí. Se
+sustituyó por el criterio del nombre del objeto porque era lo único verificable sin
+terminal, y **se escribe qué clase de evidencia es**: un gesto, no una medición.
+
+El contador desaparece con el camino que contaba. A partir del 14/09 no hay camino
+viejo por el que entrar, así que no queda nada que contar.
 
 **No se funden.** Cuatro commits con build verde entre medias es la regla de la
 casa, y lo que se ahorraría fundiéndolos son dos `push`. Si al llegar al 3 apareciera

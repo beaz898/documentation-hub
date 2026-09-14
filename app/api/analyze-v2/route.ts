@@ -99,16 +99,16 @@ export async function POST(req: NextRequest) {
 
     if (vieneFichero) {
       const origen = resolverOrigenDelFichero(
-        { ref, storagePath: rutaDelCuerpo }, { userId, orgId },
+        { ref }, { userId, orgId },
         'analyze-v2', secretoDeFirma,
       );
       if (!origen.ok) {
-        return NextResponse.json({ error: 'Ruta no autorizada' }, { status: 403 });
+        return NextResponse.json({ error: origen.mensaje, errorType: `ref_${origen.motivo}` }, { status: 403 });
       }
       storagePath = origen.ruta;
       // Por la ref el nombre lo puso el servidor. Por el camino viejo sigue
       // viniendo del cuerpo, que es lo que se acaba en el commit 4.
-      if (origen.via === 'ref') fileName = origen.fileName;
+      fileName = origen.fileName;
     }
 
     // ════════════════════════════════════════════════════════════════════

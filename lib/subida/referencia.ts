@@ -1,6 +1,6 @@
 import { randomUUID } from 'crypto';
 import { firmarCarga, verificarCarga } from '@/lib/analysis/firma';
-import { comprobarPertenencia, registrarRechazo } from './pertenencia';
+
 
 /**
  * LA REFERENCIA DE SUBIDA — B.204, commit 2 de cuatro.
@@ -66,6 +66,8 @@ export const VIDA_DE_LA_REF_MS = 2 * 60 * 60 * 1000;
 
 /** Por qué se rechazó una referencia. Cada uno se cuenta por separado. */
 export type MotivoDeRef =
+  /** No vino ninguna. Desde el commit 4 es, casi siempre, una pestaña vieja. */
+  | 'ausente'
   /** No es una cadena, o no tiene la forma de una referencia nuestra. */
   | 'malformada'
   /** Bien formada y no la emitimos nosotros — o el secreto ha rotado. */
@@ -183,27 +185,67 @@ export function registrarRefRechazada(
 
 /** De dónde salió el fichero que este endpoint va a leer. */
 export type Origen =
-  | { ok: true; ruta: string; fileName: string; via: 'ref' | 'ruta' }
-  | { ok: false; motivo: string };
+  | { ok: true; ruta: string; fileName: string }
+  | { ok: false; motivo: MotivoDeRef; mensaje: string };
 
 /**
- * LA LECTURA DUAL, EN UN SOLO SITIO — y con reloj.
+ * QUÉ SE LE DICE AL USUARIO POR CADA MOTIVO — en un solo sitio, y por eso.
  *
- * ⚠️ ESTO ES UNA MIGRACIÓN, NO DOS IDENTIDADES VIVAS. Se lee la vieja y la
- * nueva, se escribe solo la nueva, y la vieja se RETIRA en el commit 4. Mientras
- * tanto el camino viejo sigue guardado por la comprobación de pertenencia del
- * commit 1: vivo, pero no abierto.
+ * ⚠️ LOS TRES ENDPOINTS DEVOLVÍAN «Ruta no autorizada» PARA TODO, que es mudo
+ * justo donde el usuario no ha hecho nada mal: una autorización caducada es una
+ * subida legítima que se quedó dos horas esperando, y decirle «no autorizada» le
+ * hace pensar que el documento no es suyo. El commit 4 es el ÚNICO momento en que
+ * esto se puede arreglar, porque hasta hoy el camino viejo tapaba los dos casos.
  *
- * ⚠️ POR QUÉ HAY VENTANA SI NADIE PERSISTE LA IDENTIDAD VIEJA: porque una pestaña
- * abierta antes del despliegue sigue mandando la ruta. Es el único portador, y
- * por eso la ventana es corta y tiene fecha en vez de ser un estado permanente.
+ * ⚠️ Y ESTÁ AQUÍ Y NO EN CADA ENDPOINT porque si no serían tres textos que se
+ * separan: el día que alguien afine uno, los otros dos seguirían diciendo lo
+ * viejo, y nadie se enteraría porque los tres «funcionan».
  *
- * ⚠️ Y EL CONTADOR DE `via` ES LO QUE DICE CUÁNDO SE PUEDE CERRAR. Sin él, la
- * retirada del commit 4 sería una apuesta sobre si queda alguien entrando por
- * el camino viejo. Con él, es una lectura.
+ * El `switch` es exhaustivo a propósito: añadir un motivo sin darle mensaje NO
+ * COMPILA, que es la única forma de que esto no se quede atrás.
+ */
+export function mensajeDeRefRechazada(motivo: MotivoDeRef): string {
+  switch (motivo) {
+    case 'caducada':
+      return 'La autorización de esta subida ha caducado: dura 2 horas y el documento lleva más esperando. Vuelve a subirlo y se analizará igual.';
+    case 'ausente':
+    case 'malformada':
+    case 'firma':
+      // El caso realista de los tres es la pestaña vieja: se cargó antes del
+      // despliegue y manda lo que mandaba entonces. Recargar lo arregla.
+      return 'Esta página está desactualizada. Recárgala y vuelve a subir el documento.';
+    case 'ajena':
+      return 'Ruta no autorizada.';
+  }
+}
+
+/**
+ * DE DÓNDE SALE EL FICHERO: SOLO DE LA `ref`. Commit 4 de 4 — 14/09/2026.
+ *
+ * ═══════════════════════════════════════════════════════════════════════════
+ * ⚠️ LA LECTURA DUAL SE ACABA AQUÍ, Y ERA UNA MIGRACIÓN CON RELOJ, no dos
+ * identidades vivas: se leyó la vieja y la nueva durante la ventana, se escribió
+ * solo la nueva, y la vieja se retira. La ventana duró del 10 al 14/09/2026.
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ * **LA SEGUNDA CONDICIÓN, CUMPLIDA**: el plan exigía que el camino nuevo se
+ * ejerciera antes de retirar el viejo. Verificado en producción el 14/09/2026
+ * mirando el objeto en Storage —`1789366696828-c134bfe1-…`, marca de tiempo y
+ * UUID **sin el nombre del fichero dentro**—, que es la firma de una ruta
+ * compuesta por el servidor.
+ * ⚠️ Y LO QUE ESE GESTO NO DEMUESTRA, dicho aquí porque es donde se leerá: que
+ * nadie haya entrado por el camino viejo. Eso lo decía el contador `via=ruta`, y
+ * vivía en los registros de Vercel, no en la base. Se retira con el camino: a
+ * partir de hoy no hay camino viejo por el que entrar, así que el contador no
+ * tiene nada que contar.
+ *
+ * ⚠️ `storagePath` YA NO SE LEE, y sigue llegando en el cuerpo de las peticiones
+ * a propósito: el CLIENTE lo necesita para borrar el temporal por su cuenta
+ * —cancelar, cerrar el modal—. Que viaje no significa que el servidor lo mire.
+ * Esta firma ya ni lo acepta, que es la forma de que no vuelva a mirarse.
  */
 export function resolverOrigenDelFichero(
-  entrada: { ref?: unknown; storagePath?: unknown },
+  entrada: { ref?: unknown },
   quien: { userId: string; orgId: string },
   endpoint: string,
   /**
@@ -211,31 +253,21 @@ export function resolverOrigenDelFichero(
    *
    * Recibir el secreto YA RESUELTO obliga a quien llama a pedirlo antes de saber
    * si hace falta, y `secretoDeFirma()` LANZA cuando el despliegue está mal
-   * configurado. Con un `string` en esta posición, un secreto malo tumbaba
-   * también el camino VIEJO, que no lo usa para nada.
-   * No es hipotético: así entró en `228239d2`. Ver la cabecera del módulo.
+   * configurado. No es hipotético: así entró en `228239d2`.
    */
   pedirSecreto: () => string,
   ahora: number = Date.now(),
 ): Origen {
-  // La ref GANA si viene: durante la ventana, el camino nuevo es el preferente.
-  if (entrada.ref !== undefined && entrada.ref !== null) {
-    const r = resolverRefDeSubida(entrada.ref, quien, pedirSecreto(), ahora);
-    if (!r.ok) {
-      registrarRefRechazada(endpoint, r.motivo, quien.userId);
-      return { ok: false, motivo: `ref_${r.motivo}` };
-    }
-    return { ok: true, ruta: r.ruta, fileName: r.fileName, via: 'ref' };
+  if (entrada.ref === undefined || entrada.ref === null) {
+    registrarRefRechazada(endpoint, 'ausente', quien.userId);
+    return { ok: false, motivo: 'ausente', mensaje: mensajeDeRefRechazada('ausente') };
   }
 
-  const p = comprobarPertenencia(entrada.storagePath, quien.userId);
-  if (!p.ok) {
-    registrarRechazo(endpoint, p.motivo, quien.userId, entrada.storagePath);
-    return { ok: false, motivo: p.motivo };
+  const r = resolverRefDeSubida(entrada.ref, quien, pedirSecreto(), ahora);
+  if (!r.ok) {
+    registrarRefRechazada(endpoint, r.motivo, quien.userId);
+    return { ok: false, motivo: r.motivo, mensaje: mensajeDeRefRechazada(r.motivo) };
   }
 
-  console.warn(`[SUBIDA] via=ruta (camino viejo) | endpoint=${endpoint} | llama=${quien.userId}`);
-  // Por el camino viejo el nombre sigue viniendo del cuerpo: quien llama lo lee
-  // de donde lo leía. Es lo que se acaba en el commit 4.
-  return { ok: true, ruta: p.ruta, fileName: '', via: 'ruta' };
+  return { ok: true, ruta: r.ruta, fileName: r.fileName };
 }

@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   emitirRefDeSubida,
   resolverRefDeSubida,
+  mensajeDeRefRechazada,
   resolverOrigenDelFichero,
   VIDA_DE_LA_REF_MS,
 } from './referencia';
@@ -24,6 +25,7 @@ const OTRO_SECRETO = 'otro-secreto-de-pruebas-igual-de-largo-que-el';
 const YO = { userId: 'u-111', orgId: 'o-999' };
 const OTRO = { userId: 'u-222', orgId: 'o-999' };
 const T0 = 1_757_000_000_000;
+const dar = (s: string) => () => s;
 
 describe('la referencia de subida — camino feliz y contrato de la ruta', () => {
   it('lo que se emite se resuelve, con su ruta y su nombre', () => {
@@ -115,62 +117,100 @@ describe('la referencia de subida — LOS TRES NEGATIVOS DE LA PUERTA', () => {
   });
 });
 
-describe('resolverOrigenDelFichero — la lectura dual, con su reloj', () => {
-  const dar = (s: string) => () => s;
+/**
+ * ⚠️ LA LECTURA DUAL SE ACABÓ — commit 4 de 4, 14/09/2026. Este bloque decía
+ * «la lectura dual, con su reloj» y ahora dice lo contrario: solo hay un camino.
+ * Los casos del camino viejo NO se han borrado sin más — se han INVERTIDO: donde
+ * decían «sigue vivo», ahora dicen «se rechaza». Un caso retirado no deja nada
+ * vigilando; uno invertido vigila que no vuelva.
+ */
+describe('resolverOrigenDelFichero — solo la ref, y con mensaje', () => {
+  const RUTA_PROPIA = `${YO.userId}/1757-informe.pdf`;
 
-  /**
-   * ⚠️ EL CASO QUE HABRÍA CAZADO EL DEFECTO DE `228239d2`, y por eso va primero.
-   *
-   * Allí el secreto se pasaba YA RESUELTO, así que `secretoDeFirma()` —que LANZA
-   * con un despliegue mal configurado— se evaluaba en toda petición, viniera ref
-   * o no: un secreto malo habría tumbado el camino VIEJO, que no lo usa.
-   * Aquí el proveedor EXPLOTA si alguien lo llama, así que este caso está en
-   * verde si y solo si el camino viejo no toca el secreto.
-   */
-  it('⚠️ el camino VIEJO no pide el secreto: ni siquiera lo roza', () => {
-    const explota = () => { throw new Error('no se debe pedir el secreto por el camino viejo'); };
-    const r = resolverOrigenDelFichero(
-      { storagePath: `${YO.userId}/1757-informe.pdf` }, YO, 'test', explota, T0,
-    );
-    expect(r.ok).toBe(true);
-  });
-
-  it('con ref válida entra por la ref', () => {
+  it('con ref válida entra, con su ruta y su nombre', () => {
     const { ref, ruta } = emitirRefDeSubida(YO, 'x.pdf', SECRETO, T0, 'abc');
     expect(resolverOrigenDelFichero({ ref }, YO, 'test', dar(SECRETO), T0))
-      .toEqual({ ok: true, ruta, fileName: 'x.pdf', via: 'ref' });
+      .toEqual({ ok: true, ruta, fileName: 'x.pdf' });
   });
 
-  it('sin ref, el camino VIEJO sigue vivo si la ruta es propia', () => {
-    const r = resolverOrigenDelFichero(
-      { storagePath: `${YO.userId}/1757-informe.pdf` }, YO, 'test', dar(SECRETO), T0,
-    );
-    expect(r).toEqual({
-      ok: true, ruta: `${YO.userId}/1757-informe.pdf`, fileName: '', via: 'ruta',
-    });
+  it('⚠️ SIN ref se rechaza, aunque el llamador sea quien sea: el camino viejo está retirado', () => {
+    const r = resolverOrigenDelFichero({}, YO, 'test', dar(SECRETO), T0);
+    expect(r.ok).toBe(false);
+    expect(!r.ok && r.motivo).toBe('ausente');
   });
 
-  it('⚠️ sin ref y con ruta AJENA sigue rechazando: la guarda del commit 1 no se relaja', () => {
+  it('⚠️ y una ruta propia en el cuerpo YA NO ABRE NADA — es la propiedad del commit 4', () => {
+    // Antes esto entraba por el camino viejo. Hoy la firma ni acepta el campo,
+    // así que mandarlo es exactamente igual que no mandar nada.
     const r = resolverOrigenDelFichero(
-      { storagePath: `${OTRO.userId}/1757-ajeno.pdf` }, YO, 'test', dar(SECRETO), T0,
+      { ...( { storagePath: RUTA_PROPIA } as object) }, YO, 'test', dar(SECRETO), T0,
     );
     expect(r.ok).toBe(false);
   });
 
-  it('si vienen las dos, gana la ref: durante la ventana el camino nuevo es el preferente', () => {
-    const { ref, ruta } = emitirRefDeSubida(YO, 'firmado.pdf', SECRETO, T0, 'abc');
-    const r = resolverOrigenDelFichero(
-      { ref, storagePath: `${YO.userId}/otra-cosa.pdf` }, YO, 'test', dar(SECRETO), T0,
-    );
-    expect(r).toEqual({ ok: true, ruta, fileName: 'firmado.pdf', via: 'ref' });
+  it('el secreto solo se pide si hay ref: sin ella no se roza', () => {
+    // Hereda la propiedad del arreglo de la evaluación adelantada: un despliegue
+    // mal configurado no debe convertir «falta la ref» en un 500.
+    const explota = () => { throw new Error('no se debe pedir el secreto sin ref'); };
+    const r = resolverOrigenDelFichero({}, YO, 'test', explota, T0);
+    expect(r.ok).toBe(false);
   });
 
-  it('una ref MALA no cae al camino viejo: se rechaza y punto', () => {
-    // Si cayera, cualquiera con una ruta propia podría saltarse la ref mandando
-    // una basura al lado — la ventana se convertiría en la puerta de atrás.
+  it('una ref MALA se rechaza y no cae a ningún sitio', () => {
+    const r = resolverOrigenDelFichero({ ref: 'basura.basura' }, YO, 'test', dar(SECRETO), T0);
+    expect(r.ok).toBe(false);
+    expect(!r.ok && r.motivo).toBe('firma');
+  });
+});
+
+/**
+ * ⚠️ LOS MENSAJES SON LA MITAD DEL COMMIT 4, y por eso tienen casos propios.
+ *
+ * Las dos ventanas que este cambio puede romper —una pestaña cargada antes del
+ * commit 3, y una ref de hace más de dos horas— son gestos LEGÍTIMOS del usuario.
+ * Devolverles «Ruta no autorizada» les dice que el documento no es suyo, que es
+ * falso y además no sugiere nada. Este es el único momento en que se podía
+ * arreglar: hasta hoy el camino viejo tapaba los dos casos.
+ */
+describe('los mensajes de rechazo: qué lee el usuario', () => {
+  it('CADUCADA dice cuánto duraba y qué hacer, y no habla de autorización', () => {
+    const m = mensajeDeRefRechazada('caducada');
+    expect(m).toContain('2 horas');
+    expect(m).toContain('Vuelve a subirlo');
+    expect(m).not.toContain('no autorizada');
+  });
+
+  it('AUSENTE —la pestaña vieja— dice que recargue, no que no tiene permiso', () => {
+    const m = mensajeDeRefRechazada('ausente');
+    expect(m).toContain('Recárgala');
+    expect(m).not.toContain('no autorizada');
+  });
+
+  it('malformada y firma dicen lo mismo que ausente: el caso realista es el mismo', () => {
+    expect(mensajeDeRefRechazada('malformada')).toBe(mensajeDeRefRechazada('ausente'));
+    expect(mensajeDeRefRechazada('firma')).toBe(mensajeDeRefRechazada('ausente'));
+  });
+
+  it('AJENA sí es un «no autorizada», y no se le sugiere nada', () => {
+    expect(mensajeDeRefRechazada('ajena')).toContain('no autorizada');
+  });
+
+  it('⚠️ ningún motivo se queda sin mensaje, y ninguno cae en el texto genérico', () => {
+    const motivos = ['ausente', 'malformada', 'firma', 'caducada', 'ajena'] as const;
+    for (const motivo of motivos) {
+      const m = mensajeDeRefRechazada(motivo);
+      expect(m.length).toBeGreaterThan(10);
+    }
+  });
+
+  it('el rechazo LLEVA el mensaje: quien llama no tiene que componerlo', () => {
+    // Si el endpoint tuviera que elegir el texto, serían tres textos que se
+    // separan. El motivo y su mensaje viajan juntos.
+    const { ref } = emitirRefDeSubida(YO, 'x.pdf', SECRETO, T0, 'abc');
     const r = resolverOrigenDelFichero(
-      { ref: 'basura.basura', storagePath: `${YO.userId}/x.pdf` }, YO, 'test', dar(SECRETO), T0,
+      { ref }, YO, 'test', dar(SECRETO), T0 + VIDA_DE_LA_REF_MS + 1,
     );
     expect(r.ok).toBe(false);
+    expect(!r.ok && r.mensaje).toBe(mensajeDeRefRechazada('caducada'));
   });
 });

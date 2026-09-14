@@ -79,13 +79,13 @@ export async function POST(req: NextRequest) {
     // Commit 2: lectura dual. La `ref` manda si viene; si no, el camino viejo
     // con la guarda de pertenencia del commit 1, que se retira en el 4.
     const origen = resolverOrigenDelFichero(
-      { ref, storagePath: rutaDelCuerpo }, { userId: user.id, orgId },
+      { ref }, { userId: user.id, orgId },
       'ingest', secretoDeFirma,
     );
     if (!origen.ok) {
-      return NextResponse.json({ error: 'Ruta no autorizada' }, { status: 403 });
+      return NextResponse.json({ error: origen.mensaje, errorType: `ref_${origen.motivo}` }, { status: 403 });
     }
-    const fileName = origen.via === 'ref' ? origen.fileName : fileNameDelCuerpo;
+    const fileName = origen.fileName;
     // Aguas abajo se usa SIEMPRE la ruta RESUELTA, nunca la del cuerpo: por la
     // ref la compuso el servidor, y por el camino viejo ya pasó la guarda.
     const storagePath: string = origen.ruta;

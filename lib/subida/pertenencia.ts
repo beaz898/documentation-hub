@@ -1,4 +1,21 @@
 /**
+ * ⚠️ SIN CONSUMIDOR DE PRODUCCIÓN DESDE EL 14/09/2026 — Y NO SE JUBILA HOY.
+ *
+ * El commit 4 retiró el camino viejo, que era quien llamaba a esto. Hoy la
+ * pertenencia la garantiza la propia `ref`: la ruta la compone el servidor y va
+ * FIRMADA con el `userId` y el `orgId` de quien la pidió, así que no hay ruta
+ * ajena que comprobar. Sólo lo ejerce su batería.
+ *
+ * NO SE BORRA, y la razón es un caso de hace cuatro días: `sufijoDeTotal` se
+ * declaró sin consumidor el 10/09 y **volvió a hacer falta el 11**. Retirar algo
+ * el día que pierde su última llamada es retirarlo en el momento de MENOS
+ * información. Queda declarado en `Estado_Del_MVP.md` §5 y se decide aparte.
+ *
+ * ⚠️ Y LO QUE HAY QUE MIRAR EL DÍA QUE SE DECIDA: si alguna vez vuelve a entrar
+ * una ruta por el cuerpo —otro endpoint, otro cliente— esto es lo que hay que
+ * llamar, y su ausencia sería B.204 otra vez.
+ *
+ * ───────────────────────────────────────────────────────────────────────────
  * ¿ES DE QUIEN LLAMA LA RUTA QUE MANDA? — B.204, commit 1 de cuatro.
  *
  * ═══════════════════════════════════════════════════════════════════════════

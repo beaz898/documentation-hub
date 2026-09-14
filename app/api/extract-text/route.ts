@@ -39,16 +39,16 @@ export async function POST(req: NextRequest) {
     // el nombre sale de dentro de la firma; si no, sigue el camino viejo con la
     // guarda de pertenencia del commit 1. El camino viejo se retira en el 4.
     const origen = resolverOrigenDelFichero(
-      { ref, storagePath }, { userId: user.id, orgId: org.orgId },
+      { ref }, { userId: user.id, orgId: org.orgId },
       'extract-text', secretoDeFirma,
     );
     if (!origen.ok) {
-      return NextResponse.json({ error: 'Ruta no autorizada' }, { status: 403 });
+      return NextResponse.json({ error: origen.mensaje, errorType: `ref_${origen.motivo}` }, { status: 403 });
     }
 
     // Por la ref el nombre lo puso el servidor; por el camino viejo sigue
     // viniendo del cuerpo, que es lo que se acaba en el commit 4.
-    const fileName = origen.via === 'ref' ? origen.fileName : fileNameDelCuerpo;
+    const fileName = origen.fileName;
     if (!fileName) {
       return NextResponse.json({ error: 'Parámetros inválidos' }, { status: 400 });
     }

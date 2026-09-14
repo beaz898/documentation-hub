@@ -198,10 +198,31 @@ export function useDocuments(
           loadCredits();
         }
       } else {
-        // analyze-v2 devolvió error (4xx/5xx): avisamos y seguimos indexando sin análisis.
         clearInterval(progressInterval);
         setAnalysisProgress(0);
         setAnalysisPhase('');
+
+        const datos = await analyzeRes.json().catch(() => ({} as { error?: string }));
+
+        // ⚠️ B.204 commit 4 — UN 403 AQUÍ NO ES «no se pudo analizar»: ES QUE LA
+        // SUBIDA NO VALE, y seguir a indexar sería chocar otra vez contra el
+        // mismo 403 después de haberle prometido al usuario que se añadía.
+        //
+        // Hasta hoy esta rama TIRABA el mensaje del servidor y pintaba uno fijo
+        // que culpaba a «duplicados/contradicciones» — mudo y además falso para
+        // los dos casos que el commit 4 puede provocar: una pestaña cargada
+        // antes del commit 3, y una ref de más de dos horas. El servidor ya sabe
+        // cuál de los dos es y lo dice; aquí solo había que dejarlo pasar.
+        if (analyzeRes.status === 403) {
+          addMessage({
+            id: crypto.randomUUID(),
+            role: 'error',
+            content: datos.error || 'La subida ya no es válida. Recarga la página y vuelve a subir el documento.',
+          });
+          await releaseLock();
+          return;
+        }
+
         addMessage({
           id: crypto.randomUUID(),
           role: 'error',
