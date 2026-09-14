@@ -1050,6 +1050,116 @@ nada —hasta una hora, y con un mensaje que nombra a alguien que ya no está—
 análisis perdido pasa a poder pagarlo uno y perderlo otro. Ese día se relee esta
 ficha con los datos delante, no se redescubre el problema.
 
+## ⚠️ 5.16 · B.218 — el diálogo pregunta por el nombre de ENTRADA y el servidor choca con el de SALIDA (14/09/2026)
+
+Al guardar desde el modal de Mejora, el cliente compone el nombre final
+(`useIndexing.ts:53-60`):
+
+```
+finalName = replaceExisting ? fileName : `${fileName} (corregido ${today})`
+```
+
+Y el diálogo de reemplazo sólo aparece si hay un homónimo, preguntado así
+(`useDocuments.ts:290`): `documents.find(d => d.name === fileName …)` — **el nombre
+del fichero subido**.
+
+**SON DOS NOMBRES DISTINTOS SIEMPRE.** El diálogo pregunta por
+`CLI-05….txt`; el servidor comprueba la colisión contra
+`CLI-05….txt (corregido 14/09/2026)` (`index-text:181-189`). **Un guardado anterior
+creó el segundo y nunca el primero**, así que para el documento que de verdad va a
+chocar **el diálogo no puede salir**. No es que el usuario no lo pulse: es que no
+hay nada que pulsar.
+
+⚠️ **Y EL DATO ESTABA DELANTE: no falla el dato, falla la pregunta.** `documents`
+es la lista entera de la organización, así que el documento corregido **está en
+ella**. Se busca por el nombre de entrada y se choca por el de salida.
+
+**LA POBLACIÓN NO ES UN CASO RARO: ES EL SEGUNDO GUARDADO.** El sufijo lleva
+**fecha sin hora** (`toLocaleDateString('es-ES')`), así que dos guardados el mismo
+día producen **exactamente el mismo nombre**. Corregir, guardar, ver otra cosa y
+volver a guardar es el uso normal del modal — y choca siempre, hasta el día
+siguiente.
+
+⚠️ **Y LO MÁS ÚTIL DE ESTA FICHA NO ES EL DIAGNÓSTICO: ES DÓNDE SE MIRÓ MAL.** El
+propio servidor lleva escrito, en la línea de la comprobación
+(`index-text:185`):
+
+> «Shouldn't normally happen because frontend adds the "(corregido DD/MM/YYYY)"
+> suffix, but just in case, we append a numeric counter.»
+
+Se dio por **imposible** —y por eso el mensaje de al lado se escribió a la ligera—
+justo el caso que hoy es el normal. Y el remate: el comentario promete un
+contador numérico que **no existe**; lo que hay debajo es un 409.
+
+**Distinción visible desde el otro origen**: abierto **desde la bandeja**, el modal
+recibe siempre `existingDocWithSameName` (`review/page.tsx:532`), así que allí el
+diálogo sale y Reemplazar funciona. El defecto es sólo del camino del chat.
+
+## ⚠️ 5.17 · B.219 — el servidor propone salidas que la pantalla del cliente no tiene (14/09/2026)
+
+**LA TERCERA DE LA MISMA ESPECIE EN CUATRO DÍAS, Y POR ESO SE ESCRIBE COMO PATRÓN
+Y NO COMO CASO.** Lo que evita el cuarto es la forma, no los tres ejemplos:
+
+| mensaje | lo que pasaba de verdad | qué tenía de falso |
+|---|---|---|
+| «Ruta no autorizada» | una autorización de subida **caducada** | decía que el fichero no era suyo |
+| «No perteneces a ninguna organización» | **un timeout de Supabase** (`resolveOrg` devuelve `null` ante cualquier error, sin reintento ni caché) | afirmaba algo sobre la pertenencia |
+| «Intenta de nuevo con otro nombre o usa la opción "Reemplazar"» | una colisión que el usuario no puede resolver desde ahí | **ofrece dos salidas que esa pantalla no tiene** |
+
+**LA CAUSA ESTRUCTURAL, que es lo único que hay que recordar: el texto lo escribe
+el SERVIDOR, y el servidor no sabe qué ofrece la pantalla del cliente.** Un
+endpoint puede decir con autoridad **qué ha pasado**; en cuanto propone **qué
+hacer**, está describiendo una interfaz que no ve — y la describe como era el día
+que alguien escribió la cadena.
+
+⚠️ **Y ÉSTE ES EL PEOR DE LOS TRES, porque además CULPA AL USUARIO**: «intenta con
+otro nombre» le pide una acción concreta que no puede ejecutar. **No hay campo de
+nombre en el modal** —comprobado, ni un `input` que lo edite—; el nombre lo compone
+el cliente. Y «usa Reemplazar» nombra un diálogo que en ese caso no aparece nunca.
+
+**LAS TRES SALIDAS QUE SÍ EXISTEN HOY, y el mensaje no nombra ninguna**:
+1. Borrar desde el corpus el documento corregido anterior y volver a guardar.
+2. Abrir ese documento corregido **desde la bandeja** y mejorarlo desde allí, donde
+   el diálogo de reemplazo sí sale siempre.
+3. Esperar a mañana: el nombre lleva la fecha y cambia solo. Absurdo, y es
+   literalmente una salida.
+
+**EL CASO DEL TIMEOUT QUEDA CONFIRMADO, no como sospecha**: el 403 de «No
+perteneces a ninguna organización» apareció con un `Gateway Timeout` en el
+registro y **no volvió a salir en el reintento del director** (14/09/2026). Era la
+base sin contestar. `resolveOrg` no tiene reintento ni caché, así que el siguiente
+intento con la base sana funciona — **no hace falta recargar**, y el mensaje no lo
+dice porque cree estar hablando de otra cosa.
+
+## ⚠️ 5.18 · B.220 — el cuarto endpoint con la forma de B.204, y lo dimos por cerrado diciendo que eran tres (14/09/2026)
+
+`POST /api/index-text` —el guardado del modal de Mejora— **recibe
+`originalStoragePath` del cliente**, lo **descarga con el cliente de servicio**
+(`:205-207`) para conservar la estructura del original, y al terminar lo **BORRA**
+(`:361-363`). No importa nada de `lib/subida/`, no pregunta por la pertenencia de
+la ruta, y **nunca estuvo en la lista de los tres**.
+
+⚠️ **ES LA MISMA FORMA Y EN UNA VARIANTE PEOR: aquéllos LEÍAN; éste además
+BORRA.** Una ruta ajena aquí no devuelve contenido: destruye el fichero temporal
+de otro.
+
+⚠️ **Y LO QUE HAY QUE RECORDAR NO ES EL ENDPOINT: ES QUE EL RECUENTO ERA
+INCOMPLETO.** La ficha de B.204 dice «Y NO ES UNO, SON TRES» y enumera tres. Eran
+cuatro. **Cerramos un hallazgo de seguridad con un recuento que nadie volvió a
+comprobar**, y el cuarto apareció por accidente, mirando otra cosa cinco días
+después. La enumeración se hizo leyendo los endpoints que descargaban de Storage;
+`index-text` no salió porque su parámetro se llama `originalStoragePath` y no
+`storagePath`.
+
+**Y es la segunda vez en esta misma pieza**: el commit 3 esperaba tres emisores en
+el cliente y había **cinco**. Dos recuentos, los dos cortos, los dos hechos de
+memoria sobre una lista que se creía completa.
+
+**No se arregla aquí.** Migrarlo a la referencia firmada es una pieza con su
+decisión: el fichero que lee no es el de una subida cualquiera, es el original de
+un documento que se está corrigiendo, y hay que mirar si la `ref` sigue viva en ese
+momento —el modal puede estar abierto horas— antes de exigirla.
+
 ---
 
 # 6 · EL CRITERIO DE SALIDA, PUNTO POR PUNTO
