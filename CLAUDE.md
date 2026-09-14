@@ -292,6 +292,24 @@ El dueño del proyecto NO es programador. Vercel deploya automáticamente al hac
   estaba; éste es el INVERSO y es NUESTRO — damos por inexistente algo que sí
   está, y proponemos construir lo construido. Se caza igual y solo así: abriendo
   el consumidor antes de escribir la premisa. Promovida el 01/09/2026 (F-94).
+  ⚠️ **Y SU FORMA MÁS CARA, del 14/09/2026: DECIR QUE UN RESIDUO ES BENIGNO ES
+  UNA AFIRMACIÓN SOBRE SU CONSUMIDOR, NO SOBRE EL RESIDUO.** «Benigno» no es una
+  propiedad de lo que queda tirado: es una propiedad de quién lo lee. Sin abrir
+  al lector no se puede saber, y la palabra suena tan razonable que nadie la
+  pide comprobar.
+  El caso: se dictaminó que los vectores huérfanos eran el residuo benigno de un
+  borrado a medias «porque ya hay herramienta que los caza», y de ahí salió una
+  propuesta de INVERTIR el orden del borrado para producirlos a propósito. La
+  herramienta existe, sí — y es una página de administración que alguien tiene
+  que abrir y pulsar. Mientras tanto el lector de verdad es el chat, que los
+  recupera, no encuentra `full_text` porque la fila ya no está, **reconstruye el
+  documento desde los trozos huérfanos** (`rag.ts:336-370`) y lo cita por su
+  nombre. El «residuo benigno» era el producto sirviendo un documento borrado.
+  ⚠️ Lo que lo hace regla y no anécdota: la propuesta estaba APROBADA y a punto
+  de escribirse, y lo único que la paró fue la predicción escrita antes —que
+  obligó a mirar qué pasaba con los huérfanos—. **Una premisa de inacción sobre
+  daño ajeno («eso ya está cubierto») paga la misma evidencia que una de
+  acción.**
 - **UN TIPO QUE NO PUEDE EXPRESAR EL FALLO OBLIGA A INVENTARSE UN VALOR QUE LO
   SIGNIFIQUE, Y ESE VALOR YA SIGNIFICA OTRA COSA.** Si una función puede fallar,
   el fallo va EN EL TIPO DE RETORNO. Lo que no cabe en la firma lo acaba

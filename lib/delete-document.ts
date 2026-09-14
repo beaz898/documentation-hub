@@ -66,6 +66,12 @@ interface DocumentRow {
  * `lib/documents/analisis-del-documento.ts`, para poder ponerlo a prueba.
  *
  * Borrar = (lápida si procede) -> ANÁLISIS -> vectores (capa B.0) -> fila.
+ *
+ * ⚠️ LOS CUATRO PASOS ABORTAN SI FALLAN, Y ESO ES LA GARANTÍA ENTERA. Desde el
+ * 14/09/2026 los vectores también: eran el único que seguía adelante, y seguir
+ * dejaba un documento sin fila pero con vectores — que el chat recupera y
+ * reconstruye. No hay éxito parcial; hay o documento entero o documento
+ * borrado entero.
  * El caller crea el SupabaseClient con service role y resuelve el orgId.
  */
 export async function deleteDocument(
@@ -199,6 +205,46 @@ export async function deleteDocument(
 
   result.vectorsDeleted = filterOk || idsOk;
 
+  // ⚠️ EL CERROJO DE LOS VECTORES — 14/09/2026. SI NO SE BORRARON, NO SE BORRA
+  // LA FILA.
+  //
+  // ═══════════════════════════════════════════════════════════════════════════
+  // LA ASIMETRÍA QUE PRODUCÍA EL FANTASMA, vista mirando los cuatro pasos
+  // juntos: la lápida aborta si falla, los análisis abortan si fallan, la fila
+  // aborta si falla, y LOS VECTORES ERAN EL ÚNICO QUE SEGUÍA. Se anotaba
+  // `vectorsDeleted = false`, se borraba la fila igual, y al final se devolvía
+  // `ok = false` — o sea que el resultado decía la verdad, pero ya con el daño
+  // hecho.
+  //
+  // QUÉ DEJABA ESO, y no es lo que parece. Un documento sin fila pero CON
+  // vectores no es un residuo dormido: los metadatos de Pinecone siguen
+  // casando con `CORPUS_ACTIVO` (analysisStatus='analizado'), el chat los
+  // recupera, no encuentra `full_text` porque la fila ya no está, y
+  // **RECONSTRUYE EL DOCUMENTO DESDE LOS TROZOS HUÉRFANOS** (rag.ts:336-370),
+  // citándolo por su nombre. El chat contesta con el documento recién borrado.
+  //
+  // ⚠️ Y NO CADUCA: el limpiador de huérfanos es una página de administración
+  // que alguien tiene que abrir y pulsar (app/api/admin/cleanup/page.tsx:180).
+  // No hay barrido automático.
+  //
+  // ⚠️ LA REGLA QUE SALE DE AQUÍ, y costó una ficha equivocada: DECIR QUE UN
+  // RESIDUO ES BENIGNO ES UNA AFIRMACIÓN SOBRE SU CONSUMIDOR, NO SOBRE EL
+  // RESIDUO. B.222 dijo que los huérfanos eran el residuo benigno «porque hay
+  // herramienta que los caza» y propuso invertir el orden para producirlos a
+  // propósito. Nadie había abierto a quien los lee.
+  //
+  // LO QUE QUEDA AHORA SI FALLA: el documento SIGUE EN LA LISTA, sin análisis y
+  // sin vectores. El chat no lo encuentra, el usuario lo ve y vuelve a borrar.
+  // Visible y reparable, que es lo que se quería — sólo que el residuo visible
+  // era éste y no el otro.
+  // ═══════════════════════════════════════════════════════════════════════════
+  if (!result.vectorsDeleted) {
+    result.error =
+      'No se pudieron borrar los vectores del documento (ambas estrategias fallaron). ' +
+      'No se borró el documento: sigue en la lista y puedes volver a intentarlo.';
+    return result;
+  }
+
   // 4. Borrar la fila de documents (verificando .error, patrón C.1c).
   const { error: deleteError } = await supabase
     .from('documents')
@@ -214,15 +260,17 @@ export async function deleteDocument(
 
   // 5. Los analysis_results ya se borraron en el paso 2b (B.112).
 
-  // Éxito solo si TODO lo que debía pasar pasó. Éxito parcial no es éxito.
-  // `analysesDeleted` no entra en la conjunción porque su fallo YA abortó arriba:
-  // si se llega hasta aquí, es true. Ponerlo sería una comprobación que no puede
-  // ser falsa, y las que no pueden ser falsas esconden que otra sí puede.
-  result.ok = result.vectorsDeleted && result.rowDeleted;
-  if (!result.ok && !result.error) {
-    result.error = 'No se pudieron borrar los vectores del documento (ambas estrategias fallaron).';
-  }
-
+  // ⚠️ AQUÍ YA NO HAY CONJUNCIÓN, Y ES A PROPÓSITO. Hasta el 14/09/2026 decía
+  // `ok = vectorsDeleted && rowDeleted`, con un tercer miembro (analysesDeleted)
+  // ya retirado por el mismo motivo: no podía ser falso porque su fallo abortaba
+  // arriba. Con el cerrojo de los vectores puesto, LOS DOS MIEMBROS QUE QUEDABAN
+  // son verdaderos por construcción — cada fallo vuelve antes—, y una
+  // comprobación que no puede ser falsa esconde que otra sí puede.
+  //
+  // ⚠️ QUIEN AÑADA UN PASO DESPUÉS DE ESTA LÍNEA: o devuelve temprano como los
+  // cuatro de arriba, o pone aquí su propia condición. Este `true` no es
+  // optimismo, es el resumen de cuatro puertas cerradas.
+  result.ok = true;
   return result;
 }
 

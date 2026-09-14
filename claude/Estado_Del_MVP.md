@@ -1190,6 +1190,42 @@ decisión de producto.
 
 ## ⚠️ 5.20 · B.222 — el reemplazo destruye antes de construir, y no es recuperable (14/09/2026)
 
+⚠️⚠️ **ESTA FICHA SE ESCRIBIÓ CON UNA PREMISA FALSA, Y LA PREMISA ERA EL
+ARGUMENTO ENTERO. Corregida el 14/09/2026, el mismo día, antes de escribir el
+arreglo que proponía.**
+
+**LO QUE DECÍA**: que el residuo grave era «fila viva sin contenido» y el
+benigno «vectores huérfanos, que ya tienen herramienta que los caza», y que por
+tanto había que **invertir** el orden del borrado —fila primero, vectores
+después— para producir el benigno en vez del grave.
+
+**QUÉ LA FALSIFICÓ, con su línea**: `lib/rag.ts:336-370`. Cuando un documento no
+tiene `full_text`, `buildContext` **reconstruye su contenido desde los trozos de
+Pinecone**. Borrar la fila no toca los metadatos, así que los huérfanos siguen
+casando con `CORPUS_ACTIVO` (`analysisStatus = 'analizado'`): el chat los
+recupera, los reconstruye y los cita por su nombre en `:384`. **Los vectores
+huérfanos no son el residuo benigno: son el producto sirviendo un documento
+recién borrado.** Y no caducan — el limpiador es una página de administración que
+alguien tiene que ir a pulsar (`app/api/admin/cleanup/page.tsx:180`).
+
+**Invertir habría cambiado un fallo visible por uno que sirve contenido borrado**,
+justo lo contrario del objetivo.
+
+**LO QUE SE HIZO EN SU LUGAR, y no es el orden**: mirando los cuatro pasos juntos,
+el de los vectores era **el único que no abortaba** —la lápida aborta, los
+análisis abortan, la fila aborta—. Se le puso el cerrojo: si los vectores no se
+borran, la fila no se borra. El residuo pasa a ser **documento en la lista, sin
+vectores**: el chat no lo encuentra, el usuario lo ve y vuelve a borrar. La
+ventana 1 queda **CERRADA**; la ventana 2 sigue abierta y es el 3b.
+
+**POR QUÉ SE ESCRIBE ASÍ Y NO SE REESCRIBE LIMPIA**: una ficha corregida en
+silencio enseña menos que el error. La clase de premisa que falló —«ese residuo
+ya está cubierto»— es una afirmación **sobre el consumidor**, y se coló porque
+sonaba razonable. Está promovida a regla en `CLAUDE.md`.
+
+---
+
+**LO QUE SEGUÍA SIENDO CIERTO DE LA FICHA ORIGINAL, tal cual se escribió:**
 **HOY NO HA MORDIDO** —el reemplazo funciona y quedó verificado con cifras: id
 nuevo `733b1e35`, `chunk_count 1`, 167 caracteres, un trozo, una generación— pero
 las dos ventanas son reales y salen de leer el orden.
@@ -1291,6 +1327,50 @@ sitio, y el 503 lleva `Retry-After`.
 habría reintentado también a quien de verdad no tiene organización: tres vueltas
 y una espera sobre una respuesta que ya era correcta. Con ella, se puede escribir
 el día que haga falta y sólo sobre `indisponible`.
+
+## ⚠️ 5.23 · B.225 — un documento sin fila sigue siendo servible por el chat (14/09/2026)
+
+**SALIÓ DE MEDIR OTRA COSA**, y es independiente del orden del borrado: se
+encontró comprobando si invertirlo era buena idea, y vale por sí solo.
+
+**EL MECANISMO, leído entero:**
+
+| paso | fichero:línea | qué pasa con un huérfano |
+|---|---|---|
+| filtro de la búsqueda | `pinecone/vectors.ts:98` | `CORPUS_ACTIVO` mira `analysisStatus` en los **metadatos**, no si la fila existe → **casa** |
+| texto completo | `rag.ts:309` | pide `full_text` por id a `documents` → **no hay fila, no hay texto** |
+| montaje del contexto | `rag.ts:336-370` | sin `full_text`, **reconstruye desde los trozos de Pinecone** |
+| cita | `rag.ts:384` | lo nombra: `[Documento: X]` |
+
+⚠️ **Es decir: el chat contesta con el contenido, y además le pone el nombre del
+documento que ya no existe.** Para el usuario es indistinguible de un documento
+vivo.
+
+**LO QUE LO ACOTA, y hay que decirlo para no exagerarlo:**
+
+- Borrar por el camino normal **ya no los produce**: el cerrojo de los vectores
+  (14/09/2026) impide que la fila se vaya si los vectores se quedan.
+- **Pero esta ficha no es sobre ese camino.** Los huérfanos existen por otras
+  vías —la herramienta de limpieza existe precisamente porque los hay— y esta
+  ficha describe **qué pasa con uno cuando existe**, venga de donde venga.
+
+**LO QUE NO SABEMOS, dicho como lo que es:**
+
+- ⚠️ **Cuántos hay hoy: no lo sabemos.** Nadie lo ha contado, y esta ficha no
+  afirma ninguna cifra.
+- **El detector ya existe**: `/api/admin/cleanup-orphans` en modo `dryRun=true`,
+  desde la página de administración. Es una consulta, no un desarrollo.
+- **No hay barrido automático.** El limpiador sólo corre cuando un administrador
+  abre esa página y pulsa. Un huérfano producido hoy sigue servible
+  indefinidamente.
+
+⚠️ **Y LA VECINDAD QUE IMPORTA**: es de la misma familia que la conversación que
+sigue citando lo borrado, pero **sin su caducidad**. Allí el contenido cae solo
+pasados tres turnos; aquí no cae nunca.
+
+**No se decide aquí** — si el filtro debe comprobar la fila, si el barrido debe
+ser automático, o si basta con contarlos una vez, es una decisión con coste en
+cada consulta del chat.
 
 ---
 
