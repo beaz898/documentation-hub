@@ -182,10 +182,29 @@ export async function POST(req: NextRequest) {
         .eq('name', name);
 
       if (nameCollisions && nameCollisions.length > 0) {
-        // Shouldn't normally happen because frontend adds the "(corregido DD/MM/YYYY)"
-        // suffix, but just in case, we append a numeric counter.
+        // ⚠️ B.219 — EL SERVIDOR DICE QUÉ HA PASADO, NO QUÉ HACER (14/09/2026).
+        //
+        // Este mensaje decía «Intenta de nuevo con otro nombre o usa la opción
+        // "Reemplazar"». Las dos salidas eran INALCANZABLES desde la pantalla
+        // que lo recibía: no hay campo de nombre en el modal de Mejora, y el
+        // diálogo de reemplazo no salía para este caso (B.218). Un endpoint
+        // puede decir con autoridad qué ha pasado; en cuanto propone qué hacer
+        // está describiendo una interfaz que no ve, y como era el día que
+        // alguien escribió la cadena.
+        //
+        // Ahora va el HECHO y un `errorType` legible por máquina. Quién tiene
+        // botón que ofrecer lo sabe el cliente, y es quien compone la salida.
+        //
+        // ⚠️ Y EL COMENTARIO QUE HABÍA AQUÍ ERA FALSO POR PARTIDA DOBLE: decía
+        // «shouldn't normally happen» del caso que resultó ser EL NORMAL —el
+        // segundo guardado del mismo día— y prometía «we append a numeric
+        // counter», que no existe en ninguna línea. Se retira.
         return NextResponse.json(
-          { error: `Ya existe un documento con el nombre "${name}". Intenta de nuevo con otro nombre o usa la opción "Reemplazar".` },
+          {
+            error: `Ya existe un documento con el nombre "${name}".`,
+            errorType: 'name_collision',
+            nombre: name,
+          },
           { status: 409 }
         );
       }

@@ -2,6 +2,7 @@
 
 import { useCallback, useState } from 'react';
 import { uploadLockMessage } from '@/lib/upload-lock-message';
+import { nombreDeLaCopiaCorregida } from '@/lib/documents/nombre-corregido';
 
 export interface ExistingDocForIndexing {
   id: string;
@@ -50,14 +51,20 @@ export function useIndexing({
       setShowReplaceDialog(false);
       setIndexing(true);
       try {
-        const today = new Date().toLocaleDateString('es-ES', {
-          day: '2-digit',
-          month: '2-digit',
-          year: 'numeric',
-        });
+        // ⚠️ B.218 — EL NOMBRE SE PREGUNTA, NO SE COMPONE AQUÍ. Hasta el
+        // 14/09/2026 esta función lo componía y `useDocuments` buscaba el
+        // homónimo por su cuenta: dos cálculos que se creían el mismo, y el
+        // diálogo de reemplazo acababa preguntando por un nombre distinto del
+        // que iba a chocar.
+        //
+        // ⚠️ Y AL REEMPLAZAR SE USA EL NOMBRE DEL DOCUMENTO QUE SE REEMPLAZA, no
+        // el del fichero. Antes eran lo mismo siempre —sólo se podía reemplazar
+        // el original— y desde la decisión (c) ya no: reemplazar la copia
+        // corregida con `fileName` la habría RENOMBRADO al original por el
+        // camino.
         const finalName = replaceExisting
-          ? fileName
-          : `${fileName} (corregido ${today})`;
+          ? (existingDocWithSameName?.name ?? fileName)
+          : nombreDeLaCopiaCorregida(fileName, new Date());
 
         const res = await fetch('/api/index-text', {
           method: 'POST',
@@ -93,6 +100,26 @@ export function useIndexing({
           // — cada documento es distinto.
           if (res.status === 409 && err.motivo === 'aplanaria_una_tabla') {
             setPendienteDeAplanar({ texto: currentText, reemplazar: replaceExisting });
+            return;
+          }
+
+          // ⚠️ B.219 — LA SALIDA LA NOMBRA QUIEN TIENE LA PANTALLA. El servidor
+          // manda el hecho («ya existe un documento con ese nombre») y el
+          // `errorType`; el texto de QUÉ HACER se compone aquí, que es el único
+          // sitio que sabe qué botones hay. Antes lo proponía el servidor y
+          // ofrecía dos salidas que esta pantalla no tiene: no hay campo de
+          // nombre, y el diálogo de reemplazo no salía para este caso.
+          //
+          // Las dos que sí existen desde aquí, y por ese orden: volver a pulsar
+          // Guardar —que ahora SÍ ofrece reemplazar la copia corregida (B.218)—
+          // o borrar la anterior desde el corpus.
+          if (res.status === 409 && err.errorType === 'name_collision') {
+            alert(
+              `${err.error}\n\n` +
+              'Las copias corregidas del mismo día comparten nombre, así que ya hay una de hoy.\n\n' +
+              'Vuelve a pulsar Guardar y elige «Reemplazar» para sustituirla, ' +
+              'o bórrala desde el corpus si quieres conservar las dos.'
+            );
             return;
           }
 

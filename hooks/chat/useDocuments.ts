@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from 'react';
 import { tieneOriginalEnLaNube } from '@/lib/documents/origen-en-la-nube';
+import { homonimoParaReemplazar } from '@/lib/documents/nombre-corregido';
 import { createClient } from '@/lib/supabase';
 import { useJobPolling } from './useJobPolling';
 import type { SessionInfo, Document, Message, PendingAnalysis, ImprovementTarget } from './types';
@@ -287,7 +288,22 @@ export function useDocuments(
       //
       // Se pregunta con la MISMA función que el veto: un proveedor nuevo queda
       // fuera el día uno sin que nadie tenga que añadirlo a ninguna lista.
-      const existing = documents.find(d => d.name === fileName && !tieneOriginalEnLaNube(d));
+      // ⚠️ B.218 — SE PREGUNTA POR LOS DOS NOMBRES, no sólo por el de entrada.
+      // Hasta el 14/09/2026 esto buscaba `d.name === fileName` y el servidor
+      // chocaba contra `fileName (corregido <hoy>)`: dos nombres distintos
+      // siempre, así que para el documento que de verdad iba a chocar el diálogo
+      // NO PODÍA SALIR. No fallaba el dato —el corregido está en esta misma
+      // lista— fallaba la pregunta.
+      //
+      // El criterio (c) vive en `nombre-corregido.ts` y aquí sólo se le
+      // pregunta, con el filtro de lo reemplazable DENTRO para que no quede a un
+      // descuido de distancia.
+      const existing = homonimoParaReemplazar(
+        documents,
+        fileName,
+        new Date(),
+        d => !tieneOriginalEnLaNube(d),
+      );
 
       // Si viene de análisis rápido, quitar contradicciones sin verificar.
       // El chat de mejora solo debe trabajar con duplicidades (overlaps).
