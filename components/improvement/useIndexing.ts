@@ -135,6 +135,16 @@ export function useIndexing({
         }
 
         const data = await res.json();
+
+        // ⚠️ B.222 — EL ÉXITO CON AVISO EXISTE, Y HAY QUE PINTARLO. Desde que
+        // el servidor construye antes de destruir, un reemplazo puede guardar
+        // la versión nueva y NO conseguir retirar la anterior. Eso es un éxito
+        // —el documento está a salvo— pero el usuario va a ver dos documentos
+        // con el mismo nombre, y si nadie se lo dice parecerá un fallo suyo.
+        if (typeof data?.aviso === 'string' && data.aviso.length > 0) {
+          alert(data.aviso);
+        }
+
         onIndexed(data?.document?.name || finalName, replaceExisting);
       } catch {
         alert('Error de conexión al indexar.');

@@ -1216,7 +1216,33 @@ el de los vectores era **el único que no abortaba** —la lápida aborta, los
 análisis abortan, la fila aborta—. Se le puso el cerrojo: si los vectores no se
 borran, la fila no se borra. El residuo pasa a ser **documento en la lista, sin
 vectores**: el chat no lo encuentra, el usuario lo ve y vuelve a borrar. La
-ventana 1 queda **CERRADA**; la ventana 2 sigue abierta y es el 3b.
+ventana 1 queda **CERRADA**.
+
+**Y LA VENTANA 2 TAMBIÉN, el mismo día**: el borrado del viejo se movió a
+DESPUÉS de indexar el nuevo, que es el patrón que la casa ya tenía escrito con
+esas palabras en `app/api/drive/sync/route.ts:313`. El fallo pasa a ser dos
+documentos con el mismo nombre —visible, y con la versión nueva ya a salvo— en
+vez de ninguno.
+
+⚠️ **SEGUNDA COSA QUE ESTA FICHA DIJO SIN MIRAR**: que había que revisar «la
+comprobación de colisión, que hoy se apoya en que el viejo ya no está». **No se
+apoya en nada**: vive en el `else` de «no estoy reemplazando», así que en el
+camino del reemplazo no corre. Era una suposición razonable escrita en
+indicativo, y es la segunda de la misma ficha.
+
+✅ **LO QUE APARECIÓ AL MOVERLO, y no estaba previsto**: la «Fuente 2» de
+recuperación de estructura (`index-text` :234-243) lee los segmentos del
+documento que se reemplaza… y el borrado estaba **80 líneas antes**. Leía una
+fila recién borrada: **código muerto desde que se escribió**. Consecuencia
+medible: reemplazar una hoja de cálculo desde la bandeja **siempre** perdía la
+estructura y **siempre** preguntaba si aplanar, aunque el texto estuviera
+intacto. Mover el borrado la resucita.
+
+⚠️ **Y UNA QUE HUBO QUE ARREGLAR PARA QUE ESTO FUERA SEGURO**: el `insert` del
+documento nuevo **no comprobaba su error**. Con el orden viejo era feo y no
+peligroso —el viejo ya no estaba—; con el nuevo, un insert fallido seguido del
+borrado dejaría **cero** documentos. La comprobación no es un extra del cambio:
+es parte de él.
 
 **POR QUÉ SE ESCRIBE ASÍ Y NO SE REESCRIBE LIMPIA**: una ficha corregida en
 silencio enseña menos que el error. La clase de premisa que falló —«ese residuo

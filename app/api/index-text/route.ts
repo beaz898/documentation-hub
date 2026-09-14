@@ -102,7 +102,11 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // If the user chose "replace", delete the old indexed document first
+    /** A quién hay que retirar CUANDO EL NUEVO YA ESTÉ EN PIE. Se apunta aquí
+     *  y se ejecuta al final: ése es todo el cambio de B.222 ventana 2. */
+    let viejoParaRetirar: string | null = null;
+
+    // Si el usuario eligió «reemplazar», aquí se VALIDA el viejo; se retira al final.
     if (replaceExistingId) {
       console.log(`[INDEX-TEXT] Replacing existing document id=${replaceExistingId}`);
       const { data: oldDoc } = await supabase
@@ -144,29 +148,38 @@ export async function POST(req: NextRequest) {
           );
         }
 
-        // d-2b (F-15): borrado con la funcion compartida. Antes se borraba a mano
-        // (deleteVectorsByIds por chunk_count + .delete() crudo), lo que (a) dejaba
-        // vectores huerfanos si chunk_count estaba desfasado, y (b) borraba sin
-        // lapida — si el doc era de Drive, el sync lo reimportaba sin corregir.
-        // deleteDocument usa doble estrategia de vectores (por filtro y por ids) y
-        // escribe lapida SOLO si el doc es de Drive (provider_file_id != null); para
-        // un manual (el unico caso que llega aqui tras el veto por origen, Commit 10)
-        // no escribe lapida, que es lo correcto. Si el borrado falla, NO seguimos:
-        // insertar el nuevo dejando el viejo daria dos documentos.
-        const delResult = await deleteDocument(supabase, {
-          orgId,
-          documentId: replaceExistingId,
-          reason: 'user_excluded',
-          excludedBy: user.id,
-          actorUserId: user.id,
-        });
-        if (delResult.error) {
-          console.error('[INDEX-TEXT] deleteDocument fallo:', delResult.error);
-          return NextResponse.json(
-            { error: 'No se pudo reemplazar el documento anterior. Inténtalo de nuevo.' },
-            { status: 500 },
-          );
-        }
+        // ⚠️ AQUÍ YA NO SE BORRA NADA — 14/09/2026, B.222 ventana 2.
+        //
+        // ═══════════════════════════════════════════════════════════════
+        // SE CONSTRUYE ANTES DE DESTRUIR. Hasta hoy el viejo se borraba AQUÍ,
+        // ~140 líneas antes de generar los embeddings y subir los vectores. Si
+        // algo fallaba en medio —la API de embeddings, la red, el límite de
+        // Pinecone— EL VIEJO YA NO ESTABA Y EL NUEVO NO LLEGABA: el usuario se
+        // quedaba sin ninguna de las dos versiones, y no hay vuelta atrás.
+        //
+        // La casa ya tenía este patrón escrito, con estas palabras, en otro
+        // sitio: `app/api/drive/sync/route.ts:313` dice «Construir antes de
+        // destruir: subir los vectores nuevos primero». El reemplazo del modal
+        // hacía lo contrario y nadie cruzó las dos mitades. Ahora están juntas.
+        //
+        // ⚠️ Y LO QUE ESTO ARREGLA DE PROPINA, QUE NO ES PROPINA: la «Fuente 2»
+        // de recuperación de estructura (más abajo) lee los segmentos del
+        // documento que se reemplaza. Con el borrado aquí, LEÍA UNA FILA QUE
+        // ACABABA DE BORRAR — código muerto desde que se escribió. Resultado:
+        // reemplazar una hoja de cálculo desde la bandeja SIEMPRE perdía la
+        // estructura y SIEMPRE preguntaba si aplanar, incluso con el texto
+        // intacto y la estructura ahí. Mover el borrado la resucita.
+        //
+        // EL FALLO NUEVO, declarado: si el borrado falla DESPUÉS de indexar el
+        // nuevo, quedan DOS documentos con el mismo nombre. Visible en la
+        // lista, detectable, y con la versión nueva ya a salvo — que es
+        // exactamente el residuo que se prefiere.
+        //
+        // ⚠️ NO HAY COMPROBACIÓN DE COLISIÓN QUE ESTORBE, y B.222 decía que sí:
+        // la comprobación vive en el `else` de «no estoy reemplazando», así que
+        // en este camino no corre. Se dijo sin mirar y aquí queda corregido.
+        // ═══════════════════════════════════════════════════════════════
+        viejoParaRetirar = replaceExistingId;
       }
     } else {
       // If NOT replacing, still check for name collision and bump the name if necessary.
@@ -299,7 +312,15 @@ export async function POST(req: NextRequest) {
     const contentHash = generateContentHash(stripSegmentationMarkers(text));
 
     // Save to Supabase
-    await supabase.from('documents').insert({
+    //
+    // ⚠️ ESTE `insert` NO COMPROBABA SU ERROR, y hasta hoy eso era una fea
+    // pero no un peligro: el viejo ya estaba borrado, así que un insert fallido
+    // dejaba al usuario sin nada hiciéramos lo que hiciéramos. Al construir
+    // antes de destruir SE VUELVE CRÍTICO: si el insert falla en silencio y
+    // luego retiramos el viejo, nos quedamos con CERO documentos, que es peor
+    // que lo de ayer. La comprobación no es un extra de este cambio: es parte
+    // de él.
+    const { error: insertError } = await supabase.from('documents').insert({
       id: documentId,
       name,
       size_bytes: sizeBytes || Buffer.byteLength(text, 'utf-8'),
@@ -320,6 +341,43 @@ export async function POST(req: NextRequest) {
       segments,
       extractor_version: EXTRACTOR_VERSION,
     });
+
+    if (insertError) {
+      // El nuevo no llegó. NO se retira el viejo: el usuario conserva lo que
+      // tenía, que es justamente lo que ayer no podía pasar.
+      console.error(`[INDEX-TEXT] insert de documents fallo | doc=${documentId} | ${insertError.message}`);
+      return NextResponse.json(
+        { error: 'No se pudo guardar el documento. Inténtalo de nuevo.' },
+        { status: 500 },
+      );
+    }
+
+    // ── AHORA SÍ: SE RETIRA EL VIEJO ─────────────────────────────────
+    //
+    // El nuevo tiene fila y vectores, así que ya es un documento completo. A
+    // partir de aquí, cualquier fallo deja DOS documentos vivos con el mismo
+    // nombre — visible en la lista y reparable a mano— en vez de ninguno.
+    //
+    // ⚠️ Y SI FALLA, NO SE DEVUELVE 500. Devolver error diría que no se guardó
+    // nada, y se guardó: el usuario iría a buscar su versión nueva y la
+    // encontraría, con lo que el mensaje sería lo único falso de la operación.
+    // Se devuelve éxito CON AVISO, que es lo que de verdad pasó.
+    let avisoDeRetirada: string | null = null;
+    if (viejoParaRetirar) {
+      const delResult = await deleteDocument(supabase, {
+        orgId,
+        documentId: viejoParaRetirar,
+        reason: 'user_excluded',
+        excludedBy: user.id,
+        actorUserId: user.id,
+      });
+      if (!delResult.ok) {
+        console.error(`[INDEX-TEXT] no se pudo retirar el anterior | viejo=${viejoParaRetirar} | nuevo=${documentId} | ${delResult.error ?? 'sin detalle'}`);
+        avisoDeRetirada =
+          'Se guardó la versión corregida, pero no se pudo retirar la anterior: ' +
+          'verás las dos en tu corpus. Borra la antigua desde la lista de documentos.';
+      }
+    }
 
     // ── LA ENTRADA POR INDEXACIÓN (F-86 paso 3, F-87 P2) ──────────────
     //
@@ -389,6 +447,9 @@ export async function POST(req: NextRequest) {
         name,
         chunks: chunks.length,
       },
+      // Presente SOLO si el anterior no se pudo retirar. El cliente lo enseña:
+      // un aviso que nadie pinta es lo mismo que no haberlo detectado.
+      ...(avisoDeRetirada ? { aviso: avisoDeRetirada } : {}),
     });
   } catch (error: unknown) {
     console.error('Error in /api/index-text:', error);
