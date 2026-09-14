@@ -1,3 +1,4 @@
+import { ESTADO_DEL_CORPUS } from '@/lib/documents/estado';
 import type { PineconeRecord, RecordMetadata } from '@pinecone-database/pinecone';
 import { getIndex } from '@/lib/pinecone';
 import {
@@ -95,7 +96,7 @@ async function conReintento<T>(
  *  documentos analizados; en C.8 se ampliará para excluir inertes. La coherencia
  *  se garantiza porque toda transición de estado mantiene la metadata al día
  *  (mark-analyzed, sync/C.3, ingest, index-text lo hacen — verificado). */
-export const CORPUS_ACTIVO = { analysisStatus: { $eq: 'analizado' } };
+export const CORPUS_ACTIVO = { analysisStatus: { $eq: ESTADO_DEL_CORPUS } };
 
 /**
  * Filtro del corpus servible, ampliado opcionalmente con documentos concretos

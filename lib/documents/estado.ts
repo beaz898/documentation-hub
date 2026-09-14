@@ -59,8 +59,24 @@ export type EstadoDeAnalisis = (typeof ESTADOS_DE_ANALISIS)[number];
  * vectorial, y eso no cambia— sino que lo dice en el vocabulario, para que
  * ningún camino de Supabase invente el suyo.
  */
+/**
+ * ⚠️ EL VALOR, UNA SOLA VEZ, PARA LAS DOS FORMAS — 14/09/2026.
+ *
+ * El criterio del corpus se pregunta en dos idiomas: en metadatos de Pinecone
+ * (`CORPUS_ACTIVO`) y en columnas de Supabase (`esElegibleParaCorpus`). Hasta
+ * hoy eran dos literales `'analizado'` en dos ficheros, cada uno con un
+ * comentario diciendo que era «el mismo criterio que el otro» — que es
+ * exactamente cómo dos implementaciones se separan sin que nadie se entere: el
+ * día que C.8 amplíe una, la otra sigue pareciendo correcta por su cuenta.
+ *
+ * Ahora el valor vive aquí y las dos formas lo importan. Siguen siendo dos
+ * formas —una es un filtro vectorial y la otra un predicado— pero de una sola
+ * definición.
+ */
+export const ESTADO_DEL_CORPUS = 'analizado' as const;
+
 export function esElegibleParaCorpus(estado: EstadoDeAnalisis): boolean {
-  return estado === 'analizado';
+  return estado === ESTADO_DEL_CORPUS;
 }
 
 /**

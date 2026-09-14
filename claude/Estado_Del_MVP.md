@@ -1398,6 +1398,54 @@ pasados tres turnos; aquí no cae nunca.
 ser automático, o si basta con contarlos una vez, es una decisión con coste en
 cada consulta del chat.
 
+
+## ⚠️ 5.24 · B.226 — el chat decía no tener acceso a un documento que sí estaba (14/09/2026)
+
+**LO QUE VIO EL DIRECTOR**: preguntó por un documento suyo por su nombre y el
+chat contestó que no tenía acceso a él.
+
+**EL MECANISMO, y no era mentira desde dentro**: el nombre del fichero **no está
+en el texto embebido** —`chunkSegments` mete `{ text: trozo }` y nada más—, así
+que la pregunta se comparaba contra trozos que no contienen el nombre. Sin
+parecido de contenido, nada pasaba el umbral y `rag.ts` devolvía, **sin llamar
+siquiera al modelo**, «asegúrate de que los documentos han sido subidos al
+sistema». Estaba subido.
+
+⚠️ **LO PEOR NO ERA NO ENCONTRARLO: ERA LA CONCLUSIÓN.** De «no encontré
+parecido» salía una afirmación sobre SU corpus. Es la familia de B.219 —quien no
+puede saber algo, no lo afirma— en el sitio donde más se nota.
+
+**ARREGLADO, y el criterio es el que importa**: no se clasifica la intención de
+la pregunta —eso hay que acertarlo cada vez— sino que se compara contra la
+**lista cerrada** de nombres del corpus. Si ningún documento se llama como algo
+que hay en la frase, no pasa nada y el comportamiento es el de ayer: **falla
+hacia lo de hoy por construcción, no por calibrado**.
+
+**Lo estrecho, a sabiendas**: el nombre tiene que llevar **extensión**. Se
+descartó aceptar el nombre a secas porque un documento llamado `Contrato.pdf` se
+activaría con «¿qué dice el contrato?», que es una pregunta legítima sobre el
+contenido. Se puede ampliar el día que se quede corto; al revés no.
+
+**Las tres salidas, ahora separadas:**
+
+| situación | qué dice |
+|---|---|
+| lo nombra y el contenido responde | responde |
+| lo nombra y el contenido **no** responde | **«está en tu documentación, pero no encuentro dentro nada que responda a esto»** ← la que no podía decir |
+| no nombra nada y no hay parecido | que no encontró información, **y cómo escribir el nombre** — ya no manda subir lo que ya está subido |
+
+**EL COSTE, declarado**: una consulta más (`id, name`) por pregunta. Se evita en
+la mayoría: un nombre con extensión no puede ser subcadena de una pregunta sin
+punto, así que si la pregunta no tiene punto no se consulta. Es una condición
+**necesaria**, no suficiente — no puede descartar un caso bueno.
+
+**Y falla cerrada**: si esa consulta no contesta, la lista sale vacía y el chat
+se comporta como ayer. Un fallo de la base no puede convertirse en «ese
+documento no existe», que es justo lo que esta ficha cierra.
+
+⚠️ **NO EJERCIDO EN PRODUCCIÓN TODAVÍA.** Se apoya en 23 casos y cuatro
+mutantes, no en una pantalla. Lo que hay que mirar está en el censo.
+
 ---
 
 # 6 · EL CRITERIO DE SALIDA, PUNTO POR PUNTO

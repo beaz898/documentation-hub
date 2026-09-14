@@ -767,3 +767,56 @@ he visto**.
 
 Tres de las cuatro entradas de arriba dependen de esas respuestas. Por eso el
 cruce es del usuario y no mío.
+
+---
+
+# AÑADIDO EL 14/09/2026 — lo ejercido en pantalla, y lo que cada cosa prueba
+
+## ✅ EJERCIDO POR EL DIRECTOR, con lo que NO prueba dicho al lado
+
+| qué hizo | qué se vio | qué prueba | ⚠️ qué **no** prueba |
+|---|---|---|---|
+| **borrar un documento** | desaparece de la lista y el chat deja de encontrarlo | que el camino sano del borrado sigue entero tras cambiarle el orden | **NO prueba el cerrojo de los vectores.** Ese estado necesita que Pinecone falle mientras la base va bien, y eso no se provoca con ningún gesto |
+| **reemplazar desde Mejora** | queda **un solo** documento, con el texto nuevo | que «construir antes de destruir» no rompió el reemplazo | no prueba la ventana que cierra: para verla haría falta que la indexación fallase a mitad |
+
+**La evidencia del cerrojo es la batería y sus mutantes**, y se dice así. Un
+mutante que devuelva el orden de ayer mata dos casos.
+
+## ⚠️ UN CAMINO SIN POBLACIÓN ALCANZABLE — la recuperación de estructura al reemplazar
+
+**Medido el 14/09/2026 contra el corpus real: las ONCE hojas de cálculo del
+director son de OneDrive, todas con `provider_file_id`.** Ninguna puede seguir
+ese camino, porque el veto de origen en la nube las rechaza antes.
+
+**Y no es que falten documentos: es que las dos vías que meten cosas en la
+bandeja no producen ese caso.**
+
+| vía | estado en que entra | por qué no sirve |
+|---|---|---|
+| subida por el chat | `analizado` si el análisis termina | no pasa por la bandeja. Y si se cancela, el documento **se descarta entero** |
+| sincronización de Drive/OneDrive | `pendiente` | **vetado** por tener original en la nube |
+
+⚠️ **Eso es un dato sobre el producto, no una carencia de la prueba.** Un camino
+cuya población no se alcanza con gestos normales está escrito para una situación
+que hoy no ocurre. No se retira nada y no se propone nada: queda anotado aquí
+para cuando aparezca la población, junto a los demás que esperan.
+
+**La única forma de provocarlo, medida y descartada**: subir un documento y,
+mientras se analiza, subir el `.xlsx` — el segundo choca con el candado de
+análisis y entra `pendiente`. **Cuesta 10 créditos, 5 de ellos tirados**, porque
+el candado se adquiere después del cobro y el único reembolso es por caídas de
+etapa. No compensa para ver un diálogo que no aparece.
+
+## ENTREGADO SIN EJERCER — la búsqueda por nombre en el chat
+
+La pieza que hace que preguntar por `informe.xlsx` encuentre `informe.xlsx`
+**entra sin ejercer en producción**: se apoya en 23 casos y cuatro mutantes, no
+en una pantalla. Lo que hay que mirar cuando se ejerza, y por este orden:
+
+1. preguntar por un documento **escribiendo su nombre con extensión** y que lo
+   encuentre;
+2. preguntar por algo que ese documento **no contiene**, y que el chat diga que
+   el documento **está** pero que no encuentra dentro la respuesta — **ésa es la
+   frase que hoy no podía decir**;
+3. hacer preguntas normales y comprobar que **nada cambió**: ningún nombre de
+   documento se activa sin que se escriba entero.

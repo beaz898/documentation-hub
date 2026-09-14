@@ -16,6 +16,12 @@
  */
 
 import { queryVectors, CORPUS_ACTIVO } from './pinecone/vectors';
+import { ESTADO_DEL_CORPUS } from './documents/estado';
+import {
+  documentosNombrados,
+  laPreguntaPodriaNombrarUnFichero,
+  type DocumentoNombrable,
+} from './chat/documentos-nombrados';
 import { generateQueryEmbedding } from './embeddings';
 import { callLLMWithUsage } from './analysis/llm-client';
 import type { SupabaseClient } from '@supabase/supabase-js';
@@ -60,7 +66,15 @@ REGLAS:
 12. SIEMPRE basa tus respuestas en la documentación proporcionada. Puedes usar tus propias palabras para explicar, pero el contenido debe estar fundamentado en los documentos. Si no encuentras información relevante en la documentación para responder la pregunta, dilo claramente.
 13. Cuando el usuario te pregunte si has usado la documentación, responde con honestidad. Si tu respuesta se basó en los documentos proporcionados, confírmalo y cita las fuentes específicas. Puedes explicar conceptos con tus propias palabras para hacerlos más comprensibles, eso no significa que estés inventando información. La diferencia es: inventar es decir algo que no está en ningún documento; reformular es explicar lo mismo con palabras más sencillas, lo cual es correcto y deseable. Si alguna parte de tu respuesta fue más allá de lo que dicen los documentos, indica claramente qué parte es interpretación tuya y qué parte viene de la documentación.
 ${orgRulesBlock}
-14. Cuando los documentos contienen datos tabulares (tablas, listas, registros), elige el formato de respuesta que mejor se adapte a la pregunta del usuario. Usa prosa natural o listas simples para respuestas directas. Usa tablas solo cuando el usuario pida explícitamente un formato de cuadrícula, comparativa o tabla, o cuando la respuesta tenga muchas columnas y filas donde una tabla sea claramente más legible. Nunca uses formato de tabla Markdown como formato por defecto.`;
+15. ⚠️ TRES SITUACIONES DISTINTAS, Y NO SE CONFUNDEN. (a) Si encuentras la
+respuesta en los documentos, respóndela. (b) Si un documento viene marcado como
+INCLUIDO PORQUE EL USUARIO LO NOMBRÓ y su contenido no responde a la pregunta,
+di que ESE DOCUMENTO SÍ ESTÁ en su documentación pero que no encuentras dentro
+nada que responda a lo que pregunta — y, si puedes, di brevemente de qué trata.
+(c) NUNCA afirmes que un documento no existe o que no tienes acceso a él: lo que
+puedes afirmar es que no encuentras la información, nunca que el documento no
+está.
+16. Cuando los documentos contienen datos tabulares (tablas, listas, registros), elige el formato de respuesta que mejor se adapte a la pregunta del usuario. Usa prosa natural o listas simples para respuestas directas. Usa tablas solo cuando el usuario pida explícitamente un formato de cuadrícula, comparativa o tabla, o cuando la respuesta tenga muchas columnas y filas donde una tabla sea claramente más legible. Nunca uses formato de tabla Markdown como formato por defecto.`;
 }
 
 export interface ConversationMessage {
@@ -172,11 +186,25 @@ export async function queryRAG(
     filter: CORPUS_ACTIVO,
   });
 
-  // Si no hay resultados relevantes, no llamamos al LLM
-  if (matches.length === 0 || (matches[0].score && matches[0].score < MIN_SCORE)) {
+  // ── LO QUE LA PREGUNTA NOMBRA, QUE LA SIMILITUD NO PUEDE VER ──────────
+  //
+  // El nombre del fichero NO está en el texto embebido, así que preguntar por él
+  // compara esa frase contra trozos que no lo contienen. Va ANTES de las dos
+  // salidas tempranas: el caso que rompió esto era precisamente uno que no
+  // llegaba al modelo.
+  const nombrados = await documentosNombradosDelCorpus(supabase, orgId, question);
+
+  // Si no hay resultados relevantes NI documentos nombrados, no llamamos al LLM
+  if (nombrados.length === 0 && (matches.length === 0 || (matches[0].score && matches[0].score < MIN_SCORE))) {
     return {
       answer:
-        'No encontré información relevante sobre esto en la documentación disponible. Asegúrate de que los documentos relacionados con tu pregunta han sido subidos al sistema.',
+        // ⚠️ YA NO DICE «asegúrate de que han sido subidos». Esa frase le dijo al
+        // director que subiera un documento que ya estaba subido: era una
+        // conclusión sobre SU corpus sacada de no haber encontrado parecido. Lo
+        // que sí se puede decir es qué hacer para que la búsqueda por nombre
+        // entre, que no afirma nada sobre lo que hay o no hay.
+        'No encontré información relevante sobre esto en la documentación disponible. ' +
+        'Si te refieres a un documento concreto, escribe su nombre completo con su extensión (por ejemplo, informe.xlsx).',
       sources: [],
       usage: { inputTokens: 0, outputTokens: 0 },
       noContext: true,
@@ -186,7 +214,12 @@ export async function queryRAG(
   }
 
   // 3. Identificar los documentos relevantes (deduplicar por documentId)
-  const docScores = new Map<string, { documentId: string; documentName: string; maxScore: number; chunks: Set<number>; totalChunks: number }>();
+  const docScores = new Map<string, {
+    documentId: string; documentName: string; maxScore: number;
+    chunks: Set<number>; totalChunks: number;
+    /** Llegó porque la pregunta lo nombra, no porque se pareciera. */
+    porNombre?: boolean;
+  }>();
   for (const m of matches) {
     if (!m.metadata || typeof m.score !== 'number' || m.score < MIN_SCORE) continue;
     const docId = String(m.metadata.documentId || '');
@@ -210,6 +243,27 @@ export async function queryRAG(
   // Si se descartan, hay que decirselo al usuario (A.1): una respuesta
   // incompleta en silencio es peor que una respuesta con aviso.
   const relevantDocsFound = docScores.size;
+
+  // ⚠️ LOS NOMBRADOS SE AÑADEN, NO SUSTITUYEN. Nada de lo que hoy se encuentra
+  // por contenido se deja de encontrar: esto sólo puede sumar documentos. Y los
+  // que la similitud YA trajo no se duplican — se marcan, para que el modelo
+  // sepa cuáles llegaron por nombre y pueda decir la frase que hoy no puede
+  // decir: «está en tu documentación, pero no encuentro dentro nada que
+  // responda a esto».
+  for (const doc of nombrados) {
+    const yaEsta = docScores.get(doc.id);
+    if (yaEsta) { yaEsta.porNombre = true; continue; }
+    docScores.set(doc.id, {
+      documentId: doc.id,
+      documentName: doc.name,
+      // Puntuación 0: no compitió por similitud. Va al final del orden, así que
+      // nunca desplaza a un documento que sí era relevante.
+      maxScore: 0,
+      chunks: new Set<number>(),
+      totalChunks: 0,
+      porNombre: true,
+    });
+  }
 
   // Ordenar por score y limitar
   const topDocs = [...docScores.values()]
@@ -295,6 +349,44 @@ PREGUNTA DEL USUARIO: ${question}`;
 // ============================================================
 
 /**
+ * LOS DOCUMENTOS DEL CORPUS QUE LA PREGUNTA NOMBRA.
+ *
+ * ⚠️ LA CONSULTA SÓLO SE HACE SI PUEDE HABER COINCIDENCIA. Un nombre con
+ * extensión no puede ser subcadena de una pregunta que no tenga un punto, así
+ * que la mayoría de las preguntas no pagan nada. No es una optimización
+ * oportunista: es una condición NECESARIA, y por eso no puede descartar un caso
+ * bueno.
+ *
+ * ⚠️ Y FALLA CERRADA: si la consulta no contesta, se devuelve la lista vacía y
+ * el chat se comporta exactamente como ayer. Un fallo de la base no puede
+ * convertirse en «este documento no existe» — que es justo el error que esta
+ * pieza viene a cerrar.
+ *
+ * El filtro del estado NO se escribe aquí a mano: sale de `ESTADO_DEL_CORPUS`,
+ * la misma definición de la que sale el filtro de Pinecone.
+ */
+async function documentosNombradosDelCorpus(
+  supabase: SupabaseClient,
+  orgId: string,
+  question: string,
+): Promise<DocumentoNombrable[]> {
+  if (!laPreguntaPodriaNombrarUnFichero(question)) return [];
+
+  const { data, error } = await supabase
+    .from('documents')
+    .select('id, name')
+    .eq('org_id', orgId)
+    .eq('analysis_status', ESTADO_DEL_CORPUS);
+
+  if (error || !data) {
+    console.warn('[RAG] no se pudo leer la lista de documentos para buscar por nombre:', error?.message);
+    return [];
+  }
+
+  return documentosNombrados(question, data as DocumentoNombrable[]);
+}
+
+/**
  * Recupera el texto completo de los documentos desde Supabase.
  * Si un documento no tiene full_text (aún no se migró), reconstruye
  * desde los chunks de Pinecone como fallback.
@@ -333,8 +425,17 @@ async function fetchFullTexts(
  *
  * Respeta MAX_CONTEXT_CHARS para no exceder el contexto.
  */
-function buildContext(
-  topDocs: Array<{ documentId: string; documentName: string; maxScore: number }>,
+/**
+ * ⚠️ SE EXPORTA PARA PODER PROBARLA, Y NO ES UN CAPRICHO: el 14/09/2026 una
+ * edición mecánica se llevó por delante la línea `totalChars += …` de este
+ * bucle. Ni el compilador ni las 961 pruebas dijeron nada —`totalChars` seguía
+ * declarado y leído— y el efecto era que **el tope de contexto dejaba de
+ * aplicarse**: con el acumulador clavado en cero, todos los documentos entraban
+ * enteros. Lo cazó mirar el fichero. Un límite sin prueba es un límite que se
+ * puede borrar sin que nadie se entere.
+ */
+export function buildContext(
+  topDocs: Array<{ documentId: string; documentName: string; maxScore: number; porNombre?: boolean }>,
   fullTexts: Map<string, string>,
   matches: Array<{ metadata?: Record<string, unknown>; score?: number }>,
 ): string {
@@ -381,8 +482,24 @@ function buildContext(
       }
     }
 
-    sections.push(`[Documento: ${doc.documentName}]\n${docContent}`);
-    totalChars += docContent.length;
+    // ⚠️ LA MARCA ES LO QUE HACE POSIBLE LA SEGUNDA FRASE. Sin ella, un
+    // documento traído por su nombre llega al modelo indistinguible de uno que
+    // la búsqueda consideró relevante, y el modelo no puede decir «esto está en
+    // tu documentación pero no responde a lo que preguntas» — que es justo lo
+    // que el chat no sabía decir el día que afirmó no tener acceso.
+    const cabecera = doc.porNombre
+      ? `[Documento: ${doc.documentName} — INCLUIDO PORQUE EL USUARIO LO NOMBRÓ]`
+      : `[Documento: ${doc.documentName}]`;
+
+    // Un documento nombrado del que no se pudo recuperar contenido NO se calla:
+    // que exista y que se pueda leer son dos cosas distintas, y decir la primera
+    // sin la segunda es lo que hay que poder hacer.
+    const cuerpo = docContent.trim().length > 0
+      ? docContent
+      : '(este documento existe en la documentación, pero no se ha podido recuperar su contenido)';
+
+    sections.push(`${cabecera}\n${cuerpo}`);
+    totalChars += cuerpo.length;
   }
 
   return sections.join('\n\n---\n\n');
