@@ -12,7 +12,8 @@ import { lecturaDelDocumento } from '@/lib/documents/lectura-dual';
 import type { ExtractedSegment } from '@/lib/chunking';
 import { saveDocumentChunks } from '@/lib/persist-chunks';
 import { randomUUID } from 'crypto';
-import { resolveOrg } from '@/lib/org';
+import { resolverOrg } from '@/lib/org';
+import { respuestaDeOrgNoResuelta } from '@/lib/org-respuesta';
 import { generateContentHash } from '@/lib/analysis/hash-check';
 import { checkUploadLock } from '@/lib/upload-lock';
 import { getStagedForDocument } from '@/lib/document-staged';
@@ -44,13 +45,9 @@ export async function POST(req: NextRequest) {
     const supabase = createServiceClient();
 
     // Resolver organización
-    const org = await resolveOrg(supabase, user.id);
-    if (!org) {
-      return NextResponse.json(
-        { error: 'No perteneces a ninguna organización. Contacta con el administrador.' },
-        { status: 403 }
-      );
-    }
+    const orgR = await resolverOrg(supabase, user.id);
+    if (!orgR.resuelta) return respuestaDeOrgNoResuelta(orgR);
+    const org = orgR.org;
     const orgId = org.orgId;
 
     // Candado (B.64): indexar desde "mejorar con IA" escribe en el corpus.

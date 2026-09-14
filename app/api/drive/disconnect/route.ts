@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import { getAuthenticatedUserHybrid } from '@/lib/supabase-server';
 import { deleteVectorsByIds, deleteVectorsByFilter, buildAllVectorIds } from '@/lib/pinecone/vectors';
-import { resolveOrg } from '@/lib/org';
+import { resolverOrg } from '@/lib/org';
+import { respuestaDeOrgNoResuelta } from '@/lib/org-respuesta';
 
 export async function POST(req: NextRequest) {
   try {
@@ -11,13 +12,9 @@ export async function POST(req: NextRequest) {
 
     const supabase = createServiceClient();
 
-    const org = await resolveOrg(supabase, user.id);
-    if (!org) {
-      return NextResponse.json(
-        { error: 'No perteneces a ninguna organización. Contacta con el administrador.' },
-        { status: 403 }
-      );
-    }
+    const orgR = await resolverOrg(supabase, user.id);
+    if (!orgR.resuelta) return respuestaDeOrgNoResuelta(orgR);
+    const org = orgR.org;
     const orgId = org.orgId;
 
     // Read provider from the connection so we filter documents correctly

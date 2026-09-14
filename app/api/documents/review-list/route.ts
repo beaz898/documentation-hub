@@ -3,7 +3,8 @@ import { tieneOriginalEnLaNube } from '@/lib/documents/origen-en-la-nube';
 import { analisisMasRecientePorDocumento, bloquesDeLaFila, type FilaDeAnalisis } from '@/lib/documents/analisis-del-documento';
 import { createServiceClient } from '@/lib/supabase';
 import { getAuthenticatedUserHybrid } from '@/lib/supabase-server';
-import { resolveOrg } from '@/lib/org';
+import { resolverOrg } from '@/lib/org';
+import { respuestaDeOrgNoResuelta } from '@/lib/org-respuesta';
 
 /**
  * GET /api/documents/review-list
@@ -51,13 +52,9 @@ export async function GET(req: NextRequest) {
 
   const supabase = createServiceClient();
 
-  const org = await resolveOrg(supabase, user.id);
-  if (!org) {
-    return NextResponse.json(
-      { error: 'No perteneces a ninguna organizacion.' },
-      { status: 403 },
-    );
-  }
+  const orgR = await resolverOrg(supabase, user.id);
+  if (!orgR.resuelta) return respuestaDeOrgNoResuelta(orgR);
+  const org = orgR.org;
   const orgId = org.orgId;
 
   // 0) Versiones staged pendientes de la org (nueva version en vuelo, C.4d-2a).

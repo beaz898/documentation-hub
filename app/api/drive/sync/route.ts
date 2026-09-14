@@ -12,7 +12,8 @@ import { saveDocumentChunks, deleteDocumentChunksForGeneration } from '@/lib/per
 import { randomUUID } from 'crypto';
 import { decrypt, encrypt } from '@/lib/crypto';
 import { generateContentHash } from '@/lib/analysis/hash-check';
-import { resolveOrg } from '@/lib/org';
+import { resolverOrg } from '@/lib/org';
+import { respuestaDeOrgNoResuelta } from '@/lib/org-respuesta';
 import { getOrgFeatures } from '@/lib/plan-features';
 import { getProvider } from '@/lib/drive/registry';
 
@@ -27,13 +28,9 @@ export async function POST(req: NextRequest) {
 
     const supabase = createServiceClient();
 
-    const org = await resolveOrg(supabase, user.id);
-    if (!org) {
-      return NextResponse.json(
-        { error: 'No perteneces a ninguna organización. Contacta con el administrador.' },
-        { status: 403 }
-      );
-    }
+    const orgR = await resolverOrg(supabase, user.id);
+    if (!orgR.resuelta) return respuestaDeOrgNoResuelta(orgR);
+    const org = orgR.org;
     const orgId = org.orgId;
 
     // Candado (B.64): el sync es una mutación mayor del corpus (escribe, actualiza
@@ -571,13 +568,9 @@ export async function GET(req: NextRequest) {
 
     const supabase = createServiceClient();
 
-    const org = await resolveOrg(supabase, user.id);
-    if (!org) {
-      return NextResponse.json(
-        { error: 'No perteneces a ninguna organización. Contacta con el administrador.' },
-        { status: 403 }
-      );
-    }
+    const orgR = await resolverOrg(supabase, user.id);
+    if (!orgR.resuelta) return respuestaDeOrgNoResuelta(orgR);
+    const org = orgR.org;
     const orgId = org.orgId;
 
     const featuresGet = await getOrgFeatures(supabase, orgId);

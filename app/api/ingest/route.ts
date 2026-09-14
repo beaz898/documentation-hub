@@ -11,7 +11,8 @@ import { esReemplazableAMano } from '@/lib/documents/origen';
 import { retirarLoViejo } from '@/lib/documents/retirar-version';
 import { randomUUID } from 'crypto';
 import { generateContentHash } from '@/lib/analysis/hash-check';
-import { resolveOrg } from '@/lib/org';
+import { resolverOrg } from '@/lib/org';
+import { respuestaDeOrgNoResuelta } from '@/lib/org-respuesta';
 import { checkUploadLock } from '@/lib/upload-lock';
 import { resolverOrigenDelFichero } from '@/lib/subida/referencia';
 import { secretoDeFirma } from '@/lib/analysis/secreto';
@@ -49,13 +50,9 @@ export async function POST(req: NextRequest) {
     const supabase = createServiceClient();
 
     // Resolver organización
-    const org = await resolveOrg(supabase, user.id);
-    if (!org) {
-      return NextResponse.json(
-        { error: 'No perteneces a ninguna organización. Contacta con el administrador.' },
-        { status: 403 }
-      );
-    }
+    const orgR = await resolverOrg(supabase, user.id);
+    if (!orgR.resuelta) return respuestaDeOrgNoResuelta(orgR);
+    const org = orgR.org;
     const orgId = org.orgId;
 
     // Verificar bloqueo de subidas

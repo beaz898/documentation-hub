@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import { getAuthenticatedUserHybrid } from '@/lib/supabase-server';
-import { resolveOrg } from '@/lib/org';
+import { resolverOrg } from '@/lib/org';
+import { respuestaDeOrgNoResuelta } from '@/lib/org-respuesta';
 
 /** Tiempo máximo de bloqueo antes de expiración automática (ms). */
 const MAX_LOCK_DURATION_MS = 60 * 60 * 1000; // 60 minutos
@@ -23,10 +24,9 @@ export async function GET(req: NextRequest) {
     const user = await getAuthenticatedUserHybrid(req);
     if (!user) return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
 
-    const org = await resolveOrg(supabase, user.id);
-    if (!org) {
-      return NextResponse.json({ error: 'No perteneces a ninguna organización.' }, { status: 403 });
-    }
+    const orgR = await resolverOrg(supabase, user.id);
+    if (!orgR.resuelta) return respuestaDeOrgNoResuelta(orgR);
+    const org = orgR.org;
 
     const { data: orgData } = await supabase
       .from('organizations')
@@ -84,10 +84,9 @@ export async function POST(req: NextRequest) {
     const user = await getAuthenticatedUserHybrid(req);
     if (!user) return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
 
-    const org = await resolveOrg(supabase, user.id);
-    if (!org) {
-      return NextResponse.json({ error: 'No perteneces a ninguna organización.' }, { status: 403 });
-    }
+    const orgR = await resolverOrg(supabase, user.id);
+    if (!orgR.resuelta) return respuestaDeOrgNoResuelta(orgR);
+    const org = orgR.org;
 
     const body = await req.json();
     const { locked } = body;

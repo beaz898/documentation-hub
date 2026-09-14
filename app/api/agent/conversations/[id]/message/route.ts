@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import { getAuthenticatedUserHybrid } from '@/lib/supabase-server';
-import { resolveOrg } from '@/lib/org';
+import { resolverOrg } from '@/lib/org';
+import { respuestaDeOrgNoResuelta } from '@/lib/org-respuesta';
 import { getOrgFeatures } from '@/lib/plan-features';
 import { estimateCredits, tokensToCredits, reconcileCredits } from '@/lib/agent/credit-calc';
 import { adjustCredits } from '@/lib/credits';
@@ -85,10 +86,9 @@ export async function POST(
 
     const supabase = createServiceClient();
 
-    const orgInfo = await resolveOrg(supabase, user.id);
-    if (!orgInfo) {
-      return NextResponse.json({ error: 'No perteneces a ninguna organización.' }, { status: 403 });
-    }
+    const orgInfoR = await resolverOrg(supabase, user.id);
+    if (!orgInfoR.resuelta) return respuestaDeOrgNoResuelta(orgInfoR);
+    const orgInfo = orgInfoR.org;
     const { orgId } = orgInfo;
 
     const features = await getOrgFeatures(supabase, orgId);

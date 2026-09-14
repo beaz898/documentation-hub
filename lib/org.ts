@@ -244,25 +244,3 @@ export async function resolverOrg(
     },
   };
 }
-
-/**
- * ⚠️ ADAPTADOR CON FECHA DE MUERTE: EL COMMIT SIGUIENTE, HOY MISMO.
- *
- * Existe sólo para que este commit no tenga que tocar 52 ficheros a la vez.
- * Aplasta los dos motivos otra vez a `null`, que es exactamente el defecto que
- * `resolverOrg` arregla — así que mientras esto viva, los endpoints que lo
- * llamen siguen mintiendo igual que ayer, ni más ni menos.
- *
- * NO ES UNA LECTURA DUAL: no hay dos identidades vivas ni ventana de migración.
- * Es un andamio de un commit, y la regla de la casa dice que la nueva no entra
- * sin retirar la vieja. Se retira en el commit siguiente —el del mensaje y el código HTTP—.
- * Si lees esto y sigue aquí
- * mañana, el andamio se quedó puesto y hay que quitarlo.
- */
-export async function resolveOrg(
-  supabase: SupabaseClient,
-  userId:   string,
-): Promise<OrgInfo | null> {
-  const r = await resolverOrg(supabase, userId);
-  return r.resuelta ? r.org : null;
-}

@@ -1228,6 +1228,70 @@ hace lo contrario**, y nadie lo cruzó.
 
 **No se decide aquí.**
 
+## ⚠️ 5.21 · B.223 — dos endpoints escriben la fila con el id del usuario en la columna de la organización (14/09/2026)
+
+**LO ENCONTRÓ CONTAR GUARDAS, NO BUSCARLO.** Al migrar `resolveOrg` había 65
+llamadas y sólo 63 encajaban en alguna de las tres formas de guarda conocidas.
+Las dos que sobraban no devuelven error: **escriben**.
+
+`/api/documentation-gaps` y `/api/feedback` hacían `org?.orgId ?? user.id`. Con
+los dos motivos aplastados en el mismo `null`, **un timeout de la base metía la
+fila con el id del usuario en `org_id`** — una fila en una organización que no
+existe, persistida y en silencio. Es la clase peor: lo que se guarda arrastra su
+fallo; lo que se calcula lo pierde al recalcular.
+
+**LA MITAD QUE YA ESTÁ ARREGLADA**: `indisponible` ya no escribe. Devuelve 503 y
+el cliente reintenta.
+
+⚠️ **LA MITAD QUE SIGUE ABIERTA, Y SE CONSERVÓ A SABIENDAS**: con
+`sin_organizacion` el respaldo a `user.id` **sigue ahí**. Hoy un usuario sin
+organización puede mandar feedback y declarar lagunas, y quitárselo no es
+arreglar un tipo: es decidir que esa gente deje de poder hacerlo. Las tres
+salidas, para que se decida con ellas delante:
+
+| salida | qué pasa con quien no tiene organización | qué pasa con la tabla |
+|---|---|---|
+| dejarlo como está | puede escribir | sigue habiendo filas con `org_id` que no es una organización |
+| 403 también aquí | no puede escribir | la columna vuelve a significar una sola cosa |
+| columna `org_id` anulable | puede escribir | la fila dice la verdad: «sin organización» |
+
+**Y hay filas viejas**: las escritas antes del 14/09/2026 por esta vía no se
+distinguen hoy de las legítimas. Contarlas es una consulta; nadie la ha hecho.
+
+**No se decide aquí.**
+
+## ⚠️ 5.22 · B.224 — los Gateway Timeout de la base: lo medido, y dónde NO está la causa (14/09/2026)
+
+**PARA QUE NO SE INVESTIGUE DOS VECES.** Durante el reemplazo del 14/09 salieron
+403 repetidos que resultaron ser timeouts de la base disfrazados. Lo que se midió
+en el repositorio, con su resultado:
+
+| qué se miró | resultado |
+|---|---|
+| índices de `memberships` | `memberships_org_id_user_id_key UNIQUE(org_id,user_id)`, `idx_memberships_user_id` |
+| índices de `temporary_elevations` | `idx_temp_elevations_active` |
+| forma de las consultas | tres, todas búsquedas por clave |
+| llamadas | 65, desde 54 endpoints, sin caché y sin reintento |
+
+**NINGUNA CONSULTA SE HA VUELTO MÁS CARA.** Lo que subió es el número de
+llamadas, y **parte del aumento es de esta misma serie**: `extract-text` ganó
+`resolveOrg` en `dac6da2a` y `subidas/autorizar` nació en `228239d2`. La bandeja
+además multiplica: por documento, `/text` + `/analyze-v2`, o `mark-analyzed`.
+
+⚠️ **CONCLUSIÓN, Y ES UNA NEGATIVA HONESTA: nada en el repositorio explica que
+una búsqueda por clave tarde treinta segundos.** La causa apunta **fuera** —a la
+instancia de Supabase—, en la misma clase que las políticas RLS del bucket, que
+desde aquí tampoco se pueden leer. Se dice así y no se disfraza de hallazgo.
+
+**LO QUE SÍ ERA NUESTRO YA ESTÁ ARREGLADO**: que el producto lo contara mal. El
+tipo distingue los dos motivos, 64 mensajes en 52 ficheros pasaron a un solo
+sitio, y el 503 lleva `Retry-After`.
+
+**EL REINTENTO NO ENTRÓ, Y ESO ES LO QUE HABILITA EL TIPO.** Sin la distinción
+habría reintentado también a quien de verdad no tiene organización: tres vueltas
+y una espera sobre una respuesta que ya era correcta. Con ella, se puede escribir
+el día que haga falta y sólo sobre `indisponible`.
+
 ---
 
 # 6 · EL CRITERIO DE SALIDA, PUNTO POR PUNTO

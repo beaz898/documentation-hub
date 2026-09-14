@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import { getAuthenticatedUserHybrid } from '@/lib/supabase-server';
-import { resolveOrg } from '@/lib/org';
+import { resolverOrg } from '@/lib/org';
+import { respuestaDeOrgNoResuelta } from '@/lib/org-respuesta';
 import type { AgentConversation, AgentMessage, ConfirmationMode } from '@/lib/agent/types';
 
 // Mismo umbral que el worker (conv-handler.ts) para distinguir turno vivo de fantasma.
@@ -26,10 +27,9 @@ export async function GET(
 
     const supabase = createServiceClient();
 
-    const orgInfo = await resolveOrg(supabase, user.id);
-    if (!orgInfo) {
-      return NextResponse.json({ error: 'No perteneces a ninguna organización.' }, { status: 403 });
-    }
+    const orgInfoR = await resolverOrg(supabase, user.id);
+    if (!orgInfoR.resuelta) return respuestaDeOrgNoResuelta(orgInfoR);
+    const orgInfo = orgInfoR.org;
     const { orgId } = orgInfo;
 
     const { data: conv, error: convErr } = await supabase
@@ -85,10 +85,9 @@ export async function PATCH(
 
     const supabase = createServiceClient();
 
-    const orgInfo = await resolveOrg(supabase, user.id);
-    if (!orgInfo) {
-      return NextResponse.json({ error: 'No perteneces a ninguna organización.' }, { status: 403 });
-    }
+    const orgInfoR = await resolverOrg(supabase, user.id);
+    if (!orgInfoR.resuelta) return respuestaDeOrgNoResuelta(orgInfoR);
+    const orgInfo = orgInfoR.org;
     const { orgId } = orgInfo;
 
     const { data: conv, error: convErr } = await supabase
@@ -180,10 +179,9 @@ export async function DELETE(
 
     const supabase = createServiceClient();
 
-    const orgInfo = await resolveOrg(supabase, user.id);
-    if (!orgInfo) {
-      return NextResponse.json({ error: 'No perteneces a ninguna organización.' }, { status: 403 });
-    }
+    const orgInfoR = await resolverOrg(supabase, user.id);
+    if (!orgInfoR.resuelta) return respuestaDeOrgNoResuelta(orgInfoR);
+    const orgInfo = orgInfoR.org;
     const { orgId } = orgInfo;
 
     const { data: conv, error: convErr } = await supabase

@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import { getAuthenticatedUserHybrid } from '@/lib/supabase-server';
-import { resolveOrg } from '@/lib/org';
+import { resolverOrg } from '@/lib/org';
+import { respuestaDeOrgNoResuelta } from '@/lib/org-respuesta';
 import { getStagedForDocument } from '@/lib/document-staged';
 
 /**
@@ -24,8 +25,9 @@ export async function GET(
   if (!user) return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
 
   const supabase = createServiceClient();
-  const org = await resolveOrg(supabase, user.id);
-  if (!org) return NextResponse.json({ error: 'No perteneces a ninguna organización.' }, { status: 403 });
+  const orgR = await resolverOrg(supabase, user.id);
+  if (!orgR.resuelta) return respuestaDeOrgNoResuelta(orgR);
+  const org = orgR.org;
 
   const { id } = await params;
   const { data: doc, error } = await supabase

@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import { getAuthenticatedUserHybrid } from '@/lib/supabase-server';
-import { resolveOrg } from '@/lib/org';
+import { resolverOrg } from '@/lib/org';
+import { respuestaDeOrgNoResuelta } from '@/lib/org-respuesta';
 
 /**
  * DELETE /api/team/invitations/[id]
@@ -19,10 +20,9 @@ export async function DELETE(
 
     const supabase = createServiceClient();
 
-    const org = await resolveOrg(supabase, user.id);
-    if (!org) {
-      return NextResponse.json({ error: 'No perteneces a ninguna organización.' }, { status: 403 });
-    }
+    const orgR = await resolverOrg(supabase, user.id);
+    if (!orgR.resuelta) return respuestaDeOrgNoResuelta(orgR);
+    const org = orgR.org;
     if (org.role !== 'admin') {
       return NextResponse.json({ error: 'Solo los administradores pueden cancelar invitaciones.' }, { status: 403 });
     }

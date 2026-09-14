@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
-import { resolveOrg } from '@/lib/org';
+import { resolverOrg } from '@/lib/org';
+import { respuestaDeOrgNoResuelta } from '@/lib/org-respuesta';
 import { getOrgFeatures } from '@/lib/plan-features';
 import { getProvider } from '@/lib/drive/registry';
 
@@ -17,13 +18,9 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Token inválido' }, { status: 401 });
     }
 
-    const orgInfo = await resolveOrg(supabase, user.id);
-    if (!orgInfo) {
-      return NextResponse.json(
-        { error: 'No perteneces a ninguna organización. Contacta con el administrador.' },
-        { status: 403 }
-      );
-    }
+    const orgInfoR = await resolverOrg(supabase, user.id);
+    if (!orgInfoR.resuelta) return respuestaDeOrgNoResuelta(orgInfoR);
+    const orgInfo = orgInfoR.org;
 
     const features = await getOrgFeatures(supabase, orgInfo.orgId);
     if (!features.hasDrive) {

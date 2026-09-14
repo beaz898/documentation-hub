@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { resolverOrg, resolveOrg, getEffectiveRole } from './org';
+import { resolverOrg, getEffectiveRole } from './org';
 
 /**
  * LO QUE ESTA BATERÍA DEMUESTRA, Y ES UNA SOLA COSA: que «no perteneces» y «la
@@ -171,26 +171,6 @@ describe('resolverOrg — los dos motivos son distinguibles', () => {
       expect(r.org.nativeRole).toBe('member');
       expect(r.org.isOwner).toBe(true);
     }
-  });
-});
-
-describe('el adaptador `resolveOrg` — lo que aplasta, dicho con un test', () => {
-  it('⚠️ DEVUELVE null PARA LOS DOS MOTIVOS: es el defecto que sobrevive un commit', async () => {
-    const sinOrg = await resolveOrg(clienteFalso({ memberships: [NO_HAY_FILA] }), 'u1');
-    const caida  = await resolveOrg(clienteFalso({ memberships: [BASE_CAIDA] }), 'u1');
-    expect(sinOrg).toBeNull();
-    expect(caida).toBeNull();
-    // Y la prueba de que esto es una PÉRDIDA y no una equivalencia: el que sí
-    // distingue los ve distintos.
-    const a = await resolverOrg(clienteFalso({ memberships: [NO_HAY_FILA] }), 'u1');
-    const b = await resolverOrg(clienteFalso({ memberships: [BASE_CAIDA] }), 'u1');
-    expect(a.resuelta === false && a.motivo).toBe('sin_organizacion');
-    expect(b.resuelta === false && b.motivo).toBe('indisponible');
-  });
-
-  it('y sigue devolviendo la organización cuando la hay', async () => {
-    const r = await resolveOrg(clienteFalso(SANO), 'u1');
-    expect(r?.orgId).toBe('org-1');
   });
 });
 

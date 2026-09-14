@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import { getAuthenticatedUserHybrid } from '@/lib/supabase-server';
-import { resolveOrg } from '@/lib/org';
+import { resolverOrg } from '@/lib/org';
+import { respuestaDeOrgNoResuelta } from '@/lib/org-respuesta';
 
 export async function POST(req: NextRequest) {
   try {
@@ -21,8 +22,23 @@ export async function POST(req: NextRequest) {
     }
 
     // Resolver organización
-    const org = await resolveOrg(supabase, user.id);
-    const orgId = org?.orgId || user.id;
+    // ⚠️ AQUÍ EL FALLO NO DEVOLVÍA ERROR: ESCRIBÍA. Hasta el 14/09/2026 esto
+    // era `org?.orgId || user.id`, así que un timeout de la base metía la fila
+    // con el id del USUARIO en la columna de organización — una fila en una
+    // organización que no existe, persistida y en silencio. Lo que se guarda
+    // arrastra su fallo; lo que se calcula lo pierde al recalcular.
+    //
+    // `indisponible` ya no escribe: 503 y que el cliente reintente.
+    //
+    // ⚠️ Y EL RESPALDO A `user.id` SE CONSERVA PARA `sin_organizacion`, A
+    // SABIENDAS Y SIN DECIDIRLO AQUÍ: hoy un usuario sin organización puede
+    // mandar feedback, y quitárselo sería un cambio de producto, no un arreglo
+    // del tipo. Queda anotado como B.223.
+    const orgR = await resolverOrg(supabase, user.id);
+    if (!orgR.resuelta && orgR.motivo === 'indisponible') {
+      return respuestaDeOrgNoResuelta(orgR);
+    }
+    const orgId = orgR.resuelta ? orgR.org.orgId : user.id;
 
     const { error: insertError } = await supabase.from('feedback').insert({
       user_id: user.id,

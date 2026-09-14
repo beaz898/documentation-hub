@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import { getAuthenticatedUserHybrid } from '@/lib/supabase-server';
-import { resolveOrg } from '@/lib/org';
+import { resolverOrg } from '@/lib/org';
+import { respuestaDeOrgNoResuelta } from '@/lib/org-respuesta';
 import { adjustCredits } from '@/lib/credits';
 import { tokensToCredits, reconcileCredits } from '@/lib/agent/credit-calc';
 import { updateMessageStatus, updateConversationStatus } from '@/lib/agent/persist-conv';
@@ -25,10 +26,9 @@ export async function POST(
 
     const supabase = createServiceClient();
 
-    const orgInfo = await resolveOrg(supabase, user.id);
-    if (!orgInfo) {
-      return NextResponse.json({ error: 'No perteneces a ninguna organización.' }, { status: 403 });
-    }
+    const orgInfoR = await resolverOrg(supabase, user.id);
+    if (!orgInfoR.resuelta) return respuestaDeOrgNoResuelta(orgInfoR);
+    const orgInfo = orgInfoR.org;
     const { orgId } = orgInfo;
 
     const { data: convRow, error: convErr } = await supabase

@@ -4,7 +4,8 @@ import { getAuthenticatedUserHybrid } from '@/lib/supabase-server';
 import { queryRAG } from '@/lib/rag';
 import { logUsage, registrarAveriaDeLimitador } from '@/lib/usage-logger';
 import { checkRateLimit } from '@/lib/rate-limiter';
-import { resolveOrg } from '@/lib/org';
+import { resolverOrg } from '@/lib/org';
+import { respuestaDeOrgNoResuelta } from '@/lib/org-respuesta';
 import { consumeCredits, devolverSiNoSeEntrego, getCreditCost } from '@/lib/credits';
 import { saveChatQuery } from '@/lib/persist-analysis';
 import { usageContext } from '@/lib/observability/usage-context';
@@ -25,13 +26,9 @@ export async function POST(req: NextRequest) {
     userId = user.id;
 
     // Resolver organización
-    const org = await resolveOrg(supabase, userId);
-    if (!org) {
-      return NextResponse.json(
-        { error: 'No perteneces a ninguna organización. Contacta con el administrador.' },
-        { status: 403 }
-      );
-    }
+    const orgR = await resolverOrg(supabase, userId);
+    if (!orgR.resuelta) return respuestaDeOrgNoResuelta(orgR);
+    const org = orgR.org;
     orgId = org.orgId;
 
     // Rate limiting

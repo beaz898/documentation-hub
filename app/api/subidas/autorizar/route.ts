@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import { getAuthenticatedUserHybrid } from '@/lib/supabase-server';
-import { resolveOrg } from '@/lib/org';
+import { resolverOrg } from '@/lib/org';
+import { respuestaDeOrgNoResuelta } from '@/lib/org-respuesta';
 import { secretoDeFirma } from '@/lib/analysis/secreto';
 import { emitirRefDeSubida } from '@/lib/subida/referencia';
 
@@ -52,13 +53,9 @@ export async function POST(req: NextRequest) {
     }
 
     const supabase = createServiceClient();
-    const org = await resolveOrg(supabase, user.id);
-    if (!org) {
-      return NextResponse.json(
-        { error: 'No perteneces a ninguna organización. Contacta con el administrador.' },
-        { status: 403 }
-      );
-    }
+    const orgR = await resolverOrg(supabase, user.id);
+    if (!orgR.resuelta) return respuestaDeOrgNoResuelta(orgR);
+    const org = orgR.org;
 
     const body = await req.json().catch(() => ({}));
     const { fileName } = body as { fileName?: unknown };
