@@ -1160,6 +1160,74 @@ decisión: el fichero que lee no es el de una subida cualquiera, es el original 
 un documento que se está corrigiendo, y hay que mirar si la `ref` sigue viva en ese
 momento —el modal puede estar abierto horas— antes de exigirla.
 
+## ⚠️ 5.19 · B.221 — una conversación abierta sigue citando lo que ya no está en el corpus (14/09/2026)
+
+**MEDIDO EN PANTALLA EL 14/09/2026**: tras reemplazar un documento, el chat siguió
+devolviendo el texto anterior **entero**, hablando de «el documento que me
+proporcionaste» y de «mi respuesta anterior». Dejó de hacerlo al recargar.
+
+**EL MECANISMO, y no es el corpus.** La recuperación es fresca en cada turno —se
+consulta Pinecone de nuevo—, pero **el historial lo manda el CLIENTE**
+(`useChat.ts:24` envía los últimos 6 mensajes; `ask/route.ts:80` los acepta;
+`rag.ts:238` los pasa al modelo como `messages`). Las respuestas anteriores del
+asistente **contienen el texto que citó entonces**, así que el contenido viejo
+vuelve a entrar por la puerta de la conversación aunque ya no esté en el corpus.
+
+⚠️ **Y LA PREGUNTA QUE IMPORTABA, CONTESTADA: SÍ PASA IGUAL CON DOCUMENTOS
+BORRADOS.** No hay nada en el camino que distinga «este contenido sigue vigente» de
+«esto lo cité antes»: es texto en un mensaje anterior. **Contenido retirado a
+propósito sobrevive en la sesión** — que es peor que una versión vieja, porque
+alguien lo quitó queriendo.
+
+**LO QUE LO ACOTA, y hay que decirlo para no exagerarlo**: la ventana son **6
+mensajes** (`MAX_HISTORY_MESSAGES`), o sea unos tres turnos. El contenido viejo cae
+solo pasadas tres preguntas más. Las dos salidas de hoy son **recargar** o **seguir
+hablando**, y ninguna se le dice al usuario.
+
+**No se arregla aquí**: qué hacer —avisar de que el corpus cambió, recortar el
+historial al reemplazar o al borrar, o marcar las citas con su fecha— es una
+decisión de producto.
+
+## ⚠️ 5.20 · B.222 — el reemplazo destruye antes de construir, y no es recuperable (14/09/2026)
+
+**HOY NO HA MORDIDO** —el reemplazo funciona y quedó verificado con cifras: id
+nuevo `733b1e35`, `chunk_count 1`, 167 caracteres, un trozo, una generación— pero
+las dos ventanas son reales y salen de leer el orden.
+
+**VENTANA 1 · dentro de `deleteDocument`**: los vectores se borran (`:179`, `:193`)
+**antes** que la fila (`:204`), y la fila se borra **aunque los vectores hayan
+fallado**. Las dos mitades dejan residuo, y de signo opuesto:
+
+| qué falla | qué queda | cómo de grave |
+|---|---|---|
+| los vectores (ambas vías) | **fila viva sin contenido** | el documento aparece en la lista y el chat no lo encuentra |
+| la fila | **vectores huérfanos** | hay herramienta que los caza y los limpia |
+
+**VENTANA 2 · en `index-text`, y es la peor**: `deleteDocument` corre **antes** de
+generar los *embeddings* y subir los vectores (`:159` frente a `:277` y `:295`). Si
+algo falla en medio, **el viejo ya no está y el nuevo no llega**: el usuario se
+queda **sin ninguna de las dos versiones**.
+
+⚠️ **Y LA CASA YA TIENE EL PATRÓN ESCRITO PARA ESTO**: *efecto antes que registro,
+todo-o-nada, y fallo ruidoso* — «se construye antes de destruir». La
+sincronización de Drive lo aplica literalmente y lo dice en su comentario («Construir
+antes de destruir: subir los vectores nuevos primero»). **El reemplazo del modal
+hace lo contrario**, y nadie lo cruzó.
+
+**EL TAMAÑO, para decidir**:
+- **Invertir el orden dentro de `deleteDocument`** —fila primero, vectores
+  después— convierte el residuo grave en el benigno: si falla la fila no se toca
+  nada; si falla el borrado de vectores, quedan huérfanos, que se detectan y se
+  limpian. Es un bloque movido más su batería, y hay que revisar qué significan
+  `vectorsDeleted` y `ok` para los tres llamadores.
+- **Construir antes de destruir en `index-text`** —indexar el documento nuevo y
+  sólo entonces borrar el viejo— elimina la ventana 2. El fallo pasa a ser **dos
+  documentos con el mismo nombre**: visible, y con herramienta que ya existe.
+  Es mover el bloque del borrado detrás del alta, y revisar la comprobación de
+  colisión, que hoy se apoya en que el viejo ya no está.
+
+**No se decide aquí.**
+
 ---
 
 # 6 · EL CRITERIO DE SALIDA, PUNTO POR PUNTO
