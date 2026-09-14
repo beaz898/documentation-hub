@@ -19,7 +19,13 @@ export interface CoordenadasDeDescarte {
 
 interface UseIndexingParams {
   fileName: string;
+  /** ⚠️ B.220 — YA NO SE MANDA AL SERVIDOR. Se conserva porque la interfaz lo
+   *  usa para saber si hay un temporal que borrar al cerrar; lo que viaja al
+   *  endpoint es la `ref` firmada, nunca la ruta. */
   storagePath?: string;
+  /** B.220 — la referencia firmada de la subida. De ella salen, EN EL SERVIDOR,
+   *  la ruta del original y su nombre. */
+  refDeSubida?: string;
   existingDocWithSameName?: ExistingDocForIndexing | null;
   onIndexed: (docName: string, wasReplaced: boolean) => void;
   /** F-86 paso 3: los «No es error» marcados durante la revisión de un
@@ -31,6 +37,7 @@ interface UseIndexingParams {
 export function useIndexing({
   fileName,
   storagePath,
+  refDeSubida,
   existingDocWithSameName,
   onIndexed,
   dismissedFindings,
@@ -75,7 +82,11 @@ export function useIndexing({
           body: JSON.stringify({
             text: currentText,
             name: finalName,
-            ...(storagePath ? { originalStoragePath: storagePath } : {}),
+            // ⚠️ B.220 — VIAJA LA REFERENCIA, NO LA RUTA. Hasta el 14/09/2026
+            // esto mandaba `originalStoragePath` y el servidor descargaba Y
+            // BORRABA esa ruta con clave de servicio, sin comprobar de quién
+            // era. Era el cuarto endpoint de B.204 y el único que destruye.
+            ...(refDeSubida ? { ref: refDeSubida } : {}),
             replaceExistingId: replaceExisting ? existingDocWithSameName?.id : undefined,
             sizeBytes: new Blob([currentText]).size,
             // ⚠️ B.201: el nombre ORIGINAL, aparte del final. El servidor
@@ -152,7 +163,7 @@ export function useIndexing({
         setIndexing(false);
       }
     },
-    [fileName, storagePath, existingDocWithSameName, onIndexed, dismissedFindings]
+    [fileName, refDeSubida, existingDocWithSameName, onIndexed, dismissedFindings]
   );
 
   const handleIndexClick = useCallback(() => {

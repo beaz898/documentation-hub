@@ -462,6 +462,7 @@ function ImprovementModalDesktop({
   } = useIndexing({
     fileName,
     storagePath,
+    refDeSubida,
     existingDocWithSameName,
     onIndexed,
     // F-86 paso 3: se pasa la FUNCIÓN, no la lista. El usuario puede seguir

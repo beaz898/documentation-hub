@@ -276,6 +276,63 @@ El dueño del proyecto NO es programador. Vercel deploya automáticamente al hac
   sería consultable después—; las mismas filas volcadas en la descripción de un
   solapamiento que nadie pinta eran una FUGA, ~2.200 caracteres a tres prompts.
   Promovida en F-94 P3.
+- **ENUMERAR POR CAPACIDAD, NO POR NOMBRE. TODO HALLAZGO DE LA FORMA «LOS N
+  SITIOS QUE HACEN X» LLEVA EN SU FICHA EL COMANDO DE CENSO QUE DEFINE LA
+  PERTENENCIA, Y CERRARLO EXIGE RE-EJECUTARLO Y QUE DÉ CERO PENDIENTES.**
+  El censo no se hace buscando **cómo se llama** X: se hace buscando **qué hace
+  falta tener** para hacer X. Un censo de memoria muere con la sesión que lo
+  hizo; uno con comando lo puede repetir cualquiera, incluido el que venga
+  dentro de seis meses a comprobar si el cierre sigue siendo verdad.
+  ⚠️ **LA POBLACIÓN SON CINCO CASOS DE UNA SOLA SEMANA, y los cinco son la misma
+  operación fallando: contar los miembros de una clase usando la MEMORIA o el
+  NOMBRE como criterio de pertenencia.**
+    · **«eran tres endpoints» y eran CUATRO** (B.220). El enumerador buscó
+      `storagePath`; la pertenencia real era «acepta ruta del cliente y descarga
+      con clave de servicio». El cuarto llama al suyo `originalStoragePath`, y
+      además BORRA. El hallazgo se cerró en falso.
+    · **«tres emisores» y eran CINCO** — el mismo commit, el mismo día.
+    · **el criterio del corpus en DOS sitios**, `CORPUS_ACTIVO` y
+      `esElegibleParaCorpus`, **cada uno con un comentario jurando ser el otro**.
+      Nadie los contó porque nadie enumeró «quién decide si algo es del corpus».
+    · **una recuperación de estructura muerta desde que se escribió**: leía la
+      fila 80 líneas después de borrarla. Nadie enumeró quién leía tras el
+      borrado.
+    · **el tope de contexto sin vigilante**: una edición mecánica borró su
+      acumulador, el compilador calló y 961 pruebas pasaron enteras. Ninguna
+      lista decía «este valor tiene test».
+  ⚠️ Y LA SEGUNDA MITAD, que es la que dura: **el grep caza lo que existe hoy y
+  no impide el siguiente**. La cura permanente es la de siempre en esta casa
+  —hacer el estado ilegal irrepresentable— aplicada a capacidades: envolver el
+  acceso peligroso en un módulo cuya firma EXIJA la pertenencia comprobada, y
+  vigilar los imports con un test de arquitectura. Promovida el 14/09/2026
+  (F-107 P1).
+- **LOS JUICIOS DE INOCUIDAD, EQUIVALENCIA O AUSENCIA DE EFECTO SON UNIVERSALES
+  SOBRE CONSUMIDORES, Y SE EMITEN SÓLO COMO ENCARGO DE CENSO — NUNCA COMO
+  PREMISA DE UNA ORDEN.** «Es benigno», «da igual el orden», «nadie lo consume»,
+  «son lo mismo»: ninguna de esas es una afirmación sobre la cosa. Todas son
+  afirmaciones sobre **el conjunto completo de sus lectores**.
+  ⚠️ **Y LA ASIMETRÍA ES LO QUE LAS HACE MÁS CARAS QUE UN INDICATIVO NORMAL:**
+  para afirmar «el fichero está en la línea 96» basta **una** lectura; para
+  afirmar «esto es inocuo» hacen falta **todas**. Es el enunciado con la carga de
+  prueba más alta emitido, casi siempre, con la evidencia más baja: cero.
+  **LA TERCERA CLÁUSULA DE LA REGLA DEL INDICATIVO**, y ésta gobierna a quien
+  escribe los encargos: la hipótesis de inocuidad se puede aportar como
+  PREDICCIÓN ESCRITA —falsable, y contada si falla, como toda predicción de esta
+  casa— pero jamás como premisa de una orden. La forma legítima es el encargo:
+  «enumera quién lee o consume X, con su comando de pertenencia, y con la lista
+  delante se juzga».
+  ⚠️ **LA POBLACIÓN ES DEL 14/09/2026 Y ES DE ESTA CASA**: el arquitecto afirmó
+  que los vectores huérfanos eran «el residuo benigno, que ya tiene herramienta
+  que los caza» **y ordenó invertir el orden de un borrado sobre esa premisa**.
+  Medido el consumidor, la premisa era falsa: `rag.ts:336-370` reconstruye el
+  documento desde los trozos cuando no hay `full_text`, así que el «residuo
+  benigno» era **el chat sirviendo un documento recién borrado, citándolo por su
+  nombre y sin caducidad**. Invertir habría cambiado un fallo visible por uno que
+  sirve contenido borrado. **La orden no se ejecutó: murió en el censo, antes del
+  commit** — que es como debe morir un «benigno» falso.
+  Es el mismo animal que la regla de arriba: **«benigno» es una enumeración de
+  consumidores hecha de memoria**, y la cura es la misma —el comando de censo—
+  aplicada a juicios en vez de a hallazgos. Promovida el 14/09/2026 (F-107 P2).
 - **UNA EXPLORACIÓN QUE VERIFICA EL PRODUCTOR NO HA VERIFICADO LA
   FUNCIONALIDAD.** El grifo y la tubería: que algo se calcule, se guarde y viaje
   no dice NADA sobre si alguien lo consume. Antes de afirmar que una

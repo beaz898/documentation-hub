@@ -1155,10 +1155,65 @@ después. La enumeración se hizo leyendo los endpoints que descargaban de Stora
 el cliente y había **cinco**. Dos recuentos, los dos cortos, los dos hechos de
 memoria sobre una lista que se creía completa.
 
-**No se arregla aquí.** Migrarlo a la referencia firmada es una pieza con su
-decisión: el fichero que lee no es el de una subida cualquiera, es el original de
-un documento que se está corrigiendo, y hay que mirar si la `ref` sigue viva en ese
-momento —el modal puede estar abierto horas— antes de exigirla.
+## ✅ CERRADA EL 15/09/2026 — migrado, y el censo re-ejecutado a cero
+
+`index-text` ya no acepta ruta: acepta la **referencia firmada**, y de ella salen
+la ruta **y el nombre del original**. Ese nombre no era cosmético — con él se
+decide `produceTablas`, o sea si este documento tiene filas y columnas que
+proteger, y que esa decisión la tomara una cadena elegida por el cliente era la
+misma familia que la ruta.
+
+⚠️ **LA DECISIÓN QUE ESTA FICHA DEJÓ PENDIENTE —la `ref` vive dos horas y el
+modal puede estar abierto toda una tarde— SE RESUELVE APARTÁNDOSE DE LOS OTROS
+TRES, y queda escrito en el código por qué.** En `extract-text`, `ingest` y
+`analyze-v2` el fichero ES el trabajo: sin él no hay nada que hacer y el 403 es
+la respuesta entera. Aquí el fichero es **opcional** —sirve para recuperar la
+estructura y para barrer el temporal— y el trabajo de verdad es guardar el texto
+que el usuario tiene delante. Un 403 convertiría «tu autorización caducó» en «no
+puedes guardar tu trabajo».
+
+**Sin `ref` válida no se toca el almacén, pero se guarda igual**: falla cerrado
+donde importa (el acceso) y abierto donde no (el guardado). Lo que se pierde
+—estructura del original y barrido del temporal— se registra con su motivo, que
+es el contador del límite. Si algún día `caducada` domina ese registro, la
+respuesta no es alargar la firma a ciegas: es medir cuánto vive de verdad un
+modal abierto.
+
+⚠️ **EL CENSO POR CAPACIDAD, EJECUTADO Y RE-EJECUTADO — y es el estreno de la
+regla que esta ficha pagó.** La pertenencia a la clase no es un nombre de
+parámetro: es «toca el almacén con clave de servicio».
+
+```bash
+# quién accede al almacén, y si pasa por la referencia firmada
+for f in $(grep -rl ".storage" --include=*.ts app/ lib/ worker/ | grep -v test); do
+  ops=$(grep -oE ".(download|remove)(" "$f" | sort -u | tr "
+" " ")
+  [ -n "$ops" ] && echo "$f | ops: $ops | ref: $(grep -c resolverOrigenDelFichero "$f")"
+done
+```
+
+| fichero | operaciones | ref firmada |
+|---|---|---|
+| `app/api/analyze-v2/route.ts` | download | ✅ |
+| `app/api/extract-text/route.ts` | download | ✅ |
+| `app/api/ingest/route.ts` | download · remove | ✅ |
+| `app/api/index-text/route.ts` | download · **remove** | ✅ **desde hoy** |
+| `lib/purge-org.ts` | remove | **no aplica** — itera `memberIds` del servidor y compone las rutas del listado; **no recibe nada del cliente** |
+
+⚠️ **Y EL CENSO SE EQUIVOCÓ LA PRIMERA VEZ QUE LO EJECUTÉ HOY, por la misma vía
+que el de B.204.** El primer `grep` buscaba `storage.from(` en una línea y
+**`extract-text` parte la expresión en dos**, así que no salió. Un censo por
+capacidad escrito con la forma de un nombre sigue siendo un censo por nombre. Se
+rehízo buscando `.storage` a secas.
+
+**Cero pendientes**: no queda ningún emisor de `originalStoragePath` en `app/`,
+`lib/`, `components/` ni `hooks/` — sólo un comentario que cuenta qué se retiró.
+
+⚠️ **SIN BATERÍA NUEVA, Y SE DICE POR QUÉ**: la maquinaria (`emitirRefDeSubida`,
+`resolverRefDeSubida`, los cinco motivos) ya está cubierta en
+`lib/subida/referencia.test.ts`. Lo único nuevo es control de flujo de una ruta,
+y **esta casa no tiene ni un solo test de ruta**. Montar un arnés para ésta sería
+un cambio mayor que la migración.
 
 ## ⚠️ 5.19 · B.221 — una conversación abierta sigue citando lo que ya no está en el corpus (14/09/2026)
 

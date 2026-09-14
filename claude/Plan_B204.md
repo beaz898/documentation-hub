@@ -177,3 +177,89 @@ que es justo el camino que cambia. La tanda está reservada en `Tandas_Harness.m
 - **La tanda se lanza después del commit 4** (o del 3, si alguna vez se funden).
   Entre el 1 y el 3 el transporte está a punto de cambiar, y medirlo ahí es
   comprar la evidencia perecedera que F-106 P2 quería evitar.
+
+---
+
+# ⚠️ EL CIERRE, REHECHO EL 15/09/2026 — porque el primero era falso
+
+**ESTE PLAN SE CERRÓ DICIENDO QUE ERAN TRES ENDPOINTS. ERAN CUATRO.**
+
+El cuarto es `POST /api/index-text`, y no era el menos grave: es el único de la
+familia que, además de descargar con clave de servicio, **BORRA**. Con una ruta
+ajena, los otros tres devolvían contenido; éste destruía el fichero temporal de
+otro.
+
+**POR QUÉ NO SALIÓ, y es lo único que hay que recordar de aquí**: el recuento se
+hizo **enumerando por NOMBRE** —se buscó `storagePath`— y ese parámetro aquí se
+llama `originalStoragePath`. La pertenencia real a la clase nunca fue un nombre:
+era una **capacidad** — «acepta ruta del cliente y toca el almacén con clave de
+servicio». Apareció por accidente cinco días después, mirando otra cosa.
+
+**Y fue la segunda vez en el mismo plan**: el commit 3 esperaba **tres** emisores
+en el cliente y había **cinco**. Dos recuentos, los dos cortos, los dos de
+memoria sobre una lista que se creía completa.
+
+⚠️ **ESO ES LA POBLACIÓN DE UNA REGLA DE LA CASA, promovida el 14/09/2026:** todo
+hallazgo de la forma «los N sitios que hacen X» lleva en su ficha el **comando de
+censo** que define la pertenencia, y cerrarlo exige **re-ejecutarlo y que dé cero
+pendientes**. Un censo de memoria muere con la sesión que lo hizo.
+
+## El censo de este plan, ahora escrito y re-ejecutado
+
+```bash
+# La pertenencia: quién toca el almacén con clave de servicio.
+# NO se busca el nombre del parámetro — ése fue el error de la primera vez.
+for f in $(grep -rl "\.storage" --include=*.ts app/ lib/ worker/ | grep -v test); do
+  ops=$(grep -oE "\.(download|remove)\(" "$f" | sort -u | tr "\n" " ")
+  [ -n "$ops" ] && echo "$f | ops: $ops | ref: $(grep -c resolverOrigenDelFichero "$f")"
+done
+```
+
+**Resultado del 15/09/2026 — cinco sitios, cero pendientes:**
+
+| fichero | operaciones | estado |
+|---|---|---|
+| `app/api/analyze-v2/route.ts` | download | ✅ referencia firmada |
+| `app/api/extract-text/route.ts` | download | ✅ referencia firmada |
+| `app/api/ingest/route.ts` | download · remove | ✅ referencia firmada |
+| `app/api/index-text/route.ts` | download · **remove** | ✅ referencia firmada, **15/09/2026** |
+| `lib/purge-org.ts` | remove | **fuera de la clase, comprobado**: itera `memberIds` del servidor y compone las rutas desde el listado. No recibe nada del cliente |
+
+⚠️ **Y ESE CENSO FALLÓ EN SU PRIMER INTENTO, hoy mismo.** La versión inicial
+buscaba `storage.from(` en una sola línea y **`extract-text` parte la expresión en
+dos**, así que se lo saltó. *Un censo por capacidad escrito con la forma de un
+nombre sigue siendo un censo por nombre.* Se rehízo buscando `.storage` a secas, y
+esa corrección se anota porque es exactamente el mismo fallo que este apartado
+viene a documentar, cometido por quien lo estaba documentando.
+
+**Ahora el cierre de B.204 es verdad, y lo es de una manera comprobable por otro:
+el comando está escrito, cualquiera lo re-ejecuta.**
+
+## ⚠️ LO PRÓXIMO, Y YA NO ES UN ARREGLO — 15/09/2026
+
+**Con B.220 cerrado, el transporte de A5 es el definitivo: la tanda ya se puede
+lanzar y su evidencia ya no es perecedera.**
+
+El orden acordado tras F-107 es **b → a → medición**:
+
+1. ✅ **b** — `index-text` migrado (15/09/2026). *Cerraba un hallazgo cuyo cierre
+   era falso*: el criterio (i) de F-107 P4.
+2. ⏳ **a** — los `org_id` corruptos de `documentation-gaps` y `feedback`
+   (**B.223**). Criterio (ii): es el único que **fabrica datos malos
+   activamente**. Va en su propio encargo, e incluye contar las filas ya
+   fabricadas **antes** de tocarlas.
+3. ⏳ **LA MEDICIÓN — A5 rehecho, con la predicción HEREDADA `3 · 57 · 0 · 0`** y
+   la razón #1 reescrita como dice el apartado de arriba.
+
+**Lo que NO compite y por qué**, para que no se cuele por inercia:
+
+- **B.225** (huérfanos servibles) espera a una respuesta medida: **¿el chat los
+  pisa con frecuencia?** Si sí, es una guarda de un commit y sube; si no, va a la
+  cola. **Esa medición no se ha hecho** y la ficha no afirma ninguna cifra.
+- **Las 459 líneas de `index-text`** no cierran ningún hallazgo. Norma de la casa
+  sin víctima activa: se parte el día que se toque ese fichero por otra razón.
+
+⚠️ **Y LA SEÑAL QUE HAY QUE VIGILAR, escrita aquí para que se vea sola: cuando la
+cola de arreglos empiece a llenarse de mejoras generales en vez de cierres, la
+madriguera ha empezado.** Cada arreglo tiene que enseñar el hallazgo que lo paga;
+cuando no lo tenga, le toca medir a alguien.

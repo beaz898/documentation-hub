@@ -3,6 +3,8 @@ import { createServiceClient } from '@/lib/supabase';
 import { getAuthenticatedUserHybrid } from '@/lib/supabase-server';
 import { upsertVectors, deleteVectorsByIds, buildVectorId } from '@/lib/pinecone/vectors';
 import { deleteDocument } from '@/lib/delete-document';
+import { resolverOrigenDelFichero } from '@/lib/subida/referencia';
+import { secretoDeFirma } from '@/lib/analysis/secreto';
 import { generateEmbeddings } from '@/lib/embeddings';
 import { chunkSegments, stripSegmentationMarkers, EXTRACTOR_VERSION, extractSegments, joinSegments, produceTablas } from '@/lib/chunking';
 import { puedeUsarLaEstructura } from '@/lib/analysis/estructura-del-modal';
@@ -28,7 +30,8 @@ export const maxDuration = 300;
  * Body:
  *  - text: string - full corrected text
  *  - name: string - final document name shown in the sidebar
- *  - originalStoragePath?: string - if present, the original uploaded file will be removed from Storage
+ *  - ref?: string - la referencia firmada de la subida (B.204/B.220). De ella
+ *    salen la ruta del original y su nombre; sin ella no se toca el almacén.
  *  - replaceExistingId?: string - if present, the existing document with that id will be deleted first
  *                                 (use this when the user chose "replace" in the prompt)
  *  - sizeBytes?: number
@@ -61,14 +64,71 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { text, name, originalStoragePath, replaceExistingId, sizeBytes, dismissedFindings } = body;
+    const { text, name, ref, replaceExistingId, sizeBytes, dismissedFindings } = body;
+
+    // ══════════════════════════════════════════════════════════════════
+    // B.220 — EL CUARTO ENDPOINT DE B.204, Y EL QUE MÁS TARDÓ EN APARECER.
+    //
+    // Hasta el 14/09/2026 esto aceptaba `originalStoragePath` del cliente y con
+    // esa ruta hacía DOS cosas con clave de servicio: **descargar** el fichero
+    // y **BORRARLO**. B.204 cerró la familia diciendo que eran tres endpoints;
+    // eran cuatro, y el que faltaba es el único que además destruye.
+    //
+    // ⚠️ POR QUÉ NO SALIÓ EN SU DÍA, y es la población de la regla nueva: el
+    // censo se hizo buscando el NOMBRE del parámetro (`storagePath`) y aquí se
+    // llama `originalStoragePath`. La pertenencia real a la clase no era un
+    // nombre, era una CAPACIDAD: «acepta ruta del cliente y toca el almacén con
+    // clave de servicio». El censo por capacidad da cuatro; el de memoria dio
+    // tres.
+    // ══════════════════════════════════════════════════════════════════
+    const origen = resolverOrigenDelFichero(
+      { ref }, { userId: user.id, orgId },
+      'index-text', secretoDeFirma,
+    );
+
+    // ⚠️ AQUÍ NO SE DEVUELVE 403, Y SE APARTA A PROPÓSITO DE LOS OTROS TRES.
+    //
+    // En `extract-text`, `ingest` y `analyze-v2` el fichero ES el trabajo: sin
+    // él no hay nada que hacer y el 403 es la respuesta entera. Aquí el fichero
+    // es **opcional** —sirve para recuperar la estructura del original y para
+    // barrer el temporal— y el trabajo de verdad es guardar el texto que el
+    // usuario tiene delante.
+    //
+    // Devolver 403 aquí convertiría «tu autorización caducó» en «no puedes
+    // guardar tu trabajo», y la caducidad es de DOS HORAS mientras el modal de
+    // Mejora puede estar abierto toda una tarde. Ése era el punto que B.220
+    // dejó anotado sin resolver, y ésta es su resolución: **sin ref válida no
+    // se toca el almacén, pero se guarda igual**. Falla cerrado donde importa
+    // (el acceso) y abierto donde no (el guardado).
+    //
+    // ⚠️ Y EL LÍMITE DECLARADO LLEVA SU CONTADOR: cada rechazo se registra con
+    // su motivo. Si algún día `caducada` domina el registro, la respuesta no es
+    // alargar la firma a ciegas — es que alguien mire cuánto vive un modal
+    // abierto de verdad. `resolverOrigenDelFichero` ya imprime su propia línea
+    // `[SUBIDA] ref rechazada`; ésta dice qué se perdió por ello.
+    const rutaDelOriginal: string | null = origen.ok ? origen.ruta : null;
+    if (!origen.ok && ref !== undefined) {
+      console.warn(
+        `[INDEX-TEXT] sin original por ref rechazada | motivo=${origen.motivo} | ` +
+        'se guarda el texto, no se recupera estructura y no se barre el temporal',
+      );
+    }
     /**
      * ⚠️ EL NOMBRE ORIGINAL, Y NO `name` — B.201. El cliente compone
      * `"<nombre> (corregido dd/mm/aaaa)"`, así que en `name` la extensión ya
      * NO es la última y `produceTablas` devolvería `false` sobre él. Decidir
      * con `name` daría una guarda que no se dispara jamás.
      */
-    const nombreOriginal: unknown = body.fileName;
+    // ⚠️ EL NOMBRE ORIGINAL SALE DE DENTRO DE LA FIRMA CUANDO HAY REF, y sólo
+    // del cuerpo cuando no la hay. No es cosmético: con él se decide
+    // `produceTablas`, o sea si este documento tiene filas y columnas que
+    // proteger. Que esa decisión la tomara una cadena elegida por el cliente era
+    // la misma familia que la ruta.
+    //
+    // El camino SIN ref es el de la bandeja, donde no hay fichero ninguno y el
+    // nombre es el del documento que se reemplaza: ahí sigue viniendo del
+    // cuerpo, y no hay almacén que proteger porque no se toca.
+    const nombreOriginal: unknown = origen.ok ? origen.fileName : body.fileName;
     const aplanarConfirmado = body.aplanarConfirmado === true;
 
     if (!text || typeof text !== 'string' || text.trim().length < 50) {
@@ -231,9 +291,9 @@ export async function POST(req: NextRequest) {
 
     // Fuente 1 — EL FICHERO, cuando la subida aún tiene su temporal (camino del
     // chat). Es la misma recuperación que B.175 hace en `analyze-v2`.
-    if (typeof originalStoragePath === 'string' && originalStoragePath.length > 0 && typeof nombreOriginal === 'string') {
+    if (rutaDelOriginal && typeof nombreOriginal === 'string') {
       try {
-        const { data: fileData } = await supabase.storage.from('documents').download(originalStoragePath);
+        const { data: fileData } = await supabase.storage.from('documents').download(rutaDelOriginal);
         if (fileData) {
           estructuraOriginal = await extractSegments(Buffer.from(await fileData.arrayBuffer()), nombreOriginal);
         }
@@ -432,9 +492,13 @@ export async function POST(req: NextRequest) {
     await saveDocumentChunks(supabase, { orgId, documentId, generation: 1, chunks });
 
     // Clean up the original uploaded file from Storage if provided
-    if (originalStoragePath) {
+    // ⚠️ SÓLO SE BORRA LO QUE LA FIRMA AUTORIZÓ. Antes se borraba la ruta que
+    // mandara el cliente: el único endpoint de la familia B.204 que además
+    // DESTRUYE, y por tanto el único donde el agujero permitía borrar el fichero
+    // de otro, no sólo leerlo.
+    if (rutaDelOriginal) {
       try {
-        await supabase.storage.from('documents').remove([originalStoragePath]);
+        await supabase.storage.from('documents').remove([rutaDelOriginal]);
       } catch (err) {
         console.error('[INDEX-TEXT] Failed to remove original storage file:', err);
       }
