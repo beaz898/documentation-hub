@@ -1490,3 +1490,78 @@ protocolo pide.
 *(El caso 5 sí se midió como debe: MKT-01 acompañado de los otros cuatro. En su
 día se anotó como si fuera la anomalía; no lo era — la anomalía estaba en los
 casos 1 a 4.)*
+
+## ⚠️ 15/09/2026 — LA PREDICCIÓN DE A5, REVISADA ANTES DE GASTAR: NO SIGUE EN PIE
+
+**El corpus se borró y recreó dos veces hoy** (B.230/B.231: una desconexión se
+llevó los 40 documentos de OneDrive y la sincronización siguiente los recreó).
+Antes de lanzar treinta créditos hay que decir qué de lo reservado sigue valiendo.
+
+### ✅ LO QUE MEJORÓ — el riesgo declarado se ha resuelto solo
+
+La reserva decía: *«que los chunks guardados de OPE-14 sean de un cortador
+anterior al de hoy… que OPE-14 sea uno de esos ocho NO está determinado»*.
+
+**Ya está determinado.** Los 40 se reindexaron hoy, así que **todos** llevan el
+sello vigente, y el sello vigente **es el mismo que el del 09/09**:
+`EXTRACTOR_VERSION = 3` (`chunking.ts:131`, derivado del catálogo) y
+`lib/chunking.ts` **no se ha tocado desde entonces** — `git log --since=2026-09-09`
+no devuelve nada. **La incertidumbre que había que consultar antes de gastar ya no
+existe.**
+
+### ⚠️ LO QUE SE ROMPIÓ — y es lo que decide
+
+**La predicción `3 · 57 · 0 · 0` no describe un par: describe un par DENTRO DE UN
+CORPUS.** Y el corpus de hoy no es el de entonces:
+
+| qué | el 09/09 | hoy |
+|---|---|---|
+| estado de los 40 | varios `analizado` | **los 40 `pendiente`**, `revisados: 0` |
+| ids | los de entonces | **nuevos** |
+| análisis guardados | vivos y atados | **huérfanos**, apuntando a ids muertos |
+
+⚠️ **Y `pendiente` no participa en el corpus servible.** El análisis recupera con
+`buildCorpusFilter(batchDocumentIds)` (`retrieval.ts:212`), y sin ids de tanda eso
+es `CORPUS_ACTIVO` = `analysisStatus = 'analizado'`. **Con los 40 en `pendiente`,
+una pasada de A5 hoy no encontraría nada contra lo que comparar** — y un cero así
+no es una medición: es la pantalla apagada, sin control positivo.
+
+**El lado conocido tampoco está**: los análisis de A6 quedaron huérfanos con el
+borrado, así que la cifra de referencia sólo vive en este documento. Como
+referencia escrita sirve; como dato comprobable en la base, ya no.
+
+### ⚠️ Y UNA TRAMPA DE MONTAJE QUE NO ESTABA ANTES
+
+A5 es el camino **del chat**: exige subir OPE-14 a mano —el `.xlsx` no está en el
+repositorio, vive en OneDrive—. Pero **OPE-14 también existe ya en el corpus como
+documento de OneDrive**. Si se marcase analizado, la copia subida se compararía
+**contra su propio gemelo**: 60 filas idénticas y la cifra sembrada enterrada
+debajo. Es la forma de F-102 con otra puerta.
+
+A6 no lo sufría porque desde la bandeja el documento propietario se excluye; **el
+camino del chat no tiene a quién excluir**, porque el documento aún no ha nacido.
+
+**Por tanto el montaje mínimo es exacto: `OPE-11` analizado, `OPE-14` NO.**
+
+### EL COSTE, ANTES DE GASTAR NADA
+
+| gesto | coste |
+|---|---|
+| marcar `OPE-11` como analizado | **0 créditos** — `mark-analyzed` no cobra |
+| rehacer A6 para recuperar el lado conocido, rápido | **5** |
+| rehacer A6 exhaustivo | **30** |
+| la tanda de A5 reservada (exhaustiva) | **30** |
+
+**Las tres lecturas, sin elegir por el director:**
+
+1. **Medir A5 igual, declarando que es una BASE NUEVA y no una confirmación.** 30
+   créditos. Barato y honesto, pero pierde lo que la tanda venía a comprar: que el
+   arreglo de B.204 no cambió el resultado. Sin lado conocido no hay «no cambió».
+2. **Rehacer A6 primero y luego A5.** 5 + 30, o 30 + 30 si se quiere el mismo modo.
+   Recupera la comparación completa bajo las condiciones de hoy, que es lo que la
+   reserva quería.
+3. **Restaurar el corpus al estado del 09/09 y heredar la predicción tal cual.**
+   ⚠️ **No se puede**: no sabemos qué documentos estaban `analizado` entonces, y lo
+   que lo registraba son precisamente los análisis que quedaron huérfanos.
+
+**No se lanza nada.** Decide el director con esto delante.

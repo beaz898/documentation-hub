@@ -2073,6 +2073,29 @@ dónde viviría el dato. **Queda aquí para que la próxima vez que alguien lea 
 un sitio» sepa que esa estimación ya falló una vez** — y la pregunta que la
 habría cazado es dónde se guarda lo que hay que recordar.
 
+## ✅ EJERCIDO EN PRODUCCIÓN EL 15/09/2026 — con su positivo y su negativo en la misma pasada
+
+**EL RECHAZO**, copiado de la respuesta real:
+
+```json
+{"error":"Ya tienes OneDrive conectado (…@gmail.com). Solo puede haber una cuenta
+conectada a la vez, así que conectar otra sustituiría ésta y la próxima
+sincronización borraría los documentos que trajo. Si quieres cambiar de cuenta,
+desconecta primero desde el panel de documentos.","errorType":"ya_conectado"}
+```
+
+**EL PASO**: desconectar → reconectar → sincronización automática → 40 documentos
+de vuelta. **Sin cambios de comportamiento.**
+
+⚠️ **Y LAS DOS MITADES JUNTAS SON LA EVIDENCIA, no sólo la primera.** Una guarda
+ejercida sólo por su lado que rechaza es indistinguible de una que rechaza
+siempre — que es exactamente el mutante que la batería mata. Aquí se vio que
+**rechaza lo que debe rechazar Y deja pasar lo que debe dejar pasar**, en la misma
+sesión y sobre la misma organización.
+
+✅ **Y DE PASO QUEDA CERRADO UN PUNTO QUE ESTABA EN DUDA**: la sincronización **sí
+corre sola al conectar**. Se dudaba de ello y ahora está visto.
+
 **LO QUE SIGUE ABIERTO**: el tercer estado en `useDrive` —que «no lo sé» deje de
 pintarse como «no conectado»— en su propio commit, y el tope de la
 sincronización, que con esta guarda puesta **deja de ser lo urgente** pero sigue
