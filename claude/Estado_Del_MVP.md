@@ -2303,6 +2303,68 @@ de la bandeja.
 
 **No se decide el precio aquí.**
 
+## ⚠️ 5.33 · B.236 — el análisis de estilo pierde el final de los documentos largos, en silencio (15/09/2026)
+
+`style-check.ts:83` mete en el prompt `${text.slice(0, 20000)}`.
+
+**Literal desnudo: sin constante, sin comentario y sin contador.** Todo lo que
+pase de 20.000 caracteres **no llega al modelo**, y el usuario recibe «N
+problemas de estilo» sin saber que la N es sobre una parte del documento.
+
+⚠️ **ES UN LÍMITE SIN VIGILANTE, Y ES LA MISMA FAMILIA QUE EL TOPE DE CONTEXTO
+QUE SE BORRÓ AYER SIN QUE NADIE SE ENTERARA.** Allí el acumulador desapareció y
+ni el compilador ni 961 pruebas dijeron nada; aquí el número está escrito, pero
+nadie cuenta cuántas veces muerde. Las dos formas del mismo descuido: **un límite
+que decide algo y no tiene quien avise el día que ocurra.**
+
+**Y no es sólo que falte el contador: falta el aviso al usuario.** Un análisis de
+estilo sobre el 40 % de un documento no es un análisis de estilo del documento —
+y hoy se presenta igual que uno completo.
+
+**LO QUE LO ACOTA: NO SE SABE, y por eso hay SQL.** `claude/SQL_B236_limite_estilo.sql`
+lo contesta con denominador —cuántos de cuántos—, con cuántos caracteres se pierde
+cada uno, y con la distribución por tramos, que es lo que distingue **un borde**
+—casi todos muy por debajo— de **un muro** —un grupo rondando los 20.000, donde
+cualquier crecimiento normal los cruza sin que nadie lo note—.
+
+**No se arregla aquí.** El tamaño se ve: la constante con nombre y su contador es
+pequeño; **avisar al usuario de que su documento se analizó a medias es lo que de
+verdad cuesta**, porque el aviso tiene que llegar hasta la pantalla.
+
+## ⚠️ 5.34 · B.237 — tres puertas que devuelven «cero problemas» cuando no se ha mirado nada (15/09/2026)
+
+⚠️ **ESTO ES LO QUE EL PRODUCTO VENDE, DICHO AL REVÉS: «tu texto está bien»
+cuando nadie lo ha mirado.** Se escribe ANTES de medir A7/A8, porque es la razón
+de que esa medición necesite siembra.
+
+| # | dónde | qué pasa | ¿cobra? |
+|---|---|---|---|
+| 1 | `analyze-style:52` cobra, `:67` comprueba el texto | un texto de menos de 50 caracteres devuelve **400 y NO devuelve el crédito** — `devolverSiNoSeEntrego` existe en el fichero pero **sólo en el `catch`**, y ese 400 es un `return` | **sí, 2** |
+| 2 | `style-check.ts:112-113` | si la llamada al modelo falla, `analyzeStyle` **devuelve `[]`** — y la ruta contesta **`success: true`** | **sí** |
+| 3 | `useStyleAnalysis.ts:88-90` | `if (!res.ok) return []` — un **402**, un **429** o un **400** llegan a la pantalla como **«0 problemas de estilo»** | según cuál |
+
+**Son tres niveles, y ninguno distingue «no hay problemas» de «no pude mirar».**
+La segunda es la peor: **el servidor afirma que fue bien**.
+
+⚠️ **Y es exactamente la regla del cero de la casa, en el sitio donde más duele:**
+un cero sólo vale si el sistema puede demostrar que buscó. Aquí no puede, por tres
+caminos distintos.
+
+**EL TAMAÑO DE DISTINGUIR «CERO» DE «NO PUDE MIRAR», que es lo que se preguntaba:**
+
+| pieza | dónde | cuánto |
+|---|---|---|
+| **el crédito del texto corto** | mover la comprobación de longitud **antes** del cobro | **una línea movida**, y es la más barata de las tres |
+| **el fallo del modelo** | `analyzeStyle` devuelve `[]` y pierde el fallo. `recordStageFailure` YA lo registra, así que el dato existe: hay que **subirlo en el tipo de retorno** —problemas **más** si se pudo mirar— y que la ruta lo pase | **un tipo, la ruta y el cliente**: tres sitios, y es el arreglo de verdad |
+| **el cliente que traga** | `if (!res.ok) return []` pasa a distinguir «no hay» de «no se pudo» | **un sitio**, pero **no sirve solo**: sin la pieza anterior, el cliente seguiría recibiendo `success: true` con lista vacía |
+
+⚠️ **Y NO SE ARREGLA LA TERCERA SIN LA SEGUNDA.** Es la trampa de esta ficha:
+parece que la barata —el cliente— resuelve el caso visible, y no lo hace, porque
+el caso peor llega con `success: true`. **La primera sí es independiente** y es la
+única que además devuelve dinero.
+
+**No se arregla aquí.**
+
 ---
 
 # 6 · EL CRITERIO DE SALIDA, PUNTO POR PUNTO

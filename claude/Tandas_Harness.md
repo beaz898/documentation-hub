@@ -1913,3 +1913,67 @@ comprobado, no supuesto.
 
 **Coste**: **2 créditos por pasada**, cuatro en total. Es la tanda más barata de
 todas — lo caro aquí es montarla mal.
+
+---
+
+# 15/09/2026 · A7/A8 — LA SIEMBRA Y LAS PREDICCIONES, escritas antes de correr nada
+
+**El control**: `corpus-pruebas/CLI-20_protocolo-urgencias-dentales.txt`, con su
+registro en `SIEMBRA_CLI-20.md` y su verificador
+(`node scripts/verificar-cli20.mjs`, **verde: los diez siguen ahí**).
+**3.991 caracteres, el 20 % del recorte** — nada se pierde por el corte silencioso.
+
+**Diez sembrados**: 4 de ortografía, 3 de ambigüedad, 3 de sugerencia. Tres van
+marcados **discutibles a propósito** (A2, A3, S3), para poder separar «el sistema
+no lo vio» de «mi expectativa era mala» **antes** de discutirlo.
+
+## PREDICCIÓN · CUÁNTOS ENCUENTRA, POR TIPO
+
+| tipo | sembrados | **predigo** | razonamiento |
+|---|---|---|---|
+| ortografía | 4 | **4** | Son el caso central del prompt y no exigen contexto. O4 (`a` por `ha`) es el único con algo de gracia, y aun así es gramática pura |
+| ambigüedad | 3 | **2** | A1 sale seguro: dos ramas sin puntuación. **A2 lo predigo FALLADO** — exige entender de qué responsable habla el párrafo anterior, y el prompt pide mirar la frase |
+| sugerencia | 3 | **2** | S1 y S2 son redundancias literales. **S3 lo predigo FALLADO**, y no por no verlo: la regla del `textRef` exige un substring **único** y ese párrafo aparece **dos veces** |
+| **total** | **10** | **8** | |
+
+⚠️ **A3 lo cuento dentro de los 2 de ambigüedad pero puede salir como
+`sugerencia`.** Si sale con otro tipo, **cuenta como encontrado** y se anota la
+discrepancia de clasificación aparte: son dos preguntas distintas —¿lo vio?— y
+—¿lo clasificó como yo?—, y mezclarlas haría que un acierto pareciera un fallo.
+
+## ⚠️ PREDICCIÓN · ¿COINCIDIRÁN A7 Y A8?
+
+**Predigo que SÍ, y con una salvedad.**
+
+**El razonamiento**: `useStyleAnalysis` manda **el mismo texto** por las dos
+puertas; lo único que cambia entre A7 y A8 son `documentoPropietario` y
+`storagePath`, **que sólo deciden de quién es la fila guardada**. El análisis en sí
+—`analyzeStyle(text, fileName)`— recibe exactamente lo mismo. **No hay ninguna
+razón estructural para que difieran.**
+
+⚠️ **LA SALVEDAD, y por eso esta predicción no es trivial: el modelo no es
+determinista.** Dos llamadas idénticas pueden devolver listas distintas sin que
+nada esté roto. Así que:
+
+- **coincidencia exacta de los diez** → el camino es estable **además** de correcto;
+- **coincidir en 8-9 de 10, con los mismos tipos** → **también cuenta como
+  coincidir**: es la variación del modelo, no la puerta;
+- ⚠️ **diferencia grande o sistemática** —una puerta encuentra la mitad, o una
+  familia entera falta en una y no en la otra— **eso sí es el hallazgo**, porque
+  entonces la puerta cambia el resultado y no debería.
+
+**Y el orden importa**: si A7 y A8 dan **cero las dos**, eso **no es coincidencia**:
+es ceguera, y la siembra existe justamente para que no se lea como acuerdo.
+
+## LAS CUATRO LECTURAS
+
+| resultado | qué significa |
+|---|---|
+| encuentra los 7 no discutibles (o más) | **el camino ve.** Y sólo entonces un cero en otro documento significa «está limpio» |
+| encuentra menos de 7, faltando alguno de ortografía | ⚠️ **hallazgo de cobertura con cifra**: no ve lo que dice ver |
+| encuentra **cero** | ⚠️ **ceguera** — y con las puertas enumeradas delante se sabe cuál de las tres fue |
+| A7 y A8 difieren de forma sistemática | ⚠️ **hallazgo**: la puerta cambia el resultado, y el texto era el mismo |
+
+**Coste: 2 créditos por pasada, 4 en total.**
+
+**Nada se lanza hasta que el director ejerza las dos puertas.**
