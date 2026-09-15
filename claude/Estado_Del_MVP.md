@@ -1372,10 +1372,46 @@ salidas, para que se decida con ellas delante:
 | 403 también aquí | no puede escribir | la columna vuelve a significar una sola cosa |
 | columna `org_id` anulable | puede escribir | la fila dice la verdad: «sin organización» |
 
-**Y hay filas viejas**: las escritas antes del 14/09/2026 por esta vía no se
-distinguen hoy de las legítimas. Contarlas es una consulta; nadie la ha hecho.
+## ✅ LA MITAD ABIERTA, DECIDIDA EL 15/09/2026 — no escribe, y ya está
 
-**No se decide aquí.**
+**Se retira también el respaldo para `sin_organizacion`.** Quien no pertenezca a
+ninguna organización deja de poder escribir en estas dos tablas. **No es la misma
+decisión que la anterior**: aquélla arreglaba un tipo, ésta cambia el producto, y
+se toma porque la columna `org_id` vuelve a significar una sola cosa — y porque
+**un identificador inventado no se distingue después de uno legítimo**: la fila
+mentiría para siempre y nadie podría separarlas sin adivinar.
+
+La forma correcta el día que haga falta recoger esto de alguien sin organización
+**no es volver al respaldo**: es una columna que pueda decir la verdad —`org_id`
+anulable— en vez de una que miente con un valor con dueño.
+
+⚠️ **Y LA PREGUNTA QUE DECIDÍA EL TAMAÑO, CONTESTADA ABRIENDO A LOS
+CONSUMIDORES: ESAS FILAS ESTÁN INERTES HOY.**
+
+| tabla | quién la lee | quién la agrega |
+|---|---|---|
+| `documentation_gaps` | **nadie** | nadie |
+| `feedback` | sólo `purge-org.ts:139`, y **por `user_id`, no por `org_id`** | nadie |
+
+No hay analítica, ni cuota, ni bandeja que las sume: **no ensucian ningún
+recuento**. Eso no las hace inocuas —son datos que mienten sobre su dueño— pero
+sí quita la urgencia. **Y esto es una afirmación sobre sus CONSUMIDORES, así que
+va con el comando que la sostiene**, no de memoria:
+
+```bash
+grep -rn "documentation_gaps|from('feedback')" --include=*.ts --include=*.tsx \
+  app/ lib/ worker/ components/ hooks/ | grep -v test
+```
+
+**EL RECUENTO NO SE HA HECHO, y no se hace aquí.** El SQL está escrito en
+`claude/SQL_B223_recuento.sql` y lo ejecuta el director: cuántas hay por tabla,
+con fechas, con su denominador —un cero sin él no se puede leer— y **separando
+las RECUPERABLES**: una fila fabricada lleva el `user_id` de quien la escribió, y
+si ese usuario pertenece hoy a una organización, se puede reasignar en vez de
+borrar. **Borrar antes de contar sería perder trabajo del director.**
+
+**No se decide aquí** qué hacer con ellas: eso es el encargo siguiente, con las
+cifras delante.
 
 ## ⚠️ 5.22 · B.224 — los Gateway Timeout de la base: lo medido, y dónde NO está la causa (14/09/2026)
 
@@ -1500,6 +1536,72 @@ documento no existe», que es justo lo que esta ficha cierra.
 
 ⚠️ **NO EJERCIDO EN PRODUCCIÓN TODAVÍA.** Se apoya en 23 casos y cuatro
 mutantes, no en una pantalla. Lo que hay que mirar está en el censo.
+
+## ⚠️ 5.25 · B.227 — el callback de Drive escribe el `org_id` que le manden, sin firma y sin sesión (15/09/2026)
+
+**LO ENCONTRÓ EL CENSO POR CAPACIDAD DE B.223**, preguntando «¿quién ESCRIBE un
+`org_id`?» en vez de «¿quién llama a `resolveOrg`?». Es el tercero, y **no es de
+la misma familia que los otros dos: es peor**.
+
+`GET /api/drive/callback` no tiene autenticación ninguna —ni sesión, ni
+`resolverOrg`— y hace esto:
+
+```ts
+// app/api/drive/callback/route.ts:22
+state = JSON.parse(Buffer.from(stateParam, 'base64').toString());
+// …:45
+await supabase.from('drive_connections').upsert({
+  org_id: state.orgId,
+  user_id: state.userId,
+  access_token: encrypt(tokens.accessToken),  // los del que acaba de autorizar
+  …
+}, { onConflict: 'org_id' });
+```
+
+El `state` viaja en la URL como **base64 de un JSON, sin firma**. Cualquiera
+compone uno.
+
+⚠️ **Y LA GUARDA EXISTE, DISEÑADA Y SIN APLICAR.** `app/api/drive/route.ts:36-40`
+mete en el `state` un campo `token` —la sesión de quien inicia el flujo— y el
+callback **declara ese campo en su tipo y no lo lee en ninguna línea**. No es una
+comprobación que falte por diseñar: es una que se diseñó y no se conectó.
+
+**QUÉ PERMITE, dicho sin adornar y sin exagerar:** quien conozca el `orgId` de
+otra organización puede completar el flujo con SU propia cuenta de Drive y el
+callback **sobrescribe** —`onConflict: 'org_id'`— la conexión de esa
+organización con sus tokens. A partir de ahí la sincronización de esa
+organización lee el Drive del atacante. Un `orgId` es un UUID: no es adivinable,
+pero **tampoco es un secreto** — no es una credencial y viaja por sitios donde una
+credencial no viajaría.
+
+⚠️ **Y UNA SEGUNDA COSA, INDEPENDIENTE: el token de sesión del usuario viaja en
+la barra de direcciones** hasta Google, dentro del `state`. Acaba en el historial
+del navegador, en los registros del proveedor y en cualquier `Referer` del
+camino. Y **no se usa para nada**: es una credencial expuesta a cambio de cero.
+
+**No se arregla aquí** — esto llegó mirando otra cosa y el encargo era B.223.
+Pero **no es una mejora general**: por el criterio de corte, cae del lado de «lo
+que un cliente puede sufrir», y la corrección es pequeña —firmar el `state` con
+el mismo HMAC que ya existe en `lib/analysis/firma.ts`, o verificar el `token`
+que ya viaja dentro—.
+
+## ⚠️ 5.26 · B.228 — una tabla que sobrevive al borrado de la organización (15/09/2026)
+
+**DEL MISMO CENSO, y es pequeña pero conviene no perderla.**
+`purge-org.ts` borra quince tablas al expirar el periodo de gracia.
+**`documentation_gaps` no está en la lista** (`purge-org.ts:75-199`), así que las
+preguntas que un usuario escribió ahí **sobreviven al borrado de su organización
+y de su usuario de Auth**.
+
+Su hermana `feedback` sí se borra, pero **por `user_id`** (`:139`), no por
+`org_id` — lo que resulta ser lo correcto por accidente, porque es lo único que
+alcanza a las filas de B.223.
+
+**Lo que lo acota**: nadie lee esa tabla (ver B.223), así que el dato no se
+enseña. **Lo que no lo acota**: el purgado existe para que no quede dato del
+cliente, y ahí queda.
+
+**No se decide aquí.**
 
 ---
 

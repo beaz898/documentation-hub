@@ -22,23 +22,33 @@ export async function POST(req: NextRequest) {
     }
 
     // Resolver organización
-    // ⚠️ AQUÍ EL FALLO NO DEVOLVÍA ERROR: ESCRIBÍA. Hasta el 14/09/2026 esto
-    // era `org?.orgId || user.id`, así que un timeout de la base metía la fila
-    // con el id del USUARIO en la columna de organización — una fila en una
-    // organización que no existe, persistida y en silencio. Lo que se guarda
-    // arrastra su fallo; lo que se calcula lo pierde al recalcular.
+    // ⚠️ B.223 — SIN ORGANIZACIÓN RESUELTA NO HAY EFECTO QUE REGISTRAR.
     //
-    // `indisponible` ya no escribe: 503 y que el cliente reintente.
+    // ═══════════════════════════════════════════════════════════════════
+    // Hasta el 14/09/2026 esto era `org?.orgId ?? user.id`: un timeout de la
+    // base metía la fila con el id del USUARIO en la columna de organización —
+    // una fila en una organización que no existe, persistida y en silencio. Es
+    // el defecto de tipo de `resolveOrg` en su versión que ENSUCIA EL ALMACÉN,
+    // y por eso era peor que el mensaje que mentía: un fallo de cálculo
+    // desaparece al recalcular; uno de escritura sigue ahí cuando el código ya
+    // está bien.
     //
-    // ⚠️ Y EL RESPALDO A `user.id` SE CONSERVA PARA `sin_organizacion`, A
-    // SABIENDAS Y SIN DECIDIRLO AQUÍ: hoy un usuario sin organización puede
-    // mandar feedback, y quitárselo sería un cambio de producto, no un arreglo
-    // del tipo. Queda anotado como B.223.
+    // El 15/09/2026 se retira TAMBIÉN el respaldo para `sin_organizacion`, y no
+    // es la misma decisión que la de arriba: aquélla arreglaba un tipo, ésta
+    // CAMBIA EL PRODUCTO. Quien no pertenezca a ninguna organización deja de
+    // poder escribir aquí. Se decide así porque la columna `org_id` vuelve a
+    // significar una sola cosa —una organización real— y porque un identificador
+    // inventado no se distingue después de uno legítimo: la fila mentiría para
+    // siempre, y nadie podría separarlas sin adivinar.
+    //
+    // ⚠️ La forma correcta el día que haga falta recoger esto de alguien sin
+    // organización NO es volver al respaldo: es una columna que pueda decir la
+    // verdad —`org_id` anulable— en vez de una que miente con un valor con
+    // dueño.
+    // ═══════════════════════════════════════════════════════════════════
     const orgR = await resolverOrg(supabase, user.id);
-    if (!orgR.resuelta && orgR.motivo === 'indisponible') {
-      return respuestaDeOrgNoResuelta(orgR);
-    }
-    const orgId = orgR.resuelta ? orgR.org.orgId : user.id;
+    if (!orgR.resuelta) return respuestaDeOrgNoResuelta(orgR);
+    const orgId = orgR.org.orgId;
 
     const { error: insertError } = await supabase.from('feedback').insert({
       user_id: user.id,
