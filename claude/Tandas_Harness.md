@@ -1815,3 +1815,101 @@ El descarte permanente de la organización es **de prosa**, del 29/08. Las tres
 discrepancias sembradas son **tabulares**, y la especie tabular todavía no se
 escribe en esa tabla. **No pudo restar nada**, y no por confianza: por su especie
 medida.
+
+---
+
+# 15/09/2026 · A7/A8 — LO QUE HACE FALTA ANTES DE GASTAR (sólo lectura)
+
+## 1 · EL MONTAJE: MUCHO MÁS BARATO DE LO QUE PARECÍA
+
+**✅ La sospecha del arquitecto es correcta, verificada:** `analyzeStyle(text,
+fileName)` (`style-check.ts:72`) importa **sólo** `llm-client` y `stage-failures`.
+**No toca Supabase, ni vectores, ni el corpus.** Mira el texto en sí mismo, y su
+propio prompt lo dice: *«detecta SOLO problemas internos del propio texto (sin
+compararlo con otros documentos)»*.
+
+| pregunta | respuesta |
+|---|---|
+| ¿hace falta un documento concreto? | **no para funcionar** — pero **sí para que la medición signifique algo** (ver §3) |
+| ¿tiene que estar en el corpus o en la bandeja? | **da igual para el análisis.** Sólo cambia de dónde se abre el modal, que es lo que distingue A7 de A8 |
+| ¿influye lo que haya alrededor? | **NO.** La composición del corpus no entra en ningún sitio |
+
+⚠️ **Y LA RESPUESTA A LO QUE PREGUNTABA EL DIRECTOR: OPE-14 DA IGUAL PARA ESTO.**
+Que vuelva a OneDrive cuando quiera, por sus motivos — **no debe hacerlo por esta
+tanda**.
+
+**Lo único que distingue A7 de A8** (`useStyleAnalysis.ts:80-86`) es de dónde se
+abre el modal: desde el chat va `storagePath` y `documentoPropietario: null`;
+desde la bandeja, al revés. **El texto analizado y el análisis son idénticos.**
+
+## 2 · ⚠️ LAS PUERTAS QUE CORTAN LA PASADA — enumeradas por capacidad
+
+La pregunta no es «¿qué falla en el estilo?» sino **«qué hace falta para que una
+pasada llegue al final»**. Las puertas, en orden y con su condición:
+
+| # | puerta | condición de disparo | ¿cobra? |
+|---|---|---|---|
+| 1 | sesión | sin cookie válida → 401 | no |
+| 2 | organización | `resolverOrg` no resuelve → 403 o **503** (los timeouts de B.224) | no |
+| 3 | límite diario | **20 llamadas/día** a este endpoint (`rate-limiter.ts:24`) → 429 | no |
+| 4 | créditos | menos de **2** → 402 | no |
+| 5 | **texto corto** | `text.trim().length < 50` → 400 | ⚠️ **SÍ: cobra y no devuelve** |
+| 6 | **el modelo** | si `callLLMJson` falla, `analyzeStyle` **devuelve `[]`** (`:112-113`) | **sí**, y responde `success: true` |
+
+⚠️ **NO hay veto por hash ni candado de subida en este camino.** Los dos que
+cortaron A5 no existen aquí — así que la cuarta salida del director (borrar de
+OneDrive) tampoco hace falta.
+
+⚠️ **PERO LA 5 Y LA 6 SON PEORES QUE UN CORTE, PORQUE NO SE VEN:**
+
+- **La 5 cobra.** El crédito se consume en `:52` y la comprobación del texto está
+  en `:67`. `devolverSiNoSeEntrego` existe en este fichero pero **sólo en el
+  `catch`** (`:139`), y ese 400 es un `return`, no una excepción. **2 créditos por
+  un texto corto, sin devolución.** Es B.205 otra vez, en otra puerta.
+- **La 6 no se distingue de un buen resultado.** Un fallo del modelo devuelve lista
+  vacía **y la ruta contesta `success: true`**. Y el cliente remata:
+  `useStyleAnalysis.ts:88-90` hace `if (!res.ok) return []`, así que **un 402, un
+  429 o un 400 llegan a la pantalla como «0 problemas de estilo»**.
+
+**Son TRES niveles donde un cero puede significar un fallo**: el modelo, la ruta y
+el cliente. Ninguno de los tres lo distingue de «el texto está bien».
+
+## 3 · ⚠️ SIN CONTROL POSITIVO, ESTA MEDICIÓN NO SE PUEDE LEER
+
+**Y «que las dos puertas den lo mismo» NO basta**, que era una de las opciones
+planteadas: si el camino está ciego, **A7 y A8 darían cero las dos y coincidirían
+perfectamente**. Es exactamente F-106 P3 — la gemela demuestra que el destino
+funciona; **no** demuestra que tu puerta pueda fallar.
+
+**HACE FALTA UNA SIEMBRA**, y por lo medido en §2 no es celo: es la única forma de
+que un número signifique algo.
+
+**Qué sembrar — y tiene que ser de los tipos que el sistema busca**, porque sembrar
+otra cosa produciría un cero que parecería ceguera sin serlo. Los tres, del prompt:
+
+| tipo | qué es |
+|---|---|
+| `ortografia` | faltas, erratas, concordancia |
+| `ambiguedad` | frases que pueden malinterpretarse |
+| `sugerencia` | redundancias, repeticiones, claridad |
+
+**La forma de la tanda, con su denominador:** un documento con **N problemas
+sembrados y contados**, de los tres tipos, más **un párrafo limpio** como control
+negativo. Se pasa por A7 y por A8. Lo que se lee:
+
+| resultado | qué significa |
+|---|---|
+| encuentra los N sembrados | **el camino ve.** Y entonces —y sólo entonces— un cero en otro documento significa «está limpio» |
+| encuentra menos | hallazgo con cifra: **cobertura**, no fallo |
+| encuentra **cero** | ⚠️ **ceguera**, y con las puertas de §2 delante se sabe cuál fue |
+| A7 y A8 **coinciden** | la puerta no cambia el resultado — pero **sólo dice algo si la cifra no es cero** |
+
+⚠️ **Y UN LÍMITE QUE HAY QUE MIRAR ANTES DE ELEGIR EL DOCUMENTO**: el prompt recorta
+el texto a **`text.slice(0, 20000)`** (`style-check.ts:83`). Es un literal desnudo
+—**sin constante, sin comentario y sin contador**—, así que un documento más largo
+se analiza a medias **en silencio** y la cifra sería sobre un denominador
+desconocido. **Para la tanda: un documento por debajo de 20.000 caracteres**, y
+comprobado, no supuesto.
+
+**Coste**: **2 créditos por pasada**, cuatro en total. Es la tanda más barata de
+todas — lo caro aquí es montarla mal.
