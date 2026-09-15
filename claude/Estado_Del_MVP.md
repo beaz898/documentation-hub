@@ -2179,7 +2179,69 @@ sistema le diga que no hacía falta gastarlos.
 («no lo sé») leído como otra («lo más caro»). Es la familia de la semana con el
 signo cambiado: aquí el desconocido no falla abierto, **factura**.
 
-**No se arregla aquí.** Pero el tamaño se ve: o el corte por duplicado declara su
+## 📏 EL PLANTEAMIENTO, CORREGIDO POR EL DIRECTOR — 15/09/2026
+
+**Su objeción es mejor que mi ficha**: el problema no es cuánto se cobra por no
+hacer nada, es **dejar pulsar algo que ya se sabe que no va a hacer nada**. El
+rápido ya dijo «duplicado exacto» y costó 5 créditos; el botón del exhaustivo no
+debería estar disponible. Es el criterio que la casa ya aplica: **botón apagado,
+visible, con su motivo al lado**.
+
+**LO MEDIDO PARA CONTESTARLE:**
+
+**1 · Tres caminos al exhaustivo, y uno NO pasa por ningún rápido:**
+
+| camino | ¿hay rápido antes? |
+|---|---|
+| «Reanalizar todo» del modal de Mejora (`useCrossDocAnalysis:128`) | **sí**, y el modal tiene el análisis delante |
+| exhaustivo desde el chat (`useDocuments:343`) | **sí**, el de la subida |
+| ⚠️ exhaustivo desde la bandeja (`useReviewAnalysis:79`) | **NO.** Se seleccionan documentos y se pulsa exhaustivo directamente |
+
+El tercero pasa `documentoEnRevision`, así que el documento no es su propio
+duplicado — **pero el veto sigue disparando si OTRO documento de la organización
+tiene el mismo contenido**, que en un corpus con tarifarios parecidos no es
+hipotético.
+
+**2 · El cliente SÍ lo sabe, y eso abarata el arreglo.** El corte devuelve
+`isDuplicate: true`, `duplicateOf`, `duplicateConfidence: 100` y
+`recommendation: NO_INDEXAR` (`pipeline.ts:1086-1096`), y ese objeto es **el mismo
+que la pantalla ya pinta**. No hay que subir ningún dato: el botón vive al lado de
+la información que lo apagaría. La condición de hoy es
+`{!isExhaustive && onExhaustive && …}` (`UploadActions.tsx:26`) y **no mira
+`isDuplicate`**.
+
+**3 · Y lo que se le enseña hoy NO es lo que el servidor encontró.**
+
+| lo que dice el servidor | lo que ve el usuario |
+|---|---|
+| «Este documento es **idéntico** a X. No aporta información nueva» + `NO_INDEXAR` | **«Similar a X (100% confianza)»** |
+| — | dentro de una sección **plegada por defecto** (`defaultOpen={false}`) |
+
+⚠️ **Así que el dato «pulsó el exhaustivo igual» no significa lo que parecería.**
+Para verlo había que desplegar una sección cerrada y leer «similar» donde el
+servidor dijo «idéntico». **El botón no es lo único que falla**: el aviso está,
+pero dicho más flojo de lo que el sistema sabe y guardado bajo un pliegue.
+
+**4 · ¿HACE INNECESARIAS LAS OTRAS DOS? NO — son complementarias, y por una razón
+medible, no de criterio**: apagar el botón cierra **dos de los tres caminos**. El
+de la bandeja seguiría pudiendo gastar 30 créditos en un corte por hash.
+
+⚠️ **Y SOBRE EL DEFECTO `?? 'heavy'`, LA TERCERA IDEA DEL ARQUITECTO NO ES
+INVENTAR COMPLEJIDAD: ES LA REGLA DE LA CASA.** Hoy ese defecto **resuelve en
+silencio una pregunta que no puede contestar**, y además borra la prueba de
+haberlo hecho: `worker:310` imprime `coste heavy` **exactamente igual** para un
+exhaustivo que de verdad fue pesado y para uno que terminó sin clasificar. **La
+distinción se destruye antes de registrarse**, así que hoy no se puede saber ni
+cuántas veces pasa.
+
+**Por eso el orden que defiendo es: primero CONTARLO, después decidir el precio.**
+Un trabajo que termina sin clase es una anomalía, y un límite declarado lleva su
+contador. Con la cifra delante, la decisión del precio es trivial —si es raro, da
+igual hacia dónde caiga; si es frecuente, el dato dice hacia dónde—. Decidir el
+precio ahora sería elegir entre cobrar de más a quien acertó y cobrar de menos a
+un camino caro, **sin saber cuál de los dos ocurre**.
+
+**No se arregla aquí.** El tamaño: o el corte por duplicado declara su
 clase —es barato, es `light` o menos—, o el defecto del worker deja de ser
 `heavy`. Las dos son una línea; **cuál de las dos es la correcta es la decisión**,
 porque cambian cosas distintas.
