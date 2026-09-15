@@ -1836,7 +1836,82 @@ DESDE AQUÍ**, y por eso no se escribe como diagnóstico: haría falta ver qué
 filas para los mismos ficheros y el recuento de 42 no cuadraría tampoco — así
 que la propia consulta 1 la confirma o la mata.
 
-**No se arregla aquí. Mapa primero.**
+## 📏 RESUELTO EL 15/09/2026 — el sync no borró nada; la desconexión sí
+
+**MEDIDO POR EL DIRECTOR:**
+
+| source | documentos | más antiguo | más reciente |
+|---|---|---|---|
+| manual | 2 | 12/09 09:23 | 14/09 20:31 |
+| onedrive | 40 | **15/09 07:49:20** | **15/09 07:50:31** |
+
+`revisados: 0 · sin_revisar: 40`. **Los 40 se crearon hoy, en 71 segundos.** Son
+filas nuevas; las anteriores ya no estaban.
+
+⚠️ **Y LA CONSULTA QUE LO ESCONDÍA ERA MÍA**: el recuento de «42 y 42 nombres
+distintos» **no filtraba por `source`**, y borrar 40 y crear 40 da 42 igual. Un
+recuento sin la dimensión que distingue las dos historias no es una medición:
+es una coincidencia con forma de dato.
+
+**QUÉ LAS BORRÓ — y no fue la sincronización, que dijo la verdad con su `0
+eliminados`.** Sólo existe **un** camino que borra documentos por origen:
+
+```
+POST /api/drive/disconnect  →  :83  .from('documents').delete()
+                                     .eq('org_id', …).eq('source', providerName)
+```
+
+Y **conectar no lo llama**: `handleConnectDrive` (`useDrive.ts:31`) sólo navega.
+La desconexión exige pulsar su botón y confirmar un diálogo que dice, literal:
+*«¿Desconectar OneDrive? Se eliminarán todos los documentos sincronizados.»*
+
+**Así que `existingDocs` no encontró los 40 porque NO HABÍA NADA QUE ENCONTRAR.**
+No es un fallo de emparejamiento; es que las filas ya no existían cuando el sync
+miró. El sync hizo exactamente lo que debía: 40 ficheros, ninguna fila, 40
+nuevas. **El `access_denied` no borró nada.**
+
+⚠️ **LO QUE SÍ ES UN HALLAZGO: `disconnect` NO PASA POR `deleteDocument`.** Hace
+un `.delete()` crudo, así que se salta las cuatro cosas que aquella función
+garantiza —los análisis (B.112), la lápida, el candado de subida y el cerrojo de
+vectores del 14/09—. Los vectores sí los borra con cuidado, con las dos
+estrategias y **abortando si alguna falla** (`:69-81`), y por eso no hay
+huérfanos en masa. Pero:
+
+⚠️ **`analysis_results.document_id` NO TIENE CLAVE AJENA** —el único FK de esa
+tabla es `user_id` (`supabase-setup.sql:408`)—, así que **los análisis de los 40
+sobrevivieron apuntando a ids muertos**. Es exactamente la población de B.112,
+por un camino que B.112 no cubrió. Lo que lo acota: desde B.212 la bandeja
+empareja por `document_id`, así que **no se los va a atribuir a los nuevos**;
+son filas muertas, no una mentira en pantalla.
+
+**QUÉ SE PERDIÓ, ENTONCES, Y QUÉ NO:**
+
+| qué | estado |
+|---|---|
+| el contenido | **vuelve**: se redescargó del proveedor |
+| los ids | **perdidos**, y con ellos lo que colgaba de ellos |
+| los análisis guardados | **vivos y huérfanos** (sin FK que los tirara) |
+| `document_chunks`, `document_staged` | **se fueron en cascada** (FK `ON DELETE CASCADE`) |
+| el estado de revisión | **perdido**: 40 a la bandeja, `reviewed_at` nulo, medido |
+| los vectores viejos | **borrados bien** — el disconnect aborta si no puede |
+
+⚠️ **Y LA MEDICIÓN DE HUÉRFANOS DE HOY NO VALE PARA ESTO.** No sabemos si corrió
+antes o después. El indicio es que 763→762 es **exactamente el huérfano de la
+primera medición**, lo que encaja mejor con «corrió antes»; pero un reindexado de
+los mismos 40 ficheros produce un recuento parecido, así que no es concluyente.
+**Se vuelve a ejecutar y ya está** — es gratis.
+
+⚠️ **LO QUE NO TIENE TOPE NI AVISO, y es la pregunta de fondo:**
+`decidirSincronizacion` (`sync-guard.ts:126-130`) borra **exactamente lo que no
+está en el listado, sin límite y sin confirmación**. Sus dos guardas cubren otras
+preguntas: «¿llegó el listado?» (B.138) y «¿cambió la carpeta?» (B.187).
+**Ninguna cubre «este listado válido se lleva TODO tu corpus».** Un listado que
+llegue completo pero apunte a otro sitio —otra cuenta, otra carpeta raíz— borra
+los 40 sin preguntar. Es la misma forma de lo que acaba de pasar, con otro
+nombre.
+
+**No se arregla aquí.**
+
 ---
 
 # 6 · EL CRITERIO DE SALIDA, PUNTO POR PUNTO

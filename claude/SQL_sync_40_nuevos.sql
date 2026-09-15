@@ -93,3 +93,51 @@ WHERE a.document_id IS NOT NULL
 
 SELECT COUNT(*) AS lapidas, MIN(excluded_at) AS la_mas_antigua, MAX(excluded_at) AS la_mas_reciente
 FROM document_tombstones;
+
+
+-- ============================================================
+-- AÑADIDO 15/09/2026 · LO QUE QUEDÓ SUELTO TRAS LA DESCONEXIÓN
+-- Sigue sin borrar nada. Sólo cuenta.
+-- ============================================================
+
+-- ── 7 · LOS ANÁLISIS QUE APUNTAN A IDS MUERTOS ──────────────────────────
+-- `analysis_results.document_id` NO tiene clave ajena, y `drive/disconnect`
+-- borra las filas de `documents` con un `.delete()` crudo —sin pasar por
+-- `deleteDocument`—, así que los análisis sobreviven señalando a nada.
+-- ⚠️ Con su DENOMINADOR al lado: «17 huérfanos» no dice nada sin saber de
+-- cuántos.
+
+SELECT COUNT(*)                                          AS analisis_totales,
+       COUNT(*) FILTER (WHERE document_id IS NULL)        AS sin_id_por_diseño,
+       COUNT(*) FILTER (
+         WHERE document_id IS NOT NULL
+           AND NOT EXISTS (SELECT 1 FROM documents d WHERE d.id = analysis_results.document_id)
+       )                                                  AS apuntando_a_ids_muertos
+FROM analysis_results;
+
+
+-- ── 8 · ¿DE QUÉ DOCUMENTOS ERAN, Y COINCIDEN CON LOS NUEVOS? ────────────
+-- Si los nombres coinciden con los 40 recreados, son los análisis del trabajo
+-- de revisión que se perdió. Eso es lo que hay que saber antes de decidir si
+-- se reasignan por nombre o se borran.
+
+SELECT a.document_name,
+       COUNT(*)        AS analisis_muertos,
+       MAX(a.created_at) AS el_mas_reciente,
+       EXISTS (SELECT 1 FROM documents d
+                WHERE d.name = a.document_name AND d.source = 'onedrive') AS existe_uno_nuevo_con_ese_nombre
+FROM analysis_results a
+WHERE a.document_id IS NOT NULL
+  AND NOT EXISTS (SELECT 1 FROM documents d WHERE d.id = a.document_id)
+GROUP BY a.document_name
+ORDER BY analisis_muertos DESC, a.document_name;
+
+
+-- ── 9 · LOS TROZOS TIPADOS, QUE SÍ DEBERÍAN HABERSE IDO EN CASCADA ──────
+-- `document_chunks.document_id` tiene FK ON DELETE CASCADE. Este cero es
+-- el CONTROL de que la cascada hizo su trabajo — y si no es cero, es un
+-- hallazgo distinto.
+
+SELECT COUNT(*) AS trozos_sin_documento
+FROM document_chunks c
+WHERE NOT EXISTS (SELECT 1 FROM documents d WHERE d.id = c.document_id);
