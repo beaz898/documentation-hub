@@ -2009,7 +2009,75 @@ ningún diálogo nuevo.
 ⚠️ **No son alternativas: (b) tapa la vía conocida y (a) tapa la clase.** El tope
 sigue haciendo falta el día que alguien mueva la carpeta raíz en el proveedor.
 
-**No se escribe ninguno aquí.**
+## ✅ LA PUERTA, CERRADA EL 15/09/2026 — y la puerta no era la que parecía
+
+**EL DIRECTOR OBJETÓ, Y TENÍA RAZÓN EN LA OBJECIÓN**: una cosa es que el
+servidor acepte reescribir la conexión y otra que la interfaz deje llegar ahí.
+Estando conectado **no hay ningún botón de conectar**:
+`DocumentsSidebar.tsx:554` los pinta sólo bajo `!driveStatus.connected`.
+
+⚠️ **PERO LA PUERTA EXISTÍA, Y NO ERA UN BOTÓN NI UNA URL:**
+
+```ts
+const [driveStatus, setDriveStatus] = useState({ connected: false });
+const loadDriveStatus = async () => {
+  const res = await fetch('/api/drive/sync', { credentials: 'include' });
+  if (res.ok) { setDriveStatus(await res.json()); }   // ← y si no, se queda como estaba
+};
+```
+
+**El estado arranca en «no conectado» y sólo se corrige si la llamada
+responde.** Esa llamada puede devolver **503** cuando `resolveOrg` dice
+`indisponible` —los Gateway Timeout de B.224, que están medidos—, 403 por el
+chequeo de plan, 401 o 500. Cualquiera de ésas **deja los dos botones de
+conectar pintados con la conexión viva**. Un clic, el flujo entero, el `upsert`
+pisa la conexión, y la sincronización siguiente se lleva los documentos.
+
+**Es la tercera vez esta semana con la misma forma: UN FALLO LEÍDO COMO UN
+HECHO.** `resolveOrg` devolvía el mismo `null` para «no perteneces» y «la base no
+contestó»; la barra lateral lee «no lo sé» como «no conectado». Distinto sitio,
+misma confusión.
+
+**LO QUE ENTRA: LA GUARDA EN EL SERVIDOR.** `drive/route.ts` se niega a redirigir
+si ya hay conexión, con un error que **nombra la cuenta** y manda a desconectar.
+Va en el servidor a propósito: **cierra las tres puertas a la vez** — el botón
+fantasma, la URL escrita a mano y el botón de atrás del navegador.
+
+Y manda a desconectar porque **es el único camino que ya avisa de lo que borra**
+(«se eliminarán todos los documentos sincronizados»). Conectar encima no avisaba
+de nada y borraba igual, un rato después y sin relacionarlo con el clic.
+
+⚠️ **Y DENTRO DE LA GUARDA HAY UNA DECISIÓN QUE NO ES OBVIA: si la consulta de la
+conexión FALLA, no se lee como «no hay conexión».** Leerlo así habría
+reproducido el agujero exacto que viene a cerrar, y justo en el momento en que
+aparece: cuando la base va mal. Falla **cerrada**, con 503 y `Retry-After`. El
+coste es molestar a quien quería conectar mientras la base va mal; el del otro
+lado es el corpus.
+
+**11 casos, cuatro mutantes reales muertos**: leer el fallo como ausencia (2
+casos), que la guarda deje pasar siempre (3), que el mensaje deje de nombrar
+el borrado (1) y que pierda el nombre de la cuenta (1). Un quinto no llegó a mutar y se
+dice, porque un mutante que no muta es un verde que no significa nada.
+
+✅ **Y LO QUE SIGUE FUNCIONANDO, que es lo que el director hace de verdad**:
+desconectar borra la fila de `drive_connections` (`disconnect:86`), así que
+reconectar **la misma cuenta** después no encuentra fila y pasa. Es el primer
+caso de la batería.
+
+⚠️ **Y UNA CORRECCIÓN DE TAMAÑO QUE SE DEJA ESCRITA A PROPÓSITO: LLAMÉ «UN
+SITIO» A (b) Y NO LO ERA.** Comparar el correo al reconectar y hacer que la
+sincronización siguiente lo trate como carpeta cambiada **exige recordarlo entre
+peticiones**: una columna nueva, la sincronización leyéndola y limpiándola. Eso
+es **cambio de esquema más tres sitios**. La estimación se dio antes de mirar
+dónde viviría el dato. **Queda aquí para que la próxima vez que alguien lea «es
+un sitio» sepa que esa estimación ya falló una vez** — y la pregunta que la
+habría cazado es dónde se guarda lo que hay que recordar.
+
+**LO QUE SIGUE ABIERTO**: el tercer estado en `useDrive` —que «no lo sé» deje de
+pintarse como «no conectado»— en su propio commit, y el tope de la
+sincronización, que con esta guarda puesta **deja de ser lo urgente** pero sigue
+haciendo falta el día que alguien mueva la carpeta raíz en el proveedor.
+
 ---
 
 # 6 · EL CRITERIO DE SALIDA, PUNTO POR PUNTO
