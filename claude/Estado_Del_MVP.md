@@ -2303,6 +2303,37 @@ de la bandeja.
 
 **No se decide el precio aquí.**
 
+## ⚠️ 5.35 · B.238 — del análisis de estilo se guarda el número y se tira el contenido (15/09/2026)
+
+**MEDIDO AL INTENTAR USARLO.** El 15/09/2026 dos pasadas de estilo sobre el mismo
+documento dieron **7 y 8**, y la pregunta obvia —*¿cuál falta en la de 7?*— **no
+tiene respuesta**.
+
+`saveStyleResult` (`persist-analysis.ts:130-148`) inserta `style_problems_found:
+input.problemsCount` **y nada más**: la columna `analysis` se queda a NULL. **Los
+problemas concretos —su tipo, su texto, dónde estaban— no se guardan en ningún
+sitio.** Viven en la respuesta HTTP y en la pantalla, y desaparecen al cerrarla.
+
+⚠️ **ASÍ QUE UNA DISCREPANCIA DE UNO ES IRRESOLUBLE DESPUÉS.** No es que cueste
+averiguarlo: **no hay dónde mirar**. Y no es un caso raro —es la pregunta natural
+en cuanto dos pasadas no coinciden—.
+
+**Y NO ES SIMÉTRICO CON EL ANÁLISIS DE CORPUS**, que sí guarda su detalle en
+`analysis` y sus cifras en `pipeline_counters`. Del estilo se guarda **un entero**.
+Un número sin su contenido se puede sumar, pero **no se puede comprobar**: nadie
+puede volver y ver si aquellos 8 eran los 8 buenos.
+
+⚠️ **Y HAY UNA CONSECUENCIA QUE VA MÁS ALLÁ DE MEDIR: el usuario tampoco puede
+volver a ellos.** Un análisis de estilo cuesta 2 créditos y, cerrada la pantalla,
+lo pagado ya no existe — sólo queda un número en una tabla que nadie enseña.
+
+**El tamaño**: la columna `analysis` ya existe y el resto de análisis la usan.
+Es pasar los problemas a `saveStyleResult` y escribirlos — **un tipo y una
+línea**, sin esquema nuevo. Lo que hay que decidir es si se guardan enteros o
+sólo lo que se pueda releer sin datos del cliente de más.
+
+**No se arregla aquí.**
+
 ## ⚠️ 5.33 · B.236 — el análisis de estilo pierde el final de los documentos largos, en silencio (15/09/2026)
 
 `style-check.ts:83` mete en el prompt `${text.slice(0, 20000)}`.

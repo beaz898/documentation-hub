@@ -1977,3 +1977,118 @@ es ceguera, y la siembra existe justamente para que no se lea como acuerdo.
 **Coste: 2 créditos por pasada, 4 en total.**
 
 **Nada se lanza hasta que el director ejerza las dos puertas.**
+
+---
+
+# ⚠️ 15/09/2026 · A7/A8 MEDIDOS — EL CAMINO VE, Y MI PREDICCIÓN FALLÓ POR DOS SITIOS
+
+**Lo primero, que es lo que compraba la siembra: EL CAMINO VE.** Los diez
+sembrados existían y el sistema encuentra ocho. **A partir de hoy, un cero del
+análisis de estilo ya no se puede leer como ceguera sin más** — la siembra
+demuestra que este camino, con este documento, detecta.
+
+| pasada | puerta | problemas |
+|---|---|---|
+| A7 | chat | **7** |
+| A8 | bandeja | **8** |
+| ×4 repeticiones | — | **8, estable** |
+
+## ⚠️ LA PREDICCIÓN, FALLADA — y por DOS sitios, no por uno
+
+**Predije 8 con reparto 4 ortografía + 2 ambigüedad + 2 sugerencia.** El total
+salió 8. **El reparto, no.**
+
+| tipo | sembrados | predicho | lo que la lista enseña | |
+|---|---|---|---|---|
+| ortografía | 4 | 4 | `consulltas`, `paciente`, `prescipción`, `a sido` | ✅ **4/4, acertado** |
+| ambigüedad | 3 | 2 | sólo el plazo de 24 h (**A3**) | ❌ **1, no 2** |
+| sugerencia | 3 | 2 | «se dé el caso», el párrafo repetido, «totalmente y completamente» | ❌ **3, no 2** |
+
+**Los dos fallos, y ninguno es el que anuncié:**
+
+- ❌ **A1 NO SALIÓ, y era el que di por seguro.** «...en ayunas si la intervención
+  es por la mañana o por la tarde deberá comer ligero»: escribí que era *«el caso
+  de manual de ambigüedad, y con consecuencia clínica. Debería salir»*. **No
+  salió.** Es el hallazgo de esta tanda.
+- ✅ **S3 SÍ SALIÓ, y lo había predicho fallado.** El párrafo duplicado se detecta
+  pese a que la regla del `textRef` pide un substring único. **Mi razonamiento
+  sobre esa regla era erróneo**, y el acierto no es mío.
+- ✅ **A2 falló, como predije**, y por la razón escrita: exige el contexto del
+  párrafo anterior.
+
+⚠️ **EL TOTAL COINCIDIÓ POR COMPENSACIÓN: un fallo que no vi y un acierto que no
+esperaba.** Es exactamente la cifra que cuadra por los motivos equivocados, y la
+única razón de que se vea es que la siembra declaraba **cuáles**, no sólo cuántos.
+**Con una predicción de «8» a secas, esto habría pasado por acierto limpio.**
+
+## ⚠️ LA CLASIFICACIÓN: LO QUE NO SE PUEDE AFIRMAR TODAVÍA
+
+La lista de la pantalla da **nombres, no tipos**. Agrupar «el plazo de 24 h» y «se
+dé el caso de que» como las dos de ambigüedad es una lectura razonable **pero no
+es un dato**: en la siembra, `S2` («se dé el caso») está declarado como
+**sugerencia**, no como ambigüedad.
+
+**Hace falta mirar el tipo que la pantalla pinta en cada uno** — son dos preguntas
+distintas, como quedó escrito: *«¿lo vio?»* y *«¿lo clasificó como yo?»*.
+
+## ⚠️ EL 7 CONTRA EL 8: NO SE PUEDE RESOLVER CONTRA LA BASE, Y ÉSE ES EL HALLAZGO
+
+**`saveStyleResult` guarda SÓLO el recuento** (`persist-analysis.ts:139`:
+`style_problems_found`), y deja `analysis` a NULL. **Los problemas concretos no se
+persisten nunca.** Así que *«qué le falta a la pasada de 7»* **no tiene respuesta
+en la base**, ni hoy ni dentro de un mes. Ficha aparte.
+
+**Lo que sí se puede decir, leyendo:**
+
+- **El texto debería ser idéntico por las dos puertas.** CLI-20 es un `.txt` y
+  `extractSegments` devuelve **un solo segmento** (`chunking.ts:973`), así que
+  `joinSegments` no mete ningún separador y `stripSegmentationMarkers` no tiene
+  nada que quitar. **La asimetría que rompió A5/A6 aquí no se da.**
+- ⚠️ **PERO SÍ HAY ALGO MÁS QUE CAMBIA, y entra en el prompt: el NOMBRE.**
+  `useStyleAnalysis` manda `fileName`, y el prompt empieza por
+  `DOCUMENTO: "${fileName}"` (`style-check.ts:78`). Desde el chat es el nombre del
+  fichero subido; desde la bandeja, el del documento indexado — **y pueden no ser
+  el mismo**. Es pequeño, pero **es entrada del modelo**, y contradice mi
+  razonamiento de que «lo único que cambia sólo decide de quién es la fila».
+- ⚠️ **Y LA ESTADÍSTICA NO DA PARA LLAMARLO DIFERENCIA DE PUERTA: es n=1 contra
+  n≈5.** Las cuatro repeticiones estables son de **una** puerta. Comparar una
+  muestra de A7 contra cuatro de A8 no es comparar puertas.
+
+**LO QUE LO DECIDE, y es barato: repetir A7 tres o cuatro veces. 2 créditos cada
+una.** Si A7 da 8, el 7 era variación del modelo y se cierra. **Si A7 se queda en
+7, es la puerta** — y entonces el nombre en el prompt es el primer sospechoso.
+
+## LO QUE NADIE ENCARGÓ Y VALE: LAS CUATRO REPETICIONES
+
+**n = 4, todas 8.** Es un control de estabilidad que no estaba en el plan, y
+cambia cómo se lee el 7: **si el resultado fuera aleatorio, cuatro pasadas
+iguales serían raras**, así que el 7 pide explicación en vez de descartarse como
+ruido. **Se anota con su número, porque «estable» sin denominador no es una
+medida.**
+
+## LAS DOS COSAS DEL MISMO VOLCADO, CONTESTADAS
+
+**1 · El aviso de alcance («28 de 39 filas de OPE-11») ES DE AHORA, no residuo.**
+
+Sale de `analysis.selectionLimits` (`AnalysisModal.tsx:202`,
+`ChatPanel.tsx:287`), que es un campo del **análisis de corpus con el que se abrió
+el modal** — no del de estilo. Y la explicación es el propio montaje de esta
+mañana: **`OPE-11` se dejó `analizado`** para poder medir A5/A6, así que **compite
+como candidato en todo análisis nuevo**. Al analizar CLI-20, OPE-11 entró como
+candidato, su hoja tiene 39 filas recuperadas y 28 se quedaron fuera por tamaño.
+
+⚠️ **Es un efecto del montaje, no un fallo — pero conviene saberlo: el corpus de
+pruebas ya no está vacío para las tandas siguientes.** Si el director quiere que
+las próximas midan sin ese ruido, `OPE-11` vuelve a `pendiente` con un gesto y sin
+coste.
+
+**2 · Los dos solapamientos: la pantalla ACUMULA, no se mezclan los análisis.**
+
+`ImprovementModal.tsx:255` compone la lista visible como
+`[...crossDocProblems, ...styleProblems]` — **la unión de los dos análisis en una
+sola pantalla**, que es lo que el modal es.
+
+✅ **Y el recuento que se leyó NO está contaminado**: el mensaje del reanálisis de
+estilo usa `styleProblems.length` (`ImprovementModal.tsx:421-429`), que es **sólo
+la lista de estilo**. Los 7 y los 8 son de estilo puro. Los solapamientos estaban
+arriba porque el modal los sigue enseñando, no porque entraran en la cuenta.
