@@ -1754,3 +1754,64 @@ y eso hay que decirlo al leer el resultado, no después.
 
 **Nada se lanza.** Y los 30 créditos de A5 siguen sin gastarse: los 60 que se
 fueron son de los dos intentos cortados, que es B.235.
+
+---
+
+# ✅ 15/09/2026 · A5 MEDIDO Y CONFIRMADO CONTRA LA BASE
+
+**Par**: `OPE-14` contra `OPE-11_tarifario-tratamientos-seguros.xlsx`
+(`documentos_implicados` lo confirma: el otro lado era el que tenía que ser).
+
+| pasada | hora | discrepantes | idénticas | solo en A | solo en B |
+|---|---|---|---|---|---|
+| exhaustivo | 10:26 | **3** | **57** | **0** | **0** |
+| rápido | 10:25 | **3** | **57** | **0** | **0** |
+
+**EL DENOMINADOR, que es lo que convierte el 3 en una medición**: `filas_analizado
+60`, `filas_candidatos 60`, `pares_con_vision 1`, **`pares_ciegos 0`**,
+`ciegos_por_el_analizado 0`, `tablas 1/1`.
+
+**Predicción escrita antes: `3 · 57 · 0 · 0` con `pares_ciegos 0`. ACERTADA.**
+
+⚠️ **Y HAY UN RESULTADO DE PROPINA QUE CONVIENE DECIR APARTE, porque nadie lo
+había pedido: LAS DOS PASADAS COINCIDEN.** Rápido y exhaustivo dan la misma cifra.
+Eso no estaba en la predicción —que sólo hablaba del exhaustivo— y dice algo más
+fuerte: **la cifra no depende del modo**. Se anota como lo que es, un hallazgo
+adicional, no como parte de lo predicho.
+
+## LO QUE ESTA TANDA COMPRÓ
+
+**El arreglo de B.204 NO cambió el resultado del análisis por el camino del chat.**
+Era exactamente lo que la reserva quería y lo que no se podía saber sin pasada
+real: que la referencia firmada cambiara **cómo viaja el fichero** sin tocar **qué
+dice el análisis**.
+
+Y con A6 dando lo mismo el mismo día, se cierra además la pregunta que abrió el
+borrado del corpus: **el corpus reconstruido produce lo que producía el original**.
+
+## ⚠️ EL MONTAJE FUE DEL DIRECTOR, Y ES EL HALLAZGO DE MÉTODO
+
+Yo enumeré tres salidas: un fichero de control nuevo, sacar OPE-14 con lápida, o
+editar el texto en el modal. **El director hizo una cuarta que no estaba en mi
+lista: borró OPE-14 de OneDrive y sincronizó.** La sincronización lo retiró del
+corpus, el veto por hash se quedó sin contra qué chocar, y el camino quedó libre
+—**sin tocar la base y sin lápida**, que eran justo las dos condiciones que yo no
+sabía cumplir a la vez—.
+
+**Por qué se me escapó, dicho sin adornar: enumeré los montajes que el sistema
+ofrece DESDE DENTRO.** Miré qué puede hacer la aplicación con lo que ya tiene, y
+la salida estaba **fuera** — en el proveedor, que es una pieza del sistema de la
+que el usuario tiene el mando y yo no tengo el código.
+
+⚠️ **Es la misma clase de fallo que el censo por nombre**, con otra frontera: allí
+enumeré por el nombre del parámetro en vez de por la capacidad; aquí enumeré por
+el borde del repositorio en vez de por **lo que el usuario puede hacer**. Un censo
+de opciones que no incluya las acciones del usuario sobre los sistemas conectados
+está incompleto por construcción, y no lo parece.
+
+## EL RIESGO 2 DE LA RESERVA, CERRADO CON EVIDENCIA
+
+El descarte permanente de la organización es **de prosa**, del 29/08. Las tres
+discrepancias sembradas son **tabulares**, y la especie tabular todavía no se
+escribe en esa tabla. **No pudo restar nada**, y no por confianza: por su especie
+medida.

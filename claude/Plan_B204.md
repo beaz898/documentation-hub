@@ -290,3 +290,34 @@ ni el camino a medir pasa por encima de ellas.
 cola de arreglos empiece a llenarse de mejoras generales en vez de cierres, la
 madriguera ha empezado.** Cada arreglo tiene que enseñar el hallazgo que lo paga;
 cuando no lo tenga, le toca medir a alguien.
+
+## ✅ 15/09/2026 · A5 MEDIDO — Y LO PRÓXIMO VUELVE A SER MEDIR
+
+**Hecho hoy**: B.220 (b), B.223 (a), B.227, B.232, y **A5 y A6 medidos contra la
+base**. El recuento de caminos pasa de **tres de ocho a CUATRO de ocho**.
+
+**LO PRÓXIMO ES A7 O A8 — los dos de estilo— Y NO ES UNA PREFERENCIA:**
+
+| razón | |
+|---|---|
+| **cierran la cuarentena que queda** | tras A5, «Reanalizar todo» está medido por sus dos caminos. Lo único que sigue en cuarentena es **«Reanalizar estilo», que no se ha medido NUNCA** |
+| **son el hueco más grande** | A1, A3, A5 y A6 tienen cifra. A7 y A8 no tienen ninguna: no es que su cifra sea vieja, es que no existe |
+| **y la regla de la casa lo dice** | la primera prueba de un camino no medido **no confirma: descubre**. Estos dos son los últimos caminos vírgenes de la familia principal |
+
+⚠️ **Y ANTES DE LANZARLA, LA PREGUNTA QUE HOY HABRÍA AHORRADO 60 CRÉDITOS: ¿qué
+puede cortar esa pasada antes de que mida?** Hoy fue el veto por hash, que nadie
+había enumerado. Para el estilo, `analyze-style` cuesta 2 créditos y tiene sus
+propias puertas — **se leen antes, no después**.
+
+**LO QUE NO COMPITE, y por qué**, para que no se cuele por inercia:
+
+| ficha | por qué espera |
+|---|---|
+| B.220, B.225, B.234 | ninguna cierra un hallazgo mal cerrado ni detiene corrupción activa |
+| B.235 | su mitad urgente ya entró; la otra **espera a tener cifra**, que es justo lo que el contador nuevo va a dar |
+| B.228, B.229, B.231 | dejan residuo o mienten en un mensaje, no pierden datos |
+| B.232 (el tope) | la guarda del servidor cerró la vía alcanzable; el tope sigue haciendo falta el día que alguien mueva la carpeta raíz |
+
+**El criterio de corte no ha cambiado**: un arreglo va antes que una medición sólo
+si cierra un hallazgo cuyo cierre era falso, detiene pérdida activa, o el camino a
+medir pasa por encima de él. **Ninguna de las siete lo cumple hoy.**

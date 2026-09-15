@@ -60,7 +60,12 @@ LIMIT 3;
 
 SELECT id, status, document_name, created_at, started_at, completed_at,
        EXTRACT(EPOCH FROM (completed_at - started_at)) AS segundos,
-       credits_estimated, result_saved
+       -- ⚠️ CORREGIDA EL 15/09/2026: aquí ponía `credits_estimated`, que NO
+       -- EXISTE. La columna real es `credits_consumed` (supabase-setup.sql:380).
+       -- Escrita de memoria, y falló al ejecutarla. Queda corregida en el
+       -- fichero para que la próxima vez no vuelva a fallar — un SQL que sólo
+       -- se arregló en una conversación se rompe otra vez al siguiente uso.
+       credits_consumed, result_saved
 FROM analysis_jobs
 WHERE created_at > now() - interval '1 day'
 ORDER BY created_at DESC;
@@ -74,3 +79,20 @@ ORDER BY created_at DESC;
 SELECT id, kind, dismissed_by, created_at
 FROM finding_dismissals
 ORDER BY created_at DESC;
+
+
+-- ── 7 · ⚠️ LOS CONTADORES EN `null` DE LOS TRABAJOS CORTADOS SON CORRECTOS
+--
+-- Los tres trabajos que murieron por el veto de hash salen con
+-- `pipeline_counters` a NULL, y eso está bien: **un trabajo que no midió nada
+-- no tiene cifras**. Un `null` ahí es honesto y NO es lo mismo que un cero —
+-- «no lo miré» y «lo miré y no había» son cosas distintas, y ésta es la regla
+-- del cero de la casa vista desde el otro lado: el cero que hay que sospechar
+-- es el que aparece sin que nadie buscara. Aquí ni siquiera aparece.
+--
+-- La única cifra que un trabajo así debe llevar es la de la avería, y desde el
+-- 15/09/2026 la lleva:
+
+SELECT count(*) AS exhaustivos_sin_clasificar
+FROM analysis_results
+WHERE pipeline_counters ? 'averia.exhaustivo_sin_clasificar';
