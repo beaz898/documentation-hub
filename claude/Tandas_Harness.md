@@ -2092,3 +2092,121 @@ sola pantalla**, que es lo que el modal es.
 estilo usa `styleProblems.length` (`ImprovementModal.tsx:421-429`), que es **sólo
 la lista de estilo**. Los 7 y los 8 son de estilo puro. Los solapamientos estaban
 arriba porque el modal los sigue enseñando, no porque entraran en la cuenta.
+
+---
+
+# ✅ 15/09/2026 · A7/A8 A ESTADO MEDIDO — y el 7 era variación
+
+**El director repitió A7 varias veces más: todas 8.**
+
+| puerta | pasadas | dieron 8 | dieron 7 |
+|---|---|---|---|
+| **A7 · chat** | **varias** (1 inicial + las repeticiones) | todas menos la primera | **1, la primera, no reproducida** |
+| **A8 · bandeja** | **5** (1 + 4 repeticiones) | **5** | 0 |
+
+⚠️ **LA EXPLICACIÓN QUE TENÍAMOS DELANTE ERA PLAUSIBLE Y ERA FALSA.** Escribí que
+el nombre del fichero entra en el prompt (`DOCUMENTO: "${fileName}"`) y que por
+ahí podían diferir las puertas. **Queda descartado — y no por razonamiento, por
+repetición.** Era exactamente el tipo de explicación que convence: verificable,
+concreta, y con una asimetría real detrás. **Lo único que la distinguía de la
+buena era medirla.**
+
+✅ **Y hay mecanismo para la variación, encontrado sin gastar nada:**
+`style-check.ts:92` pasa **`temperature: 0.2`**. No es cero. **El modelo muestrea**,
+así que dos llamadas idénticas pueden devolver listas distintas sin que nada esté
+roto. El 7 encaja con eso y con nada más.
+
+**A7 y A8 COINCIDEN.** La predicción de coincidencia se sostiene.
+
+## ⚠️ LO QUE DE VERDAD PASÓ CON LA PREDICCIÓN — y es el argumento del método
+
+**NO fue «8 predicho, 8 obtenido».** Fue:
+
+| | |
+|---|---|
+| **un fallo no visto** | **A1**, el que escribí como *«el caso de manual de ambigüedad… debería salir»*. **No salió** |
+| **un acierto no esperado** | **S3**, el párrafo duplicado, que predije **fallado** por la regla del `textRef` único. **Salió** |
+| **el total** | 8 = 8, **por compensación** |
+
+⚠️ **LA CIFRA CUADRÓ POR LOS MOTIVOS EQUIVOCADOS, Y SÓLO SE VE PORQUE LA SIEMBRA
+DECLARABA CUÁLES.**
+
+**Éste es el argumento de la siembra declarada, con su caso**, y es lo que hay que
+enseñar la próxima vez que alguien pregunte por qué no basta con predecir un
+número: **una predicción de «8» habría salido acertada, y habríamos archivado como
+confirmación una medición que escondía un fallo del producto.** Predecir el
+agregado permite acertar por compensación; predecir **los elementos** no.
+
+## EL REPARTO, POR TIPO Y NO POR NOMBRE
+
+⚠️ **Aquí leí de más la vez anterior**: agrupé por la lista de nombres de la
+pantalla y di por buena una clasificación que no era un dato. Lo que la siembra
+declara —que es lo único firme— es:
+
+| tipo | sembrados | encontrados | cuáles faltan |
+|---|---|---|---|
+| ortografía | 4 | **4** | — |
+| ambigüedad | 3 | **1** (A3) | ⚠️ **A1** y A2 |
+| sugerencia | 3 | **3** | — |
+
+**A2 falló como estaba predicho y por la razón escrita.** **A1 no**, y va a ficha
+propia.
+
+## LA CUARENTENA DEL MODO MEJORA: CERRADA ENTERA
+
+Sus dos mitades están medidas: «Reanalizar todo» por A5 y A6, «Reanalizar estilo»
+por A7 y A8. **Es la primera vez que esa fila no tiene ninguna mitad sin medir.**
+
+## ⚠️ EL CORPUS DE PRUEBAS: OPE-11 NO SE PUEDE DEVOLVER CON UN GESTO
+
+**Y la razón importa más que el inconveniente.** Marcar como analizado hace **dos**
+escrituras —la fila en Supabase **y la metadata de los vectores en Pinecone**
+(`mark-analyzed` usa `updateVectorMetadata`)—, porque el filtro del corpus vive en
+la metadata, no en la fila.
+
+**Desmarcar no existe**: **ningún endpoint escribe `pendiente`** salvo la
+sincronización de Drive. Así que:
+
+| salida | qué hace | ⚠️ |
+|---|---|---|
+| **dejarlo como está** | OPE-11 compite como candidato en todo análisis nuevo | **0 créditos.** El efecto está medido y escrito: es el aviso de alcance que salió hoy |
+| un `UPDATE` a mano en Supabase | cambia la fila | ⚠️ **INCOMPLETO Y PELIGROSO**: dejaría la metadata de Pinecone diciendo `analizado`, así que **el documento seguiría participando** y la fila diría lo contrario. Peor que no tocarlo |
+| borrarlo y resincronizar | lo devuelve a `pendiente` de verdad | 0 créditos, pero mueve más de lo que arregla |
+
+**RECOMIENDO DEJARLO Y DECLARARLO.** Es un documento, su efecto es conocido, y
+está escrito aquí. **La alternativa a mano crearía una discrepancia invisible entre
+la fila y el índice**, que es exactamente la clase de estado que esta casa
+persigue.
+
+⚠️ **Y eso es un hallazgo por sí solo: un estado al que se entra con un botón y
+del que no se sale con ninguno.** Queda anotado, sin arreglar.
+
+## EL PLAN: QUÉ TOCA DESPUÉS
+
+**La familia A queda con seis de ocho medidos** (A1, A3, A5, A6, A7, A8). Faltan:
+
+| camino | qué es | estado |
+|---|---|---|
+| **A2** | CHAT · subida → **exhaustivo** | ⚠️ **parcial**: la serie del 04/09 lo midió a medias |
+| **A4** | BANDEJA · analizar **exhaustivo** | ⚠️ sin medir |
+
+**Las dos opciones, para que decida el director:**
+
+**(a) Cerrar la familia: A2 y A4.** Son los dos caminos del **exhaustivo**, que es
+el más caro del producto (30 créditos) y el que tiene el worker por medio —o sea
+el que más piezas atraviesa—. Cerrarlos deja la familia principal **completa por
+primera vez**. Coste: 30 + 30, y A2 podría aprovechar lo ya medido a medias.
+
+**(b) Volver a los arreglos con la cola de hoy**, que ha crecido: B.236, B.237,
+B.238, B.239, más lo de antes. ⚠️ **Y una de ellas ya no es teórica: B.239 es el
+producto sin ver un error que el producto promete ver.**
+
+⚠️ **Mi lectura, y va como recomendación y no como decisión: (b), y por B.239.**
+El criterio de corte de esta casa dice que un arreglo se adelanta si detiene
+pérdida activa o si **el camino a medir pasa por encima de él**. B.239 cumple lo
+segundo por partida doble: **medir más caminos de análisis mientras el detector
+tiene un agujero conocido produce cifras que habrá que repetir**. Y su primer paso
+no cuesta créditos — es el contador que dice si el código se lo comió o el modelo
+no lo vio.
+
+**Nada se lanza.**

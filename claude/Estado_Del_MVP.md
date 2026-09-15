@@ -2396,6 +2396,60 @@ el caso peor llega con `success: true`. **La primera sí es independiente** y es
 
 **No se arregla aquí.**
 
+## ⚠️ 5.36 · B.239 — el detector de estilo no ve una ambigüedad con consecuencia clínica (15/09/2026)
+
+**MEDIDO CON SIEMBRA DECLARADA, en A7 y A8, y reproducido en varias pasadas.** La
+frase sembrada como `A1`:
+
+> «El paciente debe acudir en ayunas si la intervención es por la mañana o por la
+> tarde deberá comer ligero.»
+
+Sin puntuación entre las dos ramas, **se lee de dos maneras opuestas** — y lo que
+está en juego es si el paciente come antes de una intervención. **No se detecta.**
+
+⚠️ **ERA EL QUE MÁS CONFIANZA DABA.** El registro de siembra, escrito antes de
+medir, decía: *«Es el caso de manual de ambigüedad, y con consecuencia clínica.
+**Debería salir**»*. Los otros dos de su tipo iban marcados discutibles; éste no.
+
+**Y no es sobre la tanda: es sobre el producto.** Un revisor de documentación
+clínica que no ve esta frase deja pasar exactamente la clase de error que hace
+peligrosa una instrucción a un paciente.
+
+## QUÉ SE PUEDE SABER SIN GASTAR NADA MÁS
+
+**Hay DOS mecanismos que podrían explicarlo, los dos verificables leyendo, y
+NINGUNO de los dos deja rastro. Ésa es la mitad accionable de esta ficha.**
+
+**1 · El filtro por tipo descarta en silencio.** `style-check.ts:96` hace
+un `filter` que exige que el `type` sea uno de los tres válidos.
+**Si el modelo devolvió A1 con un tipo fuera de la lista** —`puntuacion`,
+`gramatica`, `claridad`— **el código lo tira sin contarlo**. Y una ambigüedad de
+puntuación es justo la que un modelo etiquetaría como `puntuacion`.
+
+**2 · La respuesta puede venir truncada.** `maxOutputTokens: 3072` (`:91`), y la
+casa repara el JSON truncado — reparar un array cortado significa **quedarse sin
+sus últimos elementos**. Con diez problemas y sus descripciones, el tope no es
+holgado.
+
+⚠️ **Y NO SE PUEDE SABER CUÁL DE LOS DOS FUE, porque `parsed.problems` NUNCA SE
+CUENTA CONTRA `problems`.** El código filtra y no compara: no hay una sola línea
+que diga cuántos devolvió el modelo frente a cuántos sobrevivieron. **Un filtro
+sin contador es un límite sin vigilante**, y es el mismo patrón que B.236 y que el
+tope de contexto.
+
+**LO QUE COSTARÍA HACERLO SABIBLE: nada de ejecutar.** Una línea que registre
+`parsed.problems.length` frente a `problems.length` y los tipos descartados, y un
+contador en la etapa `averia`, que ya existe y ya se persiste en
+`pipeline_counters`. **Con eso, la siguiente pasada lo contesta sola** — y si los
+dos números coinciden, entonces el modelo simplemente no lo vio, que es otra
+conversación y también un dato.
+
+⚠️ **Lo que NO se puede hacer es decidirlo ahora**: escribir «el modelo no lo ve»
+sin haber mirado si el código se lo comió sería exactamente la clase de
+afirmación que esta casa no admite.
+
+**No se arregla aquí.**
+
 ---
 
 # 6 · EL CRITERIO DE SALIDA, PUNTO POR PUNTO
