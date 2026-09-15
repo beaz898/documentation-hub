@@ -132,3 +132,32 @@ la 3 enseña su hermana **más barata de todas**:
 regla del indicativo hizo su trabajo en el lado de quien tiene el repositorio —
 verificar antes de actuar—. El sistema no depende de que nadie se equivoque:
 depende de que **las afirmaciones sin evidencia no tengan por dónde circular**.
+
+---
+
+# ⚠️ 15/09/2026 · EL CASO MÁS CARO DE LA SEMANA: EVIDENCIA REAL LEÍDA DE MÁS
+
+Los tres fallos anteriores de la semana fueron **premisas sin verificar**. Éste no:
+**el dato era real y estaba bien medido**. Lo que falló fue la inferencia.
+
+**Cinco pasadas de análisis de estilo dieron 8. Las leímos como ESTABILIDAD**, y
+sobre esa lectura se concluyó que el 7 de la otra puerta era una anomalía y que
+las dos puertas coincidían. **Cuatro pasadas más dieron 9 · 7 · 8 · 7.** El rango
+normal era 7–9; los cinco ochos fueron suerte.
+
+**LA REGLA QUE YA LO CUBRÍA, y por eso duele:** *un cero sólo vale si el sistema
+puede demostrar que buscó*. Aquí no era un cero, era una **constancia** — y
+necesita exactamente el mismo control: **el control positivo de la estabilidad es
+una pasada que dé otra cosa.** No se buscó. Se tomaron cinco muestras iguales y se
+llamó mecanismo a lo que era una racha.
+
+> **Una repetición sin varianza observada no demuestra estabilidad: demuestra que
+> aún no se ha visto variar.** Antes de llamar estable a algo, hay que poder decir
+> cuántas veces se miró y qué haría falta para verlo moverse.
+
+⚠️ **Y SU COROLARIO OPERATIVO, que es lo accionable**: comparar dos caminos por un
+AGREGADO —un recuento— exige conocer su dispersión primero, y eso suele costar
+decenas de muestras. **Comparar los ELEMENTOS cuesta tres o cuatro.** Cuando un
+sistema guarda el número y tira el contenido, obliga al método caro y encima
+inconcluyente — que es por qué «se guarda el recuento y no el detalle» no es una
+carencia de registro: **es una carencia de instrumento**.

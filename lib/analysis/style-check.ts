@@ -164,9 +164,23 @@ Devuelve el JSON con los problemas internos detectados.`;
       });
     }
 
-    const contadores: PipelineCounters = {};
-    if (descartadosPorTipo > 0) contadores['averia.estilo_descartado_por_tipo'] = descartadosPorTipo;
-    if (descartadosSinAncla > 0) contadores['averia.estilo_descartado_sin_ancla'] = descartadosSinAncla;
+    // ⚠️ LAS DOS CLAVES SIEMPRE, TAMBIÉN EN CERO — 15/09/2026, y es la
+    // corrección de esta misma pieza el día que se escribió.
+    //
+    // Nacieron escribiéndose SÓLO si su recuento era mayor que cero, y el
+    // resultado fue que las primeras cuatro pasadas tras desplegarlas salieron
+    // con `null` en las dos columnas — **indistinguible de una pasada anterior
+    // al cambio**. El contador no podía ni confirmar que estaba desplegado.
+    //
+    // ⚠️ UN CERO QUE NO SE ESCRIBE NO SE PUEDE LEER COMO CONFIRMACIÓN. Es la
+    // regla del cero de esta casa, incumplida por el contador que venía a
+    // servirla: el hueco significaba a la vez «no descartó nada» y «no llegó a
+    // mirar». Que el `null` de un trabajo cortado sea correcto —«no miré»— no
+    // convierte en correcto el `null` de uno que sí miró.
+    const contadores: PipelineCounters = {
+      'averia.estilo_descartado_por_tipo': descartadosPorTipo,
+      'averia.estilo_descartado_sin_ancla': descartadosSinAncla,
+    };
 
     // ⚠️ EL REGISTRO LLEVA LOS TRES NÚMEROS, no sólo el de salida: «8 problemas»
     // no dice lo mismo si el modelo devolvió 8 que si devolvió 12.

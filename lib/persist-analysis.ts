@@ -146,9 +146,13 @@ export async function saveStyleResult(
     // ⚠️ B.239 — LO DESCARTADO SE PERSISTE, y por eso esto no vive en un log:
     // quien decide sobre ello no entra en los registros de Vercel. La columna
     // `pipeline_counters` ya existe (F-82) y este análisis la dejaba a null.
-    pipeline_counters: input.contadores && Object.keys(input.contadores).length > 0
-      ? input.contadores
-      : null,
+    // ⚠️ SE ESCRIBE LO QUE VENGA, SIN CONVERTIR EL VACÍO EN `null` — corregido
+    // el 15/09/2026. Esta línea decía `…length > 0 ? contadores : null`, y con
+    // ella una pasada sin descartes era indistinguible de una anterior al
+    // cambio. Además era la ÚNICA de las dos funciones de este fichero que lo
+    // hacía: `saveAnalysisResult` usa `?? null`, que deja pasar el objeto vacío.
+    // Dos criterios distintos para la misma columna, y el raro era éste.
+    pipeline_counters: input.contadores ?? null,
     // ⚠️ SÓLO LAS ETIQUETAS DE TIPO QUE EL MODELO INVENTÓ, nunca el texto del
     // documento. Van aquí y NO en una clave de contador porque son un valor
     // abierto: como clave harían el campo inagregable, que es la misma razón por

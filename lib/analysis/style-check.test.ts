@@ -26,12 +26,19 @@ const bueno = { type: 'ortografia', title: 't', description: 'd', textRef: 'cons
 beforeEach(() => llamada.mockReset());
 
 describe('el camino limpio', () => {
-  it('sin descartes, no se inventa ningún contador', async () => {
+  it('⚠️ sin descartes, las dos claves salen en CERO — no ausentes', async () => {
+    // El caso que la primera versión de esta pieza falló: escribía las claves
+    // sólo si había algo que contar, así que una pasada limpia era
+    // indistinguible de una anterior al cambio. Un cero que no se escribe no
+    // se puede leer como confirmación.
     llamada.mockResolvedValue({ problems: [bueno] });
     const r = await analyzeStyle('texto', 'doc.txt');
 
     expect(r.problemas).toHaveLength(1);
-    expect(r.contadores).toEqual({});
+    expect(r.contadores).toEqual({
+      'averia.estilo_descartado_por_tipo': 0,
+      'averia.estilo_descartado_sin_ancla': 0,
+    });
     expect(r.tiposDescartados).toEqual([]);
   });
 });
@@ -103,8 +110,9 @@ describe('⚠️ descarte SIN ANCLA — la huella de una respuesta truncada', ()
 
     expect(r.problemas).toHaveLength(1);
     expect(r.contadores['averia.estilo_descartado_sin_ancla']).toBe(1);
-    // ⚠️ Y NO se cuenta como descarte por tipo: el tipo era bueno.
-    expect(r.contadores['averia.estilo_descartado_por_tipo']).toBeUndefined();
+    // ⚠️ Y NO se cuenta como descarte por tipo: el tipo era bueno. La clave
+    // está —siempre está— y vale CERO, que es lo que la hace legible.
+    expect(r.contadores['averia.estilo_descartado_por_tipo']).toBe(0);
     expect(r.tiposDescartados).toEqual([]);
   });
 
@@ -141,6 +149,10 @@ describe('el fallo del modelo — que esto NO arregla', () => {
     const r = await analyzeStyle('texto', 'doc.txt');
 
     expect(r.problemas).toEqual([]);
+    // ⚠️ AQUÍ SÍ VA VACÍO, Y ES LO CORRECTO: no se llegó a filtrar nada porque
+    // no hubo respuesta que filtrar. Un cero aquí diría «miré y no descarté»,
+    // que sería falso. Es la distinción de los trabajos cortados por hash, con
+    // el signo bien puesto.
     expect(r.contadores).toEqual({});
     // Y se dice en el caso: un cero de aquí sigue sin distinguirse de «no hay
     // problemas». Lo que hoy deja rastro es lo DESCARTADO, no lo no-mirado.

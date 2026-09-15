@@ -2210,3 +2210,54 @@ no cuesta créditos — es el contador que dice si el código se lo comió o el 
 no lo vio.
 
 **Nada se lanza.**
+
+---
+
+# ⚠️ 15/09/2026, NOCHE · «ESTABLE EN 8» ERA FALSO — y con él se cae la conclusión de A7/A8
+
+**Lo anterior NO se borra**: queda arriba, con lo que se concluyó y con qué. Esto
+dice qué lo desmintió.
+
+**Cuatro pasadas nuevas: 9 · 7 · 8 · 7.** Con las cinco de la mañana, nueve
+observaciones: **rango 7–9**, moda 8.
+
+## LO QUE SE CAE, PUNTO POR PUNTO
+
+| se concluyó | con qué evidencia | qué lo desmiente |
+|---|---|---|
+| «el 7 fue variación **no reproducida**» | cinco pasadas seguidas en 8 | **el 7 aparece dos veces más.** No era una anomalía: **es el rango normal** |
+| «A7 y A8 **coinciden**» | un 7 frente a un 8, leídos contra una estabilidad aparente | con dispersión de 7 a 9, **un 7 y un 8 no dicen nada sobre las puertas**. La comparación nunca tuvo base |
+| «el mecanismo es `temperature: 0.2`» | — | ✅ **esto sí se sostiene**, y ahora con más razón: la dispersión es justo lo que produce |
+
+⚠️ **CINCO OCHOS SEGUIDOS FUERON SUERTE Y LOS LEÍMOS COMO MECANISMO.** No se
+fabricó ningún dato: las cinco pasadas existieron y dieron 8. **Lo que falló fue la
+inferencia** — de «cinco iguales» a «estable», y de «estable» a «una cifra de cada
+puerta basta para compararlas».
+
+**Es el caso más caro de la semana para el método, y por eso se escribe entero**:
+los otros fueron premisas sin verificar. Éste fue **evidencia real leída como si
+dijera algo que no decía**. Y la regla de la casa ya lo cubría sin que lo
+viéramos: *un cero sólo vale con control positivo* — aquí el control positivo de
+la ESTABILIDAD habría sido una pasada que diera otra cosa, y no se buscó.
+
+## ⚠️ CUÁNTAS PASADAS HARÍAN FALTA — y la respuesta es que por ahí no se va
+
+**Comparar RECUENTOS no es viable.** Con una dispersión de ±1 alrededor de 8, para
+distinguir dos puertas que difirieran en medio problema de media harían falta
+**del orden de treinta pasadas por puerta** — unos 120 créditos— y aun así el
+resultado sería un intervalo, no una respuesta. *(Es una estimación de orden de
+magnitud, no un cálculo cerrado; lo que decide es que sale caro y contesta poco.)*
+
+✅ **Comparar CONJUNTOS sí lo es, y sale casi gratis: con 3–5 pasadas por puerta.**
+Si cada pasada dijera **cuáles** encontró, un problema que **nunca** aparece por
+una puerta y **sí** por la otra salta a la primera; y uno que aparece en unas y no
+en otras se ve como lo que es — dispersión, no diferencia de puerta.
+
+⚠️ **PERO HOY NO SE PUEDE, Y POR B.238: los problemas no se guardan, sólo el
+recuento.** Así que la pregunta «¿coinciden las puertas?» **está bloqueada por una
+ficha abierta**, no por falta de créditos. **Arreglar B.238 es más barato que
+medir sin él**, y es la recomendación: 4 pasadas × 2 puertas = **16 créditos**
+frente a los ~120 del camino de los recuentos.
+
+**Mientras tanto, lo honesto es decir que NO SABEMOS si A7 y A8 coinciden**, y que
+la conclusión anterior se retira.

@@ -2396,7 +2396,55 @@ el caso peor llega con `success: true`. **La primera sí es independiente** y es
 
 **No se arregla aquí.**
 
-## ⚠️ 5.36 · B.239 — el detector de estilo no ve una ambigüedad con consecuencia clínica (15/09/2026)
+## ⚠️ 5.36 · B.239 — el detector ve una ambigüedad con consecuencia clínica UNAS VECES SÍ Y OTRAS NO (15/09/2026)
+
+⚠️⚠️ **ESTA FICHA SE ABRIÓ CON UNA PREMISA FALSA Y SE CORRIGE EL MISMO DÍA, ANTES
+DE ARREGLAR NADA SOBRE ELLA.**
+
+**Decía: «no se detecta».** Con una sola pasada delante, y esa pasada no lo
+traía. **Es falso**: en las pasadas de la noche del 15/09, la lista de 8 **SÍ**
+incluye «Frase confusa sobre ayunas» y la de 7 no. **A1 se detecta —a veces—.**
+
+**Y eso cambia el hallazgo, no lo cancela:** un revisor que ve un error en una
+pasada y no en la siguiente es, para quien lo usa, **peor que uno que no lo ve
+nunca** — porque el que no lo ve nunca se puede declarar; éste da una falsa
+sensación de cobertura que cambia con cada ejecución.
+
+⚠️ **Y ARRASTRA TODO LO QUE ESTA FICHA RAZONABA DEBAJO**: si el detector es no
+determinista **con los errores que sí ve**, entonces **la ausencia de A1 en una
+pasada nunca fue evidencia de nada**, y las dos causas que se investigaron —el
+filtro por tipo y el truncamiento— se investigaron sobre un hecho que no estaba
+establecido. **No eran malas hipótesis: eran respuestas a una pregunta mal
+hecha.** Lo escrito sobre ellas se conserva porque sigue siendo cierto sobre el
+código; lo que se retira es que explicaran esto.
+
+**LO QUE SÍ QUEDA, y es lo que hay que medir ahora**: **con qué frecuencia** sale
+cada error sembrado. Eso no se mide con recuentos —hoy sólo se guarda el número—
+sino con **qué** encuentra cada pasada, que es B.238.
+
+✅ **Y UNA OBSERVACIÓN QUE CUENTA A FAVOR, del director**: por la mañana el modelo
+dijo que a `prescipción` le faltaba una «s»; por la noche dice que le falta una
+«r», que es lo correcto. **La DETECCIÓN es estable; la EXPLICACIÓN no.** Son dos
+propiedades distintas y conviene no confundirlas: el error se encuentra siempre,
+y lo que varía es cómo se cuenta — que es menos grave, pero llega igual al
+usuario.
+
+## ¿LO EXPLICA `temperature: 0.2`?
+
+**Lo hace esperable, y no se puede decir más que eso sin medirlo.** 0,2 es bajo
+pero no es cero: el modelo muestrea, y en una tarea que decide **cuántos**
+elementos emitir, los candidatos que están cerca del umbral entran o no entran
+según la muestra. Un rango de 7 a 9 sobre diez sembrados es **compatible** con
+eso.
+
+⚠️ **Lo que NO se puede afirmar es que 0,2 lo explique del todo**, porque nadie ha
+medido la dispersión a otra temperatura. **La prueba barata existe y no es una
+tanda**: poner `temperature: 0` y repetir. Si la dispersión no baja, no es la
+temperatura y hay que mirar otra cosa. *(Y ni siquiera con 0 se garantiza
+determinismo, así que el resultado sería «baja mucho» o «no baja», no «es
+determinista».)*
+
+**No se cambia la temperatura aquí.**
 
 **MEDIDO CON SIEMBRA DECLARADA, en A7 y A8, y reproducido en varias pasadas.** La
 frase sembrada como `A1`:
