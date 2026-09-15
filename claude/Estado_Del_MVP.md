@@ -2513,6 +2513,53 @@ order by created_at desc limit 5;
 | `descartados_sin_ancla > 0` | ⚠️ **fue el truncamiento**: la respuesta no cabía y perdió su cola. El arreglo es el tope, no el filtro |
 | **las dos columnas vacías** | **no fue el código**: el modelo devolvió 8 y ninguno se descartó, así que **simplemente no vio A1**. Es otra conversación — y también un dato |
 
+## ⚠️ EL CONTADOR NO CONTESTA — Y EL FALLO ES DEL CONTADOR, 15/09/2026
+
+**MEDIDO**: cinco pasadas de estilo sobre CLI-20, todas con **8 encontrados** y
+las tres columnas nuevas a **`null`**. Ninguna de las tres lecturas escritas
+encaja, y la razón es que **el contador no puede contestar**.
+
+**LA CAUSA, y es mía:** `persist-analysis.ts:149` escribe
+
+```ts
+pipeline_counters: input.contadores && Object.keys(input.contadores).length > 0
+  ? input.contadores
+  : null,
+```
+
+y `style-check.ts` sólo mete una clave **si su recuento es mayor que cero**. Así
+que **una pasada que no descarta nada escribe `null`, no un cero.**
+
+⚠️ **ES LA REGLA DE LA CASA INCUMPLIDA POR EL CONTADOR QUE VENÍA A SERVIRLA.**
+Esta misma mañana se escribió que el `null` de los trabajos cortados por hash era
+**correcto y distinto de un cero** —«no lo miré» frente a «lo miré y no había»—.
+Aquí pasa lo contrario: **un cero que no se escribe no se puede leer como
+confirmación**, y el hueco significa las dos cosas a la vez.
+
+⚠️ **Y LO PEOR NO ES QUE NO CONTESTE: ES QUE ESCONDE EL DIAGNÓSTICO DE SÍ MISMO.**
+Con la clave escrita siempre, la fila de después del despliegue diría `0` y se
+sabría **al instante** si el cambio había llegado. Sin ella, **una pasada
+posterior sin descartes y una pasada anterior al cambio son idénticas**. El
+defecto tapa la pregunta de si el defecto está desplegado.
+
+**LAS OTRAS DOS, contestadas:**
+
+| candidata | veredicto |
+|---|---|
+| **el despliegue no había llegado** | ⚠️ **NO SE PUEDE DESCARTAR, y precisamente por lo de arriba.** El commit es de las **17:25:01 +02:00** y la fila dice **16:00:32** — si la base muestra UTC son las 18:00 locales y fue **después**; si muestra local, fue **antes**. **No se adivina**: se resuelve con una consulta |
+| **`pipeline_counters` no se guarda para `style`** | ✅ **DESCARTADA.** Sí se guarda: la columna está en el `insert` de `saveStyleResult` (`:149`), en la misma fila que `style_problems_found`, que sí llegó |
+
+**EL TAMAÑO DE ARREGLARLO**: que `style-check.ts` ponga **siempre las dos claves**
+—con cero cuando no hay descarte— y que `saveStyleResult` deje de convertir el
+objeto vacío en `null`. **Dos líneas**, más los casos de la batería que hoy
+afirman `contadores === {}` en el camino limpio, que pasarían a afirmar los dos
+ceros. **Sin SQL.**
+
+⚠️ **Y la pregunta que queda para cuando se arregle, que es la del método**: si
+las dos claves salen a **0** y los descartes son realmente cero, entonces **el
+modelo no vio A1** — y eso deja de ser una hipótesis sobre el código para pasar a
+ser una sobre el detector.
+
 ⚠️ **Lo que NO se puede hacer es decidirlo ahora**: escribir «el modelo no lo ve»
 sin haber mirado si el código se lo comió sería exactamente la clase de
 afirmación que esta casa no admite.
