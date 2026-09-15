@@ -1519,6 +1519,35 @@ un TOTAL.** El día que se acerque a 10.000, la misma cifra pasará a ser una
 **cota inferior** sin avisar — y entonces «1 huérfano» podría significar «1 de
 los que cupieron». Hoy no es el caso, y por eso hoy se puede creer.
 
+## 📏 SEGUNDA MEDICIÓN, 15/09/2026 — cero, y un vector que se fue solo
+
+> «Se encontraron **0** vectores huérfanos. Vectores en Pinecone: **762** ·
+> Documentos en base de datos: **42**. No hay huérfanos. Todo limpio.»
+
+**Y sin pulsar «limpiar»: de 763 a 762 por otra vía.**
+
+⚠️ **QUÉ SE LLEVÓ ESE VECTOR — lo que se puede decir y lo que no.** Lo que sí:
+**no existe en el repositorio ningún barrido programado**. Los diez sitios que
+borran vectores se disparan todos por una petición —`cleanup-orphans`,
+`discard-staged`, `drive/disconnect`, `drive/sync`, `index-text`, `ingest`,
+`delete-document`, `document-swap`, `retirar-version`, `purge-org`— y ninguno
+corre por reloj. Así que **nada de la casa lo borró por su cuenta**.
+
+**La explicación que encaja, y queda como HIPÓTESIS, no como hecho**: los
+borrados de Pinecone son asíncronos. El documento de ese vector ya no tenía
+fila, o sea que **se le había pedido el borrado antes**; el índice tardó en
+aplicarlo y entre las dos consultas se puso al día. Encaja con todo lo medido y
+**no está comprobada**: para comprobarla haría falta un registro del momento del
+borrado que no tenemos.
+
+**NO EXPLICADO, por tanto, en sentido estricto.** Se anota así a propósito: un
+«seguramente fue X» escrito como si fuera X es cómo se fabrica un dato.
+
+⚠️ **Y CAMBIA LO QUE SIGNIFICA EL CRITERIO DE LA SEMANA.** Si el huérfano murió
+solo, el `dryRun` de dentro de una semana ya no distingue «la fábrica está
+cerrada» de «los borrados tardan»: **sólo un número que CREZCA seguiría
+significando algo**. Un cero, ahora, es compatible con las dos cosas.
+
 **LA DECISIÓN SOBRE LA GUARDA, con el criterio de corte delante:** no califica
 como urgente, y la razón no es que sea inofensiva —un huérfano servible es corpus
 fantasma— sino que **la puerta principal de la fábrica ya está cerrada**: el
@@ -1721,6 +1750,93 @@ cliente, y ahí queda.
 
 **No se decide aquí.**
 
+
+## ⚠️ 5.27 · B.229 — el error del proveedor se tira y se sustituye por uno inventado (15/09/2026)
+
+**MEDIDO**: el director intentó conectar y recibió *«Error conectando Google
+Drive: access_denied»*. Se preguntó si podía venir del arreglo de B.227. **No
+puede, y se puede afirmar leyendo el orden**: `callback/route.ts:12-14`
+comprueba el parámetro `error` **lo primero de todo**, antes de la sesión y antes
+de la firma. Si el proveedor dice que no, ninguna línea nueva llega a correr.
+
+✅ **Y de paso demuestra media cosa buena**: el flujo llegó a Google y volvió, así
+que `/api/drive` autenticó por cookie sin problema. La primera pata del arreglo
+funciona; la segunda sigue sin ejercerse.
+
+⚠️ **PERO ESAS DOS LÍNEAS TIRAN EL DIAGNÓSTICO, Y ES EL FALLO DE VERDAD:**
+
+```ts
+if (error) {
+  return NextResponse.redirect(new URL('/chat?drive_error=access_denied', req.url));
+}
+```
+
+**El código escribe `access_denied` SIEMPRE, diga lo que diga el proveedor.**
+Google puede contestar `access_denied`, `admin_policy_enforced`,
+`invalid_scope`, `org_internal`… y todos llegan al usuario como el primero. Es
+un mensaje que **afirma un motivo que no ha comprobado** — la familia de B.219,
+y aquí impide arreglar nada porque esconde qué hay que arreglar.
+
+**Y una segunda, más pequeña**: `chat/page.tsx:97` dice *«Error conectando
+**Google Drive**»* fijo, aunque el proveedor sea OneDrive.
+
+⚠️ **LA CONSECUENCIA PRÁCTICA HOY: B.227 NO SE PUEDE EJERCER.** No porque el
+arreglo falle, sino porque **el mensaje no distingue «el proveedor te dijo que
+no» de «algo nuestro falló»**. Los códigos propios ya son distintos
+—`no_session`, `state_expired`, `state_not_yours`, `invalid_state`—; lo que
+falta es dejar pasar el del proveedor en vez de sustituirlo.
+
+**No se arregla aquí.**
+
+## ⚠️ 5.28 · B.230 — «40 nuevos» sobre documentos que ya estaban, y a la bandeja (15/09/2026)
+
+**MEDIDO**: tras el intento de Drive, el director sincronizó y salió
+*«Sincronización completada: 40 nuevos, 0 actualizados, 0 eliminados, 0 sin
+cambios»*. Inmediatamente después: **42 documentos, 42 nombres distintos**, sus
+40 de OneDrive más 2 manuales, **sin duplicados**. Y los 40 **aparecieron en la
+bandeja de revisión**.
+
+**QUÉ CUENTA CADA NÚMERO, con su línea — porque la primera sospecha era que la
+etiqueta mintiera, y NO miente:**
+
+| número | variable | dónde se incrementa | qué significa de verdad |
+|---|---|---|---|
+| nuevos | `newCount` | `sync/route.ts:474` | **después de un `insert` REAL** en `documents`, con `analysis_status: 'pendiente'` (`:447`) |
+| actualizados | `updatedCount` | `:433` | la fila existente se actualiza en sitio |
+| eliminados | `deletedCount` | `:508` | `deleteDocument` por desaparición remota |
+| sin cambios | `skippedCount` | `:213` y `:285` | el cerrojo por fecha lo saltó, o el hash no cambió |
+
+Y el cliente pinta `stats.new` tal cual (`useDrive.ts:56`). **Así que no es un
+contador con la etiqueta cambiada: son cuarenta filas insertadas.** Lo cual es
+PEOR que la sospecha, no mejor.
+
+✅ **Y explica la bandeja sin más misterio**: toda fila que entra por ahí nace
+`pendiente`. No es que se les haya cambiado el estado — es que **son filas
+nuevas**, y las nuevas nacen sin revisar.
+
+⚠️ **PERO ENTONCES LOS DOS HECHOS NO PUEDEN SER CIERTOS A LA VEZ: 42 + 40 = 82,
+y se midieron 42.** Una de las dos cosas no es lo que parece, y no se elige
+adivinando. Las lecturas posibles:
+
+| lectura | qué tendría que verse en la base |
+|---|---|
+| se insertaron 40 y las viejas ya no están | los 40 con `created_at` de hace un minuto, y **el corpus habría perdido su historia** |
+| se insertaron 40 y hay 82 filas | el recuento de 42 medía otra cosa — un filtro, o **una sola organización de dos** |
+| el emparejamiento falló | `existingDocs` se lee con `.eq('source', provider.name)` (`:129`) y se indexa por `provider_file_id` (`:161`): si el `source` guardado no es el que devuelve el proveedor hoy, **todo parece nuevo** y el índice único no choca porque incluye `source` |
+
+**El SQL que lo decide está en `claude/SQL_sync_40_nuevos.sql`** y lo ejecuta el
+director: filas por `org_id` y por `source`, distribución de `created_at` por
+minuto, cuántos están en `pendiente` **con `reviewed_at` ya puesto** —que es la
+prueba de «estaba revisado y ha vuelto atrás»—, y si quedaron análisis sin
+documento vivo.
+
+⚠️ **LA TERCERA LECTURA ES LA QUE MÁS ME CONVENCE Y LA QUE NO PUEDO CONFIRMAR
+DESDE AQUÍ**, y por eso no se escribe como diagnóstico: haría falta ver qué
+`source` tienen esas filas. Si fuera ésa, el corpus tendría hoy DOS familias de
+filas para los mismos ficheros y el recuento de 42 no cuadraría tampoco — así
+que la propia consulta 1 la confirma o la mata.
+
+**No se arregla aquí. Mapa primero.**
 ---
 
 # 6 · EL CRITERIO DE SALIDA, PUNTO POR PUNTO
