@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import { encrypt } from '@/lib/crypto';
 import { getProvider } from '@/lib/drive/registry';
+import { getAuthenticatedUserHybrid } from '@/lib/supabase-server';
+import { verificarEstadoDeOAuth, codigoDeEstadoRechazado } from '@/lib/drive/estado-oauth';
+import { secretoDeFirma } from '@/lib/analysis/secreto';
 
 export async function GET(req: NextRequest) {
   try {
@@ -17,14 +20,46 @@ export async function GET(req: NextRequest) {
       return NextResponse.redirect(new URL('/chat?drive_error=missing_params', req.url));
     }
 
-    let state: { userId: string; orgId: string; token: string; provider?: string };
-    try {
-      state = JSON.parse(Buffer.from(stateParam, 'base64').toString());
-    } catch {
-      return NextResponse.redirect(new URL('/chat?drive_error=invalid_state', req.url));
+    // ══════════════════════════════════════════════════════════════════
+    // ⚠️ B.227 — ESTA RUTA NO TENÍA AUTENTICACIÓN NINGUNA, Y ESCRIBÍA.
+    //
+    // Hasta el 15/09/2026 aquí se hacía `JSON.parse(base64(stateParam))` y el
+    // `state.orgId` resultante se metía en un `upsert` con
+    // `onConflict: 'org_id'` y clave de servicio. El `state` no iba firmado:
+    // **cualquiera componía uno**. Con el `orgId` de otra organización, el
+    // atacante completaba el flujo con SU cuenta de Drive y le sobrescribía la
+    // conexión — y en la siguiente sincronización, disparada por un miembro
+    // legítimo, el sistema leía el Drive del atacante: **importaba sus
+    // documentos y borraba los que la víctima tenía sincronizados**, porque
+    // «ya no están en Drive».
+    //
+    // ⚠️ Y LA GUARDA ESTABA DISEÑADA Y SIN CABLEAR: el `state` llevaba un campo
+    // `token` con la sesión, esta función lo DECLARABA EN SU TIPO, y no lo leía
+    // en ninguna línea. No faltaba por diseñar: se diseñó y nadie la conectó.
+    //
+    // Ahora son DOS cosas, y hacen falta las dos:
+    //   · la COOKIE dice quién eres — esta ruta es una navegación de primer
+    //     nivel desde Google, así que la sesión llega;
+    //   · la FIRMA dice que el `state` lo emitimos nosotros, para esa
+    //     organización y hace menos de quince minutos.
+    // Ninguna sobra: sin la cookie, un `state` capturado se podría reintentar;
+    // sin la firma, la cookie no dice nada sobre QUÉ organización es.
+    // ══════════════════════════════════════════════════════════════════
+    const user = await getAuthenticatedUserHybrid(req);
+    if (!user) {
+      return NextResponse.redirect(new URL('/chat?drive_error=no_session', req.url));
     }
 
-    const provider = getProvider(state.provider || 'google_drive');
+    const estado = verificarEstadoDeOAuth(stateParam, { userId: user.id }, secretoDeFirma());
+    if (!estado.ok) {
+      console.warn(`[DRIVE CALLBACK] state rechazado | motivo=${estado.motivo} | user=${user.id}`);
+      return NextResponse.redirect(
+        new URL(`/chat?drive_error=${codigoDeEstadoRechazado(estado.motivo)}`, req.url),
+      );
+    }
+    const state = estado.datos;
+
+    const provider = getProvider(state.provider);
 
     // Exchange code for tokens
     let tokens;

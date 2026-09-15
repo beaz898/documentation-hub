@@ -1485,6 +1485,61 @@ vivo.
 sigue citando lo borrado, pero **sin su caducidad**. Allí el contenido cae solo
 pasados tres turnos; aquí no cae nunca.
 
+## 📏 MEDIDO EL 15/09/2026 — uno, y uno no es cero
+
+**El director ejecutó el `dryRun`. Copiado literal:**
+
+> «Se encontraron **1** vectores huérfanos en tu organización. No se ha borrado
+> nada. Vectores en Pinecone: **763** · Documentos en base de datos: **42**»
+> El huérfano: `CLI-05_radiologia-proteccion-radiologica.txt (corregido
+> 14/09/2026)`, documento `733b1e35-aaa9-4e00-a9c4-eb7bbe6bc21b`.
+
+**UNO NO ES CERO: la fábrica existe y ya produjo.** Y es el documento con el que
+se probaron los reemplazos, así que salió de ahí.
+
+⚠️ **EL ID NO CUADRABA CON LO MEDIDO EL DÍA ANTERIOR** —`733b1e35` estaba VIVO,
+con 167 caracteres y un trozo— **así que se miró el detector sin darlo por bueno
+en ninguna dirección. El detector NO se equivoca, y se puede afirmar leyéndolo:**
+
+`cleanup-orphans/route.ts:35-56` trae **todos** los ids de documentos de la
+organización y marca huérfano el vector cuyo `documentId` de metadatos no esté en
+ese conjunto. **No entran generaciones, ni `chunk_count`, ni estados**: es una
+pertenencia a conjunto. Y con 42 documentos no hay truncamiento posible.
+
+**Por tanto lo que dice es exacto: hoy no existe fila con ese id.** La lectura
+que queda es que el documento se reemplazó otra vez *después* de aquella
+medición, y su borrado dejó un vector. Confirmarlo es una consulta —`select id
+from documents where id = '733b1e35-…'`— y **sobra para decidir**: el detector no
+es el que falla.
+
+✅ **Y EL DENOMINADOR, POR PRIMERA VEZ CREÍBLE, que conviene dejar escrito:** ese
+«763» sale de una consulta de similitud con `topK: 10000` (B.209). **Con 763
+está muy por debajo del tope, así que devuelve el índice entero y el recuento es
+un TOTAL.** El día que se acerque a 10.000, la misma cifra pasará a ser una
+**cota inferior** sin avisar — y entonces «1 huérfano» podría significar «1 de
+los que cupieron». Hoy no es el caso, y por eso hoy se puede creer.
+
+**LA DECISIÓN SOBRE LA GUARDA, con el criterio de corte delante:** no califica
+como urgente, y la razón no es que sea inofensiva —un huérfano servible es corpus
+fantasma— sino que **la puerta principal de la fábrica ya está cerrada**: el
+cerrojo de los vectores impide que el borrado se lleve la fila dejando los
+vectores, y el reemplazo construye antes de destruir. Ese huérfano es anterior a
+las dos cosas.
+
+**Lo que se hace en su lugar, que es más barato y más informativo:**
+
+1. **Limpiar ése ahora** con el botón que ya existe: es un vector, es gratis y es
+   inmediato.
+2. **Repetir el `dryRun` dentro de una semana.** Si vuelve a dar cero, la fábrica
+   está cerrada de verdad y la guarda se queda en la cola. **Si el número crece,
+   hay una vía que no conocemos y entonces sí es urgente** — y esa medición
+   distingue las dos cosas, que ninguna opinión puede.
+
+⚠️ **Y LO QUE NO SE PUEDE SABER HOY, dicho como tal:** con qué FRECUENCIA el chat
+los sirve. El respaldo por trozos de `rag.ts:336-370` **no deja rastro
+distinguible** —no hay contador que separe «reconstruí porque falta `full_text`»
+de «reconstruí porque no hay fila»—. Saberlo exigiría un contador nuevo, y eso es
+otra pieza. Que no se pueda medir hoy es información, no una excusa.
 **No se decide aquí** — si el filtro debe comprobar la fila, si el barrido debe
 ser automático, o si basta con contarlos una vez, es una decisión con coste en
 cada consulta del chat.
@@ -1579,11 +1634,64 @@ la barra de direcciones** hasta Google, dentro del `state`. Acaba en el historia
 del navegador, en los registros del proveedor y en cualquier `Referer` del
 camino. Y **no se usa para nada**: es una credencial expuesta a cambio de cero.
 
-**No se arregla aquí** — esto llegó mirando otra cosa y el encargo era B.223.
-Pero **no es una mejora general**: por el criterio de corte, cae del lado de «lo
-que un cliente puede sufrir», y la corrección es pequeña —firmar el `state` con
-el mismo HMAC que ya existe en `lib/analysis/firma.ts`, o verificar el `token`
-que ya viaja dentro—.
+## ✅ ARREGLADA EL 15/09/2026 — y el arreglo hace tres cosas de una
+
+**EL ALCANCE, MEDIDO ANTES DE ESCRIBIR NADA, porque decidía si era urgente o
+gravísimo:**
+
+| pregunta | respuesta medida |
+|---|---|
+| ¿qué hace falta? | **el `orgId` de la víctima (un UUID) y cualquier cuenta de Google.** Ninguna sesión en esa organización, ninguna credencial |
+| ¿el atacante LEE los documentos de la víctima? | **NO.** El flujo es de una sola dirección: Drive → corpus. Nada empuja documentos hacia Drive |
+| ¿entonces qué consigue? | **inyectar y destruir.** En la siguiente sincronización —disparada por un miembro legítimo, que resuelve su organización bien— el sistema lee el Drive del atacante: **importa sus documentos** y **borra los que la víctima tenía sincronizados**, porque «ya no están en Drive» (`sync/route.ts:490-505`, sobre `documents` filtrados por `source`) |
+| ¿lo salva la guarda del listado que falla? | **No** (la de B.138): aquélla protege del listado que FALLA, y el listado del Drive del atacante es perfectamente válido |
+| ¿se nota? | **sí, a posteriori**: `drive_connections.email` pasa a ser el del atacante y la pantalla lo enseña |
+
+Así que no es exfiltración — y decirlo importa, porque la respuesta fácil era
+suponerla—. Es **destrucción del corpus sincronizado más inyección en él**, que
+en un producto que responde desde ese corpus es de la primera familia.
+
+**EL ARREGLO, y se eligió entre los dos con su razón:**
+
+Se descartó *leer el `token` que ya viajaba* porque eso habría dejado **el token
+de sesión viajando en la barra de direcciones** —historial, `Referer`, registros
+de Google—, que es un problema por sí solo. Firmar no necesita que viaje ninguna
+credencial.
+
+⚠️ **Y AL MIRARLO RESULTÓ QUE EL TOKEN EN LA URL NO LO PONÍA GOOGLE: LO PONÍAMOS
+NOSOTROS EN LAS DOS PATAS.** `useDrive.ts:33` hacía
+`window.location.href = '/api/drive?token=' + session.access_token`, y
+`drive/route.ts` lo leía de ahí. Como esa navegación es de primer nivel, **las
+cookies llegan solas** y el token nunca hizo falta. El arreglo lo retira de las
+dos.
+
+**Lo que hay ahora, y hacen falta las dos mitades:**
+
+- **la COOKIE** dice *quién eres* — en las dos rutas, que antes no autenticaban
+  igual (el inicio por `?token=`, el callback **nada en absoluto**);
+- **la FIRMA** (`lib/drive/estado-oauth.ts`, HMAC del mismo `firma.ts`) dice que
+  *ese `state` lo emitimos nosotros, para esa organización, hace menos de quince
+  minutos*.
+
+Ninguna sobra: sin la cookie, un `state` capturado se podría reintentar; sin la
+firma, la cookie no dice nada sobre **qué** organización es. El motivo `ajeno`
+—firma buena, no caducado, pero de otra sesión— es exactamente esa mitad.
+
+**Quince minutos y no dos horas** como la referencia de subida, y la razón se
+escribe: aquélla espera a que una persona revise un documento; ésta es un ida y
+vuelta a la pantalla de Google.
+
+**12 casos, tres mutantes, los tres muertos**: quitar la firma —literalmente el
+código de ayer— mata **9**; quitar la cláusula `ajeno`, 1; quitar la caducidad, 2.
+
+⚠️ **LO QUE ESTE CENSO RE-EJECUTADO NO VE, y se dice**: la línea de escritura
+sigue siendo `org_id: state.orgId`, idéntica a la de ayer. **Lo que cambió es la
+PROCEDENCIA de `state`**, y un censo que sólo mire el punto de escritura no lo
+distingue. Para esta clase, el censo tiene que llegar hasta el origen del valor.
+
+**PENDIENTE DE EJERCER EN PANTALLA**: conectar Drive y que funcione. Si la cookie
+no llegara al callback, saldría `drive_error=no_session` — dicho aquí para que,
+si aparece, se sepa qué es en vez de parecer un fallo de Google.
 
 ## ⚠️ 5.26 · B.228 — una tabla que sobrevive al borrado de la organización (15/09/2026)
 
@@ -1596,6 +1704,16 @@ y de su usuario de Auth**.
 Su hermana `feedback` sí se borra, pero **por `user_id`** (`:139`), no por
 `org_id` — lo que resulta ser lo correcto por accidente, porque es lo único que
 alcanza a las filas de B.223.
+
+⚠️ **Y LA PREGUNTA QUE DECIDE SI ESTO ES OTRA CONVERSACIÓN, CONTESTADA: SÍ
+GUARDA CONTENIDO.** `DocGapButton.tsx:30` manda `answer` —**la respuesta del
+chat, recortada a 5.000 caracteres**— junto a la pregunta del usuario. Esa
+respuesta está fundada en los documentos: **es contenido derivado del corpus**,
+no una etiqueta ni un identificador.
+
+Así que lo que sobrevive al borrado de la organización no es metadato: son hasta
+5.000 caracteres de material del cliente por fila, después de que su
+organización y su usuario de Auth ya no existan.
 
 **Lo que lo acota**: nadie lee esa tabla (ver B.223), así que el dato no se
 enseña. **Lo que no lo acota**: el purgado existe para que no quede dato del

@@ -30,7 +30,9 @@ export function useDrive(
 
   function handleConnectDrive(provider: string) {
     if (!session) return;
-    window.location.href = `/api/drive?token=${session.access_token}&provider=${provider}`;
+    // ⚠️ B.227 — SIN `token` EN LA URL. La navegación lleva las cookies, y el
+    // token aquí acababa en el historial y en los registros del proveedor.
+    window.location.href = `/api/drive?provider=${provider}`;
   }
 
   async function handleSyncDrive() {
