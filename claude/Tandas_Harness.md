@@ -1565,3 +1565,132 @@ camino del chat no tiene a quién excluir**, porque el documento aún no ha naci
    que lo registraba son precisamente los análisis que quedaron huérfanos.
 
 **No se lanza nada.** Decide el director con esto delante.
+
+---
+
+# 15/09/2026 · EL MONTAJE Y LAS DOS PREDICCIONES — decisión: opción 2
+
+## ⚠️ PRIMERO, UNA CORRECCIÓN DE COSTE QUE DI MAL
+
+Dije «rehacer A6 rápido = 5 créditos». **Es falso.** A6 **es** «Reanalizar todo»,
+y ese botón llama a `analyze-v2` con **`exhaustive: true` incondicional**
+(`useCrossDocAnalysis.ts:128`). No hay modo rápido de A6.
+
+| paso | endpoint | créditos |
+|---|---|---|
+| marcar OPE-11 analizado | `mark-analyzed` | **0** |
+| analizar OPE-14 en la bandeja (hace falta para abrir Mejora) | `analyze-v2` rápido | **5** |
+| **A6 · «Reanalizar todo» desde la bandeja** | `analyze-v2` exhaustivo | **30** |
+| subir OPE-14 por el chat (su análisis de subida) | `analyze-v2` rápido | **5** |
+| **A5 · «Reanalizar todo» desde el chat** | `analyze-v2` exhaustivo | **30** |
+
+**TOTAL: 70 créditos**, no 35. La decisión sigue siendo del director **con esta
+cifra**, no con la que le di.
+
+## LOS FICHEROS: QUÉ HACE FALTA Y DE DÓNDE SALE
+
+| fichero | dónde está | estado que necesita |
+|---|---|---|
+| `OPE-11_tarifario-tratamientos-seguros.xlsx` | ✅ **en el repositorio**, `corpus-pruebas/` — y ya en el corpus, traído por OneDrive | **`analizado`** |
+| `OPE-14_….xlsx` | ⚠️ **NO está en el repositorio.** Se hizo a mano y vive en su OneDrive | **`pendiente`**, y fuera del corpus |
+
+⚠️ **EL NOMBRE COMPLETO DE OPE-14 NO ESTÁ REGISTRADO EN NINGÚN SITIO** — su propia
+siembra lo escribe como `OPE-14_<nombre real>.xlsx`. **Lo tiene delante igualmente**:
+los 40 documentos volvieron, así que el nombre exacto está en su lista, empezando
+por `OPE-14`.
+
+✅ **Y SI NO LO CONSERVARA, NO SE PIERDE LA TANDA**: `SIEMBRA_OPE-14.md` dice que es
+**una copia de OPE-11 con tres celdas cambiadas** —`DIA-01` → 45, `END-01` → 200,
+`PRO-01` → 700, todas en una sola columna de precio— y OPE-11 sí está versionado.
+Se rehace, y **se comprueba** con `node scripts/verificar-ope14.mjs <ruta>`, que
+además dice qué columna se sembró en vez de darla por sabida.
+
+## EL MONTAJE, PASO POR PASO
+
+**0 · Comprobar el fichero de control.** En su lista de documentos, localizar el
+que empieza por `OPE-14`. *Debe ver*: un `.xlsx` con ese prefijo, entre los 40.
+Si no aparece, **parar aquí**: se rehace desde OPE-11 antes de seguir.
+
+**1 · Marcar SOLO `OPE-11` como analizado.** Bandeja → abrirlo → *Marcar como
+analizado*. *Debe ver*: OPE-11 sale de la bandeja y quedan **39**. **0 créditos.**
+
+⚠️ **NO marcar ningún otro tarifario.** `OPE-10`, `OPE-13` y `OPE-15` son de la
+misma familia y competirían como candidatos: la cifra sembrada dejaría de ser la
+única explicación del resultado.
+
+⚠️ **Y NO marcar `OPE-14`.** Ahí está la trampa: A5 sube una copia a mano, y el
+camino del chat **no excluye a nadie** —`documentoAReemplazar` sólo lo manda la
+bandeja (`ImprovementModal.tsx:226`)—, así que si OPE-14 estuviera en el corpus la
+copia se compararía **contra su propio gemelo**: 60 filas idénticas y la siembra
+enterrada debajo. **Se evita no haciendo nada**: hoy está `pendiente`, que es
+justo donde tiene que estar. Y es **reversible en los dos sentidos** — marcar y
+desmarcar no cuesta créditos ni toca contenido.
+
+**2 · A6 · dar análisis a OPE-14.** Seleccionarlo en la bandeja → *Analizar*
+(rápido). *Debe ver*: OPE-14 con su análisis, y sigue en la bandeja. **5 créditos.**
+
+**3 · A6 · la pasada.** Abrir OPE-14 → *Mejorar con IA* → **«Reanalizar todo»**.
+*Debe ver*: el aviso de exhaustivo y luego el resultado. **30 créditos.**
+**Anotar las cuatro cifras antes de seguir.**
+
+**4 · A5 · subir OPE-14 por el chat.** Arrastrarlo al chat. *Debe ver*: el modal
+de análisis de subida. **5 créditos.** ⚠️ **NO confirmar la indexación**: el modal
+sólo hace falta para llegar al botón.
+
+**5 · A5 · la pasada.** En ese modal → *Mejorar con IA* → **«Reanalizar todo»**.
+**30 créditos.** Anotar las cuatro cifras.
+
+⚠️ **La base NO se toca en ningún paso.** Todo son gestos de la interfaz, y todos
+reversibles salvo el gasto.
+
+## PREDICCIÓN · A6 DE HOY — escrita antes de ver nada
+
+**Predigo `3 · 57 · 0 · 0`**, con `pares_ciegos 0` y `tablas_analizado ≥ 1`.
+
+**El razonamiento**: lo que produce esa cifra no se ha tocado. El cortador es el
+mismo (`EXTRACTOR_VERSION = 3`; `chunking.ts` sin cambios desde el 09/09), el
+contenido de los dos ficheros es el mismo, y **nada de esta semana entró en la
+tubería de análisis** — se tocaron `rag`, el borrado, la indexación, `org` y
+Drive. La reconstrucción del corpus cambió los **ids**, no el texto.
+
+**DOS RIESGOS DECLARADOS, por si sale distinto:**
+
+1. **La composición del corpus no es la del 09/09.** Entonces había varios
+   documentos `analizado`; hoy habrá **uno**. Si el 57/3 fuera en parte mérito de
+   otros tarifarios compitiendo, la cifra se movería. *Apuesto a que no*: 57
+   idénticas sobre 60 filas sólo puede salir del par.
+2. **Descartes persistidos.** «Reanalizar todo» manda `excludeFingerprints`. Si el
+   09/09 se descartó algún hallazgo y su huella sobrevive, hoy se restaría.
+
+### Las tres lecturas de A6
+
+| resultado | qué significa |
+|---|---|
+| **`3 · 57 · 0 · 0`** | **el corpus reconstruido da lo mismo que el original.** Se recupera el lado conocido y A5 pasa a tener con qué compararse |
+| **otra cifra** | ⚠️ **hallazgo, y de los baratos**: algo del borrado-y-recreación cambió lo que el corpus produce. Vale los 30 créditos aunque A5 no llegue a lanzarse |
+| **cero candidatos o `pares_ciegos > 0`** | **no concluye nada**: el montaje está mal —OPE-11 no llegó a `analizado`, o su metadata en el índice no se actualizó—. Se arregla y se repite; **no se lee como resultado** |
+
+## PREDICCIÓN · A5 — la heredada, con lo que cambia
+
+**Predigo `3 · 57 · 0 · 0`, la misma**, y por la razón de siempre: **describe el
+resultado del análisis, no el transporte**. Lo único que B.204 cambió es cómo
+viaja el fichero.
+
+**Lo que cambia respecto a la reserva del 09/09:**
+
+- ✅ **el riesgo del cortador está resuelto** — ya no hay que consultar nada: todo
+  se reindexó hoy con la versión 3;
+- ⚠️ **aparece el riesgo del gemelo**, que no existía entonces, y lo neutraliza el
+  paso 1 del montaje;
+- ⚠️ **y A5 depende de A6**: si A6 no da la cifra, A5 ya no confirma nada — pasaría
+  a ser una base nueva, y la decisión vuelve al director.
+
+### Las tres lecturas de A5
+
+| resultado | qué significa |
+|---|---|
+| **igual que A6** | **el arreglo de B.204 no cambió el análisis.** Es lo que la tanda venía a comprar, y cierra el punto (1) de la cuarentena del modo Mejora |
+| **distinto de A6** | ⚠️ **hallazgo**: el mismo par por dos caminos da dos cosas, y la diferencia está en el camino del chat, que es el que se migró |
+| **error de transporte** (403 de `ref`, 409 de candado, cero candidatos) | **no concluye**: no habla del análisis. Se repite; y si es el 403 de la `ref`, es que el modal llevaba más de dos horas abierto |
+
+**Nada se lanza hasta que el director confirme el montaje.**
