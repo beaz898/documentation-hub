@@ -1694,3 +1694,63 @@ viaja el fichero.
 | **error de transporte** (403 de `ref`, 409 de candado, cero candidatos) | **no concluye**: no habla del análisis. Se repite; y si es el 403 de la `ref`, es que el modal llevaba más de dos horas abierto |
 
 **Nada se lanza hasta que el director confirme el montaje.**
+
+---
+
+# ⚠️ 15/09/2026 · A5 NO SE MIDIÓ, Y EL MONTAJE QUE ESCRIBÍ ERA IMPOSIBLE
+
+**A6 SÍ**: job `2eea9aa0`, 23,9 s, 3 discrepancias y «60 filas con cruce, 0 sin».
+Consistente con la predicción — **pero eso es el LOG**. Las cuatro cifras de la
+base salen con `claude/SQL_A6_contadores.sql`, y hasta que coincidan **no se
+anota como medido**.
+
+**A5 NO**: jobs `bbbaa108` y `b9538096`, muertos en 294 ms y 76 ms con «duplicado
+exacto». **La hipótesis del director es correcta y está verificada** (B.234): el
+veto por hash consulta `documents` filtrando **sólo** por `org_id` y
+`content_hash` —`hash-check.ts:70-72`, **ningún filtro de estado**—, así que
+encontró el OPE-14 que la sincronización había traído, aunque esté `pendiente`.
+
+⚠️ **Y ESO INVALIDA EL MONTAJE QUE ESCRIBÍ HACE UN RATO.** Dije que bastaba con
+dejar OPE-14 en `pendiente` para esquivar al gemelo. **Es falso**: `pendiente`
+evita que compita como CANDIDATO, y el veto por hash mira **antes y mira todo**.
+**A5 no se puede medir con un fichero que exista en la organización en ningún
+estado.** La trampa que encontré era real; la salida que propuse, no.
+
+## LOS TRES MONTAJES QUE SÍ PODRÍAN MEDIR A5
+
+**(A) Un fichero de control NUEVO, que nunca haya estado en el corpus.** Otra
+copia de `OPE-11` con **tres celdas cambiadas distintas** (o los mismos códigos
+con otros valores). Su texto difiere del OPE-14 sincronizado, así que **su hash
+también**, y la forma de la predicción se conserva: **3 discrepantes · 57
+idénticas** contra OPE-11.
+· **Coste**: 0 créditos de montaje. Hacerlo a mano, más su registro de siembra.
+· ⚠️ **No se sube a OneDrive** — si se sincroniza, entra en el corpus y vuelve el
+  mismo problema. Se usa **sólo** para subirlo por el chat.
+· **Riesgo**: es un control nuevo, así que su cifra de referencia la da esta misma
+  tanda; no hereda la del 09/09.
+
+**(B) Sacar OPE-14 del corpus.** Borrarlo desde la lista de documentos.
+· ⚠️ **Escribe lápida** —es un documento sincronizado y el borrado voluntario las
+  escribe—, así que **la siguiente sincronización NO lo devuelve**. Para
+  recuperarlo hay que borrar la lápida a mano en la base.
+· **Coste**: 0 créditos, pero **toca la base para deshacerlo**, y ésa era
+  precisamente la condición que el director quiso evitar.
+
+**(C) Editar el texto en el modal antes de reanalizar.** Cambiar el valor de una
+de las tres celdas ya sembradas (45 → 46) altera el hash y **mantiene** tres
+discrepancias y 57 idénticas.
+· ⚠️ **NO VERIFICADO**, y se dice: no he comprobado que el hash del camino
+  exhaustivo se calcule sobre el texto editado del modal ni que el troceado
+  tabular sobreviva a una edición manual. **Antes de gastar nada aquí habría que
+  leerlo**, y sería una lectura, no una tanda.
+· ⚠️ Y la reserva ya avisa de la trampa vecina: una edición de **espaciado o
+  caja** no cambia el hash, porque `normalizeTextForHash` colapsa espacios y baja
+  a minúsculas. Tiene que ser de **contenido**.
+
+**RECOMIENDO (A)**: es el único que no toca la base, no pierde el fichero de
+control existente y no depende de nada sin verificar. Lo que cuesta es que A5
+deja de comparar «el mismo par que A6» y pasa a comparar «un par equivalente» —
+y eso hay que decirlo al leer el resultado, no después.
+
+**Nada se lanza.** Y los 30 créditos de A5 siguen sin gastarse: los 60 que se
+fueron son de los dos intentos cortados, que es B.235.

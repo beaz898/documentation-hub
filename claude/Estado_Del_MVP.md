@@ -2101,6 +2101,89 @@ pintarse como «no conectado»— en su propio commit, y el tope de la
 sincronización, que con esta guarda puesta **deja de ser lo urgente** pero sigue
 haciendo falta el día que alguien mueva la carpeta raíz en el proveedor.
 
+## ⚠️ 5.31 · B.234 — el veto por hash usa una tercera definición de «está en el corpus» (15/09/2026)
+
+**MEDIDO EL 15/09/2026, y costó 60 créditos descubrirlo.** Dos análisis
+exhaustivos lanzados desde el chat murieron en 294 ms y 76 ms con «duplicado
+exacto»: el fichero subido a mano era idéntico a un documento que ya estaba en la
+organización.
+
+**EL MECANISMO, leído:** `hash-check.ts:70-72` consulta
+
+```ts
+.from('documents').select('id, name')
+  .eq('org_id', orgId)
+  .eq('content_hash', contentHash)
+```
+
+**Ningún filtro de estado.** Ve todo lo que existe en la organización —incluido
+lo `pendiente`, que por definición **no participa en el corpus servible**—.
+
+⚠️ **Y ÉSA ES LA TERCERA DEFINICIÓN DE LA MISMA PREGUNTA.** El 14/09 se unificaron
+las dos que había —el filtro de Pinecone y el predicado de Supabase— en un solo
+valor, precisamente porque cada una juraba ser la otra. **Ésta no se contó**: no
+se parece a las otras dos, no menciona `analysisStatus`, y decide sobre la misma
+pregunta con otra regla. El censo de aquel día enumeró quién LEE el criterio, no
+quién contesta a la pregunta por su cuenta.
+
+**Y no es una inconsistencia teórica: tiene consecuencia medida.** Un documento
+que el chat no puede citar —porque está `pendiente`— sí basta para vetar un
+análisis por duplicado. Las dos afirmaciones son contradictorias desde fuera:
+«este documento no está en tu corpus» y «no analizo esto porque ya está en tu
+corpus».
+
+**Lo que hace que A6 sí funcionara**: desde la bandeja se pasa
+`excludeDocumentId`, así que el propio documento no se cuenta como su duplicado.
+**Desde el chat no hay a quién excluir** porque el documento aún no ha nacido.
+
+⚠️ **CONSECUENCIA PARA LA MEDICIÓN, Y HAY QUE DECIRLA ENTERA: EL MONTAJE QUE
+ESCRIBÍ ERA IMPOSIBLE DESDE EL PRINCIPIO.** Dije que bastaba con dejar OPE-14 en
+`pendiente` para evitar que se comparase con su gemelo. **Es falso**: `pendiente`
+evita que compita como candidato, pero **no** evita el veto por hash, que mira
+antes y mira todo. A5 no se puede medir con un fichero que exista en la
+organización **en ningún estado**.
+
+**No se arregla aquí.** Y la decisión no es obvia: el veto existe para no cobrar
+por analizar un duplicado exacto, y mirarlo todo es defendible. Lo que no es
+defendible es que **la misma pregunta tenga tres respuestas** y que ninguna de
+las tres lo sepa.
+
+## ⚠️ 5.32 · B.235 — un trabajo cortado a los 76 ms se cobra como el más caro (15/09/2026)
+
+**B.205 con población medida: 60 créditos.**
+
+| trabajo | duró | clasificación | reembolso |
+|---|---|---|---|
+| `2eea9aa0` | 23,9 s, analizó de verdad | **light** | **10 devueltos** |
+| `bbbaa108` | **294 ms**, cortado por el hash | **heavy** | **0** |
+| `b9538096` | **76 ms**, cortado por el hash | **heavy** | **0** |
+
+**LA CAUSA, verificada en los tres eslabones y no supuesta:**
+
+1. El corte por duplicado sale por `buildExactDuplicateResponse`
+   (`pipeline.ts:1150`), que devuelve **sin `estimatedCost`** — la clasificación
+   se calcula 200 líneas más abajo (`:1362`), en el camino que no se recorre.
+2. El trabajo llega al worker con ese campo **indefinido**.
+3. `worker/src/index.ts:307` hace `const cost = estimatedCost ?? 'heavy'`.
+
+⚠️ **«Heavy» es el valor por defecto de lo NO CLASIFICADO, no de lo caro.** Y
+como `REFUND_BY_COST.heavy = 0`, el trabajo que menos hizo es el único que no
+devuelve nada.
+
+**LO QUE LO HACE PEOR QUE UN FALLO**: aquí no falló nada. El corte por hash
+**funcionó** —evitó un análisis inútil en 76 ms, que es exactamente para lo que
+existe— y el precio castigó el acierto. El usuario paga 30 créditos por que el
+sistema le diga que no hacía falta gastarlos.
+
+**Y la forma es conocida**: un valor por defecto que significa una cosa
+(«no lo sé») leído como otra («lo más caro»). Es la familia de la semana con el
+signo cambiado: aquí el desconocido no falla abierto, **factura**.
+
+**No se arregla aquí.** Pero el tamaño se ve: o el corte por duplicado declara su
+clase —es barato, es `light` o menos—, o el defecto del worker deja de ser
+`heavy`. Las dos son una línea; **cuál de las dos es la correcta es la decisión**,
+porque cambian cosas distintas.
+
 ---
 
 # 6 · EL CRITERIO DE SALIDA, PUNTO POR PUNTO
