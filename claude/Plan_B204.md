@@ -259,6 +259,33 @@ El orden acordado tras F-107 es **b → a → medición**:
 - **Las 459 líneas de `index-text`** no cierran ningún hallazgo. Norma de la casa
   sin víctima activa: se parte el día que se toque ese fichero por otra razón.
 
+## ⚠️ ESTADO AL 15/09/2026, FIN DEL DÍA — LO PRÓXIMO ES MEDIR, NO ARREGLAR
+
+**`b` y `a` están hechos.** Con eso se acabó la lista que Fable autorizó a
+adelantar, y **la siguiente sesión es una MEDICIÓN**: A5 rehecho con su
+predicción heredada **`3 · 57 · 0 · 0`** y la razón #1 reescrita.
+
+**Lo que apareció por el camino y NO justifica seguir arreglando**, aunque
+apetezca —están en fichas y esperan su turno—:
+
+| ficha | qué es | por qué NO va antes de medir |
+|---|---|---|
+| B.225 | huérfanos servibles | la puerta principal está cerrada; el `dryRun` decide, y es gratis |
+| B.228 | `documentation_gaps` sobrevive al purgado | nadie la lee |
+| B.229 | el error del proveedor se sustituye por uno inventado | impide ejercer B.227, no rompe nada |
+| B.231 | `disconnect` no pasa por `deleteDocument` | deja filas muertas, no miente en pantalla |
+| B.232 | sincronización sin tope | ⚠️ **la única candidata a saltarse la cola**, y sólo si el director va a reconectar con otra cuenta |
+
+⚠️ **B.232 ES LA EXCEPCIÓN QUE HAY QUE VIGILAR, y la condición es concreta**: si
+el director conecta una cuenta distinta a la que trajo los documentos, la
+siguiente sincronización se los lleva. Mientras no lo haga, no corre. **Eso no es
+una opinión sobre la gravedad: es una condición que se puede cumplir o no, y hoy
+no se cumple.**
+
+**Y el criterio de corte sigue siendo el de F-107 P4**, que ninguna de las cinco
+cumple hoy: ni cierran un hallazgo mal cerrado, ni detienen corrupción activa,
+ni el camino a medir pasa por encima de ellas.
+
 ⚠️ **Y LA SEÑAL QUE HAY QUE VIGILAR, escrita aquí para que se vea sola: cuando la
 cola de arreglos empiece a llenarse de mejoras generales en vez de cierres, la
 madriguera ha empezado.** Cada arreglo tiene que enseñar el hallazgo que lo paga;

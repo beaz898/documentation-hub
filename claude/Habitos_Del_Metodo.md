@@ -103,3 +103,32 @@ razonables, que es justo lo que las hace duraderas.
   construcción). Una regla mal recortada los borraría.
 
 **Se anota, no se promueve. El tercer caso decide.**
+
+---
+
+# EL BALANCE DE LA SEMANA — 15/09/2026
+
+**TRES datos sin verificar del arquitecto se convirtieron en investigación. Los
+tres los paró una medición, y ninguno llegó al código.** Se cuentan aquí porque
+una racha que no se cuenta se recuerda como «alguna vez pasó».
+
+| # | lo que se afirmó | qué lo falsificó | qué costó |
+|---|---|---|---|
+| 1 | «el reemplazo deja los vectores VIEJOS» | los hashes se comparan antes de reindexar | una lectura |
+| 2 | «los vectores huérfanos son el residuo benigno» **y se ordenó invertir un borrado sobre eso** | `rag.ts:336-370` los reconstruye y los cita | **la orden no se ejecutó**; el arreglo real era otro |
+| 3 | «sólo intentó conectar Drive» → se montó un caso de pérdida de trabajo | sólo hay un camino que borra así, y pide confirmación | **el director paró sin necesidad** |
+
+⚠️ **LOS TRES TIENEN LA MISMA FORMA, Y NO ES LA QUE PARECE.** No son errores de
+juicio: son **premisas sobre el objeto emitidas sin mirarlo**. La 2 ya está
+promovida a regla —los juicios de inocuidad son universales sobre consumidores—;
+la 3 enseña su hermana **más barata de todas**:
+
+> **Antes de investigar qué salió mal, preguntar qué se hizo.** El tercer caso se
+> resolvía con una pregunta al director —«¿desconectaste antes?»— y en su lugar
+> se escribió una hipótesis de pérdida de datos. La medición la desmontó, pero la
+> pregunta habría costado un mensaje.
+
+**Y la mitad que funcionó, que es la que hay que conservar**: las tres veces la
+regla del indicativo hizo su trabajo en el lado de quien tiene el repositorio —
+verificar antes de actuar—. El sistema no depende de que nadie se equivoque:
+depende de que **las afirmaciones sin evidencia no tengan por dónde circular**.

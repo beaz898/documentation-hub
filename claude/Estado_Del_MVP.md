@@ -1912,6 +1912,104 @@ nombre.
 
 **No se arregla aquí.**
 
+
+## ⚠️ 5.29 · B.231 — `disconnect` borra documentos sin pasar por `deleteDocument` (15/09/2026)
+
+**MEDIDO EL 15/09/2026**: al desconectar OneDrive se borraron 40 documentos, y
+**sus análisis siguen vivos apuntando a ids que ya no existen**.
+
+`POST /api/drive/disconnect` hace un `.delete()` crudo sobre `documents`
+(`:83`) en vez de llamar a `deleteDocument`. Se salta, por tanto, las cuatro
+garantías de aquella función:
+
+| lo que `deleteDocument` hace | `disconnect` |
+|---|---|
+| borra los `analysis_results` del documento | **no** — es la garantía de B.112, y aquí no se aplica |
+| escribe lápida cuando procede | **no** |
+| comprueba el candado de subida | **no** |
+| aborta si los vectores no se borran (14/09) | **sí, por su cuenta** (`:69-81`) |
+
+La última la hace bien y por eso **no hay huérfanos de vectores en masa**: borra
+con las dos estrategias y se detiene si alguna falla. Es el resto lo que falta.
+
+⚠️ **Y LO QUE LO CONVIERTE EN PÉRDIDA PERSISTENTE: `analysis_results.document_id`
+NO TIENE CLAVE AJENA.** El único FK de esa tabla es `user_id`
+(`supabase-setup.sql:408`). Sin cascada y sin borrado explícito, los análisis
+**sobreviven al documento**. Es exactamente la población de B.112, por un camino
+que B.112 no miró.
+
+**LO QUE LO ACOTA, y hay que decirlo para no exagerarlo**: desde B.212 la bandeja
+empareja por `document_id`, no por nombre. Así que esos análisis **no se van a
+atribuir a los documentos nuevos**: son filas muertas, no una mentira en
+pantalla. El daño es que el trabajo de revisión que representaban ya no está
+atado a nada.
+
+**POR QUÉ NO USA `deleteDocument` — y la respuesta no es «se les olvidó»:**
+`DeleteReason` sólo tiene dos valores, `'user_excluded'` y `'remote_deleted'`, y
+**ninguno describe una desconexión**. El primero escribiría lápidas —que
+impedirían reimportar al reconectar, justo lo contrario de lo que se quiere— y el
+segundo mentiría: el fichero no ha desaparecido de ningún sitio. **Es otra vez un
+tipo que no puede expresar el caso**, y quien se lo encontró resolvió por fuera.
+
+**Y por eso el arreglo es de la familia entera y no de este caso**: darle a
+`DeleteReason` su tercer valor y hacer que `disconnect` pase por la función
+compartida. Entonces los análisis se borran, la lápida no se escribe —porque el
+motivo nuevo así lo dice— y los cerrojos del 14/09 cubren también este camino.
+
+**El recuento, cuando el director ejecute las consultas 7-9 de**
+`claude/SQL_sync_40_nuevos.sql`: cuántos análisis apuntan a ids muertos **con su
+denominador**, si sus nombres coinciden con los recreados, y el control de que la
+cascada de `document_chunks` sí funcionó.
+
+**No se limpia nada aquí.**
+
+## ⚠️ 5.30 · B.232 — una sincronización válida puede llevarse el corpus entero, sin tope y sin preguntar (15/09/2026)
+
+`decidirSincronizacion` (`sync-guard.ts:126-130`) borra **exactamente lo que no
+está en el listado**. Sin límite, sin proporción y sin confirmación.
+
+Sus dos guardas contestan otras preguntas, y las contestan bien:
+
+| guarda | qué pregunta | qué NO cubre |
+|---|---|---|
+| la del listado fallido | ¿**llegó** el listado? (B.138) | un listado que llega perfectamente |
+| la del cambio de carpeta | ¿**cambió la carpeta**? (B.187) | sólo si el **cliente manda** un `folderId` distinto |
+
+**Ninguna cubre «este listado es válido y se lleva tu corpus entero».**
+
+⚠️ **Y LA PREGUNTA QUE DECIDÍA LA URGENCIA TIENE LA PEOR RESPUESTA POSIBLE: SÍ,
+Y LA GUARDA ES CIEGA POR CONSTRUCCIÓN.**
+
+`callback/route.ts:88` escribe **`folder_id: 'root'` siempre**, y el `upsert` va
+por `org_id`. Así que **conectar una cuenta distinta no requiere desconectar** y
+**deja el mismo `folder_id`**: `carpetaCambiada` compara `'root'` con `'root'` y
+da falso. La siguiente sincronización lista la cuenta nueva, no encuentra ni uno
+de los documentos viejos, y **los borra todos**.
+
+Es decir: el identificador de carpeta es **simbólico e idéntico entre cuentas**,
+así que el único freno que existe no puede ver el cambio que más daño hace.
+
+**EL TAMAÑO, que era lo que se pedía — y son dos arreglos distintos:**
+
+**(a) El tope, TRES SITIOS.** El criterio cabe en `decidirSincronizacion`, que es
+una función pura con su batería —ahí es un estado nuevo de retorno, no una
+rama—. Pero actuar sobre él no cabe ahí: la ruta tiene que devolver «esto
+requiere confirmación» en vez de borrar, el cliente tiene que enseñar qué se va a
+borrar (**cuáles**, no sólo cuántos), y la confirmación tiene que volver como
+una bandera. Y el denominador hay que elegirlo: la proporción es **sobre los
+documentos de ese proveedor**, no sobre el corpus entero.
+
+**(b) Detectar el cambio de cuenta, UN SITIO — y es mejor arreglo.** La conexión
+ya guarda `email`. Si al reconectar el correo no es el de antes, eso **es** un
+cambio de origen, y basta con que la siguiente sincronización lo trate como
+`carpeta_cambiada` —la guarda de B.187 ya existe y ya no borra nada en esa
+pasada—. Cubre el caso que de verdad ocurre, reutiliza lo que hay y no necesita
+ningún diálogo nuevo.
+
+⚠️ **No son alternativas: (b) tapa la vía conocida y (a) tapa la clase.** El tope
+sigue haciendo falta el día que alguien mueva la carpeta raíz en el proveedor.
+
+**No se escribe ninguno aquí.**
 ---
 
 # 6 · EL CRITERIO DE SALIDA, PUNTO POR PUNTO
