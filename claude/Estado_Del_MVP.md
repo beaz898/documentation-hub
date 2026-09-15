@@ -2241,10 +2241,67 @@ igual hacia dónde caiga; si es frecuente, el dato dice hacia dónde—. Decidir
 precio ahora sería elegir entre cobrar de más a quien acertó y cobrar de menos a
 un camino caro, **sin saber cuál de los dos ocurre**.
 
-**No se arregla aquí.** El tamaño: o el corte por duplicado declara su
-clase —es barato, es `light` o menos—, o el defecto del worker deja de ser
-`heavy`. Las dos son una línea; **cuál de las dos es la correcta es la decisión**,
-porque cambian cosas distintas.
+## ✅ LAS DOS PIEZAS, ESCRITAS EL 15/09/2026 — y el precio NO cambia
+
+**1 · LA PANTALLA DICE LO QUE EL SISTEMA SABE.** Donde el servidor dice
+«idéntico», la pantalla decía «Similar a X (100% confianza)» **dentro de una
+sección plegada por defecto**. Ahora, cuando el duplicado es exacto, el título es
+«Duplicado exacto», el texto dice **IDÉNTICO** y añade la consecuencia
+—«analizarlo nuevamente no va a encontrar nada»— y **sale abierto**.
+
+⚠️ **El criterio exige las TRES señales** —marca de duplicado, confianza 100 y
+`NO_INDEXAR`— y no sólo la confianza: un solapamiento del 100 % que sí aporta
+información nueva **no es identidad**, y anunciarlo como tal sería este mismo
+fallo con el signo cambiado, en la dirección que asusta.
+
+**Y NO se apaga el botón del exhaustivo**, que era la otra salida: desde la
+bandeja se analizan varios documentos a la vez y apagarlo por uno impediría
+analizar los demás. Excluir ese documento del lote es otra pieza. Lo que esto
+arregla es que, si alguien lo pulsa igual, **ya sea su decisión**.
+
+**2 · «NO SE CLASIFICÓ» DEJA DE DISFRAZARSE DE «PESADO».** El precio **no cambia**:
+`heavy` sigue siendo el defecto y sigue sin reembolso. Lo que cambia es que queda
+**registrado y PERSISTIDO** como lo que es.
+
+⚠️ **DÓNDE VIVE EL CONTADOR, que era la pregunta: en**
+`analysis_results.pipeline_counters`, **un `jsonb` que YA existe (F-82) y que se
+persiste en cada análisis. NO HACE FALTA NINGÚN SQL.** Se lee así:
+
+```sql
+select count(*) from analysis_results
+where pipeline_counters ? 'averia.exhaustivo_sin_clasificar';
+```
+
+**Y persistido es justamente la diferencia entre un contador y una nota**: un
+número que sólo vive en los registros de Vercel es lo mismo que no tenerlo,
+porque quien decide el precio no entra ahí.
+
+La clave **estrena la etapa `averia`**, que estaba declarada y vacía desde que se
+escribió el catálogo: ahí no se mide lo que el análisis encontró, sino **que el
+propio sistema no supo algo de sí mismo**.
+
+⚠️ **Y «sin clasificar» se define UNA VEZ** (`clase-de-coste.ts`), porque si no
+serían dos: el defecto lo aplica el worker y el contador lo escribe quien guarda
+el análisis. Dos sitios contestando «¿está clasificado?» por su cuenta se separan
+el día que aparezca una clase nueva, y los dos seguirían pareciendo correctos.
+
+**11 casos, cuatro mutantes muertos**: el criterio flojo —sólo la confianza— mata
+2; «nunca es exacto», 1; perder la distinción entre declarada y cobrada —el
+código de ayer—, 3; y que una cadena inventada pase por clase, 1. Ese último no es
+celo: pasaría a `REFUND_BY_COST`, devolvería `undefined` y acabaría en cero por
+otro camino, **sin que nadie contara nada**.
+
+✅ **Y una batería ajena hizo su trabajo**: el catálogo de contadores exige
+declarar cada clave a mano en su test, así que añadirla puso la suite en rojo
+hasta que se declaró. Es el cerrojo funcionando, no un estorbo.
+
+**LO QUE QUEDA, con su condición**: dentro de un tiempo se mira esa cifra y se
+decide el precio **con ella delante**. Si es rara, da igual hacia dónde caiga; si
+es frecuente, el dato dice hacia dónde. Y la otra pieza que no entró: **excluir
+del lote** el documento que ya se sabe duplicado, que es lo que cerraría el camino
+de la bandeja.
+
+**No se decide el precio aquí.**
 
 ---
 

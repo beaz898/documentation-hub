@@ -65,6 +65,9 @@ describe('el catálogo', () => {
       'verificador.confirmados_por_juicio',
       'verificador.descartados',
       'verificador.reclasificados',
+    // averia — estrena la etapa el 15/09/2026: marca los trabajos a los que se
+    // les cobró el máximo POR DEFECTO, no por medida.
+    'averia.exhaustivo_sin_clasificar',
     ]);
   });
 

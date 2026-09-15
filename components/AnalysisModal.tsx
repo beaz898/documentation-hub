@@ -7,6 +7,7 @@ import ReviewActions from './AnalysisModal/ReviewActions';
 import IncompleteAnalysisNotice from './IncompleteAnalysisNotice';
 import UnsavedAnalysisNotice from './UnsavedAnalysisNotice';
 import { avisosDelAnalisis } from '@/lib/analysis/avisos';
+import { esDuplicadoExacto } from '@/lib/analysis/duplicado-exacto';
 import SelectionLimitNotice from './SelectionLimitNotice';
 // F-88 ficha A: extraida a componente propio — la ficha del diff necesita el
 // mismo plegado, y copiarlo habria dejado dos que se separan a la primera.
@@ -214,19 +215,40 @@ export default function AnalysisModal({ fileName, analysis, guardado, onConfirm,
           <>
             <BlockHeader>{t('detectedProblems')}</BlockHeader>
 
+            {/* ⚠️ UN DUPLICADO EXACTO NO ES «UN POSIBLE DUPLICADO», Y NO VA
+                PLEGADO — 15/09/2026. El servidor dice «este documento es
+                IDÉNTICO a X, no aporta información nueva» con
+                `recommendation: NO_INDEXAR`, y esto enseñaba «Similar a X
+                (100% confianza)» dentro de una sección cerrada.
+
+                Costó 30 créditos: con ese aviso delante —suavizado y plegado—
+                se pulsó el análisis exhaustivo, que se cortó a los 76 ms por
+                ese mismo motivo. No fue un descuido de quien lo pulsó: la
+                pantalla no se lo dijo. **Un aviso que hay que desplegar para
+                verlo no es un aviso**, y una palabra más floja que el hallazgo
+                es de la misma familia que el resto de la semana: un texto que
+                no corresponde a lo que el sistema sabe.
+
+                El criterio de qué es «exacto» vive en `duplicado-exacto.ts` y
+                exige las TRES señales, no sólo la confianza: un solapamiento
+                del 100 % que sí aporta información nueva NO es identidad, y
+                anunciarlo como tal sería este mismo fallo con el signo
+                cambiado. */}
             {analysis.isDuplicate && (
               <CollapsibleSection
-                title={t('possibleDuplicate')}
+                title={esDuplicadoExacto(analysis) ? t('duplicateExactTitle') : t('possibleDuplicate')}
                 count={1}
                 color="var(--warning-text)"
-                defaultOpen={false}
+                defaultOpen={esDuplicadoExacto(analysis)}
               >
                 <div style={{
                   padding: '10px 14px', borderRadius: 10,
                   background: 'var(--warning-light)', border: '0.5px solid var(--warning)',
                 }}>
                   <p style={{ fontSize: 12, color: 'var(--warning-text)' }}>
-                    {t('duplicateSimilarTo', { doc: analysis.duplicateOf ?? '', confidence: analysis.duplicateConfidence ?? 0 })}
+                    {esDuplicadoExacto(analysis)
+                      ? t('duplicateIdenticalTo', { doc: analysis.duplicateOf ?? '' })
+                      : t('duplicateSimilarTo', { doc: analysis.duplicateOf ?? '', confidence: analysis.duplicateConfidence ?? 0 })}
                   </p>
                 </div>
               </CollapsibleSection>

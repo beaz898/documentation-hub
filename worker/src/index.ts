@@ -7,6 +7,7 @@ import { propietariosDelJob } from '../../lib/analysis/propietarios';
 import { leerDescartes } from '../../lib/analysis/descartes';
 import { purgeOrganization, type PurgeResult } from '../../lib/purge-org';
 import { refundCredits } from '../../lib/credits';
+import { claseDeclarada, claseParaCobrar } from '../../lib/analysis/clase-de-coste';
 import { PLANS_WITH_VARIABLE_PRICING } from '../../lib/stripe';
 import { pollConversationTurns } from './conv-handler';
 import { startTriggerServer } from './trigger-server';
@@ -196,6 +197,28 @@ async function processJob(job: AnalysisJob): Promise<void> {
       console.error(`[worker] Job ${job.id}: SIN PROPIETARIO (ni ruta ni documento) — el análisis no se podrá persistir`);
     }
 
+    // ⚠️ EL CONTADOR VA AQUÍ, ANTES DE GUARDAR, Y ÉSE ES TODO EL PUNTO.
+    //
+    // `pipeline_counters` es una columna `jsonb` que YA existe (F-82) y que
+    // `saveAnalysisResult` persiste en cada análisis, así que esto **no necesita
+    // ningún cambio de esquema**. Y persistido es la diferencia entre un
+    // contador y una nota: un número que sólo vive en los registros de Vercel es
+    // lo mismo que no tenerlo — quien decide el precio no entra ahí.
+    //
+    // Se lee con una consulta:
+    //   select count(*) from analysis_results
+    //   where pipeline_counters ? 'averia.exhaustivo_sin_clasificar';
+    //
+    // ⚠️ Y NO CAMBIA EL PRECIO. Marca los trabajos a los que se les cobró el
+    // máximo POR DEFECTO y no por medida, que hoy son indistinguibles de los que
+    // de verdad fueron pesados.
+    if (claseDeclarada(analysis.estimatedCost) === null) {
+      analysis.pipelineCounters = {
+        ...(analysis.pipelineCounters ?? {}),
+        'averia.exhaustivo_sin_clasificar': 1,
+      };
+    }
+
     const saveResult = await saveAnalysisResult(supabase, {
       orgId: job.org_id,
       userId: job.user_id,
@@ -304,11 +327,24 @@ async function applyVariablePricingRefund(
 
     if (!org || !PLANS_WITH_VARIABLE_PRICING.has(org.plan)) return;
 
-    const cost = estimatedCost ?? 'heavy';
+    // ⚠️ DOS PREGUNTAS DISTINTAS, Y HASTA HOY LAS CONTESTABA UN SOLO `??`.
+    // `claseDeclarada` dice qué declaró el análisis —o `null` si no declaró
+    // nada—; `claseParaCobrar` dice qué se cobra. El precio NO cambia: el
+    // defecto sigue siendo `heavy` y sigue sin reembolso. Lo que cambia es que
+    // el registro deja de decir lo mismo en los dos casos.
+    const declarada = claseDeclarada(estimatedCost);
+    const cost = claseParaCobrar(estimatedCost);
     const refund = REFUND_BY_COST[cost] ?? 0;
 
+    if (declarada === null) {
+      console.warn(
+        `[worker] Job ${jobId}: SIN CLASIFICAR — se cobra el máximo por defecto ` +
+        `(${cost}), no por medida. Contado en averia.exhaustivo_sin_clasificar.`,
+      );
+    }
+
     if (refund === 0) {
-      console.log(`[worker] Job ${jobId}: precio variable — coste ${cost}, sin reembolso (plan ${org.plan})`);
+      console.log(`[worker] Job ${jobId}: precio variable — coste ${cost}${declarada === null ? ' (POR DEFECTO)' : ''}, sin reembolso (plan ${org.plan})`);
       return;
     }
 

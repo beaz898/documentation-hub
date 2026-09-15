@@ -170,6 +170,20 @@ export const COUNTER_CATALOGUE = [
   'verificador.confirmados_por_juicio',
   'verificador.descartados',
   'verificador.reclasificados',
+  // averia — ESTRENA LA ETAPA, que estaba declarada y vacía desde que se
+  // escribió el catálogo. Aquí no se mide lo que el análisis ENCONTRÓ: se mide
+  // que el propio sistema no supo algo de sí mismo.
+  //
+  // ⚠️ `exhaustivo_sin_clasificar`: el trabajo terminó sin declarar su clase de
+  // coste, así que se le cobró el máximo POR DEFECTO y no por medida. El precio
+  // no cambia con este contador — lo que cambia es que hasta el 15/09/2026 el
+  // registro imprimía «coste heavy» EXACTAMENTE IGUAL para un exhaustivo que de
+  // verdad fue pesado y para uno que nunca se clasificó, así que el sistema no
+  // podía demostrar cuántas veces había cobrado el máximo sin haber clasificado
+  // nada. Con la cifra delante se decidirá el precio; sin ella, decidirlo sería
+  // elegir a ciegas entre cobrar de más a quien acertó y cobrar de menos a un
+  // camino caro.
+  'averia.exhaustivo_sin_clasificar',
 ] as const satisfies readonly `${Stage}.${string}`[];
 
 export type CounterName = (typeof COUNTER_CATALOGUE)[number];

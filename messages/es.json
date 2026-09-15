@@ -236,6 +236,8 @@
     "severityLabel": "Severidad",
     "overlapWith": "Solapamiento con \"{doc}\"",
     "possibleDuplicate": "Posible duplicado",
+    "duplicateExactTitle": "Duplicado exacto",
+    "duplicateIdenticalTo": "IDÉNTICO a \"{doc}\". No aporta información nueva, así que analizarlo nuevamente no va a encontrar nada.",
     "styleSectionTitle": "Estilo",
     "contradictionLabel": "Contradicción",
     "inconsistenciaLabel": "Inconsistencia menor",
