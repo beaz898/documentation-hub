@@ -22,6 +22,10 @@ interface StyleResultInput {
   userId: string;
   documentName: string;
   problemsCount: number;
+  /** B.239 — los descartes del filtro, si los hubo. */
+  contadores?: Record<string, number>;
+  /** B.239 — las etiquetas de tipo descartadas. SOLO etiquetas. */
+  tiposDescartados?: string[];
   /** F-101: el propietario PRIMARIO — la ruta del fichero en almacenamiento.
    *  Presente en el camino del chat, ausente desde la bandeja. */
   storagePath?: string | null;
@@ -139,6 +143,22 @@ export async function saveStyleResult(
     style_problems_found: input.problemsCount,
     recommendation: null,
     involved_documents: null,
+    // ⚠️ B.239 — LO DESCARTADO SE PERSISTE, y por eso esto no vive en un log:
+    // quien decide sobre ello no entra en los registros de Vercel. La columna
+    // `pipeline_counters` ya existe (F-82) y este análisis la dejaba a null.
+    pipeline_counters: input.contadores && Object.keys(input.contadores).length > 0
+      ? input.contadores
+      : null,
+    // ⚠️ SÓLO LAS ETIQUETAS DE TIPO QUE EL MODELO INVENTÓ, nunca el texto del
+    // documento. Van aquí y NO en una clave de contador porque son un valor
+    // abierto: como clave harían el campo inagregable, que es la misma razón por
+    // la que el reparto por columna no está en el catálogo.
+    //
+    // ⚠️ Y ESTO NO CIERRA B.238: los PROBLEMAS siguen sin guardarse. Lo que se
+    // guarda es por qué se cayeron algunos, que es otra pregunta.
+    analysis: input.tiposDescartados && input.tiposDescartados.length > 0
+      ? { tiposDescartados: input.tiposDescartados }
+      : null,
     storage_path: propietariosEstilo.storagePath,
     // F-100: hasta el 03/09/2026 esta columna NO se escribía aquí — ni siquiera
     // estaba en el tipo de entrada—, así que TODO análisis de estilo nacía

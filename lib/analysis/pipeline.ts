@@ -1153,7 +1153,7 @@ async function runExhaustivePipelineInner(input: ExhaustivePipelineInput): Promi
 
   const [pipelineResult, styleProblems] = await Promise.all([
     runCorePipeline(input, { exhaustive: true }, 'pipeline-exhaustive'),
-    analyzeStyle(input.newDocumentText, input.newDocumentName),
+    analyzeStyle(input.newDocumentText, input.newDocumentName).then(r => r.problemas),
   ]);
 
   const excludeFps = input.excludeFingerprints || new Set<string>();

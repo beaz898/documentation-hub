@@ -82,6 +82,10 @@ const CON_REGISTRO_PROPIO = [
   'OPE-13_cobertura-por-clinica.xlsx',
   'RRHH-08_asignacion-de-guardias.xlsx',
   'OPE-15_tarifario-mutua-2026.xlsx',
+  // 15/09/2026 — el control del análisis de ESTILO (B.239). Registro propio en
+  // SIEMBRA_CLI-20.md, con verificador: es el único cuyos errores un corrector
+  // automático podría «arreglar» sin avisar.
+  'CLI-20_protocolo-urgencias-dentales.txt',
 ] as const;
 
 const DOC = 'claude/Casos_Harness.md';

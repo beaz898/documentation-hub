@@ -2444,6 +2444,75 @@ contador en la etapa `averia`, que ya existe y ya se persiste en
 dos números coinciden, entonces el modelo simplemente no lo vio, que es otra
 conversación y también un dato.
 
+## ✅ HECHO SABIBLE EL 15/09/2026 — primero saber, después decidir
+
+**No se arregla el filtro, ni el catálogo de tipos, ni la temperatura.** Lo que
+entra es que **lo descartado deje rastro**, y que los dos candidatos se puedan
+separar.
+
+**DOS CONTADORES Y NO UNO, y ésa es toda la gracia:**
+
+| clave | qué significa | a qué causa apunta |
+|---|---|---|
+| `averia.estilo_descartado_por_tipo` | el modelo etiquetó con un tipo que no reconocemos | **catálogo incompleto** — el arreglo sería añadir el tipo, no tocar el filtro |
+| `averia.estilo_descartado_sin_ancla` | llegó sin `textRef` utilizable | **respuesta truncada** — es la forma que deja `maxOutputTokens` cuando el cliente repara el JSON cortado |
+
+Un solo contador los habría sumado y no se podría elegir entre las dos causas,
+que era exactamente el problema.
+
+**Y LAS ETIQUETAS DESCARTADAS SE GUARDAN, que es la mitad que decide el arreglo.**
+Van en `analysis` —datos— y **no en una clave de contador**: una etiqueta
+inventada por el modelo no tiene vocabulario cerrado y haría el campo
+inagregable, que es la misma razón por la que el reparto por columna no está en
+el catálogo.
+
+⚠️ **Y NUNCA VIAJA TEXTO DEL DOCUMENTO: sólo la etiqueta, recortada a 40
+caracteres.** Ni `textRef`, ni `title`, ni `description`. Hay un caso de la
+batería que lo comprueba sobre una entrada que lleva las tres cosas.
+
+**Todo persistido en columnas que YA existen** —`pipeline_counters` (F-82) y
+`analysis`—, así que **no hace falta ningún SQL**. Este análisis dejaba las dos a
+null.
+
+⚠️ **ESTO NO CIERRA B.238**: los problemas concretos siguen sin guardarse. Lo que
+se guarda es **por qué se cayeron algunos**, que es otra pregunta.
+
+⚠️ **Y NO CIERRA B.237**: un fallo del modelo sigue devolviendo lista vacía con
+`success: true`. **Hoy deja rastro lo DESCARTADO, no lo no-mirado**, y hay un caso
+de la batería que lo dice con esas palabras para que nadie lo lea de más.
+
+**10 casos, tres mutantes muertos**: juntar los dos contadores en uno mata 3;
+**devolver el silencio de esta mañana mata 6**; y hacer que viaje el texto del
+documento junto a la etiqueta, 4.
+
+✅ **Y DOS BATERÍAS AJENAS HICIERON SU TRABAJO**: el catálogo de contadores exigió
+declarar las dos claves a mano, y `corpus-del-harness` se negó a pasar hasta que
+CLI-20 quedó declarado en uno de sus cuatro grupos. **Las dos pusieron la suite en
+rojo hasta que se declaró lo que se estaba añadiendo**, que es para lo que están.
+
+## CÓMO SE LEE, CUANDO EL DIRECTOR REPITA LA PASADA
+
+Una pasada de estilo sobre CLI-20 (**2 créditos**) y luego:
+
+```sql
+select created_at,
+       style_problems_found                                        as encontrados,
+       pipeline_counters ->> 'averia.estilo_descartado_por_tipo'   as descartados_por_tipo,
+       pipeline_counters ->> 'averia.estilo_descartado_sin_ancla'  as descartados_sin_ancla,
+       analysis ->> 'tiposDescartados'                             as etiquetas_descartadas
+from analysis_results
+where analysis_type = 'style' and document_name like 'CLI-20%'
+order by created_at desc limit 5;
+```
+
+**Las tres lecturas, escritas antes de verlo:**
+
+| resultado | qué significa |
+|---|---|
+| `descartados_por_tipo > 0` y una etiqueta como `puntuacion` | ⚠️ **fue el código**: el catálogo de tipos está incompleto y A1 se cayó por ahí. El arreglo cambia de sitio |
+| `descartados_sin_ancla > 0` | ⚠️ **fue el truncamiento**: la respuesta no cabía y perdió su cola. El arreglo es el tope, no el filtro |
+| **las dos columnas vacías** | **no fue el código**: el modelo devolvió 8 y ninguno se descartó, así que **simplemente no vio A1**. Es otra conversación — y también un dato |
+
 ⚠️ **Lo que NO se puede hacer es decidirlo ahora**: escribir «el modelo no lo ve»
 sin haber mirado si el código se lo comió sería exactamente la clase de
 afirmación que esta casa no admite.

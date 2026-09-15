@@ -1,5 +1,6 @@
 import { recordStageFailure } from './stage-failures';
 import { callLLMJson } from './llm-client';
+import type { PipelineCounters } from './counters';
 
 /**
  * Análisis de estilo intra-documento.
@@ -30,6 +31,40 @@ interface StyleResponse {
 }
 
 const VALID_TYPES = new Set(['ortografia', 'ambiguedad', 'sugerencia']);
+
+/**
+ * LO QUE DEVUELVE EL ANÁLISIS DE ESTILO — B.239, 15/09/2026.
+ *
+ * ═══════════════════════════════════════════════════════════════════════════
+ * ⚠️ HASTA HOY DEVOLVÍA SÓLO LOS PROBLEMAS, Y LO QUE SE CAÍA POR EL CAMINO NO
+ * LO SABÍA NADIE. El filtro descartaba lo que el modelo devolvía y no encajaba,
+ * y `parsed.problems` no se comparaba NUNCA contra lo que sobrevivía: ni un log,
+ * ni un contador, ni una línea.
+ *
+ * El caso que lo destapó: una ambigüedad sembrada —con consecuencia clínica— no
+ * apareció en el resultado, y **no había forma de saber si el modelo no la vio o
+ * si el código se la comió**. Dos explicaciones con arreglos opuestos, y ningún
+ * dato para elegir.
+ *
+ * Lo que no cabe en la firma lo acaba representando el vecino: aquí, la lista
+ * corta significaba a la vez «hay pocos problemas» y «descarté varios».
+ * ═══════════════════════════════════════════════════════════════════════════
+ */
+export interface ResultadoDeEstilo {
+  problemas: StyleProblem[];
+  /** Los dos descartes, para persistir. Vacío si no se descartó nada. */
+  contadores: PipelineCounters;
+  /**
+   * ⚠️ SÓLO LA ETIQUETA DE TIPO QUE EL MODELO INVENTÓ. NUNCA el `textRef`, ni el
+   * `title`, ni la `description`: eso es texto del documento, y esto viaja a la
+   * base para telemetría. La etiqueta es del modelo, no del cliente.
+   *
+   * Y es la mitad que de verdad decide el arreglo: si lo descartado venía como
+   * `puntuacion`, el problema no es el filtro — es que al catálogo le falta un
+   * tipo.
+   */
+  tiposDescartados: string[];
+}
 
 const STYLE_PROMPT = `Eres un revisor de estilo de documentación corporativa. Analiza el TEXTO que se te da y detecta SOLO problemas internos del propio texto (sin compararlo con otros documentos).
 
@@ -69,7 +104,7 @@ Estructura JSON exacta a devolver:
  * Analiza el texto en busca de problemas de estilo (ortografía, ambigüedad, sugerencias).
  * Devuelve un array de problemas validados.
  */
-export async function analyzeStyle(text: string, fileName: string): Promise<StyleProblem[]> {
+export async function analyzeStyle(text: string, fileName: string): Promise<ResultadoDeEstilo> {
   const t0 = Date.now();
 
   const userPrompt = `${STYLE_PROMPT}
@@ -92,20 +127,61 @@ Devuelve el JSON con los problemas internos detectados.`;
       temperature: 0.2,
     });
 
-    const problems: StyleProblem[] = (parsed.problems || [])
-      .filter(p => VALID_TYPES.has(p.type || '') && typeof p.textRef === 'string' && p.textRef.trim().length > 0)
-      .map(p => ({
+    // ⚠️ EL FILTRO SE PARTE EN DOS MOTIVOS, y no es cosmética: cada uno es la
+    // huella de una causa distinta, y sumarlos los haría indistinguibles.
+    //
+    //   · tipo no reconocido → el modelo etiquetó con algo fuera de los tres.
+    //     Apunta a un CATÁLOGO INCOMPLETO.
+    //   · sin ancla utilizable → llegó sin `textRef`. Es la forma que deja una
+    //     respuesta TRUNCADA: el cliente repara el JSON cortado y los últimos
+    //     elementos llegan a medias.
+    const crudos = parsed.problems || [];
+    const tiposDescartados: string[] = [];
+    let descartadosPorTipo = 0;
+    let descartadosSinAncla = 0;
+    const problems: StyleProblem[] = [];
+
+    for (const p of crudos) {
+      if (!VALID_TYPES.has(p.type || '')) {
+        descartadosPorTipo++;
+        // Sólo la etiqueta, recortada: si el modelo devolviera una parrafada en
+        // ese campo, esto no la lleva entera a la base.
+        const etiqueta = typeof p.type === 'string' && p.type.trim().length > 0
+          ? p.type.trim().slice(0, 40)
+          : '(sin tipo)';
+        if (!tiposDescartados.includes(etiqueta)) tiposDescartados.push(etiqueta);
+        continue;
+      }
+      if (typeof p.textRef !== 'string' || p.textRef.trim().length === 0) {
+        descartadosSinAncla++;
+        continue;
+      }
+      problems.push({
         type: p.type as 'ortografia' | 'ambiguedad' | 'sugerencia',
         title: p.title?.trim() || 'Problema detectado',
         description: p.description?.trim() || '',
-        textRef: p.textRef!.trim(),
-      }));
+        textRef: p.textRef.trim(),
+      });
+    }
 
-    console.log(`[style-check] "${fileName}": ${problems.length} problemas de estilo (${Date.now() - t0}ms)`);
-    return problems;
+    const contadores: PipelineCounters = {};
+    if (descartadosPorTipo > 0) contadores['averia.estilo_descartado_por_tipo'] = descartadosPorTipo;
+    if (descartadosSinAncla > 0) contadores['averia.estilo_descartado_sin_ancla'] = descartadosSinAncla;
+
+    // ⚠️ EL REGISTRO LLEVA LOS TRES NÚMEROS, no sólo el de salida: «8 problemas»
+    // no dice lo mismo si el modelo devolvió 8 que si devolvió 12.
+    console.log(
+      `[style-check] "${fileName}": ${problems.length} problemas de estilo ` +
+      `(de ${crudos.length} devueltos · ${descartadosPorTipo} por tipo · ${descartadosSinAncla} sin ancla) ` +
+      `(${Date.now() - t0}ms)`,
+    );
+    return { problemas: problems, contadores, tiposDescartados };
   } catch (err) {
     console.warn('[style-check] LLM/parse failed:', err instanceof Error ? err.message : err);
     recordStageFailure('style-check', err);
-    return [];
+    // ⚠️ SIGUE DEVOLVIENDO LA LISTA VACÍA, y eso es B.237 y NO se arregla aquí:
+    // la ruta seguirá contestando `success: true`. Lo que cambia hoy es sólo que
+    // lo DESCARTADO deja rastro; lo que no se pudo mirar, todavía no.
+    return { problemas: [], contadores: {}, tiposDescartados: [] };
   }
 }

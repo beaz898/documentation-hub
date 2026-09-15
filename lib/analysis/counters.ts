@@ -184,6 +184,31 @@ export const COUNTER_CATALOGUE = [
   // elegir a ciegas entre cobrar de más a quien acertó y cobrar de menos a un
   // camino caro.
   'averia.exhaustivo_sin_clasificar',
+  // ⚠️ LOS DOS DESCARTES DEL ANÁLISIS DE ESTILO — 15/09/2026, B.239.
+  //
+  // El filtro de `style-check.ts` tira lo que el modelo devuelve y no encaja, y
+  // hasta hoy lo tiraba EN SILENCIO: `parsed.problems` no se comparaba nunca
+  // contra lo que sobrevivía. El caso que lo destapó: una ambigüedad sembrada
+  // —con consecuencia clínica— no apareció, y no había forma de saber si el
+  // modelo no la vio o si el código se la comió.
+  //
+  // ⚠️ SON DOS CLAVES Y NO UNA, Y ÉSA ES TODA LA GRACIA: cada causa deja una
+  // huella distinta, y un solo contador las sumaría sin poder separarlas.
+  //
+  //   · `por_tipo`   — el modelo etiquetó el problema con un tipo que no
+  //     reconocemos (`puntuacion`, `gramatica`…). Es un CATÁLOGO INCOMPLETO, no
+  //     un filtro con un agujero, y el arreglo sería otro.
+  //   · `sin_ancla`  — el problema llegó sin `textRef` utilizable. Es la forma
+  //     que deja una respuesta TRUNCADA por `maxOutputTokens`: el cliente repara
+  //     el JSON cortado (`anthropic-client.ts:290`) y los últimos elementos
+  //     llegan a medias.
+  //
+  // ⚠️ Y LA ETIQUETA DESCARTADA NO VA EN LA CLAVE, a propósito: sería un valor
+  // inventado por el modelo, sin vocabulario cerrado, y haría el campo
+  // inagregable — la misma razón por la que el reparto por columna no está en
+  // este catálogo. Las etiquetas van en `analysis`, que es datos y no telemetría.
+  'averia.estilo_descartado_por_tipo',
+  'averia.estilo_descartado_sin_ancla',
 ] as const satisfies readonly `${Stage}.${string}`[];
 
 export type CounterName = (typeof COUNTER_CATALOGUE)[number];

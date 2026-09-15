@@ -69,9 +69,10 @@ export async function POST(req: NextRequest) {
     }
 
     const llmAcc = new Map();
-    const problems = await usageContext.run(llmAcc, () =>
+    const resultado = await usageContext.run(llmAcc, () =>
       analyzeStyle(text, fileName || 'sin nombre')
     );
+    const problems = resultado.problemas;
     void persistLLMUsage({
       accumulator:    llmAcc,
       orgId,
@@ -108,6 +109,10 @@ export async function POST(req: NextRequest) {
       userId,
       documentName: fileName || 'sin nombre',
       problemsCount: problems.length,
+      // B.239: lo que el filtro tiró, y por qué motivo. Sin esto, «8 problemas»
+      // no se distingue de «8 problemas y 4 descartados».
+      contadores: resultado.contadores as Record<string, number>,
+      tiposDescartados: resultado.tiposDescartados,
       // F-101: desde el chat el dueño es el fichero; desde la bandeja, el documento.
       storagePath: typeof storagePath === 'string' ? storagePath : null,
       documentoPropietario: documentoPropietario({

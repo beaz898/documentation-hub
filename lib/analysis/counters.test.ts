@@ -68,6 +68,10 @@ describe('el catálogo', () => {
     // averia — estrena la etapa el 15/09/2026: marca los trabajos a los que se
     // les cobró el máximo POR DEFECTO, no por medida.
     'averia.exhaustivo_sin_clasificar',
+    // B.239: los dos descartes del estilo, separados porque cada causa deja
+    // una huella distinta y un solo contador las sumaría.
+    'averia.estilo_descartado_por_tipo',
+    'averia.estilo_descartado_sin_ancla',
     ]);
   });
 
