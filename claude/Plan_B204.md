@@ -321,3 +321,25 @@ propias puertas — **se leen antes, no después**.
 **El criterio de corte no ha cambiado**: un arreglo va antes que una medición sólo
 si cierra un hallazgo cuyo cierre era falso, detiene pérdida activa, o el camino a
 medir pasa por encima de él. **Ninguna de las siete lo cumple hoy.**
+
+## ⚠️ 16/09/2026 · EL PUNTO 2 DEL CRITERIO DE SALIDA QUEDA DETENIDO, Y NO POR PLAN
+
+**`temperature: 0` no estrechó la dispersión del análisis de estilo: la ensanchó**
+(7–9 pasó a 7–10). B.240.
+
+**Consecuencia directa sobre el plan**: medir **A7/A8 por conjuntos** —el paso 3
+que estaba escrito y listo— **no se puede hacer mientras esto siga**. Comparar dos
+puertas cuyo resultado varía dentro de sí mismo no distingue una diferencia de
+puerta de la dispersión de cada una.
+
+**Y con ello, el punto 2 del criterio de salida** —«la puerta principal medida por
+sus dos entradas, misma cifra»— **no se cierra por el camino del estilo**. No
+falta plan ni faltan créditos: **el instrumento no repite**.
+
+⚠️ **Lo que SÍ sigue disponible para ese punto 2**: el camino del **análisis de
+corpus**, que en A5/A6 dio `3 · 57 · 0 · 0` **por las dos puertas y en los dos
+modos**. Ése sí repitió. La diferencia entre los dos caminos —uno repite y el otro
+no— es ahora un dato del producto, no una casualidad de la tanda.
+
+**Y A2/A4 siguen donde estaban**: son los dos exhaustivos que el cliente pisa y no
+tienen cifra, y **no dependen de B.240** porque van por el camino que sí repite.

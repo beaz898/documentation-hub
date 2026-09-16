@@ -2648,6 +2648,84 @@ afirmación que esta casa no admite.
 
 **No se arregla aquí.**
 
+## ⚠️ 5.37 · B.240 — `temperature: 0` no estrecha la dispersión: se ensancha (16/09/2026)
+
+**MEDIDO**: más de diez pasadas sobre CLI-20, contando **sólo estilo**.
+
+| puerta | problemas |
+|---|---|
+| chat | 7 · 9 · 8 |
+| bandeja | 8 · 9 · 9 · 10 |
+
+**Rango 7–10.** Con `temperature: 0.2` era 7–9. **No se estrechó: se ensanchó.**
+
+⚠️ **Era la lectura declarada como «el hallazgo mayor» antes de medir, y es la
+que salió.** Queda escrito así porque la predicción contraria —«8, con dispersión
+0 o ±1»— se escribió el mismo día y está fallada.
+
+**Y NO ES RUIDO UNIFORME, que es lo que lo hace investigable:**
+
+| siempre salen | intermitentes |
+|---|---|
+| los cuatro de ortografía, el párrafo duplicado, «totalmente y completamente» | «Frase confusa sobre ayunas» y «En el caso de que se dé el caso» |
+
+**Los que bailan son de la familia ambigüedad/sugerencia.** Los de ortografía no
+se mueven.
+
+## DE DÓNDE PUEDE VENIR — enumerado por capacidad, no por nombre
+
+La pregunta no es «¿qué falla?» sino **«qué puede diferir entre dos llamadas»**.
+El prompt tiene **exactamente dos variables** (`style-check.ts:140-151`):
+`fileName` y `text`. Nada más — ni fecha, ni azar, ni nada del corpus.
+
+| candidato | estado |
+|---|---|
+| **el modelo** | ✅ **DESCARTADO**: `HAIKU_MODEL` está clavado a una instantánea (`claude-haiku-4-5-20251001`), no es un alias que el proveedor pueda mover |
+| **el corpus / el reloj** | ✅ **DESCARTADO**: el prompt no los toca. `analyzeStyle` no importa Supabase ni vectores |
+| **el `fileName`** | ⚠️ **VIVO** — entra literal en el prompt y **puede diferir entre puertas**. La consulta 2 lo dice: si las dos mandan el mismo nombre, cae |
+| **el `text`** | ⚠️ **VIVO Y NO COMPROBABLE DEL TODO** (ver abajo) |
+| **el reintento del cliente** | ⚠️ **VIVO**: si el primer JSON no parsea, `anthropic-client.ts:349` **vuelve a llamar** — y esa segunda llamada es **una muestra nueva**. Mismo prompt y misma temperatura, pero otra generación |
+| **el recorte de salida** | ⚠️ **VIVO Y AHORA MEDIBLE**: con `maxOutputTokens: 3072`, una respuesta larga se repara perdiendo su cola — y **la cola es justo donde caen los últimos tipos**. `averia.estilo_descartado_sin_ancla` lo dice |
+| **el proveedor con `temperature: 0`** | ⚠️ **VIVO, y es la explicación cómoda: NO SE DA POR BUENA.** Cero no garantiza decodificación voraz, pero **eso no lo hemos medido** y decirlo sería exactamente la clase de afirmación que esta casa no admite |
+
+## ⚠️ LO QUE NO SE PUEDE COMPROBAR CONTRA LA BASE, Y HAY QUE DECIRLO
+
+**No se guarda el texto que se envió**, así que «¿llegó el mismo texto en todas
+las pasadas?» **no tiene respuesta directa**. Lo que hay es un **indicio**: los
+`textRef` son citas literales, así que si todas las pasadas anclan en los mismos
+fragmentos, el texto contenía lo mismo **en las partes citadas**. No es prueba.
+
+**Lo que lo cerraría**: guardar el **hash** del texto enviado junto al análisis —
+sin contenido nuevo, porque es un hash—. Entonces «mismo texto» dejaría de ser
+una suposición. **No se escribe aquí.**
+
+## SOBRE SI EL 0 LLEGÓ A LA LLAMADA
+
+⚠️ **La objeción es correcta: el test-candado prueba el código, no la llamada.**
+Lo que se puede afirmar leyendo: `style-check.ts:157` pasa la constante, y
+`anthropic-client.ts:88` la mete en el `payload` sin tocarla; el reintento usa
+`adjustedOpts`, **las mismas opciones**. No hay ninguna línea que la reescriba.
+
+✅ **Y hay una marca de despliegue que no depende de las horas**: el mismo commit
+`8af33ffa` trae el cambio de temperatura **y** el guardado de problemas. **Una
+fila con `analysis.problemas` poblado es, necesariamente, una pasada con
+temperatura 0.** La consulta 1 lo enseña en una columna.
+
+⚠️ **Lo que seguiría sin estar probado es que el proveedor la respete**, y eso no
+se prueba desde aquí — haría falta registrar el `payload` enviado.
+
+## LA CONSECUENCIA QUE HAY QUE ESCRIBIR
+
+⚠️ **MEDIR A7/A8 POR CONJUNTOS QUEDA DETENIDO MIENTRAS ESTO SIGA.** No se pueden
+comparar dos puertas cuyo resultado **varía dentro de sí mismo**: una diferencia
+entre A7 y A8 sería indistinguible de la dispersión de cada una.
+
+**Y con ello, el punto 2 del criterio de salida** —la puerta principal medida por
+sus dos entradas, misma cifra— **no se puede cerrar por este camino hoy.** No por
+falta de créditos ni de plan: porque **el instrumento no repite**.
+
+**No se arregla aquí.**
+
 ---
 
 # 6 · EL CRITERIO DE SALIDA, PUNTO POR PUNTO
