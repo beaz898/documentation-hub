@@ -2877,6 +2877,78 @@ AQUÍ.** Las tres opciones, para decidirlas con la cifra delante:
 **Lo que ya no puede pasar es que ocurra en silencio**, que era lo único
 innegociable.
 
+## ⚠️ 5.37-bis · LAS CITAS AUSENTES: 46 DE 113, Y EL CHEQUEO QUE ESCRIBÍ NACE ROTO (16/09/2026)
+
+**PREDICCIÓN FALLADA Y POR MUCHO: predije CERO citas ausentes y salen 46 de 113,
+el 40 %.** Se cuenta como fallada.
+
+## LA CAUSA, CON LÍNEA: EL SALTO DE LÍNEA
+
+**El fichero está ajustado a 80 columnas. Una cita que cruza un salto de línea
+lleva `
+` en el documento y el modelo la devuelve con un ESPACIO.** La
+comparación literal falla.
+
+**La correlación es exacta sobre los datos dados:**
+
+| | dónde está en CLI-20 | resultado |
+|---|---|---|
+| «…anota la fecha en la que a **↵** sido subsanada» | `:96-97` | ❌ ausente |
+| «El paciente debe acudir en **↵** ayunas si la intervención…» | `:58-59` | ❌ ausente |
+| «El plazo de conservación… desde la **↵** última revisión» | `:75-76` | ❌ ausente |
+| «Toda urgencia atendida… el mismo día. El **↵** registro…» | `:68-69`, `:85-86` | ❌ ausente |
+| «Las consulltas telefónicas» | `:26`, **una sola línea** | ✅ presente |
+| «Los paciente con cita» | `:39`, **una sola línea** | ✅ presente |
+| «La prescipción de analgésicos» | `:53`, **una sola línea** | ✅ presente |
+| «Es totalmente y completamente obligatorio» | `:49`, **una sola línea** | ✅ presente |
+| «En el caso de que se dé el caso de que el paciente» | `:72`, **una sola línea** | ✅ presente |
+
+**Las que caben en una línea salen todas; las que cruzan, ninguna.** Es la
+hipótesis (b) del arquitecto, y la explica entera — incluido `la fecha en la que a
+sido subsanada`, que no llega a 60 caracteres **y cruza el salto igual**.
+
+✅ **(a) DESCARTADA**: no hay corte por bytes en ningún punto. `left()` y
+`position()` de Postgres trabajan sobre caracteres en columnas `text`, y
+`indexOf`/`slice` de JavaScript sobre unidades UTF-16. El susto de `wc -c` de ayer
+era de una herramienta de línea de comandos, no de este camino.
+
+## ⚠️ EL 60 ES MÍO — PERO NO ES LA EXCULPACIÓN QUE PARECE
+
+**El recorte a 60 está en MI consulta, y sólo para enseñar**:
+`left(p ->> 'textRef', 60) AS cita`. **La comparación de la línea siguiente usa
+el `textRef` ENTERO.**
+
+**Así que hay que separar dos cosas y no colar una por la otra:**
+
+| | |
+|---|---|
+| **el PATRÓN «todas de 60, cortadas a media palabra»** | **es artefacto mío.** Claro que miden 60: las corté yo |
+| **el `false`** | ⚠️ **ES REAL.** Sale de comparar la cita completa, y el dato guardado está bien |
+
+**No es el caso de los «cinco documentos cortados» de la semana pasada.** Allí la
+cifra era el artefacto; aquí lo es sólo su aspecto. **Decir «fue mi consulta» y
+cerrar sería la salida cómoda y sería falsa.**
+
+## ⚠️⚠️ Y LO QUE DE VERDAD CUESTA: EL CHEQUEO QUE ESCRIBÍ HOY TIENE EL MISMO FALLO
+
+`style-check.ts` hace `textoEnviado.indexOf(cita)` **sobre el texto crudo, con sus
+saltos de línea**. Por tanto **`averia.estilo_cita_no_encontrada` va a marcar como
+ausente toda cita que cruce un salto** — el 40 % de ellas, medido.
+
+**Nace mintiendo, y desde su primer uso.** Es exactamente la tercera posibilidad
+que planteó el arquitecto, por un motivo distinto del que suponía.
+
+⚠️ **Y ESTO YA LO SABÍA: AYER ARREGLÉ ESTE MISMO FALLO EN MI PROPIO
+VERIFICADOR.** `scripts/verificar-cli20.mjs` falló al estrenarse sobre estas tres
+mismas frases, y lo resolví colapsando los espacios —«el ajuste de línea no es
+contenido»— y lo dejé escrito en su comentario. **Un día después escribí el mismo
+fallo en producción**, sin que se me ocurriera mirar el verificador que acababa de
+arreglar por esa razón.
+
+**La lección no es «acuérdate»: es que la corrección vivía en un script suelto y
+no en una función compartida.** Lo que se aprende en una herramienta no protege a
+la otra si no comparten el código.
+
 **No se arregla aquí.**
 
 ---
