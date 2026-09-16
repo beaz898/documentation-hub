@@ -1,5 +1,6 @@
 import { useState, useCallback, useMemo } from 'react';
 import type { Problem } from './problems';
+import { clasificarRespuestaDeEstilo, type ResultadoDelReanalisisDeEstilo } from './resultado-reanalisis-estilo';
 
 type StyleApiProblem = {
   type: Problem['type'];
@@ -65,7 +66,7 @@ export function useStyleAnalysis({
   void fileName;
 
   const reanalyzeStyle = useCallback(
-    async (currentText: string, currentFileName: string): Promise<Problem[]> => {
+    async (currentText: string, currentFileName: string): Promise<ResultadoDelReanalisisDeEstilo<Problem>> => {
       setStyleLoading(true);
       try {
         const res = await fetch('/api/analyze-style', {
@@ -87,21 +88,23 @@ export function useStyleAnalysis({
             storagePath: storagePath ?? null,
           }),
         });
-        if (!res.ok) {
-          console.warn('[useStyleAnalysis] HTTP error', res.status);
-          return [];
+        // ⚠️ B.237, PUERTA 3 (17/09/2026) — YA NO ES `return []`. La lista vacía
+        // se leía en el modal como «no hay cambios», y un 402, un 429 o un fallo
+        // del modelo decían haber reanalizado. Ahora se devuelve QUÉ PASÓ, y la
+        // lista sólo se toca cuando de verdad se reanalizó.
+        // (La rama `data?.styleError` se retira: ningún servidor la emite.)
+        const cuerpo: unknown = await res.json().catch(() => null);
+        const clase = clasificarRespuestaDeEstilo(res.status, cuerpo);
+        if (clase.estado !== 'ok') {
+          console.warn('[useStyleAnalysis] sin reanálisis', res.status, clase.estado);
+          return clase;
         }
-        const data = await res.json();
-        if (data?.styleError) {
-          console.warn('[useStyleAnalysis] styleError flag from backend');
-          return [];
-        }
-        const mapped = mapStyleProblems(data?.problems || []);
+        const mapped = mapStyleProblems((cuerpo as { problems?: StyleApiProblem[] } | null)?.problems || []);
         setStyleProblems(mapped);
-        return mapped;
+        return { estado: 'ok', problemas: mapped };
       } catch (err) {
         console.warn('[useStyleAnalysis] fetch failed', err);
-        return [];
+        return { estado: 'error' };
       } finally {
         setStyleLoading(false);
       }

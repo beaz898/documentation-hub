@@ -592,6 +592,51 @@ reembolso parcial.
 subir un `.txt` de menos de 50 caracteres y pedir su análisis desde el chat → 400
 «Texto insuficiente» y **el saldo no cambia** (antes bajaba 5, o 30 en exhaustivo).
 
+### 📏 PARA LA DECISIÓN DEL REEMBOLSO PARCIAL — leído el 17/09/2026
+
+El director propone cobrar la mitad de un fallo a mitad, para que reintentar no
+salga gratis. Lo que decide si ese pozo existe:
+
+- **¿Cuesta reintentar un trabajo `failed`?** **Sí, siempre.** No hay camino de
+  reintento: cada petición a `analyze-v2` cobra de nuevo (`route.ts:259`), y el
+  endpoint de trabajos sólo consulta. **Por los `failed` no hay pozo.**
+- ⚠️ **PERO EL POZO YA EXISTE POR OTRA PUERTA, y es de F-71**: un análisis que acaba
+  **incompleto** —alguna etapa del modelo cayó— **se entrega con su resultado
+  parcial** (`analysis-jobs/[id]/route.ts:63` devuelve `result` también en
+  `completed_with_errors`) **y se devuelve íntegro**. Eso sí es análisis parcial
+  gratis, y se puede repetir.
+- **¿Puede provocarlo el usuario?** Los `failed` del `catch`, prácticamente no: son
+  excepciones de base, índice o código. Los incompletos, **no se ha medido**, pero hay
+  una palanca a su alcance: **el tamaño del documento**. No hay límite de tamaño en el
+  código de las rutas —el del almacén, si lo hay, no se ve desde aquí— y el exhaustivo
+  manda el documento **entero** a cada juicio.
+- **¿Se sabe si llegó a gastar modelo?** **Sí, con poco**: cada llamada suma al
+  acumulador de uso (`usageContext`) en el momento de hacerse. Hoy ese acumulador se
+  declara dentro del `try` y **sólo se guarda en el camino bueno**, así que en el
+  `catch` no está a mano. Subirlo un nivel basta. **Para los zombis no se sabe**: el
+  proceso murió con el acumulador en memoria.
+
+### 📏 LOS 30 + 30 — qué pasa exactamente, leído el 17/09/2026
+
+El recorrido: el chat ofrece el exhaustivo en el aviso (`useDocuments.ts:343`, manda
+el FICHERO) y cobra 30; después, en el modal de Mejora, «Reanalizar corpus»
+(`useCrossDocAnalysis.ts`, manda el TEXTO del editor) cobra otros 30.
+
+- **¿Produce algo distinto si el usuario no cambió nada?** Sólo por tres vías, y
+  ninguna es información nueva sobre su documento: **(1)** hallazgos que descartó en el
+  modal —se excluyen—; **(2)** que el corpus cambiara entre medias; **(3)** la
+  variación del propio modelo, que no es un hallazgo sino ruido.
+- **¿Algo le avisa?** **No.** El botón sólo se deshabilita mientras carga, y enseña el
+  precio. El modal **sí sabe** si el texto cambió —guarda el texto inicial— y cuántos
+  hallazgos se descartaron, y no lo usa para nada.
+- **¿Se puede saber que el primero existe y es equivalente?** **La mitad.** Del lado del
+  documento, sí: el texto y los descartes se comparan en el cliente. **Del lado del
+  corpus, no**: no hay forma de saber si cambió desde el primer análisis (B.252). Por
+  eso **no es el caso del duplicado exacto**, que el servidor PRUEBA con el hash: aquí
+  sólo se podría avisar, no demostrar.
+- Y el precio: si no descartó nada, **el segundo cuenta como análisis inicial**, sin el
+  descuento de reanálisis.
+
 ## ⚠️ 5.3 · B.206 — el centinela que se propuso, se dio por hecho y nadie construyó (09/09/2026)
 
 ⚠️ **ESTA FICHA REGISTRA QUE LA PIEZA FALTA. Que se CITARA como existente es otro
@@ -2518,6 +2563,25 @@ B.237»): se invierte, no se borra. Mutante «el fallo vuelve a ser lista vacía
 **La puerta 3 va en el commit siguiente**, el del cliente: mientras tanto el 503 llega
 a la pantalla como cualquier error HTTP —«no hay cambios»—, que es falso pero **ya no
 vacía la lista ni cobra**.
+
+### ✅ LA PUERTA 3, ARREGLADA EL 17/09/2026 — sólo un reanálisis hecho dice «He reanalizado»
+
+El hook devuelve **qué pasó** —`ok`, `no_se_pudo_mirar`, `sin_creditos`, `limite`,
+`texto_insuficiente`, `error`— y la lista **sólo se toca en `ok`**. El modal deja de
+comparar longitudes y pide la frase a `mensajeDelReanalisisDeEstilo`, que tiene
+batería. Lo que ve el usuario:
+
+| pasó | frase |
+|---|---|
+| el modelo falló | «No he podido reanalizar el estilo: el análisis ha fallado. No se te ha cobrado y tu lista anterior sigue aquí.» |
+| sin créditos | «…no quedan créditos en tu plan. Tu lista anterior sigue aquí.» |
+| límite diario | «…has alcanzado el límite diario de análisis de estilo. Tu lista anterior sigue aquí.» |
+| texto corto | «…el texto es demasiado corto (mínimo 50 caracteres). No se te ha cobrado.» |
+| otro error o red | «No he podido reanalizar el estilo por un error. Tu lista anterior sigue aquí.» — **sin prometer nada del cobro**, porque no se sabe |
+
+La rama `data?.styleError` se retira: ningún servidor la emite.
+
+**B.237 queda CERRADA en sus tres puertas.**
 
 ## ⚠️ 5.36 · B.239 — el detector ve una ambigüedad con consecuencia clínica UNAS VECES SÍ Y OTRAS NO (15/09/2026)
 

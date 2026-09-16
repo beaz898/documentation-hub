@@ -11,6 +11,7 @@ import { useCrossDocAnalysis } from './improvement/useCrossDocAnalysis';
 import { useIndexing } from './improvement/useIndexing';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import type { Problem, ProblemType, RawAnalysis } from './improvement/problems';
+import { mensajeDelReanalisisDeEstilo } from './improvement/resultado-reanalisis-estilo';
 
 /** Returns the full paragraph (bounded by \n\n) that contains `fragment`. */
 function findParagraphContaining(text: string, fragment: string): string | null {
@@ -419,21 +420,12 @@ function ImprovementModalDesktop({
 
   const handleReanalyzeStyle = useCallback(async () => {
     const prevCount = styleProblems.length;
-    await reanalyzeStyle(textRef.current, fileName);
-    setStyleProblems(curr => {
-      const diff = curr.length - prevCount;
-      let msg: string;
-      if (diff === 0) {
-        msg = 'He reanalizado el estilo. No hay cambios respecto al análisis anterior.';
-      } else if (diff > 0) {
-        msg = `He reanalizado el estilo. ${diff} problema${diff !== 1 ? 's' : ''} nuevo${diff !== 1 ? 's' : ''}, ${curr.length} pendiente${curr.length !== 1 ? 's' : ''} en total.`;
-      } else {
-        msg = `He reanalizado el estilo. ${Math.abs(diff)} problema${Math.abs(diff) !== 1 ? 's' : ''} resuelto${Math.abs(diff) !== 1 ? 's' : ''}, ${curr.length} pendiente${curr.length !== 1 ? 's' : ''} en total.`;
-      }
-      addAssistantMessage(msg);
-      return curr;
-    });
-  }, [styleProblems.length, reanalyzeStyle, setStyleProblems, addAssistantMessage, fileName]);
+    // ⚠️ B.237, PUERTA 3 (17/09/2026): la frase sale de QUÉ PASÓ, no de comparar
+    // longitudes. Comparándolas, un error dejaba la lista igual y se leía como
+    // «He reanalizado. No hay cambios». Ver resultado-reanalisis-estilo.ts.
+    const resultado = await reanalyzeStyle(textRef.current, fileName);
+    addAssistantMessage(mensajeDelReanalisisDeEstilo(resultado, prevCount));
+  }, [styleProblems.length, reanalyzeStyle, addAssistantMessage, fileName]);
 
   const handleReanalyzeAll = useCallback(async () => {
     const result = await reanalyzeAll(textRef.current, fileName, existingDocWithSameName?.id);
