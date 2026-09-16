@@ -3699,3 +3699,100 @@ encuentra bien.**
 B.245 (el filtro recortaba a 1-2), B.248 (el umbral no recorta nada) y B.244 (el
 corte tira lo ya juzgado). Es la regla de la casa: *la curva de gravedad no describe
 el sistema, describe dónde se ha mirado.*
+
+---
+
+## ⚠️ 5.51 · B.249 — «¿mordió alguna vez el corte?» no lo contesta `involved_documents`, y mi «nunca» era otro universal sin población (16/09/2026)
+
+El director dice que en otros momentos tuvo **más de diez documentos indexados**, y
+tiene razón en sospechar: si es así, la explicación de que los tres defectos hayan
+sido inertes siempre se cae.
+
+### 1 · ⚠️ LA PRIMERA CORRECCIÓN ES MÍA, Y ES LA MISMA DE SIEMPRE
+
+Escribí, y varias veces: *«este corpus no ha producido jamás más de 2
+candidatos»*, *«el tope no ha llegado a cortar»*. **Eso es un universal sobre todo
+el historial, y lo apoyé en las pasadas registradas a mano en
+`Tandas_Harness.md`** — no en la población persistida.
+
+Es exactamente el fallo que llevo cinco días catalogando en otros: **una
+enumeración de memoria que nadie verifica porque suena completa.** La diferencia es
+que ahora hay un sitio donde contarlo, y el director hizo la pregunta que obliga a
+ir a mirar.
+
+### 2 · `involved_documents` NO CUENTA PARTICIPANTES
+
+El encargo propone usarlo. **No sirve para eso**, y conviene saberlo antes de leer
+ninguna cifra:
+
+    lib/persist-analysis.ts:87-93
+    const involvedSet = new Set<string>();
+    if (analysis.isDuplicate && analysis.duplicateOf) involvedSet.add(...);
+    for (const d of analysis.discrepancies)        involvedSet.add(d.existingDocument);
+    for (const o of analysis.overlaps)             involvedSet.add(o.existingDocument);
+    for (const d of analysis.minorInconsistencies) involvedSet.add(d.existingDocument);
+
+Se construye **de los HALLAZGOS**. Un documento recuperado, seleccionado, mandado
+al juez y que no produjo nada **no aparece**. Es una **cota inferior de los
+seleccionados**, no un recuento de participantes. (Y son nombres, no ids —
+`existingDocument`, `types.ts:216`.)
+
+⚠️ **Pero sí detecta una imposibilidad, y por eso entra en el SQL**: un análisis
+`quick` con **más de 6** documentos con hallazgo **contradice**
+`MAX_SELECTED_QUICK = 6`. Si aparece alguno, o el tope no estaba puesto en esa
+fecha, o esa pasada no es lo que su `analysis_type` dice. Las dos cosas son
+interesantes.
+
+### 3 · LO QUE SÍ CONTESTA: `pipeline_counters`, y donde no lo hay, la reconstrucción
+
+**La respuesta exacta** es `seleccion.candidatos_recuperados` —lo que había
+**antes** del corte—, y existe desde F-82. En las filas anteriores sale `NULL`, y
+eso significa **«no se sabe»**, no «fue cero».
+
+**Regla de lectura, escrita antes de ver un solo dato:**
+
+| Lo que salga | Qué significa |
+|---|---|
+| `recuperados > 6` en un `quick` | **EL CORTE MORDIÓ.** Esa cifra se obtuvo con documentos descartados en silencio, y hay que decir cuál es |
+| `recuperados > 25` en un `exhaustive` | mordió el tope de 25 |
+| `recuperados <= 6` | no mordió: el rerank vio todo lo que había |
+| `seleccionados = 6` clavados | sospechoso — es el tope exacto |
+| `pipeline_counters` nulo | no se sabe, y se dice así |
+
+### 4 · ⚠️ INDEXADO NO ES ELEGIBLE — la distinción que decide si el director tiene razón
+
+«Diez documentos indexados» y «diez documentos que el análisis puede ver» son
+cosas distintas: el filtro es `analysis_status = 'analizado'` (`vectors.ts:99`).
+Diez indexados en `pendiente` dan **cero** candidatos. Es la misma distinción que
+produjo B.245.
+
+**Se puede reconstruir**, porque `mark-analyzed` deja fecha: para cada análisis del
+historial, cuántos documentos tenían `reviewed_at` anterior.
+
+⚠️ **Y es COTA INFERIOR por tres motivos que van escritos con el número**:
+
+- `reviewed_at` lo escribe **sólo** `mark-analyzed` (`route.ts:113,153`). Los otros
+  tres caminos a `analizado` —`index-text:393`, `promocion.ts:98`, `ingest:294`— no
+  lo ponen, y **`ingest` y `promocion` lo dejan a NULL a propósito**.
+- Un documento marcado y **borrado** después no tiene fila y no se cuenta.
+- Un documento marcado y devuelto a `pendiente` por un cambio de contenido
+  **perdió** su `reviewed_at`.
+
+**Consecuencia para la lectura: si sale un número alto, es verdad. Si sale bajo, no
+prueba nada.** Es justo la asimetría contraria a la que me convendría, y por eso se
+escribe antes.
+
+### 5 · Qué se hace con el resultado
+
+`SQL_B249_historial.sql`, cuatro consultas, sólo lectura, cero créditos.
+
+- **Si alguna pasada tiene `recuperados > 6`**: el corte mordió, y esa medición se
+  obtuvo mirando una parte. **Va nombrada, con su fecha, a la ficha de la medición
+  que la usó** — y las conclusiones que colgaran de ella se reenuncian.
+- **Si ninguna lo tiene pero la reconstrucción da >6 elegibles en alguna fecha**:
+  entonces hubo ocasión y no hay contador que lo diga, lo cual es **B.244 desde la
+  contabilidad** — y se anota que no se puede saber.
+- **Si todo sale ≤6**: mi «inerte» se sostiene, pero **con población medida en vez
+  de con memoria**, que es la diferencia que importa.
+
+**En los tres casos la ficha cambia. En ninguno se toca el código.**
