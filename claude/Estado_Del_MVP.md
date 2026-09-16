@@ -2825,6 +2825,58 @@ parafraseada pasa el filtro, se guarda, y el editor no puede localizarla**: el
 usuario ve un problema que no sabe dónde está. Buscar el desplazamiento **es**
 comprobar que existe.
 
+## 📏 16/09/2026 · EL CONTRASTE CORPUS/ESTILO, RESUELTO — y era una lectura corta
+
+⚠️ **«El análisis de corpus repite y el de estilo no» era una comparación entre
+cosas distintas, y la corrijo.**
+
+`table-diff.ts` **no importa ningún cliente de modelo**. Las cuatro cifras que se
+compararon en A5/A6 —`3 · 57 · 0 · 0`— **las calcula código determinista** que
+cruza filas. **Repiten porque son aritmética, no porque el proveedor se porte
+distinto ahí.**
+
+**Mismo proveedor, mismo modelo, y ninguna paradoja: estábamos midiendo el
+código en un sitio y el modelo en el otro.**
+
+⚠️ **Y eso deja una afirmación mía demasiado fuerte, que también se retira**: que
+«el análisis de corpus repite». **Lo que repite es su mitad determinista.** La
+parte que sí depende del modelo —el juez, las contradicciones— **nunca se ha
+medido para repetibilidad.**
+
+## ✅ DOS COMPROBACIONES QUE NO CUESTAN NADA, Y SE PUEDEN HACER SOBRE EL PASADO
+
+**El reintento, sin entrar en Vercel**: `usageContext` **suma** los tokens de
+todas las llamadas de una petición, así que una pasada que reintentó mandó el
+prompt **dos veces** y tiene **~el doble de `input_tokens`**. La huella ya está
+guardada en `llm_usage` — consulta 6.
+
+**Las citas que no están, sobre las catorce YA guardadas**: los `textRef` están
+en la base y el documento también, así que **no hay que esperar a una pasada
+nueva** — consultas 7 y 8. **Predicción escrita antes: cero citas ausentes.**
+
+## LA CITA: SE BUSCA, SE GUARDA DÓNDE ESTÁ, Y SE CUENTA CUANDO NO ESTÁ
+
+**`offset`** por problema, y `averia.estilo_cita_no_encontrada` cuando la cita no
+aparece. Se busca sobre **el texto recortado que el modelo vio**, no sobre el
+original: buscar en el entero diría que existe una cita que nunca estuvo en el
+prompt.
+
+✅ **Y al estrenarse cazó los ejemplos de su propia batería**: tres casos pasaban
+el texto `'texto'` y citaban `'consulltas'` — una cita que no estaba. Verdes, y
+sobre una situación imposible.
+
+⚠️ **QUÉ HACER CUANDO LA CITA NO ESTÁ — HOY SE CONSERVA, Y LA DECISIÓN NO ES DE
+AQUÍ.** Las tres opciones, para decidirlas con la cifra delante:
+
+| opción | qué gana | qué cuesta |
+|---|---|---|
+| **conservarlo con `offset: -1`** *(lo de hoy, ahora contado)* | no se pierde un hallazgo que puede ser bueno y estar mal citado | el editor sigue sin poder señalarlo: el usuario ve un problema y no sabe dónde |
+| **descartarlo** | todo lo que se enseña se puede localizar | se tira un hallazgo real por un fallo de forma, y **el recuento baja sin que el usuario sepa por qué** |
+| **enseñarlo aparte, sin ancla** | honesto: «esto lo encontró y no sabe señalarlo» | una sección más en una pantalla que ya tiene varias |
+
+**Lo que ya no puede pasar es que ocurra en silencio**, que era lo único
+innegociable.
+
 **No se arregla aquí.**
 
 ---

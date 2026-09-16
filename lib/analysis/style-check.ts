@@ -19,6 +19,24 @@ export interface StyleProblem {
   description: string;
   /** Cita literal del texto donde está el problema (para localización en el editor). */
   textRef: string;
+  /**
+   * ⚠️ DÓNDE ESTÁ LA CITA EN EL TEXTO, o `-1` si no está — 16/09/2026.
+   *
+   * Nació por dos motivos a la vez, y el segundo es el que lo paga:
+   *
+   *   1. **Comprobar que la cita existe.** El prompt la exige literal «carácter
+   *      por carácter» y nadie lo miraba: una paráfrasis pasaba el filtro, se
+   *      guardaba, y el editor no podía señalarla. El usuario veía un problema
+   *      y no sabía dónde.
+   *   2. **Dar una identidad estable al hallazgo.** Agrupar por la cita no
+   *      sirve: medido el 16/09, el mismo error salió como «la fecha en la que
+   *      a sido subsanada» (9 pasadas) y «la fecha en la que a sido» (5) — el
+   *      modelo decide dónde corta. **La posición no la decide él.** Dos citas
+   *      que se solapan en el documento son el mismo hallazgo.
+   *
+   * Es un número: no añade contenido del documento a lo que ya se guarda.
+   */
+  offset: number;
 }
 
 interface StyleResponse {
@@ -61,6 +79,10 @@ const VALID_TYPES = new Set(['ortografia', 'ambiguedad', 'sugerencia']);
  * ═══════════════════════════════════════════════════════════════════════════
  */
 export const TEMPERATURA_DEL_ESTILO = 0;
+
+/** Cuánto texto se le manda al modelo. Ver B.236: lo que pase de aquí NO se
+ *  analiza, y hoy nadie avisa de ello. */
+export const LIMITE_DE_TEXTO = 20000;
 
 /**
  * LO QUE DEVUELVE EL ANÁLISIS DE ESTILO — B.239, 15/09/2026.
@@ -137,6 +159,17 @@ Estructura JSON exacta a devolver:
 export async function analyzeStyle(text: string, fileName: string): Promise<ResultadoDeEstilo> {
   const t0 = Date.now();
 
+  // ⚠️ EL RECORTE, CON NOMBRE Y EN UN SOLO SITIO — 16/09/2026. Era un
+  // `text.slice(0, 20000)` literal dentro de la plantilla, y ahora hay un
+  // segundo consumidor: la búsqueda de la cita. Dos recortes escritos aparte
+  // se separan el día que alguien mueva uno, y entonces se buscaría la cita
+  // sobre un texto que el modelo no vio — que es peor que no buscarla.
+  //
+  // ⚠️ LO QUE ESTE NOMBRE NO ARREGLA: que el recorte siga siendo mudo. Un
+  // documento de más de 20.000 caracteres se analiza a medias y nadie avisa.
+  // Eso es B.236 y sigue abierta.
+  const textoEnviado = text.slice(0, LIMITE_DE_TEXTO);
+
   const userPrompt = `${STYLE_PROMPT}
 
 ---
@@ -145,7 +178,7 @@ DOCUMENTO: "${fileName || 'sin nombre'}"
 
 TEXTO A REVISAR:
 """
-${text.slice(0, 20000)}
+${textoEnviado}
 """
 
 Devuelve el JSON con los problemas internos detectados.`;
@@ -166,6 +199,7 @@ Devuelve el JSON con los problemas internos detectados.`;
     //     respuesta TRUNCADA: el cliente repara el JSON cortado y los últimos
     //     elementos llegan a medias.
     const crudos = parsed.problems || [];
+    let citasNoEncontradas = 0;
     const tiposDescartados: string[] = [];
     let descartadosPorTipo = 0;
     let descartadosSinAncla = 0;
@@ -186,11 +220,22 @@ Devuelve el JSON con los problemas internos detectados.`;
         descartadosSinAncla++;
         continue;
       }
+      const cita = p.textRef.trim();
+      // ⚠️ SE BUSCA SOBRE EL TEXTO QUE SE LE MANDÓ, no sobre el original: el
+      // prompt lleva `text.slice(0, 20000)`, así que buscar en el entero diría
+      // que existe una cita que el modelo no pudo ver.
+      const offset = textoEnviado.indexOf(cita);
+      if (offset < 0) citasNoEncontradas++;
       problems.push({
         type: p.type as 'ortografia' | 'ambiguedad' | 'sugerencia',
         title: p.title?.trim() || 'Problema detectado',
         description: p.description?.trim() || '',
-        textRef: p.textRef.trim(),
+        textRef: cita,
+        // ⚠️ EL HALLAZGO SE CONSERVA AUNQUE LA CITA NO ESTÉ, con `-1`.
+        // Descartarlo sería tirar un problema que puede ser bueno y estar mal
+        // citado, y esa decisión no es de aquí. Lo que no vale es que pase en
+        // silencio: por eso se cuenta.
+        offset,
       });
     }
 
@@ -210,6 +255,7 @@ Devuelve el JSON con los problemas internos detectados.`;
     const contadores: PipelineCounters = {
       'averia.estilo_descartado_por_tipo': descartadosPorTipo,
       'averia.estilo_descartado_sin_ancla': descartadosSinAncla,
+      'averia.estilo_cita_no_encontrada': citasNoEncontradas,
     };
 
     // ⚠️ EL REGISTRO LLEVA LOS TRES NÚMEROS, no sólo el de salida: «8 problemas»

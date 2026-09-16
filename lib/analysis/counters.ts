@@ -209,6 +209,16 @@ export const COUNTER_CATALOGUE = [
   // este catálogo. Las etiquetas van en `analysis`, que es datos y no telemetría.
   'averia.estilo_descartado_por_tipo',
   'averia.estilo_descartado_sin_ancla',
+  // ⚠️ 16/09/2026 — LA CITA QUE NO ESTÁ EN EL TEXTO. El prompt exige que
+  // `textRef` sea una copia LITERAL «carácter por carácter», porque es lo que
+  // permite señalar el problema en el editor. Nadie lo comprobaba: una cita
+  // parafraseada pasaba el filtro, se guardaba, y el usuario veía un problema
+  // que la interfaz no sabe dónde poner.
+  //
+  // ⚠️ NO SE DESCARTA EL HALLAZGO — hoy sólo se cuenta. Descartarlo sería tirar
+  // un problema que puede ser bueno y estar mal citado, y esa decisión es del
+  // director. Lo que no valía era que pasara en silencio.
+  'averia.estilo_cita_no_encontrada',
 ] as const satisfies readonly `${Stage}.${string}`[];
 
 export type CounterName = (typeof COUNTER_CATALOGUE)[number];

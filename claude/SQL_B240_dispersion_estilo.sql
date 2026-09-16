@@ -93,3 +93,65 @@ FROM analysis_results a,
 WHERE a.analysis_type = 'style' AND a.document_name LIKE 'CLI-20%'
 GROUP BY 1
 HAVING count(DISTINCT p ->> 'type') > 1;
+
+
+-- ============================================================
+-- AÑADIDO 16/09/2026 · LO QUE SE PUEDE MEDIR SOBRE LO YA GUARDADO
+-- ============================================================
+
+-- ⚠️ 6 · ¿SE DISPARÓ EL REINTENTO? — sin entrar en los registros de Vercel
+--
+-- `usageContext` SUMA los tokens de todas las llamadas de una petición, así que
+-- una pasada con reintento mandó el prompt DOS VECES y tiene ~el doble de
+-- `input_tokens` que sus hermanas. No hace falta un contador nuevo: la huella
+-- ya está guardada.
+
+SELECT date_trunc('second', created_at) AS pasada,
+       input_tokens,
+       output_tokens,
+       round(input_tokens::numeric /
+             nullif(min(input_tokens) OVER (), 0), 2) AS veces_el_minimo
+FROM llm_usage
+WHERE operation = 'analyze_style'
+ORDER BY created_at DESC
+LIMIT 20;
+
+-- Leer así: si TODAS las filas dan `veces_el_minimo` ≈ 1, el reintento NUNCA
+-- corrió y queda descartado. Una fila con ≈ 2 es una pasada que reintentó.
+
+
+-- ⚠️ 7 · ¿HAY CITAS QUE NO ESTÁN EN EL TEXTO? — sobre las catorce YA guardadas
+--
+-- No hace falta esperar a una pasada nueva: los `textRef` están guardados y el
+-- documento también (`documents.full_text`). Esto mide el pasado.
+--
+-- ⚠️ Compara contra los primeros 20.000 caracteres, que es lo que el modelo
+-- llegó a ver. Buscar en el texto entero diría que existe una cita que nunca
+-- estuvo en el prompt.
+
+WITH doc AS (
+  SELECT left(full_text, 20000) AS visto
+  FROM documents
+  WHERE name LIKE 'CLI-20%'
+  LIMIT 1
+)
+SELECT a.created_at,
+       p ->> 'type'              AS tipo,
+       left(p ->> 'textRef', 60) AS cita,
+       (position((p ->> 'textRef') IN (SELECT visto FROM doc)) > 0) AS esta_en_el_texto
+FROM analysis_results a,
+     LATERAL jsonb_array_elements(coalesce(a.analysis -> 'problemas', '[]'::jsonb)) AS p
+WHERE a.analysis_type = 'style' AND a.document_name LIKE 'CLI-20%'
+ORDER BY esta_en_el_texto, a.created_at DESC;
+
+
+-- 8 · EL RESUMEN DE LO ANTERIOR, con denominador
+WITH doc AS (
+  SELECT left(full_text, 20000) AS visto FROM documents WHERE name LIKE 'CLI-20%' LIMIT 1
+)
+SELECT count(*) AS citas_totales,
+       count(*) FILTER (WHERE position((p ->> 'textRef') IN (SELECT visto FROM doc)) = 0)
+         AS citas_que_NO_estan
+FROM analysis_results a,
+     LATERAL jsonb_array_elements(coalesce(a.analysis -> 'problemas', '[]'::jsonb)) AS p
+WHERE a.analysis_type = 'style' AND a.document_name LIKE 'CLI-20%';

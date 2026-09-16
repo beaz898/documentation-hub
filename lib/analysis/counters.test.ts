@@ -72,6 +72,8 @@ describe('el catálogo', () => {
     // una huella distinta y un solo contador las sumaría.
     'averia.estilo_descartado_por_tipo',
     'averia.estilo_descartado_sin_ancla',
+    // 16/09: la cita que el modelo dice literal y no está en el texto.
+    'averia.estilo_cita_no_encontrada',
     ]);
   });
 
