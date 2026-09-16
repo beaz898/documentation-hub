@@ -5,6 +5,7 @@ import { stageFailureContext } from './stage-failures';
 import { retrieveCandidates } from './retrieval';
 import type { StructuralOverlap } from './retrieval';
 import { rerankCandidates } from './rerank';
+import { escribirContadoresDelReparto } from './reparto-del-rerank';
 import { judgeAllDocuments, verifyQuote } from './judge';
 import type { JudgmentEvidence } from './judge';
 import { synthesizeFinalAnalysis, markIncompleteAnalysis } from './synthesize';
@@ -768,12 +769,16 @@ async function runCorePipeline(
   // distingue de «no se miró», y aquí «cero sin confianza» es justo la noticia
   // buena: significa que la señal con la que se ordena el corte está viva.
   counters['seleccion.candidatos_sin_confianza'] = sinConfianza;
-  counters['seleccion.candidatos_cortados_por_tope'] = reparto.cortadosPorTope;
-  // B.251 — las DOS mitades de la pérdida, ya separadas, y la señal que dice
-  // si la primera es de fiar. Las tres SIEMPRE, incluido el cero: el cero de
+  // B.251 — las DOS mitades de la pérdida, ya separadas, y las señales que
+  // dicen si la primera es de fiar. SIEMPRE, incluido el cero: el cero de
   // `id_no_reconocido` es justo lo que hace cierta la palabra «criterio».
-  counters['seleccion.candidatos_descartados_por_criterio'] = reparto.descartadosPorCriterio;
-  counters['seleccion.candidatos_con_id_no_reconocido'] = reparto.idsNoReconocidos;
+  // ⚠️ Y `descartados_por_criterio` QUEDA AUSENTE EN EL FALLBACK (B.254): no
+  // hubo criterio. Es el contrato de `PipelineCounters` —ausente = no corrió;
+  // 0 = corrió y no pasó nada—. Hasta el 16/09/2026 se guardaba
+  // `recuperados − 3`, como si el modelo hubiera descartado lo que el score
+  // dejó fuera. La escritura vive en reparto-del-rerank.ts y no aquí para que
+  // un `?? 0` futuro rompa una prueba.
+  escribirContadoresDelReparto(counters, reparto);
 
   // SALIDA TEMPRANA 2 — había candidatos y el rerank no dejó ninguno. Se
   // distingue de la anterior por los DOS contadores: aquí `recuperados` es > 0

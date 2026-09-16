@@ -103,6 +103,16 @@ export const COUNTER_CATALOGUE = [
   // parte de los «descartados por criterio» los quisimos y no supimos
   // resolverlos.
   'seleccion.candidatos_con_id_no_reconocido',
+  // B.253 — entradas del modelo que repetían un candidato ya nombrado. Hasta
+  // el 16/09/2026 cada repetición ENTRABA: ocupaba una plaza del tope y el
+  // juez comparaba el mismo documento dos veces. Ahora se descarta, y esto
+  // cuenta cuántas veces hizo falta. No es un cubo de pérdida: ningún
+  // candidato se pierde por aquí.
+  //
+  // ⚠️ Y `descartados_por_criterio`, dos más arriba, es el ÚNICO de este grupo
+  // que queda AUSENTE en el fallback del rerank (B.254): no hubo criterio. Los
+  // demás valen 0 ahí, y ese cero es verdad.
+  'seleccion.candidatos_repetidos_por_el_modelo',
   // diff.tablas — ETAPA NUEVA (F-88 P1). El emparejador de tablas: qué pares
   // se evaluaron y por qué puerta cayó cada uno.
   //

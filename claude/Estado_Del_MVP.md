@@ -4694,3 +4694,131 @@ relativo** —percentil del vecindario, distancia al mejor—, porque e5 comprim
 franja alta por diseño y los umbrales absolutos son la herramienta equivocada».
 Con un suelo de 0,79 y un techo de 0,99, esa afirmación tiene el dato del censo
 detrás.
+
+---
+
+## ⚠️ 5.69 · B.253 y B.254 — el reparto que iba a sostener el aviso tenía dos cifras falsas (16/09/2026)
+
+Se paró antes de escribir el texto de la opción B. Escribirlo sobre estas cifras
+habría sido volver a afirmar una causa que el sistema no conoce, **con la ficha
+del patrón (§5.66) ya escrita**.
+
+### B.253 — el duplicado NO era un problema de cuentas
+
+Si el modelo devolvía `[A, A, B]`, `rerank.ts` resolvía cada entrada con `find`
+y **sin quitar repetidos**. Verificado en el código, no supuesto:
+
+- A entraba **dos veces** en la selección, y el corte es un `slice` sobre esa
+  lista: **ocupaba dos plazas del tope y dejaba fuera a otro documento**.
+- `judgeAllDocuments` recorre los candidatos por lotes sin deduplicar
+  (`judge.ts`, `runInBatches`): **el juez comparaba A dos veces y se pagaba dos
+  veces**.
+- `comparados = reranked.length` contaba la repetición: con tres afines, el
+  aviso podía decir «eran todos los que había» sin que C se comparara nunca.
+
+⚠️ **Y ES UN CIERRE FALSO DE ESTA MISMA TARDE.** El mensaje de `38b60b66` decía
+«de paso cierra un caso que nadie había mirado: … el reparto cuenta por
+conjunto». **Lo cerró en el contador, no en la selección**: el reparto volvía a
+resolver los ids por su cuenta, y dos implementaciones del mismo criterio se
+separaron desde el primer día. Es la regla de `CLAUDE.md` —un criterio se
+implementa una vez— rota en el commit que decía aplicarla.
+
+**Arreglo**: una sola resolución (`resolverSeleccion`) de la que salen la
+selección y el reparto. Repetidos fuera, contados en
+`seleccion.candidatos_repetidos_por_el_modelo`.
+
+### B.254 — en el fallback no hay criterio, y se guardaba uno
+
+Si el modelo falla, entran los tres primeros por score. El reparto calculaba
+igualmente `recuperados − 3` y lo guardaba en `descartados_por_criterio`, **de
+documentos que ningún modelo miró**. El comentario de encima decía «no hay nada
+que repartir por criterio».
+
+**Decisión del director: AUSENTE, no cero.** Un cero diría que el modelo no
+descartó nada. Es el contrato de `PipelineCounters` (ausente = la etapa no
+corrió). Los otros tres del reparto valen 0 en el fallback, y ese cero es verdad.
+
+⚠️ **LA INVARIANTE ROTA, ESCRITA DONDE SE ROMPE**: `recuperados = criterio +
+elegidos` no se cumple en el fallback, a propósito. El tipo tiene dos formas
+(`RepartoConModelo` / `RepartoSinModelo`), la del fallback **no tiene el campo**,
+y `elRepartoCuadra` sólo acepta la primera: el compilador obliga a mirar `origen`.
+
+⚠️ **Y LA ESCRITURA SE SACÓ DEL PIPELINE.** Mi primer comentario en `pipeline.ts`
+decía que un `?? 0` futuro «haría caer la prueba del fallback». **Era falso**: la
+prueba vigilaba la función pura, no la escritura. Ahora escribe
+`escribirContadoresDelReparto`, que tiene su caso, y la mutación `?? 0` lo mata.
+
+### ⚠️ Una fuente inventada, y la razón de la decisión se apoyaba en ella
+
+Propuse «ausente» diciendo que **«el contador `averia` ya dice por qué falta»**, y
+el encargo lo repitió como razón. **No existe tal contador**: `averia` es una
+etapa reservada y vacía (`counters.ts`). Lo que registra el fallo del rerank es
+`analysis.stageFailures` con `stage: 'rerank'` (`synthesize.ts`,
+`markIncompleteAnalysis`), que sí se persiste en el jsonb.
+
+**La decisión sobrevive** —el registro existe, con otro nombre—, pero es el
+patrón de F-106 con esta casa en los dos papeles: la frase venía de un comentario
+de `rerank.ts` de un commit anterior («eso ya lo cuenta `averia` por la vía de
+stage-failures»), la copié sin abrir el catálogo y volvió como premisa de una
+orden. Corregidos los dos sitios, y la SQL de B.253 filtra por `stageFailures`.
+
+### ¿Pasó en las pasadas del director? — lo que se puede deducir, y dónde se acaba
+
+No había contador de repeticiones, así que no se sabe: **se deduce, con huecos**.
+`SQL_B253_repetidos.sql` (PENDIENTE DE EJECUTAR, sólo lee):
+
+| Señal | Alcance | Hueco |
+|---|---|---|
+| `seleccionados > recuperados` | desde F-82 (28/08) | con 3 recuperados y `[A, A, B]` sale 3 y 3: **el tamaño exacto de su corpus**, invisible |
+| `seleccionados > recuperados − criterio − tope` | desde `38b60b66` (hoy) | con tope cortando no se ve — **justo cuando desplazó a otro** |
+| dos solapamientos «del juez» del mismo documento en un análisis | **todo el historial** | sólo si ese documento produjo solapamiento |
+
+Un «no aparece» es «no dejó huella legible», no «no pasó».
+
+### Predicciones y mutaciones
+
+- **Pruebas: predije +11, salieron +8** (1126 → 1134). **Fallada, esta vez por
+  arriba.**
+- **«Volver a resolver los ids por dos caminos no lo caza ningún test»:
+  FALLADA**, a favor — **3 en rojo**, por los casos a nivel de `rerankCandidates`.
+
+| Mutación | En rojo |
+|---|---|
+| la resolución no quita repetidos | 5 |
+| el fallback devuelve criterio 0 | 2 |
+| el fallback vuelve a la resta `recuperados − 3` | 2 |
+| el rerank resuelve por su cuenta con `find` | 3 |
+| la escritura hace `?? 0` | 1 |
+
+Suite **1134/1134 en dos pasadas guardadas enteras**, tipos limpios (app y worker),
+build aprobado.
+
+⚠️ **Dos notas de método.** (1) En vitest 4, un `beforeEach(() => mock.mockReset())`
+de nivel superior hacía fallar con el propio error los casos cuyo mock rechaza,
+aunque el código lo atrapaba; sin el reset pasan. No se investigó más: cada caso
+fija su implementación. (2) Los casos a nivel de rerank simulan `callLLMJson`. El
+alcance de vitest prohíbe mocks de Anthropic; esto simula **la función
+intermedia de la casa**, con el precedente de `style-check.test.ts`.
+
+### Lo que queda para el commit del texto — y una decisión del director antes
+
+**«Los N más afines» no es verdad siempre, y tampoco en el caso de tope solo.** El
+corte ordena por **confianza del modelo** primero y por score de embedding
+después (`orden-del-rerank.ts`). Un documento cortado con confianza `media` puede
+tener **más** parecido que uno comparado con `alta`; y en el mixto, uno descartado
+por criterio también. «Más afines» y «menor afinidad» afirman un orden de
+parecido que el código no garantiza — **en producción hoy**, en la frase del tope.
+
+Las dos salidas, con lo que pierde cada una:
+
+| | Cabeza | Cola del tope | Pierde |
+|---|---|---|---|
+| **(i)** | «Se compararon 6 de los 10 documentos afines a éste.» | «Otros 3 también se eligieron, pero no cupieron en esta comparación.» | que hubo prioridad: se lee como un subconjunto cualquiera |
+| **(ii)** | «Se compararon los 6 que el análisis priorizó de los 10 afines a éste.» | «Otros 3 también se eligieron, con menor prioridad, y no cupieron.» | la palabra «afinidad» que eligió el director |
+
+Las dos son verdad en las filas 2, 4 y 5. **Recomiendo la (ii)**: explica el
+mecanismo, que era lo que el director pedía, y «priorizó» es cierto por
+construcción —es literalmente lo que hace el orden—, incluidos los empates.
+
+**Y la fila 6** —análisis viejos sin reparto— pasará a no decir la causa. Hoy la
+dicen sin saberla. Irá dicho en ese commit para que no parezca una regresión.

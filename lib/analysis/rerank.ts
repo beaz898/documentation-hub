@@ -1,7 +1,7 @@
 import { recordStageFailure } from './stage-failures';
 import { callLLMJson } from './llm-client';
 import { ordenarParaCortar, normalizarConfianza, contarSinConfianza } from './orden-del-rerank';
-import { repartirCandidatos, type RepartoDelRerank } from './reparto-del-rerank';
+import { resolverSeleccion, repartoConModelo, repartoSinModelo, type RepartoDelRerank } from './reparto-del-rerank';
 import type { CandidateDocument, RerankedCandidate, PipelineOptions } from './types';
 
 /**
@@ -44,7 +44,9 @@ export async function rerankCandidates(args: {
     return {
       seleccionados: [],
       sinConfianza: 0,
-      reparto: repartirCandidatos({ idsRecuperados: [], idsDevueltosPorElModelo: [], maxSelected }),
+      // Sin candidatos no hay nada que repartir. El pipeline sale antes de
+      // escribir estos contadores (salida temprana 1).
+      reparto: repartoConModelo({ recuperados: 0, elegidosPorElModelo: 0, idsNoReconocidos: 0, repetidos: 0, maxSelected }),
     };
   }
 
@@ -96,22 +98,24 @@ ${candidates.map((c, i) => `[${i + 1}] → ${c.documentId}`).join('\n')}`;
   try {
     const response = await callLLMJson<RerankResponse>(prompt, { maxOutputTokens: 2048, temperature: 0.1 });
 
-    const selected: RerankedCandidate[] = [];
-    for (const sel of response.selected || []) {
-      const candidate = candidates.find(c => c.documentId === sel.documentId);
-      if (!candidate) continue;
-      selected.push({
-        documentId: candidate.documentId,
-        documentName: candidate.documentName,
-        source: candidate.source,
-        fragments: candidate.fragments,
-        rerankReason: sel.reason || '',
-        // ⚠️ YA NO ES `|| 'media'`. Ver orden-del-rerank.ts: convertir la
-        // ausencia en el nivel intermedio era inventarse la valoración que
-        // falta, y encima con un valor que ya significaba otra cosa.
-        rerankConfidence: normalizarConfianza(sel.confidence),
-      });
-    }
+    // ⚠️ LA RESOLUCIÓN ES UNA SOLA, y la selección y el reparto salen de ella
+    // (B.253). Hasta el 16/09/2026 aquí había un `find` por entrada SIN quitar
+    // repetidos: si el modelo devolvía [A, A, B], A entraba dos veces, ocupaba
+    // DOS plazas del tope —dejando fuera a otro documento— y el juez lo
+    // comparaba dos veces, cobrándolo dos veces. Y el reparto, que resolvía los
+    // ids por su cuenta, contaba dos elegidos donde el juez recibía tres.
+    const resolucion = resolverSeleccion(candidates, response.selected || []);
+    const selected: RerankedCandidate[] = resolucion.resueltos.map(({ candidato, entrada }) => ({
+      documentId: candidato.documentId,
+      documentName: candidato.documentName,
+      source: candidato.source,
+      fragments: candidato.fragments,
+      rerankReason: entrada.reason || '',
+      // ⚠️ YA NO ES `|| 'media'`. Ver orden-del-rerank.ts: convertir la
+      // ausencia en el nivel intermedio era inventarse la valoración que
+      // falta, y encima con un valor que ya significaba otra cosa.
+      rerankConfidence: normalizarConfianza(entrada.confidence),
+    }));
 
     // ⚠️ SE ORDENA ANTES DE CORTAR. Hasta el 16/09/2026 esto era
     // `selected.slice(0, maxSelected)` sobre el orden en que el modelo los
@@ -123,13 +127,14 @@ ${candidates.map((c, i) => `[${i + 1}] → ${c.documentId}`).join('\n')}`;
       // Se cuenta sobre TODOS los que llegaron, no sobre los que sobreviven al
       // corte: lo que se quiere saber es si la señal existe, no si sobrevivió.
       sinConfianza: contarSinConfianza(selected),
-      // ⚠️ EL REPARTO ENTERO, no sólo el tope. Se calcula sobre los ids EN
-      // CRUDO que devolvió el modelo —antes de resolverlos— porque los que
-      // NO se pueden resolver son precisamente la cifra que faltaba: la vía
-      // muda de B.251. Ver reparto-del-rerank.ts.
-      reparto: repartirCandidatos({
-        idsRecuperados: candidates.map(c => c.documentId),
-        idsDevueltosPorElModelo: (response.selected || []).map(s => s.documentId),
+      // ⚠️ EL REPARTO ENTERO, con las cifras de LA MISMA resolución que
+      // construyó `selected`: no se vuelven a leer los ids en crudo. Ver
+      // reparto-del-rerank.ts.
+      reparto: repartoConModelo({
+        recuperados: new Set(candidates.map(c => c.documentId)).size,
+        elegidosPorElModelo: selected.length,
+        idsNoReconocidos: resolucion.idsNoReconocidos,
+        repetidos: resolucion.repetidos,
         maxSelected,
       }),
     };
@@ -155,14 +160,19 @@ ${candidates.map((c, i) => `[${i + 1}] → ${c.documentId}`).join('\n')}`;
         rerankConfidence: 'baja' as const,
       })),
       // Cero, y no «todos»: `sin_declarar` cuenta al modelo que no valoró. Aquí
-      // no hubo modelo, y eso ya lo cuenta `averia` por la vía de stage-failures.
+      // no hubo modelo, y eso lo registra `analysis.stageFailures` con la etapa
+      // `rerank`. (Hasta el 16/09 decía «lo cuenta `averia`»: no existe tal
+      // contador — `averia` es una etapa reservada y vacía, `counters.ts`.)
       sinConfianza: 0,
-      // El modelo no llegó a hablar: no hay nada que repartir por criterio.
-      // Los que entran vienen del fallback por score, no de una elección.
-      reparto: repartirCandidatos({
-        idsRecuperados: candidates.map(c => c.documentId),
-        idsDevueltosPorElModelo: fallbackCandidates.map(c => c.documentId),
-        maxSelected,
+      // ⚠️ EL MODELO NO LLEGÓ A HABLAR, Y EL REPARTO LO DICE EN SU FORMA
+      // (B.254). Hasta el 16/09/2026 este comentario afirmaba «no hay nada que
+      // repartir por criterio» mientras la llamada de debajo calculaba
+      // `recuperados − 3` y lo guardaba como descartados POR CRITERIO. Aquí se
+      // rompe a propósito la invariante `recuperados = criterio + elegidos`:
+      // no hay criterio, y el reparto sin modelo no tiene ese campo.
+      reparto: repartoSinModelo({
+        recuperados: new Set(candidates.map(c => c.documentId)).size,
+        seleccionadosPorScore: fallbackCandidates.length,
       }),
     };
   }

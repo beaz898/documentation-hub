@@ -41,6 +41,9 @@ describe('el catálogo', () => {
       // parte de los «descartados por criterio» los quisimos y no supimos
       // resolverlos.
       'seleccion.candidatos_con_id_no_reconocido',
+      // B.253 — repeticiones del modelo, que hasta el 16/09 entraban dos veces
+      // al juez y ocupaban dos plazas del tope.
+      'seleccion.candidatos_repetidos_por_el_modelo',
       // F-103 P3 pieza 2: la etapa `diff.vision`, abierta el 07/09. Es la capa
       // de ANTES del emparejador — qué le llegó— y por eso no cabía en
       // `diff.tablas`, que cuenta lo que pasa dentro. Los dos lados van por
