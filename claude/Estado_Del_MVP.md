@@ -4317,3 +4317,127 @@ a este despliegue releído desde la bandeja, no un fallo.
 ⚠️ **Es la primera evidencia en pantalla de todo este frente.** Los dos commits
 anteriores —el orden del corte y el aviso condicionado— eran invisibles en su
 corpus, y así se dijeron.
+---
+
+## ✅ 5.60 · EL AVISO DE COBERTURA, EJERCIDO EN PANTALLA — cierra 5.58 (16/09/2026)
+
+Copiado literal de la pantalla del director, análisis rápido de `CLI-20`:
+
+> *«Se compararon los 2 documentos más afines a éste. **Otro** tiene menor
+> afinidad con este documento y no entró en la comparación. Tras aplicar
+> correcciones conviene reanalizar: al cambiar el contenido cambia también qué
+> documentos son más afines, y la comparación puede incorporar otros.»*
+
+**El singular funciona** —«Otro tiene», no «Otros 1»— y sale **arriba del todo,
+antes de los hallazgos**, como estaba escrito. Es la primera evidencia en pantalla
+de todo este frente, y el grado de «declarado» sube de CONTADO a **EJERCIDO**.
+
+---
+
+## ⚠️ 5.61 · B.251 — el aviso atribuye una causa que no puede saber, y es mío de ayer (16/09/2026)
+
+### Lo que no cuadra, y cuadra mal por mi culpa
+
+Tres candidatos, dos comparados, y `MAX_SELECTED_QUICK = 6`. **Con tres candidatos
+el tope no puede cortar nada.** Así que el que se llevó al tercero **no fue el
+tope** — y el aviso dice «tiene menor afinidad y no entró en la comparación», que
+es la explicación del tope.
+
+⚠️ **Y lo peor no es el error: es que yo ya lo había escrito.** En 5.49 y 5.53, de
+mi puño:
+
+> *«`recuperados − seleccionados` mezcla dos cosas distintas —los que el rerank
+> descartó por criterio y los que cortó por presupuesto— y hasta hoy no se podían
+> separar.»*
+
+**Y ayer construí el aviso con esa resta exacta**, poniéndole encima la redacción
+que el director había escrito para el caso del tope. Añadí `cortadosPorTope`
+—el contador que separa las dos causas— **en el mismo commit**, y no lo usé para
+el mensaje. La pieza correcta estaba en mi mano.
+
+### El censo por capacidad: son TRES vías, no dos
+
+Entre `candidatos_recuperados` y `candidatos_seleccionados` no hay nada en el
+pipeline (`pipeline.ts:744-771`: retrieval → contador → rerank → contador). Todas
+las pérdidas ocurren dentro de `rerankCandidates`:
+
+| Vía | Dónde | Qué es | ¿Contada? |
+|---|---|---|---|
+| **(a) criterio** | el modelo no lo nombra en `selected` | lo miró y decidió que no aporta — el prompt le pide «indicios de contenido concreto», no tema común | **NO** |
+| **(b) desajuste de id** | `rerank.ts:94` — `if (!candidate) continue;` | el modelo lo eligió y devolvió un `documentId` que no casa. **Se tira en silencio: ni contador ni log** | **NO** |
+| **(c) tope** | `rerank.ts:105` — el `slice` | el presupuesto | **sí**, desde ayer |
+
+⚠️ **(b) ES LA VÍA QUE NADIE HABÍA ENUMERADO**, y es la respuesta a la segunda
+pregunta del encargo. No es una decisión: es un **fallo de emparejamiento** que se
+traga un candidato sin dejar rastro. Y el propio prompt demuestra que se anticipó
+—«IMPORTANTE: el campo documentId debe ser el documentId real que te paso»— así
+que alguien vio venir que el modelo podía equivocarse **y lo resolvió callando**.
+
+### Por qué el aviso miente, y en qué grado exacto
+
+- Si el tercero cayó por **(c)**, la frase es **verdad**: el orden es por confianza
+  y luego por score, así que lo cortado es la cola del ranking.
+- Si cayó por **(a)**, la frase es **falsa en la causa**: el modelo lo leyó y lo
+  descartó por criterio, no por tener menos parecido. De hecho podía tener MÁS
+  score que uno de los que entraron.
+- Si cayó por **(b)**, la frase **tapa un defecto** presentándolo como una decisión
+  de diseño.
+
+**Y hoy no se puede distinguir cuál de las tres fue.** `cortadosPorTope` dice si fue
+(c); (a) y (b) siguen fundidas.
+
+⚠️ **Lo que NO es**: un aviso que lleve al usuario a hacer algo equivocado. En los
+tres casos el documento no se comparó y el sistema tenía un motivo. **Es una
+afirmación sobre la CAUSA que no podemos respaldar**, y esta casa no envía esas.
+
+### Lo que decide el SQL, y está escrito antes de verlo
+
+`SQL_B251_pasada_CLI20.sql`. Si `cortados_por_tope = 0` —lo esperado con tres
+candidatos— entonces el aviso atribuyó al tope algo que no fue del tope, y B.251
+queda confirmada con población de una pasada real en producción.
+
+**No se arregla aquí.** El encargo dice primero saber qué descartó al tercero, y
+las dos salidas posibles piden arreglos distintos: contar (a) y (b) por separado,
+o hacer la redacción neutra en la causa.
+
+### ⚠️ Y una tercera cosa que esta pasada desmiente, también mía
+
+Llevo tres días escribiendo que su corpus efectivo es **«de uno o dos»**. **Eran
+tres**, y tres candidatos exigen al menos tres documentos `analizado` además de
+`CLI-20`. No tumba B.245 —el filtro sigue siendo el portero— pero **la cifra la
+puse yo de memoria, otra vez, sobre las pasadas anotadas a mano**. La consulta 3
+del fichero dice cuántos elegibles hay de verdad y quiénes son.
+
+---
+
+## ⚠️ 5.62 · Un protocolo de urgencias comparado contra un tarifario — población en pantalla para 5.48 (16/09/2026)
+
+De la misma pantalla:
+
+- aviso de filas: *«28 de 39 filas de la hoja "Tarifas concertadas" de **OPE-11**
+  quedaron fuera por tamaño»*
+- resumen: `CLI-20` tiene **15 % de solapamiento** con `OPE-11`
+
+**`OPE-11` es un tarifario de precios con nueve columnas de importes y
+profesionales. `CLI-20` es un protocolo de urgencias dentales.** Los dos leídos por
+el arquitecto.
+
+⚠️ **Esto es B.248 dejando de ser un censo y pasando a ser producto.** Hasta hoy el
+argumento era una tabla de scores: «el suelo del corpus es 0,79, el umbral de 0,50
+no descarta nada, todo se parece a todo». Ahora se ve **qué compra eso**:
+
+> **Uno de los dos documentos contra los que se comparó un protocolo clínico era
+> una lista de precios. El análisis gastó su presupuesto ahí —28 de 39 filas de una
+> tabla de tarifas— y dejó fuera un tercer documento que podría ser relevante de
+> verdad.**
+
+No es que el sistema fallara: hizo exactamente lo que se le pidió con el umbral que
+tiene. **El umbral es lo que está mal**, y ésta es la mejor prueba que tenemos para
+la calibración — porque no hay que explicarla con una consulta.
+
+**Y encadena con B.251**: el tercer candidato, el que no entró, es el que más
+interés tenía en este ejemplo. No sabemos cuál era ni por qué cayó.
+
+**No se toca el umbral.** Sigue en pie lo de siempre: cambiarlo sin medir sería
+repetir el error que B.248 describe. Lo que esta pasada añade no es una propuesta
+de número — es la población que faltaba para justificar medirlo.
