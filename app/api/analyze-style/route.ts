@@ -48,6 +48,17 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // ⚠️ B.237, PUERTA 1 — LA LONGITUD SE COMPRUEBA ANTES DE COBRAR (17/09/2026).
+    // Hasta hoy se cobraba y DESPUÉS se miraba el texto: uno de menos de 50
+    // caracteres devolvía 400 y se quedaba los 2 créditos, porque el reembolso
+    // de esta ruta sólo vive en el `catch` y este 400 es un `return`. Mirar el
+    // cuerpo no cuesta nada al proveedor, así que va delante del cobro y no hay
+    // nada que devolver.
+    const { text, fileName, documentoPropietario: propietarioPedido, storagePath } = await req.json();
+    if (!text || typeof text !== 'string' || text.trim().length < 50) {
+      return NextResponse.json({ error: 'Texto insuficiente' }, { status: 400 });
+    }
+
     // Verificar y descontar créditos
     const creditResult = await consumeCredits(supabase, orgId, '/api/analyze-style');
     if (!creditResult.success) {
@@ -62,11 +73,6 @@ export async function POST(req: NextRequest) {
       );
     }
     creditsConsumed = getCreditCost('/api/analyze-style');
-
-    const { text, fileName, documentoPropietario: propietarioPedido, storagePath } = await req.json();
-    if (!text || typeof text !== 'string' || text.trim().length < 50) {
-      return NextResponse.json({ error: 'Texto insuficiente' }, { status: 400 });
-    }
 
     const llmAcc = new Map();
     const resultado = await usageContext.run(llmAcc, () =>

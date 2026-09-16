@@ -543,6 +543,38 @@ A5 y A6.
 arregla aquí: decidir entre reembolsar en cada salida, cobrar más tarde o
 declararlo en la interfaz es una decisión de producto.
 
+### 📏 RELEÍDA EL 17/09/2026 — más ancha de lo escrito, y con su decisión a la vista
+
+Las líneas de arriba son del 09/09 y se han movido; lo que sigue está leído hoy.
+
+- ⚠️ **NO ES SÓLO DEL EXHAUSTIVO.** `consumeCredits` (`analyze-v2/route.ts:259`) cobra
+  **los dos modos**, y las salidas posteriores son comunes: el rápido pierde 5 por
+  los mismos caminos. Seis salidas tras el cobro sin reembolso: semáforo ocupado
+  (409), extracción fallida (400), falta de cuerpo (400), texto insuficiente (400),
+  `INSERT` del job fallido (500) y excepción (500).
+- **En cinco de las seis no se ha entregado ni gastado nada del proveedor.** Reembolsar
+  ahí es correcto sin discusión, y la pieza existe: `devolverSiNoSeEntrego`
+  (`lib/credits.ts:242`), la que ya usa la ruta de estilo.
+- **La excepción (500) puede llegar DESPUÉS de haber llamado al modelo** en el rápido
+  —un fallo de base o de índice dentro del pipeline—. Los fallos del MODELO no llegan
+  ahí: se convierten en `stageFailures` y ya se devuelven íntegros (F-71).
+- **El worker**: su `catch` escribe `failed` y no devuelve; también ahí puede haberse
+  gastado modelo, Sonnet incluido. **Y los jobs que el barrido de zombis marca `failed`
+  (`stale_timeout`, 20 min) tampoco devuelven** — y un worker vivo podría terminarlos
+  después, así que reembolsar ahí sin una marca de «ya devuelto» arriesga pagar dos
+  veces.
+- **¿Se sabe cuánto se gastó en el punto del fallo?** Los tokens sí: van a un
+  acumulador en memoria (`usageContext`), pero **sólo se persisten en el camino
+  bueno**. En créditos **no hay cifra que saber**: el precio es plano, no por tokens.
+- ⚠️ **LA DECISIÓN ESCONDIDA** es si el criterio de F-71 —«íntegro, sin proporción; un
+  fallo del proveedor no lo paga el cliente»— se extiende a las excepciones propias y
+  a los jobs `failed`. Hay precedente, pero ese precedente era para fallos del
+  proveedor, no nuestros.
+- **EL CASO DE LOS 60, VIVO, y peor de lo escrito**: el descuento de reanálisis del
+  worker exige `exclude_fingerprints !== '[]'`, y el modal manda los hallazgos
+  DESCARTADOS. **Si el usuario no descartó ninguno, el segundo exhaustivo cuenta como
+  análisis inicial.** Qué es «reanálisis» a efectos de precio es decisión de producto.
+
 ## ⚠️ 5.3 · B.206 — el centinela que se propuso, se dio por hecho y nadie construyó (09/09/2026)
 
 ⚠️ **ESTA FICHA REGISTRA QUE LA PIEZA FALTA. Que se CITARA como existente es otro
@@ -2430,6 +2462,27 @@ el caso peor llega con `success: true`. **La primera sí es independiente** y es
 
 **No se arregla aquí.**
 
+### ✅ LA PUERTA 1, ARREGLADA EL 17/09/2026 — y la puerta 3 decía otra cosa
+
+**Puerta 1**: la longitud se comprueba **antes** del cobro (`analyze-style/route.ts`).
+Un texto de menos de 50 caracteres ya no cuesta 2 créditos. **Sin batería**: el
+alcance de vitest excluye las rutas. **Control positivo en pantalla**: en el modal,
+con un documento de menos de 50 caracteres, «Reanalizar estilo» → el saldo **no
+cambia** (antes bajaba 2).
+
+⚠️ **LA PUERTA 3, RELEÍDA, NO DICE «0 PROBLEMAS»: DICE ALGO PEOR.** El cliente, ante un
+error HTTP, devuelve `[]` **sin tocar la lista**, y el modal (`ImprovementModal.tsx`,
+`handleReanalyzeStyle`) compara longitudes:
+
+| lo que pasó | lo que ve el usuario hoy |
+|---|---|
+| 402 sin créditos, 429 límite, 400, 500 | «He reanalizado el estilo. **No hay cambios respecto al análisis anterior.**» — no reanalizó |
+| el modelo falla (puerta 2): `success: true` con lista vacía | la lista **se vacía** y dice «**N problemas resueltos, 0 pendientes**» — y se cobran 2 y se gasta cupo diario |
+
+⚠️ Y la puerta 2 es más muda en esta ruta que en el exhaustivo: `analyze-style` **no
+abre** `stageFailureContext`, así que `recordStageFailure` no registra nada. En el
+exhaustivo el mismo fallo sí se registra y se devuelve.
+
 ## ⚠️ 5.36 · B.239 — el detector ve una ambigüedad con consecuencia clínica UNAS VECES SÍ Y OTRAS NO (15/09/2026)
 
 ## 📏 CON CIFRA, 16/09/2026 — y son DOS, no un detector entero
@@ -3711,6 +3764,12 @@ encuentra bien.**
   ó 10 candidatos con tope 6, así que **prueba que el juez distingue y NO prueba
   nada sobre el corpus** — miró 6 de 9 ó 10. Es corrección de alcance, no de
   veracidad: lo que encontró era cierto.
+  ⚠️ **Y ESA CORRECCIÓN TENÍA SU PROPIO ERROR, corregido el 17/09**: «miró 6 de 9 ó
+  10» suponía que el tope había cortado. Las pasadas de CLI-05 del 14/09
+  seleccionaron **4 y 5** (§5.71): **miró 4 ó 5**, y los demás no los dejó fuera
+  el tope sino el criterio del modelo. La conclusión se sostiene y sale más fuerte
+  —de lo que miró, discriminó bien; sobre el corpus no prueba nada—; **la cifra y
+  la causa estaban mal**. Ver la corrección al principio de §5.52.
 - Los controles positivos hicieron su trabajo: `OPE-10` × `OPE-15` **se parecen de
   verdad** —nueve columnas idénticas y el mismo dominio—, así que el método sabe
   distinguir cuando hay algo que distinguir.
@@ -3822,6 +3881,31 @@ escribe antes.
 ---
 
 ## ⚠️ 5.52 · CERRADA CON POBLACIÓN: EL CORTE MORDIÓ — cierra 5.51 (16/09/2026)
+
+> ⚠️ **CORRECCIÓN DEL 17/09/2026 — ESTE CIERRE ESTABA MAL CERRADO, y se deja el
+> texto de abajo tal cual para que se vea qué se afirmó.**
+>
+> **Qué se afirmó:** que el **tope de 6** mordió en las cinco pasadas rápidas de
+> CLI-05 del 14/09, descartando «3 ó 4» documentos cada una.
+>
+> **Con qué evidencia:** sólo con `recuperados` (9 y 10). La columna
+> «Descartados en silencio» es `recuperados − 6`: **se calculó suponiendo que se
+> habían seleccionado seis, sin leer cuántos se seleccionaron.** La regla de
+> lectura de §5.51 —«`recuperados > 6` → el corte mordió»— lo daba por hecho.
+>
+> **Qué lo desmintió:** `seleccion.candidatos_seleccionados` de esas mismas
+> pasadas, consultado por el director con `SQL_B253` y trasladado el 16/09: **4 y
+> 5**. El tope de 6 sólo corta lo que el modelo eligió, y el modelo eligió menos de
+> seis: **el tope no cortó ninguna.** Los que faltan los descartó **el criterio del
+> modelo** —o ids no reconocidos, que el 14/09 no se contaban—. Ver §5.71.
+>
+> **Lo que sigue siendo verdad:** que se descartaron documentos **en silencio**, sin
+> contador ni aviso. **Lo que era falso:** quién los descartó, y cuántos —fueron
+> **más** de 3 ó 4, porque se seleccionaron 4 ó 5 y no 6—. La cifra exacta por fila
+> no está en esta casa: el traslado dio «4 y 5» sin decir cuál era de cuál.
+>
+> **Y la frase de abajo «B.244 disparó, cinco veces»** queda igual de corregida: lo
+> que disparó fue la pérdida muda de candidatos; **el tope, no**.
 
 **Mi «inerte» queda falsado con datos, no con argumentos.** Del historial del
 director, modo rápido con tope 6:
