@@ -2398,3 +2398,116 @@ justo lo que ayer no se podía hacer.
 dos puertas dan lo mismo, **y lo mismo varía entre 7 y 10** por las dos. Son dos
 propiedades distintas — **coinciden** y **repiten**— y sólo la primera está
 medida. B.240 sigue abierta.
+
+---
+
+# ⚠️ 16/09/2026 · A2 y A4 — LA PREGUNTA PREVIA CAMBIA LA TANDA ENTERA
+
+**Confirmado contra el inventario** (`Inventario_Caminos.md:55,57`): **A2 = CHAT ·
+subida → exhaustivo**; **A4 = BANDEJA · analizar exhaustivo**. No se daba por
+bueno y no lo era del todo: **A2 figura como «parcial», y conviene saber de qué** —
+la serie del 04/09 midió **propiedad y adopción** (tres filas, `storage_path` y
+`document_id`), **no cifras de hallazgo**. Que el análisis nazca atado está
+medido; **qué encuentra, no**.
+
+## ⚠️ 1 · LO QUE PUEDE CORTAR LA PASADA, POR CAPACIDAD
+
+La pregunta es **qué hace falta para que una pasada llegue al final**. En orden, y
+lo importante es **dónde está el cobro**:
+
+| # | puerta | condición | ¿cobra? |
+|---|---|---|---|
+| 1 | sesión | sin cookie → 401 | no |
+| 2 | organización | `resolverOrg` no resuelve → 403 / **503** | no |
+| 3 | **candado de subida** | otro usuario tiene el corpus tomado → **423** | no |
+| 4 | **referencia firmada** | `ref` ausente, caducada (2 h) o ajena → **403** | no |
+| 5 | versión en vuelo | el documento tiene `document_staged` → **409** | no |
+| 6 | **plan** | **el exhaustivo NO existe en plan free** → 403 | no |
+| 7 | límite diario | **10 exhaustivos/día** (`EXHAUSTIVE_DEFAULT`) → 429 | no |
+| 8 | créditos | menos de **30** → 402 | no |
+| 9 | **candado de análisis** | otro análisis corriendo en la organización → **409** | ⚠️ **SÍ, 30 y sin devolución** — el candado se toma *después* del cobro |
+| 10 | texto | menos de 50 caracteres → 400 | ⚠️ **sí** |
+| 11 | ⚠️ **veto por hash** | **el documento es copia exacta de otro que exista en la organización, EN CUALQUIER ESTADO** | ⚠️⚠️ **SÍ, 30 completos.** Corre **en el worker**, así que el trabajo ya se cobró. **Es el que costó 60 créditos ayer** |
+
+**Cómo se esquivan**, con el corpus tal como está hoy —`OPE-11` analizado, `OPE-14`
+fuera, `CLI-20` dentro—:
+
+- **la 11 es la única que muerde de verdad**: ⚠️ **NO usar `CLI-20`**, que está en
+  el corpus desde la medición de A8. Analizarlo otra vez es un duplicado exacto y
+  son 30 créditos a los 76 ms;
+- **la 9** se esquiva no lanzando dos a la vez y esperando a que termine;
+- **la 7** deja margen de sobra: son dos pasadas de diez;
+- **la 4** pide no dejar el modal abierto más de dos horas entre pasos.
+
+## ⚠️ 2 · EL HALLAZGO QUE CAMBIA LA TANDA: CON ESTE CORPUS, MEDIRÍA LA NADA
+
+**El modo exhaustivo cambia exactamente DOS cosas frente al rápido:**
+
+| | rápido | exhaustivo |
+|---|---|---|
+| umbral de recuperación | **0,50** | **0,45** |
+| candidatos que el rerank puede seleccionar | **6** (`MAX_SELECTED_QUICK`) | **25** (`MAX_SELECTED_EXHAUSTIVE`) |
+
+**Y nada más.** El mismo troceado, el mismo diff, el mismo juez.
+
+⚠️ **CONSECUENCIA: si el corpus no tiene MÁS DE SEIS documentos candidatos, el
+exhaustivo selecciona los mismos que el rápido y hace exactamente el mismo
+trabajo por seis veces el precio.** El resultado sería idéntico **y no
+demostraría nada del exhaustivo**: sólo que el corpus es demasiado pequeño para
+distinguirlos.
+
+**Hoy el corpus servible son los documentos `analizado`, y son poquísimos** —
+`OPE-11` y `CLI-20`, más lo que el director tenga—. **Con eso, los 60 créditos
+comprarían una tautología.**
+
+## 3 · QUÉ DEMOSTRARÍA QUE EL EXHAUSTIVO HACE ALGO
+
+**No «la misma cifra que A1/A3».** Eso es lo que hay que exigirle a la **mitad
+determinista** —mismo documento, mismo código, mismas tablas y filas— y sólo
+prueba que **no rompe**.
+
+**Lo que prueba que hace algo es una de estas dos, y las dos son medibles:**
+
+| señal | qué significa |
+|---|---|
+| **más candidatos seleccionados que en el rápido** | el límite de 6 estaba mordiendo, y el exhaustivo mira lo que el rápido no miraba |
+| **un candidato con score entre 0,45 y 0,50** | el umbral estaba mordiendo: hay un documento que **sólo el exhaustivo ve** |
+
+⚠️ **Si ninguna de las dos aparece, el exhaustivo cobró 30 por hacer lo mismo — y
+eso también es un resultado, y de los que importan para el producto.**
+
+**Por tanto el montaje tiene una condición previa que no teníamos escrita: el
+corpus debe tener al menos SIETE documentos candidatos**, o la tanda no puede
+distinguir los dos modos.
+
+## ⚠️ 4 · LA DISPERSIÓN: UNA PASADA NO BASTA PARA LA MITAD QUE IMPORTA
+
+Del hallazgo de hoy —la parte determinista repite, la del modelo nunca se midió—
+sale la respuesta, y **es distinta para cada mitad de la cifra**:
+
+| parte de la cifra | de dónde sale | ¿basta una pasada? |
+|---|---|---|
+| tablas, filas, `pares_ciegos`, `diff.clasificacion.*` | **código** (`table-diff.ts`, sin cliente de modelo) | ✅ **sí** |
+| los candidatos seleccionados | **el rerank, que es el modelo** | ❌ **no** |
+| `verificador.*` — entrantes, confirmados, descartados | **el juez, que es el modelo** | ❌ **no** |
+
+⚠️ **Y la cifra de A1 mezcla las dos**: `1·60 vs 1·60, 0 ciegos` es la mitad
+determinista; **`16/19/25/25` es la del modelo**. Compararla con una sola pasada
+del exhaustivo **no distingue «el exhaustivo encontró más» de «el modelo tuvo un
+día distinto»** — que es exactamente el error que costó la conclusión de A7/A8.
+
+**Lo honesto: una pasada por puerta cierra la mitad determinista y deja la otra
+sin cerrar.** Para la del modelo harían falta varias, y a 30 créditos cada una eso
+son cientos.
+
+## LO QUE RECOMIENDO DECIR AL DIRECTOR
+
+**No lanzar todavía**, y no por precaución: porque **con el corpus de hoy la tanda
+no puede contestar su pregunta**. Antes hace falta decidir dos cosas:
+
+1. **si se prepara un corpus con más de seis candidatos** —y eso es trabajo, no
+   créditos—;
+2. **qué mitad de la cifra se acepta cerrar**: la determinista con una pasada, o
+   la del modelo con muchas.
+
+**Nada se lanza.**
