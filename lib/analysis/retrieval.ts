@@ -104,8 +104,17 @@ const MAX_FRAGMENTS_PER_DOC_QUICK = 25;
  *  ~2000 caracteres de antes, así que el umbral bajó en la misma calibración.
  *  No subir a ciegas sin volver a medir con el troceado actual.
  *  Exhaustivo: 0.45 (más permisivo — el rerank filtra el ruido temático). */
-const SCORE_THRESHOLD_QUICK = 0.50;
-const SCORE_THRESHOLD_EXHAUSTIVE = 0.45;
+export const SCORE_THRESHOLD_QUICK = 0.50;
+export const SCORE_THRESHOLD_EXHAUSTIVE = 0.45;
+
+/** Cuántos matches crudos pide CADA consulta a Pinecone.
+ *  ⚠️ EXPORTADO PARA QUE NO HAYA DOS. El censo de vecindario (B.243) reproduce
+ *  esta misma recuperación para contar vecinos, y un 25 copiado allí sería una
+ *  segunda definición del mismo criterio: el día que aquí cambie, el censo
+ *  mediría otra cosa y nadie se enteraría porque los dos seguirían pareciendo
+ *  correctos por su cuenta. Los dos umbrales de arriba se exportan por lo mismo
+ *  y en el mismo commit. */
+export const TOP_K_POR_CONSULTA = 25;
 
 /**
  * Presupuesto del candidato en modo EXHAUSTIVO — VARIABLE DE EXPERIMENTO, no
@@ -223,7 +232,7 @@ export async function retrieveCandidates(args: {
   const discardedByThreshold = new Map<string, { count: number; maxScore: number }>();
   const batchResults = await runInBatches(
     embeddings,
-    emb => queryVectors(orgId, { vector: emb, topK: 25, includeMetadata: true, filter: corpusFilter }),
+    emb => queryVectors(orgId, { vector: emb, topK: TOP_K_POR_CONSULTA, includeMetadata: true, filter: corpusFilter }),
     { batchSize: QUERY_BATCH_SIZE },
   );
   for (const matches of batchResults) {

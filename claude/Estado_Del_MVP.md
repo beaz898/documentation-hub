@@ -3190,3 +3190,150 @@ sin ejercer— y con población medida en vez de supuesta. No se reabre.
 veces adquirió autoridad de archivo sin que existiera el archivo. Es el corolario
 de F-106 en su forma pura, y lo cazó el invariante de forma de este documento
 —`ficha_sin_casa`— en el mismo commit en que se escribió la denuncia.
+
+---
+
+## ⚠️ 5.42 · B.244 — si el tope deja candidatos fuera, el usuario no se entera (16/09/2026)
+
+**Predicción escrita antes de mirar**: que el tope no dejaba rastro. **Acertada, y
+con un agravante que no había previsto.**
+
+### La poda es un `slice` mudo
+
+    lib/analysis/rerank.ts:105
+    return selected.slice(0, maxSelected);
+
+Sin contador, sin registro, sin aviso. Nadie sabe cuántos se cayeron ahí.
+
+⚠️ **Y el agravante**: ése es el SEGUNDO camino de pérdida, no el primero. El
+primero es que el rerank sólo conserva lo que el modelo devuelve (`:92-104`): un
+candidato que el modelo no nombra desaparece igual de callado. **Los dos se
+confunden en la misma resta.**
+
+### Lo que sí queda contado, y por qué no basta
+
+    lib/analysis/pipeline.ts:746   counters['seleccion.candidatos_recuperados'] = candidates.length;
+    lib/analysis/pipeline.ts:766   counters['seleccion.candidatos_seleccionados'] = reranked.length;
+
+La resta existe en `pipeline_counters`, pero **(a)** no distingue «el modelo lo
+descartó» de «el tope lo cortó», que son cosas distintas —una es criterio, la otra
+es presupuesto— y **(b)** vive en el jsonb: hay que entrar a la base para verla.
+**El usuario no la ve nunca.**
+
+### El contraste que lo convierte en ficha
+
+Para las FILAS el aviso existe y funciona: `SelectionLimitNotice.tsx:75` pinta
+*«Alcance: 28 de 39 filas de …»*, alimentado por `retrieval.ts:375` con
+`rowsLeftOut`. Se ve en el modal (`AnalysisModal.tsx:202`) y en el chat
+(`ChatPanel.tsx:287`).
+
+**Para los DOCUMENTOS no hay nada equivalente.** La misma casa que decidió avisar
+cuando se quedan filas fuera de una tabla no avisa cuando se quedan documentos
+enteros fuera del análisis.
+
+### Gravedad: alta y LATENTE
+
+Un análisis que dice «no hay más» cuando había cinco más es la familia peor de la
+escala de F-100 —*el producto miente al cliente*—, no la de contabilidad sucia.
+
+⚠️ **Pero hoy no ha mentido nunca**, y hay que decirlo con la misma precisión: este
+corpus no ha producido jamás más de 2 candidatos, así que el tope no ha llegado a
+cortar (ver B.241). Es latente, como lo fue B.187. **Deja de serlo el día que un
+cliente tenga un corpus denso** — y ese día no habrá ningún aviso que lo anuncie,
+porque el aviso es justo lo que falta.
+
+### Lo que haría falta, y NO se escribe aquí
+
+Un contador que separe las dos causas y un aviso con la forma del que ya existe
+para las filas. **No se implementa en este commit**: el encargo era mirarlo, y
+además la cifra con la que se probaría —un caso donde el tope corte de verdad— es
+justo lo que la tanda todavía no ha producido. Se arregla con el caso delante.
+
+---
+
+## ⚠️ 5.43 · H-01 · La hipótesis de RRHH-01 viene de FUERA y no está verificada aquí (16/09/2026)
+
+**Origen**: otro chat, trabajando con el corpus en disco. **No es una lectura de
+este repositorio.** Se registra con nombre propio —`H-01`— para que no vuelva
+convertida en dato.
+
+**Lo que afirma**: que `RRHH-01` (Manual de acogida al empleado nuevo) remite
+explícitamente a seis documentos —`MKT-01`, `RRHH-05`, `RRHH-04`, `RRHH-02`,
+`MKT-02`, `RRHH-06`— y toca sin remisión temas de `NOR-01/02`, `CLI-01/02`,
+`NOR-04` y `NOR-03`. Unos doce en total.
+
+**Lo poco que se puede decir desde aquí, y es poco a propósito:**
+
+| De los 13 nombres | En `corpus-pruebas/` |
+|---|---|
+| `MKT-01`, `RRHH-06`, `NOR-01` | **sí, los tres** |
+| `RRHH-01`, `RRHH-02`, `RRHH-04`, `RRHH-05`, `MKT-02`, `NOR-02`, `NOR-03`, `NOR-04`, `CLI-01`, `CLI-02` | **no están en el repositorio** |
+
+Diez de trece no se pueden ni confirmar que existan desde aquí: vivirían entre los
+27 documentos que sólo están en el OneDrive del director. **No es una contradicción
+—es coherente con que el repositorio tenga 15 de los 42— pero tampoco es
+confirmación de nada.**
+
+⚠️ **Y la razón concreta para no darle crédito de entrada**: la misma fuente dio el
+tope del exhaustivo como 10, y son **3** (`ReviewSelectionBar.tsx:19`). Una fuente
+que falla en un dato comprobable no queda descartada, pero sí pierde el derecho a
+que se le crean los no comprobables.
+
+⚠️ **Y la diferencia que decide si la hipótesis sirve aunque sea cierta**: *remitir
+a* no es *parecerse a*. El censo no cuenta remisiones: cuenta trozos por encima de
+un umbral de similitud. Un manual de acogida puede nombrar el tarifario en una
+línea y no parecerse a él en ningún trozo. **Así que H-01 puede ser literalmente
+cierta y dar dos vecinos.**
+
+**Cómo se resuelve, sin gastar**: `GET /api/admin/vecindario` y se lee la fila de
+`RRHH-01`.
+
+| Lo que devuelva | Qué significa |
+|---|---|
+| `vecinos ≥ 7` | H-01 confirmada en lo que importa: **`RRHH-01` es el sujeto real de la tanda y `SAT-A` no hace falta** |
+| `vecinos` entre 3 y 6 | el tope de 6 muerde por poco; sirve, pero la diferencia 6↔25 se verá estrecha |
+| `vecinos ≤ 2` | H-01 era optimista, **y ya sabremos por qué**: remisión no es parecido |
+| `documentos_sin_vectores` lo incluye | `RRHH-01` no está indexado y la pregunta no se ha llegado a hacer |
+
+---
+
+## ✅ 5.44 · El censo de vecindario, ESCRITO — cierre de 5.39 (16/09/2026)
+
+`GET /api/admin/vecindario`, con la guarda de administrador de `admin/duplicates` y
+`maxDuration = 300`. Módulo contable en `lib/analysis/vecindario.ts`, 16 pruebas.
+
+**Cero créditos**: `fetchVectors` devuelve los `values` ya calculados, así que no se
+embebe nada ni interviene ningún modelo.
+
+**Las dos cosas que había que acertar, acertadas y con su prueba:**
+
+1. **Sin filtro de corpus** — la consulta va sin `filter`
+   (`app/api/admin/vecindario/route.ts:171-176`). Con `CORPUS_ACTIVO` habría dado
+   ceros con pinta de dato, porque casi todo el corpus está `pendiente`.
+2. **La generación se pregunta** — `soloGeneracionActiva` y `generacionesMuertas`,
+   las mismas del retrieval, en `vecindario.ts:100-107`. No se recalcula el
+   criterio.
+
+**Y una tercera que no estaba en el encargo**: los umbrales y el `topK` ahora se
+**exportan** desde `retrieval.ts` (`:107,108,117`) y el censo los importa. Un `0,50`
+copiado en el censo habría sido una segunda definición del mismo criterio; el día
+que allí cambiara, el censo mediría otra cosa y los dos seguirían pareciendo
+correctos por su cuenta.
+
+**Devuelve** por documento: `vecinos` (≥0,50), `vecinos_045` (≥0,45), `scoreMax`,
+`consultas` y el `detalle` con nombres, ordenado por vecindad. Más `contadores`
+—generaciones muertas, documentos sin vectores, consultas realizadas y omitidas— y
+un `completo` que es cierto si y sólo si no se truncó por el tope de 1.500
+consultas.
+
+⚠️ **`consultas_realizadas` es el DENOMINADOR**: un «0 vecinos» sólo significa algo
+si se sabe cuántas veces se buscó. Sin él sería un cero sin control.
+
+**El control positivo de la batería** es la prueba de un vecino a 0,47: sale en
+`vecinos_045` y no en `vecinos`, que es exactamente lo que el exhaustivo compra con
+su umbral. Mutado —umbral del exhaustivo sustituido por el del rápido— **caen esa y
+la de 0,45 clavado, y sólo esas dos**. La prueba puede fallar por su propio motivo.
+
+**Predicción de pruebas fallada por cuarta vez consecutiva**: 11 predichas, 16
+escritas. Las cuatro por debajo (8→10, 7→11, 12→15, 11→16). Ya no es ruido: es un
+sesgo, y queda anotado como tal.
