@@ -3112,3 +3112,266 @@ mediría que en el corpus del director los haya — eso lo contesta el paso 2, y
 contesta mejor.**
 
 **Nada lanzado.**
+
+---
+
+# EL CENSO MIDIÓ, Y TUMBA DOS PREMISAS MÍAS (16/09/2026)
+
+Sólo lectura. Nada lanzado.
+
+**Lo que devolvió**: 42 de 42 documentos con vecinos, rango **8 a 25**. `OPE-07` 25,
+`OPE-05` 24, `CLI-20` 22. Ninguno por debajo de 8. Y `vecinos` y `vecinos_045`
+**idénticos en las 42 filas**.
+
+## 1 · DE DÓNDE SALÍA EL «1-2 CANDIDATOS»: DEL FILTRO DE CORPUS, NO DE LOS PARECIDOS
+
+**Predicción escrita antes de mirar**: que la diferencia sería el filtro. **Acertada,
+y descoloca lo que escribí el día 15.**
+
+### Las diferencias entre el censo y el retrieval, enumeradas — no recordadas
+
+| | Censo | Retrieval | ¿Explica el salto? |
+|---|---|---|---|
+| filtro de metadata | **ninguno** | `buildCorpusFilter(batchDocumentIds)` (`retrieval.ts:212`) | ⚠️ **SÍ** |
+| vector de consulta | el guardado (`fetchVectors`) | `generateEmbeddings(sampleTexts)` (`:219`) | no: **los dos son `passage`** |
+| `topK` | 25 | 25 — ya es la misma constante | no |
+| umbral | 0,50 / 0,45 | 0,50 / 0,45 — importadas | no |
+| generación | `soloGeneracionActiva` | `soloGeneracionActiva` | no |
+| exclusión | el propio documento | `excludeDocumentId` | no |
+
+⚠️ **El prefijo de e5 estuvo a punto de ser una segunda diferencia y no lo es.** El
+índice guarda `passage`, y `retrieval.ts:219` llama a `generateEmbeddings`, que usa
+`planDeEmbedding('indexacion')` → **`passage`** (`embeddings.ts:262`). El que usa
+`query` es `generateQueryEmbedding`, y lo llaman el chat y el agente, no el
+análisis. **Así que el 0,50 del censo ES el 0,50 del retrieval**, y las cifras son
+directamente comparables. Si hubieran sido espacios distintos, todo este censo
+habría sido inutilizable y no lo habría sabido nadie.
+
+### Luego la única diferencia estructural es el filtro
+
+    lib/pinecone/vectors.ts:99    CORPUS_ACTIVO = { analysisStatus: { $eq: ESTADO_DEL_CORPUS } }
+
+`ESTADO_DEL_CORPUS` es `'analizado'`. **Casi los 42 documentos están `pendiente`**
+—los 40 de OneDrive aparecieron en la bandeja, B.230—, así que el retrieval nunca
+vio más que los dos o tres `analizado` más lo que la tanda nombrara.
+
+**La pasada que lo demuestra sin ambigüedad**: el 15/09, con los 42 documentos ya
+en el corpus, analizar `CLI-20` dio **1 candidato** (línea 2077 de este fichero).
+El censo, sobre ese mismo corpus, le da a `CLI-20` **22 vecinos**. Mismo índice,
+mismo umbral, mismo espacio vectorial. **La diferencia es el filtro y no puede ser
+otra cosa.**
+
+### ⚠️ LO QUE ESTO FALSA, Y ERA MÍO
+
+El 15/09 escribí, con estas palabras:
+
+> *«El portero no es el tope: es el umbral.»*
+> *«Marcar quince documentos no produciría quince candidatos: produciría uno o
+> dos, igual que hoy. La respuesta a "cuántos hay que dejar analizados" es
+> ninguno.»*
+
+**Las dos frases son falsas.** El portero era el **filtro de corpus**, y marcar
+quince documentos produciría aproximadamente quince candidatos — exactamente lo
+que le dije al director que no pasaría.
+
+**Cómo se produjo el error, que es lo que hay que guardar**: leí `Retrieval: 1
+candidatos` en los registros de las tandas y lo interpreté como una propiedad de
+los **parecidos**, cuando era una propiedad del **filtro**. Es la regla de la casa
+sobre la cifra leída como medida —*«el nombre de la columna no es el criterio»*—
+aplicada a un log: *el número de candidatos no es el número de documentos
+parecidos, es el número de documentos ELEGIBLES y parecidos*, y yo tenía las dos
+mitades delante y me quedé con una.
+
+⚠️ **Y había una señal que ignoré.** Las tandas registran `1 ids de tanda` junto al
+`1 candidato` (línea 1123). Eso decía que la selección tenía **dos** documentos:
+eran tandas AISLADAS A PROPÓSITO, y su «1 candidato» era el montaje funcionando,
+no el corpus hablando. Lo cité como prueba de lo contrario.
+
+---
+
+## 2 · EL UMBRAL DEL EXHAUSTIVO NO APORTA NI UNO — predicción acertada, ahora con cifra
+
+Escribí el 15/09: *«el umbral no aporta ni un candidato; el único de los dos
+parámetros del exhaustivo que hace algo es el tope»*, y la dejé falsable con *«un
+solo candidato con score entre 0,45 y 0,50»*.
+
+**42 filas, `vecinos` == `vecinos_045` en todas. Cero candidatos en la franja.**
+
+De las dos cosas que separan al exhaustivo del rápido, **una es inerte con este
+corpus**. Y no es una conjetura sobre embeddings: es el recuento completo de los 42
+documentos, sin muestreo.
+
+⚠️ **Con una salvedad que hay que decir aunque reste**: el censo mide entre
+documentos YA INDEXADOS. Un documento nuevo subido por el chat no tiene vectores
+guardados, así que su franja 0,45-0,50 no está censada. La conclusión vale para el
+corpus de hoy y para la bandeja; para la subida es una extrapolación razonable y
+no una medida.
+
+---
+
+## 3 · ⚠️ QUÉ SIGNIFICAN ENTONCES A1, A3, A5 Y A6 — y no lo voy a suavizar
+
+El encargo propone: *«el rápido se queda con 6 sin decirlo, luego esas cifras
+miraron una parte»*. **El mecanismo no es ése, y lo que hay debajo es peor.**
+
+El tope de 6 **no cortó** en esas pasadas: no llegó a haber 6 candidatos. El filtro
+de corpus los había dejado en 1 o 2 mucho antes de que el rerank opinara.
+
+> **No vieron 6 de 25. Vieron 1 o 2 de 42.**
+
+Así que la frase correcta no es *«3 contradicciones entre los 6 que miré»*. Es:
+
+> **«3 contradicciones entre este documento y el puñado de documentos que estaban
+> marcados como revisados en ese momento.»**
+
+Y ese puñado no se eligió por relevancia: se eligió porque alguien pulsó un botón
+en ellos, a veces para otra medición.
+
+### La parte que NO es un fallo, y se dice con la misma claridad
+
+**A1 y A3 eran experimentos de PAREJA, y su aislamiento estaba declarado.** El
+registro dice `1 ids de tanda` junto a cada `1 candidato`: la tanda tenía dos
+documentos porque se quiso. **Esas cifras miden lo que dicen medir** —qué pasa
+entre `OPE-10` y `OPE-11`— y no pretendían hablar del corpus.
+
+**Lo que hay que revisar es toda cifra que se haya leído como si hablara del
+corpus.** Y cuál es cuál no se decide de memoria: está persistido.
+
+    -- por pasada, cuántos candidatos hubo de verdad
+    select created_at, document_name, analysis_type,
+           (pipeline_counters ->> 'seleccion.candidatos_recuperados')::int   as recuperados,
+           (pipeline_counters ->> 'seleccion.candidatos_seleccionados')::int as seleccionados
+    from analysis_results
+    where org_id = '<ORG_ID>' and pipeline_counters is not null
+    order by created_at desc;
+
+**Regla de lectura, escrita antes de mirar la salida:**
+
+| `recuperados` | Qué se puede decir de esa medición |
+|---|---|
+| 1 ó 2 | habla de **una pareja**, aunque la ficha diga «corpus». Si la ficha generaliza, se corrige |
+| 3 a 6 | habla de un subconjunto pequeño y **no truncado**: el tope no llegó a aplicarse |
+| 7 o más | habla de un subconjunto **truncado en silencio**: ver B.244 |
+
+⚠️ **Y la consecuencia que va a las fichas de A5 y A6**: se midieron sobre un corpus
+efectivo de uno o dos documentos, no de 42. No son falsas —el par sembrado salió, y
+salió por el camino correcto— pero **su alcance es el de un par, no el de un
+corpus**, y así hay que enunciarlas.
+
+---
+
+## 4 · ⚠️ LA SOSPECHA SOBRE EL CENSO ES FUNDADA, Y TIENE LÍNEA
+
+El director pregunta si el parecido mide contenido o formato. **Para las hojas de
+cálculo, hay una respuesta mecánica y no hace falta medir nada para verla.**
+
+Esto es el texto que se embebe de un resumen de tabla:
+
+    lib/chunking.ts:846    const prefix = `[Hoja "${sheetName}"]`;
+    lib/chunking.ts:882-884
+      text: `${prefix} Tabla con ${dataRows.length} filas y ${columns.length} columnas. ` +
+            `Columnas: ${columns.join(', ')}.`
+
+O sea, literalmente:
+
+    [Hoja "Tarifas"] Tabla con 60 filas y 7 columnas. Columnas: Tratamiento, Precio, ...
+
+**Unos 52 caracteres de plantilla IDÉNTICA** —`[Hoja "…"] Tabla con N filas y M
+columnas. Columnas: `— antes del primer dato propio. Con una lista de columnas de
+30-40 caracteres, **más de la mitad de la cadena es la misma frase en cualquier
+par de hojas de cálculo del mundo**. Y si dos libros tienen una hoja con el mismo
+nombre —`Hoja1`, `Tarifas`, `Datos`—, también coincide el prefijo.
+
+**Dos resúmenes de tabla de documentos que no tienen nada que ver comparten la
+mayoría de sus tokens. No por su contenido: por su envoltorio.**
+
+Las filas (`:902`, `[Hoja "X"] Columna: valor | Columna: valor`) están menos
+dominadas por plantilla, pero repiten los nombres de columna en **cada** fila y el
+separador ` | ` en todas.
+
+⚠️ **Y el grupo compacto de los `new N.txt` es el mismo animal por el otro lado**:
+textos muy cortos o casi vacíos caen todos en la misma zona del espacio vectorial.
+No es que se parezcan: es que no dicen lo suficiente como para diferenciarse.
+
+### Lo que esto NO demuestra todavía, y no lo voy a dar por demostrado
+
+Que la plantilla domine la cadena es una lectura del código, no una medida del
+score. Que `OPE-10` y `OPE-11` salgan a **0,997** no prueba nada de esto: son el
+par sembrado, dos tarifarios casi gemelos **por diseño**, y 0,997 es lo que se
+espera de ellos.
+
+### El control que lo decide, y el director YA TIENE LOS DATOS
+
+En la salida del censo que acaba de ejecutar está el `detalle` de cada documento,
+con nombres y scores. Basta leer dos filas:
+
+| Mirar | Qué se busca | Lectura |
+|---|---|---|
+| `OPE-02_agenda-y-gestion-de-citas.xlsx` | ¿está `RRHH-06_evaluacion-del-desempeno.xlsx` entre sus vecinos altos? | citas y evaluación de desempeño **no comparten nada** salvo ser hojas de cálculo. Si salen a ≥0,90, **es el formato** |
+| cualquier `.xlsx` | ¿sus vecinos de arriba son TODOS `.xlsx`? | si los diez primeros son hojas y ninguna prosa, el formato manda sobre el tema |
+| `MKT-01_manual-identidad-corporativa.docx` | ¿cuáles son sus vecinos altos? | es prosa y de tema aislado: si tiene 15 vecinos a 0,9, el problema no es sólo de tablas |
+
+**Cuesta cero: es leer la respuesta que ya está en pantalla.**
+
+### Y si sale que sí, lo que significa — que es lo que preguntaba el encargo
+
+El tope de 6 no estaría descartando basura: **estaría descartando documentos
+relevantes para quedarse con hojas de cálculo que casan por el envoltorio.** El
+rerank es el único que puede deshacerlo —es un modelo leyendo los textos— pero
+recibe una lista ya contaminada y sólo puede elegir dentro de ella.
+
+Queda como ficha **B.246**, con su condición de nacimiento escrita antes:
+**nace si dos hojas de cálculo de temas ajenos salen por encima de 0,90**; no nace
+si los vecinos altos de cada hoja son hojas de su mismo tema.
+
+⚠️ Y si nace, **el arreglo no es subir el umbral**: es que el texto que se embebe no
+lleve la plantilla. Un resumen de tabla se puede escribir con las columnas y sin
+la frase hecha. Pero eso cambia lo que queda guardado, así que entra con su vía de
+reparación delante —la regla de F-104— y no en el mismo commit que lo descubre.
+
+---
+
+## 5 · H-01, FALSADA POR INACCESIBLE
+
+`RRHH-01` no existe en el corpus del director. **La hipótesis no queda refutada:
+queda sin poder probarse**, que no es lo mismo y se anota distinto — una hipótesis
+falsa enseña algo; una inaccesible sólo cierra una vía.
+
+Lo que sí se conserva de ella, porque era una distinción buena y sigue en pie:
+**remitir a no es parecerse a**. El censo no la habría confirmado aunque `RRHH-01`
+existiera.
+
+Y ya no hace falta: **el sujeto de la tanda es `OPE-07`, con 25 vecinos**, que es un
+documento real del director en vez de uno fabricado. `SAT-A` y `SAT-B` se retiran.
+
+---
+
+## 6 · EL MONTAJE, TERCERA VERSIÓN — y ahora depende de una decisión que no es mía
+
+Con lo medido, el montaje se simplifica y **todo su coste se mueve a un sitio que
+el director tiene que autorizar a propósito**.
+
+**Lo que hace falta para que el tope de 6 muerda de verdad**: que haya más de 6
+documentos **elegibles**, y elegible significa `analizado` (o nombrado por la
+tanda, con el tope de 3 del exhaustivo).
+
+Así que las dos vías, con su precio verdadero:
+
+| Vía | Qué se hace | Coste | ⚠️ Lo que cuesta de verdad |
+|---|---|---|---|
+| **A · marcar** | marcar como revisados unos 12 documentos, y analizar `OPE-07` | 5 + 30 cr | **12 marcas IRREVERSIBLES.** Es justo lo que el 15/09 le dije al director que no servía de nada. Servía |
+| **B · la tanda de la bandeja** | seleccionar 3 (el tope) y analizar uno | 5 + 30 cr | nada irreversible, pero **sólo 2 compañeros**: el tope de 6 no llega a morder y no mide lo que se busca |
+
+**No hay tercera.** Y la A es la única que mide, así que **la pregunta que el
+director tiene que contestar es si acepta 12 marcas irreversibles para saber qué
+hace el exhaustivo** — con el aviso del 15/09 en pie, y ahora sabiendo que aquel
+«el número es cero» era mío y era falso.
+
+⚠️ **Y antes de esa decisión va el control del punto 4, que es gratis.** Si resulta
+que los vecinos de `OPE-07` son 25 hojas de cálculo que casan por la plantilla,
+entonces marcar doce documentos mediría **el tope cortando basura**, que no es la
+pregunta. **El orden correcto es: leer el `detalle` primero, decidir después.**
+
+---
+
+**Nada lanzado. Ningún documento marcado. Ningún crédito.**

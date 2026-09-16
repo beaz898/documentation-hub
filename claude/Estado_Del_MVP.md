@@ -3231,16 +3231,32 @@ Para las FILAS el aviso existe y funciona: `SelectionLimitNotice.tsx:75` pinta
 cuando se quedan filas fuera de una tabla no avisa cuando se quedan documentos
 enteros fuera del análisis.
 
-### Gravedad: alta y LATENTE
+### Gravedad: alta, y ARMADA — no latente (reescrito el 16/09 con el censo medido)
 
 Un análisis que dice «no hay más» cuando había cinco más es la familia peor de la
 escala de F-100 —*el producto miente al cliente*—, no la de contabilidad sucia.
 
-⚠️ **Pero hoy no ha mentido nunca**, y hay que decirlo con la misma precisión: este
-corpus no ha producido jamás más de 2 candidatos, así que el tope no ha llegado a
-cortar (ver B.241). Es latente, como lo fue B.187. **Deja de serlo el día que un
-cliente tenga un corpus denso** — y ese día no habrá ningún aviso que lo anuncie,
-porque el aviso es justo lo que falta.
+> ⚠️ **ESTO DECÍA «LATENTE» Y SE APOYABA EN UNA PREMISA FALSA.** Decía: «este corpus
+> no ha producido jamás más de 2 candidatos, así que el tope no ha llegado a
+> cortar». El censo de vecindario lo desmintió el mismo día: **42 de 42 documentos
+> tienen entre 8 y 25 vecinos** por encima de 0,50 — `OPE-07` 25, `OPE-05` 24,
+> `CLI-20` 22, ninguno por debajo de 8. El «1-2 candidatos» no era un hecho sobre
+> los parecidos: era el **filtro de corpus** dejando fuera a los 40 documentos
+> `pendiente` antes de que el rerank opinara. Ver B.245.
+
+**La población, medida y sin muestreo**: por parecido, TODO documento de este
+corpus supera los 6 candidatos. El tope de 6 del rápido cortaría **siempre**, y el
+de 25 del exhaustivo cortaría al menos con `OPE-07`.
+
+⚠️ **Y la forma correcta de decirlo, que no es la del encargo ni la que yo tenía.**
+No es «esto pasa en cada análisis desde siempre»: hoy no pasa, porque el filtro de
+corpus recorta antes y deja 1 ó 2. Y no es «latente»: no hace falta un cliente
+nuevo ni un corpus mayor. **Está armado sobre el corpus que ya existe, y se dispara
+con el gesto que el producto pide hacer** — marcar documentos como revisados. Al
+séptimo, el tope empieza a cortar en silencio y nada lo anuncia.
+
+**El producto empeora exactamente en la medida en que se usa como está diseñado.**
+Ésa es la frase de la ficha.
 
 ### Lo que haría falta, y NO se escribe aquí
 
@@ -3337,3 +3353,134 @@ la de 0,45 clavado, y sólo esas dos**. La prueba puede fallar por su propio mot
 **Predicción de pruebas fallada por cuarta vez consecutiva**: 11 predichas, 16
 escritas. Las cuatro por debajo (8→10, 7→11, 12→15, 11→16). Ya no es ruido: es un
 sesgo, y queda anotado como tal.
+
+---
+
+## ⚠️ 5.45 · B.245 — el portero era el FILTRO DE CORPUS, y dije que era el umbral (16/09/2026)
+
+**Es una corrección de una premisa mía, y fue a parar a una recomendación que el
+director recibió como buena.** El 15/09 escribí:
+
+> *«El portero no es el tope: es el umbral.»*
+> *«Marcar quince documentos no produciría quince candidatos: produciría uno o dos.
+> La respuesta a "cuántos hay que dejar analizados" es ninguno.»*
+
+**Falso.** El censo de vecindario da 8-25 vecinos a los 42 documentos. Marcar quince
+produciría aproximadamente quince candidatos.
+
+**La única diferencia estructural entre el censo y el retrieval es el filtro**, y
+las demás se descartaron una a una, no de memoria:
+
+| | Censo | Retrieval |
+|---|---|---|
+| filtro | ninguno | `buildCorpusFilter` → `CORPUS_ACTIVO` (`vectors.ts:99`) |
+| prefijo de e5 | `passage` (guardado) | `passage` — `retrieval.ts:219` usa `generateEmbeddings`, y ésa es `planDeEmbedding('indexacion')` (`embeddings.ts:262`) |
+| `topK`, umbral, generación, exclusión | idénticos | idénticos |
+
+⚠️ **El prefijo estuvo a punto de invalidar el censo entero y no lo hace.** Si el
+retrieval hubiera embebido como `query`, los dos 0,50 serían escalas distintas y
+ninguna comparación de estos días valdría. Se comprobó porque se enumeró, no
+porque se sospechara.
+
+**La prueba limpia**: el 15/09, con los 42 documentos ya sincronizados, analizar
+`CLI-20` dio **1 candidato**. El censo le da a `CLI-20` **22 vecinos** sobre ese
+mismo índice. Mismo umbral, mismo espacio. Sólo cambia el filtro.
+
+### Cómo se produjo el error
+
+Leí `Retrieval: 1 candidatos` en los registros y lo tomé por una propiedad de los
+parecidos. Era una propiedad de la ELEGIBILIDAD. Es la regla de la casa sobre la
+cifra leída como medida, aplicada a un log: *el número de candidatos no es el
+número de documentos parecidos, es el número de documentos elegibles y parecidos*,
+y yo tenía las dos mitades delante.
+
+⚠️ **Y había una señal que cité como prueba de lo contrario**: las tandas registran
+`1 ids de tanda` junto al `1 candidato`. Eso decía que la selección tenía dos
+documentos —**tandas aisladas a propósito**— y su «1 candidato» era el montaje
+funcionando, no el corpus hablando.
+
+**Consecuencia de producto, que es lo que importa**: `analysis_status` no responde
+sólo «¿participa por defecto?» (F-97). En la práctica **decide cuánto ve el
+análisis**, y hoy lo que ve es el 5 % del corpus. Nadie lo había enunciado así.
+
+---
+
+## ⚠️ 5.46 · B.246 — el resumen de tabla embebe más plantilla que datos (16/09/2026)
+
+**Sospecha del director, y tiene línea:**
+
+    lib/chunking.ts:846      const prefix = `[Hoja "${sheetName}"]`;
+    lib/chunking.ts:882-884  `${prefix} Tabla con ${N} filas y ${M} columnas. Columnas: ${columns.join(', ')}.`
+
+El texto que se embebe de un resumen de tabla es:
+
+    [Hoja "Tarifas"] Tabla con 60 filas y 7 columnas. Columnas: Tratamiento, Precio, ...
+
+**Unos 52 caracteres de plantilla idéntica antes del primer dato propio.** Con una
+lista de columnas de 30-40 caracteres, más de la mitad de la cadena es la misma
+frase en cualquier par de hojas de cálculo. Si además coincide el nombre de la hoja
+—`Hoja1`, `Datos`, `Tarifas`— coincide también el prefijo.
+
+Las filas (`:902`) están menos dominadas por plantilla, pero repiten los nombres de
+columna en cada fila y el separador en todas.
+
+⚠️ **El grupo compacto de los `new N.txt` es el mismo animal por el otro extremo**:
+textos muy cortos caen todos en la misma zona porque no dicen lo suficiente para
+diferenciarse.
+
+### Lo que NO está demostrado, y no se da por demostrado
+
+Que la plantilla domine la cadena es una lectura del código, **no una medida del
+score**. Y el `0,997` entre `OPE-10` y `OPE-11` **no es evidencia de esto**: son el
+par sembrado, dos tarifarios casi gemelos por diseño.
+
+### Condición de nacimiento, escrita ANTES y comprobable con lo que ya hay
+
+La salida del censo trae el `detalle` de cada documento con nombres y scores. **No
+hace falta ejecutar nada nuevo:**
+
+> **NACE** si dos hojas de cálculo de temas ajenos —`OPE-02` (citas) y `RRHH-06`
+> (evaluación del desempeño)— salen por encima de **0,90**, o si los diez vecinos
+> más altos de cualquier `.xlsx` son todos `.xlsx`.
+> **NO NACE** si los vecinos altos de cada hoja son hojas de su mismo tema.
+
+### Y lo que cambiaría si nace
+
+El tope de 6 (B.244) no estaría descartando basura: **estaría descartando
+documentos relevantes para quedarse con hojas que casan por el envoltorio**. El
+rerank es lo único que puede deshacerlo, y sólo puede elegir dentro de la lista
+contaminada que recibe.
+
+⚠️ **El arreglo no sería subir el umbral**, sino que el texto embebido no lleve la
+frase hecha. Eso cambia lo que queda guardado, así que entra con su vía de
+reparación delante (F-104) y nunca en el commit que lo descubre.
+
+---
+
+## ⚠️ 5.47 · El alcance real de A1, A3, A5 y A6 — vieron 1 ó 2 de 42 (16/09/2026)
+
+Consecuencia directa de B.245, y va aquí para que no se lea sólo en el fichero de
+tandas.
+
+**El tope de 6 no cortó en esas pasadas**: no llegó a haber 6 candidatos. El filtro
+de corpus los había dejado en 1 ó 2 antes de que el rerank opinara. Así que la
+lectura correcta de una cifra de aquellas no es *«3 contradicciones entre los 6 que
+miré»* sino:
+
+> **«3 contradicciones entre este documento y el puñado que estaba marcado como
+> revisado en ese momento»** — un puñado que no se eligió por relevancia, sino
+> porque alguien pulsó un botón en ellos, a veces para otra medición.
+
+**Lo que NO es un fallo, con la misma claridad**: `A1` y `A3` eran experimentos de
+PAREJA y su aislamiento estaba declarado —el registro dice `1 ids de tanda` junto a
+cada `1 candidato`—. Miden lo que dicen medir.
+
+**Lo que hay que revisar es toda cifra leída como si hablara del corpus**, y cuál es
+cuál está persistido: `seleccion.candidatos_recuperados` por pasada, con la consulta
+en `SQL_A2A4_compuerta.sql`. Regla de lectura escrita antes de mirar: 1-2 = habla de
+una pareja; 3-6 = subconjunto pequeño sin truncar; 7+ = subconjunto truncado en
+silencio (B.244).
+
+⚠️ **Para A5 y A6 en concreto**: se midieron sobre un corpus efectivo de uno o dos
+documentos, no de 42. No son falsas —el par sembrado salió por el camino correcto—
+pero **su alcance es el de un par, no el de un corpus**, y así hay que enunciarlas.
