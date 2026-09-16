@@ -1,7 +1,7 @@
 'use client';
 
 import SelectionLimitNotice, { type SelectionLimitItem } from './SelectionLimitNotice';
-import { resumirCobertura, type CoberturaDeCandidatos } from '@/lib/analysis/cobertura-de-candidatos';
+import { resumirCobertura, textoDeCobertura, type CoberturaDeCandidatos } from '@/lib/analysis/cobertura-de-candidatos';
 
 /**
  * LOS AVISOS DE COBERTURA, EN UN SOLO SITIO — B.244 paso 2.
@@ -33,13 +33,20 @@ export default function AvisoDeCobertura({
 }) {
   const frase = resumirCobertura(cobertura);
 
-  // ⚠️ AQUÍ VIVE LA DECISIÓN PENDIENTE DEL DIRECTOR, y está a una condición de
-  // distancia a propósito. Hoy sólo se pinta si quedó alguno fuera. Enseñarlo
-  // TAMBIÉN cuando no queda ninguno —«se compararon los N documentos afines», a
-  // secas— es lo único que se vería hoy en su corpus, porque su filtro deja uno
-  // o dos candidatos y nunca hay resto. `resumirCobertura` ya calcula el caso:
-  // cambiar de idea es quitar `&& frase.hayResto` de esta línea, y nada más.
-  const pintarCobertura = frase !== null && frase.hayResto;
+  // ⚠️ SALE SIEMPRE, por decisión del director (16/09/2026). Antes llevaba un
+  // `&& frase.hayResto` y sólo aparecía cuando se descartaba algo — o sea,
+  // nunca en su corpus, porque su filtro deja uno o dos candidatos.
+  //
+  // LA RAZÓN, que es suya y no estaba en la lista que yo escribí: hoy **no
+  // tiene ninguna forma de saber contra cuántos documentos se comparó un
+  // análisis**. Ver «se comparó con 2» le dice de un vistazo que su corpus
+  // efectivo es minúsculo, que es lo que costó tres días descubrir con SQL.
+  // Un aviso que sale siempre pierde fuerza; el silencio de hoy no tiene
+  // ninguna.
+  //
+  // `frase` sigue siendo `null` cuando no hay dato o no hubo comparación: eso
+  // no ha cambiado y es lo que evita escribir «se comparó con 0».
+  const pintarCobertura = frase !== null;
   const hayFilas = Boolean(limits && limits.length > 0);
 
   if (!pintarCobertura && !hayFilas) return null;
@@ -70,12 +77,11 @@ export default function AvisoDeCobertura({
             <line x1="12" y1="8" x2="12.01" y2="8" />
           </svg>
           <p style={{ fontSize: 11, color: 'var(--text-secondary)', margin: 0, lineHeight: 1.45 }}>
-            {/* LA REDACCIÓN DEL DIRECTOR, literal en su intención: se compararon
-                los MÁS AFINES, y los otros tienen MENOR AFINIDAD. Nunca «no se
-                tuvieron en cuenta», que insinúa descuido donde hubo ranking. */}
-            Se compararon los <strong>{frase.comparados}</strong> documentos más afines a éste.
-            {' '}Otros <strong>{frase.conMenorAfinidad}</strong> tienen menor afinidad con este
-            documento y no entraron en la comparación.
+            {/* ⚠️ LA FRASE NO SE ESCRIBE AQUÍ: viene de `textoDeCobertura`, que
+                tiene batería. Una redacción dentro del JSX es una redacción sin
+                prueba, y ésta tiene dos casos que no son el mismo texto con un
+                cero — ver la cabecera de cobertura-de-candidatos.ts. */}
+            {textoDeCobertura(frase)}
             {' '}
             <span style={{ color: 'var(--text-muted)' }}>
               {/* ⚠️ EL MATIZ QUE NO SE PUEDE PROMETER DE MÁS: los documentos NO

@@ -85,3 +85,78 @@ describe('no se toca lo que le pasan', () => {
     expect(entrada).toEqual({ comparados: 6, afines: 10 });
   });
 });
+
+// ════════════════════════════════════════════════════════════════════════
+// LA REDACCIÓN, bajo prueba — desde que el aviso sale SIEMPRE (16/09/2026).
+// El caso SIN RESTO no es el mismo texto con un cero, y por eso tiene sus
+// propios casos: si alguien lo unifica, aquí se pone rojo.
+// ════════════════════════════════════════════════════════════════════════
+
+import { textoDeCobertura } from './cobertura-de-candidatos';
+
+function texto(comparados: number, afines: number): string {
+  const f = resumirCobertura({ comparados, afines });
+  if (f === null) throw new Error('no deberia ser null en estos casos');
+  return textoDeCobertura(f);
+}
+
+describe('⚠️ SIN RESTO: la frase tiene que decir que esos eran TODOS', () => {
+  it('el caso de hoy en el corpus del director: dos y no hay mas', () => {
+    expect(texto(2, 2)).toBe(
+      'Se compararon los 2 documentos afines a éste, que eran todos los que había.',
+    );
+  });
+
+  it('⚠️ NO se lee como si hubiera mas y no se dijera cuantos', () => {
+    // La frase prohibida: «Se compararon los 2 documentos más afines a éste.»
+    // a secas. Si alguien vuelve a ella, este caso cae.
+    expect(texto(2, 2)).toContain('todos los que había');
+    expect(texto(2, 2)).not.toContain('más afines');
+    expect(texto(2, 2)).not.toContain('menor afinidad');
+  });
+
+  it('uno solo lleva SINGULAR — «los 1 documentos» mata la credibilidad del aviso', () => {
+    expect(texto(1, 1)).toBe(
+      'Se comparó con el único documento afín a éste que hay en tu corpus.',
+    );
+    expect(texto(1, 1)).not.toContain('los 1');
+  });
+
+  it('con seis y sin resto sigue diciendo que eran todos', () => {
+    expect(texto(6, 6)).toContain('todos los que había');
+  });
+});
+
+describe('CON RESTO: se compararon los más afines, y los otros tienen menos', () => {
+  it('la pasada real del 14/09: seis de nueve', () => {
+    expect(texto(6, 9)).toBe(
+      'Se compararon los 6 documentos más afines a éste. ' +
+      'Otros 3 tienen menor afinidad con este documento y no entraron en la comparación.',
+    );
+  });
+
+  it('nunca dice «no se tuvieron en cuenta» — eso insinua descuido donde hubo ranking', () => {
+    expect(texto(6, 10)).not.toContain('no se tuvieron en cuenta');
+    expect(texto(6, 10)).toContain('menor afinidad');
+  });
+
+  it('un solo documento fuera va en SINGULAR', () => {
+    expect(texto(6, 7)).toContain('Otro tiene menor afinidad');
+    expect(texto(6, 7)).not.toContain('Otros 1');
+  });
+
+  it('un solo comparado y varios fuera: singular por delante, plural por detras', () => {
+    const t = texto(1, 4);
+    expect(t).toContain('Se comparó con el documento más afín a éste.');
+    expect(t).toContain('Otros 3 tienen menor afinidad');
+  });
+});
+
+describe('las dos frases NO son la misma con un numero distinto', () => {
+  it('sin resto y con resto dicen cosas distintas, no variantes del mismo molde', () => {
+    expect(texto(2, 2)).not.toEqual(texto(2, 5));
+    // Y la diferencia no es cosmetica: una cierra el conjunto y la otra lo abre.
+    expect(texto(2, 2)).toContain('todos');
+    expect(texto(2, 5)).toContain('no entraron');
+  });
+});

@@ -35,14 +35,16 @@ export interface FraseDeCobertura {
   /** Afines que no entraron en la comparación. Cero es un valor legítimo. */
   conMenorAfinidad: number;
   /**
-   * ¿Quedó alguno fuera?
+   * ¿Quedó alguno fuera? **Decide qué frase se escribe, no si se escribe.**
    *
-   * ⚠️ ESTE CAMPO EXISTE PARA QUE LA DECISIÓN NO SEA MÍA. Hoy la pantalla pinta
-   * sólo cuando es `true` —«se compararon los N más afines; otros M tienen
-   * menor afinidad»—. Enseñarlo también con `false` —«se compararon los N
-   * documentos afines», a secas— es una decisión de producto que el director
-   * tiene pendiente, y con esto ya está calculada: cambiar de idea es una
-   * condición en el componente, no un cambio aquí.
+   * ⚠️ EL 16/09/2026 EL DIRECTOR DECIDIÓ QUE EL AVISO SALGA SIEMPRE, y la razón
+   * no estaba en la lista de argumentos que yo había escrito: **hoy no tiene
+   * ninguna forma de saber contra cuántos documentos se comparó un análisis**.
+   * Ver «se comparó con 2» le dice de un vistazo que su corpus efectivo es
+   * minúsculo — que es exactamente lo que costó tres días descubrir con SQL.
+   *
+   * «Un aviso que sale siempre pierde fuerza» es cierto. **El silencio de hoy
+   * no tiene ninguna.**
    */
   hayResto: boolean;
 }
@@ -79,4 +81,38 @@ export function resumirCobertura(cobertura?: CoberturaDeCandidatos): FraseDeCobe
     conMenorAfinidad,
     hayResto: conMenorAfinidad > 0,
   };
+}
+
+/**
+ * LA FRASE, ESCRITA AQUÍ Y NO EN EL COMPONENTE.
+ *
+ * ⚠️ PORQUE UNA REDACCIÓN DENTRO DEL JSX ES UNA REDACCIÓN SIN PRUEBA. En esta
+ * casa las baterías son de lógica pura: si el texto vive aquí, una mutación de
+ * la redacción mata un caso; si vive en el componente, no la caza nadie.
+ *
+ * ⚠️ Y EL CASO SIN RESTO NO ES EL MISMO TEXTO CON UN CERO. «Se compararon los 2
+ * documentos más afines a éste», a secas, se lee como si hubiera más y no se
+ * dijera cuántos — que es justo la duda que este aviso existe para quitar. Sin
+ * resto, la frase dice que ésos **eran todos los que había**.
+ */
+export function textoDeCobertura(frase: FraseDeCobertura): string {
+  const { comparados, conMenorAfinidad, hayResto } = frase;
+
+  if (!hayResto) {
+    // El singular se escribe aparte a propósito: «los 1 documentos» destruye la
+    // credibilidad de un aviso cuyo único trabajo es que se le crea.
+    return comparados === 1
+      ? 'Se comparó con el único documento afín a éste que hay en tu corpus.'
+      : `Se compararon los ${comparados} documentos afines a éste, que eran todos los que había.`;
+  }
+
+  const cabeza = comparados === 1
+    ? 'Se comparó con el documento más afín a éste.'
+    : `Se compararon los ${comparados} documentos más afines a éste.`;
+
+  const cola = conMenorAfinidad === 1
+    ? 'Otro tiene menor afinidad con este documento y no entró en la comparación.'
+    : `Otros ${conMenorAfinidad} tienen menor afinidad con este documento y no entraron en la comparación.`;
+
+  return `${cabeza} ${cola}`;
 }

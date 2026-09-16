@@ -4251,3 +4251,69 @@ cambiar de idea es quitar `&& frase.hayResto` de una línea de
 
 La severidad —contradicciones primero, estilo al final— es interfaz sobre datos que
 ya viajan, y va aparte. No se ha tocado.
+
+---
+
+## ✅ 5.59 · EL AVISO SALE SIEMPRE — decisión del director (16/09/2026)
+
+Se quita el `&& frase.hayResto`. **La razón la puso el director y no estaba en la
+lista de argumentos que yo había escrito:**
+
+> Hoy no tiene **ninguna forma** de saber contra cuántos documentos se comparó un
+> análisis. Ver «se comparó con 2» le dice de un vistazo que su corpus efectivo es
+> minúsculo — que es exactamente lo que nos ha costado **tres días** descubrir con
+> SQL.
+
+Y la respuesta a mi objeción, que la acepta y la supera: *«un aviso que sale
+siempre pierde fuerza, sí. Pero el silencio de hoy no tiene ninguna.»*
+
+### ⚠️ EL CASO SIN RESTO NO ES EL MISMO TEXTO CON UN CERO
+
+«Se compararon los 2 documentos más afines a éste», a secas, **se lee como si
+hubiera más y no se dijera cuántos** — que es justo la duda que este aviso existe
+para quitar. Las dos frases dicen cosas distintas:
+
+| Caso | Frase |
+|---|---|
+| **con resto** | *Se compararon los **6** documentos más afines a éste. Otros **3** tienen menor afinidad con este documento y no entraron en la comparación.* |
+| **sin resto** | *Se compararon los **2** documentos afines a éste, **que eran todos los que había**.* |
+| **sin resto, uno** | *Se comparó con el **único** documento afín a éste que hay en tu corpus.* |
+| **con resto, uno fuera** | *…**Otro** tiene menor afinidad…* |
+
+El singular va aparte a propósito: **«los 1 documentos» destruye la credibilidad
+de un aviso cuyo único trabajo es que se le crea.**
+
+### La redacción está bajo prueba, y por eso pudo morir
+
+`textoDeCobertura` vive en el módulo puro, no en el JSX: **una redacción dentro de
+un componente es una redacción sin prueba.** 21 casos.
+
+- **Mutado el caso sin resto a la redacción del caso con resto: 4 en rojo**,
+  incluido el que prohíbe literalmente la frase ambigua.
+- **Mutado el singular: 1 en rojo.**
+
+### ⚠️ Y ESTA VEZ SÍ HAY ALGO QUE MIRAR — la primera evidencia en pantalla
+
+**Dónde**: en el modal del análisis, **arriba del todo, antes de los hallazgos**,
+en una caja gris clara con un icono de información redondo. Por las dos puertas —
+bandeja y chat—, porque el componente es el mismo.
+
+**Qué frase exacta**, con su corpus de hoy (uno o dos candidatos):
+
+> ⓘ Se compararon los **2** documentos afines a éste, que eran todos los que había.
+> Tras aplicar correcciones conviene reanalizar: al cambiar el contenido cambia
+> también qué documentos son más afines, y la comparación puede incorporar otros.
+
+o, si sólo hubo uno:
+
+> ⓘ Se comparó con el **único** documento afín a éste que hay en tu corpus. Tras
+> aplicar correcciones conviene reanalizar: …
+
+**Lo que NO debe ver**: la palabra «más afines» ni «menor afinidad» — si aparecen
+con su corpus actual, el número de candidatos no es el que creemos y hay que
+mirarlo. **Y si no ve nada**, el análisis venía sin el campo: es un jsonb anterior
+a este despliegue releído desde la bandeja, no un fallo.
+
+⚠️ **Es la primera evidencia en pantalla de todo este frente.** Los dos commits
+anteriores —el orden del corte y el aviso condicionado— eran invisibles en su
+corpus, y así se dijeron.
