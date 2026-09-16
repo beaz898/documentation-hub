@@ -179,6 +179,9 @@ export interface RawAnalysis {
     rowsLeftOut: number;
     rowsRecovered: number;
   }>;
+  /** B.244 paso 2: contra cuántos se comparó, de los afines que hubo.
+   *  Tampoco se convierte en Problem, por el mismo motivo. */
+  coberturaDeCandidatos?: { comparados: number; afines: number };
 }
 
 // ⚠️ LA COPIA PRIVADA DE `normalizeWhitespace` SE RETIRÓ EL 16/09/2026: era una

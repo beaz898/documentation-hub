@@ -4137,3 +4137,117 @@ que se enseñara no probaría nada.
 **Lo que sí puede hacer, si quiere verlo alguna vez**: es el mismo montaje que
 lleva dos días pendiente —marcar documentos como revisados hasta pasar de seis— y
 sigue siendo **irreversible** y **suyo**. No hace falta para este arreglo.
+
+---
+
+## ✅ 5.58 · EL CORTE YA NO ES MUDO — paso 2 de 5.42 (16/09/2026)
+
+### 2 · DÓNDE SE PINTA — la respuesta que el arquitecto no tenía
+
+**Predicción escrita antes de mirar: en las dos puertas, mismo componente.
+Acertada.**
+
+    components/AnalysisModal.tsx:202        <SelectionLimitNotice … />   ← bandeja
+    components/improvement/ChatPanel.tsx:287 <SelectionLimitNotice … />   ← chat
+
+Y en los dos sitios va **el primero de todo**, antes de los hallazgos, con el
+mismo motivo escrito en los dos: *«leerla después de los hallazgos invitaría a
+creer que la lista está completa»*.
+
+**Así que los dos avisos comparten sitio y forma**, como pedía el encargo:
+`components/AvisoDeCobertura.tsx` los envuelve, sustituye a
+`SelectionLimitNotice` en las dos puertas y lo sigue usando dentro.
+
+⚠️ **Lo único que NO comparten es el color, y es deliberado.** Dicen cosas de
+distinta especie: el de documentos describe **comportamiento normal** —se comparó
+contra los más afines porque así funciona la recuperación— y el de filas es un
+**límite real**: esas filas no las miró nadie. Pintar el primero en amarillo
+sembraría desconfianza sobre algo correcto, que es exactamente lo que la
+redacción del director evita.
+
+### 1 · LA REDACCIÓN, Y POR QUÉ ESTA Y NO OTRA
+
+> Se compararon los **N** documentos más afines a éste. Otros **M** tienen menor
+> afinidad con este documento y no entraron en la comparación.
+
+No dice «N documentos no se tuvieron en cuenta». **No quedaron fuera por un fallo
+ni porque sí: quedaron fuera por ranking de afinidad**, que es como funciona
+cualquier recuperación seria. La frase enseña eso.
+
+**La decisión de pintar vive en lógica pura, no en el JSX**
+(`lib/analysis/cobertura-de-candidatos.ts`), porque una decisión escrita dentro de
+un componente es una decisión sin vigilancia — en esta casa las pruebas son de
+lógica pura, y ahí se puede mutar y ver morir un caso.
+
+**Calla en dos sitios, y callar es lo correcto en los dos:**
+
+| Caso | Por qué no se pinta |
+|---|---|
+| sin dato | los análisis anteriores a este despliegue no lo traen y la bandeja relee jsonb viejos. Escribir «se compararon 0» mentiría sobre un análisis que sí comparó |
+| `comparados === 0` | no hubo comparación, y de eso ya habla el resultado. Un aviso de alcance encima sería ruido sobre una noticia mayor |
+
+### El contador, y el agujero que cierra
+
+`seleccion.candidatos_cortados_por_tope`, declarado a mano en el catálogo.
+
+⚠️ **No es la resta de los dos que ya había.** `recuperados − seleccionados` mezcla
+dos cosas distintas —los que el rerank descartó **por criterio** y los que cortó
+**por presupuesto**— y hasta hoy no se podían separar. Ayer escribí en 5.49 que
+*«el número de juicios tirados no se puede saber hoy con lo persistido»*. **Ya se
+puede.** Cada uno de ellos es un juicio escrito por el modelo, con su razón y su
+confianza, pagado en tokens de salida y tirado sin leer.
+
+### 3 · EL REANÁLISIS, con el matiz respetado
+
+> Tras aplicar correcciones conviene reanalizar: al cambiar el contenido cambia
+> también qué documentos son más afines, y la comparación puede incorporar otros.
+
+⚠️ **Lo que el texto NO dice, a propósito**: que los documentos bajen en el ranking
+por tener sus problemas arreglados. **El ranking es de parecido, no de salud.** Lo
+que cambia al corregir es el contenido, y por eso cambia el mapa de afinidades. La
+frase promete eso y nada más.
+
+### La cadena de cinco puntos, y por qué se cuenta
+
+El dato viaja por sitios que el compilador **no** vigila, porque la prop es
+opcional: `problems.ts` (RawAnalysis) → `useCrossDocAnalysis` (estado, refresco y
+`return`) → `ImprovementModal` (destructuring y prop) → `ChatPanel`. **Cinco
+puntos, y `tsc` pasaba en verde con cuatro de los cinco hechos.**
+
+Y las **dos listas cerradas** —`analyze-v2:794` y `worker:169`— cuyos propios
+comentarios cuentan que a `stageFailures` le pasó justo esto: se añadió al tipo y
+al jsonb y no ahí, y el aviso salía por una puerta y no por la otra. **Las dos, en
+el mismo commit.**
+
+### El caso decisivo y sus mutantes
+
+12 pruebas. **Mutado a que el aviso nunca aparezca: 3 en rojo**, incluido el caso
+decisivo —diez afines y seis comparados— y el del borde: **un solo documento fuera
+ya enciende el aviso**. **Mutado a callar siempre: 7 en rojo.**
+
+### ⚠️ QUÉ MIRA EL DIRECTOR: NADA, Y ES LA SEGUNDA VEZ QUE PASA
+
+El aviso sólo aparece con **más de seis candidatos**, y con el filtro de corpus
+como está (B.245) sus análisis recuperan uno o dos. **Invisible en su pantalla**,
+igual que el arreglo del orden. La evidencia es la batería.
+
+**Y sobre si merece la pena enseñarlo también cuando NO se descarta nada** —«se
+compararon los N documentos afines», a secas—:
+
+**Sí tiene sentido, y no lo decido yo.** Los argumentos, los dos:
+
+- **A favor**: sería **lo único visible hoy** en su corpus, diría algo verdadero, y
+  convierte un silencio en una cifra comprobable — el mismo principio por el que
+  el chat enseña «respondí con 3 de 5».
+- **En contra**: con uno o dos candidatos la frase es casi vacía —«se comparó 1
+  documento»— y un aviso que aparece siempre deja de leerse. Y el día que el
+  corpus sea elegible, el caso interesante es justo el otro.
+
+**Está a una condición de distancia**: `resumirCobertura` ya calcula el caso, y
+cambiar de idea es quitar `&& frase.hayResto` de una línea de
+`AvisoDeCobertura.tsx`. **Lo decide el director.**
+
+### Lo que NO entra en este commit
+
+La severidad —contradicciones primero, estilo al final— es interfaz sobre datos que
+ya viajan, y va aparte. No se ha tocado.

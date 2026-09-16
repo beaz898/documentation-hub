@@ -8,7 +8,8 @@ import FilterMenu from './FilterMenu';
 import ProblemDetail from './ProblemDetail';
 import IncompleteAnalysisNotice from '@/components/IncompleteAnalysisNotice';
 import UnsavedAnalysisNotice from '@/components/UnsavedAnalysisNotice';
-import SelectionLimitNotice from '@/components/SelectionLimitNotice';
+import AvisoDeCobertura from '@/components/AvisoDeCobertura';
+import type { CoberturaDeCandidatos } from '@/lib/analysis/cobertura-de-candidatos';
 import type { SelectionLimitItem } from '@/components/SelectionLimitNotice';
 import TableCoverageBlock from './TableCoverageBlock';
 import WritingVariantsBlock from './WritingVariantsBlock';
@@ -64,6 +65,7 @@ interface ChatPanelProps {
   noGuardado?: boolean;
   /** F-74 P2: tablas cuyas filas no cupieron enteras. Alcance, no hallazgo. */
   selectionLimits?: SelectionLimitItem[];
+  coberturaDeCandidatos?: CoberturaDeCandidatos;
 }
 
 export default function ChatPanel({
@@ -76,6 +78,7 @@ export default function ChatPanel({
   stageFailureCount = 0,
   noGuardado = false,
   selectionLimits,
+  coberturaDeCandidatos,
 }: ChatPanelProps) {
   const t = useTranslations('analysis');
 
@@ -284,7 +287,7 @@ export default function ChatPanel({
               leerla después de los hallazgos invitaría a creer que la lista
               está completa. Dentro de la caja, como todo lo que produce el
               análisis. */}
-          {hayAlcance && <SelectionLimitNotice limits={selectionLimits!} />}
+          <AvisoDeCobertura cobertura={coberturaDeCandidatos} limits={selectionLimits} />
           {/* F-88, 30/08 — EL ORDEN DE LOS GRUPOS, decidido fuera del pintado.
               «Sin correspondencia» va SEGUNDA, justo tras las contradicciones;
               si no hay contradicciones, primera. La regla y su porqué están en

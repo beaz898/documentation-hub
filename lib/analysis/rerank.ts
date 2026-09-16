@@ -34,12 +34,12 @@ export async function rerankCandidates(args: {
   newDocumentSample: string;
   candidates: CandidateDocument[];
   options?: PipelineOptions;
-}): Promise<{ seleccionados: RerankedCandidate[]; sinConfianza: number }> {
+}): Promise<{ seleccionados: RerankedCandidate[]; sinConfianza: number; cortadosPorTope: number }> {
   const { newDocumentName, newDocumentSample, candidates, options } = args;
   const isExhaustive = options?.exhaustive === true;
   const maxSelected = isExhaustive ? MAX_SELECTED_EXHAUSTIVE : MAX_SELECTED_QUICK;
 
-  if (candidates.length === 0) return { seleccionados: [], sinConfianza: 0 };
+  if (candidates.length === 0) return { seleccionados: [], sinConfianza: 0, cortadosPorTope: 0 };
 
   const candidatesBlock = candidates.map((c, i) => {
     const fragsText = c.fragments.map(f => `  · "${f.text.slice(0, 300).replace(/\s+/g, ' ')}"`).join('\n');
@@ -116,6 +116,10 @@ ${candidates.map((c, i) => `[${i + 1}] → ${c.documentId}`).join('\n')}`;
       // Se cuenta sobre TODOS los que llegaron, no sobre los que sobreviven al
       // corte: lo que se quiere saber es si la señal existe, no si sobrevivió.
       sinConfianza: contarSinConfianza(selected),
+      // ⚠️ LOS QUE EL MODELO ELIGIÓ Y EL TOPE TIRÓ. Cada uno llevaba una
+      // razón y una confianza escritas por el modelo: tokens de salida
+      // pagados y descartados sin leer. Hasta hoy no se podían contar.
+      cortadosPorTope: Math.max(0, ordenados.length - maxSelected),
     };
   } catch (err) {
     console.warn('[rerank] LLM failed, falling back to top candidates by embedding score:', err);
@@ -141,6 +145,7 @@ ${candidates.map((c, i) => `[${i + 1}] → ${c.documentId}`).join('\n')}`;
       // Cero, y no «todos»: `sin_declarar` cuenta al modelo que no valoró. Aquí
       // no hubo modelo, y eso ya lo cuenta `averia` por la vía de stage-failures.
       sinConfianza: 0,
+      cortadosPorTope: 0,
     };
   }
 }

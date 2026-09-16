@@ -86,6 +86,15 @@ export const COUNTER_CATALOGUE = [
   // fallo —sigue siendo determinista— pero es un cambio de régimen, y sin
   // este contador sería mudo.
   'seleccion.candidatos_sin_confianza',
+  // B.244 paso 2 — cuántos candidatos QUE EL MODELO HABÍA ELEGIDO tiró el
+  // tope. No es la resta de recuperados menos seleccionados: esa resta
+  // mezcla dos cosas distintas —los que el rerank descartó por criterio y
+  // los que cortó por presupuesto— y hasta hoy no se podían separar.
+  //
+  // ⚠️ ES EL AGUJERO QUE B.244 TENÍA DESDE LA CONTABILIDAD: cada uno de
+  // éstos es un juicio escrito por el modelo —con su razón y su confianza—
+  // que se pagó en tokens de salida y se tiró sin leer.
+  'seleccion.candidatos_cortados_por_tope',
   // diff.tablas — ETAPA NUEVA (F-88 P1). El emparejador de tablas: qué pares
   // se evaluaron y por qué puerta cayó cada uno.
   //

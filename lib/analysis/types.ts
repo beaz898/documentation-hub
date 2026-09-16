@@ -5,6 +5,7 @@
 
 import type { FragmentContext } from './fragment-context';
 import type { PipelineCounters } from './counters';
+import type { CoberturaDeCandidatos } from './cobertura-de-candidatos';
 
 export interface DocumentFragment {
   text: string;
@@ -392,6 +393,13 @@ export interface FinalAnalysis {
    * a diferencia de stageFailures.
    */
   selectionLimits?: SelectionLimit[];
+  /**
+   * B.244 paso 2: contra cuántos documentos se comparó, de los afines que
+   * encontró la recuperación. AUSENTE en todo análisis anterior a este
+   * despliegue, y la bandeja relee jsonb viejos — por eso `resumirCobertura`
+   * calla cuando no está en vez de inventarse un cero.
+   */
+  coberturaDeCandidatos?: CoberturaDeCandidatos;
   /**
    * F-82: contadores de INCIDENCIA de las etapas del pipeline — cuántas veces
    * actuó cada pieza, no qué encontró. Es lo que exige la condición 3 de la

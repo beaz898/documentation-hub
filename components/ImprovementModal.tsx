@@ -221,6 +221,7 @@ function ImprovementModalDesktop({
     stageFailureCount,
     noGuardado,
     selectionLimits,
+    coberturaDeCandidatos,
     dismissProblem,
     coordenadasDescartadas,
   } = useCrossDocAnalysis(analysis, storagePath, refDeSubida, reviewedDocumentId);
@@ -620,6 +621,7 @@ function ImprovementModalDesktop({
             stageFailureCount={stageFailureCount}
             noGuardado={noGuardado}
             selectionLimits={selectionLimits}
+            coberturaDeCandidatos={coberturaDeCandidatos}
             tableDiffs={analysis.tableDiffs}
             documentName={fileName}
             messages={chatMessages}

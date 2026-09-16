@@ -756,7 +756,7 @@ async function runCorePipeline(
   }
 
   const t1 = Date.now();
-  const { seleccionados: reranked, sinConfianza } = await rerankCandidates({
+  const { seleccionados: reranked, sinConfianza, cortadosPorTope } = await rerankCandidates({
     newDocumentName: input.newDocumentName,
     newDocumentSample: input.newDocumentText,
     candidates,
@@ -768,6 +768,7 @@ async function runCorePipeline(
   // distingue de «no se miró», y aquí «cero sin confianza» es justo la noticia
   // buena: significa que la señal con la que se ordena el corte está viva.
   counters['seleccion.candidatos_sin_confianza'] = sinConfianza;
+  counters['seleccion.candidatos_cortados_por_tope'] = cortadosPorTope;
 
   // SALIDA TEMPRANA 2 — había candidatos y el rerank no dejó ninguno. Se
   // distingue de la anterior por los DOS contadores: aquí `recuperados` es > 0
@@ -1039,7 +1040,10 @@ async function runCorePipeline(
   // SALIDA 3 (la normal). Se adjuntan aquí, antes del bloque de F-74 P2,
   // porque aquel tiene un `return final` temprano cuando no hay límites;
   // hacerlo después los perdería en el caso corriente.
-  const final = withCounters(synthesized, counters);
+  // B.244 paso 2 — contra cuántos se comparó, de los afines que hubo. Se mide
+   // aquí y no en el aviso: la pantalla pinta, no cuenta.
+  const cobertura = { comparados: reranked.length, afines: candidates.length };
+  const finalSinCobertura = withCounters(synthesized, counters);
 
   // F-74 P2: EL ALCANCE DECLARADO. Se funde DESPUÉS del return de synthesize —
   // mismo criterio que exhaustiveCounts en el exhaustivo, para no tocar la
@@ -1063,6 +1067,14 @@ async function runCorePipeline(
       .flatMap(([documentId, ls]) => ls.map(limit => ({ documentId, limit }))),
     tablasCubiertas,
   );
+
+  // ⚠️ LA COBERTURA VA ANTES DE LA BIFURCACIÓN, Y ES TODO EL PUNTO. Abajo hay
+  // un `return final` para el caso SIN límites de fila —que es el normal— y
+  // colgarla sólo del último `return` habría dejado el aviso sin salir
+  // justamente en el camino corriente. Es el mismo descuido que los
+  // comentarios de `analyze-v2` y del worker documentan sobre sus listas
+  // cerradas: la pieza nueva se cuelga del sitio que uno está mirando.
+  const final = { ...finalSinCobertura, coberturaDeCandidatos: cobertura };
 
   if (limits.length === 0) return final;
 

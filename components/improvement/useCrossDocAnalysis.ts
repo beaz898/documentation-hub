@@ -88,6 +88,13 @@ export function useCrossDocAnalysis(
   const [selectionLimits, setSelectionLimits] = useState<RawAnalysis['selectionLimits']>(
     () => initialAnalysis.selectionLimits
   );
+
+  // B.244 paso 2 — estado HERMANO del de arriba, no un campo dentro: los dos
+  // llegan y se refrescan por el mismo camino, y meterlos juntos obligaría a
+  // recordar copiar el otro en cada `set`.
+  const [coberturaDeCandidatos, setCobertura] = useState<RawAnalysis['coberturaDeCandidatos']>(
+    () => initialAnalysis.coberturaDeCandidatos
+  );
   const [reanalyzingAll, setReanalyzingAll] = useState(false);
   const [lastError, setLastError] = useState<string | null>(null);
   const [reanalyzePhase, setReanalyzePhase] = useState<string | null>(null);
@@ -210,6 +217,7 @@ export function useCrossDocAnalysis(
 
         setStageFailureCount(analysis.stageFailures?.length ?? 0);
         setSelectionLimits(analysis.selectionLimits);
+        setCobertura(analysis.coberturaDeCandidatos);
         setCrossDocProblems(withDismissed);
 
         return { activeCount, dismissedCount, totalCount: withDismissed.length };
@@ -321,7 +329,7 @@ export function useCrossDocAnalysis(
     [reviewedDocumentId],
   );
 
-  return { crossDocProblems, setCrossDocProblems, reanalyzeAll, reanalyzingAll, reanalyzePhase, lastError, dismissProblem, coordenadasDescartadas, stageFailureCount, noGuardado, selectionLimits };
+  return { crossDocProblems, setCrossDocProblems, reanalyzeAll, reanalyzingAll, reanalyzePhase, lastError, dismissProblem, coordenadasDescartadas, stageFailureCount, noGuardado, selectionLimits, coberturaDeCandidatos };
 }
 
 // ============================================================

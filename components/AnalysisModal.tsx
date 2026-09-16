@@ -8,7 +8,8 @@ import IncompleteAnalysisNotice from './IncompleteAnalysisNotice';
 import UnsavedAnalysisNotice from './UnsavedAnalysisNotice';
 import { avisosDelAnalisis } from '@/lib/analysis/avisos';
 import { esDuplicadoExacto } from '@/lib/analysis/duplicado-exacto';
-import SelectionLimitNotice from './SelectionLimitNotice';
+import AvisoDeCobertura from './AvisoDeCobertura';
+import type { CoberturaDeCandidatos } from '@/lib/analysis/cobertura-de-candidatos';
 // F-88 ficha A: extraida a componente propio — la ficha del diff necesita el
 // mismo plegado, y copiarlo habria dejado dos que se separan a la primera.
 import CollapsibleSection from './CollapsibleSection';
@@ -68,6 +69,9 @@ interface AnalysisResult {
   stageFailures?: Array<{ stage: string; detail?: string }>;
   /** F-74 P2: tablas cuyas filas no cupieron enteras. Alcance, no hallazgo. */
   selectionLimits?: SelectionLimitItem[];
+  /** B.244 paso 2 — ausente en todo análisis anterior a este despliegue, y la
+   *  bandeja relee jsonb viejos: `resumirCobertura` calla cuando no está. */
+  coberturaDeCandidatos?: CoberturaDeCandidatos;
 }
 
 interface AnalysisModalProps {
@@ -199,7 +203,10 @@ export default function AnalysisModal({ fileName, analysis, guardado, onConfirm,
 
         {/* F-74 P2: DESPUES del de incompleto. Si el analisis fallo, lo que no
             se miro por presupuesto es lo de menos. */}
-        <SelectionLimitNotice limits={analysis.selectionLimits} />
+        <AvisoDeCobertura
+          cobertura={analysis.coberturaDeCandidatos}
+          limits={analysis.selectionLimits}
+        />
 
         {/* General summary */}
         {analysis.summary && (

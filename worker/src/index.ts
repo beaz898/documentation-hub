@@ -167,6 +167,11 @@ async function processJob(job: AnalysisJob): Promise<void> {
       stageFailures: analysis.stageFailures,
       // F-74 P2: el alcance declarado, por el mismo camino.
       selectionLimits: analysis.selectionLimits,
+      // B.244 paso 2 — LA TERCERA DE ESTA LISTA CERRADA, y añadida a los DOS
+      // sitios a la vez. Los comentarios de arriba cuentan que a `stageFailures`
+      // le pasó justo esto: se añadió al tipo y al jsonb y no aquí, y el aviso
+      // sólo salía por una de las dos puertas.
+      coberturaDeCandidatos: analysis.coberturaDeCandidatos,
     };
 
     const latencyMs = Date.now() - t0;

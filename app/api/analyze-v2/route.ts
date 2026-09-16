@@ -792,6 +792,11 @@ export async function POST(req: NextRequest) {
         // F-74 P2: el alcance declarado, por el mismo camino que el aviso de
         // incompleto — y añadido a la vez para no repetir el olvido de arriba.
         selectionLimits: analysis.selectionLimits,
+        // B.244 paso 2 — LA TERCERA DE ESTA LISTA CERRADA, y añadida a los DOS
+        // sitios a la vez. Los comentarios de arriba cuentan que a `stageFailures`
+        // le pasó justo esto: se añadió al tipo y al jsonb y no aquí, y el aviso
+        // sólo salía por una de las dos puertas.
+        coberturaDeCandidatos: analysis.coberturaDeCandidatos,
         // F-82: `pipelineCounters` NO entra en esta lista, y la omisión es
         // DELIBERADA — no el olvido que documenta el comentario de arriba. Son
         // contadores de incidencia (claude/Contrato_Contadores.md): telemetría

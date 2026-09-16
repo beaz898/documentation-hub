@@ -30,6 +30,9 @@ describe('el catálogo', () => {
       // B.244 paso 1 (16/09/2026) — declarado A MANO, que es para lo que existe
       // esta lista: mide si sigue viva la señal con la que se ORDENA el corte.
       'seleccion.candidatos_sin_confianza',
+      // B.244 paso 2 (16/09/2026) — separa el corte por tope del descarte por
+      // criterio, que hasta hoy se confundían en una resta.
+      'seleccion.candidatos_cortados_por_tope',
       // F-103 P3 pieza 2: la etapa `diff.vision`, abierta el 07/09. Es la capa
       // de ANTES del emparejador — qué le llegó— y por eso no cabía en
       // `diff.tablas`, que cuenta lo que pasa dentro. Los dos lados van por
