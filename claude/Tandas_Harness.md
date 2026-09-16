@@ -2078,9 +2078,16 @@ como candidato en todo análisis nuevo**. Al analizar CLI-20, OPE-11 entró como
 candidato, su hoja tiene 39 filas recuperadas y 28 se quedaron fuera por tamaño.
 
 ⚠️ **Es un efecto del montaje, no un fallo — pero conviene saberlo: el corpus de
-pruebas ya no está vacío para las tandas siguientes.** Si el director quiere que
-las próximas midan sin ese ruido, `OPE-11` vuelve a `pendiente` con un gesto y sin
-coste.
+pruebas ya no está vacío para las tandas siguientes.**
+
+> ⚠️ **CORRECCIÓN DEL 16/09/2026 — LA FRASE QUE IBA AQUÍ ERA FALSA.**
+> Decía: *«si el director quiere que las próximas midan sin ese ruido, `OPE-11`
+> vuelve a `pendiente` con un gesto y sin coste»*. **No existe ese gesto.** El
+> censo por capacidad de quién escribe `analysis_status` está al final de este
+> fichero, en el montaje de A2/A4: ninguna escritura lleva de `analizado` a
+> `pendiente`. Era una premisa de INACCIÓN escrita en indicativo y nunca
+> verificada —la clase que CLAUDE.md señala como la que falla en silencio—, y
+> estuvo cuatro días aquí ofreciéndole al director una salida que no hay.
 
 **2 · Los dos solapamientos: la pantalla ACUMULA, no se mezclan los análisis.**
 
@@ -2511,3 +2518,364 @@ no puede contestar su pregunta**. Antes hace falta decidir dos cosas:
    la del modelo con muchas.
 
 **Nada se lanza.**
+
+
+---
+
+# EL MONTAJE DE A2/A4 — escrito el 16/09/2026, **nada lanzado**
+
+A2 = **CHAT · subida → exhaustivo**. A4 = **BANDEJA · analizar exhaustivo**
+(`Inventario_Caminos.md:55,57`). Son los dos caminos exhaustivos del punto 3 del
+criterio de salida.
+
+El encargo pedía cuatro cosas —cuántos documentos marcar, cuáles, qué se analiza,
+y el orden de los gestos—. **Dos de las cuatro cambian de respuesta al medir**, y
+conviene decirlo antes que nada:
+
+1. **Para A4 no hay que marcar NADA.** La bandeja mete su selección en la
+   recuperación sin tocar el estado de ningún documento.
+2. **Para A2, marcar no sirve de mucho.** El tope de 6 no lo abre el número de
+   documentos del corpus: lo abre el documento que se analiza. Marcar quince
+   seguiría dando uno o dos candidatos.
+
+Las dos salen de lecturas, y van con comando y línea.
+
+---
+
+## 1 · LA BANDEJA NO NECESITA MARCAR NADA — la vía nominal ya estaba puesta
+
+    hooks/review/useReviewAnalysis.ts:78   batchDocumentIds,      (lo manda el cliente)
+    app/api/analyze-v2/route.ts:184        batchDocumentIds       (lo recibe y lo acota)
+    app/api/analyze-v2/route.ts:569        batchDocumentIds       (se lo pasa al pipeline)
+    lib/analysis/retrieval.ts:212          buildCorpusFilter(batchDocumentIds)
+    lib/pinecone/vectors.ts:115            $or: [CORPUS_ACTIVO, {documentId: {$in: ids}}]
+
+Es la **vía nominal** de F-97, la que el enunciado *«el corpus es lo que participa
+sin ser nombrado»* describe por su contrario: un documento `pendiente` **participa
+si un análisis lo nombra por su id**, y desde la bandeja el análisis nombra a todos
+los de la selección.
+
+**Consecuencia para el montaje**: en A4, seleccionar doce documentos en la bandeja
+y analizar uno de ellos hace que los once restantes compitan como candidatos
+**sin cambiar el estado de ninguno, sin escribir en Pinecone y sin gastar un
+crédito**. Cuando se cierre la pantalla, no queda rastro.
+
+⚠️ Y su mitad simétrica, que es la mala: **el chat no nombra ids** —no hay tanda en
+una subida suelta—, así que A2 ve **sólo lo que esté `analizado`**. Ahí la vía
+nominal no existe y la única palanca es el estado.
+
+---
+
+## 2 · ⚠️ LA CORRECCIÓN QUE VA PRIMERO: marcar analizado NO tiene vuelta, y este fichero decía que sí
+
+El arquitecto lo afirmó y **tenía razón**; lo verifico porque un indicativo sobre
+el repositorio se verifica aunque resulte cierto, y porque **la línea 2080 de este
+mismo fichero afirmaba lo contrario** —*«OPE-11 vuelve a `pendiente` con un gesto y
+sin coste»*—. Ya está corregida arriba, con su motivo.
+
+**Censo por capacidad — quién puede escribir `documents.analysis_status`:**
+
+    grep -rn "analysis_status" --include=*.ts --include=*.tsx app/ lib/ components/ hooks/ worker/
+
+| Escritura | Fichero:línea | A qué valor |
+|---|---|---|
+| marcar revisado (gesto del usuario) | `app/api/documents/[id]/mark-analyzed/route.ts:112,152` | `analizado` |
+| reemplazo de texto desde el chat | `app/api/index-text/route.ts:393` | `analizado` |
+| promoción tras un swap | `lib/documents/promocion.ts:98` | `analizado` |
+| ingesta manual, si se le pide | `app/api/ingest/route.ts:294` (de `:97`) | `analizado` o `pendiente` |
+| sincronización, documento NUEVO | `app/api/drive/sync/route.ts:447` (INSERT) | `pendiente` |
+| sincronización, documento EXISTENTE | `app/api/drive/sync/route.ts:404` (UPDATE) | `pendiente` |
+
+La última parece la vuelta, y no lo es. Ese UPDATE vive en la rama `else` de
+`if (isVersioning)` (`sync/route.ts:342`), e `isVersioning` se enciende
+**exactamente cuando el documento ya es `analizado`** (`sync/route.ts:253`):
+
+    if (existing && existing.analysis_status === 'analizado') { ... isVersioning = true; }
+
+Un documento `analizado` que vuelve a sincronizarse **se versiona** —su contenido
+nuevo espera en `document_staged`— y su estado **no se toca**. El UPDATE a
+`pendiente` sólo alcanza a los que ya eran `pendiente`.
+
+**→ Ninguna de las seis escrituras lleva de `analizado` a `pendiente`. No hay
+vuelta.**
+
+La única vuelta real es **borrar el documento y volver a sincronizarlo**, y no es
+«un gesto sin coste»: borra sus vectores, le da un **id nuevo**, y los análisis ya
+guardados que apuntaban al viejo se quedan sin dueño —la familia de F-101, que
+esta casa ya pagó una vez.
+
+---
+
+## 3 · ⚠️ AVISO PARA EL DIRECTOR, en sus términos
+
+> **Marcar un documento como «revisado» es una puerta de una sola dirección.**
+>
+> El botón que lo hace no tiene pareja: **no existe ningún botón que lo devuelva a
+> la bandeja**. Lo he comprobado una por una en las seis partes del programa que
+> pueden cambiar ese estado, y ninguna hace el camino de vuelta.
+>
+> Lo que cambia para siempre en un documento marcado:
+>
+> - **Sale de la bandeja de revisión y no vuelve.** Deja de aparecer en la lista
+>   de «pendientes de revisar».
+> - **Entra en el corpus.** A partir de ese momento participa en **todas** las
+>   respuestas del chat y compite como candidato en **todos** los análisis
+>   futuros, sin que nadie lo pida. Eso ya nos pasó con `OPE-11`: se quedó
+>   marcado el 15/09 para una medición, y al día siguiente apareció metido en un
+>   análisis que no era el suyo.
+> - **Cuenta como revisado sin haberlo sido.** Si algún día quieres saber qué
+>   documentos pasaron de verdad por una revisión humana, estos van a mentir.
+>
+> Deshacerlo sólo es posible borrando el documento y volviéndolo a sincronizar
+> desde OneDrive. Eso funciona, pero el documento vuelve **con otra identidad
+> interna**: los análisis que ya le hayamos hecho se quedan colgando de un
+> documento que ya no existe.
+>
+> **Y la buena noticia, que es la parte que decide cuántos son:**
+> **para la prueba de la bandeja no hay que marcar ninguno.** La bandeja ya sabe
+> hacer participar a los documentos que seleccionas sin cambiarles el estado.
+>
+> **El número que te pido marcar es CERO.**
+> Si al final decidimos hacer también la prueba desde el chat con corpus denso
+> —que es la única que lo necesitaría—, volveré a pedírtelo con el número exacto
+> delante y con esta advertencia repetida. Hoy no hace falta.
+
+---
+
+## 4 · EL NÚMERO NO ES DE DOCUMENTOS MARCADOS: EL TOPE DE 6 LO ABRE EL DOCUMENTO QUE SE ANALIZA
+
+El encargo pedía *«no el mínimo: el número que hace que la diferencia entre 6 y 25
+se vea sin ambigüedad»*. **La premisa de que ese número existe es la que falla**, y
+la falsan las tandas ya hechas.
+
+**La cadena, de arriba abajo:**
+
+    lib/analysis/retrieval.ts:211   umbral = exhaustivo ? 0,45 : 0,50
+    lib/analysis/retrieval.ts:226   queryVectors(..., topK: 25, filter: corpusFilter)   ← una consulta POR CHUNK
+    lib/analysis/retrieval.ts:  →   agrupar por documento  ⇒ CANDIDATOS
+    lib/analysis/rerank.ts:39       tope = exhaustivo ? 25 : 6                          ⇒ SELECCIONADOS
+
+El tope de 6 sólo muerde si el rerank **quiere** más de 6, y el rerank sólo puede
+querer lo que el retrieval le dé. **Los candidatos no los produce el tamaño del
+corpus: los produce el umbral.**
+
+**Lo medido, y es tozudo.** Con **42 documentos en el corpus** —40 de OneDrive más
+2 manuales, B.230—, las pasadas registradas en este fichero dan:
+
+| Pasada | Candidatos |
+|---|---|
+| las seis de prosa (línea 1123) | **1**, con `1 ids de tanda` |
+| las de tabla (líneas 385, 420, 497) | **1**, score máx **0,988** / **0,956** |
+| la extra de territorio sin clave (línea 1064) | **2** |
+| CLI-20 con OPE-11 analizado (línea 2077) | **1** |
+
+Y los scores dicen por qué: los aciertos verdaderos salen a **0,93–0,99**, y todo
+lo demás **no llega a 0,50**. En este corpus **no hay nada en medio**. Cuarenta y
+dos documentos de una clínica dental, y un documento nuevo se parece a uno.
+
+⚠️ **Por eso marcar quince documentos no produciría quince candidatos: produciría
+uno o dos, igual que hoy, y habríamos quemado quince marcas irreversibles para no
+mover la cifra.** Ésta es la respuesta a *«cuántos hay que dejar analizados»*, y es
+**ninguno**.
+
+### Lo que SÍ abre el tope
+
+`sampleTexts` son **todos los chunks** del documento analizado, no una muestra
+(`app/api/analyze-v2/route.ts:485` y `:552` — `chunks.map(c => c.text)`), y **cada
+chunk lanza su propia consulta** con su propio umbral. De ahí la palanca:
+
+> **Un documento de N trozos que se parezcan a N documentos distintos produce N
+> candidatos.** No hace falta una familia de siete hermanos: hacen falta siete
+> familias y un documento que las toque todas.
+
+Ningún documento real del corpus hace eso —por eso nunca hemos visto más de dos—.
+Así que el montaje necesita fabricarlo, **y se declara por lo que es: un CONTROL DE
+SATURACIÓN, no un documento representativo.** Mide una cosa concreta —si el tope
+corta— y no dice nada sobre el uso típico. Es el mismo trato que `CLI-20` recibió
+para el estilo: se sembró, se declaró sembrado, y su cifra nunca se leyó como cifra
+de producción.
+
+---
+
+## 5 · CUÁLES — nombres exactos, y para qué se usa cada uno
+
+Los quince documentos del corpus piloto que **están en el repositorio** y sirven de
+cantera (`corpus-pruebas/`):
+
+    CLI-03_historia-clinica-consentimiento-informado.txt
+    CLI-12_manual-calidad-clinica.docx
+    CLI-13_instrucciones-clinicas-residuos.docx
+    CLI-20_protocolo-urgencias-dentales.txt
+    MKT-01_manual-identidad-corporativa.docx
+    NOR-01_rgpd-proteccion-datos-pacientes.pdf
+    NOR-10_protocolo-esterilizacion-instrumental.docx
+    NOR-11_gestion-de-residuos-sanitarios.docx
+    OPE-02_agenda-y-gestion-de-citas.xlsx
+    OPE-10_tarifario-tratamientos-2026.xlsx
+    OPE-11_tarifario-tratamientos-seguros.xlsx
+    OPE-13_cobertura-por-clinica.xlsx
+    OPE-15_tarifario-mutua-2026.xlsx
+    RRHH-06_evaluacion-del-desempeno.xlsx
+    RRHH-08_asignacion-de-guardias.xlsx
+
+**No se marca ninguno.** Se usan como **origen de los párrafos** del documento de
+saturación: un fragmento literal y reconocible de cada uno, en un documento nuevo.
+
+⚠️ **Y una advertencia sobre estos quince: no son los 42.** Los otros 27 viven sólo
+en el OneDrive del director y no los he leído nunca. Si alguno resulta ser un
+documento transversal —una memoria anual, un manual que lo cite todo—, sería mejor
+candidato que uno fabricado, y el director lo sabría de un vistazo. **Esa pregunta
+se la hago antes de fabricar nada.**
+
+### Los dos documentos a fabricar
+
+| Nombre | Para | Cómo llega | Por qué dos |
+|---|---|---|---|
+| `SAT-A_memoria-de-actividad-2026.docx` | **A4 · bandeja** | se sube a OneDrive y se sincroniza ⇒ entra `pendiente` | tiene que existir como fila para salir en la bandeja |
+| `SAT-B_memoria-de-actividad-2025.docx` | **A2 · chat** | se arrastra al chat, **no se indexa** | si A2 usara el mismo que A4, el veto por hash lo pararía en el worker tras cobrar los 30 |
+
+Contenido de cada uno: **quince párrafos, uno por documento de la lista**, cada uno
+copiado casi literal de su origen y con una cifra o un nombre cambiado —para que
+haya algo que el análisis pueda encontrar además del parecido—.
+
+⚠️ **Y aquí está el riesgo del montaje**: con el troceado a 2.000 caracteres,
+quince párrafos cortos caben en tres o cuatro trozos, y un trozo que mezcla cinco
+temas se parece a los cinco **a medias** — puede que a ninguno por encima de 0,50.
+**Por eso los párrafos van largos: ~1.800 caracteres cada uno**, para que cada
+chunk quede dominado por un solo origen. Quince párrafos de 1.800 son ~27.000
+caracteres y ~14 chunks. Es un documento largo, y eso es deliberado.
+
+---
+
+## 6 · EL ORDEN DE LOS GESTOS, y lo que el director ve después de cada uno
+
+| # | Gesto | Lo que ve | Si no ve eso |
+|---|---|---|---|
+| 0 | Contesta si alguno de sus 27 documentos de OneDrive es «transversal» | — | si sí, se usa ése y nos saltamos la fabricación |
+| 1 | Recibe `SAT-A` y `SAT-B` y sube **sólo `SAT-A`** a OneDrive | — | — |
+| 2 | Sincroniza desde el chat | *«Sincronización completada: **1** nuevo…»* | si dice 0 nuevos, no se subió a la carpeta que se sincroniza: parar |
+| 3 | Abre la bandeja de revisión | `SAT-A` en la lista, con **43** documentos en total | si no está, parar |
+| 4 | **Selecciona `SAT-A` + los otros 12 que quiera** y pulsa analizar **rápido** | barra de progreso, y al acabar el informe de `SAT-A` | — |
+| 5 | **⚠️ COMPUERTA.** Ejecuta `SQL_A2A4_compuerta.sql` | dos números: candidatos y seleccionados | **es aquí donde se decide gastar los 30 o no** |
+| 6 | Si la compuerta abre: analizar `SAT-A` otra vez, **exhaustivo** | *«Analizando…»* con fase, varios minutos | — |
+| 7 | Arrastra **`SAT-B`** al chat y pide análisis **rápido** | el informe en el chat | **no pulsar «indexar»** al terminar |
+| 8 | Repite con `SAT-B`, **exhaustivo** | el informe, unos minutos | — |
+| 9 | Ejecuta `SQL_A2A4_compuerta.sql` una vez más | las cuatro filas de la tanda | — |
+
+⚠️ **Nada de esto marca ningún documento como revisado.** El paso 4 **selecciona**,
+que no es marcar: la selección vive en la pantalla y se evapora al cerrarla.
+
+---
+
+## 7 · LA COMPUERTA DEL PASO 5 — dónde se lee sin entrar en Vercel
+
+Los dos números están en el catálogo de contadores (`lib/analysis/counters.ts:78-79`):
+
+    seleccion.candidatos_recuperados
+    seleccion.candidatos_seleccionados
+
+y viajan a `analysis_results.pipeline_counters` (F-82), así que **se leen con una
+consulta, no con un registro de ejecución**. Es justamente lo que el arquitecto
+pidió el 14/09 —*«dime dónde debe vivir ese contador para que se pueda leer sin
+entrar en los registros de Vercel»*— y resulta que ya vivía ahí.
+
+**La regla de la compuerta, escrita antes de verla:**
+
+| Lo que dice el rápido de `SAT-A` | Qué significa | Qué se hace |
+|---|---|---|
+| `seleccionados = 6` | el tope **cortó**: el rerank quería más | **se gastan los 30.** Es la única lectura que hace útil el exhaustivo |
+| `seleccionados < 6` y `recuperados > 6` | el tope no cortó: el rerank descartó por su cuenta | **NO se gasta.** El exhaustivo elegiría los mismos; el montaje falló en el rerank, no en el umbral |
+| `recuperados ≤ 6` | el documento de saturación no saturó | **NO se gasta.** Se rehacen los párrafos más largos y se repite el rápido |
+| `recuperados = 0` | no midió nada | no concluye: se revisa el montaje y se repite |
+
+---
+
+## 8 · PREDICCIÓN, ESCRITA ANTES
+
+| Pasada | Candidatos recuperados | Seleccionados |
+|---|---|---|
+| **A4 rápido** (`SAT-A`, 12 en la tanda) | **12–15** | **6** — el tope, alcanzado |
+| **A4 exhaustivo** (`SAT-A`) | **12–15**, **los mismos** | **11–15** |
+| **A2 rápido** (`SAT-B`, sin tanda) | **1–2** | **1–2** |
+| **A2 exhaustivo** (`SAT-B`) | **1–2**, los mismos | **1–2** |
+
+Y la afirmación falsable que va dentro, que es lo que de verdad se mide:
+
+> ⚠️ **EL UMBRAL NO APORTA NI UN CANDIDATO. El único de los dos parámetros del
+> exhaustivo que hace algo es el tope.**
+>
+> Se falsa con **un solo candidato cuyo score esté entre 0,45 y 0,50** — que
+> aparecería en el exhaustivo y no en el rápido. La predicción es que **no lo
+> habrá**, porque en este corpus los scores son ≥0,93 o <0,50 y el hueco está
+> vacío. Si aparece uno, la predicción queda **fallada**, sea cual sea la causa.
+
+Predicción secundaria, y la que más me puede salir mal: **que `SAT-A` sature de
+verdad.** Nunca hemos visto más de 2 candidatos en este corpus, y estoy prediciendo
+12–15 a base de un documento fabricado para conseguirlo. **Si el rápido del paso 4
+da 3 candidatos, la predicción está fallada y el montaje también** — y se dirá así,
+no como «hacía falta afinar los párrafos».
+
+---
+
+## 9 · COSTE, Y QUÉ SE AHORRA
+
+| Pasada | Créditos | ¿Condicionada? |
+|---|---|---|
+| A4 rápido | 5 | no — es la compuerta |
+| A4 exhaustivo | 30 | **sí**, a que la compuerta abra |
+| A2 rápido | 5 | no |
+| A2 exhaustivo | 30 | **sí**, sólo si A4 ya demostró que el tope corta |
+| **Total si todo abre** | **70** | |
+| **Total si la compuerta cierra** | **10** | |
+
+**Lo que se ahorra, en una frase: 60 de los 70 créditos son condicionales, y la
+condición se compra por 10.**
+
+⚠️ **Y una pasada que probablemente sobra: el exhaustivo de A2 (30 cr).** El
+exhaustivo de A2 y el de A4 recorren **el mismo worker con el mismo pipeline**; se
+diferencian en dos cosas y ninguna es el tope: `batchDocumentIds` vacío y el dueño
+del análisis (`storagePath` en vez de id de documento, F-101). **Esas dos ya se
+ejercen con el rápido de A2, que cuesta 5.** El exhaustivo de A2 compraría
+únicamente «el camino chat→worker se recorre entero», que es real y no es gratis
+—es el camino que en su día dejó dieciséis análisis pagados inalcanzables— pero es
+**una cobertura de camino, no una medida del tope**.
+
+**Recomendación, y no la elijo yo solo:** hacerlo, pero **el último**, y sabiendo
+que se compra cobertura y no cifra. Si el director quiere recortar, **ésta es la
+pasada que se cae**, y la tanda baja de 70 a 40 sin perder el hallazgo del tope.
+
+---
+
+## 10 · LO QUE PUEDE CORTAR CADA PASADA ANTES DE QUE MIDA
+
+De las once compuertas censadas el 15/09, tres cobran antes de cortar. Con este
+montaje:
+
+| Compuerta | Riesgo hoy | Qué hacer |
+|---|---|---|
+| **veto por hash** (en el worker, tras cobrar los 30) | ⚠️ **el único vivo**: `SAT-B` no puede tener el mismo contenido que `SAT-A`, que sí estará indexado | por eso son dos documentos y no uno |
+| candado de análisis (cobra y luego veta) | bajo: nadie más analiza | no lanzar dos pasadas a la vez |
+| 400 de texto corto | nulo: ~27.000 caracteres | — |
+| `ref` caducada a las 2 h | medio en A2: el modal abierto mucho rato | subir `SAT-B` y analizar seguido |
+
+---
+
+## 11 · FICHA PREVISTA, **NO ESCRITA**
+
+**`B.241 — el exhaustivo cobra seis veces por hacer lo mismo cuando el corpus es
+pequeño`.**
+
+Queda **prevista y sin escribir**, a propósito: hoy sólo tenemos el argumento de
+lectura —el exhaustivo cambia el umbral 0,50→0,45 y el tope 6→25, y con pocos
+candidatos ninguno de los dos hace nada—, y un argumento de lectura no es una
+medida. Su condición de nacimiento, escrita antes para que no se pueda ajustar
+después:
+
+> **Nace si el rápido y el exhaustivo de `SAT-A` dan el MISMO número de
+> seleccionados**, o si el exhaustivo de `SAT-B` da los mismos hallazgos que su
+> rápido. **No nace** si el exhaustivo selecciona más, o si encuentra algo que el
+> rápido no encontró.
+
+---
+
+**Nada lanzado. Cero documentos marcados. Ningún crédito gastado.**
