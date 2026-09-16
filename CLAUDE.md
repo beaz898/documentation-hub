@@ -217,6 +217,38 @@ El dueño del proyecto NO es programador. Vercel deploya automáticamente al hac
   para conservar lo que se dijo— es justo lo que le presta la autoridad. **La
   sospecha vale igual cuando lo que se da por existente lo propuso esta misma
   casa.** Promovida el 09/09/2026.
+- **TODO PARÁMETRO, UMBRAL, TOPE O CORTE LLEVA SU CASO DECISIVO: UN CASO DONDE
+  CAMBIARLO CAMBIARÍA EL RESULTADO. UN PARÁMETRO SIN CASO DECISIVO NO ESTÁ
+  PROBADO: ESTÁ DECORANDO.**
+  Es la regla del control positivo aplicada a las constantes: un número que
+  ninguna prueba puede mover no está verificado — está acompañado.
+  **LA DISCIPLINA QUE LA EJECUTA, y sin ella la regla es un deseo**: se MUTA cada
+  constante del pipeline —subirla, bajarla, anularla— y se corre la suite. **La
+  que no rompe ni un test entra en la LISTA DE LATENTES con su ficha**, y la
+  ficha dice qué población haría falta para que ese número decidiera algo.
+  ⚠️ **Y LA LISTA SE CONSTRUYE POR CAPACIDAD, NO POR NOMBRE**: no se enumeran las
+  constantes que uno recuerda, se recorre **cada punto donde el código reduce,
+  filtra, ordena o trunca**, y a cada uno se le hacen tres preguntas —
+  **(a)** qué población lo activa; **(b)** puede el corpus producirla; **(c)**
+  existe un caso decisivo. **Las filas con «no» en (c) son los latentes.** Y una
+  fila con «no» en (b) hoy es un latente con fecha de caducidad, no un problema
+  resuelto: el corpus crece.
+  ⚠️ **LOS CASOS QUE LA PAGARON, y son de la misma semana:**
+  · **el umbral 0,50** llevaba un comentario que decía «calibrado» y el censo
+    enseñó que ningún par del corpus baja de 0,79 — **el parámetro no descartaba
+    nada y ninguna prueba lo notaba**. Un número inerte con una nota que lo hacía
+    parecer decidido (B.248).
+  · **el tope de 6 del rerank**: se dio por inerte —«este corpus nunca pasa de 2
+    candidatos»— y el historial persistido enseñó **cinco pasadas con 9 y 10**.
+    La afirmación de inocuidad era un universal sostenido por las pasadas que
+    alguien había anotado a mano (B.249).
+  · **`rerankConfidence`**: escrito en dos sitios, declarado en el tipo y **sin
+    un solo lector**. El corte que podría usarlo ordena por el orden en que el
+    modelo escupió los candidatos (B.244).
+  ⚠️ Y el corolario que la conecta con la regla del cero: **«esta constante nunca
+  se ha activado» es una afirmación sobre una POBLACIÓN, y las poblaciones se
+  cuentan donde están persistidas — no donde alguien las anotó.** Promovida el
+  16/09/2026.
 - **CADA PARTICIPANTE DE ESTE CIRCUITO VE UNA COSA DISTINTA, Y NINGUNO LAS VE
   TODAS. ANTES DE ACEPTAR UNA AFIRMACIÓN, LA PREGUNTA NO ES SI SUENA RAZONABLE:
   ES SI QUIEN LA HACE PODÍA SABERLA.**

@@ -3796,3 +3796,159 @@ escribe antes.
   de con memoria**, que es la diferencia que importa.
 
 **En los tres casos la ficha cambia. En ninguno se toca el código.**
+
+---
+
+## ⚠️ 5.52 · CERRADA CON POBLACIÓN: EL CORTE MORDIÓ — cierra 5.51 (16/09/2026)
+
+**Mi «inerte» queda falsado con datos, no con argumentos.** Del historial del
+director, modo rápido con tope 6:
+
+| Fecha | Documento | Modo | Recuperados | Descartados en silencio |
+|---|---|---|---|---|
+| 14/09 07:56 | CLI-05 | rápido | **10** | 4 |
+| 14/09 07:53 | CLI-05 | rápido | **10** | 4 |
+| 14/09 07:19 | CLI-05 | rápido | **9** | 3 |
+| 14/09 20:30 | CLI-05 | rápido | **9** | 3 |
+| 14/09 07:01 | CLI-05 | rápido | **9** | 3 |
+| 14/09 07:02 | CLI-05 | exhaustivo | 9 | 0 (tope 25) |
+| 12/09 09:23 | CLI-04 | rápido | 6 | 0 (justo en el tope) |
+| 11/09 10:29 | Actas_Direccion | exhaustivo | 6 | 0 |
+
+**Cinco pasadas rápidas descartaron 3 ó 4 documentos cada una, sin contador y sin
+aviso.** B.244 deja de estar «armada y sin disparar»: **disparó**, cinco veces, el
+14 de septiembre.
+
+### Qué colgaba de esas pasadas
+
+Se buscó por nombre en `claude/*.md`. **Ninguna tanda del harness usa `CLI-05`,
+`CLI-04` ni `Actas_Direccion`**: son uso real del director, no mediciones nuestras.
+`A1`, `A3`, `A5`, `A6`, `A7`, `A8` y los experimentos de pareja van sobre `OPE-*`,
+`CLI-20`, `NOR-*` y `RRHH-*`, y **ninguno aparece en esta lista**.
+
+⚠️ **CON UNA EXCEPCIÓN, Y ES MÍA, DE AYER.** En 5.50 escribí, como prueba de que el
+juez discrimina:
+
+> *«0 % de solapamiento con `CLI-05`, 95 % con `OPE-11`»*
+
+**Esa cifra sale de una de estas pasadas.** Se reenuncia con su alcance real:
+
+- **Lo que sigue en pie**: `CLI-05` entró, fue juzgado y dio 0 %; `OPE-11` dio
+  95 %. El contraste es real y sigue demostrando que **el juez discrimina cuando
+  ve los documentos**. El corte no tocó a los que sí llegaron.
+- **Lo que ya no se puede decir**: que ese análisis mirase el corpus. Miró **6 de
+  9 ó 10**, y los 3 ó 4 que faltaron no se sabe cuáles eran ni qué habrían dado.
+- **La forma correcta**: «de lo que miró, discriminó bien». No «encontró lo que
+  había».
+
+**Es una corrección de alcance, no de veracidad.** El hallazgo era cierto; la
+frase prometía una cobertura que la pasada no tuvo.
+
+---
+
+## ⚠️ 5.53 · LA RECONSTRUCCIÓN POR `reviewed_at` ERA CIEGA, Y DEVOLVÍA CEROS CON PINTA DE DATO (16/09/2026)
+
+`elegibles_al_menos` daba **0** en todas las filas anteriores al 15/09, incluidas
+las que recuperaron **diez** candidatos. **Diez candidatos no salen de un corpus
+elegible de cero.**
+
+Yo había declarado que era «cota inferior». **Eso fue insuficiente**: una cota
+inferior que vale cero cuando la verdad es diez no es una cota, es una pantalla
+apagada — y la consulta la presentaba como un número más de la fila. Es
+exactamente el fallo del `org_id`: **un cero que fabrica el propio instrumento y
+se lee como medida.**
+
+### Por qué se queda ciega — y la causa principal no era ninguna de las tres que escribí
+
+Las tres que declaré (`reviewed_at` sólo lo escribe `mark-analyzed`; los borrados
+no dejan fila; un cambio de contenido lo pone a NULL) son ciertas. **Pero la que
+manda es la segunda, y no la escribí con su peso**: el corpus **se borró y se
+recreó**, así que las filas de los documentos que estaban `analizado` el 14/09
+**ya no existen**. La evidencia se fue con las filas.
+
+**Se comprueba con una consulta y va añadida al fichero como la nº 5**: si el
+documento más antiguo de la organización es posterior a los análisis del 14/09,
+ninguna fila de aquel corpus sobrevive y la reconstrucción no puede saber nada de
+ese tramo.
+
+### Qué se ha hecho con ella
+
+**No se retira: se la obliga a declararse.** La consulta 3 ya no devuelve un
+recuento a secas — devuelve el recuento **y una columna `fiabilidad`** que dice
+`*** CIEGA: recuperó candidatos y no queda ni un marcado. NO USAR ***` cuando el
+propio dato se contradice. **El número sólo vale cuando la columna dice
+`coherente`.**
+
+⚠️ Es la forma que esta casa ya tiene escrita para los ceros: **un cero confirma si
+y sólo si el camino que lo produjo puede demostrar que buscó.** Aquí no podía, y
+ahora lo dice él mismo en vez de esperar a que alguien lo note.
+
+### Y el segundo fallo del fichero, corregido
+
+`involved_documents` es **jsonb**, no array: `array_length(jsonb, integer)` no
+existe y **las consultas 2 y 3 no llegaban a correr**. Ahora `jsonb_array_length`.
+Corregido en el fichero, no sólo en la respuesta.
+
+---
+
+## ⚠️ 5.54 · LA LISTA DE LATENTES, MEDIDA POR MUTACIÓN — 19 de 24 constantes no tienen caso decisivo (16/09/2026)
+
+Hecha con la disciplina de la regla nueva de `CLAUDE.md`: **no se enumeran las
+constantes que uno recuerda**, se recorre cada punto donde el código reduce,
+filtra, ordena o trunca, **se muta cada una y se corre la suite entera**. La que no
+rompe ni un test no está probada.
+
+**Resultado: 24 constantes mutadas, 24 pasadas de suite. 19 sobreviven.**
+
+| Constante | Valor | Población que la activa | ¿El corpus puede producirla? | Caso decisivo |
+|---|---|---|---|---|
+| `SCORE_THRESHOLD_QUICK` | 0,50 | un par por debajo del umbral | **no** — el suelo es 0,79 (B.248) | ⚠️ **sí, pero en el censo**, no en el retrieval |
+| `SCORE_THRESHOLD_EXHAUSTIVE` | 0,45 | un par entre 0,45 y 0,50 | **no** — cero en 42 filas | ⚠️ igual |
+| `MIN_UNIQUE_PCT` | 90 | columna casi única | sí | **sí** |
+| `LIMITE_DE_TEXTO` | 20.000 | documento más largo | sí (NOR-10: 61.148) | **sí** |
+| `MAX_CONTEXT_CHARS` | 30.000 | contexto que desborda | sí | **sí** |
+| `MAX_SELECTED_QUICK` | 6 | **>6 candidatos** | ⚠️ **SÍ, Y YA OCURRIÓ** (5.52) | **NO** |
+| `MAX_SELECTED_EXHAUSTIVE` | 25 | >25 candidatos | sí — `OPE-07` tiene 25 vecinos | **NO** |
+| `TOP_K_POR_CONSULTA` | 25 | >25 matches por consulta | sí | **NO** |
+| `FRAGMENT_BUDGET_CHARS_QUICK` | 3.000 | candidato con más texto | sí, casi siempre | **NO** |
+| `MAX_FRAGMENTS_PER_DOC_QUICK` | 25 | >25 fragmentos por documento | sí | **NO** |
+| `MAX_CLAIMS` | 40 | documento con >40 afirmaciones | sí (NOR-10) | **NO** |
+| `NEW_DOC_LIMIT_QUICK` | 6.000 | documento >6.000 caracteres | sí — casi todos | **NO** |
+| `HIGH_OVERLAP_THRESHOLD` | 30 | solapamiento ≥30 % | sí (95 % con OPE-11) | **NO** |
+| `MAX_DOUBLE_CHECK_CANDIDATES` | 50 | >50 candidatas | sí en exhaustivo | **NO** |
+| `FIRST_BATCH_SIZE` | 15 | >15 candidatas | sí (se vieron 17) | **NO** |
+| `SECOND_BATCH_SIZE` | 10 | resto tras el primer lote | sí | **NO** |
+| `CORPUS_SCORE_THRESHOLD` | 0,50 | ⚠️ **segundo 0,50, en `verify-claims`** | no — mismo suelo | **NO** |
+| `MAX_CORPUS_FRAGMENTS` | 4 | >4 fragmentos por afirmación | sí | **NO** |
+| `MAX_PER_CALL` | 15 | >15 hallazgos por documento | sí | **NO** |
+| `TOP_K` (chat) | 15 | >15 chunks relevantes | sí | **NO** |
+| `MAX_DOCUMENTS` (chat) | 6 | >6 documentos relevantes | ⚠️ **sí — todos son vecinos de todos** | **NO** |
+| `MIN_SCORE` (chat) | 0,3 | par por debajo de 0,3 | **no** — suelo 0,79 | **NO** |
+| `MAX_SELECTION` (bandeja) | 20 | seleccionar >20 | sí | **NO** |
+| `MAX_EXHAUSTIVE_SELECTION` | 3 | seleccionar >3 en exhaustivo | sí | **NO** |
+
+### Las tres lecturas que salen de la tabla
+
+**1 · ⚠️ `MAX_DOCUMENTS = 6` EN EL CHAT ES EL MISMO DEFECTO QUE EL RERANK, Y NADIE
+LO HABÍA MIRADO.** El chat recorta a 6 documentos (`rag.ts:34`) y su umbral
+(`MIN_SCORE = 0,3`) es **aún más permisivo** que el 0,50 del análisis. Con un suelo
+de 0,79, **toda pregunta del chat recupera todo el corpus y se queda con 6**, sin
+avisar. Es B.244 en el camino que el cliente usa a diario, y no tiene ficha.
+
+**2 · El `0,50` está en DOS sitios.** Exporté el de `retrieval.ts` para que el
+censo no lo copiara, y `verify-claims.ts:65` tiene el suyo propio —
+`CORPUS_SCORE_THRESHOLD`—. Es la regla del criterio implementado una sola vez, con
+un incumplimiento que llevaba ahí desde antes y que nadie había contado.
+
+**3 · Los umbrales mueren, pero por el consumidor equivocado.** Las pruebas que los
+matan están en `vecindario.test.ts` —el censo que escribí ayer— y demuestran que
+cambiar el umbral cambia **el resultado del censo**. `retrieveCandidates`, que es
+quien lo usa en producción, **no tiene ni una prueba que lo ejercite**. Así que en
+la columna dice «sí» con una nota, y la nota importa: **tener caso decisivo en un
+consumidor no cubre al otro.**
+
+### Lo que NO se hace aquí
+
+Nada. Ni se ordena el corte, ni se instrumenta, ni se toca un umbral. La lista es
+el inventario que el orden de Fable pide en su paso 0, y los pasos 1, 2 y 3 son
+del director.
