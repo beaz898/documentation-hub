@@ -7,6 +7,15 @@ vi.mock('./llm-client', () => ({
 
 import { analyzeStyle } from './style-check';
 
+/** Los casos de abajo son del camino en que el modelo CONTESTÓ: si no fuera así,
+ *  el caso no mediría lo que dice, y se para aquí en vez de leer campos que no
+ *  existen (B.237). */
+async function analizarMirado(texto: string, nombre: string) {
+  const r = await analyzeStyle(texto, nombre);
+  if (r.estado !== 'mirado') throw new Error(`se esperaba «mirado» y llegó «${r.estado}»`);
+  return r;
+}
+
 /**
  * LO QUE EL FILTRO TIRA — B.239, 15/09/2026.
  *
@@ -38,7 +47,7 @@ describe('el camino limpio', () => {
     // indistinguible de una anterior al cambio. Un cero que no se escribe no
     // se puede leer como confirmación.
     llamada.mockResolvedValue({ problems: [bueno] });
-    const r = await analyzeStyle(TEXTO_BASE, 'doc.txt');
+    const r = await analizarMirado(TEXTO_BASE, 'doc.txt');
 
     expect(r.problemas).toHaveLength(1);
     expect(r.contadores).toEqual({
@@ -55,7 +64,7 @@ describe('⚠️ descarte POR TIPO — la huella de un catálogo incompleto', ()
     llamada.mockResolvedValue({
       problems: [bueno, { type: 'puntuacion', title: 't', description: 'd', textRef: 'x' }],
     });
-    const r = await analyzeStyle(TEXTO_BASE, 'doc.txt');
+    const r = await analizarMirado(TEXTO_BASE, 'doc.txt');
 
     expect(r.problemas).toHaveLength(1);
     expect(r.contadores['averia.estilo_descartado_por_tipo']).toBe(1);
@@ -69,7 +78,7 @@ describe('⚠️ descarte POR TIPO — la huella de un catálogo incompleto', ()
         { type: 'puntuacion', textRef: 'b' },
       ],
     });
-    const r = await analyzeStyle(TEXTO_BASE, 'doc.txt');
+    const r = await analizarMirado(TEXTO_BASE, 'doc.txt');
 
     expect(r.contadores['averia.estilo_descartado_por_tipo']).toBe(2);
     expect(r.tiposDescartados).toEqual(['puntuacion']);
@@ -84,7 +93,7 @@ describe('⚠️ descarte POR TIPO — la huella de un catálogo incompleto', ()
         textRef: 'texto literal del documento',
       }],
     });
-    const r = await analyzeStyle(TEXTO_BASE, 'doc.txt');
+    const r = await analizarMirado(TEXTO_BASE, 'doc.txt');
 
     expect(r.tiposDescartados).toEqual(['gramatica']);
     const serializado = JSON.stringify(r.tiposDescartados);
@@ -94,14 +103,14 @@ describe('⚠️ descarte POR TIPO — la huella de un catálogo incompleto', ()
 
   it('una etiqueta larguísima se recorta antes de persistirla', async () => {
     llamada.mockResolvedValue({ problems: [{ type: 'x'.repeat(500), textRef: 'a' }] });
-    const r = await analyzeStyle(TEXTO_BASE, 'doc.txt');
+    const r = await analizarMirado(TEXTO_BASE, 'doc.txt');
 
     expect(r.tiposDescartados[0].length).toBeLessThanOrEqual(40);
   });
 
   it('sin tipo ninguno también se cuenta, y se nombra como tal', async () => {
     llamada.mockResolvedValue({ problems: [{ textRef: 'a' }] });
-    const r = await analyzeStyle(TEXTO_BASE, 'doc.txt');
+    const r = await analizarMirado(TEXTO_BASE, 'doc.txt');
 
     expect(r.contadores['averia.estilo_descartado_por_tipo']).toBe(1);
     expect(r.tiposDescartados).toEqual(['(sin tipo)']);
@@ -113,7 +122,7 @@ describe('⚠️ descarte SIN ANCLA — la huella de una respuesta truncada', ()
     llamada.mockResolvedValue({
       problems: [bueno, { type: 'ambiguedad', title: 't', description: 'd' }],
     });
-    const r = await analyzeStyle(TEXTO_BASE, 'doc.txt');
+    const r = await analizarMirado(TEXTO_BASE, 'doc.txt');
 
     expect(r.problemas).toHaveLength(1);
     expect(r.contadores['averia.estilo_descartado_sin_ancla']).toBe(1);
@@ -125,7 +134,7 @@ describe('⚠️ descarte SIN ANCLA — la huella de una respuesta truncada', ()
 
   it('un textRef en blanco cuenta igual que uno ausente', async () => {
     llamada.mockResolvedValue({ problems: [{ type: 'sugerencia', textRef: '   ' }] });
-    const r = await analyzeStyle(TEXTO_BASE, 'doc.txt');
+    const r = await analizarMirado(TEXTO_BASE, 'doc.txt');
 
     expect(r.contadores['averia.estilo_descartado_sin_ancla']).toBe(1);
   });
@@ -140,7 +149,7 @@ describe('⚠️ descarte SIN ANCLA — la huella de una respuesta truncada', ()
         { type: 'ambiguedad' },
       ],
     });
-    const r = await analyzeStyle(TEXTO_BASE, 'doc.txt');
+    const r = await analizarMirado(TEXTO_BASE, 'doc.txt');
 
     expect(r.problemas).toHaveLength(1);
     expect(r.contadores['averia.estilo_descartado_por_tipo']).toBe(1);
@@ -148,21 +157,23 @@ describe('⚠️ descarte SIN ANCLA — la huella de una respuesta truncada', ()
   });
 });
 
-describe('el fallo del modelo — que esto NO arregla', () => {
-  it('⚠️ sigue devolviendo lista vacía sin contadores: eso es B.237', async () => {
+describe('el fallo del modelo — ARREGLADO el 17/09/2026 (B.237, puerta 2)', () => {
+  it('⚠️ una respuesta que revienta al leerse ya no es «lista vacía»: es NO SE PUDO MIRAR', async () => {
     // Devolver `null` hace que `parsed.problems` reviente DENTRO del `try`:
-    // mismo camino de fallo, sin que el mock lance por su cuenta.
+    // mismo camino de fallo, sin que el mock lance por su cuenta. Es el segundo
+    // disparador —el primero, el mock que lanza, está en style-check-fallo.test.ts—.
+    //
+    // Hasta hoy este caso CONGELABA el fallo: comprobaba que salía `problemas: []`
+    // y decía en el comentario que ese cero no se distinguía de «no hay
+    // problemas». Ahora sí se distingue, y el caso comprueba lo contrario.
     llamada.mockResolvedValue(null);
     const r = await analyzeStyle(TEXTO_BASE, 'doc.txt');
 
-    expect(r.problemas).toEqual([]);
-    // ⚠️ AQUÍ SÍ VA VACÍO, Y ES LO CORRECTO: no se llegó a filtrar nada porque
-    // no hubo respuesta que filtrar. Un cero aquí diría «miré y no descarté»,
-    // que sería falso. Es la distinción de los trabajos cortados por hash, con
-    // el signo bien puesto.
-    expect(r.contadores).toEqual({});
-    // Y se dice en el caso: un cero de aquí sigue sin distinguirse de «no hay
-    // problemas». Lo que hoy deja rastro es lo DESCARTADO, no lo no-mirado.
+    expect(r.estado).toBe('no_se_pudo_mirar');
+    expect(r).not.toHaveProperty('problemas');
+    // Y tampoco trae contadores: un cero de descartes diría «miré y no descarté»,
+    // que sería falso. Lo que no se miró no tiene descartes que contar.
+    expect(r).not.toHaveProperty('contadores');
   });
 });
 
@@ -177,7 +188,7 @@ describe('⚠️ el candado de la temperatura', () => {
     // nadie pasa es un comentario con tipo: se puede bajar a cero y no cambiar
     // nada, y la suite seguiría verde.
     llamada.mockResolvedValue({ problems: [] });
-    await analyzeStyle(TEXTO_BASE, 'doc.txt');
+    await analizarMirado(TEXTO_BASE, 'doc.txt');
 
     const opciones = llamada.mock.calls[0][1] as { temperature: number };
     expect(opciones.temperature).toBe(0);
@@ -191,7 +202,7 @@ describe('⚠️ el desplazamiento de la cita — existencia e identidad', () =>
     llamada.mockResolvedValue({
       problems: [{ type: 'ortografia', title: 't', description: 'd', textRef: 'consulltas' }],
     });
-    const r = await analyzeStyle(TEXTO, 'doc.txt');
+    const r = await analizarMirado(TEXTO, 'doc.txt');
 
     expect(r.problemas[0].offset).toBe(TEXTO.indexOf('consulltas'));
     expect(r.contadores['averia.estilo_cita_no_encontrada']).toBe(0);
@@ -204,7 +215,7 @@ describe('⚠️ el desplazamiento de la cita — existencia e identidad', () =>
     llamada.mockResolvedValue({
       problems: [{ type: 'ambiguedad', title: 't', description: 'd', textRef: 'el paciente ayuna' }],
     });
-    const r = await analyzeStyle(TEXTO, 'doc.txt');
+    const r = await analizarMirado(TEXTO, 'doc.txt');
 
     expect(r.problemas).toHaveLength(1);
     expect(r.problemas[0].offset).toBe(-1);
@@ -219,7 +230,7 @@ describe('⚠️ el desplazamiento de la cita — existencia e identidad', () =>
     llamada.mockResolvedValue({
       problems: [{ type: 'sugerencia', title: 't', description: 'd', textRef: 'ZONA_QUE_NO_SE_ENVIA' }],
     });
-    const r = await analyzeStyle(largo, 'doc.txt');
+    const r = await analizarMirado(largo, 'doc.txt');
 
     expect(largo.indexOf('ZONA_QUE_NO_SE_ENVIA')).toBeGreaterThan(0);
     expect(r.problemas[0].offset).toBe(-1);
@@ -237,7 +248,7 @@ describe('⚠️ el desplazamiento de la cita — existencia e identidad', () =>
         { type: 'ortografia', title: 't', description: 'd', textRef: 'la fecha en la que a sido' },
       ],
     });
-    const r = await analyzeStyle(t, 'doc.txt');
+    const r = await analizarMirado(t, 'doc.txt');
 
     expect(r.problemas[0].offset).toBe(r.problemas[1].offset);
     expect(r.contadores['averia.estilo_cita_no_encontrada']).toBe(0);
@@ -256,7 +267,7 @@ describe('⚠️ la cita que cruza un salto de línea — el caso que el indexOf
         textRef: 'la fecha en la que a sido subsanada',
       }],
     });
-    const r = await analyzeStyle(doc, 'doc.txt');
+    const r = await analizarMirado(doc, 'doc.txt');
 
     // El control negativo dentro del caso: así era hasta hoy.
     expect(doc.indexOf('la fecha en la que a sido subsanada')).toBe(-1);

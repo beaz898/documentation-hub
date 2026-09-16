@@ -1181,7 +1181,13 @@ async function runExhaustivePipelineInner(input: ExhaustivePipelineInput): Promi
 
   const [pipelineResult, styleProblems] = await Promise.all([
     runCorePipeline(input, { exhaustive: true }, 'pipeline-exhaustive'),
-    analyzeStyle(input.newDocumentText, input.newDocumentName).then(r => r.problemas),
+    // B.237: si el modelo no contestó, aquí no hay problemas que sumar — y el
+    // fallo YA viaja: `analyzeStyle` lo registra en `stageFailures` (este
+    // pipeline sí abre ese contexto), el análisis sale marcado como incompleto
+    // y el worker devuelve lo cobrado. La lista vacía no llega a leerse como
+    // «documento limpio» porque el resumen dice que no se completó.
+    analyzeStyle(input.newDocumentText, input.newDocumentName)
+      .then(r => (r.estado === 'mirado' ? r.problemas : [])),
   ]);
 
   const excludeFps = input.excludeFingerprints || new Set<string>();

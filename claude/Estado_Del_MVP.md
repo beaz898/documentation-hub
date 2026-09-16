@@ -575,6 +575,23 @@ Las líneas de arriba son del 09/09 y se han movido; lo que sigue está leído h
   DESCARTADOS. **Si el usuario no descartó ninguno, el segundo exhaustivo cuenta como
   análisis inicial.** Qué es «reanálisis» a efectos de precio es decisión de producto.
 
+### ✅ LA PARTE SIN DECISIÓN, ARREGLADA EL 17/09/2026
+
+Todo lo que sale de `analyze-v2` **antes del punto de gasto** se devuelve íntegro, en
+los dos modos: semáforo ocupado, extracción fallida, falta de cuerpo, texto
+insuficiente, job que no llega a crearse y excepción previa. **Un solo sitio**: el
+`finally`, con la bandera `pasoElPuntoDeGasto`, que se pone a `true` cuando el job
+existe o cuando el rápido entra en el pipeline. Un reembolso por salida habría sido
+una lista que el próximo `return` olvidaría.
+
+**Lo que NO cubre, a propósito**: la excepción de la ruta después del punto de gasto,
+el `catch` del worker y los jobs zombis. Esperan la decisión del director sobre el
+reembolso parcial.
+
+**Sin batería**: el alcance de vitest excluye rutas. **Control positivo en pantalla**:
+subir un `.txt` de menos de 50 caracteres y pedir su análisis desde el chat → 400
+«Texto insuficiente» y **el saldo no cambia** (antes bajaba 5, o 30 en exhaustivo).
+
 ## ⚠️ 5.3 · B.206 — el centinela que se propuso, se dio por hecho y nadie construyó (09/09/2026)
 
 ⚠️ **ESTA FICHA REGISTRA QUE LA PIEZA FALTA. Que se CITARA como existente es otro
@@ -2482,6 +2499,25 @@ error HTTP, devuelve `[]` **sin tocar la lista**, y el modal (`ImprovementModal.
 ⚠️ Y la puerta 2 es más muda en esta ruta que en el exhaustivo: `analyze-style` **no
 abre** `stageFailureContext`, así que `recordStageFailure` no registra nada. En el
 exhaustivo el mismo fallo sí se registra y se devuelve.
+
+### ✅ LA PUERTA 2, ARREGLADA EL 17/09/2026 — el servidor ya no dice «limpio» sin mirar
+
+**Hoy, si el modelo fallaba, el producto afirmaba que el documento estaba limpio.** Es
+lo que el producto vende, dicho sin haberlo mirado.
+
+`analyzeStyle` devuelve ahora un resultado con **dos formas**: `mirado` —con su
+lista, que vacía sí significa «sin problemas»— o `no_se_pudo_mirar`, **sin lista**.
+Con la segunda, la ruta **devuelve los 2 créditos, no guarda nada, lo registra como
+fallo** —así tampoco gasta cupo diario— y contesta **503 `estilo_no_analizado`**.
+
+El compilador hizo el censo de consumidores al cambiar el tipo: la ruta, el pipeline
+exhaustivo —que ya marcaba el análisis incompleto y lo devolvía— y la batería.
+**Un caso de la batería CONGELABA el fallo** («sigue devolviendo lista vacía: eso es
+B.237»): se invierte, no se borra. Mutante «el fallo vuelve a ser lista vacía»: cae.
+
+**La puerta 3 va en el commit siguiente**, el del cliente: mientras tanto el 503 llega
+a la pantalla como cualquier error HTTP —«no hay cambios»—, que es falso pero **ya no
+vacía la lista ni cobra**.
 
 ## ⚠️ 5.36 · B.239 — el detector ve una ambigüedad con consecuencia clínica UNAS VECES SÍ Y OTRAS NO (15/09/2026)
 

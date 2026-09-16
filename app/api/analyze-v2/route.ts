@@ -8,7 +8,7 @@ import { logUsage, registrarAveriaDeLimitador } from '@/lib/usage-logger';
 import { checkRateLimit } from '@/lib/rate-limiter';
 import { resolverOrg } from '@/lib/org';
 import { respuestaDeOrgNoResuelta } from '@/lib/org-respuesta';
-import { consumeCredits, getCreditCost, refundCredits } from '@/lib/credits';
+import { consumeCredits, devolverSiNoSeEntrego, getCreditCost, refundCredits } from '@/lib/credits';
 import { checkUploadLock } from '@/lib/upload-lock';
 import { saveAnalysisResult } from '@/lib/persist-analysis';
 import { leerDescartes, marcarDescartadas } from '@/lib/analysis/descartes';
@@ -54,6 +54,17 @@ export async function POST(req: NextRequest) {
   let orgId = '';
   let creditsConsumed = 0;
   let lockAcquired = false;
+  // ⚠️ B.205 (17/09/2026) — ¿HA PODIDO GASTARSE ALGO? Pasa a `true` en el único
+  // punto a partir del cual el cobro deja de ser de esta ruta: cuando el job
+  // exhaustivo EXISTE (su dinero lo gobierna el worker) o cuando el rápido
+  // ENTRA en el pipeline (desde ahí puede haber llamadas al modelo). Toda salida
+  // anterior —semáforo ocupado, extracción fallida, texto insuficiente, el job
+  // que no llega a crearse, una excepción previa— no ha entregado ni gastado
+  // nada, y el `finally` la devuelve ÍNTEGRA.
+  // Lo que NO cubre, a propósito: una excepción DESPUÉS de este punto. Ahí sí
+  // puede haberse gastado modelo, y cuánto se cobra es una decisión pendiente
+  // del director (§5.2), no de esta línea.
+  let pasoElPuntoDeGasto = false;
   const supabase = createServiceClient();
 
   try {
@@ -523,6 +534,8 @@ export async function POST(req: NextRequest) {
         console.error('[analyze-v2] Error creando job:', jobError);
         return NextResponse.json({ error: 'Error al encolar el análisis' }, { status: 500 });
       }
+      // El job existe: desde aquí sus créditos los gobierna el worker.
+      pasoElPuntoDeGasto = true;
 
       console.log(`[analyze-v2] Job exhaustivo creado: ${job.id} para "${fileName}" (org: ${orgId})`);
 
@@ -559,6 +572,8 @@ export async function POST(req: NextRequest) {
     console.log(`[analyze-v2] "${fileName}" — ${chunks.length} chunks, ${sampleTexts.length} samples, ${text.length} chars totales, ${avgChunkSize} chars/chunk de media, ${batchDocumentIds?.length ?? 0} ids de tanda (rápido)`);
 
     const llmAcc = new Map();
+    // Desde aquí puede haber llamadas al modelo: ver `pasoElPuntoDeGasto`.
+    pasoElPuntoDeGasto = true;
     const analysis = await usageContext.run(llmAcc, () =>
       runAnalysisPipeline({
         newDocumentText: stripSegmentationMarkers(text),
@@ -824,7 +839,9 @@ export async function POST(req: NextRequest) {
         outputTokens: 0,
         latencyMs: Date.now() - startedAt,
         success: false,
-        creditsConsumed,
+        // Si no pasó del punto de gasto, el `finally` lo devuelve: no se anota
+        // como consumido lo que se va a devolver.
+        creditsConsumed: pasoElPuntoDeGasto ? creditsConsumed : 0,
         errorMessage: message,
       });
     }
@@ -838,6 +855,16 @@ export async function POST(req: NextRequest) {
     if (lockAcquired) {
       await releaseAnalysisLock(supabase, orgId, userId);
     }
+    // ⚠️ B.205 — UN SOLO SITIO PARA DEVOLVER, y en el `finally` porque las
+    // salidas anteriores al punto de gasto son SEIS y cuatro de ellas son
+    // `return`: un reembolso por salida es una lista que el próximo `return`
+    // nuevo olvidará. Sin cobro (`creditsConsumed` a 0) no hace nada.
+    await devolverSiNoSeEntrego(supabase, {
+      orgId,
+      creditosCobrados: creditsConsumed,
+      entregado: pasoElPuntoDeGasto,
+      contexto: '/api/analyze-v2',
+    });
   }
 }
 

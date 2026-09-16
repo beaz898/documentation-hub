@@ -103,6 +103,18 @@ export const LIMITE_DE_TEXTO = 20000;
  * corta significaba a la vez «hay pocos problemas» y «descarté varios».
  * ═══════════════════════════════════════════════════════════════════════════
  */
+/**
+ * ⚠️ B.237, PUERTA 2 (17/09/2026) — EL FALLO VA EN EL TIPO. Hasta hoy el fallo
+ * del modelo devolvía `problemas: []`, que es exactamente lo que significa «el
+ * documento está limpio». El producto afirmaba que no había problemas **sin
+ * haberlo mirado** — que es lo que vende, dicho sin mirarlo. Es la regla de la
+ * casa sobre el tipo que no puede expresar el fallo: lo que no cabe en la firma
+ * lo representa el vecino, y la lista vacía ya tenía dueño.
+ */
+export type ResultadoDelEstilo =
+  | ({ estado: 'mirado' } & ResultadoDeEstilo)
+  | { estado: 'no_se_pudo_mirar'; motivo: string };
+
 export interface ResultadoDeEstilo {
   problemas: StyleProblem[];
   /** Los dos descartes, para persistir. Vacío si no se descartó nada. */
@@ -157,7 +169,7 @@ Estructura JSON exacta a devolver:
  * Analiza el texto en busca de problemas de estilo (ortografía, ambigüedad, sugerencias).
  * Devuelve un array de problemas validados.
  */
-export async function analyzeStyle(text: string, fileName: string): Promise<ResultadoDeEstilo> {
+export async function analyzeStyle(text: string, fileName: string): Promise<ResultadoDelEstilo> {
   const t0 = Date.now();
 
   // ⚠️ EL RECORTE, CON NOMBRE Y EN UN SOLO SITIO — 16/09/2026. Era un
@@ -277,13 +289,16 @@ Devuelve el JSON con los problemas internos detectados.`;
       `(de ${crudos.length} devueltos · ${descartadosPorTipo} por tipo · ${descartadosSinAncla} sin ancla) ` +
       `(${Date.now() - t0}ms)`,
     );
-    return { problemas: problems, contadores, tiposDescartados };
+    return { estado: 'mirado', problemas: problems, contadores, tiposDescartados };
   } catch (err) {
     console.warn('[style-check] LLM/parse failed:', err instanceof Error ? err.message : err);
     recordStageFailure('style-check', err);
-    // ⚠️ SIGUE DEVOLVIENDO LA LISTA VACÍA, y eso es B.237 y NO se arregla aquí:
-    // la ruta seguirá contestando `success: true`. Lo que cambia hoy es sólo que
-    // lo DESCARTADO deja rastro; lo que no se pudo mirar, todavía no.
-    return { problemas: [], contadores: {}, tiposDescartados: [] };
+    // ⚠️ B.237 — YA NO ES LA LISTA VACÍA. Hasta el 17/09/2026 esta línea
+    // devolvía `problemas: []` y la ruta contestaba `success: true`: el usuario
+    // leía «sin problemas» de un documento que nadie había mirado.
+    return {
+      estado: 'no_se_pudo_mirar',
+      motivo: err instanceof Error ? err.message : String(err),
+    };
   }
 }

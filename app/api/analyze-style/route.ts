@@ -78,14 +78,53 @@ export async function POST(req: NextRequest) {
     const resultado = await usageContext.run(llmAcc, () =>
       analyzeStyle(text, fileName || 'sin nombre')
     );
-    const problems = resultado.problemas;
     void persistLLMUsage({
       accumulator:    llmAcc,
       orgId,
       userId,
       operation:      'analyze_style',
-      creditsCharged: creditsConsumed,
+      creditsCharged: resultado.estado === 'mirado' ? creditsConsumed : 0,
     });
+
+    // ⚠️ B.237, PUERTA 2 (17/09/2026) — «NO PUDE MIRAR» NO ES «NO HAY PROBLEMAS».
+    // Hasta hoy un fallo del modelo llegaba aquí como lista vacía y la ruta
+    // contestaba `success: true`: el producto afirmaba que el documento estaba
+    // limpio sin haberlo mirado, y cobraba por decirlo. Ahora:
+    //   · se DEVUELVE lo cobrado — no se entregó nada;
+    //   · NO se guarda: una fila de «0 problemas» sería un análisis válido falso
+    //     que la bandeja relee después;
+    //   · se registra como fallo, así que tampoco gasta cupo diario (el limitador
+    //     sólo cuenta `success: true`);
+    //   · y se contesta con error propio, para que la pantalla pueda decir que
+    //     no pudo mirar en vez de «sin cambios».
+    if (resultado.estado === 'no_se_pudo_mirar') {
+      await devolverSiNoSeEntrego(supabase, {
+        orgId, creditosCobrados: creditsConsumed, entregado: false, contexto: '/api/analyze-style',
+      });
+      // Ya devuelto: si algo de aquí abajo lanzara, el `catch` no debe devolver
+      // una segunda vez.
+      creditsConsumed = 0;
+      await logUsage(supabase, {
+        userId,
+        orgId,
+        endpoint: '/api/analyze-style',
+        model: 'haiku',
+        inputTokens: 0,
+        outputTokens: 0,
+        latencyMs: Date.now() - startedAt,
+        success: false,
+        creditsConsumed: 0,
+        errorMessage: `estilo_no_analizado: ${resultado.motivo}`,
+      });
+      return NextResponse.json(
+        {
+          error: 'No se ha podido analizar el estilo. No se te ha cobrado.',
+          errorType: 'estilo_no_analizado',
+        },
+        { status: 503 },
+      );
+    }
+    const problems = resultado.problemas;
 
     // F-100 — DE QUIÉN ES ESTE ANÁLISIS. El id viene del cliente, así que se
     // COMPRUEBA antes de escribirlo: aceptar una referencia es legítimo, pero
