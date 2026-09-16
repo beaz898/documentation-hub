@@ -1,6 +1,7 @@
 // Shared types and helpers for problem detection in ImprovementModal.
 
 import type { ComparedValue, GrupoDeTablas } from '@/lib/analysis/types';
+import type { CoberturaDeCandidatos } from '@/lib/analysis/cobertura-de-candidatos';
 import { normalizeWhitespace } from '@/lib/texto/localizar-cita';
 
 export type { ComparedValue };
@@ -180,8 +181,12 @@ export interface RawAnalysis {
     rowsRecovered: number;
   }>;
   /** B.244 paso 2: contra cuántos se comparó, de los afines que hubo.
-   *  Tampoco se convierte en Problem, por el mismo motivo. */
-  coberturaDeCandidatos?: { comparados: number; afines: number };
+   *  Tampoco se convierte en Problem, por el mismo motivo.
+   *  ⚠️ EL TIPO SE IMPORTA, NO SE COPIA (16/09/2026). Aquí había una copia
+   *  literal `{ comparados; afines }` que, al ganar el aviso el campo `reparto`,
+   *  lo habría dejado fuera del tipo sin que `tsc` dijera nada — la prop es
+   *  opcional y los datos llegan igual por el JSON. */
+  coberturaDeCandidatos?: CoberturaDeCandidatos;
 }
 
 // ⚠️ LA COPIA PRIVADA DE `normalizeWhitespace` SE RETIRÓ EL 16/09/2026: era una

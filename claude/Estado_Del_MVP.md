@@ -4921,3 +4921,103 @@ partir de `a3423ef2`»: no ve B.255.
 **+3 pruebas; salieron +4** (1134 → 1138). **Fallada, por abajo.** Cayeron las
 mutaciones previstas: la de «primera» con 3 (predije al menos 2) y la de
 «última» con 1.
+
+---
+
+## 5.71 · El texto del aviso, opción (ii) — y lo que dijeron las cuatro consultas de `SQL_B253` (16/09/2026)
+
+### Las consultas, ejecutadas
+
+Fuente: el director las ejecutó contra producción y el arquitecto trasladó los
+resultados. **Esta casa no ha visto la salida en bruto.**
+
+| Consulta | Resultado |
+|---|---|
+| 4 · qué código corre el worker | «código NUEVO» en el exhaustivo de las 18:29, y el director confirma en Railway el despliegue de `5208f5c` |
+| 1 · repeticiones por contadores | «CONTADO: el modelo no repitió ninguno» |
+| 2 · repeticiones por hallazgos | **cero filas**, sobre todo el historial |
+| 3 · cifras de criterio falsas | **cero filas** |
+
+**B.253 y B.254 existieron en el código y no mordieron en lo que se puede ver.**
+⚠️ Con la salvedad escrita en la propia SQL: casi todo el historial sale «no
+deducible», porque con tres candidatos una repetición no deja huella en los
+contadores, y la consulta 2 sólo la ve si el documento repetido produjo
+solapamiento. **Un «no aparece» no es un «no pasó».**
+
+### ⚠️ Un dato que vale por sí solo — y que corrige una regla de lectura de §5.51
+
+El 14/09, **CLI-05 con 9 y 10 recuperados dio 4 y 5 seleccionados.** Con tope 6,
+el tope **no cortó**: sólo corta lo que el modelo eligió, y el modelo eligió
+menos de 6. Los que faltan cayeron por **criterio del modelo** —o por ids no
+reconocidos, que el 14/09 no se contaban y no se pueden descartar—. **Por lo
+menos la mitad.**
+
+Es población para dos sitios: para **B.248** —sobran candidatos porque el umbral
+no filtra, y el que filtra es el modelo— y para **el aviso**, que va a tener que
+decir la fila 3 a menudo.
+
+⚠️ **Y CORRIGE LA REGLA DE LECTURA DE §5.51, escrita antes de ver los datos**: decía
+«`recuperados > 6` en un `quick` → **EL CORTE MORDIÓ**». Leía el tope como si
+actuara sobre los recuperados, y actúa **después del criterio**. La señal del tope
+era `seleccionados = 6`, que aquella tabla sólo marcaba como «sospechoso».
+`recuperados > 6` dice que **algo** descartó en silencio —y eso sigue siendo
+verdad—, no que fuera el tope. **En CLI-05 descartó el criterio.**
+
+**Lo que NO se ha tocado, y queda para decidir**: la cabecera de F-108 («una pasada
+que recuperó 9 ó 10 con tope 6») y el ejemplo del tope de 6 en `CLAUDE.md` («se dio
+por inerte… el historial enseñó cinco pasadas con 9 y 10»). Las dos frases son
+ciertas sobre los recuperados; **ninguna demuestra que el tope cortara**, y para
+CLI-05 el dato dice que no. De las otras pasadas no hay cifra aquí.
+
+### El texto: opción (ii), decisión del director
+
+⚠️ **«Afinidad», que eligió el director, se conserva donde es verdad y se sustituye
+por «priorizó» donde no lo sería.** Es verdad de los **afines**: los que la
+recuperación trajo por parecido. No lo es del **orden del corte**, que va por
+confianza del modelo y luego por parecido. **No es un cambio de criterio del
+director: su criterio no se podía cumplir tal como estaba escrito.**
+
+| # | Cuándo | Frase (ejemplo) |
+|---|---|---|
+| 1 | no quedó ninguno fuera | «Se compararon los 2 documentos afines a éste, que eran todos los que había.» — **sin cambios** |
+| 2 | fuera sólo por tope | «Se compararon los 6 que el análisis priorizó de los 9 afines a éste. Otros 3 también se eligieron, con menor prioridad, y no cupieron.» |
+| 3 | fuera sólo por criterio | «Se compararon 2 de los 3 documentos afines a éste. El otro se revisó y no se seleccionó para esta comparación.» |
+| 4 | mixto | «Se compararon los 6 que el análisis priorizó de los 10 afines a éste. De los otros 4, 3 también se eligieron, con menor prioridad, y no cupieron; 1 se revisó y no se seleccionó.» |
+| 5 | criterio no respaldado, con tope | «Se compararon los 6 que el análisis priorizó de los 10 afines a éste. Otros 3 también se eligieron, con menor prioridad, y no cupieron. Otro más tampoco entró.» |
+| 6 | sin causa respaldada ni tope | «Se compararon 6 de los 9 documentos afines a éste. Los otros 3 no entraron en esta comparación.» |
+
+«Criterio respaldado» = el modelo contestó, cero ids no reconocidos y
+`tope + criterio` cuadra con los de fuera. Si no, **la caída es parcial**: el tope
+se sigue explicando y sólo se calla el resto.
+
+⚠️ **LA FILA 6 CAMBIA LOS ANÁLISIS VIEJOS.** Los anteriores a hoy no traen reparto, y
+decían «otros N tienen menor afinidad y no entraron» **sin saberlo**. Ahora dicen
+«no entraron», sin causa. **No es una regresión: es la frase dejando de afirmar lo
+que no sabía.**
+
+Y el tipo del campo en `components/improvement/problems.ts` era una **copia literal**
+`{ comparados; afines }`: con el campo nuevo opcional, `tsc` no habría dicho nada.
+Ahora se importa.
+
+### Qué debe ver el director
+
+Con su corpus —tres afines, dos comparados, el tercero por criterio— y en un
+análisis **nuevo** (uno viejo sale por la fila 6):
+
+> Se compararon 2 de los 3 documentos afines a éste. El otro se revisó y no se seleccionó para esta comparación.
+
+seguida de la nota de reanálisis, que no cambia. Si esta vez el modelo elige los
+tres, sale la fila 1. **Contadores que lo confirman**: `descartados_por_criterio =
+1`, `cortados_por_tope = 0`, `con_id_no_reconocido = 0`.
+
+### Predicción y mutaciones
+
+- **Pruebas: predije +13 en la batería del aviso, salieron +7** (21 → 28). **Fallada,
+  por arriba.**
+
+| Mutación | En rojo |
+|---|---|
+| la frase del criterio pasa a ser la del tope (filas 3 y 4) — predije ≥3 | 5 |
+| la caída parcial vuelve entera a la fila 6 (fila 5) — predije ≥2 | 4 |
+
+Los dos conjuntos no se tocan: cada mutación mata casos distintos.

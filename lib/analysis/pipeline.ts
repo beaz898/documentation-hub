@@ -1052,7 +1052,9 @@ async function runCorePipeline(
   // hacerlo después los perdería en el caso corriente.
   // B.244 paso 2 — contra cuántos se comparó, de los afines que hubo. Se mide
    // aquí y no en el aviso: la pantalla pinta, no cuenta.
-  const cobertura = { comparados: reranked.length, afines: candidates.length };
+  // §5.71 — y POR DÓNDE se fueron los que no entraron: sin el reparto, el aviso
+  // no puede decir la causa, y no la dice.
+  const cobertura = { comparados: reranked.length, afines: candidates.length, reparto };
   const finalSinCobertura = withCounters(synthesized, counters);
 
   // F-74 P2: EL ALCANCE DECLARADO. Se funde DESPUÉS del return de synthesize —

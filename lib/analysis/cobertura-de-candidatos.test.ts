@@ -1,162 +1,252 @@
 import { describe, it, expect } from 'vitest';
-import { resumirCobertura } from './cobertura-de-candidatos';
+import { resumirCobertura, textoDeCobertura, type CoberturaDeCandidatos } from './cobertura-de-candidatos';
+import type { RepartoDelRerank } from './reparto-del-rerank';
 
-describe('⚠️ EL CASO DECISIVO: si se descartan candidatos, el aviso APARECE', () => {
-  it('diez afines y seis comparados → hay resto, y el resto son cuatro', () => {
-    const r = resumirCobertura({ comparados: 6, afines: 10 });
-    expect(r).not.toBeNull();
-    expect(r!.hayResto).toBe(true);
-    expect(r!.comparados).toBe(6);
-    expect(r!.conMenorAfinidad).toBe(4);
-  });
+/**
+ * LA BATERÍA DEL AVISO, FILA POR FILA (§5.71). Cada fila de `textoDeCobertura`
+ * tiene aquí su caso con la frase EXACTA: si alguien la cambia, lo cambia a
+ * sabiendas. Y la fila 5 —la caída PARCIAL— tiene los suyos propios, porque es
+ * la decisión que alguien simplificará dentro de seis meses.
+ */
 
-  it('es la pasada REAL del 14/09 — nueve afines, tope de seis', () => {
-    const r = resumirCobertura({ comparados: 6, afines: 9 });
-    expect(r!.hayResto).toBe(true);
-    expect(r!.conMenorAfinidad).toBe(3);
-  });
+/** Reparto con modelo, con las cifras que importan al aviso. */
+function conModelo(
+  { tope = 0, criterio = 0, ids = 0 }: { tope?: number; criterio?: number; ids?: number },
+): RepartoDelRerank {
+  return {
+    origen: 'modelo',
+    recuperados: 0,
+    elegidosPorElModelo: 0,
+    descartadosPorCriterio: criterio,
+    cortadosPorTope: tope,
+    idsNoReconocidos: ids,
+    repetidos: 0,
+  };
+}
 
-  it('⚠️ UN SOLO documento fuera YA enciende el aviso — el borde es 1, no «unos cuantos»', () => {
-    const r = resumirCobertura({ comparados: 6, afines: 7 });
-    expect(r!.hayResto).toBe(true);
-    expect(r!.conMenorAfinidad).toBe(1);
-  });
-});
+const FALLBACK: RepartoDelRerank = { origen: 'fallback', recuperados: 0, seleccionadosPorScore: 0 };
 
-describe('cuándo NO hay resto — y el dato sigue calculado', () => {
-  it('todos los afines se compararon: no hay resto', () => {
-    const r = resumirCobertura({ comparados: 4, afines: 4 });
-    expect(r).not.toBeNull();
-    expect(r!.hayResto).toBe(false);
-    expect(r!.conMenorAfinidad).toBe(0);
-  });
-
-  it('⚠️ PERO LA FRASE SIGUE AHÍ, con `comparados` — es la decisión que el director tiene pendiente', () => {
-    // Enseñar «se compararon los N documentos afines» cuando no queda ninguno
-    // fuera es lo único que se vería hoy en el corpus del director. La lógica
-    // ya lo calcula; la condición de pintarlo vive en el componente.
-    const r = resumirCobertura({ comparados: 2, afines: 2 });
-    expect(r!.comparados).toBe(2);
-    expect(r!.hayResto).toBe(false);
-  });
-
-  it('el caso de HOY en el corpus del director: uno o dos candidatos, sin resto', () => {
-    expect(resumirCobertura({ comparados: 1, afines: 1 })!.hayResto).toBe(false);
-    expect(resumirCobertura({ comparados: 2, afines: 2 })!.hayResto).toBe(false);
-  });
-});
-
-describe('cuándo se calla del todo, y por qué callar es lo correcto', () => {
-  it('sin dato no se inventa un cero — los análisis viejos no traen cobertura', () => {
-    expect(resumirCobertura(undefined)).toBeNull();
-  });
-
-  it('cero comparados: de eso ya habla el propio resultado, no un aviso de alcance', () => {
-    expect(resumirCobertura({ comparados: 0, afines: 0 })).toBeNull();
-    expect(resumirCobertura({ comparados: 0, afines: 8 })).toBeNull();
-  });
-
-  it('un comparados negativo es un dato roto, no un aviso', () => {
-    expect(resumirCobertura({ comparados: -1, afines: 5 })).toBeNull();
-  });
-
-  it('NaN e Infinity no producen una frase con un número imposible dentro', () => {
-    expect(resumirCobertura({ comparados: NaN, afines: 5 })).toBeNull();
-    expect(resumirCobertura({ comparados: 3, afines: NaN })).toBeNull();
-    expect(resumirCobertura({ comparados: Infinity, afines: 5 })).toBeNull();
-  });
-});
-
-describe('el resto nunca es negativo', () => {
-  it('si afines fuera menor que comparados, el resto vale 0 y no «-3»', () => {
-    // No puede pasar hoy —afines es lo que recuperó el retrieval y comparados
-    // lo que llegó al juez— pero dejaría de ser cierto si alguien reordena las
-    // etapas, y entonces el aviso diría una barbaridad en pantalla.
-    const r = resumirCobertura({ comparados: 8, afines: 5 });
-    expect(r!.conMenorAfinidad).toBe(0);
-    expect(r!.hayResto).toBe(false);
-  });
-});
-
-describe('no se toca lo que le pasan', () => {
-  it('la entrada sigue igual después de resumir', () => {
-    const entrada = { comparados: 6, afines: 10 };
-    resumirCobertura(entrada);
-    expect(entrada).toEqual({ comparados: 6, afines: 10 });
-  });
-});
-
-// ════════════════════════════════════════════════════════════════════════
-// LA REDACCIÓN, bajo prueba — desde que el aviso sale SIEMPRE (16/09/2026).
-// El caso SIN RESTO no es el mismo texto con un cero, y por eso tiene sus
-// propios casos: si alguien lo unifica, aquí se pone rojo.
-// ════════════════════════════════════════════════════════════════════════
-
-import { textoDeCobertura } from './cobertura-de-candidatos';
-
-function texto(comparados: number, afines: number): string {
-  const f = resumirCobertura({ comparados, afines });
-  if (f === null) throw new Error('no deberia ser null en estos casos');
+function texto(cobertura: CoberturaDeCandidatos): string {
+  const f = resumirCobertura(cobertura);
+  if (f === null) throw new Error('no debería ser null en estos casos');
   return textoDeCobertura(f);
 }
 
-describe('⚠️ SIN RESTO: la frase tiene que decir que esos eran TODOS', () => {
-  it('el caso de hoy en el corpus del director: dos y no hay mas', () => {
-    expect(texto(2, 2)).toBe(
+// ── FILA 1 · sin resto — NO CAMBIA, está en producción y funciona ─────────
+
+describe('fila 1 · SIN RESTO: la frase dice que esos eran TODOS', () => {
+  it('dos y no hay más', () => {
+    expect(texto({ comparados: 2, afines: 2 })).toBe(
       'Se compararon los 2 documentos afines a éste, que eran todos los que había.',
     );
   });
 
-  it('⚠️ NO se lee como si hubiera mas y no se dijera cuantos', () => {
-    // La frase prohibida: «Se compararon los 2 documentos más afines a éste.»
-    // a secas. Si alguien vuelve a ella, este caso cae.
-    expect(texto(2, 2)).toContain('todos los que había');
-    expect(texto(2, 2)).not.toContain('más afines');
-    expect(texto(2, 2)).not.toContain('menor afinidad');
-  });
-
-  it('uno solo lleva SINGULAR — «los 1 documentos» mata la credibilidad del aviso', () => {
-    expect(texto(1, 1)).toBe(
+  it('uno solo lleva SINGULAR', () => {
+    expect(texto({ comparados: 1, afines: 1 })).toBe(
       'Se comparó con el único documento afín a éste que hay en tu corpus.',
     );
-    expect(texto(1, 1)).not.toContain('los 1');
   });
 
-  it('con seis y sin resto sigue diciendo que eran todos', () => {
-    expect(texto(6, 6)).toContain('todos los que había');
+  it('con reparto también: sin resto no hay causa que decir', () => {
+    expect(texto({ comparados: 3, afines: 3, reparto: conModelo({}) })).toContain('todos los que había');
   });
 });
 
-describe('CON RESTO: se compararon los más afines, y los otros tienen menos', () => {
-  it('la pasada real del 14/09: seis de nueve', () => {
-    expect(texto(6, 9)).toBe(
-      'Se compararon los 6 documentos más afines a éste. ' +
-      'Otros 3 tienen menor afinidad con este documento y no entraron en la comparación.',
+// ── FILA 2 · sólo tope ────────────────────────────────────────────────────
+
+describe('fila 2 · SÓLO TOPE: priorizó, y los otros no cupieron', () => {
+  it('seis de nueve, tres cortados por el tope', () => {
+    expect(texto({ comparados: 6, afines: 9, reparto: conModelo({ tope: 3 }) })).toBe(
+      'Se compararon los 6 que el análisis priorizó de los 9 afines a éste. ' +
+      'Otros 3 también se eligieron, con menor prioridad, y no cupieron.',
     );
   });
 
-  it('nunca dice «no se tuvieron en cuenta» — eso insinua descuido donde hubo ranking', () => {
-    expect(texto(6, 10)).not.toContain('no se tuvieron en cuenta');
-    expect(texto(6, 10)).toContain('menor afinidad');
+  it('uno cortado va en singular', () => {
+    expect(texto({ comparados: 6, afines: 7, reparto: conModelo({ tope: 1 }) })).toBe(
+      'Se compararon los 6 que el análisis priorizó de los 7 afines a éste. ' +
+      'Otro también se eligió, con menor prioridad, y no cupo.',
+    );
   });
 
-  it('un solo documento fuera va en SINGULAR', () => {
-    expect(texto(6, 7)).toContain('Otro tiene menor afinidad');
-    expect(texto(6, 7)).not.toContain('Otros 1');
-  });
-
-  it('un solo comparado y varios fuera: singular por delante, plural por detras', () => {
-    const t = texto(1, 4);
-    expect(t).toContain('Se comparó con el documento más afín a éste.');
-    expect(t).toContain('Otros 3 tienen menor afinidad');
+  it('⚠️ YA NO DICE «más afines» NI «menor afinidad»: el corte ordena por confianza, no por parecido', () => {
+    const t = texto({ comparados: 6, afines: 9, reparto: conModelo({ tope: 3 }) });
+    expect(t).not.toContain('más afines');
+    expect(t).not.toContain('menor afinidad');
   });
 });
 
-describe('las dos frases NO son la misma con un numero distinto', () => {
-  it('sin resto y con resto dicen cosas distintas, no variantes del mismo molde', () => {
-    expect(texto(2, 2)).not.toEqual(texto(2, 5));
-    // Y la diferencia no es cosmetica: una cierra el conjunto y la otra lo abre.
-    expect(texto(2, 2)).toContain('todos');
-    expect(texto(2, 5)).toContain('no entraron');
+// ── FILA 3 · sólo criterio — EL CASO DEL DIRECTOR ────────────────────────
+
+describe('fila 3 · SÓLO CRITERIO: se revisó y no se seleccionó', () => {
+  it('⚠️ SU CORPUS: tres afines, dos comparados, el tercero por criterio', () => {
+    expect(texto({ comparados: 2, afines: 3, reparto: conModelo({ criterio: 1 }) })).toBe(
+      'Se compararon 2 de los 3 documentos afines a éste. ' +
+      'El otro se revisó y no se seleccionó para esta comparación.',
+    );
+  });
+
+  it('CLI-05 del 14/09: diez afines, cinco comparados, cinco por criterio', () => {
+    expect(texto({ comparados: 5, afines: 10, reparto: conModelo({ criterio: 5 }) })).toBe(
+      'Se compararon 5 de los 10 documentos afines a éste. ' +
+      'Los otros 5 se revisaron y no se seleccionaron para esta comparación.',
+    );
+  });
+
+  it('⚠️ NO juzga el documento: nada de «contenido comparable» ni de afinidad', () => {
+    const t = texto({ comparados: 2, afines: 3, reparto: conModelo({ criterio: 1 }) });
+    expect(t).not.toContain('comparable');
+    expect(t).not.toContain('afinidad');
+    expect(t).not.toContain('priorizó');
+  });
+
+  it('un solo comparado en singular', () => {
+    expect(texto({ comparados: 1, afines: 4, reparto: conModelo({ criterio: 3 }) })).toBe(
+      'Se comparó con 1 de los 4 documentos afines a éste. ' +
+      'Los otros 3 se revisaron y no se seleccionaron para esta comparación.',
+    );
+  });
+});
+
+// ── FILA 4 · mixto ────────────────────────────────────────────────────────
+
+describe('fila 4 · MIXTO: las dos causas, desglosadas', () => {
+  it('seis de diez: tres por tope y uno por criterio', () => {
+    expect(texto({ comparados: 6, afines: 10, reparto: conModelo({ tope: 3, criterio: 1 }) })).toBe(
+      'Se compararon los 6 que el análisis priorizó de los 10 afines a éste. ' +
+      'De los otros 4, 3 también se eligieron, con menor prioridad, y no cupieron; 1 se revisó y no se seleccionó.',
+    );
+  });
+
+  it('singular por un lado y plural por el otro', () => {
+    expect(texto({ comparados: 6, afines: 9, reparto: conModelo({ tope: 1, criterio: 2 }) })).toBe(
+      'Se compararon los 6 que el análisis priorizó de los 9 afines a éste. ' +
+      'De los otros 3, 1 también se eligió, con menor prioridad, y no cupo; 2 se revisaron y no se seleccionaron.',
+    );
+  });
+});
+
+// ── FILA 5 · la caída PARCIAL — la decisión que alguien simplificará ────
+
+describe('⚠️ fila 5 · CAÍDA PARCIAL: el tope se sigue explicando, y sólo se calla el criterio', () => {
+  it('ids no reconocidos: tres por tope se explican, el resto va sin causa', () => {
+    expect(texto({ comparados: 6, afines: 10, reparto: conModelo({ tope: 3, criterio: 1, ids: 1 }) })).toBe(
+      'Se compararon los 6 que el análisis priorizó de los 10 afines a éste. ' +
+      'Otros 3 también se eligieron, con menor prioridad, y no cupieron. Otro más tampoco entró.',
+    );
+  });
+
+  it('⚠️ SI CAYERA ENTERA a la fila 6, se perdería la parte del tope — y aquí cae', () => {
+    const t = texto({ comparados: 6, afines: 11, reparto: conModelo({ tope: 3, criterio: 2, ids: 1 }) });
+    expect(t).toContain('no cupieron');
+    expect(t).toContain('Otros 2 más tampoco entraron.');
+    expect(t).not.toContain('se revisaron');
+  });
+
+  it('un reparto que NO CUADRA con la cobertura tampoco respalda el criterio', () => {
+    // tope 2 + criterio 5 = 7, pero fuera hay 4: el criterio no describe esto.
+    expect(texto({ comparados: 6, afines: 10, reparto: conModelo({ tope: 2, criterio: 5 }) })).toBe(
+      'Se compararon los 6 que el análisis priorizó de los 10 afines a éste. ' +
+      'Otros 2 también se eligieron, con menor prioridad, y no cupieron. Otros 2 más tampoco entraron.',
+    );
+  });
+
+  it('con ids no reconocidos pero TODO lo de fuera explicado por el tope, es la fila 2', () => {
+    expect(texto({ comparados: 6, afines: 9, reparto: conModelo({ tope: 3, ids: 2 }) })).toBe(
+      'Se compararon los 6 que el análisis priorizó de los 9 afines a éste. ' +
+      'Otros 3 también se eligieron, con menor prioridad, y no cupieron.',
+    );
+  });
+});
+
+// ── FILA 6 · sin causa ────────────────────────────────────────────────────
+
+describe('fila 6 · SIN CAUSA: dice qué pasó y nada más', () => {
+  it('⚠️ ANÁLISIS VIEJO sin reparto: deja de afirmar «menor afinidad»', () => {
+    expect(texto({ comparados: 6, afines: 9 })).toBe(
+      'Se compararon 6 de los 9 documentos afines a éste. Los otros 3 no entraron en esta comparación.',
+    );
+  });
+
+  it('fallback del rerank: no hubo criterio que decir', () => {
+    expect(texto({ comparados: 3, afines: 8, reparto: FALLBACK })).toBe(
+      'Se compararon 3 de los 8 documentos afines a éste. Los otros 5 no entraron en esta comparación.',
+    );
+  });
+
+  it('ids no reconocidos y sin tope: nada que explicar', () => {
+    expect(texto({ comparados: 2, afines: 3, reparto: conModelo({ criterio: 1, ids: 1 }) })).toBe(
+      'Se compararon 2 de los 3 documentos afines a éste. El otro no entró en esta comparación.',
+    );
+  });
+
+  it('un tope que no cabe en lo que falta no se cree', () => {
+    expect(texto({ comparados: 6, afines: 8, reparto: conModelo({ tope: 5, ids: 1 }) })).toBe(
+      'Se compararon 6 de los 8 documentos afines a éste. Los otros 2 no entraron en esta comparación.',
+    );
+  });
+});
+
+// ── EL RESUMEN: formas y bordes ───────────────────────────────────────────
+
+describe('resumirCobertura — qué forma sale', () => {
+  it('las tres formas, cada una con su caso', () => {
+    expect(resumirCobertura({ comparados: 2, afines: 2 })!.fuera).toEqual({ forma: 'sin_resto' });
+    expect(resumirCobertura({ comparados: 2, afines: 3, reparto: conModelo({ criterio: 1 }) })!.fuera)
+      .toEqual({ forma: 'causas', porTope: 0, porCriterio: 1 });
+    expect(resumirCobertura({ comparados: 2, afines: 3 })!.fuera)
+      .toEqual({ forma: 'parcial', porTope: 0, sinCausa: 1 });
+  });
+
+  it('el total de fuera nunca es negativo', () => {
+    const r = resumirCobertura({ comparados: 8, afines: 5 });
+    expect(r!.totalFuera).toBe(0);
+    expect(r!.fuera).toEqual({ forma: 'sin_resto' });
+  });
+});
+
+describe('cuándo se calla del todo', () => {
+  it('sin dato no se inventa un cero', () => {
+    expect(resumirCobertura(undefined)).toBeNull();
+  });
+
+  it('cero comparados: de eso ya habla el resultado', () => {
+    expect(resumirCobertura({ comparados: 0, afines: 0 })).toBeNull();
+    expect(resumirCobertura({ comparados: 0, afines: 8 })).toBeNull();
+  });
+
+  it('un comparados negativo es un dato roto', () => {
+    expect(resumirCobertura({ comparados: -1, afines: 5 })).toBeNull();
+  });
+
+  it('NaN e Infinity no producen una frase con un número imposible', () => {
+    expect(resumirCobertura({ comparados: NaN, afines: 5 })).toBeNull();
+    expect(resumirCobertura({ comparados: 3, afines: NaN })).toBeNull();
+    expect(resumirCobertura({ comparados: Infinity, afines: 5 })).toBeNull();
+  });
+
+  it('no toca lo que le pasan', () => {
+    const entrada = { comparados: 6, afines: 10, reparto: conModelo({ tope: 4 }) };
+    const copia = JSON.parse(JSON.stringify(entrada));
+    resumirCobertura(entrada);
+    expect(entrada).toEqual(copia);
+  });
+});
+
+describe('ninguna frase afirma «más afines» ni «menor afinidad», en ninguna fila', () => {
+  it('recorrido por las seis', () => {
+    const casos: CoberturaDeCandidatos[] = [
+      { comparados: 2, afines: 2 },
+      { comparados: 6, afines: 9, reparto: conModelo({ tope: 3 }) },
+      { comparados: 2, afines: 3, reparto: conModelo({ criterio: 1 }) },
+      { comparados: 6, afines: 10, reparto: conModelo({ tope: 3, criterio: 1 }) },
+      { comparados: 6, afines: 10, reparto: conModelo({ tope: 3, criterio: 1, ids: 1 }) },
+      { comparados: 6, afines: 9 },
+    ];
+    for (const c of casos) {
+      const t = texto(c);
+      expect(t).not.toContain('más afines');
+      expect(t).not.toContain('menor afinidad');
+    }
   });
 });

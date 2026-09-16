@@ -15,9 +15,10 @@ import { resumirCobertura, textoDeCobertura, type CoberturaDeCandidatos } from '
  *
  * ⚠️ Y POR QUÉ NO COMPARTEN COLOR. Dicen cosas de distinta especie:
  *
- *   · **Documentos** — comportamiento NORMAL. Se comparó contra los más afines
- *     porque así funciona cualquier recuperación. No es un límite que lamentar,
- *     es cómo está hecho. Va en tono informativo.
+ *   · **Documentos** — comportamiento NORMAL. Se comparó contra los que el
+ *     análisis priorizó —por confianza del modelo, y luego por parecido; no
+ *     «los más afines», que no siempre es verdad (§5.71)—. No es un límite que
+ *     lamentar, es cómo está hecho. Va en tono informativo.
  *   · **Filas** — un límite REAL. Esas filas no las miró nadie por presupuesto
  *     de prompt. Va en tono de aviso, que es el que ya tenía.
  *
