@@ -3407,6 +3407,14 @@ análisis**, y hoy lo que ve es el 5 % del corpus. Nadie lo había enunciado as�
 
 ## ⚠️ 5.46 · B.246 — el resumen de tabla embebe más plantilla que datos (16/09/2026)
 
+> ⚠️ **FALSADA EN SU FORMA ACTUAL EL MISMO DÍA — ver 5.48.** Nació porque dos hojas
+> de cálculo de temas ajenos salían a 0,972, y la plantilla parecía la causa. No lo
+> es: `MKT-01` y `NOR-10` son **prosa**, no comparten ninguna plantilla, y salen a
+> 0,881. El suelo del corpus entero es ~0,79. **La causa no es la plantilla: es que
+> el umbral de 0,50 no descarta nada.** Lo que sobrevive de esta ficha es la
+> observación sobre `chunking.ts:882-884` —los ~52 caracteres de frase hecha siguen
+> ahí y siguen siendo mejorables— **sin su papel explicativo**.
+
 **Sospecha del director, y tiene línea:**
 
     lib/chunking.ts:846      const prefix = `[Hoja "${sheetName}"]`;
@@ -3517,3 +3525,177 @@ silencio (B.244).
 ⚠️ **Para A5 y A6 en concreto**: se midieron sobre un corpus efectivo de uno o dos
 documentos, no de 42. No son falsas —el par sembrado salió por el camino correcto—
 pero **su alcance es el de un par, no el de un corpus**, y así hay que enunciarlas.
+
+---
+
+## ⚠️ 5.48 · B.248 — el 0,50 no descarta nada, y el comentario que lo acompaña afirma una calibración que los datos desmienten (16/09/2026)
+
+**Origen**: lectura del arquitecto **sobre los documentos reales**, que el director
+le pasó. Es la primera afirmación de esta serie hecha por quien podía hacerla —ver
+la regla del reparto en `CLAUDE.md`— y por eso entra como dato y no como hipótesis.
+
+### Lo medido
+
+`MKT-01` (identidad corporativa, 3.163 caracteres: logotipo, colores, tipografía,
+uniformes, señalética) y `NOR-10` (esterilización, 61.148 caracteres: limpieza,
+desinfección, autoclaves, trazabilidad). `NOR-10` **no menciona ni una vez**
+logotipo, marca, identidad, corporativo ni Marketing; «uniforme» aparece **1 vez en
+61.000 caracteres**. Lo único común es el vocabulario de la empresa: Dentavia, las
+tres clínicas, Dirección de Operaciones, Coordinador de Calidad.
+
+**El censo los da a 0,881.** Y en las 42 filas **el mínimo entre cualquier par es
+~0,79**.
+
+> **Con un umbral de 0,50, todo documento es vecino de todo documento. El umbral no
+> descarta nada: está a 0,29 de la decisión más cercana que podría tomar.**
+
+### ⚠️ LO QUE ESTA FICHA NO DICE, Y ES LA MITAD IMPORTANTE
+
+**No dice que el modelo sea malo.** `multilingual-e5` comprime las similitudes en la
+franja alta **por diseño**; 0,88 entre dos documentos de la misma empresa, con su
+mismo vocabulario y sus mismos nombres propios, es comportamiento **esperable**, no
+una avería.
+
+**Tampoco dice que las mediciones estén mal.** Ver el bloque final.
+
+**Lo que está sin calibrar es el 0,50**, un número elegido sin medirlo contra este
+modelo.
+
+### El agravante: el código afirma la calibración que no hubo
+
+    lib/analysis/retrieval.ts:100-108
+    /** Umbral mínimo de similitud.
+     *  Rápido: 0.50 — calibrado para chunks de ~500 caracteres …
+     *  No subir a ciegas sin volver a medir con el troceado actual. */
+
+El comentario **dice «calibrado»**, y el censo enseña que ningún par baja de 0,79.
+Un umbral calibrado contra estos datos no estaría donde no corta nunca.
+
+⚠️ **Y el aviso apunta al lado contrario del problema**: advierte de *no subir* el
+umbral a ciegas. El instinto era bueno —no tocar sin medir— pero el riesgo real no
+era pasarse de alto: era estar tan bajo que el parámetro no existe. **Una nota que
+protege un número inerte lo hace parecer decidido.**
+
+### Lo que sobrevive de la ficha anterior y lo que no
+
+**FALSADA en su forma actual.** La plantilla de tablas no es la causa: `MKT-01` y
+`NOR-10` son **prosa** y no comparten ninguna.
+
+**Sobrevive la observación, sin su papel explicativo**: `chunking.ts:882-884` sigue
+metiendo ~52 caracteres de frase hecha en cada resumen de tabla, y eso sigue siendo
+mejorable. **Deja de ser la explicación de los scores altos** y pasa a ser un
+detalle menor dentro de B.248.
+
+⚠️ **Y el reparto por clase del censo sigue mereciendo una ejecución**, ahora para
+otra pregunta: no «¿es la plantilla?» —ya sabemos que no basta— sino **cuánto
+aporta encima de un suelo que ya es 0,79**.
+
+### Lo que haría falta para calibrarlo, y NO se hace aquí
+
+El encargo dice que no se toque el umbral, y es lo correcto: cambiarlo sin medir
+sería repetir exactamente el error que esta ficha describe.
+
+⚠️ **Y el dato de calibración ya existe**: las 42×41 puntuaciones de pareja del
+censo **son** el conjunto de calibración. No hay que fabricar nada — hay que mirar
+la distribución y decidir con ella delante, que es lo que no se hizo la primera vez.
+
+---
+
+## ⚠️ 5.49 · EL ARGUMENTO COMPLETO DEL CORTE MUDO — amplía 5.42 (16/09/2026)
+
+**La lectura del director, que es la buena y por eso va literal**: no se descarta
+nada, todo entra como posible, y a posteriori se decide. **Es una arquitectura
+defendible** —red ancha delante, juicio fino detrás— y el juez **sí** discrimina:
+0 % de solapamiento con `CLI-05`, 95 % con `OPE-11`, contradicciones reales.
+
+**Lo que rompe ese diseño no es la red ancha: es el corte de 6.**
+
+### Dónde está, exactamente
+
+    lib/analysis/rerank.ts:89    callLLMJson(prompt …)        ← el modelo LEE los 25 y JUZGA
+    lib/analysis/rerank.ts:92-104 selected.push({ … rerankReason, rerankConfidence })
+    lib/analysis/rerank.ts:105   return selected.slice(0, maxSelected);   ← el corte
+
+**El corte está DESPUÉS del razonamiento.** Un candidato que el modelo ha leído, ha
+juzgado digno, y para el que ha **escrito una razón y una confianza**, lo tira una
+operación aritmética que no lee ni la razón ni la confianza.
+
+### ⚠️ Y es peor que truncar: trunca EN EL ORDEN EN QUE EL MODELO LOS ESCUPIÓ
+
+`selected` se llena recorriendo `response.selected` tal cual. **No hay ningún
+`sort`.** Así que `slice(0, 6)` se queda con los seis **primeros que el modelo
+enumeró**, no con los seis de mayor confianza. Si el modelo listó una `baja` antes
+que una `alta`, entra la `baja`.
+
+    grep -rn "rerankConfidence" lib/ app/ components/ --include=*.ts --include=*.tsx
+
+Tres apariciones: **dos escrituras** (`rerank.ts:101`, `:118`) y **una declaración
+de tipo** (`types.ts:49`). **Ni un solo lector.** El campo que podría ordenar el
+corte es un sello sin lector, del patrón que esta casa ya tiene fichado.
+
+### 3 · QUÉ SE PAGA POR LOS QUE SE TIRAN — medido
+
+**Entre recuperar y rerankear NO hay ninguna llamada a modelo.** Lo que hay es
+trabajo determinista para **todos** los candidatos: `getChunksForDocuments` (una
+lectura a Supabase dimensionada a los 25), `buildUnits`, `countCrossings`,
+`selectUnitsWithinBudget` y los solapamientos estructurales. Cuesta tiempo del
+presupuesto de la función, no dinero.
+
+**El que cuesta dinero es el propio rerank, y paga por los 25:**
+
+| Pieza | Valor | Dónde |
+|---|---|---|
+| presupuesto de fragmentos por candidato | **3.000 caracteres** | `retrieval.ts:92` |
+| recorte por fragmento en el prompt | 300 caracteres | `rerank.ts:43` |
+| candidatos en el prompt | **todos**, no los seleccionados | `rerank.ts:41-45` |
+| modelo | **Haiku** (por defecto) | `anthropic-client.ts:89` |
+
+Con 25 candidatos, el bloque de candidatos llega a **~75.000 caracteres** de entrada
+—más la muestra de 3.000 del documento nuevo— en cada análisis.
+
+⚠️ **Y AQUÍ VA LA DISTINCIÓN QUE NO SE PUEDE SALTAR, porque cambia el veredicto:**
+
+**Leer los 25 NO es trabajo tirado. Leerlos ES el juicio.** El rerank no puede
+descartar un candidato sin mirarlo; esa entrada está bien pagada.
+
+**Lo tirado es otra cosa, y es más caro por token**: de los que el modelo **sí
+seleccionó**, los que caen por el `slice` se llevan consigo una `reason` y una
+`confidence` **que el modelo escribió**. Eso son **tokens de salida** —el lado caro—
+generados, cobrados y descartados sin que nadie los lea.
+
+> **Si el modelo selecciona 12 y el tope deja 6, se han pagado seis juicios
+> escritos para tirarlos, y además se ha perdido lo que decían.**
+
+Cuánto es «12» en la práctica no lo sabemos todavía: es el `seleccionados` de
+`pipeline_counters` antes del corte, y **el corte ocurre antes de contar**
+(`pipeline.ts:766` cuenta `reranked.length`, o sea el resultado YA cortado). **El
+número de juicios tirados no se puede saber hoy con lo persistido.** Es el mismo
+agujero de B.244 visto desde la contabilidad.
+
+### Gravedad, con la forma corregida
+
+No es «el sistema miente» todavía, porque hoy el filtro de corpus recorta antes
+(B.245). **Es que el diseño que el director describe —red ancha, juicio fino— está
+desactivado por un `slice`**, y se activará del todo el día que el corpus sea
+elegible.
+
+---
+
+## ✅ 5.50 · LO QUE NO CAMBIA, y va escrito para que nadie lea lo anterior como «hay que rehacerlo todo» (16/09/2026)
+
+**Las mediciones de estos días siguen valiendo. Cuando el sistema encuentra algo, lo
+encuentra bien.**
+
+- El par sembrado salió **siempre**, y por el camino correcto.
+- El juez **discrimina**: 0 % con `CLI-05`, 95 % con `OPE-11`, contradicciones
+  reales y verificadas contra el texto.
+- Los controles positivos hicieron su trabajo: `OPE-10` × `OPE-15` **se parecen de
+  verdad** —nueve columnas idénticas y el mismo dominio—, así que el método sabe
+  distinguir cuando hay algo que distinguir.
+- Nada de lo encontrado era falso. Lo que está en cuestión es **el alcance de la
+  búsqueda**, no la calidad de los hallazgos.
+
+**Las tres fichas abiertas dicen dónde NO se ha mirado, no que lo mirado esté mal**:
+B.245 (el filtro recortaba a 1-2), B.248 (el umbral no recorta nada) y B.244 (el
+corte tira lo ya juzgado). Es la regla de la casa: *la curva de gravedad no describe
+el sistema, describe dónde se ha mirado.*
