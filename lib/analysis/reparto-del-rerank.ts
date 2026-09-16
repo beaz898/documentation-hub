@@ -53,7 +53,7 @@ export interface ConId {
 
 export interface SeleccionResuelta<C extends ConId, E extends EntradaDelModelo> {
   /** Un par por candidato elegido, SIN repetidos, en el orden en que el
-   *  modelo los nombró por primera vez. */
+   *  modelo los nombró por primera vez — con la entrada que ganó. */
   resueltos: Array<{ candidato: C; entrada: E }>;
   idsNoReconocidos: number;
   repetidos: number;
@@ -65,21 +65,32 @@ export interface SeleccionResuelta<C extends ConId, E extends EntradaDelModelo> 
  * vuelve a resolver los ids en otro sitio, las dos cuentas se separarán igual
  * que se separaron la primera vez.
  *
- * ⚠️ SE QUEDA CON LA PRIMERA APARICIÓN y descarta las siguientes. La primera,
- * y no la de mayor confianza, porque no hay un criterio que haga una mejor que
- * otra: son el mismo documento nombrado dos veces. Lo que importa es que entre
- * UNA vez.
+ * ⚠️ ENTRE DOS ENTRADAS DEL MISMO DOCUMENTO GANA LA DE MAYOR RANGO, y a igual
+ * rango la PRIMERA. Hasta el 16/09/2026 (B.255) ganaba siempre la primera, con
+ * este comentario: «no hay un criterio que haga una mejor que otra: son el
+ * mismo documento nombrado dos veces». **Era un juicio de inocuidad emitido sin
+ * abrir a quien lee la entrada**: `ordenarParaCortar` ordena por su confianza.
+ * Con [A baja, …, A alta] y el tope cortando, A se quedaba FUERA, cuando antes
+ * del arreglo de B.253 entraba. Y se escribió con la ficha del patrón
+ * (F-107 P2) ya en `CLAUDE.md`.
+ *
+ * `rangoDeEntrada` es OBLIGATORIO y viene de fuera a propósito: la escala es
+ * la del corte (`rangoDeConfianza`, orden-del-rerank.ts), no una segunda
+ * escala escrita aquí.
  */
 export function resolverSeleccion<C extends ConId, E extends EntradaDelModelo>(
   candidatos: C[],
   entradas: E[],
+  rangoDeEntrada: (entrada: E) => number,
 ): SeleccionResuelta<C, E> {
   const porId = new Map<string, C>();
   for (const c of candidatos) {
     if (!porId.has(c.documentId)) porId.set(c.documentId, c);
   }
 
-  const vistos = new Set<string>();
+  // documentId → posición en `resueltos`. La posición es la de la PRIMERA
+  // aparición; lo que se puede sustituir es la entrada, no el sitio.
+  const posicion = new Map<string, number>();
   const resueltos: Array<{ candidato: C; entrada: E }> = [];
   let idsNoReconocidos = 0;
   let repetidos = 0;
@@ -90,11 +101,16 @@ export function resolverSeleccion<C extends ConId, E extends EntradaDelModelo>(
       idsNoReconocidos += 1;
       continue;
     }
-    if (vistos.has(candidato.documentId)) {
+    const ya = posicion.get(candidato.documentId);
+    if (ya !== undefined) {
       repetidos += 1;
+      // ESTRICTAMENTE mayor: a igual rango se queda la primera.
+      if (rangoDeEntrada(entrada) > rangoDeEntrada(resueltos[ya].entrada)) {
+        resueltos[ya] = { candidato, entrada };
+      }
       continue;
     }
-    vistos.add(candidato.documentId);
+    posicion.set(candidato.documentId, resueltos.length);
     resueltos.push({ candidato, entrada });
   }
 
@@ -104,9 +120,12 @@ export function resolverSeleccion<C extends ConId, E extends EntradaDelModelo>(
 /** El reparto cuando el modelo CONTESTÓ. */
 export interface RepartoConModelo {
   origen: 'modelo';
-  /** Lo que llegó del retrieval, sin repetidos. */
+  /** Lo que llegó del retrieval, sin repetidos.
+   *  ⚠️ SIN LECTOR EN PRODUCCIÓN (16/09/2026): sólo lo leen `elRepartoCuadra` y
+   *  las pruebas. Anotado, no retirado — ver §5.70. */
   recuperados: number;
-  /** Candidatos que el modelo nombró y supimos resolver, una vez cada uno. */
+  /** Candidatos que el modelo nombró y supimos resolver, una vez cada uno.
+   *  ⚠️ SIN LECTOR EN PRODUCCIÓN (16/09/2026), igual que `recuperados`. */
   elegidosPorElModelo: number;
   /** Candidatos que el modelo no nombró: los miró y no los quiso. */
   descartadosPorCriterio: number;
@@ -131,8 +150,10 @@ export interface RepartoConModelo {
  */
 export interface RepartoSinModelo {
   origen: 'fallback';
+  /** ⚠️ SIN LECTOR EN PRODUCCIÓN (16/09/2026). Anotado, no retirado. */
   recuperados: number;
-  /** Los que entraron por score de embedding, sin juicio de nadie. */
+  /** Los que entraron por score de embedding, sin juicio de nadie.
+   *  ⚠️ SIN LECTOR EN PRODUCCIÓN (16/09/2026). Anotado, no retirado. */
   seleccionadosPorScore: number;
 }
 
@@ -226,6 +247,8 @@ export function contadoresDelReparto(r: RepartoDelRerank): ContadoresDelReparto 
  * ⚠️ SÓLO ACEPTA EL REPARTO CON MODELO, y es la forma de declarar la
  * excepción: en el fallback la invariante no se cumple porque no hay criterio,
  * y el compilador obliga a quien quiera comprobarla a mirar antes `origen`.
+ *
+ * ⚠️ SIN LECTOR EN PRODUCCIÓN: sólo la llaman las pruebas (16/09/2026).
  */
 export function elRepartoCuadra(r: RepartoConModelo): boolean {
   return r.recuperados === r.descartadosPorCriterio + r.elegidosPorElModelo;

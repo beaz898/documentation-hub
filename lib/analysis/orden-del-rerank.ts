@@ -79,6 +79,16 @@ function mejorScore(c: RerankedCandidate): number {
 }
 
 /**
+ * EL RANGO DE UN NIVEL, para quien necesite comparar confianzas fuera del
+ * corte. Existe para que `resolverSeleccion` (reparto-del-rerank.ts), al elegir
+ * entre dos entradas del mismo documento, use ESTA escala y no una suya: un
+ * criterio, una vez.
+ */
+export function rangoDeConfianza(nivel: RerankedCandidate['rerankConfidence']): number {
+  return RANGO[nivel];
+}
+
+/**
  * NORMALIZA LO QUE VENGA DEL MODELO.
  *
  * Todo lo que no sea uno de los tres niveles conocidos —ausente, cadena vacía,

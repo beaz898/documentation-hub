@@ -1,6 +1,6 @@
 import { recordStageFailure } from './stage-failures';
 import { callLLMJson } from './llm-client';
-import { ordenarParaCortar, normalizarConfianza, contarSinConfianza } from './orden-del-rerank';
+import { ordenarParaCortar, normalizarConfianza, contarSinConfianza, rangoDeConfianza } from './orden-del-rerank';
 import { resolverSeleccion, repartoConModelo, repartoSinModelo, type RepartoDelRerank } from './reparto-del-rerank';
 import type { CandidateDocument, RerankedCandidate, PipelineOptions } from './types';
 
@@ -104,7 +104,13 @@ ${candidates.map((c, i) => `[${i + 1}] → ${c.documentId}`).join('\n')}`;
     // DOS plazas del tope —dejando fuera a otro documento— y el juez lo
     // comparaba dos veces, cobrándolo dos veces. Y el reparto, que resolvía los
     // ids por su cuenta, contaba dos elegidos donde el juez recibía tres.
-    const resolucion = resolverSeleccion(candidates, response.selected || []);
+    // Entre dos entradas del mismo documento gana la de más confianza, con la
+    // MISMA escala con la que luego se corta (B.255).
+    const resolucion = resolverSeleccion(
+      candidates,
+      response.selected || [],
+      entrada => rangoDeConfianza(normalizarConfianza(entrada.confidence)),
+    );
     const selected: RerankedCandidate[] = resolucion.resueltos.map(({ candidato, entrada }) => ({
       documentId: candidato.documentId,
       documentName: candidato.documentName,

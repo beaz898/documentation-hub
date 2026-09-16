@@ -24,7 +24,7 @@ const repartir = (
   maxSelected = 6,
 ): RepartoConModelo => {
   const candidatos = idsRecuperados.map(documentId => ({ documentId }));
-  const r = resolverSeleccion(candidatos, idsDevueltosPorElModelo.map(documentId => ({ documentId })));
+  const r = resolverSeleccion(candidatos, idsDevueltosPorElModelo.map(documentId => ({ documentId })), () => 0);
   return repartoConModelo({
     recuperados: new Set(idsRecuperados).size,
     elegidosPorElModelo: r.resueltos.length,
@@ -113,9 +113,67 @@ describe('repeticiones del modelo — un documento nombrado dos veces no vale po
     const r = resolverSeleccion(
       [{ documentId: 'a' }, { documentId: 'b' }],
       [{ documentId: 'b' }, { documentId: 'a' }, { documentId: 'b' }, { documentId: 'a' }],
+      () => 0,
     );
     expect(r.resueltos.map(x => x.candidato.documentId)).toEqual(['b', 'a']);
     expect(r.repetidos).toBe(2);
+  });
+});
+
+// ════════════════════════════════════════════════════════════════════════
+// B.255 — ENTRE DOS ENTRADAS DEL MISMO DOCUMENTO, GANA LA DE MÁS CONFIANZA.
+// Hasta el 16/09/2026 ganaba la primera, con un comentario que afirmaba que no
+// había criterio para elegir. Lo había: el corte ordena por esa confianza.
+// ════════════════════════════════════════════════════════════════════════
+
+describe('⚠️ B.255 — el repetido conserva su MEJOR valoración, no la primera', () => {
+  const rango = (e: { documentId: string; r: number }) => e.r;
+
+  it('[A baja, A alta] → se queda la ALTA', () => {
+    const r = resolverSeleccion(
+      [{ documentId: 'a' }],
+      [{ documentId: 'a', r: 1 }, { documentId: 'a', r: 3 }],
+      rango,
+    );
+    expect(r.resueltos).toHaveLength(1);
+    expect(r.resueltos[0].entrada.r).toBe(3);
+    expect(r.repetidos).toBe(1);
+  });
+
+  it('a IGUAL rango se queda la PRIMERA — si pasara a ganar la última, cae aquí', () => {
+    const r = resolverSeleccion(
+      [{ documentId: 'a' }],
+      [{ documentId: 'a', r: 2, orden: 'primera' }, { documentId: 'a', r: 2, orden: 'segunda' }],
+      rango,
+    );
+    expect(r.resueltos[0].entrada.orden).toBe('primera');
+  });
+
+  it('la posición es la de la primera aparición, aunque gane una entrada posterior', () => {
+    const r = resolverSeleccion(
+      [{ documentId: 'a' }, { documentId: 'b' }],
+      [{ documentId: 'a', r: 1 }, { documentId: 'b', r: 2 }, { documentId: 'a', r: 3 }],
+      rango,
+    );
+    expect(r.resueltos.map(x => x.candidato.documentId)).toEqual(['a', 'b']);
+    expect(r.resueltos[0].entrada.r).toBe(3);
+  });
+
+  it('⚠️ EL CASO DECISIVO, con el corte de verdad: A nombrado baja y luego alta NO se queda fuera del tope', async () => {
+    // Siete documentos, tope seis. A aparece primero con `baja` y al final con
+    // `alta`; los otros seis, con `media`. Quedándose con la primera, A es el
+    // único `baja` y el corte lo tira. Con la mejor, A entra y cae una `media`.
+    llamada.mockResolvedValue({
+      selected: [
+        { documentId: 'a', confidence: 'baja', reason: 'r' },
+        ...['b', 'c', 'd', 'e', 'f', 'g'].map(documentId => ({ documentId, confidence: 'media', reason: 'r' })),
+        { documentId: 'a', confidence: 'alta', reason: 'r' },
+      ],
+    });
+    const r = await rerank(['a', 'b', 'c', 'd', 'e', 'f', 'g'].map(id => candidato(id)));
+    expect(r.seleccionados).toHaveLength(6);
+    expect(r.seleccionados.map(c => c.documentId)).toContain('a');
+    expect(r.seleccionados.find(c => c.documentId === 'a')!.rerankConfidence).toBe('alta');
   });
 
   it('un candidato repetido en la entrada tampoco cuenta dos veces', () => {

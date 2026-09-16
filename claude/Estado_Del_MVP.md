@@ -4697,13 +4697,13 @@ detrás.
 
 ---
 
-## ⚠️ 5.69 · B.253 y B.254 — el reparto que iba a sostener el aviso tenía dos cifras falsas (16/09/2026)
+## ⚠️ 5.69 · El reparto que iba a sostener el aviso tenía dos cifras falsas (16/09/2026)
 
 Se paró antes de escribir el texto de la opción B. Escribirlo sobre estas cifras
 habría sido volver a afirmar una causa que el sistema no conoce, **con la ficha
 del patrón (§5.66) ya escrita**.
 
-### B.253 — el duplicado NO era un problema de cuentas
+### B.253 — el duplicado NO era un problema de cuentas (16/09/2026)
 
 Si el modelo devolvía `[A, A, B]`, `rerank.ts` resolvía cada entrada con `find`
 y **sin quitar repetidos**. Verificado en el código, no supuesto:
@@ -4727,7 +4727,7 @@ implementa una vez— rota en el commit que decía aplicarla.
 selección y el reparto. Repetidos fuera, contados en
 `seleccion.candidatos_repetidos_por_el_modelo`.
 
-### B.254 — en el fallback no hay criterio, y se guardaba uno
+### B.254 — en el fallback no hay criterio, y se guardaba uno (16/09/2026)
 
 Si el modelo falla, entran los tres primeros por score. El reparto calculaba
 igualmente `recuperados − 3` y lo guardaba en `descartados_por_criterio`, **de
@@ -4822,3 +4822,102 @@ construcción —es literalmente lo que hace el orden—, incluidos los empates.
 
 **Y la fila 6** —análisis viejos sin reparto— pasará a no decir la causa. Hoy la
 dicen sin saberla. Irá dicho en ese commit para que no parezca una regresión.
+
+---
+
+## ⚠️ 5.70 · El censo de lo retirado en `a3423ef2`: un juicio de inocuidad mío, una consulta que callaba y un verde que no era del árbol subido (16/09/2026)
+
+El director pidió comprobar que `a3423ef2` no deja nada funcionando peor ni
+caminos sin salida. Censo por capacidad —quién recibe la selección, quién lee la
+clave que puede faltar, quién escribe campos que nadie lee—, sólo lectura. No
+salió ningún camino sin salida ni nada que rompa. Salieron tres cosas.
+
+### B.255 — el repetido conservaba su PRIMERA valoración, no la mejor (16/09/2026)
+
+`a3423ef2` quitaba los repetidos quedándose con la primera aparición, con este
+comentario: **«no hay un criterio que haga una mejor que otra: son el mismo
+documento nombrado dos veces»**. Lo había. `ordenarParaCortar` ordena por la
+confianza de esa entrada: con `[A baja, …, A alta]` y el tope cortando, **A se
+quedaba fuera**, cuando antes de B.253 entraba.
+
+⚠️ **Es un juicio de inocuidad emitido sin abrir a quien lee la entrada**, con la
+regla de F-107 P2 ya en `CLAUDE.md` y después de tres días aplicándola a otros.
+La misma forma que el «residuo benigno» del 14/09: «da igual cuál» es una
+afirmación sobre TODOS los lectores de la entrada, y no abrí ninguno.
+
+**Arreglo**: gana la de mayor confianza, y a igual confianza la primera. La
+escala no se copia: `resolverSeleccion` recibe el rango desde fuera y `rerank.ts`
+le pasa `rangoDeConfianza`, la misma con la que corta.
+
+| Mutación | En rojo |
+|---|---|
+| gana siempre la primera (lo de antes) | 3 |
+| gana la última (`>=`) | 1 |
+| gana la de menor rango | 3 |
+| `rerank.ts` deja de pasar la confianza real (`() => 0`) | 1 |
+
+### `SQL_B253_repetidos.sql`, consulta 1 — callaba con forma de respuesta
+
+No leía `candidatos_repetidos_por_el_modelo`. En toda fila posterior a
+`a3423ef2` contestaba «sin repetición visible» **por construcción** —ya no pueden
+entrar—, mientras la respuesta estaba en un contador que no miraba. Y el director
+iba a ejecutarla. Corregida antes de ejecutarse: lo CONTADO va primero, lo
+deducido después, y cada veredicto dice cuál es. Se añaden la consulta 3 (las
+filas con criterio falso de B.254) y la 4 (si el worker corre código nuevo).
+
+### ⚠️ `a3423ef2` se subió con la suite en ROJO, y su mensaje dice lo contrario
+
+El mensaje afirma «Suite 1134/1134 en dos pasadas guardadas enteras». **Las dos
+pasadas existieron y dieron eso — sobre un árbol que no es el que se subió.** §5.69
+se escribió DESPUÉS de la primera y mientras corría la segunda, y declaraba B.253
+y B.254 dos veces cada una y sin fecha: **cuatro violaciones de forma**, techo 29,
+total 33. La primera pasada completa de hoy lo cazó: el `1 failed` de
+`invariantes-de-estado`, guardado entero.
+
+Es la regla de F-102 con otro objeto: **la cifra que se mide es la que se
+guarda**, y la suite que cité medía un árbol distinto del commit. La corrección de
+método: **las pasadas cuentan sólo si corren después de la última edición, sobre
+el árbol que se commitea** — incluidos los `.md`, que tienen batería.
+
+Producción no se vio afectada (Vercel no ejecuta la suite), pero `origin/main`
+estuvo en rojo desde `a3423ef2` hasta el commit de esta ficha.
+
+### Sellos sin lector — ANOTADOS, no retirados
+
+| Campo | Quién lo lee hoy |
+|---|---|
+| `RepartoConModelo.recuperados` | `elRepartoCuadra` y las pruebas |
+| `RepartoConModelo.elegidosPorElModelo` | `elRepartoCuadra` y las pruebas |
+| `RepartoSinModelo.recuperados` | nadie |
+| `RepartoSinModelo.seleccionadosPorScore` | nadie |
+| `elRepartoCuadra` | sólo las pruebas |
+| contador `candidatos_repetidos_por_el_modelo` | `SQL_B253`, consultas 1 y 4 (desde este commit) |
+
+Se anotan en el propio campo y no se retiran: `sufijoDeTotal` se declaró sin
+consumidor el 10/09 y volvió a hacer falta el 11 (`lib/subida/pertenencia.ts`).
+Retirar algo el día que pierde su último lector es retirarlo con la menor
+información.
+
+### La pregunta para el director, que sólo él puede contestar
+
+> **En el panel de Railway, servicio del worker: ¿la fecha del último despliegue
+> es posterior al push de este commit, y el commit que muestra es éste?**
+
+- **Sí** → los exhaustivos ya quitan repetidos (con la mejor confianza) y no
+  escriben criterio falso.
+- **No, o anterior a las 18:30** → **mientras tanto los exhaustivos siguen
+  metiendo repetidos al juez** —ocupando plazas y cobrándose dos veces— **y
+  escribiendo el criterio falso en el fallback**. La consulta 3 de `SQL_B253`
+  caza esas filas igualmente.
+- **Entre `a3423ef2` y éste** → quitan repetidos, pero quedándose con la primera
+  valoración (B.255 sin arreglar).
+
+La consulta 4 de `SQL_B253` lo contesta desde los datos **sólo si ha habido algún
+exhaustivo después de las 18:30**, y sólo distingue «anterior a `a3423ef2`» de «a
+partir de `a3423ef2`»: no ve B.255.
+
+### Predicción
+
+**+3 pruebas; salieron +4** (1134 → 1138). **Fallada, por abajo.** Cayeron las
+mutaciones previstas: la de «primera» con 3 (predije al menos 2) y la de
+«última» con 1.
