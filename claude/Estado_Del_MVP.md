@@ -3003,18 +3003,24 @@ siempre, 3.
 
 Lo que el plan dijo que tendría que ser cierto «abriendo un registro»:
 
-| # | lo que hay que poder demostrar | hoy |
+| # | lo que hay que poder demostrar | hoy (17/09/2026) |
 |---|---|---|
 | 1 | El inventario existe y es público | ✅ |
-| 2 | La puerta principal medida por sus dos entradas, misma cifra | ❌ |
-| 3 | Cada camino que produce informe, con cifra + camino + **modo** | ❌ cero de ocho |
-| 4 | Cuando el sistema no ve algo, lo dice | ❌ pieza 2 sin empezar |
-| 5 | Los dos botones que cobran dicen lo que cuestan | ❌ B.180 |
+| 2 | La puerta principal medida por sus dos entradas, misma cifra | ✅ **cerrado el 16/09**: corpus por A5/A6 (`3 · 57 · 0 · 0` por las dos puertas y en los dos modos, 15/09) y estilo por A7/A8 **por conjuntos**, catorce pasadas (`Tandas_Harness.md`, «LO QUE CIERRA»). ⚠️ Coinciden, **no repiten**: B.240 sigue abierta |
+| 3 | Cada camino que produce informe, con cifra + camino + **modo** | ❌ **seis de ocho**: A1, A3, A5, A6, A7, A8. **Faltan A2 y A4**, los dos exhaustivos que el cliente pisa; su montaje quedó anulado el 16/09. ⚠️ Y A1, A3, A5 y A6 tienen **alcance de pareja, no de corpus** (§5.47) |
+| 4 | Cuando el sistema no ve algo, lo dice | 🔶 **a medias.** Hecho: los denominadores de tablas (pieza 2, 07/09) y el aviso de cobertura de documentos, que dice contra cuántos se comparó y la causa sólo cuando está medida (`7afafd71`, 16/09). **Sigue sin decirlo**: el estilo pierde el final de los documentos largos (B.236) y devuelve «cero problemas» sin haber mirado (B.237); el rerank ve el documento nuevo cortado en seco a 3.000 caracteres; y el corte previo a 25 candidatos no se cuenta |
+| 5 | Los dos botones que cobran dicen lo que cuestan | ✅ **B.180, arreglado el 08/09** (`a2b99c41`, §4.2) |
 | 6 | Hay lista escrita de lo no probado, y no está escondida | ✅ |
 | 7 | La condición de escritorio, escrita | ✅ |
 
-**Tres de siete.** Y los cuatro que faltan son precisamente los que convierten
-«creemos que funciona» en «está medido».
+**Cinco de siete, con el 4 a medias.** Los dos que faltan son la cobertura de los
+exhaustivos (3) y que todo lo que no se ve se diga (4).
+
+⚠️ **ESTA TABLA ESTUVO CADUCADA DESDE EL 09/09 HASTA EL 17/09.** Decía «tres de
+siete» con el 2 y el 5 en ❌ cuando llevaban días cerrados, y el 4 como «pieza 2
+sin empezar» cuando la pieza 2 entró el 07/09. La lectura del 15/09 («cinco de
+siete») se hizo en conversación y **no llegó al documento**: `git log -S` no
+encuentra la frase en ningún commit. Es la misma clase que el §4 corrigió el 09/09.
 
 ---
 
