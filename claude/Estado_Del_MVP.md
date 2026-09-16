@@ -2432,6 +2432,30 @@ el caso peor llega con `success: true`. **La primera sí es independiente** y es
 
 ## ⚠️ 5.36 · B.239 — el detector ve una ambigüedad con consecuencia clínica UNAS VECES SÍ Y OTRAS NO (15/09/2026)
 
+## 📏 CON CIFRA, 16/09/2026 — y son DOS, no un detector entero
+
+**Catorce pasadas con temperatura 0**, nueve por el chat y cinco por la bandeja:
+
+| hallazgo | sale en | familia |
+|---|---|---|
+| «Frase confusa sobre **ayunas**» (A1) | **4 de 14** — y **con dos tipos distintos** | ambigüedad |
+| «En el caso de que se dé el caso» (S2) | **11 de 14** | sugerencia |
+| los otros siete detectados | **14 de 14** | ortografía y redundancia literal |
+
+⚠️ **EL TITULAR SIGUE SIENDO VERDAD Y AHORA ESTÁ ACOTADO: no es que el detector
+sea no determinista — son DOS hallazgos concretos**, y los dos de la familia que
+exige **juicio**. Lo que se decide por una regla léxica no se mueve **ni una vez**
+en catorce.
+
+**Y el 4 de 14 es la cifra que importa para el producto**: una ambigüedad con
+consecuencia clínica que aparece **menos de una vez de cada tres**. Declararla
+como límite sería honesto; enseñarla como cobertura, no.
+
+⚠️ **Y los DOS TIPOS del mismo hallazgo apuntan a dónde está la duda**: el modelo
+no duda de que ahí hay algo — duda de **cómo llamarlo**. Es la misma separación
+que ya se vio con `prescipción`: **la detección es una pregunta y la clasificación
+es otra**, y aquí las dos fallan en el mismo sitio y por distinto motivo.
+
 ⚠️⚠️ **ESTA FICHA SE ABRIÓ CON UNA PREMISA FALSA Y SE CORRIGE EL MISMO DÍA, ANTES
 DE ARREGLAR NADA SOBRE ELLA.**
 
@@ -2723,6 +2747,83 @@ entre A7 y A8 sería indistinguible de la dispersión de cada una.
 **Y con ello, el punto 2 del criterio de salida** —la puerta principal medida por
 sus dos entradas, misma cifra— **no se puede cerrar por este camino hoy.** No por
 falta de créditos ni de plan: porque **el instrumento no repite**.
+
+## 📏 CATORCE PASADAS CON TEMPERATURA 0 — el diagnóstico se estrecha (16/09/2026)
+
+**Nueve por el chat, cinco por la bandeja.** Y lo medido cambia la ficha:
+
+| | |
+|---|---|
+| **siete de diez** salen en **las catorce** | los cuatro de ortografía, el párrafo duplicado, «totalmente y completamente» y el plazo de 24 h |
+| **«En el caso de que se dé el caso»** | **11 de 14** |
+| **«Frase confusa sobre ayunas»** | **4 de 14**, y **con dos tipos distintos** |
+| **A2** | **0 de 14** — predicho fallado el 15/09, y sigue |
+
+⚠️ **NO ES «EL DETECTOR ES NO DETERMINISTA»: SON DOS HALLAZGOS CONCRETOS.** Y los
+dos son de la familia que exige **juicio** —ambigüedad y redundancia—, no de la
+que se decide por una regla léxica. **La ortografía no se mueve nunca.**
+
+## ✅ DOS CANDIDATOS DESCARTADOS CON CIFRA
+
+`averia.estilo_descartado_por_tipo` y `..._sin_ancla` salen **0, no `null`**, en
+todas las pasadas. **El contador funciona y no había nada que descartar**, así que
+**el filtro por tipo y el truncamiento quedan fuera** — los dos, y medidos, no
+razonados.
+
+## ⚠️ LA ELIMINACIÓN QUE DECIDE, Y SALE DE LOS PROPIOS DATOS
+
+**Las cinco pasadas de la bandeja varían entre 8 y 10 con una entrada que es
+DEMOSTRABLEMENTE IDÉNTICA**: por ese camino el texto sale de `full_text`, una
+columna que no cambia, y el `fileName` es el mismo nombre de documento.
+
+**Por tanto la entrada no es la causa.** Se cae el candidato del texto y se cae el
+del `fileName` —que además el reparto por puertas ya desmentía—.
+
+**QUEDAN DOS, y sólo uno explica el patrón:**
+
+| candidato | ¿explica que varíen ÉSOS dos y no los otros siete? |
+|---|---|
+| **el reintento** (`anthropic-client.ts:349` vuelve a llamar si el JSON no parsea, y eso es una muestra nueva) | **NO.** Una muestra nueva variaría en **cualquiera**, no en los mismos dos. El argumento del arquitecto es correcto |
+| **el proveedor con `temperature: 0`** | ⚠️ **SÍ, y el patrón cuenta A FAVOR y no en contra.** La variación cerca de cero se concentra en las decisiones **empatadas**: un empate se resuelve distinto de una ejecución a otra, y un hecho léxico —una errata— no está empatado. **Que sólo bailen los dos que exigen juicio es exactamente la forma que tendría** |
+
+⚠️ **Y AUN ASÍ NO SE DA POR BUENA.** «Los modelos son así» sigue siendo la
+explicación cómoda, y ahora es además la única que queda — que es justo cuando hay
+que desconfiar de ella. **Lo que se puede afirmar es que es el único candidato
+vivo, no que sea la causa.**
+
+## QUÉ SE PUEDE SABER SIN GASTAR, Y QUÉ CERRARÍA ESTO
+
+**Gratis, y cierra lo único separable que queda:** `anthropic-client.ts:344`
+imprime `[callAnthropicJson] Parse failed, retrying` cuando el reintento se
+dispara. **Si esa línea no aparece en ninguna de las catorce pasadas, el
+reintento nunca corrió** y queda descartado sin gastar un crédito. Hoy nadie lo ha
+mirado.
+
+⚠️ **Y lo que NO se puede cerrar desde aquí**: que el proveedor respete el 0. Para
+eso haría falta **mandar la misma petición dos veces dentro de una pasada y
+comparar** — lo que aísla al proveedor de todo lo demás, y cuesta el doble por
+pasada.
+
+## ⚠️ EL PUNTO CIEGO DE AGRUPAR POR `textRef`
+
+**La consulta 4 parte `a sido` en dos anclas** —«la fecha en la que a sido
+subsanada» (9) y «la fecha en la que a sido» (5)— y **nueve más cinco son
+catorce**. Es el mismo error: **el modelo decide dónde corta la cita.**
+
+**La cita es mejor identidad que el título —que el modelo reescribe entero— pero
+tampoco es estable.** Lo estable es **dónde está en el documento**: dos citas que
+se solapan en el texto son el mismo hallazgo.
+
+**El coste de tenerlo**: calcular el desplazamiento en el momento del análisis
+—`text.indexOf(textRef)`— y guardarlo junto al problema. Es **un número por
+problema**, sin contenido nuevo, en una columna que ya se escribe.
+
+⚠️ **Y SALDRÍAN DOS COSAS DE UNA, porque hoy NADIE COMPRUEBA QUE LA CITA EXISTA
+EN EL TEXTO.** El prompt lo exige —«copia LITERAL, carácter por carácter»— y el
+filtro sólo mira que no esté vacía (`style-check.ts:185`). **Una cita
+parafraseada pasa el filtro, se guarda, y el editor no puede localizarla**: el
+usuario ve un problema que no sabe dónde está. Buscar el desplazamiento **es**
+comprobar que existe.
 
 **No se arregla aquí.**
 

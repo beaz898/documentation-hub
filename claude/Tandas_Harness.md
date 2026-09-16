@@ -2358,3 +2358,43 @@ puertas: es el único candidato estructural, y sigue sin descartarse.
 | **cero problemas en alguna pasada** | **no concluye**: mirar `averia.estilo_descartado_*` y B.237 antes de leer nada |
 
 **Nada se lanza.**
+
+---
+
+# ✅ 16/09/2026 · A7/A8 COINCIDEN — y esta vez por CONJUNTOS
+
+**Catorce pasadas con temperatura 0: nueve por el chat (A7), cinco por la bandeja
+(A8).** Comparando **qué** encuentra cada una y no cuántas:
+
+- **las mismas diez anclas** por las dos puertas;
+- **ninguna sale sólo por una**;
+- **el reparto es proporcional** al número de pasadas de cada puerta, dentro del
+  error de muestreo.
+
+**Denominador: 9 y 5.** Y los descartes en **0** en todas, así que no hay una
+mitad invisible que pudiera estar tapando una diferencia.
+
+## ⚠️ LA MISMA CONCLUSIÓN QUE ANTEAYER, CON EVIDENCIA DE OTRA CLASE
+
+El 15/09 se concluyó «A7 y A8 coinciden» **y se retiró esa misma noche**. La
+conclusión **era correcta**; lo que estaba mal era **de dónde salía**: de **dos
+cifras sueltas** —un 7 y un 8— leídas contra una estabilidad que no existía.
+
+**Hoy sale de catorce conjuntos.** No es que ayer nos equivocáramos de respuesta:
+**nos equivocamos de prueba**, y acertar con una prueba mala no es acertar — es
+que la moneda cayó del lado bueno.
+
+> **Una conclusión correcta mal fundada se retira igual que una falsa.** Si no, la
+> próxima vez que la moneda caiga del otro lado, el método no tendrá con qué
+> distinguirlo.
+
+## LO QUE CIERRA
+
+**El punto 2 del criterio de salida —«la puerta principal medida por sus dos
+entradas»— queda cerrado para el camino del estilo**, y por conjuntos, que era
+justo lo que ayer no se podía hacer.
+
+⚠️ **Y lo que NO cierra**: que el resultado de cada puerta sea **repetible**. Las
+dos puertas dan lo mismo, **y lo mismo varía entre 7 y 10** por las dos. Son dos
+propiedades distintas — **coinciden** y **repiten**— y sólo la primera está
+medida. B.240 sigue abierta.

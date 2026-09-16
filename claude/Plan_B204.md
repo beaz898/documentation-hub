@@ -343,3 +343,27 @@ no— es ahora un dato del producto, no una casualidad de la tanda.
 
 **Y A2/A4 siguen donde estaban**: son los dos exhaustivos que el cliente pisa y no
 tienen cifra, y **no dependen de B.240** porque van por el camino que sí repite.
+
+## ✅ 16/09/2026 · EL PUNTO 2 SE CIERRA POR EL CAMINO DEL ESTILO — corrige lo de esta mañana
+
+Esta mañana escribí que medir A7/A8 por conjuntos quedaba detenido por B.240.
+**Era la conclusión correcta con los datos de entonces —tres pasadas— y falsa con
+catorce.**
+
+Con nueve pasadas por el chat y cinco por la bandeja, **las diez anclas aparecen
+por las dos puertas y en proporción**. El punto 2 **queda cerrado para el camino
+del estilo, y por CONJUNTOS**.
+
+⚠️ **Lo que sigue abierto es OTRA propiedad, y conviene no confundirlas:**
+
+| propiedad | estado |
+|---|---|
+| las dos puertas dan **lo mismo** | ✅ **medido**, 14 conjuntos |
+| ese mismo resultado **se repite** | ❌ **no**: varía de 7 a 10 por las dos puertas (B.240) |
+
+**La dispersión no impedía comparar las puertas: impedía compararlas POR CIFRAS.**
+Por conjuntos se pudo, y con las mismas pasadas.
+
+**Lo próximo del criterio de salida sigue siendo el punto 3 —la cobertura— y ahí
+A2 y A4 no dependen de B.240**, porque van por el camino del análisis de corpus,
+que en A5/A6 sí repitió.
