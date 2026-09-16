@@ -2261,3 +2261,100 @@ frente a los ~120 del camino de los recuentos.
 
 **Mientras tanto, lo honesto es decir que NO SABEMOS si A7 y A8 coinciden**, y que
 la conclusión anterior se retira.
+
+---
+
+# 16/09/2026 · LOS TRES PASOS AL PUNTO 2 DEL CRITERIO DE SALIDA
+
+## PASO 1 · `temperature` A 0 — y la respuesta a la pregunta previa
+
+✅ **NO tiene efecto fuera del análisis de estilo.** La temperatura viaja **por
+llamada**: `anthropic-client.ts:88` ya tiene **0 por defecto** y los otros nueve
+sitios que la fijan pasan la suya (`0.1` los del juez y la verificación, `0.2`
+síntesis y mejora). Censo hecho, y por eso el cambio es **un literal en un sitio**.
+
+**Queda como constante con nombre** —`TEMPERATURA_DEL_ESTILO`— con su razón
+escrita y **con test-candado**: uno comprueba que vale 0 y otro que **se le pasa
+de verdad al modelo**, porque una constante que nadie usa es un comentario con
+tipo. Los dos mutantes mueren.
+
+### PREDICCIÓN, escrita antes
+
+**8 problemas por pasada**, con dispersión **0 o ±1** — mucho más estrecha que el
+7–9 de ayer.
+
+⚠️ **Y lo que NO se puede prometer: cero no es determinismo.** El resultado
+afirmable será «la dispersión bajó mucho» o «no bajó», nunca «es determinista».
+
+### ⚠️ CUÁNTAS PASADAS — y por qué **diez**
+
+Ayer aprendimos que **cinco iguales no demuestran estabilidad**. Ahora se puede
+decir por cuánto, porque hay una base: de nueve observaciones, el 8 salió **seis
+veces** (≈ 0,67).
+
+Si la dispersión **no** hubiera cambiado, la probabilidad de ver *n* pasadas
+idénticas por azar es ≈ 0,67 elevado a *n*−1:
+
+| pasadas | probabilidad de un falso «se estrechó» |
+|---|---|
+| 5 | **≈ 20 %** — una de cada cinco. **Por eso lo de ayer no probaba nada** |
+| 8 | ≈ 6 % |
+| **10** | **≈ 2,6 %** |
+
+**Diez pasadas, 20 créditos.** *(Es una estimación de orden de magnitud sobre una
+base de nueve observaciones, no un contraste formal — y se dice.)*
+
+✅ **Y la mitad barata: si la dispersión NO se estrechó, se sabe muchísimo antes.**
+Basta **una** pasada que difiera para falsarlo. El coste de 20 créditos sólo se
+paga si la respuesta es «sí».
+
+## PASO 2 · B.238 — los problemas se guardan
+
+**Sí obliga a persistir contenido del documento, y se dice**: `textRef` es **una
+cita literal** —por diseño, es lo que localiza el problema en el editor— y `title`
+y `description` suelen citarla.
+
+✅ **Pero no es una categoría nueva de dato**: `documents.full_text`
+(`supabase-setup.sql:295`) **ya guarda el documento entero**, en esta misma base y
+de esta misma organización. Negarse a guardar una cita de sesenta caracteres
+mientras se guarda el texto completo sería una distinción sin diferencia.
+
+⚠️ **Y lo que sí se mantuvo fuera por eso**: las etiquetas de `tiposDescartados`
+siguen yendo **sin contenido**, porque ésas son **telemetría** —una clave que se
+agrega entre organizaciones— y ahí la regla es otra.
+
+**Se escribe siempre el objeto, también con las listas vacías**, por lo mismo que
+los ceros de ayer: un hueco significaría a la vez «no hubo problemas» y «esta fila
+es anterior al cambio».
+
+⚠️ **SIN BATERÍA NUEVA, y se dice por qué**: no existe arnés para
+`persist-analysis` —es un `insert`— y montarlo para esto sería mayor que el
+cambio. Lo cubre el typecheck y la lectura.
+
+## PASO 3 · A7/A8 POR CONJUNTOS — el montaje
+
+⚠️ **Y UNA OBSERVACIÓN QUE AHORRA LA MITAD DEL GASTO**: con el paso 2 desplegado,
+**las diez pasadas del paso 1 ya registran CUÁLES encontró cada una**. Las mismas
+10 pasadas contestan las dos preguntas si se reparten **5 por cada puerta**.
+
+**El montaje**: CLI-20, **5 pasadas por A7 (chat) y 5 por A8 (bandeja)**.
+20 créditos en total, no 40.
+
+### PREDICCIÓN, escrita antes
+
+**Los mismos 8 problemas por las dos puertas, y el mismo conjunto.** La razón es
+la de siempre: `useStyleAnalysis` manda **el mismo texto**, y lo único que cambia
+—`documentoPropietario` y `storagePath`— sólo decide de quién es la fila guardada.
+⚠️ **Salvo el `fileName`, que SÍ entra en el prompt** y puede diferir entre
+puertas: es el único candidato estructural, y sigue sin descartarse.
+
+### LAS LECTURAS
+
+| resultado | qué significa |
+|---|---|
+| **el mismo conjunto por las dos puertas**, en las cinco de cada una | **coinciden.** Cierra el punto 2 del criterio de salida para este camino |
+| **un problema aparece SIEMPRE por una puerta y NUNCA por la otra** | ⚠️ **difieren**, y el `fileName` es el primer sospechoso |
+| **conjuntos distintos dentro de la MISMA puerta** | **no concluye sobre las puertas**: es dispersión residual, y dice que la temperatura no la eliminó |
+| **cero problemas en alguna pasada** | **no concluye**: mirar `averia.estilo_descartado_*` y B.237 antes de leer nada |
+
+**Nada se lanza.**

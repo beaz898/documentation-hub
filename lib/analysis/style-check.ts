@@ -33,6 +33,36 @@ interface StyleResponse {
 const VALID_TYPES = new Set(['ortografia', 'ambiguedad', 'sugerencia']);
 
 /**
+ * LA TEMPERATURA DEL REVISOR DE ESTILO — 16/09/2026.
+ *
+ * ═══════════════════════════════════════════════════════════════════════════
+ * ⚠️ ERA 0,2 Y SE BAJA A 0, Y NO ES UN AJUSTE: ES UNA DECISIÓN DE PRODUCTO CON
+ * SU MEDICIÓN DETRÁS.
+ *
+ * El 15/09/2026 se midió el mismo documento —diez errores sembrados y
+ * declarados— nueve veces: **7, 8 y 9 problemas**, y un error sembrado
+ * apareció en unas pasadas y no en otras. Para quien usa esto, un revisor que
+ * ve un fallo hoy y no mañana **es peor que uno que no lo ve nunca**: el que no
+ * lo ve nunca se puede declarar; éste da una cobertura que cambia sola.
+ *
+ * ⚠️ Y ADEMÁS BLOQUEA MEDIR: comparar dos caminos por un recuento disperso
+ * exige decenas de pasadas. Con el muestreo apagado, la comparación vuelve a
+ * costar unas pocas.
+ *
+ * ⚠️ LO QUE ESTO **NO** GARANTIZA, dicho para que nadie lo lea de más: cero no
+ * es determinismo. El modelo puede seguir variando por su cuenta. Lo que se
+ * puede afirmar tras el cambio es «la dispersión bajó mucho» o «no bajó» —
+ * nunca «es determinista»—, y la segunda respuesta sería el hallazgo mayor,
+ * porque querría decir que la variación viene de otro sitio.
+ *
+ * Es la única llamada de este fichero y la temperatura viaja POR LLAMADA:
+ * `anthropic-client.ts:88` ya tiene 0 por defecto y los otros nueve sitios
+ * fijan la suya. Esto no toca ningún otro análisis — verificado por censo.
+ * ═══════════════════════════════════════════════════════════════════════════
+ */
+export const TEMPERATURA_DEL_ESTILO = 0;
+
+/**
  * LO QUE DEVUELVE EL ANÁLISIS DE ESTILO — B.239, 15/09/2026.
  *
  * ═══════════════════════════════════════════════════════════════════════════
@@ -124,7 +154,7 @@ Devuelve el JSON con los problemas internos detectados.`;
     const parsed = await callLLMJson<StyleResponse>(userPrompt, {
       model: 'haiku',
       maxOutputTokens: 3072,
-      temperature: 0.2,
+      temperature: TEMPERATURA_DEL_ESTILO,
     });
 
     // ⚠️ EL FILTRO SE PARTE EN DOS MOTIVOS, y no es cosmética: cada uno es la

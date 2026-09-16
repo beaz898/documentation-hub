@@ -113,6 +113,9 @@ export async function POST(req: NextRequest) {
       // no se distingue de «8 problemas y 4 descartados».
       contadores: resultado.contadores as Record<string, number>,
       tiposDescartados: resultado.tiposDescartados,
+      // B.238: los problemas, no sólo cuántos. Sin esto, dos pasadas con cifras
+      // distintas no se pueden comparar y el usuario no puede releer lo pagado.
+      problemas: problems,
       // F-101: desde el chat el dueño es el fichero; desde la bandeja, el documento.
       storagePath: typeof storagePath === 'string' ? storagePath : null,
       documentoPropietario: documentoPropietario({

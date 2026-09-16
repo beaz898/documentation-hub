@@ -2332,7 +2332,41 @@ Es pasar los problemas a `saveStyleResult` y escribirlos — **un tipo y una
 línea**, sin esquema nuevo. Lo que hay que decidir es si se guardan enteros o
 sólo lo que se pueda releer sin datos del cliente de más.
 
-**No se arregla aquí.**
+## ✅ ARREGLADA EL 16/09/2026 — y sí guarda contenido, dicho antes de hacerlo
+
+Los problemas se persisten en `analysis`: **qué problema es, de qué tipo, y a qué
+parte del texto apunta.**
+
+⚠️ **SÍ ES CONTENIDO DEL DOCUMENTO, y se dijo antes de escribirlo**: `textRef` es
+una **cita literal** —por diseño, es lo que localiza el problema en el editor— y
+`title` y `description` suelen citarla.
+
+✅ **Lo que lo hace aceptable no es que sea poco, es que no es nuevo**:
+`documents.full_text` (`supabase-setup.sql:295`) **ya guarda el documento**
+**entero**, en esta misma base y de esta misma organización. Negarse a guardar una
+cita de sesenta caracteres mientras se guarda el texto completo sería una
+distinción sin diferencia.
+
+⚠️ **Y lo que se mantuvo fuera por esa misma razón**: las etiquetas de
+`tiposDescartados` siguen sin contenido, porque son **telemetría** —una clave que
+se agrega entre organizaciones— y ahí la regla es la contraria.
+
+**Se escribe siempre el objeto, también con las listas vacías**, por lo mismo que
+los ceros de B.239: un hueco significaría a la vez «no hubo problemas» y «esta
+fila es anterior al cambio».
+
+**LAS DOS MITADES QUE CIERRA:**
+
+| | |
+|---|---|
+| **medir** | dos pasadas con cifras distintas ya se pueden comparar. Era lo único que detenía el punto 2 del criterio de salida — y lo detenía **el instrumento**, no los créditos |
+| **el usuario** | puede volver a ver lo que pagó. Cerrada la pantalla, de 2 créditos quedaba un entero en una tabla que nadie enseña |
+
+⚠️ **SIN BATERÍA NUEVA, y se dice por qué**: no hay arnés para `persist-analysis`
+—es un `insert`— y montarlo para esto sería mayor que el cambio. Lo cubren el
+typecheck y la lectura. **Queda declarado, no escondido.**
+
+**El tamaño**: la columna `analysis` ya existe y el resto de análisis la usan.**No se arregla aquí.**
 
 ## ⚠️ 5.33 · B.236 — el análisis de estilo pierde el final de los documentos largos, en silencio (15/09/2026)
 

@@ -26,6 +26,23 @@ interface StyleResultInput {
   contadores?: Record<string, number>;
   /** B.239 — las etiquetas de tipo descartadas. SOLO etiquetas. */
   tiposDescartados?: string[];
+  /**
+   * B.238 — LOS PROBLEMAS, no sólo cuántos.
+   *
+   * ⚠️ SÍ LLEVA CONTENIDO DEL DOCUMENTO, y se dice: `textRef` es **una cita
+   * literal** —por diseño, es lo que permite localizar el problema en el
+   * editor— y `title` y `description` suelen citarla.
+   *
+   * **No es una categoría nueva de dato**: `documents.full_text` ya guarda el
+   * documento ENTERO, en esta misma base y de esta misma organización. Negarse
+   * a guardar una cita de sesenta caracteres mientras se guarda el texto
+   * completo sería una distinción sin diferencia.
+   *
+   * ⚠️ Y lo que SÍ se evitó por eso: las etiquetas de `tiposDescartados` van
+   * aparte y sin contenido, porque ésas viajan como TELEMETRÍA —una clave que
+   * se agrega entre organizaciones— y ahí la regla es otra.
+   */
+  problemas?: Array<{ type: string; title: string; description: string; textRef: string }>;
   /** F-101: el propietario PRIMARIO — la ruta del fichero en almacenamiento.
    *  Presente en el camino del chat, ausente desde la bandeja. */
   storagePath?: string | null;
@@ -160,9 +177,24 @@ export async function saveStyleResult(
     //
     // ⚠️ Y ESTO NO CIERRA B.238: los PROBLEMAS siguen sin guardarse. Lo que se
     // guarda es por qué se cayeron algunos, que es otra pregunta.
-    analysis: input.tiposDescartados && input.tiposDescartados.length > 0
-      ? { tiposDescartados: input.tiposDescartados }
-      : null,
+    // ⚠️ B.238 — SE GUARDA EL CONTENIDO, NO SÓLO EL NÚMERO. Hasta el 16/09/2026
+    // esta columna quedaba a `null` para los análisis de estilo, así que:
+    //
+    //   · dos pasadas que daban 7 y 8 no se podían comparar — no es que
+    //     costara averiguarlo, es que NO HABÍA DÓNDE MIRAR—, y con ello la
+    //     pregunta «¿coinciden las dos puertas?» quedaba bloqueada por el
+    //     instrumento y no por los créditos;
+    //   · y el usuario no podía volver a ver lo que había pagado: cerrada la
+    //     pantalla, de 2 créditos quedaba un entero en una tabla que nadie
+    //     enseña.
+    //
+    // ⚠️ Se escribe SIEMPRE el objeto, también con las listas vacías, por la
+    // misma razón que los contadores de ayer: un hueco significaría a la vez
+    // «no hubo problemas» y «esta fila es anterior al cambio».
+    analysis: {
+      problemas: input.problemas ?? [],
+      tiposDescartados: input.tiposDescartados ?? [],
+    },
     storage_path: propietariosEstilo.storagePath,
     // F-100: hasta el 03/09/2026 esta columna NO se escribía aquí — ni siquiera
     // estaba en el tipo de entrada—, así que TODO análisis de estilo nacía

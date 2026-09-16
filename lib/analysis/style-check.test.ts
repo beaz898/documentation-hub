@@ -158,3 +158,21 @@ describe('el fallo del modelo — que esto NO arregla', () => {
     // problemas». Lo que hoy deja rastro es lo DESCARTADO, no lo no-mirado.
   });
 });
+
+describe('⚠️ el candado de la temperatura', () => {
+  it('es CERO, y moverla tiene que romper esto', async () => {
+    const { TEMPERATURA_DEL_ESTILO } = await import('./style-check');
+    expect(TEMPERATURA_DEL_ESTILO).toBe(0);
+  });
+
+  it('y es la que se le pasa al modelo, no una constante decorativa', async () => {
+    // ⚠️ El caso que separa «está declarada» de «se usa». Una constante que
+    // nadie pasa es un comentario con tipo: se puede bajar a cero y no cambiar
+    // nada, y la suite seguiría verde.
+    llamada.mockResolvedValue({ problems: [] });
+    await analyzeStyle('texto', 'doc.txt');
+
+    const opciones = llamada.mock.calls[0][1] as { temperature: number };
+    expect(opciones.temperature).toBe(0);
+  });
+});
