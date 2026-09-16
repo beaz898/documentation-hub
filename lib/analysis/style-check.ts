@@ -1,6 +1,7 @@
 import { recordStageFailure } from './stage-failures';
 import { callLLMJson } from './llm-client';
 import type { PipelineCounters } from './counters';
+import { findTolerant } from '@/lib/texto/localizar-cita';
 
 /**
  * Análisis de estilo intra-documento.
@@ -222,9 +223,20 @@ Devuelve el JSON con los problemas internos detectados.`;
       }
       const cita = p.textRef.trim();
       // ⚠️ SE BUSCA SOBRE EL TEXTO QUE SE LE MANDÓ, no sobre el original: el
-      // prompt lleva `text.slice(0, 20000)`, así que buscar en el entero diría
-      // que existe una cita que el modelo no pudo ver.
-      const offset = textoEnviado.indexOf(cita);
+      // prompt lleva el recorte, así que buscar en el entero diría que existe
+      // una cita que el modelo no pudo ver.
+      //
+      // ⚠️ Y CON `findTolerant`, NO CON `indexOf` — corregido el 16/09/2026, el
+      // mismo día que se escribió. Con `indexOf` crudo, **toda cita que cruzara
+      // un salto de línea salía como ausente**: el documento lleva un salto
+      // donde el modelo devuelve un espacio. Medido sobre 113 citas reales: **46
+      // falsos ausentes, el 40 %**. El contador nacía mintiendo.
+      //
+      // `findTolerant` ya existía y devuelve el índice sobre el texto ORIGINAL
+      // gracias a su mapeo — que es lo que hace que el desplazamiento sirva en
+      // pantalla y no sólo para agrupar.
+      const rango = findTolerant(textoEnviado, cita);
+      const offset = rango ? rango.start : -1;
       if (offset < 0) citasNoEncontradas++;
       problems.push({
         type: p.type as 'ortografia' | 'ambiguedad' | 'sugerencia',

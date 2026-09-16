@@ -2949,6 +2949,52 @@ arreglar por esa razón.
 no en una función compartida.** Lo que se aprende en una herramienta no protege a
 la otra si no comparten el código.
 
+## ✅ ARREGLADO EL 16/09/2026 — y el arreglo era USAR LO QUE YA HABÍA
+
+⚠️ **LA FUNCIÓN BUENA YA EXISTÍA, Y MEJOR QUE MI VERIFICADOR.** `findTolerant`
+llevaba tiempo en `useImprovementChat.ts`: normaliza tipografía sin mover
+índices, prueba exacto, y **si falla colapsa espacios MANTENIENDO UN MAPEO de
+vuelta a los índices del texto original**.
+
+**Vivía en un fichero `'use client'` con React dentro, así que el servidor no
+podía usarla** — y el día que el análisis la necesitó, escribí otra peor.
+
+**EL CENSO: CUATRO SITIOS NORMALIZABAN ESPACIOS PARA COMPARAR TEXTO.**
+
+| # | dónde | estado |
+|---|---|---|
+| 1 | `findTolerant` | **la buena** — movida a `lib/texto/localizar-cita.ts` |
+| 2 | `problems.ts:183`, copia privada | **retirada**, ahora importa la compartida |
+| 3 | `scripts/verificar-cli20.mjs` | ⚠️ **sigue con la suya**: es un `.mjs` suelto y **no puede importar TypeScript**. Son dos, no una, y queda declarado |
+| 4 | `style-check.ts`, el `indexOf` crudo | **retirado** el mismo día que nació |
+
+## ⚠️ LO QUE CONTESTA LAS DOS PREGUNTAS QUE QUEDABAN ABIERTAS
+
+**(2) ¿Importa que el desplazamiento sea sobre el texto normalizado?** **Sí, y
+por eso no hay que decidir nada: `findTolerant` ya devuelve el índice sobre el
+ORIGINAL.** Colapsar espacios para encontrar la cita es fácil; **devolver dónde
+está en el documento de verdad** es lo que permite señalarla en pantalla. Un
+índice sobre el texto colapsado no sirve para nada ahí.
+
+✅ **(4) ¿El editor puede señalar hoy una cita que cruza un salto? SÍ.** Era mi
+preocupación y era infundada: `ImprovementModal.tsx:319` **ya usaba
+`findTolerant`**, no `indexOf`. **No hay ficha que abrir** — el usuario nunca
+sufrió esto. Lo sufría **el chequeo que yo escribí hoy**, y nada más.
+
+## LA MUTACIÓN CAZÓ UN CASO MÍO QUE PASABA POR CASUALIDAD
+
+Escribí un caso para «el índice es sobre el original» y **un mutante que
+devolvía el índice colapsado lo pasaba entero**: en mi párrafo cada salto era
+**un** carácter, así que colapsarlo no movía nada y los dos índices coincidían.
+
+**Hizo falta un texto con tramos que SÍ se colapsan** —línea en blanco, espacios
+dobles— para que el caso probara lo que decía probar. **Un caso verde que no
+puede fallar por su propio motivo no es una prueba: es un adorno.**
+
+**20 casos entre los dos ficheros. Tres mutantes, los tres muertos**: volver al
+`indexOf` crudo mata 1; perder el mapeo, 2 —tras arreglar el caso—; y encontrar
+siempre, 3.
+
 **No se arregla aquí.**
 
 ---

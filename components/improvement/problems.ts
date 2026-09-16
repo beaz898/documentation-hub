@@ -1,6 +1,7 @@
 // Shared types and helpers for problem detection in ImprovementModal.
 
 import type { ComparedValue, GrupoDeTablas } from '@/lib/analysis/types';
+import { normalizeWhitespace } from '@/lib/texto/localizar-cita';
 
 export type { ComparedValue };
 
@@ -180,9 +181,9 @@ export interface RawAnalysis {
   }>;
 }
 
-function normalizeWhitespace(s: string): string {
-  return s.replace(/\s+/g, ' ').trim();
-}
+// ⚠️ LA COPIA PRIVADA DE `normalizeWhitespace` SE RETIRÓ EL 16/09/2026: era una
+// de las CUATRO que hacían lo mismo en esta casa. Ahora viene de `lib/texto`,
+// que es el único sitio donde se decide qué cuenta como «el mismo texto».
 
 /**
  * Tries to find `find` inside `text` using progressively more tolerant strategies.

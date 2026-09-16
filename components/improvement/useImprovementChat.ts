@@ -14,62 +14,16 @@ interface LoadedDocInfo {
   loaded: boolean;
 }
 
-export function normalizeTypography(s: string): string {
-  return s
-    .replace(/[\u201C\u201D\u201E\u201F\u2033\u2036]/g, '"') // comillas dobles curvas → "
-    .replace(/[\u2018\u2019\u201A\u201B\u2032\u2035]/g, "'") // comillas simples curvas / apóstrofes → '
-    .replace(/[\u2013\u2014\u2212]/g, '-')                   // guiones largos / menos → -
-    .replace(/\u00A0/g, ' ');                                // espacio no separable → espacio normal
-}
+import {
+  normalizeTypography,
+  normalizeWhitespace,
+  findTolerant,
+} from '@/lib/texto/localizar-cita';
 
-export function normalizeWhitespace(s: string): string {
-  return s.replace(/\s+/g, ' ').trim();
-}
-
-export function findTolerant(text: string, find: string): { start: number; end: number } | null {
-  if (!find) return null;
-
-  // Normalizamos tipografía en ambos lados antes de cualquier comparación.
-  // Mantenemos la longitud carácter a carácter (solo sustituimos 1↔1), así que
-  // los índices que encontremos son válidos también sobre el texto original.
-  const textNorm = normalizeTypography(text);
-  const findNorm = normalizeTypography(find);
-
-  const exact = textNorm.indexOf(findNorm);
-  if (exact !== -1) return { start: exact, end: exact + findNorm.length };
-
-  const normFind = normalizeWhitespace(findNorm);
-  if (!normFind) return null;
-  const mapping: number[] = [];
-  let normText = '', lastSpace = false, started = false;
-  for (let i = 0; i < textNorm.length; i++) {
-    const ch = textNorm[i], isSp = /\s/.test(ch);
-    if (isSp) {
-      if (!started) continue;
-      if (!lastSpace) { normText += ' '; mapping.push(i); lastSpace = true; }
-    } else { normText += ch; mapping.push(i); lastSpace = false; started = true; }
-  }
-  while (normText.endsWith(' ')) { normText = normText.slice(0, -1); mapping.pop(); }
-  const idx = normText.indexOf(normFind);
-  if (idx !== -1) {
-    const start = mapping[idx];
-    const end = (mapping[idx + normFind.length - 1] ?? start) + 1;
-    return { start, end };
-  }
-  if (normFind.length >= 30) {
-    const head = normFind.slice(0, 15), tail = normFind.slice(-15);
-    const h = normText.indexOf(head);
-    if (h !== -1) {
-      const t = normText.indexOf(tail, h + head.length);
-      if (t !== -1) {
-        const start = mapping[h];
-        const end = (mapping[t + tail.length - 1] ?? start) + 1;
-        if (end - start < find.length * 2.5) return { start, end };
-      }
-    }
-  }
-  return null;
-}
+// ⚠️ SE REEXPORTAN PARA NO TOCAR A SUS CONSUMIDORES, y son los MISMOS objetos:
+// no hay dos definiciones, hay una en `lib/` y una puerta aquí. El día que esta
+// puerta sobre, se quita y ya.
+export { normalizeTypography, normalizeWhitespace, findTolerant };
 
 export function applyReplacement(text: string, find: string, replace: string): string | null {
   const range = findTolerant(text, find);

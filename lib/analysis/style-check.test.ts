@@ -243,3 +243,25 @@ describe('⚠️ el desplazamiento de la cita — existencia e identidad', () =>
     expect(r.contadores['averia.estilo_cita_no_encontrada']).toBe(0);
   });
 });
+
+describe('⚠️ la cita que cruza un salto de línea — el caso que el indexOf perdía', () => {
+  it('se localiza, y NO cuenta como ausente', async () => {
+    // Medido el 16/09/2026: con `indexOf` crudo, 46 de 113 citas reales salían
+    // ausentes por esto. El documento lleva un salto donde el modelo devuelve
+    // un espacio.
+    const doc = 'anota la fecha en la que a\nsido subsanada por el responsable.';
+    llamada.mockResolvedValue({
+      problems: [{
+        type: 'ortografia', title: 't', description: 'd',
+        textRef: 'la fecha en la que a sido subsanada',
+      }],
+    });
+    const r = await analyzeStyle(doc, 'doc.txt');
+
+    // El control negativo dentro del caso: así era hasta hoy.
+    expect(doc.indexOf('la fecha en la que a sido subsanada')).toBe(-1);
+
+    expect(r.contadores['averia.estilo_cita_no_encontrada']).toBe(0);
+    expect(r.problemas[0].offset).toBe(doc.indexOf('la fecha en la que a'));
+  });
+});
