@@ -46,7 +46,11 @@ export interface RerankedCandidate {
   source: 'manual' | 'google_drive';
   fragments: DocumentFragment[];
   rerankReason: string;
-  rerankConfidence: 'alta' | 'media' | 'baja';
+  /** ⚠️ `sin_declarar` NO ES UN NIVEL MÁS: es la AUSENCIA de nivel, y existe
+   *  porque hasta el 16/09/2026 se colapsaba en `media` (`sel.confidence ||
+   *  'media'`) — un valor que ya tenía dueño. Lo lee `ordenarParaCortar`, que
+   *  lo pone el último. Ver lib/analysis/orden-del-rerank.ts. */
+  rerankConfidence: 'alta' | 'media' | 'baja' | 'sin_declarar';
 }
 
 /**

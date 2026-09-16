@@ -77,6 +77,15 @@ export const COUNTER_CATALOGUE = [
   // un contador derivable es un contador que puede contradecir a sus fuentes.
   'seleccion.candidatos_recuperados',
   'seleccion.candidatos_seleccionados',
+  // B.244 paso 1 — cuántos candidatos llegaron SIN valoración de confianza
+  // utilizable. No es derivable de los otros dos, y por eso tiene clave
+  // propia: mide si la señal con la que se ORDENA el corte sigue viva.
+  //
+  // ⚠️ SI ESTO SE ACERCA A `candidatos_seleccionados`, el criterio de
+  // confianza se ha apagado y el corte lo decide el score. No es volver al
+  // fallo —sigue siendo determinista— pero es un cambio de régimen, y sin
+  // este contador sería mudo.
+  'seleccion.candidatos_sin_confianza',
   // diff.tablas — ETAPA NUEVA (F-88 P1). El emparejador de tablas: qué pares
   // se evaluaron y por qué puerta cayó cada uno.
   //

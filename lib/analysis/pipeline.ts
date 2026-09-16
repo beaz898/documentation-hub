@@ -756,7 +756,7 @@ async function runCorePipeline(
   }
 
   const t1 = Date.now();
-  const reranked = await rerankCandidates({
+  const { seleccionados: reranked, sinConfianza } = await rerankCandidates({
     newDocumentName: input.newDocumentName,
     newDocumentSample: input.newDocumentText,
     candidates,
@@ -764,6 +764,10 @@ async function runCorePipeline(
   });
   console.log(`[${label}] Rerank: ${reranked.length} seleccionados (${Date.now() - t1}ms)`);
   counters['seleccion.candidatos_seleccionados'] = reranked.length;
+  // B.244 paso 1 — SIEMPRE, incluido el cero. Un contador ausente no se
+  // distingue de «no se miró», y aquí «cero sin confianza» es justo la noticia
+  // buena: significa que la señal con la que se ordena el corte está viva.
+  counters['seleccion.candidatos_sin_confianza'] = sinConfianza;
 
   // SALIDA TEMPRANA 2 — había candidatos y el rerank no dejó ninguno. Se
   // distingue de la anterior por los DOS contadores: aquí `recuperados` es > 0

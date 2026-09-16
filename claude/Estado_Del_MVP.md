@@ -3608,6 +3608,11 @@ nada, todo entra como posible, y a posteriori se decide. **Es una arquitectura
 defendible** —red ancha delante, juicio fino detrás— y el juez **sí** discrimina:
 0 % de solapamiento con `CLI-05`, 95 % con `OPE-11`, contradicciones reales.
 
+> ⚠️ **ALCANCE DE ESA CIFRA, anotado aquí y no sólo en 5.52**: sale de una pasada
+> del 14/09 que recuperó **9 ó 10 candidatos con un tope de 6**. Sigue probando lo
+> que se dijo —**el juez distingue**: CLI-05 entró, fue juzgado y dio 0 %— y **deja
+> de valer como afirmación sobre el corpus**: ese análisis miró 6 de 9 ó 10.
+
 **Lo que rompe ese diseño no es la red ancha: es el corte de 6.**
 
 ### Dónde está, exactamente
@@ -3689,6 +3694,10 @@ encuentra bien.**
 - El par sembrado salió **siempre**, y por el camino correcto.
 - El juez **discrimina**: 0 % con `CLI-05`, 95 % con `OPE-11`, contradicciones
   reales y verificadas contra el texto.
+  ⚠️ **Con su alcance, corregido el 16/09**: la pasada de la que sale recuperó 9
+  ó 10 candidatos con tope 6, así que **prueba que el juez distingue y NO prueba
+  nada sobre el corpus** — miró 6 de 9 ó 10. Es corrección de alcance, no de
+  veracidad: lo que encontró era cierto.
 - Los controles positivos hicieron su trabajo: `OPE-10` × `OPE-15` **se parecen de
   verdad** —nueve columnas idénticas y el mismo dominio—, así que el método sabe
   distinguir cuando hay algo que distinguir.
@@ -3952,3 +3961,179 @@ consumidor no cubre al otro.**
 Nada. Ni se ordena el corte, ni se instrumenta, ni se toca un umbral. La lista es
 el inventario que el orden de Fable pide en su paso 0, y los pasos 1, 2 y 3 son
 del director.
+
+---
+
+## ✅ 5.55 · EL CORTE YA ORDENA — paso 1 de 5.42, arreglado (16/09/2026)
+
+`lib/analysis/orden-del-rerank.ts`, 20 pruebas. El `slice(0, maxSelected)` de
+`rerank.ts` ya no corta sobre el orden en que el modelo enumeró los candidatos.
+
+### La respuesta a las dos preguntas que el arquitecto hizo antes de dejar escribir
+
+**1 · ¿Y si el modelo no devuelve confianza?**
+
+Hasta hoy: `sel.confidence || 'media'`. **Eso convertía la ausencia en el nivel
+intermedio** — un valor que ya tenía dueño, el modelo que sí dice «media». Es la
+regla de la casa sobre el tipo que no puede expresar el caso, aplicada a un enum.
+
+Ahora hay un cuarto valor, **`sin_declarar`**, y va **el último**, no en medio. El
+motivo se puede defender: entre un candidato con valoración declarada y uno sin
+ella, el declarado trae más evidencia detrás. Falla hacia lo que el modelo sí
+respaldó.
+
+⚠️ Y **no se adivina**: `normalizarConfianza` manda a `sin_declarar` todo lo que no
+sea exactamente `alta`, `media` o `baja` — vacío, `null`, `'ALTA'`, `'muy alta'`,
+un número. Traducir una palabra inventada al nivel más parecido sería inventar la
+valoración que falta.
+
+**2 · ¿Y los empates? Un desempate por orden de enumeración sería volver a lo de
+hoy por la puerta de atrás.**
+
+Exacto, y por eso no se usa. Con tres niveles sobre veinticinco candidatos **los
+empates son el caso normal, no la excepción**: el desempate decide casi siempre.
+Los tres criterios, en orden:
+
+| # | Criterio | Por qué |
+|---|---|---|
+| 1 | confianza declarada | es el juicio del modelo, lo único que mira el contenido |
+| 2 | **`maxScore`** | una CANTIDAD REAL y determinista. ⚠️ Señal débil y se declara débil —los scores están comprimidos entre 0,79 y 0,99 (B.248)— pero una señal débil y estable vence a ninguna señal |
+| 3 | `documentId` | arbitrario, y se dice que lo es. Su virtud es ser **determinista** |
+
+⚠️ **Y LO QUE ESTO ARREGLA NO ES SÓLO «ELEGIR MEJOR»: ES QUE ANTES NO ERA
+REPRODUCIBLE.** El orden de enumeración lo decide la salida del modelo, así que dos
+análisis idénticos podían cortar distinto. Ahora el corte es el mismo con los
+mismos candidatos, que es condición para poder medirlo.
+
+### El contador que impide que el arreglo se apague en silencio
+
+`seleccion.candidatos_sin_confianza`, declarado a mano en el catálogo — que es
+para lo que existe esa lista. **Si esto se acerca a `candidatos_seleccionados`, el
+criterio 1 se ha apagado** y el corte lo decide el score.
+
+Eso **no** sería volver al fallo —seguiría siendo determinista, y hay una prueba
+que lo fija— pero sí es un cambio de régimen, y un cambio de régimen mudo es el que
+nadie ve. Se cuenta **siempre, incluido el cero**: aquí el cero es la noticia
+buena.
+
+### El caso decisivo, y su mutación
+
+**Siete candidatos desordenados**, con las `alta` al final como llegarían si el
+modelo las enumerase así. Con el comportamiento de ayer entraban cuatro `baja` y
+dos `media`, y **las dos `alta` se caían**.
+
+**Mutado a devolver el orden de enumeración: 11 pruebas en rojo**, incluido el caso
+decisivo. **Mutado `sin_declarar` a valer lo mismo que `media`: 3 en rojo**,
+incluida la que existe sólo para ese caso. Ninguna de las dos es adorno.
+
+### ⚠️ EL FALLBACK NO PASA POR AQUÍ, y es correcto
+
+Cuando el modelo falla (`rerank.ts` catch), los candidatos salen todos con
+`'baja'`. **No `sin_declarar`**: eso significaría «el modelo no lo dijo», y aquí el
+modelo ni siquiera llegó a hablar. El fallo de etapa ya lo cuenta
+`recordStageFailure`.
+
+---
+
+## ✅ 5.56 · EL `0,50` ESTABA EN DOS SITIOS, Y YA NO (16/09/2026)
+
+`verify-claims.ts:65` tenía su propio `CORPUS_SCORE_THRESHOLD = 0.50`, idéntico al
+de `retrieval.ts` **sin que nadie hubiera decidido que debían coincidir**: dos
+números iguales por costumbre, no por acuerdo. Ahora se importa.
+
+**Lo que lo hacía urgente y no cosmético**: B.248 dice que ese 0,50 está sin
+calibrar, y calibrarlo es cosa de días. **Con dos copias, la calibración habría
+movido una y dejado la otra atrás, en silencio y sin que ninguna prueba se
+quejara.** Es literalmente el caso que `CLAUDE.md` describe: *«la distinción se hizo
+para una mitad y no se llevó a la otra»*.
+
+Son la **misma pregunta en distinta granularidad** —«¿esto se parece lo bastante
+como para mirarlo?»—, una sobre documentos y otra sobre fragmentos. Si algún día
+tienen que separarse, **la separación se bautiza y se razona**; lo que no vale es
+que se separen solas.
+
+`grep "= 0\.50;" lib/analysis/` devuelve **una sola línea**.
+
+⚠️ **La guarda es ESTRUCTURAL, no una prueba**: la constante local ya no existe, así
+que no hay nada que se pueda mover por su cuenta. Se dice porque una guarda
+estructural no aparece en ningún contador de cobertura y conviene que conste.
+
+---
+
+## ⚠️ 5.57 · B.250 — el corte del CHAT: lo miré esperando el mismo defecto y es EL EJEMPLO BUENO (16/09/2026)
+
+**Predicción escrita antes de leer**: que el chat ordenaba por score (porque
+Pinecone devuelve los matches ordenados) y que **no** había aviso al usuario.
+**La primera mitad acertada, la segunda FALLADA — y fallada a favor del
+producto.**
+
+### Las dos respuestas
+
+**1 · ¿El chat ordena antes de quedarse con seis?** **SÍ.**
+
+    lib/rag.ts:269-271
+    const topDocs = [...docScores.values()]
+      .sort((a, b) => b.maxScore - a.maxScore)
+      .slice(0, MAX_DOCUMENTS);
+
+**No tiene el defecto del rerank.** Ordena por el mejor parecido y luego corta.
+
+**2 · ¿Hay aviso al usuario?** **SÍ, y está bien escrito.**
+
+    lib/rag.ts:242-245   relevantDocsFound = docScores.size   // ANTES de recortar
+    components/ChatMessage.tsx:134-157   lo pinta si relevantDocsFound > documentsUsed
+    messages/es.json:71
+
+> *«He respondido con {used} de los {found} documentos relevantes que había. Para
+> preguntas que abarcan mucha documentación, el agente da respuestas más completas:
+> busca en varias vueltas y lee los documentos enteros.»*
+
+Y el comentario que lo acompaña en `rag.ts` dice exactamente la regla que al
+análisis le falta: *«Si se descartan, hay que decírselo al usuario (A.1): una
+respuesta incompleta en silencio es peor que una respuesta con aviso.»*
+
+### ⚠️ ASÍ QUE ESTA FICHA CORRIGE LA MÍA DE AYER
+
+En 5.54 escribí, como tercera lectura de la lista de latentes:
+
+> *«`MAX_DOCUMENTS = 6` en el chat es el mismo defecto que el rerank y nadie lo
+> había mirado… es B.244 en el camino que el cliente usa a diario, y no tiene
+> ficha.»*
+
+**Falso.** Lo escribí desde la tabla de mutantes —donde `MAX_DOCUMENTS` sobrevive,
+y eso sí es cierto— **sin abrir el consumidor**. Es exactamente la regla de la casa
+que llevo citando toda la semana, incumplida por mí en la misma página en que la
+citaba: *dar por inexistente algo que sí está, tras leer el productor y no el
+consumidor*.
+
+### Lo que SÍ queda abierto en el chat, que no es nada de lo que dije
+
+| Qué | Estado |
+|---|---|
+| ordena antes de cortar | ✅ lo hace |
+| avisa al usuario | ✅ lo hace |
+| `MAX_DOCUMENTS = 6` tiene caso decisivo | ❌ **no** — el mutante sobrevive. Es un latente de prueba, no de comportamiento |
+| `MIN_SCORE = 0,3` | ⚠️ **inerte**, y más que el 0,50: con un suelo de 0,79 no descarta nada. Es B.248 en el chat |
+| el aviso cuenta sobre `TOP_K = 15` chunks | el `found` está acotado por cuántos documentos distintos aparecen en 15 trozos, no por el corpus entero. **El aviso es honesto pero mide una población más pequeña de la que el usuario imagina** |
+
+**Así que el chat no sube de puesto: baja.** Lo que hay que llevarle del análisis no
+es el arreglo — es la prueba que le falta a su tope.
+
+---
+
+## QUÉ MIRA EL DIRECTOR DE ESTE COMMIT
+
+⚠️ **Nada. Y conviene decirlo en vez de inventarle un gesto.**
+
+El corte sólo se nota cuando hay **más de 6 candidatos**, y con el filtro de corpus
+como está —casi todo `pendiente`, B.245— sus análisis recuperan uno o dos. **El
+arreglo es invisible en su pantalla hasta que el corpus sea elegible.**
+
+Por eso **la evidencia de este commit es la batería, y se escribe como tal**: 20
+pruebas, un caso decisivo con siete candidatos desordenados, y dos mutaciones que
+matan 11 y 3 casos respectivamente. No hay captura de pantalla que enseñar, y una
+que se enseñara no probaría nada.
+
+**Lo que sí puede hacer, si quiere verlo alguna vez**: es el mismo montaje que
+lleva dos días pendiente —marcar documentos como revisados hasta pasar de seis— y
+sigue siendo **irreversible** y **suyo**. No hace falta para este arreglo.

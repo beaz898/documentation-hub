@@ -1,6 +1,7 @@
 import { recordStageFailure } from './stage-failures';
 import { queryVectors, buildCorpusFilter } from '@/lib/pinecone/vectors';
 import { generateEmbeddings } from '@/lib/embeddings';
+import { SCORE_THRESHOLD_QUICK } from './retrieval';
 import { callLLMJson } from './llm-client';
 import { runInBatches } from '@/lib/run-in-batches';
 import type { AtomicClaim } from './extract-claims';
@@ -61,8 +62,27 @@ interface VerifyResponse {
   fragmentIndex?: number;
 }
 
-/** Umbral de similitud para buscar fragmentos relevantes del corpus. */
-const CORPUS_SCORE_THRESHOLD = 0.50;
+/**
+ * Umbral de similitud para buscar fragmentos relevantes del corpus.
+ *
+ * ⚠️ YA NO ES UN 0,50 PROPIO: se IMPORTA del retrieval, que es quien lo decidió.
+ * Hasta el 16/09/2026 aquí había un `const ... = 0.50` idéntico al de
+ * `retrieval.ts` **sin que nadie hubiera decidido que debían coincidir**: dos
+ * números iguales por costumbre, no por acuerdo.
+ *
+ * Lo que lo hace urgente y no cosmético: B.248 dice que ese 0,50 está SIN
+ * CALIBRAR —el suelo real del corpus es 0,79, así que no descarta nada— y
+ * calibrarlo es cosa de días. Con dos copias, la calibración habría movido una
+ * y dejado la otra atrás, en silencio y sin que ninguna prueba se quejara. Es
+ * literalmente el caso que CLAUDE.md describe: «la distinción se hizo para una
+ * mitad y no se llevó a la otra».
+ *
+ * Son la MISMA pregunta en distinta granularidad —«¿esto se parece lo bastante
+ * como para mirarlo?»—, una sobre documentos y otra sobre fragmentos. **Si
+ * algún día tienen que separarse, la separación se bautiza y se razona**; lo
+ * que no vale es que se separen solas porque alguien tocó una de las dos.
+ */
+const CORPUS_SCORE_THRESHOLD = SCORE_THRESHOLD_QUICK;
 
 /** Máximo de fragmentos del corpus por afirmación. */
 const MAX_CORPUS_FRAGMENTS = 4;
