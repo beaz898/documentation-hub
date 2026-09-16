@@ -11,6 +11,7 @@ import {
 } from '@/lib/pinecone/vectors';
 import { TOP_K_POR_CONSULTA } from '@/lib/analysis/retrieval';
 import { runInBatches } from '@/lib/run-in-batches';
+import { reparteVacio, type ClaseDePar } from '@/lib/analysis/clase-de-trozo';
 import {
   matchesContables,
   acumularVecinos,
@@ -149,6 +150,7 @@ export async function GET(req: NextRequest) {
           vecinos_045: 0,
           scoreMax: 0,
           detalle: [],
+          porClase: reparteVacio(),
         });
         continue;
       }
@@ -178,11 +180,16 @@ export async function GET(req: NextRequest) {
         );
         contadores.consultas_realizadas += vectores.length;
 
-        for (const matches of resultados) {
+        // ⚠️ EL ÍNDICE IMPORTA: `runInBatches` conserva el orden, así que
+        // `resultados[i]` son los matches de `vectores[i]`. Hace falta porque la
+        // clase del par (B.246) no se puede saber mirando sólo un lado — el
+        // texto del trozo CON EL QUE SE PREGUNTÓ es la otra mitad, y ya viene en
+        // la metadata del vector bajado: no cuesta ni una consulta más.
+        resultados.forEach((matches, idx) => {
           const { contables, deGeneracionMuerta } = matchesContables(matches, documentId, activas);
           contadores.fragmentos_de_generacion_muerta += deGeneracionMuerta;
-          acumularVecinos(mejores, contables);
-        }
+          acumularVecinos(mejores, contables, vectores[idx].metadata?.text ?? '');
+        });
       }
 
       const resumen = resumirVecindario(mejores);
@@ -196,6 +203,19 @@ export async function GET(req: NextRequest) {
     }
 
     filas.sort((a, b) => b.vecinos_045 - a.vecinos_045 || b.vecinos - a.vecinos);
+
+    // ⚠️ EL AGREGADO, Y NO SÓLO EL DESGLOSE POR FILA. Es la regla de F-102: todo
+    // registro por-unidad imprime además su total, o no imprime cifras. La
+    // pregunta de B.246 —«¿cuántos de los vecinos de este corpus son cruces de
+    // FORMATO?»— no se contesta fila a fila: se contesta sumando.
+    const porClaseTotal = reparteVacio();
+    let vecindadesTotales = 0;
+    for (const f of filas) {
+      for (const clase of Object.keys(porClaseTotal) as ClaseDePar[]) {
+        porClaseTotal[clase] += f.porClase[clase];
+        vecindadesTotales += f.porClase[clase];
+      }
+    }
 
     if (contadores.fragmentos_de_generacion_muerta > 0) {
       console.warn(`[vecindario] GENERACIONES MUERTAS en el índice | org=${orgId} | fragmentos=${contadores.fragmentos_de_generacion_muerta}`);
@@ -214,6 +234,12 @@ export async function GET(req: NextRequest) {
       // saber si le falta un trozo.
       completo: contadores.consultas_omitidas_por_tope === 0,
       contadores,
+      // B.246 — de qué clase son los pares de trozos que producen las
+      // vecindades. `resumen_x_resumen` alto significa que el parecido de este
+      // corpus es de ENVOLTORIO: dos resúmenes de tabla comparten ~52
+      // caracteres de frase hecha antes del primer dato propio.
+      vecindadesTotales,
+      porClaseTotal,
       filas,
     });
   } catch (error: unknown) {

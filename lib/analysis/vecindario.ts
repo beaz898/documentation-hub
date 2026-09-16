@@ -1,6 +1,12 @@
 import type { VectorMatch } from '@/lib/pinecone/types';
 import { soloGeneracionActiva, generacionesMuertas } from './generacion-activa';
 import { SCORE_THRESHOLD_QUICK, SCORE_THRESHOLD_EXHAUSTIVE } from './retrieval';
+import {
+  clasificarTrozo,
+  clasificarPar,
+  reparteVacio,
+  type ClaseDePar,
+} from './clase-de-trozo';
 
 /**
  * EL CENSO DE VECINDARIO — B.243.
@@ -29,6 +35,18 @@ export interface Vecino {
   documentId: string;
   documentName: string;
   scoreMax: number;
+  /** B.246 — DE QUÉ CLASE ES EL PAR DE TROZOS QUE PRODUJO ESTE VECINO.
+   *  Un vecino no lo produce un trozo: lo produce un par. Si la mayoría de los
+   *  vecinos de este corpus son `resumen_x_resumen`, el parecido es de
+   *  envoltorio y no de contenido — y entonces el tope de 6 (B.244) no está
+   *  descartando basura, está descartando documentos buenos para quedarse con
+   *  hojas que casan por la frase hecha. */
+  clasePar: ClaseDePar;
+  /** Los dos textos que casaron, recortados. Es la prueba que un humano puede
+   *  leer sin creerse la clasificación: si los dos empiezan por la misma frase
+   *  y siguen con datos ajenos, está visto. */
+  muestraPropia: string;
+  muestraVecina: string;
 }
 
 /** Los contadores del censo. Todos se escriben SIEMPRE, incluidos los ceros:
@@ -66,6 +84,8 @@ export interface FilaDeVecindario {
   scoreMax: number;
   /** Los vecinos por encima de 0,45, de mayor a menor parecido. */
   detalle: Vecino[];
+  /** B.246 — reparto por clase del par, sobre los vecinos que pasan 0,50. */
+  porClase: Record<ClaseDePar, number>;
 }
 
 /** Forma mínima que el censo necesita de un match para poder contarlo. */
@@ -74,6 +94,9 @@ interface MatchContable {
   documentName: string;
   generation?: number;
   score: number;
+  /** El texto del trozo que casó. Ya viaja en la metadata, así que saberlo no
+   *  cuesta ni una consulta más. */
+  texto: string;
 }
 
 /**
@@ -99,6 +122,7 @@ export function matchesContables(
       documentName: typeof meta.documentName === 'string' ? meta.documentName : meta.documentId,
       generation: meta.generation,
       score: m.score,
+      texto: typeof meta.text === 'string' ? meta.text : '',
     });
   }
   // La MISMA función que usa el retrieval. No se recalcula el criterio.
@@ -117,7 +141,11 @@ export function matchesContables(
 export function acumularVecinos(
   mejores: Map<string, Vecino>,
   contables: MatchContable[],
+  /** Texto del trozo PROPIO con el que se consultó. La clase del par no se
+   *  puede saber mirando sólo un lado. */
+  textoPropio: string,
 ): void {
+  const clasePropia = clasificarTrozo(textoPropio);
   for (const c of contables) {
     const previo = mejores.get(c.documentId);
     if (previo === undefined || c.score > previo.scoreMax) {
@@ -125,6 +153,9 @@ export function acumularVecinos(
         documentId: c.documentId,
         documentName: c.documentName,
         scoreMax: c.score,
+        clasePar: clasificarPar(clasePropia, clasificarTrozo(c.texto)),
+        muestraPropia: textoPropio.slice(0, 140),
+        muestraVecina: c.texto.slice(0, 140),
       });
     }
   }
@@ -143,14 +174,21 @@ export function resumirVecindario(mejores: Map<string, Vecino>): {
   vecinos_045: number;
   scoreMax: number;
   detalle: Vecino[];
+  /** ⚠️ EL REPARTO ES LA RESPUESTA A B.246. Cuenta sobre los vecinos que pasan
+   *  0,50 — los que de verdad llegarían al rerank. */
+  porClase: Record<ClaseDePar, number>;
 } {
   const todos = [...mejores.values()].sort((a, b) => b.scoreMax - a.scoreMax);
   const detalle = todos.filter(v => v.scoreMax >= SCORE_THRESHOLD_EXHAUSTIVE);
+  const queLlegan = todos.filter(v => v.scoreMax >= SCORE_THRESHOLD_QUICK);
+  const porClase = reparteVacio();
+  for (const v of queLlegan) porClase[v.clasePar] += 1;
   return {
-    vecinos: todos.filter(v => v.scoreMax >= SCORE_THRESHOLD_QUICK).length,
+    vecinos: queLlegan.length,
     vecinos_045: detalle.length,
     scoreMax: todos.length > 0 ? todos[0].scoreMax : 0,
     detalle,
+    porClase,
   };
 }
 

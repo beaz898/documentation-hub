@@ -217,6 +217,37 @@ El dueño del proyecto NO es programador. Vercel deploya automáticamente al hac
   para conservar lo que se dijo— es justo lo que le presta la autoridad. **La
   sospecha vale igual cuando lo que se da por existente lo propuso esta misma
   casa.** Promovida el 09/09/2026.
+- **CADA PARTICIPANTE DE ESTE CIRCUITO VE UNA COSA DISTINTA, Y NINGUNO LAS VE
+  TODAS. ANTES DE ACEPTAR UNA AFIRMACIÓN, LA PREGUNTA NO ES SI SUENA RAZONABLE:
+  ES SI QUIEN LA HACE PODÍA SABERLA.**
+  El reparto, hoy y por escrito:
+  · **Claude** tiene el REPOSITORIO —código, historia, fichas— y **no tiene el
+    contenido de los documentos del cliente**. Puede afirmar qué hace una línea
+    y qué se midió; no puede afirmar de qué habla un `.xlsx` del OneDrive del
+    director.
+  · **El arquitecto** tiene la CONVERSACIÓN y el criterio. No tiene repositorio
+    ni documentos. Emite condicionales, invariantes y encargos de verificación
+    —nunca indicativos sobre el objeto— y es quien decide qué se mide.
+  · **El director** tiene los DOCUMENTOS y el producto delante. Es el único que
+    puede abrir dos ficheros y decir «éstos no tienen nada que ver», y el único
+    que ejecuta SQL y pulsa botones.
+  · **Un chat externo** puede tener los documentos y **no tiene nada de estos
+    días**: ni las mediciones, ni las correcciones, ni qué premisa se cayó ayer.
+  ⚠️ **EL CASO, Y COSTÓ MEDIA MAÑANA**: un chat externo con el corpus en disco
+  afirmó que `RRHH-01` remitía a doce documentos. Era información que esta casa
+  no tenía y que sonaba valiosa — y `RRHH-01` **no existe en el corpus del
+  director**. La hipótesis no era falsa: era **inaccesible**, y se trabajó sobre
+  ella porque nadie escribió primero quién podía saber qué. La misma fuente dio
+  el tope del exhaustivo como 10 cuando son 3, que era la señal.
+  **LA FORMA OPERATIVA**: toda afirmación que entre en el circuito se etiqueta
+  con su fuente y con lo que esa fuente puede ver. Si la afirmación cae fuera de
+  lo que su fuente puede ver, no es un dato: es un encargo de verificación
+  dirigido a quien SÍ puede verlo. Y se dirige al que puede, no al que contesta
+  antes.
+  ⚠️ Y SU COROLARIO BARATO, que es el que se olvida: **cuando la pregunta la puede
+  cerrar el director abriendo dos ficheros, se le pregunta a él antes de escribir
+  código o gastar un crédito.** Enumerar quién puede saber qué no es cortesía: es
+  el camino más corto. Promovida el 16/09/2026.
 - Archivos completos siempre, no diffs ni fragmentos, salvo archivos largos con cambios mínimos e inequívocos.
 - Cambios pequeños con build verde entre medias. Nunca encadenar fixes sin verificar.
 - Cuando falle la build, pedir log completo antes de diagnosticar.

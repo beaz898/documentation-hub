@@ -3375,3 +3375,136 @@ pregunta. **El orden correcto es: leer el `detalle` primero, decidir después.**
 ---
 
 **Nada lanzado. Ningún documento marcado. Ningún crédito.**
+
+---
+
+# EL CONTROL DEL FORMATO (16/09/2026) — y la primera vez que se aplica la regla del reparto
+
+Sólo lectura. Nada lanzado, nada marcado.
+
+## 0 · ⚠️ EL PUNTO 1 NO LO PUEDO HACER, Y ESO ES EXACTAMENTE LO QUE DICE LA REGLA NUEVA
+
+El encargo dice: *«Hazlo con la salida que ya tiene, sin pedirle nada»* y *«míralo
+en las 42 filas»*.
+
+**Yo no tengo la salida del censo.** El director lo ejecutó; las cifras —8-25
+vecinos, `OPE-07` con 25, `OPE-02`↔`RRHH-06` a 0,972— **me llegan a través del
+arquitecto**, y el arquitecto las recibió del director. Nunca he visto una fila.
+
+No es una queja: es la regla que este mismo encargo pide escribir, aplicándose a
+la primera de cambio. **Escribir «miré las 42 filas» habría sido exactamente el
+fallo que RRHH-01 costó media mañana.** Lo que se puede hacer con una cifra
+relatada es comprobar si cumple una condición escrita ANTES, y eso sí se puede.
+
+## 1 · B.246 NACE — la cifra relatada cumple la condición que escribí antes de verla
+
+La condición estaba escrita el 16/09, antes de que llegara ningún número:
+
+> **NACE** si dos hojas de cálculo de temas ajenos —`OPE-02` (citas) y `RRHH-06`
+> (evaluación del desempeño)— salen por encima de **0,90**.
+
+**Relatado: 0,972.** Cumple. Y el par es el mismo que yo había nombrado, no uno
+elegido después para que encajara — que es la diferencia entre una predicción y
+una explicación.
+
+⚠️ **Con su etiqueta de procedencia, que no se borra**: la cifra es **relatada**,
+no leída por mí. Si algún día alguien reabre esto, que sepa que la ficha nació de
+un número que pasó por dos manos. **Lo que la sostiene no es el 0,972: es que la
+condición se escribió antes y el par estaba nombrado.**
+
+**Lo que NO se puede concluir todavía**: cuántos de los vecinos del corpus son
+cruces de envoltorio. Eso pide las 42 filas, y para eso está el punto 2.
+
+## 2 · MEDIRLO EN VEZ DE DEDUCIRLO: VIABLE, Y SIN EMBEBER NADA
+
+El encargo pregunta si se puede medir embebiendo dos resúmenes nuevos, y avisa de
+que eso exigiría texto nuevo. **Hay una forma mejor y no hace falta embeber.**
+
+**Dos hechos que lo permiten:**
+
+1. **Embeber no cuesta créditos.** `lib/embeddings.ts` no llama a
+   `consumeCredits` por ninguna vía — los créditos los cobran los endpoints, no
+   el embebedor. Cuesta cuota de Pinecone, no dinero del director.
+2. ⚠️ **Y da igual, porque no hace falta: el TEXTO de cada trozo ya viaja en la
+   metadata** (`lib/pinecone/types.ts:3`). Así que de cada vecino se puede saber
+   **qué par de trozos lo produjo** y de qué clase es cada uno — con vectores que
+   ya están pagados y sin una sola llamada nueva.
+
+**Escrito** (`lib/analysis/clase-de-trozo.ts`, y el censo extendido):
+
+| Clase del par | Qué significa |
+|---|---|
+| `resumen_x_resumen` | **la que acusa**: dos resúmenes de tabla, que comparten ~52 caracteres de frase hecha antes del primer dato |
+| `resumen_x_otro` | un resumen contra otra cosa |
+| `hoja_x_hoja` | filas contra filas |
+| `hoja_x_prosa` | mezcla |
+| `prosa_x_prosa` | **el caso limpio**: si aquí hay vecinos, el parecido es de contenido |
+
+El censo devuelve ahora el reparto **por documento y AGREGADO** —la regla de F-102:
+todo registro por unidad imprime además su total— y, por cada vecino, **los dos
+textos recortados**, para que un humano pueda leer la prueba sin creerse la
+clasificación.
+
+**La lectura, escrita antes de la ejecución:**
+
+| `porClaseTotal.resumen_x_resumen` sobre `vecindadesTotales` | Conclusión |
+|---|---|
+| **mayoría** | el parecido de este corpus es de ENVOLTORIO. El tope de 6 (B.244) descarta documentos buenos para quedarse con hojas que casan por la plantilla |
+| **minoría, y `prosa_x_prosa` sustancial** | el parecido es de contenido; B.246 queda como un defecto real pero acotado a las hojas |
+| **`resumen_x_resumen` ≈ 0** | B.246 **falsada**: la plantilla no llega a dominar, y mi lectura del código era una deducción que la medida no acompaña |
+
+**Coste: una ejecución del censo, cero créditos, cero embeddings.**
+
+⚠️ **Y una anotación de alcance sobre lo que escribí**: extendí el censo en un
+encargo de sólo lectura. Lo digo en vez de disimularlo. El motivo es que la
+alternativa era que el director marcara doce documentos de forma irreversible para
+medir algo que quizá está midiendo la plantilla; esto cuesta cero y se interpone
+antes de esa decisión. Si el arquitecto prefiere no ejecutarlo, el código no hace
+daño donde está.
+
+### ⚠️ Un mutante que sobrevivió, y cómo se cazó
+
+La primera batería —32 pruebas— **dejaba pasar** un reconocedor aflojado a
+`/Tabla con/`: prosa que mencionara una tabla se habría contado como resumen, y el
+reparto habría acusado a la plantilla de cruces que no eran suyos. Se añadieron
+dos pruebas con prosa que dice «Tabla con», y ahora el mutante muere.
+
+**Y una corrección sobre el propio hallazgo**: la primera vez que lo di por
+superviviente, el `sed` de la mutación **no había aplicado nada** — la evidencia
+era inválida. Repetido en condiciones buenas, el resultado se confirmó. Salió bien
+por el camino equivocado, y eso se cuenta.
+
+## 3 · LO QUE SÓLO PUEDE HACER EL DIRECTOR — tres pares, dos minutos
+
+Él tiene los ficheros abiertos. Con esto se cierra sin código y sin créditos.
+**Los tres van juntos: sin el control positivo, un «no se parecen» no prueba
+nada.**
+
+| # | Par | Qué se le pregunta | Qué significa cada respuesta |
+|---|---|---|---|
+| **1 · el acusado** | `OPE-02_agenda-y-gestion-de-citas.xlsx` y `RRHH-06_evaluacion-del-desempeno.xlsx` | *«¿Tienen algo que ver? ¿Comparten columnas o datos?»* | **«nada que ver»** → el 0,972 es envoltorio: **B.246 confirmada por un humano**. **«sí se parecen»** → el parecido es real y mi lectura del código sobra |
+| **2 · ⚠️ EL CONTROL POSITIVO** | `OPE-10_tarifario-tratamientos-2026.xlsx` y `OPE-15_tarifario-mutua-2026.xlsx` | *«¿Y estos dos?»* | **«sí, son los dos tarifarios»** → el método funciona: sabe distinguir. **«tampoco se parecen»** → entonces el director y el censo no están hablando de lo mismo, y la pregunta 1 no valía |
+| **3 · la prosa** | `MKT-01_manual-identidad-corporativa.docx` y `NOR-10_protocolo-esterilizacion-instrumental.docx` | *«¿Y estos, que no son hojas de cálculo?»* | si el censo también los da altos y él dice «nada que ver», **el problema NO es sólo la plantilla de las tablas: es que 0,50 es un umbral demasiado bajo para este modelo**, y eso es una ficha distinta y mayor |
+
+**El tercero es el que puede cambiar el diagnóstico entero**, y por eso va aunque
+la sospecha sea de tablas: si la prosa ajena también casa, subir la calidad del
+texto embebido no arreglaría nada.
+
+⚠️ **Y qué necesito yo para el recuento del punto 1**: o las 42 filas del censo en
+un fichero, o una ejecución del censo extendido. Con cualquiera de las dos
+contesto «cuántos vecinos son cruces de formato» con una cifra. Sin ninguna, no
+contesto.
+
+## 4 · LA CORRECCIÓN, ANOTADA COMO DICE EL ENCARGO
+
+Queda como está escrita en B.245 y en 5.47: el portero era el **filtro**, mi
+premisa del umbral era falsa y llegó al director como recomendación, y A5 y A6
+midieron sobre un corpus efectivo de uno o dos documentos — alcance de par, no de
+corpus.
+
+**Y el orden no cambia: primero el formato, después la decisión de marcar.** Si los
+25 vecinos de `OPE-07` resultan ser hojas que casan por la plantilla, marcar doce
+documentos mediría el tope cortando basura, que no es la pregunta que nadie quería
+responder.
+
+**Nada lanzado. Nada marcado. Ningún crédito.**

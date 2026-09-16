@@ -3444,6 +3444,39 @@ hace falta ejecutar nada nuevo:**
 > más altos de cualquier `.xlsx` son todos `.xlsx`.
 > **NO NACE** si los vecinos altos de cada hoja son hojas de su mismo tema.
 
+### ✅ NACIDA EL MISMO DÍA — la condición se cumplió
+
+**`OPE-02` ↔ `RRHH-06`: 0,972.** Citas y evaluación del desempeño. Por encima del
+0,90 que se había escrito antes de ver ningún número, y sobre el par que ya estaba
+nombrado — no uno elegido después para que encajara.
+
+⚠️ **PROCEDENCIA, y no se borra: la cifra es RELATADA.** El censo lo ejecutó el
+director y el número llegó por el arquitecto; esta casa no ha visto una sola fila
+de la salida. Lo que sostiene la ficha no es el 0,972 — es que **la condición y el
+par se escribieron antes**. Si alguien reabre esto, que lo sepa.
+
+**Lo que sigue sin saberse**: cuántas de las vecindades del corpus son cruces de
+envoltorio. Para eso el censo se extendió (ver más abajo) y hace falta una
+ejecución; o las 42 filas en un fichero.
+
+### La medida, sin embeber nada
+
+El texto de cada trozo ya viaja en la metadata (`lib/pinecone/types.ts:3`), así que
+se puede saber **qué par de trozos produjo cada vecino** sin una sola llamada
+nueva. `lib/analysis/clase-de-trozo.ts` reconoce la plantilla y el censo devuelve
+el reparto por documento **y agregado**, más los dos textos recortados de cada
+vecino para que la clasificación se pueda desmentir leyéndola.
+
+Lectura escrita antes de ejecutar: `resumen_x_resumen` mayoritario ⇒ el parecido es
+de envoltorio y el tope de 6 descarta documentos buenos; `resumen_x_resumen` ≈ 0 ⇒
+**B.246 falsada**, la plantilla no llega a dominar.
+
+⚠️ **Un mutante sobrevivió a la primera batería**: aflojar el reconocedor a
+`/Tabla con/` pasaba las 32 pruebas, y habría contado como resumen cualquier prosa
+que mencionara una tabla. Cerrado con dos pruebas más. Y la primera vez que se dio
+por superviviente, la mutación **no se había aplicado** —evidencia inválida—;
+repetida en condiciones buenas, se confirmó. Salió bien por el camino equivocado.
+
 ### Y lo que cambiaría si nace
 
 El tope de 6 (B.244) no estaría descartando basura: **estaría descartando

@@ -7,15 +7,16 @@ import {
   type Vecino,
 } from './vecindario';
 import type { VectorMatch } from '@/lib/pinecone/types';
+import { clasificarTrozo, clasificarPar, reparteVacio } from './clase-de-trozo';
 
 const PROPIO = 'doc-propio';
 
-function match(documentId: string, score: number, extra?: { generation?: number; documentName?: string }): VectorMatch {
+function match(documentId: string, score: number, extra?: { generation?: number; documentName?: string; text?: string }): VectorMatch {
   return {
     id: `${documentId}-0`,
     score,
     metadata: {
-      text: 'x',
+      text: extra?.text ?? 'prosa cualquiera',
       documentId,
       documentName: extra?.documentName ?? `nombre de ${documentId}`,
       chunkIndex: 0,
@@ -84,15 +85,15 @@ describe('matchesContables — qué entra en el censo', () => {
 describe('acumularVecinos — un vecino se cuenta una vez, con su mejor parecido', () => {
   it('se queda con el score MAXIMO, no con el ultimo', () => {
     const mejores = new Map<string, Vecino>();
-    acumularVecinos(mejores, [{ documentId: 'a', documentName: 'A', score: 0.91 }]);
-    acumularVecinos(mejores, [{ documentId: 'a', documentName: 'A', score: 0.62 }]);
+    acumularVecinos(mejores, [{ documentId: 'a', documentName: 'A', score: 0.91, texto: 'prosa' }], 'prosa');
+    acumularVecinos(mejores, [{ documentId: 'a', documentName: 'A', score: 0.62, texto: 'prosa' }], 'prosa');
     expect(mejores.get('a')!.scoreMax).toBeCloseTo(0.91);
   });
 
   it('ocho trozos que encuentran al mismo vecino son UN vecino', () => {
     const mejores = new Map<string, Vecino>();
     for (let i = 0; i < 8; i++) {
-      acumularVecinos(mejores, [{ documentId: 'a', documentName: 'A', score: 0.5 + i / 100 }]);
+      acumularVecinos(mejores, [{ documentId: 'a', documentName: 'A', score: 0.5 + i / 100, texto: 'prosa' }], 'prosa');
     }
     expect(mejores.size).toBe(1);
     expect(mejores.get('a')!.scoreMax).toBeCloseTo(0.57);
@@ -102,7 +103,7 @@ describe('acumularVecinos — un vecino se cuenta una vez, con su mejor parecido
 describe('resumirVecindario — los dos umbrales', () => {
   function mapaDe(pares: Array<[string, number]>): Map<string, Vecino> {
     const m = new Map<string, Vecino>();
-    for (const [id, score] of pares) m.set(id, { documentId: id, documentName: id.toUpperCase(), scoreMax: score });
+    for (const [id, score] of pares) m.set(id, { documentId: id, documentName: id.toUpperCase(), scoreMax: score, clasePar: 'prosa_x_prosa', muestraPropia: '', muestraVecina: '' });
     return m;
   }
 
@@ -135,7 +136,7 @@ describe('resumirVecindario — los dos umbrales', () => {
 
   it('sin vecinos: ceros y scoreMax 0, no undefined', () => {
     const r = resumirVecindario(new Map());
-    expect(r).toEqual({ vecinos: 0, vecinos_045: 0, scoreMax: 0, detalle: [] });
+    expect(r).toEqual({ vecinos: 0, vecinos_045: 0, scoreMax: 0, detalle: [], porClase: reparteVacio() });
   });
 
   it('scoreMax es el mayor AUNQUE no llegue a ningun umbral — distingue «no se parece a nadie» de «se parece poco»', () => {
@@ -153,5 +154,161 @@ describe('resumirVecindario — los dos umbrales', () => {
     expect(UMBRALES_DEL_CENSO.vecinos).toBe(0.5);
     expect(UMBRALES_DEL_CENSO.vecinos_045).toBe(0.45);
     expect(UMBRALES_DEL_CENSO.vecinos).toBeGreaterThan(UMBRALES_DEL_CENSO.vecinos_045);
+  });
+});
+
+// ════════════════════════════════════════════════════════════════════════
+// B.246 — LA CLASE DEL PAR. Los textos de ejemplo son los que `chunking.ts`
+// produce de verdad (`:846`, `:882-884`, `:902`), no inventados: si la
+// plantilla cambia, estas pruebas caen, que es justo lo que se quiere.
+// ════════════════════════════════════════════════════════════════════════
+
+const RESUMEN_TARIFAS =
+  '[Hoja "Tarifas"] Tabla con 60 filas y 7 columnas. Columnas: Tratamiento, Precio, Duracion, Mutua, Codigo, Sede, Notas.';
+const RESUMEN_GUARDIAS =
+  '[Hoja "Guardias"] Tabla con 31 filas y 5 columnas. Columnas: Dia, Profesional, Turno, Sede, Telefono.';
+const FILA_TARIFAS =
+  '[Hoja "Tarifas"] Tratamiento: Implante unitario | Precio: 1.250 EUR | Duracion: 90 min';
+const PROSA =
+  'El consentimiento informado debe firmarse antes de cualquier intervencion quirurgica.';
+
+describe('clasificarTrozo — se lee de la plantilla, no de un campo', () => {
+  it('reconoce el resumen de tabla por su frase hecha', () => {
+    expect(clasificarTrozo(RESUMEN_TARIFAS)).toBe('resumen_tabla');
+    expect(clasificarTrozo(RESUMEN_GUARDIAS)).toBe('resumen_tabla');
+  });
+
+  it('una fila de tabla NO es un resumen, aunque venga de la misma hoja', () => {
+    expect(clasificarTrozo(FILA_TARIFAS)).toBe('otro_de_hoja');
+  });
+
+  it('la prosa no lleva prefijo de hoja', () => {
+    expect(clasificarTrozo(PROSA)).toBe('prosa');
+  });
+
+  it('un texto vacio es prosa, no revienta', () => {
+    expect(clasificarTrozo('')).toBe('prosa');
+  });
+
+  it('⚠️ LA PRUEBA DEL HALLAZGO: dos resumenes de temas AJENOS comparten la frase hecha', () => {
+    // Tarifas de tratamientos y cuadrante de guardias no tienen nada que ver.
+    // Lo que comparten es el envoltorio, y se puede contar:
+    const plantilla = 'Tabla con 60 filas y 7 columnas. Columnas:'.length;
+    expect(RESUMEN_TARIFAS).toContain('Tabla con');
+    expect(RESUMEN_GUARDIAS).toContain('Tabla con');
+    // Ambos son de la misma clase pese a no compartir NI UNA columna.
+    const columnasTarifas = RESUMEN_TARIFAS.split('Columnas: ')[1];
+    const columnasGuardias = RESUMEN_GUARDIAS.split('Columnas: ')[1];
+    const comunes = columnasTarifas.split(', ').filter(c => columnasGuardias.includes(c));
+    expect(comunes.filter(c => c !== 'Sede.' && c !== 'Sede')).toHaveLength(0);
+    expect(plantilla).toBeGreaterThan(40);
+    expect(clasificarPar(clasificarTrozo(RESUMEN_TARIFAS), clasificarTrozo(RESUMEN_GUARDIAS)))
+      .toBe('resumen_x_resumen');
+  });
+});
+
+describe('clasificarPar — las cinco clases', () => {
+  it('resumen con resumen es la clase que acusa', () => {
+    expect(clasificarPar('resumen_tabla', 'resumen_tabla')).toBe('resumen_x_resumen');
+  });
+
+  it('resumen con cualquier otra cosa se separa: no es lo mismo y no se mezcla', () => {
+    expect(clasificarPar('resumen_tabla', 'prosa')).toBe('resumen_x_otro');
+    expect(clasificarPar('otro_de_hoja', 'resumen_tabla')).toBe('resumen_x_otro');
+  });
+
+  it('prosa con prosa es el caso limpio: si aqui hay vecinos, el parecido es de contenido', () => {
+    expect(clasificarPar('prosa', 'prosa')).toBe('prosa_x_prosa');
+  });
+
+  it('hoja con hoja sin resumenes: filas contra filas', () => {
+    expect(clasificarPar('otro_de_hoja', 'otro_de_hoja')).toBe('hoja_x_hoja');
+  });
+
+  it('hoja con prosa', () => {
+    expect(clasificarPar('otro_de_hoja', 'prosa')).toBe('hoja_x_prosa');
+    expect(clasificarPar('prosa', 'otro_de_hoja')).toBe('hoja_x_prosa');
+  });
+
+  it('es SIMETRICA: el orden de los dos lados no cambia la clase', () => {
+    const clases = ['resumen_tabla', 'otro_de_hoja', 'prosa'] as const;
+    for (const a of clases) {
+      for (const b of clases) {
+        expect(clasificarPar(a, b)).toBe(clasificarPar(b, a));
+      }
+    }
+  });
+});
+
+describe('el reparto por clase llega hasta el resumen', () => {
+  it('cuenta SOLO los vecinos que pasan 0,50 — los que llegarian al rerank', () => {
+    const m = new Map<string, Vecino>();
+    m.set('a', { documentId: 'a', documentName: 'A', scoreMax: 0.97, clasePar: 'resumen_x_resumen', muestraPropia: '', muestraVecina: '' });
+    m.set('b', { documentId: 'b', documentName: 'B', scoreMax: 0.46, clasePar: 'resumen_x_resumen', muestraPropia: '', muestraVecina: '' });
+    const r = resumirVecindario(m);
+    expect(r.vecinos).toBe(1);
+    expect(r.porClase.resumen_x_resumen).toBe(1);
+  });
+
+  it('⚠️ EL CASO QUE DECIDE B.246: todos los vecinos por envoltorio', () => {
+    const m = new Map<string, Vecino>();
+    for (const id of ['a', 'b', 'c']) {
+      m.set(id, { documentId: id, documentName: id, scoreMax: 0.96, clasePar: 'resumen_x_resumen', muestraPropia: '', muestraVecina: '' });
+    }
+    const r = resumirVecindario(m);
+    expect(r.vecinos).toBe(3);
+    expect(r.porClase.resumen_x_resumen).toBe(3);
+    expect(r.porClase.prosa_x_prosa).toBe(0);
+  });
+
+  it('las cinco clases se escriben SIEMPRE, incluidos los ceros', () => {
+    const r = resumirVecindario(new Map());
+    expect(Object.keys(r.porClase).sort()).toEqual(
+      ['hoja_x_hoja', 'hoja_x_prosa', 'prosa_x_prosa', 'resumen_x_otro', 'resumen_x_resumen'],
+    );
+  });
+
+  it('acumularVecinos clasifica el par con los DOS lados, no solo el vecino', () => {
+    const mejores = new Map<string, Vecino>();
+    acumularVecinos(
+      mejores,
+      [{ documentId: 'v', documentName: 'V', score: 0.97, texto: RESUMEN_GUARDIAS }],
+      RESUMEN_TARIFAS,
+    );
+    expect(mejores.get('v')!.clasePar).toBe('resumen_x_resumen');
+    expect(mejores.get('v')!.muestraPropia).toContain('Tarifas');
+    expect(mejores.get('v')!.muestraVecina).toContain('Guardias');
+  });
+
+  it('un resumen contra prosa NO es un cruce de envoltorio', () => {
+    const mejores = new Map<string, Vecino>();
+    acumularVecinos(
+      mejores,
+      [{ documentId: 'v', documentName: 'V', score: 0.8, texto: PROSA }],
+      RESUMEN_TARIFAS,
+    );
+    expect(mejores.get('v')!.clasePar).toBe('resumen_x_otro');
+  });
+});
+
+describe('el reconocedor no se puede aflojar — lo cazo una mutacion superviviente', () => {
+  /** ⚠️ ESTA PRUEBA NACE DE UN MUTANTE QUE SOBREVIVIO. Aflojar el reconocedor a
+   *  /Tabla con/ dejaba pasar las 32 pruebas: prosa que hablase de tablas se
+   *  habria contado como resumen, y el reparto de B.246 habria acusado a la
+   *  plantilla de cruces que no eran suyos. Un caso verde que no puede fallar
+   *  por su propio motivo es un adorno. */
+  it('prosa que MENCIONA una tabla no es un resumen de tabla', () => {
+    expect(clasificarTrozo(
+      'La Tabla con los precios vigentes se revisa cada trimestre por el comite.',
+    )).toBe('prosa');
+    expect(clasificarTrozo(
+      'Tabla con los turnos: ver el anexo II del manual de acogida.',
+    )).toBe('prosa');
+  });
+
+  it('hace falta la frase COMPLETA, con sus dos numeros y la palabra Columnas', () => {
+    expect(clasificarTrozo('Tabla con 60 filas.')).toBe('prosa');
+    expect(clasificarTrozo('Tabla con 60 filas y 7 columnas.')).toBe('prosa');
+    expect(clasificarTrozo('Tabla con 60 filas y 7 columnas. Columnas: A, B.')).toBe('resumen_tabla');
   });
 });
