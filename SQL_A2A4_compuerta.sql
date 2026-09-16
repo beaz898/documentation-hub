@@ -47,3 +47,29 @@ from documents
 where org_id = '<ORG_ID>'
   and analysis_status = 'analizado'
 order by created_at desc;
+
+-- ════════════════════════════════════════════════════════════════════════
+-- AÑADIDO EL 16/09/2026 — LA POBLACIÓN DE B.241, Y VA PRIMERO
+--
+-- Cuesta cero y decide si la ficha tiene fundamento antes de fabricar nada.
+--
+-- Si max_seleccionados del 'exhaustive' es MENOR QUE 7, el tope de 25 no ha
+-- mordido nunca: B.241 nace con población y no con memoria.
+-- Si alguna pasada llegó a 7 o más, la ficha nace falsada y se dice.
+-- ════════════════════════════════════════════════════════════════════════
+
+select analysis_type,
+       count(*)                                                              as pasadas,
+       max((pipeline_counters ->> 'seleccion.candidatos_recuperados')::int)   as max_recuperados,
+       max((pipeline_counters ->> 'seleccion.candidatos_seleccionados')::int) as max_seleccionados
+from analysis_results
+where org_id = '<ORG_ID>' and pipeline_counters is not null
+group by analysis_type;
+
+-- ── EL VOLUMEN DEL CENSO DE VECINDARIO (B.243) ─────────────────────────
+-- Cuántas consultas a Pinecone costaría el censo. Si pasa de ~1.500, el
+-- endpoint va documento a documento en vez de de golpe.
+
+select count(*) as documentos, sum(chunk_count) as consultas_del_censo
+from documents
+where org_id = '<ORG_ID>';

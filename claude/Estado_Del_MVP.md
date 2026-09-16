@@ -3059,3 +3059,134 @@ arriba.
 estaba en el plan, ha salido la vía de reparación entera. Sin ella, el arreglo del
 cortador habría partido el parque en dos mitades sin forma de saber cuáles eran.
 **Eso no era un rodeo: era la condición para poder tocar el índice.**
+
+---
+
+## ⚠️ 5.38 · B.242 — desde la bandeja, el rápido y el exhaustivo NO miran el mismo corpus (16/09/2026)
+
+Dos topes de pantalla, y contestan a preguntas distintas:
+
+    hooks/review/useReviewList.ts:6            MAX_SELECTION = 20
+    components/review/ReviewSelectionBar.tsx:19 MAX_EXHAUSTIVE_SELECTION = 3   (aplicado en :111)
+
+Y una sola lista para las dos cosas:
+
+    hooks/review/useReviewAnalysis.ts:126
+    const batchDocumentIds = documents.filter(d => d.id !== doc.id).map(d => d.id);
+
+La tanda que **participa** en la recuperación es la selección menos el que se
+analiza. No hay lista de participantes aparte de la lista de analizados.
+
+**Consecuencia**: desde la bandeja el rápido puede llevar hasta **19** compañeros
+y el exhaustivo como mucho **2**. No es que uno mire más y otro menos —**miran
+corpus distintos**, y el que mira menos es el que cuesta 30 créditos.
+
+⚠️ **Lo que lo hace ficha y no nota**: comparar los dos modos desde la bandeja no
+compara los modos, compara dos corpus, y el sesgo favorece al barato. Nadie lo
+había escrito, y el montaje de A2/A4 se apoyaba justo en lo contrario.
+
+El servidor no pone tope (`app/api/analyze-v2/route.ts:184` sólo valida el tipo):
+los dos números son decisiones de pantalla, y por tanto revisables sin tocar el
+pipeline. **No se decide aquí cuál debe ser: se registra que hoy no son
+comparables.**
+
+---
+
+## ⚠️ 5.39 · B.243 — el corpus sabe qué documento toca a más documentos, y nadie se lo ha preguntado (16/09/2026)
+
+Los vectores están calculados y pagados. Con lo que ya hay se puede contar, por
+cada documento, **contra cuántos otros tiene al menos un trozo por encima del
+umbral** — sin abrir ningún documento, sin volver a embeber, sin modelo y **sin
+consumir un crédito**.
+
+Las cuatro piezas existen:
+
+| Pieza | Fichero:línea |
+|---|---|
+| `listVectorIdsByPrefix` | `lib/pinecone/vectors.ts:273` |
+| `fetchVectors` (devuelve `values: number[]`) | `lib/pinecone/vectors.ts:230` |
+| `queryVectors` (`filter` opcional, `:139`) | `lib/pinecone/vectors.ts:128` |
+| `soloGeneracionActiva` | `lib/analysis/generacion-activa.ts:50` |
+
+⚠️ **Y lo que NO existe**: ningún endpoint ni script lo hace hoy. `admin/duplicates`
+agrupa por `content_hash` exacto; `admin/diagnose-vectors` compara estado contra
+metadata. Se dice en negativo a propósito — dar por existente lo que sólo está
+propuesto es el corolario de F-106.
+
+**Las dos condiciones de corrección**, que si se fallan hacen que mida otra cosa:
+
+1. **Sin filtro de corpus.** `CORPUS_ACTIVO` sólo ve `analizado` y hoy casi los 42
+   son `pendiente`: con filtro daría ceros con pinta de resultado.
+2. **La generación se PREGUNTA a `soloGeneracionActiva`**, no se recalcula.
+
+**Qué devolvería**: por documento, `vecinos` (≥ 0,50), `vecinos_045`, `score_max` y
+la lista con nombres. La diferencia entre las dos primeras columnas **es lo que el
+exhaustivo compra con su umbral, sabido sin gastar 30 créditos**.
+
+⚠️ **Vale más que la tanda que lo motivó.** Es una pregunta de producto —*«¿qué
+documento de los míos toca a más documentos?»*— que hoy no tiene respuesta, y de
+paso da el sujeto real para A2/A4 en vez de uno fabricado. El volumen sale de
+`sum(chunk_count)`, que está en `SQL_A2A4_compuerta.sql`; no se estima de memoria.
+
+---
+
+## ⚠️ 5.40 · B.241 — el tope de 25 del exhaustivo no se ha ejercido nunca (16/09/2026)
+
+**Nace con el enunciado corregido, no con el que se le encargó.** El encargo la
+pedía como *«el exhaustivo hace lo mismo por seis veces el precio»*, y las dos
+mitades son falsas:
+
+- **No hace lo mismo.** `lib/analysis/pipeline.ts:1156` llama a `analyzeStyle`, y
+  está dentro de `runExhaustivePipelineInner` (`:1139`). El rápido,
+  `runAnalysisPipeline` (`:1104`), no la llama. El exhaustivo trae el análisis de
+  estilo; el rápido no.
+- **No son seis veces.** Con el precio variable devolviendo, lo medido son **25
+  netos contra 7** (5 + 2 del estilo por tarifa), y en otra pasada 20. Son tres.
+
+⚠️ **Y la corrección ya estaba escrita en `Tandas_Harness.md:889` desde el 31/08, de
+mi puño**: *«EL EXHAUSTIVO SÍ HIZO ALGO QUE EL RÁPIDO NO — me equivoqué»*. Volví a
+afirmar lo corregido dos semanas después sin releerla, y de ahí pasó al encargo.
+
+⚠️ **Y `B.127`, que esas mismas líneas citan tres veces —870, 897, 1054— NO EXISTE
+como ficha.** `grep -rn "B\.127" claude/` devuelve sólo las tres citas. Una
+propuesta que nadie escribió, leída como archivada porque llevaba número.
+
+**LO QUE SOBREVIVE Y ES LA FICHA:**
+
+> El exhaustivo se separa del rápido en la selección por dos parámetros —umbral
+> 0,50→0,45 y tope 6→25 (`retrieval.ts:211`, `rerank.ts:39`)—. Este corpus no ha
+> producido jamás más de **2** candidatos, así que **el tope de 25 no ha llegado a
+> aplicarse ni una vez**. Lo que el exhaustivo entrega de más hoy es el estilo
+> —comprable suelto por 2 créditos— y las pasadas extra del double-check.
+
+**La población se cuenta, no se afirma.** «Nunca» es un universal, y los universales
+de esta casa llevan comando. Los dos contadores están persistidos
+(`counters.ts:78-79` → `pipeline_counters`), y la consulta está en
+`SQL_A2A4_compuerta.sql`:
+
+- `max_seleccionados` del `exhaustive` **< 7** → el tope no ha mordido nunca y la
+  ficha queda con población.
+- **≥ 7** → la ficha nace falsada el mismo día, y se dice.
+
+**Estado: ESCRITA, PENDIENTE DE POBLACIÓN.** No se cierra hasta ejecutar la
+consulta.
+
+---
+
+## ⚠️ 5.41 · B.127 — la ficha que nunca se escribió, y que tres líneas citaban como archivada (16/09/2026)
+
+Existía sólo como referencia. `Tandas_Harness.md` la invoca en las líneas 870, 897
+y 1054 —una de ellas para *corregirla*—, y `grep -rn "B\.127" claude/` no devuelve
+ninguna casa: **nadie la escribió jamás.**
+
+Su contenido pretendido era «el exhaustivo no hace nada que el rápido no haga».
+Está **falsado** (ver 5.40): el exhaustivo trae el análisis de estilo y el precio
+neto es 25 contra 7, no 30 contra 5.
+
+**Queda absorbida por B.241**, que conserva lo único que sobrevive —el tope de 25
+sin ejercer— y con población medida en vez de supuesta. No se reabre.
+
+⚠️ **Y lo que enseña vale más que su contenido**: un número de ficha citado tres
+veces adquirió autoridad de archivo sin que existiera el archivo. Es el corolario
+de F-106 en su forma pura, y lo cazó el invariante de forma de este documento
+—`ficha_sin_casa`— en el mismo commit en que se escribió la denuncia.

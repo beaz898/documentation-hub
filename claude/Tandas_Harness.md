@@ -2458,10 +2458,20 @@ fuera, `CLI-20` dentro—:
 **Y nada más.** El mismo troceado, el mismo diff, el mismo juez.
 
 ⚠️ **CONSECUENCIA: si el corpus no tiene MÁS DE SEIS documentos candidatos, el
-exhaustivo selecciona los mismos que el rápido y hace exactamente el mismo
-trabajo por seis veces el precio.** El resultado sería idéntico **y no
-demostraría nada del exhaustivo**: sólo que el corpus es demasiado pequeño para
-distinguirlos.
+exhaustivo selecciona los mismos que el rápido** — y el resultado de la SELECCIÓN
+sería idéntico, sin demostrar nada del exhaustivo: sólo que el corpus es demasiado
+pequeño para distinguirlos.
+
+> ⚠️ **CORRECCIÓN DEL 16/09/2026 — AQUÍ PONÍA «hace exactamente el mismo trabajo
+> por seis veces el precio», Y ES FALSO POR LAS DOS MITADES.**
+> **No hace el mismo trabajo**: el exhaustivo llama a `analyzeStyle`
+> (`pipeline.ts:1156`, dentro de `runExhaustivePipelineInner`) y el rápido
+> (`runAnalysisPipeline`, `:1104`) no. **Y no son seis veces**: con el precio
+> variable devolviendo, lo medido son **25 netos contra 7**, y en otra pasada 20.
+> Son tres.
+> Lo peor no es el error: es que **la corrección ya estaba escrita en este mismo
+> fichero desde el 31/08**, en la línea 889, y la escribí yo. Volví a afirmar lo
+> corregido dos semanas después sin releerla.
 
 **Hoy el corpus servible son los documentos `analizado`, y son poquísimos** —
 `OPE-11` y `CLI-20`, más lo que el director tenga—. **Con eso, los 60 créditos
@@ -2865,7 +2875,13 @@ montaje:
 **`B.241 — el exhaustivo cobra seis veces por hacer lo mismo cuando el corpus es
 pequeño`.**
 
-Queda **prevista y sin escribir**, a propósito: hoy sólo tenemos el argumento de
+> ⚠️ **ESTE ENUNCIADO QUEDÓ FALSADO AL DÍA SIGUIENTE, Y EL TÍTULO SE CONSERVA
+> TACHADO A PROPÓSITO.** Ni «lo mismo» ni «seis veces»: ver el punto 3 de las dos
+> objeciones del director, más abajo. Lo que sobrevive es otra cosa —**el tope de
+> 25 no se ha ejercido nunca**— y con una población que se cuenta con SQL en vez de
+> afirmarse.
+
+Quedaba **prevista y sin escribir**, a propósito: sólo teníamos el argumento de
 lectura —el exhaustivo cambia el umbral 0,50→0,45 y el tope 6→25, y con pocos
 candidatos ninguno de los dos hace nada—, y un argumento de lectura no es una
 medida. Su condición de nacimiento, escrita antes para que no se pueda ajustar
@@ -2876,6 +2892,223 @@ después:
 > rápido. **No nace** si el exhaustivo selecciona más, o si encuentra algo que el
 > rápido no encontró.
 
+⚠️ **Y esa condición también queda retirada**: daba por comparables el rápido y el
+exhaustivo desde la bandeja, y el tope de 3 dice que no lo son.
+
 ---
 
 **Nada lanzado. Cero documentos marcados. Ningún crédito gastado.**
+
+---
+
+# LAS DOS OBJECIONES DEL DIRECTOR, MEDIDAS (16/09/2026) — y el montaje de arriba queda ANULADO
+
+Sólo lectura. Nada lanzado, ningún crédito.
+
+## 1 · ⚠️ EL TOPE EXISTE, Y NO ES 10: SON DOS TOPES, Y UNO ES **3**
+
+El director recordaba un tope de 10 en la bandeja. **Hay tope, y su recuerdo se
+queda corto por el lado malo.** Son dos, y contestan a preguntas distintas —que es
+exactamente la distinción que pedía el encargo:
+
+| Tope | Fichero:línea | Qué limita | ¿Se aplica? |
+|---|---|---|---|
+| `MAX_SELECTION = 20` | `hooks/review/useReviewList.ts:6` | cuántos documentos se pueden **marcar en la lista** | sí: `useReviewList.ts:114,136,152` no dejan pasar de 20 |
+| `MAX_EXHAUSTIVE_SELECTION = 3` | `components/review/ReviewSelectionBar.tsx:19` | cuántos admite el **exhaustivo** | sí: `canAnalyzeExhaustive` (`:111`) se apaga con `selectedCount > 3` |
+
+**Y la respuesta a «¿afecta a `batchDocumentIds` o sólo al número de análisis?»:
+a los dos, porque son el mismo número.**
+
+    hooks/review/useReviewAnalysis.ts:126
+    const batchDocumentIds = documents.filter(d => d.id !== doc.id).map(d => d.id);
+
+`documents` es la selección que se le pasa al bucle. **La tanda que participa es la
+selección menos el que se analiza.** No hay una lista de participantes separada de
+la lista de analizados: limitar cuántos se analizan limita cuántos participan.
+
+El servidor **no** pone tope (`app/api/analyze-v2/route.ts:184` sólo comprueba que
+sea un array de cadenas). Los dos topes son decisiones de pantalla.
+
+### ⚠️ El montaje de arriba se cae, y no por poco
+
+Pedía **seleccionar doce** para que participaran como candidatos. Con el exhaustivo
+en 3, **`batchDocumentIds` tiene como mucho 2**. El paso 4 del orden de gestos es
+irrealizable tal y como está escrito.
+
+### ⚠️ Y LO QUE SALE DE PASO ES PEOR QUE EL MONTAJE: LAS DOS PUERTAS NO SON COMPARABLES
+
+Desde la bandeja, el **rápido** puede llevar hasta **19 compañeros** en la tanda y
+el **exhaustivo** como mucho **2**. No es que el exhaustivo mire más y el rápido
+menos: **miran corpus distintos**, y el que mira menos es el caro.
+
+Comparar «lo que encontró el rápido» con «lo que encontró el exhaustivo» desde la
+bandeja **no compara los dos modos**: compara dos corpus. Y el sesgo va en la
+dirección que nadie sospecha — a favor del barato.
+
+**No es una limitación del montaje: es una propiedad del producto, y no está
+escrita en ningún sitio.** Va a ficha como **B.242**.
+
+### Replanteo, en una línea
+
+Con este tope, **la única forma de que el exhaustivo vea más de dos compañeros es
+que los compañeros estén `analizado`** — o sea, la vía de pertenencia, o sea las
+marcas irreversibles. La bandeja ya no es la puerta barata que parecía ayer.
+**Antes de replantear nada se mide el punto 2, que puede hacer innecesario el
+montaje entero.**
+
+---
+
+## 2 · PREGUNTARLE AL ÍNDICE — se puede, no existe, y cuesta CERO créditos
+
+El arquitecto tiene razón en las dos mitades: preguntárselo al director era raro, y
+la información está en Pinecone sin abrir un solo documento.
+
+### ⚠️ HOY NO HAY NADA QUE EJECUTAR
+
+No existe endpoint ni script que lo haga. Los diez de `app/api/admin/` son otra
+cosa —`duplicates` agrupa por `content_hash` exacto, `diagnose-vectors` compara
+estado contra metadata—, y los cuatro de `scripts/` son verificadores locales.
+**Lo digo en negativo a propósito: la pieza no está, y dar por existente lo que
+sólo está propuesto es el corolario de F-106.**
+
+### Lo que SÍ está — las cuatro piezas, con línea
+
+| Pieza | Fichero:línea | Para qué |
+|---|---|---|
+| `listVectorIdsByPrefix(orgId, docId)` | `lib/pinecone/vectors.ts:273` | enumera **todos** los ids de vector de un documento, paginando |
+| `fetchVectors(orgId, ids)` | `lib/pinecone/vectors.ts:230` | los baja **con `values: number[]`** — el vector ya calculado |
+| `queryVectors(orgId, {vector, topK, filter?})` | `lib/pinecone/vectors.ts:128` | consulta por similitud; **`filter` es opcional** (`:139`) |
+| `soloGeneracionActiva(...)` | `lib/analysis/generacion-activa.ts:50` | descarta los vectores de generaciones muertas |
+
+**Que `fetchVectors` devuelva `values` es lo que hace esto gratis**: los vectores ya
+están calculados y pagados. No hay que volver a embeber, no interviene ningún
+modelo, y no se toca `consumeCredits`. **Son lecturas de Pinecone y nada más.**
+
+### Qué devolvería
+
+Una fila por documento:
+
+| Campo | Qué es |
+|---|---|
+| `documento` | nombre e id |
+| `vecinos` | **cuántos OTROS documentos tienen al menos un trozo a ≥ 0,50** |
+| `vecinos_045` | lo mismo con el umbral del exhaustivo — la diferencia entre las dos columnas **es exactamente lo que el exhaustivo compra**, y se sabe sin gastar 30 créditos |
+| `score_max` | el parecido más alto que tiene con alguien |
+| `lista` | los vecinos, por nombre, con su score |
+
+Ordenado por `vecinos` descendente, **la primera fila es la respuesta a «¿qué
+documento de tu corpus toca a más documentos?»**.
+
+### Las dos cosas que hay que acertar, o mide otra cosa
+
+1. ⚠️ **Se consulta SIN filtro de corpus.** `CORPUS_ACTIVO` sólo ve `analizado`, y
+   hoy casi los 42 son `pendiente`: con filtro, el censo daría ceros y parecería un
+   resultado. Es un cero sin control positivo, de los que esta casa ya ha contado.
+2. ⚠️ **La generación se PREGUNTA, no se recalcula.** `listVectorIdsByPrefix`
+   devuelve todas las generaciones; el censo llama a `soloGeneracionActiva` —la que
+   ya usa el retrieval— en vez de derivarlo por su cuenta. Dos implementaciones del
+   mismo criterio se separan y nadie se entera.
+
+### Forma y presupuesto
+
+Un `GET /api/admin/vecindario`, con la misma guarda que `duplicates`
+(`org.role === 'admin'`), `export const maxDuration = 300` como los otros cuatro
+que ya lo declaran, y **una respuesta JSON que el director abre en el navegador con
+su sesión puesta** — que es como ya usa `app/api/admin/cleanup/page.tsx`.
+
+**El volumen no lo invento.** Sale de `sum(chunk_count)` sobre los 42 documentos, y
+está en `SQL_A2A4_compuerta.sql`. Si la suma pasa de unas 1.500 consultas, el
+endpoint va por documento en vez de de golpe; con 300 s de presupuesto, eso se
+decide con el número delante y no antes.
+
+### ⚠️ Y el arquitecto tiene razón en que vale más que la tanda
+
+Esto no es sólo el selector del montaje —aunque lo es, y bueno: **el documento con
+más vecinos es el sujeto natural de A2/A4, real en vez de fabricado**—. Es una
+pregunta que el producto debería contestar y hoy no contesta: *«¿qué documento de
+los míos toca a más documentos?»*. Y contesta gratis otra que llevamos dos días
+rodeando: **cuántos vecinos gana el corpus al bajar el umbral de 0,50 a 0,45**, que
+es la mitad del exhaustivo que nadie ha medido nunca.
+
+Va a ficha como **B.243**.
+
+---
+
+## 3 · B.241 — NACE, PERO NO COMO ESTABA ENUNCIADA: LA PREMISA ESTÁ FALSADA POR ESTE MISMO FICHERO
+
+El encargo dice que B.241 puede nacer ya, *«si el exhaustivo hace lo mismo que el
+rápido por seis veces el precio»*. **Las dos mitades de esa frase son falsas, y la
+corrección lleva escrita aquí desde el 31/08** — en la línea 889 de este fichero,
+corrigiéndome a mí:
+
+> **«⚠️ EL EXHAUSTIVO SÍ HIZO ALGO QUE EL RÁPIDO NO — me equivoqué.»**
+
+**Con línea de código, no de recuerdo:**
+
+- `lib/analysis/pipeline.ts:1156` llama a `analyzeStyle`, y está dentro de
+  `runExhaustivePipelineInner` (`:1139`–`:1441`).
+- `runAnalysisPipeline` (`:1104`–`:1132`), que es el rápido, **no la llama**.
+
+**El exhaustivo trae el análisis de estilo; el rápido no.** En aquella pasada
+fueron 15 problemas de estilo y 9 segundos de modelo.
+
+**Y el precio tampoco es 30 contra 5**, porque el precio variable devuelve: medido,
+**25 netos contra 7** (5 del rápido + 2 del estilo por tarifa), y en otra pasada
+**20 netos**. Es **tres veces**, no seis.
+
+### ⚠️ Dos frases mías quedan corregidas
+
+1. En el montaje de arriba escribí *«hace el mismo trabajo por 6× el precio»*.
+   **Falso por las dos mitades**, y lo falsa una corrección que yo mismo había
+   escrito hace dos semanas en el mismo fichero. Queda anotado donde estaba.
+2. **`B.127` se cita tres veces aquí —líneas 870, 897 y 1054— y NO EXISTE como
+   ficha en ningún sitio.** `grep -rn "B\.127" claude/` devuelve sólo esas tres
+   citas. Es el corolario de F-106 en su forma pura: una propuesta que nadie
+   escribió, leída como ficha archivada porque lleva número.
+
+### Lo que SÍ sobrevive, y es lo que se escribe
+
+No «el exhaustivo hace lo mismo». Esto:
+
+> **EL TOPE DE 25 DEL EXHAUSTIVO NO SE HA EJERCIDO NUNCA.** Con el umbral donde
+> está, este corpus no ha producido jamás más de 2 candidatos, así que el
+> parámetro que separa al exhaustivo del rápido en la selección **no ha llegado a
+> aplicarse ni una vez**. Lo que el exhaustivo entrega de más hoy es el estilo —que
+> se puede comprar suelto por 2 créditos— y las pasadas extra del double-check.
+
+⚠️ **Y su población no se afirma: se cuenta.** Decir «nunca» sobre todas las
+pasadas es un universal, y los universales de esta casa llevan comando. El comando
+existe y es barato, porque los dos contadores están persistidos:
+
+    select analysis_type,
+           count(*)                                                              as pasadas,
+           max((pipeline_counters ->> 'seleccion.candidatos_recuperados')::int)   as max_recuperados,
+           max((pipeline_counters ->> 'seleccion.candidatos_seleccionados')::int) as max_seleccionados
+    from analysis_results
+    where org_id = '<ORG_ID>' and pipeline_counters is not null
+    group by analysis_type;
+
+**Si `max_seleccionados` del exhaustivo es menor que 7, el tope de 25 no ha mordido
+nunca y B.241 queda con población, no con memoria.** Si alguna pasada llegó a 7 o
+más, la ficha nace falsada el mismo día y se dice.
+
+Esa consulta está en `SQL_A2A4_compuerta.sql`, y **es la que se ejecuta primero**:
+cuesta cero y decide si B.241 tiene fundamento antes de que nadie fabrique nada.
+
+---
+
+## EN QUÉ QUEDA EL PLAN
+
+| Orden | Qué | Coste | Por qué antes que lo siguiente |
+|---|---|---|---|
+| 1 | La consulta de población de B.241 | 0 | decide si la ficha tiene base |
+| 2 | El censo de vecindario (hay que escribirlo) | 0 créditos | dice si existe un documento real que toque a muchos — y si existe, **no hace falta fabricar SAT-A** |
+| 3 | Sólo si 2 dice que no hay ninguno: fabricar `SAT-A` | 0 | y declarado como control de saturación |
+| 4 | La tanda, replanteada con el tope de 3 delante | por decidir | no antes de 1 y 2 |
+
+**Y si al final hay que fabricar, la conclusión queda acotada desde ahora, como
+pedía el encargo: mediría que el exhaustivo funciona CUANDO HAY CANDIDATOS. No
+mediría que en el corpus del director los haya — eso lo contesta el paso 2, y lo
+contesta mejor.**
+
+**Nada lanzado.**
