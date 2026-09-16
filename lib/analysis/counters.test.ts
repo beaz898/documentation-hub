@@ -33,6 +33,14 @@ describe('el catálogo', () => {
       // B.244 paso 2 (16/09/2026) — separa el corte por tope del descarte por
       // criterio, que hasta hoy se confundían en una resta.
       'seleccion.candidatos_cortados_por_tope',
+      // B.251 — la otra mitad de la pérdida: los que el modelo NO nombró.
+      'seleccion.candidatos_descartados_por_criterio',
+      // ⚠️ Y LA SEÑAL QUE DICE SI LA ANTERIOR ES DE FIAR. Entradas del modelo
+      // con un id que no casa con ningún candidato (`rerank.ts`, el `continue`
+      // mudo). Su CERO es lo que hace cierta la palabra «criterio»; si sube,
+      // parte de los «descartados por criterio» los quisimos y no supimos
+      // resolverlos.
+      'seleccion.candidatos_con_id_no_reconocido',
       // F-103 P3 pieza 2: la etapa `diff.vision`, abierta el 07/09. Es la capa
       // de ANTES del emparejador — qué le llegó— y por eso no cabía en
       // `diff.tablas`, que cuenta lo que pasa dentro. Los dos lados van por

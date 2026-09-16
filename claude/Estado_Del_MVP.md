@@ -4556,3 +4556,141 @@ ninguna.**
 Esto no tumba B.245: el filtro de corpus sigue siendo el portero, y tres de
 cuarenta y dos sigue siendo el 7 %. Lo que cambia es que la cifra ahora está
 medida.
+
+---
+
+## ✅ 5.65 · LAS TRES VÍAS, YA SEPARADAS — cierra 5.61 (16/09/2026)
+
+`lib/analysis/reparto-del-rerank.ts`, 14 pruebas. Tres contadores nuevos donde
+había una resta ambigua.
+
+### La respuesta a «¿se pueden separar con lo que hay?»: SÍ — pero no son tres cubos
+
+**Son DOS cubos y UNA SEÑAL**, y la distinción decide qué puede decir el aviso:
+
+| | Qué es | Contador |
+|---|---|---|
+| **descartados por criterio** | el modelo NO los nombró: los miró y no los quiso. Es una **decisión** | `seleccion.candidatos_descartados_por_criterio` |
+| **cortados por tope** | elegidos que no cupieron. Es **presupuesto** | `seleccion.candidatos_cortados_por_tope` |
+| ⚠️ **id no reconocido** | entradas del modelo que no casan con ningún candidato (`rerank.ts`, el `continue` mudo). **No es un cubo: se SOLAPA con el primero** | `seleccion.candidatos_con_id_no_reconocido` |
+
+**La invariante que lo sostiene**, y que su batería vigila:
+
+    recuperados === descartadosPorCriterio + elegidosPorElModelo
+
+No hay un tercer sitio por donde caerse. Lo que hace la tercera cifra es decir
+**cuánto de «por criterio» no fue criterio**: si el modelo pidió un documento con
+un id que no supimos resolver, ese candidato se quedó contado como descartado por
+criterio **y no lo fue — lo quisimos y no supimos encontrarlo**.
+
+### ⚠️ Y POR ESO SU CERO IMPORTA MÁS QUE SU NO-CERO
+
+`id_no_reconocido = 0` es **lo que hace cierta la palabra «criterio»** en el otro
+contador. Se escribe siempre, incluido el cero: es la regla del denominador
+aplicada a una causa en vez de a un hallazgo. Sin él, «2 descartados por criterio»
+no se distingue de «2 que quisimos y perdimos».
+
+**Y de paso cierra un caso que nadie había mirado**: si el modelo nombra el mismo
+documento dos veces, `find` lo resolvía las dos y el candidato entraba duplicado,
+**gastando dos plazas del tope con el mismo documento**. El reparto cuenta por
+conjunto, así que ya no infla la cifra.
+
+### Mutantes
+
+- **La vía muda vuelve a ser silenciosa** (no se cuenta): **3 en rojo**.
+- **Criterio y tope se confunden otra vez**: **8 en rojo**.
+
+---
+
+## ⚠️ 5.66 · EL PATRÓN, NO EL CASO: un mensaje puede afirmar QUÉ pasó; la CAUSA sólo si está medida (16/09/2026)
+
+Tres veces esta semana, y son la misma forma con tres caras:
+
+| Mensaje | Qué afirmaba | Qué sabía el sistema |
+|---|---|---|
+| «Ruta no autorizada» | que el usuario no tiene permiso | que la comprobación no devolvió un sí — que incluye **que la base no contestó** |
+| «No perteneces a ninguna organización» | que no hay organización | lo mismo: el `null` de una consulta que pudo fallar |
+| «Otro tiene menor afinidad y no entró en la comparación» | que quedó fuera por ranking | sólo que no entró. **La causa podía ser el criterio del modelo o un id que no supimos resolver** |
+
+> **UN MENSAJE PUEDE AFIRMAR QUÉ PASÓ. LA CAUSA, SÓLO SI ESTÁ MEDIDA.**
+>
+> Y cuando la causa no se sabe, la frase se escribe sin ella: decir menos es
+> gratis; decir de más es lo que hay que retirar después.
+
+⚠️ **Lo que hace al tercero distinto de los dos primeros, y peor**: los dos
+primeros confundían «no» con «no lo sé» —fallo de tipo, el que `resolverOrg`
+arregló—. Éste no tenía ese problema: **el dato existía y lo tiré**. La resta
+`recuperados − seleccionados` mezclaba tres vías, **yo mismo lo había escrito dos
+veces** (§5.49, §5.53), y añadí el contador que las separa **en el mismo commit en
+que construí el aviso con la resta**. La pieza correcta estaba en la mano.
+
+---
+
+## 5.67 · LOS TEXTOS DEL AVISO, PARA QUE ELIJA EL DIRECTOR (16/09/2026)
+
+**No se ha cambiado ninguno.** Con los contadores ya puestos, las tres opciones
+son escribibles; la elección es de producto.
+
+⚠️ **Mientras tanto, el aviso en producción sigue diciendo la causa que no puede
+respaldar.** Se deja así porque el orden lo fijó el encargo —contar antes de
+decidir— y porque el mensaje no lleva al usuario a hacer nada equivocado. Pero
+está vivo y es falso en la causa: no es una espera neutra.
+
+### Opción A — neutra en la causa (la más barata y la única que no puede mentir)
+
+> Se compararon los **2** documentos más afines a éste. Otro no entró en esta
+> comparación.
+
+**A favor**: verdadera siempre, con cualquier reparto. **En contra**: deja al
+usuario preguntándose por qué, que es justo lo que el director quería evitar.
+
+### Opción B — la causa, dicha sólo cuando se sabe
+
+> · si **todos** los que faltan cayeron por el tope:
+>   «Se compararon los **6** más afines. Otros **3** tienen menor afinidad y no
+>   entraron en esta comparación.»
+> · si **todos** cayeron por criterio del modelo:
+>   «Se compararon los **2** documentos afines a éste. Otro se revisó y **no se
+>   encontró contenido comparable**, así que no entró.»
+> · si **hay de los dos**:
+>   «Se compararon los **6** más afines. De los otros **4**, **1** no tenía
+>   contenido comparable y **3** quedaron fuera por afinidad.»
+> · si `id_no_reconocido > 0`, en cualquiera de los tres: se cae a la **opción A**,
+>   porque la cifra de criterio no es de fiar.
+
+**A favor**: dice la verdad en cada caso y explica el mecanismo, que era el
+objetivo del director. **En contra**: tres frases que mantener, y la del medio
+—«no se encontró contenido comparable»— es una afirmación sobre el documento del
+usuario, no sobre el sistema. Hay que estar seguro de quererla.
+
+### Opción C — la causa agregada, sin detallar
+
+> Se compararon los **2** documentos más afines a éste. Otro quedó fuera: **el
+> análisis se centra en los más parecidos y revisa el resto por encima.**
+
+**A favor**: una sola frase, verdadera para las tres vías, y explica el mecanismo.
+**En contra**: «por encima» es vago, y un usuario preciso preguntará cuánto.
+
+### Mi recomendación, que no es la decisión
+
+**La B**, con la caída a la A cuando `id_no_reconocido > 0`. Es la única que
+cumple las dos cosas a la vez: explica el mecanismo —que es lo que el director
+pidió— y no afirma nunca una causa que el sistema no conozca. Cuesta tres frases
+en lugar de una, y las tres son comprobables por separado en la batería.
+
+---
+
+## 5.68 · LO QUE VA DESPUÉS, ESCRITO PARA QUE NO SE PIERDA (16/09/2026)
+
+| Orden | Qué | Por qué ahí |
+|---|---|---|
+| 1 | **El umbral: instrumentar ahora, calibrar con corpus de escala** | no impide enseñar el producto, pero **sí lo que se puede prometer de él**: hoy un protocolo de urgencias se compara contra un tarifario (§5.62) |
+| 2 | **Los 19 latentes** (§5.54) | prevención, y su sitio es **antes del primer cliente con corpus grande** — que es quien vive en la región que nuestras pruebas nunca pisaron |
+| 3 | **La severidad** | commit de interfaz sobre datos que ya viajan. Cuando toque |
+
+⚠️ **Y una anotación sobre el orden 1, que viene de Fable y hay que respetar**: la
+calibración «probablemente no sea subir el 0,50 sino repensarlo como **corte
+relativo** —percentil del vecindario, distancia al mejor—, porque e5 comprime la
+franja alta por diseño y los umbrales absolutos son la herramienta equivocada».
+Con un suelo de 0,79 y un techo de 0,99, esa afirmación tiene el dato del censo
+detrás.

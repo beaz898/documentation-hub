@@ -1,6 +1,7 @@
 import { recordStageFailure } from './stage-failures';
 import { callLLMJson } from './llm-client';
 import { ordenarParaCortar, normalizarConfianza, contarSinConfianza } from './orden-del-rerank';
+import { repartirCandidatos, type RepartoDelRerank } from './reparto-del-rerank';
 import type { CandidateDocument, RerankedCandidate, PipelineOptions } from './types';
 
 /**
@@ -34,12 +35,18 @@ export async function rerankCandidates(args: {
   newDocumentSample: string;
   candidates: CandidateDocument[];
   options?: PipelineOptions;
-}): Promise<{ seleccionados: RerankedCandidate[]; sinConfianza: number; cortadosPorTope: number }> {
+}): Promise<{ seleccionados: RerankedCandidate[]; sinConfianza: number; reparto: RepartoDelRerank }> {
   const { newDocumentName, newDocumentSample, candidates, options } = args;
   const isExhaustive = options?.exhaustive === true;
   const maxSelected = isExhaustive ? MAX_SELECTED_EXHAUSTIVE : MAX_SELECTED_QUICK;
 
-  if (candidates.length === 0) return { seleccionados: [], sinConfianza: 0, cortadosPorTope: 0 };
+  if (candidates.length === 0) {
+    return {
+      seleccionados: [],
+      sinConfianza: 0,
+      reparto: repartirCandidatos({ idsRecuperados: [], idsDevueltosPorElModelo: [], maxSelected }),
+    };
+  }
 
   const candidatesBlock = candidates.map((c, i) => {
     const fragsText = c.fragments.map(f => `  · "${f.text.slice(0, 300).replace(/\s+/g, ' ')}"`).join('\n');
@@ -116,10 +123,15 @@ ${candidates.map((c, i) => `[${i + 1}] → ${c.documentId}`).join('\n')}`;
       // Se cuenta sobre TODOS los que llegaron, no sobre los que sobreviven al
       // corte: lo que se quiere saber es si la señal existe, no si sobrevivió.
       sinConfianza: contarSinConfianza(selected),
-      // ⚠️ LOS QUE EL MODELO ELIGIÓ Y EL TOPE TIRÓ. Cada uno llevaba una
-      // razón y una confianza escritas por el modelo: tokens de salida
-      // pagados y descartados sin leer. Hasta hoy no se podían contar.
-      cortadosPorTope: Math.max(0, ordenados.length - maxSelected),
+      // ⚠️ EL REPARTO ENTERO, no sólo el tope. Se calcula sobre los ids EN
+      // CRUDO que devolvió el modelo —antes de resolverlos— porque los que
+      // NO se pueden resolver son precisamente la cifra que faltaba: la vía
+      // muda de B.251. Ver reparto-del-rerank.ts.
+      reparto: repartirCandidatos({
+        idsRecuperados: candidates.map(c => c.documentId),
+        idsDevueltosPorElModelo: (response.selected || []).map(s => s.documentId),
+        maxSelected,
+      }),
     };
   } catch (err) {
     console.warn('[rerank] LLM failed, falling back to top candidates by embedding score:', err);
@@ -145,7 +157,13 @@ ${candidates.map((c, i) => `[${i + 1}] → ${c.documentId}`).join('\n')}`;
       // Cero, y no «todos»: `sin_declarar` cuenta al modelo que no valoró. Aquí
       // no hubo modelo, y eso ya lo cuenta `averia` por la vía de stage-failures.
       sinConfianza: 0,
-      cortadosPorTope: 0,
+      // El modelo no llegó a hablar: no hay nada que repartir por criterio.
+      // Los que entran vienen del fallback por score, no de una elección.
+      reparto: repartirCandidatos({
+        idsRecuperados: candidates.map(c => c.documentId),
+        idsDevueltosPorElModelo: fallbackCandidates.map(c => c.documentId),
+        maxSelected,
+      }),
     };
   }
 }

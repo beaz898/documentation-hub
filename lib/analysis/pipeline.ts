@@ -756,7 +756,7 @@ async function runCorePipeline(
   }
 
   const t1 = Date.now();
-  const { seleccionados: reranked, sinConfianza, cortadosPorTope } = await rerankCandidates({
+  const { seleccionados: reranked, sinConfianza, reparto } = await rerankCandidates({
     newDocumentName: input.newDocumentName,
     newDocumentSample: input.newDocumentText,
     candidates,
@@ -768,7 +768,12 @@ async function runCorePipeline(
   // distingue de «no se miró», y aquí «cero sin confianza» es justo la noticia
   // buena: significa que la señal con la que se ordena el corte está viva.
   counters['seleccion.candidatos_sin_confianza'] = sinConfianza;
-  counters['seleccion.candidatos_cortados_por_tope'] = cortadosPorTope;
+  counters['seleccion.candidatos_cortados_por_tope'] = reparto.cortadosPorTope;
+  // B.251 — las DOS mitades de la pérdida, ya separadas, y la señal que dice
+  // si la primera es de fiar. Las tres SIEMPRE, incluido el cero: el cero de
+  // `id_no_reconocido` es justo lo que hace cierta la palabra «criterio».
+  counters['seleccion.candidatos_descartados_por_criterio'] = reparto.descartadosPorCriterio;
+  counters['seleccion.candidatos_con_id_no_reconocido'] = reparto.idsNoReconocidos;
 
   // SALIDA TEMPRANA 2 — había candidatos y el rerank no dejó ninguno. Se
   // distingue de la anterior por los DOS contadores: aquí `recuperados` es > 0

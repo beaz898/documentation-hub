@@ -95,6 +95,14 @@ export const COUNTER_CATALOGUE = [
   // éstos es un juicio escrito por el modelo —con su razón y su confianza—
   // que se pagó en tokens de salida y se tiró sin leer.
   'seleccion.candidatos_cortados_por_tope',
+  // B.251 — la otra mitad de la pérdida: los que el modelo NO nombró.
+  'seleccion.candidatos_descartados_por_criterio',
+  // ⚠️ Y LA SEÑAL QUE DICE SI LA ANTERIOR ES DE FIAR. Entradas del modelo
+  // con un id que no casa con ningún candidato (`rerank.ts`, el `continue`
+  // mudo). Su CERO es lo que hace cierta la palabra «criterio»; si sube,
+  // parte de los «descartados por criterio» los quisimos y no supimos
+  // resolverlos.
+  'seleccion.candidatos_con_id_no_reconocido',
   // diff.tablas — ETAPA NUEVA (F-88 P1). El emparejador de tablas: qué pares
   // se evaluaron y por qué puerta cayó cada uno.
   //
