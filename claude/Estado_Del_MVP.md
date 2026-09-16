@@ -3250,7 +3250,8 @@ de 25 del exhaustivo cortaría al menos con `OPE-07`.
 
 ⚠️ **Y la forma correcta de decirlo, que no es la del encargo ni la que yo tenía.**
 No es «esto pasa en cada análisis desde siempre»: hoy no pasa, porque el filtro de
-corpus recorta antes y deja 1 ó 2. Y no es «latente»: no hace falta un cliente
+corpus recorta antes y deja **3** (medido el 16/09, no «1 ó 2» como se escribió
+aquí primero). Y no es «latente»: no hace falta un cliente
 nuevo ni un corpus mayor. **Está armado sobre el corpus que ya existe, y se dispara
 con el gesto que el producto pide hacer** — marcar documentos como revisados. Al
 séptimo, el tope empieza a cortar en silencio y nada lo anuncia.
@@ -3522,8 +3523,14 @@ en `SQL_A2A4_compuerta.sql`. Regla de lectura escrita antes de mirar: 1-2 = habl
 una pareja; 3-6 = subconjunto pequeño sin truncar; 7+ = subconjunto truncado en
 silencio (B.244).
 
-⚠️ **Para A5 y A6 en concreto**: se midieron sobre un corpus efectivo de uno o dos
-documentos, no de 42. No son falsas —el par sembrado salió por el camino correcto—
+⚠️ **Para A5 y A6 en concreto**: se midieron sobre un corpus efectivo PEQUEÑO, no
+de 42.
+
+> ⚠️ **CORRECCIÓN DEL 16/09**: aquí ponía «de uno o dos documentos», y esa cifra
+> **nunca se midió para esas pasadas** — salía de las tandas anotadas a mano. Lo
+> medido el 16/09 es que HOY son tres. Para A5 y A6 la cifra está en
+> `seleccion.candidatos_recuperados` de sus filas, y hasta que se lea **no se
+> afirma ninguna**. No son falsas —el par sembrado salió por el camino correcto—
 pero **su alcance es el de un par, no el de un corpus**, y así hay que enunciarlas.
 
 ---
@@ -3867,18 +3874,26 @@ apagada — y la consulta la presentaba como un número más de la fila. Es
 exactamente el fallo del `org_id`: **un cero que fabrica el propio instrumento y
 se lee como medida.**
 
-### Por qué se queda ciega — y la causa principal no era ninguna de las tres que escribí
+### Por qué se queda ciega
+
+> ⚠️ **ESTE APARTADO DECÍA OTRA COSA Y ERA UNA HIPÓTESIS MÍA SIN VERIFICAR.**
+> Decía que la causa que mandaba era el **borrado y recreación del corpus** —que
+> las filas del 14/09 ya no existen—. **El director la falsó el mismo día**, con
+> dos nombres propios: `CLI-04` y `CLI-05` llegaron a `analizado` por subida
+> manual indexada desde el chat (`ingest:294`), que nunca los mandó a revisar y
+> por eso no les puso fecha. Sus filas existen; lo que no existe es el dato.
+> La causa verdadera está en **5.63 (B.252)**, y no es circunstancial: es
+> estructural.
 
 Las tres que declaré (`reviewed_at` sólo lo escribe `mark-analyzed`; los borrados
-no dejan fila; un cambio de contenido lo pone a NULL) son ciertas. **Pero la que
-manda es la segunda, y no la escribí con su peso**: el corpus **se borró y se
-recreó**, así que las filas de los documentos que estaban `analizado` el 14/09
-**ya no existen**. La evidencia se fue con las filas.
+no dejan fila; un cambio de contenido lo pone a NULL) son ciertas. **La que manda
+es la PRIMERA**, y no por descuido del sistema sino porque el campo contesta otra
+pregunta: `reviewed_at` responde «¿pasó por la bandeja?», no «¿estaba
+analizado?». Tres de los cuatro caminos a `analizado` no dejan ninguna fecha.
 
-**Se comprueba con una consulta y va añadida al fichero como la nº 5**: si el
-documento más antiguo de la organización es posterior a los análisis del 14/09,
-ninguna fila de aquel corpus sobrevive y la reconstrucción no puede saber nada de
-ese tramo.
+**Y eso la mata para siempre, no para hoy**: en cualquier corpus donde se indexe
+desde el chat es ciega POR CONSTRUCCIÓN. Por eso la consulta se ha retirado entera
+del fichero, con su motivo en el hueco.
 
 ### Qué se ha hecho con ella
 
@@ -4126,7 +4141,7 @@ es el arreglo — es la prueba que le falta a su tope.
 ⚠️ **Nada. Y conviene decirlo en vez de inventarle un gesto.**
 
 El corte sólo se nota cuando hay **más de 6 candidatos**, y con el filtro de corpus
-como está —casi todo `pendiente`, B.245— sus análisis recuperan uno o dos. **El
+como está —casi todo `pendiente`, B.245— sus análisis recuperan **tres**. **El
 arreglo es invisible en su pantalla hasta que el corpus sea elegible.**
 
 Por eso **la evidencia de este commit es la batería, y se escribe como tal**: 20
@@ -4228,7 +4243,7 @@ ya enciende el aviso**. **Mutado a callar siempre: 7 en rojo.**
 ### ⚠️ QUÉ MIRA EL DIRECTOR: NADA, Y ES LA SEGUNDA VEZ QUE PASA
 
 El aviso sólo aparece con **más de seis candidatos**, y con el filtro de corpus
-como está (B.245) sus análisis recuperan uno o dos. **Invisible en su pantalla**,
+como está (B.245) sus análisis recuperan **tres**. **Invisible en su pantalla**,
 igual que el arreglo del orden. La evidencia es la batería.
 
 **Y sobre si merece la pena enseñarlo también cuando NO se descarta nada** —«se
@@ -4239,7 +4254,7 @@ compararon los N documentos afines», a secas—:
 - **A favor**: sería **lo único visible hoy** en su corpus, diría algo verdadero, y
   convierte un silencio en una cifra comprobable — el mismo principio por el que
   el chat enseña «respondí con 3 de 5».
-- **En contra**: con uno o dos candidatos la frase es casi vacía —«se comparó 1
+- **En contra**: con dos o tres candidatos la frase es casi vacía —«se comparó 1
   documento»— y un aviso que aparece siempre deja de leerse. Y el día que el
   corpus sea elegible, el caso interesante es justo el otro.
 
@@ -4298,7 +4313,7 @@ un componente es una redacción sin prueba.** 21 casos.
 en una caja gris clara con un icono de información redondo. Por las dos puertas —
 bandeja y chat—, porque el componente es el mismo.
 
-**Qué frase exacta**, con su corpus de hoy (uno o dos candidatos):
+**Qué frase exacta**, con su corpus de hoy (**tres** candidatos, medido):
 
 > ⓘ Se compararon los **2** documentos afines a éste, que eran todos los que había.
 > Tras aplicar correcciones conviene reanalizar: al cambiar el contenido cambia
@@ -4441,3 +4456,103 @@ interés tenía en este ejemplo. No sabemos cuál era ni por qué cayó.
 **No se toca el umbral.** Sigue en pie lo de siempre: cambiarlo sin medir sería
 repetir el error que B.248 describe. Lo que esta pasada añade no es una propuesta
 de número — es la población que faltaba para justificar medirlo.
+
+---
+
+## ⚠️ 5.63 · B.252 — no hay forma de saber desde cuándo un documento está en el corpus (16/09/2026)
+
+**Pregunta del arquitecto: ¿hay algún campo que SÍ conteste «desde cuándo está
+analizado» para todos los caminos?**
+
+**Predicción escrita antes de mirar: no lo hay. Acertada, y los tres candidatos
+fallan por el mismo motivo — contestan otra pregunta.**
+
+### Censo por capacidad: qué sello de tiempo escribe cada camino a `analizado`
+
+| Camino | Fichero:línea | Sello de tiempo que deja |
+|---|---|---|
+| marcar revisado | `mark-analyzed/route.ts:113,152` | **`reviewed_at`** |
+| reemplazo desde el chat | `index-text/route.ts:393` | **ninguno** |
+| promoción tras un swap | `lib/documents/promocion.ts:98` | **`reviewed_at: null` a propósito** |
+| ingesta manual pidiendo `analizado` | `ingest/route.ts:294` | **ninguno** (y `:342` lo pone a `null` al reemplazar) |
+
+Tres de los cuatro no dejan fecha. Y de los campos que hay, ninguno responde:
+
+| Campo | Qué contesta de verdad | Por qué no sirve |
+|---|---|---|
+| `reviewed_at` | **«¿pasó por la bandeja de revisión?»** | nulo en los otros tres caminos |
+| `created_at` | «¿cuándo nació la fila?» | un documento nace `pendiente` y puede volverse `analizado` meses después |
+| `updated_at` (trigger `documents_updated_at`, `supabase-setup.sql:621`) | «¿cuándo se tocó la fila por última vez?» | se mueve con cualquier update — reindexado, sync, cambio de carpeta |
+
+**→ No existe. La pregunta «¿desde cuándo está este documento en el corpus
+efectivo?» no tiene respuesta en esta base.**
+
+### ⚠️ Y EL DIAGNÓSTICO DE LA CEGUERA QUE ESCRIBÍ AYER ERA EL EQUIVOCADO
+
+En 5.53 escribí que la reconstrucción del historial estaba ciega **porque el
+corpus se borró y se recreó**, y que ésa era «la que manda» de las tres causas.
+**Era una hipótesis mía y no la verifiqué.** El director la falsó con dos nombres
+propios: `CLI-04` y `CLI-05` llegaron a `analizado` por **subida manual indexada
+desde el chat** —`ingest:294`—, que nunca los mandó a revisar y por eso no les puso
+fecha.
+
+**No es un fallo del sistema. Es que el campo contesta otra cosa** — y es
+exactamente el patrón que `CLAUDE.md` ya tiene fichado: *un campo que responde a
+dos preguntas distintas va a contestar mal a una de las dos*. Sólo que aquí el
+campo contesta bien a la suya, **y la equivocada era la nuestra**.
+
+### La consecuencia, que es lo que hay que escribir
+
+> **Esa reconstrucción no está ciega hoy: es ciega POR CONSTRUCCIÓN** en cualquier
+> corpus donde se indexe desde el chat. No le faltan datos que algún día lleguen —
+> le falta una pregunta que ese campo no responde, y nunca la va a responder.
+
+Por eso **la consulta 3 de `SQL_B249_historial.sql` se retira entera**, con su
+motivo escrito en el hueco. Dejarla devolviendo números sería dejar un cero con
+pinta de dato —lo mismo que pasó con el `org_id`— sólo que esta vez **sabiendo que
+no puede acertar nunca**.
+
+### Qué se pierde con ello, dicho sin rebajarlo
+
+- **No se puede auditar** cuándo entró un documento al corpus. Si un cliente
+  pregunta «¿desde cuándo participa esto en mis respuestas?», no hay respuesta.
+- **No se puede reconstruir** el corpus efectivo de ningún análisis pasado. Las
+  cifras de A5 y A6 se quedan sin denominador comprobable para siempre.
+- **No se puede medir** la velocidad a la que crece el corpus efectivo, que es la
+  variable de la que dependen B.244 y B.248.
+
+### La medida directa que sí se puede hacer hoy
+
+La consulta 5 del fichero compara `analizados_hoy` con `con_fecha_de_revision`.
+**La diferencia son los documentos que están en el corpus sin haber pasado por la
+bandeja** — con el corpus del director debería ser **2**. Esa resta es la medida
+de esta ficha.
+
+### No se arregla aquí
+
+El arreglo sería un sello escrito por los cuatro caminos, y eso es un cambio de
+esquema con su migración. **Y llevaría su contrato en el mismo commit que su
+lector**, que es la regla de la casa para los sellos: hoy no hay lector, y un sello
+sin lector es lo que ya pasó con `EXTRACTOR_VERSION`.
+
+---
+
+## ⚠️ 5.64 · La cifra del corpus elegible: son TRES (16/09/2026)
+
+Corregida donde estaba escrita: en 5.44, 5.58, 5.59 y en el orden de lecturas.
+
+**Llevaba tres días escribiendo «uno o dos», y la cifra nunca se midió** — salía de
+las tandas anotadas a mano, que es la misma vía por la que ya me equivoqué con «el
+tope nunca mordió» (B.249) y con «marcar quince no daría quince candidatos»
+(B.245). **Tercera vez en tres días, y las tres por el mismo camino.**
+
+⚠️ **Lo que NO se ha corregido, y es deliberado**: la cifra de A5 y A6. Ahí ponía
+«un corpus efectivo de uno o dos documentos» y **tampoco se midió para esas
+pasadas**. No se sustituye por «tres» —que es la de hoy, no la de entonces— sino
+por «pequeño», con una nota que dice dónde está el dato:
+`seleccion.candidatos_recuperados` de sus filas. **Hasta que se lea, no se afirma
+ninguna.**
+
+Esto no tumba B.245: el filtro de corpus sigue siendo el portero, y tres de
+cuarenta y dos sigue siendo el 7 %. Lo que cambia es que la cifra ahora está
+medida.

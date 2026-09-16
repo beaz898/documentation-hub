@@ -10,8 +10,9 @@
 --     consultas 2 y 3 no llegaban a correr. Ahora `jsonb_array_length`.
 --   · la consulta 3 devolvía **0 elegibles** en todas las filas anteriores al
 --     15/09, incluidas las que recuperaron DIEZ candidatos. Cero contra diez no
---     es una cota baja: es una contradicción. Reescrita para que **declare su
---     ceguera** en vez de devolver un cero con pinta de dato — ver su cabecera.
+--     es una cota baja: es una contradicción. **RETIRADA ENTERA** el mismo día,
+--     al saberse la causa real: `reviewed_at` contesta «¿pasó por la bandeja?»
+--     y no «¿estaba analizado?». Ver el hueco que dejó, más abajo.
 --
 -- ⚠️ Y LO QUE HAY QUE SABER ANTES DE LEER NADA:
 -- `involved_documents` NO es «cuántos documentos participaron».
@@ -73,59 +74,40 @@ where ar.org_id = '<ORG_ID>'
 order by ar.created_at desc;
 
 
--- ── 3 · ⚠️ RECONSTRUIR EL CORPUS ELEGIBLE — Y DETECTAR CUÁNDO ES CIEGA ──
+-- ── 3 · ⚠️ RETIRADA EL 16/09/2026 — ERA CIEGA POR CONSTRUCCIÓN ───────
 --
--- La versión anterior devolvía un número y ese número era 0 en todo el tramo
--- anterior al 15/09, incluidas pasadas que recuperaron DIEZ candidatos. Diez
--- candidatos no salen de un corpus elegible de cero: la reconstrucción no
--- estaba midiendo bajo, estaba CIEGA, y un cero ciego se lee como dato.
+-- Aquí había una consulta que reconstruía «cuántos documentos eran elegibles
+-- en la fecha de cada análisis», contando los que tenían `reviewed_at`
+-- anterior. Se retira entera, y el motivo NO es el que yo escribí primero.
 --
--- POR QUÉ SE QUEDA CIEGA — las tres, y ninguna es rara:
---   · `reviewed_at` lo escribe SOLO mark-analyzed (route.ts:113,153). Los
---     otros tres caminos a 'analizado' —index-text:393, promocion.ts:98,
---     ingest:294— no lo ponen, y ingest y promocion lo dejan a NULL.
---   · un documento marcado y BORRADO después no tiene fila que contar. El
---     corpus se borró y se recreó, así que las filas del 14/09 pueden no
---     existir hoy.
---   · un documento devuelto a 'pendiente' por cambio de contenido perdió su
---     `reviewed_at`.
+-- LO QUE ESCRIBÍ: que estaba ciega porque el corpus se borró y se recreó, así
+-- que las filas del 14/09 ya no existen. **Era una hipótesis mía y no la
+-- verifiqué.**
 --
--- Por eso esta consulta ya NO devuelve un recuento a secas: devuelve el
--- recuento Y si ese recuento es creíble. La columna `fiabilidad` es la que se
--- lee; el número solo vale cuando dice 'coherente'.
+-- LO QUE ES: `reviewed_at` NO responde «¿estaba analizado?». Responde
+-- **«¿pasó por la bandeja de revisión?»** — lo escribe sólo `mark-analyzed`
+-- (route.ts:113,153). El director lo explicó con dos nombres propios:
+-- `CLI-04` y `CLI-05` llegaron a `analizado` por SUBIDA MANUAL indexada desde
+-- el chat, o sea por `ingest:294`, que nunca los mandó a revisar y por tanto
+-- no les puso fecha. **No es un fallo: es que el campo contesta otra cosa.**
+--
+-- ⚠️ Y ESO LA MATA PARA SIEMPRE, no para hoy. En cualquier corpus donde se
+-- indexe desde el chat, esta reconstrucción es ciega POR CONSTRUCCIÓN: no le
+-- faltan datos que algún día lleguen, le falta una pregunta que ese campo no
+-- responde. Dejarla devolviendo números sería dejar un cero con pinta de dato
+-- —lo mismo que ya pasó con el `org_id`— sólo que esta vez sabiendo que no
+-- puede acertar nunca.
+--
+-- QUÉ HARÍA FALTA PARA CONTESTAR LA PREGUNTA DE VERDAD: un sello de tiempo
+-- que escriban los CUATRO caminos a `analizado`. Hoy no existe ninguno, y eso
+-- es una ficha propia (B.252): no se puede saber cuándo entró un documento al
+-- corpus efectivo.
 
-select
-  ar.created_at,
-  ar.document_name,
-  (ar.pipeline_counters ->> 'seleccion.candidatos_recuperados')::int as recuperados,
-  (select count(*)
-     from documents d
-    where d.org_id = ar.org_id
-      and d.reviewed_at is not null
-      and d.reviewed_at <= ar.created_at) as marcados_que_siguen_vivos,
-  case
-    when (ar.pipeline_counters ->> 'seleccion.candidatos_recuperados')::int is null
-      then 'sin contadores — nada que contrastar'
-    when (ar.pipeline_counters ->> 'seleccion.candidatos_recuperados')::int > 0
-     and (select count(*) from documents d
-           where d.org_id = ar.org_id
-             and d.reviewed_at is not null
-             and d.reviewed_at <= ar.created_at) = 0
-      then '*** CIEGA: recupero candidatos y no queda ni un marcado. NO USAR ***'
-    when (ar.pipeline_counters ->> 'seleccion.candidatos_recuperados')::int
-       > (select count(*) from documents d
-           where d.org_id = ar.org_id
-             and d.reviewed_at is not null
-             and d.reviewed_at <= ar.created_at)
-      then 'incompleta: recupero mas de los que quedan marcados'
-    else 'coherente'
-  end as fiabilidad
-from analysis_results ar
-where ar.org_id = '<ORG_ID>'
-order by ar.created_at desc;
-
-
--- ── 4 · CUÁNDO SE MARCÓ CADA DOCUMENTO ─────────────────────────────────
+-- ── 4 · QUIÉN PASÓ POR LA BANDEJA, Y CUÁNDO ───────────────────────────
+-- ⚠️ ESO Y NADA MÁS, que es lo que este campo sabe. NO es «qué documentos
+-- están analizados»: los que llegaron por `ingest` o por `index-text` están
+-- analizados y no salen aquí. El título anterior decía «cuándo se marcó cada
+-- documento» y ese nombre es justo el que nos hizo leerla mal.
 
 select name, analysis_status, reviewed_at, created_at
 from documents
@@ -134,11 +116,18 @@ where org_id = '<ORG_ID>'
 order by reviewed_at;
 
 
--- ── 5 · ⚠️ LA QUE EXPLICA LA CEGUERA: ¿desde cuándo existen estas filas? ─
--- Si el documento MÁS ANTIGUO de la organización es posterior a los análisis
--- del 14/09, entonces ninguna fila de aquel corpus sobrevive y la consulta 3
--- no puede saber nada de ese tramo — no por un fallo suyo, sino porque la
--- evidencia se borró con las filas.
+-- ── 5 · EL ESTADO DE HOY, Y LA BRECHA QUE ENSEÑA ───────────────────────
+-- Nació diciendo que «explica la ceguera» por el borrado del corpus. Esa
+-- explicación era una hipótesis mía y resultó no ser la causa (ver el hueco de
+-- la 3). Lo que sí hace, y sigue valiendo:
+--
+-- ⚠️ COMPARAR `analizados_hoy` CON `con_fecha_de_revision`. La diferencia son
+-- los documentos que están en el corpus efectivo SIN haber pasado por la
+-- bandeja — los que entraron por subida manual o desde el chat. Con el corpus
+-- del director esa diferencia debería ser 2: `CLI-04` y `CLI-05`.
+--
+-- Esa resta es la medida directa de B.252: cuántos documentos del corpus no
+-- tienen forma de decir desde cuándo están en él.
 
 select
   count(*)                          as documentos,
