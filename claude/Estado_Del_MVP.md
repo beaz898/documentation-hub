@@ -592,6 +592,16 @@ reembolso parcial.
 subir un `.txt` de menos de 50 caracteres y pedir su análisis desde el chat → 400
 «Texto insuficiente» y **el saldo no cambia** (antes bajaba 5, o 30 en exhaustivo).
 
+⚠️ **NO EJERCIDA EN PRODUCCIÓN — corregido el 17/09/2026.** El encargo del 17/09 dio por
+«ejercida» esta ficha con «10 en vez de 30» sobre los cortes por duplicado de `CLI-20`. **No
+llegó a escribirse aquí** —se paró antes—, y **era falso por dos lados**: esos cortes
+costaron **30 y 30** (saldo 1.070 → 1.040 → 1.010), y **un corte por duplicado no es ninguna de
+las salidas que esta ficha cubre** —no es previo al punto de gasto ni un fallo—. **Los cortes
+por duplicado nunca han estado cubiertos por esta ficha**, y su precio lo decide B.235.
+El encargo añadió que lo que se vio funcionar fue **el descuento por reanálisis**. **Aquí no
+consta**: las dos pasadas cortadas no lo recibieron, y no se ha trasladado otra en la que se
+viera. Queda como afirmación del encargo, sin verificar.
+
 ### 📏 PARA LA DECISIÓN DEL REEMBOLSO PARCIAL — leído el 17/09/2026
 
 El director propone cobrar la mitad de un fallo a mitad, para que reintentar no
@@ -2476,6 +2486,50 @@ cobrado se deduce; si el director anotó el saldo antes y después, esa cifra ma
 
 **Si sale 30 por el exhaustivo, la decisión del 15/09 se tomó sin este dato** —un botón
 que el director pulsó en el flujo normal, sin error de nadie— **y le toca revisarla.**
+
+### ✅ MEDIDO Y DECIDIDO EL 17/09/2026 — el corte por duplicado cuesta 30, y se queda en 30
+
+**LA CIFRA, del director**: las dos pasadas exhaustivas cortadas por duplicado
+—`e31e0418` y `ced358cd`, 181 y 198 ms, las dos con `sin_clasificar: true`— costaron
+**30 y 30, sin devolución**. **El saldo lo confirma: 1.070 → 1.040 → 1.010.** La base no
+lo habría confirmado sola: **los reembolsos no dejan rastro en ninguna tabla** (sólo suman
+a `organizations.credits_extra`), y `credits_consumed` es lo cobrado al encolar. **La
+secuencia de saldo es la única prueba del neto.**
+La predicción escrita antes decía **30 por cada corte**: **acertada**. El total de 65 no se
+puede comprobar: de la tercera pasada —«Reanalizar corpus»— no se trasladó cifra.
+
+**LA DECISIÓN DEL DIRECTOR, FIRME, con el número real delante: se queda en 30.**
+> «Si es idéntico y aun así quieres compararlo, no tiene sentido que cueste menos. El
+> usuario debe entenderlo. Otra cosa sería un error nuestro; esto es del usuario.»
+
+**Lo que la sostiene**: la advertencia está delante, **sin plegar**, y dice literalmente que
+analizarlo otra vez **no va a encontrar nada**. Quien pulsa después decide informado. Es el
+mismo criterio con el que se cerró B.256.
+
+### ⚠️ Y SU APOYO, QUE ES FRÁGIL Y VA APARTE — no es la decisión
+
+**El 30 de hoy no lo eligió nadie para este caso.** Sale de que el corte por duplicado **no
+declara clase** (`buildExactDuplicateResponse` devuelve sin `estimatedCost`) y **cae al
+valor por defecto, que es el máximo** (`CLASE_POR_DEFECTO = 'heavy'`,
+`lib/analysis/clase-de-coste.ts:41`). **La decisión del director lo hace correcto, pero por
+coincidencia.**
+
+**EL DISPARADOR DE REVISIÓN**: si algún día se cambia el valor por defecto —y hay razones,
+porque **cualquier camino nuevo que termine sin clasificar cobra el máximo en silencio**—,
+este caso pasaría a cobrar otra cosa **sin que nadie lo decida**. Ese día hay que
+**declararle su clase explícita** al corte por duplicado, para que siga costando 30 **porque
+se decidió y no porque cayó ahí**. Y el mismo día hay que revisar cualquier otro camino que
+esté en `sin_clasificar`: `select count(*) from analysis_results where pipeline_counters ?
+'averia.exhaustivo_sin_clasificar'`.
+
+### ⚠️ LA CORRECCIÓN QUE VA CONTADA — el apoyo de una decisión, escrito sin comprobar
+
+El 17/09 el encargo afirmó **«lo no clasificado ahora vale ligero»** y que el corte costaba
+**10**, y **sobre esa frase el director tomó una primera decisión de producto**. **Era falso**:
+el defecto es `heavy` desde `dda7e843` (15/09) y el corte costó 30. Se paró antes de
+anotarse, leyendo el código. Es el patrón de `CLAUDE.md` sobre el indicativo: una afirmación
+sobre el objeto, hecha sin el objeto delante, que vuelve convertida en premisa de una orden.
+**La decisión se rehízo con la cifra real y salió la misma — pero ahora sabiendo por qué.**
 
 ⚠️ **Y «sin clasificar» se define UNA VEZ** (`clase-de-coste.ts`), porque si no
 serían dos: el defecto lo aplica el worker y el contador lo escribe quien guarda
@@ -5356,6 +5410,13 @@ luego «Reanalizar corpus» desde el modal. **Predicción de lo cobrado: 5 + 30 
 de ellos por cortes de duplicado que no llamaron al modelo (ver B.235, «el precio, en
 producción»). Si la base lo confirma, **esta ficha se decidió sin esa cifra** y el
 director la revisa con ella.
+
+**REVISADA CON LA CIFRA EL 17/09/2026, y se mantiene.** Los dos cortes costaron **30 y 30**
+(saldo 1.070 → 1.040 → 1.010). El director la sostiene con el mismo criterio que B.235: la
+advertencia «IDÉNTICO… no va a encontrar nada» está delante y sin plegar, así que repetir es
+decisión del usuario. **Sigue abierta en lo que dice su título**: el caso en que **no** se
+avisa —un segundo exhaustivo sobre un documento que no es idéntico a nada indexado, sólo ya
+analizado— no tiene aviso ninguno.
 
 ---
 
