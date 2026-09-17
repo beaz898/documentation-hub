@@ -2432,8 +2432,8 @@ lo importante es **dónde está el cobro**:
 | 6 | **plan** | **el exhaustivo NO existe en plan free** → 403 | no |
 | 7 | límite diario | **10 exhaustivos/día** (`EXHAUSTIVE_DEFAULT`) → 429 | no |
 | 8 | créditos | menos de **30** → 402 | no |
-| 9 | **candado de análisis** | otro análisis corriendo en la organización → **409** | ⚠️ **SÍ, 30 y sin devolución** — el candado se toma *después* del cobro |
-| 10 | texto | menos de 50 caracteres → 400 | ⚠️ **sí** |
+| 9 | **candado de análisis** | otro análisis corriendo en la organización → **409** | ~~SÍ, 30 y sin devolución~~ **desde el 17/09 se devuelve** (`401abc32`, `df3dacc1`) |
+| 10 | texto | menos de 50 caracteres → 400 | ~~sí~~ **desde el 17/09 se devuelve** |
 | 11 | ⚠️ **veto por hash** | **el documento es copia exacta de otro que exista en la organización, EN CUALQUIER ESTADO** | ⚠️⚠️ **SÍ, 30 completos.** Corre **en el worker**, así que el trabajo ya se cobró. **Es el que costó 60 créditos ayer** |
 
 **Cómo se esquivan**, con el corpus tal como está hoy —`OPE-11` analizado, `OPE-14`
@@ -2447,6 +2447,19 @@ fuera, `CLI-20` dentro—:
 - **la 4** pide no dejar el modal abierto más de dos horas entre pasos.
 
 ## ⚠️ 2 · EL HALLAZGO QUE CAMBIA LA TANDA: CON ESTE CORPUS, MEDIRÍA LA NADA
+
+> ⚠️ **CORRECCIÓN DEL 17/09/2026 — «EXACTAMENTE DOS COSAS… Y NADA MÁS. EL MISMO JUEZ» ES
+> FALSO**, y la corrección del estilo de más abajo sólo arregló una de las omisiones.
+> **Contadas por capacidad —dónde el código pregunta si es exhaustivo— son al menos
+> diez:** tope del rerank (6/25), **instrucción del rerank** (estricta/permisiva),
+> umbral (0,50/0,45), fallback del rerank (3/5 candidatos), **el juez lee el documento
+> entero** en vez de 6.000 caracteres (`judge.ts`), **double-check con Sonnet**,
+> **análisis de estilo** en paralelo, presupuesto de fragmentos por variable de entorno
+> (`ANALYSIS_EXHAUSTIVE_BUDGET_CHARS`, igual al rápido si no está puesta), rama atómica
+> por variable de entorno (`ANALYSIS_ATOMIC_MEASURE`), y **corre en el worker**: otro
+> proceso, sondeo del cliente, precio variable y reembolsos. En la bandeja, además, el
+> tope de selección es 3 y no 20 (B.242). **La conclusión de abajo —que con pocos
+> candidatos no distingue la SELECCIÓN— sigue en pie; que haga «el mismo trabajo», no.**
 
 **El modo exhaustivo cambia exactamente DOS cosas frente al rápido:**
 
@@ -2613,6 +2626,14 @@ La única vuelta real es **borrar el documento y volver a sincronizarlo**, y no 
 «un gesto sin coste»: borra sus vectores, le da un **id nuevo**, y los análisis ya
 guardados que apuntaban al viejo se quedan sin dueño —la familia de F-101, que
 esta casa ya pagó una vez.
+
+> ⚠️ **CORRECCIÓN DEL 17/09/2026, decisión del director: la irreversibilidad NO es un
+> obstáculo para un experimento.** Lo de arriba sigue siendo verdad sobre la MARCA —no hay
+> escritura de `analizado` a `pendiente`—, pero el director puede **retirar** los
+> documentos que haga falta borrándolos de Drive y sincronizando. El coste de esa salida
+> es el que está escrito —id nuevo, análisis viejos sin dueño—, **y es un coste, no un
+> impedimento**. Quien lea esta sección para decidir un experimento no debe descartarlo
+> por esto.
 
 ---
 
@@ -3359,7 +3380,7 @@ Así que las dos vías, con su precio verdadero:
 
 | Vía | Qué se hace | Coste | ⚠️ Lo que cuesta de verdad |
 |---|---|---|---|
-| **A · marcar** | marcar como revisados unos 12 documentos, y analizar `OPE-07` | 5 + 30 cr | **12 marcas IRREVERSIBLES.** Es justo lo que el 15/09 le dije al director que no servía de nada. Servía |
+| **A · marcar** | marcar como revisados unos 12 documentos, y analizar `OPE-07` | 5 + 30 cr | **12 marcas IRREVERSIBLES** ⚠️ *(corregido el 17/09: no es un obstáculo — el director puede retirarlos borrando de Drive y sincronizando; ver §2)*. Es justo lo que el 15/09 le dije al director que no servía de nada. Servía |
 | **B · la tanda de la bandeja** | seleccionar 3 (el tope) y analizar uno | 5 + 30 cr | nada irreversible, pero **sólo 2 compañeros**: el tope de 6 no llega a morder y no mide lo que se busca |
 
 **No hay tercera.** Y la A es la única que mide, así que **la pregunta que el
@@ -3508,3 +3529,121 @@ documentos mediría el tope cortando basura, que no es la pregunta que nadie que
 responder.
 
 **Nada lanzado. Nada marcado. Ningún crédito.**
+
+---
+
+# 17/09/2026 · A2 y A4 — QUÉ MIDEN DE VERDAD, QUÉ LAS CORTA, Y EL MONTAJE · **NADA LANZADO**
+
+A2 = **CHAT · subida → exhaustivo**. A4 = **BANDEJA · analizar exhaustivo**
+(`Inventario_Caminos.md:55,57`). Lo único que falta del punto 3 del criterio de salida.
+
+## 0 · ⚠️ QUÉ COMPRA ESTA TANDA, antes que nada
+
+Frente a los rápidos ya medidos (A1, A3) el exhaustivo cambia al menos **diez** cosas
+(corrección del 17/09, más arriba). **Con el corpus de hoy —tres elegibles— la mitad son
+inertes:**
+
+| diferencia | hoy |
+|---|---|
+| tope del rerank 25 | **inerte**: no hay más de 3 elegibles |
+| umbral 0,45 | **inerte**: el censo midió que no aporta ni uno |
+| presupuesto de fragmentos por variable | **inerte si no está puesta** en Railway — hay que comprobarlo |
+| rama atómica | **inerte si no está puesta** — hay que comprobarlo |
+| fallback del rerank 3/5 | sólo actúa si el rerank falla |
+| **instrucción permisiva del rerank** | **activa**: puede seleccionar a `CLI-20` donde el rápido no |
+| **el juez lee el documento entero** | **activa** si el texto montado pasa de 6.000 caracteres |
+| **double-check con Sonnet** | **activa**: puede confirmar o tumbar las sembradas |
+| **análisis de estilo** | **activa**: añade problemas de estilo sin cifra de referencia |
+| **worker, sondeo, precio variable** | **activa**: el camino entero es otro proceso |
+
+⚠️ **ASÍ QUE, DICHO SIN ADORNO: ESTA TANDA MIDE QUE EL EXHAUSTIVO NO ROMPE POR ESAS DOS
+PUERTAS.** Que lee la estructura igual que el rápido (la mitad determinista), que llega al
+final y persiste con dueño y contadores, y que **Sonnet no tumba las tres sembradas**.
+**NO mide que el exhaustivo encuentre más**, ni nada sobre la selección, el tope o el
+umbral: con tres elegibles, eso es inerte. Y la mitad del modelo, con una pasada por
+puerta, **no distingue un cambio del exhaustivo de un día distinto del modelo**.
+
+## 1 · LO QUE PUEDE CORTAR CADA PASADA, POR CAPACIDAD — estado del 17/09
+
+Estado del corpus según el director (**no verificable desde el repositorio**): tres
+`analizado`, `CLI-20` dentro, `OPE-14` fuera.
+
+| # | qué corta | ¿cobra hoy? | cómo se esquiva |
+|---|---|---|---|
+| 1-8 | sesión, organización, candado de subida (423), referencia firmada, versión en vuelo (409), plan, límite diario, créditos | no | ver la tabla del 16/09 |
+| 9 | candado de análisis: otro análisis corriendo (409) | **ya no: se devuelve** (17/09) | no lanzar A2 y A4 a la vez |
+| 10 | texto de menos de 50 caracteres | **ya no: se devuelve** | — |
+| 11 | ⚠️ **veto por hash**: copia exacta de CUALQUIER documento de la organización, en cualquier estado | **SÍ, 30** (B.234, abierta) | **A2 no puede subir el fichero de OPE-14 tal cual**: OPE-14 está en la organización. Hace falta una variante |
+| 12 | ⚠️ **worker en otra versión** | según versión | el director comprueba en Railway que corre **`df3dacc1` o posterior** |
+| 13 | ⚠️ **variables de entorno del worker** (`ANALYSIS_EXHAUSTIVE_BUDGET_CHARS`, `ANALYSIS_ATOMIC_MEASURE`) | no | el director comprueba que **no estén puestas**; si lo están, la cifra no es comparable con A3 |
+| 14 | una etapa del modelo cae → análisis **incompleto** | se devuelve (F-71) | la pasada no mide: se repite |
+| 15 | el sondeo del chat se rinde a los **10 minutos** (y un job fallido con mensaje propio sondea hasta ahí, B.257) | — | **la cifra se lee en la base, no en pantalla** |
+| 16 | la bandeja enseña el **último** análisis, sea del tipo que sea (B.258) | — | **no reanalizar el estilo de OPE-14** entre la pasada y la lectura |
+| 17 | descartes permanentes de hallazgos de OPE-14, si el director descartó alguno | no | la cifra bajaría: A5/A6 dieron 3, así que no se espera |
+| 18 | el corpus cambia entre A2 y A4 | no | no tocar el corpus entre las dos |
+
+## 2 · EL MONTAJE
+
+**A4 · bandeja** — el par de A3: `OPE-14` contra `OPE-11`.
+1. En la bandeja, seleccionar **sólo `OPE-14`** y pulsar **analizar exhaustivo** (30).
+2. Esperar a que termine, sin lanzar nada más.
+
+**A2 · chat** — el mismo par, por la otra puerta, con la guarda de hash esquivada:
+1. Preparar **`OPE-14-A2`**: el fichero de `OPE-14` con **una celda más cambiada** respecto a
+   `OPE-11`, para que no sea copia exacta de nada de la organización. Es lo que hizo A1 con
+   `DIA-01`.
+2. Subirlo en el chat, y en el aviso pedir **exhaustivo** (30).
+3. Esperar. Si el chat dice «tiempo máximo», no es un fallo: se lee en la base.
+
+**Después de las dos**, antes de mirar la pantalla, esta consulta —sólo lee; sustituir
+`<ORG_ID>`—. Las claves son las del catálogo (`counters.ts`), comprobadas el 17/09:
+
+```sql
+select ar.created_at, ar.document_name, ar.analysis_type,
+  ar.pipeline_counters ->> 'diff.vision.tablas_analizado'       as tablas_analizado,
+  ar.pipeline_counters ->> 'diff.vision.filas_analizado'        as filas_analizado,
+  ar.pipeline_counters ->> 'diff.vision.tablas_candidatos'      as tablas_candidatos,
+  ar.pipeline_counters ->> 'diff.vision.filas_candidatos'       as filas_candidatos,
+  ar.pipeline_counters ->> 'diff.vision.pares_ciegos'           as pares_ciegos,
+  ar.pipeline_counters ->> 'diff.clasificacion.discrepantes'    as discrepantes,
+  ar.pipeline_counters ->> 'diff.clasificacion.identicas'       as identicas,
+  ar.pipeline_counters ->> 'diff.clasificacion.solo_en_a'       as solo_en_a,
+  ar.pipeline_counters ->> 'diff.clasificacion.solo_en_b'       as solo_en_b,
+  ar.pipeline_counters ->> 'seleccion.candidatos_seleccionados' as seleccionados,
+  ar.contradictions_found, ar.contradictions_confirmed, ar.style_problems_found,
+  jsonb_array_length(coalesce(ar.analysis -> 'stageFailures', '[]'::jsonb)) as etapas_caidas
+from analysis_results ar
+where ar.org_id = '<ORG_ID>'
+  and ar.document_name like 'OPE-14%'
+  and ar.analysis_type = 'exhaustive'
+  and ar.created_at >= '2026-09-17'
+order by ar.created_at;
+```
+
+⚠️ Una clave que falta sale `NULL`, y **`NULL` no es cero** (la lección de A1): si alguna
+columna de visión sale vacía, primero se comprueba la clave, después se diagnostica.
+
+**Coste: 60 créditos brutos**, menos lo que devuelva el precio variable según plan.
+
+## 3 · PREDICCIÓN, ESCRITA ANTES
+
+| | A4 (OPE-14) | A2 (OPE-14-A2) |
+|---|---|---|
+| `tablas` · `filas` a cada lado | **1 · 60** | **1 · 60** |
+| `pares_ciegos` | **0** | **0** |
+| discrepantes · idénticas | **3 · 57** | **4 · 56** |
+| `solo_en_a` · `solo_en_b` | **0 · 0** | **0 · 0** |
+| contradicciones confirmadas tras Sonnet | **3** | **4** |
+| problemas de estilo | **sin predicción**: no hay cifra de referencia | ídem |
+
+## 4 · QUÉ SIGNIFICA CADA RESULTADO
+
+| sale | se lee como |
+|---|---|
+| la mitad determinista **igual** a la predicción, y las confirmadas **iguales** | **el exhaustivo no rompe por esa puerta**, y Sonnet no tumba las sembradas. Punto 3 cerrado **con ese alcance** |
+| la mitad determinista **distinta** | **el exhaustivo lee la estructura distinto que el rápido** por esa puerta: hallazgo, y se para antes de repetir |
+| determinista igual, **confirmadas menos** | Sonnet o el juez con documento entero **tumban una sembrada**: hallazgo del modelo, **una pasada no basta para atribuirlo** |
+| determinista igual, **confirmadas más** | el exhaustivo **añade** algo que el rápido no emitió: mirar si es `CLI-20` (seleccionado por la instrucción permisiva) o un falso positivo |
+| incompleto, o cortado por 11-13 | **no mide**: se repite, y se cuenta por qué |
+
+**Nada lanzado. Ningún crédito.**

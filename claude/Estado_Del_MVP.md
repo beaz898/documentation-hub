@@ -4416,6 +4416,8 @@ que se enseñara no probaría nada.
 **Lo que sí puede hacer, si quiere verlo alguna vez**: es el mismo montaje que
 lleva dos días pendiente —marcar documentos como revisados hasta pasar de seis— y
 sigue siendo **irreversible** y **suyo**. No hace falta para este arreglo.
+⚠️ *(Corregido el 17/09/2026: la marca no tiene vuelta, pero **no es un obstáculo**: el
+director puede retirar los documentos borrándolos de Drive y sincronizando. Ver §5.75.)*
 
 ---
 
@@ -5459,3 +5461,39 @@ entre pasadas y se compara contra su unión.
 | **la instrucción «sé estricto»** del rápido | **el recorte del rerank, estable y medido** | es un dial de prompt: se mueve solo, con tanda antes y después (F-109 P4, y el balance emisión/contención de `Cierre_B81.md`) |
 
 **Esperan a la medición, no a que alguien se acuerde.**
+
+### ⏸️ APLAZADA EL 17/09/2026 — decisión del director, con sus razones
+
+**No se escribe el modo de instrumentación ni se lanza ninguna de las dos variantes.**
+Las razones, escritas para releerlas al retomarlo:
+
+- **Con tres candidatos elegibles el tope no puede cortar.** Medir hoy mediría un caso que
+  no se parece al de un cliente.
+- **Para que un descartado produzca un hallazgo tiene que haber algo que encontrar.** Un
+  corpus montado sin contradicciones sembradas daría «no se perdió nada» sin poder
+  distinguir si la selección acierta o si no había nada que perder: **un cero sin control
+  positivo**.
+- ⚠️ **LO QUE NO ES UN MOTIVO: la irreversibilidad.** El director puede retirar documentos
+  borrándolos de Drive y sincronizando. Donde esta casa lo escribió como coste de un
+  experimento (`Tandas_Harness.md` §2 y la vía A del 16/09, y §5.57 aquí) queda
+  corregido a la vista.
+
+⚠️ **CONDICIÓN DE CADUCIDAD, no nota:** comparar dos modos para medir la selección
+**caduca cuando los candidatos recuperados alcancen el tope alto**. Máximo de hoy: **10**.
+**Si alguna pasada llega a 25, la etapa 2 deja de poder medirse así.**
+
+**Lo que haría falta para retomarlo**: un corpus real de cliente, o uno de pruebas con
+**contradicciones sembradas repartidas entre varios documentos** — según el encargo,
+trabajo de una sesión; **esa estimación no está medida aquí**.
+
+⚠️ **Y DOS CORRECCIONES QUE EL ENCARGO ME ATRIBUÍA Y NO SON MÍAS**, escritas para que no
+se archiven como tales:
+- **«Los hallazgos del 14/09 no existen» — no lo dije y no es así.** Lo que no existe son
+  los DESCARTES de la selección. Los hallazgos y la lista de lo que llegó al juez **sí están
+  guardados**, y `SQL_F109_seleccion_CLI05.sql` los lee.
+- **«El exhaustivo cambia seis cosas y eso invalidaba el experimento de Fable» — tampoco.**
+  Contadas por capacidad son **al menos diez** (lista en `Tandas_Harness.md`, corrección del
+  17/09). Y lo que señalé —que el exhaustivo también selecciona— afecta a la variante
+  **rápido contra exhaustivo**, que es cota inferior. **El experimento de Fable es otro**:
+  mandar todo lo recuperado al juez saltándose la selección, y eso no lo invalida; lo
+  condiciona la caducidad de arriba.
