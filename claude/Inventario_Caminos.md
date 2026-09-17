@@ -52,9 +52,9 @@ los que necesitan tanda contra cifra de referencia.**
 | # | camino | cuerpo que manda | estructura | modo | tanda |
 |---|---|---|---|---|---|
 | **A1** | CHAT · subida → análisis | `storagePath, fileName` | **✓** binario | rápido | ✅ **MEDIDA 07/09** — ver nota 1 |
-| **A2** | CHAT · subida → exhaustivo | `+ exhaustive` | **✓** binario | exhaustivo | ⚠️ parcial |
+| **A2** | CHAT · subida → exhaustivo | `+ exhaustive` | **✓** binario | exhaustivo | ✅ **17/09: declarada entrada del worker medido** (A5 cubre worker × binario) — ver §6 punto 3 del estado |
 | **A3** | BANDEJA · analizar | `text, documentoEnRevision, batchDocumentIds` | **✓** rescate | rápido | ✅ **MEDIDA 08/09** — ver nota 2 |
-| **A4** | BANDEJA · analizar exhaustivo | `+ exhaustive` | **✓** rescate | exhaustivo | ⚠️ ver nota 2 |
+| **A4** | BANDEJA · analizar exhaustivo | `+ exhaustive` | **✓** rescate | exhaustivo | ✅ **17/09: declarada entrada del worker medido** (A6 cubre worker × rescate) — ver §6 punto 3 del estado |
 | **A5** | MODAL(chat) · Reanalizar todo | `text, fileName, storagePath, excludeFingerprints, documentoAReemplazar` — y **`documentoPropietario: undefined` y `documentoConEstructura: undefined` EXPLÍCITOS** (`useCrossDocAnalysis.ts:144` y `:149`; el cuerpo entero, `:123-150`): es lo que lo separa de A6 | **✓** guarda B.175, por la rama `storagePath` (`analyze-v2:290-305`) | exhaustivo | ⚠️ **comprobado por LOG**, sin tanda · cuarentena |
 | **A6** | MODAL(bandeja) · Reanalizar todo | `text, documentoPropietario, documentoConEstructura` | **✓** rescate | exhaustivo | ✅ **MEDIDA 09/09** · **ARREGLADA** (B.177) |
 | **A7** | MODAL(chat) · Reanalizar estilo | `text, storagePath` | n/a | — | **NO** |

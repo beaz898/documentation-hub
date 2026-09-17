@@ -2448,6 +2448,35 @@ La clave **estrena la etapa `averia`**, que estaba declarada y vacía desde que 
 escribió el catálogo: ahí no se mide lo que el análisis encontró, sino **que el
 propio sistema no supo algo de sí mismo**.
 
+### ✅ LA PIEZA 1, EJERCIDA EN PANTALLA EN LOS DOS MODOS — 17/09/2026
+
+El director subió `CLI-20` desde el chat —ya indexado con el mismo contenido— y lanzó
+**los dos modos**. Los dos cortaron por duplicado exacto con la frase de esta pieza:
+«IDÉNTICO a "CLI-20…". No aporta información nueva, así que analizarlo nuevamente no
+va a encontrar nada.», **sin plegar y con `NO_INDEXAR`**. Hasta hoy estaba ejercida
+sólo en rápido.
+⚠️ *(El encargo la llamó B.226, que es otra ficha —el chat que decía no tener acceso a
+un documento—. Es la pieza 1 de ésta.)*
+
+### ⚠️ Y EL PRECIO, EN PRODUCCIÓN — lo que esta ficha decidió NO cambiar
+
+**Esta ficha no arregló el cobro: lo decidió dejar igual** («el precio NO cambia»), y
+sólo lo hizo contable. Así que el exhaustivo cortado del 17/09 **se predice cobrado
+entero**: sale sin `estimatedCost`, cae en `heavy` por defecto y `heavy` no devuelve
+nada; y si el plan no es business, ni siquiera entra al precio variable. **La regla por
+etapa de `df3dacc1` no lo alcanza**: actúa en fallos, y un corte por duplicado no es un
+fallo — aunque **no llamó al modelo**, que es exactamente lo que esa regla devuelve.
+
+**Predicción escrita antes de leer la base**: rápido **5**; exhaustivo **30 sin devolver**;
+y «Reanalizar corpus» desde el modal, **otros 30 sin devolver si `CLI-20` tiene original
+en la nube** —el modal no excluye homónimos de la nube (`homonimoParaReemplazar`), así
+que el hash vuelve a chocar—. **Total esperado: 65.** Se comprueba con
+`SQL_B235_cobro_CLI20.sql`. ⚠️ **Los reembolsos no dejan rastro en la base**: lo
+cobrado se deduce; si el director anotó el saldo antes y después, esa cifra manda.
+
+**Si sale 30 por el exhaustivo, la decisión del 15/09 se tomó sin este dato** —un botón
+que el director pulsó en el flujo normal, sin error de nadie— **y le toca revisarla.**
+
 ⚠️ **Y «sin clasificar» se define UNA VEZ** (`clase-de-coste.ts`), porque si no
 serían dos: el defecto lo aplica el worker y el contador lo escribe quien guarda
 el análisis. Dos sitios contestando «¿está clasificado?» por su cuenta se separan
@@ -3234,14 +3263,15 @@ Lo que el plan dijo que tendría que ser cierto «abriendo un registro»:
 |---|---|---|
 | 1 | El inventario existe y es público | ✅ |
 | 2 | La puerta principal medida por sus dos entradas, misma cifra | ✅ **cerrado el 16/09**: corpus por A5/A6 (`3 · 57 · 0 · 0` por las dos puertas y en los dos modos, 15/09) y estilo por A7/A8 **por conjuntos**, catorce pasadas (`Tandas_Harness.md`, «LO QUE CIERRA»). ⚠️ Coinciden, **no repiten**: B.240 sigue abierta |
-| 3 | Cada camino que produce informe, con cifra + camino + **modo** | ❌ **seis de ocho**: A1, A3, A5, A6, A7, A8. **Faltan A2 y A4**, los dos exhaustivos que el cliente pisa; su montaje quedó anulado el 16/09. ⚠️ Y A1, A3, A5 y A6 tienen **alcance de pareja, no de corpus** (§5.47) |
+| 3 | Cada camino que produce informe, con cifra + camino + **modo** | ✅ **cerrado el 17/09/2026, por decisión del director y con su alcance escrito.** El punto pasa a pedir lo que de verdad faltaba: **el worker medido.** Medido **en la base** por A5 (15/09) y A6 (09/09 y 15/09), `3 · 57 · 0 · 0`, por sus dos fuentes de estructura —binario y rescate—; y **en pantalla por el director el 17/09**, cinco eslabones: encolado, recogida, informe con contradicciones **y estilo**, cabecera «Exhaustivo» y persistencia tras recargar (entrada y documento de esa pasada: no trasladados). **A2 y A4 se declaran entradas del mismo worker**, con la salvedad del inventario: difieren en la fuente de la estructura y en la tanda, y esas dos combinaciones son las que ya cubren A5 y A6. ⚠️ A1, A3, A5 y A6 siguen teniendo **alcance de pareja, no de corpus** (§5.47) |
 | 4 | Cuando el sistema no ve algo, lo dice | 🔶 **a medias.** Hecho: los denominadores de tablas (pieza 2, 07/09) y el aviso de cobertura de documentos, que dice contra cuántos se comparó y la causa sólo cuando está medida (`7afafd71`, 16/09). **Sigue sin decirlo**: el estilo pierde el final de los documentos largos (B.236) y devuelve «cero problemas» sin haber mirado (B.237); el rerank ve el documento nuevo cortado en seco a 3.000 caracteres; y el corte previo a 25 candidatos no se cuenta |
 | 5 | Los dos botones que cobran dicen lo que cuestan | ✅ **B.180, arreglado el 08/09** (`a2b99c41`, §4.2) |
 | 6 | Hay lista escrita de lo no probado, y no está escondida | ✅ |
 | 7 | La condición de escritorio, escrita | ✅ |
 
-**Cinco de siete, con el 4 a medias.** Los dos que faltan son la cobertura de los
-exhaustivos (3) y que todo lo que no se ve se diga (4).
+**Seis de siete, con el 4 a medias** (17/09/2026). Lo que falta es que todo lo que no
+se ve se diga (4).
+*(Hasta el 17/09 decía «cinco de siete»; el 3 se cerró ese día, ver su fila.)*
 
 ⚠️ **ESTA TABLA ESTUVO CADUCADA DESDE EL 09/09 HASTA EL 17/09.** Decía «tres de
 siete» con el 2 y el 5 en ❌ cuando llevaban días cerrados, y el 4 como «pieza 2
@@ -5319,6 +5349,14 @@ de reanálisis.
 **Sin arreglar.** Queda escrito para cuando haya usuarios que no sepan lo que sabe el
 director.
 
+### ⚠️ 17/09/2026 · EL DATO QUE LA DECISIÓN NO TENÍA DELANTE
+
+El director pulsó rápido y después exhaustivo sobre `CLI-20`, que ya estaba indexado, y
+luego «Reanalizar corpus» desde el modal. **Predicción de lo cobrado: 5 + 30 + 30**, dos
+de ellos por cortes de duplicado que no llamaron al modelo (ver B.235, «el precio, en
+producción»). Si la base lo confirma, **esta ficha se decidió sin esa cifra** y el
+director la revisa con ella.
+
 ---
 
 ## ⚠️ 5.73 · B.257 — un trabajo fallido se sigue sondeando diez minutos, y el mensaje dice otra cosa (17/09/2026)
@@ -5461,6 +5499,15 @@ entre pasadas y se compara contra su unión.
 | **la instrucción «sé estricto»** del rápido | **el recorte del rerank, estable y medido** | es un dial de prompt: se mueve solo, con tanda antes y después (F-109 P4, y el balance emisión/contención de `Cierre_B81.md`) |
 
 **Esperan a la medición, no a que alguien se acuerde.**
+
+### 17/09/2026 · AÑADIR VEINTE DOCUMENTOS AL CORPUS — NO HOY, y queda para la etapa 2
+
+El director preguntó si añadirlos. **Para la tanda del worker no hacía falta** y habría
+metido tres variables en una medición que sólo quería saber si el worker funciona: el
+aviso de cobertura, el tope cortando y más candidatos.
+
+**Queda apuntado para la medición de la etapa 2**, con la condición ya escrita arriba:
+**documentos sueltos no bastan; hacen falta contradicciones sembradas entre ellos.**
 
 ### ⏸️ APLAZADA EL 17/09/2026 — decisión del director, con sus razones
 
