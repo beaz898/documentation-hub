@@ -6,6 +6,7 @@ import { retrieveCandidates } from './retrieval';
 import type { StructuralOverlap } from './retrieval';
 import { rerankCandidates } from './rerank';
 import { escribirContadoresDelReparto } from './reparto-del-rerank';
+import { contadoresDeRecuperacion, contadoresDelRerank } from './contadores-de-seleccion';
 import { judgeAllDocuments, verifyQuote } from './judge';
 import type { JudgmentEvidence } from './judge';
 import { synthesizeFinalAnalysis, markIncompleteAnalysis } from './synthesize';
@@ -744,12 +745,16 @@ async function runCorePipeline(
     newDocumentChunks: input.newDocumentChunks,
   });
   console.log(`[${label}] Retrieval: ${candidates.length} candidatos (${Date.now() - t0}ms)`);
-  counters['seleccion.candidatos_recuperados'] = candidates.length;
-  // B.248 — LOS DOS CORTES DE LA RECUPERACIÓN, SIEMPRE, incluido el cero. Van ANTES
-  // de la salida temprana 1: si el umbral dejara a cero los candidatos, este es el
-  // único sitio donde se vería por qué.
-  counters['seleccion.candidatos_perdidos_por_umbral'] = descartesDeRecuperacion.perdidosPorUmbral;
-  counters['seleccion.candidatos_cortados_por_tope_de_recuperacion'] = descartesDeRecuperacion.cortadosPorTope;
+  // ⚠️ LAS TRES DE LA RECUPERACIÓN SALEN DE UN EMISOR, no de tres líneas a mano
+  // (18/09/2026): así la propiedad «se escriben todas, también en cero» tiene una
+  // prueba que la vigila —contadores-de-seleccion.test.ts— en vez de depender de
+  // que nadie ponga un `if` delante. Van ANTES de la salida temprana 1: si el
+  // umbral dejara a cero los candidatos, este es el único sitio donde se vería.
+  Object.assign(counters, contadoresDeRecuperacion({
+    recuperados: candidates.length,
+    perdidosPorUmbral: descartesDeRecuperacion.perdidosPorUmbral,
+    cortadosPorTope: descartesDeRecuperacion.cortadosPorTope,
+  }));
 
   // SALIDA TEMPRANA 1 — el corpus activo no tenía nada que comparar. Es la
   // decisión más informativa que puede tomar un análisis, y hasta F-82 no
@@ -769,11 +774,14 @@ async function runCorePipeline(
     options,
   });
   console.log(`[${label}] Rerank: ${reranked.length} seleccionados (${Date.now() - t1}ms)`);
-  counters['seleccion.candidatos_seleccionados'] = reranked.length;
-  // B.244 paso 1 — SIEMPRE, incluido el cero. Un contador ausente no se
-  // distingue de «no se miró», y aquí «cero sin confianza» es justo la noticia
-  // buena: significa que la señal con la que se ordena el corte está viva.
-  counters['seleccion.candidatos_sin_confianza'] = sinConfianza;
+  // B.244 paso 1 — SIEMPRE, incluido el cero, y por el mismo emisor que las de
+  // arriba: un contador ausente no se distingue de «no se miró», y aquí «cero sin
+  // confianza» es justo la noticia buena — la señal con la que se ordena el corte
+  // está viva.
+  Object.assign(counters, contadoresDelRerank({
+    seleccionados: reranked.length,
+    sinConfianza,
+  }));
   // B.251 — las DOS mitades de la pérdida, ya separadas, y las señales que
   // dicen si la primera es de fiar. SIEMPRE, incluido el cero: el cero de
   // `id_no_reconocido` es justo lo que hace cierta la palabra «criterio».

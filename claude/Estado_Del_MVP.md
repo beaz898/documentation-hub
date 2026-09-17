@@ -5723,3 +5723,76 @@ se archiven como tales:
   **rápido contra exhaustivo**, que es cota inferior. **El experimento de Fable es otro**:
   mandar todo lo recuperado al juez saltándose la selección, y eso no lo invalida; lo
   condiciona la caducidad de arriba.
+
+---
+
+## ⚠️ 5.76 · La propiedad, no las claves: por qué el caso del 15/09 no cazaba a las nuevas (18/09/2026)
+
+### Lo que se comprobó ANTES de arreglar nada
+
+El encargo daba por hecho que «la batería recorre el catálogo entero», y **no es así**.
+`counters.test.ts` comprueba dos cosas: que la lista sea **exactamente la declarada** y
+que cada nombre **lleve apellido de etapa** (`:107-109`). **Nada comprobaba que una clave
+llegue a escribirse.** El caso del 15/09 vigilaba **dos claves del estilo, por su
+nombre**, así que no cubría ninguna clave nueva — ni podía.
+
+⚠️ **Y no se dijo lo contrario en ningún momento**: el 17/09 quedó escrito que esa batería
+comprueba que la clave está **declarada**, «no que se escriba siempre», y que la prueba de
+la propiedad **no estaba escrita**. Lo estaba diciendo el propio informe del día anterior.
+
+### El arreglo es el caso, no las claves
+
+Las nueve claves `seleccion.*` salen ahora de **emisores**: funciones puras que devuelven
+**todas** las suyas, siempre, también en cero (`contadores-de-seleccion.ts`, más el
+emisor del reparto que ya existía). El pipeline deja de escribirlas a mano y funde lo que
+devuelven.
+
+Y la batería vigila **la propiedad**:
+- toda clave `seleccion.*` del catálogo **tiene emisor**;
+- ningún emisor escribe una clave **no declarada**;
+- **con todo a cero, las nueve están presentes y valen 0**;
+- y la **única ausencia legítima** es `descartados_por_criterio` en el fallback del rerank
+  (B.254), que tiene su propio caso: falta ésa **y sólo ésa**.
+
+**Mutantes**: «un emisor omite su clave cuando vale cero» → 3 en rojo; «entra al catálogo
+una clave sin emisor» → 5 en rojo. **Predicción: +6 pruebas; salieron +6.**
+
+### ⚠️ Y LOS `NULL` NO ERAN ESTO
+
+Las tres claves que se consultaron —`bajo_umbral_recuperacion`, `sobre_tope_25`,
+`bajo_umbral_verificador`— **no existen en ninguna línea del repositorio**, y `->>` sobre
+una clave ausente devuelve `NULL`. Las reales son dos y se llaman
+`seleccion.candidatos_perdidos_por_umbral` y
+`seleccion.candidatos_cortados_por_tope_de_recuperacion`. **No hay contador del
+verificador.**
+
+**La consulta que lo cierra sin depender de acertar un nombre** pide las claves que la
+fila trae de verdad:
+
+```sql
+select ar.created_at, ar.document_name, ar.analysis_type,
+       ar.pipeline_counters is null as sin_contadores,
+       k.clave, ar.pipeline_counters ->> k.clave as valor
+from analysis_results ar
+left join lateral jsonb_object_keys(ar.pipeline_counters) as k(clave) on true
+where ar.org_id = '<ORG_ID>'
+  and ar.created_at >= '2026-09-17 22:18:00+00'
+  and (k.clave is null or k.clave like 'seleccion.%')
+order by ar.created_at desc, k.clave;
+```
+
+⚠️ **Y hay un segundo camino que también da `NULL` en TODO, y no es un fallo**: un análisis
+cortado por **duplicado exacto** sale por `buildExactDuplicateResponse` sin pasar por el
+pipeline, así que `pipeline_counters` queda **entero a null**. La columna `sin_contadores`
+de la consulta lo distingue de «la clave no existe».
+
+### La hora perdida, contada
+
+El circuito persiguió durante una hora el commit `b1ed4972` y el endpoint
+`/api/admin/version`. **Ninguno de los dos existe**: `git cat-file` lo dice en un segundo, y
+el 404 del endpoint lo estaba diciendo solo. El arquitecto lo reconoce como indicativo suyo
+sobre el código, emitido sin repositorio y repetido como hecho.
+**Lo que lo hace regla y no anécdota**: un hash y una ruta son **comprobables en un
+segundo**, así que cualquiera que entre en el circuito llega con esa comprobación hecha o
+no se anota. Es la tercera vez en el día que entra una pieza que nadie construyó —dos
+hashes, tres claves de contador, un endpoint—, y las tres veces costó encargos enteros.
