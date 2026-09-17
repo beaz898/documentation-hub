@@ -9,6 +9,8 @@ import { checkRateLimit } from '@/lib/rate-limiter';
 import { resolverOrg } from '@/lib/org';
 import { respuestaDeOrgNoResuelta } from '@/lib/org-respuesta';
 import { consumeCredits, devolverSiNoSeEntrego, getCreditCost, refundCredits } from '@/lib/credits';
+import { reembolsoDelAnalisis } from '@/lib/reembolso-por-etapa';
+import type { UsageAccumulator } from '@/lib/observability/usage-context';
 import { checkUploadLock } from '@/lib/upload-lock';
 import { saveAnalysisResult } from '@/lib/persist-analysis';
 import { leerDescartes, marcarDescartadas } from '@/lib/analysis/descartes';
@@ -54,17 +56,21 @@ export async function POST(req: NextRequest) {
   let orgId = '';
   let creditsConsumed = 0;
   let lockAcquired = false;
-  // ⚠️ B.205 (17/09/2026) — ¿HA PODIDO GASTARSE ALGO? Pasa a `true` en el único
-  // punto a partir del cual el cobro deja de ser de esta ruta: cuando el job
-  // exhaustivo EXISTE (su dinero lo gobierna el worker) o cuando el rápido
-  // ENTRA en el pipeline (desde ahí puede haber llamadas al modelo). Toda salida
-  // anterior —semáforo ocupado, extracción fallida, texto insuficiente, el job
-  // que no llega a crearse, una excepción previa— no ha entregado ni gastado
-  // nada, y el `finally` la devuelve ÍNTEGRA.
-  // Lo que NO cubre, a propósito: una excepción DESPUÉS de este punto. Ahí sí
-  // puede haberse gastado modelo, y cuánto se cobra es una decisión pendiente
-  // del director (§5.2), no de esta línea.
-  let pasoElPuntoDeGasto = false;
+  // ⚠️ B.205 — EL REEMBOLSO POR ETAPA (decisión del director, 17/09/2026): si
+  // no se gastó nada se devuelve todo; si se gastó algo, nada. Lo decide
+  // `reembolsoDelAnalisis` (lib/reembolso-por-etapa.ts) con estas cuatro piezas,
+  // y el `finally` sólo ejecuta lo que ella diga:
+  //   · `cobroPendiente` — lo cobrado que aún no se ha devuelto por otro
+  //     camino. Los incompletos de F-71 lo ponen a 0 al devolver íntegro.
+  //   · `trabajoEncolado` — el job exhaustivo existe: su dinero es del worker.
+  //   · `analisisIniciado` — el rápido entró en el pipeline.
+  //   · `llmAcc` — si se llamó al modelo. Declarado AQUÍ y no junto al pipeline:
+  //     dentro del `try` no llegaba al `finally`, que es donde hace falta.
+  let cobroPendiente = 0;
+  let trabajoEncolado = false;
+  let analisisIniciado = false;
+  let terminoEnExcepcion = false;
+  const llmAcc: UsageAccumulator = new Map();
   const supabase = createServiceClient();
 
   try {
@@ -280,6 +286,7 @@ export async function POST(req: NextRequest) {
       );
     }
     creditsConsumed = getCreditCost('/api/analyze-v2', isExhaustive);
+    cobroPendiente = creditsConsumed;
 
     // Semaforo de concurrencia (F-13/F-14): un solo analisis activo por org. Se
     // adquiere aqui, cuando el analisis ya va a ocurrir (pasados los vetos baratos
@@ -481,7 +488,25 @@ export async function POST(req: NextRequest) {
         .eq('org_id', orgId)
         .eq('status', 'pending')
         .lt('created_at', staleCutoff)
-        .select('id');
+        .select('id, credits_consumed');
+
+      // ⚠️ B.205 — UN JOB BARRIDO EN 'pending' NO LLEGÓ A EMPEZAR: ningún worker
+      // lo reclamó, así que no llamó al modelo, y por la regla por etapa se
+      // devuelve ENTERO. No hay doble pago posible: reclamar y barrer son dos
+      // UPDATE condicionados a 'pending', y sólo uno de los dos casa la fila.
+      // ⚠️ LOS BARRIDOS EN 'processing' NO SE DEVUELVEN, Y NO ES UNA DECISIÓN:
+      // su acumulador murió con el proceso y no se sabe dónde murieron. La
+      // regla no tiene dato para decidir (§5.2).
+      for (const barrido of sweptPending ?? []) {
+        const credits = Number((barrido as { credits_consumed?: number }).credits_consumed ?? 0);
+        if (credits <= 0) continue;
+        const r = await refundCredits(supabase, orgId, credits);
+        if (r.success) {
+          console.warn(`[analyze-v2] B.205: job ${barrido.id} barrido sin empezar — devueltos ${credits} créditos`);
+        } else {
+          console.error(`[analyze-v2] B.205: job ${barrido.id} barrido sin empezar — FALLO al devolver ${credits} créditos`);
+        }
+      }
 
       const sweptCount = (sweptProcessing?.length ?? 0) + (sweptPending?.length ?? 0);
       if (sweptCount > 0) {
@@ -535,7 +560,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: 'Error al encolar el análisis' }, { status: 500 });
       }
       // El job existe: desde aquí sus créditos los gobierna el worker.
-      pasoElPuntoDeGasto = true;
+      trabajoEncolado = true;
 
       console.log(`[analyze-v2] Job exhaustivo creado: ${job.id} para "${fileName}" (org: ${orgId})`);
 
@@ -571,9 +596,9 @@ export async function POST(req: NextRequest) {
       : 0;
     console.log(`[analyze-v2] "${fileName}" — ${chunks.length} chunks, ${sampleTexts.length} samples, ${text.length} chars totales, ${avgChunkSize} chars/chunk de media, ${batchDocumentIds?.length ?? 0} ids de tanda (rápido)`);
 
-    const llmAcc = new Map();
-    // Desde aquí puede haber llamadas al modelo: ver `pasoElPuntoDeGasto`.
-    pasoElPuntoDeGasto = true;
+    // Desde aquí puede haber llamadas al modelo: si algo lanza, decide el
+    // acumulador (ver `reembolsoDelAnalisis`).
+    analisisIniciado = true;
     const analysis = await usageContext.run(llmAcc, () =>
       runAnalysisPipeline({
         newDocumentText: stripSegmentationMarkers(text),
@@ -604,6 +629,8 @@ export async function POST(req: NextRequest) {
       const stages = analysis.stageFailures.map(f => f.stage).join(', ');
       const refund = await refundCredits(supabase, orgId, creditsConsumed);
       if (refund.success) {
+        // Ya devuelto: el `finally` no debe devolverlo otra vez.
+        cobroPendiente = 0;
         console.warn(`[analyze-v2] Análisis INCOMPLETO (${analysis.stageFailures.length} caídas: ${stages}) — devueltos ${creditsConsumed} créditos (credits_extra ahora: ${refund.creditsExtra})`);
       } else {
         console.error(`[analyze-v2] Análisis INCOMPLETO (${stages}) — FALLO al devolver ${creditsConsumed} créditos a la org ${orgId}`);
@@ -828,6 +855,10 @@ export async function POST(req: NextRequest) {
   } catch (error: unknown) {
     console.error('[analyze-v2] Error:', error);
     const message = error instanceof Error ? error.message : 'Error interno';
+    terminoEnExcepcion = true;
+    const seDevolvera = reembolsoDelAnalisis({
+      cobroPendiente, trabajoEncolado, analisisIniciado, terminoEnExcepcion, acumulador: llmAcc,
+    });
 
     if (userId) {
       await logUsage(supabase, {
@@ -839,9 +870,8 @@ export async function POST(req: NextRequest) {
         outputTokens: 0,
         latencyMs: Date.now() - startedAt,
         success: false,
-        // Si no pasó del punto de gasto, el `finally` lo devuelve: no se anota
-        // como consumido lo que se va a devolver.
-        creditsConsumed: pasoElPuntoDeGasto ? creditsConsumed : 0,
+        // Lo que el `finally` va a devolver no se anota como consumido.
+        creditsConsumed: seDevolvera > 0 ? 0 : creditsConsumed,
         errorMessage: message,
       });
     }
@@ -856,13 +886,16 @@ export async function POST(req: NextRequest) {
       await releaseAnalysisLock(supabase, orgId, userId);
     }
     // ⚠️ B.205 — UN SOLO SITIO PARA DEVOLVER, y en el `finally` porque las
-    // salidas anteriores al punto de gasto son SEIS y cuatro de ellas son
-    // `return`: un reembolso por salida es una lista que el próximo `return`
-    // nuevo olvidará. Sin cobro (`creditsConsumed` a 0) no hace nada.
+    // salidas antes de empezar son SEIS y cuatro de ellas son `return`: un
+    // reembolso por salida es una lista que el próximo `return` olvidará.
+    // Cuánto, lo decide la regla por etapa; aquí sólo se ejecuta.
+    const aDevolver = reembolsoDelAnalisis({
+      cobroPendiente, trabajoEncolado, analisisIniciado, terminoEnExcepcion, acumulador: llmAcc,
+    });
     await devolverSiNoSeEntrego(supabase, {
       orgId,
-      creditosCobrados: creditsConsumed,
-      entregado: pasoElPuntoDeGasto,
+      creditosCobrados: aDevolver,
+      entregado: false,
       contexto: '/api/analyze-v2',
     });
   }

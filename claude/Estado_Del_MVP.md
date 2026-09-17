@@ -616,6 +616,49 @@ salga gratis. Lo que decide si ese pozo existe:
   `catch` no está a mano. Subirlo un nivel basta. **Para los zombis no se sabe**: el
   proceso murió con el acumulador en memoria.
 
+### ✅ DECIDIDO Y APLICADO EL 17/09/2026 — el reembolso por etapa
+
+**Decisión del director: si no se gastó nada, se devuelve todo; si se gastó algo, no
+se devuelve nada. Sin mitades: lo decide dónde murió el trabajo.** «Gastar» es llamar
+al modelo, y lo dice el acumulador de uso. La regla vive en UN sitio,
+`lib/reembolso-por-etapa.ts`, con batería; la ruta y el worker sólo ejecutan lo que
+ella diga.
+
+| dónde murió | se devuelve |
+|---|---|
+| la ruta, antes de empezar el análisis (las seis salidas) | todo |
+| la ruta, excepción dentro del análisis **antes** de la primera llamada al modelo | todo |
+| la ruta, excepción **después** de llamar al modelo | nada |
+| el worker, antes de llamar al modelo | todo — **hasta hoy, nada** |
+| el worker, después de llamar al modelo | nada |
+| un job barrido como zombi en `pending` —nunca lo reclamó nadie— | todo |
+
+**Casos decisivos**: mutante «devuelve siempre», 5 en rojo; «no devuelve nunca», 3 en
+rojo; **conjuntos disjuntos**.
+
+⚠️ **LO QUE LA REGLA NO DECIDE, y se deja dicho:**
+- **Un zombi barrido en `processing`**: su acumulador murió con el proceso y no se
+  sabe dónde murió. **No se devuelve, y no es una decisión: es falta de dato.**
+- **Los incompletos de F-71** —etapa del modelo caída, resultado parcial entregado—
+  **se siguen devolviendo íntegros aunque se gastó modelo.** Es otra regla, ya
+  decidida, y ésta no la toca.
+
+### ⚠️ EL POZO DEL DIRECTOR — lo que la medición descartó y lo que NO
+
+La preocupación era razonable: si un fallo a mitad no cuesta nada, reintentar sale
+gratis.
+
+- **En los trabajos FALLIDOS, descartado con dato**: no hay camino de reintento sin
+  cobro —cada petición cobra sus 30— y sus fallos son de base, índice o código, no
+  provocables por el usuario. **Y con la regla por etapa, un fallo que ya gastó modelo
+  no se devuelve.**
+- ⚠️ **En los INCOMPLETOS de F-71, NO descartado.** Se entregan con resultado parcial
+  **y** se devuelven íntegros: ahí sí sale análisis parcial gratis. **Que el usuario
+  pueda provocarlos no está medido**, y tiene una palanca a mano: el tamaño del
+  documento, que no tiene límite en el código de las rutas.
+- **Si algún día un usuario pudiera provocar un fallo a voluntad, esta decisión se
+  revisa.** Y la pregunta de si F-71 debe seguir la regla por etapa es del director.
+
 ### 📏 LOS 30 + 30 — qué pasa exactamente, leído el 17/09/2026
 
 El recorrido: el chat ofrece el exhaustivo en el aviso (`useDocuments.ts:343`, manda
@@ -5211,3 +5254,62 @@ tres, sale la fila 1. **Contadores que lo confirman**: `descartados_por_criterio
 | la caída parcial vuelve entera a la fila 6 (fila 5) — predije ≥2 | 4 |
 
 Los dos conjuntos no se tocan: cada mutación mata casos distintos.
+
+---
+
+## ⚠️ 5.72 · B.256 — un segundo exhaustivo del mismo documento, sin que nada lo diga (17/09/2026)
+
+**Decisión del director: los 30 + 30 se quedan como están — es cosa del usuario pulsar
+dos veces.** Con la condición que él mismo puso en el duplicado exacto, y que aquí
+aplica igual: **es cosa del usuario SI EL SISTEMA SE LO DIJO.** Allí decidió que la
+pantalla dijera «IDÉNTICO» y dejara de estar plegada, y sólo entonces el coste era
+suyo. **Aquí esa condición no se cumple todavía. Por eso es ficha y no está cerrada.**
+
+**Las dos mitades:**
+
+1. **Hoy nada avisa** de que ya hay un exhaustivo reciente del mismo documento. El
+   botón «Reanalizar corpus» del modal sólo se desactiva mientras carga
+   (`ReanalyzeButtons.tsx`), y enseña el precio. El modal **sí sabe** si el texto
+   cambió —conserva el inicial— y cuántos hallazgos se descartaron, y no lo usa.
+2. **El segundo no es necesariamente idéntico, y nadie explica por qué difiere.**
+   ⚠️ **No porque el primero indexara**: en este recorrido el exhaustivo del aviso
+   **no indexa nada** —`handleExhaustiveAnalysis` deja el resultado en
+   `pendingAnalysis`, y el modal de Mejora trabaja sobre un documento todavía sin
+   indexar—. Difiere por tres vías que el usuario no ve: los hallazgos que descartó
+   (se excluyen), cambios del corpus hechos por otros entre medias, y la variación del
+   propio modelo. **Del lado del documento la equivalencia se puede comprobar; del lado
+   del corpus, no** (B.252). Por eso aquí cabe avisar, no demostrar.
+
+Y el precio: sin descartes, **el segundo cuenta como análisis inicial**, sin descuento
+de reanálisis.
+
+**Sin arreglar.** Queda escrito para cuando haya usuarios que no sepan lo que sabe el
+director.
+
+---
+
+## ⚠️ 5.73 · B.257 — un trabajo fallido se sigue sondeando diez minutos, y el mensaje dice otra cosa (17/09/2026)
+
+**Salió al comprobar si el rápido se pierde cuando el exhaustivo falla.** No se pierde
+—ver abajo—, pero el camino hasta conservarlo está mal.
+
+`useJobPolling.ts` lanza el error de un job `failed` con su `errorMessage`, y su propio
+`catch` **sólo lo relanza si el mensaje contiene «falló» o «tiempo máximo»**. Cualquier
+otro se trata como **error de red transitorio** y se sigue sondeando. Los mensajes
+reales de un job fallido son `stale_timeout` (el barrido de zombis) o el texto crudo de
+la excepción del worker: **ninguno contiene «falló»**. Resultado:
+
+| pasa | lo que ve el usuario |
+|---|---|
+| el job falla en el worker o se barre como zombi | «Análisis exhaustivo en curso…» con la barra avanzando **hasta 10 minutos** (`MAX_WAIT = 600_000`), y al final «**ha superado el tiempo máximo de espera**» — no el fallo |
+
+Sólo un job fallido **sin** mensaje llega con «falló sin mensaje de error» y corta a
+tiempo.
+
+**Lo que SÍ funciona, y era la premisa que se había dado por falsa**: cuando el
+exhaustivo falla, el hook **restaura el análisis rápido** (`savedAnalysis`) en sus tres
+salidas —respuesta HTTP fallida, job sin resultado y excepción—. **El rápido no se
+pierde en el chat.** Y en la bandeja tampoco: un exhaustivo fallido no escribe fila, y la
+del rápido sigue siendo la última del documento.
+
+**Sin arreglar.**

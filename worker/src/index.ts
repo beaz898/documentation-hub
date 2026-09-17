@@ -11,7 +11,8 @@ import { claseDeclarada, claseParaCobrar } from '../../lib/analysis/clase-de-cos
 import { PLANS_WITH_VARIABLE_PRICING } from '../../lib/stripe';
 import { pollConversationTurns } from './conv-handler';
 import { startTriggerServer } from './trigger-server';
-import { usageContext } from '@/lib/observability/usage-context';
+import { usageContext, type UsageAccumulator } from '@/lib/observability/usage-context';
+import { reembolsoDelTrabajoFallido } from '../../lib/reembolso-por-etapa';
 import { persistLLMUsage } from '@/lib/observability/record-usage';
 
 // ============================================================
@@ -87,6 +88,17 @@ async function processJob(job: AnalysisJob): Promise<void> {
   // El job ya viene reclamado por pollAndProcess (status='processing' +
   // started_at fijados de forma atomica). No se re-marca aqui.
 
+  // ⚠️ B.205 — EL REEMBOLSO POR ETAPA (decisión del director, 17/09/2026). Las
+  // dos piezas viven FUERA del `try` porque las lee el `catch`:
+  //   · `llmAcc` — si se llegó a llamar al modelo. Antes se declaraba junto al
+  //     pipeline, dentro del `try`, y el `catch` no podía verlo.
+  //   · `destinoDelDineroDecidido` — pasa a true en cuanto el `try` decide qué
+  //     se hace con los créditos (incompleto, reanálisis o precio variable).
+  //     Desde ahí el `catch` no toca dinero: un incompleto cuyas llamadas
+  //     fallaron TODAS deja el acumulador vacío y, sin esto, se devolvería dos veces.
+  const llmAcc: UsageAccumulator = new Map();
+  let destinoDelDineroDecidido = false;
+
   try {
     const sampleTexts: string[] = JSON.parse(job.sample_texts);
     const excludeFpArray: string[] = JSON.parse(job.exclude_fingerprints);
@@ -125,7 +137,6 @@ async function processJob(job: AnalysisJob): Promise<void> {
       newDocumentChunks,
     };
 
-    const llmAcc = new Map();
     const analysis = await usageContext.run(llmAcc, () =>
       runExhaustiveAnalysisPipeline(input)
     );
@@ -265,6 +276,8 @@ async function processJob(job: AnalysisJob): Promise<void> {
     const isReanalysis = job.exclude_fingerprints !== '[]';
     const confirmedCount = analysis.discrepancies?.length ?? 0;
 
+    // Desde aquí el dinero de este job lo decide una de las tres ramas de abajo.
+    destinoDelDineroDecidido = true;
     if (incomplete) {
       // F-71: análisis incompleto → devolución ÍNTEGRA de lo consumido, y ni
       // reembolso de reanálisis ni precio variable: los dos son descuentos
@@ -295,6 +308,25 @@ async function processJob(job: AnalysisJob): Promise<void> {
   } catch (err) {
     const errorMessage = err instanceof Error ? err.message : 'Error desconocido';
     console.error(`[worker] Job ${job.id} falló:`, errorMessage);
+
+    // ⚠️ B.205 — HASTA EL 17/09/2026 ESTE `catch` NO TOCABA CRÉDITOS: un job
+    // que moría antes de hacer nada se quedaba los 30. Regla por etapa: si no
+    // llegó a llamar al modelo se devuelve todo; si llamó, nada.
+    const aDevolver = reembolsoDelTrabajoFallido({
+      cobrado: job.credits_consumed,
+      yaDevuelto: destinoDelDineroDecidido,
+      acumulador: llmAcc,
+    });
+    if (aDevolver > 0) {
+      const r = await refundCredits(supabase, job.org_id, aDevolver);
+      if (r.success) {
+        console.warn(`[worker] Job ${job.id}: falló antes de llamar al modelo — devueltos ${aDevolver} créditos`);
+      } else {
+        console.error(`[worker] Job ${job.id}: falló antes de llamar al modelo — FALLO al devolver ${aDevolver} créditos`);
+      }
+    } else {
+      console.warn(`[worker] Job ${job.id}: falló ${destinoDelDineroDecidido ? 'con el dinero ya decidido' : 'tras llamar al modelo'} — no se devuelve`);
+    }
 
     await supabase
       .from('analysis_jobs')
