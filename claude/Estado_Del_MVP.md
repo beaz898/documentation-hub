@@ -1782,6 +1782,37 @@ otra pieza. Que no se pueda medir hoy es información, no una excusa.
 ser automático, o si basta con contarlos una vez, es una decisión con coste en
 cada consulta del chat.
 
+### ✅ EL CONSUMO, CERRADO EL 17/09/2026 — el chat no sirve lo que ya no tiene fila
+
+**Decidido y escrito**: la guarda vive en el lector (`lib/rag-fila-viva.ts`), no en las fábricas.
+**Coste en cada consulta del chat: CERO consultas más.** `fetchFullTexts` ya pedía todas las filas de
+una vez (`.in("id", ...)`); ahora devuelve además qué ids tienen fila. Sin fila, el documento no entra
+al contexto ni a las fuentes citadas; con fila y sin `full_text` se reconstruye desde los trozos, como
+siempre —«sin `full_text`» no es «sin fila»—.
+
+**LA FÁBRICA NO TENÍA NADA QUE ESCRIBIR**, y se dice porque el encargo la daba por abierta: la
+sincronización borra con `deleteDocument` (`drive/sync/route.ts:501`), que borra análisis,
+**vectores y después la fila**, y no toca la fila si fallan las dos vías de vectores. Lo que queda
+abierto de verdad es otra cosa: **tres de los cuatro borradores dan el borrado por bueno con UNA de dos
+vías**, y la de ids sólo cubre la generación activa; la creación a medias también puede dejar vectores.
+**Por eso la guarda va en el lector**: las fábricas no se pueden dar por enumeradas.
+
+⚠️ **LO QUE ACOTA LA URGENCIA**: hoy no hay población. El detector midió **uno** el 15/09 y **cero**
+después, con 762 vectores. No es que esté pasando: es que la vía existe y nadie la vigilaba. Y ese cero
+tiene límite: una consulta de tope 10.000 (B.209), fiable hoy y **ciega sin avisar** cuando el índice
+pase de ahí.
+
+⚠️ **LO QUE NO SE HA DECIDIDO**: si la consulta de filas FALLA, la guarda **deja pasar todo, como hasta
+hoy**. Fallar cerrado —responder sin esas fuentes mientras la base no conteste— es decisión del director.
+
+⚠️ **REGISTRO, NO CONTADOR**: cada documento descartado deja una línea `[RAG] B.225` en consola.
+`chat_queries` no tiene dónde guardarlo sin columna nueva, y **un registro no es una medición**. Si se
+quiere que la guarda mida la fábrica, hace falta esa columna y su SQL.
+
+**EVIDENCIA: LA BATERÍA, NO LA PANTALLA.** Sin huérfanos no hay nada que el director pueda ejercer. Mutante
+«deja pasar el huérfano», 3 en rojo; mutante «el borrado no limpia los vectores» sobre la batería ya
+existente de `deleteDocument`, 2 en rojo; **conjuntos distintos**.
+
 
 ## ⚠️ 5.24 · B.226 — el chat decía no tener acceso a un documento que sí estaba (14/09/2026)
 

@@ -16,6 +16,7 @@
  */
 
 import { queryVectors, CORPUS_ACTIVO } from './pinecone/vectors';
+import { documentosConFilaViva } from './rag-fila-viva';
 import { ESTADO_DEL_CORPUS } from './documents/estado';
 import {
   documentosNombrados,
@@ -281,12 +282,33 @@ export async function queryRAG(
     };
   }
 
-  // 4. Recuperar texto completo de Supabase
+  // 4. Recuperar texto completo de Supabase — y, EN LA MISMA CONSULTA, qué
+  // documentos siguen teniendo fila. No añade ninguna ida a la base.
   const docIds = topDocs.map(d => d.documentId);
-  const fullTexts = await fetchFullTexts(supabase, docIds);
+  const { textos: fullTexts, conFila } = await fetchFullTexts(supabase, docIds);
+
+  // ⚠️ B.225 — SIN FILA NO SE SIRVE. Un vector huérfano casa en la búsqueda y,
+  // sin esta guarda, `buildContext` reconstruía desde sus trozos un documento ya
+  // borrado y lo citaba. Ver lib/rag-fila-viva.ts.
+  const { vivos, sinFila } = documentosConFilaViva(topDocs, conFila);
+  if (sinFila.length > 0) {
+    // ⚠️ REGISTRO, NO CONTADOR: `chat_queries` no tiene dónde guardarlo sin una
+    // columna nueva. Hasta entonces, esta línea es lo único que avisa.
+    console.warn(`[RAG] B.225: ${sinFila.length} documento(s) sin fila descartados del contexto | org=${orgId} | ids=${sinFila.map(d => d.documentId).join(',')}`);
+  }
+  if (vivos.length === 0) {
+    return {
+      answer: 'No encontré información relevante sobre esto en la documentación disponible.',
+      sources: [],
+      usage: { inputTokens: 0, outputTokens: 0 },
+      noContext: true,
+      relevantDocsFound,
+      documentsUsed: 0,
+    };
+  }
 
   // 5. Construir contexto con documentos completos
-  const context = buildContext(topDocs, fullTexts, matches as Array<{ metadata?: Record<string, unknown>; score?: number }>);
+  const context = buildContext(vivos, fullTexts, matches as Array<{ metadata?: Record<string, unknown>; score?: number }>);
 
   // 6. Construir mensajes para Claude
   const recentHistory = conversationHistory.slice(-MAX_HISTORY_MESSAGES);
@@ -330,7 +352,7 @@ PREGUNTA DEL USUARIO: ${question}`;
 
   return {
     answer: text || 'No se pudo generar una respuesta.',
-    sources: topDocs.map(d => ({
+    sources: vivos.map(d => ({
       documentId: d.documentId,
       documentName: d.documentName,
       score: d.maxScore,
@@ -340,7 +362,7 @@ PREGUNTA DEL USUARIO: ${question}`;
     usage,
     noContext: false,
     relevantDocsFound,
-    documentsUsed: topDocs.length,
+    documentsUsed: vivos.length,
   };
 }
 
@@ -394,8 +416,8 @@ async function documentosNombradosDelCorpus(
 async function fetchFullTexts(
   supabase: SupabaseClient,
   documentIds: string[],
-): Promise<Map<string, string>> {
-  const result = new Map<string, string>();
+): Promise<{ textos: Map<string, string>; conFila: Set<string> | null }> {
+  const textos = new Map<string, string>();
 
   const { data, error } = await supabase
     .from('documents')
@@ -404,16 +426,19 @@ async function fetchFullTexts(
 
   if (error) {
     console.warn('[RAG] Error fetching full_text:', error.message);
-    return result;
+    // `null`, no vacío: no se sabe qué filas hay. Ver documentosConFilaViva.
+    return { textos, conFila: null };
   }
 
+  const conFila = new Set<string>();
   for (const row of data || []) {
+    conFila.add(row.id);
     if (row.full_text && row.full_text.trim().length > 0) {
-      result.set(row.id, row.full_text);
+      textos.set(row.id, row.full_text);
     }
   }
 
-  return result;
+  return { textos, conFila };
 }
 
 /**
