@@ -8,6 +8,7 @@ import type { CandidateDocument, DocumentFragment, PipelineOptions, SelectionLim
 import type { StoredChunk } from '@/lib/read-chunks';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { generacionesMuertas, soloGeneracionActiva } from '@/lib/analysis/generacion-activa';
+import { pasaElUmbral, candidatosPerdidosPorUmbral, cortarALosMasAfines } from './umbral-de-recuperacion';
 
 /**
  * Etapa 1 — Retrieval amplio.
@@ -97,13 +98,25 @@ const FRAGMENT_BUDGET_CHARS_QUICK = 3000;
  */
 const MAX_FRAGMENTS_PER_DOC_QUICK = 25;
 
-/** Umbral mínimo de similitud.
- *  Rápido: 0.50 — calibrado para chunks de ~500 caracteres tras el troceado
- *  por sección (chunking.ts): con chunks más pequeños y concretos, el score
- *  de similitud de cada uno es naturalmente más bajo que con los chunks de
- *  ~2000 caracteres de antes, así que el umbral bajó en la misma calibración.
- *  No subir a ciegas sin volver a medir con el troceado actual.
- *  Exhaustivo: 0.45 (más permisivo — el rerank filtra el ruido temático). */
+/** Umbral mínimo de similitud, por FRAGMENTO.
+ *
+ *  ⚠️ SIN CALIBRAR — corregido el 17/09/2026 (B.248). Hasta ese día este
+ *  comentario decía «calibrado para chunks de ~500 caracteres» y advertía de no
+ *  subirlo a ciegas. **No consta ninguna medición que lo calibrara**, y el censo
+ *  de vecindario del 16/09 —las 42×41 parejas del corpus real— no encontró
+ *  **ningún par por debajo de ~0,79**. Con e5 comprimiendo las similitudes en la
+ *  franja alta, un 0,50 absoluto no descarta nada: es un valor inicial de
+ *  desarrollo, no una decisión. El aviso que llevaba protegía un número que nadie
+ *  eligió, y apuntaba en la dirección contraria al problema.
+ *
+ *  ⚠️ NO SE TOCA HASTA EL SEGUNDO TIEMPO: calibrarlo exige un corpus de escala, y
+ *  con el suelo de hoy ningún número absoluto se puede comprobar. Lo que hay hoy es
+ *  el contador —`seleccion.candidatos_perdidos_por_umbral`— que hará visible el día
+ *  que empiece a descartar, y el caso decisivo en umbral-de-recuperacion.test.ts,
+ *  que hace que moverlo rompa algo.
+ *
+ *  Exhaustivo: 0,45, más permisivo, **con la misma falta de calibración**: el censo
+ *  no encontró ningún par entre 0,45 y 0,50. */
 export const SCORE_THRESHOLD_QUICK = 0.50;
 export const SCORE_THRESHOLD_EXHAUSTIVE = 0.45;
 
@@ -115,6 +128,14 @@ export const SCORE_THRESHOLD_EXHAUSTIVE = 0.45;
  *  correctos por su cuenta. Los dos umbrales de arriba se exportan por lo mismo
  *  y en el mismo commit. */
 export const TOP_K_POR_CONSULTA = 25;
+
+/** Cuántos candidatos pasan de la recuperación al rerank: los más afines.
+ *  Hasta el 17/09/2026 era un `.slice(0, 25)` literal, sin nombre y sin contar
+ *  lo que dejaba fuera. Con el corpus de hoy no actúa; el contador
+ *  `seleccion.candidatos_cortados_por_tope_de_recuperacion` dirá el día que lo
+ *  haga. No confundir con `MAX_SELECTED_EXHAUSTIVE`, que también vale 25 y
+ *  es otro corte: el del rerank. */
+export const MAX_CANDIDATOS_DE_RECUPERACION = 25;
 
 /**
  * Presupuesto del candidato en modo EXHAUSTIVO — VARIABLE DE EXPERIMENTO, no
@@ -181,6 +202,9 @@ export async function retrieveCandidates(args: {
    *  cupieron enteras en el reparto. Sin clave = todo cupo (el caso normal).
    *  Mismo patrón y mismo camino que structuralOverlaps. */
   selectionLimits: Map<string, SelectionLimit[]>;
+  /** B.248 (17/09/2026): lo que los dos cortes de la recuperación dejaron fuera,
+   *  en documentos. Siempre presente, también en cero. */
+  descartesDeRecuperacion: { perdidosPorUmbral: number; cortadosPorTope: number };
 }> {
   const { sampleTexts, orgId, excludeDocumentId, batchDocumentIds, options, supabase, newDocumentChunks } = args;
   const isExhaustive = options?.exhaustive === true;
@@ -230,17 +254,29 @@ export async function retrieveCandidates(args: {
   // podría ser cientos de líneas por análisis en un corpus real; el recuento
   // por documento basta para saber si un score ronda el umbral.
   const discardedByThreshold = new Map<string, { count: number; maxScore: number }>();
+  // B.248: los IDS de los documentos con algún fragmento bajo el umbral. El mapa
+  // de arriba va por NOMBRE, que sirve para el registro y no para contar: dos
+  // documentos pueden llamarse igual.
+  const idsBajoUmbral: string[] = [];
   const batchResults = await runInBatches(
     embeddings,
     emb => queryVectors(orgId, { vector: emb, topK: TOP_K_POR_CONSULTA, includeMetadata: true, filter: corpusFilter }),
     { batchSize: QUERY_BATCH_SIZE },
   );
   for (const matches of batchResults) {
-    collectMatches(matches as Array<{ metadata?: Record<string, unknown>; score?: number }>, allMatches, scoreThreshold, excludeDocumentId, discardedByThreshold);
+    collectMatches(matches as Array<{ metadata?: Record<string, unknown>; score?: number }>, allMatches, scoreThreshold, excludeDocumentId, discardedByThreshold, idsBajoUmbral);
   }
   for (const [docName, stats] of discardedByThreshold) {
     console.log(`[retrieval] Descartados por umbral (${scoreThreshold}) en "${docName}": ${stats.count}, score máximo: ${stats.maxScore.toFixed(3)}`);
   }
+  // Se cuenta AQUÍ, sobre lo que decidió el umbral y nada más: los filtros de
+  // después (generación activa, reparto) quitan documentos por otras razones, y
+  // atribuírselos al umbral sería mezclar causas (§5.66).
+  const perdidosPorUmbral = candidatosPerdidosPorUmbral({
+    idsConFragmentoBajoUmbral: idsBajoUmbral,
+    idsConFragmentoAceptado: allMatches.map(f => f.documentId),
+    excluido: excludeDocumentId,
+  });
 
   // ══ SOLO LA GENERACIÓN QUE CADA DOCUMENTO SIRVE (F-102) ══
   //
@@ -432,12 +468,14 @@ export async function retrieveCandidates(args: {
     });
   }
 
-  // Hasta 25 candidatos hacia el rerank
+  // Hasta MAX_CANDIDATOS_DE_RECUPERACION hacia el rerank, y contados los que no.
+  const corte = cortarALosMasAfines(candidates, MAX_CANDIDATOS_DE_RECUPERACION);
   return {
-    candidates: candidates.sort((a, b) => b.maxScore - a.maxScore).slice(0, 25),
+    candidates: corte.candidatos,
     chunksByDocument,
     structuralOverlaps: structuralOverlapsByDocument,
     selectionLimits: selectionLimitsByDocument,
+    descartesDeRecuperacion: { perdidosPorUmbral, cortadosPorTope: corte.cortados },
   };
 }
 
@@ -452,10 +490,13 @@ function collectMatches(
   scoreThreshold: number,
   excludeDocumentId: string | undefined,
   discardedByThreshold: Map<string, { count: number; maxScore: number }>,
+  idsBajoUmbral: string[],
 ): void {
   for (const m of matches || []) {
     if (!m.metadata || typeof m.score !== 'number') continue;
-    if (m.score < scoreThreshold) {
+    // B.248: la comparación vive en UN sitio, y es el mismo que prueba el caso decisivo.
+    if (!pasaElUmbral(m.score, scoreThreshold)) {
+      if (typeof m.metadata.documentId === 'string') idsBajoUmbral.push(m.metadata.documentId);
       const rawName = m.metadata.documentName;
       const docName = typeof rawName === 'string' ? rawName : '(sin nombre)';
       const stats = discardedByThreshold.get(docName) ?? { count: 0, maxScore: -Infinity };

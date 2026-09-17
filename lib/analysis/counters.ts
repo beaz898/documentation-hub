@@ -113,6 +113,13 @@ export const COUNTER_CATALOGUE = [
   // que queda AUSENTE en el fallback del rerank (B.254): no hubo criterio. Los
   // demás valen 0 ahí, y ese cero es verdad.
   'seleccion.candidatos_repetidos_por_el_modelo',
+  // B.248 (17/09/2026) — LOS DOS CORTES DE LA RECUPERACIÓN, en DOCUMENTOS. El
+  // primero cuenta los que se perdieron sólo por el umbral —ningún fragmento lo
+  // pasó—; el segundo, los que el tope de MAX_CANDIDATOS_DE_RECUPERACION dejó
+  // fuera. Con el corpus de hoy los dos valen CERO, y ese cero es el dato: el día
+  // que se mueva, el umbral empezó a filtrar o el corpus creció.
+  'seleccion.candidatos_perdidos_por_umbral',
+  'seleccion.candidatos_cortados_por_tope_de_recuperacion',
   // diff.tablas — ETAPA NUEVA (F-88 P1). El emparejador de tablas: qué pares
   // se evaluaron y por qué puerta cayó cada uno.
   //

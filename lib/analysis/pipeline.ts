@@ -734,7 +734,7 @@ async function runCorePipeline(
   // lo que sí llegó a decidirse — que es justo lo más informativo.
   const counters: PipelineCounters = {};
 
-  const { candidates, chunksByDocument: chunksFromRetrieval, structuralOverlaps, selectionLimits } = await retrieveCandidates({
+  const { candidates, chunksByDocument: chunksFromRetrieval, structuralOverlaps, selectionLimits, descartesDeRecuperacion } = await retrieveCandidates({
     sampleTexts: input.sampleTexts,
     orgId: input.orgId,
     excludeDocumentId: input.excludeDocumentId,
@@ -745,6 +745,11 @@ async function runCorePipeline(
   });
   console.log(`[${label}] Retrieval: ${candidates.length} candidatos (${Date.now() - t0}ms)`);
   counters['seleccion.candidatos_recuperados'] = candidates.length;
+  // B.248 — LOS DOS CORTES DE LA RECUPERACIÓN, SIEMPRE, incluido el cero. Van ANTES
+  // de la salida temprana 1: si el umbral dejara a cero los candidatos, este es el
+  // único sitio donde se vería por qué.
+  counters['seleccion.candidatos_perdidos_por_umbral'] = descartesDeRecuperacion.perdidosPorUmbral;
+  counters['seleccion.candidatos_cortados_por_tope_de_recuperacion'] = descartesDeRecuperacion.cortadosPorTope;
 
   // SALIDA TEMPRANA 1 — el corpus activo no tenía nada que comparar. Es la
   // decisión más informativa que puede tomar un análisis, y hasta F-82 no

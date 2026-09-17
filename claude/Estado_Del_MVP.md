@@ -3987,6 +3987,50 @@ la distribución y decidir con ella delante, que es lo que no se hizo la primera
 
 ---
 
+### ✅ PRIMER TIEMPO, HECHO EL 17/09/2026 — instrumentado, sin tocar el valor
+
+**Lo que cambia:**
+- **El comentario dice la verdad.** Ya no dice «calibrado» ni avisa de «no subirlo a
+  ciegas»: dice **sin calibrar**, con el dato del censo del 16/09 —ningún par de las
+  42×41 por debajo de ~0,79— y la fecha. Lo mismo para el 0,45 del exhaustivo.
+- **Su caso decisivo, en el consumidor que decide.** La comparación vive en
+  `pasaElUmbral` (`lib/analysis/umbral-de-recuperacion.ts`), la usa `collectMatches`, y la
+  batería **importa la constante real**: moverla rompe algo.
+- **El contador**: `seleccion.candidatos_perdidos_por_umbral`, en **documentos** —los que
+  no tuvieron ni un fragmento por encima—, escrito siempre y **antes de la salida
+  temprana**: si algún día el umbral dejara a cero los candidatos, ahí se vería por qué.
+- **Y el corte previo de 25, de la misma familia**, en el mismo commit porque era barato:
+  gana nombre (`MAX_CANDIDATOS_DE_RECUPERACION`), caso decisivo y contador
+  (`seleccion.candidatos_cortados_por_tope_de_recuperacion`).
+
+⚠️ **DOS DISTINCIONES QUE HACEN BUENO EL CONTADOR:**
+- el umbral descarta **fragmentos**, y un documento sólo se pierde si **ninguno** pasa.
+  Contar fragmentos diría «actuó» cuando quizá no dejó fuera a nadie;
+- el registro que ya existía agrupaba los descartes **por nombre**, y dos documentos pueden
+  llamarse igual. El contador cuenta **por id**.
+
+⚠️ **Y UNA QUE NO ESTÁ MEDIDA:** el censo de 0,79 midió **parejas de documentos**; el umbral
+compara **fragmentos**. Que ningún fragmento baje de 0,50 es muy probable, **no está medido** —
+y es exactamente lo que el contador medirá.
+
+**Predicción escrita antes:** +8 pruebas; salieron **+9** — fallada por abajo. Mutantes: umbral
+del rápido a 0,45, 1 en rojo; a 0,55, 1; tope a 26, 2; contador siempre a cero, **1** (predije
+≥2 — fallada por abajo); y, sin predicción, el umbral del exhaustivo a 0,40, 1. **Todos
+mueren.** Y la de producción, que se comprobará con las pasadas: **los dos contadores dan 0**.
+
+### ⏸️ EL SEGUNDO TIEMPO — la calibración, y lo que hace falta para hacerla
+
+**No se toca el valor.** Ni se sube ni se cambia por un corte relativo: con un suelo de ~0,79 no
+hay número absoluto que se pueda comprobar, y elegir uno hoy repetiría el error que esta ficha
+describe. **Lo que hace falta:**
+- **un corpus de escala**, donde haya parejas que de verdad no tengan nada que ver y por debajo
+  del suelo de hoy;
+- **y el conjunto de calibración que ya existe**: las 42×41 puntuaciones medidas del censo de
+  vecindario. Sirven para DISEÑAR el corte relativo, no para consagrar una constante (F-109 P2).
+- **Y el disparador natural**: que `seleccion.candidatos_perdidos_por_umbral` deje de dar cero.
+
+---
+
 ## ⚠️ 5.49 · EL ARGUMENTO COMPLETO DEL CORTE MUDO — amplía 5.42 (16/09/2026)
 
 **La lectura del director, que es la buena y por eso va literal**: no se descarta
@@ -4386,6 +4430,18 @@ consumidor no cubre al otro.**
 Nada. Ni se ordena el corte, ni se instrumenta, ni se toca un umbral. La lista es
 el inventario que el orden de Fable pide en su paso 0, y los pasos 1, 2 y 3 son
 del director.
+
+### 📏 17/09/2026 · LOS DOS UMBRALES, CON CASO EN EL CONSUMIDOR — y un corte que esta lista no tenía
+
+- **`SCORE_THRESHOLD_QUICK` y `SCORE_THRESHOLD_EXHAUSTIVE` ya tienen caso decisivo en la
+  recuperación**, que es quien los usa en producción (`umbral-de-recuperacion.test.ts`). El
+  punto 3 de arriba —«tener caso decisivo en un consumidor no cubre al otro»— queda cubierto.
+  ⚠️ No eran de las 19 supervivientes: morían, pero **sólo** en la batería del censo.
+- ⚠️ **`.slice(0, 25)` de la recuperación NO ESTABA EN ESTA LISTA DE 24.** Era un literal sin
+  nombre, y la lista se hizo sobre constantes: **un corte sin nombre se escapó de un censo
+  hecho por capacidad**, que es la forma exacta de fallo que el censo existía para evitar.
+  Desde el 17/09 se llama `MAX_CANDIDATOS_DE_RECUPERACION` y tiene su caso. Si la lista se
+  rehace, se busca por OPERACIÓN (`slice`, `<`, `>=`, `.filter`), no por `const`.
 
 ---
 
@@ -5617,7 +5673,7 @@ entre pasadas y se compara contra su unión.
 
 | pieza | espera a | por qué |
 |---|---|---|
-| **el umbral de 0,50** y su paso a corte relativo | **la medición del punto 1 o 2** | es B.248. No urge: la selección ya hace de filtro real, y lo que el umbral deja pasar cuesta una llamada barata. F-109 coincide |
+| **el umbral de 0,50** y su paso a corte relativo | **la medición del punto 1 o 2** | es B.248. No urge: la selección ya hace de filtro real, y lo que el umbral deja pasar cuesta una llamada barata. F-109 coincide. ⚠️ **Resuelto el 17/09 contra §5.68, que decía «instrumentar ahora»**: las dos filas se contradecían y el director eligió partirlo — **se instrumenta ya** (hecho: comentario, caso decisivo, contador) y **lo que espera es sólo la calibración** |
 | **el recorte del rerank** —mandar las unidades afines enteras en vez de 300 caracteres en seco y el principio del documento— | **la medición del punto 1 o 2** | es un cambio en la etapa que decide qué se compara; sin el número de antes no se sabría si mejora |
 | **la instrucción «sé estricto»** del rápido | **el recorte del rerank, estable y medido** | es un dial de prompt: se mueve solo, con tanda antes y después (F-109 P4, y el balance emisión/contención de `Cierre_B81.md`) |
 
