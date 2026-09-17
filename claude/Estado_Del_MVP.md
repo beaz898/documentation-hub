@@ -638,10 +638,41 @@ rojo; **conjuntos disjuntos**.
 
 ⚠️ **LO QUE LA REGLA NO DECIDE, y se deja dicho:**
 - **Un zombi barrido en `processing`**: su acumulador murió con el proceso y no se
-  sabe dónde murió. **No se devuelve, y no es una decisión: es falta de dato.**
+  sabe dónde murió. ~~No se devuelve, y no es una decisión: es falta de dato.~~
+  **DECIDIDO EL 17/09/2026 — opción A del director: no se devuelve.** Ver abajo lo
+  que esa decisión acepta.
 - **Los incompletos de F-71** —etapa del modelo caída, resultado parcial entregado—
   **se siguen devolviendo íntegros aunque se gastó modelo.** Es otra regla, ya
   decidida, y ésta no la toca.
+
+### ⚠️ OPCIÓN A, 17/09/2026 — sin excepción para el tiempo agotado, y lo que eso acepta
+
+**Decisión del director: la regla se aplica literal, sin excepción para el tiempo
+agotado.** La razón que decide: **el caso no tiene población**. El exhaustivo más
+largo registrado tardó **6,1 minutos** (`analyze-v2/route.ts:34`, el comentario del barrido de zombis,
+medido antes del 13/07/2026 y **no re-medido desde entonces**) contra un umbral de
+zombi de **20**. Escribir una excepción para algo que no ocurre es código sin caso
+decisivo. **El código ya hace la A** desde `df3dacc1`: no hubo que tocarlo.
+
+**LO QUE LA A ACEPTA, sin suavizar — es lo que hay que releer el día que cambie:**
+
+- **Con tiempo agotado, el usuario paga y no tiene el resultado en la pantalla donde lo
+  pidió.** Y hay dos sub-casos que no son el mismo:
+  · **el worker seguía vivo**: termina, **guarda el análisis** y reescribe el job a
+    `completed` —su última escritura no mira el estado (`worker/src/index.ts`)—. **El
+    trabajo se hizo entero, está pagado, y el usuario no lo ve** donde lo esperaba: el
+    chat dejó de esperar a los **10 minutos** (`useJobPolling.ts:50`), antes incluso
+    del barrido de los 20;
+  · **el worker murió**: no se hizo, o se hizo a medias, y **se paga igual** porque no
+    se sabe dónde murió.
+- **Con un error de programación nuestro después de llamar al modelo, el usuario paga
+  por un fallo que no es del modelo ni suyo.**
+
+⚠️ **EL DISPARADOR DE REVISIÓN, con los números de hoy para poder comparar:** máximo
+registrado **6,1 min**; espera del cliente **10 min**; umbral de zombi **20 min**. **Si
+el máximo medido se acerca a los 10** —que es donde el usuario deja de ver el
+resultado, no a los 20—, por documentos mayores o un corpus grande, **este caso pasa a
+tener población y la decisión se rehace.**
 
 ### ⚠️ EL POZO DEL DIRECTOR — lo que la medición descartó y lo que NO
 
@@ -5313,3 +5344,34 @@ pierde en el chat.** Y en la bandeja tampoco: un exhaustivo fallido no escribe f
 del rápido sigue siendo la última del documento.
 
 **Sin arreglar.**
+
+---
+
+## ⚠️ 5.74 · B.258 — la bandeja enseña el análisis más reciente, sea del tipo que sea, y no dice de qué tipo es (17/09/2026)
+
+**Salió de un encargo cuya premisa no se sostenía**: «un exhaustivo fallido tapa un
+rápido bueno». **Un exhaustivo FALLIDO no escribe fila** —el `catch` del worker sólo
+marca el job—, así que no tapa nada: la fila del rápido sigue siendo la última. Pero
+al comprobarlo, el mecanismo que se describía **sí existe por otras dos puertas**.
+
+**EL MECANISMO, leído:** la bandeja (`review-list/route.ts`) y el detalle del documento
+(`documents/[id]/analysis/route.ts`) se quedan con **la fila más reciente de
+`analysis_results` por `document_id`**, **sin filtrar por `analysis_type`**: la
+consulta de la bandeja ni siquiera pide esa columna.
+
+| quién escribe una fila nueva | qué tapa | qué ve el usuario |
+|---|---|---|
+| **«Reanalizar estilo» desde la bandeja** (A8): fila `style`, con `contradictions_found = 0` y `recommendation = null` | **el análisis de corpus** del documento | ⚠️ **cero contradicciones y sin recomendación** — un análisis de estilo leído como si fuera de corpus. **Es la familia de «limpio sin haberlo mirado»** |
+| **un exhaustivo INCOMPLETO** (F-71): fila `exhaustive` con resultado parcial | el rápido completo | los recuentos del parcial. El resumen dice «NO llegó a completarse», pero **la bandeja no enseña el resumen**: sólo recuentos y recomendación |
+
+⚠️ **¿PUEDE EL USUARIO DISTINGUIR QUÉ ESTÁ VIENDO? NO.** El bloque de la bandeja no lleva
+el tipo, y el detalle **sí lo devuelve** (`analysisType`) **pero ningún componente lo
+lee**. Ni «rápido» ni «exhaustivo» ni «estilo» aparecen en pantalla junto al análisis.
+
+**LEÍDO EN EL CÓDIGO, NO MEDIDO EN PANTALLA.** La forma de comprobarlo sin gastar: en la
+base, documentos cuya fila más reciente es `style` teniendo una `quick` o `exhaustive`
+anterior. Y en pantalla: reanalizar estilo desde la bandeja y mirar si sus
+contradicciones pasan a cero.
+
+**Sin arreglar.** Qué debe enseñar la bandeja cuando hay varias filas —la más reciente
+de corpus, las dos, o la reciente con su tipo— es decisión de producto.
