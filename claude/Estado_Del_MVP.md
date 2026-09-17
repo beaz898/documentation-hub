@@ -5375,3 +5375,87 @@ contradicciones pasan a cero.
 
 **Sin arreglar.** Qué debe enseñar la bandeja cuando hay varias filas —la más reciente
 de corpus, las dos, o la reciente con su tipo— es decisión de producto.
+
+---
+
+## 5.75 · La pérdida en la selección: qué se puede medir sin gastar, qué costaría medirlo bien, y lo que espera (17/09/2026)
+
+Consulta de origen: F-109 (`claude/consultas-fable/F-109.md`).
+
+### ⚠️ CONDICIÓN DE VALIDEZ, del director, antes que nada
+
+**Toda medición de la pérdida en la selección vale MIENTRAS LOS CANDIDATOS RECUPERADOS
+NO ALCANCEN 25.** A partir de ahí cortan la recuperación (se queda con 25) y el tope del
+exhaustivo (25), y la referencia deja de ser «todo lo afín». **Número de hoy: máximo 10**
+en las pasadas del historial consultado (§5.52). **Disparador: si alguna pasada llega a
+25, esta forma de medir caduca y se rehace.**
+
+### 1 · LO QUE YA ESTÁ GUARDADO — `SQL_F109_seleccion_CLI05.sql`, cero créditos
+
+**Qué se guarda y qué no** (leído en el código): de cada pasada, **la lista de lo que
+llegó al juez** (`analysis.judgments`) y **los hallazgos finales**. **De lo que la
+selección descartó no queda nada**, ni el id: sólo el recuento, y desde el 16/09.
+Por eso la acotación gratis que propone F-109 —cruzar los descartes históricos— **no se
+puede hacer**; lo que sí se puede es comparar lo que juzgó cada modo en pasadas del mismo
+documento, y el 14/09 CLI-05 tiene un exhaustivo y cinco rápidos.
+
+**Predicción, escrita antes:** el exhaustivo juzga más (6-9 frente a 4-5) y casi todo lo del
+rápido está dentro; lo que sólo juzgó el exhaustivo da **cero contradicciones
+confirmadas**; y los cinco rápidos no seleccionan siempre lo mismo.
+
+**¿Invalidan esas pasadas los cambios de esta semana? No las invalidan: las acotan.**
+
+| cambio | ¿afecta a lo que se lee? |
+|---|---|
+| orden por confianza antes de cortar (16/09) | **no**: el rápido seleccionó 4-5 con tope 6, el tope no cortó |
+| documentos juzgados dos veces | **se ve en los datos**: la consulta 1 cuenta `veces_juzgado` (B.253) |
+| reparto de contadores | **no**: la consulta no lee esos contadores |
+
+**Y cuatro confundidores que sí acotan lo que se puede concluir:**
+- **el juez no ve lo mismo**: rápido, los primeros 6.000 caracteres del documento
+  montado desde sus trozos; exhaustivo, el documento entero. Un hallazgo del exhaustivo
+  con la cita más allá del 6.000 **no lo habría encontrado el rápido aunque lo hubiera
+  seleccionado** — lo mide la consulta 3, con la posición aproximada (se busca en el
+  texto plano del job, no en el texto montado que ve el juez);
+- **el exhaustivo también selecciona**, con instrucción permisiva: la comparación mide
+  la pérdida del rápido RESPECTO del exhaustivo, **no respecto de lo que el juez habría
+  visto**. Es cota inferior;
+- **el exhaustivo pasa además por Sonnet**: sus hallazgos son más estrictos, no más;
+- **el corpus pudo cambiar** entre las pasadas del día, y no hay forma de saberlo (B.252).
+
+### 2 · SI NO BASTA: EL EXPERIMENTO
+
+⚠️ **Hay dos, y no son el mismo:**
+
+| | rápido contra exhaustivo | bypass (el de F-109 P3) |
+|---|---|---|
+| qué mide | lo que pierde la selección ESTRICTA frente a la PERMISIVA | lo que pierde la selección frente a **juzgarlo todo** |
+| código | ninguno | **sí**: saltarse la selección en una pasada de prueba. «Un bypass de una condición» es la estimación de Fable, **no medida aquí** |
+| cuándo, según F-109 | — | **después** de arreglar el material de la etapa 2, para no medir lo condenado |
+
+**Montaje del que no necesita código**: CLI-05 —el documento con vecindario poblado que ya
+tiene historial—, **tres rápidos y un exhaustivo**, lanzados seguidos y sin tocar el corpus
+entre medias. Tres rápidos y no uno, por el punto 3 de la predicción: la selección varía
+entre pasadas y se compara contra su unión.
+
+**Coste**: 3 × 5 + 30 = **45 créditos**.
+
+**Predicción**: la misma que la del punto 1.
+
+**LAS TRES LECTURAS, escritas antes:**
+
+| resultado | se lee como |
+|---|---|
+| lo que sólo juzgó el exhaustivo da **cero** hallazgos confirmados, **y** en lo que juzgaron los dos hay al menos uno (el juez ve: control positivo) | **la selección estricta descarta bien** en este corpus — sobre esta población y con la condición de validez |
+| **al menos un hallazgo confirmado** en un documento que ningún rápido seleccionó, con la cita **dentro de los primeros 6.000 caracteres** | **la selección pierde hallazgos reales**: pérdida medida y caso decisivo para la etapa 2 |
+| el hallazgo sólo-exhaustivo tiene la cita **fuera de los 6.000** o **no localizable**; o no hay ningún hallazgo en ningún candidato (sin control positivo); o los rápidos ya cubren lo que cubrió el exhaustivo | **no concluye nada** sobre la selección: o mide al juez, o no hubo con qué comparar |
+
+### 3 · LO QUE NO SE TOCA TODAVÍA — con su condición escrita
+
+| pieza | espera a | por qué |
+|---|---|---|
+| **el umbral de 0,50** y su paso a corte relativo | **la medición del punto 1 o 2** | es B.248. No urge: la selección ya hace de filtro real, y lo que el umbral deja pasar cuesta una llamada barata. F-109 coincide |
+| **el recorte del rerank** —mandar las unidades afines enteras en vez de 300 caracteres en seco y el principio del documento— | **la medición del punto 1 o 2** | es un cambio en la etapa que decide qué se compara; sin el número de antes no se sabría si mejora |
+| **la instrucción «sé estricto»** del rápido | **el recorte del rerank, estable y medido** | es un dial de prompt: se mueve solo, con tanda antes y después (F-109 P4, y el balance emisión/contención de `Cierre_B81.md`) |
+
+**Esperan a la medición, no a que alguien se acuerde.**
