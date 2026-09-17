@@ -547,6 +547,28 @@ declararlo en la interfaz es una decisión de producto.
 
 Las líneas de arriba son del 09/09 y se han movido; lo que sigue está leído hoy.
 
+⚠️ **LO QUE ESTABA MAL EN LA TABLA DEL 09/09, dicho exacto** (y el encargo del 17/09 lo
+resumió como «dos de sus cinco salidas mal», que tampoco es así): **las cinco salidas
+existen todas** —hoy en `route.ts:304, 373, 381, 560 y 879`—. Lo que falló fue:
+- **dos afirmaciones de contenido**: que era «del exhaustivo» (**cobra también el rápido**, por
+  las mismas salidas) y el ejemplo de los 60 (**el segundo exhaustivo sólo tiene descuento de
+  reanálisis si el usuario descartó algo**);
+- **una salida que faltaba** («storagePath o text requeridos», `:377`);
+- y **todos los números de línea**, envejecidos.
+**El hallazgo seguía siendo cierto**: se cobra y no se devuelve. Fallaban sus ejemplos. Y sólo se
+vio al ir a corregir otra cosa.
+
+⚠️ **CAUTELA DE MÉTODO**: una ficha se escribe una vez y se cita muchas, y **sus ejemplos concretos
+envejecen igual que el código**. Lo barato que hay, y lo que no:
+- **Lo que ya existe y no se usó aquí**: la regla de `CLAUDE.md` — todo hallazgo de la forma «los
+  N sitios que hacen X» **lleva su comando de censo**, y cerrarlo o citarlo exige re-ejecutarlo.
+  B.205 enumeraba salidas **sin comando**; con él, al tocarla se habría visto la sexta.
+- **Lo que se puede automatizar barato**: que cada `ruta:línea` citada en este documento apunte a
+  un fichero que existe y tenga al menos esas líneas. Caza ficheros borrados o encogidos; **no
+  caza una línea que se movió**, que es lo que pasó aquí. **No está escrito.**
+- **Lo que no tiene forma barata**: comprobar que un ejemplo SIGUE DICIENDO lo que dice. Eso sólo lo
+  hace releer el consumidor al tocar la ficha. **Se queda como cautela, no como garantía.**
+
 - ⚠️ **NO ES SÓLO DEL EXHAUSTIVO.** `consumeCredits` (`analyze-v2/route.ts:259`) cobra
   **los dos modos**, y las salidas posteriores son comunes: el rápido pierde 5 por
   los mismos caminos. Seis salidas tras el cobro sin reembolso: semáforo ocupado
@@ -642,6 +664,15 @@ ella diga.
 | el worker, antes de llamar al modelo | todo — **hasta hoy, nada** |
 | el worker, después de llamar al modelo | nada |
 | un job barrido como zombi en `pending` —nunca lo reclamó nadie— | todo |
+
+⚠️ **NO EJERCIDO EN PRODUCCIÓN** (17/09/2026). Está escrito, con batería y desplegado; **no se ha
+visto actuar nunca**. No se provoca a propósito —un fallo de infraestructura a voluntad no
+es sencillo ni útil de forzar— y se deja para cuando aparezca. **Lo que lo demostraría**,
+leído en los registros del worker o de la ruta y contrastado con el saldo:
+- un trabajo que falle **antes** de la primera llamada al modelo y **devuelva entero**;
+- y uno que falle **después** y **no devuelva nada**.
+⚠️ Y lo que NO lo demuestra: el corte por duplicado del 17/09 cobró 30 **por no declarar clase**
+(B.235), no por este reparto — no es un fallo.
 
 **Casos decisivos**: mutante «devuelve siempre», 5 en rojo; «no devuelve nunca», 3 en
 rojo; **conjuntos disjuntos**.
@@ -3318,7 +3349,7 @@ Lo que el plan dijo que tendría que ser cierto «abriendo un registro»:
 | 1 | El inventario existe y es público | ✅ |
 | 2 | La puerta principal medida por sus dos entradas, misma cifra | ✅ **cerrado el 16/09**: corpus por A5/A6 (`3 · 57 · 0 · 0` por las dos puertas y en los dos modos, 15/09) y estilo por A7/A8 **por conjuntos**, catorce pasadas (`Tandas_Harness.md`, «LO QUE CIERRA»). ⚠️ Coinciden, **no repiten**: B.240 sigue abierta |
 | 3 | Cada camino que produce informe, con cifra + camino + **modo** | ✅ **cerrado el 17/09/2026, por decisión del director y con su alcance escrito.** El punto pasa a pedir lo que de verdad faltaba: **el worker medido.** Medido **en la base** por A5 (15/09) y A6 (09/09 y 15/09), `3 · 57 · 0 · 0`, por sus dos fuentes de estructura —binario y rescate—; y **en pantalla por el director el 17/09**, cinco eslabones: encolado, recogida, informe con contradicciones **y estilo**, cabecera «Exhaustivo» y persistencia tras recargar (entrada y documento de esa pasada: no trasladados). **A2 y A4 se declaran entradas del mismo worker**, con la salvedad del inventario: difieren en la fuente de la estructura y en la tanda, y esas dos combinaciones son las que ya cubren A5 y A6. ⚠️ A1, A3, A5 y A6 siguen teniendo **alcance de pareja, no de corpus** (§5.47) |
-| 4 | Cuando el sistema no ve algo, lo dice | 🔶 **a medias.** Hecho: los denominadores de tablas (pieza 2, 07/09) y el aviso de cobertura de documentos, que dice contra cuántos se comparó y la causa sólo cuando está medida (`7afafd71`, 16/09). **Sigue sin decirlo**: el estilo pierde el final de los documentos largos (B.236) y devuelve «cero problemas» sin haber mirado (B.237); el rerank ve el documento nuevo cortado en seco a 3.000 caracteres; y el corte previo a 25 candidatos no se cuenta |
+| 4 | Cuando el sistema no ve algo, lo dice | 🔶 **a medias.** Hecho: los denominadores de tablas (pieza 2, 07/09) y el aviso de cobertura de documentos, que dice contra cuántos se comparó y la causa sólo cuando está medida (`7afafd71`, 16/09). Y desde el 17/09, **«cero problemas» sin haber mirado dejó de pasar** (B.237, cerrada en sus tres puertas). **Sigue sin decirlo**: el estilo pierde el final de los documentos largos (B.236); el rerank ve el documento nuevo cortado en seco a 3.000 caracteres; el corte previo a 25 candidatos no se cuenta; y **la bandeja enseña el último análisis sin decir de qué tipo es**, así que un estilo puede leerse como «cero contradicciones» (B.258, leída en el código y **no comprobada en pantalla**) |
 | 5 | Los dos botones que cobran dicen lo que cuestan | ✅ **B.180, arreglado el 08/09** (`a2b99c41`, §4.2) |
 | 6 | Hay lista escrita de lo no probado, y no está escondida | ✅ |
 | 7 | La condición de escritorio, escrita | ✅ |
