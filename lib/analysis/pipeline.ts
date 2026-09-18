@@ -24,6 +24,7 @@ import { groupChunksByTable } from './table-structure';
 import { doubleCheckContradictions } from './double-check';
 import type { DoubleCheckedDiscrepancy } from './double-check';
 import { analyzeStyle } from './style-check';
+import { conContadoresDelEstilo, problemasDelEstilo } from './contadores-del-estilo';
 import { loadFragmentContexts, fragmentContextKey } from './fragment-context';
 import { applyDeterministicRules, buildStructuralTopic, destinoSinClave } from './finding-rules';
 import { getOrderedColumns } from './table-structure';
@@ -142,6 +143,24 @@ const MAX_DOUBLE_CHECK_CANDIDATES = 50;
  * NUESTRA. Se enciende en el harness y solo ahí.
  *
  * Se retira, con la variable, el día que se decida rediseñar o retirar la rama.
+ */
+/**
+ * ⚠️ RAMA APAGADA, DECLARADA, CON FECHA DE REVISIÓN — 18/09/2026.
+ *
+ * Sin `ANALYSIS_ATOMIC_MEASURE` puesta, esta rama NO CORRE, y de ahí cuelga el
+ * único consumidor de `verifyClaimsAgainstCorpus` (abajo). Eso tiene una
+ * consecuencia que ya costó una noche entera: el umbral de
+ * `CORPUS_SCORE_THRESHOLD` (`verify-claims.ts:85`, aplicado en `:323` con un
+ * `continue` mudo) **no se ejecuta en producción**, así que NO LLEVA CONTADOR a
+ * propósito — un contador aquí no daría cero, daría AUSENCIA en todas las filas,
+ * que es justo el defecto que los contadores vienen a eliminar. Su población es
+ * cero por construcción, no por suerte, y es el mismo criterio con el que se
+ * descartó la excepción del reembolso por tiempo agotado.
+ *
+ * Y no se retira: retirar código apagado es una decisión de producto y no urge.
+ * Queda DECLARADA, con revisión el **18/12/2026**. Si ese día la rama sigue
+ * apagada, se retira o se vuelve a declarar; lo que no vale es que siga aquí sin
+ * que nadie haya decidido nada.
  */
 const ATOMIC_MEASURE_ENV = 'ANALYSIS_ATOMIC_MEASURE';
 
@@ -1192,16 +1211,22 @@ async function runExhaustivePipelineInner(input: ExhaustivePipelineInput): Promi
 
   console.log(`[pipeline-exhaustive] Hash check: sin duplicado exacto (${Date.now() - t0}ms)`);
 
-  const [pipelineResult, styleProblems] = await Promise.all([
+  // ⚠️ EL RESULTADO ENTERO DEL ESTILO, NO SÓLO SUS PROBLEMAS — 18/09/2026.
+  // Aquí había un `.then(r => r.problemas)` que TIRABA `r.contadores`, y con
+  // ellos los tres `averia.estilo_*` desde el 15/09: emitidos bien y nunca
+  // guardados en el camino de 30 créditos. Se recoge el objeto completo y se
+  // funde al final con `conContadoresDelEstilo`, que lo EXIGE — volver a
+  // quedarse con la lista no compila.
+  const [pipelineResult, estilo] = await Promise.all([
     runCorePipeline(input, { exhaustive: true }, 'pipeline-exhaustive'),
     // B.237: si el modelo no contestó, aquí no hay problemas que sumar — y el
     // fallo YA viaja: `analyzeStyle` lo registra en `stageFailures` (este
     // pipeline sí abre ese contexto), el análisis sale marcado como incompleto
     // y el worker devuelve lo cobrado. La lista vacía no llega a leerse como
     // «documento limpio» porque el resumen dice que no se completó.
-    analyzeStyle(input.newDocumentText, input.newDocumentName)
-      .then(r => (r.estado === 'mirado' ? r.problemas : [])),
+    analyzeStyle(input.newDocumentText, input.newDocumentName),
   ]);
+  const styleProblems = problemasDelEstilo(estilo);
 
   const excludeFps = input.excludeFingerprints || new Set<string>();
 
@@ -1425,7 +1450,10 @@ async function runExhaustivePipelineInner(input: ExhaustivePipelineInput): Promi
     mergedDiscardedFindings[key] = (mergedDiscardedFindings[key] ?? 0) + count;
   }
 
-  return markIncompleteAnalysis({
+  // 18/09/2026: los tres del estilo se funden SOBRE EL OBJETO QUE SE GUARDA, que
+  // es donde se comprobó que faltaban. Ausentes si no se pudo mirar; las tres,
+  // incluido el cero, si se miró.
+  return conContadoresDelEstilo(markIncompleteAnalysis({
     ...pipelineResult,
     discrepancies: confirmedContradictions,
     ...(minorInconsistencies.length > 0 && { minorInconsistencies }),
@@ -1435,7 +1463,7 @@ async function runExhaustivePipelineInner(input: ExhaustivePipelineInput): Promi
     estimatedCost,
     ...(candidatesOverLimit !== undefined && { candidatesOverLimit }),
     ...(Object.keys(mergedDiscardedFindings).length > 0 ? { discardedFindings: mergedDiscardedFindings } : {}),
-  }, stageFailureContext.getStore() ?? []);
+  }, stageFailureContext.getStore() ?? []), estilo);
 }
 
 // ============================================================

@@ -5796,3 +5796,88 @@ sobre el código, emitido sin repositorio y repetido como hecho.
 segundo**, así que cualquiera que entre en el circuito llega con esa comprobación hecha o
 no se anota. Es la tercera vez en el día que entra una pieza que nadie construyó —dos
 hashes, tres claves de contador, un endpoint—, y las tres veces costó encargos enteros.
+
+---
+
+## ⚠️ 5.77 · EL CERO INVISIBLE DEL ESTILO, y el saldo de una noche de nombres inventados (18/09/2026)
+
+### Lo que se arregla, y lo encontró un censo por capacidad
+
+`analyzeStyle` emitía sus tres contadores **bien** —siempre, también en cero, corregido
+el 15/09— y el pipeline exhaustivo se quedaba con `r.problemas` y **tiraba
+`r.contadores`**. Resultado: en el camino de **30 créditos**, que es donde el estilo corre
+de verdad, `averia.estilo_descartado_por_tipo`, `averia.estilo_descartado_sin_ancla` y
+`averia.estilo_cita_no_encontrada` **nunca llegaron a la base**. Sólo las guardaba el
+endpoint suelto `/api/analyze-style`, de 2 créditos.
+
+⚠️ **NINGUNA PRUEBA PODÍA VERLO, y eso es el hallazgo de método**: el emisor tenía su
+batería y estaba verde; la clave estaba en el catálogo y el canario también. **Un test de
+unidad no ve una tubería cortada aguas abajo.** Lo destapó un censo **por capacidad** —qué
+módulos emiten contadores y cuáles de esos emisores están cableados a lo que se persiste—,
+no una búsqueda por nombre.
+
+**El censo, entero**: 38 claves, 9 emisores. Ocho cableados
+(`contadores-de-seleccion`, `reparto-del-rerank`, `diff-vision`, `table-pairing`,
+`table-diff`, `diff-emision`, la cascada en `pipeline.ts`, y el `averia.exhaustivo_sin_clasificar`
+del worker). **Uno roto: `style-check`.**
+
+**La forma del arreglo — el estado ilegal irrepresentable, no un comentario pidiéndolo:**
+`conContadoresDelEstilo(analisis, estilo)` **exige el `ResultadoDelEstilo` completo**, así
+que volver a quedarse con la lista de problemas **no compila**. Comprobado mutando: el
+mutante «el exhaustivo vuelve a quedarse sólo con `problemas`» da **dos errores de tipo**.
+Y el caso va **donde falló** —sobre el objeto que recibe `saveAnalysisResult`, no sobre
+`style-check`—: mutar el emisor a `{}` deja **1 en rojo**, y mutarlo para que los ceros
+salgan como ausencia, **1 en rojo**.
+
+**Predicción escrita antes: +3 pruebas. Salieron +3.**
+
+### Dos hallazgos de higiene del mismo censo, SIN ARREGLAR
+
+- **`diff-emision.ts:231`**: `if (preIndexado > 0) counts['diff.clasificacion.pre_indexado'] = …`
+  — **ausente cuando vale cero**, la misma forma que el fallo del 15/09 y sin ausencia
+  declarada. Y el comentario del catálogo (`counters.ts:179`) sigue diciendo «SIN PRODUCTOR
+  TODAVÍA»: **caducó**, porque productor tiene.
+- **`pipeline.ts:1026`**: las siete claves de visión se montan con plantilla,
+  ``counters[`diff.vision.${k}` as keyof typeof counters]``. Hoy los nombres casan, pero el
+  `as` **anula la comprobación del catálogo en compilación**: una propiedad mal escrita
+  produciría una clave que `mergeCounters` tiraría con un `warn`, en silencio. Es lo que
+  hizo que un primer censo por literal las diera por huérfanas.
+
+### ✅ EL CONTADOR DEL VERIFICADOR: NO SE ESCRIBE — decisión del director
+
+`verifyClaimsAgainstCorpus` tiene **un solo llamador**, dentro de `if (atomicBranchEnabled())`,
+que exige `ANALYSIS_ATOMIC_MEASURE` y está apagada. Luego el umbral de
+`CORPUS_SCORE_THRESHOLD` (`verify-claims.ts:85`, aplicado en `:323` con un `continue` mudo)
+**no se ejecuta en producción**.
+
+⚠️ **Un contador ahí no daría cero: daría AUSENCIA en todas las filas** — el defecto mismo
+que los contadores vienen a eliminar. **Su población es cero por construcción, no por
+suerte**, y es el mismo criterio con el que se descartó la excepción del reembolso por
+tiempo agotado. Además, el número es la MISMA constante que la recuperación, y ésa **ya
+tiene su contador** desde `67cd79ee`.
+
+**Y la rama no se retira**: retirar código apagado es decisión de producto y no urge. Queda
+**DECLARADA en el código, con revisión el 18/12/2026**.
+
+### ⚠️ EL SALDO DE LA NOCHE, CONTADO — y la regla que sale de él
+
+En trece horas entraron en el circuito, todos desde el arquitecto y sin repositorio delante:
+- **cuatro hashes que no existen**: `4f3ec99f`, `b1ed4972`, `7e6cb1b`, `2e73e0bd`;
+- **tres nombres de contador inventados**: `bajo_umbral_recuperacion`, `sobre_tope_25`,
+  `bajo_umbral_verificador` — y `->>` sobre una clave ausente devuelve `NULL`, así que los
+  tres producían el síntoma que se estaba investigando;
+- **un contador dado por inexistente cuando existía** desde la mañana anterior
+  (`seleccion.candidatos_cortados_por_tope_de_recuperacion`, en `67cd79ee`);
+- **un commit atribuido a un turno que fue sólo lectura**;
+- y **un test de integración atribuido a esta casa que nunca se escribió**, del que se
+  derivó un diagnóstico («el módulo emite y nadie recoge») que era prosa devuelta en
+  indicativo.
+
+**Coste real**: cuatro análisis del director y tres visitas a Vercel, sobre código que
+estaba desplegado desde el día anterior.
+
+⚠️ **LA REGLA QUE QUEDA, y la formuló el arquitecto al reconocerlo**: **cuando una consulta
+por nombre devuelve vacío repetidamente, la siguiente pregunta es QUÉ NOMBRES EXISTEN, no
+por qué falla.** Lo que cerró el caso fue `jsonb_object_keys` — preguntar a la fila qué
+claves trae— en vez de seguir buscando las que alguien afirmaba. Es la versión de datos de
+la regla del censo por capacidad: **no se enumera de memoria, se le pregunta al objeto.**
