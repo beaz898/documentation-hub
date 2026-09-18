@@ -54,4 +54,3 @@ export function cortarALosMasAfines<T extends { maxScore: number }>(
     cortados: Math.max(0, ordenados.length - tope),
   };
 }
-
