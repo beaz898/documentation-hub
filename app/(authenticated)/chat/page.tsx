@@ -36,7 +36,7 @@ export default function ChatPage() {
     messages, setMessages, input, sending,
     messagesEndRef, inputRef,
     handleSend, handleKeyDown, handleInputChange,
-    appendToInput, addMessage, clearMessages,
+    appendToInput, addMessage, clearMessages, avisarDelCorpus,
   } = useChat(session, refresh);
 
   const { lockState, showReminder, toggleLock, activateLock, releaseLock, dismissReminder } = useUploadLock(session);
@@ -48,13 +48,13 @@ export default function ChatPage() {
     handleUpload, handleDelete,
     handleAnalysisConfirm, handleAnalysisCancel, handleAnalysisImprove, handleExhaustiveAnalysis,
     handleImprovementClose, handleImprovementIndexed,
-  } = useDocuments(session, addMessage, refresh, releaseLock);
+  } = useDocuments(session, addMessage, refresh, releaseLock, avisarDelCorpus);
 
   const {
     driveStatus, syncing,
     loadDriveStatus,
     handleConnectDrive, handleSyncDrive, handleDisconnectDrive,
-  } = useDrive(session, addMessage, loadDocuments);
+  } = useDrive(session, addMessage, loadDocuments, avisarDelCorpus);
 
   const didInitSidebarRef = useRef(false);
 

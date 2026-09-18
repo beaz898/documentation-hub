@@ -5881,3 +5881,84 @@ por nombre devuelve vacío repetidamente, la siguiente pregunta es QUÉ NOMBRES 
 por qué falla.** Lo que cerró el caso fue `jsonb_object_keys` — preguntar a la fila qué
 claves trae— en vez de seguir buscando las que alguien afirmaba. Es la versión de datos de
 la regla del censo por capacidad: **no se enumera de memoria, se le pregunta al objeto.**
+
+---
+
+## ✅ 5.78 · EL AVISO DE CORPUS CAMBIADO — cierra lo que §5.19 dejó abierto (18/09/2026)
+
+**Lo que estaba mal**, medido en pantalla el 14/09 (§5.19): tras reemplazar un documento,
+el chat siguió devolviendo el texto anterior **entero**. El mecanismo no es el corpus —la
+recuperación es fresca en cada turno— sino el **historial**: el cliente manda los últimos
+6 mensajes (`useChat.ts`), y las respuestas anteriores del asistente **contienen el texto
+que citaron entonces**. Pasa igual con documentos **borrados**.
+
+⚠️ **Y B.225 no lo cubría**, aunque lo pareciera: aquella guarda filtra la RECUPERACIÓN
+(los `vivos` de `rag.ts`). Esto no entra por ahí. Las dos son independientes.
+
+### Lo que entra
+
+Un mensaje en la conversación, con **rol propio `aviso`** —ni `assistant`, que se leería
+como el modelo hablando, ni `error`, que alarmaría de algo que el usuario quería—, en los
+**cinco puntos** que cambian el corpus desde esa pantalla: alta, reemplazo desde la subida,
+reemplazo desde el modo mejora, **borrado** y sincronización de Drive.
+
+**Dos textos, porque son dos significados** (F-100: un campo con dos preguntas contesta mal
+a una): lo reemplazado o borrado **puede citar contenido que ya no existe**; lo añadido hace
+que las respuestas anteriores **puedan estar incompletas**. El sync elige texto **por lo que
+de verdad hizo** —sus recuentos—, no por el gesto.
+
+**Y nombra la salida**: «usa **Limpiar chat**». El botón ya existía (`chat/page.tsx`); §5.19
+se quejaba de que «las dos salidas son recargar o seguir hablando, y **ninguna se le dice al
+usuario**». Eso queda cerrado. **No se borra nada**: borrar la conversación sería peor que el
+problema.
+
+⚠️ **El borrado era el ÚNICO camino mudo**: `handleDelete` borraba, recargaba la lista y no
+escribía ni un mensaje. Indexar y reemplazar ya hablaban.
+
+### ⚠️ LA PÉRDIDA, DECLARADA — y es decisión, no descuido
+
+El aviso sale cuando el corpus cambia y hay conversación abierta, **sin comprobar si la
+respuesta anterior citaba justo ese documento**. Así que **puede salir cuando no hacía
+falta**.
+
+La alternativa —cruzar lo que cambió con lo que se citó— **se descartó con su razón**:
+`sources` viaja por **NOMBRE y no por id** (`hooks/chat/types.ts`), y un reemplazo **cambia
+el nombre** (B.218). Ese cruce fallaría **precisamente al reemplazar**, que es el caso más
+frecuente y el que se midió. Para hacerlo bien haría falta que `sources` llevara ids: otra
+pieza.
+
+⚠️ **Y POR ESO EL TEXTO DICE «PUEDE», NO «CITA»**: el sistema no sabe si la respuesta
+anterior citaba lo que cambió, y afirmarlo sería una causa no medida (§5.66). Tiene caso: un
+mutante que cambie «puede citar» por «cita» deja **2 en rojo**.
+
+### Lo que NO se toca, decidido y con su razón
+
+**No se ajusta cuánto historial se manda al modelo** (`MAX_HISTORY_MESSAGES = 6`,
+`lib/rag.ts:43`). **Razón del director**: cambiaría el comportamiento del chat entero —el
+seguimiento de preguntas y la reescritura de la consulta dependen de esa ventana— y eso es
+otra pieza. Queda **decidido**, no pendiente olvidado.
+
+**Y la detección en el servidor queda propuesta y sin escribir**, con su diseño ya medido en
+el esquema: cubriría lo que el cliente no ve —otra pestaña, un sync que no lanza el usuario,
+otro usuario de la organización— pero **no puede nombrar el documento**, sólo decir que algo
+cambió. ⚠️ Y su primera forma —`select count(*), max(updated_at) from documents where org_id`—
+**crece linealmente con el corpus**: `idx_documents_org_id` no incluye `updated_at`, así que
+hay un acceso al heap por fila del org. De 42 a 5.000 es ×120 de trabajo, justo cuando el
+producto funcione. **La forma buena es O(1)**: una `corpus_version` en `organizations` movida
+por un trigger en `documents` (insert, update **y delete**), devuelta por `consume_credits`,
+que **ya lee esa misma fila y la toma en exclusiva con `FOR UPDATE`**
+(`supabase-setup.sql:81-85`) — **cero consultas nuevas por pregunta**. Necesita cambio de esquema, así que su SQL va antes del código.
+
+### Predicción y mutantes
+
+**Predicción escrita antes: +8 pruebas. Salieron +10 — fallada por arriba.**
+
+Los cuatro mutantes, todos muertos: quitar la guarda de conversación sin respuesta, **1**;
+cambiar «puede citar» por «cita», **2**; contar como respuesta cualquier mensaje del
+asistente —incluidos los avisos de documento—, **1**; y hacer que un sync sin cambios avise
+igual, **1**.
+
+⚠️ **El mutante que el encargo pedía —«mirar toda la conversación en vez de la última
+respuesta»— NO APLICA a este diseño**, y se dice para que no se archive como hecho: no hay
+ningún recorrido por documento que mutar. El encargo describía el diseño descartado. El
+equivalente real es el tercero de la lista.

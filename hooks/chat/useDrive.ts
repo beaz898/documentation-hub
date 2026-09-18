@@ -2,12 +2,15 @@
 
 import { useState, useCallback } from 'react';
 import type { SessionInfo, DriveStatus, Message } from './types';
+import type { CambioEnElCorpus } from '@/lib/chat/aviso-de-corpus-cambiado';
 import { uploadLockMessage } from '@/lib/upload-lock-message';
 
 export function useDrive(
   session: SessionInfo | null,
   addMessage: (msg: Message) => void,
   loadDocuments: () => Promise<void>,
+  // B.221: se PREGUNTA a useChat si hay que avisar; la condición no se recalcula aquí.
+  avisarDelCorpus: (cambio: CambioEnElCorpus) => void,
 ) {
   const [driveStatus, setDriveStatus] = useState<DriveStatus>({ connected: false });
   const [syncing, setSyncing] = useState(false);
@@ -85,6 +88,15 @@ export function useDrive(
           content: hadFailures
             ? `⚠️ Sincronización terminada con incidencias: ${parts.join(', ')}`
             : `Sincronización completada: ${parts.join(', ')}`,
+        });
+        // B.221 — el sync puede quitar, cambiar y añadir en la misma pasada, y el
+        // aviso se elige por lo que DE VERDAD hizo (los recuentos), no por el gesto.
+        // Un sync que sólo encuentra documentos sin cambios no avisa de nada.
+        avisarDelCorpus({
+          forma: 'sincronizado',
+          nuevos: stats.new ?? 0,
+          actualizados: stats.updated ?? 0,
+          borrados: stats.deleted ?? 0,
         });
         await loadDocuments();
         await loadDriveStatus();

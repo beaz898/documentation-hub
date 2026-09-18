@@ -11,7 +11,7 @@ interface Source {
 }
 
 interface ChatMessageProps {
-  role: 'user' | 'assistant' | 'loading' | 'error';
+  role: 'user' | 'assistant' | 'loading' | 'error' | 'aviso';
   content: string;
   sources?: Source[];
   question?: string;
@@ -68,6 +68,33 @@ export default function ChatMessage({ role, content, sources, question, noContex
           fontSize: 13, color: 'var(--danger-text)', lineHeight: 1.6,
         }}>
           {content}
+        </div>
+      </div>
+    );
+  }
+
+  // B.221 — EL AVISO NO ES UN ERROR NI ES EL MODELO HABLANDO. Con el rol
+  // `assistant` se leería como una respuesta más (y este mensaje lo dice el
+  // sistema, no el modelo); con `error` alarmaría, y lo que ha pasado no es un
+  // fallo: el corpus cambió, que es lo que el usuario quería. De ahí la paleta
+  // `--info` y no `--danger`.
+  if (role === 'aviso') {
+    return (
+      <div className="animate-fade-in-up" style={{ display: 'flex', gap: 10 }}>
+        <div style={{
+          width: 30, height: 30, borderRadius: 8, display: 'flex', alignItems: 'center',
+          justifyContent: 'center', flexShrink: 0, background: 'var(--info-light)',
+        }}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--info)" strokeWidth="2">
+            <circle cx="12" cy="12" r="10" /><line x1="12" y1="16" x2="12" y2="12" /><line x1="12" y1="8" x2="12.01" y2="8" />
+          </svg>
+        </div>
+        <div style={{
+          padding: '10px 14px', borderRadius: 12, maxWidth: '80%',
+          background: 'var(--info-light)', border: '0.5px solid var(--info)',
+          fontSize: 13, color: 'var(--info-text)', lineHeight: 1.6,
+        }}>
+          <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
         </div>
       </div>
     );

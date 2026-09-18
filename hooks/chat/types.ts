@@ -1,6 +1,6 @@
 export interface Message {
   id: string;
-  role: 'user' | 'assistant' | 'loading' | 'error';
+  role: 'user' | 'assistant' | 'loading' | 'error' | 'aviso';
   content: string;
   sources?: Array<{ documentName: string; score: number }>;
   question?: string;

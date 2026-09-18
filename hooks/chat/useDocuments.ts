@@ -6,12 +6,15 @@ import { homonimoParaReemplazar } from '@/lib/documents/nombre-corregido';
 import { createClient } from '@/lib/supabase';
 import { useJobPolling } from './useJobPolling';
 import type { SessionInfo, Document, Message, PendingAnalysis, ImprovementTarget } from './types';
+import type { CambioEnElCorpus } from '@/lib/chat/aviso-de-corpus-cambiado';
 
 export function useDocuments(
   session: SessionInfo | null,
   addMessage: (msg: Message) => void,
   loadCredits: () => Promise<void>,
   releaseLock: () => Promise<void>,
+  // B.221: se PREGUNTA a useChat si hay que avisar; la condicion no se recalcula aqui.
+  avisarDelCorpus: (cambio: CambioEnElCorpus) => void,
 ) {
   const [documents, setDocuments] = useState<Document[]>([]);
   const [docsLoading, setDocsLoading] = useState(true);
@@ -87,6 +90,9 @@ export function useDocuments(
         ? `Documento **${data.document.name}** actualizado (${data.document.chunks} fragmentos).`
         : `Documento **${data.document.name}** indexado (${data.document.chunks} fragmentos).`,
     });
+    avisarDelCorpus(data.replaced
+      ? { forma: 'reemplazado', nombre: data.document.name }
+      : { forma: 'anadido', nombre: data.document.name });
     await loadDocuments();
     await releaseLock();
   }
@@ -461,6 +467,9 @@ export function useDocuments(
         ? `Versión corregida indexada, reemplazando el documento original **${finalName}**.`
         : `Versión corregida indexada como **${finalName}**.`,
     });
+    avisarDelCorpus(wasReplaced
+      ? { forma: 'reemplazado', nombre: finalName }
+      : { forma: 'anadido', nombre: finalName });
     await loadDocuments();
     await releaseLock();
   }
@@ -469,6 +478,10 @@ export function useDocuments(
     if (!session) return;
     const res = await fetch(`/api/documents?id=${id}`, { method: 'DELETE', credentials: 'include' });
     if (!res.ok) { const d = await res.json(); throw new Error(d.error || 'Error'); }
+    // B.221 — y este camino era el UNICO MUDO: borraba, recargaba la lista y no
+    // escribia ni un mensaje. Es justo el caso del director.
+    const borrado = documents.find(doc => doc.id === id);
+    if (borrado) avisarDelCorpus({ forma: 'borrado', nombre: borrado.name });
     await loadDocuments();
   }
 

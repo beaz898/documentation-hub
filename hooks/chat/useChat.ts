@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import type { SessionInfo, Message, Document } from './types';
+import { avisoDeCorpusCambiado, hayRespuestaEnLaConversacion, type CambioEnElCorpus } from '@/lib/chat/aviso-de-corpus-cambiado';
 
 export function useChat(session: SessionInfo | null, onCreditsChange: () => void) {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -50,6 +51,24 @@ export function useChat(session: SessionInfo | null, onCreditsChange: () => void
     const t = e.target; t.style.height = 'auto'; t.style.height = Math.min(t.scrollHeight, 140) + 'px';
   }
 
+  /**
+   * B.221 — EL AVISO DE CORPUS CAMBIADO, DECIDIDO EN UN SOLO SITIO.
+   *
+   * Vive aqui y no en useDocuments/useDrive porque la condicion es sobre EL
+   * ESTADO DE LA CONVERSACION, que es de este hook: quien cambia el corpus
+   * PREGUNTA si hay que avisar, no lo recalcula. Y se lee dentro de
+   * `setMessages` para ver el estado fresco: con un `messages` capturado en el
+   * cierre, un borrado justo despues de la primera respuesta podria mirar una
+   * lista vieja y callarse.
+   */
+  function avisarDelCorpus(cambio: CambioEnElCorpus) {
+    setMessages(prev => {
+      const texto = avisoDeCorpusCambiado(cambio, hayRespuestaEnLaConversacion(prev));
+      if (texto === null) return prev;
+      return [...prev, { id: crypto.randomUUID(), role: 'aviso' as const, content: texto }];
+    });
+  }
+
   function addMessage(msg: Message) {
     setMessages(prev => [...prev, msg]);
   }
@@ -70,6 +89,6 @@ export function useChat(session: SessionInfo | null, onCreditsChange: () => void
     messages, setMessages, input, sending,
     messagesEndRef, inputRef,
     handleSend, handleKeyDown, handleInputChange,
-    appendToInput, addMessage, clearMessages,
+    appendToInput, addMessage, clearMessages, avisarDelCorpus,
   };
 }
