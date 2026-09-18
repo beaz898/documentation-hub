@@ -5886,6 +5886,10 @@ la regla del censo por capacidad: **no se enumera de memoria, se le pregunta al 
 
 ## ✅ 5.78 · EL AVISO DE CORPUS CAMBIADO — cierra lo que §5.19 dejó abierto (18/09/2026)
 
+> ✅ **EJERCIDO EN PANTALLA POR EL DIRECTOR EL 18/09/2026.** No es «desplegado y
+> probablemente bien»: se probó y el aviso sale. Es el tercer grado de la escala de
+> F-95 P5 —ESCRITO, CONTADO, EJERCIDO— y el que casi nunca se alcanza el mismo día.
+
 **Lo que estaba mal**, medido en pantalla el 14/09 (§5.19): tras reemplazar un documento,
 el chat siguió devolviendo el texto anterior **entero**. El mecanismo no es el corpus —la
 recuperación es fresca en cada turno— sino el **historial**: el cliente manda los últimos
