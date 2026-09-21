@@ -5,6 +5,9 @@ import {
   resumirVecindario,
   UMBRALES_DEL_CENSO,
   distribucionDeScores,
+  topKPedido,
+  poblacionPedida,
+  TOPK_MAXIMO_DEL_SERVICIO,
   type Vecino,
 } from './vecindario';
 import { SCORE_THRESHOLD_QUICK, SCORE_THRESHOLD_EXHAUSTIVE } from './retrieval';
@@ -407,5 +410,80 @@ describe('distribucionDeScores — el rango del operando que el umbral juzga', (
     const scores = [SCORE_THRESHOLD_QUICK, SCORE_THRESHOLD_EXHAUSTIVE, 0.1, 0.99];
     const esperadoRapido = scores.filter(s => !pasaElUmbral(s, SCORE_THRESHOLD_QUICK)).length;
     expect(distribucionDeScores(scores).bajo_umbral_rapido).toBe(esperadoRapido);
+  });
+});
+
+/**
+ * ⚠️ LOS DOS PARÁMETROS DE LA MEDICIÓN DEL SUELO — F-113.
+ *
+ * Con `topK = 25` el mínimo observado no es el suelo: es el puesto 25. Medir el
+ * suelo exige pedir más que el fondo, y el tope lo pone el servicio. Estos casos
+ * vigilan que el parseo falle hacia el comportamiento de hoy y que el tope se
+ * declare en vez de recortar en silencio.
+ */
+describe('topKPedido — el parseo, y el tope que no pone esta casa', () => {
+  const POR_DEFECTO = 25;
+
+  it('sin parámetro, se usa el del pipeline y no se declara nada', () => {
+    for (const raw of [null, undefined, '', '   ']) {
+      expect(topKPedido(raw, POR_DEFECTO)).toEqual({ valor: 25, acotado: false, ignorado: false });
+    }
+  });
+
+  it('un entero válido se usa tal cual', () => {
+    expect(topKPedido('100', POR_DEFECTO)).toEqual({ valor: 100, acotado: false, ignorado: false });
+    expect(topKPedido('1', POR_DEFECTO)).toEqual({ valor: 1, acotado: false, ignorado: false });
+    expect(topKPedido('1000', POR_DEFECTO)).toEqual({ valor: 1000, acotado: false, ignorado: false });
+  });
+
+  it('⚠️ el 0 y los negativos se IGNORAN: no se recortan a 1 ni tumban el censo', () => {
+    expect(topKPedido('0', POR_DEFECTO)).toEqual({ valor: 25, acotado: false, ignorado: true });
+    expect(topKPedido('-5', POR_DEFECTO)).toEqual({ valor: 25, acotado: false, ignorado: true });
+  });
+
+  it('el texto y los decimales se ignoran, y se dice', () => {
+    // `10e3`, `0x10` y `+5` son enteros para Number() y NO son un tope escrito a
+    // mano: se ignoran a propósito, porque «entero» aquí significa sólo dígitos.
+    for (const basura of ['abc', 'cien', '10e3', '0x10', '+5', '1,5', '1.5', 'NaN', 'Infinity', '25px']) {
+      const r = topKPedido(basura, POR_DEFECTO);
+      expect(r.ignorado, `"${basura}" no se ignoró`).toBe(true);
+      expect(r.valor).toBe(POR_DEFECTO);
+    }
+  });
+
+  /**
+   * ⚠️ CASO DECISIVO DEL TOPE. Mover `TOPK_MAXIMO_DEL_SERVICIO` cambia el
+   * resultado de las tres aserciones: el valor acotado, el borde que aún pasa y
+   * el primero que se recorta. No hay ningún 10000 escrito a mano en este caso —
+   * todo se deriva de la constante, así que el día que el servicio cambie su
+   * límite, esto sigue midiendo lo que dice medir.
+   */
+  it('⚠️ por encima del tope del servicio se ACOTA y se declara', () => {
+    const r = topKPedido(String(TOPK_MAXIMO_DEL_SERVICIO + 1), POR_DEFECTO);
+    expect(r).toEqual({ valor: TOPK_MAXIMO_DEL_SERVICIO, acotado: true, ignorado: false });
+
+    // El borde exacto NO se acota: el tope es el máximo admitido, no el primero prohibido.
+    expect(topKPedido(String(TOPK_MAXIMO_DEL_SERVICIO), POR_DEFECTO))
+      .toEqual({ valor: TOPK_MAXIMO_DEL_SERVICIO, acotado: false, ignorado: false });
+
+    // Y un valor absurdamente alto cae en el mismo sitio, no en un error.
+    expect(topKPedido('999999', POR_DEFECTO).valor).toBe(TOPK_MAXIMO_DEL_SERVICIO);
+
+    // El tope es el del servicio, con su fuente en el comentario de la constante.
+    expect(TOPK_MAXIMO_DEL_SERVICIO).toBe(10000);
+  });
+});
+
+describe('poblacionPedida — falla hacia el censo de hoy', () => {
+  it('sólo `real` cambia la población', () => {
+    expect(poblacionPedida('real')).toBe('real');
+    expect(poblacionPedida('REAL')).toBe('real');
+    expect(poblacionPedida('  real  ')).toBe('real');
+  });
+
+  it('⚠️ cualquier otra cosa deja el censo como está: sin filtro, todo el namespace', () => {
+    for (const raw of [null, undefined, '', 'todos', 'corpus', 'true', '1', 'reales']) {
+      expect(poblacionPedida(raw), `"${raw}" cambió la población`).toBe('todos');
+    }
   });
 });

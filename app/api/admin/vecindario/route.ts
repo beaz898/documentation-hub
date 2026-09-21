@@ -8,6 +8,7 @@ import {
   fetchVectors,
   queryVectors,
   parseVectorId,
+  buildCorpusFilter,
 } from '@/lib/pinecone/vectors';
 import { TOP_K_POR_CONSULTA } from '@/lib/analysis/retrieval';
 import { runInBatches } from '@/lib/run-in-batches';
@@ -18,6 +19,9 @@ import {
   resumirVecindario,
   UMBRALES_DEL_CENSO,
   distribucionDeScores,
+  topKPedido,
+  poblacionPedida,
+  TOPK_MAXIMO_DEL_SERVICIO,
   type Vecino,
   type FilaDeVecindario,
   type ContadoresDelCenso,
@@ -79,6 +83,12 @@ export async function GET(req: NextRequest) {
     const orgId = org.orgId;
 
     const soloEste = req.nextUrl.searchParams.get('documentId');
+
+    // F-113 — LOS DOS PARAMETROS DE LA MEDICION DEL SUELO. Sin ellos, el censo se
+    // comporta EXACTAMENTE como antes: el topK del pipeline y sin filtro de
+    // corpus. El parseo vive en vecindario.ts, con su caso decisivo.
+    const topK = topKPedido(req.nextUrl.searchParams.get('topK'), TOP_K_POR_CONSULTA);
+    const poblacion = poblacionPedida(req.nextUrl.searchParams.get('poblacion'));
 
     let consulta = supabase
       .from('documents')
@@ -181,13 +191,36 @@ export async function GET(req: NextRequest) {
           .map(id => registros[id])
           .filter(r => r !== undefined && Array.isArray(r.values) && r.values.length > 0);
 
+        // F-113 — EL FILTRO SÓLO EN LA BÚSQUEDA, NUNCA EN LOS VECTORES DE CONSULTA.
+        // Los de consulta se obtienen por ID: `listVectorIdsByPrefix` por prefijo
+        // (`lib/pinecone/vectors.ts:273-278`) y `fetchVectors` por id (`:230-237`),
+        // y ninguno pasa filtro de metadata. Así que `?poblacion=real` NO puede
+        // dejar a un documento sin con qué preguntar: lo que filtra es CONTRA QUÉ
+        // se pregunta.
+        //   · 'todos' — sin filtro: el censo de B.243, y el comportamiento por omisión.
+        //   · 'real'  — la población que el análisis alcanza de verdad: el filtro
+        //     IMPORTADO de vectors.ts más la exclusión del propio DENTRO de la
+        //     consulta, que es lo que devuelve los huecos del topK a los ajenos.
+        const filtroDeLaBusqueda = poblacion === 'real'
+          ? { $and: [buildCorpusFilter(), { documentId: { $ne: documentId } }] }
+          : undefined;
+
         const resultados = await runInBatches(
           vectores,
           v => queryVectors(orgId, {
             vector: v.values,
-            topK: TOP_K_POR_CONSULTA,
+            topK: topK.valor,
             includeMetadata: true,
-            // SIN `filter`: ver la cabecera. Con CORPUS_ACTIVO esto daría ceros.
+            ...(filtroDeLaBusqueda ? { filter: filtroDeLaBusqueda } : {}),
+          // ⚠️ UNA CONSULTA QUE FALLA NO ES UN VECINDARIO VACÍO. Con un topK alto
+          // el motivo más probable es el tope de 4MB por respuesta del servicio.
+          // Se CUENTA y el censo se marca incompleto: devolver lista vacía sin
+          // contarlo sería fabricar el cero que esta medición viene a comprobar.
+          }).catch((err: unknown) => {
+            contadores.consultas_fallidas += 1;
+            const motivo = err instanceof Error ? err.message : String(err);
+            console.warn(`[vecindario] CONSULTA FALLIDA | org=${orgId} | doc=${documentId} | topK=${topK.valor} | ${motivo}`);
+            return [];
           }),
           { batchSize: LOTE_DE_CONSULTAS },
         );
@@ -236,6 +269,9 @@ export async function GET(req: NextRequest) {
     if (contadores.fragmentos_de_generacion_muerta > 0) {
       console.warn(`[vecindario] GENERACIONES MUERTAS en el índice | org=${orgId} | fragmentos=${contadores.fragmentos_de_generacion_muerta}`);
     }
+    if (contadores.consultas_fallidas > 0) {
+      console.warn(`[vecindario] CENSO CON HUECOS | org=${orgId} | consultas_fallidas=${contadores.consultas_fallidas} de ${contadores.consultas_realizadas}`);
+    }
     if (contadores.consultas_omitidas_por_tope > 0) {
       console.warn(`[vecindario] CENSO TRUNCADO | org=${orgId} | omitidas=${contadores.consultas_omitidas_por_tope} de tope ${MAX_CONSULTAS}`);
     }
@@ -244,11 +280,25 @@ export async function GET(req: NextRequest) {
       documentos: filas.length,
       umbrales: UMBRALES_DEL_CENSO,
       topK: TOP_K_POR_CONSULTA,
+      // F-113 — CON QUÉ SE MIDIÓ, en la respuesta y no sólo en la URL: un censo
+      // que no dice su población ni su topK no se puede releer, y el mínimo
+      // significa dos cosas distintas según el topK (el suelo real si supera al
+      // fondo, o el puesto N si no lo supera).
+      poblacion,
+      topKUsado: topK.valor,
+      /** true si el `?topK=` pedido superaba el tope del servicio y se recortó. */
+      topKAcotadoPorElServicio: topK.acotado,
+      /** true si el `?topK=` pedido no era un entero ≥ 1 y se ignoró. */
+      topKIgnorado: topK.ignorado,
+      topKMaximoDelServicio: TOPK_MAXIMO_DEL_SERVICIO,
       topeDeConsultas: MAX_CONSULTAS,
       // ⚠️ EL CENSO ESTÁ COMPLETO SI Y SOLO SI ESTO ES CERO. Va en la respuesta
       // y no sólo en el registro, porque quien lee la tabla es quien tiene que
       // saber si le falta un trozo.
-      completo: contadores.consultas_omitidas_por_tope === 0,
+      // F-113 — y también si alguna consulta FALLÓ. Una consulta que no volvió
+      // deja un hueco en la distribución, y un censo con huecos no es completo
+      // aunque no se haya truncado por tope.
+      completo: contadores.consultas_omitidas_por_tope === 0 && contadores.consultas_fallidas === 0,
       contadores,
       // B.246 — de qué clase son los pares de trozos que producen las
       // vecindades. `resumen_x_resumen` alto significa que el parecido de este
@@ -277,5 +327,6 @@ function censoVacio(): ContadoresDelCenso {
     documentos_sin_vectores: 0,
     consultas_omitidas_por_tope: 0,
     consultas_realizadas: 0,
+    consultas_fallidas: 0,
   };
 }

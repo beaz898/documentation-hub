@@ -66,6 +66,14 @@ export interface ContadoresDelCenso {
   /** Consultas efectivamente lanzadas contra Pinecone. Es el DENOMINADOR: un
    *  «0 vecinos» sólo significa algo si se sabe cuántas veces se buscó. */
   consultas_realizadas: number;
+  /**
+   * F-113 — Consultas que Pinecone RECHAZÓ o que fallaron. ⚠️ Su motivo más
+   * probable con un `topK` alto es el **tope de 4MB por respuesta** del servicio
+   * (ver `TOPK_MAXIMO_DEL_SERVICIO`). Existe para que un fallo **no se pueda leer
+   * como un cero**: una consulta que no volvió no es un vecindario vacío, y sin
+   * este contador las dos cosas serían el mismo número.
+   */
+  consultas_fallidas: number;
 }
 
 export interface FilaDeVecindario {
@@ -320,4 +328,90 @@ export function distribucionDeScores(scores: number[]): DistribucionDeScores {
     bajo_umbral_rapido: bajoRapido,
     bajo_umbral_exhaustivo: bajoExhaustivo,
   };
+}
+
+// ============================================================
+// LOS DOS PARÁMETROS DEL CENSO — medición del suelo, F-113 (21/09/2026)
+// ============================================================
+
+/**
+ * ⚠️ POR QUÉ HACE FALTA UN `topK` MAYOR QUE EL DEL PIPELINE.
+ *
+ * Con `topK = 25`, una consulta contra un fondo mayor devuelve **los 25 mejores**,
+ * así que el mínimo observado no es el suelo de la similitud: es **el puesto 25**.
+ * Medir el suelo exige `topK` por encima del tamaño del fondo — entonces la
+ * consulta devuelve el fondo entero, suelo incluido.
+ *
+ * ⚠️ Y EL TOPE NO LO PONE ESTA CASA: lo pone el servicio, y va con su fuente para
+ * que nadie lo tenga que adivinar ni volver a buscarlo.
+ *   https://docs.pinecone.io/reference/api/database-limits/operation-limits
+ *   leída el 21/09/2026: «Max top_k value | 10,000» y «Max result size | 4MB».
+ *
+ * ⚠️ LOS DOS TOPES SON DISTINTOS Y EL SEGUNDO NO SE PUEDE ACOTAR AQUÍ: un
+ * `topK` de 10.000 respeta el primero y puede reventar el segundo, porque el
+ * peso depende de la metadata que traiga cada match. Por eso el parseo acota
+ * contra el tope de `top_k` y la consulta que falla se CUENTA
+ * (`consultas_fallidas`) en vez de degradarse a cero.
+ *
+ * El SDK instalado (@pinecone-database/pinecone 4.1.0) sólo valida el mínimo
+ * —`topK` entero y mayor que 0—, así que el máximo no lo hace cumplir nadie más.
+ */
+export const TOPK_MAXIMO_DEL_SERVICIO = 10000;
+
+/** Lo que el censo va a usar, y qué pasó con lo que pidió quien llamó. */
+export interface TopKPedido {
+  /** El valor que se usará de verdad. */
+  valor: number;
+  /** Venía por encima del tope del servicio y se recortó a él. */
+  acotado: boolean;
+  /** Venía algo que no es un entero ≥ 1, y se ignoró: se usa el valor por defecto. */
+  ignorado: boolean;
+}
+
+/**
+ * Parseo del `?topK=N`. Función pura.
+ *
+ * ⚠️ FALLA HACIA EL COMPORTAMIENTO DE HOY: cualquier cosa que no sea un entero
+ * mayor o igual que 1 se IGNORA y se usa `porDefecto` —el `topK` del pipeline—,
+ * y se declara con `ignorado`. Un parámetro basura no debe cambiar la medición
+ * en silencio, y tampoco debe tumbar el censo: se dice y se sigue.
+ */
+export function topKPedido(raw: string | null | undefined, porDefecto: number): TopKPedido {
+  if (raw === null || raw === undefined || raw.trim() === '') {
+    return { valor: porDefecto, acotado: false, ignorado: false };
+  }
+  // ⚠️ SÓLO DÍGITOS, y no `Number()` a secas. `Number` acepta `10e3`, `0x10` y
+  // `+5`, que son enteros para el lenguaje y no son lo que nadie escribe en una
+  // URL queriendo un tope: `0x10` entraría como 16 sin que quien lo pidió lo
+  // supiera. «Entero» aquí significa lo que parece.
+  if (!/^\d+$/.test(raw.trim())) {
+    return { valor: porDefecto, acotado: false, ignorado: true };
+  }
+  const n = Number(raw.trim());
+  if (!Number.isInteger(n) || n < 1) {
+    return { valor: porDefecto, acotado: false, ignorado: true };
+  }
+  if (n > TOPK_MAXIMO_DEL_SERVICIO) {
+    return { valor: TOPK_MAXIMO_DEL_SERVICIO, acotado: true, ignorado: false };
+  }
+  return { valor: n, acotado: false, ignorado: false };
+}
+
+/**
+ * Qué población se consulta.
+ *   · `todos` — sin filtro de corpus: TODO el namespace. Es el censo de B.243 y
+ *     el comportamiento por omisión, que no cambia.
+ *   · `real`  — la población que el análisis puede alcanzar de verdad: el filtro
+ *     `CORPUS_ACTIVO` más la exclusión del documento propio DENTRO de la consulta.
+ */
+export type PoblacionDelCenso = 'todos' | 'real';
+
+/**
+ * Parseo del `?poblacion=`. Función pura, y **falla hacia `todos`**: cualquier
+ * valor que no sea exactamente `real` deja el censo como está hoy. Es la
+ * dirección segura — el error benigno es medir de más, no medir otra cosa sin
+ * avisar.
+ */
+export function poblacionPedida(raw: string | null | undefined): PoblacionDelCenso {
+  return (raw ?? '').trim().toLowerCase() === 'real' ? 'real' : 'todos';
 }
