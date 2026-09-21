@@ -21,10 +21,15 @@ import {
   distribucionDeScores,
   topKPedido,
   poblacionPedida,
+  tramoPedido,
+  acumularParejaDelMinimo,
+  parejaMenorDeDos,
+  muestraDeTexto,
   TOPK_MAXIMO_DEL_SERVICIO,
   type Vecino,
   type FilaDeVecindario,
   type ContadoresDelCenso,
+  type ParejaDelMinimo,
 } from '@/lib/analysis/vecindario';
 
 /**
@@ -47,6 +52,20 @@ import {
  * Parámetros:
  *   ?documentId=<uuid>  censa un solo documento (para trocear el trabajo si el
  *                       corpus no cabe en el presupuesto de tiempo).
+ *   ?topK=N             F-113. Por encima del fondo, el mínimo devuelto es el
+ *                       SUELO real; por debajo, es el puesto N. Tope del
+ *                       servicio: TOPK_MAXIMO_DEL_SERVICIO.
+ *   ?poblacion=real     F-113. Filtro de corpus + exclusión del propio DENTRO
+ *                       de la consulta: la población que el análisis alcanza.
+ *   ?desde=N&cuantos=M  F-114. Un TRAMO de la lista de documentos, ordenada por
+ *                       id. Para partir la matriz completa cuando no cabe en
+ *                       `maxDuration`. Los histogramas se suman, los mínimos se
+ *                       toman por el menor y los percentiles se RECALCULAN del
+ *                       histograma sumado — nunca se promedian.
+ *
+ * ⚠️ NINGUNO DE LOS CUATRO CAMBIA EL COMPORTAMIENTO POR OMISIÓN, y todos se
+ * declaran en la respuesta: un censo que no dice con qué topK, qué población y
+ * qué tramo se midió no se puede releer ni combinar.
  */
 
 export const maxDuration = 300;
@@ -90,10 +109,15 @@ export async function GET(req: NextRequest) {
     const topK = topKPedido(req.nextUrl.searchParams.get('topK'), TOP_K_POR_CONSULTA);
     const poblacion = poblacionPedida(req.nextUrl.searchParams.get('poblacion'));
 
+    // F-114 — ORDEN ESTABLE, Y NO ES COSMETICO: los tramos (?desde=&cuantos=) solo
+    // son una particion si la lista no cambia entre dos llamadas. Sin `order`,
+    // Postgres no garantiza el orden, y «0-10» mas «10-20» podrian solaparse y
+    // dejar huecos sin que nadie lo notara.
     let consulta = supabase
       .from('documents')
       .select('id, name, analysis_status, active_generation')
-      .eq('org_id', orgId);
+      .eq('org_id', orgId)
+      .order('id');
     if (soloEste) consulta = consulta.eq('id', soloEste);
 
     const { data: documentos, error: errDocs } = await consulta;
@@ -134,13 +158,26 @@ export async function GET(req: NextRequest) {
       activas.set(f.id as string, (f.active_generation as number | null) ?? 1);
     }
 
+    // F-114 — el TRAMO. Se calcula con la lista ya leida, porque su tope depende
+    // de cuantos documentos hay. Sin parametros, es la pasada entera de siempre.
+    const tramo = tramoPedido(
+      req.nextUrl.searchParams.get('desde'),
+      req.nextUrl.searchParams.get('cuantos'),
+      documentos.length,
+    );
+    const delTramo = documentos.slice(tramo.desde, tramo.desde + tramo.cuantos);
+
     const contadores = censoVacio();
     const filas: FilaDeVecindario[] = [];
+    // F-114 — la pareja del minimo del CORPUS. Se acumula en streaming: guardar
+    // las 680x680 observaciones para ordenarlas al final serian cientos de megas
+    // de texto en memoria dentro de una funcion de Vercel.
+    let parejaDelCorpus: ParejaDelMinimo | null = null;
     // F-111 — el agregado del corpus. Va aparte y no se deriva sumando las filas:
     // los percentiles de una union no son la union de los percentiles.
     const scoresDelCorpus: number[] = [];
 
-    for (const doc of documentos) {
+    for (const doc of delTramo) {
       const documentId = doc.id as string;
       const documentName = (doc.name as string | null) ?? documentId;
 
@@ -168,6 +205,8 @@ export async function GET(req: NextRequest) {
           // Sin vectores no hay fragmentos que distribuir: n=0 y los extremos
           // AUSENTES, que no es lo mismo que cero.
           distribucion: distribucionDeScores([]),
+          // Sin vectores no hubo ni una observacion: AUSENTE, no una pareja vacia.
+          parejaDelMinimo: null,
         });
         continue;
       }
@@ -183,6 +222,8 @@ export async function GET(req: NextRequest) {
       // fragmento (`retrieval.ts:498`) y ése es el operando que nadie había
       // medido. Cero consultas extra: los scores ya vienen en estas respuestas.
       const scoresDelDocumento: number[] = [];
+      // F-114 — la pareja del mínimo DE ESTE DOCUMENTO, por el mismo pliegue.
+      let parejaDelDocumento: ParejaDelMinimo | null = null;
 
       for (let i = 0; i < aConsultar.length; i += LOTE_DE_FETCH) {
         const trozo = aConsultar.slice(i, i + LOTE_DE_FETCH);
@@ -234,7 +275,33 @@ export async function GET(req: NextRequest) {
         resultados.forEach((matches, idx) => {
           const { contables, deGeneracionMuerta } = matchesContables(matches, documentId, activas);
           contadores.fragmentos_de_generacion_muerta += deGeneracionMuerta;
-          for (const c of contables) scoresDelDocumento.push(c.score);
+          // F-114 — LA PAREJA DEL MÍNIMO. Los dos lados salen de datos que ya
+          // están en la mano: el vector de consulta se bajó con `fetchVectors`
+          // (lleva su id y su metadata) y el devuelto viene en el match. No
+          // cuesta ni una consulta más, y es lo que convierte «el suelo es
+          // 0,696» en un caso que se puede abrir y sembrar.
+          const propio = vectores[idx];
+          const ladoConsulta = {
+            vectorId: propio.id,
+            documentId,
+            documentName,
+            chunkIndex: typeof propio.metadata?.chunkIndex === 'number' ? propio.metadata.chunkIndex : null,
+            texto: muestraDeTexto(propio.metadata?.text ?? ''),
+          };
+          for (const c of contables) {
+            scoresDelDocumento.push(c.score);
+            parejaDelDocumento = acumularParejaDelMinimo(parejaDelDocumento, {
+              score: c.score,
+              consulta: ladoConsulta,
+              devuelto: {
+                vectorId: c.vectorId,
+                documentId: c.documentId,
+                documentName: c.documentName,
+                chunkIndex: c.chunkIndex,
+                texto: muestraDeTexto(c.texto),
+              },
+            });
+          }
           acumularVecinos(mejores, contables, vectores[idx].metadata?.text ?? '');
         });
       }
@@ -247,8 +314,10 @@ export async function GET(req: NextRequest) {
         consultas: aConsultar.length,
         ...resumen,
         distribucion: distribucionDeScores(scoresDelDocumento),
+        parejaDelMinimo: parejaDelDocumento,
       });
       for (const sc of scoresDelDocumento) scoresDelCorpus.push(sc);
+      parejaDelCorpus = parejaMenorDeDos(parejaDelCorpus, parejaDelDocumento);
     }
 
     filas.sort((a, b) => b.vecinos_045 - a.vecinos_045 || b.vecinos - a.vecinos);
@@ -312,6 +381,21 @@ export async function GET(req: NextRequest) {
       // de los percentiles. Es el número que faltaba — el suelo de ~0,79 del que
       // se habla es del MÁXIMO por documento (`scoreMax`), no de esto.
       distribucionDelCorpus: distribucionDeScores(scoresDelCorpus),
+      // ⚠️ F-114 — QUE DOS FRAGMENTOS DAN EL MINIMO. Un suelo sin su pareja es una
+      // cifra que no se puede examinar ni sembrar. `chunkIndex` viaja porque
+      // `chunkType` NO esta en la metadata de Pinecone: se busca en
+      // `document_chunks` con el documentId y ese indice.
+      parejaDelMinimoDelCorpus: parejaDelCorpus,
+      // ⚠️ EL TRAMO, declarado: sin esto no se sabe si la respuesta es la matriz
+      // entera o un trozo, y dos trozos se combinarian mal en silencio.
+      tramo: {
+        desde: tramo.desde,
+        cuantos: tramo.cuantos,
+        aplicado: tramo.aplicado,
+        ignorado: tramo.ignorado,
+        documentos_en_la_organizacion: documentos.length,
+        orden: 'id ascendente',
+      },
       filas,
     });
   } catch (error: unknown) {

@@ -8,7 +8,14 @@ import {
   topKPedido,
   poblacionPedida,
   TOPK_MAXIMO_DEL_SERVICIO,
+  parejaDelMinimo,
+  tramoPedido,
+  acumularParejaDelMinimo,
+  parejaMenorDeDos,
+  muestraDeTexto,
+  CARACTERES_DE_MUESTRA,
   type Vecino,
+  type ObservacionDeScore,
 } from './vecindario';
 import { SCORE_THRESHOLD_QUICK, SCORE_THRESHOLD_EXHAUSTIVE } from './retrieval';
 import { pasaElUmbral } from './umbral-de-recuperacion';
@@ -91,15 +98,15 @@ describe('matchesContables — qué entra en el censo', () => {
 describe('acumularVecinos — un vecino se cuenta una vez, con su mejor parecido', () => {
   it('se queda con el score MAXIMO, no con el ultimo', () => {
     const mejores = new Map<string, Vecino>();
-    acumularVecinos(mejores, [{ documentId: 'a', documentName: 'A', score: 0.91, texto: 'prosa' }], 'prosa');
-    acumularVecinos(mejores, [{ documentId: 'a', documentName: 'A', score: 0.62, texto: 'prosa' }], 'prosa');
+    acumularVecinos(mejores, [{ documentId: 'a', documentName: 'A', score: 0.91, texto: 'prosa', vectorId: 'a-1-0', chunkIndex: 0 }], 'prosa');
+    acumularVecinos(mejores, [{ documentId: 'a', documentName: 'A', score: 0.62, texto: 'prosa', vectorId: 'a-1-1', chunkIndex: 1 }], 'prosa');
     expect(mejores.get('a')!.scoreMax).toBeCloseTo(0.91);
   });
 
   it('ocho trozos que encuentran al mismo vecino son UN vecino', () => {
     const mejores = new Map<string, Vecino>();
     for (let i = 0; i < 8; i++) {
-      acumularVecinos(mejores, [{ documentId: 'a', documentName: 'A', score: 0.5 + i / 100, texto: 'prosa' }], 'prosa');
+      acumularVecinos(mejores, [{ documentId: 'a', documentName: 'A', score: 0.5 + i / 100, texto: 'prosa', vectorId: `a-1-${i}`, chunkIndex: i }], 'prosa');
     }
     expect(mejores.size).toBe(1);
     expect(mejores.get('a')!.scoreMax).toBeCloseTo(0.57);
@@ -278,7 +285,7 @@ describe('el reparto por clase llega hasta el resumen', () => {
     const mejores = new Map<string, Vecino>();
     acumularVecinos(
       mejores,
-      [{ documentId: 'v', documentName: 'V', score: 0.97, texto: RESUMEN_GUARDIAS }],
+      [{ documentId: 'v', documentName: 'V', score: 0.97, texto: RESUMEN_GUARDIAS, vectorId: 'v-1-0', chunkIndex: 0 }],
       RESUMEN_TARIFAS,
     );
     expect(mejores.get('v')!.clasePar).toBe('resumen_x_resumen');
@@ -290,7 +297,7 @@ describe('el reparto por clase llega hasta el resumen', () => {
     const mejores = new Map<string, Vecino>();
     acumularVecinos(
       mejores,
-      [{ documentId: 'v', documentName: 'V', score: 0.8, texto: PROSA }],
+      [{ documentId: 'v', documentName: 'V', score: 0.8, texto: PROSA, vectorId: 'v-1-0', chunkIndex: 0 }],
       RESUMEN_TARIFAS,
     );
     expect(mejores.get('v')!.clasePar).toBe('resumen_x_otro');
@@ -485,5 +492,142 @@ describe('poblacionPedida — falla hacia el censo de hoy', () => {
     for (const raw of [null, undefined, '', 'todos', 'corpus', 'true', '1', 'reales']) {
       expect(poblacionPedida(raw), `"${raw}" cambió la población`).toBe('todos');
     }
+  });
+});
+
+/**
+ * ⚠️ LA PAREJA DEL MÍNIMO — F-114.
+ *
+ * Un suelo de 0,696 sin su pareja es una cifra que no se puede examinar ni
+ * sembrar. Estos casos vigilan las dos cosas que decide la función: que gana la
+ * de MENOR score, y que un empate se DECLARA en vez de convertir una
+ * coincidencia en un hecho.
+ */
+function lado(vectorId: string, documentId: string, texto: string, chunkIndex: number | null = 0) {
+  return { vectorId, documentId, documentName: documentId.toUpperCase(), chunkIndex, texto };
+}
+function obs(score: number, a: string, b: string): ObservacionDeScore {
+  return { score, consulta: lado(`${a}-1-0`, a, `texto de ${a}`), devuelto: lado(`${b}-1-0`, b, `texto de ${b}`) };
+}
+
+describe('parejaDelMinimo — gana la menor, y el empate se dice', () => {
+  it('sin observaciones no hay pareja: null, no un cero', () => {
+    expect(parejaDelMinimo([])).toBeNull();
+    expect(acumularParejaDelMinimo(null, obs(NaN, 'a', 'b'))).toBeNull();
+  });
+
+  /** ⚠️ CASO DECISIVO: con varias parejas gana la de menor score, y no la
+   *  primera ni la última. Mover el `<` a `<=` o el orden del recorrido cambia
+   *  el resultado de las tres aserciones. */
+  it('⚠️ con varias parejas gana la de MENOR score, venga en cualquier posición', () => {
+    const p = parejaDelMinimo([obs(0.91, 'a', 'b'), obs(0.696, 'new12', 'ope11'), obs(0.83, 'c', 'd')]);
+    expect(p!.score).toBeCloseTo(0.696);
+    expect(p!.consulta.documentId).toBe('new12');
+    expect(p!.devuelto.documentId).toBe('ope11');
+    expect(p!.empate).toBe(false);
+    expect(p!.empatados).toBe(1);
+
+    // Y si la menor viene primera, el resultado es el mismo.
+    const q = parejaDelMinimo([obs(0.696, 'new12', 'ope11'), obs(0.91, 'a', 'b')]);
+    expect(q!.consulta.documentId).toBe('new12');
+  });
+
+  it('⚠️ un empate se DECLARA, y se conserva la PRIMERA', () => {
+    const p = parejaDelMinimo([obs(0.7, 'x', 'y'), obs(0.7, 'z', 'w'), obs(0.9, 'a', 'b')]);
+    expect(p!.score).toBeCloseTo(0.7);
+    expect(p!.empate).toBe(true);
+    expect(p!.empatados).toBe(2);
+    // La primera es la que queda: quedarse con una y callar convertiría una
+    // coincidencia en un hecho.
+    expect(p!.consulta.documentId).toBe('x');
+  });
+
+  it('una sola observación no es un empate', () => {
+    const p = parejaDelMinimo([obs(0.5, 'a', 'b')]);
+    expect(p!.empate).toBe(false);
+    expect(p!.empatados).toBe(1);
+  });
+
+  it('el acumulador no muta lo que recibe: es puro', () => {
+    const primera = parejaDelMinimo([obs(0.8, 'a', 'b')])!;
+    const copia = { ...primera };
+    acumularParejaDelMinimo(primera, obs(0.4, 'c', 'd'));
+    expect(primera).toEqual(copia);
+  });
+
+  it('⚠️ dos TRAMOS se combinan por la menor, y los empates se suman', () => {
+    const tramo1 = parejaDelMinimo([obs(0.72, 'a', 'b')]);
+    const tramo2 = parejaDelMinimo([obs(0.696, 'new12', 'ope11')]);
+    expect(parejaMenorDeDos(tramo1, tramo2)!.consulta.documentId).toBe('new12');
+    expect(parejaMenorDeDos(tramo2, tramo1)!.consulta.documentId).toBe('new12');
+    expect(parejaMenorDeDos(null, tramo2)).toBe(tramo2);
+    expect(parejaMenorDeDos(tramo1, null)).toBe(tramo1);
+
+    // Mismo score en dos tramos: son observaciones distintas, así que empatan.
+    const a = parejaDelMinimo([obs(0.7, 'x', 'y')]);
+    const b = parejaDelMinimo([obs(0.7, 'z', 'w')]);
+    const combinado = parejaMenorDeDos(a, b)!;
+    expect(combinado.empate).toBe(true);
+    expect(combinado.empatados).toBe(2);
+  });
+
+  it('la muestra se recorta a 120 caracteres, en un solo sitio', () => {
+    expect(CARACTERES_DE_MUESTRA).toBe(120);
+    const largo = 'x'.repeat(500);
+    expect(muestraDeTexto(largo)).toHaveLength(120);
+    expect(muestraDeTexto('corto')).toBe('corto');
+  });
+});
+
+/**
+ * ⚠️ EL TRAMO — F-114. La matriz completa puede no caber en los 300 s de
+ * `maxDuration`, así que se puede partir. Estos casos vigilan que la partición
+ * sea una partición: sin solapes, sin huecos, y fallando hacia la pasada entera.
+ */
+describe('tramoPedido — partir la matriz sin solapes ni huecos', () => {
+  const TOTAL = 41;
+
+  it('sin parámetros es la pasada ENTERA, y no se declara tramo', () => {
+    expect(tramoPedido(null, null, TOTAL)).toEqual({ desde: 0, cuantos: 41, aplicado: false, ignorado: false });
+    expect(tramoPedido('', '   ', TOTAL).aplicado).toBe(false);
+  });
+
+  it('⚠️ dos tramos consecutivos son una PARTICIÓN: ni se solapan ni dejan hueco', () => {
+    const a = tramoPedido('0', '10', TOTAL);
+    const b = tramoPedido('10', '10', TOTAL);
+    expect(a).toEqual({ desde: 0, cuantos: 10, aplicado: true, ignorado: false });
+    expect(b).toEqual({ desde: 10, cuantos: 10, aplicado: true, ignorado: false });
+    // El primero cubre [0,10) y el segundo [10,20): el borde no se repite.
+    expect(a.desde + a.cuantos).toBe(b.desde);
+  });
+
+  it('⚠️ el último tramo se RECORTA al total: no se piden documentos que no existen', () => {
+    expect(tramoPedido('40', '10', TOTAL)).toEqual({ desde: 40, cuantos: 1, aplicado: true, ignorado: false });
+    expect(tramoPedido('41', '10', TOTAL).cuantos).toBe(0);
+    expect(tramoPedido('500', '10', TOTAL)).toEqual({ desde: 41, cuantos: 0, aplicado: true, ignorado: false });
+  });
+
+  it('sólo `desde` va hasta el final; sólo `cuantos` empieza en 0', () => {
+    expect(tramoPedido('30', null, TOTAL)).toEqual({ desde: 30, cuantos: 11, aplicado: true, ignorado: false });
+    expect(tramoPedido(null, '5', TOTAL)).toEqual({ desde: 0, cuantos: 5, aplicado: true, ignorado: false });
+  });
+
+  it('⚠️ un parámetro mal escrito NO parte a medias: se ignora y se declara', () => {
+    for (const [d, c] of [['abc', '10'], ['0', 'x'], ['-1', '10'], ['0', '0'], ['1.5', '2'], ['0x10', '1']]) {
+      const t = tramoPedido(d, c, TOTAL);
+      expect(t.ignorado, `desde=${d} cuantos=${c} no se ignoró`).toBe(true);
+      expect(t.aplicado).toBe(false);
+      // Y falla hacia la pasada entera, que es la medición correcta aunque tarde.
+      expect(t.desde).toBe(0);
+      expect(t.cuantos).toBe(TOTAL);
+    }
+  });
+
+  it('los tramos cubren el total exactamente, recorriéndolos en bucle', () => {
+    let cubiertos = 0;
+    for (let desde = 0; desde < TOTAL; desde += 10) {
+      cubiertos += tramoPedido(String(desde), '10', TOTAL).cuantos;
+    }
+    expect(cubiertos).toBe(TOTAL);
   });
 });

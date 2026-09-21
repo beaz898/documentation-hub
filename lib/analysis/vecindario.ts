@@ -97,6 +97,10 @@ export interface FilaDeVecindario {
   /** F-111 — la distribución de los scores POR FRAGMENTO de este documento, que
    *  es el operando que el umbral juzga de verdad. Ver `distribucionDeScores`. */
   distribucion: DistribucionDeScores;
+  /** F-114 — qué dos fragmentos produjeron el mínimo de este documento.
+   *  `null` cuando no hubo ni una observación (documento sin vectores): ausente
+   *  y «pareja vacía» no significan lo mismo. Ver `parejaDelMinimo`. */
+  parejaDelMinimo: ParejaDelMinimo | null;
 }
 
 /** Forma mínima que el censo necesita de un match para poder contarlo. */
@@ -105,6 +109,11 @@ interface MatchContable {
   documentName: string;
   generation?: number;
   score: number;
+  /** F-114 — el id del vector devuelto y su indice de trozo, para poder nombrar
+   *  la PAREJA DEL MINIMO. Los dos ya venian en la respuesta: nombrarlos no
+   *  cuesta ni una consulta mas. */
+  vectorId: string;
+  chunkIndex: number | null;
   /** El texto del trozo que casó. Ya viaja en la metadata, así que saberlo no
    *  cuesta ni una consulta más. */
   texto: string;
@@ -134,6 +143,8 @@ export function matchesContables(
       generation: meta.generation,
       score: m.score,
       texto: typeof meta.text === 'string' ? meta.text : '',
+      vectorId: m.id,
+      chunkIndex: typeof meta.chunkIndex === 'number' ? meta.chunkIndex : null,
     });
   }
   // La MISMA función que usa el retrieval. No se recalcula el criterio.
@@ -414,4 +425,171 @@ export type PoblacionDelCenso = 'todos' | 'real';
  */
 export function poblacionPedida(raw: string | null | undefined): PoblacionDelCenso {
   return (raw ?? '').trim().toLowerCase() === 'real' ? 'real' : 'todos';
+}
+
+// ============================================================
+// LA PAREJA DEL MÍNIMO — F-114 (21/09/2026)
+// ============================================================
+
+/**
+ * ⚠️ QUÉ PREGUNTA CONTESTA, Y POR QUÉ NO BASTA EL NÚMERO. El censo dice que el
+ * suelo de la similitud por fragmento es 0,696. Un número solo no se puede
+ * examinar: Fable pide saber **qué dos fragmentos** lo producen y de qué especie
+ * son —muy corto, tabla numérica, otro idioma— porque eso es el CASO ADVERSO
+ * CONSTRUIBLE que las siembras futuras necesitan. Un mínimo sin su pareja es una
+ * cifra que no se puede reproducir ni sembrar.
+ *
+ * ⚠️ SE ACUMULA EN STREAMING, y no es una preferencia de estilo: la matriz
+ * completa son 680 × 680 observaciones. Guardarlas todas para ordenarlas al
+ * final serían cientos de megas de texto en memoria dentro de una función de
+ * Vercel. `acumularParejaDelMinimo` conserva UNA y cuenta los empates, así que
+ * el coste en memoria es constante.
+ *
+ * ⚠️ `chunkType` NO VIAJA EN LA METADATA DE PINECONE. `VectorMetadata`
+ * (`lib/pinecone/types.ts:2-20`) lleva `text`, `documentId`, `documentName`,
+ * `chunkIndex`, `totalChunks`, `orgId` y tres opcionales — no el tipo de trozo.
+ * Vive en `document_chunks.chunk_type`, en Supabase. Aquí se devuelve el
+ * `chunkIndex`, que SÍ está, y con él se puede buscar el tipo en la base sin
+ * añadir una lectura por cada pareja. Se dice en vez de devolver el campo vacío.
+ */
+
+/** Un lado de la pareja: de dónde sale el fragmento y qué dice. */
+export interface LadoDeLaPareja {
+  /** El id del vector, tal como Pinecone lo tiene. */
+  vectorId: string;
+  documentId: string;
+  documentName: string;
+  /** El índice del trozo dentro de su documento. Con él y el documentId se
+   *  encuentra su `chunk_type` en `document_chunks`. */
+  chunkIndex: number | null;
+  /** Los 120 primeros caracteres. Recortado a propósito: es una MUESTRA para
+   *  reconocer la especie del fragmento, no una copia de su contenido. */
+  texto: string;
+}
+
+/** Una observación suelta: un score con sus dos lados. */
+export interface ObservacionDeScore {
+  score: number;
+  consulta: LadoDeLaPareja;
+  devuelto: LadoDeLaPareja;
+}
+
+/** La pareja que produjo el mínimo, con el empate declarado. */
+export interface ParejaDelMinimo {
+  score: number;
+  /** ⚠️ SE DECLARA: si dos parejas distintas dan el mismo score mínimo, quedarse
+   *  con una y callar convertiría una coincidencia en un hecho. Se conserva la
+   *  PRIMERA y se dice cuántas hubo. */
+  empate: boolean;
+  /** Cuántas observaciones tienen exactamente ese score, contando la conservada. */
+  empatados: number;
+  consulta: LadoDeLaPareja;
+  devuelto: LadoDeLaPareja;
+}
+
+/** Los 120 primeros caracteres, para las dos muestras. Un solo sitio. */
+export const CARACTERES_DE_MUESTRA = 120;
+
+export function muestraDeTexto(texto: string): string {
+  return texto.slice(0, CARACTERES_DE_MUESTRA);
+}
+
+/**
+ * El acumulador: conserva la pareja de menor score y cuenta los empates.
+ * Función pura — no muta el acumulador que recibe.
+ */
+export function acumularParejaDelMinimo(
+  acumulado: ParejaDelMinimo | null,
+  obs: ObservacionDeScore,
+): ParejaDelMinimo | null {
+  if (!Number.isFinite(obs.score)) return acumulado;
+  if (acumulado === null || obs.score < acumulado.score) {
+    return { score: obs.score, empate: false, empatados: 1, consulta: obs.consulta, devuelto: obs.devuelto };
+  }
+  if (obs.score === acumulado.score) {
+    // La PRIMERA se conserva; sólo sube el recuento y se enciende la bandera.
+    return { ...acumulado, empate: true, empatados: acumulado.empatados + 1 };
+  }
+  return acumulado;
+}
+
+/** La misma decisión sobre una lista ya reunida. Es el pliegue de arriba. */
+export function parejaDelMinimo(observaciones: Iterable<ObservacionDeScore>): ParejaDelMinimo | null {
+  let acc: ParejaDelMinimo | null = null;
+  for (const obs of observaciones) acc = acumularParejaDelMinimo(acc, obs);
+  return acc;
+}
+
+/**
+ * Combina las parejas mínimas de dos TRAMOS de la misma medición. Gana la menor;
+ * con el mismo score se suman los empates, porque son observaciones distintas.
+ */
+export function parejaMenorDeDos(
+  a: ParejaDelMinimo | null,
+  b: ParejaDelMinimo | null,
+): ParejaDelMinimo | null {
+  if (a === null) return b;
+  if (b === null) return a;
+  if (b.score < a.score) return b;
+  if (a.score < b.score) return a;
+  return { ...a, empate: true, empatados: a.empatados + b.empatados };
+}
+
+// ============================================================
+// EL TRAMO — partir la matriz completa, F-114 (21/09/2026)
+// ============================================================
+
+/**
+ * ⚠️ POR QUÉ HACE FALTA PARTIRLA, Y ES UNA COTA, NO UNA ESTIMACIÓN.
+ *
+ * La matriz completa son ~680 consultas con `topK=1000`. La única referencia que
+ * hay es que **80 consultas con topK=1000 terminaron** dentro de los 300 s de
+ * `maxDuration`. Eso da una COTA SUPERIOR de 3,75 s por consulta y **ningún
+ * límite inferior**: con ese techo, 680 consultas podrían tardar hasta 2.550 s.
+ * No se puede afirmar que caben, así que la medición se parte.
+ *
+ * ⚠️ Y EL ORDEN DE LOS DOCUMENTOS TIENE QUE SER ESTABLE, o los tramos se solapan
+ * y se dejan huecos sin que nadie lo note: la consulta a Supabase ordena por
+ * `id` explícitamente. Sin `order`, Postgres no garantiza el orden entre dos
+ * llamadas, y «tramo 0-10» más «tramo 10-20» no serían una partición.
+ *
+ * LO QUE SE COMBINA A MANO, y por eso la respuesta lo declara: los histogramas
+ * se SUMAN cubo a cubo, los mínimos se toman por el MENOR, las `n` se suman, y
+ * la pareja del mínimo se elige con `parejaMenorDeDos`. Los percentiles NO se
+ * pueden combinar: se recalculan del histograma sumado.
+ */
+export interface TramoPedido {
+  /** Índice del primer documento del tramo, contando desde 0. */
+  desde: number;
+  /** Cuántos documentos procesa este tramo. */
+  cuantos: number;
+  /** true si quien llamó pidió un tramo; false si es la pasada entera. */
+  aplicado: boolean;
+  /** true si algún parámetro venía mal escrito y se ignoró. */
+  ignorado: boolean;
+}
+
+/** Parseo del `?desde=N&cuantos=M`. Función pura, y falla hacia la pasada entera. */
+export function tramoPedido(
+  rawDesde: string | null | undefined,
+  rawCuantos: string | null | undefined,
+  totalDeDocumentos: number,
+): TramoPedido {
+  const entero = (raw: string | null | undefined): number | null => {
+    if (raw === null || raw === undefined || raw.trim() === '') return null;
+    if (!/^\d+$/.test(raw.trim())) return NaN;
+    return Number(raw.trim());
+  };
+  const d = entero(rawDesde);
+  const c = entero(rawCuantos);
+  const malo = Number.isNaN(d) || Number.isNaN(c) || (c !== null && c < 1);
+  if (malo) {
+    return { desde: 0, cuantos: totalDeDocumentos, aplicado: false, ignorado: true };
+  }
+  if (d === null && c === null) {
+    return { desde: 0, cuantos: totalDeDocumentos, aplicado: false, ignorado: false };
+  }
+  const desde = Math.min(d ?? 0, totalDeDocumentos);
+  const cuantos = Math.min(c ?? totalDeDocumentos, Math.max(0, totalDeDocumentos - desde));
+  return { desde, cuantos, aplicado: true, ignorado: false };
 }
