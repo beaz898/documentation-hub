@@ -263,6 +263,43 @@ export async function updateVectorMetadata(
   await ns.update({ id, metadata: metadata as unknown as RecordMetadata });
 }
 
+/**
+ * CUÁNTOS VECTORES TIENE EL NAMESPACE DE UNA ORGANIZACIÓN, contados por Pinecone.
+ *
+ * ⚠️ POR QUÉ HACE FALTA, Y NO ES LO MISMO QUE UNA CONSULTA. Las herramientas de
+ * diagnóstico de esta casa cuentan vectores de dos maneras, y las dos pueden
+ * quedarse cortas: `cleanup-orphans` lanza una consulta de SIMILITUD con un
+ * vector ficticio y `topK: 10000` —el número que devuelve es «cuántos encontró»,
+ * no «cuántos hay»—, y `listVectorIdsByPrefix` es exhaustivo pero **sólo dentro
+ * de un documento**, así que sumarlo sobre las filas de la base no puede ver un
+ * vector cuyo documento ya no tiene fila.
+ *
+ * `describeIndexStats` no busca: **cuenta**. Es la única cifra del índice que no
+ * depende del parecido ni de la base, y por tanto la única con la que se puede
+ * comparar el total documentado y ver si sobra alguno.
+ *
+ * Devuelve `null` si el namespace **no aparece** en las estadísticas. Ausente no
+ * es cero: un namespace vacío y un namespace que el servicio no reportó son
+ * cosas distintas, y quien lea el dato tiene que poder distinguirlas.
+ *
+ * LECTURA PURA, así que reintentar es inocuo — mismo criterio que `queryVectors`.
+ */
+export async function contarVectoresDelNamespace(
+  orgId: string,
+): Promise<{ delNamespace: number | null; delIndiceEntero: number | null; dimension: number | null }> {
+  const stats = await conReintento(
+    () => getIndex().describeIndexStats(),
+    { ms: 0 },
+    'describeIndexStats',
+  );
+  const resumen = stats.namespaces?.[orgId];
+  return {
+    delNamespace: resumen ? resumen.recordCount : null,
+    delIndiceEntero: stats.totalRecordCount ?? null,
+    dimension: stats.dimension ?? null,
+  };
+}
+
 /** Lista TODOS los IDs de vectores de un documento en el namespace de la org,
  *  paginando hasta agotar resultados. El prefijo lleva el guion final
  *  (`${documentId}-`) a propósito: sin él, un documentId que fuera prefijo textual
