@@ -4,8 +4,11 @@ import {
   acumularVecinos,
   resumirVecindario,
   UMBRALES_DEL_CENSO,
+  distribucionDeScores,
   type Vecino,
 } from './vecindario';
+import { SCORE_THRESHOLD_QUICK, SCORE_THRESHOLD_EXHAUSTIVE } from './retrieval';
+import { pasaElUmbral } from './umbral-de-recuperacion';
 import type { VectorMatch } from '@/lib/pinecone/types';
 import { clasificarTrozo, clasificarPar, reparteVacio } from './clase-de-trozo';
 
@@ -310,5 +313,99 @@ describe('el reconocedor no se puede aflojar — lo cazo una mutacion supervivie
     expect(clasificarTrozo('Tabla con 60 filas.')).toBe('prosa');
     expect(clasificarTrozo('Tabla con 60 filas y 7 columnas.')).toBe('prosa');
     expect(clasificarTrozo('Tabla con 60 filas y 7 columnas. Columnas: A, B.')).toBe('resumen_tabla');
+  });
+});
+
+/**
+ * ⚠️ EL TERMÓMETRO DEL OPERANDO REAL — medición F-111.
+ *
+ * El resto de este fichero prueba el censo por DOCUMENTO (el máximo). Esto
+ * prueba lo otro: la distribución por FRAGMENTO, que es lo que el umbral de
+ * `retrieval.ts:498` compara y lo que nunca se había medido.
+ */
+describe('distribucionDeScores — el rango del operando que el umbral juzga', () => {
+  it('sin fragmentos, el mínimo es AUSENTE y no cero: son cosas distintas', () => {
+    const d = distribucionDeScores([]);
+    expect(d.n).toBe(0);
+    expect(d.minimo).toBeNull();
+    expect(d.maximo).toBeNull();
+    expect(d.p1).toBeNull();
+    expect(d.p50).toBeNull();
+    expect(d.histograma).toHaveLength(20);
+    expect(d.histograma.every(c => c === 0)).toBe(true);
+    expect(d.bajo_umbral_rapido).toBe(0);
+  });
+
+  it('n, mínimo, máximo y el histograma reparten cada score en su cubo de 0,05', () => {
+    const d = distribucionDeScores([0.02, 0.33, 0.34, 0.79, 1.0]);
+    expect(d.n).toBe(5);
+    expect(d.minimo).toBe(0.02);
+    expect(d.maximo).toBe(1.0);
+    expect(d.histograma[0]).toBe(1);   // [0,00 · 0,05)
+    expect(d.histograma[6]).toBe(2);   // [0,30 · 0,35)
+    expect(d.histograma[15]).toBe(1);  // [0,75 · 0,80)
+    // ⚠️ El 1,00 EXACTO no se sale de la escala: cae en el último cubo.
+    expect(d.histograma[19]).toBe(1);
+    expect(d.histograma.reduce((a, b) => a + b, 0)).toBe(d.n);
+  });
+
+  it('los percentiles son el borde inferior del cubo donde cae la acumulada', () => {
+    // 100 fragmentos: uno en [0,10·0,15) y noventa y nueve en [0,90·0,95).
+    const scores = [0.12, ...Array.from({ length: 99 }, () => 0.93)];
+    const d = distribucionDeScores(scores);
+    expect(d.n).toBe(100);
+    expect(d.p1).toBe(0.1);   // el primer elemento ya está en ese cubo
+    expect(d.p5).toBe(0.9);   // el 5.º ya está arriba
+    expect(d.p50).toBe(0.9);
+  });
+
+  /**
+   * ⚠️ CASO DECISIVO. Los dos scores están ENTRE los dos umbrales (0,45 y 0,50),
+   * así que cada recuento sale distinto — y mover CUALQUIERA de las dos
+   * constantes cambia una de las dos cifras:
+   *   · subir 0,50 a 0,55 → `bajo_umbral_rapido` pasaría de 2 a 4;
+   *   · bajar 0,50 a 0,45 → pasaría de 2 a 0;
+   *   · subir 0,45 a 0,50 → `bajo_umbral_exhaustivo` pasaría de 0 a 2;
+   *   · bajar 0,45 a 0,40 → seguiría en 0 sólo porque no hay nada ahí abajo,
+   *     y por eso el caso mete además un 0,41 que SÍ lo mueve.
+   */
+  it('⚠️ los dos recuentos separan los dos umbrales, y mover cualquiera los cambia', () => {
+    const d = distribucionDeScores([0.41, 0.46, 0.48, 0.52, 0.93]);
+
+    // Por debajo de 0,50: el 0,41, el 0,46 y el 0,48 — tres.
+    expect(d.bajo_umbral_rapido).toBe(3);
+    // Por debajo de 0,45: sólo el 0,41 — uno.
+    expect(d.bajo_umbral_exhaustivo).toBe(1);
+
+    // Y la separación es el dato: es lo que el exhaustivo compra con su umbral.
+    expect(d.bajo_umbral_rapido - d.bajo_umbral_exhaustivo).toBe(2);
+
+    // Los recuentos se derivan de las constantes REALES, no de literales.
+    expect(SCORE_THRESHOLD_QUICK).toBeGreaterThan(SCORE_THRESHOLD_EXHAUSTIVE);
+  });
+
+  /**
+   * ⚠️ LA FRONTERA, CON EL MISMO OPERADOR QUE DECIDE EN PRODUCCIÓN.
+   * `pasaElUmbral` (`lib/analysis/umbral-de-recuperacion.ts:22`) es
+   * `score >= umbral`, así que el score EXACTAMENTE igual al umbral **pasa** y
+   * no se cuenta como descartado. Se comprueba contra la función real para que
+   * el día que alguien cambie `>=` por `>` esto se ponga rojo.
+   */
+  it('⚠️ un score EXACTAMENTE igual al umbral pasa, y no se cuenta como descartado', () => {
+    const d = distribucionDeScores([SCORE_THRESHOLD_QUICK, SCORE_THRESHOLD_EXHAUSTIVE]);
+
+    // El de 0,50 pasa el rápido; el de 0,45 no lo pasa.
+    expect(pasaElUmbral(SCORE_THRESHOLD_QUICK, SCORE_THRESHOLD_QUICK)).toBe(true);
+    expect(pasaElUmbral(SCORE_THRESHOLD_EXHAUSTIVE, SCORE_THRESHOLD_QUICK)).toBe(false);
+    expect(d.bajo_umbral_rapido).toBe(1);
+
+    // Los dos pasan el exhaustivo: el 0,45 por igualdad.
+    expect(pasaElUmbral(SCORE_THRESHOLD_EXHAUSTIVE, SCORE_THRESHOLD_EXHAUSTIVE)).toBe(true);
+    expect(d.bajo_umbral_exhaustivo).toBe(0);
+
+    // El complemento, dicho como invariante y no como dos números sueltos.
+    const scores = [SCORE_THRESHOLD_QUICK, SCORE_THRESHOLD_EXHAUSTIVE, 0.1, 0.99];
+    const esperadoRapido = scores.filter(s => !pasaElUmbral(s, SCORE_THRESHOLD_QUICK)).length;
+    expect(distribucionDeScores(scores).bajo_umbral_rapido).toBe(esperadoRapido);
   });
 });

@@ -17,6 +17,7 @@ import {
   acumularVecinos,
   resumirVecindario,
   UMBRALES_DEL_CENSO,
+  distribucionDeScores,
   type Vecino,
   type FilaDeVecindario,
   type ContadoresDelCenso,
@@ -125,6 +126,9 @@ export async function GET(req: NextRequest) {
 
     const contadores = censoVacio();
     const filas: FilaDeVecindario[] = [];
+    // F-111 — el agregado del corpus. Va aparte y no se deriva sumando las filas:
+    // los percentiles de una union no son la union de los percentiles.
+    const scoresDelCorpus: number[] = [];
 
     for (const doc of documentos) {
       const documentId = doc.id as string;
@@ -151,6 +155,9 @@ export async function GET(req: NextRequest) {
           scoreMax: 0,
           detalle: [],
           porClase: reparteVacio(),
+          // Sin vectores no hay fragmentos que distribuir: n=0 y los extremos
+          // AUSENTES, que no es lo mismo que cero.
+          distribucion: distribucionDeScores([]),
         });
         continue;
       }
@@ -160,6 +167,12 @@ export async function GET(req: NextRequest) {
       contadores.consultas_omitidas_por_tope += ids.length - aConsultar.length;
 
       const mejores = new Map<string, Vecino>();
+      // F-111 — LOS SCORES EN CRUDO, NO EL MÁXIMO. `mejores` colapsa cada vecino
+      // a su mejor fragmento, que es la pregunta de B.243; esto guarda TODOS los
+      // scores contables porque el umbral de la recuperación compara fragmento a
+      // fragmento (`retrieval.ts:498`) y ése es el operando que nadie había
+      // medido. Cero consultas extra: los scores ya vienen en estas respuestas.
+      const scoresDelDocumento: number[] = [];
 
       for (let i = 0; i < aConsultar.length; i += LOTE_DE_FETCH) {
         const trozo = aConsultar.slice(i, i + LOTE_DE_FETCH);
@@ -188,6 +201,7 @@ export async function GET(req: NextRequest) {
         resultados.forEach((matches, idx) => {
           const { contables, deGeneracionMuerta } = matchesContables(matches, documentId, activas);
           contadores.fragmentos_de_generacion_muerta += deGeneracionMuerta;
+          for (const c of contables) scoresDelDocumento.push(c.score);
           acumularVecinos(mejores, contables, vectores[idx].metadata?.text ?? '');
         });
       }
@@ -199,7 +213,9 @@ export async function GET(req: NextRequest) {
         analysisStatus: (doc.analysis_status as string | null) ?? null,
         consultas: aConsultar.length,
         ...resumen,
+        distribucion: distribucionDeScores(scoresDelDocumento),
       });
+      for (const sc of scoresDelDocumento) scoresDelCorpus.push(sc);
     }
 
     filas.sort((a, b) => b.vecinos_045 - a.vecinos_045 || b.vecinos - a.vecinos);
@@ -240,6 +256,12 @@ export async function GET(req: NextRequest) {
       // caracteres de frase hecha antes del primer dato propio.
       vecindadesTotales,
       porClaseTotal,
+      // ⚠️ F-111 — EL RANGO DEL OPERANDO QUE EL UMBRAL JUZGA DE VERDAD, agregado
+      // sobre TODOS los fragmentos del corpus. Y va aparte de `filas` porque no
+      // se puede derivar de ellas: los percentiles de una unión no son la unión
+      // de los percentiles. Es el número que faltaba — el suelo de ~0,79 del que
+      // se habla es del MÁXIMO por documento (`scoreMax`), no de esto.
+      distribucionDelCorpus: distribucionDeScores(scoresDelCorpus),
       filas,
     });
   } catch (error: unknown) {

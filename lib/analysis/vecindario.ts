@@ -86,6 +86,9 @@ export interface FilaDeVecindario {
   detalle: Vecino[];
   /** B.246 — reparto por clase del par, sobre los vecinos que pasan 0,50. */
   porClase: Record<ClaseDePar, number>;
+  /** F-111 — la distribución de los scores POR FRAGMENTO de este documento, que
+   *  es el operando que el umbral juzga de verdad. Ver `distribucionDeScores`. */
+  distribucion: DistribucionDeScores;
 }
 
 /** Forma mínima que el censo necesita de un match para poder contarlo. */
@@ -198,3 +201,123 @@ export const UMBRALES_DEL_CENSO = {
   vecinos: SCORE_THRESHOLD_QUICK,
   vecinos_045: SCORE_THRESHOLD_EXHAUSTIVE,
 } as const;
+
+// ============================================================
+// LA DISTRIBUCIÓN POR FRAGMENTO — medición F-111 (21/09/2026)
+// ============================================================
+
+/**
+ * ⚠️ QUÉ MIDE ESTO Y POR QUÉ NO LO MEDÍA NADA HASTA HOY.
+ *
+ * El resto de este módulo cuenta VECINOS: colapsa los scores al MÁXIMO por
+ * documento (`acumularVecinos`) porque la pregunta de B.243 es «contra cuántos
+ * documentos toca». De ahí salió el suelo de ~0,79 del corpus.
+ *
+ * ⚠️ PERO EL UMBRAL DE LA RECUPERACIÓN NO COMPARA ESO. Compara **fragmento a
+ * fragmento**, tal como Pinecone los devuelve: `pasaElUmbral(m.score, umbral)`
+ * en `retrieval.ts:498`, dentro de `collectMatches`. Un DOCUMENTO sólo se pierde
+ * si NINGUNO de sus fragmentos pasa —eso es lo que cuenta el contador
+ * persistido `seleccion.candidatos_perdidos_por_umbral`, y da cero—, pero
+ * cuántos FRAGMENTOS descarta no lo mide nadie. El suelo de 0,79 es del máximo
+ * por documento: **el rango del operando real nunca se había mirado.**
+ *
+ * Esta función es el termómetro de ese operando, y nada más: no filtra, no
+ * decide y no toca el pipeline. Los scores le llegan ya calculados por las
+ * mismas consultas que el censo ya hacía, así que **no cuesta ni una consulta
+ * más, ni un token de embedding, ni una llamada a ningún modelo.**
+ */
+export interface DistribucionDeScores {
+  /** Fragmentos observados. Es el DENOMINADOR: sin él ningún percentil dice nada. */
+  n: number;
+  /** `null` cuando no hubo ni un fragmento — ausente y cero no significan lo mismo. */
+  minimo: number | null;
+  maximo: number | null;
+  /**
+   * Veinte cubos fijos de 0,05 entre 0 y 1: `histograma[0]` es [0,00 · 0,05),
+   * `histograma[19]` es [0,95 · 1,00]. El 1,00 exacto cae en el último cubo.
+   */
+  histograma: number[];
+  /**
+   * ⚠️ PERCENTILES **APROXIMADOS AL CUBO**, no exactos. Se derivan del
+   * histograma, así que cada uno es **el borde inferior del cubo** donde la
+   * acumulada alcanza el percentil: el valor real está entre ese borde y el
+   * siguiente (0,05 de margen). Se dice aquí y no en la respuesta para que nadie
+   * los lea como una medida fina. `null` si no hubo fragmentos.
+   */
+  p1: number | null;
+  p5: number | null;
+  p50: number | null;
+  /**
+   * Fragmentos que el umbral del RÁPIDO descartaría. Complemento exacto de
+   * `pasaElUmbral` (`umbral-de-recuperacion.ts:22`, `score >= umbral`), así que
+   * aquí es `score < umbral`: un score EXACTAMENTE igual al umbral **pasa** y no
+   * se cuenta.
+   */
+  bajo_umbral_rapido: number;
+  /** Lo mismo con el umbral del EXHAUSTIVO. */
+  bajo_umbral_exhaustivo: number;
+}
+
+/** Anchura del cubo. Veinte cubos cubren [0 · 1]. */
+const ANCHO_DE_CUBO = 0.05;
+const CUBOS = 20;
+
+/** El borde inferior del cubo `i`, redondeado para que no salga 0,35000000000000003. */
+function bordeInferior(i: number): number {
+  return Math.round(i * ANCHO_DE_CUBO * 100) / 100;
+}
+
+/** El cubo donde cae un score. El 1,00 exacto va al último, no a un 21.º. */
+function cuboDe(score: number): number {
+  const bruto = Math.floor(score / ANCHO_DE_CUBO);
+  return Math.min(Math.max(bruto, 0), CUBOS - 1);
+}
+
+/**
+ * El primer cubo cuya acumulada alcanza el percentil, devuelto por su borde
+ * inferior. Con `n` fragmentos, el percentil `p` se alcanza en el elemento
+ * `ceil(n · p / 100)` (mínimo 1), contando desde el más bajo.
+ */
+function percentilDelHistograma(histograma: number[], n: number, p: number): number | null {
+  if (n === 0) return null;
+  const objetivo = Math.max(1, Math.ceil((n * p) / 100));
+  let acumulada = 0;
+  for (let i = 0; i < histograma.length; i++) {
+    acumulada += histograma[i];
+    if (acumulada >= objetivo) return bordeInferior(i);
+  }
+  return bordeInferior(histograma.length - 1);
+}
+
+/** El termómetro del operando real. Función pura: no lee nada ni escribe nada. */
+export function distribucionDeScores(scores: number[]): DistribucionDeScores {
+  const histograma = new Array<number>(CUBOS).fill(0);
+  let minimo: number | null = null;
+  let maximo: number | null = null;
+  let bajoRapido = 0;
+  let bajoExhaustivo = 0;
+
+  for (const score of scores) {
+    if (!Number.isFinite(score)) continue;
+    histograma[cuboDe(score)] += 1;
+    if (minimo === null || score < minimo) minimo = score;
+    if (maximo === null || score > maximo) maximo = score;
+    // El complemento EXACTO de pasaElUmbral: `>=` pasa, luego `<` no pasa.
+    if (score < SCORE_THRESHOLD_QUICK) bajoRapido += 1;
+    if (score < SCORE_THRESHOLD_EXHAUSTIVE) bajoExhaustivo += 1;
+  }
+
+  const n = histograma.reduce((suma, c) => suma + c, 0);
+
+  return {
+    n,
+    minimo,
+    maximo,
+    histograma,
+    p1: percentilDelHistograma(histograma, n, 1),
+    p5: percentilDelHistograma(histograma, n, 5),
+    p50: percentilDelHistograma(histograma, n, 50),
+    bajo_umbral_rapido: bajoRapido,
+    bajo_umbral_exhaustivo: bajoExhaustivo,
+  };
+}
