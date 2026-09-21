@@ -5,7 +5,33 @@
 
 import { getPinecone } from './pinecone';
 
-const EMBEDDING_MODEL = 'multilingual-e5-large';
+/**
+ * EL MODELO, EXPORTADO — F-114 (21/09/2026).
+ *
+ * ⚠️ ES LA MISMA CONSTANTE QUE USA LA LLAMADA: `embedConBackoff` la recibe por
+ * este nombre desde `generateEmbeddings` y `generateQueryEmbedding`, y no hay
+ * ninguna copia. Una segunda copia se separaría de la primera el día que alguien
+ * migrara de modelo, y el sello mentiría justo en el momento en que hace falta.
+ *
+ * ⚠️ Y ES EL NOMBRE QUE PEDIMOS, NO EL QUE EL SERVICIO USA. Para lo segundo está
+ * `generateEmbeddingsConSello`, que devuelve el `model` de la respuesta.
+ */
+export const EMBEDDING_MODEL = 'multilingual-e5-large';
+
+/**
+ * Dimensión del vector que produce el modelo.
+ *
+ * FUENTE: la ficha pública de `intfloat/multilingual-e5-large` —1024
+ * dimensiones—, y el índice de Pinecone está creado con esa dimensión. Hasta hoy
+ * el 1024 sólo vivía en el comentario de la cabecera de este fichero: un número
+ * que ninguna línea de código podía comprobar.
+ *
+ * ⚠️ NO SE USA COMO VALIDACIÓN, sino como parte del SELLO: lo que se persiste es
+ * la longitud REAL del vector recibido (`dimension_servida`), y esta constante es
+ * con lo que se compara al leerla. Si algún día difieren, **el dato es la
+ * diferencia** — no un error que tape la medición.
+ */
+export const EMBEDDING_DIMENSION = 1024;
 
 /** Chunks por lote enviados a la API de inferencia (tamaño de la petición, no
  *  de ritmo — F-31 P3 quitó la pausa fija que existía entre lotes). */
@@ -244,12 +270,104 @@ async function embedConBackoff(
   }
 }
 
-/** Genera embeddings para múltiples textos (para indexación de documentos) */
-export async function generateEmbeddings(texts: string[]): Promise<number[][]> {
+/**
+ * EL SELLO DE UN LOTE — F-114. Parte PURA, y por eso tiene batería: lo que el
+ * servicio dice haber usado y los vectores, leídos de la misma respuesta.
+ *
+ * ⚠️ POR QUÉ EL NOMBRE SERVIDO Y NO EL PEDIDO: el pedido es una constante de esta
+ * casa y no puede detectar nada. Si el proveedor cambiara el modelo detrás del
+ * mismo alias, `EMBEDDING_MODEL` seguiría diciendo lo mismo y los vectores
+ * nuevos se compararían contra los viejos en silencio. `EmbeddingsList.model`
+ * (`@pinecone-database/pinecone/dist/models/embeddingsList.d.ts`) es un `string`
+ * que viene en la respuesta, y hasta hoy se tiraba.
+ */
+export interface SelloDeUnLote {
+  /** El `model` que declaró la respuesta, o `null` si no vino. */
+  modeloServido: string | null;
+  vectores: number[][];
+}
+
+/** Forma mínima que este módulo necesita de la respuesta. No se importa el tipo
+ *  del SDK a propósito: así la batería puede construir una respuesta sin él. */
+interface RespuestaDeEmbeddings {
+  model?: string;
+  data?: Array<{ values?: number[] }>;
+}
+
+/**
+ * ⚠️ NO SE SALTA NI UN ITEM, Y ÉSTA ES LA PARTE QUE NO SE TOCA.
+ *
+ * Los seis llamadores de `generateEmbeddings` emparejan POR ÍNDICE: `ingest`,
+ * `index-text`, `drive/sync` y `reparar` hacen `chunks[i]` con `embeddings[i]`.
+ * Si el servicio devolviera un item sin vector y aquí se saltara, la lista
+ * saldría MÁS CORTA y el trozo `i` se indexaría con el vector de `i+1`: **un
+ * índice corrupto, sin un solo error**. Es el fallo más caro que este fichero
+ * puede producir, porque no se ve — se descubre meses después en una
+ * recuperación que devuelve el documento equivocado.
+ *
+ * Así que se LANZA, con el lote y las dos cifras. Y se comprueban las dos
+ * cosas, porque son fallos distintos: un item sin `values`, y un recuento que no
+ * cuadra con los textos enviados (un item de menos que el servicio ni siquiera
+ * devolvió).
+ *
+ * El comportamiento anterior a F-114 era `item.values as number[]`, que empujaba
+ * `undefined` y conservaba la longitud: fallaba después, pero fallaba. Volver a
+ * eso tampoco vale — un `undefined` en el array llega a Pinecone como vector
+ * inválido. Lanzar es lo único que no deja pasar el desalineado.
+ */
+export function selloDeUnLote(
+  respuesta: RespuestaDeEmbeddings | null | undefined,
+  /** Con qué comparar el recuento. Ausente sólo en las pruebas del sello. */
+  control?: { esperados: number; etiqueta: string },
+): SelloDeUnLote {
+  const modelo = typeof respuesta?.model === 'string' && respuesta.model.trim() !== ''
+    ? respuesta.model
+    : null;
+
+  const items = respuesta?.data ?? [];
+  const vectores: number[][] = [];
+  for (let i = 0; i < items.length; i++) {
+    const valores = items[i]?.values;
+    if (!Array.isArray(valores)) {
+      const donde = control ? `${control.etiqueta}: ` : '';
+      throw new Error(
+        `[EMBED] ${donde}la respuesta del servicio no trae vector en la posición ${i} ` +
+        `de ${items.length}. No se salta: saltarlo desalinearía los vectores con los textos ` +
+        `y produciría un índice corrupto sin error visible.`
+      );
+    }
+    vectores.push(valores);
+  }
+
+  if (control && vectores.length !== control.esperados) {
+    throw new Error(
+      `[EMBED] ${control.etiqueta}: el servicio devolvió ${vectores.length} vectores ` +
+      `para ${control.esperados} textos. No se continúa: emparejar por índice con ` +
+      `listas de distinta longitud produce un índice corrupto.`
+    );
+  }
+
+  return { modeloServido: modelo, vectores };
+}
+
+/**
+ * Los embeddings CON el sello del modelo que el servicio dice haber usado.
+ *
+ * ⚠️ ES LA HERMANA, NO UN SUSTITUTO: `generateEmbeddings` la usa por dentro y
+ * conserva su firma exacta, así que **ninguno de sus seis llamadores cambia**.
+ * Quien necesita el sello —hoy sólo el termómetro— llama a ésta.
+ *
+ * ⚠️ Y SI DOS LOTES DECLARAN MODELOS DISTINTOS, se conserva el del primero y se
+ * avisa. No se elige uno en silencio: dos modelos dentro de una misma llamada
+ * significaría que el proveedor cambió a media indexación, y eso es lo más
+ * grave que este sello puede detectar.
+ */
+export async function generateEmbeddingsConSello(
+  texts: string[],
+): Promise<{ vectores: number[][]; modeloServido: string | null; dimensionServida: number | null }> {
   const pc = getPinecone();
-  const allEmbeddings: number[][] = [];
-  // UNO PARA TODA LA LLAMADA, no uno por lote: es lo que acota el peor caso
-  // independientemente del tamaño del documento.
+  const vectores: number[][] = [];
+  let modeloServido: string | null = null;
   const gastada = { ms: 0 };
 
   for (let i = 0; i < texts.length; i += BATCH_SIZE) {
@@ -260,13 +378,40 @@ export async function generateEmbeddings(texts: string[]): Promise<number[][]> {
     console.log(`[EMBED] Processing batch ${batchNum}/${totalBatches} (${batch.length} chunks)`);
 
     const response = await embedConBackoff(pc, batch, planDeEmbedding('indexacion'), `lote ${batchNum}`, gastada);
-    for (const item of response.data) {
-      allEmbeddings.push(item.values as number[]);
+    // ⚠️ EL CONTROL VA AQUÍ PORQUE AQUÍ SE SABE CUÁNTOS TEXTOS SE MANDARON. El
+    // sello es puro y no lo puede saber por su cuenta.
+    const sello = selloDeUnLote(response as RespuestaDeEmbeddings, {
+      esperados: batch.length,
+      etiqueta: `lote ${batchNum}/${totalBatches}`,
+    });
+    if (modeloServido === null) {
+      modeloServido = sello.modeloServido;
+    } else if (sello.modeloServido !== null && sello.modeloServido !== modeloServido) {
+      console.warn(
+        `[EMBED] ⚠️ MODELO DISTINTO ENTRE LOTES: "${modeloServido}" y "${sello.modeloServido}" ` +
+        `en la misma llamada (lote ${batchNum}). Se conserva el primero.`
+      );
     }
+    for (const v of sello.vectores) vectores.push(v);
   }
 
-  return allEmbeddings;
+  return {
+    vectores,
+    modeloServido,
+    dimensionServida: vectores.length > 0 ? vectores[0].length : null,
+  };
 }
+
+/** Genera embeddings para múltiples textos (para indexación de documentos).
+ *
+ *  ⚠️ FIRMA INTACTA A PROPÓSITO (F-114): por dentro usa
+ *  `generateEmbeddingsConSello` y se queda sólo con los vectores, así que sus
+ *  seis llamadores —ingest, index-text, drive/sync, improve, reparar y
+ *  retrieval— no cambian ni una línea. */
+export async function generateEmbeddings(texts: string[]): Promise<number[][]> {
+  return (await generateEmbeddingsConSello(texts)).vectores;
+}
+
 
 /**
  * Genera embedding para una consulta (para búsqueda).
