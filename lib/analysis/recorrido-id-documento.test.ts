@@ -4,7 +4,6 @@ import { problemsFromAnalysis, type RawAnalysis } from '@/components/improvement
 import { conVeredicto } from './double-check';
 import { aInconsistenciaMenor, mergeContradictions, particionDoubleCheck } from './pipeline';
 import { construirDiscrepancias, construirOverlaps } from './synthesize';
-import { aContradiccionAtomica, type ClaimVerification } from './verify-claims';
 import type { DocumentJudgment } from './types';
 
 /**
@@ -241,68 +240,5 @@ describe('PRODUCTOR 1 (el juez) — el id llega hasta el final del recorrido', (
     expect(problemas).toHaveLength(1);
     expect(problemas[0].relatedDoc).toBe(IDENTIDAD.nombre);
     expect(problemas[0].relatedDocId).toBeUndefined();
-  });
-});
-
-/**
- * PRODUCTOR 2 — verify-claims, el camino que el mapa no tenía.
- *
- * SU RECORRIDO TERMINA AQUÍ, Y NO ES UN FALLO DE ESTE COMMIT. Lo que devuelve
- * `verifyClaimsAgainstCorpus` no llega al cliente por DOS cortes
- * independientes: su único llamador (pipeline.ts:817) está detrás de
- * `atomicBranchEnabled()` —env ANALYSIS_ATOMIC_MEASURE, sin poner en
- * producción— y, aunque se encendiera, F-74 dejó la fusión con `[]` como listB
- * (pipeline.ts:859-863). Estas contradicciones se cuentan y se loguean; no se
- * publican.
- *
- * Se vigila igualmente su último eslabón —el que tiene la forma peligrosa— para
- * que el día que la rama se reconecte no haya que acordarse de esto.
- *
- * LOS DOS ESLABONES DE ANTES NO SE ALCANZAN: la copia de `meta.documentId` al
- * fragmento vive dentro de la consulta a Pinecone, y la del fragmento a la
- * verificación dentro de la llamada al LLM. El alcance prohíbe los dos.
- */
-describe('PRODUCTOR 2 (verify-claims) — el id llega al final de SU recorrido', () => {
-  const verificacion = (extra: Partial<ClaimVerification> = {}): ClaimVerification => ({
-    claim: 'El plazo de preaviso es de 15 días.',
-    category: 'Plazo de preaviso',
-    sourceQuote: 'El plazo de preaviso será de quince (15) días naturales.',
-    verdict: 'contradiccion',
-    corpusSays: 'El plazo de preaviso es de 30 días.',
-    existingDocument: IDENTIDAD.nombre,
-    existingDocumentId: IDENTIDAD.id,
-    ...extra,
-  });
-
-  it('el id acompaña al nombre hasta la contradicción atómica', () => {
-    const c = aContradiccionAtomica(verificacion());
-    expect(c).not.toBeNull();
-    expect(c!.existingDocumentId).toBe(IDENTIDAD.id);
-    expect(c!.existingDocument).toBe(IDENTIDAD.nombre);
-  });
-
-  /**
-   * EL ID NO ES REQUISITO. Un vector indexado antes de que la metadata llevara
-   * `documentId` no lo trae, y eso no puede tirar el hallazgo: la contradicción
-   * con nombre y sin id sigue siendo publicable. Si alguien mete el id en la
-   * guarda, este caso lo dice.
-   */
-  it('sin id, la contradicción sale igual: hermano, no requisito', () => {
-    const c = aContradiccionAtomica(verificacion({ existingDocumentId: undefined }));
-    expect(c).not.toBeNull();
-    expect(c!.existingDocument).toBe(IDENTIDAD.nombre);
-    expect(c!.existingDocumentId).toBeUndefined();
-  });
-
-  it('sin NOMBRE no sale: la guarda de siempre, intacta', () => {
-    expect(aContradiccionAtomica(verificacion({ existingDocument: undefined }))).toBeNull();
-    expect(aContradiccionAtomica(verificacion({ corpusSays: undefined }))).toBeNull();
-    expect(aContradiccionAtomica(verificacion({ verdict: 'sin_datos' }))).toBeNull();
-  });
-
-  it('la inconsistencia menor atómica también lo lleva', () => {
-    const c = aContradiccionAtomica(verificacion({ verdict: 'inconsistencia_menor' }));
-    expect(c!.severity).toBe('minor_inconsistency');
-    expect(c!.existingDocumentId).toBe(IDENTIDAD.id);
   });
 });

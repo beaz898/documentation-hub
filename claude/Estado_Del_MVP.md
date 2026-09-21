@@ -4378,6 +4378,12 @@ rompe ni un test no está probada.
 
 **Resultado: 24 constantes mutadas, 24 pasadas de suite. 19 sobreviven.**
 
+> ⚠️ **21/09/2026 · F-114 — LAS SUPERVIVIENTES SON 18, NO 19.** `MAX_CLAIMS` desapareció
+> con la retirada de la rama atómica: no ganó caso decisivo, **dejó de existir**. Es la
+> única forma legítima de bajar esta lista sin probar nada, y se anota para que nadie
+> lea el 18 como progreso de verificación. Las dos constantes del umbral siguen en la
+> lista y son otro commit.
+
 | Constante | Valor | Población que la activa | ¿El corpus puede producirla? | Caso decisivo |
 |---|---|---|---|---|
 | `SCORE_THRESHOLD_QUICK` | 0,50 | un par por debajo del umbral | **no** — el suelo es 0,79 (B.248) | ⚠️ **sí, pero en el censo**, no en el retrieval |
@@ -4390,7 +4396,7 @@ rompe ni un test no está probada.
 | `TOP_K_POR_CONSULTA` | 25 | >25 matches por consulta | sí | **NO** |
 | `FRAGMENT_BUDGET_CHARS_QUICK` | 3.000 | candidato con más texto | sí, casi siempre | **NO** |
 | `MAX_FRAGMENTS_PER_DOC_QUICK` | 25 | >25 fragmentos por documento | sí | **NO** |
-| `MAX_CLAIMS` | 40 | documento con >40 afirmaciones | sí (NOR-10) | **NO** |
+| ~~`MAX_CLAIMS`~~ | ~~40~~ | ⚠️ **RETIRADA el 21/09/2026 (F-114)**: vivía en `extract-claims.ts`, y la rama atómica se retiró entera. **La lista baja de 19 a 18.** No se probó: desapareció | — | — |
 | `NEW_DOC_LIMIT_QUICK` | 6.000 | documento >6.000 caracteres | sí — casi todos | **NO** |
 | `HIGH_OVERLAP_THRESHOLD` | 30 | solapamiento ≥30 % | sí (95 % con OPE-11) | **NO** |
 | `MAX_DOUBLE_CHECK_CANDIDATES` | 50 | >50 candidatas | sí en exhaustivo | **NO** |

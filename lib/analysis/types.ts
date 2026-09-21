@@ -163,8 +163,13 @@ export type DiscrepancyConfidence = 'alta' | 'posible';
  *  caída, no por etapa: si el juicio cae 3 veces, hay 3 entradas. */
 export interface StageFailure {
   /** 'rerank' | 'judge' | 'synthesize' | 'verify-findings' | 'style-check' |
-   *  'extract-claims' | 'verify-claims-embeddings' | 'verify-claims' |
-   *  'verify-claims-pinecone' | 'double-check' */
+   *  'double-check'
+   *
+   *  F-114 (21/09/2026): se retiran de esta lista las cuatro etapas de la rama
+   *  atómica —'extract-claims', 'verify-claims-embeddings', 'verify-claims' y
+   *  'verify-claims-pinecone'—, porque los dos módulos que las emitían ya no
+   *  existen. Un nombre de etapa que nadie puede emitir es una lista que miente
+   *  a quien la lea buscando qué puede caer. */
   stage: string;
   /** El mensaje de error, recortado. */
   detail?: string;
