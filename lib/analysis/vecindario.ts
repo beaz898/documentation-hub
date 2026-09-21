@@ -1,4 +1,5 @@
 import type { VectorMatch } from '@/lib/pinecone/types';
+import { CUBOS, cuboDe, bordeInferior, histogramaVacio, percentilDelHistograma } from './cubos-de-score';
 import { soloGeneracionActiva, generacionesMuertas } from './generacion-activa';
 import { SCORE_THRESHOLD_QUICK, SCORE_THRESHOLD_EXHAUSTIVE } from './retrieval';
 import {
@@ -277,40 +278,10 @@ export interface DistribucionDeScores {
   bajo_umbral_exhaustivo: number;
 }
 
-/** Anchura del cubo. Veinte cubos cubren [0 · 1]. */
-const ANCHO_DE_CUBO = 0.05;
-const CUBOS = 20;
-
-/** El borde inferior del cubo `i`, redondeado para que no salga 0,35000000000000003. */
-function bordeInferior(i: number): number {
-  return Math.round(i * ANCHO_DE_CUBO * 100) / 100;
-}
-
-/** El cubo donde cae un score. El 1,00 exacto va al último, no a un 21.º. */
-function cuboDe(score: number): number {
-  const bruto = Math.floor(score / ANCHO_DE_CUBO);
-  return Math.min(Math.max(bruto, 0), CUBOS - 1);
-}
-
-/**
- * El primer cubo cuya acumulada alcanza el percentil, devuelto por su borde
- * inferior. Con `n` fragmentos, el percentil `p` se alcanza en el elemento
- * `ceil(n · p / 100)` (mínimo 1), contando desde el más bajo.
- */
-function percentilDelHistograma(histograma: number[], n: number, p: number): number | null {
-  if (n === 0) return null;
-  const objetivo = Math.max(1, Math.ceil((n * p) / 100));
-  let acumulada = 0;
-  for (let i = 0; i < histograma.length; i++) {
-    acumulada += histograma[i];
-    if (acumulada >= objetivo) return bordeInferior(i);
-  }
-  return bordeInferior(histograma.length - 1);
-}
 
 /** El termómetro del operando real. Función pura: no lee nada ni escribe nada. */
 export function distribucionDeScores(scores: number[]): DistribucionDeScores {
-  const histograma = new Array<number>(CUBOS).fill(0);
+  const histograma = histogramaVacio();
   let minimo: number | null = null;
   let maximo: number | null = null;
   let bajoRapido = 0;

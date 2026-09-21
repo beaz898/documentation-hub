@@ -847,6 +847,19 @@ export async function POST(req: NextRequest) {
         // Si algún día la UI tiene que enseñarlos, añadirlos aquí es lo
         // correcto; hasta entonces, meterlos sería enviar al cliente un objeto
         // que nadie lee en cada respuesta de análisis.
+        //
+        // F-114: `termometro` TAMPOCO ENTRA, por la MISMA razón y con la misma
+        // deliberación — es telemetría de la recuperación (mínimo, máximo,
+        // histograma, denominadores, sello del modelo) y ningún componente la
+        // pinta. Va dentro del jsonb `analysis` por `saveAnalysisResult` y se
+        // lee desde ahí.
+        //
+        // ⚠️ Y SE DICE AQUÍ PORQUE ESTA LISTA YA SE COMIÓ TRES CAMPOS: los
+        // comentarios de arriba cuentan que `stageFailures`, `selectionLimits` y
+        // `coberturaDeCandidatos` llegaron tarde a una de las dos puertas. La
+        // diferencia entre aquellos y estos dos es que aquellos LOS PINTA la
+        // interfaz. Si algún día el termómetro se enseña, se añade aquí y en
+        // `worker/src/index.ts` a la vez, no en uno de los dos.
       },
       documentSources,
       versionPromoted,

@@ -11,6 +11,7 @@ import { judgeAllDocuments } from './judge';
 import type { JudgmentEvidence } from './judge';
 import { synthesizeFinalAnalysis, markIncompleteAnalysis } from './synthesize';
 import { checkContentHash } from './hash-check';
+import { termometroNoRecuperado, MOTIVO_DUPLICADO_EXACTO, type Termometro } from './termometro';
 import { emparejarTablas } from './table-pairing';
 import { emitirDiffDeTablas } from './diff-emision';
 import { visionDeUnLado, contadoresDeVision } from './diff-vision';
@@ -678,15 +679,23 @@ export function particionDoubleCheck<T extends { confirmedBy?: ConfirmedBy }>(
  * que alguien se acuerde de mirar las salidas, igual que el `satisfies` del
  * catálogo no depende de que alguien se acuerde del prefijo.
  */
-type CountedAnalysis = FinalAnalysis & { pipelineCounters: PipelineCounters };
+type CountedAnalysis = FinalAnalysis & { pipelineCounters: PipelineCounters; termometro: Termometro };
 
 /** Único constructor de CountedAnalysis, y por tanto el único camino a las
  *  salidas de runCorePipeline. Pasa por mergeCounters —el punto de
  *  estrangulamiento de la cláusula 4— aunque hoy el acumulador venga de un solo
  *  sitio: así el día que otra etapa aporte contadores, se añade como argumento
  *  y no como un sitio nuevo por el que colarse. */
-function withCounters(analysis: FinalAnalysis, counters: PipelineCounters): CountedAnalysis {
-  return { ...analysis, pipelineCounters: mergeCounters(counters) };
+function withCounters(
+  analysis: FinalAnalysis,
+  counters: PipelineCounters,
+  /** F-114 — ENTRA POR AQUÍ Y NO POR TRES SITIOS: el tipo `CountedAnalysis` lo
+   *  exige, así que una salida de `runCorePipeline` que no lo lleve NO COMPILA.
+   *  Es la misma garantía que F-82 puso para los contadores, y por la misma
+   *  razón: tres análisis seguidos con la clave ausente. */
+  termometro: Termometro,
+): CountedAnalysis {
+  return { ...analysis, pipelineCounters: mergeCounters(counters), termometro };
 }
 
 async function runCorePipeline(
@@ -702,7 +711,7 @@ async function runCorePipeline(
   // lo que sí llegó a decidirse — que es justo lo más informativo.
   const counters: PipelineCounters = {};
 
-  const { candidates, chunksByDocument: chunksFromRetrieval, structuralOverlaps, selectionLimits, descartesDeRecuperacion } = await retrieveCandidates({
+  const { candidates, chunksByDocument: chunksFromRetrieval, structuralOverlaps, selectionLimits, descartesDeRecuperacion, termometro } = await retrieveCandidates({
     sampleTexts: input.sampleTexts,
     orgId: input.orgId,
     excludeDocumentId: input.excludeDocumentId,
@@ -730,6 +739,7 @@ async function runCorePipeline(
     return withCounters(
       await synthesizeFinalAnalysis({ newDocumentName: input.newDocumentName, judgments: [] }),
       counters,
+      termometro,
     );
   }
 
@@ -768,6 +778,7 @@ async function runCorePipeline(
     return withCounters(
       await synthesizeFinalAnalysis({ newDocumentName: input.newDocumentName, judgments: [] }),
       counters,
+      termometro,
     );
   }
 
@@ -1035,7 +1046,7 @@ async function runCorePipeline(
   // §5.71 — y POR DÓNDE se fueron los que no entraron: sin el reparto, el aviso
   // no puede decir la causa, y no la dice.
   const cobertura = { comparados: reranked.length, afines: candidates.length, reparto };
-  const finalSinCobertura = withCounters(synthesized, counters);
+  const finalSinCobertura = withCounters(synthesized, counters, termometro);
 
   // F-74 P2: EL ALCANCE DECLARADO. Se funde DESPUÉS del return de synthesize —
   // mismo criterio que exhaustiveCounts en el exhaustivo, para no tocar la
@@ -1102,6 +1113,12 @@ function buildExactDuplicateResponse(
     summary: `Este documento es idéntico a "${duplicateOfName}" que ya está indexado. No aporta información nueva.`,
     judgments: [],
     analysisMode: mode,
+    // ⚠️ F-114 — LA CLAVE SE ESCRIBE IGUAL, con el predicado literal que cortó.
+    // Este camino NO pasa por la recuperación (`isDuplicateExact`, abajo), y es
+    // el único que no lo hace. Omitir el termómetro aquí dejaría «no se
+    // recuperó» indistinguible de «se recuperó y no se midió» — que es
+    // exactamente el silencio que las dos filas de CLI-20 dejaron en la base.
+    termometro: termometroNoRecuperado(MOTIVO_DUPLICADO_EXACTO),
   };
 }
 

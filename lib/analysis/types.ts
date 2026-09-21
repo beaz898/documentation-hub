@@ -5,6 +5,7 @@
 
 import type { FragmentContext } from './fragment-context';
 import type { PipelineCounters } from './counters';
+import type { Termometro } from './termometro';
 import type { CoberturaDeCandidatos } from './cobertura-de-candidatos';
 
 export interface DocumentFragment {
@@ -423,6 +424,23 @@ export interface FinalAnalysis {
    * a F-82.
    */
   pipelineCounters?: PipelineCounters;
+
+  /**
+   * F-114 — EL TERMÓMETRO DE LA RECUPERACIÓN, y va DENTRO del jsonb, no izado a
+   * columna propia como `pipelineCounters`.
+   *
+   * ⚠️ LA DIFERENCIA CON UN CONTADOR ES LA QUE DECIDE DÓNDE VIVE: un contador
+   * dice cuántas veces se tomó un camino y se puede AGREGAR entre análisis, así
+   * que su columna sirve. El termómetro dice **qué se encontró** —mínimo, máximo,
+   * histograma, hueco—, y `mergeCounters` SUMA al fusionar: sumar dos mínimos da
+   * una cifra sin sentido. Por eso va aquí (F-114 P2, opción b).
+   *
+   * ⚠️ OPCIONAL EN EL TIPO, OBLIGATORIO EN EL CAMINO: los tres retornos de
+   * `runCorePipeline` lo llevan por el tipo `CountedAnalysis`, y el corte por
+   * duplicado exacto lo escribe con `termometroNoRecuperado`. Es opcional aquí
+   * sólo porque los análisis anteriores a hoy no lo tienen.
+   */
+  termometro?: Termometro;
 }
 
 

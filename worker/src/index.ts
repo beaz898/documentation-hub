@@ -183,6 +183,15 @@ async function processJob(job: AnalysisJob): Promise<void> {
       // le pasó justo esto: se añadió al tipo y al jsonb y no aquí, y el aviso
       // sólo salía por una de las dos puertas.
       coberturaDeCandidatos: analysis.coberturaDeCandidatos,
+      // F-114: `termometro` NO ENTRA en esta lista, y la omisión es DELIBERADA —
+      // igual que `pipelineCounters`, y por la misma razón: es telemetría de la
+      // recuperación y ningún componente la pinta. Va dentro del jsonb
+      // `analysis` por `saveAnalysisResult` y se lee desde ahí.
+      //
+      // ⚠️ Se declara aquí porque esta lista es la gemela de
+      // `app/api/analyze-v2/route.ts` y ya se comió tres campos entre las dos.
+      // El día que el termómetro haya que enseñarlo, se añade en los DOS sitios
+      // a la vez — que es la lección que los comentarios de arriba cuentan.
     };
 
     const latencyMs = Date.now() - t0;

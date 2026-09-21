@@ -1,5 +1,11 @@
 import { queryVectors, buildCorpusFilter } from '@/lib/pinecone/vectors';
-import { generateEmbeddings } from '@/lib/embeddings';
+import { generateEmbeddingsConSello, EMBEDDING_MODEL } from '@/lib/embeddings';
+import {
+  termometroDeLaRecuperacion,
+  contarElFondo,
+  type Termometro,
+  type DenominadoresDelTermometro,
+} from './termometro';
 import { runInBatches } from '@/lib/run-in-batches';
 import { getChunksForDocuments } from '@/lib/read-chunks';
 import { normalize } from './judge';
@@ -205,6 +211,9 @@ export async function retrieveCandidates(args: {
   /** B.248 (17/09/2026): lo que los dos cortes de la recuperación dejaron fuera,
    *  en documentos. Siempre presente, también en cero. */
   descartesDeRecuperacion: { perdidosPorUmbral: number; cortadosPorTope: number };
+  /** F-114 — el termómetro de ESTA recuperación. Se calcula aquí porque aquí
+   *  están los datos, y viaja al `FinalAnalysis` para persistirse en el jsonb. */
+  termometro: Termometro;
 }> {
   const { sampleTexts, orgId, excludeDocumentId, batchDocumentIds, options, supabase, newDocumentChunks } = args;
   const isExhaustive = options?.exhaustive === true;
@@ -240,7 +249,8 @@ export async function retrieveCandidates(args: {
   // fila a fila del lado analizado.
   const analyzedRows = (newDocumentChunks ?? []).filter(c => c.chunkType === 'table_row');
 
-  const embeddings = await generateEmbeddings(sampleTexts);
+  const sello = await generateEmbeddingsConSello(sampleTexts);
+  const embeddings = sello.vectores;
   const scoreThreshold = isExhaustive ? SCORE_THRESHOLD_EXHAUSTIVE : SCORE_THRESHOLD_QUICK;
   const corpusFilter = buildCorpusFilter(batchDocumentIds);
 
@@ -258,13 +268,17 @@ export async function retrieveCandidates(args: {
   // de arriba va por NOMBRE, que sirve para el registro y no para contar: dos
   // documentos pueden llamarse igual.
   const idsBajoUmbral: string[] = [];
+  // F-114 — los denominadores del termometro. Cada uno se incrementa DONDE
+  // ocurre su descarte, dentro de collectMatches, sobre lo que sobrevivio al
+  // paso anterior. Por eso el cuadre cierra: los conjuntos son disjuntos.
+  const cuenta = { crudos: 0, descartados_umbral: 0, sin_metadata_utilizable: 0, propios_excluidos: 0 };
   const batchResults = await runInBatches(
     embeddings,
     emb => queryVectors(orgId, { vector: emb, topK: TOP_K_POR_CONSULTA, includeMetadata: true, filter: corpusFilter }),
     { batchSize: QUERY_BATCH_SIZE },
   );
   for (const matches of batchResults) {
-    collectMatches(matches as Array<{ metadata?: Record<string, unknown>; score?: number }>, allMatches, scoreThreshold, excludeDocumentId, discardedByThreshold, idsBajoUmbral);
+    collectMatches(matches as Array<{ metadata?: Record<string, unknown>; score?: number }>, allMatches, scoreThreshold, excludeDocumentId, discardedByThreshold, idsBajoUmbral, cuenta);
   }
   for (const [docName, stats] of discardedByThreshold) {
     console.log(`[retrieval] Descartados por umbral (${scoreThreshold}) en "${docName}": ${stats.count}, score máximo: ${stats.maxScore.toFixed(3)}`);
@@ -359,9 +373,23 @@ export async function retrieveCandidates(args: {
   const candidates: CandidateDocument[] = [];
   const structuralOverlapsByDocument = new Map<string, StructuralOverlap[]>();
   const selectionLimitsByDocument = new Map<string, SelectionLimit[]>();
+  // ⚠️ F-114 — EL PUNTO DE CÁLCULO DEL TERMÓMETRO, Y ES ESTE BUCLE Y NO OTRO.
+  // Aquí es donde las tres depuraciones están hechas: el propio y la metadata se
+  // excluyeron en `collectMatches`, la generación muerta en `soloGeneracionActiva`
+  // (arriba), y el dedup ocurre en la línea de abajo. No hay ningún punto
+  // anterior con las tres, así que el mínimo se acumula recorriendo — no se lee
+  // de una variable.
+  //
+  // ⚠️ ES ANTES DEL CORTE A LOS 25 MÁS AFINES, a propósito: lo que el corte deja
+  // fuera ya lo cuenta `cortadosPorTope`, y mezclarlo aquí sumaría dos causas.
+  const scoresUnicos: number[] = [];
+  const maximosPorDocumento: number[] = [];
+
   for (const [documentId, frags] of byDoc) {
     const unique = deduplicateFragments(frags);
     const sorted = unique.sort((a, b) => b.score - a.score);
+    for (const f of unique) scoresUnicos.push(f.score);
+    maximosPorDocumento.push(sorted[0].score);
 
     console.log(
       `[retrieval] "${sorted[0].documentName}": ${unique.length} fragmentos únicos — ` +
@@ -470,8 +498,41 @@ export async function retrieveCandidates(args: {
 
   // Hasta MAX_CANDIDATOS_DE_RECUPERACION hacia el rerank, y contados los que no.
   const corte = cortarALosMasAfines(candidates, MAX_CANDIDATOS_DE_RECUPERACION);
+
+  // ⚠️ F-114 — EL FONDO, LEÍDO DE LA BASE Y NO DE PINECONE. Es el denominador que
+  // dice si el mínimo observado es el SUELO o sólo el puesto `topK`. Y si la
+  // lectura falla NO tumba el análisis: devuelve null con su motivo.
+  const fondoContado = await contarElFondo(supabase, { orgId, excludeDocumentId, batchDocumentIds });
+
+  const generacionMuertaExcluida = allMatches.length - vivos.length;
+  const denominadores: DenominadoresDelTermometro = {
+    crudos: cuenta.crudos,
+    descartados_umbral: cuenta.descartados_umbral,
+    sin_metadata_utilizable: cuenta.sin_metadata_utilizable,
+    propios_excluidos: cuenta.propios_excluidos,
+    generacion_muerta_excluida: generacionMuertaExcluida,
+    candidatos_con_repeticion: vivos.length,
+    unicos: scoresUnicos.length,
+  };
+
+  const termometro: Termometro = termometroDeLaRecuperacion({
+    consultas: embeddings.length,
+    topK: TOP_K_POR_CONSULTA,
+    denominadores,
+    fondo: fondoContado.fondo,
+    fondo_motivo: fondoContado.motivo,
+    maximosPorDocumento,
+    scoresUnicos,
+    modelo: {
+      pedido: EMBEDDING_MODEL,
+      servido: sello.modeloServido,
+      dimension_servida: sello.dimensionServida,
+    },
+  });
+
   return {
     candidates: corte.candidatos,
+    termometro,
     chunksByDocument,
     structuralOverlaps: structuralOverlapsByDocument,
     selectionLimits: selectionLimitsByDocument,
@@ -491,9 +552,20 @@ function collectMatches(
   excludeDocumentId: string | undefined,
   discardedByThreshold: Map<string, { count: number; maxScore: number }>,
   idsBajoUmbral: string[],
+  /** F-114 — los denominadores del termómetro, contados CADA UNO DONDE OCURRE.
+   *  Se pasa el acumulador en vez de devolverlos porque esta función se llama
+   *  una vez por consulta y el reparto es de todo el análisis. */
+  cuenta: { crudos: number; descartados_umbral: number; sin_metadata_utilizable: number; propios_excluidos: number },
 ): void {
   for (const m of matches || []) {
-    if (!m.metadata || typeof m.score !== 'number') continue;
+    cuenta.crudos += 1;
+    if (!m.metadata || typeof m.score !== 'number') {
+      // ⚠️ EL TERMINO QUE F-113 NO PIDIO Y SIN EL QUE EL CUADRE NO CIERRA: este
+      // descarte y el de `documentId`/`documentName`/`text` de más abajo llevan
+      // aquí desde siempre y nadie los contaba.
+      cuenta.sin_metadata_utilizable += 1;
+      continue;
+    }
     // B.248: la comparación vive en UN sitio, y es el mismo que prueba el caso decisivo.
     if (!pasaElUmbral(m.score, scoreThreshold)) {
       if (typeof m.metadata.documentId === 'string') idsBajoUmbral.push(m.metadata.documentId);
@@ -503,6 +575,7 @@ function collectMatches(
       stats.count++;
       if (m.score > stats.maxScore) stats.maxScore = m.score;
       discardedByThreshold.set(docName, stats);
+      cuenta.descartados_umbral += 1;
       continue;
     }
     const meta = m.metadata as {
@@ -510,8 +583,14 @@ function collectMatches(
       source?: string; chunkIndex?: number; text?: string;
       generation?: number;
     };
-    if (!meta.documentId || !meta.documentName || !meta.text) continue;
-    if (excludeDocumentId && meta.documentId === excludeDocumentId) continue;
+    if (!meta.documentId || !meta.documentName || !meta.text) {
+      cuenta.sin_metadata_utilizable += 1;
+      continue;
+    }
+    if (excludeDocumentId && meta.documentId === excludeDocumentId) {
+      cuenta.propios_excluidos += 1;
+      continue;
+    }
 
     out.push({
       text: meta.text,
