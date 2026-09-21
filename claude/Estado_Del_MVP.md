@@ -4378,6 +4378,16 @@ rompe ni un test no está probada.
 
 **Resultado: 24 constantes mutadas, 24 pasadas de suite. 19 sobreviven.**
 
+> ⚠️ **21/09/2026 · F-114 — LA VARIABLE SE COMPROBÓ DESPUÉS DEL COMMIT, NO ANTES.**
+> `ANALYSIS_ATOMIC_MEASURE`: el director comprobó el **21/09/2026 a las 16:31** que no
+> existe en Vercel (Production, Preview y Development) ni en Railway. **La comprobación
+> se hizo DESPUÉS del commit `839d093b`, no antes como pedía F-114**; el encargo la dio
+> por hecha sin estarlo — error del arquitecto, anotado como tal y no como detalle.
+> **Sin efecto, porque el código que la leía ya no existe.** Y la razón de que se anote
+> igual: F-114 mandaba borrar la variable PRIMERO y el código DESPUÉS, así que hacerlo al
+> revés habría dejado —si hubiera estado definida— una variable de entorno activa
+> apuntando a una rama inexistente. Inocuo aquí; **no inocuo en general**.
+>
 > ⚠️ **21/09/2026 · F-114 — LAS SUPERVIVIENTES SON 18, NO 19.** `MAX_CLAIMS` desapareció
 > con la retirada de la rama atómica: no ganó caso decisivo, **dejó de existir**. Es la
 > única forma legítima de bajar esta lista sin probar nada, y se anota para que nadie
