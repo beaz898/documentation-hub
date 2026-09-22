@@ -23,6 +23,8 @@ import type { VectorMatch } from '@/lib/pinecone/types';
 import { clasificarTrozo, clasificarPar, reparteVacio } from './clase-de-trozo';
 
 const PROPIO = 'doc-propio';
+/** El fantasma de F-115: sin fila, y servido igual por las consultas. */
+const FANTASMA = 'c701c9dd-1f28-4a3c-8c0c-65ee3b2ffec6';
 
 function match(documentId: string, score: number, extra?: { generation?: number; documentName?: string; text?: string }): VectorMatch {
   return {
@@ -41,18 +43,28 @@ function match(documentId: string, score: number, extra?: { generation?: number;
 }
 
 describe('matchesContables — qué entra en el censo', () => {
+  /**
+   * ⚠️ EL MAPA DE ESTE CENSO CUBRE TODAS LAS FILAS DE LA ORGANIZACIÓN, y su
+   * lectura falla CERRADA (503 en la ruta). Por eso desde el 22/09/2026 estos
+   * casos lo pasan LLENO: con la criba de fila viva dentro de `matchesContables`
+   * (F-115), un mapa vacío significa «ningún documento existe» y el censo no
+   * contaría nada — que es el comportamiento correcto y no el de estos casos,
+   * que miden otras cosas.
+   */
+  const CENSADOS = new Map([['otro', 1], ['y', 1], [PROPIO, 1]]);
+
   it('excluye el documento propio, que siempre se encuentra a si mismo', () => {
     const { contables } = matchesContables(
       [match(PROPIO, 0.99), match('otro', 0.8)],
       PROPIO,
-      new Map(),
+      CENSADOS,
     );
     expect(contables.map(c => c.documentId)).toEqual(['otro']);
   });
 
   it('descarta los matches sin metadata utilizable', () => {
     const sinMeta: VectorMatch = { id: 'x-0', score: 0.9 };
-    const { contables } = matchesContables([sinMeta, match('otro', 0.8)], PROPIO, new Map());
+    const { contables } = matchesContables([sinMeta, match('otro', 0.8)], PROPIO, CENSADOS);
     expect(contables).toHaveLength(1);
   });
 
@@ -63,7 +75,7 @@ describe('matchesContables — qué entra en el censo', () => {
         text: 'x', documentId: 'y', documentName: 'y', chunkIndex: 0, totalChunks: 1, orgId: 'org',
       },
     };
-    const { contables } = matchesContables([sinScore, match('otro', 0.8)], PROPIO, new Map());
+    const { contables } = matchesContables([sinScore, match('otro', 0.8)], PROPIO, CENSADOS);
     expect(contables.map(c => c.documentId)).toEqual(['otro']);
   });
 
@@ -89,9 +101,32 @@ describe('matchesContables — qué entra en el censo', () => {
     expect(deGeneracionMuerta).toBe(0);
   });
 
-  it('un vecino del que no se sabe la generacion activa se CONSERVA — la ausencia de dato no es dato', () => {
-    const { contables } = matchesContables([match('desconocido', 0.9, { generation: 7 })], PROPIO, new Map());
-    expect(contables).toHaveLength(1);
+  /**
+   * ⚠️ CASO DECISIVO DEL CENSO, Y ES EL CONTRARIO DEL QUE HABÍA AQUÍ — F-115.
+   *
+   * Hasta el 22/09/2026 este caso afirmaba que un vecino AUSENTE del mapa «se
+   * CONSERVA — la ausencia de dato no es dato». Con el mapa completo de este
+   * censo, ausente significa **no tiene fila**, y conservarlo era medir
+   * contaminación como si fuera vecindario: la matriz completa del 21/09 contó
+   * +6 scores de CLI-05 en 3 de 41 documentos y nada lo dijo.
+   *
+   * Ahora se descarta Y SE CUENTA aparte, que es la mitad que faltaba.
+   */
+  it('⚠️ un vecino SIN FILA se descarta y se cuenta en su propio contador', () => {
+    const { contables, sinFilaViva, deGeneracionMuerta } = matchesContables(
+      [match(FANTASMA, 0.866, { generation: 2 }), match('otro', 0.8)],
+      PROPIO,
+      CENSADOS,
+    );
+    expect(contables.map(c => c.documentId)).toEqual(['otro']);
+    expect(sinFilaViva).toBe(1);
+    // ⚠️ Y NO se le atribuye a la generación muerta, que es la causa vecina.
+    expect(deGeneracionMuerta).toBe(0);
+  });
+
+  it('en régimen normal el contador de fila viva no se mueve', () => {
+    const { sinFilaViva } = matchesContables([match('otro', 0.8)], PROPIO, CENSADOS);
+    expect(sinFilaViva).toBe(0);
   });
 });
 

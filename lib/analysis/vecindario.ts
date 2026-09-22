@@ -1,6 +1,7 @@
 import type { VectorMatch } from '@/lib/pinecone/types';
 import { CUBOS, cuboDe, bordeInferior, histogramaVacio, percentilDelHistograma } from './cubos-de-score';
 import { soloGeneracionActiva, generacionesMuertas } from './generacion-activa';
+import { repartoPorFilaViva } from '@/lib/documents/vivos';
 import { SCORE_THRESHOLD_QUICK, SCORE_THRESHOLD_EXHAUSTIVE } from './retrieval';
 import {
   clasificarTrozo,
@@ -53,6 +54,18 @@ export interface Vecino {
 /** Los contadores del censo. Todos se escriben SIEMPRE, incluidos los ceros:
  *  un cero que no aparece no se distingue de «no se miró». */
 export interface ContadoresDelCenso {
+  /**
+   * F-115 — Fragmentos cuyo documento NO TIENE FILA en la organización.
+   * ⚠️ ESPERADO CERO, y si se mueve el censo está MIDIENDO CONTAMINACIÓN: es
+   * exactamente lo que le pasó a la matriz completa del 21/09/2026, que contó
+   * +6 scores de CLI-05 en 3 de 41 documentos sin que nada lo dijera.
+   *
+   * Existe porque la criba de existencia entró en `matchesContables` el
+   * 22/09/2026: antes, un fantasma se CONSERVABA (la regla «lo que no se sabe no
+   * se tira»), así que entraba en el censo como un vecino cualquiera. Ahora se
+   * descarta — y sin este contador el descarte sería silencioso, que es peor.
+   */
+  fragmentos_sin_fila_viva: number;
   /** Fragmentos descartados por pertenecer a una generación muerta.
    *  ⚠️ ESPERADO CERO. Si se mueve, hay vectores zombis vivos en el índice. */
   fragmentos_de_generacion_muerta: number;
@@ -123,15 +136,24 @@ interface MatchContable {
 /**
  * Convierte los matches crudos de una consulta en algo contable, descartando:
  * el propio documento (que siempre se encuentra a sí mismo a ~1,0), los que no
- * traen metadata utilizable, y los de generación muerta.
+ * traen metadata utilizable, **los que no tienen fila viva** y los de generación
+ * muerta.
  *
- * Devuelve además cuántos cayeron por generación, para que la caída no sea muda.
+ * Devuelve además cuántos cayeron por cada una de las dos últimas causas, para
+ * que ninguna caída sea muda.
+ *
+ * ⚠️ LA FILA VIVA ENTRA AQUÍ EL 22/09/2026 (F-115), Y ES LA MISMA FUNCIÓN QUE
+ * USA LA RECUPERACIÓN. El mapa `activas` de este censo se construye con TODAS
+ * las filas de la organización y su lectura falla CERRADA (503), así que aquí
+ * «no está en el mapa» significa «no tiene fila» sin ninguna ambigüedad — es la
+ * misma pregunta que el análisis le hace a `documentosVivos`, con la misma
+ * respuesta y una fuente distinta.
  */
 export function matchesContables(
   matches: VectorMatch[],
   documentoPropio: string,
   activas: Map<string, number>,
-): { contables: MatchContable[]; deGeneracionMuerta: number } {
+): { contables: MatchContable[]; deGeneracionMuerta: number; sinFilaViva: number } {
   const crudos: MatchContable[] = [];
   for (const m of matches) {
     const meta = m.metadata;
@@ -148,12 +170,15 @@ export function matchesContables(
       chunkIndex: typeof meta.chunkIndex === 'number' ? meta.chunkIndex : null,
     });
   }
-  // La MISMA función que usa el retrieval. No se recalcula el criterio.
-  const vivos = soloGeneracionActiva(crudos, activas);
-  const muertas = generacionesMuertas(crudos, activas);
+  // Las MISMAS funciones que usa el retrieval, y en el mismo ORDEN: primero si
+  // el documento existe, después de qué generación es lo que existe. No se
+  // recalcula ningún criterio.
+  const { vivos: conFila, sinFila } = repartoPorFilaViva(crudos, activas);
+  const deLaActiva = soloGeneracionActiva(conFila, activas);
+  const muertas = generacionesMuertas(conFila, activas);
   let deGeneracionMuerta = 0;
   for (const n of muertas.values()) deGeneracionMuerta += n;
-  return { contables: vivos, deGeneracionMuerta };
+  return { contables: deLaActiva, deGeneracionMuerta, sinFilaViva: sinFila.length };
 }
 
 /**

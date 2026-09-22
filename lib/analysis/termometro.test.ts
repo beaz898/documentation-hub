@@ -5,6 +5,7 @@ import {
   termometroDeLaRecuperacion,
   scoresDeLosUnicos,
   elRepartoCuadra,
+  candidatosFueraDelFondo,
   MOTIVO_DUPLICADO_EXACTO,
   CUBOS_DEL_HISTOGRAMA,
   type DenominadoresDelTermometro,
@@ -23,10 +24,14 @@ import { EMBEDDING_MODEL, EMBEDDING_DIMENSION } from '@/lib/embeddings';
 
 const SELLO = { pedido: EMBEDDING_MODEL, servido: 'multilingual-e5-large', dimension_servida: 1024 };
 
+/** El fantasma de F-115, con su id real: CLI-05, borrado y servido igual. */
+const FANTASMA = 'c701c9dd-1f28-4a3c-8c0c-65ee3b2ffec6';
+
 /** Un reparto que cuadra, para partir de él y romperlo a propósito. */
 function denominadores(extra: Partial<DenominadoresDelTermometro> = {}): DenominadoresDelTermometro {
   const base: DenominadoresDelTermometro = {
     crudos: 125,
+    sin_fila_viva: 0,
     descartados_umbral: 0,
     sin_metadata_utilizable: 0,
     propios_excluidos: 20,
@@ -47,22 +52,30 @@ function medida(extra: Partial<MedidaDeLaRecuperacion> = {}): MedidaDeLaRecupera
     maximosPorDocumento: [0.864, 0.827],
     scoresUnicos: [0.796, 0.81, 0.827, 0.835, 0.864],
     modelo: SELLO,
+    idsSinFilaViva: [],
+    candidatosFueraDelFondo: [],
     ...extra,
   };
 }
 
-describe('⚠️ EL CUADRE — cinco términos, y el total es lo que Pinecone devolvió', () => {
-  it('un reparto real cuadra: 0 + 0 + 20 + 0 + 105 = 125', () => {
+describe('⚠️ EL CUADRE — SEIS términos, y el total es lo que Pinecone devolvió', () => {
+  it('un reparto real cuadra: 0 + 0 + 0 + 20 + 0 + 105 = 125', () => {
     expect(elRepartoCuadra(denominadores())).toBe(true);
   });
 
   /**
    * ⚠️ CASO DECISIVO. Cada término tiene que estar en la suma: si se olvida uno,
-   * el cuadre deja de cerrar. Se rompe UNO A UNO, y los cinco tienen que
+   * el cuadre deja de cerrar. Se rompe UNO A UNO, y los SEIS tienen que
    * romperlo — así el día que alguien añada un descarte nuevo sin contarlo, esto
    * se pone rojo en vez de dejar una identidad que no cuadra.
+   *
+   * ⚠️ `sin_fila_viva` entró el 22/09/2026 (F-115) y está aquí por lo mismo: sin
+   * él en la suma, seis fragmentos de un documento borrado desaparecerían del
+   * reparto y el cuadre seguiría cerrando — que es exactamente cómo la
+   * contaminación pasó inadvertida en la matriz del 21/09.
    */
-  it('⚠️ mover CUALQUIERA de los cinco términos rompe el cuadre', () => {
+  it('⚠️ mover CUALQUIERA de los seis términos rompe el cuadre', () => {
+    expect(elRepartoCuadra(denominadores({ sin_fila_viva: 1 }))).toBe(false);
     expect(elRepartoCuadra(denominadores({ descartados_umbral: 1 }))).toBe(false);
     expect(elRepartoCuadra(denominadores({ sin_metadata_utilizable: 1 }))).toBe(false);
     expect(elRepartoCuadra(denominadores({ propios_excluidos: 19 }))).toBe(false);
@@ -71,14 +84,15 @@ describe('⚠️ EL CUADRE — cinco términos, y el total es lo que Pinecone de
     expect(elRepartoCuadra(denominadores({ crudos: 126 }))).toBe(false);
   });
 
-  it('un reparto con los cinco términos a la vez cuadra igual', () => {
+  it('un reparto con los seis términos a la vez cuadra igual', () => {
     expect(elRepartoCuadra({
       crudos: 100,
+      sin_fila_viva: 6,
       descartados_umbral: 7,
       sin_metadata_utilizable: 3,
       propios_excluidos: 25,
       generacion_muerta_excluida: 5,
-      candidatos_con_repeticion: 60,
+      candidatos_con_repeticion: 54,
       unicos: 30,
     })).toBe(true);
   });
@@ -91,8 +105,8 @@ describe('⚠️ EL CUADRE — cinco términos, y el total es lo que Pinecone de
 
   it('todo a cero cuadra: es un análisis que no recuperó nada, no un fallo', () => {
     expect(elRepartoCuadra({
-      crudos: 0, descartados_umbral: 0, sin_metadata_utilizable: 0, propios_excluidos: 0,
-      generacion_muerta_excluida: 0, candidatos_con_repeticion: 0, unicos: 0,
+      crudos: 0, sin_fila_viva: 0, descartados_umbral: 0, sin_metadata_utilizable: 0,
+      propios_excluidos: 0, generacion_muerta_excluida: 0, candidatos_con_repeticion: 0, unicos: 0,
     })).toBe(true);
   });
 });
@@ -135,6 +149,10 @@ describe('⚠️ LOS TRES ESTADOS, distinguibles en la base', () => {
     expect(t.fondo).toBeNull();
     expect(t.documentos_candidatos).toBeNull();
     expect(t.scores).toBeNull();
+    // ⚠️ Las dos listas de F-115 van VACÍAS, no `null`: no hubo recuperación, así
+    // que no hubo nada que descartar. `estado` ya dice que no se recuperó.
+    expect(t.ids_sin_fila_viva).toEqual([]);
+    expect(t.candidatos_fuera_del_fondo).toEqual([]);
     // El sello del modelo se escribe igual: lo PEDIDO se sabe siempre.
     expect(t.modelo.pedido).toBe(EMBEDDING_MODEL);
     expect(t.modelo.servido).toBeNull();
@@ -157,6 +175,51 @@ describe('⚠️ LOS TRES ESTADOS, distinguibles en la base', () => {
     expect(t.estado).toBe('con_candidatos');
     expect(t.fondo).toBeNull();
     expect(t.fondo_motivo).toBe('no se pudo leer la lista');
+  });
+});
+
+describe('⚠️ F-115 — LA REGLA NUEVA: todo candidato pertenece al fondo', () => {
+  const FONDO = new Set(['cli-04', 'ope-11']);
+
+  it('los candidatos del fondo no producen ningún hallazgo', () => {
+    expect(candidatosFueraDelFondo(['cli-04', 'ope-11'], FONDO, true)).toEqual([]);
+  });
+
+  /**
+   * ⚠️ CASO DECISIVO, Y ES EL CASO REAL DEL 21/09/2026: el análisis de MKT-01
+   * devolvió TRES candidatos con un fondo que sólo daba para dos. El tercero era
+   * CLI-05, borrado. Sin esta comprobación, los tres pasaban por normales — y
+   * pasaron: lo destapó que alguien leyera el log.
+   */
+  it('⚠️ un candidato que el índice sirve y la base no cuenta SALE NOMBRADO', () => {
+    expect(candidatosFueraDelFondo(['cli-04', 'ope-11', FANTASMA], FONDO, true))
+      .toEqual([FANTASMA]);
+  });
+
+  it('no se repite un candidato aunque llegue dos veces', () => {
+    expect(candidatosFueraDelFondo([FANTASMA, FANTASMA], FONDO, true)).toEqual([FANTASMA]);
+  });
+
+  it('con el fondo VACÍO medido, todos los candidatos están fuera', () => {
+    expect(candidatosFueraDelFondo(['cli-04'], new Set(), true)).toEqual(['cli-04']);
+  });
+
+  /**
+   * ⚠️ Y CON EL FONDO NO MEDIDO NO SE INVENTA UN HALLAZGO. Es la regla del cero:
+   * sin fondo no hay conjunto al que pertenecer, y contestar «todos son ajenos»
+   * convertiría un fallo de lectura de la base en una acusación al índice.
+   */
+  it('⚠️ fondo NO medido → lista vacía, no «todos fuera»', () => {
+    expect(candidatosFueraDelFondo(['cli-04', FANTASMA], new Set(), false)).toEqual([]);
+  });
+
+  it('los dos campos viajan al termómetro tal como llegan', () => {
+    const t = termometroDeLaRecuperacion(medida({
+      idsSinFilaViva: [`${FANTASMA}-g2-0`, `${FANTASMA}-g2-1`],
+      candidatosFueraDelFondo: [FANTASMA],
+    }));
+    expect(t.ids_sin_fila_viva).toHaveLength(2);
+    expect(t.candidatos_fuera_del_fondo).toEqual([FANTASMA]);
   });
 });
 
@@ -205,7 +268,12 @@ describe('la forma del objeto', () => {
       if (Array.isArray(v)) { v.forEach(recorrer); return; }
       if (v !== null && typeof v === 'object') { Object.values(v).forEach(recorrer); }
     };
-    recorrer(termometroDeLaRecuperacion(medida()));
+    recorrer(termometroDeLaRecuperacion(medida({
+      // ⚠️ CON LOS DOS CAMPOS DE F-115 LLENOS, porque vacíos no prueban nada: lo
+      // que hay que vigilar es que lo que entre por ahí sean IDS y no nombres.
+      idsSinFilaViva: [`${FANTASMA}-g2-3`],
+      candidatosFueraDelFondo: [FANTASMA],
+    })));
 
     // El vocabulario ADMITIDO, completo: los tres estados, el motivo y los dos
     // nombres de modelo. Cualquier otra cadena sería un dato del cliente.
@@ -213,9 +281,16 @@ describe('la forma del objeto', () => {
       'con_candidatos', 'fondo_vacio', 'no_recuperado',
       MOTIVO_DUPLICADO_EXACTO, EMBEDDING_MODEL, SELLO.servido,
     ]);
+    // ⚠️ Y LA ÚNICA FAMILIA ABIERTA: los ids. Un uuid —con su sufijo de
+    // generación y trozo— no es un dato del cliente; el NOMBRE de un documento
+    // sí, y por eso esta forma se comprueba en vez de admitir cualquier cadena.
+    const formaDeId = /^[0-9a-f-]{36}(-g\d+)?(-\d+)?$/;
     for (const v of valores) {
-      expect(admitidas.has(v), `cadena no admitida en el termómetro: "${v}"`).toBe(true);
+      const vale = admitidas.has(v) || formaDeId.test(v);
+      expect(vale, `cadena no admitida en el termómetro: "${v}"`).toBe(true);
     }
+    // Control positivo de la forma: un nombre de documento NO la pasa.
+    expect(formaDeId.test('CLI-05_radiologia-proteccion-radiologica.txt')).toBe(false);
     // Control positivo: si el vocabulario no vigilara nada, esto pasaría igual.
     expect(valores.length).toBeGreaterThan(0);
   });

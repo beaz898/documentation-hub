@@ -24,11 +24,25 @@
  * consultarlo. Se resuelve después de recuperar, que es donde se sabe de qué
  * documentos estamos hablando.
  *
- * ⚠️ Y LO QUE NO SE SABE NO SE TIRA: si un documento no está en el mapa —porque
- * la consulta no lo trajo, o porque la fila ya no existe— sus fragmentos se
- * CONSERVAN. Descartar por desconocimiento convertiría un fallo de lectura en
- * pérdida de candidatos, que es la forma que este proyecto lleva días
- * retirando: la ausencia de dato no es dato.
+ * ⚠️ QUÉ SIGNIFICA «NO ESTÁ EN EL MAPA» — CAMBIADO EL 22/09/2026 (F-115).
+ *
+ * Hasta hoy, un documento ausente del mapa CONSERVABA sus fragmentos, con esta
+ * razón escrita: «lo que no se sabe no se tira», porque la ausencia podía venir
+ * de un fallo de lectura y descartar por desconocimiento convertiría ese fallo
+ * en pérdida de candidatos.
+ *
+ * **La razón era correcta y la premisa ya no lo es.** El mapa lo construye ahora
+ * `documentosVivos` (`lib/documents/vivos.ts`), que devuelve
+ * `{estado:'no_leido'}` cuando no pudo leer — y entonces el análisis SE PARA,
+ * sin llegar aquí. Así que a esta función ya sólo llega un mapa LEÍDO, donde la
+ * ausencia significa una sola cosa: **ese documento no tiene fila**. Conservar
+ * sus fragmentos era servir un documento borrado, que es F-115.
+ *
+ * ⚠️ Y LA AUSENCIA SE DESCARTA *Y SE CUENTA*, en las dos funciones y con el mismo
+ * predicado. No porque pueda ocurrir —quien llama hace el reparto por fila viva
+ * ANTES (`criba-de-matches.ts`), así que aquí no llega ningún ausente— sino para
+ * que si algún día llegara, el fragmento no desapareciera sin dejar rastro. Un
+ * descarte mal etiquetado se ve; uno silencioso, no.
  */
 
 export interface FragmentoConGeneracion {
@@ -43,19 +57,21 @@ export interface FragmentoConGeneracion {
 /**
  * QUÉ FRAGMENTOS SIRVE HOY CADA DOCUMENTO.
  *
- * `activas` es el mapa `documentId → active_generation`. Un fragmento se
- * conserva si su generación es la activa de su documento, o si de ese documento
- * no sabemos nada.
+ * `activas` es el mapa `documentId → active_generation` de un mapa YA LEÍDO. Un
+ * fragmento se conserva si y sólo si su generación es la activa de su documento.
  */
 export function soloGeneracionActiva<T extends FragmentoConGeneracion>(
-  fragmentos: T[],
-  activas: Map<string, number>,
+  fragmentos: readonly T[],
+  activas: ReadonlyMap<string, number>,
 ): T[] {
-  return fragmentos.filter(f => {
-    const activa = activas.get(f.documentId);
-    if (activa === undefined) return true;
-    return (f.generation ?? 1) === activa;
-  });
+  return fragmentos.filter(f => esDeLaActiva(f, activas));
+}
+
+/** El predicado, UNO, para que las dos funciones no puedan separarse. */
+function esDeLaActiva(f: FragmentoConGeneracion, activas: ReadonlyMap<string, number>): boolean {
+  const activa = activas.get(f.documentId);
+  if (activa === undefined) return false;
+  return (f.generation ?? 1) === activa;
 }
 
 /**
@@ -66,13 +82,12 @@ export function soloGeneracionActiva<T extends FragmentoConGeneracion>(
  * una medición y nadie vio, porque no había quien lo contara.
  */
 export function generacionesMuertas<T extends FragmentoConGeneracion>(
-  fragmentos: T[],
-  activas: Map<string, number>,
+  fragmentos: readonly T[],
+  activas: ReadonlyMap<string, number>,
 ): Map<string, number> {
   const cuenta = new Map<string, number>();
   for (const f of fragmentos) {
-    const activa = activas.get(f.documentId);
-    if (activa === undefined || (f.generation ?? 1) === activa) continue;
+    if (esDeLaActiva(f, activas)) continue;
     cuenta.set(f.documentId, (cuenta.get(f.documentId) ?? 0) + 1);
   }
   return cuenta;

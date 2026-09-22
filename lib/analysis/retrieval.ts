@@ -3,9 +3,12 @@ import { generateEmbeddingsConSello, EMBEDDING_MODEL } from '@/lib/embeddings';
 import {
   termometroDeLaRecuperacion,
   contarElFondo,
+  candidatosFueraDelFondo,
   type Termometro,
   type DenominadoresDelTermometro,
 } from './termometro';
+import { documentosVivos, pararPorVerificacion } from '@/lib/documents/vivos';
+import { cribarMatches, documentIdsDeLosMatches, laCribaCuadra, type MatchCrudo } from './criba-de-matches';
 import { runInBatches } from '@/lib/run-in-batches';
 import { getChunksForDocuments } from '@/lib/read-chunks';
 import { normalize } from './judge';
@@ -13,8 +16,7 @@ import { getOrderedColumns } from './table-structure';
 import type { CandidateDocument, DocumentFragment, PipelineOptions, SelectionLimit } from './types';
 import type { StoredChunk } from '@/lib/read-chunks';
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { generacionesMuertas, soloGeneracionActiva } from '@/lib/analysis/generacion-activa';
-import { pasaElUmbral, candidatosPerdidosPorUmbral, cortarALosMasAfines } from './umbral-de-recuperacion';
+import { candidatosPerdidosPorUmbral, cortarALosMasAfines } from './umbral-de-recuperacion';
 
 /**
  * Etapa 1 — Retrieval amplio.
@@ -257,90 +259,103 @@ export async function retrieveCandidates(args: {
   // Recoger todos los matches de Pinecone. Paralelo por lotes en los dos
   // modos (F-31 P1) — sin delayMs: aquí se paraleliza contra Pinecone, no
   // contra un LLM con límite de peticiones.
-  const allMatches: DocumentFragment[] = [];
-  // F-40: agregado, no por match — collectMatches se llama una vez POR
-  // CONSULTA (una por sampleText, no por lote de QUERY_BATCH_SIZE), y cada
-  // una trae hasta topK=25 matches crudos. Loggear cada descarte individual
-  // podría ser cientos de líneas por análisis en un corpus real; el recuento
-  // por documento basta para saber si un score ronda el umbral.
-  const discardedByThreshold = new Map<string, { count: number; maxScore: number }>();
-  // B.248: los IDS de los documentos con algún fragmento bajo el umbral. El mapa
-  // de arriba va por NOMBRE, que sirve para el registro y no para contar: dos
-  // documentos pueden llamarse igual.
-  const idsBajoUmbral: string[] = [];
-  // F-114 — los denominadores del termometro. Cada uno se incrementa DONDE
-  // ocurre su descarte, dentro de collectMatches, sobre lo que sobrevivio al
-  // paso anterior. Por eso el cuadre cierra: los conjuntos son disjuntos.
-  const cuenta = { crudos: 0, descartados_umbral: 0, sin_metadata_utilizable: 0, propios_excluidos: 0 };
   const batchResults = await runInBatches(
     embeddings,
     emb => queryVectors(orgId, { vector: emb, topK: TOP_K_POR_CONSULTA, includeMetadata: true, filter: corpusFilter }),
     { batchSize: QUERY_BATCH_SIZE },
   );
-  for (const matches of batchResults) {
-    collectMatches(matches as Array<{ metadata?: Record<string, unknown>; score?: number }>, allMatches, scoreThreshold, excludeDocumentId, discardedByThreshold, idsBajoUmbral, cuenta);
+  const crudos: MatchCrudo[] = batchResults.flat() as MatchCrudo[];
+
+  // ══ ¿EXISTEN? LA PRIMERA PREGUNTA DE TODAS — F-115 (22/09/2026) ══
+  //
+  // ═══════════════════════════════════════════════════════════════════════════
+  // ⚠️ POR QUÉ VA AQUÍ Y NO DESPUÉS. Un vector cuyo documento ya no tiene fila
+  // casa en la búsqueda igual que cualquier otro: el filtro del índice mira
+  // METADATOS, no filas. El 21/09/2026 CLI-05, borrado días antes, volvió de
+  // forma intermitente y **cambió el resultado de un análisis del usuario** — el
+  // rerank eligió otro documento. F-115.
+  //
+  // Antes de este bloque, el umbral se aplicaba ANTES de saber si el documento
+  // existía, así que un fantasma con poco score se anotaba como «perdido por el
+  // umbral» y uno con mucho entraba como candidato. «La pregunta ¿existe?
+  // precede a cualquier otra pregunta sobre el fragmento» (F-115 P1).
+  //
+  // ⚠️ Y SI NO SE PUEDE VERIFICAR, SE PARA. Es la decisión del director del
+  // 22/09/2026, y sustituye a «lo que no se sabe no se tira»: aquella regla
+  // trataba igual «leí y no existe» que «no pude leer» —las dos llegaban como un
+  // `Map` vacío— y por eso un fantasma pasaba. Ahora la procedencia viaja en el
+  // tipo. Parar cuesta un reintento del usuario; no parar cuesta comparar su
+  // documento contra contenido borrado.
+  //
+  // ⚠️ EL CRÉDITO SE DEVUELVE SOLO, y no hay una línea de créditos aquí: lanzar
+  // desde la recuperación llega al `catch` de la ruta con el acumulador de uso
+  // VACÍO —no ha habido ninguna llamada al modelo todavía—, y
+  // `reembolsoDelAnalisis` devuelve el cobro entero por la regla de B.205
+  // («si no se gastó nada, se devuelve todo»). El mismo mecanismo cubre al
+  // worker por `reembolsoDelTrabajoFallido`.
+  // ═══════════════════════════════════════════════════════════════════════════
+  const existencia = await documentosVivos(supabase, { orgId, ids: documentIdsDeLosMatches(crudos) });
+  if (existencia.estado === 'no_leido') {
+    pararPorVerificacion('retrieval', existencia.motivo);
   }
-  for (const [docName, stats] of discardedByThreshold) {
+
+  // ══ LA CRIBA, EN UN SITIO Y EN UN ORDEN (lib/analysis/criba-de-matches.ts) ══
+  // existencia → umbral → propio → generación. Las cuatro juntas y puras, para
+  // que el ORDEN tenga quien lo pruebe en vez de ser el resultado de dónde está
+  // cada `continue`.
+  const criba = cribarMatches({
+    crudos,
+    generaciones: existencia.generaciones,
+    umbral: scoreThreshold,
+    excluido: excludeDocumentId,
+  });
+  const allMatches: DocumentFragment[] = criba.fragmentos;
+
+  // ⚠️ ESPERADO CERO. Si esto suena, el índice está sirviendo documentos que la
+  // base ya no tiene: se registran los vectorId para poder ir a buscarlos con
+  // /api/admin/vectores-de-un-documento.
+  if (criba.reparto.sin_fila_viva > 0) {
+    console.warn(
+      `[retrieval] SIN FILA VIVA — descartados ${criba.reparto.sin_fila_viva} fragmentos de ` +
+      `${criba.documentosSinFila.length} documento(s) sin fila | org=${orgId} | ` +
+      `docs=${criba.documentosSinFila.join(',')} | vectores=${criba.idsSinFilaViva.join(',')}`,
+    );
+  }
+  // F-40: agregado, no por match — un descarte por línea serían cientos de
+  // líneas por análisis en un corpus real; el recuento por documento basta para
+  // saber si un score ronda el umbral.
+  for (const [docName, stats] of criba.descartadosPorUmbral) {
     console.log(`[retrieval] Descartados por umbral (${scoreThreshold}) en "${docName}": ${stats.count}, score máximo: ${stats.maxScore.toFixed(3)}`);
   }
-  // Se cuenta AQUÍ, sobre lo que decidió el umbral y nada más: los filtros de
-  // después (generación activa, reparto) quitan documentos por otras razones, y
-  // atribuírselos al umbral sería mezclar causas (§5.66).
+  if (criba.porGeneracionMuerta.size > 0) {
+    // Esperado CERO en régimen normal. Si esto suena, hay vectores de
+    // generaciones muertas vivos en el índice — que es lo que contaminó una
+    // medición sin que nadie lo viera, porque no había quien lo contara.
+    for (const [docId, n] of criba.porGeneracionMuerta) {
+      console.warn(`[retrieval] GENERACIÓN MUERTA descartada | doc=${docId} | fragmentos=${n}`);
+    }
+  }
+  if (!laCribaCuadra(criba.reparto)) {
+    // ⚠️ NO PUEDE OCURRIR: los seis términos se cuentan sobre lo que sobrevivió
+    // al anterior. Si ocurriera, un fragmento se perdió por un camino que nadie
+    // declaró, y el termómetro escribiría una ecuación falsa.
+    console.error(`[retrieval] EL REPARTO DE LA CRIBA NO CUADRA | ${JSON.stringify(criba.reparto)}`);
+  }
+
+  // Se cuenta sobre lo que decidió el umbral y nada más: los descartes de
+  // después (el propio, la generación activa, el reparto) quitan documentos por
+  // otras razones, y atribuírselos al umbral sería mezclar causas (§5.66).
+  // ⚠️ Y AHORA LOS FANTASMAS NO ENTRAN EN ESTA CUENTA, porque caen antes: un
+  // documento sin fila no es «un candidato que el umbral perdió».
   const perdidosPorUmbral = candidatosPerdidosPorUmbral({
-    idsConFragmentoBajoUmbral: idsBajoUmbral,
+    idsConFragmentoBajoUmbral: criba.idsBajoUmbral,
     idsConFragmentoAceptado: allMatches.map(f => f.documentId),
     excluido: excludeDocumentId,
   });
 
-  // ══ SOLO LA GENERACIÓN QUE CADA DOCUMENTO SIRVE (F-102) ══
-  //
-  // ⚠️ AQUÍ Y NO EN EL FILTRO DE PINECONE: la generación activa es un dato POR
-  // DOCUMENTO que vive en Supabase, y un filtro de metadata no puede
-  // consultarlo. `CORPUS_ACTIVO` mira `analysisStatus` y nada más — el
-  // retrieval leía la generación y la arrastraba, pero jamás filtraba por ella.
-  //
-  // Es la SEGUNDA CAPA de la misma protección: la primera —que las generaciones
-  // viejas no se queden— la hacen los borrados de cada camino de reemplazo;
-  // ésta es que NO SE VEAN si se quedan. Sin ella, un vector de una generación
-  // anterior que sobreviva entra en la recuperación como si fuera el contenido
-  // actual, y el diff lo compara contra el presente del mismo documento.
-  //
-  // ⚠️ Y CIERRA UNA VENTANA QUE HOY SOLO ESTABA DECLARADA: en el swap, entre P1
-  // —que voltea la generación nueva a 'analizado'— y P3 —que borra la vieja—,
-  // las DOS son 'analizado' a la vez.
-  const idsRecuperados = [...new Set(allMatches.map(f => f.documentId))];
-  const activas = new Map<string, number>();
-  if (idsRecuperados.length > 0) {
-    const { data: filas, error: errGen } = await supabase
-      .from('documents')
-      .select('id, active_generation')
-      .eq('org_id', orgId)
-      .in('id', idsRecuperados);
-    if (errGen) {
-      // ⚠️ FALLA HACIA CONSERVAR: sin el mapa no se descarta nada (el mapa vacío
-      // deja pasar todo). Un fallo de lectura no puede convertirse en pérdida de
-      // candidatos — la ausencia de dato no es dato.
-      console.warn(`[retrieval] no se pudieron leer las generaciones activas; no se filtra: ${errGen.message}`);
-    } else {
-      for (const fila of filas ?? []) {
-        activas.set(fila.id as string, (fila.active_generation as number | null) ?? 1);
-      }
-    }
-  }
-  const muertas = generacionesMuertas(allMatches, activas);
-  if (muertas.size > 0) {
-    // Esperado CERO en régimen normal. Si esto suena, hay vectores de
-    // generaciones muertas vivos en el índice — que es lo que contaminó una
-    // medición sin que nadie lo viera, porque no había quien lo contara.
-    for (const [docId, n] of muertas) {
-      console.warn(`[retrieval] GENERACIÓN MUERTA descartada | doc=${docId} | fragmentos=${n}`);
-    }
-  }
-  const vivos = soloGeneracionActiva(allMatches, activas);
-
   // Agrupar por documento y deduplicar chunks
   const byDoc = new Map<string, DocumentFragment[]>();
-  for (const f of vivos) {
+  for (const f of allMatches) {
     const arr = byDoc.get(f.documentId) ?? [];
     arr.push(f);
     byDoc.set(f.documentId, arr);
@@ -374,11 +389,10 @@ export async function retrieveCandidates(args: {
   const structuralOverlapsByDocument = new Map<string, StructuralOverlap[]>();
   const selectionLimitsByDocument = new Map<string, SelectionLimit[]>();
   // ⚠️ F-114 — EL PUNTO DE CÁLCULO DEL TERMÓMETRO, Y ES ESTE BUCLE Y NO OTRO.
-  // Aquí es donde las tres depuraciones están hechas: el propio y la metadata se
-  // excluyeron en `collectMatches`, la generación muerta en `soloGeneracionActiva`
-  // (arriba), y el dedup ocurre en la línea de abajo. No hay ningún punto
-  // anterior con las tres, así que el mínimo se acumula recorriendo — no se lee
-  // de una variable.
+  // Aquí es donde TODAS las depuraciones están hechas: las cuatro —fila viva,
+  // umbral, propio y generación muerta— las hizo `cribarMatches` (arriba), y el
+  // dedup ocurre en la línea de abajo. No hay ningún punto anterior con las
+  // cinco, así que el mínimo se acumula recorriendo — no se lee de una variable.
   //
   // ⚠️ ES ANTES DEL CORTE A LOS 25 MÁS AFINES, a propósito: lo que el corte deja
   // fuera ya lo cuenta `cortadosPorTope`, y mezclarlo aquí sumaría dos causas.
@@ -504,16 +518,38 @@ export async function retrieveCandidates(args: {
   // lectura falla NO tumba el análisis: devuelve null con su motivo.
   const fondoContado = await contarElFondo(supabase, { orgId, excludeDocumentId, batchDocumentIds });
 
-  const generacionMuertaExcluida = allMatches.length - vivos.length;
   const denominadores: DenominadoresDelTermometro = {
-    crudos: cuenta.crudos,
-    descartados_umbral: cuenta.descartados_umbral,
-    sin_metadata_utilizable: cuenta.sin_metadata_utilizable,
-    propios_excluidos: cuenta.propios_excluidos,
-    generacion_muerta_excluida: generacionMuertaExcluida,
-    candidatos_con_repeticion: vivos.length,
+    // Los seis salen de la criba, que los contó cada uno donde ocurre su
+    // descarte. Antes se armaban aquí a mano, y la resta que calculaba la
+    // generación muerta (`allMatches.length - vivos.length`) era una SÉPTIMA
+    // forma de contar lo mismo: si alguien metía un descarte nuevo en medio, la
+    // resta se lo tragaba sin que el cuadre lo notara.
+    crudos: criba.reparto.crudos,
+    sin_fila_viva: criba.reparto.sin_fila_viva,
+    descartados_umbral: criba.reparto.descartados_umbral,
+    sin_metadata_utilizable: criba.reparto.sin_metadata_utilizable,
+    propios_excluidos: criba.reparto.propios_excluidos,
+    generacion_muerta_excluida: criba.reparto.generacion_muerta_excluida,
+    candidatos_con_repeticion: criba.reparto.candidatos_con_repeticion,
     unicos: scoresUnicos.length,
   };
+
+  // ⚠️ LA REGLA NUEVA DE F-115: todo documento candidato pertenece al fondo. Los
+  // candidatos vienen del ÍNDICE y el fondo de la BASE, así que uno que no esté
+  // en el fondo es un documento que el índice sirve y la base no considera
+  // consultable. Es exactamente lo que destapó CLI-05 —y lo destapó una lectura
+  // afortunada del log; aquí pasa a ser una comprobación.
+  const fueraDelFondo = candidatosFueraDelFondo(
+    [...byDoc.keys()],
+    fondoContado.documentosDelFondo,
+    fondoContado.fondo !== null,
+  );
+  if (fueraDelFondo.length > 0) {
+    console.warn(
+      `[retrieval] CANDIDATOS FUERA DEL FONDO — ${fueraDelFondo.length} documento(s) que el índice ` +
+      `sirve y la base no cuenta como consultables | org=${orgId} | docs=${fueraDelFondo.join(',')}`,
+    );
+  }
 
   const termometro: Termometro = termometroDeLaRecuperacion({
     consultas: embeddings.length,
@@ -528,6 +564,8 @@ export async function retrieveCandidates(args: {
       servido: sello.modeloServido,
       dimension_servida: sello.dimensionServida,
     },
+    idsSinFilaViva: criba.idsSinFilaViva,
+    candidatosFueraDelFondo: fueraDelFondo,
   });
 
   return {
@@ -544,70 +582,6 @@ export async function retrieveCandidates(args: {
 // Helpers internos
 // ============================================================
 
-/** Extrae DocumentFragments válidos de los matches de Pinecone. */
-function collectMatches(
-  matches: Array<{ metadata?: Record<string, unknown>; score?: number }> | undefined,
-  out: DocumentFragment[],
-  scoreThreshold: number,
-  excludeDocumentId: string | undefined,
-  discardedByThreshold: Map<string, { count: number; maxScore: number }>,
-  idsBajoUmbral: string[],
-  /** F-114 — los denominadores del termómetro, contados CADA UNO DONDE OCURRE.
-   *  Se pasa el acumulador en vez de devolverlos porque esta función se llama
-   *  una vez por consulta y el reparto es de todo el análisis. */
-  cuenta: { crudos: number; descartados_umbral: number; sin_metadata_utilizable: number; propios_excluidos: number },
-): void {
-  for (const m of matches || []) {
-    cuenta.crudos += 1;
-    if (!m.metadata || typeof m.score !== 'number') {
-      // ⚠️ EL TERMINO QUE F-113 NO PIDIO Y SIN EL QUE EL CUADRE NO CIERRA: este
-      // descarte y el de `documentId`/`documentName`/`text` de más abajo llevan
-      // aquí desde siempre y nadie los contaba.
-      cuenta.sin_metadata_utilizable += 1;
-      continue;
-    }
-    // B.248: la comparación vive en UN sitio, y es el mismo que prueba el caso decisivo.
-    if (!pasaElUmbral(m.score, scoreThreshold)) {
-      if (typeof m.metadata.documentId === 'string') idsBajoUmbral.push(m.metadata.documentId);
-      const rawName = m.metadata.documentName;
-      const docName = typeof rawName === 'string' ? rawName : '(sin nombre)';
-      const stats = discardedByThreshold.get(docName) ?? { count: 0, maxScore: -Infinity };
-      stats.count++;
-      if (m.score > stats.maxScore) stats.maxScore = m.score;
-      discardedByThreshold.set(docName, stats);
-      cuenta.descartados_umbral += 1;
-      continue;
-    }
-    const meta = m.metadata as {
-      documentId?: string; documentName?: string;
-      source?: string; chunkIndex?: number; text?: string;
-      generation?: number;
-    };
-    if (!meta.documentId || !meta.documentName || !meta.text) {
-      cuenta.sin_metadata_utilizable += 1;
-      continue;
-    }
-    if (excludeDocumentId && meta.documentId === excludeDocumentId) {
-      cuenta.propios_excluidos += 1;
-      continue;
-    }
-
-    out.push({
-      text: meta.text,
-      documentId: meta.documentId,
-      documentName: meta.documentName,
-      source: meta.source === 'google_drive' ? 'google_drive' : 'manual',
-      score: m.score,
-      chunkIndex: meta.chunkIndex ?? 0,
-      // C.4b escribe `generation` en la metadata de todos los vectores desde
-      // hace varias fases, pero hasta ahora nadie la leía. Sin ella no se puede
-      // localizar el chunk correcto en document_chunks: los chunks de
-      // generaciones distintas del mismo documento comparten chunk_index.
-      // Ausente = g1 implícita, igual que en parseVectorId.
-      generation: meta.generation ?? 1,
-    });
-  }
-}
 
 /** Elimina fragmentos del mismo chunk (pueden aparecer si distintos embeddings los recuperan). */
 function deduplicateFragments(frags: DocumentFragment[]): DocumentFragment[] {

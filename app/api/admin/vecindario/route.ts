@@ -273,8 +273,9 @@ export async function GET(req: NextRequest) {
         // texto del trozo CON EL QUE SE PREGUNTÓ es la otra mitad, y ya viene en
         // la metadata del vector bajado: no cuesta ni una consulta más.
         resultados.forEach((matches, idx) => {
-          const { contables, deGeneracionMuerta } = matchesContables(matches, documentId, activas);
+          const { contables, deGeneracionMuerta, sinFilaViva } = matchesContables(matches, documentId, activas);
           contadores.fragmentos_de_generacion_muerta += deGeneracionMuerta;
+          contadores.fragmentos_sin_fila_viva += sinFilaViva;
           // F-114 — LA PAREJA DEL MÍNIMO. Los dos lados salen de datos que ya
           // están en la mano: el vector de consulta se bajó con `fetchVectors`
           // (lleva su id y su metadata) y el devuelto viene en el match. No
@@ -335,6 +336,12 @@ export async function GET(req: NextRequest) {
       }
     }
 
+    if (contadores.fragmentos_sin_fila_viva > 0) {
+      // ⚠️ F-115 — EL CENSO ESTÁ MIDIENDO CONTAMINACIÓN. La matriz completa del
+      // 21/09 contó +6 scores de un documento borrado en 3 de 41 documentos, y
+      // nada lo dijo. Esta línea es lo que lo habría dicho.
+      console.warn(`[vecindario] FRAGMENTOS SIN FILA VIVA en el índice | org=${orgId} | fragmentos=${contadores.fragmentos_sin_fila_viva}`);
+    }
     if (contadores.fragmentos_de_generacion_muerta > 0) {
       console.warn(`[vecindario] GENERACIONES MUERTAS en el índice | org=${orgId} | fragmentos=${contadores.fragmentos_de_generacion_muerta}`);
     }
@@ -407,6 +414,7 @@ export async function GET(req: NextRequest) {
 function censoVacio(): ContadoresDelCenso {
   // Todos a cero EXPLÍCITO: un contador ausente no se distingue de «no se miró».
   return {
+    fragmentos_sin_fila_viva: 0,
     fragmentos_de_generacion_muerta: 0,
     documentos_sin_vectores: 0,
     consultas_omitidas_por_tope: 0,

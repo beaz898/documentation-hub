@@ -2,6 +2,7 @@ import { CUBOS, cuboDe, histogramaVacio } from './cubos-de-score';
 import { EMBEDDING_MODEL } from '@/lib/embeddings';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { ESTADO_DEL_CORPUS } from '@/lib/documents/estado';
+import { LOTE_DE_IDS } from '@/lib/documents/vivos';
 
 /**
  * EL TERMÓMETRO DE LA RECUPERACIÓN — F-114 (21/09/2026).
@@ -51,9 +52,15 @@ export interface SelloDelModelo {
  * Los denominadores, cada uno contado DONDE OCURRE y sobre lo que sobrevivió al
  * paso anterior. El orden de los campos es el orden del pipeline, a propósito.
  *
- * ⚠️ EL CUADRE, y por qué tiene cinco términos y no cuatro:
- *   crudos = descartados_umbral + sin_metadata_utilizable + propios_excluidos
- *            + generacion_muerta_excluida + candidatos_con_repeticion
+ * ⚠️ EL CUADRE, y por qué tiene SEIS términos:
+ *   crudos = sin_fila_viva + sin_metadata_utilizable + descartados_umbral
+ *            + propios_excluidos + generacion_muerta_excluida
+ *            + candidatos_con_repeticion
+ *
+ * `sin_fila_viva` entró el 22/09/2026 (F-115) y va PRIMERO porque su descarte es
+ * el primero: la pregunta «¿existe este documento?» precede a cualquier otra
+ * sobre el fragmento. Antes de él, un fantasma se contaba como «descartado por
+ * el umbral» si tenía poco score, y como CANDIDATO si tenía mucho.
  *
  * `sin_metadata_utilizable` NO estaba en la ecuación que F-113 pidió, y sin él
  * el cuadre **no puede cerrar**: `collectMatches` tiene DOS descartes más por
@@ -65,6 +72,12 @@ export interface SelloDelModelo {
 export interface DenominadoresDelTermometro {
   /** Lo que Pinecone devolvió, sumando todas las consultas. Es EL TOTAL. */
   crudos: number;
+  /**
+   * Fragmentos cuyo documento NO TIENE FILA en la organización. ⚠️ Esperado
+   * CERO: si esto se mueve, el índice está sirviendo documentos borrados —F-115,
+   * y no es hipotético— y `ids_sin_fila_viva` dice de qué vectores se trata.
+   */
+  sin_fila_viva: number;
   /**
    * ⚠️ TEMPORAL: se va con la retirada de SCORE_THRESHOLD_QUICK/EXHAUSTIVE, que
    * es el commit siguiente. Mientras el umbral exista, su descarte tiene que
@@ -116,6 +129,24 @@ export interface Termometro {
   fondo_motivo: string | null;
   documentos_candidatos: number | null;
   scores: ScoresDelTermometro | null;
+  /**
+   * ⚠️ ESPERADO VACÍO — los vectorId descartados por no tener fila, como mucho
+   * `MAXIMO_DE_IDS_REGISTRADOS`. Son uuids con índice de trozo: ni texto del
+   * cliente ni nombres de documento, así que caben en la cláusula 5 del contrato
+   * de contadores. Sin ellos, `sin_fila_viva: 6` diría que pasó algo y no qué.
+   */
+  ids_sin_fila_viva: string[];
+  /**
+   * ⚠️ ESPERADO VACÍO — LA REGLA NUEVA DE F-115: todo documento candidato debe
+   * pertenecer al fondo. El fondo se cuenta en la BASE y los candidatos vienen
+   * del ÍNDICE, así que un candidato que no esté en el fondo es un documento que
+   * el índice sirve y la base no considera consultable. Es lo que destapó
+   * CLI-05, y aquí deja de ser una lectura afortunada.
+   *
+   * Vacío también cuando el fondo no se pudo contar: sin fondo no hay
+   * pertenencia que comprobar, y `fondo_motivo` ya dice por qué.
+   */
+  candidatos_fuera_del_fondo: string[];
 }
 
 /** El predicado literal del único corte que se salta la recuperación. */
@@ -143,6 +174,11 @@ export function termometroNoRecuperado(motivo: string): Termometro {
     fondo_motivo: motivo,
     documentos_candidatos: null,
     scores: null,
+    // Listas VACÍAS y no `null`: no hubo recuperación, así que no hubo nada que
+    // descartar ni ningún candidato del que comprobar la pertenencia. `estado`
+    // ya dice que no se recuperó; estas dos no tienen que repetirlo.
+    ids_sin_fila_viva: [],
+    candidatos_fuera_del_fondo: [],
   };
 }
 
@@ -158,6 +194,10 @@ export interface MedidaDeLaRecuperacion {
   /** Todos los scores de los fragmentos únicos. */
   scoresUnicos: number[];
   modelo: SelloDelModelo;
+  /** Los vectorId sin fila, ya acotados por quien los recogió. */
+  idsSinFilaViva: string[];
+  /** Los documentId candidatos que no estaban en el fondo. ⚠️ Esperado vacío. */
+  candidatosFueraDelFondo: string[];
 }
 
 /**
@@ -183,6 +223,8 @@ export function termometroDeLaRecuperacion(m: MedidaDeLaRecuperacion): Termometr
     fondo_motivo: m.fondo_motivo,
     documentos_candidatos: m.maximosPorDocumento.length,
     scores: scoresDeLosUnicos(m.scoresUnicos, m.maximosPorDocumento),
+    ids_sin_fila_viva: m.idsSinFilaViva,
+    candidatos_fuera_del_fondo: m.candidatosFueraDelFondo,
   };
 }
 
@@ -209,9 +251,10 @@ export function scoresDeLosUnicos(
   return { minimo, maximo, histograma, hueco_1_2: hueco };
 }
 
-/** ¿Cuadra el reparto? Los cinco términos suman el total, y únicos ≤ con repetición. */
+/** ¿Cuadra el reparto? Los SEIS términos suman el total, y únicos ≤ con repetición. */
 export function elRepartoCuadra(d: DenominadoresDelTermometro): boolean {
-  const suma = d.descartados_umbral
+  const suma = d.sin_fila_viva
+    + d.descartados_umbral
     + d.sin_metadata_utilizable
     + d.propios_excluidos
     + d.generacion_muerta_excluida
@@ -227,48 +270,116 @@ export function elRepartoCuadra(d: DenominadoresDelTermometro): boolean {
  * `CORPUS_ACTIVO` usa en el filtro de metadata) más los ids que la tanda nomine,
  * menos el documento que se analiza.
  *
- * ⚠️ ES UNA COTA SUPERIOR, Y VA DECLARADO: cuenta filas de `document_chunks` sin
- * filtrar por generación activa, así que si quedaran vectores de una generación
- * muerta el fondo saldría mayor que lo consultable de verdad. El contador
- * `generacion_muerta_excluida` del propio termómetro es lo que dice si eso pasa
- * — y su valor esperado es cero.
+ * ⚠️ SÓLO LA GENERACIÓN ACTIVA DE CADA DOCUMENTO — corregido el 22/09/2026
+ * (F-115). Hasta hoy contaba `document_chunks` **sin filtrar por generación**, y
+ * eso lo hacía una COTA SUPERIOR: `document_chunks` conserva las generaciones
+ * muertas por diseño (su clave es `(document_id, generation, chunk_index)`) y sus
+ * dos borradores sólo registran el fallo, no abortan
+ * (`lib/persist-chunks.ts:67`, `:91`). Un fondo inflado no es un detalle: es el
+ * DENOMINADOR con el que se decide si el mínimo observado era el suelo, y ahora
+ * además el conjunto contra el que se comprueba que cada candidato existe.
+ *
+ * Se cuenta con una consulta EXACTA por generación distinta —las generaciones
+ * activas de una organización son dos o tres— en vez de traerse las filas y
+ * contarlas en memoria, que con un corpus grande sería una descarga inútil.
  *
  * ⚠️ Y SI FALLA, NO TUMBA EL ANÁLISIS: devuelve `null` con su motivo. Un fondo
  * que no se pudo leer no es un fondo de cero, y un análisis de 30 créditos no se
- * pierde por no poder contar su denominador.
+ * pierde por no poder contar su denominador. Por lo mismo el tope de abajo
+ * devuelve `null` en vez de una cifra corta: **una cota que se lee como medida
+ * es peor que no medir.**
  */
+
+/**
+ * Tope de filas de `documents` que esta cuenta lee de una vez.
+ *
+ * ⚠️ POR QUÉ EXISTE Y POR QUÉ FALLA A `null`: una consulta de PostgREST sin
+ * `range` devuelve como mucho 1.000 filas **y no avisa de que truncó**. Con un
+ * corpus mayor, el fondo saldría corto sin que nada lo dijera. Se pide una fila
+ * MÁS que el tope: si llega, la organización supera la capacidad de esta cuenta
+ * y el fondo se declara no medido con su motivo.
+ */
+const TOPE_DE_DOCUMENTOS = 5000;
+
 export async function contarElFondo(
   supabase: SupabaseClient,
   args: { orgId: string; excludeDocumentId?: string; batchDocumentIds?: string[] },
-): Promise<{ fondo: number | null; motivo: string | null }> {
+): Promise<{ fondo: number | null; motivo: string | null; documentosDelFondo: ReadonlySet<string> }> {
+  const sinFondo = (motivo: string) => ({ fondo: null, motivo, documentosDelFondo: new Set<string>() });
   try {
     const { data: elegibles, error: errDocs } = await supabase
       .from('documents')
-      .select('id, analysis_status')
-      .eq('org_id', args.orgId);
-    if (errDocs) return { fondo: null, motivo: `no se pudo leer la lista de documentos: ${errDocs.message}` };
+      .select('id, analysis_status, active_generation')
+      .eq('org_id', args.orgId)
+      .range(0, TOPE_DE_DOCUMENTOS);
+    if (errDocs) return sinFondo(`no se pudo leer la lista de documentos: ${errDocs.message}`);
+
+    const filas = elegibles ?? [];
+    if (filas.length > TOPE_DE_DOCUMENTOS) {
+      return sinFondo(`la organización supera ${TOPE_DE_DOCUMENTOS} documentos: el fondo no se puede contar de una vez`);
+    }
 
     const deLaTanda = new Set(args.batchDocumentIds ?? []);
-    const ids = (elegibles ?? [])
-      .map(d => ({ id: d.id as string, estado: d.analysis_status as string | null }))
+    const elegiblesConGeneracion = filas
+      .map(d => ({
+        id: d.id as string,
+        estado: d.analysis_status as string | null,
+        generacion: (d.active_generation as number | null) ?? 1,
+      }))
       .filter(d => d.estado === ESTADO_DEL_CORPUS || deLaTanda.has(d.id))
-      .map(d => d.id)
-      .filter(id => id !== args.excludeDocumentId);
+      .filter(d => d.id !== args.excludeDocumentId);
 
-    if (ids.length === 0) return { fondo: 0, motivo: null };
+    const documentosDelFondo = new Set(elegiblesConGeneracion.map(d => d.id));
+    if (documentosDelFondo.size === 0) return { fondo: 0, motivo: null, documentosDelFondo };
 
-    const { count, error: errChunks } = await supabase
-      .from('document_chunks')
-      .select('document_id', { count: 'exact', head: true })
-      .eq('org_id', args.orgId)
-      .in('document_id', ids);
-    if (errChunks) return { fondo: null, motivo: `no se pudieron contar los fragmentos: ${errChunks.message}` };
+    // Por generación activa: los ids que la comparten van en la misma cuenta.
+    const porGeneracion = new Map<number, string[]>();
+    for (const d of elegiblesConGeneracion) {
+      const lista = porGeneracion.get(d.generacion) ?? [];
+      lista.push(d.id);
+      porGeneracion.set(d.generacion, lista);
+    }
 
-    return { fondo: count ?? 0, motivo: null };
+    let fondo = 0;
+    for (const [generacion, ids] of porGeneracion) {
+      for (let i = 0; i < ids.length; i += LOTE_DE_IDS) {
+        const { count, error: errChunks } = await supabase
+          .from('document_chunks')
+          .select('document_id', { count: 'exact', head: true })
+          .eq('org_id', args.orgId)
+          .eq('generation', generacion)
+          .in('document_id', ids.slice(i, i + LOTE_DE_IDS));
+        if (errChunks) return sinFondo(`no se pudieron contar los fragmentos: ${errChunks.message}`);
+        fondo += count ?? 0;
+      }
+    }
+
+    return { fondo, motivo: null, documentosDelFondo };
   } catch (err) {
     const motivo = err instanceof Error ? err.message : String(err);
-    return { fondo: null, motivo: `excepción al contar el fondo: ${motivo}` };
+    return sinFondo(`excepción al contar el fondo: ${motivo}`);
   }
+}
+
+/**
+ * LA REGLA NUEVA: todo documento candidato pertenece al fondo.
+ *
+ * Función pura, y separada del conteo a propósito: lo que la hace valiosa es que
+ * compara DOS FUENTES —los candidatos vienen del índice, el fondo de la base— y
+ * cualquiera que mire su resultado tiene que poder ver eso sin abrir una
+ * consulta.
+ *
+ * ⚠️ CON EL FONDO NO MEDIDO DEVUELVE VACÍO, no «todos fuera»: sin fondo no hay
+ * conjunto al que pertenecer, y contestar «todos son ajenos» sería inventar un
+ * hallazgo a partir de un fallo de lectura.
+ */
+export function candidatosFueraDelFondo(
+  documentosCandidatos: readonly string[],
+  documentosDelFondo: ReadonlySet<string>,
+  fondoMedido: boolean,
+): string[] {
+  if (!fondoMedido) return [];
+  return [...new Set(documentosCandidatos)].filter(id => !documentosDelFondo.has(id));
 }
 
 

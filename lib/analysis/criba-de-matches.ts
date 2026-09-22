@@ -1,0 +1,235 @@
+import type { DocumentFragment } from './types';
+import { repartoPorFilaViva, idsParaElRegistro } from '@/lib/documents/vivos';
+import { generacionesMuertas, soloGeneracionActiva } from './generacion-activa';
+import { pasaElUmbral } from './umbral-de-recuperacion';
+
+/**
+ * LA CRIBA DE LOS MATCHES, EN UN SITIO Y EN UN ORDEN — F-115 (22/09/2026).
+ *
+ * ═══════════════════════════════════════════════════════════════════════════
+ * ⚠️ EL ORDEN ES EL CONTENIDO DE ESTE MÓDULO, no un detalle de implementación:
+ *
+ *   1. ¿EXISTE el documento?  → `sin_fila_viva`
+ *   2. ¿pasa el umbral?       → `descartados_umbral`      (mientras exista)
+ *   3. ¿es el propio?         → `propios_excluidos`
+ *   4. ¿es su generación?     → `generacion_muerta_excluida`
+ *
+ * Hasta hoy estos cuatro descartes vivían en tres sitios —dos tramos de
+ * `collectMatches` y dos funciones llamadas 80 líneas después— y el orden era
+ * una propiedad EMERGENTE de dónde estaba cada `continue`. Emergente significa
+ * que nadie lo podía probar, y de hecho estaba mal: **el umbral se aplicaba
+ * antes de saber si el documento existía**, así que un fantasma por debajo del
+ * umbral se anotaba como «perdido por el umbral» y uno por encima entraba como
+ * candidato legítimo.
+ *
+ * La razón del orden, que es de F-115 y va literal: «la pregunta ¿existe?
+ * precede a cualquier otra pregunta sobre el fragmento». Y su consecuencia
+ * práctica: los denominadores quedan limpios, porque cada término cuenta sobre
+ * lo que sobrevivió al anterior y los conjuntos son disjuntos.
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ * ⚠️ LA EXCEPCIÓN AL ORDEN, Y ES OBLIGADA: la metadata se comprueba ANTES de
+ * todo, porque sin `documentId` no hay nada por lo que preguntar si existe. Un
+ * match sin metadata utilizable no es un fantasma: es un match del que no se
+ * sabe nada, y va a su propio término (`sin_metadata_utilizable`).
+ *
+ * ⚠️ FUNCIÓN PURA, y por eso existe como módulo aparte: es la única forma de que
+ * «un documento sin fila se descarta y se cuenta» tenga un caso que lo pruebe.
+ * `retrieveCandidates` necesita Pinecone y Supabase, así que allí no se puede
+ * probar nada — y lo que no se puede probar es lo que se rompe en silencio.
+ */
+
+/** Lo que Pinecone devuelve, en la forma mínima que la criba necesita. */
+export interface MatchCrudo {
+  /** El id del vector. Es lo que se registra de lo descartado: un uuid con
+   *  índice, sin una letra de contenido del cliente. */
+  id?: string;
+  metadata?: Record<string, unknown>;
+  score?: number;
+}
+
+/** Los seis términos del reparto, cada uno contado donde ocurre su descarte. */
+export interface RepartoDeLaCriba {
+  crudos: number;
+  sin_fila_viva: number;
+  sin_metadata_utilizable: number;
+  descartados_umbral: number;
+  propios_excluidos: number;
+  generacion_muerta_excluida: number;
+  candidatos_con_repeticion: number;
+}
+
+export interface ResultadoDeLaCriba {
+  /** Lo que sobrevivió a los cuatro descartes, sin deduplicar. */
+  fragmentos: DocumentFragment[];
+  reparto: RepartoDeLaCriba;
+  /** ⚠️ ESPERADO VACÍO. Los vectorId de los fragmentos sin fila, acotados. */
+  idsSinFilaViva: string[];
+  /** Los documentId sin fila, para el log — sin tope, son pocos y no se persisten. */
+  documentosSinFila: string[];
+  /** Por nombre de documento, lo que el umbral descartó. Para el log de siempre. */
+  descartadosPorUmbral: Map<string, { count: number; maxScore: number }>;
+  /** Los documentId con algún fragmento bajo el umbral, para contar DOCUMENTOS. */
+  idsBajoUmbral: string[];
+  /** Por documento, cuántos fragmentos cayeron por generación. ⚠️ Esperado vacío. */
+  porGeneracionMuerta: Map<string, number>;
+}
+
+/** Forma intermedia: un match con su metadata ya validada. */
+interface MatchUtilizable {
+  vectorId: string;
+  documentId: string;
+  documentName: string;
+  text: string;
+  source: 'manual' | 'google_drive';
+  score: number;
+  chunkIndex: number;
+  generation?: number;
+}
+
+/**
+ * Los documentId distintos que aparecen en los matches crudos.
+ *
+ * ⚠️ SOBRE LOS CRUDOS, ANTES DE CUALQUIER CRIBA, y ahí está el punto: es la
+ * lista por la que se le pregunta a la base quién existe, así que tiene que
+ * incluir **también** a los que van a caer por el umbral o por ser el propio.
+ * Preguntar sólo por los supervivientes dejaría sin verificar justo a los que se
+ * quieren contar aparte.
+ */
+export function documentIdsDeLosMatches(crudos: readonly MatchCrudo[]): string[] {
+  const ids = new Set<string>();
+  for (const m of crudos) {
+    const id = m.metadata?.documentId;
+    if (typeof id === 'string' && id !== '') ids.add(id);
+  }
+  return [...ids];
+}
+
+export function cribarMatches(args: {
+  crudos: readonly MatchCrudo[];
+  /** El mapa de `documentosVivos`, YA abierto por quien llama: si la lectura
+   *  falló, aquí no se llega — el análisis se paró antes. */
+  generaciones: ReadonlyMap<string, number>;
+  umbral: number;
+  excluido?: string;
+}): ResultadoDeLaCriba {
+  const reparto: RepartoDeLaCriba = {
+    crudos: 0,
+    sin_fila_viva: 0,
+    sin_metadata_utilizable: 0,
+    descartados_umbral: 0,
+    propios_excluidos: 0,
+    generacion_muerta_excluida: 0,
+    candidatos_con_repeticion: 0,
+  };
+
+  // ── 0 · LA METADATA, que es lo único que no puede ir después ──────────
+  const utilizables: MatchUtilizable[] = [];
+  for (const m of args.crudos) {
+    reparto.crudos += 1;
+    if (!m.metadata || typeof m.score !== 'number') {
+      reparto.sin_metadata_utilizable += 1;
+      continue;
+    }
+    const meta = m.metadata as {
+      documentId?: unknown; documentName?: unknown;
+      source?: unknown; chunkIndex?: unknown; text?: unknown; generation?: unknown;
+    };
+    if (
+      typeof meta.documentId !== 'string' || meta.documentId === '' ||
+      typeof meta.documentName !== 'string' || meta.documentName === '' ||
+      typeof meta.text !== 'string' || meta.text === ''
+    ) {
+      reparto.sin_metadata_utilizable += 1;
+      continue;
+    }
+    utilizables.push({
+      vectorId: typeof m.id === 'string' ? m.id : '(sin id)',
+      documentId: meta.documentId,
+      documentName: meta.documentName,
+      text: meta.text,
+      source: meta.source === 'google_drive' ? 'google_drive' : 'manual',
+      score: m.score,
+      chunkIndex: typeof meta.chunkIndex === 'number' ? meta.chunkIndex : 0,
+      // Ausente = g1 implícita, igual que en `parseVectorId`.
+      generation: typeof meta.generation === 'number' ? meta.generation : undefined,
+    });
+  }
+
+  // ── 1 · ¿EXISTE? La primera, y la única que mira LA BASE ──────────────
+  const { vivos: conFila, sinFila } = repartoPorFilaViva(utilizables, args.generaciones);
+  reparto.sin_fila_viva = sinFila.length;
+  const documentosSinFila = [...new Set(sinFila.map(m => m.documentId))];
+
+  // ── 2 · EL UMBRAL, mientras exista ───────────────────────────────────
+  const descartadosPorUmbral = new Map<string, { count: number; maxScore: number }>();
+  const idsBajoUmbral: string[] = [];
+  const sobreElUmbral: MatchUtilizable[] = [];
+  for (const m of conFila) {
+    if (pasaElUmbral(m.score, args.umbral)) {
+      sobreElUmbral.push(m);
+      continue;
+    }
+    idsBajoUmbral.push(m.documentId);
+    const stats = descartadosPorUmbral.get(m.documentName) ?? { count: 0, maxScore: -Infinity };
+    stats.count += 1;
+    if (m.score > stats.maxScore) stats.maxScore = m.score;
+    descartadosPorUmbral.set(m.documentName, stats);
+    reparto.descartados_umbral += 1;
+  }
+
+  // ── 3 · EL PROPIO ────────────────────────────────────────────────────
+  const ajenos: MatchUtilizable[] = [];
+  for (const m of sobreElUmbral) {
+    if (args.excluido !== undefined && m.documentId === args.excluido) {
+      reparto.propios_excluidos += 1;
+      continue;
+    }
+    ajenos.push(m);
+  }
+
+  // ── 4 · LA GENERACIÓN, preguntada a quien la decide ──────────────────
+  // Las MISMAS dos funciones que usa el censo de vecindario. El criterio de
+  // «qué generación sirve este documento» no se reimplementa aquí.
+  const deLaActiva = soloGeneracionActiva(ajenos, args.generaciones);
+  const porGeneracionMuerta = generacionesMuertas(ajenos, args.generaciones);
+  for (const n of porGeneracionMuerta.values()) reparto.generacion_muerta_excluida += n;
+
+  reparto.candidatos_con_repeticion = deLaActiva.length;
+
+  return {
+    fragmentos: deLaActiva.map(m => ({
+      text: m.text,
+      documentId: m.documentId,
+      documentName: m.documentName,
+      source: m.source,
+      score: m.score,
+      chunkIndex: m.chunkIndex,
+      generation: m.generation ?? 1,
+    })),
+    reparto,
+    idsSinFilaViva: idsParaElRegistro(sinFila.map(m => m.vectorId)),
+    documentosSinFila,
+    descartadosPorUmbral,
+    idsBajoUmbral,
+    porGeneracionMuerta,
+  };
+}
+
+/**
+ * ¿Cuadra el reparto de la criba? Los seis términos suman los crudos.
+ *
+ * Es el mismo cuadre que `elRepartoCuadra` comprueba sobre el termómetro ya
+ * construido, pero AQUÍ, sobre la fuente: si esto fuera falso, el termómetro
+ * escribiría una ecuación que no cierra y nadie sabría en qué paso se perdió el
+ * fragmento.
+ */
+export function laCribaCuadra(r: RepartoDeLaCriba): boolean {
+  const suma = r.sin_fila_viva
+    + r.sin_metadata_utilizable
+    + r.descartados_umbral
+    + r.propios_excluidos
+    + r.generacion_muerta_excluida
+    + r.candidatos_con_repeticion;
+  return suma === r.crudos;
+}
