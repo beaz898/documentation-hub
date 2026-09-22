@@ -5982,3 +5982,94 @@ igual, **1**.
 respuesta»— NO APLICA a este diseño**, y se dice para que no se archive como hecho: no hay
 ningún recorrido por documento que mutar. El encargo describía el diseño descartado. El
 equivalente real es el tercero de la lista.
+
+---
+
+## ⚠️ 5.79 · Tres huecos que no se ven porque no producen ningún fallo (22/09/2026)
+
+**Los tres salieron del ticket a Pinecone de F-115**, y ninguno se habría encontrado
+persiguiendo un fallo: aparecieron porque un tercero pidió datos y no los teníamos. Son
+de la misma familia —**cosas que el sistema NO escribe**— y la familia es la peor de
+auditar, porque su síntoma es el silencio.
+
+⚠️ Y comparten la forma de descubrirse, que conviene guardar: **la lista de lo que un
+proveedor pide en un ticket es un censo de capacidad gratis.** Nadie de esta casa había
+enumerado «qué haría falta para explicarle a alguien de fuera lo que nos pasa».
+
+### ⚠️ B.259 — un borrado que sale bien no deja ninguna línea en el log: no se puede fechar ni auditar (22/09/2026)
+
+`deleteDocument` tiene **cinco puertas y sólo escribe en las que fallan**: el fallo de la
+lápida devuelve error (`lib/delete-document.ts:141`), el de los análisis también
+(`:173`), los dos fallos de vectores emiten `console.warn` (`:188`, `:202`), y el del
+cerrojo devuelve con su mensaje (`:241-246`). **El camino bueno —`result.ok = true`,
+`lib/delete-document.ts:273`— no emite nada.**
+
+Consecuencia: **de un borrado que funcionó no queda constancia de ningún tipo.** No hay
+fila —se borró—, no hay lápida salvo en documentos sincronizados excluidos a mano
+(`:125`, y el `CHECK` de la tabla es por `provider_file_id`), y no hay línea de log.
+
+**El caso que lo paga tiene nombre y fecha**: no se sabe cuándo se borró CLI-05
+(`c701c9dd-1f28-4a3c-8c0c-65ee3b2ffec6`). Se sabe que fue después de las 20:30 UTC del
+14/09/2026 —su último análisis— y antes de las 15:18 UTC del 21/09, y nada más. Esa hora
+es justo el dato que el proveedor necesita para rastrear la incidencia, y el que no
+tenemos. Y hay un segundo coste que se descubrió al escribir el ticket: **tampoco se
+puede saber qué versión del código corría**, así que la garantía del cerrojo de `:241-246`
+—que existe desde `602c95f3`, 14/09/2026 19:29 UTC— no se puede afirmar del build que
+hizo ESE borrado.
+
+⚠️ **Y ES UNA OPERACIÓN DESTRUCTIVA E IRREVERSIBLE SIN REGISTRO**, que es la forma más
+cara de este hueco: la regla de F-95 P5 pide contador para todo límite declarado, y aquí
+ni siquiera hay un evento. Lo mínimo sería una línea con hora, `documentId`, cuántos
+vectores se pidieron borrar y por cuál de las dos vías; lo correcto, una tabla.
+
+**Sin arreglar.** No se mezcla con el arreglo del `filterOk || idsOk` de F-115 P5, pero
+va en la misma pieza: quien toque ese camino escribe el registro.
+
+### ⚠️ B.260 — la configuración del índice de Pinecone no está en el repositorio (22/09/2026)
+
+**Tipo de índice, nube, región y métrica de similitud: ninguno de los cuatro consta.** El
+índice se creó **a mano en la consola**, y el repositorio no tiene ni una llamada a
+`createIndex` (`grep -rn "createIndex" --include=*.ts .` → cero resultados fuera de
+`node_modules`). Lo único que hay son dos variables con nombre —`PINECONE_API_KEY` y
+`PINECONE_INDEX` (`lib/pinecone.ts:8`, `:16`)— y un valor por defecto,
+`'documentation-hub'`, que el director confirmó el 22/09/2026 como el valor real en
+Vercel.
+
+**Qué cuesta, y no es teórico**: el 22/09 hubo que retirar cuatro líneas del ticket a
+Pinecone por no poder rellenarlas, y el director **no localiza el índice en su consola**
+—probablemente está en otro proyecto—, así que tampoco se pueden recuperar desde fuera
+hoy mismo. Si mañana hay que recrear el índice, **nadie sabe con qué parámetros se creó
+el que funciona**: la métrica y la dimensión deciden si los vectores existentes siguen
+valiendo.
+
+⚠️ **La métrica es la más grave de las cuatro**, porque es la única que cambia lo que
+significa un score: todas las mediciones de F-111 a F-115 —el suelo de 0,696, los
+histogramas, el termómetro— están calibradas contra una métrica **que no está escrita en
+ningún sitio**.
+
+**Sin arreglar.** No se arregla adivinando: se lee en la consola y se escribe, y el sitio
+natural es junto a `lib/pinecone.ts` con la fecha de la lectura.
+
+### ⚠️ B.261 — no hay `.env.example`: no existe ninguna lista escrita de las variables que la aplicación necesita (22/09/2026)
+
+`ls -a | grep -i env` devuelve **sólo `next-env.d.ts`**, que es un fichero de tipos de
+Next y no una plantilla. No hay `.env.example`, `.env.template` ni equivalente.
+
+**Lo que hay en su lugar son tres listas parciales y ninguna autoritativa**: la tabla del
+`README.md` (`:63-64` para las de Pinecone), la comprobación de arranque del worker
+(`worker/src/index.ts:551-552`, que sí falla si faltan las suyas) y **el propio código**,
+donde cada `process.env.X` es la única declaración de que X existe.
+
+**Por qué importa más de lo que parece**: es el censo por capacidad que nadie ha hecho
+sobre la configuración. Sin esa lista no se puede contestar «¿qué hace falta para
+levantar esto?», y cada respuesta que se dé será **de memoria** — que es exactamente la
+forma de enumerar que este proyecto lleva semanas retirando. El caso de B.260 es su
+primera factura: cuando hizo falta saber qué configuración teníamos, la respuesta hubo
+que reconstruirla con `grep`.
+
+⚠️ **Y la plantilla lleva NOMBRES, nunca valores.** Una clave de Pinecone o de Anthropic
+en un fichero versionado es peor que no tener plantilla.
+
+**Sin arreglar.** Y su forma buena no es una plantilla escrita a mano, que se desincroniza
+en el primer commit: es **derivarla** del censo de `process.env` con su comprobación, para
+que el día que alguien añada una variable sin ponerla en la lista, algo lo diga.
