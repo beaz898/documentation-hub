@@ -59,7 +59,96 @@ porque su fila ya no existe. De ahí que el ticket diga «al menos una de las do
 
 ---
 
-## El texto enviado
+## Versión corta preparada — la que se enviaría
+
+**Es la versión buena**, y la que hay que coger si esto se retoma. Nació de recortar la
+larga y **corregir una afirmación que la larga tenía mal** (ver la errata de abajo).
+
+```
+Subject: Deleted vectors still returned by query() after an accepted delete
+
+Index: documentation-hub
+Namespace: 5a82712f-6740-4792-b291-3fdea8e6edb1
+SDK: @pinecone-database/pinecone 4.1.0 (Node.js), dimension 1024,
+multilingual-e5-large
+
+We deleted a document through our app. That issues deleteMany by metadata filter
+({ documentId: { $eq: "c701c9dd-1f28-4a3c-8c0c-65ee3b2ffec6" } }) and deleteMany
+by its explicit IDs. At least one of the two was accepted without error. The
+deletion happened between 2026-09-14 20:30 and 2026-09-21 15:18 UTC (exact time
+unknown).
+
+Affected IDs:
+c701c9dd-1f28-4a3c-8c0c-65ee3b2ffec6-0 to c701c9dd-1f28-4a3c-8c0c-65ee3b2ffec6-5
+
+We made no write of any kind to these IDs. Every code path in our application that
+can write vectors derives the document ID either from a freshly generated UUID or
+from a row in our database, and that row no longer exists.
+
+What we observed (UTC):
+- 2026-09-21 12:18: a production query did NOT return these IDs.
+- 2026-09-21 ~14:10: a read-only census queried every stored vector of three
+  documents against the whole namespace, topK=1000, NO metadata filter. These IDs
+  were NOT returned.
+- 2026-09-21 ~15:18: the census was extended to all 680 vectors of all 41
+  documents, same topK=1000 and no filter. These IDs WERE returned, as neighbours
+  of 3 of the 41 documents, 6 scores each, max 0.866.
+  >>> One of those 3 documents had already been queried in the ~14:10 run, with
+  >>> the same query vectors and the same parameters, and had not seen these IDs.
+  >>> Same queries, about an hour apart: absent, then present.
+- 2026-09-21 16:28: a production query returned them, with metadata. This result
+  changed the output our user received.
+- 2026-09-21 ~17:09: listPaginated with the prefix
+  "c701c9dd-1f28-4a3c-8c0c-65ee3b2ffec6-" returned 0 IDs, and describeIndexStats
+  reported 680 records, matching our own count exactly.
+- 2026-09-22 09:01: a production query returned the same 6 IDs again.
+
+Every line above is a point observation. We do not know what the index returned
+between them.
+
+Questions:
+1. Can query() return records days after an accepted delete, while listPaginated
+   and describeIndexStats no longer see them? Is this a known issue?
+2. How can we force a permanent purge of these records, and which read should we
+   trust to verify it?
+3. Is there an upper bound on how long a deleted record can still be returned by
+   query()? We need it for our data-deletion policy.
+
+We can provide more detail or logs if useful.
+```
+
+### Por qué la corta dice lo que dice
+
+- **El par de Facturacion (~14:10 / ~15:18)** va con su matiz explícito. La redacción
+  «the same queries with the same parameters» a secas **era falsa**: a las 14:10 se
+  consultaron tres documentos y a las 15:18 los cuarenta y uno. Lo cierto y más fuerte
+  es que **uno de los tres se repitió** con los mismos vectores de consulta y cambió de
+  resultado. Dicho mal, el proveedor lo tumba con «corristeis un censo distinto».
+- **El «NO metadata filter»** cierra la primera objeción previsible. Comprobado:
+  `filtroDeLaBusqueda` sólo se construye con `?poblacion=real`
+  (`app/api/admin/vecindario/route.ts:245`, `:255`). Con `topK=1000` sobre 680 registros,
+  **nada pudo excluirlos ni desplazarlos**.
+- **El par 12:18 / 16:28** añade una ausencia y una presencia **en el camino de
+  producción**, no sólo en el censo.
+- **«We made no write of any kind»** mata la pregunta que un proveedor hace siempre
+  («¿no habréis hecho upsert?») y ahorra una vuelta entera.
+- **«This result changed the output our user received»** es lo único que convierte esto
+  en incidente y no en curiosidad.
+
+---
+
+## Borrador largo — NO usar sin corregir la errata
+
+⚠️ **ERRATA, y es de hecho, no de estilo**: este borrador dice **«deleted at least 7
+days earlier»** y **«certainly after seven days»**. **Las dos son falsas.** El borrado
+ocurrió entre las **20:30 UTC del 14/09** y las **15:18 UTC del 21/09**, y la hora exacta
+no se conoce (ficha B.259): el intervalo puede ser de menos de un día. Afirmar «siete
+días» es exactamente la clase de cifra que esta casa persigue — **una cota presentada
+como medida**. La versión corta no la tiene.
+
+Se conserva entero porque trae contexto que la corta no lleva —el esquema de ids, el
+detalle del cerrojo del borrado, la lista de lo descartado— y eso vale si el proveedor
+pide más.
 
 ```
 Subject: Deleted records returned by query intermittently for days, while list
@@ -208,5 +297,19 @@ parameters disagreed about the same records about an hour apart.
 
 ## Estado
 
-**PENDIENTE DE ENVIAR.** Esta línea pasa a ENVIADO —con fecha y con el número de
-ticket— cuando el director lo abra, y no antes.
+**NO ENVIADO — decisión del director, 22/09/2026. Se retoma si un cliente pide
+garantías sobre el borrado real de sus datos.**
+
+Las dos razones, tal como las dio: **la defensa ya protege al usuario** —`Vivos(org)`
+descarta el fantasma antes de puntuar, en los cuatro caminos (`ea6e818d`)— y **con el
+plan gratuito no hay soporte garantizado**, así que el ticket podría no tener lector.
+
+⚠️ **LO QUE ESTA DECISIÓN NO DICE, y conviene que no se lea de más**: no dice que el
+fenómeno esté explicado ni resuelto. **El proveedor puede seguir sirviendo registros
+borrados**, y lo único que ha cambiado es que ya no llegan al usuario. La ficha B.262
+de `claude/Estado_Del_MVP.md` es su casa viva; esto es sólo el archivo del texto.
+
+⚠️ **Y EL DISPARADOR ESTÁ ESCRITO, para que no dependa de que alguien se acuerde**: el
+día que un cliente pregunte cuánto tarda en borrarse de verdad su documentación —o lo
+exija un contrato—, esto se retoma. Entonces la pregunta 4 del borrador largo deja de
+ser curiosidad y pasa a ser la que hay que poder contestar por escrito.

@@ -6073,3 +6073,59 @@ en un fichero versionado es peor que no tener plantilla.
 **Sin arreglar.** Y su forma buena no es una plantilla escrita a mano, que se desincroniza
 en el primer commit: es **derivarla** del censo de `process.env` con su comprobación, para
 que el día que alguien añada una variable sin ponerla en la lista, algo lo diga.
+
+---
+
+## ⚠️ 5.80 · Lo que el proveedor no garantiza, y la decisión de no preguntárselo (22/09/2026)
+
+### ⚠️ B.262 — un vector borrado puede seguir saliendo en las consultas de Pinecone, y el ticket quedó sin enviar (22/09/2026)
+
+**El hecho, medido y no deducido.** CLI-05 (`c701c9dd-1f28-4a3c-8c0c-65ee3b2ffec6`) se
+borró desde la aplicación entre las 20:30 UTC del 14/09/2026 y las 15:18 UTC del 21/09.
+No tiene fila en `documents` ni en `document_chunks`, el listado exhaustivo por prefijo
+dio **0 vectores** el 21/09 a las ~17:09 y `describeIndexStats` dio **680 = 680**
+documentados. Aun así, sus seis vectores **volvieron en las consultas** el 21/09 a las
+~15:18 y a las 16:28, y otra vez el 22/09 a las 09:01. La secuencia medida es
+**ausente → presente → (ausente del listado) → presente**, que no es un borrado que
+tarda: es una reaparición. Todo el expediente está en `claude/consultas-fable/F-115.md`.
+
+⚠️ **LO QUE ESTO SIGNIFICA PARA EL PRODUCTO, Y ES UNA FRASE INCÓMODA: «borrado» no
+significa hoy «borrado en la consulta».** Significa «borrado en nuestra base, y pedido al
+proveedor». Entre las dos cosas hay una ventana que **nadie ha medido** y que el
+fabricante sólo describe como «un ligero retraso».
+
+✅ **LO QUE SÍ ESTÁ CUBIERTO, y es la mitad que importa hoy**: desde `ea6e818d` la
+recuperación pregunta **primero** si el documento existe —`Vivos(org)`,
+`lib/documents/vivos.ts`— y descarta lo que no tiene fila **antes de puntuar**, en los
+cuatro caminos que llegan al usuario: análisis, chat, `improve` y el agente. Ejercido en
+producción el 22/09 a las 09:01: `sin_fila_viva: 6` con sus seis `ids_sin_fila_viva`
+escritos en el termómetro, y **el usuario no vio nada**. Es una defensa nuestra, no una
+garantía del proveedor: **tapa el síntoma en el camino del usuario y no cura la causa.**
+
+**LA DECISIÓN DEL DIRECTOR, 22/09/2026: el ticket NO se envía.** Sus dos razones: la
+defensa ya protege al usuario, y con el plan gratuito no hay soporte garantizado, así que
+el texto podría no tener lector. El ticket queda escrito y archivado en
+`claude/incidencias-de-proveedor/2026-09-22_pinecone_borrados-que-vuelven.md`, en dos
+versiones —una corta revisada, lista para enviar, y el borrador largo con su errata
+anotada— **para que retomarlo cueste cero trabajo**.
+
+⚠️ **EL DISPARADOR, ESCRITO PARA QUE NO DEPENDA DE QUE ALGUIEN SE ACUERDE**: se retoma
+**el día que un cliente pida garantías sobre el borrado real de sus datos**. Y ese día no
+es hipotético — en el reparto europeo el cliente es responsable, esta casa encargada y el
+proveedor subencargado, y la obligación de borrado baja por esa cadena. Hoy no hay
+incidente que notificar (el documento fantasma es un protocolo de pruebas del propio
+director, sin datos personales); **el día que haya un cliente, la frase «hoy no hay
+cliente» pasa de razón a suerte retrospectiva.**
+
+⚠️ **Y LO QUE NO SE PUEDE DECIR, dicho aquí para que nadie lo complete de memoria: la
+causa no está establecida.** Quedaban tres hipótesis —el proveedor sirviendo una copia
+vieja, una escritura nuestra, o ids de otro esquema—. La tercera murió: los seis ids son
+`…-0` a `…-5`, generación 1, exactamente los seis trozos originales. La segunda es muy
+difícil de sostener: ningún camino de escritura del repositorio puede producir ese
+`documentId` sin una fila que ya no existe. Pero **descartar dos no demuestra la
+tercera**, y sin respuesta del proveedor no la va a demostrar nada. Queda como
+**NO EXPLICADO**, que es distinto de resuelto.
+
+**Sin cerrar, y sin trabajo pendiente asignado.** Lo único que quedaría por hacer si se
+retomara —medir la recurrencia con un documento canario y una sonda de siete días— está
+descrito en F-115 P3 y **no está escrito ni empezado**.
