@@ -279,9 +279,10 @@ describe('a quién se le pregunta si existe', () => {
 
   it('un match sin documentId utilizable no ensucia la lista', () => {
     expect(documentIdsDeLosMatches([
-      { metadata: undefined, score: 1 },
-      { metadata: { documentId: '' }, score: 1 },
-      { metadata: { documentId: 42 }, score: 1 },
+      { metadata: undefined },
+      { metadata: {} },
+      { metadata: { documentId: '' } },
+      { metadata: { documentId: 42 } },
     ])).toEqual([]);
   });
 });

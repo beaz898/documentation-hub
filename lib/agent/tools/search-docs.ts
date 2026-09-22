@@ -1,5 +1,12 @@
 import { generateQueryEmbedding } from '@/lib/embeddings';
 import { queryVectors } from '@/lib/pinecone/vectors';
+import {
+  documentosVivos,
+  repartoPorFilaViva,
+  idsParaElRegistro,
+  MENSAJE_VERIFICACION_NO_DISPONIBLE,
+} from '@/lib/documents/vivos';
+import { documentIdsDeLosMatches } from '@/lib/analysis/criba-de-matches';
 import type { ToolBundle, ToolContext, ToolExecutionResult, ToolExecutorTyped } from './types';
 
 const TOP_K = 6;
@@ -29,7 +36,46 @@ const executeTyped: ToolExecutorTyped<SearchDocsInput> = async (
   try {
     const vector = await generateQueryEmbedding(input.query.trim());
     const matches = await queryVectors(context.orgId, { vector, topK: TOP_K, includeMetadata: true });
-    const results: SearchResult[] = matches
+
+    // ══ ¿EXISTEN? ANTES DE DEVOLVER NADA — F-115 (22/09/2026) ══
+    //
+    // ⚠️ ESTA HERRAMIENTA NO TENÍA NINGUNA GUARDA, y es la que menos podía
+    // tenerla: no hacía una sola consulta a Supabase, así que devolvía
+    // `doc_name` y `fragment` de lo que el índice dijera. Un documento borrado
+    // llegaba al modelo con su nombre y su texto, y de ahí a una cita en
+    // `finalize`.
+    //
+    // ⚠️ Y SI NO SE PUEDE VERIFICAR, NO SE INVENTA: esta herramienta tiene canal
+    // de error propio, así que no lanza — devuelve `kind:'error'`, que es lo que
+    // el runner sabe leer. El modelo recibe que la búsqueda no se pudo hacer, no
+    // una lista vacía que confundiría con «no hay nada».
+    const existencia = await documentosVivos(context.supabase, {
+      orgId: context.orgId,
+      ids: documentIdsDeLosMatches(matches),
+    });
+    if (existencia.estado === 'no_leido') {
+      console.error(`[search_docs] verificación no disponible | org=${context.orgId} | ${existencia.motivo}`);
+      return {
+        kind: 'error',
+        error: 'verificacion_no_disponible',
+        details: MENSAJE_VERIFICACION_NO_DISPONIBLE,
+      };
+    }
+
+    const conDocumentId = matches
+      .map(m => ({ documentId: m.metadata ? String(m.metadata.documentId ?? '') : '', match: m }))
+      .filter(x => x.documentId !== '');
+    const { vivos, sinFila } = repartoPorFilaViva(conDocumentId, existencia.generaciones);
+    if (sinFila.length > 0) {
+      const documentos = [...new Set(sinFila.map(x => x.documentId))];
+      console.warn(
+        `[search_docs] SIN FILA VIVA — ${sinFila.length} fragmento(s) descartados | org=${context.orgId} | ` +
+        `docs=${documentos.join(',')} | vectores=${idsParaElRegistro(sinFila.map(x => x.match.id)).join(',')}`,
+      );
+    }
+
+    const results: SearchResult[] = vivos
+      .map(x => x.match)
       .filter(m => (m.score ?? 0) >= MIN_SCORE)
       .map(m => {
         const meta = (m.metadata ?? {}) as Record<string, unknown>;

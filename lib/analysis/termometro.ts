@@ -63,11 +63,12 @@ export interface SelloDelModelo {
  * el umbral» si tenía poco score, y como CANDIDATO si tenía mucho.
  *
  * `sin_metadata_utilizable` NO estaba en la ecuación que F-113 pidió, y sin él
- * el cuadre **no puede cerrar**: `collectMatches` tiene DOS descartes más por
- * metadata incompleta —antes del umbral (`retrieval.ts`, el `typeof m.score`) y
- * después (`documentId`/`documentName`/`text`)— que llevaban ahí desde siempre y
- * que nadie contaba. Se añade el término en vez de dejar una identidad que no
- * cierra: una ecuación que no cuadra no es un cuadre.
+ * el cuadre **no puede cerrar**: hay dos descartes por metadata incompleta —el
+ * `metadata`/`score` ausente y el `documentId`/`documentName`/`text` vacío— que
+ * llevaban ahí desde siempre y que nadie contaba. Hoy los cuenta `cribarMatches`
+ * (`criba-de-matches.ts`), que es también quien los hace; hasta el 22/09/2026
+ * vivían separados por el umbral dentro de `collectMatches`, en `retrieval.ts`,
+ * y ése era el orden que dejaba pasar a los fantasmas.
  */
 export interface DenominadoresDelTermometro {
   /** Lo que Pinecone devolvió, sumando todas las consultas. Es EL TOTAL. */

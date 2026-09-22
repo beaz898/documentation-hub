@@ -9,6 +9,13 @@ import { checkRateLimit } from '@/lib/rate-limiter';
 import { resolverOrg } from '@/lib/org';
 import { respuestaDeOrgNoResuelta } from '@/lib/org-respuesta';
 import { consumeCredits, devolverSiNoSeEntrego, getCreditCost } from '@/lib/credits';
+import {
+  documentosVivos,
+  repartoPorFilaViva,
+  idsParaElRegistro,
+  MENSAJE_VERIFICACION_NO_DISPONIBLE,
+} from '@/lib/documents/vivos';
+import { documentIdsDeLosMatches } from '@/lib/analysis/criba-de-matches';
 import { usageContext } from '@/lib/observability/usage-context';
 import { persistLLMUsage } from '@/lib/observability/record-usage';
 
@@ -233,12 +240,48 @@ export async function POST(req: NextRequest) {
     }
 
     let existingContext = '';
+    // ⚠️ F-115 — LA VERIFICACIÓN NO PUEDE MORIR EN EL `catch` DE ABAJO. Ese
+    // `catch` existe para seguir sin contexto si Pinecone falla, y tragarse un
+    // «no se pudo verificar» ahí dejaría al usuario con una mejora hecha a
+    // ciegas y sin saberlo. Se anota y se sale después del bloque.
+    let verificacionFallida: string | null = null;
     try {
       const queryText = `${userMessage}\n\n${currentText.slice(0, 500)}`;
       const [queryEmbedding] = await generateEmbeddings([queryText]);
       const matches0 = await queryVectors(orgId, { vector: queryEmbedding, topK: 8, includeMetadata: true });
 
-      const matches = matches0
+      // ══ ¿EXISTEN? ANTES DE CONSTRUIR EL CONTEXTO — F-115 (22/09/2026) ══
+      //
+      // ⚠️ ESTA RUTA NO TENÍA GUARDA, y tenía el dato en la mano: lee TODAS las
+      // filas de la organización 20 líneas más arriba (`orgDocs`) y las usaba
+      // sólo para detectar el documento mencionado. Los matches de Pinecone
+      // pasaban a `existingContext` con su `documentName` y su texto **sin
+      // cruzarse con nada**, así que un documento borrado entraba en el prompt
+      // con su nombre. Se usa la MISMA función que el análisis y el chat, no una
+      // derivación de `orgDocs`: dos criterios de «existe» es lo que F-115 viene
+      // a retirar.
+      const existencia = await documentosVivos(supabase, {
+        orgId,
+        ids: documentIdsDeLosMatches(matches0),
+      });
+      if (existencia.estado === 'no_leido') {
+        verificacionFallida = existencia.motivo;
+        throw new Error('verificacion_no_disponible');
+      }
+      const conDocumentId = matches0
+        .map(m => ({ documentId: m.metadata ? String(m.metadata.documentId ?? '') : '', match: m }))
+        .filter(x => x.documentId !== '');
+      const { vivos, sinFila } = repartoPorFilaViva(conDocumentId, existencia.generaciones);
+      if (sinFila.length > 0) {
+        const documentos = [...new Set(sinFila.map(x => x.documentId))];
+        console.warn(
+          `[IMPROVE] SIN FILA VIVA — ${sinFila.length} fragmento(s) descartados | org=${orgId} | ` +
+          `docs=${documentos.join(',')} | vectores=${idsParaElRegistro(sinFila.map(x => x.match.id)).join(',')}`,
+        );
+      }
+
+      const matches = vivos
+        .map(x => x.match)
         .filter(m => m.metadata && m.score && m.score > 0.28)
         .filter(m => !mentionedDoc || String(m.metadata!.documentId) !== mentionedDoc.id)
         .slice(0, 6);
@@ -253,6 +296,34 @@ export async function POST(req: NextRequest) {
       }
     } catch (err) {
       console.error('[IMPROVE] Retrieval failed, continuing without existing context:', err);
+    }
+
+    // ⚠️ F-115 — SE PARA, Y ES LA TERCERA SALIDA DE NO ENTREGA DE ESTA RUTA.
+    // No pasa por el `catch` exterior, así que lleva su propio reembolso, igual
+    // que la del LLM de más abajo. 503 y no 500: es un fallo temporal de lectura
+    // y reintentar es lo correcto.
+    if (verificacionFallida !== null) {
+      console.error(`[IMPROVE] verificación no disponible | org=${orgId} | ${verificacionFallida}`);
+      await devolverSiNoSeEntrego(supabase, {
+        orgId, creditosCobrados: creditsConsumed, entregado: false, contexto: '/api/improve (verificación)',
+      });
+      await logUsage(supabase, {
+        userId,
+        orgId,
+        endpoint: '/api/improve',
+        model: 'haiku',
+        inputTokens: 0,
+        outputTokens: 0,
+        latencyMs: Date.now() - startedAt,
+        success: false,
+        creditsConsumed: 0,
+        errorMessage: `verificacion_no_disponible: ${verificacionFallida}`,
+        userQuery: userMessage,
+      });
+      return NextResponse.json(
+        { error: MENSAJE_VERIFICACION_NO_DISPONIBLE, errorType: 'verificacion_no_disponible' },
+        { status: 503, headers: { 'Retry-After': '5' } },
+      );
     }
 
     const fullDocSection = fullMentionedText

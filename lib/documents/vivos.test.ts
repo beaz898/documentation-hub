@@ -79,6 +79,38 @@ describe('⚠️ EL REPARTO POR FILA VIVA', () => {
   });
 });
 
+describe('⚠️ EL ORDEN IMPORTA: apartar ANTES de recortar', () => {
+  /**
+   * ⚠️ CASO DECISIVO DEL CAMINO DEL CHAT, y es el fallo que tenía B.225: su
+   * guarda corría sobre los CUATRO documentos ya elegidos, así que un fantasma
+   * con el score más alto DESPLAZABA a un documento real del top-N y se caía
+   * después. El usuario recibía una respuesta con menos fuentes y nada lo decía.
+   *
+   * Los dos órdenes se comparan aquí con los mismos datos: sólo uno conserva los
+   * dos documentos reales.
+   */
+  const TOPE = 2;
+  const candidatos = [
+    { documentId: FANTASMA, marca: 'fantasma-0.99' },
+    { documentId: VIVO, marca: 'real-0.90' },
+    { documentId: 'cccccccc-9999-0000-1111-222222222222', marca: 'real-0.80' },
+  ];
+  const generaciones = new Map([[VIVO, 1], ['cccccccc-9999-0000-1111-222222222222', 1]]);
+
+  it('⚠️ apartar y LUEGO recortar conserva los dos documentos reales', () => {
+    const { vivos } = repartoPorFilaViva(candidatos, generaciones);
+    expect(vivos.slice(0, TOPE).map(c => c.marca)).toEqual(['real-0.90', 'real-0.80']);
+  });
+
+  it('⚠️ recortar y LUEGO apartar pierde uno — el orden viejo, para contraste', () => {
+    const recortadoPrimero = candidatos.slice(0, TOPE);
+    const { vivos } = repartoPorFilaViva(recortadoPrimero, generaciones);
+    expect(vivos.map(c => c.marca)).toEqual(['real-0.90']);
+    // Y ahí está el daño: un documento real menos en la respuesta.
+    expect(vivos).toHaveLength(TOPE - 1);
+  });
+});
+
 describe('el registro acotado', () => {
   it(`corta en ${MAXIMO_DE_IDS_REGISTRADOS} y no toca lo que quepa`, () => {
     expect(idsParaElRegistro(['a', 'b'])).toEqual(['a', 'b']);

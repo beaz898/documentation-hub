@@ -96,7 +96,14 @@ interface MatchUtilizable {
  * Preguntar sólo por los supervivientes dejaría sin verificar justo a los que se
  * quieren contar aparte.
  */
-export function documentIdsDeLosMatches(crudos: readonly MatchCrudo[]): string[] {
+export function documentIdsDeLosMatches(
+  // ⚠️ LA FORMA MÁS FLOJA QUE SIRVE, y a propósito: los cuatro caminos llaman
+  // aquí con tipos distintos —`MatchCrudo` en el análisis, `VectorMatch` en el
+  // chat, en `improve` y en el agente— y `VectorMetadata` es una interfaz sin
+  // índice, así que pedir `Record<string, unknown>` obligaría a tres `as`. Pedir
+  // sólo lo que se lee evita los tres.
+  crudos: readonly { metadata?: { documentId?: unknown } }[],
+): string[] {
   const ids = new Set<string>();
   for (const m of crudos) {
     const id = m.metadata?.documentId;

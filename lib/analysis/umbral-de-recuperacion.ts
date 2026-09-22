@@ -15,8 +15,11 @@
  */
 
 /**
- * ¿Pasa este fragmento el umbral? LA ÚNICA COMPARACIÓN: `collectMatches` la usa
- * para decidir, y el caso decisivo la usa para probar el mismo criterio.
+ * ¿Pasa este fragmento el umbral? LA ÚNICA COMPARACIÓN: `cribarMatches`
+ * (`criba-de-matches.ts`) la usa para decidir, y el caso decisivo la usa para
+ * probar el mismo criterio. Hasta el 22/09/2026 el llamante era `collectMatches`,
+ * en `retrieval.ts`, y allí el umbral se aplicaba ANTES de comprobar si el
+ * documento existía — el orden que dejaba entrar a un documento borrado (F-115).
  */
 export function pasaElUmbral(score: number, umbral: number): boolean {
   return score >= umbral;

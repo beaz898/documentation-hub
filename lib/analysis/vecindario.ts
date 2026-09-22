@@ -259,8 +259,9 @@ export const UMBRALES_DEL_CENSO = {
  * documentos toca». De ahí salió el suelo de ~0,79 del corpus.
  *
  * ⚠️ PERO EL UMBRAL DE LA RECUPERACIÓN NO COMPARA ESO. Compara **fragmento a
- * fragmento**, tal como Pinecone los devuelve: `pasaElUmbral(m.score, umbral)`
- * en `retrieval.ts:498`, dentro de `collectMatches`. Un DOCUMENTO sólo se pierde
+ * fragmento**, tal como Pinecone los devuelve: `pasaElUmbral(m.score, umbral)`,
+ * hoy dentro de `cribarMatches` (`criba-de-matches.ts`) y hasta el 22/09/2026 en
+ * `collectMatches`, en `retrieval.ts`. Un DOCUMENTO sólo se pierde
  * si NINGUNO de sus fragmentos pasa —eso es lo que cuenta el contador
  * persistido `seleccion.candidatos_perdidos_por_umbral`, y da cero—, pero
  * cuántos FRAGMENTOS descarta no lo mide nadie. El suelo de 0,79 es del máximo

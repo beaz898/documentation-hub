@@ -16,7 +16,8 @@
  */
 
 import { queryVectors, CORPUS_ACTIVO } from './pinecone/vectors';
-import { documentosConFilaViva } from './rag-fila-viva';
+import { documentosVivos, repartoPorFilaViva, pararPorVerificacion, idsParaElRegistro } from './documents/vivos';
+import { documentIdsDeLosMatches } from './analysis/criba-de-matches';
 import { ESTADO_DEL_CORPUS } from './documents/estado';
 import {
   documentosNombrados,
@@ -214,6 +215,57 @@ export async function queryRAG(
     };
   }
 
+  // ══ 2-bis · ¿EXISTEN? LA PRIMERA PREGUNTA — F-115 (22/09/2026) ══
+  //
+  // ═══════════════════════════════════════════════════════════════════════════
+  // ⚠️ ESTA GUARDA YA EXISTÍA (B.225) Y ESTABA EN EL SITIO EQUIVOCADO: corría
+  // sobre `topDocs`, o sea DESPUÉS de puntuar, deduplicar y recortar a cuatro.
+  // El efecto: un documento sin fila podía DESPLAZAR a uno real del top-4 y
+  // caerse después, así que el usuario recibía una respuesta con menos fuentes
+  // y nada lo decía. Ahora se pregunta antes de puntuar: lo que no existe no
+  // compite.
+  //
+  // ⚠️ Y CAMBIA EL CRITERIO, no sólo el sitio. La guarda vieja se apoyaba en
+  // `fetchFullTexts`, que consultaba `documents` **sin filtrar por
+  // organización**: su predicado real era «existe una fila con ese id en alguna
+  // organización». `documentosVivos` filtra por `org_id`, que es la pregunta que
+  // se quería hacer.
+  //
+  // ⚠️ Y SI NO SE PUEDE VERIFICAR, SE PARA. Antes se dejaba pasar todo —con el
+  // fallo cerrado declarado como «decisión de producto pendiente del director»—
+  // y el 22/09/2026 el director la tomó: se para. El crédito se devuelve solo,
+  // por el `catch` de `/api/ask` y `devolverSiNoSeEntrego`.
+  // ═══════════════════════════════════════════════════════════════════════════
+  const existencia = await documentosVivos(supabase, {
+    orgId,
+    ids: documentIdsDeLosMatches(matches as Array<{ id?: string; metadata?: Record<string, unknown>; score?: number }>),
+  });
+  if (existencia.estado === 'no_leido') {
+    pararPorVerificacion('rag', existencia.motivo);
+  }
+
+  // ⚠️ LOS NOMBRADOS NO PASAN POR AQUÍ, y es a propósito: salen de una consulta a
+  // `documents` (`documentosNombradosDelCorpus`), así que tienen fila POR
+  // CONSTRUCCIÓN. Verificar lo que acaba de salir de la tabla sería preguntar
+  // dos veces lo mismo.
+  const conDocumentId = matches
+    .map(m => ({
+      documentId: m.metadata ? String(m.metadata.documentId ?? '') : '',
+      match: m,
+    }))
+    .filter(x => x.documentId !== '');
+  const { vivos: deLaBusqueda, sinFila } = repartoPorFilaViva(conDocumentId, existencia.generaciones);
+  if (sinFila.length > 0) {
+    // ⚠️ RECUENTO E IDS, y los vectorId además del documento: son lo que hace
+    // falta para ir a buscarlos con /api/admin/vectores-de-un-documento.
+    const documentos = [...new Set(sinFila.map(x => x.documentId))];
+    const vectores = idsParaElRegistro(sinFila.map(x => x.match.id));
+    console.warn(
+      `[RAG] SIN FILA VIVA — ${sinFila.length} fragmento(s) de ${documentos.length} documento(s) ` +
+      `descartados antes de puntuar | org=${orgId} | docs=${documentos.join(',')} | vectores=${vectores.join(',')}`,
+    );
+  }
+
   // 3. Identificar los documentos relevantes (deduplicar por documentId)
   const docScores = new Map<string, {
     documentId: string; documentName: string; maxScore: number;
@@ -221,7 +273,9 @@ export async function queryRAG(
     /** Llegó porque la pregunta lo nombra, no porque se pareciera. */
     porNombre?: boolean;
   }>();
-  for (const m of matches) {
+  // ⚠️ SOBRE `deLaBusqueda`, NO SOBRE `matches`: lo que no tiene fila ya se
+  // apartó arriba y no llega a puntuar.
+  for (const { match: m } of deLaBusqueda) {
     if (!m.metadata || typeof m.score !== 'number' || m.score < MIN_SCORE) continue;
     const docId = String(m.metadata.documentId || '');
     const docName = String(m.metadata.documentName || 'Documento');
@@ -282,33 +336,17 @@ export async function queryRAG(
     };
   }
 
-  // 4. Recuperar texto completo de Supabase — y, EN LA MISMA CONSULTA, qué
-  // documentos siguen teniendo fila. No añade ninguna ida a la base.
+  // 4. Recuperar texto completo de Supabase.
+  //
+  // ⚠️ YA NO DEVUELVE `conFila`: la guarda de B.225 se movió arriba, a antes de
+  // puntuar, y con ella se fue la única razón por la que esta consulta llevaba
+  // dos pasajeros. La comprobación de existencia la hace `documentosVivos`, que
+  // sí filtra por organización — esta consulta no lo hacía.
   const docIds = topDocs.map(d => d.documentId);
-  const { textos: fullTexts, conFila } = await fetchFullTexts(supabase, docIds);
-
-  // ⚠️ B.225 — SIN FILA NO SE SIRVE. Un vector huérfano casa en la búsqueda y,
-  // sin esta guarda, `buildContext` reconstruía desde sus trozos un documento ya
-  // borrado y lo citaba. Ver lib/rag-fila-viva.ts.
-  const { vivos, sinFila } = documentosConFilaViva(topDocs, conFila);
-  if (sinFila.length > 0) {
-    // ⚠️ REGISTRO, NO CONTADOR: `chat_queries` no tiene dónde guardarlo sin una
-    // columna nueva. Hasta entonces, esta línea es lo único que avisa.
-    console.warn(`[RAG] B.225: ${sinFila.length} documento(s) sin fila descartados del contexto | org=${orgId} | ids=${sinFila.map(d => d.documentId).join(',')}`);
-  }
-  if (vivos.length === 0) {
-    return {
-      answer: 'No encontré información relevante sobre esto en la documentación disponible.',
-      sources: [],
-      usage: { inputTokens: 0, outputTokens: 0 },
-      noContext: true,
-      relevantDocsFound,
-      documentsUsed: 0,
-    };
-  }
+  const fullTexts = await fetchFullTexts(supabase, docIds);
 
   // 5. Construir contexto con documentos completos
-  const context = buildContext(vivos, fullTexts, matches as Array<{ metadata?: Record<string, unknown>; score?: number }>);
+  const context = buildContext(topDocs, fullTexts, matches as Array<{ metadata?: Record<string, unknown>; score?: number }>);
 
   // 6. Construir mensajes para Claude
   const recentHistory = conversationHistory.slice(-MAX_HISTORY_MESSAGES);
@@ -352,7 +390,7 @@ PREGUNTA DEL USUARIO: ${question}`;
 
   return {
     answer: text || 'No se pudo generar una respuesta.',
-    sources: vivos.map(d => ({
+    sources: topDocs.map(d => ({
       documentId: d.documentId,
       documentName: d.documentName,
       score: d.maxScore,
@@ -362,7 +400,7 @@ PREGUNTA DEL USUARIO: ${question}`;
     usage,
     noContext: false,
     relevantDocsFound,
-    documentsUsed: vivos.length,
+    documentsUsed: topDocs.length,
   };
 }
 
@@ -416,7 +454,7 @@ async function documentosNombradosDelCorpus(
 async function fetchFullTexts(
   supabase: SupabaseClient,
   documentIds: string[],
-): Promise<{ textos: Map<string, string>; conFila: Set<string> | null }> {
+): Promise<Map<string, string>> {
   const textos = new Map<string, string>();
 
   const { data, error } = await supabase
@@ -425,20 +463,21 @@ async function fetchFullTexts(
     .in('id', documentIds);
 
   if (error) {
+    // Un `full_text` que no se pudo leer NO es una razón para no contestar: el
+    // documento existe —eso ya lo verificó `documentosVivos`— y `buildContext`
+    // sabe reconstruirlo desde los trozos, que es lo que hace con los documentos
+    // antiguos que nunca tuvieron `full_text`.
     console.warn('[RAG] Error fetching full_text:', error.message);
-    // `null`, no vacío: no se sabe qué filas hay. Ver documentosConFilaViva.
-    return { textos, conFila: null };
+    return textos;
   }
 
-  const conFila = new Set<string>();
   for (const row of data || []) {
-    conFila.add(row.id);
     if (row.full_text && row.full_text.trim().length > 0) {
       textos.set(row.id, row.full_text);
     }
   }
 
-  return { textos, conFila };
+  return textos;
 }
 
 /**
