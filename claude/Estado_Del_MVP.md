@@ -6200,3 +6200,82 @@ la pregunta es qué margen tiene el eslabón más lento — y ese margen se calc
 comando, **se lee el resultado**, y sólo en verde va el commit en otro comando y el push en un
 tercero. **Nada de `&&`.** Un encadenamiento no es una comodidad: es delegar la decisión de
 subir a un código de salida que nadie ha mirado.
+
+---
+
+## 📏 5.82 · LA MATRIZ LIMPIA — la cifra definitiva del suelo (medida el 23/09/2026)
+
+**Esto no es una ficha: es la MEDICIÓN**, guardada aquí para que la ficha de retirada del
+umbral la cite en vez de depender de un mensaje. Es lo que F-114 pidió como «cifra
+definitiva» (`F-114.md:159-161`) y lo que F-115 mandó repetir **después de la defensa**,
+«para tener la cifra limpia» (`F-115.md:276`).
+
+**Instrumento y parámetros.** `/api/admin/vecindario`, nueve tramos de cinco documentos
+(`?desde=0..40&cuantos=5`), **41 documentos**, `topK=1000` —por encima del fondo de 680, así
+que el mínimo devuelto es el SUELO y no el puesto 1000— y **sin filtro de metadata**
+(`poblacion=todos`), así que nada pudo excluir ni desplazar un fragmento. `completo=true` en
+los nueve.
+
+### La cifra
+
+| | |
+|---|---|
+| **n** | **424.040** comparaciones |
+| **Mínimo global** | **0,696141422** |
+| **La pareja del mínimo** | `RRHH-08 .xlsx`, trozo **7** («[Hoja Guardias] Profesional: Sonia Prats…») contra `new 12.txt`, trozo **0** |
+| **Bajo 0,50** | **0** en los nueve tramos |
+| **Bajo 0,45** | **0** en los nueve tramos |
+
+**Histograma sumado** (cubos de 0,05; todo lo demás a cero):
+
+| desde 0,65 | 0,70 | 0,75 | 0,80 | 0,85 | 0,90 | 0,95 |
+|---|---|---|---|---|---|---|
+| 6 | 6.588 | 111.642 | 226.588 | 75.216 | 3.764 | 236 |
+
+**Suma 424.040, que cuadra con `n`.** No es decoración: si no cuadrara, el histograma y el
+mínimo describirían poblaciones distintas y no se podrían leer juntos.
+
+**Los cinco contadores de contaminación, a cero en los nueve tramos**:
+`fragmentos_sin_fila_viva`, `fragmentos_de_generacion_muerta`, `documentos_sin_vectores`,
+`consultas_fallidas` y `consultas_omitidas_por_tope`.
+
+### ⚠️ POR QUÉ LA CIFRA NO CAMBIÓ, Y QUÉ SÍ CAMBIÓ
+
+**La matriz del 21/09 daba `n = 424.058`. La limpia da `424.040`. La diferencia es 18**, y
+18 = **3 documentos × 6 trozos fantasma**: los seis vectores de CLI-05 que el índice servía
+como vecinos de tres de los 41 documentos.
+
+**El mínimo NO se movió, y era previsible**: los scores fantasma iban de **0,805 a 0,866**,
+todos muy por encima de 0,696. Quitar observaciones del tramo ALTO de la distribución no
+puede bajar el mínimo — sólo podría subirlo si el mínimo hubiera sido una de ellas, y no lo
+era.
+
+⚠️ **PERO QUE EL NÚMERO COINCIDA NO SIGNIFICA QUE LA MEDICIÓN VIEJA VALIERA.** Lo que cambió
+es todo lo demás, y es lo que hace utilizable a esta:
+
+- **El denominador**. 424.058 contaba 18 comparaciones **contra un documento borrado**. Un
+  `n` que incluye observaciones inválidas no es un `n`.
+- **El histograma**. Los 18 salían de los cubos de 0,80 y 0,85, así que la forma de la
+  distribución estaba desplazada — poco, pero por una causa falsa.
+- **La confianza, que es la parte que importa.** El 21/09 el mínimo era correcto **por
+  suerte**: nadie sabía que había contaminación, y si los seis fantasmas hubieran tenido
+  scores bajos, el suelo del corpus habría salido de un documento que ya no existe. La
+  cifra vieja era verdadera y **no era una medición**; ésta es lo mismo y sí lo es.
+
+**Es la regla del 06/09 con otro objeto**: una cifra acertada sin control es una etiqueta, no
+un dato. El control positivo aquí son los cinco contadores a cero, que el 21/09 **no
+existían** — `fragmentos_sin_fila_viva` nació con la defensa de F-115.
+
+### Qué queda cerrado y qué no
+
+✅ **La condición de parada de Fable no se disparó** (`F-114.md:163`: «si aparece algo por
+debajo de 0,50, se para la retirada»). Cero bajo 0,50 y cero bajo 0,45.
+✅ **Mi condición M1 tampoco**: `fragmentos_sin_fila_viva = 0`, así que la matriz está limpia.
+✅ **El encargo C9 de F-114 —«identificar la pareja del 0,696»— queda CONTESTADO**: sale de
+un trozo de hoja de cálculo (`[Hoja Guardias]`, una fila con nombre propio) contra el trozo 0
+de un documento de prosa corta. **Es la especie que Fable pedía saber** para construir el
+caso adverso de las siembras futuras: el suelo del corpus lo marca una TABLA contra PROSA, no
+dos documentos de temas distintos.
+⚠️ **Y una comprobación de consistencia que salió gratis**: la pareja aparece en **los dos
+sentidos** (tramos `desde=0` y `desde=5`). El coseno es simétrico, así que tenía que salir
+dos veces — y sale. Si sólo hubiera salido una, el acumulador del mínimo tendría un fallo.
