@@ -41,6 +41,32 @@ export default defineConfig({
     // La guarda de red: hace cumplir el alcance declarado arriba en vez de
     // dejarlo escrito y sin vigilar. Ver vitest.setup.ts.
     setupFiles: ["./vitest.setup.ts"],
+    /**
+     * ⚠️ EL TOPE DE TIEMPO POR CASO — subido de los 5.000 ms por defecto el
+     * 23/09/2026, y la razón es el ALCANCE declarado arriba.
+     *
+     * Lo que vitest mide con `testTimeout` es **RELOJ DE PARED**, no trabajo. En
+     * una suite cuyos casos cuestan 1-2 ms, con los workers compitiendo por CPU,
+     * un caso puede quedarse sin turno y cruzar el tope sin haber hecho nada
+     * raro: pasó el 23/09 con el primer caso de
+     * `lib/documents/nombre-corregido.test.ts` —45 ms de trabajo, 5.173 ms de
+     * pared— y puso en ROJO una pasada entera de 1.288 casos. **Un tope de pared
+     * sobre código determinista mide la máquina, no el código.**
+     *
+     * ⚠️ POR QUÉ ESTO NO TAPA UN CUELGUE DE VERDAD, que es el riesgo normal de
+     * subir un timeout: **aquí no hay nada que pueda colgarse.** El alcance
+     * declarado son funciones puras deterministas —ni React, ni rutas, ni
+     * Supabase, Pinecone o Anthropic, ni mocks de los tres— y la guarda de red de
+     * `vitest.setup.ts` lo hace cumplir cerrando el paso a `fetch`. Sin E/S y sin
+     * esperas, un caso que tardara 15 s tendría que estar en un bucle infinito de
+     * CPU, y eso no lo esconde ningún tope: lo canta la duración total.
+     *
+     * ⚠️ Y NO SUSTITUYE AL CALENTAMIENTO de `Intl` de `vitest.setup.ts`: aquél
+     * quita el coste fijo del camino de los tests, esto da margen al resto. Se
+     * pusieron en el MISMO commit a propósito — uno solo de los dos deja la mitad
+     * del problema, y la mitad que deja es la que no se ve.
+     */
+    testTimeout: 15_000,
   },
   resolve: {
     alias: [

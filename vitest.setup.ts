@@ -36,6 +36,51 @@ import { afterEach, beforeEach } from 'vitest';
  * que el caso se salió del alcance de la herramienta. O se recorta hasta el
  * trozo determinista, o se mide donde se miden los modelos, que es una tanda.
  */
+/**
+ * ⚠️ EL CALENTAMIENTO DE `Intl` — 23/09/2026. NO SE BORRA SIN LEER ESTO.
+ *
+ * ═══════════════════════════════════════════════════════════════════════════
+ * QUÉ HACE Y POR QUÉ ESTÁ AQUÍ. La **primera** llamada a un formateador de
+ * `Intl` con una localización no trivial carga los datos de ICU de esa
+ * localización. Medido en este mismo Node (v24, `icu full`): **41,40 ms la
+ * primera; 0,24 ms de media las mil siguientes.** Es un coste de UNA VEZ por
+ * worker, y lo paga quien llame primero.
+ *
+ * Quien llamaba primero era **el primer caso de
+ * `lib/documents/nombre-corregido.test.ts`**, porque su función compone el
+ * nombre con `toLocaleDateString('es-ES', …)`. Ese caso costaba **~45 ms
+ * medidos en aislamiento** —cinco pasadas: 44, 48, 49, 48, 46— frente a **1-2 ms**
+ * de los once casos siguientes del MISMO fichero, que ya lo encontraban
+ * caliente.
+ *
+ * ⚠️ QUÉ PASABA, Y ES UN FALLO DEL INSTRUMENTO Y NO DEL CÓDIGO: el
+ * `testTimeout` de vitest es **RELOJ DE PARED**. Con los workers compitiendo por
+ * CPU, esos 45 ms de trabajo se estiraron a **5.173 ms de pared** y cruzaron el
+ * tope de 5.000 ms por 173 ms. El test es puro, síncrono, con fechas fijas y sin
+ * estado compartido: **no puede dar un resultado distinto.** Lo único que varió
+ * fue cuánto tardó.
+ *
+ * ⚠️ POR QUÉ ERA ÉSE Y NO OTRO, que es la parte que hay que conservar: con 1-2 ms
+ * de coste, a cualquier otro caso le hace falta un estiramiento de ~2.500× para
+ * cruzar los 5 s. A éste le bastaba **115×**. Era **el único caso de la suite con
+ * un coste fijo de decenas de milisegundos**, o sea el único con margen pequeño.
+ * No fue mala suerte: fue el eslabón corto.
+ *
+ * ⚠️ SI ALGUIEN BORRA ESTAS LÍNEAS, el coste fijo vuelve al camino de los tests y
+ * **el primer caso del primer fichero que toque `Intl` vuelve a ser el eslabón
+ * corto** — y no será necesariamente el mismo de antes, así que el síntoma
+ * reaparecerá en otro sitio y costará volver a encontrarlo. Se tardó una pasada
+ * en cazarlo con `--reporter=verbose` y cuatro mediciones en explicarlo.
+ *
+ * LO QUE SE CALIENTA, y es lo que hace falta y nada más: **las dos formas que el
+ * alcance de vitest alcanza** — una fecha en `es-ES` (`nombre-corregido.ts:41`) y
+ * un número en `es` (`chunking-tamano-segmentos.test.ts:72`). Lo caro es el
+ * PRIMER contacto con ICU, no la forma concreta del formateador.
+ * ═══════════════════════════════════════════════════════════════════════════
+ */
+new Date(0).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
+(0).toLocaleString('es');
+
 type Violacion = { url: string; caso: string };
 const violaciones: Violacion[] = [];
 let casoActual = '(fuera de un caso)';

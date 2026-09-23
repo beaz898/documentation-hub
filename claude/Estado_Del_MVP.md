@@ -6129,3 +6129,74 @@ tercera**, y sin respuesta del proveedor no la va a demostrar nada. Queda como
 **Sin cerrar, y sin trabajo pendiente asignado.** Lo único que quedaría por hacer si se
 retomara —medir la recurrencia con un documento canario y una sonda de siete días— está
 descrito en F-115 P3 y **no está escrito ni empezado**.
+
+---
+
+## ⚠️ 5.81 · Un rojo que no era del código: el reloj de pared midiendo la máquina (23/09/2026)
+
+### ⚠️ B.263 — un caso puro y determinista caía por timeout una pasada de cada cinco, y era el único con margen pequeño (23/09/2026)
+
+**Cómo salió, y no salió persiguiéndolo**: el 22/09 pusheé un commit con la suite en ROJO
+—`1 failed | 1287 passed`— porque encadené `vitest && commit && push` en un solo comando y
+el push corrió igual. **Mi fallo, y es el mismo de `a3423ef2`** (§5.70) repetido seis días
+después. Agravado: filtré la salida con `tail -5`, así que **perdí el nombre del caso**, que
+es exactamente lo que el MÉTODO manda capturar entero.
+
+**Qué era.** `lib/documents/nombre-corregido.test.ts`, el caso «DOS GUARDADOS EL MISMO DÍA
+DAN EL MISMO NOMBRE». Salida literal:
+
+```
+Error: Test timed out in 5000ms.
+ ❯ lib/documents/nombre-corregido.test.ts:30:3
+ Test Files  1 failed | 85 passed (86)
+      Tests  1 failed | 1287 passed (1288)
+   Duration  40.39s (transform 16.14s, setup 4.34s, import 98.84s, tests 88.38s)
+```
+
+⚠️ **NO ERA UN FALLO LÓGICO, Y EL CASO NO PUEDE DAR DOS RESULTADOS**: es síncrono, con dos
+`Date` fijas construidas con componentes locales, compara dos cadenas, no lee nada, no
+escribe nada y no depende del orden. **Lo único que varió fue cuánto tardó.** El reporter lo
+dice: **5.173 ms** ese caso, **1-2 ms** los once siguientes del mismo fichero.
+
+**Las tres mediciones que lo cierran:**
+
+| Medición | Resultado |
+|---|---|
+| El caso **aislado**, cinco pasadas | **44, 48, 49, 48, 46 ms** — estable |
+| Los once casos siguientes del mismo fichero, misma función, en la pasada roja | **1-2 ms** cada uno |
+| La **primera** llamada a `toLocaleDateString('es-ES', …)` en un Node limpio | **41,40 ms**; las mil siguientes, 0,24 ms de media |
+
+**La causa, con su aritmética.** Ese caso es el primer `it` del fichero, así que pagaba la
+carga de los datos de ICU —41 ms de una vez por worker— que ningún otro caso de la suite
+pagaba. Su coste real: ~45 ms. En la pasada roja la suite iba al doble de lenta (40,39 s de
+pared frente a ~20 s), y con los workers compitiendo por CPU esos 45 ms **se estiraron a
+5.173 ms de pared**, cruzando el tope de 5.000 ms por 173 ms.
+
+⚠️ **POR QUÉ ERA ÉSE Y NO OTRO, que es la parte que hay que conservar**: con 1-2 ms de coste,
+a cualquier otro caso le hacen falta ~2.500× de estiramiento para cruzar los 5 s. **A éste le
+bastaban 115×.** Era el único caso de la suite con un coste fijo de decenas de milisegundos,
+o sea **el único con margen pequeño**. No fue mala suerte: fue el eslabón corto, y el eslabón
+corto se puede calcular antes de que se rompa.
+
+**Arreglado, las dos mitades en el mismo commit.** (1) `vitest.setup.ts` calienta `Intl` una
+vez por worker, así que el coste fijo sale del camino de los casos y el primero pasa a costar
+1-2 ms como el resto. (2) `vitest.config.mts` sube `testTimeout` a 15.000 ms. **Una sola de
+las dos deja la mitad del problema, y la mitad que deja es la que no se ve.** Se descartó la
+tercera opción —calentar sólo en ese fichero— porque arregla el caso y deja la causa: el
+siguiente caso con coste fijo volvería a ser el eslabón corto y nadie se acordaría.
+
+**Control positivo: 20 pasadas seguidas de la suite completa, las 20 en verde.** Sin él no se
+podría afirmar nada — el rojo del 22/09 salió a la quinta pasada y el del 23/09 a la primera,
+así que una sola pasada verde nunca fue evidencia de nada.
+
+⚠️ **LA REGLA QUE SALE DE AQUÍ, y vale para cualquier instrumento de esta casa: UN LÍMITE DE
+TIEMPO DE PARED SOBRE CÓDIGO DETERMINISTA NO MIDE EL CÓDIGO: MIDE LA MÁQUINA.** Un tope así
+convierte la carga de la máquina en un veredicto sobre el commit, y lo hace con la misma cara
+que un fallo de verdad. Su coste real no es el rojo: es que **enseña a no creerse el color**,
+y un rojo que nadie cree ya no protege nada. Cuando un tope se aplique a algo determinista,
+la pregunta es qué margen tiene el eslabón más lento — y ese margen se calcula, no se supone.
+
+⚠️ **Y SU MITAD DE PROCEDIMIENTO, que es la que me tocaba a mí**: la suite se ejecuta en un
+comando, **se lee el resultado**, y sólo en verde va el commit en otro comando y el push en un
+tercero. **Nada de `&&`.** Un encadenamiento no es una comodidad: es delegar la decisión de
+subir a un código de salida que nadie ha mirado.
