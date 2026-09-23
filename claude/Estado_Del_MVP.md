@@ -6348,3 +6348,170 @@ contador y la respuesta del producto ante eso no está medida.
 **Sin arreglar.** Y con una advertencia sobre el orden: **la estimación va antes que el modo
 sin textos**, porque sin saber cuánto cuesta una pasada no se puede saber si el modo ligero
 sirve de algo.
+
+---
+
+## ✅ 5.84 · ACTA DE RETIRADA DEL UMBRAL DE RECUPERACIÓN (23/09/2026)
+
+**Es la ficha que F-113 pidió con sus siete apartados** (`F-113.md:220-229`), escrita al
+cerrar la fase 2 y con la validación del director delante. Sustituye a cualquier lectura
+anterior sobre los dos umbrales: lo que sigue es lo que se retiró, por qué, qué lo vigila
+ahora y qué haría falta para reinstaurarlo.
+
+Commit del código: **`1de62363`**.
+
+### 0 · La validación, que es lo que cierra la fase
+
+**Hecha por el director el 23/09/2026, y las dos comprobaciones pasan.** Se eligieron
+BARATAS a propósito: unos pocos MB en total, después de que las matrices agotaran la cuota
+de lectura (ver B.264).
+
+| Comprobación | Resultado |
+|---|---|
+| Censo de un documento (`?desde=0&cuantos=1`, topK por defecto) | **sin campo `umbrales`**, **sin `vecinos_045`**, **sin `bajo_umbral_rapido` ni `bajo_umbral_exhaustivo`**, `completo=true`, `fragmentos_sin_fila_viva=0` |
+| Dos análisis reales | denominadores con **cinco términos**, **sin `descartados_umbral`**, `clave_vieja_presente=false`, y **el cuadre cierra en los dos**: `crudos 125 = 125` y `crudos 200 = 200` |
+
+⚠️ **LOS DOS CUADRES SON LA MITAD QUE IMPORTA.** Que el campo haya desaparecido sólo dice
+que el despliegue llegó; que la ecuación **siga cerrando con un término menos** dice que no
+se perdió ningún fragmento por el camino al quitarlo. Sin esos dos números, la retirada
+sería un cambio desplegado y no un cambio verificado.
+
+### 1 · Predicado literal
+
+`score >= umbral`, **por cada match y antes de las exclusiones**. Vivía en `pasaElUmbral`
+(`umbral-de-recuperacion.ts`, hoy `corte-de-recuperacion.ts` sin ella) y lo aplicaba
+`cribarMatches` como paso 2 de la criba. Dos valores: `SCORE_THRESHOLD_QUICK = 0.50` en el
+modo rápido y `SCORE_THRESHOLD_EXHAUSTIVE = 0.45` en el exhaustivo.
+
+### 2 · Operando y agregación
+
+**FRAGMENTO, sin agregar.** Es la corrección de F-113 sobre F-111, y es la razón de que la
+primera medición del suelo midiera otra cosa: el censo de 42×41 del 16/09 daba ~0,79, pero
+**ése era el MÁXIMO POR DOCUMENTO** (`scoreMax`), no el score de cada fragmento. El umbral
+nunca juzgó el máximo por documento: juzgaba cada match tal como lo devolvía Pinecone.
+
+### 3 · Rango medido — fecha, n, población, sesgos y modelo
+
+| | |
+|---|---|
+| **Suelo medido** | **0,696141422** |
+| **n** | **424.040** comparaciones |
+| **Fecha** | **23/09/2026** |
+| **Población** | los **680** vectores de los **41** documentos de la organización piloto, TODOS contra TODOS, en nueve tramos de cinco documentos |
+| **Parámetros** | `topK=1000` (por encima del fondo de 680, así que el mínimo es el SUELO y no el puesto N) y **sin filtro de metadata** |
+| **Fragmentos bajo 0,50** | **0**, en los nueve tramos |
+| **Fragmentos bajo 0,45** | **0**, en los nueve tramos |
+| **La pareja del mínimo** | `RRHH-08 .xlsx` trozo 7 (`[Hoja Guardias] Profesional: Sonia Prats…`) contra `new 12.txt` trozo 0 — **una TABLA contra PROSA**, y aparece en los dos sentidos |
+| **Modelo** | `multilingual-e5-large`, dimensión **1024**, servida y confirmada por el sello |
+
+**Sesgos declarados**, y son tres:
+
+1. **Una sola organización.** El suelo **baja cuando el fondo es más variado** —medido:
+   `Facturacion_2025` cae de 0,769 a 0,705 al pasar de su población real al corpus entero—
+   así que otra organización, otro sector u otro idioma lo bajarían más, y **nadie sabe
+   cuánto**.
+2. **Sin filtro de corpus.** La medición incluye documentos `pendiente`, que el análisis real
+   no alcanza. Es deliberado: con filtro, el censo de este corpus piloto daría casi ceros.
+3. **Es un corpus homogéneo** —todo del mismo cliente y del mismo dominio—, y eso es
+   precisamente lo que comprime los scores en la franja alta.
+
+⚠️ **Y LA CIFRA VIEJA NO SE CITA MÁS: la matriz del 21/09 daba `n = 424.058`** y estaba
+**contaminada** por los seis vectores de un documento borrado (F-115). Su mínimo era el
+mismo por suerte, no por método. Ver 5.82.
+
+### 4 · La cita del fabricante, con su fecha de lectura
+
+La FAQ del fabricante describe las similitudes de `multilingual-e5` **«en torno a 0,7»** como
+propiedad del diseño del modelo, no como garantía. **Leída el 21/09/2026.**
+
+⚠️ **Y NO SE PUEDE CITAR COMO GARANTÍA DE UN MÍNIMO**, que es la lección que costó una
+predicción: Fable predijo «≥ 0,70» anclándose en esa cifra redonda, y salió **0,696** — falla
+por 0,004. Su explicación literal: «Me anclé en la cifra redonda de la ficha del fabricante,
+que describía un rango y no medía nada.» **Una descripción no es una cota.**
+
+### 5 · Qué lo habría activado, y quién vigila ahora
+
+**Lo habría activado**: un vector degenerado —un fragmento basura cuyo embedding cayera lejos
+de todo— o un cambio de modelo por parte del proveedor.
+
+**Quién vigila ahora, y son dos piezas que no existían cuando el umbral se escribió:**
+
+- **EL TERMÓMETRO** (`lib/analysis/termometro.ts`): guarda en cada análisis el mínimo, el
+  máximo, los veinte cubos de 0,05 y el hueco entre los dos primeros documentos. **Enseña la
+  distribución entera en vez de cortarla**, así que el día que el suelo baje se verá — que es
+  lo que un corte inerte no podía hacer.
+- **EL CANARIO** (`lib/analysis/canario.ts`): dos parejas de textos fijos, nunca indexados.
+  Dice si lo que se movió fue **el modelo** o **el corpus**, que son dos causas con dos
+  arreglos distintos. Su referencia está medida y fechada en 5.85.
+
+### 6 · La errata
+
+**La versión «por documento» era FALSA**, y se repetía por el repositorio: el suelo de ~0,79
+que se citaba como si fuera el operando del umbral era el **máximo por documento**. La errata
+fechada y su censo van en 5.86 — con la lista **rehecha**, porque la de F-113 nombraba siete
+sitios y hoy no son ésos.
+
+### 7 · El caso decisivo de reinstauración
+
+**Un candidato concreto que llegó al juez, era basura, y cuyo score lo habría separado de los
+buenos.** No existe ninguno hoy: con el suelo en 0,696 y el techo en ~0,99, ningún valor
+absoluto entre 0 y 0,696 separa nada de nada.
+
+⚠️ **Y LA FORMA DE UN CORTE FUTURO, si algún día vuelve (C12): RELATIVO, NUNCA ABSOLUTO.**
+Orden o hueco —«los N mejores», «los que estén a menos de X del primero»— y no un número
+contra el que comparar. Los autores del modelo respaldan esa forma, y la razón es la misma
+que retira este umbral: **un absoluto elegido sobre una distribución que vive entre 0,65 y
+1,00 no discrimina, y el día que el modelo cambie de escala dejará de significar lo que
+significaba sin que nadie lo note.** El corte relativo que ya existe —`cortarALosMasAfines`,
+los 25 más afines— es de esa forma y no se toca.
+
+**El corte relativo queda DORMIDO, a la espera de su caso decisivo.**
+
+### ⚠️ Y UN CAMBIO DE FORMA EN LA RESPUESTA DEL CENSO, que hay que saber antes de comparar
+
+**El campo `umbrales` DESAPARECIÓ de la respuesta de `/api/admin/vecindario`.** Declaraba con
+qué regla se había contado —los dos valores— y sin regla no hay nada que declarar.
+
+⚠️ **CONSECUENCIA: las respuestas del censo guardadas ANTES del 23/09/2026 no son comparables
+campo a campo con las nuevas.** No sólo falta `umbrales`: faltan también `vecinos_045`,
+`bajo_umbral_rapido` y `bajo_umbral_exhaustivo`, y `vecinos` **cambió de significado** —antes
+contaba los que pasaban 0,50; ahora cuenta todos—. Lo que sí se conserva y sigue siendo
+comparable: `distribucionDelCorpus` (mínimo, máximo, percentiles e histograma), `n`,
+`parejaDelMinimoDelCorpus` y los contadores.
+
+⚠️ **Y LA RESPUESTA DEL CENSO NO LLEVA NÚMERO DE VERSIÓN**, así que nada de esto lo dice el
+propio dato: una respuesta vieja y una nueva se distinguen sólo por qué campos traen. Es un
+candidato a ficha y queda dicho aquí en vez de descubrirse comparando dos JSON.
+
+### ⚠️ Y UNA COMPROBACIÓN QUE EL DIRECTOR PIDIÓ CERRAR: `propios_excluidos` salió 0 en los dos análisis
+
+**Es lo esperado, y por una razón que conviene no confundir con otra.** Leído en el código:
+
+- `propios_excluidos` sólo se incrementa si hay a quién excluir:
+  `if (args.excluido !== undefined && m.documentId === args.excluido)`
+  (`lib/analysis/criba-de-matches.ts:181`).
+- Y `excluido` sale de `unicoExcluido(sujetos)` (`app/api/analyze-v2/route.ts:195`), que
+  devuelve **el primero de `documentosExcluidos`** (`lib/analysis/sujetos.ts:182-191`). Esa
+  lista se llena SÓLO con `documentoEnRevision`, `documentoAReemplazar` y
+  `documentoPropietario` (`lib/analysis/sujetos.ts:135-138`).
+
+**Así que en una SUBIDA NUEVA la lista está vacía, `excluido` es `undefined`, y el cero no es
+una medición: es una certeza estructural.** El comentario de la ruta ya lo dice —«en la
+subida no hay a quién excluir (el doc aún no está indexado)»—.
+
+⚠️ **Y HAY UN SEGUNDO CAMINO QUE TAMBIÉN DA CERO, y ése sí es interesante**: incluso con
+`excluido` puesto —un reanálisis desde la bandeja—, los vectores del propio documento **no
+vuelven** si su `analysis_status` no es `analizado`, porque el filtro de la consulta es
+`CORPUS_ACTIVO = { analysisStatus: { $eq: 'analizado' } }`
+(`lib/pinecone/vectors.ts:99`). Un documento de la bandeja está `pendiente`, así que sus
+propios fragmentos ni llegan — y no hay nada que excluir. Sólo daría **distinto de cero** al
+reanalizar un documento **ya aprobado**, o cuando la tanda lo nomina por
+`batchDocumentIds`.
+
+⚠️ **LO QUE ESTO DESTAPA, Y NO LO ARREGLO AQUÍ: el contador no tiene denominador.** Un
+`propios_excluidos: 0` no distingue tres situaciones distintas —«no había a quién excluir»,
+«había y sus vectores no pasan el filtro» y «había, pasaban, y no casó ninguno»— y la
+tercera sería un fallo. Es la regla del cero con otro objeto: **un cero confirma sólo si el
+mismo camino ha producido un no-cero en las mismas condiciones.** Queda ANOTADO, sin ficha
+propia y sin arreglo, porque el arreglo es un campo más en el termómetro y eso es otra
+decisión.
