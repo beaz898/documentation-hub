@@ -11,6 +11,8 @@ import {
   buildCorpusFilter,
 } from '@/lib/pinecone/vectors';
 import { TOP_K_POR_CONSULTA } from '@/lib/analysis/retrieval';
+import { medirElCanario, canarioNoMedido, elOrdenSeSostiene } from '@/lib/analysis/canario';
+import { generateEmbeddingsConSello } from '@/lib/embeddings';
 import { runInBatches } from '@/lib/run-in-batches';
 import { reparteVacio, type ClaseDePar } from '@/lib/analysis/clase-de-trozo';
 import {
@@ -40,9 +42,14 @@ import {
  * del umbral, con los dos umbrales a la vez.
  *
  * SOLO LEE. No escribe en Supabase, no toca Pinecone más que para consultar, y
- * NO CONSUME NI UN CRÉDITO: los vectores ya están calculados: `fetchVectors` los
- * devuelve con sus `values`, así que no se embebe nada ni interviene ningún
- * modelo.
+ * NO CONSUME NI UN CRÉDITO: los vectores del corpus ya están calculados —
+ * `fetchVectors` los devuelve con sus `values`— así que el censo no embebe nada.
+ *
+ * ⚠️ CON UNA EXCEPCIÓN, Y SÓLO CUANDO SE PIDE — 23/09/2026: `?canario=1` hace DOS
+ * llamadas al servicio de embeddings, de tres textos cortos cada una (F-114 P3).
+ * Sigue sin consumir créditos —esa contabilidad es nuestra y esto no pasa por
+ * ella— pero **sí cuenta para el límite de tokens por minuto del proveedor**. Por
+ * omisión no se mide y la respuesta lo dice con su motivo.
  *
  * ⚠️ SE CONSULTA SIN FILTRO DE CORPUS, Y ES DELIBERADO. `CORPUS_ACTIVO` sólo ve
  * los `analizado`, y hoy casi todo el corpus piloto está `pendiente`: con filtro
@@ -62,8 +69,14 @@ import {
  *                       `maxDuration`. Los histogramas se suman, los mínimos se
  *                       toman por el menor y los percentiles se RECALCULAN del
  *                       histograma sumado — nunca se promedian.
+ *   ?canario=1          F-114 P3. Mide el CANARIO: dos parejas de textos fijos,
+ *                       embebidos al vuelo como 'passage' y nunca indexados. Su
+ *                       parecido sólo puede moverse si se movió el MODELO, así
+ *                       que es lo que atribuye la causa cuando el termómetro da
+ *                       un salto. Se mide DOS VECES seguidas, y la diferencia es
+ *                       el ruido propio del servicio.
  *
- * ⚠️ NINGUNO DE LOS CUATRO CAMBIA EL COMPORTAMIENTO POR OMISIÓN, y todos se
+ * ⚠️ NINGUNO DE LOS CINCO CAMBIA EL COMPORTAMIENTO POR OMISIÓN, y todos se
  * declaran en la respuesta: un censo que no dice con qué topK, qué población y
  * qué tramo se midió no se puede releer ni combinar.
  */
@@ -108,6 +121,25 @@ export async function GET(req: NextRequest) {
     // corpus. El parseo vive en vecindario.ts, con su caso decisivo.
     const topK = topKPedido(req.nextUrl.searchParams.get('topK'), TOP_K_POR_CONSULTA);
     const poblacion = poblacionPedida(req.nextUrl.searchParams.get('poblacion'));
+
+    // ══ F-114 P3 — EL CANARIO, y es lo ÚNICO de este censo que embebe ══
+    //
+    // ⚠️ SE PIDE, NO VIENE POR OMISIÓN, y es por lo mismo que los otros cuatro
+    // parámetros: ninguno cambia el comportamiento por omisión. Además, la matriz
+    // completa se pide en NUEVE tramos, y medir el canario en cada uno serían
+    // dieciocho llamadas al servicio de embeddings para un dato que es el mismo:
+    // los textos del canario son FIJOS y no dependen del tramo.
+    //
+    // ⚠️ LA CLAVE `canario` VIAJA SIEMPRE, con su motivo cuando no se midió. Un
+    // censo que no la llevara no se distinguiría de uno que la midió y no
+    // encontró nada — que es la regla del cero, y por eso `canarioNoMedido`.
+    //
+    // ⚠️ ESTO ROMPE, Y SOLO CUANDO SE PIDE, LA PROMESA DE LA CABECERA de que el
+    // censo no embebe nada: con `?canario=1` hay DOS llamadas al servicio de
+    // embeddings, de tres textos cortos cada una. No consume créditos del cliente
+    // —los créditos son nuestra contabilidad y esto no pasa por ella— pero sí
+    // cuenta para el límite de tokens por minuto del proveedor, y se dice.
+    const canarioPedido = req.nextUrl.searchParams.get('canario') === '1';
 
     // F-114 — ORDEN ESTABLE, Y NO ES COSMETICO: los tramos (?desde=&cuantos=) solo
     // son una particion si la lista no cambia entre dos llamadas. Sin `order`,
@@ -352,9 +384,40 @@ export async function GET(req: NextRequest) {
       console.warn(`[vecindario] CENSO TRUNCADO | org=${orgId} | omitidas=${contadores.consultas_omitidas_por_tope} de tope ${MAX_CONSULTAS}`);
     }
 
+    // ⚠️ AL FINAL Y NO AL PRINCIPIO: si el servicio de embeddings estuviera
+    // caído, medir primero retrasaría 680 consultas que no lo necesitan. Y no
+    // puede tumbar el censo — `medirElCanario` no lanza.
+    const canario = canarioPedido
+      ? await medirElCanario(generateEmbeddingsConSello)
+      : canarioNoMedido('no se pidió: añade ?canario=1 para medirlo');
+    if (canario.motivo === null) {
+      const alta = canario.parejas.find(p => p.clave === 'alta');
+      const baja = canario.parejas.find(p => p.clave === 'baja');
+      console.log(
+        `[vecindario] CANARIO | alta=${alta?.primera ?? 'null'} (ruido ${alta?.ruido ?? 'null'}) | ` +
+        `baja=${baja?.primera ?? 'null'} (ruido ${baja?.ruido ?? 'null'}) | ` +
+        `modelo servido=${canario.modelo.servido ?? 'no declarado'} dim=${canario.modelo.dimension_servida ?? 'null'}`,
+      );
+      if (elOrdenSeSostiene(canario) === false) {
+        // ⚠️ Si esto suena, el instrumento está mal y sus cifras no se pueden
+        // interpretar: dos formas de decir lo mismo tienen que parecerse MÁS que
+        // dos temas sin relación.
+        console.error(`[vecindario] CANARIO DEL REVÉS: la pareja baja se parece más que la alta | org=${orgId}`);
+      }
+      if (canario.dimension_inesperada) {
+        console.error(`[vecindario] CANARIO con dimensión inesperada: ${canario.modelo.dimension_servida} | org=${orgId}`);
+      }
+    }
+
     return NextResponse.json({
       documentos: filas.length,
       umbrales: UMBRALES_DEL_CENSO,
+      // ⚠️ F-114 P3 — EL CANARIO. Textos fijos, embebidos al vuelo como
+      // 'passage' y NUNCA indexados: su parecido sólo puede moverse si se movió
+      // el MODELO, así que es lo que atribuye la causa cuando el termómetro da un
+      // salto. Se mide dos veces seguidas y trae su `ruido`, que es el número del
+      // que saldrá la tolerancia de alarma (C7).
+      canario,
       topK: TOP_K_POR_CONSULTA,
       // F-113 — CON QUÉ SE MIDIÓ, en la respuesta y no sólo en la URL: un censo
       // que no dice su población ni su topK no se puede releer, y el mínimo
