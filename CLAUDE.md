@@ -234,10 +234,18 @@ El dueño del proyecto NO es programador. Vercel deploya automáticamente al hac
   fila con «no» en (b) hoy es un latente con fecha de caducidad, no un problema
   resuelto: el corpus crece.
   ⚠️ **LOS CASOS QUE LA PAGARON, y son de la misma semana:**
-  · **el umbral 0,50** llevaba un comentario que decía «calibrado» y el censo
-    enseñó que ningún par del corpus baja de 0,79 — **el parámetro no descartaba
-    nada y ninguna prueba lo notaba**. Un número inerte con una nota que lo hacía
-    parecer decidido (B.248).
+  · **el umbral 0,50** llevaba un comentario que decía «calibrado» y ninguna
+    medición lo respaldaba — **el parámetro no descartaba nada y ninguna prueba
+    lo notaba**. Un número inerte con una nota que lo hacía parecer decidido
+    (B.248). **RETIRADO el 23/09/2026 con el 0,45 del exhaustivo**; el suelo
+    medido del corpus es **0,696141422** (n=424.040) y no hay un solo fragmento
+    por debajo de 0,50. Su acta, con los siete apartados, en
+    `claude/Estado_Del_MVP.md` §5.84.
+    ⚠️ **Y OJO CON LA CIFRA QUE SE CITABA AQUÍ**: este bullet decía «ningún par
+    del corpus baja de 0,79», y **el 0,79 era el MÁXIMO POR DOCUMENTO, no el
+    score de cada fragmento** — que es el operando que el umbral juzgaba. La
+    confusión duró del 16 al 21/09 y la corrigió F-113. Es el mismo error que la
+    regla persigue: **una cifra medida sobre un operando y citada sobre otro.**
   · **el tope de 6 del rerank**: se dio por inerte —«este corpus nunca pasa de 2
     candidatos»— y el historial persistido enseñó **cinco pasadas con 9 y 10**.
     La afirmación de inocuidad era un universal sostenido por las pasadas que

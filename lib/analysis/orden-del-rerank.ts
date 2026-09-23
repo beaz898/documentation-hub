@@ -44,8 +44,10 @@ const RANGO: Record<RerankedCandidate['rerankConfidence'], number> = {
  *     son el caso NORMAL, no la excepción, así que el desempate no es un
  *     detalle: decide casi siempre. Se usa el mejor parecido del candidato
  *     porque es una CANTIDAD REAL y determinista.
- *     ⚠️ Es una señal débil —los scores de este corpus están comprimidos entre
- *     0,79 y 0,99 (B.248)— y se declara débil. Pero una señal débil y estable
+ *     ⚠️ Es una señal débil —los scores de este corpus están comprimidos en la
+ *     franja alta: **0,696 a ~0,99** medido sobre n=424.040 el 23/09/2026; el
+ *     «0,79 a 0,99» que decía antes era del máximo por documento, no del
+ *     fragmento (errata de B.248, corregida por F-113)— y se declara débil. Pero una señal débil y estable
  *     vence a ninguna señal: lo que sustituye es el orden de salida de un
  *     modelo, que no es ni señal ni estable.
  *  3. **`documentId`.** Arbitrario y se dice que lo es. Su única virtud es que

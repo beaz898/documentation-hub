@@ -3647,3 +3647,38 @@ columna de visión sale vacía, primero se comprueba la clave, después se diagn
 | incompleto, o cortado por 11-13 | **no mide**: se repite, y se cuenta por qué |
 
 **Nada lanzado. Ningún crédito.**
+
+---
+
+## ⚠️ ERRATA FECHADA — las dos columnas del censo de vecindario (23/09/2026)
+
+**Este fichero es una BITÁCORA de tandas y no se reescribe**: lo que dice describe lo que se
+midió el día que se midió. Esta nota es lo que hay que leer antes de reutilizar cualquier
+especificación de arriba sobre el censo de vecindario.
+
+⚠️ **LAS COLUMNAS `vecinos` Y `vecinos_045` YA NO SON LO QUE AQUÍ SE DESCRIBE.** La
+especificación de la tanda del censo decía:
+
+> `vecinos` — cuántos OTROS documentos tienen al menos un trozo a ≥ 0,50
+> `vecinos_045` — lo mismo con el umbral del exhaustivo — la diferencia entre las dos columnas
+> **es exactamente lo que el exhaustivo compra**, y se sabe sin gastar 30 créditos
+
+**Las dos constantes se retiraron el 23/09/2026** (commit `1de62363`), y con ellas:
+
+- **`vecinos_045` DESAPARECIÓ** de la respuesta.
+- **`vecinos` CAMBIÓ DE SIGNIFICADO**: ya no cuenta los que pasan 0,50 — cuenta **todos** los
+  vecinos que la consulta devolvió.
+- **El campo `umbrales` desapareció**, así que la respuesta ya no declara con qué regla se
+  contó, porque no hay regla.
+- **En su lugar** va `distribucion` / `distribucionDeMaximos`: mínimo, máximo, p1/p5/p50 y los
+  veinte cubos de 0,05, definidos dentro del propio instrumento.
+
+⚠️ **Y LA PREGUNTA QUE ESTA TANDA QUERÍA CONTESTAR —«cuántos vecinos gana el corpus al bajar
+el umbral de 0,50 a 0,45»— YA NO TIENE OBJETO.** Se contestó, y la respuesta fue **cero**: el
+suelo medido del corpus es **0,696141422** (n=424.040, 23/09/2026) y no hay un solo fragmento
+por debajo de 0,50 ni de 0,45. Bajar el umbral no compraba nada porque el umbral no descartaba
+nada.
+
+**El acta completa de la retirada, con sus siete apartados, en `claude/Estado_Del_MVP.md`
+§5.84.** La errata de este fichero existe porque **no estaba en la lista de siete sitios que
+F-113 nombró**: apareció al rehacer el censo por capacidad en vez de fiarse de la lista.

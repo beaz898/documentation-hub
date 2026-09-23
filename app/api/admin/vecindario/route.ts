@@ -446,11 +446,16 @@ export async function GET(req: NextRequest) {
       // caracteres de frase hecha antes del primer dato propio.
       vecindadesTotales,
       porClaseTotal,
-      // ⚠️ F-111 — EL RANGO DEL OPERANDO QUE EL UMBRAL JUZGA DE VERDAD, agregado
-      // sobre TODOS los fragmentos del corpus. Y va aparte de `filas` porque no
-      // se puede derivar de ellas: los percentiles de una unión no son la unión
-      // de los percentiles. Es el número que faltaba — el suelo de ~0,79 del que
-      // se habla es del MÁXIMO por documento (`scoreMax`), no de esto.
+      // ⚠️ F-111 — EL RANGO DE LOS SCORES POR FRAGMENTO, agregado sobre TODOS los
+      // del corpus. Y va aparte de `filas` porque no se puede derivar de ellas:
+      // los percentiles de una unión no son la unión de los percentiles.
+      //
+      // ⚠️ ERA EL OPERANDO QUE EL UMBRAL JUZGABA, y el umbral se retiró el
+      // 23/09/2026. Sigue siendo la cifra que importa: de aquí salió el suelo
+      // medido del corpus, **0,696141422** sobre n=424.040 (23/09/2026, acta en
+      // `claude/Estado_Del_MVP.md` §5.84). El ~0,79 que se citaba antes era del
+      // MÁXIMO por documento (`scoreMax`), no de esto — y confundirlos fue la
+      // errata que F-113 corrigió.
       distribucionDelCorpus: distribucionDeScores(scoresDelCorpus),
       // ⚠️ F-114 — QUE DOS FRAGMENTOS DAN EL MINIMO. Un suelo sin su pareja es una
       // cifra que no se puede examinar ni sembrar. `chunkIndex` viaja porque

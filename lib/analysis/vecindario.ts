@@ -268,16 +268,17 @@ export function resumirVecindario(mejores: Map<string, Vecino>): {
  *
  * El resto de este módulo cuenta VECINOS: colapsa los scores al MÁXIMO por
  * documento (`acumularVecinos`) porque la pregunta de B.243 es «contra cuántos
- * documentos toca». De ahí salió el suelo de ~0,79 del corpus.
+ * documentos toca». De ahí salió la cifra de ~0,79 que se citó durante una
+ * semana como «el suelo del corpus».
  *
- * ⚠️ PERO EL UMBRAL DE LA RECUPERACIÓN NO COMPARA ESO. Compara **fragmento a
- * fragmento**, tal como Pinecone los devuelve: `pasaElUmbral(m.score, umbral)`,
- * hoy dentro de `cribarMatches` (`criba-de-matches.ts`) y hasta el 22/09/2026 en
- * `collectMatches`, en `retrieval.ts`. Un DOCUMENTO sólo se pierde
- * si NINGUNO de sus fragmentos pasa —eso es lo que cuenta el contador
- * persistido `seleccion.candidatos_perdidos_por_umbral`, y da cero—, pero
- * cuántos FRAGMENTOS descarta no lo mide nadie. El suelo de 0,79 es del máximo
- * por documento: **el rango del operando real nunca se había mirado.**
+ * ⚠️ Y ESA CIFRA ERA DE OTRO OPERANDO — la errata que F-113 corrigió. El umbral
+ * de la recuperación comparaba **fragmento a fragmento**, tal como Pinecone los
+ * devuelve, no el máximo por documento. El ~0,79 era del máximo; **el suelo real
+ * del operando que el umbral juzgaba es 0,696141422** (n=424.040, 23/09/2026).
+ *
+ * ⚠️ EL UMBRAL SE RETIRÓ EL 23/09/2026 con sus dos constantes, y con él
+ * `pasaElUmbral` y el contador `seleccion.candidatos_perdidos_por_umbral`. Acta
+ * completa en `claude/Estado_Del_MVP.md` §5.84.
  *
  * Esta función es el termómetro de ese operando, y nada más: no filtra, no
  * decide y no toca el pipeline. Los scores le llegan ya calculados por las

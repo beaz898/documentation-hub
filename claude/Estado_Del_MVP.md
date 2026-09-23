@@ -6623,3 +6623,99 @@ retirada, y llega del canario, no del corpus.
 **CONTADO**, en la escala de F-95 P5 —ESCRITO, CONTADO, EJERCIDO—. Sus cifras se miden y se
 guardan; **no vigila todavía** porque la tolerancia es una decisión pendiente. Pasará a
 EJERCIDO el día que un salto del termómetro se atribuya con él.
+
+---
+
+## ⚠️ 5.86 · ERRATA FECHADA — el ~0,79 y los dos umbrales (23/09/2026)
+
+**Es la errata que C16 de F-113 pide** (`F-113.md:235-238`), y su regla es la que gobierna
+este fichero desde siempre: **`Estado_Del_MVP.md` es una BITÁCORA y no se reescribe.** Lo que
+se escribió el 16/09 seguía siendo verdad el 16/09; lo que caduca es su LECTURA. Así que
+nada de lo de arriba se toca, y esta sección es lo que hay que leer antes de citar cualquier
+pasaje anterior sobre el umbral.
+
+### LAS DOS COSAS QUE HAY QUE SABER
+
+⚠️ **1 · EL ~0,79 NO ERA EL SUELO DEL OPERANDO DEL UMBRAL.** Era el **MÁXIMO POR DOCUMENTO**
+(`scoreMax`) del censo 42×41 del 16/09. El umbral comparaba **fragmento a fragmento**, y el
+suelo de ESE operando **nunca se había medido** hasta F-113. Medido: **0,696141422** sobre
+n=424.040 (23/09/2026, §5.84).
+
+⚠️ **2 · LOS DOS UMBRALES YA NO EXISTEN.** `SCORE_THRESHOLD_QUICK` (0,50) y
+`SCORE_THRESHOLD_EXHAUSTIVE` (0,45) se retiraron el **23/09/2026** (commit `1de62363`), con
+`pasaElUmbral`, el contador `seleccion.candidatos_perdidos_por_umbral` y las dos columnas del
+censo. **Cualquier pasaje de más arriba que hable de «no se toca el valor», «el disparador es
+que el contador deje de dar cero» o «ya tienen caso decisivo» describe un estado que terminó
+ese día.**
+
+### EL CENSO, REHECHO — porque la lista de F-113 estaba caducada
+
+F-113 nombró **siete sitios** (`F-113.md:113`): `CLAUDE.md:237-239`;
+`Estado_Del_MVP.md:3794, 3917, 3935-3936, 4383, 4597`; y los comentarios `retrieval.ts:108` y
+`verify-claims.ts:74`.
+
+⚠️ **NO SE USÓ ESA LISTA, Y HABRÍA CERRADO EN FALSO. Tres cosas fallaban:**
+
+1. **`verify-claims.ts` YA NO EXISTE** (`find . -name "verify-claims*"` → vacío). Uno de los
+   siete sitios se había evaporado.
+2. **Los números de línea habían derivado**: `4383` y `4597` caen hoy en contenido ajeno,
+   porque el fichero creció unas 280 líneas entre el 21 y el 23/09.
+3. **Había sitios que la lista NO nombraba**, incluidos ficheros enteros: `Tandas_Harness.md`
+   y `app/api/admin/vecindario/route.ts`.
+
+**Es la regla de la casa aplicada a su propia lista: se enumera POR CAPACIDAD, no por nombres
+ni por líneas apuntadas hace dos días.** El comando de pertenencia, para que cualquiera pueda
+re-ejecutarlo:
+
+```bash
+grep -rn "SCORE_THRESHOLD\|mejor trozo\|0,79\|0\.79\|umbral de 0,50\|perdidos_por_umbral\|pasaElUmbral\|umbral-de-recuperacion" \
+  --include=*.md --include=*.ts --include=*.tsx . \
+  | grep -v node_modules | grep -v "^./claude/consultas-fable/" | grep -v "^./claude/incidencias-de-proveedor/"
+```
+
+Los dos archivos excluidos lo están por regla: **`claude/consultas-fable/` es intocable** —un
+documento de archivo afirma «esto se dijo el día tal» y eso sigue siendo cierto—, y
+`claude/incidencias-de-proveedor/` conserva texto enviado a un tercero.
+
+### QUÉ SE HIZO CON CADA CLASE, y por qué distinta
+
+| Clase | Trato | Hecho |
+|---|---|---|
+| **`CLAUDE.md`** — instrucción VIVA | **Se corrige el texto**: alguien la lee para decidir hoy | ✅ Corregido el bullet del caso del umbral en la regla del caso decisivo: dice que está retirado, con la cifra nueva, y **declara la errata del operando** |
+| **Comentarios del código** | **Se corrigen, o desaparecen con la constante** | ✅ Tres corregidos: `app/api/admin/vecindario/route.ts` (el «~0,79» del `distribucionDelCorpus`), `lib/analysis/vecindario.ts` (la cabecera que citaba `pasaElUmbral` y el contador, los dos muertos) y `lib/analysis/orden-del-rerank.ts` (la franja «0,79 a 0,99»). Los demás **se fueron con las constantes** en `1de62363` |
+| **`Estado_Del_MVP.md`** — bitácora | **NO se reescribe**: errata fechada que apunta a F-113 y a §5.84 | ✅ Esta sección |
+| **`claude/Tandas_Harness.md`** — bitácora de tandas | **NO se reescribe**, y NO estaba en la lista de F-113 | ✅ Errata fechada al final de ese fichero |
+
+### Los pasajes de este fichero que esta errata cubre
+
+Se enumeran para que el `grep` del futuro llegue aquí, **y no se tocan**: 3730, 3793-3794,
+3933-3935, 3957, 3977, 3995-3999, 4012-4030, 4399-4400, 4415, 4420-4434, 4452-4453, 4497,
+4537, 4613, 4925, 5179, 5692, 5781, 5866. Todos anteriores al 23/09/2026 y todos correctos en
+su fecha.
+
+⚠️ **Y UNO MERECE MENCIÓN APARTE: la tabla de latentes (4399-4400 y 4415).** Daba a los dos
+umbrales «caso decisivo: ⚠️ sí, pero en el censo, no en el retrieval». **Eso dejó de ser
+verdad el 17/09**, cuando el caso decisivo entró en la recuperación, y dejó de tener objeto el
+23/09 con la retirada. **Las dos filas ya no describen constantes que existan.** No las
+reescribo —es bitácora— pero quien lea esa tabla tiene que saber que **dos de sus filas están
+vacías de objeto**, y eso importa porque esa tabla es el inventario de latentes y se usa para
+decidir.
+
+### Cierre del censo
+
+⚠️ **RE-EJECUTADO AL CERRAR, y el criterio de cierre no es «no encuentro nada»: es que lo que
+encuentre sea de la clase que NO hay que corregir.** El comando sigue devolviendo líneas, y
+eso es lo correcto — son de tres clases, todas legítimas:
+
+1. **Pasajes de bitácora**, cubiertos por esta errata y por la de `Tandas_Harness.md`.
+2. **Actas de la propia retirada**: `criba-de-matches.ts`, `counters.ts`,
+   `contadores-de-seleccion.ts`, `retrieval.ts`, `corte-de-recuperacion.ts`,
+   `vecindario.ts` — describen lo retirado **a propósito**, con su fecha, para que un `grep`
+   futuro encuentre la explicación y no un silencio.
+3. **Datos de prueba** con valores como `0.79` o `0.796` en `termometro.test.ts` y
+   `vecindario.test.ts`, que son números de un caso y no afirmaciones sobre el corpus.
+
+**CERO PENDIENTES de la clase que había que corregir**: ninguna instrucción viva y ningún
+comentario de código afirman hoy el ~0,79 como suelo del fragmento, ni citan
+`pasaElUmbral`, `candidatos_perdidos_por_umbral`, `SCORE_THRESHOLD_*` o
+`umbral-de-recuperacion.ts` como piezas vivas.
