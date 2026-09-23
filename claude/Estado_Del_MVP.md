@@ -6789,3 +6789,260 @@ número que se lee como confirmación y no puede demostrar que buscó**.
 es otra decisión sobre la forma del termómetro, no una corrección. **Queda escrito para que el
 día que alguien lea un `propios_excluidos: 0` sepa que no puede leerlo como «la exclusión
 funcionó».**
+
+---
+
+## 📏 5.88 · LAS DOS MEDICIONES DEL PILOTO, cada una con su contexto (archivadas el 23/09/2026)
+
+**Fuente: texto pegado por el director en el encargo del 23/09/2026.** El informe original vive
+en la base de conocimiento del proyecto del director, **que no está en el repositorio** — ver
+§5.89.
+
+⚠️ **POR QUÉ ESTA SECCIÓN EXISTE: PORQUE LAS DOS CIFRAS CIRCULABAN SUELTAS Y SON DISTINTAS.**
+El 23/09 se citó «el 83 % de falsos positivos» y lo único que el repositorio tenía medido era
+«siete falsos de nueve». Parecía una contradicción y **no lo era: son dos rondas distintas y
+las dos son verdad.** Lo que faltaba era el contexto, y sin contexto **ninguna de las dos se
+puede citar** — es la regla del 06/09: una cifra cuyo contexto no se sostiene no sale de
+ninguna medición.
+
+### RONDA A — la revisión del piloto completo
+
+| | |
+|---|---|
+| **Fecha** | **18-19/08/2026** |
+| **Población** | **40 documentos**, el corpus del piloto entero |
+| **Método** | **4 tandas** (comparación por tandas, no global) |
+| **Modo** | rápido |
+| **Sembrado** | las cinco trampas del piloto |
+| **Resultado** | **2 aciertos** —autoclave 134 °C/18 min contra 121 °C/30 min; conservación 15 años contra 5— y **7 falsos positivos** |
+| **Tasa** | **7 de 9 = 77,8 % de falsos** |
+| **Dónde está** | `claude/Consulta_Fable_F22_Juez.md:59-77` (los siete, con sus citas y sus tres patrones) y `Bitacora_Sesiones.txt:4274-4362` |
+
+### RONDA B — la ronda de control, posterior y aparte
+
+| | |
+|---|---|
+| **Fecha** | posterior a la ronda A (agosto 2026); **día exacto NO DETERMINADO** |
+| **Población** | **10 documentos concretos**: CLI-01, CLI-04, NOR-04, NOR-08, OPE-01, OPE-02, RRHH-04, RRHH-05, MKT-01, MKT-05 |
+| **Método** | **comparación GLOBAL**, no por tandas — y ésa es la diferencia de diseño con la ronda A |
+| **Modo** | rápido |
+| **Sembrado** | **una** contradicción (CLI-01↔OPE-01) y **un** duplicado (MKT-01↔RRHH-05) |
+| **Resultado** | **encontró las dos trampas**, y de **6** entradas de «Contradicción» emitidas, **5 eran falsas** |
+| **Tasa** | **5 de 6 = 83,3 % de falsos** |
+
+**Los cinco falsos de la ronda B, uno a uno** — y es lo que la hace valiosa, porque son
+etiquetables:
+
+1. y 2. **Dos entradas sobre la MISMA frase** repetida casi palabra por palabra entre MKT-01 y
+   RRHH-05 —«pelo recogido» y «calzado»— marcada como conflicto. **Es el patrón 1 de F-22**:
+   las dos citas dicen lo mismo. ⚠️ Y es el mismo par que llevaba el duplicado sembrado, así
+   que el sistema **vio el parecido y lo clasificó al revés**: duplicado leído como
+   contradicción.
+3. **«Activar la alarma»** (incendio, NOR-04) contra **«desactivar la alarma»** (apertura de
+   clínica, OPE-01). **Patrón 3**: dos momentos distintos del día.
+4. **Dos menciones al hospital de referencia** en contextos distintos (CLI-04 contra NOR-04).
+   **Patrón 3.**
+5. **La periodicidad bienal del reciclaje de RCP** (RRHH-04) contra **«iniciar soporte vital
+   básico si es necesario»** (NOR-04). **Patrón 2**: una dice cada cuánto se recicla, la otra
+   qué hacer; coherentes, no opuestas.
+
+⚠️ **EL VALOR DE LA RONDA B, Y ES LO QUE NO PODÍA DAR LA RONDA A: DESCARTA EL VOLUMEN COMO
+CAUSA.** El corpus era **pequeño y limpio** —diez documentos, dos trampas conocidas— y la tasa
+de falsos **no bajó: subió** (83,3 % frente a 77,8 %). Si los falsos positivos fueran cosa de
+la competencia entre muchos documentos, con diez habrían casi desaparecido. **No lo hicieron.**
+
+### ⚠️ CÓMO SE CITAN ESTAS DOS CIFRAS, Y CÓMO NO
+
+**NUNCA a secas.** Cada una lleva obligatoriamente su población, su método y qué se sembró:
+
+- **«77,8 % (7 de 9) — 40 documentos, 4 tandas, 18-19/08/2026, cinco trampas»**
+- **«83,3 % (5 de 6) — 10 documentos, comparación global, agosto 2026, dos trampas»**
+
+⚠️ **Y NO SE PROMEDIAN NI SE SUMAN.** Son dos poblaciones distintas con dos métodos distintos:
+«12 falsos de 15» sería un número que no midió nada. Lo que sí se puede decir de las dos
+juntas —y es la conclusión que importa— es que **la tasa de falsos no depende del volumen del
+corpus**, porque se midió alta con 40 documentos y más alta con 10.
+
+⚠️ **LO QUE NINGUNA DE LAS DOS DICE: que la causa esté en el prompt del juez.** F-22 descartó
+esa hipótesis explícitamente —«el prompt NO es pobre», con su REGLA PRINCIPAL, su REGLA DE ORO
+y trece ejemplos— y nombró la causa real: **«una única pasada de generación no puede
+vigilarse a sí misma»**. De ahí salió el VERIFICADOR DE HALLAZGOS, que entró en producción el
+**23/08/2026** (`e3827e17`), tres días después de la ronda A. **Las dos rondas son ANTERIORES
+al arreglo**, y por eso hay que volver a medir.
+
+### El criterio de éxito, que ya estaba escrito
+
+De `Bitacora_Sesiones.txt:4358-4361`, fijado por F-22: «el corpus del piloto en rápido con los
+dos aciertos (autoclave, conservación) intactos y **cero de los siete falsos**».
+
+⚠️ **CON UNA CORRECCIÓN DE HOY: de las cinco trampas sembradas sólo sobrevive UNA** —la
+conservación de historia clínica, NOR-01 (5 años) contra CLI-03 (15 años)—, según el director
+el 23/09/2026. Así que el criterio hoy es **un acierto y cero falsos**, no dos y cero.
+
+---
+
+## ⚠️ 5.89 · Una ruta inventada hacia un fichero que no está en el repositorio (23/09/2026)
+
+**Error del ARQUITECTO, reconocido por él el 23/09/2026.** Se anota porque la cadena de este
+proyecto tiene dos intermediarios sin repositorio y **los dos fabrican por la misma vía**, así
+que los casos se cuentan de las dos direcciones — no sólo los de Fable.
+
+**Qué pasó.** Un encargo abrió con: «el piloto de agosto está en
+`claude/Hallazgos_Piloto_Corpus_Dentavia.txt`». **Ese fichero no existe, y nunca existió.**
+Comprobado con tres comandos antes de decir nada:
+
+```bash
+ls claude/ | grep -i "piloto\|dentavia"                                   # vacío
+find . -iname "*piloto*" -o -iname "*dentavia*"                           # vacío
+git log --all --diff-filter=A -- "*iloto*" "*entavia*" "*Hallazgos*"      # vacío
+```
+
+**Lo que sí había, y en otro sitio**: la evidencia del piloto vive en
+`claude/Consulta_Fable_F22_Juez.md` y en `Bitacora_Sesiones.txt:4274-4362`. Se encontró
+buscando **por contenido** —«falsos positivos»— en vez de por la ruta que el encargo daba.
+
+⚠️ **Y EL DAÑO NO ERA LA RUTA: ERA LA CIFRA QUE VENÍA CON ELLA.** El mismo encargo afirmaba
+«el 83 % de las Contradicción eran falsos positivos en una ronda de control de 10
+documentos», y lo único que el repositorio tenía medido era **7 de 9 (77,8 %) sobre 40
+documentos en 4 tandas**. Sin la fuente no se podía reconciliar, así que **se paró y se
+reportó en vez de elegir una de las dos.** El director aportó después el contexto que
+faltaba: **eran DOS rondas distintas y las dos eran verdad** (§5.88).
+
+**LA REGLA QUE SALE DE AQUÍ, y es de reparto de visión:**
+
+⚠️ **EL MATERIAL DEL PROYECTO DEL DIRECTOR NO ESTÁ EN EL REPOSITORIO. Si hace falta aquí,
+llega PEGADO COMO TEXTO en el encargo.** El director ve una base de conocimiento del proyecto
+que Claude no ve; dar su ruta como si fuera una ruta del repositorio convierte una fuente
+legítima en una ruta falsa.
+
+Es **la misma regla que el archivo de consultas a Fable ya tenía escrita** —«el material para
+archivar llega SIEMPRE como TEXTO PEGADO en el encargo, no como ficheros»
+(`claude/consultas-fable/INDICE.md`, la regla de la fuente del 21/09)— aplicada a una segunda
+clase de material. **Aquella nació de tres intentos de archivar desde ficheros que no
+existían; ésta nace del cuarto, con otro nombre.**
+
+⚠️ **Y LO QUE ESTO AÑADE A LA REGLA DEL REPARTO DE VISIÓN (`CLAUDE.md`), que ya decía que cada
+participante ve una cosa distinta: el arquitecto ve un CUARTO sitio.** El reparto escrito era
+Claude→repositorio, arquitecto→conversación, director→documentos y producto, chat
+externo→documentos sin el contexto de estos días. **Faltaba la base de conocimiento del
+proyecto**, que el arquitecto y el director ven y Claude no. Una afirmación que salga de ahí
+no es un indicativo sobre el repositorio: es una fuente distinta, y se etiqueta como tal.
+
+**Y lo que funcionó, que conviene contar igual**: la comprobación costó tres comandos y evitó
+que una cifra sin fuente entrara en una ficha. La cadena hizo lo que `CLAUDE.md` describe —el
+intermediario sin repositorio emite un indicativo, la verificación lo tumba— **y esta vez con
+la diferencia de que el error se reconoció y aportó el dato que faltaba en vez de defenderlo.**
+
+---
+
+## 📋 5.90 · LA PRUEBA DE DETECCIÓN — el montaje, la predicción y qué se mide (23/09/2026)
+
+**Aprobada por el director el 23/09/2026.** Es la primera medición del criterio de juicio
+**después** del verificador de hallazgos (`e3827e17`, 23/08/2026), y las dos rondas de §5.88
+son su línea base.
+
+### El montaje
+
+| | |
+|---|---|
+| **Documento analizado** | **CLI-03**, que se queda en `pendiente` |
+| **Corpus activo** | **NOR-01** (la trampa), **OPE-05** y **RRHH-03** (ajenos), que el director marca — **más CLI-04 y OPE-11, que ya estaban** |
+| **Rivales reales** | **CINCO**, no tres |
+| **Modo** | rápido, **DOS pasadas** |
+| **Coste** | **10 créditos** y ~0,5-1 MB de lectura de Pinecone. `mark-analyzed` no cuesta ni créditos ni lectura |
+| **La trampa** | conservación de historia clínica: **5 años en NOR-01 contra 15 en CLI-03** |
+
+**Por qué dos pasadas**: el juez no es estable ni consigo mismo — el mismo par con el mismo
+prompt byte a byte produce falsos positivos distintos entre ejecuciones, medido el 21/08/2026
+(`Puntos_Pendientes_Doclity.txt:1598`). Una pasada no da una tasa, da una muestra de tamaño
+uno.
+
+⚠️ **Y POR QUÉ LAS DOS FICHAS DE ESTA SECCIÓN SE CITAN POR `fichero:línea` Y NO POR SU
+NÚMERO**: sus casas están en `Puntos_Pendientes_Doclity.txt` como texto indentado, que no es
+heading ni fila de tabla — así que no son «casa» para el chequeo de invariantes y la marca
+`CASA-EXTERNA` daría `casa_externa_ausente`. Nombrarlas aquí por su número crearía una segunda
+casa, que es justo lo que I1 existe para impedir. **La línea apunta mejor que el número, y no
+fabrica una casa que no debe existir.**
+
+**Por qué CLI-03 se queda sin marcar**: así no entra en su propia comparación por la vía del
+filtro —`CORPUS_ACTIVO` sólo ve `analizado`— y `propios_excluidos` no tiene nada que hacer.
+
+### ⚠️ LOS CINCO RIVALES NO CAMBIAN LA LECTURA DEL FRENTE DEL RERANK, Y ME CORRIJO
+
+**El 23/09 escribí que con más documentos «CLI-03 tiene rivales por 6 plazas», dando a
+entender que el tope del rerank podía dejar fuera a NOR-01. Eso era mío y estaba mal.**
+
+Releído el log del frente del rerank (`Puntos_Pendientes_Doclity.txt:1612-1624`): *«Retrieval: 2 candidatos»*
+seguido de *«Rerank: 0 seleccionados»*. **Con DOS candidatos y un tope de SEIS, el tope no
+pudo cortar nada.** Lo que descartó el par fue **el criterio**, no la capacidad.
+
+**Y el criterio está escrito, en el prompt del modo rápido** (`lib/analysis/rerank.ts:61` y
+`:66`):
+
+> «Máximo 6 seleccionados. **Si ninguno merece análisis, devuelve `selected: []`.**»
+> «Un candidato merece análisis profundo SOLO si hay probabilidad real… **Sé estricto. Es
+> preferible descartar un candidato dudoso que inflar la lista con ruido.**»
+
+Frente al exhaustivo, que dice lo contrario: *«En caso de duda, INCLUIR.»*
+
+⚠️ **ASÍ QUE ESE FRENTE NO ES UN TECHO DE CAPACIDAD: ES UNA INSTRUCCIÓN DE SER ESTRICTO,
+EJERCIDA.**
+El modelo hizo lo que el prompt le pide. Y eso cambia qué mediría subir el tope: **nada**. Lo
+que habría que medir es el criterio — y el experimento decisivo y barato es **el mismo par en
+EXHAUSTIVO**, donde el prompt dice «incluir en caso de duda». Cuesta 30 créditos y no está
+lanzado.
+
+### ⚠️ Y POR ESO NO SE SACAN CLI-04 NI OPE-11 DEL CORPUS ACTIVO
+
+Tres razones, y la primera es la que decide:
+
+1. **Con cinco candidatos y seis plazas no hay competencia posible.** El tope no puede morder.
+   Sacarlos no reduce ningún riesgo real.
+2. **Sacarlos costaría más que dejarlos, y sería lo único destructivo de todo el montaje**: no
+   existe ningún camino en el producto que devuelva un documento de `analizado` a
+   `pendiente` — `grep -rn "analysis_status: 'pendiente'"` sólo aparece en `drive/sync`. Haría
+   falta SQL a mano **más** un backfill de la metadata de Pinecone. Escrituras y manualidad
+   antes de medir es cómo se contamina una medición.
+3. **Dejarlos hace la medición MÁS informativa.** CLI-04 y OPE-11 son precisamente los dos
+   candidatos que la recuperación ya devolvía el 21/09. Con cinco candidatos y seis plazas,
+   **si `candidatos_seleccionados` sale menor que `candidatos_recuperados`, el único culpable
+   posible es el criterio** — y eso es exactamente lo que ese frente necesita medido.
+
+### ⚠️ LA PREDICCIÓN DEL DIRECTOR, ESCRITA ANTES DE MEDIR
+
+> **«La contradicción de 5 vs 15 años SÍ aparecerá, con 1 o 2 falsas alarmas.»**
+> — director, 23/09/2026
+
+**Se contará como acertada o fallada en las dos mitades**, y son independientes:
+- **la trampa aparece** (sí / no);
+- **falsas alarmas: 1 o 2** (menos de 1 o más de 2 es fallo de esta mitad).
+
+⚠️ **Y MI LECTURA, TAMBIÉN ESCRITA ANTES, porque difiere en la primera mitad y conviene que
+las dos estén en el papel**: doy la aparición de la trampa por **menos probable que el
+director**, y la razón es el frente del rerank con su causa corregida — el prompt del rápido
+manda ser
+estricto y la última vez devolvió `selected: []` con sólo dos candidatos. **Si la trampa no
+aparece, la consulta 5 de `SQL_deteccion_CLI03.sql` dirá si murió en el rerank, y eso no sería
+un fallo del juicio sino su confirmación.** En las falsas alarmas coincido: 1 o 2.
+
+### Qué se mide, y con qué
+
+`SQL_deteccion_CLI03.sql` — cinco consultas de sólo lectura:
+
+1. **La hoja**: una fila por pasada con el termómetro (incluido **`fondo`**, que dice contra
+   cuántos fragmentos se comparó de verdad), los cinco denominadores del cuadre, los ocho
+   contadores de selección y los **seis del verificador**.
+2. **Una fila por hallazgo** con sus dos citas literales (`topic`, `newDocSays`,
+   `existingDocSays`, `severity`, `confirmedBy`) y **dos columnas vacías para el director**:
+   `etiqueta_del_director` (REAL/FALSO/DUDOSO) y `patron_si_es_falso` (los tres de F-22).
+3. **Las inconsistencias menores, aparte** — no se mezclan con las contradicciones: son otra
+   sección de la pantalla y otra severidad, y contarlas juntas cambiaría la tasa sin que nadie
+   lo decidiera.
+4. **El corpus activo**, antes y después. Si alguien marcó algo entre pasadas, las dos no son
+   comparables.
+5. ⚠️ **EL FALSO NEGATIVO**, con un diagnóstico de tres casos excluyentes escrito en la propia
+   consulta: murió en el retrieval / murió en el criterio del rerank / llegó al juez y
+   el juez no la vio. **Un falso negativo no es un falso positivo, y mezclarlos arruinaría la
+   hoja.**
+
+**Sin lanzar.** Las dos pasadas las hace el director.
