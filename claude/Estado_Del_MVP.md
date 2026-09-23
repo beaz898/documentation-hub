@@ -6279,3 +6279,72 @@ dos documentos de temas distintos.
 ⚠️ **Y una comprobación de consistencia que salió gratis**: la pareja aparece en **los dos
 sentidos** (tramos `desde=0` y `desde=5`). El coseno es simétrico, así que tenía que salir
 dos veces — y sale. Si sólo hubiera salido una, el acumulador del mínimo tendría un fallo.
+
+---
+
+## ⚠️ 5.83 · La cuota de lectura agotada por nuestras propias mediciones (23/09/2026)
+
+### ⚠️ B.264 — el límite mensual de lectura de Pinecone se agotó midiendo, y el producto quedó bloqueado (23/09/2026)
+
+**Qué pasó.** El plan gratuito de Pinecone trae **1 GB de lectura al mes**. Se agotó, y
+mientras estuvo agotado **el producto no funcionaba**: sin consultas al índice no hay
+recuperación, así que ni el análisis ni el chat podían contestar. El director subió al plan
+**Builder (20 $/mes)**.
+
+⚠️ **Y EL PLAN NUEVO NO QUITA EL RIESGO, SÓLO LO ALEJA: Builder tampoco factura el exceso —
+al superar la cuota CORTA EL SERVICIO, igual que el gratuito.** El margen es mayor y el modo
+de fallo es idéntico. Esto no es un problema de dinero que se resuelva pagando: es un problema
+de **medir sin saber cuánto cuesta medir**.
+
+**Qué lo causó, y fuimos nosotros.** Las **matrices completas** del censo de vecindario:
+680 consultas con `topK=1000` **y metadata**, o sea ~680 vectores devueltos por consulta, cada
+uno con su texto. Estimación de orden de magnitud: **~300 MB por pasada**. Se corrieron **dos**
+—la contaminada del 21/09 y la limpia del 23/09— más los censos sueltos de F-111 y F-113. Con
+1 GB de cuota, **dos pasadas y media se lo comen**.
+
+⚠️ **Y QUÉ NO LO CAUSÓ, que es la mitad que hay que decir para no arreglar lo que no está
+roto: el USO NORMAL no tiene nada que ver.** Un análisis rápido son 5 consultas con
+`topK=25` —125 vectores— y una pregunta del chat son 15 fragmentos. **Cientos de KB**, tres
+órdenes de magnitud por debajo de una matriz. El producto podría funcionar todo el mes sin
+acercarse al límite. **Lo que agotó la cuota fue el instrumento, no el paciente.**
+
+**LA REGLA QUE SALE DE AQUÍ, y son dos mitades:**
+
+⚠️ **1 · TODA MEDICIÓN DECLARA SU COSTE EN DATOS ANTES DE CORRER.** No después, y no «se verá
+en la factura»: antes, y en la propia herramienta, porque el que la lanza es quien tiene que
+poder decidir. Una herramienta de diagnóstico que no sabe cuánto va a leer es una herramienta
+que puede tumbar el producto que diagnostica — y eso es lo que pasó. Es la regla de F-95 sobre
+el presupuesto de tiempo (*«¿cuánto tiempo tengo aquí, y cuánto consume lo que voy a
+meter?»*) aplicada a otro recurso: **el presupuesto de datos**.
+
+⚠️ **2 · EL CENSO NO MIDE EL CORPUS ENTERO CUANDO BASTA UN TRAMO.** La matriz completa se
+corrió porque F-114 la pidió como cifra definitiva, y estuvo bien pedida: hacía falta el
+suelo del corpus entero. Pero **validar un despliegue no necesita una matriz**, y confundir
+las dos cosas es lo que convierte una medición legítima en un gasto recurrente. Un tramo de
+un documento con el `topK` por defecto contesta «¿está desplegado?» por unos pocos MB.
+
+**Lo que ya se hace distinto desde hoy**: la validación de la fase 2 son **dos comprobaciones
+de unos pocos MB** —un análisis rápido y un censo de un solo documento— en vez de una matriz.
+Está escrito en el informe de la fase 2 y es la primera aplicación de la regla.
+
+⚠️ **Y UNA CONSECUENCIA QUE CONVIENE VER ENTERA**: durante el bloqueo, `Vivos(org)` y el
+termómetro **no habrían protegido nada**, porque el problema no era servir contenido
+equivocado sino no poder servir ninguno. La defensa de F-115 cubre la calidad de lo que llega
+al usuario; **nada cubre hoy que el índice deje de contestar por cuota**. No hay aviso, no hay
+contador y la respuesta del producto ante eso no está medida.
+
+**PENDIENTE, y sin hacer todavía — las dos mejoras del censo:**
+
+1. **Que ESTIME Y DECLARE los bytes que va a leer, antes de leerlos.** Se puede calcular sin
+   consultar nada: `consultas × topK × (dimensión × 4 bytes + tamaño de la metadata)`. La
+   herramienta lo devuelve en la respuesta y, por encima de un tope, exige un parámetro
+   explícito para seguir — el mismo patrón que `?canario=1`.
+2. **Que se pueda pedir SIN LOS TEXTOS DE MUESTRA, que es lo que engorda la respuesta.** El
+   censo pide `includeMetadata: true` para clasificar el par y sacar las muestras de 120
+   caracteres; sin ellas basta el `documentId` y el score. F-114 ya lo anticipó —«si el
+   resultado se acerca al límite de 4 MB por respuesta, se pide sin metadatos»— y no se
+   escribió.
+
+**Sin arreglar.** Y con una advertencia sobre el orden: **la estimación va antes que el modo
+sin textos**, porque sin saber cuánto cuesta una pasada no se puede saber si el modo ligero
+sirve de algo.
