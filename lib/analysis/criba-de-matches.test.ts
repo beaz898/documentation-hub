@@ -11,10 +11,15 @@ import { MAXIMO_DE_IDS_REGISTRADOS } from '@/lib/documents/vivos';
 /**
  * ⚠️ LA CRIBA DE LOS MATCHES — F-115 (22/09/2026).
  *
- * Lo que estos casos vigilan es UN ORDEN, y el orden es lo que fallaba: hasta
- * hoy el umbral se aplicaba ANTES de saber si el documento existía, así que un
- * documento borrado con score alto entraba como candidato legítimo y uno con
- * score bajo se anotaba como «perdido por el umbral». Los dos son falsos.
+ * Lo que estos casos vigilan es UN ORDEN, y el orden es lo que fallaba: el
+ * umbral se aplicaba ANTES de saber si el documento existía, así que un documento
+ * borrado con score alto entraba como candidato legítimo y uno con score bajo se
+ * anotaba como «perdido por el umbral». Los dos eran falsos.
+ *
+ * ⚠️ EL UMBRAL SE RETIRÓ EL 23/09/2026, así que de los cuatro descartes quedan
+ * TRES. Los casos que lo vigilaban se reescriben en vez de borrarse: ahora
+ * comprueban lo CONTRARIO —que un score bajísimo YA NO se descarta— y ése es el
+ * caso decisivo de la retirada.
  *
  * El caso que los paga es real y tiene fecha: el 21/09/2026 CLI-05
  * (`c701c9dd`), sin fila y sin vectores en el listado exhaustivo, volvió en las
@@ -57,7 +62,6 @@ describe('⚠️ EL ORDEN: la existencia va PRIMERA', () => {
     const r = cribarMatches({
       crudos: [match({ doc: FANTASMA, score: 0.866, id: `${FANTASMA}-g2-3` })],
       generaciones: GENERACIONES,
-      umbral: 0.5,
     });
     expect(r.fragmentos).toEqual([]);
     expect(r.reparto.sin_fila_viva).toBe(1);
@@ -65,35 +69,41 @@ describe('⚠️ EL ORDEN: la existencia va PRIMERA', () => {
     expect(r.idsSinFilaViva).toEqual([`${FANTASMA}-g2-3`]);
     expect(r.documentosSinFila).toEqual([FANTASMA]);
     // Y NO se le atribuye a ninguna otra causa.
-    expect(r.reparto.descartados_umbral).toBe(0);
     expect(r.reparto.propios_excluidos).toBe(0);
     expect(r.reparto.generacion_muerta_excluida).toBe(0);
     expect(laCribaCuadra(r.reparto)).toBe(true);
   });
 
   /**
-   * ⚠️ EL CASO QUE PRUEBA EL ORDEN, y sin él la comprobación podría ir en
-   * cualquier sitio: un fantasma POR DEBAJO del umbral no se cuenta como
-   * «descartado por el umbral». Con el orden viejo se contaba, y además entraba
-   * en `idsBajoUmbral`, así que inflaba `candidatos_perdidos_por_umbral` con
-   * documentos que ni existían.
+   * ⚠️ EL CASO DECISIVO DE LA RETIRADA DEL UMBRAL (23/09/2026): un fragmento con
+   * score 0,1 de un documento VIVO **sobrevive**. Hasta hoy caía por el corte de
+   * 0,50, y este mismo caso afirmaba lo contrario. Si alguien reinstaurara un
+   * corte absoluto sin decirlo, esto se pone rojo.
    */
-  it('⚠️ un fantasma bajo el umbral cae por NO EXISTIR, no por el umbral', () => {
+  it('⚠️ SIN UMBRAL: un score bajísimo de un documento vivo YA NO se descarta', () => {
     const r = cribarMatches({
-      crudos: [match({ doc: FANTASMA, score: 0.1 })],
+      crudos: [match({ doc: VIVO, score: 0.01 })],
       generaciones: GENERACIONES,
-      umbral: 0.5,
     });
+    expect(r.fragmentos).toHaveLength(1);
+    expect(r.fragmentos[0].score).toBe(0.01);
+    expect(r.reparto.candidatos_con_repeticion).toBe(1);
+  });
+
+  /** Y el fantasma con score bajo sigue cayendo, pero por NO EXISTIR. */
+  it('⚠️ un fantasma con score bajísimo cae por NO EXISTIR, no por su score', () => {
+    const r = cribarMatches({
+      crudos: [match({ doc: FANTASMA, score: 0.01 })],
+      generaciones: GENERACIONES,
+    });
+    expect(r.fragmentos).toEqual([]);
     expect(r.reparto.sin_fila_viva).toBe(1);
-    expect(r.reparto.descartados_umbral).toBe(0);
-    expect(r.idsBajoUmbral).toEqual([]);
   });
 
   it('⚠️ un fantasma que ADEMÁS es el documento propio cae por no existir', () => {
     const r = cribarMatches({
       crudos: [match({ doc: FANTASMA })],
       generaciones: GENERACIONES,
-      umbral: 0.5,
       excluido: FANTASMA,
     });
     expect(r.reparto.sin_fila_viva).toBe(1);
@@ -104,7 +114,6 @@ describe('⚠️ EL ORDEN: la existencia va PRIMERA', () => {
     const r = cribarMatches({
       crudos: [match({ doc: VIVO, score: 0.8 })],
       generaciones: GENERACIONES,
-      umbral: 0.5,
     });
     expect(r.fragmentos).toHaveLength(1);
     expect(r.fragmentos[0].documentId).toBe(VIVO);
@@ -121,7 +130,6 @@ describe('⚠️ EL ORDEN: la existencia va PRIMERA', () => {
     const r = cribarMatches({
       crudos: [match({ doc: VIVO }), match({ doc: FANTASMA }), match({ doc: PROPIO })],
       generaciones: new Map(),
-      umbral: 0.5,
     });
     expect(r.fragmentos).toEqual([]);
     expect(r.reparto.crudos).toBe(3);
@@ -130,24 +138,11 @@ describe('⚠️ EL ORDEN: la existencia va PRIMERA', () => {
   });
 });
 
-describe('las otras tres cribas, cada una en su término', () => {
-  it('el umbral descarta y se anota por nombre y por id', () => {
-    const r = cribarMatches({
-      crudos: [match({ score: 0.2, nombre: 'informe.txt' }), match({ score: 0.9, chunk: 1 })],
-      generaciones: GENERACIONES,
-      umbral: 0.5,
-    });
-    expect(r.reparto.descartados_umbral).toBe(1);
-    expect(r.fragmentos).toHaveLength(1);
-    expect(r.idsBajoUmbral).toEqual([VIVO]);
-    expect(r.descartadosPorUmbral.get('informe.txt')).toEqual({ count: 1, maxScore: 0.2 });
-  });
-
-  it('el propio se excluye DESPUÉS del umbral', () => {
+describe('las otras dos cribas, cada una en su término', () => {
+  it('el propio se excluye DESPUÉS de comprobar que existe', () => {
     const r = cribarMatches({
       crudos: [match({ doc: PROPIO, score: 0.99 }), match({ doc: VIVO })],
       generaciones: GENERACIONES,
-      umbral: 0.5,
       excluido: PROPIO,
     });
     expect(r.reparto.propios_excluidos).toBe(1);
@@ -158,7 +153,6 @@ describe('las otras tres cribas, cada una en su término', () => {
     const r = cribarMatches({
       crudos: [match({ doc: VIVO, gen: 2 }), match({ doc: VIVO, gen: 1, chunk: 1 })],
       generaciones: GENERACIONES,
-      umbral: 0.5,
     });
     expect(r.reparto.generacion_muerta_excluida).toBe(1);
     expect(r.porGeneracionMuerta.get(VIVO)).toBe(1);
@@ -169,7 +163,6 @@ describe('las otras tres cribas, cada una en su término', () => {
     const r = cribarMatches({
       crudos: [match({ doc: VIVO })],
       generaciones: GENERACIONES,
-      umbral: 0.5,
     });
     expect(r.fragmentos).toHaveLength(1);
     expect(r.fragmentos[0].generation).toBe(1);
@@ -184,7 +177,6 @@ describe('las otras tres cribas, cada una en su término', () => {
         match({ texto: null, chunk: 1 }),
       ],
       generaciones: GENERACIONES,
-      umbral: 0.5,
     });
     expect(r.reparto.sin_metadata_utilizable).toBe(4);
     expect(r.reparto.sin_fila_viva).toBe(0);
@@ -192,28 +184,25 @@ describe('las otras tres cribas, cada una en su término', () => {
   });
 });
 
-describe('⚠️ EL CUADRE DE LA CRIBA — seis términos sobre los crudos', () => {
-  it('⚠️ los cinco descartes y los supervivientes suman los crudos', () => {
+describe('⚠️ EL CUADRE DE LA CRIBA — cinco términos sobre los crudos', () => {
+  it('⚠️ los cuatro descartes y los supervivientes suman los crudos', () => {
     const r = cribarMatches({
       crudos: [
         match({ doc: FANTASMA }),                    // sin fila
         match({ doc: FANTASMA, chunk: 1 }),          // sin fila
         { id: 'z', metadata: undefined, score: 1 },  // sin metadata
-        match({ score: 0.1, chunk: 2 }),             // umbral
         match({ doc: PROPIO, chunk: 3 }),            // propio
         match({ doc: VIVO, gen: 9, chunk: 4 }),      // generación muerta
         match({ doc: VIVO, chunk: 5 }),              // sobrevive
         match({ doc: VIVO, chunk: 6 }),              // sobrevive
       ],
       generaciones: GENERACIONES,
-      umbral: 0.5,
       excluido: PROPIO,
     });
     expect(r.reparto).toEqual({
-      crudos: 8,
+      crudos: 7,
       sin_fila_viva: 2,
       sin_metadata_utilizable: 1,
-      descartados_umbral: 1,
       propios_excluidos: 1,
       generacion_muerta_excluida: 1,
       candidatos_con_repeticion: 2,
@@ -222,7 +211,7 @@ describe('⚠️ EL CUADRE DE LA CRIBA — seis términos sobre los crudos', () 
   });
 
   it('sin ni un match, todo a cero y cuadra', () => {
-    const r = cribarMatches({ crudos: [], generaciones: GENERACIONES, umbral: 0.5 });
+    const r = cribarMatches({ crudos: [], generaciones: GENERACIONES });
     expect(r.reparto.crudos).toBe(0);
     expect(laCribaCuadra(r.reparto)).toBe(true);
     expect(r.idsSinFilaViva).toEqual([]);
@@ -230,7 +219,7 @@ describe('⚠️ EL CUADRE DE LA CRIBA — seis términos sobre los crudos', () 
 
   it('⚠️ el cuadre se ROMPE si alguien pierde un fragmento por el camino', () => {
     expect(laCribaCuadra({
-      crudos: 10, sin_fila_viva: 1, sin_metadata_utilizable: 1, descartados_umbral: 1,
+      crudos: 10, sin_fila_viva: 1, sin_metadata_utilizable: 1,
       propios_excluidos: 1, generacion_muerta_excluida: 1, candidatos_con_repeticion: 4,
     })).toBe(false);
   });
@@ -239,7 +228,7 @@ describe('⚠️ EL CUADRE DE LA CRIBA — seis términos sobre los crudos', () 
 describe('el registro de lo descartado', () => {
   it(`⚠️ como mucho ${MAXIMO_DE_IDS_REGISTRADOS} vectorId, aunque caigan cien`, () => {
     const crudos = Array.from({ length: 100 }, (_, i) => match({ doc: FANTASMA, chunk: i }));
-    const r = cribarMatches({ crudos, generaciones: GENERACIONES, umbral: 0.5 });
+    const r = cribarMatches({ crudos, generaciones: GENERACIONES });
     // El CONTADOR no se acota: son cien de verdad.
     expect(r.reparto.sin_fila_viva).toBe(100);
     // La lista sí, porque se persiste.
@@ -252,7 +241,6 @@ describe('el registro de lo descartado', () => {
     const r = cribarMatches({
       crudos: [{ metadata: { documentId: FANTASMA, documentName: 'x.txt', text: 'y' }, score: 0.9 }],
       generaciones: GENERACIONES,
-      umbral: 0.5,
     });
     expect(r.idsSinFilaViva).toEqual(['(sin id)']);
   });
@@ -261,10 +249,10 @@ describe('el registro de lo descartado', () => {
 describe('a quién se le pregunta si existe', () => {
   /**
    * ⚠️ SOBRE LOS CRUDOS, Y ESO ES EL PUNTO: la lista de ids que va a la base
-   * incluye a los que van a caer por el umbral y al documento propio. Preguntar
-   * sólo por los supervivientes dejaría sin verificar justo a los que se quieren
-   * contar aparte — y entonces un fantasma bajo el umbral volvería a contarse
-   * como «perdido por el umbral».
+   * incluye al documento propio y a los de generación muerta. Preguntar sólo por
+   * los supervivientes dejaría sin verificar justo a los que se quieren contar
+   * aparte — y un fantasma que además fuera el propio se contaría como
+   * «excluido por ser el propio» en vez de como inexistente.
    */
   it('⚠️ se pregunta por TODOS los documentId de los crudos, incluidos los que van a caer', () => {
     const ids = documentIdsDeLosMatches([

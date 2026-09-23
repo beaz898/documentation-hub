@@ -16,7 +16,7 @@ import { escribirContadoresDelReparto, repartoConModelo, repartoSinModelo } from
 /** Todo a cero: el caso que el fallo del 15/09 hacía desaparecer. */
 function emitidasEnCero(): PipelineCounters {
   const counters: PipelineCounters = {
-    ...contadoresDeRecuperacion({ recuperados: 0, perdidosPorUmbral: 0, cortadosPorTope: 0 }),
+    ...contadoresDeRecuperacion({ recuperados: 0, cortadosPorTope: 0 }),
     ...contadoresDelRerank({ seleccionados: 0, sinConfianza: 0 }),
   };
   escribirContadoresDelReparto(counters, repartoConModelo({
@@ -40,8 +40,13 @@ describe('⚠️ TODA clave `seleccion.*` del catálogo tiene emisor', () => {
     expect(noDeclaradas).toEqual([]);
   });
 
-  it('son NUEVE: si el número cambia, el cambio pasa por aquí', () => {
-    expect(CLAVES_DEL_CATALOGO).toHaveLength(9);
+  it('son OCHO: si el número cambia, el cambio pasa por aquí', () => {
+    // ⚠️ Fueron NUEVE hasta el 23/09/2026. La que falta es
+    // 'candidatos_perdidos_por_umbral', retirada con las dos constantes del
+    // umbral. Esta cifra existe para que retirar o añadir una clave no se pueda
+    // hacer en silencio — y ha hecho exactamente eso: se puso roja en la pasada
+    // de la retirada.
+    expect(CLAVES_DEL_CATALOGO).toHaveLength(8);
   });
 });
 
@@ -56,10 +61,9 @@ describe('⚠️ EL CERO SE ESCRIBE — el fallo del 15/09, ahora vigilado por p
 
   it('un valor distinto de cero viaja igual, sin perderse por el camino', () => {
     const counters: PipelineCounters = {
-      ...contadoresDeRecuperacion({ recuperados: 9, perdidosPorUmbral: 2, cortadosPorTope: 1 }),
+      ...contadoresDeRecuperacion({ recuperados: 9, cortadosPorTope: 1 }),
       ...contadoresDelRerank({ seleccionados: 4, sinConfianza: 1 }),
     };
-    expect(counters['seleccion.candidatos_perdidos_por_umbral']).toBe(2);
     expect(counters['seleccion.candidatos_cortados_por_tope_de_recuperacion']).toBe(1);
     expect(counters['seleccion.candidatos_recuperados']).toBe(9);
   });
@@ -68,7 +72,7 @@ describe('⚠️ EL CERO SE ESCRIBE — el fallo del 15/09, ahora vigilado por p
 describe('⚠️ LA ÚNICA AUSENCIA LEGÍTIMA, y está declarada (B.254)', () => {
   it('en el fallback del rerank falta `descartados_por_criterio`, y sólo ésa', () => {
     const counters: PipelineCounters = {
-      ...contadoresDeRecuperacion({ recuperados: 5, perdidosPorUmbral: 0, cortadosPorTope: 0 }),
+      ...contadoresDeRecuperacion({ recuperados: 5, cortadosPorTope: 0 }),
       ...contadoresDelRerank({ seleccionados: 3, sinConfianza: 0 }),
     };
     escribirContadoresDelReparto(counters, repartoSinModelo({ recuperados: 5, seleccionadosPorScore: 3 }));

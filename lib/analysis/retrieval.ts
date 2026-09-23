@@ -16,7 +16,7 @@ import { getOrderedColumns } from './table-structure';
 import type { CandidateDocument, DocumentFragment, PipelineOptions, SelectionLimit } from './types';
 import type { StoredChunk } from '@/lib/read-chunks';
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { candidatosPerdidosPorUmbral, cortarALosMasAfines } from './umbral-de-recuperacion';
+import { cortarALosMasAfines } from './corte-de-recuperacion';
 
 /**
  * Etapa 1 — Retrieval amplio.
@@ -35,12 +35,14 @@ import { candidatosPerdidosPorUmbral, cortarALosMasAfines } from './umbral-de-re
  * que nueve destiladas — medido el 26/08 en la dirección OPE-02 → RRHH-06.
  *
  * Lo que SÍ sigue diferenciando a los modos es alcance, no selección:
- *   Rápido: umbral SCORE_THRESHOLD_QUICK (0,50), presupuesto
- *     FRAGMENT_BUDGET_CHARS_QUICK, hasta 6 candidatos tras el rerank.
- *   Exhaustivo: umbral SCORE_THRESHOLD_EXHAUSTIVE (0,45 — el rerank filtra el
- *     ruido), presupuesto de resolveExhaustiveBudget (hoy variable de
+ *   Rápido: presupuesto FRAGMENT_BUDGET_CHARS_QUICK, hasta 6 candidatos tras el
+ *     rerank.
+ *   Exhaustivo: presupuesto de resolveExhaustiveBudget (hoy variable de
  *     experimento, ver abajo), hasta 25 candidatos, documento nuevo sin
  *     truncar, y el double-check de Sonnet al final.
+ * ⚠️ Y HASTA EL 23/09/2026 LOS DIFERENCIABA TAMBIÉN EL UMBRAL —0,50 el rápido,
+ * 0,45 el exhaustivo—. Los dos se retiraron: el suelo medido del corpus es
+ * 0,696141422 y ninguno de los dos descartaba un solo fragmento.
  * El tope de piezas (MAX_FRAGMENTS_PER_DOC_QUICK) es el mismo en los dos.
  *
  * REPARTO POR UNIDADES (F-41, primera mitad): medido que los scores de filas
@@ -106,35 +108,36 @@ const FRAGMENT_BUDGET_CHARS_QUICK = 3000;
  */
 const MAX_FRAGMENTS_PER_DOC_QUICK = 25;
 
-/** Umbral mínimo de similitud, por FRAGMENTO.
+/* ⚠️ AQUÍ VIVÍAN LOS DOS UMBRALES, RETIRADOS EL 23/09/2026 (fase 2 de F-113/F-114).
  *
- *  ⚠️ SIN CALIBRAR — corregido el 17/09/2026 (B.248). Hasta ese día este
- *  comentario decía «calibrado para chunks de ~500 caracteres» y advertía de no
- *  subirlo a ciegas. **No consta ninguna medición que lo calibrara**, y el censo
- *  de vecindario del 16/09 —las 42×41 parejas del corpus real— no encontró
- *  **ningún par por debajo de ~0,79**. Con e5 comprimiendo las similitudes en la
- *  franja alta, un 0,50 absoluto no descarta nada: es un valor inicial de
- *  desarrollo, no una decisión. El aviso que llevaba protegía un número que nadie
- *  eligió, y apuntaba en la dirección contraria al problema.
+ *  `SCORE_THRESHOLD_QUICK = 0.50` y `SCORE_THRESHOLD_EXHAUSTIVE = 0.45` cortaban
+ *  FRAGMENTO A FRAGMENTO, antes de cualquier agregación. Se retiran porque el
+ *  suelo medido del corpus entero es **0,696141422** (n=424.040, 680 vectores,
+ *  topK=1000, 23/09/2026) con **cero** fragmentos por debajo de 0,50 y de 0,45:
+ *  el corte no descartaba nada y ninguna prueba lo notaba.
  *
- *  ⚠️ NO SE TOCA HASTA EL SEGUNDO TIEMPO: calibrarlo exige un corpus de escala, y
- *  con el suelo de hoy ningún número absoluto se puede comprobar. Lo que hay hoy es
- *  el contador —`seleccion.candidatos_perdidos_por_umbral`— que hará visible el día
- *  que empiece a descartar, y el caso decisivo en umbral-de-recuperacion.test.ts,
- *  que hace que moverlo rompa algo.
+ *  ⚠️ NO SE SUSTITUYEN POR OTRO NÚMERO. Quien vigila ahora es el TERMÓMETRO
+ *  (`termometro.ts`), que guarda la distribución entera de cada análisis en vez
+ *  de cortarla — así que el día que el suelo baje, se verá, que es lo que un
+ *  umbral inerte no podía hacer. Y el CANARIO (`canario.ts`) dice si el que se
+ *  movió fue el modelo o el corpus.
  *
- *  Exhaustivo: 0,45, más permisivo, **con la misma falta de calibración**: el censo
- *  no encontró ningún par entre 0,45 y 0,50. */
-export const SCORE_THRESHOLD_QUICK = 0.50;
-export const SCORE_THRESHOLD_EXHAUSTIVE = 0.45;
+ *  ⚠️ SI ALGÚN DÍA VUELVE UN CORTE, VUELVE RELATIVO —orden o hueco— y con su caso
+ *  decisivo delante: un candidato concreto que llegó al juez, era basura, y cuyo
+ *  score lo habría separado de los buenos. Un absoluto elegido a ojo sobre una
+ *  distribución que vive entre 0,65 y 1,00 es exactamente lo que se acaba de
+ *  retirar.
+ *
+ *  La ficha de retirada, con los siete apartados que pidió F-113, es la fase 3.
+ */
+
 
 /** Cuántos matches crudos pide CADA consulta a Pinecone.
  *  ⚠️ EXPORTADO PARA QUE NO HAYA DOS. El censo de vecindario (B.243) reproduce
  *  esta misma recuperación para contar vecinos, y un 25 copiado allí sería una
  *  segunda definición del mismo criterio: el día que aquí cambie, el censo
  *  mediría otra cosa y nadie se enteraría porque los dos seguirían pareciendo
- *  correctos por su cuenta. Los dos umbrales de arriba se exportan por lo mismo
- *  y en el mismo commit. */
+ *  correctos por su cuenta. */
 export const TOP_K_POR_CONSULTA = 25;
 
 /** Cuántos candidatos pasan de la recuperación al rerank: los más afines.
@@ -210,9 +213,10 @@ export async function retrieveCandidates(args: {
    *  cupieron enteras en el reparto. Sin clave = todo cupo (el caso normal).
    *  Mismo patrón y mismo camino que structuralOverlaps. */
   selectionLimits: Map<string, SelectionLimit[]>;
-  /** B.248 (17/09/2026): lo que los dos cortes de la recuperación dejaron fuera,
-   *  en documentos. Siempre presente, también en cero. */
-  descartesDeRecuperacion: { perdidosPorUmbral: number; cortadosPorTope: number };
+  /** B.248 (17/09/2026): lo que el corte de la recuperación dejó fuera, en
+   *  documentos. Siempre presente, también en cero.
+   *  ⚠️ Fueron DOS cortes hasta el 23/09/2026; el del umbral se retiró. */
+  descartesDeRecuperacion: { cortadosPorTope: number };
   /** F-114 — el termómetro de ESTA recuperación. Se calcula aquí porque aquí
    *  están los datos, y viaja al `FinalAnalysis` para persistirse en el jsonb. */
   termometro: Termometro;
@@ -253,7 +257,6 @@ export async function retrieveCandidates(args: {
 
   const sello = await generateEmbeddingsConSello(sampleTexts);
   const embeddings = sello.vectores;
-  const scoreThreshold = isExhaustive ? SCORE_THRESHOLD_EXHAUSTIVE : SCORE_THRESHOLD_QUICK;
   const corpusFilter = buildCorpusFilter(batchDocumentIds);
 
   // Recoger todos los matches de Pinecone. Paralelo por lotes en los dos
@@ -300,13 +303,12 @@ export async function retrieveCandidates(args: {
   }
 
   // ══ LA CRIBA, EN UN SITIO Y EN UN ORDEN (lib/analysis/criba-de-matches.ts) ══
-  // existencia → umbral → propio → generación. Las cuatro juntas y puras, para
-  // que el ORDEN tenga quien lo pruebe en vez de ser el resultado de dónde está
-  // cada `continue`.
+  // existencia → propio → generación. Las tres juntas y puras, para que el ORDEN
+  // tenga quien lo pruebe en vez de ser el resultado de dónde está cada
+  // `continue`. Fueron cuatro: el umbral se retiró el 23/09/2026.
   const criba = cribarMatches({
     crudos,
     generaciones: existencia.generaciones,
-    umbral: scoreThreshold,
     excluido: excludeDocumentId,
   });
   const allMatches: DocumentFragment[] = criba.fragmentos;
@@ -321,12 +323,6 @@ export async function retrieveCandidates(args: {
       `docs=${criba.documentosSinFila.join(',')} | vectores=${criba.idsSinFilaViva.join(',')}`,
     );
   }
-  // F-40: agregado, no por match — un descarte por línea serían cientos de
-  // líneas por análisis en un corpus real; el recuento por documento basta para
-  // saber si un score ronda el umbral.
-  for (const [docName, stats] of criba.descartadosPorUmbral) {
-    console.log(`[retrieval] Descartados por umbral (${scoreThreshold}) en "${docName}": ${stats.count}, score máximo: ${stats.maxScore.toFixed(3)}`);
-  }
   if (criba.porGeneracionMuerta.size > 0) {
     // Esperado CERO en régimen normal. Si esto suena, hay vectores de
     // generaciones muertas vivos en el índice — que es lo que contaminó una
@@ -336,22 +332,11 @@ export async function retrieveCandidates(args: {
     }
   }
   if (!laCribaCuadra(criba.reparto)) {
-    // ⚠️ NO PUEDE OCURRIR: los seis términos se cuentan sobre lo que sobrevivió
+    // ⚠️ NO PUEDE OCURRIR: los cinco términos se cuentan sobre lo que sobrevivió
     // al anterior. Si ocurriera, un fragmento se perdió por un camino que nadie
     // declaró, y el termómetro escribiría una ecuación falsa.
     console.error(`[retrieval] EL REPARTO DE LA CRIBA NO CUADRA | ${JSON.stringify(criba.reparto)}`);
   }
-
-  // Se cuenta sobre lo que decidió el umbral y nada más: los descartes de
-  // después (el propio, la generación activa, el reparto) quitan documentos por
-  // otras razones, y atribuírselos al umbral sería mezclar causas (§5.66).
-  // ⚠️ Y AHORA LOS FANTASMAS NO ENTRAN EN ESTA CUENTA, porque caen antes: un
-  // documento sin fila no es «un candidato que el umbral perdió».
-  const perdidosPorUmbral = candidatosPerdidosPorUmbral({
-    idsConFragmentoBajoUmbral: criba.idsBajoUmbral,
-    idsConFragmentoAceptado: allMatches.map(f => f.documentId),
-    excluido: excludeDocumentId,
-  });
 
   // Agrupar por documento y deduplicar chunks
   const byDoc = new Map<string, DocumentFragment[]>();
@@ -524,9 +509,9 @@ export async function retrieveCandidates(args: {
     // generación muerta (`allMatches.length - vivos.length`) era una SÉPTIMA
     // forma de contar lo mismo: si alguien metía un descarte nuevo en medio, la
     // resta se lo tragaba sin que el cuadre lo notara.
+    // ⚠️ Son CINCO desde el 23/09/2026:  se fue con el corte.
     crudos: criba.reparto.crudos,
     sin_fila_viva: criba.reparto.sin_fila_viva,
-    descartados_umbral: criba.reparto.descartados_umbral,
     sin_metadata_utilizable: criba.reparto.sin_metadata_utilizable,
     propios_excluidos: criba.reparto.propios_excluidos,
     generacion_muerta_excluida: criba.reparto.generacion_muerta_excluida,
@@ -574,7 +559,7 @@ export async function retrieveCandidates(args: {
     chunksByDocument,
     structuralOverlaps: structuralOverlapsByDocument,
     selectionLimits: selectionLimitsByDocument,
-    descartesDeRecuperacion: { perdidosPorUmbral, cortadosPorTope: corte.cortados },
+    descartesDeRecuperacion: { cortadosPorTope: corte.cortados },
   };
 }
 

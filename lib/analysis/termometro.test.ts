@@ -32,7 +32,6 @@ function denominadores(extra: Partial<DenominadoresDelTermometro> = {}): Denomin
   const base: DenominadoresDelTermometro = {
     crudos: 125,
     sin_fila_viva: 0,
-    descartados_umbral: 0,
     sin_metadata_utilizable: 0,
     propios_excluidos: 20,
     generacion_muerta_excluida: 0,
@@ -58,14 +57,14 @@ function medida(extra: Partial<MedidaDeLaRecuperacion> = {}): MedidaDeLaRecupera
   };
 }
 
-describe('⚠️ EL CUADRE — SEIS términos, y el total es lo que Pinecone devolvió', () => {
-  it('un reparto real cuadra: 0 + 0 + 0 + 20 + 0 + 105 = 125', () => {
+describe('⚠️ EL CUADRE — CINCO términos, y el total es lo que Pinecone devolvió', () => {
+  it('un reparto real cuadra: 0 + 0 + 20 + 0 + 105 = 125', () => {
     expect(elRepartoCuadra(denominadores())).toBe(true);
   });
 
   /**
    * ⚠️ CASO DECISIVO. Cada término tiene que estar en la suma: si se olvida uno,
-   * el cuadre deja de cerrar. Se rompe UNO A UNO, y los SEIS tienen que
+   * el cuadre deja de cerrar. Se rompe UNO A UNO, y los CINCO tienen que
    * romperlo — así el día que alguien añada un descarte nuevo sin contarlo, esto
    * se pone rojo en vez de dejar una identidad que no cuadra.
    *
@@ -74,9 +73,8 @@ describe('⚠️ EL CUADRE — SEIS términos, y el total es lo que Pinecone dev
    * reparto y el cuadre seguiría cerrando — que es exactamente cómo la
    * contaminación pasó inadvertida en la matriz del 21/09.
    */
-  it('⚠️ mover CUALQUIERA de los seis términos rompe el cuadre', () => {
+  it('⚠️ mover CUALQUIERA de los cinco términos rompe el cuadre', () => {
     expect(elRepartoCuadra(denominadores({ sin_fila_viva: 1 }))).toBe(false);
-    expect(elRepartoCuadra(denominadores({ descartados_umbral: 1 }))).toBe(false);
     expect(elRepartoCuadra(denominadores({ sin_metadata_utilizable: 1 }))).toBe(false);
     expect(elRepartoCuadra(denominadores({ propios_excluidos: 19 }))).toBe(false);
     expect(elRepartoCuadra(denominadores({ generacion_muerta_excluida: 1 }))).toBe(false);
@@ -84,15 +82,14 @@ describe('⚠️ EL CUADRE — SEIS términos, y el total es lo que Pinecone dev
     expect(elRepartoCuadra(denominadores({ crudos: 126 }))).toBe(false);
   });
 
-  it('un reparto con los seis términos a la vez cuadra igual', () => {
+  it('un reparto con los cinco términos a la vez cuadra igual', () => {
     expect(elRepartoCuadra({
       crudos: 100,
       sin_fila_viva: 6,
-      descartados_umbral: 7,
       sin_metadata_utilizable: 3,
       propios_excluidos: 25,
       generacion_muerta_excluida: 5,
-      candidatos_con_repeticion: 54,
+      candidatos_con_repeticion: 61,
       unicos: 30,
     })).toBe(true);
   });
@@ -105,7 +102,7 @@ describe('⚠️ EL CUADRE — SEIS términos, y el total es lo que Pinecone dev
 
   it('todo a cero cuadra: es un análisis que no recuperó nada, no un fallo', () => {
     expect(elRepartoCuadra({
-      crudos: 0, sin_fila_viva: 0, descartados_umbral: 0, sin_metadata_utilizable: 0,
+      crudos: 0, sin_fila_viva: 0, sin_metadata_utilizable: 0,
       propios_excluidos: 0, generacion_muerta_excluida: 0, candidatos_con_repeticion: 0, unicos: 0,
     })).toBe(true);
   });

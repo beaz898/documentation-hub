@@ -2,7 +2,6 @@ import type { VectorMatch } from '@/lib/pinecone/types';
 import { CUBOS, cuboDe, bordeInferior, histogramaVacio, percentilDelHistograma } from './cubos-de-score';
 import { soloGeneracionActiva, generacionesMuertas } from './generacion-activa';
 import { repartoPorFilaViva } from '@/lib/documents/vivos';
-import { SCORE_THRESHOLD_QUICK, SCORE_THRESHOLD_EXHAUSTIVE } from './retrieval';
 import {
   clasificarTrozo,
   clasificarPar,
@@ -13,19 +12,23 @@ import {
 /**
  * EL CENSO DE VECINDARIO — B.243.
  *
- * Contesta, por cada documento, CONTRA CUÁNTOS OTROS tiene al menos un trozo
- * por encima del umbral. Es la pregunta que el producto no sabía contestar:
+ * Contesta, por cada documento, CONTRA CUÁNTOS OTROS aparece como vecino y con
+ * qué forma tienen esos parecidos. Es la pregunta que el producto no sabía
+ * contestar:
  * «¿qué documento de los míos toca a más documentos?».
  *
  * ⚠️ POR QUÉ NO CUESTA UN CRÉDITO. Los vectores ya están calculados y pagados:
  * `fetchVectors` los devuelve con sus `values`, así que aquí no se embebe nada
  * ni interviene ningún modelo. Son lecturas de Pinecone y nada más.
  *
- * ⚠️ LOS UMBRALES Y EL topK SE IMPORTAN, NO SE COPIAN. Vienen de `retrieval.ts`,
- * que es quien los decidió. Un 0,50 escrito aquí sería una segunda definición
- * del mismo criterio, y el día que allí cambiara, este censo mediría otra cosa
- * sin que nadie se enterara — los dos seguirían pareciendo correctos por su
- * cuenta.
+ * ⚠️ EL topK SE IMPORTA, NO SE COPIA. Viene de `retrieval.ts`, que es quien lo
+ * decidió. Un 25 escrito aquí sería una segunda definición del mismo criterio, y
+ * el día que allí cambiara, este censo mediría otra cosa sin que nadie se
+ * enterara — los dos seguirían pareciendo correctos por su cuenta.
+ *
+ * ⚠️ Y HASTA EL 23/09/2026 SE IMPORTABAN TAMBIÉN LOS DOS UMBRALES, por la misma
+ * razón y con el mismo acierto. Se fueron con ellos: este censo ya no parte los
+ * vecinos por ningún corte, los cuenta todos y describe su distribución.
  *
  * ⚠️ Y LA GENERACIÓN SE PREGUNTA. `soloGeneracionActiva` es la misma función que
  * usa el retrieval; aquí no se vuelve a derivar qué generación sirve cada
@@ -96,15 +99,17 @@ export interface FilaDeVecindario {
   analysisStatus: string | null;
   /** Cuántos vectores suyos se han usado para preguntar. */
   consultas: number;
-  /** Cuántos OTROS documentos superan el umbral del rápido (0,50). */
+  /**
+   * Cuántos OTROS documentos aparecen como vecinos. ⚠️ SIN UMBRAL DESDE EL
+   * 23/09/2026: había dos columnas, `vecinos` (≥ 0,50) y `vecinos_045`, y las dos
+   * importaban constantes que ya no existen. Con el corte retirado, «vecino» es
+   * cualquier documento que la consulta devolvió — y lo que informa no es el
+   * RECUENTO sino la DISTRIBUCIÓN, que va en `distribucion`.
+   */
   vecinos: number;
-  /** Cuántos superan el umbral del exhaustivo (0,45).
-   *  ⚠️ `vecinos_045 - vecinos` ES LO QUE EL EXHAUSTIVO COMPRA con su umbral,
-   *  sabido sin gastar 30 créditos. */
-  vecinos_045: number;
   /** El parecido más alto que este documento tiene con cualquier otro. */
   scoreMax: number;
-  /** Los vecinos por encima de 0,45, de mayor a menor parecido. */
+  /** Todos los vecinos, de mayor a menor parecido. */
   detalle: Vecino[];
   /** B.246 — reparto por clase del par, sobre los vecinos que pasan 0,50. */
   porClase: Record<ClaseDePar, number>;
@@ -210,42 +215,49 @@ export function acumularVecinos(
 }
 
 /**
- * Cierra la fila de un documento: cuántos vecinos pasan cada umbral.
+ * Cierra la fila de un documento: sus vecinos y la forma de sus parecidos.
  *
  * ⚠️ EL CONTEO ES POR DOCUMENTO, NO POR FRAGMENTO — que es lo mismo que hace el
  * retrieval al agrupar `byDoc`. Contar fragmentos daría una cifra mayor que no
  * se parece a la que el pipeline usa, y esa es exactamente la clase de artefacto
  * que esta casa ya dejó pasar por dato una vez.
+ *
+ * ⚠️ YA NO FILTRA POR NINGÚN UMBRAL (23/09/2026, C14 de F-113): `vecinos` y
+ * `vecinos_045` importaban `SCORE_THRESHOLD_QUICK` y `SCORE_THRESHOLD_EXHAUSTIVE`
+ * desde `retrieval.ts`, y con las dos retiradas esas columnas medirían un corte
+ * que ya no existe. Lo que las sustituye está DENTRO del instrumento: el mínimo,
+ * el p1 y los cubos de 0,05 de `distribucionDeScores`, que describen la
+ * distribución entera en vez de partirla por un número que nadie eligió.
  */
 export function resumirVecindario(mejores: Map<string, Vecino>): {
   vecinos: number;
-  vecinos_045: number;
   scoreMax: number;
   detalle: Vecino[];
-  /** ⚠️ EL REPARTO ES LA RESPUESTA A B.246. Cuenta sobre los vecinos que pasan
-   *  0,50 — los que de verdad llegarían al rerank. */
+  /** ⚠️ EL REPARTO ES LA RESPUESTA A B.246. Cuenta sobre TODOS los vecinos: sin
+   *  umbral, todos son los que llegarían al rerank. */
   porClase: Record<ClaseDePar, number>;
+  /** ⚠️ LA FORMA DE LOS PARECIDOS DE ESTE DOCUMENTO, que es lo que sustituye a
+   *  las dos columnas de umbral: mínimo, máximo, p1/p5/p50 y los veinte cubos.
+   *  Sobre el MÁXIMO por documento, que es lo que esta fila cuenta. */
+  distribucionDeMaximos: DistribucionDeScores;
 } {
   const todos = [...mejores.values()].sort((a, b) => b.scoreMax - a.scoreMax);
-  const detalle = todos.filter(v => v.scoreMax >= SCORE_THRESHOLD_EXHAUSTIVE);
-  const queLlegan = todos.filter(v => v.scoreMax >= SCORE_THRESHOLD_QUICK);
   const porClase = reparteVacio();
-  for (const v of queLlegan) porClase[v.clasePar] += 1;
+  for (const v of todos) porClase[v.clasePar] += 1;
   return {
-    vecinos: queLlegan.length,
-    vecinos_045: detalle.length,
+    vecinos: todos.length,
     scoreMax: todos.length > 0 ? todos[0].scoreMax : 0,
-    detalle,
+    detalle: todos,
     porClase,
+    distribucionDeMaximos: distribucionDeScores(todos.map(v => v.scoreMax)),
   };
 }
 
-/** Los umbrales con los que se ha contado, para que la respuesta diga con qué
- *  regla se midió en vez de obligar a buscarla en el código. */
-export const UMBRALES_DEL_CENSO = {
-  vecinos: SCORE_THRESHOLD_QUICK,
-  vecinos_045: SCORE_THRESHOLD_EXHAUSTIVE,
-} as const;
+/* ⚠️ AQUÍ VIVÍA `UMBRALES_DEL_CENSO`, retirado el 23/09/2026 con las dos
+ * constantes que declaraba. Existía para que la respuesta dijera CON QUÉ REGLA se
+ * había contado, y era correcto mientras hubiera regla. Sin umbral no hay regla
+ * que declarar: la respuesta declara ahora `topKUsado`, `poblacion` y `tramo`,
+ * que son los tres parámetros que sí deciden qué se midió. */
 
 // ============================================================
 // LA DISTRIBUCIÓN POR FRAGMENTO — medición F-111 (21/09/2026)
@@ -293,15 +305,13 @@ export interface DistribucionDeScores {
   p1: number | null;
   p5: number | null;
   p50: number | null;
-  /**
-   * Fragmentos que el umbral del RÁPIDO descartaría. Complemento exacto de
-   * `pasaElUmbral` (`umbral-de-recuperacion.ts:22`, `score >= umbral`), así que
-   * aquí es `score < umbral`: un score EXACTAMENTE igual al umbral **pasa** y no
-   * se cuenta.
-   */
-  bajo_umbral_rapido: number;
-  /** Lo mismo con el umbral del EXHAUSTIVO. */
-  bajo_umbral_exhaustivo: number;
+/* ⚠️ AQUÍ HABÍA DOS CAMPOS MÁS —`bajo_umbral_rapido` y `bajo_umbral_exhaustivo`—
+   * retirados el 23/09/2026 con las constantes que contaban. Eran el complemento
+   * exacto de `pasaElUmbral`, y su último trabajo fue el que importaba: dieron
+   * CERO en los nueve tramos de la matriz limpia, que es la medición que autoriza
+   * la retirada. Lo que queda —el mínimo, los percentiles y los veinte cubos—
+   * describe la distribución entera, así que cualquier corte futuro se puede
+   * evaluar sobre ella sin volver a instrumentar nada. */
 }
 
 
@@ -310,17 +320,12 @@ export function distribucionDeScores(scores: number[]): DistribucionDeScores {
   const histograma = histogramaVacio();
   let minimo: number | null = null;
   let maximo: number | null = null;
-  let bajoRapido = 0;
-  let bajoExhaustivo = 0;
 
   for (const score of scores) {
     if (!Number.isFinite(score)) continue;
     histograma[cuboDe(score)] += 1;
     if (minimo === null || score < minimo) minimo = score;
     if (maximo === null || score > maximo) maximo = score;
-    // El complemento EXACTO de pasaElUmbral: `>=` pasa, luego `<` no pasa.
-    if (score < SCORE_THRESHOLD_QUICK) bajoRapido += 1;
-    if (score < SCORE_THRESHOLD_EXHAUSTIVE) bajoExhaustivo += 1;
   }
 
   const n = histograma.reduce((suma, c) => suma + c, 0);
@@ -333,8 +338,6 @@ export function distribucionDeScores(scores: number[]): DistribucionDeScores {
     p1: percentilDelHistograma(histograma, n, 1),
     p5: percentilDelHistograma(histograma, n, 5),
     p50: percentilDelHistograma(histograma, n, 50),
-    bajo_umbral_rapido: bajoRapido,
-    bajo_umbral_exhaustivo: bajoExhaustivo,
   };
 }
 

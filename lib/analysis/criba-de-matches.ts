@@ -1,7 +1,6 @@
 import type { DocumentFragment } from './types';
 import { repartoPorFilaViva, idsParaElRegistro } from '@/lib/documents/vivos';
 import { generacionesMuertas, soloGeneracionActiva } from './generacion-activa';
-import { pasaElUmbral } from './umbral-de-recuperacion';
 
 /**
  * LA CRIBA DE LOS MATCHES, EN UN SITIO Y EN UN ORDEN — F-115 (22/09/2026).
@@ -10,9 +9,14 @@ import { pasaElUmbral } from './umbral-de-recuperacion';
  * ⚠️ EL ORDEN ES EL CONTENIDO DE ESTE MÓDULO, no un detalle de implementación:
  *
  *   1. ¿EXISTE el documento?  → `sin_fila_viva`
- *   2. ¿pasa el umbral?       → `descartados_umbral`      (mientras exista)
- *   3. ¿es el propio?         → `propios_excluidos`
- *   4. ¿es su generación?     → `generacion_muerta_excluida`
+ *   2. ¿es el propio?         → `propios_excluidos`
+ *   3. ¿es su generación?     → `generacion_muerta_excluida`
+ *
+ * ⚠️ FUERON CUATRO HASTA EL 23/09/2026: el segundo era el UMBRAL, y se retiró con
+ * `SCORE_THRESHOLD_QUICK`/`SCORE_THRESHOLD_EXHAUSTIVE` (fase 2 de la retirada).
+ * El suelo medido del corpus es 0,696141422 sobre n=424.040, así que ningún corte
+ * absoluto por debajo de 0,50 descartaba nada. Quien vigila ahora es el
+ * TERMÓMETRO, que enseña la distribución entera en vez de cortarla.
  *
  * Hasta hoy estos cuatro descartes vivían en tres sitios —dos tramos de
  * `collectMatches` y dos funciones llamadas 80 líneas después— y el orden era
@@ -48,29 +52,26 @@ export interface MatchCrudo {
   score?: number;
 }
 
-/** Los seis términos del reparto, cada uno contado donde ocurre su descarte. */
+/** Los CINCO términos del reparto, cada uno contado donde ocurre su descarte.
+ *  ⚠️ Fueron seis hasta el 23/09/2026: `descartados_umbral` se fue con las dos
+ *  constantes del umbral. */
 export interface RepartoDeLaCriba {
   crudos: number;
   sin_fila_viva: number;
   sin_metadata_utilizable: number;
-  descartados_umbral: number;
   propios_excluidos: number;
   generacion_muerta_excluida: number;
   candidatos_con_repeticion: number;
 }
 
 export interface ResultadoDeLaCriba {
-  /** Lo que sobrevivió a los cuatro descartes, sin deduplicar. */
+  /** Lo que sobrevivió a los tres descartes, sin deduplicar. */
   fragmentos: DocumentFragment[];
   reparto: RepartoDeLaCriba;
   /** ⚠️ ESPERADO VACÍO. Los vectorId de los fragmentos sin fila, acotados. */
   idsSinFilaViva: string[];
   /** Los documentId sin fila, para el log — sin tope, son pocos y no se persisten. */
   documentosSinFila: string[];
-  /** Por nombre de documento, lo que el umbral descartó. Para el log de siempre. */
-  descartadosPorUmbral: Map<string, { count: number; maxScore: number }>;
-  /** Los documentId con algún fragmento bajo el umbral, para contar DOCUMENTOS. */
-  idsBajoUmbral: string[];
   /** Por documento, cuántos fragmentos cayeron por generación. ⚠️ Esperado vacío. */
   porGeneracionMuerta: Map<string, number>;
 }
@@ -117,14 +118,12 @@ export function cribarMatches(args: {
   /** El mapa de `documentosVivos`, YA abierto por quien llama: si la lectura
    *  falló, aquí no se llega — el análisis se paró antes. */
   generaciones: ReadonlyMap<string, number>;
-  umbral: number;
   excluido?: string;
 }): ResultadoDeLaCriba {
   const reparto: RepartoDeLaCriba = {
     crudos: 0,
     sin_fila_viva: 0,
     sin_metadata_utilizable: 0,
-    descartados_umbral: 0,
     propios_excluidos: 0,
     generacion_muerta_excluida: 0,
     candidatos_con_repeticion: 0,
@@ -168,26 +167,17 @@ export function cribarMatches(args: {
   reparto.sin_fila_viva = sinFila.length;
   const documentosSinFila = [...new Set(sinFila.map(m => m.documentId))];
 
-  // ── 2 · EL UMBRAL, mientras exista ───────────────────────────────────
-  const descartadosPorUmbral = new Map<string, { count: number; maxScore: number }>();
-  const idsBajoUmbral: string[] = [];
-  const sobreElUmbral: MatchUtilizable[] = [];
-  for (const m of conFila) {
-    if (pasaElUmbral(m.score, args.umbral)) {
-      sobreElUmbral.push(m);
-      continue;
-    }
-    idsBajoUmbral.push(m.documentId);
-    const stats = descartadosPorUmbral.get(m.documentName) ?? { count: 0, maxScore: -Infinity };
-    stats.count += 1;
-    if (m.score > stats.maxScore) stats.maxScore = m.score;
-    descartadosPorUmbral.set(m.documentName, stats);
-    reparto.descartados_umbral += 1;
-  }
-
-  // ── 3 · EL PROPIO ────────────────────────────────────────────────────
+  // ── 2 · EL PROPIO ────────────────────────────────────────────────────
+  //
+  // ⚠️ AQUÍ HABÍA UN PASO MÁS, Y ERA EL UMBRAL. Se retiró el 23/09/2026 con
+  // `SCORE_THRESHOLD_QUICK` (0,50) y `SCORE_THRESHOLD_EXHAUSTIVE` (0,45): el
+  // suelo medido del corpus es **0,696141422** sobre n=424.040, con **cero**
+  // fragmentos por debajo de 0,50 y de 0,45, así que el corte no descartaba
+  // nada. No se reinstaura sin un caso decisivo — un candidato concreto que
+  // llegó al juez, era basura, y cuyo score lo habría separado de los buenos—
+  // y, si algún día vuelve, vuelve RELATIVO (orden o hueco) y no absoluto.
   const ajenos: MatchUtilizable[] = [];
-  for (const m of sobreElUmbral) {
+  for (const m of conFila) {
     if (args.excluido !== undefined && m.documentId === args.excluido) {
       reparto.propios_excluidos += 1;
       continue;
@@ -195,7 +185,7 @@ export function cribarMatches(args: {
     ajenos.push(m);
   }
 
-  // ── 4 · LA GENERACIÓN, preguntada a quien la decide ──────────────────
+  // ── 3 · LA GENERACIÓN, preguntada a quien la decide ──────────────────
   // Las MISMAS dos funciones que usa el censo de vecindario. El criterio de
   // «qué generación sirve este documento» no se reimplementa aquí.
   const deLaActiva = soloGeneracionActiva(ajenos, args.generaciones);
@@ -217,24 +207,26 @@ export function cribarMatches(args: {
     reparto,
     idsSinFilaViva: idsParaElRegistro(sinFila.map(m => m.vectorId)),
     documentosSinFila,
-    descartadosPorUmbral,
-    idsBajoUmbral,
     porGeneracionMuerta,
   };
 }
 
 /**
- * ¿Cuadra el reparto de la criba? Los seis términos suman los crudos.
+ * ¿Cuadra el reparto de la criba? Los CINCO términos suman los crudos.
  *
  * Es el mismo cuadre que `elRepartoCuadra` comprueba sobre el termómetro ya
  * construido, pero AQUÍ, sobre la fuente: si esto fuera falso, el termómetro
  * escribiría una ecuación que no cierra y nadie sabría en qué paso se perdió el
  * fragmento.
+ *
+ * ⚠️ Eran SEIS hasta el 23/09/2026. Al retirar el umbral, su término desaparece
+ * de la suma — y eso es lo que hace que el cuadre siga siendo un cuadre: dejarlo
+ * en cero habría funcionado igual, y habría dejado en la ecuación un término que
+ * ningún camino puede mover, o sea una comprobación que no puede fallar.
  */
 export function laCribaCuadra(r: RepartoDeLaCriba): boolean {
   const suma = r.sin_fila_viva
     + r.sin_metadata_utilizable
-    + r.descartados_umbral
     + r.propios_excluidos
     + r.generacion_muerta_excluida
     + r.candidatos_con_repeticion;

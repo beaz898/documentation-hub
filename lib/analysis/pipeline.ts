@@ -725,10 +725,9 @@ async function runCorePipeline(
   // (18/09/2026): así la propiedad «se escriben todas, también en cero» tiene una
   // prueba que la vigila —contadores-de-seleccion.test.ts— en vez de depender de
   // que nadie ponga un `if` delante. Van ANTES de la salida temprana 1: si el
-  // umbral dejara a cero los candidatos, este es el único sitio donde se vería.
+  // corte dejara a cero los candidatos, este es el único sitio donde se vería.
   Object.assign(counters, contadoresDeRecuperacion({
     recuperados: candidates.length,
-    perdidosPorUmbral: descartesDeRecuperacion.perdidosPorUmbral,
     cortadosPorTope: descartesDeRecuperacion.cortadosPorTope,
   }));
 

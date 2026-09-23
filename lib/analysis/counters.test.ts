@@ -45,7 +45,6 @@ describe('el catálogo', () => {
       // al juez y ocupaban dos plazas del tope.
       'seleccion.candidatos_repetidos_por_el_modelo',
       // B.248 — los dos cortes de la recuperación, en documentos.
-      'seleccion.candidatos_perdidos_por_umbral',
       'seleccion.candidatos_cortados_por_tope_de_recuperacion',
       // F-103 P3 pieza 2: la etapa `diff.vision`, abierta el 07/09. Es la capa
       // de ANTES del emparejador — qué le llegó— y por eso no cabía en

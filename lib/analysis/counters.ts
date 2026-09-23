@@ -113,12 +113,16 @@ export const COUNTER_CATALOGUE = [
   // que queda AUSENTE en el fallback del rerank (B.254): no hubo criterio. Los
   // demás valen 0 ahí, y ese cero es verdad.
   'seleccion.candidatos_repetidos_por_el_modelo',
-  // B.248 (17/09/2026) — LOS DOS CORTES DE LA RECUPERACIÓN, en DOCUMENTOS. El
-  // primero cuenta los que se perdieron sólo por el umbral —ningún fragmento lo
-  // pasó—; el segundo, los que el tope de MAX_CANDIDATOS_DE_RECUPERACION dejó
-  // fuera. Con el corpus de hoy los dos valen CERO, y ese cero es el dato: el día
-  // que se mueva, el umbral empezó a filtrar o el corpus creció.
-  'seleccion.candidatos_perdidos_por_umbral',
+  // B.248 (17/09/2026) — EL CORTE DE LA RECUPERACIÓN, en DOCUMENTOS: los que el
+  // tope de MAX_CANDIDATOS_DE_RECUPERACION dejó fuera. Con el corpus de hoy vale
+  // CERO, y ese cero es el dato: el día que se mueva, el corpus creció.
+  //
+  // ⚠️ AQUÍ HABÍA UNA SEGUNDA CLAVE, 'seleccion.candidatos_perdidos_por_umbral',
+  // retirada el 23/09/2026 con las dos constantes del umbral: sin corte sólo
+  // podía dar cero, y un contador que no puede moverse no vigila nada. El
+  // histórico de esa clave SIGUE en las filas de 'analysis_results' y se
+  // consulta con 'pipeline_counters ? ...'; retirarla del catálogo no borra una
+  // sola fila, porque esa columna se escribe y no se relee por 'mergeCounters'.
   'seleccion.candidatos_cortados_por_tope_de_recuperacion',
   // diff.tablas — ETAPA NUEVA (F-88 P1). El emparejador de tablas: qué pares
   // se evaluaron y por qué puerta cayó cada uno.

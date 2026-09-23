@@ -52,10 +52,14 @@ export interface SelloDelModelo {
  * Los denominadores, cada uno contado DONDE OCURRE y sobre lo que sobrevivió al
  * paso anterior. El orden de los campos es el orden del pipeline, a propósito.
  *
- * ⚠️ EL CUADRE, y por qué tiene SEIS términos:
- *   crudos = sin_fila_viva + sin_metadata_utilizable + descartados_umbral
- *            + propios_excluidos + generacion_muerta_excluida
- *            + candidatos_con_repeticion
+ * ⚠️ EL CUADRE, y por qué tiene CINCO términos:
+ *   crudos = sin_fila_viva + sin_metadata_utilizable + propios_excluidos
+ *            + generacion_muerta_excluida + candidatos_con_repeticion
+ *
+ * ⚠️ FUERON SEIS HASTA EL 23/09/2026: `descartados_umbral` se fue con las dos
+ * constantes del umbral. Se RETIRA de la ecuación en vez de dejarse en cero, y la
+ * diferencia importa: un término que ningún camino puede mover es una
+ * comprobación que no puede fallar, o sea una que no comprueba.
  *
  * `sin_fila_viva` entró el 22/09/2026 (F-115) y va PRIMERO porque su descarte es
  * el primero: la pregunta «¿existe este documento?» precede a cualquier otra
@@ -79,12 +83,6 @@ export interface DenominadoresDelTermometro {
    * y no es hipotético— y `ids_sin_fila_viva` dice de qué vectores se trata.
    */
   sin_fila_viva: number;
-  /**
-   * ⚠️ TEMPORAL: se va con la retirada de SCORE_THRESHOLD_QUICK/EXHAUSTIVE, que
-   * es el commit siguiente. Mientras el umbral exista, su descarte tiene que
-   * estar en el cuadre o el cuadre no cierra.
-   */
-  descartados_umbral: number;
   /** Matches sin la metadata mínima para poder contarlos. Ver el aviso de arriba. */
   sin_metadata_utilizable: number;
   /** Fragmentos del documento que se está analizando, que se excluye después de consultar. */
@@ -252,10 +250,9 @@ export function scoresDeLosUnicos(
   return { minimo, maximo, histograma, hueco_1_2: hueco };
 }
 
-/** ¿Cuadra el reparto? Los SEIS términos suman el total, y únicos ≤ con repetición. */
+/** ¿Cuadra el reparto? Los CINCO términos suman el total, y únicos ≤ con repetición. */
 export function elRepartoCuadra(d: DenominadoresDelTermometro): boolean {
   const suma = d.sin_fila_viva
-    + d.descartados_umbral
     + d.sin_metadata_utilizable
     + d.propios_excluidos
     + d.generacion_muerta_excluida

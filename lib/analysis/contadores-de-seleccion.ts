@@ -24,15 +24,19 @@ import type { PipelineCounters } from './counters';
  * cero no significan lo mismo, y esa distinción es el dato.
  */
 
-/** Lo que decide la RECUPERACIÓN: qué trajo y qué dejó fuera cada uno de sus dos cortes. */
+/** Lo que decide la RECUPERACIÓN: qué trajo y qué dejó fuera su corte.
+ *  ⚠️ Emitía TRES claves hasta el 23/09/2026:
+ *  `candidatos_perdidos_por_umbral` se fue con las dos constantes del umbral,
+ *  porque sin corte no hay nada que perder por él. El histórico persistido en
+ *  `analysis_results.pipeline_counters` se conserva intacto — esa columna sólo se
+ *  escribe, nunca se relee por `mergeCounters`, así que retirar la clave del
+ *  catálogo no toca ni una fila de las que ya están. */
 export function contadoresDeRecuperacion(args: {
   recuperados: number;
-  perdidosPorUmbral: number;
   cortadosPorTope: number;
 }): PipelineCounters {
   return {
     'seleccion.candidatos_recuperados': args.recuperados,
-    'seleccion.candidatos_perdidos_por_umbral': args.perdidosPorUmbral,
     'seleccion.candidatos_cortados_por_tope_de_recuperacion': args.cortadosPorTope,
   };
 }

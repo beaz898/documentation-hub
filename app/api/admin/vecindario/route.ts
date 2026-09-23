@@ -19,7 +19,6 @@ import {
   matchesContables,
   acumularVecinos,
   resumirVecindario,
-  UMBRALES_DEL_CENSO,
   distribucionDeScores,
   topKPedido,
   poblacionPedida,
@@ -165,7 +164,6 @@ export async function GET(req: NextRequest) {
     if (!documentos || documentos.length === 0) {
       return NextResponse.json({
         documentos: 0,
-        umbrales: UMBRALES_DEL_CENSO,
         contadores: censoVacio(),
         filas: [],
       });
@@ -230,7 +228,6 @@ export async function GET(req: NextRequest) {
           analysisStatus: (doc.analysis_status as string | null) ?? null,
           consultas: 0,
           vecinos: 0,
-          vecinos_045: 0,
           scoreMax: 0,
           detalle: [],
           porClase: reparteVacio(),
@@ -353,7 +350,12 @@ export async function GET(req: NextRequest) {
       parejaDelCorpus = parejaMenorDeDos(parejaDelCorpus, parejaDelDocumento);
     }
 
-    filas.sort((a, b) => b.vecinos_045 - a.vecinos_045 || b.vecinos - a.vecinos);
+    // ⚠️ SE ORDENA POR VECINOS Y LUEGO POR EL PARECIDO MÁXIMO. Hasta el
+    // 23/09/2026 el primer criterio era `vecinos_045`, que contaba los vecinos por
+    // encima de 0,45: esa columna se fue con el umbral. Sin corte, «cuántos
+    // vecinos» ya no distingue casi nada —todos los documentos son vecinos de
+    // todos— así que el desempate por `scoreMax` es el que de verdad ordena.
+    filas.sort((a, b) => b.vecinos - a.vecinos || b.scoreMax - a.scoreMax);
 
     // ⚠️ EL AGREGADO, Y NO SÓLO EL DESGLOSE POR FILA. Es la regla de F-102: todo
     // registro por-unidad imprime además su total, o no imprime cifras. La
@@ -411,7 +413,6 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({
       documentos: filas.length,
-      umbrales: UMBRALES_DEL_CENSO,
       // ⚠️ F-114 P3 — EL CANARIO. Textos fijos, embebidos al vuelo como
       // 'passage' y NUNCA indexados: su parecido sólo puede moverse si se movió
       // el MODELO, así que es lo que atribuye la causa cuando el termómetro da un

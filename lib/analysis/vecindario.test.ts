@@ -3,7 +3,6 @@ import {
   matchesContables,
   acumularVecinos,
   resumirVecindario,
-  UMBRALES_DEL_CENSO,
   distribucionDeScores,
   topKPedido,
   poblacionPedida,
@@ -17,8 +16,6 @@ import {
   type Vecino,
   type ObservacionDeScore,
 } from './vecindario';
-import { SCORE_THRESHOLD_QUICK, SCORE_THRESHOLD_EXHAUSTIVE } from './retrieval';
-import { pasaElUmbral } from './umbral-de-recuperacion';
 import type { VectorMatch } from '@/lib/pinecone/types';
 import { clasificarTrozo, clasificarPar, reparteVacio } from './clase-de-trozo';
 
@@ -148,62 +145,70 @@ describe('acumularVecinos — un vecino se cuenta una vez, con su mejor parecido
   });
 });
 
-describe('resumirVecindario — los dos umbrales', () => {
+describe('resumirVecindario — sin umbral, y con la distribución en su lugar', () => {
   function mapaDe(pares: Array<[string, number]>): Map<string, Vecino> {
     const m = new Map<string, Vecino>();
     for (const [id, score] of pares) m.set(id, { documentId: id, documentName: id.toUpperCase(), scoreMax: score, clasePar: 'prosa_x_prosa', muestraPropia: '', muestraVecina: '' });
     return m;
   }
 
-  it('cuenta por encima de 0,50 en `vecinos` y de 0,45 en `vecinos_045`', () => {
-    const r = resumirVecindario(mapaDe([['a', 0.95], ['b', 0.61], ['c', 0.30]]));
-    expect(r.vecinos).toBe(2);
-    expect(r.vecinos_045).toBe(2);
+  /**
+   * ⚠️ ESTA BATERÍA SE LLAMABA «los dos umbrales» Y TENÍA CINCO CASOS MÁS, todos
+   * sobre `vecinos` (≥ 0,50) y `vecinos_045` (≥ 0,45): la separación entre los
+   * dos, los bordes inclusivos de cada uno y la resta «lo que el exhaustivo
+   * compra».
+   * **Murieron con las dos constantes el 23/09/2026** (C14 de F-113), y se dice
+   * aquí porque su desaparición es la mitad visible de la retirada: un caso que
+   * sobrevive a la constante que vigilaba es un caso que ya no puede fallar.
+   */
+  it('⚠️ SIN UMBRAL: cuenta TODOS los vecinos, también los de score bajísimo', () => {
+    const r = resumirVecindario(mapaDe([['a', 0.95], ['b', 0.61], ['c', 0.30], ['d', 0.02]]));
+    expect(r.vecinos).toBe(4);
+    expect(r.scoreMax).toBeCloseTo(0.95);
   });
 
-  it('⚠️ CONTROL POSITIVO: un vecino entre 0,45 y 0,50 sale SOLO en vecinos_045 — es exactamente lo que el exhaustivo compra', () => {
-    const r = resumirVecindario(mapaDe([['a', 0.95], ['soloExhaustivo', 0.47]]));
-    expect(r.vecinos).toBe(1);
-    expect(r.vecinos_045).toBe(2);
-    // La resta es la cifra que da sentido al censo: si esto deja de ser 1, el
-    // censo ya no mide lo que dice medir.
-    expect(r.vecinos_045 - r.vecinos).toBe(1);
+  /**
+   * ⚠️ LO QUE SUSTITUYE A LAS DOS COLUMNAS, y es lo que C14 pedía: la
+   * distribución de los máximos, definida DENTRO del instrumento. Con las cuatro
+   * cifras de arriba, el mínimo dice lo que las dos columnas decían y más.
+   */
+  it('⚠️ la distribución de máximos trae mínimo, p1 y los veinte cubos', () => {
+    const r = resumirVecindario(mapaDe([['a', 0.95], ['b', 0.61], ['c', 0.30], ['d', 0.02]]));
+    expect(r.distribucionDeMaximos.n).toBe(4);
+    expect(r.distribucionDeMaximos.minimo).toBeCloseTo(0.02);
+    expect(r.distribucionDeMaximos.maximo).toBeCloseTo(0.95);
+    expect(r.distribucionDeMaximos.histograma).toHaveLength(20);
+    expect(r.distribucionDeMaximos.p1).not.toBeNull();
   });
 
-  it('el umbral es INCLUSIVO: un vecino clavado en 0,50 cuenta en los dos', () => {
-    const r = resumirVecindario(mapaDe([['justo', UMBRALES_DEL_CENSO.vecinos]]));
-    expect(r.vecinos).toBe(1);
-    expect(r.vecinos_045).toBe(1);
-  });
-
-  it('y clavado en 0,45 cuenta solo en vecinos_045', () => {
-    const r = resumirVecindario(mapaDe([['justo', UMBRALES_DEL_CENSO.vecinos_045]]));
-    expect(r.vecinos).toBe(0);
-    expect(r.vecinos_045).toBe(1);
-  });
-
-  it('sin vecinos: ceros y scoreMax 0, no undefined', () => {
+  it('sin vecinos: ceros, scoreMax 0 y una distribución con n=0 y extremos AUSENTES', () => {
     const r = resumirVecindario(new Map());
-    expect(r).toEqual({ vecinos: 0, vecinos_045: 0, scoreMax: 0, detalle: [], porClase: reparteVacio() });
+    expect(r.vecinos).toBe(0);
+    expect(r.scoreMax).toBe(0);
+    expect(r.detalle).toEqual([]);
+    expect(r.porClase).toEqual(reparteVacio());
+    expect(r.distribucionDeMaximos.n).toBe(0);
+    expect(r.distribucionDeMaximos.minimo).toBeNull();
   });
 
-  it('scoreMax es el mayor AUNQUE no llegue a ningun umbral — distingue «no se parece a nadie» de «se parece poco»', () => {
+  it('scoreMax es el mayor aunque todos sean bajos — distingue «no se parece a nadie» de «se parece poco»', () => {
     const r = resumirVecindario(mapaDe([['a', 0.31], ['b', 0.22]]));
-    expect(r.vecinos_045).toBe(0);
+    expect(r.vecinos).toBe(2);
     expect(r.scoreMax).toBeCloseTo(0.31);
   });
 
-  it('el detalle va de mayor a menor y solo trae los que pasan 0,45', () => {
+  it('⚠️ el detalle va de mayor a menor y ya NO recorta: trae todos', () => {
     const r = resumirVecindario(mapaDe([['bajo', 0.2], ['medio', 0.55], ['alto', 0.9]]));
-    expect(r.detalle.map(v => v.documentId)).toEqual(['alto', 'medio']);
-  });
-
-  it('los umbrales publicados son los del retrieval, no una copia', () => {
-    expect(UMBRALES_DEL_CENSO.vecinos).toBe(0.5);
-    expect(UMBRALES_DEL_CENSO.vecinos_045).toBe(0.45);
-    expect(UMBRALES_DEL_CENSO.vecinos).toBeGreaterThan(UMBRALES_DEL_CENSO.vecinos_045);
+    expect(r.detalle.map(v => v.documentId)).toEqual(['alto', 'medio', 'bajo']);
   });
 });
+
+/* ⚠️ Y AQUÍ HABÍA UN CASO MÁS: «los umbrales publicados son los del retrieval, no
+ * una copia», que comprobaba que `UMBRALES_DEL_CENSO` valía 0,50 y 0,45. Se fue
+ * con la constante que declaraba (23/09/2026). Su trabajo era impedir que el
+ * censo midiera con una copia desincronizada del umbral del pipeline; sin umbral
+ * no hay nada que copiar, y lo que la respuesta declara ahora —`topKUsado`,
+ * `poblacion` y `tramo`— tiene sus propios casos más abajo. */
 
 // ════════════════════════════════════════════════════════════════════════
 // B.246 — LA CLASE DEL PAR. Los textos de ejemplo son los que `chunking.ts`
@@ -289,13 +294,21 @@ describe('clasificarPar — las cinco clases', () => {
 });
 
 describe('el reparto por clase llega hasta el resumen', () => {
-  it('cuenta SOLO los vecinos que pasan 0,50 — los que llegarian al rerank', () => {
+  /**
+   * ⚠️ CUENTA TODOS LOS VECINOS DESDE EL 23/09/2026, y este caso decía lo
+   * contrario: «cuenta SOLO los vecinos que pasan 0,50 — los que llegarian al
+   * rerank». Con el umbral retirado, los que llegan al rerank son TODOS, así que
+   * el reparto por clase de B.246 cuenta sobre todos. Es la respuesta a la misma
+   * pregunta —«¿de qué clase son los pares que producen las vecindades?»— sobre
+   * la población entera en vez de sobre una mitad elegida por un corte inerte.
+   */
+  it('⚠️ cuenta TODOS los vecinos: sin umbral, todos llegarían al rerank', () => {
     const m = new Map<string, Vecino>();
     m.set('a', { documentId: 'a', documentName: 'A', scoreMax: 0.97, clasePar: 'resumen_x_resumen', muestraPropia: '', muestraVecina: '' });
     m.set('b', { documentId: 'b', documentName: 'B', scoreMax: 0.46, clasePar: 'resumen_x_resumen', muestraPropia: '', muestraVecina: '' });
     const r = resumirVecindario(m);
-    expect(r.vecinos).toBe(1);
-    expect(r.porClase.resumen_x_resumen).toBe(1);
+    expect(r.vecinos).toBe(2);
+    expect(r.porClase.resumen_x_resumen).toBe(2);
   });
 
   it('⚠️ EL CASO QUE DECIDE B.246: todos los vecinos por envoltorio', () => {
@@ -378,7 +391,6 @@ describe('distribucionDeScores — el rango del operando que el umbral juzga', (
     expect(d.p50).toBeNull();
     expect(d.histograma).toHaveLength(20);
     expect(d.histograma.every(c => c === 0)).toBe(true);
-    expect(d.bajo_umbral_rapido).toBe(0);
   });
 
   it('n, mínimo, máximo y el histograma reparten cada score en su cubo de 0,05', () => {
@@ -405,54 +417,16 @@ describe('distribucionDeScores — el rango del operando que el umbral juzga', (
   });
 
   /**
-   * ⚠️ CASO DECISIVO. Los dos scores están ENTRE los dos umbrales (0,45 y 0,50),
-   * así que cada recuento sale distinto — y mover CUALQUIERA de las dos
-   * constantes cambia una de las dos cifras:
-   *   · subir 0,50 a 0,55 → `bajo_umbral_rapido` pasaría de 2 a 4;
-   *   · bajar 0,50 a 0,45 → pasaría de 2 a 0;
-   *   · subir 0,45 a 0,50 → `bajo_umbral_exhaustivo` pasaría de 0 a 2;
-   *   · bajar 0,45 a 0,40 → seguiría en 0 sólo porque no hay nada ahí abajo,
-   *     y por eso el caso mete además un 0,41 que SÍ lo mueve.
+   * ⚠️ AQUÍ HABÍA DOS CASOS MÁS, Y ERAN LOS DEL UMBRAL. Vigilaban
+   *  y  —el recuento de lo que cada
+   * corte habría descartado— y su frontera inclusiva contra la función real.
+   * **Murieron con las dos constantes el 23/09/2026.**
+   *
+   * ⚠️ Y SU ÚLTIMO TRABAJO FUE EL QUE IMPORTABA: esos dos recuentos dieron CERO
+   * en los nueve tramos de la matriz limpia, y ése es el dato que autoriza la
+   * retirada. Un instrumento que se retira habiendo medido lo que se le pidió no
+   * es un instrumento perdido.
    */
-  it('⚠️ los dos recuentos separan los dos umbrales, y mover cualquiera los cambia', () => {
-    const d = distribucionDeScores([0.41, 0.46, 0.48, 0.52, 0.93]);
-
-    // Por debajo de 0,50: el 0,41, el 0,46 y el 0,48 — tres.
-    expect(d.bajo_umbral_rapido).toBe(3);
-    // Por debajo de 0,45: sólo el 0,41 — uno.
-    expect(d.bajo_umbral_exhaustivo).toBe(1);
-
-    // Y la separación es el dato: es lo que el exhaustivo compra con su umbral.
-    expect(d.bajo_umbral_rapido - d.bajo_umbral_exhaustivo).toBe(2);
-
-    // Los recuentos se derivan de las constantes REALES, no de literales.
-    expect(SCORE_THRESHOLD_QUICK).toBeGreaterThan(SCORE_THRESHOLD_EXHAUSTIVE);
-  });
-
-  /**
-   * ⚠️ LA FRONTERA, CON EL MISMO OPERADOR QUE DECIDE EN PRODUCCIÓN.
-   * `pasaElUmbral` (`lib/analysis/umbral-de-recuperacion.ts:22`) es
-   * `score >= umbral`, así que el score EXACTAMENTE igual al umbral **pasa** y
-   * no se cuenta como descartado. Se comprueba contra la función real para que
-   * el día que alguien cambie `>=` por `>` esto se ponga rojo.
-   */
-  it('⚠️ un score EXACTAMENTE igual al umbral pasa, y no se cuenta como descartado', () => {
-    const d = distribucionDeScores([SCORE_THRESHOLD_QUICK, SCORE_THRESHOLD_EXHAUSTIVE]);
-
-    // El de 0,50 pasa el rápido; el de 0,45 no lo pasa.
-    expect(pasaElUmbral(SCORE_THRESHOLD_QUICK, SCORE_THRESHOLD_QUICK)).toBe(true);
-    expect(pasaElUmbral(SCORE_THRESHOLD_EXHAUSTIVE, SCORE_THRESHOLD_QUICK)).toBe(false);
-    expect(d.bajo_umbral_rapido).toBe(1);
-
-    // Los dos pasan el exhaustivo: el 0,45 por igualdad.
-    expect(pasaElUmbral(SCORE_THRESHOLD_EXHAUSTIVE, SCORE_THRESHOLD_EXHAUSTIVE)).toBe(true);
-    expect(d.bajo_umbral_exhaustivo).toBe(0);
-
-    // El complemento, dicho como invariante y no como dos números sueltos.
-    const scores = [SCORE_THRESHOLD_QUICK, SCORE_THRESHOLD_EXHAUSTIVE, 0.1, 0.99];
-    const esperadoRapido = scores.filter(s => !pasaElUmbral(s, SCORE_THRESHOLD_QUICK)).length;
-    expect(distribucionDeScores(scores).bajo_umbral_rapido).toBe(esperadoRapido);
-  });
 });
 
 /**
