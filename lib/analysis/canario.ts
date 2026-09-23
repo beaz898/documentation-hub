@@ -260,13 +260,34 @@ export function elOrdenSeSostiene(m: CanarioMedido): boolean | null {
  * bit, así que para un texto fijo el servicio es DETERMINISTA — y eso es una
  * propiedad medida, no supuesta.
  *
- * ⚠️ Y POR ESO LA TOLERANCIA NO PUEDE SALIR DEL RUIDO. C7 decía «la tolerancia de
+ * ⚠️ Y POR ESO LA TOLERANCIA NO SALIÓ DEL RUIDO. C7 decía «la tolerancia de
  * alarma se fija después, a partir de ese ruido medido», y con ruido cero esa
  * derivación no existe: una tolerancia de 0 alarmaría ante cualquier movimiento,
- * incluido el que no significa nada. `tolerancia` se queda en `null` A PROPÓSITO
- * —es una DECISIÓN del director, no un cálculo— y la propuesta, con su razón,
- * está en `claude/Estado_Del_MVP.md` §5.85. Mientras sea `null`, el canario
- * INFORMA y no vigila: sus cifras se leen y se anotan.
+ * incluido el que no significa nada.
+ *
+ * ═══════════════════════════════════════════════════════════════════════════
+ * ⚠️ LA TOLERANCIA ES 0,001, Y LA DECIDIÓ EL DIRECTOR EL 23/09/2026 sobre una
+ * propuesta razonada. NO es un cálculo, y por eso lleva firma y fecha: quien la
+ * cambie está cambiando una decisión, no corrigiendo una cuenta.
+ *
+ * Las tres razones, y están enteras en `claude/Estado_Del_MVP.md` §5.85:
+ *   · **tres órdenes de magnitud por encima del ruido de coma flotante
+ *     plausible** (~1e-6 acumulando `float32` sobre 1024 dimensiones), así que un
+ *     cambio de hardware o de tamaño de lote sin cambio de modelo NO alarma;
+ *   · **dos órdenes por debajo de cualquier cambio semántico**: la separación
+ *     entre la pareja alta y la baja es 0,1937, y 0,001 es el 0,5 % de ese hueco
+ *     — un reentrenamiento mueve centésimas, no milésimas;
+ *   · es **la cifra que Fable predijo como cota del ruido**, así que alarmamos al
+ *     nivel donde él esperaba que viviera el ruido aunque el medido saliera muy
+ *     por debajo. Conservador en la dirección correcta.
+ *
+ * ⚠️ SU CONDICIÓN DE VALIDEZ, Y SIN ELLA LA TOLERANCIA CADUCA EN SILENCIO: **0,001
+ * sólo discrimina mientras el `ruido` se mantenga AL MENOS UN ORDEN DE MAGNITUD
+ * por debajo.** Si algún día el `ruido` llega a **1e-4**, una deriva real de 8e-4
+ * dejaría de distinguirse del ruido — y entonces la tolerancia **se REDERIVA
+ * desde el ruido nuevo, no se sube a ojo**. El `ruido` viaja en cada medición
+ * precisamente para que ese día se vea sin tener que adivinarlo.
+ * ═══════════════════════════════════════════════════════════════════════════
  *
  * ⚠️ NO SE TOCA NINGUNO DE ESTOS NÚMEROS SIN VOLVER A MEDIR. Son la historia
  * contra la que se compara; reescribirlos «para que cuadre» es cegar el
@@ -281,7 +302,12 @@ export const REFERENCIA: {
   baja: number;
   /** ⚠️ CERO EXACTO en las dos parejas, medido. Ver el aviso de arriba. */
   ruido_medido: number;
-  /** ⚠️ `null` = SIN DECIDIR. Propuesta y razón en §5.85 de `Estado_Del_MVP.md`. */
+  /**
+   * ⚠️ DECIDIDA POR EL DIRECTOR EL 23/09/2026. El tipo admite `null` a propósito:
+   * es lo que hay que poner el día que se REDERIVE y hasta que haya un número
+   * nuevo, para que el instrumento diga «no sé» en vez de vigilar con una cifra
+   * caducada. Ver la condición de validez en la cabecera.
+   */
   tolerancia: number | null;
 } = {
   fecha: '2026-09-23',
@@ -290,15 +316,17 @@ export const REFERENCIA: {
   alta: 0.9787957957543013,
   baja: 0.7851197779564706,
   ruido_medido: 0,
-  tolerancia: null,
+  tolerancia: 0.001,
 };
 
 /**
  * ¿Se ha movido el canario respecto a su referencia?
  *
- * ⚠️ DEVUELVE `null` MIENTRAS NO HAYA TOLERANCIA DECIDIDA, y eso es lo correcto:
- * sin tolerancia no hay pregunta que contestar. Un `false` diría «no se ha
- * movido», que es una afirmación, y aquí no se puede afirmar nada todavía.
+ * ⚠️ DEVUELVE `null` SI NO HAY TOLERANCIA, y eso es lo correcto: sin tolerancia
+ * no hay pregunta que contestar, y un `false` diría «no se ha movido», que es una
+ * afirmación. Desde el 23/09/2026 hay tolerancia (0,001), así que el `null` sólo
+ * vuelve si alguien la retira para rederivarla — o si la medición no trajo
+ * cifras.
  *
  * ⚠️ Y SI ALGÚN DÍA `ruido` DEJA DE SER CERO, ESTO NO BASTA: la tolerancia sólo
  * discrimina mientras el ruido se mantenga al menos un orden de magnitud por

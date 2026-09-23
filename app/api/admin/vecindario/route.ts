@@ -11,7 +11,13 @@ import {
   buildCorpusFilter,
 } from '@/lib/pinecone/vectors';
 import { TOP_K_POR_CONSULTA } from '@/lib/analysis/retrieval';
-import { medirElCanario, canarioNoMedido, elOrdenSeSostiene } from '@/lib/analysis/canario';
+import {
+  medirElCanario,
+  canarioNoMedido,
+  elOrdenSeSostiene,
+  elCanarioSeHaMovido,
+  REFERENCIA,
+} from '@/lib/analysis/canario';
 import { generateEmbeddingsConSello } from '@/lib/embeddings';
 import { runInBatches } from '@/lib/run-in-batches';
 import { reparteVacio, type ClaseDePar } from '@/lib/analysis/clase-de-trozo';
@@ -405,6 +411,24 @@ export async function GET(req: NextRequest) {
         // interpretar: dos formas de decir lo mismo tienen que parecerse MÁS que
         // dos temas sin relación.
         console.error(`[vecindario] CANARIO DEL REVÉS: la pareja baja se parece más que la alta | org=${orgId}`);
+      }
+      // ⚠️ EL LECTOR DE LA TOLERANCIA — 23/09/2026. Sin esta línea, decidir la
+      // tolerancia no cambiaría nada: sería un número declarado y sin consumidor,
+      // que es B.244 con otro nombre. Aquí es donde el canario pasa de INFORMAR a
+      // VIGILAR.
+      const movido = elCanarioSeHaMovido(canario);
+      if (movido === true) {
+        console.error(
+          `[vecindario] CANARIO MOVIDO — el modelo ha cambiado respecto a su referencia | org=${orgId} | ` +
+          `alta=${alta?.primera ?? 'null'} (ref ${REFERENCIA.alta}) | ` +
+          `baja=${baja?.primera ?? 'null'} (ref ${REFERENCIA.baja}) | ` +
+          `tolerancia=${REFERENCIA.tolerancia} | referencia del ${REFERENCIA.fecha}`,
+        );
+      } else if (movido === null) {
+        // ⚠️ NO ES LO MISMO QUE «no se movió»: es que NO SE PUDO COMPARAR —sin
+        // tolerancia, o sin cifras—. Se dice, para que el silencio no se lea como
+        // un visto bueno. Es la regla del cero: un no-resultado no es un resultado.
+        console.warn(`[vecindario] CANARIO SIN COMPARAR contra su referencia | org=${orgId}`);
       }
       if (canario.dimension_inesperada) {
         console.error(`[vecindario] CANARIO con dimensión inesperada: ${canario.modelo.dimension_servida} | org=${orgId}`);

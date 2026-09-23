@@ -230,7 +230,7 @@ describe('el canario no medido se escribe igual', () => {
   });
 });
 
-describe('⚠️ LA REFERENCIA — medida el 23/09/2026, y la tolerancia SIN DECIDIR', () => {
+describe('⚠️ LA REFERENCIA — medida el 23/09/2026, y su tolerancia decidida', () => {
   /**
    * ⚠️ ESTE BLOQUE DECÍA «pendiente» Y COMPROBABA QUE `REFERENCIA` ERA `null`.
    * Se midió en producción el 23/09/2026, así que ese caso murió y éstos ocupan
@@ -264,18 +264,87 @@ describe('⚠️ LA REFERENCIA — medida el 23/09/2026, y la tolerancia SIN DEC
   /**
    * ⚠️ LA TOLERANCIA ES UNA DECISIÓN DEL DIRECTOR, NO UN CÁLCULO. C7 la derivaba
    * del ruido medido, y el ruido salió CERO: de cero no se puede derivar una
-   * tolerancia sin inventarla. Mientras siga en `null`, el canario INFORMA y no
-   * vigila — y este caso existe para que nadie la rellene de paso.
+   * tolerancia sin inventarla. Se decidió el 23/09/2026 en 0,001, con su razón y
+   * su condición de validez; los casos que la ejercen están más abajo.
    */
-  it('⚠️ la tolerancia sigue SIN DECIDIR, y el comprobador lo dice con null', async () => {
-    expect(REFERENCIA.tolerancia).toBeNull();
+  it('⚠️ la tolerancia la DECIDIÓ el director: 0,001, no un cálculo', () => {
+    expect(REFERENCIA.tolerancia).toBe(0.001);
+  });
+});
 
-    const A1v = [1, 0, 0];
-    const A2v = [0.99, 0.1, 0];
-    const Bv = [0, 0, 1];
-    const m = await medirElCanario(embeberCon([A1v, A2v, Bv]));
-    // ⚠️ `null` y no `false`: sin tolerancia no hay pregunta que contestar, y un
-    // `false` afirmaría «no se ha movido».
-    expect(elCanarioSeHaMovido(m)).toBeNull();
+describe('⚠️ LA TOLERANCIA — 0,001, decidida por el director el 23/09/2026', () => {
+  const A1v = [1, 0, 0];
+  const Bv = [0, 0, 1];
+
+  /** Dos vectores cuyo coseno vale EXACTAMENTE lo que se pida. Sirve para poner
+   *  una pareja del canario en un valor elegido y medir el comprobador. */
+  const parQueCoseno = (c: number): [number[], number[]] => [
+    [1, 0],
+    [c, Math.sqrt(1 - c * c)],
+  ];
+
+  /** Una medición del canario con la alta y la baja en los valores que se pidan. */
+  const canarioEn = async (alta: number, baja: number) => {
+    const [, derechaAlta] = parQueCoseno(alta);
+    const [, derechaBaja] = parQueCoseno(baja);
+    // A1 es el ancla de las dos parejas, así que va primero y en 2 dimensiones.
+    return medirElCanario(embeberCon([[1, 0], derechaAlta, derechaBaja]));
+  };
+
+  it('el par de control cosenea lo que se le pide, que es lo que hace legible el resto', () => {
+    const [i, d] = parQueCoseno(0.9788);
+    expect(coseno(i, d)!).toBeCloseTo(0.9788, 10);
+  });
+
+  it('⚠️ YA NO DEVUELVE null: hay tolerancia, así que hay respuesta', async () => {
+    expect(REFERENCIA.tolerancia).toBe(0.001);
+    const m = await canarioEn(REFERENCIA.alta, REFERENCIA.baja);
+    expect(elCanarioSeHaMovido(m)).not.toBeNull();
+    expect(elCanarioSeHaMovido(m)).toBe(false);
+  });
+
+  /**
+   * ⚠️ CASO DECISIVO DE LA TOLERANCIA: un movimiento POR DEBAJO de 0,001 no
+   * alarma y uno POR ENCIMA sí. Si alguien la subiera a 0,01 o la bajara a 0,
+   * uno de los dos lados se pondría rojo — que es lo que le faltaba a este
+   * instrumento cuando la tolerancia era `null`.
+   */
+  it('⚠️ POR DEBAJO de la tolerancia NO alarma (deriva de 0,0005 en la alta)', async () => {
+    const m = await canarioEn(REFERENCIA.alta - 0.0005, REFERENCIA.baja);
+    expect(elCanarioSeHaMovido(m)).toBe(false);
+  });
+
+  it('⚠️ POR ENCIMA de la tolerancia SÍ alarma (deriva de 0,002 en la alta)', async () => {
+    const m = await canarioEn(REFERENCIA.alta - 0.002, REFERENCIA.baja);
+    expect(elCanarioSeHaMovido(m)).toBe(true);
+  });
+
+  it('⚠️ y la pareja BAJA alarma por su cuenta: basta que se mueva UNA', async () => {
+    const m = await canarioEn(REFERENCIA.alta, REFERENCIA.baja + 0.002);
+    expect(elCanarioSeHaMovido(m)).toBe(true);
+  });
+
+  it('la baja por debajo de la tolerancia tampoco alarma', async () => {
+    const m = await canarioEn(REFERENCIA.alta, REFERENCIA.baja - 0.0005);
+    expect(elCanarioSeHaMovido(m)).toBe(false);
+  });
+
+  /**
+   * ⚠️ LA CONDICIÓN DE VALIDEZ, ESCRITA COMO CASO: 0,001 sólo discrimina mientras
+   * el ruido se mantenga al menos un orden de magnitud por debajo. Esto no puede
+   * comprobar el ruido futuro —no ha ocurrido— pero sí puede fijar la relación que
+   * lo hará evidente: si alguien bajara la tolerancia al orden del ruido de
+   * rederivación (1e-4), esta aserción se pone roja y le manda a leer la cabecera.
+   */
+  it('⚠️ la tolerancia está un orden de magnitud por encima del umbral de rederivación', () => {
+    const UMBRAL_DE_REDERIVACION = 1e-4;
+    expect(REFERENCIA.tolerancia!).toBeGreaterThanOrEqual(UMBRAL_DE_REDERIVACION * 10);
+    // Y el ruido medido sigue muy por debajo, que es lo que la hace válida hoy.
+    expect(REFERENCIA.ruido_medido).toBeLessThan(UMBRAL_DE_REDERIVACION);
+  });
+
+  it('sin cifras que comparar sigue devolviendo null, tolerancia o no', async () => {
+    const roto: Embeber = async () => { throw new Error('503'); };
+    expect(elCanarioSeHaMovido(await medirElCanario(roto))).toBeNull();
   });
 });

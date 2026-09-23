@@ -6618,11 +6618,51 @@ corte absoluto por debajo de 0,78 no puede separar «relacionado» de «no relac
 ni con textos elegidos para ser ajenos.** Es el argumento más fuerte de la ficha de
 retirada, y llega del canario, no del corpus.
 
+
+### ✅ LA TOLERANCIA, DECIDIDA POR EL DIRECTOR EL 23/09/2026: **0,001**
+
+**Aprobada la propuesta de arriba, con su condición de validez.** Escrita en
+`lib/analysis/canario.ts` como `REFERENCIA.tolerancia = 0.001`, con la firma y la fecha al
+lado: **no es un cálculo, así que quien la cambie está cambiando una decisión y no
+corrigiendo una cuenta.**
+
+⚠️ **Y LA CONDICIÓN DE VALIDEZ VA CON ELLA, no en una nota aparte**: 0,001 sólo discrimina
+mientras el `ruido` se mantenga **al menos un orden de magnitud por debajo**. Si algún día
+llega a **1e-4**, se **REDERIVA** desde el ruido nuevo — **no se sube a ojo**. El `ruido`
+viaja en cada medición del censo precisamente para que ese día se vea sin adivinarlo.
+
+**Qué cambia en el instrumento, y es lo que convierte la decisión en algo:**
+
+- `elCanarioSeHaMovido` **deja de devolver `null`** y contesta. El `null` sólo vuelve si
+  alguien retira la tolerancia para rederivarla, o si la medición no trajo cifras.
+- **Y tiene LECTOR**, que es la mitad que faltaba: el censo lo llama y escribe
+  `CANARIO MOVIDO` con las dos cifras, sus referencias, la tolerancia y la fecha de la
+  referencia. Sin lector, la tolerancia habría sido un número declarado y sin consumidor
+  — **B.244 con otro nombre**, y esta casa ya pagó ése.
+- **El «no se pudo comparar» también suena**: si el comprobador devuelve `null`, el censo
+  escribe `CANARIO SIN COMPARAR`. Un no-resultado no es un resultado, y un silencio no es un
+  visto bueno.
+- **Cuatro casos decisivos** en `canario.test.ts`: por debajo de la tolerancia NO alarma
+  (deriva de 0,0005), por encima SÍ (0,002), la pareja BAJA alarma por su cuenta, y la
+  tolerancia está un orden de magnitud por encima del umbral de rederivación.
+- **Los dos mutantes mueren por lados opuestos**: subirla a 0,01 pone en rojo los casos de
+  «por encima» (4 rojos); bajarla a 1e-7 pone en rojo los de «por debajo» (5 rojos). **Es
+  exactamente lo que le faltaba a este número cuando era `null`: que moverlo rompa algo.**
+
+**Con esto el canario pasa a EJERCIDO** en la escala de F-95 P5 — ESCRITO, CONTADO,
+EJERCIDO—: tiene cifra, tiene referencia, tiene tolerancia decidida y tiene quien la lea.
+
+
 ### En qué grado está el canario
 
-**CONTADO**, en la escala de F-95 P5 —ESCRITO, CONTADO, EJERCIDO—. Sus cifras se miden y se
-guardan; **no vigila todavía** porque la tolerancia es una decisión pendiente. Pasará a
-EJERCIDO el día que un salto del termómetro se atribuya con él.
+**EJERCIDO**, en la escala de F-95 P5 —ESCRITO, CONTADO, EJERCIDO—, desde que el director
+fijó la tolerancia el 23/09/2026. Tiene cifra, referencia fechada, tolerancia decidida y
+LECTOR que la usa.
+
+⚠️ **Y LO QUE AÚN NO HA PASADO, dicho para que nadie lo lea de más: el canario no ha
+ATRIBUIDO todavía ninguna causa**, porque el termómetro no ha dado ningún salto. Está listo
+para hacerlo; no lo ha hecho. La diferencia entre «puede» y «lo hizo» es la que esta casa
+lleva semanas aprendiendo a escribir.
 
 ---
 
@@ -6719,3 +6759,33 @@ eso es lo correcto — son de tres clases, todas legítimas:
 comentario de código afirman hoy el ~0,79 como suelo del fragmento, ni citan
 `pasaElUmbral`, `candidatos_perdidos_por_umbral`, `SCORE_THRESHOLD_*` o
 `umbral-de-recuperacion.ts` como piezas vivas.
+---
+
+## ⚠️ 5.87 · PENDIENTE — el cero de `propios_excluidos` no tiene denominador (23/09/2026)
+
+**Anotado y NO arreglado, por decisión del director del 23/09/2026.**
+
+`propios_excluidos` es uno de los cinco denominadores del termómetro, y en los dos análisis
+reales del 23/09 salió **0**. Es lo esperado (ver §5.84, el apartado que lo cierra), **pero el
+cero no distingue tres situaciones**:
+
+1. **No había a quién excluir** — `excludeDocumentId` es `undefined` porque el documento no
+   existe todavía. Es el caso de una subida nueva, y el cero es una certeza estructural.
+2. **Había a quién excluir y sus vectores no pasan el filtro** — el documento está
+   `pendiente`, así que `CORPUS_ACTIVO` no lo devuelve y no hay nada que excluir.
+3. **Había a quién excluir, sus vectores SÍ llegaban, y no casó ninguno** — y **esto sería un
+   fallo**: significaría que el `documentId` de la metadata no coincide con el que la ruta
+   cree estar excluyendo.
+
+**Los tres escriben el mismo `0`.**
+
+⚠️ **ES LA REGLA DEL CERO APLICADA A OTRO SITIO** (F-103 P2): «un cero confirma si y sólo si
+el camino que lo produjo ha producido un NO-cero en las mismas condiciones, o la visión está
+declarada y es positiva». Aquí no hay ni control positivo ni visión declarada — **hay un
+número que se lee como confirmación y no puede demostrar que buscó**.
+
+**Por qué no se arregla hoy**: el arreglo es un campo más en el termómetro —algo como
+`propios_alcanzables`, que diga si el documento excluido estaba en el fondo consultable— y eso
+es otra decisión sobre la forma del termómetro, no una corrección. **Queda escrito para que el
+día que alguien lea un `propios_excluidos: 0` sepa que no puede leerlo como «la exclusión
+funcionó».**
