@@ -11,6 +11,7 @@ import {
   TEXTO_A2,
   TEXTO_B,
   REFERENCIA,
+  elCanarioSeHaMovido,
   type Embeber,
 } from './canario';
 import { EMBEDDING_MODEL, EMBEDDING_DIMENSION } from '@/lib/embeddings';
@@ -229,17 +230,52 @@ describe('el canario no medido se escribe igual', () => {
   });
 });
 
-describe('⚠️ LA REFERENCIA — pendiente, y esto lo vigila', () => {
+describe('⚠️ LA REFERENCIA — medida el 23/09/2026, y la tolerancia SIN DECIDIR', () => {
   /**
-   * ⚠️ NO ES UN CASO TONTO. C7 manda que la referencia sean los valores de la
-   * PRIMERA MEDICIÓN, con su fecha y su sello, y que la tolerancia salga del
-   * ruido medido. Nada de eso existe hoy. Si alguien rellenara `REFERENCIA` con
-   * números estimados, el canario compararía contra una suposición — y daría
-   * alarmas o silencios igual de infundados. Este caso muere el día que se
-   * rellene DE VERDAD, y ese día hay que borrarlo a mano y escribir el que
-   * compruebe la tolerancia.
+   * ⚠️ ESTE BLOQUE DECÍA «pendiente» Y COMPROBABA QUE `REFERENCIA` ERA `null`.
+   * Se midió en producción el 23/09/2026, así que ese caso murió y éstos ocupan
+   * su sitio. La distinción que conservan es la que importa: **la referencia está
+   * MEDIDA y la tolerancia está SIN DECIDIR**, y son dos cosas distintas.
    */
-  it('⚠️ sigue siendo null: no se rellena a mano ni se estima', () => {
-    expect(REFERENCIA).toBeNull();
+  it('trae la medición completa, con su fecha y su sello', () => {
+    expect(REFERENCIA.fecha).toBe('2026-09-23');
+    expect(REFERENCIA.modelo).toBe(EMBEDDING_MODEL);
+    expect(REFERENCIA.dimension).toBe(EMBEDDING_DIMENSION);
+    expect(REFERENCIA.alta).toBeCloseTo(0.9787957957543013, 12);
+    expect(REFERENCIA.baja).toBeCloseTo(0.7851197779564706, 12);
+  });
+
+  /**
+   * ⚠️ EL ORDEN DE LA REFERENCIA ES EL QUE EL INSTRUMENTO PREDICE, y comprobarlo
+   * aquí no es redundante: si alguien intercambiara los dos números al copiarlos,
+   * el canario compararía la pareja alta contra la referencia baja y daría una
+   * alarma permanente. Es el error de transcripción más probable.
+   */
+  it('⚠️ la referencia alta es mayor que la baja: el orden sobrevive a la copia', () => {
+    expect(REFERENCIA.alta).toBeGreaterThan(REFERENCIA.baja);
+    // Y con holgura: casi 0,2 de separación, no dos cifras pegadas.
+    expect(REFERENCIA.alta - REFERENCIA.baja).toBeGreaterThan(0.15);
+  });
+
+  it('⚠️ el ruido medido es CERO EXACTO, no «pequeño»', () => {
+    expect(REFERENCIA.ruido_medido).toBe(0);
+  });
+
+  /**
+   * ⚠️ LA TOLERANCIA ES UNA DECISIÓN DEL DIRECTOR, NO UN CÁLCULO. C7 la derivaba
+   * del ruido medido, y el ruido salió CERO: de cero no se puede derivar una
+   * tolerancia sin inventarla. Mientras siga en `null`, el canario INFORMA y no
+   * vigila — y este caso existe para que nadie la rellene de paso.
+   */
+  it('⚠️ la tolerancia sigue SIN DECIDIR, y el comprobador lo dice con null', async () => {
+    expect(REFERENCIA.tolerancia).toBeNull();
+
+    const A1v = [1, 0, 0];
+    const A2v = [0.99, 0.1, 0];
+    const Bv = [0, 0, 1];
+    const m = await medirElCanario(embeberCon([A1v, A2v, Bv]));
+    // ⚠️ `null` y no `false`: sin tolerancia no hay pregunta que contestar, y un
+    // `false` afirmaría «no se ha movido».
+    expect(elCanarioSeHaMovido(m)).toBeNull();
   });
 });

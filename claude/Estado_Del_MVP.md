@@ -6515,3 +6515,111 @@ tercera sería un fallo. Es la regla del cero con otro objeto: **un cero confirm
 mismo camino ha producido un no-cero en las mismas condiciones.** Queda ANOTADO, sin ficha
 propia y sin arreglo, porque el arreglo es un campo más en el termómetro y eso es otra
 decisión.
+
+---
+
+## 📏 5.85 · LA REFERENCIA DEL CANARIO, y la tolerancia que NO se decide aquí (23/09/2026)
+
+**Primera medición real del canario de F-114 P3, en producción.** Es lo que C7 pedía como
+referencia: «los de la primera medición, guardados junto al sello del modelo». Escritos en
+`lib/analysis/canario.ts`, sin redondear.
+
+| | |
+|---|---|
+| **Pareja ALTA** (A1–A2, lo mismo dicho de otra forma) | **0,9787957957543013** |
+| **Pareja BAJA** (A1–B, dos temas sin relación) | **0,7851197779564706** |
+| **Separación** | **0,1936760178** |
+| **Ruido** | **0 exacto en las dos** |
+| **Modelo servido** | `multilingual-e5-large` |
+| **`dimension_servida`** | **1024**, y `dimension_inesperada: false` |
+| **Fecha** | **23/09/2026** |
+
+### ⚠️ EL RUIDO ES CERO, Y ESO ROMPE LA RECETA DE C7
+
+C7 decía: «la tolerancia de alarma se fija después, a partir de ese ruido medido». **Con
+ruido cero esa derivación no existe.** Una tolerancia de 0 alarmaría ante cualquier
+movimiento, incluido el que no significa nada.
+
+**Lo que el cero SÍ dice, y es un hallazgo**: para un texto fijo, el servicio de embeddings
+es **DETERMINISTA** — dos llamadas consecutivas devolvieron el mismo vector bit a bit. Es una
+propiedad medida, no supuesta, y es más fuerte que lo que nadie había pedido.
+
+### LA TOLERANCIA QUE PROPONGO: **0,001** — y es una PROPUESTA, no una decisión
+
+`REFERENCIA.tolerancia` está en **`null`** en el código, y el comprobador
+`elCanarioSeHaMovido` devuelve **`null`** mientras lo esté. **Decide el director.**
+
+**Por qué 0,001, en tres razones:**
+
+1. **Está tres órdenes de magnitud por encima del ruido de coma flotante plausible.** Si el
+   proveedor cambia de hardware, de tamaño de lote o de versión de biblioteca sin cambiar el
+   modelo, la acumulación en `float32` sobre 1024 dimensiones puede mover las últimas cifras
+   —del orden de 1e-6 o menos—. Con 0,001 eso no alarma, que es lo correcto: **no ha cambiado
+   nada que signifique algo.**
+2. **Está dos órdenes por debajo de cualquier cambio semántico.** La separación entre la alta
+   y la baja es **0,1937**; 0,001 es el **0,5 %** de ese hueco. Un reentrenamiento del modelo
+   mueve centésimas, no milésimas. Así que 0,001 alarma ante un cambio real y calla ante el
+   ruido — que es la definición de una tolerancia útil.
+3. **Es la cifra que Fable predijo como cota del ruido**, y usarla como tolerancia es
+   conservador en la dirección correcta: alarmamos al nivel en el que él esperaba que viviera
+   el ruido, aunque el ruido medido haya salido muy por debajo.
+
+⚠️ **Y SU CONDICIÓN DE VALIDEZ, que va escrita porque sin ella la tolerancia caduca en
+silencio: 0,001 sólo discrimina mientras el `ruido` se mantenga AL MENOS UN ORDEN DE MAGNITUD
+por debajo.** Si algún día el `ruido` llega a 1e-4, una deriva real de 8e-4 dejaría de
+distinguirse del ruido y **la tolerancia habría que rederivarla**, no subirla a ojo.
+
+### ⚠️ QUÉ PASARÍA SI EL PROVEEDOR INTRODUJERA VARIACIÓN MÍNIMA EN EL FUTURO
+
+**Lo veríamos, y ahí está el valor de medir dos veces SIEMPRE.** El `ruido` viaja en cada
+medición del censo, así que un cambio de régimen —de determinista a ligeramente variable— es
+observable por sí mismo: no hay que adivinarlo ni esperar a que una alarma falle.
+
+Los tres escenarios, y son distinguibles con los datos que el canario ya devuelve:
+
+| Lo que se ve | Qué significa | Qué hacer |
+|---|---|---|
+| `ruido` sigue en 0 y las cifras se mueven más de la tolerancia | **cambió el modelo**, y el cambio es limpio | Investigar el modelo; el termómetro dirá si movió el corpus |
+| `ruido` pasa a ~1e-7 y las cifras no se mueven | el proveedor introdujo variación numérica sin cambiar el modelo | **Nada.** Se anota el régimen nuevo. La tolerancia sigue valiendo |
+| `ruido` sube al orden de la tolerancia (1e-4 o más) | el servicio dejó de ser comparable consigo mismo | **Rederivar la tolerancia** desde el ruido nuevo, y volver a medir la referencia |
+
+⚠️ **Y EL CASO QUE NO SE CUBRE, dicho para que nadie se apoye de más: si el proveedor
+cambiara el modelo Y la variación a la vez**, el `ruido` alto taparía la deriva. El canario no
+lo resolvería solo; lo resolvería el **sello** (`modelo.servido` y `dimension_servida`), que
+es la otra mitad y no depende de ninguna tolerancia.
+
+### LAS DOS PREDICCIONES, CON SU RESULTADO
+
+**Se escribieron ANTES de medir, y se cuentan las dos — la regla no distingue de quién es.**
+
+✅ **LA DE FABLE: ACERTADA.** «La diferencia entre esas dos mediciones será menor de 0,001»
+(`F-114.md:226`, de entrenamiento y declarada sin verificar). **Salió 0 exacto**, o sea
+acertada con todo el margen del mundo. Es la primera predicción suya que acierta en este
+frente, y merece decirse igual que se dijeron las que fallaron.
+
+❌ **LA MÍA PARA LA PAREJA ALTA: FALLADA.** Predije **«entre 0,90 y 0,96»** y salió
+**0,9788** — fuera por arriba, por 0,019.
+
+⚠️ **Y ES EL MISMO ERROR QUE COSTÓ LA PREDICCIÓN DE FABLE SOBRE EL SUELO, con el signo
+cambiado.** Él se ancló en la cifra redonda del fabricante y predijo un suelo demasiado alto;
+yo supuse que dos paráfrasis «no llegarían a 0,98» sin ninguna medición detrás, y quedé
+demasiado bajo. **Los dos pusimos una horquilla donde no había dato.** La diferencia es que
+la horquilla estaba escrita, así que el fallo se puede contar — y contarlo es lo único que
+distingue una predicción de una opinión.
+
+✅ **Y LA DE LA PAREJA BAJA: ACERTADA.** Predije «entre 0,70 y 0,80» y salió **0,7851**.
+
+⚠️ **LO QUE EL 0,785 DE LA PAREJA BAJA ENSEÑA, Y NO ES MENOR**: dos frases **de temas
+completamente ajenos** —un trámite de recepción clínica y el punto de fusión del estaño— se
+parecen **0,785** para este modelo. Eso es **por encima** del suelo medido del corpus real
+(**0,696**). Confirma lo que la retirada del umbral ya suponía, y ahora con un par
+construido a propósito: **`multilingual-e5` comprime las similitudes en la franja alta, y un
+corte absoluto por debajo de 0,78 no puede separar «relacionado» de «no relacionado»
+ni con textos elegidos para ser ajenos.** Es el argumento más fuerte de la ficha de
+retirada, y llega del canario, no del corpus.
+
+### En qué grado está el canario
+
+**CONTADO**, en la escala de F-95 P5 —ESCRITO, CONTADO, EJERCIDO—. Sus cifras se miden y se
+guardan; **no vigila todavía** porque la tolerancia es una decisión pendiente. Pasará a
+EJERCIDO el día que un salto del termómetro se atribuya con él.

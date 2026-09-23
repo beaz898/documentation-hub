@@ -250,27 +250,68 @@ export function elOrdenSeSostiene(m: CanarioMedido): boolean | null {
 }
 
 /**
- * ⚠️ LOS VALORES DE REFERENCIA — PENDIENTES DE LA PRIMERA MEDICIÓN.
+ * LOS VALORES DE REFERENCIA — MEDIDOS EN PRODUCCIÓN EL 23/09/2026.
  *
- * C7 dice que la referencia son «los de la primera medición, guardados junto al
- * sello del modelo». Esa medición **no se ha hecho todavía**, así que aquí no hay
- * ningún número: `null` significa «sin referencia», y es lo único honesto que
- * puede decir este fichero hoy.
+ * C7 pedía «los de la primera medición, guardados junto al sello del modelo». Son
+ * éstos, copiados literalmente de la respuesta del censo, sin redondear.
  *
- * ⚠️ NO SE RELLENA A MANO NI SE ESTIMA. Una referencia inventada convertiría el
- * canario en un instrumento que compara contra una suposición, que es peor que no
- * tener canario: daría alarmas o silencios igual de infundados. Se rellena
- * copiando lo que devuelva el censo, con su fecha y su sello, y **en el mismo
- * commit que la tolerancia** — que sale del `ruido` de esa misma medición.
+ * ⚠️ EL RUIDO MEDIDO ES CERO EXACTO en las dos parejas. No «pequeño»: **cero**.
+ * Las dos llamadas consecutivas al servicio devolvieron el mismo vector bit a
+ * bit, así que para un texto fijo el servicio es DETERMINISTA — y eso es una
+ * propiedad medida, no supuesta.
  *
- * ⚠️ Y HASTA ENTONCES EL CANARIO SÓLO INFORMA, no vigila: sus cifras se leen y se
- * anotan. Es el grado ESCRITO de la escala de F-95 P5; CONTADO llega con la
- * referencia y EJERCIDO el día que un salto se atribuya con él.
+ * ⚠️ Y POR ESO LA TOLERANCIA NO PUEDE SALIR DEL RUIDO. C7 decía «la tolerancia de
+ * alarma se fija después, a partir de ese ruido medido», y con ruido cero esa
+ * derivación no existe: una tolerancia de 0 alarmaría ante cualquier movimiento,
+ * incluido el que no significa nada. `tolerancia` se queda en `null` A PROPÓSITO
+ * —es una DECISIÓN del director, no un cálculo— y la propuesta, con su razón,
+ * está en `claude/Estado_Del_MVP.md` §5.85. Mientras sea `null`, el canario
+ * INFORMA y no vigila: sus cifras se leen y se anotan.
+ *
+ * ⚠️ NO SE TOCA NINGUNO DE ESTOS NÚMEROS SIN VOLVER A MEDIR. Son la historia
+ * contra la que se compara; reescribirlos «para que cuadre» es cegar el
+ * instrumento.
  */
 export const REFERENCIA: {
   fecha: string;
+  /** El modelo que el servicio dijo haber usado, no el que pedimos. */
   modelo: string;
+  dimension: number;
   alta: number;
   baja: number;
-  tolerancia: number;
-} | null = null;
+  /** ⚠️ CERO EXACTO en las dos parejas, medido. Ver el aviso de arriba. */
+  ruido_medido: number;
+  /** ⚠️ `null` = SIN DECIDIR. Propuesta y razón en §5.85 de `Estado_Del_MVP.md`. */
+  tolerancia: number | null;
+} = {
+  fecha: '2026-09-23',
+  modelo: 'multilingual-e5-large',
+  dimension: 1024,
+  alta: 0.9787957957543013,
+  baja: 0.7851197779564706,
+  ruido_medido: 0,
+  tolerancia: null,
+};
+
+/**
+ * ¿Se ha movido el canario respecto a su referencia?
+ *
+ * ⚠️ DEVUELVE `null` MIENTRAS NO HAYA TOLERANCIA DECIDIDA, y eso es lo correcto:
+ * sin tolerancia no hay pregunta que contestar. Un `false` diría «no se ha
+ * movido», que es una afirmación, y aquí no se puede afirmar nada todavía.
+ *
+ * ⚠️ Y SI ALGÚN DÍA `ruido` DEJA DE SER CERO, ESTO NO BASTA: la tolerancia sólo
+ * discrimina mientras el ruido se mantenga al menos un orden de magnitud por
+ * debajo de ella. El `ruido` viaja en cada medición precisamente para que ese día
+ * se vea; la condición está escrita en §5.85.
+ */
+export function elCanarioSeHaMovido(m: CanarioMedido): boolean | null {
+  if (REFERENCIA.tolerancia === null) return null;
+  const alta = m.parejas.find(p => p.clave === 'alta')?.primera ?? null;
+  const baja = m.parejas.find(p => p.clave === 'baja')?.primera ?? null;
+  if (alta === null || baja === null) return null;
+  return (
+    Math.abs(alta - REFERENCIA.alta) > REFERENCIA.tolerancia ||
+    Math.abs(baja - REFERENCIA.baja) > REFERENCIA.tolerancia
+  );
+}
