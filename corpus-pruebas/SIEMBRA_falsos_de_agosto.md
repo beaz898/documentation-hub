@@ -172,6 +172,30 @@ activo es CORRECTO.
 subirlo no cambia nada aquí, **bajarlo ocho caracteres parte este documento**.
 Es el primer documento del corpus que lo ejerce por tan poco.
 
+### ⚠️⚠️ EL AVISO CON FECHA DE CADUCIDAD, y va con estas palabras porque lo pidió el director
+
+> **El caso del falso 3 (`N4_esterilizacion_pendiente.mjs`) vive a OCHO
+> CARACTERES de dejar de funcionar.** RRHH-04 da hoy un solo trozo, y con un solo
+> trozo no existe ninguna costura donde su discriminante pueda partirse: está a
+> salvo **por construcción, no por suerte**. Ocho letras más en el documento y
+> hay dos trozos, y entonces «Protocolo de esterilización y control de
+> infecciones» puede caer justo en la costura.
+>
+> **SI ALGUIEN EDITA RRHH-04, HAY QUE REMEDIR EL TROCEADO ANTES DE CREERSE UNA
+> PASADA DE ESE CASO.** No basta con que el fichero siga teniendo la frase: lo
+> que decide es en cuántos trozos cae y si la frase sobrevive entera en uno.
+
+Lo que lo hace un aviso y no una bomba: **el verificador lo canta antes de pagar**.
+`verificarDiscriminantesEnFragmentos` corre en cada pasada y sobre los fragmentos
+reales, así que un `PARTIDO_POR_UNA_COSTURA` aborta el caso sin gastar los cinco
+créditos. Lo que el verificador **no** puede hacer es avisar de que la línea de
+base dejó de ser comparable — eso sólo lo sabe quien lea esto.
+
+⚠️ Y el aviso vale para los otros cuatro documentos por la misma razón, sólo que
+con más margen: sus trozos van de 304 a 1.073 caracteres, así que **cualquier
+edición mueve las costuras** y los discriminantes que hoy caben enteros pueden
+dejar de caber. El fichero se remide entero, no sólo el que se tocó.
+
 ### 2 · ✅ CORREGIDO EL MISMO DÍA — RRHH-04 era el primer `.md` del corpus y `*.md text` le cambiaba los bytes
 
 `corpus-pruebas/.gitattributes` declara `*.md text` con este motivo escrito:
@@ -255,8 +279,60 @@ el criterio del producto en vez de tener el suyo — pero `normalize` vive en un
 que sus dos comparaciones *«viven juntas a propósito … la única defensa contra
 importar la que no era es que no se puedan leer por separado»*. **Mover
 `normalize` rompería un invariante declarado por escrito**, y eso no lo decide
-quien pasaba por aquí. Va al arquitecto con las tres opciones y su coste, no
-resuelto por el camino.
+quien pasaba por aquí.
+
+#### LAS TRES OPCIONES, con su coste y su riesgo — para que el arquitecto decida
+
+**El problema, en una frase**: `¿existe esta frase en este texto?` está
+implementado dos veces —`includes` en el examen, `normalize()` en el producto— y
+ya divergen. La decisión no es cómo comparar: es **dónde vive el criterio**.
+
+**A · MOVER `normalize` A UN `.mjs` QUE LOS DOS MUNDOS PUEDAN IMPORTAR**
+`lib/analysis/normalize-core.mjs` con el cuerpo, y `normalize.ts` re-exportando.
+- **Coste**: dos ficheros tocados. `tsconfig.json` ya tiene `allowJs: true` y
+  `moduleResolution: "bundler"`, así que el import desde `.ts` type-checa sin
+  declaración a mano — comprobado en el tsconfig, **no ejecutado**.
+- **Riesgo**: ⚠️ **rompe el invariante escrito de `normalize.ts`**. Ese fichero
+  declara que `normalize` (BUSCAR, agresiva) y `esVarianteDeEscritura` (COMPARAR,
+  conservadora) *«viven juntas a propósito»* porque **el modo de fallo es importar
+  la que no era**. Sacar una de las dos de la habitación es exactamente lo que el
+  comentario prohíbe. Si se elige esta opción, **el invariante hay que reescribirlo
+  en el mismo commit**, no dejarlo mintiendo.
+- **Lo que gana**: es la única que deja UNA implementación. Las otras dos dejan
+  dos y se conforman con que no divergan.
+
+**B · QUE EL EXAMEN PIDA EL CRITERIO AL PRODUCTO POR EL ENDPOINT**
+El endpoint del examen ya devuelve los fragmentos; que devuelva además el
+veredicto de pertenencia de cada discriminante, calculado en servidor con
+`normalize()`.
+- **Coste**: una entrada más en un endpoint que ya existe, y el ejecutor deja de
+  comparar: pregunta.
+- **Riesgo**: mete el criterio del examen DENTRO del producto, que es lo que
+  `lib/pinecone/corpus-del-examen.ts` se prohibió explícitamente —*«meterle un
+  modo al filtro del producto para que el examen quepa sería poner el instrumento
+  de medida dentro de lo que mide»*—. Y encima ese endpoint es el que decide si se
+  gasta o no: darle una responsabilidad de juicio lo acerca a ser juez y parte.
+- **Lo que gana**: cero duplicación y cero movimiento de `normalize`.
+
+**C · DEJAR DOS Y ATARLAS CON UN CASO QUE FALLE SI DIVERGEN**
+Una batería que pase las mismas parejas (frase, texto) por las dos y exija el
+mismo veredicto, con los casos que hoy divergen dentro: la frase partida por un
+salto de línea, la que lleva markdown, la que cambia de caja.
+- **Coste**: el más bajo de los tres. Un fichero de test nuevo, nada de producción.
+- **Riesgo**: es la opción que la casa tiene prohibida por escrito —*«dos
+  implementaciones del mismo criterio no se mantienen sincronizadas: se
+  separan»*—. Un test de equivalencia retrasa la separación, no la impide: el día
+  que alguien añada un caso a una y no a la otra, el test sólo lo caza si el caso
+  nuevo está en la lista.
+- **Lo que gana**: hoy mismo pondría en verde los discriminantes largos sin tocar
+  nada del producto.
+
+⚠️ **MI LECTURA, y es sólo eso**: la A es la única que cura, y su riesgo es
+**documental y no funcional** —un comentario que hay que reescribir, no un
+comportamiento que cambia—. La C es la más barata y la que esta casa ya ha pagado
+tres veces con otro nombre. Pero la decisión es del arquitecto y el rodeo de hoy
+aguanta sin prisa: discriminantes que no cruzan salto de línea, con la elección
+escrita caso por caso.
 
 ## LA COMPROBACIÓN, PARA REPETIRLA
 

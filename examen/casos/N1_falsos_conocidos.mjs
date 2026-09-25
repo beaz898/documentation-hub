@@ -16,11 +16,15 @@
  * contradicción real de `Puesto`, y NO sale la espuria de las horas?
  * Separarlos costaría dos análisis para medir lo que uno mide.
  *
- * ⚠️⚠️ Y AQUÍ VA LA ADVERTENCIA MÁS IMPORTANTE DEL FICHERO: **DE LOS SIETE
- * FALSOS DE AGOSTO, ÉSTE ES EL ÚNICO QUE SE PUEDE CORRER HOY.** Los otros seis
- * necesitan documentos que NO están en `corpus-pruebas/`. El detalle, con dónde
- * se buscó, está en el bloque `LOS_QUE_NO_ENTRAN` del final — y no se inventa
- * ninguno: un falso sin cita literal no entra.
+ * ⚠️⚠️ ESTA ADVERTENCIA CADUCÓ EL 25/09/2026 A LAS 17:14, y se deja con su
+ * corrección al lado en vez de borrarla, porque el motivo importa. **Decía: «de
+ * los siete falsos de agosto, éste es el único que se puede correr hoy; los
+ * otros seis necesitan documentos que NO están en `corpus-pruebas/`».**
+ * Los cinco documentos entraron ese día (`31c141d6`) y hoy corren **cuatro
+ * casos más**: `N3` (pelo y calzado), `N4` (esterilización), `N5` (alarma) y
+ * `N6` (autoclave, con la trampa REAL del par en `debenSalir`).
+ * La tabla del bloque `LOS_QUE_NO_ENTRAN` del final está actualizada con lo que
+ * sigue fuera, que son tres y ninguno por falta de fichero.
  *
  * ═══════════════════════════════════════════════════════════════════════════
  * ⚠️⚠️⚠️ EL LÍMITE QUE HAY QUE LEER ANTES DE CUALQUIER VERDE DE ESTE CASO:
@@ -247,21 +251,35 @@ export default {
  *
  * LA TABLA, falso por falso:
  *
- * | # | Par | Cita literal | Documentos en corpus-pruebas | ¿Corre? |
+ * LA TABLA, falso por falso — **REHECHA EL 25/09/2026 CON LOS CINCO FICHEROS
+ * DENTRO.** La columna que cambió es la de los documentos; la de las citas, no:
+ * ningún fichero puede dar una cita que nadie transcribió.
+ *
+ * | # | Par | Cita literal | Documentos | ¿Corre? |
  * |---|---|---|---|---|
- * | 1 | MKT-01 ↔ RRHH-05 · «pelo recogido» | ✅ las dos, F-22:66-67 | MKT-01 sí, **RRHH-05 NO** | ❌ |
- * | 2 | MKT-01 ↔ RRHH-05 · calzado | ❌ sólo «ídem con el calzado» | MKT-01 sí, **RRHH-05 NO** | ❌ |
- * | 3 | RRHH-04 ↔ RRHH-06 · esterilización | ✅ las dos, F-22:71-73 | RRHH-06 sí, **RRHH-04 NO** | ❌ |
- * | 4 | NOR-04 ↔ OPE-01 · alarma | ✅ las dos, F-22:76-78 | **NOR-04 NO, OPE-01 NO** | ❌ |
- * | 5 | OPE-01 ↔ CLI-01 · autoclave | ✅ las dos, F-22:79-80 | **OPE-01 NO, CLI-01 NO** | ❌ |
- * | 6 | RRHH-06 ↔ OPE-02 · Nuria Ferrer | ❌ sólo el título | los dos SÍ | ⚠️ sin cita |
- * | 6-bis | RRHH-06 ↔ OPE-02 · **Belmonte** | ✅ las dos, **B.82** | los dos SÍ | ✅ **ES EL DE ARRIBA** |
+ * | 1 | MKT-01 ↔ RRHH-05 · «pelo recogido» | ✅ las dos, F-22:66-67 | ✅ los dos | ✅ **N3** |
+ * | 2 | MKT-01 ↔ RRHH-05 · calzado | ⚠️ **INFERIDA del documento**, no transcrita | ✅ los dos | ⚠️ **N3, con supuesto declarado** |
+ * | 3 | RRHH-04 ↔ RRHH-06 · esterilización | ✅ las dos, F-22:71-73 | ✅ los dos | ✅ **N4** |
+ * | 4 | NOR-04 ↔ OPE-01 · alarma | ✅ las dos, F-22:76-78 | ✅ los dos | ✅ **N5** |
+ * | 5 | OPE-01 ↔ CLI-01 · autoclave | ✅ las dos, F-22:79-80 | ✅ los dos | ✅ **N6** ⚠️ *bloqueado mientras CLI-01 esté duplicado* |
+ * | 6 | RRHH-06 ↔ OPE-02 · Nuria Ferrer | ❌ sólo el título | los dos sí | ❌ sin cita |
+ * | 6-bis | RRHH-06 ↔ OPE-02 · **Belmonte** | ✅ las dos, **B.82** | los dos sí | ✅ **ES EL DE ARRIBA** |
  * | 7 | **no identificado** | — | — | ❌ |
  *
- * ⚠️ EL FALSO QUE MÁS DUELE QUE NO ENTRE ES EL 5, el del autoclave: es el que
- * volvió el 23/09 y disparó F-116. Necesita **CLI-01 y OPE-01**, y ninguno de
- * los dos está en `corpus-pruebas/`. **Mientras no estén, el examen no puede
- * vigilar el falso que provocó todo esto.**
+ * ⚠️ **EL 2 ENTRA POR UNA VÍA DISTINTA QUE LOS OTROS, y se dice**: F-22 sólo
+ * escribió «ídem con el calzado». Lo que lo desbloquea no es una transcripción
+ * aparecida, es que **cada documento tiene UNA sola frase sobre calzado** y la
+ * relación entre las dos es la que F-22 describe —la de RRHH-05 es la de MKT-01
+ * reordenada más la coletilla—. Eso determina el par de citas por el material.
+ * Sigue siendo una inferencia, va etiquetada como tal en `N3` y un hallazgo de
+ * calzado con otras citas se marca para etiqueta humana en vez de contarse.
+ *
+ * ⚠️ Y EL 5 —el del autoclave, el que volvió el 23/09 y disparó F-116— **ya se
+ * puede vigilar**: es `N6`, y además es el único caso del examen cuyas dos
+ * mitades están medidas, porque el mismo fallo produjo un falso positivo
+ * confirmado y un falso negativo sobre la trampa real. Su evidencia es
+ * reproducible desde el fichero: las ocho longitudes de CLI-01 salen exactas
+ * (ver `claude/Estado_Del_MVP.md` §5.91).
  *
  * ⚠️ Y UNA PRECISIÓN SOBRE BELMONTE, para no colarlo como lo que no es: **no es
  * uno de los siete de la ronda A.** B.82 lo midió el **21/08** sobre el mismo
@@ -269,20 +287,40 @@ export default {
  * dos citas literales y un histórico medido, y por eso sirve — pero entra como
  * falso documentado, no como «uno de los siete».
  *
- * LO QUE HACE FALTA DEL DIRECTOR para que los otros seis entren:
- *   1. **CLI-01, OPE-01, RRHH-04, RRHH-05 y NOR-04** en `corpus-pruebas/`
- *      (⚠️ y entonces hay que añadirlos a `lib/corpus-del-harness.test.ts`, que
- *      exige que todo fichero de ahí esté nombrado en algún `SIEMBRA_*.md`).
- *   2. **La cita literal del falso del calzado** y **las dos de Nuria Ferrer**.
- *   3. **Cuál es el séptimo.** Es su documento y su recuento; afirmar «7 de 7»
+ * LO QUE HACE FALTA DEL DIRECTOR, actualizado — **el punto 1 está HECHO**:
+ *   1. ✅ **CLI-01, OPE-01, RRHH-04, RRHH-05 y NOR-04** en `corpus-pruebas/`,
+ *      el 25/09/2026 (`31c141d6`), declarados en `lib/corpus-del-harness.test.ts`
+ *      y con registro en `corpus-pruebas/SIEMBRA_falsos_de_agosto.md`.
+ *   2. ⚠️ **Las dos citas de Nuria Ferrer.** (La del calzado ya no hace falta:
+ *      ver arriba, entra por inferencia del documento con el supuesto escrito.)
+ *   3. ⚠️ **Cuál es el séptimo.** Es su documento y su recuento; afirmar «7 de 7»
  *      sobre seis sería fabricar la métrica que mide todas las demás.
+ *
+ * ⚠️ Y UNA COSA QUE APARECIÓ AL MEDIR Y NO ESTABA BUSCADA: **la ronda B tiene un
+ * falso más que hoy sería construible**, y no se ha construido porque es OTRA
+ * POBLACIÓN y eso lo decide el director. Es el quinto de los cinco de la ronda B
+ * (`claude/Estado_Del_MVP.md:6841-6843`): la periodicidad bienal del reciclaje de
+ * RCP en **RRHH-04** contra «iniciar soporte vital básico si es necesario» en
+ * **NOR-04** — patrón 2. Los dos documentos están ya en `corpus-pruebas/` y la
+ * segunda cita es literal y localizada (NOR-04, línea 19 del texto extraído).
+ * El otro que quedaría —hospital de referencia, CLI-04 ↔ NOR-04— necesita CLI-04,
+ * que no está.
  * ═══════════════════════════════════════════════════════════════════════════
  */
 export const LOS_QUE_NO_ENTRAN = {
   fecha: '2026-09-25',
+  // ⚠️ REVISADO EL MISMO DÍA, DESPUÉS DE QUE ENTRARAN LOS CINCO FICHEROS.
   deLosSiete: { conCitaLiteral: 5, sinCitaLiteral: 2, sinIdentificar: 1, enumeradosEnF22: 6 },
-  corribles: ['RRHH-06 ↔ OPE-02'],
-  faltanEnCorpusPruebas: ['CLI-01', 'OPE-01', 'RRHH-04', 'RRHH-05', 'NOR-04'],
-  faltanCitas: ['calzado (MKT-01 ↔ RRHH-05)', 'Nuria Ferrer (RRHH-06 ↔ OPE-02)'],
+  corribles: [
+    'RRHH-06 ↔ OPE-02  (N1 · Belmonte)',
+    'MKT-01 ↔ RRHH-05  (N3 · pelo y calzado)',
+    'RRHH-04 ↔ RRHH-06 (N4 · esterilización)',
+    'NOR-04 ↔ OPE-01   (N5 · alarma)',
+    'OPE-01 ↔ CLI-01   (N6 · autoclave) — bloqueado mientras CLI-01 esté duplicado',
+  ],
+  faltanEnCorpusPruebas: [],
+  faltanCitas: ['Nuria Ferrer (RRHH-06 ↔ OPE-02)'],
   sinIdentificar: 'el séptimo de F-22',
+  // De la ronda B, con material pero sin decisión: es otra población.
+  construibleSinAprobar: 'RCP bienal (RRHH-04) contra soporte vital básico (NOR-04) — ronda B, falso 5',
 };

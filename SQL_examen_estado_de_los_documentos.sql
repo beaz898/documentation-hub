@@ -8,6 +8,16 @@
 -- fichero cuyo nombre dice ocho y cuyo cuerpo comprueba trece es la misma clase
 -- de fallo que B.113, y se corrige en cuanto se ve, no cuando molesta.
 --
+-- ⚠️⚠️ Y AHORA SON DIECIOCHO — segunda ampliación el mismo 25/09, y por eso el
+-- nombre del fichero ya no lleva ningún número. Los cinco documentos de los
+-- falsos de agosto entraron en `corpus-pruebas/` a las 17:14 (`31c141d6`) y
+-- desbloquean cuatro casos nuevos: N3 (pelo), N4 (esterilización), N5 (alarma) y
+-- N6 (autoclave, con la trampa REAL del par en `debenSalir`). Añaden CLI-01,
+-- OPE-01, NOR-04, RRHH-04 y RRHH-05.
+--   Un nombre con cifra dentro se pudre a la segunda ampliación, y ésta llegó el
+--   mismo día que la primera. Por eso el rótulo dice «los documentos» y el
+--   número vive sólo en el cuerpo, donde se puede contar.
+--
 -- SOLO LEE. Ni un INSERT, ni un UPDATE, ni un DELETE. Lo ejecuta el director
 -- en Supabase; Claude no lo ejecuta.
 --
@@ -18,12 +28,15 @@
 -- ⚠️ POR QUÉ BLOQUEAN, y no es ceremonia:
 --   · ✅ LOS CRÉDITOS YA NO BLOQUEAN, y queda declarado: el director midió
 --     **3.719 créditos** en la organización de pruebas y **23,77 $** de cartera
---     el 25/09/2026. Con 150 créditos por tanda rutinaria (6 casos × 5 pasadas)
---     y 600 por fijación completa (dos tandas de 10, que es el criterio de
---     Fable), caben **24 tandas rutinarias o 6 fijaciones**. La consulta 1 se
---     queda igualmente: una cifra medida hoy no es una cifra medida el día que
---     se lance, y volver a mirarla cuesta cero.
---   · ⚠️ LO QUE SIGUE BLOQUEANDO: si los TRECE documentos no están indexados en
+--     el 25/09/2026. ⚠️ **LA CUENTA CAMBIA CON LOS CUATRO CASOS NUEVOS**: con
+--     DIEZ casos son **250 créditos** por tanda rutinaria (10 × 5 pasadas × 5) y
+--     **1.000** por fijación completa (dos tandas de 10, el criterio de Fable),
+--     o sea **14 tandas rutinarias o 3 fijaciones** en vez de 24 y 6. Sigue sin
+--     bloquear, y la cifra se recalcula aquí en vez de dejarla dicha para seis
+--     casos: un divisor que se queda viejo miente hacia arriba, que es el lado
+--     peligroso. La consulta 1 se queda igualmente: una cifra medida hoy no es
+--     una cifra medida el día que se lance, y volver a mirarla cuesta cero.
+--   · ⚠️ LO QUE SIGUE BLOQUEANDO: si los DIECIOCHO documentos no están indexados en
 --     esa organización, la recuperación no puede devolver nada. Ningún filtro
 --     arregla eso, y el examen mediría el vacío.
 --
@@ -80,11 +93,12 @@ select
   o.credits_remaining,
   o.credits_extra,
   o.credits_remaining + o.credits_extra                        as creditos_totales,
-  -- Tanda RUTINARIA = 6 casos x 5 pasadas x 5 créditos = 150.
-  floor((o.credits_remaining + o.credits_extra) / 150.0)       as tandas_rutinarias_que_caben,
+  -- Tanda RUTINARIA = 10 casos x 5 pasadas x 5 créditos = 250 (eran 6 casos y
+  -- 150 hasta el 25/09: los cuatro casos de los falsos de agosto suben el coste).
+  floor((o.credits_remaining + o.credits_extra) / 250.0)       as tandas_rutinarias_que_caben,
   -- FIJACIÓN COMPLETA = las DOS tandas de 10 que exige el criterio de Fable
-  -- («dos tandas de 10 seguidas deben dar el mismo reparto»): 6 x 10 x 5 x 2 = 600.
-  floor((o.credits_remaining + o.credits_extra) / 600.0)       as fijaciones_completas_que_caben,
+  -- («dos tandas de 10 seguidas deben dar el mismo reparto»): 10 x 10 x 5 x 2 = 1.000.
+  floor((o.credits_remaining + o.credits_extra) / 1000.0)      as fijaciones_completas_que_caben,
   -- Y un caso suelto, por si hay que empezar de a uno: 5 pasadas x 5 = 25.
   floor((o.credits_remaining + o.credits_extra) / 25.0)        as casos_sueltos_que_caben
 from organizations o
@@ -92,13 +106,21 @@ where o.id = '5a82712f-6740-4792-b291-3fdea8e6edb1'::uuid;
 
 
 -- ────────────────────────────────────────────────────────────────────────
--- 2 · EL ESTADO DE LOS TRECE DOCUMENTOS DE LOS SEIS CASOS
+-- 2 · EL ESTADO DE LOS DIECIOCHO DOCUMENTOS DE LOS DIEZ CASOS
 --
 -- El nombre se busca por prefijo del código (NOR-10, CLI-12, …) porque el
 -- `documents.name` puede llevar o no la extensión y puede haber sido renombrado
 -- al subirlo. Si una fila sale con `coincidencias > 1`, hay más de un documento
 -- con ese código en la organización y el examen NO debe lanzarse: el endpoint
 -- no sabría a cuál se refiere el caso.
+--
+-- ⚠️ Y SE SABE YA DE UNO: **CLI-01 está duplicado**, leído por el director el
+-- 25/09. Con la ampliación a dieciocho eso deja de ser sólo un problema de
+-- higiene y pasa a tocar un caso: **N6 nombra CLI-01**, así que hasta que haya
+-- una sola fila ese caso no se puede lanzar. Los otros nueve sí.
+--   Las dos filas NO se limpian antes de medirlas: son la evidencia de la
+--   pregunta (e) —¿contaminó la tanda del 23/09?— y eso lo contesta
+--   `SQL_CLI01_duplicado_y_RRHH04.sql`, que se ejecuta ANTES que este fichero.
 --
 -- LEER ASÍ:
 --   · `filas_en_la_base = 0`        → el documento NO está en esta organización.
@@ -108,9 +130,9 @@ where o.id = '5a82712f-6740-4792-b291-3fdea8e6edb1'::uuid;
 --     pero se pide porque dice si además participa en el corpus del PRODUCTO, y
 --     eso cambia lo que ve cualquier análisis que NO sea el examen.
 -- ────────────────────────────────────────────────────────────────────────
--- ⚠️ TRECE FILAS PARA TRECE DOCUMENTOS, aunque cinco de ellos los usen DOS
--- casos: RRHH-06 y OPE-02 salen en N1 (el par) y en N2 (como acompañantes), y
--- CLI-03, NOR-01 y MKT-01 sólo en N2. Se listan una vez cada uno y la columna
+-- ⚠️ UNA FILA POR DOCUMENTO, aunque varios los usen DOS o TRES casos: RRHH-06
+-- sale en N1 (el par), en N2 (acompañante) y en N4 (el par otra vez); MKT-01 en
+-- N2 y en N3; OPE-01 en N5 y en N6. Se listan una vez cada uno y la columna
 -- `usado_en` dice dónde: repetir un documento por caso haría la tabla más larga
 -- y el veredicto ambiguo —el mismo documento saldría LISTO y NO ESTÁ a la vez si
 -- alguien se equivoca al leer.
@@ -124,11 +146,18 @@ with los_documentos(usado_en, codigo) as (
     ('P3 · tablas, 3 montones',               'OPE-11'),
     ('P4 · sin clave, 2 ramas',               'RRHH-08'),
     ('P4 · sin clave, 2 ramas',               'OPE-13'),
-    ('N1 · falsos conocidos + N2 acompañante','RRHH-06'),
+    ('N1 falsos + N2 acompañante + N4 par',   'RRHH-06'),
     ('N1 · falsos conocidos + N2 acompañante','OPE-02'),
-    ('N2 · pareja limpia (el analizado)',     'MKT-01'),
+    ('N2 · pareja limpia + N3 · el par',      'MKT-01'),
     ('N2 · acompañante',                      'CLI-03'),
-    ('N2 · acompañante',                      'NOR-01')
+    ('N2 · acompañante',                      'NOR-01'),
+    -- Los cinco de los falsos de agosto (`31c141d6`, 25/09 17:14). Su registro
+    -- es `corpus-pruebas/SIEMBRA_falsos_de_agosto.md`.
+    ('N3 · pelo recogido (el corpus)',        'RRHH-05'),
+    ('N4 · esterilización (el analizado)',    'RRHH-04'),
+    ('N5 · alarma (el analizado)',            'NOR-04'),
+    ('N5 · alarma + N6 · autoclave',          'OPE-01'),
+    ('N6 · autoclave (el corpus)',            'CLI-01')
 ),
 encontrados as (
   select

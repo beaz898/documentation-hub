@@ -68,8 +68,14 @@
  * los falsos 1 y 2 de F-22 (pelo y calzado). `Estado_Del_MVP.md:6837` lo dice:
  * «es el mismo par que llevaba el duplicado sembrado, así que el sistema vio el
  * parecido y lo clasificó al revés». Usarlo como pareja limpia sería declarar
- * limpio el par más sucio del corpus. (Y RRHH-05 tampoco está en
- * `corpus-pruebas/`.)
+ * limpio el par más sucio del corpus.
+ *
+ * ⚠️ 25/09/2026 — la coletilla de esta nota decía «(Y RRHH-05 tampoco está en
+ * `corpus-pruebas/`)» y **ya no es verdad**: entró ese día (`31c141d6`). El
+ * argumento de arriba no dependía de eso y sigue intacto — pero el par ya no
+ * está sólo descartado como pareja limpia, **está USADO como lo que es**: es el
+ * caso `N3`, de precisión, con los falsos 1 y 2 en `noDebenSalir` y el duplicado
+ * sembrado como su control positivo.
  */
 
 export default {

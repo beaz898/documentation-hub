@@ -7046,3 +7046,74 @@ un fallo del juicio sino su confirmación.** En las falsas alarmas coincido: 1 o
    hoja.**
 
 **Sin lanzar.** Las dos pasadas las hace el director.
+
+---
+
+## 📋 5.91 · EL CIERRE DE LA EVIDENCIA DE F-116, y lo que NO cierra (25/09/2026)
+
+**Los cinco documentos de los falsos de agosto entraron en `corpus-pruebas/` el 25/09/2026 a
+las 17:14** (`31c141d6`). Con ellos delante, el troceado de CLI-01 corrido desde el fichero
+por el camino real de indexación reproduce **exactamente** las ocho longitudes que F-116 había
+reconstruido «del registro y de la base», una a una y en el mismo orden de índice:
+
+| chunk | 0 | 1 | 2 | 3 | **4** | 5 | **6** | 7 |
+|---|---|---|---|---|---|---|---|---|
+| caracteres | 476 | 653 | 998 | 392 | **890** | 1.073 | **450** | 789 |
+
+**El 4 es el que no cupo por 17 caracteres y contiene «Temperatura: 134 °C». El 6 es el que
+sí entró y contiene «30 días en condiciones normales de almacenamiento».** El juez citó el 6
+porque el 4 no cabía, y las dos mitades del fallo del 23/09 —la cita espuria que usó y la
+evidencia real que no vio— quedan localizadas por índice de fragmento.
+
+⚠️ **LO QUE ESTO CAMBIA, y es de método más que de contenido**: la reconstrucción de F-116 era
+una **inferencia sobre registros** —correcta, cuadrada al carácter, e irrepetible sin el log
+que el director pegó—. Ahora es un **control positivo reproducible con código puro**: sin base
+de datos, sin Pinecone, sin modelo y sin gastar un crédito. Y es falsable por la misma vía:
+el día que un cambio de troceado mueva esas longitudes, el cierre queda desmentido por donde
+se escribió.
+
+**Qué cierra**: la pregunta de la evidencia —por qué el juez afirmó un conflicto sin el otro
+lado delante—. **Qué NO cierra**: el plan de cuatro pasos de F-116 sigue entero y sin hacer, y
+la consulta sigue vigente. El registro de los cinco documentos, con sus cifras y sus tres
+fragilidades medidas, está en `corpus-pruebas/SIEMBRA_falsos_de_agosto.md`.
+
+### ⚠️ B.265 — el reparto de las SEIS PLAZAS del rerank no se mide, y un documento duplicado consume dos (25/09/2026)
+
+**ESTO NO ES LA FICHA DEL PRESUPUESTO, Y SE ABRE APARTE PARA QUE NO SE CONFUNDAN NUNCA MÁS.**
+Son dos puertas distintas, en este orden:
+
+| Puerta | Qué decide | Qué se mide hoy |
+|---|---|---|
+| **rerank** (tope 6 en rápido) | **QUÉ documentos** llegan al juez | `documentos_candidatos` y los seleccionados: sólo los TOTALES |
+| **presupuesto** (3.000 car.) | **QUÉ fragmentos** se muestran de cada uno | el reparto, sí — y es lo que cerró F-116 |
+
+⚠️ **Y LA PRIMERA CORRECCIÓN VA CONTRA MI PROPIA SOSPECHA DEL 25/09, que es la que abrió esta
+ficha: el falso NEGATIVO del autoclave lo explica el PRESUPUESTO, entero.** El fragmento 4 fue
+recuperado —es el 4.º por parecido en el reparto de F-116— y CLI-01 sí fue seleccionado por el
+rerank, así que ninguna de las dos cosas murió en las plazas. El juez no pudo citar «134 °C»
+porque no se lo mostraron, y con eso basta. **No hace falta invocar el rerank para explicar
+ese caso, y hacerlo sería poner el arreglo en el sitio equivocado** — el mismo error que F-116
+ya contó una vez con la pertenencia de la cita.
+
+**LO QUE SÍ QUEDA ABIERTO, enunciado en una frase**: nadie sabe **qué candidatos quedaron
+fuera de una selección, ni por qué**, y un documento duplicado ocupa **dos plazas de seis** con
+el mismo contenido. Un corpus con duplicados puede, por construcción, dejar fuera a un
+documento que sí tenía la otra mitad de una contradicción — y eso sería un falso negativo **de
+una clase que hoy no se puede ni contar**, porque lo único persistido son los totales.
+
+**LA POBLACIÓN QUE LO HACE NO HIPOTÉTICO**: CLI-01 está duplicado en la organización de
+pruebas, leído por el director el 25/09/2026, y **la tanda del 23/09 corrió con el corpus del
+producto** (`CORPUS_ACTIVO`, no el filtro exacto del examen, que nació dos días después en
+`c7598db4`). Si en ese momento las dos filas estaban en `analizado` y con trozos, la
+recuperación vio dos CLI-01. **Que pudiera no es que ocurriera**: lo dicen los contadores, y
+`SQL_CLI01_duplicado_y_RRHH04.sql` los pide.
+
+**QUÉ CIERRA ESTA FICHA** — y no la cierra ninguna limpieza de duplicados, porque el problema
+es la ceguera y no el duplicado:
+1. Un contador que diga **quién** quedó fuera del rerank, no cuántos. Hoy el termómetro guarda
+   `documentos_candidatos` y los ids de los que caen fuera del fondo, no los desplazados por el
+   tope.
+2. Y la pregunta que va con él: **si dos candidatos son el mismo documento, ¿deben ocupar dos
+   plazas?** La respuesta parece obvia y no lo es — decidirla requiere saber si las dos copias
+   pueden tener troceados distintos, que es lo que el `content_hash` de las dos filas de CLI-01
+   va a contestar.
