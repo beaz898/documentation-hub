@@ -154,12 +154,20 @@ export default {
    */
   falloSiFuerzaPareja: true,
 
+  /**
+   * ⚠️ ÉSTE ES EL ÚNICO CASO DEL EXAMEN CON UN UMBRAL EXIGENTE, Y SE LO HA
+   * GANADO: su base son **15 de 15 en ONCE pasadas y en las dos direcciones**,
+   * reproducidas otras dos veces en septiembre. Ver `lineaDeBase`.
+   * Aquí un 14 SÍ es rojo el primer día, y con razón.
+   */
   umbralDeAlarma: {
-    // Las tres cifras del cuadre, exactas. No hay pendiente conocido que rebaje
-    // este listón: el par se midió y clasificó bien en agosto.
     identicasMinimo: 20,
     discrepantesConColumnaCorrectaMinimo: 15,
     sinParejaForzadaMaximo: 0,
+    // ⚠️ EL CENTINELA INVERTIDO: si esto se mueve de 0, el juez ha empezado a
+    // firmar por estructura hallazgos fila-contra-fila que la supresión debería
+    // descartar. Medido en 0 el 04/09 y el 07/09.
+    confirmadosPorEstructuraDelJuezMaximo: 0,
   },
 
   /**
@@ -175,17 +183,61 @@ export default {
   recall: null,
 
   /**
-   * SIN MEDIR con las cifras de hoy. El registro declara el resultado que
-   * DEBERÍA dar un sistema perfecto (§5) y las tandas de agosto midieron la
-   * dirección A del caso 6/7 del catálogo, no este reparto completo por las dos
-   * direcciones. No se rellena a ojo.
+   * ⚠️⚠️ CORREGIDO EL 25/09/2026. AQUÍ DECÍA «SIN MEDIR» Y ERA FALSO: es la
+   * base MEJOR MEDIDA de todo el examen.
+   *
+   * `claude/Tandas_Harness.md:819-822`, tanda 1 de los casos 6 y 7 sobre
+   * `cceddf86`:
+   *   «**Once pasadas** contando la 0: OPE-11 → OPE-10 cinco rápidas y una
+   *   exhaustiva; OPE-10 → OPE-11 cuatro rápidas y una exhaustiva. **QUINCE EN
+   *   TODAS.**»
+   *   Predicción «15 exactas, número CALCULADO antes de lanzar» → «**✔ en las
+   *   once, las dos direcciones**». Y «ningún hallazgo del registro de siembra
+   *   perdido → ✔ las 15 sembradas».
+   * Y reproducida dos veces más como CONTROL (`Tandas_Harness.md:174-177`):
+   * `contradictions_found` 15 el 04/09 y 15 el 07/09, con
+   * `contradictions_confirmed` igual a `found` las dos veces.
+   *
+   * ⚠️ DE DÓNDE SALÍA MI CONFUSIÓN, y la distinción vale más que el número: el
+   * catálogo tiene OTRA cifra para este par —«Tablas, una dirección | 15
+   * sembradas | **1 publicada**» y «la otra | 15 | **2**»
+   * (`Casos_Harness.md:177-180`, 26/08, `87a76112`)—. **No se contradicen:
+   * `found` y `publicadas` son dos cosas.** El diff encuentra las 15; lo que
+   * llega al usuario pasó por las guardas. Y la medición del 26/08 es de un
+   * commit ANTERIOR al 15/15.
+   * Es exactamente la trampa que esta casa conoce: **dos cifras del mismo par
+   * que miden operandos distintos.** Aquí la que manda para este caso es
+   * `contradictions_found` con su columna, porque lo que P3 mide es el
+   * EMPAREJADOR.
+   *
+   * ⚠️ Y UN RESULTADO DE ESA TANDA QUE ESTE CASO HEREDA COMO CENTINELA: el juez
+   * emitió hallazgos fila-contra-fila por su cuenta —IMP-03 y EST-03 en una
+   * dirección, **PRO-03 en la otra, «hallazgo distinto, nunca visto antes»**— y
+   * los TRES salieron descartados como `cubierto_por_diff`. La lectura que dejó
+   * escrita: «la guarda no reconoce un caso — reconoce una situación».
+   * Si algún día uno de ésos sobrevive, es regresión aunque las 15 sigan ahí.
    */
   lineaDeBase: {
-    commit: null,
-    fecha: null,
-    aciertos: null,
-    nota: 'SIN MEDIR el reparto completo. Lo que sí está medido es el CORPUS ' +
-          '(las 60+60 filas, recalculadas el 25/09/2026), no la respuesta del ' +
-          'sistema. La primera pasada DESCUBRE.',
+    commit: 'cceddf86',
+    fecha: '2026-08-31',
+    aciertos: 15,
+    esperados: 15,
+    pasadasDeLaBase: 11,
+    enLasDosDirecciones: true,
+    reproducida: [
+      { fecha: '2026-09-04', contradictionsFound: 15 },
+      { fecha: '2026-09-07', contradictionsFound: 15 },
+    ],
+    centinelas: {
+      confirmadosPorEstructuraDelJuez: 0,
+      hallazgosDelJuezDescartados: ['IMP-03', 'EST-03', 'PRO-03'],
+      // ⚠️ El único que se movió entre las dos remediciones: 2 → 1. No es de
+      // este caso (es solapamiento, no contradicción) pero se anota para que
+      // nadie lo lea como estable.
+      overlapsFound: '2 el 04/09, 1 el 07/09 — se movió, anotado',
+    },
+    fuente: 'claude/Tandas_Harness.md:819-822 y :174-177',
+    nota: 'La base MÁS FUERTE del examen: 15/15 en once pasadas y dos ' +
+          'direcciones, más dos remediciones. Un 14 aquí es rojo el primer día.',
   },
 };

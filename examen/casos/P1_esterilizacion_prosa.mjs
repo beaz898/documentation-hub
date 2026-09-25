@@ -214,9 +214,36 @@ export default {
     'periodicidad trimestral de auditoría interna del área',
   ],
 
-  // El examen salta si baja de aquí. Cuatro esperados, cuatro exigidos: este par
-  // no tiene ningún pendiente conocido que rebaje el listón (a diferencia de P2).
-  umbralDeAlarma: { minimoDeAciertos: 4, maximoDeFalsosConfirmados: 0 },
+  /**
+   * ⚠️⚠️ CORREGIDO EL 25/09/2026, Y LA VERSIÓN ANTERIOR ERA UN ROJO PERMANENTE.
+   *
+   * Aquí decía `minimoDeAciertos: 4` con el argumento «este par no tiene ningún
+   * pendiente conocido que rebaje el listón (a diferencia de P2)». **Era falso,
+   * y lo desmintió el propio repositorio al buscar otra cosa**: este par SÍ está
+   * medido y dio **CERO**, dos veces. Ver `lineaDeBase`.
+   *
+   * Un umbral de 4 sobre una base medida de 0 habría puesto P1 en ROJO en su
+   * primera pasada y en todas las siguientes, que es exactamente lo que el
+   * director prohibió en su decisión 3 y con sus palabras: «un rojo permanente
+   * es ruido, y el ruido nos entrena a ignorar la luz».
+   *
+   * ⚠️ Y EL FALLO DE MÉTODO QUE LO PRODUJO, que es el que hay que recordar: se
+   * escribió `lineaDeBase: null` tras comprobar que **nadie había medido este par
+   * CON LAS CUATRO declaradas** — lo cual es cierto— y de ahí se saltó a «no
+   * está medido», que es falso. **Se midió con tres y dio cero, y la propia
+   * anotación del 31/08 dice que el denominador correcto es cuatro.** Es la
+   * regla del cero de esta casa fallando por el lado que no se espera: no se
+   * leyó un cero como confirmación, se leyó una AUSENCIA DE CERO donde el cero
+   * estaba escrito.
+   */
+  umbralDeAlarma: {
+    minimoDeAciertos: 0,
+    maximoDeFalsosConfirmados: 0,
+    nota: 'Umbral 0 porque la base medida es 0 de 4, dos veces (87a76112 y ' +
+          'cceddf86). Sube en cuanto una tanda dé más, y con commit y motivo ' +
+          'escrito. Lo que este caso vigila HOY es que no aparezcan falsos y ' +
+          'que el cuello del retrieval no empeore.',
+  },
 
   /**
    * recall@k. ⚠️ LA SEGUNDA MITAD NO ES CONTESTABLE HOY: los ids de los
@@ -234,16 +261,64 @@ export default {
   },
 
   /**
-   * ⚠️ VACÍA A PROPÓSITO, y por decisión del director del 25/09: «No la rellenes
-   * a ojo. Se rellena con lo que salga.»
-   * Este par NUNCA se ha medido con las cuatro contradicciones declaradas: la D
-   * se añadió al registro el 27/08 y las tandas de agosto se leyeron contra
-   * «exactamente 3».
+   * ⚠️⚠️ ESTÁ MEDIDA, Y ES CERO. CORRECCIÓN DEL 25/09/2026.
+   *
+   * La primera versión de este fichero puso `lineaDeBase: null` con «SIN MEDIR
+   * con las cuatro. La primera pasada DESCUBRE, no confirma». **La segunda frase
+   * era falsa: este par se ha medido DOS VECES y las dos dieron CERO.**
+   *
+   * Son los casos 8 y 9 del catálogo (`claude/Casos_Harness.md:88-89`), y su
+   * línea de base está en `Casos_Harness.md:172-240`:
+   *
+   *   · **26/08/2026, `87a76112`** — «Prosa larga | 3 sembradas | **0
+   *     publicadas**». Con la nota de que la D no estaba contada «ni a favor ni
+   *     en contra», así que **el denominador correcto es 4**.
+   *   · **31/08/2026, `cceddf86`, tanda 3** — «**SIGUE EN CERO**, y las dos
+   *     causas de muerte son LAS MISMAS». Una pasada por dirección, aisladas.
+   *   · Y la anotación que lo cierra: «**El denominador es 4, no 3** … así que la
+   *     cifra de hoy es **0 de 4**».
+   *
+   * ⚠️ LAS DOS CAUSAS DE MUERTE ESTÁN IDENTIFICADAS, y por eso este cero no es
+   * un misterio sino un pendiente: el juez SÍ emitió el hallazgo de la
+   * contradicción A en las dos direcciones, y murió después —
+   *   · `CLI-12 → NOR-10`: «Responsabilidad última de la esterilización» →
+   *     **`mismo_dato_sin_oposicion`**
+   *   · `NOR-10 → CLI-12`: «Responsabilidad última en decisiones de
+   *     esterilización» → **`cita no verificable, lado=nuevo`**
+   *
+   * ⚠️ Y EL CUELLO QUE LO EXPLICA SIN NECESIDAD DE NADA MÁS, medido y estable
+   * cinco días: «**3 dentro, 63 fuera (prosa 3/66), 2616/3000 caracteres**» del
+   * candidato, y el documento ANALIZADO truncado a 6.000 de 60.840 y de 73.962
+   * por `NEW_DOC_LIMIT_QUICK` (`judge.ts:35`). Conclusión literal del
+   * catálogo: «**el juez compara ~8 % de un documento contra ~4 % del otro**.
+   * Con eso, que no encuentre las sembradas no necesita más explicación que la
+   * aritmética».
+   *
+   * ⚠️ POR ESO ESTE CASO ES EL QUE MIDE F-116. Las cuatro contradicciones no se
+   * detectan porque el presupuesto no las muestra — que es exactamente lo que el
+   * corte honesto y el presupuesto con ficha vienen a arreglar. **Si las piezas
+   * 1 y 2 de la semana 2 funcionan, este número tiene que moverse, y aquí es
+   * donde se verá.**
    */
   lineaDeBase: {
-    commit: null,
-    fecha: null,
-    aciertos: null,
-    nota: 'SIN MEDIR con las cuatro. La primera pasada DESCUBRE, no confirma.',
+    commit: 'cceddf86',
+    fecha: '2026-08-31',
+    aciertos: 0,
+    esperados: 4,
+    medicionAnterior: { commit: '87a76112', fecha: '2026-08-26', aciertos: 0, esperadosEntonces: 3 },
+    causasDeMuerte: {
+      'CLI-12 → NOR-10': 'mismo_dato_sin_oposicion',
+      'NOR-10 → CLI-12': 'cita no verificable, lado=nuevo',
+    },
+    cuelloMedido: {
+      candidato: '3 fragmentos dentro de 66 (4,7 %), 2616/3000 caracteres',
+      analizado: 'truncado a 6.000 de 60.840 (CLI-12) y de 73.962 (NOR-10)',
+      lectura: 'el juez compara ~8 % de un documento contra ~4 % del otro',
+    },
+    fuente: 'claude/Casos_Harness.md:172-240',
+    nota: '⚠️ NO es «sin medir». Es CERO, dos veces, con las dos causas de ' +
+          'muerte identificadas y el cuello cuantificado. La primera pasada ' +
+          'del examen CONFIRMA una base conocida; lo que descubriría es si algo ' +
+          'la ha movido.',
   },
 };
