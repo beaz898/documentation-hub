@@ -143,7 +143,9 @@ export default {
     id: 'P4-NO-1',
     descripcion: 'cualquier hallazgo sobre una de las otras doce personas',
     regla: 'toda persona que no sea Belmonte ni Medina',
-    cuentaComoFalso: true,
+    // ⚠️ 25/09/2026 — escrito `cuentaComoFalso` hasta hoy, igual que en P2. Lo
+    // cazó la regla nueva del validador. El campo es `cuentaComoFallo`.
+    cuentaComoFallo: true,
   }],
   extras: 'FALSO_POSITIVO',
 

@@ -175,7 +175,14 @@ export default {
       tema: 'quién cierra el contenedor',
       ancla: 'cierra el contenedor',
       clasificacion: 'AMBIGUO_NO_FALSO',
-      cuentaComoFalso: false,
+      // ⚠️ 25/09/2026 — escrito `cuentaComoFalso` hasta hoy. El campo se llama
+      // `cuentaComoFallo` en los seis casos N y lo cazó la regla nueva del
+      // validador la primera vez que corrió. Dos grafías del mismo campo se
+      // separan en cuanto alguien lee una de las dos, y aquí el valor es `false`:
+      // el lector que mirara la grafía buena habría contado este hallazgo
+      // AMBIGUO como falso positivo, que es justo lo que la nota de arriba
+      // existe para impedir.
+      cuentaComoFallo: false,
     },
   ],
   extras: 'FALSO_POSITIVO',   // la auditoría completa lo autoriza

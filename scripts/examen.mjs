@@ -2,6 +2,7 @@ import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { pathToFileURL } from 'node:url';
 
 import {
   MEDIBLE,
@@ -70,11 +71,35 @@ function commitActual() {
   }
 }
 
-async function cargarCasos() {
+/**
+ * ⚠️ EXPORTADAS EL 25/09/2026 PARA QUE LA VALIDACIÓN TENGA BATERÍA, y el motivo
+ * va aquí y no en el commit: `validarCasos` es código puro —entra un objeto,
+ * sale una lista de problemas— y hasta hoy **no tenía ni un caso de prueba**.
+ * Una regla de validación sin batería es una regla que nadie puede falsar, que
+ * es exactamente lo que este examen existe para no hacer.
+ *
+ * Su batería es `scripts/examen-validacion.test.mjs`, y `main()` pasa a correr
+ * SÓLO cuando el fichero se invoca directamente (ver el final) — sin eso,
+ * importarlo desde un test lanzaría el ejecutor.
+ */
+export async function cargarCasos() {
   const ficheros = readdirSync(DIR_CASOS).filter(f => f.endsWith('.mjs')).sort();
   const casos = [];
   for (const f of ficheros) {
-    const mod = await import(`../${DIR_CASOS}/${f}`);
+    /**
+     * ⚠️ LA RUTA VA LITERAL Y LA EXTENSIÓN FUERA DE LA INTERPOLACIÓN, aunque
+     * `DIR_CASOS` diga lo mismo tres líneas arriba. No es un despiste: con
+     * `` import(`../${DIR_CASOS}/${f}`) `` el analizador de vite no puede ver
+     * qué se importa y avisa en CADA pasada de la batería —«a file extension
+     * must be included in the static part of the import»—. Funcionaba, pero
+     * dejaba un aviso fijo en la salida de los tests, y el ruido entrena a
+     * ignorar la luz.
+     * Las dos apariciones de la carpeta se mantienen a mano porque son de
+     * naturaleza distinta: una la lee `readdirSync` en ejecución y la otra la
+     * tiene que ver un analizador estático. Si se mueve la carpeta, se mueven
+     * las dos — y este comentario es lo que hace que un `grep` las encuentre.
+     */
+    const mod = await import(`../examen/casos/${f.replace(/\.mjs$/, '')}.mjs`);
     casos.push({ fichero: f, ...mod.default });
   }
   return soloCaso ? casos.filter(c => c.id === soloCaso) : casos;
@@ -86,7 +111,7 @@ async function cargarCasos() {
 // que se valida ANTES de pagar. Es F-104: la vía de reparación va primero.
 // ---------------------------------------------------------------------------
 
-function validarCasos(casos) {
+export function validarCasos(casos) {
   const problemas = [];
   const idsVistos = new Set();
 
@@ -124,7 +149,109 @@ function validarCasos(casos) {
     if (typeof minimo === 'number' && minimo > contables) {
       problemas.push(`${donde}: el umbral exige ${minimo} aciertos y sólo ${contables} cuentan para el umbral`);
     }
+
+    problemas.push(...validarElTechoDeFalsos(c, donde));
   }
+  return problemas;
+}
+
+/**
+ * ═══════════════════════════════════════════════════════════════════════════
+ * NO SE PUEDE ESCRIBIR UN TECHO QUE NO SE HA MEDIDO (aprobado el 25/09/2026).
+ *
+ * El techo de falsos de un caso responde a UNA pregunta —«¿cuántas veces
+ * aparecía este falso?»— y ésa es una pregunta sobre una FRECUENCIA. Si nadie la
+ * midió, cualquier número es inventado: **0 pone el caso en rojo el primer día
+ * por algo que a lo mejor era su comportamiento normal, y un número alto no avisa
+ * nunca.** Sin esta regla, el estado `LINEA_DE_BASE_PENDIENTE` sería una nota que
+ * cualquiera puede contradecir en la línea de al lado sin que nada se queje.
+ *
+ * ⚠️ LA DISTINCIÓN QUE LA HACE APLICABLE, Y SALIÓ DE MEDIRLA CONTRA LOS DIEZ
+ * CASOS REALES ANTES DE ESCRIBIRLA. La primera redacción decía «prohibido un
+ * techo numérico donde `lineaDeBase.aciertos` sea null», y **habría tumbado P4**,
+ * que es un caso legítimo. La razón es que hay DOS ESPECIES en `noDebenSalir` y
+ * sólo una lleva frecuencia:
+ *
+ *   · **UN FALSO CONOCIDO** (lleva `patronDeF22`): apareció antes, así que su
+ *     techo es una FRECUENCIA MEDIDA o no es nada.
+ *   · **UNA REGLA** (lleva `regla`): «ningún hallazgo sobre las otras doce»,
+ *     «ninguna contradicción en absoluto». No nombra ninguna aparición pasada:
+ *     su techo no es una frecuencia, es una EXIGENCIA, y una exigencia puede ser
+ *     0 el primer día.
+ *
+ * Por eso N2 y P4 conservan su 0 y N3, N4 y N5 no pueden tener número.
+ *
+ * LAS TRES MITADES, y las tres tienen que estar o la regla se puede rodear:
+ *   1. falso conocido SIN frecuencia  → el techo tiene que ser `null` + estado.
+ *   2. estado `LINEA_DE_BASE_PENDIENTE` → el techo tiene que ser `null`.
+ *      (Sin ésta, se declara pendiente y se pone número al lado.)
+ *   3. todos los falsos conocidos CON frecuencia → el techo NO puede ser `null`.
+ *      (Sin ésta, un caso ya medido se esconde para siempre detrás del estado, y
+ *      el trinquete nunca empieza.)
+ *
+ * ⚠️ Y SU CASO DECISIVO NO ESTÁ AQUÍ: está en `examen-validacion.test.mjs`, con
+ * un caso sintético que viola cada mitad y los diez casos reales como control
+ * positivo. Hoy la regla **no caza ninguno de los diez**, y eso sólo se puede
+ * leer como bueno si existe la prueba de que sabe cazar — si no, es un número
+ * que decora.
+ * ═══════════════════════════════════════════════════════════════════════════
+ */
+export function validarElTechoDeFalsos(c, donde) {
+  const problemas = [];
+  const umbral = c.umbralDeAlarma ?? {};
+  const techo = umbral.maximoDeFalsosConfirmados;
+  const hayTecho = typeof techo === 'number';
+  const pendiente = umbral.estado === 'LINEA_DE_BASE_PENDIENTE';
+
+  // Un falso CONOCIDO que cuenta como fallo. `cuentaComoFallo !== false` y no
+  // `=== true` a propósito: el defecto de omitirlo es contarlo, que es el lado
+  // seguro; declararlo `false` es una decisión explícita (N1-NURIA).
+  const falsosConocidos = (c.noDebenSalir ?? [])
+    .filter(h => h.patronDeF22 && h.cuentaComoFallo !== false);
+  const sinFrecuencia = falsosConocidos
+    .filter(h => !h.lineaDeBase?.aparicionesSobrePasadas);
+
+  // ⚠️ UNA ESPECIE POR NOMBRE: el campo se llama `cuentaComoFallo` y en P4 se
+  // escribió `cuentaComoFalso`. Dos grafías del mismo campo no se mantienen
+  // sincronizadas: el día que alguien lea una, la otra deja de contar en
+  // silencio. Se caza aquí para que no puedan volver a ser dos.
+  for (const h of [...(c.noDebenSalir ?? []), ...(c.debenSalir ?? [])]) {
+    if ('cuentaComoFalso' in h) {
+      problemas.push(
+        `${donde}/${h.id}: el campo es \`cuentaComoFallo\`, no \`cuentaComoFalso\`. ` +
+        `Dos grafías del mismo campo se separan y nadie se entera.`);
+    }
+  }
+
+  if (sinFrecuencia.length > 0 && hayTecho) {
+    problemas.push(
+      `${donde}: techo de falsos ${techo} con ${sinFrecuencia.length} falso(s) ` +
+      `conocido(s) SIN frecuencia medida (${sinFrecuencia.map(h => h.id).join(', ')}). ` +
+      `Un techo es una frecuencia: si no se midió, va \`maximoDeFalsosConfirmados: null\` ` +
+      `y \`estado: 'LINEA_DE_BASE_PENDIENTE'\`. El primer número lo escribe la primera tanda.`);
+  }
+
+  if (sinFrecuencia.length > 0 && !pendiente) {
+    problemas.push(
+      `${donde}: hay falso(s) conocido(s) sin frecuencia medida y el umbral no ` +
+      `declara \`estado: 'LINEA_DE_BASE_PENDIENTE'\`. El estado no es adorno: es lo ` +
+      `que impide que el informe lea el resultado como un veredicto.`);
+  }
+
+  if (pendiente && hayTecho) {
+    problemas.push(
+      `${donde}: el umbral se declara LINEA_DE_BASE_PENDIENTE y a la vez pone un ` +
+      `techo de ${techo}. Una de las dos cosas miente.`);
+  }
+
+  if (falsosConocidos.length > 0 && sinFrecuencia.length === 0 && techo === null) {
+    problemas.push(
+      `${donde}: todos los falsos conocidos tienen frecuencia medida ` +
+      `(${falsosConocidos.map(h => h.id).join(', ')}) y el techo sigue en \`null\`. ` +
+      `Con la medición hecha, el techo se escribe en el MÁXIMO OBSERVADO y de ahí ` +
+      `sólo puede bajar. Dejarlo en null es esconder un caso ya medido.`);
+  }
+
   return problemas;
 }
 
@@ -463,4 +590,18 @@ async function main() {
   console.log(`\n${informe}`);
 }
 
-main().catch(err => { console.error(err); process.exit(1); });
+/**
+ * ⚠️ `main()` SÓLO CUANDO SE INVOCA DIRECTAMENTE. Antes se llamaba al importar el
+ * módulo, así que cualquier test que quisiera probar `validarCasos` habría
+ * lanzado el ejecutor entero — y con `--lanzar` en la línea de órdenes, habría
+ * gastado créditos desde una batería.
+ * Se compara la URL del módulo con la del fichero invocado en vez de mirar
+ * `process.argv[1]` a pelo: en Windows las barras y la letra de unidad no
+ * coinciden entre las dos formas, y `pathToFileURL` las normaliza.
+ */
+const invocadoDirectamente =
+  process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href;
+
+if (invocadoDirectamente) {
+  main().catch(err => { console.error(err); process.exit(1); });
+}
