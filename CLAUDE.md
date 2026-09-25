@@ -30,7 +30,9 @@ Users belong to organizations (`memberships` table: `user_id`, `org_id`, `role`)
 ### Document Ingestion Flow
 
 ```
-Upload → Text extraction (PDF/docx/md/txt) → Chunking (2000 chars, 200 overlap)
+Upload → Text extraction (PDF/docx/md/txt) → Chunking POR SECCIONES: objetivo
+         1200, subdivide por encima de 1500, fusiona por debajo de 300, solape
+         200 solo dentro de una subdivisión por longitud (lib/chunking.ts:26-29)
        → Pinecone Inference API embeddings (batch 20, rate-limited)
        → Pinecone (vectors, namespace=orgId) + Supabase (metadata + full_text)
 ```
