@@ -8,6 +8,7 @@ import {
   MEDIBLE,
   verificarDiscriminantesEnFragmentos,
 } from '../lib/examen/discriminantes.mjs';
+import { marcarTanda, SIN_VEREDICTO } from '../lib/examen/marcador.mjs';
 
 /**
  * EL EJECUTOR DEL EXAMEN (25/09/2026).
@@ -493,13 +494,40 @@ function informeReal(casos, resultados, commit, dirSalida) {
     }
     lineas.push('');
   }
-  lineas.push('⚠️ EL MARCADOR NO SE CALCULA TODAVÍA: el comparador es la siguiente');
-  lineas.push('   pieza, y vive en vitest porque es determinista. Lo que este');
-  lineas.push('   ejecutor garantiza hoy es que las pasadas ocurrieron y que su');
-  lineas.push('   resultado CRUDO está guardado, una por una, sin agregar.');
+  for (const m of marcarTanda(casos, pasadasParaElMarcador(casos, resultados))) {
+    lineas.push(`${m.casoId}: ${m.estado}` +
+                (m.estado === SIN_VEREDICTO ? '' : ` · ${m.totalAciertos} aciertos · ${m.maxFalsos} falsos (máx. por pasada)`));
+    for (const r of m.razones) lineas.push(`    ~ ${r}`);
+    for (const f of m.fallos) lineas.push(`    ✗ ${f}`);
+  }
   lineas.push('');
   lineas.push(`Evidencia cruda: ${dirSalida}`);
   return lineas.join('\n');
+}
+
+/**
+ * Adapta los crudos a lo que el marcador espera. Los hallazgos se leen de
+ * `cuerpo.analisis.discrepancies`, que es la forma de `FinalAnalysis`.
+ *
+ * ⚠️ SI NO ESTÁN, LA PASADA NO SE MARCA COMO «CERO HALLAZGOS»: se marca como NO
+ * EJECUTADA. Un cuerpo del que no se sabe leer produciría un cero indistinguible
+ * de un cero real, que es lo único que este examen no puede permitirse.
+ */
+function pasadasParaElMarcador(casos, resultados) {
+  const porCaso = {};
+  for (const c of casos) porCaso[c.id] = [];
+  for (const r of resultados) {
+    if (!porCaso[r.casoId]) continue;
+    if (r.error || r.noMedible) {
+      porCaso[r.casoId].push({ pasada: r.pasada, error: r.error, noMedible: r.noMedible });
+      continue;
+    }
+    const hallazgos = r.cuerpo?.analisis?.discrepancies;
+    porCaso[r.casoId].push(Array.isArray(hallazgos)
+      ? { pasada: r.pasada, hallazgos }
+      : { pasada: r.pasada, noMedible: 'el cuerpo de la respuesta no trae `analisis.discrepancies`' });
+  }
+  return porCaso;
 }
 
 // ---------------------------------------------------------------------------
