@@ -1,0 +1,124 @@
+DENTAVIA CLÍNICAS DENTALES
+Dirección Médica
+
+PROTOCOLO DE ESTERILIZACIÓN Y GESTIÓN DE INSTRUMENTAL
+Versión 2.1 · Revisado marzo 2026 · Dirección Médica
+Sustituye a: v2.0 (junio 2025)
+Aplicable a: todas las clínicas de la red
+
+============================================================
+1. OBJETO Y ALCANCE
+============================================================
+Este protocolo establece el circuito completo de procesamiento del
+instrumental reutilizable en todas las clínicas Dentavia, desde su
+recogida en el box hasta su almacenamiento en condiciones estériles,
+de acuerdo con la clasificación de Spaulding y las recomendaciones del
+Consejo General de Dentistas y del Ministerio de Sanidad.
+
+============================================================
+2. CLASIFICACIÓN DEL INSTRUMENTAL
+============================================================
+- CRÍTICO: penetra tejido blando, hueso o sistema vascular (fresas
+  quirúrgicas, instrumental de cirugía e implantes, limas endodónticas
+  reutilizables). Requiere esterilización.
+- SEMICRÍTICO: contacta con mucosa o piel no intacta sin penetrarla
+  (espejos, sondas, cubetas de impresión metálicas). Requiere
+  esterilización o, como mínimo, desinfección de alto nivel.
+- NO CRÍTICO: contacta solo con piel intacta (cabezales de lámparas,
+  reposacabezas). Desinfección de nivel intermedio o bajo.
+
+============================================================
+3. CIRCUITO SUCIO → LIMPIO
+============================================================
+El instrumental debe transportarse desde el box hasta la zona de
+esterilización en un contenedor cerrado, nunca en bandeja abierta, para
+evitar contaminación cruzada de pasillos y zonas comunes.
+
+3.1 Prelavado
+Inmersión inmediata (máximo 30 minutos tras el uso) en solución
+enzimática a la dilución indicada por el fabricante, para evitar el
+secado de restos orgánicos sobre la superficie del instrumental.
+
+3.2 Lavado
+Preferentemente por ultrasonidos (mínimo 10 minutos) o, en su defecto,
+cepillado manual con cepillo de cerdas blandas bajo agua corriente,
+con el instrumental siempre sumergido para evitar aerosolización.
+
+3.3 Aclarado y secado
+Aclarado con agua corriente y secado completo con paño desechable o
+aire comprimido antes del empaquetado. La humedad residual es la causa
+más frecuente de fallo del ciclo de esterilización.
+
+============================================================
+4. EMPAQUETADO
+============================================================
+Cada instrumento o kit se empaqueta en bolsa mixta papel-plástico con
+indicador químico de clase 1 impreso, o en contenedor rígido validado
+para autoclave de vapor. Se debe anotar en la bolsa: fecha, número de
+ciclo/carga y responsable del empaquetado.
+
+============================================================
+5. ESTERILIZACIÓN EN AUTOCLAVE
+============================================================
+Todas las clínicas Dentavia deben disponer de autoclave de vapor
+CLASE B (norma UNE-EN 13060), el único tipo homologado en la red por
+su capacidad de esterilizar cuerpos huecos y cargas porosas.
+
+5.1 Ciclo estándar de referencia
+El ciclo estándar validado para instrumental envuelto es:
+
+    Temperatura: 134 °C
+    Tiempo de exposición (meseta): 18 minutos
+    Presión: 2,1 bar aproximadamente
+    Duración total del ciclo (con vacío fraccionado, meseta y
+    secado): entre 35 y 45 minutos según el modelo de autoclave.
+
+Este es el único ciclo autorizado para instrumental crítico y
+semicrítico en toda la red. No se debe usar el ciclo corto de
+"instrumental sin envolver" salvo para reprocesado inmediato de un
+instrumento caído durante un tratamiento en curso, y nunca como
+sustituto del ciclo estándar.
+
+5.2 Controles de calidad
+- Indicador químico clase 5 (integrador) en cada carga, dentro del
+  paquete de mayor volumen.
+- Control biológico (esporas de Geobacillus stearothermophilus) con
+  periodicidad SEMANAL como mínimo, y diaria en clínicas que realicen
+  cirugía de implantes.
+- Test de Bowie-Dick cada mañana antes de la primera carga, si el
+  autoclave incorpora bomba de vacío.
+- Registro de cada ciclo en el cuaderno de esterilización (o software
+  de trazabilidad): fecha, hora, número de ciclo, contenido de la
+  carga, resultado del indicador, responsable.
+
+5.3 Mantenimiento
+Revisión y calibración anual por técnico autorizado, con certificado
+que debe conservarse en la clínica y estar disponible ante inspección.
+Purga de la caldera semanal con agua desmineralizada.
+
+============================================================
+6. TRAZABILIDAD
+============================================================
+Cada paquete esterilizado debe poder vincularse al paciente en el que
+se utilizó, mediante el número de lote/ciclo anotado en la historia
+clínica o ficha de tratamiento. La caducidad del envasado estéril es
+de 30 días en condiciones normales de almacenamiento (armario cerrado,
+alejado de fuentes de humedad).
+
+============================================================
+7. INCIDENCIAS
+============================================================
+Ante un fallo de indicador biológico o químico, se debe:
+1. Retirar inmediatamente la carga completa de ese ciclo.
+2. No utilizar ningún instrumento de la carga afectada.
+3. Reesterilizar tras revisar el autoclave.
+4. Notificar a Dirección Médica en un plazo máximo de 24 horas.
+5. Documentar la incidencia y la resolución en el registro de calidad.
+
+============================================================
+8. REFERENCIAS
+============================================================
+- UNE-EN 13060 (esterilizadores de vapor de agua pequeños).
+- Guía de buenas prácticas del Consejo General de Dentistas de España.
+- Protocolo NOR-01 "RGPD y protección de datos de pacientes" (registro
+  de trazabilidad).
