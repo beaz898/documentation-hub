@@ -1,6 +1,12 @@
 import { execFileSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import { mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+
+import {
+  MEDIBLE,
+  verificarDiscriminantesEnFragmentos,
+} from '../lib/examen/discriminantes.mjs';
 
 /**
  * EL EJECUTOR DEL EXAMEN (25/09/2026).
@@ -123,16 +129,28 @@ function validarCasos(casos) {
 }
 
 /**
- * ⚠️ LA COMPROBACIÓN QUE MÁS VALE DEL MODO SECO: que cada discriminante aparezca
- * EXACTAMENTE UNA VEZ en su documento y CERO en el otro. Es lo que impide que el
- * marcador confunda dos hallazgos vecinos —el caso A/D de P1, a 7 líneas uno de
- * otro—, y cuesta cero créditos.
+ * ⚠️ PRE-COMPROBACIÓN DÉBIL, Y HAY QUE SABER QUÉ NO CUBRE (25/09/2026).
+ *
+ * Cuenta cada discriminante sobre el TEXTO DEL `.docx`: una vez en su documento
+ * y cero en el otro. Sirve para escribir un caso y para pillar una errata sin
+ * gastar nada — **pero NO es la comprobación que decide.**
+ *
+ * Lo que NO cubre, dicho por Fable el 25/09: «si el trozado parte una frase
+ * discriminante en dos fragmentos, el juez no puede citarla aunque acierte».
+ * Esto mide el DOCUMENTO; lo que el juez cita son FRAGMENTOS. Una frase puede
+ * aparecer una vez en el `.docx` y estar partida por una costura, y esta función
+ * la daría por buena.
+ *
+ * ⚠️ LA QUE DECIDE ES `verificarDiscriminantesEnFragmentos`, de
+ * `lib/examen/discriminantes.mjs`, y corre EN CADA PASADA contra los fragmentos
+ * que devuelve el endpoint. Esta de aquí se queda porque es gratis y no necesita
+ * credenciales; su etiqueta en el informe dice «débil» a propósito.
  *
  * ⚠️ Y SI NO SE PUEDE LEER EL DOCUMENTO, **NO PASA EN SILENCIO**: se declara sin
  * verificar. Una comprobación que se salta a sí misma cuando falla la
  * herramienta es la que pasó en B.126.
  */
-function verificarDiscriminantes(caso) {
+function preComprobarSobreElDocumento(caso) {
   const texto = ruta => {
     const xml = execFileSync('unzip', ['-p', `corpus-pruebas/${ruta}`, 'word/document.xml'],
       { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
@@ -170,33 +188,90 @@ function verificarDiscriminantes(caso) {
 // LA PASADA — una llamada al endpoint del examen.
 // ---------------------------------------------------------------------------
 
-async function unaPasada(caso, n, dirSalida) {
+function credenciales() {
   const base = process.env.EXAMEN_URL_BASE;
   const token = process.env.EXAMEN_TOKEN_ADMIN;
   if (!base || !token) {
     throw new Error('faltan EXAMEN_URL_BASE y/o EXAMEN_TOKEN_ADMIN en el entorno');
   }
+  return { base, token };
+}
 
+async function llamarAlEndpoint(cuerpo) {
+  const { base, token } = credenciales();
   const t0 = Date.now();
   const res = await fetch(`${base}/api/admin/examen`, {
     method: 'POST',
     headers: { 'content-type': 'application/json', authorization: `Bearer ${token}` },
-    body: JSON.stringify({
-      analizado: caso.analizado,
-      corpusExacto: caso.corpusExacto,
-      modo: caso.modo,
-      casoId: caso.id,
-      pasada: n,
-    }),
+    body: JSON.stringify(cuerpo),
   });
-  const cuerpo = await res.text();
+  const texto = await res.text();
+  let json;
+  try { json = JSON.parse(texto); } catch { json = texto; }
+  return { ok: res.ok, http: res.status, ms: Date.now() - t0, json };
+}
+
+/**
+ * ⚠️ LOS FRAGMENTOS, ANTES DE GASTAR Y SIN GASTAR. Es la operación de LECTURA
+ * del endpoint: devuelve los fragmentos de la generación activa de los
+ * documentos del caso —**los mismos que el análisis va a leer**, decisión 1 del
+ * camino B— sin llamar a ningún modelo y sin consumir créditos.
+ *
+ * Por eso la verificación puede correr ANTES del análisis y el caso puede
+ * ABORTAR sin haber pagado los 5 créditos.
+ */
+async function pedirFragmentos(caso) {
+  const r = await llamarAlEndpoint({
+    operacion: 'fragmentos',
+    casoId: caso.id,
+    analizado: caso.analizado,
+    corpusExacto: caso.corpusExacto,
+  });
+  if (!r.ok) throw new Error(`HTTP ${r.http} pidiendo fragmentos de ${caso.id}`);
+  return r.json?.fragmentosPorDocumento ?? null;
+}
+
+/**
+ * ⚠️ EL CRUDO GUARDA `chunkIndex` + HASH, NUNCA EL TEXTO. Decisión del director
+ * del 25/09/2026: «el resultado crudo guarda chunkIndex + hash del texto, y la
+ * comprobación se hace en memoria».
+ *
+ * La razón se escribe hoy porque hoy no cuesta nada: los fragmentos son
+ * CONTENIDO DE LOS DOCUMENTOS, y `examen/resultados/` se versiona. Con el corpus
+ * de pruebas no hay fuga; el día que un caso use un documento de cliente, la
+ * regla ya está puesta y nadie tiene que acordarse de cambiarla.
+ *
+ * El hash sirve además para lo que Fable pide en la procedencia: detectar que
+ * un fragmento cambió entre dos pasadas sin tener que guardar su texto.
+ */
+function huellaDeLosFragmentos(fragmentosPorDocumento) {
+  const salida = {};
+  for (const [doc, frags] of Object.entries(fragmentosPorDocumento ?? {})) {
+    salida[doc] = (frags ?? []).map(f => ({
+      chunkIndex: f.chunkIndex,
+      caracteres: (f.text ?? '').length,
+      hash: createHash('sha256').update(f.text ?? '').digest('hex').slice(0, 16),
+    }));
+  }
+  return salida;
+}
+
+async function unaPasada(caso, n, dirSalida) {
+  const r = await llamarAlEndpoint({
+    operacion: 'analizar',
+    analizado: caso.analizado,
+    corpusExacto: caso.corpusExacto,
+    modo: caso.modo,
+    casoId: caso.id,
+    pasada: n,
+  });
   const crudo = {
     casoId: caso.id,
     pasada: n,
-    http: res.status,
-    ms: Date.now() - t0,
+    http: r.http,
+    ms: r.ms,
     cuando: new Date().toISOString(),
-    cuerpo: (() => { try { return JSON.parse(cuerpo); } catch { return cuerpo; } })(),
+    cuerpo: r.json,
   };
 
   // ⚠️ SE ESCRIBE ANTES DE AGREGAR NADA, Y ES LA CONDICIÓN DEL DIRECTOR:
@@ -206,7 +281,7 @@ async function unaPasada(caso, n, dirSalida) {
   // agregado sorprende, las cinco pasadas están ahí una por una.
   writeFileSync(join(dirSalida, `${caso.id}_pasada${n}.json`), JSON.stringify(crudo, null, 2));
 
-  if (!res.ok) throw new Error(`HTTP ${res.status} en ${caso.id} pasada ${n}`);
+  if (!r.ok) throw new Error(`HTTP ${r.http} en ${caso.id} pasada ${n}`);
   return crudo;
 }
 
@@ -256,13 +331,20 @@ function informeSeco(casos, commit) {
       : `    línea de base: ${lb.aciertos} de ${lb.esperados ?? contables.length} sobre ${lb.commit} (${lb.fecha})`);
 
     if (c.nivel === 'juez-prosa') {
-      const v = verificarDiscriminantes(c);
-      if (!v.verificado) lineas.push(`    ⚠️ discriminantes SIN VERIFICAR: ${v.motivo}`);
+      const v = preComprobarSobreElDocumento(c);
+      if (!v.verificado) lineas.push(`    ⚠️ pre-comprobación SIN HACER: ${v.motivo}`);
       else if (v.fallos.length) {
-        lineas.push('    ⚠️ DISCRIMINANTES QUE NO AÍSLAN:');
+        lineas.push('    ⚠️ DISCRIMINANTES QUE NO AÍSLAN EN EL DOCUMENTO:');
         for (const f of v.fallos) lineas.push(`         ${f}`);
       } else {
-        lineas.push('    ✅ discriminantes verificados: cada uno 1 vez en su documento, 0 en el otro');
+        lineas.push('    ~ pre-comprobación DÉBIL pasada: 1 vez en su documento, 0 en el otro');
+        // ⚠️ El aviso va aquí y no en la cabecera para que se lea PEGADO al
+        // resultado que podría leerse mal. Un verde de la pre-comprobación no
+        // dice que el caso sea medible.
+        lineas.push('      ⚠️ NO dice que sea medible: mide el DOCUMENTO, no los');
+        lineas.push('         FRAGMENTOS. Una frase puede estar entera en el .docx y');
+        lineas.push('         partida por una costura del troceado. Eso sólo se sabe');
+        lineas.push('         con los fragmentos, y se comprueba en cada pasada.');
       }
     }
     lineas.push('');
@@ -327,9 +409,45 @@ async function main() {
   for (const c of casos) {
     for (let n = 1; n <= c.pasadas; n++) {
       try {
+        /**
+         * ⚠️ LA VERIFICACIÓN VA EN CADA PASADA Y ANTES DE PAGAR, y las dos
+         * mitades son requisitos distintos:
+         *   · EN CADA PASADA porque «un cambio de trozado lo rompería en
+         *     silencio» (Fable, 25/09). Una comprobación al escribir el caso
+         *     caduca sin avisar.
+         *   · ANTES DE PAGAR porque pedir fragmentos es una lectura y no cuesta
+         *     créditos: si el caso no es medible, no tiene sentido gastar 5.
+         */
+        const fragmentos = await pedirFragmentos(c);
+        const v = verificarDiscriminantesEnFragmentos(c, fragmentos);
+
+        if (v.estado !== MEDIBLE) {
+          // ⚠️ NO ES ROJO. Es «no medible, arregla el discriminante» — y se
+          // guarda como pasada con su motivo, porque una pasada que no ocurrió
+          // no puede contarse como una que dio cero.
+          const crudo = {
+            casoId: c.id,
+            pasada: n,
+            veredicto: v.estado,
+            cuando: new Date().toISOString(),
+            comprobados: v.comprobados,
+            // Los mensajes van al fichero porque son el diagnóstico; el TEXTO de
+            // los fragmentos no, sólo su huella.
+            fallos: v.fallos,
+            huellaDeLosFragmentos: huellaDeLosFragmentos(fragmentos),
+          };
+          writeFileSync(join(dirSalida, `${c.id}_pasada${n}.json`), JSON.stringify(crudo, null, 2));
+
+          resultados.push({ casoId: c.id, pasada: n, noMedible: v.estado, fallos: v.fallos });
+          console.error(`  ${c.id} pasada ${n}: ⚠️ ${v.estado} — NO se gastan créditos`);
+          // Se IMPRIME el detalle (imprimir no es persistir contenido).
+          for (const f of v.fallos) console.error(`      ${f.mensaje}`);
+          continue;
+        }
+
         const r = await unaPasada(c, n, dirSalida);
-        resultados.push(r);
-        console.log(`  ${c.id} pasada ${n}: HTTP ${r.http} en ${r.ms} ms`);
+        resultados.push({ ...r, discriminantesComprobados: v.comprobados });
+        console.log(`  ${c.id} pasada ${n}: HTTP ${r.http} en ${r.ms} ms · ${v.comprobados} discriminantes íntegros`);
       } catch (err) {
         // ⚠️ NO SE ABORTA LA TANDA ENTERA por una pasada, pero el error se
         // GUARDA y se cuenta: una tanda con pasadas perdidas no es una tanda de
