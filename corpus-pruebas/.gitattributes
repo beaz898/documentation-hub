@@ -14,12 +14,27 @@
 # (la siembra de los 15 anos esta en su linea 82). Sin conversion.
 *.txt   -text
 
-# Los registros de siembra si son documentacion nuestra: texto normal, con sus
-# finales de linea normalizados y su diff legible. La regla va por extension y
-# no por nombre a proposito — antes nombraba un fichero concreto, y al aparecer
-# el segundo registro este quedo sin regla y cayendo en la heuristica. Que es
-# exactamente lo que este fichero existe para impedir.
-*.md    text
+# ⚠️ CORREGIDO EL 25/09/2026, Y LA REGLA VIEJA ESTA DEBAJO CON SU MOTIVO.
+#
+# Decia `*.md text` con este argumento: «los registros de siembra si son
+# documentacion nuestra: texto normal, con sus finales de linea normalizados y
+# su diff legible. La regla va por extension y no por nombre a proposito —
+# antes nombraba un fichero concreto, y al aparecer el segundo registro este
+# quedo sin regla y cayendo en la heuristica».
+#
+# El argumento era bueno y la extension era el criterio equivocado: `.md` no
+# dice si un fichero es NUESTRA DOCUMENTACION o un DOCUMENTO DEL CORPUS. El
+# 25/09 entro RRHH-04_formacion-obligatoria-reciclaje.md —el primer documento
+# del corpus en `.md`— y heredo la normalizacion: 45 caracteres CR inyectados
+# en el checkout (1.530 bytes en el blob, 1.575 en disco, medido).
+#
+# Asi que la regla pasa a ir por el ROL, que es lo que decide, y sigue sin
+# nombrar un fichero concreto: el prefijo SIEMBRA_ ES la marca de rol.
+#   · por defecto un `.md` de esta carpeta es DATO, como los `.txt`;
+#   · un `SIEMBRA_*.md` es documentacion nuestra y se normaliza.
+# El orden importa: git aplica el ULTIMO patron que casa.
+*.md         -text
+SIEMBRA_*.md text
 
 # Y este mismo fichero, para que no quede un solo elemento de la carpeta
 # decidido por la heuristica.

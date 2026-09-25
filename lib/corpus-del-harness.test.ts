@@ -86,6 +86,26 @@ const CON_REGISTRO_PROPIO = [
   // SIEMBRA_CLI-20.md, con verificador: es el único cuyos errores un corrector
   // automático podría «arreglar» sin avisar.
   'CLI-20_protocolo-urgencias-dentales.txt',
+  /**
+   * 25/09/2026 — LOS CINCO DE LOS FALSOS DE AGOSTO, subidos por el director a
+   * las 17:14 (`31c141d6`). Registro conjunto en SIEMBRA_falsos_de_agosto.md.
+   *
+   * ⚠️ VAN EN ESTE GRUPO Y NO EN LAS TRES LISTAS DE `Casos_Harness.md` porque
+   * no son de ningún caso del catálogo del harness: son el material de los
+   * falsos positivos de `Consulta_Fable_F22_Juez.md` §2, que son casos del
+   * EXAMEN (`examen/casos/`). Meterlos en «piloto» obligaría a decidir a cuál
+   * de los once pertenecen, y la respuesta no existe.
+   *
+   * ⚠️ Y SU REGISTRO NO DOCUMENTA UNA SIEMBRA, documenta lo contrario: qué
+   * emparejó mal el sistema y por qué las dos citas no se oponen. La regla de
+   * admisión se cumple igual — lo que exige es que nadie tenga material del
+   * que no se sepa qué prueba.
+   */
+  'CLI-01_protocolo-esterilizacion-instrumental.txt',
+  'OPE-01_manual-apertura-y-cierre-de-clinica.docx',
+  'NOR-04_plan-de-emergencia-y-evacuacion.pdf',
+  'RRHH-04_formacion-obligatoria-reciclaje.md',
+  'RRHH-05_uniformidad-e-imagen.txt',
 ] as const;
 
 const DOC = 'claude/Casos_Harness.md';
