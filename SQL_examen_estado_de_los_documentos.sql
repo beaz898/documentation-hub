@@ -1,6 +1,12 @@
 -- ════════════════════════════════════════════════════════════════════════
--- SQL_examen_estado_de_los_ocho.sql — LAS DOS COSAS QUE BLOQUEAN EL EXAMEN
+-- SQL_examen_estado_de_los_documentos.sql — LO QUE BLOQUEA EL EXAMEN
 -- (25/09/2026)
+--
+-- ⚠️ RENOMBRADO EL MISMO DÍA: nació como «_de_los_ocho» y son TRECE. Los casos
+-- N1 y N2 —los de esperado cero, que son la cura de la carencia grave de la
+-- consulta rápida— añadieron RRHH-06, OPE-02, MKT-01, CLI-03 y NOR-01. Un
+-- fichero cuyo nombre dice ocho y cuyo cuerpo comprueba trece es la misma clase
+-- de fallo que B.113, y se corrige en cuanto se ve, no cuando molesta.
 --
 -- SOLO LEE. Ni un INSERT, ni un UPDATE, ni un DELETE. Lo ejecuta el director
 -- en Supabase; Claude no lo ejecuta.
@@ -10,13 +16,16 @@
 --     5a82712f-6740-4792-b291-3fdea8e6edb1
 --
 -- ⚠️ POR QUÉ BLOQUEAN, y no es ceremonia:
---   · Una pasada del examen son 20 análisis = 100 CRÉDITOS. En plan free (50)
---     el examen se para a mitad de la primera pasada con un 402, y el informe
---     diría «no detectó nada» en los casos que no llegaron a correr: un cero de
---     saldo indistinguible de un cero de detección.
---   · Y si los ocho documentos no están indexados en esa organización, la
---     recuperación no puede devolver nada. Ningún filtro arregla eso, y el
---     examen mediría el vacío.
+--   · ✅ LOS CRÉDITOS YA NO BLOQUEAN, y queda declarado: el director midió
+--     **3.719 créditos** en la organización de pruebas y **23,77 $** de cartera
+--     el 25/09/2026. Con 150 créditos por tanda rutinaria (6 casos × 5 pasadas)
+--     y 600 por fijación completa (dos tandas de 10, que es el criterio de
+--     Fable), caben **24 tandas rutinarias o 6 fijaciones**. La consulta 1 se
+--     queda igualmente: una cifra medida hoy no es una cifra medida el día que
+--     se lance, y volver a mirarla cuesta cero.
+--   · ⚠️ LO QUE SIGUE BLOQUEANDO: si los TRECE documentos no están indexados en
+--     esa organización, la recuperación no puede devolver nada. Ningún filtro
+--     arregla eso, y el examen mediría el vacío.
 --
 -- ⚠️ TODAS LAS COLUMNAS DE ABAJO SE COMPROBARON EN EL ESQUEMA ANTES DE
 -- ESCRIBIRLAS, y no es retórica: el 23/09 se entregó un SQL con tres nombres de
@@ -71,16 +80,19 @@ select
   o.credits_remaining,
   o.credits_extra,
   o.credits_remaining + o.credits_extra                        as creditos_totales,
-  -- Una pasada del examen = 4 casos x 5 pasadas x 5 créditos = 100.
-  floor((o.credits_remaining + o.credits_extra) / 100.0)       as pasadas_completas_que_caben,
-  -- Y con un solo caso, por si hay que empezar de a uno: 5 pasadas x 5 = 25.
+  -- Tanda RUTINARIA = 6 casos x 5 pasadas x 5 créditos = 150.
+  floor((o.credits_remaining + o.credits_extra) / 150.0)       as tandas_rutinarias_que_caben,
+  -- FIJACIÓN COMPLETA = las DOS tandas de 10 que exige el criterio de Fable
+  -- («dos tandas de 10 seguidas deben dar el mismo reparto»): 6 x 10 x 5 x 2 = 600.
+  floor((o.credits_remaining + o.credits_extra) / 600.0)       as fijaciones_completas_que_caben,
+  -- Y un caso suelto, por si hay que empezar de a uno: 5 pasadas x 5 = 25.
   floor((o.credits_remaining + o.credits_extra) / 25.0)        as casos_sueltos_que_caben
 from organizations o
 where o.id = '5a82712f-6740-4792-b291-3fdea8e6edb1'::uuid;
 
 
 -- ────────────────────────────────────────────────────────────────────────
--- 2 · EL ESTADO DE LOS OCHO DOCUMENTOS DE LAS CUATRO PAREJAS
+-- 2 · EL ESTADO DE LOS TRECE DOCUMENTOS DE LOS SEIS CASOS
 --
 -- El nombre se busca por prefijo del código (NOR-10, CLI-12, …) porque el
 -- `documents.name` puede llevar o no la extensión y puede haber sido renombrado
@@ -96,20 +108,31 @@ where o.id = '5a82712f-6740-4792-b291-3fdea8e6edb1'::uuid;
 --     pero se pide porque dice si además participa en el corpus del PRODUCTO, y
 --     eso cambia lo que ve cualquier análisis que NO sea el examen.
 -- ────────────────────────────────────────────────────────────────────────
-with los_ocho(pareja, codigo) as (
+-- ⚠️ TRECE FILAS PARA TRECE DOCUMENTOS, aunque cinco de ellos los usen DOS
+-- casos: RRHH-06 y OPE-02 salen en N1 (el par) y en N2 (como acompañantes), y
+-- CLI-03, NOR-01 y MKT-01 sólo en N2. Se listan una vez cada uno y la columna
+-- `usado_en` dice dónde: repetir un documento por caso haría la tabla más larga
+-- y el veredicto ambiguo —el mismo documento saldría LISTO y NO ESTÁ a la vez si
+-- alguien se equivoca al leer.
+with los_documentos(usado_en, codigo) as (
   values
-    ('P1 · prosa, 4 contradicciones', 'NOR-10'),
-    ('P1 · prosa, 4 contradicciones', 'CLI-12'),
-    ('P2 · prosa, 3 superficies',     'NOR-11'),
-    ('P2 · prosa, 3 superficies',     'CLI-13'),
-    ('P3 · tablas, 3 montones',       'OPE-10'),
-    ('P3 · tablas, 3 montones',       'OPE-11'),
-    ('P4 · sin clave, 2 ramas',       'RRHH-08'),
-    ('P4 · sin clave, 2 ramas',       'OPE-13')
+    ('P1 · prosa, 4 contradicciones',         'NOR-10'),
+    ('P1 · prosa, 4 contradicciones',         'CLI-12'),
+    ('P2 · prosa, 3 superficies',             'NOR-11'),
+    ('P2 · prosa, 3 superficies',             'CLI-13'),
+    ('P3 · tablas, 3 montones',               'OPE-10'),
+    ('P3 · tablas, 3 montones',               'OPE-11'),
+    ('P4 · sin clave, 2 ramas',               'RRHH-08'),
+    ('P4 · sin clave, 2 ramas',               'OPE-13'),
+    ('N1 · falsos conocidos + N2 acompañante','RRHH-06'),
+    ('N1 · falsos conocidos + N2 acompañante','OPE-02'),
+    ('N2 · pareja limpia (el analizado)',     'MKT-01'),
+    ('N2 · acompañante',                      'CLI-03'),
+    ('N2 · acompañante',                      'NOR-01')
 ),
 encontrados as (
   select
-    l.pareja,
+    l.usado_en,
     l.codigo,
     d.id,
     d.name,
@@ -120,13 +143,13 @@ encontrados as (
     d.source,
     d.created_at,
     d.updated_at
-  from los_ocho l
+  from los_documentos l
   left join documents d
     on d.org_id = '5a82712f-6740-4792-b291-3fdea8e6edb1'
    and d.name like l.codigo || '%'
 )
 select
-  e.pareja,
+  e.usado_en,
   e.codigo,
   -- ⚠️ Cuántos documentos de esa organización empiezan por ese código. Si sale
   -- más de 1, el examen NO se lanza: el caso nombra un código y el endpoint no
@@ -157,8 +180,10 @@ select
   (select max(c.created_at) from document_chunks c
     where c.document_id = e.id
       and c.generation  = e.active_generation)      as indexado_aprox,
-  -- Para P3 y P4, que son hojas de cálculo: si no hay trozos de tipo table_row,
-  -- el emparejador de tablas no tiene con qué trabajar y el caso no mide nada.
+  -- Para las hojas de cálculo —OPE-10, OPE-11, RRHH-08, OPE-13, RRHH-06 y
+  -- OPE-02—: si no hay trozos de tipo table_row, el emparejador de tablas no
+  -- tiene con qué trabajar y P3, P4 y la mitad de N1 no miden nada.
+  -- ⚠️ En los de prosa esta columna vale 0 y es CORRECTO: no se lee como fallo.
   (select count(*) from document_chunks c
     where c.document_id = e.id
       and c.generation  = e.active_generation
@@ -172,7 +197,7 @@ select
     else 'LISTO'
   end                                               as veredicto
 from encontrados e
-order by e.pareja, e.codigo;
+order by e.usado_en, e.codigo;
 
 
 -- ────────────────────────────────────────────────────────────────────────
