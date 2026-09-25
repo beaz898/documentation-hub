@@ -199,3 +199,37 @@ describe('claveSegura y esVarianteDeEscritura no pueden separarse', () => {
   });
 });
 
+
+/**
+ * ⚠️ EL CONTROL POSITIVO DE LA MUDANZA A `normalize-core.mjs` (25/09/2026).
+ *
+ * El cuerpo de las tres funciones vive en un `.mjs` desde hoy, para que
+ * `lib/examen/discriminantes.mjs` pueda PREGUNTAR el criterio en vez de
+ * implementarlo otra vez. Un `.mjs` no lleva tipos de TypeScript: **los suyos
+ * viajan en JSDoc**, y `tsconfig.json` los lee porque tiene `allowJs: true`.
+ *
+ * Si alguien borra esas anotaciones, los parámetros pasan a `any` **en
+ * silencio**: `normalize(42)` compilaría, y una garantía que hoy existe
+ * desaparecería sin que nada se pusiera rojo. Eso es lo que estos dos casos
+ * impiden.
+ *
+ * ⚠️ CÓMO FALLA, que es lo que los hace un control y no un adorno: si los tipos
+ * se pierden, `@ts-expect-error` deja de tener un error que esperar y **`tsc`
+ * falla con «Unused '@ts-expect-error' directive»**. El caso no salta en vitest
+ * —vitest no comprueba tipos—: salta en `npm run lint`, que es donde tiene que
+ * saltar. Es deliberado que el aviso llegue por ahí.
+ */
+describe('los tipos sobreviven a la mudanza al .mjs', () => {
+  it('normalize rechaza lo que no es cadena, en tiempo de compilación', () => {
+    // @ts-expect-error — normalize(s: string). Si esto deja de dar error, los
+    // tipos del .mjs se han perdido.
+    expect(() => normalize(42)).toThrow();
+  });
+
+  it('esVarianteDeEscritura y claveSegura, igual', () => {
+    // @ts-expect-error — esVarianteDeEscritura(a: string, b: string)
+    expect(() => esVarianteDeEscritura(1, 2)).toThrow();
+    // @ts-expect-error — claveSegura(s: string)
+    expect(() => claveSegura(null)).toThrow();
+  });
+});
