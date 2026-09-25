@@ -6879,6 +6879,46 @@ dos aciertos (autoclave, conservación) intactos y **cero de los siete falsos**�
 conservación de historia clínica, NOR-01 (5 años) contra CLI-03 (15 años)—, según el director
 el 23/09/2026. Así que el criterio hoy es **un acierto y cero falsos**, no dos y cero.
 
+#### ⚠️⚠️ ESA FRASE QUEDA MARCADA COMO AMBIGUA EL 25/09/2026, Y NO SE VUELVE A CITAR COMO DATO
+
+**Lo pidió el director ese día**: «esa línea la escribí yo el 23/09 y hoy no la recuerdo con
+certeza … resuélvelo leyendo, y si el contexto no lo dice, entonces la anotación es ambigua y
+eso también es una respuesta». Leído el apartado entero, **el contexto no lo dice**, y tiene
+tres defectos distintos que conviene no fundir:
+
+1. **NO DICE DE QUÉ CORPUS HABLA.** Lo más cerca que está de decirlo es la fila «Sembrado» de
+   la ronda A, cuya población es «40 documentos, el corpus del piloto entero» — o sea el corpus
+   de PRODUCCIÓN del director. Los ficheros del repositorio no pueden ser: el 23/09
+   `corpus-pruebas/` tenía once documentos y **ninguno de los cinco de los falsos**, que
+   entraron el 25/09 (`31c141d6`). Es una lectura del contexto, no una afirmación de la frase.
+2. **NINGUNA PASADA LA PRODUJO.** No hay tanda, ni consulta, ni log detrás: la cabecera de
+   §5.88 dice que su fuente es «texto pegado por el director en el encargo del 23/09/2026», y
+   la frase se presenta como «según el director». **Es un recuerdo, no una medición** — y la
+   regla del 06/09 de esta casa dice que una cifra que sale de algo que dijimos antes no sale
+   de ninguna medición.
+3. **Y SU DENOMINADOR NO EXISTE POR ESCRITO.** «Las cinco trampas del piloto» aparece en este
+   documento tres veces y **no está enumerada en ninguna**: `grep -rn "cinco trampas"` sobre
+   todo el repositorio da esas tres líneas y nada más. Sin la lista de las cinco, «sólo
+   sobrevive una» **no se puede comprobar una a una ni falsar**. El criterio de éxito de la
+   bitácora (`Bitacora_Sesiones.txt:4358-4361`) habla de DOS aciertos —autoclave y
+   conservación—, no de cinco trampas.
+
+⚠️ **Y HAY UNA MEDICIÓN QUE LA CONTRADICE EN SU CASO MÁS CONCRETO**: la trampa del autoclave
+**está en los dos ficheros**, medido el 25/09 sobre el texto extraído — «Temperatura: 134 °C»
+en CLI-01 (línea 70, fragmento 4) y «programar el autoclave a 121 °C durante 30 minutos» en
+OPE-01 (línea 19, fragmento 1). Y F-116, del 24/09, la da por existente en producción: «CLI-01
+dice 134 °C/18 min y OPE-01 dice 121 °C/30 min. Esa contradicción nunca se detectó».
+
+**LO QUE SE HACE CON ELLA, y son dos cosas:**
+- **La frase no se cita más como dato.** Queda como anotación ambigua con su fecha. Lo que
+  arrastra consigo es la consecuencia que colgaba de ella —«el criterio hoy es un acierto y
+  cero falsos, no dos y cero»—, que **también queda sin soporte**: era un criterio de éxito
+  derivado de un recuerdo.
+- **No hace falta que nadie la confirme de cabeza, porque el examen la contesta gratis.**
+  `N6_autoclave.mjs` comprueba sus discriminantes contra los fragmentos **antes de pagar**: si
+  la trampa no estuviera en el corpus indexado, el caso aborta con `AUSENTE` en vez de medir el
+  vacío. La primera tanda lo dice sin gastar un crédito y sin pedirle memoria a nadie.
+
 ---
 
 ## ⚠️ 5.89 · Una ruta inventada hacia un fichero que no está en el repositorio (23/09/2026)
@@ -7117,3 +7157,72 @@ es la ceguera y no el duplicado:
    plazas?** La respuesta parece obvia y no lo es — decidirla requiere saber si las dos copias
    pueden tener troceados distintos, que es lo que el `content_hash` de las dos filas de CLI-01
    va a contestar.
+
+---
+
+## 📋 5.92 · ACTA DE LA SEMANA — cinco hipótesis nuestras que se cayeron al medirlas, y las tres que costaron una decisión (25/09/2026)
+
+**Escrita a petición del director el 25/09/2026**, y con una advertencia sobre su propio
+título: **en el repositorio no había ningún «acta de la semana»**. El encargo pedía escribir la
+lección «en el acta de la semana», y lo más cerca que existía era el formato de acta de §5.84
+(la retirada del umbral). Así que ésta la estrena, con el formato de ahí. Si el sitio previsto
+era otro, se mueve.
+
+### LA LECCIÓN, en la frase que la cierra
+
+> **«Invocar el rerank para ese caso habría puesto el arreglo en el sitio equivocado.»**
+
+Y su hermana, del mismo día y sobre por qué `N5` no usa `N6` como ancla:
+
+> **«Un ancla que nunca ha producido un no-cero es otra pantalla apagada.»**
+
+### LAS CINCO, con quién las emitió y qué las tumbó
+
+| # | La hipótesis | De quién | Qué la tumbó | ¿Costó? |
+|---|---|---|---|---|
+| 1 | «los cinco ficheros no están en `corpus-pruebas/`» | **mía**, y dicha empezando por «he verificado» | `git fetch` — estaban en `origin/main` (`31c141d6`) y mi clon iba una detrás | una respuesta entera equivocada |
+| 2 | «los discriminantes de los falsos 1 y 5 están AUSENTES, o el documento cambió» | del **verificador**, con su mensaje | leer las dos líneas: las frases estaban, **partidas por un salto de línea del documento** | media hora, y habría mandado a buscar dónde no estaba |
+| 3 | «las seis plazas del rerank explican el falso negativo del autoclave» | **del arquitecto y mía** | escribir la ficha con el código delante: el fragmento 4 **sí** se recuperó y CLI-01 **sí** pasó el rerank | nada — murió antes del arreglo |
+| 4 | «la extracción de RRHH-04 se quedó a medias» | del **arquitecto**, con su aviso ⚠️ | correr el troceado: 1.495 caracteres de 1.530 bytes, el documento acaba donde debe | nada |
+| 5 | «`*.md text` cambia el troceado de RRHH-04» | **mía** | medirlo con LF y con CRLF: **1.493 caracteres en los dos casos** | nada, y el arreglo se hizo igual por `content_hash` |
+
+**Las tres que costaron algo son la 1, la 2 y la 3, y las tres salieron baratas por la misma
+razón: se midió antes de arreglar.** La 3 es la que mejor lo enseña, porque el pendiente ya
+estaba aprobado y encargado: se abrió, se escribió con el código delante, y la primera línea de
+la ficha acabó corrigiendo a quien la encargó. **Un pendiente puesto por inercia habría
+mandado a instrumentar el rerank para explicar algo que el presupuesto explicaba entero.**
+
+⚠️ Lo que las une, y es lo que hay que poder releer: **ninguna de las cinco era absurda.** Las
+cinco eran razonables, cuatro venían de alguien que sabía de lo que hablaba, y las cinco eran
+falsas. Lo que las cazó no fue desconfianza: fue que en los cinco casos la medición estaba **a
+un comando de distancia** y se hizo antes de actuar. La 1 costó precisamente porque ahí NO se
+hizo —se miró una copia del repositorio y se afirmó sobre el repositorio.
+
+### ⚠️ Y LA DECISIÓN DE ALCANCE DEL MISMO DÍA, que el director corrige sobre sí mismo
+
+Sus palabras: «aprobé cuatro casos nuevos en el mismo día en que dije que había que recortar el
+alcance. Eso es incoherente y la incoherencia la firmé yo». Los cuatro casos se quedan; el
+alcance se cierra aquí.
+
+**DENTRO de la fase 1, y es todo lo que queda**: el endpoint del examen · el marcador con los
+tres estados · la procedencia en las pasadas · la regla del validador que prohíbe un techo
+numérico sin línea de base · **la primera tanda real.**
+
+**FUERA, a después de la primera tanda**: el caso reservado · `contarElFondo` · el falso 5 de
+la ronda B (RCP de RRHH-04 contra soporte vital de NOR-04, anotado como construible en
+`examen/casos/N1_falsos_conocidos.mjs`) · «etapa X iniciada» · **y cualquier caso nuevo.**
+
+> **El criterio, con sus palabras, y queda aquí para poder recordárselo**: «diez casos sin
+> medidor valen menos que seis con medidor. Llevamos dos días escribiendo casos sin haber visto
+> ni una vez el informe que los va a leer. Si te pido otro caso antes de la primera tanda,
+> recuérdame este párrafo.»
+
+### EL REQUISITO QUE EL MARCADOR HEREDA, y va desde el primer día
+
+El **control de tanda** de `N4` y `N5`: sus pares no llevan siembra, así que no tienen control
+positivo propio. Está escrito como dato legible en los dos ficheros
+(`elSilencioCuentaSiSoloSi`) y **hoy nadie lo honra**, porque el marcador no existe.
+
+**Si `N1` no acierta su `Puesto` en la misma tanda, el silencio de `N4` y `N5` es SIN VEREDICTO,
+no verde.** No es un añadido posterior: un marcador que primero los pinte verdes y luego
+aprenda a distinguir habrá publicado dos veredictos falsos antes de aprender.
