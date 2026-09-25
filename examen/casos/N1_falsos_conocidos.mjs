@@ -21,6 +21,51 @@
  * necesitan documentos que NO están en `corpus-pruebas/`. El detalle, con dónde
  * se buscó, está en el bloque `LOS_QUE_NO_ENTRAN` del final — y no se inventa
  * ninguno: un falso sin cita literal no entra.
+ *
+ * ═══════════════════════════════════════════════════════════════════════════
+ * ⚠️⚠️⚠️ EL LÍMITE QUE HAY QUE LEER ANTES DE CUALQUIER VERDE DE ESTE CASO:
+ * **LAS DOS MITADES DE N1 ESTÁN ESCRITAS DENTRO DEL PROMPT DEL JUEZ.**
+ *
+ * Fable listó como sexto modo de degradación de un examen que «las frases de los
+ * documentos de prueba acaben dentro de un prompt o de un ejemplo», y propuso el
+ * caso reservado como cura. **Medido el 25/09/2026: en este par ya ha ocurrido.**
+ * `lib/analysis/judge.ts:831`, una sola línea del prompt, contiene las dos:
+ *
+ *   «Dos tablas de temas distintos comparten a las mismas personas: que una
+ *   tenga datos que la otra no tiene NO es contradicción — son complementarios
+ *   (**una fecha de evaluación y unas horas semanales no se comparan**). Pero si
+ *   la MISMA columna aparece en ambas con valores distintos para la misma
+ *   persona — **el mismo Puesto con dos valores** — eso SÍ se reporta…»
+ *
+ *   · «**una fecha de evaluación y unas horas semanales**» ES el falso de
+ *     Belmonte/Nuria Ferrer, descrito por sus dos datos.
+ *   · «**el mismo Puesto con dos valores**» ES la contradicción de Pablo Reyes,
+ *     descrita por su columna.
+ *
+ * ⚠️ CONSECUENCIA, Y NO SE PUEDE SUAVIZAR: **este caso no mide si el sistema
+ * generaliza. Mide si obedece una instrucción escrita sobre este par concreto.**
+ * Un verde aquí dice «el prompt sigue diciendo lo que decía», no «el juez
+ * distingue datos complementarios de contradicciones».
+ *
+ * ⚠️ Y NO ES TEÓRICO: ESA LÍNEA ES LA CURA DE UN FALLO DE TRES SEMANAS QUE ELLA
+ * MISMA CAUSÓ. `claude/Cierre_B81.md:199-244` lo documenta: la versión anterior
+ * del ejemplo —escrita en F-22 para matar el falso de Nuria Ferrer— «**describe
+ * POR SU NOMBRE el par de prueba del proyecto**», y convivía con la regla
+ * operativa que decía lo contrario. «El juez no tenía una regla: tenía dos y
+ * elegía. Eso explica tres semanas de intermitencia sin necesidad de invocar
+ * aleatoriedad.» La línea actual (`de158abd`) conserva la mitad que funcionaba e
+ * invierte la que no — pero **sigue nombrando el caso de prueba**.
+ *
+ * QUÉ SE HACE CON ESTO, y son tres cosas, ninguna es «quitar la línea»:
+ *   1. **N1 se queda**, porque medir que la instrucción se sigue cumpliendo
+ *      TIENE valor: es el centinela de que nadie la borre por simetría, y
+ *      Belmonte en 1/4 demuestra que ni siquiera obedeciéndola desaparece.
+ *   2. **N1 NO cuenta como medida de precisión general.** El informe tiene que
+ *      imprimir esta advertencia con el resultado, o alguien leerá el verde como
+ *      lo que no es.
+ *   3. **El caso reservado es obligatorio, y ninguno de los seis casos actuales
+ *      puede serlo.** Éste menos que ninguno.
+ * ═══════════════════════════════════════════════════════════════════════════
  */
 
 export default {
