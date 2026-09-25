@@ -139,6 +139,28 @@ queda superado, pero **no administra su propio estado**.
 
 ---
 
+## ⚠️ LAS CONSULTAS SIN NÚMERO — y por qué van en su propia sección
+
+*Abierta el 25/09/2026, con la primera.*
+
+**No toda consulta a Fable es una F.** Algunas se piden sin informe y sin
+dictamen por puntos —«un OK o un "esto lo haría distinto", lo más corto que
+puedas»—, y **numerarlas las metería en una serie que significa otra cosa**: la
+serie F es jurisprudencia con su exposición de motivos, y una respuesta de diez
+líneas no lo es.
+
+⚠️ **Pero se archivan igual, y con la misma regla**: la de custodia del protocolo
+(`claude/Protocolo_Harness_Tasas.md:179`) dice «toda consulta a Fable se archiva
+íntegra» y **no distingue por formato**. Lo que decide si algo se archiva no es
+su longitud: es si cambió algo. Fichero con prefijo y fecha, que ordena solo y no
+se puede confundir con `F-###.md`.
+
+| Fichero | Fecha | Asunto | Estado | Qué cambió |
+|---|---|---|---|---|
+| **[CONSULTA-RAPIDA · el montaje del arnés](CONSULTA-RAPIDA_2026-09-25_el-montaje-del-arnes.md)** | 25/09/2026 | ¿Estamos montando bien el arnés? Juicio sobre las seis decisiones de diseño del examen, pedido **antes** de escribir el endpoint | **vigente** · PAR COMPLETO · ✅ **OK a las seis**, y la 3 (emparejamiento por cita discriminante) y la 6 (restringir corpus y fondo a la vez) «mejor que lo que hacen muchos equipos» | ⚠️ **UNA CARENCIA GRAVE: el examen sólo medía «debe encontrar».** «Con sólo trampas sembradas, un sistema que emite todo lo que se le ocurre saca verde … el arnés mide COBERTURA y no PRECISIÓN, y vuestro fallo de la semana pasada fue de precisión.» Nacen los casos de **esperado cero** · ⚠️ **UN FALLO CONCRETO, del arquitecto al aprobar el formato**: el grep de los discriminantes se hizo **sobre el documento y no sobre los fragmentos** — un discriminante partido por una costura hace el caso **no medible**, y hay que comprobarlo **en cada pasada** · **EL MARCADOR CAMBIA DE UNIDAD**: no son 4 casos, son **22 contradicciones**, con tres estados de estabilidad y **el número de inestables como métrica propia** · **SEIS MODOS DE DEGRADACIÓN** de un examen, con su cura cada uno · ⚠️ **RETIRA UN PLAZO SUYO**: los 90 s de F-117 P7 **no valen en serverless**, donde el tope son **40 s** · y **«la verdad es el corpus, no el registro»** |
+
+---
+
 ## EL ÍNDICE
 
 | # | Fecha | Asunto | Estado | Reglas promovidas |
