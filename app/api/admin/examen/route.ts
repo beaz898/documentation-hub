@@ -4,6 +4,7 @@ import { getAuthenticatedUserHybrid } from '@/lib/supabase-server';
 import { resolverOrg } from '@/lib/org';
 import { respuestaDeOrgNoResuelta } from '@/lib/org-respuesta';
 import { getChunksForDocuments } from '@/lib/read-chunks';
+import { analizarCaso } from './analizar';
 
 /**
  * EL ENDPOINT DEL EXAMEN — POST /api/admin/examen (25/09/2026).
@@ -16,15 +17,27 @@ import { getChunksForDocuments } from '@/lib/read-chunks';
  *     los documentos del caso: los MISMOS que el análisis va a leer. Cero
  *     créditos, cero llamadas a modelo. Es lo que permite al ejecutor verificar
  *     los discriminantes y ABORTAR sin haber pagado.
- *   · `analizar` — 501 HOY. Ver el bloque de abajo: necesita una decisión que no
- *     es de este fichero.
+ *   · `analizar` — el análisis RÁPIDO contra el corpus EXACTO del caso. Cobra
+ *     5 créditos. Conectado el 26/09/2026; ver `analizar.ts`.
  */
 
-export const maxDuration = 60;
+/**
+ * ⚠️ 300 Y NO 60 (26/09/2026). Los 60 s bastaban para `fragmentos`, que sólo
+ * lee; `analizar` corre el pipeline entero, y `analyze-v2` —el mismo pipeline—
+ * ya declara 120. Pasarse de `maxDuration` mata la función sin `catch` y sin
+ * registro: se pierde el rastro de una pasada ya cobrada. 300 es lo que declaran
+ * las demás rutas de administración de este repositorio (`reindexar`,
+ * `vecindario`, `cleanup-orphans`), así que la plataforma lo acepta.
+ * ⚠️ No hay duración de un análisis persistida en ningún sitio: el margen sobre
+ * 120 es holgura, no una medición. La primera tanda da la cifra (`r.ms` en el
+ * crudo).
+ */
+export const maxDuration = 300;
 
 interface Cuerpo {
   operacion?: unknown;
   casoId?: unknown;
+  pasada?: unknown;
   analizado?: unknown;
   corpusExacto?: unknown;
 }
@@ -104,48 +117,29 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  /**
-   * ⚠️ 501 Y NO UN ANÁLISIS A MEDIAS. `analizar` necesita que el pipeline acepte
-   * el corpus del caso, y hoy `retrieval.ts:260` construye su filtro DENTRO
-   * (`buildCorpusFilter(batchDocumentIds)`): no hay costura por donde entre
-   * `buildCorpusExacto`. Abrirla toca `retrieval.ts` y `pipeline.ts`, que son
-   * camino de usuario, y eso es una decisión del arquitecto — no de este fichero.
-   * Sin ella, un `analizar` mediría contra el corpus del PRODUCTO (44
-   * documentos) creyendo medir contra dos, que es peor que no medir.
-   */
-  if (operacion === 'analizar') {
-    return NextResponse.json(
-      {
-        error: 'La operación `analizar` no está conectada todavía.',
-        motivo: 'El pipeline no acepta un corpus exacto: retrieval.ts construye su propio filtro. ' +
-                'Conectarlo es una decisión pendiente del arquitecto (26/09/2026).',
-        queSiFunciona: 'operacion: "fragmentos" — lectura, sin coste, y es la que permite verificar antes de pagar.',
-      },
-      { status: 501 },
-    );
-  }
-
-  if (operacion !== 'fragmentos') {
+  if (operacion !== 'fragmentos' && operacion !== 'analizar') {
     return NextResponse.json(
       { error: `Operación no reconocida: ${JSON.stringify(operacion)}. Son "fragmentos" o "analizar".` },
       { status: 400 },
     );
   }
 
-  // ── fragmentos ────────────────────────────────────────────────────────────
+  // ── resolución: común a las dos operaciones ─────────────────────────────
   const nombres = [analizado, ...corpusExacto];
-  const resueltos: Array<{ nombre: string; id: string; generacion: number }> = [];
+  const resueltos: Array<{ nombre: string; id: string; generacion: number; nombreEnLaBase: string }> = [];
   const problemas: string[] = [];
 
   for (const nombre of nombres) {
     const r = await resolverDocumento(supabase, orgId, nombre);
-    if (r.ok) resueltos.push({ nombre, id: r.id, generacion: r.generacion });
+    if (r.ok) resueltos.push({ nombre, id: r.id, generacion: r.generacion, nombreEnLaBase: r.nombreEnLaBase });
     else problemas.push(r.error);
   }
 
   // ⚠️ FALLA CERRADO Y ENTERO: con un documento sin resolver, la verificación de
   // discriminantes daría SIN_FRAGMENTOS para ése y MEDIBLE para el otro, y el
   // ejecutor no distinguiría «no está indexado» de «el endpoint no lo encontró».
+  // En `analizar`, además, un corpus con un hueco mediría contra menos de lo
+  // que el caso declara.
   if (problemas.length > 0) {
     return NextResponse.json(
       { error: 'No se pudieron resolver todos los documentos del caso.', casoId, problemas },
@@ -153,6 +147,18 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  // ── analizar ─────────────────────────────────────────────────────────────
+  // Con el corpus EXACTO del caso por la costura `idsDelCorpusExacto`
+  // (aprobada el 26/09/2026). Ver `analizar.ts`.
+  if (operacion === 'analizar') {
+    const [delAnalizado, ...delCorpus] = resueltos;
+    return analizarCaso({
+      supabase, orgId, userId: user.id, casoId, pasada: cuerpo.pasada,
+      analizado: delAnalizado, corpus: delCorpus,
+    });
+  }
+
+  // ── fragmentos ────────────────────────────────────────────────────────────
   const porId = await getChunksForDocuments(supabase, {
     orgId,
     documents: resueltos.map(r => ({ documentId: r.id, generation: r.generacion })),
