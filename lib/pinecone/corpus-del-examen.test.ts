@@ -5,6 +5,7 @@ import { describe, expect, it } from 'vitest';
 
 import { buildCorpusExacto } from './corpus-del-examen';
 import { buildCorpusFilter, CORPUS_ACTIVO } from './vectors';
+import { elegirFiltroDeCorpus } from '@/lib/analysis/retrieval';
 
 /**
  * EL CASO DECISIVO DEL CORPUS EXACTO (25/09/2026).
@@ -161,6 +162,44 @@ describe('la lista vacía se rompe, y no devuelve un corpus vacío', () => {
 });
 
 // ---------------------------------------------------------------------------
+// La costura — condición (a) del arquitecto, 26/09/2026
+// ---------------------------------------------------------------------------
+
+describe('la costura: ausente el parámetro, el camino de siempre', () => {
+  // Las tres formas en que el producto llama hoy: sin tanda, tanda vacía, tanda.
+  const TANDAS: Array<string[] | undefined> = [undefined, [], ['NOR-10', 'CLI-12']];
+
+  it('⚠️ CASO DECISIVO — sin idsDelCorpusExacto, el MISMO filtro y la MISMA selección que antes', () => {
+    for (const batchDocumentIds of TANDAS) {
+      const antes = buildCorpusFilter(batchDocumentIds);
+      const ahora = elegirFiltroDeCorpus({ batchDocumentIds });
+      expect(ahora).toEqual(antes);
+      expect(seleccionados(ahora)).toEqual(seleccionados(antes));
+    }
+  });
+
+  it('⚠️ CONTROL POSITIVO — con el parámetro, la selección SÍ cambia: salen sólo los 8', () => {
+    // Sin esta mitad, el caso de arriba pasaría con una costura que ignora el
+    // parámetro, y el examen mediría contra el piloto creyendo medir contra dos.
+    const salen = seleccionados(elegirFiltroDeCorpus({ idsDelCorpusExacto: LOS_OCHO }));
+    expect([...salen].sort()).toEqual([...LOS_OCHO].sort());
+    expect(salen).not.toEqual(seleccionados(elegirFiltroDeCorpus({})));
+  });
+
+  it('corpus exacto y tanda a la vez se rompen: la tanda se perdería sin avisar', () => {
+    expect(() => elegirFiltroDeCorpus({ idsDelCorpusExacto: ['NOR-10'], batchDocumentIds: ['CLI-12'] }))
+      .toThrow(/a la vez/);
+    // Tanda vacía no es tanda: es la forma en que el producto dice «ninguna».
+    expect(() => elegirFiltroDeCorpus({ idsDelCorpusExacto: ['NOR-10'], batchDocumentIds: [] }))
+      .not.toThrow();
+  });
+
+  it('una lista exacta vacía sigue rompiéndose: no hay atajo por la costura', () => {
+    expect(() => elegirFiltroDeCorpus({ idsDelCorpusExacto: [] })).toThrow(/lista de ids vacía/);
+  });
+});
+
+// ---------------------------------------------------------------------------
 // El censo de importadores — la cláusula (a) del director, con mecanismo
 // ---------------------------------------------------------------------------
 
@@ -189,9 +228,10 @@ function importadoresDe(simbolo: string): string[] {
 }
 
 describe('quién puede usar el corpus exacto', () => {
-  /** Los únicos caminos autorizados. El endpoint del examen todavía no existe:
-   *  figura aquí para que el día que se escriba, este caso no haya que tocarlo. */
-  const AUTORIZADOS = ['app/api/admin/examen/route.ts'];
+  /** Los únicos que importan el módulo: el endpoint del examen y la costura
+   *  (`retrieval.ts`, 26/09/2026), que elige por dato y no por llamador. Quién
+   *  le PASA ese dato lo vigila el censo siguiente. */
+  const AUTORIZADOS = ['app/api/admin/examen/route.ts', 'lib/analysis/retrieval.ts'];
 
   it('⚠️ CONTROL POSITIVO — el censo SÍ ve imports cuando los hay', () => {
     // Sin esta mitad, el caso de abajo daría verde con un censo ciego: es
@@ -206,11 +246,51 @@ describe('quién puede usar el corpus exacto', () => {
     expect(intrusos, `importadores no autorizados: ${intrusos.join(', ')}`).toEqual([]);
   });
 
+  /** La ruta del módulo como ESPECIFICADOR —entre comillas, en un `import`,
+   *  `import()` o `require`—, no como palabra: un comentario que nombra el
+   *  fichero de pruebas no llega al módulo (26/09/2026, `pipeline.ts`). */
+  const porRuta = () => ficherosDeCodigo()
+    .filter(f => !f.endsWith('.test.ts') && f !== 'lib/pinecone/corpus-del-examen.ts')
+    .filter(f => /['"][^'"\n]*corpus-del-examen['"]/.test(readFileSync(f, 'utf8')));
+
+  it('⚠️ CONTROL POSITIVO — el censo por ruta SÍ ve a quien importa el módulo', () => {
+    expect(porRuta()).toContain('lib/analysis/retrieval.ts');
+  });
+
   it('tampoco por la ruta del módulo, que es la otra forma de llegar', () => {
-    const porRuta = ficherosDeCodigo()
-      .filter(f => !f.endsWith('.test.ts') && f !== 'lib/pinecone/corpus-del-examen.ts')
-      .filter(f => readFileSync(f, 'utf8').includes('corpus-del-examen'))
-      .filter(f => !AUTORIZADOS.includes(f));
-    expect(porRuta, `tocan el módulo sin autorización: ${porRuta.join(', ')}`).toEqual([]);
+    const intrusos = porRuta().filter(f => !AUTORIZADOS.includes(f));
+    expect(intrusos, `tocan el módulo sin autorización: ${intrusos.join(', ')}`).toEqual([]);
+  });
+});
+
+describe('quién pasa idsDelCorpusExacto — condición (b) del arquitecto', () => {
+  /**
+   * La capacidad es nombrar el parámetro: el pipeline sólo lo acepta por esa
+   * clave, y el tipo impide llegar por otra. Los tres de `lib/analysis` lo
+   * DECLARAN o lo RELEVAN; el único que lo ORIGINA es el endpoint del examen.
+   * ⚠️ Si un camino de usuario —una ruta de `app/api` que no sea la del examen,
+   * el worker, un componente— aparece aquí, rojo.
+   */
+  const AUTORIZADOS = [
+    'app/api/admin/examen/route.ts',
+    'app/api/admin/examen/analizar.ts',   // el único que lo ORIGINA
+    'lib/analysis/pipeline.ts',
+    'lib/analysis/retrieval.ts',
+    'lib/analysis/termometro.ts',
+    'lib/pinecone/corpus-del-examen.ts',   // el módulo, que lo nombra en su aviso
+  ];
+  const quienLoNombra = () => ficherosDeCodigo()
+    .filter(f => !f.endsWith('.test.ts') && !f.endsWith('.test.tsx'))
+    .filter(f => /\bidsDelCorpusExacto\b/.test(readFileSync(f, 'utf8')));
+
+  it('⚠️ CONTROL POSITIVO — el censo SÍ ve a quien lo nombra', () => {
+    const lo = quienLoNombra();
+    expect(lo).toContain('lib/analysis/pipeline.ts');
+    expect(lo).toContain('lib/analysis/retrieval.ts');
+  });
+
+  it('nadie fuera de la lista lo nombra', () => {
+    const intrusos = quienLoNombra().filter(f => !AUTORIZADOS.includes(f));
+    expect(intrusos, `nombran idsDelCorpusExacto sin autorización: ${intrusos.join(', ')}`).toEqual([]);
   });
 });

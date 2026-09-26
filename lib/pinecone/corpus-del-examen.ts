@@ -8,8 +8,19 @@
  *
  * El examen necesita la pregunta contraria —«¿qué puede ver SÓLO este caso?»— y
  * esa es una RESTRICCIÓN. Son dos criterios distintos, así que viven en dos
- * sitios distintos: meterle un modo al filtro del producto para que el examen
- * quepa sería poner el instrumento de medida dentro de lo que mide.
+ * sitios distintos.
+ *
+ * ⚠️ LO QUE ESTÁ PROHIBIDO Y LO QUE NO (arquitecto, 26/09/2026). La distinción
+ * es la que autorizó abrir la costura, y va escrita para que siga frenando lo
+ * que debe y sólo eso:
+ *   · PROHIBIDO: que `buildCorpusFilter` —o este filtro— cambie de
+ *     comportamiento según quién llame. Un filtro con dos personalidades es el
+ *     instrumento dentro de lo que mide.
+ *   · PERMITIDO: que el pipeline reciba COMO DATO cuál de los dos usar
+ *     (`idsDelCorpusExacto`, elegido en `elegirFiltroDeCorpus` de
+ *     `retrieval.ts`). Cada filtro sigue haciendo siempre lo mismo; lo nuevo es
+ *     un parámetro opcional que entra por el borde, y ausente es el camino de
+ *     siempre.
  *
  * Y una razón de forma que también cuenta: `vectors.ts` está en 401 líneas, ya
  * en el techo de 400 de `CLAUDE.md`.
@@ -21,9 +32,10 @@
  * hicieron con CLI-04 y OPE-11 ya `analizado`. La repetibilidad del método viejo
  * no venía del filtro — venía de que la organización estaba vacía.
  *
- * ⚠️ QUIÉN PUEDE USARLO: **sólo el endpoint del examen.** Ni un solo camino de
- * usuario. No es una promesa: lo vigila un censo de importadores en
- * `corpus-del-examen.test.ts`, con su control positivo.
+ * ⚠️ QUIÉN PUEDE USARLO: **sólo el examen.** Lo importan el endpoint del examen y
+ * `retrieval.ts`, que es la costura que elige; y quién PASA `idsDelCorpusExacto`
+ * lo vigila un segundo censo. Los dos en `corpus-del-examen.test.ts`, con su
+ * control positivo: si un camino de usuario aparece en esa lista, rojo.
  */
 
 /**

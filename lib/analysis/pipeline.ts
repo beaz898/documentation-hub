@@ -90,6 +90,13 @@ export interface AnalyzePipelineInput {
    * uno se valide.
    */
   batchDocumentIds?: string[];
+  /**
+   * SÓLO EL EXAMEN (26/09/2026): restringe la recuperación a EXACTAMENTE estos
+   * ids, sin mirar su estado. Ausente = el camino de siempre. Quién lo pasa lo
+   * vigila un censo en `corpus-del-examen.test.ts`: si aparece un camino de
+   * usuario, rojo. Ver `elegirFiltroDeCorpus` en `retrieval.ts`.
+   */
+  idsDelCorpusExacto?: readonly string[];
   supabase: SupabaseClient;
   /**
    * Huellas de contradicciones descartadas en reanálisis anteriores.
@@ -716,6 +723,7 @@ async function runCorePipeline(
     orgId: input.orgId,
     excludeDocumentId: input.excludeDocumentId,
     batchDocumentIds: input.batchDocumentIds,
+    idsDelCorpusExacto: input.idsDelCorpusExacto,
     options,
     supabase: input.supabase,
     newDocumentChunks: input.newDocumentChunks,

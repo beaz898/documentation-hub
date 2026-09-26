@@ -1,4 +1,5 @@
 import { queryVectors, buildCorpusFilter } from '@/lib/pinecone/vectors';
+import { buildCorpusExacto } from '@/lib/pinecone/corpus-del-examen';
 import { generateEmbeddingsConSello, EMBEDDING_MODEL } from '@/lib/embeddings';
 import {
   termometroDeLaRecuperacion,
@@ -188,11 +189,39 @@ function resolveExhaustiveBudget(): number {
   return parsed;
 }
 
+/**
+ * Qué filtro de corpus usa esta recuperación. Los dos filtros siguen intactos y
+ * cada uno hace siempre lo mismo; lo único que se elige aquí es CUÁL, y se elige
+ * por un DATO que entra por el borde, no por quién llama (26/09/2026).
+ *
+ * ⚠️ AUSENTE `idsDelCorpusExacto` = EL CAMINO DE SIEMPRE, byte a byte:
+ * `buildCorpusFilter(batchDocumentIds)`. Lo fija `corpus-del-examen.test.ts`
+ * sobre el mismo universo que el caso decisivo del corpus exacto.
+ *
+ * ⚠️ LOS DOS A LA VEZ ES UNA LLAMADA MAL HECHA Y SE ROMPE: el corpus exacto no
+ * amplía nada, así que unos ids de tanda a su lado se ignorarían en silencio.
+ */
+export function elegirFiltroDeCorpus(args: {
+  batchDocumentIds?: string[];
+  idsDelCorpusExacto?: readonly string[];
+}): object {
+  if (args.idsDelCorpusExacto === undefined) return buildCorpusFilter(args.batchDocumentIds);
+  if (args.batchDocumentIds && args.batchDocumentIds.length > 0) {
+    throw new Error(
+      'elegirFiltroDeCorpus: corpus exacto y ids de tanda a la vez. El exacto no ' +
+      'amplía el corpus: los de la tanda se perderían sin avisar.',
+    );
+  }
+  return buildCorpusExacto(args.idsDelCorpusExacto);
+}
+
 export async function retrieveCandidates(args: {
   sampleTexts: string[];
   orgId: string;
   excludeDocumentId?: string;
   batchDocumentIds?: string[];
+  /** SÓLO EL EXAMEN (censo en `corpus-del-examen.test.ts`). Ver `elegirFiltroDeCorpus`. */
+  idsDelCorpusExacto?: readonly string[];
   options?: PipelineOptions;
   supabase: SupabaseClient;
   /** Chunks del documento ANALIZADO (F-41), en su forma persistida — el mismo
@@ -221,7 +250,7 @@ export async function retrieveCandidates(args: {
    *  están los datos, y viaja al `FinalAnalysis` para persistirse en el jsonb. */
   termometro: Termometro;
 }> {
-  const { sampleTexts, orgId, excludeDocumentId, batchDocumentIds, options, supabase, newDocumentChunks } = args;
+  const { sampleTexts, orgId, excludeDocumentId, batchDocumentIds, idsDelCorpusExacto, options, supabase, newDocumentChunks } = args;
   const isExhaustive = options?.exhaustive === true;
 
   // F-42: índice de VALORES (normalizados) del documento analizado, por
@@ -257,7 +286,7 @@ export async function retrieveCandidates(args: {
 
   const sello = await generateEmbeddingsConSello(sampleTexts);
   const embeddings = sello.vectores;
-  const corpusFilter = buildCorpusFilter(batchDocumentIds);
+  const corpusFilter = elegirFiltroDeCorpus({ batchDocumentIds, idsDelCorpusExacto });
 
   // Recoger todos los matches de Pinecone. Paralelo por lotes en los dos
   // modos (F-31 P1) — sin delayMs: aquí se paraleliza contra Pinecone, no
@@ -501,7 +530,9 @@ export async function retrieveCandidates(args: {
   // ⚠️ F-114 — EL FONDO, LEÍDO DE LA BASE Y NO DE PINECONE. Es el denominador que
   // dice si el mínimo observado es el SUELO o sólo el puesto `topK`. Y si la
   // lectura falla NO tumba el análisis: devuelve null con su motivo.
-  const fondoContado = await contarElFondo(supabase, { orgId, excludeDocumentId, batchDocumentIds });
+  // ⚠️ El fondo recibe el MISMO dato que el filtro: con el corpus exacto, contar
+  // el del producto daría un denominador de 44 documentos para una búsqueda de 2.
+  const fondoContado = await contarElFondo(supabase, { orgId, excludeDocumentId, batchDocumentIds, idsDelCorpusExacto });
 
   const denominadores: DenominadoresDelTermometro = {
     // Los seis salen de la criba, que los contó cada uno donde ocurre su

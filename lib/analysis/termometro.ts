@@ -1,8 +1,8 @@
 import { CUBOS, cuboDe, histogramaVacio } from './cubos-de-score';
 import { EMBEDDING_MODEL } from '@/lib/embeddings';
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { ESTADO_DEL_CORPUS } from '@/lib/documents/estado';
 import { LOTE_DE_IDS } from '@/lib/documents/vivos';
+import { esDelFondo } from './es-del-fondo';
 
 /**
  * EL TERMÓMETRO DE LA RECUPERACIÓN — F-114 (21/09/2026).
@@ -301,7 +301,7 @@ const TOPE_DE_DOCUMENTOS = 5000;
 
 export async function contarElFondo(
   supabase: SupabaseClient,
-  args: { orgId: string; excludeDocumentId?: string; batchDocumentIds?: string[] },
+  args: { orgId: string; excludeDocumentId?: string; batchDocumentIds?: string[]; idsDelCorpusExacto?: readonly string[] },
 ): Promise<{ fondo: number | null; motivo: string | null; documentosDelFondo: ReadonlySet<string> }> {
   const sinFondo = (motivo: string) => ({ fondo: null, motivo, documentosDelFondo: new Set<string>() });
   try {
@@ -317,15 +317,18 @@ export async function contarElFondo(
       return sinFondo(`la organización supera ${TOPE_DE_DOCUMENTOS} documentos: el fondo no se puede contar de una vez`);
     }
 
-    const deLaTanda = new Set(args.batchDocumentIds ?? []);
+    const criterio = {
+      exacto: args.idsDelCorpusExacto ? new Set(args.idsDelCorpusExacto) : null,
+      deLaTanda: new Set(args.batchDocumentIds ?? []),
+      excludeDocumentId: args.excludeDocumentId,
+    };
     const elegiblesConGeneracion = filas
       .map(d => ({
         id: d.id as string,
         estado: d.analysis_status as string | null,
         generacion: (d.active_generation as number | null) ?? 1,
       }))
-      .filter(d => d.estado === ESTADO_DEL_CORPUS || deLaTanda.has(d.id))
-      .filter(d => d.id !== args.excludeDocumentId);
+      .filter(d => esDelFondo(d, criterio));
 
     const documentosDelFondo = new Set(elegiblesConGeneracion.map(d => d.id));
     if (documentosDelFondo.size === 0) return { fondo: 0, motivo: null, documentosDelFondo };
