@@ -35,9 +35,16 @@ import { marcarTanda, SIN_VEREDICTO } from '../lib/examen/marcador.mjs';
  *   node scripts/examen.mjs --caso P1            # seco, un solo caso
  *   node scripts/examen.mjs --lanzar             # gasta de verdad
  *   node scripts/examen.mjs --lanzar --caso P2
+ *   node scripts/examen.mjs --lanzar --excluir N6   # todos menos N6
  *
  * Variables de entorno necesarias SÓLO para --lanzar (por NOMBRE, nunca su
  * valor): EXAMEN_URL_BASE y EXAMEN_TOKEN_ADMIN.
+ *
+ * ⚠️ LIMITACIÓN DECLARADA (arquitecto, 26/09/2026): **MIDE CON DOS DOCUMENTOS, Y
+ * EL PRODUCTO TRABAJARÁ CON CIENTOS.** Es correcto para detectar regresiones
+ * —aísla la variable— pero el examen NO mide el comportamiento con corpus
+ * grande: el reparto del presupuesto entre candidatos, las plazas del rerank ni
+ * el fondo. Va impresa en cada informe, junto a los veredictos.
  */
 
 // ---------------------------------------------------------------------------
@@ -62,6 +69,12 @@ const LANZAR = argv.includes('--lanzar');
 const soloCaso = (() => {
   const i = argv.indexOf('--caso');
   return i === -1 ? null : argv[i + 1];
+})();
+/** `--excluir N6` o `--excluir N6,P4`. Lo excluido se IMPRIME en la cabecera:
+ *  una tanda sin un caso no puede leerse como la tanda entera. */
+const excluidos = (() => {
+  const i = argv.indexOf('--excluir');
+  return i === -1 ? [] : (argv[i + 1] ?? '').split(',').map(x => x.trim()).filter(Boolean);
 })();
 
 function commitActual() {
@@ -103,7 +116,8 @@ export async function cargarCasos() {
     const mod = await import(`../examen/casos/${f.replace(/\.mjs$/, '')}.mjs`);
     casos.push({ fichero: f, ...mod.default });
   }
-  return soloCaso ? casos.filter(c => c.id === soloCaso) : casos;
+  const elegidos = soloCaso ? casos.filter(c => c.id === soloCaso) : casos;
+  return elegidos.filter(c => !excluidos.includes(c.id));
 }
 
 // ---------------------------------------------------------------------------
@@ -426,11 +440,21 @@ function costeDe(casos) {
   };
 }
 
+/** La limitación de la cabecera, impresa PEGADA a los veredictos para que
+ *  quien lea un verde sepa qué no cubre. */
+const LO_QUE_NO_MIDE = [
+  '⚠️ LO QUE UN VERDE NO CUBRE: cada caso mide con DOS documentos y el producto',
+  '   trabajará con cientos. Detecta regresiones porque aísla la variable, pero',
+  '   NO mide el reparto del presupuesto, las plazas del rerank ni el fondo con',
+  '   corpus grande.',
+];
+
 function cabecera(casos, commit) {
   const { analisis, creditos, dolares } = costeDe(casos);
   return [
     `EXAMEN · ${new Date().toISOString().slice(0, 10)} · commit ${commit}`,
     `${casos.length} caso(s) · ${analisis} análisis · ${creditos} créditos · ${dolares} $`,
+    ...(excluidos.length ? [`⚠️ EXCLUIDOS de esta tanda: ${excluidos.join(', ')}`] : []),
     '',
   ].join('\n');
 }
@@ -478,6 +502,7 @@ function informeSeco(casos, commit) {
     lineas.push('');
   }
 
+  lineas.push(...LO_QUE_NO_MIDE, '');
   lineas.push('Para gastar de verdad: node scripts/examen.mjs --lanzar');
   return lineas.join('\n');
 }
@@ -500,6 +525,7 @@ function informeReal(casos, resultados, commit, dirSalida) {
     for (const r of m.razones) lineas.push(`    ~ ${r}`);
     for (const f of m.fallos) lineas.push(`    ✗ ${f}`);
   }
+  lineas.push('', ...LO_QUE_NO_MIDE);
   lineas.push('');
   lineas.push(`Evidencia cruda: ${dirSalida}`);
   return lineas.join('\n');
