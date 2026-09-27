@@ -3692,3 +3692,68 @@ nada.
 **El acta completa de la retirada, con sus siete apartados, en `claude/Estado_Del_MVP.md`
 §5.84.** La errata de este fichero existe porque **no estaba en la lista de siete sitios que
 F-113 nombró**: apareció al rehacer el censo por capacidad en vez de fiarse de la lista.
+
+---
+
+## 27/09/2026 — EXAMEN, PRIMERA TANDA (`c39397e7`): EL EXAMEN PENALIZÓ AL SISTEMA POR ACERTAR
+
+Organización `a9625e93`, corpus exacto, nueve casos (N6 excluido), 45 pasadas, 225 créditos.
+Crudos e informe en `examen/resultados/2026-09-27_c39397e7/`.
+
+⚠️ **EL EXAMEN PENALIZÓ AL SISTEMA POR ACERTAR.** N1 acertó cinco de cinco y salió FALLA. P3
+detectó las 15 en las cinco y salió PASA sin medir nada. Los avisos de N4 y N5 eran falsos.
+
+La entrada era la misma; **el cero lo puso el marcador**. N1-PUESTO no tenía con qué
+emparejarse (sin discriminantes y sin comparador tabular), P3 tenía cuatro umbrales que el
+marcador no leía, y el control de tanda de N4 y N5 colgaba de ese acierto de N1.
+
+**Es el riesgo que se nombró el 25/09 y que construimos igualmente.** Con su atribución exacta,
+porque la frase no es de Fable:
+
+> «si hubiéramos escrito el examen desde ese registro, el sistema habría sacado cuatro y la
+> cuarta —un acierto real— habría contado como error. **El examen habría penalizado al producto
+> por funcionar bien.**» — nuestra, en la consulta enviada
+> (`consultas-fable/CONSULTA-RAPIDA_2026-09-25_el-montaje-del-arnes.md:136`)
+>
+> «Correcto, y la lección es más general: la verdad es el corpus, no el registro.» — Fable,
+> su respuesta a ese punto (`:175`)
+>
+> «Con solo trampas sembradas, un sistema que emite todo lo que se le ocurre saca verde.» —
+> Fable (`:168`). P3 es eso: un verde que no midió.
+
+Que se relea el día que alguien confíe en un verde.
+
+**Lo que lo salva**: los 45 crudos se guardaron antes de agregar, así que la corrección costó
+cero créditos. La decisión de guardar el crudo antes de agregar se pagó hoy.
+
+### El mismo crudo, dos marcadores
+
+| caso | `informe.txt` (marcador roto) | `informe-repuntuado_95a1777b.txt` |
+|---|---|---|
+| N1 | FALLA · 0 aciertos | **PASA** · N1-PUESTO en 5 de 5 |
+| N3 | SIN_VEREDICTO (base pendiente) | igual |
+| N4, N5 | SIN_VEREDICTO + «control NO cumplido» | SIN_VEREDICTO, **sin el aviso falso** |
+| P3 | PASA sin medir | **PASA midiendo**: 20 idénticas, 15 discrepantes con columna y valores, 0 forzadas, 0 del juez, en la peor pasada |
+| N2, P1 | PASA | igual (N2 con su denominador sin leer: ver abajo) |
+| P2 | FALLA · 0 aciertos | igual: **cero real** |
+| P4 | SIN_VEREDICTO | igual — y ver abajo |
+
+El validador (`lib/examen/validar-lectura.mjs`) cazaba 21 problemas en nueve casos; tras los
+comparadores quedan **10 en N2, N3, P2 y P4** (y 2 en N6), impresos al pie del repuntuado.
+Son el encargo siguiente.
+
+⚠️ **Y UNA CUARTA DE LA MISMA ESPECIE**: P4 emitió «Turno de Dra. Ana Belmonte» y «Horas
+semanales de Dr. Carlos Medina», **los dos, en las cinco pasadas**, confirmados por juicio. El
+marcador no sabe emparejarlos y los cuenta como extras: «0 aciertos». No da rojo porque P4 sale
+SIN_VEREDICTO por su regla no mecánica. No se ha mirado por qué rama llegaron.
+
+### P2 — sospecha de regresión, CON SU SALVEDAD
+
+Base: 2 de 3 (`lineaDeBase` del caso, commit `8cf73e23`, 27/08). Hoy: **0 de 3 en las cinco
+pasadas**, con el marcador ya de fiar para P2 (su emparejamiento por discriminante no cambió).
+Un extra sin etiquetar en la pasada 1 («Fecha de última revisión»).
+
+⚠️ **NO ES COMPARABLE SIN MÁS: cambiaron tres cosas a la vez** — la organización (`5a82712f` →
+`a9625e93`, ver la errata de la cabecera), el corpus (filtro del producto → corpus exacto) y el
+código (`8cf73e23` → `c39397e7`). Se mira cuando el marcador sea de fiar entero. **No se toca
+todavía.**

@@ -166,7 +166,7 @@ describe('LOS DIEZ CASOS REALES — el control positivo de toda la regla', () =>
 
   /**
    * ⚠️ LAS TRES PANTALLAS APAGADAS DE LA TANDA DEL 27/09 (`c39397e7`): el
-   * validador las cazó (`8dace745`) y los comparadores tabular y estructural
+   * validador las cazó (`3b8491b2`) y los comparadores tabular y estructural
    * las resolvieron. Aquí: que no vuelvan, y que el validador siga cazando en un
    * caso real (P4, sin comparador todavía). La lista completa la imprime el
    * ejecutor en seco.
