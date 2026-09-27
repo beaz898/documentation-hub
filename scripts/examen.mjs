@@ -8,8 +8,8 @@ import {
   MEDIBLE,
   verificarDiscriminantesEnFragmentos,
 } from '../lib/examen/discriminantes.mjs';
-import { marcarTanda, SIN_VEREDICTO } from '../lib/examen/marcador.mjs';
 import { validarLoQueElMarcadorLee } from '../lib/examen/validar-lectura.mjs';
+import { lineasDelVeredicto } from '../lib/examen/veredicto.mjs';
 import { conRenovacion, CredencialPerdida, crearSesion, leerFicheroDeEntorno } from '../lib/examen/sesion.mjs';
 import { crudoDeLecturaFallida, motivoDelCuerpo } from '../lib/examen/lectura-fallida.mjs';
 
@@ -177,7 +177,7 @@ export function validarCasos(casos) {
 
 /** Lo que `informeReal` le pasa al marcador en `contexto`, aparte de los
  *  aciertos de la tanda. Hoy nada: si se cablea `candidatosJuzgados`, se añade
- *  aquí y en la llamada a `marcarTanda`, en el mismo commit. */
+ *  aquí y en `lib/examen/veredicto.mjs`, en el mismo commit. */
 const CONTEXTO_PARA_EL_MARCADOR = new Set();
 
 /**
@@ -580,41 +580,11 @@ function informeReal(casos, resultados, commit, dirSalida, { parada, msDeLaTanda
                 `máx ${seg(tiempos[tiempos.length - 1])} · reloj de la tanda ${seg(msDeLaTanda)}`);
     lineas.push('');
   }
-  for (const m of marcarTanda(casos, pasadasParaElMarcador(casos, resultados))) {
-    lineas.push(`${m.casoId}: ${m.estado}` +
-                (m.estado === SIN_VEREDICTO ? '' : ` · ${m.totalAciertos} aciertos · ${m.maxFalsos} falsos (máx. por pasada)`));
-    for (const r of m.razones) lineas.push(`    ~ ${r}`);
-    for (const f of m.fallos) lineas.push(`    ✗ ${f}`);
-  }
+  lineas.push(...lineasDelVeredicto(casos, resultados));
   lineas.push('', ...LO_QUE_NO_MIDE);
   lineas.push('');
   lineas.push(`Evidencia cruda: ${dirSalida}`);
   return lineas.join('\n');
-}
-
-/**
- * Adapta los crudos a lo que el marcador espera. Los hallazgos se leen de
- * `cuerpo.analisis.discrepancies`, que es la forma de `FinalAnalysis`.
- *
- * ⚠️ SI NO ESTÁN, LA PASADA NO SE MARCA COMO «CERO HALLAZGOS»: se marca como NO
- * EJECUTADA. Un cuerpo del que no se sabe leer produciría un cero indistinguible
- * de un cero real, que es lo único que este examen no puede permitirse.
- */
-function pasadasParaElMarcador(casos, resultados) {
-  const porCaso = {};
-  for (const c of casos) porCaso[c.id] = [];
-  for (const r of resultados) {
-    if (!porCaso[r.casoId]) continue;
-    if (r.error || r.noMedible) {
-      porCaso[r.casoId].push({ pasada: r.pasada, error: r.error, noMedible: r.noMedible });
-      continue;
-    }
-    const hallazgos = r.cuerpo?.analisis?.discrepancies;
-    porCaso[r.casoId].push(Array.isArray(hallazgos)
-      ? { pasada: r.pasada, hallazgos }
-      : { pasada: r.pasada, noMedible: 'el cuerpo de la respuesta no trae `analisis.discrepancies`' });
-  }
-  return porCaso;
 }
 
 // ---------------------------------------------------------------------------

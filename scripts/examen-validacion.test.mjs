@@ -166,15 +166,15 @@ describe('LOS DIEZ CASOS REALES — el control positivo de toda la regla', () =>
 
   /**
    * ⚠️ LAS TRES PANTALLAS APAGADAS DE LA TANDA DEL 27/09 (`c39397e7`): el
-   * validador de lectura tiene que cazarlas. Es su control positivo con casos
-   * de verdad. La lista completa de lo que caza la imprime el ejecutor en seco.
+   * validador las cazó (`8dace745`) y los comparadores tabular y estructural
+   * las resolvieron. Aquí: que no vuelvan, y que el validador siga cazando en un
+   * caso real (P4, sin comparador todavía). La lista completa la imprime el
+   * ejecutor en seco.
    */
-  it('validarCasos caza las tres pantallas apagadas del 27/09', async () => {
+  it('las tres pantallas del 27/09 ya se leen, y P4 se sigue cazando', async () => {
     const t = validarCasos(await cargarCasos()).join('\n');
-    expect(t).toMatch(/\(N1\): N1-PUESTO cuenta para el umbral y el marcador no puede emparejarlo/);
-    expect(t).toMatch(/\(P3\): el umbral tiene claves que el marcador no sabe leer/);
-    expect(t).toMatch(/\(N4\): su control de tanda depende de N1\/N1-PUESTO/);
-    expect(t).toMatch(/\(N5\): su control de tanda depende de N1\/N1-PUESTO/);
+    expect(t).not.toMatch(/\((N1|P3|N4|N5)\)/);
+    expect(t).toMatch(/\(P4\): P4-BELMONTE cuenta para el umbral y el marcador no puede emparejarlo/);
   });
 
   it('importar el ejecutor NO lo ejecuta', async () => {
