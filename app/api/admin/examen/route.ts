@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase';
 import { getAuthenticatedUserHybrid } from '@/lib/supabase-server';
+import type { User } from '@supabase/supabase-js';
 import { resolverOrg } from '@/lib/org';
 import { respuestaDeOrgNoResuelta } from '@/lib/org-respuesta';
 import { getChunksForDocuments } from '@/lib/read-chunks';
@@ -89,11 +90,34 @@ async function resolverDocumento(
   return { ok: true, id: fila.id, generacion: fila.active_generation ?? 1, nombreEnLaBase: fila.name };
 }
 
+/**
+ * ⚠️ LA ÚNICA RUTA QUE ACEPTA EL TOKEN DE SESIÓN POR CABECERA (27/09/2026).
+ *
+ * Desde `2ac3bb33` (21/05) el producto autentica sólo por cookie. Esta ruta
+ * vuelve a aceptar `Authorization: Bearer <token de sesión de Supabase>` porque
+ * la llama un script, `scripts/examen.mjs`, que no tiene cookie. Decisión del
+ * arquitecto, y SÓLO aquí: lo vigila un censo en `lib/examen/autenticacion.test.ts`.
+ *
+ * El token dice QUIÉN eres, no QUÉ puedes: la comprobación de administrador de
+ * abajo no cambia, y `usage_logs` apunta al usuario real del token.
+ *
+ * ⚠️ Con cabecera, manda la cabecera: un token caducado es un 401 y NO cae a la
+ * cookie. El ejecutor necesita ese 401 para saber que tiene que renovar.
+ */
+async function usuarioDelExamen(req: NextRequest, supabase: ReturnType<typeof createServiceClient>): Promise<User | null> {
+  const cabecera = req.headers.get('authorization');
+  if (cabecera?.startsWith('Bearer ')) {
+    const { data, error } = await supabase.auth.getUser(cabecera.slice('Bearer '.length).trim());
+    return error ? null : data.user;
+  }
+  return getAuthenticatedUserHybrid(req);
+}
+
 export async function POST(req: NextRequest) {
-  const user = await getAuthenticatedUserHybrid(req);
+  const supabase = createServiceClient();
+  const user = await usuarioDelExamen(req, supabase);
   if (!user) return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
 
-  const supabase = createServiceClient();
   const orgR = await resolverOrg(supabase, user.id);
   if (!orgR.resuelta) return respuestaDeOrgNoResuelta(orgR);
   if (orgR.org.role !== 'admin') {
