@@ -3767,4 +3767,6 @@ significado único. La implementación se paró antes de escribir y se eligió u
 el resultado del análisis. **Es la tercera vez del día que un invariante escrito frena una
 decisión del arquitecto, y las tres veces tenía razón el invariante.**
 
-El falso positivo que el examen encontró el mismo día está en `Estado_Del_MVP.md`, **B.269**.
+El duplicado al 93 % que el examen sacó a la luz el mismo día **no era un falso positivo**: los
+ficheros tienen 68 de 70 celdas iguales, y el arquitecto lo había llamado falso sin abrirlos.
+Reescrito en `Estado_Del_MVP.md` **B.269**, con B.270 y B.271 abiertas.

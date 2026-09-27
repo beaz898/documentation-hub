@@ -7206,21 +7206,63 @@ proveedor OneDrive**: estamos mirando la otra integración.
   convierte todo lo que no sea `google_drive` en `'manual'`, así que un documento de OneDrive
   sale en el análisis marcado como subido a mano.
 
-### ⚠️ B.269 — PRIMER FALSO POSITIVO DEL PRODUCTO QUE ENCUENTRA EL EXAMEN — SOSPECHA FUERTE, SIN CONFIRMAR (27/09/2026)
+### ✅ B.269 — NO ES UN FALSO POSITIVO: el duplicado al 93 % entre RRHH-08 y OPE-13 describe bien los ficheros (27/09/2026)
 
-**Pendiente de la confirmación del director**: si RRHH-08 y OPE-13 son ficheros distintos, esto
-es un falso positivo; si no lo son, no. **Hasta que los abra, es una sospecha fuerte, no un hecho.**
+**Reescrita el mismo 27/09.** Se abrió como «primer falso positivo del producto que encuentra el
+examen, sospecha fuerte». **Era una medición correcta, y el detector no se equivocó.**
 
-- **El par**: `RRHH-08_asignacion-de-guardias.xlsx` analizado contra `OPE-13_cobertura-por-clinica.xlsx`
-  (caso P4). El producto lo declara **duplicado al 93 %** y **solapamiento al 93 %, severidad
-  alta**, en **5 de 5 pasadas** de la tanda `c39397e7`
-  (`examen/resultados/2026-09-27_c39397e7/informe-repuntuado_8f62cfc2.txt`).
-- **Estaba invisible**: el marcador sólo leía contradicciones, y el informe no enseñaba lo que
-  ninguna expectativa reclamaba. Salió al aprender el marcador a leer especies (solapamiento,
-  duplicado) y a imprimir los extras (`138eebcb`). Cero créditos: se repuntuó sobre los crudos.
-- **La lección, que es la que vale**: los hallazgos que ninguna expectativa reclama son el sitio
-  donde viven los falsos positivos que nadie vigila. Callarlos era esconder exactamente lo que el
-  examen vino a medir.
+- **Lo que salió**: `RRHH-08_asignacion-de-guardias.xlsx` contra `OPE-13_cobertura-por-clinica.xlsx`
+  (caso P4), **duplicado al 93 %** y **solapamiento al 93 %, alta**, en **5 de 5 pasadas** de
+  `c39397e7` (`examen/resultados/2026-09-27_c39397e7/informe-repuntuado_8f62cfc2.txt`). Estaba
+  invisible hasta que el marcador leyó especies y enseñó los extras (`138eebcb`).
+- **Lo que se midió mal, y quién**: el arquitecto lo llamó falso positivo **sin abrir los
+  ficheros, razonando desde sus nombres** («guardias» frente a «cobertura»). Es la misma clase de
+  error que la casa lleva la semana persiguiendo: un indicativo sobre el objeto emitido por quien
+  no lo había observado. Lo cazó medir la premisa antes de contestar a las preguntas sobre la causa.
+- **Lo que miden los ficheros**, leídos de `corpus-pruebas/` el 27/09: 14 filas cada uno, **68 de
+  70 celdas iguales en la misma posición, 12 de 14 filas idénticas enteras**. Difieren dos
+  encabezados —«Profesional»/«Responsable», «Horas semana»/«Jornada semanal»— y las dos
+  contradicciones sembradas: el turno de Belmonte (Mañana/Tarde) y las horas de Medina (44/40).
+- **El sistema se comportó según su doctrina, y no es una avería**:
+  · el diff **no empareja columnas por sinónimos**: igualdad literal del nombre
+    (`table-key.ts:394`), «sin fuzzy ni en filas ni en columnas, deliberadamente» — **F-78**,
+    citada en `consultas-fable/F-92.md:238` (F-78 no tiene fichero propio: `INDICE.md:176`). Con
+    Clínica, Especialidad y Turno como únicas comunes ninguna combinación llega al 90 % de valores
+    únicos (`MIN_UNIQUE_PCT`, `table-key.ts:99`), y sale `sin_clave`;
+  · **delega en el juez**, «el emparejador de esquemas de último recurso» — **F-92**
+    (`consultas-fable/F-92.md:47`, `:238`; en código, `finding-rules.ts:252-258`);
+  · y **el juez acertó las dos**: las dos contradicciones sembradas, en 5 de 5, y el 93 % de
+    contenido compartido. El 93 % lo da el juez (`judge.ts:885`) y el código lo convierte en
+    duplicado con `veredicto === 'duplicado_exacto' && overlapPercent >= 85` (`synthesize.ts:235`).
+- **La lección de los extras sigue en pie**: lo que ninguna expectativa reclama tiene que
+  enseñarse. Esta vez lo enseñado era verdad; por eso mismo había que verlo para saberlo.
+- **Lo que deja abierto** no es del detector: la recomendación (**B.270**) y el par sembrado
+  (**B.271**).
+
+### ⚠️ B.270 — un casi-duplicado CON contradicciones reales se lleva un NO_INDEXAR (27/09/2026)
+
+**Pregunta de producto, sin decidir.** RRHH-08 contra OPE-13 sale **NO_INDEXAR** en las cinco
+pasadas, y el mismo análisis trae **dos contradicciones reales** confirmadas.
+
+- **Quién decide hoy**: la recomendación la escribe el modelo de síntesis, cuyo prompt dice
+  «NO_INDEXAR: duplicado exacto confirmado (overlap >= 85% con un documento)»
+  (`synthesize.ts:255`); el código sólo la fuerza si ese modelo falla (`synthesize.ts:275`).
+- **La opinión del arquitecto, anotada como opinión**: debería ser **REVISAR** — descartar un
+  documento que contiene discrepancias que el usuario necesita ver es perder información.
+- **Es una decisión de producto** y va a esta ficha, no a un commit.
+
+### ⚠️ B.271 — el par de P4 mide un caso más extremo del que pretendía (27/09/2026)
+
+RRHH-08 y OPE-13 se sembraron para probar la rama **sin clave** y salieron **dos ficheros con 68
+de 70 celdas iguales** (B.269). En la realidad, dos documentos así compartirían las personas y no
+los datos.
+
+- **Lo que cambia en la lectura de P4**: sus aciertos (Belmonte y Medina, 5 de 5) se obtienen
+  sobre dos tablas casi idénticas, que es lo más fácil que puede pedirse al juez. **No dicen cómo
+  se comporta la rama sin clave con dos tablas que sólo comparten la columna de personas.**
+- **Y su extra** —duplicado al 93 %— es consecuencia del par, no del producto.
+- **Sin arreglar.** Los documentos de `corpus-pruebas/` no se tocan solos: se mide, se documenta
+  y se propone.
 
 ---
 
