@@ -157,10 +157,24 @@ describe('LOS DIEZ CASOS REALES — el control positivo de toda la regla', () =>
    * sería una pantalla apagada — hoy la regla **no caza ninguno de los diez**, y
    * eso sólo se lee como bueno porque existe la prueba de que sabe cazar.
    */
-  it('los casos de examen/casos/ validan, y son diez', async () => {
+  it('los casos de examen/casos/ son diez y la regla del techo no caza ninguno', async () => {
     const casos = await cargarCasos();
     expect(casos.length).toBe(10);
-    expect(validarCasos(casos)).toEqual([]);
+    const delTecho = casos.flatMap(c => validarElTechoDeFalsos(c, c.id));
+    expect(delTecho).toEqual([]);
+  });
+
+  /**
+   * ⚠️ LAS TRES PANTALLAS APAGADAS DE LA TANDA DEL 27/09 (`c39397e7`): el
+   * validador de lectura tiene que cazarlas. Es su control positivo con casos
+   * de verdad. La lista completa de lo que caza la imprime el ejecutor en seco.
+   */
+  it('validarCasos caza las tres pantallas apagadas del 27/09', async () => {
+    const t = validarCasos(await cargarCasos()).join('\n');
+    expect(t).toMatch(/\(N1\): N1-PUESTO cuenta para el umbral y el marcador no puede emparejarlo/);
+    expect(t).toMatch(/\(P3\): el umbral tiene claves que el marcador no sabe leer/);
+    expect(t).toMatch(/\(N4\): su control de tanda depende de N1\/N1-PUESTO/);
+    expect(t).toMatch(/\(N5\): su control de tanda depende de N1\/N1-PUESTO/);
   });
 
   it('importar el ejecutor NO lo ejecuta', async () => {

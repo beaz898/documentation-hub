@@ -9,6 +9,7 @@ import {
   verificarDiscriminantesEnFragmentos,
 } from '../lib/examen/discriminantes.mjs';
 import { marcarTanda, SIN_VEREDICTO } from '../lib/examen/marcador.mjs';
+import { validarLoQueElMarcadorLee } from '../lib/examen/validar-lectura.mjs';
 import { conRenovacion, CredencialPerdida, crearSesion, leerFicheroDeEntorno } from '../lib/examen/sesion.mjs';
 import { crudoDeLecturaFallida, motivoDelCuerpo } from '../lib/examen/lectura-fallida.mjs';
 
@@ -170,8 +171,14 @@ export function validarCasos(casos) {
 
     problemas.push(...validarElTechoDeFalsos(c, donde));
   }
+  problemas.push(...validarLoQueElMarcadorLee(casos, { contextoSuministrado: CONTEXTO_PARA_EL_MARCADOR }));
   return problemas;
 }
+
+/** Lo que `informeReal` le pasa al marcador en `contexto`, aparte de los
+ *  aciertos de la tanda. Hoy nada: si se cablea `candidatosJuzgados`, se añade
+ *  aquí y en la llamada a `marcarTanda`, en el mismo commit. */
+const CONTEXTO_PARA_EL_MARCADOR = new Set();
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════
