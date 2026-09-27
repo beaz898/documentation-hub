@@ -21,6 +21,9 @@
  * Los números de línea son de ese texto: NOR-10 tiene 253 líneas, CLI-12 254.
  */
 
+/** Cita cuyo literal es su propio discriminante (los falsos del 28/09). */
+const cita = d => ({ literal: d, discriminante: d });
+
 export default {
   id: 'P1',
   nivel: 'juez-prosa',
@@ -197,7 +200,51 @@ export default {
    * puede dar por falso positivo sin ir al texto a comprobarlo.»
    * Contar los extras como falsos repetiría el defecto que la corrección quitó.
    */
-  noDebenSalir: [],
+  /**
+   * ⚠️ 28/09/2026: LA MITAD DE PRECISIÓN, construida desde `consistenteVerificado`
+   * buscando sus frases en los dos .docx. Cada uno es un emparejamiento que el
+   * juez NO debe presentar como contradicción. Discriminantes medidos con el
+   * `normalize` del verificador: 1 vez en su documento y 0 en el otro, los ocho.
+   * DE LOS CINCO HECHOS DE LA LISTA ENTRAN CUATRO: «134 °C / 18 min» NO ESTÁ en
+   * CLI-12 —ni «134» ni «18 min»—, así que no hay pareja que pueda ser un falso.
+   */
+  noDebenSalir: [
+    {
+      id: 'P1-NO-VALIDACION',
+      tema: 'validación anual de los autoclaves',
+      citaEnElAnalizado: cita('supera anualmente una validación completa'),
+      citaEnElCorpus: cita('mantenimiento técnico y validación anual vigentes'),
+      cuentaComoFallo: true,
+    },
+    {
+      id: 'P1-NO-MANTENIMIENTO',
+      tema: 'mantenimiento técnico trimestral frente a su verificación trimestral',
+      citaEnElAnalizado: cita('mantenimiento técnico preventivo trimestral'),
+      citaEnElCorpus: cita('Se verifica trimestralmente que todos los autoclaves'),
+      cuentaComoFallo: true,
+    },
+    {
+      id: 'P1-NO-CINCO-AÑOS',
+      tema: 'cinco años: registros de trazabilidad (NOR-10) frente a versiones obsoletas (CLI-12)',
+      // ⚠️ NO ES EL MISMO HECHO, a diferencia de lo que decía la lista: NOR-10
+      // conserva registros de trazabilidad; CLI-12, versiones obsoletas de
+      // documentos. Emparejarlos es el patrón de «dos cifras sin relación».
+      // NOR-10 dice «cinco años» tres veces; se discrimina UNA, porque el
+      // verificador de fragmentos exige que la frase aísle (`discriminantes.mjs`):
+      // «cinco años» a secas también está en CLI-12 y dejaría P1 NO_MEDIBLE.
+      // Si el juez cita otra de las tres, sale como extra, no como este falso.
+      citaEnElAnalizado: cita('plazo mínimo de conservación de cinco años'),
+      citaEnElCorpus: cita('cinco años desde su sustitución'),
+      cuentaComoFallo: true,
+    },
+    {
+      id: 'P1-NO-AUDITORIA',
+      tema: 'auditoría interna trimestral',
+      citaEnElAnalizado: cita('Trimestralmente se realiza una auditoría interna de trazabilidad'),
+      citaEnElCorpus: cita('se audita internamente con carácter trimestral'),
+      cuentaComoFallo: true,
+    },
+  ],
   extras: 'PENDIENTE_DE_ETIQUETA',
 
   /**
@@ -237,7 +284,10 @@ export default {
    * estaba escrito.
    */
   umbralDeAlarma: {
-    minimoDeAciertos: 0,
+    // ⚠️ 28/09/2026: la cobertura, en SEGUIMIENTO. Un mínimo de 0 sobre una base
+    // de 0 no vigila que no empeore: desde cero no se puede empeorar. Mide y no
+    // juzga; lo que puede fallar es la precisión, con los cuatro falsos de arriba.
+    seguimiento: ['cobertura'],
     maximoDeFalsosConfirmados: 0,
     nota: 'Umbral 0 porque la base medida es 0 de 4, dos veces (87a76112 y ' +
           'cceddf86). Sube en cuanto una tanda dé más, y con commit y motivo ' +

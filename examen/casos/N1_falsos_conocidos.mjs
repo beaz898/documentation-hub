@@ -157,6 +157,12 @@ export default {
         antesDeLaCura: '4/4',
         nota: 'La cura de158abd bajó de 4/4 a 1/4. NO está extinguido.',
       },
+      // 28/09/2026, aprobado por el arquitecto: el techo va sobre la FRECUENCIA,
+      // en el máximo observado (1 de 4 → 1 de 5; 0 de 5 el 27/09). ⚠️ Con una
+      // tasa de 1/4, ver 2 o más en 5 pasadas tiene un ~37 % de probabilidad:
+      // este techo puede dar rojo por comportamiento ya conocido. Anotado al
+      // aprobarlo; la tanda de diez lo dirá.
+      frecuenciaMaxima: { apariciones: 1, deCada: 5 },
     },
     {
       id: 'N1-NURIA',
@@ -192,10 +198,10 @@ export default {
 
   umbralDeAlarma: {
     minimoDeAciertos: 1,           // la de Puesto está medida como detectada
-    // ⚠️ 2 y no 0, por la línea de base medida de Belmonte (1/4 tras la cura).
-    // Sube a 0 el día que una tanda de 10 lo dé en 0 — y eso es un commit con
-    // motivo escrito, nunca automático.
-    maximoDeFalsosConfirmados: 2,
+    // ⚠️ 28/09/2026: el techo de 2 falsos POR PASADA se retira: con un solo falso
+    // contable no podía saltar nunca. Lo medido de Belmonte es una FRECUENCIA
+    // entre pasadas (1/4 tras la cura), y su techo va en el propio falso:
+    // `frecuenciaMaxima` de N1-BELMONTE.
     nota: 'El techo de falsos NO es cero porque Belmonte está medido en 1/4 ' +
           'tras la cura. Bajarlo a 0 exige una medición que lo justifique.',
   },

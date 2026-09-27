@@ -143,27 +143,27 @@ export default {
    * Y aquí sí es una lista cerrada, porque la siembra se midió con una sonda
    * determinista sobre los ficheros reales, no se describió de memoria.
    */
-  noDebenSalir: [{
-    id: 'P4-NO-1',
-    descripcion: 'cualquier hallazgo sobre una de las otras doce personas',
-    regla: 'toda persona que no sea Belmonte ni Medina',
-    // ⚠️ 25/09/2026 — escrito `cuentaComoFalso` hasta hoy, igual que en P2. Lo
-    // cazó la regla nueva del validador. El campo es `cuentaComoFallo`.
-    cuentaComoFallo: true,
-  }],
+  //
+  // ⚠️ 28/09/2026: P4-NO-1 («toda persona que no sea Belmonte ni Medina»)
+  // SE RETIRA. Era prosa que ningún mecanismo aplicaba, y dejaba el caso sin
+  // veredicto para siempre. Lo que pedía lo hace ahora el techo de extras: con
+  // la auditoría completa, cualquier contradicción que no sea de Belmonte o
+  // Medina cuenta como falso.
+  noDebenSalir: [],
   extras: 'FALSO_POSITIVO',
+  // La auditoría es completa por MEDICIÓN: comparados celda a celda, sólo 2 de
+  // 70 difieren, y son las dos sembradas. Contradicciones, sí; el solapamiento y
+  // el duplicado al 93 % no son falsos (B.269).
+  auditoriaCompleta: { fuente: 'comparación celda a celda de corpus-pruebas/, 27/09/2026: 68 de 70 celdas iguales — Estado_Del_MVP.md B.269' },
 
   umbralDeAlarma: {
-    // ⚠️ Nace en 0 exigidos y NO es una rebaja: es que no hay línea de base
-    // contra la que exigir. Belmonte es B.131, jamás ejecutado; Medina depende
-    // de que el par pase el rerank, que la siembra declara NO garantizado.
-    // El listón sube en un commit aparte y con acta cuando haya una medición,
-    // igual que P2 sube a 3 cuando B.106 caiga.
-    minimoDeAciertos: 0,
+    // ⚠️ 28/09/2026: la cobertura, en SEGUIMIENTO hasta la tanda de DIEZ
+    // pasadas. Belmonte y Medina salieron 5/5 el 27/09, pero para fijar una base
+    // hacen falta diez (Fable, 25/09); un mínimo de 2 hoy sería declararla con
+    // cinco. Cuando la tanda lo mida, `minimoDeAciertos: 2` sustituye a esto.
+    // (Nacía en 0 exigidos porque el camino no se había ejecutado nunca.)
+    seguimiento: ['cobertura'],
     maximoDeFalsosConfirmados: 0,
-    nota: 'Umbral 0 porque el camino nunca se ha ejecutado, no porque se espere ' +
-          'que falle. Lo que este caso vigila HOY es que no aparezcan falsos ' +
-          'sobre las otras doce, y eso sí se exige en 0.',
   },
 
   /**

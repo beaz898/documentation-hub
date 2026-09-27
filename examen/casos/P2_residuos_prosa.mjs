@@ -186,6 +186,10 @@ export default {
     },
   ],
   extras: 'FALSO_POSITIVO',   // la auditoría completa lo autoriza
+  // 28/09/2026: la fuente que el marcador exige para contar los extras de
+  // contradicción como falsos. Con ella, la «Fecha de última revisión» de la
+  // pasada 1 del 27/09 sale señalada; si es un falso de verdad, lo decide el director.
+  auditoriaCompleta: { fuente: 'claude/Casos_Harness.md:272-274 — «la auditoría de consistencia es COMPLETA: 4 y 5 páginas, 163 líneas leídas enteras»' },
 
   /**
    * ⚠️ LA COARTADA JERÁRQUICA (§C.1 del registro). Los dos documentos declaran
@@ -211,11 +215,15 @@ export default {
   coartadaJerarquica: { presente: true, lineas: ['NOR-11:19', 'NOR-11:84', 'CLI-13:17'] },
 
   /**
-   * ⚠️ EL UMBRAL ES «MENOS DE 2», NO «MENOS DE 3». Decisión del director,
-   * 25/09/2026. La tercera está declarada arriba con su número de pendiente y
-   * `cuentaParaElUmbral: false`.
+   * ⚠️ 28/09/2026: EL MÍNIMO BAJA DE 2 A 1, y el porqué es de dirección. El
+   * «2 de 3» de la base SUMABA LAS DOS DIRECCIONES: «cada análisis devuelve
+   * exactamente "1 contradicciones" … Y cada dirección devuelve una DISTINTA.
+   * Nunca dos» (B.106, `Puntos_Pendientes_Doclity.txt:2212-2220`). Este caso
+   * analiza NOR-11, así que su base en ESTA dirección es 1, y pedirle 2 era un
+   * umbral que no podía pasar — medido el 27/09: 0 de 5, FALLA.
+   * (Antes: «menos de 2, no menos de 3», decisión del director del 25/09.)
    */
-  umbralDeAlarma: { minimoDeAciertos: 2, maximoDeFalsosConfirmados: 0 },
+  umbralDeAlarma: { minimoDeAciertos: 1, maximoDeFalsosConfirmados: 0 },
 
   recall: {
     recuperados: 'MEDIBLE_HOY',
@@ -235,6 +243,12 @@ export default {
   lineaDeBase: {
     commit: '8cf73e23',
     fecha: '2026-08-27',
+    // ⚠️ LA DIRECCIÓN, que hasta el 28/09 el caso no decía y costó un rojo
+    // falso: los 2 aciertos son de LAS DOS DIRECCIONES SUMADAS, una cada una
+    // (B.106). Cuál salió en cada dirección no está en el repositorio:
+    // `SQL_P2_direccion_de_la_base.sql`, pendiente del director.
+    direccion: 'LAS DOS SUMADAS (NOR-11→CLI-13 y CLI-13→NOR-11), 1 por dirección',
+    direccionDeEsteCaso: 'analizando NOR-11 contra CLI-13',
     aciertos: 2,
     esperados: 3,
     detalle: {

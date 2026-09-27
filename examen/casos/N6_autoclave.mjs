@@ -195,15 +195,17 @@ export default {
   discrepanciaAbierta: 'ESTADO_DEL_MVP_6878_FRENTE_A_LA_MEDICION_DEL_25_09',
 
   umbralDeAlarma: {
-    // 0 y no 1: la trampa nunca se ha detectado. Un 1 es progreso.
-    minimoDeAciertos: 0,
-    // 5 de 5 y no 0: es el máximo observable con la frecuencia medida al 100 %.
-    // TRINQUETE — sólo puede bajar, y cada bajada lleva su medición.
-    maximoDeFalsosConfirmados: 5,
-    esTrinquete: true,
-    nota: 'El techo del falso nace en el MÁXIMO OBSERVABLE porque su frecuencia ' +
-          'medida es 2/2 = 100 %. Exigir cero sería rojo permanente por el ' +
-          'comportamiento conocido. La primera tanda que dé menos baja el número.',
+    // ⚠️ 28/09/2026: SEGUIMIENTO en las dos mitades. Los dos umbrales de antes no
+    // podían fallar: un mínimo de 0 sobre una trampa nunca detectada («desde cero
+    // no se puede empeorar»), y un techo de 5 falsos POR PASADA con un solo falso
+    // posible —el 5 se escribió pensando en las cinco pasadas juntas—. Con la
+    // frecuencia medida al 100 % (2/2), cualquier techo que arranque en lo
+    // observado tampoco puede saltar hasta el arreglo de F-116; y uno en 0 sería
+    // un rojo fijo, que entrena a ignorar la luz. El caso mide y no juzga: sale
+    // sin veredicto, con lo observado impreso.
+    seguimiento: ['cobertura', 'precision'],
+    nota: 'Cuando llegue el arreglo de F-116, esto se sustituye por umbrales que ' +
+          'puedan fallar, escritos con la medición de esa tanda.',
   },
 
   recall: {

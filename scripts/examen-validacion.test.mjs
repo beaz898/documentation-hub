@@ -178,11 +178,11 @@ describe('LOS DIEZ CASOS REALES — el control positivo de toda la regla', () =>
     expect(t).toMatch(/\(P4\): `criterioDeAcierto` pide algo al resultado/);
   });
 
-  it('los umbrales que no pueden fallar (28/09): N6 y P1 se cazan enteros, y el techo de N1', async () => {
+  it('los umbrales que no podían fallar (28/09: N6, P1, P4, N1, P2) ya pueden, y ninguno es imposible de pasar', async () => {
+    // Su caso decisivo está en `umbrales-que-pueden-fallar.test.mjs` y
+    // `piezas-28-09.test.mjs`; aquí, que en los diez reales no quede ninguno.
     const t = validarCasos(await cargarCasos()).join('\n');
-    expect(t).toMatch(/\(N6\): NINGÚN umbral de este caso puede fallar/);
-    expect(t).toMatch(/\(P1\): NINGÚN umbral de este caso puede fallar/);
-    expect(t).toMatch(/\(N1\): `maximoDeFalsosConfirmados: 2` y como mucho caben 1/);
+    expect(t).not.toMatch(/no puede fallar|no puede saltar|no puede pasar/);
   });
 
   it('importar el ejecutor NO lo ejecuta', async () => {
