@@ -7264,6 +7264,26 @@ los datos.
 - **Sin arreglar.** Los documentos de `corpus-pruebas/` no se tocan solos: se mide, se documenta
   y se propone.
 
+### ⚠️ B.272 — la consulta F-116 le contó a Fable MEDIO problema: el recorte del analizado no está en el plan (28/09/2026)
+
+**Defecto del arquitecto al redactar la consulta, no de la respuesta.** El plan de F-116 —corte
+honesto, lista de omitidos, presupuesto con ficha— trata sólo el lado del **candidato**. El
+documento **analizado** se recorta a 6.000 caracteres en rápido (`NEW_DOC_LIMIT_QUICK`,
+`lib/analysis/judge.ts:35`) **por posición**, mientras el candidato se reparte **por
+relevancia**, y nada de eso aparece en la consulta ni en la respuesta.
+
+- **Lo que se le contó**: «Al juez se le entregan fragmentos del documento existente con un
+  presupuesto de 3.000 caracteres en modo rápido» (`consultas-fable/F-116.md:198`). Del analizado,
+  nada. Buscado en todo lo enviado y lo recibido (`:174-369`): ninguna mención del recorte del
+  analizado ni de la asimetría entre los dos lados.
+- **La única mención es nuestra**, en la cabecera: «documento nuevo sin truncar» como parte de lo
+  que compra el exhaustivo (`F-116.md:124-125`).
+- **Por qué importa**: se iban a ejecutar cuatro semanas sobre un plan que no cubría la otra
+  mitad. Y la otra mitad ya ha costado un rojo: en P2, analizando NOR-11, dos de las tres trampas
+  caen más allá de los 6.000 (medido el 28/09 sobre el texto del `.docx`).
+- **Siguiente paso**: una consulta nueva a Fable sobre la simetría, con el resultado de
+  `SQL_P2_direccion_de_la_base.sql` dentro. Preparada, no escrita, hasta tener ese resultado.
+
 ---
 
 ## 📋 5.92 · ACTA DE LA SEMANA — cinco hipótesis nuestras que se cayeron al medirlas, y las tres que costaron una decisión (25/09/2026)

@@ -3770,3 +3770,18 @@ decisión del arquitecto, y las tres veces tenía razón el invariante.**
 El duplicado al 93 % que el examen sacó a la luz el mismo día **no era un falso positivo**: los
 ficheros tienen 68 de 70 celdas iguales, y el arquitecto lo había llamado falso sin abrirlos.
 Reescrito en `Estado_Del_MVP.md` **B.269**, con B.270 y B.271 abiertas.
+
+---
+
+## 28/09/2026 — LA NOVENA PANTALLA APAGADA, CAZADA ANTES DE NACER
+
+Al convertir los hechos consistentes de P1 en falsos con discriminante, el primero que se escribió
+para el de los cinco años fue **«cinco años» a secas**. También aparece en CLI-12 («cinco años
+desde su sustitución»), y el verificador de fragmentos exige que cada discriminante —también el
+de un falso— aísle (`lib/examen/discriminantes.mjs:121` y `:187-203`). **Habría dejado P1 NO
+MEDIBLE en todas las pasadas**: un caso que nunca se lanza y que nadie ve fallar.
+
+Se cazó antes de escribirlo en el caso, midiendo la frase con el mismo `normalize` que usa el
+verificador. **La novena pantalla apagada del fin de semana, y la primera cazada antes de nacer,
+por el propio verificador escrito el 25/09.** Quedó «plazo mínimo de conservación de cinco años»,
+que aísla (`examen/casos/P1_esterilizacion_prosa.mjs`, P1-NO-CINCO-AÑOS).
