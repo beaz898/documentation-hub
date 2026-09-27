@@ -1,0 +1,51 @@
+EXAMEN · 2026-09-27 · commit 97223b72
+2 caso(s) · 20 análisis · 100 créditos · 0.09 $
+⚠️ SÓLO estos casos: N1, N3
+⚠️ PASADAS FORZADAS a 10 en esta tanda (los casos declaran otras)
+
+N1 · 10 de 10 pasadas completadas
+    pasada 1: HTTP 200 en 20.6 s
+    pasada 2: HTTP 200 en 20.5 s
+    pasada 3: HTTP 200 en 23.2 s
+    pasada 4: HTTP 200 en 20.4 s
+    pasada 5: HTTP 200 en 19.6 s
+    pasada 6: HTTP 200 en 18.9 s
+    pasada 7: HTTP 200 en 20.4 s
+    pasada 8: HTTP 200 en 13.0 s
+    pasada 9: HTTP 200 en 14.9 s
+    pasada 10: HTTP 200 en 13.8 s
+
+N3 · 10 de 10 pasadas completadas
+    pasada 1: HTTP 200 en 18.0 s
+    pasada 2: HTTP 200 en 16.0 s
+    pasada 3: HTTP 200 en 17.9 s
+    pasada 4: HTTP 200 en 20.8 s
+    pasada 5: HTTP 200 en 18.7 s
+    pasada 6: HTTP 200 en 18.8 s
+    pasada 7: HTTP 200 en 17.4 s
+    pasada 8: HTTP 200 en 17.4 s
+    pasada 9: HTTP 200 en 17.7 s
+    pasada 10: HTTP 200 en 19.2 s
+
+DURACIÓN · 20 análisis · mediana 18.7 s · mín 13.0 s · máx 23.2 s · reloj de la tanda 397.2 s
+
+N1: PASA · 1 estable(s)-acierto · 0 falsos (máx. por pasada)
+    · aciertos observados: N1-PUESTO 10/10 estable-acierto
+    · inestables: 0
+    · extras sin etiquetar: p1 1 · p2 1 · p3 1 · p4 1 · p5 1 · p6 1 · p7 1 · p8 1 · p9 1 · p10 1
+        solapamiento: solapamiento con OPE-02_agenda-y-gestion-de-citas.xlsx (45 %, media) — en 7 de 10 pasadas
+        solapamiento: solapamiento con OPE-02_agenda-y-gestion-de-citas.xlsx (35 %, media) — en 3 de 10 pasadas
+N3: SIN_VEREDICTO
+    ~ línea de base PENDIENTE: esta tanda MIDE la frecuencia, no la juzga. observado: 0/0/0/0/0/0/0/0/0/0 falsos por pasada
+    · aciertos observados: N3-DUPLICADO 10/10 estable-acierto
+    · inestables: 0
+    · extras sin etiquetar: ninguno
+
+INESTABLES EN LA TANDA: 0 (entre 1 y 4 de 5; si crece, el sistema se ha vuelto más aleatorio aunque la media no se mueva)
+
+⚠️ LO QUE UN VERDE NO CUBRE: cada caso mide con DOS documentos y el producto
+   trabajará con cientos. Detecta regresiones porque aísla la variable, pero
+   NO mide el reparto del presupuesto, las plazas del rerank ni el fondo con
+   corpus grande.
+
+Evidencia cruda: examen\resultados\2026-09-27_97223b72

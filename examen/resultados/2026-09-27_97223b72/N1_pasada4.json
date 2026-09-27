@@ -1,0 +1,333 @@
+{
+  "casoId": "N1",
+  "pasada": 4,
+  "http": 200,
+  "ms": 20442,
+  "cuando": "2026-09-27T22:01:25.928Z",
+  "renovacionesDeCredencial": [],
+  "cuerpo": {
+    "casoId": "N1",
+    "pasada": 4,
+    "operacion": "analizar",
+    "orgId": "a9625e93-af2a-4416-a465-5c2fa2a25bdf",
+    "analizado": {
+      "nombre": "RRHH-06_evaluacion-del-desempeno.xlsx",
+      "documentId": "96196c8b-4209-46e9-9c71-153763864c11",
+      "generacion": 1,
+      "fragmentos": 20
+    },
+    "corpus": [
+      {
+        "nombre": "OPE-02_agenda-y-gestion-de-citas.xlsx",
+        "documentId": "0ece4cf3-632f-452b-aca9-2dd8ddc3e532",
+        "generacion": 1
+      }
+    ],
+    "analisis": {
+      "isDuplicate": false,
+      "duplicateOf": null,
+      "duplicateConfidence": 0,
+      "overlaps": [
+        {
+          "existingDocument": "OPE-02_agenda-y-gestion-de-citas.xlsx",
+          "existingDocumentId": "0ece4cf3-632f-452b-aca9-2dd8ddc3e532",
+          "description": "Ambos documentos registran datos de los mismos empleados de la clínica Chamberí con sus puestos y especialidades. Ambos documentos incluyen a Laura Núñez como Higienista en la clínica. Ambos documentos registran a Cristina Ibáñez como Auxiliar clínica. Ambos documentos incluyen a Beatriz Campos en Recepción. Ambos documentos registran a Nuria Ferrer como Odontopediatra",
+          "severity": "media",
+          "overlapPercent": 45,
+          "textRef": "Dra. Marta Gil | Odontóloga general | Chamberí"
+        }
+      ],
+      "discrepancies": [
+        {
+          "topic": "Discrepancia en Puesto entre RRHH-06_evaluacion-del-desempeno.xlsx y OPE-02_agenda-y-gestion-de-citas.xlsx",
+          "newDocSays": "Dr. Pablo Reyes | Implantólogo | Chamberí | 2026-06-11 | 4 | 4 | 4 | 4 | 4 | Buen nivel general, pendiente reciclaje de protección radiológica.",
+          "existingDocSays": "Dr. Pablo Reyes | Implantólogo / Cirujano oral | Box 1 | T | T | L | T | T | L | 16",
+          "existingDocument": "OPE-02_agenda-y-gestion-de-citas.xlsx",
+          "existingDocumentId": "0ece4cf3-632f-452b-aca9-2dd8ddc3e532",
+          "severity": "contradiction",
+          "confirmedBy": "estructura",
+          "columns": [
+            "Puesto"
+          ],
+          "comparedValues": [
+            {
+              "column": "Puesto",
+              "newDocValue": "Implantólogo",
+              "existingDocValue": "Implantólogo / Cirujano oral"
+            }
+          ],
+          "newDocRow": "[F3] Dr. Pablo Reyes | Implantólogo | Chamberí | 2026-06-11 | 4 | 4 | 4 | 4 | 4 | Buen nivel general, pendiente reciclaje de protección radiológica.",
+          "existingDocRow": "[F3] Dr. Pablo Reyes | Implantólogo / Cirujano oral | Box 1 | T | T | L | T | T | L | 16",
+          "origen": "diff_tabular",
+          "groupId": "35596ed3-6631-45b1-b281-335057f7bffa",
+          "huella": "a547b106d10247094217feadf24844d8f8219cfdfda95143c1cfb53064ae9552"
+        }
+      ],
+      "tableDiffs": [
+        {
+          "groupId": "35596ed3-6631-45b1-b281-335057f7bffa",
+          "tablaNueva": "Evaluaciones#0",
+          "tablaExistente": "Cuadro de turnos#0",
+          "documentoExistente": "OPE-02_agenda-y-gestion-de-citas.xlsx",
+          "documentoExistenteId": "0ece4cf3-632f-452b-aca9-2dd8ddc3e532",
+          "discrepantes": 1,
+          "identicas": 9,
+          "porColumna": {
+            "Puesto": 1
+          },
+          "variantesDeEscritura": [],
+          "soloEnNuevo": [
+            {
+              "clave": "3.75 · Odontólogo general · Retiro · Dr. Carlos Medina · Trabajo en equipo a reforzar tras incorporación reciente. · 2026-06-14 · 4 · 4 · 3 · 4",
+              "texto": "[Hoja \"Evaluaciones\"] Empleado: Dr. Carlos Medina | Puesto: Odontólogo general | Clínica: Retiro | Fecha evaluación: 2026-06-14 | Puntualidad (1-5): 4 | Calidad técnica (1-5): 4 | Trabajo en equipo (1-5): 3 | Atención al paciente (1-5): 4 | Media: 3.75 | Comentarios: Trabajo en equipo a reforzar tras incorporación reciente."
+            },
+            {
+              "clave": "4.75 · Higienista · Retiro · Elena Rus · Desempeño muy sólido, candidata a formación avanzada. · 2026-06-14 · 5 · 5 · 5 · 4",
+              "texto": "[Hoja \"Evaluaciones\"] Empleado: Elena Rus | Puesto: Higienista | Clínica: Retiro | Fecha evaluación: 2026-06-14 | Puntualidad (1-5): 5 | Calidad técnica (1-5): 5 | Trabajo en equipo (1-5): 5 | Atención al paciente (1-5): 4 | Media: 4.75 | Comentarios: Desempeño muy sólido, candidata a formación avanzada."
+            },
+            {
+              "clave": "3.75 · Auxiliar clínica · Retiro · Marcos Iglesias · Pendiente reciclaje de esterilización. · 2026-06-14 · 4 · 3 · 4 · 4",
+              "texto": "[Hoja \"Evaluaciones\"] Empleado: Marcos Iglesias | Puesto: Auxiliar clínica | Clínica: Retiro | Fecha evaluación: 2026-06-14 | Puntualidad (1-5): 4 | Calidad técnica (1-5): 3 | Trabajo en equipo (1-5): 4 | Atención al paciente (1-5): 4 | Media: 3.75 | Comentarios: Pendiente reciclaje de esterilización."
+            },
+            {
+              "clave": "4.25 · Recepción · Retiro · Patricia Salas · Muy buena atención al paciente. · 2026-06-15 · 4 · 4 · 4 · 5",
+              "texto": "[Hoja \"Evaluaciones\"] Empleado: Patricia Salas | Puesto: Recepción | Clínica: Retiro | Fecha evaluación: 2026-06-15 | Puntualidad (1-5): 4 | Calidad técnica (1-5): 4 | Trabajo en equipo (1-5): 4 | Atención al paciente (1-5): 5 | Media: 4.25 | Comentarios: Muy buena atención al paciente."
+            },
+            {
+              "clave": "4.75 · Periodoncista · Retiro · Dra. Irene Vidal · Excelente nivel clínico. · 2026-06-15 · 5 · 5 · 4 · 5",
+              "texto": "[Hoja \"Evaluaciones\"] Empleado: Dra. Irene Vidal | Puesto: Periodoncista | Clínica: Retiro | Fecha evaluación: 2026-06-15 | Puntualidad (1-5): 5 | Calidad técnica (1-5): 5 | Trabajo en equipo (1-5): 4 | Atención al paciente (1-5): 5 | Media: 4.75 | Comentarios: Excelente nivel clínico."
+            }
+          ],
+          "soloEnOtro": []
+        }
+      ],
+      "newInformation": "El documento RRHH-06 aporta información de evaluación del desempeño de los empleados, complementando los datos operacionales ya registrados en el sistema de gestión de citas.",
+      "recommendation": "REVISAR",
+      "summary": "El documento de evaluación de desempeño comparte información sobre los mismos empleados de la clínica Chamberí que aparecen en el documento de agenda y gestión de citas, con un 45% de solapamiento. Se ha detectado una discrepancia en los datos de puesto de al menos un empleado entre ambos documentos, lo que requiere verificación.",
+      "judgments": [
+        {
+          "documentId": "0ece4cf3-632f-452b-aca9-2dd8ddc3e532",
+          "documentName": "OPE-02_agenda-y-gestion-de-citas.xlsx",
+          "source": "manual",
+          "overlapPercent": 45,
+          "verdict": "tema_similar",
+          "contradictions": [
+            {
+              "topic": "Discrepancia en Puesto entre RRHH-06_evaluacion-del-desempeno.xlsx y OPE-02_agenda-y-gestion-de-citas.xlsx",
+              "newDocSays": "Dr. Pablo Reyes | Implantólogo | Chamberí | 2026-06-11 | 4 | 4 | 4 | 4 | 4 | Buen nivel general, pendiente reciclaje de protección radiológica.",
+              "existingDocSays": "Dr. Pablo Reyes | Implantólogo / Cirujano oral | Box 1 | T | T | L | T | T | L | 16",
+              "severity": "contradiction",
+              "confirmedBy": "estructura",
+              "columns": [
+                "Puesto"
+              ],
+              "comparedValues": [
+                {
+                  "column": "Puesto",
+                  "newDocValue": "Implantólogo",
+                  "existingDocValue": "Implantólogo / Cirujano oral"
+                }
+              ],
+              "newDocRow": "[F3] Dr. Pablo Reyes | Implantólogo | Chamberí | 2026-06-11 | 4 | 4 | 4 | 4 | 4 | Buen nivel general, pendiente reciclaje de protección radiológica.",
+              "existingDocRow": "[F3] Dr. Pablo Reyes | Implantólogo / Cirujano oral | Box 1 | T | T | L | T | T | L | 16",
+              "origen": "diff_tabular",
+              "groupId": "35596ed3-6631-45b1-b281-335057f7bffa",
+              "huella": "a547b106d10247094217feadf24844d8f8219cfdfda95143c1cfb53064ae9552"
+            }
+          ],
+          "overlappingContent": [
+            {
+              "description": "Ambos documentos registran datos de los mismos empleados de la clínica Chamberí con sus puestos y especialidades",
+              "evidence": "Dra. Marta Gil | Odontóloga general | Box 1",
+              "evidenceInNewDoc": "Dra. Marta Gil | Odontóloga general | Chamberí"
+            },
+            {
+              "description": "Ambos documentos incluyen a Laura Núñez como Higienista en la clínica",
+              "evidence": "Laura Núñez | Higienista | Box 4",
+              "evidenceInNewDoc": "Laura Núñez | Higienista | Chamberí"
+            },
+            {
+              "description": "Ambos documentos registran a Cristina Ibáñez como Auxiliar clínica",
+              "evidence": "Cristina Ibáñez | Auxiliar clínica | Box 2 / Box 3",
+              "evidenceInNewDoc": "Cristina Ibáñez | Auxiliar clínica | Chamberí"
+            },
+            {
+              "description": "Ambos documentos incluyen a Beatriz Campos en Recepción",
+              "evidence": "Beatriz Campos | Recepción | Recepción",
+              "evidenceInNewDoc": "Beatriz Campos | Recepción | Chamberí"
+            },
+            {
+              "description": "Ambos documentos registran a Nuria Ferrer como Odontopediatra",
+              "evidence": "Nuria Ferrer | Odontopediatra | Box 3",
+              "evidenceInNewDoc": "Nuria Ferrer | Odontopediatra | Chamberí"
+            }
+          ],
+          "uniqueToNewDoc": [
+            "Evaluaciones de desempeño con puntuaciones numéricas (1-5) en criterios específicos: Puntualidad, Calidad técnica, Trabajo en equipo, Atención al paciente",
+            "Media de desempeño individual y media general de la red (4.35)",
+            "Comentarios cualitativos sobre el desempeño de cada empleado",
+            "Inclusión de empleados de la clínica Retiro (Dr. Carlos Medina, Elena Rus, Marcos Iglesias, Patricia Salas, Dra. Irene Vidal)",
+            "Fechas específicas de evaluación (junio 2026)"
+          ],
+          "discarded": {
+            "verificado.por_localizacion": 13,
+            "verificado.por_celdas": 1,
+            "descartado.cubierto_por_diff": 1,
+            "a_juicio.columna_no_comparada": 1,
+            "descartado.sin_relacion": 1
+          },
+          "tableDiffs": [
+            {
+              "groupId": "35596ed3-6631-45b1-b281-335057f7bffa",
+              "tablaNueva": "Evaluaciones#0",
+              "tablaExistente": "Cuadro de turnos#0",
+              "documentoExistente": "OPE-02_agenda-y-gestion-de-citas.xlsx",
+              "documentoExistenteId": "0ece4cf3-632f-452b-aca9-2dd8ddc3e532",
+              "discrepantes": 1,
+              "identicas": 9,
+              "porColumna": {
+                "Puesto": 1
+              },
+              "variantesDeEscritura": [],
+              "soloEnNuevo": [
+                {
+                  "clave": "3.75 · Odontólogo general · Retiro · Dr. Carlos Medina · Trabajo en equipo a reforzar tras incorporación reciente. · 2026-06-14 · 4 · 4 · 3 · 4",
+                  "texto": "[Hoja \"Evaluaciones\"] Empleado: Dr. Carlos Medina | Puesto: Odontólogo general | Clínica: Retiro | Fecha evaluación: 2026-06-14 | Puntualidad (1-5): 4 | Calidad técnica (1-5): 4 | Trabajo en equipo (1-5): 3 | Atención al paciente (1-5): 4 | Media: 3.75 | Comentarios: Trabajo en equipo a reforzar tras incorporación reciente."
+                },
+                {
+                  "clave": "4.75 · Higienista · Retiro · Elena Rus · Desempeño muy sólido, candidata a formación avanzada. · 2026-06-14 · 5 · 5 · 5 · 4",
+                  "texto": "[Hoja \"Evaluaciones\"] Empleado: Elena Rus | Puesto: Higienista | Clínica: Retiro | Fecha evaluación: 2026-06-14 | Puntualidad (1-5): 5 | Calidad técnica (1-5): 5 | Trabajo en equipo (1-5): 5 | Atención al paciente (1-5): 4 | Media: 4.75 | Comentarios: Desempeño muy sólido, candidata a formación avanzada."
+                },
+                {
+                  "clave": "3.75 · Auxiliar clínica · Retiro · Marcos Iglesias · Pendiente reciclaje de esterilización. · 2026-06-14 · 4 · 3 · 4 · 4",
+                  "texto": "[Hoja \"Evaluaciones\"] Empleado: Marcos Iglesias | Puesto: Auxiliar clínica | Clínica: Retiro | Fecha evaluación: 2026-06-14 | Puntualidad (1-5): 4 | Calidad técnica (1-5): 3 | Trabajo en equipo (1-5): 4 | Atención al paciente (1-5): 4 | Media: 3.75 | Comentarios: Pendiente reciclaje de esterilización."
+                },
+                {
+                  "clave": "4.25 · Recepción · Retiro · Patricia Salas · Muy buena atención al paciente. · 2026-06-15 · 4 · 4 · 4 · 5",
+                  "texto": "[Hoja \"Evaluaciones\"] Empleado: Patricia Salas | Puesto: Recepción | Clínica: Retiro | Fecha evaluación: 2026-06-15 | Puntualidad (1-5): 4 | Calidad técnica (1-5): 4 | Trabajo en equipo (1-5): 4 | Atención al paciente (1-5): 5 | Media: 4.25 | Comentarios: Muy buena atención al paciente."
+                },
+                {
+                  "clave": "4.75 · Periodoncista · Retiro · Dra. Irene Vidal · Excelente nivel clínico. · 2026-06-15 · 5 · 5 · 4 · 5",
+                  "texto": "[Hoja \"Evaluaciones\"] Empleado: Dra. Irene Vidal | Puesto: Periodoncista | Clínica: Retiro | Fecha evaluación: 2026-06-15 | Puntualidad (1-5): 5 | Calidad técnica (1-5): 5 | Trabajo en equipo (1-5): 4 | Atención al paciente (1-5): 5 | Media: 4.75 | Comentarios: Excelente nivel clínico."
+                }
+              ],
+              "soloEnOtro": []
+            }
+          ]
+        }
+      ],
+      "discardedFindings": {
+        "verificado.por_localizacion": 13,
+        "verificado.por_celdas": 1,
+        "descartado.cubierto_por_diff": 1,
+        "a_juicio.columna_no_comparada": 1,
+        "descartado.sin_relacion": 1
+      },
+      "pipelineCounters": {
+        "seleccion.candidatos_recuperados": 1,
+        "seleccion.candidatos_cortados_por_tope_de_recuperacion": 0,
+        "seleccion.candidatos_seleccionados": 1,
+        "seleccion.candidatos_sin_confianza": 0,
+        "seleccion.candidatos_cortados_por_tope": 0,
+        "seleccion.candidatos_con_id_no_reconocido": 0,
+        "seleccion.candidatos_repetidos_por_el_modelo": 0,
+        "seleccion.candidatos_descartados_por_criterio": 0,
+        "diff.tablas.candidatos": 1,
+        "diff.tablas.sin_clave": 0,
+        "diff.tablas.sin_interseccion": 0,
+        "diff.tablas.emitidos": 1,
+        "diff.clave.rechazadas_por_escritura": 0,
+        "diff.clasificacion.identicas": 9,
+        "diff.clasificacion.discrepantes": 1,
+        "diff.clasificacion.columnas_afectadas": 1,
+        "diff.clasificacion.solo_en_a": 5,
+        "diff.clasificacion.solo_en_b": 0,
+        "diff.clasificacion.variantes_escritura": 0,
+        "diff.vision.pares_con_vision": 1,
+        "diff.vision.pares_ciegos": 0,
+        "diff.vision.ciegos_por_el_analizado": 0,
+        "diff.vision.tablas_analizado": 1,
+        "diff.vision.filas_analizado": 15,
+        "diff.vision.tablas_candidatos": 1,
+        "diff.vision.filas_candidatos": 10,
+        "verificador.hallazgos_entrantes": 2,
+        "verificador.confirmados": 0,
+        "verificador.confirmados_por_estructura": 0,
+        "verificador.confirmados_por_juicio": 0,
+        "verificador.descartados": 2,
+        "verificador.reclasificados": 0
+      },
+      "termometro": {
+        "version": 1,
+        "estado": "con_candidatos",
+        "motivo": null,
+        "modelo": {
+          "pedido": "multilingual-e5-large",
+          "servido": "multilingual-e5-large",
+          "dimension_servida": 1024
+        },
+        "consultas": 20,
+        "topK": 25,
+        "denominadores": {
+          "crudos": 340,
+          "sin_fila_viva": 0,
+          "sin_metadata_utilizable": 0,
+          "propios_excluidos": 0,
+          "generacion_muerta_excluida": 0,
+          "candidatos_con_repeticion": 340,
+          "unicos": 17
+        },
+        "fondo": 17,
+        "fondo_motivo": null,
+        "documentos_candidatos": 1,
+        "scores": {
+          "minimo": 0.794153512,
+          "maximo": 0.972624362,
+          "histograma": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            11,
+            2,
+            2,
+            1
+          ],
+          "hueco_1_2": null
+        },
+        "ids_sin_fila_viva": [],
+        "candidatos_fuera_del_fondo": []
+      },
+      "coberturaDeCandidatos": {
+        "comparados": 1,
+        "afines": 1,
+        "reparto": {
+          "origen": "modelo",
+          "recuperados": 1,
+          "elegidosPorElModelo": 1,
+          "descartadosPorCriterio": 0,
+          "cortadosPorTope": 0,
+          "idsNoReconocidos": 0,
+          "repetidos": 0
+        }
+      },
+      "textoAnalizado": {
+        "caracteres": 2422,
+        "mostrados": 2422
+      },
+      "analysisMode": "quick"
+    }
+  }
+}

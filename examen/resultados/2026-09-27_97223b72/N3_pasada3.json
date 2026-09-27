@@ -1,0 +1,198 @@
+{
+  "casoId": "N3",
+  "pasada": 3,
+  "http": 200,
+  "ms": 17875,
+  "cuando": "2026-09-27T22:04:10.858Z",
+  "renovacionesDeCredencial": [],
+  "cuerpo": {
+    "casoId": "N3",
+    "pasada": 3,
+    "operacion": "analizar",
+    "orgId": "a9625e93-af2a-4416-a465-5c2fa2a25bdf",
+    "analizado": {
+      "nombre": "MKT-01_manual-identidad-corporativa.docx",
+      "documentId": "76096004-4c74-4b69-9063-b51f24a5fd60",
+      "generacion": 1,
+      "fragmentos": 5
+    },
+    "corpus": [
+      {
+        "nombre": "RRHH-05_uniformidad-e-imagen.txt",
+        "documentId": "1c86d4e1-6897-49a8-bd4c-b71a96502df8",
+        "generacion": 1
+      }
+    ],
+    "analisis": {
+      "isDuplicate": false,
+      "duplicateOf": null,
+      "duplicateConfidence": 0,
+      "overlaps": [
+        {
+          "existingDocument": "RRHH-05_uniformidad-e-imagen.txt",
+          "existingDocumentId": "1c86d4e1-6897-49a8-bd4c-b71a96502df8",
+          "description": "Especificaciones del uniforme por categoría profesional (odontólogos, higienistas, auxiliares, recepción). Requisitos de calzado: cerrado, antideslizante, de uso exclusivo en clínica, colores blanco o gris. Norma de pelo recogido durante atención clínica al paciente. Identificación visible con nombre y cargo en todo momento. Posición y tamaño del logotipo en uniformes según indicaciones de Marketing, sin modificaciones ni combinaciones con prendas ajenas al proveedor homologado",
+          "severity": "alta",
+          "overlapPercent": 65,
+          "textRef": "Odontólogos: casaca azul marino corporativa con logo Dentavia bordado, pantalón a juego.\n- Higienistas y auxiliares: casaca gris corporativa con logo Dentavia, pantalón a juego.\n- Recepción: polo o camisa corporativa en azul claro."
+        }
+      ],
+      "discrepancies": [],
+      "newInformation": "No se identifica información nueva significativa que justifique mantener ambos documentos. El contenido es sustancialmente duplicado en sus aspectos clave.",
+      "recommendation": "NO_INDEXAR",
+      "summary": "El documento nuevo sobre identidad corporativa tiene un solapamiento del 65% con el manual de uniformidad e imagen existente. Ambos documentos cubren las mismas especificaciones de uniforme, calzado, presentación personal e identificación de empleados, sin contradicciones entre ellos.",
+      "judgments": [
+        {
+          "documentId": "1c86d4e1-6897-49a8-bd4c-b71a96502df8",
+          "documentName": "RRHH-05_uniformidad-e-imagen.txt",
+          "source": "manual",
+          "overlapPercent": 65,
+          "verdict": "duplicado_exacto",
+          "contradictions": [],
+          "overlappingContent": [
+            {
+              "description": "Especificaciones del uniforme por categoría profesional (odontólogos, higienistas, auxiliares, recepción)",
+              "evidence": "Odontólogos: casaca azul marino corporativa con logo Dentavia bordado, pantalón a juego.\n- Higienistas y auxiliares: casaca gris corporativa con logo Dentavia, pantalón a juego.\n- Recepción: polo o camisa corporativa en azul claro",
+              "evidenceInNewDoc": "Odontólogos: casaca azul marino corporativa con logo Dentavia bordado, pantalón a juego.\n- Higienistas y auxiliares: casaca gris corporativa con logo Dentavia, pantalón a juego.\n- Recepción: polo o camisa corporativa en azul claro."
+            },
+            {
+              "description": "Requisitos de calzado: cerrado, antideslizante, de uso exclusivo en clínica, colores blanco o gris",
+              "evidence": "Calzado cerrado, antideslizante y de uso exclusivo en clínica, de color blanco o gris",
+              "evidenceInNewDoc": "Calzado cerrado y antideslizante, de color blanco o gris, de uso exclusivo en clínica."
+            },
+            {
+              "description": "Norma de pelo recogido durante atención clínica al paciente",
+              "evidence": "Pelo recogido en todo el personal clínico durante la atención al paciente.",
+              "evidenceInNewDoc": "Pelo recogido durante la atención clínica al paciente"
+            },
+            {
+              "description": "Identificación visible con nombre y cargo en todo momento",
+              "evidence": "Identificación visible con nombre y cargo en todo momento.",
+              "evidenceInNewDoc": "identificación visible con nombre y cargo en todo momento."
+            },
+            {
+              "description": "Posición y tamaño del logotipo en uniformes según indicaciones de Marketing, sin modificaciones ni combinaciones con prendas ajenas al proveedor homologado",
+              "evidence": "El uniforme debe llevar siempre el logotipo oficial de Dentavia en la posición y tamaño indicados por Marketing y Comunicación, sin modificaciones ni combinaciones con prendas ajenas al proveedor homologado.",
+              "evidenceInNewDoc": "El logotipo debe figurar siempre en la posición y tamaño indicados por Marketing, sin combinaciones con prendas ajenas al proveedor homologado de uniformidad."
+            }
+          ],
+          "uniqueToNewDoc": [
+            "Especificaciones técnicas del logotipo (versiones positivo/negativo, área de seguridad mínima, prohibición de deformación/rotación/recoloreo)",
+            "Paleta de colores corporativos completa con códigos HEX (azul marino #0B2E59, azul claro #5FA8D3, blanco #FFFFFF, gris cálido #8C8C88)",
+            "Tipografía corporativa oficial (Calibri/Arial para textos, fuente específica para titulares)",
+            "Normas de señalética y rotulación de clínicas con plantillas oficiales",
+            "Normas de papelería corporativa (tarjetas, presupuestos, recetarios)",
+            "Procedimiento de validación para uso del logotipo por terceros (proveedores, aseguradoras, partners)",
+            "Contacto de Marketing y Comunicación para consultas sobre identidad corporativa"
+          ],
+          "discarded": {
+            "verificado.por_localizacion": 10
+          }
+        }
+      ],
+      "discardedFindings": {
+        "verificado.por_localizacion": 10
+      },
+      "pipelineCounters": {
+        "seleccion.candidatos_recuperados": 1,
+        "seleccion.candidatos_cortados_por_tope_de_recuperacion": 0,
+        "seleccion.candidatos_seleccionados": 1,
+        "seleccion.candidatos_sin_confianza": 0,
+        "seleccion.candidatos_cortados_por_tope": 0,
+        "seleccion.candidatos_con_id_no_reconocido": 0,
+        "seleccion.candidatos_repetidos_por_el_modelo": 0,
+        "seleccion.candidatos_descartados_por_criterio": 0,
+        "diff.tablas.candidatos": 0,
+        "diff.tablas.sin_clave": 0,
+        "diff.tablas.sin_interseccion": 0,
+        "diff.tablas.emitidos": 0,
+        "diff.clave.rechazadas_por_escritura": 0,
+        "diff.clasificacion.variantes_escritura": 0,
+        "diff.vision.pares_con_vision": 0,
+        "diff.vision.pares_ciegos": 1,
+        "diff.vision.ciegos_por_el_analizado": 1,
+        "diff.vision.tablas_analizado": 0,
+        "diff.vision.filas_analizado": 0,
+        "diff.vision.tablas_candidatos": 0,
+        "diff.vision.filas_candidatos": 0,
+        "verificador.hallazgos_entrantes": 0,
+        "verificador.confirmados": 0,
+        "verificador.confirmados_por_estructura": 0,
+        "verificador.confirmados_por_juicio": 0,
+        "verificador.descartados": 0,
+        "verificador.reclasificados": 0
+      },
+      "termometro": {
+        "version": 1,
+        "estado": "con_candidatos",
+        "motivo": null,
+        "modelo": {
+          "pedido": "multilingual-e5-large",
+          "servido": "multilingual-e5-large",
+          "dimension_servida": 1024
+        },
+        "consultas": 5,
+        "topK": 25,
+        "denominadores": {
+          "crudos": 15,
+          "sin_fila_viva": 0,
+          "sin_metadata_utilizable": 0,
+          "propios_excluidos": 0,
+          "generacion_muerta_excluida": 0,
+          "candidatos_con_repeticion": 15,
+          "unicos": 3
+        },
+        "fondo": 3,
+        "fondo_motivo": null,
+        "documentos_candidatos": 1,
+        "scores": {
+          "minimo": 0.85138613,
+          "maximo": 0.930317461,
+          "histograma": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            2,
+            1,
+            0
+          ],
+          "hueco_1_2": null
+        },
+        "ids_sin_fila_viva": [],
+        "candidatos_fuera_del_fondo": []
+      },
+      "coberturaDeCandidatos": {
+        "comparados": 1,
+        "afines": 1,
+        "reparto": {
+          "origen": "modelo",
+          "recuperados": 1,
+          "elegidosPorElModelo": 1,
+          "descartadosPorCriterio": 0,
+          "cortadosPorTope": 0,
+          "idsNoReconocidos": 0,
+          "repetidos": 0
+        }
+      },
+      "textoAnalizado": {
+        "caracteres": 2869,
+        "mostrados": 2869
+      },
+      "analysisMode": "quick"
+    }
+  }
+}
