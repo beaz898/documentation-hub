@@ -9,6 +9,7 @@ import {
   verificarDiscriminantesEnFragmentos,
 } from '../lib/examen/discriminantes.mjs';
 import { marcarTanda, SIN_VEREDICTO } from '../lib/examen/marcador.mjs';
+import { conRenovacion, CredencialPerdida, crearSesion, leerFicheroDeEntorno } from '../lib/examen/sesion.mjs';
 
 /**
  * EL EJECUTOR DEL EXAMEN (25/09/2026).
@@ -37,8 +38,9 @@ import { marcarTanda, SIN_VEREDICTO } from '../lib/examen/marcador.mjs';
  *   node scripts/examen.mjs --lanzar --caso P2
  *   node scripts/examen.mjs --lanzar --excluir N6   # todos menos N6
  *
- * Variables de entorno necesarias SÓLO para --lanzar (por NOMBRE, nunca su
- * valor): EXAMEN_URL_BASE y EXAMEN_TOKEN_ADMIN.
+ * Credenciales, SÓLO para --lanzar: `.env.examen.local` (git lo ignora), con las
+ * cinco claves de `.env.examen.local.ejemplo`. El ejecutor inicia sesión con el
+ * usuario administrador y renueva el token cuando caduca (`lib/examen/sesion.mjs`).
  *
  * ⚠️ LIMITACIÓN DECLARADA (arquitecto, 26/09/2026): **MIDE CON DOS DOCUMENTOS, Y
  * EL PRODUCTO TRABAJARÁ CON CIENTOS.** Es correcto para detectar regresiones
@@ -330,27 +332,52 @@ function preComprobarSobreElDocumento(caso) {
 // LA PASADA — una llamada al endpoint del examen.
 // ---------------------------------------------------------------------------
 
-function credenciales() {
-  const base = process.env.EXAMEN_URL_BASE;
-  const token = process.env.EXAMEN_TOKEN_ADMIN;
-  if (!base || !token) {
-    throw new Error('faltan EXAMEN_URL_BASE y/o EXAMEN_TOKEN_ADMIN en el entorno');
+/** Las cinco claves de `.env.examen.local` (plantilla en `.env.examen.local.ejemplo`). */
+const CLAVES = ['EXAMEN_URL_BASE', 'EXAMEN_SUPABASE_URL', 'EXAMEN_SUPABASE_ANON_KEY', 'EXAMEN_CORREO', 'EXAMEN_CONTRASENA'];
+const FICHERO_DE_CREDENCIALES = '.env.examen.local';
+
+let sesion = null;
+let urlBase = null;
+/** Renovaciones ocurridas desde el último crudo escrito; el siguiente se las lleva. */
+const renovacionesPendientes = [];
+
+/**
+ * Lee las credenciales (el entorno manda sobre el fichero) e inicia sesión.
+ * ⚠️ Corre ANTES de la primera pasada: si no se puede entrar, no se lanza nada
+ * y no se gasta un crédito.
+ */
+async function abrirSesion() {
+  let delFichero = {};
+  try { delFichero = leerFicheroDeEntorno(readFileSync(FICHERO_DE_CREDENCIALES, 'utf8')); } catch { /* sin fichero: sólo entorno */ }
+  const v = Object.fromEntries(CLAVES.map(k => [k, process.env[k] || delFichero[k] || '']));
+  const faltan = CLAVES.filter(k => !v[k]);
+  if (faltan.length) {
+    throw new CredencialPerdida(`faltan en ${FICHERO_DE_CREDENCIALES}: ${faltan.join(', ')} (plantilla: ${FICHERO_DE_CREDENCIALES}.ejemplo)`);
   }
-  return { base, token };
+  urlBase = v.EXAMEN_URL_BASE.replace(/\/+$/, '');
+  sesion = crearSesion({
+    supabaseUrl: v.EXAMEN_SUPABASE_URL.replace(/\/+$/, ''),
+    anonKey: v.EXAMEN_SUPABASE_ANON_KEY,
+    correo: v.EXAMEN_CORREO,
+    contrasena: v.EXAMEN_CONTRASENA,
+  });
+  await sesion.iniciar();
 }
 
+/** `ms` es el de la llamada que contestó: con renovación, la del reintento. */
 async function llamarAlEndpoint(cuerpo) {
-  const { base, token } = credenciales();
-  const t0 = Date.now();
-  const res = await fetch(`${base}/api/admin/examen`, {
-    method: 'POST',
-    headers: { 'content-type': 'application/json', authorization: `Bearer ${token}` },
-    body: JSON.stringify(cuerpo),
-  });
-  const texto = await res.text();
-  let json;
-  try { json = JSON.parse(texto); } catch { json = texto; }
-  return { ok: res.ok, http: res.status, ms: Date.now() - t0, json };
+  return conRenovacion(async token => {
+    const t0 = Date.now();
+    const res = await fetch(`${urlBase}/api/admin/examen`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', authorization: `Bearer ${token}` },
+      body: JSON.stringify(cuerpo),
+    });
+    const texto = await res.text();
+    let json;
+    try { json = JSON.parse(texto); } catch { json = texto; }
+    return { ok: res.ok, http: res.status, ms: Date.now() - t0, json };
+  }, sesion, renovacionesPendientes);
 }
 
 /**
@@ -413,6 +440,10 @@ async function unaPasada(caso, n, dirSalida) {
     http: r.http,
     ms: r.ms,
     cuando: new Date().toISOString(),
+    // ⚠️ Una renovación NO es un fallo del análisis: el token caducó y la pasada
+    // se reintentó con uno nuevo. Se anota para que nadie la lea como
+    // inestabilidad (condición del arquitecto, 27/09/2026).
+    renovacionesDeCredencial: renovacionesPendientes.splice(0),
     cuerpo: r.json,
   };
 
@@ -507,16 +538,32 @@ function informeSeco(casos, commit) {
   return lineas.join('\n');
 }
 
-function informeReal(casos, resultados, commit, dirSalida) {
+/** Segundos con un decimal. */
+const seg = ms => `${(ms / 1000).toFixed(1)} s`;
+
+function informeReal(casos, resultados, commit, dirSalida, { parada, msDeLaTanda }) {
   const lineas = [cabecera(casos, commit)];
+  if (parada) lineas.push(`⛔ TANDA PARADA POR CREDENCIAL: ${parada}`, '');
   for (const c of casos) {
     const propias = resultados.filter(r => r.casoId === c.id);
     const fallidas = propias.filter(r => r.error);
     lineas.push(`${c.id} · ${propias.length - fallidas.length} de ${c.pasadas} pasadas completadas` +
                 (fallidas.length ? ` · ⚠️ ${fallidas.length} con error` : ''));
     for (const r of propias) {
-      lineas.push(`    pasada ${r.pasada}: ${r.error ? `⚠️ ${r.error}` : `HTTP ${r.http} en ${r.ms} ms`}`);
+      const renovada = r.renovacionesDeCredencial?.length ? ' · sesión renovada (no cuenta como fallo)' : '';
+      lineas.push(`    pasada ${r.pasada}: ${r.error ? `⚠️ ${r.error}` : `HTTP ${r.http} en ${seg(r.ms)}${renovada}`}`);
     }
+    lineas.push('');
+  }
+
+  // ⚠️ LA DURACIÓN, que es el dato que faltaba para saber si una tanda cabe en
+  // la hora que dura el token. `ms` es el de la llamada `analizar`; el reloj de
+  // la tanda incluye además las lecturas de fragmentos y las renovaciones.
+  const tiempos = resultados.filter(r => typeof r.ms === 'number').map(r => r.ms).sort((a, b) => a - b);
+  if (tiempos.length) {
+    const mediana = tiempos[Math.floor((tiempos.length - 1) / 2)];
+    lineas.push(`DURACIÓN · ${tiempos.length} análisis · mediana ${seg(mediana)} · mín ${seg(tiempos[0])} · ` +
+                `máx ${seg(tiempos[tiempos.length - 1])} · reloj de la tanda ${seg(msDeLaTanda)}`);
     lineas.push('');
   }
   for (const m of marcarTanda(casos, pasadasParaElMarcador(casos, resultados))) {
@@ -579,6 +626,15 @@ async function main() {
     return;
   }
 
+  // ⚠️ La sesión, ANTES de crear nada y antes de la primera pasada: si no se
+  // puede entrar, no se lanza nada y no se gasta un crédito.
+  try {
+    await abrirSesion();
+  } catch (err) {
+    console.error(`NO SE LANZA: ${err.message}`);
+    process.exit(1);
+  }
+
   const dirSalida = join(DIR_RESULTADOS, `${new Date().toISOString().slice(0, 10)}_${commit}`);
   mkdirSync(dirSalida, { recursive: true });
 
@@ -587,6 +643,9 @@ async function main() {
   console.log(`LANZANDO. Coste declarado antes de correr: ${creditos} créditos, ${dolares} $.\n`);
 
   const resultados = [];
+  const inicioDeLaTanda = Date.now();
+  let parada = null;
+  tanda:
   for (const c of casos) {
     for (let n = 1; n <= c.pasadas; n++) {
       try {
@@ -616,6 +675,7 @@ async function main() {
             // los fragmentos no, sólo su huella.
             fallos: v.fallos,
             huellaDeLosFragmentos: huellaDeLosFragmentos(fragmentos),
+            renovacionesDeCredencial: renovacionesPendientes.splice(0),
           };
           writeFileSync(join(dirSalida, `${c.id}_pasada${n}.json`), JSON.stringify(crudo, null, 2));
 
@@ -630,6 +690,14 @@ async function main() {
         resultados.push({ ...r, discriminantesComprobados: v.comprobados });
         console.log(`  ${c.id} pasada ${n}: HTTP ${r.http} en ${r.ms} ms · ${v.comprobados} discriminantes íntegros`);
       } catch (err) {
+        // ⚠️ SIN CREDENCIAL SE PARA LA TANDA ENTERA: seguir acumulando 401 no
+        // mide nada. Condición del arquitecto (27/09/2026).
+        if (err instanceof CredencialPerdida) {
+          parada = err.message;
+          resultados.push({ casoId: c.id, pasada: n, error: `PARADA — ${err.message}` });
+          console.error(`  ${c.id} pasada ${n}: ⛔ SE PARA LA TANDA: ${err.message}`);
+          break tanda;
+        }
         // ⚠️ NO SE ABORTA LA TANDA ENTERA por una pasada, pero el error se
         // GUARDA y se cuenta: una tanda con pasadas perdidas no es una tanda de
         // cinco, y el informe no puede dejar que lo parezca.
@@ -639,7 +707,7 @@ async function main() {
     }
   }
 
-  const informe = informeReal(casos, resultados, commit, dirSalida);
+  const informe = informeReal(casos, resultados, commit, dirSalida, { parada, msDeLaTanda: Date.now() - inicioDeLaTanda });
   writeFileSync(join(dirSalida, 'informe.txt'), informe);
   console.log(`\n${informe}`);
 }
