@@ -1,0 +1,98 @@
+EXAMEN · 2026-09-27 · commit f825eed9
+9 caso(s) · 45 análisis · 225 créditos · 0.2025 $
+⚠️ EXCLUIDOS de esta tanda: N6
+
+N1 · 0 de 5 pasadas completadas · ⚠️ 5 con error
+    pasada 1: ⚠️ HTTP 404 pidiendo fragmentos de N1
+    pasada 2: ⚠️ HTTP 404 pidiendo fragmentos de N1
+    pasada 3: ⚠️ HTTP 404 pidiendo fragmentos de N1
+    pasada 4: ⚠️ HTTP 404 pidiendo fragmentos de N1
+    pasada 5: ⚠️ HTTP 404 pidiendo fragmentos de N1
+
+N2 · 0 de 5 pasadas completadas · ⚠️ 5 con error
+    pasada 1: ⚠️ HTTP 404 pidiendo fragmentos de N2
+    pasada 2: ⚠️ HTTP 404 pidiendo fragmentos de N2
+    pasada 3: ⚠️ HTTP 404 pidiendo fragmentos de N2
+    pasada 4: ⚠️ HTTP 404 pidiendo fragmentos de N2
+    pasada 5: ⚠️ HTTP 404 pidiendo fragmentos de N2
+
+N3 · 0 de 5 pasadas completadas · ⚠️ 5 con error
+    pasada 1: ⚠️ HTTP 404 pidiendo fragmentos de N3
+    pasada 2: ⚠️ HTTP 404 pidiendo fragmentos de N3
+    pasada 3: ⚠️ HTTP 404 pidiendo fragmentos de N3
+    pasada 4: ⚠️ HTTP 404 pidiendo fragmentos de N3
+    pasada 5: ⚠️ HTTP 404 pidiendo fragmentos de N3
+
+N4 · 0 de 5 pasadas completadas · ⚠️ 5 con error
+    pasada 1: ⚠️ HTTP 404 pidiendo fragmentos de N4
+    pasada 2: ⚠️ HTTP 404 pidiendo fragmentos de N4
+    pasada 3: ⚠️ HTTP 404 pidiendo fragmentos de N4
+    pasada 4: ⚠️ HTTP 404 pidiendo fragmentos de N4
+    pasada 5: ⚠️ HTTP 404 pidiendo fragmentos de N4
+
+N5 · 0 de 5 pasadas completadas · ⚠️ 5 con error
+    pasada 1: ⚠️ HTTP 404 pidiendo fragmentos de N5
+    pasada 2: ⚠️ HTTP 404 pidiendo fragmentos de N5
+    pasada 3: ⚠️ HTTP 404 pidiendo fragmentos de N5
+    pasada 4: ⚠️ HTTP 404 pidiendo fragmentos de N5
+    pasada 5: ⚠️ HTTP 404 pidiendo fragmentos de N5
+
+P1 · 0 de 5 pasadas completadas · ⚠️ 5 con error
+    pasada 1: ⚠️ HTTP 404 pidiendo fragmentos de P1
+    pasada 2: ⚠️ HTTP 404 pidiendo fragmentos de P1
+    pasada 3: ⚠️ HTTP 404 pidiendo fragmentos de P1
+    pasada 4: ⚠️ HTTP 404 pidiendo fragmentos de P1
+    pasada 5: ⚠️ HTTP 404 pidiendo fragmentos de P1
+
+P2 · 0 de 5 pasadas completadas · ⚠️ 5 con error
+    pasada 1: ⚠️ HTTP 404 pidiendo fragmentos de P2
+    pasada 2: ⚠️ HTTP 404 pidiendo fragmentos de P2
+    pasada 3: ⚠️ HTTP 404 pidiendo fragmentos de P2
+    pasada 4: ⚠️ HTTP 404 pidiendo fragmentos de P2
+    pasada 5: ⚠️ HTTP 404 pidiendo fragmentos de P2
+
+P3 · 0 de 5 pasadas completadas · ⚠️ 5 con error
+    pasada 1: ⚠️ HTTP 404 pidiendo fragmentos de P3
+    pasada 2: ⚠️ HTTP 404 pidiendo fragmentos de P3
+    pasada 3: ⚠️ HTTP 404 pidiendo fragmentos de P3
+    pasada 4: ⚠️ HTTP 404 pidiendo fragmentos de P3
+    pasada 5: ⚠️ HTTP 404 pidiendo fragmentos de P3
+
+P4 · 0 de 5 pasadas completadas · ⚠️ 5 con error
+    pasada 1: ⚠️ HTTP 404 pidiendo fragmentos de P4
+    pasada 2: ⚠️ HTTP 404 pidiendo fragmentos de P4
+    pasada 3: ⚠️ HTTP 404 pidiendo fragmentos de P4
+    pasada 4: ⚠️ HTTP 404 pidiendo fragmentos de P4
+    pasada 5: ⚠️ HTTP 404 pidiendo fragmentos de P4
+
+N1: SIN_VEREDICTO
+    ~ ninguna pasada ejecutable de 5: HTTP 404 pidiendo fragmentos de N1 · HTTP 404 pidiendo fragmentos de N1 · HTTP 404 pidiendo fragmentos de N1 · HTTP 404 pidiendo fragmentos de N1 · HTTP 404 pidiendo fragmentos de N1
+N2: SIN_VEREDICTO
+    ~ ninguna pasada ejecutable de 5: HTTP 404 pidiendo fragmentos de N2 · HTTP 404 pidiendo fragmentos de N2 · HTTP 404 pidiendo fragmentos de N2 · HTTP 404 pidiendo fragmentos de N2 · HTTP 404 pidiendo fragmentos de N2
+N3: SIN_VEREDICTO
+    ~ ninguna pasada ejecutable de 5: HTTP 404 pidiendo fragmentos de N3 · HTTP 404 pidiendo fragmentos de N3 · HTTP 404 pidiendo fragmentos de N3 · HTTP 404 pidiendo fragmentos de N3 · HTTP 404 pidiendo fragmentos de N3
+    ~ línea de base PENDIENTE: esta tanda MIDE la frecuencia, no la juzga. observado:  falsos por pasada
+N4: SIN_VEREDICTO
+    ~ ninguna pasada ejecutable de 5: HTTP 404 pidiendo fragmentos de N4 · HTTP 404 pidiendo fragmentos de N4 · HTTP 404 pidiendo fragmentos de N4 · HTTP 404 pidiendo fragmentos de N4 · HTTP 404 pidiendo fragmentos de N4
+    ~ línea de base PENDIENTE: esta tanda MIDE la frecuencia, no la juzga. observado:  falsos por pasada
+    ~ control de tanda NO cumplido: N1/N1-PUESTO no salió en esta tanda, así que el silencio de este caso no distingue «no inventó» de «no funcionó nada»
+N5: SIN_VEREDICTO
+    ~ ninguna pasada ejecutable de 5: HTTP 404 pidiendo fragmentos de N5 · HTTP 404 pidiendo fragmentos de N5 · HTTP 404 pidiendo fragmentos de N5 · HTTP 404 pidiendo fragmentos de N5 · HTTP 404 pidiendo fragmentos de N5
+    ~ línea de base PENDIENTE: esta tanda MIDE la frecuencia, no la juzga. observado:  falsos por pasada
+    ~ control de tanda NO cumplido: N1/N1-PUESTO no salió en esta tanda, así que el silencio de este caso no distingue «no inventó» de «no funcionó nada»
+P1: SIN_VEREDICTO
+    ~ ninguna pasada ejecutable de 5: HTTP 404 pidiendo fragmentos de P1 · HTTP 404 pidiendo fragmentos de P1 · HTTP 404 pidiendo fragmentos de P1 · HTTP 404 pidiendo fragmentos de P1 · HTTP 404 pidiendo fragmentos de P1
+P2: SIN_VEREDICTO
+    ~ ninguna pasada ejecutable de 5: HTTP 404 pidiendo fragmentos de P2 · HTTP 404 pidiendo fragmentos de P2 · HTTP 404 pidiendo fragmentos de P2 · HTTP 404 pidiendo fragmentos de P2 · HTTP 404 pidiendo fragmentos de P2
+P3: SIN_VEREDICTO
+    ~ ninguna pasada ejecutable de 5: HTTP 404 pidiendo fragmentos de P3 · HTTP 404 pidiendo fragmentos de P3 · HTTP 404 pidiendo fragmentos de P3 · HTTP 404 pidiendo fragmentos de P3 · HTTP 404 pidiendo fragmentos de P3
+P4: SIN_VEREDICTO
+    ~ ninguna pasada ejecutable de 5: HTTP 404 pidiendo fragmentos de P4 · HTTP 404 pidiendo fragmentos de P4 · HTTP 404 pidiendo fragmentos de P4 · HTTP 404 pidiendo fragmentos de P4 · HTTP 404 pidiendo fragmentos de P4
+    ~ regla(s) que el marcador no sabe aplicar y necesitan etiqueta humana: P4-NO-1
+
+⚠️ LO QUE UN VERDE NO CUBRE: cada caso mide con DOS documentos y el producto
+   trabajará con cientos. Detecta regresiones porque aísla la variable, pero
+   NO mide el reparto del presupuesto, las plazas del rerank ni el fondo con
+   corpus grande.
+
+Evidencia cruda: examen\resultados\2026-09-27_f825eed9

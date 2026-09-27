@@ -10,6 +10,7 @@ import {
 } from '../lib/examen/discriminantes.mjs';
 import { marcarTanda, SIN_VEREDICTO } from '../lib/examen/marcador.mjs';
 import { conRenovacion, CredencialPerdida, crearSesion, leerFicheroDeEntorno } from '../lib/examen/sesion.mjs';
+import { crudoDeLecturaFallida, motivoDelCuerpo } from '../lib/examen/lectura-fallida.mjs';
 
 /**
  * EL EJECUTOR DEL EXAMEN (25/09/2026).
@@ -396,7 +397,13 @@ async function pedirFragmentos(caso) {
     analizado: caso.analizado,
     corpusExacto: caso.corpusExacto,
   });
-  if (!r.ok) throw new Error(`HTTP ${r.http} pidiendo fragmentos de ${caso.id}`);
+  if (!r.ok) {
+    // ⚠️ El cuerpo viaja con el error para que `main` lo escriba en el crudo:
+    // sin él, la tanda del 27/09 murió 45 veces sin dejar el motivo.
+    const err = new Error(`HTTP ${r.http} pidiendo fragmentos de ${caso.id}: ${motivoDelCuerpo(r.json)}`);
+    err.lecturaFallida = { http: r.http, cuerpo: r.json };
+    throw err;
+  }
   return r.json?.fragmentosPorDocumento ?? null;
 }
 
@@ -701,6 +708,12 @@ async function main() {
         // ⚠️ NO SE ABORTA LA TANDA ENTERA por una pasada, pero el error se
         // GUARDA y se cuenta: una tanda con pasadas perdidas no es una tanda de
         // cinco, y el informe no puede dejar que lo parezca.
+        if (err.lecturaFallida) {
+          const crudo = crudoDeLecturaFallida({
+            casoId: c.id, pasada: n, ...err.lecturaFallida, renovaciones: renovacionesPendientes.splice(0),
+          });
+          writeFileSync(join(dirSalida, `${c.id}_pasada${n}.json`), JSON.stringify(crudo, null, 2));
+        }
         resultados.push({ casoId: c.id, pasada: n, error: err.message });
         console.error(`  ${c.id} pasada ${n}: ⚠️ ${err.message}`);
       }
