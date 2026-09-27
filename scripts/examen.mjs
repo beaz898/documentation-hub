@@ -71,9 +71,26 @@ const DIR_RESULTADOS = 'examen/resultados';
 
 const argv = process.argv.slice(2);
 const LANZAR = argv.includes('--lanzar');
+/** `--caso P1` o `--caso N1,N3,P4`. */
 const soloCaso = (() => {
   const i = argv.indexOf('--caso');
-  return i === -1 ? null : argv[i + 1];
+  return i === -1 ? null : (argv[i + 1] ?? '').split(',').map(x => x.trim()).filter(Boolean);
+})();
+/**
+ * `--pasadas 10`: sustituye las del caso EN ESTA TANDA, sin tocar el fichero —
+ * para fijar una base hacen falta diez (Fable, 25/09), la rutina son cinco. Se
+ * aplica al cargar, así que coste, bucle y marcador ven el mismo número, y va
+ * impreso en la cabecera. Un valor que no sea entero ≥ 1 no lanza nada.
+ */
+const pasadasForzadas = (() => {
+  const i = argv.indexOf('--pasadas');
+  if (i === -1) return null;
+  const n = Number(argv[i + 1]);
+  if (!Number.isInteger(n) || n < 1) {
+    console.error(`--pasadas necesita un entero ≥ 1 y recibió «${argv[i + 1]}». No se lanza nada.`);
+    process.exit(1);
+  }
+  return n;
 })();
 /** `--excluir N6` o `--excluir N6,P4`. Lo excluido se IMPRIME en la cabecera:
  *  una tanda sin un caso no puede leerse como la tanda entera. */
@@ -121,8 +138,10 @@ export async function cargarCasos() {
     const mod = await import(`../examen/casos/${f.replace(/\.mjs$/, '')}.mjs`);
     casos.push({ fichero: f, ...mod.default });
   }
-  const elegidos = soloCaso ? casos.filter(c => c.id === soloCaso) : casos;
-  return elegidos.filter(c => !excluidos.includes(c.id));
+  const elegidos = soloCaso ? casos.filter(c => soloCaso.includes(c.id)) : casos;
+  return elegidos
+    .filter(c => !excluidos.includes(c.id))
+    .map(c => (pasadasForzadas ? { ...c, pasadas: pasadasForzadas } : c));
 }
 
 // ---------------------------------------------------------------------------
@@ -502,6 +521,8 @@ function cabecera(casos, commit) {
     `EXAMEN · ${new Date().toISOString().slice(0, 10)} · commit ${commit}`,
     `${casos.length} caso(s) · ${analisis} análisis · ${creditos} créditos · ${dolares} $`,
     ...(excluidos.length ? [`⚠️ EXCLUIDOS de esta tanda: ${excluidos.join(', ')}`] : []),
+    ...(soloCaso ? [`⚠️ SÓLO estos casos: ${soloCaso.join(', ')}`] : []),
+    ...(pasadasForzadas ? [`⚠️ PASADAS FORZADAS a ${pasadasForzadas} en esta tanda (los casos declaran otras)`] : []),
     '',
   ].join('\n');
 }
@@ -596,7 +617,7 @@ async function main() {
   const casos = await cargarCasos();
 
   if (casos.length === 0) {
-    console.error(soloCaso ? `No hay ningún caso con id ${soloCaso}.` : `No hay casos en ${DIR_CASOS}.`);
+    console.error(soloCaso ? `No hay ningún caso con id ${soloCaso.join(', ')}.` : `No hay casos en ${DIR_CASOS}.`);
     process.exit(1);
   }
 
