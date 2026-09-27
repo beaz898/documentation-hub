@@ -173,9 +173,16 @@ describe('LOS DIEZ CASOS REALES — el control positivo de toda la regla', () =>
    */
   it('las pantallas del 27/09 ya se leen, y P4 se sigue cazando por lo que falta', async () => {
     const t = validarCasos(await cargarCasos()).join('\n');
-    expect(t).not.toMatch(/\((N1|N3|P3|N4|N5)\)/);
+    expect(t).not.toMatch(/\((N1|N3|P3|N4|N5)\): .*(no puede emparejarlo|no sabe leer|control de tanda)/);
     expect(t).not.toMatch(/no puede emparejarlo/);
     expect(t).toMatch(/\(P4\): `criterioDeAcierto` pide algo al resultado/);
+  });
+
+  it('los umbrales que no pueden fallar (28/09): N6 y P1 se cazan enteros, y el techo de N1', async () => {
+    const t = validarCasos(await cargarCasos()).join('\n');
+    expect(t).toMatch(/\(N6\): NINGÚN umbral de este caso puede fallar/);
+    expect(t).toMatch(/\(P1\): NINGÚN umbral de este caso puede fallar/);
+    expect(t).toMatch(/\(N1\): `maximoDeFalsosConfirmados: 2` y como mucho caben 1/);
   });
 
   it('importar el ejecutor NO lo ejecuta', async () => {

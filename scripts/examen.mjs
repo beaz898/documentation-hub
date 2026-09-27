@@ -9,6 +9,7 @@ import {
   verificarDiscriminantesEnFragmentos,
 } from '../lib/examen/discriminantes.mjs';
 import { validarLoQueElMarcadorLee } from '../lib/examen/validar-lectura.mjs';
+import { umbralesQueNoPuedenFallar } from '../lib/examen/umbrales-que-pueden-fallar.mjs';
 import { lineasDelVeredicto } from '../lib/examen/veredicto.mjs';
 import { conRenovacion, CredencialPerdida, crearSesion, leerFicheroDeEntorno } from '../lib/examen/sesion.mjs';
 import { crudoDeLecturaFallida, motivoDelCuerpo } from '../lib/examen/lectura-fallida.mjs';
@@ -170,6 +171,7 @@ export function validarCasos(casos) {
     }
 
     problemas.push(...validarElTechoDeFalsos(c, donde));
+    problemas.push(...umbralesQueNoPuedenFallar(c, donde));
   }
   problemas.push(...validarLoQueElMarcadorLee(casos, { contextoSuministrado: CONTEXTO_PARA_EL_MARCADOR }));
   return problemas;
