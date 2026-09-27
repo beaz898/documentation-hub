@@ -4,7 +4,7 @@ import { runInBatches } from '@/lib/run-in-batches';
 import { sanitizeJudgeContradictions, hashCitationPair } from './llm-boundary';
 import { getOrderedColumns, groupChunksByTable, renderTableBlock, alignQuoteToCells, despegarPunteroDeFila } from './table-structure';
 import { normalize } from './normalize';
-import type { RerankedCandidate, DocumentJudgment, PipelineOptions, DiscardedFindings, DocumentFragment } from './types';
+import type { RerankedCandidate, DocumentJudgment, PipelineOptions, DiscardedFindings, DocumentFragment, TextoAnalizado } from './types';
 import type { StoredChunk } from '@/lib/read-chunks';
 
 // F-61: normalize se extrajo a su propio fichero (ver normalize.ts) para
@@ -1000,6 +1000,9 @@ function buildAnalyzedDocumentText(chunks: StoredChunk[], documentName: string):
 export interface JudgeAllResult {
   judgments: DocumentJudgment[];
   evidences: JudgmentEvidence[];
+  /** 27/09/2026, F-116: cuánto texto del analizado había y cuánto vio el juez.
+   *  Ausente si el juez no corrió (sin candidatos). Ver `TextoAnalizado`. */
+  textoAnalizado?: TextoAnalizado;
 }
 
 /**
@@ -1051,9 +1054,7 @@ export async function judgeAllDocuments(args: {
     // elimina — OPE-06 lo sigue necesitando, y ahora queda dicho.
     console.warn(`[judge] "${args.newDocumentName}": documento analizado truncado a ${NEW_DOC_LIMIT_QUICK} de ${fullDocumentText.length} caracteres`);
   }
-  const newDocumentText = isExhaustive
-    ? fullDocumentText
-    : fullDocumentText.slice(0, NEW_DOC_LIMIT_QUICK);
+  const { texto: newDocumentText, medida: textoAnalizado } = recortarAnalizado(fullDocumentText, isExhaustive);
 
   const results = await runInBatches(
     args.candidates,
@@ -1072,5 +1073,17 @@ export async function judgeAllDocuments(args: {
   return {
     judgments: results.map(r => r.judgment),
     evidences: results.map(r => r.evidence),
+    textoAnalizado,
   };
+}
+
+/**
+ * EL RECORTE DEL ANALIZADO Y SU MEDIDA, en una sola función (27/09/2026, F-116).
+ * Se mide donde se recorta y no en quien lo lea: un segundo cálculo del mismo
+ * recorte se separaría del primero sin avisar. Rápido: hasta
+ * NEW_DOC_LIMIT_QUICK; exhaustivo: entero.
+ */
+export function recortarAnalizado(completo: string, exhaustivo: boolean): { texto: string; medida: TextoAnalizado } {
+  const texto = exhaustivo ? completo : completo.slice(0, NEW_DOC_LIMIT_QUICK);
+  return { texto, medida: { caracteres: completo.length, mostrados: texto.length } };
 }

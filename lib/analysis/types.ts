@@ -441,6 +441,27 @@ export interface FinalAnalysis {
    * sólo porque los análisis anteriores a hoy no lo tienen.
    */
   termometro?: Termometro;
+  /**
+   * 27/09/2026 — F-116: cuánto texto del documento analizado había y cuánto
+   * llegó al juez tras el recorte del rápido. Es la cifra que mide el
+   * estrangulamiento («truncado a 6000 de 7342»), que hasta hoy sólo salía en
+   * el log.
+   *
+   * ⚠️ NO ES UN CONTADOR, y por eso no va en `pipelineCounters`: es una
+   * MAGNITUD, y la cláusula 2 de `claude/Contrato_Contadores.md` admite sólo
+   * recuentos de decisión. Viaja como `termometro`, dentro del jsonb `analysis`.
+   *
+   * Ausente = el juez no corrió (sin candidatos, duplicado exacto) o el
+   * análisis es anterior al 27/09. Nadie decide nada con él.
+   */
+  textoAnalizado?: TextoAnalizado;
+}
+
+/** Caracteres del texto del analizado que armó el juez, y los que vio. En el
+ *  exhaustivo son iguales: no se recorta. */
+export interface TextoAnalizado {
+  caracteres: number;
+  mostrados: number;
 }
 
 

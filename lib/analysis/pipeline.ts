@@ -845,7 +845,7 @@ async function runCorePipeline(
   console.log(`[${label}] Contexto de fragmentos: ${contexts.size}/${fragmentRefs.length} resueltos`);
 
   const t2 = Date.now();
-  const { judgments: rawJudgments, evidences } = await judgeAllDocuments({
+  const { judgments: rawJudgments, evidences, textoAnalizado } = await judgeAllDocuments({
     newDocumentName: input.newDocumentName,
     newDocumentSample: input.newDocumentText,
     candidates: reranked,
@@ -1084,7 +1084,13 @@ async function runCorePipeline(
   // justamente en el camino corriente. Es el mismo descuido que los
   // comentarios de `analyze-v2` y del worker documentan sobre sus listas
   // cerradas: la pieza nueva se cuelga del sitio que uno está mirando.
-  const final = { ...finalSinCobertura, coberturaDeCandidatos: cobertura };
+  // F-116: `textoAnalizado` va aquí por el mismo motivo que la cobertura. Sólo en
+  // esta salida porque sólo en ella corrió el juez; en las tempranas, ausente.
+  const final = {
+    ...finalSinCobertura,
+    coberturaDeCandidatos: cobertura,
+    ...(textoAnalizado ? { textoAnalizado } : {}),
+  };
 
   if (limits.length === 0) return final;
 
