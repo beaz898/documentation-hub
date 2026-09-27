@@ -7198,7 +7198,10 @@ las filas. **Censo de quién escribe `source` en `documents`**: solo dos sitios,
 proveedor OneDrive**: estamos mirando la otra integración.
 
 - ⚠️ **Contradice `CLAUDE.md`**, que dice de OneDrive «implementado, UI deshabilitada». Cómo se
-  conectó **NO está determinado**. B.154 ya había visto un documento de OneDrive en producción.
+  conectó **NO está determinado**. La premisa «la interfaz de OneDrive está deshabilitada, así
+  que no hay filas con ese source» ya se había caído el 03/09 con un documento de OneDrive real
+  (`Puntos_Pendientes_Doclity.txt:5624-5631`; se cita por línea porque su casa allí es texto
+  indentado; el porqué, en §5.90).
 - **Una consecuencia vista de paso, sin medir su efecto**: `lib/analysis/criba-de-matches.ts:157`
   convierte todo lo que no sea `google_drive` en `'manual'`, así que un documento de OneDrive
   sale en el análisis marcado como subido a mano.
