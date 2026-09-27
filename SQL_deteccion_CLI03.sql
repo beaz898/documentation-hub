@@ -4,6 +4,11 @@
 --
 -- SOLO LEE. Sustituir <ORG_ID> por 5a82712f-6740-4792-b291-3fdea8e6edb1.
 --
+-- ⚠️ ERRATA DEL 27/09/2026: 5a82712f es la organización donde se hizo ESTA
+-- prueba (23/09), y por eso el id se queda. NO es la organización del examen,
+-- que es a9625e93-af2a-4416-a465-5c2fa2a25bdf. Ver la errata de
+-- `claude/Protocolo_Harness_Tasas.md` §3.
+--
 -- Se ejecuta DESPUÉS de las dos pasadas rápidas de CLI-03, con el corpus
 -- activo en: NOR-01, OPE-05, RRHH-03 (marcados para la prueba) + CLI-04 y
 -- OPE-11 (que ya estaban). CLI-03 se queda SIN marcar, así que no se compara

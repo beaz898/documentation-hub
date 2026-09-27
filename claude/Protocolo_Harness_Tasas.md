@@ -845,6 +845,16 @@ Fijado por el director el 26/08:
   roto, pero **NO** para afirmar que una tasa cambió: B.81 era intermitente y
   una pasada buena no distingue «arreglado» de «hoy tuvo suerte».
 - **org_id de pruebas**: `5a82712f-6740-4792-b291-3fdea8e6edb1`.
+  ⚠️ **ERRATA DEL 27/09/2026 — ESTE ID ES EL DE LAS TANDAS DE AGOSTO Y
+  SEPTIEMBRE, NO EL DEL EXAMEN.** Las tandas lanzadas desde la bandeja hasta el
+  26/09 se midieron en `5a82712f` y leyeron sus resultados de ahí (la consulta de
+  abajo). **El examen (`scripts/examen.mjs`, desde el 27/09) mide en
+  `a9625e93-af2a-4416-a465-5c2fa2a25bdf`** («Workspace principal»): el endpoint
+  resuelve la organización por la membresía del usuario que llama, y el usuario
+  del director pertenece sólo a ésa. Durante tres días los SQL del examen
+  verificaron `5a82712f` creyendo verificar la organización del examen.
+  **Las líneas de base de agosto y septiembre NO son directamente comparables con
+  el examen**: ver la errata de cabecera de `claude/Tandas_Harness.md`.
 
 ---
 

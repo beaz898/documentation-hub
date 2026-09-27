@@ -1,5 +1,15 @@
 # Tandas del harness de tasas
 
+> ⚠️ **ERRATA DEL 27/09/2026 — CONTRA QUÉ ORGANIZACIÓN SE MIDIÓ CADA COSA.**
+> Todas las tandas de este fichero, hasta la del 26/09, se lanzaron desde la
+> bandeja en **`5a82712f-6740-4792-b291-3fdea8e6edb1`**, que es la organización
+> que el protocolo llamaba «de pruebas» (`Protocolo_Harness_Tasas.md` §3), y sus
+> resultados se leyeron de ahí. **El examen (`scripts/examen.mjs`, desde el 27/09)
+> mide en `a9625e93-af2a-4416-a465-5c2fa2a25bdf`**, la única organización del
+> usuario del director. Son organizaciones distintas, con documentos indexados en
+> fechas distintas. Las líneas de base de los casos del examen tomadas de aquí no
+> se comparan con él sin decirlo: ver la entrada del examen cuando exista.
+
 ## 09/09/2026 — A5 · RESERVADA, NO LANZADA — treinta créditos con sus cuatro razones
 
 **No se lanza hasta después del arreglo de B.204** (F-106 P2: arreglar antes,

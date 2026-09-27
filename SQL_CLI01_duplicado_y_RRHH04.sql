@@ -9,6 +9,14 @@
 -- la misma del harness (`SQL_deteccion_CLI03.sql:5`,
 -- `claude/Protocolo_Harness_Tasas.md:846`).
 --
+-- ⚠️ ERRATA DEL 27/09/2026: el duplicado de CLI-01 que este fichero investiga
+-- estaba en 5a82712f, y las consultas se quedan con ese id porque es donde se
+-- midió. **5a82712f NO es la organización del examen** (a9625e93-af2a-4416-
+-- a465-5c2fa2a25bdf). La exclusión de N6 «mientras CLI-01 siga duplicado» se
+-- decidió con este dato de OTRA organización; en la del examen CLI-01 también
+-- está duplicado, pero por otro camino: la sincronización del 27/09 lo insertó
+-- dos veces (09:10:32 y 09:10:56). La exclusión sigue en pie con esa evidencia.
+--
 -- ⚠️ POR QUÉ ESTE FICHERO Y NO UNA RESPUESTA: las dos preguntas abiertas
 -- —«¿el duplicado de CLI-01 pudo contaminar la tanda del 23/09?» y «¿la
 -- extracción de RRHH-04 se quedó a medias?»— son preguntas sobre la BASE y

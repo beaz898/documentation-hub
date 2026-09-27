@@ -21,21 +21,34 @@
 -- SOLO LEE. Ni un INSERT, ni un UPDATE, ni un DELETE. Lo ejecuta el director
 -- en Supabase; Claude no lo ejecuta.
 --
--- La organización de pruebas va escrita tal cual, que es la del protocolo del
--- harness (claude/Protocolo_Harness_Tasas.md:846):
---     5a82712f-6740-4792-b291-3fdea8e6edb1
+-- La organización DEL EXAMEN va escrita tal cual:
+--     a9625e93-af2a-4416-a465-5c2fa2a25bdf  («Workspace principal»)
+--
+-- ═══════════════════════════════════════════════════════════════════════════
+-- ⚠️ ERRATA DEL 27/09/2026 — HASTA ESTE DÍA ESTE FICHERO CONSULTABA OTRA
+-- ORGANIZACIÓN. Decía «la organización de pruebas … la del protocolo del harness
+-- (Protocolo_Harness_Tasas.md:846): 5a82712f-6740-4792-b291-3fdea8e6edb1», y
+-- las cuatro consultas filtraban por ese id. **El examen no corre ahí**: el
+-- endpoint resuelve la organización por la membresía del usuario que llama, y el
+-- usuario del director pertenece SÓLO a a9625e93. 5a82712f es otra organización
+-- (45 documentos, 3.714 créditos el 27/09), la de las tandas de agosto y
+-- septiembre.
+--   Lo destapó la primera tanda: 404 «no está en esta organización» para los
+--   documentos que este fichero daba por indexados. Tres días verificando la
+--   organización equivocada, y los 3.719 créditos del 25/09 cuadraban porque
+--   eran de ella.
+-- ═══════════════════════════════════════════════════════════════════════════
 --
 -- ⚠️ POR QUÉ BLOQUEAN, y no es ceremonia:
---   · ✅ LOS CRÉDITOS YA NO BLOQUEAN, y queda declarado: el director midió
---     **3.719 créditos** en la organización de pruebas y **23,77 $** de cartera
---     el 25/09/2026. ⚠️ **LA CUENTA CAMBIA CON LOS CUATRO CASOS NUEVOS**: con
+--   · ✅ LOS CRÉDITOS NO BLOQUEAN. En la organización del examen hay **6.973**
+--     (6.663 del plan + 310 extra), medidos por el director el 27/09/2026. Con
 --     DIEZ casos son **250 créditos** por tanda rutinaria (10 × 5 pasadas × 5) y
---     **1.000** por fijación completa (dos tandas de 10, el criterio de Fable),
---     o sea **14 tandas rutinarias o 3 fijaciones** en vez de 24 y 6. Sigue sin
---     bloquear, y la cifra se recalcula aquí en vez de dejarla dicha para seis
---     casos: un divisor que se queda viejo miente hacia arriba, que es el lado
---     peligroso. La consulta 1 se queda igualmente: una cifra medida hoy no es
---     una cifra medida el día que se lance, y volver a mirarla cuesta cero.
+--     **1.000** por fijación completa (dos tandas de 10, el criterio de Fable):
+--     **27 tandas rutinarias o 6 fijaciones**.
+--     ⚠️ ERRATA: hasta el 27/09 aquí ponía 3.719 créditos y «14 tandas o 3
+--     fijaciones». Eran los de 5a82712f, no los de la organización del examen.
+--     La consulta 1 se queda igualmente: una cifra medida hoy no es una cifra
+--     medida el día que se lance, y volver a mirarla cuesta cero.
 --   · ⚠️ LO QUE SIGUE BLOQUEANDO: si los DIECIOCHO documentos no están indexados en
 --     esa organización, la recuperación no puede devolver nada. Ningún filtro
 --     arregla eso, y el examen mediría el vacío.
@@ -80,7 +93,7 @@
 
 
 -- ────────────────────────────────────────────────────────────────────────
--- 1 · LOS CRÉDITOS DE LA ORGANIZACIÓN DE PRUEBAS
+-- 1 · LOS CRÉDITOS DE LA ORGANIZACIÓN DEL EXAMEN
 --
 -- `consume_credits` gasta primero del plan y luego de los extra
 -- (supabase-setup.sql:118-119), así que lo que decide cuántas pasadas caben es
@@ -102,7 +115,7 @@ select
   -- Y un caso suelto, por si hay que empezar de a uno: 5 pasadas x 5 = 25.
   floor((o.credits_remaining + o.credits_extra) / 25.0)        as casos_sueltos_que_caben
 from organizations o
-where o.id = '5a82712f-6740-4792-b291-3fdea8e6edb1'::uuid;
+where o.id = 'a9625e93-af2a-4416-a465-5c2fa2a25bdf'::uuid;
 
 
 -- ────────────────────────────────────────────────────────────────────────
@@ -174,7 +187,7 @@ encontrados as (
     d.updated_at
   from los_documentos l
   left join documents d
-    on d.org_id = '5a82712f-6740-4792-b291-3fdea8e6edb1'
+    on d.org_id = 'a9625e93-af2a-4416-a465-5c2fa2a25bdf'
    and d.name like l.codigo || '%'
 )
 select
@@ -186,7 +199,7 @@ select
   -- función de ventana a propósito: menos sintaxis que pueda fallar en una
   -- consulta que se ejecuta una sola vez y a mano.
   (select count(*) from documents d2
-    where d2.org_id = '5a82712f-6740-4792-b291-3fdea8e6edb1'
+    where d2.org_id = 'a9625e93-af2a-4416-a465-5c2fa2a25bdf'
       and d2.name like e.codigo || '%')             as coincidencias,
   e.id                                              as document_id,
   e.name                                            as nombre_en_la_base,
@@ -246,5 +259,5 @@ select
     where c.document_id = d.id
       and c.generation  = d.active_generation)      as trozos_activos
 from documents d
-where d.org_id = '5a82712f-6740-4792-b291-3fdea8e6edb1'
+where d.org_id = 'a9625e93-af2a-4416-a465-5c2fa2a25bdf'
 order by d.name;
