@@ -7158,6 +7158,47 @@ es la ceguera y no el duplicado:
    pueden tener troceados distintos, que es lo que el `content_hash` de las dos filas de CLI-01
    va a contestar.
 
+### ⚠️ B.266 — la sincronización inserta el MISMO fichero dos veces en una pasada (27/09/2026)
+
+**Observado por el director en la base**, organización del examen `a9625e93`: CLI-01 entró
+**dos veces en la misma sincronización**, a las **09:10:32 y 09:10:56 UTC**, con ocho trozos
+cada una. No es una copia vieja junto a una nueva: es el mismo fichero insertado dos veces en
+24 segundos. Reproducido y con hora.
+
+- **Lo que sí se sabe desde el código**: `app/api/drive/sync/route.ts` tiene **dos puntos de
+  inserción** de documentos (`:303` y `:446`, los dos con `source: provider.name`). Por dónde
+  entró cada copia **NO está determinado**: es el primer encargo de censo.
+- **Consecuencia para el examen**: N6 sigue excluido. Su exclusión se decidió con el duplicado
+  de CLI-01 en `5a82712f` (`SQL_CLI01_duplicado_y_RRHH04.sql`), y en `a9625e93` el duplicado
+  existe también, **por este otro camino**. El endpoint del examen rechaza un código con dos
+  filas, así que N6 no se puede lanzar hasta que quede una.
+- **Sin arreglar**, por decisión del arquitecto: primero la tanda.
+
+### ⚠️ B.267 — 22 documentos con CERO trozos en la organización del examen (27/09/2026)
+
+**Del censo del director**: en `a9625e93` hay **22 documentos sin ningún trozo**, creados entre
+mayo y agosto. Son filas sin contenido indexado.
+
+- **El riesgo**: si alguno llega a `analizado`, entra en el corpus del producto **aportando
+  nada**, y el termómetro lo contaría en el fondo con cero fragmentos.
+- **Lo que no se sabe**: en qué estado están los 22 y si alguno es ya `analizado`. Encargo de
+  una consulta de solo lectura, antes de decidir nada.
+
+### ⚠️ B.268 — `source = 'onedrive'`: es OneDrive de verdad, no un nombre heredado (27/09/2026)
+
+El director dice que sincroniza «con Drive», y la columna `source` dice `onedrive` en todas
+las filas. **Censo de quién escribe `source` en `documents`**: solo dos sitios, `ingest`
+(`'manual'`, `app/api/ingest/route.ts:277,292`) y la sincronización
+(`provider.name`, `app/api/drive/sync/route.ts:303,446`). Google escribe `'google_drive'`
+(`lib/drive/google.ts:79`). **Luego esas filas las escribió una sincronización con el
+proveedor OneDrive**: estamos mirando la otra integración.
+
+- ⚠️ **Contradice `CLAUDE.md`**, que dice de OneDrive «implementado, UI deshabilitada». Cómo se
+  conectó **NO está determinado**. B.154 ya había visto un documento de OneDrive en producción.
+- **Una consecuencia vista de paso, sin medir su efecto**: `lib/analysis/criba-de-matches.ts:157`
+  convierte todo lo que no sea `google_drive` en `'manual'`, así que un documento de OneDrive
+  sale en el análisis marcado como subido a mano.
+
 ---
 
 ## 📋 5.92 · ACTA DE LA SEMANA — cinco hipótesis nuestras que se cayeron al medirlas, y las tres que costaron una decisión (25/09/2026)
