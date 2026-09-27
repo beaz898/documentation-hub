@@ -1,0 +1,55 @@
+REPUNTUACIÓN · marcador del commit 8f62cfc2 · 2026-09-27
+crudos de examen/resultados/2026-09-27_c39397e7 · 45 pasadas · sin relanzar, 0 créditos
+⚠️ SIN CRUDOS en esta carpeta (no se repuntúan): N6
+⚠️ El informe original (`informe.txt`) se deja como está: es lo que dijo el marcador de entonces.
+
+N1: PASA · 1 aciertos · 0 falsos (máx. por pasada)
+    · aciertos observados: N1-PUESTO 5/5
+    · extras sin etiquetar: p1 1 · p2 1 · p3 1 · p4 1 · p5 1
+        solapamiento: solapamiento con OPE-02_agenda-y-gestion-de-citas.xlsx (35 %, media) — en 5 de 5 pasadas
+N2: PASA · 0 aciertos · 0 falsos (máx. por pasada)
+    · extras sin etiquetar: ninguno
+N3: SIN_VEREDICTO
+    ~ línea de base PENDIENTE: esta tanda MIDE la frecuencia, no la juzga. observado: 0/0/0/0/0 falsos por pasada
+    · aciertos observados: N3-DUPLICADO 5/5
+    · extras sin etiquetar: ninguno
+N4: SIN_VEREDICTO
+    ~ línea de base PENDIENTE: esta tanda MIDE la frecuencia, no la juzga. observado: 0/0/0/0/0 falsos por pasada
+    · extras sin etiquetar: p1 1 · p2 1 · p3 1 · p4 1 · p5 1
+        solapamiento: solapamiento con RRHH-06_evaluacion-del-desempeno.xlsx (15 %, baja) — en 5 de 5 pasadas
+N5: SIN_VEREDICTO
+    ~ línea de base PENDIENTE: esta tanda MIDE la frecuencia, no la juzga. observado: 0/0/0/0/0 falsos por pasada
+    · extras sin etiquetar: p1 1 · p2 1 · p3 1 · p4 1 · p5 1
+        solapamiento: solapamiento con OPE-01_manual-apertura-y-cierre-de-clinica.docx (15 %, baja) — en 5 de 5 pasadas
+P1: PASA · 0 aciertos · 0 falsos (máx. por pasada)
+    · aciertos observados: P1-A 0/5 · P1-B 0/5 · P1-C 0/5 · P1-D 0/5
+    · extras sin etiquetar: p1 1 · p2 1 · p3 1 · p4 1 · p5 1
+        solapamiento: solapamiento con CLI-12_manual-calidad-clinica.docx (15 %, baja) — en 5 de 5 pasadas
+P2: FALLA · 0 aciertos · 0 falsos (máx. por pasada)
+    ✗ 0 aciertos y el umbral exige 2
+    · aciertos observados: P2-1 0/5 · P2-2 0/5 · P2-3 0/5
+    · extras sin etiquetar: p1 2 · p2 1 · p3 1 · p4 1 · p5 1
+        contradiccion: Fecha de última revisión — en 1 de 5 pasadas
+        solapamiento: solapamiento con CLI-13_instrucciones-clinicas-residuos.docx (35 %, media) — en 5 de 5 pasadas
+P3: PASA · peor pasada: 20 idénticas, 15 discrepantes con columna y valores, 0 parejas forzadas, 0 del juez por estructura
+    · extras sin etiquetar: p1 2 · p2 2 · p3 1 · p4 2 · p5 2
+        solapamiento: solapamiento con OPE-11_tarifario-tratamientos-seguros.xlsx (33 %, media) — en 3 de 5 pasadas
+        solapamiento: solapamiento con OPE-11_tarifario-tratamientos-seguros.xlsx (33 %, alta) — en 4 de 5 pasadas
+        solapamiento: solapamiento con OPE-11_tarifario-tratamientos-seguros.xlsx (35 %, media) — en 1 de 5 pasadas
+        solapamiento: solapamiento con OPE-11_tarifario-tratamientos-seguros.xlsx (35 %, alta) — en 1 de 5 pasadas
+P4: SIN_VEREDICTO
+    ~ regla(s) que el marcador no sabe aplicar y necesitan etiqueta humana: P4-NO-1
+    · aciertos observados: P4-BELMONTE 5/5 · P4-MEDINA 5/5
+    · extras sin etiquetar: p1 2 · p2 2 · p3 2 · p4 2 · p5 2
+        solapamiento: solapamiento con OPE-13_cobertura-por-clinica.xlsx (93 %, alta) — en 5 de 5 pasadas
+        duplicado: duplicado de OPE-13_cobertura-por-clinica.xlsx (93 %) — en 5 de 5 pasadas
+
+⚠️ LO QUE EL MARCADOR TODAVÍA NO LEE (8, del validador) — un veredicto de estos casos no lo cubre:
+    · N2_pareja_limpia.mjs (N2): declara `denominadorObligatorio` y el ejecutor no le pasa `candidatosJuzgados` al marcador: el cero se leería sin denominador
+    · N2_pareja_limpia.mjs (N2): el umbral tiene claves que el marcador no sabe leer: minimoDeCandidatosJuzgados
+    · P2_residuos_prosa.mjs (P2): `extras: 'FALSO_POSITIVO'` y el marcador no cuenta los extras: los deja sin etiqueta
+    · P4_guardias_sin_clave.mjs (P4): `criterioDeAcierto` pide algo al resultado y el marcador sólo empareja por discriminante o por columna y valores
+    · P4_guardias_sin_clave.mjs (P4): `precondicion` pide algo al resultado y ni el ejecutor ni el endpoint la comprueban: el caso no aborta aunque no se cumpla
+    · P4_guardias_sin_clave.mjs (P4): `extras: 'FALSO_POSITIVO'` y el marcador no cuenta los extras: los deja sin etiqueta
+    · P4_guardias_sin_clave.mjs (P4): P4-BELMONTE: claves tabulares (anclaEsperada, columnaEnOposicion) que ningún comparador lee: el juez no nombra la columna, así que se empareja la fila sin comprobarla
+    · P4_guardias_sin_clave.mjs (P4): P4-MEDINA: claves tabulares (columnasAsimetricas) que ningún comparador lee: el juez no nombra la columna, así que se empareja la fila sin comprobarla
