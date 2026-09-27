@@ -7203,6 +7203,22 @@ proveedor OneDrive**: estamos mirando la otra integración.
   convierte todo lo que no sea `google_drive` en `'manual'`, así que un documento de OneDrive
   sale en el análisis marcado como subido a mano.
 
+### ⚠️ B.269 — PRIMER FALSO POSITIVO DEL PRODUCTO QUE ENCUENTRA EL EXAMEN — SOSPECHA FUERTE, SIN CONFIRMAR (27/09/2026)
+
+**Pendiente de la confirmación del director**: si RRHH-08 y OPE-13 son ficheros distintos, esto
+es un falso positivo; si no lo son, no. **Hasta que los abra, es una sospecha fuerte, no un hecho.**
+
+- **El par**: `RRHH-08_asignacion-de-guardias.xlsx` analizado contra `OPE-13_cobertura-por-clinica.xlsx`
+  (caso P4). El producto lo declara **duplicado al 93 %** y **solapamiento al 93 %, severidad
+  alta**, en **5 de 5 pasadas** de la tanda `c39397e7`
+  (`examen/resultados/2026-09-27_c39397e7/informe-repuntuado_8f62cfc2.txt`).
+- **Estaba invisible**: el marcador sólo leía contradicciones, y el informe no enseñaba lo que
+  ninguna expectativa reclamaba. Salió al aprender el marcador a leer especies (solapamiento,
+  duplicado) y a imprimir los extras (`138eebcb`). Cero créditos: se repuntuó sobre los crudos.
+- **La lección, que es la que vale**: los hallazgos que ninguna expectativa reclama son el sitio
+  donde viven los falsos positivos que nadie vigila. Callarlos era esconder exactamente lo que el
+  examen vino a medir.
+
 ---
 
 ## 📋 5.92 · ACTA DE LA SEMANA — cinco hipótesis nuestras que se cayeron al medirlas, y las tres que costaron una decisión (25/09/2026)

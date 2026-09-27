@@ -3757,3 +3757,14 @@ Un extra sin etiquetar en la pasada 1 («Fecha de última revisión»).
 `a9625e93`, ver la errata de la cabecera), el corpus (filtro del producto → corpus exacto) y el
 código (`8cf73e23` → `c39397e7`). Se mira cuando el marcador sea de fiar entero. **No se toca
 todavía.**
+
+### Error del arquitecto, 27/09/2026 — y lo correcto fue pararse
+
+El arquitecto autorizó guardar las longitudes del truncado (F-116) como **dos contadores** del
+pipeline. Violaba la **cláusula 2** de `claude/Contrato_Contadores.md` —«solo recuentos de
+decisión»— y no la conocía: un contador que mezcla recuentos con magnitudes deja de tener un
+significado único. La implementación se paró antes de escribir y se eligió un campo propio en
+el resultado del análisis. **Es la tercera vez del día que un invariante escrito frena una
+decisión del arquitecto, y las tres veces tenía razón el invariante.**
+
+El falso positivo que el examen encontró el mismo día está en `Estado_Del_MVP.md`, **B.269**.
