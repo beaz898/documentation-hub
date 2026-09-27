@@ -1,0 +1,31 @@
+REPUNTUACIÓN · marcador del commit 95a1777b · 2026-09-27
+crudos de examen/resultados/2026-09-27_c39397e7 · 45 pasadas · sin relanzar, 0 créditos
+⚠️ SIN CRUDOS en esta carpeta (no se repuntúan): N6
+⚠️ El informe original (`informe.txt`) se deja como está: es lo que dijo el marcador de entonces.
+
+N1: PASA · 1 aciertos · 0 falsos (máx. por pasada)
+N2: PASA · 0 aciertos · 0 falsos (máx. por pasada)
+N3: SIN_VEREDICTO
+    ~ línea de base PENDIENTE: esta tanda MIDE la frecuencia, no la juzga. observado: 0/0/0/0/0 falsos por pasada
+N4: SIN_VEREDICTO
+    ~ línea de base PENDIENTE: esta tanda MIDE la frecuencia, no la juzga. observado: 0/0/0/0/0 falsos por pasada
+N5: SIN_VEREDICTO
+    ~ línea de base PENDIENTE: esta tanda MIDE la frecuencia, no la juzga. observado: 0/0/0/0/0 falsos por pasada
+P1: PASA · 0 aciertos · 0 falsos (máx. por pasada)
+P2: FALLA · 0 aciertos · 0 falsos (máx. por pasada)
+    ✗ 0 aciertos y el umbral exige 2
+P3: PASA · peor pasada: 20 idénticas, 15 discrepantes con columna y valores, 0 parejas forzadas, 0 del juez por estructura
+P4: SIN_VEREDICTO
+    ~ regla(s) que el marcador no sabe aplicar y necesitan etiqueta humana: P4-NO-1
+
+⚠️ LO QUE EL MARCADOR TODAVÍA NO LEE (10, del validador) — un veredicto de estos casos no lo cubre:
+    · N2_pareja_limpia.mjs (N2): declara `denominadorObligatorio` y el ejecutor no le pasa `candidatosJuzgados` al marcador: el cero se leería sin denominador
+    · N2_pareja_limpia.mjs (N2): el umbral tiene claves que el marcador no sabe leer: minimoDeCandidatosJuzgados
+    · N3_pelo_y_calzado.mjs (N3): N3-DUPLICADO: `etiquetasAceptadas: [duplicado, solapamiento]` y el marcador sólo lee `discrepancies` con severidad contradicción: un duplicado o un solapamiento no se ve
+    · P2_residuos_prosa.mjs (P2): `extras: 'FALSO_POSITIVO'` y el marcador no cuenta los extras: los deja sin etiqueta
+    · P4_guardias_sin_clave.mjs (P4): `criterioDeAcierto` pide algo al resultado y el marcador sólo empareja por discriminante o por columna y valores
+    · P4_guardias_sin_clave.mjs (P4): `precondicion` pide algo al resultado y ni el ejecutor ni el endpoint la comprueban: el caso no aborta aunque no se cumpla
+    · P4_guardias_sin_clave.mjs (P4): `extras: 'FALSO_POSITIVO'` y el marcador no cuenta los extras: los deja sin etiqueta
+    · P4_guardias_sin_clave.mjs (P4): P4-BELMONTE cuenta para el umbral y el marcador no puede emparejarlo: le faltan discriminantes (es tabular: anclaEsperada, columnaEnOposicion, enElAnalizado, enElCorpus, y el comparador tabular exige columnaEnOposicion, enElAnalizado, enElCorpus y confirmadoPorEsperado: 'estructura'). Un acierto saldría como fallo
+    · P4_guardias_sin_clave.mjs (P4): P4-MEDINA cuenta para el umbral y el marcador no puede emparejarlo: le faltan discriminantes (es tabular: columnasAsimetricas, enElAnalizado, enElCorpus, y el comparador tabular exige columnaEnOposicion, enElAnalizado, enElCorpus y confirmadoPorEsperado: 'estructura'). Un acierto saldría como fallo
+    · P4_guardias_sin_clave.mjs (P4): no tiene ninguna expectativa que el marcador sepa comprobar: sólo puede salir PASA o SIN_VEREDICTO
