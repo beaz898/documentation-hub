@@ -88,6 +88,9 @@ export default {
       // decirlo evita que alguien lea este caso como el de Medina.
       horasCoinciden: 32,
       severidadMinima: 'contradiction',
+      // 27/09/2026: lo que `rama` dice en prosa, escrito para el marcador (fila
+      // por juicio: persona y los dos valores; la columna no la nombra el juez).
+      confirmadoPorEsperado: 'juicio',
     },
     {
       id: 'P4-MEDINA',
@@ -106,6 +109,7 @@ export default {
       enElAnalizado: '44',
       enElCorpus: '40',
       severidadMinima: 'contradiction',
+      confirmadoPorEsperado: 'juicio',   // ver P4-BELMONTE
     },
   ],
 

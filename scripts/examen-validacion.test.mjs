@@ -171,10 +171,11 @@ describe('LOS DIEZ CASOS REALES — el control positivo de toda la regla', () =>
    * caso real (P4, sin comparador todavía). La lista completa la imprime el
    * ejecutor en seco.
    */
-  it('las tres pantallas del 27/09 ya se leen, y P4 se sigue cazando', async () => {
+  it('las pantallas del 27/09 ya se leen, y P4 se sigue cazando por lo que falta', async () => {
     const t = validarCasos(await cargarCasos()).join('\n');
-    expect(t).not.toMatch(/\((N1|P3|N4|N5)\)/);
-    expect(t).toMatch(/\(P4\): P4-BELMONTE cuenta para el umbral y el marcador no puede emparejarlo/);
+    expect(t).not.toMatch(/\((N1|N3|P3|N4|N5)\)/);
+    expect(t).not.toMatch(/no puede emparejarlo/);
+    expect(t).toMatch(/\(P4\): `criterioDeAcierto` pide algo al resultado/);
   });
 
   it('importar el ejecutor NO lo ejecuta', async () => {
