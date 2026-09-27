@@ -7,6 +7,16 @@
  * `table-diff.ts` (la columna que difiere) → `diff-vision.ts` → `diff-emision.ts`.
  * El juez sólo entra para lo que la estructura le degrade.
  *
+ * ⚠️ MEDIDO EL 27/09/2026: LO QUE MIDE ES EL DIFF, Y EL JUEZ LLEGA ESTRANGULADO.
+ * En el camino del usuario (el director, OPE-10 + OPE-11 en rápido) el log dice
+ * «documento analizado truncado a 6000 de 7342» y «38/60 recuperadas FUERA por
+ * tamaño» —el estrangulamiento de F-116, otra vez—, y aun así salen las 15
+ * discrepancias, porque el diff no pasa por el presupuesto del juez. En la
+ * primera tanda del examen (`c39397e7`) igual: 15 discrepantes y 20 idénticas
+ * por estructura en las cinco pasadas, y el único hallazgo del juez descartado
+ * por el verificador. Un verde aquí dice que el diff funciona; no dice nada del
+ * juez sobre tablas.
+ *
  * ⚠️⚠️ LO QUE ESTE CASO **NO** CUBRE, Y HAY QUE SABERLO ANTES DE LEER UN VERDE:
  * **LA CONFUSIÓN DE LADOS.** Los dos ficheros tienen **25 filas exclusivas cada
  * uno** —la ajenidad es simétrica—, y esa simetría hace el par incapaz de cazar

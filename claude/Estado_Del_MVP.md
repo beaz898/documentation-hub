@@ -7183,6 +7183,10 @@ mayo y agosto. Son filas sin contenido indexado.
   nada**, y el termómetro lo contaría en el fondo con cero fragmentos.
 - **Lo que no se sabe**: en qué estado están los 22 y si alguno es ya `analizado`. Encargo de
   una consulta de solo lectura, antes de decidir nada.
+- ⚠️ **NO SON INOFENSIVOS, medido el mismo 27/09 en el camino del usuario**: en el análisis
+  rápido de OPE-10 con OPE-11 que hizo el director, **`Registro_Visitas.xlsx` entró como
+  candidato con 580 caracteres y 1 fragmento**. Es uno de los 22. Entran en el camino del
+  usuario como ruido, y ocupan plaza en la recuperación y en el rerank (B.265).
 
 ### ⚠️ B.268 — `source = 'onedrive'`: es OneDrive de verdad, no un nombre heredado (27/09/2026)
 
