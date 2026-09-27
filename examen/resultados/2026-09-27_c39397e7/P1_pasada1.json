@@ -1,0 +1,179 @@
+{
+  "casoId": "P1",
+  "pasada": 1,
+  "http": 200,
+  "ms": 20037,
+  "cuando": "2026-09-27T09:30:11.063Z",
+  "renovacionesDeCredencial": [],
+  "cuerpo": {
+    "casoId": "P1",
+    "pasada": 1,
+    "operacion": "analizar",
+    "orgId": "a9625e93-af2a-4416-a465-5c2fa2a25bdf",
+    "analizado": {
+      "nombre": "NOR-10_protocolo-esterilizacion-instrumental.docx",
+      "documentId": "db1e20f9-a2d3-4280-8721-39ee11bf5d4e",
+      "generacion": 1,
+      "fragmentos": 67
+    },
+    "corpus": [
+      {
+        "nombre": "CLI-12_manual-calidad-clinica.docx",
+        "documentId": "a2d2c046-3dfd-4282-8b86-90763936ac1c",
+        "generacion": 1
+      }
+    ],
+    "analisis": {
+      "isDuplicate": false,
+      "duplicateOf": null,
+      "duplicateConfidence": 0,
+      "overlaps": [
+        {
+          "existingDocument": "CLI-12_manual-calidad-clinica.docx",
+          "existingDocumentId": "a2d2c046-3dfd-4282-8b86-90763936ac1c",
+          "description": "Responsabilidad del personal clínico en la comunicación de incidencias observadas en instrumental. Rol de Dirección de Operaciones en la gestión de equipos y coordinación a nivel de red",
+          "severity": "baja",
+          "overlapPercent": 15,
+          "textRef": "El personal clínico (odontólogos, higienistas, implantólogos, ortodoncistas) es responsable de depositar el instrumental usado en la zona sucia siguiendo el procedimiento de recepción descrito en el apartado 4, y de comunicar de inmediato cualquier incidencia observada en el instrumental devuelto."
+        }
+      ],
+      "discrepancies": [],
+      "newInformation": "El protocolo de esterilización aporta procedimientos específicos y detallados sobre el tratamiento del instrumental que complementan las directrices generales de calidad clínica, sin duplicar información existente.",
+      "recommendation": "INDEXAR",
+      "summary": "El documento nuevo sobre esterilización de instrumental tiene una relación temática menor (15% de solapamiento) con el manual de calidad clínica existente. No se detectaron contradicciones entre ambos documentos, solo coincidencias puntuales en aspectos de responsabilidad del personal y coordinación operativa.",
+      "judgments": [
+        {
+          "documentId": "a2d2c046-3dfd-4282-8b86-90763936ac1c",
+          "documentName": "CLI-12_manual-calidad-clinica.docx",
+          "source": "manual",
+          "overlapPercent": 15,
+          "verdict": "tema_similar",
+          "contradictions": [],
+          "overlappingContent": [
+            {
+              "description": "Responsabilidad del personal clínico en la comunicación de incidencias observadas en instrumental",
+              "evidence": "El personal clínico y auxiliar de cada centro es responsable de la ejecución operativa diaria de los procesos de calidad (cumplimentación de registros, seguimiento de protocolos).",
+              "evidenceInNewDoc": "El personal clínico (odontólogos, higienistas, implantólogos, ortodoncistas) es responsable de depositar el instrumental usado en la zona sucia siguiendo el procedimiento de recepción descrito en el apartado 4, y de comunicar de inmediato cualquier incidencia observada en el instrumental devuelto."
+            },
+            {
+              "description": "Rol de Dirección de Operaciones en la gestión de equipos y coordinación a nivel de red",
+              "evidence": "Las decisiones de esta revisión pueden incluir cambios en protocolos operativos, ajustes en la frecuencia de determinadas auditorías, inversión en nuevos equipos o refuerzo de formación en un área concreta.",
+              "evidenceInNewDoc": "Dirección de Operaciones, a nivel de red, es responsable de mantener actualizado este protocolo, de coordinar la formación descrita en el apartado 15 de forma homogénea entre las tres clínicas, y de gestionar la relación con los proveedores de equipos de esterilización y servicio técnico."
+            }
+          ],
+          "uniqueToNewDoc": [
+            "Definiciones técnicas específicas de esterilización (limpieza, desinfección, esterilización, autoclave clase B, indicador biológico)",
+            "Procedimiento detallado de ciclo de esterilización de instrumental dental (limpieza, desinfección, empaquetado, esterilización, trazabilidad, almacenaje)",
+            "Requisito de formación previa para personal auxiliar antes de operar autoclave sin supervisión",
+            "Especificación de tipos de instrumental cubiertos (instrumental de mano, piezas de mano, instrumental de cirugía e implantología, ortodoncia reutilizable)",
+            "Remisión a protocolos relacionados (CLI-02, NOR-04) para consulta en caso de duda"
+          ],
+          "discarded": {
+            "citaNoVerificable": 2,
+            "verificado.por_localizacion": 4
+          }
+        }
+      ],
+      "discardedFindings": {
+        "citaNoVerificable": 2,
+        "verificado.por_localizacion": 4
+      },
+      "pipelineCounters": {
+        "seleccion.candidatos_recuperados": 1,
+        "seleccion.candidatos_cortados_por_tope_de_recuperacion": 0,
+        "seleccion.candidatos_seleccionados": 1,
+        "seleccion.candidatos_sin_confianza": 0,
+        "seleccion.candidatos_cortados_por_tope": 0,
+        "seleccion.candidatos_con_id_no_reconocido": 0,
+        "seleccion.candidatos_repetidos_por_el_modelo": 0,
+        "seleccion.candidatos_descartados_por_criterio": 0,
+        "diff.tablas.candidatos": 0,
+        "diff.tablas.sin_clave": 0,
+        "diff.tablas.sin_interseccion": 0,
+        "diff.tablas.emitidos": 0,
+        "diff.clave.rechazadas_por_escritura": 0,
+        "diff.clasificacion.variantes_escritura": 0,
+        "diff.vision.pares_con_vision": 0,
+        "diff.vision.pares_ciegos": 1,
+        "diff.vision.ciegos_por_el_analizado": 1,
+        "diff.vision.tablas_analizado": 0,
+        "diff.vision.filas_analizado": 0,
+        "diff.vision.tablas_candidatos": 0,
+        "diff.vision.filas_candidatos": 0,
+        "verificador.hallazgos_entrantes": 0,
+        "verificador.confirmados": 0,
+        "verificador.confirmados_por_estructura": 0,
+        "verificador.confirmados_por_juicio": 0,
+        "verificador.descartados": 0,
+        "verificador.reclasificados": 0
+      },
+      "termometro": {
+        "version": 1,
+        "estado": "con_candidatos",
+        "motivo": null,
+        "modelo": {
+          "pedido": "multilingual-e5-large",
+          "servido": "multilingual-e5-large",
+          "dimension_servida": 1024
+        },
+        "consultas": 67,
+        "topK": 25,
+        "denominadores": {
+          "crudos": 1675,
+          "sin_fila_viva": 0,
+          "sin_metadata_utilizable": 0,
+          "propios_excluidos": 0,
+          "generacion_muerta_excluida": 0,
+          "candidatos_con_repeticion": 1675,
+          "unicos": 53
+        },
+        "fondo": 55,
+        "fondo_motivo": null,
+        "documentos_candidatos": 1,
+        "scores": {
+          "minimo": 0.834044039,
+          "maximo": 0.937844753,
+          "histograma": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            6,
+            43,
+            4,
+            0
+          ],
+          "hueco_1_2": null
+        },
+        "ids_sin_fila_viva": [],
+        "candidatos_fuera_del_fondo": []
+      },
+      "coberturaDeCandidatos": {
+        "comparados": 1,
+        "afines": 1,
+        "reparto": {
+          "origen": "modelo",
+          "recuperados": 1,
+          "elegidosPorElModelo": 1,
+          "descartadosPorCriterio": 0,
+          "cortadosPorTope": 0,
+          "idsNoReconocidos": 0,
+          "repetidos": 0
+        }
+      },
+      "analysisMode": "quick"
+    }
+  }
+}

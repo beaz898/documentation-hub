@@ -1,0 +1,189 @@
+{
+  "casoId": "N4",
+  "pasada": 4,
+  "http": 200,
+  "ms": 12217,
+  "cuando": "2026-09-27T09:28:33.610Z",
+  "renovacionesDeCredencial": [],
+  "cuerpo": {
+    "casoId": "N4",
+    "pasada": 4,
+    "operacion": "analizar",
+    "orgId": "a9625e93-af2a-4416-a465-5c2fa2a25bdf",
+    "analizado": {
+      "nombre": "RRHH-04_formacion-obligatoria-reciclaje.md",
+      "documentId": "1ed31095-1799-4433-96c6-ed7273a294e2",
+      "generacion": 1,
+      "fragmentos": 1
+    },
+    "corpus": [
+      {
+        "nombre": "RRHH-06_evaluacion-del-desempeno.xlsx",
+        "documentId": "96196c8b-4209-46e9-9c71-153763864c11",
+        "generacion": 1
+      }
+    ],
+    "analisis": {
+      "isDuplicate": false,
+      "duplicateOf": null,
+      "duplicateConfidence": 0,
+      "overlaps": [
+        {
+          "existingDocument": "RRHH-06_evaluacion-del-desempeno.xlsx",
+          "existingDocumentId": "96196c8b-4209-46e9-9c71-153763864c11",
+          "description": "Ambos documentos mencionan la necesidad de reciclaje en protección radiológica como requisito de cumplimiento obligatorio para el personal expuesto. Ambos documentos reconocen la esterilización como formación obligatoria que debe ser reciclada periódicamente",
+          "severity": "baja",
+          "overlapPercent": 15,
+          "textRef": "Protección radiológica (personal expuesto) | Bienal"
+        }
+      ],
+      "discrepancies": [],
+      "newInformation": "El documento nuevo proporciona detalles específicos sobre los programas de formación obligatoria y sus ciclos de reciclaje, complementando la información sobre requisitos de cumplimiento ya mencionada en evaluación del desempeño.",
+      "recommendation": "INDEXAR",
+      "summary": "El documento nuevo sobre formación obligatoria y reciclaje tiene similitudes temáticas con el documento de evaluación del desempeño (ambos mencionan reciclaje en protección radiológica y esterilización), pero sin solapamientos significativos ni contradicciones. Se trata de documentos complementarios que abordan aspectos diferentes de la formación obligatoria.",
+      "judgments": [
+        {
+          "documentId": "96196c8b-4209-46e9-9c71-153763864c11",
+          "documentName": "RRHH-06_evaluacion-del-desempeno.xlsx",
+          "source": "manual",
+          "overlapPercent": 15,
+          "verdict": "tema_similar",
+          "contradictions": [],
+          "overlappingContent": [
+            {
+              "description": "Ambos documentos mencionan la necesidad de reciclaje en protección radiológica como requisito de cumplimiento obligatorio para el personal expuesto",
+              "evidence": "pendiente reciclaje de protección radiológica",
+              "evidenceInNewDoc": "Protección radiológica (personal expuesto) | Bienal"
+            },
+            {
+              "description": "Ambos documentos reconocen la esterilización como formación obligatoria que debe ser reciclada periódicamente",
+              "evidence": "Pendiente reciclaje de esterilización",
+              "evidenceInNewDoc": "Protocolo de esterilización y control de infecciones (ver CLI-01 y CLI-02)"
+            }
+          ],
+          "uniqueToNewDoc": [
+            "Tabla de periodicidad de reciclaje con frecuencias específicas (bienal, anual, trienal)",
+            "Requisito de formación obligatoria en incorporación antes de atender pacientes de forma autónoma",
+            "Formación continuada clínica con mínimo de 10 horas anuales",
+            "Procedimiento de suspensión temporal de funciones por incumplimiento de formación",
+            "Registro individual de formación con certificados de asistencia disponibles para inspecciones"
+          ],
+          "discarded": {
+            "verificado.por_localizacion": 8,
+            "descartado.mismo_dato_sin_oposicion": 2
+          }
+        }
+      ],
+      "discardedFindings": {
+        "verificado.por_localizacion": 8,
+        "descartado.mismo_dato_sin_oposicion": 2,
+        "seleccion.filas_fuera_por_tamano": 6
+      },
+      "pipelineCounters": {
+        "seleccion.candidatos_recuperados": 1,
+        "seleccion.candidatos_cortados_por_tope_de_recuperacion": 0,
+        "seleccion.candidatos_seleccionados": 1,
+        "seleccion.candidatos_sin_confianza": 0,
+        "seleccion.candidatos_cortados_por_tope": 0,
+        "seleccion.candidatos_con_id_no_reconocido": 0,
+        "seleccion.candidatos_repetidos_por_el_modelo": 0,
+        "seleccion.candidatos_descartados_por_criterio": 0,
+        "diff.tablas.candidatos": 0,
+        "diff.tablas.sin_clave": 0,
+        "diff.tablas.sin_interseccion": 0,
+        "diff.tablas.emitidos": 0,
+        "diff.clave.rechazadas_por_escritura": 0,
+        "diff.clasificacion.variantes_escritura": 0,
+        "diff.vision.pares_con_vision": 0,
+        "diff.vision.pares_ciegos": 1,
+        "diff.vision.ciegos_por_el_analizado": 1,
+        "diff.vision.tablas_analizado": 0,
+        "diff.vision.filas_analizado": 0,
+        "diff.vision.tablas_candidatos": 1,
+        "diff.vision.filas_candidatos": 15,
+        "verificador.hallazgos_entrantes": 2,
+        "verificador.confirmados": 0,
+        "verificador.confirmados_por_estructura": 0,
+        "verificador.confirmados_por_juicio": 0,
+        "verificador.descartados": 2,
+        "verificador.reclasificados": 0
+      },
+      "termometro": {
+        "version": 1,
+        "estado": "con_candidatos",
+        "motivo": null,
+        "modelo": {
+          "pedido": "multilingual-e5-large",
+          "servido": "multilingual-e5-large",
+          "dimension_servida": 1024
+        },
+        "consultas": 1,
+        "topK": 25,
+        "denominadores": {
+          "crudos": 20,
+          "sin_fila_viva": 0,
+          "sin_metadata_utilizable": 0,
+          "propios_excluidos": 0,
+          "generacion_muerta_excluida": 0,
+          "candidatos_con_repeticion": 20,
+          "unicos": 20
+        },
+        "fondo": 20,
+        "fondo_motivo": null,
+        "documentos_candidatos": 1,
+        "scores": {
+          "minimo": 0.800268412,
+          "maximo": 0.850933194,
+          "histograma": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            19,
+            1,
+            0,
+            0
+          ],
+          "hueco_1_2": null
+        },
+        "ids_sin_fila_viva": [],
+        "candidatos_fuera_del_fondo": []
+      },
+      "coberturaDeCandidatos": {
+        "comparados": 1,
+        "afines": 1,
+        "reparto": {
+          "origen": "modelo",
+          "recuperados": 1,
+          "elegidosPorElModelo": 1,
+          "descartadosPorCriterio": 0,
+          "cortadosPorTope": 0,
+          "idsNoReconocidos": 0,
+          "repetidos": 0
+        }
+      },
+      "selectionLimits": [
+        {
+          "documentName": "RRHH-06_evaluacion-del-desempeno.xlsx",
+          "sheetName": "Evaluaciones",
+          "tableId": "Evaluaciones#0",
+          "rowsLeftOut": 6,
+          "rowsRecovered": 15
+        }
+      ],
+      "analysisMode": "quick"
+    }
+  }
+}

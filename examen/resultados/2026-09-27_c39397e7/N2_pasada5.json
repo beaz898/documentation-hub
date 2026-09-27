@@ -1,0 +1,195 @@
+{
+  "casoId": "N2",
+  "pasada": 5,
+  "http": 200,
+  "ms": 10135,
+  "cuando": "2026-09-27T09:26:04.177Z",
+  "renovacionesDeCredencial": [],
+  "cuerpo": {
+    "casoId": "N2",
+    "pasada": 5,
+    "operacion": "analizar",
+    "orgId": "a9625e93-af2a-4416-a465-5c2fa2a25bdf",
+    "analizado": {
+      "nombre": "MKT-01_manual-identidad-corporativa.docx",
+      "documentId": "76096004-4c74-4b69-9063-b51f24a5fd60",
+      "generacion": 1,
+      "fragmentos": 5
+    },
+    "corpus": [
+      {
+        "nombre": "RRHH-06_evaluacion-del-desempeno.xlsx",
+        "documentId": "96196c8b-4209-46e9-9c71-153763864c11",
+        "generacion": 1
+      },
+      {
+        "nombre": "OPE-02_agenda-y-gestion-de-citas.xlsx",
+        "documentId": "0ece4cf3-632f-452b-aca9-2dd8ddc3e532",
+        "generacion": 1
+      },
+      {
+        "nombre": "CLI-03_historia-clinica-consentimiento-informado.txt",
+        "documentId": "1cdfe056-1e2e-4ebe-ade3-f1b3a7bbc75b",
+        "generacion": 1
+      },
+      {
+        "nombre": "NOR-01_rgpd-proteccion-datos-pacientes.pdf",
+        "documentId": "5390eb6a-68a2-4822-b1ca-416f99271ef9",
+        "generacion": 1
+      }
+    ],
+    "analisis": {
+      "isDuplicate": false,
+      "duplicateOf": null,
+      "duplicateConfidence": 0,
+      "overlaps": [],
+      "discrepancies": [],
+      "newInformation": "Este manual aporta información sobre los estándares visuales y de marca de la empresa, que es completamente independiente de los procesos de recursos humanos y operacionales ya documentados.",
+      "recommendation": "INDEXAR",
+      "summary": "El documento de identidad corporativa no tiene relación con los documentos de evaluación de desempeño ni de gestión de citas. No se detectaron solapamientos, duplicados ni contradicciones entre los documentos analizados.",
+      "judgments": [
+        {
+          "documentId": "96196c8b-4209-46e9-9c71-153763864c11",
+          "documentName": "RRHH-06_evaluacion-del-desempeno.xlsx",
+          "source": "manual",
+          "overlapPercent": 0,
+          "verdict": "sin_relacion",
+          "contradictions": [],
+          "overlappingContent": [],
+          "uniqueToNewDoc": [
+            "Normas de identidad visual corporativa (logotipo, colores, tipografía)",
+            "Especificaciones de uniformidad del personal por puesto",
+            "Directrices de señalética y rotulación de clínicas",
+            "Plantillas de papelería corporativa",
+            "Protocolo de validación de uso de logotipo por terceros"
+          ]
+        },
+        {
+          "documentId": "0ece4cf3-632f-452b-aca9-2dd8ddc3e532",
+          "documentName": "OPE-02_agenda-y-gestion-de-citas.xlsx",
+          "source": "manual",
+          "overlapPercent": 0,
+          "verdict": "sin_relacion",
+          "contradictions": [],
+          "overlappingContent": [],
+          "uniqueToNewDoc": [
+            "Normas de identidad visual corporativa (logotipo, colores, tipografía)",
+            "Paleta de colores con códigos HEX específicos",
+            "Requisitos de uniformidad del personal por puesto",
+            "Normas de señalética y rotulación de clínicas",
+            "Plantillas de papelería corporativa",
+            "Validación de uso de logotipo por terceros"
+          ]
+        }
+      ],
+      "pipelineCounters": {
+        "seleccion.candidatos_recuperados": 4,
+        "seleccion.candidatos_cortados_por_tope_de_recuperacion": 0,
+        "seleccion.candidatos_seleccionados": 2,
+        "seleccion.candidatos_sin_confianza": 0,
+        "seleccion.candidatos_cortados_por_tope": 0,
+        "seleccion.candidatos_con_id_no_reconocido": 0,
+        "seleccion.candidatos_repetidos_por_el_modelo": 0,
+        "seleccion.candidatos_descartados_por_criterio": 2,
+        "diff.tablas.candidatos": 0,
+        "diff.tablas.sin_clave": 0,
+        "diff.tablas.sin_interseccion": 0,
+        "diff.tablas.emitidos": 0,
+        "diff.clave.rechazadas_por_escritura": 0,
+        "diff.clasificacion.variantes_escritura": 0,
+        "diff.vision.pares_con_vision": 0,
+        "diff.vision.pares_ciegos": 2,
+        "diff.vision.ciegos_por_el_analizado": 2,
+        "diff.vision.tablas_analizado": 0,
+        "diff.vision.filas_analizado": 0,
+        "diff.vision.tablas_candidatos": 2,
+        "diff.vision.filas_candidatos": 25,
+        "verificador.hallazgos_entrantes": 0,
+        "verificador.confirmados": 0,
+        "verificador.confirmados_por_estructura": 0,
+        "verificador.confirmados_por_juicio": 0,
+        "verificador.descartados": 0,
+        "verificador.reclasificados": 0
+      },
+      "termometro": {
+        "version": 1,
+        "estado": "con_candidatos",
+        "motivo": null,
+        "modelo": {
+          "pedido": "multilingual-e5-large",
+          "servido": "multilingual-e5-large",
+          "dimension_servida": 1024
+        },
+        "consultas": 5,
+        "topK": 25,
+        "denominadores": {
+          "crudos": 125,
+          "sin_fila_viva": 0,
+          "sin_metadata_utilizable": 0,
+          "propios_excluidos": 0,
+          "generacion_muerta_excluida": 0,
+          "candidatos_con_repeticion": 125,
+          "unicos": 36
+        },
+        "fondo": 48,
+        "fondo_motivo": null,
+        "documentos_candidatos": 4,
+        "scores": {
+          "minimo": 0.809513807,
+          "maximo": 0.87452817,
+          "histograma": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            31,
+            5,
+            0,
+            0
+          ],
+          "hueco_1_2": 0.0069677240000000085
+        },
+        "ids_sin_fila_viva": [],
+        "candidatos_fuera_del_fondo": []
+      },
+      "coberturaDeCandidatos": {
+        "comparados": 2,
+        "afines": 4,
+        "reparto": {
+          "origen": "modelo",
+          "recuperados": 4,
+          "elegidosPorElModelo": 2,
+          "descartadosPorCriterio": 2,
+          "cortadosPorTope": 0,
+          "idsNoReconocidos": 0,
+          "repetidos": 0
+        }
+      },
+      "selectionLimits": [
+        {
+          "documentName": "RRHH-06_evaluacion-del-desempeno.xlsx",
+          "sheetName": "Evaluaciones",
+          "tableId": "Evaluaciones#0",
+          "rowsLeftOut": 4,
+          "rowsRecovered": 12
+        }
+      ],
+      "discardedFindings": {
+        "seleccion.filas_fuera_por_tamano": 4
+      },
+      "analysisMode": "quick"
+    }
+  }
+}

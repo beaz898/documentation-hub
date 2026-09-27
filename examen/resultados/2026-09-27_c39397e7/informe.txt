@@ -1,0 +1,93 @@
+EXAMEN · 2026-09-27 · commit c39397e7
+9 caso(s) · 45 análisis · 225 créditos · 0.2025 $
+⚠️ EXCLUIDOS de esta tanda: N6
+
+N1 · 5 de 5 pasadas completadas
+    pasada 1: HTTP 200 en 15.7 s
+    pasada 2: HTTP 200 en 13.9 s
+    pasada 3: HTTP 200 en 15.0 s
+    pasada 4: HTTP 200 en 13.6 s
+    pasada 5: HTTP 200 en 13.6 s
+
+N2 · 5 de 5 pasadas completadas
+    pasada 1: HTTP 200 en 10.2 s
+    pasada 2: HTTP 200 en 10.1 s
+    pasada 3: HTTP 200 en 10.4 s
+    pasada 4: HTTP 200 en 9.5 s
+    pasada 5: HTTP 200 en 10.1 s
+
+N3 · 5 de 5 pasadas completadas
+    pasada 1: HTTP 200 en 16.7 s
+    pasada 2: HTTP 200 en 16.4 s
+    pasada 3: HTTP 200 en 17.5 s
+    pasada 4: HTTP 200 en 19.3 s
+    pasada 5: HTTP 200 en 18.7 s
+
+N4 · 5 de 5 pasadas completadas
+    pasada 1: HTTP 200 en 12.6 s
+    pasada 2: HTTP 200 en 14.0 s
+    pasada 3: HTTP 200 en 12.8 s
+    pasada 4: HTTP 200 en 12.2 s
+    pasada 5: HTTP 200 en 12.3 s
+
+N5 · 5 de 5 pasadas completadas
+    pasada 1: HTTP 200 en 11.9 s
+    pasada 2: HTTP 200 en 12.2 s
+    pasada 3: HTTP 200 en 12.0 s
+    pasada 4: HTTP 200 en 11.1 s
+    pasada 5: HTTP 200 en 11.5 s
+
+P1 · 5 de 5 pasadas completadas
+    pasada 1: HTTP 200 en 20.0 s
+    pasada 2: HTTP 200 en 20.7 s
+    pasada 3: HTTP 200 en 19.9 s
+    pasada 4: HTTP 200 en 16.3 s
+    pasada 5: HTTP 200 en 19.4 s
+
+P2 · 5 de 5 pasadas completadas
+    pasada 1: HTTP 200 en 17.1 s
+    pasada 2: HTTP 200 en 16.6 s
+    pasada 3: HTTP 200 en 18.0 s
+    pasada 4: HTTP 200 en 17.8 s
+    pasada 5: HTTP 200 en 17.9 s
+
+P3 · 5 de 5 pasadas completadas
+    pasada 1: HTTP 200 en 20.1 s
+    pasada 2: HTTP 200 en 20.1 s
+    pasada 3: HTTP 200 en 18.2 s
+    pasada 4: HTTP 200 en 19.9 s
+    pasada 5: HTTP 200 en 19.4 s
+
+P4 · 5 de 5 pasadas completadas
+    pasada 1: HTTP 200 en 16.1 s
+    pasada 2: HTTP 200 en 13.9 s
+    pasada 3: HTTP 200 en 13.7 s
+    pasada 4: HTTP 200 en 14.5 s
+    pasada 5: HTTP 200 en 12.6 s
+
+DURACIÓN · 45 análisis · mediana 15.0 s · mín 9.5 s · máx 20.7 s · reloj de la tanda 739.3 s
+
+N1: FALLA · 0 aciertos · 0 falsos (máx. por pasada)
+    ✗ 0 aciertos y el umbral exige 1
+N2: PASA · 0 aciertos · 0 falsos (máx. por pasada)
+N3: SIN_VEREDICTO
+    ~ línea de base PENDIENTE: esta tanda MIDE la frecuencia, no la juzga. observado: 0/0/0/0/0 falsos por pasada
+N4: SIN_VEREDICTO
+    ~ línea de base PENDIENTE: esta tanda MIDE la frecuencia, no la juzga. observado: 0/0/0/0/0 falsos por pasada
+    ~ control de tanda NO cumplido: N1/N1-PUESTO no salió en esta tanda, así que el silencio de este caso no distingue «no inventó» de «no funcionó nada»
+N5: SIN_VEREDICTO
+    ~ línea de base PENDIENTE: esta tanda MIDE la frecuencia, no la juzga. observado: 0/0/0/0/0 falsos por pasada
+    ~ control de tanda NO cumplido: N1/N1-PUESTO no salió en esta tanda, así que el silencio de este caso no distingue «no inventó» de «no funcionó nada»
+P1: PASA · 0 aciertos · 0 falsos (máx. por pasada)
+P2: FALLA · 0 aciertos · 0 falsos (máx. por pasada)
+    ✗ 0 aciertos y el umbral exige 2
+P3: PASA · 0 aciertos · 0 falsos (máx. por pasada)
+P4: SIN_VEREDICTO
+    ~ regla(s) que el marcador no sabe aplicar y necesitan etiqueta humana: P4-NO-1
+
+⚠️ LO QUE UN VERDE NO CUBRE: cada caso mide con DOS documentos y el producto
+   trabajará con cientos. Detecta regresiones porque aísla la variable, pero
+   NO mide el reparto del presupuesto, las plazas del rerank ni el fondo con
+   corpus grande.
+
+Evidencia cruda: examen\resultados\2026-09-27_c39397e7

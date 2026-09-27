@@ -1,0 +1,179 @@
+{
+  "casoId": "N5",
+  "pasada": 4,
+  "http": 200,
+  "ms": 11090,
+  "cuando": "2026-09-27T09:29:37.517Z",
+  "renovacionesDeCredencial": [],
+  "cuerpo": {
+    "casoId": "N5",
+    "pasada": 4,
+    "operacion": "analizar",
+    "orgId": "a9625e93-af2a-4416-a465-5c2fa2a25bdf",
+    "analizado": {
+      "nombre": "NOR-04_plan-de-emergencia-y-evacuacion.pdf",
+      "documentId": "feb1286e-23a5-47f6-947a-7bbc444d9652",
+      "generacion": 1,
+      "fragmentos": 4
+    },
+    "corpus": [
+      {
+        "nombre": "OPE-01_manual-apertura-y-cierre-de-clinica.docx",
+        "documentId": "f77403f3-68c9-43ca-a182-2fe94b573e05",
+        "generacion": 1
+      }
+    ],
+    "analisis": {
+      "isDuplicate": false,
+      "duplicateOf": null,
+      "duplicateConfidence": 0,
+      "overlaps": [
+        {
+          "existingDocument": "OPE-01_manual-apertura-y-cierre-de-clinica.docx",
+          "existingDocumentId": "f77403f3-68c9-43ca-a182-2fe94b573e05",
+          "description": "Ambos documentos mencionan la activación/desactivación de la alarma como parte de procedimientos operativos en la clínica. Ambos documentos hacen referencia a la comunicación con empresas externas de mantenimiento/seguridad ante incidencias",
+          "severity": "baja",
+          "overlapPercent": 15,
+          "textRef": "Activar la alarma y avisar al resto del personal."
+        }
+      ],
+      "discrepancies": [],
+      "newInformation": "Este documento aporta información específica sobre protocolos de emergencia y evacuación de la clínica, complementando los procedimientos operativos básicos ya documentados.",
+      "recommendation": "INDEXAR",
+      "summary": "El documento de plan de emergencia y evacuación tiene similitudes temáticas menores (15% de solapamiento) con el manual de apertura y cierre, principalmente en procedimientos de alarma y comunicación con empresas externas. No se detectaron contradicciones ni duplicados significativos que impidan su indexación.",
+      "judgments": [
+        {
+          "documentId": "f77403f3-68c9-43ca-a182-2fe94b573e05",
+          "documentName": "OPE-01_manual-apertura-y-cierre-de-clinica.docx",
+          "source": "manual",
+          "overlapPercent": 15,
+          "verdict": "tema_similar",
+          "contradictions": [],
+          "overlappingContent": [
+            {
+              "description": "Ambos documentos mencionan la activación/desactivación de la alarma como parte de procedimientos operativos en la clínica",
+              "evidence": "Desactivar la alarma y encender la iluminación general.",
+              "evidenceInNewDoc": "Activar la alarma y avisar al resto del personal."
+            },
+            {
+              "description": "Ambos documentos hacen referencia a la comunicación con empresas externas de mantenimiento/seguridad ante incidencias",
+              "evidence": "si afecta a la seguridad del local, a la empresa de seguridad contratada.",
+              "evidenceInNewDoc": "Empresa de mantenimiento de sistemas contra incendios: ver contrato vigente en la carpeta de mantenimiento de la clínica."
+            }
+          ],
+          "uniqueToNewDoc": [
+            "Procedimientos específicos ante incendio (cortar suministro eléctrico y gas, evacuación por salida próxima, punto de encuentro exterior)",
+            "Protocolo de emergencia médica (soporte vital básico, llamada al 112)",
+            "Requisito de simulacros anuales de evacuación con documentación de incidencias",
+            "Revisión anual de extintores por empresa autorizada",
+            "Señalización de salidas de emergencia y plano de evacuación",
+            "Designación de responsable de evacuación y suplente",
+            "Teléfono de emergencias 112 y directorio de hospital de referencia"
+          ],
+          "discarded": {
+            "verificado.por_localizacion": 4
+          }
+        }
+      ],
+      "discardedFindings": {
+        "verificado.por_localizacion": 4
+      },
+      "pipelineCounters": {
+        "seleccion.candidatos_recuperados": 1,
+        "seleccion.candidatos_cortados_por_tope_de_recuperacion": 0,
+        "seleccion.candidatos_seleccionados": 1,
+        "seleccion.candidatos_sin_confianza": 0,
+        "seleccion.candidatos_cortados_por_tope": 0,
+        "seleccion.candidatos_con_id_no_reconocido": 0,
+        "seleccion.candidatos_repetidos_por_el_modelo": 0,
+        "seleccion.candidatos_descartados_por_criterio": 0,
+        "diff.tablas.candidatos": 0,
+        "diff.tablas.sin_clave": 0,
+        "diff.tablas.sin_interseccion": 0,
+        "diff.tablas.emitidos": 0,
+        "diff.clave.rechazadas_por_escritura": 0,
+        "diff.clasificacion.variantes_escritura": 0,
+        "diff.vision.pares_con_vision": 0,
+        "diff.vision.pares_ciegos": 1,
+        "diff.vision.ciegos_por_el_analizado": 1,
+        "diff.vision.tablas_analizado": 0,
+        "diff.vision.filas_analizado": 0,
+        "diff.vision.tablas_candidatos": 0,
+        "diff.vision.filas_candidatos": 0,
+        "verificador.hallazgos_entrantes": 0,
+        "verificador.confirmados": 0,
+        "verificador.confirmados_por_estructura": 0,
+        "verificador.confirmados_por_juicio": 0,
+        "verificador.descartados": 0,
+        "verificador.reclasificados": 0
+      },
+      "termometro": {
+        "version": 1,
+        "estado": "con_candidatos",
+        "motivo": null,
+        "modelo": {
+          "pedido": "multilingual-e5-large",
+          "servido": "multilingual-e5-large",
+          "dimension_servida": 1024
+        },
+        "consultas": 4,
+        "topK": 25,
+        "denominadores": {
+          "crudos": 16,
+          "sin_fila_viva": 0,
+          "sin_metadata_utilizable": 0,
+          "propios_excluidos": 0,
+          "generacion_muerta_excluida": 0,
+          "candidatos_con_repeticion": 16,
+          "unicos": 4
+        },
+        "fondo": 4,
+        "fondo_motivo": null,
+        "documentos_candidatos": 1,
+        "scores": {
+          "minimo": 0.828489363,
+          "maximo": 0.877648,
+          "histograma": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            3,
+            1,
+            0,
+            0
+          ],
+          "hueco_1_2": null
+        },
+        "ids_sin_fila_viva": [],
+        "candidatos_fuera_del_fondo": []
+      },
+      "coberturaDeCandidatos": {
+        "comparados": 1,
+        "afines": 1,
+        "reparto": {
+          "origen": "modelo",
+          "recuperados": 1,
+          "elegidosPorElModelo": 1,
+          "descartadosPorCriterio": 0,
+          "cortadosPorTope": 0,
+          "idsNoReconocidos": 0,
+          "repetidos": 0
+        }
+      },
+      "analysisMode": "quick"
+    }
+  }
+}

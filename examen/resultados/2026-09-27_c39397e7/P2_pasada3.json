@@ -1,0 +1,183 @@
+{
+  "casoId": "P2",
+  "pasada": 3,
+  "http": 200,
+  "ms": 18045,
+  "cuando": "2026-09-27T09:32:28.338Z",
+  "renovacionesDeCredencial": [],
+  "cuerpo": {
+    "casoId": "P2",
+    "pasada": 3,
+    "operacion": "analizar",
+    "orgId": "a9625e93-af2a-4416-a465-5c2fa2a25bdf",
+    "analizado": {
+      "nombre": "NOR-11_gestion-de-residuos-sanitarios.docx",
+      "documentId": "85c97891-7cd6-44a6-87bc-5bb2d117be18",
+      "generacion": 1,
+      "fragmentos": 15
+    },
+    "corpus": [
+      {
+        "nombre": "CLI-13_instrucciones-clinicas-residuos.docx",
+        "documentId": "66a2aad0-8a65-45d6-8977-b6e93bbe8592",
+        "generacion": 1
+      }
+    ],
+    "analisis": {
+      "isDuplicate": false,
+      "duplicateOf": null,
+      "duplicateConfidence": 0,
+      "overlaps": [
+        {
+          "existingDocument": "CLI-13_instrucciones-clinicas-residuos.docx",
+          "existingDocumentId": "66a2aad0-8a65-45d6-8977-b6e93bbe8592",
+          "description": "Ambos documentos establecen que NOR-11 es el protocolo normativo y CLI-13 es su traducción práctica para el gabinete, sin que CLI-13 sustituya a NOR-11.. Ambos documentos especifican que las normas de residuos aplican por igual en las tres clínicas de la red (Chamberí, Salamanca y Retiro) sin variaciones locales.. Ambos documentos establecen que ante dudas sobre clasificación de residuos, se debe consultar al Coordinador de Calidad del centro.",
+          "severity": "media",
+          "overlapPercent": 35,
+          "textRef": "Este protocolo se complementa con las instrucciones clínicas prácticas dirigidas al personal de gabinete (CLI-13), que detallan la aplicación diaria de estas normas en cada puesto de trabajo, sin alterar en ningún caso los criterios establecidos en el presente documento."
+        }
+      ],
+      "discrepancies": [],
+      "newInformation": "NOR-11 proporciona el marco normativo completo para la gestión de residuos sanitarios, mientras que CLI-13 es su adaptación operativa. Se recomienda revisar para asegurar coherencia total entre la norma y su implementación práctica, evitando duplicaciones innecesarias.",
+      "recommendation": "REVISAR",
+      "summary": "El documento NOR-11 sobre gestión de residuos sanitarios tiene un solapamiento del 35% con las instrucciones clínicas CLI-13. Ambos documentos comparten los mismos principios clave: NOR-11 es la norma oficial y CLI-13 su aplicación práctica en clínicas, las normas aplican uniformemente en las tres sedes de la red, y ambos remiten al Coordinador de Calidad para dudas de clasificación.",
+      "judgments": [
+        {
+          "documentId": "66a2aad0-8a65-45d6-8977-b6e93bbe8592",
+          "documentName": "CLI-13_instrucciones-clinicas-residuos.docx",
+          "source": "manual",
+          "overlapPercent": 35,
+          "verdict": "tema_similar",
+          "contradictions": [],
+          "overlappingContent": [
+            {
+              "description": "Ambos documentos establecen que NOR-11 es el protocolo normativo y CLI-13 es su traducción práctica para el gabinete, sin que CLI-13 sustituya a NOR-11.",
+              "evidence": "No sustituye a NOR-11: ante cualquier duda no resuelta aquí, es ese protocolo el que se consulta en primer lugar.",
+              "evidenceInNewDoc": "Este protocolo se complementa con las instrucciones clínicas prácticas dirigidas al personal de gabinete (CLI-13), que detallan la aplicación diaria de estas normas en cada puesto de trabajo, sin alterar en ningún caso los criterios establecidos en el presente documento."
+            },
+            {
+              "description": "Ambos documentos especifican que las normas de residuos aplican por igual en las tres clínicas de la red (Chamberí, Salamanca y Retiro) sin variaciones locales.",
+              "evidence": "Aplica por igual en las tres clínicas de la red. Si cambias de centro de forma temporal o definitiva, las instrucciones de esta guía siguen siendo las mismas: no hay variaciones locales de un centro a otro en lo relativo a residuos.",
+              "evidenceInNewDoc": "Ámbito de aplicación: Clínicas Dentavia Chamberí, Salamanca y Retiro"
+            },
+            {
+              "description": "Ambos documentos establecen que ante dudas sobre clasificación de residuos, se debe consultar al Coordinador de Calidad del centro.",
+              "evidence": "Si después de leer esta guía te queda alguna duda, o si en tu día a día te encuentras con una situación que no está clara con lo aquí explicado, coméntalo con el Coordinador de Calidad de tu clínica.",
+              "evidenceInNewDoc": "Ante cualquier duda sobre a qué grupo pertenece un residuo concreto no contemplado expresamente en este apartado, el criterio por defecto de Dentavia es aplicar la clasificación más exigente de las posibles, tratándolo como residuo de grupo superior hasta que el Coordinador de Calidad del centro confirme el criterio correcto."
+            }
+          ],
+          "uniqueToNewDoc": [
+            "Clasificación detallada de los cuatro grupos de residuos (I, II, III con subtipos, IV) con especificaciones de colores y tipos de contenedores",
+            "Principio de las 72 horas máximo para residuos del grupo III en almacenamiento intermedio, con cómputo exacto desde el cierre hermético",
+            "Criterio de sustitución de contenedores al alcanzar tres cuartas partes de capacidad",
+            "Especificaciones técnicas de etiquetado e identificación de contenedores (pictograma, fecha de apertura, código de residuo)",
+            "Procedimiento de cierre hermético y traslado al almacenamiento intermedio",
+            "Criterio ante residuos mixtos: separación en el momento de generarse sin mezclar grupos"
+          ],
+          "discarded": {
+            "verificado.por_localizacion": 6
+          }
+        }
+      ],
+      "discardedFindings": {
+        "verificado.por_localizacion": 6
+      },
+      "pipelineCounters": {
+        "seleccion.candidatos_recuperados": 1,
+        "seleccion.candidatos_cortados_por_tope_de_recuperacion": 0,
+        "seleccion.candidatos_seleccionados": 1,
+        "seleccion.candidatos_sin_confianza": 0,
+        "seleccion.candidatos_cortados_por_tope": 0,
+        "seleccion.candidatos_con_id_no_reconocido": 0,
+        "seleccion.candidatos_repetidos_por_el_modelo": 0,
+        "seleccion.candidatos_descartados_por_criterio": 0,
+        "diff.tablas.candidatos": 0,
+        "diff.tablas.sin_clave": 0,
+        "diff.tablas.sin_interseccion": 0,
+        "diff.tablas.emitidos": 0,
+        "diff.clave.rechazadas_por_escritura": 0,
+        "diff.clasificacion.variantes_escritura": 0,
+        "diff.vision.pares_con_vision": 0,
+        "diff.vision.pares_ciegos": 1,
+        "diff.vision.ciegos_por_el_analizado": 1,
+        "diff.vision.tablas_analizado": 0,
+        "diff.vision.filas_analizado": 0,
+        "diff.vision.tablas_candidatos": 0,
+        "diff.vision.filas_candidatos": 0,
+        "verificador.hallazgos_entrantes": 0,
+        "verificador.confirmados": 0,
+        "verificador.confirmados_por_estructura": 0,
+        "verificador.confirmados_por_juicio": 0,
+        "verificador.descartados": 0,
+        "verificador.reclasificados": 0
+      },
+      "termometro": {
+        "version": 1,
+        "estado": "con_candidatos",
+        "motivo": null,
+        "modelo": {
+          "pedido": "multilingual-e5-large",
+          "servido": "multilingual-e5-large",
+          "dimension_servida": 1024
+        },
+        "consultas": 15,
+        "topK": 25,
+        "denominadores": {
+          "crudos": 165,
+          "sin_fila_viva": 0,
+          "sin_metadata_utilizable": 0,
+          "propios_excluidos": 0,
+          "generacion_muerta_excluida": 0,
+          "candidatos_con_repeticion": 165,
+          "unicos": 11
+        },
+        "fondo": 11,
+        "fondo_motivo": null,
+        "documentos_candidatos": 1,
+        "scores": {
+          "minimo": 0.829887033,
+          "maximo": 0.94279635,
+          "histograma": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            6,
+            3,
+            2,
+            0
+          ],
+          "hueco_1_2": null
+        },
+        "ids_sin_fila_viva": [],
+        "candidatos_fuera_del_fondo": []
+      },
+      "coberturaDeCandidatos": {
+        "comparados": 1,
+        "afines": 1,
+        "reparto": {
+          "origen": "modelo",
+          "recuperados": 1,
+          "elegidosPorElModelo": 1,
+          "descartadosPorCriterio": 0,
+          "cortadosPorTope": 0,
+          "idsNoReconocidos": 0,
+          "repetidos": 0
+        }
+      },
+      "analysisMode": "quick"
+    }
+  }
+}

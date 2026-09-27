@@ -1,0 +1,1348 @@
+{
+  "casoId": "P3",
+  "pasada": 1,
+  "http": 200,
+  "ms": 20122,
+  "cuando": "2026-09-27T09:33:28.652Z",
+  "renovacionesDeCredencial": [],
+  "cuerpo": {
+    "casoId": "P3",
+    "pasada": 1,
+    "operacion": "analizar",
+    "orgId": "a9625e93-af2a-4416-a465-5c2fa2a25bdf",
+    "analizado": {
+      "nombre": "OPE-10_tarifario-tratamientos-2026.xlsx",
+      "documentId": "51273b49-81b0-4e92-999d-a363bcc1644e",
+      "generacion": 1,
+      "fragmentos": 64
+    },
+    "corpus": [
+      {
+        "nombre": "OPE-11_tarifario-tratamientos-seguros.xlsx",
+        "documentId": "a9203396-8c14-4557-ba07-9b1f2b34d18a",
+        "generacion": 1
+      }
+    ],
+    "analisis": {
+      "isDuplicate": false,
+      "duplicateOf": null,
+      "duplicateConfidence": 0,
+      "overlaps": [
+        {
+          "existingDocument": "OPE-11_tarifario-tratamientos-seguros.xlsx",
+          "existingDocumentId": "a9203396-8c14-4557-ba07-9b1f2b34d18a",
+          "description": "Tratamiento DIA-01 (Primera consulta y diagnóstico) con todos sus parámetros idénticos. Tratamiento HIG-01 (Limpieza bucal) con todos sus parámetros idénticos. Tratamiento CON-01 (Empaste composite 1 cara) con todos sus parámetros idénticos. Tratamiento END-01 (Endodoncia unirradicular) con todos sus parámetros idénticos. Tratamiento CIR-01 (Extracción simple) con todos sus parámetros idénticos",
+          "severity": "media",
+          "overlapPercent": 33,
+          "textRef": "DIA-01 | Primera consulta y diagnóstico | Diagnóstico | 40 | 40 | 30 | Dra. Marta Gil | Chamberí | Enero 2026"
+        },
+        {
+          "existingDocument": "OPE-11_tarifario-tratamientos-seguros.xlsx",
+          "existingDocumentId": "a9203396-8c14-4557-ba07-9b1f2b34d18a",
+          "description": "20 de 60 filas de \"Tarifas concertadas\" de \"OPE-11_tarifario-tratamientos-seguros.xlsx\" coinciden exactamente, celda a celda, en Código y Tratamiento y Categoría y Precio base y Precio con seguro y Duración (min) y Profesional asignado y Clínica y Revisión con filas de \"OPE-10_tarifario-tratamientos-2026.xlsx\".",
+          "severity": "alta",
+          "overlapPercent": 33,
+          "confirmedBy": "estructura"
+        }
+      ],
+      "discrepancies": [
+        {
+          "topic": "Discrepancia en Duración (min) entre OPE-10_tarifario-tratamientos-2026.xlsx y OPE-11_tarifario-tratamientos-seguros.xlsx",
+          "newDocSays": "DIA-02 | Revisión periódica | Diagnóstico | 25 | 20 | 20 | Dr. Carlos Medina | Retiro | Enero 2026",
+          "existingDocSays": "DIA-02 | Revisión periódica | Diagnóstico | 25 | 20 | 15 | Dr. Carlos Medina | Retiro | Enero 2026",
+          "existingDocument": "OPE-11_tarifario-tratamientos-seguros.xlsx",
+          "existingDocumentId": "a9203396-8c14-4557-ba07-9b1f2b34d18a",
+          "severity": "contradiction",
+          "confirmedBy": "estructura",
+          "columns": [
+            "Duración (min)"
+          ],
+          "comparedValues": [
+            {
+              "column": "Duración (min)",
+              "newDocValue": "20",
+              "existingDocValue": "15"
+            }
+          ],
+          "newDocRow": "[F1] DIA-02 | Revisión periódica | Diagnóstico | 25 | 20 | 20 | Dr. Carlos Medina | Retiro | Enero 2026",
+          "existingDocRow": "[F2] DIA-02 | Revisión periódica | Diagnóstico | 25 | 20 | 15 | Dr. Carlos Medina | Retiro | Enero 2026",
+          "origen": "diff_tabular",
+          "groupId": "c64f9f56-4800-4e37-bb3d-85387a12c803",
+          "huella": "b505df412960c8d9db6ae11496b8d51eba97e2d64c52738e18057e88cd38937e"
+        },
+        {
+          "topic": "Discrepancia en Profesional asignado entre OPE-10_tarifario-tratamientos-2026.xlsx y OPE-11_tarifario-tratamientos-seguros.xlsx",
+          "newDocSays": "DIA-04 | Ortopantomografía | Diagnóstico | 45 | 38 | 15 | Cristina Ibáñez | Chamberí | Febrero 2026",
+          "existingDocSays": "DIA-04 | Ortopantomografía | Diagnóstico | 45 | 38 | 15 | Sonia Prats | Chamberí | Febrero 2026",
+          "existingDocument": "OPE-11_tarifario-tratamientos-seguros.xlsx",
+          "existingDocumentId": "a9203396-8c14-4557-ba07-9b1f2b34d18a",
+          "severity": "contradiction",
+          "confirmedBy": "estructura",
+          "columns": [
+            "Profesional asignado"
+          ],
+          "comparedValues": [
+            {
+              "column": "Profesional asignado",
+              "newDocValue": "Cristina Ibáñez",
+              "existingDocValue": "Sonia Prats"
+            }
+          ],
+          "newDocRow": "[F3] DIA-04 | Ortopantomografía | Diagnóstico | 45 | 38 | 15 | Cristina Ibáñez | Chamberí | Febrero 2026",
+          "existingDocRow": "[F5] DIA-04 | Ortopantomografía | Diagnóstico | 45 | 38 | 15 | Sonia Prats | Chamberí | Febrero 2026",
+          "origen": "diff_tabular",
+          "groupId": "c64f9f56-4800-4e37-bb3d-85387a12c803",
+          "huella": "e6b121f6c3d3aec766594b9ff0e3a21a909d12c3d38700483ad2dfbc98efd75f"
+        },
+        {
+          "topic": "Discrepancia en Clínica entre OPE-10_tarifario-tratamientos-2026.xlsx y OPE-11_tarifario-tratamientos-seguros.xlsx",
+          "newDocSays": "HIG-03 | Aplicación de flúor | Higiene | 18 | 15 | 15 | Laura Núñez | Salamanca | Febrero 2026",
+          "existingDocSays": "HIG-03 | Aplicación de flúor | Higiene | 18 | 15 | 15 | Laura Núñez | Chamberí | Febrero 2026",
+          "existingDocument": "OPE-11_tarifario-tratamientos-seguros.xlsx",
+          "existingDocumentId": "a9203396-8c14-4557-ba07-9b1f2b34d18a",
+          "severity": "contradiction",
+          "confirmedBy": "estructura",
+          "columns": [
+            "Clínica"
+          ],
+          "comparedValues": [
+            {
+              "column": "Clínica",
+              "newDocValue": "Salamanca",
+              "existingDocValue": "Chamberí"
+            }
+          ],
+          "newDocRow": "[F8] HIG-03 | Aplicación de flúor | Higiene | 18 | 15 | 15 | Laura Núñez | Salamanca | Febrero 2026",
+          "existingDocRow": "[F9] HIG-03 | Aplicación de flúor | Higiene | 18 | 15 | 15 | Laura Núñez | Chamberí | Febrero 2026",
+          "origen": "diff_tabular",
+          "groupId": "c64f9f56-4800-4e37-bb3d-85387a12c803",
+          "huella": "46c9d38ff65789158fdc99e86f480350f5f15bc93e0d63785f3665415531b335"
+        },
+        {
+          "topic": "Discrepancia en Precio base entre OPE-10_tarifario-tratamientos-2026.xlsx y OPE-11_tarifario-tratamientos-seguros.xlsx",
+          "newDocSays": "HIG-04 | Sellado de fisuras (por pieza) | Higiene | 25 | 20 | 20 | Nuria Ferrer | Chamberí | Febrero 2026",
+          "existingDocSays": "HIG-04 | Sellado de fisuras (por pieza) | Higiene | 30 | 20 | 20 | Nuria Ferrer | Chamberí | Febrero 2026",
+          "existingDocument": "OPE-11_tarifario-tratamientos-seguros.xlsx",
+          "existingDocumentId": "a9203396-8c14-4557-ba07-9b1f2b34d18a",
+          "severity": "contradiction",
+          "confirmedBy": "estructura",
+          "columns": [
+            "Precio base"
+          ],
+          "comparedValues": [
+            {
+              "column": "Precio base",
+              "newDocValue": "25",
+              "existingDocValue": "30"
+            }
+          ],
+          "newDocRow": "[F9] HIG-04 | Sellado de fisuras (por pieza) | Higiene | 25 | 20 | 20 | Nuria Ferrer | Chamberí | Febrero 2026",
+          "existingDocRow": "[F14] HIG-04 | Sellado de fisuras (por pieza) | Higiene | 30 | 20 | 20 | Nuria Ferrer | Chamberí | Febrero 2026",
+          "origen": "diff_tabular",
+          "groupId": "c64f9f56-4800-4e37-bb3d-85387a12c803",
+          "huella": "742b7e7a92b5934911c9b61a8b1d8206d4c3805df86af17cd4a7a67029c6d82b"
+        },
+        {
+          "topic": "Discrepancia en Duración (min) entre OPE-10_tarifario-tratamientos-2026.xlsx y OPE-11_tarifario-tratamientos-seguros.xlsx",
+          "newDocSays": "CON-03 | Empaste composite 3 caras | Conservadora | 100 | 80 | 50 | Dr. Carlos Medina | Retiro | Febrero 2026",
+          "existingDocSays": "CON-03 | Empaste composite 3 caras | Conservadora | 100 | 80 | 40 | Dr. Carlos Medina | Retiro | Febrero 2026",
+          "existingDocument": "OPE-11_tarifario-tratamientos-seguros.xlsx",
+          "existingDocumentId": "a9203396-8c14-4557-ba07-9b1f2b34d18a",
+          "severity": "contradiction",
+          "confirmedBy": "estructura",
+          "columns": [
+            "Duración (min)"
+          ],
+          "comparedValues": [
+            {
+              "column": "Duración (min)",
+              "newDocValue": "50",
+              "existingDocValue": "40"
+            }
+          ],
+          "newDocRow": "[F14] CON-03 | Empaste composite 3 caras | Conservadora | 100 | 80 | 50 | Dr. Carlos Medina | Retiro | Febrero 2026",
+          "existingDocRow": "[F17] CON-03 | Empaste composite 3 caras | Conservadora | 100 | 80 | 40 | Dr. Carlos Medina | Retiro | Febrero 2026",
+          "origen": "diff_tabular",
+          "groupId": "c64f9f56-4800-4e37-bb3d-85387a12c803",
+          "huella": "13a76ab9ac634fbcb211ee02a37a16b08b91502405a0f3627734f15b480086cf"
+        },
+        {
+          "topic": "Discrepancia en Profesional asignado entre OPE-10_tarifario-tratamientos-2026.xlsx y OPE-11_tarifario-tratamientos-seguros.xlsx",
+          "newDocSays": "CON-04 | Reconstrucción con perno | Conservadora | 150 | 120 | 60 | Dr. Carlos Medina | Retiro | Febrero 2026",
+          "existingDocSays": "CON-04 | Reconstrucción con perno | Conservadora | 150 | 120 | 60 | Dra. Marta Gil | Retiro | Febrero 2026",
+          "existingDocument": "OPE-11_tarifario-tratamientos-seguros.xlsx",
+          "existingDocumentId": "a9203396-8c14-4557-ba07-9b1f2b34d18a",
+          "severity": "contradiction",
+          "confirmedBy": "estructura",
+          "columns": [
+            "Profesional asignado"
+          ],
+          "comparedValues": [
+            {
+              "column": "Profesional asignado",
+              "newDocValue": "Dr. Carlos Medina",
+              "existingDocValue": "Dra. Marta Gil"
+            }
+          ],
+          "newDocRow": "[F15] CON-04 | Reconstrucción con perno | Conservadora | 150 | 120 | 60 | Dr. Carlos Medina | Retiro | Febrero 2026",
+          "existingDocRow": "[F21] CON-04 | Reconstrucción con perno | Conservadora | 150 | 120 | 60 | Dra. Marta Gil | Retiro | Febrero 2026",
+          "origen": "diff_tabular",
+          "groupId": "c64f9f56-4800-4e37-bb3d-85387a12c803",
+          "huella": "a9142f501c4cb006b22edbeef80355bc994b7a547ba877d02e34ca23302037bb"
+        },
+        {
+          "topic": "Discrepancia en Precio base entre OPE-10_tarifario-tratamientos-2026.xlsx y OPE-11_tarifario-tratamientos-seguros.xlsx",
+          "newDocSays": "END-03 | Endodoncia multirradicular | Endodoncia | 280 | 220 | 90 | Dra. Ana Belmonte | Chamberí | Febrero 2026",
+          "existingDocSays": "END-03 | Endodoncia multirradicular | Endodoncia | 260 | 220 | 90 | Dra. Ana Belmonte | Chamberí | Febrero 2026",
+          "existingDocument": "OPE-11_tarifario-tratamientos-seguros.xlsx",
+          "existingDocumentId": "a9203396-8c14-4557-ba07-9b1f2b34d18a",
+          "severity": "contradiction",
+          "confirmedBy": "estructura",
+          "columns": [
+            "Precio base"
+          ],
+          "comparedValues": [
+            {
+              "column": "Precio base",
+              "newDocValue": "280",
+              "existingDocValue": "260"
+            }
+          ],
+          "newDocRow": "[F20] END-03 | Endodoncia multirradicular | Endodoncia | 280 | 220 | 90 | Dra. Ana Belmonte | Chamberí | Febrero 2026",
+          "existingDocRow": "[F26] END-03 | Endodoncia multirradicular | Endodoncia | 260 | 220 | 90 | Dra. Ana Belmonte | Chamberí | Febrero 2026",
+          "origen": "diff_tabular",
+          "groupId": "c64f9f56-4800-4e37-bb3d-85387a12c803",
+          "huella": "803a4de00479742a3bd63c77812a8ce585c81a2e13660b9bb23c49c8fb557aab"
+        },
+        {
+          "topic": "Discrepancia en Clínica entre OPE-10_tarifario-tratamientos-2026.xlsx y OPE-11_tarifario-tratamientos-seguros.xlsx",
+          "newDocSays": "END-04 | Retratamiento endodóncico | Endodoncia | 320 | 260 | 90 | Dra. Ana Belmonte | Salamanca | Febrero 2026",
+          "existingDocSays": "END-04 | Retratamiento endodóncico | Endodoncia | 320 | 260 | 90 | Dra. Ana Belmonte | Retiro | Febrero 2026",
+          "existingDocument": "OPE-11_tarifario-tratamientos-seguros.xlsx",
+          "existingDocumentId": "a9203396-8c14-4557-ba07-9b1f2b34d18a",
+          "severity": "contradiction",
+          "confirmedBy": "estructura",
+          "columns": [
+            "Clínica"
+          ],
+          "comparedValues": [
+            {
+              "column": "Clínica",
+              "newDocValue": "Salamanca",
+              "existingDocValue": "Retiro"
+            }
+          ],
+          "newDocRow": "[F21] END-04 | Retratamiento endodóncico | Endodoncia | 320 | 260 | 90 | Dra. Ana Belmonte | Salamanca | Febrero 2026",
+          "existingDocRow": "[F29] END-04 | Retratamiento endodóncico | Endodoncia | 320 | 260 | 90 | Dra. Ana Belmonte | Retiro | Febrero 2026",
+          "origen": "diff_tabular",
+          "groupId": "c64f9f56-4800-4e37-bb3d-85387a12c803",
+          "huella": "ef37e36a0ef8b0131a9f91fe1f6e333185503ca53885c42a411a7e2f60fac9df"
+        },
+        {
+          "topic": "Discrepancia en Duración (min) entre OPE-10_tarifario-tratamientos-2026.xlsx y OPE-11_tarifario-tratamientos-seguros.xlsx",
+          "newDocSays": "PRO-03 | Prótesis parcial removible | Prótesis | 450 | 360 | 90 | Dr. Carlos Medina | Retiro | Febrero 2026",
+          "existingDocSays": "PRO-03 | Prótesis parcial removible | Prótesis | 450 | 360 | 75 | Dr. Carlos Medina | Retiro | Febrero 2026",
+          "existingDocument": "OPE-11_tarifario-tratamientos-seguros.xlsx",
+          "existingDocumentId": "a9203396-8c14-4557-ba07-9b1f2b34d18a",
+          "severity": "contradiction",
+          "confirmedBy": "estructura",
+          "columns": [
+            "Duración (min)"
+          ],
+          "comparedValues": [
+            {
+              "column": "Duración (min)",
+              "newDocValue": "90",
+              "existingDocValue": "75"
+            }
+          ],
+          "newDocRow": "[F26] PRO-03 | Prótesis parcial removible | Prótesis | 450 | 360 | 90 | Dr. Carlos Medina | Retiro | Febrero 2026",
+          "existingDocRow": "[F33] PRO-03 | Prótesis parcial removible | Prótesis | 450 | 360 | 75 | Dr. Carlos Medina | Retiro | Febrero 2026",
+          "origen": "diff_tabular",
+          "groupId": "c64f9f56-4800-4e37-bb3d-85387a12c803",
+          "huella": "6fd7b7ce94f278c58ef5fd2c119bb3e062e72e664aad5dc1c0a052210f3d90ac"
+        },
+        {
+          "topic": "Discrepancia en Precio base entre OPE-10_tarifario-tratamientos-2026.xlsx y OPE-11_tarifario-tratamientos-seguros.xlsx",
+          "newDocSays": "PRO-04 | Prótesis completa superior | Prótesis | 600 | 480 | 90 | Dra. Marta Gil | Chamberí | Febrero 2026",
+          "existingDocSays": "PRO-04 | Prótesis completa superior | Prótesis | 540 | 480 | 90 | Dra. Marta Gil | Chamberí | Febrero 2026",
+          "existingDocument": "OPE-11_tarifario-tratamientos-seguros.xlsx",
+          "existingDocumentId": "a9203396-8c14-4557-ba07-9b1f2b34d18a",
+          "severity": "contradiction",
+          "confirmedBy": "estructura",
+          "columns": [
+            "Precio base"
+          ],
+          "comparedValues": [
+            {
+              "column": "Precio base",
+              "newDocValue": "600",
+              "existingDocValue": "540"
+            }
+          ],
+          "newDocRow": "[F27] PRO-04 | Prótesis completa superior | Prótesis | 600 | 480 | 90 | Dra. Marta Gil | Chamberí | Febrero 2026",
+          "existingDocRow": "[F38] PRO-04 | Prótesis completa superior | Prótesis | 540 | 480 | 90 | Dra. Marta Gil | Chamberí | Febrero 2026",
+          "origen": "diff_tabular",
+          "groupId": "c64f9f56-4800-4e37-bb3d-85387a12c803",
+          "huella": "84465852d3c0e251ea2c15b466a47e87656439bd53633b1ef4c69e6ba979d8c5"
+        },
+        {
+          "topic": "Discrepancia en Profesional asignado entre OPE-10_tarifario-tratamientos-2026.xlsx y OPE-11_tarifario-tratamientos-seguros.xlsx",
+          "newDocSays": "IMP-03 | Regeneración ósea guiada | Implantes | 650 | 520 | 90 | Dr. Pablo Reyes | Chamberí | Febrero 2026",
+          "existingDocSays": "IMP-03 | Regeneración ósea guiada | Implantes | 650 | 520 | 90 | Dra. Ana Belmonte | Chamberí | Febrero 2026",
+          "existingDocument": "OPE-11_tarifario-tratamientos-seguros.xlsx",
+          "existingDocumentId": "a9203396-8c14-4557-ba07-9b1f2b34d18a",
+          "severity": "contradiction",
+          "confirmedBy": "estructura",
+          "columns": [
+            "Profesional asignado"
+          ],
+          "comparedValues": [
+            {
+              "column": "Profesional asignado",
+              "newDocValue": "Dr. Pablo Reyes",
+              "existingDocValue": "Dra. Ana Belmonte"
+            }
+          ],
+          "newDocRow": "[F32] IMP-03 | Regeneración ósea guiada | Implantes | 650 | 520 | 90 | Dr. Pablo Reyes | Chamberí | Febrero 2026",
+          "existingDocRow": "[F41] IMP-03 | Regeneración ósea guiada | Implantes | 650 | 520 | 90 | Dra. Ana Belmonte | Chamberí | Febrero 2026",
+          "origen": "diff_tabular",
+          "groupId": "c64f9f56-4800-4e37-bb3d-85387a12c803",
+          "huella": "b87c6e342214df5b29cdfd38822c100586847b6b2eb40ad79ac507e42c04fae8"
+        },
+        {
+          "topic": "Discrepancia en Clínica entre OPE-10_tarifario-tratamientos-2026.xlsx y OPE-11_tarifario-tratamientos-seguros.xlsx",
+          "newDocSays": "ORT-03 | Ortodoncia invisible (alineadores) | Ortodoncia | 3800 | 3100 | 45 | Dr. Javier Soto | Chamberí | Febrero 2026",
+          "existingDocSays": "ORT-03 | Ortodoncia invisible (alineadores) | Ortodoncia | 3800 | 3100 | 45 | Dr. Javier Soto | Salamanca | Febrero 2026",
+          "existingDocument": "OPE-11_tarifario-tratamientos-seguros.xlsx",
+          "existingDocumentId": "a9203396-8c14-4557-ba07-9b1f2b34d18a",
+          "severity": "contradiction",
+          "confirmedBy": "estructura",
+          "columns": [
+            "Clínica"
+          ],
+          "comparedValues": [
+            {
+              "column": "Clínica",
+              "newDocValue": "Chamberí",
+              "existingDocValue": "Salamanca"
+            }
+          ],
+          "newDocRow": "[F38] ORT-03 | Ortodoncia invisible (alineadores) | Ortodoncia | 3800 | 3100 | 45 | Dr. Javier Soto | Chamberí | Febrero 2026",
+          "existingDocRow": "[F45] ORT-03 | Ortodoncia invisible (alineadores) | Ortodoncia | 3800 | 3100 | 45 | Dr. Javier Soto | Salamanca | Febrero 2026",
+          "origen": "diff_tabular",
+          "groupId": "c64f9f56-4800-4e37-bb3d-85387a12c803",
+          "huella": "447c5ecc842b87a38a53b2530d928261d653a7e5a19b27cbbc53d9659a89f281"
+        },
+        {
+          "topic": "Discrepancia en Precio base entre OPE-10_tarifario-tratamientos-2026.xlsx y OPE-11_tarifario-tratamientos-seguros.xlsx",
+          "newDocSays": "EST-03 | Carilla de composite | Estética | 180 | 145 | 45 | Dr. Carlos Medina | Retiro | Febrero 2026",
+          "existingDocSays": "EST-03 | Carilla de composite | Estética | 160 | 145 | 45 | Dr. Carlos Medina | Retiro | Febrero 2026",
+          "existingDocument": "OPE-11_tarifario-tratamientos-seguros.xlsx",
+          "existingDocumentId": "a9203396-8c14-4557-ba07-9b1f2b34d18a",
+          "severity": "contradiction",
+          "confirmedBy": "estructura",
+          "columns": [
+            "Precio base"
+          ],
+          "comparedValues": [
+            {
+              "column": "Precio base",
+              "newDocValue": "180",
+              "existingDocValue": "160"
+            }
+          ],
+          "newDocRow": "[F44] EST-03 | Carilla de composite | Estética | 180 | 145 | 45 | Dr. Carlos Medina | Retiro | Febrero 2026",
+          "existingDocRow": "[F50] EST-03 | Carilla de composite | Estética | 160 | 145 | 45 | Dr. Carlos Medina | Retiro | Febrero 2026",
+          "origen": "diff_tabular",
+          "groupId": "c64f9f56-4800-4e37-bb3d-85387a12c803",
+          "huella": "a47f1dda20d797231fef029bd964b43ad665c61e4beb5e1cad636a904eb6ad86"
+        },
+        {
+          "topic": "Discrepancia en Duración (min) entre OPE-10_tarifario-tratamientos-2026.xlsx y OPE-11_tarifario-tratamientos-seguros.xlsx",
+          "newDocSays": "CIR-03 | Extracción de cordal incluido | Cirugía | 180 | 145 | 45 | Dr. Pablo Reyes | Chamberí | Febrero 2026",
+          "existingDocSays": "CIR-03 | Extracción de cordal incluido | Cirugía | 180 | 145 | 60 | Dr. Pablo Reyes | Chamberí | Febrero 2026",
+          "existingDocument": "OPE-11_tarifario-tratamientos-seguros.xlsx",
+          "existingDocumentId": "a9203396-8c14-4557-ba07-9b1f2b34d18a",
+          "severity": "contradiction",
+          "confirmedBy": "estructura",
+          "columns": [
+            "Duración (min)"
+          ],
+          "comparedValues": [
+            {
+              "column": "Duración (min)",
+              "newDocValue": "45",
+              "existingDocValue": "60"
+            }
+          ],
+          "newDocRow": "[F50] CIR-03 | Extracción de cordal incluido | Cirugía | 180 | 145 | 45 | Dr. Pablo Reyes | Chamberí | Febrero 2026",
+          "existingDocRow": "[F53] CIR-03 | Extracción de cordal incluido | Cirugía | 180 | 145 | 60 | Dr. Pablo Reyes | Chamberí | Febrero 2026",
+          "origen": "diff_tabular",
+          "groupId": "c64f9f56-4800-4e37-bb3d-85387a12c803",
+          "huella": "870bc3336bc9f8a5072d6055e2229e024881796c777fdb9d1146f5cbf0042e6d"
+        },
+        {
+          "topic": "Discrepancia en Profesional asignado entre OPE-10_tarifario-tratamientos-2026.xlsx y OPE-11_tarifario-tratamientos-seguros.xlsx",
+          "newDocSays": "URG-03 | Reimplante dental de urgencia | Urgencias | 150 | 120 | 45 | Dra. Ana Belmonte | Chamberí | Febrero 2026",
+          "existingDocSays": "URG-03 | Reimplante dental de urgencia | Urgencias | 150 | 120 | 45 | Dr. Pablo Reyes | Chamberí | Febrero 2026",
+          "existingDocument": "OPE-11_tarifario-tratamientos-seguros.xlsx",
+          "existingDocumentId": "a9203396-8c14-4557-ba07-9b1f2b34d18a",
+          "severity": "contradiction",
+          "confirmedBy": "estructura",
+          "columns": [
+            "Profesional asignado"
+          ],
+          "comparedValues": [
+            {
+              "column": "Profesional asignado",
+              "newDocValue": "Dra. Ana Belmonte",
+              "existingDocValue": "Dr. Pablo Reyes"
+            }
+          ],
+          "newDocRow": "[F56] URG-03 | Reimplante dental de urgencia | Urgencias | 150 | 120 | 45 | Dra. Ana Belmonte | Chamberí | Febrero 2026",
+          "existingDocRow": "[F57] URG-03 | Reimplante dental de urgencia | Urgencias | 150 | 120 | 45 | Dr. Pablo Reyes | Chamberí | Febrero 2026",
+          "origen": "diff_tabular",
+          "groupId": "c64f9f56-4800-4e37-bb3d-85387a12c803",
+          "huella": "1e8cfb229ae6aa209ae8164a605b0d34230e6bda683e74dab2afc253d2cf18eb"
+        }
+      ],
+      "tableDiffs": [
+        {
+          "groupId": "c64f9f56-4800-4e37-bb3d-85387a12c803",
+          "tablaNueva": "Tarifas#0",
+          "tablaExistente": "Tarifas concertadas#0",
+          "documentoExistente": "OPE-11_tarifario-tratamientos-seguros.xlsx",
+          "documentoExistenteId": "a9203396-8c14-4557-ba07-9b1f2b34d18a",
+          "discrepantes": 15,
+          "identicas": 20,
+          "porColumna": {
+            "Duración (min)": 4,
+            "Profesional asignado": 4,
+            "Clínica": 3,
+            "Precio base": 4
+          },
+          "variantesDeEscritura": [],
+          "soloEnNuevo": [
+            {
+              "clave": "DIA-05 · Chamberí · Febrero 2026 · Diagnóstico · 90 · Estudio ortodóncico completo · 45 · 75 · Dr. Javier Soto",
+              "texto": "[Hoja \"Tarifas\"] Código: DIA-05 | Tratamiento: Estudio ortodóncico completo | Categoría: Diagnóstico | Precio base: 90 | Precio con seguro: 75 | Duración (min): 45 | Profesional asignado: Dr. Javier Soto | Clínica: Chamberí | Revisión: Febrero 2026"
+            },
+            {
+              "clave": "DIA-06 · Chamberí · Marzo 2026 · Diagnóstico · 30 · Revisión odontopediátrica · 20 · 25 · Nuria Ferrer",
+              "texto": "[Hoja \"Tarifas\"] Código: DIA-06 | Tratamiento: Revisión odontopediátrica | Categoría: Diagnóstico | Precio base: 30 | Precio con seguro: 25 | Duración (min): 20 | Profesional asignado: Nuria Ferrer | Clínica: Chamberí | Revisión: Marzo 2026"
+            },
+            {
+              "clave": "HIG-05 · Retiro · Marzo 2026 · Higiene · 60 · Higiene con ultrasonidos · 40 · 50 · Laura Núñez",
+              "texto": "[Hoja \"Tarifas\"] Código: HIG-05 | Tratamiento: Higiene con ultrasonidos | Categoría: Higiene | Precio base: 60 | Precio con seguro: 50 | Duración (min): 40 | Profesional asignado: Laura Núñez | Clínica: Retiro | Revisión: Marzo 2026"
+            },
+            {
+              "clave": "HIG-06 · Chamberí · Marzo 2026 · Higiene · 15 · Enseñanza de higiene oral · 20 · 15 · Laura Núñez",
+              "texto": "[Hoja \"Tarifas\"] Código: HIG-06 | Tratamiento: Enseñanza de higiene oral | Categoría: Higiene | Precio base: 15 | Precio con seguro: 15 | Duración (min): 20 | Profesional asignado: Laura Núñez | Clínica: Chamberí | Revisión: Marzo 2026"
+            },
+            {
+              "clave": "CON-05 · Salamanca · Marzo 2026 · Conservadora · 280 · Incrustación cerámica (inlay) · 60 · 230 · Dra. Marta Gil",
+              "texto": "[Hoja \"Tarifas\"] Código: CON-05 | Tratamiento: Incrustación cerámica (inlay) | Categoría: Conservadora | Precio base: 280 | Precio con seguro: 230 | Duración (min): 60 | Profesional asignado: Dra. Marta Gil | Clínica: Salamanca | Revisión: Marzo 2026"
+            },
+            {
+              "clave": "CON-06 · Chamberí · Marzo 2026 · Conservadora · 35 · Sellado preventivo infantil · 25 · 28 · Nuria Ferrer",
+              "texto": "[Hoja \"Tarifas\"] Código: CON-06 | Tratamiento: Sellado preventivo infantil | Categoría: Conservadora | Precio base: 35 | Precio con seguro: 28 | Duración (min): 25 | Profesional asignado: Nuria Ferrer | Clínica: Chamberí | Revisión: Marzo 2026"
+            },
+            {
+              "clave": "END-05 · Chamberí · Marzo 2026 · Endodoncia · 250 · Apicectomía · 60 · 200 · Dra. Ana Belmonte",
+              "texto": "[Hoja \"Tarifas\"] Código: END-05 | Tratamiento: Apicectomía | Categoría: Endodoncia | Precio base: 250 | Precio con seguro: 200 | Duración (min): 60 | Profesional asignado: Dra. Ana Belmonte | Clínica: Chamberí | Revisión: Marzo 2026"
+            },
+            {
+              "clave": "END-06 · Chamberí · Marzo 2026 · Endodoncia · 30 · Revisión endodóncica postoperatoria · 20 · 25 · Dra. Ana Belmonte",
+              "texto": "[Hoja \"Tarifas\"] Código: END-06 | Tratamiento: Revisión endodóncica postoperatoria | Categoría: Endodoncia | Precio base: 30 | Precio con seguro: 25 | Duración (min): 20 | Profesional asignado: Dra. Ana Belmonte | Clínica: Chamberí | Revisión: Marzo 2026"
+            },
+            {
+              "clave": "PRO-05 · Salamanca · Marzo 2026 · Prótesis · 900 · Puente de tres piezas · 120 · 720 · Dra. Marta Gil",
+              "texto": "[Hoja \"Tarifas\"] Código: PRO-05 | Tratamiento: Puente de tres piezas | Categoría: Prótesis | Precio base: 900 | Precio con seguro: 720 | Duración (min): 120 | Profesional asignado: Dra. Marta Gil | Clínica: Salamanca | Revisión: Marzo 2026"
+            },
+            {
+              "clave": "PRO-06 · Retiro · Marzo 2026 · Prótesis · 80 · Reparación de prótesis · 30 · 65 · Dr. Carlos Medina",
+              "texto": "[Hoja \"Tarifas\"] Código: PRO-06 | Tratamiento: Reparación de prótesis | Categoría: Prótesis | Precio base: 80 | Precio con seguro: 65 | Duración (min): 30 | Profesional asignado: Dr. Carlos Medina | Clínica: Retiro | Revisión: Marzo 2026"
+            },
+            {
+              "clave": "IMP-04 · Salamanca · Febrero 2026 · Implantes · 750 · Elevación de seno maxilar · 90 · 600 · Dr. Pablo Reyes",
+              "texto": "[Hoja \"Tarifas\"] Código: IMP-04 | Tratamiento: Elevación de seno maxilar | Categoría: Implantes | Precio base: 750 | Precio con seguro: 600 | Duración (min): 90 | Profesional asignado: Dr. Pablo Reyes | Clínica: Salamanca | Revisión: Febrero 2026"
+            },
+            {
+              "clave": "IMP-05 · Chamberí · Marzo 2026 · Implantes · 120 · Estudio previo con TAC · 30 · 100 · Dr. Pablo Reyes",
+              "texto": "[Hoja \"Tarifas\"] Código: IMP-05 | Tratamiento: Estudio previo con TAC | Categoría: Implantes | Precio base: 120 | Precio con seguro: 100 | Duración (min): 30 | Profesional asignado: Dr. Pablo Reyes | Clínica: Chamberí | Revisión: Marzo 2026"
+            },
+            {
+              "clave": "IMP-06 · Chamberí · Marzo 2026 · Implantes · 2200 · Prótesis híbrida sobre implantes · 120 · 1760 · Dr. Pablo Reyes",
+              "texto": "[Hoja \"Tarifas\"] Código: IMP-06 | Tratamiento: Prótesis híbrida sobre implantes | Categoría: Implantes | Precio base: 2200 | Precio con seguro: 1760 | Duración (min): 120 | Profesional asignado: Dr. Pablo Reyes | Clínica: Chamberí | Revisión: Marzo 2026"
+            },
+            {
+              "clave": "ORT-04 · Chamberí · Febrero 2026 · Ortodoncia · 45 · Revisión mensual de ortodoncia · 20 · 40 · Dr. Javier Soto",
+              "texto": "[Hoja \"Tarifas\"] Código: ORT-04 | Tratamiento: Revisión mensual de ortodoncia | Categoría: Ortodoncia | Precio base: 45 | Precio con seguro: 40 | Duración (min): 20 | Profesional asignado: Dr. Javier Soto | Clínica: Chamberí | Revisión: Febrero 2026"
+            },
+            {
+              "clave": "ORT-05 · Salamanca · Marzo 2026 · Ortodoncia · 120 · Retenedor fijo · 30 · 100 · Dr. Javier Soto",
+              "texto": "[Hoja \"Tarifas\"] Código: ORT-05 | Tratamiento: Retenedor fijo | Categoría: Ortodoncia | Precio base: 120 | Precio con seguro: 100 | Duración (min): 30 | Profesional asignado: Dr. Javier Soto | Clínica: Salamanca | Revisión: Marzo 2026"
+            },
+            {
+              "clave": "ORT-06 · Chamberí · Marzo 2026 · Ortodoncia · 1800 · Ortodoncia interceptiva infantil · 40 · 1450 · Nuria Ferrer",
+              "texto": "[Hoja \"Tarifas\"] Código: ORT-06 | Tratamiento: Ortodoncia interceptiva infantil | Categoría: Ortodoncia | Precio base: 1800 | Precio con seguro: 1450 | Duración (min): 40 | Profesional asignado: Nuria Ferrer | Clínica: Chamberí | Revisión: Marzo 2026"
+            },
+            {
+              "clave": "EST-04 · Retiro · Febrero 2026 · Estética · 450 · Carilla de porcelana · 60 · 360 · Dr. Carlos Medina",
+              "texto": "[Hoja \"Tarifas\"] Código: EST-04 | Tratamiento: Carilla de porcelana | Categoría: Estética | Precio base: 450 | Precio con seguro: 360 | Duración (min): 60 | Profesional asignado: Dr. Carlos Medina | Clínica: Retiro | Revisión: Febrero 2026"
+            },
+            {
+              "clave": "EST-05 · Salamanca · Marzo 2026 · Estética · 100 · Diseño de sonrisa digital · 45 · 90 · Dra. Marta Gil",
+              "texto": "[Hoja \"Tarifas\"] Código: EST-05 | Tratamiento: Diseño de sonrisa digital | Categoría: Estética | Precio base: 100 | Precio con seguro: 90 | Duración (min): 45 | Profesional asignado: Dra. Marta Gil | Clínica: Salamanca | Revisión: Marzo 2026"
+            },
+            {
+              "clave": "EST-06 · Chamberí · Marzo 2026 · Estética · 200 · Recontorneado estético gingival · 40 · 160 · Dr. Pablo Reyes",
+              "texto": "[Hoja \"Tarifas\"] Código: EST-06 | Tratamiento: Recontorneado estético gingival | Categoría: Estética | Precio base: 200 | Precio con seguro: 160 | Duración (min): 40 | Profesional asignado: Dr. Pablo Reyes | Clínica: Chamberí | Revisión: Marzo 2026"
+            },
+            {
+              "clave": "CIR-04 · Retiro · Febrero 2026 · Cirugía · 150 · Frenectomía · 30 · 120 · Dr. Pablo Reyes",
+              "texto": "[Hoja \"Tarifas\"] Código: CIR-04 | Tratamiento: Frenectomía | Categoría: Cirugía | Precio base: 150 | Precio con seguro: 120 | Duración (min): 30 | Profesional asignado: Dr. Pablo Reyes | Clínica: Retiro | Revisión: Febrero 2026"
+            },
+            {
+              "clave": "CIR-05 · Chamberí · Marzo 2026 · Cirugía · 130 · Biopsia de tejido oral · 30 · 105 · Dra. Ana Belmonte",
+              "texto": "[Hoja \"Tarifas\"] Código: CIR-05 | Tratamiento: Biopsia de tejido oral | Categoría: Cirugía | Precio base: 130 | Precio con seguro: 105 | Duración (min): 30 | Profesional asignado: Dra. Ana Belmonte | Clínica: Chamberí | Revisión: Marzo 2026"
+            },
+            {
+              "clave": "CIR-06 · Salamanca · Marzo 2026 · Cirugía · 200 · Torque de exostosis ósea · 45 · 160 · Dr. Pablo Reyes",
+              "texto": "[Hoja \"Tarifas\"] Código: CIR-06 | Tratamiento: Torque de exostosis ósea | Categoría: Cirugía | Precio base: 200 | Precio con seguro: 160 | Duración (min): 45 | Profesional asignado: Dr. Pablo Reyes | Clínica: Salamanca | Revisión: Marzo 2026"
+            },
+            {
+              "clave": "URG-04 · Chamberí · Febrero 2026 · Urgencias · 90 · Drenaje de absceso · 30 · 72 · Dr. Pablo Reyes",
+              "texto": "[Hoja \"Tarifas\"] Código: URG-04 | Tratamiento: Drenaje de absceso | Categoría: Urgencias | Precio base: 90 | Precio con seguro: 72 | Duración (min): 30 | Profesional asignado: Dr. Pablo Reyes | Clínica: Chamberí | Revisión: Febrero 2026"
+            },
+            {
+              "clave": "URG-05 · Salamanca · Marzo 2026 · Urgencias · 60 · Sedación con óxido nitroso · 30 · 50 · Dra. Marta Gil",
+              "texto": "[Hoja \"Tarifas\"] Código: URG-05 | Tratamiento: Sedación con óxido nitroso | Categoría: Urgencias | Precio base: 60 | Precio con seguro: 50 | Duración (min): 30 | Profesional asignado: Dra. Marta Gil | Clínica: Salamanca | Revisión: Marzo 2026"
+            },
+            {
+              "clave": "URG-06 · Retiro · Marzo 2026 · Urgencias · 40 · Cementado de urgencia de corona · 20 · 32 · Dr. Carlos Medina",
+              "texto": "[Hoja \"Tarifas\"] Código: URG-06 | Tratamiento: Cementado de urgencia de corona | Categoría: Urgencias | Precio base: 40 | Precio con seguro: 32 | Duración (min): 20 | Profesional asignado: Dr. Carlos Medina | Clínica: Retiro | Revisión: Marzo 2026"
+            }
+          ],
+          "soloEnOtro": [
+            {
+              "clave": "SEG-01 · Chamberí · Enero 2026 · Diagnóstico · 20 · Consulta concertada de revisión · 20 · 15 · Dra. Marta Gil",
+              "texto": "[Hoja \"Tarifas concertadas\"] Código: SEG-01 | Tratamiento: Consulta concertada de revisión | Categoría: Diagnóstico | Precio base: 20 | Precio con seguro: 15 | Duración (min): 20 | Profesional asignado: Dra. Marta Gil | Clínica: Chamberí | Revisión: Enero 2026"
+            },
+            {
+              "clave": "SEG-02 · Chamberí · Enero 2026 · Diagnóstico · 40 · Radiografía panorámica concertada · 15 · 30 · Cristina Ibáñez",
+              "texto": "[Hoja \"Tarifas concertadas\"] Código: SEG-02 | Tratamiento: Radiografía panorámica concertada | Categoría: Diagnóstico | Precio base: 40 | Precio con seguro: 30 | Duración (min): 15 | Profesional asignado: Cristina Ibáñez | Clínica: Chamberí | Revisión: Enero 2026"
+            },
+            {
+              "clave": "SEG-03 · Chamberí · Enero 2026 · Higiene · 45 · Limpieza concertada semestral · 30 · 35 · Laura Núñez",
+              "texto": "[Hoja \"Tarifas concertadas\"] Código: SEG-03 | Tratamiento: Limpieza concertada semestral | Categoría: Higiene | Precio base: 45 | Precio con seguro: 35 | Duración (min): 30 | Profesional asignado: Laura Núñez | Clínica: Chamberí | Revisión: Enero 2026"
+            },
+            {
+              "clave": "SEG-04 · Chamberí · Febrero 2026 · Higiene · 15 · Aplicación de flúor concertada · 15 · 12 · Laura Núñez",
+              "texto": "[Hoja \"Tarifas concertadas\"] Código: SEG-04 | Tratamiento: Aplicación de flúor concertada | Categoría: Higiene | Precio base: 15 | Precio con seguro: 12 | Duración (min): 15 | Profesional asignado: Laura Núñez | Clínica: Chamberí | Revisión: Febrero 2026"
+            },
+            {
+              "clave": "SEG-05 · Chamberí · Febrero 2026 · Higiene · 20 · Sellado de fisuras concertado (pieza) · 15 · 16 · Nuria Ferrer",
+              "texto": "[Hoja \"Tarifas concertadas\"] Código: SEG-05 | Tratamiento: Sellado de fisuras concertado (pieza) | Categoría: Higiene | Precio base: 20 | Precio con seguro: 16 | Duración (min): 15 | Profesional asignado: Nuria Ferrer | Clínica: Chamberí | Revisión: Febrero 2026"
+            },
+            {
+              "clave": "SEG-06 · Chamberí · Enero 2026 · Conservadora · 45 · Empaste concertado composite 1 cara · 25 · 35 · Dra. Marta Gil",
+              "texto": "[Hoja \"Tarifas concertadas\"] Código: SEG-06 | Tratamiento: Empaste concertado composite 1 cara | Categoría: Conservadora | Precio base: 45 | Precio con seguro: 35 | Duración (min): 25 | Profesional asignado: Dra. Marta Gil | Clínica: Chamberí | Revisión: Enero 2026"
+            },
+            {
+              "clave": "SEG-07 · Chamberí · Febrero 2026 · Conservadora · 65 · Empaste concertado composite 2 caras · 35 · 50 · Dr. Carlos Medina",
+              "texto": "[Hoja \"Tarifas concertadas\"] Código: SEG-07 | Tratamiento: Empaste concertado composite 2 caras | Categoría: Conservadora | Precio base: 65 | Precio con seguro: 50 | Duración (min): 35 | Profesional asignado: Dr. Carlos Medina | Clínica: Chamberí | Revisión: Febrero 2026"
+            },
+            {
+              "clave": "SEG-08 · Chamberí · Marzo 2026 · Conservadora · 130 · Reconstrucción concertada con perno · 55 · 100 · Dra. Marta Gil",
+              "texto": "[Hoja \"Tarifas concertadas\"] Código: SEG-08 | Tratamiento: Reconstrucción concertada con perno | Categoría: Conservadora | Precio base: 130 | Precio con seguro: 100 | Duración (min): 55 | Profesional asignado: Dra. Marta Gil | Clínica: Chamberí | Revisión: Marzo 2026"
+            },
+            {
+              "clave": "SEG-09 · Chamberí · Enero 2026 · Endodoncia · 150 · Endodoncia concertada unirradicular · 55 · 115 · Dra. Ana Belmonte",
+              "texto": "[Hoja \"Tarifas concertadas\"] Código: SEG-09 | Tratamiento: Endodoncia concertada unirradicular | Categoría: Endodoncia | Precio base: 150 | Precio con seguro: 115 | Duración (min): 55 | Profesional asignado: Dra. Ana Belmonte | Clínica: Chamberí | Revisión: Enero 2026"
+            },
+            {
+              "clave": "SEG-10 · Chamberí · Febrero 2026 · Endodoncia · 190 · Endodoncia concertada birradicular · 70 · 145 · Dra. Ana Belmonte",
+              "texto": "[Hoja \"Tarifas concertadas\"] Código: SEG-10 | Tratamiento: Endodoncia concertada birradicular | Categoría: Endodoncia | Precio base: 190 | Precio con seguro: 145 | Duración (min): 70 | Profesional asignado: Dra. Ana Belmonte | Clínica: Chamberí | Revisión: Febrero 2026"
+            },
+            {
+              "clave": "SEG-11 · Chamberí · Enero 2026 · Prótesis · 340 · Corona concertada de porcelana sobre metal · 55 · 260 · Dra. Marta Gil",
+              "texto": "[Hoja \"Tarifas concertadas\"] Código: SEG-11 | Tratamiento: Corona concertada de porcelana sobre metal | Categoría: Prótesis | Precio base: 340 | Precio con seguro: 260 | Duración (min): 55 | Profesional asignado: Dra. Marta Gil | Clínica: Chamberí | Revisión: Enero 2026"
+            },
+            {
+              "clave": "SEG-12 · Chamberí · Marzo 2026 · Prótesis · 380 · Prótesis parcial concertada · 85 · 290 · Dr. Carlos Medina",
+              "texto": "[Hoja \"Tarifas concertadas\"] Código: SEG-12 | Tratamiento: Prótesis parcial concertada | Categoría: Prótesis | Precio base: 380 | Precio con seguro: 290 | Duración (min): 85 | Profesional asignado: Dr. Carlos Medina | Clínica: Chamberí | Revisión: Marzo 2026"
+            },
+            {
+              "clave": "SEG-13 · Chamberí · Enero 2026 · Implantes · 750 · Implante concertado unitario · 55 · 580 · Dr. Pablo Reyes",
+              "texto": "[Hoja \"Tarifas concertadas\"] Código: SEG-13 | Tratamiento: Implante concertado unitario | Categoría: Implantes | Precio base: 750 | Precio con seguro: 580 | Duración (min): 55 | Profesional asignado: Dr. Pablo Reyes | Clínica: Chamberí | Revisión: Enero 2026"
+            },
+            {
+              "clave": "SEG-14 · Chamberí · Febrero 2026 · Implantes · 420 · Corona concertada sobre implante · 55 · 320 · Dr. Pablo Reyes",
+              "texto": "[Hoja \"Tarifas concertadas\"] Código: SEG-14 | Tratamiento: Corona concertada sobre implante | Categoría: Implantes | Precio base: 420 | Precio con seguro: 320 | Duración (min): 55 | Profesional asignado: Dr. Pablo Reyes | Clínica: Chamberí | Revisión: Febrero 2026"
+            },
+            {
+              "clave": "SEG-15 · Chamberí · Marzo 2026 · Implantes · 95 · Estudio concertado con TAC · 25 · 75 · Dr. Pablo Reyes",
+              "texto": "[Hoja \"Tarifas concertadas\"] Código: SEG-15 | Tratamiento: Estudio concertado con TAC | Categoría: Implantes | Precio base: 95 | Precio con seguro: 75 | Duración (min): 25 | Profesional asignado: Dr. Pablo Reyes | Clínica: Chamberí | Revisión: Marzo 2026"
+            },
+            {
+              "clave": "SEG-16 · Chamberí · Enero 2026 · Ortodoncia · 2400 · Ortodoncia concertada con brackets metálicos · 55 · 1900 · Dr. Javier Soto",
+              "texto": "[Hoja \"Tarifas concertadas\"] Código: SEG-16 | Tratamiento: Ortodoncia concertada con brackets metálicos | Categoría: Ortodoncia | Precio base: 2400 | Precio con seguro: 1900 | Duración (min): 55 | Profesional asignado: Dr. Javier Soto | Clínica: Chamberí | Revisión: Enero 2026"
+            },
+            {
+              "clave": "SEG-17 · Chamberí · Febrero 2026 · Ortodoncia · 35 · Revisión concertada de ortodoncia mensual · 15 · 30 · Dr. Javier Soto",
+              "texto": "[Hoja \"Tarifas concertadas\"] Código: SEG-17 | Tratamiento: Revisión concertada de ortodoncia mensual | Categoría: Ortodoncia | Precio base: 35 | Precio con seguro: 30 | Duración (min): 15 | Profesional asignado: Dr. Javier Soto | Clínica: Chamberí | Revisión: Febrero 2026"
+            },
+            {
+              "clave": "SEG-18 · Chamberí · Marzo 2026 · Ortodoncia · 100 · Retenedor fijo concertado · 25 · 80 · Dr. Javier Soto",
+              "texto": "[Hoja \"Tarifas concertadas\"] Código: SEG-18 | Tratamiento: Retenedor fijo concertado | Categoría: Ortodoncia | Precio base: 100 | Precio con seguro: 80 | Duración (min): 25 | Profesional asignado: Dr. Javier Soto | Clínica: Chamberí | Revisión: Marzo 2026"
+            },
+            {
+              "clave": "SEG-19 · Chamberí · Enero 2026 · Estética · 200 · Blanqueamiento concertado en clínica · 55 · 160 · Dra. Marta Gil",
+              "texto": "[Hoja \"Tarifas concertadas\"] Código: SEG-19 | Tratamiento: Blanqueamiento concertado en clínica | Categoría: Estética | Precio base: 200 | Precio con seguro: 160 | Duración (min): 55 | Profesional asignado: Dra. Marta Gil | Clínica: Chamberí | Revisión: Enero 2026"
+            },
+            {
+              "clave": "SEG-20 · Chamberí · Febrero 2026 · Estética · 150 · Carilla concertada de composite · 40 · 115 · Dr. Carlos Medina",
+              "texto": "[Hoja \"Tarifas concertadas\"] Código: SEG-20 | Tratamiento: Carilla concertada de composite | Categoría: Estética | Precio base: 150 | Precio con seguro: 115 | Duración (min): 40 | Profesional asignado: Dr. Carlos Medina | Clínica: Chamberí | Revisión: Febrero 2026"
+            },
+            {
+              "clave": "SEG-21 · Chamberí · Enero 2026 · Cirugía · 45 · Extracción concertada simple · 15 · 35 · Dr. Pablo Reyes",
+              "texto": "[Hoja \"Tarifas concertadas\"] Código: SEG-21 | Tratamiento: Extracción concertada simple | Categoría: Cirugía | Precio base: 45 | Precio con seguro: 35 | Duración (min): 15 | Profesional asignado: Dr. Pablo Reyes | Clínica: Chamberí | Revisión: Enero 2026"
+            },
+            {
+              "clave": "SEG-22 · Chamberí · Febrero 2026 · Cirugía · 95 · Extracción concertada quirúrgica · 35 · 75 · Dr. Pablo Reyes",
+              "texto": "[Hoja \"Tarifas concertadas\"] Código: SEG-22 | Tratamiento: Extracción concertada quirúrgica | Categoría: Cirugía | Precio base: 95 | Precio con seguro: 75 | Duración (min): 35 | Profesional asignado: Dr. Pablo Reyes | Clínica: Chamberí | Revisión: Febrero 2026"
+            },
+            {
+              "clave": "SEG-23 · Chamberí · Marzo 2026 · Cirugía · 120 · Frenectomía concertada · 25 · 95 · Dr. Pablo Reyes",
+              "texto": "[Hoja \"Tarifas concertadas\"] Código: SEG-23 | Tratamiento: Frenectomía concertada | Categoría: Cirugía | Precio base: 120 | Precio con seguro: 95 | Duración (min): 25 | Profesional asignado: Dr. Pablo Reyes | Clínica: Chamberí | Revisión: Marzo 2026"
+            },
+            {
+              "clave": "SEG-24 · Chamberí · Enero 2026 · Urgencias · 40 · Urgencia concertada por dolor dental · 20 · 30 · Dr. Carlos Medina",
+              "texto": "[Hoja \"Tarifas concertadas\"] Código: SEG-24 | Tratamiento: Urgencia concertada por dolor dental | Categoría: Urgencias | Precio base: 40 | Precio con seguro: 30 | Duración (min): 20 | Profesional asignado: Dr. Carlos Medina | Clínica: Chamberí | Revisión: Enero 2026"
+            },
+            {
+              "clave": "SEG-25 · Chamberí · Marzo 2026 · Urgencias · 75 · Drenaje concertado de absceso · 25 · 58 · Dr. Pablo Reyes",
+              "texto": "[Hoja \"Tarifas concertadas\"] Código: SEG-25 | Tratamiento: Drenaje concertado de absceso | Categoría: Urgencias | Precio base: 75 | Precio con seguro: 58 | Duración (min): 25 | Profesional asignado: Dr. Pablo Reyes | Clínica: Chamberí | Revisión: Marzo 2026"
+            }
+          ]
+        }
+      ],
+      "newInformation": "OPE-10 aporta información actualizada para 2026 con tratamientos nuevos o modificados respecto al tarifario de seguros, pero las contradicciones detectadas sugieren que ambos documentos pueden estar desalineados o reflejar diferentes versiones de la política de precios y asignación de recursos.",
+      "recommendation": "REVISAR",
+      "summary": "El documento OPE-10 (tarifario 2026) comparte aproximadamente un tercio de su contenido con OPE-11 (tarifario seguros), pero presenta múltiples discrepancias en datos clave como duración, profesional asignado, clínica, y precio base. Se detectaron 20 tratamientos idénticos entre ambos documentos, pero hay inconsistencias significativas en los parámetros de otros tratamientos que requieren validación.",
+      "judgments": [
+        {
+          "documentId": "a9203396-8c14-4557-ba07-9b1f2b34d18a",
+          "documentName": "OPE-11_tarifario-tratamientos-seguros.xlsx",
+          "source": "manual",
+          "overlapPercent": 33,
+          "verdict": "tema_similar",
+          "contradictions": [
+            {
+              "topic": "Discrepancia en Duración (min) entre OPE-10_tarifario-tratamientos-2026.xlsx y OPE-11_tarifario-tratamientos-seguros.xlsx",
+              "newDocSays": "DIA-02 | Revisión periódica | Diagnóstico | 25 | 20 | 20 | Dr. Carlos Medina | Retiro | Enero 2026",
+              "existingDocSays": "DIA-02 | Revisión periódica | Diagnóstico | 25 | 20 | 15 | Dr. Carlos Medina | Retiro | Enero 2026",
+              "severity": "contradiction",
+              "confirmedBy": "estructura",
+              "columns": [
+                "Duración (min)"
+              ],
+              "comparedValues": [
+                {
+                  "column": "Duración (min)",
+                  "newDocValue": "20",
+                  "existingDocValue": "15"
+                }
+              ],
+              "newDocRow": "[F1] DIA-02 | Revisión periódica | Diagnóstico | 25 | 20 | 20 | Dr. Carlos Medina | Retiro | Enero 2026",
+              "existingDocRow": "[F2] DIA-02 | Revisión periódica | Diagnóstico | 25 | 20 | 15 | Dr. Carlos Medina | Retiro | Enero 2026",
+              "origen": "diff_tabular",
+              "groupId": "c64f9f56-4800-4e37-bb3d-85387a12c803",
+              "huella": "b505df412960c8d9db6ae11496b8d51eba97e2d64c52738e18057e88cd38937e"
+            },
+            {
+              "topic": "Discrepancia en Profesional asignado entre OPE-10_tarifario-tratamientos-2026.xlsx y OPE-11_tarifario-tratamientos-seguros.xlsx",
+              "newDocSays": "DIA-04 | Ortopantomografía | Diagnóstico | 45 | 38 | 15 | Cristina Ibáñez | Chamberí | Febrero 2026",
+              "existingDocSays": "DIA-04 | Ortopantomografía | Diagnóstico | 45 | 38 | 15 | Sonia Prats | Chamberí | Febrero 2026",
+              "severity": "contradiction",
+              "confirmedBy": "estructura",
+              "columns": [
+                "Profesional asignado"
+              ],
+              "comparedValues": [
+                {
+                  "column": "Profesional asignado",
+                  "newDocValue": "Cristina Ibáñez",
+                  "existingDocValue": "Sonia Prats"
+                }
+              ],
+              "newDocRow": "[F3] DIA-04 | Ortopantomografía | Diagnóstico | 45 | 38 | 15 | Cristina Ibáñez | Chamberí | Febrero 2026",
+              "existingDocRow": "[F5] DIA-04 | Ortopantomografía | Diagnóstico | 45 | 38 | 15 | Sonia Prats | Chamberí | Febrero 2026",
+              "origen": "diff_tabular",
+              "groupId": "c64f9f56-4800-4e37-bb3d-85387a12c803",
+              "huella": "e6b121f6c3d3aec766594b9ff0e3a21a909d12c3d38700483ad2dfbc98efd75f"
+            },
+            {
+              "topic": "Discrepancia en Clínica entre OPE-10_tarifario-tratamientos-2026.xlsx y OPE-11_tarifario-tratamientos-seguros.xlsx",
+              "newDocSays": "HIG-03 | Aplicación de flúor | Higiene | 18 | 15 | 15 | Laura Núñez | Salamanca | Febrero 2026",
+              "existingDocSays": "HIG-03 | Aplicación de flúor | Higiene | 18 | 15 | 15 | Laura Núñez | Chamberí | Febrero 2026",
+              "severity": "contradiction",
+              "confirmedBy": "estructura",
+              "columns": [
+                "Clínica"
+              ],
+              "comparedValues": [
+                {
+                  "column": "Clínica",
+                  "newDocValue": "Salamanca",
+                  "existingDocValue": "Chamberí"
+                }
+              ],
+              "newDocRow": "[F8] HIG-03 | Aplicación de flúor | Higiene | 18 | 15 | 15 | Laura Núñez | Salamanca | Febrero 2026",
+              "existingDocRow": "[F9] HIG-03 | Aplicación de flúor | Higiene | 18 | 15 | 15 | Laura Núñez | Chamberí | Febrero 2026",
+              "origen": "diff_tabular",
+              "groupId": "c64f9f56-4800-4e37-bb3d-85387a12c803",
+              "huella": "46c9d38ff65789158fdc99e86f480350f5f15bc93e0d63785f3665415531b335"
+            },
+            {
+              "topic": "Discrepancia en Precio base entre OPE-10_tarifario-tratamientos-2026.xlsx y OPE-11_tarifario-tratamientos-seguros.xlsx",
+              "newDocSays": "HIG-04 | Sellado de fisuras (por pieza) | Higiene | 25 | 20 | 20 | Nuria Ferrer | Chamberí | Febrero 2026",
+              "existingDocSays": "HIG-04 | Sellado de fisuras (por pieza) | Higiene | 30 | 20 | 20 | Nuria Ferrer | Chamberí | Febrero 2026",
+              "severity": "contradiction",
+              "confirmedBy": "estructura",
+              "columns": [
+                "Precio base"
+              ],
+              "comparedValues": [
+                {
+                  "column": "Precio base",
+                  "newDocValue": "25",
+                  "existingDocValue": "30"
+                }
+              ],
+              "newDocRow": "[F9] HIG-04 | Sellado de fisuras (por pieza) | Higiene | 25 | 20 | 20 | Nuria Ferrer | Chamberí | Febrero 2026",
+              "existingDocRow": "[F14] HIG-04 | Sellado de fisuras (por pieza) | Higiene | 30 | 20 | 20 | Nuria Ferrer | Chamberí | Febrero 2026",
+              "origen": "diff_tabular",
+              "groupId": "c64f9f56-4800-4e37-bb3d-85387a12c803",
+              "huella": "742b7e7a92b5934911c9b61a8b1d8206d4c3805df86af17cd4a7a67029c6d82b"
+            },
+            {
+              "topic": "Discrepancia en Duración (min) entre OPE-10_tarifario-tratamientos-2026.xlsx y OPE-11_tarifario-tratamientos-seguros.xlsx",
+              "newDocSays": "CON-03 | Empaste composite 3 caras | Conservadora | 100 | 80 | 50 | Dr. Carlos Medina | Retiro | Febrero 2026",
+              "existingDocSays": "CON-03 | Empaste composite 3 caras | Conservadora | 100 | 80 | 40 | Dr. Carlos Medina | Retiro | Febrero 2026",
+              "severity": "contradiction",
+              "confirmedBy": "estructura",
+              "columns": [
+                "Duración (min)"
+              ],
+              "comparedValues": [
+                {
+                  "column": "Duración (min)",
+                  "newDocValue": "50",
+                  "existingDocValue": "40"
+                }
+              ],
+              "newDocRow": "[F14] CON-03 | Empaste composite 3 caras | Conservadora | 100 | 80 | 50 | Dr. Carlos Medina | Retiro | Febrero 2026",
+              "existingDocRow": "[F17] CON-03 | Empaste composite 3 caras | Conservadora | 100 | 80 | 40 | Dr. Carlos Medina | Retiro | Febrero 2026",
+              "origen": "diff_tabular",
+              "groupId": "c64f9f56-4800-4e37-bb3d-85387a12c803",
+              "huella": "13a76ab9ac634fbcb211ee02a37a16b08b91502405a0f3627734f15b480086cf"
+            },
+            {
+              "topic": "Discrepancia en Profesional asignado entre OPE-10_tarifario-tratamientos-2026.xlsx y OPE-11_tarifario-tratamientos-seguros.xlsx",
+              "newDocSays": "CON-04 | Reconstrucción con perno | Conservadora | 150 | 120 | 60 | Dr. Carlos Medina | Retiro | Febrero 2026",
+              "existingDocSays": "CON-04 | Reconstrucción con perno | Conservadora | 150 | 120 | 60 | Dra. Marta Gil | Retiro | Febrero 2026",
+              "severity": "contradiction",
+              "confirmedBy": "estructura",
+              "columns": [
+                "Profesional asignado"
+              ],
+              "comparedValues": [
+                {
+                  "column": "Profesional asignado",
+                  "newDocValue": "Dr. Carlos Medina",
+                  "existingDocValue": "Dra. Marta Gil"
+                }
+              ],
+              "newDocRow": "[F15] CON-04 | Reconstrucción con perno | Conservadora | 150 | 120 | 60 | Dr. Carlos Medina | Retiro | Febrero 2026",
+              "existingDocRow": "[F21] CON-04 | Reconstrucción con perno | Conservadora | 150 | 120 | 60 | Dra. Marta Gil | Retiro | Febrero 2026",
+              "origen": "diff_tabular",
+              "groupId": "c64f9f56-4800-4e37-bb3d-85387a12c803",
+              "huella": "a9142f501c4cb006b22edbeef80355bc994b7a547ba877d02e34ca23302037bb"
+            },
+            {
+              "topic": "Discrepancia en Precio base entre OPE-10_tarifario-tratamientos-2026.xlsx y OPE-11_tarifario-tratamientos-seguros.xlsx",
+              "newDocSays": "END-03 | Endodoncia multirradicular | Endodoncia | 280 | 220 | 90 | Dra. Ana Belmonte | Chamberí | Febrero 2026",
+              "existingDocSays": "END-03 | Endodoncia multirradicular | Endodoncia | 260 | 220 | 90 | Dra. Ana Belmonte | Chamberí | Febrero 2026",
+              "severity": "contradiction",
+              "confirmedBy": "estructura",
+              "columns": [
+                "Precio base"
+              ],
+              "comparedValues": [
+                {
+                  "column": "Precio base",
+                  "newDocValue": "280",
+                  "existingDocValue": "260"
+                }
+              ],
+              "newDocRow": "[F20] END-03 | Endodoncia multirradicular | Endodoncia | 280 | 220 | 90 | Dra. Ana Belmonte | Chamberí | Febrero 2026",
+              "existingDocRow": "[F26] END-03 | Endodoncia multirradicular | Endodoncia | 260 | 220 | 90 | Dra. Ana Belmonte | Chamberí | Febrero 2026",
+              "origen": "diff_tabular",
+              "groupId": "c64f9f56-4800-4e37-bb3d-85387a12c803",
+              "huella": "803a4de00479742a3bd63c77812a8ce585c81a2e13660b9bb23c49c8fb557aab"
+            },
+            {
+              "topic": "Discrepancia en Clínica entre OPE-10_tarifario-tratamientos-2026.xlsx y OPE-11_tarifario-tratamientos-seguros.xlsx",
+              "newDocSays": "END-04 | Retratamiento endodóncico | Endodoncia | 320 | 260 | 90 | Dra. Ana Belmonte | Salamanca | Febrero 2026",
+              "existingDocSays": "END-04 | Retratamiento endodóncico | Endodoncia | 320 | 260 | 90 | Dra. Ana Belmonte | Retiro | Febrero 2026",
+              "severity": "contradiction",
+              "confirmedBy": "estructura",
+              "columns": [
+                "Clínica"
+              ],
+              "comparedValues": [
+                {
+                  "column": "Clínica",
+                  "newDocValue": "Salamanca",
+                  "existingDocValue": "Retiro"
+                }
+              ],
+              "newDocRow": "[F21] END-04 | Retratamiento endodóncico | Endodoncia | 320 | 260 | 90 | Dra. Ana Belmonte | Salamanca | Febrero 2026",
+              "existingDocRow": "[F29] END-04 | Retratamiento endodóncico | Endodoncia | 320 | 260 | 90 | Dra. Ana Belmonte | Retiro | Febrero 2026",
+              "origen": "diff_tabular",
+              "groupId": "c64f9f56-4800-4e37-bb3d-85387a12c803",
+              "huella": "ef37e36a0ef8b0131a9f91fe1f6e333185503ca53885c42a411a7e2f60fac9df"
+            },
+            {
+              "topic": "Discrepancia en Duración (min) entre OPE-10_tarifario-tratamientos-2026.xlsx y OPE-11_tarifario-tratamientos-seguros.xlsx",
+              "newDocSays": "PRO-03 | Prótesis parcial removible | Prótesis | 450 | 360 | 90 | Dr. Carlos Medina | Retiro | Febrero 2026",
+              "existingDocSays": "PRO-03 | Prótesis parcial removible | Prótesis | 450 | 360 | 75 | Dr. Carlos Medina | Retiro | Febrero 2026",
+              "severity": "contradiction",
+              "confirmedBy": "estructura",
+              "columns": [
+                "Duración (min)"
+              ],
+              "comparedValues": [
+                {
+                  "column": "Duración (min)",
+                  "newDocValue": "90",
+                  "existingDocValue": "75"
+                }
+              ],
+              "newDocRow": "[F26] PRO-03 | Prótesis parcial removible | Prótesis | 450 | 360 | 90 | Dr. Carlos Medina | Retiro | Febrero 2026",
+              "existingDocRow": "[F33] PRO-03 | Prótesis parcial removible | Prótesis | 450 | 360 | 75 | Dr. Carlos Medina | Retiro | Febrero 2026",
+              "origen": "diff_tabular",
+              "groupId": "c64f9f56-4800-4e37-bb3d-85387a12c803",
+              "huella": "6fd7b7ce94f278c58ef5fd2c119bb3e062e72e664aad5dc1c0a052210f3d90ac"
+            },
+            {
+              "topic": "Discrepancia en Precio base entre OPE-10_tarifario-tratamientos-2026.xlsx y OPE-11_tarifario-tratamientos-seguros.xlsx",
+              "newDocSays": "PRO-04 | Prótesis completa superior | Prótesis | 600 | 480 | 90 | Dra. Marta Gil | Chamberí | Febrero 2026",
+              "existingDocSays": "PRO-04 | Prótesis completa superior | Prótesis | 540 | 480 | 90 | Dra. Marta Gil | Chamberí | Febrero 2026",
+              "severity": "contradiction",
+              "confirmedBy": "estructura",
+              "columns": [
+                "Precio base"
+              ],
+              "comparedValues": [
+                {
+                  "column": "Precio base",
+                  "newDocValue": "600",
+                  "existingDocValue": "540"
+                }
+              ],
+              "newDocRow": "[F27] PRO-04 | Prótesis completa superior | Prótesis | 600 | 480 | 90 | Dra. Marta Gil | Chamberí | Febrero 2026",
+              "existingDocRow": "[F38] PRO-04 | Prótesis completa superior | Prótesis | 540 | 480 | 90 | Dra. Marta Gil | Chamberí | Febrero 2026",
+              "origen": "diff_tabular",
+              "groupId": "c64f9f56-4800-4e37-bb3d-85387a12c803",
+              "huella": "84465852d3c0e251ea2c15b466a47e87656439bd53633b1ef4c69e6ba979d8c5"
+            },
+            {
+              "topic": "Discrepancia en Profesional asignado entre OPE-10_tarifario-tratamientos-2026.xlsx y OPE-11_tarifario-tratamientos-seguros.xlsx",
+              "newDocSays": "IMP-03 | Regeneración ósea guiada | Implantes | 650 | 520 | 90 | Dr. Pablo Reyes | Chamberí | Febrero 2026",
+              "existingDocSays": "IMP-03 | Regeneración ósea guiada | Implantes | 650 | 520 | 90 | Dra. Ana Belmonte | Chamberí | Febrero 2026",
+              "severity": "contradiction",
+              "confirmedBy": "estructura",
+              "columns": [
+                "Profesional asignado"
+              ],
+              "comparedValues": [
+                {
+                  "column": "Profesional asignado",
+                  "newDocValue": "Dr. Pablo Reyes",
+                  "existingDocValue": "Dra. Ana Belmonte"
+                }
+              ],
+              "newDocRow": "[F32] IMP-03 | Regeneración ósea guiada | Implantes | 650 | 520 | 90 | Dr. Pablo Reyes | Chamberí | Febrero 2026",
+              "existingDocRow": "[F41] IMP-03 | Regeneración ósea guiada | Implantes | 650 | 520 | 90 | Dra. Ana Belmonte | Chamberí | Febrero 2026",
+              "origen": "diff_tabular",
+              "groupId": "c64f9f56-4800-4e37-bb3d-85387a12c803",
+              "huella": "b87c6e342214df5b29cdfd38822c100586847b6b2eb40ad79ac507e42c04fae8"
+            },
+            {
+              "topic": "Discrepancia en Clínica entre OPE-10_tarifario-tratamientos-2026.xlsx y OPE-11_tarifario-tratamientos-seguros.xlsx",
+              "newDocSays": "ORT-03 | Ortodoncia invisible (alineadores) | Ortodoncia | 3800 | 3100 | 45 | Dr. Javier Soto | Chamberí | Febrero 2026",
+              "existingDocSays": "ORT-03 | Ortodoncia invisible (alineadores) | Ortodoncia | 3800 | 3100 | 45 | Dr. Javier Soto | Salamanca | Febrero 2026",
+              "severity": "contradiction",
+              "confirmedBy": "estructura",
+              "columns": [
+                "Clínica"
+              ],
+              "comparedValues": [
+                {
+                  "column": "Clínica",
+                  "newDocValue": "Chamberí",
+                  "existingDocValue": "Salamanca"
+                }
+              ],
+              "newDocRow": "[F38] ORT-03 | Ortodoncia invisible (alineadores) | Ortodoncia | 3800 | 3100 | 45 | Dr. Javier Soto | Chamberí | Febrero 2026",
+              "existingDocRow": "[F45] ORT-03 | Ortodoncia invisible (alineadores) | Ortodoncia | 3800 | 3100 | 45 | Dr. Javier Soto | Salamanca | Febrero 2026",
+              "origen": "diff_tabular",
+              "groupId": "c64f9f56-4800-4e37-bb3d-85387a12c803",
+              "huella": "447c5ecc842b87a38a53b2530d928261d653a7e5a19b27cbbc53d9659a89f281"
+            },
+            {
+              "topic": "Discrepancia en Precio base entre OPE-10_tarifario-tratamientos-2026.xlsx y OPE-11_tarifario-tratamientos-seguros.xlsx",
+              "newDocSays": "EST-03 | Carilla de composite | Estética | 180 | 145 | 45 | Dr. Carlos Medina | Retiro | Febrero 2026",
+              "existingDocSays": "EST-03 | Carilla de composite | Estética | 160 | 145 | 45 | Dr. Carlos Medina | Retiro | Febrero 2026",
+              "severity": "contradiction",
+              "confirmedBy": "estructura",
+              "columns": [
+                "Precio base"
+              ],
+              "comparedValues": [
+                {
+                  "column": "Precio base",
+                  "newDocValue": "180",
+                  "existingDocValue": "160"
+                }
+              ],
+              "newDocRow": "[F44] EST-03 | Carilla de composite | Estética | 180 | 145 | 45 | Dr. Carlos Medina | Retiro | Febrero 2026",
+              "existingDocRow": "[F50] EST-03 | Carilla de composite | Estética | 160 | 145 | 45 | Dr. Carlos Medina | Retiro | Febrero 2026",
+              "origen": "diff_tabular",
+              "groupId": "c64f9f56-4800-4e37-bb3d-85387a12c803",
+              "huella": "a47f1dda20d797231fef029bd964b43ad665c61e4beb5e1cad636a904eb6ad86"
+            },
+            {
+              "topic": "Discrepancia en Duración (min) entre OPE-10_tarifario-tratamientos-2026.xlsx y OPE-11_tarifario-tratamientos-seguros.xlsx",
+              "newDocSays": "CIR-03 | Extracción de cordal incluido | Cirugía | 180 | 145 | 45 | Dr. Pablo Reyes | Chamberí | Febrero 2026",
+              "existingDocSays": "CIR-03 | Extracción de cordal incluido | Cirugía | 180 | 145 | 60 | Dr. Pablo Reyes | Chamberí | Febrero 2026",
+              "severity": "contradiction",
+              "confirmedBy": "estructura",
+              "columns": [
+                "Duración (min)"
+              ],
+              "comparedValues": [
+                {
+                  "column": "Duración (min)",
+                  "newDocValue": "45",
+                  "existingDocValue": "60"
+                }
+              ],
+              "newDocRow": "[F50] CIR-03 | Extracción de cordal incluido | Cirugía | 180 | 145 | 45 | Dr. Pablo Reyes | Chamberí | Febrero 2026",
+              "existingDocRow": "[F53] CIR-03 | Extracción de cordal incluido | Cirugía | 180 | 145 | 60 | Dr. Pablo Reyes | Chamberí | Febrero 2026",
+              "origen": "diff_tabular",
+              "groupId": "c64f9f56-4800-4e37-bb3d-85387a12c803",
+              "huella": "870bc3336bc9f8a5072d6055e2229e024881796c777fdb9d1146f5cbf0042e6d"
+            },
+            {
+              "topic": "Discrepancia en Profesional asignado entre OPE-10_tarifario-tratamientos-2026.xlsx y OPE-11_tarifario-tratamientos-seguros.xlsx",
+              "newDocSays": "URG-03 | Reimplante dental de urgencia | Urgencias | 150 | 120 | 45 | Dra. Ana Belmonte | Chamberí | Febrero 2026",
+              "existingDocSays": "URG-03 | Reimplante dental de urgencia | Urgencias | 150 | 120 | 45 | Dr. Pablo Reyes | Chamberí | Febrero 2026",
+              "severity": "contradiction",
+              "confirmedBy": "estructura",
+              "columns": [
+                "Profesional asignado"
+              ],
+              "comparedValues": [
+                {
+                  "column": "Profesional asignado",
+                  "newDocValue": "Dra. Ana Belmonte",
+                  "existingDocValue": "Dr. Pablo Reyes"
+                }
+              ],
+              "newDocRow": "[F56] URG-03 | Reimplante dental de urgencia | Urgencias | 150 | 120 | 45 | Dra. Ana Belmonte | Chamberí | Febrero 2026",
+              "existingDocRow": "[F57] URG-03 | Reimplante dental de urgencia | Urgencias | 150 | 120 | 45 | Dr. Pablo Reyes | Chamberí | Febrero 2026",
+              "origen": "diff_tabular",
+              "groupId": "c64f9f56-4800-4e37-bb3d-85387a12c803",
+              "huella": "1e8cfb229ae6aa209ae8164a605b0d34230e6bda683e74dab2afc253d2cf18eb"
+            }
+          ],
+          "overlappingContent": [
+            {
+              "description": "Tratamiento DIA-01 (Primera consulta y diagnóstico) con todos sus parámetros idénticos",
+              "evidence": "DIA-01 | Primera consulta y diagnóstico | Diagnóstico | 40 | 40 | 30 | Dra. Marta Gil | Chamberí | Enero 2026",
+              "evidenceInNewDoc": "DIA-01 | Primera consulta y diagnóstico | Diagnóstico | 40 | 40 | 30 | Dra. Marta Gil | Chamberí | Enero 2026"
+            },
+            {
+              "description": "Tratamiento HIG-01 (Limpieza bucal) con todos sus parámetros idénticos",
+              "evidence": "HIG-01 | Limpieza bucal (tartrectomía) | Higiene | 55 | 45 | 40 | Laura Núñez | Chamberí | Enero 2026",
+              "evidenceInNewDoc": "HIG-01 | Limpieza bucal (tartrectomía) | Higiene | 55 | 45 | 40 | Laura Núñez | Chamberí | Enero 2026"
+            },
+            {
+              "description": "Tratamiento CON-01 (Empaste composite 1 cara) con todos sus parámetros idénticos",
+              "evidence": "CON-01 | Empaste composite 1 cara | Conservadora | 60 | 48 | 30 | Dra. Marta Gil | Chamberí | Enero 2026",
+              "evidenceInNewDoc": "CON-01 | Empaste composite 1 cara | Conservadora | 60 | 48 | 30 | Dra. Marta Gil | Chamberí | Enero 2026"
+            },
+            {
+              "description": "Tratamiento END-01 (Endodoncia unirradicular) con todos sus parámetros idénticos",
+              "evidence": "END-01 | Endodoncia unirradicular | Endodoncia | 180 | 145 | 60 | Dra. Ana Belmonte | Chamberí | Enero 2026",
+              "evidenceInNewDoc": "END-01 | Endodoncia unirradicular | Endodoncia | 180 | 145 | 60 | Dra. Ana Belmonte | Chamberí | Enero 2026"
+            },
+            {
+              "description": "Tratamiento CIR-01 (Extracción simple) con todos sus parámetros idénticos",
+              "evidence": "CIR-01 | Extracción simple | Cirugía | 60 | 48 | 20 | Dr. Pablo Reyes | Chamberí | Enero 2026",
+              "evidenceInNewDoc": "CIR-01 | Extracción simple | Cirugía | 60 | 48 | 20 | Dr. Pablo Reyes | Chamberí | Enero 2026"
+            },
+            {
+              "description": "20 de 60 filas de \"Tarifas concertadas\" de \"OPE-11_tarifario-tratamientos-seguros.xlsx\" coinciden exactamente, celda a celda, en Código y Tratamiento y Categoría y Precio base y Precio con seguro y Duración (min) y Profesional asignado y Clínica y Revisión con filas de \"OPE-10_tarifario-tratamientos-2026.xlsx\".",
+              "evidence": "",
+              "evidenceInNewDoc": "",
+              "confirmedBy": "estructura",
+              "structuralPercent": 33
+            }
+          ],
+          "uniqueToNewDoc": [
+            "Categoría de tratamientos de Urgencias (URG-01, URG-02) presente en documento existente pero ausente en nuevo",
+            "Documento nuevo contiene 60 filas de tarifas mientras documento existente solo proporciona fragmentos parciales",
+            "Documento nuevo incluye tratamientos adicionales no mencionados en fragmentos del existente (DIA-02, DIA-04, DIA-05, DIA-06, HIG-03 a HIG-06, CON-02 a CON-06, END-02 a END-06, PRO-02, PRO-04, PRO-05, PRO-06, IMP-01 a IMP-06, ORT-01 a ORT-06, EST-01 a EST-06, CIR-02, CIR-03)"
+          ],
+          "discarded": {
+            "verificado.por_celdas": 12,
+            "descartado.cubierto_por_diff": 1
+          },
+          "tableDiffs": [
+            {
+              "groupId": "c64f9f56-4800-4e37-bb3d-85387a12c803",
+              "tablaNueva": "Tarifas#0",
+              "tablaExistente": "Tarifas concertadas#0",
+              "documentoExistente": "OPE-11_tarifario-tratamientos-seguros.xlsx",
+              "documentoExistenteId": "a9203396-8c14-4557-ba07-9b1f2b34d18a",
+              "discrepantes": 15,
+              "identicas": 20,
+              "porColumna": {
+                "Duración (min)": 4,
+                "Profesional asignado": 4,
+                "Clínica": 3,
+                "Precio base": 4
+              },
+              "variantesDeEscritura": [],
+              "soloEnNuevo": [
+                {
+                  "clave": "DIA-05 · Chamberí · Febrero 2026 · Diagnóstico · 90 · Estudio ortodóncico completo · 45 · 75 · Dr. Javier Soto",
+                  "texto": "[Hoja \"Tarifas\"] Código: DIA-05 | Tratamiento: Estudio ortodóncico completo | Categoría: Diagnóstico | Precio base: 90 | Precio con seguro: 75 | Duración (min): 45 | Profesional asignado: Dr. Javier Soto | Clínica: Chamberí | Revisión: Febrero 2026"
+                },
+                {
+                  "clave": "DIA-06 · Chamberí · Marzo 2026 · Diagnóstico · 30 · Revisión odontopediátrica · 20 · 25 · Nuria Ferrer",
+                  "texto": "[Hoja \"Tarifas\"] Código: DIA-06 | Tratamiento: Revisión odontopediátrica | Categoría: Diagnóstico | Precio base: 30 | Precio con seguro: 25 | Duración (min): 20 | Profesional asignado: Nuria Ferrer | Clínica: Chamberí | Revisión: Marzo 2026"
+                },
+                {
+                  "clave": "HIG-05 · Retiro · Marzo 2026 · Higiene · 60 · Higiene con ultrasonidos · 40 · 50 · Laura Núñez",
+                  "texto": "[Hoja \"Tarifas\"] Código: HIG-05 | Tratamiento: Higiene con ultrasonidos | Categoría: Higiene | Precio base: 60 | Precio con seguro: 50 | Duración (min): 40 | Profesional asignado: Laura Núñez | Clínica: Retiro | Revisión: Marzo 2026"
+                },
+                {
+                  "clave": "HIG-06 · Chamberí · Marzo 2026 · Higiene · 15 · Enseñanza de higiene oral · 20 · 15 · Laura Núñez",
+                  "texto": "[Hoja \"Tarifas\"] Código: HIG-06 | Tratamiento: Enseñanza de higiene oral | Categoría: Higiene | Precio base: 15 | Precio con seguro: 15 | Duración (min): 20 | Profesional asignado: Laura Núñez | Clínica: Chamberí | Revisión: Marzo 2026"
+                },
+                {
+                  "clave": "CON-05 · Salamanca · Marzo 2026 · Conservadora · 280 · Incrustación cerámica (inlay) · 60 · 230 · Dra. Marta Gil",
+                  "texto": "[Hoja \"Tarifas\"] Código: CON-05 | Tratamiento: Incrustación cerámica (inlay) | Categoría: Conservadora | Precio base: 280 | Precio con seguro: 230 | Duración (min): 60 | Profesional asignado: Dra. Marta Gil | Clínica: Salamanca | Revisión: Marzo 2026"
+                },
+                {
+                  "clave": "CON-06 · Chamberí · Marzo 2026 · Conservadora · 35 · Sellado preventivo infantil · 25 · 28 · Nuria Ferrer",
+                  "texto": "[Hoja \"Tarifas\"] Código: CON-06 | Tratamiento: Sellado preventivo infantil | Categoría: Conservadora | Precio base: 35 | Precio con seguro: 28 | Duración (min): 25 | Profesional asignado: Nuria Ferrer | Clínica: Chamberí | Revisión: Marzo 2026"
+                },
+                {
+                  "clave": "END-05 · Chamberí · Marzo 2026 · Endodoncia · 250 · Apicectomía · 60 · 200 · Dra. Ana Belmonte",
+                  "texto": "[Hoja \"Tarifas\"] Código: END-05 | Tratamiento: Apicectomía | Categoría: Endodoncia | Precio base: 250 | Precio con seguro: 200 | Duración (min): 60 | Profesional asignado: Dra. Ana Belmonte | Clínica: Chamberí | Revisión: Marzo 2026"
+                },
+                {
+                  "clave": "END-06 · Chamberí · Marzo 2026 · Endodoncia · 30 · Revisión endodóncica postoperatoria · 20 · 25 · Dra. Ana Belmonte",
+                  "texto": "[Hoja \"Tarifas\"] Código: END-06 | Tratamiento: Revisión endodóncica postoperatoria | Categoría: Endodoncia | Precio base: 30 | Precio con seguro: 25 | Duración (min): 20 | Profesional asignado: Dra. Ana Belmonte | Clínica: Chamberí | Revisión: Marzo 2026"
+                },
+                {
+                  "clave": "PRO-05 · Salamanca · Marzo 2026 · Prótesis · 900 · Puente de tres piezas · 120 · 720 · Dra. Marta Gil",
+                  "texto": "[Hoja \"Tarifas\"] Código: PRO-05 | Tratamiento: Puente de tres piezas | Categoría: Prótesis | Precio base: 900 | Precio con seguro: 720 | Duración (min): 120 | Profesional asignado: Dra. Marta Gil | Clínica: Salamanca | Revisión: Marzo 2026"
+                },
+                {
+                  "clave": "PRO-06 · Retiro · Marzo 2026 · Prótesis · 80 · Reparación de prótesis · 30 · 65 · Dr. Carlos Medina",
+                  "texto": "[Hoja \"Tarifas\"] Código: PRO-06 | Tratamiento: Reparación de prótesis | Categoría: Prótesis | Precio base: 80 | Precio con seguro: 65 | Duración (min): 30 | Profesional asignado: Dr. Carlos Medina | Clínica: Retiro | Revisión: Marzo 2026"
+                },
+                {
+                  "clave": "IMP-04 · Salamanca · Febrero 2026 · Implantes · 750 · Elevación de seno maxilar · 90 · 600 · Dr. Pablo Reyes",
+                  "texto": "[Hoja \"Tarifas\"] Código: IMP-04 | Tratamiento: Elevación de seno maxilar | Categoría: Implantes | Precio base: 750 | Precio con seguro: 600 | Duración (min): 90 | Profesional asignado: Dr. Pablo Reyes | Clínica: Salamanca | Revisión: Febrero 2026"
+                },
+                {
+                  "clave": "IMP-05 · Chamberí · Marzo 2026 · Implantes · 120 · Estudio previo con TAC · 30 · 100 · Dr. Pablo Reyes",
+                  "texto": "[Hoja \"Tarifas\"] Código: IMP-05 | Tratamiento: Estudio previo con TAC | Categoría: Implantes | Precio base: 120 | Precio con seguro: 100 | Duración (min): 30 | Profesional asignado: Dr. Pablo Reyes | Clínica: Chamberí | Revisión: Marzo 2026"
+                },
+                {
+                  "clave": "IMP-06 · Chamberí · Marzo 2026 · Implantes · 2200 · Prótesis híbrida sobre implantes · 120 · 1760 · Dr. Pablo Reyes",
+                  "texto": "[Hoja \"Tarifas\"] Código: IMP-06 | Tratamiento: Prótesis híbrida sobre implantes | Categoría: Implantes | Precio base: 2200 | Precio con seguro: 1760 | Duración (min): 120 | Profesional asignado: Dr. Pablo Reyes | Clínica: Chamberí | Revisión: Marzo 2026"
+                },
+                {
+                  "clave": "ORT-04 · Chamberí · Febrero 2026 · Ortodoncia · 45 · Revisión mensual de ortodoncia · 20 · 40 · Dr. Javier Soto",
+                  "texto": "[Hoja \"Tarifas\"] Código: ORT-04 | Tratamiento: Revisión mensual de ortodoncia | Categoría: Ortodoncia | Precio base: 45 | Precio con seguro: 40 | Duración (min): 20 | Profesional asignado: Dr. Javier Soto | Clínica: Chamberí | Revisión: Febrero 2026"
+                },
+                {
+                  "clave": "ORT-05 · Salamanca · Marzo 2026 · Ortodoncia · 120 · Retenedor fijo · 30 · 100 · Dr. Javier Soto",
+                  "texto": "[Hoja \"Tarifas\"] Código: ORT-05 | Tratamiento: Retenedor fijo | Categoría: Ortodoncia | Precio base: 120 | Precio con seguro: 100 | Duración (min): 30 | Profesional asignado: Dr. Javier Soto | Clínica: Salamanca | Revisión: Marzo 2026"
+                },
+                {
+                  "clave": "ORT-06 · Chamberí · Marzo 2026 · Ortodoncia · 1800 · Ortodoncia interceptiva infantil · 40 · 1450 · Nuria Ferrer",
+                  "texto": "[Hoja \"Tarifas\"] Código: ORT-06 | Tratamiento: Ortodoncia interceptiva infantil | Categoría: Ortodoncia | Precio base: 1800 | Precio con seguro: 1450 | Duración (min): 40 | Profesional asignado: Nuria Ferrer | Clínica: Chamberí | Revisión: Marzo 2026"
+                },
+                {
+                  "clave": "EST-04 · Retiro · Febrero 2026 · Estética · 450 · Carilla de porcelana · 60 · 360 · Dr. Carlos Medina",
+                  "texto": "[Hoja \"Tarifas\"] Código: EST-04 | Tratamiento: Carilla de porcelana | Categoría: Estética | Precio base: 450 | Precio con seguro: 360 | Duración (min): 60 | Profesional asignado: Dr. Carlos Medina | Clínica: Retiro | Revisión: Febrero 2026"
+                },
+                {
+                  "clave": "EST-05 · Salamanca · Marzo 2026 · Estética · 100 · Diseño de sonrisa digital · 45 · 90 · Dra. Marta Gil",
+                  "texto": "[Hoja \"Tarifas\"] Código: EST-05 | Tratamiento: Diseño de sonrisa digital | Categoría: Estética | Precio base: 100 | Precio con seguro: 90 | Duración (min): 45 | Profesional asignado: Dra. Marta Gil | Clínica: Salamanca | Revisión: Marzo 2026"
+                },
+                {
+                  "clave": "EST-06 · Chamberí · Marzo 2026 · Estética · 200 · Recontorneado estético gingival · 40 · 160 · Dr. Pablo Reyes",
+                  "texto": "[Hoja \"Tarifas\"] Código: EST-06 | Tratamiento: Recontorneado estético gingival | Categoría: Estética | Precio base: 200 | Precio con seguro: 160 | Duración (min): 40 | Profesional asignado: Dr. Pablo Reyes | Clínica: Chamberí | Revisión: Marzo 2026"
+                },
+                {
+                  "clave": "CIR-04 · Retiro · Febrero 2026 · Cirugía · 150 · Frenectomía · 30 · 120 · Dr. Pablo Reyes",
+                  "texto": "[Hoja \"Tarifas\"] Código: CIR-04 | Tratamiento: Frenectomía | Categoría: Cirugía | Precio base: 150 | Precio con seguro: 120 | Duración (min): 30 | Profesional asignado: Dr. Pablo Reyes | Clínica: Retiro | Revisión: Febrero 2026"
+                },
+                {
+                  "clave": "CIR-05 · Chamberí · Marzo 2026 · Cirugía · 130 · Biopsia de tejido oral · 30 · 105 · Dra. Ana Belmonte",
+                  "texto": "[Hoja \"Tarifas\"] Código: CIR-05 | Tratamiento: Biopsia de tejido oral | Categoría: Cirugía | Precio base: 130 | Precio con seguro: 105 | Duración (min): 30 | Profesional asignado: Dra. Ana Belmonte | Clínica: Chamberí | Revisión: Marzo 2026"
+                },
+                {
+                  "clave": "CIR-06 · Salamanca · Marzo 2026 · Cirugía · 200 · Torque de exostosis ósea · 45 · 160 · Dr. Pablo Reyes",
+                  "texto": "[Hoja \"Tarifas\"] Código: CIR-06 | Tratamiento: Torque de exostosis ósea | Categoría: Cirugía | Precio base: 200 | Precio con seguro: 160 | Duración (min): 45 | Profesional asignado: Dr. Pablo Reyes | Clínica: Salamanca | Revisión: Marzo 2026"
+                },
+                {
+                  "clave": "URG-04 · Chamberí · Febrero 2026 · Urgencias · 90 · Drenaje de absceso · 30 · 72 · Dr. Pablo Reyes",
+                  "texto": "[Hoja \"Tarifas\"] Código: URG-04 | Tratamiento: Drenaje de absceso | Categoría: Urgencias | Precio base: 90 | Precio con seguro: 72 | Duración (min): 30 | Profesional asignado: Dr. Pablo Reyes | Clínica: Chamberí | Revisión: Febrero 2026"
+                },
+                {
+                  "clave": "URG-05 · Salamanca · Marzo 2026 · Urgencias · 60 · Sedación con óxido nitroso · 30 · 50 · Dra. Marta Gil",
+                  "texto": "[Hoja \"Tarifas\"] Código: URG-05 | Tratamiento: Sedación con óxido nitroso | Categoría: Urgencias | Precio base: 60 | Precio con seguro: 50 | Duración (min): 30 | Profesional asignado: Dra. Marta Gil | Clínica: Salamanca | Revisión: Marzo 2026"
+                },
+                {
+                  "clave": "URG-06 · Retiro · Marzo 2026 · Urgencias · 40 · Cementado de urgencia de corona · 20 · 32 · Dr. Carlos Medina",
+                  "texto": "[Hoja \"Tarifas\"] Código: URG-06 | Tratamiento: Cementado de urgencia de corona | Categoría: Urgencias | Precio base: 40 | Precio con seguro: 32 | Duración (min): 20 | Profesional asignado: Dr. Carlos Medina | Clínica: Retiro | Revisión: Marzo 2026"
+                }
+              ],
+              "soloEnOtro": [
+                {
+                  "clave": "SEG-01 · Chamberí · Enero 2026 · Diagnóstico · 20 · Consulta concertada de revisión · 20 · 15 · Dra. Marta Gil",
+                  "texto": "[Hoja \"Tarifas concertadas\"] Código: SEG-01 | Tratamiento: Consulta concertada de revisión | Categoría: Diagnóstico | Precio base: 20 | Precio con seguro: 15 | Duración (min): 20 | Profesional asignado: Dra. Marta Gil | Clínica: Chamberí | Revisión: Enero 2026"
+                },
+                {
+                  "clave": "SEG-02 · Chamberí · Enero 2026 · Diagnóstico · 40 · Radiografía panorámica concertada · 15 · 30 · Cristina Ibáñez",
+                  "texto": "[Hoja \"Tarifas concertadas\"] Código: SEG-02 | Tratamiento: Radiografía panorámica concertada | Categoría: Diagnóstico | Precio base: 40 | Precio con seguro: 30 | Duración (min): 15 | Profesional asignado: Cristina Ibáñez | Clínica: Chamberí | Revisión: Enero 2026"
+                },
+                {
+                  "clave": "SEG-03 · Chamberí · Enero 2026 · Higiene · 45 · Limpieza concertada semestral · 30 · 35 · Laura Núñez",
+                  "texto": "[Hoja \"Tarifas concertadas\"] Código: SEG-03 | Tratamiento: Limpieza concertada semestral | Categoría: Higiene | Precio base: 45 | Precio con seguro: 35 | Duración (min): 30 | Profesional asignado: Laura Núñez | Clínica: Chamberí | Revisión: Enero 2026"
+                },
+                {
+                  "clave": "SEG-04 · Chamberí · Febrero 2026 · Higiene · 15 · Aplicación de flúor concertada · 15 · 12 · Laura Núñez",
+                  "texto": "[Hoja \"Tarifas concertadas\"] Código: SEG-04 | Tratamiento: Aplicación de flúor concertada | Categoría: Higiene | Precio base: 15 | Precio con seguro: 12 | Duración (min): 15 | Profesional asignado: Laura Núñez | Clínica: Chamberí | Revisión: Febrero 2026"
+                },
+                {
+                  "clave": "SEG-05 · Chamberí · Febrero 2026 · Higiene · 20 · Sellado de fisuras concertado (pieza) · 15 · 16 · Nuria Ferrer",
+                  "texto": "[Hoja \"Tarifas concertadas\"] Código: SEG-05 | Tratamiento: Sellado de fisuras concertado (pieza) | Categoría: Higiene | Precio base: 20 | Precio con seguro: 16 | Duración (min): 15 | Profesional asignado: Nuria Ferrer | Clínica: Chamberí | Revisión: Febrero 2026"
+                },
+                {
+                  "clave": "SEG-06 · Chamberí · Enero 2026 · Conservadora · 45 · Empaste concertado composite 1 cara · 25 · 35 · Dra. Marta Gil",
+                  "texto": "[Hoja \"Tarifas concertadas\"] Código: SEG-06 | Tratamiento: Empaste concertado composite 1 cara | Categoría: Conservadora | Precio base: 45 | Precio con seguro: 35 | Duración (min): 25 | Profesional asignado: Dra. Marta Gil | Clínica: Chamberí | Revisión: Enero 2026"
+                },
+                {
+                  "clave": "SEG-07 · Chamberí · Febrero 2026 · Conservadora · 65 · Empaste concertado composite 2 caras · 35 · 50 · Dr. Carlos Medina",
+                  "texto": "[Hoja \"Tarifas concertadas\"] Código: SEG-07 | Tratamiento: Empaste concertado composite 2 caras | Categoría: Conservadora | Precio base: 65 | Precio con seguro: 50 | Duración (min): 35 | Profesional asignado: Dr. Carlos Medina | Clínica: Chamberí | Revisión: Febrero 2026"
+                },
+                {
+                  "clave": "SEG-08 · Chamberí · Marzo 2026 · Conservadora · 130 · Reconstrucción concertada con perno · 55 · 100 · Dra. Marta Gil",
+                  "texto": "[Hoja \"Tarifas concertadas\"] Código: SEG-08 | Tratamiento: Reconstrucción concertada con perno | Categoría: Conservadora | Precio base: 130 | Precio con seguro: 100 | Duración (min): 55 | Profesional asignado: Dra. Marta Gil | Clínica: Chamberí | Revisión: Marzo 2026"
+                },
+                {
+                  "clave": "SEG-09 · Chamberí · Enero 2026 · Endodoncia · 150 · Endodoncia concertada unirradicular · 55 · 115 · Dra. Ana Belmonte",
+                  "texto": "[Hoja \"Tarifas concertadas\"] Código: SEG-09 | Tratamiento: Endodoncia concertada unirradicular | Categoría: Endodoncia | Precio base: 150 | Precio con seguro: 115 | Duración (min): 55 | Profesional asignado: Dra. Ana Belmonte | Clínica: Chamberí | Revisión: Enero 2026"
+                },
+                {
+                  "clave": "SEG-10 · Chamberí · Febrero 2026 · Endodoncia · 190 · Endodoncia concertada birradicular · 70 · 145 · Dra. Ana Belmonte",
+                  "texto": "[Hoja \"Tarifas concertadas\"] Código: SEG-10 | Tratamiento: Endodoncia concertada birradicular | Categoría: Endodoncia | Precio base: 190 | Precio con seguro: 145 | Duración (min): 70 | Profesional asignado: Dra. Ana Belmonte | Clínica: Chamberí | Revisión: Febrero 2026"
+                },
+                {
+                  "clave": "SEG-11 · Chamberí · Enero 2026 · Prótesis · 340 · Corona concertada de porcelana sobre metal · 55 · 260 · Dra. Marta Gil",
+                  "texto": "[Hoja \"Tarifas concertadas\"] Código: SEG-11 | Tratamiento: Corona concertada de porcelana sobre metal | Categoría: Prótesis | Precio base: 340 | Precio con seguro: 260 | Duración (min): 55 | Profesional asignado: Dra. Marta Gil | Clínica: Chamberí | Revisión: Enero 2026"
+                },
+                {
+                  "clave": "SEG-12 · Chamberí · Marzo 2026 · Prótesis · 380 · Prótesis parcial concertada · 85 · 290 · Dr. Carlos Medina",
+                  "texto": "[Hoja \"Tarifas concertadas\"] Código: SEG-12 | Tratamiento: Prótesis parcial concertada | Categoría: Prótesis | Precio base: 380 | Precio con seguro: 290 | Duración (min): 85 | Profesional asignado: Dr. Carlos Medina | Clínica: Chamberí | Revisión: Marzo 2026"
+                },
+                {
+                  "clave": "SEG-13 · Chamberí · Enero 2026 · Implantes · 750 · Implante concertado unitario · 55 · 580 · Dr. Pablo Reyes",
+                  "texto": "[Hoja \"Tarifas concertadas\"] Código: SEG-13 | Tratamiento: Implante concertado unitario | Categoría: Implantes | Precio base: 750 | Precio con seguro: 580 | Duración (min): 55 | Profesional asignado: Dr. Pablo Reyes | Clínica: Chamberí | Revisión: Enero 2026"
+                },
+                {
+                  "clave": "SEG-14 · Chamberí · Febrero 2026 · Implantes · 420 · Corona concertada sobre implante · 55 · 320 · Dr. Pablo Reyes",
+                  "texto": "[Hoja \"Tarifas concertadas\"] Código: SEG-14 | Tratamiento: Corona concertada sobre implante | Categoría: Implantes | Precio base: 420 | Precio con seguro: 320 | Duración (min): 55 | Profesional asignado: Dr. Pablo Reyes | Clínica: Chamberí | Revisión: Febrero 2026"
+                },
+                {
+                  "clave": "SEG-15 · Chamberí · Marzo 2026 · Implantes · 95 · Estudio concertado con TAC · 25 · 75 · Dr. Pablo Reyes",
+                  "texto": "[Hoja \"Tarifas concertadas\"] Código: SEG-15 | Tratamiento: Estudio concertado con TAC | Categoría: Implantes | Precio base: 95 | Precio con seguro: 75 | Duración (min): 25 | Profesional asignado: Dr. Pablo Reyes | Clínica: Chamberí | Revisión: Marzo 2026"
+                },
+                {
+                  "clave": "SEG-16 · Chamberí · Enero 2026 · Ortodoncia · 2400 · Ortodoncia concertada con brackets metálicos · 55 · 1900 · Dr. Javier Soto",
+                  "texto": "[Hoja \"Tarifas concertadas\"] Código: SEG-16 | Tratamiento: Ortodoncia concertada con brackets metálicos | Categoría: Ortodoncia | Precio base: 2400 | Precio con seguro: 1900 | Duración (min): 55 | Profesional asignado: Dr. Javier Soto | Clínica: Chamberí | Revisión: Enero 2026"
+                },
+                {
+                  "clave": "SEG-17 · Chamberí · Febrero 2026 · Ortodoncia · 35 · Revisión concertada de ortodoncia mensual · 15 · 30 · Dr. Javier Soto",
+                  "texto": "[Hoja \"Tarifas concertadas\"] Código: SEG-17 | Tratamiento: Revisión concertada de ortodoncia mensual | Categoría: Ortodoncia | Precio base: 35 | Precio con seguro: 30 | Duración (min): 15 | Profesional asignado: Dr. Javier Soto | Clínica: Chamberí | Revisión: Febrero 2026"
+                },
+                {
+                  "clave": "SEG-18 · Chamberí · Marzo 2026 · Ortodoncia · 100 · Retenedor fijo concertado · 25 · 80 · Dr. Javier Soto",
+                  "texto": "[Hoja \"Tarifas concertadas\"] Código: SEG-18 | Tratamiento: Retenedor fijo concertado | Categoría: Ortodoncia | Precio base: 100 | Precio con seguro: 80 | Duración (min): 25 | Profesional asignado: Dr. Javier Soto | Clínica: Chamberí | Revisión: Marzo 2026"
+                },
+                {
+                  "clave": "SEG-19 · Chamberí · Enero 2026 · Estética · 200 · Blanqueamiento concertado en clínica · 55 · 160 · Dra. Marta Gil",
+                  "texto": "[Hoja \"Tarifas concertadas\"] Código: SEG-19 | Tratamiento: Blanqueamiento concertado en clínica | Categoría: Estética | Precio base: 200 | Precio con seguro: 160 | Duración (min): 55 | Profesional asignado: Dra. Marta Gil | Clínica: Chamberí | Revisión: Enero 2026"
+                },
+                {
+                  "clave": "SEG-20 · Chamberí · Febrero 2026 · Estética · 150 · Carilla concertada de composite · 40 · 115 · Dr. Carlos Medina",
+                  "texto": "[Hoja \"Tarifas concertadas\"] Código: SEG-20 | Tratamiento: Carilla concertada de composite | Categoría: Estética | Precio base: 150 | Precio con seguro: 115 | Duración (min): 40 | Profesional asignado: Dr. Carlos Medina | Clínica: Chamberí | Revisión: Febrero 2026"
+                },
+                {
+                  "clave": "SEG-21 · Chamberí · Enero 2026 · Cirugía · 45 · Extracción concertada simple · 15 · 35 · Dr. Pablo Reyes",
+                  "texto": "[Hoja \"Tarifas concertadas\"] Código: SEG-21 | Tratamiento: Extracción concertada simple | Categoría: Cirugía | Precio base: 45 | Precio con seguro: 35 | Duración (min): 15 | Profesional asignado: Dr. Pablo Reyes | Clínica: Chamberí | Revisión: Enero 2026"
+                },
+                {
+                  "clave": "SEG-22 · Chamberí · Febrero 2026 · Cirugía · 95 · Extracción concertada quirúrgica · 35 · 75 · Dr. Pablo Reyes",
+                  "texto": "[Hoja \"Tarifas concertadas\"] Código: SEG-22 | Tratamiento: Extracción concertada quirúrgica | Categoría: Cirugía | Precio base: 95 | Precio con seguro: 75 | Duración (min): 35 | Profesional asignado: Dr. Pablo Reyes | Clínica: Chamberí | Revisión: Febrero 2026"
+                },
+                {
+                  "clave": "SEG-23 · Chamberí · Marzo 2026 · Cirugía · 120 · Frenectomía concertada · 25 · 95 · Dr. Pablo Reyes",
+                  "texto": "[Hoja \"Tarifas concertadas\"] Código: SEG-23 | Tratamiento: Frenectomía concertada | Categoría: Cirugía | Precio base: 120 | Precio con seguro: 95 | Duración (min): 25 | Profesional asignado: Dr. Pablo Reyes | Clínica: Chamberí | Revisión: Marzo 2026"
+                },
+                {
+                  "clave": "SEG-24 · Chamberí · Enero 2026 · Urgencias · 40 · Urgencia concertada por dolor dental · 20 · 30 · Dr. Carlos Medina",
+                  "texto": "[Hoja \"Tarifas concertadas\"] Código: SEG-24 | Tratamiento: Urgencia concertada por dolor dental | Categoría: Urgencias | Precio base: 40 | Precio con seguro: 30 | Duración (min): 20 | Profesional asignado: Dr. Carlos Medina | Clínica: Chamberí | Revisión: Enero 2026"
+                },
+                {
+                  "clave": "SEG-25 · Chamberí · Marzo 2026 · Urgencias · 75 · Drenaje concertado de absceso · 25 · 58 · Dr. Pablo Reyes",
+                  "texto": "[Hoja \"Tarifas concertadas\"] Código: SEG-25 | Tratamiento: Drenaje concertado de absceso | Categoría: Urgencias | Precio base: 75 | Precio con seguro: 58 | Duración (min): 25 | Profesional asignado: Dr. Pablo Reyes | Clínica: Chamberí | Revisión: Marzo 2026"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "discardedFindings": {
+        "verificado.por_celdas": 12,
+        "descartado.cubierto_por_diff": 1
+      },
+      "pipelineCounters": {
+        "seleccion.candidatos_recuperados": 1,
+        "seleccion.candidatos_cortados_por_tope_de_recuperacion": 0,
+        "seleccion.candidatos_seleccionados": 1,
+        "seleccion.candidatos_sin_confianza": 0,
+        "seleccion.candidatos_cortados_por_tope": 0,
+        "seleccion.candidatos_con_id_no_reconocido": 0,
+        "seleccion.candidatos_repetidos_por_el_modelo": 0,
+        "seleccion.candidatos_descartados_por_criterio": 0,
+        "diff.tablas.candidatos": 1,
+        "diff.tablas.sin_clave": 0,
+        "diff.tablas.sin_interseccion": 0,
+        "diff.tablas.emitidos": 1,
+        "diff.clave.rechazadas_por_escritura": 0,
+        "diff.clasificacion.identicas": 20,
+        "diff.clasificacion.discrepantes": 15,
+        "diff.clasificacion.columnas_afectadas": 4,
+        "diff.clasificacion.solo_en_a": 25,
+        "diff.clasificacion.solo_en_b": 25,
+        "diff.clasificacion.variantes_escritura": 0,
+        "diff.vision.pares_con_vision": 1,
+        "diff.vision.pares_ciegos": 0,
+        "diff.vision.ciegos_por_el_analizado": 0,
+        "diff.vision.tablas_analizado": 1,
+        "diff.vision.filas_analizado": 60,
+        "diff.vision.tablas_candidatos": 1,
+        "diff.vision.filas_candidatos": 60,
+        "verificador.hallazgos_entrantes": 1,
+        "verificador.confirmados": 0,
+        "verificador.confirmados_por_estructura": 0,
+        "verificador.confirmados_por_juicio": 0,
+        "verificador.descartados": 1,
+        "verificador.reclasificados": 0
+      },
+      "termometro": {
+        "version": 1,
+        "estado": "con_candidatos",
+        "motivo": null,
+        "modelo": {
+          "pedido": "multilingual-e5-large",
+          "servido": "multilingual-e5-large",
+          "dimension_servida": 1024
+        },
+        "consultas": 64,
+        "topK": 25,
+        "denominadores": {
+          "crudos": 1600,
+          "sin_fila_viva": 0,
+          "sin_metadata_utilizable": 0,
+          "propios_excluidos": 0,
+          "generacion_muerta_excluida": 0,
+          "candidatos_con_repeticion": 1600,
+          "unicos": 64
+        },
+        "fondo": 64,
+        "fondo_motivo": null,
+        "documentos_candidatos": 1,
+        "scores": {
+          "minimo": 0.841125727,
+          "maximo": 0.987551153,
+          "histograma": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            19,
+            33,
+            11,
+            1
+          ],
+          "hueco_1_2": null
+        },
+        "ids_sin_fila_viva": [],
+        "candidatos_fuera_del_fondo": []
+      },
+      "coberturaDeCandidatos": {
+        "comparados": 1,
+        "afines": 1,
+        "reparto": {
+          "origen": "modelo",
+          "recuperados": 1,
+          "elegidosPorElModelo": 1,
+          "descartadosPorCriterio": 0,
+          "cortadosPorTope": 0,
+          "idsNoReconocidos": 0,
+          "repetidos": 0
+        }
+      },
+      "analysisMode": "quick"
+    }
+  }
+}
