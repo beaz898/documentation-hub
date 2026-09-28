@@ -7586,6 +7586,19 @@ y el censo es cerrado: los tres sitios del marcador que exigen quién confirmó.
 - **Sin arreglar.** El principio de separar «encontró la verdad» de «qué detector la encontró»
   está en dictamen (28/09).
 
+### ⚠️ B.287 — los solapamientos del JUEZ no traen `confirmedBy`: el detector de N3 sale «desconocido» (29/09/2026)
+
+La fase 1 del principio del detector (`13cb7bb7`) apunta qué detector encontró cada acierto,
+y para **N3-DUPLICADO** apunta «desconocido» en 15 de 15 pasadas (`c39397e7` y `97223b72`).
+**No es un hueco del marcador: es del origen.** El solapamiento del juez se añade sin
+`confirmedBy` (`lib/analysis/synthesize.ts:160`); sólo el de estructura lo trae
+(`:183`, con `confirmedBy: 'estructura'` en `:192`).
+- **Es otro ejemplar de «lo que cambia el resultado se guarda con el resultado»**
+  (`claude/Protocolo_Harness_Tasas.md`).
+- **Importa en la fase 3**: una alarma de cambio de detector no puede vigilar un campo que la
+  mitad de las veces no viene.
+- **Sin arreglar.**
+
 ### ⚠️ B.286 — un test intermitente SIN IDENTIFICAR: 1 de 1.522, el 28/09 (28/09/2026)
 
 Antes del commit `12691b0f` la suite dio `1 failed | 1521 passed`, y **el nombre se perdió**:

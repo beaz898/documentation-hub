@@ -807,7 +807,46 @@ hasta demostrar lo contrario.
 
 **EL EJEMPLAR BIEN RESUELTO**: `textoAnalizado` (27/09, `695018f5`) — cuánto texto del
 analizado había y cuánto vio el juez, guardado DENTRO del resultado del análisis. **B.281
-es el que falta**: el mismo dato para el lado del candidato.
+es el que falta**: el mismo dato para el lado del candidato. **Y un cuarto, del
+29/09 (`Estado_Del_MVP.md` B.287)**: los solapamientos del JUEZ no traen
+`confirmedBy` y sólo los de estructura lo traen, así que el examen apunta
+«desconocido» como detector de N3-DUPLICADO — un hueco del origen, no del marcador.
+
+
+## ⚠️ UN CAMBIO DEL MARCADOR SE PRUEBA REPUNTUANDO ANTES Y DESPUÉS
+
+*Adoptada el 29/09/2026, a petición del arquitecto, con la fase 1 del principio del
+detector como su caso.*
+
+> **Todo cambio del marcador se prueba repuntuando las tandas guardadas antes y
+> después del cambio, y comparando línea a línea.** Con tres condiciones, y las tres
+> son condición, no recomendación:
+>
+> **1 · LO QUE SE VA A MOVER SE ESCRIBE ANTES.** Cada veredicto que el cambio debe
+> mover se lista como predicción ANTES de repuntuar, y la repuntuación comprueba que
+> se mueven exactamente ésos y ninguno más. Un cambio que no debe mover nada lo
+> declara igual: «ninguno».
+>
+> **2 · ALGÚN CRUDO TIENE QUE PASAR POR EL CAMINO CAMBIADO.** Se declara qué crudo
+> guardado recorre la rama que el cambio toca. **Una repuntuación sin ningún crudo
+> que pase por el camino cambiado NO cuenta como prueba, y el commit lo dice con
+> esas palabras.** Si ninguno pasa, se declara, y el test sintético con su mutante es
+> la única prueba. Un verde sobre datos que nunca pasaron por el código cambiado no
+> es una prueba: es su apariencia —la misma especie que los umbrales que no podían
+> fallar—.
+>
+> **3 · LA BASE SE GENERA EN EL MOMENTO, CON LOS MISMOS CASOS.** El «antes» es el
+> marcador SIN el cambio sobre los casos de HOY, repuntuado justo antes de tocarlo.
+> Nunca un informe guardado de otro día: entre medias pueden haber cambiado los
+> casos, y la diferencia se mezclaría con la del marcador.
+
+**EL CASO QUE LA ENSEÑÓ**: la fase 1 del principio del detector (`13cb7bb7`,
+29/09). Comparar contra el informe repuntuado del domingo (`d96613f2`) habría
+mezclado con el cambio del marcador dos cambios de casos —P2-3-AMARILLO y N7—. La
+base se generó con el marcador de ese momento y los casos de ese momento, y la
+comparación dio lo que tenía que dar: cero líneas movidas y cinco añadidas, las del
+detector. Y cumplía la condición 2: N1-PUESTO, N3-DUPLICADO y los dos de P4 son
+aciertos en esos crudos, así que la rama que apunta el detector se recorrió.
 
 
 ## ⚠️ REGLA DE CIERRE: qué bloquea y qué se declara
