@@ -127,9 +127,8 @@ export default {
       // caso…». Es un hueco de cobertura del caso, no un fallo del producto: la
       // superficie que la siembra quería medir no se ha ejercido. Y con los
       // discriminantes de arriba el marcador NO reconoce ese acierto: saldría
-      // como extra y, con la auditoría completa, contaría como FALSO. Hoy es
-      // latente —en rápido el trozo de CLI-13 no entra—; se vuelve vivo con el
-      // escalón 1 (B.273). Sin arreglar: pendiente de decisión del arquitecto.
+      // como extra y, con la auditoría completa, contaría como FALSO. Resuelto el
+      // 28/09 con la segunda forma, P2-3-AMARILLO (abajo), sin tocar esto.
 
       /**
        * ⚠️⚠️ PENDIENTE CONOCIDO: **B.106**. NO CUENTA COMO FALLO DEL EXAMEN.
@@ -159,6 +158,46 @@ export default {
        * un commit aparte y con acta. Decisión del director, 25/09/2026.
        */
       pendienteConocido: 'B.106',
+      cuentaParaElUmbral: false,
+    },
+    {
+      /**
+       * P2-3 POR SU OTRA FORMA (28/09/2026, decisión del arquitecto). La MISMA
+       * contradicción —dónde van los residuos del grupo III no punzantes— dicha
+       * por la afirmación positiva de NOR-11 (bolsa amarilla) en vez de por la
+       * prohibición. Es la forma en que el juez la emitió con el candidato entero
+       * (Estado_Del_MVP.md B.280).
+       * ⚠️ NO ES AFLOJAR: aflojar sería aceptar cualquier cosa que hable de
+       * contenedores. Esto declara que la misma contradicción tiene DOS formas
+       * legítimas de expresarse, las dos verificables con cita y las dos
+       * aislantes: la frase del amarillo aparece 1 vez en NOR-11 y 0 en CLI-13
+       * (medido con el `normalize` del verificador). P2-3 queda intacta.
+       * ⚠️ La negación categórica sigue sin ejercerse: que salga por aquí no
+       * prueba lo que la siembra quería medir.
+       */
+      id: 'P2-3-AMARILLO',
+      sembrada: false,
+      descubierta: '2026-09-28',
+      superficie: 'afirmación positiva (la otra forma de P2-3)',
+      tema: 'color de contenedor para el grupo III no punzante',
+      citaEnElAnalizado: {
+        // NOR-11, carácter ~3.657 (apartado 3.3 · Grupo III)
+        literal: 'el resto de residuos biosanitarios especiales no punzantes '
+               + '(gasas, guantes, apósitos), que se depositan en bolsa de color '
+               + 'amarillo dentro del contenedor correspondiente de cada gabinete',
+        discriminante: 'que se depositan en bolsa de color amarillo dentro del contenedor',
+      },
+      citaEnElCorpus: {
+        // CLI-13 :71 — la misma frase que P2-3
+        literal: 'Los residuos del grupo III (gasas, guantes y material de un '
+               + 'solo uso que ha estado en contacto con sangre o fluidos de un '
+               + 'paciente) se depositan en el contenedor negro habilitado en '
+               + 'cada gabinete',
+        discriminante: 'se depositan en el contenedor negro habilitado en cada gabinete',
+      },
+      severidadMinima: 'contradiction',
+      // NO cuenta para el mínimo hasta medirse estable con cinco pasadas: sólo
+      // sale con el escalón 1, así que su base hoy es cero (arquitecto, 28/09).
       cuentaParaElUmbral: false,
     },
   ],

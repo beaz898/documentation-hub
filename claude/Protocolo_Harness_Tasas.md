@@ -713,6 +713,29 @@ qué significa. Y el número de puntos caza lo que la línea sola no caza: que s
 pierda un punto del medio al pegar, con el principio y el final intactos.
 
 
+## ⚠️ UN ROJO NO PUEDE PASAR EN SILENCIO: la suite y el commit
+
+*Adoptada el 28/09/2026, a petición del arquitecto, a la TERCERA vez del mismo
+fallo: `a3423ef2` (16/09, Estado_Del_MVP.md §5.70), B.263 (22/09) y B.286
+(28/09). Las dos primeras quedaron en fichas y no aquí, y por eso volvió.*
+
+> **1 · La suite se corre sola, con la salida entera a fichero y los nombres en
+> JSON, y se mira su CÓDIGO DE SALIDA:**
+> `npx vitest run --reporter=default --reporter=json --outputFile.json=<dir>/suite.json > <dir>/suite.txt 2>&1; echo "exit=$?"`
+> **2 · Antes de mirar nada más, se leen del JSON los nombres de lo que falle.** Si
+> falla algo, el nombre va a la ficha o al mensaje del commit, **aunque la
+> siguiente pasada salga verde**: un rojo que no se reproduce se registra igual.
+> **3 · El commit va en OTRA orden, y sólo si el código de salida fue 0.** Nunca
+> encadenado detrás de un `grep`, un `tail` o cualquier filtro, que devuelven 0
+> aunque haya rojo.
+> **4 · La pasada vale sólo si corrió después de la última edición, sobre el árbol
+> que se commitea** —incluidos los `.md`, que tienen batería (§5.70)—.
+
+**LOS TRES CASOS, y los tres son el mismo**: en los tres la suite dijo rojo y el
+commit salió igual, porque se encadenó detrás de algo que no se paraba ante un
+rojo; en dos de los tres, además, el nombre se perdió al filtrar la salida.
+
+
 ## ⚠️ REGLA DE CIERRE: qué bloquea y qué se declara
 
 *Promovida de F-89 P6 el 30/08/2026. Se promueve ANTES que las otras dos reglas

@@ -7525,6 +7525,64 @@ Fable ni el arquitecto.
   `const isDuplicate = topJudgment.verdict === 'duplicado_exacto' && topJudgment.overlapPercent >= 85;`
   (`lib/analysis/synthesize.ts:235`).
 
+### ⚠️ B.284 — EL EXAMEN CASTIGA UN ACIERTO, VARIEDAD 1: RUTA POR REDACCIÓN (28/09/2026)
+
+Un esperado exige una frase concreta cuando el documento dice **el mismo dato en otra frase**
+verificable. El producto acierta citando la otra, el marcador no la empareja, y la apunta como
+fallo —y, con auditoría completa, como falso—.
+- **Ejemplares confirmados**: la contradicción D del corpus ampliado, que no estaba sembrada y
+  la redacción antigua contaba como falso (corregida y fechada en `SIEMBRA_corpus_ampliado.md`);
+  **P2-3**, emitida por la bolsa amarilla y no por la prohibición (resuelta el 28/09 con
+  P2-3-AMARILLO, sin tocar P2-3); y **N6-CICLO-REAL**, cuyo lado de CLI-01 exige «Temperatura:
+  134 °C» cuando la línea siguiente dice «Tiempo de exposición (meseta): 18 minutos»
+  (`CLI-01_protocolo-esterilizacion-instrumental.txt:70-71`).
+- **Medidos el 28/09 en los `.docx`** (cada mención del dato en su documento, con su posición):
+  | Esperado | ¿Otra frase con el mismo dato? |
+  |---|---|
+  | P1-A | **sí, en los dos lados**: NOR-10 @2839 («…no es delegable y recae siempre sobre esta figura»), CLI-12 @4366-4542 |
+  | P1-B | **sí, en CLI-12**: @32865 y @35834 («…periodicidad mensual del control biológico») |
+  | P1-C | **sí, en CLI-12**: @47433 («…este criterio de 12 meses») |
+  | P1-D | no: una sola frase por lado |
+  | P2-1 | **sí, en los dos lados**: NOR-11 @1772 («El cómputo de las 72 horas…»), CLI-13 @1626 («Si han pasado más de 7 días…») |
+  | P2-2 | no: el valor (Chamberí / Retiro) está en una sola frase por lado |
+  | P2-3 | sí (confirmado; resuelto con P2-3-AMARILLO) |
+  | N6-CICLO-REAL | **sí, en CLI-01** (confirmado); en OPE-01, una sola frase |
+- **Tamaño: 6 de los 8 esperados de prosa tienen una segunda forma.** Sin arreglar ninguno: que
+  exista la otra frase no dice que el juez vaya a usarla; dice que, si la usa, hoy se castiga.
+
+### ⚠️ B.285 — EL EXAMEN CASTIGA UN ACIERTO, VARIEDAD 2: RUTA POR DETECTOR (28/09/2026)
+
+Un esperado exige que lo emita **un detector concreto**. El producto puede acertar con la cita
+correcta y el examen apuntarlo como fallo **y** como extra —o como falso, si el caso cuenta los
+extras— sólo porque lo encontró el otro detector. **No es candidata: está leída en el código**,
+y el censo es cerrado: los tres sitios del marcador que exigen quién confirmó.
+
+| Sitio | Detector exigido | Esperados | Si lo encuentra el otro |
+|---|---|---|---|
+| `lib/examen/comparador-tabular.mjs:70` | estructura | N1-PUESTO | fallo + extra |
+| `lib/examen/comparador-estructural.mjs:44` | estructura | **las 15 discrepantes de P3** | fallo + extra, por fila |
+| `lib/examen/comparador-tabular.mjs:60` | juicio | P4-BELMONTE, P4-MEDINA | **fallo + falso** (P4 cuenta los extras) |
+
+- **Latente, no vigente**: N6-CICLO-REAL declara `confirmadoPorEsperado: 'juicio'`
+  (`examen/casos/N6_autoclave.mjs:105`) y el comparador por cita no lo lee; el validador ya lo
+  canta. Pasaría a esta lista el día que alguien enseñara al marcador a leerlo.
+- **El modelo de cómo debería estar hecho un esperado: N3-DUPLICADO**, que acepta dos especies.
+- **Sin arreglar.** El principio de separar «encontró la verdad» de «qué detector la encontró»
+  está en dictamen (28/09).
+
+### ⚠️ B.286 — un test intermitente SIN IDENTIFICAR: 1 de 1.522, el 28/09 (28/09/2026)
+
+Antes del commit `12691b0f` la suite dio `1 failed | 1521 passed`, y **el nombre se perdió**:
+la salida se filtró con `grep` y el commit se encadenó detrás de un comando que no se para ante
+un rojo. **Nueve ejecuciones después, las nueve en verde.** El commit sólo tocaba un comentario
+de un caso y el protocolo, así que el fallo no puede venir de ahí.
+- **Relacionada con B.263** —un caso determinista que caía por tiempo de pared una pasada de
+  cada cinco, arreglado el 23/09 calentando `Intl` y subiendo `testTimeout` a 15.000 ms—, **sin
+  dar por hecho que sea el mismo**: sin el nombre no se sabe ni si fue por tiempo.
+- ⚠️ **Es la TERCERA vez del mismo fallo de método**: `a3423ef2` (16/09, §5.70), B.263 (22/09) y
+  ésta. Las dos anteriores quedaron escritas en fichas, no en el protocolo. **La regla, ahora en
+  el protocolo**: `claude/Protocolo_Harness_Tasas.md`, «Un rojo no puede pasar en silencio».
+
 ---
 
 ## 📋 5.92 · ACTA DE LA SEMANA — cinco hipótesis nuestras que se cayeron al medirlas, y las tres que costaron una decisión (25/09/2026)
