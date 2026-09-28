@@ -17,7 +17,7 @@ npm run lint     # Lint + type-check
 ### Stack
 
 - **Frontend**: Next.js 15 (React 19, Tailwind CSS)
-- **LLM**: Claude Haiku 4.5 (chat + query rewriting) / Claude Sonnet 4.6 (analysis)
+- **LLM**: Claude Haiku 4.5 (`claude-haiku-4-5-20251001`) / Claude Sonnet 4.6 (`claude-sonnet-4-6`), fijados en código sin variable de entorno (`lib/llm/anthropic-client.ts:23-24`); el defecto es Haiku (`:88`). En el análisis: juez, rerank, verificador y síntesis → **Haiku** (`judge.ts:874`, `rerank.ts:99`, `verify-findings.ts:253`, `synthesize.ts:266`); el double-check → **Sonnet**, sólo en el exhaustivo (`double-check.ts:364`, llamado en `pipeline.ts:1269`); el agente → Sonnet (`anthropic-client.ts:25`). *(Corregido el 28/09/2026: decía «Sonnet 4.6 (analysis)».)*
 - **Vector DB**: Pinecone — multilingual-e5-large embeddings (1024 dims)
 - **Auth & Data**: Supabase (PostgreSQL + Row Level Security)
 - **Billing**: Stripe (credit-based consumption model, plans + credit packs)
