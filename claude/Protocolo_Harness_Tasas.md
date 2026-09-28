@@ -695,6 +695,24 @@ y esa sección no coinciden, una de las dos miente, y se mira el código antes d
 enviar.
 
 
+## ⚠️ TODO ENCARGO DEL ARQUITECTO TERMINA CON SU LÍNEA DE CIERRE
+
+*Adoptada el 28/09/2026, a petición del arquitecto.*
+
+> **Todo encargo termina con esta línea, literal salvo el número:**
+> `FIN DEL ENCARGO (N puntos) — si no ves esta línea, te ha llegado cortado.`
+> **Si la línea no está, el encargo llegó incompleto y NO se ejecuta: se pide el
+> resto.** Si está y el número de puntos no coincide con los que hay, tampoco.
+
+**EL CASO.** El 28/09 un encargo llegó truncado en «…y entra», a mitad de un
+punto, y el punto 3 no llegó. Se notó porque la frase quedaba colgando; un corte
+entre dos puntos habría pasado en silencio.
+
+**POR QUÉ ESTA MARCA.** El texto la explica sola, así que no hace falta recordar
+qué significa. Y el número de puntos caza lo que la línea sola no caza: que se
+pierda un punto del medio al pegar, con el principio y el final intactos.
+
+
 ## ⚠️ REGLA DE CIERRE: qué bloquea y qué se declara
 
 *Promovida de F-89 P6 el 30/08/2026. Se promueve ANTES que las otras dos reglas

@@ -120,6 +120,17 @@ export default {
       },
       severidadMinima: 'contradiction',
 
+      // ⚠️ 28/09/2026 — LA NEGACIÓN CATEGÓRICA SIGUE SIN PROBARSE. Con el candidato
+      // entero (Estado_Del_MVP.md B.280) el juez emitió esta contradicción por la
+      // AFIRMACIÓN POSITIVA de NOR-11 —«…que se depositan en bolsa de color
+      // amarillo dentro del contenedor…» (carácter ~3.657)— y no por «En ningún
+      // caso…». Es un hueco de cobertura del caso, no un fallo del producto: la
+      // superficie que la siembra quería medir no se ha ejercido. Y con los
+      // discriminantes de arriba el marcador NO reconoce ese acierto: saldría
+      // como extra y, con la auditoría completa, contaría como FALSO. Hoy es
+      // latente —en rápido el trozo de CLI-13 no entra—; se vuelve vivo con el
+      // escalón 1 (B.273). Sin arreglar: pendiente de decisión del arquitecto.
+
       /**
        * ⚠️⚠️ PENDIENTE CONOCIDO: **B.106**. NO CUENTA COMO FALLO DEL EXAMEN.
        *
