@@ -1,0 +1,22 @@
+REPUNTUACIÓN · marcador del commit 13cb7bb7 · 2026-09-28
+crudos de examen/resultados/2026-09-27_97223b72 · 20 pasadas · sin relanzar, 0 créditos
+⚠️ SIN CRUDOS en esta carpeta (no se repuntúan): N2, N4, N5, N6, N7, P1, P2, P3, P4
+⚠️ El informe original (`informe.txt`) se deja como está: es lo que dijo el marcador de entonces.
+
+N1: PASA · 1 estable(s)-acierto · 0 falsos (máx. por pasada)
+    · aciertos observados: N1-PUESTO 10/10 estable-acierto
+    · detector de cada acierto: N1-PUESTO estructura 10/10
+    · inestables: 0
+    · extras sin etiquetar: p1 1 · p2 1 · p3 1 · p4 1 · p5 1 · p6 1 · p7 1 · p8 1 · p9 1 · p10 1
+        solapamiento: solapamiento con OPE-02_agenda-y-gestion-de-citas.xlsx (45 %, media) — en 7 de 10 pasadas
+        solapamiento: solapamiento con OPE-02_agenda-y-gestion-de-citas.xlsx (35 %, media) — en 3 de 10 pasadas
+N3: SIN_VEREDICTO
+    ~ línea de base PENDIENTE: esta tanda MIDE la frecuencia, no la juzga. observado: 0/0/0/0/0/0/0/0/0/0 falsos por pasada
+    · aciertos observados: N3-DUPLICADO 10/10 estable-acierto
+    · detector de cada acierto: N3-DUPLICADO desconocido 10/10
+    · inestables: 0
+    · extras sin etiquetar: ninguno
+
+INESTABLES EN LA TANDA: 0 (entre 1 y 4 de 5; si crece, el sistema se ha vuelto más aleatorio aunque la media no se mueva)
+
+El validador no caza nada en estos casos: el marcador lee todo lo que declaran.
