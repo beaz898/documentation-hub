@@ -7423,9 +7423,42 @@ mira el motivo de parada de la respuesta. **Encargo de lectura, antes de encende
   La variable es global al worker: cambia TODOS los exhaustivos de TODAS las organizaciones
   mientras esté puesta. Sin estas tres anotaciones, los análisis de la ventana no valen como
   prueba:
-  - **Hora de puesta**: _pendiente_
-  - **Hora de retirada**: _pendiente_
-  - **Análisis corridos entre las dos**: _pendiente_
+  - **Hora de puesta**: 28/09/2026, 13:20 hora española, en el worker de Railway, con valor 14676.
+  - **Hora de retirada**: 28/09/2026, 13:26. Seis minutos.
+  - **Análisis corridos entre las dos**: dos, los dos de la organización `a9625e93`:
+    job `4b0471ba-2f10-428f-9a8a-cf282d92a465` (CLI-13 analizado) y job
+    `6d987d97-341e-4308-b1d6-8844d6339565` (NOR-11 analizado). Datos del director.
+
+**RESULTADO (28/09, datos del director; nivel del juez).** El presupuesto se aplicó —log:
+«presupuesto por candidato: 14676 chars»— y los dos candidatos entraron ENTEROS: NOR-11 «15
+dentro, 0 fuera, 14676/14676»; CLI-13 «11 dentro, 0 fuera, 9797/14676».
+
+| Dirección | Presupuesto 3.000 (mañana del 28/09) | Presupuesto 14.676 (13:20-13:26) |
+|---|---|---|
+| CLI-13 analizado → NOR-11 | 1: P2-1 | **2: P2-1, P2-2** · overlap 35 % → **65 %** · verificador 2→2 · double-check 2 de 2 |
+| NOR-11 analizado → CLI-13 | 1: P2-2 | **3: P2-2, P2-1, P2-3** · overlap 35 % · verificador 3→3 · double-check **no consta** (el log del worker se corta; `SQL_F118_exhaustivos_NOR11_CLI13.sql`) |
+
+Descartes por cita no verificable: uno en la primera dirección («Grupo II — Sanitarios no
+específicos…») y dos en la segunda («Dentavia clasifica los residuos…», «Todo el personal
+clínico y auxiliar recibe formación…»). Ninguno era una trampa.
+
+**LA PREDICCIÓN, PUNTUADA COMO SALIÓ** — la primera escrita antes de correr:
+- ✅ **CONFIRMADO: el mecanismo.** Con el candidato entero apareció **P2-3**, que según el
+  director no había salido en ningún análisis desde el 27/08. Entre las dos direcciones, de
+  **2 trampas encontradas a 5**.
+- ❌ **FALLADO: «en cada dirección».** Salieron tres en una dirección y **dos** en la otra:
+  analizando CLI-13, con los dos documentos enteros delante, P2-3 no salió (B.282).
+- La predicción secundaria —el falso de la fecha de versión (N7)— **no apareció** en ninguno de
+  los dos análisis, y tampoco falsos nuevos entre las contradicciones.
+- **Una comprobación cruzada gratis**: el hash de la pareja de citas de P2-1 en la dirección
+  CLI-13 → NOR-11 es `9d19a20b`, el mismo que `Tandas_Harness.md:1126` anota para esa dirección
+  el 31/08. El hash se calcula sobre las dos citas (`llm-boundary.ts:158-162`), así que **el
+  31/08 esa dirección encontró P2-1 con las mismas citas**.
+
+⚠️ **LOS DOS ANÁLISIS GUARDADOS DE ESTA VENTANA NO SON REPRODUCIBLES CON LA CONFIGURACIÓN
+ACTUAL**, y nada en ellos dice con qué presupuesto se hicieron (B.281). Quien los mire dentro
+de un mes verá 2 y 3 contradicciones donde el comportamiento normal da 1 y 1. **Esta anotación
+de la ventana es la única prueba** de por qué.
 
 ### ⚠️ B.281 — ningún análisis guarda con qué presupuesto de CANDIDATO se hizo (28/09/2026)
 
@@ -7438,6 +7471,37 @@ análisis guardado no dice si se hizo con 3.000 o con lo que marcara
 - **Es requisito para medir el escalón 1** (B.273): sin él no se puede separar, en lo guardado,
   un análisis con presupuesto ampliado de uno normal.
 - **Mientras no exista, la alternativa es anotar la ventana a mano** (B.280). **Sin implementar.**
+
+### ⚠️ B.282 — ASIMETRÍA ENTRE DIRECCIONES: con los dos documentos enteros, P2-3 sale en una y no en la otra (28/09/2026)
+
+En el experimento de B.280, analizando **CLI-13** contra NOR-11 el juez tenía **las dos mitades
+de P2-3 delante** —los dos documentos enteros— **y no la emitió**. Analizando NOR-11, sí.
+- Con el presupuesto de 3.000, la correspondencia «emite la trampa cuyas dos mitades tiene
+  delante» era exacta en las seis casillas (`Puntos_Pendientes_Doclity.txt:2242-2286`). **Con
+  el presupuesto ampliado ya no lo es**: hay una casilla con las dos mitades y sin hallazgo.
+- ⚠️ **ES UNA PASADA POR DIRECCIÓN.** Por nuestra propia regla de estabilidad (5/5 para llamar
+  estable a algo) hacen falta cinco antes de afirmar que la asimetría existe: **puede ser ruido
+  del modelo**.
+- **Sin causa propuesta.** Se mide con el examen cuando el escalón 1 (B.273) esté tras
+  interruptor.
+
+### ⚠️ B.283 — EL SOLAPAMIENTO SUBIÓ DE 35 % A 65 % sólo por el texto extra (28/09/2026)
+
+En el experimento de B.280, la dirección CLI-13 → NOR-11 pasó de **35 % a 65 %** de
+solapamiento con el candidato entero; la otra se quedó en 35 %. Nadie lo había previsto: ni
+Fable ni el arquitecto.
+- **Ya ha cruzado un umbral**: a partir del **60 %** el solapamiento se pinta con severidad
+  **«alta»** (`lib/analysis/synthesize.ts:167`); con 35 % era «media». El usuario vería otra
+  cosa con los mismos dos documentos.
+- **Y puede cruzar el del duplicado.** El par se declara duplicado —y de ahí sale el
+  `NO_INDEXAR`— si se cumplen **dos** condiciones a la vez: que el juez dé el veredicto
+  `duplicado_exacto` **y** que el solapamiento llegue al **85 %**
+  (`lib/analysis/synthesize.ts:235`). El porcentaje y el veredicto los pone el juez, y con más
+  texto delante pueden moverse los dos. Con dos documentos de verdad parecidos, el presupuesto
+  ampliado podría empujarlos por encima.
+- **Es un riesgo del escalón 1 que hay que medir antes de encenderlo.**
+- ⚠️ *El encargo del arquitecto del 28/09 llegó cortado en este punto («…y entra»). Lo que
+  seguía no se ha escrito.*
 
 ---
 
