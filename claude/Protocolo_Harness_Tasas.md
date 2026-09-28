@@ -752,6 +752,63 @@ en una ficha; el 28/09 volvió por tercera vez (B.286). La regla que lo para, «
 no puede pasar en silencio», es la de justo encima, y llegó a la tercera y no a la
 segunda.
 
+**CANDIDATA, que NO sube todavía** (28/09/2026): «lo que el director no ve en
+pantalla» — `Estado_Del_MVP.md:4727`, «QUÉ MIRA EL DIRECTOR: NADA, Y ES LA SEGUNDA VEZ
+QUE PASA». Hay un hecho apuntado dos veces y **ninguna regla formulada**: nadie ha
+escrito qué exige. Sube el día que alguien lo escriba; una ley vaga no entra.
+
+
+## ⚠️ UN LÍMITE DE TIEMPO DE RELOJ SOBRE CÓDIGO DETERMINISTA NO MIDE EL CÓDIGO: MIDE LA MÁQUINA
+
+*Subida de ficha al protocolo el 28/09/2026 (regla de la segunda vez). Redactada en
+B.263 y no había salido de allí.*
+
+> **Un tope de tiempo de reloj sobre algo determinista convierte la carga de la
+> máquina en un veredicto sobre el commit, con la misma cara que un fallo de verdad.**
+> Su coste real no es el rojo: es que **enseña a no creerse el color**, y un rojo que
+> nadie cree ya no protege nada. Cuando un tope se aplique a algo determinista, la
+> pregunta es **qué margen tiene el eslabón más lento — y ese margen se calcula, no
+> se supone.**
+
+**LOS CASOS, cuatro y quizá cinco, con la misma firma** —un solo caso, la suite
+lenta, no reproducible después—: dos el 07/09 («Van dos de dos con la misma firma»,
+`Puntos_Pendientes_Doclity.txt:7261`), el 22/09 y el 23/09 (`Estado_Del_MVP.md`
+B.263: un caso síncrono de ~45 ms estirado a 5.173 ms por la carga, cruzando el tope
+de 5.000 por 173). **Puede que B.286 (28/09) sea el quinto**: se perdió el nombre y
+no se puede afirmar.
+
+**Cómo se cumple**: el tope de la suite se fija con el margen del caso más lento
+calculado (B.263: `testTimeout` a 15.000 ms y `Intl` calentado en `vitest.setup.ts`),
+y un rojo por tiempo se trata como hallazgo sobre el tope, no como fallo del código,
+hasta demostrar lo contrario.
+
+
+## ⚠️ LO QUE CAMBIA EL RESULTADO SE GUARDA CON EL RESULTADO
+
+*Subida de ficha al protocolo el 28/09/2026 (regla de la segunda vez), a la tercera.*
+
+> **Un parámetro cuyo valor cambia la salida va GUARDADO JUNTO A ESA SALIDA,
+> consultable por registro** —en la misma fila, en el mismo objeto que se
+> persiste—. **No basta con que salga en un log**: el log rota, no se puede cruzar
+> con nada, y el día que haga falta saber con qué se hizo algo sólo quedará
+> reconstruirlo por contenido o por ventana de horas, que es adivinar con método.
+
+**LOS TRES CASOS, y los tres costaron una reconstrucción débil:**
+- **B.170** (`Puntos_Pendientes_Doclity.txt:5972`): dieciséis exhaustivos pagados cuyo
+  resultado hubo que atribuir POR CONTENIDO, porque ninguna fila decía qué trabajo lo
+  produjo.
+- **La segunda vez en dos días** (`Puntos_Pendientes_Doclity.txt:6285`): «No hay forma
+  exacta de saber qué fila produjo qué trabajo … la segunda vez en dos días que cuesta
+  una consulta débil».
+- **B.281** (`Estado_Del_MVP.md`): el presupuesto del candidato sólo sale en el log
+  (`lib/analysis/retrieval.ts:398`). Los dos análisis del experimento de B.280 **no
+  dicen con qué presupuesto se hicieron**, y su única prueba es una ventana apuntada a
+  mano.
+
+**EL EJEMPLAR BIEN RESUELTO**: `textoAnalizado` (27/09, `695018f5`) — cuánto texto del
+analizado había y cuánto vio el juez, guardado DENTRO del resultado del análisis. **B.281
+es el que falta**: el mismo dato para el lado del candidato.
+
 
 ## ⚠️ REGLA DE CIERRE: qué bloquea y qué se declara
 
