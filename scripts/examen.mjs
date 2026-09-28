@@ -11,6 +11,7 @@ import {
 import { validarLoQueElMarcadorLee } from '../lib/examen/validar-lectura.mjs';
 import { umbralesQueNoPuedenFallar, umbralesQueNoPuedenPasar } from '../lib/examen/umbrales-que-pueden-fallar.mjs';
 import { lineasDelVeredicto } from '../lib/examen/veredicto.mjs';
+import { permisoDeLanzar } from '../lib/examen/permiso-de-lanzar.mjs';
 import { conRenovacion, CredencialPerdida, crearSesion, leerFicheroDeEntorno } from '../lib/examen/sesion.mjs';
 import { crudoDeLecturaFallida, motivoDelCuerpo } from '../lib/examen/lectura-fallida.mjs';
 
@@ -30,16 +31,17 @@ import { crudoDeLecturaFallida, motivoDelCuerpo } from '../lib/examen/lectura-fa
  * comparador, el cuadre, el emparejamiento por discriminante— vive en vitest,
  * donde se puede falsar sin gastar un céntimo.
  *
- * ⚠️ POR DEFECTO NO GASTA NADA. Hace falta `--lanzar` explícito. Es la regla de
- * fallar CERRADO (F-95 P3): un ejecutor que gaste créditos por descuido de quien
- * teclea es un ejecutor mal diseñado, y aquí una pasada son 100 créditos.
+ * ⚠️ POR DEFECTO NO GASTA NADA. Hace falta `--lanzar=<créditos>`, con el coste
+ * EXACTO que declara el modo seco para esa misma selección (28/09/2026,
+ * `lib/examen/permiso-de-lanzar.mjs`). Es la regla de fallar CERRADO (F-95 P3):
+ * un ejecutor que gaste créditos por descuido de quien teclea es un ejecutor mal
+ * diseñado, y aquí una pasada son 100 créditos.
  *
  * Uso:
  *   node scripts/examen.mjs                      # seco: valida y declara coste
  *   node scripts/examen.mjs --caso P1            # seco, un solo caso
- *   node scripts/examen.mjs --lanzar             # gasta de verdad
- *   node scripts/examen.mjs --lanzar --caso P2
- *   node scripts/examen.mjs --lanzar --excluir N6   # todos menos N6
+ *   node scripts/examen.mjs --caso P2 --lanzar=<el coste que dijo el seco>
+ *   node scripts/examen.mjs --excluir N6 --lanzar=<ídem>   # todos menos N6
  *
  * Credenciales, SÓLO para --lanzar: `.env.examen.local` (git lo ignora), con las
  * cinco claves de `.env.examen.local.ejemplo`. El ejecutor inicia sesión con el
@@ -70,7 +72,7 @@ const DIR_RESULTADOS = 'examen/resultados';
 // ---------------------------------------------------------------------------
 
 const argv = process.argv.slice(2);
-const LANZAR = argv.includes('--lanzar');
+// `--lanzar=<créditos>`: lo decide `permisoDeLanzar` en `main()`, con el coste ya calculado.
 /** `--caso P1` o `--caso N1,N3,P4`. */
 const soloCaso = (() => {
   const i = argv.indexOf('--caso');
@@ -572,7 +574,7 @@ function informeSeco(casos, commit) {
   }
 
   lineas.push(...LO_QUE_NO_MIDE, '');
-  lineas.push('Para gastar de verdad: node scripts/examen.mjs --lanzar');
+  lineas.push(`Para gastar de verdad: la misma orden con --lanzar=${costeDe(casos).creditos}`);
   return lineas.join('\n');
 }
 
@@ -629,7 +631,12 @@ async function main() {
     process.exit(1);
   }
 
-  if (!LANZAR) {
+  const permiso = permisoDeLanzar(argv, costeDe(casos).creditos);
+  if (permiso.error) {
+    console.error(`NO SE LANZA: ${permiso.error}.`);
+    process.exit(1);
+  }
+  if (!permiso.lanzar) {
     console.log(informeSeco(casos, commit));
     return;
   }
