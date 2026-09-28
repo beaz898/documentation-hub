@@ -106,7 +106,15 @@ export default {
       // Si sale confirmada por JUICIO, el hallazgo es correcto y el CAMINO no:
       // significaría que la estructura dejó de emparejar, y eso es una
       // regresión aunque el marcador de aciertos no se mueva.
-      confirmadoPorEsperado: 'estructura',
+      // ⚠️ 28/09/2026, FASE 2 DEL DETECTOR: se retira la restricción
+      // (`confirmadoPorEsperado: 'estructura'`). El acierto cuenta venga de donde
+      // venga, y el detector queda como DATO con su base. Esa regresión deja de
+      // salir en rojo por accidente —era un fallo de cobertura— y sale en rojo
+      // por su nombre cuando llegue la alarma de la fase 3 (perder un detector
+      // determinista sigue siendo rojo). Entre la fase 2 y la 3, no avisa.
+      // Base declarada por el arquitecto el 28/09: estructura, medida 10/10 en
+      // `97223b72` y 5/5 en `c39397e7`.
+      detectorDeBase: 'estructura',
       severidadMinima: 'contradiction',
     },
   ],

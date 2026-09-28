@@ -102,7 +102,8 @@ export default {
         // vive en el fragmento 4: el que no cupo.
         discriminante: 'Temperatura: 134 °C',
       },
-      confirmadoPorEsperado: 'juicio',
+      // 28/09/2026, fase 2 del detector: se retira `confirmadoPorEsperado: 'juicio'`,
+      // que el comparador por cita nunca leyó. Sin base: no hay medición que la sostenga.
       cuentaParaElUmbral: true,
       fragmentoEsperado: 4,
       /**

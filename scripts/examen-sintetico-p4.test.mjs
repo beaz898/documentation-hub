@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import P4 from '../examen/casos/P4_guardias_sin_clave.mjs';
-import { marcarPasada, marcarCaso, FALLA, FALSO_POR_EXTRA } from '../lib/examen/marcador.mjs';
+import { marcarPasada, marcarCaso, DEJO_DE_EJERCER, SIN_VEREDICTO } from '../lib/examen/marcador.mjs';
 
 /**
  * EL CRUDO SINTÉTICO DE LA FASE 2 DEL DETECTOR (28/09/2026).
@@ -11,10 +11,9 @@ import { marcarPasada, marcarCaso, FALLA, FALSO_POR_EXTRA } from '../lib/examen/
  * rama, así que éste es la prueba de la fase 2 (protocolo, «un cambio del
  * marcador se prueba repuntuando antes y después», condición 2).
  *
- * ⚠️ ROJO EN EL SENTIDO BUENO, como N7: documenta el defecto que la fase 2 va a
- * arreglar. Con el marcador de HOY un acierto verdadero cuenta como FALSO. El
- * día que la fase 2 entre, este test tiene que cambiar a SIN_VEREDICTO —y el
- * cambio se escribe antes, como predicción (Estado_Del_MVP.md B.288)—.
+ * Hasta la fase 2b este test documentaba el defecto: el acierto verdadero
+ * contaba como FALSO y P4 salía FALLA. Con la excepción declarada en el caso
+ * sale SIN_VEREDICTO, que es lo que predijo B.288 (Estado_Del_MVP.md).
  */
 
 const leer = ruta => JSON.parse(readFileSync(ruta, 'utf8'));
@@ -51,24 +50,30 @@ describe('la forma: la de un crudo real, campo por campo', () => {
   });
 });
 
-describe('HOY, con el marcador actual: el acierto verdadero cuenta como FALSO', () => {
-  it('P4-BELMONTE no se reconoce (se exige juicio) y P4-MEDINA sí', () => {
+describe('FASE 2 (28/09/2026): el otro detector no es un falso — el caso dejó de ejercer su rama', () => {
+  it('P4-BELMONTE no es un acierto (el caso exige juicio) y P4-MEDINA sí', () => {
     const m = marcarPasada(P4, pasada(SINTETICO));
     expect(m.aciertos).toEqual(['P4-MEDINA']);
   });
-  it('y con la auditoría completa de P4, sale como FALSO por extra, con su título', () => {
+  it('y NO sale como falso por extra: se aparta con el detector que lo encontró', () => {
     const m = marcarPasada(P4, pasada(SINTETICO));
-    expect(m.falsos).toEqual([FALSO_POR_EXTRA]);
-    expect(m.falsosPorExtra).toEqual([SINTETICO.cuerpo.analisis.discrepancies[0].topic]);
+    expect(m.falsos).toEqual([]);
+    expect(m.falsosPorExtra).toEqual([]);
+    expect(m.otroDetector.map(o => [o.id, o.detector, o.exigido])).toEqual([['P4-BELMONTE', 'estructura', 'juicio']]);
+    // Los dos extras son los del crudo real (solapamiento y duplicado de OPE-13), no Belmonte.
+    expect(m.extrasDetalle).toEqual(marcarPasada(P4, pasada(REAL)).extrasDetalle);
   });
-  it('el caso sale FALLA por un acierto verdadero — el defecto que arregla la fase 2', () => {
+  it('el caso sale SIN_VEREDICTO con el motivo que declara P4 — antes salía FALLA (B.288)', () => {
     const m = marcarCaso({ ...P4, pasadas: 1 }, [pasada(SINTETICO)]);
-    expect(m.estado).toBe(FALLA);
-    expect(m.fallos.join()).toContain('1 falsos en una pasada y el techo es 0');
+    expect(m.estado).toBe(SIN_VEREDICTO);
+    expect(m.fallos).toEqual([]);
+    expect(m.razones.join()).toContain(`P4-BELMONTE: ${DEJO_DE_EJERCER}`);
+    expect(m.razones.join()).toContain(P4.debenSalir.find(e => e.id === 'P4-BELMONTE').detectorExigido.motivo);
   });
-  it('control: el crudo REAL de la misma pasada no da ningún falso', () => {
+  it('control: el crudo REAL de la misma pasada no da ningún falso ni se aparta', () => {
     const m = marcarPasada(P4, pasada(REAL));
     expect(m.falsos).toEqual([]);
+    expect(m.otroDetector).toEqual([]);
     expect(m.aciertos).toEqual(['P4-BELMONTE', 'P4-MEDINA']);
   });
 });

@@ -130,6 +130,19 @@ export default {
    * mitad que falla primero cuando llega una tabla nueva.
    */
   esperadoEstructural: {
+    // 28/09/2026, FASE 2 DEL DETECTOR: la restricción a estructura de las 15
+    // discrepantes pasa del comparador (`comparador-estructural.mjs`) al CASO, con
+    // su motivo sacado de la cabecera. Una discrepante que encuentre el juez no es
+    // un acierto ni un falso: da SIN_VEREDICTO («el caso dejó de ejercer su rama»).
+    // Base declarada por el arquitecto el 28/09: estructura; ninguna pasada de
+    // `c39397e7` tiene un hallazgo del juez entre sus discrepancias.
+    detectorExigido: {
+      detector: 'estructura',
+      motivo: 'P3 mide el EMPAREJADOR DE TABLAS y el diff estructural, no el juez: «Un verde aquí dice ' +
+              'que el diff funciona; no dice nada del juez sobre tablas.» Si una discrepante la encuentra ' +
+              'el juez, el caso no ejerció el diff.',
+    },
+    detectorDeBase: 'estructura',
     claveDescubierta: ['Código'],
     filasEnElAnalizado: 60,
     filasEnElCorpus: 60,

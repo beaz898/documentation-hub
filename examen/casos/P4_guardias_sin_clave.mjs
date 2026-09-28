@@ -41,6 +41,13 @@
  *   Medina:   Retiro|Cirugía|Tarde|**44**         vs  Retiro|Cirugía|Tarde|**40**
  */
 
+/** Por qué P4 exige juicio (fase 2 del detector, 28/09/2026): el motivo es el
+ *  NIVEL de este caso, escrito arriba, no uno añadido para la ocasión. */
+const MOTIVO_DE_LA_EXCEPCION =
+  'P4 mide LA DEGRADACIÓN CUANDO NO HAY CLAVE DE EMPAREJAMIENTO: lo que pasa DESPUÉS de que el ' +
+  'emparejador se rinda (table-key.ts falla a propósito → a_juicio.sin_clave / columna_no_comparada → ' +
+  'la llamada corta del juez). Si lo encuentra la estructura, el caso no ejerció ese camino.';
+
 export default {
   id: 'P4',
   nivel: 'degradacion-sin-clave',
@@ -88,9 +95,13 @@ export default {
       // decirlo evita que alguien lea este caso como el de Medina.
       horasCoinciden: 32,
       severidadMinima: 'contradiction',
-      // 27/09/2026: lo que `rama` dice en prosa, escrito para el marcador (fila
-      // por juicio: persona y los dos valores; la columna no la nombra el juez).
-      confirmadoPorEsperado: 'juicio',
+      // 28/09/2026, FASE 2 DEL DETECTOR: la restricción a juicio pasa a estar
+      // DECLARADA con su motivo, sacado de la cabecera de este caso. Un acierto
+      // de estructura aquí no es un falso: da SIN_VEREDICTO («el caso dejó de
+      // ejercer su rama»). Base declarada por el arquitecto el 28/09: juicio,
+      // medida 5/5 en `c39397e7`.
+      detectorExigido: { detector: 'juicio', motivo: MOTIVO_DE_LA_EXCEPCION },
+      detectorDeBase: 'juicio',
     },
     {
       id: 'P4-MEDINA',
@@ -109,7 +120,8 @@ export default {
       enElAnalizado: '44',
       enElCorpus: '40',
       severidadMinima: 'contradiction',
-      confirmadoPorEsperado: 'juicio',   // ver P4-BELMONTE
+      detectorExigido: { detector: 'juicio', motivo: MOTIVO_DE_LA_EXCEPCION },   // ver P4-BELMONTE
+      detectorDeBase: 'juicio',                                              // medida 5/5 en `c39397e7`
     },
   ],
 
