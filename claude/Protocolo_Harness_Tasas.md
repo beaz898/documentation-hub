@@ -736,6 +736,23 @@ commit salió igual, porque se encadenó detrás de algo que no se paraba ante u
 rojo; en dos de los tres, además, el nombre se perdió al filtrar la salida.
 
 
+## ⚠️ A LA SEGUNDA VEZ DEL MISMO FALLO DE MÉTODO, EL APRENDIZAJE SUBE DE FICHA AL PROTOCOLO
+
+*Adoptada el 28/09/2026, a petición del arquitecto: la lección del día.*
+
+> **Una ficha es historia: dice qué pasó una vez. El protocolo es ley: dice qué se
+> hace siempre.** Cuando un fallo de método ocurre por SEGUNDA vez, su aprendizaje
+> se escribe aquí, en el commit que registra la segunda vez, con las fichas de las
+> dos como su caso. Un aprendizaje guardado sólo en fichas vuelve a morder.
+
+**EL CASO, medido tres veces con el mismo fallo**: la suite en rojo y el commit
+saliendo igual. `a3423ef2` (16/09) lo dejó escrito en `Estado_Del_MVP.md` §5.70;
+el 22/09 volvió y B.263 lo anotó —«Mi fallo, y es el mismo de `a3423ef2`»— otra vez
+en una ficha; el 28/09 volvió por tercera vez (B.286). La regla que lo para, «Un rojo
+no puede pasar en silencio», es la de justo encima, y llegó a la tercera y no a la
+segunda.
+
+
 ## ⚠️ REGLA DE CIERRE: qué bloquea y qué se declara
 
 *Promovida de F-89 P6 el 30/08/2026. Se promueve ANTES que las otras dos reglas

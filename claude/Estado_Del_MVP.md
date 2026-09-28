@@ -7457,7 +7457,23 @@ dentro, 0 fuera, 14676/14676»; CLI-13 «11 dentro, 0 fuera, 9797/14676».
 | Dirección | Presupuesto 3.000 (mañana del 28/09) | Presupuesto 14.676 (13:20-13:26) |
 |---|---|---|
 | CLI-13 analizado → NOR-11 | 1: P2-1 | **2: P2-1, P2-2** · overlap 35 % → **65 %** · verificador 2→2 · double-check 2 de 2 |
-| NOR-11 analizado → CLI-13 | 1: P2-2 | **3: P2-2, P2-1, P2-3** · overlap 35 % · verificador 3→3 · double-check **no consta** (el log del worker se corta; `SQL_F118_exhaustivos_NOR11_CLI13.sql`) |
+| NOR-11 analizado → CLI-13 | 1: P2-2 | **3: P2-2, P2-1, P2-3** · overlap 35 % · verificador 3→3 · double-check **3 de 3** (del SQL; el log del worker se cortaba) |
+
+**LO PUBLICADO, del SQL** (`SQL_F118_exhaustivos_NOR11_CLI13.sql`, ejecutado por el director el
+28/09 a las 13:35; `created_at` en UTC):
+- **11:22:32 · CLI-13 analizado → NOR-11**: dos filas `publicada`, las dos `double_check` —
+  «Plazo máximo de almacenamiento de residuos grupo III» y «Ubicación del punto de retirada
+  centralizado».
+- **11:23:16 · NOR-11 analizado → CLI-13**: TRES filas `publicada`, las tres `double_check` —
+  «Color del contenedor para residuos grupo III no punzantes», «Ubicación del punto de retirada
+  centralizado» y «Plazo máximo de almacenamiento de residuos grupo III».
+- **Sonnet confirmó las tres, y el usuario las ve las tres.** Cinco hallazgos publicados entre
+  las dos direcciones, los cinco trampas sembradas, cero falsos.
+- **La cita del lado NOR-11 de P2-3** es «el resto de residuos biosanitarios especiales no
+  punzantes (gasas, guantes, apósitos), que se depositan en bolsa de color amarillo dentro
+  de…»: **la ruta del amarillo**, no la prohibición. Es la que ahora empareja P2-3-AMARILLO
+  (`examen/casos/P2_residuos_prosa.mjs`), y confirma por qué hacía falta: con el esperado de
+  antes, este acierto habría contado como falso (B.284).
 
 Descartes por cita no verificable: uno en la primera dirección («Grupo II — Sanitarios no
 específicos…») y dos en la segunda («Dentavia clasifica los residuos…», «Todo el personal
