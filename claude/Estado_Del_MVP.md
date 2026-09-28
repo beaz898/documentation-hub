@@ -7308,6 +7308,28 @@ encabezados y los límites de trozo visibles (F-118 §5, escalón 1).
 - **El presupuesto** (Fable propone 20.000 tokens, con ficha y caso decisivo) se fija con
   `SQL_F118_tamanos_por_pareja.sql`, **pendiente de ejecutar**.
 - Sus predicciones, contables: F-118 sección (e).
+- ✅ **MEDIDO EL 28/09 — el corte del analizado SÍ costaba trampas.** Analizando NOR-11 contra
+  CLI-13, quitar el corte (exhaustivo, analizado entero) **añadió P2-2**: de 0 de 5 en rápido
+  (crudos `c39397e7`, a nivel del juez) a 1 de 1. P2-2 cae en el carácter 7.357 de NOR-11, más
+  allá del 6.000; su mitad del candidato (trozo 6 de CLI-13) ya entraba en los 3.000.
+- ⚠️ **Pero no basta: P2-3 sigue fuera, por el presupuesto del CANDIDATO**, en las dos
+  direcciones (tabla en `Puntos_Pendientes_Doclity.txt:2242-2286`, la corrección del 28/09). **El escalón 1 vale
+  en su forma literal: los DOS lados enteros.** Predicción del experimento que lo comprueba:
+  B.280.
+- ⚠️ **SIN MEDIR: la dirección CLI-13 → NOR-11 del brazo rápido.** P2 sólo analiza NOR-11, así
+  que los crudos no la tienen. Por caracteres predije «sin cambio» (en los dos modos la única
+  trampa completa es P2-1); **queda como predicción, no como dato**.
+- 📏 **EL PRESUPUESTO, CON LO QUE EJECUTÓ EL DIRECTOR** (`SQL_F118_tamanos_por_pareja.sql`, 28/09:
+  78 parejas medibles de 106; tokens ≈ caracteres/4 del `full_text` de los dos lados): p50 888 ·
+  p90 1.553 · p95 4.981 · p99 7.758 · máximo 7.758 · **cero parejas por encima de 20.000**.
+  **Propuesta: 10.000 tokens de texto de documento, los dos lados juntos.** Cubre la mayor
+  pareja medida con un 29 % de margen (10.000 / 7.758), dobla el p95 y es once veces el p50.
+  El 20.000 de Fable no lo decide ninguna pareja: todas caben con la mitad. ⚠️ **Tres salvedades
+  que el número no tapa**: (1) **28 parejas de 106 no se pudieron medir** —sin `full_text` o sin
+  el candidato— y cualquiera puede ser mayor; se miran antes de fijarlo. (2) Son tokens del
+  TEXTO, no del prompt: las instrucciones del juez van aparte. (3) Caracteres/4 es la
+  aproximación declarada en el SQL, no una tokenización. **Caso decisivo del número**: la
+  pareja mayor medida; si se bajara a 7.000, esa pareja dejaría de caber entera.
 
 ### ⚠️ B.274 — PRERREQUISITO: el examen no mide la PRECISIÓN de lo que emite (28/09/2026)
 
@@ -7335,6 +7357,10 @@ del candidato, declarado (F-118 D2).
 - **El worker con cola de fondo se vuelve más necesario**: un documento de ~66.000 caracteres
   con varias llamadas en paralelo y sus reintentos se acerca a los 120 s de la función (F-118
   §6). Sin ficha propia anterior; la deuda de «sin cola de fondo» consta en la consulta F-118.
+- 📏 **28/09: NO HACE FALTA PARA ESTE CORPUS.** Cero parejas por encima de 20.000 tokens, y la
+  mayor medida cabe en 7.758 (`SQL_F118_tamanos_por_pareja.sql`, 78 de 106 medibles). **No se
+  borra**: queda como plan para el día que entre un documento que no quepa en el presupuesto
+  de B.273.
 
 ### ⚠️ B.276 — UNA ESPECIE DE FALSOS: los METADATOS DEL DOCUMENTO como si fueran datos (28/09/2026)
 
@@ -7374,6 +7400,44 @@ afirmaciones en vez de texto. Es el enfoque que mejor resiste a los falsos por p
 Con los dos documentos enteros (B.273) la respuesta del juez se alarga y **puede truncarse por
 tokens de salida** (F-118 §6). No se ha leído cuál es el tope de salida del juez ni si alguien
 mira el motivo de parada de la respuesta. **Encargo de lectura, antes de encender B.273.**
+
+### 📋 B.280 — PREDICCIÓN, ESCRITA ANTES DE EJECUTAR: el candidato entero sobre NOR-11 / CLI-13 (28/09/2026)
+
+**Escrita el 28/09/2026, antes de poner la variable y antes de correr nada.** Literal:
+
+> Con ANALYSIS_EXHAUSTIVE_BUDGET_CHARS = 14.676, el exhaustivo sobre la pareja NOR-11 / CLI-13
+> encuentra las TRES trampas de P2 en cada dirección.
+> · Si aparecen tres: el mecanismo queda confirmado y el escalón 1 está justificado por medición.
+> · Si aparece P2-3 pero desaparece alguna de las otras dos: la correspondencia era casualidad y
+>   hay que replantear.
+> · Si P2-3 no aparece: el presupuesto del candidato no era la causa, y falta algo que no
+>   entendemos.
+> Predicción secundaria: el falso de la fecha de versión (N7) puede volver a aparecer con más
+> texto. Que aparezca no invalida nada; que aparezcan varios falsos nuevos, sí.
+
+- **El 14.676** es la suma de los 15 trozos de NOR-11 (el mayor de los dos; CLI-13 suma 9.797),
+  con el troceador real; los trozos que hoy entran reproducen exacto el log del candidato
+  (`Puntos_Pendientes_Doclity.txt:2242-2286`). La variable sólo la lee el exhaustivo, en el worker de Railway
+  (`lib/analysis/retrieval.ts:396`; `worker/src/index.ts:141`).
+- ⚠️ **LA VENTANA, porque el presupuesto usado NO queda registrado en ningún análisis (B.281).**
+  La variable es global al worker: cambia TODOS los exhaustivos de TODAS las organizaciones
+  mientras esté puesta. Sin estas tres anotaciones, los análisis de la ventana no valen como
+  prueba:
+  - **Hora de puesta**: _pendiente_
+  - **Hora de retirada**: _pendiente_
+  - **Análisis corridos entre las dos**: _pendiente_
+
+### ⚠️ B.281 — ningún análisis guarda con qué presupuesto de CANDIDATO se hizo (28/09/2026)
+
+El presupuesto por candidato sólo sale en el log (`[retrieval] presupuesto por candidato: …`,
+`lib/analysis/retrieval.ts:398`). No va en el resultado ni en `analysis_results`, así que un
+análisis guardado no dice si se hizo con 3.000 o con lo que marcara
+`ANALYSIS_EXHAUSTIVE_BUDGET_CHARS` en ese momento.
+- **Es la misma clase de agujero** que `textoAnalizado` cerró el 27/09 para el lado del
+  analizado (`695018f5`), y le falta al otro lado.
+- **Es requisito para medir el escalón 1** (B.273): sin él no se puede separar, en lo guardado,
+  un análisis con presupuesto ampliado de uno normal.
+- **Mientras no exista, la alternativa es anotar la ventana a mano** (B.280). **Sin implementar.**
 
 ---
 

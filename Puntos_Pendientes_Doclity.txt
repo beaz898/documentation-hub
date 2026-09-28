@@ -2209,8 +2209,9 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     batería como tal sigue sin ejecutarse contra el modelo de forma sistemática;
     una tanda de producción no es una batería.]
 
-  B.106 — [MEDIDO 27/08, SIN DIAGNOSTICAR] El juez emite UNA SOLA contradicción
-    por par de documentos.
+  B.106 — [MEDIDO 27/08, SIN DIAGNOSTICAR · ⚠️ ERRATA 28/09/2026: EL DIAGNÓSTICO
+    QUE SIGUE ES FALSO — ver «LO MEDIDO EL 28/09» al final de esta ficha] El juez
+    emite UNA SOLA contradicción por par de documentos.
     LA MEDIDA: en el caso de control NOR-11/CLI-13 —documentos de 4 y 5
     páginas, los más pequeños del corpus, con TRES contradicciones sembradas—
     cada análisis devuelve exactamente "1 contradicciones" en el log crudo del
@@ -2237,6 +2238,52 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     DÓNDE MEDIR MÁS: NOR-11/CLI-13 es el par barato para esto — tres siembras,
     documentos pequeños, todo el material entra. Contar cuántas emite el juez
     crudo en cuatro pasadas por dirección antes de tocar nada.
+
+    ⚠️ ══ LO MEDIDO EL 28/09/2026 (F-118) — el texto de arriba se deja como
+    estaba, marcado como errata: la evidencia no se borra ══
+    «NO ES LA SELECCIÓN» y «el material de la TERCERA contradicción estaba
+    delante del juez» SON FALSOS. El juez emitió la contradicción EXACTAMENTE
+    cuando tenía las dos mitades delante — seis casillas de seis (tres trampas
+    por dos direcciones): las dos que tenía completas las emitió, las cuatro que
+    no, no. Una pasada por dirección: es una correspondencia, no una tasa.
+    Troceado real (extractSegments + chunkSegments) de los dos .docx, que no han
+    cambiado desde que entraron al repositorio (6f407c9c, 27/08). Rangos en el
+    texto extraído; los trozos que entraron reproducen EXACTO el log del
+    candidato («2813/3000» y «2780/3000»). Presupuesto del candidato: 3.000
+    caracteres, primer ajuste por similitud, en los dos modos. Datos del
+    exhaustivo (analizado ENTERO): análisis a mano del director, 28/09.
+
+      Trampa  Trozo en NOR-11           Trozo en CLI-13          NOR-11 analizado     CLI-13 analizado
+                                                                 (CLI-13 candidato)   (NOR-11 candidato)
+      P2-1    2 · 1150-2096 · car 1517  2 · 1109-1937 · car 1268  su trozo de CLI-13   su trozo de NOR-11
+      72 h/7d                                                     FUERA → no sale      DENTRO → SALE
+      P2-2    8 · 7019-8416 · car 7357  6 · 4821-5716 · car 4924  su trozo de CLI-13   su trozo de NOR-11
+      Chamb./                                                     DENTRO → SALE        FUERA (saltado por
+      Retiro                                                                           primer ajuste) → no
+      P2-3    12 · 11433-12628 · 12220  9 · 8070-8959 · car 8696  su trozo de CLI-13   su trozo de NOR-11
+      negro                                                       FUERA → no sale      FUERA → no sale
+
+      Entraron: de NOR-11 como candidato, 0, 1, 14 y 2 (2813); de CLI-13, 0, 6,
+      10 y 1 (2780).
+
+    LA REGULARIDAD, en una frase: en cada dirección el juez emitió la trampa
+    cuyas DOS mitades tenía delante, y ninguna otra. La «una por dirección» no
+    es un techo del juez: es lo que el presupuesto del candidato dejaba completo.
+    ¿Y EN AGOSTO? Dos cosas distintas:
+      · SE PUEDE AFIRMAR: en rápido, una mitad de P2-3 quedaba fuera del CORTE
+        DEL ANALIZADO en las dos direcciones — la de NOR-11 en el carácter
+        12.220 y la de CLI-13 en el 8.696, frente a un corte de 6.000 que existía
+        desde el 04/05 (8ff675b9). Los ficheros son los mismos. Así que el
+        27/08 el juez NO tenía P2-3 entera delante en ninguna dirección, dijera
+        lo que dijera el descarte que citaba «contenedor negro habilitado en
+        cada gabinete»: eso era UNA mitad.
+      · QUEDA SIN DETERMINAR qué trozos del candidato entraron en agosto: el
+        registro dice 16 trozos para NOR-11 y hoy son 15 (el troceado cambió
+        desde entonces), y la selección de aquel día no está guardada.
+    Las tres hipótesis de arriba (prompt, negación categórica, overlapPercent)
+    quedan SIN OBJETO para este caso: no hace falta ninguna para explicarlo.
+    La predicción del experimento que lo comprueba, escrita antes de correrlo:
+    Estado_Del_MVP.md B.280.
 
   B.107 — [DOS FALLOS MEDIDOS 27/08, UNA SOLA ENFERMEDAD — doctrina F-80] La
     cita literal la escribe el MODELO, y por eso se rompe de dos maneras.
