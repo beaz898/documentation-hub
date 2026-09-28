@@ -7586,6 +7586,32 @@ y el censo es cerrado: los tres sitios del marcador que exigen quién confirmó.
 - **Sin arreglar.** El principio de separar «encontró la verdad» de «qué detector la encontró»
   está en dictamen (28/09).
 
+### ⚠️ B.289 — EJEMPLAR: una frase sin comprobar que VIAJÓ hasta casi ser norma (28/09/2026)
+
+**No es una regla nueva.** Es un ejemplar de la que ya existe, la de los indicativos sobre el
+repositorio (`CLAUDE.md`, «Reglas obligatorias», la primera). Lo que lo hace distinto es que
+**la frase sin comprobar viajó**.
+
+- **Lo que pasó.** Para comparar la salida del validador, Code abrió una copia del repositorio en
+  HEAD y corrió `node scripts/examen.mjs` sin `--lanzar`. Se colgó copiando dependencias y se
+  paró. En el informe, Code escribió como hecho: «si los casos hubieran validado, habría lanzado
+  una tanda real». **Era falso**: sin `--lanzar` el ejecutor es seco. Valida, declara el coste y
+  vuelve (`scripts/examen.mjs:631-634`); la sesión y todo `fetch` van después (`:640`, `:401`).
+- **El viaje.** El arquitecto tomó la frase como premisa y encargó una norma de protocolo, «el
+  ejecutor no se usa para comprobar nada», con ese casi-accidente como caso. **Ni Code la
+  verificó al escribirla, ni el arquitecto al recibirla.** Murió en la recepción del encargo: se
+  leyó el ejecutor antes de escribir la norma.
+- **La consecuencia práctica.** Cuando uno de los dos escriba un riesgo del repositorio, va con
+  su `fichero:línea` o va marcado «sin comprobar». **El que lo recibe no construye nada encima
+  de lo segundo.**
+- **Es el tercer caso de hoy de la misma familia, la del relevo.** Los otros dos, en
+  `claude/consultas-fable/F-118_2026-09-28_simetria-de-lectura.md`:
+  - los «cinco» fragmentos (errata 2);
+  - los 614 análisis de otra tabla (errata 3).
+
+  El «no hay constancia» de F-65 (errata 4) es el mismo animal en su versión de lectura
+  incompleta: se leyó el asunto del commit y no el cuerpo.
+
 ### 📋 B.288 — PREDICCIÓN, ESCRITA ANTES DEL CAMBIO: la fase 2 del principio del detector (28/09/2026)
 
 **Escrita el 28/09/2026 a las 22:34, antes de tocar ningún comparador, caso ni el marcador.**
