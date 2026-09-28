@@ -157,9 +157,9 @@ describe('LOS DIEZ CASOS REALES — el control positivo de toda la regla', () =>
    * sería una pantalla apagada — hoy la regla **no caza ninguno de los diez**, y
    * eso sólo se lee como bueno porque existe la prueba de que sabe cazar.
    */
-  it('los casos de examen/casos/ son diez y la regla del techo no caza ninguno', async () => {
+  it('los casos de examen/casos/ son once (N7, 28/09) y la regla del techo no caza ninguno', async () => {
     const casos = await cargarCasos();
-    expect(casos.length).toBe(10);
+    expect(casos.length).toBe(11);
     const delTecho = casos.flatMap(c => validarElTechoDeFalsos(c, c.id));
     expect(delTecho).toEqual([]);
   });
