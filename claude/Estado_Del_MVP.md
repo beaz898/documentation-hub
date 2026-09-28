@@ -7586,7 +7586,7 @@ y el censo es cerrado: los tres sitios del marcador que exigen quién confirmó.
 - **Sin arreglar.** El principio de separar «encontró la verdad» de «qué detector la encontró»
   está en dictamen (28/09).
 
-### ⚠️ B.287 — los solapamientos del JUEZ no traen `confirmedBy`: el detector de N3 sale «desconocido» (29/09/2026)
+### ⚠️ B.287 — los solapamientos del JUEZ no traen `confirmedBy`: el detector de N3 sale «desconocido» (28/09/2026)
 
 La fase 1 del principio del detector (`13cb7bb7`) apunta qué detector encontró cada acierto,
 y para **N3-DUPLICADO** apunta «desconocido» en 15 de 15 pasadas (`c39397e7` y `97223b72`).

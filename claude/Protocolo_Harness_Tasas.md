@@ -808,14 +808,14 @@ hasta demostrar lo contrario.
 **EL EJEMPLAR BIEN RESUELTO**: `textoAnalizado` (27/09, `695018f5`) — cuánto texto del
 analizado había y cuánto vio el juez, guardado DENTRO del resultado del análisis. **B.281
 es el que falta**: el mismo dato para el lado del candidato. **Y un cuarto, del
-29/09 (`Estado_Del_MVP.md` B.287)**: los solapamientos del JUEZ no traen
+28/09 (`Estado_Del_MVP.md` B.287)**: los solapamientos del JUEZ no traen
 `confirmedBy` y sólo los de estructura lo traen, así que el examen apunta
 «desconocido» como detector de N3-DUPLICADO — un hueco del origen, no del marcador.
 
 
 ## ⚠️ UN CAMBIO DEL MARCADOR SE PRUEBA REPUNTUANDO ANTES Y DESPUÉS
 
-*Adoptada el 29/09/2026, a petición del arquitecto, con la fase 1 del principio del
+*Adoptada el 28/09/2026, a petición del arquitecto, con la fase 1 del principio del
 detector como su caso.*
 
 > **Todo cambio del marcador se prueba repuntuando las tandas guardadas antes y
@@ -841,7 +841,7 @@ detector como su caso.*
 > casos, y la diferencia se mezclaría con la del marcador.
 
 **EL CASO QUE LA ENSEÑÓ**: la fase 1 del principio del detector (`13cb7bb7`,
-29/09). Comparar contra el informe repuntuado del domingo (`d96613f2`) habría
+28/09). Comparar contra el informe repuntuado del domingo (`d96613f2`) habría
 mezclado con el cambio del marcador dos cambios de casos —P2-3-AMARILLO y N7—. La
 base se generó con el marcador de ese momento y los casos de ese momento, y la
 comparación dio lo que tenía que dar: cero líneas movidas y cinco añadidas, las del
