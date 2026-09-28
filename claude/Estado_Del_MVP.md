@@ -7330,6 +7330,27 @@ encabezados y los límites de trozo visibles (F-118 §5, escalón 1).
   TEXTO, no del prompt: las instrucciones del juez van aparte. (3) Caracteres/4 es la
   aproximación declarada en el SQL, no una tokenización. **Caso decisivo del número**: la
   pareja mayor medida; si se bajara a 7.000, esa pareja dejaría de caber entera.
+- ✅ **28/09 — EL EXPERIMENTO LO JUSTIFICA POR MEDICIÓN, NO POR ARGUMENTO** (B.280). Con los dos
+  lados enteros, la pareja NOR-11 / CLI-13 pasa de **2 trampas encontradas a 5 de 6 casillas**
+  (tres trampas por dos direcciones).
+- 📏 **LA PREDICCIÓN DE FABLE, PUNTUADA** (F-118 §6: la precisión baja entre 5 y 15 puntos con más
+  texto, antes del verificador ciego; y el falso de la fecha de versión puede volver). Lo medido:
+  **cinco hallazgos emitidos entre las dos direcciones, y los cinco son trampas sembradas. Cero
+  falsos. El falso de la fecha de versión no apareció.** Para comparar: en rápido (analizado
+  cortado a 6.000, candidato a 3.000), la dirección NOR-11 → CLI-13 dio **un solo hallazgo en
+  cinco pasadas, y era ese falso** (crudos `c39397e7`). **Va en dirección contraria a lo
+  predicho.** ⚠️ **Es una pasada, no una tasa**, y **el criterio de reversión de los 15 puntos
+  sigue en pie**: no se retira por una medición favorable.
+- **Los descartes por cita no verificable** — la mitad viva del corte honesto de F-116:
+  · con 14.676 (13:20-13:26): **1** analizando CLI-13 («Grupo II — Sanitarios no específicos… Se
+    depositan en bolsa de color verde.») y **2** analizando NOR-11 («Dentavia clasifica los
+    residuos… conforme a los cuatro grupos habituales…», «Todo el personal clínico y auxiliar
+    recibe formación específica…»);
+  · con 3.000 (mañana del 28/09): **2** analizando CLI-13 y **0** analizando NOR-11.
+  · Según los datos del director, los dos de la mañana eran **solapamientos**; los de la tarde
+    vienen sin decir si eran contradicciones o solapamientos, así que la comparación queda en el
+    recuento. ⚠️ **Y ENTRA EN EL CRITERIO DE REVERSIÓN, B.283**: el solapamiento puede subir con el
+    texto extra y acercarse al umbral del duplicado.
 
 ### ⚠️ B.274 — PRERREQUISITO: el examen no mide la PRECISIÓN de lo que emite (28/09/2026)
 
@@ -7499,9 +7520,10 @@ Fable ni el arquitecto.
   (`lib/analysis/synthesize.ts:235`). El porcentaje y el veredicto los pone el juez, y con más
   texto delante pueden moverse los dos. Con dos documentos de verdad parecidos, el presupuesto
   ampliado podría empujarlos por encima.
-- **Es un riesgo del escalón 1 que hay que medir antes de encenderlo.**
-- ⚠️ *El encargo del arquitecto del 28/09 llegó cortado en este punto («…y entra»). Lo que
-  seguía no se ha escrito.*
+- **Es un riesgo del escalón 1 que hay que medir antes de encenderlo, y entra en el criterio
+  de reversión de B.273.** La línea, comprobada el 28/09 —el 85 sigue siendo el valor—:
+  `const isDuplicate = topJudgment.verdict === 'duplicado_exacto' && topJudgment.overlapPercent >= 85;`
+  (`lib/analysis/synthesize.ts:235`).
 
 ---
 
