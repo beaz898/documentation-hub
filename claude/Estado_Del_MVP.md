@@ -7586,6 +7586,32 @@ y el censo es cerrado: los tres sitios del marcador que exigen quién confirmó.
 - **Sin arreglar.** El principio de separar «encontró la verdad» de «qué detector la encontró»
   está en dictamen (28/09).
 
+### 📋 B.288 — PREDICCIÓN, ESCRITA ANTES DEL CAMBIO: la fase 2 del principio del detector (28/09/2026)
+
+**Escrita el 28/09/2026 a las 22:34, antes de tocar ningún comparador, caso ni el marcador.**
+Es la condición 1 de la regla del protocolo «un cambio del marcador se prueba repuntuando antes y
+después». Del arquitecto, comprobada contra el código antes de escribirla:
+
+> Sobre los crudos guardados (`c39397e7` y `97223b72`), la fase 2 NO mueve ningún veredicto.
+> Motivo: en todos ellos el acierto llega del detector que el esperado ya exige —N1-PUESTO por
+> estructura 10/10 y 5/5, P4-BELMONTE y P4-MEDINA por juicio 5/5— y la declaración `'juicio'`
+> de N6 está inerte porque el comparador por cita no la lee.
+> Por tanto la repuntuación de la fase 2 será un «nada se mueve» VACÍO en el sentido de la
+> condición 2, y se declara como tal en el commit. La prueba de la fase 2 será el crudo
+> sintético y sus mutantes, no la repuntuación.
+
+- **Comprobada el 28/09 sobre los 65 crudos**: los 25 esperados tabulares o por juicio de esos
+  crudos (N1-PUESTO en 15 pasadas; P4-BELMONTE y P4-MEDINA en 5 cada uno) se miraron con el
+  detector cambiado, y **ninguno emparejaría de otra forma**. P3 no tiene ningún hallazgo del
+  juez entre sus discrepancias en ninguna pasada. N6 no tiene crudos. **La predicción se
+  sostiene.**
+- **El crudo que SÍ recorre la rama**, fabricado a mano:
+  `examen/sinteticos/SINTETICO_P4-BELMONTE_por_estructura.json` — copia de
+  `c39397e7/P4_pasada1.json` con P4-BELMONTE emitido por estructura. **Hoy**: el acierto no se
+  reconoce, sale como extra y, con la auditoría completa de P4, cuenta como **FALSO**; el caso
+  da FALLA (`scripts/examen-sintetico-p4.test.mjs`). **Después de la fase 2**: SIN_VEREDICTO con
+  el motivo «el caso dejó de ejercer su rama», nunca un falso.
+
 ### ⚠️ B.287 — los solapamientos del JUEZ no traen `confirmedBy`: el detector de N3 sale «desconocido» (28/09/2026)
 
 La fase 1 del principio del detector (`13cb7bb7`) apunta qué detector encontró cada acierto,
