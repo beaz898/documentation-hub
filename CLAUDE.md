@@ -57,6 +57,17 @@ When requested, the system runs multi-step analysis against existing docs:
 - Each step calls Claude via `lib/analysis/llm-client.ts`
 - Results are confidence-scored findings users can accept/reject before saving improvements
 
+**Qué recibe el juez por cada lado** (28/09/2026, F-118 — toda consulta sobre el juez lo lista así; `claude/Protocolo_Harness_Tasas.md`). Cada cifra con su línea, para que una errata se caiga al leerla:
+
+| Lado | Qué texto entra | Cuánto, en rápido | Criterio de corte | Exhaustivo |
+|---|---|---|---|---|
+| **Analizado** | armado desde sus trozos guardados (`buildAnalyzedDocumentText`, `lib/analysis/judge.ts:977`); sin trozos, texto plano (`judge.ts:1038-1040`) | los primeros **6.000 caracteres** (`NEW_DOC_LIMIT_QUICK`, `judge.ts:35`) | **por POSICIÓN**, a mitad de frase o de tabla (`recortarAnalizado`, `judge.ts:1087`) | entero |
+| **Candidato** | sus trozos, por orden de parecido (`selectUnitsWithinBudget`, `lib/analysis/retrieval.ts:1046`) | **3.000 caracteres** por candidato (`FRAGMENT_BUDGET_CHARS_QUICK`, `retrieval.ts:104`), tope de **25** trozos (`retrieval.ts:110`) | **por RELEVANCIA**, trozos enteros; el que no cabe se salta y se prueba el siguiente (`retrieval.ts:1069-1076`) | los mismos 3.000, salvo `ANALYSIS_EXHAUSTIVE_BUDGET_CHARS` (`retrieval.ts:177-188`) |
+
+- Las **consultas de búsqueda** no pasan por el 6.000: salen de todos los trozos del documento entero, hasta 120 (`lib/analysis/muestras.ts:21-25`).
+- Lo que vio el juez del analizado queda en el resultado: `textoAnalizado: { caracteres, mostrados }` (`lib/analysis/types.ts:457`).
+- Ninguna de las dos cifras tiene medición detrás; son tijeras nuestras, no límites del modelo (`claude/consultas-fable/F-118_2026-09-28_simetria-de-lectura.md`, sección d).
+
 **Severity tiers** (as of May 2026):
 - `contradiction` — confirmed by both Haiku and Sonnet; shown in main discrepancies list
 - `minor_inconsistency` — real difference but both statements can coexist; shown in separate section

@@ -674,6 +674,27 @@ está truncada, o el patrón puede no casar, decirlo. Es más barato que
 retractarse en la consulta siguiente.
 
 
+## ⚠️ TODA CONSULTA SOBRE EL JUEZ LISTA QUÉ RECIBE CADA LADO
+
+*Promovida de F-118 el 28/09/2026 (regla de custodia, `:179`). La dictó Fable:*
+
+> «en F-116 pedí que la casilla 1 dijera "qué operando compara"; nunca pedí que se
+> declarara qué recibe cada lado del juez. Regla nueva: **toda consulta sobre el
+> juez lista qué se le entrega por cada lado, con tamaño y criterio de corte.**»
+
+**EL CASO.** La consulta de F-116 describió sólo el lado del candidato —«al juez se
+le entregan fragmentos del documento existente con un presupuesto de 3.000
+caracteres»— y nunca el del analizado, que se cortaba por posición a 6.000. El plan
+que salió no cubría esa mitad, y nadie al otro lado podía verlo (B.272;
+`consultas-fable/F-118_2026-09-28_simetria-de-lectura.md`).
+
+**Cómo se cumple**: una tabla de dos filas —analizado y candidato— con qué texto
+entra, cuánto y por qué criterio se corta, y el `fichero:línea` de cada cifra. La
+referencia viva es `CLAUDE.md`, «Qué recibe el juez por cada lado»; si la consulta
+y esa sección no coinciden, una de las dos miente, y se mira el código antes de
+enviar.
+
+
 ## ⚠️ REGLA DE CIERRE: qué bloquea y qué se declara
 
 *Promovida de F-89 P6 el 30/08/2026. Se promueve ANTES que las otras dos reglas

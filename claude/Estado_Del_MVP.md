@@ -7283,6 +7283,97 @@ relevancia**, y nada de eso aparece en la consulta ni en la respuesta.
   caen más allá de los 6.000 (medido el 28/09 sobre el texto del `.docx`).
 - **Siguiente paso**: una consulta nueva a Fable sobre la simetría, con el resultado de
   `SQL_P2_direccion_de_la_base.sql` dentro. Preparada, no escrita, hasta tener ese resultado.
+- ✅ **HECHA EL 28/09: F-118** (`consultas-fable/F-118_2026-09-28_simetria-de-lectura.md`), y
+  **medido el origen de las dos tijeras** (su sección d):
+  · **6.000 del analizado** (`judge.ts:35`): la única justificación escrita es «(ahorra
+    tokens)». Nació en 4.000 (`a5ff8eca`, 21/04), **se quitó** el 02/05 (`7ec54e71`) —con el
+    juez recibiendo el documento entero y un comentario que lo defendía: «para no perder
+    solapamientos ni contradicciones en ninguna parte del texto»— y **volvió en 6.000** el 04/05
+    (`8ff675b9`) en un «Update judge.ts» sin cuerpo. Nada explica ni el regreso ni el número.
+  · **3.000 del candidato** (`retrieval.ts:104`): `268883e5` (20/08) justifica el criterio
+    —contenido en vez de número de trozos—, no el valor. La única medición del valor es F-65
+    (`8f382e68`): 5.200 costó 0 s.
+  · **Por eso la asimetría no fue una decisión**: son dos cifras sin medir, puestas en fechas y
+    por motivos distintos, una por posición y otra por relevancia. La tabla de qué recibe cada
+    lado vive ahora en `CLAUDE.md` («Qué recibe el juez por cada lado»).
+
+### ⚠️ B.273 — ESCALÓN 1: el juez lee los dos documentos ENTEROS hasta un presupuesto en tokens (28/09/2026)
+
+**Plan, no hecho. No se enciende sin B.274.** Quitar las dos tijeras de B.272 y poner un tope único
+en tokens de entrada para los dos lados; por debajo, la pareja entra entera, con sus
+encabezados y los límites de trozo visibles (F-118 §5, escalón 1).
+- **Tras interruptor**, con **criterio de reversión escrito antes de activar** (F-118 D4): se
+  apaga si una trampa que hoy se detecta deja de detectarse en la regla de estabilidad, o si los
+  hallazgos por par suben y la precisión cae más de 15 puntos.
+- **El presupuesto** (Fable propone 20.000 tokens, con ficha y caso decisivo) se fija con
+  `SQL_F118_tamanos_por_pareja.sql`, **pendiente de ejecutar**.
+- Sus predicciones, contables: F-118 sección (e).
+
+### ⚠️ B.274 — PRERREQUISITO: el examen no mide la PRECISIÓN de lo que emite (28/09/2026)
+
+Sin esto, B.273 no se puede medir: más texto traerá más hallazgos, verdaderos y falsos, y el
+examen sólo sabe contar las trampas sembradas y los falsos ya conocidos (F-118 §6).
+- **Lo que pide Fable**: cada hallazgo emitido sobre los casos del arnés lo etiqueta el director
+  como verdadero o falso, una vez, y la etiqueta se guarda. Precisión = verdaderos / emitidos,
+  por pasada; se siguen juntas con los hallazgos por par.
+- **Lo que ya existe, para no construirlo dos veces**: casos que esperan silencio (N2, pareja
+  limpia) y falsos conocidos (N1, N3, N4, N5); los extras se imprimen por pasada y, con
+  auditoría completa (P2, P4), cuentan como falsos. **Lo que falta** es la etiqueta de los
+  extras que nadie ha clasificado.
+- El caso de esperado cero de la fecha de revisión (B.276) va en el encargo siguiente.
+
+### ⚠️ B.275 — ESCALÓN 2: tramos alineados para lo que no quepa, y el worker (28/09/2026)
+
+**Plan, no hecho; va después de B.273.** Para las parejas que no quepan en el presupuesto: el
+analizado se lee ENTERO, en tramos que respetan los límites de los trozos, en su orden, sin
+omitir ninguno; cada tramo con sus k trozos más relacionados del candidato, en una llamada;
+llamadas en paralelo; hallazgos unidos y **desduplicados por par de citas**; lo que no entró
+del candidato, declarado (F-118 D2).
+- **LA REGLA DE TRAMO** (F-118 D5): **el tramo es lo más grande que quepa en el presupuesto,
+  nunca un chunk por llamada**. Tramos con solapamiento. El tamaño del chunk (para buscar) y el
+  presupuesto del juez (para leer) no se atan: un campo, un oficio.
+- **El worker con cola de fondo se vuelve más necesario**: un documento de ~66.000 caracteres
+  con varias llamadas en paralelo y sus reintentos se acerca a los 120 s de la función (F-118
+  §6). Sin ficha propia anterior; la deuda de «sin cola de fondo» consta en la consulta F-118.
+
+### ⚠️ B.276 — UNA ESPECIE DE FALSOS: los METADATOS DEL DOCUMENTO como si fueran datos (28/09/2026)
+
+Fecha de versión, autor, código del documento, fecha de aprobación: **atributos del documento,
+no afirmaciones sobre el mundo**. Dos documentos con fechas de versión distintas no se
+contradicen.
+- **Primer ejemplar medido**: «Fecha de última revisión» entre NOR-11 y CLI-13 (9 y 16 de
+  febrero), emitido como contradicción en la pasada 1 de P2 de la tanda `c39397e7` y señalado
+  por el examen como falso por auditoría completa
+  (`examen/resultados/2026-09-27_c39397e7/informe-repuntuado_d96613f2.txt`). **Falso de
+  verdad, confirmado por el director** según el encargo del arquitecto del 28/09.
+- **La cura en tres capas** (F-118 §6): la rúbrica del juez distingue metadatos de
+  afirmaciones de dominio; el verificador ciego pregunta «¿es el mismo dato?»; y el caso entra
+  en el examen como esperado cero. **Sin tocar nada todavía.**
+
+### ⚠️ B.277 — LA SEGUNDA VUELTA DIRIGIDA baja de mecanismo principal a respaldo (28/09/2026)
+
+Era una pieza del plan de F-116. Con la alineación de B.275, la búsqueda del «otro lado» se hace
+de antemano para todos los tramos, no sólo para las sospechas; la segunda vuelta queda para
+cuando el vecino correcto no salió en la alineación (F-118 §4). No desaparece: cambia de papel,
+y es más barata como respaldo.
+
+### 📋 B.278 — EL ENFOQUE ATÓMICO, como ficha de largo plazo (28/09/2026)
+
+Extraer primero las afirmaciones atómicas de cada documento —magnitud, valor, unidad— y comparar
+afirmaciones en vez de texto. Es el enfoque que mejor resiste a los falsos por parecido de texto
+(F-118 §5).
+- **Ya existió y se retiró**: la rama atómica, retirada entera en `839d093b` (21/09, F-114).
+  **Se retiró porque no escribía nada que nadie leyera, no porque la idea fuera mala**: vivía
+  tras `ANALYSIS_ATOMIC_MEASURE`, que no estaba encendida en ningún entorno (§ de la lista de
+  latentes, arriba: «comprobó el 21/09/2026 a las 16:31 que no existe en Vercel … ni en
+  Railway»).
+- **No entra ahora.**
+
+### ⚠️ B.279 — el tope de tokens de SALIDA del juez y el motivo de parada: SIN COMPROBAR (28/09/2026)
+
+Con los dos documentos enteros (B.273) la respuesta del juez se alarga y **puede truncarse por
+tokens de salida** (F-118 §6). No se ha leído cuál es el tope de salida del juez ni si alguien
+mira el motivo de parada de la respuesta. **Encargo de lectura, antes de encender B.273.**
 
 ---
 
