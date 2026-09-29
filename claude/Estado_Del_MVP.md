@@ -7773,6 +7773,57 @@ repuntuación (`scripts/examen.mjs:203`, «Hoy nada»).
   `candidatosJuzgados` al marcador»).
 - **Sin arreglar.** Fichada para que no se lea como una guardia que guarda.
 
+### 📋 B.295 — ESCALÓN 1: PREDICCIONES Y CRITERIOS DE REVERSIÓN, ESCRITOS ANTES DEL CAMBIO (29/09/2026)
+
+**Escritos el 29/09/2026 a las 11:23, antes de tocar código.** Son del arquitecto, literales.
+Code sólo los archiva. El cambio sustituye las dos tijeras del juez por UN presupuesto por
+pareja, detrás de un interruptor.
+- **Las dos tijeras de hoy**, verificadas en el código:
+  - el analizado se corta por posición a 6.000 (`lib/analysis/judge.ts:35`, `:1086`);
+  - el candidato va por relevancia a 3.000, con un tope de 25 piezas
+    (`lib/analysis/retrieval.ts:104`, `:110`).
+- **Lo que decidió el arquitecto tras la parada de Code (C1-C3):**
+  - **C1.** El campo es uno por candidato, `lecturaDeLasParejas`, desde el primer commit. Un
+    campo que nace por análisis y pasa a ser por candidato es un campo guardado que cambia de
+    forma.
+  - **C2.** `presupuestoDelCandidato` (B.281) y `lecturaDeLasParejas` NO son duplicados: son
+    dos estaciones. La primera es lo que recuperó el retrieval, antes del rerank. La segunda
+    es lo que leyó el juez. Que discrepen es un dato. El interruptor actúa DESPUÉS del rerank,
+    en la puerta del juez: el rerank nunca recibe documentos enteros.
+  - **C3.** El interruptor es SÓLO para el modo rápido. En un exhaustivo, `corte_honesto` no
+    puede aparecer nunca; si aparece, es un fallo. Si algún día el rápido encendido encuentra
+    más que el exhaustivo, se escribe como hallazgo.
+- **El presupuesto**: 10.000 tokens por pareja = **40.000 caracteres**. La conversión es
+  caracteres / 4, la de las SQL de F-118 (`SQL_F118_tamanos_por_pareja.sql`). Se elige para
+  que el corte se dispare alguna vez: un mecanismo que no se dispara no está probado.
+- **Plan de medida** (lo ejecuta el director desde la aplicación; Code no lanza nada):
+  - 5 pasadas por dirección de NOR-11 / CLI-13 con el interruptor APAGADO, como línea de base;
+  - 5 con el interruptor ENCENDIDO;
+  - regla de estabilidad: 5/5 estable-acierto, 0/5 estable-fallo, 1 a 4 inestable.
+  - Se lee con `SQL_Escalon1_pareja_NOR11_CLI13.sql`.
+
+**PREDICCIONES**
+- **P-1.** Con el interruptor encendido, la trampa [9d19a20b] «Plazo máximo de permanencia de
+  contenedores grupo III» saldrá en AMBAS direcciones, en al menos 4 de las 5 pasadas de cada
+  dirección. Hoy sale en una sola.
+- **P-2.** La pareja alcanzará al menos 4 de las 6 celdas del experimento decisivo (B.280), en
+  al menos 4 de 5 pasadas.
+- **P-3.** El falso positivo [14123c6f] «Fecha de última revisión» NO desaparecerá, y es igual
+  de probable que salga más veces que menos. Si desaparece, no es mérito de este cambio y hay
+  que buscar qué otra cosa se movió.
+- **P-4.** La latencia del modo rápido en esta pareja subirá de ~20 s a entre 25 y 40 s.
+- **P-5.** Ninguna pareja se quedará sin analizar por tamaño: las que no quepan saldrán con
+  `regimen = 'corte_honesto'`.
+
+**CRITERIOS DE REVERSIÓN** — si se cumple uno, se apaga y se mide por qué. No se parchea sobre
+la marcha.
+- **R-1.** Si una trampa que hoy sale de forma estable deja de salir de forma estable.
+- **R-2.** Si la precisión cae más de 15 puntos: hallazgos publicados que el verificador no
+  confirma, o que el arquitecto declara falsos al revisarlos.
+- **R-3.** Si el modo rápido pasa de 60 s en esta pareja.
+- **R-4.** Si algún análisis falla por exceso de contexto del proveedor. Eso no sería un
+  corte, sería un error: significaría que el presupuesto está mal calculado.
+
 ### 📋 B.294 — PREDICCIÓN, ESCRITA ANTES DEL CAMBIO: la fase 3 del principio del detector (29/09/2026)
 
 **Escrita el 29/09/2026 a las 09:43, antes de tocar el marcador, los casos o el validador.**
