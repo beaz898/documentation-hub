@@ -336,6 +336,47 @@ preguntarse qué condición del código la respalda. Si hay alguna palabra que e
 
 ---
 
+## 2-quater. LA CLÁUSULA ESPEJO: una pregunta sobre una DECISIÓN no se contesta con una MAGNITUD (B.281, 29/09/2026)
+
+**La cláusula 2 dice que en los contadores sólo van recuentos de decisión. Ésta
+dice lo simétrico: una pregunta sobre una decisión —¿se tomó este camino?— no se
+contesta con una magnitud.** Una magnitud puede moverse por causas que no son la
+decisión, y entonces responde que sí cuando fue que no, o al revés.
+
+**EL CASO.** Para guardar con cada análisis si el presupuesto cortó algo del
+candidato (B.281), el arquitecto pidió exactamente eso: una magnitud,
+`recuperados`, para contestar «¿cortó la tijera?» con `mostrados < recuperados`.
+**Code lo paró antes de escribirlo**, al leer `assembleTable`
+(`lib/analysis/retrieval.ts`). Encontró dos casos en los que los caracteres dicen
+lo contrario de lo que pasó:
+
+1. **La tabla que cabe entera muestra MÁS de lo recuperado** (`:941-950`, nivel
+   1). Entran TODAS sus filas, también las que Pinecone no devolvió:
+   `mostrados > recuperados`, y no se cortó nada.
+2. **El colapso de filas idénticas muestra MENOS sin perder nada** (`:981-987`,
+   nivel 2). Las idénticas se sustituyen por una línea de contexto, y F-74 decidió
+   que están «representadas, no perdidas» (`:1008-1011`):
+   `mostrados < recuperados`, y tampoco se cortó nada.
+
+Tomar la tabla entera como `recuperados` arregla el primero y rompe el segundo dos
+veces: contaría como corte la compresión del colapso, y las filas que F-74 decidió
+que «no llegaron a competir».
+
+**LA FORMA QUE QUEDÓ.** Cada pregunta con su tipo de dato (`RepartoDelCandidato`,
+`lib/analysis/types.ts`):
+- «¿Cuánto NO vio el juez?» es una magnitud: `caracteres − mostrados`.
+- «¿Cortó la tijera?» es la decisión: `dejoFuera`. Sale de las mismas cifras que
+  ya decidían el aviso de alcance, no de restar caracteres.
+
+### Qué comprobar al escribir un campo nuevo
+
+Enunciar la pregunta que contesta y decir si es sobre una CANTIDAD o sobre un
+CAMINO TOMADO. Si es un camino, buscar la cifra que lo cuenta donde se decide. No
+se deduce de dos magnitudes, aunque «casi siempre» coincidan: el caso en que no
+coinciden es justo el que la pregunta existe para pillar.
+
+---
+
 ## 3. LO QUE SE DESCARTÓ, dicho para que no se vuelva a proponer
 
 **Retención y versionado del esquema de contadores.** Es lo primero que apetece

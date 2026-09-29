@@ -7347,8 +7347,10 @@ encabezados y los límites de trozo visibles (F-118 §5, escalón 1).
       de su nombre que existe hoy, y no hay ninguno.
   - ⚠️ **Y LA PREGUNTA QUE ABRE, que es la que importa: el censo midió las parejas que SE
     ANALIZARON, no las que PUEDEN formarse.** El 7.758 es el máximo de una muestra, no del
-    corpus. El arquitecto cita un documento de 66.669 caracteres, unos 17.000 tokens él solo
-    (cifra suya, sin medir aquí). Lo contesta `SQL_F118_pareja_mayor_posible.sql`, pendiente. (2) Son tokens del
+    corpus. El arquitecto cita un documento de 66.669 caracteres, unos 17.000 tokens él solo.
+    ⚠️ **Esa cifra no la ha medido nadie aquí.** El arquitecto la tomó de la respuesta de
+    Fable, y Fable la tenía de nosotros: es la especie de B.289, una cifra que viaja sin
+    comprobarse. Lo contesta `SQL_F118_pareja_mayor_posible.sql`, pendiente. (2) Son tokens del
   TEXTO, no del prompt: las instrucciones del juez van aparte. (3) Caracteres/4 es la
   aproximación declarada en el SQL, no una tokenización. **Caso decisivo del número**: la
   pareja mayor medida; si se bajara a 7.000, esa pareja dejaría de caber entera.
