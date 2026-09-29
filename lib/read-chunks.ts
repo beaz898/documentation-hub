@@ -1,5 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { TypedChunk } from './chunking';
+import { leerTodasLasPaginas } from './leer-todas-las-paginas';
 
 /**
  * Lectura de los chunks tipados de un documento (F-20 Paso 4).
@@ -151,12 +152,24 @@ export async function getChunksForDocuments(
 
   const documentIds = [...new Set(documents.map((d) => d.documentId))];
 
-  const { data, error } = await supabase
-    .from('document_chunks')
-    .select('document_id, generation, chunk_index, chunk_type, text, sheet_name, table_id, row_index, cells, column_order')
-    .eq('org_id', orgId)
-    .in('document_id', documentIds)
-    .order('chunk_index', { ascending: true });
+  // B.297 (29/09/2026): PAGINADA. Era una sola consulta, y Supabase la corta sin
+  // error en su tope de filas (Max Rows: 1.000; esta organización tenía 569 trozos
+  // ese día). Cortada, perdería la COLA de cada documento. El orden es la clave
+  // única (document_id, generation, chunk_index): con uno que se repite, las
+  // páginas podrían saltarse filas. Dentro de cada documento sigue saliendo por
+  // chunk_index, que es lo que usan los consumidores.
+  type Fila = DocumentChunkRow & { document_id: string; generation: number };
+  const { data, error } = await leerTodasLasPaginas<Fila>((desde, hasta) =>
+    supabase
+      .from('document_chunks')
+      .select('document_id, generation, chunk_index, chunk_type, text, sheet_name, table_id, row_index, cells, column_order')
+      .eq('org_id', orgId)
+      .in('document_id', documentIds)
+      .order('document_id', { ascending: true })
+      .order('generation', { ascending: true })
+      .order('chunk_index', { ascending: true })
+      .range(desde, hasta),
+  );
 
   if (error) {
     console.error(`[read-chunks] getChunksForDocuments falló | docs=${documentIds.length} | ${error.message}`);
@@ -164,7 +177,7 @@ export async function getChunksForDocuments(
   }
 
   const generationByDocument = new Map(documents.map((d) => [d.documentId, d.generation]));
-  const rows = (data ?? []) as Array<DocumentChunkRow & { document_id: string; generation: number }>;
+  const rows = data ?? [];
 
   for (const row of rows) {
     if (row.generation !== generationByDocument.get(row.document_id)) continue; // otra generación: no es la activa para este documento
