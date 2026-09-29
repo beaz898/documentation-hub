@@ -470,6 +470,38 @@ export interface FinalAnalysis {
    * análisis es anterior al 29/09. Nadie decide nada con él.
    */
   presupuestoDelCandidato?: PresupuestoDelCandidato;
+  /**
+   * 29/09/2026 — escalón 1 (B.295): qué leyó EL JUEZ de cada lado, una entrada
+   * por candidato juzgado. Es la otra estación: `presupuestoDelCandidato` dice
+   * qué recuperó el retrieval antes del rerank, y esto qué entró en la llamada
+   * del juez. Que discrepen es un dato, no un fallo.
+   *
+   * Se rellena también con el interruptor apagado (`tijera_vieja`): sin eso no
+   * hay línea de base. Ausente = el juez no corrió o el análisis es anterior.
+   */
+  lecturaDeLasParejas?: LecturaDeLaPareja[];
+}
+
+/** Cómo se leyó la pareja. `tijera_vieja`: las dos tijeras de siempre (el
+ *  analizado por posición, el candidato por relevancia). `pareja_entera` y
+ *  `corte_honesto`: sólo en rápido y con el interruptor encendido (B.295). */
+export type RegimenDeLectura = 'tijera_vieja' | 'pareja_entera' | 'corte_honesto';
+
+/** Qué leyó EL JUEZ de cada lado en la llamada de esta pareja. Contesta a una
+ *  pregunta distinta de la de `presupuestoDelCandidato` (B.281), que dice qué
+ *  RECUPERÓ y qué MOSTRÓ el retrieval, antes del rerank.
+ *  Cada lado: una DECISIÓN (`dejoFuera`, ¿quedó material fuera de lo que leyó
+ *  el juez?) con sus magnitudes de apoyo (Contrato_Contadores §2-quater). */
+export interface LecturaDeLaPareja {
+  /** El candidato de esta pareja. */
+  documentId: string;
+  regimen: RegimenDeLectura;
+  analizado: { caracteres: number; mostrados: number; dejoFuera: boolean };
+  /** `caracteres` y `dejoFuera` son `null` si el candidato no tiene trozos: no
+   *  se sabe qué había, y un 0 o un false dirían lo que no consta. */
+  candidato: { caracteres: number | null; mostrados: number; dejoFuera: boolean | null };
+  /** Caracteres de la pareja; `null` con la tijera vieja. */
+  presupuesto: number | null;
 }
 
 /** Caracteres del texto del analizado que armó el juez, y los que vio. En el

@@ -21,6 +21,11 @@ describe('recortarAnalizado', () => {
     expect(r.medida).toEqual({ caracteres: 7342, mostrados: 7342 });
     expect(r.texto.length).toBe(7342);
   });
+  it('B.295: la DECISIÓN de recortar, en el mismo borde — 6000 no, 6001 sí; el exhaustivo nunca', () => {
+    expect(recortarAnalizado('x'.repeat(6000), false).recortado).toBe(false);
+    expect(recortarAnalizado('x'.repeat(6001), false).recortado).toBe(true);
+    expect(recortarAnalizado('x'.repeat(60001), true).recortado).toBe(false);
+  });
   it('el texto mostrado es el principio del completo, no otra cosa', () => {
     const completo = 'a'.repeat(6000) + 'b'.repeat(10);
     expect(recortarAnalizado(completo, false).texto).toBe('a'.repeat(6000));

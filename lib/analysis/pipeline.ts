@@ -845,7 +845,7 @@ async function runCorePipeline(
   console.log(`[${label}] Contexto de fragmentos: ${contexts.size}/${fragmentRefs.length} resueltos`);
 
   const t2 = Date.now();
-  const { judgments: rawJudgments, evidences, textoAnalizado } = await judgeAllDocuments({
+  const { judgments: rawJudgments, evidences, textoAnalizado, lecturaDeLasParejas } = await judgeAllDocuments({
     newDocumentName: input.newDocumentName,
     newDocumentSample: input.newDocumentText,
     candidates: reranked,
@@ -1095,6 +1095,9 @@ async function runCorePipeline(
     ...finalSinCobertura,
     coberturaDeCandidatos: cobertura,
     ...(textoAnalizado ? { textoAnalizado } : {}),
+    // B.295: qué leyó el juez de cada pareja. La otra estación: no sustituye a
+    // `presupuestoDelCandidato`, que dice qué recuperó el retrieval.
+    lecturaDeLasParejas,
     presupuestoDelCandidato: {
       caracteres: presupuestoPorCandidato,
       candidatos: reranked.flatMap(c => {

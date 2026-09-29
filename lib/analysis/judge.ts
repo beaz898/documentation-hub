@@ -4,7 +4,7 @@ import { runInBatches } from '@/lib/run-in-batches';
 import { sanitizeJudgeContradictions, hashCitationPair } from './llm-boundary';
 import { getOrderedColumns, groupChunksByTable, renderTableBlock, alignQuoteToCells, despegarPunteroDeFila } from './table-structure';
 import { normalize } from './normalize';
-import type { RerankedCandidate, DocumentJudgment, PipelineOptions, DiscardedFindings, DocumentFragment, TextoAnalizado } from './types';
+import type { RerankedCandidate, DocumentJudgment, PipelineOptions, DiscardedFindings, DocumentFragment, LecturaDeLaPareja, TextoAnalizado } from './types';
 import type { StoredChunk } from '@/lib/read-chunks';
 
 // F-61: normalize se extrajo a su propio fichero (ver normalize.ts) para
@@ -705,7 +705,9 @@ async function judgeSingleDocument(args: {
   candidate: RerankedCandidate;
   chunksByDocument?: Map<string, StoredChunk[]>;
   fallbackTexts?: Map<string, string>;
-}): Promise<{ judgment: DocumentJudgment; evidence: JudgmentEvidence }> {
+  /** B.295: el lado analizado de la lectura, el mismo para toda pareja con la tijera vieja. */
+  analizado: LecturaDeLaPareja['analizado'];
+}): Promise<{ judgment: DocumentJudgment; evidence: JudgmentEvidence; lectura: LecturaDeLaPareja }> {
   const { newDocumentName, newDocumentText, candidate, chunksByDocument } = args;
 
   // Diagnóstico (F-36-bis): qué fragmentos recibe el juez por candidato, para
@@ -766,6 +768,16 @@ async function judgeSingleDocument(args: {
   }
 
   const existingFragsBlock = buildExistingFragsBlock(candidate.fragments, candidate.documentName, candidateChunks, columnOrderByTable);
+  // B.295: qué leyó el juez de esta pareja. Antes de la llamada: describe lo
+  // ENVIADO, así que vale también si el modelo falla.
+  const lectura = lecturaDeLaPareja({
+    documentId: candidate.documentId,
+    documentName: candidate.documentName,
+    analizado: args.analizado,
+    candidatoChunks: candidateChunks,
+    fragmentosEnviados: candidate.fragments,
+    textoEnviado: existingFragsBlock,
+  });
 
   const prompt = `Eres un auditor de documentación. Tu tarea es comparar CONTENIDO CONCRETO entre dos documentos y emitir un juicio preciso, no una impresión general.
 
@@ -921,7 +933,7 @@ Responde con este JSON (sin bloques de código, sin texto adicional):
     // existingFragsBlock más arriba.
     const existingContextTexts = candidate.fragments.filter(f => f.isContext).map(f => f.text);
 
-    return fixQuotesInJudgment(
+    const verificado = fixQuotesInJudgment(
       rawJudgment,
       args.newDocumentChunks,
       args.newDocumentFallbackText,
@@ -929,6 +941,7 @@ Responde con este JSON (sin bloques de código, sin texto adicional):
       existingFallbackText,
       existingContextTexts,
     );
+    return { ...verificado, lectura };
   } catch (err) {
     console.warn(`[judge] Failed for "${candidate.documentName}":`, err);
     recordStageFailure('judge', err);
@@ -957,6 +970,7 @@ Responde con este JSON (sin bloques de código, sin texto adicional):
       // se consulta en ningún punto del pipeline (solo `evidence.contradictions`,
       // en applyCascadeToCandidate).
       evidence: { contradictions: [], overlaps: [] },
+      lectura,
     };
   }
 }
@@ -1003,6 +1017,8 @@ export interface JudgeAllResult {
   /** 27/09/2026, F-116: cuánto texto del analizado había y cuánto vio el juez.
    *  Ausente si el juez no corrió (sin candidatos). Ver `TextoAnalizado`. */
   textoAnalizado?: TextoAnalizado;
+  /** B.295: qué leyó el juez de cada pareja, emparejado por POSICIÓN con `judgments`. */
+  lecturaDeLasParejas: LecturaDeLaPareja[];
 }
 
 /**
@@ -1019,7 +1035,7 @@ export async function judgeAllDocuments(args: {
   chunksByDocument?: Map<string, StoredChunk[]>;
   fallbackTexts?: Map<string, string>;
 }): Promise<JudgeAllResult> {
-  if (args.candidates.length === 0) return { judgments: [], evidences: [] };
+  if (args.candidates.length === 0) return { judgments: [], evidences: [], lecturaDeLasParejas: [] };
 
   const isExhaustive = args.options?.exhaustive === true;
 
@@ -1048,13 +1064,17 @@ export async function judgeAllDocuments(args: {
   // chunks, newDocumentFallbackText y el prompt son EL MISMO texto plano —
   // consistente con el caso de chunks, donde también son dos vistas del
   // mismo documento.
-  if (!isExhaustive && fullDocumentText.length > NEW_DOC_LIMIT_QUICK) {
+  // B.295: el recorte, su medida y su log salen de UNA llamada a `recortarAnalizado`.
+  // La línea «truncado a …» es la misma de siempre, una vez por análisis.
+  const recorte = recortarAnalizado(fullDocumentText, isExhaustive);
+  if (recorte.recortado) {
     // F-53: antes pasaba en silencio (slice puro). El formato barato reduce
     // cuánto ocurre esto (medido: RRHH-06 deja de necesitarlo), pero no lo
     // elimina — OPE-06 lo sigue necesitando, y ahora queda dicho.
-    console.warn(`[judge] "${args.newDocumentName}": documento analizado truncado a ${NEW_DOC_LIMIT_QUICK} de ${fullDocumentText.length} caracteres`);
+    console.warn(`[judge] "${args.newDocumentName}": documento analizado truncado a ${recorte.medida.mostrados} de ${recorte.medida.caracteres} caracteres`);
   }
-  const { texto: newDocumentText, medida: textoAnalizado } = recortarAnalizado(fullDocumentText, isExhaustive);
+  const { texto: newDocumentText, medida: textoAnalizado } = recorte;
+  const analizado = { caracteres: recorte.medida.caracteres, mostrados: recorte.medida.mostrados, dejoFuera: recorte.recortado };
 
   const results = await runInBatches(
     args.candidates,
@@ -1066,6 +1086,7 @@ export async function judgeAllDocuments(args: {
       candidate,
       chunksByDocument: args.chunksByDocument,
       fallbackTexts: args.fallbackTexts,
+      analizado,
     }),
     { batchSize: JUDGE_CONCURRENCY },
   );
@@ -1074,6 +1095,7 @@ export async function judgeAllDocuments(args: {
     judgments: results.map(r => r.judgment),
     evidences: results.map(r => r.evidence),
     textoAnalizado,
+    lecturaDeLasParejas: results.map(r => r.lectura),
   };
 }
 
@@ -1083,7 +1105,44 @@ export async function judgeAllDocuments(args: {
  * recorte se separaría del primero sin avisar. Rápido: hasta
  * NEW_DOC_LIMIT_QUICK; exhaustivo: entero.
  */
-export function recortarAnalizado(completo: string, exhaustivo: boolean): { texto: string; medida: TextoAnalizado } {
-  const texto = exhaustivo ? completo : completo.slice(0, NEW_DOC_LIMIT_QUICK);
-  return { texto, medida: { caracteres: completo.length, mostrados: texto.length } };
+export function recortarAnalizado(completo: string, exhaustivo: boolean): { texto: string; medida: TextoAnalizado; recortado: boolean } {
+  // B.295: la DECISIÓN de recortar, dicha donde se toma (Contrato_Contadores §2-quater).
+  const recortado = !exhaustivo && completo.length > NEW_DOC_LIMIT_QUICK;
+  const texto = recortado ? completo.slice(0, NEW_DOC_LIMIT_QUICK) : completo;
+  return { texto, medida: { caracteres: completo.length, mostrados: texto.length }, recortado };
+}
+
+/**
+ * B.295 (29/09/2026): QUÉ LEYÓ EL JUEZ de una pareja, con la tijera vieja. Una
+ * función por estación: ésta es la del juez (la del retrieval es
+ * `repartoDelCandidato`, B.281).
+ *   · Candidato, `caracteres`: el candidato ENTERO renderizado desde sus trozos
+ *     con la MISMA función que el analizado (`buildAnalyzedDocumentText`), para
+ *     que los dos lados se midan con la misma fuente. `null` sin trozos.
+ *   · Candidato, `mostrados`: el bloque que entró en el prompt, tal cual.
+ *   · Candidato, `dejoFuera`: la DECISIÓN, no la resta. ¿Quedó algún trozo
+ *     suyo sin enviar? Las filas idénticas colapsadas cuentan como fuera: el
+ *     juez leyó la línea de contexto, no las filas. `null` sin trozos.
+ */
+export function lecturaDeLaPareja(args: {
+  documentId: string;
+  documentName: string;
+  analizado: LecturaDeLaPareja['analizado'];
+  candidatoChunks: StoredChunk[];
+  fragmentosEnviados: DocumentFragment[];
+  textoEnviado: string;
+}): LecturaDeLaPareja {
+  const conTrozos = args.candidatoChunks.length > 0;
+  const enviados = new Set(args.fragmentosEnviados.filter(f => !f.isContext).map(f => f.chunkIndex));
+  return {
+    documentId: args.documentId,
+    regimen: 'tijera_vieja',
+    analizado: args.analizado,
+    candidato: {
+      caracteres: conTrozos ? buildAnalyzedDocumentText(args.candidatoChunks, args.documentName).length : null,
+      mostrados: args.textoEnviado.length,
+      dejoFuera: conTrozos ? args.candidatoChunks.some(c => !enviados.has(c.chunkIndex)) : null,
+    },
+    presupuesto: null,
+  };
 }
