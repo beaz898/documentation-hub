@@ -7930,6 +7930,13 @@ la marcha.
     el entero no los reproduce palabra por palabra. El entero imprime las FILAS, que es más
     información, aunque no la misma cadena. El invariante es sobre información, no sobre
     cadenas.
+- ✅ **D-3 IMPLEMENTADO en `6d7e5781`**, después de paginar (`eaf0718c`, B.297).
+  - El invariante se prueba con una rejilla de 108 casos contra la tijera vieja.
+  - `leerLaPareja` devuelve `representados`, y la prueba comprueba además que dice lo
+    enviado.
+  - Un mutante —cortar por el final en vez de por posición— **sobrevivía** mientras el
+    texto de prueba era `'a'.repeat(n)`: principio y final eran la misma cadena. Se cazó
+    al hacer que el texto varíe con la posición.
 - ⏸️ **Implementación PARADA el 29/09** por la comprobación (a). `getChunksForDocuments`
   (`lib/read-chunks.ts:154-159`) es UNA consulta sin paginar, con los trozos de todos los
   candidatos y de todas las generaciones. Si pasara del tope de filas de Supabase volvería
@@ -8004,7 +8011,8 @@ generaciones obsoletas, que se traen para tirarlas y cuentan contra el tope.
 ### 📋 B.296 — `lib/analysis/judge.ts` TIENE 1.338 LÍNEAS, y no se parte todavía (29/09/2026)
 
 Medido en `3733f75f`, 29/09/2026: **1.338 líneas**. La regla de la casa es 400. Creció con
-el escalón 1 (B.295): era de unas 1.130 antes del commit 1.
+el escalón 1 (B.295): era de unas 1.130 antes del commit 1. Con D-3 (`6d7e5781`), el mismo
+día: **1.365**.
 - **No se parte ahora, y el motivo no es la prisa** (arquitecto, 29/09). Partirlo en mitad de
   una medida cambiaría el fichero del que depende la medida entre la línea de base y la
   comparación. Eso contamina el «antes y después» por una razón que no tiene nada que ver con
