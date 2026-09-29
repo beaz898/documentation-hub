@@ -86,9 +86,21 @@ describe('la puerta del juez', () => {
     expect(r.lectura.analizado.dejoFuera).toBe(false);
     expect(r.lectura.candidato.dejoFuera).toBe(true);
   });
-  it('un lado sin trozos: tijera vieja aunque esté encendido (no hay una sola fuente)', () => {
-    expect(pareja(100, 100, true, { analizadoConTrozos: false }).lectura.regimen).toBe('tijera_vieja');
-    expect(pareja(100, 100, true, { candidatoChunks: [] }).lectura.regimen).toBe('tijera_vieja');
+  it('D-1: encendido y un lado sin trozos → sin_fuente_comun, leído como la tijera vieja', () => {
+    const cand = pareja(100, 100, true, { candidatoChunks: [] });
+    expect(cand.lectura.regimen).toBe('sin_fuente_comun');
+    expect(cand.lectura.presupuesto).toBeNull();
+    expect(cand.textoAnalizado).toBe('recorte-viejo');
+    expect(cand.bloqueCandidato).toBe('bloque-por-relevancia');
+    expect(cand.sinTrozos).toEqual({ analizado: false, candidato: true });
+    const anal = pareja(100, 100, true, { analizadoConTrozos: false });
+    expect(anal.lectura.regimen).toBe('sin_fuente_comun');
+    expect(anal.sinTrozos).toEqual({ analizado: true, candidato: false });
+  });
+  it('D-1 (a): con el interruptor APAGADO, sin trozos sigue siendo tijera_vieja — sin_fuente_comun sólo existe encendido', () => {
+    const r = pareja(100, 100, false, { candidatoChunks: [] });
+    expect(r.lectura.regimen).toBe('tijera_vieja');
+    expect(r.sinTrozos).toBeUndefined();
   });
   it('la línea del log sale de la misma lectura', () => {
     const r = pareja(14704, 9817);

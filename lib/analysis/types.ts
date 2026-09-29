@@ -485,9 +485,15 @@ export interface FinalAnalysis {
 }
 
 /** Cómo se leyó la pareja. `tijera_vieja`: las dos tijeras de siempre (el
- *  analizado por posición, el candidato por relevancia). `pareja_entera` y
- *  `corte_honesto`: sólo en rápido y con el interruptor encendido (B.295). */
-export type RegimenDeLectura = 'tijera_vieja' | 'pareja_entera' | 'corte_honesto';
+ *  analizado por posición, el candidato por relevancia), y SÓLO con el
+ *  interruptor apagado. Los otros tres, sólo en rápido y con el interruptor
+ *  encendido (B.295):
+ *   · `pareja_entera`: los dos lados enteros;
+ *   · `corte_honesto`: la pareja no cabía, y el recorte queda confesado;
+ *   · `sin_fuente_comun`: a un lado le faltan trozos y la pareja no se puede
+ *     medir con una sola fuente. Se lee como la tijera vieja; el nombre dice por
+ *     qué, para que no se confunda con «el interruptor estaba apagado». */
+export type RegimenDeLectura = 'tijera_vieja' | 'pareja_entera' | 'corte_honesto' | 'sin_fuente_comun';
 
 /** Qué leyó EL JUEZ de cada lado en la llamada de esta pareja. Contesta a una
  *  pregunta distinta de la de `presupuestoDelCandidato` (B.281), que dice qué

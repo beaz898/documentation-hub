@@ -789,6 +789,13 @@ async function judgeSingleDocument(args: {
   });
   const lectura = pareja.lectura;
   if (args.parejaEntera) console.log(lineaDeLaLectura(candidate.documentName, lectura));
+  if (pareja.sinTrozos) {
+    const sin = [
+      ...(pareja.sinTrozos.analizado ? [`"${newDocumentName}" (analizado)`] : []),
+      ...(pareja.sinTrozos.candidato ? [`"${candidate.documentName}" (candidato)`] : []),
+    ];
+    console.warn(`[judge] sin fuente común: ${sin.join(' y ')} sin trozos — la pareja se lee con la tijera vieja`);
+  }
 
   const prompt = `Eres un auditor de documentación. Tu tarea es comparar CONTENIDO CONCRETO entre dos documentos y emitir un juicio preciso, no una impresión general.
 
@@ -1234,9 +1241,12 @@ export function parejaEnteraEnEsteModo(exhaustivo: boolean): boolean {
  * LA PUERTA DEL JUEZ (B.295): qué texto de cada lado entra en la llamada de esta
  * pareja, y la lectura que lo describe. UNA función decide los textos y escribe
  * la lectura, así que no pueden separarse.
- *   · Interruptor apagado → tijera vieja, lo de siempre.
- *   · Un lado sin trozos → tijera vieja también: no se puede medir la pareja con
- *     una sola fuente (decisión del arquitecto, 29/09/2026).
+ *   · Interruptor apagado → tijera vieja, lo de siempre. Es el ÚNICO camino a
+ *     `tijera_vieja`.
+ *   · Encendido y un lado sin trozos → `sin_fuente_comun`: no se puede medir la
+ *     pareja con una sola fuente, así que se lee como la tijera vieja, pero con
+ *     su nombre (D-1, arquitecto, 29/09/2026). Si no, «apagado» y «encendido pero
+ *     fuera» serían el mismo valor.
  *   · Cabe → `pareja_entera`: los dos lados ENTEROS, renderizados con
  *     `buildAnalyzedDocumentText`.
  *   · No cabe → `corte_honesto`: el analizado por posición hasta el presupuesto
@@ -1255,12 +1265,18 @@ export function leerLaPareja(a: {
   fragmentosEnviados: DocumentFragment[];
   /** El bloque del candidato por relevancia (`buildExistingFragsBlock`). */
   bloqueRelevancia: string;
-}): { textoAnalizado: string; bloqueCandidato: string; lectura: LecturaDeLaPareja } {
-  if (!a.parejaEntera || !a.analizadoConTrozos || a.candidatoChunks.length === 0) {
-    return {
-      textoAnalizado: a.analizadoViejo.texto,
-      bloqueCandidato: a.bloqueRelevancia,
-      lectura: lecturaDeLaPareja({
+}): {
+  textoAnalizado: string;
+  bloqueCandidato: string;
+  lectura: LecturaDeLaPareja;
+  /** Sólo en `sin_fuente_comun`: qué lado no tenía trozos, para el aviso del log. */
+  sinTrozos?: { analizado: boolean; candidato: boolean };
+} {
+  const vieja = (regimen: 'tijera_vieja' | 'sin_fuente_comun') => ({
+    textoAnalizado: a.analizadoViejo.texto,
+    bloqueCandidato: a.bloqueRelevancia,
+    lectura: {
+      ...lecturaDeLaPareja({
         documentId: a.documentId,
         documentName: a.documentName,
         analizado: a.analizadoViejo.lado,
@@ -1268,6 +1284,14 @@ export function leerLaPareja(a: {
         fragmentosEnviados: a.fragmentosEnviados,
         textoEnviado: a.bloqueRelevancia,
       }),
+      regimen,
+    },
+  });
+  if (!a.parejaEntera) return vieja('tijera_vieja');
+  if (!a.analizadoConTrozos || a.candidatoChunks.length === 0) {
+    return {
+      ...vieja('sin_fuente_comun'),
+      sinTrozos: { analizado: !a.analizadoConTrozos, candidato: a.candidatoChunks.length === 0 },
     };
   }
   const completo = a.analizadoCompleto;
