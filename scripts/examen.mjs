@@ -230,13 +230,20 @@ const CONTEXTO_PARA_EL_MARCADOR = new Set();
  *
  * Por eso N2 y P4 conservan su 0 y N3, N4 y N5 no pueden tener número.
  *
- * LAS TRES MITADES, y las tres tienen que estar o la regla se puede rodear:
- *   1. falso conocido SIN frecuencia  → el techo tiene que ser `null` + estado.
- *   2. estado `LINEA_DE_BASE_PENDIENTE` → el techo tiene que ser `null`.
+ * LAS TRES MITADES, y las tres tienen que estar o la regla se puede rodear.
+ * ⚠️ 29/09/2026: el estado `LINEA_DE_BASE_PENDIENTE` se retiró. Lo pendiente es
+ * la precisión en SEGUIMIENTO con `clase: 'PENDIENTE_DE_MEDIR'`, y la CLASE es lo
+ * que esta regla lee. N6 también tiene la precisión en seguimiento, pero porque
+ * su techo no puede fallar (`NO_PUEDE_FALLAR`), y en él el trinquete no arranca
+ * nunca. Se declara, no se deduce de los números.
+ *   1. falso conocido SIN frecuencia → precisión PENDIENTE_DE_MEDIR, sin techo.
+ *   2. precisión en seguimiento → sin techo.
  *      (Sin ésta, se declara pendiente y se pone número al lado.)
- *   3. todos los falsos conocidos CON frecuencia → el techo NO puede ser `null`.
- *      (Sin ésta, un caso ya medido se esconde para siempre detrás del estado, y
- *      el trinquete nunca empieza.)
+ *   3. todos los falsos conocidos CON frecuencia → la precisión NO puede seguir
+ *      PENDIENTE_DE_MEDIR. (Sin ésta, un caso ya medido se esconde para siempre
+ *      detrás del seguimiento, y el trinquete nunca empieza.)
+ * Y `maximoDeFalsosConfirmados: null`, que era la marca de lo pendiente, se
+ * rechaza: una precisión sin techo medido va en SEGUIMIENTO con su clase.
  *
  * ⚠️ Y SU CASO DECISIVO NO ESTÁ AQUÍ: está en `examen-validacion.test.mjs`, con
  * un caso sintético que viola cada mitad y los diez casos reales como control
@@ -250,7 +257,10 @@ export function validarElTechoDeFalsos(c, donde) {
   const umbral = c.umbralDeAlarma ?? {};
   const techo = umbral.maximoDeFalsosConfirmados;
   const hayTecho = typeof techo === 'number';
-  const pendiente = umbral.estado === 'LINEA_DE_BASE_PENDIENTE';
+  // La forma de lista del seguimiento la rechaza `validarLoQueElMarcadorLee`; aquí no se lee.
+  const seg = Array.isArray(umbral.seguimiento) ? {} : umbral.seguimiento ?? {};
+  const clasePrecision = seg.precision?.clase ?? null;
+  const pendiente = clasePrecision === 'PENDIENTE_DE_MEDIR';
 
   // Un falso CONOCIDO que cuenta como fallo. `cuentaComoFallo !== false` y no
   // `=== true` a propósito: el defecto de omitirlo es contarlo, que es el lado
@@ -276,29 +286,36 @@ export function validarElTechoDeFalsos(c, donde) {
     problemas.push(
       `${donde}: techo de falsos ${techo} con ${sinFrecuencia.length} falso(s) ` +
       `conocido(s) SIN frecuencia medida (${sinFrecuencia.map(h => h.id).join(', ')}). ` +
-      `Un techo es una frecuencia: si no se midió, va \`maximoDeFalsosConfirmados: null\` ` +
-      `y \`estado: 'LINEA_DE_BASE_PENDIENTE'\`. El primer número lo escribe la primera tanda.`);
+      `Un techo es una frecuencia: si no se midió, la precisión va en SEGUIMIENTO con ` +
+      `\`clase: 'PENDIENTE_DE_MEDIR'\` y sin techo. El primer número lo escribe la primera tanda.`);
   }
 
   if (sinFrecuencia.length > 0 && !pendiente) {
     problemas.push(
-      `${donde}: hay falso(s) conocido(s) sin frecuencia medida y el umbral no ` +
-      `declara \`estado: 'LINEA_DE_BASE_PENDIENTE'\`. El estado no es adorno: es lo ` +
-      `que impide que el informe lea el resultado como un veredicto.`);
+      `${donde}: hay falso(s) conocido(s) sin frecuencia medida y la precisión no está en ` +
+      `SEGUIMIENTO como \`PENDIENTE_DE_MEDIR\`${clasePrecision ? ` (declara ${clasePrecision})` : ''}. ` +
+      `No es adorno: es lo que impide que el informe lea el resultado como un veredicto, y lo ` +
+      `que hace arrancar el trinquete cuando se mida.`);
   }
 
-  if (pendiente && hayTecho) {
+  if (clasePrecision && hayTecho) {
     problemas.push(
-      `${donde}: el umbral se declara LINEA_DE_BASE_PENDIENTE y a la vez pone un ` +
+      `${donde}: la precisión está en SEGUIMIENTO (${clasePrecision}) y a la vez pone un ` +
       `techo de ${techo}. Una de las dos cosas miente.`);
   }
 
-  if (falsosConocidos.length > 0 && sinFrecuencia.length === 0 && techo === null) {
+  if (techo === null) {
+    problemas.push(
+      `${donde}: \`maximoDeFalsosConfirmados: null\` está retirado (29/09/2026): una precisión ` +
+      `sin techo medido va en SEGUIMIENTO, con su clase y su motivo.`);
+  }
+
+  if (falsosConocidos.length > 0 && sinFrecuencia.length === 0 && pendiente) {
     problemas.push(
       `${donde}: todos los falsos conocidos tienen frecuencia medida ` +
-      `(${falsosConocidos.map(h => h.id).join(', ')}) y el techo sigue en \`null\`. ` +
-      `Con la medición hecha, el techo se escribe en el MÁXIMO OBSERVADO y de ahí ` +
-      `sólo puede bajar. Dejarlo en null es esconder un caso ya medido.`);
+      `(${falsosConocidos.map(h => h.id).join(', ')}) y la precisión sigue PENDIENTE_DE_MEDIR. ` +
+      `Con la medición hecha, sale de SEGUIMIENTO y el techo se escribe en el MÁXIMO OBSERVADO, ` +
+      `y de ahí sólo puede bajar. Seguir pendiente es esconder un caso ya medido.`);
   }
 
   return problemas;

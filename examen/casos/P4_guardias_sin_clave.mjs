@@ -174,7 +174,12 @@ export default {
     // hacen falta diez (Fable, 25/09); un mínimo de 2 hoy sería declararla con
     // cinco. Cuando la tanda lo mida, `minimoDeAciertos: 2` sustituye a esto.
     // (Nacía en 0 exigidos porque el camino no se había ejecutado nunca.)
-    seguimiento: ['cobertura'],
+    seguimiento: {
+      cobertura: {
+        clase: 'PENDIENTE_DE_MEDIR',
+        motivo: 'la base se fija con una tanda de DIEZ pasadas y hay cinco; cuando se mida, `minimoDeAciertos: 2` sustituye a esto',
+      },
+    },
     maximoDeFalsosConfirmados: 0,
   },
 

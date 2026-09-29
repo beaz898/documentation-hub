@@ -204,7 +204,13 @@ export default {
     // observado tampoco puede saltar hasta el arreglo de F-116; y uno en 0 sería
     // un rojo fijo, que entrena a ignorar la luz. El caso mide y no juzga: sale
     // sin veredicto, con lo observado impreso.
-    seguimiento: ['cobertura', 'precision'],
+    seguimiento: {
+      cobertura: { clase: 'NO_PUEDE_FALLAR', motivo: 'un mínimo de 0 sobre una trampa nunca detectada: desde cero no se puede empeorar' },
+      precision: {
+        clase: 'NO_PUEDE_FALLAR',
+        motivo: 'frecuencia medida al 100 % (2/2): un techo que arranque en lo observado no puede saltar hasta el arreglo de F-116',
+      },
+    },
     nota: 'Cuando llegue el arreglo de F-116, esto se sustituye por umbrales que ' +
           'puedan fallar, escritos con la medición de esa tanda.',
   },

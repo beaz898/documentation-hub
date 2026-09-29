@@ -287,7 +287,9 @@ export default {
     // ⚠️ 28/09/2026: la cobertura, en SEGUIMIENTO. Un mínimo de 0 sobre una base
     // de 0 no vigila que no empeore: desde cero no se puede empeorar. Mide y no
     // juzga; lo que puede fallar es la precisión, con los cuatro falsos de arriba.
-    seguimiento: ['cobertura'],
+    seguimiento: {
+      cobertura: { clase: 'NO_PUEDE_FALLAR', motivo: 'un mínimo de 0 sobre una base de 0: desde cero no se puede empeorar' },
+    },
     maximoDeFalsosConfirmados: 0,
     nota: 'Umbral 0 porque la base medida es 0 de 4, dos veces (87a76112 y ' +
           'cceddf86). Sube en cuanto una tanda dé más, y con commit y motivo ' +

@@ -94,9 +94,13 @@ export default {
   siApareceOtraAlarma: 'MARCAR_PARA_ETIQUETA_HUMANA',
 
   umbralDeAlarma: {
-    minimoDeAciertos: 0,
-    maximoDeFalsosConfirmados: null,
-    estado: 'LINEA_DE_BASE_PENDIENTE',
+    // 29/09/2026: las DOS mitades en SEGUIMIENTO (antes `minimoDeAciertos: 0`,
+    // techo `null` y `estado: 'LINEA_DE_BASE_PENDIENTE'`). Con sólo la precisión,
+    // saldría PASA con cero aciertos y nada juzgado: un verde vacío (B.291).
+    seguimiento: {
+      cobertura: { clase: 'NO_PUEDE_FALLAR', motivo: 'el caso no tiene esperados (`debenSalir` vacío): un mínimo de 0 no puede fallar' },
+      precision: { clase: 'PENDIENTE_DE_MEDIR', motivo: 'sin frecuencia medida no hay techo honesto' },
+    },
     nota: 'Sin frecuencia medida no hay techo honesto. El primero lo escribe la ' +
           'primera tanda, en el máximo observado, y de ahí sólo puede bajar.',
   },

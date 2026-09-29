@@ -50,44 +50,48 @@ describe('el techo de falsos — las tres mitades, cada una con su caso decisivo
     expect(problemas.join(' ')).toContain('SIN frecuencia medida');
   });
 
-  it('1-bis · el MISMO caso con el techo en null y el estado puesto: pasa', () => {
+  // 29/09/2026: el estado LINEA_DE_BASE_PENDIENTE se retiró; lo pendiente es la
+  // precisión en SEGUIMIENTO con su CLASE, que es lo que la regla lee.
+  const PENDIENTE = { precision: { clase: 'PENDIENTE_DE_MEDIR', motivo: 'sin medir' } };
+  const NO_PUEDE = { precision: { clase: 'NO_PUEDE_FALLAR', motivo: 'arranca en el máximo observado' } };
+
+  it('1-bis · el MISMO caso con la precisión PENDIENTE_DE_MEDIR y sin techo: pasa', () => {
     // ⚠️ ES EL CONTROL POSITIVO DE LA MITAD 1: sin él, un «no pasa» no distingue
     // «la regla funciona» de «la regla rechaza cualquier cosa».
-    const c = {
-      ...base(),
-      noDebenSalir: [falsoConocido(null)],
-      umbralDeAlarma: { minimoDeAciertos: 0, maximoDeFalsosConfirmados: null, estado: 'LINEA_DE_BASE_PENDIENTE' },
-    };
+    const c = { ...base(), noDebenSalir: [falsoConocido(null)], umbralDeAlarma: { minimoDeAciertos: 0, seguimiento: PENDIENTE } };
     expect(validarElTechoDeFalsos(c, c.id)).toEqual([]);
   });
 
-  it('2 · falso conocido sin frecuencia y SIN declarar el estado: NO pasa', () => {
-    const c = {
-      ...base(),
-      noDebenSalir: [falsoConocido(null)],
-      umbralDeAlarma: { minimoDeAciertos: 0, maximoDeFalsosConfirmados: null },
-    };
-    expect(validarElTechoDeFalsos(c, c.id).join(' ')).toContain('LINEA_DE_BASE_PENDIENTE');
+  it('2 · falso conocido sin frecuencia y la precisión sin declarar PENDIENTE: NO pasa', () => {
+    const c = { ...base(), noDebenSalir: [falsoConocido(null)], umbralDeAlarma: { minimoDeAciertos: 0 } };
+    expect(validarElTechoDeFalsos(c, c.id).join(' ')).toContain('PENDIENTE_DE_MEDIR');
   });
 
-  it('2-bis · declarar el estado Y poner un techo a la vez: NO pasa', () => {
-    const c = {
-      ...base(),
-      noDebenSalir: [falsoConocido('2/2')],
-      umbralDeAlarma: { minimoDeAciertos: 0, maximoDeFalsosConfirmados: 3, estado: 'LINEA_DE_BASE_PENDIENTE' },
-    };
+  it('2 · y declararla NO_PUEDE_FALLAR sin haberla medido tampoco pasa: el trinquete no arrancaría nunca', () => {
+    const c = { ...base(), noDebenSalir: [falsoConocido(null)], umbralDeAlarma: { minimoDeAciertos: 0, seguimiento: NO_PUEDE } };
+    expect(validarElTechoDeFalsos(c, c.id).join(' ')).toContain('(declara NO_PUEDE_FALLAR)');
+  });
+
+  it('2-bis · precisión en seguimiento Y un techo a la vez: NO pasa', () => {
+    const c = { ...base(), noDebenSalir: [falsoConocido('2/2')], umbralDeAlarma: { minimoDeAciertos: 0, maximoDeFalsosConfirmados: 3, seguimiento: PENDIENTE } };
     expect(validarElTechoDeFalsos(c, c.id).join(' ')).toContain('Una de las dos cosas miente');
   });
 
-  it('3 · todos los falsos CON frecuencia y el techo en null: NO pasa', () => {
-    // La mitad que impide que un caso ya medido se esconda detrás del estado
+  it('el techo en null, que era la marca de lo pendiente, está retirado', () => {
+    const c = { ...base(), noDebenSalir: [falsoConocido(null)], umbralDeAlarma: { minimoDeAciertos: 0, maximoDeFalsosConfirmados: null, seguimiento: PENDIENTE } };
+    expect(validarElTechoDeFalsos(c, c.id).join(' ')).toContain('`maximoDeFalsosConfirmados: null` está retirado');
+  });
+
+  it('3 · todos los falsos CON frecuencia y la precisión sigue PENDIENTE_DE_MEDIR: NO pasa', () => {
+    // La mitad que impide que un caso ya medido se esconda detrás del seguimiento
     // para siempre. Sin ella el trinquete nunca empieza.
-    const c = {
-      ...base(),
-      noDebenSalir: [falsoConocido('2/2')],
-      umbralDeAlarma: { minimoDeAciertos: 0, maximoDeFalsosConfirmados: null },
-    };
-    expect(validarElTechoDeFalsos(c, c.id).join(' ')).toContain('sigue en `null`');
+    const c = { ...base(), noDebenSalir: [falsoConocido('2/2')], umbralDeAlarma: { minimoDeAciertos: 0, seguimiento: PENDIENTE } };
+    expect(validarElTechoDeFalsos(c, c.id).join(' ')).toContain('sigue PENDIENTE_DE_MEDIR');
+  });
+
+  it('3 · N6: medido y NO_PUEDE_FALLAR sí pasa — la clase se declara, no se deduce', () => {
+    const c = { ...base(), noDebenSalir: [falsoConocido('2/2')], umbralDeAlarma: { minimoDeAciertos: 0, seguimiento: NO_PUEDE } };
+    expect(validarElTechoDeFalsos(c, c.id)).toEqual([]);
   });
 
   it('3-bis · el MISMO caso con su techo escrito: pasa', () => {

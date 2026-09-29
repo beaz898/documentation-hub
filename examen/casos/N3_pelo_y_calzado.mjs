@@ -162,12 +162,19 @@ export default {
 
   umbralDeAlarma: {
     minimoDeAciertos: 1,
-    // ⚠️ NULL Y NO UN NÚMERO — ver `lineaDeBase`. La frecuencia de estos dos
-    // falsos NO se midió, y un techo inventado es peor que ninguno: si se pone
-    // 0 el caso sale rojo el primer día por algo que a lo mejor era su
-    // comportamiento normal; si se pone alto, no avisa nunca.
-    maximoDeFalsosConfirmados: null,
-    estado: 'LINEA_DE_BASE_PENDIENTE',
+    // ⚠️ SIN TECHO — ver `lineaDeBase`. La frecuencia de estos dos falsos NO se
+    // midió, y un techo inventado es peor que ninguno: si se pone 0 el caso sale
+    // rojo el primer día por algo que a lo mejor era su comportamiento normal; si
+    // se pone alto, no avisa nunca.
+    // 29/09/2026: la precisión, en SEGUIMIENTO (antes `estado:
+    // 'LINEA_DE_BASE_PENDIENTE'`, que silenciaba también la cobertura, B.291). La
+    // cobertura SÍ se juzga: exige N3-DUPLICADO.
+    seguimiento: {
+      precision: {
+        clase: 'PENDIENTE_DE_MEDIR',
+        motivo: 'la frecuencia de N3-CALZADO y N3-PELO no se ha medido; el techo lo escriben dos tandas de 10',
+      },
+    },
     nota: 'El techo se escribe cuando DOS tandas de 10 den el mismo reparto ' +
           '(criterio de Fable), y nace en el MÁXIMO OBSERVADO, no en cero. ' +
           'Bajarlo después es un trinquete: sólo puede bajar, y cada bajada es ' +
