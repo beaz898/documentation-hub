@@ -8438,6 +8438,21 @@ de un caso y el protocolo, así que el fallo no puede venir de ahí.
 - ⚠️ **Es la TERCERA vez del mismo fallo de método**: `a3423ef2` (16/09, §5.70), B.263 (22/09) y
   ésta. Las dos anteriores quedaron escritas en fichas, no en el protocolo. **La regla, ahora en
   el protocolo**: `claude/Protocolo_Harness_Tasas.md`, «Un rojo no puede pasar en silencio».
+- ⚠️ **29/09 por la noche — OTRA VEZ, y con la regla ya escrita.** Code encadenó el commit
+  `7d5cade8` detrás de la suite en una sola orden. La suite dio 1 fallo y `exit 1`, pero la
+  orden siguió, porque el eslabón anterior era un `node` que imprimía el resultado y salía
+  con 0.
+  - No es un aprendizaje nuevo: es la regla del protocolo INCUMPLIDA. **La suite y el commit
+    van en órdenes separadas.**
+  - El commit sólo tocaba esta ficha, era local, y se verificó después: la suite completa,
+    corrida sola, dio 1.750 de 1.750.
+  - **Esta vez el rojo tiene NOMBRE**: `lib/examen/autenticacion.test.ts`, «CONTROL POSITIVO
+    — los dos censos SÍ ven el endpoint del examen». Tardó **16.954 ms** contra el
+    `testTimeout` de 15.000 (`vitest.config.mts:69`), y 497 ms al repetirlo. Es un tope de
+    reloj de pared sobre código determinista que recorre el repositorio con `readdirSync`:
+    mide la máquina (la familia de B.263).
+  - **Sin dar por hecho que sea el de este B.286**: aquel no tiene nombre, y éste es un
+    candidato, no una identificación.
 
 ---
 
