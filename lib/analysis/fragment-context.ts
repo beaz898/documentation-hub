@@ -1,4 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { leerTodasLasPaginas } from '@/lib/leer-todas-las-paginas';
 
 /**
  * Contexto adicional de un fragmento recuperado, leído de document_chunks en
@@ -85,19 +86,28 @@ export async function loadFragmentContexts(
 
   const documentIds = [...new Set(refs.map(r => r.documentId))];
 
-  const { data, error } = await supabase
-    .from('document_chunks')
-    .select('document_id, generation, chunk_index, chunk_type, text, sheet_name, table_id, row_index, cells')
-    .eq('org_id', orgId)
-    .in('document_id', documentIds)
-    .order('chunk_index', { ascending: true });
+  // B.297: PAGINADA, como getChunksForDocuments, y con el mismo orden por la clave
+  // única (document_id, generation, chunk_index). Lee el mismo conjunto de
+  // documentos que aquélla, y de aquí sale el contexto de los fragmentos: la
+  // entrada del juez. Cortada, un fragmento de la cola se quedaría sin contexto.
+  const { data, error } = await leerTodasLasPaginas<DocumentChunkContextRow>((desde, hasta) =>
+    supabase
+      .from('document_chunks')
+      .select('document_id, generation, chunk_index, chunk_type, text, sheet_name, table_id, row_index, cells')
+      .eq('org_id', orgId)
+      .in('document_id', documentIds)
+      .order('document_id', { ascending: true })
+      .order('generation', { ascending: true })
+      .order('chunk_index', { ascending: true })
+      .range(desde, hasta),
+  );
 
   if (error) {
     console.error(`[fragment-context] loadFragmentContexts falló | docs=${documentIds.length} | ${error.message}`);
     return result;
   }
 
-  const rows = (data ?? []) as DocumentChunkContextRow[];
+  const rows = data ?? [];
 
   // Índice por (document_id, generation) -> chunk_index -> fila, para localizar
   // el chunk de cada ref y sus vecinos sin recorrer todas las filas por ref.

@@ -68,20 +68,25 @@ export async function getDocumentChunks(
 ): Promise<StoredChunk[]> {
   const { orgId, documentId, generation } = params;
 
-  const { data, error } = await supabase
-    .from('document_chunks')
-    .select('chunk_index, chunk_type, text, sheet_name, table_id, row_index, cells, column_order')
-    .eq('document_id', documentId)
-    .eq('org_id', orgId)
-    .eq('generation', generation)
-    .order('chunk_index', { ascending: true });
+  // B.297: PAGINADA, como getChunksForDocuments. Con documento y generación fijos,
+  // chunk_index completa la clave única: el orden ya es estable.
+  const { data, error } = await leerTodasLasPaginas<DocumentChunkRow>((desde, hasta) =>
+    supabase
+      .from('document_chunks')
+      .select('chunk_index, chunk_type, text, sheet_name, table_id, row_index, cells, column_order')
+      .eq('document_id', documentId)
+      .eq('org_id', orgId)
+      .eq('generation', generation)
+      .order('chunk_index', { ascending: true })
+      .range(desde, hasta),
+  );
 
   if (error) {
     console.error(`[read-chunks] getDocumentChunks falló | doc=${documentId} | gen=${generation} | ${error.message}`);
     return [];
   }
 
-  const rows = (data ?? []) as DocumentChunkRow[];
+  const rows = data ?? [];
   return rows.map((row) => ({
     chunkIndex: row.chunk_index,
     chunkType: row.chunk_type,

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { leerTodasLasPaginas, MAXIMO_DE_PAGINAS } from './leer-todas-las-paginas';
-import { getChunksForDocuments } from './read-chunks';
+import { getChunksForDocuments, getDocumentChunks } from './read-chunks';
+import { fragmentContextKey, loadFragmentContexts } from './analysis/fragment-context';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
 /**
@@ -69,5 +70,31 @@ describe('getChunksForDocuments sobre un Supabase que corta en 3 filas', () => {
     });
     expect(r.get('a')?.map(c => c.text)).toEqual(['a-1-0', 'a-1-1', 'a-1-2', 'a-1-3']);
     expect(r.get('b')?.map(c => c.text)).toEqual(['b-2-0', 'b-2-1']);
+  });
+});
+
+describe('las otras dos lecturas de document_chunks, sobre el mismo Supabase que corta en 3 (B.297, censo completo)', () => {
+  const fila = (document_id: string, generation: number, chunk_index: number) =>
+    ({ document_id, generation, chunk_index, chunk_type: 'text', text: `${document_id}-${generation}-${chunk_index}`,
+       sheet_name: null, table_id: null, row_index: null, cells: null, column_order: null });
+  // Ya en el orden de la clave única, que es el que piden las dos consultas.
+  const FILAS = [0, 1, 2, 3, 4, 5, 6].map(i => fila('a', 1, i));
+  function supabaseQueCorta(tope: number) {
+    const consulta = {
+      select: () => consulta, eq: () => consulta, in: () => consulta, order: () => consulta,
+      range: (desde: number, hasta: number) =>
+        Promise.resolve({ data: FILAS.slice(desde, Math.min(hasta + 1, desde + tope)), error: null }),
+    };
+    return { from: () => consulta } as unknown as SupabaseClient;
+  }
+  it('getDocumentChunks trae los 7 trozos del documento, en orden, con tope 3', async () => {
+    const r = await getDocumentChunks(supabaseQueCorta(3), { orgId: 'o', documentId: 'a', generation: 1 });
+    expect(r.map(c => c.chunkIndex)).toEqual([0, 1, 2, 3, 4, 5, 6]);
+  });
+  it('loadFragmentContexts da contexto a un fragmento de la COLA (el 6), que cortada se quedaría sin él', async () => {
+    const r = await loadFragmentContexts(supabaseQueCorta(3), {
+      orgId: 'o', refs: [{ documentId: 'a', generation: 1, chunkIndex: 6 }],
+    });
+    expect(r.has(fragmentContextKey('a', 1, 6))).toBe(true);
   });
 });
