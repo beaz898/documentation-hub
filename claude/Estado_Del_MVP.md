@@ -7387,11 +7387,32 @@ encabezados y los límites de trozo visibles (F-118 §5, escalón 1).
       - El literal apunta a lo contrario: `pasan_solos_de_10000 = 2` y 28 = 2 × 14 casarían
         con dos documentos grandes FUERA del corpus, cada uno contra los 14 candidatos. Eso
         serían 28 parejas distintas.
-      - **Es una inferencia, y no se escribe como cifra.** La contesta la consulta 4 del
-        mismo fichero (añadida el 29/09, pendiente): cada pareja por encima de 10.000, qué
-        lado está en el corpus, y `parejas_distintas`.
-      - Hasta entonces, la ficha dice **«28 pares ordenados; parejas distintas: no
-        consta»**, no «28 parejas» ni «14».
+      - **Era una inferencia, y no se escribió como cifra.** La contestó la consulta 4 del
+        mismo fichero.
+    - ✅ **LA CONSULTA 4, ejecutada por el director el 29/09.** Resultado como lo transmitió
+      el arquitecto: **`parejas_distintas = 28`**. «14» era falso.
+      - Las 28 salen de **DOS documentos del lado analizado**, cada uno contra los 14
+        candidatos del corpus. Ningún otro documento aparece:
+        - `NOR-10_protocolo-esterilizacion-instrumental.docx` (estado `pendiente`): 14
+          parejas, la menor de **15.109** tokens;
+        - `CLI-12_manual-calidad-clinica.docx` (estado `pendiente`): 14 parejas, la menor de
+          **12.799**.
+      - **Los 2 de `pasan_solos_de_10000` son exactamente estos dos**, y se sigue de la SQL:
+        1. un documento que pase solo de 10.000 forma una pareja de más de 10.000 con
+           CUALQUIER candidato, porque la pareja es la suma de los dos;
+        2. si estuviera en el corpus, como candidato saldría contra los otros 49
+           documentos: al menos 49 pares por encima, y hay 28. Así que ninguno de los 14
+           del corpus pasa solo;
+        3. fuera del corpus, sale como analizado contra los 14, o sea en la consulta 4, y
+           los únicos analizados que salen ahí son NOR-10 y CLI-12. Como la columna dice 2,
+           son los dos.
+      - ⚠️ **El atajo del mínimo NO lo prueba.** Que el total de una pareja no sea menor que
+        uno de sus lados da una cota SUPERIOR de cada lado (NOR-10 ≤ 15.109), no una
+        inferior.
+    - 📌 **LO QUE HAY QUE RECORDAR: el corte honesto no trata de «parejas grandes», trata de
+      DOS DOCUMENTOS que no caben con nada.** Todo lo demás del corpus cabe entero con
+      cualquier candidato. Los dos están en `pendiente`; si es que no se han analizado o que
+      falló, está preguntado al director (29/09).
     - **No hay ninguna pareja entre 7.758 y 10.000 tokens.** `por_encima_de_7758` y
       `por_encima_de_10000` son el mismo 28, así que un presupuesto en cualquier punto de ese
       rango recorta exactamente las mismas 28 parejas. **El 10.000 no es una cifra
@@ -7848,6 +7869,25 @@ pareja, detrás de un interruptor.
 - **El presupuesto**: 10.000 tokens por pareja = **40.000 caracteres**. La conversión es
   caracteres / 4, la de las SQL de F-118 (`SQL_F118_tamanos_por_pareja.sql`). Se elige para
   que el corte se dispare alguna vez: un mecanismo que no se dispara no está probado.
+  - ⚠️ **D-4 — ESA JUSTIFICACIÓN ESTÁ RETIRADA** (arquitecto, 29/09, a la vista del literal
+    de la consulta 4 de B.273). Con 10.000, el corte se dispara para DOS documentos reales,
+    NOR-10 y CLI-12. Elegirlo «para ejercitar el camino» es degradar su análisis para probar
+    código, y el camino ya lo ejercitan los 108 casos y los mutantes de D-3. **Probar a costa
+    del usuario no es probar: es cobrarle la prueba.**
+  - **El número SOBREVIVE, PENDIENTE DE BASE.** No se toca antes de esta medida: NOR-11 +
+    CLI-13 son 24.521 caracteres, unos 6.130 tokens, por debajo de cualquier presupuesto que
+    se discuta. Moverlo sería cambiar una cifra ya subida justo antes de medir, y por nada.
+  - **El presupuesto no es un límite técnico: es una decisión de coste y latencia.** La
+    ventana de Haiku 4.5 son 200.000 tokens (dato del arquitecto) y la pareja mayor posible
+    del corpus, 17.062. Con 25.000 cabría hoy el corpus entero.
+  - **PREGUNTA ABIERTA, sin trabajo asociado todavía**: qué cuestan, en latencia y en coste
+    por análisis, 17.000 tokens. Esta tanda mide la latencia a ~6.130 (P-4, R-3); falta el
+    otro extremo.
+  - **REGLA DE DECISIÓN, escrita antes del dato**:
+    - Si a 17.000 tokens la latencia del rápido queda por debajo del límite de R-3 (60 s) y
+      el coste por análisis no sube de forma que importe → el presupuesto sube a cubrir el
+      corpus, y el corte honesto queda para documentos de verdad patológicos.
+    - Si no → se queda en 10.000, y entonces SÍ hay una razón para recortar esos dos.
 - **Plan de medida** (lo ejecuta el director desde la aplicación; Code no lanza nada):
   - 5 pasadas por dirección de NOR-11 / CLI-13 con el interruptor APAGADO, como línea de base;
   - 5 con el interruptor ENCENDIDO;
@@ -7970,9 +8010,17 @@ la marcha.
 cada respuesta en el tope de filas del proyecto, **sin error**. Cortada por `chunk_index`,
 se pierde la COLA de cada documento: el entero del escalón 1 (B.295), el pajar de
 verificación de citas y los `caracteres` de B.281.
-- **El margen, medido por el director el 29/09**: Max Rows = **1.000** y `document_chunks`
-  de a9625e93 = **569**, el **57 %**. Hoy no corta: ningún subconjunto de candidatos pasa
-  de 569. **Riesgo latente, no vivo.**
+- **El margen, medido por el director el 29/09**: Max Rows = **1.000**. **Son las dos cifras
+  que justifican paginar**:
+
+  | Organización | `document_chunks` | Del tope |
+  |---|---|---|
+  | a9625e93 (la del director) | **569** | **57 %** |
+  | 5a82712f (las tandas de agosto) | **696** | **70 %** |
+
+  Hoy ninguna corta: ningún subconjunto de candidatos pasa del total de su organización.
+  **Riesgo latente, no vivo**, y lo medido en agosto en 5a82712f no queda bajo sospecha por
+  esto.
 - **No es un riesgo lejano.** A un corpus de cliente de distancia, el tope se cruza sin
   aviso. La razón de paginar no es que hoy falle: es que el número que decide si falla vive
   en un panel, fuera del código, y puede cambiar sin que nadie toque el repositorio.
@@ -7987,11 +8035,12 @@ verificación de citas y los `caracteres` de B.281.
   - `loadFragmentContexts` (`lib/analysis/fragment-context.ts:89`): el contexto de los
     fragmentos, sobre el mismo conjunto de documentos que la primera.
 
-  Las dos últimas SIN paginar, **pendientes de decisión del arquitecto**. El mismo ayudante
-  les sirve.
-- **Pendiente**: el `count(*)` de `document_chunks` de la OTRA organización, 5a82712f. Si
-  pasa de 1.000, sus análisis sí se cortaban en silencio, y lo medido allí en las tandas de
-  agosto queda bajo sospecha. Ficha propia si sale grande.
+  ✅ **Las tres paginadas**: el arreglo va por capacidad, como el censo (arquitecto, 29/09).
+  Con dos de tres sin paginar, dentro de seis meses nadie recordaría cuál era la segura.
+  - La primera, en `eaf0718c`.
+  - `loadFragmentContexts` y `getDocumentChunks`, en `a528784a`. La de contextos era la más
+    urgente: lee los mismos documentos y alimenta la entrada del juez.
+  - Las tres con el orden de la clave única, y con sus mutantes.
 
 ### 📋 B.298 — LAS GENERACIONES MUERTAS SE COMEN EL PRESUPUESTO DE FILAS (constancia, no arreglo; 29/09/2026)
 

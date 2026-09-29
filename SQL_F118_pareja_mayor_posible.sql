@@ -3,7 +3,8 @@
 -- ✅ EJECUTADO por el director el 29/09/2026 las consultas 1-3 (resultado literal en
 -- claude/Estado_Del_MVP.md, B.273: 50 documentos, 14 en el corpus, 686 parejas
 -- posibles, la mayor de 17.062 tokens, 28 por encima de 10.000). Sólo SELECT.
--- ⚠️ La consulta 4, añadida el 29/09 después, está PENDIENTE DE EJECUTAR.
+-- ✅ La consulta 4, añadida el 29/09 después, EJECUTADA el mismo día (B.273: 28 parejas
+-- distintas, todas de NOR-10 y CLI-12 como analizados).
 --
 -- QUÉ CONTESTA: el censo de B.273 midió las parejas que SE ANALIZARON (máximo
 -- 7.758 tokens). Esto mide las que PUEDEN formarse con los documentos que existen
@@ -95,7 +96,7 @@ SELECT
   (SELECT round(100.0 * count(*) FILTER (WHERE t <= 10000) / nullif(count(*), 0), 1)
      FROM pares)                                                           AS porcentaje_que_cabe_en_10000;
 
--- 4 · (Añadida el 29/09/2026 · PENDIENTE DE EJECUTAR; las tres de arriba ya se
+-- 4 · (Añadida el 29/09/2026 · EJECUTADA el mismo día, como las tres de arriba, que ya se
 --     ejecutaron.) Las parejas por encima de 10.000 tokens, UNA A UNA, y cuántas
 --     parejas de documentos DISTINTAS son. La consulta 3 cuenta pares ORDENADOS con
 --     el candidato en el corpus: una pareja sólo sale dos veces si LOS DOS lados están
