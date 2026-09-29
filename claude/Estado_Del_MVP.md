@@ -7363,9 +7363,19 @@ encabezados y los límites de trozo visibles (F-118 §5, escalón 1).
     - Así que la cifra era aproximadamente cierta, pero sólo en uno de los dos operandos, Y
       AUN ASÍ había que comprobarla. **Que saliera cierta no justifica haberse saltado la
       comprobación**, y la comprobación destapó además que había dos medidas.
-    - ⚠️ El arquitecto tituló las columnas al revés («caracteres en trozos» para el texto
-      plano, «texto completo» para el renderizado). Sus cuentas de pareja usan el operando
-      correcto, el renderizado.
+    - ⚠️ **ERROR DE RÓTULO, NO DE CUENTA** (aceptado por el arquitecto, 29/09). Tituló las
+      columnas al revés: «caracteres en trozos» para el texto plano, «texto completo» para el
+      renderizado. Sus cuentas de pareja usan el operando correcto, el renderizado, que es el
+      del presupuesto. El rótulo importa aquí por esto: son dos medidas distintas, y el
+      66.669 sólo se parece a una.
+    - **Los cuatro documentos, con los rótulos corregidos** (del log que trae el arquitecto):
+
+      | Documento | Trozos | Texto PLANO (`text.length`) | Renderizado por el JUEZ |
+      |---|---|---|---|
+      | NOR-10 | 67 | 60.038 | 66.801 |
+      | CLI-12 | 55 | 50.797 | 55.135 |
+      | NOR-11 | 15 | 14.437 | 14.704 |
+      | CLI-13 | 11 | 9.743 | 9.817 |
   - ✅ **29/09 — LA PAREJA MAYOR POSIBLE, EJECUTADO POR EL DIRECTOR. El literal** (consulta 3,
     el resumen, tal como salió):
     ```
@@ -8054,8 +8064,16 @@ la marcha.
       candidato vuelve a su bloque por relevancia, y el analizado se lleva el resto. NOR-11
       (14.704) entra ENTERO.
   - ⚠️ **LA CONSECUENCIA HONESTA: en esas dos parejas el escalón 1 mejora SÓLO el lado
-    analizado.** El candidato recibe lo mismo que hoy: según el arquitecto, unos 2.650
-    caracteres de 66.801, un 4 %.
+    analizado.** El candidato recibe lo mismo que hoy: **2.649 caracteres**. Es literal de un
+    log del director (13:15:46) que trae el arquitecto; Code no lo ha visto: «NOR-10…
+    unidades: 3 dentro, 39 fuera (tabla 0/0, prosa 3/42), 2649/3000 caracteres». Sobre los
+    66.801 renderizados, el **3,97 %**.
+    - ⚠️ **Esa proporción cruza estaciones**, y se dice aunque no cambie el orden de magnitud:
+      - el 2.649 es la medida del RETRIEVAL (el texto de los fragmentos, la línea de
+        `retrieval.ts`, la estación de B.281);
+      - lo que recibe el JUEZ es el bloque renderizado, que lleva además las cabeceras
+        `[Fragmento n de "…"]`, así que es algo mayor;
+      - el 66.801 es del juez.
 - **P-7** (del arquitecto, 29/09 por la tarde, antes del cambio). Con el interruptor encendido,
   la PROPORCIÓN de hallazgos descartados por «cita no verificable» sobre el total de hallazgos
   emitidos BAJARÁ respecto a la línea de base. Razón: con el documento entero delante, el juez
@@ -8071,38 +8089,73 @@ la marcha.
     de citas.
   - **Sólo sobre las contradicciones, NO CONSTA en la base**: el reparto está únicamente en el
     log («Contradicción descartada» frente a «Solapamiento descartado»).
+  - **Pero NO es «no medible», y hay salida si el resultado sale ambiguo** (arquitecto,
+    29/09). El director puede pegar los logs de las diez pasadas y contar el reparto línea a
+    línea. Es más trabajo y es un recuento sobre log, que se dice como tal, pero existe.
 - **`textoAnalizado` ausente con el interruptor encendido: aceptado como decisión.** Es un
   reenvío, no un silencio: si `lecturaDeLasParejas` está presente, la ausencia significa
   «se leyó distinto en cada pareja».
 
-### ⚠️ B.299 — LA COMPROBACIÓN DE CITAS TIRA 5 DE 7 CONTRADICCIONES entre NOR-10 y CLI-12 (constancia y medida, SIN arreglo; 29/09/2026)
+### ⚠️ B.299 — LA COMPROBACIÓN DE CITAS DEL JUEZ TIRA 5 DE 7 CONTRADICCIONES entre NOR-10 y CLI-12; LA CASCADA DEL VERIFICADOR, 1 MÁS (constancia y medida, SIN arreglo; 29/09/2026)
+
+⚠️ **Retitulada el 29/09 por la noche.** El arquitecto había juntado las dos cosas en «el
+verificador tira 5 de 7, un 71 %». **Era falso, y lo corrigió él mismo.** Son dos estaciones:
+la comprobación de citas ocurre en el JUEZ, antes de la cascada, y el verificador sólo mató 1.
+**La fuga está en el juez, no en el verificador.**
 
 **De dónde sale**: el recuento lo hizo el arquitecto sobre los logs de los cuatro análisis del
 director del 29/09, entre las 13:14 y las 13:16 UTC. **Code no ha visto esos logs.** La
-contraparte en la base, para contrastarlo, es `SQL_Escalon1_verificacion_despliegue.sql`
-(`cita_no_verificable`, `contradicciones_que_pasaron_las_citas`,
-`descartadas_por_la_cascada`, `contradicciones_publicadas`).
+contraparte en la base es `SQL_Escalon1_verificacion_despliegue.sql`. **Si la base no cuadra
+con estos 7 y 5, gana la base** y esta ficha se corrige.
 
 - **CLI-12 analizado → NOR-10: 4 contradicciones emitidas.**
   - [9b37aa92] «Responsable último de la esterilización» → publicada
-  - [603d2891] «Autorización de excepciones al protocolo» → descartada por la cascada como
+  - [603d2891] «Autorización de excepciones al protocolo» → descartada por la CASCADA como
     `mismo_dato_sin_oposicion`
   - [9566b633] «Firma de registros de auditoría trimestral» → cita no verificable
   - [e949ea35] «Decisión de retirada de autoclave del servicio» → cita no verificable
 - **NOR-10 analizado → CLI-12: 3 contradicciones emitidas.**
   - [c8fa8815], [8c721d48] y [94a23b5b] → las TRES, cita no verificable. Cero publicadas.
-- **Total: 7 emitidas, 1 publicada.** Son DOS estaciones distintas, y se cuentan aparte:
-  - **5 de 7 (71 %) mueren en la comprobación de CITAS**, que ocurre en el juez
-    (`fixQuotesInJudgment`, `lib/analysis/judge.ts:507`), antes de la cascada;
-  - **1 muere en la CASCADA del verificador** (`mismo_dato_sin_oposicion`);
-  - no publicadas en total: **6 de 7 (86 %)**, en una pareja llena de contradicciones de
-    verdad.
+
+| Estación | Dónde | Mueren |
+|---|---|---|
+| **Comprobación de citas, EN EL JUEZ** | `fixQuotesInJudgment`, `lib/analysis/judge.ts:507` (contradicciones) y `:555` (solapamientos), antes de la cascada | **5 de 7 (71 %)** |
+| **Cascada del verificador** | `mismo_dato_sin_oposicion` | **1 de 7** |
+| **Sin publicar, en total** | | **6 de 7 (86 %)** |
+
 - ⚠️ Los `[xxxxxxxx]` identifican el PAR DE CITAS, no el hallazgo (B.295): sirven para leer
   este log, no para seguir una contradicción entre pasadas.
-- **HIPÓTESIS, etiquetada como tal (no investigada)**: el juez anota entre corchetes quién es
-  el sujeto —«…recae siempre sobre esta figura [Director Clínico]»—, y esa anotación no está
-  en el documento. La comprobación busca la cita literal, no la encuentra y tira el hallazgo
-  entero.
+- **LA CONSECUENCIA, dicha antes de medir.** Descarta la misma etapa que escribió la cita, pero
+  no del mismo modo:
+  - la cita la escribe el MODELO, viendo un recorte de cada lado: los primeros 6.000 del
+    analizado y el bloque por relevancia del candidato (unos 2.649 de NOR-10, B.295);
+  - la comprueba CÓDIGO, contra TODOS los trozos del documento (el pajar de verificación).
+
+  La comprobación no está ciega; el que escribió sí. No son dos componentes en desacuerdo: es
+  el juez sin poder citar literalmente lo que reconstruyó de lo que no vio. **Eso sube las
+  posibilidades de que P-7 acierte**: con el documento entero delante, hay menos que
+  reconstruir.
+- **QUÉ INTENTA LA COMPROBACIÓN ANTES DE DESCARTAR** (leído el 29/09, `findBestMatch`,
+  `judge.ts:75-131`; `normalize`, `lib/analysis/normalize-core.mjs:71`):
+  1. la cadena literal;
+  2. normalizada: minúsculas, espacios colapsados y fuera la puntuación, **corchetes
+     incluidos**. Las TILDES no se quitan, a propósito;
+  3. con 25 caracteres normalizados o más: la CABEZA y la COLA de la cita (hasta 20
+     caracteres cada una) en orden, a menos de tres veces su longitud. Tolera lo que haya EN
+     MEDIO.
+
+  Además, una cita tabular «a | b | c» se comprueba trozo a trozo en la misma fila.
+- **LA HIPÓTESIS DE LOS CORCHETES, AJUSTADA a lo que dice el código** (etiquetada, no
+  investigada). El juez anota el sujeto entre corchetes —«…recae siempre sobre esta figura
+  [Director Clínico]»—, y la anotación no está en el documento. La normalización quita los
+  corchetes pero NO las palabras de dentro. Por eso:
+  - una anotación **en medio** de una cita larga la tolera la cabeza y cola, y la cita
+    SOBREVIVE;
+  - una anotación **en un extremo** —como el ejemplo— cae dentro de la cola o de la cabeza, y
+    la cita MUERE.
+
+  La hipótesis explica los descartes con la anotación en un extremo, no en medio.
+  Otra causa que la comprobación tampoco tolera: una tilde de más o de menos.
 - **SOSPECHA, etiquetada como tal**: [603d2891] se descartó como «mismo dato sin oposición»,
   pero según las citas uno atribuye la autorización al Director Clínico y el otro al
   Coordinador de Calidad. Si es así, había oposición. **Hay que mirar el texto antes de
