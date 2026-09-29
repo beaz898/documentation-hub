@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import N1 from '../examen/casos/N1_falsos_conocidos.mjs';
-import { marcarPasada, marcarCaso, DEJO_DE_EJERCER, FALLA, PASA, SIN_VEREDICTO } from '../lib/examen/marcador.mjs';
+import { marcarPasada, marcarCaso, DEJO_DE_EJERCER, FALLA, PASA } from '../lib/examen/marcador.mjs';
 
 /**
  * EL CRUDO SINTÉTICO DE LA FASE 3 DEL DETECTOR (29/09/2026).
@@ -12,10 +12,9 @@ import { marcarPasada, marcarCaso, DEJO_DE_EJERCER, FALLA, PASA, SIN_VEREDICTO }
  * la alarma (protocolo, «un cambio del marcador se prueba repuntuando antes y
  * después», condición 2).
  *
- * ⚠️ ROJO EN EL SENTIDO BUENO: documenta el hueco que la fase 3 cierra. Con el
- * marcador de HOY, la excepción de N1 da SIN_VEREDICTO, y un comparador
- * determinista que deja de producir no puede dar un gris. Cuando entre la fase 3
- * este test cambia a FALLA, y el cambio se escribe antes como predicción (B.294).
+ * Hasta la fase 3b documentaba el hueco: con la excepción de N1, un comparador
+ * determinista que dejaba de producir salía SIN_VEREDICTO, un gris. Con la
+ * alarma sale FALLA, como predijo B.294.
  */
 
 const leer = ruta => JSON.parse(readFileSync(ruta, 'utf8'));
@@ -56,22 +55,24 @@ describe('la forma: la de crudos reales, campo por campo', () => {
   });
 });
 
-describe('HOY, con el marcador actual: la regresión del diff sale en GRIS, no en rojo', () => {
-  it('el juez sí encuentra la verdad: la fila de Reyes empareja con N1-PUESTO, apartada al otro detector', () => {
+describe('FASE 3 (29/09/2026): la regresión del diff sale en ROJO', () => {
+  it('el juez encuentra la verdad: N1-PUESTO es un acierto, y la vigilancia apunta el detector perdido', () => {
     const m = marcarPasada(N1, pasada(SINTETICO));
-    expect(m.aciertos).toEqual([]);
-    expect(m.otroDetector.map(o => [o.id, o.detector, o.exigido])).toEqual([['N1-PUESTO', 'juicio', 'estructura']]);
+    expect(m.aciertos).toEqual(['N1-PUESTO']);
+    expect(m.vigilancia).toEqual([{ id: 'N1-PUESTO', base: 'estructura', tipo: 'PERDIDO', detector: 'juicio' }]);
     expect(m.falsos).toEqual([]);
   });
-  it('el caso sale SIN_VEREDICTO y NO FALLA — el hueco que cierra la fase 3', () => {
+  it('el caso sale FALLA con la alarma — antes de la fase 3 salía SIN_VEREDICTO (B.294)', () => {
     const m = marcarCaso({ ...N1, pasadas: 1 }, [pasada(SINTETICO)]);
-    expect(m.estado).toBe(SIN_VEREDICTO);
-    expect(m.estado).not.toBe(FALLA);
-    expect(m.razones.join()).toContain(`N1-PUESTO: ${DEJO_DE_EJERCER}`);
+    expect(m.estado).toBe(FALLA);
+    expect(m.fallos.join()).toContain('ALARMA DE DETECTOR: N1-PUESTO tiene base estructura');
+    expect(m.fallos.join()).toContain('se perdió un detector determinista');
+    expect(m.razones.join()).not.toContain(DEJO_DE_EJERCER);
   });
-  it('control: el crudo REAL de la misma pasada da PASA, por estructura', () => {
+  it('control: el crudo REAL de la misma pasada da PASA, por estructura, con el contador en 0', () => {
     const m = marcarCaso({ ...N1, pasadas: 1 }, [pasada(REAL)]);
     expect(m.estado).toBe(PASA);
     expect(m.marcas[0].detectores['N1-PUESTO']).toBe('estructura');
+    expect(m.aciertosSinDetectorEnElOrigen).toBe(0);
   });
 });

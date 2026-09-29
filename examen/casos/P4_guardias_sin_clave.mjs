@@ -98,10 +98,11 @@ export default {
       // 28/09/2026, FASE 2 DEL DETECTOR: la restricción a juicio pasa a estar
       // DECLARADA con su motivo, sacado de la cabecera de este caso. Un acierto
       // de estructura aquí no es un falso: da SIN_VEREDICTO («el caso dejó de
-      // ejercer su rama»). Base declarada por el arquitecto el 28/09: juicio,
-      // medida 5/5 en `c39397e7`.
+      // ejercer su rama»).
+      // 29/09/2026, FASE 3: pierde la base (juicio, medida 5/5 en `c39397e7`).
+      // Bajo una excepción la base no puede dispararse, y es la PRECONDICIÓN —que
+      // no haya clave— lo que el otro detector desmiente (B.290).
       detectorExigido: { detector: 'juicio', motivo: MOTIVO_DE_LA_EXCEPCION },
-      detectorDeBase: 'juicio',
     },
     {
       id: 'P4-MEDINA',
@@ -120,8 +121,7 @@ export default {
       enElAnalizado: '44',
       enElCorpus: '40',
       severidadMinima: 'contradiction',
-      detectorExigido: { detector: 'juicio', motivo: MOTIVO_DE_LA_EXCEPCION },   // ver P4-BELMONTE
-      detectorDeBase: 'juicio',                                              // medida 5/5 en `c39397e7`
+      detectorExigido: { detector: 'juicio', motivo: MOTIVO_DE_LA_EXCEPCION },   // ver P4-BELMONTE (sin base desde el 29/09)
     },
   ],
 

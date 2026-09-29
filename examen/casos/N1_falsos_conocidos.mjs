@@ -106,19 +106,11 @@ export default {
       // Si sale confirmada por JUICIO, el hallazgo es correcto y el CAMINO no:
       // significaría que la estructura dejó de emparejar, y eso es una
       // regresión aunque el marcador de aciertos no se mueva.
-      // ⚠️ 28/09/2026, FASE 2 DEL DETECTOR: `confirmadoPorEsperado` se retiró, y
-      // la fase 2b dejó a N1 sin restricción, así que entre la fase 2 y la 3 esa
-      // regresión no avisaba. El arquitecto cerró la ventana el mismo día con
-      // esta excepción: un acierto del juez da SIN_VEREDICTO con su motivo.
-      // ⚠️ SIN_VEREDICTO ES MENOS DE LO QUE EL PRINCIPIO PIDE. La fase 3 tiene
-      // que convertirlo en ROJO para un detector determinista perdido, y en
-      // alarma destacada para uno ganado. Hasta entonces es un compromiso
-      // declarado, no la solución.
-      detectorExigido: {
-        detector: 'estructura',
-        motivo: 'el diff de tablas es determinista, así que si N1-PUESTO deja de salir por estructura ' +
-                'no es ruido, es una regresión del comparador',
-      },
+      // ⚠️ 29/09/2026, FASE 3 DEL DETECTOR: la excepción que llevó el 28/09
+      // (SIN_VEREDICTO, un compromiso) se retira: su propio motivo —«es una
+      // regresión del comparador»— definía una ALARMA, no una excepción (B.290).
+      // Ahora lo vigila la base: si el diff no emite la fila y la encuentra el
+      // juez, FALLA con «ALARMA DE DETECTOR» (`alarma-de-detector.mjs`).
       // Base declarada por el arquitecto el 28/09: estructura, medida 10/10 en
       // `97223b72` y 5/5 en `c39397e7`.
       detectorDeBase: 'estructura',

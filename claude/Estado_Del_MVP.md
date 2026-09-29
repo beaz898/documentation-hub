@@ -7645,6 +7645,12 @@ baja un puesto: antes va la puerta del marcador, que se come los fallos (B.291).
     Escribirlo ahora sería un umbral que no puede fallar, que es lo que llevamos dos días
     cazando. Hasta la fase 3, N1 y P3 siguen en la ventana de hoy: un acierto del juez da
     SIN_VEREDICTO. Está fichada, es corta y es visible.
+  - ✅ **Escrito el 29/09 en la fase 3b, CUANDO PUDO FALLAR Y NO CUANDO SE PENSÓ.** Lo cazan:
+    - `lib/examen/alarma-de-detector.test.mjs`, «de los casos reales, sólo P4 declara una
+      excepción»;
+    - el sintético de N1, `scripts/examen-sintetico-n1.test.mjs`.
+
+    Con N1 recuperando la excepción, caen seis tests.
 - **(c) La alarma pregunta «¿emitió el detector de base algo emparejable en esta pasada?», no
   «¿cuál eligió el marcador?».** El marcador se queda con el primer emitido que encaja
   (`marcador.mjs:151`). Si un día una pasada trae la misma fila por los dos detectores, con la
@@ -7799,6 +7805,21 @@ lo sospechaba; ahora está medido.
 
   Un crudo afirmaría una forma del producto que nadie ha visto. El fixture prueba lo que
   importa: que la alarma no depende del orden (B.290 c).
+- ✅ **NOTA DE ACEPTACIÓN, 29/09 (fase 3b), con la base generada justo antes:**
+  - **La predicción NO se equivocó en ningún veredicto.** Los 65 crudos quedan igual.
+    - El sintético de N1 pasa de SIN_VEREDICTO a **FALLA**, con «se perdió un detector
+      determinista».
+    - El de P4 sigue SIN_VEREDICTO.
+  - **Quedó INCOMPLETA sobre el informe, y el motivo es del arquitecto.** Decidió el contador
+    después de escribirse la predicción. Una decisión posterior a la predicción la deja
+    incompleta: **el orden correcto es decidir antes de predecir.**
+  - **La línea que falta.** Además de la de P4 sin «(base: juicio)», sale «· aciertos sin
+    detector en el origen: 0 (esperados con base: ahí la alarma falla abierto)». Sale **tres
+    veces**: N1 y P3 en `c39397e7`, N1 en `97223b72`.
+    - Sale también en 0, por decisión del arquitecto: si sólo saliera cuando hay algo, nadie
+      distinguiría «hay 0» de «esto no está implementado» (la guardia de B.292 otra vez).
+  - **La regla «para ante lo que no estaba predicho» lo cazó.** Dado por «nada se mueve», se
+    habría perdido el porqué del cambio en el informe.
 
 ### 📋 B.293 — PREDICCIÓN, ESCRITA ANTES DEL CAMBIO: el arreglo de la puerta del marcador (29/09/2026)
 
