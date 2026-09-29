@@ -7608,10 +7608,38 @@ baja un puesto: antes va la puerta del marcador, que se come los fallos (B.291).
   - **P4**: lo mal puesto es la **base**, y la pierde. Su excepción sí es de camino: si la
     estructura empareja a Belmonte, el emparejador encontró clave, y el par no ejerció «sin
     clave».
-  - ⚠️ **P3: REABIERTO por el censo de B.291.** El dictamen la puso con P4 y el censo dice lo
-    contrario. Si el juez encuentra una discrepante, el diff la perdió. Eso es una avería
-    medida de lo que P3 mide, no un caso sin ejercer. Antes de la fase 2 salía FALLA (B.285,
-    «fallo + extra, por fila»); desde `ff9fd59b` sale SIN_VEREDICTO. Pendiente de decisión.
+  - **P3: pierde la EXCEPCIÓN y conserva la BASE, como N1.** Decisión y corrección del
+    arquitecto, 29/09, sobre el censo de B.291. El motivo: que el juez encuentre una
+    discrepante prueba que el diff la perdió, y eso es una avería medida de lo que P3 mide.
+  - ⚠️ **LA FASE 2 EMPEORÓ P3.** Desde `ff9fd59b` (28/09) hasta el arreglo, un diff que pierde
+    una discrepante que encuentra el juez sale **SIN_VEREDICTO**. Antes de la fase 2 salía
+    **FALLA** (B.285, «fallo + extra, por fila»). Es una regresión que introdujimos nosotros:
+    - la aprobó el arquitecto;
+    - la implementó Code, con un test que la fija (`lib/examen/comparadores.test.mjs`, «fase
+      2: con estructura exigida…»);
+    - duró unas horas porque se midió. Ningún crudo guardado pasa por esa rama.
+- **LA REGLA QUE DISTINGUE excepción de base** (29/09). Sustituye a «el camino es el objeto»,
+  que metió a P3 en el saco de P4:
+  - **`detectorExigido`** es de un caso cuya **PRECONDICIÓN** desmiente el otro detector. En P4,
+    que la estructura empareje a Belmonte prueba que el emparejador SÍ encontró clave: el
+    escenario «sin clave» no ocurrió y el caso no llegó a medir. **SIN_VEREDICTO.**
+  - **`detectorDeBase`** es de un caso cuyo **SUJETO** queda señalado porque el otro detector
+    acertó. En P3 y en N1, que el juez encuentre la fila prueba que el diff la perdió: el caso
+    midió su objeto, y su objeto falló. **FALLA.**
+  - **Donde no decide sola**: la mitad de la base vale para una base DETERMINISTA. Con base
+    `juicio`, que acierte la estructura no señala al juez: cambió el camino. Por eso esa rama es
+    aviso y no rojo (punto f).
+  - **Aplicada a los tres casos da la respuesta correcta en los tres**, y la frase vieja no los
+    separa:
+
+| Caso | Excepción | Base | Por la regla |
+|---|---|---|---|
+| N1 | la pierde (con la alarma) | la conserva, `estructura` | sujeto: el diff sobre la fila de Reyes |
+| P3 | la pierde (con la alarma) | la conserva, `estructura` | sujeto: el diff sobre las 15 discrepantes |
+| P4 | la conserva, `juicio` | la pierde | precondición: que no haya clave |
+
+  **Los tres casos se editan con la fase 3, en el mismo commit que la alarma.** Ni un caso
+  editado antes.
 - **(c) La alarma pregunta «¿emitió el detector de base algo emparejable en esta pasada?», no
   «¿cuál eligió el marcador?».** El marcador se queda con el primer emitido que encaja
   (`marcador.mjs:151`). Si un día una pasada trae la misma fila por los dos detectores, con la
@@ -7651,25 +7679,97 @@ para mal» (`:305-306`). El código la aplica a **cualquier** razón y sobre **t
   - **Control positivo**: con la puerta levantada, el sintético de P4 más un falso inventado sí
     saca «1 falsos en una pasada y el techo es 0».
   - `2026-09-27_f825eed9` sólo tiene `informe.txt`: no hay crudos que repuntuar.
-- **Clasificación de las razones.** «Invalida un CERO»: la razón existe para que una ausencia
-  no se lea como confirmación, y no debería silenciar un fallo medido. «Invalida TODO»: el caso
-  de verdad no se puede leer.
+- **Clasificación de las razones, en TRES clases** (aceptada el 29/09):
+  - **Invalida TODO**: el caso de verdad no se puede leer.
+  - **Invalida un CERO**: la razón existe para que una ausencia no se lea como confirmación. No
+    debe silenciar un fallo que sí se midió: un falso que salió, salió.
+  - **Invalida una PARTE**: una mitad, una regla o un esperado. El resto se juzga.
 
 | Línea | Razón | Clase |
 |---|---|---|
-| `:237` | ninguna pasada ejecutable | invalida TODO |
-| `:239` | tanda incompleta | invalida un CERO: lo que no salió en 4 pasadas pudo salir en la 5.ª; lo que sí salió, salió |
-| `:243` | línea de base pendiente | **no encaja**: declara la mitad de PRECISIÓN (`maximoDeFalsosConfirmados: null`) y silencia también la de COBERTURA (N3 exige `minimoDeAciertos: 1`) |
-| `:251` | control de tanda no cumplido | invalida un CERO |
-| `:259` | denominador insuficiente | invalida un CERO; **hoy muerta**: nadie pasa `candidatosJuzgados` (`scripts/examen.mjs:203`) |
-| `:265` | regla no mecánica | **no encaja**: invalida UNA regla, no el caso |
-| `:276` | el otro detector (fase 2) | **no encaja**: en P4, invalida todo; en P3 y N1, tapa una avería medida |
-| `:283` | el caso entero en SEGUIMIENTO | invalida TODO |
+| `:237` | ninguna pasada ejecutable | TODO |
+| `:239` | tanda incompleta | CERO: lo que no salió en 4 pasadas pudo salir en la 5.ª; lo que sí salió, salió |
+| `:243` | línea de base pendiente | PARTE: declara la mitad de PRECISIÓN (`maximoDeFalsosConfirmados: null`) y hoy silencia también la de COBERTURA (N3 exige `minimoDeAciertos: 1`) |
+| `:251` | control de tanda no cumplido | CERO |
+| `:259` | denominador insuficiente | CERO, y **muerta** (B.292) |
+| `:265` | regla no mecánica | PARTE: una regla |
+| `:276` en **P4** | el otro detector | TODO: la precondición no se cumplió (B.290) |
+| `:276` en **P3 y N1** | el otro detector | **no debe ser razón**: es una avería medida, y la dará la alarma de la fase 3 (B.290) |
+| `:283` | el caso entero en SEGUIMIENTO | TODO |
+
+- **`:243` NO necesita un mecanismo nuevo: es SEGUIMIENTO de la mitad de precisión**, que ya
+  existe. Es la única de las ocho que se reduce a eso. `:283` ES ese mecanismo, y las demás no
+  son mitades:
+  - las de CERO silencian ausencias en las dos mitades;
+  - `:265` es una regla;
+  - `:276` es un esperado.
+
+  Retirarla no es «sin código». Es retirar un estado especial con cuatro lectores:
+  - `lib/examen/marcador.mjs:37` y `:242`;
+  - `lib/examen/umbrales-que-pueden-fallar.mjs:43`;
+  - `validarElTechoDeFalsos` (`scripts/examen.mjs:253-294`), cuyas mitades 1 y 2 pasan a decir
+    «precisión en SEGUIMIENTO» donde hoy dicen «estado pendiente».
+
+  Queda menos que mantener y nada que sincronizar. Con dos condiciones, medidas simulando con
+  la maquinaria actual sin tocar el marcador:
+  - **N4 y N5 tienen que declarar las DOS mitades.** Con sólo precisión salen PASA con cero
+    aciertos y nada juzgado. La validación completa lo caza ya: «NINGÚN umbral de este caso
+    puede fallar: su verde no mide nada» (`umbralesQueNoPuedenFallar`).
+    `validarLoQueElMarcadorLee` sola, no.
+  - **El informe perdería la medición**: «observado: 0/0/0/0/0 falsos por pasada» sale hoy de
+    la razón de `:243`. Con precisión en seguimiento, N4 y N5 no imprimen ni los falsos, y N3
+    sólo el máximo. Una mitad que «mide y no juzga» tiene que imprimir lo que mide, por
+    pasada. Es un cambio del informe (`lib/examen/veredicto.mjs`), no de la puerta.
 
 - **Medido, con fixture**: en P3, si el diff pierde una discrepante y la encuentra el juez, sale
   SIN_VEREDICTO con `discrepantes: 1` de 2 medidas y ningún fallo. P4 con la excepción
   disparada, un falso y Medina ausente: SIN_VEREDICTO. El mismo falso sin la excepción: FALLA.
-- **Sin arreglar**, por decisión: primero el censo, luego la forma del arreglo.
+- **Sin arreglar**, por decisión: primero el censo, luego la forma del arreglo. La predicción
+  del arreglo, escrita antes: B.293.
+
+### ⚠️ B.292 — UNA GUARDIA QUE NADIE PUEDE DISPARAR: el denominador del marcador (29/09/2026)
+
+La razón «candidatos juzgados por debajo del mínimo» (`lib/examen/marcador.mjs:256-260`) sólo se
+evalúa si `contexto.candidatosJuzgados` es un número. **Nadie lo pasa**: ni el ejecutor ni la
+repuntuación (`scripts/examen.mjs:203`, «Hoy nada»).
+- **Es de la familia de las pantallas apagadas, al revés.** Aquéllas son un cero que nadie
+  puede distinguir; ésta es una razón que nadie puede dar. N2 declara `denominadorObligatorio`
+  y cree tener la guardia; el validador ya lo canta («el ejecutor no le pasa
+  `candidatosJuzgados` al marcador»).
+- **Sin arreglar.** Fichada para que no se lea como una guardia que guarda.
+
+### 📋 B.293 — PREDICCIÓN, ESCRITA ANTES DEL CAMBIO: el arreglo de la puerta del marcador (29/09/2026)
+
+**Escrita el 29/09/2026, antes de tocar el marcador.** Es la condición 1 de «un cambio del
+marcador se prueba repuntuando antes y después». La calculó Code, no el arquitecto, y se midió
+simulando con la maquinaria de hoy, sin tocar el marcador. **El diseño que predice**:
+- `:243` retirada, con N3 en `seguimiento: ['precision']` y N4 y N5 en las dos mitades;
+- las razones de CERO dejan pasar los fallos de exceso;
+- `:276` sólo queda en P4.
+
+- **Sobre los 65 crudos, se mueve UN caso, en las dos tandas: N3.**
+
+| Tanda | Caso | Antes | Después | Por qué |
+|---|---|---|---|---|
+| `c39397e7` | N3 | SIN_VEREDICTO | **PASA** | su cobertura exige 1 y N3-DUPLICADO sale 5/5 estable-acierto |
+| `97223b72` | N3 | SIN_VEREDICTO | **PASA** | ídem, 10/10 |
+| `c39397e7` | N4, N5 | SIN_VEREDICTO | SIN_VEREDICTO | cambia la razón: «SEGUIMIENTO: el caso mide y no juzga» |
+| las dos | los demás | — | sin cambio | ninguna otra razón activa en estas tandas |
+
+- **El razonamiento del arquitecto sobre N3 era correcto**: su cobertura es real
+  (`minimoDeAciertos: 1`) y estaba silenciada por una razón que sólo declara la precisión.
+- **El informe cambia además en esto**: la línea «observado: … falsos por pasada» tiene que
+  seguir saliendo para N3, N4 y N5 (B.291). Si desaparece, el arreglo perdió la medición.
+- **Condición 2, qué crudo recorre cada rama:**
+  - **`:243` → seguimiento**: la recorren N3, N4 y N5 en los crudos reales.
+  - **La clase CERO, `:239`**: un crudo REAL, sin inventar nada. P2 de `c39397e7` con sus
+    pasadas 1 a 4. Hoy da SIN_VEREDICTO y calla su falso real («Fecha de última revisión»,
+    pasada 1, techo 0). Después debe dar **FALLA por ese falso**, y seguir callando
+    «0 estable(s)-acierto», que es una ausencia.
+  - **`:251` y `:265`**: no hay crudo que las recorra. Van con fixture.
+  - **`:276` en P4**: el sintético de la fase 2 más el falso inventado del censo **NO se
+    mueve**, por diseño. P4 es TODO: sin clave no hubo escenario. Es el control de que el
+    arreglo no abre la puerta de más.
 
 ### ⚠️ B.289 — EJEMPLAR: una frase sin comprobar que VIAJÓ hasta casi ser norma (28/09/2026)
 
