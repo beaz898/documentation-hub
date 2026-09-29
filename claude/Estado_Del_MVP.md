@@ -7351,6 +7351,21 @@ encabezados y los límites de trozo visibles (F-118 §5, escalón 1).
     ⚠️ **Esa cifra no la ha medido nadie aquí.** El arquitecto la tomó de la respuesta de
     Fable, y Fable la tenía de nosotros: es la especie de B.289, una cifra que viaja sin
     comprobarse. Lo contesta `SQL_F118_pareja_mayor_posible.sql`.
+    ✅ **29/09 por la tarde — NOR-10, MEDIDO en su propio análisis** (log del director, leído
+    por el arquitecto). Tiene 67 trozos y DOS tamaños, de dos operandos distintos:
+    - **60.038**: el texto PLANO, `text.length` en la línea de `analyze-v2`
+      (`app/api/analyze-v2/route.ts:597`);
+    - **66.801**: el texto que el juez RENDERIZA desde los trozos, `buildAnalyzedDocumentText`,
+      en «truncado a 6000 de …» (`lib/analysis/judge.ts:1072-1074` y `:1102`). Es el que usa
+      el presupuesto de la pareja.
+    - El 66.669 está muy cerca del segundo y lejos del primero, y **de cuál de los dos salió
+      no consta**.
+    - Así que la cifra era aproximadamente cierta, pero sólo en uno de los dos operandos, Y
+      AUN ASÍ había que comprobarla. **Que saliera cierta no justifica haberse saltado la
+      comprobación**, y la comprobación destapó además que había dos medidas.
+    - ⚠️ El arquitecto tituló las columnas al revés («caracteres en trozos» para el texto
+      plano, «texto completo» para el renderizado). Sus cuentas de pareja usan el operando
+      correcto, el renderizado.
   - ✅ **29/09 — LA PAREJA MAYOR POSIBLE, EJECUTADO POR EL DIRECTOR. El literal** (consulta 3,
     el resumen, tal como salió):
     ```
@@ -7906,18 +7921,51 @@ pareja, detrás de un interruptor.
     dirección, la tanda no vale (columna `candidatos_estables`).
 
 **PREDICCIONES**
-- **P-1.** Con el interruptor encendido, la trampa [9d19a20b] «Plazo máximo de permanencia de
-  contenedores grupo III» saldrá en AMBAS direcciones, en al menos 4 de las 5 pasadas de cada
-  dirección. Hoy sale en una sola.
-- **P-2.** La pareja alcanzará al menos 4 de las 6 celdas del experimento decisivo (B.280), en
-  al menos 4 de 5 pasadas.
+
+⚠️ **REESCRITAS EL 29/09 POR LA TARDE, ANTES DE MEDIR.** El corpus cambió a las 13:14-13:16 UTC:
+el director analizó NOR-10 y CLI-12, que pasaron de `pendiente` al corpus y ya son candidatos
+(contesta de paso que no habían fallado: no se habían analizado). Dos predicciones quedan
+**ANULADAS por cambio de condiciones**, y P-1 y P-2 se corrigen por un defecto de método. Las
+originales siguen aquí, tachadas y con su motivo.
+**Una predicción anulada por un cambio de condiciones no es una predicción fallada: es NULA.**
+Confundirlas sería regalarse un acierto o un fallo que no se ha ganado.
+
+📌 **LA REGLA, para ésta y para las que vengan: una trampa se nombra por su ASUNTO, no por su
+identificador.** El identificador es el hash del par de citas (`hashCitationPair`), así que
+identifica una CITA, no un hallazgo. En el análisis del 13:16:05 la MISMA trampa salió como
+`[e7785038]` en vez de `[9d19a20b]`, porque la cita cambió una palabra.
+
+- ~~**P-1.** Con el interruptor encendido, la trampa [9d19a20b] «Plazo máximo de permanencia de
+  contenedores grupo III» saldrá en AMBAS direcciones…~~ *Anclada a un hash, que no sobrevive
+  entre pasadas.* **Reescrita:**
+  **P-1.** Con el interruptor encendido, la trampa del **plazo máximo de permanencia de
+  contenedores del grupo III en el almacén** saldrá en AMBAS direcciones, en al menos 4 de las
+  5 pasadas de cada dirección. Hoy sale en una sola.
+- ~~**P-2.** …6 celdas del experimento decisivo…~~ *Mismo defecto: las celdas se identificaban
+  por hash.* **Reescrita:**
+  **P-2.** La pareja alcanzará al menos 4 de las 6 celdas del experimento decisivo (B.280) —las
+  tres trampas por las dos direcciones, cada una nombrada por su asunto—, en al menos 4 de 5
+  pasadas.
 - **P-3.** El falso positivo [14123c6f] «Fecha de última revisión» NO desaparecerá, y es igual
   de probable que salga más veces que menos. Si desaparece, no es mérito de este cambio y hay
   que buscar qué otra cosa se movió.
 - **P-4.** La latencia del modo rápido en esta pareja subirá de ~20 s a entre 25 y 40 s.
 - **P-5.** Ninguna pareja se quedará sin analizar por tamaño: las que no quepan saldrán con
   `regimen = 'corte_honesto'`.
-- **P-6.** Escrita por el arquitecto el 29/09 a las **11:42**, después del informe del commit 1
+- ~~**P-6** (la de abajo, con sus horas).~~ **ANULADA por cambio de condiciones.** Nombraba a
+  Normas_Frecuencia_Recogidas.docx y predecía exactamente dos entradas. En el análisis de NOR-11
+  del 13:15:45, Normas_Frecuencia ya no aparece entre los candidatos: NOR-10 y CLI-12 lo han
+  desplazado. **Reescrita** (redactada por Code a petición del arquitecto, el 29/09 por la tarde,
+  antes de medir):
+  **P-6.** Con el interruptor encendido, `lecturaDeLasParejas` llevará una entrada por candidato
+  juzgado, y su régimen lo decidirá el tamaño de cada pareja, no el orden:
+  - NOR-11 ↔ CLI-13 (14.704 + 9.817 = 24.521) → `pareja_entera`;
+  - la pareja de NOR-11 o de CLI-13 con NOR-10 (66.801) o con CLI-12 (55.135) →
+    `corte_honesto`, siempre por el paso 3: los dos pasan solos de 40.000 − 6.000;
+  - cualquier candidato sin trozos → `sin_fuente_comun`.
+
+  Si un mismo análisis da el mismo régimen a una pareja que cabe y a otra que no, algo está mal.
+- **P-6 original.** Escrita por el arquitecto el 29/09 a las **11:42**, después del informe del commit 1
   y antes de que existiera el commit 2 (`2467b203` es de las **11:44**). Archivada aquí a las
   12:05, con el commit 2 ya subido y antes de cualquier medición con el interruptor encendido.
   Literal:
@@ -7995,14 +8043,72 @@ la marcha.
     recurrentes por «cita no verificable». Hay uno en NOR-11 el 29/09, «El protocolo
     establece procedimientos normalizados para el envasado de residuos sanitarios». Puede
     ser una paráfrasis del modelo, o una cita de un trozo que la consulta no trajo.
-- ⚠️ **EL CORTE HONESTO NO SE VA A EJERCITAR EN ESTA MEDIDA**, dicho por el arquitecto antes
-  de medir. NOR-11 (14.704) + CLI-13 (9.817) = 24.521 caracteres caben de sobra en 40.000.
-  Saldrán `pareja_entera` y `sin_fuente_comun`, nunca `corte_honesto`. **Su ausencia en la
-  medida no es una prueba.** Hasta que una pareja grande pase por producción, del corte
-  honesto sólo hay pruebas unitarias y mutantes.
+- ~~⚠️ **EL CORTE HONESTO NO SE VA A EJERCITAR EN ESTA MEDIDA**… Saldrán `pareja_entera` y
+  `sin_fuente_comun`, nunca `corte_honesto`.~~ **ANULADA por cambio de condiciones** (29/09
+  por la tarde): con NOR-10 y CLI-12 en el corpus, el análisis de NOR-11 del 13:15:45 llevó al
+  juez tres candidatos, CLI-13, NOR-10 y CLI-12.
+  - **Ahora SÍ se ejercita**, y comprobado con el código antes de medir, en
+    `pareja-entera.test.ts`, «el caso real del 29/09»:
+    - NOR-11 + NOR-10 = 81.505 y NOR-11 + CLI-12 = 69.839 → `corte_honesto`;
+    - los dos candidatos pasan solos de 40.000 − 6.000, así que caen en el **paso 3**: el
+      candidato vuelve a su bloque por relevancia, y el analizado se lleva el resto. NOR-11
+      (14.704) entra ENTERO.
+  - ⚠️ **LA CONSECUENCIA HONESTA: en esas dos parejas el escalón 1 mejora SÓLO el lado
+    analizado.** El candidato recibe lo mismo que hoy: según el arquitecto, unos 2.650
+    caracteres de 66.801, un 4 %.
+- **P-7** (del arquitecto, 29/09 por la tarde, antes del cambio). Con el interruptor encendido,
+  la PROPORCIÓN de hallazgos descartados por «cita no verificable» sobre el total de hallazgos
+  emitidos BAJARÁ respecto a la línea de base. Razón: con el documento entero delante, el juez
+  tiene menos que reconstruir y más que copiar. Si no baja, o sube, el escalón 1 no ayuda a
+  citar literalmente, y el verificador (B.299) es un problema aparte.
+  - **MEDIBLE POR SQL, CON UN LÍMITE que se dice ahora y no al final.** `citaNoVerificable` se
+    guarda con el resultado: por juicio (`judge.ts:509` y `:557`) y agregado en
+    `discardedFindings` (`synthesize.ts:301-331`). Pero **UN SOLO contador suma contradicciones
+    y solapamientos**.
+  - Así que P-7 se mide sobre los DOS juntos. El denominador sale de la base:
+    `verificador.hallazgos_entrantes` (contradicciones que pasaron las citas), más los
+    solapamientos que las pasaron (`judgments[].overlappingContent`), más los tres descartes
+    de citas.
+  - **Sólo sobre las contradicciones, NO CONSTA en la base**: el reparto está únicamente en el
+    log («Contradicción descartada» frente a «Solapamiento descartado»).
 - **`textoAnalizado` ausente con el interruptor encendido: aceptado como decisión.** Es un
   reenvío, no un silencio: si `lecturaDeLasParejas` está presente, la ausencia significa
   «se leyó distinto en cada pareja».
+
+### ⚠️ B.299 — LA COMPROBACIÓN DE CITAS TIRA 5 DE 7 CONTRADICCIONES entre NOR-10 y CLI-12 (constancia y medida, SIN arreglo; 29/09/2026)
+
+**De dónde sale**: el recuento lo hizo el arquitecto sobre los logs de los cuatro análisis del
+director del 29/09, entre las 13:14 y las 13:16 UTC. **Code no ha visto esos logs.** La
+contraparte en la base, para contrastarlo, es `SQL_Escalon1_verificacion_despliegue.sql`
+(`cita_no_verificable`, `contradicciones_que_pasaron_las_citas`,
+`descartadas_por_la_cascada`, `contradicciones_publicadas`).
+
+- **CLI-12 analizado → NOR-10: 4 contradicciones emitidas.**
+  - [9b37aa92] «Responsable último de la esterilización» → publicada
+  - [603d2891] «Autorización de excepciones al protocolo» → descartada por la cascada como
+    `mismo_dato_sin_oposicion`
+  - [9566b633] «Firma de registros de auditoría trimestral» → cita no verificable
+  - [e949ea35] «Decisión de retirada de autoclave del servicio» → cita no verificable
+- **NOR-10 analizado → CLI-12: 3 contradicciones emitidas.**
+  - [c8fa8815], [8c721d48] y [94a23b5b] → las TRES, cita no verificable. Cero publicadas.
+- **Total: 7 emitidas, 1 publicada.** Son DOS estaciones distintas, y se cuentan aparte:
+  - **5 de 7 (71 %) mueren en la comprobación de CITAS**, que ocurre en el juez
+    (`fixQuotesInJudgment`, `lib/analysis/judge.ts:507`), antes de la cascada;
+  - **1 muere en la CASCADA del verificador** (`mismo_dato_sin_oposicion`);
+  - no publicadas en total: **6 de 7 (86 %)**, en una pareja llena de contradicciones de
+    verdad.
+- ⚠️ Los `[xxxxxxxx]` identifican el PAR DE CITAS, no el hallazgo (B.295): sirven para leer
+  este log, no para seguir una contradicción entre pasadas.
+- **HIPÓTESIS, etiquetada como tal (no investigada)**: el juez anota entre corchetes quién es
+  el sujeto —«…recae siempre sobre esta figura [Director Clínico]»—, y esa anotación no está
+  en el documento. La comprobación busca la cita literal, no la encuentra y tira el hallazgo
+  entero.
+- **SOSPECHA, etiquetada como tal**: [603d2891] se descartó como «mismo dato sin oposición»,
+  pero según las citas uno atribuye la autorización al Director Clínico y el otro al
+  Coordinador de Calidad. Si es así, había oposición. **Hay que mirar el texto antes de
+  afirmarlo.**
+- **No se arregla ahora.** Se mide primero el escalón 1, y esta pareja queda como su caso de
+  prueba; va inmediatamente después. P-7 (B.295) mide si el escalón 1 lo mueve.
 
 ### ⚠️ B.297 — LA LECTURA DE TROZOS SIN PAGINAR, y su margen medido (29/09/2026)
 
@@ -8041,6 +8147,23 @@ verificación de citas y los `caracteres` de B.281.
   - `loadFragmentContexts` y `getDocumentChunks`, en `a528784a`. La de contextos era la más
     urgente: lee los mismos documentos y alimenta la entrada del juez.
   - Las tres con el orden de la clave única, y con sus mutantes.
+- ⚠️ **LA COMPROBACIÓN FUERTE DEL DESPLIEGUE SE HA PERDIDO, y se dice.** Iba a ser comparar
+  el log de un análisis de NOR-11 con el de las 09:08, y exigir que salieran idénticos:
+  con el interruptor apagado, la paginación y D-3 no deben cambiar ni una línea.
+  - **Ya no se puede.** A las 13:14-13:16 UTC el director analizó NOR-10 y CLI-12, que
+    entraron en el corpus, y el retrieval cambia con el corpus.
+  - **Lo que sobrevive**, comprobado por el ARQUITECTO en los dos logs (Code no los ha
+    visto). Las partes que NO dependen del corpus salen idénticas a las de las 09:08:
+    - NOR-11: «15 chunks, 15 samples, 14437 chars totales» y «truncado a 6000 de 14704»;
+    - CLI-13: «11 chunks, 11 samples, 9743 chars totales» y «6000 de 9817».
+
+    Lo demás queda apoyado en las pruebas (1.749 en ese momento).
+  - ⚠️ **Y la base NO distingue qué despliegue sirvió cada análisis.** El push fue a las 13:12
+    UTC y el primer análisis a las 13:14. `lecturaDeLasParejas` existe desde el commit 1,
+    desplegado esa mañana, y con el interruptor apagado ni la paginación ni D-3 dejan rastro
+    en el resultado. Eso lo dice la hora «Ready» del despliegue de `d65a0f52` en Vercel, no
+    `SQL_Escalon1_verificacion_despliegue.sql`. Esa SQL sí verifica que el aparato del
+    commit 1 se rellena en producción.
 
 ### 📋 B.298 — LAS GENERACIONES MUERTAS SE COMEN EL PRESUPUESTO DE FILAS (constancia, no arreglo; 29/09/2026)
 
