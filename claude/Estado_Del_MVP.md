@@ -7640,6 +7640,11 @@ baja un puesto: antes va la puerta del marcador, que se come los fallos (B.291).
 
   **Los tres casos se editan con la fase 3, en el mismo commit que la alarma.** Ni un caso
   editado antes.
+  - **El mutante «`:276` reaparece fuera de P4» va en la FASE 3, no antes: HOY NO PUEDE
+    FALLAR.** Mientras N1 y P3 lleven su excepción, `:276` sale en ellos por diseño.
+    Escribirlo ahora sería un umbral que no puede fallar, que es lo que llevamos dos días
+    cazando. Hasta la fase 3, N1 y P3 siguen en la ventana de hoy: un acierto del juez da
+    SIN_VEREDICTO. Está fichada, es corta y es visible.
 - **(c) La alarma pregunta «¿emitió el detector de base algo emparejable en esta pasada?», no
   «¿cuál eligió el marcador?».** El marcador se queda con el primer emitido que encaja
   (`marcador.mjs:151`). Si un día una pasada trae la misma fila por los dos detectores, con la
@@ -7770,6 +7775,17 @@ simulando con la maquinaria de hoy, sin tocar el marcador. **El diseño que pred
   - **`:276` en P4**: el sintético de la fase 2 más el falso inventado del censo **NO se
     mueve**, por diseño. P4 es TODO: sin clave no hubo escenario. Es el control de que el
     arreglo no abre la puerta de más.
+- ✅ **CUMPLIDA el 29/09**, con la base generada justo antes y los casos de ese momento.
+  - **Se movió N3 y nada más**: SIN_VEREDICTO → PASA en las dos tandas.
+  - Lo que cambió además en el informe es de texto, sin mover ningún veredicto:
+    - P1 y P4 dicen qué mitad juzgan;
+    - las razones de N4 y N5 son ahora las del seguimiento;
+    - la línea «observado: … falsos por pasada» sigue saliendo en N3, N4 y N5.
+  - **P2 1-4** da FALLA por su falso real y calla «0 estable(s)-acierto».
+  - **El sintético de P4** con el falso sigue SIN_VEREDICTO.
+  - **El diseño cambió en un punto respecto a lo escrito arriba**: el seguimiento declara
+    CLASE y MOTIVO por mitad (`PENDIENTE_DE_MEDIR` / `NO_PUEDE_FALLAR`). Sin la clase, el
+    trinquete no distingue N3-N5 de N6.
 
 ### ⚠️ B.289 — EJEMPLAR: una frase sin comprobar que VIAJÓ hasta casi ser norma (28/09/2026)
 
