@@ -7327,23 +7327,28 @@ encabezados y los límites de trozo visibles (F-118 §5, escalón 1).
   El 20.000 de Fable no lo decide ninguna pareja: todas caben con la mitad. ⚠️ **Tres salvedades
   que el número no tapa**: (1) **28 parejas de 106 no se pudieron medir** —sin `full_text` o sin
   el candidato— y cualquiera puede ser mayor; se miran antes de fijarlo.
-  ⚠️ **29/09 — PUEDE SER UN DEFECTO DEL CENSO, NO DATOS PERDIDOS.**
-  `analysis_results.document_id` no es clave ajena (`supabase-analysis-status.sql:30`), y el
-  censo sólo buscaba por nombre si el id era nulo. Así que un análisis cuyo documento se
-  borró y volvió a entrar contaba como no medible, aunque hoy exista uno con su nombre.
-  - **Por dónde vuelve a entrar un documento con id nuevo**, leído en el código:
-    - Drive borra la fila cuando el fichero desaparece del listado
-      (`app/api/drive/sync/route.ts:491-501`), y si reaparece entra con id nuevo;
-    - el usuario lo borra y lo sube otra vez;
-    - se borra una de las dos copias de una doble inserción (B.266).
-  - **Un fichero MODIFICADO no cambia de id**: va a `document_staged` como generación nueva
-    (`route.ts:344-349`).
-  - ⚠️ El encargo lo describió como «la sincronización borra y recrea documentos (B.266)»,
-    y **B.266 no es eso**: es el mismo fichero insertado dos veces. Conecta con este agujero
-    sólo si después se borra una de las copias.
-  - `SQL_F118_parejas_sin_medir.sql` (pendiente) separa esa causa (`id_sin_documento` con
-    documento de su nombre hoy). Si es la mayoría, las 28 no son datos perdidos: son este
-    defecto del censo. No dice por cuál de los tres caminos entró cada una. (2) Son tokens del
+  ✅ **29/09 — LAS 28, CERRADAS CON EL DATO** (`SQL_F118_parejas_sin_medir.sql`, ejecutado por
+  el director el 29/09). Resultado literal: 106 parejas, 28 sin medir, **0 estimables, 28
+  no_se_puede_saber**. Por causa: analizado «medido» y candidato «id_sin_documento» → **las
+  28**.
+  - **Son análisis contra documentos BORRADOS.** El candidato ya no existe ni por id ni por
+    nombre, y sin documento no hay trozos (ON DELETE CASCADE).
+  - **SALVEDAD RETIRADA: las 28 no pueden ser mayores que nada.** Media pareja no está en el
+    corpus, así que esa pareja no se puede volver a formar.
+  - **Dos hipótesis cayeron.**
+    - La del arquitecto: «la sincronización borra y recrea documentos (B.266)». Cae por dos
+      vías.
+      - El código: un fichero modificado conserva el id y va a `document_staged`
+        (`app/api/drive/sync/route.ts:344-349`); B.266 es una doble inserción, no un borrado.
+      - El dato: nada volvió a entrar con su nombre.
+    - **La de Code**, escrita aquí esa misma mañana: «pueden ser el agujero del censo». El
+      agujero existe (`analysis_results.document_id` no es clave ajena y el censo sólo caía
+      al nombre con el id nulo), pero **no explica estas 28**: el agujero sería un documento
+      de su nombre que existe hoy, y no hay ninguno.
+  - ⚠️ **Y LA PREGUNTA QUE ABRE, que es la que importa: el censo midió las parejas que SE
+    ANALIZARON, no las que PUEDEN formarse.** El 7.758 es el máximo de una muestra, no del
+    corpus. El arquitecto cita un documento de 66.669 caracteres, unos 17.000 tokens él solo
+    (cifra suya, sin medir aquí). Lo contesta `SQL_F118_pareja_mayor_posible.sql`, pendiente. (2) Son tokens del
   TEXTO, no del prompt: las instrucciones del juez van aparte. (3) Caracteres/4 es la
   aproximación declarada en el SQL, no una tokenización. **Caso decisivo del número**: la
   pareja mayor medida; si se bajara a 7.000, esa pareja dejaría de caber entera.

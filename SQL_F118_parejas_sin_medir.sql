@@ -1,6 +1,7 @@
 -- ============================================================================
 -- F-118 / B.273 · LAS PAREJAS QUE EL CENSO NO PUDO MEDIR — SÓLO LECTURA
--- ⚠️ PENDIENTE DE EJECUTAR (29/09/2026). Sólo SELECT: no escribe nada.
+-- ✅ EJECUTADO por el director el 29/09/2026 (resultado en claude/Estado_Del_MVP.md,
+-- B.273: las 28 son candidatos borrados, ninguna estimable). Sólo SELECT.
 --
 -- QUÉ CONTESTA: por qué no se midieron (28 de 106 el 28/09) y, donde la base lo
 -- permite, cuánto miden. El presupuesto de 10.000 tokens de B.273 NO se fija
