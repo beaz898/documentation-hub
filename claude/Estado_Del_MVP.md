@@ -7350,7 +7350,37 @@ encabezados y los límites de trozo visibles (F-118 §5, escalón 1).
     corpus. El arquitecto cita un documento de 66.669 caracteres, unos 17.000 tokens él solo.
     ⚠️ **Esa cifra no la ha medido nadie aquí.** El arquitecto la tomó de la respuesta de
     Fable, y Fable la tenía de nosotros: es la especie de B.289, una cifra que viaja sin
-    comprobarse. Lo contesta `SQL_F118_pareja_mayor_posible.sql`, pendiente. (2) Son tokens del
+    comprobarse. Lo contesta `SQL_F118_pareja_mayor_posible.sql`.
+  - ✅ **29/09 — LA PAREJA MAYOR POSIBLE, EJECUTADO POR EL DIRECTOR. El literal** (consulta 3,
+    el resumen, tal como salió):
+    ```
+    documentos,en_el_corpus,tamano_desconocido,pasan_solos_de_10000,parejas_posibles,
+    pareja_mayor_tokens,por_encima_de_7758,por_encima_de_10000,porcentaje_que_cabe_en_10000
+    50,14,0,2,686,17062,28,28,95.9
+    ```
+    Cuadra con lo que el arquitecto había transmitido antes; aun así, se archiva el literal.
+    - **Qué significa cada columna, según la PROPIA SQL** (`SQL_F118_pareja_mayor_posible.sql`,
+      consulta 3):
+      - `documentos` = TODAS las filas de `documents` de la organización a9625e93, en
+        cualquier estado;
+      - `en_el_corpus` = las de `analysis_status = 'analizado'`;
+      - `parejas_posibles` = pares ORDENADOS (analizado, candidato), con el candidato en el
+        corpus, distinto del analizado y los dos con tamaño (`:79-81`).
+      - Con `tamano_desconocido = 0`, eso es cada uno de los 14 del corpus contra los otros
+        49 documentos: **14 × 49 = 686**. La cuenta del arquitecto es la de la SQL.
+      - ⚠️ **ORDENADOS**: una pareja entre dos documentos del corpus cuenta dos veces, una
+        por dirección.
+    - **No hay ninguna pareja entre 7.758 y 10.000 tokens.** `por_encima_de_7758` y
+      `por_encima_de_10000` son el mismo 28, así que un presupuesto en cualquier punto de ese
+      rango recorta exactamente las mismas 28 parejas. **El 10.000 no es una cifra
+      delicada**; si mañana se discute, el argumento ya está medido.
+    - **`tamano_desconocido = 0` cierra la duda de F-118**: los 50 documentos tienen tamaño
+      medible. Por `full_text` o, sin él, por la suma de sus trozos (la consulta 1 dice cuál
+      en su columna `fuente`).
+    - ⚠️ **Este 28 no tiene nada que ver con las 28 parejas sin medir de arriba**: aquéllas
+      eran análisis contra candidatos borrados; éstas son parejas posibles de más de 10.000
+      tokens. Coincidencia de número, no de población.
+    - (2) Son tokens del
   TEXTO, no del prompt: las instrucciones del juez van aparte. (3) Caracteres/4 es la
   aproximación declarada en el SQL, no una tokenización. **Caso decisivo del número**: la
   pareja mayor medida; si se bajara a 7.000, esa pareja dejaría de caber entera.
@@ -7801,6 +7831,17 @@ pareja, detrás de un interruptor.
   - 5 con el interruptor ENCENDIDO;
   - regla de estabilidad: 5/5 estable-acierto, 0/5 estable-fallo, 1 a 4 inestable.
   - Se lee con `SQL_Escalon1_pareja_NOR11_CLI13.sql`.
+  - ⚠️ **EL CORPUS QUIETO** (regla del arquitecto, 29/09, sacada de los logs de ese día).
+    Entre las 09:08 y las 10:54 el corpus se movió:
+    - a las 10:51 CLI-13 no estaba entre los candidatos de NOR-11, y aparecieron cuatro
+      «new N.txt» que antes no salían;
+    - a las 10:53 CLI-13 se reindexa, y a las 10:54 vuelve.
+
+    Con los candidatos cambiando entre pasadas, las pasadas no son comparables. **Entre las
+    diez pasadas no se sube, no se borra y no se reindexa ningún documento de la
+    organización. Si hay que tocar el corpus, la medida se descarta y se empieza de nuevo.**
+    La SQL lo deja comprobar: si los candidatos juzgados cambian entre pasadas de una misma
+    dirección, la tanda no vale (columna `candidatos_estables`).
 
 **PREDICCIONES**
 - **P-1.** Con el interruptor encendido, la trampa [9d19a20b] «Plazo máximo de permanencia de
@@ -7852,10 +7893,39 @@ la marcha.
   2. el analizado se lleva el resto, por posición, nunca menos de 6.000;
   3. si el candidato entero no cabe ni así, vuelve a su bloque por relevancia, y el
      analizado se lleva el resto.
-- **El invariante, a probar con mutante.** Con el interruptor encendido, en los cuatro
-  regímenes, ningún lado recibe menos CONTENIDO que con la tijera vieja.
-- ⏸️ **Implementación PARADA el 29/09** por la comprobación (a): ver el informe de Code de
-  ese día.
+- **El invariante, a probar con mutante, escrito sobre TROZOS REPRESENTADOS** (formulación de
+  Code, aceptada el 29/09 en lugar de «contenido»). Con el interruptor encendido, en los
+  cuatro regímenes:
+  - candidato: todo `chunkIndex` que representa el bloque por relevancia está también en
+    el entero;
+  - analizado: el texto enviado empieza por los 6.000 de hoy.
+
+  En caracteres puede salir al revés: cada fragmento suelto del bloque lleva su cabecera
+  `[Fragmento n de "…"]` (`judge.ts:619`), y el entero no. Si la relevancia coge TODOS los
+  trozos de un documento pequeño, el entero tiene menos caracteres con el mismo contenido.
+  - **Excepción CONOCIDA Y ACEPTADA, para que nadie la «arregle»**: la línea de contexto de
+    filas colapsadas (`isContext`) y el resumen de una tabla de nivel 3 están en el bloque y
+    el entero no los reproduce palabra por palabra. El entero imprime las FILAS, que es más
+    información, aunque no la misma cadena. El invariante es sobre información, no sobre
+    cadenas.
+- ⏸️ **Implementación PARADA el 29/09** por la comprobación (a). `getChunksForDocuments`
+  (`lib/read-chunks.ts:154-159`) es UNA consulta sin paginar, con los trozos de todos los
+  candidatos y de todas las generaciones. Si pasara del tope de filas de Supabase volvería
+  CORTADA, sin error, y perdería la cola de cada documento. Afectaría también al pajar de
+  verificación y a los `caracteres` de B.281.
+  - Lo decide el dato del director: **Max Rows** (Settings → API) y el
+    `count(*)` de `document_chunks` de su organización.
+  - **Rama 1, el total claramente por debajo del tope**: se pagina IGUAL, antes de la línea
+    de base, en bucle hasta que una página venga corta, y con una prueba que simule un tope
+    pequeño. Así la completitud es por construcción: un número que vive en un panel y puede
+    cambiar fuera del código no se supone, se hace irrelevante.
+  - **Rama 2, el total alcanza o roza el tope**: el escalón 1 SE PARA. Sería el producto
+    leyendo documentos a medias hoy, sin decirlo. Ficha propia, con prioridad y su propio
+    antes y después.
+  - HIPÓTESIS, etiquetada como tal: si sale la rama 2, se empieza por los descartes
+    recurrentes por «cita no verificable». Hay uno en NOR-11 el 29/09, «El protocolo
+    establece procedimientos normalizados para el envasado de residuos sanitarios». Puede
+    ser una paráfrasis del modelo, o una cita de un trozo que la consulta no trajo.
 - ⚠️ **EL CORTE HONESTO NO SE VA A EJERCITAR EN ESTA MEDIDA**, dicho por el arquitecto antes
   de medir. NOR-11 (14.704) + CLI-13 (9.817) = 24.521 caracteres caben de sobra en 40.000.
   Saldrán `pareja_entera` y `sin_fuente_comun`, nunca `corte_honesto`. **Su ausencia en la

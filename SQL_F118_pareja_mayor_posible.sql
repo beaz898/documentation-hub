@@ -1,6 +1,8 @@
 -- ============================================================================
 -- F-118 / B.273 · LA PAREJA MAYOR QUE PUEDE FORMARSE HOY — SÓLO LECTURA
--- ⚠️ PENDIENTE DE EJECUTAR (29/09/2026). Sólo SELECT: no escribe nada.
+-- ✅ EJECUTADO por el director el 29/09/2026 (resultado literal en
+-- claude/Estado_Del_MVP.md, B.273: 50 documentos, 14 en el corpus, 686 parejas
+-- posibles, la mayor de 17.062 tokens, 28 por encima de 10.000). Sólo SELECT.
 --
 -- QUÉ CONTESTA: el censo de B.273 midió las parejas que SE ANALIZARON (máximo
 -- 7.758 tokens). Esto mide las que PUEDEN formarse con los documentos que existen

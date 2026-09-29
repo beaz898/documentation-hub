@@ -59,7 +59,9 @@ lecturas AS (
          (SELECT l FROM jsonb_array_elements(coalesce(c.analysis->'lecturaDeLasParejas', '[]'::jsonb)) AS l
            WHERE l->>'documentId' = c.pareja_id LIMIT 1) AS lectura,
          (SELECT r FROM jsonb_array_elements(coalesce(c.analysis->'presupuestoDelCandidato'->'candidatos', '[]'::jsonb)) AS r
-           WHERE r->>'documentId' = c.pareja_id LIMIT 1) AS reparto
+           WHERE r->>'documentId' = c.pareja_id LIMIT 1) AS reparto,
+         (SELECT string_agg(j->>'documentName', ' · ' ORDER BY j->>'documentName')
+            FROM jsonb_array_elements(coalesce(c.analysis->'judgments', '[]'::jsonb)) AS j) AS candidatos
   FROM con_pareja c
 )
 SELECT
@@ -89,6 +91,17 @@ SELECT
               WHERE j->>'documentId' = l->>'documentId' LIMIT 1), l->>'documentId')
           || ': ' || (l->>'regimen'), ' · ')
     FROM jsonb_array_elements(coalesce(analysis->'lecturaDeLasParejas', '[]'::jsonb)) AS l) AS regimenes_de_todas,
+  -- EL CORPUS QUIETO (B.295): qué candidatos juzgó y si son los mismos que en la PRIMERA
+  -- pasada de su dirección. Un `false` invalida la tanda, aunque el número no cambie.
+  -- `recuperados_retrieval`: cuántos documentos trajo la recuperación antes del rerank
+  -- (termometro.documentos_candidatos, F-114), para ver si el corpus se movió aunque el
+  -- rerank acabara eligiendo los mismos.
+  jsonb_array_length(coalesce(analysis->'judgments', '[]'::jsonb)) AS candidatos_juzgados,
+  candidatos,
+  candidatos = first_value(candidatos) OVER (
+    PARTITION BY split_part(analizado, '_', 1) ORDER BY created_at
+  )                                                       AS candidatos_estables,
+  (analysis->'termometro'->>'documentos_candidatos')::int AS recuperados_retrieval,
   -- Lo publicado con la pareja
   (SELECT count(*) FROM jsonb_array_elements(coalesce(analysis->'discrepancies', '[]'::jsonb)) AS d
     WHERE d->>'existingDocument' LIKE pareja_de || '%')   AS contradicciones,
