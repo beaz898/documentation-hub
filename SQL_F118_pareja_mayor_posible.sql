@@ -1,8 +1,9 @@
 -- ============================================================================
 -- F-118 / B.273 · LA PAREJA MAYOR QUE PUEDE FORMARSE HOY — SÓLO LECTURA
--- ✅ EJECUTADO por el director el 29/09/2026 (resultado literal en
+-- ✅ EJECUTADO por el director el 29/09/2026 las consultas 1-3 (resultado literal en
 -- claude/Estado_Del_MVP.md, B.273: 50 documentos, 14 en el corpus, 686 parejas
 -- posibles, la mayor de 17.062 tokens, 28 por encima de 10.000). Sólo SELECT.
+-- ⚠️ La consulta 4, añadida el 29/09 después, está PENDIENTE DE EJECUTAR.
 --
 -- QUÉ CONTESTA: el censo de B.273 midió las parejas que SE ANALIZARON (máximo
 -- 7.758 tokens). Esto mide las que PUEDEN formarse con los documentos que existen
@@ -93,3 +94,31 @@ SELECT
   (SELECT count(*) FROM pares WHERE t > 10000)                             AS por_encima_de_10000,
   (SELECT round(100.0 * count(*) FILTER (WHERE t <= 10000) / nullif(count(*), 0), 1)
      FROM pares)                                                           AS porcentaje_que_cabe_en_10000;
+
+-- 4 · (Añadida el 29/09/2026 · PENDIENTE DE EJECUTAR; las tres de arriba ya se
+--     ejecutaron.) Las parejas por encima de 10.000 tokens, UNA A UNA, y cuántas
+--     parejas de documentos DISTINTAS son. La consulta 3 cuenta pares ORDENADOS con
+--     el candidato en el corpus: una pareja sólo sale dos veces si LOS DOS lados están
+--     en el corpus, así que 28 ordenados NO son necesariamente 14 parejas distintas.
+--     Aquí se ve cuántas son y qué lado está en el corpus.
+WITH docs AS (
+  SELECT d.id, d.name, d.analysis_status,
+         coalesce(char_length(d.full_text),
+                  (SELECT sum(char_length(ch.text)) FROM public.document_chunks ch
+                    WHERE ch.document_id = d.id AND ch.generation = d.active_generation)) AS car
+  FROM public.documents d
+  WHERE d.org_id = 'a9625e93-af2a-4416-a465-5c2fa2a25bdf'
+),
+grandes AS (
+  SELECT a.id AS a_id, c.id AS c_id, a.name AS analizado, a.analysis_status AS analizado_estado,
+         c.name AS candidato, ceil((a.car + c.car) / 4.0)::int AS tokens
+  FROM docs a
+  JOIN docs c ON c.id <> a.id AND c.analysis_status = 'analizado'
+  WHERE a.car IS NOT NULL AND c.car IS NOT NULL
+    AND ceil((a.car + c.car) / 4.0) > 10000
+)
+SELECT analizado, analizado_estado, candidato, tokens,
+       count(*) OVER ()                                                              AS pares_ordenados,
+       (SELECT count(DISTINCT (least(a_id, c_id), greatest(a_id, c_id))) FROM grandes) AS parejas_distintas
+FROM grandes
+ORDER BY tokens DESC, analizado, candidato;

@@ -7370,6 +7370,28 @@ encabezados y los límites de trozo visibles (F-118 §5, escalón 1).
         49 documentos: **14 × 49 = 686**. La cuenta del arquitecto es la de la SQL.
       - ⚠️ **ORDENADOS**: una pareja entre dos documentos del corpus cuenta dos veces, una
         por dirección.
+    - **QUÉ LADO ES EL DE LOS 14, leído en la consulta y no deducido**: la restricción está
+      SÓLO en el CANDIDATO, `JOIN docs c ON c.id <> a.id AND c.analysis_status =
+      'analizado'` (`SQL_F118_pareja_mayor_posible.sql:82`). El analizado es cualquiera de
+      los 50. Es la forma del producto: el candidato sale del corpus por pertenencia, y
+      subir un documento para analizarlo no pide que esté en él.
+      **Límites declarados del 95,9 %, al lado de la cifra:**
+      - es una foto de los 50 documentos de ESE día. Un documento subido después, que no
+        esté entre ellos, puede formar una pareja mayor;
+      - no cubre candidatos por NOMINACIÓN, la vía de ids (F-97: un análisis puede nombrar
+        documentos que no están en el corpus). Sólo los que entran por pertenencia.
+    - ⚠️ **LAS 28 SON PARES ORDENADOS, y el resumen NO dice cuántas parejas de documentos
+      distintas son.** Una pareja sólo se cuenta dos veces si LOS DOS lados están en el
+      corpus: el analizado puede ser cualquiera, pero el candidato no. Así que 28 ordenados
+      son 14 parejas sólo si todas son entre documentos del corpus.
+      - El literal apunta a lo contrario: `pasan_solos_de_10000 = 2` y 28 = 2 × 14 casarían
+        con dos documentos grandes FUERA del corpus, cada uno contra los 14 candidatos. Eso
+        serían 28 parejas distintas.
+      - **Es una inferencia, y no se escribe como cifra.** La contesta la consulta 4 del
+        mismo fichero (añadida el 29/09, pendiente): cada pareja por encima de 10.000, qué
+        lado está en el corpus, y `parejas_distintas`.
+      - Hasta entonces, la ficha dice **«28 pares ordenados; parejas distintas: no
+        consta»**, no «28 parejas» ni «14».
     - **No hay ninguna pareja entre 7.758 y 10.000 tokens.** `por_encima_de_7758` y
       `por_encima_de_10000` son el mismo 28, así que un presupuesto en cualquier punto de ese
       rango recorta exactamente las mismas 28 parejas. **El 10.000 no es una cifra
