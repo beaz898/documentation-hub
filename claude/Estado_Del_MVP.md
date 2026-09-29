@@ -7743,6 +7743,63 @@ repuntuación (`scripts/examen.mjs:203`, «Hoy nada»).
   `candidatosJuzgados` al marcador»).
 - **Sin arreglar.** Fichada para que no se lea como una guardia que guarda.
 
+### 📋 B.294 — PREDICCIÓN, ESCRITA ANTES DEL CAMBIO: la fase 3 del principio del detector (29/09/2026)
+
+**Escrita el 29/09/2026 a las 09:43, antes de tocar el marcador, los casos o el validador.**
+Condición 1 de «un cambio del marcador se prueba repuntuando antes y después». La calculó Code
+simulando la fase 3 completa con la maquinaria de hoy, sin tocar nada. Los casos se editaron en
+memoria:
+- N1 y P3 pierden la excepción;
+- P4 pierde la base;
+- el validador rechaza excepción y base juntas;
+- la alarma pregunta, pasada por pasada, si el detector de base emitió algo emparejable
+  (B.290 c).
+
+**Sobre los 65 crudos (`c39397e7`, `97223b72`): NO SE MUEVE NINGÚN VEREDICTO.** El arquitecto
+lo sospechaba; ahora está medido.
+
+| Qué se miró | Resultado |
+|---|---|
+| Veredictos, las dos tandas | idénticos antes y después |
+| La alarma: pasadas sin un emparejable del detector de base | N1-PUESTO 0 de 15; P3, 0 de 75 (pasada, fila) |
+| `:276` viva tras retirar las excepciones de N1 y P3 | **ninguna** razón ni apartado en ningún crudo (sólo queda en P4, cuyos aciertos llegan por juicio) |
+| Excepción y base juntas tras los cambios | ninguna; **hoy, cuatro** (N1-PUESTO, P3, P4-BELMONTE, P4-MEDINA) |
+| Líneas del informe | cambia UNA: la de detector de P4 pierde «(base: juicio)» |
+
+- **Es un «nada se mueve» VACÍO en el sentido de la condición 2**: ningún crudo real recorre
+  la rama de la alarma.
+- **La regla del validador y las ediciones de los casos entran en el MISMO commit.** Con los
+  casos de hoy, la regla rechazaría cuatro esperados y el modo seco dejaría de validar.
+- **Una decisión que la fase 3b no puede dar por supuesta: qué cuenta el contador «aciertos
+  sin detector en el origen»** (B.290 e).
+  - Contado sobre toda la tanda: **5 en `c39397e7` y 10 en `97223b72`**, todos N3-DUPLICADO
+    (B.287).
+  - Contado sólo sobre esperados con base: **0**.
+
+  Falla abierto sólo donde hay una base que vigilar, así que la segunda lectura es la del
+  motivo. Pero es la primera la que el informe enseñaría: sin decidirlo, el informe cambia
+  según quién lo escriba.
+- **Condición 2: qué recorre cada rama.**
+
+| Rama | Con qué se prueba |
+|---|---|
+| base `estructura` y el acierto llega por `juicio` → **FALLA** | **crudo sintético** `examen/sinteticos/SINTETICO_N1-PUESTO_por_juicio.json`. Hoy da SIN_VEREDICTO (`scripts/examen-sintetico-n1.test.mjs`); con la fase 3, FALLA |
+| la misma fila por los dos detectores, la del juez delante → **PASA** | **fixture**, no crudo (ver abajo) |
+| base `juicio` y llega por `estructura` → aviso destacado | fixture; **latente**: sin base juicio tras la fase 3 |
+| detector `null` con base → sin alarma, al contador | fixture; **latente**: las 101 contradicciones traen `confirmedBy` |
+| `:276` sólo en P4 | crudo sintético de la fase 2 (`SINTETICO_P4-BELMONTE_por_estructura.json`): sigue SIN_VEREDICTO; y **el mutante «`:276` fuera de P4», que con la fase 3 YA puede fallar** |
+| el validador rechaza excepción y base juntas | fixture; los casos de hoy son su control positivo (cuatro) |
+
+- **La rama del ORDEN va con fixture, no con crudo.** El producto suprime el hallazgo del juez
+  cuando el diff ya comparó esa fila: «descartado.cubierto_por_diff» (`lib/analysis/pipeline.ts:361-413`).
+  El crudo real de N1 lo lleva, porque el juez también encontró a Reyes. La supresión NO es
+  total: si R2 devuelve `pass` (celdas nulas), no suprime (`:387-389`, y la condición de `:405`). Pero **sin comprobar**:
+  - que ese caso alcance una fila que el diff emitió;
+  - y en qué orden quedarían los dos hallazgos en `discrepancies`.
+
+  Un crudo afirmaría una forma del producto que nadie ha visto. El fixture prueba lo que
+  importa: que la alarma no depende del orden (B.290 c).
+
 ### 📋 B.293 — PREDICCIÓN, ESCRITA ANTES DEL CAMBIO: el arreglo de la puerta del marcador (29/09/2026)
 
 **Escrita el 29/09/2026, antes de tocar el marcador.** Es la condición 1 de «un cambio del

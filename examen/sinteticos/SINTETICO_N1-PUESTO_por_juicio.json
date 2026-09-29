@@ -1,0 +1,218 @@
+{
+  "SINTETICO": {
+    "queEs": "CRUDO FABRICADO A MANO el 29/09/2026. NO salió de ninguna pasada. No es evidencia de una tanda.",
+    "copiadoDe": "examen/resultados/2026-09-27_c39397e7/N1_pasada1.json, campo por campo; sólo cambian lo que se lista en «cambios». La forma «sin clave» (qué no escribe el producto cuando el diff no empareja) sale de examen/resultados/2026-09-27_c39397e7/P4_pasada1.json.",
+    "escenario": "El diff de tablas deja de emparejar la tabla (diff.tablas.sin_clave 1, emitidos 0), así que la estructura NO emite la fila de Reyes; el juez la encuentra. Es la regresión del comparador determinista que la base de N1 vigila.",
+    "cambios": [
+      "cuerpo.analisis.discrepancies[0]: N1-PUESTO con la forma REAL de un hallazgo del juez (claves y orden de P4_pasada1.discrepancies[0]): sin columns, comparedValues, newDocRow, existingDocRow, origen, groupId ni huella; confirmedBy «juicio». newDocSays y existingDocSays, los del real. El topic está redactado a mano, al estilo del juez en P4 («Turno de Dra. Ana Belmonte»): no es real.",
+      "cuerpo.analisis.tableDiffs: retirado. Sin clave, el producto no lo escribe (P4_pasada1 no lo trae).",
+      "cuerpo.analisis.pipelineCounters: diff.tablas.sin_clave 1 y diff.tablas.emitidos 0; fuera los cinco diff.clasificacion.* que sin clave no se escriben (mismo juego de claves que P4_pasada1). verificador: confirmados 1 y confirmados_por_juicio 1, descartados 0 — en el real el juez también encontró la fila y se descartó como cubierto_por_diff.",
+      "cuerpo.analisis.discardedFindings y judgments[0].discarded: sin «descartado.cubierto_por_diff».",
+      "cuerpo.analisis.judgments[0]: contradictions con el hallazgo del juez, y sin tableDiffs."
+    ],
+    "noSeTocan": "summary, recommendation, termometro, coberturaDeCandidatos, overlaps, newInformation y el resto de judgments[0], tal cual el real. El marcador no los lee, y pueden no cuadrar con el escenario.",
+    "ramaQueEjerce": "Principio del detector, FASE 3 (Estado_Del_MVP.md B.290): el acierto de un esperado con base DETERMINISTA (N1-PUESTO, detectorDeBase «estructura») llega por el otro detector.",
+    "hoy": "Con la excepción de N1 (detectorExigido «estructura»), SIN_VEREDICTO con «el caso dejó de ejercer su rama». No da FALLA: es el hueco que la fase 3 cierra. Test: scripts/examen-sintetico-n1.test.mjs.",
+    "despuesDeLaFase3": "FALLA: se perdió un detector determinista, y en un comparador determinista eso no es ruido.",
+    "porQueNoVaEnResultados": "examen/resultados/ es evidencia de tandas reales. El nombre no acaba en _pasadaN.json, así que la repuntuación no lo recoge."
+  },
+  "casoId": "N1",
+  "pasada": 1,
+  "http": 200,
+  "ms": 15744,
+  "cuando": "2026-09-27T09:24:04.632Z",
+  "renovacionesDeCredencial": [],
+  "cuerpo": {
+    "casoId": "N1",
+    "pasada": 1,
+    "operacion": "analizar",
+    "orgId": "a9625e93-af2a-4416-a465-5c2fa2a25bdf",
+    "analizado": {
+      "nombre": "RRHH-06_evaluacion-del-desempeno.xlsx",
+      "documentId": "96196c8b-4209-46e9-9c71-153763864c11",
+      "generacion": 1,
+      "fragmentos": 20
+    },
+    "corpus": [
+      {
+        "nombre": "OPE-02_agenda-y-gestion-de-citas.xlsx",
+        "documentId": "0ece4cf3-632f-452b-aca9-2dd8ddc3e532",
+        "generacion": 1
+      }
+    ],
+    "analisis": {
+      "isDuplicate": false,
+      "duplicateOf": null,
+      "duplicateConfidence": 0,
+      "overlaps": [
+        {
+          "existingDocument": "OPE-02_agenda-y-gestion-de-citas.xlsx",
+          "existingDocumentId": "0ece4cf3-632f-452b-aca9-2dd8ddc3e532",
+          "description": "Ambos documentos registran datos de los mismos 10 empleados de la clínica Chamberí con sus puestos y asignaciones. Ambos documentos incluyen a Laura Núñez como Higienista en la clínica. Ambos documentos registran a Beatriz Campos en Recepción",
+          "severity": "media",
+          "overlapPercent": 35,
+          "textRef": "Dra. Marta Gil | Odontóloga general | Chamberí"
+        }
+      ],
+      "discrepancies": [
+        {
+          "topic": "Puesto del Dr. Pablo Reyes",
+          "newDocSays": "Dr. Pablo Reyes | Implantólogo | Chamberí | 2026-06-11 | 4 | 4 | 4 | 4 | 4 | Buen nivel general, pendiente reciclaje de protección radiológica.",
+          "existingDocSays": "Dr. Pablo Reyes | Implantólogo / Cirujano oral | Box 1 | T | T | L | T | T | L | 16",
+          "existingDocument": "OPE-02_agenda-y-gestion-de-citas.xlsx",
+          "existingDocumentId": "0ece4cf3-632f-452b-aca9-2dd8ddc3e532",
+          "severity": "contradiction",
+          "confirmedBy": "juicio"
+        }
+      ],
+      "newInformation": "El documento de evaluación de desempeño aporta información sobre el desempeño y evaluación de estos empleados, complementando los datos de agenda y asignaciones del otro documento, pero la inconsistencia en los registros de puesto debe ser resuelta.",
+      "recommendation": "REVISAR",
+      "summary": "Se encontró que el documento de evaluación de desempeño comparte información sobre los mismos 10 empleados de la clínica Chamberí con el documento de agenda y gestión de citas, incluyendo datos de puestos y asignaciones. Sin embargo, se detectó una discrepancia en los datos de puesto de al menos un empleado entre ambos documentos, lo que requiere verificación.",
+      "judgments": [
+        {
+          "documentId": "0ece4cf3-632f-452b-aca9-2dd8ddc3e532",
+          "documentName": "OPE-02_agenda-y-gestion-de-citas.xlsx",
+          "source": "manual",
+          "overlapPercent": 35,
+          "verdict": "tema_similar",
+          "contradictions": [
+            {
+              "topic": "Puesto del Dr. Pablo Reyes",
+              "newDocSays": "Dr. Pablo Reyes | Implantólogo | Chamberí | 2026-06-11 | 4 | 4 | 4 | 4 | 4 | Buen nivel general, pendiente reciclaje de protección radiológica.",
+              "existingDocSays": "Dr. Pablo Reyes | Implantólogo / Cirujano oral | Box 1 | T | T | L | T | T | L | 16",
+              "severity": "contradiction",
+              "confirmedBy": "juicio"
+            }
+          ],
+          "overlappingContent": [
+            {
+              "description": "Ambos documentos registran datos de los mismos 10 empleados de la clínica Chamberí con sus puestos y asignaciones",
+              "evidence": "Dra. Marta Gil | Odontóloga general | Box 1",
+              "evidenceInNewDoc": "Dra. Marta Gil | Odontóloga general | Chamberí"
+            },
+            {
+              "description": "Ambos documentos incluyen a Laura Núñez como Higienista en la clínica",
+              "evidence": "Laura Núñez | Higienista | Box 4",
+              "evidenceInNewDoc": "Laura Núñez | Higienista | Chamberí"
+            },
+            {
+              "description": "Ambos documentos registran a Beatriz Campos en Recepción",
+              "evidence": "Beatriz Campos | Recepción | Recepción",
+              "evidenceInNewDoc": "Beatriz Campos | Recepción | Chamberí"
+            }
+          ],
+          "uniqueToNewDoc": [
+            "Evaluación del desempeño con criterios de puntualidad, calidad técnica, trabajo en equipo y atención al paciente",
+            "Puntuaciones numéricas (1-5) para cada empleado en cada criterio",
+            "Media de desempeño individual y media general de la red (4.35)",
+            "Comentarios cualitativos sobre fortalezas y áreas de mejora de cada empleado",
+            "Inclusión de empleados de la clínica Retiro (5 personas adicionales)",
+            "Fechas específicas de evaluación (2026-06-10 a 2026-06-15)"
+          ],
+          "discarded": {
+            "verificado.por_localizacion": 8
+          }
+        }
+      ],
+      "discardedFindings": {
+        "verificado.por_localizacion": 8
+      },
+      "pipelineCounters": {
+        "seleccion.candidatos_recuperados": 1,
+        "seleccion.candidatos_cortados_por_tope_de_recuperacion": 0,
+        "seleccion.candidatos_seleccionados": 1,
+        "seleccion.candidatos_sin_confianza": 0,
+        "seleccion.candidatos_cortados_por_tope": 0,
+        "seleccion.candidatos_con_id_no_reconocido": 0,
+        "seleccion.candidatos_repetidos_por_el_modelo": 0,
+        "seleccion.candidatos_descartados_por_criterio": 0,
+        "diff.tablas.candidatos": 1,
+        "diff.tablas.sin_clave": 1,
+        "diff.tablas.sin_interseccion": 0,
+        "diff.tablas.emitidos": 0,
+        "diff.clave.rechazadas_por_escritura": 0,
+        "diff.clasificacion.variantes_escritura": 0,
+        "diff.vision.pares_con_vision": 1,
+        "diff.vision.pares_ciegos": 0,
+        "diff.vision.ciegos_por_el_analizado": 0,
+        "diff.vision.tablas_analizado": 1,
+        "diff.vision.filas_analizado": 15,
+        "diff.vision.tablas_candidatos": 1,
+        "diff.vision.filas_candidatos": 10,
+        "verificador.hallazgos_entrantes": 1,
+        "verificador.confirmados": 1,
+        "verificador.confirmados_por_estructura": 0,
+        "verificador.confirmados_por_juicio": 1,
+        "verificador.descartados": 0,
+        "verificador.reclasificados": 0
+      },
+      "termometro": {
+        "version": 1,
+        "estado": "con_candidatos",
+        "motivo": null,
+        "modelo": {
+          "pedido": "multilingual-e5-large",
+          "servido": "multilingual-e5-large",
+          "dimension_servida": 1024
+        },
+        "consultas": 20,
+        "topK": 25,
+        "denominadores": {
+          "crudos": 340,
+          "sin_fila_viva": 0,
+          "sin_metadata_utilizable": 0,
+          "propios_excluidos": 0,
+          "generacion_muerta_excluida": 0,
+          "candidatos_con_repeticion": 340,
+          "unicos": 17
+        },
+        "fondo": 17,
+        "fondo_motivo": null,
+        "documentos_candidatos": 1,
+        "scores": {
+          "minimo": 0.794153512,
+          "maximo": 0.972624362,
+          "histograma": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            11,
+            2,
+            2,
+            1
+          ],
+          "hueco_1_2": null
+        },
+        "ids_sin_fila_viva": [],
+        "candidatos_fuera_del_fondo": []
+      },
+      "coberturaDeCandidatos": {
+        "comparados": 1,
+        "afines": 1,
+        "reparto": {
+          "origen": "modelo",
+          "recuperados": 1,
+          "elegidosPorElModelo": 1,
+          "descartadosPorCriterio": 0,
+          "cortadosPorTope": 0,
+          "idsNoReconocidos": 0,
+          "repetidos": 0
+        }
+      },
+      "analysisMode": "quick"
+    }
+  }
+}
