@@ -718,7 +718,7 @@ async function runCorePipeline(
   // lo que sí llegó a decidirse — que es justo lo más informativo.
   const counters: PipelineCounters = {};
 
-  const { candidates, chunksByDocument: chunksFromRetrieval, structuralOverlaps, selectionLimits, descartesDeRecuperacion, termometro, presupuestoPorCandidato } = await retrieveCandidates({
+  const { candidates, chunksByDocument: chunksFromRetrieval, structuralOverlaps, selectionLimits, descartesDeRecuperacion, termometro, presupuestoPorCandidato, repartoPorCandidato } = await retrieveCandidates({
     sampleTexts: input.sampleTexts,
     orgId: input.orgId,
     excludeDocumentId: input.excludeDocumentId,
@@ -1088,11 +1088,20 @@ async function runCorePipeline(
   // esta salida porque sólo en ella corrió el juez; en las tempranas, ausente.
   // B.281: `presupuestoDelCandidato`, por el mismo motivo y con la misma regla —
   // el presupuesto sólo decidió algo si el juez vio fragmentos repartidos con él.
+  // Su reparto, de los candidatos que llegaron al JUEZ (`reranked`, el mismo
+  // conjunto que `judgedIds` de arriba); todos pasaron por la selección de
+  // retrieveCandidates, que les calcula el reparto en el mismo bloque.
   const final = {
     ...finalSinCobertura,
     coberturaDeCandidatos: cobertura,
     ...(textoAnalizado ? { textoAnalizado } : {}),
-    presupuestoDelCandidato: { caracteres: presupuestoPorCandidato },
+    presupuestoDelCandidato: {
+      caracteres: presupuestoPorCandidato,
+      candidatos: reranked.flatMap(c => {
+        const reparto = repartoPorCandidato.get(c.documentId);
+        return reparto ? [reparto] : [];
+      }),
+    },
   };
 
   if (limits.length === 0) return final;

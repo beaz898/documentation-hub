@@ -479,9 +479,34 @@ export interface TextoAnalizado {
   mostrados: number;
 }
 
-/** El presupuesto por candidato del análisis, en caracteres. */
+/** El presupuesto por candidato del análisis, en caracteres, y cómo quedó el
+ *  reparto de cada candidato que llegó al JUEZ (los que el rerank descartó no
+ *  los vio nadie). */
 export interface PresupuestoDelCandidato {
   caracteres: number;
+  candidatos: RepartoDelCandidato[];
+}
+
+/**
+ * B.281 (29/09/2026): el reparto de un candidato. Contesta dos preguntas, y cada
+ * una con su tipo de dato:
+ *   · «¿cuánto NO vio el juez?» — una MAGNITUD: `caracteres − mostrados`.
+ *   · «¿cortó la tijera?» — una DECISIÓN: `dejoFuera`. No se contesta con
+ *     caracteres (`claude/Contrato_Contadores.md`, cláusula espejo): una tabla que
+ *     cabe entera muestra MÁS de lo recuperado, y el colapso de idénticas muestra
+ *     MENOS sin perder nada.
+ */
+export interface RepartoDelCandidato {
+  documentId: string;
+  /** El candidato ENTERO: la suma de sus trozos. `null` si no tiene trozos
+   *  (indexado antes de F-20): NO SE SABE, que no es un candidato vacío. */
+  caracteres: number | null;
+  /** Lo que vio el juez de él, con la línea de las filas colapsadas incluida. */
+  mostrados: number;
+  /** La tijera dejó fuera material RECUPERADO, por tamaño o por el tope de
+   *  piezas: una fila, una unidad de prosa o una tabla entera. Las filas
+   *  idénticas colapsadas NO cuentan: están representadas, no perdidas (F-74). */
+  dejoFuera: boolean;
 }
 
 

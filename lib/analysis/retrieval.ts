@@ -14,7 +14,7 @@ import { runInBatches } from '@/lib/run-in-batches';
 import { getChunksForDocuments } from '@/lib/read-chunks';
 import { normalize } from './judge';
 import { getOrderedColumns } from './table-structure';
-import type { CandidateDocument, DocumentFragment, PipelineOptions, SelectionLimit } from './types';
+import type { CandidateDocument, DocumentFragment, PipelineOptions, RepartoDelCandidato, SelectionLimit } from './types';
 import type { StoredChunk } from '@/lib/read-chunks';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { cortarALosMasAfines } from './corte-de-recuperacion';
@@ -200,6 +200,26 @@ export function presupuestoPorCandidato(isExhaustive: boolean): number {
 }
 
 /**
+ * B.281 (29/09/2026): EL reparto de un candidato. Una sola función para el log
+ * («… caracteres») y para el campo que se guarda (`RepartoDelCandidato`).
+ * `dejoFuera` sale de las MISMAS cifras que ya decidían el aviso de alcance
+ * (F-74): unidades que no entraron y filas recuperadas fuera por tamaño, que no
+ * incluyen las idénticas colapsadas.
+ */
+export function repartoDelCandidato(
+  documentId: string,
+  docChunks: StoredChunk[],
+  seleccion: { selected: DocumentFragment[]; unitsOut: number; tableLog: { rowsLeftOut: number }[] },
+): RepartoDelCandidato {
+  return {
+    documentId,
+    caracteres: docChunks.length > 0 ? docChunks.reduce((s, c) => s + c.text.length, 0) : null,
+    mostrados: seleccion.selected.reduce((s, f) => s + f.text.length, 0),
+    dejoFuera: seleccion.unitsOut > 0 || seleccion.tableLog.some(t => t.rowsLeftOut > 0),
+  };
+}
+
+/**
  * Qué filtro de corpus usa esta recuperación. Los dos filtros siguen intactos y
  * cada uno hace siempre lo mismo; lo único que se elige aquí es CUÁL, y se elige
  * por un DATO que entra por el borde, no por quién llama (26/09/2026).
@@ -262,6 +282,9 @@ export async function retrieveCandidates(args: {
   /** B.281 — el presupuesto por candidato con el que se repartieron los
    *  fragmentos, en caracteres (`presupuestoPorCandidato`). */
   presupuestoPorCandidato: number;
+  /** B.281 — el reparto de CADA candidato recuperado, por documentId
+   *  (`repartoDelCandidato`). El pipeline se queda con los que llegaron al juez. */
+  repartoPorCandidato: Map<string, RepartoDelCandidato>;
 }> {
   const { sampleTexts, orgId, excludeDocumentId, batchDocumentIds, idsDelCorpusExacto, options, supabase, newDocumentChunks } = args;
   const isExhaustive = options?.exhaustive === true;
@@ -414,6 +437,7 @@ export async function retrieveCandidates(args: {
 
   const candidates: CandidateDocument[] = [];
   const structuralOverlapsByDocument = new Map<string, StructuralOverlap[]>();
+  const repartoPorCandidato = new Map<string, RepartoDelCandidato>();
   const selectionLimitsByDocument = new Map<string, SelectionLimit[]>();
   // ⚠️ F-114 — EL PUNTO DE CÁLCULO DEL TERMÓMETRO, Y ES ESTE BUCLE Y NO OTRO.
   // Aquí es donde TODAS las depuraciones están hechas: las cuatro —fila viva,
@@ -477,6 +501,9 @@ export async function retrieveCandidates(args: {
 
       const result = selectUnitsWithinBudget(units, docChunks, sorted[0], analyzedValueIndex, analyzedRows, budgetChars);
       selected = result.selected;
+      // B.281: el reparto se calcula UNA vez, y de él leen el log de abajo y el campo.
+      const reparto = repartoDelCandidato(documentId, docChunks, result);
+      repartoPorCandidato.set(documentId, reparto);
       if (result.structuralOverlaps.length > 0) {
         structuralOverlapsByDocument.set(documentId, result.structuralOverlaps);
       }
@@ -497,7 +524,7 @@ export async function retrieveCandidates(args: {
         selectionLimitsByDocument.set(documentId, limits);
       }
 
-      const usedChars = selected.reduce((sum, f) => sum + f.text.length, 0);
+      const usedChars = reparto.mostrados;
       for (const t of result.tableLog) {
         const colapsoDesc = t.collapsedCount > 0 ? `, ${t.collapsedCount} colapsadas en 1 línea` : '';
         const levelDesc =
@@ -605,6 +632,7 @@ export async function retrieveCandidates(args: {
     selectionLimits: selectionLimitsByDocument,
     descartesDeRecuperacion: { cortadosPorTope: corte.cortados },
     presupuestoPorCandidato: budgetChars,
+    repartoPorCandidato,
   };
 }
 
@@ -659,7 +687,8 @@ type Unit = TableUnit | ProseUnit;
  * comportamiento de antes de este commit para ese caso, sin reparto posible
  * porque no hay dato de tabla que agrupar.
  */
-function buildUnits(sortedFragments: DocumentFragment[], docChunks: StoredChunk[]): Unit[] {
+// Exportada el 29/09/2026 (B.281) para que el reparto tenga batería sobre la selección real.
+export function buildUnits(sortedFragments: DocumentFragment[], docChunks: StoredChunk[]): Unit[] {
   const chunkByIndex = new Map<number, StoredChunk>();
   for (const c of docChunks) chunkByIndex.set(c.chunkIndex, c);
 
@@ -1057,7 +1086,8 @@ interface TableLevelLog {
  * cupiera se fuerza el resumen solo (o, a falta de resumen, la fila
  * recuperada más corta) como último recurso.
  */
-function selectUnitsWithinBudget(
+// Exportada el 29/09/2026 (B.281), con `buildUnits`: el caso decisivo de `dejoFuera` pasa por aquí.
+export function selectUnitsWithinBudget(
   units: Unit[],
   docChunks: StoredChunk[],
   like: DocumentFragment,
