@@ -7586,6 +7586,91 @@ y el censo es cerrado: los tres sitios del marcador que exigen quién confirmó.
 - **Sin arreglar.** El principio de separar «encontró la verdad» de «qué detector la encontró»
   está en dictamen (28/09).
 
+### 📋 B.290 — PRINCIPIO DEL DETECTOR, FASE 3: las decisiones del dictamen, antes del código (29/09/2026)
+
+Dictamen del 29/09, aceptado por el arquitecto. **Nada de esto está implementado.** Y la fase 3
+baja un puesto: antes va la puerta del marcador, que se come los fallos (B.291).
+
+- **(a) DOCTRINA: excepción y base NO conviven en un mismo esperado.** Las dos contestan
+  preguntas distintas:
+  - `detectorExigido` dice que **el CAMINO es el objeto del caso**;
+  - `detectorDeBase` dice que **la VERDAD es el objeto, y el camino se vigila**.
+
+  Bajo una excepción, todo acierto que cuenta viene por construcción del detector exigido
+  (`lib/examen/marcador.mjs:64-67`), así que la base nunca puede dispararse. Es decorativa, y un
+  campo decorativo se lee como una guardia que no guarda. **El validador rechazará las dos
+  juntas.** Entra con la fase 3: hoy N1 las lleva juntas por decisión, y rechazarlas ya dejaría
+  el modo seco sin validar.
+- **(b) Las declaraciones del 28/09, corregidas:**
+  - **N1**: lo mal puesto es la **excepción**. Su propio motivo —«es una regresión del
+    comparador»— define una alarma. Se retira **en el mismo commit que la alarma**, para que la
+    ventana no se reabra.
+  - **P4**: lo mal puesto es la **base**, y la pierde. Su excepción sí es de camino: si la
+    estructura empareja a Belmonte, el emparejador encontró clave, y el par no ejerció «sin
+    clave».
+  - ⚠️ **P3: REABIERTO por el censo de B.291.** El dictamen la puso con P4 y el censo dice lo
+    contrario. Si el juez encuentra una discrepante, el diff la perdió. Eso es una avería
+    medida de lo que P3 mide, no un caso sin ejercer. Antes de la fase 2 salía FALLA (B.285,
+    «fallo + extra, por fila»); desde `ff9fd59b` sale SIN_VEREDICTO. Pendiente de decisión.
+- **(c) La alarma pregunta «¿emitió el detector de base algo emparejable en esta pasada?», no
+  «¿cuál eligió el marcador?».** El marcador se queda con el primer emitido que encaja
+  (`marcador.mjs:151`). Si un día una pasada trae la misma fila por los dos detectores, con la
+  del juez delante, preguntar por el elegido daría rojo con la estructura funcionando.
+- **(d) Agregación: para un detector determinista, UNA pasada basta.** No hay ruido que
+  promediar.
+- **(e) El «desconocido» falla ABIERTO, y se declara.** El informe lleva un contador, «N aciertos
+  sin detector en el origen», no una frase. Se cierra con B.287, que es del producto y va aparte.
+- **(f) Dos ramas sin población, que son latentes:**
+  - «base juicio, llega por estructura» (aviso destacado): la única base juicio es la de P4, y
+    se retira;
+  - el «desconocido»: en los 65 crudos, las 101 contradicciones traen `confirmedBy`, y el
+    validador ya rechaza una base sobre solapamiento o duplicado.
+
+  Se prueban con fixture y se declaran latentes en su test.
+- **Comprobado sobre los 65 crudos** (`c39397e7`, `97223b72`), contando TODO emitido
+  emparejable y no sólo el elegido: cada base recibe exactamente un emparejable por pasada, y de
+  su detector. N1-PUESTO por estructura 15/15; P4-BELMONTE y P4-MEDINA por juicio 5/5; las 15
+  discrepantes de P3 por estructura en las 5 pasadas. **La alarma no pondría nada en rojo.**
+- **Crudos sintéticos para la fase 3:**
+  - N1-PUESTO emitido sólo por el JUEZ, con la forma real del juez (sin `comparedValues` ni
+    `newDocRow`) y los contadores del diff sin él → FALLA;
+  - el sintético de P4 de la fase 2 sigue: debe seguir dando SIN_VEREDICTO;
+  - la misma fila por los dos detectores, la del juez delante → PASA. **Sin comprobar** si el
+    producto puede emitirla; si no puede, va como fixture y no como crudo.
+
+### ⚠️ B.291 — LA PUERTA DEL MARCADOR: toda razón de SIN_VEREDICTO silencia TODOS los fallos del caso (29/09/2026)
+
+`marcarCaso` sólo juzga si no hay ninguna razón (`lib/examen/marcador.mjs:289` y `:302`). La
+regla que lo justifica habla de **ilegibilidad**: «un caso ilegible no puede dar veredicto ni
+para mal» (`:305-306`). El código la aplica a **cualquier** razón y sobre **todo** el caso.
+
+- **Censo de las tandas guardadas (29/09).** Se repuntuó `c39397e7` y `97223b72` con la puerta
+  levantada, y el marcador se restauró byte a byte, sin commit. **No aparece ningún fallo.**
+  - La única razón activa en esas tandas era «línea de base PENDIENTE» (N3 en las dos tandas,
+    N4, N5). Bajo ella no había nada que fallar: N3-DUPLICADO sale 15/15, y los falsos fueron 0.
+  - **Control positivo**: con la puerta levantada, el sintético de P4 más un falso inventado sí
+    saca «1 falsos en una pasada y el techo es 0».
+  - `2026-09-27_f825eed9` sólo tiene `informe.txt`: no hay crudos que repuntuar.
+- **Clasificación de las razones.** «Invalida un CERO»: la razón existe para que una ausencia
+  no se lea como confirmación, y no debería silenciar un fallo medido. «Invalida TODO»: el caso
+  de verdad no se puede leer.
+
+| Línea | Razón | Clase |
+|---|---|---|
+| `:237` | ninguna pasada ejecutable | invalida TODO |
+| `:239` | tanda incompleta | invalida un CERO: lo que no salió en 4 pasadas pudo salir en la 5.ª; lo que sí salió, salió |
+| `:243` | línea de base pendiente | **no encaja**: declara la mitad de PRECISIÓN (`maximoDeFalsosConfirmados: null`) y silencia también la de COBERTURA (N3 exige `minimoDeAciertos: 1`) |
+| `:251` | control de tanda no cumplido | invalida un CERO |
+| `:259` | denominador insuficiente | invalida un CERO; **hoy muerta**: nadie pasa `candidatosJuzgados` (`scripts/examen.mjs:203`) |
+| `:265` | regla no mecánica | **no encaja**: invalida UNA regla, no el caso |
+| `:276` | el otro detector (fase 2) | **no encaja**: en P4, invalida todo; en P3 y N1, tapa una avería medida |
+| `:283` | el caso entero en SEGUIMIENTO | invalida TODO |
+
+- **Medido, con fixture**: en P3, si el diff pierde una discrepante y la encuentra el juez, sale
+  SIN_VEREDICTO con `discrepantes: 1` de 2 medidas y ningún fallo. P4 con la excepción
+  disparada, un falso y Medina ausente: SIN_VEREDICTO. El mismo falso sin la excepción: FALLA.
+- **Sin arreglar**, por decisión: primero el censo, luego la forma del arreglo.
+
 ### ⚠️ B.289 — EJEMPLAR: una frase sin comprobar que VIAJÓ hasta casi ser norma (28/09/2026)
 
 **No es una regla nueva.** Es un ejemplar de la que ya existe, la de los indicativos sobre el
