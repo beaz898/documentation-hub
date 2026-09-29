@@ -1207,12 +1207,11 @@ export const CARACTERES_POR_TOKEN = 4;
 export const PRESUPUESTO_PAREJA_CARACTERES = PRESUPUESTO_PAREJA_TOKENS * CARACTERES_POR_TOKEN;
 
 /**
- * Lo que el corte honesto reserva al candidato: lo que recibe hoy, el
- * presupuesto rápido de `retrieval.ts` (`presupuestoPorCandidato(false)`). No se
- * importa porque `retrieval.ts` ya importa de este fichero; lo sincroniza un test
- * (`pareja-entera.test.ts`).
+ * D-3 (arquitecto, 29/09/2026): lo que el corte honesto garantiza al ANALIZADO,
+ * nunca menos: lo que recibe hoy con la tijera vieja. Es la MISMA constante, no
+ * otra que haya que mantener igual.
  */
-export const SUELO_DEL_CANDIDATO = 3000;
+export const SUELO_DEL_ANALIZADO = NEW_DOC_LIMIT_QUICK;
 
 /**
  * El interruptor, FALLANDO CERRADO: se enciende SÓLO con el valor exacto '1'.
@@ -1249,9 +1248,22 @@ export function parejaEnteraEnEsteModo(exhaustivo: boolean): boolean {
  *     fuera» serían el mismo valor.
  *   · Cabe → `pareja_entera`: los dos lados ENTEROS, renderizados con
  *     `buildAnalyzedDocumentText`.
- *   · No cabe → `corte_honesto`: el analizado por posición hasta el presupuesto
- *     menos el suelo del candidato, y el candidato con su selección por
- *     relevancia de siempre (≤ el suelo). El comportamiento de hoy, declarado.
+ *   · No cabe → `corte_honesto`, EN CASCADA (D-3, arquitecto, 29/09/2026):
+ *       1. el candidato va ENTERO si cabe en el presupuesto menos el suelo del
+ *          analizado;
+ *       2. el analizado se lleva el resto, por posición, nunca menos del suelo;
+ *       3. si el candidato entero no cabe ni así, vuelve a su bloque por
+ *          relevancia de siempre, y el analizado se lleva el resto.
+ *
+ * ⚠️ EL INVARIANTE que la cascada compra (probado en `pareja-entera.test.ts`):
+ * con el interruptor encendido, NINGÚN lado recibe menos que con la tijera vieja.
+ * Se escribe sobre TROZOS REPRESENTADOS, no sobre caracteres: el analizado enviado
+ * empieza por el de hoy, y el candidato representa al menos los trozos del bloque
+ * por relevancia. En caracteres podría salir al revés: cada fragmento suelto del
+ * bloque lleva su cabecera `[Fragmento n de "…"]`, y el entero no.
+ * EXCEPCIÓN CONOCIDA Y ACEPTADA: la línea de contexto de filas colapsadas y el
+ * resumen de una tabla de nivel 3 no aparecen palabra por palabra en el entero,
+ * que imprime las FILAS: más información, aunque no la misma cadena (B.295).
  */
 export function leerLaPareja(a: {
   parejaEntera: boolean;
@@ -1269,12 +1281,18 @@ export function leerLaPareja(a: {
   textoAnalizado: string;
   bloqueCandidato: string;
   lectura: LecturaDeLaPareja;
+  /** Los `chunkIndex` del candidato que representa lo enviado: los del bloque por
+   *  relevancia, o TODOS con el entero. Es el operando del invariante. */
+  representados: number[];
   /** Sólo en `sin_fuente_comun`: qué lado no tenía trozos, para el aviso del log. */
   sinTrozos?: { analizado: boolean; candidato: boolean };
 } {
+  const porRelevancia = a.fragmentosEnviados.filter(f => !f.isContext).map(f => f.chunkIndex);
+  const todos = a.candidatoChunks.map(c => c.chunkIndex);
   const vieja = (regimen: 'tijera_vieja' | 'sin_fuente_comun') => ({
     textoAnalizado: a.analizadoViejo.texto,
     bloqueCandidato: a.bloqueRelevancia,
+    representados: porRelevancia,
     lectura: {
       ...lecturaDeLaPareja({
         documentId: a.documentId,
@@ -1297,32 +1315,41 @@ export function leerLaPareja(a: {
   const completo = a.analizadoCompleto;
   const candidatoEntero = buildAnalyzedDocumentText(a.candidatoChunks, a.documentName);
   const presupuesto = PRESUPUESTO_PAREJA_CARACTERES;
+  const entero = { caracteres: candidatoEntero.length, mostrados: candidatoEntero.length, dejoFuera: false };
 
   if (completo.length + candidatoEntero.length <= presupuesto) {
     return {
       textoAnalizado: completo,
       bloqueCandidato: candidatoEntero,
+      representados: todos,
       lectura: {
         documentId: a.documentId,
         regimen: 'pareja_entera',
         analizado: { caracteres: completo.length, mostrados: completo.length, dejoFuera: false },
-        candidato: { caracteres: candidatoEntero.length, mostrados: candidatoEntero.length, dejoFuera: false },
+        candidato: entero,
         presupuesto,
       },
     };
   }
 
-  const topeDelAnalizado = presupuesto - SUELO_DEL_CANDIDATO;
+  // Corte honesto, en cascada (D-3). Pasos 1-2: ¿cabe el candidato entero dejando
+  // al analizado su suelo? Paso 3: si no, su bloque por relevancia.
+  const candidatoCabeEntero = candidatoEntero.length <= presupuesto - SUELO_DEL_ANALIZADO;
+  const bloqueCandidato = candidatoCabeEntero ? candidatoEntero : a.bloqueRelevancia;
+  const topeDelAnalizado = Math.max(SUELO_DEL_ANALIZADO, presupuesto - bloqueCandidato.length);
   const recortado = completo.length > topeDelAnalizado;
   const texto = recortado ? completo.slice(0, topeDelAnalizado) : completo;
   return {
     textoAnalizado: texto,
-    bloqueCandidato: a.bloqueRelevancia,
+    bloqueCandidato,
+    representados: candidatoCabeEntero ? todos : porRelevancia,
     lectura: {
       documentId: a.documentId,
       regimen: 'corte_honesto',
       analizado: { caracteres: completo.length, mostrados: texto.length, dejoFuera: recortado },
-      candidato: ladoCandidatoPorRelevancia(a.candidatoChunks, a.documentName, a.fragmentosEnviados, a.bloqueRelevancia),
+      candidato: candidatoCabeEntero
+        ? entero
+        : ladoCandidatoPorRelevancia(a.candidatoChunks, a.documentName, a.fragmentosEnviados, a.bloqueRelevancia),
       presupuesto,
     },
   };
