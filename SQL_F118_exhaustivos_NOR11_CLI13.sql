@@ -1,6 +1,12 @@
 -- ============================================================================
 -- F-118 · ¿HAY ALGÚN ANÁLISIS EXHAUSTIVO DE NOR-11 / CLI-13? — SÓLO LECTURA
--- ⚠️ PENDIENTE DE EJECUTAR (28/09/2026). Sólo SELECT: no escribe nada.
+-- ✅ EJECUTADO por el director el 28/09/2026 a las 13:35, en su versión anterior
+-- (resultado en claude/Estado_Del_MVP.md, B.280). Sólo SELECT: no escribe nada.
+-- ⚠️ 29/09/2026 (B.281): la consulta 1 gana la columna `presupuesto_candidato`.
+-- ESA versión está PENDIENTE DE EJECUTAR. Sale NULL en todo análisis anterior al
+-- 29/09 —el campo no existía—, y ahí no se sabe con qué presupuesto se hizo:
+-- los de las 13:20-13:26 del 28/09 fueron con 14.676 por la variable del worker,
+-- y eso sólo consta en B.280, no en la fila.
 --
 -- QUÉ CONTESTA: si el dato del «analizado entero» ya existe gratis. En
 -- exhaustivo el juez recibe el documento analizado ENTERO (`recortarAnalizado`,
@@ -32,7 +38,8 @@ WITH exhaustivos AS (
 SELECT id, org_id, created_at, analizado,
        analysis IS NOT NULL                                              AS con_jsonb,
        jsonb_array_length(coalesce(analysis->'discrepancies', '[]'::jsonb)) AS contradicciones_publicadas,
-       analysis->'textoAnalizado'                                       AS texto_analizado
+       analysis->'textoAnalizado'                                       AS texto_analizado,
+       (analysis->'presupuestoDelCandidato'->>'caracteres')::int        AS presupuesto_candidato
 FROM exhaustivos
 ORDER BY created_at;
 

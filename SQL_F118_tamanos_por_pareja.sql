@@ -1,6 +1,8 @@
 -- ============================================================================
 -- F-118 · TAMAÑO DE CADA PAREJA QUE VIO EL JUEZ, EN LOS ANÁLISIS RÁPIDOS — SÓLO LECTURA
--- ⚠️ PENDIENTE DE EJECUTAR (28/09/2026). Sólo SELECT: no escribe nada.
+-- ✅ EJECUTADO por el director el 28/09/2026 (resultado en claude/Estado_Del_MVP.md,
+-- B.273: 106 parejas, 78 medibles, máximo 7.758 tokens). Sólo SELECT: no escribe
+-- nada. Las 28 sin medir se miran en `SQL_F118_parejas_sin_medir.sql`.
 --
 -- QUÉ CONTESTA: con qué fijar el presupuesto de entrada del juez en tokens.
 -- Para cada análisis rápido registrado de la organización del director
