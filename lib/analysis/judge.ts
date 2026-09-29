@@ -707,6 +707,10 @@ async function judgeSingleDocument(args: {
   fallbackTexts?: Map<string, string>;
   /** B.295: el lado analizado de la lectura, el mismo para toda pareja con la tijera vieja. */
   analizado: LecturaDeLaPareja['analizado'];
+  /** B.295: el interruptor del escalón 1, ya resuelto (sólo rápido), y lo que necesita la puerta. */
+  parejaEntera: boolean;
+  analizadoCompleto: string;
+  analizadoConTrozos: boolean;
 }): Promise<{ judgment: DocumentJudgment; evidence: JudgmentEvidence; lectura: LecturaDeLaPareja }> {
   const { newDocumentName, newDocumentText, candidate, chunksByDocument } = args;
 
@@ -770,25 +774,32 @@ async function judgeSingleDocument(args: {
   const existingFragsBlock = buildExistingFragsBlock(candidate.fragments, candidate.documentName, candidateChunks, columnOrderByTable);
   // B.295: qué leyó el juez de esta pareja. Antes de la llamada: describe lo
   // ENVIADO, así que vale también si el modelo falla.
-  const lectura = lecturaDeLaPareja({
+  // Y con el interruptor encendido, la puerta decide aquí los dos textos: la
+  // lectura y el prompt salen de la MISMA llamada.
+  const pareja = leerLaPareja({
+    parejaEntera: args.parejaEntera,
     documentId: candidate.documentId,
     documentName: candidate.documentName,
-    analizado: args.analizado,
+    analizadoCompleto: args.analizadoCompleto,
+    analizadoConTrozos: args.analizadoConTrozos,
+    analizadoViejo: { texto: newDocumentText, lado: args.analizado },
     candidatoChunks: candidateChunks,
     fragmentosEnviados: candidate.fragments,
-    textoEnviado: existingFragsBlock,
+    bloqueRelevancia: existingFragsBlock,
   });
+  const lectura = pareja.lectura;
+  if (args.parejaEntera) console.log(lineaDeLaLectura(candidate.documentName, lectura));
 
   const prompt = `Eres un auditor de documentación. Tu tarea es comparar CONTENIDO CONCRETO entre dos documentos y emitir un juicio preciso, no una impresión general.
 
 DOCUMENTO NUEVO: "${newDocumentName}"
 """
-${newDocumentText}
+${pareja.textoAnalizado}
 """
 
 DOCUMENTO EXISTENTE: "${candidate.documentName}" (fuente: ${candidate.source})
 """
-${existingFragsBlock}
+${pareja.bloqueCandidato}
 """
 
 REGLA PRINCIPAL, POR ENCIMA DE TODAS LAS DEMAS:
@@ -1066,8 +1077,18 @@ export async function judgeAllDocuments(args: {
   // mismo documento.
   // B.295: el recorte, su medida y su log salen de UNA llamada a `recortarAnalizado`.
   // La línea «truncado a …» es la misma de siempre, una vez por análisis.
+  // B.295, C3: el interruptor sólo existe en RÁPIDO. En exhaustivo ni se lee, así
+  // que 'pareja_entera' y 'corte_honesto' no pueden salir de un exhaustivo.
+  const parejaEntera = parejaEnteraEnEsteModo(isExhaustive);
+  if (parejaEntera) {
+    console.log(
+      `[judge] "${args.newDocumentName}": ${INTERRUPTOR_PAREJA_ENTERA}=1 — presupuesto por pareja ` +
+      `${PRESUPUESTO_PAREJA_CARACTERES} caracteres (${PRESUPUESTO_PAREJA_TOKENS} tokens, caracteres/${CARACTERES_POR_TOKEN})`
+    );
+  }
   const recorte = recortarAnalizado(fullDocumentText, isExhaustive);
-  if (recorte.recortado) {
+  // Encendido, este recorte no es el que lee el juez: cada pareja dice el suyo.
+  if (recorte.recortado && !parejaEntera) {
     // F-53: antes pasaba en silencio (slice puro). El formato barato reduce
     // cuánto ocurre esto (medido: RRHH-06 deja de necesitarlo), pero no lo
     // elimina — OPE-06 lo sigue necesitando, y ahora queda dicho.
@@ -1087,6 +1108,9 @@ export async function judgeAllDocuments(args: {
       chunksByDocument: args.chunksByDocument,
       fallbackTexts: args.fallbackTexts,
       analizado,
+      parejaEntera,
+      analizadoCompleto: fullDocumentText,
+      analizadoConTrozos: hasChunks,
     }),
     { batchSize: JUDGE_CONCURRENCY },
   );
@@ -1094,7 +1118,9 @@ export async function judgeAllDocuments(args: {
   return {
     judgments: results.map(r => r.judgment),
     evidences: results.map(r => r.evidence),
-    textoAnalizado,
+    // F-116 describe el recorte ÚNICO de la tijera vieja. Encendido, el analizado
+    // se lee distinto en cada pareja, y lo dice `lecturaDeLasParejas`.
+    ...(parejaEntera ? {} : { textoAnalizado }),
     lecturaDeLasParejas: results.map(r => r.lectura),
   };
 }
@@ -1132,17 +1158,157 @@ export function lecturaDeLaPareja(args: {
   fragmentosEnviados: DocumentFragment[];
   textoEnviado: string;
 }): LecturaDeLaPareja {
-  const conTrozos = args.candidatoChunks.length > 0;
-  const enviados = new Set(args.fragmentosEnviados.filter(f => !f.isContext).map(f => f.chunkIndex));
   return {
     documentId: args.documentId,
     regimen: 'tijera_vieja',
     analizado: args.analizado,
-    candidato: {
-      caracteres: conTrozos ? buildAnalyzedDocumentText(args.candidatoChunks, args.documentName).length : null,
-      mostrados: args.textoEnviado.length,
-      dejoFuera: conTrozos ? args.candidatoChunks.some(c => !enviados.has(c.chunkIndex)) : null,
-    },
+    candidato: ladoCandidatoPorRelevancia(args.candidatoChunks, args.documentName, args.fragmentosEnviados, args.textoEnviado),
     presupuesto: null,
   };
+}
+
+/** El lado candidato cuando va por relevancia (tijera vieja y corte honesto). */
+function ladoCandidatoPorRelevancia(
+  chunks: StoredChunk[],
+  documentName: string,
+  fragmentos: DocumentFragment[],
+  bloque: string,
+): LecturaDeLaPareja['candidato'] {
+  const conTrozos = chunks.length > 0;
+  const enviados = new Set(fragmentos.filter(f => !f.isContext).map(f => f.chunkIndex));
+  return {
+    caracteres: conTrozos ? buildAnalyzedDocumentText(chunks, documentName).length : null,
+    mostrados: bloque.length,
+    dejoFuera: conTrozos ? chunks.some(c => !enviados.has(c.chunkIndex)) : null,
+  };
+}
+
+// ── ESCALÓN 1 (B.295): el presupuesto por PAREJA, detrás de un interruptor ──
+
+/** El interruptor. Sólo lo lee el modo RÁPIDO (C3): en exhaustivo no se mira. */
+export const INTERRUPTOR_PAREJA_ENTERA = 'ANALYSIS_PAREJA_ENTERA';
+
+/**
+ * El presupuesto de la pareja: 10.000 tokens ≈ 40.000 caracteres.
+ * ⚠️ LA CONVERSIÓN ES caracteres / 4, la MISMA de las SQL de F-118
+ * (`SQL_F118_tamanos_por_pareja.sql` y `SQL_F118_pareja_mayor_posible.sql`, «la
+ * equivalencia que usó F-116»). Cambiarla aquí sin cambiarla allí hace que el
+ * «10.000» del código y el de las mediciones dejen de significar lo mismo.
+ */
+export const PRESUPUESTO_PAREJA_TOKENS = 10_000;
+export const CARACTERES_POR_TOKEN = 4;
+export const PRESUPUESTO_PAREJA_CARACTERES = PRESUPUESTO_PAREJA_TOKENS * CARACTERES_POR_TOKEN;
+
+/**
+ * Lo que el corte honesto reserva al candidato: lo que recibe hoy, el
+ * presupuesto rápido de `retrieval.ts` (`presupuestoPorCandidato(false)`). No se
+ * importa porque `retrieval.ts` ya importa de este fichero; lo sincroniza un test
+ * (`pareja-entera.test.ts`).
+ */
+export const SUELO_DEL_CANDIDATO = 3000;
+
+/**
+ * El interruptor, FALLANDO CERRADO: se enciende SÓLO con el valor exacto '1'.
+ * Presente con cualquier otro valor, se queda apagado y lo dice en el log: que no
+ * se pueda encender ni apagar por accidente sin que se vea. Ausente, en silencio:
+ * con el interruptor apagado el log es el de siempre.
+ */
+export function interruptorParejaEntera(): boolean {
+  const valor = process.env[INTERRUPTOR_PAREJA_ENTERA];
+  if (valor === '1') return true;
+  if (valor !== undefined) {
+    console.warn(`[judge] ${INTERRUPTOR_PAREJA_ENTERA}="${valor}" no es "1": el interruptor se queda APAGADO`);
+  }
+  return false;
+}
+
+/**
+ * C3 (B.295): el interruptor es SÓLO del modo rápido. En exhaustivo no se lee
+ * —ni avisa—, así que el exhaustivo no puede salir nunca de la tijera vieja.
+ */
+export function parejaEnteraEnEsteModo(exhaustivo: boolean): boolean {
+  return !exhaustivo && interruptorParejaEntera();
+}
+
+/**
+ * LA PUERTA DEL JUEZ (B.295): qué texto de cada lado entra en la llamada de esta
+ * pareja, y la lectura que lo describe. UNA función decide los textos y escribe
+ * la lectura, así que no pueden separarse.
+ *   · Interruptor apagado → tijera vieja, lo de siempre.
+ *   · Un lado sin trozos → tijera vieja también: no se puede medir la pareja con
+ *     una sola fuente (decisión del arquitecto, 29/09/2026).
+ *   · Cabe → `pareja_entera`: los dos lados ENTEROS, renderizados con
+ *     `buildAnalyzedDocumentText`.
+ *   · No cabe → `corte_honesto`: el analizado por posición hasta el presupuesto
+ *     menos el suelo del candidato, y el candidato con su selección por
+ *     relevancia de siempre (≤ el suelo). El comportamiento de hoy, declarado.
+ */
+export function leerLaPareja(a: {
+  parejaEntera: boolean;
+  documentId: string;
+  documentName: string;
+  analizadoCompleto: string;
+  analizadoConTrozos: boolean;
+  /** El texto y el lado de la tijera vieja (`recortarAnalizado`). */
+  analizadoViejo: { texto: string; lado: LecturaDeLaPareja['analizado'] };
+  candidatoChunks: StoredChunk[];
+  fragmentosEnviados: DocumentFragment[];
+  /** El bloque del candidato por relevancia (`buildExistingFragsBlock`). */
+  bloqueRelevancia: string;
+}): { textoAnalizado: string; bloqueCandidato: string; lectura: LecturaDeLaPareja } {
+  if (!a.parejaEntera || !a.analizadoConTrozos || a.candidatoChunks.length === 0) {
+    return {
+      textoAnalizado: a.analizadoViejo.texto,
+      bloqueCandidato: a.bloqueRelevancia,
+      lectura: lecturaDeLaPareja({
+        documentId: a.documentId,
+        documentName: a.documentName,
+        analizado: a.analizadoViejo.lado,
+        candidatoChunks: a.candidatoChunks,
+        fragmentosEnviados: a.fragmentosEnviados,
+        textoEnviado: a.bloqueRelevancia,
+      }),
+    };
+  }
+  const completo = a.analizadoCompleto;
+  const candidatoEntero = buildAnalyzedDocumentText(a.candidatoChunks, a.documentName);
+  const presupuesto = PRESUPUESTO_PAREJA_CARACTERES;
+
+  if (completo.length + candidatoEntero.length <= presupuesto) {
+    return {
+      textoAnalizado: completo,
+      bloqueCandidato: candidatoEntero,
+      lectura: {
+        documentId: a.documentId,
+        regimen: 'pareja_entera',
+        analizado: { caracteres: completo.length, mostrados: completo.length, dejoFuera: false },
+        candidato: { caracteres: candidatoEntero.length, mostrados: candidatoEntero.length, dejoFuera: false },
+        presupuesto,
+      },
+    };
+  }
+
+  const topeDelAnalizado = presupuesto - SUELO_DEL_CANDIDATO;
+  const recortado = completo.length > topeDelAnalizado;
+  const texto = recortado ? completo.slice(0, topeDelAnalizado) : completo;
+  return {
+    textoAnalizado: texto,
+    bloqueCandidato: a.bloqueRelevancia,
+    lectura: {
+      documentId: a.documentId,
+      regimen: 'corte_honesto',
+      analizado: { caracteres: completo.length, mostrados: texto.length, dejoFuera: recortado },
+      candidato: ladoCandidatoPorRelevancia(a.candidatoChunks, a.documentName, a.fragmentosEnviados, a.bloqueRelevancia),
+      presupuesto,
+    },
+  };
+}
+
+/** La línea del log de una pareja, de la MISMA lectura que se guarda. Sólo se
+ *  imprime con el interruptor encendido: apagado, el log es el de siempre. */
+export function lineaDeLaLectura(documentName: string, l: LecturaDeLaPareja): string {
+  const lado = (x: { caracteres: number | null; mostrados: number; dejoFuera: boolean | null }) =>
+    `${x.mostrados}/${x.caracteres ?? '?'}${x.dejoFuera ? ' (dejó fuera)' : ''}`;
+  return `[judge] "${documentName}": pareja ${l.regimen} — analizado ${lado(l.analizado)}, ` +
+    `candidato ${lado(l.candidato)}, presupuesto ${l.presupuesto ?? '—'}`;
 }

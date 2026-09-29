@@ -451,8 +451,10 @@ export interface FinalAnalysis {
    * MAGNITUD, y la cláusula 2 de `claude/Contrato_Contadores.md` admite sólo
    * recuentos de decisión. Viaja como `termometro`, dentro del jsonb `analysis`.
    *
-   * Ausente = el juez no corrió (sin candidatos, duplicado exacto) o el
-   * análisis es anterior al 27/09. Nadie decide nada con él.
+   * Ausente = el juez no corrió (sin candidatos, duplicado exacto), el
+   * análisis es anterior al 27/09, o el interruptor del escalón 1 estaba
+   * encendido (B.295): entonces el analizado se lee distinto en cada pareja, y
+   * lo dice `lecturaDeLasParejas`. Nadie decide nada con él.
    */
   textoAnalizado?: TextoAnalizado;
   /**
