@@ -674,6 +674,31 @@ está truncada, o el patrón puede no casar, decirlo. Es más barato que
 retractarse en la consulta siguiente.
 
 
+## ⚠️ EL ARQUITECTO ESTÁ SUJETO A LA MISMA REGLA QUE CODE: UNA CIFRA QUE VA A UNA FICHA SE MIDE O SE ESCRIBE «NO CONSTA»
+
+*Escrita a petición del arquitecto el 29/09/2026, sobre un caso suyo.*
+
+> **El arquitecto está sujeto a la misma regla que Code: una cifra que va a una
+> ficha se mide o se escribe «no consta». Si el arquitecto pide una cifra concreta
+> que no está medida, Code se niega y lo dice. Negarse no es desobedecer: es la
+> regla.**
+
+**EL CASO QUE LA PRODUJO.** 29/09/2026, B.273. El arquitecto pidió escribir «14
+parejas distintas», por aritmética: 28 pares ordenados, contados dos veces.
+- Code leyó la consulta: la restricción al corpus está sólo en el candidato
+  (`SQL_F118_pareja_mayor_posible.sql:82`). Una pareja sólo sale dos veces si los
+  dos lados están en el corpus, así que la inferencia no se sostenía.
+- El propio literal apuntaba al revés: dos documentos grandes FUERA del corpus
+  contra los 14 candidatos serían 28 parejas distintas, no 14.
+- Code escribió «28 pares ordenados; parejas distintas: no consta», con la
+  consulta 4 pendiente. El arquitecto lo confirmó.
+
+**Por qué va en el protocolo y no se queda en la ficha**: la petición llegó en la
+misma frase en la que el arquitecto exigía precisión. Quien pide rigor no queda
+fuera de él. Y es la cadena de relevo de siempre —una cifra que viaja sin
+medirse, B.289—, esta vez de arriba abajo.
+
+
 ## ⚠️ TODA CONSULTA SOBRE EL JUEZ LISTA QUÉ RECIBE CADA LADO
 
 *Promovida de F-118 el 28/09/2026 (regla de custodia, `:179`). La dictó Fable:*

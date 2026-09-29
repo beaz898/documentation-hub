@@ -7957,6 +7957,50 @@ la marcha.
   reenvío, no un silencio: si `lecturaDeLasParejas` está presente, la ausencia significa
   «se leyó distinto en cada pareja».
 
+### ⚠️ B.297 — LA LECTURA DE TROZOS SIN PAGINAR, y su margen medido (29/09/2026)
+
+`getChunksForDocuments` (`lib/read-chunks.ts`) era UNA consulta sin paginar. Supabase corta
+cada respuesta en el tope de filas del proyecto, **sin error**. Cortada por `chunk_index`,
+se pierde la COLA de cada documento: el entero del escalón 1 (B.295), el pajar de
+verificación de citas y los `caracteres` de B.281.
+- **El margen, medido por el director el 29/09**: Max Rows = **1.000** y `document_chunks`
+  de a9625e93 = **569**, el **57 %**. Hoy no corta: ningún subconjunto de candidatos pasa
+  de 569. **Riesgo latente, no vivo.**
+- **No es un riesgo lejano.** A un corpus de cliente de distancia, el tope se cruza sin
+  aviso. La razón de paginar no es que hoy falle: es que el número que decide si falla vive
+  en un panel, fuera del código, y puede cambiar sin que nadie toque el repositorio.
+- ✅ **Paginada en `eaf0718c`** (`lib/leer-todas-las-paginas.ts`). Avanza por las filas
+  RECIBIDAS y para en la página VACÍA, no en la «corta»: con el tope por debajo del tamaño
+  de página, parar en la corta dejaría filas sin leer. La prueba simula un tope de 3.
+- ⚠️ **CENSO POR CAPACIDAD**: las lecturas de filas de `document_chunks` sin paginar. El
+  comando: `grep -rn "from('document_chunks')" app lib worker/src`; las demás son
+  recuentos, inserciones y borrados. Eran **tres**:
+  - `getChunksForDocuments`: PAGINADA;
+  - `getDocumentChunks` (`read-chunks.ts:71`): un solo documento;
+  - `loadFragmentContexts` (`lib/analysis/fragment-context.ts:89`): el contexto de los
+    fragmentos, sobre el mismo conjunto de documentos que la primera.
+
+  Las dos últimas SIN paginar, **pendientes de decisión del arquitecto**. El mismo ayudante
+  les sirve.
+- **Pendiente**: el `count(*)` de `document_chunks` de la OTRA organización, 5a82712f. Si
+  pasa de 1.000, sus análisis sí se cortaban en silencio, y lo medido allí en las tandas de
+  agosto queda bajo sospecha. Ficha propia si sale grande.
+
+### 📋 B.298 — LAS GENERACIONES MUERTAS SE COMEN EL PRESUPUESTO DE FILAS (constancia, no arreglo; 29/09/2026)
+
+`getChunksForDocuments` trae los trozos de TODAS las generaciones y filtra por la
+generación activa después, en código (`lib/read-chunks.ts`). Parte de las filas son de
+generaciones obsoletas, que se traen para tirarlas y cuentan contra el tope.
+- **El número de hoy**: 569 trozos en total en a9625e93. **Cuántos son de generaciones no
+  activas: no consta.** Lo diría
+  `SELECT count(*) FROM document_chunks c JOIN documents d ON d.id = c.document_id
+  WHERE c.org_id = 'a9625e93-af2a-4416-a465-5c2fa2a25bdf' AND c.generation <> d.active_generation;`.
+- **Filtrar por generación en la propia consulta daría el MISMO resultado** —el código ya
+  filtra— y consumiría menos del tope, y menos páginas.
+- **No se hace ahora** (arquitecto, 29/09). La paginación ya resuelve el problema entero, y
+  no se hacen dos cambios en el mismo sitio antes de una medida. Se decide cuando el
+  interruptor del escalón 1 esté decidido, junto con el reparto de `judge.ts` (B.296).
+
 ### 📋 B.296 — `lib/analysis/judge.ts` TIENE 1.338 LÍNEAS, y no se parte todavía (29/09/2026)
 
 Medido en `3733f75f`, 29/09/2026: **1.338 líneas**. La regla de la casa es 400. Creció con
