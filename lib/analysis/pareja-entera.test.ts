@@ -92,6 +92,16 @@ describe('la puerta del juez', () => {
     expect(r.lectura.candidato.dejoFuera).toBe(true);
     expect(r.lectura.analizado.dejoFuera).toBe(false);
   });
+  it('el caso real del 29/09: NOR-11 (14.704) contra NOR-10 (66.801) y contra CLI-12 (55.135) → paso 3, el analizado ENTERO y el candidato por relevancia', () => {
+    for (const nC of [66_801, 55_135]) {
+      const r = pareja(14_704, nC);
+      expect(r.lectura.regimen).toBe('corte_honesto');
+      expect(r.bloqueCandidato).toBe('bloque-por-relevancia');
+      expect(r.lectura.analizado).toEqual({ caracteres: 14_704, mostrados: 14_704, dejoFuera: false });
+      expect(r.lectura.candidato.dejoFuera).toBe(true);
+    }
+    expect(pareja(14_704, 9_817).lectura.regimen).toBe('pareja_entera');   // y CLI-13, entera
+  });
   it('D-3 el suelo del paso 3 aguanta aunque el bloque fuera enorme (hoy inalcanzable: el bloque es ≤ 3.000)', () => {
     const r = pareja(50_000, 36_000, true, { bloqueRelevancia: 'r'.repeat(35_000) });
     expect(r.lectura.analizado.mostrados).toBe(SUELO_DEL_ANALIZADO);
