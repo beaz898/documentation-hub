@@ -7075,6 +7075,25 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     CINCO DOCUMENTOS CON TEXTO Y SIN TROZOS: HOY LOS TAPA
     EL TEXTO PLANO, Y EL DÍA QUE SE RETIRE SE QUEDAN SIN NADA
 
+    ⚠️ ══ 29/09/2026 — UN SEXTO, Y NO ESTÁ ENTRE LOS CINCO (constancia, no
+    arreglo) ══
+    Los logs del 29/09 que trae el arquitecto, análisis rápidos de NOR-11 / CLI-13:
+    «Chunks para verificación: 1/2 documentos con chunks (1 por full_text de
+    respaldo)». El candidato sin trozos es Normas_Frecuencia_Recogidas.docx, y
+    **no es ninguno de los cinco de abajo**. Esta ficha no dejó escrita la
+    organización que midió.
+    Tres explicaciones, y ninguna se da por buena todavía:
+      · es de la otra organización y anterior a F-20 (causa 2, historia);
+      · es la causa (1) materializándose por primera vez: una indexación que
+        falló en silencio (`persist-chunks.ts:42`);
+      · tiene trozos, pero de otra generación que la del vector (causa NUEVA:
+        para el pipeline es lo mismo que no tenerlos).
+    Importa ahora porque el escalón 1 (B.295) no puede leer entera una pareja con
+    un lado sin trozos: sale `sin_fuente_comun`. La parte del corpus así es la
+    parte a la que el escalón 1 no llega.
+    Lo mide `SQL_Documentos_Sin_Chunks.sql` (pendiente de ejecutar), con las dos
+    organizaciones y las tres causas.
+
     ══ EL DATO ══
     Cinco documentos del corpus tienen `full_text` y **cero filas en
     `document_chunks`**. Hoy no molestan porque todo lo que necesita texto lo

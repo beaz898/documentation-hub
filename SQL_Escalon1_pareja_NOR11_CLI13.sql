@@ -9,10 +9,10 @@
 -- Una fila por análisis. El plan de medida está en claude/Estado_Del_MVP.md, B.295:
 -- 5 pasadas por dirección con el interruptor apagado y 5 encendido.
 --
--- LAS DOS ORGANIZACIONES, con su columna: 5a82712f (tandas de agosto) y a9625e93
--- (la del director). Los análisis anteriores al despliegue de `34d67fb5` (29/09) no
--- tienen `lecturaDeLasParejas`, y los anteriores a `5637856c` tampoco
--- `presupuestoDelCandidato`: salen NULL, no 0.
+-- QUÉ ANÁLISIS CUENTA (arquitecto, 29/09): SÓLO los de la organización del director
+-- (a9625e93) posteriores al despliegue de D-1. Los dos valores están arriba, en
+-- `parametros`, y es lo único que se toca. La organización de las tandas de agosto
+-- (5a82712f) queda fuera: la medida sale de un solo programa y de una sola base.
 --
 -- LA PAREJA DENTRO DEL ANÁLISIS: el candidato de la otra mitad se busca en
 -- `judgments` por nombre, y su `documentId` elige la entrada de las dos listas por
@@ -30,11 +30,22 @@
 -- `usage_logs.latency_ms` (supabase-setup.sql:440), con endpoint '/api/analyze-v2'.
 -- ============================================================================
 
-WITH analisis AS (
+WITH parametros AS (
+  -- ═══════════════════════════════════════════════════════════════════════════
+  -- ⬅️ EL DIRECTOR CAMBIA SÓLO ESTA LÍNEA: la fecha y hora del despliegue de D-1,
+  -- CON su zona. En Madrid, hoy, «+02». Ejemplo de forma: '2026-09-29 13:30:00+02'.
+  -- Tal como viene da un ERROR a propósito: sin la hora, la consulta mezclaría
+  -- análisis de antes de D-1 y no se notaría (falla cerrado).
+  SELECT timestamptz 'PON AQUI LA HORA DEL DESPLIEGUE DE D-1' AS desde,
+  -- ═══════════════════════════════════════════════════════════════════════════
+         'a9625e93-af2a-4416-a465-5c2fa2a25bdf'::text AS org   -- la del director: la medida cuenta sólo ésta
+),
+analisis AS (
   SELECT ar.id, ar.org_id, ar.created_at, ar.analysis_type, ar.document_name AS analizado, ar.analysis,
          CASE WHEN ar.document_name LIKE 'NOR-11%' THEN 'CLI-13' ELSE 'NOR-11' END AS pareja_de
-  FROM public.analysis_results ar
-  WHERE ar.org_id IN ('5a82712f-6740-4792-b291-3fdea8e6edb1', 'a9625e93-af2a-4416-a465-5c2fa2a25bdf')
+  FROM public.analysis_results ar, parametros p
+  WHERE ar.org_id = p.org
+    AND ar.created_at >= p.desde
     AND (ar.document_name LIKE 'NOR-11%' OR ar.document_name LIKE 'CLI-13%')
 ),
 con_pareja AS (
@@ -70,6 +81,14 @@ SELECT
   (reparto->>'caracteres')::int                           AS retrieval_candidato_caracteres,
   (reparto->>'mostrados')::int                            AS retrieval_candidato_mostrados,
   (reparto->>'dejoFuera')::boolean                        AS retrieval_candidato_dejo_fuera,
+  -- P-6 (B.295): TODAS las parejas del análisis con su régimen, no sólo la de la
+  -- otra mitad. Con el interruptor encendido se espera una 'pareja_entera' y una
+  -- 'sin_fuente_comun' (Normas_Frecuencia_Recogidas.docx).
+  (SELECT string_agg(coalesce(
+            (SELECT j->>'documentName' FROM jsonb_array_elements(coalesce(analysis->'judgments', '[]'::jsonb)) AS j
+              WHERE j->>'documentId' = l->>'documentId' LIMIT 1), l->>'documentId')
+          || ': ' || (l->>'regimen'), ' · ')
+    FROM jsonb_array_elements(coalesce(analysis->'lecturaDeLasParejas', '[]'::jsonb)) AS l) AS regimenes_de_todas,
   -- Lo publicado con la pareja
   (SELECT count(*) FROM jsonb_array_elements(coalesce(analysis->'discrepancies', '[]'::jsonb)) AS d
     WHERE d->>'existingDocument' LIKE pareja_de || '%')   AS contradicciones,

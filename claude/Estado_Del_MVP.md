@@ -7814,6 +7814,23 @@ pareja, detrás de un interruptor.
 - **P-4.** La latencia del modo rápido en esta pareja subirá de ~20 s a entre 25 y 40 s.
 - **P-5.** Ninguna pareja se quedará sin analizar por tamaño: las que no quepan saldrán con
   `regimen = 'corte_honesto'`.
+- **P-6.** Escrita por el arquitecto el 29/09 a las **11:42**, después del informe del commit 1
+  y antes de que existiera el commit 2 (`2467b203` es de las **11:44**). Archivada aquí a las
+  12:05, con el commit 2 ya subido y antes de cualquier medición con el interruptor encendido.
+  Literal:
+  > Con el interruptor encendido, cada análisis de la pareja NOR-11 / CLI-13 producirá dos
+  > entradas en lecturaDeLasParejas: una con regimen = 'pareja_entera' (el documento de la
+  > pareja) y otra con regimen = 'sin_fuente_comun' (Normas_Frecuencia_Recogidas.docx, que hoy
+  > llega por full_text de respaldo). Que la segunda no se pueda leer entera no impedirá que
+  > la primera sí. Si las dos salen con el mismo régimen, algo está mal en la detección de
+  > fuente.
+
+  ⚠️ **Depende de D-1** (el régimen `sin_fuente_comun`), que no está en `main` cuando se
+  archiva. Con el commit 2 tal cual, esa segunda entrada saldría `tijera_vieja`. **El
+  interruptor no se enciende hasta que D-1 esté desplegado.**
+  El dato de partida es de los logs del 29/09 que trae el arquitecto: «Chunks para
+  verificación: 1/2 documentos con chunks (1 por full_text de respaldo)». No está medido
+  aquí; lo contrasta `SQL_Documentos_Sin_Chunks.sql`.
 
 **CRITERIOS DE REVERSIÓN** — si se cumple uno, se apaga y se mide por qué. No se parchea sobre
 la marcha.
@@ -7823,6 +7840,41 @@ la marcha.
 - **R-3.** Si el modo rápido pasa de 60 s en esta pareja.
 - **R-4.** Si algún análisis falla por exceso de contexto del proveedor. Eso no sería un
   corte, sería un error: significaría que el presupuesto está mal calculado.
+
+**D-3 (arquitecto, 29/09, corrige el punto 3(b) del encargo antes de medir).**
+- **Por qué.** Con el candidato en su bloque de relevancia (≤3.000), el `corte_honesto` era
+  casi indistinguible de la tijera vieja justo en las parejas grandes. No se puede
+  re-seleccionar por relevancia con más presupuesto: lo recuperado no sobrevive al rerank, y
+  retrieval no se toca.
+- **La forma, en cascada:**
+  1. el candidato va ENTERO si cabe en 40.000 − 6.000 (6.000 = lo que el analizado recibe
+     hoy);
+  2. el analizado se lleva el resto, por posición, nunca menos de 6.000;
+  3. si el candidato entero no cabe ni así, vuelve a su bloque por relevancia, y el
+     analizado se lleva el resto.
+- **El invariante, a probar con mutante.** Con el interruptor encendido, en los cuatro
+  regímenes, ningún lado recibe menos CONTENIDO que con la tijera vieja.
+- ⏸️ **Implementación PARADA el 29/09** por la comprobación (a): ver el informe de Code de
+  ese día.
+- ⚠️ **EL CORTE HONESTO NO SE VA A EJERCITAR EN ESTA MEDIDA**, dicho por el arquitecto antes
+  de medir. NOR-11 (14.704) + CLI-13 (9.817) = 24.521 caracteres caben de sobra en 40.000.
+  Saldrán `pareja_entera` y `sin_fuente_comun`, nunca `corte_honesto`. **Su ausencia en la
+  medida no es una prueba.** Hasta que una pareja grande pase por producción, del corte
+  honesto sólo hay pruebas unitarias y mutantes.
+- **`textoAnalizado` ausente con el interruptor encendido: aceptado como decisión.** Es un
+  reenvío, no un silencio: si `lecturaDeLasParejas` está presente, la ausencia significa
+  «se leyó distinto en cada pareja».
+
+### 📋 B.296 — `lib/analysis/judge.ts` TIENE 1.338 LÍNEAS, y no se parte todavía (29/09/2026)
+
+Medido en `3733f75f`, 29/09/2026: **1.338 líneas**. La regla de la casa es 400. Creció con
+el escalón 1 (B.295): era de unas 1.130 antes del commit 1.
+- **No se parte ahora, y el motivo no es la prisa** (arquitecto, 29/09). Partirlo en mitad de
+  una medida cambiaría el fichero del que depende la medida entre la línea de base y la
+  comparación. Eso contamina el «antes y después» por una razón que no tiene nada que ver con
+  lo que se mide.
+- **Se parte cuando el interruptor esté decidido**: encendido para quedarse, o apagado y
+  revertido. No antes.
 
 ### 📋 B.294 — PREDICCIÓN, ESCRITA ANTES DEL CAMBIO: la fase 3 del principio del detector (29/09/2026)
 

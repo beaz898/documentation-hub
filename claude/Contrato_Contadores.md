@@ -377,6 +377,47 @@ coinciden es justo el que la pregunta existe para pillar.
 
 ---
 
+## 2-quinquies. Una DECISIÓN que no se puede tomar no se contesta con un valor por defecto: se contesta con «no consta» (29/09/2026)
+
+> **Una DECISIÓN que no se puede tomar no se contesta con un valor por defecto, se
+> contesta con «no consta». Si una función puede no poder contestar, el no-poder va
+> en el tipo, no en el comentario.**
+
+Es la regla de la casa sobre los fallos —si una función puede fallar, el fallo va en
+el tipo de retorno— aplicada a las decisiones. Un `false` o un `0` ya significan
+algo: que se miró y no había. Usarlos para «no se pudo mirar» hace que las dos cosas
+se lean igual aguas abajo.
+
+**LOS DOS CASOS QUE LA PRODUJERON**, los dos por lo mismo: un candidato sin trozos
+(indexado antes de F-20, o sin trozos por otra causa, B.190).
+1. **B.281, la estación del retrieval.** `RepartoDelCandidato.caracteres` es
+   `number | null` (`lib/analysis/types.ts:543`), y `repartoDelCandidato` escribe
+   `null` sin trozos (`lib/analysis/retrieval.ts:216`). Un 0 se leería como
+   «candidato vacío».
+2. **B.295, la estación del juez.** `LecturaDeLaPareja.candidato.dejoFuera` es
+   `boolean | null` (`lib/analysis/types.ts:510`), y `ladoCandidatoPorRelevancia`
+   escribe `null` sin trozos (`lib/analysis/judge.ts:1189`). Un `false` afirmaría
+   que el juez leyó el candidato entero, y eso no consta.
+
+El primero fue un juicio de Code. El segundo lo repitió, y con dos casos deja de ser
+juicio y pasa a ser regla (arquitecto, 29/09/2026).
+
+**Y DONDE NO APLICA, dicho para que nadie lo «arregle»:** `analizado.caracteres` de
+la misma lectura es `number`, no `number | null`, porque el analizado NUNCA llega al
+juez sin un texto conocido. Los tres caminos que llaman al pipeline exigen texto
+antes:
+- `app/api/analyze-v2/route.ts:381`: rechaza un texto de menos de 50 caracteres;
+- `app/api/admin/examen/analizar.ts:67`: falla cerrado sin `full_text` utilizable;
+- el worker lee `document_text`, que es `NOT NULL` (`supabase-setup.sql:374`) y lo
+  escribe `analyze-v2` después de esa misma guarda (`route.ts:537`).
+
+Sin trozos, el analizado se lee en texto plano (`judge.ts`, `buildAnalyzedDocumentText`
+o su respaldo), pero su tamaño sigue siendo conocido. Lo que no hay entonces es una
+FUENTE COMÚN con el candidato, y eso lo dice el régimen `sin_fuente_comun`, no un
+`null`.
+
+---
+
 ## 3. LO QUE SE DESCARTÓ, dicho para que no se vuelva a proponer
 
 **Retención y versionado del esquema de contadores.** Es lo primero que apetece
