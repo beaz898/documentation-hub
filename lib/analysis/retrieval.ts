@@ -190,6 +190,16 @@ function resolveExhaustiveBudget(): number {
 }
 
 /**
+ * B.281 (29/09/2026): EL presupuesto por candidato de un análisis, en caracteres.
+ * Una sola función para el log y para el campo que se guarda con el resultado
+ * (`FinalAnalysis.presupuestoDelCandidato`): si fueran dos expresiones, el día que
+ * se separaran el análisis guardado diría un número y el log otro.
+ */
+export function presupuestoPorCandidato(isExhaustive: boolean): number {
+  return isExhaustive ? resolveExhaustiveBudget() : FRAGMENT_BUDGET_CHARS_QUICK;
+}
+
+/**
  * Qué filtro de corpus usa esta recuperación. Los dos filtros siguen intactos y
  * cada uno hace siempre lo mismo; lo único que se elige aquí es CUÁL, y se elige
  * por un DATO que entra por el borde, no por quién llama (26/09/2026).
@@ -249,6 +259,9 @@ export async function retrieveCandidates(args: {
   /** F-114 — el termómetro de ESTA recuperación. Se calcula aquí porque aquí
    *  están los datos, y viaja al `FinalAnalysis` para persistirse en el jsonb. */
   termometro: Termometro;
+  /** B.281 — el presupuesto por candidato con el que se repartieron los
+   *  fragmentos, en caracteres (`presupuestoPorCandidato`). */
+  presupuestoPorCandidato: number;
 }> {
   const { sampleTexts, orgId, excludeDocumentId, batchDocumentIds, idsDelCorpusExacto, options, supabase, newDocumentChunks } = args;
   const isExhaustive = options?.exhaustive === true;
@@ -390,10 +403,10 @@ export async function retrieveCandidates(args: {
 
   // F-73: el presupuesto por candidato. El rápido conserva el suyo intacto; el
   // exhaustivo lee la variable de experimento (ver resolveExhaustiveBudget).
-  // Se resuelve UNA vez por análisis, no por candidato, y se registra: sin esta
-  // línea en el log no hay forma de saber, al leer una tanda, con qué
-  // presupuesto se midió.
-  const budgetChars = isExhaustive ? resolveExhaustiveBudget() : FRAGMENT_BUDGET_CHARS_QUICK;
+  // Se resuelve UNA vez por análisis, no por candidato, y se registra. Desde el
+  // 29/09/2026 (B.281) viaja además con el resultado: el log sólo lo cuenta a
+  // quien lee la tanda, y un análisis guardado no decía con qué se hizo.
+  const budgetChars = presupuestoPorCandidato(isExhaustive);
   console.log(
     `[retrieval] presupuesto por candidato: ${budgetChars} chars, tope ${MAX_FRAGMENTS_PER_DOC_QUICK} piezas ` +
     `(modo ${isExhaustive ? 'exhaustivo' : 'rapido'})`
@@ -591,6 +604,7 @@ export async function retrieveCandidates(args: {
     structuralOverlaps: structuralOverlapsByDocument,
     selectionLimits: selectionLimitsByDocument,
     descartesDeRecuperacion: { cortadosPorTope: corte.cortados },
+    presupuestoPorCandidato: budgetChars,
   };
 }
 

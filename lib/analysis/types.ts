@@ -455,6 +455,21 @@ export interface FinalAnalysis {
    * análisis es anterior al 27/09. Nadie decide nada con él.
    */
   textoAnalizado?: TextoAnalizado;
+  /**
+   * 29/09/2026 — B.281: con qué presupuesto por candidato se repartieron los
+   * fragmentos que vio el juez. En rápido es fijo (3.000 caracteres); en
+   * exhaustivo lo decide `ANALYSIS_EXHAUSTIVE_BUDGET_CHARS` en el worker, y
+   * hasta hoy sólo salía en el log (`lib/analysis/retrieval.ts`), así que un
+   * exhaustivo guardado no decía si se hizo con 3.000 o con otra cosa.
+   *
+   * ⚠️ NO ES UN CONTADOR, por la misma razón que `textoAnalizado`: es una
+   * MAGNITUD, y la cláusula 2 de `claude/Contrato_Contadores.md` admite sólo
+   * recuentos de decisión. Viaja dentro del jsonb `analysis`.
+   *
+   * Ausente = el juez no corrió (sin candidatos, duplicado exacto) o el
+   * análisis es anterior al 29/09. Nadie decide nada con él.
+   */
+  presupuestoDelCandidato?: PresupuestoDelCandidato;
 }
 
 /** Caracteres del texto del analizado que armó el juez, y los que vio. En el
@@ -462,6 +477,11 @@ export interface FinalAnalysis {
 export interface TextoAnalizado {
   caracteres: number;
   mostrados: number;
+}
+
+/** El presupuesto por candidato del análisis, en caracteres. */
+export interface PresupuestoDelCandidato {
+  caracteres: number;
 }
 
 

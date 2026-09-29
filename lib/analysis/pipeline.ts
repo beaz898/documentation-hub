@@ -718,7 +718,7 @@ async function runCorePipeline(
   // lo que sí llegó a decidirse — que es justo lo más informativo.
   const counters: PipelineCounters = {};
 
-  const { candidates, chunksByDocument: chunksFromRetrieval, structuralOverlaps, selectionLimits, descartesDeRecuperacion, termometro } = await retrieveCandidates({
+  const { candidates, chunksByDocument: chunksFromRetrieval, structuralOverlaps, selectionLimits, descartesDeRecuperacion, termometro, presupuestoPorCandidato } = await retrieveCandidates({
     sampleTexts: input.sampleTexts,
     orgId: input.orgId,
     excludeDocumentId: input.excludeDocumentId,
@@ -1086,10 +1086,13 @@ async function runCorePipeline(
   // cerradas: la pieza nueva se cuelga del sitio que uno está mirando.
   // F-116: `textoAnalizado` va aquí por el mismo motivo que la cobertura. Sólo en
   // esta salida porque sólo en ella corrió el juez; en las tempranas, ausente.
+  // B.281: `presupuestoDelCandidato`, por el mismo motivo y con la misma regla —
+  // el presupuesto sólo decidió algo si el juez vio fragmentos repartidos con él.
   const final = {
     ...finalSinCobertura,
     coberturaDeCandidatos: cobertura,
     ...(textoAnalizado ? { textoAnalizado } : {}),
+    presupuestoDelCandidato: { caracteres: presupuestoPorCandidato },
   };
 
   if (limits.length === 0) return final;
