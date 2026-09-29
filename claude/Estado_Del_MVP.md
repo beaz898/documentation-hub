@@ -7326,7 +7326,24 @@ encabezados y los límites de trozo visibles (F-118 §5, escalón 1).
   pareja medida con un 29 % de margen (10.000 / 7.758), dobla el p95 y es once veces el p50.
   El 20.000 de Fable no lo decide ninguna pareja: todas caben con la mitad. ⚠️ **Tres salvedades
   que el número no tapa**: (1) **28 parejas de 106 no se pudieron medir** —sin `full_text` o sin
-  el candidato— y cualquiera puede ser mayor; se miran antes de fijarlo. (2) Son tokens del
+  el candidato— y cualquiera puede ser mayor; se miran antes de fijarlo.
+  ⚠️ **29/09 — PUEDE SER UN DEFECTO DEL CENSO, NO DATOS PERDIDOS.**
+  `analysis_results.document_id` no es clave ajena (`supabase-analysis-status.sql:30`), y el
+  censo sólo buscaba por nombre si el id era nulo. Así que un análisis cuyo documento se
+  borró y volvió a entrar contaba como no medible, aunque hoy exista uno con su nombre.
+  - **Por dónde vuelve a entrar un documento con id nuevo**, leído en el código:
+    - Drive borra la fila cuando el fichero desaparece del listado
+      (`app/api/drive/sync/route.ts:491-501`), y si reaparece entra con id nuevo;
+    - el usuario lo borra y lo sube otra vez;
+    - se borra una de las dos copias de una doble inserción (B.266).
+  - **Un fichero MODIFICADO no cambia de id**: va a `document_staged` como generación nueva
+    (`route.ts:344-349`).
+  - ⚠️ El encargo lo describió como «la sincronización borra y recrea documentos (B.266)»,
+    y **B.266 no es eso**: es el mismo fichero insertado dos veces. Conecta con este agujero
+    sólo si después se borra una de las copias.
+  - `SQL_F118_parejas_sin_medir.sql` (pendiente) separa esa causa (`id_sin_documento` con
+    documento de su nombre hoy). Si es la mayoría, las 28 no son datos perdidos: son este
+    defecto del censo. No dice por cuál de los tres caminos entró cada una. (2) Son tokens del
   TEXTO, no del prompt: las instrucciones del juez van aparte. (3) Caracteres/4 es la
   aproximación declarada en el SQL, no una tokenización. **Caso decisivo del número**: la
   pareja mayor medida; si se bajara a 7.000, esa pareja dejaría de caber entera.
