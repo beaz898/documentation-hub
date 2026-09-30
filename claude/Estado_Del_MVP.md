@@ -8096,6 +8096,122 @@ la marcha.
   reenvío, no un silencio: si `lecturaDeLasParejas` está presente, la ausencia significa
   «se leyó distinto en cada pareja».
 
+**RESULTADO DE LA MEDIDA (30/09/2026, archivado a las 10:16).** Interruptor ENCENDIDO, 30/09
+07:50–08:09 UTC. **Seis pasadas por dirección** (el plan decía cinco). Pareja aislada con un
+acompañante de tanda, y corpus quieto. Todas las pasadas imprimen
+`ANALYSIS_PAREJA_ENTERA=1 — presupuesto por pareja 40000 caracteres`.
+- ⚠️ **De dónde sale**: es un recuento del arquitecto sobre los logs del director. **Code no ha
+  visto esos logs.** La contraparte persistida es `SQL_Escalon1_pareja_NOR11_CLI13.sql`
+  (PENDIENTE DE EJECUTAR), con la ventana de arriba. **Si la base no cuadra, gana la base**, y
+  esta sección se corrige.
+- **Lo que sigue siendo condicional**: el veredicto depende de la naturaleza de los hallazgos.
+  Ver «LAS DOS PREGUNTAS AL DIRECTOR».
+
+| Dirección | Pasadas | Trampa del plazo | 2ª contradicción «color del contenedor» | FP «Fecha de última revisión» |
+|---|---|---|---|---|
+| CLI-13 → NOR-11 | 6 | 6 de 6 | — | — |
+| NOR-11 → CLI-13 | 6 | 6 de 6 | 6 de 6 | 0 de 6 |
+
+- **Línea de base, interruptor apagado** (del arquitecto; su ventana no consta aquí):
+  - CLI-13 → NOR-11: 6/6;
+  - NOR-11 → CLI-13: la trampa 0/8, la segunda 0/8 y el falso positivo 4/8.
+- **Régimen**: idéntico en las 12 pasadas, y confirmado en el log.
+  - CLI-13 / NOR-11 → `pareja_entera`: analizado 9817/9817 y candidato 14704/14704, o al
+    revés según la dirección, con presupuesto 40000;
+  - Normas_Frecuencia_Recogidas → `sin_fuente_comun`, con su aviso.
+- **Solapamiento**:
+  - CLI-13 → NOR-11 pasó del 35 % al 65 %;
+  - NOR-11 → CLI-13, del 35 % al 45 %.
+
+  Lo que cambia para el usuario va abajo.
+- **Latencias (ms)**:
+  - CLI-13: 22111, 20621, 20168, 19870, 20333 y 20125;
+  - NOR-11: 20960, 21005, 21072, 23755 y 20129.
+
+  Son **11 cifras para 12 pasadas: la que falta no consta.** Base: 15,4–18,6 s.
+
+**VEREDICTO: NINGÚN CRITERIO DE REVERSIÓN SE DISPARA. EL INTERRUPTOR SE QUEDA ENCENDIDO.** Se
+toma contra R-1…R-4, **escritos el 29/09 antes del cambio**, y no contra criterios elegidos a la
+vista del resultado.
+- **R-1.** Ninguna trampa estable dejó de salir. CLI-13 → NOR-11 sigue en 6/6.
+- **R-2.** La precisión SUBIÓ:
+  - el falso positivo desapareció (4/8 → 0/6);
+  - lo publicado en NOR-11 → CLI-13 pasó de 1 a 2 por pasada.
+
+  ⚠️ **Firme sólo si la segunda es una trampa**, y está PENDIENTE DE CONFIRMAR (abajo). Si
+  fuera un falso nuevo, R-2 se recalcula.
+- **R-3.** Máximo 23,8 s, muy por debajo de 60.
+- **R-4.** Ni un fallo de contexto del proveedor.
+
+**⚠️ CAMBIO VISIBLE DE PRODUCTO: la severidad del solapamiento.** Se decide así
+(`lib/analysis/synthesize.ts:167`):
+- `alta` con 60 % o más;
+- `media` con 30 % o más;
+- `baja` por debajo.
+
+Con el interruptor encendido:
+- **CLI-13 → NOR-11** pasa de 35 % (`media`) a **65 % (`alta`)**. El usuario ve esta pareja
+  marcada distinto.
+- **NOR-11 → CLI-13**, 45 %, sigue en `media`.
+
+Es el mismo 35 → 65 que dio el exhaustivo con el candidato entero (B.283). Ahora sale en el
+modo rápido, y por lo tanto en lo que ve todo usuario con el interruptor encendido.
+
+**LAS DOS PREGUNTAS AL DIRECTOR**, que cierran R-2. Ninguna se escribe como trampa hasta que
+conteste:
+1. **«Color del contenedor para residuos grupo III no punzantes»**: publicada y confirmada 6/6.
+   **Naturaleza PENDIENTE DE CONFIRMAR.**
+2. **«Ubicación del punto de retirada centralizado»**: emitida 6/6 y descartada 6/6 por cita no
+   verificable (B.299). **Naturaleza PENDIENTE DE CONFIRMAR.**
+- **Lo que ya dice el repositorio**, para que la respuesta sea corta.
+  - El registro de siembra de la pareja, `corpus-pruebas/SIEMBRA_caso_control.md`, enumera
+    «exactamente 3 contradicciones»: su contradicción 2 es la **ubicación** (Chamberí frente a
+    Retiro, `:53-66`) y la 3 el **color** del grupo III no punzante (amarillo frente a negro,
+    `:68-93`). Resumen en `:130-139`.
+  - Las dos salieron publicadas como trampas en la ventana de B.280.
+  - **Lo que falta es lo que sólo puede ver el director**: que los documentos de su corpus
+    sean los sembrados.
+
+**LAS PREDICCIONES, UNA A UNA. Tres cumplidas, cuatro falladas y ninguna salvada.**
+- ✅ **P-1 CUMPLIDA, y de sobra.** Pedía al menos 4 de 5 en cada dirección y salió 6/6 en
+  cada una.
+- ❌ **P-2 FALLADA.** Las celdas del experimento decisivo (B.280) son 6: tres trampas
+  (plazo, ubicación, color) por dos direcciones. Publicadas de forma estable salen **3 de 6**:
+  - el plazo en las dos direcciones;
+  - el color en NOR-11 → CLI-13.
+
+  P-2 pedía al menos 4.
+  - Por qué la ubicación no se cuenta: en NOR-11 → CLI-13 el juez la emite 6/6 y la
+    comprobación de citas la mata 6/6. **Un hallazgo que no llega al usuario no alcanza la
+    celda.** Contarla daría 4 de 6, y sería salvar la predicción con lo que el propio producto
+    tira.
+  - En CLI-13 → NOR-11 no consta nada más que el plazo.
+- ❌ **P-3 FALLADA.** Predijo que el falso positivo NO desaparecería, y desapareció: 4/8 → 0/6.
+  Su propia cláusula obliga a buscar qué más se movió.
+  - **HIPÓTESIS del arquitecto, sin investigar**: con los dos documentos enteros, el juez tiene
+    contradicciones de contenido que señalar y deja de recurrir al metadato de la fecha.
+- ❌ **P-4 FALLADA.** Predijo de 25 a 40 s y salió de 19,9 a 23,8 s.
+  - El arquitecto estima el coste real del cambio en 3 a 6 s, no en 8 a 23.
+  - Con lo que consta aquí sólo se deriva la horquilla entre extremos: de 1,3 s (19,87 − 18,6)
+    a 8,4 s (23,76 − 15,4). La base pasada a pasada no consta en esta ficha.
+- ✅ **P-5 CUMPLIDA.** Ninguna pareja se quedó sin analizar.
+  - ⚠️ Su segunda mitad («las que no quepan saldrán con `corte_honesto`») **no se ejercitó**:
+    en esta tanda no había ninguna pareja que no cupiera. Cumplida sin su caso decisivo.
+- ✅ **P-6 CUMPLIDA AL PIE DE LA LETRA.** `pareja_entera` + `sin_fuente_comun`, las 12 veces.
+  - Cumple la reescrita: el régimen lo decide el tamaño.
+  - Coincide también con la original de las 11:42, que nombraba a Normas_Frecuencia.
+- ❌ **P-7 FALLADA, Y EN LA DIRECCIÓN CONTRARIA.** Predijo que la proporción de descartes por
+  cita no verificable BAJARÍA, y SUBIÓ: **del 17 % al 50 %**.
+  - Encendido, NOR-11 a las 07:57:13: 10 emitidos, 5 descartados y 2 publicados.
+  - Apagado, la misma dirección a las 07:41:18: 6 emitidos, 1 descartado y 1 publicado.
+  - ⚠️ **Es un recuento de log, de UNA pasada por condición.** Cuenta contradicciones y
+    solapamientos juntos, igual que el contador persistido (`citaNoVerificable`, arriba).
+    El recuento de las 12 pasadas lo da la SQL.
+  - **La lectura del fallo, que es lo más útil de la medida**: con los documentos enteros el
+    juez encuentra MÁS, y su propia comprobación de citas mata la mitad. El escalón 1 no ha
+    empeorado nada: **ha destapado que el cuello de botella está en otro sitio**. B.299 pasa
+    de ficha a ser lo siguiente.
+
 ### ⚠️ B.299 — LA COMPROBACIÓN DE CITAS DEL JUEZ TIRA 5 DE 7 CONTRADICCIONES entre NOR-10 y CLI-12; LA CASCADA DEL VERIFICADOR, 1 MÁS (constancia y medida, SIN arreglo; 29/09/2026)
 
 ⚠️ **Retitulada el 29/09 por la noche.** El arquitecto había juntado las dos cosas en «el
@@ -8162,6 +8278,38 @@ con estos 7 y 5, gana la base** y esta ficha se corrige.
   afirmarlo.**
 - **No se arregla ahora.** Se mide primero el escalón 1, y esta pareja queda como su caso de
   prueba; va inmediatamente después. P-7 (B.295) mide si el escalón 1 lo mueve.
+- **EL DESCARTE ESTABLE (30/09/2026, medida del escalón 1, B.295).** Interruptor encendido,
+  NOR-11 → CLI-13, las SEIS pasadas, siempre igual (recuento del arquitecto sobre los logs del
+  director; Code no los ha visto):
+  `[976f6174]` «Ubicación del punto de retirada centralizado», cita no verificable,
+  `lado=nuevo`: «El punto de retirada centralizado concentra el material de las tres clínicas,
+  ubicado en la clínica de Chamberí».
+  - Es una contradicción candidata **encontrada 6/6 y matada 6/6** por la comprobación de
+    citas.
+  - Si es trampa sembrada —**PENDIENTE DE CONFIRMAR por el director**—, sería la tercera de la
+    pareja, y estaría **a un arreglo de la comprobación de citas de publicarse**.
+  - El registro de siembra la lista como su contradicción 2
+    (`corpus-pruebas/SIEMBRA_caso_control.md:53-66`).
+  - En la ventana de B.280 salió publicada en las dos direcciones.
+- **EL PESO DE LAS DOS HIPÓTESIS, con este caso.** Hasta ahora ninguna tenía letra en la ficha.
+  Se nombran aquí:
+  - **(a)** los corchetes: una anotación en un extremo de la cita;
+  - **(b)** el juez rehace la frase.
+
+  La cita descartada **no tiene corchetes ni anotaciones**. Parece una reformulación que junta
+  dos ideas del documento: **refuerza la (b) y no la (a)**. Contra el literal sembrado de NOR-11
+  (`SIEMBRA_caso_control.md:57`) —«El gestor autorizado recoge los residuos de las tres
+  clínicas **en un** punto de retirada centralizado, ubicado en la clínica de Chamberí…»—:
+  - «concentra el material» no está;
+  - la cita empieza por «El punto de retirada…», que no es como empieza la frase.
+
+  Eso tumba la cabeza del paso 3 de `findBestMatch`, aunque la cola sí casaría. ⚠️ Está
+  comparado contra el REGISTRO de siembra, **no contra el texto indexado del director**, que
+  Code no ha visto.
+- ⚠️ **Y ESTO CORRIGE LA «CONSECUENCIA, dicha antes de medir» de arriba.** Aquí el juez tenía
+  NOR-11 **ENTERO** delante (`pareja_entera`, 14704/14704) y aun así rehízo la frase. La
+  versión de (b) «reconstruye lo que no vio» **no explica este caso**. Lo explica «reescribe
+  aunque lo vea». Es coherente con el fallo de P-7: con más texto, más descartes, no menos.
 
 ### ⚠️ B.297 — LA LECTURA DE TROZOS SIN PAGINAR, y su margen medido (29/09/2026)
 
