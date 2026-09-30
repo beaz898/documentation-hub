@@ -9093,6 +9093,64 @@ Cubre las tres clases salvo un caso: el de un vector sin fila que además lleve 
 - **Quién puede cerrarlo**: el director, abriendo los dos documentos. Se lo ha pedido el
   arquitecto, para cuando tenga un rato.
 
+### ⚠️ B.305 — EL TOPE DE 120 MUESTRAS DEJA TROZOS DEL ANALIZADO POR LOS QUE NO SE PREGUNTA (latente, SIN arreglo; 30/09/2026)
+
+**La pregunta** (L-8 del arquitecto, sale de L-6): Fable predice que el candidato verdadero se
+pierde en el corte previo o en el rerank, no en Pinecone. Pero si el analizado tiene más de
+120 trozos, hay trozos suyos que no se consultan, y **un candidato que contradijera justo ahí
+podría no llegar ni a ser un match**. Es un cuarto sitio donde perderlo, y está antes de los
+tres que nombra Fable.
+
+**(a) Qué trozos se quedan fuera** (lectura de `lib/analysis/muestras.ts`):
+- **El reparto es por ÍNDICE de trozo, no por posición en caracteres.**
+  `pickSampleIndices(total, 120)` toma `Math.round(i × paso)`, con
+  `paso = (total − 1) / 119` (`:29-35`). Salen siempre el primero y el último trozo.
+- **No queda ningún tramo largo ciego**: los huecos están acotados. Por aritmética sobre esa
+  fórmula, sin ejecutar el pipeline, el hueco máximo sin muestra entre dos consecutivas es:
+  - de 1 trozo, hasta 180 trozos;
+  - de 2, con 240;
+  - de 3, con 360;
+  - de 5, con 600.
+- ⚠️ **En caracteres el hueco varía**, porque los trozos no miden lo mismo: una fila de tabla
+  es un trozo (`muestras.ts:13-17`), y la prosa apunta a 1.200 caracteres
+  (`lib/chunking.ts:26`).
+- **Sí hay trozos no consultados**: con más de 120 trozos, por construcción.
+
+**(b) ¿Un trozo que no es muestra puede recuperarse igual?**
+- **Su texto no se lanza como consulta.** Su contenido sólo se pregunta:
+  - si una muestra vecina lo comparte. El solapamiento entre trozos es de 200 caracteres, y
+    **sólo dentro de un trozo cortado por longitud, nunca entre secciones**
+    (`lib/chunking.ts:27`);
+  - o si otra muestra, por su cuenta, trae al mismo candidato.
+- **Fuera de eso, ese contenido queda fuera de la búsqueda.** Un candidato que sólo coincida
+  con él no se recupera por ahí.
+- **La pérdida es SÓLO de la búsqueda.** Si el candidato llega por otra vía, el juez lee el
+  analizado según su régimen, y la comprobación de citas usa todos sus trozos.
+- **En el exhaustivo no pasa**: van todos los trozos, sin tope (`app/api/analyze-v2/route.ts:522`).
+
+**(c) Cuántos trozos tienen NOR-10 y CLI-12: NO CONSTA.** No se deduce del código sin ejecutar
+el troceado, que va por secciones.
+- **Lo que haría falta medir**, una de dos:
+  - contar sus filas en `document_chunks` en la generación activa;
+  - o leer la línea `N chunks, N samples` del log de un análisis de cada uno
+    (`route.ts:598`).
+- Lo único que consta es una cota inferior: 56 fragmentos únicos de NOR-10 cuando fue
+  candidato (log del 29/09, transcrito por el arquitecto).
+
+**POR QUÉ ES LATENTE, con las tres preguntas de la regla** (CLAUDE.md, «todo parámetro…
+lleva su caso decisivo»):
+- **(a) Qué población lo activa**: un documento ANALIZADO con más de 120 trozos, en modo
+  rápido.
+- **(b) ¿Puede producirla el corpus?** **No consta.** El mayor medido, según el comentario del
+  propio tope, es OPE-06 con 114 trozos (`muestras.ts:16`), y ese comentario no lleva la
+  fecha de la medida.
+- **(c) ¿Existe un caso decisivo?** **No.** Ninguna prueba cambia de resultado si el tope se
+  mueve.
+- **Es un latente con fecha de caducidad**: el corpus crece, y un tarifario largo o una hoja
+  de cálculo grande lo cruzan.
+
+**Sin arreglo. Lo decide el director.**
+
 ### ⚠️ B.297 — LA LECTURA DE TROZOS SIN PAGINAR, y su margen medido (29/09/2026)
 
 `getChunksForDocuments` (`lib/read-chunks.ts`) era UNA consulta sin paginar. Supabase corta
