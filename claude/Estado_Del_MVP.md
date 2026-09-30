@@ -7956,6 +7956,10 @@ repuntuación (`scripts/examen.mjs:203`, «Hoy nada»).
 > >   `GROUP BY ROLLUP (via)`, que añade una fila de total con `via` vacía. 1 + 13 = 14, y el
 > >   14 cuadra con el censo. **Los documentos CON trozos no entran en esta consulta**: la
 > >   consulta 2 sólo clasifica los `analizado` con cero trozos (`trozos_activos = 0`).
+> > - Que el `null,14` coincidiera con «los 28 con trozos» (1 + 13 + 14) fue **una casualidad
+> >   que el arquitecto persiguió**, y lo anota él mismo (30/09).
+> > - **Lo primero que puede hacer el director** para que los 13 pasen a 14 es decidir la
+> >   versión nueva del `staged_vivo` en la bandeja (abajo).
 >
 > ⚠️ **Y REINDEXAR PUDO NO SER UN BOTÓN, y en otro corpus lo será** (H-2 del arquitecto,
 > sobre un hallazgo de Code). Un documento de Drive sin segmentos NO se re-trocea desde su
@@ -7968,7 +7972,9 @@ repuntuación (`scripts/examen.mjs:203`, «Hoy nada»).
 >   nominal de abajo lleva CUATRO `.xlsx`, y el espejo manda un `.xlsx` sin segmentos a
 >   «rechazado». Si 13 salen `retrocear`, o esos `.xlsx` tienen segmentos guardados, o los
 >   14 `analizado` no son exactamente los 14 de la lista. La consulta 1 lista
->   `tiene_segmentos` y `via` documento a documento. **No se deduce: se lee.**
+>   `tiene_segmentos` y `via` documento a documento. **No se deduce: se lee.** Si resulta que
+>   no son los mismos 14, la versión nominal de F-2 **se corrige, no se matiza** (arquitecto,
+>   30/09).
 > - **El `staged_vivo`, en palabras del director**: ese documento tiene una **versión nueva
 >   esperando decisión**. Aparece en la bandeja de revisión con dos botones: «Activar esta
 >   versión» y «Descartar versión nueva» (`components/AnalysisModal/ReviewActions.tsx:221`,
@@ -8413,12 +8419,12 @@ acompañante de tanda, y corpus quieto. Todas las pasadas imprimen
   - presupuesto: `null` → 40000.
 - **La decisión C2, pagada** (el detalle, en C2 arriba): `juez_candidato_mostrados = 14704`
   frente a `retrieval_candidato_mostrados = 2813`, en la misma fila.
-- **El guardia del corpus quieto funciona**: `candidatos_estables = true` en las pasadas de
-  la medida, y `false` en las dos del experimento de B.300 (12:20:20 y 12:29:37). La medida
-  queda certificada por la propia base.
-  - ⚠️ **El arquitecto dice «las 22 pasadas de la medida»**, y la medida son 16 + 12 = 28.
-    Una de las dos cifras está mal, y falta el literal para saber cuál. **No consta cuántas
-    filas dieron `true`.**
+- **El guardia del corpus quieto acierta en las 30 filas.** `candidatos_estables = true` en
+  **28 de las 30**: las 28 pasadas de la medida (16 + 12). Y `false` en **2**: las del
+  experimento de B.300, a las 12:20:20 y 12:29:37 UTC. Literal del CSV del director, que
+  transcribe el arquitecto. La medida queda certificada por la propia base.
+  - El «22» que se dijo primero era del arquitecto y era falso; lo corrigió él con el
+    número literal.
 - **`recuperados_retrieval`**: 10-11 en las pasadas de la medida, **14** en la de 0
   acompañantes y **6** en la de 1 acompañante grande (B.300).
 - **Dos renderizados, no un error.** El juez mide NOR-11 en 14.704 caracteres y el retrieval,
@@ -8826,16 +8832,30 @@ logs los transcribe el arquitecto; la columna `recuperados_retrieval` de
 - **Añadir UN acompañante quitó 8 candidatos en un caso y 2 en el otro.** El filtro con tanda
   es un superconjunto del filtro sin tanda: debería dar más candidatos, y da menos. **El
   desplazamiento es real.**
-- **La magnitud va con el tamaño del acompañante**: 55 fragmentos quitan 8, y 11 fragmentos
-  quitan 2. Es lo que predice el mecanismo de las 25 plazas por consulta
-  (`TOP_K_POR_CONSULTA`), en las dos direcciones.
-  - ⚠️ **Son dos puntos, no una curva.** Respaldan el mecanismo; no miden cómo escala.
-- ⚠️ **Lo hecho no es exactamente lo encargado**, y se dice:
-  - se hizo con CLI-13 y NOR-10, en dos direcciones, con 0 y 1 acompañantes;
-  - **la pata de 3 acompañantes no se hizo**, y tampoco la forma sobre NOR-11.
-
-  No cambia la conclusión, porque la tanda de 3 ya tenía su observación del 29/09. Pero el
-  experimento controlado cubre 0 frente a 1, no 1 frente a 3.
+- **Lo medido, y nada más**: con 0 acompañantes, 14 candidatos en las dos direcciones. Con 1
+  acompañante, 6 (acompañante de 55 fragmentos) y 12 (acompañante de 11 fragmentos).
+  - Eso demuestra que el desplazamiento EXISTE y que su magnitud **no es la misma con
+    acompañantes distintos**.
+  - **Cómo escala NO se sabe: son dos puntos.**
+  - Es compatible con el mecanismo de las 25 plazas por consulta (`TOP_K_POR_CONSULTA`),
+    que no queda medido.
+  - ~~«La magnitud escala con el tamaño del acompañante»~~: frase del arquitecto, retirada
+    por él mismo el 30/09. De dos puntos no sale una escala.
+- ⚠️ **Lo hecho no es exactamente lo encargado**, y se dice: se hizo con CLI-13 y NOR-10, en
+  dos direcciones, con 0 y 1 acompañantes. **El experimento controlado compara 0 con 1, no 1
+  con 3.**
+- ⏳ **LA PATA PENDIENTE, que es la que importa para el usuario**, porque en la bandeja se
+  seleccionan de verdad tres o cuatro documentos. Opcional, pedida al director el 30/09: **un
+  análisis de NOR-11 con CLI-13 + NOR-10 + CLI-12 seleccionados** (`3 ids de tanda`).
+  - Se lee contra la pasada de NOR-11 con 1 acompañante (CLI-13): **11 candidatos**, el 30/09
+    a las 06:28.
+  - **Qué contestaría**: si con TRES acompañantes el análisis ve todavía menos del corpus que
+    con uno, y cuánto.
+    - Si baja de 11 (el 29/09 a las 13:15, con la misma tanda de 3, fueron **4**), el
+      desplazamiento crece con lo que el usuario selecciona. Es el caso de uso real.
+    - Si no baja, el daño lo hace un acompañante grande concreto (NOR-10), no el número.
+  - Se cuentan `Retrieval: N candidatos` en el log y `recuperados_retrieval` en la base, y
+    gana la base.
 
 **LO QUE ESTO HACE AL PRODUCTO, y por qué es de producto y no sólo de medida:**
 - el usuario que selecciona varios documentos «para compararlos entre sí» cree que ve MÁS, y
