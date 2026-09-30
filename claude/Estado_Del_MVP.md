@@ -7384,6 +7384,40 @@ encabezados y los límites de trozo visibles (F-118 §5, escalón 1).
     50,14,0,2,686,17062,28,28,95.9
     ```
     Cuadra con lo que el arquitecto había transmitido antes; aun así, se archiva el literal.
+
+    > ## ⚠️ EL 17.062 ES EL MÁXIMO DE LA RUTA POR DEFECTO, NO DEL SISTEMA (30/09/2026)
+    >
+    > **Esta consulta cuenta la ruta por defecto, no las tandas.** Su candidato es un
+    > documento `analizado`, y ése es exactamente el filtro con el que el retrieval busca
+    > cuando no hay tanda: `CORPUS_ACTIVO`, `lib/pinecone/vectors.ts:99`, elegido en
+    > `lib/analysis/retrieval.ts:238`. Coinciden **si la metadata de los vectores y la
+    > columna coinciden** (el invariante F-96, sin comprobar en esta organización: ver
+    > B.301).
+    >
+    > **En una TANDA** de la bandeja, el filtro se amplía con los ids de los demás
+    > documentos seleccionados, aunque estén `pendiente` (`vectors.ts:110-120`;
+    > `hooks/review/useReviewAnalysis.ts:126`). Ahí se forman parejas mucho mayores, y
+    > hay una medida: **NOR-10 + CLI-12, 121.936 caracteres, unos 30.484 tokens**.
+    >
+    > - **Cualquier razonamiento sobre el presupuesto que se apoye en el 17.062 está
+    >   mirando sólo la mitad del problema.** El arquitecto lo estuvo usando como máximo
+    >   del sistema, y lo dice él (30/09).
+    > - ⚠️ **Las dos cifras no salen de la misma estación.** El 17.062 es `full_text`/4
+    >   (`SQL_F118_pareja_mayor_posible.sql`). Los 121.936 son los tamaños RENDERIZADOS
+    >   del juez (B.295). El orden de magnitud no cambia, pero no se restan.
+    > - **Y podría ser más.** No se sabe cuál es la pareja mayor que puede formar una
+    >   tanda. **CONSULTA NUEVA, PENDIENTE (sin escribir)**: la misma cuenta sobre TODOS
+    >   los documentos de la organización, no sólo los `analizado`.
+    > - **Arrastra**: la pregunta abierta y la regla de decisión de D-4 (B.295), escritas
+    >   con 17.000. La cifra que importa son ~30.000, y es un suelo, no un techo.
+    >
+    > **LA CONSULTA 5, PEDIDA Y RETIRADA el mismo 30/09.** El arquitecto la pidió (E-1)
+    > para recontar sobre «lo indexado», porque creía que el candidato salía de los 28
+    > documentos con vectores y no de los 14 `analizado`. Leído el retrieval, la premisa
+    > era falsa: en la ruta por defecto, el candidato sale de los `analizado`, que es lo
+    > que esta consulta ya contaba. **Se retiró sin escribirse.** Lo que queda pendiente es
+    > otra cosa: la consulta sobre todos los documentos, de arriba.
+
     - **Qué significa cada columna, según la PROPIA SQL** (`SQL_F118_pareja_mayor_posible.sql`,
       consulta 3):
       - `documentos` = TODAS las filas de `documents` de la organización a9625e93, en
@@ -7873,6 +7907,51 @@ repuntuación (`scripts/examen.mjs:203`, «Hoy nada»).
 
 ### 📋 B.295 — ESCALÓN 1: PREDICCIONES Y CRITERIOS DE REVERSIÓN, ESCRITOS ANTES DEL CAMBIO (29/09/2026)
 
+> ## ⚠️ EL ALCANCE REAL DEL ESCALÓN 1, medido el 30/09/2026
+>
+> **El escalón 1 está construido, probado, medido y encendido, y NO cambia nada para un
+> análisis normal mientras el corpus no tenga trozos.**
+> - **El corpus por defecto son los 14 documentos con `analysisStatus: 'analizado'`, y son
+>   exactamente los 14 que no tienen trozos.** El censo del 30/09
+>   (`SQL_Documentos_Sin_Chunks.sql`, consulta 2, cifras que trae el arquitecto) da
+>   `en_el_corpus = 14` y `corpus_sin_trozos = 14`. La segunda columna cuenta los
+>   `analizado` con cero trozos en su generación activa (`:72`). **Que las dos valgan 14
+>   prueba que son el MISMO conjunto**, no dos conjuntos que suman igual: todo documento
+>   del corpus está sin trozos.
+> - **En el código**, un candidato sin trozos da `sin_fuente_comun` y se lee con la tijera
+>   vieja (`lib/analysis/judge.ts:1308-1312`). Con el interruptor encendido, en la ruta por
+>   defecto **TODAS las parejas dan `sin_fuente_comun`**.
+> - **El escalón 1 sólo mejora las parejas en las que los DOS lados tienen trozos.** Hoy eso
+>   sólo ocurre cuando el usuario selecciona varios documentos a mano en la bandeja (una
+>   tanda: `lib/pinecone/vectors.ts:110-120`, `hooks/review/useReviewAnalysis.ts:126`).
+> - **Lo que desbloquea su valor es la deuda de B.190: reindexar los documentos del
+>   corpus.** Cuántos se pueden reindexar sin volver a subir el fichero lo dice
+>   `SQL_Corpus_Reindexable_Sin_Resubir.sql` (PENDIENTE DE EJECUTAR).
+>
+> **Y esto explica por qué la medida de NOR-11 / CLI-13 SÍ funcionó.** Los dos tienen trozos,
+> porque se reindexaron estos días, y el director los seleccionaba juntos. **La medida es
+> válida y el resultado es real; lo que no es representativo es el corpus.**
+>
+> - ⚠️ **Lo que falta para la versión NOMINAL** (del arquitecto: «que los 14 `analizado`
+>   sean nominalmente esos 14»). Son los 14 que el retrieval devolvió a NOR-11 el 29/09 a
+>   las 10:51, con `0 ids de tanda`:
+>   - Clientes_Residuos_Sanitarios.xlsx, Registro_Visitas.xlsx,
+>     Clientes_Residuos_Peligrosos.xlsx, Protocolo_Visitas_Centros.docx,
+>     Actas_Direccion_2025.docx;
+>   - Normas_Frecuencia_Recogidas.docx, Facturacion_2025.xlsx, 2_Glosario_Terminos.pdf,
+>     3_Especificacion_Tecnica.pdf;
+>   - new 9.txt, new 11.txt, new 6.txt, new 10.txt y new 1.txt.
+>
+>   **Esa correspondencia no está verificada contra la base.** La cierra la salida literal
+>   de la consulta 1 del censo, que lista cada documento con su estado. **Si no coinciden,
+>   gana la base.** Y aun coincidiendo, prueba menos de lo que parece: el retrieval sólo
+>   devuelve los que se parecen, y 14 recuperados de 14 posibles dice que la metadata de
+>   esos 14 es `analizado`, **no que ningún otro vector lleve esa metadata** (el invariante
+>   F-96, B.301).
+> - **«Todos anteriores a F-20»** es del arquitecto, y sale de `sin_trozos_anterior_a_F20 =
+>   21`, que cuenta sobre los 50 documentos y no sólo sobre los 14. Por documento lo dice la
+>   columna `causa` de la consulta 1. **No consta todavía.**
+
 **Escritos el 29/09/2026 a las 11:23, antes de tocar código.** Son del arquitecto, literales.
 Code sólo los archiva. El cambio sustituye las dos tijeras del juez por UN presupuesto por
 pareja, detrás de un interruptor.
@@ -7922,11 +8001,10 @@ pareja, detrás de un interruptor.
         Director Clínico», que es el lado NOR-10 de la D literal, **descartado por cita no
         verificable**;
       - **B y C no aparecen ni una vez.**
-    - ⚠️ **Qué análisis son, no cuadra con el archivo.** El arquitecto los llama «los siete
-      análisis de esa pareja del 30/09 que ya están en B.299». B.299 archiva otra cosa: **siete
-      CONTRADICCIONES de los cuatro análisis del 29/09**, entre las 13:14 y las 13:16. Y
-      `[75925931]` y `[8878a300]` no están en ningún documento del repositorio. Queda así
-      hasta que se aclare qué pasadas son.
+    - ~~⚠️ **Qué análisis son, no cuadra con el archivo.**~~ **Aclarado el 30/09.** Son las
+      **siete PASADAS del 30/09, entre las 06:36:58 y las 06:41:10 UTC**. Ahora están en
+      B.299, en una entrada propia y separada de los cuatro análisis del 29/09. El arquitecto
+      las había confundido al citarlas.
     - **El motivo, con el interruptor APAGADO**: el log dice «truncado a 6000 de 66801
       caracteres». Code ha medido dónde caen B y C en el texto plano del .docx, con la
       extracción del propio registro (`:124-125`):
@@ -7945,9 +8023,9 @@ pareja, detrás de un interruptor.
     - **Lo que sigue pendiente**: el dato de coste y latencia a unos **30.000 tokens**. La
       pregunta abierta y la regla de decisión de abajo se escribieron con 17.000 (la «pareja
       mayor posible» de B.273), y esta pareja la supera. La consulta 3 de B.273 se contó sobre
-      documentos `analizado`, y no consta que NOR-10 y CLI-12 lo sean hoy; si no lo son, sólo
-      se encuentran en una tanda (E-2, pendiente).
-  - ⚠️ **LA CONSECUENCIA INCÓMODA, CORREGIDA POR CODE A LA MITAD.** Con 40.000 esta pareja cae
+      documentos `analizado`, y NOR-10 y CLI-12 son `pendiente` (consulta 4 de B.273; analizarlos
+      desde la bandeja no los cambió): sólo se encuentran en una tanda (B.300).
+  - ⚠️ **LA CONSECUENCIA INCÓMODA, CORREGIDA POR CODE A LA MITAD** (corrección aceptada por el arquitecto el 30/09). Con 40.000 esta pareja cae
     en `corte_honesto`, paso 3: los dos documentos pasan solos de 40.000 − 6.000. El
     arquitecto concluyó que «el escalón 1, tal como está encendido, no puede encontrar B ni
     C». **El código dice algo más fino.**
@@ -7974,6 +8052,10 @@ pareja, detrás de un interruptor.
     unos 30.000.)* Esta tanda mide la latencia a ~6.130 (P-4, R-3); falta el
     otro extremo.
   - **REGLA DE DECISIÓN, escrita antes del dato**:
+    - ⚠️ *(30/09) Escrita con 17.000, el máximo de la RUTA POR DEFECTO (B.273). En una
+      tanda hay al menos una pareja de ~30.484 tokens (NOR-10 + CLI-12), y la mayor posible
+      no se sabe. Donde dice 17.000, la cifra que importa son ~30.000, y es un suelo. El
+      umbral de 60 s y la forma de la regla no cambian.*
     - Si a 17.000 tokens la latencia del rápido queda por debajo del límite de R-3 (60 s) y
       el coste por análisis no sube de forma que importe → el presupuesto sube a cubrir el
       corpus, y el corte honesto queda para documentos de verdad patológicos.
@@ -7983,11 +8065,41 @@ pareja, detrás de un interruptor.
   - 5 con el interruptor ENCENDIDO;
   - regla de estabilidad: 5/5 estable-acierto, 0/5 estable-fallo, 1 a 4 inestable.
   - Se lee con `SQL_Escalon1_pareja_NOR11_CLI13.sql`.
+  - 📏 **LA REGLA DE LA MEDIDA: EXACTAMENTE DOS DOCUMENTOS SELECCIONADOS** (arquitecto,
+    30/09). Cada pasada se lanza con exactamente dos documentos seleccionados en la bandeja,
+    y ninguno más. **El log lo confirma: tiene que decir `1 ids de tanda`**
+    (`app/api/analyze-v2/route.ts:598`, que cuenta los DEMÁS seleccionados,
+    `hooks/review/useReviewAnalysis.ts:126`).
+    - Un `0` invalida la pasada: la pareja no se vio. Los dos están en `pendiente`, y un
+      `pendiente` sólo entra como candidato por la tanda (`lib/pinecone/vectors.ts:110-120`).
+    - Un `2` o más la invalida también: entró un tercero, y puede desplazar candidatos
+      (B.300).
+    - **La validez va atada al CONTADOR, no a la hora.**
+    - ~~«De una en una, nunca en tanda»~~. **Estaba al revés.** Sin acompañante la pareja no
+      se ve y no hay nada que medir. La propuso el arquitecto en el encargo E-3 (30/09 por la
+      mañana), y **nunca llegó a archivarse**: Code paró antes, al leer que «1 ids de tanda»
+      significa un acompañante. Se deja tachada aquí porque circuló como regla.
+    - **Las pasadas de esta medida, reetiquetadas**: de «de uno en uno» a **«con
+      acompañante, pareja aislada»**. Todas dicen `1 ids de tanda` (del arquitecto), así que
+      son válidas.
+    - ⚠️ **Las cuentas no cuadran con «12 y 12».** El arquitecto habla de «las 12 pasadas de
+      la línea de base y las 12 del interruptor encendido». El resultado de abajo da, apagado,
+      **6** pasadas en CLI-13 → NOR-11 y **8** en NOR-11 → CLI-13: 14, no 12. Queda así hasta
+      que se diga cuál de las dos cifras vale.
   - ⚠️ **EL CORPUS QUIETO** (regla del arquitecto, 29/09, sacada de los logs de ese día).
-    Entre las 09:08 y las 10:54 el corpus se movió:
-    - a las 10:51 CLI-13 no estaba entre los candidatos de NOR-11, y aparecieron cuatro
-      «new N.txt» que antes no salían;
-    - a las 10:53 CLI-13 se reindexa, y a las 10:54 vuelve.
+    ~~Entre las 09:08 y las 10:54 el corpus se movió~~ — **TACHADO el 30/09, con su motivo:
+    el corpus no se movió. Cambió la CONFIGURACIÓN del análisis.** La pasada de las 10:51
+    dice `0 ids de tanda` (F-1 del arquitecto, sobre un log que Code no ha visto):
+    - a las 10:51 CLI-13 no estaba entre los candidatos de NOR-11 **porque no iba
+      seleccionado con él**: es `pendiente`, y sin tanda no es candidato. Los cuatro
+      «new N.txt» son del corpus por defecto (los 14 de arriba) y salieron porque no había
+      acompañante que les quitara las plazas (hipótesis de B.300);
+    - a las 10:53 CLI-13 se reindexa, y a las 10:54 vuelve. Según el arquitecto, en todas
+      las pasadas en que CLI-13 es candidato de NOR-11 el log dice `1 ids de tanda`, así
+      que lo que lo hace volver es la tanda, no el reindexado.
+
+    La regla sigue en pie por su propio motivo: con el corpus quieto, y con el mismo
+    acompañante en cada pasada, los candidatos no cambian.
 
     Con los candidatos cambiando entre pasadas, las pasadas no son comparables. **Entre las
     diez pasadas no se sube, no se borra y no se reindexa ningún documento de la
@@ -7997,9 +8109,21 @@ pareja, detrás de un interruptor.
 
 **PREDICCIONES**
 
-⚠️ **REESCRITAS EL 29/09 POR LA TARDE, ANTES DE MEDIR.** El corpus cambió a las 13:14-13:16 UTC:
-el director analizó NOR-10 y CLI-12, que pasaron de `pendiente` al corpus y ya son candidatos
-(contesta de paso que no habían fallado: no se habían analizado). Dos predicciones quedan
+⚠️ **REESCRITAS EL 29/09 POR LA TARDE, ANTES DE MEDIR.** ~~El corpus cambió a las 13:14-13:16
+UTC: el director analizó NOR-10 y CLI-12, que pasaron de `pendiente` al corpus y ya son
+candidatos~~.
+- **FALSO, corregido el 30/09, y lo desmontó el director.** «No he añadido al corpus ningún
+  documento, solo los he analizado desde la bandeja de revisión.»
+- NOR-10 y CLI-12 **no pasaron al corpus**. Analizar desde la bandeja no cambia
+  `analysis_status`: `analyze-v2` sólo escribe `analyzed_content_hash`
+  (`app/api/analyze-v2/route.ts:711`), y a `analizado` sólo se pasa por `mark-analyzed`,
+  `index-text`, `ingest` o el cambio de versión.
+- **Lo que cambió fue la CONFIGURACIÓN del análisis: tanda frente a acompañante único.**
+  NOR-11 se lanzó a las 13:15 con tres acompañantes (`3 ids de tanda`), y la tanda los hizo
+  candidatos (F-1, confirmado).
+
+(Contesta de paso que NOR-10 y CLI-12 no habían fallado: no se habían analizado.) Dos
+predicciones quedan
 **ANULADAS por cambio de condiciones**, y P-1 y P-2 se corrigen por un defecto de método. Las
 originales siguen aquí, tachadas y con su motivo.
 **Una predicción anulada por un cambio de condiciones no es una predicción fallada: es NULA.**
@@ -8330,6 +8454,15 @@ verificador tira 5 de 7, un 71 %». **Era falso, y lo corrigió él mismo.** Son
 la comprobación de citas ocurre en el JUEZ, antes de la cascada, y el verificador sólo mató 1.
 **La fuga está en el juez, no en el verificador.**
 
+📌 **TRES CONJUNTOS DISTINTOS, cada uno con su fecha, y no se mezclan.** El arquitecto confundió
+el 1 y el 3 al citarlos el 30/09, y lo corrigió él mismo el mismo día.
+1. **Cuatro análisis del 29/09, NOR-10 / CLI-12: 7 contradicciones, 1 publicada.** Es lo que
+   sigue inmediatamente.
+2. **NOR-11 / CLI-13, 30/09, con el interruptor encendido: el descarte estable.** Después del 1.
+3. **Siete pasadas del 30/09, NOR-10 / CLI-12: 7 contradicciones, 0 publicadas.** Al final.
+
+#### 1 · Cuatro análisis del 29/09 (13:14-13:16 UTC), NOR-10 / CLI-12: 7 contradicciones, 1 publicada
+
 **De dónde sale**: el recuento lo hizo el arquitecto sobre los logs de los cuatro análisis del
 director del 29/09, entre las 13:14 y las 13:16 UTC. **Code no ha visto esos logs.** La
 contraparte en la base es `SQL_Escalon1_verificacion_despliegue.sql`. **Si la base no cuadra
@@ -8389,6 +8522,9 @@ con estos 7 y 5, gana la base** y esta ficha se corrige.
   afirmarlo.**
 - **No se arregla ahora.** Se mide primero el escalón 1, y esta pareja queda como su caso de
   prueba; va inmediatamente después. P-7 (B.295) mide si el escalón 1 lo mueve.
+
+#### 2 · NOR-11 / CLI-13, 30/09, interruptor encendido: el descarte estable
+
 - **EL DESCARTE ESTABLE (30/09/2026, medida del escalón 1, B.295).** Interruptor encendido,
   NOR-11 → CLI-13, las SEIS pasadas, siempre igual (recuento del arquitecto sobre los logs del
   director; Code no los ha visto):
@@ -8419,6 +8555,166 @@ con estos 7 y 5, gana la base** y esta ficha se corrige.
   NOR-11 **ENTERO** delante (`pareja_entera`, 14704/14704) y aun así rehízo la frase. La
   versión de (b) «reconstruye lo que no vio» **no explica este caso**. Lo explica «reescribe
   aunque lo vea». Es coherente con el fallo de P-7: con más texto, más descartes, no menos.
+
+#### 3 · Siete pasadas del 30/09 (06:36:58-06:41:10 UTC), NOR-10 / CLI-12: 7 contradicciones, 0 publicadas
+
+**De dónde sale**: el recuento lo hizo el arquitecto sobre los logs del director; **Code no los ha
+visto.** Las pasadas son **anteriores al encendido** (07:50), así que el interruptor estaba
+apagado. Cuántos `ids de tanda` llevaba cada una no consta.
+
+| Hora (UTC) | Dirección | Contradicción emitida | Muere en | Además |
+|---|---|---|---|---|
+| 06:36:58 | CLI-12 → NOR-10 | `[04ed1945]` «Responsabilidad última de la esterilización» | cascada, `mismo_dato_sin_oposicion` | — |
+| 06:37:58 | CLI-12 → NOR-10 | `[14261637]`, el mismo asunto | cascada, `mismo_dato_sin_oposicion` | — |
+| 06:38:53 | CLI-12 → NOR-10 | `[14261637]` | cascada, `mismo_dato_sin_oposicion` | — |
+| 06:40:26 | CLI-12 → NOR-10 | `[04ed1945]` | cascada, `mismo_dato_sin_oposicion` | `[95650537]` solapamiento, cita no verificable |
+| 06:38:16 | NOR-10 → CLI-12 | `[564c05ba]` «Responsabilidad última del Coordinador de Calidad vs Director Clínico» | comprobación de citas | `[75925931]` solapamiento, cita no verificable |
+| 06:39:11 | NOR-10 → CLI-12 | `[61d11ef2]` | comprobación de citas | `[8878a300]` y `[0bc9c058]`, solapamientos, cita no verificable |
+| 06:40:46 | NOR-10 → CLI-12 | `[564c05ba]` | comprobación de citas | `[75925931]` |
+
+**Total: 7 pasadas, 7 contradicciones emitidas, 0 publicadas. ESTABLE-FALLO, 0 de 7.**
+- **Cruzado con la siembra de la pareja** (`corpus-pruebas/SIEMBRA_corpus_ampliado.md:32-162`:
+  A, B y C sembradas; D descubierta el 27/08, y detectarla cuenta como acierto):
+  - **las siete son la A**, el responsable último de la esterilización, en dos
+    formulaciones;
+  - **B y C no aparecen ni una vez.** El motivo, con posiciones medidas, está en D-4 (B.295):
+    el analizado se cortaba a 6.000 y las dos están pasada la mitad de cada documento.
+- **Las dos estaciones, cada una en una dirección, y las dos matan la A 100 %:**
+  - **CLI-12 → NOR-10: la CASCADA, 4 de 4, como `mismo_dato_sin_oposicion`.** Es la
+    SOSPECHA de la entrada 1 (`[603d2891]`, 29/09), ahora con cuatro casos más. Y la
+    siembra la desmiente: A es una contradicción real, y CLI-12 niega expresamente que
+    sea el Director Clínico (`SIEMBRA_corpus_ampliado.md:51-62`). **Un «sin oposición»
+    sobre la A es un fallo de la cascada, no un descarte correcto.** Es otra estación
+    que la comprobación de citas, y otro arreglo.
+  - **NOR-10 → CLI-12: la COMPROBACIÓN DE CITAS, 3 de 3.**
+- **El roce con la D es un SOLAPAMIENTO, no la contradicción D.** `[75925931]` y
+  `[8878a300]` citan «Cada clínica cuenta con un Coordinador de Calidad, figura que puede
+  recaer en el propio Director Clínico o en otro profesional designado por él…», que es el
+  lado NOR-10 de la D. El juez lo trajo como solapamiento, y lo descartó la comprobación de
+  citas.
+  - ⚠️ **Lo medido por Code**: ese tramo está LITERAL en NOR-10. Es la línea 32 del texto
+    extraído con el comando del propio registro (`SIEMBRA_corpus_ampliado.md:124-125`), y el
+    registro ya avisaba de que una cita así «NO está alucinando… la cita existe» (`:147-149`).
+  - **Lo que NO consta**: la cita entera. Llegó cortada por «…» en el relevo.
+  - **Si la cita entera fuera literal, ni (a) ni (b) explican el descarte**, y habría una
+    tercera causa: por ejemplo, que la comprobación no tuviera esos trozos en su pajar. Es la
+    primera pregunta del arreglo, y se contesta con la cita completa del log.
+
+### ⚠️ B.300 — LA TANDA DESPLAZA: seleccionar más documentos en la bandeja puede hacer que el análisis vea MENOS del corpus (producto y constancia, SIN arreglo; 30/09/2026)
+
+**Seleccionar más documentos en la bandeja puede hacer que el análisis vea MENOS del corpus, y
+el usuario no tiene forma de saberlo.**
+
+**Lo CONFIRMADO en el código**: la tanda cambia el alcance de los candidatos.
+- Al analizar desde la bandeja, cada documento manda como `ids de tanda` a **los demás
+  seleccionados** (`hooks/review/useReviewAnalysis.ts:126`). El log los cuenta en
+  `app/api/analyze-v2/route.ts:598`.
+- **Sin tanda**, el filtro de Pinecone es el corpus por defecto:
+  `analysisStatus = 'analizado'` (`lib/pinecone/vectors.ts:99`).
+- **Con tanda**, el filtro es ese corpus **o** los ids de la tanda, aunque estén `pendiente`
+  (`vectors.ts:110-120`, elegido en `lib/analysis/retrieval.ts:238`).
+- Analizar desde la bandeja **no cambia `analysis_status`** (`analyze-v2` sólo escribe
+  `analyzed_content_hash`, `route.ts:711`). Por eso dos `pendiente` sólo se ven si se
+  seleccionan juntos. El arquitecto lo confirma con un log de `0 ids de tanda` en el que
+  CLI-13 no es candidato de NOR-11 (B.295, F-1).
+
+**Lo OBSERVADO, tres veces en la misma dirección** (del arquitecto, sobre logs que Code no ha
+visto; NOR-11 analizado):
+
+| Cuándo | Acompañantes (`ids de tanda`) | «Retrieval: N candidatos» |
+|---|---|---|
+| 29/09 13:15 | 3 | 4 |
+| 30/09 06:28 | 1 | 11 |
+| 29/09 10:51 | 0 | 14 |
+
+**Más acompañantes, menos candidatos**, aunque el filtro con tanda es un SUPERCONJUNTO del de
+sin tanda.
+
+**EL MECANISMO: HIPÓTESIS, con tres observaciones a favor y sin comprobar.**
+- Cada consulta de muestra pide a Pinecone **25 resultados crudos**
+  (`TOP_K_POR_CONSULTA`, `retrieval.ts:142`; la consulta en `:332`), sobre TODO el filtro.
+- Un acompañante muy afín con muchos trozos puede llenar las 25 plazas de cada consulta y
+  dejar fuera a los `analizado`. Ejemplo: NOR-10, con 56 fragmentos a 0,938 el 29/09 a las
+  13:15.
+- ⚠️ **Por qué sigue siendo hipótesis**: las tres observaciones se diferencian en más cosas
+  que el número de acompañantes. Son otro día u otra hora, otros acompañantes, y en medio hay
+  un reindexado de CLI-13 (10:53 del 29/09). **No es un experimento controlado.**
+- **SU CASO DECISIVO**: el mismo documento, el mismo día y sin tocar el corpus, lanzado con
+  0, 1 y 3 acompañantes seguidos, contando candidatos. Cuesta tres análisis, y los lanzaría
+  el director; Code no lanza nada.
+
+**LO QUE ESTO HACE AL PRODUCTO, y por qué es de producto y no sólo de medida:**
+- el usuario que selecciona varios documentos «para compararlos entre sí» cree que ve MÁS, y
+  puede estar viendo menos del corpus;
+- **nada en la pantalla lo dice.** Tampoco hay contador de «candidatos del corpus desplazados
+  por la tanda»: el tope que cuenta lo que deja fuera es el de 25 candidatos
+  (`seleccion.candidatos_cortados_por_tope_de_recuperacion`, `retrieval.ts:144-150`), **no**
+  éste, que ocurre antes, por consulta, dentro de Pinecone. Es un límite sin contador.
+- **Sin arreglo.** Constancia.
+
+**Y LO QUE HACE A LA MEDIDA**: por esto la regla de B.295 exige exactamente un acompañante
+(`1 ids de tanda`). Con más, los candidatos dependen de quién más vaya seleccionado.
+
+### ⚠️ B.301 — EL INVARIANTE F-96 SIN COMPROBAR: toda la definición del corpus se apoya en que la metadata del vector y la columna coincidan (constancia y plan, SIN construir; 30/09/2026)
+
+**Por qué sube de importancia** (arquitecto, 30/09). El retrieval NO lee `documents`: decide el
+corpus con la **metadata del vector**, `analysisStatus = 'analizado'` (`lib/pinecone/vectors.ts:99`).
+La columna `analysis_status` es lo que enseñan las pantallas, la bandeja y todas las SQL de esta
+casa, incluida la «pareja mayor posible» de B.273 y el censo de B.295.
+- **Si las dos no coinciden, las SQL cuentan un corpus y el producto usa otro**, y ninguna de
+  las dos se entera.
+- El comentario de `CORPUS_ACTIVO` dice «toda transición de estado mantiene la metadata al
+  día… verificado» (`vectors.ts:93-98`). Lo verificado son los CAMINOS del código. **Los DATOS
+  de esta organización no los ha comprobado nadie.**
+- Y los datos tienen historia de antes de esos caminos: los 14 del corpus tienen vectores de
+  antes de F-20 (B.295).
+
+**Las dos direcciones del desacuerdo no pesan igual** (el patrón efecto-espejo de F-96):
+- **metadata `analizado` y columna no**: el producto compara contra un documento que la
+  pantalla dice que no está en el corpus. **Es la grave.**
+- **columna `analizado` y metadata no**: la pantalla promete un documento que el análisis no
+  ve. Es un espejo atrasado.
+- **un vector sin fila**: el huérfano. El chat lo reconstruye y lo cita (F-107 P2).
+
+**Lo que ya hay, y por qué no basta:**
+- `GET /api/admin/diagnose-vectors?names=…` compara las dos cosas, pero **por nombres**, y
+  CONSTRUYE los ids desde `chunk_count` y `active_generation`
+  (`app/api/admin/diagnose-vectors/route.ts:54`). No ve los vectores de otra generación ni los
+  de un documento sin fila: es la inversión que criticó F-114.
+- `GET /api/admin/vectores-de-un-documento?documentId=…` pregunta a Pinecone de verdad, lista
+  por prefijo y lee `analysisStatus` de cada vector (`route.ts:92-113`). Pero va **un
+  documento por llamada**, y no ve vectores cuyo `documentId` no tenga fila.
+- `GET /api/admin/cleanup-orphans?dryRun=true` sí recorre el namespace con metadata (una
+  consulta ficticia con `topK: 10000`, `route.ts:38-40`) y encuentra los vectores sin fila.
+  **Pero no compara `analysisStatus` con la columna.**
+
+**Qué haría falta para comprobarlo entero** (SIN construir):
+1. Recorrer TODOS los vectores del namespace con su metadata, como ya hace `cleanup-orphans`.
+2. Para cada uno, comparar su `analysisStatus` con el `analysis_status` de su fila, y su
+   generación (leída del id, no construida: `vectores-de-un-documento/route.ts:45`) con `active_generation`.
+3. Contar las tres clases de arriba, por separado y con sus ids.
+4. **EL DENOMINADOR, o el cero no vale**: comparar los vectores recorridos con los que
+   declara el namespace (`contarVectoresDelNamespace`, `vectors.ts:287`). Si el namespace
+   pasa de 10.000, el recorrido de `cleanup-orphans` se queda corto **sin avisar**, y un
+   «cero discrepancias» sería una pantalla apagada.
+
+**Lo que costaría** (estimado, no medido):
+- **créditos: cero**, porque no llama a ningún modelo;
+- Pinecone: un recorrido del namespace y lecturas por lotes, del orden de segundos con este
+  corpus;
+- construirlo: una ruta de administración de sólo lectura que reúne piezas existentes (el
+  recorrido de `cleanup-orphans`, el parseo de ids de `vectores-de-un-documento`, el conteo
+  del namespace), más su prueba con los tres casos.
+
+**Lo que se puede hacer HOY sin construir nada**, y lo que se queda fuera. Son dos pasos del
+director:
+- `cleanup-orphans` con `dryRun=true`: los huérfanos;
+- `vectores-de-un-documento` para cada documento de la organización: 50 llamadas, a mano.
+
+Cubre las tres clases salvo un caso: el de un vector sin fila que además lleve metadata
+`analizado`. Ése lo ve `cleanup-orphans` como huérfano, sin decir su estado.
+
+**No se construye ahora.** Constancia y plan, a petición del arquitecto.
 
 ### ⚠️ B.297 — LA LECTURA DE TROZOS SIN PAGINAR, y su margen medido (29/09/2026)
 
@@ -8460,8 +8756,14 @@ verificación de citas y los `caracteres` de B.281.
 - ⚠️ **LA COMPROBACIÓN FUERTE DEL DESPLIEGUE SE HA PERDIDO, y se dice.** Iba a ser comparar
   el log de un análisis de NOR-11 con el de las 09:08, y exigir que salieran idénticos:
   con el interruptor apagado, la paginación y D-3 no deben cambiar ni una línea.
-  - **Ya no se puede.** A las 13:14-13:16 UTC el director analizó NOR-10 y CLI-12, que
-    entraron en el corpus, y el retrieval cambia con el corpus.
+  - ~~**Ya no se puede.** A las 13:14-13:16 UTC el director analizó NOR-10 y CLI-12, que
+    entraron en el corpus, y el retrieval cambia con el corpus.~~ **Tachado el 30/09:** no
+    entraron en el corpus, porque analizar desde la bandeja no cambia `analysis_status`
+    (B.295). Lo que cambió fue la configuración: NOR-11 se lanzó con tres acompañantes de
+    tanda.
+  - **La comprobación, por tanto, quizá NO se ha perdido.** Bastaría una pasada de NOR-11
+    con la MISMA configuración de tanda que la de las 09:08. Cuántos `ids de tanda` llevaba
+    aquélla no consta aquí; si se sabe, la comprobación se puede hacer todavía.
   - **Lo que sobrevive**, comprobado por el ARQUITECTO en los dos logs (Code no los ha
     visto). Las partes que NO dependen del corpus salen idénticas a las de las 09:08:
     - NOR-11: «15 chunks, 15 samples, 14437 chars totales» y «truncado a 6000 de 14704»;

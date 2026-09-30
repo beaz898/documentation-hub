@@ -1,7 +1,10 @@
 -- ============================================================================
 -- DOCUMENTOS SIN TROZOS — SÓLO LECTURA · la parte del corpus a la que el escalón 1
 -- no puede llegar (B.295, régimen `sin_fuente_comun`)
--- ⚠️ PENDIENTE DE EJECUTAR (29/09/2026). Sólo SELECT: no escribe nada.
+-- ✅ EJECUTADO por el director el 30/09/2026 (redactada el 29/09). Sólo SELECT: no escribe nada.
+--    De la consulta 2 constan, porque las trae el arquitecto: en_el_corpus = 14,
+--    corpus_sin_trozos = 14, sin_trozos_anterior_a_F20 = 21 (B.295). La salida
+--    literal de la consulta 1, documento a documento, NO está archivada.
 --
 -- POR QUÉ AHORA: el 07/09, B.190 (Puntos_Pendientes_Doclity.txt:7074) midió CINCO
 -- documentos con texto y sin trozos, todos anteriores a F-20, y concluyó que

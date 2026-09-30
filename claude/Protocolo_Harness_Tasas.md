@@ -698,6 +698,32 @@ misma frase en la que el arquitecto exigía precisión. Quien pide rigor no qued
 fuera de él. Y es la cadena de relevo de siempre —una cifra que viaja sin
 medirse, B.289—, esta vez de arriba abajo.
 
+**EL SEGUNDO CASO, y amplía la regla de las cifras a las causas.** 30/09/2026, B.295.
+
+> **Una explicación sin comprobar no se archiva como CAUSA: se archiva como
+> HIPÓTESIS.**
+
+- El 29/09 por la tarde se archivó en B.295 y en B.297, como causa, que «el corpus
+  cambió»: NOR-10 y CLI-12 «pasaron de `pendiente` al corpus». De esa causa colgaban
+  dos predicciones anuladas y una comprobación de despliegue dada por perdida.
+- **Era falsa.** Analizar desde la bandeja no cambia `analysis_status`
+  (`app/api/analyze-v2/route.ts:711`). Lo que cambió fue la configuración del
+  análisis: una tanda de tres acompañantes, que amplía el filtro de candidatos
+  (`lib/pinecone/vectors.ts:110-120`).
+- **No la desmontó ni Code ni el arquitecto: la desmontó el DIRECTOR**, desde el
+  producto. «No he añadido al corpus ningún documento, solo los he analizado desde
+  la bandeja de revisión.» Y preguntó si «corpus» significa «contra qué se compara»,
+  porque entonces seleccionar varios los convierte en parte de eso. Tenía razón.
+- **Es la cuarta explicación del arquitecto que se cae en tres días, y las dos
+  últimas las desmontó el director** (cuenta del propio arquitecto). La otra de las
+  dos es la regla de medir «de una en una, nunca en tanda», que era al revés (B.295).
+
+**Lo que enseña, además de la regla**: quien usa el producto ve cosas que ninguno de
+los dos ve leyendo. Code lee el código y el arquitecto lee los informes; el director
+pulsa el botón y sabe qué seleccionó. **Es la regla del reparto de CLAUDE.md, «cada
+participante ve una cosa distinta», funcionando a favor**: la pregunta que cerraba el
+caso la podía contestar el director en una frase, y la contestó.
+
 
 ## ⚠️ TODA CONSULTA SOBRE EL JUEZ LISTA QUÉ RECIBE CADA LADO
 
