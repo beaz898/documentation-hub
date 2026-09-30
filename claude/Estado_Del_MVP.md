@@ -7911,6 +7911,19 @@ repuntuación (`scripts/examen.mjs:203`, «Hoy nada»).
 >
 > **El escalón 1 está construido, probado, medido y encendido, y NO cambia nada para un
 > análisis normal mientras el corpus no tenga trozos.**
+>
+> ✅ **CONFIRMADO EN PRODUCCIÓN el 30/09.** Con el interruptor encendido y sin acompañante, **el
+> 100 % de las parejas que llegan al juez salen `sin_fuente_comun`, y el análisis devuelve
+> cero.** Es lo que le pasa hoy a un usuario que sube un documento. Log del producto, que
+> transcribió el arquitecto; Code no lo ha visto:
+> - **12:20:44 UTC · NOR-10 analizado, `0 ids de tanda`**. «Retrieval: 14 candidatos» y
+>   «Rerank: 3 seleccionados». Los tres salen `sin_fuente_comun`, con su aviso «sin trozos —
+>   la pareja se lee con la tijera vieja»: Protocolo_Visitas_Centros (analizado 6000/66801,
+>   dejó fuera), Clientes_Residuos_Sanitarios y Normas_Frecuencia_Recogidas. **0
+>   contradicciones y 0 solapamientos** en los tres juicios. 13.803 ms.
+> - **12:19:56 UTC · CLI-13 analizado, `0 ids de tanda`**: igual. 14 candidatos, 3 al juez,
+>   los tres `sin_fuente_comun`, 0 contradicciones. 23.930 ms.
+>
 > - **El corpus por defecto son los 14 documentos con `analysisStatus: 'analizado'`, y son
 >   exactamente los 14 que no tienen trozos.** El censo del 30/09
 >   (`SQL_Documentos_Sin_Chunks.sql`, consulta 2, cifras que trae el arquitecto) da
@@ -7925,8 +7938,49 @@ repuntuación (`scripts/examen.mjs:203`, «Hoy nada»).
 >   sólo ocurre cuando el usuario selecciona varios documentos a mano en la bandeja (una
 >   tanda: `lib/pinecone/vectors.ts:110-120`, `hooks/review/useReviewAnalysis.ts:126`).
 > - **Lo que desbloquea su valor es la deuda de B.190: reindexar los documentos del
->   corpus.** Cuántos se pueden reindexar sin volver a subir el fichero lo dice
->   `SQL_Corpus_Reindexable_Sin_Resubir.sql` (PENDIENTE DE EJECUTAR).
+>   corpus.**
+>
+> > ### 🎯 LO QUE DESBLOQUEA EL VALOR DEL ESCALÓN 1 SON 13 REINDEXADOS DESDE EL PROPIO SISTEMA, NO UNA RE-SUBIDA DEL CORPUS
+> >
+> > `SQL_Corpus_Reindexable_Sin_Resubir.sql`, ejecutada por el director el 30/09. Literal de la
+> > consulta 2:
+> > ```
+> > via,documentos
+> > rechazado: staged_vivo,1
+> > retrocear: SIN RESUBIR,13
+> > null,14
+> > ```
+> > - **13 de 14 se reindexan SIN RESUBIR**, con el botón de `/settings/corpus`.
+> > - El **1** que queda tiene una VERSIÓN NUEVA esperando decisión (abajo).
+> > - La fila `null,14` **no son otros 14 documentos**: es el TOTAL. La consulta agrupa con
+> >   `GROUP BY ROLLUP (via)`, que añade una fila de total con `via` vacía. 1 + 13 = 14, y el
+> >   14 cuadra con el censo. **Los documentos CON trozos no entran en esta consulta**: la
+> >   consulta 2 sólo clasifica los `analizado` con cero trozos (`trozos_activos = 0`).
+>
+> ⚠️ **Y REINDEXAR PUDO NO SER UN BOTÓN, y en otro corpus lo será** (H-2 del arquitecto,
+> sobre un hallazgo de Code). Un documento de Drive sin segmentos NO se re-trocea desde su
+> `full_text`: `planDeReindexado` lo manda a `reprocesar`, y ese camino no está construido
+> (501, `lib/documents/reparar.ts:115-117`). Los `.xlsx` sin segmentos tampoco se pueden
+> reindexar desde el texto sin perder las celdas. **Nada de eso afecta a estos 14**, según
+> la SQL. El camino sigue sin construir y sigue devolviendo 501, pero no es el que necesitan
+> estos documentos.
+> - ⚠️ **Lo que no cuadra todavía, y lo cierra la consulta 1 de la misma SQL**: la lista
+>   nominal de abajo lleva CUATRO `.xlsx`, y el espejo manda un `.xlsx` sin segmentos a
+>   «rechazado». Si 13 salen `retrocear`, o esos `.xlsx` tienen segmentos guardados, o los
+>   14 `analizado` no son exactamente los 14 de la lista. La consulta 1 lista
+>   `tiene_segmentos` y `via` documento a documento. **No se deduce: se lee.**
+> - **El `staged_vivo`, en palabras del director**: ese documento tiene una **versión nueva
+>   esperando decisión**. Aparece en la bandeja de revisión con dos botones: «Activar esta
+>   versión» y «Descartar versión nueva» (`components/AnalysisModal/ReviewActions.tsx:221`,
+>   `:241`).
+>   - Mientras esa versión espere, el botón de reindexar no lo toca, a propósito: sólo cabe
+>     una versión en vuelo por documento (`lib/document-staged.ts`).
+>   - Para desbloquearlo, el director decide en la bandeja: **activarla** (sustituye a la
+>     vieja) o **descartarla** (se queda la vieja, y se borran los vectores de la nueva,
+>     `app/api/documents/[id]/discard-staged/route.ts`). Después, el reindexado lo acepta.
+>   - Cuál es, lo dice la consulta 1.
+>   - HIPÓTESIS, sin comprobar: si la versión nueva se indexó con el troceador de hoy,
+>     activarla puede dejarlo con trozos sin reindexar nada.
 >
 > **Y esto explica por qué la medida de NOR-11 / CLI-13 SÍ funcionó.** Los dos tienen trozos,
 > porque se reindexaron estos días, y el director los seleccionaba juntos. **La medida es
@@ -7948,9 +8002,10 @@ repuntuación (`scripts/examen.mjs:203`, «Hoy nada»).
 >   devuelve los que se parecen, y 14 recuperados de 14 posibles dice que la metadata de
 >   esos 14 es `analizado`, **no que ningún otro vector lleve esa metadata** (el invariante
 >   F-96, B.301).
-> - **«Todos anteriores a F-20»** es del arquitecto, y sale de `sin_trozos_anterior_a_F20 =
->   21`, que cuenta sobre los 50 documentos y no sólo sobre los 14. Por documento lo dice la
->   columna `causa` de la consulta 1. **No consta todavía.**
+> - **«Todos anteriores a F-20»: NO CONSTA.** Era una extrapolación del arquitecto, y la marca
+>   él mismo así (30/09). El 21 de `sin_trozos_anterior_a_F20` cuenta sobre los 50
+>   documentos, no sobre los 14. Por documento lo dice la columna `causa` de la consulta 1
+>   del censo.
 
 **Escritos el 29/09/2026 a las 11:23, antes de tocar código.** Son del arquitecto, literales.
 Code sólo los archiva. El cambio sustituye las dos tijeras del juez por UN presupuesto por
@@ -7967,6 +8022,16 @@ pareja, detrás de un interruptor.
     dos estaciones. La primera es lo que recuperó el retrieval, antes del rerank. La segunda
     es lo que leyó el juez. Que discrepen es un dato. El interruptor actúa DESPUÉS del rerank,
     en la puerta del juez: el rerank nunca recibe documentos enteros.
+    - 🎯 **SE PAGÓ EL 30/09, medido desde la base** (`SQL_Escalon1_pareja_NOR11_CLI13.sql`).
+      Con el interruptor encendido, la MISMA fila dice:
+      - `juez_candidato_mostrados = 14704`, `juez_candidato_dejo_fuera = false`;
+      - `retrieval_candidato_mostrados = 2813`, `retrieval_candidato_dejo_fuera = true`.
+
+      Las dos son verdad: el retrieval sigue recortando, y el juez ya no usa su recorte.
+    - **Es la justificación medida de una decisión de diseño que el arquitecto había pedido
+      al revés**, y lo dice él (30/09). El 29/09 propuso «el lado candidato ya lo cubre
+      B.281, no lo dupliques»; Code paró, y C2 lo decidió así. Con la propuesta original,
+      hoy no habría por dónde ver que la mejora entró por el juez.
   - **C3.** El interruptor es SÓLO para el modo rápido. En un exhaustivo, `corte_honesto` no
     puede aparecer nunca; si aparece, es un fallo. Si algún día el rápido encendido encuentra
     más que el exhaustivo, se escribe como hallazgo.
@@ -8082,10 +8147,9 @@ pareja, detrás de un interruptor.
     - **Las pasadas de esta medida, reetiquetadas**: de «de uno en uno» a **«con
       acompañante, pareja aislada»**. Todas dicen `1 ids de tanda` (del arquitecto), así que
       son válidas.
-    - ⚠️ **Las cuentas no cuadran con «12 y 12».** El arquitecto habla de «las 12 pasadas de
-      la línea de base y las 12 del interruptor encendido». El resultado de abajo da, apagado,
-      **6** pasadas en CLI-13 → NOR-11 y **8** en NOR-11 → CLI-13: 14, no 12. Queda así hasta
-      que se diga cuál de las dos cifras vale.
+    - **Son 16 con el interruptor apagado (8 + 8) y 12 encendido (6 + 6)**, contadas en la
+      base (`SQL_Escalon1_pareja_NOR11_CLI13.sql`, 30/09). Los recuentos sobre log daban
+      «12 y 12» y luego «6 + 8». **Gana la base.**
   - ⚠️ **EL CORPUS QUIETO** (regla del arquitecto, 29/09, sacada de los logs de ese día).
     ~~Entre las 09:08 y las 10:54 el corpus se movió~~ — **TACHADO el 30/09, con su motivo:
     el corpus no se movió. Cambió la CONFIGURACIÓN del análisis.** La pasada de las 10:51
@@ -8217,6 +8281,29 @@ la marcha.
     el entero no los reproduce palabra por palabra. El entero imprime las FILAS, que es más
     información, aunque no la misma cadena. El invariante es sobre información, no sobre
     cadenas.
+- ✅ **D-3 VERIFICADO EN PRODUCCIÓN el 30/09: el corte honesto se disparó por primera vez, y
+  los dos ramos de la cascada hacen lo diseñado**, cada uno en una dirección. Es log del
+  producto, que transcribió el arquitecto; Code no lo ha visto. Hasta entonces el corte
+  honesto sólo tenía los 108 casos y los mutantes.
+  - **12:29:49 · NOR-10 analizado + CLI-13 candidato, PASOS 1 y 2**: «pareja corte_honesto —
+    analizado 30183/66801 (dejó fuera), candidato 9817/9817».
+    - El candidato va entero: 9.817 ≤ 40.000 − 6.000.
+    - El analizado se lleva el resto: 40.000 − 9.817 = **30.183**. Cuadra al carácter.
+  - **12:29:31 · CLI-13 analizado + NOR-10 candidato, PASO 3**: «pareja corte_honesto —
+    analizado 9817/9817, candidato 3206/66801 (dejó fuera)».
+    - El candidato entero no cabe (66.801 > 34.000) y vuelve a su bloque por relevancia:
+      3.206.
+    - El analizado entra entero: 9.817 ≤ max(6.000, 40.000 − 3.206)
+      (`lib/analysis/judge.ts:1338-1340`).
+  - **Y un CONTROL NEGATIVO que salió gratis**: entre NOR-10 y CLI-13 **no hay
+    contradicciones sembradas**. Los pares sembrados son NOR-11/CLI-13 y NOR-10/CLI-12
+    (`corpus-pruebas/SIEMBRA_caso_control.md`, `SIEMBRA_corpus_ampliado.md`).
+    - Con `corte_honesto` y hasta 40.000 caracteres delante, el juez emitió **0
+      contradicciones y 0 solapamientos en las dos direcciones**. No inventó nada.
+    - Hasta ahora R-2 se apoyaba sólo en la pareja sembrada.
+    - ⚠️ «No hay sembradas» no es «no hay ninguna»: el registro de NOR-10/CLI-12 encontró
+      una cuarta que nadie sembró (la D). Aquí nadie ha auditado la pareja entera. Es un
+      control negativo contra la siembra, no contra el texto.
 - ✅ **D-3 IMPLEMENTADO en `6d7e5781`**, después de paginar (`eaf0718c`, B.297).
   - El invariante se prueba con una rejilla de 108 casos contra la tijera vieja.
   - `leerLaPareja` devuelve `representados`, y la prueba comprueba además que dice lo
@@ -8289,22 +8376,55 @@ la marcha.
 07:50–08:09 UTC. **Seis pasadas por dirección** (el plan decía cinco). Pareja aislada con un
 acompañante de tanda, y corpus quieto. Todas las pasadas imprimen
 `ANALYSIS_PAREJA_ENTERA=1 — presupuesto por pareja 40000 caracteres`.
-- ⚠️ **De dónde sale**: es un recuento del arquitecto sobre los logs del director. **Code no ha
-  visto esos logs.** La contraparte persistida es `SQL_Escalon1_pareja_NOR11_CLI13.sql`
-  (PENDIENTE DE EJECUTAR), con la ventana de arriba. **Si la base no cuadra, gana la base**, y
-  esta sección se corrige.
+- ✅ **LEÍDO DESDE LA BASE** el 30/09 (`SQL_Escalon1_pareja_NOR11_CLI13.sql`, ejecutada por el
+  director con `desde = '2026-09-30 00:00:00+02'`; resultados que transcribe el arquitecto).
+  - El primer recuento era del arquitecto sobre los logs. **La base lo confirma y corrige
+    una cifra: la línea de base de CLI-13 → NOR-11 son 8 pasadas, no 6.** Gana la base.
+  - Esa hora cubre todo el 30/09, posterior al despliegue de D-1 (29/09), así que no rompe el
+    supuesto de la consulta. Mete también los dos análisis de CLI-13 del experimento de
+    B.300, y la columna `candidatos_estables` los separa (abajo).
 - **La naturaleza de cada hallazgo** la fija el registro de siembra: ver «LA CORRESPONDENCIA
   CON LAS TRAMPAS SEMBRADAS», abajo.
 
-| Dirección | Pasadas | Trampa del plazo | 2ª contradicción «color del contenedor» | FP «Fecha de última revisión» |
-|---|---|---|---|---|
-| CLI-13 → NOR-11 | 6 | 6 de 6 | — | — |
-| NOR-11 → CLI-13 | 6 | 6 de 6 | 6 de 6 | 0 de 6 |
+| Dirección | Interruptor | Pasadas | Trampa del plazo | 2ª trampa (color) | FP «Fecha de última revisión» |
+|---|---|---|---|---|---|
+| CLI-13 → NOR-11 | apagado | 8 | 8 de 8 | — | — |
+| NOR-11 → CLI-13 | apagado | 8 | 0 de 8 | 0 de 8 | 4 de 8 |
+| CLI-13 → NOR-11 | encendido | 6 | 6 de 6 | — | — |
+| NOR-11 → CLI-13 | encendido | 6 | 6 de 6 | 6 de 6 | 0 de 6 |
 
-- **Línea de base, interruptor apagado** (del arquitecto; su ventana no consta aquí):
-  - CLI-13 → NOR-11: 6/6;
-  - NOR-11 → CLI-13: la trampa 0/8, la segunda 0/8 y el falso positivo 4/8.
-- **Régimen**: idéntico en las 12 pasadas, y confirmado en el log.
+- **Los identificadores, tal como los devuelve la columna `hallazgos`:**
+  - apagado, CLI-13 → NOR-11: `9d19a20b` «Plazo máximo de permanencia de contenedores grupo
+    III en almacén intermedio», las 8 veces;
+  - apagado, NOR-11 → CLI-13: `14123c6f` «Fecha de última revisión» 4 veces, y `null` 4;
+  - encendido, CLI-13 → NOR-11: `9d19a20b` «Plazo máximo de almacenamiento de residuos grupo
+    III», las 6;
+  - encendido, NOR-11 → CLI-13: `e7785038` «Plazo máximo…» · `5a59c682` «Color del
+    contenedor para residuos grupo III no punzantes», las 6. **Contradicciones = 2 en las
+    seis.**
+  - El mismo `9d19a20b` sale con dos títulos: el hash es del par de citas, no del título
+    (B.295, la regla del asunto).
+- **P-6, desde la base y no desde el log.** `regimenes_de_todas` da, en las 12 pasadas
+  encendidas y sin una excepción, `NOR-11/CLI-13: pareja_entera ·
+  Normas_Frecuencia_Recogidas.docx: sin_fuente_comun`.
+- **El cambio de lectura, por lado**:
+  - analizado mostrados: 6000 → 9817 y 14704, y `dejo_fuera` pasa de `true` a `false`;
+  - candidato mostrados: 3067 y 3038 → 14704 y 9817, y `dejo_fuera` pasa a `false`;
+  - presupuesto: `null` → 40000.
+- **La decisión C2, pagada** (el detalle, en C2 arriba): `juez_candidato_mostrados = 14704`
+  frente a `retrieval_candidato_mostrados = 2813`, en la misma fila.
+- **El guardia del corpus quieto funciona**: `candidatos_estables = true` en las pasadas de
+  la medida, y `false` en las dos del experimento de B.300 (12:20:20 y 12:29:37). La medida
+  queda certificada por la propia base.
+  - ⚠️ **El arquitecto dice «las 22 pasadas de la medida»**, y la medida son 16 + 12 = 28.
+    Una de las dos cifras está mal, y falta el literal para saber cuál. **No consta cuántas
+    filas dieron `true`.**
+- **`recuperados_retrieval`**: 10-11 en las pasadas de la medida, **14** en la de 0
+  acompañantes y **6** en la de 1 acompañante grande (B.300).
+- **Dos renderizados, no un error.** El juez mide NOR-11 en 14.704 caracteres y el retrieval,
+  en 14.676: 28 menos. Son dos renderizados distintos del mismo documento. Anotado, y no se
+  persigue.
+- **Régimen**: idéntico en las 12 pasadas, confirmado en el log y en la base (P-6, arriba).
   - CLI-13 / NOR-11 → `pareja_entera`: analizado 9817/9817 y candidato 14704/14704, o al
     revés según la dirección, con presupuesto 40000;
   - Normas_Frecuencia_Recogidas → `sin_fuente_comun`, con su aviso.
@@ -8322,13 +8442,14 @@ acompañante de tanda, y corpus quieto. Todas las pasadas imprimen
 **VEREDICTO: NINGÚN CRITERIO DE REVERSIÓN SE DISPARA. EL INTERRUPTOR SE QUEDA ENCENDIDO.** Se
 toma contra R-1…R-4, **escritos el 29/09 antes del cambio**, y no contra criterios elegidos a la
 vista del resultado.
-- **R-1.** Ninguna trampa estable dejó de salir. CLI-13 → NOR-11 sigue en 6/6.
+- **R-1.** Ninguna trampa estable dejó de salir. CLI-13 → NOR-11 pasa de 8/8 apagado a 6/6 encendido.
 - **R-2.** La precisión SUBIÓ:
   - el falso positivo desapareció (4/8 → 0/6);
   - lo publicado en NOR-11 → CLI-13 pasó de 1 a 2 por pasada.
 
   **Firme**: la segunda publicada es la sembrada 3 (el color), no un falso nuevo. Ver la
-  correspondencia, abajo.
+  correspondencia, abajo. Y tiene un control negativo aparte: NOR-10 / CLI-13, sin
+  sembradas, da 0 y 0 con corte honesto (D-3, «VERIFICADO EN PRODUCCIÓN»).
 - **R-3.** Máximo 23,8 s, muy por debajo de 60.
 - **R-4.** Ni un fallo de contexto del proveedor.
 
@@ -8364,7 +8485,7 @@ auditoría de la pareja, `corpus-pruebas/SIEMBRA_caso_control.md`:
 | Identificador del log | Sembrada | Dirección | Encendido | Apagado |
 |---|---|---|---|---|
 | `[e7785038]` «Plazo máximo de almacenamiento de residuos grupo III» | 1 | NOR-11 → CLI-13 | 6/6 publicada | 0/8 |
-| `[9d19a20b]` «Plazo máximo de almacenamiento de residuos grupo III» | 1 | CLI-13 → NOR-11 | 6/6 publicada | 6/6 |
+| `[9d19a20b]` «Plazo máximo de almacenamiento de residuos grupo III» | 1 | CLI-13 → NOR-11 | 6/6 publicada | 8/8 |
 | `[5a59c682]` «Color del contenedor para residuos grupo III no punzantes» | 3 | NOR-11 → CLI-13 | 6/6 publicada | 0/8 |
 | `[976f6174]` «Ubicación del punto de retirada centralizado» | 2 | NOR-11 → CLI-13 | 6/6 ENCONTRADA, 6/6 DESCARTADA (B.299) | 0/8 |
 | `[14123c6f]` «Fecha de última revisión» | ninguna | NOR-11 → CLI-13 | 0/6 | 4/8 → **FALSO POSITIVO CONFIRMADO** |
@@ -8422,7 +8543,8 @@ auditoría de la pareja, `corpus-pruebas/SIEMBRA_caso_control.md`:
 - ✅ **P-5 CUMPLIDA.** Ninguna pareja se quedó sin analizar.
   - ⚠️ Su segunda mitad («las que no quepan saldrán con `corte_honesto`») **no se ejercitó**:
     en esta tanda no había ninguna pareja que no cupiera. Cumplida sin su caso decisivo.
-- ✅ **P-6 CUMPLIDA AL PIE DE LA LETRA.** `pareja_entera` + `sin_fuente_comun`, las 12 veces.
+- ✅ **P-6 CUMPLIDA AL PIE DE LA LETRA.** `pareja_entera` + `sin_fuente_comun`, las 12 veces,
+  en el log y en la base (`regimenes_de_todas`).
   - Cumple la reescrita: el régimen lo decide el tamaño.
   - Coincide también con la original de las 11:42, que nombraba a Normas_Frecuencia.
 - ❌ **P-7 FALLADA, Y EN LA DIRECCIÓN CONTRARIA.** Predijo que la proporción de descartes por
@@ -8436,6 +8558,21 @@ auditoría de la pareja, `corpus-pruebas/SIEMBRA_caso_control.md`:
     juez encuentra MÁS, y su propia comprobación de citas mata la mitad. El escalón 1 no ha
     empeorado nada: **ha destapado que el cuello de botella está en otro sitio**. B.299 pasa
     de ficha a ser lo siguiente.
+
+**EL ESCALÓN 1, CERRADO (30/09/2026).** Construido, probado, medido contra la siembra,
+verificado desde la base, encendido y con su alcance real escrito en la caja de arriba.
+
+**📋 EL TABLERO DE DECISIÓN (30/09/2026, del arquitecto).** Es la primera vez que hay varios
+candidatos con ganancia medida, y van juntos. **Ninguno se empieza sin decisión del
+director.**
+
+| Orden | Ficha | Qué arregla | Ganancia | Hoy | Coste |
+|---|---|---|---|---|---|
+| 1 | **B.190** · reindexar el corpus | que cualquier otra mejora se note en un análisis normal | el escalón 1 pasa a actuar en la ruta por defecto | los 14 del corpus sin trozos: todo sale `sin_fuente_comun` | **13 de 14 SIN RESUBIR**, con el botón; el 14.º espera decisión sobre su versión nueva (caja de arriba) |
+| 2 | **B.299** · la comprobación de citas del juez | la sembrada 2 (Chamberí/Retiro), matada 6/6 | +1 de las 3 del caso de control | publicamos 2 de 3 | sin estimar; la tercera causa pide instrumentar la comprobación |
+| 3 | **B.302** · la cascada del verificador | la sembrada A de los cargos, «sin oposición» 4/4 | +1 en el caso de los cargos (CLI-12 → NOR-10) | 0 de 4 | sin estimar |
+| 4 | **B.300** · la tanda desplaza | un usuario que selecciona más documentos ve menos del corpus, y nada se lo dice | lo que el desplazamiento quita: −8 y −2 candidatos medidos | medido, sin arreglo | sin estimar |
+| 5 | **D-4** · el presupuesto | B y C de los cargos, hoy ilegibles (C fuera de alcance, B en el filo) | +2 en el caso de los cargos | inalcanzables | pendiente de la latencia y el coste a ~30.000 tokens, sin medir |
 
 ### ⚠️ B.299 — LA COMPROBACIÓN DE CITAS DEL JUEZ TIRA 5 DE 7 CONTRADICCIONES entre NOR-10 y CLI-12; LA CASCADA DEL VERIFICADOR, 1 MÁS (constancia y medida, SIN arreglo; 29/09/2026)
 
@@ -8520,6 +8657,9 @@ con estos 7 y 5, gana la base** y esta ficha se corrige.
   pero según las citas uno atribuye la autorización al Director Clínico y el otro al
   Coordinador de Calidad. Si es así, había oposición. **Hay que mirar el texto antes de
   afirmarlo.**
+  → **Resuelta el 30/09 con la siembra, y SE VA A B.302**: es la cascada del verificador,
+  otra estación y otro arreglo. Aquí sólo queda el puntero, para que las dos estaciones no se
+  vuelvan a mezclar como se mezclaron el 29/09.
 - **No se arregla ahora.** Se mide primero el escalón 1, y esta pareja queda como su caso de
   prueba; va inmediatamente después. P-7 (B.295) mide si el escalón 1 lo mueve.
 
@@ -8580,13 +8720,9 @@ apagado. Cuántos `ids de tanda` llevaba cada una no consta.
   - **B y C no aparecen ni una vez.** El motivo, con posiciones medidas, está en D-4 (B.295):
     el analizado se cortaba a 6.000 y las dos están pasada la mitad de cada documento.
 - **Las dos estaciones, cada una en una dirección, y las dos matan la A 100 %:**
-  - **CLI-12 → NOR-10: la CASCADA, 4 de 4, como `mismo_dato_sin_oposicion`.** Es la
-    SOSPECHA de la entrada 1 (`[603d2891]`, 29/09), ahora con cuatro casos más. Y la
-    siembra la desmiente: A es una contradicción real, y CLI-12 niega expresamente que
-    sea el Director Clínico (`SIEMBRA_corpus_ampliado.md:51-62`). **Un «sin oposición»
-    sobre la A es un fallo de la cascada, no un descarte correcto.** Es otra estación
-    que la comprobación de citas, y otro arreglo.
-  - **NOR-10 → CLI-12: la COMPROBACIÓN DE CITAS, 3 de 3.**
+  - **CLI-12 → NOR-10: la CASCADA, 4 de 4 → B.302.** Es otra estación y tiene ficha propia.
+    Aquí sólo el puntero.
+  - **NOR-10 → CLI-12: la COMPROBACIÓN DE CITAS, 3 de 3.** Ésta sí es de esta ficha.
 - **El roce con la D es un SOLAPAMIENTO, no la contradicción D.** `[75925931]` y
   `[8878a300]` citan «Cada clínica cuenta con un Coordinador de Calidad, figura que puede
   recaer en el propio Director Clínico o en otro profesional designado por él…», que es el
@@ -8595,14 +8731,44 @@ apagado. Cuántos `ids de tanda` llevaba cada una no consta.
   - ⚠️ **Lo medido por Code**: ese tramo está LITERAL en NOR-10. Es la línea 32 del texto
     extraído con el comando del propio registro (`SIEMBRA_corpus_ampliado.md:124-125`), y el
     registro ya avisaba de que una cita así «NO está alucinando… la cita existe» (`:147-149`).
-  - **Lo que NO consta**: la cita entera. Llegó cortada por «…» en el relevo.
+  - **Lo que NO consta**: la cita entera. Llegó cortada por «…».
   - **Si la cita entera fuera literal, ni (a) ni (b) explican el descarte**, y habría una
-    tercera causa: por ejemplo, que la comprobación no tuviera esos trozos en su pajar. Es la
-    primera pregunta del arreglo, y se contesta con la cita completa del log.
+    tercera causa: por ejemplo, que la comprobación no tuviera esos trozos en su pajar
+    (aceptada por el arquitecto el 30/09). **Es la primera pregunta del arreglo.**
+  - ⚠️ **Y NO SE CONTESTA LEYENDO MÁS LOGS**: el log también corta la cita, a unos 200
+    caracteres (del arquitecto); por eso llegó con «…». Para contestarla hay que
+    INSTRUMENTAR la comprobación, y eso es trabajo del arreglo, no de la constancia.
 
-### ⚠️ B.300 — LA TANDA DESPLAZA: seleccionar más documentos en la bandeja puede hacer que el análisis vea MENOS del corpus (producto y constancia, SIN arreglo; 30/09/2026)
+### ⚠️ B.302 — LA CASCADA DEL VERIFICADOR DESCARTA UNA CONTRADICCIÓN REAL COMO «MISMO DATO SIN OPOSICIÓN» (constancia y medida, SIN arreglo; 30/09/2026)
 
-**Seleccionar más documentos en la bandeja puede hacer que el análisis vea MENOS del corpus, y
+🎯 **LO QUE VALE ARREGLARLA, MEDIDO: la contradicción A del caso de los cargos, en la dirección
+CLI-12 → NOR-10, que hoy sale 0 de 4.**
+
+- **Lo medido**: 4 de 4 pasadas del 30/09, a las 06:36:58, 06:37:58, 06:38:53 y 06:40:26
+  UTC, en la dirección CLI-12 → NOR-10. La cascada del verificador descarta como
+  `mismo_dato_sin_oposicion` la contradicción sobre la **responsabilidad última de la
+  esterilización**. Recuento del arquitecto sobre logs del director; Code no los ha visto.
+  El detalle pasada a pasada está en B.299, entrada 3.
+- **Por qué es un descarte demostrablemente equivocado, y no una sospecha**:
+  - es la **sembrada A** (`corpus-pruebas/SIEMBRA_corpus_ampliado.md:51-62`);
+  - la siembra la declara contradicción real: NOR-10 dice «el Director Clínico» y CLI-12 dice
+    «el Coordinador de Calidad», y añade «no el Director Clínico» (`:56`). **Hay oposición,
+    y expresa**;
+  - reproducible 4 de 4.
+- **Y ya había pasado el 29/09**: `[603d2891]` «Autorización de excepciones al protocolo»
+  murió igual. La siembra cuenta la autorización de excepciones como una de las caras de la
+  A (`:58-61`). Aquello se archivó como SOSPECHA en B.299; es el mismo fallo.
+- **Estación**: la cascada del VERIFICADOR, después de que la cita pasara la comprobación.
+  **No es B.299**, que es la comprobación de citas del JUEZ, antes de la cascada. Son dos
+  arreglos distintos, y el 29/09 el arquitecto las mezcló en una sola cifra (el «71 % del
+  verificador» retirado en B.299).
+- **Lo que no se sabe, y es la primera pregunta del arreglo**: por qué la cascada ve «el
+  mismo dato sin oposición» donde hay dos figuras distintas. No se investiga aquí.
+- **SIN ARREGLO.** Constancia y medida.
+
+### ⚠️ B.300 — LA TANDA DESPLAZA: seleccionar más documentos en la bandeja hace que el análisis vea MENOS del corpus — MEDIDO con experimento controlado (producto y constancia, SIN arreglo; 30/09/2026)
+
+**Seleccionar más documentos en la bandeja hace que el análisis vea MENOS del corpus, y
 el usuario no tiene forma de saberlo.**
 
 **Lo CONFIRMADO en el código**: la tanda cambia el alcance de los candidatos.
@@ -8630,18 +8796,46 @@ visto; NOR-11 analizado):
 **Más acompañantes, menos candidatos**, aunque el filtro con tanda es un SUPERCONJUNTO del de
 sin tanda.
 
-**EL MECANISMO: HIPÓTESIS, con tres observaciones a favor y sin comprobar.**
+**EL MECANISMO** (era hipótesis con tres observaciones; el experimento de abajo lo respalda):
 - Cada consulta de muestra pide a Pinecone **25 resultados crudos**
   (`TOP_K_POR_CONSULTA`, `retrieval.ts:142`; la consulta en `:332`), sobre TODO el filtro.
 - Un acompañante muy afín con muchos trozos puede llenar las 25 plazas de cada consulta y
   dejar fuera a los `analizado`. Ejemplo: NOR-10, con 56 fragmentos a 0,938 el 29/09 a las
   13:15.
-- ⚠️ **Por qué sigue siendo hipótesis**: las tres observaciones se diferencian en más cosas
-  que el número de acompañantes. Son otro día u otra hora, otros acompañantes, y en medio hay
-  un reindexado de CLI-13 (10:53 del 29/09). **No es un experimento controlado.**
+- ⚠️ **Por qué era sólo hipótesis**: las tres observaciones se diferencian en más cosas que
+  el número de acompañantes. Son otro día u otra hora, otros acompañantes, y en medio hay un
+  reindexado de CLI-13 (10:53 del 29/09). **No es un experimento controlado.**
 - **SU CASO DECISIVO**: el mismo documento, el mismo día y sin tocar el corpus, lanzado con
-  0, 1 y 3 acompañantes seguidos, contando candidatos. Cuesta tres análisis, y los lanzaría
-  el director; Code no lanza nada.
+  0, 1 y 3 acompañantes seguidos, contando candidatos. Cuesta tres análisis, y los lanza el
+  director; Code no lanza nada.
+  - **La forma encargada por el arquitecto al director (30/09, escrita antes de los logs)**:
+    tres análisis de NOR-11, el primero solo, el segundo con CLI-13 y el tercero con
+    CLI-13 + NOR-10 + CLI-12.
+
+**✅ EL EXPERIMENTO, HECHO (30/09, 12:19–12:29 UTC). B.300 pasa de hipótesis a MEDIDA.** Los
+logs los transcribe el arquitecto; la columna `recuperados_retrieval` de
+`SQL_Escalon1_pareja_NOR11_CLI13.sql` confirma los dos de CLI-13 desde la base (14 y 6).
+
+| Documento analizado | Acompañante | Fragmentos del acompañante | Candidatos |
+|---|---|---|---|
+| CLI-13 (12:19:56) | ninguno | — | **14** |
+| CLI-13 (12:29:25) | NOR-10 | **55** | **6** |
+| NOR-10 (12:20:44) | ninguno | — | **14** |
+| NOR-10 (12:29:42) | CLI-13 | **11** | **12** |
+
+- **Añadir UN acompañante quitó 8 candidatos en un caso y 2 en el otro.** El filtro con tanda
+  es un superconjunto del filtro sin tanda: debería dar más candidatos, y da menos. **El
+  desplazamiento es real.**
+- **La magnitud va con el tamaño del acompañante**: 55 fragmentos quitan 8, y 11 fragmentos
+  quitan 2. Es lo que predice el mecanismo de las 25 plazas por consulta
+  (`TOP_K_POR_CONSULTA`), en las dos direcciones.
+  - ⚠️ **Son dos puntos, no una curva.** Respaldan el mecanismo; no miden cómo escala.
+- ⚠️ **Lo hecho no es exactamente lo encargado**, y se dice:
+  - se hizo con CLI-13 y NOR-10, en dos direcciones, con 0 y 1 acompañantes;
+  - **la pata de 3 acompañantes no se hizo**, y tampoco la forma sobre NOR-11.
+
+  No cambia la conclusión, porque la tanda de 3 ya tenía su observación del 29/09. Pero el
+  experimento controlado cubre 0 frente a 1, no 1 frente a 3.
 
 **LO QUE ESTO HACE AL PRODUCTO, y por qué es de producto y no sólo de medida:**
 - el usuario que selecciona varios documentos «para compararlos entre sí» cree que ve MÁS, y
@@ -8650,7 +8844,7 @@ sin tanda.
   por la tanda»: el tope que cuenta lo que deja fuera es el de 25 candidatos
   (`seleccion.candidatos_cortados_por_tope_de_recuperacion`, `retrieval.ts:144-150`), **no**
   éste, que ocurre antes, por consulta, dentro de Pinecone. Es un límite sin contador.
-- **Sin arreglo.** Constancia.
+- **Sin arreglo, pero ya es un fallo de producto documentado y medido.**
 
 **Y LO QUE HACE A LA MEDIDA**: por esto la regla de B.295 exige exactamente un acompañante
 (`1 ids de tanda`). Con más, los candidatos dependen de quién más vaya seleccionado.

@@ -1,6 +1,7 @@
 -- ============================================================================
 -- ESCALÓN 1 (B.295) · LA PAREJA NOR-11 / CLI-13, ANÁLISIS POR ANÁLISIS — SÓLO LECTURA
--- ⚠️ PENDIENTE DE EJECUTAR (29/09/2026). Sólo SELECT: no escribe nada.
+-- ✅ EJECUTADO por el director el 30/09/2026 con desde = '2026-09-30 00:00:00+02' (todo el
+--    30/09, posterior a D-1). Lectura archivada en B.295, «LEÍDO DESDE LA BASE». Sólo SELECT.
 --
 -- QUÉ CONTESTA: para cada análisis de la pareja, en las dos direcciones, qué leyó
 -- EL JUEZ de cada lado (`lecturaDeLasParejas`, B.295) y qué recuperó EL RETRIEVAL

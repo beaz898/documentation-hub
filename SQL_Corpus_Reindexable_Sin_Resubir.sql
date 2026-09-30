@@ -1,7 +1,10 @@
 -- ============================================================================
 -- LOS 14 DEL CORPUS SIN TROZOS: ¿CUÁLES SE PUEDEN REINDEXAR SIN VOLVER A SUBIR
 -- EL FICHERO? — SÓLO LECTURA (B.295, F-3; deuda de B.190)
--- ⚠️ PENDIENTE DE EJECUTAR (30/09/2026). Sólo SELECT: no escribe nada.
+-- ✅ EJECUTADO por el director el 30/09/2026. Sólo SELECT: no escribe nada.
+--    Consulta 2, literal: rechazado: staged_vivo = 1 · retrocear: SIN RESUBIR = 13 ·
+--    null = 14. La fila null es el TOTAL del ROLLUP, no otros 14 documentos (B.295).
+--    La salida de la consulta 1, documento a documento, NO está archivada.
 --
 -- LA PREGUNTA, del arquitecto: el escalón 1 no cambia nada en la ruta por defecto
 -- mientras el corpus no tenga trozos (F-3). Para decidir cuánto cuesta
