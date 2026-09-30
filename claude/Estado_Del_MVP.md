@@ -7899,14 +7899,79 @@ pareja, detrás de un interruptor.
     NOR-10 y CLI-12. Elegirlo «para ejercitar el camino» es degradar su análisis para probar
     código, y el camino ya lo ejercitan los 108 casos y los mutantes de D-3. **Probar a costa
     del usuario no es probar: es cobrarle la prueba.**
-  - **El número SOBREVIVE, PENDIENTE DE BASE.** No se toca antes de esta medida: NOR-11 +
-    CLI-13 son 24.521 caracteres, unos 6.130 tokens, por debajo de cualquier presupuesto que
-    se discuta. Moverlo sería cambiar una cifra ya subida justo antes de medir, y por nada.
+  - ~~**El número SOBREVIVE, PENDIENTE DE BASE.**~~ *La base llegó el 30/09 (abajo).* No se
+    tocó antes de esta medida: NOR-11 + CLI-13 son 24.521 caracteres, unos 6.130 tokens, por
+    debajo de cualquier presupuesto que se discuta.
+  - **LA BASE DE D-4 (arquitecto, 30/09; cruzada con el registro por Code).** Según
+    `corpus-pruebas/SIEMBRA_corpus_ampliado.md:32-162`, entre NOR-10 y CLI-12 hay **CUATRO**
+    contradicciones:
+    - **A**, el responsable último de la esterilización (NOR-10 p. 2, ap. 2.1 / CLI-12 p. 2,
+      ap. 3.1);
+    - **B**, la periodicidad del control biológico: semanal frente a mensual (NOR-10 **p. 11**,
+      ap. 10.2 / CLI-12 p. 11, ap. 12.1);
+    - **C**, la caducidad del material esterilizado: 6 frente a 12 meses (NOR-10 **p. 16**,
+      ap. 13.4 / CLI-12 p. 16, ap. 16.2);
+    - **D**, si las dos figuras pueden ser la misma persona. **No se sembró**: se descubrió el
+      27/08. Detectarla es un ACIERTO.
+
+    El registro avisa de que «no se puede afirmar que no haya una quinta» (`:48-49`). Por eso
+    un hallazgo fuera de A-D **no se da por falso sin ir al texto**.
+    - **Lo que encontró el juez** (del arquitecto, sobre logs que Code no ha visto):
+      - todo es A, en varias formulaciones;
+      - hay un roce con D: `[75925931]` y `[8878a300]`, «figura que puede recaer en el propio
+        Director Clínico», que es el lado NOR-10 de la D literal, **descartado por cita no
+        verificable**;
+      - **B y C no aparecen ni una vez.**
+    - ⚠️ **Qué análisis son, no cuadra con el archivo.** El arquitecto los llama «los siete
+      análisis de esa pareja del 30/09 que ya están en B.299». B.299 archiva otra cosa: **siete
+      CONTRADICCIONES de los cuatro análisis del 29/09**, entre las 13:14 y las 13:16. Y
+      `[75925931]` y `[8878a300]` no están en ningún documento del repositorio. Queda así
+      hasta que se aclare qué pasadas son.
+    - **El motivo, con el interruptor APAGADO**: el log dice «truncado a 6000 de 66801
+      caracteres». Code ha medido dónde caen B y C en el texto plano del .docx, con la
+      extracción del propio registro (`:124-125`):
+
+      | | Longitud | A | D | B | C |
+      |---|---|---|---|---|---|
+      | NOR-10 | 59.517 | 2.069 (3,5 %) | 3.750 (6,3 %) | 33.140 (55,7 %) | 52.209 (87,7 %) |
+      | CLI-12 | 50.202 | 3.715 (7,4 %) | 6.343 (12,6 %) | 32.367 (64,5 %) | 46.926 (93,5 %) |
+
+      **A y D caben en los 6.000 del analizado; B y C, muy lejos.** El juez nunca leyó el
+      lado analizado de B ni de C.
+    - **CONCLUSIÓN, y queda quitado el «pendiente de base».** Subir el presupuesto para que
+      NOR-10 + CLI-12 quepan enteros no es una preferencia estética. Son 66.801 + 55.135 =
+      **121.936 caracteres**, 30.484 tokens. Es la condición para encontrar dos
+      contradicciones reales, documentadas con página y apartado, que hoy son inalcanzables.
+    - **Lo que sigue pendiente**: el dato de coste y latencia a unos **30.000 tokens**. La
+      pregunta abierta y la regla de decisión de abajo se escribieron con 17.000 (la «pareja
+      mayor posible» de B.273), y esta pareja la supera. La consulta 3 de B.273 se contó sobre
+      documentos `analizado`, y no consta que NOR-10 y CLI-12 lo sean hoy; si no lo son, sólo
+      se encuentran en una tanda (E-2, pendiente).
+  - ⚠️ **LA CONSECUENCIA INCÓMODA, CORREGIDA POR CODE A LA MITAD.** Con 40.000 esta pareja cae
+    en `corte_honesto`, paso 3: los dos documentos pasan solos de 40.000 − 6.000. El
+    arquitecto concluyó que «el escalón 1, tal como está encendido, no puede encontrar B ni
+    C». **El código dice algo más fino.**
+    - En el paso 3 el candidato vuelve a su bloque por relevancia, pero **el analizado NO se
+      queda en 6.000**. Se lleva el resto, por posición:
+      `max(6.000, presupuesto − bloque)` (`lib/analysis/judge.ts:1338-1340`). Son unos 37.000
+      caracteres.
+    - **C: inalcanzable en las dos direcciones.** El lado analizado de C está hacia el
+      88-94 % del documento, muy por encima de 37.000 en cualquiera de los dos.
+    - **B: en el filo, no descartado.** Escalando la posición del texto plano al renderizado
+      (**estimación**, no medida):
+      - en CLI-12, B cae hacia 35.500 de 55.135, **dentro** de los ~37.000;
+      - en NOR-10, hacia 37.200 de 66.801, justo **en el borde**.
+
+      Con CLI-12 como analizado, B es alcanzable **si** el trozo de B de NOR-10 entra en el
+      bloque por relevancia del candidato (~3.000). Eso no consta.
+    - **Lo que sí se sostiene entero**: el caso de control de los cargos no se puede superar
+      hoy. C no se alcanza, y B depende del filo y de la relevancia.
   - **El presupuesto no es un límite técnico: es una decisión de coste y latencia.** La
     ventana de Haiku 4.5 son 200.000 tokens (dato del arquitecto) y la pareja mayor posible
     del corpus, 17.062. Con 25.000 cabría hoy el corpus entero.
   - **PREGUNTA ABIERTA, sin trabajo asociado todavía**: qué cuestan, en latencia y en coste
-    por análisis, 17.000 tokens. Esta tanda mide la latencia a ~6.130 (P-4, R-3); falta el
+    por análisis, 17.000 tokens. *(30/09: con la base de arriba, la cifra que importa son
+    unos 30.000.)* Esta tanda mide la latencia a ~6.130 (P-4, R-3); falta el
     otro extremo.
   - **REGLA DE DECISIÓN, escrita antes del dato**:
     - Si a 17.000 tokens la latencia del rápido queda por debajo del límite de R-3 (60 s) y
@@ -8104,8 +8169,8 @@ acompañante de tanda, y corpus quieto. Todas las pasadas imprimen
   visto esos logs.** La contraparte persistida es `SQL_Escalon1_pareja_NOR11_CLI13.sql`
   (PENDIENTE DE EJECUTAR), con la ventana de arriba. **Si la base no cuadra, gana la base**, y
   esta sección se corrige.
-- **Lo que sigue siendo condicional**: el veredicto depende de la naturaleza de los hallazgos.
-  Ver «LAS DOS PREGUNTAS AL DIRECTOR».
+- **La naturaleza de cada hallazgo** la fija el registro de siembra: ver «LA CORRESPONDENCIA
+  CON LAS TRAMPAS SEMBRADAS», abajo.
 
 | Dirección | Pasadas | Trampa del plazo | 2ª contradicción «color del contenedor» | FP «Fecha de última revisión» |
 |---|---|---|---|---|
@@ -8138,8 +8203,8 @@ vista del resultado.
   - el falso positivo desapareció (4/8 → 0/6);
   - lo publicado en NOR-11 → CLI-13 pasó de 1 a 2 por pasada.
 
-  ⚠️ **Firme sólo si la segunda es una trampa**, y está PENDIENTE DE CONFIRMAR (abajo). Si
-  fuera un falso nuevo, R-2 se recalcula.
+  **Firme**: la segunda publicada es la sembrada 3 (el color), no un falso nuevo. Ver la
+  correspondencia, abajo.
 - **R-3.** Máximo 23,8 s, muy por debajo de 60.
 - **R-4.** Ni un fallo de contexto del proveedor.
 
@@ -8157,22 +8222,49 @@ Con el interruptor encendido:
 Es el mismo 35 → 65 que dio el exhaustivo con el candidato entero (B.283). Ahora sale en el
 modo rápido, y por lo tanto en lo que ve todo usuario con el interruptor encendido.
 
-**LAS DOS PREGUNTAS AL DIRECTOR**, que cierran R-2. Ninguna se escribe como trampa hasta que
-conteste:
-1. **«Color del contenedor para residuos grupo III no punzantes»**: publicada y confirmada 6/6.
-   **Naturaleza PENDIENTE DE CONFIRMAR.**
-2. **«Ubicación del punto de retirada centralizado»**: emitida 6/6 y descartada 6/6 por cita no
-   verificable (B.299). **Naturaleza PENDIENTE DE CONFIRMAR.**
-- **Lo que ya dice el repositorio**, para que la respuesta sea corta.
-  - El registro de siembra de la pareja, `corpus-pruebas/SIEMBRA_caso_control.md`, enumera
-    «exactamente 3 contradicciones»: su contradicción 2 es la **ubicación** (Chamberí frente a
-    Retiro, `:53-66`) y la 3 el **color** del grupo III no punzante (amarillo frente a negro,
-    `:68-93`). Resumen en `:130-139`.
-  - Las dos salieron publicadas como trampas en la ventana de B.280.
-  - **Lo que falta es lo que sólo puede ver el director**: que los documentos de su corpus
-    sean los sembrados.
+**LA CORRESPONDENCIA CON LAS TRAMPAS SEMBRADAS. Es completa.** Se cruza contra el registro de
+auditoría de la pareja, `corpus-pruebas/SIEMBRA_caso_control.md`:
+- **Exactamente 3 contradicciones**, «ni una más ni una menos» (`:130-139`), y cualquier otro
+  hallazgo de tipo contradicción es un falso positivo:
+  1. **PLAZO**: NOR-11 p. 1, ap. 2, «más de 72 horas», frente a CLI-13 p. 1, ap. 2, «más de 7
+     días naturales» (`:38-51`);
+  2. **LUGAR**: NOR-11 p. 3, ap. 6, «Chamberí», frente a CLI-13 p. 2, ap. 5, «Retiro»
+     (`:53-66`);
+  3. **COLOR**: NOR-11 p. 5, ap. 10.2, «en ningún caso… en el contenedor negro», frente a
+     CLI-13 p. 4, ap. 8, «se depositan en el contenedor negro» (`:68-93`).
+- El registro exige que salgan de una **comparación abierta, sin pista**. En esta medida no
+  hubo pista.
+- Las dos preguntas que se le iban a hacer al director las contesta este registro. La pregunta
+  sobraba: el registro estaba en el repositorio desde el 27/08.
 
-**LAS PREDICCIONES, UNA A UNA. Tres cumplidas, cuatro falladas y ninguna salvada.**
+| Identificador del log | Sembrada | Dirección | Encendido | Apagado |
+|---|---|---|---|---|
+| `[e7785038]` «Plazo máximo de almacenamiento de residuos grupo III» | 1 | NOR-11 → CLI-13 | 6/6 publicada | 0/8 |
+| `[9d19a20b]` «Plazo máximo de almacenamiento de residuos grupo III» | 1 | CLI-13 → NOR-11 | 6/6 publicada | 6/6 |
+| `[5a59c682]` «Color del contenedor para residuos grupo III no punzantes» | 3 | NOR-11 → CLI-13 | 6/6 publicada | 0/8 |
+| `[976f6174]` «Ubicación del punto de retirada centralizado» | 2 | NOR-11 → CLI-13 | 6/6 ENCONTRADA, 6/6 DESCARTADA (B.299) | 0/8 |
+| `[14123c6f]` «Fecha de última revisión» | ninguna | NOR-11 → CLI-13 | 0/6 | 4/8 → **FALSO POSITIVO CONFIRMADO** |
+
+- Los identificadores son del log (recuento del arquitecto). Sirven para leerlo, no para seguir
+  un hallazgo entre pasadas: identifican el PAR DE CITAS.
+
+**EL RESUMEN:**
+- **Contradicciones sembradas que ENCUENTRA el juez**: apagado, 1 de 3 → encendido, **3 de 3**.
+- **Contradicciones PUBLICADAS al usuario**: apagado, 1 de 3 → encendido, **2 de 3**.
+- **Falsos positivos publicados**: apagado, 1 (4/8) → encendido, **0 de 6**.
+
+**Dos cosas que ahora se pueden afirmar y antes no:**
+- «Fecha de última revisión» **era un falso positivo**. El registro dice que sólo hay tres
+  contradicciones, y ésa no es ninguna. Deja de estar en duda.
+- `[5a59c682]` (el color) y `[976f6174]` (la ubicación) **son trampas sembradas**, no falsos
+  positivos.
+
+**LAS PREDICCIONES, UNA A UNA. Tres cumplidas, cuatro falladas y ninguna salvada**:
+- ✅ P-1, P-5 y P-6;
+- ❌ P-2, P-3, P-4 y P-7.
+
+**Cuatro de siete falladas, y el cambio es un éxito claro.** Las dos cosas juntas dicen que
+**nuestro modelo del juez era peor que el juez**.
 - ✅ **P-1 CUMPLIDA, y de sobra.** Pedía al menos 4 de 5 en cada dirección y salió 6/6 en
   cada una.
 - ❌ **P-2 FALLADA.** Las celdas del experimento decisivo (B.280) son 6: tres trampas
@@ -8186,6 +8278,15 @@ conteste:
     celda.** Contarla daría 4 de 6, y sería salvar la predicción con lo que el propio producto
     tira.
   - En CLI-13 → NOR-11 no consta nada más que el plazo.
+  - ⚠️ **EL DEFECTO ES DE LA PREDICCIÓN, y lo declara su autor** (arquitecto, 30/09). «Alcanzará
+    al menos 4 de las 6 celdas» se escribió sin definir qué es alcanzar una celda. Con la
+    siembra delante hay dos lecturas, y dan distinto:
+    - celdas que el JUEZ alcanza: **4 de 6** (la sembrada 1 en las dos direcciones, y la 2 y
+      la 3 en NOR-11 → CLI-13). Con esa lectura, cumplida;
+    - celdas PUBLICADAS: **3 de 6**. Con esa lectura, fallada.
+
+    **La ambigüedad se resuelve a la baja, a propósito**: el trabajo del producto es publicar,
+    no encontrar. P-2 queda FALLADA.
 - ❌ **P-3 FALLADA.** Predijo que el falso positivo NO desaparecería, y desapareció: 4/8 → 0/6.
   Su propia cláusula obliga a buscar qué más se movió.
   - **HIPÓTESIS del arquitecto, sin investigar**: con los dos documentos enteros, el juez tiene
@@ -8213,6 +8314,16 @@ conteste:
     de ficha a ser lo siguiente.
 
 ### ⚠️ B.299 — LA COMPROBACIÓN DE CITAS DEL JUEZ TIRA 5 DE 7 CONTRADICCIONES entre NOR-10 y CLI-12; LA CASCADA DEL VERIFICADOR, 1 MÁS (constancia y medida, SIN arreglo; 29/09/2026)
+
+🎯 **LO QUE VALE ARREGLARLA, MEDIDO (30/09/2026): UNA DE LAS TRES CONTRADICCIONES DEL CASO DE
+CONTROL.** Con el escalón 1 encendido, la comprobación de citas mata **6 de 6** veces
+`[976f6174]`, «Ubicación del punto de retirada centralizado». Es la **sembrada 2**
+(`corpus-pruebas/SIEMBRA_caso_control.md:53-66`).
+- Arreglarla es pasar de publicar **2 de 3 a 3 de 3** en NOR-11 / CLI-13 (B.295, «LA
+  CORRESPONDENCIA»).
+- Ya no es «una fuga que habría que mirar». Es un hallazgo conocido, reproducible 6/6 y con
+  su ganancia medida.
+- **B.299 es lo siguiente.**
 
 ⚠️ **Retitulada el 29/09 por la noche.** El arquitecto había juntado las dos cosas en «el
 verificador tira 5 de 7, un 71 %». **Era falso, y lo corrigió él mismo.** Son dos estaciones:
@@ -8286,10 +8397,8 @@ con estos 7 y 5, gana la base** y esta ficha se corrige.
   ubicado en la clínica de Chamberí».
   - Es una contradicción candidata **encontrada 6/6 y matada 6/6** por la comprobación de
     citas.
-  - Si es trampa sembrada —**PENDIENTE DE CONFIRMAR por el director**—, sería la tercera de la
-    pareja, y estaría **a un arreglo de la comprobación de citas de publicarse**.
-  - El registro de siembra la lista como su contradicción 2
-    (`corpus-pruebas/SIEMBRA_caso_control.md:53-66`).
+  - **Es la sembrada 2** (`corpus-pruebas/SIEMBRA_caso_control.md:53-66`). Es la tercera
+    trampa de la pareja, y está **a un arreglo de la comprobación de citas de publicarse**.
   - En la ventana de B.280 salió publicada en las dos direcciones.
 - **EL PESO DE LAS DOS HIPÓTESIS, con este caso.** Hasta ahora ninguna tenía letra en la ficha.
   Se nombran aquí:
