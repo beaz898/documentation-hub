@@ -8930,6 +8930,32 @@ Cubre las tres clases salvo un caso: el de un vector sin fila que además lleve 
 
 **No se construye ahora.** Constancia y plan, a petición del arquitecto.
 
+### 📋 B.303 — LLEGÓ EL DICTAMEN F-119: el retrieval y el rerank eligen párrafos, y el juez lee documentos enteros (constancia, NADA INICIADO; 30/09/2026)
+
+1. **Llegó el dictamen F-119, y está archivado**
+   (`claude/consultas-fable/F-119_2026-09-30_moneda-antigua-del-retrieval.md`). **Nada
+   iniciado.**
+2. **El encuadre del director queda confirmado en lo esencial**, con dos correcciones de
+   Fable:
+   - **(a)** las 25 plazas compartidas **NO son moneda antigua**. Eran un fallo también en el
+     diseño viejo, y el escalón 1 sólo las hizo visibles. Esto matiza el encuadre de B.300:
+     **el desplazamiento no lo causó el escalón 1.**
+   - **(b)** el máximo por documento **no es una agregación equivocada: es incompleta.** El
+     juez lee entero para encontrar el párrafo compartido esté donde esté, no porque el
+     candidato deba ser relevante de principio a fin.
+3. **El diagnóstico exacto que Fable señala como lo primero**: en la cadena de diez topes hay
+   cuatro sin contador (2, 4, 7 y 9). **Un tope sin contador es una decisión que nadie puede
+   auditar.**
+   - ⚠️ **Precisión de Code sobre el 9**, con la lectura ya cerrada: del rerank al juez pasan
+     TODOS los seleccionados (`lib/analysis/pipeline.ts:851`, `candidates: reranked`). **El 9
+     no deja nada fuera, así que no tiene nada que contar.** Los ciegos que sí dejan cosas
+     fuera son el 2, el 4 y el 7.
+4. **El bloque de ~3.000 caracteres no se retira: cambia de oficio.** Pasa de «lo que lee el
+   juez» a «el registro de por qué este documento fue elegido», y debe construirse una vez y
+   leerse cinco veces.
+5. **El tablero de decisión de B.295 NO cambia**: sigue **B.190 · reindexar el corpus** en el
+   puesto 1.
+
 ### ⚠️ B.297 — LA LECTURA DE TROZOS SIN PAGINAR, y su margen medido (29/09/2026)
 
 `getChunksForDocuments` (`lib/read-chunks.ts`) era UNA consulta sin paginar. Supabase corta
