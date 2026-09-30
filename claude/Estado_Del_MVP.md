@@ -8301,6 +8301,15 @@ la marcha.
       3.206.
     - El analizado entra entero: 9.817 ≤ max(6.000, 40.000 − 3.206)
       (`lib/analysis/judge.ts:1338-1340`).
+  - **Tres ramos más, el 30/09 entre las 13:01 y las 13:03** (L-5 del arquitecto, sobre el log
+    del director). Los tres cuadran al carácter con la cascada:
+    - **CLI-12 analizado, NOR-11 candidato entero**: analizado 25296 = 40.000 − 14.704.
+      **Paso 2.**
+    - **CLI-12 analizado, NOR-10 candidato al bloque**: analizado 37271 y candidato 2729
+      (37.271 + 2.729 = 40.000). **Paso 3.**
+    - **NOR-11 analizado, NOR-10 y CLI-12 candidatos al bloque**: analizado 14704 ENTERO,
+      candidatos 2860 y 2879. **Paso 3 con el analizado cabiendo entero**: 14.704 ≤
+      40.000 − 2.860.
   - **Y un CONTROL NEGATIVO que salió gratis**: entre NOR-10 y CLI-13 **no hay
     contradicciones sembradas**. Los pares sembrados son NOR-11/CLI-13 y NOR-10/CLI-12
     (`corpus-pruebas/SIEMBRA_caso_control.md`, `SIEMBRA_corpus_ampliado.md`).
@@ -8575,10 +8584,10 @@ director.**
 | Orden | Ficha | Qué arregla | Ganancia | Hoy | Coste |
 |---|---|---|---|---|---|
 | 1 | **B.190** · reindexar el corpus | que cualquier otra mejora se note en un análisis normal | el escalón 1 pasa a actuar en la ruta por defecto | los 14 del corpus sin trozos: todo sale `sin_fuente_comun` | **13 de 14 SIN RESUBIR**, con el botón; el 14.º espera decisión sobre su versión nueva (caja de arriba) |
-| 2 | **B.299** · la comprobación de citas del juez | la sembrada 2 (Chamberí/Retiro), matada 6/6 | +1 de las 3 del caso de control | publicamos 2 de 3 | sin estimar; la tercera causa pide instrumentar la comprobación |
-| 3 | **B.302** · la cascada del verificador | la sembrada A de los cargos, «sin oposición» 4/4 | +1 en el caso de los cargos (CLI-12 → NOR-10) | 0 de 4 | sin estimar |
-| 4 | **B.300** · la tanda desplaza | un usuario que selecciona más documentos ve menos del corpus, y nada se lo dice | lo que el desplazamiento quita: −8 y −2 candidatos medidos | medido, sin arreglo | sin estimar |
-| 5 | **D-4** · el presupuesto | B y C de los cargos, hoy ilegibles (C fuera de alcance, B en el filo) | +2 en el caso de los cargos | inalcanzables | pendiente de la latencia y el coste a ~30.000 tokens, sin medir |
+| 2 | **B.299** · la comprobación de citas del juez | la sembrada 2 (Chamberí/Retiro), matada 6/6 | +1 de las 3 del caso de control, **y el desbloqueo parcial de la B de los cargos** (30/09 13:01:56: la cita literal del lado CLI-12, tirada; B.299, entrada 4) | publicamos 2 de 3 | sin estimar; la tercera causa pide instrumentar la comprobación |
+| 3 | **B.302** · la cascada del verificador | la sembrada A de los cargos, «sin oposición» 4/4 | **recalculada el 30/09: la mitad.** Con el escalón 1 encendido, la cascada mató 2 de 4 (una pasada, 13:01:56); quedan 2 por recuperar | 2 publicadas de 4 en una pasada; atribución no aislada (B.302) | sin estimar |
+| 4 | **B.300** · la tanda desplaza | un usuario que selecciona más documentos ve menos del corpus, y nada se lo dice | lo que el desplazamiento quita; **crece con el número de seleccionados: NOR-11 14 → 11 → 4, NOR-10 14 → 12 → 3** (B.300) | medido, sin arreglo | sin estimar |
+| 5 | **D-4** · el presupuesto | B y C de los cargos, hoy ilegibles (C fuera de alcance, B en el filo) | +2 en el caso de los cargos; **reforzado el 30/09**: con la pareja entera entrarían los dos lados de la B (B.299, entrada 4) | inalcanzables | pendiente de la latencia y el coste a ~30.000 tokens, sin medir |
 
 ### ⚠️ B.299 — LA COMPROBACIÓN DE CITAS DEL JUEZ TIRA 5 DE 7 CONTRADICCIONES entre NOR-10 y CLI-12; LA CASCADA DEL VERIFICADOR, 1 MÁS (constancia y medida, SIN arreglo; 29/09/2026)
 
@@ -8591,6 +8600,10 @@ CONTROL.** Con el escalón 1 encendido, la comprobación de citas mata **6 de 6*
 - Ya no es «una fuga que habría que mirar». Es un hallazgo conocido, reproducible 6/6 y con
   su ganancia medida.
 - **B.299 es lo siguiente.**
+- ⬆️ **LA GANANCIA SUBE (30/09, 13:01:56; L-3 del arquitecto).** Ya no es sólo «+1 del caso
+  de control»: es eso **MÁS el desbloqueo parcial de la B** del caso de los cargos. El juez
+  tuvo delante el lado CLI-12 de la B, y la comprobación de citas lo tiró (entrada 4, al
+  final).
 
 ⚠️ **Retitulada el 29/09 por la noche.** El arquitecto había juntado las dos cosas en «el
 verificador tira 5 de 7, un 71 %». **Era falso, y lo corrigió él mismo.** Son dos estaciones:
@@ -8602,7 +8615,9 @@ el 1 y el 3 al citarlos el 30/09, y lo corrigió él mismo el mismo día.
 1. **Cuatro análisis del 29/09, NOR-10 / CLI-12: 7 contradicciones, 1 publicada.** Es lo que
    sigue inmediatamente.
 2. **NOR-11 / CLI-13, 30/09, con el interruptor encendido: el descarte estable.** Después del 1.
-3. **Siete pasadas del 30/09, NOR-10 / CLI-12: 7 contradicciones, 0 publicadas.** Al final.
+3. **Siete pasadas del 30/09, NOR-10 / CLI-12: 7 contradicciones, 0 publicadas.**
+4. **CLI-12 → NOR-10, 30/09 a las 13:01:56, interruptor encendido: el roce con la B.** Al
+   final.
 
 #### 1 · Cuatro análisis del 29/09 (13:14-13:16 UTC), NOR-10 / CLI-12: 7 contradicciones, 1 publicada
 
@@ -8745,10 +8760,95 @@ apagado. Cuántos `ids de tanda` llevaba cada una no consta.
     caracteres (del arquitecto); por eso llegó con «…». Para contestarla hay que
     INSTRUMENTAR la comprobación, y eso es trabajo del arreglo, no de la constancia.
 
+#### 4 · 30/09, 13:01:56 UTC, CLI-12 → NOR-10, interruptor encendido: el juez roza la B, que dábamos por inalcanzable
+
+**De dónde sale**: log del director, transcrito por el arquitecto (L-3); Code no lo ha visto.
+- **Solapamiento descartado** en la pareja con NOR-10, `[f049837e]`, **cita no verificable**:
+  «Un resultado positivo del control biológico MENSUAL activa de forma automática una
+  auditoría extraordinaria del área».
+- «Mensual» es el dato del lado CLI-12 de la **sembrada B** (semanal en NOR-10, mensual en
+  CLI-12; `corpus-pruebas/SIEMBRA_corpus_ampliado.md`, contradicción B). **El juez la tiene
+  delante, y la comprobación de citas la tira.**
+- ⚠️ **Lo medido por Code: la cita es LITERAL en CLI-12.** Es la línea 167 del texto extraído
+  con el comando del registro (`SIEMBRA_corpus_ampliado.md:124-125`), al 65,4 % del
+  documento. **No es la frase sembrada** («periodicidad mensual, el primer día laborable de
+  cada mes», 12.1): está unos 475 caracteres después, y repite el dato «mensual».
+  - **Es el SEGUNDO caso de una cita literal descartada**, después del tramo de la D
+    (entrada 3). Refuerza la tercera causa, la que ni (a) ni (b) explican.
+  - Salvedad: está comprobado contra el texto del `.docx`, no contra los trozos indexados.
+- **Por qué entró**: el analizado llegó a 37.271 de 55.135 caracteres (67,6 %), y la B de
+  CLI-12 está al 64,5 % del texto plano (D-4, B.295).
+  - ⚠️ Son dos medidas distintas (texto plano frente a renderizado), así que la comparación
+    es una estimación. Aquí el margen es de tres puntos, y la conclusión aguanta.
+- **Por qué aun así no sale como contradicción**: hace falta que entren LOS DOS lados. El de
+  NOR-10 iba en el bloque por relevancia (2.729 caracteres), y la B está al 55,7 % de NOR-10.
+  **Si el trozo de la B de NOR-10 estaba en ese bloque, no consta.** Es el análisis de D-4,
+  visto en producción.
+- **En la otra dirección**, NOR-10 analizado llegó al 55,6 % (37.143 de 66.801), y la B está
+  al 55,7 % del texto plano. El arquitecto lo lee como «fuera por un pelo», y el «en el filo»
+  de D-4 como literal.
+  - ⚠️ **Con 0,1 puntos de margen y dos medidas cruzadas, no se puede decidir si entró o
+    no**: el error de la conversión es mayor que el margen.
+- **Consecuencias**:
+  - para B.299, la ganancia sube (cabecera);
+  - para D-4, se refuerza: con presupuesto para la pareja entera, los dos lados de la B
+    entrarían.
+
 ### ⚠️ B.302 — LA CASCADA DEL VERIFICADOR DESCARTA UNA CONTRADICCIÓN REAL COMO «MISMO DATO SIN OPOSICIÓN» (constancia y medida, SIN arreglo; 30/09/2026)
 
 🎯 **LO QUE VALE ARREGLARLA, MEDIDO: la contradicción A del caso de los cargos, en la dirección
 CLI-12 → NOR-10, que hoy sale 0 de 4.**
+
+> ## ⚠️ ACTUALIZACIÓN (30/09, 13:01–13:03 UTC): EL ESCALÓN 1 LA MITIGA A LA MITAD
+>
+> No estaba previsto. Medidas del director en el log, transcritas por el arquitecto (L-2);
+> Code no las ha visto.
+>
+> | Dirección | Apagado (30/09 mañana) | Encendido (13:01–13:03) |
+> |---|---|---|
+> | CLI-12 → NOR-10 | 0 publicadas de 4 | **2 publicadas de 4** |
+> | NOR-10 → CLI-12 | 0 publicadas de 3 | **1 publicada** |
+>
+> - **CLI-12 → NOR-10, 13:01:56**, `corte_honesto`: analizado 37271/55135 y candidato
+>   2729/66801. Cuatro contradicciones emitidas; el verificador, 5 hallazgos → 3
+>   confirmados y 2 descartados:
+>   - `[9b37aa92]` «Responsable último de la esterilización» → **CONFIRMADA**;
+>   - `[603d2891]` «Autorización de excepciones al protocolo» → cascada,
+>     `mismo_dato_sin_oposicion`;
+>   - `[6c9c0b21]` «Firma de registros de auditoría trimestral» → **CONFIRMADA**;
+>   - `[84d1d44e]` «Decisión de retirada de autoclave» → cascada,
+>     `mismo_dato_sin_oposicion`.
+> - **NOR-10 → CLI-12, 13:03:18**, `corte_honesto`: analizado 37143/66801 y candidato
+>   2857/55135. Una contradicción: `[4f6157d8]` «Autoridad para retirar autoclave de
+>   servicio tras fallo de c…» → **CONFIRMADA**.
+> - **La cascada pasa de matar 4 de 4 a matar 2 de 4.** B.302 se mitiga a la mitad con el
+>   escalón 1, y su ganancia pendiente se recalcula: ya no son 4 contradicciones, son 2
+>   (del arquitecto).
+>   - ⚠️ **Las dos columnas no cuentan lo mismo**: la de la mañana son 4 PASADAS con una
+>     contradicción cada una; la de las 13:01 es UNA pasada con cuatro contradicciones
+>     distintas, cuatro caras de la A (`SIEMBRA_corpus_ampliado.md:58-61`). Es una pasada,
+>     no una tasa.
+> - **La comprobación de citas pasa de matar 3 de 3 a dejar pasar 1** (NOR-10 → CLI-12).
+> - **El mecanismo, en el log**: el analizado pasó de 6.000 a 37.143 y 37.271.
+> - ⚠️ **ATRIBUCIÓN NO AISLADA, y se dice.** Entre las dos tandas cambiaron DOS cosas: el
+>   interruptor y el número de acompañantes. El mecanismo apunta al interruptor sin
+>   ambigüedad, porque la cifra de caracteres leídos está en el log. El experimento limpio
+>   sería repetir la misma configuración de 3 acompañantes con el interruptor apagado.
+>   **Queda PENDIENTE y OPCIONAL, y lo decide el director**: cuesta apagar, cuatro
+>   análisis y volver a encender.
+>   - 🔎 **Nota de Code: esa configuración puede estar YA medida, una pasada, y archivada.**
+>     Son los cuatro análisis del **29/09, 13:14–13:16** (B.299, entrada 1), con el
+>     interruptor APAGADO (no se encendió hasta el 30/09 a las 07:50).
+>     - Son cuatro análisis seguidos en dos minutos, que es como la bandeja recorre una
+>       tanda (`hooks/review/useReviewAnalysis.ts:121-126`). NOR-11 llevaba `3 ids de
+>       tanda` a las 13:15 (B.295). **Los ids de tanda de CLI-12 y NOR-10 ese día no
+>       constan.**
+>     - Lo que dieron: CLI-12 → NOR-10, **4 emitidas y 1 publicada** (`[9b37aa92]`); NOR-10
+>       → CLI-12, **3 emitidas y 0 publicadas**.
+>     - Si era la misma selección, el aislamiento queda **apagado 1 de 4 → encendido 2 de
+>       4**, y **0 de 3 → 1 de 1**: la mejora se mantiene con la tanda fija, aunque en
+>       CLI-12 → NOR-10 es menor que contra la mañana. Si da por bueno esto o repite, lo
+>       decide el arquitecto con el director.
 
 - **Lo medido**: 4 de 4 pasadas del 30/09, a las 06:36:58, 06:37:58, 06:38:53 y 06:40:26
   UTC, en la dirección CLI-12 → NOR-10. La cascada del verificador descarta como
@@ -8843,19 +8943,42 @@ logs los transcribe el arquitecto; la columna `recuperados_retrieval` de
     por él mismo el 30/09. De dos puntos no sale una escala.
 - ⚠️ **Lo hecho no es exactamente lo encargado**, y se dice: se hizo con CLI-13 y NOR-10, en
   dos direcciones, con 0 y 1 acompañantes. **El experimento controlado compara 0 con 1, no 1
-  con 3.**
-- ⏳ **LA PATA PENDIENTE, que es la que importa para el usuario**, porque en la bandeja se
-  seleccionan de verdad tres o cuatro documentos. Opcional, pedida al director el 30/09: **un
-  análisis de NOR-11 con CLI-13 + NOR-10 + CLI-12 seleccionados** (`3 ids de tanda`).
-  - Se lee contra la pasada de NOR-11 con 1 acompañante (CLI-13): **11 candidatos**, el 30/09
-    a las 06:28.
-  - **Qué contestaría**: si con TRES acompañantes el análisis ve todavía menos del corpus que
-    con uno, y cuánto.
-    - Si baja de 11 (el 29/09 a las 13:15, con la misma tanda de 3, fueron **4**), el
-      desplazamiento crece con lo que el usuario selecciona. Es el caso de uso real.
-    - Si no baja, el daño lo hace un acompañante grande concreto (NOR-10), no el número.
-  - Se cuentan `Retrieval: N candidatos` en el log y `recuperados_retrieval` en la base, y
-    gana la base.
+  con 3.** *(La pata de 3 se hizo después, a las 13:01–13:03: justo abajo.)*
+- ✅ **LA PATA DE 3 ACOMPAÑANTES, HECHA (30/09, 13:01–13:03 UTC).** Deja de estar pendiente.
+  Era la que importa para el usuario, porque en la bandeja se seleccionan de verdad tres o
+  cuatro documentos.
+  - **De dónde sale**: medidas del director en el log, transcritas por el arquitecto (L-1,
+    30/09); Code no las ha visto. Está escrito antes («Si baja de 11…»), y se lee contra
+    ello.
+
+| Documento analizado | 0 acompañantes | 1 acompañante | 3 acompañantes |
+|---|---|---|---|
+| **NOR-11** | 14 (**29/09**, 10:51) | 11 (30/09, 06:28) | **4** (30/09, **13:03:27**) |
+| **NOR-10** | 14 (30/09, 12:20:44) | 12 (30/09, 12:29:42; con CLI-13) | **3** (30/09, **13:02:59**) |
+| **CLI-13** | 14 (30/09, 12:19:56) | 6 (30/09, 12:29:25; con NOR-10) | **6** (30/09, 13:0x) |
+| **CLI-12** | — | — | **8** (30/09, 13:0x) |
+
+  - **Serie monótona y decreciente en el mismo documento: 14 → 11 → 4 en NOR-11.** Ahora sí
+    se puede decir que el desplazamiento **crece con el NÚMERO de documentos seleccionados**,
+    no sólo que existe. Con el TAMAÑO del acompañante sigue habiendo dos puntos: la frase
+    retirada sigue retirada.
+  - **Coincide exactamente con la observación suelta del 29/09 a las 13:15**, que dio 4 con
+    la misma tanda de 3. Dos medidas independientes, el mismo número.
+  - ⚠️ **«El mismo día», NO para NOR-11**: su punto de 0 acompañantes es del **29/09 a las
+    10:51**, no del 30/09 a las 12:20 (a esa hora los de 0 acompañantes fueron CLI-13 y
+    NOR-10). La serie de NOR-11 cruza dos días; **la del mismo día es la de NOR-10: 14 → 12
+    → 3.**
+  - ⚠️ **LOS CANDIDATOS INCLUYEN A LOS ACOMPAÑANTES, y eso cambia la cuenta del corpus.** El
+    arquitecto escribió que con tres acompañantes NOR-11 «pierde 10 de los 14 del corpus» y
+    que «su análisis ve el 29 % del corpus». **No se sigue de estas cifras, y no se archiva
+    como dato.**
+    - La única composición conocida de una pasada con 3 acompañantes es la del 29/09 a las
+      13:15 (encargo E-2 del arquitecto): **4 candidatos = los 3 acompañantes (NOR-10,
+      CLI-12, CLI-13) + 1 del corpus** (Clientes_Residuos_Sanitarios).
+    - Si la de las 13:03:27 fue igual, NOR-11 vio **1 de los 14 del corpus**, no 4.
+    - **La composición de las 13:03:27 no consta.** Lo que ve del corpus cada fila de la
+      tabla se sabe restando los acompañantes que salgan en su lista, y esas listas no están
+      aquí.
 
 **LO QUE ESTO HACE AL PRODUCTO, y por qué es de producto y no sólo de medida:**
 - el usuario que selecciona varios documentos «para compararlos entre sí» cree que ve MÁS, y
@@ -8955,6 +9078,20 @@ Cubre las tres clases salvo un caso: el de un vector sin fila que además lleve 
    leerse cinco veces.
 5. **El tablero de decisión de B.295 NO cambia**: sigue **B.190 · reindexar el corpus** en el
    puesto 1.
+
+### 📋 B.304 — UN HALLAZGO PUBLICADO EN UNA PAREJA QUE NADIE HA AUDITADO: CLI-12 / CLI-13 (naturaleza NO DETERMINADA; 30/09/2026)
+
+- **Lo que hay**: el 30/09 a las 13:01:52 UTC, en CLI-12 → CLI-13, `[3a780a69]`
+  «Responsabilidad de la gestión de residuos y punto de contact…», **confirmado y
+  publicado**. Log del director, transcrito por el arquitecto (L-4); Code no lo ha visto.
+- **La pareja CLI-12 / CLI-13 no está en ningún registro de siembra.** Los auditados son
+  NOR-11 / CLI-13 (`corpus-pruebas/SIEMBRA_caso_control.md`) y NOR-10 / CLI-12
+  (`SIEMBRA_corpus_ampliado.md`).
+- **Así que no se declara ni trampa ni falso positivo: naturaleza NO DETERMINADA.** Es la
+  regla del propio registro: un hallazgo fuera de lo sembrado no se da por falso sin ir al
+  texto (`SIEMBRA_corpus_ampliado.md:48-49`).
+- **Quién puede cerrarlo**: el director, abriendo los dos documentos. Se lo ha pedido el
+  arquitecto, para cuando tenga un rato.
 
 ### ⚠️ B.297 — LA LECTURA DE TROZOS SIN PAGINAR, y su margen medido (29/09/2026)
 
