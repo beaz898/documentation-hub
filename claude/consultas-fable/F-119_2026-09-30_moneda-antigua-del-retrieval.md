@@ -8,6 +8,15 @@ Fecha de respuesta: 30/09/2026
 Fuente: texto pegado por el director en el encargo del 30/09/2026 (el dictamen).
         La consulta enviada NO consta: ver (c).
 Estado: ARCHIVADA. Sin decisión del director. Nada iniciado.
+        Dictamen cotejado, huella 9c9b60244a08d2c7 (30/09/2026).
+        · Contra las cifras del fichero original que trae el arquitecto: cuadran la
+          huella, los caracteres (14.509), las líneas (108), las no vacías (66), las
+          palabras (2.508), y los 60 primeros y los 60 últimos caracteres.
+        · Los bytes difieren en UNO: 14.749 aquí, con el salto final, frente a 14.748.
+          El texto de aquí no tiene ningún espacio que no sea ASCII, así que la
+          diferencia no está en el contenido. 14.748 es exactamente el recuento de
+          aquí SIN salto final: casi seguro, el original no lo tenía. No se ha tocado
+          nada.
 Superada por: —
 ---
 
@@ -209,3 +218,56 @@ decisión del director.**
 2. Dónde se pierde el candidato verdadero, por trampa.
 3. El desplazamiento como caso del arnés, con esperado escrito.
 4. Una sombra del retrieval nuevo, sin llamadas al modelo.
+
+---
+
+# (h) ENCARGOS DE FABLE, CONTESTADOS POR CODE — 30/09/2026
+
+Lecturas de código en sólo lectura. No se ejecutó nada.
+
+## L-6 · Cómo se eligen las muestras del analizado, y si su número crece con la longitud (dictamen, § 3)
+
+- **Dónde**: `pickSampledTexts`, `lib/analysis/muestras.ts:11-26`.
+- **Criterio**: todos los trozos del documento si son 120 o menos. Si son más, 120 repartidos
+  de forma uniforme por el documento (`:21-23`, `:29-35`).
+- **De dónde salen los trozos**: los guardados de la generación activa o, si no los hay,
+  `chunkText` sobre el texto entero (`app/api/analyze-v2/route.ts:386`, `:400`, `:591-593`).
+- **En el exhaustivo no hay tope**: van todos los trozos (`route.ts:522`).
+- **Cuántas salen para 3.000 y para 66.801 caracteres: NO CONSTA.** El troceado es por
+  secciones, y la cifra no se deduce sin ejecutarlo. Para medirla basta la línea
+  `N chunks, N samples` del log de un análisis de cada documento (`route.ts:598`), o contar
+  sus trozos en `document_chunks`. Lo único que consta de NOR-10: una cota inferior de 56
+  fragmentos únicos cuando fue candidato (log del 29/09, transcrito por el arquitecto).
+- ✅ **CONFIRMACIÓN, no corrección**: el número de consultas al índice **sí crece con la
+  longitud** del documento analizado, hasta el tope de 120. El aviso de Fable —normalizar la
+  amplitud por consultas lanzadas, no por muestras posibles— **está justificado por el
+  código**.
+  - ⚠️ Las cifras «120 frente a 10» del dictamen son de Fable, **sin medir**.
+
+## L-7 · Si las llamadas al juez van en paralelo o en secuencia (dictamen, § 5)
+
+- **En paralelo, por lotes de 5.** Lo decide
+  `runInBatches(args.candidates, …, { batchSize: JUDGE_CONCURRENCY })`
+  (`lib/analysis/judge.ts:1107-1123`), con `JUDGE_CONCURRENCY = 5` (`judge.ts:38`).
+- `runInBatches` lanza cada lote en paralelo, espera a que termine y pasa al siguiente, sin
+  pausa (`lib/run-in-batches.ts:36-51`).
+- **Con 6 candidatos**, el máximo del modo rápido, hay dos lotes: 5 y 1. **Con 5 o menos**,
+  uno solo.
+
+## ⚠️ DOS CORRECCIONES AL DICTAMEN
+
+**CORRECCIÓN 1 · al punto 7 del dictamen** («Contadores en los cuatro topes ciegos (2, 4, 7,
+9)»). **Los topes ciegos son TRES, no cuatro.**
+- El 9 no deja nada fuera: del rerank al juez pasan todos los candidatos
+  (`lib/analysis/pipeline.ts:851`, `candidates: reranked`).
+- Los que dejan algo fuera sin contarlo son el **2, el 4 y el 7**.
+- Consta también en `claude/Estado_Del_MVP.md`, B.303.
+
+**CORRECCIÓN 2 · al punto 5 del dictamen** («si las llamadas al juez van en paralelo, mandar
+más candidatos no añade latencia, solo coste»). **Es verdad SÓLO HASTA CINCO.**
+- Van en paralelo en lotes de 5 (L-7). Con 6 candidatos hay dos lotes, 5 y 1: **el sexto
+  candidato añade por sí solo un lote entero de latencia.**
+- Toca directamente la pregunta 5 —cuántos documentos van al juez—, porque **el precio del
+  sexto no es sólo dinero.**
+- **No se propone el cambio.** Bajar el máximo de 6 a 5 es una decisión del director, y no
+  está tomada.
