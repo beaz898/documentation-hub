@@ -597,3 +597,20 @@ El orden:
 5. **Escalón 2 — tramos alineados** para lo que no quepa, con la regla de D5: el tramo es lo
    más grande que quepa, nunca un chunk por llamada.
 6. **Segunda vuelta, como respaldo. Búsqueda híbrida.**
+
+---
+
+# (g) RESOLUCIÓN DE LA PREDICCIÓN — 30/09/2026
+
+*Añadida después, sin tocar nada de lo anterior. Fallar se cuenta.*
+
+**La predicción 2 de (e) FALLÓ, y en la dirección contraria.**
+- **Decía** que, con los dos documentos enteros, la precisión bajaría entre 5 y 15 puntos
+  antes del verificador ciego.
+- **Lo medido** en el escalón 1 (B.295, leído desde la base el 30/09): la precisión
+  **SUBIÓ**. El falso positivo «Fecha de última revisión», que salía en 4 de 8 pasadas con el
+  interruptor apagado, **desapareció** (0 de 6), y las contradicciones publicadas pasaron de 1
+  a 2 por pasada, las dos sembradas.
+- **El modelo revisado**, de Fable: los falsos nacen tanto de poco contexto como de mucho, y
+  ese falso nacía de escasez. Está en F-119 (`F-119_2026-09-30_moneda-antigua-del-retrieval.md`,
+  (d) al principio y (e)).
