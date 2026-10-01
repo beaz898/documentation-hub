@@ -8803,7 +8803,9 @@ el 1 y el 3 al citarlos el 30/09, y lo corrigió él mismo el mismo día.
 4. **CLI-12 → NOR-10, 30/09 a las 13:01:56, interruptor encendido: el roce con la B.**
 5. **L-12 (01/10): dónde se corta la cita, y las dos causas que el código sí tiene.**
 6. **El arreglo de la causa (ii), implementado el 01/10.**
-7. **La causa (i): cuál es el pajar correcto. Contestada; nada implementado.** Al final.
+7. **La causa (i): cuál es el pajar correcto. Contestada; nada implementado.**
+8. **La causa (i), segunda ronda: el pajar es lo que leyó el juez. Contestada; nada
+   implementado.** Al final.
 
 #### 1 · Cuatro análisis del 29/09 (13:14-13:16 UTC), NOR-10 / CLI-12: 7 contradicciones, 1 publicada
 
@@ -9126,7 +9128,34 @@ otra.** No era un ajuste fino: era que el texto no casaba consigo mismo.
 - **La suite entera**: 1.773 de 1.773. `tsc --noEmit`, limpio. El build local llega a
   «Collecting page data».
 
-⚠️ **AL MEDIR EL ARREGLO, escrito ANTES de medir** (arquitecto, 01/10): al arreglar la
+**LA LECCIÓN, que vale más que el arreglo** (arquitecto, 01/10): **el código viejo sabía lo que
+tenía que hacer.** Su comentario decía «Misma clase que normalize(): debe coincidir carácter a
+carácter», y copió la clase de caracteres pero no el orden de los pasos. **Un comentario que
+declara un invariante y una implementación que lo incumple son peores que no tener comentario,
+porque el comentario convence al que lee.**
+
+**LO QUE CUESTA, MEDIDO** (pregunta de revisión del arquitecto, 01/10; vitest en la máquina de
+desarrollo, mediana de 21 repeticiones; Vercel no es esta máquina):
+
+| Medida | ms |
+|---|---|
+| `normalizarConPosiciones` sobre 66.801 caracteres de texto real (NOR-10 + CLI-12) | **24,7** |
+| la normalización VIEJA, copiada tal cual, sobre el mismo texto | **124,0** |
+| un trozo de 1.200 caracteres | **0,26** |
+| una cita que falla contra los 56 trozos del documento entero | **12,8** |
+
+- **La nueva es 5 veces más rápida que la vieja**: aquélla armaba el texto concatenando cadenas.
+- **Cuántas veces se normaliza el pajar: NO se reutiliza**, y se dice.
+  - Cada cita se busca trozo a trozo, y cada trozo se normaliza en cada búsqueda
+    (`verifyQuote`, `judge.ts:329-332`, que llama a `findBestMatch`).
+  - Una cita que casa pronto normaliza pocos trozos; una que falla los normaliza todos, y luego
+    `describirDescarte` los vuelve a recorrer para el log.
+  - Sin trozos, se normaliza el texto completo en cada cita.
+- **Con 8 hallazgos y 2 lados, todos fallando, el peor caso es del orden de 16 × 12,8 × 2 ≈ 400
+  ms**, frente a 20-24 s de análisis. **Milisegundos: no hay nada que hacer.** Si un día el pajar
+  pasa al texto entregado (entrada 8), se normaliza una vez por lado y pareja y se reutiliza.
+
+
 comprobación saldrán también hallazgos de parejas que nadie ha auditado. Por ejemplo,
 Normas_Frecuencia_Recogidas en la sonda A, o el de CLI-12 / CLI-13 de B.304. **Se cuentan por
 separado «sembradas» y «de parejas sin auditar», y no se celebra un total más alto.** Un hallazgo
@@ -9216,6 +9245,97 @@ de las parejas queda retirado por (b).
 - ⚠️ **Mueve la línea de base**: pasarán citas que hoy mueren, y morirán las del título pegado.
   Se mide una vez, con B.299 entero desplegado, y contando aparte sembradas y parejas sin
   auditar (entrada 6).
+- **No se toca nada hasta que lo apruebe el arquitecto.**
+
+#### 8 · LA CAUSA (i), SEGUNDA RONDA (01/10/2026): el pajar es LO QUE LEYÓ EL JUEZ. Contestada en sólo lectura; NADA IMPLEMENTADO
+
+**El arquitecto retira el texto completo**, igual que Code retiró las parejas. El motivo:
+verificar contra el documento entero **da por buena una cita de un tramo que el juez NUNCA VIO**.
+En la sonda B, el juez recibió 2.857 de los 55.135 caracteres de CLI-12. Es la especie de falso
+positivo de F-22 y F-116: un hallazgo que cita algo real y afirma algo que no se sigue.
+
+**Su propuesta**: una cita es válida si aparece en el texto exacto que se le entregó al juez
+para ese lado en esa pareja. **Code la acepta en el principio y la discute en un punto**, con lo
+leído:
+
+**(a) ¿Está disponible? SÍ, sin reconstruir nada y sin una consulta más.**
+- `judgeSingleDocument` calcula los dos textos del prompt con `leerLaPareja`
+  (`pareja.textoAnalizado` y `pareja.bloqueCandidato`) ANTES de llamar al modelo.
+- **Y llama a la comprobación (`fixQuotesInJudgment`) DESPUÉS, en la misma función.** Basta con
+  pasárselos.
+- Y `leerLaPareja` ya devuelve `representados`: los `chunkIndex` del candidato que el juez
+  recibió.
+
+**(b) Con qué se pegan las piezas, y si el separador se distingue:**
+- **Lado candidato** (`buildExistingFragsBlock`, `judge.ts:611-652`):
+  - cada fragmento va precedido de su cabecera, `[Fragmento n de «…»]` (`describeFragment`), y
+    las piezas se unen con un salto doble;
+  - **la cabecera SÍ se distingue**: tiene palabras, que sobreviven a la normalización. Una
+    cita que cruce dos piezas tendría que llevarlas, así que no casa por la vía literal ni por
+    la normalizada;
+  - ⚠️ **PERO LA VÍA DE CABEZA Y COLA SÍ PUEDE SALTARLA.** Tolera lo que haya en medio, hasta 3
+    veces la longitud de la cita. La cabeza en una pieza y la cola en la siguiente pasarían.
+  - **Por eso, en el candidato, el pajar tiene que ser PIEZA A PIEZA**: los trozos que el juez
+    recibió (`representados`), uno por uno. No el bloque como una sola cadena.
+  - Además, las **líneas de contexto** (F-44) van dentro del bloque y no son citables. Ya hay un
+    motivo propio para ese descarte, y tiene que seguir.
+- **Lado analizado** (`buildAnalyzedDocumentText`, `judge.ts:963-982`):
+  - la prosa son los trozos unidos con un salto doble; las tablas se vuelven a pintar con
+    `renderTableBlock`, en otro formato que el guardado;
+  - después se corta por posición;
+  - **el salto doble NO se distingue**: se normaliza a un espacio. Pero entre secciones es un
+    salto que el documento también tiene, así que cruzarlo es legítimo.
+  - ⚠️ **Lo que el arquitecto no podía ver: ese texto es «contiguo por posición» en lo
+    RENDERIZADO, no en el documento.** Se arma desde los trozos, y los trozos llevan el
+    título repetido y el solapamiento de 200 en cada costura de una sección subdividida
+    (B.310).
+  - Así que, con este pajar, **la causa (i) muere en las costuras ENTRE SECCIONES, pero NO en
+    las costuras DENTRO de una sección larga**. Ahí, una cita fiel al documento sigue sin
+    casar, porque en lo leído hay un título y un tramo repetido de por medio. Ésa la arregla el
+    troceado (B.310), no el comprobador.
+- **Tablas, en los dos lados: por fila**, como está.
+  - El pajar de una fila es la fila.
+  - Además, el texto entregado las pinta en otro formato que el guardado: el comentario de la
+    prueba lo dice, «el texto ALMACENADO… lleva las etiquetas de columna, no el formato que se
+    le enseña al juez», en `puntero-de-fila.test.ts`.
+
+**(c) ⚠️ LA CONSECUENCIA INCÓMODA, ESCRITA ANTES DE MEDIR** (arquitecto, 01/10): con este pajar,
+**algunas citas que HOY pasan dejarán de pasar**: las que casan con un trozo que el juez no
+recibió.
+- En el candidato, cualquier trozo fuera de `representados`.
+- En el analizado, cualquier tramo más allá del corte.
+- **Si al medir sale que publicamos MENOS en algún caso, no es una regresión: es que antes
+  publicábamos lo que no debíamos.** Se mide contando aparte sembradas y parejas sin auditar
+  (entrada 6).
+
+**(d) EL ARREGLO QUE PROPONE CODE: el del arquitecto, PIEZA A PIEZA en el candidato. Y el resto
+de la causa (i) se le reconoce al troceado.**
+1. **Candidato**: se verifica contra los trozos que el juez recibió (`representados`), uno a uno,
+   igual que hoy pero sólo con ésos.
+   - Las tablas, por fila.
+   - Una cita que cruce dos piezas falla, **y por el motivo correcto**: esa frase no existe.
+   - Cierra el «verificado contra lo no leído», sin que la cabeza y la cola salten cabeceras.
+2. **Analizado**:
+   - la prosa se verifica contra el texto visible (`pareja.textoAnalizado`) como una cadena:
+     ahí sí cruzar entre secciones es legítimo;
+   - las tablas, por fila, sólo con las filas que quedaron dentro del corte;
+   - el trozo de evidencia se localiza después; si no se encuentra, `null`, como ya hace el
+     respaldo.
+3. **Lo que NO arregla, y se dice**: la cita fiel que cruza una costura DENTRO de una sección
+   larga, en los dos lados. Esa costura la fabrica el troceado (B.310), y su arreglo va allí.
+   Es la parte de la causa (i) que no es del comprobador.
+- **Las pruebas**, rojas ahora y verdes después:
+  - una cita del candidato que casa con un trozo que el juez NO recibió: hoy se verifica, y
+    después no;
+  - una cita del analizado más allá del corte: hoy se verifica, y después no;
+  - una cita del analizado que cruza dos secciones contiguas: hoy no se verifica, y después sí.
+- **Los controles negativos:**
+  - una cita inventada sigue sin verificarse;
+  - una cita de tabla sigue verificándose por su fila;
+  - una cita con la cabeza en una pieza del candidato y la cola en la siguiente NO se
+    verifica: es la trampa de (b).
+- **Coste**: ninguna consulta. Dos parámetros más en `fixQuotesInJudgment`, el texto visible y
+  los representados.
 - **No se toca nada hasta que lo apruebe el arquitecto.**
 
 ### ⚠️ B.302 — LA CASCADA DEL VERIFICADOR DESCARTA UNA CONTRADICCIÓN REAL COMO «MISMO DATO SIN OPOSICIÓN» (constancia y medida, SIN arreglo; 30/09/2026)
@@ -10079,6 +10199,50 @@ consultas con scores distintos, y eso no se registra en ningún sitio.
 **Sin arreglo.** El arreglo —quedarse con la aparición de más score— cambia el orden del corte y
 del rerank, o sea la línea de base. Va con su caso decisivo y su predicción escrita antes, como
 el escalón 1, y lo decide el arquitecto con el dato de los contadores delante.
+
+### ⚠️ B.310 — EL TROCEADO PEGA EL TÍTULO DE LA SECCIÓN DELANTE DE CADA SUBTROZO: un texto que no existe en el documento, y la comprobación de citas lo da por bueno (constancia, SIN arreglo; 01/10/2026)
+
+**Lo que hace el código**: `subdivideSection` (`lib/chunking.ts:464-475`) parte por longitud
+toda sección que pasa de 1.500 caracteres. A **cada** pedazo le pega delante el título de la
+sección: `${section.title}\n\n${piece}`. Entre pedazos, además, hay un solapamiento de 200
+caracteres (`CHUNK_OVERLAP`, `:27`).
+
+**Es un falso POSITIVO de la comprobación, no un falso negativo** (arquitecto, 01/10).
+- Un subtrozo es «TÍTULO + un tramo del cuerpo» que **en el documento no van seguidos**.
+- La comprobación busca la cita trozo a trozo (B.299, entrada 5). Así que **hoy puede dar por
+  buena una cita que pegue el título a un tramo del cuerpo que en el documento no va detrás**.
+- **B.299 no sólo mata citas verdaderas: también puede aprobar citas que no existen tal
+  cual.**
+- Y el mismo pegote llega al JUEZ: el texto del analizado se arma desde los trozos
+  (`buildAnalyzedDocumentText`, `lib/analysis/judge.ts:963-982`). En cada costura de una sección
+  larga, el juez lee el título repetido y 200 caracteres dos veces. Por eso una cita fiel al
+  documento que cruce esa costura no casa con lo que el juez leyó (B.299, entrada 8).
+
+**EL ARREGLO NO ESTÁ EN EL COMPROBADOR: ESTÁ EN EL TROCEADO** (arquitecto, 01/10). Si el texto
+que se entrega contiene pegotes que no existen en el documento, el problema es de quien los
+pega, no de quien comprueba. Dejar que el comprobador «lo detecte» sería taparlo.
+
+**¿Tiene un motivo escrito? Sí, a medias, y el arreglo tiene que respetarlo.**
+- Lo introdujo `a297b8c5` (19/08/2026, «trocear por secciones en vez de por longitud»): «las
+  secciones que superan MAX_CHUNK_SIZE se subdividen conservando su título». Lo verificó con
+  documentos reales: «cada uno encabezado por su título de sección». Y lo repite la cabecera
+  de `chunking.ts` (`:6-7`) y el comentario de la función (`:463`).
+- **El porqué explícito sólo está escrito para las hojas de cálculo**, en el mismo commit:
+  «repitiendo la cabecera de columnas en cada bloque: antes sólo el primer trozo sabía a qué
+  columna correspondía cada valor».
+- Para la prosa, el motivo implícito es el mismo: **que un trozo suelto se entienda**, para la
+  búsqueda por similitud y para quien lo lee aislado.
+- **O sea que es deliberado y útil para buscar; lo que sobra es que sea TEXTO DEL DOCUMENTO.**
+  - Un arreglo que lo respete separa las dos cosas: el título como CONTEXTO del trozo, que
+    sigue sirviendo para la búsqueda pero no es citable, y el cuerpo como texto. Es la misma
+    idea que las líneas de contexto no citables de F-44.
+  - Cambia lo que queda guardado, así que **va con la vía de reparación y el sello**
+    (`EXTRACTOR_VERSION`, la regla de F-104).
+
+**Lo que NO se sabe**: cuántas veces ha aprobado de verdad una cita con el título pegado. No se
+registra. El paso que deja el log desde B.299 (ii) no lo distingue.
+
+**Sin arreglo.** Constancia.
 
 ### ⚠️ B.297 — LA LECTURA DE TROZOS SIN PAGINAR, y su margen medido (29/09/2026)
 

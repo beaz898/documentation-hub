@@ -440,6 +440,19 @@ D5 · MEMORIA CONVERSACIONAL DEL RAG          ⚠️ MAL ENUNCIADO
   EL PUNTO VIVO ES ÉSE, y es más estrecho que «no hay memoria conversacional».
 
 ────────────────────────────────────────────────────────────────
+D6 · SIN COMPROBACIÓN DE ESTILO AUTOMÁTICA (lint)   🔴 VIVO
+────────────────────────────────────────────────────────────────
+  Comprobado: 01/10/2026
+  `npm run lint` (= `next lint`) no comprueba nada: ESLint no está
+  configurado, y `next lint` pide elegir configuración de forma interactiva
+  («How would you like to configure ESLint?»). Además, `next lint` está
+  marcado como obsoleto, y desaparece en Next.js 16.
+  Se descubrió por casualidad, al cambiar producto (B.299, causa ii): el
+  comando que CLAUDE.md presenta como «Lint + type-check» no hace ninguna de
+  las dos cosas. El type-check se hace con `npx tsc --noEmit`, que sí funciona.
+  NO SE ARREGLA AQUÍ. La decisión de arreglarlo es del director.
+
+────────────────────────────────────────────────────────────────
 EL RECUENTO DEL 01/09, para que se vea de un vistazo
 ────────────────────────────────────────────────────────────────
   RESUELTO ............ 1   (D1)
