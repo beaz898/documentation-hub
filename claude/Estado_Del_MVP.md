@@ -8774,14 +8774,26 @@ verificador tira 5 de 7, un 71 %». **Era falso, y lo corrigió él mismo.** Son
 la comprobación de citas ocurre en el JUEZ, antes de la cascada, y el verificador sólo mató 1.
 **La fuga está en el juez, no en el verificador.**
 
+- ⬆️ **LA GANANCIA, EN LA RUTA POR DEFECTO (01/10/2026, sondas de B.307)**: en dos análisis sin
+  tanda, la comprobación de citas se comió **dos contradicciones sembradas que el juez ya había
+  escrito** —la ubicación del punto de retirada en NOR-11 y la A de los cargos en NOR-10—, más
+  5 solapamientos.
+  - Según el arquitecto, **sin ella se publicarían 3 de 3 en NOR-11 y 1 en NOR-10**.
+  - ⚠️ **Es un techo, no una medida**: lo que pasa la comprobación aún tiene que pasar el
+    verificador y la cascada. La A de los cargos, en CLI-12 → NOR-10, la tira la cascada 2 de 4
+    veces (B.302). En la dirección de la sonda, NOR-10 → CLI-12, el 30/09 a las 13:03:18 pasó y
+    se publicó, así que el 1 es plausible, pero no está medido.
+- 🔎 **L-12 (01/10): la cita NO se trunca antes de compararla.** Los cortes a 200 y a 60 son del
+  log. Pero la lectura encontró dos causas en el código que tiran citas literales (entrada 5).
+
 📌 **TRES CONJUNTOS DISTINTOS, cada uno con su fecha, y no se mezclan.** El arquitecto confundió
 el 1 y el 3 al citarlos el 30/09, y lo corrigió él mismo el mismo día.
 1. **Cuatro análisis del 29/09, NOR-10 / CLI-12: 7 contradicciones, 1 publicada.** Es lo que
    sigue inmediatamente.
 2. **NOR-11 / CLI-13, 30/09, con el interruptor encendido: el descarte estable.** Después del 1.
 3. **Siete pasadas del 30/09, NOR-10 / CLI-12: 7 contradicciones, 0 publicadas.**
-4. **CLI-12 → NOR-10, 30/09 a las 13:01:56, interruptor encendido: el roce con la B.** Al
-   final.
+4. **CLI-12 → NOR-10, 30/09 a las 13:01:56, interruptor encendido: el roce con la B.**
+5. **L-12 (01/10): dónde se corta la cita, y las dos causas que el código sí tiene.** Al final.
 
 #### 1 · Cuatro análisis del 29/09 (13:14-13:16 UTC), NOR-10 / CLI-12: 7 contradicciones, 1 publicada
 
@@ -8965,6 +8977,89 @@ apagado. Cuántos `ids de tanda` llevaba cada una no consta.
   - para B.299, la ganancia sube por la tercera causa (cabecera);
   - para D-4, se refuerza: con presupuesto para la pareja entera, los dos lados de la B
     entrarían.
+
+#### 5 · L-12 (01/10/2026): ¿la cita llega cortada? NO. Pero la comprobación tiene dos causas propias que tiran citas literales
+
+**La hipótesis del arquitecto, FALSA**: «la cita se trunca a unos 200 caracteres antes de
+compararla, y la comparación es literal, así que no puede encontrarla nunca».
+- **a) Dónde se corta**: SÓLO EN EL LOG.
+  - Las líneas «Contradicción descartada» y «Solapamiento descartado» imprimen la cita con
+    `.slice(0, 200)` (`lib/analysis/judge.ts:472`, `:498`, `:504-507`, `:523`, `:546`,
+    `:552-555`).
+  - El título sale cortado a 60 en la línea «RAW» (`c.topic.slice(0, 60)`, `:944`): de ahí
+    «…tras fallo de c», que son exactamente 60 caracteres.
+  - **La comprobación recibe la cita ENTERA**: `verifyQuote(…, c.newDocSays)` y
+    `verifyQuote(…, c.existingDocSays)` (`:477-478`), sin recorte.
+  - **El modelo tampoco la corta por límite**: el juez pide 4.096 tokens de salida (`:904`).
+    Que alguna respuesta llegara al límite y la reparara el cliente de JSON no consta en estos
+    logs.
+- **b) Cómo compara** (`findBestMatch`, `:75-131`, llamada desde `verifyQuote`, `:286-366`):
+  1. la cita literal (`indexOf`);
+  2. normalizada: minúsculas, espacios colapsados y sin puntuación;
+  3. con 25 caracteres o más: la cabeza y la cola, hasta 20 cada una, en orden y a menos de
+     tres veces su longitud;
+  4. y, para citas tabulares, por segmentos dentro de una fila.
+  - **Sin tope de longitud**: una cita más larga que el trozo no se recorta. Simplemente no
+    cabe en ningún trozo y falla.
+  - **Y se compara contra CADA TROZO POR SEPARADO** (`:329-332`). El texto completo
+    (`fallbackText`) sólo se usa si el documento NO tiene trozos (`:323-327`).
+- **c) Cuántos de los tirados en las sondas tienen la cita cortada a mitad de palabra: no se
+  puede contar sobre lo pegado.** El literal trae TÍTULOS, no citas. El único título cortado,
+  «…tras fallo de c», lo corta el log (60). La cita «…no es delegable y recae sie» no está en
+  el literal de las sondas; si viene de una línea de descarte, ese corte es el de 200 del log.
+
+**LO QUE LA LECTURA SÍ ENCONTRÓ: dos causas en el código que tiran citas LITERALES** (trazadas a
+mano, no ejecutadas):
+- **(i) La cita que cruza dos trozos no se puede verificar nunca.** Ni la vía literal, ni la
+  normalizada, ni la de cabeza y cola miran más de un trozo a la vez. Una frase que el
+  troceador partió en dos —o una cita que junta el final de un trozo con el principio del
+  siguiente— muere aunque sea literal.
+  - **Es candidata a explicar los dos casos literales** de este archivo (entradas 3 y 4).
+  - **Lo decide la base**: `SQL_B299_cita_por_trozo.sql`, PENDIENTE DE EJECUTAR. Dice si el
+    principio y el final de cada una caen en el mismo trozo.
+- **(ii) Las dos mitades se normalizan distinto.**
+  - **La cita** pasa por `normalize()` (`lib/analysis/normalize-core.mjs:71-77`), que
+    colapsa los espacios ANTES de quitar la puntuación.
+  - **El texto del trozo** se normaliza a mano dentro de `findBestMatch` (`judge.ts:84-101`),
+    que quita la puntuación ANTES de colapsar.
+  - **Resultado**: «a — b» da `a  b` (dos espacios) en la cita y `a b` en el trozo, y no
+    casan. Afecta a toda cita con un signo suelto entre espacios: una raya, un guion, unas
+    comillas «» separadas o un paréntesis.
+  - La vía de cabeza y cola lo salva sólo si el signo no cae en los 20 primeros ni en los 20
+    últimos caracteres.
+  - **Es un fallo determinista y se puede probar sin la base.** No explica, por sí solo, los
+    dos casos literales de este archivo: ninguno de los dos tramos conocidos tiene un signo
+    suelto.
+- **Y la causa que deja escrita la entrada 3 ya tiene forma**: «que la comprobación no tuviera
+  esos trozos en su pajar» es, en concreto, la (i).
+
+**(d) LOS ARREGLOS PROPUESTOS, con su caso ROJO ahora y VERDE después. No se toca nada hasta que
+los apruebe el arquitecto.** Y no en `judge.ts`, que va por 1.365 líneas (B.296): la propuesta
+es SACAR `findBestMatch` a un fichero propio, `lib/analysis/coincidencia-de-cita.ts`, que
+además adelgaza el juez.
+- **Arreglo de la (ii)**: UNA sola normalización para los dos lados, la que lleva el mapa de
+  posiciones. Se aplica también a la cita, y `normalize()` no se toca: la usan el retrieval, las
+  reglas de hallazgos y el examen.
+  - **Caso**: trozo `El plazo — de 72 horas`, cita `el plazo — de 72 horas`. La minúscula
+    hace fallar la vía literal.
+  - **Hoy**: `null` (ROJO). **Después**: casa (VERDE).
+- **Arreglo de la (i)**: si ningún trozo casa, probar cada pareja de trozos CONSECUTIVOS del
+  mismo documento, unidos con un salto. Y devolver el primero como trozo de evidencia, que es
+  lo que los consumidores ya esperan.
+  - La alternativa es probar el `full_text`, pero devuelve `chunk: null`, y eso pierde el
+    trozo que leen el verificador y R2. Por eso se propone la pareja.
+  - **Caso**: dos trozos, `…la responsabilidad recae siempre sobre` y
+    `el Director Clínico del centro…`, con la cita `recae siempre sobre el Director
+    Clínico`.
+  - **Hoy**: `null` (ROJO). **Después**: casa, con el primer trozo (VERDE).
+  - **Su control negativo**, que tiene que seguir `null`: una cita cuyas dos mitades están en
+    trozos NO consecutivos.
+- **Y la instrumentación, que la entrada 2 pedía**: en la línea de descarte, la LONGITUD de la
+  cita y el PASO en que falló (literal, normalizada, cabeza y cola, o segmentos). Sin más
+  texto del cliente del que el log ya lleva.
+- ⚠️ **Al arreglarlo, la línea de base se mueve**: más citas pasan, así que habrá más hallazgos
+  publicados, que es lo que se busca, y quizá algún falso nuevo. El arnés se vuelve a pasar
+  después, y no en el mismo despliegue que los contadores.
 
 ### ⚠️ B.302 — LA CASCADA DEL VERIFICADOR DESCARTA UNA CONTRADICCIÓN REAL COMO «MISMO DATO SIN OPOSICIÓN» (constancia y medida, SIN arreglo; 30/09/2026)
 
