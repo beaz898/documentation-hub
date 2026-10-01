@@ -7961,7 +7961,7 @@ repuntuación (`scripts/examen.mjs:203`, «Hoy nada»).
 > > - **Cuántos se reindexan de verdad sin resubir: NO CONSTA.** A lo sumo 9 (los 13 menos
 > >   las 4 `.xlsx`), y menos si alguno viene de Drive o de OneDrive, porque el origen de cada
 > >   uno no está archivado aquí. Lo dice la SQL corregida, **PENDIENTE DE RE-EJECUTAR**.
-> > - ⚠️ **Y EL BOTÓN NO ES EL QUE SE CREÍA** (lectura L-10, ficha propia): en `/settings/corpus`, el «Reparar» de
+> > - ⚠️ **Y EL BOTÓN NO ES EL QUE SE CREÍA** (B.307): en `/settings/corpus`, el «Reparar» de
 > >   cada fila está DESACTIVADO para estos documentos. El que los repararía es «Reparar todo
 > >   lo reparable», y ése actúa sobre TODA la organización.
 > >
@@ -8643,7 +8643,7 @@ director.**
 
 | Orden | Ficha | Qué arregla | Ganancia | Hoy | Coste |
 |---|---|---|---|---|---|
-| 1 | **B.190** · reindexar el corpus | que cualquier otra mejora se note en un análisis normal | el escalón 1 pasa a actuar en la ruta por defecto | los 14 del corpus sin trozos: todo sale `sin_fuente_comun` | ~~13 de 14 SIN RESUBIR~~ **NO CONSTA** (error de Code en la SQL, 01/10): a lo sumo 9; las 4 `.xlsx` hay que resubirlas; new 9.txt espera decisión. ⚠️ Y puede no ser el puesto 1: ver la lectura L-10 |
+| 1 | **B.190** · reindexar el corpus | que cualquier otra mejora se note en un análisis normal | el escalón 1 pasa a actuar en la ruta por defecto | los 14 del corpus sin trozos: todo sale `sin_fuente_comun` | ~~13 de 14 SIN RESUBIR~~ **NO CONSTA** (error de Code en la SQL, 01/10): a lo sumo 9; las 4 `.xlsx` hay que resubirlas; new 9.txt espera decisión. ⚠️ Y puede no ser el puesto 1: propuesta en B.307 |
 | 2 | **B.299** · la comprobación de citas del juez | la sembrada 2 (Chamberí/Retiro), matada 6/6 | +1 de las 3 del caso de control. **Sube por la tercera causa**: el 30/09 a las 13:01:56, segundo caso de cita LITERAL descartada (B.299, entrada 4). El desbloqueo de la B **no está demostrado** (R-4) | publicamos 2 de 3 | sin estimar; la tercera causa pide instrumentar la comprobación |
 | 3 | **B.302** · la cascada del verificador | la sembrada A de los cargos, «sin oposición» 4/4 | **recalculada el 30/09: la mitad.** Con el escalón 1 encendido, la cascada mató 2 de 4 (una pasada, 13:01:56); quedan 2 por recuperar | 2 publicadas de 4 en una pasada, frente a **1 de 4 con el interruptor apagado** (29/09, la referencia; B.302): **mejora de 1 a 2** | sin estimar |
 | 4 | **B.300** · la tanda desplaza | un usuario que selecciona más documentos ve menos del corpus, y nada se lo dice | lo que el desplazamiento quita; **crece con el número de seleccionados: NOR-11 14 → 11 → 4, NOR-10 14 → 12 → 3** (B.300) | medido, sin arreglo. **Detrás de B.190**, por decisión del director: la tanda es poco común, aunque existe; se arregla igual, porque el usuario hace algo más listo y obtiene menos, sin aviso | sin estimar |
@@ -9363,6 +9363,116 @@ lleva su caso decisivo»):
   `sobrevivio_al_rerank` por documento cubre el quiénes, sin distinguir si fue por criterio o
   por tope. Con el tope sin llenar, como aquí, todo lo descartado es por criterio.
 - **Sin arreglo.** Constancia.
+
+### ⚠️ B.307 — LOS DOS CONJUNTOS NO SE TOCAN: el corpus son 14 ficheros sin trozos, y los ~28 con trozos están todos fuera. La puerta existe: «Añadir al corpus», en la bandeja (L-10; 01/10/2026)
+
+**La deducción del arquitecto, comprobada**: los indexados no son corpus, y los del corpus no
+están indexados.
+- **Comprobada a nivel de COLUMNA por el censo**: `en_el_corpus = 14` y
+  `corpus_sin_trozos = 14` (`SQL_Documentos_Sin_Chunks.sql`, consulta 2). **No hay un solo
+  `analizado` con trozos.** Los 14 tienen nombre (B.295, F-2 nominal).
+- **La comprobación directa**, con los nombres de los que tienen trozos y lo que le falta a
+  cada uno para entrar: `SQL_Corpus_Con_Trozos_Por_Estado.sql`, **PENDIENTE DE EJECUTAR**.
+- ⚠️ Es la columna, no la metadata del vector, que es lo que usa el retrieval. Que coincidan
+  es el invariante F-96, sin comprobar aquí (B.301).
+
+**(a) Quién escribe `analysis_status = 'analizado'`**: todas las escrituras de esa columna
+(grep de las escrituras, no de los usos):
+1. **`ingest`**, cuando el cliente manda `analysisStatus: 'analizado'`
+   (`app/api/ingest/route.ts:97-98`, `:309`). Lo manda **el chat** al subir un documento:
+   - si el análisis terminó (`hooks/chat/useDocuments.ts:253`);
+   - o si el usuario lo confirma tras ver los hallazgos (`:260`).
+2. **`index-text`** (`app/api/index-text/route.ts:360` en los vectores y `:393` en la fila).
+   Lo llama la ventana de mejoras al indexar la versión mejorada
+   (`components/improvement/useIndexing.ts:76`).
+3. **`mark-analyzed`** (`app/api/documents/[id]/mark-analyzed/route.ts:134` en los vectores,
+   y `:112` y `:152` en la fila). Desde la bandeja, de dos formas (abajo).
+4. **El cambio de versión** de un documento que ya está en el corpus
+   (`lib/document-swap.ts:94`).
+- ✅ **Confirmado: analizar desde la bandeja NO lo pone.** `analyze-v2` sólo escribe
+  `analyzed_content_hash` (`app/api/analyze-v2/route.ts:711`).
+- **Y la sincronización de Drive y OneDrive mete los documentos nuevos como `pendiente`**
+  (`app/api/drive/sync/route.ts:305`, `:404`, `:447`).
+
+**(b) SÍ HAY UNA ACCIÓN DE INTERFAZ, y en lote.** El corpus **se puede ampliar desde el
+producto**: no es una función que falte, es un paso que no se dio.
+- **Pantalla**: la bandeja de revisión (`/settings/review`).
+- **Qué ve el usuario**:
+  - una fila ya analizada lleva la insignia **«Pendiente de decidir»**
+    (`components/review/ReviewDocumentRow.tsx:100-102`);
+  - una sin analizar dice «Sin analizar».
+- **Qué pulsa, para varios**: marca las casillas y pulsa **«Añadir al corpus (N)»**
+  (`components/review/ReviewSelectionBar.tsx:301-318`).
+  - Va uno a uno, en serie, con `mark-analyzed` (`hooks/review/useIndexarSeleccion.ts:78-82`).
+  - **No cuesta créditos.**
+  - El botón se apaga con su motivo escrito al lado si algún seleccionado no tiene análisis,
+    o tiene una versión nueva pendiente (`lib/documents/seleccion-indexable.ts`).
+- **Para uno**: abre la fila y pulsa **«Marcar como analizado»**
+  (`components/AnalysisModal/ReviewActions.tsx:201`).
+- **Lo que exige el servidor**: que el documento tenga vectores (`chunk_count > 0`). Si no, da
+  422 (`mark-analyzed/route.ts`, paso 1). Los ~28 con trozos lo cumplen.
+- **Por qué hoy no hay ninguno dentro**: según el propio director, «solo los he analizado desde
+  la bandeja». Analizar no añade; añadir es el botón de al lado.
+
+**(c) El botón de reparar**, en la pantalla **«Corpus»** del menú lateral
+(`components/layout/AppRail.tsx:132`, `/settings/corpus`, título «Estado del corpus»):
+- **Qué ve**: «A reparar (N)», con TODOS los documentos de la organización que no están al
+  día. Cada uno lleva su estado: «Reparable con el botón» u «Hay que volver a subirlo»
+  (`settings/corpus/page.tsx:84-85`).
+- **Uno a uno**: el «Reparar» de cada fila **sólo se enciende si el estado es «Reparable con
+  el botón»** (`page.tsx:306`). Ese estado exige tener segmentos (`estado-de-reparacion.ts`).
+  **Los 14 del corpus no tienen segmentos: su botón sale APAGADO**, con «Hay que volver a
+  subirlo».
+- **En lote**: **«Reparar todo lo reparable»** (`page.tsx:271-277`).
+  - Manda a reparar **todo documento de la organización que no esté al día, en cualquier
+    estado** (`app/api/admin/reindexar-lote/route.ts:92-110`).
+  - Va en rondas de 8 (`LIMITE_POR_LLAMADA`, `lib/documents/lote.ts:28`).
+  - Cada documento pasa por `planDeReindexado`. **Éste SÍ re-trocea la prosa sin segmentos.**
+- ⚠️ **HALLAZGO: DOS CRITERIOS QUE NO DICEN LO MISMO.** La pantalla decide con
+  `estadoDeReparacion`, y por eso pinta «Hay que volver a subirlo» con el botón apagado. El
+  lote decide con `planDeReindexado`, y esos mismos documentos los repara. **La fila dice que
+  no se puede, y el botón de arriba lo hace.** Es la regla de CLAUDE.md, «un criterio se
+  implementa una vez», incumplida en la pantalla que más la necesita. Sin arreglo; ficha
+  aparte si se decide.
+- ⚠️ **AVISO PARA EL DIRECTOR, antes de pulsar «Reparar todo lo reparable»**: no repara «los
+  14», repara TODA la lista «A reparar».
+  - Puede incluir documentos `pendiente` y documentos con trozos de una versión vieja del
+    troceador. NOR-11, CLI-13, NOR-10 y CLI-12 entrarían si su versión no es la vigente; eso
+    no consta aquí.
+  - **Reindexarlos cambia sus trozos.** En plena medida, eso es tocar el corpus (la regla del
+    corpus quieto de B.295).
+  - La lista sale en pantalla antes de pulsar: mirarla primero.
+- **Si se pulsa dos veces** (leído, no ejecutado):
+  - **en lote**, el botón se apaga mientras corre (`disabled={enCurso}`);
+  - **por fila**, el botón NO se apaga, sólo cambia el texto a «Reparando…», así que dos
+    pulsaciones lanzan dos peticiones.
+    - Si la primera ya terminó, la segunda la rechaza el plan: `al_dia`, 409.
+    - Si las dos van a la vez, la que llegue segunda choca con la versión en vuelo:
+      `staged_vivo`, o la clave única de `document_staged`, que es el id del documento
+      (`lib/document-staged.ts`).
+    - Ninguna de las dos borra nada: reparar nunca borra el documento
+      (`app/api/admin/reindexar/route.ts`, cabecera).
+- Y con una subida en curso, 423 (`checkUploadLock`).
+
+**(e) LO QUE ESTO HACE AL TABLERO — una PROPUESTA, sin cambiarlo; lo cambia el director:**
+1. **NUEVO PUESTO 1 · meter en el corpus los documentos indexados que el director quiera que
+   lo sean.**
+   - Cómo: bandeja → seleccionarlos → «Añadir al corpus». Sin créditos para los ya
+     analizados; los que no lo estén cuestan su análisis.
+   - Antes, `SQL_Corpus_Con_Trozos_Por_Estado.sql`, que dice cuáles hay y qué le falta a cada
+     uno.
+   - **Cuáles son documentación de verdad lo decide el director, que tiene los documentos.**
+2. **B.190 (reindexar los 14) BAJA.** Arregla la ruta de 14 documentos que suman 30.779
+   caracteres. Cuántos se reparan sin resubir no consta: la SQL corregida está pendiente.
+- ⚠️ **TRES CONSECUENCIAS del nuevo puesto 1, para decidirlo con ellas delante:**
+  - **Cambia la línea de base.** El corpus por defecto deja de ser el de hoy: el arnés se
+    vuelve a pasar después. Es lo mismo que ya estaba previsto tras reindexar.
+  - **Las plazas compartidas dejan de ser cosa de la tanda.** Con NOR-10 y CLI-12 en el
+    corpus por defecto, el mecanismo medido en B.300 actuaría en TODOS los análisis, no sólo
+    con varios seleccionados. **Hipótesis, sin medir**, que sale del mecanismo, y subiría la
+    prioridad de B.300.
+  - **El escalón 1 empezaría a actuar en la ruta por defecto** para todas las parejas con
+    trozos en los dos lados, que es lo que F-3 pedía.
 
 ### ⚠️ B.297 — LA LECTURA DE TROZOS SIN PAGINAR, y su margen medido (29/09/2026)
 
