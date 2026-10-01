@@ -8584,9 +8584,9 @@ director.**
 | Orden | Ficha | Qué arregla | Ganancia | Hoy | Coste |
 |---|---|---|---|---|---|
 | 1 | **B.190** · reindexar el corpus | que cualquier otra mejora se note en un análisis normal | el escalón 1 pasa a actuar en la ruta por defecto | los 14 del corpus sin trozos: todo sale `sin_fuente_comun` | **13 de 14 SIN RESUBIR**, con el botón; el 14.º espera decisión sobre su versión nueva (caja de arriba) |
-| 2 | **B.299** · la comprobación de citas del juez | la sembrada 2 (Chamberí/Retiro), matada 6/6 | +1 de las 3 del caso de control, **y el desbloqueo parcial de la B de los cargos** (30/09 13:01:56: la cita literal del lado CLI-12, tirada; B.299, entrada 4) | publicamos 2 de 3 | sin estimar; la tercera causa pide instrumentar la comprobación |
-| 3 | **B.302** · la cascada del verificador | la sembrada A de los cargos, «sin oposición» 4/4 | **recalculada el 30/09: la mitad.** Con el escalón 1 encendido, la cascada mató 2 de 4 (una pasada, 13:01:56); quedan 2 por recuperar | 2 publicadas de 4 en una pasada; atribución no aislada (B.302) | sin estimar |
-| 4 | **B.300** · la tanda desplaza | un usuario que selecciona más documentos ve menos del corpus, y nada se lo dice | lo que el desplazamiento quita; **crece con el número de seleccionados: NOR-11 14 → 11 → 4, NOR-10 14 → 12 → 3** (B.300) | medido, sin arreglo | sin estimar |
+| 2 | **B.299** · la comprobación de citas del juez | la sembrada 2 (Chamberí/Retiro), matada 6/6 | +1 de las 3 del caso de control. **Sube por la tercera causa**: el 30/09 a las 13:01:56, segundo caso de cita LITERAL descartada (B.299, entrada 4). El desbloqueo de la B **no está demostrado** (R-4) | publicamos 2 de 3 | sin estimar; la tercera causa pide instrumentar la comprobación |
+| 3 | **B.302** · la cascada del verificador | la sembrada A de los cargos, «sin oposición» 4/4 | **recalculada el 30/09: la mitad.** Con el escalón 1 encendido, la cascada mató 2 de 4 (una pasada, 13:01:56); quedan 2 por recuperar | 2 publicadas de 4 en una pasada, frente a **1 de 4 con el interruptor apagado** (29/09, la referencia; B.302): **mejora de 1 a 2** | sin estimar |
+| 4 | **B.300** · la tanda desplaza | un usuario que selecciona más documentos ve menos del corpus, y nada se lo dice | lo que el desplazamiento quita; **crece con el número de seleccionados: NOR-11 14 → 11 → 4, NOR-10 14 → 12 → 3** (B.300) | medido, sin arreglo. **Detrás de B.190**, por decisión del director: la tanda es poco común, aunque existe; se arregla igual, porque el usuario hace algo más listo y obtiene menos, sin aviso | sin estimar |
 | 5 | **D-4** · el presupuesto | B y C de los cargos, hoy ilegibles (C fuera de alcance, B en el filo) | +2 en el caso de los cargos; **reforzado el 30/09**: con la pareja entera entrarían los dos lados de la B (B.299, entrada 4) | inalcanzables | pendiente de la latencia y el coste a ~30.000 tokens, sin medir |
 
 ### ⚠️ B.299 — LA COMPROBACIÓN DE CITAS DEL JUEZ TIRA 5 DE 7 CONTRADICCIONES entre NOR-10 y CLI-12; LA CASCADA DEL VERIFICADOR, 1 MÁS (constancia y medida, SIN arreglo; 29/09/2026)
@@ -8600,10 +8600,13 @@ CONTROL.** Con el escalón 1 encendido, la comprobación de citas mata **6 de 6*
 - Ya no es «una fuga que habría que mirar». Es un hallazgo conocido, reproducible 6/6 y con
   su ganancia medida.
 - **B.299 es lo siguiente.**
-- ⬆️ **LA GANANCIA SUBE (30/09, 13:01:56; L-3 del arquitecto).** Ya no es sólo «+1 del caso
-  de control»: es eso **MÁS el desbloqueo parcial de la B** del caso de los cargos. El juez
-  tuvo delante el lado CLI-12 de la B, y la comprobación de citas lo tiró (entrada 4, al
-  final).
+- ⬆️ **LA GANANCIA SUBE (30/09, 13:01:56), POR LA TERCERA CAUSA.** La comprobación de citas
+  tiró una cita **LITERAL**: es el segundo caso, después del tramo de la D, y refuerza la
+  causa que ni (a) ni (b) explican (entrada 4, al final).
+  - ~~«es eso MÁS el desbloqueo parcial de la B»~~: **MATIZADO (R-4, arquitecto, 01/10).** La
+    cita no es la frase sembrada de la B. Lo que vale es que el juez tuvo delante **el
+    dato** de la B por el lado de CLI-12, y la comprobación tiró una cita literal. **El
+    desbloqueo de la B no está demostrado.**
 
 ⚠️ **Retitulada el 29/09 por la noche.** El arquitecto había juntado las dos cosas en «el
 verificador tira 5 de 7, un 71 %». **Era falso, y lo corrigió él mismo.** Son dos estaciones:
@@ -8760,7 +8763,14 @@ apagado. Cuántos `ids de tanda` llevaba cada una no consta.
     caracteres (del arquitecto); por eso llegó con «…». Para contestarla hay que
     INSTRUMENTAR la comprobación, y eso es trabajo del arreglo, no de la constancia.
 
-#### 4 · 30/09, 13:01:56 UTC, CLI-12 → NOR-10, interruptor encendido: el juez roza la B, que dábamos por inalcanzable
+#### 4 · 30/09, 13:01:56 UTC, CLI-12 → NOR-10, interruptor encendido: el DATO de la B por el lado de CLI-12, y una cita literal descartada
+
+- **R-4 · ~~«El juez roza la contradicción B»~~: MATIZADA, no retirada** (arquitecto, 01/10).
+  - **Lo que NO se puede decir**: que el juez tuviera delante la frase sembrada.
+  - **Lo que SÍ, y es lo que vale**: tuvo delante el DATO de la B por el lado de CLI-12, y la
+    comprobación de citas tiró una cita LITERAL.
+  - **Así que lo que sube es B.299**: segundo caso de cita literal descartada, y refuerzo de
+    la tercera causa.
 
 **De dónde sale**: log del director, transcrito por el arquitecto (L-3); Code no lo ha visto.
 - **Solapamiento descartado** en la pareja con NOR-10, `[f049837e]`, **cita no verificable**:
@@ -8785,12 +8795,13 @@ apagado. Cuántos `ids de tanda` llevaba cada una no consta.
   **Si el trozo de la B de NOR-10 estaba en ese bloque, no consta.** Es el análisis de D-4,
   visto en producción.
 - **En la otra dirección**, NOR-10 analizado llegó al 55,6 % (37.143 de 66.801), y la B está
-  al 55,7 % del texto plano. El arquitecto lo lee como «fuera por un pelo», y el «en el filo»
-  de D-4 como literal.
-  - ⚠️ **Con 0,1 puntos de margen y dos medidas cruzadas, no se puede decidir si entró o
-    no**: el error de la conversión es mayor que el margen.
+  al 55,7 % del texto plano.
+  - **R-3 · ~~«NOR-10 quedó fuera por un pelo»~~ y ~~«el "en el filo" de D-4 era literal»~~:
+    RETIRADAS** (arquitecto, 01/10). Motivo: 0,1 puntos de margen entre dos medidas
+    distintas, y el error de convertir una en otra es mayor que el margen. **Lo que queda:
+    no se puede decidir si entró o no.**
 - **Consecuencias**:
-  - para B.299, la ganancia sube (cabecera);
+  - para B.299, la ganancia sube por la tercera causa (cabecera);
   - para D-4, se refuerza: con presupuesto para la pareja entera, los dos lados de la B
     entrarían.
 
@@ -8804,10 +8815,21 @@ CLI-12 → NOR-10, que hoy sale 0 de 4.**
 > No estaba previsto. Medidas del director en el log, transcritas por el arquitecto (L-2);
 > Code no las ha visto.
 >
-> | Dirección | Apagado (30/09 mañana) | Encendido (13:01–13:03) |
+> **LA COMPARACIÓN DE REFERENCIA** (decisión del arquitecto, 01/10): las cuatro pasadas del
+> 29/09 entre las 13:14 y las 13:16, con el interruptor apagado, son **el mejor aislamiento
+> disponible**. Sustituyen a la mañana del 30/09 como término de comparación.
+>
+> | Dirección | Apagado, 29/09 13:14–13:16 | Encendido, 30/09 13:01–13:03 |
 > |---|---|---|
-> | CLI-12 → NOR-10 | 0 publicadas de 4 | **2 publicadas de 4** |
+> | CLI-12 → NOR-10 | 1 publicada de 4 | **2 publicadas de 4** |
 > | NOR-10 → CLI-12 | 0 publicadas de 3 | **1 publicada** |
+>
+> - ⚠️ **Los ids de tanda de CLI-12 y NOR-10 del 29/09 no constan**, así que «la misma tanda»
+>   es probable y **no está medido**.
+> - ⚠️ **Con la tanda fija, la mejora es MENOR** que comparando con la mañana, y ésa es la
+>   cifra honesta: **no 0 → 2, sino 1 → 2.**
+> - La comparación contra la mañana del 30/09 (0 de 4 → 2 de 4, y 0 de 3 → 1) queda como
+>   antecedente: cambiaban a la vez el interruptor y el número de acompañantes.
 >
 > - **CLI-12 → NOR-10, 13:01:56**, `corte_honesto`: analizado 37271/55135 y candidato
 >   2729/66801. Cuatro contradicciones emitidas; el verificador, 5 hallazgos → 3
@@ -8821,9 +8843,11 @@ CLI-12 → NOR-10, que hoy sale 0 de 4.**
 > - **NOR-10 → CLI-12, 13:03:18**, `corte_honesto`: analizado 37143/66801 y candidato
 >   2857/55135. Una contradicción: `[4f6157d8]` «Autoridad para retirar autoclave de
 >   servicio tras fallo de c…» → **CONFIRMADA**.
-> - **La cascada pasa de matar 4 de 4 a matar 2 de 4.** B.302 se mitiga a la mitad con el
->   escalón 1, y su ganancia pendiente se recalcula: ya no son 4 contradicciones, son 2
->   (del arquitecto).
+> - **La cascada, a las 13:01:56, mató 2 de 4.** Con la columna del 29/09, la ganancia
+>   pendiente de B.302 se recalcula: **en CLI-12 → NOR-10 se publicaron 2 de 4, y quedan 2
+>   por recuperar**; la mejora atribuible al escalón 1 es de **1 a 2**.
+>   - ~~«ya no son 4 contradicciones, son 2», contra la mañana~~: sustituida por la columna
+>     del 29/09 (arquitecto, 01/10).
 >   - ⚠️ **Las dos columnas no cuentan lo mismo**: la de la mañana son 4 PASADAS con una
 >     contradicción cada una; la de las 13:01 es UNA pasada con cuatro contradicciones
 >     distintas, cuatro caras de la A (`SIEMBRA_corpus_ampliado.md:58-61`). Es una pasada,
@@ -8834,8 +8858,9 @@ CLI-12 → NOR-10, que hoy sale 0 de 4.**
 >   interruptor y el número de acompañantes. El mecanismo apunta al interruptor sin
 >   ambigüedad, porque la cifra de caracteres leídos está en el log. El experimento limpio
 >   sería repetir la misma configuración de 3 acompañantes con el interruptor apagado.
->   **Queda PENDIENTE y OPCIONAL, y lo decide el director**: cuesta apagar, cuatro
->   análisis y volver a encender.
+>   **NO SE REPITE** (decisión del arquitecto, 01/10): cuesta apagar, cuatro análisis y
+>   volver a encender, y el mecanismo ya está en el log, con los caracteres leídos. La
+>   referencia pasa a ser el 29/09 (tabla de arriba).
 >   - 🔎 **Nota de Code: esa configuración puede estar YA medida, una pasada, y archivada.**
 >     Son los cuatro análisis del **29/09, 13:14–13:16** (B.299, entrada 1), con el
 >     interruptor APAGADO (no se encendió hasta el 30/09 a las 07:50).
@@ -8847,8 +8872,7 @@ CLI-12 → NOR-10, que hoy sale 0 de 4.**
 >       → CLI-12, **3 emitidas y 0 publicadas**.
 >     - Si era la misma selección, el aislamiento queda **apagado 1 de 4 → encendido 2 de
 >       4**, y **0 de 3 → 1 de 1**: la mejora se mantiene con la tanda fija, aunque en
->       CLI-12 → NOR-10 es menor que contra la mañana. Si da por bueno esto o repite, lo
->       decide el arquitecto con el director.
+>       CLI-12 → NOR-10 es menor que contra la mañana. **Aceptada como referencia el 01/10.**
 
 - **Lo medido**: 4 de 4 pasadas del 30/09, a las 06:36:58, 06:37:58, 06:38:53 y 06:40:26
   UTC, en la dirección CLI-12 → NOR-10. La cascada del verificador descarta como
@@ -8876,6 +8900,36 @@ CLI-12 → NOR-10, que hoy sale 0 de 4.**
 
 **Seleccionar más documentos en la bandeja hace que el análisis vea MENOS del corpus, y
 el usuario no tiene forma de saberlo.**
+
+**EL REENCUADRE DEL DIRECTOR (30/09), PARTIDO EN DOS POR FABLE** (F-119; B.303).
+- ✅ **Lo que SIGUE EN PIE: el pipeline mide en la moneda antigua en el rerank y en el corte
+  previo.** El trozo dejó de ser el material y pasó a ser un puntero, y esas dos etapas siguen
+  decidiendo como si el juez leyera párrafos.
+  - La prueba está en una misma fila de la base: `retrieval_candidato_mostrados = 2813`
+    frente a `juez_candidato_mostrados = 14704` (B.295). **Esos 2.813 los selecciona el
+    retrieval, y el juez no los usa cuando la pareja va entera.**
+  - El caso más claro es la ventana de 3.000 caracteres del analizado que ve el rerank, por
+    posición (`lib/analysis/rerank.ts:73`): **es la tijera del escalón 0, viva una etapa
+    antes.**
+- ~~Lo que NO sigue en pie: que el escalón 1 dejara desalineadas las plazas compartidas.~~
+  **Mitad RETIRADA**: Fable lo corrige y el arquitecto lo acepta. **Las 25 plazas compartidas
+  eran un fallo también en el diseño viejo; el escalón 1 sólo las hizo visibles** (B.303,
+  punto 2a).
+
+**LOS DOS PROBLEMAS, separados porque tienen alcance distinto:**
+1. **La moneda antigua.** Afecta a TODAS las rutas, también sin tanda, y **llega a la
+   SELECCIÓN de documentos**: el corte previo ordena por el mejor párrafo
+   (`corte-de-recuperacion.ts:42`), y el rerank decide con fragmentos de 300 caracteres
+   (`rerank.ts:54`). Hoy no se nota, porque los 14 del corpus salen `sin_fuente_comun`; **en
+   cuanto se reindexe (B.190), ocurre en todos los análisis.** Que esté eligiendo mal es una
+   hipótesis del arquitecto, **sin medir**.
+2. **Las plazas compartidas** (esta ficha). **Sólo muerden con tanda.**
+
+**LA PRIORIDAD, del director (30/09)**: analizar varios a la vez es una opción real del
+usuario, pero poco común: lo normal es subirlos de uno en uno. **Por eso esta ficha va detrás
+de reindexar el corpus**, en el puesto 4 del tablero (B.295), detrás de B.190, B.299 y B.302.
+**Pero se arregla**, porque es un caso en el que el usuario hace algo que parece más listo y
+obtiene menos, sin aviso.
 
 **Lo CONFIRMADO en el código**: la tanda cambia el alcance de los candidatos.
 - Al analizar desde la bandeja, cada documento manda como `ids de tanda` a **los demás
@@ -8953,8 +9007,8 @@ logs los transcribe el arquitecto; la columna `recuperados_retrieval` de
 
 | Documento analizado | 0 acompañantes | 1 acompañante | 3 acompañantes |
 |---|---|---|---|
-| **NOR-11** | 14 (**29/09**, 10:51) | 11 (30/09, 06:28) | **4** (30/09, **13:03:27**) |
-| **NOR-10** | 14 (30/09, 12:20:44) | 12 (30/09, 12:29:42; con CLI-13) | **3** (30/09, **13:02:59**) |
+| **NOR-11** — ⚠️ cruza dos días | 14 (**29/09**, 10:51) | 11 (30/09, 06:28) | **4** (30/09, **13:03:27**) |
+| **NOR-10** — ✅ la serie del mismo día | 14 (30/09, 12:20:44) | 12 (30/09, 12:29:42; con CLI-13) | **3** (30/09, **13:02:59**) |
 | **CLI-13** | 14 (30/09, 12:19:56) | 6 (30/09, 12:29:25; con NOR-10) | **6** (30/09, 13:0x) |
 | **CLI-12** | — | — | **8** (30/09, 13:0x) |
 
@@ -8964,21 +9018,25 @@ logs los transcribe el arquitecto; la columna `recuperados_retrieval` de
     retirada sigue retirada.
   - **Coincide exactamente con la observación suelta del 29/09 a las 13:15**, que dio 4 con
     la misma tanda de 3. Dos medidas independientes, el mismo número.
-  - ⚠️ **«El mismo día», NO para NOR-11**: su punto de 0 acompañantes es del **29/09 a las
-    10:51**, no del 30/09 a las 12:20 (a esa hora los de 0 acompañantes fueron CLI-13 y
-    NOR-10). La serie de NOR-11 cruza dos días; **la del mismo día es la de NOR-10: 14 → 12
-    → 3.**
-  - ⚠️ **LOS CANDIDATOS INCLUYEN A LOS ACOMPAÑANTES, y eso cambia la cuenta del corpus.** El
-    arquitecto escribió que con tres acompañantes NOR-11 «pierde 10 de los 14 del corpus» y
-    que «su análisis ve el 29 % del corpus». **No se sigue de estas cifras, y no se archiva
-    como dato.**
-    - La única composición conocida de una pasada con 3 acompañantes es la del 29/09 a las
-      13:15 (encargo E-2 del arquitecto): **4 candidatos = los 3 acompañantes (NOR-10,
-      CLI-12, CLI-13) + 1 del corpus** (Clientes_Residuos_Sanitarios).
-    - Si la de las 13:03:27 fue igual, NOR-11 vio **1 de los 14 del corpus**, no 4.
-    - **La composición de las 13:03:27 no consta.** Lo que ve del corpus cada fila de la
-      tabla se sabe restando los acompañantes que salgan en su lista, y esas listas no están
-      aquí.
+  - **R-2 · ~~«tres puntos sobre el MISMO documento, el mismo día»~~ para NOR-11: RETIRADA**
+    (arquitecto, 30/09). Su punto de 0 acompañantes es del **29/09 a las 10:51**; a las 12:20
+    del 30/09, los de 0 acompañantes fueron CLI-13 y NOR-10. **La serie del mismo día es la
+    de NOR-10: 14 → 12 → 3.**
+  - **R-1 · ~~«NOR-11 pierde 10 de los 14 del corpus»~~ y ~~«ve el 29 % del corpus»~~:
+    RETIRADAS, del arquitecto** (30/09). Motivo: la cuenta de candidatos incluye a los
+    acompañantes, así que restar no da documentos del corpus. Lo que queda en su lugar, y es
+    lo único medido:
+    - la única pasada con 3 acompañantes cuya composición consta es la del **29/09 a las
+      13:15** (encargo E-2 del arquitecto): **4 candidatos = los 3 acompañantes (NOR-10,
+      CLI-12, CLI-13) + 1 documento del corpus** (Clientes_Residuos_Sanitarios). **De los
+      14, uno**;
+    - la composición de las pasadas del 30/09 a las 13:02:59 (NOR-10) y a las 13:03:27
+      (NOR-11) **no consta**, y sin ella no se puede decir qué vieron del corpus.
+
+> **EL TITULAR DEL PRODUCTO, reescrito con R-1:** en la única pasada de la que conocemos la
+> lista, **un análisis con tres documentos seleccionados vio 1 de los 14 documentos del
+> corpus.** Nada de porcentajes sobre pasadas cuya composición no consta.
+
 
 **LO QUE ESTO HACE AL PRODUCTO, y por qué es de producto y no sólo de medida:**
 - el usuario que selecciona varios documentos «para compararlos entre sí» cree que ve MÁS, y
@@ -9094,6 +9152,15 @@ Cubre las tres clases salvo un caso: el de un vector sin fila que además lleve 
   arquitecto, para cuando tenga un rato.
 
 ### ⚠️ B.305 — EL TOPE DE 120 MUESTRAS DEJA TROZOS DEL ANALIZADO POR LOS QUE NO SE PREGUNTA (latente, SIN arreglo; 30/09/2026)
+
+⚠️ **EL MARGEN ES DE SEIS TROZOS**: el mayor documento conocido tiene 114, frente al tope de
+120. **Cualquier documento más largo que los de hoy, o un troceado más fino, enciende B.305
+sin que nada avise.** Y los 114 salen **de un comentario del código** (`lib/analysis/muestras.ts:16`),
+no de una medida de la base.
+
+**ACEPTADA COMO LATENTE** (R-5, arquitecto, 01/10), con el encuadre que se queda: sigue
+siendo **un cuarto sitio donde se puede perder el candidato verdadero**, antes de los tres que
+nombra Fable (F-119), **pero hoy no está disparado.**
 
 **La pregunta** (L-8 del arquitecto, sale de L-6): Fable predice que el candidato verdadero se
 pierde en el corte previo o en el rerank, no en Pinecone. Pero si el analizado tiene más de
