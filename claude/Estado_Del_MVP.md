@@ -8802,7 +8802,8 @@ el 1 y el 3 al citarlos el 30/09, y lo corrigió él mismo el mismo día.
 3. **Siete pasadas del 30/09, NOR-10 / CLI-12: 7 contradicciones, 0 publicadas.**
 4. **CLI-12 → NOR-10, 30/09 a las 13:01:56, interruptor encendido: el roce con la B.**
 5. **L-12 (01/10): dónde se corta la cita, y las dos causas que el código sí tiene.**
-6. **El arreglo de la causa (ii), implementado el 01/10.** Al final.
+6. **El arreglo de la causa (ii), implementado el 01/10.**
+7. **La causa (i): cuál es el pajar correcto. Contestada; nada implementado.** Al final.
 
 #### 1 · Cuatro análisis del 29/09 (13:14-13:16 UTC), NOR-10 / CLI-12: 7 contradicciones, 1 publicada
 
@@ -8989,8 +8990,14 @@ apagado. Cuántos `ids de tanda` llevaba cada una no consta.
 
 #### 5 · L-12 (01/10/2026): ¿la cita llega cortada? NO. Pero la comprobación tiene dos causas propias que tiran citas literales
 
-**La hipótesis del arquitecto, FALSA**: «la cita se trunca a unos 200 caracteres antes de
-compararla, y la comparación es literal, así que no puede encontrarla nunca».
+❌ **PREDICCIÓN DEL ARQUITECTO, FALLADA** (01/10/2026, y él la cuenta como fallada, junto a las
+otras): «la cita se trunca a unos 200 caracteres antes de compararla, y la comparación es
+literal, así que no puede encontrarla nunca». **Falsa**: los cortes a 200 y a 60 son del log, y
+`verifyQuote` recibe la cita entera.
+- **Y la lectura valió la pena igual**: buscando una causa falsa aparecieron dos verdaderas, la
+  (i) y la (ii).
+- El arquitecto acepta también las dos correcciones de Code sobre las sondas: **son 8 hallazgos
+  tirados, no 7**; y **«sin B.299 publicaríamos 3 de 3 y 1» es un techo, no una medida**.
 - **a) Dónde se corta**: SÓLO EN EL LOG.
   - Las líneas «Contradicción descartada» y «Solapamiento descartado» imprimen la cita con
     `.slice(0, 200)` (`lib/analysis/judge.ts:472`, `:498`, `:504-507`, `:523`, `:546`,
@@ -9124,6 +9131,92 @@ comprobación saldrán también hallazgos de parejas que nadie ha auditado. Por 
 Normas_Frecuencia_Recogidas en la sonda A, o el de CLI-12 / CLI-13 de B.304. **Se cuentan por
 separado «sembradas» y «de parejas sin auditar», y no se celebra un total más alto.** Un hallazgo
 de una pareja sin auditar no es acierto ni fallo hasta que alguien vaya al texto.
+
+#### 7 · LA CAUSA (i), LA PREGUNTA DE ARQUITECTURA (01/10/2026): ¿cuál es el pajar correcto? Contestada en sólo lectura. NADA IMPLEMENTADO
+
+El arquitecto no aprobó el arreglo por parejas de trozos sin entender antes por qué se compara
+por trozos. Su propuesta es verificar la cita contra el TEXTO COMPLETO del documento. Las cuatro
+preguntas:
+
+**(a) ¿Contiene el texto completo cada trozo literalmente? A medias, y la mitad que falla
+importa.**
+- `full_text` son los segmentos unidos con un salto doble: `joinSegments`
+  (`lib/chunking.ts:1008-1013`) más `stripSegmentationMarkers` (`:178-180`).
+- **Filas de tabla**: el trozo es el texto de su segmento, así que está en `full_text` tal
+  cual.
+  - Pero una tabla no se verifica por contigüidad: se verifica por segmentos dentro de UNA
+    fila, con sus celdas (`verifyQuote`, la segunda pasada). **Para tablas, el pajar correcto
+    sigue siendo la fila.**
+- **Prosa**: los trozos se cortan de un texto LIMPIADO (`buildProsePieces`):
+  - `\r\n` pasa a `\n`;
+  - cada tirada de espacios o tabuladores, a uno;
+  - tres saltos o más, a dos.
+
+  `full_text` conserva los espacios originales, así que no contiene cada trozo literalmente.
+  Pero sí tras normalizar, que es lo que hace la comprobación.
+- ⚠️ **Y una diferencia que NO es de espacios**: `subdivideSection` **repite el título de la
+  sección al principio de cada subtrozo** (`chunking.ts:464-475`). Un subtrozo es «TÍTULO +
+  un tramo del cuerpo» que **no es contiguo en el documento**. Consecuencia, que nadie había
+  escrito: **la comprobación por trozos puede dar hoy por buena una cita que pegue el título a un
+  tramo del cuerpo que en el documento no va detrás.** Es un falso POSITIVO que existe hoy; sin
+  medir cuánto.
+
+**(b) ¿La concatenación de los trozos, en orden, reproduce el documento? NO**, por tres cosas:
+- el solapamiento de 200 caracteres entre los subtrozos por longitud (`CHUNK_OVERLAP`,
+  `chunking.ts:27`);
+- el título repetido de (a);
+- y los espacios limpiados.
+- **Pegar dos trozos consecutivos —el arreglo que propuso Code en la entrada 5— fabricaría
+  contigüidades que no existen**: el título otra vez en medio, o el tramo solapado dos veces.
+  Se podría verificar como buena una cita que no está en el documento.
+- Evitarlo exigiría reconstruir el documento quitando solapamientos y títulos repetidos, que
+  es frágil y duplica lo que el troceador ya sabe. **Code retira esa propuesta.**
+
+**(c) ¿Por qué se hizo por trozos? Está escrito, y es F-27** (`lib/analysis/judge.ts:137`, en el
+comentario de `verifyQuote`): «los chunks SON el haystack (F-27): es el mismo contenido que
+full_text, pero ya dividido en las unidades que decidió el extractor […], así que devolver DE
+QUÉ CHUNK salió la cita es gratis en vez de exigir una búsqueda aparte».
+- **El motivo era la EVIDENCIA**: saber de qué trozo salió la cita, para las columnas de R2 y
+  para el contexto del verificador.
+- **La premisa —«es el mismo contenido que full_text»— es verdad sólo a medias**, por (a): los
+  espacios y el título repetido.
+- **El coste de las citas que cruzan dos trozos no está escrito en ningún sitio.** Nadie lo
+  decidió: no se vio.
+- Y el camino del texto completo quedó como respaldo temporal, para documentos sin trozos («lo
+  retira el paso 6 entero», `judge.ts:212`).
+
+**(d) EL ARREGLO QUE DEFIENDE CODE: EL DEL ARQUITECTO, el texto completo, con tres ajustes.** El
+de las parejas queda retirado por (b).
+1. **Prosa: la EXISTENCIA se verifica contra el texto completo; el trozo sólo se BUSCA
+   después**, como evidencia.
+   - Primero la cita en `full_text`, con `findBestMatch`, que ya usa una sola normalización.
+   - Si está, se localiza el trozo donde empieza la cabeza de la cita, para la evidencia. Si no
+     se encuentra, `chunk: null`, como ya hace hoy el respaldo.
+   - **Así se cierran a la vez el falso NEGATIVO** (citas que cruzan trozos) **y el falso
+     POSITIVO** (el título pegado de (a)).
+2. **Tablas: se quedan como están**, por fila y con celdas. Para ellas el pajar correcto es la
+   fila, y `full_text` no aporta nada.
+3. **El texto completo tiene que ser `full_text`, el fiel**, y no el que se renderiza desde los
+   trozos (`buildAnalyzedDocumentText`), que lleva los títulos repetidos.
+   - **Lado analizado**: ya está en memoria (`newDocumentFallbackText`, el texto del documento).
+   - **Lado candidato**: hoy sólo se carga para los candidatos SIN trozos
+     (`fetchFallbackFullTexts`, `lib/analysis/pipeline.ts:53` y `:801-804`). Habría que
+     ampliarlo a todos los que pasan el rerank: hasta 6 en rápido.
+   - **Cuesta, como mucho, UNA consulta más por análisis**: la misma consulta, con más filas,
+     y sólo cuando hoy no se haría ninguna. **Se declara.**
+- **Las pruebas, cada una ROJA ahora y VERDE después:**
+  1. **La cita que cruza dos trozos**: trozos «…la responsabilidad recae siempre sobre» y «el
+     Director Clínico del centro…», con un `full_text` donde va seguida. La cita «recae siempre
+     sobre el Director Clínico» da hoy `null`; después, se verifica.
+  2. **El título pegado**: un subtrozo «TÍTULO\n\ntramo del medio», con un `full_text` donde el
+     título NO va pegado a ese tramo. La cita «TÍTULO tramo del medio» se verifica hoy (falso
+     positivo); después, `null`.
+- **Los controles negativos**: una cita inventada sigue en `null`; y una cita de tabla sigue
+  verificándose por su fila, con sus columnas.
+- ⚠️ **Mueve la línea de base**: pasarán citas que hoy mueren, y morirán las del título pegado.
+  Se mide una vez, con B.299 entero desplegado, y contando aparte sembradas y parejas sin
+  auditar (entrada 6).
+- **No se toca nada hasta que lo apruebe el arquitecto.**
 
 ### ⚠️ B.302 — LA CASCADA DEL VERIFICADOR DESCARTA UNA CONTRADICCIÓN REAL COMO «MISMO DATO SIN OPOSICIÓN» (constancia y medida, SIN arreglo; 30/09/2026)
 
