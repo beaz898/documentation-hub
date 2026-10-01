@@ -9032,11 +9032,33 @@ logs los transcribe el arquitecto; la columna `recuperados_retrieval` de
       14, uno**;
     - la composición de las pasadas del 30/09 a las 13:02:59 (NOR-10) y a las 13:03:27
       (NOR-11) **no consta**, y sin ella no se puede decir qué vieron del corpus.
+      **Se puede recuperar en parte de la base** (L-9, abajo):
+      `SQL_B300_composicion_tanda_3.sql`, PENDIENTE DE EJECUTAR.
 
 > **EL TITULAR DEL PRODUCTO, reescrito con R-1:** en la única pasada de la que conocemos la
 > lista, **un análisis con tres documentos seleccionados vio 1 de los 14 documentos del
 > corpus.** Nada de porcentajes sobre pasadas cuya composición no consta.
 
+- **L-9 · ¿QUEDA LA COMPOSICIÓN EN LA BASE?** (lectura de Code, 01/10). **A medias.**
+  - **Con ids, sólo los candidatos que LLEGARON AL JUEZ** (en rápido, hasta 6). Están en tres
+    sitios de `analysis_results.analysis`:
+    - `judgments[]`, con `documentId` y `documentName` (`lib/analysis/types.ts:66-68`);
+    - `lecturaDeLasParejas[]`;
+    - `presupuestoDelCandidato.candidatos[]`, filtrado a los que pasaron el rerank
+      (`lib/analysis/pipeline.ts:1101-1107`).
+  - **De los recuperados que el rerank tiró, sólo el NÚMERO**:
+    - `coberturaDeCandidatos.afines`, que son los candidatos del log «Retrieval: N
+      candidatos» (`pipeline.ts:1055`);
+    - frente a `comparados`;
+    - y `termometro.documentos_candidatos`.
+
+    Sus ids no se guardan.
+  - **Los ids de tanda, en rápido, no se guardan en ningún sitio.** Sólo los guarda el
+    exhaustivo, en `analysis_jobs.batch_document_ids` (`app/api/analyze-v2/route.ts:552`).
+    Quiénes eran los acompañantes se sabe por el arquitecto, no por la base.
+  - **Por tanto, la composición se recupera ENTERA si y sólo si el rerank se quedó con todos
+    los recuperados** (`comparados = afines`). Con 4 y 3 recuperados, por debajo del tope de
+    6, es posible. Si el rerank tiró alguno por criterio, de ése sólo consta que existió.
 
 **LO QUE ESTO HACE AL PRODUCTO, y por qué es de producto y no sólo de medida:**
 - el usuario que selecciona varios documentos «para compararlos entre sí» cree que ve MÁS, y
