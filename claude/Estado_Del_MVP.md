@@ -8760,10 +8760,13 @@ al de arriba, que se conserva.
 **📋 EL ORDEN, DESPUÉS DE B.299 (decisión del arquitecto, 01/10/2026).** Sustituye al de arriba
 en sus puestos 1 y 2. **Nada de los puestos 2, 3 y 4 se empieza sin que lo diga el
 arquitecto.**
-1. **B.299 · la comprobación de citas.** Hecho: causas (ii) (`0dd06f56`) e (i) (`6cbdeb45`).
-   Falta desplegar la (i).
-2. **El arnés, UNA vez**, con B.299 desplegado y entero: sembradas y parejas sin auditar
-   contadas aparte, y leído con la consecuencia incómoda delante (B.299, entrada 9).
+1. **B.299 · la comprobación de citas. NO ESTÁ COMPLETA** (corregido el 01/10, entrada 10).
+   - Hecho y desplegable: causas (ii) (`0dd06f56`) e (i) (`6cbdeb45`).
+   - **Abierta: la tercera causa.** La hipótesis viva es que el juez puso la cita en el campo
+     del otro lado, y la decide el `lado=` de dos líneas del log.
+2. **El arnés, UNA vez — APARCADO** hasta que la tercera causa esté entendida y, si tiene
+   arreglo, desplegada. Con sembradas y parejas sin auditar contadas aparte, y leído con la
+   consecuencia incómoda delante (B.299, entrada 9).
 3. **B.310 · el título pegado.** Sube por motivo de producto: una cita que el usuario no
    encuentra en su documento.
 4. **Los contadores de los tres topes ciegos** (plan aprobado).
@@ -8806,6 +8809,12 @@ la comprobación de citas ocurre en el JUEZ, antes de la cascada, y el verificad
 - 🔎 **L-12 (01/10): la cita NO se trunca antes de compararla.** Los cortes a 200 y a 60 son del
   log. Pero la lectura encontró dos causas en el código que tiran citas literales (entrada 5).
 
+- ⚠️ **LO QUE NINGÚN ARREGLO DE ESTA FICHA RECUPERA, hasta que se mida** (01/10/2026). Ni el (i)
+  ni el (ii) constan recuperando **la sembrada A de los cargos** (`[1eb33774]`, sonda B) ni **el
+  punto de retirada** (`[976f6174]`, sonda A): por qué murieron esas dos no está medido. Y los
+  dos casos literales (`[f049837e]`, `[75925931]`) tampoco los explica la (i) (entrada 10).
+  **La ganancia del (i) NO CONSTA.**
+
 📌 **TRES CONJUNTOS DISTINTOS, cada uno con su fecha, y no se mezclan.** El arquitecto confundió
 el 1 y el 3 al citarlos el 30/09, y lo corrigió él mismo el mismo día.
 1. **Cuatro análisis del 29/09, NOR-10 / CLI-12: 7 contradicciones, 1 publicada.** Es lo que
@@ -8817,7 +8826,9 @@ el 1 y el 3 al citarlos el 30/09, y lo corrigió él mismo el mismo día.
 6. **El arreglo de la causa (ii), implementado el 01/10.**
 7. **La causa (i): cuál es el pajar correcto. Contestada; nada implementado.**
 8. **La causa (i), segunda ronda: el pajar es lo que leyó el juez.**
-9. **El arreglo de la causa (i), implementado el 01/10.** Al final.
+9. **El arreglo de la causa (i), implementado el 01/10.**
+10. **La consulta tumba la causa (i) para los dos casos literales, y la hipótesis de que el juez
+    condensa también.** Al final.
 
 #### 1 · Cuatro análisis del 29/09 (13:14-13:16 UTC), NOR-10 / CLI-12: 7 contradicciones, 1 publicada
 
@@ -9044,7 +9055,8 @@ mano, no ejecutadas):
   normalizada, ni la de cabeza y cola miran más de un trozo a la vez. Una frase que el
   troceador partió en dos —o una cita que junta el final de un trozo con el principio del
   siguiente— muere aunque sea literal.
-  - **Es candidata a explicar los dos casos literales** de este archivo (entradas 3 y 4).
+  - ~~**Es candidata a explicar los dos casos literales** de este archivo (entradas 3 y 4).~~
+    **REFUTADO el 01/10** (entrada 10): las dos citas caben enteras en un solo trozo.
   - **Lo decide la base**: `SQL_B299_cita_por_trozo.sql`, PENDIENTE DE EJECUTAR. Dice si el
     principio y el final de cada una caen en el mismo trozo.
 - **(ii) Las dos mitades se normalizan distinto.**
@@ -9427,10 +9439,87 @@ un trozo que el juez no recibió, o con un tramo más allá del corte.
 - **La suite entera**: 1.786 de 1.786. `tsc --noEmit` limpio. El build local llega a
   «Collecting page data».
 
+⚠️ **SU GANANCIA NO CONSTA** (01/10, tras la entrada 10): los dos casos literales conocidos no
+cruzan ningún límite de trozo, así que este arreglo no los recupera. Se despliega igual, por su
+semántica, que evita falsos de la especie de F-22.
+
 **LO QUE NO ARREGLA, escrito antes de medir para no creer que arreglamos más** (entrada 8): el
 texto que se pinta al juez se arma pegando trozos, con el título repetido y el solapamiento de
 B.310 dentro. **La causa (i) desaparece en las costuras ENTRE secciones, no DENTRO de una
 sección larga.** Esa mitad es de B.310.
+
+#### 10 · LA CONSULTA TUMBA LA CAUSA (i) PARA LOS DOS CASOS LITERALES, Y TAMBIÉN LA HIPÓTESIS DE QUE EL JUEZ CONDENSA (01/10/2026)
+
+**El resultado** (`SQL_B299_cita_por_trozo.sql`, ejecutada por el director el 01/10; literal que
+transcribe el arquitecto):
+
+| Cita | Parte | `chunk_index` | Caracteres del trozo | Posición |
+|---|---|---|---|---|
+| `[75925931]` (NOR-10) | principio | 4 | 1.148 | 52 |
+| `[75925931]` (NOR-10) | final | 4 | 1.148 | 179 |
+| `[f049837e]` (CLI-12) | principio | 34 | 1.234 | 885 |
+| `[f049837e]` (CLI-12) | final | 34 | 1.234 | 978 |
+
+- **Las dos citas están ENTERAS dentro de un solo trozo. Ninguna cruza un límite.**
+- **La causa (i) NO explica estos dos casos**, sin matices: el arreglo de la entrada 9 no los
+  recupera.
+- ✅ **SE CUMPLIÓ EL AVISO ESCRITO EN LA CABECERA DE LA SQL ANTES DE EJECUTARLA**: «si no
+  cruzan ningún límite, hay una tercera causa, y eso es un hallazgo, no un chasco». Se escribió
+  antes y acertó: es la diferencia entre medir y adivinar.
+
+**LA HIPÓTESIS DEL ARQUITECTO, «el juez no cita literalmente: CONDENSA», MEDIDA Y FALSA.**
+- **(a) Qué buscó la SQL** (sus propios patrones, `SQL_B299_cita_por_trozo.sql:51-54`):
+  - para `[f049837e]`, el principio «Un resultado positivo del control biológico mensual»
+    (51 caracteres) y el final «extraordinaria del área» (23);
+  - para `[75925931]`, el principio «Cada clínica cuenta con un Coordinador de Calidad» (49)
+    y el final «designado por él» (16).
+  - **`strpos` da la posición donde EMPIEZA cada patrón** (`:58`).
+- **Por eso la aritmética del arquitecto («93 de hueco», «127») medía de inicio a inicio.**
+  Sumando la longitud del patrón final:
+  - el tramo de CLI-12 va de 885 a 1.000: **116 caracteres**;
+  - el de NOR-10, de 52 a 194: **143 caracteres**.
+- **(d) La aritmética que decide**: la cita de `[f049837e]` mide **116**, la de `[75925931]`
+  **143** (sin el «…» final). **Miden EXACTAMENTE lo mismo que su tramo**: no están
+  condensadas. La hipótesis es falsa, y es la tercera de esta forma del arquitecto en el día; él
+  mismo pidió no escribirla como causa antes de medirla.
+- **(c) Reproducido fuera de producción** (`verifyQuote` contra el texto de
+  `corpus-pruebas/`, con un trozo de 1.200 caracteres alrededor de cada cita; un fichero de
+  prueba temporal, borrado después):
+  - **`[f049837e]` VERIFICA contra CLI-12**, también escrita con «MENSUAL» en mayúsculas;
+  - **`[75925931]` VERIFICA contra NOR-10**, también con el «…» final;
+  - **las dos dan `null` contra el OTRO documento**: la de CLI-12 contra NOR-10, y la de NOR-10
+    contra CLI-12.
+- **O sea: las citas son literales y la comprobación las habría aceptado contra su documento.
+  Si en producción murieron, se buscaron donde no estaban.**
+
+**LA HIPÓTESIS QUE QUEDA, y no se escribe como causa hasta medirla: EL JUEZ PUSO CADA CITA EN EL
+CAMPO DEL OTRO LADO.**
+- Las dos son **solapamientos**. En el JSON de un solapamiento que el juez tiene delante, el
+  campo del existente (`"evidence"`) va **primero** y el del nuevo (`"evidenceInNewDoc"`)
+  **segundo** (`lib/analysis/judge.ts:851`). En las contradicciones, el del nuevo va primero.
+  Y el nombre `evidence` no dice de qué lado es.
+- Si el juez puso el texto del analizado en `evidence`, la comprobación lo buscó en el
+  candidato, y ahí no está. Es exactamente lo que dio la reproducción.
+- **Lo que la decide es UNA palabra del log**: el `lado=` de las dos líneas «Solapamiento
+  descartado».
+  - La línea imprime la cita del lado que FALLÓ.
+  - Si dicen **`lado=existente`**, la cita impresa es el campo `evidence` y es texto del
+    analizado: **el cambio de campo queda confirmado**.
+  - Si dicen **`lado=nuevo`**, la cita se buscó en su documento y falló: hay otra cosa, y lo
+    siguiente sería mirar con qué pajar se comprobó.
+  - En el relevo de L-3 y G-2 no venía el `lado`. **Lo tiene el director en los logs.**
+
+**(b) Las citas completas, en la base: NO se guardan.** De un descarte sólo se persiste el
+número (`DiscardedFindings`, `lib/analysis/judge.ts:524-527`); la cita va únicamente al log,
+cortada a 200. Para estas dos da igual: miden 116 y 143, y el log las enseñó enteras.
+
+**LO QUE CAMBIA EN LO QUE PROMETE EL ARREGLO DE LA (i):** su semántica sigue siendo correcta
+—una cita vale si está en lo que el juez pudo leer— y evita falsos de la especie de F-22, así
+que **se despliega**. Pero **su ganancia esperada NO CONSTA**: los dos casos conocidos van por
+otro lado.
+
+**Y B.299 NO ESTÁ COMPLETA**: el arnés sigue aparcado hasta que la tercera causa esté entendida
+y, si tiene arreglo, desplegada.
 
 ### ⚠️ B.302 — LA CASCADA DEL VERIFICADOR DESCARTA UNA CONTRADICCIÓN REAL COMO «MISMO DATO SIN OPOSICIÓN» (constancia y medida, SIN arreglo; 30/09/2026)
 
@@ -10352,6 +10441,57 @@ pega, no de quien comprueba. Dejar que el comprobador «lo detecte» sería tapa
 registra. El paso que deja el log desde B.299 (ii) no lo distingue.
 
 **Sin arreglo.** Constancia.
+
+### ⚠️ B.311 — PUBLICAMOS LA CITA DEL JUEZ, NO LA DEL DOCUMENTO: por el camino de cabeza y cola, el centro de la cita no se comprueba (constancia, SIN arreglo; decisión del director; 01/10/2026)
+
+**La pregunta, del arquitecto (01/10)**: cuando una cita pasa por el camino de cabeza y cola,
+¿qué texto se publica, el del juez o el del documento?
+
+**LO QUE SE PUBLICA, camino a camino** (leído, no ejecutado):
+- `fixQuotesInJudgment` publica `matchNew.text` y `matchExisting.text`
+  (`lib/analysis/judge.ts`: `newDocSays` y `existingDocSays` en las contradicciones,
+  `evidenceInNewDoc` y `evidence` en los solapamientos).
+- **Y ese `text` es SIEMPRE la cita del juez, por los cuatro caminos.**
+
+| Camino | Qué se comprobó | Qué se publica | ¿Lo encuentra el cliente en su documento? |
+|---|---|---|---|
+| literal | la cadena entera, tal cual | la cita del juez | **sí**, tal cual |
+| normalizado | la cadena entera, sin mayúsculas, puntuación ni espacios de más | la cita del juez | casi: puede diferir en **forma** (mayúsculas, puntuación, espacios) |
+| **cabeza y cola** | **sólo los primeros y los últimos hasta 20 caracteres normalizados**, en orden y a menos de 3 veces la longitud de la cita | la cita del juez **entera** | **no necesariamente: el CENTRO no se comprobó**, y puede llevar palabras que no están |
+| segmentos (tablas) | cada valor, en la misma fila y en cualquier orden | la cita del juez («Luis \| Retiro») | los valores sí; el formato es el de la cita |
+
+Lo mismo con el pajar nuevo de B.299 (entrada 9): la existencia se decide con esos mismos
+caminos, y se publica la cita del juez.
+
+**QUÉ DECIDIÓ F-55, Y POR QUÉ** (el motivo está escrito en el código, `lib/analysis/judge.ts:182-213`,
+en el comentario de `verifyQuote`; F-55 es anterior al archivo de consultas y no tiene fichero
+propio):
+- «`text` DEJA DE SER TEXTO DEL CHUNK: las tres vías devuelven ahora la CITA DEL JUEZ, ya
+  verificada». **El motivo era de TABLAS**: «la ficha mostraba la fila con sus diez columnas
+  donde el juez citó tres valores. Verdadero, pero no es la cita».
+- Y escribió su coste: «EFECTO COLATERAL ACEPTADO: para PROSA se pierde la corrección fuzzy […]
+  Ahora se muestra la del juez. Sigue estando verificada (existe en el documento); **solo puede
+  diferir en forma**».
+- **Esa última frase es la que no se sostiene por el camino de cabeza y cola.** Ahí no puede
+  diferir sólo en forma: el centro de la cita no se miró, y puede diferir en CONTENIDO.
+- **O sea que el motivo de F-55 es bueno para las tablas y para la forma, y no cubre el centro
+  de la cita.** El arreglo, si se decide, tiene que respetar lo de las tablas: no volver a
+  publicar la fila entera.
+
+**LO QUE ESTO HACE AL PRODUCTO** (la misma familia que B.310, por otro camino): **publicamos
+citas aproximadas como si fueran literales.** El cliente que busque en su documento una cita
+aprobada por su cabeza y su cola puede no encontrarla.
+
+**Cuántos hallazgos publicados estos días pasaron por el camino aproximado: NO CONSTA.**
+- El camino por el que casa una cita no se guarda en ningún sitio.
+- El registro de B.299 (ii) sólo escribe el paso de las citas que FALLAN, no el de las que
+  pasan.
+- Saberlo exige registrar también el paso de las que pasan. Es un cambio pequeño, y no se ha
+  hecho.
+
+**Sin arreglo.** Es una ficha y una decisión del director. Los caminos posibles —publicar el
+recorte del documento en prosa y la cita del juez en tablas; exigir el centro; o declararla
+aproximada en la pantalla— no se eligen aquí.
 
 ### ⚠️ B.297 — LA LECTURA DE TROZOS SIN PAGINAR, y su margen medido (29/09/2026)
 

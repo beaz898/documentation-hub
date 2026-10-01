@@ -1,6 +1,11 @@
 -- ============================================================================
 -- B.299 · ¿CABE LA CITA LITERAL EN UN SOLO TROZO? — SÓLO LECTURA (L-12)
--- ⚠️ PENDIENTE DE EJECUTAR (01/10/2026). Sólo SELECT: no escribe nada.
+-- ✅ EJECUTADO por el director el 01/10/2026. Sólo SELECT: no escribe nada.
+--    RESULTADO: las dos citas están ENTERAS en un solo trozo (NOR-10 trozo 4, posiciones
+--    52 y 179; CLI-12 trozo 34, posiciones 885 y 978). La causa (i) NO las explica: el
+--    aviso de abajo se cumplió, y hay una tercera causa (B.299, entrada 10).
+--    ⚠️ strpos da la posición donde EMPIEZA cada patrón: el tramo se mide hasta el FINAL
+--    del patrón final (116 y 143 caracteres), no de inicio a inicio.
 --
 -- ⚠️ CAMBIÓ DE PROPÓSITO el 01/10/2026 (arquitecto). YA NO DECIDE EL ARREGLO —la causa
 -- (i) se arregló comprobando contra lo que el juez leyó (B.299, entrada 9)—: AHORA DICE
