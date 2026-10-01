@@ -1,6 +1,9 @@
 -- ============================================================================
 -- B.300 · LA COMPOSICIÓN DE LAS PASADAS CON 3 ACOMPAÑANTES DEL 30/09 — SÓLO LECTURA
--- ⚠️ PENDIENTE DE EJECUTAR (01/10/2026). Sólo SELECT: no escribe nada.
+-- ✅ EJECUTADO por el director el 01/10/2026. Sólo SELECT: no escribe nada.
+--    Resultado (transcrito por el arquitecto), archivado en B.300 y B.306: CLI-12
+--    8 → 4 al juez, 1 del corpus; CLI-13 6 → 2, 1; NOR-10 3 → 2, 0; NOR-11 4 → 3, 0.
+--    Composición PARCIAL en las cuatro: el rerank tiró documentos con sitio libre.
 --
 -- QUÉ CONTESTA (L-9 del arquitecto): qué documentos fueron candidatos en las
 -- pasadas de la tanda de 3 del 30/09 —sobre todo NOR-10 a las 13:02:59 y NOR-11

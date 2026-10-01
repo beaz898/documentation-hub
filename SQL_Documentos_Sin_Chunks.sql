@@ -3,8 +3,10 @@
 -- no puede llegar (B.295, régimen `sin_fuente_comun`)
 -- ✅ EJECUTADO por el director el 30/09/2026 (redactada el 29/09). Sólo SELECT: no escribe nada.
 --    De la consulta 2 constan, porque las trae el arquitecto: en_el_corpus = 14,
---    corpus_sin_trozos = 14, sin_trozos_anterior_a_F20 = 21 (B.295). La salida
---    literal de la consulta 1, documento a documento, NO está archivada.
+--    corpus_sin_trozos = 14, sin_trozos_anterior_a_F20 = 21 (B.295).
+--    Consulta 1, ejecutada el 01/10 (transcrita por el arquitecto; B.295): 22 sin
+--    trozos, 14 analizado y 8 pendiente; causa anterior_a_F20 en 21, y new 9.txt con
+--    trozos_de_otra_generacion (active_generation 3).
 --
 -- POR QUÉ AHORA: el 07/09, B.190 (Puntos_Pendientes_Doclity.txt:7074) midió CINCO
 -- documentos con texto y sin trozos, todos anteriores a F-20, y concluyó que

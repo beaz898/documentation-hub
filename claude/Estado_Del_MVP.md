@@ -8022,9 +8022,41 @@ repuntuación (`scripts/examen.mjs:203`, «Hoy nada»).
 > porque se reindexaron estos días, y el director los seleccionaba juntos. **La medida es
 > válida y el resultado es real; lo que no es representativo es el corpus.**
 >
-> - ⚠️ **Lo que falta para la versión NOMINAL** (del arquitecto: «que los 14 `analizado`
->   sean nominalmente esos 14»). Son los 14 que el retrieval devolvió a NOR-11 el 29/09 a
->   las 10:51, con `0 ids de tanda`:
+> - ✅ **LA VERSIÓN NOMINAL DE F-2, CERRADA CON NOMBRES (01/10/2026).** La consulta 1 del censo
+>   (`SQL_Documentos_Sin_Chunks.sql`, ejecutada por el director el 01/10, resultado que
+>   transcribe el arquitecto) da **22 documentos sin trozos**: **14 `analizado`** y 8
+>   `pendiente` (new 3, 4, 7, 8, 12, 13, 14 y 15). Los 14 `analizado`, con los caracteres de su
+>   `full_text`:
+>
+>   | Documento | Caracteres |
+>   |---|---|
+>   | 2_Glosario_Terminos.pdf | 8.207 |
+>   | 3_Especificacion_Tecnica.pdf | 4.450 |
+>   | Actas_Direccion_2025.docx | 3.518 |
+>   | Facturacion_2025.xlsx | 2.822 |
+>   | new 1.txt | 1.807 |
+>   | new 9.txt | 1.742 |
+>   | Normas_Frecuencia_Recogidas.docx | 1.720 |
+>   | Protocolo_Visitas_Centros.docx | 1.588 |
+>   | new 10.txt | 1.297 |
+>   | new 11.txt | 1.150 |
+>   | new 6.txt | 1.089 |
+>   | Registro_Visitas.xlsx | 585 |
+>   | Clientes_Residuos_Peligrosos.xlsx | 406 |
+>   | Clientes_Residuos_Sanitarios.xlsx | 398 |
+>
+>   - **Son exactamente los 14 que el retrieval devolvió a NOR-11 el 29/09 a las 10:51** con
+>     `0 ids de tanda` (la lista de abajo): Code ha cotejado los dos conjuntos nombre a
+>     nombre. **F-3 queda confirmado con los dos censos cruzados: ya no es inferencia.**
+>   - **El corpus entero suma 30.779 caracteres** (recalculado por Code). Es `full_text`,
+>     texto plano. NOR-10 SOLO tiene 59.517 en el texto plano de su `.docx` (D-4) y 66.801
+>     renderizados: **el corpus es menos de la mitad que un solo documento del piloto**, en
+>     cualquiera de las dos medidas.
+>   - **La causa, por documento**: `anterior_a_F20` en 21 de los 22. La excepción es **new
+>     9.txt**: `trozos_de_otra_generacion`, con `active_generation = 3` y
+>     `trozos_otras_generaciones = 2`. Es también el `staged_vivo`.
+>
+>   La lista que este punto esperaba cotejar, conservada (NOR-11, 29/09 a las 10:51):
 >   - Clientes_Residuos_Sanitarios.xlsx, Registro_Visitas.xlsx,
 >     Clientes_Residuos_Peligrosos.xlsx, Protocolo_Visitas_Centros.docx,
 >     Actas_Direccion_2025.docx;
@@ -8032,16 +8064,14 @@ repuntuación (`scripts/examen.mjs:203`, «Hoy nada»).
 >     3_Especificacion_Tecnica.pdf;
 >   - new 9.txt, new 11.txt, new 6.txt, new 10.txt y new 1.txt.
 >
->   **Esa correspondencia no está verificada contra la base.** La cierra la salida literal
->   de la consulta 1 del censo, que lista cada documento con su estado. **Si no coinciden,
->   gana la base.** Y aun coincidiendo, prueba menos de lo que parece: el retrieval sólo
+>   ~~**Esa correspondencia no está verificada contra la base.**~~ **Verificada el 01/10.** Lo
+>   que sigue sigue valiendo: prueba menos de lo que parece: el retrieval sólo
 >   devuelve los que se parecen, y 14 recuperados de 14 posibles dice que la metadata de
 >   esos 14 es `analizado`, **no que ningún otro vector lleve esa metadata** (el invariante
 >   F-96, B.301).
-> - **«Todos anteriores a F-20»: NO CONSTA.** Era una extrapolación del arquitecto, y la marca
->   él mismo así (30/09). El 21 de `sin_trozos_anterior_a_F20` cuenta sobre los 50
->   documentos, no sobre los 14. Por documento lo dice la columna `causa` de la consulta 1
->   del censo.
+> - ~~**«Todos anteriores a F-20»: NO CONSTA.**~~ **Medido el 01/10: 13 de los 14.** El 14.º,
+>   new 9.txt, es `trozos_de_otra_generacion`. La extrapolación del arquitecto (30/09) era
+>   casi cierta, y «casi» es justo lo que la medida añade.
 
 **Escritos el 29/09/2026 a las 11:23, antes de tocar código.** Son del arquitecto, literales.
 Code sólo los archiva. El cambio sustituye las dos tijeras del juez por UN presupuesto por
@@ -9037,10 +9067,10 @@ logs los transcribe el arquitecto; la columna `recuperados_retrieval` de
 
 | Documento analizado | 0 acompañantes | 1 acompañante | 3 acompañantes |
 |---|---|---|---|
-| **NOR-11** — ⚠️ cruza dos días | 14 (**29/09**, 10:51) | 11 (30/09, 06:28) | **4** (30/09, **13:03:27**) |
-| **NOR-10** — ✅ la serie del mismo día | 14 (30/09, 12:20:44) | 12 (30/09, 12:29:42; con CLI-13) | **3** (30/09, **13:02:59**) |
-| **CLI-13** | 14 (30/09, 12:19:56) | 6 (30/09, 12:29:25; con NOR-10) | **6** (30/09, 13:0x) |
-| **CLI-12** | — | — | **8** (30/09, 13:0x) |
+| **NOR-11** — ⚠️ cruza dos días | 14 (**29/09**, 10:51) | 11 (30/09, 06:28) | **4** (30/09, log 13:03:27, guardado 13:03:52) |
+| **NOR-10** — ✅ la serie del mismo día | 14 (30/09, 12:20:44) | 12 (30/09, 12:29:42; con CLI-13) | **3** (30/09, log 13:02:59, guardado 13:03:22) |
+| **CLI-13** | 14 (30/09, 12:19:56) | 6 (30/09, 12:29:25; con NOR-10) | **6** (30/09, guardado 13:02:49) |
+| **CLI-12** | — | — | **8** (30/09, guardado 13:02:06) |
 
   - **Serie monótona y decreciente en el mismo documento: 14 → 11 → 4 en NOR-11.** Ahora sí
     se puede decir que el desplazamiento **crece con el NÚMERO de documentos seleccionados**,
@@ -9060,14 +9090,49 @@ logs los transcribe el arquitecto; la columna `recuperados_retrieval` de
       13:15** (encargo E-2 del arquitecto): **4 candidatos = los 3 acompañantes (NOR-10,
       CLI-12, CLI-13) + 1 documento del corpus** (Clientes_Residuos_Sanitarios). **De los
       14, uno**;
-    - la composición de las pasadas del 30/09 a las 13:02:59 (NOR-10) y a las 13:03:27
-      (NOR-11) **no consta**, y sin ella no se puede decir qué vieron del corpus.
-      **Se puede recuperar en parte de la base** (L-9, abajo):
-      `SQL_B300_composicion_tanda_3.sql`, PENDIENTE DE EJECUTAR.
+    - ~~la composición de las pasadas del 30/09 a las 13:02:59 (NOR-10) y a las 13:03:27
+      (NOR-11) **no consta**~~ → **CERRADA el 01/10, y en la dirección mala** (abajo).
 
-> **EL TITULAR DEL PRODUCTO, reescrito con R-1:** en la única pasada de la que conocemos la
-> lista, **un análisis con tres documentos seleccionados vio 1 de los 14 documentos del
-> corpus.** Nada de porcentajes sobre pasadas cuya composición no consta.
+- ✅ **R-1 SE CIERRA: LA COMPOSICIÓN DE LA TANDA DE 3, DESDE LA BASE** (01/10).
+  `SQL_B300_composicion_tanda_3.sql`, ejecutada por el director; resultado transcrito por el
+  arquitecto. Son las cuatro pasadas del 30/09, en modo `quick`, una por documento en la
+  ventana.
+
+  | Analizado | Guardado (UTC) | Recuperados | Al juez | Del corpus, entre los juzgados |
+  |---|---|---|---|---|
+  | CLI-12 | 13:02:06 | 8 | 4 | 1 (Protocolo_Visitas_Centros.docx) |
+  | CLI-13 | 13:02:49 | 6 | 2 | 1 (Normas_Frecuencia_Recogidas.docx) |
+  | NOR-10 | 13:03:22 | 3 | 2 | **0** |
+  | NOR-11 | 13:03:52 | 4 | 3 | **0** |
+
+  - **En NOR-10 y NOR-11, el juez no vio NINGÚN documento del corpus**: sólo compañeros de
+    tanda.
+  - ⚠️ **Lo que la tabla NO dice**: qué eran los recuperados que el rerank tiró (1 en NOR-10,
+    1 en NOR-11, 4 en CLI-12, 4 en CLI-13). La base sólo guarda su número (L-9). Si alguno
+    era del corpus, el retrieval lo vio y el juez no. **Lo que se afirma es lo que llegó al
+    JUEZ, no lo que recuperó la búsqueda.**
+  - **Las dos estaciones concuerdan aquí**: `recuperados_segun_termometro` = `recuperados`
+    (`coberturaDeCandidatos.afines`) en las cuatro. No siempre tienen por qué coincidir: una
+    es el termómetro y la otra la cobertura, calculadas en sitios distintos.
+  - **Las horas, cuadradas: son LAS MISMAS pasadas que las de los logs, guardadas unos 23-25
+    segundos después.**
+    - NOR-10: log 13:02:59, guardado 13:03:22. NOR-11: log 13:03:27, guardado 13:03:52.
+    - Lo prueba la consulta: lista TODOS los análisis de la ventana (13:00–13:06), y sale **uno
+      por documento**. Una pasada que arrancó a las 13:02:59 se guardó dentro de la ventana,
+      así que es esa fila.
+    - Los recuentos coinciden (3 y 4; 8 y 6 en CLI-12 y CLI-13).
+    - La diferencia es la duración del análisis, que con el interruptor encendido es de unos
+      20-24 s (B.295, P-4).
+    - En la tabla de arriba van las dos horas, para que nadie las cuente dos veces.
+  - **L-9, su expectativa no se cumplió, y se cuenta**: Code escribió que la composición
+    saldría entera si el rerank se quedaba con todos los recuperados, y que «con 4 y 3, por
+    debajo del tope de 6, es posible». **Salió PARCIAL en las cuatro**: el rerank tiró
+    documentos en todas, con sitio libre (B.306).
+
+> **EL TITULAR DEL PRODUCTO, reescrito al cerrar R-1** (arquitecto, 01/10): **un análisis con
+> tres documentos seleccionados puede no enseñarle al juez ni un documento del corpus.**
+> ~~«vio 1 de los 14 documentos del corpus»~~: era la pasada del 29/09 a las 13:15, y queda
+> como antecedente, no como titular.
 
 - **L-9 · ¿QUEDA LA COMPOSICIÓN EN LA BASE?** (lectura de Code, 01/10). **A medias.**
   - **Con ids, sólo los candidatos que LLEGARON AL JUEZ** (en rápido, hasta 6). Están en tres
@@ -9269,6 +9334,35 @@ lleva su caso decisivo»):
   de cálculo grande lo cruzan.
 
 **Sin arreglo. Lo decide el director.**
+
+### ⚠️ B.306 — EL RERANK DESCARTA POR CRITERIO CON SITIO LIBRE: de 8 a 4 y de 6 a 2, con el tope en 6 (constancia, SIN arreglo; 01/10/2026)
+
+**Lo medido** (`SQL_B300_composicion_tanda_3.sql`, ejecutada por el director el 01/10; B.300):
+
+| Analizado (30/09) | Recuperados | Al juez | Descartados por el rerank |
+|---|---|---|---|
+| CLI-12 | 8 | 4 | 4 |
+| CLI-13 | 6 | 2 | 4 |
+| NOR-10 | 3 | 2 | 1 |
+| NOR-11 | 4 | 3 | 1 |
+
+- **El tope del rerank en rápido es 6** (`MAX_SELECTED_QUICK`, `lib/analysis/rerank.ts:28`).
+  En las cuatro había sitio libre, así que **el rerank no sólo corta por tope: descarta por
+  criterio.**
+- **Es el comportamiento escrito, no un fallo de código.** La instrucción del modo rápido dice
+  «Sé estricto. Es preferible descartar un candidato dudoso que inflar la lista con ruido»
+  (`rerank.ts:66`).
+- **Lo que hace que importe**: es exactamente uno de los dos sitios donde Fable predice que se
+  pierde el candidato verdadero (F-119, § 7: «las pérdidas están en el corte previo y en el
+  rerank»). Y decide con la moneda antigua: 3.000 caracteres del analizado por posición y
+  fragmentos de 300 (B.300, el reencuadre).
+- **Ya se cuenta CUÁNTOS**: `seleccion.candidatos_descartados_por_criterio`
+  (`lib/analysis/reparto-del-rerank.ts:206`), en `pipeline_counters`. **No se guarda QUIÉNES**:
+  la base sólo conserva los ids de los que llegaron al juez (B.300, L-9).
+- **En el plan de los contadores** (encargo del 01/10, pendiente de aprobar):
+  `sobrevivio_al_rerank` por documento cubre el quiénes, sin distinguir si fue por criterio o
+  por tope. Con el tope sin llenar, como aquí, todo lo descartado es por criterio.
+- **Sin arreglo.** Constancia.
 
 ### ⚠️ B.297 — LA LECTURA DE TROZOS SIN PAGINAR, y su margen medido (29/09/2026)
 
