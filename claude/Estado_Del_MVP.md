@@ -278,6 +278,15 @@ dos sentidos, y por eso el caso nuevo lee la fuente.
 
 # 3.2 · ✅ LOS OCHO EXCEL, REPARADOS (09/09/2026)
 
+> ✅ **LAS TABLAS FUNCIONAN EN PRODUCCIÓN, en la ruta por defecto (01/10/2026, sonda A de B.307,
+> 08:26:37 UTC; log del director transcrito por el arquitecto).**
+> - **Nivel 1, completas**: OPE-13 «Cobertura» (14 filas, 1.913 caracteres) y RRHH-08
+>   «Guardias».
+> - **Nivel 2, resumen y filas**: OPE-10 «Tarifas» (resumen + 4 de 60 filas) y OPE-11 (resumen +
+>   2 de 60).
+> - Es el reparto por unidades (F-41 a F-44) trabajando sobre documentos que acaban de entrar al
+>   corpus.
+
 Sin borrar nada, sin lápidas y sin perder un análisis. La maniobra fue **un
 `UPDATE` de una columna**: `source_modified_at = NULL` sobre los ocho `.xlsx`
 sin segmentos, que es lo que `sync:214` mira para saltarse un fichero. Con el
@@ -7201,6 +7210,9 @@ cada una. No es una copia vieja junto a una nueva: es el mismo fichero insertado
   Las dos cosas las ve el director, no el repositorio.
 - **¿Puede repetirse?** **Por el camino de las copias en origen, sí, y sin aviso.** Por los
   otros dos, sólo si el índice no está.
+- **Y un mecanismo de duplicado en origen ya archivado**: B.216, «subir a Drive lo que ya
+  tienes a mano no lo mueve: lo duplica». Una fila manual (`provider_file_id` nulo) y otra
+  sincronizada caben las dos con el índice puesto. Las dos filas de CLI-01 dirán si fue eso.
 - **Sin arreglar y sin borrar.** Constancia.
 
 ### ⚠️ B.267 — 22 documentos con CERO trozos en la organización del examen (27/09/2026)
@@ -7940,6 +7952,15 @@ repuntuación (`scripts/examen.mjs:203`, «Hoy nada»).
 >
 > **El escalón 1 está construido, probado, medido y encendido, y NO cambia nada para un
 > análisis normal mientras el corpus no tenga trozos.**
+>
+> 🏁 **HITO (01/10/2026, 08:26:37 UTC): EL ESCALÓN 1 ACTÚA YA EN LA RUTA POR DEFECTO.** Por primera
+> vez sale `pareja_entera` **sin tanda** (`0 ids de tanda`): NOR-11 analizado, CLI-13
+> candidato, los dos enteros (14704/14704 y 9817/9817, presupuesto 40000). Es la sonda A de
+> B.307; log del director, transcrito por el arquitecto. Era el objetivo de todo el escalón 1, y
+> lo hizo posible meter en el corpus seis documentos con trozos (B.307).
+> - **F-3 deja de ser una limitación viva.** Ya no todo sale `sin_fuente_comun`: en las dos
+>   sondas, sólo un candidato del corpus viejo (Normas_Frecuencia_Recogidas.docx, en la A).
+>   Lo de abajo describe el 30/09, y se conserva.
 >
 > ✅ **CONFIRMADO EN PRODUCCIÓN el 30/09.** Con el interruptor encendido y sin acompañante, **el
 > 100 % de las parejas que llegan al juez salen `sin_fuente_comun`, y el análisis devuelve
@@ -8708,6 +8729,26 @@ del corpus existe (B.307).
 6. **B.190 · reindexar el corpus viejo, al final**: son 4 ficheros de prueba. Y sacarlos del
    corpus sin borrarlos no se puede (B.308).
 
+**📋 EL TABLERO NUEVO (decisión del arquitecto, 01/10/2026, con las sondas delante).** Sustituye
+al de arriba, que se conserva.
+1. **B.299 · la comprobación de citas del juez.** Es lo único que hoy separa al producto de
+   publicar las tres sembradas por la ruta normal. En las sondas se comió dos sembradas que el
+   juez ya había escrito, más 5 solapamientos (B.299, cabecera).
+   - Primero su lectura (L-12, hecha: B.299, entrada 5) y el arreglo, que aprueba el
+     arquitecto antes de tocar nada.
+2. **Los contadores de los tres topes ciegos**, plan aprobado
+   (`claude/Plan_Contadores_Topes_Ciegos.md`).
+   - Justo detrás de B.299, y nunca en el mismo commit ni en el mismo despliegue.
+   - Antes de implementar, la ficha de la deduplicación (ficha propia, del mismo encargo).
+3. **B.302** · la cascada del verificador.
+4. **B.300** · las plazas compartidas. Puede subir: con CLI-12 en el corpus por defecto se ve
+   sin tanda (sondas: 47 y 53 fragmentos de CLI-12).
+5. **D-4** · el presupuesto.
+6. **B.190 · al final.** Los 14 del corpus viejo no estorban (P-SONDA-2), así que reparar 4
+   ficheros de prueba no desbloquea nada.
+- **Hecho y fuera del tablero**: meter los seis en el corpus (B.307), que es lo que hizo
+  posible todo lo de hoy.
+
 
 ### ⚠️ B.299 — LA COMPROBACIÓN DE CITAS DEL JUEZ TIRA 5 DE 7 CONTRADICCIONES entre NOR-10 y CLI-12; LA CASCADA DEL VERIFICADOR, 1 MÁS (constancia y medida, SIN arreglo; 29/09/2026)
 
@@ -9425,6 +9466,9 @@ lleva su caso decisivo»):
 - **En el plan de los contadores** (encargo del 01/10, pendiente de aprobar):
   `sobrevivio_al_rerank` por documento cubre el quiénes, sin distinguir si fue por criterio o
   por tope. Con el tope sin llenar, como aquí, todo lo descartado es por criterio.
+- **CONFIRMADA OTRA VEZ el 01/10/2026, en la ruta por defecto** (sondas de B.307, sin tanda):
+  el rerank se quedó 3 de 8 en la sonda A y 2 de 5 en la B, con el tope en 6. Hay sitio libre,
+  así que el descarte es por criterio: dos casos más.
 - **Sin arreglo.** Constancia.
 
 ### ⚠️ B.307 — LOS DOS CONJUNTOS NO SE TOCAN: el corpus son 14 ficheros sin trozos, y los ~28 con trozos están todos fuera. La puerta existe: «Añadir al corpus», en la bandeja (L-10; 01/10/2026)
@@ -9600,6 +9644,76 @@ veredicto.**
 - ⚠️ **Lo que también cambia al añadirlos**: la línea de base. El corpus por defecto deja de
   ser el de hoy (consecuencias en (e), arriba).
 
+**🔬 LAS DOS SONDAS, MEDIDAS (01/10/2026).** Interruptor ENCENDIDO y `0 ids de tanda` en las dos.
+Logs del director, transcritos por el arquitecto; Code no los ha visto. Que los seis ya estaban
+en el corpus lo dicen estas mismas pasadas: OPE-10, OPE-11, OPE-13 y RRHH-08 salen como
+candidatos sin tanda.
+
+**SONDA A · NOR-11 solo**, de 08:26:37 a 08:27:02. 24.371 ms.
+- 15 trozos, 15 muestras y 14.437 caracteres.
+- **Retrieval, 8 candidatos**: CLI-12 (47 fragmentos únicos, mejor 0,947), CLI-13 (11; 0,943),
+  OPE-13 (4; 0,875), OPE-10 (4; 0,873), Clientes_Residuos_Sanitarios (1; 0,873), OPE-11 (2;
+  0,873), RRHH-08 (3; 0,872) y Normas_Frecuencia_Recogidas (1; 0,866).
+- **Rerank, 3**: CLI-13, CLI-12 y Normas_Frecuencia_Recogidas.
+- **Juez:**
+  - **CLI-13, `pareja_entera`** (14704/14704 y 9817/9817; presupuesto 40000). Solapamiento
+    45 %, 3 contradicciones y 5 solapamientos:
+    - `[e7785038]` «Plazo máximo de almacenamiento de residuos grupo III» → **confirmada y
+      publicada**;
+    - `[5a59c682]` «Color del contenedor para residuos grupo III no punzantes» → **confirmada
+      y publicada**;
+    - `[976f6174]` «Ubicación del punto de retirada centralizado» → **tirada por la
+      comprobación de citas** (lado=nuevo);
+    - y 3 solapamientos tirados por la misma comprobación.
+  - **CLI-12, `corte_honesto`** (14704/14704 y 2959/55135, dejó fuera). Solapamiento 15 %, 0
+    contradicciones y 1 solapamiento tirado.
+  - **Normas_Frecuencia_Recogidas, `sin_fuente_comun`**: 1 contradicción, `[2bf4eefc]`
+    «Frecuencia de recogida de residuos sanitarios», tirada por la comprobación de citas.
+- Verificador: 2 hallazgos → 2 confirmados.
+- **Contra la siembra** (`SIEMBRA_caso_control.md`): el juez encontró **las 3 de 3**; se
+  publicaron **2 de 3**; **0 falsos positivos**.
+
+**SONDA B · NOR-10 solo**, de 08:29:55 a 08:30:18. 22.203 ms.
+- 67 trozos, 67 muestras y 60.038 caracteres.
+- ⚠️ `[vectores] fallo pasajero en query (intento 1/3) — espera acumulada 1000/10000ms`. El
+  reintento lo resolvió. **No consta si ese fallo costó candidatos.** Son 5 aquí frente a 8 en
+  la A, y las dos explicaciones —menos afinidad, o el fallo— quedan abiertas.
+- **Retrieval, 5 candidatos**: CLI-12 (53; 0,938), CLI-13 (11; 0,914), OPE-10 (4; 0,873),
+  OPE-11 (3; 0,872) y Protocolo_Visitas_Centros (1; 0,848).
+- **Rerank, 2**: CLI-12 y CLI-13.
+- **Juez:**
+  - **CLI-13, `corte_honesto`** (30183/66801 y 9817/9817). Solapamiento 0 % y 0
+    contradicciones. ✅ **Es el control negativo, y sale limpio**: entre NOR-10 y CLI-13 no hay
+    nada sembrado.
+  - **CLI-12, `corte_honesto`** (37143/66801 y 2857/55135, los dos dejaron fuera).
+    Solapamiento 15 % y 1 contradicción, `[1eb33774]` «Autoridad para retirar autoclave de
+    servicio tras fallo de c» —**el título cortado a 60 es del log**, `judge.ts:944`—, tirada
+    por la comprobación de citas (lado=nuevo). Y 1 solapamiento tirado.
+- Verificador: 0 hallazgos.
+- **Contra la siembra**: el juez emitió la **sembrada A**, y se publicó **0**.
+
+**LOS VEREDICTOS:**
+- ❌✅ **P-SONDA-1: FALLADA A MEDIAS, y se cuenta así, sin redondear.**
+  - **La primera mitad acertó**: en las dos direcciones el sistema encontró a su pareja entre
+    los candidatos y la llevó al juez.
+  - **La segunda falló**: publicó al menos una sembrada en NOR-11, y **ninguna en NOR-10**.
+- ✅ **P-SONDA-2: ACERTADA**, con la lectura (a) fijada antes de medir (documentos
+  candidatos).
+  - Los documentos sin trozos del corpus viejo se llevaron 2 de 8 candidatos en la A
+    (Clientes_Residuos_Sanitarios y Normas_Frecuencia) y 1 de 5 en la B
+    (Protocolo_Visitas_Centros).
+  - Al juez llegó 1 de 3 y 0 de 2.
+  - Menos de la mitad en las cuatro cuentas.
+  - **Su consecuencia**: los 14 del corpus viejo **pierden por méritos propios**. No hay que
+    sacarlos del corpus, y por tanto **no hay que borrar nada**. Cierra la decisión que B.308
+    dejaba pendiente.
+- ⚠️ **Un recuento que no cuadra**: el arquitecto cuenta 7 hallazgos tirados entre las dos
+  sondas. Sobre su propio literal salen **8**:
+  - en la A, 6: `[976f6174]`, 3 solapamientos con CLI-13, 1 con CLI-12 y `[2bf4eefc]`;
+  - en la B, 2: `[1eb33774]` y 1 solapamiento.
+
+  Queda así hasta que se mire el log.
+
 ### ⚠️ B.308 — EL CORPUS SÓLO CRECE: no existe sacar un documento sin BORRARLO, y «Quitar del corpus» lo borra (L-11; hallazgo de producto, SIN arreglo; 01/10/2026)
 
 **El caso que lo destapa**: el plan del director es sacar del corpus los 14 ficheros de prueba
@@ -9667,6 +9781,10 @@ director):
 - La SQL está escrita: `SQL_Exportar_Analisis_Corpus_Viejo.sql`, en sólo lectura y con el
   mismo criterio que el borrado (`org_id` + `document_id`).
 - **Es un seguro, no una tarea**: no se ejecuta ni se pide.
+- ✅ **DECISIÓN CERRADA (01/10/2026), por P-SONDA-2 (B.307)**: los 14 del corpus viejo pierden
+  por méritos propios, así que **no hay que sacarlos ni borrar nada**. El seguro de exportación
+  se queda escrito y sin usar. **El riesgo de «Quitar del corpus» sigue vivo** para cualquier
+  otro documento: el botón no ha cambiado.
 
 **Sin arreglo.** Lo que haría falta —una operación «sacar del corpus» que devuelva el
 documento a `pendiente`, con efecto espejo (vectores primero, fila después; regla de F-96 P4)
