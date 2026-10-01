@@ -271,3 +271,14 @@ más candidatos no añade latencia, solo coste»). **Es verdad SÓLO HASTA CINCO
   sexto no es sólo dinero.**
 - **No se propone el cambio.** Bajar el máximo de 6 a 5 es una decisión del director, y no
   está tomada.
+
+**REFINAMIENTO 3 · al diagnóstico del punto 7** (Code, en el plan de los contadores; aceptado por
+el arquitecto el 01/10/2026). **Los tres topes ciegos no dejan fuera DOCUMENTOS.**
+- El 2 deja fuera resultados por debajo del puesto 25; el 4, apariciones repetidas de un mismo
+  trozo; y el 7, texto.
+- Los cortes que SÍ dejan fuera documentos —el de 25 candidatos y el rerank— **ya cuentan
+  cuántos, pero no quiénes**.
+- **El hueco de auditoría es «quiénes», no «cuántos».**
+- El plan está en `claude/Plan_Contadores_Topes_Ciegos.md`. Y el hallazgo que salió de él, en
+  `claude/Estado_Del_MVP.md`, B.309: la deduplicación conserva la primera aparición, así que
+  el «máximo» de § 3 ni siquiera es el máximo.

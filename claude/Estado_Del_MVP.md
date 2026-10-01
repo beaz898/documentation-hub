@@ -8739,7 +8739,7 @@ al de arriba, que se conserva.
 2. **Los contadores de los tres topes ciegos**, plan aprobado
    (`claude/Plan_Contadores_Topes_Ciegos.md`).
    - Justo detrás de B.299, y nunca en el mismo commit ni en el mismo despliegue.
-   - Antes de implementar, la ficha de la deduplicación (ficha propia, del mismo encargo).
+   - Antes de implementar, la ficha de la deduplicación: B.309, ya escrita.
 3. **B.302** · la cascada del verificador.
 4. **B.300** · las plazas compartidas. Puede subir: con CLI-12 en el corpus por defecto se ve
    sin tanda (sondas: 47 y 53 fragmentos de CLI-12).
@@ -9884,6 +9884,44 @@ director):
 **Sin arreglo.** Lo que haría falta —una operación «sacar del corpus» que devuelva el
 documento a `pendiente`, con efecto espejo (vectores primero, fila después; regla de F-96 P4)
 y sin borrar nada— es una decisión de producto, y no está tomada.
+
+### ⚠️ B.309 — LA DEDUPLICACIÓN CONSERVA LA PRIMERA APARICIÓN DE CADA TROZO, NO LA DE MÁS SCORE: el «máximo» con el que se eligen los documentos puede no ser el máximo (constancia, SIN arreglo; 01/10/2026)
+
+**Escrita ANTES de implementar los contadores**, por condición del arquitecto (01/10). Salió como
+punto (g7) del plan (`claude/Plan_Contadores_Topes_Ciegos.md`).
+
+**Lo que hace el código** (leído, no ejecutado):
+- **El orden de los fragmentos es el de las CONSULTAS.** `batchResults.flat()` pone primero
+  todo lo de la consulta 1, luego lo de la 2, y así (`lib/analysis/retrieval.ts:336`). La criba
+  conserva ese orden. Las consultas salen de las muestras del analizado, en orden de documento
+  (`lib/analysis/muestras.ts:29-35`).
+- **`deduplicateFragments` se queda con la PRIMERA aparición de cada trozo**
+  (`retrieval.ts:645-655`: `if (seen.has(key)) continue`). No mira el score.
+- **Pero el score de un trozo depende de la consulta.** El mismo trozo devuelto por la consulta
+  2 con 0,80 y por la 50 con 0,95 se queda con **0,80**.
+- **Todo «máximo» posterior es el máximo de las primeras apariciones**:
+  - la unidad toma el mayor score de sus fragmentos ya deduplicados (`retrieval.ts:707`, `:711`);
+  - `maxScore` del candidato sale de ahí (`retrieval.ts:563`), y **ordena el corte de 25**
+    (`corte-de-recuperacion.ts:42`);
+  - el desempate del rerank es el mayor score de sus fragmentos (`orden-del-rerank.ts:75-79`);
+  - los scores del termómetro y su `hueco_1_2` se calculan sobre los únicos
+    (`termometro.ts`, «sobre los fragmentos ÚNICOS»).
+- **Lo que significa**: la señal con la que se eligen los documentos **no calcula lo que dice
+  calcular**. Es exactamente la agregación de la que habla Fable en F-119 § 3 —el máximo por
+  documento como suelo—, y en este código ni siquiera es el máximo.
+
+**Lo que NO se sabe**: si pasa de verdad y cuánto. Depende de que el mismo trozo salga en varias
+consultas con scores distintos, y eso no se registra en ningún sitio.
+
+**Cómo se va a saber, sin arreglar nada**: los contadores del plan aprobado.
+- `repetidos_con_score_mayor`, por documento y en total: cuántas veces se tiró una aparición
+  con más score que la conservada.
+- Y por documento, `mejor_score` (el máximo de verdad, sobre todas las apariciones) junto a
+  `score_que_ordena` (el `maxScore` de hoy). Su diferencia es el efecto, documento a documento.
+
+**Sin arreglo.** El arreglo —quedarse con la aparición de más score— cambia el orden del corte y
+del rerank, o sea la línea de base. Va con su caso decisivo y su predicción escrita antes, como
+el escalón 1, y lo decide el arquitecto con el dato de los contadores delante.
 
 ### ⚠️ B.297 — LA LECTURA DE TROZOS SIN PAGINAR, y su margen medido (29/09/2026)
 
