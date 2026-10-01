@@ -7075,6 +7075,26 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     CINCO DOCUMENTOS CON TEXTO Y SIN TROZOS: HOY LOS TAPA
     EL TEXTO PLANO, Y EL DÍA QUE SE RETIRE SE QUEDAN SIN NADA
 
+    ⚠️ ══ 01/10/2026 — MEDIDO, Y B.190 YA NO VALE LO QUE VALÍA ══
+    El censo y la SQL del reindexado, ejecutados por el director el 01/10
+    (Estado_Del_MVP.md, B.295 y B.307):
+      · en la organización del director (a9625e93) hay 22 documentos sin trozos.
+        14 son TODO el corpus (`analizado`), y suman 30.779 caracteres. Los otros
+        8 son `pendiente`;
+      · la causa, documento a documento: `anterior_a_F20` en 21 de los 22. El
+        «sexto» de 29/09, Normas_Frecuencia_Recogidas.docx, es uno de ellos: era la
+        primera explicación de las tres de arriba. La excepción es new 9.txt
+        (`trozos_de_otra_generacion`);
+      · de los 14, **sólo 4 se re-trocean sin volver a subirlos**. 7 van a la vía
+        `reprocesar`, que no está construida (501); 2 son hojas de cálculo sin
+        segmentos; y new 9.txt espera decisión sobre su versión nueva.
+        (`SQL_Corpus_Reindexable_Sin_Resubir.sql`, versión corregida: la primera
+        daba 13 por un fallo de Code con NULL.)
+    Consecuencia: reparar el corpus viejo son 4 ficheros de prueba. Lo que da
+    contenido al corpus no es reindexarlo, sino meter la documentación que ya está
+    indexada (B.307). En la propuesta de tablero del 01/10 (B.295), B.190 baja al
+    último puesto.
+
     ⚠️ ══ 29/09/2026 — UN SEXTO, Y NO ESTÁ ENTRE LOS CINCO (constancia, no
     arreglo) ══
     Los logs del 29/09 que trae el arquitecto, análisis rápidos de NOR-11 / CLI-13:

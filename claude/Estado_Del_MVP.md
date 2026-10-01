@@ -7173,6 +7173,35 @@ cada una. No es una copia vieja junto a una nueva: es el mismo fichero insertado
   existe también, **por este otro camino**. El endpoint del examen rechaza un código con dos
   filas, así que N6 no se puede lanzar hasta que quede una.
 - **Sin arreglar**, por decisión del arquitecto: primero la tanda.
+- **CONFIRMADO OTRA VEZ el 01/10/2026** (`SQL_Corpus_Con_Trozos_Por_Estado.sql`, ejecutada por el
+  director): `CLI-01_protocolo-esterilizacion-instrumental.txt` sale dos veces, `created_at`
+  del 27/09 a las 09:10:32 y a las 09:10:56, 8 trozos cada una y el mismo tamaño. El
+  arquitecto lo trajo como hallazgo nuevo; **ya era esta ficha**, y no se abre otra.
+- **CÓMO PUDO OCURRIR, leído en el código y en el esquema** (sólo lectura).
+  - ⚠️ **Lo primero es una guarda que lo impide**: el índice único `documents_identity_unique`
+    sobre (`org_id`, `source`, `provider_file_id`), para todo documento sincronizado
+    (`supabase-identity-unique.sql:19-21`, marcado «YA EJECUTADO»). **Si está en la base, dos
+    filas del MISMO fichero del proveedor no pueden existir**: la segunda inserción falla.
+  - **Así que, con el índice puesto, las dos filas de CLI-01 tienen que diferir en `source` o
+    en `provider_file_id`.** Es decir, son **dos ficheros distintos en origen** con el mismo
+    nombre y contenido: una copia en la carpeta, o el mismo fichero traído por Drive y por
+    OneDrive. O bien una de las dos es manual (`provider_file_id` nulo, fuera del índice).
+    Eso no es un fallo de la sincronización: es un duplicado en origen que nada detecta.
+    - La sincronización no compara contenidos entre ficheros distintos.
+    - El veto por hash es de la subida manual, no de la sincronización.
+  - **Sólo si el índice NO estuviera puesto** valdrían los dos mecanismos que permite el
+    código:
+    1. la lista de lo que ya existe se lee una vez, antes del bucle
+       (`app/api/drive/sync/route.ts:126-129`, `:161-163`), y lo insertado durante la pasada no
+       se añade (`:438`): un fichero listado dos veces se insertaría dos veces;
+    2. dos sincronizaciones solapadas: el candado deja pasar a quien ya lo tiene
+       (`lib/upload-lock.ts:35`, en `sync/route.ts:39`).
+- **Cuál fue: NO CONSTA.** Lo dicen las dos filas: su `source`, su `provider_file_id`, su
+  `folder_path` y su `content_hash`. Y si el índice está de verdad, lo dice `pg_indexes`.
+  Las dos cosas las ve el director, no el repositorio.
+- **¿Puede repetirse?** **Por el camino de las copias en origen, sí, y sin aviso.** Por los
+  otros dos, sólo si el índice no está.
+- **Sin arreglar y sin borrar.** Constancia.
 
 ### ⚠️ B.267 — 22 documentos con CERO trozos en la organización del examen (27/09/2026)
 
@@ -7958,9 +7987,23 @@ repuntuación (`scripts/examen.mjs:203`, «Hoy nada»).
 > >   Registro_Visitas.
 > > - **Lo que queda en pie**: 14 documentos, y 1 `staged_vivo` (new 9.txt). Esa rama va
 > >   primero y no dependía de los segmentos.
-> > - **Cuántos se reindexan de verdad sin resubir: NO CONSTA.** A lo sumo 9 (los 13 menos
-> >   las 4 `.xlsx`), y menos si alguno viene de Drive o de OneDrive, porque el origen de cada
-> >   uno no está archivado aquí. Lo dice la SQL corregida, **PENDIENTE DE RE-EJECUTAR**.
+> > - ~~**Cuántos se reindexan de verdad sin resubir: NO CONSTA.** A lo sumo 9~~ → **MEDIDO
+> >   (01/10): SON 4.** La SQL corregida, ejecutada por el director; consulta 2, literal:
+> >   ```
+> >   rechazado: sin_original_con_tablas      2
+> >   rechazado: reprocesar NO CONSTRUIDA (501) 7
+> >   rechazado: staged_vivo                  1
+> >   retrocear: SIN RESUBIR                  4
+> >   (total del ROLLUP)                     14
+> >   ```
+> >   - **7 caen en el 501**: vienen de un proveedor (Drive u OneDrive) con su id, y la vía que
+> >     los repararía no está construida. Hay que volver a subirlos o construir la vía.
+> >   - **2 son hojas de cálculo sin segmentos.** Las otras dos `.xlsx` del corpus están entre
+> >     las 7 del 501, porque esa rama va antes. Cuáles son, lo dice la consulta 1; no está
+> >     archivado aquí.
+> >   - ✅ **PREDICCIÓN DEL ARQUITECTO, ACERTADA**: predijo 4 antes de medirlo, con la premisa
+> >     de que los de OneDrive con id del proveedor caen en el 501. Se cuenta como las
+> >     falladas.
 > > - ⚠️ **Y EL BOTÓN NO ES EL QUE SE CREÍA** (B.307): en `/settings/corpus`, el «Reparar» de
 > >   cada fila está DESACTIVADO para estos documentos. El que los repararía es «Reparar todo
 > >   lo reparable», y ése actúa sobre TODA la organización.
@@ -7994,8 +8037,8 @@ repuntuación (`scripts/examen.mjs:203`, «Hoy nada»).
 > (501, `lib/documents/reparar.ts:115-117`). Los `.xlsx` sin segmentos tampoco se pueden
 > reindexar desde el texto sin perder las celdas. ~~**Nada de eso afecta a estos 14**, según
 > la SQL.~~ **FALSO (01/10): la SQL tenía un fallo de Code y la advertencia SÍ les afecta**.
-> Las cuatro `.xlsx` del corpus caen en el segundo caso; el primero, según el origen de cada
-> documento, que no consta (caja de arriba).
+> **Medido el 01/10: 7 de los 14 caen en el primer caso (501) y 2 en el segundo; sólo 4 se
+> re-trocean** (caja de arriba).
 > - ✅ **RESUELTO (01/10), y la causa era la tercera, que nadie había listado: un fallo de
 >   la SQL.** Las cuatro `.xlsx` NO tienen segmentos (`tiene_segmentos` salió NULL), los 14
 >   SÍ son los de la lista (censo, consulta 1), y el «13 retrocear» era el fallo. Lo que
@@ -8643,11 +8686,28 @@ director.**
 
 | Orden | Ficha | Qué arregla | Ganancia | Hoy | Coste |
 |---|---|---|---|---|---|
-| 1 | **B.190** · reindexar el corpus | que cualquier otra mejora se note en un análisis normal | el escalón 1 pasa a actuar en la ruta por defecto | los 14 del corpus sin trozos: todo sale `sin_fuente_comun` | ~~13 de 14 SIN RESUBIR~~ **NO CONSTA** (error de Code en la SQL, 01/10): a lo sumo 9; las 4 `.xlsx` hay que resubirlas; new 9.txt espera decisión. ⚠️ Y puede no ser el puesto 1: propuesta en B.307 |
+| 1 | **B.190** · reindexar el corpus | que cualquier otra mejora se note en un análisis normal | el escalón 1 pasa a actuar en la ruta por defecto | los 14 del corpus sin trozos: todo sale `sin_fuente_comun` | ~~13 de 14 SIN RESUBIR~~ **4 de 14** (medido el 01/10, con la SQL corregida): 7 van al 501, 2 son hojas sin segmentos y new 9.txt espera decisión. **Reparar el corpus viejo son 4 ficheros de prueba.** ⚠️ Ver la propuesta de abajo |
 | 2 | **B.299** · la comprobación de citas del juez | la sembrada 2 (Chamberí/Retiro), matada 6/6 | +1 de las 3 del caso de control. **Sube por la tercera causa**: el 30/09 a las 13:01:56, segundo caso de cita LITERAL descartada (B.299, entrada 4). El desbloqueo de la B **no está demostrado** (R-4) | publicamos 2 de 3 | sin estimar; la tercera causa pide instrumentar la comprobación |
 | 3 | **B.302** · la cascada del verificador | la sembrada A de los cargos, «sin oposición» 4/4 | **recalculada el 30/09: la mitad.** Con el escalón 1 encendido, la cascada mató 2 de 4 (una pasada, 13:01:56); quedan 2 por recuperar | 2 publicadas de 4 en una pasada, frente a **1 de 4 con el interruptor apagado** (29/09, la referencia; B.302): **mejora de 1 a 2** | sin estimar |
 | 4 | **B.300** · la tanda desplaza | un usuario que selecciona más documentos ve menos del corpus, y nada se lo dice | lo que el desplazamiento quita; **crece con el número de seleccionados: NOR-11 14 → 11 → 4, NOR-10 14 → 12 → 3** (B.300) | medido, sin arreglo. **Detrás de B.190**, por decisión del director: la tanda es poco común, aunque existe; se arregla igual, porque el usuario hace algo más listo y obtiene menos, sin aviso | sin estimar |
 | 5 | **D-4** · el presupuesto | B y C de los cargos, hoy ilegibles (C fuera de alcance, B en el filo) | +2 en el caso de los cargos; **reforzado el 30/09**: con la pareja entera entrarían los dos lados de la B (B.299, entrada 4) | inalcanzables | pendiente de la latencia y el coste a ~30.000 tokens, sin medir |
+
+**📋 PROPUESTA DE TABLERO NUEVO (Code, 01/10/2026) — SIN CAMBIAR EL DE ARRIBA: lo cambia el
+director.** Sale de dos medidas del 01/10: B.190 se queda en 4 ficheros de prueba, y la puerta
+del corpus existe (B.307).
+1. **Meter en el corpus la documentación indexada**: «Añadir al corpus» en la bandeja.
+   - **Ya decidido por el director el 01/10**: seis documentos (B.307), con NOR-10 y NOR-11
+     fuera, como sondas.
+   - Después, la línea de base nueva del arnés y las sondas de B.307.
+2. **B.299** · la comprobación de citas del juez.
+3. **B.302** · la cascada del verificador.
+4. **B.300** · las plazas compartidas. ⚠️ Su prioridad puede subir: con CLI-12 en el corpus por
+   defecto, el desplazamiento deja de ser cosa de la tanda (B.307, hipótesis). P-SONDA-2 lo
+   empieza a medir.
+5. **D-4** · el presupuesto.
+6. **B.190 · reindexar el corpus viejo, al final**: son 4 ficheros de prueba. Y sacarlos del
+   corpus sin borrarlos no se puede (B.308).
+
 
 ### ⚠️ B.299 — LA COMPROBACIÓN DE CITAS DEL JUEZ TIRA 5 DE 7 CONTRADICCIONES entre NOR-10 y CLI-12; LA CASCADA DEL VERIFICADOR, 1 MÁS (constancia y medida, SIN arreglo; 29/09/2026)
 
@@ -9272,8 +9332,11 @@ Cubre las tres clases salvo un caso: el de un vector sin fila que además lleve 
 
 ⚠️ **EL MARGEN ES DE SEIS TROZOS**: el mayor documento conocido tiene 114, frente al tope de
 120. **Cualquier documento más largo que los de hoy, o un troceado más fino, enciende B.305
-sin que nada avise.** Y los 114 salen **de un comentario del código** (`lib/analysis/muestras.ts:16`),
-no de una medida de la base.
+sin que nada avise.** ~~Y los 114 salen de un comentario del código, no de una medida de la
+base.~~ **MEDIDO EN LA BASE el 01/10/2026**: OPE-06 tiene **114 trozos**
+(`SQL_Corpus_Con_Trozos_Por_Estado.sql`, ejecutada por el director). El comentario
+(`lib/analysis/muestras.ts:16`) decía la verdad, y ahora consta con procedencia. **No entra en
+el corpus ahora** (decisión del director).
 
 **ACEPTADA COMO LATENTE** (R-5, arquitecto, 01/10), con el encuadre que se queda: sigue
 siendo **un cuarto sitio donde se puede perder el candidato verdadero**, antes de los tres que
@@ -9473,6 +9536,69 @@ producto**: no es una función que falte, es un paso que no se dio.
     prioridad de B.300.
   - **El escalón 1 empezaría a actuar en la ruta por defecto** para todas las parejas con
     trozos en los dos lados, que es lo que F-3 pedía.
+
+**✅ LA COMPROBACIÓN DIRECTA (01/10/2026)**: `SQL_Corpus_Con_Trozos_Por_Estado.sql`, ejecutada por
+el director (resultado transcrito por el arquitecto).
+- **Los 28 documentos con trozos están en `pendiente`. Ni uno en `analizado`.** La
+  deducción queda comprobada directamente y con nombres.
+- **8 se pueden añadir sin créditos**, porque ya tienen análisis:
+
+  | Documento | Trozos | Caracteres |
+  |---|---|---|
+  | CLI-12 | 55 | 50.797 |
+  | CLI-13 | 11 | 9.743 |
+  | NOR-10 | 67 | 60.038 |
+  | NOR-11 | 15 | 14.437 |
+  | OPE-10 | 64 | 15.012 |
+  | OPE-11 | 64 | 16.020 |
+  | OPE-13 | 15 | 1.941 |
+  | RRHH-08 | 15 | 1.882 |
+
+  Son caracteres de `full_text`, texto plano: no son los renderizados del juez de B.295,
+  donde NOR-10 tenía 66.801.
+- **Los otros 20 necesitan un análisis antes**, y eso cuesta créditos.
+- **Y dos hallazgos de esta consulta**: CLI-01 sale DOS veces (ya era B.266, abajo), y
+  OPE-06 tiene 114 trozos (B.305).
+
+**📌 LA DECISIÓN DEL DIRECTOR (01/10/2026): AÑADE SEIS** —los ocho, menos NOR-10 y NOR-11, que
+se quedan fuera como **sondas**—.
+- Los seis: CLI-12, CLI-13, OPE-10, OPE-11, OPE-13 y RRHH-08. **Si ya están añadidos, no
+  consta aquí.**
+- **El corpus resultante**: **224 trozos**, frente a 0 de hoy.
+  - ⚠️ **En caracteres son 126.174, no 95.395.** Los 95.395 son los seis que ENTRAN
+    (recalculado por Code). Los 14 viejos se quedan dentro, porque sacarlos sin borrarlos no
+    se puede (B.308), y suman 30.779.
+  - Así que el corpus queda en 20 documentos, y los 14 viejos siguen sin trozos.
+
+**LAS DOS PREDICCIONES DEL ARQUITECTO, escritas el 01/10 ANTES de que el director mida. Sin
+veredicto.**
+- **P-SONDA-1** · Con los seis añadidos, y analizando NOR-11 y NOR-10 **de uno en uno**
+  (`0 ids de tanda`), en las dos direcciones el sistema encontrará a su pareja entre los
+  candidatos y publicará al menos una contradicción sembrada.
+  - La pareja de NOR-11 es CLI-13 (`SIEMBRA_caso_control.md`), y la de NOR-10, CLI-12
+    (`SIEMBRA_corpus_ampliado.md`). Las dos estarían ya en el corpus.
+  - ⚠️ **«En las dos direcciones», con NOR-10 y NOR-11 de sondas, quiere decir: NOR-11 →
+    CLI-13 y NOR-10 → CLI-12.** La dirección inversa, con CLI-13 o CLI-12 como analizado, no
+    puede salir de uno en uno: NOR-11 y NOR-10 son `pendiente` y sólo serían candidatos en
+    tanda (B.300). Si el arquitecto quería decir otra cosa, lo fija antes de medir.
+- **P-SONDA-2** · Menos de la mitad de las plazas de candidato se las llevarán los 14
+  documentos sin trozos del corpus viejo.
+  - ⚠️ **«Plazas de candidato» admite dos lecturas, y dan cosas distintas**: (a) los
+    DOCUMENTOS candidatos recuperados («Retrieval: N candidatos»), o (b) las PLAZAS crudas de
+    las consultas (25 por consulta, B.300). Es el defecto que hizo fallar a P-2 en B.295.
+    **Se juzga con (a)** —es lo que hoy se lee en el log—, salvo que el arquitecto fije la
+    otra antes de medir. (b) sólo se puede medir con los contadores, que no existen todavía.
+- **Qué se lee para juzgarlas**, por cada pasada:
+  - la línea del log `N chunks, N samples … ids de tanda` (`app/api/analyze-v2/route.ts:598`):
+    **tiene que decir `0 ids de tanda`**, o la pasada no vale;
+  - «Retrieval: N candidatos», y las líneas `[retrieval] "nombre": N fragmentos únicos`, para
+    P-SONDA-2;
+  - el régimen de cada pareja (`lecturaDeLasParejas`), que con el interruptor encendido debería
+    ser `pareja_entera` o `corte_honesto` para la pareja sembrada, y `sin_fuente_comun`
+    para los 14 viejos;
+  - los hallazgos publicados (`discrepancies`), contra los dos registros de siembra.
+- ⚠️ **Lo que también cambia al añadirlos**: la línea de base. El corpus por defecto deja de
+  ser el de hoy (consecuencias en (e), arriba).
 
 ### ⚠️ B.308 — EL CORPUS SÓLO CRECE: no existe sacar un documento sin BORRARLO, y «Quitar del corpus» lo borra (L-11; hallazgo de producto, SIN arreglo; 01/10/2026)
 

@@ -1,6 +1,9 @@
 -- ============================================================================
 -- LOS DOCUMENTOS CON TROZOS, POR ESTADO — SÓLO LECTURA (L-10; ficha B.307)
--- ⚠️ PENDIENTE DE EJECUTAR (01/10/2026). Sólo SELECT: no escribe nada.
+-- ✅ EJECUTADO por el director el 01/10/2026. Sólo SELECT: no escribe nada.
+--    Resultado (transcrito por el arquitecto; B.307): los 28 con trozos, TODOS en
+--    `pendiente`; 8 con análisis (se añaden sin créditos) y 20 sin él. Salieron
+--    además CLI-01 dos veces (B.266) y OPE-06 con 114 trozos (B.305).
 --
 -- QUÉ CONTESTA: la deducción del arquitecto, «NINGUNO de los documentos que SÍ
 -- tienen trozos está en el corpus». La consulta 2 del censo

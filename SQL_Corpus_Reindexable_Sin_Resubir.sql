@@ -1,7 +1,9 @@
 -- ============================================================================
 -- LOS 14 DEL CORPUS SIN TROZOS: ¿CUÁLES SE PUEDEN REINDEXAR SIN VOLVER A SUBIR
 -- EL FICHERO? — SÓLO LECTURA (B.295, F-3; deuda de B.190)
--- ⚠️ PENDIENTE DE RE-EJECUTAR (corregida el 01/10/2026). Sólo SELECT: no escribe nada.
+-- ✅ EJECUTADA LA VERSIÓN CORREGIDA por el director el 01/10/2026. Sólo SELECT.
+--    Consulta 2: sin_original_con_tablas 2 · reprocesar NO CONSTRUIDA (501) 7 ·
+--    staged_vivo 1 · retrocear SIN RESUBIR 4 · total 14. SON 4 (B.295).
 --
 -- ❌ EL RESULTADO DE LA VERSIÓN ANTERIOR ES INVÁLIDO, Y EL ERROR ES DE CODE.
 --    Se ejecutó el 30/09 (consulta 2) y el 01/10 (consulta 1), y dio «13 retrocear,
