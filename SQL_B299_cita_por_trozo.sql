@@ -2,7 +2,15 @@
 -- B.299 · ¿CABE LA CITA LITERAL EN UN SOLO TROZO? — SÓLO LECTURA (L-12)
 -- ⚠️ PENDIENTE DE EJECUTAR (01/10/2026). Sólo SELECT: no escribe nada.
 --
--- QUÉ CONTESTA: si las dos citas LITERALES que la comprobación tiró (B.299,
+-- ⚠️ CAMBIÓ DE PROPÓSITO el 01/10/2026 (arquitecto). YA NO DECIDE EL ARREGLO —la causa
+-- (i) se arregló comprobando contra lo que el juez leyó (B.299, entrada 9)—: AHORA DICE
+-- SI EL ARREGLO VA A SERVIR PARA ESTAS DOS CITAS.
+--   · Si cruzan un límite de trozo ENTRE secciones, el arreglo las recupera.
+--   · Si cruzan una costura DENTRO de una sección larga, no: ésa es de B.310.
+--   · ⚠️ Y SI NO CRUZAN NINGÚN LÍMITE, la causa (i) no las explica y HAY UNA TERCERA CAUSA
+--     que no hemos encontrado. **Un resultado negativo es un HALLAZGO, no un chasco.**
+--
+-- QUÉ CONTESTABA AL ESCRIBIRSE: si las dos citas LITERALES que la comprobación tiró (B.299,
 -- entradas 3 y 4) caben enteras en UN trozo de la generación activa, o
 -- cruzan de un trozo al siguiente. La comprobación compara la cita contra cada
 -- trozo POR SEPARADO (`verifyQuote`, lib/analysis/judge.ts:329-332), así que

@@ -8757,6 +8757,18 @@ al de arriba, que se conserva.
 - **Hecho y fuera del tablero**: meter los seis en el corpus (B.307), que es lo que hizo
   posible todo lo de hoy.
 
+**📋 EL ORDEN, DESPUÉS DE B.299 (decisión del arquitecto, 01/10/2026).** Sustituye al de arriba
+en sus puestos 1 y 2. **Nada de los puestos 2, 3 y 4 se empieza sin que lo diga el
+arquitecto.**
+1. **B.299 · la comprobación de citas.** Hecho: causas (ii) (`0dd06f56`) e (i) (`6cbdeb45`).
+   Falta desplegar la (i).
+2. **El arnés, UNA vez**, con B.299 desplegado y entero: sembradas y parejas sin auditar
+   contadas aparte, y leído con la consecuencia incómoda delante (B.299, entrada 9).
+3. **B.310 · el título pegado.** Sube por motivo de producto: una cita que el usuario no
+   encuentra en su documento.
+4. **Los contadores de los tres topes ciegos** (plan aprobado).
+5. Después, B.302, B.300 y D-4, y B.190 al final, como estaban.
+
 
 ### ⚠️ B.299 — LA COMPROBACIÓN DE CITAS DEL JUEZ TIRA 5 DE 7 CONTRADICCIONES entre NOR-10 y CLI-12; LA CASCADA DEL VERIFICADOR, 1 MÁS (constancia y medida, SIN arreglo; 29/09/2026)
 
@@ -9145,6 +9157,10 @@ desarrollo, mediana de 21 repeticiones; Vercel no es esta máquina):
 | una cita que falla contra los 56 trozos del documento entero | **12,8** |
 
 - **La nueva es 5 veces más rápida que la vieja**: aquélla armaba el texto concatenando cadenas.
+- 📌 **EL CASO RARO, y conviene tenerlo escrito** (arquitecto, 01/10): **la decisión limpia
+  —preguntarle el criterio a `normalize()` carácter a carácter, una sola fuente de verdad—
+  fue también la barata.** La próxima vez que alguien proponga duplicar lógica «por
+  rendimiento», aquí hay un caso medido de lo contrario.
 - **Cuántas veces se normaliza el pajar: NO se reutiliza**, y se dice.
   - Cada cita se busca trozo a trozo, y cada trozo se normaliza en cada búsqueda
     (`verifyQuote`, `judge.ts:329-332`, que llama a `findBestMatch`).
@@ -9152,8 +9168,11 @@ desarrollo, mediana de 21 repeticiones; Vercel no es esta máquina):
     `describirDescarte` los vuelve a recorrer para el log.
   - Sin trozos, se normaliza el texto completo en cada cita.
 - **Con 8 hallazgos y 2 lados, todos fallando, el peor caso es del orden de 16 × 12,8 × 2 ≈ 400
-  ms**, frente a 20-24 s de análisis. **Milisegundos: no hay nada que hacer.** Si un día el pajar
-  pasa al texto entregado (entrada 8), se normaliza una vez por lado y pareja y se reutiliza.
+  ms**, frente a 22-24 s de análisis: **menos del 2 %. No se reutiliza el pajar normalizado**
+  (decisión del arquitecto, 01/10): sería optimizar sin un problema medido.
+  - Memorizarlo por lado y pareja es trivial **si algún día crece el número de hallazgos
+    comprobados**. Y desde la entrada 9 el texto entregado se normaliza en cada cita igual que
+    antes.
 
 
 comprobación saldrán también hallazgos de parejas que nadie ha auditado. Por ejemplo,
@@ -10308,6 +10327,21 @@ pega, no de quien comprueba. Dejar que el comprobador «lo detecte» sería tapa
 - Para la prosa, el motivo implícito es el mismo: **que un trozo suelto se entienda**, para la
   búsqueda por similitud y para quien lo lee aislado.
 - **O sea que es deliberado y útil para buscar; lo que sobra es que sea TEXTO DEL DOCUMENTO.**
+- ✅ **LA FORMA DEL ARREGLO, fijada por el arquitecto (01/10)**: el motivo es bueno, así que el
+  arreglo **no es quitar la repetición**. **El título tiene que viajar como METADATO del trozo,
+  no pegado dentro de su texto.** Quien recupera lo quiere para entender; quien verifica
+  necesita el texto tal como está en el documento. Hoy los dos reciben lo mismo, y por eso uno
+  de los dos está siempre mal servido.
+- **Es la mitad B de las dos preguntas de B.299** (entrada 8). A, «¿citó el juez fielmente lo
+  que se le dio?», la contesta B.299. B, «¿existe esa frase en el documento del cliente?», la
+  contesta esta ficha. **Con esta ficha arreglada, A y B son la misma pregunta**, porque lo
+  entregado será fiel al documento. Y con ella muere la otra mitad de la causa (i) de B.299:
+  la de las costuras dentro de una sección larga.
+- ⬆️ **SUBE AL PUESTO 2 del tablero** (arquitecto, 01/10), detrás de B.299 y delante de los
+  contadores. **El motivo es de producto, no de pipeline**: una cita publicada con un título
+  pegado en medio **es una cita que el usuario no va a encontrar en su documento**. El día que
+  un cliente abra el documento, busque la frase que le enseñamos y no esté, da igual que el
+  hallazgo fuera verdadero.
   - Un arreglo que lo respete separa las dos cosas: el título como CONTEXTO del trozo, que
     sigue sirviendo para la búsqueda pero no es citable, y el cuerpo como texto. Es la misma
     idea que las líneas de contexto no citables de F-44.
