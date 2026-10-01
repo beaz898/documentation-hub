@@ -1,10 +1,22 @@
 -- ============================================================================
 -- LOS 14 DEL CORPUS SIN TROZOS: ¿CUÁLES SE PUEDEN REINDEXAR SIN VOLVER A SUBIR
 -- EL FICHERO? — SÓLO LECTURA (B.295, F-3; deuda de B.190)
--- ✅ EJECUTADO por el director el 30/09/2026. Sólo SELECT: no escribe nada.
---    Consulta 2, literal: rechazado: staged_vivo = 1 · retrocear: SIN RESUBIR = 13 ·
---    null = 14. La fila null es el TOTAL del ROLLUP, no otros 14 documentos (B.295).
---    La salida de la consulta 1, documento a documento, NO está archivada.
+-- ⚠️ PENDIENTE DE RE-EJECUTAR (corregida el 01/10/2026). Sólo SELECT: no escribe nada.
+--
+-- ❌ EL RESULTADO DE LA VERSIÓN ANTERIOR ES INVÁLIDO, Y EL ERROR ES DE CODE.
+--    Se ejecutó el 30/09 (consulta 2) y el 01/10 (consulta 1), y dio «13 retrocear,
+--    1 staged_vivo». Pero `tiene_segmentos` valía NULL —no false— cuando la columna
+--    `segments` es NULL: `jsonb_typeof(NULL) = 'array'` es NULL, y el AND se queda
+--    en NULL. Entonces `NOT tiene_segmentos` también era NULL, el WHEN no se cumplía,
+--    y las ramas «reprocesar» y «sin_original_con_tablas» se SALTABAN para todo
+--    documento sin segmentos. Todo caía a «retrocear». La consulta 1 lo enseñaba:
+--    `tiene_segmentos = null` en las 14 filas.
+--    Lo que el código hace de verdad: `tieneSegmentosPersistidos` da false sin
+--    segmentos (lib/documents/lectura-dual.ts:120), y `planDeReindexado` manda a
+--    un .xlsx sin segmentos a «sin_original_con_tablas» (plan-de-reindexado.ts).
+--    Corregido con `coalesce(…, false)` en las dos consultas.
+--    El dato de partida sigue siendo bueno: 14 documentos y 1 staged_vivo
+--    (new 9.txt), porque esa rama va antes y no dependía de los segmentos.
 --
 -- LA PREGUNTA, del arquitecto: el escalón 1 no cambia nada en la ruta por defecto
 -- mientras el corpus no tenga trozos (F-3). Para decidir cuánto cuesta
@@ -53,11 +65,11 @@ WITH docs AS (
   SELECT d.id, d.name, d.source, d.provider_file_id, d.extractor_version,
          d.active_generation, d.created_at,
          char_length(btrim(coalesce(d.full_text, '')))                AS full_text_car,
-         (jsonb_typeof(d.segments) = 'array'
+         coalesce(jsonb_typeof(d.segments) = 'array'
            AND jsonb_array_length(d.segments) > 0
            AND NOT EXISTS (SELECT 1 FROM jsonb_array_elements(d.segments) s
                             WHERE jsonb_typeof(s) <> 'object'
-                               OR jsonb_typeof(s->'text') IS DISTINCT FROM 'string')) AS tiene_segmentos,
+                               OR jsonb_typeof(s->'text') IS DISTINCT FROM 'string'), false) AS tiene_segmentos,
          (SELECT count(*) FROM public.document_chunks c
            WHERE c.document_id = d.id AND c.generation = d.active_generation) AS trozos_activos,
          (SELECT count(*) FROM public.document_chunks c
@@ -96,11 +108,11 @@ ORDER BY via, name;
 WITH docs AS (
   SELECT d.name, d.source, d.provider_file_id,
          char_length(btrim(coalesce(d.full_text, '')))                AS full_text_car,
-         (jsonb_typeof(d.segments) = 'array'
+         coalesce(jsonb_typeof(d.segments) = 'array'
            AND jsonb_array_length(d.segments) > 0
            AND NOT EXISTS (SELECT 1 FROM jsonb_array_elements(d.segments) s
                             WHERE jsonb_typeof(s) <> 'object'
-                               OR jsonb_typeof(s->'text') IS DISTINCT FROM 'string')) AS tiene_segmentos,
+                               OR jsonb_typeof(s->'text') IS DISTINCT FROM 'string'), false) AS tiene_segmentos,
          (SELECT count(*) FROM public.document_chunks c
            WHERE c.document_id = d.id AND c.generation = d.active_generation) AS trozos_activos,
          (SELECT count(*) FROM public.document_chunks c

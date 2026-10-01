@@ -7940,8 +7940,33 @@ repuntuación (`scripts/examen.mjs:203`, «Hoy nada»).
 > - **Lo que desbloquea su valor es la deuda de B.190: reindexar los documentos del
 >   corpus.**
 >
-> > ### 🎯 LO QUE DESBLOQUEA EL VALOR DEL ESCALÓN 1 SON 13 REINDEXADOS DESDE EL PROPIO SISTEMA, NO UNA RE-SUBIDA DEL CORPUS
+> > ### ~~🎯 LO QUE DESBLOQUEA EL VALOR DEL ESCALÓN 1 SON 13 REINDEXADOS DESDE EL PROPIO SISTEMA, NO UNA RE-SUBIDA DEL CORPUS~~
 > >
+> > ## ❌ EL «13 DE 14» ES FALSO, Y EL ERROR ES DE CODE (01/10/2026)
+> >
+> > La SQL tenía un fallo de lógica con NULL. Cuando `segments` es NULL, `tiene_segmentos`
+> > salía NULL en vez de false. Entonces `NOT tiene_segmentos` también era NULL, y las dos
+> > ramas que rechazan —«reprocesar» (Drive, 501) y «sin_original_con_tablas» (.xlsx)— **se
+> > saltaban para todo documento sin segmentos**. Todo caía a «retrocear». La consulta 1 del
+> > 01/10 lo destapó: `tiene_segmentos = null` en las 14 filas.
+> > - **Lo que hace el código de verdad** con un documento sin segmentos:
+> >   - un `.xlsx` va a `sin_original_con_tablas` (409, «hay que volver a subirlo»);
+> >   - uno de Drive o de OneDrive con id del proveedor va a `reprocesar` (501).
+> >
+> >   Así que **las cuatro `.xlsx` del corpus NO se reindexan sin resubir**:
+> >   Clientes_Residuos_Peligrosos, Clientes_Residuos_Sanitarios, Facturacion_2025 y
+> >   Registro_Visitas.
+> > - **Lo que queda en pie**: 14 documentos, y 1 `staged_vivo` (new 9.txt). Esa rama va
+> >   primero y no dependía de los segmentos.
+> > - **Cuántos se reindexan de verdad sin resubir: NO CONSTA.** A lo sumo 9 (los 13 menos
+> >   las 4 `.xlsx`), y menos si alguno viene de Drive o de OneDrive, porque el origen de cada
+> >   uno no está archivado aquí. Lo dice la SQL corregida, **PENDIENTE DE RE-EJECUTAR**.
+> > - ⚠️ **Y EL BOTÓN NO ES EL QUE SE CREÍA** (lectura L-10, ficha propia): en `/settings/corpus`, el «Reparar» de
+> >   cada fila está DESACTIVADO para estos documentos. El que los repararía es «Reparar todo
+> >   lo reparable», y ése actúa sobre TODA la organización.
+> >
+> > **El literal anterior, conservado** (`SQL_Corpus_Reindexable_Sin_Resubir.sql`, versión
+> > con el fallo; consulta 2 del 30/09):
 > > `SQL_Corpus_Reindexable_Sin_Resubir.sql`, ejecutada por el director el 30/09. Literal de la
 > > consulta 2:
 > > ```
@@ -7950,7 +7975,8 @@ repuntuación (`scripts/examen.mjs:203`, «Hoy nada»).
 > > retrocear: SIN RESUBIR,13
 > > null,14
 > > ```
-> > - **13 de 14 se reindexan SIN RESUBIR**, con el botón de `/settings/corpus`.
+> > - ~~**13 de 14 se reindexan SIN RESUBIR**, con el botón de `/settings/corpus`.~~ Falso:
+> >   ver arriba.
 > > - El **1** que queda tiene una VERSIÓN NUEVA esperando decisión (abajo).
 > > - La fila `null,14` **no son otros 14 documentos**: es el TOTAL. La consulta agrupa con
 > >   `GROUP BY ROLLUP (via)`, que añade una fila de total con `via` vacía. 1 + 13 = 14, y el
@@ -7958,20 +7984,24 @@ repuntuación (`scripts/examen.mjs:203`, «Hoy nada»).
 > >   consulta 2 sólo clasifica los `analizado` con cero trozos (`trozos_activos = 0`).
 > > - Que el `null,14` coincidiera con «los 28 con trozos» (1 + 13 + 14) fue **una casualidad
 > >   que el arquitecto persiguió**, y lo anota él mismo (30/09).
-> > - **Lo primero que puede hacer el director** para que los 13 pasen a 14 es decidir la
-> >   versión nueva del `staged_vivo` en la bandeja (abajo).
+> > - ~~**Lo primero que puede hacer el director** para que los 13 pasen a 14~~ es decidir la
+> >   versión nueva del `staged_vivo` (new 9.txt) en la bandeja (abajo). Sigue siendo
+> >   cierto que ese documento espera decisión; el «13» no.
 >
 > ⚠️ **Y REINDEXAR PUDO NO SER UN BOTÓN, y en otro corpus lo será** (H-2 del arquitecto,
 > sobre un hallazgo de Code). Un documento de Drive sin segmentos NO se re-trocea desde su
 > `full_text`: `planDeReindexado` lo manda a `reprocesar`, y ese camino no está construido
 > (501, `lib/documents/reparar.ts:115-117`). Los `.xlsx` sin segmentos tampoco se pueden
-> reindexar desde el texto sin perder las celdas. **Nada de eso afecta a estos 14**, según
-> la SQL. El camino sigue sin construir y sigue devolviendo 501, pero no es el que necesitan
-> estos documentos.
-> - ⚠️ **Lo que no cuadra todavía, y lo cierra la consulta 1 de la misma SQL**: la lista
->   nominal de abajo lleva CUATRO `.xlsx`, y el espejo manda un `.xlsx` sin segmentos a
->   «rechazado». Si 13 salen `retrocear`, o esos `.xlsx` tienen segmentos guardados, o los
->   14 `analizado` no son exactamente los 14 de la lista. La consulta 1 lista
+> reindexar desde el texto sin perder las celdas. ~~**Nada de eso afecta a estos 14**, según
+> la SQL.~~ **FALSO (01/10): la SQL tenía un fallo de Code y la advertencia SÍ les afecta**.
+> Las cuatro `.xlsx` del corpus caen en el segundo caso; el primero, según el origen de cada
+> documento, que no consta (caja de arriba).
+> - ✅ **RESUELTO (01/10), y la causa era la tercera, que nadie había listado: un fallo de
+>   la SQL.** Las cuatro `.xlsx` NO tienen segmentos (`tiene_segmentos` salió NULL), los 14
+>   SÍ son los de la lista (censo, consulta 1), y el «13 retrocear» era el fallo. Lo que
+>   decía este punto, conservado: la lista nominal lleva CUATRO `.xlsx`, y el espejo manda un
+>   `.xlsx` sin segmentos a «rechazado». Si 13 salen `retrocear`, o esos `.xlsx` tienen
+>   segmentos guardados, o los 14 `analizado` no son exactamente los 14 de la lista. La consulta 1 lista
 >   `tiene_segmentos` y `via` documento a documento. **No se deduce: se lee.** Si resulta que
 >   no son los mismos 14, la versión nominal de F-2 **se corrige, no se matiza** (arquitecto,
 >   30/09).
@@ -8583,7 +8613,7 @@ director.**
 
 | Orden | Ficha | Qué arregla | Ganancia | Hoy | Coste |
 |---|---|---|---|---|---|
-| 1 | **B.190** · reindexar el corpus | que cualquier otra mejora se note en un análisis normal | el escalón 1 pasa a actuar en la ruta por defecto | los 14 del corpus sin trozos: todo sale `sin_fuente_comun` | **13 de 14 SIN RESUBIR**, con el botón; el 14.º espera decisión sobre su versión nueva (caja de arriba) |
+| 1 | **B.190** · reindexar el corpus | que cualquier otra mejora se note en un análisis normal | el escalón 1 pasa a actuar en la ruta por defecto | los 14 del corpus sin trozos: todo sale `sin_fuente_comun` | ~~13 de 14 SIN RESUBIR~~ **NO CONSTA** (error de Code en la SQL, 01/10): a lo sumo 9; las 4 `.xlsx` hay que resubirlas; new 9.txt espera decisión. ⚠️ Y puede no ser el puesto 1: ver la lectura L-10 |
 | 2 | **B.299** · la comprobación de citas del juez | la sembrada 2 (Chamberí/Retiro), matada 6/6 | +1 de las 3 del caso de control. **Sube por la tercera causa**: el 30/09 a las 13:01:56, segundo caso de cita LITERAL descartada (B.299, entrada 4). El desbloqueo de la B **no está demostrado** (R-4) | publicamos 2 de 3 | sin estimar; la tercera causa pide instrumentar la comprobación |
 | 3 | **B.302** · la cascada del verificador | la sembrada A de los cargos, «sin oposición» 4/4 | **recalculada el 30/09: la mitad.** Con el escalón 1 encendido, la cascada mató 2 de 4 (una pasada, 13:01:56); quedan 2 por recuperar | 2 publicadas de 4 en una pasada, frente a **1 de 4 con el interruptor apagado** (29/09, la referencia; B.302): **mejora de 1 a 2** | sin estimar |
 | 4 | **B.300** · la tanda desplaza | un usuario que selecciona más documentos ve menos del corpus, y nada se lo dice | lo que el desplazamiento quita; **crece con el número de seleccionados: NOR-11 14 → 11 → 4, NOR-10 14 → 12 → 3** (B.300) | medido, sin arreglo. **Detrás de B.190**, por decisión del director: la tanda es poco común, aunque existe; se arregla igual, porque el usuario hace algo más listo y obtiene menos, sin aviso | sin estimar |
