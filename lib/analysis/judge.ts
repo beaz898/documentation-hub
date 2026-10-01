@@ -4,6 +4,7 @@ import { runInBatches } from '@/lib/run-in-batches';
 import { sanitizeJudgeContradictions, hashCitationPair } from './llm-boundary';
 import { getOrderedColumns, groupChunksByTable, renderTableBlock, alignQuoteToCells, despegarPunteroDeFila } from './table-structure';
 import { normalize } from './normalize';
+import { findBestMatch, describirDescarte } from './coincidencia-de-cita';
 import type { RerankedCandidate, DocumentJudgment, PipelineOptions, DiscardedFindings, DocumentFragment, LecturaDeLaPareja, TextoAnalizado } from './types';
 import type { StoredChunk } from '@/lib/read-chunks';
 
@@ -72,64 +73,8 @@ interface JudgeResponse {
 // Post-procesamiento: corregir citas del LLM contra el texto real
 // ============================================================
 
-function findBestMatch(haystack: string, needle: string): string | null {
-  if (!needle || needle.length < 10) return null;
-
-  const exactIdx = haystack.indexOf(needle);
-  if (exactIdx !== -1) return needle;
-
-  const normNeedle = normalize(needle);
-  if (normNeedle.length < 8) return null;
-
-  const mapping: number[] = [];
-  let normHaystack = '';
-  for (let i = 0; i < haystack.length; i++) {
-    const ch = haystack[i];
-    const isSpace = /\s/.test(ch);
-    // Misma clase que normalize(): debe coincidir carácter a carácter o el
-    // mapping de índices haystack-normalizado -> haystack-original se desincroniza.
-    const isPunct = /[.,;:!?"""''«»()[\]{}\-—–…*_#`~]/.test(ch);
-    if (isPunct) continue;
-    if (isSpace) {
-      if (normHaystack.length > 0 && !normHaystack.endsWith(' ')) {
-        normHaystack += ' ';
-        mapping.push(i);
-      }
-    } else {
-      normHaystack += ch.toLowerCase();
-      mapping.push(i);
-    }
-  }
-
-  const normIdx = normHaystack.indexOf(normNeedle);
-  if (normIdx !== -1 && mapping[normIdx] !== undefined) {
-    const startOrig = mapping[normIdx];
-    const endNormIdx = normIdx + normNeedle.length - 1;
-    const endOrig = (mapping[endNormIdx] ?? startOrig) + 1;
-    return haystack.slice(startOrig, endOrig);
-  }
-
-  if (normNeedle.length >= 25) {
-    const headLen = Math.min(20, Math.floor(normNeedle.length * 0.4));
-    const tailLen = Math.min(20, Math.floor(normNeedle.length * 0.4));
-    const head = normNeedle.slice(0, headLen);
-    const tail = normNeedle.slice(-tailLen);
-
-    const headIdx = normHaystack.indexOf(head);
-    if (headIdx !== -1) {
-      const tailIdx = normHaystack.indexOf(tail, headIdx + head.length);
-      if (tailIdx !== -1) {
-        const startOrig = mapping[headIdx];
-        const endOrig = (mapping[tailIdx + tail.length - 1] ?? startOrig) + 1;
-        if (endOrig - startOrig < needle.length * 3) {
-          return haystack.slice(startOrig, endOrig);
-        }
-      }
-    }
-  }
-
-  return null;
-}
+// `findBestMatch` vive en `./coincidencia-de-cita` desde el 01/10/2026 (B.299, causa ii):
+// los dos lados de la comparación se normalizaban con dos funciones distintas.
 
 /**
  * Trocea una cita por "|" para verificarla segmento a segmento (F-30). El
@@ -503,8 +448,13 @@ function fixQuotesInJudgment(
       const failedText = failedSide === 'ambos'
         ? `nuevo="${(c.newDocSays || '').slice(0, 200)}" existente="${(c.existingDocSays || '').slice(0, 200)}"`
         : `"${((failedSide === 'nuevo' ? c.newDocSays : c.existingDocSays) || '').slice(0, 200)}"`;
+      // B.299: longitud de la cita y paso en que se quedó, por lado. El texto de
+      // arriba sigue cortado a 200 SÓLO en el log; la comprobación la vio entera.
+      const dNuevo = () => `nuevo: ${describirDescarte(newDocumentChunks, newDocumentFallbackText, c.newDocSays)}`;
+      const dExistente = () => `existente: ${describirDescarte(existingDocumentChunks, existingDocumentFallbackText, c.existingDocSays)}`;
+      const diagnostico = failedSide === 'ambos' ? `${dNuevo()} · ${dExistente()}` : failedSide === 'nuevo' ? dNuevo() : dExistente();
       console.warn(
-        `[judge] Contradicción descartada en "${judgment.documentName}" [${hash}] (cita no verificable, lado=${failedSide}): ${failedText}`
+        `[judge] Contradicción descartada en "${judgment.documentName}" [${hash}] (cita no verificable, lado=${failedSide}; ${diagnostico}): ${failedText}`
       );
       citaNoVerificable++;
     }
@@ -551,8 +501,12 @@ function fixQuotesInJudgment(
       const failedText = failedSide === 'ambos'
         ? `nuevo="${(o.evidenceInNewDoc || '').slice(0, 200)}" existente="${(o.evidence || '').slice(0, 200)}"`
         : `"${((failedSide === 'nuevo' ? o.evidenceInNewDoc : o.evidence) || '').slice(0, 200)}"`;
+      // B.299: el mismo diagnóstico que en las contradicciones, de arriba.
+      const dNuevo = () => `nuevo: ${describirDescarte(newDocumentChunks, newDocumentFallbackText, o.evidenceInNewDoc)}`;
+      const dExistente = () => `existente: ${describirDescarte(existingDocumentChunks, existingDocumentFallbackText, o.evidence)}`;
+      const diagnostico = failedSide === 'ambos' ? `${dNuevo()} · ${dExistente()}` : failedSide === 'nuevo' ? dNuevo() : dExistente();
       console.warn(
-        `[judge] Solapamiento descartado en "${judgment.documentName}" [${hash}] (cita no verificable, lado=${failedSide}): ${failedText}`
+        `[judge] Solapamiento descartado en "${judgment.documentName}" [${hash}] (cita no verificable, lado=${failedSide}; ${diagnostico}): ${failedText}`
       );
       citaNoVerificable++;
     }

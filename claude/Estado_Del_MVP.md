@@ -8270,6 +8270,14 @@ pareja, detrás de un interruptor.
     - Un `2` o más la invalida también: entró un tercero, y puede desplazar candidatos
       (B.300).
     - **La validez va atada al CONTADOR, no a la hora.**
+    - 📏 **LA PRÓXIMA LÍNEA DE BASE SE MIDE UNA SOLA VEZ, Y CON B.299 YA DESPLEGADO** (decisión
+      del arquitecto, 01/10/2026).
+      - La base del 30/09 quedó vieja al entrar los seis documentos en el corpus (B.307).
+      - Medirla ahora y otra vez tras el arreglo sería medir dos veces una base que va a
+        cambiar.
+      - **El arnés no se vuelve a pasar hasta que B.299 esté en producción**, y entonces una
+        vez.
+      - Al leerla, sembradas y parejas sin auditar se cuentan aparte (B.299, entrada 6).
     - ~~«De una en una, nunca en tanda»~~. **Estaba al revés.** Sin acompañante la pareja no
       se ve y no hay nada que medir. La propuso el arquitecto en el encargo E-3 (30/09 por la
       mañana), y **nunca llegó a archivarse**: Code paró antes, al leer que «1 ids de tanda»
@@ -8793,7 +8801,8 @@ el 1 y el 3 al citarlos el 30/09, y lo corrigió él mismo el mismo día.
 2. **NOR-11 / CLI-13, 30/09, con el interruptor encendido: el descarte estable.** Después del 1.
 3. **Siete pasadas del 30/09, NOR-10 / CLI-12: 7 contradicciones, 0 publicadas.**
 4. **CLI-12 → NOR-10, 30/09 a las 13:01:56, interruptor encendido: el roce con la B.**
-5. **L-12 (01/10): dónde se corta la cita, y las dos causas que el código sí tiene.** Al final.
+5. **L-12 (01/10): dónde se corta la cita, y las dos causas que el código sí tiene.**
+6. **El arreglo de la causa (ii), implementado el 01/10.** Al final.
 
 #### 1 · Cuatro análisis del 29/09 (13:14-13:16 UTC), NOR-10 / CLI-12: 7 contradicciones, 1 publicada
 
@@ -9060,6 +9069,61 @@ además adelgaza el juez.
 - ⚠️ **Al arreglarlo, la línea de base se mueve**: más citas pasan, así que habrá más hallazgos
   publicados, que es lo que se busca, y quizá algún falso nuevo. El arnés se vuelve a pasar
   después, y no en el mismo despliegue que los contadores.
+
+#### 6 · EL ARREGLO DE LA CAUSA (ii), APROBADO E IMPLEMENTADO (01/10/2026): una sola normalización para los dos lados
+
+**El diagnóstico de fondo**, en palabras del arquitecto: **los dos lados de una comparación que
+tiene que casar se limpiaban con dos funciones distintas, y ninguna de las dos era la de la
+otra.** No era un ajuste fino: era que el texto no casaba consigo mismo.
+- El código viejo lo sabía y lo hizo mal. Su comentario decía «Misma clase que normalize():
+  debe coincidir carácter a carácter». Copió la clase de caracteres y **no el orden de los
+  pasos**.
+
+**Lo que se hizo:**
+- **`findBestMatch` sale de `judge.ts`** a `lib/analysis/coincidencia-de-cita.ts`. `judge.ts`
+  baja de 1.365 a 1.319 líneas: se sacó la función y se añadieron dos líneas de log.
+- **El lado del texto se normaliza con LA MISMA transformación que la cita**:
+  `normalizarConPosiciones`, que es `normalize()` paso por paso y en su orden, más el mapa de
+  posiciones para devolver el recorte original.
+  - Para decidir qué es puntuación **le pregunta a `normalize()` carácter a carácter**: un
+    criterio, una vez.
+  - El bucle manual de `findBestMatch` desaparece.
+- **`normalize()` NO se ha tocado.** La usan el retrieval, las reglas de hallazgos, las claves y
+  el diff de tablas, y **el examen** (`lib/examen/discriminantes.mjs`, `marcador.mjs`,
+  `comparador-tabular.mjs`). Cambiarla movería la línea de base del arnés. Se cambió el lado que
+  no la usaba.
+- **El registro**: la línea «descartada (cita no verificable…)» lleva ahora, por cada lado que
+  falló, `longitud=N, paso=…, trozos=N` (o `texto_completo`).
+  - El paso es el más avanzado al que llegó la cita en cualquier trozo: `vacia_o_corta`,
+    `sin_coincidencia`, `sin_cabeza`, `cabeza_sin_cola` o `cola_demasiado_lejos`.
+  - Sólo números y el nombre del paso: ni una palabra más del cliente que las que el log ya
+    llevaba.
+  - Convierte la «tercera causa» en algo contable. Sólo describe la vía contigua; la de
+    segmentos de tabla tiene su propio predicado.
+
+**Las pruebas** (`lib/analysis/coincidencia-de-cita.test.ts`, 23):
+- **El caso ROJO, comprobado ROJO antes de tocar nada**: el trozo «El plazo — de 72 h desde el
+  cierre…» y la cita «el plazo — de 72 h».
+  - Con el código del 30/09, `verifyQuote` daba `null`: 1 de 4 pruebas en rojo.
+  - Después, verde.
+- **El CONTROL NEGATIVO**: «el plazo — de 96 h» sigue sin verificarse, y una cita larga
+  inventada no la casa ni la cabeza y cola.
+- **Lo que ya funcionaba sigue funcionando**: la cita literal, y el salto de línea frente al
+  espacio.
+- **`normalizarConPosiciones(s).texto === normalize(s)`** sobre 13 entradas: las de signo suelto
+  entre espacios, espacios raros, extremos, la «İ» turca (cambia de longitud al bajar), la sigma
+  final griega, un emoji y la cadena vacía.
+- **Las posiciones** crecen, y apuntan al carácter del original.
+- **Un MUTANTE**: volver a quitar la puntuación antes de colapsar pone **5 pruebas en rojo**.
+  Restaurado, 23 de 23.
+- **La suite entera**: 1.773 de 1.773. `tsc --noEmit`, limpio. El build local llega a
+  «Collecting page data».
+
+⚠️ **AL MEDIR EL ARREGLO, escrito ANTES de medir** (arquitecto, 01/10): al arreglar la
+comprobación saldrán también hallazgos de parejas que nadie ha auditado. Por ejemplo,
+Normas_Frecuencia_Recogidas en la sonda A, o el de CLI-12 / CLI-13 de B.304. **Se cuentan por
+separado «sembradas» y «de parejas sin auditar», y no se celebra un total más alto.** Un hallazgo
+de una pareja sin auditar no es acierto ni fallo hasta que alguien vaya al texto.
 
 ### ⚠️ B.302 — LA CASCADA DEL VERIFICADOR DESCARTA UNA CONTRADICCIÓN REAL COMO «MISMO DATO SIN OPOSICIÓN» (constancia y medida, SIN arreglo; 30/09/2026)
 
