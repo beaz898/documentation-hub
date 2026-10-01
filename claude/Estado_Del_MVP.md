@@ -9660,6 +9660,14 @@ director):
 | ⚠️ Chat, lista lateral de documentos | Icono de papelera por fila | **BORRA el documento**, igual que «Quitar del corpus» (`hooks/chat/useDocuments.ts:477-485`) | **Invisible hasta pasar el ratón por encima**; no sale en los de Drive (`components/DocumentsSidebar.tsx:301-310`). Pide confirmación: «¿Eliminar "nombre"?» |
 | Pantalla «Corpus» | «Reparar» y «Reparar todo lo reparable» | **No borra documentos**: escribe una generación nueva y conmuta (`app/api/admin/reindexar/route.ts`, cabecera) | Ojo con el lote, que actúa sobre toda la organización (B.307) |
 
+⚠️ **RIESGO VIVO (01/10/2026)**: el director va a pulsar en la bandeja para añadir los seis
+(B.307), y «Quitar del corpus» está al lado del botón que quiere, y BORRA, con sus análisis.
+- **Si alguna vez se decide sacar los 14 del corpus, ANTES hay que exportar sus filas de
+  `analysis_results`.**
+- La SQL está escrita: `SQL_Exportar_Analisis_Corpus_Viejo.sql`, en sólo lectura y con el
+  mismo criterio que el borrado (`org_id` + `document_id`).
+- **Es un seguro, no una tarea**: no se ejecuta ni se pide.
+
 **Sin arreglo.** Lo que haría falta —una operación «sacar del corpus» que devuelva el
 documento a `pendiente`, con efecto espejo (vectores primero, fila después; regla de F-96 P4)
 y sin borrar nada— es una decisión de producto, y no está tomada.
