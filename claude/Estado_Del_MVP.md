@@ -8804,8 +8804,8 @@ el 1 y el 3 al citarlos el 30/09, y lo corrigió él mismo el mismo día.
 5. **L-12 (01/10): dónde se corta la cita, y las dos causas que el código sí tiene.**
 6. **El arreglo de la causa (ii), implementado el 01/10.**
 7. **La causa (i): cuál es el pajar correcto. Contestada; nada implementado.**
-8. **La causa (i), segunda ronda: el pajar es lo que leyó el juez. Contestada; nada
-   implementado.** Al final.
+8. **La causa (i), segunda ronda: el pajar es lo que leyó el juez.**
+9. **El arreglo de la causa (i), implementado el 01/10.** Al final.
 
 #### 1 · Cuatro análisis del 29/09 (13:14-13:16 UTC), NOR-10 / CLI-12: 7 contradicciones, 1 publicada
 
@@ -9336,7 +9336,82 @@ de la causa (i) se le reconoce al troceado.**
     verifica: es la trampa de (b).
 - **Coste**: ninguna consulta. Dos parámetros más en `fixQuotesInJudgment`, el texto visible y
   los representados.
-- **No se toca nada hasta que lo apruebe el arquitecto.**
+- ✅ **APROBADA el 01/10, con el matiz de Code aceptado.** Y lo que la hace coherente, en
+  palabras del arquitecto: **el arreglo separa dos preguntas que estaban mezcladas, y no
+  contestábamos bien ninguna.**
+  - **Pregunta A · ¿citó el juez fielmente lo que se le dio?** Su pajar es el texto entregado.
+    Es la pregunta contra las invenciones, y la que contesta B.299.
+  - **Pregunta B · ¿existe esa frase en el documento del cliente?** Su pajar es el documento.
+    Es la pregunta de cara al usuario, y la que contesta B.310.
+  - **El día que B.310 esté arreglado, A y B son la misma pregunta**, porque el texto
+    entregado será fiel al documento. No son dos arreglos que compiten: son dos mitades, en
+    este orden.
+
+#### 9 · EL ARREGLO DE LA CAUSA (i), APROBADO E IMPLEMENTADO (01/10/2026): cada cita se comprueba contra lo que el juez LEYÓ de su lado
+
+⚠️ **LO PRIMERO, ANTES DE CUALQUIER TABLA DE RESULTADOS** (escrito antes de medir, entrada 8 (c)):
+con este pajar, **algunas citas que hasta hoy pasaban dejarán de pasar**: las que casaban con
+un trozo que el juez no recibió, o con un tramo más allá del corte.
+- **Si al medir sale que se publica MENOS en algún caso, no es una regresión**: es que antes se
+  publicaba lo que no se debía.
+- Se cuentan aparte sembradas y parejas sin auditar (entrada 6).
+
+**Lo que se hizo** (`lib/analysis/coincidencia-de-cita.ts`; `judge.ts` no crece: 1.318 líneas):
+- **`loEntregadoDeLaPareja`** toma lo que `leerLaPareja` ya calculó para el prompt, sin
+  reconstruir nada y sin consultas:
+  - el **analizado**: su texto visible (`textoAnalizado`) y las filas de tabla que quedaron
+    visibles enteras;
+  - el **candidato**:
+    - si se entregó ENTERO, su texto y sus filas visibles. Se decide con la lectura guardada:
+      régimen nuevo, sin dejar nada fuera y con todo mostrado (`candidatoEntregadoEntero`);
+    - si se entregó por relevancia, **los trozos que recibió (`representados`), uno a uno**.
+- **`comprobadorDeLado`** comprueba cada cita:
+  - **lado contiguo**: la EXISTENCIA se decide en el texto entregado. El trozo de evidencia y
+    las columnas se buscan después; si no aparecen, `chunk: null`, como el respaldo. Si no
+    está, se prueba por fila, con las filas visibles;
+  - **lado por piezas**: `verifyQuote` sólo con esos trozos. Una cita que cruce dos piezas
+    falla, por el motivo correcto;
+  - **tablas: siempre por fila.** El pajar de una fila es la fila.
+- **Las filas visibles se reconocen pintándolas con la MISMA función que lee el juez**
+  (`renderTableRow` con las columnas de `groupChunksByTable`, como
+  `buildAnalyzedDocumentText`). Una fila partida por el corte no cuenta.
+- **`verifyQuote` se recibe como parámetro, no se importa.** El juez importa el fichero nuevo,
+  y al revés sería un ciclo. `verifyQuote` sigue siendo la única verificación, y la sigue
+  usando también la rama atómica del pipeline (F-74), que no cambia.
+- ⚠️ **A PRUEBA DE FALLO** (condición del arquitecto): si de un lado no se tiene lo entregado
+  (un candidato sin trozos, o un juicio sin `representados`), **no se decide en silencio**. Se
+  cae al camino de antes, todos los trozos o el texto completo.
+- **Y el log dice con qué pajar se comprobó cada descarte**: `pajar=entregado_texto`,
+  `entregado_piezas`, `todos_los_trozos`, `texto_completo` o `sin_pajar`, con cuántos trozos
+  o filas, junto a la longitud y el paso de la (ii).
+
+**Las pruebas** (`lib/analysis/coincidencia-de-cita.test.ts`, 36 en total):
+- **Los tres casos ROJO, vistos ROJO contra el comportamiento de antes.** Se forzó el
+  comprobador a ignorar lo entregado, que es exactamente la llamada de antes,
+  `verifyQuote(chunks, fallback)`:
+  1. una cita de un trozo del candidato que el juez NO recibió: antes se verificaba;
+  2. una cita del analizado más allá del corte: antes se verificaba;
+  3. una cita del analizado que cruza dos secciones contiguas: antes no se verificaba.
+
+  Con el comportamiento de antes: **5 en rojo**, los tres y las dos del log, cuyo pajar no
+  existía. Con el arreglo: **36 de 36**.
+- **Los controles negativos**, verdes con el código de antes y con el de ahora:
+  - una cita inventada sigue sin verificarse;
+  - una cita de tabla sigue verificándose por su fila, con sus columnas;
+  - la cabeza en una pieza del candidato y la cola en otra no se verifica.
+- **A prueba de fallo**: sin lo entregado se verifica como antes, y el log lo dice; un
+  candidato sin trozos no tiene lo entregado.
+- **El fixture que estaba mal, y se dice**: la primera versión de la prueba de tablas citaba
+  con las etiquetas de columna («Nombre: Luis | Clínica: Retiro»). Así se verifica, pero sin
+  columnas, igual que antes del arreglo. El juez cita los VALORES como los ve («Luis |
+  Retiro»), y con ellos salen las columnas. Era la prueba, no el código.
+- **La suite entera**: 1.786 de 1.786. `tsc --noEmit` limpio. El build local llega a
+  «Collecting page data».
+
+**LO QUE NO ARREGLA, escrito antes de medir para no creer que arreglamos más** (entrada 8): el
+texto que se pinta al juez se arma pegando trozos, con el título repetido y el solapamiento de
+B.310 dentro. **La causa (i) desaparece en las costuras ENTRE secciones, no DENTRO de una
+sección larga.** Esa mitad es de B.310.
 
 ### ⚠️ B.302 — LA CASCADA DEL VERIFICADOR DESCARTA UNA CONTRADICCIÓN REAL COMO «MISMO DATO SIN OPOSICIÓN» (constancia y medida, SIN arreglo; 30/09/2026)
 

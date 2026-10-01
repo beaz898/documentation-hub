@@ -4,7 +4,7 @@ import { runInBatches } from '@/lib/run-in-batches';
 import { sanitizeJudgeContradictions, hashCitationPair } from './llm-boundary';
 import { getOrderedColumns, groupChunksByTable, renderTableBlock, alignQuoteToCells, despegarPunteroDeFila } from './table-structure';
 import { normalize } from './normalize';
-import { findBestMatch, describirDescarte } from './coincidencia-de-cita';
+import { findBestMatch, comprobadorDeLado, loEntregadoDeLaPareja, type ComprobadorDeLado } from './coincidencia-de-cita';
 import type { RerankedCandidate, DocumentJudgment, PipelineOptions, DiscardedFindings, DocumentFragment, LecturaDeLaPareja, TextoAnalizado } from './types';
 import type { StoredChunk } from '@/lib/read-chunks';
 
@@ -212,7 +212,7 @@ function chunkContainsSegment(chunkText: string, segment: string): boolean {
  * camino es para corpus ya migrado por completo y lo retira el paso 6 entero,
  * así que no conserva alineación propia.
  */
-interface VerifiedQuote {
+export interface VerifiedQuote {
   /** La cita del juez, ya verificada. NO el texto del chunk (F-55). */
   text: string;
   /** De qué chunk salió, o null en el fallback de texto plano. */
@@ -378,10 +378,9 @@ function isContextCitation(quote: string | undefined, contextTexts: string[]): b
 
 function fixQuotesInJudgment(
   judgment: DocumentJudgment,
-  newDocumentChunks: StoredChunk[],
-  newDocumentFallbackText: string | null,
-  existingDocumentChunks: StoredChunk[],
-  existingDocumentFallbackText: string | null,
+  // B.299 (i): con qué se comprueba cada lado —lo que leyó el juez, o el camino de antes—.
+  nuevo: ComprobadorDeLado,
+  existente: ComprobadorDeLado,
   // F-44: texto literal de las líneas de contexto del CANDIDATO (retrieval.ts,
   // fragmentos con isContext) — solo existen del lado existente, nunca del
   // lado analizado (ese no pasa por el reparto de retrieval). Sirve solo
@@ -420,8 +419,8 @@ function fixQuotesInJudgment(
       continue;
     }
 
-    const matchNew = verifyQuote(newDocumentChunks, newDocumentFallbackText, c.newDocSays);
-    const matchExisting = verifyQuote(existingDocumentChunks, existingDocumentFallbackText, c.existingDocSays);
+    const matchNew = nuevo.comprobar(c.newDocSays);
+    const matchExisting = existente.comprobar(c.existingDocSays);
 
     if (matchNew && matchExisting) {
       fixedContradictions.push({ ...c, newDocSays: matchNew.text, existingDocSays: matchExisting.text });
@@ -450,8 +449,8 @@ function fixQuotesInJudgment(
         : `"${((failedSide === 'nuevo' ? c.newDocSays : c.existingDocSays) || '').slice(0, 200)}"`;
       // B.299: longitud de la cita y paso en que se quedó, por lado. El texto de
       // arriba sigue cortado a 200 SÓLO en el log; la comprobación la vio entera.
-      const dNuevo = () => `nuevo: ${describirDescarte(newDocumentChunks, newDocumentFallbackText, c.newDocSays)}`;
-      const dExistente = () => `existente: ${describirDescarte(existingDocumentChunks, existingDocumentFallbackText, c.existingDocSays)}`;
+      const dNuevo = () => `nuevo: ${nuevo.describir(c.newDocSays)}`;
+      const dExistente = () => `existente: ${existente.describir(c.existingDocSays)}`;
       const diagnostico = failedSide === 'ambos' ? `${dNuevo()} · ${dExistente()}` : failedSide === 'nuevo' ? dNuevo() : dExistente();
       console.warn(
         `[judge] Contradicción descartada en "${judgment.documentName}" [${hash}] (cita no verificable, lado=${failedSide}; ${diagnostico}): ${failedText}`
@@ -476,8 +475,8 @@ function fixQuotesInJudgment(
       continue;
     }
 
-    const matchNew = verifyQuote(newDocumentChunks, newDocumentFallbackText, o.evidenceInNewDoc);
-    const matchExisting = verifyQuote(existingDocumentChunks, existingDocumentFallbackText, o.evidence);
+    const matchNew = nuevo.comprobar(o.evidenceInNewDoc);
+    const matchExisting = existente.comprobar(o.evidence);
 
     if (matchNew && matchExisting) {
       fixedOverlaps.push({ ...o, evidenceInNewDoc: matchNew.text, evidence: matchExisting.text });
@@ -502,8 +501,8 @@ function fixQuotesInJudgment(
         ? `nuevo="${(o.evidenceInNewDoc || '').slice(0, 200)}" existente="${(o.evidence || '').slice(0, 200)}"`
         : `"${((failedSide === 'nuevo' ? o.evidenceInNewDoc : o.evidence) || '').slice(0, 200)}"`;
       // B.299: el mismo diagnóstico que en las contradicciones, de arriba.
-      const dNuevo = () => `nuevo: ${describirDescarte(newDocumentChunks, newDocumentFallbackText, o.evidenceInNewDoc)}`;
-      const dExistente = () => `existente: ${describirDescarte(existingDocumentChunks, existingDocumentFallbackText, o.evidence)}`;
+      const dNuevo = () => `nuevo: ${nuevo.describir(o.evidenceInNewDoc)}`;
+      const dExistente = () => `existente: ${existente.describir(o.evidence)}`;
       const diagnostico = failedSide === 'ambos' ? `${dNuevo()} · ${dExistente()}` : failedSide === 'nuevo' ? dNuevo() : dExistente();
       console.warn(
         `[judge] Solapamiento descartado en "${judgment.documentName}" [${hash}] (cita no verificable, lado=${failedSide}; ${diagnostico}): ${failedText}`
@@ -905,12 +904,12 @@ Responde con este JSON (sin bloques de código, sin texto adicional):
     // existingFragsBlock más arriba.
     const existingContextTexts = candidate.fragments.filter(f => f.isContext).map(f => f.text);
 
+    // B.299 (i): cada cita se comprueba contra lo que el juez LEYÓ de su lado.
+    const entregado = loEntregadoDeLaPareja({ pareja, analizadoChunks: args.newDocumentChunks, candidatoChunks: existingChunks });
     const verificado = fixQuotesInJudgment(
       rawJudgment,
-      args.newDocumentChunks,
-      args.newDocumentFallbackText,
-      existingChunks,
-      existingFallbackText,
+      comprobadorDeLado(verifyQuote, entregado.nuevo, args.newDocumentChunks, args.newDocumentFallbackText),
+      comprobadorDeLado(verifyQuote, entregado.existente, existingChunks, existingFallbackText),
       existingContextTexts,
     );
     return { ...verificado, lectura };

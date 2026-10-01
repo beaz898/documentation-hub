@@ -2,7 +2,11 @@ import { describe, expect, it } from 'vitest';
 import type { StoredChunk } from '@/lib/read-chunks';
 import { verifyQuote } from './judge';
 import { normalize } from './normalize';
-import { normalizarConPosiciones, findBestMatch, describirDescarte } from './coincidencia-de-cita';
+import {
+  normalizarConPosiciones, findBestMatch, describirDescarte,
+  comprobadorDeLado, loEntregadoDeLaPareja, candidatoEntregadoEntero,
+} from './coincidencia-de-cita';
+import type { LecturaDeLaPareja } from './types';
 
 /**
  * B.299, causa (ii) — LOS DOS LADOS DE LA COMPARACIÓN SE NORMALIZABAN CON DOS
@@ -105,23 +109,174 @@ describe('B.299 (ii) · findBestMatch devuelve un recorte del ORIGINAL', () => {
 });
 
 describe('B.299 · describirDescarte, lo que se escribe en el log', () => {
-  const prosa = (text: string, chunkIndex: number): StoredChunk => ({
-    chunkIndex, chunkType: 'text', text, sheetName: null, tableId: null, rowIndex: null, cells: null, columnOrder: null,
+  it('una cita corta que no está: sin_coincidencia, con su longitud', () => {
+    expect(describirDescarte(['Nada que ver aquí, de verdad.'], 'el plazo de 96 h'))
+      .toBe('longitud=16, paso=sin_coincidencia');
   });
 
-  it('una cita corta que no está: sin_coincidencia, con su longitud y los trozos probados', () => {
-    expect(describirDescarte([prosa('Nada que ver aquí, de verdad.', 0)], null, 'el plazo de 96 h'))
-      .toBe('longitud=16, paso=sin_coincidencia, trozos=1');
+  it('una cita larga cuya cabeza está y su cola no: cabeza_sin_cola, el paso más avanzado de todos los pajares', () => {
+    const pajares = ['Otro asunto distinto.', 'La responsabilidad última recae siempre sobre el Director Clínico.'];
+    expect(describirDescarte(pajares, 'La responsabilidad última recae siempre sobre el Coordinador de Calidad'))
+      .toBe('longitud=71, paso=cabeza_sin_cola');
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// B.299, CAUSA (i) — EL PAJAR ES LO QUE LEYÓ EL JUEZ
+// ═══════════════════════════════════════════════════════════════════════════
+
+const trozo = (chunkIndex: number, text: string): StoredChunk => ({
+  chunkIndex, chunkType: 'text', text, sheetName: null, tableId: null, rowIndex: null, cells: null, columnOrder: null,
+});
+const fila = (chunkIndex: number, rowIndex: number, cells: Record<string, string>): StoredChunk => ({
+  chunkIndex,
+  chunkType: 'table_row',
+  text: `[Hoja "T"] ${Object.entries(cells).map(([k, v]) => `${k}: ${v}`).join(' | ')}`,
+  sheetName: 'T',
+  tableId: 'T#0',
+  rowIndex,
+  cells,
+  columnOrder: null,
+});
+const resumen: StoredChunk = {
+  chunkIndex: 0, chunkType: 'table_summary', text: '[TABLA "T" — 2 filas. Columnas: Nombre, Clínica]',
+  sheetName: 'T', tableId: 'T#0', rowIndex: null, cells: null, columnOrder: ['Nombre', 'Clínica'],
+};
+const lectura = (l: Partial<LecturaDeLaPareja> & Pick<LecturaDeLaPareja, 'regimen'>): LecturaDeLaPareja => ({
+  documentId: 'cand',
+  analizado: { caracteres: 100, mostrados: 100, dejoFuera: false },
+  candidato: { caracteres: 100, mostrados: 100, dejoFuera: false },
+  presupuesto: 40000,
+  ...l,
+});
+
+describe('B.299 (i) · el candidato entregado POR PIEZAS', () => {
+  const a = trozo(0, 'La autorización de excepciones corresponde al Coordinador de Calidad.');
+  const b = trozo(1, 'El control biológico del autoclave se realiza cada lunes.');
+  const c = trozo(2, 'El material esterilizado caduca a los seis meses de envasado.');
+  const chunks = [a, b, c];
+  // El juez recibió SÓLO el trozo 0 (bloque por relevancia).
+  const entregado = loEntregadoDeLaPareja({
+    pareja: {
+      textoAnalizado: 'irrelevante',
+      bloqueCandidato: '[Fragmento 1 de «X»]\nLa autorización…',
+      representados: [0],
+      lectura: lectura({ regimen: 'tijera_vieja', candidato: { caracteres: null, mostrados: 80, dejoFuera: true } }),
+    },
+    analizadoChunks: [],
+    candidatoChunks: chunks,
+  }).existente;
+  const lado = comprobadorDeLado(verifyQuote, entregado, chunks, null);
+
+  it('ROJO antes, VERDE después: una cita de un trozo que el juez NO recibió ya no se verifica', () => {
+    expect(lado.comprobar('El material esterilizado caduca a los seis meses')).toBeNull();
   });
 
-  it('una cita larga cuya cabeza está y su cola no: cabeza_sin_cola, el paso más avanzado de todos los trozos', () => {
-    const cs = [prosa('Otro asunto distinto.', 0), prosa('La responsabilidad última recae siempre sobre el Director Clínico.', 1)];
-    expect(describirDescarte(cs, null, 'La responsabilidad última recae siempre sobre el Coordinador de Calidad'))
-      .toBe('longitud=71, paso=cabeza_sin_cola, trozos=2');
+  it('la cita del trozo que SÍ recibió se sigue verificando, con su trozo de evidencia', () => {
+    const r = lado.comprobar('corresponde al Coordinador de Calidad');
+    expect(r?.chunk?.chunkIndex).toBe(0);
   });
 
-  it('sin trozos, prueba el texto completo, y lo dice', () => {
-    expect(describirDescarte([], 'Texto completo sin la cita.', 'una cita que no está'))
-      .toBe('longitud=20, paso=sin_coincidencia, texto_completo');
+  it('CONTROL NEGATIVO: la cabeza en una pieza y la cola en otra no se verifica (la trampa de la cabeza y cola)', () => {
+    const dos = loEntregadoDeLaPareja({
+      pareja: { textoAnalizado: 'x', bloqueCandidato: 'x', representados: [0, 1],
+        lectura: lectura({ regimen: 'tijera_vieja', candidato: { caracteres: null, mostrados: 80, dejoFuera: true } }) },
+      analizadoChunks: [], candidatoChunks: chunks,
+    }).existente;
+    const l2 = comprobadorDeLado(verifyQuote, dos, chunks, null);
+    expect(l2.comprobar('La autorización de excepciones corresponde al control biológico del autoclave se realiza cada lunes')).toBeNull();
+  });
+
+  it('el log dice con qué pajar se comprobó', () => {
+    expect(lado.describir('El material esterilizado caduca a los seis meses')).toContain('pajar=entregado_piezas (1 trozos)');
+  });
+});
+
+describe('B.299 (i) · el analizado, entregado CONTIGUO', () => {
+  const p1 = trozo(0, '## 2.1 Responsable\n\nLa responsabilidad última recae siempre sobre');
+  const p2 = trozo(1, 'el Director Clínico del centro, que firma las auditorías.');
+  const p3 = trozo(2, 'El control biológico del autoclave se realiza cada lunes por la mañana.');
+  const chunks = [p1, p2, p3];
+  // El juez vio p1, p2 y el principio de p3, cortado por posición.
+  const visible = `${p1.text}\n\n${p2.text}\n\n${p3.text.slice(0, 20)}`;
+  const entregado = loEntregadoDeLaPareja({
+    pareja: { textoAnalizado: visible, bloqueCandidato: '', representados: [], lectura: lectura({ regimen: 'corte_honesto' }) },
+    analizadoChunks: chunks,
+    candidatoChunks: [],
+  }).nuevo;
+  const lado = comprobadorDeLado(verifyQuote, entregado, chunks, null);
+
+  it('ROJO antes, VERDE después: una cita que cruza dos secciones contiguas se verifica', () => {
+    expect(lado.comprobar('recae siempre sobre el Director Clínico')).not.toBeNull();
+  });
+
+  it('ROJO antes, VERDE después: una cita más allá del corte ya no se verifica', () => {
+    expect(lado.comprobar('se realiza cada lunes por la mañana')).toBeNull();
+  });
+
+  it('CONTROL NEGATIVO: una cita inventada sigue sin verificarse', () => {
+    expect(lado.comprobar('recae siempre sobre el Coordinador de Calidad')).toBeNull();
+  });
+
+  it('el log dice con qué pajar se comprobó', () => {
+    expect(lado.describir('se realiza cada lunes por la mañana')).toContain('pajar=entregado_texto');
+  });
+});
+
+describe('B.299 (i) · las tablas, POR FILA', () => {
+  const f0 = fila(1, 0, { Nombre: 'Ana', 'Clínica': 'Chamberí' });
+  const f1 = fila(2, 1, { Nombre: 'Luis', 'Clínica': 'Retiro' });
+  const chunks = [resumen, f0, f1];
+
+  it('CONTROL NEGATIVO: una cita de tabla sigue verificándose por su fila, con sus columnas', () => {
+    // El juez vio la tabla entera, pintada en su formato ([F0] Ana | Chamberí), y
+    // cita los VALORES como los vio.
+    const visible = '[TABLA]\n[F0] Ana | Chamberí\n[F1] Luis | Retiro';
+    const entregado = loEntregadoDeLaPareja({
+      pareja: { textoAnalizado: visible, bloqueCandidato: '', representados: [], lectura: lectura({ regimen: 'pareja_entera' }) },
+      analizadoChunks: chunks, candidatoChunks: [],
+    }).nuevo;
+    const r = comprobadorDeLado(verifyQuote, entregado, chunks, null).comprobar('Luis | Retiro');
+    expect(r).not.toBeNull();
+    expect(r?.columns).not.toBeNull();
+  });
+
+  it('una fila que quedó FUERA del corte no cuenta como visible', () => {
+    const visible = '[TABLA]\n[F0] Ana | Chamberí\n[F1] Lu';
+    const entregado = loEntregadoDeLaPareja({
+      pareja: { textoAnalizado: visible, bloqueCandidato: '', representados: [], lectura: lectura({ regimen: 'pareja_entera' }) },
+      analizadoChunks: chunks, candidatoChunks: [],
+    }).nuevo;
+    expect(entregado?.trozos.map(c => c.rowIndex)).toEqual([0]);
+  });
+});
+
+describe('B.299 (i) · A PRUEBA DE FALLO: sin lo entregado, el camino de antes, y dicho', () => {
+  const chunks = [trozo(0, 'La autorización de excepciones corresponde al Coordinador de Calidad.')];
+
+  it('sin lo entregado, verifica como antes (todos los trozos) y el log lo dice', () => {
+    const lado = comprobadorDeLado(verifyQuote, null, chunks, null);
+    expect(lado.comprobar('corresponde al Coordinador de Calidad')).not.toBeNull();
+    expect(lado.describir('una cita que no está')).toContain('pajar=todos_los_trozos');
+  });
+
+  it('sin trozos, el texto completo, y el log lo dice', () => {
+    const lado = comprobadorDeLado(verifyQuote, null, [], 'Texto completo con la frase que sí está aquí.');
+    expect(lado.comprobar('la frase que sí está aquí')).not.toBeNull();
+    expect(lado.describir('otra cosa distinta')).toContain('pajar=texto_completo');
+  });
+
+  it('un candidato sin trozos no tiene lo entregado: camino de antes', () => {
+    const e = loEntregadoDeLaPareja({
+      pareja: { textoAnalizado: 'a', bloqueCandidato: 'b', representados: [3], lectura: lectura({ regimen: 'sin_fuente_comun' }) },
+      analizadoChunks: [], candidatoChunks: [],
+    });
+    expect(e.existente).toBeNull();
+  });
+
+  it('candidatoEntregadoEntero: sólo con régimen nuevo, sin dejar nada fuera y con todo mostrado', () => {
+    expect(candidatoEntregadoEntero(lectura({ regimen: 'pareja_entera' }))).toBe(true);
+    expect(candidatoEntregadoEntero(lectura({ regimen: 'tijera_vieja' }))).toBe(false);
+    expect(candidatoEntregadoEntero(lectura({ regimen: 'corte_honesto', candidato: { caracteres: 900, mostrados: 300, dejoFuera: true } }))).toBe(false);
   });
 });
