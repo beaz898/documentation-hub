@@ -9474,6 +9474,70 @@ producto**: no es una función que falte, es un paso que no se dio.
   - **El escalón 1 empezaría a actuar en la ruta por defecto** para todas las parejas con
     trozos en los dos lados, que es lo que F-3 pedía.
 
+### ⚠️ B.308 — EL CORPUS SÓLO CRECE: no existe sacar un documento sin BORRARLO, y «Quitar del corpus» lo borra (L-11; hallazgo de producto, SIN arreglo; 01/10/2026)
+
+**El caso que lo destapa**: el plan del director es sacar del corpus los 14 ficheros de prueba
+**sin borrarlos** —son la evidencia de todo lo medido— y meter la documentación indexada
+(B.307). **La primera mitad no se puede hacer.**
+
+**(a) En la interfaz: NO existe la operación inversa de «Añadir al corpus».**
+- El único botón con ese nombre, **«Quitar del corpus»**, **BORRA el documento**. Está en la
+  bandeja, en la ventana de un documento: un botón de borde rojo
+  (`components/AnalysisModal/ReviewActions.tsx:174-182`).
+  - Pide confirmación con «Esto eliminará el documento del corpus de forma permanente. No se
+    puede deshacer» y «Confirmar borrado» (`:74-115`).
+  - Llama a `DELETE /api/documents` (`app/(authenticated)/settings/review/page.tsx:160-178`).
+- **El nombre engaña dos veces**: dice «quitar», y borra; y vive en la bandeja, que sólo lista
+  lo que NO está en el corpus, salvo los que tienen una versión nueva, y en ésos el botón no
+  sale (`app/api/documents/review-list/route.ts:95-96`; `ReviewActions.tsx:172`).
+
+**(b) En la API: TAMPOCO.** Ninguna ruta pasa un documento de `analizado` a otro estado
+(grep de las escrituras de `'pendiente'` en `app/api` y `lib`):
+- `ingest` sólo pone el estado AL NACER (`app/api/ingest/route.ts:97-98`);
+- la sincronización de Drive y OneDrive escribe `pendiente` en un documento existente sólo
+  si ya era `pendiente` («sobrescribir»). Si era `analizado`, lo **versiona** y lo protege
+  (`app/api/drive/sync/route.ts:245-256`, `:404`).
+- ⚠️ **No es una operación del producto, y no se propone**: la herramienta de mantenimiento
+  `POST /api/admin/cleanup-orphans?dryRun=false` proyecta la COLUMNA sobre la metadata de los
+  vectores de toda la organización (`route.ts`, el bloque «Backfill»). Un cambio de la columna
+  a mano en SQL más esa herramienta lo haría por un lado.
+  - Toca los vectores de TODOS los documentos, no de uno.
+  - Nadie lo ha diseñado para esto, ni medido.
+  - **Sin evaluar.**
+- **CONCLUSIÓN: el corpus sólo crece. Corregirlo es borrar.**
+
+**(c) Qué le pasa a un documento al salir, por la única vía que existe (borrarlo)**:
+`deleteDocument` (`lib/delete-document.ts`), en este orden:
+1. **la lápida**, si es de Drive o de OneDrive, para que la sincronización no lo vuelva a
+   traer (`:122-144`);
+2. **sus ANÁLISIS**: todas las filas de `analysis_results` de ese documento (`:166-176`,
+   desde B.112);
+3. **sus vectores** (`:185`, `:199`);
+4. **la fila**, y con ella **sus trozos**, por `ON DELETE CASCADE` de
+   `document_chunks.document_id`.
+- **El fichero original en Storage**: en lo leído, ni `deleteDocument` ni la ruta lo borran.
+  Que se quede no consta, y no lo he ejecutado.
+- ⚠️ **Para el plan del director, la consecuencia es doble**:
+  - sacar «la basura» la borra entera, trozos incluidos: equivocarse cuesta volver a subirla;
+  - **borra también los análisis de esos documentos**, que son parte de la evidencia
+    archivada.
+
+**(d) LAS ACCIONES QUE BORRAN, a un clic de las que sí se quieren usar** (para avisar al
+director):
+
+| Dónde | Botón | Qué hace | Cómo se distingue |
+|---|---|---|---|
+| Bandeja, barra de selección | **«Añadir al corpus (N)»** | Lo que se quiere: pasa a `analizado`, sin borrar nada | En la barra de la selección, no dentro de un documento (`ReviewSelectionBar.tsx:301-318`) |
+| Bandeja, ventana de un documento | «Marcar como analizado» | Lo mismo, de uno en uno | Botón **azul**, relleno (`ReviewActions.tsx:184-201`) |
+| ⚠️ Bandeja, ventana de un documento, **al lado del anterior** | **«Quitar del corpus»** | **BORRA el documento**, sus trozos, sus vectores y sus análisis | Borde y letra **rojos**. Pide un segundo clic, «Confirmar borrado» |
+| ⚠️ Bandeja, ventana de una versión nueva (como new 9.txt) | «Descartar versión nueva» | Borra los vectores de la versión NUEVA y su marca; la vieja se queda (`app/api/documents/[id]/discard-staged/route.ts`) | Borde rojo, al lado de «Activar esta versión» (azul) |
+| ⚠️ Chat, lista lateral de documentos | Icono de papelera por fila | **BORRA el documento**, igual que «Quitar del corpus» (`hooks/chat/useDocuments.ts:477-485`) | **Invisible hasta pasar el ratón por encima**; no sale en los de Drive (`components/DocumentsSidebar.tsx:301-310`). Pide confirmación: «¿Eliminar "nombre"?» |
+| Pantalla «Corpus» | «Reparar» y «Reparar todo lo reparable» | **No borra documentos**: escribe una generación nueva y conmuta (`app/api/admin/reindexar/route.ts`, cabecera) | Ojo con el lote, que actúa sobre toda la organización (B.307) |
+
+**Sin arreglo.** Lo que haría falta —una operación «sacar del corpus» que devuelva el
+documento a `pendiente`, con efecto espejo (vectores primero, fila después; regla de F-96 P4)
+y sin borrar nada— es una decisión de producto, y no está tomada.
+
 ### ⚠️ B.297 — LA LECTURA DE TROZOS SIN PAGINAR, y su margen medido (29/09/2026)
 
 `getChunksForDocuments` (`lib/read-chunks.ts`) era UNA consulta sin paginar. Supabase corta
