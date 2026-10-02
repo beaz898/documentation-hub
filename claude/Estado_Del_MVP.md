@@ -11045,7 +11045,7 @@ RESULTADOS DISTINTOS.**
   predicción sin banda, que acertó en 2 de 2.
 
 
-### 📋 B.313 — EL JUEZ NO COPIA, REDACTA: la enfermedad de las contradicciones (SIN arreglo; tiene PATRÓN y el registro que lo decide está puesto; 02/10/2026)
+### 📋 B.313 — EL JUEZ NO COPIA, REDACTA: la enfermedad de las contradicciones (SIN arreglo; DOS enfermedades; se guarda lo descartado antes de decidir; 02/10/2026)
 
 **El diagnóstico, en una frase** (arquitecto, 02/10): **el juez no copia, redacta.** Es lo que
 mata las citas de las CONTRADICCIONES. Las de los solapamientos mueren de otra cosa: el cambio
@@ -11056,7 +11056,7 @@ de campo de B.312.
   punto de retirada centralizado concentra el material de las tres clínicas, ubicado en la
   clínica de Chamberí» **no existe así en ninguno de los dos documentos**. El dato es de NOR-11;
   la frase, del juez.
-- **ANOTA — candidata, sin medir** (`[1eb33774]`, la A de los cargos): una cita por lo demás
+- **ANOTA — candidata, sin medir, y FUERA DE CARRERA desde el 02/10** (la contesta el dato guardado, abajo) (`[1eb33774]`, la A de los cargos): una cita por lo demás
   literal en NOR-10 a la que el juez añadiría «[Director Clínico]» al final.
   - La frase del documento sigue «…recae siempre sobre esta figura.», y B.299 (entrada 1) ya
     tenía la forma anotada.
@@ -11237,6 +11237,94 @@ commiteado antes de medir (`b9429538`).**
     salva depende de su final, que no consta.
 
 
+❌ **LA HIPÓTESIS DEL REPARTO: FALLADA** (arquitecto, 02/10), por su propio criterio, escrito y
+commiteado antes de medir (`b9429538`). Es la cuarta hipótesis fallada del arquitecto esta semana.
+- 📌 **LO QUE DICE DEL MÉTODO**: **las cuatro cayeron antes de que nadie construyera nada encima,
+  porque cada una venía con su criterio de caída escrito primero.** Una hipótesis con su falsación
+  escrita es barata; sin ella, cada una habría sido un arreglo mal dirigido.
+
+**🔀 B.313 SON DOS ENFERMEDADES, y se separan** (arquitecto, 02/10: «mezclarlas fue mi error»):
+- **(A) CHAMBERÍ · LA COSTURA. Medido, un caso.**
+  - Las dos mitades de la cita son literales y salen de las frases 77 y 72 de NOR-11, **en ese
+    orden, o sea del revés**. Todo lo citado existe; **lo único que no existe es la costura**.
+  - **Y ése es el motivo exacto de `cabeza_sin_cola`**, comprobado por Code el 02/10: la cabeza de
+    la cita («el punto de retirada») sólo aparece en el texto normalizado de NOR-11 en la posición
+    7.842, y la cola («clínica de chamberí») sólo en la 7.148, **antes**. La comprobación busca la
+    cola después de la cabeza, y aquí va delante.
+- **(B) EL AUTOCLAVE · SIN REPARTO, Y SIN EXPLICACIÓN TODAVÍA.**
+  - Sus tres datos viven en una sola frase de NOR-10, de 340 caracteres. No hay nada repartido, y
+    aun así falla.
+  - La cuenta de «~21 caracteres sobrantes» del arquitecto queda **retirada**: era una estimación
+    para sostener una conjetura. No llegó a escribirse en esta ficha.
+  - **La hipótesis de la anotación entre corchetes SALE DE CARRERA**: no se descarta, deja de estar
+    activa. La contesta el dato guardado, no otra conjetura.
+
+**🗄️ NO MÁS HIPÓTESIS: SE GUARDA LO QUE SE DESCARTA** (decisión del arquitecto a propuesta del
+director, 02/10). La pregunta del director: ¿no es más sencillo ver en qué punto algo que viene bien
+pasa a estar mal, y qué cambió? No se había hecho porque **lo que falla se tira**.
+- **Este fallo no vive en el código, vive en el dato.** Lo que se desvía es lo que escribe el
+  modelo, y el modelo no está en el repositorio. Por eso cada lectura del código acabó en
+  conjetura. **Hace falta el artefacto, no otra lectura.**
+- La regla, al protocolo: **una puerta que descarta tiene que guardar lo que descartó**
+  (`claude/Protocolo_Harness_Tasas.md`).
+- **Qué se guarda**, por cada hallazgo descartado por cita no verificable, en el juicio de su
+  pareja, dentro de `analysis_results.analysis`:
+  - el hash y el tema, y si era contradicción o solapamiento;
+  - las dos citas, **completas**, cada una en el campo de su lado;
+  - el lado que falló;
+  - el paso en que se rindió la búsqueda de cada lado, y el pajar usado;
+  - y el id del candidato.
+  - **Campos con nombre, no un volcado de la respuesta del modelo.**
+  - **El id del analizado** se guarda si existe. En el camino del chat el documento todavía no
+    existe al analizar, y la fila lleva sólo `storage_path` (F-101). No es un fallo: la consulta
+    cae a la ruta del fichero.
+- **EL TOPE: 10 por pareja**, declarado, con la cuenta de los que no se guardaron (arquitecto,
+  02/10). Lo más visto en una pareja son 4.
+  - **⚠️ SI ESA CUENTA NO ES CERO ALGUNA VEZ, ES UN HALLAZGO**, no un detalle de implementación:
+    significaría que el juez emitió más de diez descartes en una sola pareja, y eso se quiere saber.
+
+**🔐 EL REPARO DE LOS DATOS DEL CLIENTE, DECIDIDO** (arquitecto, 02/10). La regla dice «se persisten
+donde se MUESTRAN; ninguna copia sin lector», y estas citas no las pinta ninguna pantalla:
+- **(a) El lector es la consulta de diagnóstico, y se nombra por su fichero**:
+  `SQL_B313_citas_descartadas.sql`, que nace en el commit del código, después de éste. Una copia con lector y motivo nombrados no es una copia sin
+  lector. **Precedente**: `judgments[]`, que su tipo declara «útil para debug»
+  (`lib/analysis/types.ts:348`), no lo lee ningún componente, y lo leen las SQL de estos días.
+- **(b) No es una exposición nueva.** La frase ya está completa en la base, en el `full_text` del
+  documento y en sus trozos. Lo nuevo es **la versión que escribió el juez**, de la misma clase que
+  `topic`, `description` y `summary`, que ya se guardan.
+- **(c) Se borra con el documento**: vive en `analysis_results.analysis`, y `deleteDocument` borra
+  las filas de `analysis_results` del documento por `document_id` (`lib/delete-document.ts:166-169`,
+  con el criterio de `lib/documents/analisis-del-documento.ts`). **Sigue la vida de su fila**, sin
+  retención propia que inventar.
+  - ⚠️ **PRECISIÓN DE CODE: esto vale para los análisis CON documento.** Son los de la bandeja, y
+    los del chat cuyo fichero se acaba indexando, porque la indexación los adopta y les pone el
+    `document_id` (`app/api/ingest/route.ts:403-408`).
+  - **Un análisis del chat cuyo fichero NUNCA se indexa** se queda sólo con `storage_path`, y no lo
+    borra `deleteDocument`, porque no hay documento. Vive hasta la purga de la organización
+    (`lib/purge-org.ts:117`).
+  - **Es la misma vida que ya tienen hoy sus citas publicadas y sus `judgments[]`**: no se inventa
+    retención nueva, pero tampoco «sigue al documento», porque no lo hay.
+- **(d) FECHA DE REVISIÓN, NO VIDA INDEFINIDA.**
+  - ⚠️ **OBLIGACIÓN, escrita aquí y no suelta: EL DÍA QUE B.313 SE CIERRE, ESTA DECISIÓN SE VUELVE A
+    LEER. SI NADIE CONFIRMA QUE SE QUEDA, SE QUITA.**
+  - El arquitecto espera confirmarla, por la regla de la puerta que descarta. Pero **la
+    confirmación tiene que ser un acto, no un olvido.**
+
+**🧭 EL PRINCIPIO QUE GOBIERNA EL ARREGLO, escrito antes de que a nadie se le ocurra lo fácil**
+(arquitecto, 02/10). En los dos casos el análisis es correcto y sólo la cita está mal armada. De ahí
+la tentación: aflojar el comprobador.
+- **NO SE AFLOJA.** Aflojar la comprobación publicaría la frase cosida de Chamberí, **que NO EXISTE
+  en el documento del cliente**, y quien la busque no la encontrará. Es el daño de B.310 y B.311 por
+  un tercer camino.
+- **EL ARREGLO VA POR LA FORMA DEL CAMPO, NO POR LA TOLERANCIA DEL COMPROBADOR.**
+  - Hoy `newDocSays` hace dos trabajos: ser evidencia literal y ser una frase legible. Cuando el
+    dato está en dos sitios, los dos trabajos se pelean, y el juez resuelve la pelea cosiendo.
+  - **Si el campo admitiera una LISTA de trozos literales, no habría nada que coser.**
+  - Y **una aclaración del juez no va dentro de la cita: va en otro campo.**
+- **Ni se implementa ni se diseña todavía.** Es la dirección, y la decide el arquitecto cuando esté
+  el dato. Queda escrita para que el día que alguien proponga «subir la tolerancia» la tenga
+  delante.
+
 **LO QUE ESTA FICHA TIENE QUE DEJAR CLARO: ESTO NO SE ARREGLA EN EL COMPROBADOR.**
 - Si el juez redacta, **el comprobador tiene razón al rechazarlo**: la frase publicada no estaría
   en el documento.
@@ -11323,13 +11411,18 @@ sembrado y lo no auditado):
   - Los 3 de CLI-12, de arriba.
 - **De los 6 recuperados por B.312, 3 son contenido** (los de CLI-13, que pasan de 2 a 5) **y 3 son
   genéricos** (los de CLI-12).
-- ⚠️ **Corrección de Code al enunciado**: el encargo decía «de los seis puntos recuperados, cinco
-  son contenido de verdad y tres de los otros son genéricos». Cinco más tres son ocho, que son los
-  PUBLICADOS, no los recuperados. Los dos conjuntos quedan escritos arriba.
+- ⚠️ **Corrección de Code al enunciado, ACEPTADA por el arquitecto (02/10)**: el encargo decía «de
+  los seis puntos recuperados, cinco son contenido de verdad y tres de los otros son genéricos».
+  Cinco más tres son ocho, que son los PUBLICADOS, no los recuperados. **De los 6 recuperados por
+  B.312, 3 son contenido y 3 son genéricos.**
 - ⚠️ **No consta para Code de qué análisis es la pantalla.** Las dos pasadas de las 08:56 y las
   08:58 emitieron 3 solapamientos con CLI-12. En la de las 09:24, el registro de las citas que
   pasan dejó dos longitudes con CLI-12 (42 y 56), y cada línea de ese registro lleva los dos lados
   de UN solapamiento. Si «42 · 56» es una sola línea, en esa pasada se verificó uno.
+  - **Aceptado (arquitecto, 02/10)**: en la de las 09:24, CLI-12 tenía **un** solapamiento, no
+    tres, así que la pantalla que vio el director es de una pasada anterior.
+  - Y lo que eso añade: **los solapamientos genéricos también son INESTABLES entre pasadas** (3, y
+    luego 1).
 
 **LO QUE ESTÁ EN JUEGO, para cuando se decida** (arquitecto, 02/10): no es un número. **Un cliente
 que lee «ambos los emite Dirección de Operaciones» piensa que el programa es tonto**, y eso cuesta

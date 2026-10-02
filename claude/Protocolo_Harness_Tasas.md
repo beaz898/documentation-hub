@@ -174,6 +174,28 @@ de esta regla llevaba aplazado por la razón equivocada.
 
 ---
 
+## ⚠️ UNA PUERTA QUE DESCARTA TIENE QUE GUARDAR LO QUE DESCARTÓ
+
+*Añadida el 02/10/2026 (arquitecto), con B.313.*
+
+**Un contador dice cuántos; no dice cuál ni por qué.** Es la hermana de la condición 3 de arriba:
+el contador hace visible que la puerta trabaja; lo guardado hace visible **en qué se equivocó**.
+
+El caso que la trajo:
+- se exigieron contadores en los topes del retrieval;
+- y al final de la tubería, **la puerta que más decide —la que borra un hallazgo de la pantalla,
+  la comprobación de citas— apuntaba sólo un número**.
+- De un hallazgo descartado sobrevivían un contador y los primeros 200 caracteres en un log de
+  Vercel que caduca. **La cita completa, el único objeto que explica el fallo, no se guardaba en
+  ninguna parte.**
+
+Se pagó en cuatro hipótesis sobre por qué moría una cita (B.313), todas falladas. Y el motivo de
+fondo va con la regla: **ese fallo no vivía en el código, vivía en el dato**. El punto donde se
+desvía es lo que escribe el modelo, y el modelo no está en el repositorio. Leer el código no podía
+encontrarlo: hacía falta el artefacto, no otra lectura.
+
+---
+
 ---
 
 ## ⚠️ REGLA DE CUSTODIA: toda consulta a Fable se archiva íntegra
