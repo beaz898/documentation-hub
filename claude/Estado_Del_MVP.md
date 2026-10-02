@@ -10549,7 +10549,42 @@ pero el usuario no la lee. **El riesgo de B.311 se estrecha a esos sitios.**
 
 📏 **Y MEDIDO, PEQUEÑO** (02/10, registro de las citas que pasan, B.313): en dos pasadas, **0 de 22
 citas publicadas pasaron por el camino de cabeza y cola**. Las 22 fueron literales. Sigue siendo un
-agujero del diseño, pero **no está disparado**.
+agujero del diseño, pero **no está disparado**. *(Corregido abajo el mismo día: 1 de 23.)*
+
+🔥 **DISPARADO, EN UN HALLAZGO PUBLICADO** (02/10/2026, 13:17:49; registro transcrito por el
+arquitecto, Code no lo ha visto). NOR-10 → CLI-12, `[98277f67]`, **confirmada y publicada**:
+- **nuevo: longitud=434, paso=`cabeza_y_cola`**, pajar=entregado_texto;
+- existente: 341, `literal`, entregado_piezas.
+- **Se publicó por la puerta aproximada.** De esos 434 caracteres sólo se comprobaron el principio y
+  el final: **el medio no lo ha verificado nadie.**
+- **La cifra de arriba se corrige**: no «0 de 22», sino **1 de 23, y es justo el que se publicó**.
+  Sigue siendo un agujero del diseño, y **ya está disparado**.
+
+📝 **LA MEDICIÓN QUE SIGUE, Y LO QUE SIGNIFICA CADA RESULTADO, ESCRITO ANTES DE MIRAR** (02/10/2026).
+La cita se guardó, porque se publicó: `SQL_B311_cita_publicada_autoclave.sql`, de sólo lectura,
+PENDIENTE DE EJECUTAR, la saca entera de los dos lados. Después, offline con NOR-10:
+- **Cómo se mide**:
+  - **El medio** es la cita sin su cabeza ni su cola: lo que queda entre los primeros 20 y los
+    últimos 20 caracteres normalizados, que son lo único que comprobó la puerta.
+  - Se parte en sus **trozos literales** con el mismo método que la hipótesis del reparto de B.313:
+    el tramo más largo, normalizado con `normalize()`, que está en NOR-10, de 15 caracteres o más,
+    de izquierda a derecha.
+  - Y se mira **dónde** cae cada trozo: si entre la cabeza y la cola, y en orden.
+  - Lo que no sea un trozo —palabras sueltas o tramos cortos— se lista entero, con su texto.
+- **Las tres respuestas posibles** (arquitecto, 02/10), y lo que implica cada una:
+  1. **El medio está literal**: sus trozos cubren el medio, caen entre la cabeza y la cola y en
+     orden; lo que queda son diferencias de forma, que se listan.
+     → **La tolerancia salvó una cita buena, y el daño es cero EN ESTE CASO**, no en general.
+  2. **El medio está cambiado de orden**: sus trozos son literales, pero caen fuera de orden o fuera
+     del tramo entre la cabeza y la cola.
+     → **Es lo mismo que Chamberí, y las dos enfermedades de B.313 eran una.**
+  3. **El medio dice algo que no está en NOR-10**: hay palabras de contenido —no de forma— que no
+     aparecen en ningún trozo literal.
+     → **Hemos publicado una cita inventada**, y esto deja de ser una ficha y **pasa a ser lo
+     primero del tablero**.
+- **Un dato de antes de mirar, que no es una medida de la cita**: la frase 32 de NOR-10, la que
+  contiene los tres datos de la A, mide 340 caracteres. Una cita de 434 es más larga que esa frase.
+
 
 **Sin arreglo.** Es una ficha y una decisión del director. Los caminos posibles —publicar el
 recorte del documento en prosa y la cita del juez en tablas; exigir el centro; o declararla
@@ -10994,8 +11029,12 @@ los ha visto. Dos pasadas de NOR-10 solo, a las 09:01:54 y a las 09:02:28, `0 id
     - pasada 2: **2 emitidos, 1 descartado, 1 sobrevivió**;
     - pasada 1: **3 emitidos, 0 descartados, 3 sobrevivieron**.
 
-🏁 **UN HITO, Y SU RESERVA VA DELANTE:**
-- ⚠️ **RESERVA: 1 DE 3 PASADAS** (actualizada el 02/10 con la de las 09:25). Por la regla de
+🏁 **UN HITO, Y SU RESERVA Y SU GRIETA VAN DELANTE:**
+- 🔥 **LA GRIETA (02/10, 13:17:49, B.311): LA SEMBRADA A DE NOR-10 NUNCA SE HA PUBLICADO CON UNA
+  CITA DEL TODO LITERAL.** Su cita del lado NOR-10, 434 caracteres, pasó por cabeza y cola: el medio
+  no lo comprobó nadie. Lo que diga ese medio, en B.311.
+- ⚠️ **RESERVA: 2 DE 4 PASADAS** (actualizada el 02/10 con la de las 13:17:49, que la publicó). Antes,
+  1 de 3 (con la de las 09:25). Por la regla de
   estabilidad (B.295: 5/5 estable-acierto, 0/5 estable-fallo, 1 a 4 inestable), es **INESTABLE, no
   acierto**. Lo demostrado es que **puede** publicarse, no que se publique.
   - **La tercera pasada, 09:25**: CLI-12 emitió 1 contradicción, y se descartó: `[c2998cd8]`,
@@ -11003,6 +11042,11 @@ los ha visto. Dos pasadas de NOR-10 solo, a las 09:01:54 y a las 09:02:28, `0 id
     de esa pareja, verificados y literales.
   - **El mismo hallazgo, con una cita distinta cada vez**: 244 caracteres con
     `cola_demasiado_lejos` y 241 con `cabeza_sin_cola`. Las causas candidatas, en B.313.
+  - **Y ESO EXPLICA LA INESTABILIDAD** (arquitecto, 02/10): las dos veces que se publicó, a las 09:02
+    y a las 13:17, fue con el mismo par de citas, `[98277f67]` (el hash se calcula sobre las dos
+    citas, así que el mismo hash es el mismo par). Cuando el juez escribe una cita que la tolerancia
+    salva, publica; cuando no, muere. **No es que a veces lo encuentre: es que a veces la puerta le
+    deja pasar.**
 - **EL HITO: por primera vez, la sembrada A de los cargos se publica por la ruta por defecto, sin
   tanda.** Es un rostro de la A (la contradicción A, `SIEMBRA_corpus_ampliado.md:51-62`, cuyo conflicto incluye «retirar un autoclave de servicio»), y
   sale con el corpus haciendo su trabajo solo.
@@ -11012,7 +11056,7 @@ los ha visto. Dos pasadas de NOR-10 solo, a las 09:01:54 y a las 09:02:28, `0 id
 RESULTADOS DISTINTOS.**
 - Con los mismos candidatos, el mismo rerank, los mismos regímenes y los mismos caracteres
   entregados:
-  - la contradicción sembrada se publica en una pasada y en las otras no (0, 1 y 0 en tres);
+  - la contradicción sembrada se publica en unas pasadas y en otras no (0, 1, 0 y 1 en cuatro);
   - y los solapamientos vivos con CLI-12 son 3 en una y 1 en la otra.
 - Dibujan lo mismo: **lo que cambia entre pasadas es lo que escribe el juez**, y el usuario lo ve
   como dos respuestas distintas a la misma pregunta.
@@ -11358,6 +11402,46 @@ la tentación: aflojar el comprobador.
 - **Ni se implementa ni se diseña todavía.** Es la dirección, y la decide el arquitecto cuando esté
   el dato. Queda escrita para que el día que alguien proponga «subir la tolerancia» la tenga
   delante.
+
+**🔬 LA PRIMERA MEDIDA CON EL DATO EN LA MANO (02/10/2026, 13:17:15).** Una pasada, una consulta
+(`SQL_B313_citas_descartadas.sql`, que ejecutó el director) y la causa a la vista. Code no ha visto
+la fila: la transcribe el arquitecto.
+- 📌 **En cuatro días de hipótesis no se había llegado a esto, y con el dato guardado se vio en una
+  fila.** Es el argumento de la regla «una puerta que descarta tiene que guardar lo que descartó»,
+  medido.
+- **La fila**: NOR-11 → CLI-13, `[976f6174]`, `lado_que_fallo = nuevo`.
+  - **nuevo (NOR-11), FALLA**, 111 caracteres, `cabeza_sin_cola`: «El punto de retirada
+    centralizado concentra el material de las tres clínicas, ubicado en la clínica de Chamberí».
+  - **existente (CLI-13), PASA LITERAL**, 103 caracteres: «El punto de retirada centralizado para
+    las tres clínicas de la red se encuentra en la clínica de Retiro».
+- ✅ **LOS LADOS ESTÁN BIEN ASIGNADOS**: Chamberí es de NOR-11 y Retiro de CLI-13
+  (`corpus-pruebas/SIEMBRA_caso_control.md:57-58`). **Aquí no hay cambiazo: B.312 queda descartada
+  como causa de este caso, de forma definitiva.**
+- **LA CAUSA** (arquitecto, 02/10): **el juez escribió el lado de NOR-11 con la misma forma que la
+  frase literal de CLI-13**, para que la diferencia se vea. Mismo arranque, mismos elementos, mismo
+  orden y mismo cierre. Las dos mitades son texto real de NOR-11, pero **NOR-11 lo dice en el orden
+  contrario**, así que **la frase cosida no existe**.
+  - **No es descuido: es un instinto bueno**, presentar las dos caras en paralelo, que se lee mejor
+    y rompe la literalidad.
+- ✅ **LA COMPROBACIÓN QUE LA CIERRA, hecha por Code el 02/10, offline**: ¿contiene NOR-11 una frase
+  con esos elementos en el orden inverso al de la cita? **Sí, la frase 72**, que empieza en el
+  carácter 7.271 del texto extraído: «El gestor autorizado recoge los residuos **de las tres
+  clínicas** en un **punto de retirada centralizado**, **ubicado en la clínica de Chamberí**, desde
+  donde…».
+  - En ella «de las tres clínicas» va ANTES que «punto de retirada centralizado» (caracteres 7.312
+    y 7.339), y la cita los pone al revés, como CLI-13.
+  - **Con una precisión**: la primera mitad de la cita no es una reordenación inventada. «El punto
+    de retirada centralizado concentra el material de las tres clínicas» es **literal de otra
+    frase**, la 77 (carácter 8.127). El juez tomó esa frase para tener el orden de CLI-13 y le pegó
+    el final de la 72 («ubicado en la clínica de Chamberí», carácter 7.371).
+  - **Queda confirmado que el juez le dio la vuelta para que rimara con CLI-13**, y lo hizo cosiendo
+    dos frases reales.
+  - Las posiciones 7.148 y 7.842 de la medida anterior eran del texto NORMALIZADO; éstas son del
+    texto extraído, y no se mezclan.
+- **EL ARREGLO TIENE CANDIDATO, Y NO SE ESCRIBE TODAVÍA** (arquitecto, 02/10): una instrucción al
+  juez para que **no reformule una cita para que se parezca a la otra**. Es barato. Pero primero va
+  la medición del autoclave (B.311): si su medio está inventado, el orden del tablero cambia y este
+  arreglo no es el primero.
 
 **LO QUE ESTA FICHA TIENE QUE DEJAR CLARO: ESTO NO SE ARREGLA EN EL COMPROBADOR.**
 - Si el juez redacta, **el comprobador tiene razón al rechazarlo**: la frase publicada no estaría
@@ -11860,6 +11944,8 @@ de un caso y el protocolo, así que el fallo no puede venir de ahí.
     documentación. **No se hizo el commit**: se repitió la suite entera, sola, y dio **1.818 de
     1.818**, con ese caso en 4.845 ms. Es lo que se predijo: el disco frío, en un test que recorre
     el árbol bajo el tope global. **No se toca**, como está decidido.
+    - ✅ **LA PREDICCIÓN SE CUMPLIÓ** (arquitecto, 02/10): es el primero de los ocho nombrados como
+      riesgo conocido, caído el mismo día y por el motivo previsto.
 
 
 ---

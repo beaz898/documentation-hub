@@ -194,6 +194,10 @@ fondo va con la regla: **ese fallo no vivía en el código, vivía en el dato**.
 desvía es lo que escribe el modelo, y el modelo no está en el repositorio. Leer el código no podía
 encontrarlo: hacía falta el artefacto, no otra lectura.
 
+**EL ARGUMENTO, MEDIDO (02/10/2026, 13:17)**: guardado lo descartado, una pasada y una consulta
+dieron la causa de la cita de Chamberí. **En cuatro días de hipótesis no se había llegado a esto, y
+con el dato guardado se vio en una fila** (B.313).
+
 ---
 
 ---
