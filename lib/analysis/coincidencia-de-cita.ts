@@ -183,6 +183,21 @@ export function findBestMatch(haystack: string, needle: string): string | null {
  * cliente: sólo números y el nombre del paso. Qué pajares son lo decide quien
  * llama (`comprobadorDeLado`), que es quien sabe cuáles usó.
  */
+/** B.313: por qué vía PASÓ una cita, y su longitud. Mismos pajares y mismo
+ *  orden que la decisión (`verifyQuote` prueba los trozos en orden, y el
+ *  comprobador contiguo el texto antes que las filas), con la misma búsqueda:
+ *  el primer pajar donde casa da la vía. Si no casa en ninguno, pasó por la
+ *  vía de segmentos de fila de `verifyQuote`, que aquí no se repite. */
+export function describirAcierto(pajares: string[], quote: string | undefined): string {
+  const { texto: cita } = despegarPunteroDeFila(quote ?? '');
+  let via: PasoDeLaCita | 'segmentos_de_fila' = 'segmentos_de_fila';
+  for (const pajar of pajares) {
+    const { recorte, paso } = buscarCita(pajar, cita);
+    if (recorte !== null) { via = paso; break; }
+  }
+  return `longitud=${cita.length}, paso=${via}`;
+}
+
 export function describirDescarte(pajares: string[], quote: string | undefined): string {
   if (!quote) return 'longitud=0, paso=vacia_o_corta';
   const { texto: cita } = despegarPunteroDeFila(quote);
@@ -250,6 +265,8 @@ export interface ComprobadorDeLado {
   comprobar(quote: string | undefined): VerifiedQuote | null;
   /** Longitud, paso y pajar: lo que va en el log de un descarte. */
   describir(quote: string | undefined): string;
+  /** Lo mismo para una cita que PASÓ (B.313): el denominador del registro. */
+  describirAcierto(quote: string | undefined): string;
 }
 
 /** Las filas de tabla cuya línea, pintada con LA MISMA función que el juez lee
@@ -331,17 +348,17 @@ export function comprobadorDeLado(
     return entregado.trozos.length > 0 ? verificar(entregado.trozos, null, quote) : null;
   };
 
-  const describir = (quote: string | undefined): string => {
+  const describirCon = (describe: (pajares: string[], quote: string | undefined) => string) => (quote: string | undefined): string => {
     const pajares = !entregado
       ? (chunks.length > 0 ? chunks.map(c => c.text) : fallbackText ? [fallbackText] : [])
       : [...(entregado.texto !== null ? [entregado.texto] : []), ...entregado.trozos.map(c => c.text)];
     const cuantos = entregado
       ? (entregado.texto !== null ? `${entregado.trozos.length} filas visibles` : `${entregado.trozos.length} trozos`)
       : (chunks.length > 0 ? `${chunks.length} trozos` : '');
-    return `${describirDescarte(pajares, quote)}, pajar=${pajar}${cuantos ? ` (${cuantos})` : ''}`;
+    return `${describe(pajares, quote)}, pajar=${pajar}${cuantos ? ` (${cuantos})` : ''}`;
   };
 
-  return { comprobar, describir };
+  return { comprobar, describir: describirCon(describirDescarte), describirAcierto: describirCon(describirAcierto) };
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -369,4 +386,14 @@ export function diagnosticoDelDescarte(
     return `${lado}: ${lados[lado].describir(citas[lado])}${cruzada ? `, cruzada: la cita del ${lado} está en el ${otro}` : ''}`;
   };
   return fallo === 'ambos' ? `${delLado('nuevo')} · ${delLado('existente')}` : delLado(fallo);
+}
+
+/** B.313 (02/10/2026): el registro de una cita que PASÓ, por lado. Sólo
+ *  números y nombres de paso, como el de los descartes: es el denominador que
+ *  le faltaba a «el juez deja de ser literal cuando la cita se alarga». */
+export function diagnosticoDelAcierto(
+  lados: { nuevo: ComprobadorDeLado; existente: ComprobadorDeLado },
+  citas: { nuevo: string | undefined; existente: string | undefined },
+): string {
+  return `nuevo: ${lados.nuevo.describirAcierto(citas.nuevo)} · existente: ${lados.existente.describirAcierto(citas.existente)}`;
 }

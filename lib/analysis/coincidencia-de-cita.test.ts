@@ -280,3 +280,52 @@ describe('B.299 (i) · A PRUEBA DE FALLO: sin lo entregado, el camino de antes, 
     expect(candidatoEntregadoEntero(lectura({ regimen: 'corte_honesto', candidato: { caracteres: 900, mostrados: 300, dejoFuera: true } }))).toBe(false);
   });
 });
+
+// ═══════════════════════════════════════════════════════════════════════════
+// B.313 — EL DENOMINADOR: LONGITUD Y VÍA DE LAS CITAS QUE PASAN
+// ═══════════════════════════════════════════════════════════════════════════
+
+describe('B.313 · describirAcierto: por qué vía pasó una cita, y su longitud', () => {
+  const frase = 'El control biológico del autoclave se realiza cada lunes por la mañana.';
+  const lado = comprobadorDeLado(verifyQuote, null, [trozo(0, frase)], null);
+
+  it('literal', () => {
+    const cita = 'El control biológico del autoclave se realiza cada lunes';
+    expect(lado.comprobar(cita)).not.toBeNull();
+    expect(lado.describirAcierto(cita)).toBe('longitud=56, paso=literal, pajar=todos_los_trozos (1 trozos)');
+  });
+
+  it('normalizada: otra caja y sin el punto', () => {
+    const cita = 'EL CONTROL BIOLÓGICO DEL AUTOCLAVE se realiza cada lunes por la mañana';
+    expect(lado.comprobar(cita)).not.toBeNull();
+    expect(lado.describirAcierto(cita)).toContain('paso=normalizada');
+  });
+
+  it('cabeza y cola: el medio cambiado, y aun así pasa', () => {
+    const cita = 'El control biológico del esterilizador se realiza cada lunes por la mañana';
+    expect(lado.comprobar(cita)).not.toBeNull();
+    expect(lado.describirAcierto(cita)).toContain('paso=cabeza_y_cola');
+  });
+
+  it('por segmentos de fila: la vía de tablas de verifyQuote, que no se repite aquí', () => {
+    const chunks = [resumen, fila(1, 0, { Nombre: 'Ana', 'Clínica': 'Chamberí' }), fila(2, 1, { Nombre: 'Luis', 'Clínica': 'Retiro' })];
+    const tabla = comprobadorDeLado(verifyQuote, null, chunks, null);
+    expect(tabla.comprobar('Luis | Retiro')).not.toBeNull();
+    expect(tabla.describirAcierto('Luis | Retiro')).toBe('longitud=13, paso=segmentos_de_fila, pajar=todos_los_trozos (3 trozos)');
+  });
+
+  it('el texto entregado va antes que las filas, como en la decisión', () => {
+    const chunks = [resumen, fila(1, 0, { Nombre: 'Ana', 'Clínica': 'Chamberí' }), fila(2, 1, { Nombre: 'Luis', 'Clínica': 'Retiro' })];
+    const visible = '[TABLA]\n[F0] Ana | Chamberí\n[F1] Luis | Retiro';
+    const entregado = loEntregadoDeLaPareja({
+      pareja: { textoAnalizado: visible, bloqueCandidato: '', representados: [], lectura: lectura({ regimen: 'pareja_entera' }) },
+      analizadoChunks: chunks, candidatoChunks: [],
+    }).nuevo;
+    expect(comprobadorDeLado(verifyQuote, entregado, chunks, null).describirAcierto('Luis | Retiro'))
+      .toBe('longitud=13, paso=literal, pajar=entregado_texto (2 filas visibles)');
+  });
+
+  it('el puntero de fila no cuenta en la longitud, como en los descartes', () => {
+    expect(lado.describirAcierto('[F3] El control biológico del autoclave se realiza cada lunes')).toContain('longitud=56');
+  });
+});

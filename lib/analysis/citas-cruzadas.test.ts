@@ -163,3 +163,42 @@ describe('B.312 · la frontera traduce lo que se le pide al juez a la forma guar
     expect(r.discarded).toEqual({ [NOMBRE_VIEJO]: 1 });
   });
 });
+
+describe('B.313 · el registro de las citas que PASAN: observabilidad, no decide nada', () => {
+  let registros: string[];
+  beforeEach(() => {
+    registros = [];
+    vi.spyOn(console, 'log').mockImplementation((...a: unknown[]) => { registros.push(a.map(String).join(' ')); });
+  });
+
+  it('ROJO antes, VERDE después: un solapamiento verificado deja su longitud y su vía, por lado', () => {
+    const j = corregir(juicio([{ description: 'la recogida', evidenceInNewDoc: CITA_DEL_NUEVO, evidence: CITA_DEL_EXISTENTE }]));
+    const linea = registros.find(r => r.includes('Solapamiento verificado')) ?? '';
+    expect(linea).toContain(`nuevo: longitud=${CITA_DEL_NUEVO.length}, paso=literal, pajar=todos_los_trozos`);
+    expect(linea).toContain(`existente: longitud=${CITA_DEL_EXISTENTE.length}, paso=literal, pajar=todos_los_trozos`);
+    expect(j.overlappingContent).toHaveLength(1);
+  });
+
+  it('ROJO antes, VERDE después: una contradicción verificada, lo mismo', () => {
+    const { nuevo, existente } = lados();
+    fixQuotesInJudgment({
+      ...juicio([]),
+      contradictions: [{ topic: 'día de recogida', newDocSays: CITA_DEL_NUEVO, existingDocSays: CITA_DEL_EXISTENTE }],
+    }, nuevo, existente);
+    expect(registros.find(r => r.includes('Contradicción verificada'))).toContain(`nuevo: longitud=${CITA_DEL_NUEVO.length}, paso=literal`);
+  });
+
+  it('CONTROL: una cita que falla NO deja registro de acierto, y la decisión es la de siempre', () => {
+    const j = corregir(juicio([{ description: 'x', evidenceInNewDoc: 'El material se esteriliza en el autoclave central de Retiro.', evidence: CITA_DEL_EXISTENTE }]));
+    expect(registros.some(r => r.includes('verificado') || r.includes('verificada'))).toBe(false);
+    expect(j.overlappingContent).toEqual([]);
+    expect(j.discarded?.citaNoVerificable).toBe(1);
+  });
+
+  it('el registro no lleva texto del cliente: sólo números y nombres de paso', () => {
+    corregir(juicio([{ description: 'la recogida', evidenceInNewDoc: CITA_DEL_NUEVO, evidence: CITA_DEL_EXISTENTE }]));
+    const linea = registros.find(r => r.includes('Solapamiento verificado')) ?? '';
+    expect(linea).not.toContain('martes');
+    expect(linea).not.toContain('viernes');
+  });
+});

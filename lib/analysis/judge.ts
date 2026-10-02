@@ -4,7 +4,7 @@ import { runInBatches } from '@/lib/run-in-batches';
 import { sanitizeJudgeContradictions, hashCitationPair, traducirSolapamientosDelJuez } from './llm-boundary';
 import { getOrderedColumns, groupChunksByTable, renderTableBlock, alignQuoteToCells, despegarPunteroDeFila } from './table-structure';
 import { normalize } from './normalize';
-import { findBestMatch, comprobadorDeLado, loEntregadoDeLaPareja, diagnosticoDelDescarte, type ComprobadorDeLado } from './coincidencia-de-cita';
+import { findBestMatch, comprobadorDeLado, loEntregadoDeLaPareja, diagnosticoDelDescarte, diagnosticoDelAcierto, type ComprobadorDeLado } from './coincidencia-de-cita';
 import type { RerankedCandidate, DocumentJudgment, PipelineOptions, DiscardedFindings, DocumentFragment, LecturaDeLaPareja, TextoAnalizado } from './types';
 import type { StoredChunk } from '@/lib/read-chunks';
 
@@ -420,6 +420,8 @@ export function fixQuotesInJudgment(
     const matchExisting = existente.comprobar(c.existingDocSays);
 
     if (matchNew && matchExisting) {
+      // B.313: el denominador del registro de B.299 (ii) — longitud y vía de las citas que PASAN.
+      console.log(`[judge] Contradicción verificada en "${judgment.documentName}" [${hash}] (${diagnosticoDelAcierto({ nuevo, existente }, { nuevo: c.newDocSays, existente: c.existingDocSays })})`);
       fixedContradictions.push({ ...c, newDocSays: matchNew.text, existingDocSays: matchExisting.text });
       contradictionEvidence.push({
         hash,
@@ -475,6 +477,7 @@ export function fixQuotesInJudgment(
     const matchExisting = existente.comprobar(o.evidence);
 
     if (matchNew && matchExisting) {
+      console.log(`[judge] Solapamiento verificado en "${judgment.documentName}" [${hash}] (${diagnosticoDelAcierto({ nuevo, existente }, { nuevo: o.evidenceInNewDoc, existente: o.evidence })})`);
       fixedOverlaps.push({ ...o, evidenceInNewDoc: matchNew.text, evidence: matchExisting.text });
       overlapEvidence.push({
         hash,
