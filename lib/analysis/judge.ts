@@ -5,7 +5,7 @@ import { sanitizeJudgeContradictions, hashCitationPair, traducirSolapamientosDel
 import { getOrderedColumns, groupChunksByTable, renderTableBlock, alignQuoteToCells, despegarPunteroDeFila } from './table-structure';
 import { normalize } from './normalize';
 import { findBestMatch, comprobadorDeLado, loEntregadoDeLaPareja, type ComprobadorDeLado } from './coincidencia-de-cita';
-import { diagnosticoDelDescarte, diagnosticoDelAcierto } from './diagnostico-de-cita';
+import { registroDeDescartes, diagnosticoDelAcierto } from './diagnostico-de-cita';
 import type { RerankedCandidate, DocumentJudgment, PipelineOptions, DiscardedFindings, DocumentFragment, LecturaDeLaPareja, TextoAnalizado } from './types';
 import type { StoredChunk } from '@/lib/read-chunks';
 
@@ -389,6 +389,7 @@ export function fixQuotesInJudgment(
   let narracionEnCita = 0;
   let citaNoVerificable = 0;
   let citaDeContexto = 0;
+  const descartes = registroDeDescartes(); // B.313: se guarda lo que se descarta
   // F-61: instrumentación permanente — cuánto trabajo hace cada fase de la
   // vía por segmentos. Por LADO verificado (hasta dos por hallazgo), no por
   // hallazgo: "cuánto trabajo hace cada fase" es una pregunta sobre el
@@ -450,7 +451,7 @@ export function fixQuotesInJudgment(
       // B.299: longitud de la cita y paso en que se quedó, por lado. El texto de
       // arriba sigue cortado a 200 SÓLO en el log; la comprobación la vio entera.
       // B.312: y si la cita está en el OTRO lado, «cruzada».
-      const diagnostico = diagnosticoDelDescarte({ nuevo, existente }, { nuevo: c.newDocSays, existente: c.existingDocSays }, failedSide);
+      const diagnostico = descartes.descartar({ nuevo, existente }, { tipo: 'contradiccion', hash, tema: c.topic, citas: { nuevo: c.newDocSays, existente: c.existingDocSays }, fallo: failedSide });
       console.warn(
         `[judge] Contradicción descartada en "${judgment.documentName}" [${hash}] (cita no verificable, lado=${failedSide}; ${diagnostico}): ${failedText}`
       );
@@ -501,7 +502,7 @@ export function fixQuotesInJudgment(
         ? `nuevo="${(o.evidenceInNewDoc || '').slice(0, 200)}" existente="${(o.evidence || '').slice(0, 200)}"`
         : `"${((failedSide === 'nuevo' ? o.evidenceInNewDoc : o.evidence) || '').slice(0, 200)}"`;
       // B.299: el mismo diagnóstico que en las contradicciones, de arriba.
-      const diagnostico = diagnosticoDelDescarte({ nuevo, existente }, { nuevo: o.evidenceInNewDoc, existente: o.evidence }, failedSide);
+      const diagnostico = descartes.descartar({ nuevo, existente }, { tipo: 'solapamiento', hash, tema: o.description, citas: { nuevo: o.evidenceInNewDoc, existente: o.evidence }, fallo: failedSide });
       console.warn(
         `[judge] Solapamiento descartado en "${judgment.documentName}" [${hash}] (cita no verificable, lado=${failedSide}; ${diagnostico}): ${failedText}`
       );
@@ -535,6 +536,7 @@ export function fixQuotesInJudgment(
       ...judgment,
       contradictions: fixedContradictions,
       overlappingContent: fixedOverlaps,
+      ...descartes.resultado(),
       ...(Object.keys(discarded).length > 0 ? { discarded } : {}),
     },
     evidence: { contradictions: contradictionEvidence, overlaps: overlapEvidence },

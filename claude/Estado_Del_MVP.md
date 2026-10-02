@@ -11284,6 +11284,30 @@ pasa a estar mal, y qué cambió? No se había hecho porque **lo que falla se ti
   02/10). Lo más visto en una pareja son 4.
   - **⚠️ SI ESA CUENTA NO ES CERO ALGUNA VEZ, ES UN HALLAZGO**, no un detalle de implementación:
     significaría que el juez emitió más de diez descartes en una sola pareja, y eso se quiere saber.
+- ✅ **HECHO EN CÓDIGO (02/10/2026)**, sin desplegar. Un commit previo, sin cambio de comportamiento,
+  partió `coincidencia-de-cita.ts`: estaba en 399 líneas.
+  - **Dónde va**: en cada juicio, `descartesPorCita` y `descartesPorCitaOmitidos`
+    (`lib/analysis/types.ts`, `DescarteDeCita`). Lo anota `registroDeDescartes`
+    (`lib/analysis/diagnostico-de-cita.ts`), con `TOPE_DE_DESCARTES_POR_PAREJA = 10`.
+  - **El paso y el pajar se guardan como DATO, no como texto del log**: salen de la misma función
+    que escribe el log (`ComprobadorDeLado.datos`).
+  - **Viaja sin tocar nada más**: el juicio pasa por el pipeline con `...judgment`, y `analysis` se
+    guarda entero. Comprobado leyendo el código, no ejecutado.
+  - ⚠️ **LLEGA AL NAVEGADOR, como ya llega `judgments[]`**. La respuesta del análisis es una lista
+    cerrada sin `judgments`, así que por ahí no viaja (`app/api/analyze-v2/route.ts:812-840`). Pero
+    las dos rutas de la bandeja devuelven el jsonb entero (`app/api/documents/[id]/analysis/route.ts`
+    y `app/api/analysis-results/[id]/route.ts`). Lo recibe el usuario de la misma organización, y
+    no lo pinta ninguna pantalla. **Va con la pieza (b) del reparo.**
+  - **El tamaño, medido**: unos 340 bytes fijos por descarte, más sus dos citas. El peor caso con el
+    tope, citas de 340 caracteres, es de unos 10 KB por pareja; unos 60 KB con las 6 parejas del
+    rápido.
+  - **El rojo, de fallo** (`lib/analysis/citas-cruzadas.test.ts`, «se guarda lo que se descarta»):
+    - contra el juez de antes caen las tres que guardan (un solapamiento con su cita de más de 200
+      caracteres entera, una contradicción y el tope de 10 con su cuenta de 3);
+    - los controles pasan con el código de antes y con el de ahora: sin descartes no hay ni lista
+      ni cuenta, lo descartado por narración no entra, y la línea de log no cambia.
+  - **El lector**: `SQL_B313_citas_descartadas.sql`, PENDIENTE DE EJECUTAR. Sólo trae los análisis
+    hechos después del despliegue.
 
 **🔐 EL REPARO DE LOS DATOS DEL CLIENTE, DECIDIDO** (arquitecto, 02/10). La regla dice «se persisten
 donde se MUESTRAN; ninguna copia sin lector», y estas citas no las pinta ninguna pantalla:

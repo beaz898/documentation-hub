@@ -183,30 +183,45 @@ export function findBestMatch(haystack: string, needle: string): string | null {
  * cliente: sólo números y el nombre del paso. Qué pajares son lo decide quien
  * llama (`comprobadorDeLado`), que es quien sabe cuáles usó.
  */
-/** B.313: por qué vía PASÓ una cita, y su longitud. Mismos pajares y mismo
- *  orden que la decisión (`verifyQuote` prueba los trozos en orden, y el
- *  comprobador contiguo el texto antes que las filas), con la misma búsqueda:
- *  el primer pajar donde casa da la vía. Si no casa en ninguno, pasó por la
- *  vía de segmentos de fila de `verifyQuote`, que aquí no se repite. */
-export function describirAcierto(pajares: string[], quote: string | undefined): string {
-  const { texto: cita } = despegarPunteroDeFila(quote ?? '');
-  let via: PasoDeLaCita | 'segmentos_de_fila' = 'segmentos_de_fila';
-  for (const pajar of pajares) {
-    const { recorte, paso } = buscarCita(pajar, cita);
-    if (recorte !== null) { via = paso; break; }
-  }
-  return `longitud=${cita.length}, paso=${via}`;
+export function describirDescarte(pajares: string[], quote: string | undefined): string {
+  return enTexto(datosDelDescarte(pajares, quote));
 }
 
-export function describirDescarte(pajares: string[], quote: string | undefined): string {
-  if (!quote) return 'longitud=0, paso=vacia_o_corta';
+/** La vía por la que pasó una cita, o el paso en que se rindió la que falló.
+ *  `segmentos_de_fila` es la vía de tablas de `verifyQuote`. */
+export type ViaDeLaCita = PasoDeLaCita | 'segmentos_de_fila';
+/** Lo mismo que los registros escriben, como DATO (B.313: se guarda lo descartado). */
+export interface DatosDeLaCita { longitud: number; paso: ViaDeLaCita }
+
+const enTexto = (d: DatosDeLaCita): string => `longitud=${d.longitud}, paso=${d.paso}`;
+
+function datosDelDescarte(pajares: string[], quote: string | undefined): DatosDeLaCita {
+  if (!quote) return { longitud: 0, paso: 'vacia_o_corta' };
   const { texto: cita } = despegarPunteroDeFila(quote);
   let masLejos: PasoDeLaCita = 'vacia_o_corta';
   for (const pajar of pajares) {
     const { paso } = buscarCita(pajar, cita);
     if (AVANCE_DEL_FALLO[paso] > AVANCE_DEL_FALLO[masLejos]) masLejos = paso;
   }
-  return `longitud=${cita.length}, paso=${masLejos}`;
+  return { longitud: cita.length, paso: masLejos };
+}
+
+/** B.313: por qué vía PASÓ una cita, y su longitud. Mismos pajares y mismo
+ *  orden que la decisión (`verifyQuote` prueba los trozos en orden, y el
+ *  comprobador contiguo el texto antes que las filas), con la misma búsqueda:
+ *  el primer pajar donde casa da la vía. Si no casa en ninguno, pasó por la
+ *  vía de segmentos de fila de `verifyQuote`, que aquí no se repite. */
+function datosDelAcierto(pajares: string[], quote: string | undefined): DatosDeLaCita {
+  const { texto: cita } = despegarPunteroDeFila(quote ?? '');
+  for (const pajar of pajares) {
+    const { recorte, paso } = buscarCita(pajar, cita);
+    if (recorte !== null) return { longitud: cita.length, paso };
+  }
+  return { longitud: cita.length, paso: 'segmentos_de_fila' };
+}
+
+export function describirAcierto(pajares: string[], quote: string | undefined): string {
+  return enTexto(datosDelAcierto(pajares, quote));
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -267,6 +282,9 @@ export interface ComprobadorDeLado {
   describir(quote: string | undefined): string;
   /** Lo mismo para una cita que PASÓ (B.313): el denominador del registro. */
   describirAcierto(quote: string | undefined): string;
+  /** Lo mismo que `describir`/`describirAcierto`, como DATO: lo que se guarda
+   *  de un hallazgo descartado (B.313). */
+  datos(quote: string | undefined, verificada: boolean): DatosDeLaCita & { pajar: PajarDeLaCita };
 }
 
 /** Las filas de tabla cuya línea, pintada con LA MISMA función que el juez lee
@@ -348,15 +366,17 @@ export function comprobadorDeLado(
     return entregado.trozos.length > 0 ? verificar(entregado.trozos, null, quote) : null;
   };
 
+  const pajares = (): string[] => !entregado
+    ? (chunks.length > 0 ? chunks.map(c => c.text) : fallbackText ? [fallbackText] : [])
+    : [...(entregado.texto !== null ? [entregado.texto] : []), ...entregado.trozos.map(c => c.text)];
   const describirCon = (describe: (pajares: string[], quote: string | undefined) => string) => (quote: string | undefined): string => {
-    const pajares = !entregado
-      ? (chunks.length > 0 ? chunks.map(c => c.text) : fallbackText ? [fallbackText] : [])
-      : [...(entregado.texto !== null ? [entregado.texto] : []), ...entregado.trozos.map(c => c.text)];
     const cuantos = entregado
       ? (entregado.texto !== null ? `${entregado.trozos.length} filas visibles` : `${entregado.trozos.length} trozos`)
       : (chunks.length > 0 ? `${chunks.length} trozos` : '');
-    return `${describe(pajares, quote)}, pajar=${pajar}${cuantos ? ` (${cuantos})` : ''}`;
+    return `${describe(pajares(), quote)}, pajar=${pajar}${cuantos ? ` (${cuantos})` : ''}`;
   };
+  const datos = (quote: string | undefined, verificada: boolean) =>
+    ({ ...(verificada ? datosDelAcierto : datosDelDescarte)(pajares(), quote), pajar });
 
-  return { comprobar, describir: describirCon(describirDescarte), describirAcierto: describirCon(describirAcierto) };
+  return { comprobar, describir: describirCon(describirDescarte), describirAcierto: describirCon(describirAcierto), datos };
 }

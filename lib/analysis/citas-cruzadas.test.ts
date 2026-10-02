@@ -202,3 +202,62 @@ describe('B.313 · el registro de las citas que PASAN: observabilidad, no decide
     expect(linea).not.toContain('viernes');
   });
 });
+
+describe('B.313 · se guarda lo que se descarta: en el juicio, con campos nombrados', () => {
+  const INVENTADA = 'El material se esteriliza en el autoclave central de Retiro.';
+
+  it('ROJO antes, VERDE después: un solapamiento descartado queda en el juicio, con las dos citas COMPLETAS', () => {
+    const larga = CITA_DEL_NUEVO + ' ' + 'y además una cola que el juez añadió y que no está en ningún documento del cliente'.repeat(3);
+    const j = corregir(juicio([{ description: 'la recogida', evidenceInNewDoc: larga, evidence: CITA_DEL_EXISTENTE }]));
+    expect(j.overlappingContent).toEqual([]);
+    expect(j.descartesPorCita).toHaveLength(1);
+    const d = j.descartesPorCita![0];
+    expect(d.tipo).toBe('solapamiento');
+    expect(d.tema).toBe('la recogida');
+    expect(d.citaNuevo).toBe(larga);                // completa: más de 200 caracteres, sin cortar
+    expect(larga.length).toBeGreaterThan(200);
+    expect(d.citaExistente).toBe(CITA_DEL_EXISTENTE);
+    expect(d.ladoFallido).toBe('nuevo');
+    expect(d.nuevo).toMatchObject({ verificada: false, longitud: larga.length, pajar: 'todos_los_trozos' });
+    expect(d.existente).toMatchObject({ verificada: true, paso: 'literal', pajar: 'todos_los_trozos' });
+    expect(d.hash).toMatch(/^[0-9a-f]{8}$/);
+  });
+
+  it('ROJO antes, VERDE después: una contradicción descartada, con su tema y su paso', () => {
+    const { nuevo, existente } = lados();
+    const { judgment: j } = fixQuotesInJudgment({
+      ...juicio([]),
+      contradictions: [{ topic: 'día de recogida', newDocSays: CITA_DEL_NUEVO, existingDocSays: INVENTADA }],
+    }, nuevo, existente);
+    expect(j.descartesPorCita?.[0]).toMatchObject({
+      tipo: 'contradiccion', tema: 'día de recogida', ladoFallido: 'existente',
+      citaNuevo: CITA_DEL_NUEVO, citaExistente: INVENTADA,
+      nuevo: { verificada: true, paso: 'literal' }, existente: { verificada: false, paso: 'sin_cabeza' },
+    });
+  });
+
+  it('el TOPE: 10 por pareja, y los demás se cuentan', () => {
+    const muchos = Array.from({ length: 13 }, (_, i) => ({ description: `p${i}`, evidenceInNewDoc: `${INVENTADA} número ${i}`, evidence: CITA_DEL_EXISTENTE }));
+    const j = corregir(juicio(muchos));
+    expect(j.descartesPorCita).toHaveLength(10);
+    expect(j.descartesPorCitaOmitidos).toBe(3);
+    expect(j.discarded?.citaNoVerificable).toBe(13);   // el contador sigue contándolos todos
+  });
+
+  it('CONTROL: sin descartes por cita, el juicio no lleva ni la lista ni la cuenta', () => {
+    const j = corregir(juicio([{ description: 'la recogida', evidenceInNewDoc: CITA_DEL_NUEVO, evidence: CITA_DEL_EXISTENTE }]));
+    expect(j).not.toHaveProperty('descartesPorCita');
+    expect(j).not.toHaveProperty('descartesPorCitaOmitidos');
+  });
+
+  it('CONTROL: lo descartado por narración no entra (sólo «cita no verificable»), y el log de siempre sigue', () => {
+    const j = corregir(juicio([{ description: 'x', evidenceInNewDoc: 'El fragmento [2] muestra que se recoge los martes', evidence: CITA_DEL_EXISTENTE }]));
+    expect(j.discarded?.narracionEnCita).toBe(1);
+    expect(j).not.toHaveProperty('descartesPorCita');
+  });
+
+  it('la línea de log del descarte no cambia', () => {
+    corregir(juicio([{ description: 'x', evidenceInNewDoc: INVENTADA, evidence: CITA_DEL_EXISTENTE }]));
+    expect(avisos.find(a => a.includes('Solapamiento descartado'))).toMatch(/lado=nuevo; nuevo: longitud=\d+, paso=\w+, pajar=todos_los_trozos/);
+  });
+});

@@ -4,6 +4,7 @@
  */
 
 import type { FragmentContext } from './fragment-context';
+import type { DatosDeLaCita, PajarDeLaCita } from './coincidencia-de-cita';
 import type { PipelineCounters } from './counters';
 import type { Termometro } from './termometro';
 import type { CoberturaDeCandidatos } from './cobertura-de-candidatos';
@@ -143,7 +144,38 @@ export interface DocumentJudgment {
   }>;
   uniqueToNewDoc: string[];
   discarded?: DiscardedFindings;
+  /** B.313: los hallazgos de esta pareja descartados por cita no verificable,
+   *  hasta `TOPE_DE_DESCARTES_POR_PAREJA` (diagnostico-de-cita.ts). Lo lee
+   *  `SQL_B313_citas_descartadas.sql`; ninguna pantalla. */
+  descartesPorCita?: DescarteDeCita[];
+  /** Los que no cupieron en el tope. Ausente = ninguno; si alguna vez vale algo,
+   *  es un hallazgo: el juez descartó más de diez en una pareja. */
+  descartesPorCitaOmitidos?: number;
 }
+
+/**
+ * B.313 (02/10/2026) — UN HALLAZGO DESCARTADO POR CITA NO VERIFICABLE, GUARDADO.
+ * «Una puerta que descarta tiene que guardar lo que descartó» (protocolo). Campos
+ * con nombre, no la respuesta del modelo. Las dos citas van COMPLETAS, cada una
+ * en el campo del lado al que la asignó el juez. El id del candidato es el del
+ * juicio que lo lleva; el del analizado, el de la fila (o su `storage_path`,
+ * F-101).
+ */
+export interface DescarteDeCita {
+  hash: string;
+  /** `topic` de la contradicción, o `description` del solapamiento. */
+  tema: string;
+  tipo: 'contradiccion' | 'solapamiento';
+  citaNuevo: string;
+  citaExistente: string;
+  ladoFallido: 'nuevo' | 'existente' | 'ambos';
+  /** Por lado: si pasó, longitud, el paso (la vía si pasó, dónde se rindió si
+   *  no) y el pajar contra el que se comprobó. */
+  nuevo: LadoDelDescarte;
+  existente: LadoDelDescarte;
+}
+
+export type LadoDelDescarte = DatosDeLaCita & { verificada: boolean; pajar: PajarDeLaCita };
 
 /** Modo de análisis: rápido (v2 con muestreo) o exhaustivo (multicapa, sin muestreo). */
 export type AnalysisMode = 'quick' | 'exhaustive';
