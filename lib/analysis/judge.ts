@@ -4,7 +4,8 @@ import { runInBatches } from '@/lib/run-in-batches';
 import { sanitizeJudgeContradictions, hashCitationPair, traducirSolapamientosDelJuez } from './llm-boundary';
 import { getOrderedColumns, groupChunksByTable, renderTableBlock, alignQuoteToCells, despegarPunteroDeFila } from './table-structure';
 import { normalize } from './normalize';
-import { findBestMatch, comprobadorDeLado, loEntregadoDeLaPareja, diagnosticoDelDescarte, diagnosticoDelAcierto, type ComprobadorDeLado } from './coincidencia-de-cita';
+import { findBestMatch, comprobadorDeLado, loEntregadoDeLaPareja, type ComprobadorDeLado } from './coincidencia-de-cita';
+import { diagnosticoDelDescarte, diagnosticoDelAcierto } from './diagnostico-de-cita';
 import type { RerankedCandidate, DocumentJudgment, PipelineOptions, DiscardedFindings, DocumentFragment, LecturaDeLaPareja, TextoAnalizado } from './types';
 import type { StoredChunk } from '@/lib/read-chunks';
 

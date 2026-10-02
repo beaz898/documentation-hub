@@ -10728,7 +10728,7 @@ bueno del arquitecto a la (c).
   traduce.** Lo que se le pide se escribe para que el modelo no se equivoque, y lo que se guarda
   se queda como está. **Si hubiera que cambiar la forma guardada para mejorar un prompt, la
   frontera no estaría haciendo su trabajo.**
-- **El detector** (`diagnosticoDelDescarte`, `lib/analysis/coincidencia-de-cita.ts:361`): cuando
+- **El detector** (`diagnosticoDelDescarte`, hoy en `lib/analysis/diagnostico-de-cita.ts:25`; nació en `coincidencia-de-cita.ts`): cuando
   una cita falla en su lado, se prueba en el otro. Si allí verifica, la línea de descarte añade
   `cruzada: la cita del nuevo está en el existente` (o al revés).
   - **El hallazgo se descarta igual**: sólo observa.
@@ -11111,6 +11111,8 @@ longitud y su paso:
       y sólo en las citas que fallan por ese paso.
     - **Lo caro es el sitio**: `lib/analysis/coincidencia-de-cita.ts` está en 399 líneas, y el tope
       es 400. Añadirlo obliga a partir antes el fichero.
+    - **Partido el 02/10** para guardar lo descartado: los diagnósticos de log se fueron a
+      `lib/analysis/diagnostico-de-cita.ts`, y `coincidencia-de-cita.ts` bajó a 362 líneas.
 - **HIPÓTESIS DEL ARQUITECTO, SIN MEDIR Y NO CAUSA: el juez deja de ser literal cuando la cita se
   le alarga.**
   - El prompt **ya le pide «Máximo 1 frase por cita»** (`lib/analysis/judge.ts:831`). Si la
