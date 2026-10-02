@@ -11028,6 +11028,27 @@ de un caso y el protocolo, así que el fallo no puede venir de ahí.
     - o las dos.
 
     Lo que no arregla nada es subir el tope global a ciegas.
+- ✅ **ARREGLADO EL 02/10/2026, con las dos salidas** (decisión del arquitecto). Sólo tests y
+  configuración:
+  - **El árbol se lee UNA vez**: `codigo()` lo lee y lo guarda la primera vez, y los dos censos
+    filtran lo guardado (`lib/examen/autenticacion.test.ts:41-55`).
+  - **Tope propio, de 120.000 ms**, en el `describe`. El comentario dice que es una guarda contra
+    cuelgues y no un requisito de rendimiento (`:59-71`).
+  - **El tope global no se toca**: sigue en 15.000 (`vitest.config.mts:86`).
+  - **La premisa del global, corregida** (`vitest.config.mts:64-79`): «sin E/S» era falso, y no
+    para un test sino para **una clase**.
+    - El comentario la nombra con su comando de censo: 29 ficheros de test leen disco y 9
+      recorren el árbol con `readdirSync`.
+    - Y dice lo que queda: **los otros ocho siguen bajo el tope global.**
+  - **Medido, en caliente**, en milisegundos por caso, en el orden del fichero:
+
+    | | 1.ª pasada | 2.ª pasada |
+    |---|---|---|
+    | antes | 269 · 110 · 104 | 229 · 109 · 103 |
+    | después | 127 · 4 · 4 | 170 · 4 · 4 |
+
+    El primer caso paga la lectura y los otros dos ya no leen nada. **En frío no se ha
+    medido**: el rojo no se provoca a voluntad, y el tope propio es lo que lo cubre.
 
 
 ---

@@ -33,15 +33,42 @@ function ficherosDeCodigo(): string[] {
   return salida;
 }
 
-const leenLaCabecera = () => ficherosDeCodigo()
-  .filter(f => /headers\.get\(\s*['"]authorization['"]\s*\)/i.test(readFileSync(f, 'utf8')));
+/**
+ * EL ÁRBOL SE LEE UNA SOLA VEZ para los tres casos (02/10/2026, B.286).
+ * Antes cada censo volvía a recorrer y a leer los ~290 ficheros: cuatro veces
+ * el mismo trabajo, y un rojo cada vez que el disco venía frío.
+ */
+let codigoLeido: Array<{ ruta: string; texto: string }> | null = null;
+function codigo(): Array<{ ruta: string; texto: string }> {
+  if (codigoLeido === null) {
+    codigoLeido = ficherosDeCodigo().map(ruta => ({ ruta, texto: readFileSync(ruta, 'utf8') }));
+  }
+  return codigoLeido;
+}
 
-const validanUnToken = () => ficherosDeCodigo()
-  .filter(f => /auth\.getUser\(\s*[^)\s]/.test(readFileSync(f, 'utf8')));
+const leenLaCabecera = () => codigo()
+  .filter(f => /headers\.get\(\s*['"]authorization['"]\s*\)/i.test(f.texto))
+  .map(f => f.ruta);
+
+const validanUnToken = () => codigo()
+  .filter(f => /auth\.getUser\(\s*[^)\s]/.test(f.texto))
+  .map(f => f.ruta);
 
 const EXAMEN = 'app/api/admin/examen/route.ts';
 
-describe('el token de sesión por cabecera, sólo en el examen', () => {
+/**
+ * ⚠️ UNA GUARDA CONTRA CUELGUES, NO UN REQUISITO DE RENDIMIENTO.
+ * Este fichero recorre y lee el código del repositorio: E/S de disco, cuyo
+ * tiempo depende de la caché (0,1-0,3 s en caliente; hasta 20 s medidos con la
+ * máquina cargada, B.286). Lo que afirma es un CENSO —qué ficheros leen la
+ * cabecera o validan un token—, no una velocidad. Por eso no usa el tope global
+ * (`vitest.config.mts`), pensado para funciones puras sin E/S: lleva el suyo,
+ * generoso, que sólo existe para que un cuelgue de verdad no deje la suite
+ * esperando para siempre. Si algún día se acerca a él, el problema no es el tope.
+ */
+const TOPE_CONTRA_CUELGUES_MS = 120_000;
+
+describe('el token de sesión por cabecera, sólo en el examen', { timeout: TOPE_CONTRA_CUELGUES_MS }, () => {
   it('⚠️ CONTROL POSITIVO — los dos censos SÍ ven el endpoint del examen', () => {
     expect(leenLaCabecera()).toContain(EXAMEN);
     expect(validanUnToken()).toContain(EXAMEN);

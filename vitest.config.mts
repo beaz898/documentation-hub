@@ -61,6 +61,23 @@ export default defineConfig({
      * esperas, un caso que tardara 15 s tendría que estar en un bucle infinito de
      * CPU, y eso no lo esconde ningún tope: lo canta la duración total.
      *
+     * ⚠️ CORREGIDO EL 02/10/2026 (B.286): «SIN E/S» ERA FALSO, y lo es para una
+     * clase entera, no para un caso. Sin RED sí —la guarda lo hace cumplir—, pero
+     * hay casos que LEEN DISCO LOCAL, y su reloj de pared depende de la caché:
+     *   · los que leen fixtures (`corpus-pruebas/`, `examen/`) y ficheros del
+     *     repositorio, con `readFileSync`;
+     *   · y los CENSOS que RECORREN EL ÁRBOL con `readdirSync`, que son los caros.
+     * El censo que define la clase, para repetirlo:
+     *   grep -rlE "readFileSync|readdirSync|readFile\(|statSync" \
+     *     --include=*.test.ts --include=*.test.mjs lib app scripts
+     * El 02/10 daba 29 ficheros, 9 de ellos con `readdirSync`. Leer disco local no
+     * se cuelga, pero se queda sin tiempo: el 29/09 y el 02/10 cayó en rojo
+     * `lib/examen/autenticacion.test.ts`, a 16.954 ms y 19.795 ms, y a 0,5 s al
+     * repetirlo. Ése ya lee el árbol una sola vez y lleva su propio tope,
+     * declarado como guarda contra cuelgues. **Los otros ocho que recorren el
+     * árbol siguen bajo este tope global**, y son los candidatos al siguiente rojo
+     * del disco frío.
+     *
      * ⚠️ Y NO SUSTITUYE AL CALENTAMIENTO de `Intl` de `vitest.setup.ts`: aquél
      * quita el coste fijo del camino de los tests, esto da margen al resto. Se
      * pusieron en el MISMO commit a propósito — uno solo de los dos deja la mitad
