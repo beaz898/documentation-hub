@@ -10523,12 +10523,25 @@ aprobada por su cabeza y su cola puede no encontrarla.
   pasan.
 - Saberlo exige registrar también el paso de las que pasan. Es un cambio pequeño, y no se ha
   hecho.
+- ✅ **Hecho en el LOG el 02/10** (`99ea712e`, para B.313): «Contradicción verificada» y
+  «Solapamiento verificado» llevan la vía por lado. **En el HALLAZGO sigue sin guardarse**: la
+  pieza de abajo sigue pendiente.
 
 📌 **LA PRIMERA PIEZA DEL ARREGLO, escrita ya y sin implementar** (arquitecto, 02/10): **el camino
 por el que se verificó cada cita —literal, normalizado, cabeza y cola, o segmentos— tiene que
 quedar registrado EN EL HALLAZGO**, no sólo en el log del descarte. Hoy no se guarda, y por eso
 «cuántos hallazgos publicados pasaron por el camino aproximado» es «no consta». Es la misma
 disciplina que los contadores: una decisión sin registro no se puede auditar.
+
+⚠️ **EL RIESGO ERA MÁS AMPLIO DE LO QUE ES** (corrección del 02/10, por B.314). «Publicar como
+literal una cita aproximada» sólo hace daño donde la cita **se enseña**:
+- en el modal del **exhaustivo**, las de las contradicciones;
+- y en el **editor de mejora**: siempre si se abre desde la bandeja, y desde el chat sólo tras un
+  exhaustivo.
+
+En el modal del **rápido** no se enseña ninguna cita, y las de los solapamientos **no se pintan en
+ninguna vista**. Ahí la cita aproximada decide si se publica la pareja y adónde salta el editor,
+pero el usuario no la lee. **El riesgo de B.311 se estrecha a esos sitios.**
 
 **Sin arreglo.** Es una ficha y una decisión del director. Los caminos posibles —publicar el
 recorte del documento en prosa y la cita del juez en tablas; exigir el centro; o declararla
@@ -10762,7 +10775,7 @@ bueno del arquitecto a la (c).
   manda el nuevo.
 - **Y se registra, con su cuenta**: `frontera.solapamiento_con_nombre_viejo`, en el
   `discarded` de la pareja, que se guarda. La línea `RAW` del log lo dice también
-  (`judge.ts:886`): «(N con el nombre viejo, evidence)». **Sin ese registro, el fallback taparía el
+  (`judge.ts:889`): «(N con el nombre viejo, evidence)». **Sin ese registro, el fallback taparía el
   fallo en vez de medirlo**: es lo que dirá si el nombre nuevo lo adoptó el modelo o lo sostenemos
   nosotros.
   - **Por qué en `discarded` y no en `pipelineCounters`**: es el canal que ya usa esta misma
@@ -10838,9 +10851,9 @@ veredicto.** Las sondas: dos análisis sueltos, NOR-11 y NOR-10, `0 ids de tanda
   los descartes la lleva. Si sigue saliendo 5 de 5, quitar la trampa no era suficiente y el
   modelo cruza los campos por su cuenta.
   - **Se juzga con** las líneas `[judge] Solapamiento descartado en "…" […] (cita no verificable,
-    lado=…; …)` (`lib/analysis/judge.ts:502`). La marca es `cruzada: la cita del … está en el …`.
+    lado=…; …)` (`lib/analysis/judge.ts:505`). La marca es `cruzada: la cita del … está en el …`.
   - **El denominador** son los solapamientos que emitió el juez: `… N solapamientos` de cada línea
-    `[judge] RAW analizado=… candidato=…` (`judge.ts:881-887`).
+    `[judge] RAW analizado=… candidato=…` (`judge.ts:884-890`).
 - **P-B312-2 · APARECEN SOLAPAMIENTOS PUBLICADOS EN NOR-11 / CLI-13**, donde ayer murieron los
   cinco. Es la cara visible: el usuario ve por fin puntos concretos del solape que el juez ya
   decía que había.
@@ -10863,7 +10876,7 @@ veredicto.** Las sondas: dos análisis sueltos, NOR-11 y NOR-10, `0 ids de tanda
   nuevo y la red de seguridad no tiene que trabajar. Si aparece, el nombre nuevo no se adoptó y
   lo estamos sosteniendo nosotros: entonces el fallback pasa de red a pieza permanente, con su
   ficha.
-  - **Se juzga con** la línea `[judge] RAW analizado=… candidato=…` (`judge.ts:881-887`), que añade
+  - **Se juzga con** la línea `[judge] RAW analizado=… candidato=…` (`judge.ts:884-890`), que añade
     «(N con el nombre viejo, evidence)» sólo cuando pasa.
   - En lo guardado: `frontera.solapamiento_con_nombre_viejo` en el `discarded` de cada juicio.
 - **P-B312-4 · LAS CONTRADICCIONES NO CAMBIAN: 2 publicadas en NOR-11 y 0 en NOR-10.**
@@ -10959,16 +10972,19 @@ los ha visto. Dos pasadas de NOR-10 solo, a las 09:01:54 y a las 09:02:28, `0 id
   - **CLI-13, `corte_honesto`** (30183/66801 y 9817/9817): solape 0 %, 0 y 0.
   - Verificador: 0 → 0. **Publicadas: 0 contradicciones.**
 - **Pasada 2** (20.309 ms):
-  - **CLI-12**: solape **8 %**, 1 contradicción y 2 solapamientos.
+  - **CLI-12**: solape **8 %**, 1 contradicción y **2 solapamientos emitidos**.
     - `[98277f67]` «Autoridad para retirar autoclave de servicio tras fallo de c…» → **CONFIRMADA
       POR JUICIO Y PUBLICADA**.
     - 1 solapamiento descartado, `[cd5cb1f1]`: lado=nuevo, **longitud=175,
       paso=cola_demasiado_lejos**. Sin la marca «cruzada».
   - **CLI-13**: solape 0 %, 0 y 0.
   - Verificador: 1 → 1. **Publicadas: 1 contradicción.**
-  - ⚠️ **No consta para Code** si «2 solapamientos» es lo que emitió el juez (la línea `RAW`, y
-    entonces sobrevivió 1) o lo que sobrevivió (y entonces se emitieron 3). El arquitecto lee «2
-    sobreviven». Lo decide la línea `RAW` de esa pasada.
+  - **Resuelto (arquitecto, 02/10)**: la línea que trae el director es la `RAW`, y ésa imprime
+    `rawJudgment.overlappingContent.length`, lo que el juez EMITIÓ antes de la comprobación
+    (`lib/analysis/judge.ts:884-890`, antes de `fixQuotesInJudgment` en `:905`). Así que, con
+    CLI-12:
+    - pasada 2: **2 emitidos, 1 descartado, 1 sobrevivió**;
+    - pasada 1: **3 emitidos, 0 descartados, 3 sobrevivieron**.
 
 🏁 **UN HITO, Y SU RESERVA VA DELANTE:**
 - ⚠️ **RESERVA: 1 DE 2 PASADAS.** Por la regla de estabilidad (B.295: 5/5 estable-acierto, 0/5
@@ -10979,11 +10995,20 @@ los ha visto. Dos pasadas de NOR-10 solo, a las 09:01:54 y a las 09:02:28, `0 id
   sale con el corpus haciendo su trabajo solo.
 - **El control negativo sigue limpio en las dos**: NOR-10 con CLI-13, 0 %.
 
+📌 **HALLAZGO DE PRODUCTO, nombrado y SIN arreglo: CON NOR-10, DOS PASADAS SEGUIDAS DAN AL USUARIO
+RESULTADOS DISTINTOS.**
+- Con los mismos candidatos, el mismo rerank, los mismos regímenes y los mismos caracteres
+  entregados:
+  - la contradicción sembrada se publica en una pasada y en la otra no (0 y 1);
+  - y los solapamientos vivos con CLI-12 son 3 en una y 1 en la otra.
+- Dibujan lo mismo: **lo que cambia entre pasadas es lo que escribe el juez**, y el usuario lo ve
+  como dos respuestas distintas a la misma pregunta.
+
 ✅ **B.312 CERRADA (02/10/2026): arreglada, desplegada y medida. Cuatro pasadas, cero cruces.**
 - En las cuatro pasadas de hoy, dos de NOR-11 y dos de NOR-10, **la marca «cruzada» no aparece ni
   una vez, y el nombre viejo del campo tampoco.** Ayer morían cruzados 5 de 5; hoy, ninguno.
-- En NOR-10 con CLI-12, que ayer perdió por el cruce su único solapamiento, hoy sobreviven 3 en la
-  primera pasada y, en la segunda, lo que diga la línea `RAW` (arriba).
+- En NOR-10 con CLI-12, que ayer perdió por el cruce su único solapamiento, hoy sobreviven **3 en
+  la primera pasada y 1 en la segunda**.
 - **P-B312-1 y P-B312-3: ACERTADAS, confirmadas en cuatro pasadas.**
 - 📌 **LO QUE FUE: EL MODELO NO CRUZABA LOS CAMPOS POR SU CUENTA. LOS CRUZABA PORQUE SE LOS
   PEDÍAMOS AL REVÉS. El fallo era nuestro, de principio a fin.**
@@ -11052,12 +11077,28 @@ longitud y su paso:
     o más.
   - ⚠️ **Es ambiguo**: la cabeza se busca sólo en su PRIMERA aparición. Así que puede ser que el
     juez cambiara el medio, o que esa cabeza aparezca antes en otro sitio del texto.
+  - 📌 **EL PASO NOMBRA DÓNDE SE RINDIÓ LA BÚSQUEDA, NO POR QUÉ** (corrección del arquitecto a su
+    propia lectura, 02/10: la había traducido por «el medio no coincide»).
+  - **Consecuencia: la hipótesis de la longitud no se puede contestar sólo con el paso.** La tabla
+    de longitudes sigue valiendo para ella; para separar las dos causas de
+    `cola_demasiado_lejos` hace falta algo más.
+  - **Qué faltaría, y qué cuesta** (respuesta de Code, sin hacer): en ese paso, y sólo en él,
+    probar TODAS las apariciones de la cabeza —no sólo la primera— y anotar el tramo más corto
+    hasta su cola, dividido por la longitud de la cita.
+    - **Si ese cociente baja de 3**, la búsqueda se rindió por una cabeza repetida, y la cita
+      habría pasado por cabeza y cola. **Eso no sería B.313: sería un defecto del comprobador.**
+    - **Si no baja de 3**, la cabeza y la cola están de verdad lejos: el juez juntó dos sitios
+      distantes en una sola cita.
+    - **En cálculo es barato**: unos `indexOf` sobre el texto normalizado, que ya está calculado,
+      y sólo en las citas que fallan por ese paso.
+    - **Lo caro es el sitio**: `lib/analysis/coincidencia-de-cita.ts` está en 399 líneas, y el tope
+      es 400. Añadirlo obliga a partir antes el fichero.
 - **HIPÓTESIS DEL ARQUITECTO, SIN MEDIR Y NO CAUSA: el juez deja de ser literal cuando la cita se
   le alarga.**
   - El prompt **ya le pide «Máximo 1 frase por cita»** (`lib/analysis/judge.ts:831`). Si la
     hipótesis se sostiene, no haría falta una regla nueva, sino que cumpla la que tiene.
-  - Que la cita de 244 caracteres lleve «dos rayas en medio» lo dice el arquitecto. **No consta
-    para Code**: el log corta las citas a 200 caracteres.
+  - ~~Que la cita de 244 caracteres lleve «dos rayas en medio».~~ **RETIRADO** (arquitecto, 02/10): no
+    se puede afirmar con el log cortado a 200 caracteres.
 - **LA MEDICIÓN QUE LA DECIDE, ya puesta** (02/10): el registro escribe la longitud y la vía
   **también cuando la cita PASA**. Hasta ahora sólo se escribía al fallar: se tenía el numerador y
   no el denominador.
@@ -11081,6 +11122,47 @@ longitud y su paso:
   comprobar que obedece, con caso rojo y verde y antes y después.
 
 **Sin arreglo. Una ficha, y a la cola** del orden del 02/10, detrás de B.312.
+
+### 📋 B.314 — LA CITA NO LLEGA AL USUARIO: en el modo rápido, casi ninguna vista enseña una cita (ficha de PRODUCTO, SIN arreglo, decide el director; 02/10/2026)
+
+**De dónde sale**: la pregunta del arquitecto del 02/10 sobre qué vistas enseñan las citas,
+contestada leyendo la interfaz. Leído, no ejecutado. No es un fallo del análisis, y no se arregla
+donde se está trabajando: por eso es una ficha propia.
+
+**LO QUE VE EL USUARIO, vista a vista:**
+
+| Vista | Contradicciones | Solapamientos |
+|---|---|---|
+| Modal del análisis **rápido**, desde el chat y desde la bandeja (`components/AnalysisModal.tsx:276-283`) | **sólo el número**, con la invitación al exhaustivo | descripción y gravedad, **sin citas** (`:326-359`) |
+| Modal del análisis **exhaustivo** (`:285-297`) | el tema y **las dos citas** | descripción y gravedad, sin citas |
+| **Editor de mejora** abierto desde el **chat** tras un rápido | **ninguna**: se quitan antes de abrirlo (`hooks/chat/useDocuments.ts:314-319`) | descripción y gravedad; la cita del nuevo sólo sirve para saltar al fragmento |
+| **Editor de mejora** abierto desde la **bandeja** | **las dos citas**, en la descripción (`components/improvement/problems.ts:302`, pintada en `ChatPanel.tsx:539`): la bandeja le pasa el análisis guardado entero, también si es rápido (`app/(authenticated)/settings/review/page.tsx:230-247`) | descripción y gravedad, igual |
+
+- La cita del lado existente de un solapamiento, `evidence`, **no la lee ningún componente de la
+  interfaz**.
+- ⚠️ **Precisión de Code al enunciado del arquitecto** («en el modo rápido no se le enseña ni una
+  cita»): es así **salvo por un camino**. El editor abierto desde la bandeja recibe el análisis
+  rápido entero y pinta las citas de sus contradicciones. Desde el chat, no: se quitan con un
+  comentario que dice que «las contradicciones se verifican y trabajan desde el análisis
+  exhaustivo». Dos caminos al mismo editor tratan distinto el mismo análisis rápido.
+
+**LAS TRES COSAS QUE LA HACEN IMPORTAR** (arquitecto, 02/10):
+- **(a) Lo que hace creíble el producto es la FRASE, no el recuento.** «Hay 2 contradicciones» pide
+  un acto de fe; «esta frase dice 72 horas y esta otra dice 7 días», no.
+- **(b) EL DATO YA ESTÁ**: verificado, guardado y persistido. **Esto no es construir una función:
+  es pintar lo que ya existe.** Lo que haría falta, en una línea: que el modal del rápido pinte
+  `newDocSays` y `existingDocSays` de cada contradicción, como ya hace el exhaustivo, y
+  `evidenceInNewDoc` y `evidence` de cada solapamiento. Para eso, `synthesize.ts` tendría que
+  dejar de juntar los puntos de una pareja en una sola descripción, y la cita del existente
+  tendría que viajar hasta `overlaps`, donde hoy no llega.
+- **(c) ⚠️ EL REENCUADRE, que va también a B.311**: en los solapamientos, la comprobación de citas
+  **no protege lo que el usuario lee**. Protege la decisión de publicar la pareja (sólo se publica
+  si sobrevive alguna cita) y el destino del salto en el editor.
+  - **La cita es evidencia para nosotros, no para el usuario.**
+  - En las contradicciones sí es lo que el usuario lee, pero sólo en el exhaustivo y en el editor.
+
+**Sin arreglo, y sin tocar nada.** Si entra en el tablero, y en qué puesto, lo decide el director;
+se lo plantea el arquitecto.
 
 ### ⚠️ B.297 — LA LECTURA DE TROZOS SIN PAGINAR, y su margen medido (29/09/2026)
 
