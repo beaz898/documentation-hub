@@ -233,3 +233,25 @@ describe('los tipos sobreviven a la mudanza al .mjs', () => {
     expect(() => claveSegura(null)).toThrow();
   });
 });
+
+describe('puesto 0 (02/10/2026) · normalize quita los signos y DESPUÉS colapsa los espacios', () => {
+  it('⚠️ COMPORTAMIENTO NUEVO Y DELIBERADO: «a - 5» y «a 5» quedan IGUALES (riesgo latente, ficha en Estado_Del_MVP.md)', () => {
+    expect(normalize('a - 5')).toBe(normalize('a 5'));
+    expect(normalize('temperatura - 5')).toBe('temperatura 5');
+  });
+
+  it('un signo suelto entre espacios no deja un espacio doble', () => {
+    expect(normalize('a — b')).toBe('a b');
+    expect(normalize('juego.\n- Higienistas')).toBe('juego higienistas');
+  });
+
+  it('la prueba de que el orden está bien: normalizar dos veces da lo mismo que una', () => {
+    for (const s of ['a — b', 'a - b – c — d', '  «x»  y ( z ) ', 'juego.\n- Higienistas', 'uno . dos , tres', '— al principio y al final —']) {
+      expect(normalize(normalize(s))).toBe(normalize(s));
+    }
+  });
+
+  it('lo que ya se fundía sigue igual: el signo pegado («-5» y «5»)', () => {
+    expect(normalize('-5')).toBe(normalize('5'));
+  });
+});

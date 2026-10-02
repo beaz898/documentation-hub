@@ -3,7 +3,7 @@ import type { StoredChunk } from '@/lib/read-chunks';
 import { verifyQuote } from './judge';
 import { normalize } from './normalize';
 import {
-  normalizarConPosiciones, findBestMatch, describirDescarte,
+  normalizarConPosiciones, findBestMatch, describirDescarte, describirAcierto,
   comprobadorDeLado, loEntregadoDeLaPareja, candidatoEntregadoEntero,
 } from './coincidencia-de-cita';
 import type { LecturaDeLaPareja } from './types';
@@ -327,5 +327,40 @@ describe('B.313 · describirAcierto: por qué vía pasó una cita, y su longitud
 
   it('el puntero de fila no cuenta en la longitud, como en los descartes', () => {
     expect(lado.describirAcierto('[F3] El control biológico del autoclave se realiza cada lunes')).toContain('longitud=56');
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// PUESTO 0 (02/10/2026) — normalize(): QUITAR SIGNOS Y DESPUÉS COLAPSAR
+// ═══════════════════════════════════════════════════════════════════════════
+
+describe('puesto 0 · un signo suelto entre espacios ya no deja un espacio doble', () => {
+  it('ROJO antes, VERDE después: «a — b» — la cita SIN la raya casa por la vía normalizada', () => {
+    const pajar = 'El plazo — de 72 h desde el cierre del contenedor.';
+    const cita = 'el plazo de 72 h desde el cierre';
+    expect(findBestMatch(pajar, cita)).not.toBeNull();
+    expect(describirAcierto([pajar], cita)).toBe(`longitud=${cita.length}, paso=normalizada`);
+  });
+
+  // La cita del control positivo de N3 (examen), tal como la guardó el examen
+  // del 27/09, contra el texto tal como lo extraen los dos documentos: una
+  // lista con viñetas que el juez copió sin los guiones.
+  const UNIFORMES = 'Odontólogos: casaca azul marino corporativa con logo Dentavia bordado, pantalón a juego. Higienistas y auxiliares: casaca gris corporativa con logo Dentavia, pantalón a juego. Recepción: polo o camisa corporativa en azul claro';
+  const MKT01 = '- Odontólogos: casaca azul marino corporativa con logo Dentavia bordado, pantalón a juego.\n- Higienistas y auxiliares: casaca gris corporativa con logo Dentavia, pantalón a juego.\n- Recepción: polo o camisa corporativa en azul claro.\n- Calzado cerrado y antideslizante';
+  const RRHH05 = '- Odontólogos: casaca azul marino corporativa con logo Dentavia\n  bordado, pantalón a juego.\n- Higienistas y auxiliares: casaca gris corporativa con logo Dentavia,\n  pantalón a juego.\n- Recepción: polo o camisa corporativa en azul claro, sin bata\n  clínica.';
+
+  it('ROJO antes, VERDE después: la lista de uniformes de N3 casa por la vía NORMALIZADA en MKT-01', () => {
+    expect(describirAcierto([MKT01], UNIFORMES)).toBe(`longitud=${UNIFORMES.length}, paso=normalizada`);
+  });
+
+  it('ROJO antes, VERDE después: y en RRHH-05, con sus saltos de línea a mitad de frase', () => {
+    expect(describirAcierto([RRHH05], UNIFORMES)).toBe(`longitud=${UNIFORMES.length}, paso=normalizada`);
+  });
+
+  it('CONTROL NEGATIVO: con un dato cambiado, la lista NO casa por ninguna vía exacta', () => {
+    const cambiada = UNIFORMES.replace('casaca gris', 'casaca verde');
+    const r = describirAcierto([MKT01], cambiada);
+    expect(r).not.toContain('paso=literal');
+    expect(r).not.toContain('paso=normalizada');
   });
 });

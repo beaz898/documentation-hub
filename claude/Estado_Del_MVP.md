@@ -11396,6 +11396,79 @@ dato».
     sin tolerancia.
   - **No se escribe**: el orden del tablero lo fija el arquitecto con esta medida.
 
+**🗿 EL JUEZ NO REFORMULA: ESCULPE** (arquitecto, 02/10). Toma frases reales y les quita lo que no rima
+con la cita del otro lado.
+- En el autoclave quitó 159 caracteres de en medio de la frase 31, 117 del principio de la 32 y el
+  «Es» inicial, que se llevó el verbo. **Lo quitado es justo lo que no encaja en la forma de la frase
+  de CLI-12** («es quien autoriza…, quien firma…, y quien decide…»).
+- En Chamberí lo hizo eligiendo y pegando; aquí, borrando. **Mismo motivo, dos técnicas**: que las dos
+  caras se lean en paralelo.
+- **La cuarta respuesta que no se previó tiene nombre: OMISIÓN.**
+- **Los tres fallos del arquitecto en esta ronda**, archivados: no era la (2); había **tres** costuras
+  y no una; y le faltó la de «instrumental. · La responsabilidad».
+
+**📋 EL TABLERO, FIJADO (arquitecto, 02/10/2026). Tres commits y un despliegue**: el primero arregla
+la raíz, el segundo **deja de publicar lo falso** y el tercero **devuelve lo verdadero**.
+- **PUESTO 0 · `normalize()`: quitar los signos y DESPUÉS colapsar los espacios.** Opción (a) del
+  informe de Code: un solo criterio en la casa. Su riesgo latente, en B.317.
+- **PUESTO 1 · SE RETIRA EL PASO DE CABEZA Y COLA COMO ACEPTACIÓN; SE QUEDA COMO DIAGNÓSTICO.** Lo que
+  sigue aceptando: `literal`, `normalizada` y `segmentos_de_fila`. El sello de goma, en B.318.
+  - 📌 **Una heurística puede ser mala para decidir y buena para explicar.** `cabeza_sin_cola`,
+    `cola_demasiado_lejos` y `sin_cabeza` son lo que contó esta historia: si se retirara el paso
+    entero, todo fallo largo pasaría a llamarse `sin_coincidencia`.
+- **PUESTO 2 · CADA CITA SALE DE UNA SOLA FRASE**, copiada entera, sin recortes por dentro ni trozos de
+  sitios distintos. «Máximo 1 frase por cita» ya existía (`lib/analysis/judge.ts:834`): lo que faltaba
+  era prohibir el recorte interno. ⚠️ **Mueve la línea de base del arnés**, y se sabe.
+
+**EL CENSO QUE DECIDIÓ EL PUESTO 1, medido y no leído** (Code, 02/10): quién depende del paso de
+cabeza y cola.
+- `findBestMatch` sólo la usa el comprobador de citas (`verifyQuote` y `comprobadorDeLado`). El
+  verificador y el examen no la llaman, y el editor tiene sus búsquedas propias (B.314).
+- **129 citas verificadas distintas** de los análisis archivados del examen del 27/09, con el troceado
+  de hoy:
+  - **tablas**: 74 por segmentos de fila y 1 literal. **Ninguna depende del paso.**
+  - **prosa**: 35 literal, 14 normalizada y **3 sólo por cabeza y cola**.
+  - Las 3 son **la misma cita**, la lista de uniformes del control positivo de N3 (MKT-01 y RRHH-05):
+    **una copia buena**, que el juez hizo sin los guiones de la lista. Sólo dependía del paso por el
+    espacio doble que dejaba cada guion, que es justo lo que arregla el puesto 0.
+- 📌 **Así que el paso se retira SIN COSTE MEDIDO**: su precisión medida es cero (de 23 citas
+  publicadas, la única que lo necesitó era falsa), y su utilidad medida, después del puesto 0,
+  también.
+
+**🔮 LAS PREDICCIONES, CON SU BANDA, ESCRITAS ANTES DE MEDIR** (arquitecto, 02/10). Sin veredicto.
+Cinco pasadas de cada sonda (NOR-11 y NOR-10, sin tanda), tras desplegar los tres puestos:
+- **P-1 · El paso `cabeza_y_cola` no aparece ni una vez en el log, en 5 de 5 pasadas de las dos
+  sondas.**
+  - **Se juzga con** las líneas de las citas que pasan: «[judge] Contradicción verificada en …» y
+    «[judge] Solapamiento verificado en …».
+  - ⚠️ **Precisión de Code**: después del puesto 1, `cabeza_y_cola` **sigue saliendo** en las líneas
+    de DESCARTE, a propósito, como diagnóstico: allí quiere decir «habría pasado por la tolerancia, y
+    ya no pasa». Y lo cuenta `frontera.cita_solo_por_cabeza_y_cola`. **Contarlo ahí como fallo de
+    P-1 sería leer el diagnóstico como aceptación.**
+- **P-2 · La contradicción del punto de retirada se publica en al menos 4 de 5 pasadas de NOR-11,
+  con `paso=literal` en los dos lados.** Es la sembrada 2; sería 3 de 3 en NOR-11.
+  - **Se juzga con** su línea «Contradicción verificada», con `paso=literal` en los dos lados, y lo
+    publicado (lo guardado, o la pantalla).
+  - Su hash cambiará, porque la cita será otra. Se identifica por el tema.
+- **P-3 · La sembrada A de NOR-10 se publica con `paso=literal` en al menos 3 de 5 pasadas.** Banda
+  más ancha a propósito: es la que lleva cuatro días inestable. Se juzga igual que P-2.
+- **P-4 · Ningún solapamiento publicado se pierde**: los 8 puntos de NOR-11 pasaban todos `literal`,
+  así que deben seguir publicándose.
+  - **Se juzga con** lo publicado y las líneas «Solapamiento verificado».
+  - ⚠️ **Precisión de Code**: los 3 puntos genéricos de NOR-11 con CLI-12 (B.315) ya eran inestables
+    sin ningún cambio: 3 en una pasada y 1 en la de las 09:24. Si P-4 falla sólo por ellos, el fallo
+    no dice nada del cambio. La regla de la banda pediría escribirla como «en N de 5».
+- **P-5 · La cita de la lista de uniformes de N3 pasa por `normalizada`**, y la pareja MKT-01 / RRHH-05
+  conserva sus 5 puntos.
+  - **Se juzga con el examen, no con las sondas.**
+  - La mitad determinista ya está probada con el texto de los dos documentos
+    (`lib/analysis/coincidencia-de-cita.test.ts`, «puesto 0»). La otra mitad —que el juez la vuelva a
+    escribir igual— sólo la dice el examen.
+- ⚠️ **LO QUE NO ES UNA REGRESIÓN, escrito antes de verlo**: si entre el puesto 1 y el puesto 2 se
+  midiera algo, la sembrada A de NOR-10 saldría a **cero publicadas**. **Eso sería lo correcto: su cita
+  era falsa.** Nadie puede leer esa caída como un retroceso.
+
+
 **🔀 ~~B.313 SON DOS ENFERMEDADES, y se separan~~ — RETIRADO el mismo 02/10 (arriba: es UNA)** (arquitecto, 02/10: «mezclarlas fue mi error»):
 - **(A) CHAMBERÍ · LA COSTURA. Medido, un caso.**
   - Las dos mitades de la cita son literales y salen de las frases 77 y 72 de NOR-11, **en ese
@@ -11597,6 +11670,12 @@ donde se está trabajando: por eso es una ficha propia.
   - el chat quita las contradicciones del rápido antes de abrir el editor
     (`hooks/chat/useDocuments.ts:314-319`);
   - la bandeja le pasa el análisis guardado entero (`app/(authenticated)/settings/review/page.tsx:246`).
+- 🔁 **EL MISMO DEFECTO, EN EL OTRO EXTREMO** (arquitecto, 02/10): el editor tiene sus propias búsquedas
+  de cabeza y cola, más laxas (15 caracteres por punta): `findTolerant` (`lib/texto/localizar-cita.ts:48`),
+  que usan el estilo y el chat de mejora, y `findMatchRange` (`components/improvement/problems.ts:200`,
+  cabeza y cola en `:247`). **Son el mismo sello de goma de B.318 en el lado de la pantalla**: con una
+  cita como la de 434 caracteres del autoclave, harían saltar al sitio equivocado. **No se tocan
+  ahora.**
 
 **LAS TRES COSAS QUE LA HACEN IMPORTAR** (arquitecto, 02/10):
 - **(a) Lo que hace creíble el producto es la FRASE, no el recuento.** «Hay 2 contradicciones» pide
@@ -11698,6 +11777,66 @@ descartadas (`descartesPorCita`). Son frases del documento del cliente o escrita
 esas filas.
 
 **Sin arreglo, y sin proponer uno.** Lo decide el director; se lo plantea el arquitecto.
+
+### ⚠️ B.317 — RIESGO LATENTE: DESDE EL PUESTO 0, UN SIGNO ENTRE ESPACIOS YA NO DISTINGUE (constancia, SIN arreglo, latente; 02/10/2026)
+
+**El cambio que lo trae** (puesto 0 de B.313, decidido por el arquitecto el 02/10, opción (a) del
+informe de Code): `normalize()` quita los signos y DESPUÉS colapsa los espacios
+(`lib/analysis/normalize-core.mjs`). Arregla la raíz de tres fallos —un signo suelto entre espacios
+dejaba un espacio doble—, y el resultado nuevo es siempre el de antes con los espacios vueltos a
+colapsar. **Casa más, nunca menos**, por construcción. Y ése es el riesgo, en los sitios donde «igual
+tras normalizar» decide.
+
+**EL CASO**: «temperatura - 5» frente a «temperatura 5» **no casaban antes y casan ahora**. El caso
+decisivo, con su nombre de comportamiento nuevo y deliberado, en `lib/analysis/normalize.test.ts`
+(«a - 5» frente a «a 5»). Sin espacios, «-5» frente a «5», ya se fundían antes: es el riesgo que el
+propio `normalize-core.mjs` documenta. Lo nuevo es el signo con espacios a los dos lados.
+
+**LAS DOS CONSECUENCIAS:**
+- **A, en prosa**: `lib/analysis/finding-rules.ts:281` podría reclasificar una contradicción real como
+  «equivalentes» y **NO publicarla**, si sus dos citas sólo se diferencian en un signo así.
+- **B, en tablas**: dos filas que sólo se diferencien en un signo así podrían **colapsar como
+  idénticas** (`findIdenticalAnalyzedRow`, `lib/analysis/retrieval.ts`, F-44), y la contradicción no
+  se vería.
+
+**LA MEDIDA DE HOY: 0 casos** (Code, 02/10, antes del cambio):
+- 20 textos del corpus;
+- 0 celdas de los `.xlsx` cuyo valor normalizado cambia;
+- 0 parejas de celdas de una misma columna que se fundan de nuevas;
+- 0 de las 202 contradicciones archivadas del examen pasan a «equivalentes»;
+- y ninguna ancla de `examen/casos/` lleva un signo suelto entre espacios.
+
+Con el cambio hecho, la suite entera, con la del examen, sigue verde: 1.826 de 1.826.
+
+**QUÉ LO SACARÍA DE LATENTE**: la primera vez que un contador o una revisión vea una contradicción
+reclasificada a «equivalentes», o dos filas colapsadas, **por un signo**.
+
+**Lo que NO toca el cambio**, comprobado:
+- Ninguna identidad guardada usa `normalize`: las huellas de descarte van sobre el texto en crudo
+  (`lib/analysis/huella-hallazgo.ts:141` y `:213`).
+- El nivel seguro de las tablas (`claveSegura`, `esVarianteDeEscritura`) no quita signos, y no cambia.
+- `lib/examen/comparador-tabular.mjs` no usa `normalize`.
+- ⚠️ **Y una copia que se queda como está**: `makeDiscrepancyFingerprint` (`lib/analysis/double-check.ts:310-318`)
+  tiene su propia normalización, con el mismo orden de antes (colapsa y después quita), y es una
+  **identidad guardada** (las huellas que el reanálisis excluye). Cambiarla movería identidades
+  persistidas, y eso pide lectura dual con caducidad. **No se toca**: se anota.
+
+### 🔥 B.318 — LA PUERTA DE CABEZA Y COLA ES UN SELLO DE GOMA: defecto de NUESTRO comprobador, no del modelo (02/10/2026)
+
+**El defecto** (arquitecto, 02/10, con la medida de Code en B.311):
+- El paso de cabeza y cola (`buscarCita`, `lib/analysis/coincidencia-de-cita.ts`) valida contra la
+  **PRIMERA APARICIÓN de la cabeza en todo el documento**, aunque no sea la del pasaje citado.
+- Y acepta **cualquier cola posterior** a menos de tres veces la longitud de la cita.
+- En el autoclave ancló en la **frase 30**, que no es la de la cita, midió un tramo de 764 caracteres
+  y **dejó pasar 394 caracteres sin comprobar**.
+- **No es una verificación con tolerancia: es un sello de goma.**
+- **Y su precisión medida es CERO**: de 23 citas publicadas, 22 pasaron `literal`, y la única que
+  necesitó este camino era falsa (B.311).
+
+**No es B.311 ni B.313**: aquéllas son lo que el juez escribe; esto es lo que nuestra puerta deja pasar.
+
+**El arreglo, decidido** (puesto 1 del tablero del 02/10, en B.313): deja de ACEPTAR y sigue
+DESCRIBIENDO, sin coste medido después del puesto 0.
 
 ### ⚠️ B.297 — LA LECTURA DE TROZOS SIN PAGINAR, y su margen medido (29/09/2026)
 

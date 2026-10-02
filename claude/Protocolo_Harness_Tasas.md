@@ -207,6 +207,42 @@ un filtro: es una lotería.
 
 ---
 
+## ⚠️ UNA NORMALIZACIÓN CUYO ORDEN DE PASOS NO ES ESTABLE HA CAUSADO TRES FALLOS
+
+*Añadida el 02/10/2026 (arquitecto), con el puesto 0 de B.313.*
+
+**El orden correcto es QUITAR Y DESPUÉS COLAPSAR, nunca al revés.** Si se colapsan los espacios antes
+de quitar los signos, cada signo suelto entre dos espacios deja un espacio doble, y el texto deja de
+casar consigo mismo. **La prueba de que está bien es que normalizar dos veces dé lo mismo que una.**
+
+Los tres fallos:
+1. **La causa (ii) de B.299**: la cita y el texto se limpiaban con dos funciones distintas.
+2. **La raya**: «a — b».
+3. **La lista de viñetas de N3**, que el juez copió sin los guiones.
+
+⚠️ **Hacer que los dos lados sufran el mismo fallo NO ES ARREGLARLO: es aplazarlo.** El 01/10 se
+«curó» la causa (ii) haciendo que los dos lados se limpiaran igual de mal, y el aplazamiento se cobró
+la cita de N3, que sólo pasaba por la puerta de cabeza y cola.
+
+---
+
+## ⚠️ CUANDO UN CRITERIO ESCRITO DE ANTEMANO DA UNA RESPUESTA QUE EL DATO CONTRADICE, SE DECLARA ROTO EL CRITERIO. NO SE REINTERPRETA EL RESULTADO
+
+*Añadida el 02/10/2026 (arquitecto), con B.311.*
+
+**Reinterpretar el resultado convierte el criterio en adorno**: si se puede leer a conveniencia
+después de ver el dato, no estaba decidiendo nada antes.
+
+El caso: el criterio para medir el medio de la cita del autoclave, escrito y commiteado antes de
+mirar, daba la respuesta (1), «el medio está literal». El dato decía otra cosa: dos trozos literales
+con 159 y 117 caracteres quitados entre ellos. **Se archivó como fallo del criterio, sin reinterpretar
+el resultado.**
+
+**El agujero concreto, para que se recuerde: el criterio comprobaba ORDEN y DISTANCIA, y no
+CONTIGÜIDAD.** Dos trozos literales, en orden y cerca, pueden venir de sitios que no se tocan.
+
+---
+
 ## ⚠️ REGLA DE CUSTODIA: toda consulta a Fable se archiva íntegra
 
 *Añadida el 28/08/2026 (F-85). Es la primera de las dos reglas que aquella

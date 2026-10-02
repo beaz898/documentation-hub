@@ -24,10 +24,15 @@ import { despegarPunteroDeFila, groupChunksByTable, renderTableRow } from './tab
  * transformación, con el mapa de posiciones.
  * ═══════════════════════════════════════════════════════════════════════════
  *
- * ⚠️ `normalize()` NO SE TOCA. La usan el retrieval, las reglas de hallazgos,
- * las claves y el diff de tablas, y el examen (`lib/examen/discriminantes.mjs`,
- * `marcador.mjs`, `comparador-tabular.mjs`): cambiarla movería la línea de base
- * del arnés. Lo que se cambia es el lado que NO la usaba.
+ * ⚠️ `normalize()` Y `normalizarConPosiciones` CAMBIAN JUNTAS, O NO CAMBIAN.
+ * Esta segunda repite los pasos de la primera, en su orden, para llevar el mapa
+ * de posiciones; si una cambia y la otra no, la cita y el texto vuelven a
+ * limpiarse distinto —el fallo de arriba— y la prueba de equivalencia de
+ * `coincidencia-de-cita.test.ts` se pone roja. Así se cambió el 02/10/2026
+ * (puesto 0 de B.313): quitar los signos ANTES de colapsar, en las dos.
+ * `normalize()` la usan además el retrieval, las reglas de hallazgos, la
+ * alineación de celdas y el examen (`discriminantes.mjs`, `marcador.mjs`):
+ * tocarla mueve la línea de base del arnés, y su riesgo latente está en B.317.
  */
 
 /** Un texto normalizado, y para cada carácter suyo la posición en el original. */
@@ -53,8 +58,8 @@ const esPuntuacion = (() => {
 
 /**
  * La MISMA transformación que `normalize()`, paso por paso y en su orden
- * (`lib/analysis/normalize-core.mjs`): minúsculas → cada tirada de espacios a
- * uno → fuera la puntuación → recortar los extremos. Y para cada carácter del
+ * (`lib/analysis/normalize-core.mjs`): minúsculas → fuera la puntuación → cada
+ * tirada de espacios a uno → recortar los extremos. Y para cada carácter del
  * resultado, de qué posición del original sale.
  *
  * La prueba de que es la misma está en `coincidencia-de-cita.test.ts`:
@@ -78,22 +83,22 @@ export function normalizarConPosiciones(original: string): TextoNormalizado {
     }
   }
 
-  // 2 · Cada tirada de espacios, a un solo espacio (el de su primera posición).
-  const paso2: Array<{ c: string; pos: number }> = [];
+  // 2 · Fuera la puntuación, ANTES de colapsar: es el orden de `normalize()`
+  //     desde el 02/10/2026, y por eso «a — b» ya no deja un espacio doble.
+  const paso2 = paso1.filter(x => !esPuntuacion(x.c));
+
+  // 3 · Cada tirada de espacios, a un solo espacio (el de su primera posición).
+  const paso3: Array<{ c: string; pos: number }> = [];
   let enEspacio = false;
-  for (const x of paso1) {
+  for (const x of paso2) {
     if (/\s/.test(x.c)) {
-      if (!enEspacio) paso2.push({ c: ' ', pos: x.pos });
+      if (!enEspacio) paso3.push({ c: ' ', pos: x.pos });
       enEspacio = true;
     } else {
-      paso2.push(x);
+      paso3.push(x);
       enEspacio = false;
     }
   }
-
-  // 3 · Fuera la puntuación, DESPUÉS de colapsar: es el orden de `normalize()`,
-  //     y por eso «a — b» deja dos espacios aquí igual que allí.
-  const paso3 = paso2.filter(x => !esPuntuacion(x.c));
 
   // 4 · Recortar los espacios de los extremos.
   let inicio = 0;
