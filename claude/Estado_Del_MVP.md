@@ -10585,6 +10585,84 @@ PENDIENTE DE EJECUTAR, la saca entera de los dos lados. Después, offline con NO
 - **Un dato de antes de mirar, que no es una medida de la cita**: la frase 32 de NOR-10, la que
   contiene los tres datos de la A, mide 340 caracteres. Una cita de 434 es más larga que esa frase.
 
+🔥🔥 **LA CITA PUBLICADA, CON EL DATO EN LA MANO (02/10/2026)** — `SQL_B311_cita_publicada_autoclave.sql`,
+ejecutada por el director y transcrita por el arquitecto.
+- **Dos filas**, a las 09:02:48 y a las 13:17:53, NOR-10 → CLI-12, tema «Autoridad para retirar
+  autoclave de servicio tras fallo de control biológico». **Las dos traen EXACTAMENTE la misma pareja
+  de citas, carácter por carácter.** Confirma por el dato lo que se cerró por construcción con el
+  hash (B.312): las dos publicaciones son el mismo par.
+- **nuevo (NOR-10), PUBLICADA, 434 caracteres, `cabeza_y_cola`**: «El Director Clínico quien autoriza
+  cualquier excepción documentada al procedimiento y quien responde ante Dirección de Operaciones en
+  caso de incidencia grave relacionada con la esterilización del instrumental. La responsabilidad
+  última —incluida la firma de los registros de auditoría trimestral y la decisión de retirar del
+  servicio un autoclave que no supere un control biológico— no es delegable y recae siempre sobre
+  esta figura.»
+- **existente (CLI-12), 341 caracteres, `literal`**: «El Coordinador de Calidad es quien autoriza
+  cualquier excepción documentada al protocolo de esterilización, quien firma los registros de
+  auditoría trimestral del área y quien decide, con criterio técnico y sin necesidad de validación
+  adicional del Director Clínico, la retirada de servicio de un autoclave que no supere un control
+  biológico.»
+
+**LO QUE NO NECESITA MEDICIÓN** (arquitecto, 02/10):
+- **«El Director Clínico quien autoriza» no es español gramatical: falta el verbo.** Un texto copiado
+  no pierde un verbo. **La cita publicada NO es una copia literal, y eso se establece leyéndola.**
+- El contraste está en la misma fila: el lado de CLI-12, que pasó `literal`, **sí lleva «es quien»**.
+  Uno está copiado y el otro cosido.
+- **La cita son DOS frases**, y el prompt pide «Máximo 1 frase por cita» (`lib/analysis/judge.ts:834`).
+  Se publicó incumpliendo una regla que ya existe.
+
+🔥 **HEMOS PUBLICADO, COMO CITA LITERAL, UNA FRASE QUE NO EXISTE EN EL DOCUMENTO DEL CLIENTE.** No es
+contenido inventado —el dato es real y la contradicción es verdadera—: es **una frase inventada con
+contenido real**. Un cliente que la busque en su documento no la encontrará. **Deja de ser un agujero
+teórico.**
+
+**LA MEDICIÓN FORMAL** (Code, 02/10, con el método escrito antes de mirar, sobre el texto extraído de
+NOR-10):
+- **La cita no está en NOR-10, ni literal ni normalizada.** Pasó por cabeza y cola.
+  - Su cabeza («el director clínico») casó con su PRIMERA aparición, que está en la **frase 30** («El
+    responsable último… es el Director Clínico de la clínica correspondiente»). No es la frase de la
+    que sale la cita.
+  - Su cola casó en la **frase 32**. Tramo: 764 caracteres, por debajo de las tres veces la cita
+    (1.302). **La puerta midió entre un principio que no era el suyo y un final que sí.**
+- **El medio (390 caracteres normalizados) son DOS trozos literales, y nada más**:
+  - 190 caracteres de la **frase 31**: «quien autoriza cualquier excepción documentada al procedimiento
+    y quien responde ante Dirección de Operaciones en caso de incidencia grave relacionada con la
+    esterilización del instrumental»;
+  - 200 de la **frase 32**: «la responsabilidad última —incluida la firma… — no es delegable y recae
+    siempr…».
+  - **Ni una palabra fuera de NOR-10.**
+- **Lo que la cita ES, carácter por carácter**: suma exactamente 434.
+  - 20 de «El Director Clínico », de la frase 31 sin su «Es»;
+  - 190 del final de la frase 31;
+  - un espacio;
+  - y 223 del final de la frase 32, con «La» en mayúscula.
+- **Lo que la cita OMITE**:
+  - 3 caracteres al principio de la 31 («Es »), y por eso falta el verbo;
+  - **159 caracteres en medio de la 31**: «quien debe asegurar que existen los recursos materiales y
+    humanos necesarios para ejecutar cada etapa del ciclo de esterilización conforme a lo aquí
+    descrito,»;
+  - y **los 117 primeros caracteres de la 32**: «El Director Clínico puede delegar funciones operativas
+    del día a día en el personal auxiliar de esterilización, pero».
+- **Tres costuras, no una**: «El Director Clínico · quien autoriza», «instrumental. · La
+  responsabilidad», y el «Es» quitado del principio.
+- **CUÁL DE LAS TRES RESPUESTAS SALE, dicho sin adornos:**
+  - ⚠️ **Por la LETRA del criterio escrito antes de mirar, sale la (1)**: los trozos cubren el medio,
+    caen entre la cabeza y la cola, y en orden.
+  - **Y la (1) es FALSA aquí: EL CRITERIO TENÍA UN AGUJERO.** Comprobaba el orden y el tramo, y **no
+    exigía que los trozos fueran SEGUIDOS en el documento**. Entre ellos faltan 159 y 117
+    caracteres. No es «una cita buena salvada por la tolerancia»: es una cita con texto quitado.
+    **Se cuenta como un fallo del criterio, no se reinterpreta el resultado.**
+  - **Tampoco es la (2) tal como se definió**: el orden se conserva (31, luego 32).
+  - **No es la (3)**: no hay contenido inventado.
+  - **Es un cuarto caso, que el criterio no previó: OMISIÓN.** Trozos literales, en orden, de dos
+    frases contiguas, con lo de en medio quitado para que la frase rime con la de CLI-12 («El
+    Coordinador de Calidad es quien autoriza…, quien firma…, y quien decide…»).
+- **La apuesta del arquitecto**, «sale la (2): el medio es literal pero de dos frases distintas, y la
+  costura está en "El Director Clínico · quien autoriza"; no la (3)»:
+  - **acierta en lo sustancial**: dos frases, esa costura y nada inventado;
+  - **falla en el número**: no es la (2) como estaba definida, porque no hay cambio de orden;
+  - y se queda corta en las costuras: hay otra en «instrumental. · La responsabilidad».
+
 
 **Sin arreglo.** Es una ficha y una decisión del director. Los caminos posibles —publicar el
 recorte del documento en prosa y la cita del juez en tablas; exigir el centro; o declararla
@@ -11031,8 +11109,9 @@ los ha visto. Dos pasadas de NOR-10 solo, a las 09:01:54 y a las 09:02:28, `0 id
 
 🏁 **UN HITO, Y SU RESERVA Y SU GRIETA VAN DELANTE:**
 - 🔥 **LA GRIETA (02/10, 13:17:49, B.311): LA SEMBRADA A DE NOR-10 NUNCA SE HA PUBLICADO CON UNA
-  CITA DEL TODO LITERAL.** Su cita del lado NOR-10, 434 caracteres, pasó por cabeza y cola: el medio
-  no lo comprobó nadie. Lo que diga ese medio, en B.311.
+  CITA LITERAL, Y LAS DOS VECES QUE SE PUBLICÓ LA CITA NO EXISTÍA EN EL DOCUMENTO.** Las dos
+  publicaciones (09:02 y 13:17) llevan la misma cita del lado NOR-10, de 434 caracteres. Pasó por
+  cabeza y cola, y es el final de dos frases cosidas, con 159 y 117 caracteres quitados (B.311).
 - ⚠️ **RESERVA: 2 DE 4 PASADAS** (actualizada el 02/10 con la de las 13:17:49, que la publicó). Antes,
   1 de 3 (con la de las 09:25). Por la regla de
   estabilidad (B.295: 5/5 estable-acierto, 0/5 estable-fallo, 1 a 4 inestable), es **INESTABLE, no
@@ -11095,7 +11174,7 @@ RESULTADOS DISTINTOS.**
   predicción sin banda, que acertó en 2 de 2.
 
 
-### 📋 B.313 — EL JUEZ NO COPIA, REDACTA: la enfermedad de las contradicciones (SIN arreglo; DOS enfermedades; se guarda lo descartado antes de decidir; 02/10/2026)
+### 📋 B.313 — EL JUEZ NO COPIA, REDACTA: la enfermedad de las contradicciones (SIN arreglo; UNA sola enfermedad, el juez cose para que rime; 02/10/2026)
 
 **El diagnóstico, en una frase** (arquitecto, 02/10): **el juez no copia, redacta.** Es lo que
 mata las citas de las CONTRADICCIONES. Las de los solapamientos mueren de otra cosa: el cambio
@@ -11165,7 +11244,7 @@ longitud y su paso:
       `lib/analysis/diagnostico-de-cita.ts`, y `coincidencia-de-cita.ts` bajó a 362 líneas.
 - **HIPÓTESIS DEL ARQUITECTO, SIN MEDIR Y NO CAUSA: el juez deja de ser literal cuando la cita se
   le alarga.**
-  - El prompt **ya le pide «Máximo 1 frase por cita»** (`lib/analysis/judge.ts:831`). Si la
+  - El prompt **ya le pide «Máximo 1 frase por cita»** (`lib/analysis/judge.ts:834`; era la `:831` antes de los cambios del 02/10). Si la
     hipótesis se sostiene, no haría falta una regla nueva, sino que cumpla la que tiene.
   - ~~Que la cita de 244 caracteres lleve «dos rayas en medio».~~ **RETIRADO** (arquitecto, 02/10): no
     se puede afirmar con el log cortado a 200 caracteres.
@@ -11295,7 +11374,29 @@ commiteado antes de medir (`b9429538`). Es la cuarta hipótesis fallada del arqu
   porque cada una venía con su criterio de caída escrito primero.** Una hipótesis con su falsación
   escrita es barata; sin ella, cada una habría sido un arreglo mal dirigido.
 
-**🔀 B.313 SON DOS ENFERMEDADES, y se separan** (arquitecto, 02/10: «mezclarlas fue mi error»):
+**🧬 B.313 ES UNA SOLA ENFERMEDAD (02/10/2026, con la cita publicada del autoclave, B.311).** La separación
+en (A) y (B) de aquí abajo queda **RETIRADA**: era un error del arquitecto, «otra vez, y lo dice el
+dato».
+- **Chamberí y el autoclave son el mismo fallo: el juez COSE trozos reales para que las dos caras se
+  lean en paralelo.**
+  - En **Chamberí** eligió la frase 77, que tenía el orden de CLI-13, y le pegó el final de la 72.
+  - En el **autoclave** quitó de las frases 31 y 32 lo que no rimaba con CLI-12 («El Coordinador de
+    Calidad es quien autoriza…, quien firma…, y quien decide…»).
+- **Lo único distinto es el AZAR**:
+  - en Chamberí la costura **se notó**, porque el final iba en el documento ANTES que el principio
+    → `cabeza_sin_cola`, y murió;
+  - en el autoclave **no se notó**, porque el principio y el final estaban en orden y dentro de la
+    tolerancia → `cabeza_y_cola`, y **se publicó**.
+- 📌 **LA FRASE QUE RESUME TODO ESTE TRABAJO, al protocolo junto a la de la puerta**: la comprobación
+  de citas **no separa lo bueno de lo malo: caza las costuras que da la casualidad de que se le
+  notan, y publica las que no.** Un filtro cuyo acierto depende del orden en que el modelo pegó los
+  trozos no es un filtro: es una lotería.
+- **UN SOLO ARREGLO CERRARÍA LOS DOS CASOS** (arquitecto, 02/10): cada cita, una sola frase.
+  - En el autoclave habría forzado la frase 32 de NOR-10, que es literal, lleva el dato y verificaría
+    sin tolerancia.
+  - **No se escribe**: el orden del tablero lo fija el arquitecto con esta medida.
+
+**🔀 ~~B.313 SON DOS ENFERMEDADES, y se separan~~ — RETIRADO el mismo 02/10 (arriba: es UNA)** (arquitecto, 02/10: «mezclarlas fue mi error»):
 - **(A) CHAMBERÍ · LA COSTURA. Medido, un caso.**
   - Las dos mitades de la cita son literales y salen de las frases 77 y 72 de NOR-11, **en ese
     orden, o sea del revés**. Todo lo citado existe; **lo único que no existe es la costura**.

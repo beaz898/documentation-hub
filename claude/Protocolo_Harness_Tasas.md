@@ -198,6 +198,11 @@ encontrarlo: hacía falta el artefacto, no otra lectura.
 dieron la causa de la cita de Chamberí. **En cuatro días de hipótesis no se había llegado a esto, y
 con el dato guardado se vio en una fila** (B.313).
 
+**Y LO QUE ENSEÑÓ, que resume todo el trabajo** (arquitecto, 02/10/2026, B.313): la comprobación de
+citas **no separa lo bueno de lo malo: caza las costuras que da la casualidad de que se le notan, y
+publica las que no.** Un filtro cuyo acierto depende del orden en que el modelo pegó los trozos no es
+un filtro: es una lotería.
+
 ---
 
 ---
