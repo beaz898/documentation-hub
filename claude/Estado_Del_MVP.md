@@ -8830,6 +8830,10 @@ la comprobación de citas ocurre en el JUEZ, antes de la cascada, y el verificad
   punto de retirada ya lo está, 02/10: reformulación, `paso=cabeza_sin_cola`, B.313). Y los
   dos casos literales (`[f049837e]`, `[75925931]`) tampoco los explica la (i) (entrada 10).
   **La ganancia del (i) NO CONSTA.**
+- ✅ **LA CAUSA (i), VISTA TRABAJAR EN PRODUCCIÓN (02/10, pasadas de las 09:24 y 09:25)**: el registro
+  dice `pajar=entregado_piezas (3 trozos)` en el lado existente de CLI-12 y `entregado_texto` en los
+  demás. Cada cita se comprobó contra lo que el juez leyó de su lado, y el log dice con qué. Hasta
+  hoy estaba desplegada y sin verse trabajar.
 - 🔎 **LA TERCERA CAUSA, ya con nombre (02/10): B.312.** En los solapamientos, el juez pone la cita
   en el campo del otro documento (5 de 5). En las contradicciones hay otras: la reformulación
   (`[976f6174]`) y, sin medir, la anotación entre corchetes (`[1eb33774]`).
@@ -10543,6 +10547,10 @@ En el modal del **rápido** no se enseña ninguna cita, y las de los solapamient
 ninguna vista**. Ahí la cita aproximada decide si se publica la pareja y adónde salta el editor,
 pero el usuario no la lee. **El riesgo de B.311 se estrecha a esos sitios.**
 
+📏 **Y MEDIDO, PEQUEÑO** (02/10, registro de las citas que pasan, B.313): en dos pasadas, **0 de 22
+citas publicadas pasaron por el camino de cabeza y cola**. Las 22 fueron literales. Sigue siendo un
+agujero del diseño, pero **no está disparado**.
+
 **Sin arreglo.** Es una ficha y una decisión del director. Los caminos posibles —publicar el
 recorte del documento en prosa y la cita del juez en tablas; exigir el centro; o declararla
 aproximada en la pantalla— no se eligen aquí.
@@ -10987,9 +10995,14 @@ los ha visto. Dos pasadas de NOR-10 solo, a las 09:01:54 y a las 09:02:28, `0 id
     - pasada 1: **3 emitidos, 0 descartados, 3 sobrevivieron**.
 
 🏁 **UN HITO, Y SU RESERVA VA DELANTE:**
-- ⚠️ **RESERVA: 1 DE 2 PASADAS.** Por la regla de estabilidad (B.295: 5/5 estable-acierto, 0/5
-  estable-fallo, 1 a 4 inestable), **1 de 2 es INESTABLE, no acierto**. Lo demostrado es que
-  **puede** publicarse, no que se publique.
+- ⚠️ **RESERVA: 1 DE 3 PASADAS** (actualizada el 02/10 con la de las 09:25). Por la regla de
+  estabilidad (B.295: 5/5 estable-acierto, 0/5 estable-fallo, 1 a 4 inestable), es **INESTABLE, no
+  acierto**. Lo demostrado es que **puede** publicarse, no que se publique.
+  - **La tercera pasada, 09:25**: CLI-12 emitió 1 contradicción, y se descartó: `[c2998cd8]`,
+    longitud 241, `cabeza_sin_cola`. Verificador 0 → 0. **Publicadas: 0.** Los tres solapamientos
+    de esa pareja, verificados y literales.
+  - **El mismo hallazgo, con una cita distinta cada vez**: 244 caracteres con
+    `cola_demasiado_lejos` y 241 con `cabeza_sin_cola`. Las causas candidatas, en B.313.
 - **EL HITO: por primera vez, la sembrada A de los cargos se publica por la ruta por defecto, sin
   tanda.** Es un rostro de la A (la contradicción A, `SIEMBRA_corpus_ampliado.md:51-62`, cuyo conflicto incluye «retirar un autoclave de servicio»), y
   sale con el corpus haciendo su trabajo solo.
@@ -10999,7 +11012,7 @@ los ha visto. Dos pasadas de NOR-10 solo, a las 09:01:54 y a las 09:02:28, `0 id
 RESULTADOS DISTINTOS.**
 - Con los mismos candidatos, el mismo rerank, los mismos regímenes y los mismos caracteres
   entregados:
-  - la contradicción sembrada se publica en una pasada y en la otra no (0 y 1);
+  - la contradicción sembrada se publica en una pasada y en las otras no (0, 1 y 0 en tres);
   - y los solapamientos vivos con CLI-12 son 3 en una y 1 en la otra.
 - Dibujan lo mismo: **lo que cambia entre pasadas es lo que escribe el juez**, y el usuario lo ve
   como dos respuestas distintas a la misma pregunta.
@@ -11015,6 +11028,11 @@ RESULTADOS DISTINTOS.**
 - **LA GANANCIA DE B.312, escrita como la fija el arquitecto**: en NOR-11, **seis puntos más
   publicados, de los que tres son de pareja auditada y tres de naturaleza no determinada**. «De 2
   a 8» es una cifra **POR CÓDIGO, no medida**, hasta que se mire la pantalla de NOR-11.
+- ✅ **LA PANTALLA, MIRADA (director, 02/10): dos entradas, una por pareja, con los puntos unidos en
+  la descripción y sin citas**, como se leyó en el código. La predicción de Code, acertada.
+- ⚠️ **Y la ganancia, recortada por lo que se ve en ella** (B.315): de los 6 puntos recuperados, **3
+  son contenido** (CLI-13) y **3 son solapamientos genéricos** que el prompt ya prohíbe (CLI-12).
+  De los 8 publicados, 5 y 3.
 
 ❌ **P-B312-4: MAL FORMULADA, no fallada a secas.** Predijo 0 contradicciones en NOR-10, y salió 0 y 1.
 - **El motivo es de protocolo, no la cifra** (arquitecto, 02/10): se predijo un número exacto de
@@ -11114,6 +11132,26 @@ longitud y su paso:
   - Si las que pasan son cortas y las largas mueren, se sostiene, y el arreglo es del prompt: que
     cumpla «1 frase por cita».
 
+**📊 LA TABLA DE LONGITUDES, MEDIDA (02/10/2026).** Dos pasadas con el registro nuevo, a las 09:24
+(NOR-11) y a las 09:25 (NOR-10), `0 ids de tanda`. Logs del director, transcritos por el arquitecto;
+Code no los ha visto.
+- **LAS 22 CITAS QUE PASARON, TODAS CON `paso=literal`.** Ninguna necesitó la normalizada, ni la
+  cabeza y cola, ni los segmentos.
+
+  | Pareja | Longitudes de las que pasaron |
+  |---|---|
+  | NOR-11 / CLI-12 | 42 · 56 |
+  | NOR-11 / CLI-13 | 154 · 128 · 185 · 195 · 235 · 155 · 100 · 123 · 50 · 127 · 187 · 117 · 100 · 63 |
+  | NOR-10 / CLI-12 | 209 · 166 · 124 · 106 · 192 · 170 |
+
+- **Las que FALLARON**: 111 (`[976f6174]`, `cabeza_sin_cola`) y 241 (`[c2998cd8]`, `cabeza_sin_cola`).
+- ❌ **LA HIPÓTESIS DE LA LONGITUD, FALLADA** (la cuarta predicción fallada del arquitecto esta
+  semana). Falsa, y con margen: la más larga que pasó mide **235**, más del doble que la más corta
+  que falló. **La longitud no es la variable.**
+- ✅ **LO QUE LA TABLA SÍ ESTABLECE: EL JUEZ COPIA LITERALMENTE.** 22 de 22, al primer intento y sin
+  aproximaciones, en estas dos pasadas. No es un juez descuidado con las citas: copia bien **salvo en
+  dos hallazgos concretos**, y son los mismos en seis pasadas.
+
 **🧪 LA HIPÓTESIS DEL REPARTO, Y SU CRITERIO, ESCRITOS ANTES DE MEDIR** (02/10/2026). Hipótesis del
 arquitecto, sin medir y NO causa: **el juez compone cuando el dato que encontró no vive en una sola
 frase del documento**, y entonces no puede citarlo literal, porque esa frase no existe.
@@ -11144,6 +11182,60 @@ frase del documento**, y entonces no puede citarlo literal, porque esa frase no 
     de una frase a la SIGUIENTE, en orden, cuenta como repartida por este criterio. Si eso pasa,
     la hipótesis del arquitecto cae igual. Que «contiguas» lo explicara sería **otra** hipótesis,
     nueva, y no la salvaría.
+
+**🧪 EL RESULTADO DE LA HIPÓTESIS DEL REPARTO (02/10/2026), con el criterio de arriba, escrito antes y
+commiteado antes de medir (`b9429538`).**
+- **Las que PASAN**: 24 citas distintas de los análisis archivados de P1 y P2.
+  - 21 caen en una frase.
+  - **3 caen en DOS frases, contiguas**: dos citas de CLI-13 («Aplica por igual en las tres
+    clínicas de la red. Si cambias de centro…», 185 y 232 caracteres) y una de NOR-11 («Ámbito de
+    aplicación: Clínicas Dentavia Chamberí, Salamanca y Retiro», 68). Son literales que cruzan de
+    una frase a la siguiente.
+- ❌ **Por el criterio escrito antes de medir, LA HIPÓTESIS DEL REPARTO CAE**: hay citas que pasan y
+  están repartidas.
+- **Las dos que FALLAN, una a una**, y no se parecen:
+  - **`[976f6174]`, Chamberí: REPARTIDA, en dos frases NO contiguas de NOR-11.**
+    - «el punto de retirada centralizado concentra el material de las tres clínicas» es literal
+      de la frase 77 («Dado que el punto de retirada centralizado concentra el material…»).
+    - «ubicado en la clínica de Chamberí» es literal de la frase 72 («El gestor autorizado recoge
+      los residuos de las tres clínicas en un punto de retirada centralizado, ubicado en la clínica
+      de Chamberí, desde donde…»).
+    - **El juez cosió dos frases separadas por cuatro.** Las dos mitades son literales; lo que no
+      existe es la costura.
+  - **El autoclave (`[1eb33774]`, 244; `[c2998cd8]`, 241): sus tres datos viven en UNA SOLA FRASE de
+    NOR-10**, la 32, de **340 caracteres**:
+    - «El Director Clínico puede delegar funciones operativas del día a día en el personal auxiliar
+      de esterilización, pero la responsabilidad última —incluida la firma de los registros de
+      auditoría trimestral y la decisión de retirar del servicio un autoclave que no supere un
+      control biológico— no es delegable y recae siempre sobre esta figura.»
+    - **Esta cita no encaja en la hipótesis**: el dato no está repartido, y aun así falla.
+    - ⚠️ **Medida débil, y se dice**: el texto de la cita no lo tiene Code. Se buscaron los tres datos
+      por sus palabras. «Delegable» sólo sale en esa frase. «Trimestral» y «retirar … autoclave» salen
+      en más, pero la única frase con los tres es ésa.
+    - **Y las «dos rayas» que el arquitecto retiró están en la FRASE del documento**: la cita de 241
+      a 244 caracteres sale de una frase de 340 con un inciso entre rayas.
+- **LO QUE QUEDA, nombrado y NO causa** (las dos son hipótesis nuevas, no salvan la del
+  arquitecto):
+  - **Chamberí cose dos frases NO contiguas.** Las tres citas que pasan cruzando de frase cruzan a
+    la SIGUIENTE. Es la hipótesis de la contigüidad que el criterio nombró antes de medir, y la
+    sostiene un caso.
+  - **El autoclave falla DENTRO de una sola frase.** Encaja la candidata de arriba, ANOTA —«…recae
+    siempre sobre esta figura [Director Clínico]» (B.299, entrada 1)—: una anotación al final
+    rompe la cola, y que el paso cambie entre pasadas (`cola_demasiado_lejos` con 244 y
+    `cabeza_sin_cola` con 241) encaja con una anotación que el juez escribe distinta cada vez.
+    **Sin medir.**
+- **QUÉ DECIDE EL AUTOCLAVE**: el FINAL de su cita. El log del descarte imprime los primeros 200
+  caracteres, y una cita de 241 se queda sin sus últimos 41, que es justo donde estaría la
+  anotación. Imprimir también los últimos caracteres de una cita descartada lo diría. **Ni se
+  decide ni se hace aquí.**
+- **LOS DOS ARREGLOS QUE APUNTA EL ARQUITECTO, medidos contra estos casos y SIN elegir**:
+  1. **Dos citas por lado.**
+  2. **Una cita que sea la unión de dos tramos literales del mismo documento, declarada como
+     tal.**
+  - Con Chamberí, los dos funcionarían: sus dos mitades son literales.
+  - Con el autoclave, por lo medido, no harían falta: su dato está en una sola frase. Lo que lo
+    salva depende de su final, que no consta.
+
 
 **LO QUE ESTA FICHA TIENE QUE DEJAR CLARO: ESTO NO SE ARREGLA EN EL COMPROBADOR.**
 - Si el juez redacta, **el comprobador tiene razón al rechazarlo**: la frase publicada no estaría
@@ -11176,6 +11268,11 @@ donde se está trabajando: por eso es una ficha propia.
   rápido entero y pinta las citas de sus contradicciones. Desde el chat, no: se quitan con un
   comentario que dice que «las contradicciones se verifican y trabajan desde el análisis
   exhaustivo». Dos caminos al mismo editor tratan distinto el mismo análisis rápido.
+- ❓ **LA PREGUNTA QUE DEJA ABIERTA** (arquitecto, 02/10): **¿cuál de los dos caminos es el que está
+  bien?** Uno de los dos lo está, y el otro es un descuido. Las dos líneas:
+  - el chat quita las contradicciones del rápido antes de abrir el editor
+    (`hooks/chat/useDocuments.ts:314-319`);
+  - la bandeja le pasa el análisis guardado entero (`app/(authenticated)/settings/review/page.tsx:246`).
 
 **LAS TRES COSAS QUE LA HACEN IMPORTAR** (arquitecto, 02/10):
 - **(a) Lo que hace creíble el producto es la FRASE, no el recuento.** «Hay 2 contradicciones» pide
@@ -11194,6 +11291,51 @@ donde se está trabajando: por eso es una ficha propia.
 
 **Sin arreglo, y sin tocar nada.** Si entra en el tablero, y en qué puesto, lo decide el director;
 se lo plantea el arquitecto.
+
+### 📋 B.315 — EL JUEZ EMITE SOLAPAMIENTOS GENÉRICOS QUE EL PROMPT YA LE PROHÍBE, Y PASAN LA COMPROBACIÓN DE CITAS (ficha de CALIDAD, SIN arreglo; 02/10/2026)
+
+**De dónde sale**: la pantalla de NOR-11 que miró el director el 02/10 (B.312). Los tres puntos
+publicados del solapamiento con CLI-12 son:
+- «ambos documentos pertenecen al sistema de gestión de calidad de Dentavia»;
+- «ambos documentos son emitidos por Dirección de Operaciones»;
+- «NOR-11 menciona que se relaciona con CLI-12».
+
+**LO QUE EL PROMPT YA PROHÍBE** (`lib/analysis/judge.ts:834-835`):
+- «En description: describe QUÉ contenido concreto comparten los dos documentos […]. **No vale
+  describir características genéricas** que compartirían casi todos los documentos de la empresa
+  (**mismo autor**, misma plantilla, ambos citan normativa, ambos tienen sección de referencias).
+  Si lo único en común es de ese tipo, NO emitas el solapamiento».
+- «**Una REMISIÓN no es solapamiento** ni contradicción. Si el documento nuevo se limita a remitir
+  a otro documento […] no emitas hallazgo con ese documento por esa remisión».
+- **Los tres caen en lo prohibido**: los dos primeros son rasgos genéricos («emitidos por
+  Dirección de Operaciones» es literalmente «mismo autor»), y el tercero es una remisión.
+
+⚠️ **Y PASAN LA COMPROBACIÓN DE CITAS SIN PROBLEMA**: las frases que los sustentan existen y son
+literales. **La comprobación de citas no protege contra esto, y no es su trabajo**: comprueba que
+la frase está en el documento, no que lo que se dice con ella valga la pena. Es otra cosa que se
+creía cubierta y no lo está.
+
+**ESTO RECORTA LA GANANCIA DE B.312, y se reescribe con honradez** (se cuentan aparte, como lo
+sembrado y lo no auditado):
+- **De los 8 puntos publicados en NOR-11, 5 son contenido de verdad y 3 son genéricos.**
+  - Los 5 de CLI-13: la clasificación en cuatro grupos, la prohibición de reencapsular agujas, el
+    protocolo de derrames con EPI, el parte de incidencias y la formación anual.
+  - Los 3 de CLI-12, de arriba.
+- **De los 6 recuperados por B.312, 3 son contenido** (los de CLI-13, que pasan de 2 a 5) **y 3 son
+  genéricos** (los de CLI-12).
+- ⚠️ **Corrección de Code al enunciado**: el encargo decía «de los seis puntos recuperados, cinco
+  son contenido de verdad y tres de los otros son genéricos». Cinco más tres son ocho, que son los
+  PUBLICADOS, no los recuperados. Los dos conjuntos quedan escritos arriba.
+- ⚠️ **No consta para Code de qué análisis es la pantalla.** Las dos pasadas de las 08:56 y las
+  08:58 emitieron 3 solapamientos con CLI-12. En la de las 09:24, el registro de las citas que
+  pasan dejó dos longitudes con CLI-12 (42 y 56), y cada línea de ese registro lleva los dos lados
+  de UN solapamiento. Si «42 · 56» es una sola línea, en esa pasada se verificó uno.
+
+**LO QUE ESTÁ EN JUEGO, para cuando se decida** (arquitecto, 02/10): no es un número. **Un cliente
+que lee «ambos los emite Dirección de Operaciones» piensa que el programa es tonto**, y eso cuesta
+más que un hallazgo perdido.
+
+**Sin arreglo.** Constancia.
 
 ### ⚠️ B.297 — LA LECTURA DE TROZOS SIN PAGINAR, y su margen medido (29/09/2026)
 
