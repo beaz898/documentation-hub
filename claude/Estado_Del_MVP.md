@@ -11114,6 +11114,37 @@ longitud y su paso:
   - Si las que pasan son cortas y las largas mueren, se sostiene, y el arreglo es del prompt: que
     cumpla «1 frase por cita».
 
+**🧪 LA HIPÓTESIS DEL REPARTO, Y SU CRITERIO, ESCRITOS ANTES DE MEDIR** (02/10/2026). Hipótesis del
+arquitecto, sin medir y NO causa: **el juez compone cuando el dato que encontró no vive en una sola
+frase del documento**, y entonces no puede citarlo literal, porque esa frase no existe.
+- **Qué se mide**, offline, sobre los textos de `corpus-pruebas/`, extraídos con `extractText`:
+  - **Frase**: el texto se parte por un punto, un signo de interrogación o exclamación, o un salto
+    de línea, seguidos de espacio.
+  - **Trozos literales de una cita**: de izquierda a derecha, el tramo más largo de la cita
+    (normalizado con `normalize()`) que aparece en el documento normalizado, con 15 caracteres o
+    más. Lo que no aparece se salta.
+  - **En qué frases cae**: cada trozo, en su primera aparición en el documento.
+  - **Repartida** = sus trozos caen en dos frases distintas o más. **En una frase** = todos en la
+    misma.
+- **Las citas que se miden:**
+  - **las que FALLAN**:
+    - `[976f6174]`, con su texto entero (111 caracteres, archivado en B.299);
+    - la del autoclave (`[1eb33774]` / `[c2998cd8]`): **su texto no lo tiene Code**. Se mide dónde
+      viven en NOR-10 los tres datos que le atribuye el arquitecto —la firma de los registros
+      trimestrales, la decisión de retirar un autoclave y que no es delegable—, buscados por sus
+      palabras. **Es una medida más débil, y se dice.**
+  - **las que PASAN**: las 22 del 02/10 sólo dejaron su longitud. La muestra son las citas
+    verificadas que guardan los análisis archivados del examen del 27/09 en las mismas parejas:
+    NOR-10 con CLI-12 (caso P1) y NOR-11 con CLI-13 (caso P2), de los dos lados. **Son de antes de
+    B.312, con el prompt anterior.**
+- **QUÉ LA CONFIRMA**: las que fallan, repartidas; las que pasan, en una frase.
+- **QUÉ LA TUMBA** (el arquitecto, 02/10): **si alguna de las que pasan también está repartida, la
+  hipótesis cae.**
+  - Y una lectura que se nombra ahora para que no se invente después: una cita literal que cruza
+    de una frase a la SIGUIENTE, en orden, cuenta como repartida por este criterio. Si eso pasa,
+    la hipótesis del arquitecto cae igual. Que «contiguas» lo explicara sería **otra** hipótesis,
+    nueva, y no la salvaría.
+
 **LO QUE ESTA FICHA TIENE QUE DEJAR CLARO: ESTO NO SE ARREGLA EN EL COMPROBADOR.**
 - Si el juez redacta, **el comprobador tiene razón al rechazarlo**: la frase publicada no estaría
   en el documento.
