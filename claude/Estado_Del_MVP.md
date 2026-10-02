@@ -11287,7 +11287,9 @@ pasa a estar mal, y qué cambió? No se había hecho porque **lo que falla se ti
 - ✅ **HECHO EN CÓDIGO (02/10/2026)**, sin desplegar. Un commit previo, sin cambio de comportamiento,
   partió `coincidencia-de-cita.ts`: estaba en 399 líneas.
   - **Dónde va**: en cada juicio, `descartesPorCita` y `descartesPorCitaOmitidos`
-    (`lib/analysis/types.ts`, `DescarteDeCita`). Lo anota `registroDeDescartes`
+    (`lib/analysis/types.ts`, `DescarteDeCita`; ⚠️ `types.ts` sube a 637 líneas, deuda anterior al
+    tope de 400, y **lo próximo que haya que añadir ahí obliga a partirlo por dominio primero**: un
+    fichero que ya incumple la regla no es excusa para seguir creciendo). Lo anota `registroDeDescartes`
     (`lib/analysis/diagnostico-de-cita.ts`), con `TOPE_DE_DESCARTES_POR_PAREJA = 10`.
   - **El paso y el pajar se guardan como DATO, no como texto del log**: salen de la misma función
     que escribe el log (`ComprobadorDeLado.datos`).
@@ -11298,6 +11300,9 @@ pasa a estar mal, y qué cambió? No se había hecho porque **lo que falla se ti
     las dos rutas de la bandeja devuelven el jsonb entero (`app/api/documents/[id]/analysis/route.ts`
     y `app/api/analysis-results/[id]/route.ts`). Lo recibe el usuario de la misma organización, y
     no lo pinta ninguna pantalla. **Va con la pieza (b) del reparo.**
+    - **Aceptado** (arquitecto, 02/10): lo recibe un usuario de la misma organización, que ya
+      tiene acceso a esos documentos. Lo único que añade: **son bytes que viajan para nada**, y el
+      día que se toque esa respuesta conviene recortarla.
   - **El tamaño, medido**: unos 340 bytes fijos por descarte, más sus dos citas. El peor caso con el
     tope, citas de 340 caracteres, es de unos 10 KB por pareja; unos 60 KB con las 6 parejas del
     rápido.
@@ -11318,18 +11323,21 @@ donde se MUESTRAN; ninguna copia sin lector», y estas citas no las pinta ningun
 - **(b) No es una exposición nueva.** La frase ya está completa en la base, en el `full_text` del
   documento y en sus trozos. Lo nuevo es **la versión que escribió el juez**, de la misma clase que
   `topic`, `description` y `summary`, que ya se guardan.
-- **(c) Se borra con el documento**: vive en `analysis_results.analysis`, y `deleteDocument` borra
-  las filas de `analysis_results` del documento por `document_id` (`lib/delete-document.ts:166-169`,
-  con el criterio de `lib/documents/analisis-del-documento.ts`). **Sigue la vida de su fila**, sin
-  retención propia que inventar.
-  - ⚠️ **PRECISIÓN DE CODE: esto vale para los análisis CON documento.** Son los de la bandeja, y
-    los del chat cuyo fichero se acaba indexando, porque la indexación los adopta y les pone el
-    `document_id` (`app/api/ingest/route.ts:403-408`).
-  - **Un análisis del chat cuyo fichero NUNCA se indexa** se queda sólo con `storage_path`, y no lo
-    borra `deleteDocument`, porque no hay documento. Vive hasta la purga de la organización
-    (`lib/purge-org.ts:117`).
-  - **Es la misma vida que ya tienen hoy sus citas publicadas y sus `judgments[]`**: no se inventa
-    retención nueva, pero tampoco «sigue al documento», porque no lo hay.
+- **(c) Se borra con el documento CUANDO HAY DOCUMENTO.** En los análisis con `document_id` —bandeja,
+  y chat cuyo fichero acaba indexándose—, `deleteDocument` se lleva sus filas de `analysis_results`.
+  **En un análisis del chat cuyo fichero nunca se indexa, no hay documento que borrar**: la fila queda
+  con `storage_path` y vive hasta la purga de la organización.
+  **Y el cambio que introduce B.313 es cero**: esas mismas filas ya guardan hoy las citas publicadas y
+  `judgments[]` con esa misma vida. No se inventa una retención nueva; se hereda la que había.
+  *(Redacción literal del arquitecto, 02/10, que sustituye a «se borra con el documento», verdad a
+  medias.)*
+  - Las líneas: `deleteDocument` borra por `document_id` (`lib/delete-document.ts:166-169`, con el
+    criterio de `lib/documents/analisis-del-documento.ts`). La indexación adopta los análisis del
+    chat y les pone el `document_id` (`app/api/ingest/route.ts:403-408`). La purga, en
+    `lib/purge-org.ts:117`.
+  - **POR QUÉ LA DECISIÓN SE MANTIENE**: el reparo preguntaba si se abría una categoría nueva de dato
+    con una vida nueva. **La respuesta medida es que no.** Lo que sí hay es un problema anterior, que
+    va a su propia ficha: B.316.
 - **(d) FECHA DE REVISIÓN, NO VIDA INDEFINIDA.**
   - ⚠️ **OBLIGACIÓN, escrita aquí y no suelta: EL DÍA QUE B.313 SE CIERRE, ESTA DECISIÓN SE VUELVE A
     LEER. SI NADIE CONFIRMA QUE SE QUEDA, SE QUITA.**
@@ -11455,6 +11463,39 @@ que lee «ambos los emite Dirección de Operaciones» piensa que el programa es 
 más que un hallazgo perdido.
 
 **Sin arreglo.** Constancia.
+
+### 📋 B.316 — HAY TEXTO DE CLIENTE QUE NADA BORRA: el análisis del chat cuyo fichero no se indexa (ficha de NEGOCIO, SIN arreglo, decide el director; 02/10/2026)
+
+**Lo que pasa**: un análisis del chat cuyo fichero no se indexa deja una fila de `analysis_results`
+con frases de los documentos del cliente, y **nada la borra salvo la purga de la organización**. No
+hay documento al que esté atada, así que el borrado de un documento no la alcanza.
+
+**POR QUÉ IMPORTA MÁS DE LO QUE PARECE** (arquitecto, 02/10): **vendemos custodia de documentación
+corporativa.** Un cliente que pide que se borre un documento espera que se borre lo que se sacó de
+él. Por este camino, no se borra.
+
+**Lo que queda en la fila**, dentro de `analysis`: las citas publicadas (`discrepancies[]`, y los
+puntos de solapamiento), `judgments[]` con sus citas verificadas, y desde B.313 las citas
+descartadas (`descartesPorCita`). Son frases del documento del cliente o escritas por el juez sobre
+él.
+
+**Por qué nada la borra**, con sus líneas:
+- **`deleteDocument` borra los análisis por `document_id`** (`lib/delete-document.ts:166-169`, con el
+  criterio de `lib/documents/analisis-del-documento.ts`, que a propósito no usa el nombre).
+- El análisis del chat nace con `storage_path` y sin `document_id` (F-101). Sólo lo gana si el
+  fichero se indexa: la indexación lo adopta (`app/api/ingest/route.ts:403-408`).
+- **Si el fichero no se indexa, la fila no tiene documento**, y ningún borrado de documento la ve.
+- **El ÚNICO camino que la borra hoy es la purga de la organización**: `purgeOrganization`
+  (`lib/purge-org.ts:40`), que borra todos los `analysis_results` de la organización en
+  `lib/purge-org.ts:117`. La llaman tres sitios:
+  - al vencer el periodo de gracia tras cancelar: `app/api/admin/purge-expired/route.ts:51` y
+    `worker/src/index.ts:531`;
+  - y una purga pedida para toda la organización: `app/api/org/purge/route.ts:57`.
+
+**Es anterior a B.313, y B.313 lo hereda**: hoy ya afecta a las citas publicadas y a `judgments[]` de
+esas filas.
+
+**Sin arreglo, y sin proponer uno.** Lo decide el director; se lo plantea el arquitecto.
 
 ### ⚠️ B.297 — LA LECTURA DE TROZOS SIN PAGINAR, y su margen medido (29/09/2026)
 
@@ -11813,6 +11854,12 @@ de un caso y el protocolo, así que el fallo no puede venir de ahí.
   - **Los otros ocho que recorren el árbol quedan como RIESGO CONOCIDO Y CON NOMBRE, y no se
     tocan** (arquitecto, 02/10). El día que uno caiga en rojo ya se sabrá por qué, y el censo
     estará hecho: el comando está en `vitest.config.mts`.
+  - ⚠️ **CAYÓ EL PRIMERO, el mismo 02/10, y es de los ocho**: `lib/pinecone/corpus-del-examen.test.ts`,
+    «⚠️ CONTROL POSITIVO — el censo SÍ ve imports cuando los hay» (`:236`), con **40.658 ms**. Fue
+    en la suite de antes de commitear la corrección de la pieza (c) y B.316, que sólo tocaba
+    documentación. **No se hizo el commit**: se repitió la suite entera, sola, y dio **1.818 de
+    1.818**, con ese caso en 4.845 ms. Es lo que se predijo: el disco frío, en un test que recorre
+    el árbol bajo el tope global. **No se toca**, como está decidido.
 
 
 ---
