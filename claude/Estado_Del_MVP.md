@@ -11419,6 +11419,22 @@ la raíz, el segundo **deja de publicar lo falso** y el tercero **devuelve lo ve
 - **PUESTO 2 · CADA CITA SALE DE UNA SOLA FRASE**, copiada entera, sin recortes por dentro ni trozos de
   sitios distintos. «Máximo 1 frase por cita» ya existía (`lib/analysis/judge.ts:834`): lo que faltaba
   era prohibir el recorte interno. ⚠️ **Mueve la línea de base del arnés**, y se sabe.
+  - ✅ **HECHO EN CÓDIGO (02/10/2026)**, sin desplegar. La regla de `lib/analysis/judge.ts:834` dice ahora:
+    - una sola frase, copiada entera, de principio a fin;
+    - prohibido cortarla por dentro, resumirla, quitarle palabras del medio o usar puntos suspensivos;
+    - prohibido unir trozos de sitios distintos;
+    - y, si el dato está en otra frase, usar esa aunque no se parezca a la del otro documento.
+
+    La línea `:835` dice para qué: la cita se busca literalmente en el documento del cliente y se
+    enseña en pantalla. El orden y los nombres de los campos (B.312) no se tocan.
+  - **Su prueba es la PRIMERA que lee el texto del prompt** (`lib/analysis/regla-de-la-cita.test.ts`),
+    y es deliberada: guarda la regla que decide si una cita publicada existe. Con el código de antes,
+    sus cuatro casos de la regla caían por fallo; su control de B.312 pasaba antes y después. **El
+    censo de B.312 «ningún test compara el texto del prompt» deja de ser cierto desde hoy**: el día que
+    se cambie esta regla, esta prueba cambia con ella.
+  - ⚠️ **Lo que queda sin tocar, y lo dice Code**: las dos reglas de los campos siguen diciendo «copia
+    LITERALMENTE un fragmento» (`judge.ts:832-833`). «Fragmento» y «una frase entera» tiran en
+    direcciones distintas; se dejó así porque el encargo pedía no tocar esas líneas.
 
 **EL CENSO QUE DECIDIÓ EL PUESTO 1, medido y no leído** (Code, 02/10): quién depende del paso de
 cabeza y cola.

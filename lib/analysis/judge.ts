@@ -831,7 +831,8 @@ REGLA DE ORO: Si puedes imaginar un contexto razonable en el que ambas afirmacio
 REGLAS DE FORMATO:
 - En newDocSays y evidenceInNewDoc: copia LITERALMENTE un fragmento del DOCUMENTO NUEVO.
 - En existingDocSays y evidenceInExistingDoc: copia literalmente un fragmento del DOCUMENTO EXISTENTE.
-- Máximo 1 frase por cita. NO copies párrafos enteros.
+- Cada cita es UNA sola frase del documento, copiada ENTERA, de principio a fin de frase. NO copies párrafos enteros. PROHIBIDO cortarla por dentro, resumirla, quitarle palabras del medio o usar puntos suspensivos. PROHIBIDO unir trozos que vengan de sitios distintos del documento. Si el dato que necesitas está en otra frase, usa esa frase aunque no se parezca a la del otro documento: no recortes ni combines frases para que las dos citas se parezcan.
+- Para qué: cada cita se va a buscar LITERALMENTE en el documento del cliente y se va a mostrar en pantalla. Si no se encuentra tal cual, no sirve, y el hallazgo se pierde.
 - Las citas deben ser TEXTO COPIADO tal cual del documento, sin comentarios, sin explicaciones y sin referirse a los fragmentos por su número. Prohibido escribir cosas como "El fragmento [2] muestra que...", "El corpus especifica que...", "Este documento no menciona...".
 - Si no puedes copiar una frase literal que sustente el hallazgo, no emitas ese hallazgo.
 - En description: describe QUÉ contenido concreto comparten los dos documentos, en una frase. No vale describir características genéricas que compartirían casi todos los documentos de la empresa (mismo autor, misma plantilla, ambos citan normativa, ambos tienen sección de referencias). Si lo único en común es de ese tipo, NO emitas el solapamiento.
