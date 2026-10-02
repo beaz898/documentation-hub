@@ -1,10 +1,10 @@
 import { recordStageFailure } from './stage-failures';
 import { callLLMJson } from './llm-client';
 import { runInBatches } from '@/lib/run-in-batches';
-import { sanitizeJudgeContradictions, hashCitationPair } from './llm-boundary';
+import { sanitizeJudgeContradictions, hashCitationPair, traducirSolapamientosDelJuez } from './llm-boundary';
 import { getOrderedColumns, groupChunksByTable, renderTableBlock, alignQuoteToCells, despegarPunteroDeFila } from './table-structure';
 import { normalize } from './normalize';
-import { findBestMatch, comprobadorDeLado, loEntregadoDeLaPareja, type ComprobadorDeLado } from './coincidencia-de-cita';
+import { findBestMatch, comprobadorDeLado, loEntregadoDeLaPareja, diagnosticoDelDescarte, type ComprobadorDeLado } from './coincidencia-de-cita';
 import type { RerankedCandidate, DocumentJudgment, PipelineOptions, DiscardedFindings, DocumentFragment, LecturaDeLaPareja, TextoAnalizado } from './types';
 import type { StoredChunk } from '@/lib/read-chunks';
 
@@ -61,11 +61,8 @@ interface JudgeResponse {
     existingDocSays: string;
     severity: 'contradiction' | 'minor_inconsistency';
   }>;
-  overlappingContent: Array<{
-    description: string;
-    evidence: string;
-    evidenceInNewDoc: string;
-  }>;
+  /** B.312: lo traduce `traducirSolapamientosDelJuez` (llm-boundary.ts). */
+  overlappingContent: unknown;
   uniqueToNewDoc: string[];
 }
 
@@ -376,7 +373,7 @@ function isContextCitation(quote: string | undefined, contextTexts: string[]): b
   return contextTexts.some(text => normalize(text).includes(normQuote));
 }
 
-function fixQuotesInJudgment(
+export function fixQuotesInJudgment(
   judgment: DocumentJudgment,
   // B.299 (i): con qué se comprueba cada lado —lo que leyó el juez, o el camino de antes—.
   nuevo: ComprobadorDeLado,
@@ -449,9 +446,8 @@ function fixQuotesInJudgment(
         : `"${((failedSide === 'nuevo' ? c.newDocSays : c.existingDocSays) || '').slice(0, 200)}"`;
       // B.299: longitud de la cita y paso en que se quedó, por lado. El texto de
       // arriba sigue cortado a 200 SÓLO en el log; la comprobación la vio entera.
-      const dNuevo = () => `nuevo: ${nuevo.describir(c.newDocSays)}`;
-      const dExistente = () => `existente: ${existente.describir(c.existingDocSays)}`;
-      const diagnostico = failedSide === 'ambos' ? `${dNuevo()} · ${dExistente()}` : failedSide === 'nuevo' ? dNuevo() : dExistente();
+      // B.312: y si la cita está en el OTRO lado, «cruzada».
+      const diagnostico = diagnosticoDelDescarte({ nuevo, existente }, { nuevo: c.newDocSays, existente: c.existingDocSays }, failedSide);
       console.warn(
         `[judge] Contradicción descartada en "${judgment.documentName}" [${hash}] (cita no verificable, lado=${failedSide}; ${diagnostico}): ${failedText}`
       );
@@ -501,9 +497,7 @@ function fixQuotesInJudgment(
         ? `nuevo="${(o.evidenceInNewDoc || '').slice(0, 200)}" existente="${(o.evidence || '').slice(0, 200)}"`
         : `"${((failedSide === 'nuevo' ? o.evidenceInNewDoc : o.evidence) || '').slice(0, 200)}"`;
       // B.299: el mismo diagnóstico que en las contradicciones, de arriba.
-      const dNuevo = () => `nuevo: ${nuevo.describir(o.evidenceInNewDoc)}`;
-      const dExistente = () => `existente: ${existente.describir(o.evidence)}`;
-      const diagnostico = failedSide === 'ambos' ? `${dNuevo()} · ${dExistente()}` : failedSide === 'nuevo' ? dNuevo() : dExistente();
+      const diagnostico = diagnosticoDelDescarte({ nuevo, existente }, { nuevo: o.evidenceInNewDoc, existente: o.evidence }, failedSide);
       console.warn(
         `[judge] Solapamiento descartado en "${judgment.documentName}" [${hash}] (cita no verificable, lado=${failedSide}; ${diagnostico}): ${failedText}`
       );
@@ -830,7 +824,7 @@ REGLA DE ORO: Si puedes imaginar un contexto razonable en el que ambas afirmacio
 
 REGLAS DE FORMATO:
 - En newDocSays y evidenceInNewDoc: copia LITERALMENTE un fragmento del DOCUMENTO NUEVO.
-- En existingDocSays y evidence: copia literalmente un fragmento del DOCUMENTO EXISTENTE.
+- En existingDocSays y evidenceInExistingDoc: copia literalmente un fragmento del DOCUMENTO EXISTENTE.
 - Máximo 1 frase por cita. NO copies párrafos enteros.
 - Las citas deben ser TEXTO COPIADO tal cual del documento, sin comentarios, sin explicaciones y sin referirse a los fragmentos por su número. Prohibido escribir cosas como "El fragmento [2] muestra que...", "El corpus especifica que...", "Este documento no menciona...".
 - Si no puedes copiar una frase literal que sustente el hallazgo, no emitas ese hallazgo.
@@ -848,7 +842,7 @@ Responde con este JSON (sin bloques de código, sin texto adicional):
     { "topic": "tema", "newDocSays": "cita literal del nuevo", "existingDocSays": "cita literal del existente", "severity": "minor_inconsistency" }
   ],
   "overlappingContent": [
-    { "description": "qué contenido concreto comparten (no rasgos genéricos)", "evidence": "cita literal del existente", "evidenceInNewDoc": "cita literal del nuevo" }
+    { "description": "qué contenido concreto comparten (no rasgos genéricos)", "evidenceInNewDoc": "cita literal del nuevo", "evidenceInExistingDoc": "cita literal del existente" }
   ],
   "uniqueToNewDoc": ["aspecto 1", "aspecto 2"]
 }`;
@@ -856,9 +850,8 @@ Responde con este JSON (sin bloques de código, sin texto adicional):
   try {
     const response = await callLLMJson<JudgeResponse>(prompt, { maxOutputTokens: 4096, temperature: 0.1 });
 
-    // Frontera LLM→pipeline (F-39): contradictions es el único de los dos
-    // arrays de la respuesta sin saneado por elemento — overlappingContent ya
-    // lo tiene, dos líneas más abajo, con el .map() de siempre.
+    // Frontera LLM→pipeline (F-39): cada array de la respuesta pasa por la suya;
+    // overlappingContent, por traducirSolapamientosDelJuez (B.312).
     const { contradictions, discarded: boundaryDiscarded } = sanitizeJudgeContradictions(response.contradictions);
 
     const rawJudgment: DocumentJudgment = {
@@ -868,11 +861,7 @@ Responde con este JSON (sin bloques de código, sin texto adicional):
       overlapPercent: Math.max(0, Math.min(100, Math.round(response.overlapPercent || 0))),
       verdict: response.verdict || 'sin_relacion',
       contradictions,
-      overlappingContent: (response.overlappingContent || []).map(o => ({
-        description: o.description || '',
-        evidence: o.evidence || '',
-        evidenceInNewDoc: o.evidenceInNewDoc || '',
-      })),
+      overlappingContent: traducirSolapamientosDelJuez(response.overlappingContent),
       uniqueToNewDoc: response.uniqueToNewDoc || [],
       ...(Object.keys(boundaryDiscarded).length > 0 ? { discarded: boundaryDiscarded } : {}),
     };

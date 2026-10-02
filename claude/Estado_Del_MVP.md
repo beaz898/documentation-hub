@@ -8763,7 +8763,7 @@ arquitecto.**
 1. **B.299 · la comprobación de citas. NO ESTÁ COMPLETA** (corregido el 01/10, entrada 10).
    - Hecho y desplegable: causas (ii) (`0dd06f56`) e (i) (`6cbdeb45`).
    - **Abierta: la tercera causa, ya con nombre** (02/10). En los solapamientos, el cambiazo de
-     campo (B.312, 5 de 5), con dos caminos para que decida el arquitecto. En las
+     campo (B.312, 5 de 5), **arreglado en código el 02/10, sin desplegar ni medir**. En las
      contradicciones, la reformulación y, sin medir, la anotación entre corchetes.
    - **EL ORDEN DEL 02/10** (arquitecto): primero el arreglo de B.312, quitar la trampa más el
      detector, con su visto bueno. Se despliega, y entonces dos análisis sueltos, NOR-11 y
@@ -10525,7 +10525,7 @@ disciplina que los contadores: una decisión sin registro no se puede auditar.
 recorte del documento en prosa y la cita del juez en tablas; exigir el centro; o declararla
 aproximada en la pantalla— no se eligen aquí.
 
-### ⚠️ B.312 — EL JUEZ PONE LAS CITAS DE LOS SOLAPAMIENTOS EN EL CAMPO DEL OTRO DOCUMENTO: 5 de 5 solapamientos, 0 de 3 contradicciones (constancia, SIN arreglo; decide el arquitecto; 02/10/2026)
+### ⚠️ B.312 — EL JUEZ PONE LAS CITAS DE LOS SOLAPAMIENTOS EN EL CAMPO DEL OTRO DOCUMENTO: 5 de 5 solapamientos, 0 de 3 contradicciones (ARREGLADO EN CÓDIGO el 02/10/2026, SIN DESPLEGAR NI MEDIR)
 
 **De dónde sale**: los ocho descartes de las dos sondas del 01/10, con su `lado`, que transcribe
 el arquitecto de los logs del director. Cada cita se buscó en los textos de `corpus-pruebas/`
@@ -10660,16 +10660,82 @@ publica.**
     cita de referencia (`textRef`) la de la primera que sobrevive.
   - En la sonda A sobrevivieron 2 de los 5 solapamientos con CLI-13, y la pareja se publicó.
   - **Cuántas parejas desaparecieron del todo por esto, no consta**: haría falta comparar
-    `overlapPercent > 0` con «ninguna cita superviviente» en los análisis guardados. Es una
-    consulta posible, que no se ha escrito.
+    `overlapPercent > 0` con «ninguna cita superviviente» en los análisis guardados. Escrita
+    el 02/10, PENDIENTE DE EJECUTAR: abajo, «La cara visible».
 
 **Lo que se pierde hoy por esto**: en las dos sondas, 5 solapamientos literales que el juez vio
 de verdad, y que se tiraron por estar en el campo equivocado.
 
-**Sin arreglo todavía.** Camino elegido el 02/10: quitar la trampa, más el detector. Se implementa
-con el visto bueno del arquitecto, en un commit, con su rojo visto antes y sus controles negativos.
-Después, dos análisis sueltos (NOR-11 y NOR-10, sin tanda) dirán si los solapamientos dejan de
-morir cruzados.
+**LA CARA VISIBLE** (arquitecto, 02/10): **le decimos al usuario que dos documentos se solapan, y no
+le enseñamos ni un punto concreto.** Un solapamiento sin ninguna cita superviviente no se publica
+(d), así que para el usuario eso es un «no hemos encontrado nada» falso.
+- ⚠️ **Por tanto, cualquier frase de una ficha del piloto que diga «no se encontraron
+  solapamientos» puede ser FALSA.** Se lee como «no se publicó ninguno», no como «no los había»,
+  hasta que la SQL de abajo diga en qué parejas pasó.
+- **La consulta, de sólo lectura y PENDIENTE DE EJECUTAR**: `SQL_B312_solape_sin_solapamiento.sql`.
+  Cuenta, sobre los análisis archivados, las parejas con `overlapPercent` > 0 y ninguna línea en
+  `analysis->'overlaps'`, separadas por veredicto del juez y por si en la pareja murió alguna cita.
+  - **Da una COTA SUPERIOR, no la medida**: la base no guarda cuántos solapamientos EMITIÓ el
+    juez (sólo el log, «RAW … N solapamientos»). No separa «emitió y se le murieron» de «no
+    emitió ninguno».
+  - Y `citaNoVerificable` junta contradicciones y solapamientos, así que tampoco atribuye la
+    muerte a un solapamiento. Lo dice el propio fichero.
+
+**(e) EL ARREGLO, HECHO EN CÓDIGO (02/10/2026), PENDIENTE DE MEDIR.** Un solo commit, con el visto
+bueno del arquitecto a la (c).
+- **El prompt** (`lib/analysis/judge.ts:826-827` y `:845`): el solapamiento pide
+  `evidenceInNewDoc` primero y `evidenceInExistingDoc` después, el mismo orden que la
+  contradicción, y cada campo nombra su lado. Las reglas de formato dicen lo mismo con los
+  nombres nuevos.
+- **La traducción, en la frontera** (`traducirSolapamientosDelJuez`, `lib/analysis/llm-boundary.ts:158`),
+  llamada desde el único punto de traducción (`judge.ts:864`). Pasa `evidenceInExistingDoc` a
+  `evidence`; **lo guardado no cambia**.
+  - El nombre viejo `evidence` ya no se lee: lo que se pide y lo que se lee son lo mismo.
+  - Lo ausente queda en cadena vacía, como el `.map()` de antes.
+- 📌 **POR QUÉ AHÍ** (arquitecto, 02/10): **el límite con el modelo es justo el sitio donde se
+  traduce.** Lo que se le pide se escribe para que el modelo no se equivoque, y lo que se guarda
+  se queda como está. **Si hubiera que cambiar la forma guardada para mejorar un prompt, la
+  frontera no estaría haciendo su trabajo.**
+- **El detector** (`diagnosticoDelDescarte`, `lib/analysis/coincidencia-de-cita.ts:361`): cuando
+  una cita falla en su lado, se prueba en el otro. Si allí verifica, la línea de descarte añade
+  `cruzada: la cita del nuevo está en el existente` (o al revés).
+  - **El hallazgo se descarta igual**: sólo observa.
+  - Vale para contradicciones y solapamientos, con la misma función.
+- **`judge.ts` no crece: baja de 1.318 a 1.307 líneas.** Los diagnósticos de los dos bucles pasan a
+  una línea cada uno, y el tipo de la respuesta deja `overlappingContent` como `unknown`, porque
+  lo valida la frontera. `fixQuotesInJudgment` pasa a exportarse para poder probarla.
+- **El rojo, visto antes de tocar** (`lib/analysis/citas-cruzadas.test.ts`, 9 casos). Contra el
+  código de antes, exportando sólo `fixQuotesInJudgment`:
+  - los tres del detector, en rojo porque el log no decía «cruzada»;
+  - los cuatro de la frontera, en rojo porque la función no existía;
+  - y **los dos controles negativos, en verde**: una cita inventada sigue fallando y no es
+    «cruzada», y una bien puesta se verifica sin que el detector la toque.
+
+  Después, 9 de 9. Suite: 1.795 de 1.795. Build local hasta «Collecting page data».
+- **El coste, medido** con NOR-11 (14.437 caracteres, 15 trozos) contra NOR-10 (60.038, 67), 200
+  repeticiones, sólo en el camino del descarte:
+
+  | Pajar | Cita cruzada | Cita inventada, los dos lados |
+  |---|---|---|
+  | todos los trozos | +0,0 ms | +14,9 ms |
+  | texto entregado | +0,8 ms | +25,5 ms |
+
+  Una cita cruzada se encuentra al primer paso. El peor caso cuesta lo mismo que el
+  `describir` que ya se hacía, por descarte, frente a segundos de cada llamada al juez.
+- **Lo que depende del texto del prompt** (condición del arquitecto, con censo):
+  - **ningún test lo compara literalmente**: `grep` de «cita literal del», «REGLAS DE FORMATO»,
+    «copia LITERALMENTE» y «qué contenido concreto comparten» en `lib`, `app`, `worker`,
+    `scripts`, `examen` y `claude` sólo da `judge.ts` y esta ficha;
+  - **ningún contador de tokens**: `countTokens`, `estimateTokens` y `prompt.length` no salen en
+    `lib`, `app` ni `worker`;
+  - **los ficheros de ejemplo** (`examen/sinteticos/*.json`, `examen/resultados/*`) llevan
+    `evidence` y `evidenceInNewDoc`: es la FORMA GUARDADA, que no cambia, así que no les afecta;
+  - ⚠️ **lo que SÍ depende, y no es un fichero: la línea de base del arnés.** Es un cambio de
+    prompt, y el arnés pasa después y una sola vez (puesto 2 del tablero).
+
+**Sin desplegar todavía.** El push lo dice el director. Después, dos análisis sueltos —NOR-11 y
+NOR-10, `0 ids de tanda`— dirán si los solapamientos dejan de morir cruzados: el detector lo
+cuenta en el log, sin campaña nueva. Hasta entonces, **arreglado en código y sin medir.**
 
 ### 📋 B.313 — EL JUEZ NO COPIA, REDACTA: la enfermedad de las contradicciones (constancia, SIN arreglo, a la cola; 02/10/2026)
 

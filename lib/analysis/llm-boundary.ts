@@ -134,6 +134,41 @@ export function sanitizeJudgeContradictions(raw: unknown): {
 }
 
 /**
+ * B.312 (02/10/2026) — LOS SOLAPAMIENTOS DEL JUEZ, TRADUCIDOS A LA FORMA GUARDADA.
+ *
+ * Al juez se le piden con un campo por lado y en el mismo orden que las
+ * contradicciones: primero el nuevo (`evidenceInNewDoc`), después el existente
+ * (`evidenceInExistingDoc`). Antes se le pedía `evidence` a secas para el
+ * existente, y en primer lugar: en las sondas del 01/10 puso las dos citas en el
+ * campo del otro 5 veces de 5, y los cinco solapamientos murieron en la
+ * comprobación de citas.
+ *
+ * Lo guardado NO cambia: `evidence` sigue siendo el lado existente, y es lo que
+ * leen la síntesis, el pipeline, el modal y los análisis ya archivados. Éste es
+ * el ÚNICO sitio que traduce. El límite con el modelo es justo el sitio donde se
+ * traduce: lo que se le pide se escribe para que el modelo no se equivoque, y lo
+ * que se guarda se queda como está. Si hubiera que cambiar la forma guardada para
+ * mejorar un prompt, la frontera no estaría haciendo su trabajo.
+ *
+ * El nombre viejo, `evidence`, NO se lee: lo que se pide y lo que se lee son lo
+ * mismo. Lo ausente o lo que no es texto queda en `''`, como hacía el `.map()`
+ * de antes; no se descarta aquí ni se cuenta — una cita vacía la descarta, y la
+ * cuenta, `fixQuotesInJudgment`.
+ */
+export function traducirSolapamientosDelJuez(raw: unknown): DocumentJudgment['overlappingContent'] {
+  if (!Array.isArray(raw)) return [];
+  const texto = (v: unknown): string => (typeof v === 'string' ? v : '');
+  return raw.map(item => {
+    const o = isPlainObject(item) ? item : {};
+    return {
+      description: texto(o.description),
+      evidenceInNewDoc: texto(o.evidenceInNewDoc),
+      evidence: texto(o.evidenceInExistingDoc),
+    };
+  });
+}
+
+/**
  * Hash corto (8 hex) de un par de citas — el identificador que sobrevive a un
  * retitulado. F-38: `topic` no vale como identificador porque una etapa puede
  * reescribirlo (y lo hacía: costó día y medio de diagnóstico rastrear un
