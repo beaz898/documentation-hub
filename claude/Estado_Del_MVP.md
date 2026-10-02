@@ -8762,13 +8762,16 @@ en sus puestos 1 y 2. **Nada de los puestos 2, 3 y 4 se empieza sin que lo diga 
 arquitecto.**
 1. **B.299 · la comprobación de citas. NO ESTÁ COMPLETA** (corregido el 01/10, entrada 10).
    - Hecho y desplegable: causas (ii) (`0dd06f56`) e (i) (`6cbdeb45`).
-   - **Abierta: la tercera causa.** La hipótesis viva es que el juez puso la cita en el campo
-     del otro lado, y la decide el `lado=` de dos líneas del log.
+   - **Abierta: la tercera causa, ya con nombre** (02/10). En los solapamientos, el cambiazo de
+     campo (B.312, 5 de 5), con dos caminos para que decida el arquitecto. En las
+     contradicciones, la reformulación y, sin medir, la anotación entre corchetes.
 2. **El arnés, UNA vez — APARCADO** hasta que la tercera causa esté entendida y, si tiene
    arreglo, desplegada. Con sembradas y parejas sin auditar contadas aparte, y leído con la
    consecuencia incómoda delante (B.299, entrada 9).
-3. **B.310 · el título pegado.** Sube por motivo de producto: una cita que el usuario no
-   encuentra en su documento.
+3. **B.310 y B.311, JUNTAS** (arquitecto, 02/10): **el mismo problema de producto —la cita que
+   publicamos tiene que poder encontrarse en el documento del cliente— por dos caminos
+   distintos.** B.310 es el título pegado por el troceado; B.311, el centro sin comprobar por la
+   cabeza y cola. Se deciden juntas.
 4. **Los contadores de los tres topes ciegos** (plan aprobado).
 5. Después, B.302, B.300 y D-4, y B.190 al final, como estaban.
 
@@ -8814,6 +8817,9 @@ la comprobación de citas ocurre en el JUEZ, antes de la cascada, y el verificad
   punto de retirada** (`[976f6174]`, sonda A): por qué murieron esas dos no está medido. Y los
   dos casos literales (`[f049837e]`, `[75925931]`) tampoco los explica la (i) (entrada 10).
   **La ganancia del (i) NO CONSTA.**
+- 🔎 **LA TERCERA CAUSA, ya con nombre (02/10): B.312.** En los solapamientos, el juez pone la cita
+  en el campo del otro documento (5 de 5). En las contradicciones hay otras: la reformulación
+  (`[976f6174]`) y, sin medir, la anotación entre corchetes (`[1eb33774]`).
 
 📌 **TRES CONJUNTOS DISTINTOS, cada uno con su fecha, y no se mezclan.** El arquitecto confundió
 el 1 y el 3 al citarlos el 30/09, y lo corrigió él mismo el mismo día.
@@ -9480,8 +9486,14 @@ transcribe el arquitecto):
   - el de NOR-10, de 52 a 194: **143 caracteres**.
 - **(d) La aritmética que decide**: la cita de `[f049837e]` mide **116**, la de `[75925931]`
   **143** (sin el «…» final). **Miden EXACTAMENTE lo mismo que su tramo**: no están
-  condensadas. La hipótesis es falsa, y es la tercera de esta forma del arquitecto en el día; él
-  mismo pidió no escribirla como causa antes de medirla.
+  condensadas.
+- ❌ **PREDICCIÓN DEL ARQUITECTO, FALLADA** (él la archiva así, 02/10): midió el hueco de inicio a
+  inicio. Es la tercera hipótesis suya de esta forma en un día.
+- 📌 **LA NOTA DE PROTOCOLO, que es la lección y no el error** (arquitecto, 02/10): **la hipótesis
+  venía con su premisa declarada y con la orden de comprobarla antes de creerla, y por eso cayó
+  antes de que nadie construyera nada encima.** Tres hipótesis falladas en un día no son tres
+  fallos del método: son el método funcionando. **Lo que sería un fallo es que una hubiera
+  llegado a ficha como causa.**
 - **(c) Reproducido fuera de producción** (`verifyQuote` contra el texto de
   `corpus-pruebas/`, con un trozo de 1.200 caracteres alrededor de cada cita; un fichero de
   prueba temporal, borrado después):
@@ -9500,8 +9512,11 @@ CAMPO DEL OTRO LADO.**
   Y el nombre `evidence` no dice de qué lado es.
 - Si el juez puso el texto del analizado en `evidence`, la comprobación lo buscó en el
   candidato, y ahí no está. Es exactamente lo que dio la reproducción.
-- **Lo que la decide es UNA palabra del log**: el `lado=` de las dos líneas «Solapamiento
-  descartado».
+- ✅ **RESUELTA el 02/10 sin esos logs, con ocho casos en vez de dos: B.312.** El cambiazo se da
+  en 5 de 5 solapamientos de las sondas del 01/10, y en 0 de 3 contradicciones. Estos dos casos
+  son solapamientos, y se comportan igual.
+- Lo que la decidía, antes de B.312, era UNA palabra del log: el `lado=` de las dos líneas
+  «Solapamiento descartado».
   - La línea imprime la cita del lado que FALLÓ.
   - Si dicen **`lado=existente`**, la cita impresa es el campo `evidence` y es texto del
     analizado: **el cambio de campo queda confirmado**.
@@ -10479,7 +10494,14 @@ propio):
   publicar la fila entera.
 
 **LO QUE ESTO HACE AL PRODUCTO** (la misma familia que B.310, por otro camino): **publicamos
-citas aproximadas como si fueran literales.** El cliente que busque en su documento una cita
+citas aproximadas como si fueran literales.** Por el camino de cabeza y cola sólo se comprueban
+20 caracteres de cada punta, y el medio puede llevar palabras que no están en el documento. Eso
+no es un detalle técnico: **le podemos enseñar al cliente una cita que no existe en su documento
+y llamarla literal** (arquitecto, 02/10).
+- **La corrección a F-55, sin retirar su motivo**: nació de las tablas, y ahí tenía razón;
+  enseñar diez columnas cuando el juez citó tres valores era peor. Lo que no se sostiene es su
+  frase «sólo puede diferir en forma»: por el camino de cabeza y cola puede diferir en
+  CONTENIDO. El cliente que busque en su documento una cita
 aprobada por su cabeza y su cola puede no encontrarla.
 
 **Cuántos hallazgos publicados estos días pasaron por el camino aproximado: NO CONSTA.**
@@ -10489,9 +10511,90 @@ aprobada por su cabeza y su cola puede no encontrarla.
 - Saberlo exige registrar también el paso de las que pasan. Es un cambio pequeño, y no se ha
   hecho.
 
+📌 **LA PRIMERA PIEZA DEL ARREGLO, escrita ya y sin implementar** (arquitecto, 02/10): **el camino
+por el que se verificó cada cita —literal, normalizado, cabeza y cola, o segmentos— tiene que
+quedar registrado EN EL HALLAZGO**, no sólo en el log del descarte. Hoy no se guarda, y por eso
+«cuántos hallazgos publicados pasaron por el camino aproximado» es «no consta». Es la misma
+disciplina que los contadores: una decisión sin registro no se puede auditar.
+
 **Sin arreglo.** Es una ficha y una decisión del director. Los caminos posibles —publicar el
 recorte del documento en prosa y la cita del juez en tablas; exigir el centro; o declararla
 aproximada en la pantalla— no se eligen aquí.
+
+### ⚠️ B.312 — EL JUEZ PONE LAS CITAS DE LOS SOLAPAMIENTOS EN EL CAMPO DEL OTRO DOCUMENTO: 5 de 5 solapamientos, 0 de 3 contradicciones (constancia, SIN arreglo; decide el arquitecto; 02/10/2026)
+
+**De dónde sale**: los ocho descartes de las dos sondas del 01/10, con su `lado`, que transcribe
+el arquitecto de los logs del director. Cada cita se buscó en los textos de `corpus-pruebas/`
+(extraídos con el comando de los registros de siembra), con `includes`, con la normalización de
+`normalize()` y con `findBestMatch`. No hizo falta la base, ni créditos, ni los logs del 30/09.
+- En las dos sondas, `nuevo` es el analizado (NOR-11 en la A, NOR-10 en la B) y `existente`, el
+  candidato de esa pareja.
+
+| # | Hash | Tipo | Lado donde la puso el juez | Documento donde ESTÁ la cita | ¿Coincide? |
+|---|---|---|---|---|---|
+| 1 | `[2bf4eefc]` | contradicción | existente (Normas_Frecuencia) | **no consta**: no está en NOR-11, ni en CLI-13, ni en NOR-10, ni en CLI-12; y Normas_Frecuencia no está en `corpus-pruebas/` | no consta |
+| 2 | `[d04dbc76]` | solapamiento | existente (CLI-12) | **NOR-11**, literal | ❌ cruzada |
+| 3 | `[976f6174]` | contradicción | nuevo (NOR-11) | en ninguno literal: es una reformulación. Su dato, **Chamberí, es de NOR-11** (`SIEMBRA_caso_control.md:57`; Retiro es de CLI-13, `:58`) | ✅ lado correcto |
+| 4 | `[87b96c7c]` | solapamiento | existente (CLI-13) | **NOR-11**, literal | ❌ cruzada |
+| 5 | `[a4ff676b]` | solapamiento | existente (CLI-13) | **NOR-11**, literal | ❌ cruzada |
+| 6 | `[b51832b0]` | solapamiento | **ambos** | «usa el kit… de **tu** gabinete», puesta en nuevo (NOR-11), está en **CLI-13**; «procede a la recogida…», puesta en existente (CLI-13), está en **NOR-11**. Las dos literales | ❌❌ cruzadas las dos |
+| 7 | `[1eb33774]` | contradicción | nuevo (NOR-10) | **NOR-10**, literal en sus primeros 200 caracteres (el resto no consta: el log corta) | ✅ lado correcto |
+| 8 | `[283b244e]` | solapamiento | existente (CLI-12) | **NOR-10**, literal | ❌ cruzada |
+
+**EL VEREDICTO: dos causas, o más, y no se mezclan.**
+- ✅ **EL CAMBIAZO, CONFIRMADO EN LOS SOLAPAMIENTOS: 5 de 5.** Son la 2, la 4, la 5, la 6 (los dos
+  lados) y la 8. Todas literales, y todas en el documento del OTRO lado.
+  - Son ocho casos en vez de dos.
+  - Los dos casos literales de B.299 (`[f049837e]` y `[75925931]`, entrada 10) también son
+    solapamientos y se comportan igual: cada uno verifica sólo contra el otro documento. **Su
+    `lado` no consta, y ya no hace falta para decidir.**
+- ❌ **EN LAS CONTRADICCIONES NO HAY CAMBIAZO: 0 de 3.**
+  - **La 3 está en su lado** y muere por otra cosa: **reformula**, no copia. «El punto de
+    retirada centralizado concentra el material…» no está así en ningún documento. El
+    contraejemplo del arquitecto, confirmado.
+  - **La 7 está en su lado y es literal** en lo que se ve. Murió por algo que no se ve: la cita
+    completa no consta. **Candidata, sin medir**: la frase del documento sigue «…recae siempre
+    sobre esta figura.», y B.299 (entrada 1) ya tenía la anotación del juez «…recae siempre
+    sobre esta figura [Director Clínico]». Una anotación entre corchetes al final rompe la cola:
+    es la hipótesis (a) de B.299. El registro de B.299 (ii), longitud y paso, la puede
+    confirmar en el próximo descarte de esta cita.
+  - **La 1, no consta**: la tabla de Normas_Frecuencia_Recogidas no está en `corpus-pruebas/`.
+- **Las sospechas del arquitecto, una a una**, por el registro con que están escritas:
+  - la 6, la 2 y la 8: **confirmadas**;
+  - la 7: **tumbada**, está en su lado;
+  - la 3: **confirmada como contraejemplo**.
+
+**EL DIAGNÓSTICO DE FONDO** (arquitecto, 02/10): **dos formatos hermanos con los campos en orden
+distinto es una TRAMPA PUESTA, no un descuido del modelo.**
+- La instrucción dice «En newDocSays y evidenceInNewDoc: copia LITERALMENTE un fragmento del
+  DOCUMENTO NUEVO» (`lib/analysis/judge.ts:832`).
+- Pero en el JSON de ejemplo, en la contradicción el nuevo va primero, y en el solapamiento va
+  primero **`"evidence"`, que es el EXISTENTE**, con un nombre que no dice de qué lado es
+  (`:851`).
+- El modelo sigue el orden del ejemplo. Y el patrón medido es exactamente ése: falla donde el
+  orden se invierte, y no donde se mantiene.
+
+**LOS CAMINOS POSIBLES, SIN ELEGIR** (decide el arquitecto):
+1. **Quitar la trampa**: el mismo orden en los dos formatos —el nuevo primero— y un nombre que
+   diga el lado (`evidenceInExistingDoc` en el prompt, traducido a `evidence` al recibirlo, para
+   no tocar el tipo guardado ni a sus lectores).
+   - **Arriesga**: es un cambio de prompt, así que mueve la línea de base del arnés y puede
+     mover otras cosas del juez. Se mide con caso rojo y verde, y antes y después.
+2. **Comprobar cada cita contra los dos lados, y quedarse con el que case.**
+   - **Arriesga**:
+     - en un SOLAPAMIENTO, el texto suele estar en LOS DOS documentos, porque es lo que
+       comparten; el lado quedaría ambiguo justo donde más falta hace;
+     - esconde el error del modelo en vez de quitarlo; es «el comprobador lo detecta», que
+       B.310 ya llamó taparlo;
+     - y exigiría registrar en el hallazgo que hubo un cambio, o sería una decisión que nadie
+       puede auditar.
+- No son excluyentes: el (1) quita la causa, y el (2) sería una red. Si se usa, va declarada y
+  registrada.
+
+**Lo que se pierde hoy por esto**: en las dos sondas, 5 solapamientos literales que el juez vio
+de verdad, y que se tiraron por estar en el campo equivocado.
+
+**Sin arreglo.** Constancia. Decide el arquitecto.
 
 ### ⚠️ B.297 — LA LECTURA DE TROZOS SIN PAGINAR, y su margen medido (29/09/2026)
 
@@ -10789,6 +10892,15 @@ de un caso y el protocolo, así que el fallo no puede venir de ahí.
     mide la máquina (la familia de B.263).
   - **Sin dar por hecho que sea el de este B.286**: aquel no tiene nombre, y éste es un
     candidato, no una identificación.
+- ⚠️ **02/10/2026 — OTRA VEZ EL MISMO, y esta vez con la regla CUMPLIDA.** Antes de commitear
+  la ficha B.312 (sólo documentación), la suite dio `1785/1786` y `exit 1`. Era el mismo test,
+  `autenticacion.test.ts` «CONTROL POSITIVO», con **19.795 ms** contra 15.000.
+  - El commit **no se hizo**: la suite y el commit van en órdenes separadas, y se miró el exit.
+  - Repetida la suite entera, sola: **1.786 de 1.786**, y ese test en **521 ms**.
+  - Es la segunda vez con nombre, y las dos el mismo. **Ya no es un candidato: es un patrón.**
+    Un tope de reloj de pared sobre código determinista falla cuando la máquina va cargada
+    (la carga de ese momento no consta). Sin arreglo, por ser de medición: subir su
+    `testTimeout` sería decisión aparte.
 
 ---
 
