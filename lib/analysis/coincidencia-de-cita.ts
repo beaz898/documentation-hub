@@ -111,7 +111,12 @@ export function normalizarConPosiciones(original: string): TextoNormalizado {
 }
 
 /** Por qué vía casó una cita, o en qué punto se quedó si no casó. Los de fallo
- *  van de menos a más avanzado: es el orden en que se elige el «más lejos». */
+ *  van de menos a más avanzado: es el orden en que se elige el «más lejos».
+ *  ⚠️ `cabeza_y_cola` es un FALLO desde el 02/10/2026 (B.318, puesto 1): la
+ *  cabeza y la cola casan, en orden y cerca, pero el medio no se comprobó. Antes
+ *  aceptaba; ahora sólo describe —«habría pasado por la tolerancia»—, y es el
+ *  fallo más avanzado. Las vías que aceptan son `literal` y `normalizada`, más
+ *  los segmentos de fila de `verifyQuote`. */
 export type PasoDeLaCita =
   | 'literal'
   | 'normalizada'
@@ -123,8 +128,8 @@ export type PasoDeLaCita =
   | 'cola_demasiado_lejos';
 
 const AVANCE_DEL_FALLO: Record<PasoDeLaCita, number> = {
-  literal: 9, normalizada: 9, cabeza_y_cola: 9,
-  vacia_o_corta: 0, sin_coincidencia: 1, sin_cabeza: 1, cabeza_sin_cola: 2, cola_demasiado_lejos: 3,
+  literal: 9, normalizada: 9,
+  vacia_o_corta: 0, sin_coincidencia: 1, sin_cabeza: 1, cabeza_sin_cola: 2, cola_demasiado_lejos: 3, cabeza_y_cola: 4,
 };
 
 /** La búsqueda entera: el recorte del original (o null) y la vía o el fallo. */
@@ -159,17 +164,18 @@ function buscarCita(haystack: string, needle: string): { recorte: string | null;
 
   const inicio = posiciones[headIdx];
   const fin = (posiciones[tailIdx + tail.length - 1] ?? inicio) + 1;
-  if (fin - inicio < needle.length * 3) {
-    return { recorte: haystack.slice(inicio, fin), paso: 'cabeza_y_cola' };
-  }
+  // B.318: era un sello de goma —valida contra la PRIMERA aparición de la
+  // cabeza, sea o no la del pasaje, y deja el medio sin mirar—. Deja de aceptar:
+  // no hay recorte. Sigue DESCRIBIENDO por dónde se habría colado.
+  if (fin - inicio < needle.length * 3) return { recorte: null, paso: 'cabeza_y_cola' };
   return { recorte: null, paso: 'cola_demasiado_lejos' };
 }
 
 /**
- * El recorte del original donde está la cita, o null. Tres vías, en orden:
- * literal; normalizada (con LA MISMA normalización a los dos lados); y, con 25
- * caracteres normalizados o más, la cabeza y la cola —hasta 20 cada una— en
- * orden y a menos de tres veces la longitud de la cita.
+ * El recorte del original donde está la cita, o null. DOS vías, en orden:
+ * literal; y normalizada (con LA MISMA normalización a los dos lados). La
+ * tercera, la cabeza y la cola, dejó de aceptar el 02/10/2026 (B.318): hoy sólo
+ * dice, en el diagnóstico, que una cita se habría colado por ahí.
  *
  * Mismo contrato que tenía dentro de `judge.ts`: sólo cambia la normalización
  * del lado del texto, que ahora es la de la cita.

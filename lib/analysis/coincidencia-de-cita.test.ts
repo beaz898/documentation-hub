@@ -301,10 +301,10 @@ describe('B.313 · describirAcierto: por qué vía pasó una cita, y su longitud
     expect(lado.describirAcierto(cita)).toContain('paso=normalizada');
   });
 
-  it('cabeza y cola: el medio cambiado, y aun así pasa', () => {
+  it('PUESTO 1: cabeza y cola YA NO acepta — el medio cambiado no pasa, y el descarte lo nombra', () => {
     const cita = 'El control biológico del esterilizador se realiza cada lunes por la mañana';
-    expect(lado.comprobar(cita)).not.toBeNull();
-    expect(lado.describirAcierto(cita)).toContain('paso=cabeza_y_cola');
+    expect(lado.comprobar(cita)).toBeNull();
+    expect(lado.describir(cita)).toContain('paso=cabeza_y_cola');
   });
 
   it('por segmentos de fila: la vía de tablas de verifyQuote, que no se repite aquí', () => {

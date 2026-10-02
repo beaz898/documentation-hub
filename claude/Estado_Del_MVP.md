@@ -11838,6 +11838,32 @@ reclasificada a «equivalentes», o dos filas colapsadas, **por un signo**.
 **El arreglo, decidido** (puesto 1 del tablero del 02/10, en B.313): deja de ACEPTAR y sigue
 DESCRIBIENDO, sin coste medido después del puesto 0.
 
+✅ **HECHO EN CÓDIGO (02/10/2026)**, sin desplegar.
+- **Qué cambia**: en `buscarCita` (`lib/analysis/coincidencia-de-cita.ts`), cuando la cabeza y la cola
+  casan a menos de tres veces la longitud de la cita, ya no hay recorte: **la cita no pasa**.
+  - El paso se sigue calculando y se llama igual, `cabeza_y_cola`, ahora como el fallo más avanzado:
+    «habría pasado por la tolerancia».
+  - Aceptan `literal`, `normalizada` y los segmentos de fila de `verifyQuote`, que no se tocan.
+- **Se cuenta**: `frontera.cita_solo_por_cabeza_y_cola`, en el `discarded` de la pareja, por CITA que
+  falló sólo por eso, sin tope.
+  - Lo anota `registroDeDescartes` (`lib/analysis/diagnostico-de-cita.ts`).
+  - El descarte se guarda en `descartesPorCita` como cualquier otro, con `paso: 'cabeza_y_cola'`.
+- **Lo que le pasa hoy a un hallazgo cuya cita no verifica**, leído en el código y **sin cambiar**: **se
+  cae entero**. En `fixQuotesInJudgment`, si falla cualquiera de los dos lados, el hallazgo no entra
+  en la lista que sigue adelante: no se publica, ni con cita ni sin ella. Queda su contador
+  (`citaNoVerificable`), su línea de log y su registro en `descartesPorCita`.
+- **El censo repetido con los dos cambios puestos**: las 129 citas verificadas del examen archivado
+  siguen pasando todas. Tablas: 74 por segmentos de fila y 1 literal, como antes. Prosa: 37 literal y
+  17 normalizada. **Las 3 de N3 pasan ahora por `normalizada`.**
+- **El rojo, de fallo**:
+  - contra el código de antes caen la cita de 434 caracteres del autoclave, contra el texto real de
+    NOR-10 (`lib/analysis/sello-de-goma.test.ts`); la prueba que codificaba la aceptación, dada la
+    vuelta; y el descarte con su contador, en el juez;
+  - los controles pasan antes y después: la cita literal de CLI-12 (341), la de CLI-13 (103), la frase
+    32 entera de NOR-10, y una cita inventada que no cuenta como «sólo por cabeza y cola».
+- **El comentario de `verifyQuote`** que hablaba del «portero de la rama atómica (pipeline.ts)», marcado
+  como HISTÓRICO, con fecha: `pipeline.ts` sólo importa `judgeAllDocuments`.
+
 ### ⚠️ B.297 — LA LECTURA DE TROZOS SIN PAGINAR, y su margen medido (29/09/2026)
 
 `getChunksForDocuments` (`lib/read-chunks.ts`) era UNA consulta sin paginar. Supabase corta

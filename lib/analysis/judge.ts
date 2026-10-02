@@ -222,10 +222,9 @@ export interface VerifiedQuote {
   porCeldas: boolean;
 }
 
-// F-74: exportada. El portero de la rama atómica (pipeline.ts) la necesita para
-// comprobar si sus citas existen en el documento — es la MISMA pregunta que se
-// le hace a las del juez, y responderla con otra función sería tener dos
-// criterios de "cita verificable" en el mismo pipeline.
+// F-74: exportada. HISTÓRICO (corregido el 02/10/2026): se exportó para el
+// portero de la rama atómica de pipeline.ts, y hoy pipeline.ts sólo importa
+// `judgeAllDocuments`. Sus llamadores reales: el juez (vía `comprobadorDeLado`).
 export function verifyQuote(
   chunks: StoredChunk[],
   fallbackText: string | null,
@@ -524,6 +523,7 @@ export function fixQuotesInJudgment(
   if (narracionEnCita > 0) discarded.narracionEnCita = (discarded.narracionEnCita ?? 0) + narracionEnCita;
   if (citaNoVerificable > 0) discarded.citaNoVerificable = (discarded.citaNoVerificable ?? 0) + citaNoVerificable;
   if (citaDeContexto > 0) discarded.citaDeContexto = (discarded.citaDeContexto ?? 0) + citaDeContexto;
+  descartes.contar(discarded); // B.318: las que sólo habrían pasado por cabeza y cola
   // F-61: mismo campo que los descartes de arriba (DiscardedFindings ya es,
   // de facto, "recuento por motivo", no solo descartes — ver
   // 'confirmado.por_estructura' en pipeline.ts). 'verificado.*' en vez de

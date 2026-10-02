@@ -261,3 +261,22 @@ describe('B.313 · se guarda lo que se descarta: en el juicio, con campos nombra
     expect(avisos.find(a => a.includes('Solapamiento descartado'))).toMatch(/lado=nuevo; nuevo: longitud=\d+, paso=\w+, pajar=todos_los_trozos/);
   });
 });
+
+describe('B.318 · lo que sólo pasaba por cabeza y cola: se descarta, se guarda y se cuenta', () => {
+  // Cabeza y cola del existente, con el medio cambiado: antes del puesto 1 pasaba.
+  const SOLO_CABEZA_Y_COLA = 'La recogida se hace una sola vez por semana, los viernes.';
+
+  it('ROJO antes, VERDE después: el hallazgo se descarta, el descarte dice cabeza_y_cola, y se cuenta', () => {
+    const j = corregir(juicio([{ description: 'la recogida', evidenceInNewDoc: CITA_DEL_NUEVO, evidence: SOLO_CABEZA_Y_COLA }]));
+    expect(j.overlappingContent).toEqual([]);
+    expect(j.discarded?.citaNoVerificable).toBe(1);
+    expect(j.discarded?.['frontera.cita_solo_por_cabeza_y_cola']).toBe(1);
+    expect(j.descartesPorCita?.[0].existente).toMatchObject({ verificada: false, paso: 'cabeza_y_cola' });
+  });
+
+  it('CONTROL: una cita inventada se descarta igual, pero NO cuenta como «sólo por cabeza y cola»', () => {
+    const j = corregir(juicio([{ description: 'x', evidenceInNewDoc: 'El material se esteriliza en el autoclave central de Retiro.', evidence: CITA_DEL_EXISTENTE }]));
+    expect(j.discarded?.citaNoVerificable).toBe(1);
+    expect(j.discarded?.['frontera.cita_solo_por_cabeza_y_cola']).toBeUndefined();
+  });
+});

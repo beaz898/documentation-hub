@@ -1,5 +1,5 @@
 import type { ComprobadorDeLado } from './coincidencia-de-cita';
-import type { DescarteDeCita, DocumentJudgment } from './types';
+import type { DescarteDeCita, DiscardedFindings, DocumentJudgment } from './types';
 
 /**
  * LO QUE SE ESCRIBE DE UNA CITA, PASE O NO (B.299, B.312, B.313).
@@ -61,17 +61,26 @@ export function diagnosticoDelAcierto(
  *  sea cero es un hallazgo. */
 export const TOPE_DE_DESCARTES_POR_PAREJA = 10;
 
+/** B.318: las citas que antes del puesto 1 habrían pasado por cabeza y cola y
+ *  ya no pasan. Por CITA (por lado que falló), no por hallazgo, y sin tope. */
+export const CITA_SOLO_POR_CABEZA_Y_COLA = 'frontera.cita_solo_por_cabeza_y_cola';
+
 /** Lo que se lleva de una pareja: anota cada descarte y devuelve la línea de log
  *  que ya se escribía (`diagnosticoDelDescarte`). Ninguna decisión pasa por
  *  aquí: el descarte ya está decidido cuando se anota. */
 export function registroDeDescartes() {
   const guardados: DescarteDeCita[] = [];
   let omitidos = 0;
+  let soloPorCabezaYCola = 0;
   return {
     descartar(
       lados: { nuevo: ComprobadorDeLado; existente: ComprobadorDeLado },
       d: { tipo: DescarteDeCita['tipo']; hash: string; tema: string; citas: { nuevo: string | undefined; existente: string | undefined }; fallo: DescarteDeCita['ladoFallido'] },
     ): string {
+      for (const lado of ['nuevo', 'existente'] as const) {
+        const fallo = d.fallo === 'ambos' || d.fallo === lado;
+        if (fallo && lados[lado].datos(d.citas[lado], false).paso === 'cabeza_y_cola') soloPorCabezaYCola++;
+      }
       if (guardados.length < TOPE_DE_DESCARTES_POR_PAREJA) {
         const ladoDe = (lado: 'nuevo' | 'existente') => {
           const verificada = d.fallo !== 'ambos' && d.fallo !== lado;
@@ -86,6 +95,10 @@ export function registroDeDescartes() {
         omitidos++;
       }
       return diagnosticoDelDescarte(lados, d.citas, d.fallo);
+    },
+    /** El contador de B.318, sumado a los de la pareja. */
+    contar(discarded: DiscardedFindings): void {
+      if (soloPorCabezaYCola > 0) discarded[CITA_SOLO_POR_CABEZA_Y_COLA] = (discarded[CITA_SOLO_POR_CABEZA_Y_COLA] ?? 0) + soloPorCabezaYCola;
     },
     /** Lo que va al juicio: nada si no hubo descartes. */
     resultado(): Pick<DocumentJudgment, 'descartesPorCita' | 'descartesPorCitaOmitidos'> {
