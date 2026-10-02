@@ -11043,8 +11043,14 @@ los ha visto. Dos pasadas de NOR-10 solo, a las 09:01:54 y a las 09:02:28, `0 id
   - **El mismo hallazgo, con una cita distinta cada vez**: 244 caracteres con
     `cola_demasiado_lejos` y 241 con `cabeza_sin_cola`. Las causas candidatas, en B.313.
   - **Y ESO EXPLICA LA INESTABILIDAD** (arquitecto, 02/10): las dos veces que se publicó, a las 09:02
-    y a las 13:17, fue con el mismo par de citas, `[98277f67]` (el hash se calcula sobre las dos
-    citas, así que el mismo hash es el mismo par). Cuando el juez escribe una cita que la tolerancia
+    y a las 13:17, fue con el mismo par de citas, `[98277f67]`. **Cerrado por construcción**
+    (arquitecto, 02/10): el hash es `hashCitationPair` (`lib/analysis/llm-boundary.ts:210-214`), un
+    hash DEL PAR de citas, así que el mismo hash es el mismo par.
+    - Con los dos matices que la propia función impone, y que no cambian nada aquí: compara las
+      citas en minúsculas y con los espacios colapsados (`:211`), así que dos citas que sólo
+      difieran en eso dan el mismo hash; y guarda 8 caracteres hexadecimales de un sha256 (`:213`),
+      con una colisión posible en teoría y despreciable entre los pocos hallazgos de un día.
+    - Cuando el juez escribe una cita que la tolerancia
     salva, publica; cuando no, muere. **No es que a veces lo encuentre: es que a veces la puerta le
     deja pasar.**
 - **EL HITO: por primera vez, la sembrada A de los cargos se publica por la ruta por defecto, sin
@@ -11434,14 +11440,25 @@ la fila: la transcribe el arquitecto.
     de retirada centralizado concentra el material de las tres clínicas» es **literal de otra
     frase**, la 77 (carácter 8.127). El juez tomó esa frase para tener el orden de CLI-13 y le pegó
     el final de la 72 («ubicado en la clínica de Chamberí», carácter 7.371).
-  - **Queda confirmado que el juez le dio la vuelta para que rimara con CLI-13**, y lo hizo cosiendo
-    dos frases reales.
+  - **EL MECANISMO, AFINADO** (arquitecto, 02/10, aceptando la precisión): el juez no reordenó
+    palabras. **Eligió la frase de NOR-11 que ya tenía el orden de CLI-13 (la 77) y le pegó el
+    final de la que llevaba el dato (la 72).** Eligió y cosió. El motivo de fondo es el mismo: que
+    las dos caras rimen.
   - Las posiciones 7.148 y 7.842 de la medida anterior eran del texto NORMALIZADO; éstas son del
     texto extraído, y no se mezclan.
-- **EL ARREGLO TIENE CANDIDATO, Y NO SE ESCRIBE TODAVÍA** (arquitecto, 02/10): una instrucción al
-  juez para que **no reformule una cita para que se parezca a la otra**. Es barato. Pero primero va
-  la medición del autoclave (B.311): si su medio está inventado, el orden del tablero cambia y este
-  arreglo no es el primero.
+- **EL ARREGLO TIENE CANDIDATO, Y NO SE ESCRIBE TODAVÍA** (arquitecto, 02/10), afinado con el
+  mecanismo: no es «no reformules», es **«cada cita sale de UNA sola frase; si el dato está en otra,
+  usa esa aunque no se parezca a la de enfrente»**. Es barato. Pero primero va la medición del
+  autoclave (B.311): si su medio está inventado, el orden del tablero cambia y este arreglo no es el
+  primero.
+  - **SU GANANCIA, IDENTIFICADA**: la frase 72 contiene el dato, es literal y verificaría, así que
+    ese arreglo publicaría la sembrada 2 de NOR-11.
+  - **«Verificaría», comprobado por Code el 02/10**: con el troceado actual del repositorio, la
+    frase 72 (267 caracteres) cae entera en un solo trozo, el 8 de 15. `verifyQuote` la da por buena
+    entera, y también su tramo «un punto de retirada centralizado, ubicado en la clínica de
+    Chamberí». Es el troceado de hoy, no los trozos guardados en producción.
+  - **Sin predicción todavía**: cuando se decida el arreglo, el arquitecto la escribe con su banda,
+    como manda la regla nueva.
 
 **LO QUE ESTA FICHA TIENE QUE DEJAR CLARO: ESTO NO SE ARREGLA EN EL COMPROBADOR.**
 - Si el juez redacta, **el comprobador tiene razón al rechazarlo**: la frase publicada no estaría
