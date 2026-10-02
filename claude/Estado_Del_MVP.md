@@ -10525,7 +10525,7 @@ disciplina que los contadores: una decisión sin registro no se puede auditar.
 recorte del documento en prosa y la cita del juez en tablas; exigir el centro; o declararla
 aproximada en la pantalla— no se eligen aquí.
 
-### ⚠️ B.312 — EL JUEZ PONE LAS CITAS DE LOS SOLAPAMIENTOS EN EL CAMPO DEL OTRO DOCUMENTO: 5 de 5 solapamientos, 0 de 3 contradicciones (ARREGLADO EN CÓDIGO el 02/10/2026, SIN DESPLEGAR NI MEDIR)
+### ⚠️ B.312 — EL JUEZ PONE LAS CITAS DE LOS SOLAPAMIENTOS EN EL CAMPO DEL OTRO DOCUMENTO: 5 de 5 solapamientos, 0 de 3 contradicciones (ARREGLADO EN CÓDIGO y subido el 02/10/2026, SIN MEDIR: predicciones escritas)
 
 **De dónde sale**: los ocho descartes de las dos sondas del 01/10, con su `lado`, que transcribe
 el arquitecto de los logs del director. Cada cita se buscó en los textos de `corpus-pruebas/`
@@ -10789,9 +10789,87 @@ escribir la prueba):
 - **Material para escribirla, cuando se pida**: esos ficheros del examen llevan `judgments` con
   `overlappingContent`, `evidence` y `evidenceInNewDoc` guardados.
 
-**Sin desplegar todavía.** El push lo dice el director. Después, dos análisis sueltos —NOR-11 y
-NOR-10, `0 ids de tanda`— dirán si los solapamientos dejan de morir cruzados: el detector lo
-cuenta en el log, sin campaña nueva. Hasta entonces, **arreglado en código y sin medir.**
+**(g bis) AHORA COMPROBADO: LA PRUEBA DE LA EVIDENCIA ARCHIVADA (02/10/2026)**, a petición del
+arquitecto. Sólo pruebas, sin tocar producto: `lib/analysis/evidencia-archivada.test.ts`.
+- 📌 **PARA QUÉ VALE MÁS ALLÁ DE HOY: ES LA GUARDA DE TODOS LOS CAMBIOS DE PROMPT QUE VENGAN.** Cada
+  vez que se mejore lo que se le pide al juez, esta prueba dirá si se ha roto la lectura de la
+  evidencia archivada, que es el único sitio donde vive un mes de mediciones.
+- **Lee análisis archivados de verdad**: los del examen del 27/09 en `examen/resultados/`,
+  anteriores a B.312. Comprueba tres cosas:
+  1. **El lector de producción rehace lo publicado.** `construirOverlaps`, que es el que lee
+     `evidenceInNewDoc` para la cita de referencia, rehace desde los juicios guardados los
+     solapamientos que se publicaron entonces: **65 de 65 idénticos**.
+  2. **`evidence` es el existente y `evidenceInNewDoc` el nuevo.** Ninguna cita guardada está sólo
+     en el documento del otro lado. Medido antes de escribir la aserción:
+
+     | Campo | sólo en su lado | en los dos | sólo en el otro |
+     |---|---|---|---|
+     | `evidence` | 92 | 28 | **0** |
+     | `evidenceInNewDoc` | 89 | 31 | **0** |
+
+     - **Ciega para las tablas**: 91 citas por campo no están en ninguno de los dos textos
+       extraídos, y las 91 son filas pintadas («a | b | c»). La prueba las salta.
+  3. **La traducción del prompt no toca nunca lo que viene de la base**, y esto **no se puede
+     probar con los valores**: un solapamiento guardado pasado por la traducción da los mismos
+     valores, porque el nombre viejo es su fallback.
+     - Lo prueba un **CENSO**: sólo `judge.ts` y `llm-boundary.ts` la nombran, y la única llamada
+       es sobre `response.overlappingContent`, con `response` salido de `callLLMJson`.
+     - Y un **control**: si alguna vez tocara algo guardado, los valores no cambiarían, pero la
+       cuenta `frontera.solapamiento_con_nombre_viejo` sí, una por solapamiento.
+- **Puede ponerse roja**: con `construirOverlaps` estropeado a propósito (la cita de referencia
+  leyendo `evidence`), la (1) cae en rojo. Restaurado, 5 de 5.
+- Lee disco y lleva su propio tope contra cuelgues, como manda `vitest.config.mts` para su clase.
+  Tarda unos 7 s.
+
+**Subido a `origin` el 02/10 (`ba8654a9`).** El despliegue de Vercel no lo ha visto Code.
+
+**LAS PREDICCIONES DE LAS DOS SONDAS, escritas por el arquitecto el 02/10 ANTES de medir. Sin
+veredicto.** Las sondas: dos análisis sueltos, NOR-11 y NOR-10, `0 ids de tanda`.
+- **P-B312-1 · En los solapamientos DESAPARECE LA MARCA «cruzada»**: ninguno o casi ninguno de
+  los descartes la lleva. Si sigue saliendo 5 de 5, quitar la trampa no era suficiente y el
+  modelo cruza los campos por su cuenta.
+  - **Se juzga con** las líneas `[judge] Solapamiento descartado en "…" […] (cita no verificable,
+    lado=…; …)` (`lib/analysis/judge.ts:502`). La marca es `cruzada: la cita del … está en el …`.
+  - **El denominador** son los solapamientos que emitió el juez: `… N solapamientos` de cada línea
+    `[judge] RAW analizado=… candidato=…` (`judge.ts:881-887`).
+- **P-B312-2 · APARECEN SOLAPAMIENTOS PUBLICADOS EN NOR-11 / CLI-13**, donde ayer murieron los
+  cinco. Es la cara visible: el usuario ve por fin puntos concretos del solape que el juez ya
+  decía que había.
+  - **Se juzga con lo GUARDADO, no con el log**: en el análisis rápido no hay ninguna línea que
+    imprima lo publicado. Es `analysis->'overlaps'` del análisis guardado, o la pantalla.
+  - ⚠️ **PRECISIÓN DE CODE, para que decida el arquitecto: tal como está escrita, esta predicción
+    YA SE CUMPLÍA AYER, así que hoy no puede fallar.**
+    - En la sonda A, NOR-11 con CLI-13 emitió 5 solapamientos, y murieron 3. Son las `[87b96c7c]`,
+      `[a4ff676b]` y `[b51832b0]` de la tabla de arriba.
+    - **Sobrevivieron 2, y la pareja se publicó** (SONDA A en B.307; (d) de arriba).
+    - Los cinco cruzados estaban repartidos en tres parejas:
+      - 3 en NOR-11 con CLI-13;
+      - 1 en NOR-11 con CLI-12 (`[d04dbc76]`), solape 15 % y su único solapamiento;
+      - 1 en NOR-10 con CLI-12 (`[283b244e]`), también solape 15 % y su único solapamiento.
+    - **Las que DISCRIMINAN** son esas dos últimas. Ayer no publicaron ningún solapamiento, y son
+      justo la cara visible de B.312. En NOR-11 con CLI-13 lo que puede moverse es el número de
+      puntos, de 2 hacia 5.
+    - Si son sembradas o no, lo dice el registro de siembra, y se cuentan aparte.
+- **P-B312-3 · LA MARCA «con el nombre viejo, evidence» NO APARECE**: el modelo adopta el nombre
+  nuevo y la red de seguridad no tiene que trabajar. Si aparece, el nombre nuevo no se adoptó y
+  lo estamos sosteniendo nosotros: entonces el fallback pasa de red a pieza permanente, con su
+  ficha.
+  - **Se juzga con** la línea `[judge] RAW analizado=… candidato=…` (`judge.ts:881-887`), que añade
+    «(N con el nombre viejo, evidence)» sólo cuando pasa.
+  - En lo guardado: `frontera.solapamiento_con_nombre_viejo` en el `discarded` de cada juicio.
+- **P-B312-4 · LAS CONTRADICCIONES NO CAMBIAN: 2 publicadas en NOR-11 y 0 en NOR-10.**
+  - El cambiazo de campo no les afectaba (0 de 3, medido). Si cambian, algo que no entendemos se
+    ha movido.
+  - ⚠️ **UN «0 EN NOR-10» ES LO ESPERADO, NO UNA REGRESIÓN.** Su causa es B.313: el juez redacta.
+  - **Se juzga con lo GUARDADO**: `analysis->'discrepancies'`, o la pantalla. La línea
+    `[…] Verificador: N hallazgos → M confirmados` (`lib/analysis/pipeline.ts:1022`) es una
+    aproximación: cuenta lo que sale de la cascada, no lo publicado.
+- **REGLA DE LECTURA** (arquitecto, 02/10): **sembradas y parejas sin auditar se cuentan aparte.**
+  Los solapamientos que salgan con `Normas_Frecuencia_Recogidas`, o con cualquier pareja que no
+  esté en un registro de siembra, no son aciertos: son de naturaleza no determinada.
+
+Con los logs, el arquitecto decide si B.299 y B.312 se cierran. Hasta entonces, **arreglado en
+código y sin medir.**
 
 ### 📋 B.313 — EL JUEZ NO COPIA, REDACTA: la enfermedad de las contradicciones (constancia, SIN arreglo, a la cola; 02/10/2026)
 
