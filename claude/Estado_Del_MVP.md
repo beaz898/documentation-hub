@@ -8763,7 +8763,7 @@ arquitecto.**
 1. **B.299 · la comprobación de citas. NO ESTÁ COMPLETA** (corregido el 01/10, entrada 10).
    - Hecho y desplegable: causas (ii) (`0dd06f56`) e (i) (`6cbdeb45`).
    - **Abierta: la tercera causa, ya con nombre** (02/10). En los solapamientos, el cambiazo de
-     campo (B.312, 5 de 5), **arreglado en código el 02/10, sin desplegar ni medir**. En las
+     campo (B.312, 5 de 5), **✅ CERRADA el 02/10: cuatro pasadas, cero cruces**. En las
      contradicciones, la reformulación y, sin medir, la anotación entre corchetes.
    - **EL ORDEN DEL 02/10** (arquitecto): primero el arreglo de B.312, quitar la trampa más el
      detector, con su visto bueno. Se despliega, y entonces dos análisis sueltos, NOR-11 y
@@ -10534,7 +10534,7 @@ disciplina que los contadores: una decisión sin registro no se puede auditar.
 recorte del documento en prosa y la cita del juez en tablas; exigir el centro; o declararla
 aproximada en la pantalla— no se eligen aquí.
 
-### ⚠️ B.312 — EL JUEZ PONE LAS CITAS DE LOS SOLAPAMIENTOS EN EL CAMPO DEL OTRO DOCUMENTO: 5 de 5 solapamientos, 0 de 3 contradicciones (ARREGLADO el 02/10/2026; MEDIDO en NOR-11, 4 de 4 a favor; pendientes NOR-10 y la pantalla)
+### ⚠️ B.312 — EL JUEZ PONE LAS CITAS DE LOS SOLAPAMIENTOS EN EL CAMPO DEL OTRO DOCUMENTO: 5 de 5 solapamientos, 0 de 3 contradicciones (✅ CERRADA el 02/10/2026: arreglada, desplegada y medida; cuatro pasadas, cero cruces)
 
 **De dónde sale**: los ocho descartes de las dos sondas del 01/10, con su `lado`, que transcribe
 el arquitecto de los logs del director. Cada cita se buscó en los textos de `corpus-pruebas/`
@@ -10947,7 +10947,62 @@ regla de la línea de base (tablero, puesto 2).
 
 Con esas dos cosas, B.299 y B.312 se cierran y el tablero pasa a B.313.
 
-### 📋 B.313 — EL JUEZ NO COPIA, REDACTA: la enfermedad de las contradicciones (constancia, SIN arreglo, a la cola; 02/10/2026)
+**LA MEDIDA, MITAD NOR-10 (02/10/2026).** Logs del director, transcritos por el arquitecto; Code no
+los ha visto. Dos pasadas de NOR-10 solo, a las 09:01:54 y a las 09:02:28, `0 ids de tanda` las dos.
+- **NO SON IDÉNTICAS.** Coinciden los 5 candidatos, el rerank a 2, los regímenes y los caracteres
+  entregados. **Lo que cambia es lo que escribió el juez.**
+- **Pasada 1** (21.368 ms):
+  - **CLI-12, `corte_honesto`** (37143/66801 y 2857/55135): solape **15 %**, 1 contradicción y
+    **3 solapamientos, ninguno descartado**.
+    - `[1eb33774]` «Autoridad para retirar autoclave…», **DESCARTADA**: lado=nuevo, **longitud=244,
+      paso=cola_demasiado_lejos**, pajar=entregado_texto.
+  - **CLI-13, `corte_honesto`** (30183/66801 y 9817/9817): solape 0 %, 0 y 0.
+  - Verificador: 0 → 0. **Publicadas: 0 contradicciones.**
+- **Pasada 2** (20.309 ms):
+  - **CLI-12**: solape **8 %**, 1 contradicción y 2 solapamientos.
+    - `[98277f67]` «Autoridad para retirar autoclave de servicio tras fallo de c…» → **CONFIRMADA
+      POR JUICIO Y PUBLICADA**.
+    - 1 solapamiento descartado, `[cd5cb1f1]`: lado=nuevo, **longitud=175,
+      paso=cola_demasiado_lejos**. Sin la marca «cruzada».
+  - **CLI-13**: solape 0 %, 0 y 0.
+  - Verificador: 1 → 1. **Publicadas: 1 contradicción.**
+  - ⚠️ **No consta para Code** si «2 solapamientos» es lo que emitió el juez (la línea `RAW`, y
+    entonces sobrevivió 1) o lo que sobrevivió (y entonces se emitieron 3). El arquitecto lee «2
+    sobreviven». Lo decide la línea `RAW` de esa pasada.
+
+🏁 **UN HITO, Y SU RESERVA VA DELANTE:**
+- ⚠️ **RESERVA: 1 DE 2 PASADAS.** Por la regla de estabilidad (B.295: 5/5 estable-acierto, 0/5
+  estable-fallo, 1 a 4 inestable), **1 de 2 es INESTABLE, no acierto**. Lo demostrado es que
+  **puede** publicarse, no que se publique.
+- **EL HITO: por primera vez, la sembrada A de los cargos se publica por la ruta por defecto, sin
+  tanda.** Es un rostro de la A (la contradicción A, `SIEMBRA_corpus_ampliado.md:51-62`, cuyo conflicto incluye «retirar un autoclave de servicio»), y
+  sale con el corpus haciendo su trabajo solo.
+- **El control negativo sigue limpio en las dos**: NOR-10 con CLI-13, 0 %.
+
+✅ **B.312 CERRADA (02/10/2026): arreglada, desplegada y medida. Cuatro pasadas, cero cruces.**
+- En las cuatro pasadas de hoy, dos de NOR-11 y dos de NOR-10, **la marca «cruzada» no aparece ni
+  una vez, y el nombre viejo del campo tampoco.** Ayer morían cruzados 5 de 5; hoy, ninguno.
+- En NOR-10 con CLI-12, que ayer perdió por el cruce su único solapamiento, hoy sobreviven 3 en la
+  primera pasada y, en la segunda, lo que diga la línea `RAW` (arriba).
+- **P-B312-1 y P-B312-3: ACERTADAS, confirmadas en cuatro pasadas.**
+- 📌 **LO QUE FUE: EL MODELO NO CRUZABA LOS CAMPOS POR SU CUENTA. LOS CRUZABA PORQUE SE LOS
+  PEDÍAMOS AL REVÉS. El fallo era nuestro, de principio a fin.**
+- **LA GANANCIA DE B.312, escrita como la fija el arquitecto**: en NOR-11, **seis puntos más
+  publicados, de los que tres son de pareja auditada y tres de naturaleza no determinada**. «De 2
+  a 8» es una cifra **POR CÓDIGO, no medida**, hasta que se mire la pantalla de NOR-11.
+
+❌ **P-B312-4: MAL FORMULADA, no fallada a secas.** Predijo 0 contradicciones en NOR-10, y salió 0 y 1.
+- **El motivo es de protocolo, no la cifra** (arquitecto, 02/10): se predijo un número exacto de
+  hallazgos a partir de UNA pasada, ignorando la regla de estabilidad. **Una predicción sobre la
+  salida de un modelo sin banda de estabilidad no se puede ni acertar ni fallar con honradez.**
+- Regla nueva, al protocolo (`claude/Protocolo_Harness_Tasas.md`, «LA QUINTA PIEZA»): **toda
+  predicción sobre cuántos hallazgos saldrán lleva su banda —«en N de M pasadas»— o no se
+  escribe.**
+- La mitad de NOR-11 (2 publicadas, las mismas) queda escrita, con la misma reserva: es otra
+  predicción sin banda, que acertó en 2 de 2.
+
+
+### 📋 B.313 — EL JUEZ NO COPIA, REDACTA: la enfermedad de las contradicciones (SIN arreglo; tiene PATRÓN y el registro que lo decide está puesto; 02/10/2026)
 
 **El diagnóstico, en una frase** (arquitecto, 02/10): **el juez no copia, redacta.** Es lo que
 mata las citas de las CONTRADICCIONES. Las de los solapamientos mueren de otra cosa: el cambio
@@ -10979,6 +11034,44 @@ descarte que queda es éste:
   - **Es que esa frase, tal como el juez la escribió, no existe.**
 - Cuadra con lo medido el 02/10 contra el texto extraído (arriba, REFORMULA): no está así en
   ninguno de los dos documentos.
+
+**📊 EL PATRÓN DEL 02/10, Y CÓMO SE DECIDE** (las cuatro pasadas de B.312). Tres citas muertas, con su
+longitud y su paso:
+
+| Cita | Pasada | Longitud | Paso |
+|---|---|---|---|
+| `[976f6174]` | NOR-11, las dos | 111 | `cabeza_sin_cola` |
+| `[cd5cb1f1]` | NOR-10, pasada 2 | 175 | `cola_demasiado_lejos` |
+| `[1eb33774]` | NOR-10, pasada 1 | 244 | `cola_demasiado_lejos` |
+
+- **QUÉ DICE EL PASO, y qué no** (`lib/analysis/coincidencia-de-cita.ts`, `buscarCita`):
+  - Una cita sólo llega a la cabeza y la cola si **no está en el texto, ni literal ni
+    normalizada**. Eso queda probado en las tres.
+  - `cola_demasiado_lejos` dice además que la cabeza (sus 20 primeros caracteres normalizados) y
+    la cola (los 20 últimos) están en el texto, en orden, pero a tres veces la longitud de la cita
+    o más.
+  - ⚠️ **Es ambiguo**: la cabeza se busca sólo en su PRIMERA aparición. Así que puede ser que el
+    juez cambiara el medio, o que esa cabeza aparezca antes en otro sitio del texto.
+- **HIPÓTESIS DEL ARQUITECTO, SIN MEDIR Y NO CAUSA: el juez deja de ser literal cuando la cita se
+  le alarga.**
+  - El prompt **ya le pide «Máximo 1 frase por cita»** (`lib/analysis/judge.ts:831`). Si la
+    hipótesis se sostiene, no haría falta una regla nueva, sino que cumpla la que tiene.
+  - Que la cita de 244 caracteres lleve «dos rayas en medio» lo dice el arquitecto. **No consta
+    para Code**: el log corta las citas a 200 caracteres.
+- **LA MEDICIÓN QUE LA DECIDE, ya puesta** (02/10): el registro escribe la longitud y la vía
+  **también cuando la cita PASA**. Hasta ahora sólo se escribía al fallar: se tenía el numerador y
+  no el denominador.
+  - Las líneas nuevas son «[judge] Contradicción verificada en …» y «[judge] Solapamiento
+    verificado en …».
+  - Llevan, por lado, `longitud=N, paso=X, pajar=Y`. La vía es `literal`, `normalizada`,
+    `cabeza_y_cola` o `segmentos_de_fila`.
+  - Sólo números y nombres de paso, sin texto del cliente.
+- 📌 **ESCRITO ANTES DE MEDIR: QUÉ LA TUMBA.** Con dos análisis más, la hipótesis se contesta con
+  una tabla de longitudes.
+  - **Si las citas que PASAN también son largas** —del orden de las 175 y 244 que mueren—, **la
+    hipótesis CAE y la causa es otra.**
+  - Si las que pasan son cortas y las largas mueren, se sostiene, y el arreglo es del prompt: que
+    cumpla «1 frase por cita».
 
 **LO QUE ESTA FICHA TIENE QUE DEJAR CLARO: ESTO NO SE ARREGLA EN EL COMPROBADOR.**
 - Si el juez redacta, **el comprobador tiene razón al rechazarlo**: la frase publicada no estaría

@@ -490,6 +490,19 @@ cambio altera la FORMA de un valor devuelto, la población incluye a todo el que
 lo compara entero.** Un `toEqual` es una aserción sobre la forma, no sobre el
 contenido, y no vive donde vive la función que se está cambiando.
 
+**TERCERA VEZ, 02/10/2026, y no es de población sino de BANDA.** El arquitecto predijo «0
+contradicciones publicadas en NOR-10» (P-B312-4, `claude/Estado_Del_MVP.md`, B.312) a partir de UNA
+pasada, y salió 0 en una y 1 en la otra. **La cifra no es el fallo. El fallo es que una predicción
+sobre la salida de un modelo, sin banda de estabilidad, no se puede ni acertar ni fallar con
+honradez**: con 5 pasadas para llamar estable a un resultado (regla de estabilidad, B.295), una
+cifra exacta sacada de una sola pasada no dice qué esperar de la siguiente.
+
+> **TODA PREDICCIÓN SOBRE CUÁNTOS HALLAZGOS SALDRÁN LLEVA SU BANDA —«en N de M pasadas»— O NO SE
+> ESCRIBE.** La que no la lleve se archiva como **MAL FORMULADA**, no como fallada a secas.
+
+Es la misma familia que las dos de arriba: **el error estaba en la frase, no en el sistema.**
+Ahí la frase no decía de entre quiénes; aquí no decía de cuántas pasadas.
+
 
 ---
 
