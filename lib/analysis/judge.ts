@@ -852,7 +852,9 @@ Responde con este JSON (sin bloques de código, sin texto adicional):
 
     // Frontera LLM→pipeline (F-39): cada array de la respuesta pasa por la suya;
     // overlappingContent, por traducirSolapamientosDelJuez (B.312).
-    const { contradictions, discarded: boundaryDiscarded } = sanitizeJudgeContradictions(response.contradictions);
+    const { contradictions, discarded: deContradicciones } = sanitizeJudgeContradictions(response.contradictions);
+    const solapes = traducirSolapamientosDelJuez(response.overlappingContent);
+    const boundaryDiscarded = { ...deContradicciones, ...solapes.discarded };
 
     const rawJudgment: DocumentJudgment = {
       documentId: candidate.documentId,
@@ -861,7 +863,7 @@ Responde con este JSON (sin bloques de código, sin texto adicional):
       overlapPercent: Math.max(0, Math.min(100, Math.round(response.overlapPercent || 0))),
       verdict: response.verdict || 'sin_relacion',
       contradictions,
-      overlappingContent: traducirSolapamientosDelJuez(response.overlappingContent),
+      overlappingContent: solapes.overlappingContent,
       uniqueToNewDoc: response.uniqueToNewDoc || [],
       ...(Object.keys(boundaryDiscarded).length > 0 ? { discarded: boundaryDiscarded } : {}),
     };
@@ -879,7 +881,9 @@ Responde con este JSON (sin bloques de código, sin texto adicional):
     console.log(
       `[judge] RAW analizado="${newDocumentName}" candidato="${candidate.documentName}": ` +
       `overlap=${rawJudgment.overlapPercent}%, ${rawJudgment.contradictions.length} contradicciones, ` +
-      `${rawJudgment.overlappingContent.length} solapamientos`
+      `${rawJudgment.overlappingContent.length} solapamientos` +
+      // B.312: si el juez usó el nombre viejo del campo, el log lo dice.
+      (solapes.discarded['frontera.solapamiento_con_nombre_viejo'] ? ` (${solapes.discarded['frontera.solapamiento_con_nombre_viejo']} con el nombre viejo, evidence)` : '')
     );
     for (const c of rawJudgment.contradictions) {
       const hash = hashCitationPair(c.newDocSays, c.existingDocSays);

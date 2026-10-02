@@ -114,26 +114,52 @@ describe('B.312 · el detector de citas cruzadas: observa, no corrige', () => {
 });
 
 describe('B.312 · la frontera traduce lo que se le pide al juez a la forma guardada', () => {
-  it('ROJO antes, VERDE después: cada campo nombra su lado, y lo guardado sigue siendo `evidence`', () => {
-    expect(traducirSolapamientosDelJuez([
+  // ⚠️ Estos casos NO tuvieron un rojo de fallo: contra el código de antes caían
+  // porque la función no existía. Lo que prueban es que la forma guardada no
+  // cambia (`evidence` sigue siendo el existente) — ver B.312 en la ficha.
+  const NOMBRE_VIEJO = 'frontera.solapamiento_con_nombre_viejo';
+
+  it('cada campo nombra su lado, y lo guardado sigue siendo `evidence`; con el nombre nuevo no se registra nada', () => {
+    const r = traducirSolapamientosDelJuez([
       { description: 'd', evidenceInNewDoc: 'del nuevo', evidenceInExistingDoc: 'del existente' },
-    ])).toEqual([{ description: 'd', evidenceInNewDoc: 'del nuevo', evidence: 'del existente' }]);
+    ]);
+    expect(r.overlappingContent).toEqual([{ description: 'd', evidenceInNewDoc: 'del nuevo', evidence: 'del existente' }]);
+    expect(r.discarded).toEqual({});
   });
 
   it('lo ausente o lo que no es texto queda en cadena vacía, como el .map() de antes', () => {
-    expect(traducirSolapamientosDelJuez([{ description: 7 }, null])).toEqual([
+    expect(traducirSolapamientosDelJuez([{ description: 7 }, null]).overlappingContent).toEqual([
       { description: '', evidenceInNewDoc: '', evidence: '' },
       { description: '', evidenceInNewDoc: '', evidence: '' },
     ]);
   });
 
   it('sin array, ninguno', () => {
-    expect(traducirSolapamientosDelJuez(undefined)).toEqual([]);
-    expect(traducirSolapamientosDelJuez('nada')).toEqual([]);
+    expect(traducirSolapamientosDelJuez(undefined)).toEqual({ overlappingContent: [], discarded: {} });
+    expect(traducirSolapamientosDelJuez('nada')).toEqual({ overlappingContent: [], discarded: {} });
   });
 
-  it('el nombre viejo, `evidence`, ya no se lee: lo que se pide y lo que se lee son lo mismo', () => {
-    expect(traducirSolapamientosDelJuez([{ description: 'd', evidence: 'viejo', evidenceInNewDoc: 'n' }]))
-      .toEqual([{ description: 'd', evidenceInNewDoc: 'n', evidence: '' }]);
+  it('ROJO antes, VERDE después: el nombre viejo, `evidence`, se traduce igual y queda REGISTRADO', () => {
+    const r = traducirSolapamientosDelJuez([
+      { description: 'd', evidenceInNewDoc: 'n', evidence: 'viejo' },
+      { description: 'e', evidenceInNewDoc: 'n2', evidence: 'viejo2' },
+    ]);
+    expect(r.overlappingContent).toEqual([
+      { description: 'd', evidenceInNewDoc: 'n', evidence: 'viejo' },
+      { description: 'e', evidenceInNewDoc: 'n2', evidence: 'viejo2' },
+    ]);
+    expect(r.discarded).toEqual({ [NOMBRE_VIEJO]: 2 });
+  });
+
+  it('si vienen los dos nombres, manda el nuevo y no se registra', () => {
+    const r = traducirSolapamientosDelJuez([{ description: 'd', evidenceInNewDoc: 'n', evidenceInExistingDoc: 'nuevo', evidence: 'viejo' }]);
+    expect(r.overlappingContent[0].evidence).toBe('nuevo');
+    expect(r.discarded).toEqual({});
+  });
+
+  it('el nombre nuevo vacío y el viejo con texto: se toma el viejo y se registra', () => {
+    const r = traducirSolapamientosDelJuez([{ description: 'd', evidenceInNewDoc: 'n', evidenceInExistingDoc: '  ', evidence: 'viejo' }]);
+    expect(r.overlappingContent[0].evidence).toBe('viejo');
+    expect(r.discarded).toEqual({ [NOMBRE_VIEJO]: 1 });
   });
 });

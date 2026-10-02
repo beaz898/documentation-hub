@@ -10680,6 +10680,8 @@ le enseñamos ni un punto concreto.** Un solapamiento sin ninguna cita supervivi
     emitió ninguno».
   - Y `citaNoVerificable` junta contradicciones y solapamientos, así que tampoco atribuye la
     muerte a un solapamiento. Lo dice el propio fichero.
+  - ⚠️ **Su cifra se cita SIEMPRE como «como mucho N»** (arquitecto, 02/10): una cifra que es un
+    máximo y se lee como exacta es la misma trampa de siempre.
 
 **(e) EL ARREGLO, HECHO EN CÓDIGO (02/10/2026), PENDIENTE DE MEDIR.** Un solo commit, con el visto
 bueno del arquitecto a la (c).
@@ -10687,8 +10689,8 @@ bueno del arquitecto a la (c).
   `evidenceInNewDoc` primero y `evidenceInExistingDoc` después, el mismo orden que la
   contradicción, y cada campo nombra su lado. Las reglas de formato dicen lo mismo con los
   nombres nuevos.
-- **La traducción, en la frontera** (`traducirSolapamientosDelJuez`, `lib/analysis/llm-boundary.ts:158`),
-  llamada desde el único punto de traducción (`judge.ts:864`). Pasa `evidenceInExistingDoc` a
+- **La traducción, en la frontera** (`traducirSolapamientosDelJuez`, `lib/analysis/llm-boundary.ts:165`),
+  llamada desde el único punto de traducción (`judge.ts:856`). Pasa `evidenceInExistingDoc` a
   `evidence`; **lo guardado no cambia**.
   - El nombre viejo `evidence` ya no se lee: lo que se pide y lo que se lee son lo mismo.
   - Lo ausente queda en cadena vacía, como el `.map()` de antes.
@@ -10705,11 +10707,17 @@ bueno del arquitecto a la (c).
   una línea cada uno, y el tipo de la respuesta deja `overlappingContent` como `unknown`, porque
   lo valida la frontera. `fixQuotesInJudgment` pasa a exportarse para poder probarla.
 - **El rojo, visto antes de tocar** (`lib/analysis/citas-cruzadas.test.ts`, 9 casos). Contra el
-  código de antes, exportando sólo `fixQuotesInJudgment`:
-  - los tres del detector, en rojo porque el log no decía «cruzada»;
-  - los cuatro de la frontera, en rojo porque la función no existía;
-  - y **los dos controles negativos, en verde**: una cita inventada sigue fallando y no es
-    «cruzada», y una bien puesta se verifica sin que el detector la toque.
+  código de antes, exportando sólo `fixQuotesInJudgment`. **Fueron DOS CLASES DE ROJO, y sólo una
+  cuenta** (precisión del arquitecto, 02/10):
+  - ✅ **Rojo de FALLO — los tres del detector**: caían porque el log no decía «cruzada», con el
+    código de antes delante. Ése prueba algo.
+  - ❌ **Rojo de AUSENCIA — los cuatro de la frontera**: caían porque la función no existía
+    todavía. **Eso no prueba nada del fallo.** Lo que hace de evidencia ahí es otra cosa: que **la
+    forma guardada no cambia** (el tipo `DocumentJudgment` no se tocó y `evidence` sigue
+    siendo el existente), y que **los controles negativos pasan con el código viejo y con el
+    nuevo**.
+  - Y **los dos controles negativos, en verde** antes y después: una cita inventada sigue
+    fallando y no es «cruzada», y una bien puesta se verifica sin que el detector la toque.
 
   Después, 9 de 9. Suite: 1.795 de 1.795. Build local hasta «Collecting page data».
 - **El coste, medido** con NOR-11 (14.437 caracteres, 15 trozos) contra NOR-10 (60.038, 67), 200
@@ -10732,6 +10740,54 @@ bueno del arquitecto a la (c).
     `evidence` y `evidenceInNewDoc`: es la FORMA GUARDADA, que no cambia, así que no les afecta;
   - ⚠️ **lo que SÍ depende, y no es un fichero: la línea de base del arnés.** Es un cambio de
     prompt, y el arnés pasa después y una sola vez (puesto 2 del tablero).
+
+**(f) EL FALLBACK DEL NOMBRE VIEJO (02/10/2026; sin él no se despliega; commit propio encima).**
+- **El fallo que tenía (e)**: la frontera sólo leía `evidenceInExistingDoc`. Si el juez respondía
+  con el nombre viejo, `evidence`, la cita del existente llegaba vacía y no verificaba nunca, y el
+  solapamiento moría entero. **Un arreglo pensado para que sobrevivan más solapamientos podía hacer
+  que no sobreviviera ninguno**, y no controlamos al modelo: sólo lo que le pedimos. Se había
+  quitado un fallback determinista sin darse cuenta (regla del proyecto: retry con backoff y
+  fallback determinista).
+- **El arreglo, en la frontera** (`lib/analysis/llm-boundary.ts:165`): si no viene
+  `evidenceInExistingDoc` con texto y sí `evidence`, se toma `evidence`. Si vienen los dos,
+  manda el nuevo.
+- **Y se registra, con su cuenta**: `frontera.solapamiento_con_nombre_viejo`, en el
+  `discarded` de la pareja, que se guarda. La línea `RAW` del log lo dice también
+  (`judge.ts:886`): «(N con el nombre viejo, evidence)». **Sin ese registro, el fallback taparía el
+  fallo en vez de medirlo**: es lo que dirá si el nombre nuevo lo adoptó el modelo o lo sostenemos
+  nosotros.
+  - **Por qué en `discarded` y no en `pipelineCounters`**: es el canal que ya usa esta misma
+    frontera (`frontera.topic_ausente` tampoco es un descarte). Llevarlo a los contadores de
+    F-82 exige abrir una etapa del juez, y eso es del puesto de los contadores, no de aquí.
+- 📌 **POR QUÉ ESTO NO ES «TAPAR EL ERROR»**, que es lo que se rechazó en la opción de los dos
+  lados (arquitecto, 02/10): **ahí se adivinaba qué quiso decir el juez; aquí se lee un nombre que
+  siempre significó lo mismo.** Traducir dos nombres del mismo campo es una frontera haciendo su
+  trabajo; elegir un lado por el que case es adivinar.
+- **El rojo, de FALLO esta vez**: con el código de (e), una respuesta con `evidence` daba
+  `evidence: ''`; con el fallback, `'viejo'`. Se vio con una prueba que no depende de la forma
+  de lo que devuelve la función, porque esa forma también cambió (ahora devuelve los solapamientos
+  y su cuenta). Las pruebas del fichero: el nombre viejo se traduce igual y queda registrado; con
+  el nombre nuevo no se registra nada; con los dos manda el nuevo; con el nuevo en blanco se toma
+  el viejo. 11 de 11.
+- **`judge.ts` sube 4 líneas, a 1.311**: sigue por debajo de las 1.318 de antes de B.312.
+
+**(g) ¿«LA FORMA GUARDADA NO CAMBIA» ESTÁ COMPROBADO O RAZONADO? RAZONADO, con una comprobación de
+tipos, y ninguna prueba sobre un análisis archivado** (pregunta del arquitecto, 02/10; sin
+escribir la prueba):
+- **No hay ninguna prueba que lea un análisis archivado y compruebe que sus solapamientos se
+  siguen leyendo igual.**
+  - Seis pruebas leen análisis guardados del examen (`examen/resultados/2026-09-27_*`, anteriores
+    a B.312).
+  - Leen `discrepancies`, `overlaps` (lo publicado) y los contadores. **Ninguna lee
+    `judgments[].overlappingContent`** ni sus campos `evidence` y `evidenceInNewDoc`.
+- **Lo que sí lo sostiene**:
+  - el tipo guardado (`DocumentJudgment`, `lib/analysis/types.ts`) no se tocó, y el compilador
+    comprueba contra él a todos sus lectores;
+  - y la traducción sólo corre sobre la RESPUESTA DEL MODELO, no sobre nada que se lea de la base.
+
+  Es una razón, no una medida.
+- **Material para escribirla, cuando se pida**: esos ficheros del examen llevan `judgments` con
+  `overlappingContent`, `evidence` y `evidenceInNewDoc` guardados.
 
 **Sin desplegar todavía.** El push lo dice el director. Después, dos análisis sueltos —NOR-11 y
 NOR-10, `0 ids de tanda`— dirán si los solapamientos dejan de morir cruzados: el detector lo
@@ -11115,6 +11171,12 @@ de un caso y el protocolo, así que el fallo no puede venir de ahí.
 
     El primer caso paga la lectura y los otros dos ya no leen nada. **En frío no se ha
     medido**: el rojo no se provoca a voluntad, y el tope propio es lo que lo cubre.
+  - 📌 **LA LECCIÓN** (arquitecto, 02/10): **una premisa escrita que no se cumple no se arregla con
+    una excepción; se arregla nombrando la clase que la incumple.** Se pidió «la excepción con su
+    nombre», y la premisa resultó falsa para una clase entera.
+  - **Los otros ocho que recorren el árbol quedan como RIESGO CONOCIDO Y CON NOMBRE, y no se
+    tocan** (arquitecto, 02/10). El día que uno caiga en rojo ya se sabrá por qué, y el censo
+    estará hecho: el comando está en `vitest.config.mts`.
 
 
 ---

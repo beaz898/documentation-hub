@@ -150,22 +150,39 @@ export function sanitizeJudgeContradictions(raw: unknown): {
  * que se guarda se queda como está. Si hubiera que cambiar la forma guardada para
  * mejorar un prompt, la frontera no estaría haciendo su trabajo.
  *
- * El nombre viejo, `evidence`, NO se lee: lo que se pide y lo que se lee son lo
- * mismo. Lo ausente o lo que no es texto queda en `''`, como hacía el `.map()`
- * de antes; no se descarta aquí ni se cuenta — una cita vacía la descarta, y la
- * cuenta, `fixQuotesInJudgment`.
+ * ⚠️ EL NOMBRE VIEJO SE SIGUE LEYENDO, y se CUENTA (arquitecto, 02/10). Si el
+ * juez no trae `evidenceInExistingDoc` y sí `evidence`, se toma `evidence`:
+ * siempre significó el lado existente, así que no es adivinar, es leer dos
+ * nombres del mismo campo. Sin esto, un modelo que no adoptara el nombre nuevo
+ * dejaría vacía la cita del existente y moriría TODO solapamiento. Cada vez que
+ * hace falta suma `frontera.solapamiento_con_nombre_viejo`: dice si el nombre
+ * nuevo lo adoptó el modelo o lo sostenemos nosotros.
+ *
+ * Lo ausente o lo que no es texto queda en `''`, como hacía el `.map()` de
+ * antes; no se descarta aquí — una cita vacía la descarta, y la cuenta,
+ * `fixQuotesInJudgment`.
  */
-export function traducirSolapamientosDelJuez(raw: unknown): DocumentJudgment['overlappingContent'] {
-  if (!Array.isArray(raw)) return [];
+export function traducirSolapamientosDelJuez(raw: unknown): {
+  overlappingContent: DocumentJudgment['overlappingContent'];
+  discarded: DiscardedFindings;
+} {
+  const discarded: DiscardedFindings = {};
+  if (!Array.isArray(raw)) return { overlappingContent: [], discarded };
   const texto = (v: unknown): string => (typeof v === 'string' ? v : '');
-  return raw.map(item => {
+  const overlappingContent = raw.map(item => {
     const o = isPlainObject(item) ? item : {};
+    const conNombreViejo = !isNonBlankString(o.evidenceInExistingDoc) && isNonBlankString(o.evidence);
+    if (conNombreViejo) {
+      const key = `${REASON_PREFIX}.solapamiento_con_nombre_viejo`;
+      discarded[key] = (discarded[key] ?? 0) + 1;
+    }
     return {
       description: texto(o.description),
       evidenceInNewDoc: texto(o.evidenceInNewDoc),
-      evidence: texto(o.evidenceInExistingDoc),
+      evidence: conNombreViejo ? texto(o.evidence) : texto(o.evidenceInExistingDoc),
     };
   });
+  return { overlappingContent, discarded };
 }
 
 /**
