@@ -8769,7 +8769,15 @@ arquitecto.**
      detector, con su visto bueno. Se despliega, y entonces dos análisis sueltos, NOR-11 y
      NOR-10, sin tanda: si los solapamientos dejan de morir cruzados, B.312 está cerrada. Luego
      el juez que redacta (B.313), B.310 con B.311, y los contadores.
-2. **El arnés, UNA vez — APARCADO, y AL FINAL** de todo lo anterior. No se pasa hasta que la
+2. **El arnés, UNA vez — APARCADO, y AL FINAL** de todo lo anterior.
+   - 📌 **POR QUÉ UNA SOLA VEZ Y AL FINAL: UN CAMBIO DE PROMPT MUEVE CIFRAS QUE NO SON EL OBJETIVO
+     DEL CAMBIO.** Primer caso medido, el 02/10 con B.312:
+     - se cambió el formato de los solapamientos;
+     - y el solape de NOR-11 con CLI-12 bajó del 15 % al 5 %, y sus solapamientos emitidos
+       subieron de 1 a 3.
+
+     Nadie lo predijo, y no es un fallo: lo que se le pide al modelo cambia lo que contesta.
+     Medir el arnés entre cambios de prompt mediría una mezcla. No se pasa hasta que la
    tercera causa esté entendida y, si tiene arreglo, desplegada. Con sembradas y parejas sin auditar contadas aparte, y leído con la
    consecuencia incómoda delante (B.299, entrada 9).
 3. **B.310 y B.311, JUNTAS** (arquitecto, 02/10): **el mismo problema de producto —la cita que
@@ -8818,7 +8826,8 @@ la comprobación de citas ocurre en el JUEZ, antes de la cascada, y el verificad
 
 - ⚠️ **LO QUE NINGÚN ARREGLO DE ESTA FICHA RECUPERA, hasta que se mida** (01/10/2026). Ni el (i)
   ni el (ii) constan recuperando **la sembrada A de los cargos** (`[1eb33774]`, sonda B) ni **el
-  punto de retirada** (`[976f6174]`, sonda A): por qué murieron esas dos no está medido. Y los
+  punto de retirada** (`[976f6174]`, sonda A): por qué murieron esas dos no estaba medido (el
+  punto de retirada ya lo está, 02/10: reformulación, `paso=cabeza_sin_cola`, B.313). Y los
   dos casos literales (`[f049837e]`, `[75925931]`) tampoco los explica la (i) (entrada 10).
   **La ganancia del (i) NO CONSTA.**
 - 🔎 **LA TERCERA CAUSA, ya con nombre (02/10): B.312.** En los solapamientos, el juez pone la cita
@@ -10525,7 +10534,7 @@ disciplina que los contadores: una decisión sin registro no se puede auditar.
 recorte del documento en prosa y la cita del juez en tablas; exigir el centro; o declararla
 aproximada en la pantalla— no se eligen aquí.
 
-### ⚠️ B.312 — EL JUEZ PONE LAS CITAS DE LOS SOLAPAMIENTOS EN EL CAMPO DEL OTRO DOCUMENTO: 5 de 5 solapamientos, 0 de 3 contradicciones (ARREGLADO EN CÓDIGO y subido el 02/10/2026, SIN MEDIR: predicciones escritas)
+### ⚠️ B.312 — EL JUEZ PONE LAS CITAS DE LOS SOLAPAMIENTOS EN EL CAMPO DEL OTRO DOCUMENTO: 5 de 5 solapamientos, 0 de 3 contradicciones (ARREGLADO el 02/10/2026; MEDIDO en NOR-11, 4 de 4 a favor; pendientes NOR-10 y la pantalla)
 
 **De dónde sale**: los ocho descartes de las dos sondas del 01/10, con su `lado`, que transcribe
 el arquitecto de los logs del director. Cada cita se buscó en los textos de `corpus-pruebas/`
@@ -10868,8 +10877,75 @@ veredicto.** Las sondas: dos análisis sueltos, NOR-11 y NOR-10, `0 ids de tanda
   Los solapamientos que salgan con `Normas_Frecuencia_Recogidas`, o con cualquier pareja que no
   esté en un registro de siembra, no son aciertos: son de naturaleza no determinada.
 
-Con los logs, el arquitecto decide si B.299 y B.312 se cierran. Hasta entonces, **arreglado en
-código y sin medir.**
+**LA MEDIDA, MITAD NOR-11 (02/10/2026).** Logs del director, transcritos por el arquitecto; Code no
+los ha visto. Dos pasadas de NOR-11 solo, a las 08:56:43 y a las 08:58:08, con el interruptor
+encendido y `0 ids de tanda` las dos.
+- 📌 **LAS DOS PASADAS SON IDÉNTICAS EN TODO**: los mismos 8 candidatos con los mismos scores, los
+  mismos regímenes, los mismos porcentajes, los mismos hallazgos y el mismo descarte. **Es un dato
+  de estabilidad**: hasta ahora se medía de a una.
+- Candidatos: 8. Rerank: 3. Latencia: 23.311 y 22.733 ms.
+  - **CLI-13, `pareja_entera`** (14704/14704 y 9817/9817): solape 45 %, 3 contradicciones y 5
+    solapamientos. **Un solo descarte**: `[976f6174]`.
+  - **CLI-12, `corte_honesto`** (14704/14704 y 2959/55135): solape **5 %**, 0 contradicciones y
+    **3 solapamientos, ninguno descartado**.
+  - **Normas_Frecuencia_Recogidas, `sin_fuente_comun`**: solape 0 %, 0 y 0.
+  - Verificador: 2 hallazgos → 2 confirmados. Publicadas `[e7785038]` (el plazo) y `[5a59c682]`
+    (el color).
+
+**LOS VEREDICTOS** (arquitecto, 02/10):
+- ✅ **P-B312-1: ACERTADA.** Cero descartes de solapamiento, y **la marca «cruzada» no aparece ni
+  una vez**: ayer murieron 5 de 5; hoy, 0. **Quitar la trampa bastó**: el modelo no cruzaba los
+  campos por su cuenta, los cruzaba porque se los pedíamos al revés.
+- ✅ **P-B312-3: ACERTADA.** La marca «con el nombre viejo» no aparece: el modelo adoptó
+  `evidenceInExistingDoc`.
+  - 📌 **EL FALLBACK SE QUEDA IGUAL.** Una red que no trabaja sigue siendo necesaria, porque el
+    modelo puede cambiar de comportamiento entre versiones sin avisar. El día que lo haga, el
+    contador lo dirá, en vez de que mueran todos los solapamientos en silencio.
+- ✅ **P-B312-4: ACERTADA EN LA MITAD DE NOR-11**: 2 publicadas, las mismas de ayer. **PENDIENTE
+  la mitad de NOR-10**, que el director aún no ha lanzado.
+- ✅ **P-B312-2: SE CUMPLE EN SU FORMA FUERTE.**
+  - Los solapamientos vivos pasan **de 2 a 5 con CLI-13** y **de 0 a 3 con CLI-12**, que era la
+    pareja que podía fallar.
+  - Se archiva con la precisión de Code al lado: tal como estaba escrita ya se cumplía ayer, y
+    **la que de verdad medía algo era la de CLI-12**.
+  - ⚠️ **«Vivos» no es «publicados»**: el log no imprime lo publicado en el análisis rápido. Por
+    el código, los 8 vivos llegan a la pantalla: los solapamientos no pasan por el verificador
+    (`pipeline.ts:176`), y `construirOverlaps` publica una línea por pareja con todos sus puntos.
+    **Pero la pantalla no se ha mirado todavía.** Ese «de 2 a 8» es una cifra por código, no
+    medida, hasta que el director la vea.
+  - 🔎 **LO QUE DEBE VERSE EN PANTALLA, para no leer un «2» como un fallo**
+    (`components/AnalysisModal.tsx:326-359`):
+    - el modal pinta **UNA entrada por pareja**, no una por punto: todos los puntos de la pareja
+      van unidos en su descripción;
+    - y no enseña las citas: sólo la descripción y la gravedad.
+    - Lo esperado, por código: en «Duplicados», **2 entradas**:
+      - CLI-13, con 5 puntos en su descripción y gravedad «media» (45 %);
+      - CLI-12, con 3 puntos y gravedad «baja» (5 %).
+    - Ayer, por el mismo cálculo, sólo la de CLI-13, con 2 puntos.
+
+**LA GANANCIA DE B.312, MEDIDA Y NO ESTIMADA**: en un análisis, **seis puntos de solapamiento que
+el usuario no veía** (de 2 a 8), con la reserva de la pantalla de arriba.
+- ⚠️ **PRECISIÓN DE CODE, por la regla de lectura de arriba: de esos seis, TRES SON DE UNA PAREJA
+  SIN AUDITAR.**
+  - **NOR-11 con CLI-12 no está en ningún registro de siembra.** Los sembrados de CLI-12 son con
+    NOR-10 (`SIEMBRA_caso_control.md` y `SIEMBRA_corpus_ampliado.md`, §1).
+  - Así que sus 3 solapamientos son **de naturaleza no determinada**: que sobrevivan dice que la
+    trampa se quitó, no que sean aciertos.
+  - Los otros 3 son de NOR-11 con CLI-13, la pareja del caso de control.
+- ⚠️ **Y UNA CIFRA DE AYER, CORREGIDA**: el encargo decía que los solapamientos de CLI-12 pasaron
+  «de 2 a 3». **El registro de ayer dice 1** (SONDA A, en B.307: «Solapamiento 15 %, 0
+  contradicciones y 1 solapamiento tirado»). La subida es de 1 a 3.
+
+**LO QUE SE MOVIÓ SIN SER EL OBJETIVO: el solape de NOR-11 con CLI-12 bajó del 15 % al 5 %**, y
+sus solapamientos emitidos subieron de 1 a 3. Nadie lo predijo, y no es un fallo: se cambió el
+prompt, y lo que se le pide al modelo cambia lo que contesta. Es el primer caso medido de la
+regla de la línea de base (tablero, puesto 2).
+
+**LO QUE FALTA PARA CERRAR B.299 Y B.312:**
+- el log de **NOR-10 solo**, que el director aún debe lanzar;
+- y **lo publicado en pantalla** del análisis de NOR-11, que el log no imprime.
+
+Con esas dos cosas, B.299 y B.312 se cierran y el tablero pasa a B.313.
 
 ### 📋 B.313 — EL JUEZ NO COPIA, REDACTA: la enfermedad de las contradicciones (constancia, SIN arreglo, a la cola; 02/10/2026)
 
@@ -10877,7 +10953,7 @@ código y sin medir.**
 mata las citas de las CONTRADICCIONES. Las de los solapamientos mueren de otra cosa: el cambio
 de campo de B.312.
 
-**Las dos formas, una medida y otra candidata** (sondas del 01/10; B.312):
+**Las dos formas, una medida y otra candidata** (sondas del 01/10; B.312). La reformulación tiene además causa identificada en el registro, abajo:
 - **REFORMULA — medido** (`[976f6174]`, «Ubicación del punto de retirada centralizado»): «El
   punto de retirada centralizado concentra el material de las tres clínicas, ubicado en la
   clínica de Chamberí» **no existe así en ninguno de los dos documentos**. El dato es de NOR-11;
@@ -10888,6 +10964,21 @@ de campo de B.312.
     tenía la forma anotada.
   - La cita completa no consta. El registro de longitud y paso de B.299 (ii) lo dirá cuando
     vuelva a salir.
+  - ⚠️ **Sigue CANDIDATA** a 02/10: es de NOR-10, y NOR-10 no se ha vuelto a medir.
+
+**🔎 LA PRIMERA MEDIDA CON CAUSA IDENTIFICADA (02/10/2026)**: ya no es sospecha. El registro de
+B.299 (ii) hizo su trabajo en la primera ocasión. En las dos pasadas de NOR-11 de B.312, el único
+descarte que queda es éste:
+- `[976f6174]` «Ubicación del punto de retirada centralizado», lado=nuevo, **longitud=111,
+  paso=cabeza_sin_cola, pajar=entregado_texto (0 filas visibles)**.
+- **`cabeza_sin_cola` es la reformulación, medida**: el principio de la cita está en el texto
+  entregado al juez, y el final no.
+  - No es un problema de pajar: `entregado_texto` dice que se buscó donde debía, en lo que el juez
+    leyó.
+  - Ni de trozos: el analizado se entregó contiguo.
+  - **Es que esa frase, tal como el juez la escribió, no existe.**
+- Cuadra con lo medido el 02/10 contra el texto extraído (arriba, REFORMULA): no está así en
+  ninguno de los dos documentos.
 
 **LO QUE ESTA FICHA TIENE QUE DEJAR CLARO: ESTO NO SE ARREGLA EN EL COMPROBADOR.**
 - Si el juez redacta, **el comprobador tiene razón al rechazarlo**: la frase publicada no estaría
