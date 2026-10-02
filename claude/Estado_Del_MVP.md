@@ -8765,8 +8765,12 @@ arquitecto.**
    - **Abierta: la tercera causa, ya con nombre** (02/10). En los solapamientos, el cambiazo de
      campo (B.312, 5 de 5), con dos caminos para que decida el arquitecto. En las
      contradicciones, la reformulación y, sin medir, la anotación entre corchetes.
-2. **El arnés, UNA vez — APARCADO** hasta que la tercera causa esté entendida y, si tiene
-   arreglo, desplegada. Con sembradas y parejas sin auditar contadas aparte, y leído con la
+   - **EL ORDEN DEL 02/10** (arquitecto): primero el arreglo de B.312, quitar la trampa más el
+     detector, con su visto bueno. Se despliega, y entonces dos análisis sueltos, NOR-11 y
+     NOR-10, sin tanda: si los solapamientos dejan de morir cruzados, B.312 está cerrada. Luego
+     el juez que redacta (B.313), B.310 con B.311, y los contadores.
+2. **El arnés, UNA vez — APARCADO, y AL FINAL** de todo lo anterior. No se pasa hasta que la
+   tercera causa esté entendida y, si tiene arreglo, desplegada. Con sembradas y parejas sin auditar contadas aparte, y leído con la
    consecuencia incómoda delante (B.299, entrada 9).
 3. **B.310 y B.311, JUNTAS** (arquitecto, 02/10): **el mismo problema de producto —la cita que
    publicamos tiene que poder encontrarse en el documento del cliente— por dos caminos
@@ -10591,10 +10595,108 @@ distinto es una TRAMPA PUESTA, no un descuido del modelo.**
 - No son excluyentes: el (1) quita la causa, y el (2) sería una red. Si se usa, va declarada y
   registrada.
 
+
+**POR QUÉ ES UNA MEDIDA Y NO UNA CORAZONADA** (arquitecto, 02/10): **la trampa de orden se leyó
+en el código ANTES de buscar los ocho casos, y predijo exactamente qué clase de hallazgo saldría
+cruzado** (los solapamientos, donde el orden se invierte) **y cuál no** (las contradicciones,
+donde no). Los ocho casos lo confirmaron.
+- Archivadas como el arquitecto las da por buenas: **su sospecha 7 era falsa** (está en su lado),
+  y **la 3 era el contraejemplo que él mismo marcó** (Chamberí es de NOR-11).
+- La anotación entre corchetes sigue **candidata**. Se mide con el registro de B.299 (ii) cuando
+  esa cita vuelva a salir.
+
+**❌ OPCIÓN RECHAZADA: comprobar cada cita contra los dos lados y quedarse con el que case**
+(arquitecto, 02/10, con el motivo de Code). Las opciones rechazadas, con su razón, valen tanto
+como la elegida:
+- en un solapamiento el texto suele estar en los dos documentos, así que **el lado quedaría
+  ambiguo justo donde hace falta decidirlo**;
+- y **taparía el error en vez de quitarlo**.
+
+**✅ CAMINO ELEGIDO: SE QUITA LA TRAMPA** (arquitecto, 02/10), con dos mitades:
+- **(a) El mismo orden en los dos formatos.** Contradicciones y solapamientos piden sus dos
+  campos en el mismo orden, sin excepción: el del nuevo primero, como ya hacen las
+  contradicciones.
+- **(b) Y cada campo nombra su lado.** Hoy `evidenceInNewDoc` lo dice y `evidence` no. Un par de
+  campos en el que uno se llama por su lado y el otro no es una invitación a confundirlos, y el
+  orden sólo era la segunda mitad de la trampa. Leer el formato tiene que bastar para no
+  equivocarse.
+- **Y un DETECTOR que observa sin corregir**: cuando una cita falla en el lado que le asignó el
+  juez, se prueba también en el otro, y si allí verifica, el log dice **«cruzada»**. No se
+  corrige, no se publica y no cambia ninguna decisión: sólo se cuenta. Es la versión auditable
+  de la opción rechazada, y dirá si el cruce desaparece con el arreglo sin una campaña nueva.
+
+**(c) ¿ESOS NOMBRES ESTÁN PERSISTIDOS? SÍ** (comprobado antes de escribir el arreglo, como pidió el
+arquitecto):
+- El análisis se guarda entero en `analysis_results.analysis`. Dentro van `judgments[]`
+  (`FinalAnalysis.judgments`, `lib/analysis/types.ts:348`), cada uno con su
+  `overlappingContent[]` y los campos `description`, `evidence` y `evidenceInNewDoc`
+  (`lib/analysis/judge.ts:64-67`). Las SQL de estos días leen ese mismo `analysis->'judgments'`.
+- **Los lectores en código**: `synthesize.ts`, que toma `evidenceInNewDoc` para el `textRef`
+  del solapamiento; `pipeline.ts`, que mueve contradicciones a solapamientos con esos nombres;
+  y `llm-boundary.ts`. **Ningún componente de pantalla** lee `evidence` ni `evidenceInNewDoc`
+  directamente.
+- **Por tanto, la forma guardada NO se toca**: el cambio de nombre vive sólo en el límite con
+  el modelo.
+  - El prompt pide el par en el orden nuevo y con nombres que digan su lado (por ejemplo,
+    `evidenceInNewDoc` y `evidenceInExistingDoc`).
+  - En el único punto donde se traduce la respuesta —`judge.ts:871`, el `.map()` de
+    `overlappingContent`— se convierte a la forma de siempre (`evidence`,
+    `evidenceInNewDoc`).
+  - Para que `judge.ts` no crezca, la traducción iría a `llm-boundary.ts`, que es el límite con
+    el modelo y ya sanea las contradicciones. **Los análisis archivados se siguen leyendo igual.**
+
+**(d) ¿DISTORSIONA B.312 LAS CIFRAS DE SOLAPAMIENTO? El porcentaje NO; lo que distorsiona es SI se
+publica.**
+- **El `overlap=45%` del log es el número que escribe el propio juez**: se lee de su respuesta
+  (`judge.ts:868`), el log lo imprime (`:892`) y la comprobación no lo toca. `fixQuotesInJudgment`
+  lo deja pasar con `...judgment` (`:535-540`).
+- La severidad sale de ese mismo número (`synthesize.ts:167`). Así que **el 35 → 65 % de B.295
+  y el umbral de severidad NO están distorsionados**: no dependen de qué citas sobreviven.
+- ⚠️ **PERO lo que SÍ distorsiona**: un solapamiento sólo se PUBLICA si sobrevive al menos una de
+  sus citas (`synthesize.ts:155-158`: `judgeEntries.length > 0`). **Si el juez cruza TODAS las
+  citas de los solapamientos de una pareja, esa pareja desaparece de la lista de solapamientos
+  que ve el usuario, aunque el juez haya escrito un 45 %.**
+  - Y cuando sobreviven algunas, la descripción publicada es la de las supervivientes, y la
+    cita de referencia (`textRef`) la de la primera que sobrevive.
+  - En la sonda A sobrevivieron 2 de los 5 solapamientos con CLI-13, y la pareja se publicó.
+  - **Cuántas parejas desaparecieron del todo por esto, no consta**: haría falta comparar
+    `overlapPercent > 0` con «ninguna cita superviviente» en los análisis guardados. Es una
+    consulta posible, que no se ha escrito.
+
 **Lo que se pierde hoy por esto**: en las dos sondas, 5 solapamientos literales que el juez vio
 de verdad, y que se tiraron por estar en el campo equivocado.
 
-**Sin arreglo.** Constancia. Decide el arquitecto.
+**Sin arreglo todavía.** Camino elegido el 02/10: quitar la trampa, más el detector. Se implementa
+con el visto bueno del arquitecto, en un commit, con su rojo visto antes y sus controles negativos.
+Después, dos análisis sueltos (NOR-11 y NOR-10, sin tanda) dirán si los solapamientos dejan de
+morir cruzados.
+
+### 📋 B.313 — EL JUEZ NO COPIA, REDACTA: la enfermedad de las contradicciones (constancia, SIN arreglo, a la cola; 02/10/2026)
+
+**El diagnóstico, en una frase** (arquitecto, 02/10): **el juez no copia, redacta.** Es lo que
+mata las citas de las CONTRADICCIONES. Las de los solapamientos mueren de otra cosa: el cambio
+de campo de B.312.
+
+**Las dos formas, una medida y otra candidata** (sondas del 01/10; B.312):
+- **REFORMULA — medido** (`[976f6174]`, «Ubicación del punto de retirada centralizado»): «El
+  punto de retirada centralizado concentra el material de las tres clínicas, ubicado en la
+  clínica de Chamberí» **no existe así en ninguno de los dos documentos**. El dato es de NOR-11;
+  la frase, del juez.
+- **ANOTA — candidata, sin medir** (`[1eb33774]`, la A de los cargos): una cita por lo demás
+  literal en NOR-10 a la que el juez añadiría «[Director Clínico]» al final.
+  - La frase del documento sigue «…recae siempre sobre esta figura.», y B.299 (entrada 1) ya
+    tenía la forma anotada.
+  - La cita completa no consta. El registro de longitud y paso de B.299 (ii) lo dirá cuando
+    vuelva a salir.
+
+**LO QUE ESTA FICHA TIENE QUE DEJAR CLARO: ESTO NO SE ARREGLA EN EL COMPROBADOR.**
+- Si el juez redacta, **el comprobador tiene razón al rechazarlo**: la frase publicada no estaría
+  en el documento.
+- Aflojarlo sería aceptar citas falsas, y es la familia de B.311.
+- **El arreglo, cuando llegue, es del lado del juez**: pedirle copiar en vez de redactar, y
+  comprobar que obedece, con caso rojo y verde y antes y después.
+
+**Sin arreglo. Una ficha, y a la cola** del orden del 02/10, detrás de B.312.
 
 ### ⚠️ B.297 — LA LECTURA DE TROZOS SIN PAGINAR, y su margen medido (29/09/2026)
 
@@ -10901,6 +11003,32 @@ de un caso y el protocolo, así que el fallo no puede venir de ahí.
     Un tope de reloj de pared sobre código determinista falla cuando la máquina va cargada
     (la carga de ese momento no consta). Sin arreglo, por ser de medición: subir su
     `testTimeout` sería decisión aparte.
+- 🔎 **QUÉ AFIRMA DE VERDAD ESE TEST, leído el 02/10/2026** (pregunta del arquitecto, sin cambiar
+  nada): **el tope de 15.000 ms NO es un requisito, y tampoco es una aproximación de nada que el
+  test quiera comprobar.**
+  - **Lo que afirma** (`lib/examen/autenticacion.test.ts`) es un **CENSO ESTÁTICO DEL CÓDIGO**:
+    - sólo `app/api/admin/examen/route.ts` valida un token de sesión;
+    - sólo él y `purge-expired` leen la cabecera `authorization`;
+    - y el control positivo, que el censo SÍ ve al examen.
+
+    Es una propiedad del repositorio, no del tiempo.
+  - **El tope no es suyo**: es el `testTimeout` GLOBAL (`vitest.config.mts:69`). Y la propia
+    configuración lo justifica diciendo que en su alcance «no hay nada que pueda colgarse»,
+    porque son funciones puras «sin E/S y sin esperas» (`:55-62`).
+  - **Este test incumple esa premisa**: recorre el disco. Lista y lee cada `.ts`/`.tsx` de `app`,
+    `lib`, `components` y `worker` (287 ficheros, 2,4 MB), y lo hace **cuatro veces**: dos en el
+    control positivo y una en cada uno de los otros dos tests. Por eso tarda lo que tarde el
+    disco: 0,5 s con la caché caliente y 17-20 s con la máquina cargada.
+  - **Así que mide el reloj en vez de lo que le importa.** Lo que le importa ya lo afirma
+    directamente: qué ficheros salen en el censo.
+  - **Las salidas posibles, sin elegir** (decide el arquitecto):
+    - leer el árbol una sola vez para los tres tests, que divide por cuatro la E/S;
+    - darle un tope propio y declarado, que diga que no es un requisito sino la red contra un
+      cuelgue;
+    - o las dos.
+
+    Lo que no arregla nada es subir el tope global a ciegas.
+
 
 ---
 
