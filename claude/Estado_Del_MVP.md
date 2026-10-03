@@ -10668,7 +10668,7 @@ NOR-10):
 recorte del documento en prosa y la cita del juez en tablas; exigir el centro; o declararla
 aproximada en la pantalla— no se eligen aquí.
 
-### ⚠️ B.312 — EL JUEZ PONE LAS CITAS DE LOS SOLAPAMIENTOS EN EL CAMPO DEL OTRO DOCUMENTO: 5 de 5 solapamientos, 0 de 3 contradicciones (✅ CERRADA el 02/10/2026: arreglada, desplegada y medida; cuatro pasadas, cero cruces)
+### ⚠️ B.312 — EL JUEZ PONE LAS CITAS DE LOS SOLAPAMIENTOS EN EL CAMPO DEL OTRO DOCUMENTO: 5 de 5 solapamientos, 0 de 3 contradicciones (arreglada el 02/10/2026; el cruce bajó de ESTABLE a OCASIONAL, 1 de 9 pasadas, no a cero)
 
 **De dónde sale**: los ocho descartes de las dos sondas del 01/10, con su `lado`, que transcribe
 el arquitecto de los logs del director. Cada cita se buscó en los textos de `corpus-pruebas/`
@@ -11147,6 +11147,15 @@ RESULTADOS DISTINTOS.**
   como dos respuestas distintas a la misma pregunta.
 
 ✅ **B.312 CERRADA (02/10/2026): arreglada, desplegada y medida. Cuatro pasadas, cero cruces.**
+- ⚠️ **CORREGIDO EL 04/10: «cerrada» no era la palabra.** El detector saltó por primera vez en
+  producción el 03/10 a las 23:38:50 (programa viejo, línea de base de B.313): «Solapamiento
+  descartado [a4ff676b] (cita no verificable, lado=existente; existente: longitud=170,
+  paso=sin_cabeza, cruzada: la cita del existente está en el nuevo)».
+  - **Hizo lo que se diseñó**: lo vio, lo dijo y no lo corrigió; el hallazgo se descartó. Darle la
+    vuelta sería adivinar qué quiso decir el juez.
+  - **La cuenta honesta, con banda**: el cruce de campos era 5 de 5 antes del arreglo; después va **1
+    de 9 pasadas** (0 de 4 el 02/10 y 1 de 5 el 03/10). **El arreglo lo bajó de estable a ocasional,
+    no a cero.**
 - En las cuatro pasadas de hoy, dos de NOR-11 y dos de NOR-10, **la marca «cruzada» no aparece ni
   una vez, y el nombre viejo del campo tampoco.** Ayer morían cruzados 5 de 5; hoy, ninguno.
 - En NOR-10 con CLI-12, que ayer perdió por el cruce su único solapamiento, hoy sobreviven **3 en
@@ -11483,6 +11492,116 @@ Cinco pasadas de cada sonda (NOR-11 y NOR-10, sin tanda), tras desplegar los tre
 - ⚠️ **LO QUE NO ES UNA REGRESIÓN, escrito antes de verlo**: si entre el puesto 1 y el puesto 2 se
   midiera algo, la sembrada A de NOR-10 saldría a **cero publicadas**. **Eso sería lo correcto: su cita
   era falsa.** Nadie puede leer esa caída como un retroceso.
+
+**📏 LA LÍNEA DE BASE DEL PROGRAMA VIEJO: 11 PASADAS (03/10/2026, de 23:26 a 23:40).** Logs de Vercel
+del director, transcritos por el arquitecto; Code no los ha visto. Archivado el 04/10.
+- **EL SELLO DEL DESPLIEGUE: son del PROGRAMA VIEJO.**
+  - La prueba, una línea de la pasada de las 23:38:50: «Solapamiento verificado en
+    "CLI-13_instrucciones-clinicas-residuos.docx" [2c6d5fc5] (nuevo: longitud=128, paso=literal ·
+    existente: longitud=327, paso=cabeza_y_cola, pajar=entregado_texto)».
+  - Con el puesto 1 (`347675cf`), `cabeza_y_cola` no devuelve recorte: una cita no puede pasar por
+    ahí. Además, `frontera.cita_solo_por_cabeza_y_cola` no sale en ninguna de las 11.
+  - **Confirmado por git, por Code el 04/10**: los tres commits de los puestos 0, 1 y 2 (`26171d4d`,
+    `347675cf`, `ad841b54`) **no estaban en `origin/main`**. El código nuevo nunca se subió.
+  - 📌 **LA FORMA DE COMPROBAR UN DESPLIEGUE DESDE EL LOG, sin mirar Vercel**: si aparece
+    `paso=cabeza_y_cola` en una cita VERIFICADA, el puesto 1 no está desplegado. Al protocolo.
+- **NOR-10, 6 pasadas** (67 trozos, 60.038 caracteres), idénticas: retrieval 5 → rerank 2.
+  - **CLI-13**: `corte_honesto`, solape 0 %, 0 y 0, en 6 de 6.
+  - **CLI-12**: `corte_honesto` (analizado 37.143/66.801, candidato 2.857/55.135), solape 15 % las
+    seis veces, y en el RAW 1 contradicción y 3 solapamientos.
+  - **La sembrada A, `[1eb33774]` «Autoridad para retirar autoclave de servicio tras fallo de
+    control biológico»:**
+    - **DETECTADA 6 de 6**, siempre con el mismo hash: la misma cita las seis veces.
+    - **DESCARTADA 6 de 6**, siempre igual: `lado=nuevo; longitud=244, paso=cola_demasiado_lejos,
+      pajar=entregado_texto`.
+    - La cita, tal como la corta el log a 200: «la responsabilidad última —incluida la firma de los
+      registros de auditoría trimestral y la decisión de retirar del servicio un autoclave que no
+      supere un control biológico— no es delegable y recae sie…».
+    - ⚠️ **Empieza en minúscula, a mitad de frase**: es la frase 32 sin sus 117 primeros caracteres
+      (B.311), una escultura MÁS CORTA del mismo punto. Ya no gana la lotería de cabeza y cola: la
+      pierde por `cola_demasiado_lejos`. **La precisión cero de esa puerta, confirmada otra vez: una
+      publicación falsa, cero buenas.**
+  - **Solapamientos publicados, 3 en cada pasada**, todos `literal`, y el existente siempre con
+    `pajar=entregado_piezas (3 trozos)`:
+    - `620acd2e`, en 6 de 6 con la misma cita (nuevo 209, existente 166);
+    - `1e845576`, en 6 de 6 (nuevo 124, existente 93);
+    - el tercero, `4c04c31e` en las pasadas 1 a 3 y `59b3df82` en las 4 a 6.
+  - Latencia: 20.355, 20.472, 21.168, 21.465, 21.648 y 22.085 ms; mediana ≈ 21,4 s.
+  - 📌 **NOR-10 NO PUBLICA NI UNA CONTRADICCIÓN EN 6 DE 6.** El cliente ve tres solapamientos y ningún
+    choque. Detección 6/6, publicación 0/6, causa única: es el caso de prueba más limpio del puesto 2.
+- **NOR-11, 5 pasadas** (15 trozos, 14.437 caracteres), idénticas: retrieval 8 → rerank 3.
+  - **CLI-13**: `pareja_entera` (14.704/14.704 y 9.817/9.817), solape 45 % las cinco veces, y en el
+    RAW 3 contradicciones y 5 solapamientos.
+  - **CLI-12**: `corte_honesto` (candidato 2.959/55.135), solape 5 % las cinco veces, 0
+    contradicciones. **El RAW de solapamientos va 3, 3, 3, 1, 1.**
+  - **Normas_Frecuencia_Recogidas**: `sin_fuente_comun`, sin trozos, leída con la tijera vieja
+    (6.000/14.704). **0 contradicciones y 0 solapamientos en 5 de 5.** Ocupa una plaza del rerank y
+    pierde por mérito: otra confirmación de P-SONDA-2. Nada que borrar.
+  - **Las tres sembradas, con el mismo hash en las 5 pasadas:**
+    - `[e7785038]` plazo del grupo III: **verificada 5 de 5** (nuevo 154 literal, existente 128
+      literal) y confirmada por juicio 5 de 5;
+    - `[5a59c682]` color del contenedor: **verificada 5 de 5** (nuevo 185 literal, existente 195
+      literal) y confirmada por juicio 5 de 5;
+    - `[976f6174]` el punto de retirada: **descartada 5 de 5**, siempre `lado=nuevo; longitud=111,
+      paso=cabeza_sin_cola`, la escultura de Chamberí idéntica las cinco veces.
+  - 📌 **Por la regla de B.295: las dos que valen, ESTABLE-ACIERTO 5/5; la que falta, ESTABLE-FALLO
+    0/5, con la misma causa las cinco veces.**
+
+**🔬 HALLAZGO: EL JUEZ ES ESTABLE EN CONTRADICCIONES E INESTABLE EN SOLAPAMIENTOS** (medido por el
+arquitecto sobre los hashes, que son del par de citas: hash distinto, cita distinta).
+- **Contradicciones**: los 4 puntos (3 de NOR-11, 1 de NOR-10) salen con el mismo hash en todas sus
+  pasadas, 11 de 11. La cita es la misma.
+- **Solapamientos de NOR-11 con CLI-13**: 24 publicados entre las 5 pasadas, con **20 pares de citas
+  distintos**. Sólo se repiten dos, `d17d45c5` y `960ba4a8`, los dos en 3 de 5; los otros 18, una vez.
+- **Solapamientos de NOR-10 con CLI-12**: al revés, 2 de las 3 plazas con la misma cita en 6 de 6, y
+  la tercera estable en dos tandas de tres.
+- ⚠️ **HIPÓTESIS, NO HALLAZGO, y SIN REGISTRAR como predicción** (arquitecto): cuanto más material
+  comparten dos documentos (45 % frente a 15 %), más formas tiene el juez de decir el mismo
+  solapamiento, y menos se repite la cita. Dos parejas no bastan: **no se escribe como regla hasta
+  tener una tercera.** Se anota para que no se pierda.
+
+**🔮 LAS PREDICCIONES DEL PROGRAMA NUEVO, firmadas por el arquitecto el 04/10/2026 ANTES de ver un
+solo log suyo. Sin veredicto.** Con banda y criterio de falsación. Se juzgan con 5 pasadas de NOR-11 y
+5 de NOR-10, en las mismas condiciones que la línea de base de arriba, **y después de comprobar el
+despliegue con el sello**.
+- **P-6 · `[1eb33774]` (NOR-10, el autoclave) se PUBLICA en 4 de 5 pasadas o más.**
+  - Razón: se detecta 6/6, y lo único que lo tumba es una cita esculpida que empieza a mitad de
+    frase, que el puesto 2 prohíbe.
+  - **Falsada si se publica en 2 o menos de 5.**
+  - Riesgo que asume el arquitecto: si el dato vive repartido en dos frases, el juez puede elegir la
+    que no lo lleva.
+- **P-7 · `[976f6174]` (NOR-11, Chamberí) se publica en 3 de 5 o más.**
+  - Banda más floja que P-6: su cita pega el final de una frase a otra, y al obligarle a una sola
+    puede cambiar de punto o perderlo.
+  - **Falsada si es 0 de 5.**
+- **P-8 · Las citas de los solapamientos se ESTABILIZAN**: en NOR-11 con CLI-13, al menos 3 de las 5
+  plazas mostrarán un hash que se repite en 3 pasadas o más. Hoy son 2 de 5, los dos a 3/5.
+  - Razón: una frase entera copiada tiene muchas menos formas posibles que una esculpida.
+  - **Falsada si siguen siendo 2 o menos.**
+- **P-9 · `frontera.cita_solo_por_cabeza_y_cola` vale 0 en 9 o más de las 10 pasadas.**
+  - Razón: el censo de las 129 citas archivadas, donde las 3 únicas que dependían de esa puerta pasan
+    ahora por `normalizada`.
+  - **Falsada si salta en 3 pasadas o más**: entonces la puerta llevaba peso real y se regaló algo.
+  - ⚠️ **Precisión de Code sobre la razón**: el censo se hizo con las citas del examen del 27/09 y con
+    el troceado de hoy del repositorio, no con los trozos guardados en producción. **Y la línea de
+    base de arriba trae un caso que el censo no tenía**: el solapamiento `[2c6d5fc5]` de NOR-11 con
+    CLI-13, cuyo lado existente (327 caracteres) pasó por `cabeza_y_cola` a las 23:38:50. **Con el
+    programa nuevo, esa cita sumaría 1 al contador.**
+- **P-10 · Las dos contradicciones que ya funcionan en NOR-11, `e7785038` y `5a59c682`, se siguen
+  publicando en 5 de 5.**
+  - Razón: pasan por `literal`, y nada de los tres commits puede hacer fallar una coincidencia
+    literal.
+  - **Falsada por cualquier pasada que pierda una.** Es la regresión más importante que cazar: **si
+    cae, se para todo y se revierte.**
+
+**🧾 LOS ERRORES DEL ARQUITECTO EN ESTA RONDA, archivados** (04/10):
+1. **RETIRADA** «la contradicción sembrada de NOR-10 sale en 2 de 4 pasadas». Con 6 pasadas más:
+   **detectada 6/6, publicada 0/6**. Se medían publicaciones y se llamaban detección. La única
+   publicación fue la cita falsa de B.311: una lotería ganada, no una detección intermitente.
+2. **Mandó medir antes de desplegar.** La consecuencia no fue grave —salió la línea de base que
+   faltaba—, pero queda la regla: **antes de una tanda de medida se comprueba el despliegue con el
+   sello, no con la memoria de quién subió qué.** Al protocolo.
+
 
 
 **🔀 ~~B.313 SON DOS ENFERMEDADES, y se separan~~ — RETIRADO el mismo 02/10 (arriba: es UNA)** (arquitecto, 02/10: «mezclarlas fue mi error»):

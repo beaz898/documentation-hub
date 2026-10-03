@@ -174,6 +174,23 @@ de esta regla llevaba aplazado por la razón equivocada.
 
 ---
 
+## ⚠️ ANTES DE UNA TANDA DE MEDIDA SE COMPRUEBA EL DESPLIEGUE CON UN SELLO DEL LOG, NO CON LA MEMORIA DE QUIÉN SUBIÓ QUÉ
+
+*Añadida el 04/10/2026 (arquitecto), con la línea de base de B.313.*
+
+El caso: el 03/10 se midieron 11 pasadas creyendo medir el programa nuevo, y eran del viejo. Los tres
+commits de los puestos 0, 1 y 2 no estaban en `origin/main`. No fue grave —salió la línea de base que
+faltaba—, pero se supo por casualidad.
+
+**El sello de ese cambio**: si aparece `paso=cabeza_y_cola` en una cita VERIFICADA
+(«… verificada en …» / «… verificado en …»), el puesto 1 no está desplegado. Desde el puesto 1, esa vía
+sólo sale en los descartes.
+
+**La regla general**: todo cambio que se vaya a medir lleva escrito, antes de la tanda, **qué línea del
+log demuestra que está desplegado**. Y la tanda empieza mirando esa línea.
+
+---
+
 ## ⚠️ UNA PUERTA QUE DESCARTA TIENE QUE GUARDAR LO QUE DESCARTÓ
 
 *Añadida el 02/10/2026 (arquitecto), con B.313.*
