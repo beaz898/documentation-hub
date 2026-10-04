@@ -11668,6 +11668,80 @@ que funcionaba y hoy no está, sobre las 5 pasadas de NOR-11:
 - ⚠️ **Lo que la regla deja por escribir, y lo dice Code sin decidirlo**: en el tramo de 1 a 4 de 5 no
   fija el umbral de «ese número» —cuántas publicaciones totales de las 3 sembradas hacen seguir y
   cuántas revertir—. Si se quiere que decida sola, hay que escribirlo antes de ver las pasadas.
+  **→ Cerrado por el arquitecto en la adenda de abajo.**
+
+**➕ ADENDA DEL ARQUITECTO (04/10/2026), antes de la quinta pasada de NOR-11.** Cierra el hueco que Code
+señaló en la regla de decisión.
+- ⚠️ **La adenda se apoya en un «encargo de las 05:00»** —su apartado E, la bifurcación con el texto de
+  las citas de 222 y 710 caracteres de NOR-10, y las pasadas 2 a 5 de NOR-10 y la 2 de NOR-11— que
+  **no llegó a Code y no está archivado en este repositorio**. Lo que sigue es sólo lo que trae la
+  adenda; si aquel encargo debe constar, hay que pegarlo.
+- **EL NÚMERO QUE FALTABA**: la comparación es cuántas de las 3 contradicciones sembradas de NOR-11 se
+  publican por pasada.
+  - Línea de base: **2 de 3, en 5 de 5 pasadas.** Estable.
+  - Programa nuevo hasta ahora: **1 de 3, en 4 de 4 pasadas.**
+  - **EL UMBRAL**: el puesto 2 se queda tal cual si el programa nuevo publica **2 o más de las 3
+    sembradas en al menos 3 de las 5 pasadas.** Si no, la regla de una sola frase quedó demasiado
+    estrecha.
+- ⚠️ **Y LA PRECISIÓN QUE CORRIGE SU PROPIA REGLA**: el número de NOR-11 dice **si la pérdida es
+  estable, NO qué hacer.** Qué hacer lo decide la bifurcación del apartado E de las 05:00, con el TEXTO
+  de las citas de 222 y 710 caracteres de NOR-10. Si las dos cosas apuntan al mismo sitio —que la frase
+  única no da para el dato—, el cambio es uno: **hasta dos frases seguidas, copiadas enteras y del
+  mismo sitio.** Una sola decisión, no dos.
+- **Dos coincidencias de longitud, para esa bifurcación** (Code, 04/10; sin el texto de las citas,
+  **no son medidas**):
+  - **710 ≈ 713**: las frases 31 y 32 de NOR-10, enteras y seguidas, miden 372 + 1 + 340 = 713. Es
+    compatible con que la cita publicada `[b5ab6f08]` sea esas dos frases copiadas enteras, que es la
+    variante que propone el arquitecto.
+  - **222 ≈ 223**: el final de la frase 32 desde «la responsabilidad…» mide 223 (B.311). Es compatible
+    con que `[fa22ca84]` empiece a mitad de frase, lo que el puesto 2 prohíbe. Y aun así pasa
+    `literal`, porque la comprobación acepta cualquier tramo seguido del documento: **la regla del
+    prompt no la hace cumplir la puerta.**
+  - Las dos cosas las decide el texto de las citas, que está guardado.
+
+**📊 LO MEDIDO EN LA ADENDA** (logs del director del 04/10, transcritos por el arquitecto; Code no los ha
+visto):
+- **NOR-10, sexta pasada** (02:59:30, 19.077 ms), idéntica a las otras cuatro que mueren: `[fa22ca84]`
+  verificada, nuevo 222 `literal` y existente 340 `literal`, y **el verificador la descarta por
+  `mismo_dato_sin_oposicion`**. Solapamientos `620acd2e`, `b5b3be4b` y `2098fd0d`.
+- **EL RECUENTO DE NOR-10 SOBRE 6 PASADAS**, para el tablero:
+  - La cita PASA **6 de 6**. En la línea de base, 0 de 6.
+  - Se publica **1 de 6**. Muere en el verificador **5 de 6**, siempre por `mismo_dato_sin_oposicion`.
+  - `[fa22ca84]` (nuevo 222, existente 340) en 5 pasadas con la misma cita; `[b5ab6f08]` (nuevo 710
+    `normalizada`, existente 341) en 1, la única publicada.
+  - Solapamientos: `620acd2e` en 5 de 6, `1e845576` en 3 de 6, y el tercero varía.
+  - Un solapamiento descartado por `cola_demasiado_lejos` en 1 de 6: **la escultura no ha
+    desaparecido.**
+  - Latencias de 18.321 a 19.970 ms (la línea de base, de 20.355 a 22.085).
+- **NOR-11, pasadas 3 y 4** (03:02:54, 23.974 ms; 03:03:57, 25.617 ms):
+  - `[e7785038]` verificada y confirmada en las dos, con la misma cita (154/128, las dos `literal`).
+    **4 de 4.**
+  - `[5a59c682]`, el color del contenedor: **AUSENTE 4 de 4.**
+  - `[976f6174]`, Chamberí: **AUSENTE 4 de 4.**
+  - Solape con CLI-13: 35 %, 45 %, 35 % y 35 %.
+  - Solapamientos de CLI-13 que repiten: `98d8696e`, `bae4d83e` y `6c94edf2`, cada uno en 3 de 4.
+    **Tres plazas de cinco con hash repetido en 3 pasadas: el umbral de P-8 se cumpliría ya, pero SIN
+    VEREDICTO hasta la quinta.**
+  - CLI-12: `[53b97faa]` en 3 de 4 (285/286) y `[851fc04e]` en 1 de 4 (285/466).
+  - B.319, estable en 4 de 4, con un detalle nuevo en su ficha.
+  - `frontera.cita_solo_por_cabeza_y_cola`: **0 en las 10 pasadas nuevas** (6 de NOR-10 y 4 de NOR-11).
+
+❌ **P-9bis: SU BANDA FALLA POR ABAJO, Y SU CRITERIO ESTABA MAL ESCRITO** (arquitecto, 04/10; archivado
+sin esperar a la quinta):
+- **La banda falla por abajo**: predijo de 1 a 3 de 10, y va 0 de 10. El caso de 327 caracteres que la
+  justificaba era del programa viejo, y el puesto 2 se llevó por delante justo ese tipo de cita larga
+  esculpida. **El resultado es bueno; la predicción, mala.**
+- **Y el defecto de forma, que importa más**: banda por los dos lados («1 a 3») y criterio de falsación
+  sólo por arriba («si salta en 6 o más»). Así un 0 no la falsa, aunque esté fuera de la banda. **Regla
+  al protocolo: una banda tiene que tener criterio de falsación por los dos lados, o no es una banda:
+  es una mitad.**
+
+🧾 **OTRO ERROR DEL ARQUITECTO, archivado con la cuenta de la ficha**: en la sonda A del 01/10 son **6
+hallazgos tirados, no 7**. Los seis están listados en B.307 (`[976f6174]`, 3 solapamientos con CLI-13,
+1 con CLI-12 y `[2bf4eefc]`), y la corrección que consta es la del 01/10, «son 8 hallazgos tirados, no
+7», sumando las dos sondas (6 en la A y 2 en la B). **El arquitecto la atribuye a Code en esta ronda;
+Code no la ha hecho en esta conversación, y la que consta es aquélla.**
+
 
 
 **🧾 LOS ERRORES DEL ARQUITECTO EN ESTA RONDA, archivados** (04/10):
@@ -12096,6 +12170,11 @@ solapamientos. En la primera pasada nueva emitió una:
   de segmentos no se llega nunca. A una fila se le aplican las vías de prosa, y fallan.
 - **El hallazgo puede ser real —21 días contra lo que diga NOR-11— y muere por fontanería, no por
   mérito.**
+- **ESTABLE, 4 de 4 pasadas de NOR-11 del programa nuevo** (adenda del arquitecto, 04/10), con un
+  detalle: en la pasada 4 el hash cambia a `[9a7f402e]` porque la misma fila viene con dos puntos en
+  vez de barras: «Residuos sanitarios | Frecuencia (dias): 21 dias | Equivalencia: 3 semanas». Misma
+  fila, misma muerte, otra forma. 📌 **El juez reescribe el separador de la fila: ni siquiera copia las
+  tablas literalmente.**
 
 **Lo que NO se hace ahora**: tocarlo. Queda en cola, y su arreglo tiene que decidirse junto a B.305 y a
 los documentos sin trozos, no a solas.

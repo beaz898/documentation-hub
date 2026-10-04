@@ -600,6 +600,12 @@ cifra exacta sacada de una sola pasada no dice qué esperar de la siguiente.
 Es la misma familia que las dos de arriba: **el error estaba en la frase, no en el sistema.**
 Ahí la frase no decía de entre quiénes; aquí no decía de cuántas pasadas.
 
+**CUARTA VEZ, 04/10/2026: UNA BANDA TIENE QUE TENER CRITERIO DE FALSACIÓN POR LOS DOS LADOS, O NO ES
+UNA BANDA: ES UNA MITAD.** P-9bis (B.313) predijo «de 1 a 3 de 10 pasadas» y escribió el criterio de
+falsación sólo por arriba («falsada si salta en 6 o más»). Salió 0 de 10: fuera de la banda, y sin
+nada que la falsara. La banda decía una cosa y el criterio otra.
+
+
 
 ---
 
