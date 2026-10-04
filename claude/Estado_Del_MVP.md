@@ -11160,6 +11160,12 @@ RESULTADOS DISTINTOS.**
   - **La cuenta honesta, con banda**: el cruce de campos era 5 de 5 antes del arreglo; después va **1
     de 9 pasadas** (0 de 4 el 02/10 y 1 de 5 el 03/10). **El arreglo lo bajó de estable a ocasional,
     no a cero.**
+  - **Actualizada el 04/10** (arquitecto): una cruzada más, `db287ea4`, en la pasada 2 de NOR-11 del
+    programa nuevo. **Banda acumulada desde el arreglo: 2 de 14.**
+  - ⚠️ **Precisión de Code sobre el denominador**: el 14 suma las 4 pasadas del 02/10 (de los dos
+    documentos) y sólo las 5 de NOR-11 del 03/10 y del 04/10, cuando esos días hubo 11 cada uno (6 de
+    NOR-10 y 5 de NOR-11). **Si en las de NOR-10 no hubo ningún cruce** —los logs transcritos no
+    mencionan ninguno—, **la cuenta sobre todas las pasadas es 2 de 26.** Lo dicen los logs de NOR-10.
 - En las cuatro pasadas de hoy, dos de NOR-11 y dos de NOR-10, **la marca «cruzada» no aparece ni
   una vez, y el nombre viejo del campo tampoco.** Ayer morían cruzados 5 de 5; hoy, ninguno.
 - En NOR-10 con CLI-12, que ayer perdió por el cruce su único solapamiento, hoy sobreviven **3 en
@@ -11736,11 +11742,107 @@ sin esperar a la quinta):
   al protocolo: una banda tiene que tener criterio de falsación por los dos lados, o no es una banda:
   es una mitad.**
 
-🧾 **OTRO ERROR DEL ARQUITECTO, archivado con la cuenta de la ficha**: en la sonda A del 01/10 son **6
-hallazgos tirados, no 7**. Los seis están listados en B.307 (`[976f6174]`, 3 solapamientos con CLI-13,
-1 con CLI-12 y `[2bf4eefc]`), y la corrección que consta es la del 01/10, «son 8 hallazgos tirados, no
-7», sumando las dos sondas (6 en la A y 2 en la B). **El arquitecto la atribuye a Code en esta ronda;
-Code no la ha hecho en esta conversación, y la que consta es aquélla.**
+🧾 **OTRO ERROR DEL ARQUITECTO, archivado con la cuenta de Code y su fecha** (corregido el 04/10 por el
+propio arquitecto, al reemitir el encargo de las 05:00): **la corrección del recuento es del 01/10, y
+dice «son 8 hallazgos tirados, no 7», SUMANDO LAS DOS SONDAS** (`Estado_Del_MVP.md`, B.299). No es «6
+en la sonda A», aunque la A tenga, en efecto, 6 (B.307: `[976f6174]`, 3 solapamientos con CLI-13, 1 con
+CLI-12 y `[2bf4eefc]`) y la B, 2.
+
+**🔁 EL ENCARGO DE LAS 05:00, REEMITIDO COMPLETO por el arquitecto (04/10/2026).** Sustituye al que no
+llegó. Logs del director del 04/10, transcritos por el arquitecto; Code no los ha visto.
+- **NOR-10, las 6 pasadas**: iguales por fuera (rerank 2, CLI-13 siempre 0 %, 0 y 0). Latencias:
+  18.321, 18.846, 19.077, 19.327, 19.416 y 19.970 ms.
+  - **La contradicción del autoclave**: la cita **PASA 6 de 6** (en la línea de base, 0 de 6). **Se
+    publica 1 de 6.** Las otras 5 mueren en el VERIFICADOR: `[fa22ca84] → descartado:
+    mismo_dato_sin_oposicion`.
+  - Las 5 que mueren: el mismo hash, `fa22ca84`, nuevo **222** `literal` y existente **340**
+    `literal` (pajar `entregado_piezas`, 3 trozos).
+  - La que se publica, a las 02:53:31: `[b5ab6f08]`, nuevo **710** `paso=normalizada` y existente
+    **341** `literal`, **confirmada por juicio**. Pasada rara en todo: solape del 8 % en vez del 15 %, y
+    1 solapamiento en vez de 3.
+  - Solapamientos de CLI-12: `620acd2e` en 5 de 6 con la misma cita, `1e845576` en 3 de 6, y el
+    tercero varía (`a0f74182` ×2, `b5b3be4b` ×2, `f6707154`, `2098fd0d` y `0bd80731`).
+  - Un solapamiento descartado en 1 de 6: `[37bf4d44]`, lado nuevo, 175 caracteres,
+    `cola_demasiado_lejos`: «Dirección de Operaciones es responsable de mantener actualizado este
+    protocolo, de coordinar la formación descrita en el apartado 15 de forma homogénea entre las tres
+    clínicas». **La escultura no ha desaparecido.**
+- **NOR-11, la quinta pasada** (03:06:57, 24.453 ms) y el cierre de las cinco:
+  - `[e7785038]`: verificada y confirmada **5 de 5**, con la misma cita (154/128 `literal`) en las cinco
+    y en la línea de base.
+  - `[5a59c682]`, el color del contenedor: **AUSENTE 5 de 5.**
+  - `[976f6174]`, Chamberí: **AUSENTE 5 de 5.**
+  - Solape con CLI-13: 35, 45, 35, 35 y 35 %.
+  - Solapamientos de CLI-13 por pasada:
+    1. `98d8696e`, `f4a2154f`, `bae4d83e`, `6c94edf2`, `1975ec24`
+    2. `98d8696e`, `7b3e8df2`, `155b7d55`, `59adbbd4` (y `db287ea4` descartado, cruzada)
+    3. `98d8696e`, `f4a2154f`, `bae4d83e`, `6c94edf2`, `42d3be10`
+    4. `df4ce36f`, `c7bbeb68`, `bae4d83e`, `5a223599`, `6c94edf2`
+    5. `98d8696e`, `f4a2154f`, `bae4d83e`, `6c94edf2`, `1975ec24`
+
+    **Recuento: `98d8696e` 4/5, `bae4d83e` 4/5, `6c94edf2` 4/5, `f4a2154f` 3/5.** Las pasadas 1, 3 y 5
+    dan el mismo conjunto de cinco.
+  - CLI-12: `53b97faa` en 4 de 5 (285/286 `literal`), `851fc04e` en 1 de 5.
+  - B.319: emitida y descartada 5 de 5; `b8b2419d` en 4 de 5 y `9a7f402e` en 1 de 5 (la misma fila con
+    «:» en vez de «|»).
+  - B.312, cruzada: 1 de 5. **Banda acumulada desde el arreglo: 2 de 14.**
+  - `frontera.cita_solo_por_cabeza_y_cola`: **0 en las 11 pasadas nuevas.**
+
+**⚖️ LOS VEREDICTOS, TODOS** (arquitecto, 04/10):
+- ❌ **P-6 · FALSADA.** 1 de 6 publicadas contra «4 de 5 o más». El agujero: predijo sobre la
+  PUBLICACIÓN razonando sobre la PUERTA DE LA CITA. La puerta acertó de pleno: de 0/6 a 6/6.
+- ❌ **P-7 · FALSADA** por su propio criterio («falsada si es 0 de 5»): Chamberí, 0 de 5. Sin
+  reinterpretar.
+- ✅ **P-8 · ACERTADA.** Pedía al menos 3 de las 5 plazas con un hash que se repita en 3 pasadas o
+  más; salieron **4**, tres de ellas a 4 de 5. La línea de base tenía 2 plazas a 3 de 5. **Es la única
+  acertada de la tanda, y mide justo para lo que servía el puesto 2: citas reales y estables.**
+- ❌ **P-9bis**: banda errada por abajo y criterio mal escrito (arriba). 0 de 11.
+- ❌ **P-10 · FALSADA** (arriba).
+- 📌 **MARCADOR: 1 acertada de 5. Las predicciones del arquitecto fueron malas, y el cambio fue bueno
+  en lo que importaba.**
+
+**🛑 LA DECISIÓN: NO SE REVIERTE ESTA NOCHE** (arquitecto, 04/10). La regla de decisión disparó su rama
+dura —`[5a59c682]` 0 de 5, revertir `ad841b54`— y no se ejecuta. El motivo, con las palabras del
+arquitecto:
+
+> Antes del puesto 2 publicábamos a un cliente una cita de 434 caracteres que no existía en su
+> documento (B.311). Después, las citas existen: 6 de 6 en NOR-10, 11 de 11 pasadas sin una sola cita
+> inventada, y 4 de 5 plazas de solapamiento con cita estable. El coste medido es recall: una
+> contradicción sembrada de NOR-11, estable en cero.
+> **MENTIR MENOS VALE MÁS QUE ENCONTRAR MÁS.** El estado desplegado es más seguro que el anterior, así
+> que se queda mientras se mide.
+
+- **La rama de revertir queda ARMADA, no retirada.** Se ejecuta si la medida de B.320 y B.321 dice que
+  la pérdida viene del prompt y no del verificador.
+- **La regla que propone el arquitecto, al protocolo**: una regla de decisión puede quedar en suspenso
+  por un motivo de SEGURIDAD escrito antes de verla disparar; nunca por un motivo de conveniencia
+  escrito después.
+- ⚠️ **OBSERVACIÓN DE CODE, sin decidir nada**: la regla de decisión se escribió a las 04:45 sin
+  excepción por seguridad, y decía «ningún otro dato de las 9 pasadas puede cambiar esta regla; si
+  algo la contradice, se declara roto el criterio». El motivo de seguridad de arriba se escribe
+  **después** de verla disparar. **Por la letra de la regla que se lleva al protocolo, esta suspensión
+  sólo cabe si se cuenta como «escrito antes» lo que ya decía B.311** («una frase inventada con
+  contenido real», 02/10). Si no, lo que dice la propia casa es declarar roto el criterio de las 04:45,
+  y no dejarlo en suspenso. Lo decide el arquitecto, y se escribe cuál de las dos es.
+
+**🧭 LA BIFURCACIÓN, PRE-REGISTRADA ANTES DE VER EL TEXTO DE LAS CITAS** (firmada por el arquitecto el
+04/10/2026 a las 05:29). Tres ramas, excluyentes:
+- **RAMA 1 · la cita de 222 empieza a mitad de frase** → el problema es que **la regla no se hace
+  cumplir**, no que sea estrecha. Se arregla en la PUERTA (B.321): exigir que la cita empiece en
+  principio de frase y acabe en fin de frase. **No se revierte el prompt** y no se amplía a dos frases.
+- **RAMA 2 · la cita de 222 es una frase entera y no lleva el dato de la oposición, y la de 710 sí** →
+  la regla sí quedó estrecha. Se amplía a **hasta dos frases seguidas, copiadas enteras y del mismo
+  sitio.**
+- **RAMA 3 · la cita de 222 es una frase entera y SÍ lleva el dato** → el prompt está bien, y el
+  objetivo siguiente es el criterio del verificador.
+- **Si no hay texto guardado de ninguna** → no se decide nada: primero el agujero de B.320. Volver a
+  adivinar sería hipótesis tras hipótesis.
+- **Ningún otro dato cambia esta bifurcación.** Si algo la contradice, se declara roto el criterio.
+- ⚠️ **Lo que Code sabe ya, por lectura y antes del dato, y que la rama decisiva necesita**: la cita de
+  222 es de `[fa22ca84]`, que murió en el VERIFICADOR, y **eso no se guarda en ningún sitio** (B.320).
+  Así que, salvo que la consulta lo desmienta, **la cita de 222 no tiene texto guardado**, y las ramas
+  1 a 3 no se pueden decidir con ella. La de 710 (publicada) y la de 175 (descartada por la cita) sí
+  deberían estar.
+
 
 
 
@@ -12182,6 +12284,77 @@ los documentos sin trozos, no a solas.
 **Lo que corrige**: P-SONDA-2 (B.307) decía «los fantasmas sin trozos pierden por mérito, no hay nada que
 borrar». **Sigue siendo cierto en lo de borrar, y deja de ser completo**: un fantasma sin trozos sí
 puede aportar un hallazgo, y hoy no hay forma de verificárselo si viene de una tabla.
+
+### 🔥 B.320 — LA CASCADA DEL VERIFICADOR DESCARTA HALLAZGOS YA VERIFICADOS Y NO GUARDA LO QUE DESCARTÓ (agujero de evidencia, SIN arreglo; 04/10/2026)
+
+**El defecto, leído en el código por Code el 04/10** (a petición del arquitecto, apartado F.1): un
+hallazgo cuyas citas el juez VERIFICA y que la cascada DESCARTA **no se guarda en ningún sitio, ni
+entero ni a medias.**
+- En `applyCascadeToCandidate` (`lib/analysis/pipeline.ts`) sólo entra en `keptContradictions` lo que
+  sobrevive (`:568`), y el juicio que se guarda lleva `contradictions: keptContradictions` (`:633`).
+- Lo descartado deja una línea de log, con el hash y los primeros 60 caracteres del tema, y un
+  contador. Nada más.
+- Tampoco entra en `descartesPorCita` (B.313): ésa se llena antes, en el juez, y sólo con los
+  descartes por cita no verificable.
+- **Es la regla «una puerta que descarta tiene que guardar lo que descartó» sin cumplir, en la
+  cascada.**
+
+**LAS PUERTAS QUE LO TIENEN, por capacidad y no por nombre.** Censo:
+`grep -n "tally.descartados++" lib/analysis/pipeline.ts` → **5**, y las cinco sólo cuentan y escriben
+una línea de log:
+1. `:337` — `descartado.emparejamiento_invalido`;
+2. `:356` — las reglas deterministas de `finding-rules.ts` (`descartado.sin_columna_comun`);
+3. `:407` — `descartado.cubierto_por_diff`;
+4. `:462` — `r2.sin_ancla`;
+5. `:572` — **el verificador**: `mismo_dato_sin_oposicion`, `sin_relacion` y `sin_veredicto`.
+- La reclasificación a solapamiento (`:502`) sí conserva las citas: pasan a `overlappingContent`.
+- **El double-check del exhaustivo no está en el censo**: lo que degrada no se publica, pero sigue en
+  `judgments[].contradictions`, de donde sale. Ahí su texto queda.
+
+**El caso que lo trae**: `[fa22ca84]`, la contradicción del autoclave en NOR-10, verificada por el juez
+(222/340, las dos `literal`) y descartada por el verificador en 5 de 6 pasadas. Es justo la cita que
+decide la bifurcación de B.321, y **por lectura no hay texto suyo guardado**.
+`SQL_B320_citas_de_NOR10_04_10.sql` lo deja ver en el dato.
+
+**Sin arreglo.** Constancia.
+
+### 🔥 B.321 — LA REGLA DE «UNA FRASE ENTERA» NO LA HACE CUMPLIR NINGUNA PUERTA (04/10/2026)
+
+El puesto 2 prohíbe cortar una cita por dentro y empezar a mitad de frase. **Pero la comprobación de
+citas acepta cualquier tramo seguido del documento, empiece donde empiece.** Una media frase pasa
+`literal` igual que una frase entera: la regla vive sólo en el prompt, y **el prompt es una petición, no
+una garantía.**
+- **La pista que lo señala** (coincidencia de Code, 04/10, **no es una medida**): la cita que muere en
+  el verificador mide 222, y el final de la frase 32 de NOR-10 desde «la responsabilidad…» mide 223.
+- **Por qué importa más de lo que parece**: si se confirma, el puesto 2 consiguió que las citas
+  EXISTAN, pero no que estén COMPLETAS, y una cita incompleta puede perder justo el dato que sostiene
+  el hallazgo. Es lo que pasaría en NOR-10, 5 de 6.
+- **Un hecho que la conecta con el verificador**, leído por Code el 04/10, sin opinar: el verificador
+  recibe la cita y el texto entero del trozo ANTERIOR y del SIGUIENTE (`pipeline.ts:141-146`,
+  `verify-findings.ts:163-165`). **El resto del trozo en el que está la cita no le llega.** Una media
+  frase le llega sin su primera mitad.
+- **Lo que NO se hace aún**: no se toca. La opción obvia —que la puerta exija que la cita empiece en
+  principio de frase y acabe en fin de frase— movería otra vez la línea de base del arnés, y no se
+  decide sin la medida de la bifurcación (B.313).
+
+**CÓMO DECIDE EL VERIFICADOR `mismo_dato_sin_oposicion`** (apartado F.3; leído, sin opinar si está
+bien):
+- **Qué le entra**, por hallazgo (`buildFindingBlock`, `lib/analysis/verify-findings.ts:167-176`): el
+  tema, el nombre del documento existente y, de cada lado, la cita.
+  - En prosa, la cita va con el texto del trozo anterior y del siguiente.
+  - Si la cita es una fila de tabla con celdas, entra la fila entera, con todas sus columnas en su
+    orden, y la cita señalada aparte (`:149-161`).
+  - **No le entran** los documentos, ni la descripción del juez, ni el resto del trozo de la cita.
+- **Quién lo decide**: un **modelo**, Haiku, con temperatura 0,1 y hasta 2.048 tokens de salida
+  (`:243-247`). Le llega sólo lo que pasó la capa determinista (`pipeline.ts:551`).
+- **Dónde vive el criterio**: **en el prompt** (`buildPrompt`, `verify-findings.ts:182-218`):
+  - «confirmado» si las dos citas hablan del mismo dato concreto y dicen cosas incompatibles;
+  - «mismo_dato_sin_oposicion» si hablan del mismo dato pero no son incompatibles;
+  - «sin_relacion» si no hablan del mismo dato.
+  - Y la regla que separa las dos primeras: si asignan VALORES DISTINTOS al mismo dato. Callar sobre un
+    dato no es darle otro valor.
+- **El código** sólo traduce la respuesta (`toOutcome`, `:226-240`): un veredicto que no sea uno de los
+  tres pasa a `sin_relacion` con `descartado.sin_veredicto`.
 
 ### ⚠️ B.297 — LA LECTURA DE TROZOS SIN PAGINAR, y su margen medido (29/09/2026)
 

@@ -237,6 +237,23 @@ un filtro: es una lotería.
 
 ---
 
+## ⚠️ UNA REGLA DE DECISIÓN PUEDE QUEDAR EN SUSPENSO POR UN MOTIVO DE SEGURIDAD ESCRITO ANTES DE VERLA DISPARAR; NUNCA POR UN MOTIVO DE CONVENIENCIA ESCRITO DESPUÉS
+
+*Propuesta por el arquitecto el 04/10/2026, con la decisión de no revertir el puesto 2 (B.313).*
+
+La regla de decisión del 04/10 disparó su rama dura (revertir el prompt del puesto 2) y no se
+ejecutó, por un motivo de seguridad: «mentir menos vale más que encontrar más» —antes del puesto 2
+se publicaba una cita que no existía en el documento del cliente—. La rama de revertir queda
+**armada**, no retirada.
+
+⚠️ **Lo que la regla obliga a escribir en el caso que la trae** (observación de Code, 04/10): la regla
+de las 04:45 no tenía excepción por seguridad, y el motivo se escribió después de verla disparar.
+Para que la suspensión cumpla esta misma regla, el motivo «escrito antes» tiene que ser el de B.311
+(02/10). Si no se acepta así, lo que dice la casa es **declarar roto el criterio de las 04:45**, no
+dejarlo en suspenso. Lo decide el arquitecto, y se escribe en B.313 cuál de las dos es.
+
+---
+
 ## ⚠️ UNA NORMALIZACIÓN CUYO ORDEN DE PASOS NO ES ESTABLE HA CAUSADO TRES FALLOS
 
 *Añadida el 02/10/2026 (arquitecto), con el puesto 0 de B.313.*
