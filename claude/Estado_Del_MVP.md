@@ -12129,7 +12129,57 @@ en un párrafo, una severidad y ninguna cita.
     entrada publicada lleva ya `existingDocumentId`.
   - ⚠️ **Y la búsqueda del editor es la de cabeza y cola de 15 caracteres** (`findTolerant`; B.314, «el
     mismo sello de goma en el otro extremo»): con citas literales salta bien; con una esculpida, puede
-    saltar al sitio equivocado.
+    saltar al sitio equivocado. Ficha propia: B.326.
+
+**🛠️ EL ARREGLO PEDIDO: UN PUNTO DE SOLAPAMIENTO, UNA ENTRADA** (arquitecto, 04/10). Cada punto, su propia
+entrada, con su descripción, su cita del lado nuevo (la del salto) y su cita del lado existente. Reglas:
+la severidad no se inventa; nada de datos nuevos; el salto del editor es B.326; y antes de escribir
+código, dos respuestas. **Las dos respuestas de Code (04/10), sin escribir código:**
+- **1 · LA SEVERIDAD SE QUEDA EN LA PAREJA, y se enseña una vez por documento.** No hay que inventar nada
+  para eso: **las dos pantallas ya agrupan los solapamientos por documento**.
+  - El editor de mejora hace una cabecera por documento, «Con "doc" (N fragmentos)»
+    (`components/improvement/ChatPanel.tsx:448-473`), y debajo una tarjeta por entrada.
+  - El modal del análisis también agrupa por documento (`components/AnalysisModal.tsx:326-359`).
+  - **Cómo se haría**: cada punto, su tarjeta, sin severidad propia. La severidad de la pareja —una sola,
+    sale del `overlapPercent` del juez— pasa a esa cabecera por documento, que hoy no la enseña. Todos
+    los puntos de una pareja comparten la suya, así que no hay nada que elegir.
+- **4 · QUÉ CAMINO USA LA PANTALLA DEL DIRECTOR.**
+  - **La pantalla es el EDITOR DE MEJORA.** El texto que pegó el arquitecto, «Solapamiento con "…"» y una
+    descripción que acaba en «(severidad: media)», es exactamente el que construye
+    `components/improvement/problems.ts:283-286`. El modal del análisis lo pinta distinto: la severidad
+    en una línea aparte.
+  - **Por deducción, y hay que confirmarlo**: el editor viene de la BANDEJA. Desde el chat, un análisis
+    rápido entra al editor sin contradicciones (`hooks/chat/useDocuments.ts:314-319`), y el director ve
+    en esa pantalla las contradicciones con sus citas y su salto. Desde la bandeja entra el análisis
+    guardado entero (`app/(authenticated)/settings/review/page.tsx:246`). **Lo confirma el director con
+    una pregunta: ¿abrió el editor desde la bandeja?**
+  - **Lo que eso decide**: por la bandeja llegan `judgments` dentro del análisis guardado, así que el
+    cambio **podría** ser sólo de pantalla. Por el chat no llegan, porque la respuesta del análisis es una
+    lista cerrada sin `judgments` (`app/api/analyze-v2/route.ts:812-840`).
+- **LAS TRES FORMAS DE HACERLO, con su coste, para que decida el arquitecto:**
+  1. **Sólo la pantalla**: `problems.ts` saca una tarjeta por punto de `judgments[].overlappingContent`
+     cuando están, y si no están, como hoy.
+     - No toca nada guardado.
+     - Sirve para la bandeja y no para el chat: **el mismo análisis se vería de dos formas según por
+       dónde se abra**, que es lo que B.314 ya señaló con las contradicciones.
+  2. **Cada entrada publicada lleva sus puntos dentro**: `construirOverlaps` sigue haciendo una entrada
+     por pareja (misma severidad, mismo recuento) y le añade la lista de sus puntos, copiada de
+     `overlappingContent` —descripción, cita del nuevo y cita del existente—, sin calcular nada. Viaja por
+     los dos caminos, porque `overlaps` ya va en la respuesta cerrada y en lo guardado.
+     - **Pega en tres sitios, y se dice antes**: (a) la prueba de la evidencia archivada
+       (`lib/analysis/evidencia-archivada.test.ts`, que rehace lo publicado y lo compara con lo guardado
+       65 de 65) se pondrá roja a propósito, porque lo nuevo lleva un campo que lo archivado no tiene: hay
+       que reescribirla para que compare lo de siempre; (b) los análisis anteriores no traen la lista, y
+       la pantalla tiene que caer a la entrada fundida; (c) las citas quedan dos veces dentro del mismo
+       análisis guardado, en `judgments` y en `overlaps`.
+  3. **Una entrada publicada por punto**, que es lo literal del encargo.
+     - Cambia lo que cuentan `overlaps_found` (la analítica pasaría de parejas a puntos), el contador de
+       la bandeja (`components/review/ReviewDocumentRow.tsx:46`), la consulta de B.312 (que empareja por
+       pareja) y la prueba de la evidencia archivada.
+     - **No la recomiendo.**
+  - **La recomendación de Code es la 2**: una forma para los dos caminos, el recuento intacto, y nada
+    calculado. Lo decide el arquitecto.
+
 
 
 ### 📋 B.315 — EL JUEZ EMITE SOLAPAMIENTOS GENÉRICOS QUE EL PROMPT YA LE PROHÍBE, Y PASAN LA COMPROBACIÓN DE CITAS (ficha de CALIDAD, SIN arreglo; 02/10/2026)
@@ -12179,6 +12229,27 @@ sembrado y lo no auditado):
 **LO QUE ESTÁ EN JUEGO, para cuando se decida** (arquitecto, 02/10): no es un número. **Un cliente
 que lee «ambos los emite Dirección de Operaciones» piensa que el programa es tonto**, y eso cuesta
 más que un hallazgo perdido.
+
+**📏 LA MEDIDA, ANTES DE CUALQUIER FILTRO** (pedida por el arquitecto el 04/10: «no escribas un filtro, mídelo
+primero»). El ejemplo que vio el director, textual: «Ambos documentos mencionan que NOR-11 se relaciona con
+CLI-12 en el contexto de auditoría de calidad de procesos críticos». Es el programa contando que los
+documentos se citan entre sí.
+- **Medido por Code en el archivo del examen del 27/09** (`examen/resultados/`, 65 análisis):
+  - **211 puntos publicados** del juez, con 111 descripciones distintas;
+  - **5 nombran el código o el nombre del OTRO documento** (2,4 %), que son 4 descripciones distintas,
+    todas de NOR-11 con CLI-13 («Ambos documentos establecen que NOR-11 es el protocolo normativo y CLI-13
+    es su traducción práctica para el gabinete, sin que CLI-13 sustituya a NOR-11», y tres variantes);
+  - y **25 nombran CUALQUIER cosa con forma de código** (19 descripciones distintas).
+- ⚠️ **EL RIESGO DE UN FILTRO A CIEGAS, medido**: casi todos esos 25 son **hallazgos buenos de los
+  tarifarios**. Los códigos de tratamiento tienen la misma forma que los de documento: «Tarifa de
+  Endodoncia unirradicular (END-01) con todos los parámetros idénticos», «Tratamiento HIG-01 (Limpieza
+  bucal) con todos sus parámetros idénticos». **Un filtro por «nombra un código» se los llevaría por
+  delante.** El criterio estrecho, «nombra AL OTRO documento», no los toca.
+- **Por qué no basta el archivo**: es del 27/09 y de once casos. El ejemplo del director, NOR-11 con
+  CLI-12, es del 04/10 y no está ahí.
+- **Lo que lo mide en la base**: `SQL_B315_solapamientos_que_nombran_al_otro.sql`, de sólo lectura y
+  PENDIENTE DE EJECUTAR. Da los totales con los dos criterios y diez ejemplos repetibles.
+  - Tiene puesta la organización «Workspace principal» (`a9625e93…`), la de la cuenta correcta (B.323).
 
 **Sin arreglo.** Constancia.
 
@@ -12623,6 +12694,44 @@ juzgan con **6 pasadas de NOR-10**, y P-13 con 3 de NOR-11:
   antes de que llegue a producción.**
 
 
+**📊 B.322 MEDIDO: LAS 14 PASADAS DEL 04/10, de 16:23 a 16:32** (logs del director, transcritos por el
+arquitecto; Code no los ha visto). B.322 desplegado, y su sello presente en las catorce.
+- **EL SELLO, en las 14**: `contexto del verificador: nuevo trozos=1 caracteres=1079 (trozo) · existente
+  trozos=1 caracteres=1175 (trozo)` en NOR-10, y 946/828 en NOR-11. **El despliegue quedó probado sin
+  depender del resultado**, que es para lo que se escribió.
+- **NOR-10, 6 pasadas** (16:23:06, 16:23:43, 16:24:14, 16:24:46, 16:25:34 y 16:26:10), con latencias de
+  18.197 a 21.553 ms:
+  - **la contradicción del autoclave se publica 6 DE 6**, confirmada por juicio las seis veces. En la
+    línea de base iba 1 de 6;
+  - con tres citas distintas: `[fa22ca84]` (nuevo 222, existente 340) en 2 pasadas, `[b5ab6f08]` (710
+    `normalizada`, 341) en 3, y `[6ba5bfde]` (223, 341) en 1;
+  - 📌 **EL MECANISMO, CONFIRMADO**: en las pasadas en que el juez volvió a escribir la media frase de
+    222–223 caracteres —la que acaba en «esta figura»—, **el verificador la confirmó igual**, porque ya
+    recibe el trozo entero con «El Director Clínico puede delegar…». La cita no cambió; cambió que el
+    verificador puede ver de quién se habla;
+  - un solapamiento descartado en 2 de las 6 (`[37bf4d44]`, 175, `cola_demasiado_lejos`, y `[ff318d50]`,
+    363, `cabeza_sin_cola`): **la escultura no ha desaparecido en los solapamientos.**
+- **NOR-11, 8 pasadas** (de 16:26:53 a 16:31:47), con latencias de 21.920 a 25.303 ms:
+  - `[e7785038]`, el plazo del grupo III: verificada y confirmada **8 de 8**;
+  - `[5a59c682]`, el color del contenedor: **ausente 8 de 8**;
+  - `[976f6174]`, Chamberí: **ausente 8 de 8**;
+  - `frontera.cita_solo_por_cabeza_y_cola`: 0 en las 14.
+
+**⚖️ LOS VEREDICTOS** (arquitecto, 04/10):
+- ✅ **P-11 · ACERTADA, y por encima de la banda**: pedía 4 de 6 o más, y salió **6 de 6**. Por su propio
+  tramo: B.322 cerrado, y B.321 sigue sólo por legibilidad.
+- ✅ **P-12 · ACERTADA.** Ninguna contradicción nueva en NOR-10: el juez emite siempre la misma. **Se le
+  dio contexto al verificador, no se le aflojó.**
+- ❌ **P-13 · MAL FORMULADA.** Decía «las dos contradicciones de NOR-11 que hoy funcionan», y la medida del
+  arquitecto de una hora antes decía que sólo funcionaba **una**. La mitad medible, `[e7785038]`, sale 8
+  de 8. 🧾 **Cuarto error del arquitecto de la tanda**: una premisa que contradecía su propio dato. Regla
+  al protocolo.
+
+📌 **LA CUENTA PARA EL TABLERO, contra la línea de base de las 11 pasadas del 03/10** (el arquitecto la
+llama «del viernes»; el 03/10/2026 fue **sábado**): contradicciones sembradas publicadas por pasada,
+NOR-10 **0 → 1** y NOR-11 **2 → 1**; total **2 → 2**; citas publicadas no confirmables **1 → 0**.
+**Mismo número de hallazgos, y ahora ninguno miente.**
+
 ### 🔥 B.323 — DOS DOCUMENTOS CON EL MISMO CONTENIDO PUEDEN CONVIVIR EN EL CORPUS, Y ENTONCES CADA HALLAZGO SE PUBLICA DOS VECES (constancia, SIN arreglo; 04/10/2026)
 
 **La prueba, de los logs del director del 04/10** (transcritos por el arquitecto; Code no los ha visto):
@@ -12644,6 +12753,17 @@ pantalla**.
 - **Lo que dirá el dato**: `SQL_B323_corpus_por_organizacion.sql`, consultas 4 (las copias de CLI-01, con
   su hash, sus trozos y sus análisis) y 5 (todos los nombres y todos los contenidos repetidos dentro de
   una misma organización).
+
+✅ **CONFIRMADA CON DATO** (`SQL_B323_corpus_por_organizacion.sql`, ejecutada por el director el 04/10 y
+transcrita por el arquitecto): el mismo contenido, hash `d510819d…`, existe en **cuatro documentos**, dos
+por organización.
+- En `5a82712f…` («Mi workspace»): `e03fab9a` (analizado, 15/09 a las 08:41) y `e568a5c6` (analizado,
+  23/09 a las 17:34). Ocho días entre uno y otro: subido dos veces a mano.
+- En `a9625e93…` («Workspace principal»): `97b4503b` y `f1d85905`, los dos pendientes y **los dos creados
+  el 27/09 a las 09:10, el mismo minuto.**
+- 📌 **LA PISTA DE POR DÓNDE EMPEZAR** (arquitecto): lo del mismo minuto no es un descuido del usuario:
+  **huele a doble envío o a un reintento de la subida.** El arreglo tendrá que mirar las dos causas, la
+  humana (dos subidas a mano con días de diferencia) y la del reintento.
 
 **Sin arreglo.** Constancia.
 
@@ -12734,6 +12854,42 @@ números del corpus de las 16:30, y el de las 21:05 es otro. **No se mide B.321 
 pasado.**
 - ⚠️ **Nota de Code**: el encargo que trae B.321 y esas tres predicciones **no llegó a Code**. No están
   en el repositorio, y B.321 no tiene una línea de código escrita. Si deben constar, hay que pegarlas.
+
+### 🔥 B.325 — ACEPTAR UNA INVITACIÓN TE SACA DE TU PROPIA ORGANIZACIÓN, SIN AVISAR (decisión de PRODUCTO, SIN arreglo, la toma el director; 04/10/2026)
+
+**Lo que pasa** (de la lectura A de Code, 04/10; el director no lo sabía):
+> Un usuario que crea su organización, sube sus documentos y después acepta una invitación a otra,
+> **pierde la suya**: `accept-invite` borra su pertenencia anterior antes de crear la nueva, y si la
+> organización de antes se queda sin nadie, la marca como abandonada. **Nadie avisa al usuario de que va
+> a perder su corpus.**
+
+**Dónde**: `app/api/team/accept-invite/route.ts` busca la pertenencia anterior (`:103-109`), la borra
+(`:116-120`), marca la organización de antes como abandonada si se queda sin miembros (`:122-135`) y crea
+la nueva (`:140-147`).
+
+**Y ESA IMPOSIBILIDAD —«un usuario, una organización»— FALLA ABIERTA** (B.324):
+- el borrado de la pertenencia anterior **no comprueba su error**: si falla, la inserción sigue, y el
+  usuario queda en dos organizaciones, que es justo el caso en que `resolverOrg` adivina;
+- y la pertenencia anterior se busca con `.limit(1).single()`: si el usuario ya tuviera dos, no se
+  encuentra ninguna, no se borra nada, y entraría en una tercera.
+
+**Sin arreglo.** Es una decisión de producto, y la toma el director.
+
+### 🔥 B.326 — EL SALTO DEL EDITOR A UNA CITA BUSCA POR CABEZA Y COLA DE 15 CARACTERES: EL MISMO SELLO DE GOMA, EN LA PANTALLA (SIN arreglo, no urge; 04/10/2026)
+
+**Lo que hace**: al clicar un hallazgo, el editor de mejora busca su cita en el texto del documento y la
+selecciona (`goToProblem`, `components/ImprovementModal.tsx:318-334`). La búsqueda es `findTolerant`
+(`lib/texto/localizar-cita.ts:48`), que, si no encuentra la cita tal cual, prueba con sus **primeros 15 y
+últimos 15 caracteres**.
+
+**Por qué es el mismo defecto que B.318**: con una cita literal salta bien. **Con una esculpida —una cabeza
+real y una cola real de sitios distintos— puede llevar al usuario a un párrafo que no es el suyo**, como la
+puerta de cabeza y cola publicaba citas que no existían.
+
+**Por qué no urge** (arquitecto, 04/10): hoy las citas publicadas son literales (B.313, B.318). El día que
+una vuelva a estar esculpida, el usuario irá a un párrafo que no es el suyo.
+
+**Sin arreglo.** Constancia.
 
 ### ⚠️ B.297 — LA LECTURA DE TROZOS SIN PAGINAR, y su margen medido (29/09/2026)
 

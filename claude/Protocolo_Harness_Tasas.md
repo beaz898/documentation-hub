@@ -174,6 +174,17 @@ de esta regla llevaba aplazado por la razón equivocada.
 
 ---
 
+## ⚠️ UNA PREDICCIÓN CUYA PREMISA NO SE COMPRUEBA CONTRA LA ÚLTIMA MEDIDA NO SE REGISTRA
+
+*Añadida el 04/10/2026 (arquitecto), con P-13 de B.322.*
+
+El caso: P-13 hablaba de «las dos contradicciones de NOR-11 que hoy funcionan», y la medida del propio
+arquitecto de una hora antes decía que sólo funcionaba una. La predicción se archivó como mal formulada,
+no como fallada: su premisa contradecía el último dato. **Antes de registrar una predicción, su premisa se
+lee contra la última medida, no contra la memoria.**
+
+---
+
 ## ⚠️ CUANDO SE OFRECEN DOS EXPLICACIONES Y NO SE TIENE EL DATO, NO SE ESCRIBE NINGUNA DE LAS DOS COMO HECHO
 
 *Añadida el 04/10/2026 (arquitecto), con B.324.*
