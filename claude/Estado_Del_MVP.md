@@ -12501,15 +12501,67 @@ el 2: si cambian dos cosas a la vez, no se sabe cuál recuperó el hallazgo.
 
 **🔮 LAS PREDICCIONES, REGISTRADAS ANTES DE MEDIR** (arquitecto, 04/10/2026, 12:05). Sin veredicto. Se
 juzgan con **6 pasadas de NOR-10**, y P-13 con 3 de NOR-11:
-- **P-11 · `[fa22ca84]` se publica en 4 de 6 o más.** Hoy, 1 de 6. **Falsada si sale 1 o menos de 6.**
+- ~~**P-11 · `[fa22ca84]` se publica en 4 de 6 o más.** Hoy, 1 de 6. **Falsada si sale 1 o menos de 6.**~~
+  — **sustituida antes de medir por la versión cerrada por los dos lados, abajo.**
   - ⚠️ **Precisión de Code, por la regla de esta mañana** (la banda con falsación por los dos lados):
     entre lo que la confirma (4 a 6) y lo que la falsa (0 o 1) quedan **2 y 3 de 6 sin escribir**. Si
     sale eso, la predicción no dice nada. Lo decide el arquitecto antes de medir.
+- **P-11 · `[fa22ca84]` publicada sobre 6 pasadas de NOR-10 — CERRADA POR LOS DOS LADOS** (arquitecto,
+  04/10, después del aviso de Code y antes de medir). Cada tramo dice qué se hace, no sólo si acertó:
+  - **4, 5 o 6 de 6 → CONFIRMADA.** B.322 cerrado. El paso 2 (B.321) sigue adelante **por
+    legibilidad** —«esta figura» sin antecedente no se puede enseñar a un cliente—, no por recall.
+  - **2 o 3 de 6 → PARCIAL.** El contexto ayudó y no basta. **B.321 pasa a ser también cosa de
+    recall**, y se vuelve a medir con 6 pasadas después de él.
+  - **0 o 1 de 6 → FALSADA.** El contexto no era la causa, o no era la única. **Se para: no se toca
+    B.321**, y B.320 pasa delante, para medir con lo descartado guardado.
+  - 🧾 **Tercer error del arquitecto de la misma clase**: dejó el 2 y el 3 de 6 sin escribir, cinco
+    horas después de archivar la regla de la banda con falsación por los dos lados. **Que la regla ya
+    estuviera en el protocolo agrava la reincidencia.**
 - **P-12 · No aparece ninguna contradicción nueva** que no se emitiera antes en NOR-10. **Falsada si
   aparece alguna**: sería que se ha aflojado el verificador, no que se le ha dado contexto. Es la
   predicción que protege de «arreglarlo» rompiéndolo.
 - **P-13 · Las dos contradicciones de NOR-11 que hoy funcionan siguen publicándose.** Con 3 pasadas de
   NOR-11, no 5: es un control, no una medida. **Falsada si alguna cae.**
+
+**🔖 EL SELLO DE B.322, ESCRITO ANTES DE LA TANDA** (arquitecto, 04/10; hecho en código el mismo día).
+- **El problema del sello anterior** (aviso de Code): el único dato que podía mostrar que B.322 estaba
+  desplegado era el veredicto sobre `[fa22ca84]`, el mismo con el que se juzga P-11. Si no se movía, no
+  se sabría si el cambio no sirve o si no está desplegado. **Es lo que pasó con las once pasadas del
+  03/10.**
+- **La línea, una por hallazgo que entra al verificador** (`lineaDelContexto`,
+  `lib/analysis/contexto-de-la-cita.ts`, escrita desde los dos sitios del pipeline):
+
+  > `[…] · [hash] contexto del verificador: nuevo trozos=N caracteres=M (estado) · existente trozos=N caracteres=M (estado)`
+
+  - Los caracteres son los del trozo o los trozos que añade B.322.
+  - El estado es `trozo`, `cruza` (la cita pisa varios), `fila_de_tabla` (se pinta como fila, sin
+    trozos) o `sin_contexto` (no se localizó, y se pinta como antes).
+  - **Ni una palabra del documento**: números y nombres de estado. Lo comprueba su prueba.
+- **El contador del tope ciego**: `verificador.cita_sin_contexto`, por lado que llega sin contexto, en
+  el `discarded` de la pareja.
+- 📌 **EL SELLO, antes de la tanda: si en el log de la primera pasada de NOR-10 aparece esa línea con
+  `trozos` ≥ 1 en el lado nuevo, el cambio está desplegado. Si no aparece, no lo está, y se para. Esta
+  vez el sello no depende del resultado.**
+- **El despliegue de `dba10142`**: Code no puede ver Vercel desde aquí (no hay `gh` en esta máquina). Lo
+  dirá el sello, o el director mirando Vercel.
+- **La build local, contestada**: termina entera y en verde (exit 0). Compila, pasa tipos, genera las
+  67 páginas y lista las rutas. «Llega a "Collecting page data"» era un filtro de Code sobre la salida,
+  que sólo enseñaba esa línea; **no había ningún problema de variables de entorno.**
+
+**📋 LO QUE QUEDA EN EL TABLERO** (arquitecto, 04/10):
+- **El punto 0, cerrado**: la cita de 710 difiere de NOR-10 en exactamente dos cosas, y ninguna es una
+  palabra: la «E» mayúscula del principio y un espacio donde el documento tiene un salto de párrafo.
+  **Con eso B.321 queda confirmada del todo: incluso la cita que funcionó empieza a mitad de frase.**
+- **EL COSTE, MEDIDO Y NO ESTIMADO, antes de escribir**: +1.850 caracteres de mediana y +2.990 en el
+  peor caso por hallazgo, sobre los 218 trozos de prosa del corpus. El lote del verificador crece unos
+  11.000 tokens, frente a 200.000; el análisis gasta de 20 a 25 s de 120. **Ningún tope rozado. Es la
+  primera vez esta semana que se mide el coste antes de escribir, y así tiene que ser siempre.**
+- 📌 **LA PRIMERA VERSIÓN DE CODE PARA LA CITA QUE CRUZA TROZOS ERA MALA, LA TUMBÓ SU PROPIA PRUEBA ANTES
+  DEL COMMIT, Y CODE LO DECLARÓ.** Buscaba el primer trozo por el principio de la cita y el último por
+  el final, y fallaba cuando la frontera caía dentro del final. **Es exactamente para lo que se
+  escriben las pruebas antes del código, y es la tercera vez esta semana que la disciplina caza algo
+  antes de que llegue a producción.**
+
 
 ### ⚠️ B.297 — LA LECTURA DE TROZOS SIN PAGINAR, y su margen medido (29/09/2026)
 

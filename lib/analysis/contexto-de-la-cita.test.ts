@@ -3,7 +3,7 @@ import { beforeAll, describe, expect, it } from 'vitest';
 import { chunkSegments, extractSegments } from '@/lib/chunking';
 import { toStoredChunks, type StoredChunk } from '@/lib/read-chunks';
 import { buildFindingBlock } from './verify-findings';
-import { contextoDeLaCita, ladosParaVerificar, TOPE_DE_TROZOS_DE_UNA_CITA } from './contexto-de-la-cita';
+import { contextoDeLaCita, ladosParaVerificar, lineaDelContexto, contarSinContexto, TOPE_DE_TROZOS_DE_UNA_CITA } from './contexto-de-la-cita';
 
 /**
  * B.322 (04/10/2026) — EL VERIFICADOR RECIBE EL TROZO ENTERO DONDE ESTÁ LA CITA.
@@ -44,7 +44,7 @@ describe('B.322 · el verificador ve el trozo entero de la cita', { timeout: 120
       existingDocumentName: 'CLI-12_manual-calidad-clinica.docx',
       newChunk: suyo,
       existingChunk: null,
-      ...ladosParaVerificar({ chunks: trozos, chunk: suyo, cita: CITA_222 }, { chunks: [], chunk: null, cita: EXISTENTE_340 }),
+      ...ladosParaVerificar({ chunks: trozos, chunk: suyo, cita: CITA_222 }, { chunks: [], chunk: null, cita: EXISTENTE_340 }).campos,
       newColumnOrder: null,
       existingColumnOrder: null,
     }, 1);
@@ -67,20 +67,20 @@ const T = [
 describe('B.322 · contextoDeLaCita', () => {
   it('con trozo de evidencia: ese trozo entero, y sus dos vecinos', () => {
     expect(contextoDeLaCita(T, T[1], 'el responsable último')).toEqual({
-      trozos: [T[1].text], vecinos: { previous: T[0].text, next: T[2].text },
+      trozos: [T[1].text], vecinos: { previous: T[0].text, next: T[2].text }, estado: 'trozo',
     });
   });
 
   it('una cita que CRUZA dos trozos (sin trozo de evidencia): los dos, enteros, y los vecinos de fuera', () => {
     const cita = 'El Director Clínico es el responsable último del protocolo, y la firma de los registros de auditoría trimestral recae siempre sobre esta figura';
     expect(contextoDeLaCita(T, null, cita)).toEqual({
-      trozos: [T[1].text, T[2].text], vecinos: { previous: T[0].text, next: T[3].text },
+      trozos: [T[1].text, T[2].text], vecinos: { previous: T[0].text, next: T[3].text }, estado: 'cruza',
     });
   });
 
   it('CONTROL: sin trozos o sin poder localizarla, como antes: ni trozo ni vecinos', () => {
-    expect(contextoDeLaCita([], null, 'algo')).toEqual({ trozos: [], vecinos: { previous: null, next: null } });
-    expect(contextoDeLaCita(T, null, 'una cita que no está en ningún trozo de este documento de prueba')).toEqual({ trozos: [], vecinos: { previous: null, next: null } });
+    expect(contextoDeLaCita([], null, 'algo')).toEqual({ trozos: [], vecinos: { previous: null, next: null }, estado: 'sin_contexto' });
+    expect(contextoDeLaCita(T, null, 'una cita que no está en ningún trozo de este documento de prueba')).toEqual({ trozos: [], vecinos: { previous: null, next: null }, estado: 'sin_contexto' });
   });
 
   it('el TOPE: una cita que cruza más trozos de los declarados no lleva ninguno; con los declarados, sí', () => {
@@ -106,9 +106,34 @@ describe('B.322 · contextoDeLaCita', () => {
     const bloque = buildFindingBlock({
       topic: 'T', newDocSays: 'Ana | Higienista', existingDocSays: 'c', existingDocumentName: 'X',
       newChunk: fila, existingChunk: null,
-      ...ladosParaVerificar({ chunks: [fila], chunk: fila, cita: 'Ana | Higienista' }, { chunks: [], chunk: null, cita: 'c' }),
+      ...ladosParaVerificar({ chunks: [fila], chunk: fila, cita: 'Ana | Higienista' }, { chunks: [], chunk: null, cita: 'c' }).campos,
       newColumnOrder: ['Nombre', 'Puesto'], existingColumnOrder: null,
     }, 1);
     expect(bloque).toContain('Fila de tabla de la hoja "H", fila 3. Todas sus columnas: Nombre: Ana | Puesto: Higienista');
+  });
+});
+
+describe('B.322 · el sello: una línea de log por hallazgo que entra al verificador, sin texto del cliente', () => {
+  it('cada lado dice su estado: trozo, cruza, fila de tabla o sin contexto', () => {
+    expect(contextoDeLaCita(T, T[1], 'el responsable último').estado).toBe('trozo');
+    expect(contextoDeLaCita(T, null, 'El Director Clínico es el responsable último del protocolo, y la firma de los registros de auditoría trimestral recae siempre sobre esta figura').estado).toBe('cruza');
+    expect(contextoDeLaCita([], null, 'algo').estado).toBe('sin_contexto');
+    const fila: StoredChunk = { chunkIndex: 0, chunkType: 'table_row', text: 'x', sheetName: 'H', tableId: 'H#0', rowIndex: 0, cells: { A: '1' }, columnOrder: null };
+    // Una fila de tabla se pinta como fila (con todas sus columnas), no como trozo: no lleva trozos.
+    expect(contextoDeLaCita([fila], fila, '1')).toMatchObject({ estado: 'fila_de_tabla', trozos: [] });
+  });
+
+  it('la línea: trozos y caracteres de contexto por lado, y su estado; ni una palabra del documento', () => {
+    const lados = ladosParaVerificar({ chunks: T, chunk: T[1], cita: 'el responsable último' }, { chunks: [], chunk: null, cita: 'otra' });
+    const linea = lineaDelContexto(lados);
+    expect(linea).toBe(`contexto del verificador: nuevo trozos=1 caracteres=${T[1].text.length} (trozo) · existente trozos=0 caracteres=0 (sin_contexto)`);
+    for (const c of T) expect(linea).not.toContain(c.text.slice(0, 12));
+  });
+
+  it('el contador de los que se quedan sin contexto, por lado: el tope ciego, contado', () => {
+    const counts: Record<string, number> = {};
+    contarSinContexto(counts, ladosParaVerificar({ chunks: [], chunk: null, cita: 'a' }, { chunks: [], chunk: null, cita: 'b' }));
+    contarSinContexto(counts, ladosParaVerificar({ chunks: T, chunk: T[1], cita: 'x' }, { chunks: [], chunk: null, cita: 'b' }));
+    expect(counts).toEqual({ 'verificador.cita_sin_contexto': 3 });
   });
 });

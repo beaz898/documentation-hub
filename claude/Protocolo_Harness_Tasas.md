@@ -224,6 +224,13 @@ dos fijas, y todas las parejas de citas eran nuevas.
 > mover, no la ausencia de algo.** Y se mira contra una línea de base estable: un número que ya
 > bailaba no prueba nada al moverse.
 
+⚠️ **Y SU COROLARIO, 04/10/2026 (arquitecto): UN CAMBIO QUE NO DEJA RASTRO EN EL LOG NO SE PUEDE MEDIR.
+SI VA A MEDIRSE, SE DESPLIEGA CON SU PROPIA LÍNEA.** Tercera vez esta semana que falla un sello: el
+asimétrico de `cabeza_y_cola`, el del número que sólo mueve el prompt, y el que se propuso para B.322,
+el veredicto sobre `[fa22ca84]`, que era el mismo dato con el que se juzga la predicción. **Un sello
+que comparte el dato con la predicción que quiere medir no es un sello.** B.322 se desplegó con su
+propia línea, «contexto del verificador», y su sello no depende del resultado.
+
 ---
 
 ## ⚠️ UNA PUERTA QUE DESCARTA TIENE QUE GUARDAR LO QUE DESCARTÓ

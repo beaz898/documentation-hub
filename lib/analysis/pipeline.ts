@@ -29,7 +29,7 @@ import { applyDeterministicRules, buildStructuralTopic, destinoSinClave } from '
 import { getOrderedColumns } from './table-structure';
 import { verifyFindings } from './verify-findings';
 import type { FindingToVerify } from './verify-findings';
-import { ladosParaVerificar } from './contexto-de-la-cita';
+import { ladosParaVerificar, lineaDelContexto, contarSinContexto } from './contexto-de-la-cita';
 import type { StoredChunk } from '@/lib/read-chunks';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { DocumentJudgment } from './types';
@@ -464,6 +464,9 @@ export async function applyCascadeToCandidate(
         `[${label}] · [${ev.hash}] "${(c.topic ?? '(sin titulo)').slice(0, 60)}" → baja a juicio: ` +
         `sin_clave (${verdict.anclas.length} columna(s) de ancla, pero la estructura no puede firmar)`
       );
+      const lados = ladosParaVerificar({ chunks: newDocumentChunks, chunk: ev.newChunk, cita: c.newDocSays }, { chunks: existingChunks, chunk: ev.existingChunk, cita: c.existingDocSays });
+      console.log(`[${label}] · [${ev.hash}] ${lineaDelContexto(lados)}`); // B.322: el sello
+      contarSinContexto(counts, lados);
       toVerify.push({
         contradiction: c,
         sourceIndex: i,
@@ -474,7 +477,7 @@ export async function applyCascadeToCandidate(
           existingDocumentName: judgment.documentName,
           newChunk: ev.newChunk,
           existingChunk: ev.existingChunk,
-          ...ladosParaVerificar({ chunks: newDocumentChunks, chunk: ev.newChunk, cita: c.newDocSays }, { chunks: existingChunks, chunk: ev.existingChunk, cita: c.existingDocSays }),
+          ...lados.campos,
           newColumnOrder: orderedColumnsFor(ev.newChunk, newDocumentChunks, 'new'),
           existingColumnOrder: orderedColumnsFor(ev.existingChunk, existingChunks, 'existing'),
         },
@@ -520,6 +523,9 @@ export async function applyCascadeToCandidate(
       }
     }
 
+    const lados = ladosParaVerificar({ chunks: newDocumentChunks, chunk: ev.newChunk, cita: c.newDocSays }, { chunks: existingChunks, chunk: ev.existingChunk, cita: c.existingDocSays });
+    console.log(`[${label}] · [${ev.hash}] ${lineaDelContexto(lados)}`); // B.322: el sello
+    contarSinContexto(counts, lados);
     toVerify.push({
       contradiction: c,
       sourceIndex: i,
@@ -530,7 +536,7 @@ export async function applyCascadeToCandidate(
         existingDocumentName: judgment.documentName,
         newChunk: ev.newChunk,
         existingChunk: ev.existingChunk,
-        ...ladosParaVerificar({ chunks: newDocumentChunks, chunk: ev.newChunk, cita: c.newDocSays }, { chunks: existingChunks, chunk: ev.existingChunk, cita: c.existingDocSays }),
+        ...lados.campos,
         newColumnOrder: orderedColumnsFor(ev.newChunk, newDocumentChunks, 'new'),
         existingColumnOrder: orderedColumnsFor(ev.existingChunk, existingChunks, 'existing'),
       },
