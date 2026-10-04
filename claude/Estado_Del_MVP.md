@@ -12316,6 +12316,17 @@ una línea de log:
 decide la bifurcación de B.321, y **por lectura no hay texto suyo guardado**.
 `SQL_B320_citas_de_NOR10_04_10.sql` lo deja ver en el dato.
 
+✅ **DEMOSTRADO CON DATOS, el primer resultado medido de esta ficha** (`SQL_B320_citas_de_NOR10_04_10.sql`,
+ejecutada por el director el 04/10/2026, transcrita por el arquitecto):
+- `[fa22ca84]` (222/340, la que muere en el verificador): **NADA GUARDADO**, en ninguno de los tres
+  sitios. **La cita que mata 5 de cada 6 hallazgos de NOR-10 no existe en ningún lado.**
+- `[b5ab6f08]` (710/341, la publicada): guardada dos veces, en lo publicado (`discrepancies`) y en
+  `judgments[].contradictions`. Análisis `edabd2ab-3b16-46c9-b3bf-d1c24c6d22c5`, 02:53:49 UTC.
+- `[37bf4d44]` (175, el solapamiento descartado por la cita): en `judgments[].descartesPorCita`,
+  entero. Análisis `12ec1ab4-0516-496d-91fb-6538b35ba3bb`, 02:52:43 UTC.
+- 📌 **EL CONTRASTE: la puerta del juez guarda; las cinco puertas de la cascada, no.** Lo que murió en
+  la comprobación de citas está entero; lo que murió en el verificador no está.
+
 **Sin arreglo.** Constancia.
 
 ### 🔥 B.321 — LA REGLA DE «UNA FRASE ENTERA» NO LA HACE CUMPLIR NINGUNA PUERTA (04/10/2026)
@@ -12336,6 +12347,69 @@ una garantía.**
 - **Lo que NO se hace aún**: no se toca. La opción obvia —que la puerta exija que la cita empiece en
   principio de frase y acabe en fin de frase— movería otra vez la línea de base del arnés, y no se
   decide sin la medida de la bifurcación (B.313).
+
+**📐 LO QUE TRAJO LA CONSULTA, Y LA RECONSTRUCCIÓN DE LA CITA QUE NO SE GUARDÓ (04/10/2026).**
+`SQL_B320_citas_de_NOR10_04_10.sql`, ejecutada por el director y transcrita por el arquitecto. Más
+la reconstrucción de Code, offline con el texto extraído de NOR-10.
+
+**LAS TRES CITAS, Y CÓMO ESTÁN CORTADAS** (arquitecto, 04/10). 📌 **INCLUSO LA ÚNICA CITA QUE FUNCIONÓ
+EMPIEZA A MITAD DE FRASE.** B.321 no es un caso raro: el juez le corta la cabeza a la frase de forma
+sistemática.
+
+| Cita | Corte | Qué le pasó |
+|---|---|---|
+| `b5ab6f08` (710/341) | por la **cabeza** («Es ») | se publicó, por `normalizada` |
+| `37bf4d44` (175) | por la **cola**: se para sin punto, en mitad de una enumeración («…de forma homogénea entre las tres clínicas») | murió en la puerta de la cita |
+| `fa22ca84` (222/340) | por **las dos** | murió en el verificador |
+
+**LA DE 710, MEDIDA: LA COINCIDENCIA DE CODE ESTABA BIEN EN LA FORMA Y MAL EN LA CUENTA.**
+- Lo guardado empieza «El Director Clínico quien debe asegurar que existen los recursos…» (lo
+  transcribe el arquitecto del resultado de la consulta). Falta el verbo: el original dice «**Es** el
+  Director Clínico quien debe…». Es la misma amputación que B.311, «el "Es" inicial, que se llevó el
+  verbo».
+- ⚠️ **Corrección de Code a su propia cifra**: las frases 31 y 32 enteras no suman 713 sino **714**,
+  porque entre ellas el texto extraído lleva un salto de párrafo (`\n\n`, dos caracteres), no un
+  espacio. La cuenta que cuadra es **714 − 3 («Es ») − 1 = 710**: la cita quita el «Es» y junta las dos
+  frases con un solo espacio. El «713 − 3» del arquitecto cuadraba porque heredaba el error de Code
+  (contaba un espacio).
+- **Por qué pasó por `normalizada` y no por `literal`**, comprobado barato:
+  - **«El Director Clínico quien debe asegurar», con E mayúscula, no está en NOR-10**: con e minúscula,
+    sí. La comparación literal distingue mayúsculas; la normalizada no.
+  - Y, por la cuenta de arriba, el salto de párrafo que la cita cambia por un espacio, que la vía
+    normalizada también colapsa.
+  - **La diferencia es de forma —una mayúscula y un salto de línea—, no de palabras.** Que no haya
+    ninguna otra lo diría el texto completo guardado, que el arquitecto no ha transcrito entero.
+
+**LA RECONSTRUCCIÓN DE `fa22ca84`, la que no se guardó** (Code, 04/10, sobre el texto extraído de
+NOR-10):
+- **Por el criterio del encargo** —tramos seguidos de 222 caracteres con «delegable» y «autoclave»— hay
+  **162**, empezando entre los caracteres 2.713 y 2.874. **No discrimina**: dos palabras que están a
+  menos de 222 caracteres caben en muchas ventanas.
+- **Lo que la hace única**: el log guardó sus primeros 200 caracteres («la responsabilidad última
+  —incluida … no es delegable y recae sie»). Ese principio aparece **una sola vez** en NOR-10, en el
+  carácter 2.747. Con el principio fijado por el log y la longitud por el registro, el tramo es uno:
+
+  > «la responsabilidad última —incluida la firma de los registros de auditoría trimestral y la decisión
+  > de retirar del servicio un autoclave que no supere un control biológico— no es delegable y recae
+  > siempre sobre esta figura»
+
+  - Acaba en «esta figura», **sin el punto**: es el final de la frase 32 menos su último carácter
+    (223 − 1). En el documento sigue «.» y la sección «2.2. Personal auxiliar de esterilización».
+  - Delante tiene, en la misma frase, «El Director Clínico puede delegar funciones operativas del día a
+    día en el personal auxiliar de esterilización, pero».
+  - Cabe entero en un solo trozo, el 2 de 67, con el troceado de hoy del repositorio.
+- ✅ **LA LECTURA DEL ARQUITECTO, registrada antes de mirar: NO FALSADA.** Pedía un tramo de 222 que
+  acabe en un demostrativo sin antecedente dentro de la cita, y es exactamente éste: «esta figura»,
+  y el Director Clínico no aparece en la cita.
+  - ⚠️ **Con un detalle corregido**: el antecedente no está «en la frase anterior», sino **en la MISMA
+    frase 32, en su principio**, que es lo que la cita le corta. No cambia el mecanismo: el antecedente
+    queda fuera de la cita igual.
+- 📌 **Y EL DATO QUE DECIDE EL PASO SIGUIENTE**, comprobado con el troceado de hoy del repositorio: ese
+  antecedente está **en el mismo trozo que la cita** (el 2, que también contiene la frase 31). **Ni el
+  trozo anterior (1) ni el siguiente (3) lo llevan.** El verificador recibe la cita más esos dos
+  vecinos, y no el resto de su propio trozo (B.321): el sujeto le queda fuera de las dos maneras. Los
+  trozos guardados en producción pueden partir distinto; esto es el troceado del repositorio.
+
 
 **CÓMO DECIDE EL VERIFICADOR `mismo_dato_sin_oposicion`** (apartado F.3; leído, sin opinar si está
 bien):
