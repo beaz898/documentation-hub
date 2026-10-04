@@ -11459,6 +11459,12 @@ cabeza y cola.
 - 📌 **Así que el paso se retira SIN COSTE MEDIDO**: su precisión medida es cero (de 23 citas
   publicadas, la única que lo necesitó era falsa), y su utilidad medida, después del puesto 0,
   también.
+- ⚠️ **LA LIMITACIÓN DE ESTE CENSO** (escrita el 04/10/2026, por la pesca de Code y a petición del
+  arquitecto): **un censo sobre análisis archivados no ve lo que el programa hace con los trozos de
+  producción.** Éste midió las citas del examen del 27/09 con el troceado de HOY del repositorio.
+  - La línea de base del 03/10 trajo el caso que no podía ver: el solapamiento `[2c6d5fc5]` de NOR-11
+    con CLI-13, cuyo lado existente (327 caracteres) pasó por `cabeza_y_cola` en producción.
+  - Así que «sin coste medido» vale **para el censo**, no para producción.
 
 **🔮 LAS PREDICCIONES, CON SU BANDA, ESCRITAS ANTES DE MEDIR** (arquitecto, 02/10). Sin veredicto.
 Cinco pasadas de cada sonda (NOR-11 y NOR-10, sin tanda), tras desplegar los tres puestos:
@@ -11578,7 +11584,11 @@ despliegue con el sello**.
   plazas mostrarán un hash que se repite en 3 pasadas o más. Hoy son 2 de 5, los dos a 3/5.
   - Razón: una frase entera copiada tiene muchas menos formas posibles que una esculpida.
   - **Falsada si siguen siendo 2 o menos.**
-- **P-9 · `frontera.cita_solo_por_cabeza_y_cola` vale 0 en 9 o más de las 10 pasadas.**
+- ~~**P-9 · `frontera.cita_solo_por_cabeza_y_cola` vale 0 en 9 o más de las 10 pasadas.**~~ —
+  **RETIRADA ANTES DE MEDIR, el 04/10/2026, por la pesca de Code.** Se registró sobre un censo que no
+  podía ver el caso de producción `[2c6d5fc5]`: solapamiento de NOR-11 con CLI-13, lado existente,
+  327 caracteres, `paso=cabeza_y_cola`, pasada de las 23:38:50. En las 11 pasadas de la línea de base,
+  el contador habría saltado 1 vez. La banda vieja, tal como estaba:
   - Razón: el censo de las 129 citas archivadas, donde las 3 únicas que dependían de esa puerta pasan
     ahora por `normalizada`.
   - **Falsada si salta en 3 pasadas o más**: entonces la puerta llevaba peso real y se regaló algo.
@@ -11587,12 +11597,27 @@ despliegue con el sello**.
     base de arriba trae un caso que el censo no tenía**: el solapamiento `[2c6d5fc5]` de NOR-11 con
     CLI-13, cuyo lado existente (327 caracteres) pasó por `cabeza_y_cola` a las 23:38:50. **Con el
     programa nuevo, esa cita sumaría 1 al contador.**
+- **P-9bis · `frontera.cita_solo_por_cabeza_y_cola` salta en 1 a 3 de las 10 pasadas del programa
+  nuevo** (registrada por el arquitecto el 04/10/2026, antes de medir).
+  - Razón: en la línea de base saltaría 1 de 11, y el puesto 2 debería reducir las citas largas
+    esculpidas, que son las que dependen de esa puerta.
+  - **Falsada si salta en 6 o más de 10**: entonces la puerta llevaba peso real, y hay que mirar qué
+    se está perdiendo.
+  - 📌 **LA REGLA QUE LA ACOMPAÑA, porque el número solo no decide nada**: **cada vez que el contador
+    salte, se mira la cita descartada** (`SQL_B313_citas_descartadas.sql`, que la guarda entera) **y
+    se escribe si era una COPIA BUENA o una ESCULTURA.** Si son esculturas, la puerta hizo bien en
+    cerrarse. Si aparece una copia buena, el problema es otro, y es de normalización, no de la puerta.
 - **P-10 · Las dos contradicciones que ya funcionan en NOR-11, `e7785038` y `5a59c682`, se siguen
   publicando en 5 de 5.**
   - Razón: pasan por `literal`, y nada de los tres commits puede hacer fallar una coincidencia
     literal.
   - **Falsada por cualquier pasada que pierda una.** Es la regresión más importante que cazar: **si
     cae, se para todo y se revierte.**
+- ⚠️ **AVISO AL LEER LA TANDA NUEVA** (arquitecto, 04/10): **el programa nuevo puede publicar MENOS
+  solapamientos que la línea de base en alguna pasada, y eso es lo correcto, no un retroceso.** En la
+  pasada de las 23:38:50, de los 4 solapamientos publicados con CLI-13 uno era `[2c6d5fc5]`, cuya cita
+  no se pudo confirmar entera; con el puesto 1 serían 3. **Nadie puede leer esa caída como un fallo.**
+  (El 4 lo transcribe el arquitecto de los logs; Code no los ha visto.)
 
 **🧾 LOS ERRORES DEL ARQUITECTO EN ESTA RONDA, archivados** (04/10):
 1. **RETIRADA** «la contradicción sembrada de NOR-10 sale en 2 de 4 pasadas». Con 6 pasadas más:
