@@ -85,6 +85,11 @@ export interface FindingToVerify {
   existingChunk: StoredChunk | null;
   newNeighbours: FindingNeighbours;
   existingNeighbours: FindingNeighbours;
+  /** B.322: el trozo (o los trozos) donde está la cita, enteros. Vacío si no se
+   *  sabe; entonces se pinta como antes, la cita con sus vecinos. Lo construye
+   *  `contextoDeLaCita` (contexto-de-la-cita.ts). */
+  newTrozos: string[];
+  existingTrozos: string[];
   /** F-51: orden real de columnas de la tabla de newChunk/existingChunk (si
    *  son filas de tabla), resuelto por quien construye este objeto —
    *  describeSide no tiene el docChunks completo para llamar a
@@ -146,7 +151,7 @@ function bump(counts: DiscardedFindings, key: string): void {
  * Si no hay chunk, o el chunk no es una fila con celdas, se muestra la cita
  * con su contexto vecino (prosa) — o sola, si tampoco hay vecinos.
  */
-function describeSide(quote: string, chunk: StoredChunk | null, neighbours: FindingNeighbours, columnOrder: string[] | null): string {
+function describeSide(quote: string, chunk: StoredChunk | null, neighbours: FindingNeighbours, columnOrder: string[] | null, trozos: string[]): string {
   if (chunk && chunk.chunkType === 'table_row' && chunk.cells) {
     const sheet = chunk.sheetName ? ` de la hoja "${chunk.sheetName}"` : '';
     const row = chunk.rowIndex !== null ? `, fila ${chunk.rowIndex + 1}` : '';
@@ -160,12 +165,15 @@ function describeSide(quote: string, chunk: StoredChunk | null, neighbours: Find
   }
   const prev = neighbours.previous ? `(...) ${neighbours.previous}\n` : '';
   const next = neighbours.next ? `\n${neighbours.next} (...)` : '';
+  // B.322: el trozo entero donde está la cita, entre sus vecinos, y la cita
+  // señalada aparte. Sin trozo, como antes.
+  if (trozos.length > 0) return `${prev}${trozos.join('\n')}${next}\nCita señalada: "${quote}"`;
   return `${prev}"${quote}"${next}`;
 }
 
-function buildFindingBlock(finding: FindingToVerify, index: number): string {
-  const newSide = describeSide(finding.newDocSays, finding.newChunk, finding.newNeighbours, finding.newColumnOrder);
-  const existingSide = describeSide(finding.existingDocSays, finding.existingChunk, finding.existingNeighbours, finding.existingColumnOrder);
+export function buildFindingBlock(finding: FindingToVerify, index: number): string {
+  const newSide = describeSide(finding.newDocSays, finding.newChunk, finding.newNeighbours, finding.newColumnOrder, finding.newTrozos);
+  const existingSide = describeSide(finding.existingDocSays, finding.existingChunk, finding.existingNeighbours, finding.existingColumnOrder, finding.existingTrozos);
   return `[${index}] Tema: ${finding.topic}
 DOCUMENTO NUEVO:
 ${newSide}

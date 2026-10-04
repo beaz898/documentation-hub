@@ -28,7 +28,8 @@ import { loadFragmentContexts, fragmentContextKey } from './fragment-context';
 import { applyDeterministicRules, buildStructuralTopic, destinoSinClave } from './finding-rules';
 import { getOrderedColumns } from './table-structure';
 import { verifyFindings } from './verify-findings';
-import type { FindingToVerify, FindingNeighbours } from './verify-findings';
+import type { FindingToVerify } from './verify-findings';
+import { ladosParaVerificar } from './contexto-de-la-cita';
 import type { StoredChunk } from '@/lib/read-chunks';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { DocumentJudgment } from './types';
@@ -131,19 +132,9 @@ const MAX_DOUBLE_CHECK_CANDIDATES = 50;
 // Verificador de hallazgos: la cascada (F-35)
 // ============================================================
 
-/**
- * Texto del chunk inmediatamente anterior/posterior a `chunk` dentro de
- * `chunks` (mismo documento y generación), buscando por chunkIndex ± 1. Sin
- * lectura nueva: `chunks` ya viene cargado completo (chunksByDocument /
- * newDocumentChunks, cargados más abajo para el paso 2a). null si no hay
- * chunk, o si es el primero/último del documento.
- */
-function buildNeighbours(chunks: StoredChunk[], chunk: StoredChunk | null): FindingNeighbours {
-  if (!chunk) return { previous: null, next: null };
-  const previous = chunks.find(c => c.chunkIndex === chunk.chunkIndex - 1);
-  const next = chunks.find(c => c.chunkIndex === chunk.chunkIndex + 1);
-  return { previous: previous?.text ?? null, next: next?.text ?? null };
-}
+// Los vecinos y el trozo de la cita que ve el verificador viven en
+// `contexto-de-la-cita.ts` desde el 04/10/2026 (B.322): `ladosParaVerificar`.
+// Sin lectura nueva: los trozos ya vienen cargados completos para el paso 2a.
 
 function bumpCount(counts: DiscardedFindings, key: string): void {
   counts[key] = (counts[key] ?? 0) + 1;
@@ -483,8 +474,7 @@ export async function applyCascadeToCandidate(
           existingDocumentName: judgment.documentName,
           newChunk: ev.newChunk,
           existingChunk: ev.existingChunk,
-          newNeighbours: buildNeighbours(newDocumentChunks, ev.newChunk),
-          existingNeighbours: buildNeighbours(existingChunks, ev.existingChunk),
+          ...ladosParaVerificar({ chunks: newDocumentChunks, chunk: ev.newChunk, cita: c.newDocSays }, { chunks: existingChunks, chunk: ev.existingChunk, cita: c.existingDocSays }),
           newColumnOrder: orderedColumnsFor(ev.newChunk, newDocumentChunks, 'new'),
           existingColumnOrder: orderedColumnsFor(ev.existingChunk, existingChunks, 'existing'),
         },
@@ -540,8 +530,7 @@ export async function applyCascadeToCandidate(
         existingDocumentName: judgment.documentName,
         newChunk: ev.newChunk,
         existingChunk: ev.existingChunk,
-        newNeighbours: buildNeighbours(newDocumentChunks, ev.newChunk),
-        existingNeighbours: buildNeighbours(existingChunks, ev.existingChunk),
+        ...ladosParaVerificar({ chunks: newDocumentChunks, chunk: ev.newChunk, cita: c.newDocSays }, { chunks: existingChunks, chunk: ev.existingChunk, cita: c.existingDocSays }),
         newColumnOrder: orderedColumnsFor(ev.newChunk, newDocumentChunks, 'new'),
         existingColumnOrder: orderedColumnsFor(ev.existingChunk, existingChunks, 'existing'),
       },

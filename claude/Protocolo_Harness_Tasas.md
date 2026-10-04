@@ -174,6 +174,28 @@ de esta regla llevaba aplazado por la razón equivocada.
 
 ---
 
+## ⚠️ GUARDAR VA PRIMERO CUANDO LA MEDIDA SIGUIENTE NO SE PUEDE LEER EN EL LOG. CUANDO SÍ SE PUEDE, VA PRIMERO EL ARREGLO
+
+*Añadida el 04/10/2026 (arquitecto), con B.322.*
+
+Y **el cambio de orden lleva escrito qué dato nuevo lo movió, o es conveniencia disfrazada.** El caso:
+se había dicho «primero guardar lo que descarta la cascada» (B.320). La reconstrucción de la cita de
+222 caracteres convirtió el mecanismo de coincidencia en casi medido, y el efecto de darle contexto al
+verificador se lee en el log sin guardar nada. Por eso B.322 pasó delante.
+
+---
+
+## ⚠️ UN NÚMERO QUE VIENE DE OTRO NO SE REUTILIZA SIN COMPROBARLO; SI SE REUTILIZA, SE DICE DE QUIÉN ES
+
+*Añadida el 04/10/2026 (arquitecto). Es el segundo error suyo de la misma clase.*
+
+El caso: el arquitecto escribió «713 − 3 = 710» con el 713 de Code, sin comprobarlo. El 713 estaba mal:
+entre las frases 31 y 32 de NOR-10 hay un salto de párrafo de dos caracteres, no un espacio, y la cuenta
+buena es 714 − 3 − 1 (B.321). **Un número reutilizado sin decir de quién es se convierte en una segunda
+fuente que sólo es un eco**, y la cuenta cuadró por casualidad, heredando el error.
+
+---
+
 ## ⚠️ ANTES DE UNA TANDA DE MEDIDA SE COMPRUEBA EL DESPLIEGUE CON UN SELLO DEL LOG, NO CON LA MEMORIA DE QUIÉN SUBIÓ QUÉ
 
 *Añadida el 04/10/2026 (arquitecto), con la línea de base de B.313.*

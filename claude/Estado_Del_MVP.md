@@ -12372,6 +12372,9 @@ sistemática.
   espacio. La cuenta que cuadra es **714 − 3 («Es ») − 1 = 710**: la cita quita el «Es» y junta las dos
   frases con un solo espacio. El «713 − 3» del arquitecto cuadraba porque heredaba el error de Code
   (contaba un espacio).
+  - 🧾 **Aceptada por el arquitecto (04/10), que lo archiva como error suyo, el segundo de la misma
+    clase**: copió un número de Code y lo usó como propio. Regla al protocolo: un número que viene de
+    otro no se reutiliza sin comprobarlo; si se reutiliza, se dice de quién es.
 - **Por qué pasó por `normalizada` y no por `literal`**, comprobado barato:
   - **«El Director Clínico quien debe asegurar», con E mayúscula, no está en NOR-10**: con e minúscula,
     sí. La comparación literal distingue mayúsculas; la normalizada no.
@@ -12379,6 +12382,10 @@ sistemática.
     normalizada también colapsa.
   - **La diferencia es de forma —una mayúscula y un salto de línea—, no de palabras.** Que no haya
     ninguna otra lo diría el texto completo guardado, que el arquitecto no ha transcrito entero.
+  - ✅ **CERRADO con el texto completo** (transcrito por el arquitecto el 04/10, de la consulta):
+    comparada carácter a carácter con NOR-10, la cita de 710 tiene **exactamente dos diferencias, y
+    ninguna de palabras**: la «E» mayúscula del principio, donde el documento dice «el», y el espacio
+    que sustituye al salto de párrafo entre las dos frases (carácter 369 de la cita). Nada más.
 
 **LA RECONSTRUCCIÓN DE `fa22ca84`, la que no se guardó** (Code, 04/10, sobre el texto extraído de
 NOR-10):
@@ -12404,6 +12411,8 @@ NOR-10):
   - ⚠️ **Con un detalle corregido**: el antecedente no está «en la frase anterior», sino **en la MISMA
     frase 32, en su principio**, que es lo que la cita le corta. No cambia el mecanismo: el antecedente
     queda fuera de la cita igual.
+  - 📌 **La redacción buena, del arquitecto (04/10)**: **el juez le corta la cabeza a su propia frase, y
+    en la cabeza va el sujeto.** Es un caso más estrecho y más claro que el de «la frase anterior».
 - 📌 **Y EL DATO QUE DECIDE EL PASO SIGUIENTE**, comprobado con el troceado de hoy del repositorio: ese
   antecedente está **en el mismo trozo que la cita** (el 2, que también contiene la frase 31). **Ni el
   trozo anterior (1) ni el siguiente (3) lo llevan.** El verificador recibe la cita más esos dos
@@ -12429,6 +12438,78 @@ bien):
     dato no es darle otro valor.
 - **El código** sólo traduce la respuesta (`toOutcome`, `:226-240`): un veredicto que no sea uno de los
   tres pasa a `sin_relacion` con `descartado.sin_veredicto`.
+
+### 🔥 B.322 — EL VERIFICADOR NO RECIBÍA EL TROZO DONDE ESTÁ LA CITA, SÓLO SUS VECINOS (paso 1 del orden del 04/10; arreglado en código, SIN desplegar ni medir)
+
+**El defecto**: el verificador recibía, de cada lado, la cita y el texto entero del trozo ANTERIOR y del
+SIGUIENTE, y **no el resto del trozo en el que está la cita** (B.321, lectura del 04/10).
+
+**EL MECANISMO, con la reconstrucción de B.321** (arquitecto, 04/10): los dos defectos actúan juntos y en
+el mismo sitio.
+- **B.321** corta la frase donde vive el sujeto, y deja la cita con un demostrativo colgando: «…no es
+  delegable y recae siempre sobre esta figura».
+- **B.322** no le da al verificador el resto del trozo, así que no tiene de dónde sacar el sujeto.
+- Al verificador le llega «…recae siempre sobre esta figura» contra «el Coordinador de Calidad decide
+  sin validación adicional del Director Clínico». **Sin saber quién es «esta figura», no hay oposición
+  visible: el verificador acierta con lo que se le da.**
+- Y `[b5ab6f08]` funciona por lo contrario: nombra al Director Clínico dos veces DENTRO de la cita. El
+  antecedente va dentro.
+- **SOBRE EL TROCEADO DE PRODUCCIÓN**, que la reconstrucción de Code hizo con el del repositorio
+  (arquitecto, 04/10). **Es un razonamiento, no una medida**, y dicho con sus palabras: «si el sujeto
+  hubiera caído en el trozo anterior, el verificador lo habría recibido y habría confirmado. Falló 5 de
+  6».
+
+**EL CAMBIO DE ORDEN, y el dato que lo movió** (arquitecto, 04/10). Se había dicho B.320 primero (guardar
+lo que descarta la cascada). Se cambia, y no por conveniencia: cuando se dijo, el mecanismo era una
+coincidencia; ahora está casi medido, y el efecto de arreglar el verificador **se lee en el log sin
+guardar nada**. Orden: **1, B.322; 2, B.321** (la puerta exige frase entera, también para que la cita se
+pueda leer en pantalla: «recae siempre sobre esta figura» no dice de qué figura); **3, B.320**, antes de
+cualquier cosa cuyo efecto no se lea en el log. Un cambio por commit, y el paso 1 medido antes de tocar
+el 2: si cambian dos cosas a la vez, no se sabe cuál recuperó el hallazgo.
+
+✅ **EL ARREGLO, HECHO EN CÓDIGO (04/10/2026)**, sin desplegar:
+- **El verificador recibe, de cada lado, el trozo entero donde está la cita**, además de los dos vecinos,
+  y la cita señalada aparte (`describeSide`, `lib/analysis/verify-findings.ts`). Sin trozo, el bloque es
+  exactamente el de antes. Las filas de tabla, como antes: la fila entera con todas sus columnas.
+- **El criterio vive en un módulo, `lib/analysis/contexto-de-la-cita.ts`**: `contextoDeLaCita` y
+  `ladosParaVerificar`. Los dos sitios del pipeline que construyen lo que recibe el verificador le
+  preguntan, y `buildNeighbours` sale de `pipeline.ts`.
+- **SI LA CITA CRUZA MÁS DE UN TROZO** (no hay un único trozo de evidencia): se unen los trozos en orden,
+  se localiza la cita entera con la misma búsqueda que la comprobación (literal o normalizada, sólo para
+  dar contexto, no acepta nada), y se toman **todos los trozos que pisa, enteros**. Los vecinos son el de
+  antes del primero y el de después del último.
+  - **Tope declarado: 3 trozos** (`TOPE_DE_TROZOS_DE_UNA_CITA`). Una cita que pida más se queda como
+    hoy, la cita sola.
+  - Si no se localiza, también como hoy.
+  - La primera versión localizaba el primer trozo por el principio de la cita y el último por su final.
+    **Su propia prueba la tumbó**: cuando la frontera cae dentro de los últimos caracteres de la cita,
+    ningún trozo contiene ese final. Se cambió antes del commit.
+- **EL COSTE, medido antes de escribir** sobre los 218 trozos de prosa del corpus: mediana 926
+  caracteres, p95 1.241, máximo 1.493. Por hallazgo, del orden de **+1.850 caracteres de mediana y
+  +2.990 en el peor caso** (un trozo por lado). El trozo de la cita de 222 mide 1.079.
+  - No roza ningún tope. El lote del verificador es de hasta 15 hallazgos (`MAX_PER_CALL`), así que
+    crece como mucho unos 45.000 caracteres (unos 11.000 tokens), frente a los 200.000 de contexto del
+    modelo.
+  - `/api/analyze-v2` tiene 120 s (`route.ts:44`), y una pasada rápida anda por los 20 a 25 s.
+- **EL ROJO, de fallo, visto antes de escribir el módulo**, con el caso real (la cita de 222 de NOR-10,
+  `lib/analysis/contexto-de-la-cita.test.ts`): el bloque que recibe el verificador no llevaba «El
+  Director Clínico puede delegar». Con el cambio, lo lleva.
+  - Los controles: sin trozo, el bloque es carácter por carácter el de antes; una fila de tabla se pinta
+    igual.
+  - El contexto: con trozo, ese trozo y sus vecinos; una cita que cruza dos trozos lleva los dos; el
+    tope, con 5 y con 3 trozos.
+
+**🔮 LAS PREDICCIONES, REGISTRADAS ANTES DE MEDIR** (arquitecto, 04/10/2026, 12:05). Sin veredicto. Se
+juzgan con **6 pasadas de NOR-10**, y P-13 con 3 de NOR-11:
+- **P-11 · `[fa22ca84]` se publica en 4 de 6 o más.** Hoy, 1 de 6. **Falsada si sale 1 o menos de 6.**
+  - ⚠️ **Precisión de Code, por la regla de esta mañana** (la banda con falsación por los dos lados):
+    entre lo que la confirma (4 a 6) y lo que la falsa (0 o 1) quedan **2 y 3 de 6 sin escribir**. Si
+    sale eso, la predicción no dice nada. Lo decide el arquitecto antes de medir.
+- **P-12 · No aparece ninguna contradicción nueva** que no se emitiera antes en NOR-10. **Falsada si
+  aparece alguna**: sería que se ha aflojado el verificador, no que se le ha dado contexto. Es la
+  predicción que protege de «arreglarlo» rompiéndolo.
+- **P-13 · Las dos contradicciones de NOR-11 que hoy funcionan siguen publicándose.** Con 3 pasadas de
+  NOR-11, no 5: es un control, no una medida. **Falsada si alguna cae.**
 
 ### ⚠️ B.297 — LA LECTURA DE TROZOS SIN PAGINAR, y su margen medido (29/09/2026)
 
