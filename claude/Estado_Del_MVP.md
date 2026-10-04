@@ -10294,6 +10294,10 @@ candidatos sin tanda.
   - **Su consecuencia**: los 14 del corpus viejo **pierden por méritos propios**. No hay que
     sacarlos del corpus, y por tanto **no hay que borrar nada**. Cierra la decisión que B.308
     dejaba pendiente.
+  - ⚠️ **MATIZADO EL 04/10/2026 (B.319)**: sigue siendo cierto en lo de borrar, y **deja de ser
+    completo**. Un fantasma sin trozos sí puede aportar un hallazgo —Normas_Frecuencia emitió una
+    contradicción en la primera pasada del programa nuevo—, y hoy no hay forma de verificárselo si su
+    cita es una fila de tabla.
 - ⚠️ **Un recuento que no cuadra**: el arquitecto cuenta 7 hallazgos tirados entre las dos
   sondas. Sobre su propio literal salen **8**:
   - en la A, 6: `[976f6174]`, 3 solapamientos con CLI-13, 1 con CLI-12 y `[2bf4eefc]`;
@@ -11619,6 +11623,53 @@ despliegue con el sello**.
   no se pudo confirmar entera; con el puesto 1 serían 3. **Nadie puede leer esa caída como un fallo.**
   (El 4 lo transcribe el arquitecto de los logs; Code no los ha visto.)
 
+**🆕 LA PASADA 1 DEL PROGRAMA NUEVO (04/10/2026, de 02:44:49 a 02:45:12).** Logs del director, transcritos
+por el arquitecto; Code no los ha visto. NOR-11, rerank 3 —CLI-13 `pareja_entera`, CLI-12
+`corte_honesto` y Normas `sin_fuente_comun`—, 23,5 s en total.
+- **El despliegue está dentro**, por el sello bueno (protocolo): los tres solapes que estuvieron
+  idénticos en las 5 pasadas de la línea de base se mueven los tres. CLI-13 pasa del 45 % al 35 %,
+  CLI-12 del 5 % al 15 % y Normas del 0 % al 5 %. Además, ninguna cita pasa por `normalizada` y todas
+  las parejas de citas son nuevas.
+- **CLI-13**: solape 35 %, **1 contradicción** (antes 3, en 5 de 5) y 5 solapamientos.
+  - `[e7785038]` plazo del grupo III: **verificada**, nuevo 154 y existente 128, los dos `literal`, y
+    confirmada por juicio.
+  - `[5a59c682]` color del contenedor: **AUSENTE DEL RAW.** Se publicaba en 5 de 5 en la línea de base.
+  - `[976f6174]` Chamberí: **AUSENTE DEL RAW.** Antes se emitía y se descartaba por la cita; hoy ni se
+    emite.
+  - 5 solapamientos verificados, todos `literal`, con hashes nuevos: 176/114, 288/170, 212/197, 263/236
+    y 188/148.
+- **CLI-12**: solape 15 %, 0 contradicciones y 1 solapamiento, `[53b97faa]`, 285/286 `literal`. Las dos
+  citas de 68 y 60 caracteres que pasaban por `normalizada` han desaparecido.
+- **Normas_Frecuencia_Recogidas** emite por primera vez un hallazgo, y muere por la cita: B.319.
+- `frontera.cita_solo_por_cabeza_y_cola` no salta. **P-9bis sigue viva.**
+- 📌 **EL PUESTO 2 NO SÓLO CAMBIA CÓMO CITA EL JUEZ: CAMBIA QUÉ ENCUENTRA.** Estaba escrito («mueve la
+  línea de base del arnés») y el arquitecto no lo llevó al razonamiento de P-10.
+
+❌ **P-10: FALSADA el 04/10/2026, en la primera pasada**, por su propio criterio («falsada por
+cualquier pasada que pierda una»): `[5a59c682]` no salió. Sin reinterpretar el resultado.
+- **El agujero concreto del razonamiento**: predijo sobre la puerta de verificación —«nada puede hacer
+  fallar una coincidencia literal», que es cierto— **cuando el cambio pegaba en la EMISIÓN del juez.**
+  La contradicción no se descartó: no se emitió.
+- **Y el segundo error, archivado**: escribió «si cae, se para todo y se revierte», una decisión sin
+  banda, contra la regla de la casa. **No se revierte con una pasada.** La regla de decisión es la de
+  abajo.
+
+⚖️ **LA REGLA DE DECISIÓN, firmada por el arquitecto el 04/10/2026 a las 04:45, ANTES de mirar cualquier
+pasada posterior a la primera.** Se juzga sólo con `[5a59c682]` (el color del contenedor), el hallazgo
+que funcionaba y hoy no está, sobre las 5 pasadas de NOR-11:
+- **0 de 5 → pérdida ESTABLE.** El puesto 2 rompió un hallazgo bueno: **se revierte el commit del prompt
+  (`ad841b54`)**, se quedan los puestos 0 y 1, y se vuelve a medir. Perder una contradicción sembrada
+  que funcionaba pesa más que ganar otra.
+- **1 a 4 de 5 → INESTABLE.** No se revierte nada todavía: se compara cuántas de las 3 sembradas de
+  NOR-11 se publican en total contra las 2 de 5/5 de la línea de base, y se decide con ese número.
+- **5 de 5 →** la pasada 1 era ruido, y se sigue.
+- **Ningún otro dato de las 9 pasadas puede cambiar esta regla.** Si algo la contradice, se declara roto
+  el criterio; no se reinterpreta el resultado.
+- ⚠️ **Lo que la regla deja por escribir, y lo dice Code sin decidirlo**: en el tramo de 1 a 4 de 5 no
+  fija el umbral de «ese número» —cuántas publicaciones totales de las 3 sembradas hacen seguir y
+  cuántas revertir—. Si se quiere que decida sola, hay que escribirlo antes de ver las pasadas.
+
+
 **🧾 LOS ERRORES DEL ARQUITECTO EN ESTA RONDA, archivados** (04/10):
 1. **RETIRADA** «la contradicción sembrada de NOR-10 sale en 2 de 4 pasadas». Con 6 pasadas más:
    **detectada 6/6, publicada 0/6**. Se medían publicaciones y se llamaban detección. La única
@@ -12023,6 +12074,35 @@ DESCRIBIENDO, sin coste medido después del puesto 0.
     32 entera de NOR-10, y una cita inventada que no cuenta como «sólo por cabeza y cola».
 - **El comentario de `verifyQuote`** que hablaba del «portero de la rama atómica (pipeline.ts)», marcado
   como HISTÓRICO, con fecha: `pipeline.ts` sólo importa `judgeAllDocuments`.
+
+### 🔥 B.319 — UNA CITA DE FILA DE TABLA EN UN DOCUMENTO SIN TROZOS NO TIENE NINGUNA VÍA DE VERIFICACIÓN (04/10/2026)
+
+**El caso, medido en la pasada 1 del programa nuevo** (logs transcritos por el arquitecto; Code no los
+ha visto): `Normas_Frecuencia_Recogidas.docx`, candidato `sin_fuente_comun`, sin trozos, leído con la
+tijera vieja desde `texto_completo`. En las 5 pasadas de la línea de base emitió 0 contradicciones y 0
+solapamientos. En la primera pasada nueva emitió una:
+
+> Contradicción descartada en "Normas_Frecuencia_Recogidas.docx" [b8b2419d] «Frecuencia de recogida de
+> residuos sanitarios» (cita no verificable, lado=existente; existente: longitud=76,
+> paso=cabeza_sin_cola, pajar=texto_completo): "Residuos sanitarios | Frecuencia (dias) | 21 dias |
+> Equivalencia | 3 semanas"
+
+**EL DEFECTO, NO LA HIPÓTESIS**:
+- La cita es una **fila de tabla**, con barras. La vía `segmentos_de_fila` de `verifyQuote` existe para
+  eso, pero necesita fragmentos `table_row`, y un documento sin trozos no los tiene: su pajar es
+  `texto_completo`.
+- **Comprobado en el código por Code el 04/10**: con la lista de trozos vacía, `verifyQuote` sólo
+  prueba `findBestMatch` contra el texto completo y devuelve (`lib/analysis/judge.ts:265-269`). A la vía
+  de segmentos no se llega nunca. A una fila se le aplican las vías de prosa, y fallan.
+- **El hallazgo puede ser real —21 días contra lo que diga NOR-11— y muere por fontanería, no por
+  mérito.**
+
+**Lo que NO se hace ahora**: tocarlo. Queda en cola, y su arreglo tiene que decidirse junto a B.305 y a
+los documentos sin trozos, no a solas.
+
+**Lo que corrige**: P-SONDA-2 (B.307) decía «los fantasmas sin trozos pierden por mérito, no hay nada que
+borrar». **Sigue siendo cierto en lo de borrar, y deja de ser completo**: un fantasma sin trozos sí
+puede aportar un hallazgo, y hoy no hay forma de verificárselo si viene de una tabla.
 
 ### ⚠️ B.297 — LA LECTURA DE TROZOS SIN PAGINAR, y su margen medido (29/09/2026)
 

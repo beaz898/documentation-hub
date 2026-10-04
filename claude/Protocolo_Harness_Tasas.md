@@ -189,6 +189,19 @@ sólo sale en los descartes.
 **La regla general**: todo cambio que se vaya a medir lleva escrito, antes de la tanda, **qué línea del
 log demuestra que está desplegado**. Y la tanda empieza mirando esa línea.
 
+⚠️ **CORREGIDO EL 04/10/2026: ESE SELLO ERA ASIMÉTRICO, Y SÓLO PRUEBA LO CONTRARIO** (error del
+arquitecto, archivado). Que `paso=cabeza_y_cola` aparezca en una cita VERIFICADA prueba que el puesto 1
+NO está desplegado. Que NO aparezca no prueba nada: en la línea de base faltaba en 4 de 5 pasadas.
+
+**EL SELLO BUENO, el que sí sirve**: en la primera pasada del programa nuevo, tres números que habían
+estado idénticos en 5 pasadas se movieron los tres —solape con CLI-13 del 45 % al 35 %, con CLI-12 del
+5 % al 15 %, con Normas del 0 % al 5 %—. Además, ninguna cita pasó por `normalizada` donde antes había
+dos fijas, y todas las parejas de citas eran nuevas.
+
+> **Para comprobar que un cambio de PROMPT está desplegado, se mira un número que sólo el prompt puede
+> mover, no la ausencia de algo.** Y se mira contra una línea de base estable: un número que ya
+> bailaba no prueba nada al moverse.
+
 ---
 
 ## ⚠️ UNA PUERTA QUE DESCARTA TIENE QUE GUARDAR LO QUE DESCARTÓ
