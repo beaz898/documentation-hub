@@ -12180,9 +12180,72 @@ código, dos respuestas. **Las dos respuestas de Code (04/10), sin escribir cód
   - **La recomendación de Code es la 2**: una forma para los dos caminos, el recuento intacto, y nada
     calculado. Lo decide el arquitecto.
 
+**✅ LA DECISIÓN: OPCIÓN 2, CON TRES CONDICIONES** (arquitecto, 04/10/2026).
+- **El camino, confirmado por el director**: abrió el editor **desde la bandeja de revisión**, clicando en
+  la etiqueta del documento y dándole a «Mejorar con IA». Es el camino por el que llegan los juicios.
+- **Por qué la 2** (arquitecto): **no cambia la unidad de recuento.** Hoy «3 solapamientos» son 3
+  parejas. La opción 3 lo habría convertido en 3 puntos y habría movido a la vez, y en silencio, los
+  contadores, el resumen de la bandeja, la analítica y la consulta de B.312. **El recuento se queda igual;
+  el detalle se añade dentro.** La 1 queda descartada: el mismo análisis se vería de dos formas según por
+  dónde se abra, y eso es un «ayer funcionaba» esperando a ocurrir.
+- **La severidad se queda en la pareja y se enseña una vez, en la cabecera del documento.** No se inventa
+  una por punto, porque el juez no la da.
+- **Cada punto tiene que ser alcanzable**, como las contradicciones: la lista que viaje lleva la cita del
+  lado nuevo de cada punto, que es lo que usa el salto. Así se llega a los cinco, no sólo al primero.
+
+**1 · LA MEDIDA, ANTES DE ESCRIBIR** (Code, 04/10, sobre los 65 análisis archivados del examen): cuánto
+crece el análisis guardado si cada entrada lleva sus puntos (descripción, cita del nuevo y cita del
+existente).
+
+| | Mediana | p95 | Peor caso |
+|---|---|---|---|
+| El análisis guardado hoy | 6.465 B | 79.686 B | 79.845 B |
+| Lo que añade la lista | +1.104 B | +2.072 B | +2.385 B |
+| Con la lista | 8.437 B | — | 81.589 B |
+
+- Crecimiento mediano del 14,3 %, y máximo del 34,1 % (en un análisis pequeño, N3, de 7.091 B).
+- **No roza ningún tope.**
+  - **B.297** es un tope de FILAS (1.000 por respuesta), y un análisis es una sola fila.
+  - El tope de bytes que podría importar es el de la respuesta de una función de Vercel, de unos 4,5 MB.
+    Es la cifra conocida de Vercel, **no medida aquí**.
+  - **El peor caso teórico**: el prompt pide como mucho 5 solapamientos por pareja (`judge.ts:840`), y
+    hay hasta 6 parejas en el rápido (`MAX_SELECTED_QUICK`, `lib/analysis/rerank.ts:28`) y 10 en el
+    exhaustivo. Del orden de 1 KB por punto con sus dos citas: **unos +50 KB como mucho**. Aunque el
+    juez se saltara el máximo del prompt, lo acota su tope de salida (4.096 tokens por pareja): unos
+    +160 KB.
+- **Lo que esta medida no ve**: el archivo del examen es de análisis rápidos. Los exhaustivos de la base
+  pueden ser más grandes, y el tope teórico de arriba es el que los cubre.
+
+**2 · EL RESPALDO, ESCRITO PARA QUE NADIE LO REPORTE COMO FALLO:**
+> **Los análisis guardados antes de este cambio se seguirán viendo como un solo bloque, y no es un
+> fallo.** No traen la lista de puntos, y la pantalla cae a la entrada de siempre: una por documento, con
+> las descripciones unidas y el salto al primer punto.
+
+**3 · LA PREMISA NUEVA DE LA PRUEBA DE LA EVIDENCIA ARCHIVADA, escrita ANTES de tocarla** (la pide el
+arquitecto: no se ajusta en silencio).
+- **Lo que garantiza hoy** (`lib/analysis/evidencia-archivada.test.ts`): el lector de producción
+  (`construirOverlaps`) rehace, desde los juicios guardados, **exactamente** los solapamientos que se
+  publicaron (65 de 65). Con la lista añadida, eso deja de ser cierto **a propósito**: lo de hoy lleva un
+  campo que lo archivado no tiene.
+- **La premisa nueva, propuesta por Code, para que la vea el arquitecto antes de reescribir nada:**
+  > Para cada análisis archivado, `construirOverlaps` rehace **el mismo número de entradas, en el mismo
+  > orden**, y cada una es **idéntica, campo por campo, en todos los campos que tenía la archivada**
+  > (`existingDocument`, `existingDocumentId`, `description`, `severity`, `overlapPercent`, `textRef`,
+  > `confirmedBy`). Lo único nuevo es la lista de puntos, y esa lista es **exactamente** la de los puntos
+  > del juez de esa pareja, en su orden, cada uno con su descripción, la cita del lado nuevo y la del
+  > existente, sin un carácter cambiado. Las entradas estructurales no llevan lista.
+- **Lo que sigue garantizando**: que el recuento no se mueve; que nada de lo que ya se publicaba cambia;
+  y que la lista no inventa nada (sale de lo guardado, no se calcula).
+- **Lo que no puede garantizar**: que la pantalla caiga bien con los análisis viejos. Eso no lo ve esta
+  prueba: es de la pantalla.
+- **No se reescribe hasta que el arquitecto vea esta premisa.**
+- **El nombre propuesto para la lista**: `puntos`, con `descripcion`, `citaNuevo` y `citaExistente` por
+  punto, los mismos nombres de lado que `descartesPorCita` (B.313).
 
 
-### 📋 B.315 — EL JUEZ EMITE SOLAPAMIENTOS GENÉRICOS QUE EL PROMPT YA LE PROHÍBE, Y PASAN LA COMPROBACIÓN DE CITAS (ficha de CALIDAD, SIN arreglo; 02/10/2026)
+
+
+### 📋 B.315 — EL JUEZ EMITE SOLAPAMIENTOS GENÉRICOS QUE EL PROMPT YA LE PROHÍBE, Y PASAN LA COMPROBACIÓN DE CITAS (ficha de CALIDAD; CERRADA el 04/10 como «no se filtra»; 02/10/2026)
 
 **De dónde sale**: la pantalla de NOR-11 que miró el director el 02/10 (B.312). Los tres puntos
 publicados del solapamiento con CLI-12 son:
@@ -12250,6 +12313,13 @@ documentos se citan entre sí.
 - **Lo que lo mide en la base**: `SQL_B315_solapamientos_que_nombran_al_otro.sql`, de sólo lectura y
   PENDIENTE DE EJECUTAR. Da los totales con los dos criterios y diez ejemplos repetibles.
   - Tiene puesta la organización «Workspace principal» (`a9625e93…`), la de la cuenta correcta (B.323).
+
+✅ **B.315 CERRADA COMO «NO SE FILTRA»** (arquitecto, 04/10/2026), y la cierra la medida de arriba: **5 de 211
+puntos (2,4 %) nombran al otro documento**, y el criterio ancho se llevaría 25, la mayoría hallazgos buenos
+de los tarifarios, porque «END-01» es un tratamiento y no un documento. **Un filtro a ciegas habría costado
+los hallazgos de precios.**
+- 📌 **Si algún día se toca, se toca en el PROMPT, y nunca con un filtro de texto sobre la descripción.**
+- La SQL de B.315 se ejecuta cuando el director tenga un hueco: con un 2,4 % ya no frena nada.
 
 **Sin arreglo.** Constancia.
 
@@ -12728,7 +12798,7 @@ arquitecto; Code no los ha visto). B.322 desplegado, y su sello presente en las 
   al protocolo.
 
 📌 **LA CUENTA PARA EL TABLERO, contra la línea de base de las 11 pasadas del 03/10** (el arquitecto la
-llama «del viernes»; el 03/10/2026 fue **sábado**): contradicciones sembradas publicadas por pasada,
+llamó «del viernes» todo el día, y lo corrige él mismo el 04/10: fue el **sábado 03/10**): contradicciones sembradas publicadas por pasada,
 NOR-10 **0 → 1** y NOR-11 **2 → 1**; total **2 → 2**; citas publicadas no confirmables **1 → 0**.
 **Mismo número de hallazgos, y ahora ninguno miente.**
 
