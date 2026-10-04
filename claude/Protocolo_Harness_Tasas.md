@@ -174,6 +174,27 @@ de esta regla llevaba aplazado por la razón equivocada.
 
 ---
 
+## ⚠️ CUANDO SE OFRECEN DOS EXPLICACIONES Y NO SE TIENE EL DATO, NO SE ESCRIBE NINGUNA DE LAS DOS COMO HECHO
+
+*Añadida el 04/10/2026 (arquitecto), con B.324.*
+
+El caso: dos tandas del mismo día vieron corpus casi disjuntos. El arquitecto ofreció dos explicaciones
+—otra organización, o el corpus cambiado sin subidas— y después escribió como hecho «el corpus ha
+cambiado entero», la peor, sin tener el dato. Era otra cuenta.
+
+---
+
+## ⚠️ ANTES DE DISEÑAR SOBRE LA INTERFAZ, SE MIRA LA INTERFAZ
+
+*Añadida el 04/10/2026 (arquitecto), con B.314.*
+
+El caso: el arquitecto estuvo días diseñando cómo enseñar las citas de las contradicciones, y la pantalla
+ya las enseñaba, clicables, en el editor de mejora. Lo supo cuando el director se la enseñó. **Leer el
+código de la pantalla no sustituye a verla**: el código dice qué puede pintar; la pantalla, qué ve el
+usuario y por qué camino llega.
+
+---
+
 ## ⚠️ GUARDAR VA PRIMERO CUANDO LA MEDIDA SIGUIENTE NO SE PUEDE LEER EN EL LOG. CUANDO SÍ SE PUEDE, VA PRIMERO EL ARREGLO
 
 *Añadida el 04/10/2026 (arquitecto), con B.322.*

@@ -12082,6 +12082,56 @@ donde se está trabajando: por eso es una ficha propia.
 **Sin arreglo, y sin tocar nada.** Si entra en el tablero, y en qué puesto, lo decide el director;
 se lo plantea el arquitecto.
 
+✅ **CORREGIDA EL 04/10/2026: B.314 ESTÁ EN BUENA PARTE HECHO, y el arquitecto la tenía como pendiente.** Las
+citas de las contradicciones **sí** se enseñan en pantalla, con la frase de cada documento, y **al
+clicarlas la interfaz lleva a la línea dentro del documento analizado**. Lo confirmó el director
+enseñándole la pantalla al arquitecto el 04/10.
+- Por el código, es el **editor de mejora**: cada contradicción lleva sus dos citas en la descripción, y su
+  cita del lado nuevo es la referencia del salto (`textRef`). Al clicar, el editor la busca en el texto y
+  la selecciona (`goToProblem`, `components/ImprovementModal.tsx:318-334`).
+- **LO QUE FALTA no es pintar citas**: es **(a)** que los solapamientos tengan la suya y sean clicables, y
+  **(b)** poder abrir el otro documento desde el hallazgo, con su fecha de última modificación.
+- 🧾 **Error del arquitecto, archivado**: estuvo días diseñando contra una pantalla que no había visto.
+  Regla al protocolo: antes de diseñar sobre la interfaz, se mira la interfaz.
+
+**🔎 LAS CITAS DE LOS SOLAPAMIENTOS: DÓNDE SE PIERDEN** (lectura de Code, 04/10, sin tocar nada). El hecho que
+la pide: en la pasada de NOR-11 de las 16:26, el log verifica **cinco** solapamientos con CLI-13, cada uno
+con sus dos citas literales, y en pantalla sale **una sola entrada**, con las cinco descripciones pegadas
+en un párrafo, una severidad y ninguna cita.
+- **SE GUARDAN, cada punto con sus dos citas.** `judgments[].overlappingContent[]` va entero dentro de
+  `analysis_results.analysis`: `description`, `evidenceInNewDoc` y `evidence`, ya verificadas (B.312 lo
+  comprobó contra 65 análisis archivados).
+- **SE FUSIONAN AL PUBLICAR**: `construirOverlaps` (`lib/analysis/synthesize.ts:136-197`) hace **una
+  entrada por pareja**:
+  - descripción = las de todos los puntos unidas con «. »;
+  - severidad = la del solape de la PAREJA (`overlapPercent`: alta desde 60, media desde 30), no la de
+    cada punto;
+  - `textRef` = la cita del lado nuevo del **primer** punto que la tenga;
+  - y la cita del lado existente no viaja.
+- **¿Deliberada?** Está así **desde que nació el fichero** (`f78eb6ad`, 12/04/2026, «Create
+  synthesize.ts»). **No hay ficha ni commit que la justifique.** F-45 (`e16296e1`, 24/08) la conservó a
+  propósito para el montón del juez, porque el modal ya agrupa por documento. Es la forma original del
+  dato, no un efecto colateral de un cambio, y nadie la decidió por escrito.
+- **¿LLEGAN AL FRONTEND?**
+  - **Por el chat, no**: la respuesta del análisis es una lista cerrada que lleva `overlaps` y no
+    `judgments` (`app/api/analyze-v2/route.ts:812-840`). A la pantalla le llega una entrada por pareja,
+    y como mucho la cita nueva del primer punto, como referencia del salto.
+  - **Por la bandeja, sí, pero nadie las lee**: las dos rutas de la bandeja devuelven el jsonb entero, con
+    `judgments` dentro (B.313). **Ningún componente lee `judgments`.**
+- **¿SE PODRÍAN LOCALIZAR COMO LAS CONTRADICCIONES?** Con lo que ya se guarda, **sí**, en el lado nuevo:
+  - El salto de las contradicciones no usa nada más que la cita: el editor busca el texto del `textRef`
+    en el documento (`findTolerant`, `lib/texto/localizar-cita.ts:48`).
+  - Cada punto de solapamiento tiene su cita del lado nuevo guardada (`evidenceInNewDoc`). Hoy sólo se
+    usa la del primero, porque la entrada es una por pareja: **al clicar, salta al primer punto, y los
+    otros cuatro no se pueden alcanzar.**
+  - **Lo que falta no es un dato, es la forma de la entrada**: un punto, una entrada, con su cita.
+  - Para el **otro documento**, cada punto tiene también su cita del lado existente (`evidence`), y cada
+    entrada publicada lleva ya `existingDocumentId`.
+  - ⚠️ **Y la búsqueda del editor es la de cabeza y cola de 15 caracteres** (`findTolerant`; B.314, «el
+    mismo sello de goma en el otro extremo»): con citas literales salta bien; con una esculpida, puede
+    saltar al sitio equivocado.
+
+
 ### 📋 B.315 — EL JUEZ EMITE SOLAPAMIENTOS GENÉRICOS QUE EL PROMPT YA LE PROHÍBE, Y PASAN LA COMPROBACIÓN DE CITAS (ficha de CALIDAD, SIN arreglo; 02/10/2026)
 
 **De dónde sale**: la pantalla de NOR-11 que miró el director el 02/10 (B.312). Los tres puntos
@@ -12439,6 +12489,16 @@ bien):
 - **El código** sólo traduce la respuesta (`toOutcome`, `:226-240`): un veredicto que no sea uno de los
   tres pasa a `sin_relacion` con `descartado.sin_veredicto`.
 
+⬇️ **B.321 BAJA DE PRIORIDAD, y sus predicciones se retiran antes de medir** (arquitecto, 04/10/2026). Queda en
+cola, detrás de B.320.
+- **P-14, P-15 y P-16 NO SE REGISTRAN.** No llegaron a Code, y así quedan. El motivo es un dato, no un
+  cambio de humor.
+- **El dato**: la cita de la contradicción de NOR-11 que ve el cliente —«…no pueden permanecer en el área
+  de almacenamiento intermedio más de 72 horas desde el momento en que se cierran»— empieza en minúscula,
+  es media frase, **y se entiende perfectamente porque lleva el dato dentro**. Estirarla sólo le añadiría
+  texto.
+- **B.321 arregla el caso del autoclave**, donde la cita acaba en «esta figura», **y casi nada más.**
+
 ### 🔥 B.322 — EL VERIFICADOR NO RECIBÍA EL TROZO DONDE ESTÁ LA CITA, SÓLO SUS VECINOS (paso 1 del orden del 04/10; arreglado en código, SIN desplegar ni medir)
 
 **El defecto**: el verificador recibía, de cada lado, la cita y el texto entero del trozo ANTERIOR y del
@@ -12587,7 +12647,7 @@ pantalla**.
 
 **Sin arreglo.** Constancia.
 
-### 🔥 B.324 — EL CORPUS QUE VE EL USUARIO PUEDE CAMBIAR DE UNA SESIÓN A OTRA (causa SIN determinar hasta la consulta; SIN arreglo; 04/10/2026)
+### 🔥 B.324 — EL CORPUS QUE VE EL USUARIO PUEDE CAMBIAR DE UNA SESIÓN A OTRA (resuelto el 04/10: era OTRA CUENTA; queda como PRERREQUISITO para cuando un usuario pueda estar en dos organizaciones; 04/10/2026)
 
 **El hecho, de los logs del director del 04/10** (transcritos por el arquitecto):
 - **Tanda de las 16:23–16:32**: NOR-10 con id `db1e20f9-a2d3-4280-8721-39ee11bf5d4e` y NOR-11 con
@@ -12623,6 +12683,51 @@ producto se rompe.**
   otra organización es otro corpus entero.
 
 **Sin arreglo, y sin proponer uno.** La causa queda sin determinar hasta la consulta.
+
+✅ **RESUELTO EL 04/10/2026: ERA OTRA CUENTA.** El director estaba en otro usuario. Las dos tandas no se
+lanzaron desde la misma cuenta, y de ahí los dos corpus y los dos juegos de ids. **La causa fue una cuenta
+distinta, no un cambio de sesión dentro de la misma cuenta.** La consulta `SQL_B323_corpus_por_organizacion.sql`
+ya no hace falta para esto.
+- 📌 **LA LÍNEA DE BASE DE HOY ESTÁ INTACTA** (arquitecto): lo de las 16:23–16:32 se midió en la cuenta
+  correcta y sigue valiendo. No hay que rehacer nada.
+  - ⚠️ **Nota de Code**: los veredictos de P-11, P-12 y P-13 y el recuento de esas pasadas que el
+    arquitecto da por medidos **no han llegado a Code** y no constan en esta ficha. Si deben constar, hay
+    que pegarlos.
+- 🧾 **Error del arquitecto, archivado**: escribió «el corpus ha cambiado entero» como hecho. Ofreció las
+  dos explicaciones y luego afirmó la peor sin tener el dato. Regla al protocolo.
+
+⚠️ **PRERREQUISITO, NO DEUDA SUELTA** (reescrito por el arquitecto el 04/10). La lectura de `resolverOrg`
+(`lib/org.ts:201-214`) sigue en pie: `.limit(1)` sin orden sobre `memberships` quiere decir que, si un
+usuario pertenece a varias organizaciones, la base puede devolver cualquiera en cada petición.
+> Si hoy un usuario sólo puede estar en una organización, esto no se manifiesta. **El día que se abra la
+> puerta a que un usuario pertenezca a dos —y se va a abrir: Dentavia tiene tres clínicas, y un
+> responsable de calidad de dos centros es el caso normal—, `resolverOrg` tiene que arreglarse ANTES de
+> abrirla, no después.** Si se abre primero, ese usuario verá corpus distintos en peticiones distintas y
+> podrá subir un documento a la organización equivocada. **La organización no se adivina: se elige y se
+> lleva encima.**
+
+**¿PUEDE HOY UN USUARIO ESTAR EN DOS ORGANIZACIONES?** (lectura de Code, 04/10, sin tocar nada)
+- **El esquema NO lo impide.** `memberships` sólo tiene `UNIQUE (org_id, user_id)`
+  (`supabase-setup.sql:253`), que impide estar dos veces en la MISMA organización, no en dos distintas.
+  Su índice por `user_id` no es único (`:594`). El único índice único más es el de un dueño por
+  organización (`supabase-owner-and-elevations.sql:30-32`).
+- **Lo impide el CÓDIGO, en los dos únicos sitios que crean una pertenencia** (todo `insert` sobre
+  `memberships` en `app` y `lib`):
+  1. **El alta** (`app/api/org/setup/route.ts:24-44`): si el usuario ya tiene una pertenencia, devuelve
+     esa y no crea otra.
+  2. **Aceptar una invitación** (`app/api/team/accept-invite/route.ts:103-121`): **borra la pertenencia
+     anterior** del usuario y después crea la nueva (`:140-147`). Si la organización de antes se queda
+     sin nadie, la marca como abandonada.
+  - Invitar (`app/api/team/invite/route.ts`) y las elevaciones (`app/api/team/elevations/route.ts`) sólo
+    leen `memberships`. No hay otra vía: ni administración, ni Drive, ni registro.
+- ⚠️ **Y ESA IMPOSIBILIDAD FALLA ABIERTA, en los dos sentidos**, dicho sin opinar sobre qué hacer:
+  - El borrado de la pertenencia anterior (`accept-invite/route.ts:116-120`) **no comprueba su error**.
+    Si falla, la inserción sigue, y el usuario queda en dos organizaciones.
+  - La pertenencia anterior se busca con `.limit(1).single()` (`:103-109`). Si el usuario ya tuviera
+    dos, `.single()` no devuelve nada, no se borra ninguna, y entraría en una tercera.
+- **Qué habría que cambiar el día que se abra la puerta**: el borrado de `accept-invite` (la puerta
+  hoy), y antes que eso, que `resolverOrg` deje de adivinar.
+
 
 **⏸️ Y LO QUE ESTO PARA** (arquitecto, 04/10): las predicciones P-14, P-15 y P-16 de B.321 están ancladas a
 números del corpus de las 16:30, y el de las 21:05 es otro. **No se mide B.321 hasta saber qué ha
