@@ -12563,6 +12563,73 @@ juzgan con **6 pasadas de NOR-10**, y P-13 con 3 de NOR-11:
   antes de que llegue a producción.**
 
 
+### 🔥 B.323 — DOS DOCUMENTOS CON EL MISMO CONTENIDO PUEDEN CONVIVIR EN EL CORPUS, Y ENTONCES CADA HALLAZGO SE PUBLICA DOS VECES (constancia, SIN arreglo; 04/10/2026)
+
+**La prueba, de los logs del director del 04/10** (transcritos por el arquitecto; Code no los ha visto):
+en la tanda de las 21:05–21:08, `CLI-01_protocolo-esterilizacion-instrumental.txt` sale **dos veces** en
+el retrieval, con dos selecciones de unidades distintas (2.814 y 2.756 caracteres). Se juzga dos veces
+(RAW a las 21:07:26 y a las 21:07:29, solape del 65 % las dos), y **cada hallazgo se publica duplicado en
+pantalla**.
+
+**Lo que hay en el código, leído por Code el 04/10, sin tocar nada:**
+- **La comprobación de hash del análisis mira sólo el documento que se analiza.** `checkContentHash`
+  (`lib/analysis/hash-check.ts:59-92`, llamada en `lib/analysis/pipeline.ts:1155`) busca si su hash
+  coincide con el de algún documento ya guardado en la organización, y si coincide, responde «duplicado
+  exacto». **No mira si dentro del corpus hay dos documentos iguales entre sí.** El «Hash check: sin
+  duplicado exacto» del log habla del analizado, no del corpus.
+- **La subida guarda el hash, pero no veta un contenido repetido** (`app/api/ingest/route.ts:252-295`).
+  Sólo rechaza un nombre de fichero repetido en las subidas manuales, y las de Drive están exentas.
+- **Existe una herramienta que los lista**: `app/api/admin/duplicates/route.ts` agrupa los documentos
+  por `content_hash`. Hay que abrirla y mirarla.
+- **Lo que dirá el dato**: `SQL_B323_corpus_por_organizacion.sql`, consultas 4 (las copias de CLI-01, con
+  su hash, sus trozos y sus análisis) y 5 (todos los nombres y todos los contenidos repetidos dentro de
+  una misma organización).
+
+**Sin arreglo.** Constancia.
+
+### 🔥 B.324 — EL CORPUS QUE VE EL USUARIO PUEDE CAMBIAR DE UNA SESIÓN A OTRA (causa SIN determinar hasta la consulta; SIN arreglo; 04/10/2026)
+
+**El hecho, de los logs del director del 04/10** (transcritos por el arquitecto):
+- **Tanda de las 16:23–16:32**: NOR-10 con id `db1e20f9-a2d3-4280-8721-39ee11bf5d4e` y NOR-11 con
+  `85c97891-7cd6-44a6-87bc-5bb2d117be18`. Candidatos: CLI-12, CLI-13, OPE-10, OPE-11, OPE-13,
+  Protocolo_Visitas_Centros, Clientes_Residuos_Sanitarios, RRHH-08 y Normas_Frecuencia_Recogidas.
+- **Tanda de las 21:05–21:08**: NOR-10 con `43df28ff-62ad-4fe8-8e90-a33bca05aaea` y NOR-11 con
+  `849f7924-d789-4abc-ab1e-f63cd63b9bd7`. Candidatos: CLI-01, CLI-03, CLI-04, NOR-01, NOR-04, MKT-01,
+  OPE-01, OPE-05, OPE-11, RRHH-03, RRHH-04 y RRHH-06.
+- **De las dos listas sólo coincide OPE-11.** El director afirma que no subió nada ese día; la segunda
+  tanda la lanzó desde el móvil, con la misma cuenta.
+
+**POR QUÉ ES GRAVE Y NO COSMÉTICO** (arquitecto, 04/10): **lo que se vende es «sólo responde con los
+documentos que tu empresa le ha dado». Si la empresa ve otro corpus según el dispositivo, la promesa del
+producto se rompe.**
+
+**DE DÓNDE SACA EL PROGRAMA LA ORGANIZACIÓN ACTIVA, leído tal cual por Code el 04/10, sin opinar:**
+- La sesión (la cookie) da **el usuario**, y nada más. El navegador no elige organización: no hay
+  cabecera, parámetro ni dato guardado en el cliente que la fije. Buscado en `app`, `lib`, `hooks` y
+  `components`.
+- La organización se busca en la tabla `memberships` por ese usuario
+  (`resolverOrg`, `lib/org.ts:201-214`, la que usa el análisis en `app/api/analyze-v2/route.ts:84`):
+
+  > `.from('memberships').select('org_id').eq('user_id', userId).limit(1).single()`
+
+- ⚠️ **Esa consulta lleva `.limit(1)` y NO lleva orden.** Si un usuario pertenece a una sola
+  organización, da siempre la misma. **Si pertenece a más de una, PostgreSQL puede devolver cualquiera de
+  sus filas, y no tiene por qué ser la misma de una petición a otra**, sea cual sea el dispositivo.
+  - Esto es lo que hace el código, no lo que pasó. **Lo que pasó lo dicen la consulta 3** (con qué
+    organización se guardaron los análisis de cada tanda y en cuál vive cada documento analizado) **y
+    la 1** (a cuántas organizaciones pertenece el usuario).
+  - Si la 1 dice «una», esta lectura no explica nada, y la causa es otra.
+- Los vectores de búsqueda viven por organización (el espacio de nombres de Pinecone es el `orgId`):
+  otra organización es otro corpus entero.
+
+**Sin arreglo, y sin proponer uno.** La causa queda sin determinar hasta la consulta.
+
+**⏸️ Y LO QUE ESTO PARA** (arquitecto, 04/10): las predicciones P-14, P-15 y P-16 de B.321 están ancladas a
+números del corpus de las 16:30, y el de las 21:05 es otro. **No se mide B.321 hasta saber qué ha
+pasado.**
+- ⚠️ **Nota de Code**: el encargo que trae B.321 y esas tres predicciones **no llegó a Code**. No están
+  en el repositorio, y B.321 no tiene una línea de código escrita. Si deben constar, hay que pegarlas.
+
 ### ⚠️ B.297 — LA LECTURA DE TROZOS SIN PAGINAR, y su margen medido (29/09/2026)
 
 `getChunksForDocuments` (`lib/read-chunks.ts`) era UNA consulta sin paginar. Supabase corta
