@@ -13126,9 +13126,14 @@ podría ser de un Excel. Esta ficha no concluye nada sobre la causa.
 LAS CAUSAS CANDIDATAS, sin orden de probabilidad, porque cabeza_sin_cola solo
 significa que los primeros 15 caracteres normalizados están en el pajar y los últimos
 15 no están detrás (coincidencia-de-cita.ts:163):
-1. El juez cortó la frase por dentro o la compuso juntando trozos. Demostrado en UN
-   caso: la contradicción del punto de retirada centralizado de Chamberí, 05/10, cita
-   de 206 caracteres terminada en «…el material recogido en Salamanca y ». Un caso no
+1. El juez cortó la frase por dentro o la compuso juntando trozos. 
+   ⚠️ CORREGIDO EL 05/10/2026, EL MISMO DÍA: ese final era un artefacto del log. El
+   registro de descartes recorta cada cita a 200 caracteres (judge.ts:449,
+   .slice(0, 200)), así que una cita de 206 salía truncada justo antes de «Retiro». La
+   cita guardada en descartesPorCita termina en «…el material recogido en Salamanca y
+   Retiro». No estaba cortada a mitad de palabra: lo estaba la línea del log. El
+   arquitecto la citó así durante todo el día como demostración de que el juez cortaba
+   frases, y no demostraba eso. Un caso no
    explica 21.
 2. El juez cambió algo al final de la frase: un número escrito de otra forma, o un
    signo que normalize() no elimina.
@@ -13144,6 +13149,76 @@ guardado: descartesPorCita lleva, por lado, el tipo de pajar y la longitud
 
 RESERVA: los 52 análisis son casi todos repeticiones de NOR-11. La mezcla mide cuánto
 escuece en nuestras pruebas, no cuánto escocería a un cliente con otro corpus.
+
+✅ MEDIDO EL 05/10/2026 CON SQL_B332. Fila de control: 42 lados y 11 citas
+distintas.
+
+LO PRIMERO, Y DESCARTA UNA CAUSA: los 42 lados son pajar `entregado_texto` y los 42
+son documentos `.docx`. Ni uno es `entregado_piezas`, ni `texto_completo`, ni de un
+Excel. La causa candidata 3 —una frase real que cruza dos trozos seguidos— QUEDA
+FALSIFICADA: no había trozos en juego. Era la causa que defendía el arquitecto.
+Y queda medido lo que la ficha daba por no medido: los 42 son prosa de Word.
+Con el documento entregado entero, el fallo no está en lo que se le dio al juez
+sino en lo que el juez escribió.
+
+39 DE LOS 42 LADOS TERMINAN EN LETRA, no en puntuación final. Eso NO prueba que
+estén cortados: una frase completa copiada sin su punto final también termina en
+letra. Es un dato, no un diagnóstico.
+
+Y UN CORTE SIMPLE AL FINAL NO PUEDE PRODUCIR NINGUNO DE ESTOS FALLOS. Si el juez
+copia el principio de una frase real y la deja a medias, lo que escribió sigue
+siendo un trozo literal del documento y buscarCita lo encuentra por el paso literal
+o el normalizado. Ninguna cita meramente truncada falla. Luego los 42 son
+alteraciones, no recortes.
+
+LAS TRES CONDUCTAS, partidas por paso de fallo, que es lo único medido, y las
+cuentas cierran: 21 + 9 + 12 = 42 lados, y 4 + 2 + 5 = 11 citas.
+
+1. EL FINAL DE LA CITA NO ESTÁ DETRÁS DE SU PRINCIPIO — `cabeza_sin_cola`, 21
+   lados, 4 citas. La cabeza sí se localiza; los últimos 15 caracteres
+   normalizados no están detrás. El juez cambió el final, le añadió algo o pegó
+   texto de otro sitio. Ejemplos: 206 caracteres acabando en «…el material recogido
+   en Salamanca y Retiro» (la contradicción del punto de retirada de Chamberí, 5
+   lados), 111 acabando en «…ubicado en la clínica de Chamberí» (14 lados, la más
+   repetida), y una de 363 que ACABA EN PUNTO y aun así falla, lo que descarta el
+   recorte por completo en ese caso.
+   Sigue siendo la regla del PUESTO 2 incumplida, porque no copió la frase tal cual.
+
+2. FALTA EL MEDIO, O JUNTA DOS SITIOS — `cola_demasiado_lejos`, 9 lados, 2 citas.
+   El final sí existe en el documento, pero demasiado lejos de la cabeza.
+   EL CASO QUE MÁS DICE, 7 de esos 9 lados, una cita de 244 caracteres acabando en
+   «…able y recae siempre sobre esta figura [el Director Clínico]». Lo que va entre
+   corchetes es el juez explicando a quién se refiere «esta figura». Y el mecanismo
+   se entiende: normalize() elimina los corchetes, así que la cola normalizada
+   queda «el director clínico» (normalize() quita los corchetes pero conserva los
+   acentos, comprobado con la función real), que SÍ aparece en el documento, en otro sitio. De
+   ahí `cola_demasiado_lejos` y no `cabeza_sin_cola`. Es el patrón del punto (2) de
+   B.84 —narración dentro de la cita— y es exactamente el caso «esta figura» por el
+   que B.321 quedó degradada en vez de cerrada. Queda demostrado con dato.
+
+3. NI EL PRINCIPIO ESTÁ — `sin_cabeza`, 12 lados, 5 citas. Cambiar o alargar el
+   final no rompe el principio, así que si los primeros 15 caracteres normalizados
+   no aparecen, la cita está inventada entera o atribuida al documento equivocado.
+   Dos de esos lados son una cita de 127 caracteres que ACABA EN PUNTO: una frase
+   con aspecto de completa cuyo principio no está donde debería. Es B.86 de
+   Puntos_Pendientes_Doclity.txt.
+
+SIGUIENTE PASO, decidido el 05/10: implementar el reintento cruzado de B.86 SOLO
+COMO DIAGNÓSTICO —cuando verifyQuote falle en un lado, reintentar contra el texto
+del otro lado y registrar `cita_lado_cruzado` en vez de `cita_no_localizada`—, sin
+cambiar nada de lo que pasa el filtro. Divide la conducta 3 en dos enfermedades con
+curas distintas. No se diseña hasta mañana.
+
+DEUDA DESTAPADA AQUÍ: el log recorta las citas a 200 caracteres sin decirlo
+(judge.ts:449). Hoy costó una interpretación falsa que se mantuvo nueve horas.
+Que el log avise del recorte, o que no recorte.
+
+DEUDA DESTAPADA AQUÍ, y arreglada el mismo día: el comprobador de la documentación
+exigía que toda ficha B.n citada tuviera su título en Estado_Del_MVP.md, porque se
+escribió cuando la numeración vivía en un solo fichero. Desde el 06/10 reconoce
+también las entradas de Puntos_Pendientes_Doclity.txt, que es donde viven B.1 a
+B.194. El invariante era falso desde antes de hoy: la cita a B.138 figuraba entre
+las violaciones de partida.
 
 **REGLA NUEVA EN EL PROTOCOLO (05/10/2026)**: cuando Code dé al arquitecto un total, le
 da también los sumandos. El arquitecto no puede ejecutar nada ni comprobar un total
