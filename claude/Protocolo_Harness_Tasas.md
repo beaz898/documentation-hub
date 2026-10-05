@@ -263,6 +263,12 @@ el veredicto sobre `[fa22ca84]`, que era el mismo dato con el que se juzga la pr
 que comparte el dato con la predicción que quiere medir no es un sello.** B.322 se desplegó con su
 propia línea, «contexto del verificador», y su sello no depende del resultado.
 
+⚠️ **Y SU AFINADO, 05/10/2026 (arquitecto): EL SELLO ES PARA LOS CAMBIOS CUYO EFECTO DEPENDE DEL MODELO Y SE
+MIDE CON PASADAS. UN CAMBIO DETERMINISTA CON PRUEBA NO LO NECESITA: SU GARANTÍA ES LA PRUEBA, NO LA
+ESTADÍSTICA.** B.322 cambiaba lo que el verificador decide, y había que medirlo en seis pasadas. El
+commit A de B.314 copia un dato de un sitio a otro, y la prueba lo demuestra sobre 65 análisis
+archivados. **Poner sello a todo lo convierte en ruido, y deja de avisar.**
+
 ---
 
 ## ⚠️ UNA PUERTA QUE DESCARTA TIENE QUE GUARDAR LO QUE DESCARTÓ

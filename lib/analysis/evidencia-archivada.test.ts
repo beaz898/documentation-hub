@@ -64,10 +64,54 @@ describe('la evidencia archivada se sigue leyendo como siempre', { timeout: TOPE
     expect(delJuez.length).toBeGreaterThan(0);
   });
 
-  it('el lector de producción rehace, desde los juicios guardados, los solapamientos que se publicaron', () => {
+  /**
+   * ⚠️ PREMISA CAMBIADA A PROPÓSITO EL 05/10/2026 (B.314, opción 2), con la
+   * conformidad del arquitecto. Hasta ese día esta prueba exigía que lo rehecho
+   * fuera IGUAL a lo archivado. Desde ese día cada entrada del juez lleva además
+   * la lista de sus puntos (`puntos`), que lo archivado no tiene. La premisa
+   * nueva, y lo que sigue garantizando:
+   *   · el MISMO número de entradas, en el mismo orden (el recuento no se mueve);
+   *   · cada entrada, idéntica campo por campo en TODOS los campos que tenía la
+   *     archivada (nada de lo que ya se publicaba cambia);
+   *   · la lista sale de lo guardado y no inventa nada: son exactamente los puntos
+   *     del juez de esa pareja, en su orden, con sus dos citas sin tocar;
+   *   · la lista y la descripción publicada hablan de LOS MISMOS puntos, ni uno
+   *     más ni uno menos (si no, la pantalla enseñaría una tarjeta que el resumen
+   *     no cuenta, o un punto del resumen sin tarjeta);
+   *   · el primer punto sigue siendo el primero: el salto de la entrada (`textRef`)
+   *     lleva exactamente adonde llevaba;
+   *   · las entradas estructurales no llevan lista.
+   * Lo que NO garantiza: que la pantalla caiga bien con los análisis viejos.
+   */
+  it('el lector de producción rehace lo publicado igual en todo lo que ya existía, y cada entrada del juez lleva sus puntos', () => {
+    let entradasDelJuez = 0, puntosContados = 0;
     for (const a of archivados) {
-      expect(construirOverlaps(a.analisis.judgments), a.ruta).toEqual(a.analisis.overlaps);
+      const rehecho = construirOverlaps(a.analisis.judgments);
+      const archivado = a.analisis.overlaps;
+      expect(rehecho.length, a.ruta).toBe(archivado.length);
+      rehecho.forEach((entrada, i) => {
+        const { puntos, ...loDeSiempre } = entrada;
+        expect(loDeSiempre, `${a.ruta} #${i}`).toEqual(archivado[i]);
+        if (entrada.confirmedBy) {
+          expect(puntos, `${a.ruta} #${i} estructural`).toBeUndefined();
+          return;
+        }
+        const juicio = a.analisis.judgments.find(j => j.documentId === entrada.existingDocumentId && j.documentName === entrada.existingDocument);
+        const delJuez = (juicio?.overlappingContent ?? []).filter(o => !o.confirmedBy && o.description.trim().length > 0);
+        // Los mismos puntos, en su orden, con sus citas sin tocar.
+        expect(puntos, `${a.ruta} #${i}`).toEqual(delJuez.map(o => ({ descripcion: o.description, citaNuevo: o.evidenceInNewDoc ?? '', citaExistente: o.evidence ?? '' })));
+        // La lista y la descripción publicada hablan de los mismos puntos.
+        expect(puntos!.map(p => p.descripcion).join('. '), `${a.ruta} #${i}`).toBe(entrada.description);
+        // El primer punto sigue siendo el primero: el salto lleva adonde llevaba.
+        expect(entrada.textRef, `${a.ruta} #${i}`).toBe(puntos!.find(p => p.citaNuevo.trim().length > 0)?.citaNuevo || undefined);
+        entradasDelJuez++;
+        puntosContados += puntos!.length;
+      });
     }
+    // Contados sobre los 65 análisis (medido el 05/10: 59 entradas del juez y 211
+    // puntos; con las 5 estructurales, las 64 publicadas). Si la cuenta cambia,
+    // cambió el archivo, no el código.
+    expect({ entradasDelJuez, puntosContados }).toEqual({ entradasDelJuez: 59, puntosContados: 211 });
   });
 
   it('`evidence` es el EXISTENTE y `evidenceInNewDoc` el NUEVO: ninguna cita guardada está sólo en el otro lado', () => {

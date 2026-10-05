@@ -167,6 +167,10 @@ export function construirOverlaps(judgments: DocumentJudgment[]): FinalAnalysis[
         severity: (j.overlapPercent >= 60 ? 'alta' : j.overlapPercent >= 30 ? 'media' : 'baja') as 'alta' | 'media' | 'baja',
         overlapPercent: j.overlapPercent,
         textRef: firstEvidence?.evidenceInNewDoc || undefined,
+        // B.314: los MISMOS puntos que la descripción de arriba (sale de
+        // `judgeEntries`, como ella), en su orden, con sus dos citas. Copiados,
+        // no calculados. El recuento sigue siendo una entrada por pareja.
+        puntos: judgeEntries.map(o => ({ descripcion: o.description, citaNuevo: o.evidenceInNewDoc ?? '', citaExistente: o.evidence ?? '' })),
       });
     }
 

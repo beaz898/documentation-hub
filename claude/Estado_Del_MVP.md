@@ -12241,6 +12241,42 @@ arquitecto: no se ajusta en silencio).
 - **No se reescribe hasta que el arquitecto vea esta premisa.**
 - **El nombre propuesto para la lista**: `puntos`, con `descripcion`, `citaNuevo` y `citaExistente` por
   punto, los mismos nombres de lado que `descartesPorCita` (B.313).
+- ✅ **CONFORMIDAD DEL ARQUITECTO (04/10), con una adición y dos afirmaciones**: la lista y la descripción
+  publicada hablan de los mismos puntos, ni uno más ni uno menos, contados sobre los 65; el orden es el
+  del juez, así que el primer punto sigue siendo el primero; y si algún deduplicado toca los puntos, se
+  dice antes de escribir. Los nombres, aceptados. Dos commits: A (la lista, backend) y B (la pantalla).
+
+**🛠️ COMMIT A, HECHO (05/10/2026): CADA ENTRADA PUBLICADA DEL JUEZ LLEVA SU LISTA DE PUNTOS.** Backend, invisible en
+pantalla. El commit B, la pantalla, va después y con verde entre medias.
+- **Antes, la partición**: `types.ts` tenía 637 líneas y su disparador escrito (B.313). Lo publicado
+  —`FinalAnalysis` y sus tipos— pasó a `lib/analysis/tipos-del-analisis-publicado.ts`, reexportado, sin
+  cambio de comportamiento ni de imports (`1ea807a8`). `types.ts` bajó a 313 líneas.
+- **El cambio**: `construirOverlaps` (`lib/analysis/synthesize.ts`) añade a cada entrada del juez
+  `puntos`, con `descripcion`, `citaNuevo` y `citaExistente` (`PuntoDeSolapamiento`). Sale del mismo
+  `judgeEntries` que la descripción publicada, así que habla de los mismos puntos por construcción.
+  Copiado, no calculado. Las estructurales no llevan lista.
+- **La afirmación 2 del arquitecto, comprobada antes de escribir**: **ningún deduplicado toca los
+  puntos.** B.309 deduplica TROZOS en la recuperación, antes de elegir documentos. Entre el juez y
+  `construirOverlaps`, la lista sólo cambia en la cascada, que AÑADE (las contradicciones reclasificadas
+  y las estructurales, `pipeline.ts:634`) sin quitar ninguna.
+- **LA PRUEBA, con la premisa cambiada a propósito y escrita en el fichero**
+  (`lib/analysis/evidencia-archivada.test.ts`). Sobre los 65 análisis archivados, comprueba:
+  - el mismo número de entradas y en el mismo orden;
+  - cada una idéntica en todos los campos que tenía la archivada;
+  - la lista = los puntos del juez de esa pareja, en su orden y con sus citas sin tocar;
+  - **la lista y la descripción publicada hablan de los mismos puntos** (la descripción es la lista
+    unida);
+  - **el primer punto sigue siendo el primero**: el salto de la entrada (`textRef`) lleva adonde llevaba;
+  - y las estructurales, sin lista.
+  - **Contándolos: 59 entradas del juez y 211 puntos.** Con las 5 estructurales, las 64 entradas
+    publicadas del archivo. La primera versión de la prueba decía 65 entradas sin haberlo medido: 65 es
+    el número de análisis. Se midió antes del commit.
+  - **El rojo, de fallo**: con el código de antes, los campos de siempre ya coincidían y la lista no
+    estaba.
+- **El respaldo, en el propio tipo**: los análisis guardados antes de este cambio no traen `puntos`, y se
+  verán como un solo bloque. **No es un fallo.**
+- **Sin sello, a propósito** (regla nueva del protocolo): es un cambio determinista con prueba.
+
 
 
 

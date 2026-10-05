@@ -14,6 +14,16 @@ import type { CoberturaDeCandidatos } from './cobertura-de-candidatos';
 /** Nivel de confianza de una contradicción detectada. */
 export type DiscrepancyConfidence = 'alta' | 'posible';
 
+/** B.314: un punto de un solapamiento, tal como lo dejó la comprobación de
+ *  citas. Los nombres de lado son los de `descartesPorCita` (B.313). */
+export interface PuntoDeSolapamiento {
+  descripcion: string;
+  /** La cita del documento analizado: es la del salto, como en las contradicciones. */
+  citaNuevo: string;
+  /** La cita del otro documento. */
+  citaExistente: string;
+}
+
 /** Etapas que cayeron a su fallback por fallo del LLM (F-71). Una entrada por
  *  caída, no por etapa: si el juicio cae 3 veces, hay 3 entradas. */
 export interface StageFailure {
@@ -90,6 +100,12 @@ export interface FinalAnalysis {
      *  estructural (synthesize.ts) — ausente cuando viene del montón del
      *  juez, igual que en discrepancies. */
     confirmedBy?: ConfirmedBy;
+    /** B.314 (05/10/2026): los puntos de la pareja, uno por uno, con sus dos
+     *  citas. Sólo en las entradas del juez. La entrada sigue siendo UNA por
+     *  pareja —el recuento no cambia—; esto es el detalle de dentro. Ausente en
+     *  los análisis guardados antes de este cambio: la pantalla los enseña como
+     *  un solo bloque, y no es un fallo. */
+    puntos?: PuntoDeSolapamiento[];
   }>;
   discrepancies: Array<{
     topic: string;
