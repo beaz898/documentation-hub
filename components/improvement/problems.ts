@@ -1,7 +1,6 @@
 // Shared types and helpers for problem detection in ImprovementModal.
 
 import type { ComparedValue, PuntoDeSolapamiento } from '@/lib/analysis/types';
-import { normalizeWhitespace } from '@/lib/texto/localizar-cita';
 
 export type { ComparedValue };
 
@@ -122,80 +121,10 @@ export interface Problem {
 export type { RawAnalysis } from './analisis-crudo';
 import type { RawAnalysis } from './analisis-crudo';
 
-// ⚠️ LA COPIA PRIVADA DE `normalizeWhitespace` SE RETIRÓ EL 16/09/2026: era una
-// de las CUATRO que hacían lo mismo en esta casa. Ahora viene de `lib/texto`,
-// que es el único sitio donde se decide qué cuenta como «el mismo texto».
-
-/**
- * Tries to find `find` inside `text` using progressively more tolerant strategies.
- * Returns the match range in the ORIGINAL text, or null if nothing works.
- */
-export function findMatchRange(text: string, find: string): { start: number; end: number } | null {
-  if (!find) return null;
-
-  // 1. Exact match
-  const exactIdx = text.indexOf(find);
-  if (exactIdx !== -1) {
-    return { start: exactIdx, end: exactIdx + find.length };
-  }
-
-  // 2. Whitespace-normalized match
-  const normFind = normalizeWhitespace(find);
-  if (!normFind) return null;
-
-  const mapping: number[] = [];
-  let normText = '';
-  let lastWasSpace = false;
-  let started = false;
-  for (let i = 0; i < text.length; i++) {
-    const ch = text[i];
-    const isSpace = /\s/.test(ch);
-    if (isSpace) {
-      if (!started) continue;
-      if (!lastWasSpace) {
-        normText += ' ';
-        mapping.push(i);
-        lastWasSpace = true;
-      }
-    } else {
-      normText += ch;
-      mapping.push(i);
-      lastWasSpace = false;
-      started = true;
-    }
-  }
-  while (normText.endsWith(' ')) {
-    normText = normText.slice(0, -1);
-    mapping.pop();
-  }
-
-  const normIdx = normText.indexOf(normFind);
-  if (normIdx !== -1 && mapping[normIdx] !== undefined) {
-    const start = mapping[normIdx];
-    const lastNormCharIdx = normIdx + normFind.length - 1;
-    const endInOriginal = (mapping[lastNormCharIdx] ?? start) + 1;
-    return { start, end: endInOriginal };
-  }
-
-  // 3. Fuzzy match: head + tail anchors
-  if (normFind.length >= 30) {
-    const head = normFind.slice(0, 15);
-    const tail = normFind.slice(-15);
-    const headIdx = normText.indexOf(head);
-    if (headIdx !== -1) {
-      const tailIdx = normText.indexOf(tail, headIdx + head.length);
-      if (tailIdx !== -1) {
-        const start = mapping[headIdx];
-        const endInOriginal = (mapping[tailIdx + tail.length - 1] ?? start) + 1;
-        if (endInOriginal - start < find.length * 2.5) {
-          return { start, end: endInOriginal };
-        }
-      }
-    }
-  }
-
-  return null;
-}
+// ⚠️ `findMatchRange` SE BORRÓ EL 05/10/2026: no la llamaba nadie, y era una
+// SEGUNDA búsqueda de citas viviendo en la casa. El salto del editor usa
+// `findTolerant` (`lib/texto/localizar-cita.ts`), que es el único sitio donde se
+// decide dónde está una cita. Dos criterios de «dónde está» se separan sin avisar.
 
 export function problemsFromAnalysis(analysis: RawAnalysis): Problem[] {
   const out: Problem[] = [];
