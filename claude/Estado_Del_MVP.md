@@ -12376,6 +12376,27 @@ director: **un documento de prosa**. En uno de tablas, «no se encontró el frag
 
 **Sin sello**: cambio determinista con prueba.
 
+**📌 SÓLO SE CLICA LO QUE SE ENCUENTRA (arquitecto, 05/10/2026), PARADA ANTES DE ESCRIBIR:**
+- **La regla**: un punto es clicable sólo si su cita se localiza de verdad en el texto abierto. Al pintar,
+  se busca, y si no se encuentra la tarjeta lo dice, sin cursor de mano. No se adivina si una cita es
+  localizable: se comprueba.
+- **Por qué importa**: es B.311 en el otro extremo. Allí se publicaba una cita que no existía; aquí se
+  ofrece un salto a un sitio que no está.
+- **Por qué se para: el coste se nota.** Sobre el texto más largo del archivo (60.038 caracteres), 30
+  búsquedas que fallan tardan **208 ms por pintado**. Cada búsqueda fallida rehace la normalización del
+  texto entero (unos 7 ms), y `ChatPanel` recibe el texto en cada pulsación de tecla, así que serían unos
+  200 ms por letra escrita.
+- **Pendiente de decisión** (la cura que propone Code): normalizar el texto una vez por cambio de texto y
+  reutilizarlo en las treinta búsquedas, con el mismo criterio de `findTolerant` y en su mismo fichero; más
+  esperar a que el usuario deje de escribir antes de recontar.
+- **De paso, la medida (a)**: las contradicciones están peor (B.328).
+- **La etiqueta de la pantalla del análisis**: «fragmentos» pasa a «entradas», que es lo que cuenta el
+  número (`components/AnalysisModal.tsx:343`).
+- **`findMatchRange`, borrado**: era una segunda búsqueda de citas sin ningún llamador.
+- **El disparador de `ChatPanel.tsx`** (712 líneas, arquitecto): lo próximo que haya que añadirle obliga a
+  partirlo primero.
+
+
 
 
 
@@ -13081,6 +13102,27 @@ la nueva (`:140-147`).
   encuentra ninguna, no se borra nada, y entraría en una tercera.
 
 **Sin arreglo.** Es una decisión de producto, y la toma el director.
+
+### 🔥 B.328 — EL SALTO DE LAS CONTRADICCIONES NO ENCUENTRA SU SITIO EN 85 DE 101 (medido, sin arreglo; 05/10/2026)
+
+**La medida** (pedida por el arquitecto al cerrar B.314). Sobre los 65 análisis archivados, cada cita de
+contradicción e inconsistencia menor se buscó en el texto real del documento analizado (`corpus-pruebas/`,
+texto extraído), con la misma función del salto del editor (`findTolerant`, vía `goToProblem`):
+- **101 citas de contradicción, y se localizan 16.** Ninguna inconsistencia menor en el archivo.
+- **Las 85 que no se localizan son filas de tabla pintadas** («a | b | c»): 75 del diff de tablas y 10 de
+  prosa que llevan la fila como cita.
+- Por origen: del diff de tablas se localizan 15 de 90; de prosa, 1 de 11.
+
+**Lo que significa**: el clic de una contradicción de tabla lleva a «no se encontró el fragmento». Es la
+ceguera de las filas de B.319, la misma que en los solapamientos (91 de los 93 puntos no localizados), y
+**aquí es mayor: un 84 %, frente al 44 %**.
+
+**Lo que esta medida NO dice**:
+- el archivo del examen es de tablas casi por diseño, así que el 84 % es de ESTE archivo, no de producción;
+- se mide contra el texto extraído, y lo que abre el editor puede no ser idéntico.
+
+**Lo que decide el arquitecto**: si la regla «sólo se clica lo que se encuentra» se aplica también aquí, y
+si la cura es localizar la fila en el texto (B.319) o dejar de ofrecer el salto.
 
 ### 📋 B.327 — LOS PUNTOS DE UN SOLAPAMIENTO SE VEN UNO A UNO Y SE DESCARTAN TODOS JUNTOS (coste aceptado, sin arreglo; 05/10/2026)
 
