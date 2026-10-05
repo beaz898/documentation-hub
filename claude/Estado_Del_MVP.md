@@ -12314,6 +12314,69 @@ punto, dentro de la cabecera de su documento:
   - «Con N documento(s)» sería más clara, pero mentiría en ese 6 % en que un documento tiene dos entradas.
   - Lo decide el arquitecto.
 
+**✅ LAS TRES DECISIONES DEL ARQUITECTO (05/10/2026)**:
+- **Agrupadas y plegadas.** Las contradicciones, desplegadas siempre. Los solapamientos, por documento y
+  plegados, salvo los de severidad alta. La severidad pasa así a decidir algo.
+- ⚠️ **La consulta ya no es condición previa**: `SQL_B314_tarjetas_por_analisis.sql` se ejecuta cuando el director
+  tenga un hueco. Plegar por defecto es lo correcto con 5 tarjetas y con 30, así que el dato no cambiaría la
+  decisión. **Una medida que no puede cambiar la decisión no la retiene.** Sigue valiendo para saber si el
+  plegado importa en la práctica.
+- **La etiqueta de la bandeja no se toca.** Una entrada ES un solapamiento con un documento, y la cabecera
+  del editor dice cuántos puntos tiene dentro: dos unidades, cada una con su nombre. Sólo cambia
+  «fragmentos», que pasa a contar puntos.
+- **Opción 2**: la unidad sigue siendo la entrada, con sus puntos dentro. La opción 1 cambiaba lo que lee el
+  modelo del chat de mejora dentro de un commit de pantalla, y el significado de «descartar». El coste
+  aceptado tiene ficha propia: B.327.
+
+**🛠️ COMMIT B, HECHO (05/10/2026). Antes, en su propio commit (`2db5eccd`), dos particiones sin cambio de
+comportamiento:**
+- el pintado de los solapamientos sale de `ChatPanel.tsx` a `SolapamientosPorDocumento.tsx`. `ChatPanel.tsx`
+  baja de 800 a 712 líneas; sigue por encima del tope, pero este cambio ya no lo hace crecer;
+- `RawAnalysis` sale de `problems.ts` a `analisis-crudo.ts`, reexportado. `problems.ts` estaba en 400 justas.
+
+**Lo que se ve:**
+- Cada documento lleva una cabecera, siempre visible: «Con "X" · 5 puntos · solape medio». Un clic despliega.
+- **Plegado por defecto salvo severidad alta**, y sin severidad (el duplicado), desplegado.
+- Dentro, cada entrada del juez enseña **una tarjeta por punto**:
+  - primero, la descripción del punto;
+  - debajo, «En este documento: "…"» y «En "X": "…"», las mismas palabras que las contradicciones;
+  - **sólo la cita de este documento se clica.** Si no hay cita, dice «sin cita» y no hay nada que clicar.
+- **«No es error» y «Solventar» se quedan en la entrada y no se repiten en las tarjetas**: actúan sobre todos
+  los puntos, y el botón está donde está su alcance.
+- **Los análisis sin lista se pintan como siempre**, en un bloque. Su cabecera lleva la severidad y no lleva
+  número.
+- **De paso se arregla una cosa**: desaparecen los dos puntos seguidos que veía el director («…cada uno..
+  Criterio…»). Ya no se enseña la descripción unida; se enseña cada punto. La descripción unida sigue
+  existiendo, y es lo que lee el modelo.
+
+**Cómo queda atado el salto**: cada tarjeta llama al mismo `goToProblem` con una copia de su entrada cuya
+`textRef` es la cita de ese punto (`tarjetasDeLaEntrada`, `components/improvement/solapamientos.ts`).
+`goToProblem` sólo lee `textRef`, así que el editor no se toca.
+
+**Lo que decide la pantalla vive fuera del JSX** (`solapamientos.ts`), como `mostrarAccionesDeFila`, porque
+Vitest no admite React. La prueba (`solapamientos.test.ts`) cubre:
+- **con lista y sin lista**, en sintético;
+- sobre los 65 archivados en su forma vieja, ninguna entrada con lista;
+- en la nueva, **lo que leen los prompts no cambia ni una letra** (id, título, descripción, salto y documento
+  iguales), con 211 tarjetas;
+- **y la prueba de aceptación del director, sobre el texto real**: cada punto se busca con la misma función
+  del salto. El primero lleva adonde llevaba la entrada, y dos puntos de una misma entrada no llevan nunca
+  al mismo sitio.
+- **Control positivo**: con el salto atado a la entrada en vez de al punto, caen dos pruebas.
+
+**La comprobación de B.326, medida antes de escribir**: en el archivo, **ninguna pareja de puntos de una
+misma entrada comparte los 15 primeros caracteres de la cita** (324 parejas; ninguna cita vacía, idéntica ni
+de menos de 30 caracteres). Además, la cabeza y cola sólo entra si la búsqueda literal falla.
+
+⚠️ **LO QUE ENCONTRÓ LA PRUEBA DE ACEPTACIÓN, y no lo causa este cambio**: contra el texto extraído, **se
+encuentran 118 de los 211 puntos**. De los 93 que no, **91 son filas de tabla pintadas** («a | b | c»), la
+ceguera conocida; esa forma no está así en el texto. **Ya hoy el salto de 25 de las 59 entradas no encuentra
+su sitio** (24 filas y 1 de prosa). Lo que cambia es que ahora se ve en cada punto. Para la comprobación del
+director: **un documento de prosa**. En uno de tablas, «no se encontró el fragmento» es el aviso de siempre.
+
+**Sin sello**: cambio determinista con prueba.
+
+
 
 
 
@@ -13018,6 +13081,24 @@ la nueva (`:140-147`).
   encuentra ninguna, no se borra nada, y entraría en una tercera.
 
 **Sin arreglo.** Es una decisión de producto, y la toma el director.
+
+### 📋 B.327 — LOS PUNTOS DE UN SOLAPAMIENTO SE VEN UNO A UNO Y SE DESCARTAN TODOS JUNTOS (coste aceptado, sin arreglo; 05/10/2026)
+
+**Lo que pasa**: desde B.314 commit B, el usuario puede ir a cada punto de un solapamiento por separado,
+pero «No es error» y «Solventar» actúan sobre la entrada entera: **si hay cinco puntos, se descartan los
+cinco o ninguno.**
+
+**Por qué**: descartar punto a punto exige dos cosas que no son de pantalla.
+- **Cambiar lo que lee el modelo del chat de mejora**: hoy recibe una línea por documento, con su severidad,
+  y pasaría a recibir una por punto, sin ella.
+- **Cambiar lo que se guarda**: hoy «descartar» significa «este solapamiento con este documento no es un
+  error», y pasaría a significar «este punto no es un error».
+
+Las dos se deciden aparte, con su medida. **La decisión es del arquitecto, del 05/10/2026**, al elegir la
+opción 2.
+
+**Lo que obliga a la pantalla**: los botones se quedan en la entrada y no se repiten en cada punto. Un
+botón dentro de un punto parecería actuar sobre ese punto, y actuaría sobre todos.
 
 ### 🔥 B.326 — EL SALTO DEL EDITOR A UNA CITA BUSCA POR CABEZA Y COLA DE 15 CARACTERES: EL MISMO SELLO DE GOMA, EN LA PANTALLA (SIN arreglo, no urge; 04/10/2026)
 

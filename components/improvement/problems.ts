@@ -1,6 +1,6 @@
 // Shared types and helpers for problem detection in ImprovementModal.
 
-import type { ComparedValue } from '@/lib/analysis/types';
+import type { ComparedValue, PuntoDeSolapamiento } from '@/lib/analysis/types';
 import { normalizeWhitespace } from '@/lib/texto/localizar-cita';
 
 export type { ComparedValue };
@@ -110,6 +110,11 @@ export interface Problem {
    *  confirmadas por estructura. Es material de PRESENTACIÓN: no entra en
    *  `description` ni en nada que lea un modelo. */
   comparedValues?: ComparedValue[];
+  /** B.314: sólo en los solapamientos, y SÓLO PARA PINTAR. Lo que leen los
+   *  prompts sigue siendo `description`, que no cambia: ver solapamientos.ts. */
+  puntos?: PuntoDeSolapamiento[];
+  severidad?: 'alta' | 'media' | 'baja';
+  estructural?: boolean;
   newDocRow?: string;
   existingDocRow?: string;
 }
@@ -215,6 +220,9 @@ export function problemsFromAnalysis(analysis: RawAnalysis): Problem[] {
         textRef: o.textRef || undefined,
         relatedDoc: o.existingDocument,
         relatedDocId: o.existingDocumentId,
+        puntos: o.puntos,
+        severidad: o.severity === 'alta' || o.severity === 'media' || o.severity === 'baja' ? o.severity : undefined,
+        estructural: !!o.confirmedBy,
       });
     });
   }

@@ -269,6 +269,13 @@ ESTADÍSTICA.** B.322 cambiaba lo que el verificador decide, y había que medirl
 commit A de B.314 copia un dato de un sitio a otro, y la prueba lo demuestra sobre 65 análisis
 archivados. **Poner sello a todo lo convierte en ruido, y deja de avisar.**
 
+⚠️ **UN CAMBIO EN LO QUE LEE UN MODELO NO VIAJA DENTRO DE UN COMMIT DE PANTALLA (arquitecto, 05/10/2026).**
+Aunque el fichero que se toca sea de pantalla, si lo que cambia es el texto que entra en un prompt, es otro
+cambio: va en su propio commit y lleva su medida. El caso: en B.314, pintar una tarjeta por punto haciendo de
+cada punto un hallazgo habría cambiado lo que lee el chat de mejora (`ImprovementModal.tsx:105`, `:361` y
+`:392`). Se pintó dentro de la entrada, y la prueba comprueba que lo que leen los prompts no cambia ni una
+letra.
+
 ---
 
 ## ⚠️ UNA PUERTA QUE DESCARTA TIENE QUE GUARDAR LO QUE DESCARTÓ

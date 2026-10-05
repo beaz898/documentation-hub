@@ -3,18 +3,24 @@
 // Los solapamientos (y el duplicado), agrupados por el documento con el que
 // coinciden. Sacado de ChatPanel.tsx el 05/10/2026 sin cambio de comportamiento,
 // antes de B.314 commit B: ChatPanel iba por 800 líneas y el cambio es aquí.
+//
+// B.314 commit B: cada entrada del juez enseña una tarjeta por punto, y cada
+// documento sale plegado salvo severidad alta. Lo que decide, en solapamientos.ts.
 
 import { useTranslations } from 'next-intl';
 import type { Problem, ProblemType } from './problems';
 import { mostrarAccionesDeFila } from './problems';
 import type { TypeMeta } from './ChatPanel';
+import { cabeceraDelDocumento, tarjetasDeLaEntrada, type TarjetaDePunto } from './solapamientos';
 
 interface Props {
   activeItems: Array<{ p: Problem; globalIndex: number }>;
   type: ProblemType;
   meta: TypeMeta;
   sending: boolean;
-  collapsedSubGroups: Set<string>;
+  /** Los documentos que el usuario ha plegado o desplegado a mano, al revés
+   *  de como salían por defecto (`abiertoPorDefecto`). */
+  subgruposInvertidos: Set<string>;
   toggleSubGroup: (key: string) => void;
   getDocSourceBadge: (docName?: string) => { label: string; color: string } | null;
   onGoToProblem: (p: Problem) => void;
@@ -24,7 +30,7 @@ interface Props {
 }
 
 export default function SolapamientosPorDocumento({
-  activeItems, type, meta, sending, collapsedSubGroups, toggleSubGroup,
+  activeItems, type, meta, sending, subgruposInvertidos, toggleSubGroup,
   getDocSourceBadge, onGoToProblem, onSolveOne, onSolveGroup, onDismissProblem,
 }: Props) {
   const t = useTranslations('analysis');
@@ -36,7 +42,8 @@ export default function SolapamientosPorDocumento({
     }
     return <>{[...subGroupMap.entries()].map(([docName, subItems]) => {
       const subKey = `dup-sg-${docName}`;
-      const isSubCollapsed = collapsedSubGroups.has(subKey);
+      const cabecera = cabeceraDelDocumento(subItems.map(({ p }) => p));
+      const isSubCollapsed = cabecera.abiertoPorDefecto === subgruposInvertidos.has(subKey);
       return (
         <div key={docName} style={{ marginBottom: 3 }}>
           <div
@@ -52,7 +59,9 @@ export default function SolapamientosPorDocumento({
               <polyline points="6 9 12 15 18 9" />
             </svg>
             <span style={{ fontSize: 10, fontWeight: 600, color: meta.color, flex: 1 }}>
-              {t('withDocument', { doc: docName })} ({t('fragmentCount', { count: subItems.length })})
+              {t('withDocument', { doc: docName })}
+              {cabecera.puntos !== null && ` · ${t('pointCount', { count: cabecera.puntos })}`}
+              {cabecera.severidad && ` · ${t('overlapSeverity', { severidad: cabecera.severidad })}`}
             </span>
             <button
               onClick={(e) => { e.stopPropagation(); onSolveGroup(type, subItems.map(({ p }) => p)); }}
@@ -66,7 +75,9 @@ export default function SolapamientosPorDocumento({
           </div>
           {!isSubCollapsed && subItems.map(({ p }) => {
             const srcBadge = getDocSourceBadge(p.relatedDoc);
-            const isClickable = !!p.textRef;
+            // Con lista, el salto es de cada punto y la entrada no se clica entera.
+            const tarjetas = tarjetasDeLaEntrada(p);
+            const isClickable = !tarjetas && !!p.textRef;
             return (
               <div
                 key={p.id}
@@ -118,11 +129,44 @@ export default function SolapamientosPorDocumento({
                     </>
                   )}
                 </div>
-                <p style={{ fontSize: 10, color: 'var(--text-secondary)', margin: 0, lineHeight: 1.4 }}>{p.description}</p>
+                {tarjetas
+                  ? tarjetas.map(tj => (
+                      <TarjetaDelPunto key={tj.clave} tarjeta={tj} otroDocumento={docName} meta={meta} onGoToProblem={onGoToProblem} />
+                    ))
+                  : <p style={{ fontSize: 10, color: 'var(--text-secondary)', margin: 0, lineHeight: 1.4 }}>{p.description}</p>}
               </div>
             );
           })}
         </div>
       );
     })}</>;
+}
+
+/** Un punto: qué comparten, y las dos citas con su dueño. Sin botones: los de
+ *  la entrada actúan sobre todos sus puntos (ver solapamientos.ts). */
+function TarjetaDelPunto({ tarjeta, otroDocumento, meta, onGoToProblem }: {
+  tarjeta: TarjetaDePunto; otroDocumento: string; meta: TypeMeta; onGoToProblem: (p: Problem) => void;
+}) {
+  const t = useTranslations('analysis');
+  const salto = tarjeta.salto;
+  const sinCita = <span style={{ fontStyle: 'italic', color: 'var(--text-muted)' }}>{t('noQuote')}</span>;
+  return (
+    <div style={{ marginTop: 5, padding: '5px 8px', borderRadius: 5, border: `0.5px solid ${meta.border}` }}>
+      <p style={{ fontSize: 10.5, color: 'var(--text-primary)', margin: '0 0 3px', lineHeight: 1.4 }}>{tarjeta.descripcion}</p>
+      <p style={{ fontSize: 10, color: 'var(--text-secondary)', margin: '0 0 2px', lineHeight: 1.4 }}>
+        {t('detailThisDoc')}:{' '}
+        {salto
+          ? <span
+              onClick={(e) => { e.stopPropagation(); onGoToProblem(salto); }}
+              title={t('goToFragment')}
+              style={{ cursor: 'pointer', textDecoration: 'underline dotted', color: meta.color }}
+            >&quot;{tarjeta.citaNuevo}&quot;</span>
+          : sinCita}
+      </p>
+      <p style={{ fontSize: 10, color: 'var(--text-secondary)', margin: 0, lineHeight: 1.4 }}>
+        {t('inDocument', { doc: otroDocumento })}:{' '}
+        {tarjeta.citaExistente.trim() ? <>&quot;{tarjeta.citaExistente}&quot;</> : sinCita}
+      </p>
+    </div>
+  );
 }

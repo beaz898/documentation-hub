@@ -125,10 +125,10 @@ export default function ChatPanel({
   const endRef = useRef<HTMLDivElement>(null);
 
   const [collapsedGroups, setCollapsedGroups] = useState<Set<ProblemType>>(new Set());
-  const [collapsedSubGroups, setCollapsedSubGroups] = useState<Set<string>>(new Set());
+  const [subgruposInvertidos, setSubgruposInvertidos] = useState<Set<string>>(new Set());
 
   const toggleSubGroup = (key: string) => {
-    setCollapsedSubGroups(prev => {
+    setSubgruposInvertidos(prev => {
       const next = new Set(prev);
       if (next.has(key)) next.delete(key); else next.add(key);
       return next;
@@ -450,7 +450,7 @@ export default function ChatPanel({
                     return (
                       <SolapamientosPorDocumento
                         activeItems={activeItems} type={type} meta={meta} sending={sending}
-                        collapsedSubGroups={collapsedSubGroups} toggleSubGroup={toggleSubGroup}
+                        subgruposInvertidos={subgruposInvertidos} toggleSubGroup={toggleSubGroup}
                         getDocSourceBadge={getDocSourceBadge} onGoToProblem={onGoToProblem}
                         onSolveOne={onSolveOne} onSolveGroup={onSolveGroup} onDismissProblem={onDismissProblem}
                       />

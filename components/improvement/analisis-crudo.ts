@@ -3,7 +3,7 @@
 // antes de B.314 commit B: problems.ts estaba en 400 líneas justas, y lo que
 // había que añadir era de aquí. problems.ts lo reexporta.
 
-import type { ComparedValue, GrupoDeTablas } from '@/lib/analysis/types';
+import type { ComparedValue, GrupoDeTablas, PuntoDeSolapamiento } from '@/lib/analysis/types';
 import type { CoberturaDeCandidatos } from '@/lib/analysis/cobertura-de-candidatos';
 
 export interface RawAnalysis {
@@ -12,7 +12,14 @@ export interface RawAnalysis {
   duplicateConfidence?: number;
   /** F-86 paso 0: `existingDocumentId` en las tres listas — hermano del nombre,
    *  undefined en los análisis guardados antes de este commit. */
-  overlaps?: Array<{ existingDocument: string; existingDocumentId?: string; description: string; severity: string; textRef?: string }>;
+  overlaps?: Array<{
+    existingDocument: string; existingDocumentId?: string; description: string; severity: string; textRef?: string;
+    /** F-45: presente en las entradas estructurales, que no llevan lista. */
+    confirmedBy?: string;
+    /** B.314: los puntos de la entrada del juez. Ausente en los análisis
+     *  guardados antes del 05/10/2026, que se pintan como siempre. */
+    puntos?: PuntoDeSolapamiento[];
+  }>;
   discrepancies?: Array<{
     topic: string;
     newDocSays: string;
