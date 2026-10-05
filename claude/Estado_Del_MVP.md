@@ -12277,6 +12277,44 @@ pantalla. El commit B, la pantalla, va después y con verde entre medias.
   verán como un solo bloque. **No es un fallo.**
 - **Sin sello, a propósito** (regla nueva del protocolo): es un cambio determinista con prueba.
 
+**🖥️ COMMIT B, LA PANTALLA: ESPECIFICADO Y PARADO ANTES DE ESCRIBIR** (arquitecto, 05/10/2026). Una tarjeta por
+punto, dentro de la cabecera de su documento:
+- primero, la descripción del punto;
+- debajo, las dos citas con su dueño, con las palabras de las contradicciones: «Este documento: "…"» y
+  «nombre-del-otro.docx: "…"»;
+- clicable sólo la cita de este documento (`citaNuevo`). Si viene vacía, la tarjeta sale sin nada que
+  invite a clicar;
+- la cabecera lleva, una sola vez, el nombre del documento, cuántos puntos hay y la severidad de la
+  pareja;
+- y los análisis sin lista, como hoy, en un bloque.
+- **De paso se arregla una cosa**: al dejar de unir las descripciones desaparecen los dos puntos seguidos
+  que veía el director («…cada uno.. Criterio de clasificación…»).
+
+**0 · CUÁNTAS TARJETAS: SE PARA, porque el peor caso posible pasa de 15** (la condición del arquitecto):
+- **El archivo del examen no contesta**: cada análisis se compara con UN documento. Ahí el máximo son 6
+  tarjetas y la mediana 3, y eso no es producción.
+- **El peor caso posible**: hasta 30 tarjetas en el rápido (6 parejas, `MAX_SELECTED_QUICK`, × 5 puntos,
+  el máximo del prompt) y 50 en el exhaustivo, más una por cada entrada estructural.
+- **El peor caso real NO CONSTA**: lo mide `SQL_B314_tarjetas_por_analisis.sql`, de sólo lectura y
+  PENDIENTE DE EJECUTAR (mediana, p95, peor caso, cuántos análisis pasan de 15 y el documento que más
+  acumula). Cuenta desde los juicios guardados, así que vale también para los análisis anteriores al
+  commit A.
+
+**2 · QUÉ CUENTA HOY CADA NÚMERO** (lectura de Code, 05/10):
+- **La N de la cabecera del editor**, «Con "doc" (N fragmentos)» (`components/improvement/ChatPanel.tsx:473`):
+  **cuenta ENTRADAS publicadas de ese documento**, no trozos ni puntos. Lo normal es 1, y 2 si el documento
+  tiene además una entrada estructural. **«Fragmentos» ya es la palabra equivocada hoy.** Con el cambio
+  tiene que contar las tarjetas que hay debajo: un número encima de una lista cuenta esa lista.
+- **La bandeja**, «N solapamiento(s)» (`components/review/ReviewDocumentRow.tsx:46` y `:60`): N es
+  `overlaps_found` = **entradas publicadas** (`app/api/documents/review-list/route.ts:182`), no documentos ni
+  puntos. Un documento con entrada del juez y entrada estructural cuenta 2; en el archivo del examen pasa en
+  4 de 65 análisis.
+- **La etiqueta, sin tocar el número** (regla del arquitecto: se arregla la etiqueta, nunca el número):
+  - Code propone «N bloque(s) de solapamiento», la única palabra corta que dice exactamente lo que cuenta.
+  - «Con N documento(s)» sería más clara, pero mentiría en ese 6 % en que un documento tiene dos entradas.
+  - Lo decide el arquitecto.
+
+
 
 
 
