@@ -225,7 +225,7 @@ function ImprovementModalDesktop({
     coberturaDeCandidatos,
     dismissProblem,
     coordenadasDescartadas,
-  } = useCrossDocAnalysis(analysis, storagePath, refDeSubida, reviewedDocumentId);
+  } = useCrossDocAnalysis(analysis, initialText, storagePath, refDeSubida, reviewedDocumentId);
 
   const {
     styleProblems,

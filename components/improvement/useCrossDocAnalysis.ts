@@ -62,6 +62,8 @@ export interface CoordenadasDeDescarte {
 
 export function useCrossDocAnalysis(
   initialAnalysis: RawAnalysis,
+  /** B.328: el texto tal como se carga, contra el que se buscan las citas UNA vez. */
+  textoInicial: string,
   /** F-101: la ruta del fichero — propietario primario del análisis en revisión. */
   storagePath: string | undefined,
   /** B.204 — la referencia firmada, cuando el fichero vino de una subida. */
@@ -73,7 +75,7 @@ export function useCrossDocAnalysis(
   reviewedDocumentId?: string,
 ) {
   const [crossDocProblems, setCrossDocProblems] = useState<Problem[]>(
-    () => problemsFromAnalysis(initialAnalysis)
+    () => problemsFromAnalysis(initialAnalysis, textoInicial)
   );
   // F-71: el aviso de análisis incompleto. Arranca con lo que traiga el
   // análisis inicial y se reemplaza en cada reanálisis, igual que los problemas.
@@ -207,7 +209,8 @@ export function useCrossDocAnalysis(
         }
 
         // Generar lista nueva de problemas (reemplazo completo, sin merge)
-        const newProblems = problemsFromAnalysis(analysis);
+        // B.328: contra el texto que se acaba de analizar, que es el de este análisis.
+        const newProblems = problemsFromAnalysis(analysis, currentText);
 
         // Marcar como dismissed los que están en la memoria
         const withDismissed = applyDismissedState(newProblems, dismissedFingerprintsRef.current);

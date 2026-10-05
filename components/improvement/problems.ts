@@ -1,6 +1,7 @@
 // Shared types and helpers for problem detection in ImprovementModal.
 
 import type { ComparedValue, PuntoDeSolapamiento } from '@/lib/analysis/types';
+import { findTolerant } from '@/lib/texto/localizar-cita';
 
 export type { ComparedValue };
 
@@ -111,9 +112,12 @@ export interface Problem {
   comparedValues?: ComparedValue[];
   /** B.314: sólo en los solapamientos, y SÓLO PARA PINTAR. Lo que leen los
    *  prompts sigue siendo `description`, que no cambia: ver solapamientos.ts. */
-  puntos?: PuntoDeSolapamiento[];
+  puntos?: Array<PuntoDeSolapamiento & { localizable?: boolean }>;
   severidad?: 'alta' | 'media' | 'baja';
   estructural?: boolean;
+  /** B.328: ¿se encontró `textRef` en el texto contra el que se construyó la
+   *  lista? Ausente = no se comprobó (sin texto, o un tipo fuera de la regla). */
+  localizable?: boolean;
   newDocRow?: string;
   existingDocRow?: string;
 }
@@ -126,7 +130,9 @@ import type { RawAnalysis } from './analisis-crudo';
 // `findTolerant` (`lib/texto/localizar-cita.ts`), que es el único sitio donde se
 // decide dónde está una cita. Dos criterios de «dónde está» se separan sin avisar.
 
-export function problemsFromAnalysis(analysis: RawAnalysis): Problem[] {
+/** `texto`: el del documento contra el que se hizo ESTE análisis (B.328). Con
+ *  él, cada cita se busca aquí, una sola vez, y no al pintar. */
+export function problemsFromAnalysis(analysis: RawAnalysis, texto?: string): Problem[] {
   const out: Problem[] = [];
 
   if (analysis.isDuplicate && analysis.duplicateOf) {
@@ -205,7 +211,48 @@ export function problemsFromAnalysis(analysis: RawAnalysis): Problem[] {
     });
   }
 
-  return out;
+  return texto === undefined ? out : marcarLocalizables(out, texto);
+}
+
+/**
+ * B.328 (05/10/2026): SÓLO SE CLICA LO QUE SE ENCUENTRA. Cada cita de los
+ * solapamientos y de las contradicciones se busca con `findTolerant`, la misma
+ * función del salto, contra el texto con el que se construye la lista.
+ *
+ * ⚠️ UNA VEZ, ATADO AL ANÁLISIS Y NO AL TEXTO EDITABLE: en cada tecla costaba
+ * ~200 ms. El precio aceptado: si el usuario edita y una cita deja de existir,
+ * su clic puede no encontrar nada. Eso es comprensible; un clic que nunca iba
+ * a funcionar es el producto mintiendo.
+ */
+const TIPOS_CON_SALTO_COMPROBADO: ProblemType[] = ['contradiccion', 'inconsistencia_menor', 'duplicidad'];
+
+export function marcarLocalizables(problemas: Problem[], texto: string): Problem[] {
+  const seEncuentra = (cita: string) => cita.trim().length > 0 && findTolerant(texto, cita) !== null;
+  const marcados = problemas.map(p => {
+    if (!TIPOS_CON_SALTO_COMPROBADO.includes(p.type)) return p;
+    return {
+      ...p,
+      localizable: p.textRef ? seEncuentra(p.textRef) : undefined,
+      puntos: p.puntos?.map(punto => ({ ...punto, localizable: seEncuentra(punto.citaNuevo) })),
+    };
+  });
+  // El tamaño real de la ceguera de tablas (B.319), sólo cifras y sólo en el navegador.
+  if (typeof window !== 'undefined') console.info('[B.328] citas no localizables', contarNoLocalizables(marcados));
+  return marcados;
+}
+
+export function contarNoLocalizables(problemas: Problem[]): { puntos: number; deTotalPuntos: number; contradicciones: number; deTotalContradicciones: number } {
+  const puntos = problemas.flatMap(p => p.puntos ?? []);
+  const contradicciones = problemas.filter(p => (p.type === 'contradiccion' || p.type === 'inconsistencia_menor') && p.textRef);
+  return {
+    puntos: puntos.filter(x => x.localizable === false).length, deTotalPuntos: puntos.length,
+    contradicciones: contradicciones.filter(p => p.localizable === false).length, deTotalContradicciones: contradicciones.length,
+  };
+}
+
+/** ¿Ofrece salto esta tarjeta? Si se comprobó y no se encontró, no. */
+export function ofreceSalto(p: Problem): boolean {
+  return !!p.textRef && p.localizable !== false;
 }
 
 /**

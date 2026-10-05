@@ -276,6 +276,13 @@ cada punto un hallazgo habría cambiado lo que lee el chat de mejora (`Improveme
 `:392`). Se pintó dentro de la entrada, y la prueba comprueba que lo que leen los prompts no cambia ni una
 letra.
 
+⚠️ **EL TEXTO QUE LLEVA ACENTOS GRAVES, BARRAS O COMILLAS NO SE ESCRIBE DESDE UNA ORDEN DE SHELL: SE ESCRIBE
+CON LA HERRAMIENTA DE EDICIÓN (arquitecto, 05/10/2026).** El shell interpreta; el editor copia. En una semana
+ha costado una ruta que no existía, un salto de línea mal escapado y **cinco ficheros del repositorio
+ejecutados como guiones**: un nombre de función entre acentos graves dentro de una orden se ejecuta como
+orden. Esa vez no dejó daño, y se comprobó con los ficheros ignorados incluidos; una línea con `>` habría
+creado o machacado ficheros.
+
 ---
 
 ## ⚠️ UNA PUERTA QUE DESCARTA TIENE QUE GUARDAR LO QUE DESCARTÓ

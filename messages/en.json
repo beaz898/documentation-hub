@@ -197,6 +197,7 @@
     "overlapSeverity": "{severidad, select, alta {high overlap} media {medium overlap} other {low overlap}}",
     "inDocument": "In \"{doc}\"",
     "noQuote": "no quote",
+    "cannotPointHere": "can't be pointed out in this document",
     "contradictionsCount": "{count, plural, one {# contradiction} other {# contradictions}}",
     "findingsCount": "{count, plural, one {# finding} other {# findings}}",
     "confirmDeep": "Deep Analysis in progress...",

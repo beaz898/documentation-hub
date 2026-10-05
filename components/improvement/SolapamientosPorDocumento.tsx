@@ -9,7 +9,7 @@
 
 import { useTranslations } from 'next-intl';
 import type { Problem, ProblemType } from './problems';
-import { mostrarAccionesDeFila } from './problems';
+import { mostrarAccionesDeFila, ofreceSalto } from './problems';
 import type { TypeMeta } from './ChatPanel';
 import { cabeceraDelDocumento, tarjetasDeLaEntrada, type TarjetaDePunto } from './solapamientos';
 
@@ -77,7 +77,7 @@ export default function SolapamientosPorDocumento({
             const srcBadge = getDocSourceBadge(p.relatedDoc);
             // Con lista, el salto es de cada punto y la entrada no se clica entera.
             const tarjetas = tarjetasDeLaEntrada(p);
-            const isClickable = !tarjetas && !!p.textRef;
+            const isClickable = !tarjetas && ofreceSalto(p);
             return (
               <div
                 key={p.id}
@@ -161,7 +161,9 @@ function TarjetaDelPunto({ tarjeta, otroDocumento, meta, onGoToProblem }: {
               title={t('goToFragment')}
               style={{ cursor: 'pointer', textDecoration: 'underline dotted', color: meta.color }}
             >&quot;{tarjeta.citaNuevo}&quot;</span>
-          : sinCita}
+          : tarjeta.noSenalable
+            ? <>&quot;{tarjeta.citaNuevo}&quot; <span style={{ fontStyle: 'italic', color: 'var(--text-muted)' }}>({t('cannotPointHere')})</span></>
+            : sinCita}
       </p>
       <p style={{ fontSize: 10, color: 'var(--text-secondary)', margin: 0, lineHeight: 1.4 }}>
         {t('inDocument', { doc: otroDocumento })}:{' '}

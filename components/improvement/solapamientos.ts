@@ -49,15 +49,23 @@ export interface TarjetaDePunto extends PuntoDeSolapamiento {
    *  tercer sitio sin tocar el editor. `null` si el punto no trae cita de este
    *  lado: entonces no hay nada que clicar. */
   salto: Problem | null;
+  /** B.328: hay cita, pero no se encontró en el texto. La tarjeta la enseña y
+   *  dice que no se puede señalar, sin nada que clicar. */
+  noSenalable: boolean;
 }
 
 /** Las tarjetas de una entrada, en el orden del juez. `null` = la entrada no
  *  trae lista y se pinta como siempre, en un bloque. */
 export function tarjetasDeLaEntrada(p: Problem): TarjetaDePunto[] | null {
   if (!p.puntos || p.puntos.length === 0) return null;
-  return p.puntos.map((punto, i) => ({
-    ...punto,
-    clave: `${p.id}-p${i}`,
-    salto: punto.citaNuevo.trim().length > 0 ? { ...p, textRef: punto.citaNuevo } : null,
-  }));
+  return p.puntos.map((punto, i) => {
+    const hayCita = punto.citaNuevo.trim().length > 0;
+    const { localizable, ...elPunto } = punto;
+    return {
+      ...elPunto,
+      clave: `${p.id}-p${i}`,
+      salto: hayCita && localizable !== false ? { ...p, textRef: punto.citaNuevo } : null,
+      noSenalable: hayCita && localizable === false,
+    };
+  });
 }

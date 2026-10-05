@@ -197,6 +197,7 @@
     "overlapSeverity": "{severidad, select, alta {solape alto} media {solape medio} other {solape bajo}}",
     "inDocument": "En \"{doc}\"",
     "noQuote": "sin cita",
+    "cannotPointHere": "no se puede señalar en este documento",
     "contradictionsCount": "{count, plural, one {# contradicción} other {# contradicciones}}",
     "findingsCount": "{count, plural, one {# hallazgo} other {# hallazgos}}",
     "confirmDeep": "Análisis exhaustivo en curso...",

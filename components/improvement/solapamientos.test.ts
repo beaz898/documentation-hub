@@ -11,7 +11,7 @@ import { extractText } from '@/lib/chunking';
 import { construirOverlaps } from '@/lib/analysis/synthesize';
 import { findTolerant } from '@/lib/texto/localizar-cita';
 import type { FinalAnalysis } from '@/lib/analysis/types';
-import { problemsFromAnalysis, type Problem } from './problems';
+import { contarNoLocalizables, marcarLocalizables, ofreceSalto, problemsFromAnalysis, type Problem } from './problems';
 import { cabeceraDelDocumento, tarjetasDeLaEntrada } from './solapamientos';
 
 const entrada = (x: Partial<Problem>): Problem => ({ id: 'ovl-0', type: 'duplicidad', title: 'Solapamiento con "B"', description: 'd', relatedDoc: 'B', ...x });
@@ -130,5 +130,66 @@ describe('sobre los 65 análisis archivados', { timeout: 120_000 }, () => {
       }
     }
     expect({ buscados, encontrados, filasNoEncontradas, sinTexto }).toEqual({ buscados: 211, encontrados: 118, filasNoEncontradas: 91, sinTexto: 0 });
+  });
+
+  /**
+   * B.328: SÓLO SE CLICA LO QUE SE ENCUENTRA, con la lista construida como en
+   * producción (`problemsFromAnalysis` con el texto). Es un bicondicional y se
+   * ejercen las dos mitades: todo salto ofrecido se encuentra, y todo lo que no
+   * se encuentra deja de ofrecerse. Vale igual para solapamientos y
+   * contradicciones. Las cuentas son las de B.328, con su reserva: este archivo
+   * es casi todo tablas, y no es producción.
+   */
+  it('sólo se ofrece el salto de lo que se encuentra, en solapamientos y en contradicciones', () => {
+    let puntosOfrecidos = 0, contradiccionesOfrecidas = 0;
+    const total = { puntos: 0, deTotalPuntos: 0, contradicciones: 0, deTotalContradicciones: 0 };
+    for (const a of archivados) {
+      const texto = textos.get(a.analizado)!;
+      const { discrepancies, minorInconsistencies } = a.analisis;
+      const lista = problemsFromAnalysis({ overlaps: construirOverlaps(a.analisis.judgments), discrepancies, minorInconsistencies }, texto);
+      for (const p of lista) {
+        for (const t of tarjetasDeLaEntrada(p) ?? []) {
+          const seEncuentra = findTolerant(texto, t.citaNuevo) !== null;
+          expect(t.salto !== null, `${a.ruta} ${t.clave}`).toBe(seEncuentra);
+          expect(t.noSenalable, `${a.ruta} ${t.clave}`).toBe(!seEncuentra);
+          if (t.salto) puntosOfrecidos++;
+        }
+        if (p.type === 'contradiccion' || p.type === 'inconsistencia_menor') {
+          expect(ofreceSalto(p), `${a.ruta} ${p.id}`).toBe(!!p.textRef && findTolerant(texto, p.textRef) !== null);
+          if (ofreceSalto(p)) contradiccionesOfrecidas++;
+        }
+      }
+      const c = contarNoLocalizables(lista);
+      for (const k of Object.keys(total) as (keyof typeof total)[]) total[k] += c[k];
+    }
+    expect({ puntosOfrecidos, contradiccionesOfrecidas }).toEqual({ puntosOfrecidos: 118, contradiccionesOfrecidas: 16 });
+    expect(total).toEqual({ puntos: 93, deTotalPuntos: 211, contradicciones: 85, deTotalContradicciones: 101 });
+  });
+});
+
+describe('la regla en sintético', () => {
+  it('un punto que no se encuentra enseña su cita, dice que no se puede señalar y no se clica', () => {
+    const p = entrada({ puntos: [{ ...punto(1), localizable: true }, { ...punto(2), localizable: false }, { ...punto(3, ''), localizable: false }] });
+    const [uno, dos, tres] = tarjetasDeLaEntrada(p)!;
+    expect([uno.salto !== null, uno.noSenalable]).toEqual([true, false]);
+    expect([dos.salto, dos.noSenalable, dos.citaNuevo]).toEqual([null, true, punto(2).citaNuevo]);
+    expect([tres.salto, tres.noSenalable]).toEqual([null, false]);
+  });
+
+  it('una contradicción que no se encuentra no ofrece salto; sin comprobar, como siempre', () => {
+    const c = (x: Partial<Problem>): Problem => ({ id: 'disc-0', type: 'contradiccion', title: 't', description: 'd', textRef: 'cita', ...x });
+    expect(ofreceSalto(c({ localizable: false }))).toBe(false);
+    expect(ofreceSalto(c({ localizable: true }))).toBe(true);
+    expect(ofreceSalto(c({}))).toBe(true);
+    expect(ofreceSalto(c({ textRef: undefined }))).toBe(false);
+  });
+
+  it('se marca contra el texto que se le da, y sólo los tipos de la regla', () => {
+    const lista = marcarLocalizables([
+      { id: 'disc-0', type: 'contradiccion', title: 't', description: 'd', textRef: 'está aquí' },
+      { id: 'disc-1', type: 'contradiccion', title: 't', description: 'd', textRef: 'no está' },
+      { id: 'st-0', type: 'ortografia', title: 't', description: 'd', textRef: 'no está' },
+    ], 'el texto dice: está aquí.');
+    expect(lista.map(p => p.localizable)).toEqual([true, false, undefined]);
   });
 });

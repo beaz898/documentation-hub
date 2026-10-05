@@ -13124,6 +13124,41 @@ ceguera de las filas de B.319, la misma que en los solapamientos (91 de los 93 p
 **Lo que decide el arquitecto**: si la regla «sólo se clica lo que se encuentra» se aplica también aquí, y
 si la cura es localizar la fila en el texto (B.319) o dejar de ofrecer el salto.
 
+📌 **EL HALLAZGO, DICHO COMO ES (arquitecto, 05/10/2026): UNA CITA QUE ES UNA FILA DE TABLA NUNCA SE VA A
+LOCALIZAR EN EL TEXTO DE PROSA.** El diff de tablas produce exactamente esas. **Una funcionalidad entera —los
+hallazgos de tablas— no se puede señalar en el documento.** Ése es el hallazgo, no el porcentaje. El 84 % va
+siempre con su reserva al lado: el archivo es casi todo tablas y se mide contra el texto extraído. **Cuando
+haya un corpus de prosa, se mide ahí y se corrige la cifra.**
+
+**LA PREGUNTA QUE QUEDA PLANTEADA, sin decidir: ¿cómo se señala una fila de tabla?** Hay dos salidas:
+- **encontrar la fila en el texto** (B.319);
+- **o enseñarla de otra forma que no sea un salto.**
+
+**🛠️ LA REGLA, APLICADA (05/10/2026): SÓLO SE CLICA LO QUE SE ENCUENTRA**, en los solapamientos y en las
+contradicciones.
+- **Dónde**: `problemsFromAnalysis` recibe el texto contra el que se hizo el análisis y busca cada cita
+  UNA vez, con `findTolerant`, la misma función del salto (`marcarLocalizables`,
+  `components/improvement/problems.ts`). No se recalcula al teclear: se ata al análisis, no al texto editable.
+- **Qué texto**: al abrir, el texto tal como se carga; en un reanálisis, el texto que se acaba de mandar a
+  analizar.
+- **Lo que se ve**: un punto que no se encuentra enseña su cita y dice «no se puede señalar en este
+  documento», sin nada que clicar. Una contradicción que no se encuentra no ofrece salto.
+- **El coste, medido antes**: al abrir, sobre los 65 análisis archivados, **mediana 0,6 ms y máximo
+  28,4 ms**, una sola vez. No hizo falta optimizar.
+- **El precio, aceptado por escrito por el arquitecto**: si el usuario edita el documento y una cita deja de
+  existir, su clic puede no encontrar nada. **Eso es distinto en naturaleza de lo que se arregla: un clic que
+  falla porque el usuario ya arregló la frase es comprensible; un clic que nunca iba a funcionar es el
+  producto mintiendo.**
+- **La cuenta**: cada vez que se construye la lista, la consola del navegador recibe cuántas citas no se
+  localizan, sólo cifras. **Ojo**: nadie lee esa consola. Para tener el número en la base haría falta un
+  contador en el servidor, y eso es otro commit, que no es de pantalla.
+- **La prueba** (`components/improvement/solapamientos.test.ts`), con la lista construida como en producción
+  y sobre el texto real, ejerce las dos mitades: todo salto ofrecido se encuentra, y todo lo que no se
+  encuentra deja de ofrecerse. Se ofrecen 118 de 211 puntos y 16 de 101 contradicciones. Control positivo:
+  con `ofreceSalto` ignorando la marca, caen dos pruebas.
+- **Sin sello**: cambio determinista con prueba.
+
+
 ### 📋 B.327 — LOS PUNTOS DE UN SOLAPAMIENTO SE VEN UNO A UNO Y SE DESCARTAN TODOS JUNTOS (coste aceptado, sin arreglo; 05/10/2026)
 
 **Lo que pasa**: desde B.314 commit B, el usuario puede ir a cada punto de un solapamiento por separado,

@@ -16,7 +16,7 @@ import WritingVariantsBlock from './WritingVariantsBlock';
 import SolapamientosPorDocumento from './SolapamientosPorDocumento';
 import { contarSinCorrespondencia, contarVariantes, hayRanuraDeCobertura, hayRanuraDeIdenticas, hayRanuraDeVariantes, lineasDeIdenticas, ordenDeGrupos } from './table-coverage';
 import type { ProblemType, Problem } from './problems';
-import { mostrarAccionesDeFila } from './problems';
+import { mostrarAccionesDeFila, ofreceSalto } from './problems';
 import type { GrupoDeTablas } from '@/lib/analysis/types';
 import type { ChatMessage } from './useImprovementChat';
 import { applyReplacement } from './useImprovementChat';
@@ -459,7 +459,7 @@ export default function ChatPanel({
 
                   return activeItems.map(({ p }) => {
                     const srcBadge = getDocSourceBadge(p.relatedDoc);
-                    const isClickable = !!p.textRef;
+                    const isClickable = ofreceSalto(p);
                     return (
                       <div
                         key={p.id}
