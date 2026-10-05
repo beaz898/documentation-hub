@@ -11900,7 +11900,7 @@ pasa a estar mal, y qué cambió? No se había hecho porque **lo que falla se ti
   - **Dónde va**: en cada juicio, `descartesPorCita` y `descartesPorCitaOmitidos`
     (`lib/analysis/types.ts`, `DescarteDeCita`; ⚠️ `types.ts` sube a 637 líneas, deuda anterior al
     tope de 400, y **lo próximo que haya que añadir ahí obliga a partirlo por dominio primero**: un
-    fichero que ya incumple la regla no es excusa para seguir creciendo). Lo anota `registroDeDescartes`
+    fichero que ya incumple la regla no es excusa para seguir creciendo; **cumplido el 05/10/2026**: antes de añadir la lista de puntos de B.314, lo publicado —`FinalAnalysis` y sus tipos— pasó a `lib/analysis/tipos-del-analisis-publicado.ts`, y `types.ts` bajó a 313 líneas y lo reexporta todo). Lo anota `registroDeDescartes`
     (`lib/analysis/diagnostico-de-cita.ts`), con `TOPE_DE_DESCARTES_POR_PAREJA = 10`.
   - **El paso y el pajar se guardan como DATO, no como texto del log**: salen de la misma función
     que escribe el log (`ComprobadorDeLado.datos`).
