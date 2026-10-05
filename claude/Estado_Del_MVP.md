@@ -13103,6 +13103,133 @@ la nueva (`:140-147`).
 
 **Sin arreglo.** Es una decisión de producto, y la toma el director.
 
+### 📋 B.332 — cabeza_sin_cola ES EL FALLO DOMINANTE: TAMAÑO MEDIDO, CAUSA SIN DETERMINAR (05/10/2026)
+
+Medido en producción con SQL_B331 sobre 52 análisis con descartes guardados y 0
+descartes omitidos por el tope. 75 hallazgos descartados: 54 contradicciones y 21
+solapamientos, unos 1,4 descartes por pasada.
+
+Reparto por paso de fallo, y cuántos de cada uno son .docx con barra:
+- cabeza_sin_cola: 49 lados, de los cuales 28 son .docx con barra y 21 no llevan barra.
+- sin_cabeza: 12 lados, ninguno con barra.
+- cola_demasiado_lejos: 9 lados, ninguno con barra.
+- cabeza_y_cola: 5 lados, los 5 .docx con barra.
+
+LO QUE ESTÁ MEDIDO: cabeza_sin_cola es el 65% de todos los fallos (49 de 75), y 33 de
+los 75 son tablas de Word con barra (B.330, B.319).
+
+LO QUE NO ESTÁ MEDIDO, y el arquitecto lo afirmó de más el 05/10 antes de que Code lo
+parase: que los 21 lados sin barra sean de prosa, y que la causa sea el juez cortando
+frases. El bloque c solo clasificó las citas CON barra, así que alguno de esos 21
+podría ser de un Excel. Esta ficha no concluye nada sobre la causa.
+
+LAS CAUSAS CANDIDATAS, sin orden de probabilidad, porque cabeza_sin_cola solo
+significa que los primeros 15 caracteres normalizados están en el pajar y los últimos
+15 no están detrás (coincidencia-de-cita.ts:163):
+1. El juez cortó la frase por dentro o la compuso juntando trozos. Demostrado en UN
+   caso: la contradicción del punto de retirada centralizado de Chamberí, 05/10, cita
+   de 206 caracteres terminada en «…el material recogido en Salamanca y ». Un caso no
+   explica 21.
+2. El juez cambió algo al final de la frase: un número escrito de otra forma, o un
+   signo que normalize() no elimina.
+3. El pajar se entregó por piezas (entregado_piezas): cada trozo se busca por separado
+   en comprobadorDeLado, así que una frase REAL que cruce dos trozos seguidos falla
+   sin que nadie haya cortado nada.
+4. Tablas de Word con barra, ya identificadas y contadas aparte.
+
+LA MEDICIÓN QUE SEPARA LAS CAUSAS: escrita el 05/10 como
+SQL_B332_por_que_falla_la_cola.sql, pendiente de ejecutar. Todo lo necesario está
+guardado: descartesPorCita lleva, por lado, el tipo de pajar y la longitud
+(types.ts:175), y la cita en crudo, desde el primer descarte guardado (eb0a0033).
+
+RESERVA: los 52 análisis son casi todos repeticiones de NOR-11. La mezcla mide cuánto
+escuece en nuestras pruebas, no cuánto escocería a un cliente con otro corpus.
+
+**REGLA NUEVA EN EL PROTOCOLO (05/10/2026)**: cuando Code dé al arquitecto un total, le
+da también los sumandos. El arquitecto no puede ejecutar nada ni comprobar un total
+por su cuenta, y ya ha reutilizado tres veces un número ajeno sin comprobarlo. La
+regla «un número que viene de otro no se reutiliza sin comprobarlo» solo se puede
+cumplir si el número viene desglosado.
+
+### 📋 B.331 — COMILLAS CURVAS, Y LA REPRESENTATIVIDAD DEL CORPUS (05/10/2026)
+
+Hecho 1: la clase de caracteres de normalize-core.mjs:84 lleva la comilla doble recta
+(U+0022) tres veces y el apóstrofo recto (U+0027) dos, más « y ». Las cuatro curvas
+(U+201C, U+201D, U+2018, U+2019) no están, y nunca estuvieron: la clase nació así el
+03/05/2026 (e9dd53ce). No es un accidente de codificación.
+
+Hecho 2, medido dos veces. En el archivo de examen: 0 de 624 lados de cita, y 0 de
+los 27 documentos del corpus de pruebas, leídos uno a uno con el extractor real. En
+producción (SQL_B331, organización del piloto): 0 en los 50 documentos, 0 en los 567
+trozos de la generación activa, 0 en los 2.830 lados de cita que pasaron la puerta y
+0 en los descartados. El extractor no convierte comillas, así que los ceros son
+reales.
+
+Decisión del 05/10/2026: NO se añaden las curvas a normalize(). No hay beneficio que
+obtener, y el riesgo sí se puede nombrar. De los cinco consumidores en producción,
+TRES se mueven en contra:
+- judge.ts:371-373: más líneas reconocidas como contexto, y por tanto más hallazgos
+  descartados.
+- finding-rules.ts:281: una contradicción cuyas dos citas solo difieran en el tipo de
+  comilla pasaría a tratarse como equivalente y dejaría de ser contradicción.
+- retrieval.ts (índice de valores, cruces, filas iguales): fundiría como una sola fila
+  dos que solo difieran en el tipo de comilla. Eso mueve el colapso de filas idénticas
+  de F-44/F-45 y, sobre todo, puede tragarse una discrepancia real.
+
+RESERVA QUE MANTIENE VIVA ESTA FICHA: los 10 .docx de la organización del piloto los
+fabricamos nosotros. El cero significa «aquí nadie ha escrito todavía en Word», no
+«los documentos de Word no traen comillas curvas». Word las curva automáticamente en
+cuanto alguien escribe en él. El día que entre un documento real de cliente, hay que
+volver a medir esto ANTES de dar por bueno el cero. Y si entonces resultan
+frecuentes, el arreglo va en el extractor o en el comprobador de citas, nunca en
+normalize().
+
+Consecuencia de método, escrita como regla: el corpus de examen y el del piloto son
+ambos fabricados por nosotros, sin comillas curvas y casi sin tablas de Word. Una
+pregunta sobre caracteres o sobre tablas de Word no se decide contra ellos. Sirven
+para medir regresiones de la cascada, que es para lo que se hicieron. Enriquecerlos
+con documentos reales es trabajo aparte y pendiente (pendiente de número en
+Puntos_Pendientes_Doclity.txt).
+
+Corrección de nomenclatura, del 05/10/2026: «literal» y «normalizada» no son pasos de
+fallo, son vías por las que una cita pasa. Los pasos de fallo son sin_coincidencia,
+sin_cabeza, cabeza_sin_cola, cola_demasiado_lejos, cabeza_y_cola y vacia_o_corta.
+
+### 📋 B.330 — LA BARRA «|» EN normalize() — CONFIRMADA Y DELIBERADAMENTE NO ARREGLADA (05/10/2026)
+
+Hecho: normalize() no elimina el carácter «|». Comprobado con la función real
+(normalize-core.mjs:84). normalize('Residuos sanitarios | 21 dias | 3 semanas |
+Clinicas, veterinarias') conserva las barras; el full_text del documento escribe esa
+fila como celdas separadas por líneas en blanco, sin barras; no casa nunca.
+
+Decisión del 05/10/2026: NO se añade la barra a la clase de caracteres.
+
+Motivo 1, beneficio medido nulo. Simulación sobre los 387 lados de cita con barra del
+archivo de examen (96 + 91 en puntos de solapamiento, 100 + 100 en contradicciones),
+de los cuales 5 ya casan hoy y 382 no: los que pasan de no encontrarse a encontrarse
+son 0. El archivo es casi todo Excel, donde full_text escribe «Columna: valor |
+Columna: valor» y el juez cita solo los valores; quitando la barra sigue sin casar,
+porque faltan los nombres de columna intercalados.
+
+Motivo 2, daño con mecanismo nombrado. Hoy la barra es la ÚNICA señal de que eso son
+celdas separadas. Sin ella, una cita que junte la última celda de una fila con la
+primera de la siguiente pasaría como frase seguida, y una fila fabricada a caballo de
+dos filas reales se daría por verificada. Es la misma clase de riesgo que B.317, y
+produce exactamente la mentira que eliminó la reparación de los puestos 0, 1 y 2
+(02/10/2026).
+
+Tamaño medido en producción (SQL_B331, bloque c, 52 análisis desde el 02/10, 0
+descartes omitidos por el tope): 33 de los 75 lados de cita descartados llevan barra,
+los 33 en documentos .docx, ninguno en .md. Son solo 3 citas distintas, repetidas en
+cada pasada. Encajan con el bloque b: 28 en cabeza_sin_cola y 5 en cabeza_y_cola.
+
+Reserva: en tablas de WORD la barra sí es la causa del fallo. El arreglo de ese caso
+no es normalize: es dar estructura de fila a las tablas de Word en el extractor
+(B.319 aquí; pendiente de número en Puntos_Pendientes_Doclity.txt).
+
+Reabrir solo si: se descarta el arreglo del extractor. Incluso entonces, antes hay
+que medir el caso decisivo: filas fabricadas a caballo de dos filas reales.
+
 ### 🔥 B.328 — EL SALTO DE LAS CONTRADICCIONES NO ENCUENTRA SU SITIO EN 85 DE 101 (medido, sin arreglo; 05/10/2026)
 
 **La medida** (pedida por el arquitecto al cerrar B.314). Sobre los 65 análisis archivados, cada cita de
