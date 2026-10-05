@@ -7,6 +7,7 @@ import {
   rutasDeCasasExternas,
   type Violacion,
 } from './invariantes-de-estado';
+import { fichasConEntradaEnLaLista, RUTA_DE_LA_LISTA_DE_PENDIENTES, type ListaDePendientes } from './lista-de-pendientes';
 
 /**
  * ⚠️ LA MITAD QUE IMPORTA DE ESTA BATERÍA ES LA PRIMERA, y no la del documento
@@ -202,6 +203,40 @@ describe('la casa externa — los tres cerrojos', () => {
   });
 });
 
+describe('I1 ampliado (06/10/2026) — la numeración B.n vive en dos ficheros', () => {
+  const lista = (texto: string | undefined): ListaDePendientes => ({ ruta: RUTA_DE_LA_LISTA_DE_PENDIENTES, texto });
+  const conEntradas = ['  B.86 — [DIAGNÓSTICO, conteo de descartes] "Cita inventada"…', '[✓] B.3 Fase 2 + B.10 — (UI) Aviso'].join('\n');
+
+  it('una cita a una ficha que vive en la lista tiene casa', () => {
+    expect(invariantesDelDocumentoDeEstado('Es B.86 de la lista.', new Map(), lista(conEntradas))).toEqual([]);
+  });
+
+  it('un número que no existe en ninguno de los dos sigue sin casa', () => {
+    expect(clases(invariantesDelDocumentoDeEstado('Se cita B.9.', new Map(), lista(conEntradas)))).toEqual(['ficha_sin_casa']);
+  });
+
+  it('si la lista no se pudo leer, no concede casa a nadie y lo dice', () => {
+    const vs = invariantesDelDocumentoDeEstado('Es B.86 de la lista.', new Map(), lista(undefined));
+    expect(clases(vs)).toEqual(['casa_externa_ausente', 'ficha_sin_casa']);
+    expect(vs.find(v => v.clase === 'casa_externa_ausente')?.texto).toContain('no se pudo leer');
+  });
+
+  it('una mención en la lista no es una entrada: una viñeta y el orden de trabajo apuntan, no declaran', () => {
+    const soloMenciones = ['    · B.82 — el juez no es estable', '  B.122 → Frente 2'].join('\n');
+    expect(clases(invariantesDelDocumentoDeEstado('B.82 y B.122.', new Map(), lista(soloMenciones))))
+      .toEqual(['ficha_sin_casa', 'ficha_sin_casa']);
+  });
+
+  it('una entrada doble («B.3 Fase 2 + B.10 —») es de los dos números', () => {
+    expect(fichasConEntradaEnLaLista(conEntradas)).toEqual(new Set(['B.86', 'B.3', 'B.10']));
+  });
+
+  it('B.112: con casa aquí, la lista no se mira — el choque se acepta, declarado en la cabecera de la lista', () => {
+    const texto = '## B.112 — el criterio de borrado (03/09/2026)\nVer B.112.';
+    expect(invariantesDelDocumentoDeEstado(texto, new Map(), lista('  B.112 — [PREEXISTENTE] supabase-setup.sql'))).toEqual([]);
+  });
+});
+
 /**
  * ⚠️ EL TECHO ES UNA LÁPIDA CON FECHA, NO UN APROBADO.
  *
@@ -234,8 +269,15 @@ describe('la casa externa — los tres cerrojos', () => {
  * regla después de ver la medida es la forma más fácil de ajustarla a los
  * datos—; lo que lo absuelve es que en la misma pasada AÑADE una violación que
  * antes no se veía. Si solo aflojara, el número no habría subido nunca.
+ *
+ * ⚠️ 06/10/2026 · BAJA DE 29 A 28 AL ENSEÑARLE LA OTRA MITAD DE LA NUMERACIÓN.
+ * La que se va es UNA y con nombre: la cita a B.138 (línea 455), que vive en
+ * `Puntos_Pendientes_Doclity.txt` y contaba como `ficha_sin_casa` porque el
+ * chequeo solo conocía este documento. Ninguna otra clase se mueve. Y no afloja
+ * a ciegas: la entrada se BUSCA en la lista (no hay rango de números), y un
+ * número que no esté en ninguno de los dos ficheros sigue siendo violación.
  */
-const TECHO_DECLARADO_10_09_2026 = 29;
+const TECHO_DECLARADO_10_09_2026 = 28;
 
 describe('Estado_Del_MVP.md — la deuda de forma, medida', () => {
   const ruta = join(process.cwd(), 'claude', 'Estado_Del_MVP.md');
@@ -255,8 +297,23 @@ describe('Estado_Del_MVP.md — la deuda de forma, medida', () => {
     } catch { /* se queda fuera del mapa: el chequeo lo canta */ }
   }
 
+  // La otra mitad de la numeración. Si no se puede leer, va `undefined` y el
+  // chequeo lo canta: no se revienta aquí.
+  let textoDeLaLista: string | undefined;
+  try {
+    textoDeLaLista = readFileSync(join(process.cwd(), RUTA_DE_LA_LISTA_DE_PENDIENTES), 'utf-8');
+  } catch { /* el chequeo lo canta */ }
+  const laLista: ListaDePendientes = { ruta: RUTA_DE_LA_LISTA_DE_PENDIENTES, texto: textoDeLaLista };
+
+  it('CONTROL POSITIVO — la lista real se lee y se le reconocen sus entradas', () => {
+    const fichas = fichasConEntradaEnLaLista(textoDeLaLista ?? '');
+    expect(fichas.size).toBeGreaterThan(190);
+    expect(['B.1', 'B.86', 'B.138', 'B.194'].every(f => fichas.has(f))).toBe(true);
+    expect(fichas.has('B.9') || fichas.has('B.151')).toBe(false);
+  });
+
   it('no supera el techo declarado, que solo puede bajar', () => {
-    const violaciones = invariantesDelDocumentoDeEstado(texto, externos);
+    const violaciones = invariantesDelDocumentoDeEstado(texto, externos, laLista);
     const reparto = repartoPorClase(violaciones);
     const detalle = Object.entries(reparto)
       .map(([clase, n]) => `${clase}=${n}`)

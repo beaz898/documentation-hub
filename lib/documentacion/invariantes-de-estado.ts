@@ -83,6 +83,7 @@
  * otra. Eso está a ficha; aquí solo se declara que ESTE chequeo no lo ve.
  * ═══════════════════════════════════════════════════════════════════════════
  */
+import { fichasDeLaLista, type ListaDePendientes } from './lista-de-pendientes';
 
 /** Las seis formas en que la forma se rompe. */
 export type ClaseDeViolacion =
@@ -255,6 +256,8 @@ export function invariantesDelDocumentoDeEstado(
    * marcas da violaciones, no silencio.
    */
   documentosExternos: ReadonlyMap<string, string> = new Map(),
+  /** La otra mitad de la numeración B.n: ver `fichasDeLaLista`. */
+  listaDePendientes?: ListaDePendientes,
 ): Violacion[] {
   const lineas = texto.split(/\r?\n/);
   const violaciones: Violacion[] = [];
@@ -314,6 +317,7 @@ export function invariantesDelDocumentoDeEstado(
   // I1 — un hecho, una casa. Se resuelve al final porque necesita el documento
   // entero: una ficha declarada en la línea 400 legitima su mención en la 20.
   // Y desde el 10/09/2026 la casa puede estar FUERA: la marca se sigue.
+  const enLaLista = fichasDeLaLista(listaDePendientes, violaciones);
   const marcasPorFicha = new Map<string, Marca[]>();
   for (const m of marcasDe(texto)) {
     marcasPorFicha.set(m.ficha, [...(marcasPorFicha.get(m.ficha) ?? []), m]);
@@ -357,7 +361,7 @@ export function invariantesDelDocumentoDeEstado(
     }
 
     const total = casas.length + externas;
-    if (total === 0) {
+    if (total === 0 && !enLaLista.has(ficha)) {
       violaciones.push({
         clase: 'ficha_sin_casa',
         ficha,
