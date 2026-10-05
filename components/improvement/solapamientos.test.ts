@@ -12,7 +12,7 @@ import { construirOverlaps } from '@/lib/analysis/synthesize';
 import { findTolerant } from '@/lib/texto/localizar-cita';
 import type { FinalAnalysis } from '@/lib/analysis/types';
 import { contarNoLocalizables, marcarLocalizables, ofreceSalto, problemsFromAnalysis, type Problem } from './problems';
-import { cabeceraDelDocumento, tarjetasDeLaEntrada } from './solapamientos';
+import { cabeceraDelDocumento, clicDeLaTarjeta, tarjetasDeLaEntrada } from './solapamientos';
 
 const entrada = (x: Partial<Problem>): Problem => ({ id: 'ovl-0', type: 'duplicidad', title: 'Solapamiento con "B"', description: 'd', relatedDoc: 'B', ...x });
 const punto = (n: number, citaNuevo = `cita del nuevo número ${n}, larga de sobra`) => ({ descripcion: `punto ${n}`, citaNuevo, citaExistente: `cita del otro ${n}` });
@@ -164,6 +164,39 @@ describe('sobre los 65 análisis archivados', { timeout: 120_000 }, () => {
     }
     expect({ puntosOfrecidos, contradiccionesOfrecidas }).toEqual({ puntosOfrecidos: 118, contradiccionesOfrecidas: 16 });
     expect(total).toEqual({ puntos: 93, deTotalPuntos: 211, contradicciones: 85, deTotalContradicciones: 101 });
+  });
+});
+
+describe('la tarjeta de un punto se clica entera (05/10/2026)', () => {
+  it('con salto, el clic en la tarjeta lleva a la cita de ese punto, una vez', () => {
+    const p = entrada({ puntos: [{ ...punto(1), localizable: true }, { ...punto(2), localizable: false }, punto(3, '')] });
+    const [conSalto, noSenalable, sinCita] = tarjetasDeLaEntrada(p)!;
+    const recibidos: Problem[] = [];
+    clicDeLaTarjeta(conSalto, x => recibidos.push(x))!();
+    expect(recibidos.map(x => x.textRef)).toEqual([punto(1).citaNuevo]);
+    expect(clicDeLaTarjeta(noSenalable, x => recibidos.push(x))).toBeUndefined();
+    expect(clicDeLaTarjeta(sinCita, x => recibidos.push(x))).toBeUndefined();
+    expect(recibidos).toHaveLength(1);
+  });
+
+  /**
+   * El alcance de Vitest no admite React (vitest.config.mts): no se puede
+   * simular un clic sobre la tarjeta pintada. Lo que muere si se revierte es
+   * esto: en `TarjetaDelPunto` hay UN solo `onClick`, está en la raíz de la
+   * tarjeta (antes del primer párrafo, donde va la cita), es el de
+   * `clicDeLaTarjeta`, y nada para la propagación. La cabecera del documento
+   * sigue plegando con su propio clic.
+   */
+  it('el único disparo es el del cuerpo de la tarjeta, no el de la cita', () => {
+    const fuente = readFileSync('components/improvement/SolapamientosPorDocumento.tsx', 'utf8');
+    const tarjeta = fuente.slice(fuente.indexOf('function TarjetaDelPunto('));
+    expect(tarjeta.match(/onClick=/g)).toHaveLength(1);
+    expect(tarjeta.indexOf('onClick={alClicar}')).toBeGreaterThan(-1);
+    expect(tarjeta.indexOf('onClick={alClicar}')).toBeLessThan(tarjeta.indexOf('<p'));
+    expect(tarjeta).toContain('const alClicar = clicDeLaTarjeta(tarjeta, onGoToProblem);');
+    expect(tarjeta).not.toContain('stopPropagation');
+    expect(tarjeta).not.toContain('onGoToProblem(');
+    expect(fuente.match(/onClick=\{\(\) => toggleSubGroup\(subKey\)\}/g)).toHaveLength(1);
   });
 });
 

@@ -11,7 +11,7 @@ import { useTranslations } from 'next-intl';
 import type { Problem, ProblemType } from './problems';
 import { mostrarAccionesDeFila, ofreceSalto } from './problems';
 import type { TypeMeta } from './ChatPanel';
-import { cabeceraDelDocumento, tarjetasDeLaEntrada, type TarjetaDePunto } from './solapamientos';
+import { cabeceraDelDocumento, clicDeLaTarjeta, tarjetasDeLaEntrada, type TarjetaDePunto } from './solapamientos';
 
 interface Props {
   activeItems: Array<{ p: Problem; globalIndex: number }>;
@@ -148,19 +148,26 @@ function TarjetaDelPunto({ tarjeta, otroDocumento, meta, onGoToProblem }: {
   tarjeta: TarjetaDePunto; otroDocumento: string; meta: TypeMeta; onGoToProblem: (p: Problem) => void;
 }) {
   const t = useTranslations('analysis');
-  const salto = tarjeta.salto;
+  const alClicar = clicDeLaTarjeta(tarjeta, onGoToProblem);
+  const isClickable = alClicar !== undefined;
   const sinCita = <span style={{ fontStyle: 'italic', color: 'var(--text-muted)' }}>{t('noQuote')}</span>;
+  // Cursor, sombreado y título, los mismos que la tarjeta de contradicción (ChatPanel.tsx).
   return (
-    <div style={{ marginTop: 5, padding: '5px 8px', borderRadius: 5, border: `0.5px solid ${meta.border}` }}>
+    <div
+      onClick={alClicar}
+      title={isClickable ? t('goToFragment') : undefined}
+      style={{
+        marginTop: 5, padding: '5px 8px', borderRadius: 5, border: `0.5px solid ${meta.border}`,
+        cursor: isClickable ? 'pointer' : 'default', transition: 'background 0.12s',
+      }}
+      onMouseEnter={e => { if (isClickable) e.currentTarget.style.background = meta.border; }}
+      onMouseLeave={e => { if (isClickable) e.currentTarget.style.background = ''; }}
+    >
       <p style={{ fontSize: 10.5, color: 'var(--text-primary)', margin: '0 0 3px', lineHeight: 1.4 }}>{tarjeta.descripcion}</p>
       <p style={{ fontSize: 10, color: 'var(--text-secondary)', margin: '0 0 2px', lineHeight: 1.4 }}>
         {t('detailThisDoc')}:{' '}
-        {salto
-          ? <span
-              onClick={(e) => { e.stopPropagation(); onGoToProblem(salto); }}
-              title={t('goToFragment')}
-              style={{ cursor: 'pointer', textDecoration: 'underline dotted', color: meta.color }}
-            >&quot;{tarjeta.citaNuevo}&quot;</span>
+        {tarjeta.salto
+          ? <span style={{ textDecoration: 'underline dotted', color: meta.color }}>&quot;{tarjeta.citaNuevo}&quot;</span>
           : tarjeta.noSenalable
             ? <>&quot;{tarjeta.citaNuevo}&quot; <span style={{ fontStyle: 'italic', color: 'var(--text-muted)' }}>({t('cannotPointHere')})</span></>
             : sinCita}

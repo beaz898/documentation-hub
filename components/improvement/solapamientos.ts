@@ -54,6 +54,14 @@ export interface TarjetaDePunto extends PuntoDeSolapamiento {
   noSenalable: boolean;
 }
 
+/** Lo que hace un clic en el CUERPO de la tarjeta de un punto (05/10/2026: la
+ *  tarjeta entera se clica, como la de una contradicción). `undefined` = no
+ *  se clica: sin cita, o `noSenalable`. Un solo disparo, y es éste. */
+export function clicDeLaTarjeta(tarjeta: TarjetaDePunto, onGoToProblem: (p: Problem) => void): (() => void) | undefined {
+  const salto = tarjeta.salto;
+  return salto ? () => onGoToProblem(salto) : undefined;
+}
+
 /** Las tarjetas de una entrada, en el orden del juez. `null` = la entrada no
  *  trae lista y se pinta como siempre, en un bloque. */
 export function tarjetasDeLaEntrada(p: Problem): TarjetaDePunto[] | null {
