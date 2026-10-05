@@ -192,7 +192,7 @@
     "eliminate": "Remove",
     "toDelete": "→ (remove)",
     "withDocument": "With \"{doc}\"",
-    "fragmentCount": "{count, plural, one {# fragment} other {# fragments}}",
+    "entryCount": "{count, plural, one {# entry} other {# entries}}",
     "pointCount": "{count, plural, one {# point} other {# points}}",
     "overlapSeverity": "{severidad, select, alta {high overlap} media {medium overlap} other {low overlap}}",
     "inDocument": "In \"{doc}\"",

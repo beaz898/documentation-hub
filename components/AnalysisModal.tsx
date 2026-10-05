@@ -340,7 +340,7 @@ export default function AnalysisModal({ fileName, analysis, guardado, onConfirm,
                   {[...byDoc.entries()].map(([docName, items]) => (
                     <CollapsibleSection
                       key={docName}
-                      title={`${t('overlapWith', { doc: docName })} (${t('fragmentCount', { count: items.length })})`}
+                      title={`${t('overlapWith', { doc: docName })} (${t('entryCount', { count: items.length })})`}
                       color="var(--info)"
                       defaultOpen={false}
                     >
