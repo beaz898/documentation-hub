@@ -13151,6 +13151,12 @@ por su cuenta, y ya ha reutilizado tres veces un número ajeno sin comprobarlo. 
 regla «un número que viene de otro no se reutiliza sin comprobarlo» solo se puede
 cumplir si el número viene desglosado.
 
+**REGLA NUEVA EN EL PROTOCOLO (05/10/2026)**: antes de escribir una regla o una nota sobre la
+estructura de un fichero, se lee el fichero. El 05/10 el arquitecto escribió una nota de
+cabecera declarando que había «dos numeraciones B.n distintas» cuando es una sola partida en
+dos ficheros, y la nota habría quedado escrita como hecho. Es la misma clase de error que
+«antes de diseñar sobre la interfaz, se mira la interfaz».
+
 ### 📋 B.331 — COMILLAS CURVAS, Y LA REPRESENTATIVIDAD DEL CORPUS (05/10/2026)
 
 Hecho 1: la clase de caracteres de normalize-core.mjs:84 lleva la comilla doble recta

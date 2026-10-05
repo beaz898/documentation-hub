@@ -3,7 +3,24 @@ PENDIENTES — Doclity (Agente IA)
 Documento vivo. Se actualiza al completar tareas (marcar [✓]) y se
 sustituye por la versión nueva. Más ligero que la Bitácora: aquí va
 lo que falta y la visión que lo guía, no el detalle de cada sesión.
-Última actualización: 02/09/2026 (v52)
+Última actualización: 05/10/2026 (v53)
+
+⚠️ LA NUMERACIÓN B.n ES UNA SOLA, repartida en dos ficheros: B.1 a B.194 viven
+aquí y B.195 en adelante en claude/Estado_Del_MVP.md. El número siguiente se toma
+del mayor de los dos. Choque conocido: B.112 se usó dos veces: aquí
+(«supabase-setup.sql está desfasado») y en Estado_Del_MVP.md:1133 («el criterio
+que se escribió para el borrado y no se llevó a la pantalla»). Al citar una
+entrada, decir en qué fichero vive.
+
+⚠️ DOS CONVENIOS DE MARCA, y el segundo no se puede leer de un vistazo. De B.1 a
+B.50 el estado va en [ ] o [✓]. De B.51 a B.194 no hay marca: el estado va dentro
+del título, entre corchetes. Recuento del 05/10/2026 sobre esas 143: 60 dicen
+«abierto», 21 dicen «cerrado/arreglado/resuelto/hecho», 7 dicen las dos
+(«abierto y cerrado el…») y 69 NO DICEN NINGUNA DE LAS DOS COSAS. Esas 69 son
+las que hacen el fichero ilegible.
+REGLA desde hoy: toda entrada nueva declara su estado en el PRIMER corchete del
+título, con una de estas palabras: ABIERTO, CERRADO, ARREGLADO, RESUELTO,
+RETIRADO o ANOTADO. Sin excepción.
 
 
 ════════════════════════════════════════════════════════════════
@@ -1130,6 +1147,10 @@ Leyenda: [ ] pendiente · [~] en curso · [✓] hecho
       cola de analysis_jobs con el worker de Railway, sin límite de tiempo HTTP. El sync sufre la
       misma enfermedad que el análisis síncrono (deuda técnica nº3) y debería resolverse con la
       misma medicina, en la Fase D: llevarlo a la cola de background.
+      ⚠️ 05/10/2026: el director cree que esto quedó resuelto al llevar el sync a
+      cola — con muchos archivos tarda más, pero no se rompe. SIN VERIFICAR EN EL
+      CÓDIGO. No se da por cerrada hasta comprobarlo, y se comprueba antes de hablar
+      con un cliente, no ahora. El texto de arriba es del 09/07/2026.
 
 
 [ ] B.46 — (PRODUCTO) Analizar un LOTE de documentos entre sí, sin comparar contra el corpus
@@ -1607,6 +1628,18 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     seleccionados, o si basta con avisar en la bandeja. Relacionado con B.47
     (análisis obsoletos al cambiar el corpus) y con el techo de recall de
     MAX_SELECTED_QUICK = 6.
+    ⚠️ PARCIALMENTE SUPERADO POR ESCALÓN 1, anotado el 05/10/2026 y no antes. Con
+    ANALYSIS_PAREJA_ENTERA=1 el juez recibe los DOS documentos enteros hasta 40.000
+    caracteres cuando la pareja cabe (régimen pareja_entera). Log real del 05/10:
+    «analizado 14704/14704, candidato 9817/9817». En ese régimen la asimetría que
+    describe esta ficha NO existe.
+    LO QUE SIGUE VIVO: las parejas que no caben. En el mismo análisis, CLI-12 entró
+    con régimen corte_honesto —«candidato 2959/55135 (dejó fuera)»— y un documento
+    sin trozos entró con régimen sin_fuente_comun, que recorta el documento
+    ANALIZADO a 6.000 caracteres. En esos dos regímenes la asimetría se mantiene, y
+    en sin_fuente_comun se invierte: es el documento nuevo el que llega recortado.
+    Al medir el recall hay que decir en qué régimen entró cada pareja; sin eso, dos
+    medidas no son comparables.
 
   B.82 — [CALIDAD DEL JUICIO, refuerza B.78] El juez no es estable ni consigo
     mismo: el mismo par de documentos, con el mismo prompt byte a byte, produce
@@ -1621,6 +1654,40 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     adicional para F-22: no es un problema de instrucciones, es que una sola
     pasada de generación no puede vigilarse a sí misma. Se resuelve con el
     verificador de hallazgos, no con un ejemplo más en el prompt.
+    ⚠️ MEDIDO DE NUEVO EL 05/10/2026, Y AHORA SOBRE UN VERDADERO POSITIVO. Dos
+    análisis del MISMO documento contra el MISMO corpus, separados por cinco
+    minutos y veintidós segundos, mismo régimen pareja_entera y mismos recuentos
+    de caracteres (analizado 14704/14704, candidato 9817/9817). Los dos análisis
+    se guardaron a las 12:02:04 y 12:07:22 de Madrid; en el log de Vercel, que va
+    en UTC, empiezan a las 10:01:36 y 10:06:58 y terminan a las 10:02:04 y
+    10:07:22. El juez emitió 3 contradicciones contra CLI-13 en la primera pasada
+    y 1 en la segunda. De los 5 solapamientos de cada pasada, solo 2 coinciden
+    entre las dos.
+    LO QUE ESTO AÑADE A LA FICHA: hasta ahora la inestabilidad se había medido
+    sobre falsos positivos distintos entre pasadas. Ahora está medida sobre la
+    PÉRDIDA de un hallazgo verdadero. En la primera pasada (guardada a las
+    12:02:04 de Madrid) la contradicción «Contenedor para residuos grupo III no
+    punzantes» se verificó literal y el verificador la confirmó; en la segunda
+    (guardada a las 12:07:22) el juez no la dijo. Ninguna puerta de la cascada la
+    mató: la pérdida es del juez, aguas arriba de todo filtro.
+    DATO QUE NO TENÍAMOS ESCRITO: la fecha que guarda el registro del análisis es
+    la de FINAL del análisis, no la de inicio. Comprobado el 05/10 cruzando el log
+    de Vercel con la salida de SQL_B324.
+    ⚠️ Y ESTO FALSIFICA LA CURA QUE ESTA FICHA PROPONÍA. Esta ficha, medida el
+    21/08, decía: «se resuelve con el verificador de hallazgos, no con un ejemplo
+    más». El verificador nació dos días después, el 23/08
+    (lib/analysis/verify-findings.ts, commit 87db03cc), y el 04/10 se le añadió el
+    contexto del fragmento (lib/analysis/contexto-de-la-cita.ts, commit dba10142).
+    Con el verificador en producción desde agosto, el 05/10 la inestabilidad
+    sigue. El verificador filtra lo que el juez DICE mal; no puede recuperar lo
+    que el juez NO DICE. Son dos problemas distintos y solo uno tenía cura
+    escrita.
+    POSIBLE MITIGACIÓN, CON PRECIO: pasar el juez dos veces y unir los temas
+    emitidos. Duplica el coste por análisis. Es una decisión comercial del
+    director, no técnica. La temperatura ya está en 0,1 (judge.ts:858).
+    POR QUÉ IMPORTA MÁS QUE UN FALSO POSITIVO: un cliente que analiza el mismo
+    documento dos veces y ve cosas distintas deja de confiar en la herramienta
+    aunque las dos veces tenga razón.
 
   B.83 — [FRENTE ABIERTO, localizado] El falso negativo NOR-01 / CLI-03 muere en
     el RERANK, no en el juez. La contradicción sembrada (conservación de historia
@@ -1635,6 +1702,15 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     MAX_SELECTED_QUICK = 6 y el criterio con el que el LLM elige). Es el mismo
     techo de recall que F-22 señaló como "el siguiente lugar donde un verdadero
     positivo se pierde sin dejar rastro".
+    AÑADIDO EL 05/10/2026, sobre la pregunta abierta de B.89 («el log cuenta
+    cuántos candidatos hubo, pero no CUÁLES»): parte del presupuesto del rerank se
+    gasta en documentos que no pueden producir nada. En un análisis real de NOR-11
+    del 05/10, 2 de los 8 candidatos eran documentos SIN TROZOS INDEXADOS (ver la
+    entrada nueva de los documentos sin trozos), y uno de ellos se llevó 1 de las 3
+    plazas seleccionadas por el rerank. Produjo 2 hallazgos y los dos murieron en
+    la puerta de citas. Es decir: el techo de recall de MAX_SELECTED_QUICK no solo
+    es bajo, además se desperdicia. Limpiar el corpus sube el recall sin tocar el
+    rerank.
 
   B.84 — [CALIDAD DEL JUICIO, exhaustivo] El double-check emite "inconsistencias
     menores" que son el patrón 1 de F-23, y con narración dentro de la cita.
@@ -1659,6 +1735,12 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     Ambos casos mueren con el verificador de hallazgos, aplicado también sobre el
     camino atómico como fija F-24 (P2). Anotado como caso de prueba concreto para
     validarlo.
+    PENDIENTE DE REMEDIR, anotado el 05/10/2026. El punto (2) de esta ficha —la
+    narración «(no solo 'Chamberí')» dentro de una cita— es justo lo que atacan los
+    puestos 0, 1 y 2 del 02/10 (la regla de que una cita es UNA sola frase copiada
+    entera, en judge.ts, guardada por lib/analysis/regla-de-la-cita.test.ts) y la
+    puerta de citas endurecida. Nadie ha vuelto a medir este patrón desde entonces.
+    Entra en la misma tanda de medición que la entrada nueva de la línea de base.
 
   B.85 — [BUG, ingest] Subir a mano un documento que ya existe en Drive crea un
     duplicado al 100%. Detectado por el usuario el 21/08 y coherente con el
@@ -7404,6 +7486,102 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     decida cuál era, porque de eso depende cuándo se considera cumplida — y no es
     la última vez que va a pasar: **cualquier reparación cuyo disparador sea un
     cambio de versión tendrá esta misma forma.**
+
+  B.333 — [ABIERTO 05/10/2026 · ⚠️ EL ARREGLO NO ES EL QUE PARECÍA, LO CORRIGE
+    B.92] LAS TABLAS DE WORD NO TIENEN ESTRUCTURA DE FILA EN NINGÚN PUNTO DEL
+    SISTEMA
+    El extractor de .docx devuelve UN SOLO trozo de tipo text con el documento
+    entero (lib/chunking.ts:979-986). El tipo table_row solo existe para Excel
+    (:990-992). Consecuencia: el paso segmentos_de_fila nunca se intenta en un
+    .docx, porque exige chunk.chunkType === 'table_row' (judge.ts:284), y una cita
+    que es una fila de tabla de Word no se verifica NUNCA. Reindexar no lo
+    arregla: daría un trozo, pero de prosa plana.
+    MEDIDO (05/10, SQL_B331 bloque c, 52 análisis desde el 02/10): 33 de los 75
+    lados de cita descartados, los 33 en .docx, ninguno en .md, concentrados en 3
+    citas distintas repetidas en cada pasada. Caso real:
+    Normas_Frecuencia_Recogidas.docx dice 21 días donde NOR-11 dice 72 horas —
+    contradicción VERDADERA, descartada en el 100% de las pasadas.
+    ⚠️ EL ARREGLO QUE PARECÍA OBVIO ESTÁ PROHIBIDO POR B.92. Dar trozos table_row a
+    los .docx para que entre segmentos_de_fila sería construir sobre la vía que
+    B.92 condena a muerte: el paso 5 no está cerrado hasta que splitTabularSegments
+    y la vía por segmentos de verifyQuote se BORREN. El arreglo correcto es llevar
+    las tablas de Word al mismo diseño {hoja, fila, celdas} del paso 5, no extender
+    el troceador de cadenas.
+    Es B.319 en Estado_Del_MVP.md. Cambia el indexado de todos los .docx, así que
+    obliga a reindexar y a sellar la medición: medir antes, reindexar, medir
+    después.
+
+  B.334 — [ABIERTO 05/10/2026 · RUIDO MEDIDO, Y HERMANO DE B.76] 14 DOCUMENTOS DEL
+    CORPUS DEL PILOTO NO TIENEN TROZOS INDEXADOS
+    Medido el 05/10 (SQL_B319_documentos_sin_trozos, SQL_B324) en la organización
+    del piloto: 50 documentos, 22 sin trozos en la generación activa, 20 en el
+    corpus, y 14 del corpus sin trozos. Casi todos con extractor_version NULL,
+    anteriores a F-20; uno, new 9.txt, tiene trozos de otra generación.
+    Son 13 ficheros «new N.txt» (1, 3, 4, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 — no
+    existen new 2 ni new 5) más Actas_Direccion_2025.docx, Facturacion_2025.xlsx,
+    Registro_Visitas.xlsx, Protocolo_Visitas_Centros.docx,
+    Clientes_Residuos_Peligrosos.xlsx, Clientes_Residuos_Sanitarios.xlsx,
+    Normas_Frecuencia_Recogidas.docx, 2_Glosario_Terminos.pdf y
+    3_Especificacion_Tecnica.pdf. NINGUNO es un documento del piloto con código
+    (NOR, CLI, OPE, MKT, RRHH): esos sí tienen trozos, así que las medidas de
+    agosto y septiembre NO están contaminadas por esto.
+    CONSECUENCIA MEDIDA: sin trozos, la pareja entra con régimen sin_fuente_comun
+    —el documento analizado recortado a 6.000 caracteres— y la verificación de
+    citas cae a full_text sin celdas. Y gastan presupuesto: 2 de 8 candidatos y 1
+    de las 3 plazas del rerank en un análisis real (ver el añadido de B.83).
+    NO REINDEXAR NI QUITAR DEL CORPUS sin sellar la medición: cambia la línea base
+    de septiembre y octubre. Además, según instrucción del director, el botón
+    «Quitar del corpus» BORRA y no se pulsa; Code no ha verificado qué hace
+    onRemove hasta el final, así que eso está sin confirmar en código.
+    HERMANO DE B.76: un cliente con documentos anteriores a F-20 tendría
+    exactamente este problema y no podría arreglarlo él.
+
+  B.335 — [ABIERTO 05/10/2026 · CUARTA VEZ QUE EL INSTRUMENTO NO PUEDE FALLAR DONDE
+    DEBERÍA] EL CORPUS NO TRAE COMILLAS CURVAS NI TABLAS DE WORD, Y ESO INVALIDA
+    DOS CEROS
+    Medido el 05/10 por dos caminos: 0 comillas curvas (U+201C, U+201D, U+2018,
+    U+2019) y 0 menos tipográfico (U+2212) en los 27 documentos del corpus de
+    pruebas leídos uno a uno con el extractor real, y 0 en producción —50
+    documentos, 567 trozos de la generación activa, 2.830 lados de cita que
+    pasaron la puerta y todos los descartados—. El extractor no convierte
+    comillas, así que los ceros son reales. Y el archivo de examen no tiene tablas
+    de Word: es casi todo Excel.
+    POR QUÉ IMPORTA: dos investigaciones del 05/10 acabaron en cero, y el cero era
+    de POBLACIÓN, no de efecto. Word curva las comillas y los apóstrofos
+    automáticamente en cuanto una persona escribe en él; nuestros documentos no
+    las tienen porque los fabricamos nosotros.
+    REGLA: una pregunta sobre caracteres o sobre tablas de Word NO se decide contra
+    estos corpus. Sirven para medir regresiones de la cascada, que es para lo que
+    se hicieron.
+    ES LA CUARTA DE LA MISMA FAMILIA, después de B.121 (corpus simétrico), B.125
+    (juez intermitente) y B.129 (ningún cruce con dos columnas compartidas). B.121
+    y B.125 se detectaron DESPUÉS de medir; B.129 fue la primera que se pilló
+    calculando antes de gastar créditos, y ésta es la segunda.
+    QUÉ HARÍA FALTA: documentos reales escritos en Word por personas, con sus
+    comillas curvas y sus tablas. Es una pieza de corpus con su propia siembra,
+    como la que cerró B.129.
+
+  B.336 — [ANOTADO 05/10/2026 · DEUDA ACEPTADA, NO SE ARREGLA] LAS PRUEBAS NO
+    PUEDEN PINTAR COMPONENTES DE REACT
+    vitest.config.mts lo prohíbe. Consecuencia: de un cambio de interfaz solo se
+    puede automatizar la parte de función pura más un test que LEE el código
+    fuente del componente, y la prueba de que el navegador hace lo que creemos
+    acaba siempre en un clic manual del director. Declarado al cerrar el trabajo
+    de los puntos de solapamiento el 05/10.
+
+  B.337 — [ABIERTO 05/10/2026 · ANTES DE ABRIR MULTIORGANIZACIÓN, NO DESPUÉS]
+    resolverOrg NO ES DETERMINISTA
+    lib/org.ts:201-214 resuelve la organización del usuario con .limit(1).single()
+    sin ningún order. Hoy no muerde porque cada usuario tiene una organización
+    efectiva, pero en la cuenta del director hay cinco organizaciones y TRES se
+    llaman «Mi workspace». El 05/10 costó una hora de diagnóstico: se creyó que el
+    corpus había cambiado cuando lo que había cambiado era la organización.
+    HAY QUE ARREGLARLO ANTES de abrir multiorganización. Es B.324/B.325 en
+    Estado_Del_MVP.md.
+    CONVENIO ADOPTADO MIENTRAS TANTO: toda consulta SQL filtra por la organización
+    del piloto (a9625e93-af2a-4416-a465-5c2fa2a25bdf, «Workspace principal») con
+    el id en UNA constante en la cabecera, y no recorre organizaciones salvo
+    petición explícita, que se justifica en la cabecera.
 
 Forma de trabajo: diagnóstico con datos reales antes de arreglar; un
 cambio lógico cada vez; build verde entre medias; SQL en Supabase antes
