@@ -13124,8 +13124,14 @@ frases. El bloque c solo clasificó las citas CON barra, así que alguno de esos
 podría ser de un Excel. Esta ficha no concluye nada sobre la causa.
 
 LAS CAUSAS CANDIDATAS, sin orden de probabilidad, porque cabeza_sin_cola solo
-significa que los primeros 15 caracteres normalizados están en el pajar y los últimos
-15 no están detrás (coincidencia-de-cita.ts:163):
+significa que la cabeza de la cita normalizada está en el pajar y la cola no está
+detrás (coincidencia-de-cita.ts:163); la cabeza y la cola son min(20, 40 % de la cita
+normalizada) (coincidencia-de-cita.ts:152-155); en cualquier cita de más de 50
+caracteres son 20.
+⚠️ CORREGIDO EL 06/10/2026: el arquitecto escribió «15 caracteres» en esta ficha
+tres veces. El 15 es de findTolerant (lib/texto/localizar-cita.ts), que es el salto
+del editor y otra cosa distinta (B.326). La puerta de citas usa min(20, 40 %). Lo
+trasladó de un sitio al otro al explicar cabeza_sin_cola.
 1. El juez cortó la frase por dentro o la compuso juntando trozos. 
    ⚠️ CORREGIDO EL 05/10/2026, EL MISMO DÍA: ese final era un artefacto del log. El
    registro de descartes recorta cada cita a 200 caracteres (judge.ts:449,
@@ -13158,8 +13164,13 @@ son documentos `.docx`. Ni uno es `entregado_piezas`, ni `texto_completo`, ni de
 Excel. La causa candidata 3 —una frase real que cruza dos trozos seguidos— QUEDA
 FALSIFICADA: no había trozos en juego. Era la causa que defendía el arquitecto.
 Y queda medido lo que la ficha daba por no medido: los 42 son prosa de Word.
-Con el documento entregado entero, el fallo no está en lo que se le dio al juez
-sino en lo que el juez escribió.
+⚠️ CORREGIDO EL 06/10/2026. `entregado_texto` NO significa que el documento se
+entregara entero: significa que ese lado se entregó como texto CONTIGUO y no por
+piezas (coincidencia-de-cita.ts:334-345). El lado analizado siempre va así, y en
+tijera_vieja, sin_fuente_comun y corte_honesto puede ir recortado. Lo único que la
+medición licencia es que ninguno fue `entregado_piezas`, y por tanto que la causa
+candidata 3 —una frase real que cruza dos trozos seguidos— queda falsificada. Eso
+se mantiene; la frase de más se retira.
 
 39 DE LOS 42 LADOS TERMINAN EN LETRA, no en puntuación final. Eso NO prueba que
 estén cortados: una frase completa copiada sin su punto final también termina en
@@ -13175,8 +13186,9 @@ LAS TRES CONDUCTAS, partidas por paso de fallo, que es lo único medido, y las
 cuentas cierran: 21 + 9 + 12 = 42 lados, y 4 + 2 + 5 = 11 citas.
 
 1. EL FINAL DE LA CITA NO ESTÁ DETRÁS DE SU PRINCIPIO — `cabeza_sin_cola`, 21
-   lados, 4 citas. La cabeza sí se localiza; los últimos 15 caracteres
-   normalizados no están detrás. El juez cambió el final, le añadió algo o pegó
+   lados, 4 citas. La cabeza sí se localiza; la cola no está detrás. La cabeza y
+   la cola son min(20, 40 % de la cita normalizada) (coincidencia-de-cita.ts:152-155);
+   en cualquier cita de más de 50 caracteres son 20. El juez cambió el final, le añadió algo o pegó
    texto de otro sitio. Ejemplos: 206 caracteres acabando en «…el material recogido
    en Salamanca y Retiro» (la contradicción del punto de retirada de Chamberí, 5
    lados), 111 acabando en «…ubicado en la clínica de Chamberí» (14 lados, la más
@@ -13195,10 +13207,18 @@ cuentas cierran: 21 + 9 + 12 = 42 lados, y 4 + 2 + 5 = 11 citas.
    ahí `cola_demasiado_lejos` y no `cabeza_sin_cola`. Es el patrón del punto (2) de
    B.84 —narración dentro de la cita— y es exactamente el caso «esta figura» por el
    que B.321 quedó degradada en vez de cerrada. Queda demostrado con dato.
+   ⚠️ DOS CITAS DISTINTAS MIDEN 244 CARACTERES, y no son la misma: (1) la de la
+   contradicción sembrada 2 contra CLI-13, que empieza «El punto de retirada
+   centralizado concentra el material de las tres clínicas…», vista en la pasada del
+   06/10 a las 09:02 de Madrid; y (2) la glosa de NOR-10 contra CLI-12, que acaba
+   «…recae siempre sobre esta figura [el Director Clínico]». Al citarlas, decir
+   siempre el par de documentos.
 
 3. NI EL PRINCIPIO ESTÁ — `sin_cabeza`, 12 lados, 5 citas. Cambiar o alargar el
-   final no rompe el principio, así que si los primeros 15 caracteres normalizados
-   no aparecen, la cita está inventada entera o atribuida al documento equivocado.
+   final no rompe el principio, así que si la cabeza no aparece —la cabeza y la cola
+   son min(20, 40 % de la cita normalizada) (coincidencia-de-cita.ts:152-155); en
+   cualquier cita de más de 50 caracteres son 20—, la cita está inventada entera o
+   atribuida al documento equivocado.
    Dos de esos lados son una cita de 127 caracteres que ACABA EN PUNTO: una frase
    con aspecto de completa cuyo principio no está donde debería. Es B.86 de
    Puntos_Pendientes_Doclity.txt.
