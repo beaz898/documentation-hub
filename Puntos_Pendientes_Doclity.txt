@@ -7848,6 +7848,59 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     sólo queda el número). Sin el fondo de aquel día no hay universo con el que
     comparar, así que queda como explicación probable.
 
+  B.352 — [ÍNDICE 06/10/2026 · NO SE IMPORTAN, A PROPÓSITO] DÓNDE VIVEN LOS
+    PENDIENTES QUE NO ESTÁN EN ESTA LISTA
+    Hay 22 casillas de pendiente fuera de la lista oficial. Viven donde están A
+    PROPÓSITO, por decisión del director: no son deuda técnica y no se importan
+    aquí. Esta entrada sólo dice dónde están.
+    · Estado_Del_Proyecto.txt:676-691 — 7, roadmap de producto.
+    · Modelo_De_Negocio.txt:218-226 — 8, negocio y facturación.
+    · claude/Cierre_B81.md:341-352 — 2, probablemente superados.
+    · claude/Tandas_Harness.md:72 y :279 — 2, verificación de tandas.
+    · claude/consultas-fable/F-84.md:38-40 — 1, obsoleto.
+    · claude/consultas-fable/F-89.md:80 — 1, dudoso.
+    · claude/consultas-fable/F-119_2026-09-30_moneda-antigua-del-retrieval.md:174-191
+      — 1, las predicciones de Fable (el encargo citaba :173, que es la línea de
+      antes del bloque).
+    Total 22 = 7 + 8 + 2 + 2 + 1 + 1 + 1.
+    Y LOS CINCO AVISOS DE BITÁCORA SIN CASA (Bitacora_Sesiones.txt): :1791 (la
+    etiqueta «Cancelar» del reintento en RulesManager), :1794 (window.confirm al
+    quitar una regla), :2873 (ordenación natural de los «new N.txt»), :2875
+    (renombrar el alias de autenticación) y :3068 (comprobar en vivo que un
+    documento «pendiente» no sale en el chat). El encargo citaba :1790 y :1793; las
+    exactas son :1791 y :1794. Los dos que siguen vivos en el código tienen entrada
+    propia: B.353 y B.354.
+
+  B.353 — [ABIERTO 06/10/2026 · DEUDA TÉCNICA VIVA] EL ALIAS
+    getAuthenticatedUserHybrid, EN 61 FICHEROS
+    Aviso de bitácora sin casa hasta hoy (Bitacora_Sesiones.txt:2875, «es un alias
+    exacto de…»). Contado el 06/10: 61 ficheros .ts/.tsx del repositorio lo usan.
+    Renombrarlo es mecánico y toca producto en 61 sitios; no se hace en este
+    encargo.
+
+  B.354 — [ABIERTO 06/10/2026 · DEUDA TÉCNICA VIVA] QUITAR UNA REGLA USA EL DIÁLOGO
+    NATIVO DEL NAVEGADOR
+    components/learning/RulesManager.tsx:108: «if (!window.confirm(t('confirmRemove')))
+    return;». La bitácora lo anotó sin casa (Bitacora_Sesiones.txt:1794): es
+    sustituible por un diálogo propio coherente con el resto, y ReplaceDialog sirve
+    de referencia. No se arregla en este encargo.
+
+  B.355 — [ABIERTO 06/10/2026 · SIN MEDIR, Y CADA UNA CONDICIONA UN GASTO] LAS TRES
+    PREDICCIONES DE F-119
+    Escritas por Fable antes de medir, sin veredicto
+    (claude/consultas-fable/F-119_2026-09-30_moneda-antigua-del-retrieval.md,
+    sección (e), :174-191):
+    · P-F119-1: con pools separados, la fila de 3 acompañantes pasa de 4
+      candidatos a los mismos 14 de 0 acompañantes, más los 3. Se juzga contra el
+      cuadro 14 / 11 / 4 de B.300.
+    · P-F119-2: con parejas en vez de ventana por posición, el candidato
+      verdadero del documento de 66.801 caracteres sube en el rerank en las dos
+      trampas sembradas.
+    · P-F119-3: el candidato verdadero queda en las posiciones 1 o 2 en más del
+      80 % de los casos tras el rerank.
+    Las tres siguen sin medir. Cada una decide si merece la pena gastar en el
+    arreglo que predice, y por eso tienen entrada propia.
+
 Forma de trabajo: diagnóstico con datos reales antes de arreglar; un
 cambio lógico cada vez; build verde entre medias; SQL en Supabase antes
 del push; plan completo antes de tocar varios archivos.
