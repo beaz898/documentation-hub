@@ -7857,6 +7857,38 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     con la cura del 83 % de falsos positivos de ese día. ⚠️ El encargo databa todo
     el bloque en el 20/08: el techo es tres meses y medio anterior. Las demás
     instrucciones no se han fechado una a una.
+    EL HISTORIAL DEL TECHO, línea a línea en git (añadido el 06/10/2026):
+    · 7ec54e71, 02/05/2026 14:07, «Update judge.ts»: nace la línea, «Máximo 10
+      contradicciones y 5 solapamientos. Si hay más, incluye los más importantes.»
+    · 7a8f81db, 02/05/2026 14:18, «Update judge.ts»: la quita.
+    · 196e5640, 02/05/2026 14:19, «Update judge.ts»: la vuelve a poner, 16 segundos
+      después. Cambio neto de este par: cero (judge.ts queda idéntico).
+    · a2b4c619, 11/05/2026, «Add minor_inconsistency severity tier to analysis
+      pipeline»: pasa a «Máximo 10 contradicciones, 5 inconsistencias menores y 5
+      solapamientos.» Añade el tope de 5 inconsistencias menores y QUITA «Si hay
+      más, incluye los más importantes.»
+    EL HECHO PRINCIPAL: los números 10 y 5 no han cambiado nunca desde el
+    02/05/2026, y ninguno de los cuatro mensajes cita una medición de falsos
+    positivos (el de a2b4c619 dice «Reduces false positives», sin cifra ni
+    medición). El techo lleva desde entonces sin revisarse contra ningún dato. Subirlo
+    sería revisar un número que nunca se midió, no deshacer una decisión tomada
+    con datos.
+    ⚠️ HIPÓTESIS CON MECANISMO, NO CAUSA PROBADA: desde el 11/05 el prompt pone un
+    techo pero NO dice con qué criterio elegir cuando se alcanza; la frase no
+    está hoy en ningún fichero de lib/analysis/. El 06/10 se midieron nueve temas
+    de solapamiento en cuatro pasadas del mismo par, cinco por pasada y sólo uno
+    presente en las cuatro (B.338). Un techo sin criterio de selección es una
+    explicación candidata de esa inestabilidad: con nueve temas y cinco plazas,
+    el modelo elige cada vez sin regla. Falta el experimento.
+    Y cómo se perdió la frase: el mensaje de a2b4c619 justifica el cambio por la
+    categoría de inconsistencia menor y NO menciona esa frase. Lo más probable es
+    que se perdiera de rebote al reescribir la línea, no por decisión; no consta
+    en ningún sitio que se decidiera.
+    DOS PALANCAS SEPARABLES, de una línea cada una, para probarlas por separado y
+    no juntas (si se cambian a la vez, no se sabe cuál movió el resultado):
+      A · subir el techo de solapamientos de 5 a 10;
+      B · devolver la frase del criterio de selección.
+    No se toca ninguna en este encargo. La decisión es del director.
     Es una decisión de diseño cuyo coste está ahora medido. Cambiarla es decisión
     del director.
 
