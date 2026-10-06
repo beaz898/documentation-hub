@@ -13278,6 +13278,19 @@ cabecera declarando que había «dos numeraciones B.n distintas» cuando es una 
 dos ficheros, y la nota habría quedado escrita como hecho. Es la misma clase de error que
 «antes de diseñar sobre la interfaz, se mira la interfaz».
 
+**REGLA NUEVA EN EL PROTOCOLO (06/10/2026)**: el proyecto del director y el repositorio HAN
+DIVERGIDO. Hay documentos, y pendientes con casilla, que viven sólo en la copia del proyecto.
+Caso probado: `Sesion_43_Ingesta_Portadas_Y_Excel.txt` y su S43.4, que no están en el
+repositorio (B.348 de Puntos_Pendientes_Doclity.txt). La regla: **el arquitecto no planifica
+sobre la copia del proyecto de un fichero que vive en el repositorio; el fichero vivo lo lee
+Code.** Y si el arquitecto aporta un texto que no está en el repositorio, lo declara como tal.
+
+**REGLA NUEVA EN EL PROTOCOLO (06/10/2026)**: toda ficha que cite un recuento declara **el
+universo contado y el filtro aplicado**. El origen: el 06/10 el arquitecto restó NOR-11 de un
+fondo del que nunca formó parte —su estado es «pendiente», y el fondo de la búsqueda es el
+corpus `analizado`—, y de ahí salió un «6 contra 5» inexistente y una urgencia infundada para
+la etapa 3 (B.345 de Puntos_Pendientes_Doclity.txt).
+
 ### 📋 B.331 — COMILLAS CURVAS, Y LA REPRESENTATIVIDAD DEL CORPUS (05/10/2026)
 
 Hecho 1: la clase de caracteres de normalize-core.mjs:84 lleva la comilla doble recta
