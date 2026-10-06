@@ -9958,6 +9958,15 @@ Cubre las tres clases salvo un caso: el de un vector sin fila que además lleve 
    leerse cinco veces.
 5. **El tablero de decisión de B.295 NO cambia**: sigue **B.190 · reindexar el corpus** en el
    puesto 1.
+6. **➕ CONSTANCIA DEL 06/10/2026, sin decidir nada.** La premisa de F-119 —que la recuperación
+   pierde candidatos verdaderos— **NO se cumple en el corpus actual en modo de un solo
+   documento**: en las pasadas de NOR-11 de ese día, los seis documentos del corpus con trozos
+   llegaron todos a candidato (B.300, acotación del 06/10). Por eso tenerla archivada no ha
+   costado hallazgos AQUÍ.
+   - **Sigue vigente** para el flujo de varios documentos a la vez (B.300, donde el
+     desplazamiento está medido) y para un corpus real, con más documentos con trozos que
+     plazas.
+   - **La decisión de retomarla es del director.**
 
 ### 📋 B.304 — UN HALLAZGO PUBLICADO EN UNA PAREJA QUE NADIE HA AUDITADO: CLI-12 / CLI-13 (naturaleza NO DETERMINADA; 30/09/2026)
 
