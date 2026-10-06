@@ -9933,6 +9933,35 @@ Cubre las tres clases salvo un caso: el de un vector sin fila que además lleve 
 
 **No se construye ahora.** Constancia y plan, a petición del arquitecto.
 
+**➕ QUÉ SE VERIFICÓ, Y CÓMO (precisión pedida por el arquitecto, 06/10/2026).** El
+«verificado» del comentario de `CORPUS_ACTIVO` (`lib/pinecone/vectors.ts:93-98`) entró el
+03/08/2026 en `841325b5`, en la reversión de C.4a (F-1). Fue **una LECTURA DEL CÓDIGO, no una
+medición en producción**. Lo dice la bitácora de aquella sesión: se comprobó que los caminos
+que cambian `analysis_status` mantienen la metadata de Pinecone al día —mark-analyzed,
+sync/C.3, ingest e index-text—, «**Verificado en código** antes de escribir la reversión»
+(`Bitacora_Sesiones.txt:3384-3389`).
+- No consta ninguna medición de que los DATOS no divergen, ni entonces ni después.
+- La lectura cubre los cuatro caminos que existían el 03/08. **Los caminos que cambian el
+  estado escritos después no los cubre aquella verificación**, y no se han enumerado aquí.
+  No se afirma que estén mal: se afirma que no entran en ese «verificado».
+
+**➕ EL DATO PARA MEDIRLO YA SE GUARDA, y se puede leer sin tocar producto (06/10/2026).** El
+termómetro de cada análisis tiene `candidatos_fuera_del_fondo`
+(`lib/analysis/termometro.ts:138-148`): los documentos candidatos —que vienen del ÍNDICE, es
+decir, de la metadata del vector— que no están en el fondo contado en la BASE
+(`contarElFondo`, `termometro.ts:302`, que lee `documents.analysis_status`). Va dentro del
+jsonb `analysis` de `analysis_results` (`app/api/analyze-v2/route.ts:852-856`), así que una
+SQL de sólo lectura lo saca de los análisis ya guardados.
+- **Lo que ve**: la dirección GRAVE de las de arriba (metadata `analizado`, columna no), y
+  sólo para los documentos que llegaron a candidato en ese análisis.
+- **Lo que no ve**: la dirección del espejo atrasado (columna `analizado`, metadata no),
+  porque esos documentos nunca llegan a candidato; y nada cuando el fondo no se pudo contar
+  (el campo sale vacío y `fondo_motivo` dice por qué).
+- **Sin control positivo todavía**: no consta en el repositorio ninguna lectura en la que
+  este campo haya salido no vacío. El caso que lo motivó, CLI-05, se encontró a mano antes
+  de que el campo existiera (`termometro.ts:142-143`). Un vacío, hoy, es un cero sin
+  verificar, no una confirmación.
+
 ### 📋 B.303 — LLEGÓ EL DICTAMEN F-119: el retrieval y el rerank eligen párrafos, y el juez lee documentos enteros (constancia, NADA INICIADO; 30/09/2026)
 
 1. **Llegó el dictamen F-119, y está archivado**
