@@ -7769,6 +7769,30 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     las tarjetas de solapamiento (B.314 commits A y B, y la tarjeta clicable
     entera) queda aceptado y cerrado.
 
+  B.348 — [ABIERTO 06/10/2026 · VIENE DE FUERA DEL REPOSITORIO] S43.4: LA REGLA DEL
+    PRESUPUESTO SE APLICÓ AL CANDIDATO Y NUNCA A LA BÚSQUEDA
+    PROCEDENCIA, declarada: S43.4 NO EXISTE en el repositorio. Vive sólo en
+    Sesion_43_Ingesta_Portadas_Y_Excel.txt de la copia del proyecto del director
+    del 15/08/2026, que tiene el arquitecto y Code no (comprobado el 06/10: ni el
+    fichero ni la cadena «S43.4» aparecen en el repositorio). El texto original no
+    se ha visto aquí; lo que sigue es su contenido tal como lo trae el arquitecto,
+    verificado contra el código el 06/10.
+    · TOP_K_POR_CONSULTA = 25 sigue siendo un tope POR NÚMERO
+      (lib/analysis/retrieval.ts:142, usado en :332).
+    · El commit 268883e5 (20/08/2026, «Recorta fragmentos por presupuesto de
+      contenido, no por numero») aplicó la regla del presupuesto SÓLO al
+      presupuesto por candidato: 3.000 caracteres (FRAGMENT_BUDGET_CHARS_QUICK,
+      retrieval.ts:104) con una red de seguridad de 25 fragmentos
+      (MAX_FRAGMENTS_PER_DOC_QUICK, retrieval.ts:110). Nunca a TOP_K_POR_CONSULTA.
+    LOS OTROS TOPES POR NÚMERO QUE CITABA, uno a uno en el código del 06/10:
+    · MAX_DOCUMENTS = 6: existe, lib/rag.ts:36 (chat).
+    · MAX_SELECTED_QUICK = 6: existe, lib/analysis/rerank.ts:28.
+    · TOP_K 15 en el chat: existe, lib/rag.ts:33.
+    · TOP_K 6 en el agente: existe, lib/agent/tools/search-docs.ts:12.
+    · MAX_CORPUS_FRAGMENTS = 4: ⚠️ YA NO EXISTE. Vivía en
+      lib/analysis/verify-claims.ts, que se borró entero el 21/09/2026 en 839d093b
+      («Retira la rama atómica (F-114)»). La copia del 15/08 es anterior.
+
 Forma de trabajo: diagnóstico con datos reales antes de arreglar; un
 cambio lógico cada vez; build verde entre medias; SQL en Supabase antes
 del push; plan completo antes de tocar varios archivos.
