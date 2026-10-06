@@ -9855,6 +9855,23 @@ logs los transcribe el arquitecto; la columna `recuperados_retrieval` de
 **Y LO QUE HACE A LA MEDIDA**: por esto la regla de B.295 exige exactamente un acompañante
 (`1 ids de tanda`). Con más, los candidatos dependen de quién más vaya seleccionado.
 
+**➕ SEGUNDA MEDICIÓN INDEPENDIENTE DEL MISMO MECANISMO, DESDE EL OTRO LADO (06/10/2026).**
+En las dos pasadas de NOR-11 de las 10:29:22 y 10:31:06 UTC (análisis rápido, sin tanda), la
+recuperación trajo 73 fragmentos únicos y **CLI-12 se llevó 47, el 64 %**, por ser el documento
+más largo. Los sumandos: CLI-12 47 + CLI-13 11 + OPE-13 4 + OPE-10 4 + RRHH-08 3 + OPE-11 2 +
+Clientes_Residuos_Sanitarios 1 + Normas_Frecuencia_Recogidas 1 = 73. Cifras del arquitecto sobre
+los logs del director; Code no los ha visto. **Refuerza esta ficha**: un documento con muchos
+trozos afines ocupa la mayor parte de las 25 plazas de cada consulta (`TOP_K_POR_CONSULTA`,
+`retrieval.ts:142`), con tanda o sin ella.
+
+**➕ LA ACOTACIÓN DEL MISMO DÍA, y va separada porque dice otra cosa (06/10/2026).** En modo de
+UN SOLO documento y con el corpus de hoy, **no se perdió ningún documento real**: los seis
+documentos del corpus con trozos (CLI-12, CLI-13, OPE-10, OPE-11, OPE-13 y RRHH-08) llegaron
+todos a candidato, y los 8 candidatos fueron esos 6 + Clientes_Residuos_Sanitarios +
+Normas_Frecuencia_Recogidas (6 + 2 = 8; denominador 20 = 6 con trozos + 14 sin trozos,
+SQL_B345). **Esta ficha sigue rota para el flujo de VARIOS documentos a la vez, que es donde se
+midió**: la acotación no la cierra, la delimita.
+
 ### ⚠️ B.301 — EL INVARIANTE F-96 SIN COMPROBAR: toda la definición del corpus se apoya en que la metadata del vector y la columna coincidan (constancia y plan, SIN construir; 30/09/2026)
 
 **Por qué sube de importancia** (arquitecto, 30/09). El retrieval NO lee `documents`: decide el
