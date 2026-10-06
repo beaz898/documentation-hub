@@ -7583,6 +7583,138 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     el id en UNA constante en la cabecera, y no recorre organizaciones salvo
     petición explícita, que se justifica en la cabecera.
 
+  B.338 — [ABIERTO 06/10/2026 · MEDIDO EN CUATRO PASADAS] LOS SOLAPAMIENTOS DE UN
+    MISMO PAR CAMBIAN DE PASADA EN PASADA: NUEVE TEMAS, CINCO POR PASADA, UNO FIJO
+    Medido por el arquitecto el 06/10 sobre cuatro análisis rápidos de NOR-11
+    lanzados por el director desde la interfaz real, par NOR-11 ↔ CLI-13: nueve
+    temas de solapamiento distintos repartidos en las cuatro pasadas, SIEMPRE
+    exactamente cinco por pasada, y sólo uno de los nueve aparece en las cuatro.
+    En las dos pasadas con log (10:29:22 y 10:31:06 UTC; 12:29 y 12:31 de Madrid),
+    overlap=35 % idéntico.
+    EL DATO DE CÓDIGO QUE ENCAJA CON EL «SIEMPRE CINCO» (leído el 06/10): el prompt
+    del juez dice «Máximo 10 contradicciones, 5 inconsistencias menores y 5
+    solapamientos.» (lib/analysis/judge.ts:840). El tope sólo está en el prompt: ni
+    la frontera (lib/analysis/llm-boundary.ts, sanitizeJudgeContradictions y
+    traducirSolapamientosDelJuez) ni ningún otro punto de lib/analysis/ recorta
+    después. Que el juez llegue al tope en las cuatro pasadas no se ha medido como
+    causa: es un dato al lado del otro.
+
+  B.339 — [ABIERTO 06/10/2026 · LA COPIA FUNCIONA, LA EMISIÓN NO] DE LAS TRES
+    CONTRADICCIONES SEMBRADAS ENTRE NOR-11 Y CLI-13, UNA SALE SIEMPRE, UNA A VECES Y
+    UNA NUNCA, CON LOS DOS DOCUMENTOS ENTEROS DELANTE
+    Medido por el arquitecto el 06/10 en cuatro análisis rápidos de NOR-11, contra
+    corpus-pruebas/SIEMBRA_caso_control.md:
+      · PLAZO (72 h frente a 7 días): publicada 4 de 4, misma huella e7785038,
+        longitudes de cita 154/128, paso=literal;
+      · NEGACIÓN (color del contenedor del grupo III): publicada 1 de 4;
+      · LUGAR (Chamberí frente a Retiro): publicada 0 de 4.
+    Régimen pareja_entera: analizado 14704/14704 y candidato 9817/9817. El juez
+    tiene los dos documentos COMPLETOS.
+    En las dos pasadas con log (10:29:22 y 10:31:06 UTC), LUGAR y NEGACIÓN no
+    aparecen ni emitidas ni descartadas: mueren en la EMISIÓN del juez, antes de
+    cualquier puerta. ⚠️ No es la única forma de morir que tiene LUGAR: en las
+    pasadas del 05/10 a las 12:01 y del 06/10 a las 08:59 y 09:02 (Madrid) sí se
+    emitió y murió en la puerta de citas (F-120 §3.2). Son dos sitios distintos.
+
+  B.340 — [ABIERTO 06/10/2026 · UNA CONTRADICCIÓN ARCHIVADA COMO SOLAPAMIENTO] LA
+    FRASE DEL LUGAR, COPIADA LITERAL Y CLASIFICADA COMO SOLAPAMIENTO DE FORMACIÓN
+    Medido por el arquitecto el 06/10: en tres pasadas seguidas, el juez copió
+    literal de CLI-13 la frase «Si trabajas en Chamberí o Salamanca […] el
+    interlocutor es siempre el personal de Retiro» y la archivó como solapamiento
+    de FORMACIÓN, en vez de como la contradicción de LUGAR que la siembra declara
+    (Retiro en CLI-13 frente a Chamberí en NOR-11). La cita no falla: falla el
+    tipo de hallazgo y el tema.
+
+  B.341 — [ABIERTO 06/10/2026 · MISMA ENTRADA, DISTINTA SALIDA] CLI-12: EL JUEZ
+    RECIBE BYTE A BYTE LO MISMO Y DEVUELVE COSAS DISTINTAS
+    Medido por el arquitecto el 06/10 en las dos pasadas con log (10:29:22 y
+    10:31:06 UTC): para CLI-12, la recuperación fue idéntica byte a byte —47
+    fragmentos, mismos scores, 3 dentro, 2793/3000 caracteres— y el juez emitió 3
+    solapamientos en la primera y 1 en la segunda, con overlap del 5 % y luego del
+    15 %. El único estable de los tres es el emparejamiento DUDOSO de «auditoría de
+    procesos críticos».
+    Es B.82 (el juez no es estable ni consigo mismo) medido con la entrada fijada:
+    no hay ninguna diferencia aguas arriba que lo explique.
+
+  B.342 — [ABIERTO 06/10/2026 · CORTE HONESTO A UN 5 %] EN CLI-12 EL JUEZ LEE 2959
+    DE 55135 CARACTERES
+    Medido por el arquitecto el 06/10: el par NOR-11 ↔ CLI-12 entra con régimen
+    corte_honesto, y del candidato se le entregan 2959 de 55135 caracteres, el
+    5 % del documento. El candidato no cabe entero en el presupuesto de la pareja
+    (PRESUPUESTO_PAREJA_CARACTERES = 40.000, lib/analysis/judge.ts:1158-1160)
+    dejando al analizado su suelo de 6.000 (SUELO_DEL_ANALIZADO, judge.ts:1167),
+    así que entra su bloque por relevancia (leerLaPareja, judge.ts:1286-1306).
+
+  B.343 — [ABIERTO 06/10/2026 · UN DOCUMENTO SIN TROZOS CIEGA AL ANALIZADO] EL
+    RÉGIMEN sin_fuente_comun RECORTA EL DOCUMENTO QUE SE ESTÁ ANALIZANDO
+    Medido por el arquitecto el 06/10: cuando un candidato no tiene trozos, la
+    pareja entra con régimen sin_fuente_comun (judge.ts:1262-1266), que se lee como
+    la tijera vieja y recorta el DOCUMENTO ANALIZADO a 6.000 caracteres
+    (NEW_DOC_LIMIT_QUICK, judge.ts:37; recortarAnalizado, judge.ts:1094-1098, por
+    posición). Con NOR-11 fueron 6000 de 14704: todo lo que pasa del carácter
+    6.000, el 59 % del documento, queda fuera de esa comparación.
+    Es decir: un documento del corpus sin trozos no sólo se lee mal él; deja ciega
+    la mayor parte del documento que se está analizando frente a él. Hermano de
+    B.334 (los 14 documentos del corpus del piloto sin trozos).
+
+  B.344 — [ABIERTO 06/10/2026 · DESCARTE POR CRITERIO, SIN MOTIVO] EL RERANK QUITA
+    5 DE 8 CANDIDATOS SIN LLEGAR A SU TECHO
+    Medido por el arquitecto el 06/10: rerank con 3 seleccionados de 8 candidatos,
+    con MAX_SELECTED_QUICK = 6 (lib/analysis/rerank.ts:28). No tocó su techo: los
+    cinco de fuera se quitaron por juicio del modelo, no por presupuesto.
+    LO QUE SÍ QUEDA ESCRITO Y LO QUE NO (leído el 06/10): el reparto del rerank
+    (lib/analysis/reparto-del-rerank.ts) separa los dos cubos —descartadosPorCriterio
+    y cortadosPorTope—, así que se sabe que fueron 5 por criterio y 0 por tope. Lo
+    que no queda es el MOTIVO de cada uno: el modelo sólo devuelve documentId por
+    cada seleccionado (EntradaDelModelo), sin razón ninguna por los que deja fuera.
+    Y no hay salto del rerank cuando los candidatos caben: rerankCandidates sólo se
+    salta con cero candidatos (rerank.ts:33-45) — el arreglo que B.89 dejó para
+    después del verificador sigue sin construir (F-120, P5).
+
+  B.345 — [ABIERTO 06/10/2026 · CIFRA SIN DENOMINADOR] EL LOG DE LA RECUPERACIÓN
+    DICE «8 CANDIDATOS» Y NO DE CUÁNTOS
+    La línea es `[...] Retrieval: ${candidates.length} candidatos` (lib/analysis/
+    pipeline.ts:726). No dice sobre cuántos documentos del corpus se buscó.
+    LO QUE SE LEYÓ EL 06/10 PARA PODER CONTESTARLO:
+      · consultas por análisis: una por muestra del documento analizado, como
+        mucho 120 (pickSampledTexts, lib/analysis/muestras.ts:21-23); cada una con
+        topK = TOP_K_POR_CONSULTA = 25 (lib/analysis/retrieval.ts:142, usado en
+        :332), en lotes de QUERY_BATCH_SIZE = 5 (:95);
+      · los candidatos son los documentos con algún fragmento que sobreviva a la
+        criba (existencia, propio documento, generación; cribarMatches, retrieval.ts:374),
+        agrupados por documento (:407-412), y se cortan a
+        MAX_CANDIDATOS_DE_RECUPERACION = 25 por su mejor score (retrieval.ts:150,
+        :568; corte-de-recuperacion.ts:38-47), con el contador
+        `seleccion.candidatos_cortados_por_tope_de_recuperacion`;
+      · un documento del corpus que no coloca NINGÚN fragmento en el topK de
+        ninguna consulta queda fuera del análisis por completo: los candidatos se
+        construyen sólo desde los matches (retrieval.ts:407-412 y el bucle de
+        :453) y no hay mecanismo que lo recupere.
+    EL DENOMINADOR YA SE CALCULA Y NO SE ESCRIBE: `contarElFondo`
+    (lib/analysis/termometro.ts:302-358) lee de la base los documentos del fondo
+    (documentosDelFondo) y cuenta sus fragmentos. El termómetro guarda `fondo` en
+    FRAGMENTOS y `documentos_candidatos`, pero el número de DOCUMENTOS del fondo
+    sólo se usa por dentro y no se guarda ni se loguea.
+    La cuenta desde la base: SQL_B345_denominador_del_corpus.sql, pendiente de
+    ejecutar. La medida del 05/10 (SQL_B324): 50 documentos, 22 sin trozos, 20 en
+    el corpus, 14 del corpus sin trozos.
+
+  B.346 — [ANOTADO 06/10/2026 · DOCUMENTO DE PRUEBAS, MECANISMO VIGENTE]
+    Normas_Frecuencia_Recogidas.docx ES BASURA DE PRUEBAS
+    Confirmado por el director el 06/10. Su descarte determinista de la fila con
+    barras («Residuos sanitarios | Frecuencia (dias): 21 dias | …», paso
+    cabeza_sin_cola, pajar texto_completo, idéntico en las dos pasadas con log) queda
+    como ANECDÓTICO: el documento no cuenta. El mecanismo de B.333 —las tablas de
+    Word sin estructura de fila— sigue en pie, porque no depende de este documento.
+
+  B.347 — [CERRADO 06/10/2026 · VERIFICADO EN EL CAMINO REAL] LAS TARJETAS DE
+    SOLAPAMIENTO, ACEPTADAS
+    Verificado el 06/10 en el camino real del producto: dos tarjetas de
+    solapamiento, todos los puntos navegan al clicar, ninguna línea «no se puede
+    señalar en este documento», y las citas largas se ven enteras. El trabajo de
+    las tarjetas de solapamiento (B.314 commits A y B, y la tarjeta clicable
+    entera) queda aceptado y cerrado.
+
 Forma de trabajo: diagnóstico con datos reales antes de arreglar; un
 cambio lógico cada vez; build verde entre medias; SQL en Supabase antes
 del push; plan completo antes de tocar varios archivos.
