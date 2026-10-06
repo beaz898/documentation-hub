@@ -7793,6 +7793,61 @@ NOTAS DE ORDEN (propuesta, a confirmar)
       lib/analysis/verify-claims.ts, que se borró entero el 21/09/2026 en 839d093b
       («Retira la rama atómica (F-114)»). La copia del 15/08 es anterior.
 
+  B.349 — [ABIERTO 06/10/2026 · NO CONSTA QUE HAYA OCURRIDO; CONSTA QUE NO SE
+    PODRÍA SABER] EL JUEZ PUEDE PERDER HALLAZGOS SIN DEJAR RASTRO
+    La llamada del juez pide como mucho 4096 tokens de salida
+    (lib/analysis/judge.ts:858, maxOutputTokens: 4096). Si la respuesta se corta,
+    callAnthropicJson (lib/llm/anthropic-client.ts:299) la pasa por tryParseJson
+    (:287-297): primero la limpia (sanitizeJsonResponse, :232-261, que ya se queda
+    con lo que hay entre la primera llave y la última), luego intenta repararla
+    cerrando comillas y corchetes (repairTruncatedJson, :263-285) y, si eso
+    falla, recorta hacia atrás hasta el último } o ] que deje un JSON legible.
+    stop_reason NO se mira en esa ruta: en ese fichero sólo lo lee la llamada del
+    agente (:420 y :443).
+    Es el ÚNICO punto del camino donde un hallazgo puede perderse sin contador,
+    sin log y sin aviso: un hallazgo cortado a medias desaparece, y lo que queda
+    se publica como si fuera la respuesta entera.
+    No consta que haya ocurrido el 06/10. Consta que, si hubiera ocurrido, no
+    podríamos saberlo. No se arregla en este encargo.
+
+  B.350 — [ANOTADO 06/10/2026 · DECISIÓN DE DISEÑO CON COSTE MEDIDO, NO UN BUG] EL
+    PROMPT DEL JUEZ ESTÁ CALIBRADO PARA CALLARSE
+    · EL TECHO: «Máximo 10 contradicciones, 5 inconsistencias menores y 5
+      solapamientos.» (lib/analysis/judge.ts:840). Sólo en el prompt, sin
+      constante ni nombre, y nadie recorta después (B.338).
+    · SEIS INSTRUCCIONES SEPARADAS QUE EMPUJAN A NO EMITIR: judge.ts:768 («NO
+      emites hallazgo»), :783-787 («NO EMITAS NADA», «resultado NORMAL y
+      frecuente», «NO fuerces hallazgos»), :795 (veredicto «sin_relacion»), :837
+      (sin frase literal no hay hallazgo), :838 (la descripción, sin genéricos) y
+      :839 (una remisión no es hallazgo).
+    · LOS EJEMPLOS: 9 de lo que NO es contradicción (:806-814) contra 4 de lo que
+      sí (:800-803).
+    RESULTADO MEDIDO (arquitecto, 06/10, cuatro pasadas de NOR-11): con permiso
+    para diez contradicciones emite una, y de las tres contradicciones sembradas
+    publica una de forma fiable (B.339: plazo 4 de 4, negación 1 de 4, lugar 0 de 4).
+    HISTORIA, con fechas sacadas de git y no del recuerdo: el techo es del
+    02/05/2026 (7ec54e71); «NO fuerces hallazgos» entró el 20/08/2026 (7d3e313f),
+    con la cura del 83 % de falsos positivos de ese día. ⚠️ El encargo databa todo
+    el bloque en el 20/08: el techo es tres meses y medio anterior. Las demás
+    instrucciones no se han fechado una a una.
+    Es una decisión de diseño cuyo coste está ahora medido. Cambiarla es decisión
+    del director.
+
+  B.351 — [ANOTADO 06/10/2026 · EXPLICACIÓN PROBABLE, NO HECHO] 14 CANDIDATOS EL
+    30/09 Y 8 EL 06/10, CON CERO ACOMPAÑANTES LOS DOS: NO ES UNA REGRESIÓN
+    Constancia para que nadie lo lea como regresión del retrieval. B.300 midió 14
+    candidatos con 0 acompañantes (NOR-11 el 29/09 a las 10:51; CLI-13 y NOR-10 el
+    30/09 a las 12:19 y 12:20, UTC). El 06/10, NOR-11, también con 0
+    acompañantes, tuvo 8 (los 6 del corpus con trozos + 2 sin trozos; B.345).
+    LA EXPLICACIÓN PROBABLE: cambió el estado del corpus entre medias. NOR-11 y
+    otros pasaron a «pendiente» y hubo resubidas, así que el fondo de la búsqueda
+    no es el mismo.
+    POR QUÉ NO SE CONFIRMA: el censo del 06/10 (SQL_B345, SQL_B334) da el corpus
+    de HOY; la base no guarda qué documentos tenían «analizado» el 29 y el 30/09,
+    ni qué 14 fueron aquellos candidatos (B.300, L-9: de los que el rerank tira
+    sólo queda el número). Sin el fondo de aquel día no hay universo con el que
+    comparar, así que queda como explicación probable.
+
 Forma de trabajo: diagnóstico con datos reales antes de arreglar; un
 cambio lógico cada vez; build verde entre medias; SQL en Supabase antes
 del push; plan completo antes de tocar varios archivos.
