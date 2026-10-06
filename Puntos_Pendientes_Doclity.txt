@@ -1572,7 +1572,7 @@ NOTAS DE ORDEN (propuesta, a confirmar)
         el trabajo no es "reutilizar el swap" sino "extraer del swap la parte de
         relevo y dejar el portero fuera".
 
-  B.77 — [F-20, paso 4 pendiente] El muestreo corta a 40 los documentos con muchos
+  B.77 — [CERRADO 21/08/2026 en bf05e7de · marcado el 06/10/2026] El muestreo corta a 40 los documentos con muchos
     chunks. pickSampledTexts (app/api/analyze-v2/route.ts) devuelve todos si hay
     <=40 chunks, 30 si hay 41-80, y 40 si hay más. Medido en OPE-06: 114 chunks
     persistidos, 40 samples — se descartan 74 filas y se busca con una de cada
@@ -1581,6 +1581,12 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     ignorar dos tercios de las filas. No es una regresión: antes el problema
     quedaba oculto porque el reagrupado nunca producía tantos chunks. Decidir si
     las filas de tabla deben quedar exentas del muestreo o si el tope sube.
+    ✅ CERRADA: el tope subió a 120 en bf05e7de, el 21/08/2026 («el muestreo del modo
+    rápido admite hasta 120 chunks (B.77)»), y la bitácora lo registró
+    (Bitacora_Sesiones.txt:4278, «B.77 CORREGIDO»). Hoy vive en pickSampledTexts,
+    lib/analysis/muestras.ts:21-23. La entrada siguió diciendo «paso 4 pendiente»
+    hasta el 06/10 porque el encargo que pedía marcarla (el de la v53, basado en una
+    copia del 15/08) se retiró antes de aplicarse.
 
   B.78 — [CALIDAD DEL JUICIO] Falso positivo por proximidad entre filas de la
     misma persona. En el análisis de RRHH-06 contra OPE-02 el juez emitió una
