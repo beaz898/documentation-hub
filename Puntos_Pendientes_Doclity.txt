@@ -7517,8 +7517,9 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     obliga a reindexar y a sellar la medición: medir antes, reindexar, medir
     después.
 
-  B.334 — [ABIERTO 05/10/2026 · RUIDO MEDIDO, Y HERMANO DE B.76] 14 DOCUMENTOS DEL
-    CORPUS DEL PILOTO NO TIENEN TROZOS INDEXADOS
+  B.334 — [ABIERTO 05/10/2026 · RUIDO MEDIDO, Y HERMANO DE B.76 · ⚠️ BLOQUEANTE DE
+    CUALQUIER MEDICIÓN DEL RETRIEVAL DESDE EL 06/10] 14 DOCUMENTOS DEL CORPUS DEL
+    PILOTO NO TIENEN TROZOS INDEXADOS
     Medido el 05/10 (SQL_B319_documentos_sin_trozos, SQL_B324) en la organización
     del piloto: 50 documentos, 22 sin trozos en la generación activa, 20 en el
     corpus, y 14 del corpus sin trozos. Casi todos con extractor_version NULL,
@@ -7541,10 +7542,36 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     onRemove hasta el final, así que eso está sin confirmar en código.
     HERMANO DE B.76: un cliente con documentos anteriores a F-20 tendría
     exactamente este problema y no podría arreglarlo él.
+    ⚠️ AÑADIDO EL 06/10/2026: MEDIDO ENTERO, CON SU MECANISMO, Y QUEDA BLOQUEANTE DE
+    CUALQUIER MEDICIÓN DEL RETRIEVAL mientras esos 14 sigan dentro del corpus.
+    LA MEDICIÓN (SQL_B345 y SQL_B334, ejecutadas por el director el 06/10):
+    · de los 20 documentos del corpus, 14 están dentro de CORPUS_ACTIVO —el filtro
+      de la búsqueda, lib/pinecone/vectors.ts:99— sin un solo trozo en su
+      generación activa (20 = 6 con trozos + 14 sin trozos). Los 14:
+      Clientes_Residuos_Sanitarios.xlsx, Normas_Frecuencia_Recogidas.docx,
+      2_Glosario_Terminos.pdf, 3_Especificacion_Tecnica.pdf,
+      Actas_Direccion_2025.docx, Clientes_Residuos_Peligrosos.xlsx,
+      Facturacion_2025.xlsx, new 1.txt, new 6.txt, new 10.txt, new 11.txt,
+      new 9.txt, Protocolo_Visitas_Centros.docx y Registro_Visitas.xlsx;
+    · en toda la organización, 22 documentos tienen vectores declarados
+      (chunk_count) y cero trozos en su generación activa: 14 «analizado» y 8
+      «pendiente» (14 + 8 = 22). Los 14 «analizado» son exactamente los 14 del
+      corpus sin trozos.
+    EL MECANISMO, que es lo que faltaba: la criba de generación lee sólo
+    documents (id, active_generation; lib/documents/vivos.ts:80-83) y NUNCA mira
+    document_chunks, así que un documento indexado antes de F-20 —con vectores de
+    su generación activa y sin trozos— pasa la criba entero.
+    LA CONSECUENCIA: no son vectores huérfanos inertes esperando la página de
+    limpieza. Están ACTIVOS en la búsqueda, compitiendo por las 25 plazas de cada
+    consulta (TOP_K_POR_CONSULTA, lib/analysis/retrieval.ts:142), y el 06/10 dos de
+    ellos (Clientes_Residuos_Sanitarios y Normas_Frecuencia_Recogidas) ganaron
+    plaza de candidato. Por eso, mientras estén dentro, ninguna medida de
+    desplazamiento es honesta.
 
   B.335 — [ABIERTO 05/10/2026 · CUARTA VEZ QUE EL INSTRUMENTO NO PUEDE FALLAR DONDE
     DEBERÍA] EL CORPUS NO TRAE COMILLAS CURVAS NI TABLAS DE WORD, Y ESO INVALIDA
     DOS CEROS
+    (No confundir con B.334: los 14 documentos del corpus sin trozos viven allí, no aquí.)
     Medido el 05/10 por dos caminos: 0 comillas curvas (U+201C, U+201D, U+2018,
     U+2019) y 0 menos tipográfico (U+2212) en los 27 documentos del corpus de
     pruebas leídos uno a uno con el extractor real, y 0 en producción —50
