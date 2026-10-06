@@ -7598,6 +7598,11 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     traducirSolapamientosDelJuez) ni ningún otro punto de lib/analysis/ recorta
     después. Que el juez llegue al tope en las cuatro pasadas no se ha medido como
     causa: es un dato al lado del otro.
+    ⬆️ SUBIDO EL 06/10 A EXPLICACIÓN ARITMÉTICA SUFICIENTE, sin experimento todavía:
+    en el par hay nueve temas de solapamiento, el prompt permite cinco
+    (judge.ts:840), y el juez emitió exactamente cinco en cuatro de cuatro pasadas.
+    Eso basta para explicar el «siempre cinco» sin suponer nada más. Para llamarlo
+    CAUSA PROBADA falta el experimento: subir el techo y volver a medir.
 
   B.339 — [ABIERTO 06/10/2026 · LA COPIA FUNCIONA, LA EMISIÓN NO] DE LAS TRES
     CONTRADICCIONES SEMBRADAS ENTRE NOR-11 Y CLI-13, UNA SALE SIEMPRE, UNA A VECES Y
@@ -7635,6 +7640,14 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     procesos críticos».
     Es B.82 (el juez no es estable ni consigo mismo) medido con la entrada fijada:
     no hay ninguna diferencia aguas arriba que lo explique.
+    ✅ CONFIRMACIÓN MEDIDA DEL MODELO DE F-118, añadida el 06/10, y cierra esta ficha
+    con B.342: CLI-12 es la pareja que se lee al 5 % (2.959 de 55.135, corte_honesto)
+    y es la que produjo el ÚNICO falso positivo claro del día; CLI-13 se lee entera
+    (9.817 de 9.817, pareja_entera) y produjo CERO falsos. Es lo que Fable revisó en
+    F-118 tras fallar su predicción: «los falsos nacen tanto de poco contexto como de
+    mucho», y aquel falso «nacía de escasez» (claude/consultas-fable/
+    F-118_2026-09-28_simetria-de-lectura.md; y F-119, «Alcance y una predicción
+    fallada»).
 
   B.342 — [ABIERTO 06/10/2026 · CORTE HONESTO A UN 5 %] EN CLI-12 EL JUEZ LEE 2959
     DE 55135 CARACTERES
@@ -7644,6 +7657,9 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     (PRESUPUESTO_PAREJA_CARACTERES = 40.000, lib/analysis/judge.ts:1158-1160)
     dejando al analizado su suelo de 6.000 (SUELO_DEL_ANALIZADO, judge.ts:1167),
     así que entra su bloque por relevancia (leerLaPareja, judge.ts:1286-1306).
+    ✅ VÍNCULO CON B.341, añadido el 06/10: esta pareja leída al 5 % es la que produjo
+    el único falso positivo claro del día, y CLI-13, leída entera, ninguno. Confirma
+    el modelo revisado de F-118 («los falsos nacen de escasez»): ver B.341.
 
   B.343 — [ABIERTO 06/10/2026 · UN DOCUMENTO SIN TROZOS CIEGA AL ANALIZADO] EL
     RÉGIMEN sin_fuente_comun RECORTA EL DOCUMENTO QUE SE ESTÁ ANALIZANDO
@@ -7656,6 +7672,9 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     Es decir: un documento del corpus sin trozos no sólo se lee mal él; deja ciega
     la mayor parte del documento que se está analizando frente a él. Hermano de
     B.334 (los 14 documentos del corpus del piloto sin trozos).
+    PRECISIÓN DEL 06/10: el mecanismo es real y se mantiene; la pareja que lo disparó
+    hoy fue Normas_Frecuencia_Recogidas.docx, confirmada por el director como basura
+    de pruebas (B.346). La instancia de hoy es anecdótica; el mecanismo no.
 
   B.344 — [ABIERTO 06/10/2026 · DESCARTE POR CRITERIO, SIN MOTIVO] EL RERANK QUITA
     5 DE 8 CANDIDATOS SIN LLEGAR A SU TECHO
@@ -7670,9 +7689,39 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     Y no hay salto del rerank cuando los candidatos caben: rerankCandidates sólo se
     salta con cero candidatos (rerank.ts:33-45) — el arreglo que B.89 dejó para
     después del verificador sigue sin construir (F-120, P5).
+    AÑADIDO EL 06/10: de los 5 que tiró el rerank, 4 tienen trozos y son OPE-10 y
+    OPE-11 (tarifarios), OPE-13 (cobertura) y RRHH-08 (guardias), frente a un
+    protocolo de residuos; el quinto es Clientes_Residuos_Sanitarios, sin trozos
+    (4 + 1 = 5). Los descartes son PROBABLEMENTE CORRECTOS: nada en esos cuatro trata
+    de residuos. Y enlaza con el refinamiento aceptado el 01/10, que dice que el
+    hueco de auditoría es «quiénes», no «cuántos»: los cortes que dejan fuera
+    documentos ya cuentan cuántos pero no cuáles. ⚠️ Ese refinamiento NO consta en
+    B.303: consta en claude/consultas-fable/F-119_2026-09-30_moneda-antigua-del-
+    retrieval.md, sección (h), «REFINAMIENTO 3», y en
+    claude/Plan_Contadores_Topes_Ciegos.md.
 
-  B.345 — [ABIERTO 06/10/2026 · CIFRA SIN DENOMINADOR] EL LOG DE LA RECUPERACIÓN
-    DICE «8 CANDIDATOS» Y NO DE CUÁNTOS
+  B.345 — [ABIERTO 06/10/2026 · ⚠️ REESCRITA EL MISMO DÍA: EL DENOMINADOR SE MIDIÓ Y
+    LA ETAPA 3 NO DESPLAZÓ A NADIE; SÓLO QUEDA EL LOG] EL LOG DE LA RECUPERACIÓN DICE
+    «8 CANDIDATOS» Y NO DE CUÁNTOS
+    ⚠️ LA PREMISA DE ESTA FICHA, «cifra sin denominador», QUEDÓ CONTESTADA EL 06/10,
+    y se dice arriba para que nadie lea lo de abajo como un problema abierto de la
+    etapa 3:
+      · EL DENOMINADOR ES 20, el fondo completo del corpus (SQL_B345, ejecutada por
+        el director el 06/10: 50 documentos = 28 con trozos + 22 sin trozos; corpus
+        20 = 6 con trozos + 14 sin trozos; sin generación activa 0; cuadra «sí»).
+        NOR-11, el analizado, tiene estado «pendiente»: NO es del corpus ni del
+        fondo.
+      · LOS CANDIDATOS FUERON 8 = los 6 documentos del corpus con trozos (CLI-12,
+        CLI-13, OPE-10, OPE-11, OPE-13 y RRHH-08) + Clientes_Residuos_Sanitarios +
+        Normas_Frecuencia_Recogidas (6 + 2 = 8).
+      · LO DECISIVO: LOS SEIS DOCUMENTOS DEL CORPUS CON TROZOS LLEGARON TODOS A
+        CANDIDATO. En las pasadas de hoy, analizando UN SOLO documento y con este
+        corpus, la etapa 3 NO desplazó ningún documento real.
+      · LA URGENCIA QUE SE LE ATRIBUYÓ ESTA MAÑANA A LA ETAPA 3 ERA INFUNDADA PARA ESTE
+        CORPUS Y ESTE FLUJO. Nació de restar NOR-11 de un fondo del que nunca formó
+        parte (regla nueva del 06/10: todo recuento declara su universo).
+    LO ÚNICO QUE QUEDA ABIERTO: que el log sigue diciendo «8 candidatos» sin imprimir
+    el denominador.
     La línea es `[...] Retrieval: ${candidates.length} candidatos` (lib/analysis/
     pipeline.ts:726). No dice sobre cuántos documentos del corpus se buscó.
     LO QUE SE LEYÓ EL 06/10 PARA PODER CONTESTARLO:
@@ -7695,9 +7744,8 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     (documentosDelFondo) y cuenta sus fragmentos. El termómetro guarda `fondo` en
     FRAGMENTOS y `documentos_candidatos`, pero el número de DOCUMENTOS del fondo
     sólo se usa por dentro y no se guarda ni se loguea.
-    La cuenta desde la base: SQL_B345_denominador_del_corpus.sql, pendiente de
-    ejecutar. La medida del 05/10 (SQL_B324): 50 documentos, 22 sin trozos, 20 en
-    el corpus, 14 del corpus sin trozos.
+    La cuenta desde la base: SQL_B345_denominador_del_corpus.sql, EJECUTADA por el
+    director el 06/10 (cifras arriba). Coincide con la del 05/10 (SQL_B324).
 
   B.346 — [ANOTADO 06/10/2026 · DOCUMENTO DE PRUEBAS, MECANISMO VIGENTE]
     Normas_Frecuencia_Recogidas.docx ES BASURA DE PRUEBAS
