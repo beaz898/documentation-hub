@@ -8155,6 +8155,36 @@ NOTAS DE ORDEN (propuesta, a confirmar)
       otros separadores, y como la huella sale de las citas (hashCitationPair),
       cada forma es para el sistema un hallazgo distinto. Enlaza con B.333.
 
+  B.362 — [PLAN ACEPTADO POR EL DIRECTOR 07/10/2026 · SIN CONVERTIR EN TAREAS] EL
+    PLAN DE F-121 PARA CERRAR EL FRENTE DE CALIDAD DEL ANÁLISIS ANTES DE ENSEÑARLO
+    De claude/consultas-fable/F-121_2026-10-07_prueba-literal-de-las-citas.md,
+    sección «DECISIONES DE PLAN QUE QUEDAN ARCHIVADAS» del dictamen. Lo dejó Fable
+    y lo aceptó el director. Se anota como plan, no como tareas: cada pieza entra
+    por su propio encargo.
+    · ESTA SEMANA, HORAS:
+      - la cruzada literal se CORRIGE en vez de tirarse (el detector de B.358 ya
+        sabe verla);
+      - los corchetes de la glosa, fuera antes de la puerta, con contador (parche:
+        se borra cuando entren los punteros);
+      - contar las paradas por tope de tokens de salida (B.349, B.356). Es lo que
+        ya está EN MARCHA desde el 07/10;
+      - leer el historial de la puerta de citas (F-121, D2).
+    · SEMANA SIGUIENTE: prueba EN SOMBRA de la función de citas del proveedor con
+      las 8 pasadas de NOR-11. Si las predicciones se cumplen (P-F121-1 a 5), se
+      activa tras interruptor. Si no encaja por la salida estructurada, PLAN B: el
+      segmentador propio de F-120, que queda archivado como plan B y es lo que se
+      reconstruye si algún día se cambia de proveedor.
+    · EN PARALELO, LO BARATO DE F-120 P2: que el juez entregue la lista de datos
+      compartidos que comprobó, para que las pérdidas dejen rastro; y medir el
+      coste real de la segunda pasada con caché de prompt. Si cuesta un cuarto o
+      menos, el MVP lleva dos pasadas unidas con verificador detrás.
+    · CRITERIO DE «CERRADO PARA ENSEÑAR», legible en el arnés: cada trampa
+      sembrada detectada y publicada en 4 de 5 pasadas o más; cero falsos
+      publicados; coste por análisis escrito. HOY: 1 trampa fiable de 3 (PLAZO 8
+      de 8; NEGACIÓN 2 de 8; LUGAR 0 de 8; B.357).
+    · FUERA DEL MVP, con fecha de revisión «primer cliente»: la extracción de
+      afirmaciones por documento al indexar.
+
 Forma de trabajo: diagnóstico con datos reales antes de arreglar; un
 cambio lógico cada vez; build verde entre medias; SQL en Supabase antes
 del push; plan completo antes de tocar varios archivos.
