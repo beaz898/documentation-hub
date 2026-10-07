@@ -13348,6 +13348,13 @@ fondo del que nunca formó parte —su estado es «pendiente», y el fondo de la
 corpus `analizado`—, y de ahí salió un «6 contra 5» inexistente y una urgencia infundada para
 la etapa 3 (B.345 de Puntos_Pendientes_Doclity.txt).
 
+**NOTA DE PROTOCOLO (07/10/2026), sobre la regla de arriba**: la regla —toda ficha que cite un
+recuento declara el universo contado— la escribió el arquitecto el 06/10 y **la incumplió él mismo
+el 07/10**: tomó «no aparece en las cuatro pasadas del 06/10» y lo trató como «no ha aparecido
+nunca», y sobre eso construyó un mecanismo («al liberar plazas, el juez mete lo que la regla
+prohíbe») que resultó falso: la remisión mutua ya había salido el 27/09 y la tasa es plana, 17 % y
+18 % (B.315). **La regla no falló; falló quien la escribió, al día siguiente.**
+
 ### 📋 B.331 — COMILLAS CURVAS, Y LA REPRESENTATIVIDAD DEL CORPUS (05/10/2026)
 
 Hecho 1: la clase de caracteres de normalize-core.mjs:84 lleva la comilla doble recta
