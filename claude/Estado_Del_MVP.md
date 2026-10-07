@@ -13355,6 +13355,23 @@ nunca», y sobre eso construyó un mecanismo («al liberar plazas, el juez mete 
 prohíbe») que resultó falso: la remisión mutua ya había salido el 27/09 y la tasa es plana, 17 % y
 18 % (B.315). **La regla no falló; falló quien la escribió, al día siguiente.**
 
+**LECCIÓN DE PROTOCOLO (07/10/2026)**, con la literalidad del arquitecto: «Una conclusión sobre el
+producto sacada de la salida de un instrumento declara qué campos lee ese instrumento. El 06/10 el
+arquitecto dedujo que synthesize fundía cinco solapamientos y perdía las citas, cuando lo que pasaba
+es que el SQL no leía el campo `puntos` y el `null` era una columna de la propia consulta. Tenía
+además la prueba en contra —la pantalla mostraba los cinco puntos con sus dos citas— y no la
+contrastó.»
+- **Lo real**: `construirOverlaps` publica una entrada por pareja y une las descripciones con «. »
+  por diseño (`lib/analysis/synthesize.ts:166`); los puntos van aparte, con sus dos citas, en
+  `puntos` (`:173`, B.314); y el `NULL` lo escribe a mano
+  `SQL_F120_P2_perdida_o_reclasificacion.sql:81`. Explicado en F-120, sección (h), punto 2.
+- **No llegó a escribirse en ninguna ficha**: buscado el 07/10 por «funde», «fusiona», «cinco
+  títulos concatenados» y «cita_existente a null» en todo el repositorio, y la única aparición es la
+  explicación correcta de F-120. Lo paró Code al leer el código antes de abrir la ficha que se pedía.
+- **Es la tercera de la misma familia esta semana** —una conclusión sacada de un recuento o de una
+  salida sin declarar qué contaba—: NOR-11 restada de un fondo del que no formaba parte (06/10), el
+  universo no declarado en las remisiones (07/10, B.315) y ésta.
+
 ### 📋 B.331 — COMILLAS CURVAS, Y LA REPRESENTATIVIDAD DEL CORPUS (05/10/2026)
 
 Hecho 1: la clase de caracteres de normalize-core.mjs:84 lleva la comilla doble recta
