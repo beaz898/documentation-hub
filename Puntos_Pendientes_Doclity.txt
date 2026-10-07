@@ -8037,6 +8037,40 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     como dato sin explicación. Lo que SÍ queda probado es que el fallo de LUGAR es
     REPRODUCIBLE entre días con la misma reescritura, no azar.
 
+  B.358 — [ANOTADO 07/10/2026 · EL DETECTOR EXISTE DESDE EL 02/10; SÓLO EN EL LOG]
+    LA ATRIBUCIÓN CRUZADA YA SE DETECTA Y SE ETIQUETA
+    Dos descartes del 07/10 (arquitecto, sobre los logs) traen la etiqueta
+    «cruzada: la cita del existente está en el nuevo»:
+      · [db287ea4], pasada de 08:53, existente, longitud 126, paso sin_cabeza:
+        «El personal clínico y auxiliar recibe formación específica en gestión
+        de residuos sanitarios antes de incorporarse a su puesto»
+      · [c1af9c11], pasada de 08:57, existente, longitud 170, paso sin_cabeza:
+        «El personal de nueva incorporación no manipula residuos de los grupos
+        III o IV sin supervisión directa de un compañero ya formado hasta haber
+        completado la sesión inicial»
+    Las dos son frases de NOR-11 que el juez atribuyó a CLI-13. Consecuencia
+    práctica: no hace falta compararlo a mano; el log lo etiqueta.
+    DÓNDE SE GENERA: diagnosticoDelDescarte, lib/analysis/diagnostico-de-cita.ts:
+    26-37 (la etiqueta, :34). Para cada lado que falló, comprueba si su cita SÍ
+    está en el otro lado con el mismo comprobador (:33). Lo llama
+    registroDeDescartes().descartar (:76-97), desde judge.ts:453 para las
+    contradicciones y judge.ts:504 para los solapamientos. Nació el 02/10/2026
+    como B.312 (f06c003e) y observa, no corrige: el hallazgo se descarta igual.
+    ⚠️ ESO DESMIENTE UN «SIGUIENTE PASO» ESCRITO: B.332 (Estado_Del_MVP.md, «SIGUIENTE
+    PASO, decidido el 05/10») propone implementar el reintento cruzado como
+    diagnóstico y registrar cita_lado_cruzado. Ese diagnóstico YA EXISTÍA desde el
+    02/10, tres días antes, con otro nombre. Es el patrón de «proponer construir lo
+    construido» que la regla del consumidor (F-94) ya describe.
+    ¿SE PUEDE CONTAR DESDE LA BASE? No directamente. La etiqueta sólo va a la
+    línea de log. Lo que se guarda de cada descarte (descartesPorCita,
+    lib/analysis/types.ts:147 y :161-173; como mucho 10 por pareja,
+    TOPE_DE_DESCARTES_POR_PAREJA, diagnostico-de-cita.ts:62) lleva las dos citas,
+    el lado que falló y, por lado, longitud, paso y pajar, pero NO la marca de
+    cruzada. Contarlo desde la base exigiría recalcular la búsqueda de la cita
+    contra el texto del otro documento, y en SQL eso sólo sale aproximado (sin
+    normalize ni buscarCita). Ni se escribe el SQL ni se cambia el código en
+    este encargo.
+
 Forma de trabajo: diagnóstico con datos reales antes de arreglar; un
 cambio lógico cada vez; build verde entre medias; SQL en Supabase antes
 del push; plan completo antes de tocar varios archivos.
