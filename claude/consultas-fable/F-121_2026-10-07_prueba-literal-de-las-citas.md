@@ -449,7 +449,15 @@ del 07/10), repetidas con el cambio.
   - *Estado*: sin medir.
 - **P-F121-7** · Al menos una de las 8 pasadas de NOR-11 tocó el tope de tokens de salida.
   - *Aceptación*: una o más.
-  - *Estado*: sin medir. ⚠️ Ver la nota de Code en (f), punto 2.
+  - *Estado*: **FALSA**, resuelta el 07/10 sin instrumentar. SQL_B349 da, desde el 02/10,
+    máximo 3.928 tokens de salida POR ANÁLISIS ENTERO y 0 filas por encima de 4.096, con los
+    dos controles a cero. Como cada fila es la suma de todas las llamadas del análisis y la
+    parte nunca es mayor que el total, NINGUNA llamada suelta pudo pararse por el tope. Las 8
+    pasadas de NOR-11 caen dentro de esa ventana. Lo detectó Code al archivar. *(Veredicto del
+    arquitecto, 07/10/2026.)*
+  - **Consecuencia**: la ceguera de B.349 es real pero NO está disparando hoy. El contador de
+    stop_reason (B.356) se aparca hasta que se toque algo que aumente la salida, junto con el
+    salto de maxOutputTokens de 4.096 a 8.192 de B.360.
 - **P-F121-8** · Entre las citas descartadas desde el 02/10, las que fallan tienen una mediana
   de longitud al menos un 50 % mayor que las que pasan, y más de la mitad llevan dos o más
   subordinadas o tres o más entidades nombradas.
@@ -472,8 +480,12 @@ del 07/10), repetidas con el cambio.
 entre F-120 y F-121, de 15 caracteres a min(20, 40 %). El arquitecto cree que es una falsa
 alarma suya: el 06/10 se corrigió en B.332 que ese «15» no era de la puerta sino de
 `findTolerant` (B.326), y Fable estaría leyendo el error viejo de la ficha como evidencia de un
-cambio de código. **Queda como DUDA ABIERTA** hasta que se lea el historial del fichero, que va
-en otro encargo del mismo día.
+cambio de código. ~~**Queda como DUDA ABIERTA** hasta que se lea el historial del fichero, que va
+en otro encargo del mismo día.~~
+- ✅ **PRÁCTICAMENTE CERRADA (arquitecto, 07/10/2026), con lo que Code vio al archivar**: la
+  línea `:163` que cita Fable es la SALIDA `cabeza_sin_cola`, no el cálculo; el cálculo está en
+  `:155-156` y es min(20, 40 %). **Fable citó la etiqueta, no la fórmula.** Queda pendiente sólo
+  el historial del fichero, que va en otro encargo.
 - *Nota de Code, sin leer el historial:* la corrección de B.332 entró en `bd5fa647` (06/10), cuyo
   mensaje dice «la cabeza y la cola de la puerta son min(20, 40 %), no 15 (el 15 es del
   editor)». Es un puntero para ese encargo, no su respuesta.
@@ -491,8 +503,14 @@ no se ha tocado; esto lo deja el arquitecto.
    pasadas de NOR-11 son del 06 y el 07/10, dentro de ese universo. **Si se acepta la cota, la
    predicción ya ha fallado.** Las reservas son las del propio SQL: la fila de un análisis cuya
    escritura falló no está (límite 3), y antes del cambio salían 80 filas para 80 análisis
-   guardados. El veredicto no se escribe aquí: lo decide el arquitecto.
-3. **El orden de la puerta que describe la consulta** («(1) literal; (2) normalizada; (3) cabeza y
+   guardados. El veredicto no se escribe aquí: lo decide el arquitecto. → **Decidido el 07/10: FALSA** (ver (e)).
+3. **«DOS de esas cuatro eran literales» (consulta, punto 3a) es un error que viene de Code, y
+   Fable construyó sobre él.** La comparación de Code del 06/10 dio **TRES** literales de las cuatro
+   mal atribuidas; el «DOS» era del borrador de F-120 y Code lo copió en B.358 el 07/10, de donde
+   pasó a esta consulta. B.358 está corregida (07/10/2026). Afecta a lo que Fable deduce: su
+   «Dos de las cuatro citas cruzadas eran literales» (P6) y la predicción P-F121-6 («al menos 2 de
+   las 4») se escribieron sobre el dos. La predicción no se toca; se cuenta contra el dato real.
+4. **El orden de la puerta que describe la consulta** («(1) literal; (2) normalizada; (3) cabeza y
    cola») cuadra con `lib/analysis/coincidencia-de-cita.ts` leído hoy: cabeza y cola son
    `Math.min(20, Math.floor(normNeedle.length * 0.4))` (`:155-156`). La `:163` que cita Fable es
    hoy la salida `cabeza_sin_cola`, no un 15. Esto es el fichero de hoy, no su historial.
