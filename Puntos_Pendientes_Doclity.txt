@@ -8070,6 +8070,16 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     contra el texto del otro documento, y en SQL eso sólo sale aproximado (sin
     normalize ni buscarCita). Ni se escribe el SQL ni se cambia el código en
     este encargo.
+    ⚠️ LA EVIDENCIA QUE JUSTIFICA EL DETECTOR, añadida el 07/10/2026. PROCEDENCIA:
+    comparación a mano de las once citas enteras de SQL_B333, hecha por Code el
+    06/10 en la conversación con el arquitecto, sin registro en ningún fichero
+    hasta hoy. Resultado: en 11 LADOS y 4 CITAS DISTINTAS la cita es correcta pero
+    está atribuida al documento equivocado; DOS de esas cuatro son literales letra
+    por letra y se tiraron sólo porque el juez dijo que estaban en el otro
+    documento del par.
+    ⚠️ DOS ONCES QUE NO SON EL MISMO ONCE. Éste son 11 LADOS mal atribuidos (en 4
+    citas). El de B.332 (Estado_Del_MVP.md) son 11 CITAS DISTINTAS de las tres
+    conductas: 4 + 2 + 5 = 11 citas, sobre 21 + 9 + 12 = 42 lados.
 
   B.359 — [ANOTADO 07/10/2026 · LECTURA DEL ARQUITECTO, NO MEDICIÓN AUTOMÁTICA] EL
     JUICIO DE LOS ONCE PUNTOS DE LA PASADA DE 08:58
