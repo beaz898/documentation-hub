@@ -8217,6 +8217,14 @@ NOTAS DE ORDEN (propuesta, a confirmar)
       conocimiento de Code, NO leído en la documentación de hoy; se comprueba en la
       propia sombra—. Si es así, el JSON libre repartido entre bloques no se puede
       leer como hoy, y la forma de devolver los hallazgos cambia con la función.
+    · ⚠️ LA PRIMERA PREGUNTA DE LA PRUEBA EN SOMBRA, antes que ninguna otra
+      (arquitecto, 07/10/2026): ¿llega la respuesta partida en varios bloques de
+      texto con la función de citas activada, y se puede seguir leyendo el JSON
+      libre como hoy, que sólo coge el primer bloque
+      (lib/llm/anthropic-client.ts:167-168)? Que llegue partida es CONOCIMIENTO DE
+      CODE, NO LEÍDO en la documentación del proveedor. De esa respuesta depende si
+      la función del proveedor nos sirve tal cual o hay que cambiar la forma en que
+      el juez devuelve los hallazgos.
 
 Forma de trabajo: diagnóstico con datos reales antes de arreglar; un
 cambio lógico cada vez; build verde entre medias; SQL en Supabase antes
