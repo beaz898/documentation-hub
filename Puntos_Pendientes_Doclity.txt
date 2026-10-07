@@ -8074,9 +8074,20 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     comparación a mano de las once citas enteras de SQL_B333, hecha por Code el
     06/10 en la conversación con el arquitecto, sin registro en ningún fichero
     hasta hoy. Resultado: en 11 LADOS y 4 CITAS DISTINTAS la cita es correcta pero
-    está atribuida al documento equivocado; DOS de esas cuatro son literales letra
-    por letra y se tiraron sólo porque el juez dijo que estaban en el otro
-    documento del par.
+    está atribuida al documento equivocado; ~~DOS~~ TRES de esas cuatro son
+    literales letra por letra y se tiraron sólo porque el juez dijo que estaban en
+    el otro documento del par.
+    ⚠️ CORREGIDO EL 07/10/2026, por Code y sobre su propio error. El «DOS» venía
+    del BORRADOR de la consulta F-120 (06/10, 07:41 UTC), no de la medición. La
+    comparación de Code de las 08:05 UTC dio TRES literales —(c), (j) y (h)— y la
+    cuarta, (i), con «El» donde el documento dice «Todo el»; la versión de la
+    consulta de las 08:12 ya decía TRES. Al escribir esta ficha, Code tomó el
+    número de un hallazgo del historial que resultó ser el borrador, sin
+    contrastarlo con su propia respuesta. Y LA PROCEDENCIA DE LOS 11 LADOS, precisada:
+    las 4 CITAS las comprobó Code contra los documentos; los 11 LADOS son el reparto
+    del arquitecto sobre su salida de SQL_B333 — Code sólo pudo comprobar 7 de (h)
+    y 1 de (i), y los 3 de (c) + (j) salen de esa salida, que Code no tiene
+    (7 + 1 + 3 = 11).
     ⚠️ DOS ONCES QUE NO SON EL MISMO ONCE. Éste son 11 LADOS mal atribuidos (en 4
     citas). El de B.332 (Estado_Del_MVP.md) son 11 CITAS DISTINTAS de las tres
     conductas: 4 + 2 + 5 = 11 citas, sobre 21 + 9 + 12 = 42 lados.
