@@ -8126,6 +8126,11 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     épocas y NO describen el techo nuevo; sólo el máximo, si es de una fila nueva,
     habla del cambio. Y son 5 filas nuevas para 4 pasadas del director: la quinta
     no está explicada aquí (puede ser otro análisis o el examen; límite 2 del SQL).
+    ✅ PRECISIÓN DEL 07/10: SOBRE EL MÁXIMO SÍ SE PUEDE CONCLUIR. Las 80 filas de
+    antes siguen dentro de las 85, y su máximo era 3.385. Como 3.928 > 3.385, el
+    máximo de 3.928 está necesariamente en una de las 5 filas nuevas: EL MÁXIMO SÍ
+    DESCRIBE EL TECHO NUEVO. Lo que sigue sin explicar es la quinta fila para
+    cuatro pasadas, y se queda anotado como está.
     ⚠️ REGLA QUE QUEDA ESCRITA: antes de CUALQUIER otra ampliación —subir el techo
     de contradicciones, meter una segunda pasada del juez, ampliar el
     corte_honesto— hay que subir maxOutputTokens de 4.096 a 8.192
