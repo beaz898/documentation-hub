@@ -8071,6 +8071,34 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     normalize ni buscarCita). Ni se escribe el SQL ni se cambia el código en
     este encargo.
 
+  B.359 — [ANOTADO 07/10/2026 · LECTURA DEL ARQUITECTO, NO MEDICIÓN AUTOMÁTICA] EL
+    JUICIO DE LOS ONCE PUNTOS DE LA PASADA DE 08:58
+    Lectura del arquitecto, vista por el director sin objeción, 07/10/2026.
+      BUENOS, las dos citas sustanciales y sobre lo mismo (5):
+        · Grupo III: punzocortante en rígido amarillo frente a bolsa amarilla
+        · Grupo IV: citotóxicos en contenedor azul
+        · Cierre de contenedores a tres cuartos de capacidad
+        · Derrames: EPI completo y kit de derrames
+        · Documentación de derrames en el parte de incidencias
+      REAL PERO CON LA CITA MAL CORTADA (1):
+        · Grupo II en bolsa verde: la cita de CLI-13 se corta ANTES de decir
+          «bolsa verde», así que el solapamiento existe y la cita no lo
+          demuestra. Mismo problema visto el 06/10.
+      FLOJOS (2):
+        · «Clasificación en cuatro grupos con colores específicos»: ninguna de
+          las dos citas menciona los colores que anuncia el título.
+        · «Criterio ante dudas»: NOR-11 habla de aplicar el grupo superior hasta
+          que confirme el Coordinador de Calidad; CLI-13 habla de dudas sobre
+          contacto con sangre. No es la misma regla.
+      MALOS (3):
+        · «Formación obligatoria»: la cita de CLI-13 es la del interlocutor de
+          Retiro, que no habla de formación. CUARTA pasada seguida con el mismo
+          emparejamiento equivocado: es B.340.
+        · La remisión mutua NOR-11 ↔ CLI-13: es la clase de B.315
+          (Estado_Del_MVP.md).
+        · El punto de CLI-12, «auditoría de procesos críticos»: también B.315.
+    Cuenta: 5 + 1 + 2 + 3 = 11 (10 con CLI-13 y 1 con CLI-12).
+
 Forma de trabajo: diagnóstico con datos reales antes de arreglar; un
 cambio lógico cada vez; build verde entre medias; SQL en Supabase antes
 del push; plan completo antes de tocar varios archivos.
