@@ -7915,6 +7915,14 @@ NOTAS DE ORDEN (propuesta, a confirmar)
       A · subir el techo de solapamientos de 5 a 10;
       B · devolver la frase del criterio de selección.
     No se toca ninguna en este encargo. La decisión es del director.
+    ✅ RESULTADO DEL 07/10/2026 (B.338): la hipótesis queda CONFIRMADA EN SU MITAD
+    DEL TECHO. La palanca A se probó sola (568a77ab): subir los solapamientos de 5
+    a 10 subió las emisiones (de 5, 5, 5, 5 a 8, 8, 10, 10) y bajó la rotación (de
+    0 huellas compartidas entre pasadas consecutivas a 4). La otra mitad —la frase
+    «Si hay más, incluye los más importantes», retirada el 11/05/2026— SIGUE SIN
+    PROBAR: es la palanca B y no se ha tocado.
+    Y el cambio NO afectó a las contradicciones, como estaba previsto: su techo
+    sigue en 10 y el juez sigue emitiendo una por pasada en tres de las cuatro.
     Es una decisión de diseño cuyo coste está ahora medido. Cambiarla es decisión
     del director.
 
