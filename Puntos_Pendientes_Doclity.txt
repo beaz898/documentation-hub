@@ -8099,6 +8099,30 @@ NOTAS DE ORDEN (propuesta, a confirmar)
         · El punto de CLI-12, «auditoría de procesos críticos»: también B.315.
     Cuenta: 5 + 1 + 2 + 3 = 11 (10 con CLI-13 y 1 con CLI-12).
 
+  B.360 — [ANOTADO 07/10/2026 · REGLA ESCRITA, NO SE TOCA AHORA] LOS TOKENS DE
+    SALIDA SUBIERON Y EL MARGEN SE ESTRECHÓ: ANTES DE OTRA AMPLIACIÓN, 8.192
+    SQL_B349_cota_superior_tokens_de_salida.sql, ejecutada por el director antes
+    y después de 568a77ab, la misma consulta:
+      · antes: 80 filas, máximo 3.385, pasan_de_4096 = 0, controles a cero;
+      · después: 85 filas, máximo 3.928, pasan_de_4096 = 0, controles a cero,
+        mediana 2.727, percentil 90 3.313, 24 filas por encima de 3.000.
+    Máximo: 3.928 − 3.385 = +543 tokens, un 16 %. Margen del máximo sobre el
+    techo: antes 4.096 − 3.385 = 711 (17 %), después 4.096 − 3.928 = 168 (4 %).
+    Ninguna llamada suelta toca el techo, porque cada fila es la SUMA de todas las
+    llamadas del análisis (la parte nunca es mayor que el total).
+    ⚠️ UNIVERSO DECLARADO (regla del 06/10): la consulta cuenta desde el 02/10, así
+    que el «después» son las 80 filas de antes MÁS 5 nuevas (85 = 80 + 5). La
+    mediana, el percentil 90 y las 24 filas por encima de 3.000 mezclan las dos
+    épocas y NO describen el techo nuevo; sólo el máximo, si es de una fila nueva,
+    habla del cambio. Y son 5 filas nuevas para 4 pasadas del director: la quinta
+    no está explicada aquí (puede ser otro análisis o el examen; límite 2 del SQL).
+    ⚠️ REGLA QUE QUEDA ESCRITA: antes de CUALQUIER otra ampliación —subir el techo
+    de contradicciones, meter una segunda pasada del juez, ampliar el
+    corte_honesto— hay que subir maxOutputTokens de 4.096 a 8.192
+    (lib/analysis/judge.ts:858). NO se toca ahora. Y al tocarlo, recordar B.356:
+    el 4096 es también el valor por defecto de buildPayload y ninguna prueba lo
+    cubre, y la respuesta cortada no deja rastro (B.349).
+
 Forma de trabajo: diagnóstico con datos reales antes de arreglar; un
 cambio lógico cada vez; build verde entre medias; SQL en Supabase antes
 del push; plan completo antes de tocar varios archivos.
