@@ -7960,6 +7960,25 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     Las tres siguen sin medir. Cada una decide si merece la pena gastar en el
     arreglo que predice, y por eso tienen entrada propia.
 
+  B.356 — [ABIERTO 07/10/2026 · ANOTADO, SIN ARREGLAR] LA LLAMADA JSON NO LEE
+    stop_reason, Y EL 4096 DEL JUEZ NO TIENE NINGUNA PRUEBA QUE LO CUBRA
+    Encontrado de paso el 07/10 al buscar si se guardan los tokens del juez.
+    · stop_reason NO SE LEE en la ruta JSON: callAnthropicTextWithTokens
+      (lib/llm/anthropic-client.ts:157-170) saca del cuerpo de la respuesta sólo
+      el texto y los tokens. Sólo lo lee la llamada del agente (:420 y :443). Es
+      la CAUSA CONCRETA de la ceguera que describe B.349: el dato que diría «esta
+      respuesta se cortó» llega en la respuesta y se tira.
+    · El 4096 de lib/analysis/judge.ts:858 es TAMBIÉN el valor por defecto de
+      buildPayload (anthropic-client.ts:88). Si alguien borrara el parámetro
+      explícito, el juez seguiría pidiendo 4096 y nadie se enteraría: hoy ese
+      número no tiene ninguna prueba que lo cubra.
+    · Y usage_logs tiene latency_ms, pero en el análisis rápido escribe los
+      tokens a 0 a propósito (app/api/analyze-v2/route.ts:669-680). Los tokens
+      del análisis viven sólo en llm_usage, sumados por análisis y por modelo
+      (lib/observability/record-usage.ts), sin stop_reason ni latencia.
+    Mientras tanto, la cota superior desde lo que ya se guarda:
+    SQL_B349_cota_superior_tokens_de_salida.sql. No se arregla ninguna de las dos.
+
 Forma de trabajo: diagnóstico con datos reales antes de arreglar; un
 cambio lógico cada vez; build verde entre medias; SQL en Supabase antes
 del push; plan completo antes de tocar varios archivos.
