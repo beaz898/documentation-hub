@@ -8123,6 +8123,23 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     el 4096 es también el valor por defecto de buildPayload y ninguna prueba lo
     cubre, y la respuesta cortada no deja rastro (B.349).
 
+  B.361 — [ABIERTO 07/10/2026 · MEDIDO EN CUATRO PASADAS] LAS OTRAS DOS PAREJAS
+    TAMBIÉN SON INESTABLES, Y LA FILA CON BARRAS SE REESCRIBE
+    Medido por el arquitecto el 07/10 en las mismas cuatro pasadas de NOR-11:
+    · CLI-12, con la recuperación idéntica byte a byte en las cuatro (47
+      fragmentos, 3 dentro, 2.793/3.000 caracteres): el juez emitió 3, 1, 1 y 2
+      solapamientos, con overlap del 15 %, 5 %, 8 % y 15 %. Es B.341 otra vez, ya
+      con el techo en 10: con la entrada fijada, la salida sigue rotando.
+    · Normas_Frecuencia_Recogidas: emitió la contradicción de la fila con barras
+      en las pasadas 1 y 4, y NADA en las pasadas 2 y 3 (overlap 0 %). El
+      documento es basura de pruebas (B.346).
+    · Y la misma fila de tabla se escribe distinta según la pasada, con huella
+      distinta: [5f7a8598] «Residuos sanitarios | Frecuencia (dias) | 21 dias |
+      Equivalencia | 3 semanas» frente a [9a7f402e] «Residuos sanitarios |
+      Frecuencia (dias): 21 dias | Equivalencia: 3 semanas». Es la misma fila con
+      otros separadores, y como la huella sale de las citas (hashCitationPair),
+      cada forma es para el sistema un hallazgo distinto. Enlaza con B.333.
+
 Forma de trabajo: diagnóstico con datos reales antes de arreglar; un
 cambio lógico cada vez; build verde entre medias; SQL en Supabase antes
 del push; plan completo antes de tocar varios archivos.
