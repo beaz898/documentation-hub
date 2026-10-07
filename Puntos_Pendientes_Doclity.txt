@@ -8013,6 +8013,30 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     Mientras tanto, la cota superior desde lo que ya se guarda:
     SQL_B349_cota_superior_tokens_de_salida.sql. No se arregla ninguna de las dos.
 
+  B.357 — [ABIERTO 07/10/2026 · DATO SIN EXPLICACIÓN, Y UN FALLO REPRODUCIBLE] LAS
+    CONTRADICCIONES SEMBRADAS NO MEJORAN, Y UNA PASADA EMITIÓ LAS TRES
+    Medido por el arquitecto el 07/10 en las cuatro pasadas de NOR-11 (08:53:41,
+    08:55:22, 08:57:06 y 08:58:01 UTC), con el techo de solapamientos ya en 10:
+    publicadas PLAZO 4 de 4, NEGACIÓN 1 de 4 y LUGAR 0 de 4. Idéntico al 06/10
+    (B.339). CERO contradicciones falsas.
+    PERO en la pasada de 08:53 el juez emitió LAS TRES a la vez, la primera vez en
+    las nueve pasadas medidas según el arquitecto:
+      · [e7785038] «Plazo máximo de almacenamiento de residuos grupo III» (PLAZO)
+      · [ebe45632] «Ubicación del punto de retirada centralizado» (LUGAR)
+      · [5a59c682] «Contenedor para residuos grupo III no punzantes» (NEGACIÓN)
+    PLAZO y NEGACIÓN se verificaron, las dos por paso literal, y se publicaron.
+    LUGAR murió otra vez en la puerta de citas: lado=nuevo, longitud 206, paso
+    cabeza_sin_cola, con LA MISMA HUELLA ebe45632 que el 05/10. La cita empieza
+    «El punto de retirada centralizado concentra el material de las tres
+    clínicas, ubicado en la clínica de Chamberí, desde donde se coordina y
+    documenta el transporte del material recogido en Salamanca y » (el final
+    cortado es el recorte a 200 caracteres del log, judge.ts:447-449, no del
+    juez). Es la misma cita de 206 caracteres que B.332 (Estado_Del_MVP.md) ya
+    contaba en la conducta 1, acabando en «…en Salamanca y Retiro».
+    ⚠️ NO se atribuye al cambio del techo: es 1 de 4 y no hay mecanismo. Se anota
+    como dato sin explicación. Lo que SÍ queda probado es que el fallo de LUGAR es
+    REPRODUCIBLE entre días con la misma reescritura, no azar.
+
 Forma de trabajo: diagnóstico con datos reales antes de arreglar; un
 cambio lógico cada vez; build verde entre medias; SQL en Supabase antes
 del push; plan completo antes de tocar varios archivos.
