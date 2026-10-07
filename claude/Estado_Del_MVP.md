@@ -12458,7 +12458,7 @@ director: **un documento de prosa**. En uno de tablas, «no se encontró el frag
 
 
 
-### 📋 B.315 — EL JUEZ EMITE SOLAPAMIENTOS GENÉRICOS QUE EL PROMPT YA LE PROHÍBE, Y PASAN LA COMPROBACIÓN DE CITAS (ficha de CALIDAD; CERRADA el 04/10 como «no se filtra»; 02/10/2026)
+### 📋 B.315 — EL JUEZ EMITE SOLAPAMIENTOS GENÉRICOS QUE EL PROMPT YA LE PROHÍBE, Y PASAN LA COMPROBACIÓN DE CITAS (ficha de CALIDAD; CERRADA el 04/10 como «no se filtra»; REABIERTA el 07/10 por frecuencia; 02/10/2026)
 
 **De dónde sale**: la pantalla de NOR-11 que miró el director el 02/10 (B.312). Los tres puntos
 publicados del solapamiento con CLI-12 son:
@@ -12535,6 +12535,34 @@ los hallazgos de precios.**
 - La SQL de B.315 se ejecuta cuando el director tenga un hueco: con un 2,4 % ya no frena nada.
 
 **Sin arreglo.** Constancia.
+
+🔁 **B.315 SE REABRE EL 07/10/2026, POR FRECUENCIA Y NO POR MECANISMO NUEVO.** La decisión del 04/10
+sigue escrita y sigue en pie: **no se filtra; si se toca, se toca en el prompt.** Lo que cambia es que
+el ruido de remisiones ya no es un 2,4 % de un archivo viejo sino una parte visible de la pantalla.
+Datos del arquitecto sobre los logs y la pantalla del director; Code no los ha visto.
+- **El 07/10, con el techo de solapamientos en 10 (568a77ab), DOS de los once puntos publicados de la
+  pasada de 08:58 UTC son remisiones** (juicio completo en B.359 de Puntos_Pendientes_Doclity.txt):
+  - la mutua NOR-11 ↔ CLI-13: «Este protocolo se complementa con […] CLI-13» frente a «Esta guía
+    traduce a instrucciones prácticas […] NOR-11»;
+  - la de CLI-12: «…y con el manual de calidad CLI-12, que establece el enfoque de auditoría
+    aplicable…».
+- **LA TASA ES PLANA, y eso DESMIENTE la hipótesis del arquitecto** («al liberar plazas, el juez mete
+  lo que la regla prohíbe»): 1 de 6 puntos publicados el 06/10 con el techo en 5 (17 %), y 2 de 11
+  el 07/10 con el techo en 10 (18 %). **Subir el techo NO aumentó el ruido de remisiones**: hay un
+  caso más porque hay más salida.
+- **La remisión mutua NO es nueva**: ya salió en el examen del 27/09 con el techo en 5 (arriba, «5 de
+  211 puntos», las cuatro descripciones de NOR-11 con CLI-13). La hipótesis se construyó sobre «no
+  aparece en las cuatro pasadas del 06/10» leído como «no ha aparecido nunca».
+- **La cita de CLI-12 rota manteniendo el tema** «auditoría de procesos críticos», publicado el 05, el
+  06 y el 07/10 según el arquitecto (y el 04/10 es el ejemplo del director de arriba). La cita de
+  NOR-11 es siempre la misma remisión; la de CLI-12 cambia:
+  - 06/10: «Este manual se revisa anualmente por Dirección de Operaciones…»;
+  - 07/10: «La adopción de este sistema de calidad no responde únicamente a una exigencia normativa,
+    sino a una decisión estratégica de Dentavia…».
+
+  En los dos casos las dos citas no hablan de lo mismo. Es el falso positivo más persistente medido
+  hasta hoy. CLI-12 se lee al 5 % (corte_honesto, 2.959 de 55.135; B.342 de Puntos), y encaja con el
+  modelo revisado de F-118: los falsos nacen de escasez.
 
 ### 📋 B.316 — HAY TEXTO DE CLIENTE QUE NADA BORRA: el análisis del chat cuyo fichero no se indexa (ficha de NEGOCIO, SIN arreglo, decide el director; 02/10/2026)
 
