@@ -837,7 +837,7 @@ REGLAS DE FORMATO:
 - Si no puedes copiar una frase literal que sustente el hallazgo, no emitas ese hallazgo.
 - En description: describe QUÉ contenido concreto comparten los dos documentos, en una frase. No vale describir características genéricas que compartirían casi todos los documentos de la empresa (mismo autor, misma plantilla, ambos citan normativa, ambos tienen sección de referencias). Si lo único en común es de ese tipo, NO emitas el solapamiento.
 - Una REMISIÓN no es solapamiento ni contradicción. Si el documento nuevo se limita a remitir a otro documento ("ver CLI-03", "conforme a NOR-01", "según el protocolo X") sin afirmar contenido propio sobre ese tema, no emitas hallazgo con ese documento por esa remisión.
-- Máximo 10 contradicciones, 5 inconsistencias menores y 5 solapamientos.
+- Máximo 10 contradicciones, 5 inconsistencias menores y 10 solapamientos.
 - El campo "severity" es obligatorio en cada contradicción: "contradiction" si son incompatibles, "minor_inconsistency" si son diferencias de enfoque o matiz.
 
 Responde con este JSON (sin bloques de código, sin texto adicional):
