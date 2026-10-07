@@ -386,10 +386,10 @@ arquitecto del 06/10 (ver (d)), y la cuarta por F-121:
 
 - **P2 · pérdida o reclasificación**: las dos contradicciones que faltan en la pasada del 05/10
   a las 12:07 de Madrid aparecerán como examinadas o como solapamientos reclasificados, no como
-  ausentes. *Estado*: sin medir; `SQL_F120_P2_perdida_o_reclasificacion.sql`, sin resultado que
-  conste.
+  ausentes. *Estado*: **FALSA** (arquitecto, 07/10/2026, sobre la salida que ejecutó el director el
+  06/10): **fue pérdida real, no reclasificación**. Ver (h), punto 2.
 - **P3 · la alarma del rerank**: más de un análisis desde el 02/10 con el rerank a cero y
-  candidatos. *Estado*: sin medir; `SQL_F120_P3_rerank_a_cero.sql`, sin resultado que conste.
+  candidatos. *Estado*: **FALSA** (arquitecto, 07/10/2026): 0 de 78. Ver (h), punto 3.
 - **P1 · el grupo `sin_cabeza`**: la mayoría son paráfrasis de una frase real, no invenciones.
   *Estado*: **medida por Code el 06/10 (ver (h))**, con veredicto pendiente del arquitecto: de las
   4 citas que se pudieron medir, ninguna es invención, pero tampoco paráfrasis: las cuatro son
@@ -411,8 +411,8 @@ arquitecto del 06/10 (ver (d)), y la cuarta por F-121:
 
 # (g) MEDICIONES CANDIDATAS
 
-Las tres de (e) que dependen de la base: **P2 y P3 escritas como SQL y PENDIENTES DE EJECUTAR**
-(sin resultado que conste a 07/10/2026); **P1 hecha** por Code. Lo de P2 que F-121 recoge como
+Las tres de (e) que dependen de la base: **P2 y P3 EJECUTADAS por el director el 06/10** (salidas
+pasadas al arquitecto y anotadas aquí el 07/10/2026); **P1 hecha** por Code. Lo de P2 que F-121 recoge como
 «lo barato» (la lista de datos compartidos y el coste de la segunda pasada) está en el plan de
 F-121 (B.362) y **NO INICIADO**.
 
@@ -429,8 +429,56 @@ donde el juez las puso, por palabras sueltas del tema: (h) 27 %, (c) 32 %, (j) 3
 El mecanismo es el documento equivocado, no la paráfrasis.
 
 **2 · ¿Pérdida o reclasificación?** (encargo en P2). Code no pudo contestarlo sin la base: dejó la
-consulta, que pasó a `SQL_F120_P2_perdida_o_reclasificacion.sql` (`6fdbb48c`). **Sin resultado que
-conste.**
+consulta, que pasó a `SQL_F120_P2_perdida_o_reclasificacion.sql` (`6fdbb48c`). ✅ **EJECUTADA por el
+director el 06/10.**
+⚠️ **De esta salida NO se archiva nada más que lo que sigue.** La cabecera del SQL dice que lee
+contenido de documentos y que «el resultado lo mira el arquitecto y no se copia a ningún registro
+ni a ninguna ficha». Van sólo las conclusiones del arquitecto y los TÍTULOS, que son etiquetas
+que genera el juez; ni una cita, entera ni recortada.
+- **Ventana**: la pasada guardada el 05/10/2026 a las 12:07:22 de Madrid, contra CLI-13. La
+  columna `guardado_madrid` confirmó que era la pasada buscada.
+- **Lo que emitió el juez**: 1 contradicción y 5 solapamientos. La contradicción fue «Plazo máximo
+  de almacenamiento de residuos grupo III».
+- **Los cinco solapamientos, por su título**:
+  - «Clasificación de residuos en cuatro grupos (I, II, III, IV) con colores específicos»
+  - «Documentación de derrames en parte de incidencias independientemente del volumen»
+  - «Formación obligatoria del personal antes de manipular residuos de grupos III y IV»
+  - «Procedimiento ante derrames de residuos de riesgo con uso de kit de derrames y EPI»
+  - «Prohibición de reencapsular agujas usadas antes de desecharlas»
+- **NINGUNA de las dos contradicciones que faltaban** —«Ubicación del punto de retirada
+  centralizado» y «Contenedor para residuos grupo III no punzantes»— aparece entre esos cinco.
+- **VEREDICTO (arquitecto, 07/10/2026): la predicción de P2 es FALSA. FUE PÉRDIDA REAL, NO
+  RECLASIFICACIÓN.** Es justo lo que había que separar antes de decidir nada (encargo del 06/10);
+  el arquitecto lo atribuye a Fable como «antes de pagar nada», y esa frase no se puede cotejar
+  porque el dictamen no consta.
+- ⚠️ **LO QUE PARECÍA UN HALLAZGO Y NO LO ES** (el arquitecto pidió remitir si tenía casa, y la
+  tiene). La única fila PUBLICADA de solapamiento de esa pasada traía los cinco títulos unidos en
+  un solo `description` y `cita_existente` a null. Las dos cosas son del instrumento, no del
+  producto:
+  - **los títulos unidos son el diseño**: `construirOverlaps` publica UNA entrada por pareja y une
+    las descripciones con «. » (`lib/analysis/synthesize.ts:166`, desde el 12/04/2026; agrupado por
+    F-45). Los cinco puntos van aparte, con sus dos citas, en `puntos` (`:173`, B.314 commit A,
+    `62b54391`, 05/10/2026 a las 08:34 de Madrid), **y el SQL no lee ese campo**;
+  - **el null lo pone el propio SQL**: la rama «publicado · solapamiento» escribe `NULL` en esa
+    columna a mano (`SQL_F120_P2_perdida_o_reclasificacion.sql:81`), porque la entrada publicada no
+    tiene un campo de cita del existente.
+
+  No se abre ficha. La casa del formato publicado es B.314 (`claude/Estado_Del_MVP.md`).
 
 **3 · La alarma del rerank** (encargo en P3). Igual: `SQL_F120_P3_rerank_a_cero.sql`
-(`6fdbb48c`). **Sin resultado que conste.**
+(`6fdbb48c`). ✅ **EJECUTADA por el director el 06/10.** Salida, literal (sólo recuentos, sin
+contenido):
+
+    analisis,sin_dato,rerank_a_cero_con_candidatos,cuales
+    78,0,0,null
+
+- Con `sin_dato` = 0 el recuento vale: en 78 análisis desde el 02/10, el rerank **no ha devuelto
+  nunca** 0 seleccionados teniendo al menos un candidato.
+- **VEREDICTO (arquitecto, 07/10/2026): la predicción de P3 es FALSA.** El caso de B.83 («Retrieval:
+  2 candidatos. Rerank: 0 seleccionados») no se ha repetido.
+- La regla de Fable —«una etapa que solo puede quitar justifica cada supresión con un contador»,
+  citada por el arquitecto; el dictamen no consta— sigue siendo buena doctrina, pero pierde
+  urgencia.
+- ⚠️ El 78 es el universo de esa consulta el 06/10 (rápidos y exhaustivos, desde el 02/10). No es
+  el mismo que las 80 filas de `SQL_B349` del 07/10, que cuenta otra tabla, otro día y sólo
+  análisis rápidos.
