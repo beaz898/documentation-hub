@@ -7636,6 +7636,32 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     (judge.ts:840), y el juez emitió exactamente cinco en cuatro de cuatro pasadas.
     Eso basta para explicar el «siempre cinco» sin suponer nada más. Para llamarlo
     CAUSA PROBADA falta el experimento: subir el techo y volver a medir.
+    ✅ EL EXPERIMENTO, HECHO EL 07/10/2026 (techo de 5 a 10 en 568a77ab,
+    judge.ts:840). Cuatro análisis rápidos de NOR-11 desde la interfaz real, a las
+    08:53:41, 08:55:22, 08:57:06 y 08:58:01 UTC. Cifras del arquitecto sobre los
+    logs y la pantalla del director; Code no los ha visto.
+    · EL TECHO ERA EL FRENO, CONFIRMADO. Solapamientos EMITIDOS por el juez para
+      NOR-11 ↔ CLI-13: con techo 5 (06/10), 5, 5, 5 y 5; con techo 10 (07/10), 8,
+      8, 10 y 10. El overlap que declara el juez para el par pasó del 35 % en las
+      cuatro pasadas del 06/10 al 45 % en las cuatro del 07/10.
+    · LA INESTABILIDAD BAJÓ, medida por huella de cita (hashCitationPair: huella
+      repetida = hallazgo idéntico):
+        - 06/10, pasadas consecutivas de 10:29 y 10:31 UTC (12:29 y 12:31 de
+          Madrid): 0 huellas compartidas de 5;
+        - 07/10, pasadas 3 y 4: 4 de 10 (27c4d001, e5f287f5, ed4fc3bb, a5f31793);
+        - 07/10, pasadas 1 y 3: 4 de 8 (e5f287f5, 282b6e9b, bae4d83e, a5f31793);
+        - a5f31793 aparece en LAS CUATRO pasadas del 07/10;
+        - 27c4d001 y ed664490 aparecen el 06/10 Y el 07/10: estables entre días.
+      De cero coincidencias a cuatro. No está resuelto; el movimiento es claro.
+    · LA COBERTURA POR PASADA, que es lo que ve el usuario: los nueve temas que el
+      06/10 necesitaron cuatro pasadas para salir aparecen casi todos en UNA. La
+      pasada de 08:58 trae OCHO de los nueve (falta «prohibición de reencapsular
+      agujas»), más DOS que no salieron en ninguna de las cuatro pasadas del
+      06/10: «Grupo IV: citotóxicos en contenedor azul» y la remisión mutua
+      NOR-11 ↔ CLI-13. ⚠️ Universo declarado: la remisión mutua no es nueva en
+      absoluto; ya salió en el examen del 27/09 (B.315 de Estado_Del_MVP.md).
+    · DECISIÓN DEL DIRECTOR, 07/10/2026: EL CAMBIO SE QUEDA. Más cobertura, más
+      estabilidad, cero invenciones y cero contradicciones falsas.
 
   B.339 — [ABIERTO 06/10/2026 · LA COPIA FUNCIONA, LA EMISIÓN NO] DE LAS TRES
     CONTRADICCIONES SEMBRADAS ENTRE NOR-11 Y CLI-13, UNA SALE SIEMPRE, UNA A VECES Y
