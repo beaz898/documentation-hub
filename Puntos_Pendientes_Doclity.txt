@@ -8201,6 +8201,22 @@ NOTAS DE ORDEN (propuesta, a confirmar)
       de 8; NEGACIÓN 2 de 8; LUGAR 0 de 8; B.357).
     · FUERA DEL MVP, con fecha de revisión «primer cliente»: la extracción de
       afirmaciones por documento al indexar.
+    · LAS DOS RESPUESTAS QUE DECIDEN EL PLAN GRANDE, contestadas por Code el 07/10
+      leyendo el código: están en F-121, sección (h), punto 1, y no se repiten aquí.
+      En una línea: el juez devuelve JSON LIBRE EN EL TEXTO, sin esquema ni
+      herramientas, así que la restricción de la función de citas («no se combina
+      con la salida estructurada») NO nos bloquea; y los documentos van PEGADOS en
+      el mensaje (judge.ts:753-764), así que pasarlos a bloques de documento SÍ es
+      trabajo.
+      ⚠️ PRECISIÓN DE CODE, para que «el segmentador propio no hay que construirlo»
+      no se lea como hecho: lo decide la prueba en sombra, no esta lectura. Y hay
+      un punto que la sombra tiene que mirar: la lectura de la respuesta coge sólo
+      el PRIMER bloque de texto (callAnthropicTextWithTokens,
+      lib/llm/anthropic-client.ts:167-168). Con las citas activadas la respuesta
+      viene partida en varios bloques de texto, cada uno con sus citas —esto es
+      conocimiento de Code, NO leído en la documentación de hoy; se comprueba en la
+      propia sombra—. Si es así, el JSON libre repartido entre bloques no se puede
+      leer como hoy, y la forma de devolver los hallazgos cambia con la función.
 
 Forma de trabajo: diagnóstico con datos reales antes de arreglar; un
 cambio lógico cada vez; build verde entre medias; SQL en Supabase antes
