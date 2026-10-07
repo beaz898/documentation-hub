@@ -7994,7 +7994,8 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     Las tres siguen sin medir. Cada una decide si merece la pena gastar en el
     arreglo que predice, y por eso tienen entrada propia.
 
-  B.356 — [ABIERTO 07/10/2026 · ANOTADO, SIN ARREGLAR] LA LLAMADA JSON NO LEE
+  B.356 — [ABIERTO 07/10/2026 · ANOTADO, SIN ARREGLAR · APARCADO EL MISMO DÍA] LA
+    LLAMADA JSON NO LEE
     stop_reason, Y EL 4096 DEL JUEZ NO TIENE NINGUNA PRUEBA QUE LO CUBRA
     Encontrado de paso el 07/10 al buscar si se guardan los tokens del juez.
     · stop_reason NO SE LEE en la ruta JSON: callAnthropicTextWithTokens
@@ -8012,6 +8013,11 @@ NOTAS DE ORDEN (propuesta, a confirmar)
       (lib/observability/record-usage.ts), sin stop_reason ni latencia.
     Mientras tanto, la cota superior desde lo que ya se guarda:
     SQL_B349_cota_superior_tokens_de_salida.sql. No se arregla ninguna de las dos.
+    ⏸ APARCADO EL 07/10/2026 (arquitecto): P-F121-7 resultó FALSA sin instrumentar
+    —ninguna suma de un análisis llega a 4.096, luego ninguna llamada pudo pararse
+    por el tope (F-121, sección (e))—. La ceguera es real pero NO está disparando
+    hoy. El contador de stop_reason se retoma cuando se toque algo que aumente la
+    salida, junto con el salto de 4.096 a 8.192 de B.360.
 
   B.357 — [ABIERTO 07/10/2026 · DATO SIN EXPLICACIÓN, Y UN FALLO REPRODUCIBLE] LAS
     CONTRADICCIONES SEMBRADAS NO MEJORAN, Y UNA PASADA EMITIÓ LAS TRES
