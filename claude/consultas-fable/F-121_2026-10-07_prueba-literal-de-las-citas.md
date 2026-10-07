@@ -447,6 +447,9 @@ del 07/10), repetidas con el cambio.
   menos 2 de las 4 conocidas, sin un solo falso nuevo.
   - *Aceptación*: 2 o más de 4, y cero falsos nuevos.
   - *Estado*: sin medir.
+  - ⚠️ **LISTÓN DEL ARQUITECTO, 07/10**: con TRES de las cuatro literales en el otro documento,
+    el criterio propio es 3 de 4, no 2. La predicción de Fable se cuenta como la escribió; la
+    nuestra, aparte.
 - **P-F121-7** · Al menos una de las 8 pasadas de NOR-11 tocó el tope de tokens de salida.
   - *Aceptación*: una o más.
   - *Estado*: **FALSA**, resuelta el 07/10 sin instrumentar. SQL_B349 da, desde el 02/10,
