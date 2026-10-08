@@ -8137,6 +8137,20 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     EL REPARTO COMPLETO, que no estaba medido entero: de los 89 descartes, 40 (45 %)
     son FILAS DE TABLA con barras —B.333, el frente más grande en volumen y sin
     tocar— y 13 de los 49 de prosa (27 %) son atribución cruzada.
+    ⚠️ EL DIAGNÓSTICO CORREGIDO DE LAS 13, de Fable en F-122 y mejor que el
+    nuestro: NO SON ERRORES DE ATRIBUCIÓN. Son el juez AFIRMANDO CON UN SOLO LADO:
+    tomó dos frases del mismo documento y llamó «existente» a una de ellas. Es la
+    enfermedad de F-116 medida en el campo: 13 de 49 descartes de prosa, el 27 %,
+    son hallazgos a los que falta el otro lado. Dos consecuencias:
+      · el contrato nuevo (la vía 2, B.362) debe hacer SINTÁCTICAMENTE IMPOSIBLE
+        que las dos evidencias sean del mismo documento: con etiquetas, «una de A
+        y una de C» se valida en código, sin modelo;
+      · cuando no hay lado C, lo que falta no es una cita sino la BÚSQUEDA
+        DIRIGIDA de F-116 P5. El hallazgo no se publica: va, como mucho, a la
+        especie interna «sospecha sin contrastar» para alimentar esa búsqueda.
+        Es una de las tres cosas que la regla de congelación deja entrar (B.362).
+    Y la etiqueta del log sigue siendo «cruzada»: la escribe el detector de B.312,
+    que mira dónde está la cita y no por qué.
 
   B.359 — [ANOTADO 07/10/2026 · LECTURA DEL ARQUITECTO, NO MEDICIÓN AUTOMÁTICA] EL
     JUICIO DE LOS ONCE PUNTOS DE LA PASADA DE 08:58
