@@ -8043,8 +8043,9 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     como dato sin explicación. Lo que SÍ queda probado es que el fallo de LUGAR es
     REPRODUCIBLE entre días con la misma reescritura, no azar.
 
-  B.358 — [ANOTADO 07/10/2026 · EL DETECTOR EXISTE DESDE EL 02/10; SÓLO EN EL LOG]
-    LA ATRIBUCIÓN CRUZADA YA SE DETECTA Y SE ETIQUETA
+  B.358 — [ANOTADO 07/10/2026 · EL DETECTOR EXISTE DESDE EL 02/10; SÓLO EN EL LOG ·
+    REPARACIÓN DESCARTADA CON DATOS EL 09/10] LA ATRIBUCIÓN CRUZADA YA SE DETECTA Y
+    SE ETIQUETA
     Dos descartes del 07/10 (arquitecto, sobre los logs) traen la etiqueta
     «cruzada: la cita del existente está en el nuevo»:
       · [db287ea4], pasada de 08:53, existente, longitud 126, paso sin_cabeza:
@@ -8097,6 +8098,36 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     ⚠️ DOS ONCES QUE NO SON EL MISMO ONCE. Éste son 11 LADOS mal atribuidos (en 4
     citas). El de B.332 (Estado_Del_MVP.md) son 11 CITAS DISTINTAS de las tres
     conductas: 4 + 2 + 5 = 11 citas, sobre 21 + 9 + 12 = 42 lados.
+    ✅ VEREDICTO DE LA CRUZADA, 09/10/2026: SQL_B358_cruzadas_uno_o_dos_lados.sql,
+    EJECUTADA por el director el 08/10. Sólo recuentos, sin citas. Salida:
+      · descartes 89 = 40 con barra (filas de tabla, no se clasifican) + 49 de prosa;
+      · los 49 = 35 (falló sólo «nuevo») + 13 (falló sólo «existente») + 1 (los dos);
+      · cruzadas 13 = 2 (un_lado_cruzado_nuevo) + 11 (un_lado_cruzado_existente);
+      · los_dos_cruzados = 0;
+      · los tres controles a cero, según el arquitecto. ⚠️ El valor de la columna
+        de cobertura fallido_pero_esta_en_su_documento no consta en lo que se le
+        pasó a Code.
+    LA REPARACIÓN QUE PROPUSO FABLE (F-121, P6: intercambiar la atribución) NO ES
+    POSIBLE, Y QUEDA DESCARTADA, NO APLAZADA. En las 13 cruzadas falló UN SOLO
+    lado; el que no falló se verificó en su propio documento, así que LAS DOS
+    CITAS SON DEL MISMO DOCUMENTO. No hay nada que intercambiar.
+    LA CONCLUSIÓN DE DISEÑO (arquitecto): en esos casos EL DESCARTE ES CORRECTO.
+    No hay evidencia en el otro documento. Tampoco vale degradarlo a «cita no
+    verificada»: publicarlo sería afirmar algo falso sobre el otro documento, peor
+    que el silencio. Sólo falta un contador, y se decide aparte: NO se construye.
+    ⚠️ LOS DOS ONCES (el de F-120 y éste) NO SON EL MISMO CONJUNTO, y no se puede
+    tomar como confirmación entre métodos. El repaso a mano de F-120 clasificó 11
+    LADOS como «documento equivocado» sobre la salida de SQL_B333, ejecutada el
+    06/10; SQL_B358 cuenta desde el 02/10 hasta su ejecución del 08/10, y sus 11 son
+    sólo los del lado «existente». Sólo en las pasadas del 07 y el 08/10 ya hay al
+    menos tres cruzadas del lado «existente» que el repaso no pudo ver: [db287ea4]
+    y [c1af9c11] del 07/10, y la de 248 caracteres del 08/10 (anotada en B.362).
+    Y del repaso no se sabe cuántos de sus 11 lados eran de cada lado. Es una
+    COINCIDENCIA DE TOTALES, no una identidad, y lo más probable es que la
+    composición sea distinta.
+    EL REPARTO COMPLETO, que no estaba medido entero: de los 89 descartes, 40 (45 %)
+    son FILAS DE TABLA con barras —B.333, el frente más grande en volumen y sin
+    tocar— y 13 de los 49 de prosa (27 %) son atribución cruzada.
 
   B.359 — [ANOTADO 07/10/2026 · LECTURA DEL ARQUITECTO, NO MEDICIÓN AUTOMÁTICA] EL
     JUICIO DE LOS ONCE PUNTOS DE LA PASADA DE 08:58
