@@ -8203,7 +8203,8 @@ NOTAS DE ORDEN (propuesta, a confirmar)
       otros separadores, y como la huella sale de las citas (hashCitationPair),
       cada forma es para el sistema un hallazgo distinto. Enlaza con B.333.
 
-  B.362 — [PLAN ACEPTADO POR EL DIRECTOR 07/10/2026 · SIN CONVERTIR EN TAREAS] EL
+  B.362 — [PLAN ACEPTADO POR EL DIRECTOR 07/10/2026 · SIN CONVERTIR EN TAREAS · AL
+    09/10: LO BARATO, RESUELTO; LA SOMBRA, CONTESTADA; SIGUE F-122] EL
     PLAN DE F-121 PARA CERRAR EL FRENTE DE CALIDAD DEL ANÁLISIS ANTES DE ENSEÑARLO
     De claude/consultas-fable/F-121_2026-10-07_prueba-literal-de-las-citas.md,
     sección «DECISIONES DE PLAN QUE QUEDAN ARCHIVADAS» del dictamen. Lo dejó Fable
@@ -8256,6 +8257,91 @@ NOTAS DE ORDEN (propuesta, a confirmar)
       CODE, NO LEÍDO en la documentación del proveedor. De esa respuesta depende si
       la función del proveedor nos sirve tal cual o hay que cambiar la forma en que
       el juez devuelve los hallazgos.
+    ════ ESTADO DEL PLAN AL 09/10/2026 ════
+    · LAS TRES COSAS BARATAS DE FABLE, RESUELTAS:
+      - la cruzada, MUERTA CON DATOS: 0 de 13 recuperables, las dos citas son del
+        mismo documento y el descarte es correcto (B.358);
+      - el tope de tokens, MUERTO CON DATOS: P-F121-7 falsa por la cota de SQL_B349,
+        y el contador de stop_reason aparcado (B.356, B.360);
+      - la glosa, HECHA y verificada sin regresión (abajo).
+    · LA PRIMERA PREGUNTA DE LA SOMBRA, CONTESTADA (abajo).
+    · LO SIGUIENTE ES UNA CONSULTA A FABLE, F-122, que escribe el arquitecto, para
+      decidir entre CAMBIAR EL CONTRATO DEL JUEZ y el PLAN B (segmentador propio).
+      No se ha empezado ninguna de las dos.
+
+    ════ LA PRIMERA PREGUNTA DE LA SOMBRA: LAS DOS SONDAS DEL 09/10/2026 ════
+    scripts/sonda-citas.mjs, ejecutada por el director en su máquina, de madrugada.
+    Dos documentos INVENTADOS (una ferretería ficticia, con 30 días de plazo en uno y
+    15 en el otro), como bloques de documento y con las citas activadas.
+    · SONDA 1, CON NUESTRO FORMATO (solo JSON, la cita literal copiada dentro; las
+      instrucciones del juez leídas de judge.ts): 1 bloque, stop_reason end_turn,
+      CERO citas de 1 bloque; 4.660 tokens de entrada y 714 de salida. El JSON se lee
+      igual que hoy, recortando de la primera llave a la última, que es lo que el
+      código ya hace.
+    · SONDA 2, EL CONTROL POSITIVO (pregunta en prosa, sin JSON, mismos documentos y
+      mismas citas activadas): 3 bloques, 2 CON CITAS, rango char_location, y cada
+      cita trae cited_text, document_index, document_title, start_char_index,
+      end_char_index y type. document_index vistos: 0 y 1. 1.682 tokens de entrada
+      y 113 de salida.
+    · LAS TRES CONCLUSIONES, separadas:
+      (a) LA FUNCIÓN ESTÁ ACTIVA con nuestra petición. No falta ninguna cabecera: las
+          citas entraron en la API normal en la versión 0.36.0 del SDK, no en una
+          beta (CHANGELOG.md:95 del SDK instalado, 0.39.0; la lista de cabeceras beta
+          de resources/beta/beta.d.ts:10 no tiene ninguna de citas), y la sonda manda
+          lo mismo que mandaría el SDK. DESCARTADO POR MEDICIÓN, no sólo por lectura.
+      (b) LO QUE LA APAGA ES NUESTRO FORMATO: pedir solo JSON con la cita copiada
+          dentro. El modelo copia porque se lo pedimos.
+      (c) CON CITAS LA RESPUESTA SE PARTE EN VARIOS BLOQUES, y leer solo el primero
+          —lib/llm/anthropic-client.ts:167 y :198— pierde la mayor parte: en el
+          control, 136 de 290 caracteres.
+    · DOS PRECISIONES DE CODE, que van como suyas:
+      - el bloque sin cita NO TRAE el campo citations, aunque el tipo del SDK lo
+        declare obligatorio (TextBlock, messages.d.ts:348); así que la ausencia del
+        campo no prueba que la petición se ignorara;
+      - el sobrecoste de entrada que se atribuye a las citas, unos 1.200-1.400 tokens
+        en las dos sondas, es una ESTIMACIÓN de Code a partir de la longitud del
+        texto, no una medición.
+    · CONSECUENCIA PARA EL PLAN, como hecho y no como decisión: «ACTIVAR LAS CITAS Y
+      LISTO» NO EXISTE. Usarlas exige dos cambios de producto:
+      - cambiar el CONTRATO DEL JUEZ: el texto citado, fuera del JSON;
+      - UNIR LOS BLOQUES en el lector, lo que toca a todo el que lee por ahí: por
+        callAnthropicJson (:167), el juez, el rerank, el verificador de hallazgos,
+        synthesize, el double-check y el estilo; por callAnthropicWithUsage (:198),
+        el chat (lib/rag.ts) y el modal de mejora (app/api/improve).
+      La decisión entre eso y el plan B va a F-122.
+    · Y UN DATO DE FONDO: EL PRODUCTO NO USA EL SDK. @anthropic-ai/sdk está
+      instalado (package.json:16), pero las llamadas se hacen con fetch
+      (anthropic-client.ts) y la petición y la lectura se montan a mano. Cualquier
+      cambio de forma se escribe a mano, sin los tipos del SDK de por medio.
+
+    ════ LA GLOSA, DESPLEGADA EN 94efab9e (08/10/2026) ════
+    · LA DECISIÓN Y SU MOTIVO (arquitecto): se publica la cita del juez SIN la glosa,
+      porque la puerta ya publica la cita del juez con algo quitado —el puntero
+      [F3]—, así que es EL MISMO CRITERIO EXTENDIDO y no uno nuevo. La glosa no se
+      guarda: el parche se borra cuando entren los punteros.
+    · LA PASADA DE CONTROL en la interfaz real, 08/10 a las 21:47 UTC: SIN
+      REGRESIÓN. 8 solapamientos emitidos con CLI-13, PLAZO publicada y confirmada
+      por el verificador, 1 descarte, 31,9 s. Los dos contadores nuevos NO SALEN EN
+      EL LOG, así que la cañería no se pudo confirmar por ahí: se guardan en la
+      columna pipeline_counters de analysis_results (lib/persist-analysis.ts:119),
+      y queda para un SQL sin prisa.
+    · DOS RESIDUALES DEL ARQUITECTO, sin arreglar:
+      - el log de las citas verificadas imprime ahora la cita con la que se
+        verificó: una rescatada por glosa sale sin corchetes, y los logs de antes y
+        de después no son comparables en ese punto;
+      - al quitar la glosa la cita se acorta, y una cita cerca del mínimo tiene más
+        probabilidad de coincidir con un pasaje no pretendido. El guardia del
+        mínimo (citaUtilizable) lo acota.
+
+    ════ UN CASO DE PRUEBA PARA EL CRITERIO DE ACEPTACIÓN DE LA SOMBRA ════
+    LA FRASE DE LA FORMACIÓN: «El personal clínico y auxiliar recibe formación
+    específica en gestión de residuos sanitarios antes de incorporarse a su
+    puesto…». Es de NOR-11, el juez la atribuye a CLI-13 y el log la etiqueta
+    «cruzada». Tres días: es la cita (i) de la comparación de F-120 (descartes hasta
+    el 06/10, con «El» donde el documento dice «Todo el»), el 07/10 con 126
+    caracteres ([db287ea4], B.358) y el 08/10 con 248. Es la atribución cruzada más
+    reproducible que hay, y DEBE ESTAR en el criterio de aceptación de la prueba en
+    sombra.
 
 Forma de trabajo: diagnóstico con datos reales antes de arreglar; un
 cambio lógico cada vez; build verde entre medias; SQL en Supabase antes
