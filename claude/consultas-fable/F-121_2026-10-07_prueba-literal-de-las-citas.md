@@ -446,10 +446,15 @@ del 07/10), repetidas con el cambio.
 - **P-F121-6** · Al intercambiar la atribución de las cruzadas literales se recuperan al
   menos 2 de las 4 conocidas, sin un solo falso nuevo.
   - *Aceptación*: 2 o más de 4, y cero falsos nuevos.
-  - *Estado*: sin medir.
+  - *Estado*: **FALSA** (arquitecto, 09/10/2026). Recuperables: **0 de 13**. SQL_B358, ejecutada
+    por el director el 08/10: las 13 cruzadas tienen UN SOLO lado fallido (2 del «nuevo» + 11
+    del «existente»), y `los_dos_cruzados` = 0. El lado que no falló se verificó en su propio
+    documento: las dos citas son del mismo documento y no hay nada que intercambiar (B.358).
   - ⚠️ **LISTÓN DEL ARQUITECTO, 07/10**: con TRES de las cuatro literales en el otro documento,
     el criterio propio es 3 de 4, no 2. La predicción de Fable se cuenta como la escribió; la
     nuestra, aparte.
+    - *Estado del listón*: **TAMBIÉN FALSO**, y en la misma dirección. Fable y el arquitecto
+      dieron por hecho que las cruzadas tenían los DOS lados cruzados; ninguna los tiene.
 - **P-F121-7** · Al menos una de las 8 pasadas de NOR-11 tocó el tope de tokens de salida.
   - *Aceptación*: una o más.
   - *Estado*: **FALSA**, resuelta el 07/10 sin instrumentar. SQL_B349 da, desde el 02/10,
@@ -524,10 +529,10 @@ no se ha tocado; esto lo deja el arquitecto.
 
 | # | Medición | Predicción | Estado (07/10/2026) |
 |---|---|---|---|
-| 1 | **Sombra de la función de citas**: las mismas 8 pasadas de NOR-11, documentos como bloques, citas activadas, sin instrucción de copia | P-F121-1 a 5 | **NO INICIADA** (plan: la semana siguiente) |
+| 1 | **Sombra de la función de citas**: las mismas 8 pasadas de NOR-11, documentos como bloques, citas activadas, sin instrucción de copia | P-F121-1 a 5 | **NO INICIADA**, pero **su primera pregunta, CONTESTADA el 09/10** con dos sondas sueltas (`scripts/sonda-citas.mjs`): la función está activa con nuestra petición, nuestro formato la apaga (solo JSON, cita copiada dentro) y con citas la respuesta llega en varios bloques. Detalle en **B.362**. ⚠️ **Criterio de aceptación añadido**: la frase de la formación de NOR-11 que el juez atribuye a CLI-13 (B.362) |
 | 2 | **Forma de la frase contra supervivencia**, sobre todos los descartes desde el 02/10 | P-F121-8 | **NO INICIADA** |
-| 3 | **Cruzadas literales**: cuántas citas descartadas se encuentran literales en el otro documento | P-F121-6 | **NO INICIADA** |
-| 4 | **Tope de salida**: llamadas con parada por máximo de tokens desde el 02/10 | P-F121-7 | ✅ **EN MARCHA**: es el encargo de instrumentación del 07/10 (contar la parada por tope; B.349, B.356). Ver (f), nota 2 |
+| 3 | **Cruzadas literales**: cuántas citas descartadas se encuentran literales en el otro documento | P-F121-6 | ✅ **HECHA** el 08/10 con `SQL_B358_cruzadas_uno_o_dos_lados.sql`: 0 de 13 recuperables (B.358) |
+| 4 | **Tope de salida**: llamadas con parada por máximo de tokens desde el 02/10 | P-F121-7 | ✅ **RESUELTA SIN INSTRUMENTAR** el 07/10: FALSA por la cota de `SQL_B349` (ver (e)); el contador de stop_reason, aparcado (B.356) |
 | 5 | **Las 11 citas descartadas, etiquetadas por el director** | P-F121-10 | **NO INICIADA** (pendiente desde F-120) |
 | 6 | **Coste de salida**: tokens de salida por llamada, antes y en sombra | P-F121-5 | **NO INICIADA** |
 
