@@ -28,6 +28,9 @@
  *   node scripts/sonda-citas.mjs --seco   → monta la petición y la describe,
  *                                            SIN llamar a la API ni leer clave.
  *   node scripts/sonda-citas.mjs          → UNA llamada (céntimos).
+ *   node scripts/sonda-citas.mjs --cuerpo → imprime el cuerpo exacto, sin llamar.
+ *   node scripts/sonda-citas.mjs --control → UNA llamada de CONTROL POSITIVO:
+ *                                            pregunta en prosa, sin JSON.
  */
 import { readFileSync, existsSync } from 'node:fs';
 
@@ -83,11 +86,18 @@ const documento = (titulo, texto) => ({
   citations: { enabled: true },
 });
 
-const textoDelPrompt =
-  `${cabecera}\n\n` +
-  'Los dos documentos van adjuntos como bloques de documento: el PRIMERO es el DOCUMENTO NUEVO ' +
-  '("Política de devoluciones") y el SEGUNDO es el DOCUMENTO EXISTENTE ("Manual de atención al cliente").\n\n' +
-  instrucciones + sufijo;
+// --control: el CONTROL POSITIVO. Mismos documentos y mismas citas activadas,
+// pero una pregunta en prosa y SIN pedir JSON. Si aquí salen citas, la función
+// está activa y lo que la apaga es nuestro formato; si tampoco salen, el fallo
+// está en la petición.
+const CONTROL = process.argv.includes('--control');
+const textoDelPrompt = CONTROL
+  ? '¿Qué plazo de devolución da cada uno de los dos documentos adjuntos? Responde en dos frases, ' +
+    'apoyando cada plazo en el documento que lo dice.'
+  : `${cabecera}\n\n` +
+    'Los dos documentos van adjuntos como bloques de documento: el PRIMERO es el DOCUMENTO NUEVO ' +
+    '("Política de devoluciones") y el SEGUNDO es el DOCUMENTO EXISTENTE ("Manual de atención al cliente").\n\n' +
+    instrucciones + sufijo;
 
 const peticion = {
   model: modelo,
@@ -102,6 +112,17 @@ const peticion = {
     ],
   }],
 };
+
+// --cuerpo: el cuerpo EXACTO que se manda, con los textos largos recortados a
+// 60 caracteres para que se lea. Sin llamada y sin clave (la clave va en la
+// cabecera, no en el cuerpo).
+if (process.argv.includes('--cuerpo')) {
+  const recorta = s => (s.length > 60 ? `${s.slice(0, 60)}… [${s.length} caracteres]` : s);
+  const legible = JSON.parse(JSON.stringify(peticion), (k, v) => ((k === 'data' || k === 'text') && typeof v === 'string' ? recorta(v) : v));
+  console.log('CUERPO DE LA PETICIÓN (textos recortados; cabeceras: Content-Type, x-api-key [no se imprime], anthropic-version: 2023-06-01):');
+  console.log(JSON.stringify(legible, null, 2));
+  process.exit(0);
+}
 
 if (SECO) {
   console.log('MODO SECO: no se llama a la API ni se lee ninguna clave.');
@@ -156,6 +177,17 @@ console.log(`1 · BLOQUES: ${bloques.length} — ${bloques.map(b => b.type).join
 console.log(`    stop_reason: ${cuerpo.stop_reason}`);
 
 // 2 · citas
+// Los CAMPOS de cada bloque, y qué hay en `citations`: distingue «el campo no
+// existe» (la petición de citas se ignoró) de «existe y viene a null o vacío»
+// (el modelo no citó). ⚠️ El tipo del SDK declara `citations` OBLIGATORIO en
+// el bloque de texto (`Array | null`), así que «a null» puede ser lo normal sin
+// citas: lo que decide es la comparación con el control positivo.
+bloques.forEach((b, i) => {
+  const citas = !('citations' in b) ? 'el campo NO EXISTE'
+    : b.citations === null ? 'existe y vale null'
+    : Array.isArray(b.citations) ? `existe, ${b.citations.length} citas` : `existe, tipo ${typeof b.citations}`;
+  console.log(`    bloque ${i}: campos ${Object.keys(b).sort().join(', ')} · citations: ${citas}`);
+});
 const conCitas = bloques.filter(b => Array.isArray(b.citations) && b.citations.length > 0);
 console.log(`2 · BLOQUES CON CITAS: ${conCitas.length} de ${bloques.length}`);
 const tiposDeRango = new Set();
