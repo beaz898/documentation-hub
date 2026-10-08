@@ -128,11 +128,21 @@ if (!clave) {
   process.exit(1);
 }
 
-const res = await fetch('https://api.anthropic.com/v1/messages', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json', 'x-api-key': clave, 'anthropic-version': '2023-06-01' },
-  body: JSON.stringify(peticion),
-});
+// Si la red falla, NO se deja que Node imprima la excepción entera (traza,
+// causa interna): sólo el mensaje y el código. Así ningún fallo puede arrastrar
+// la petición, sus cabeceras ni el entorno a la pantalla.
+let res;
+try {
+  res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-api-key': clave, 'anthropic-version': '2023-06-01' },
+    body: JSON.stringify(peticion),
+  });
+} catch (err) {
+  const codigo = err?.cause?.code ? ` (${err.cause.code})` : '';
+  console.error(`La llamada no salió: ${err?.message ?? 'error desconocido'}${codigo}`);
+  process.exit(1);
+}
 if (!res.ok) {
   // El cuerpo del error de la API no lleva la clave; se imprime para poder corregir la forma.
   console.error(`La API respondió ${res.status}: ${(await res.text()).slice(0, 600)}`);
