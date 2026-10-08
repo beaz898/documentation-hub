@@ -13372,6 +13372,13 @@ contrastó.»
   salida sin declarar qué contaba—: NOR-11 restada de un fondo del que no formaba parte (06/10), el
   universo no declarado en las remisiones (07/10, B.315) y ésta.
 
+**NOTA DE PROCESO (09/10/2026)**: `94efab9e` —el arreglo de la glosa, un cambio de producto en
+`lib/analysis/`— se subió ANTES de que el arquitecto revisara el diff, y el acuerdo es el
+contrario: el arquitecto revisa y después sube el director. Se subió con la orden habitual del
+director («git push origin main») sobre el informe de Code, sin la revisión de por medio. El cambio
+era sólido y se habría aprobado, pero **el sentido de la barrera es que «salió bien» no sea la
+prueba.**
+
 ### 📋 B.331 — COMILLAS CURVAS, Y LA REPRESENTATIVIDAD DEL CORPUS (05/10/2026)
 
 Hecho 1: la clase de caracteres de normalize-core.mjs:84 lleva la comilla doble recta
