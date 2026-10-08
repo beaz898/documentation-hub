@@ -34,6 +34,7 @@ import type { StoredChunk } from '@/lib/read-chunks';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { DocumentJudgment } from './types';
 import { lineaDeAgregado, lineaDeCandidato } from '@/lib/analysis/traza-diff';
+import { contadoresDeLaGlosa } from './glosa-de-cita';
 
 /**
  * Carga full_text de un lote de documentos. Réplica local del patrón de
@@ -850,6 +851,9 @@ async function runCorePipeline(
     fallbackTexts,
   });
   console.log(`[${label}] Judge: ${rawJudgments.length} juicios emitidos (${Date.now() - t2}ms)`);
+  // F-121: las citas rescatadas al quitar la glosa, y las que no. Aquí, que es
+  // cuando el juez ya corrió: quien salga antes no los lleva (F-82).
+  Object.assign(counters, contadoresDeLaGlosa(rawJudgments));
 
   // Cascada del verificador (F-35): un candidato, un lote — sale gratis
   // porque rawJudgments ya viene un elemento por candidato. Secuencial, no en

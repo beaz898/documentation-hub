@@ -110,6 +110,15 @@ abierto después del contrato:
   de fronteras: un total de «2 tablas» no distingue «una y una» —comparables— de
   «dos y ninguna», que es ceguera con buena pinta. Ninguno lleva nombre ni id de
   tabla (cláusula 5).
+- **`juez` — abierta el 08/10/2026 (F-121), con el repliegue de la glosa en la
+  puerta de citas.** Ninguna de las que había era la puerta: `verificador` cuenta
+  la cascada que viene DESPUÉS del juez, y `seleccion` lo que pasa ANTES. Sus dos
+  contadores cuentan por CITA cuántas llevaban glosa entre corchetes, fallaban la
+  comprobación de siempre y se verificaron al quitarla, y cuántas siguieron
+  fallando. Ninguno lleva texto del cliente (cláusula 5). La puerta tenía ya
+  recuentos (`verificado.por_localizacion`, `frontera.cita_solo_por_cabeza_y_cola`)
+  en `discardedFindings`, que es lo que este contrato manda no repetir; éstos son
+  los primeros de la puerta que pasan por el catálogo.
 
 ### 2 — Solo recuentos de decisión.
 

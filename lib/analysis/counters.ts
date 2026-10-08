@@ -41,6 +41,7 @@ type Stage =
   | 'diff.clasificacion'
   | 'seleccion'
   | 'verificador'
+  | 'juez'
   | 'averia';
 
 /**
@@ -217,6 +218,13 @@ export const COUNTER_CATALOGUE = [
   'verificador.confirmados_por_juicio',
   'verificador.descartados',
   'verificador.reclasificados',
+  // juez — ESTRENA LA ETAPA (F-121, 08/10/2026): la puerta de citas del juez
+  // (fixQuotesInJudgment). Por CITA, no por hallazgo: cuántas citas que
+  // llevaban glosa entre corchetes y fallaban se verificaron al quitarla, y
+  // cuántas siguieron fallando. Recuentos de DECISIÓN de la puerta. Las cuenta
+  // glosa-de-cita.ts y las suma pipeline.ts.
+  'juez.citas_rescatadas_quitando_glosa',
+  'juez.citas_con_glosa_sin_rescate',
   // averia — ESTRENA LA ETAPA, que estaba declarada y vacía desde que se
   // escribió el catálogo. Aquí no se mide lo que el análisis ENCONTRÓ: se mide
   // que el propio sistema no supo algo de sí mismo.

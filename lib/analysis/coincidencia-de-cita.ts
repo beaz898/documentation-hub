@@ -132,14 +132,20 @@ const AVANCE_DEL_FALLO: Record<PasoDeLaCita, number> = {
   vacia_o_corta: 0, sin_coincidencia: 1, sin_cabeza: 1, cabeza_sin_cola: 2, cola_demasiado_lejos: 3, cabeza_y_cola: 4,
 };
 
+/** ¿Es la cita lo bastante larga para buscarla? El mínimo de la puerta, en UN
+ *  sitio: lo pregunta también el repliegue de la glosa (glosa-de-cita.ts). */
+export function citaUtilizable(needle: string): boolean {
+  return needle.length >= 10 && normalize(needle).length >= 8;
+}
+
 /** La búsqueda entera: el recorte del original (o null) y la vía o el fallo. */
 function buscarCita(haystack: string, needle: string): { recorte: string | null; paso: PasoDeLaCita } {
   if (!needle || needle.length < 10) return { recorte: null, paso: 'vacia_o_corta' };
 
   if (haystack.indexOf(needle) !== -1) return { recorte: needle, paso: 'literal' };
 
+  if (!citaUtilizable(needle)) return { recorte: null, paso: 'vacia_o_corta' };
   const normNeedle = normalize(needle);
-  if (normNeedle.length < 8) return { recorte: null, paso: 'vacia_o_corta' };
 
   const { texto: normHaystack, posiciones } = normalizarConPosiciones(haystack);
 

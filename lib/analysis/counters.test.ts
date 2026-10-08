@@ -84,6 +84,10 @@ describe('el catálogo', () => {
       'verificador.confirmados_por_juicio',
       'verificador.descartados',
       'verificador.reclasificados',
+    // juez — estrena la etapa el 08/10/2026 (F-121): la puerta de citas, por
+    // cita. Recuentos de decisión, sin datos del cliente en el nombre.
+    'juez.citas_rescatadas_quitando_glosa',
+    'juez.citas_con_glosa_sin_rescate',
     // averia — estrena la etapa el 15/09/2026: marca los trabajos a los que se
     // les cobró el máximo POR DEFECTO, no por medida.
     'averia.exhaustivo_sin_clasificar',
@@ -102,7 +106,7 @@ describe('el catálogo', () => {
     // La lista va DUPLICADA del tipo Stage a proposito, con el mismo criterio
     // que el canario del catalogo: anadir una etapa tiene que pasar por aqui.
     // Derivarla exportando Stage la haria automatica y dejaria de avisar.
-    const etapas = ['diff.tablas', 'diff.vision', 'diff.clave', 'diff.celdas', 'diff.clasificacion', 'seleccion', 'verificador', 'averia'];
+    const etapas = ['diff.tablas', 'diff.vision', 'diff.clave', 'diff.celdas', 'diff.clasificacion', 'seleccion', 'verificador', 'juez', 'averia'];
     for (const name of COUNTER_CATALOGUE) {
       expect(etapas.some(e => name.startsWith(`${e}.`)), `"${name}" sin apellido de etapa`).toBe(true);
     }

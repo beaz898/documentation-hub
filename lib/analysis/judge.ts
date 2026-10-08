@@ -6,6 +6,7 @@ import { getOrderedColumns, groupChunksByTable, renderTableBlock, alignQuoteToCe
 import { normalize } from './normalize';
 import { findBestMatch, comprobadorDeLado, loEntregadoDeLaPareja, type ComprobadorDeLado } from './coincidencia-de-cita';
 import { registroDeDescartes, diagnosticoDelAcierto } from './diagnostico-de-cita';
+import { comprobarConRepliegueDeGlosa, registroDeGlosas } from './glosa-de-cita';
 import type { RerankedCandidate, DocumentJudgment, PipelineOptions, DiscardedFindings, DocumentFragment, LecturaDeLaPareja, TextoAnalizado } from './types';
 import type { StoredChunk } from '@/lib/read-chunks';
 
@@ -389,6 +390,7 @@ export function fixQuotesInJudgment(
   let citaNoVerificable = 0;
   let citaDeContexto = 0;
   const descartes = registroDeDescartes(); // B.313: se guarda lo que se descarta
+  const glosas = registroDeGlosas(); // F-121: las citas rescatadas al quitar la glosa
   // F-61: instrumentación permanente — cuánto trabajo hace cada fase de la
   // vía por segmentos. Por LADO verificado (hasta dos por hallazgo), no por
   // hallazgo: "cuánto trabajo hace cada fase" es una pregunta sobre el
@@ -417,12 +419,16 @@ export function fixQuotesInJudgment(
       continue;
     }
 
-    const matchNew = nuevo.comprobar(c.newDocSays);
-    const matchExisting = existente.comprobar(c.existingDocSays);
+    // F-121: la de siempre y, sólo si falla, sin la glosa entre corchetes.
+    const cNew = comprobarConRepliegueDeGlosa(nuevo, c.newDocSays);
+    const cExisting = comprobarConRepliegueDeGlosa(existente, c.existingDocSays);
+    glosas.anotar(cNew, cExisting);
+    const matchNew = cNew.verificada;
+    const matchExisting = cExisting.verificada;
 
     if (matchNew && matchExisting) {
       // B.313: el denominador del registro de B.299 (ii) — longitud y vía de las citas que PASAN.
-      console.log(`[judge] Contradicción verificada en "${judgment.documentName}" [${hash}] (${diagnosticoDelAcierto({ nuevo, existente }, { nuevo: c.newDocSays, existente: c.existingDocSays })})`);
+      console.log(`[judge] Contradicción verificada en "${judgment.documentName}" [${hash}] (${diagnosticoDelAcierto({ nuevo, existente }, { nuevo: cNew.cita, existente: cExisting.cita })})`);
       fixedContradictions.push({ ...c, newDocSays: matchNew.text, existingDocSays: matchExisting.text });
       contradictionEvidence.push({
         hash,
@@ -474,11 +480,14 @@ export function fixQuotesInJudgment(
       continue;
     }
 
-    const matchNew = nuevo.comprobar(o.evidenceInNewDoc);
-    const matchExisting = existente.comprobar(o.evidence);
+    const cNew = comprobarConRepliegueDeGlosa(nuevo, o.evidenceInNewDoc);
+    const cExisting = comprobarConRepliegueDeGlosa(existente, o.evidence);
+    glosas.anotar(cNew, cExisting);
+    const matchNew = cNew.verificada;
+    const matchExisting = cExisting.verificada;
 
     if (matchNew && matchExisting) {
-      console.log(`[judge] Solapamiento verificado en "${judgment.documentName}" [${hash}] (${diagnosticoDelAcierto({ nuevo, existente }, { nuevo: o.evidenceInNewDoc, existente: o.evidence })})`);
+      console.log(`[judge] Solapamiento verificado en "${judgment.documentName}" [${hash}] (${diagnosticoDelAcierto({ nuevo, existente }, { nuevo: cNew.cita, existente: cExisting.cita })})`);
       fixedOverlaps.push({ ...o, evidenceInNewDoc: matchNew.text, evidence: matchExisting.text });
       overlapEvidence.push({
         hash,
@@ -537,6 +546,7 @@ export function fixQuotesInJudgment(
       contradictions: fixedContradictions,
       overlappingContent: fixedOverlaps,
       ...descartes.resultado(),
+      ...glosas.resultado(),
       ...(Object.keys(discarded).length > 0 ? { discarded } : {}),
     },
     evidence: { contradictions: contradictionEvidence, overlaps: overlapEvidence },

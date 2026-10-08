@@ -148,6 +148,10 @@ export interface DocumentJudgment {
   /** Los que no cupieron en el tope. Ausente = ninguno; si alguna vez vale algo,
    *  es un hallazgo: el juez descartó más de diez en una pareja. */
   descartesPorCitaOmitidos?: number;
+  /** F-121: citas de esta pareja que llevaban glosa entre corchetes y fallaron
+   *  la comprobación de siempre; cuántas se rescataron al quitarla y cuántas no
+   *  (glosa-de-cita.ts). Por cita, no por hallazgo. Ausente = ninguna. */
+  repliegueDeGlosa?: { rescatadas: number; sinRescate: number };
 }
 
 /**
