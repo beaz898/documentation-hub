@@ -13371,6 +13371,14 @@ contrastó.»
 - **Es la tercera de la misma familia esta semana** —una conclusión sacada de un recuento o de una
   salida sin declarar qué contaba—: NOR-11 restada de un fondo del que no formaba parte (06/10), el
   universo no declarado en las remisiones (07/10, B.315) y ésta.
+- **Y LA CUARTA (09/10/2026)**, con la literalidad del arquitecto: «El 08/10 el arquitecto presentó
+  la coincidencia de los dos onces —11 lados "documento equivocado" en el repaso a mano de F-120 y
+  11 en un_lado_cruzado_existente de SQL_B358— como dos métodos independientes confirmándose. No lo
+  era: los universos son distintos (SQL_B333 hasta el 06/10 frente a SQL_B358 hasta el 08/10, y los
+  11 del SQL son sólo del lado existente), y el repaso no separó lados. Lo detectó Code al
+  archivarlo. ES LA CUARTA DE LA MISMA FAMILIA EN UNA SEMANA: tomar que dos números coincidan como
+  evidencia sin comprobar que cuentan lo mismo. Es la regla que el propio arquitecto escribió el
+  06/10.» Está anotada en B.358 de `Puntos_Pendientes_Doclity.txt`.
 
 **NOTA DE PROCESO (09/10/2026)**: `94efab9e` —el arreglo de la glosa, un cambio de producto en
 `lib/analysis/`— se subió ANTES de que el arquitecto revisara el diff, y el acuerdo es el

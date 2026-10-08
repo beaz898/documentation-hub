@@ -8104,9 +8104,18 @@ NOTAS DE ORDEN (propuesta, a confirmar)
       · los 49 = 35 (falló sólo «nuevo») + 13 (falló sólo «existente») + 1 (los dos);
       · cruzadas 13 = 2 (un_lado_cruzado_nuevo) + 11 (un_lado_cruzado_existente);
       · los_dos_cruzados = 0;
-      · los tres controles a cero, según el arquitecto. ⚠️ El valor de la columna
-        de cobertura fallido_pero_esta_en_su_documento no consta en lo que se le
-        pasó a Code.
+      · los controles a cero: sin_texto 0, omitidos_por_tope 0,
+        verificado_no_encontrado 0; y la cobertura fallido_pero_esta_en_su_documento
+        también 0 (los_dos_fallan_uno_cruzado, 0).
+      La fila entera, literal, pasada por el arquitecto el 09/10:
+        descartes,sin_texto,con_barra,omitidos_por_tope,fallo_solo_nuevo,
+        fallo_solo_existente,fallaron_los_dos,un_lado_cruzado_nuevo,
+        un_lado_cruzado_existente,los_dos_cruzados,los_dos_fallan_uno_cruzado,
+        fallido_pero_esta_en_su_documento,verificado_no_encontrado
+        89,0,40,0,35,13,1,2,11,0,0,0,0
+      LO QUE CIERRA EL 0 DE fallido_pero_esta_en_su_documento: NINGUNA cita fallida
+      está en su propio documento fuera de lo entregado al juez, así que la
+      conclusión «las dos citas son del mismo documento» NO tiene matices.
     LA REPARACIÓN QUE PROPUSO FABLE (F-121, P6: intercambiar la atribución) NO ES
     POSIBLE, Y QUEDA DESCARTADA, NO APLAZADA. En las 13 cruzadas falló UN SOLO
     lado; el que no falló se verificó en su propio documento, así que LAS DOS
@@ -8307,7 +8316,9 @@ NOTAS DE ORDEN (propuesta, a confirmar)
       - UNIR LOS BLOQUES en el lector, lo que toca a todo el que lee por ahí: por
         callAnthropicJson (:167), el juez, el rerank, el verificador de hallazgos,
         synthesize, el double-check y el estilo; por callAnthropicWithUsage (:198),
-        el chat (lib/rag.ts) y el modal de mejora (app/api/improve).
+        el chat (lib/rag.ts) y el modal de mejora (app/api/improve). Son OCHO
+        consumidores, 6 + 2: el juez, el rerank, el verificador de hallazgos,
+        synthesize, el double-check y el estilo; el chat y el modal de mejora.
       La decisión entre eso y el plan B va a F-122.
     · Y UN DATO DE FONDO: EL PRODUCTO NO USA EL SDK. @anthropic-ai/sdk está
       instalado (package.json:16), pero las llamadas se hacen con fetch
