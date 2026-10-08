@@ -8213,7 +8213,8 @@ NOTAS DE ORDEN (propuesta, a confirmar)
       cada forma es para el sistema un hallazgo distinto. Enlaza con B.333.
 
   B.362 — [PLAN ACEPTADO POR EL DIRECTOR 07/10/2026 · SIN CONVERTIR EN TAREAS · AL
-    09/10: LO BARATO, RESUELTO; LA SOMBRA, CONTESTADA; SIGUE F-122] EL
+    09/10: LO BARATO, RESUELTO; LA SOMBRA, CONTESTADA; F-122 DECIDE LA VÍA 2 Y
+    CONGELA EL RESTO] EL
     PLAN DE F-121 PARA CERRAR EL FRENTE DE CALIDAD DEL ANÁLISIS ANTES DE ENSEÑARLO
     De claude/consultas-fable/F-121_2026-10-07_prueba-literal-de-las-citas.md,
     sección «DECISIONES DE PLAN QUE QUEDAN ARCHIVADAS» del dictamen. Lo dejó Fable
@@ -8266,6 +8267,40 @@ NOTAS DE ORDEN (propuesta, a confirmar)
       CODE, NO LEÍDO en la documentación del proveedor. De esa respuesta depende si
       la función del proveedor nos sirve tal cual o hay que cambiar la forma en que
       el juez devuelve los hallazgos.
+    ════ DECIDIDO EN F-122 (09/10/2026): VÍA 2 ════
+    (claude/consultas-fable/F-122_2026-10-09_contrato-del-juez-o-segmentador.md)
+    El segmentador propio con etiquetas, sobre el contrato JSON de hoy. La vía 1
+    (la función de citas del proveedor) queda como destino, para cuando el juez
+    cambie de contrato de salida por otras razones; la vía 3 (atribución a
+    posteriori), sólo como reparación con juicio de sostén detrás.
+    · LA REGLA DE CONGELACIÓN, literal de Fable (F-122, D2), que queda también en el
+      protocolo de Estado_Del_MVP.md:
+        «REGLA DE CONGELACIÓN, QUE QUEDA ARCHIVADA. Hasta que el arnés dé el
+        criterio de cerrado, entran solo tres cosas:
+        El lector unificado y las etiquetas de la vía 2, con el alcance de D1.
+        La segunda búsqueda dirigida de F-116 P5 para los hallazgos a los que
+        falta el otro lado.
+        La lista de datos examinados y el coste medido de la segunda pasada, F-120
+        P2.
+        Todo lo demás queda congelado con fecha, no cancelado: tablas de Word, la
+        elección de documentos de F-119, la función de citas del proveedor, la
+        extracción de afirmaciones. Si el arquitecto o Fable proponen algo fuera de
+        esta lista antes de que el arnés esté verde, el director lo para.»
+    · LOS DOS CRITERIOS DE REVERSIÓN, escritos ANTES de construir:
+      - si PLAZO baja de 8 de 8, o aparece un falso publicado, o los punteros no
+        resueltos superan el 5 %, se apaga el interruptor y se vuelve al contrato
+        de copia con el parche de la glosa;
+      - el de D1: el caso P3 del arnés —dos hojas de tarifas, 15 filas
+        discrepantes y 25 + 25 exclusivas— tiene que dar EXACTAMENTE lo mismo en 5
+        de 5 pasadas antes y después. Si se mueve, se apaga.
+    · EL ALCANCE DE D1, que es una decisión de diseño y no un detalle: el
+      segmentador, las etiquetas y el validador son SOLO para trozos de tipo
+      texto. Las filas de Excel (table_row) siguen por su vía sin tocar una línea.
+      Y lo que precisa Fable: las 40 filas con barras de los 89 descartes NO son
+      Excel, son tablas de Word (B.333), y ese frente va aparte y queda congelado.
+    · ⚠️ ANTES DE MEDIR EL SEGMENTADOR, declarar el universo: Fable dice «los 44
+      documentos del corpus», y lo medido es 50 en la organización, 20 en el corpus
+      y 6 con trozos (discrepancia abierta, F-122 (f)).
     ════ ESTADO DEL PLAN AL 09/10/2026 ════
     · LAS TRES COSAS BARATAS DE FABLE, RESUELTAS:
       - la cruzada, MUERTA CON DATOS: 0 de 13 recuperables, las dos citas son del
