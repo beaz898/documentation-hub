@@ -13387,6 +13387,25 @@ director («git push origin main») sobre el informe de Code, sin la revisión d
 era sólido y se habría aprobado, pero **el sentido de la barrera es que «salió bien» no sea la
 prueba.**
 
+**REGLA DE CONGELACIÓN (09/10/2026, F-122, D2)**, con la literalidad de Fable:
+
+> «REGLA DE CONGELACIÓN, QUE QUEDA ARCHIVADA. Hasta que el arnés dé el criterio de cerrado, entran
+> solo tres cosas:
+> El lector unificado y las etiquetas de la vía 2, con el alcance de D1.
+> La segunda búsqueda dirigida de F-116 P5 para los hallazgos a los que falta el otro lado.
+> La lista de datos examinados y el coste medido de la segunda pasada, F-120 P2.
+> Todo lo demás queda congelado con fecha, no cancelado: tablas de Word, la elección de documentos
+> de F-119, la función de citas del proveedor, la extracción de afirmaciones. Si el arquitecto o
+> Fable proponen algo fuera de esta lista antes de que el arnés esté verde, el director lo para.»
+
+- **El criterio de cerrado** (F-121): cada trampa sembrada detectada y publicada en 4 de 5 pasadas
+  o más; cero falsos publicados; coste por análisis escrito. Al 09/10: PLAZO 8 de 8, NEGACIÓN 2 de
+  8, LUGAR 0 de 8.
+- **Congelado no es cancelado**: cada cosa congelada conserva su ficha y su fecha de congelación,
+  el 09/10/2026.
+- **Los criterios de reversión de la vía 2** y el alcance de D1 están en B.362 de
+  `Puntos_Pendientes_Doclity.txt`.
+
 ### 📋 B.331 — COMILLAS CURVAS, Y LA REPRESENTATIVIDAD DEL CORPUS (05/10/2026)
 
 Hecho 1: la clase de caracteres de normalize-core.mjs:84 lleva la comilla doble recta
