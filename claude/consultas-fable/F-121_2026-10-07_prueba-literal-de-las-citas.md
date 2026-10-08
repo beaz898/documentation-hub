@@ -455,6 +455,8 @@ del 07/10), repetidas con el cambio.
     nuestra, aparte.
     - *Estado del listón*: **TAMBIÉN FALSO**, y en la misma dirección. Fable y el arquitecto
       dieron por hecho que las cruzadas tenían los DOS lados cruzados; ninguna los tiene.
+  - **Contada como fallada por Fable mismo** en F-122 («Dos predicciones mías falladas, contadas»):
+    aceptó «cruzada» como «cita bien copiada en el documento equivocado» sin exigir el mecanismo.
 - **P-F121-7** · Al menos una de las 8 pasadas de NOR-11 tocó el tope de tokens de salida.
   - *Aceptación*: una o más.
   - *Estado*: **FALSA**, resuelta el 07/10 sin instrumentar. SQL_B349 da, desde el 02/10,
@@ -466,6 +468,8 @@ del 07/10), repetidas con el cambio.
   - **Consecuencia**: la ceguera de B.349 es real pero NO está disparando hoy. El contador de
     stop_reason (B.356) se aparca hasta que se toque algo que aumente la salida, junto con el
     salto de maxOutputTokens de 4.096 a 8.192 de B.360.
+  - **Contada como fallada por Fable mismo** en F-122, que acepta la deducción por sumas como
+    «correcta y más barata que instrumentar».
 - **P-F121-8** · Entre las citas descartadas desde el 02/10, las que fallan tienen una mediana
   de longitud al menos un 50 % mayor que las que pasan, y más de la mitad llevan dos o más
   subordinadas o tres o más entidades nombradas.
