@@ -14,6 +14,7 @@ import {
   EST_OUTPUT_TOKENS,
 } from './rate-limiter';
 import { recordToContext } from '@/lib/observability/usage-context';
+import { leerTextoDeLaRespuesta } from './texto-de-la-respuesta';
 
 // ── Constantes ─────────────────────────────────────────────────────────────────
 
@@ -157,14 +158,14 @@ async function callAnthropicRaw(
 async function callAnthropicTextWithTokens(
   prompt: string,
   opts: CallOptions,
+  via: 'json' | 'texto',
 ): Promise<TextResult> {
   const { body, inputTokens, outputTokens, cacheCreationTokens, cacheReadTokens } = await callAnthropicRaw(
     buildPayload(prompt, opts),
     buildHeaders(opts),
   );
-  const d       = body as Record<string, unknown>;
-  const content = d?.content as Array<Record<string, unknown>> | undefined;
-  const text    = content?.[0]?.text as string | undefined;
+  // F-122 P5: todos los bloques de texto, no sólo el primero (texto-de-la-respuesta.ts).
+  const text = leerTextoDeLaRespuesta(body, `${via} · ${opts.model === 'sonnet' ? SONNET_MODEL : HAIKU_MODEL}`);
   if (!text) throw new Error('Empty text response from Anthropic');
   return { text, inputTokens, outputTokens, cacheCreationTokens, cacheReadTokens };
 }
@@ -175,7 +176,7 @@ export async function callAnthropicText(
   prompt: string,
   opts: CallOptions = {},
 ): Promise<string> {
-  const { text } = await callAnthropicTextWithTokens(prompt, opts);
+  const { text } = await callAnthropicTextWithTokens(prompt, opts, 'texto');
   return text;
 }
 
@@ -193,9 +194,9 @@ export async function callAnthropicWithUsage(
     buildHeaders(opts),
   );
 
-  const d       = body as Record<string, unknown>;
-  const content = d?.content as Array<Record<string, unknown>> | undefined;
-  const text    = content?.[0]?.text as string | undefined;
+  const d    = body as Record<string, unknown>;
+  // F-122 P5: todos los bloques de texto, no sólo el primero (texto-de-la-respuesta.ts).
+  const text = leerTextoDeLaRespuesta(body, `con_uso · ${opts.model === 'sonnet' ? SONNET_MODEL : HAIKU_MODEL}`);
   if (!text) throw new Error('Empty text response from Anthropic');
 
   const usageRaw = d?.usage as Record<string, number> | undefined;
@@ -328,7 +329,7 @@ export async function callAnthropicJson<T = unknown>(
   const jsonModelId = adjustedOpts.model === 'sonnet' ? SONNET_MODEL : HAIKU_MODEL;
 
   try {
-    const r1 = await callAnthropicTextWithTokens(adjustedPrompt, adjustedOpts);
+    const r1 = await callAnthropicTextWithTokens(adjustedPrompt, adjustedOpts, 'json');
     finalInput  = r1.inputTokens;
     finalOutput = r1.outputTokens;
     recordToContext(jsonModelId, {
@@ -344,7 +345,7 @@ export async function callAnthropicJson<T = unknown>(
       console.warn('[callAnthropicJson] Parse failed, retrying. head:', r1.text.slice(0, 200));
       await new Promise(r => setTimeout(r, 1500));
 
-      const r2 = await callAnthropicTextWithTokens(adjustedPrompt, adjustedOpts);
+      const r2 = await callAnthropicTextWithTokens(adjustedPrompt, adjustedOpts, 'json');
       finalInput  = r2.inputTokens;
       finalOutput = r2.outputTokens;
       recordToContext(jsonModelId, {
