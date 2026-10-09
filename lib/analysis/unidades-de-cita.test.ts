@@ -88,16 +88,32 @@ describe('unidades de cita · cadenas inventadas', () => {
     expect(unidadesDeCita(texto).map(x => x.texto)).toEqual([texto]);
   });
 
-  it('un titular numerado no se parte tras su número: lo cierra el salto de línea', () => {
+  it('un titular numerado seguido de párrafo: UNA unidad el titular y OTRA el párrafo', () => {
     const texto = '## 2.2. Personal auxiliar de esterilización\nSe encarga de la limpieza del instrumental en la zona sucia.';
     const u = unidadesDeCita(texto);
     cumpleLasInvariantes(texto, u);
-    expect(u[0].texto).toBe('## 2.2. Personal auxiliar de esterilización\n');
+    expect(u.map(x => x.texto)).toEqual([
+      '## 2.2. Personal auxiliar de esterilización\n',
+      'Se encarga de la limpieza del instrumental en la zona sucia.',
+    ]);
   });
 
-  it('un salto de línea siempre cierra unidad, aunque la línea no acabe en punto', () => {
+  it('LA REGLA DEL TITULAR, en el caso medido: el numeral no se separa de su título aunque la línea de antes sea corta', () => {
+    // Medido el 09/10 en NOR-10: «# 2. Responsables» (18) se fundía con «## 2.2. »
+    // y llegaba a 25, así que el título quedaba en la unidad siguiente. Sin la
+    // regla, la fusión hacia adelante NO lo arregla: esta prueba es la que la fija.
+    const texto = '# 2. Responsables\n## 2.2. Personal auxiliar de esterilización\nSe encarga de la limpieza del instrumental en la zona sucia.';
+    const u = unidadesDeCita(texto);
+    cumpleLasInvariantes(texto, u);
+    for (const x of u) expect(x.texto.endsWith('2.2. ')).toBe(false);
+    expect(u.some(x => x.texto.includes('## 2.2. Personal auxiliar de esterilización\n'))).toBe(true);
+  });
+
+  it('un salto de línea siempre cierra unidad, aunque la línea no acabe en signo (regla 5)', () => {
     const texto = 'Primera línea sin punto final y larga\nSegunda línea también sin punto y larga';
-    expect(unidadesDeCita(texto).map(x => x.texto)).toEqual([
+    const u = unidadesDeCita(texto);
+    cumpleLasInvariantes(texto, u);
+    expect(u.map(x => x.texto)).toEqual([
       'Primera línea sin punto final y larga\n',
       'Segunda línea también sin punto y larga',
     ]);

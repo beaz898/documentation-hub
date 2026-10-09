@@ -46,6 +46,7 @@ console.log(`Abreviaturas en el módulo hoy: ${ABREVIATURAS.length ? ABREVIATURA
 console.log(`Ficheros .docx: ${ficheros.length}\n`);
 
 const cortesCortos = [];
+const cortas = [];
 let totalTrozos = 0, totalUnidades = 0, totalTope = 0, totalSuelo = 0;
 for (const nombre of ficheros) {
   const segmentos = await extractSegments(readFileSync(`corpus-pruebas/${nombre}`), nombre);
@@ -55,7 +56,17 @@ for (const nombre of ficheros) {
   for (const t of trozos) {
     const unidades = unidadesDeCita(t.text);
     // Comprobación de la invariante 1 sobre el texto real.
-    if (unidades.map(u => u.texto).join('') !== t.text) throw new Error(`cobertura rota en ${nombre}, trozo ${t.chunkIndex}`);
+    if (unidades.map(u => u.texto).join('') !== t.text) throw new Error(`cobertura rota en ${nombre}, trozo ${t.metadata.chunkIndex}`);
+    unidades.forEach((u, k) => {
+      if (u.texto.length >= SUELO_DE_LA_UNIDAD) return;
+      // El suelo sólo admite dos excepciones: la última del trozo, o que fundirla pasara de 400.
+      const siguiente = unidades[k + 1];
+      const anterior = unidades[k - 1];
+      const porque = !siguiente ? `la última del trozo (la anterior mide ${anterior ? anterior.texto.length : '—'}${anterior && anterior.texto.length >= TOPE_DE_LA_UNIDAD - 10 ? ': es el resto de un corte por el tope' : ''})`
+        : u.texto.length + siguiente.texto.length > TOPE_DE_LA_UNIDAD ? `fundirla pasaría de ${TOPE_DE_LA_UNIDAD} (${u.texto.length} + ${siguiente.texto.length})`
+        : 'NINGUNA DE LAS DOS: FALLO DEL SUELO';
+      cortas.push(`  [${nombre}] trozo ${t.metadata.chunkIndex}, unidad ${u.numero} de ${unidades.length}, ${u.texto.length} caracteres · ${porque} · ${JSON.stringify(u.texto)}`);
+    });
     for (const u of unidades) {
       longitudes.push(u.texto.length);
       if (u.texto.length >= TOPE_DE_LA_UNIDAD) tope++;
@@ -80,6 +91,8 @@ for (const nombre of ficheros) {
   console.log(`${nombre}: ${trozos.length} trozos · ${longitudes.length} unidades · mediana ${longitudes.length ? mediana(longitudes) : '—'} · mín ${lmin} · máx ${lmax} · en el tope ${tope} · bajo ${SUELO_DE_LA_UNIDAD}: ${suelo}`);
 }
 console.log(`\nTOTAL: ${totalTrozos} trozos · ${totalUnidades} unidades · en el tope ${totalTope} · bajo ${SUELO_DE_LA_UNIDAD}: ${totalSuelo}`);
+console.log(`\nLAS UNIDADES DE MENOS DE ${SUELO_DE_LA_UNIDAD}, Y CUÁL DE LAS DOS EXCEPCIONES DEL SUELO LAS EXPLICA: ${cortas.length}`);
+for (const c of cortas) console.log(c);
 
 console.log(`\nCORTES DE FRASE CON PALABRA DE 4 CARACTERES O MENOS ANTES DEL SIGNO: ${cortesCortos.length}`);
 const porPalabra = new Map();

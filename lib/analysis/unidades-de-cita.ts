@@ -63,6 +63,11 @@ export const SUELO_DE_LA_UNIDAD = 25;
  * «día», «área»…), «°C», numerales romanos («grupo III.») o cortes sin palabra
  * (números, paréntesis)—. Es un corpus de seis documentos: el día que un
  * documento real parta frases por «Dr.» o «art.», se mide y se añade aquí.
+ *
+ * LA LISTA SE RELLENA MIDIENDO, Y EL SCRIPT ES LA HERRAMIENTA: se vuelve a pasar
+ * `scripts/medir-unidades-de-cita.mjs` cuando entren documentos nuevos al
+ * corpus, y se añade lo que aparezca. NO se añade lo que la medida no ha visto,
+ * aunque sea probable (decisión del arquitecto, 09/10, sobre «Dr.»).
  */
 export const ABREVIATURAS: readonly string[] = [];
 
