@@ -7567,6 +7567,14 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     ellos (Clientes_Residuos_Sanitarios y Normas_Frecuencia_Recogidas) ganaron
     plaza de candidato. Por eso, mientras estén dentro, ninguna medida de
     desplazamiento es honesta.
+    ⚠️ AÑADIDO EL 09/10/2026, dato del director: los 14 del corpus sin trozos tienen
+    extractor_version NULL y entre 1 y 6 vectores cada uno. Son restos de las
+    primeras pruebas (glosarios, facturación, «new 1.txt»…). EL CORPUS REAL SON 6
+    DOCUMENTOS. Y tienen todos full_text (B.365, misma fecha).
+    Ojo con la fuente: SQL_B365 no trae extractor_version ni vectores, así que esas
+    dos cifras salen de otra consulta del director, no de ésa. Además, arriba
+    (05/10) se escribió «CASI todos con extractor_version NULL»; con este dato son
+    los 14.
 
   B.335 — [ABIERTO 05/10/2026 · CUARTA VEZ QUE EL INSTRUMENTO NO PUEDE FALLAR DONDE
     DEBERÍA] EL CORPUS NO TRAE COMILLAS CURVAS NI TABLAS DE WORD, Y ESO INVALIDA
@@ -8440,7 +8448,8 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     modelo invalidaría todas las medidas de referencia del arnés: no se hace.
     NO SE TOCA AHORA: se arregla cuando el arnés esté verde.
 
-  B.365 — [ABIERTO 09/10/2026 · HALLAZGOS DESCARTADOS EN SILENCIO, POR MEDIR] LA
+  B.365 — [ABIERTO 09/10/2026 · EL FALLO DEL CÓDIGO ES REAL; MEDIDO EL 09/10, HOY SIN
+    VÍCTIMAS] LA
     PUERTA DE CITAS COMPRUEBA UN CANDIDATO SIN TROZOS CONTRA OTRA COSA QUE LO QUE
     LEYÓ EL JUEZ, Y SIN full_text LO DESCARTA TODO
     Leído en el código el 09/10/2026:
@@ -8457,7 +8466,12 @@ NOTAS DE ORDEN (propuesta, a confirmar)
       estos documentos el juez leyó el texto de los vectores de Pinecone y la
       puerta comprueba contra el full_text de Supabase;
     · afecta potencialmente a los 14 documentos del corpus sin trozos (B.334).
-    Cuántos de esos 14 no tienen full_text está por medir.
+    MEDIDO EL 09/10/2026 (SQL_B365_sin_trozos_y_sin_full_text.sql, ejecutada por
+    el director): los 22 documentos sin trozos del piloto —14 del corpus y 8
+    pendientes— TIENEN TODOS full_text. Hoy ningún candidato descarta todos sus
+    hallazgos por sin_pajar.
+    LA FICHA SIGUE ABIERTA: el fallo del código es real, y el día que un documento
+    se quede sin full_text se tragará todo en silencio, pero hoy no tiene víctimas.
 
 Forma de trabajo: diagnóstico con datos reales antes de arreglar; un
 cambio lógico cada vez; build verde entre medias; SQL en Supabase antes

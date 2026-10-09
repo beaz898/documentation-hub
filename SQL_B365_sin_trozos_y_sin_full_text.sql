@@ -1,7 +1,8 @@
 -- ============================================================================
 -- B.365 · LOS DOCUMENTOS SIN TROZOS, Y CUÁLES DE ELLOS NO TIENEN full_text —
 -- SÓLO LECTURA
--- ⏳ PENDIENTE DE EJECUTAR. Sólo SELECT: no escribe nada. Sólo recuentos,
+-- ✅ EJECUTADO por el director el 09/10/2026: los 22 sin trozos (14 del corpus y
+-- 8 pendientes) tienen TODOS full_text (B.365). Sólo SELECT: no escribe nada. Sólo recuentos,
 -- nombres de documento y longitudes; ni un carácter del texto.
 --
 -- ┌──────────────────────────────────────────────────────────────────────────┐
