@@ -36,6 +36,17 @@
  *      fusión pasaría de 400: SI CHOCAN, GANA EL TOPE.
  *   5. UN SALTO DE LÍNEA SIEMPRE CIERRA UNIDAD: en estos documentos los
  *      titulares y las viñetas no acaban en punto, y la unidad real es la línea.
+ *
+ * LO QUE NO ES DE ESTE MÓDULO, medido el 09/10/2026 y anotado para que no se
+ * vuelva a leer como un fallo suyo:
+ *   · UN TITULAR HUÉRFANO ES UN DATO DEL TROCEADO. En NOR-10, «## 8.2. Sellado»
+ *     sale como última unidad (15 caracteres) del trozo 24 porque el troceador
+ *     dejó el titular al final de ese trozo y su párrafo en el siguiente. Las
+ *     unidades no cruzan de un trozo a otro, así que aquí no hay nada que hacer.
+ *   · LAS COLAS DEL TOPE: 4 de las 1.051 unidades del corpus son el final corto
+ *     de una frase de más de 400 que el tope partió al acabar su trozo
+ *     («limitado.», «calidad del servicio.»). Si algún día molestan, el arreglo
+ *     es repartir mejor el corte por el tope, no tocar el suelo. Hoy no se hace.
  */
 
 export interface UnidadDeCita {
@@ -91,7 +102,13 @@ const LETRAS = new Set([
 ]);
 
 /** ¿Empieza en `inicio` una línea de titular (Markdown `#`, como deja el
- *  extractor de .docx), tras los espacios del principio? */
+ *  extractor de .docx), tras los espacios del principio?
+ *
+ *  ⚠️ FALSO POSITIVO REAL, medido el 09/10/2026: en MKT-01 (manual de identidad
+ *  corporativa) la línea «#8C8C88» es un CÓDIGO DE COLOR hexadecimal, no un
+ *  titular, y esta función la toma por titular por el `#`. En un manual de
+ *  identidad habrá más. NO SE TOCA: el daño está acotado por el tope de 400 —
+ *  como mucho, una línea así sale en unidades de 400 en vez de en frases—. */
 function esLineaDeTitular(texto: string, inicio: number): boolean {
   let k = inicio;
   while (k < texto.length && (texto[k] === ' ' || texto[k] === '\t')) k++;
