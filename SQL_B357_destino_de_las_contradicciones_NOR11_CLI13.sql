@@ -4,6 +4,10 @@
 -- ⏳ PENDIENTE DE EJECUTAR. Sólo SELECT: no escribe nada.
 -- Salen recuentos, temas y descripciones (texto que escribe el modelo). NINGUNA
 -- cita y ningún texto de documento.
+-- ✅ PROBADO ANTES DE ENTREGARLO (09/10/2026) contra filas sintéticas en un
+-- Postgres local (PGlite): cada columna sale distinta de cero donde la siembra
+-- lo pide; quedan fuera otro documento, otra fecha y otra organización; y una
+-- pareja sin `discarded` da false, no nulo. Con datos reales no se ha ejecutado.
 --
 -- ┌──────────────────────────────────────────────────────────────────────────┐
 -- │ LA ORGANIZACIÓN DEL PILOTO: a9625e93-…, «Workspace principal». El id     │
