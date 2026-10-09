@@ -8485,6 +8485,27 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     LA FICHA SIGUE ABIERTA: el fallo del código es real, y el día que un documento
     se quede sin full_text se tragará todo en silencio, pero hoy no tiene víctimas.
 
+  B.366 — [ANOTADO 09/10/2026 · DEFECTO DE DISEÑO, NO SE ARREGLA AHORA · DEL
+    DIRECTOR] LA SALIDA DEL JUEZ NO ESTÁ ACOTADA POR CONSTRUCCIÓN: SÓLO LA ACOTA
+    EL TECHO DE LA API
+    El director, con razón: subir el techo de tokens no escala. Con más documentos
+    y más largos, cualquier techo fijo acaba rompiéndose.
+    La sonda de profundidad lo midió el 09/10, con el prompt de producción y dos
+    documentos sintéticos casi duplicados:
+      · el prompt dice «máximo 10 solapamientos» (lib/analysis/judge.ts:850) y el
+        juez escribió 22 en la pasada que cortó el techo;
+      · uniqueToNewDoc NO TIENE TOPE NINGUNO y llegó a 48 entradas.
+    O sea: hoy lo único que acota de verdad la salida del juez es maxOutputTokens
+    (judge.ts:868). Los topes del prompt son sugerencias que el modelo se salta
+    cuando los dos documentos se parecen mucho.
+    NO ES LA CAUSA DEL FALLO DE HOY: el techo quedó descartado como causa de PLAZO
+    8/8, LUGAR 4/8, NEGACIÓN 2/8 (B.360). En producción la suma de un análisis
+    entero no ha pasado de 3.928 tokens desde el 02/10 (P-F121-7).
+    LA SOLUCIÓN NO ES SUBIR EL TECHO. La salida del juez tiene que quedar acotada
+    por construcción, no por el techo de la API. Relacionadas: B.349 (la respuesta
+    cortada se repara en silencio), B.356 (no se lee stop_reason) y B.360 (el
+    margen se estrechó; la regla de los 8.192 antes de otra ampliación).
+
 Forma de trabajo: diagnóstico con datos reales antes de arreglar; un
 cambio lógico cada vez; build verde entre medias; SQL en Supabase antes
 del push; plan completo antes de tocar varios archivos.
