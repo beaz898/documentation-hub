@@ -44,7 +44,9 @@
  *   node scripts/sonda-profundidad.mjs --montaje 2   → 5 llamadas.
  */
 import { register } from 'node:module';
-import { readFileSync, existsSync } from 'node:fs';
+import { readFileSync, existsSync, mkdirSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
 const raiz = pathToFileURL(process.cwd() + '/').href;
@@ -215,9 +217,37 @@ function leerClave() {
 const clave = leerClave();
 if (!clave) { console.error('No hay clave: ni ANTHROPIC_API_KEY en el entorno ni en .env.sonda.local. No se llama a la API.'); process.exit(1); }
 
-const { a, b, prompt, lados } = prepararMontaje(MONTAJE);
-console.log(`MONTAJE ${MONTAJE} · ${ORDEN[MONTAJE].join(' → ')} · A ${a.texto.length} · B ${b.texto.length} · ${PASADAS} pasadas\n`);
-const cuenta = Object.fromEntries(Object.keys(TRAMPAS).map(t => [t, { emitida: 0, pasa: 0 }]));
+const { pareja, prompt, lados } = prepararMontaje(MONTAJE);
+console.log(`MONTAJE ${MONTAJE} · ${ORDEN[MONTAJE].join(' → ')} · lo que ve el juez: A ${pareja.textoAnalizado.length}, B ${pareja.bloqueCandidato.length} · ${PASADAS} pasadas\n`);
+let ilegibles = 0;
+
+// LAS RESPUESTAS EN BRUTO, íntegras, a un fichero FUERA del repositorio (la
+// carpeta temporal del sistema): en producción no se guardan, y sin el texto
+// crudo no se puede leer lo que el juez SÍ escribió cuando una trampa no sale.
+// Sólo llevan texto del modelo y de los documentos inventados; nunca la clave.
+const carpeta = join(tmpdir(), 'sonda-profundidad');
+mkdirSync(carpeta, { recursive: true });
+const ficheroBruto = join(carpeta, `montaje-${MONTAJE}-${new Date().toISOString().replace(/[:.]/g, '-')}.json`);
+const brutos = [];
+const guardar = () => writeFileSync(ficheroBruto, JSON.stringify({ montaje: MONTAJE, orden: ORDEN[MONTAJE], pasadas: brutos }, null, 2));
+
+/** Las CUATRO clases de cada trampa en una respuesta: contradicción, inconsistencia
+ *  menor, solapamiento o ausente. Una trampa puede salir en más de una. */
+const CLASES = ['contradicción', 'inconsistencia menor', 'solapamiento'];
+function clasificar(juicio, t) {
+  const contr = juicio.contradictions.filter(c => trampaDe(c.newDocSays, c.existingDocSays) === t);
+  return {
+    'contradicción': contr.filter(c => c.severity !== 'minor_inconsistency'),
+    'inconsistencia menor': contr.filter(c => c.severity === 'minor_inconsistency'),
+    'solapamiento': juicio.overlappingContent.filter(o => trampaDe(o.evidenceInNewDoc, o.evidence) === t),
+  };
+}
+const citasDe = (clase, h) => clase === 'solapamiento'
+  ? { nuevo: h.evidenceInNewDoc, existente: h.evidence }
+  : { nuevo: h.newDocSays, existente: h.existingDocSays };
+
+const cuenta = Object.fromEntries(Object.keys(TRAMPAS).map(t => [t, Object.fromEntries([...CLASES, 'ausente'].map(c => [c, 0]))]));
+const pasaCuenta = Object.fromEntries(Object.keys(TRAMPAS).map(t => [t, 0]));
 let entrada = 0, salida = 0;
 for (let p = 1; p <= PASADAS; p++) {
   let res;
@@ -234,23 +264,47 @@ for (let p = 1; p <= PASADAS; p++) {
   if (!res.ok) { console.error(`Pasada ${p}: la API respondió ${res.status}: ${(await res.text()).slice(0, 600)}`); process.exit(1); }
   const cuerpo = await res.json();
   entrada += cuerpo.usage?.input_tokens ?? 0; salida += cuerpo.usage?.output_tokens ?? 0;
-  const texto = (cuerpo.content ?? []).filter(x => x.type === 'text').map(x => x.text).join('');
+  const bloquesDeTexto = (cuerpo.content ?? []).filter(x => x.type === 'text');
+  const texto = bloquesDeTexto.map(x => x.text).join('');
+  brutos.push({ pasada: p, stop_reason: cuerpo.stop_reason, usage: cuerpo.usage, bloques: (cuerpo.content ?? []).length, texto });
+  guardar();
+
+  // AVISOS DE RESPUESTA CORTADA O RECORTADA: la sonda no repara JSON truncado.
+  const avisos = [];
+  if (cuerpo.stop_reason !== 'end_turn') avisos.push(`stop_reason ${cuerpo.stop_reason}: la respuesta NO acabó limpia`);
+  if (bloquesDeTexto.length !== 1) avisos.push(`${bloquesDeTexto.length} bloques de texto`);
   const i = texto.indexOf('{'), j = texto.lastIndexOf('}');
+  const antes = texto.slice(0, Math.max(i, 0)).replace(/```(json)?/g, '').trim();
+  const despues = (j === -1 ? texto : texto.slice(j + 1)).replace(/```/g, '').trim();
+  if (antes || despues) avisos.push(`el recorte de la primera a la última llave TIRÓ texto (${antes.length} caracteres antes, ${despues.length} después)`);
   let respuesta;
   try { respuesta = JSON.parse(texto.slice(i, j + 1)); }
-  catch { console.log(`Pasada ${p}: el JSON no se pudo leer (stop_reason ${cuerpo.stop_reason}) — se cuenta como nada emitido\n`); continue; }
+  catch { avisos.push('el JSON NO se pudo leer: la pasada cuenta como nada emitido'); }
+  console.log(`Pasada ${p} · stop_reason ${cuerpo.stop_reason} · tokens ${cuerpo.usage?.input_tokens}/${cuerpo.usage?.output_tokens}${avisos.length ? ` · ⚠️ ${avisos.join(' · ')}` : ''}`);
+  if (!respuesta) { ilegibles++; console.log(''); continue; }
+
   const { crudo, verificado } = pasarPorLaPuerta(respuesta, lados);
-  console.log(`Pasada ${p} · stop_reason ${cuerpo.stop_reason} · tokens ${cuerpo.usage?.input_tokens}/${cuerpo.usage?.output_tokens} · ${crudo.contradictions.length} contradicciones emitidas, ${verificado.contradictions.length} pasan`);
+  console.log(`  emitido: ${crudo.contradictions.length} contradicciones e inconsistencias, ${crudo.overlappingContent.length} solapamientos · pasan la puerta: ${verificado.contradictions.length} y ${verificado.overlappingContent.length}`);
   for (const t of Object.keys(TRAMPAS)) {
-    const emitidas = crudo.contradictions.filter(c => trampaDe(c.newDocSays, c.existingDocSays) === t);
-    const pasan = verificado.contradictions.filter(c => trampaDe(c.newDocSays, c.existingDocSays) === t);
-    const comoSolape = crudo.overlappingContent.filter(o => trampaDe(o.evidenceInNewDoc, o.evidence) === t).length;
-    if (emitidas.length) cuenta[t].emitida++;
-    if (pasan.length) cuenta[t].pasa++;
-    console.log(`  ${t}: emitida ${emitidas.length ? 'SÍ' : 'no'} · puerta ${pasan.length ? 'PASA' : emitidas.length ? 'NO pasa' : '—'}${comoSolape ? ` · además ${comoSolape} como solapamiento` : ''}`);
-    for (const c of emitidas) console.log(`    nuevo: ${JSON.stringify(c.newDocSays)}\n    existente: ${JSON.stringify(c.existingDocSays)}`);
+    const emitido = clasificar(crudo, t);
+    const pasado = clasificar(verificado, t);
+    const clases = CLASES.filter(c => emitido[c].length);
+    if (clases.length === 0) cuenta[t]['ausente']++;
+    for (const c of clases) cuenta[t][c]++;
+    const pasa = CLASES.some(c => pasado[c].length);
+    if (pasa) pasaCuenta[t]++;
+    const detalle = clases.length ? clases.map(c => `${c} ×${emitido[c].length} (pasa ${pasado[c].length})`).join(', ') : 'AUSENTE';
+    console.log(`  ${t}: ${detalle}`);
+    for (const c of clases) for (const h of emitido[c]) {
+      const { nuevo, existente } = citasDe(c, h);
+      console.log(`    [${c}] nuevo: ${JSON.stringify(nuevo)}\n    [${c}] existente: ${JSON.stringify(existente)}`);
+    }
   }
   console.log('');
 }
-console.log(`TOTAL MONTAJE ${MONTAJE}: ${Object.entries(cuenta).map(([t, c]) => `${t} emitida ${c.emitida}/${PASADAS}, pasa ${c.pasa}/${PASADAS}`).join(' · ')}`);
+console.log(`TOTAL MONTAJE ${MONTAJE} (${PASADAS} pasadas, ${ilegibles} con el JSON ilegible y sin contar en ninguna clase; una trampa puede salir en más de una clase en la misma pasada):`);
+for (const t of Object.keys(TRAMPAS)) {
+  console.log(`  ${t}: ${[...CLASES, 'ausente'].map(c => `${c} ${cuenta[t][c]}`).join(' · ')} · pasa la puerta en ${pasaCuenta[t]}/${PASADAS}`);
+}
 console.log(`TOKENS: entrada ${entrada} · salida ${salida}`);
+console.log(`RESPUESTAS EN BRUTO: ${ficheroBruto}`);
