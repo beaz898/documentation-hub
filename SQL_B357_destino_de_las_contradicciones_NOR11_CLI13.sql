@@ -22,6 +22,12 @@
 -- reclasificación están TODAS a cero, el juez no la dijo. Si hay muertes en la
 -- cascada, la dijo y la quitó nuestro código, y el motivo dice en qué etapa.
 --
+-- LO QUE YA SE SABE (B.357): en la pasada del 07/10 a las 08:53:41 UTC el juez
+-- emitió LAS TRES (PLAZO, LUGAR y NEGACIÓN), y LUGAR murió en la puerta. Así que
+-- el juez SÍ es capaz de emitir NEGACIÓN en producción. La pregunta no es si
+-- puede: es qué pasó en las otras pasadas, si no la dijo o si la dijo y se la
+-- comió nuestro código.
+--
 -- DE DÓNDE SALE CADA COLUMNA. Todo vive en el juicio de la pareja guardado en
 -- analysis_results.analysis->'judgments' (pipeline.ts:993; desde el 02/10 con
 -- los descartes de la puerta, B.313):
