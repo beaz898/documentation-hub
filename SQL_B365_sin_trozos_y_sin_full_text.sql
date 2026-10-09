@@ -11,7 +11,7 @@
 -- │ 05/10/2026). No se mira ninguna otra: ni siquiera sus nombres salen.     │
 -- └──────────────────────────────────────────────────────────────────────────┘
 --
--- QUÉ CONTESTA (arquitecto, 10/10/2026): un candidato sin trozos no tiene
+-- QUÉ CONTESTA (arquitecto, 09/10/2026): un candidato sin trozos no tiene
 -- «texto entregado» y la puerta de citas lo comprueba contra
 -- `documents.full_text` (B.365). Si además NO TIENE full_text, la puerta
 -- devuelve «no está» para CUALQUIER cita (sin_pajar) y TODOS los hallazgos

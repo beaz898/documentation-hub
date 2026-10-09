@@ -8425,13 +8425,13 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     No se arregla ahora: queda registrado. Subir otra vez el tope, o sacar la
     extracción real de la suite paralela, sería decisión aparte.
 
-  B.364 — [ANOTADO 10/10/2026 · DEUDA DE OBSERVABILIDAD, SE ARREGLA CON EL ARNÉS
+  B.364 — [ANOTADO 09/10/2026 · DEUDA DE OBSERVABILIDAD, SE ARREGLA CON EL ARNÉS
     VERDE] EL PRECIO DE HAIKU 4.5 ESTÁ MAL EN EL CÓDIGO: llm_usage GUARDA UN COSTE
     CUATRO VECES MENOR QUE EL REAL
     lib/observability/llm-pricing.ts:22-24 pone a claude-haiku-4-5-20251001 en
     0,25 $ por millón de tokens de entrada y 1,25 $ de salida, que son los
     precios de Haiku 3.5. Según la documentación oficial (comprobada por el
-    arquitecto el 10/10), Haiku 4.5 cuesta 1 $ de entrada y 5 $ de salida. Como
+    arquitecto el 09/10), Haiku 4.5 cuesta 1 $ de entrada y 5 $ de salida. Como
     cost_usd de llm_usage se calcula con esa tabla (computeCostUsd), el coste
     guardado de cada análisis está cuatro veces por debajo del real (1 / 0,25 =
     5 / 1,25 = 4). Lo detectó Code al presupuestar la sonda de profundidad.
@@ -8440,10 +8440,10 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     modelo invalidaría todas las medidas de referencia del arnés: no se hace.
     NO SE TOCA AHORA: se arregla cuando el arnés esté verde.
 
-  B.365 — [ABIERTO 10/10/2026 · HALLAZGOS DESCARTADOS EN SILENCIO, POR MEDIR] LA
+  B.365 — [ABIERTO 09/10/2026 · HALLAZGOS DESCARTADOS EN SILENCIO, POR MEDIR] LA
     PUERTA DE CITAS COMPRUEBA UN CANDIDATO SIN TROZOS CONTRA OTRA COSA QUE LO QUE
     LEYÓ EL JUEZ, Y SIN full_text LO DESCARTA TODO
-    Leído en el código el 10/10/2026:
+    Leído en el código el 09/10/2026:
     · un candidato sin trozos no tiene «texto entregado»
       (lib/analysis/coincidencia-de-cita.ts:344) y la puerta cae al camino
       antiguo (:376), comprobando contra documents.full_text

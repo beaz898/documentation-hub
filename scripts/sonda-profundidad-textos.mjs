@@ -2,7 +2,7 @@
  * LOS TEXTOS DE LA SONDA DE PROFUNDIDAD (scripts/sonda-profundidad.mjs).
  *
  * · LAS TRAMPAS: literales del registro de siembra (las tres de NOR-11 ↔ CLI-13),
- *   pasadas por el arquitecto el 10/10/2026. El lado A va en el documento largo
+ *   pasadas por el arquitecto el 09/10/2026. El lado A va en el documento largo
  *   (como NOR-11) y el B en el corto (como CLI-13).
  * · EL RELLENO: INVENTADO, no copiado de ningún documento del corpus. Funcionamiento
  *   de una clínica dental ficticia. Es CONSISTENTE entre los dos documentos —el

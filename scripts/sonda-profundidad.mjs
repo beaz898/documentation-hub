@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * SONDA · PROFUNDIDAD CONTRA DIFICULTAD (10/10/2026, tras parar la vía 2).
+ * SONDA · PROFUNDIDAD CONTRA DIFICULTAD (09/10/2026, tras parar la vía 2).
  *
  * LA PREGUNTA: las tres trampas de NOR-11 ↔ CLI-13 salen 8/8 (PLAZO, página 1),
  * 4/8 (LUGAR, página 3) y 2/8 (NEGACIÓN, página 5 de 5), con la pareja leída
