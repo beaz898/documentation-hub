@@ -13406,6 +13406,20 @@ prueba.**
 - **Los criterios de reversión de la vía 2** y el alcance de D1 están en B.362 de
   `Puntos_Pendientes_Doclity.txt`.
 
+**NOTA DE MÉTODO (09/10/2026): UN CONTROL QUE NO PUEDE FALLAR NO ES UN CONTROL.** Antes de dar por
+buena una prueba o un bloque de control, se rompe a propósito lo que protege y se comprueba que se
+pone rojo. Si sigue verde, no controla nada. Los dos casos del mismo día:
+- **La prueba de la regla del titular** (`lib/analysis/unidades-de-cita.test.ts`): la primera versión
+  seguía verde sin la regla, porque la fusión hacia adelante volvía a unir «## 2.2.» con su título.
+  Hizo falta reproducir el caso medido en NOR-10 —una línea corta delante— para que, al quitar la
+  regla a propósito, se pusiera roja esa prueba y sólo ésa (1 de 15).
+- **El bloque de control de `SQL_B365_sin_trozos_y_sin_full_text.sql`**: la primera versión sumaba
+  «con trozos + sin trozos», que siempre da el total y no podía salir mal. Se cambió por los
+  denominadores ya medidos el 06/10 con SQL_B345 (50, 20 y 14), que sí pueden no cuadrar.
+- Y el caso hermano de la prueba de `texto-del-trozo-en-el-prompt.test.ts`: con un `trim` colado en el
+  render seguía verde, porque ningún trozo real empieza ni acaba en espacio. Se añadió un caso
+  sintético con espacios en los bordes, que es el que se pone rojo.
+
 ### 📋 B.331 — COMILLAS CURVAS, Y LA REPRESENTATIVIDAD DEL CORPUS (05/10/2026)
 
 Hecho 1: la clase de caracteres de normalize-core.mjs:84 lleva la comilla doble recta
