@@ -8216,8 +8216,20 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     (lib/analysis/judge.ts:858). NO se toca ahora. Y al tocarlo, recordar B.356:
     el 4096 es también el valor por defecto de buildPayload y ninguna prueba lo
     cubre, y la respuesta cortada no deja rastro (B.349).
+    ⚠️ AÑADIDO EL 09/10/2026 · DOS COSAS QUE SE LLAMAN «TOPE» Y NO SE PARECEN:
+      · el tope de la INSTRUCCIÓN: «máximo 10 solapamientos», una frase del prompt
+        (lib/analysis/judge.ts:850 al 09/10) que el modelo puede saltarse;
+      · el techo de TOKENS: maxOutputTokens (judge.ts:868), donde la API corta la
+        respuesta.
+    El arquitecto las confundió el 09/10. Y el techo de tokens quedó DESCARTADO
+    como causa de PLAZO 8/8, LUGAR 4/8, NEGACIÓN 2/8 por dos pruebas: P-F121-7
+    (07/10: ninguna suma de un análisis llega a 4.096) y el reparador real
+    (tryParseJson, lib/llm/anthropic-client.ts:288) pasado el 09/10 sobre las
+    respuestas crudas de la sonda de profundidad: la pasada cortada por max_tokens
+    conserva sus tres contradicciones, porque en el JSON van antes que los
+    solapamientos (judge.ts:857 y :861).
 
-  B.361 — [ABIERTO 07/10/2026 · MEDIDO EN CUATRO PASADAS] LAS OTRAS DOS PAREJAS
+  B.361 —[ABIERTO 07/10/2026 · MEDIDO EN CUATRO PASADAS] LAS OTRAS DOS PAREJAS
     TAMBIÉN SON INESTABLES, Y LA FILA CON BARRAS SE REESCRIBE
     Medido por el arquitecto el 07/10 en las mismas cuatro pasadas de NOR-11:
     · CLI-12, con la recuperación idéntica byte a byte en las cuatro (47

@@ -13420,6 +13420,16 @@ pone rojo. Si sigue verde, no controla nada. Los dos casos del mismo día:
   render seguía verde, porque ningún trozo real empieza ni acaba en espacio. Se añadió un caso
   sintético con espacios en los bordes, que es el que se pone rojo.
 
+**REGLA DE MÉTODO (09/10/2026): ANTES DE PROPONER UNA CAUSA, COMPROBAR SI YA ESTÁ MEDIDA.** Cuando el
+arquitecto proponga una explicación, el primer paso del encargo es buscarla en
+`Puntos_Pendientes_Doclity.txt` y en las fichas de `claude/consultas-fable/`. Si ya hay una medida
+que la confirma o la refuta, se dice ANTES de hacer nada más. Esa comprobación le toca a Code, que
+tiene el repositorio, y es la primera de cada encargo de diagnóstico.
+- **El caso del 09/10**: se propuso el techo de tokens de salida como causa de PLAZO 8/8, LUGAR 4/8,
+  NEGACIÓN 2/8, y estaba cerrado desde el 07/10 como P-F121-7 FALSA. No fue afirmar sin cotejar:
+  fue afirmar contra una medida propia ya escrita, que es la peor variante. Lo paró la lectura del
+  código antes de escribir el SQL_B366, que se canceló (B.360).
+
 ### 📋 B.331 — COMILLAS CURVAS, Y LA REPRESENTATIVIDAD DEL CORPUS (05/10/2026)
 
 Hecho 1: la clase de caracteres de normalize-core.mjs:84 lleva la comilla doble recta
