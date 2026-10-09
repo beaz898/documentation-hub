@@ -8424,14 +8424,15 @@ NOTAS DE ORDEN (propuesta, a confirmar)
       NOR-11.
     · ANTES DE TOCAR EL JUEZ: reindexar NOR-11 y medir una línea base NUEVA, cinco
       pasadas en la UI.
-    · ⚠️ LA COMPARABILIDAD ES UNA PREMISA, NO UN HECHO. «Es el mismo fichero y la
-      cadena local lo reproduce en 14.704 caracteres»: en el repositorio el 14.704
-      sale de logs y filas de PRODUCCIÓN (Estado_Del_MVP.md:7418, F-121), y no he
-      encontrado escrito que una cadena local lo reproduzca. Se comprueba gratis
-      en las pasadas nuevas: lo que el juez vio del analizado queda en cada
-      resultado como `textoAnalizado: { caracteres, mostrados }`
-      (lib/analysis/tipos-del-analisis-publicado.ts:329). Si no da 14.704, las pasadas nuevas no
-      son comparables con las viejas y hay que decirlo.
+    · LA COMPARABILIDAD, Y CÓMO SE COMPRUEBA. Medido el 09/10: el render local de
+      NOR-11 mide 14.704 caracteres y el de CLI-13 9.817, las cifras de
+      producción del 06 y 07/10 (lib/analysis/texto-del-trozo-en-el-prompt.test.ts:23).
+      Eso prueba que la cadena local es la de producción para ESE fichero; que el
+      NOR-11 reindexado sea el mismo texto se comprueba gratis en las pasadas
+      nuevas: lo que el juez vio del analizado queda en cada resultado como
+      `textoAnalizado: { caracteres, mostrados }`
+      (lib/analysis/tipos-del-analisis-publicado.ts:329). Si no da 14.704, las
+      pasadas nuevas no son comparables con las viejas y hay que decirlo.
 
     ════ UN CASO DE PRUEBA PARA EL CRITERIO DE ACEPTACIÓN DE LA SOMBRA ════
     LA FRASE DE LA FORMACIÓN: «El personal clínico y auxiliar recibe formación
