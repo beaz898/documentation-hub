@@ -8413,6 +8413,26 @@ NOTAS DE ORDEN (propuesta, a confirmar)
         probabilidad de coincidir con un pasaje no pretendido. El guardia del
         mínimo (citaUtilizable) lo acota.
 
+    ════ ⚠️ 10/10/2026: LA LÍNEA BASE SE HA PERDIDO ════
+    Las diez pasadas de NOR-11 del 06, 07 y 08/10 ya no existen en
+    analysis_results: se borraron con el documento (B.367). Su tabla se salvó
+    antes, bajo B.357.
+    · LO QUE SE APOYABA EN ELLAS: el primer criterio de reversión («si PLAZO baja
+      de 8 de 8…»), el criterio de cerrado de hoy (PLAZO 8 de 8; NEGACIÓN 2 de 8;
+      LUGAR 0 de 8) y la prueba en sombra «con las 8 pasadas de NOR-11».
+      El criterio de D1 NO: es el caso P3 del arnés (dos hojas de tarifas), no
+      NOR-11.
+    · ANTES DE TOCAR EL JUEZ: reindexar NOR-11 y medir una línea base NUEVA, cinco
+      pasadas en la UI.
+    · ⚠️ LA COMPARABILIDAD ES UNA PREMISA, NO UN HECHO. «Es el mismo fichero y la
+      cadena local lo reproduce en 14.704 caracteres»: en el repositorio el 14.704
+      sale de logs y filas de PRODUCCIÓN (Estado_Del_MVP.md:7418, F-121), y no he
+      encontrado escrito que una cadena local lo reproduzca. Se comprueba gratis
+      en las pasadas nuevas: lo que el juez vio del analizado queda en cada
+      resultado como `textoAnalizado: { caracteres, mostrados }`
+      (lib/analysis/tipos-del-analisis-publicado.ts:329). Si no da 14.704, las pasadas nuevas no
+      son comparables con las viejas y hay que decirlo.
+
     ════ UN CASO DE PRUEBA PARA EL CRITERIO DE ACEPTACIÓN DE LA SOMBRA ════
     LA FRASE DE LA FORMACIÓN: «El personal clínico y auxiliar recibe formación
     específica en gestión de residuos sanitarios antes de incorporarse a su
@@ -8505,6 +8525,47 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     por construcción, no por el techo de la API. Relacionadas: B.349 (la respuesta
     cortada se repara en silencio), B.356 (no se lee stop_reason) y B.360 (el
     margen se estrechó; la regla de los 8.192 antes de otra ampliación).
+
+  B.367 — [ANOTADO 10/10/2026 · PROCESO, Y UNA MEJORA DE PRODUCTO A VALORAR, NO SE
+    ARREGLA AHORA] BORRAR UN DOCUMENTO EN LA APLICACIÓN BORRA TODO SU HISTORIAL
+    DE ANÁLISIS, Y LA APLICACIÓN NO AVISA DE ESO
+    LO QUE PASÓ: la noche del 09 al 10/10/2026 el director borró NOR-11 y NOR-10
+    (los había indexado sin querer y los volvió a subir a Drive para la bandeja de
+    revisión). Con ellos se borraron sus análisis: las diez pasadas del 06, 07 y
+    08/10, que eran la LÍNEA BASE de la investigación del juez. Se consultaron
+    trece minutos antes (SQL_B357); la tabla está copiada bajo B.357.
+    EL MECANISMO, leído en el código el 10/10 (no es una FK en cascada de la base;
+    es el propio borrado, a propósito):
+      · deleteDocument borra las filas de analysis_results del documento ANTES de
+        los vectores y de la fila (lib/delete-document.ts:147-176), desde el 03/09
+        (B.112), para que un documento homónimo subido después no herede su
+        análisis;
+      · el criterio es org_id + document_id y NADA MÁS
+        (criterioDeAnalisisDelDocumento, lib/documents/analisis-del-documento.ts:
+        49-54). LAS FILAS CON document_id NULL —los análisis anteriores al
+        propietario— NO SE BORRAN: se dejan a propósito. Así que una fila de
+        NOR-11 que haya sobrevivido no tumba esta explicación si su document_id es
+        NULL; la tumbaría una con document_id de NOR-11. SQL_B367 lo dice fila a
+        fila;
+      · el aviso al borrar es genérico: «¿Eliminar "{name}"?» y «Esta acción no se
+        puede deshacer.» (messages/es.json:105-106). No dice que se lleva los
+        análisis.
+    REGLA: antes de borrar un documento que haya servido para medir, se extraen y
+    se guardan sus medidas.
+    MEJORA DE PRODUCTO A VALORAR MÁS ADELANTE: avisar al borrar un documento que
+    tiene análisis guardados, o conservar los análisis. ⚠️ Conservarlos choca con
+    B.112, que los borra precisamente para que no los herede un homónimo; si se
+    valora, hay que contar con eso.
+    LA PREGUNTA ABIERTA (SQL_B367_que_documento_se_analizo_en_las_filas_con_CLI13.sql,
+    PENDIENTE DE EJECUTAR): quedan cuatro filas con pareja CLI-13 (29/09 13:14,
+    30/09 12:56, 30/09 13:02 y 09/10 22:20). ¿De qué documento es cada una? El
+    documento analizado vive en las columnas document_name y document_id, no en
+    el jsonb.
+    Y SOBRE LA FILA DEL 09/10 22:20, a la que le falta `discarded` entero y emitió
+    0 contradicciones: NO ES RARO POR SÍ SOLO. `discarded` sólo se escribe si hay
+    alguna clave (pipeline.ts:631), y sin contradicciones no hay nada que la
+    cascada descarte ni confirme. Faltaría también con cero bajas en la puerta y
+    en la frontera.
 
 Forma de trabajo: diagnóstico con datos reales antes de arreglar; un
 cambio lógico cada vez; build verde entre medias; SQL en Supabase antes
