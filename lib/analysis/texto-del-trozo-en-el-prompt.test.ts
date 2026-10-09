@@ -60,6 +60,23 @@ describe('el texto de cada trozo llega al prompt tal cual', () => {
     expect(pareja.bloqueCandidato.length).toBe(longitudEnProduccion);
   });
 
+  // ⚠️ POR QUÉ EXISTE ESTE CASO SINTÉTICO (medido el 09/10/2026): los trozos
+  // reales del corpus NO empiezan ni acaban en espacio, así que un `.trim()`
+  // colado en el render pasaría las pruebas de arriba sin que nadie lo notara
+  // —se comprobó rompiendo el render a propósito: con `trim` seguían verdes—.
+  // Un trim es la edición accidental más probable, y movería los
+  // desplazamientos de todos los trozos afectados. Con espacios en los bordes,
+  // se pone rojo.
+  it('un trozo que empieza y acaba con espacio llega con sus espacios', () => {
+    const trozo = (chunkIndex: number, text: string): StoredChunk => ({
+      chunkIndex, chunkType: 'text', text, sheetName: null, tableId: null, rowIndex: null, cells: null, columnOrder: null,
+    });
+    const trozos = [trozo(0, '  Primer trozo, con espacios en los bordes.  '), trozo(1, '\tSegundo trozo, con tabulador y salto.\n')];
+    const pareja = renderEntero('sintetico.docx', trozos);
+    expect(pareja.lectura.regimen).toBe('pareja_entera');
+    expect(pareja.bloqueCandidato).toBe('  Primer trozo, con espacios en los bordes.  \n\n\tSegundo trozo, con tabulador y salto.\n');
+  });
+
   // ⚠️ SÓLO LA LONGITUD: estos dos no caben enteros en una pareja, así que
   // `leerLaPareja` no los pinta enteros, y comprobar los bytes exigiría exportar
   // `buildAnalyzedDocumentText`. La longitud llega por `lecturaDeLaPareja`, que sí
