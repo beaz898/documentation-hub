@@ -8403,6 +8403,28 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     reproducible que hay, y DEBE ESTAR en el criterio de aceptación de la prueba en
     sombra.
 
+  B.363 — [ANOTADO 09/10/2026 · INTERMITENTE NUEVO, SIN ARREGLAR] LA EXTRACCIÓN DEL
+    .docx DE CLI-12 SE PASA DE TIEMPO CUANDO LA SUITE VA EN PARALELO
+    Primera pasada de la suite del 09/10 (encargo del lector unificado, 259367c3):
+    1 rojo de 1.887.
+      · lib/formatos-con-tablas.test.ts, «EXTENSIONES_CON_TABLAS dice la verdad
+        sobre el extractor > CLI-12_manual-calidad-clinica.docx: la lista coincide
+        con lo que extractSegments produce»;
+      · Error: Test timed out in 30000ms (tardó 32.149 ms).
+    LANZADO SOLO, ESE FICHERO PASA ENTERO: 31 de 31 en 2,5 s. Y la suite completa
+    repetida dio 1.887 de 1.887. Es un timeout por carga al extraer el .docx de
+    CLI-12 (unos 51.000 caracteres, por mammoth) mientras la suite corre en
+    paralelo, no un fallo de lógica.
+    ⚠️ NO ES B.286 (Estado_Del_MVP.md): aquél tiene nombre desde el 29/09 y es
+    lib/examen/autenticacion.test.ts. Éste es otro intermitente, de la MISMA
+    FAMILIA —un tope de reloj de pared que mide la máquina, como B.263—.
+    Y ESTA PRUEBA YA TIENE HISTORIA: su presupuesto propio de 30 s
+    (lib/formatos-con-tablas.test.ts:49, { timeout: 30_000 }) entró el 07/09 en
+    fd30fc2f porque CLI-12 había fallado en 5.021 ms con el límite de 5 s por
+    defecto (el comentario de :40-48 lo cuenta). Hoy ha pasado también de 30 s.
+    No se arregla ahora: queda registrado. Subir otra vez el tope, o sacar la
+    extracción real de la suite paralela, sería decisión aparte.
+
 Forma de trabajo: diagnóstico con datos reales antes de arreglar; un
 cambio lógico cada vez; build verde entre medias; SQL en Supabase antes
 del push; plan completo antes de tocar varios archivos.
