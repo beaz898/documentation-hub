@@ -13435,6 +13435,46 @@ prueba.**
   «Sin decisión del director. Nada iniciado» (F-119:10; B.303). **LA REGLA SE CORRIGE: se congelan
   las ideas NUEVAS, no los arreglos ya decididos y sin ejecutar.** (El arquitecto la fechó el 08/10;
   aquí consta del 09/10, F-122 D2.)
+- ✖ **RETIRADA EL 10/10/2026 POR DICTAMEN DE F-123** («La regla de congelación de F-122 se retira
+  y la sustituye el orden de P1. Congeló F-119, que era lo que había que descongelar»). La
+  sustituye el orden de abajo.
+
+**EL ORDEN DE EJECUCIÓN DE F-123 (10/10/2026)** — dictamen archivado en
+`claude/consultas-fable/F-123_2026-10-10_orden-de-ejecucion.md`. Criterio de Fable: nada se
+cambia sin línea base; nada se mide con los 14 restos compitiendo en la búsqueda; primero lo que
+pierde pasadas enteras; a igual pérdida, lo más barato y lo decidido hace más tiempo.
+
+- **LAS BAJAS**, archivadas con fecha del 10/10/2026 y motivo, NO canceladas:
+  - **F-108 entera**: el corte relativo lo absorbe F-119 («cuántos candidatos van al juez»); la
+    jerarquía de severidad no es del MVP; el corpus de escala es posterior al primer cliente.
+  - **F-117, salvo el tope duro de gasto del agente**: la cola en vez de 409 y la búsqueda
+    híbrida se archivan; son posteriores al MVP del analizador.
+- **LAS FUSIONES**:
+  - F-109, «el rerank con las unidades enteras», pasa a ser un caso del «rerank con parejas» de
+    F-119;
+  - F-109, «puentear el rerank en una pasada», pasa a ser la comparación de la sombra de F-119,
+    no un experimento aparte;
+  - «guardar los ids de los fragmentos mostrados» (F-116) pasa a formar parte del punto 9, los
+    contadores de los topes ciegos: es el mismo contador.
+- **EL ORDEN: seis ejecutables y una línea aparte.**
+  - **FASE 0** · 0.1 limpieza de los 14 restos (primero listar y marcar, después borrar o
+    reindexar) · 0.2 contadores de los topes ciegos con los ids mostrados · 0.3 línea base
+    nueva (5 pasadas de NOR-11, CLI-12 y CLI-13 con los contadores escritos) · 0.4 la medición
+    que decide si NEGACIÓN es selección o emisión.
+  - **FASE 1** · 1.1 la guarda del rerank · 1.2 presupuesto y régimen de lectura.
+  - **FASE 2** · F-119 recortada a cuatro movimientos, con sombra primero.
+  - **FASE 3** · 3.1 segunda vuelta dirigida · 3.2 verificador ciego · 3.3 vía 2.
+  - **APARTE**: el tope duro de gasto del agente, cuando haya hueco.
+  - **DEPENDENCIAS**: 0.1 y 0.2 antes de 0.3; 0.3 antes de cualquier fase; 1.1 y 1.2 pueden ir
+    en paralelo; la fase 2 no empieza sin la línea base de la fase 1 medida; la fase 3 no
+    empieza sin la fase 2 activada.
+- **«LA VÍA 2 DEBE ESPERAR»** es dictamen expreso de F-123. `lib/analysis/unidades-de-cita.ts`
+  se queda construido y **sin conectar** hasta la fase 3.3.
+- **F-120 P2 (la inestabilidad de emisión) queda APARTE y POR DEBAJO de la lista**: entra como
+  séptimo ejecutable sólo si la medición 0.4 demuestra que las entradas de las pasadas buenas y
+  malas son idénticas.
+- Las predicciones del dictamen, numeradas para calificarlas, están en la sección (e) del
+  fichero de F-123; lo que Code comprobó de sus cifras, en la (f).
 
 **NOTA DE MÉTODO (09/10/2026): UN CONTROL QUE NO PUEDE FALLAR NO ES UN CONTROL.** Antes de dar por
 buena una prueba o un bloque de control, se rompe a propósito lo que protege y se comprueba que se
@@ -13449,6 +13489,18 @@ pone rojo. Si sigue verde, no controla nada. Los dos casos del mismo día:
 - Y el caso hermano de la prueba de `texto-del-trozo-en-el-prompt.test.ts`: con un `trim` colado en el
   render seguía verde, porque ningún trozo real empieza ni acaba en espacio. Se añadió un caso
   sintético con espacios en los bordes, que es el que se pone rojo.
+
+**LAS TRES REGLAS DE MÉTODO DE F-123 P5 (10/10/2026), contra el bucle de reenvío (B.372).**
+- **R1 · UN DICTAMEN SIN DECISIÓN NO PUEDE USARSE PARA APARTAR UN FRENTE.** Toda consulta futura a
+  Fable abre con una tabla «dictámenes que esta consulta aparta», rellenada POR CODE desde el
+  índice de dictámenes (`claude/consultas-fable/INDICE.md`), no por el arquitecto, con tres
+  estados posibles: **EJECUTADO** (con commit), **DESCARTADO** (con motivo) o **SIN DECISIÓN**.
+  Si alguna fila sale SIN DECISIÓN, la consulta no puede apartar ese frente.
+- **R2 · «QUEDA DESCARTADO» PAGA LA MISMA EVIDENCIA QUE «QUEDA DEMOSTRADO».** Ninguna causa se
+  descarta con menos de 5 pasadas con régimen, caracteres leídos y candidatos escritos. Un
+  descarte sin esos tres datos se registra como «hipótesis viva, no medida».
+- **R3 · EL RELOJ.** Antes de cada respuesta de Fable debe constar la línea «frentes decididos y
+  sin commit desde hace más de 7 días», sacada de la tabla de R1.
 
 **REGLA DE MÉTODO (09/10/2026): ANTES DE PROPONER UNA CAUSA, COMPROBAR SI YA ESTÁ MEDIDA.** Cuando el
 arquitecto proponga una explicación, el primer paso del encargo es buscarla en

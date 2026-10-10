@@ -23,7 +23,9 @@ Estado: ARCHIVADA CON DECISIÓN DEL DIRECTOR Y EJECUCIÓN EN MARCHA — VÍA 2.
           2303 palabras.
           60 primeros: "CONSULTA F-122 · LA FUNCIÓN DE CITAS FUNCIONA, PERO NUESTRO "
           60 últimos:  "os de 5 a 10 la bajó a la mitad y eso ya está en producción."
-Superada por: —
+Superada por: F-123 (10/10/2026), EN PARTE: su regla de congelación queda
+        RETIRADA y la vía 2 DEBE ESPERAR a la fase 3.3. El mecanismo de la vía
+        2 sigue en pie.
 ---
 
 # (a) CABECERA
