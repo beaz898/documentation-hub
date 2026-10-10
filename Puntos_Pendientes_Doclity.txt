@@ -8648,8 +8648,15 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     · tijera_vieja NO QUEDÓ POR DESCUIDO: es la forma del interruptor, que falla
       cerrado (:1179-1184), y el exhaustivo nunca sale de ella (C3, :1194-1197).
       LO QUE NO CUADRA ES EL ESTADO DEL INTERRUPTOR, NO EL DISEÑO.
-    · PENDIENTE (lo comprueba el director): el analysis_type de la fila del 09/10
-      22:20 y el valor actual de ANALYSIS_PAREJA_ENTERA en Vercel Production.
+    · ✅ CERRADO EL 10/10 CON EL DATO DEL DIRECTOR: EL INTERRUPTOR ESTÁ ENCENDIDO,
+      NO HAY AVERÍA. El 09/10 a las 22:24:42 el análisis de
+      CLI-20_protocolo-urgencias-dentales.txt, tipo QUICK, dio régimen
+      corte_honesto | pareja_entera, que sólo es alcanzable con el interruptor
+      encendido. Y las tres pasadas de NOR-11 de las 22:20 a las 22:22 eran
+      EXHAUSTIVE, que por diseño nunca sale de tijera_vieja (C3).
+      ⚠️ LO QUE PLANTEÓ EL ARQUITECTO —«EL ARREGLO NO SE ACTIVA»— ERA FALSO, y se
+      construyó sin esperar la comprobación del analysis_type, que Code había
+      puesto PRIMERO de las dos.
     ✅ CERRADA CON DATOS LA SEGUNDA HIPÓTESIS DEL DIRECTOR: EL CORTE POR PARECIDO
     NO EXISTE DESDE EL 23/09/2026. Había 0,50 en rápido y 0,45 en exhaustivo
     (SCORE_THRESHOLD_QUICK / _EXHAUSTIVE, cortaban trozo a trozo) y se retiraron
@@ -8686,6 +8693,12 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     EL MATIZ: en las SEIS pasadas con pareja_entera se publicó 1 de 3, así que el
     juez tampoco está limpio. Pero hasta fijar la entrada, cualquier número sobre
     el juez es ruido.
+    ⚠️ AFLOJADO EL 10/10/2026, tras el dato del interruptor: la contaminación POR
+    EL RÉGIMEN es menor de lo escrito arriba. Con el interruptor encendido desde
+    el 30/09, las diez pasadas del 06 al 08/10 fueron PROBABLEMENTE pareja_entera
+    (14.704 + 9.817 = 24.521, por debajo del presupuesto de 40.000). PROBABLE, NO
+    VERIFICABLE: esas filas se borraron (B.367). Lo que SÍ sigue contaminando es
+    la PUERTA 2, la selección de candidatos (abajo, y B.370).
     Afecta también a B.368: sus cifras de prosa (CLI-13 0-2, CLI-12 0-3) son de
     esta misma mezcla.
     EL ERROR QUE LO TAPÓ, en Estado_Del_MVP.md (nota del 10/10).
@@ -8746,6 +8759,24 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     · Aquí es donde encajaría la propuesta del director de agrupar por documento
       (MaxP / MMR), junto con cuánto se lee de cada uno (B.369, corrección a la
       premisa).
+
+  B.371 — [⏸ APARCADA POR DECISIÓN DEL DIRECTOR, 10/10/2026: PRIMERO SE ARREGLA
+    EL RÁPIDO] EL EXHAUSTIVO NO TIENE ESCALÓN 1: SIEMPRE LEE CON LA TIJERA VIEJA
+    · Por diseño (C3, Estado_Del_MVP.md:8165-8167; judge.ts:1194-1200) el
+      interruptor ANALYSIS_PAREJA_ENTERA sólo lo lee el modo rápido. El exhaustivo
+      nunca sale de tijera_vieja: el analizado va ENTERO (recortarAnalizado no
+      recorta en exhaustivo, judge.ts:1106), pero el candidato llega por su
+      bloque de relevancia.
+    · EL PORQUÉ, según el arquitecto («ya está contestado en los registros del
+      proyecto»): el exhaustivo compara contra HASTA 25 PAREJAS
+      (MAX_SELECTED_EXHAUSTIVE = 25, rerank.ts:31) frente a 6 en el rápido
+      (MAX_SELECTED_QUICK, :28), así que leer las parejas enteras reventaría el
+      presupuesto. Las dos constantes están comprobadas en el código; el
+      razonamiento no consta escrito en la C3 del repositorio, que sólo dice
+      «el interruptor es SÓLO para el modo rápido».
+    · Consecuencia para medir: una pasada exhaustiva no es comparable con una
+      rápida encendida. Las tres de NOR-11 del 09/10 de 22:20 a 22:22 fueron
+      exhaustivas (B.369).
 
 Forma de trabajo: diagnóstico con datos reales antes de arreglar; un
 cambio lógico cada vez; build verde entre medias; SQL en Supabase antes

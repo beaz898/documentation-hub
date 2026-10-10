@@ -13473,6 +13473,19 @@ misma familia, y el más caro.
   pasada citada como propiedad del PAR. Y la regla de este mismo día —«antes de proponer una
   causa, comprobar si ya está medida»— vale igual para DESCARTAR una causa: «descartado» es una
   afirmación sobre todas las pasadas, y pide la población entera.
+- ⚠️ **MATIZADO EL MISMO 10/10** (B.369): el interruptor está encendido desde el 30/09, así que las
+  diez pasadas del 06 al 08/10 fueron probablemente `pareja_entera`. Probable, no verificable:
+  se borraron. La entrada que sí variaba entre pasadas es la selección de candidatos.
+
+**DOS MÁS DE LA MISMA FAMILIA, EL 10/10/2026.**
+- **«El arreglo no se activa».** El arquitecto lo afirmó sin esperar la comprobación del
+  `analysis_type`, que Code había puesto primero de las dos. Las pasadas de NOR-11 de las 22:20
+  eran EXHAUSTIVE, que por diseño nunca sale de `tijera_vieja`, y un QUICK de CLI-20 a las
+  22:24:42 dio `corte_honesto | pareja_entera`: el interruptor estaba encendido (B.369).
+- **«CLI-20 no existe, cero filas».** Se dio por buena una consulta vacía sin preguntarse por qué
+  volvía vacía, y CLI-20 existe: `CLI-20_protocolo-urgencias-dentales.txt`, analizado el 09/10 a
+  las 22:24. Es la regla del cero: un cero vale sólo si el camino que lo produjo puede dar un
+  no-cero en las mismas condiciones.
 
 ### 📋 B.331 — COMILLAS CURVAS, Y LA REPRESENTATIVIDAD DEL CORPUS (05/10/2026)
 
