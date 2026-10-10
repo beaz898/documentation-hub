@@ -8681,6 +8681,11 @@ NOTAS DE ORDEN (propuesta, a confirmar)
       tope de 6 (reparto-del-rerank.ts:177), y `repetidos` = entradas del modelo
       que nombran dos veces el mismo documento (:104-111). Que valgan 0 NO dice
       nada del tope de 25 trozos.
+      EL ARQUITECTO ACERTÓ LA CONCLUSIÓN CON EL ARGUMENTO EQUIVOCADO: dedujo «el
+      tope de 25 no corta» de que cortadosPorTope y repetidos valían 0, que son
+      de esta puerta. Lo que de verdad queda descartado es el tope de 25
+      DOCUMENTOS (1b), porque `afines` se cuenta después y nunca pasó de 14. El
+      de 25 TROZOS por consulta (1a) sigue sin medir.
     · CORRECCIÓN A LA PREMISA DEL DIRECTOR, porque cambia el diseño: suponía que
       si entra un trozo de un documento, después se lee el documento entero.
       HOY NO ES ASÍ: con tijera_vieja, del candidato se enseñan unos 3.000
