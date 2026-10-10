@@ -1,7 +1,7 @@
 -- ============================================================================
 -- B.331 · COMILLAS CURVAS, MENOS TIPOGRÁFICO Y FILAS CON BARRA, EN LOS DOCUMENTOS
 -- Y LAS CITAS REALES DE LA ORGANIZACIÓN DEL PILOTO — SÓLO LECTURA
--- ⏳ PENDIENTE DE EJECUTAR. Sólo SELECT: no escribe nada.
+-- ✅ EJECUTADA el 05/10/2026 (corregido el 10/10/2026); resultado en Puntos_Pendientes_Doclity.txt:7505 (B.333). Sólo SELECT: no escribe nada.
 --
 -- ┌──────────────────────────────────────────────────────────────────────────┐
 -- │ LA ORGANIZACIÓN DEL PILOTO: a9625e93-…, «Workspace principal». El id     │

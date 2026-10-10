@@ -440,3 +440,7 @@ nombra (0.1, 0.4, 1.1, 1.2, 2 y P6) salen **diez**, nueve con cifra y una sin el
    de las 06:37 a las 06:40 del 30/09 fueron **`tijera_vieja`**, no `sin_fuente_comun`: el
    interruptor estaba apagado hasta las 07:50 (B.369, medida del director del 10/10). Se
    registra, y se califica **FALSA POR PREMISA** (decisión del arquitecto, 10/10/2026).
+5. **P-F123-6 está escrita en la unidad correcta.** Los 55.135 caracteres de CLI-12 son el
+   texto RENDERIZADO por el juez, no el texto plano (50.797) ni el `full_text`
+   (`Estado_Del_MVP.md:7414-7417`, columna «Renderizado por el JUEZ»). Es la misma unidad con la
+   que se mide el presupuesto de pareja.

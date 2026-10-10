@@ -1,6 +1,6 @@
 -- ============================================================================
 -- B.311 · LA CITA PUBLICADA DE LA SEMBRADA A EN NOR-10 (`[98277f67]`), ENTERA — SÓLO LECTURA
--- ⏳ PENDIENTE DE EJECUTAR. Sólo SELECT: no escribe nada.
+-- ✅ EJECUTADA por el director el 02/10/2026 (corregido el 10/10/2026); resultado en claude/Estado_Del_MVP.md:10647-10648 (B.311). Sólo SELECT: no escribe nada.
 --
 -- QUÉ CONTESTA (arquitecto, 02/10/2026): la contradicción `[98277f67]`
 -- («Autoridad para retirar autoclave de servicio tras fallo de c…») se PUBLICÓ

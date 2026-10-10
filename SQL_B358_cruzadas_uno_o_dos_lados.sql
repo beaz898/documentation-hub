@@ -1,6 +1,6 @@
 -- ============================================================================
 -- B.358 · LAS CITAS CRUZADAS: ¿FALLÓ UN LADO O LOS DOS? — SÓLO LECTURA
--- ⏳ PENDIENTE DE EJECUTAR. Sólo SELECT: no escribe nada.
+-- ✅ EJECUTADA por el director el 08/10/2026 (corregido el 10/10/2026); resultado en Puntos_Pendientes_Doclity.txt:8121-8125 (B.358) y la fila literal en F-122:93-96. Sólo SELECT: no escribe nada.
 -- Lee citas y textos de documentos POR DENTRO para compararlos, pero el
 -- resultado son SÓLO RECUENTOS: ni una cita sale en la salida.
 --

@@ -1,7 +1,7 @@
 -- ============================================================================
 -- B.345 · EL DENOMINADOR DE LA RECUPERACIÓN: CUÁNTOS DOCUMENTOS HAY EN EL CORPUS
 -- DEL PILOTO, CON TROZOS Y SIN ELLOS — SÓLO LECTURA
--- ⏳ PENDIENTE DE EJECUTAR. Sólo SELECT: no escribe nada.
+-- ✅ EJECUTADA por el director el 06/10/2026 (corregido el 10/10/2026); resultado en Puntos_Pendientes_Doclity.txt:7814-7815 (B.345). Sólo SELECT: no escribe nada.
 --
 -- ┌──────────────────────────────────────────────────────────────────────────┐
 -- │ LA ORGANIZACIÓN DEL PILOTO: a9625e93-…, «Workspace principal». El id     │

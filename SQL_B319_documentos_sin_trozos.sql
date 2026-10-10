@@ -1,6 +1,6 @@
 -- ============================================================================
 -- B.319 · LOS DOCUMENTOS SIN TROZOS, EN TODAS LAS ORGANIZACIONES — SÓLO LECTURA
--- ⏳ PENDIENTE DE EJECUTAR. Sólo SELECT: no escribe nada.
+-- ✅ EJECUTADA el 05/10/2026 (corregido el 10/10/2026); resultado en Puntos_Pendientes_Doclity.txt:7523-7525 (B.334). Sólo SELECT: no escribe nada.
 --
 -- QUÉ CONTESTA (arquitecto, 05/10/2026): cuántos documentos del corpus están
 -- ciegos para la verificación de citas. Sin trozos, una cita que es fila de tabla

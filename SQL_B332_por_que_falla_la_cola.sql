@@ -1,7 +1,7 @@
 -- ============================================================================
 -- B.332 · POR QUÉ FALLA LA COLA: LAS CAUSAS DE LOS DESCARTES SIN BARRA — SÓLO
 -- LECTURA
--- ⏳ PENDIENTE DE EJECUTAR. Sólo SELECT: no escribe nada.
+-- ✅ EJECUTADA el 05/10/2026 (corregido el 10/10/2026); resultado en claude/Estado_Del_MVP.md:13267 (B.332). Sólo SELECT: no escribe nada.
 -- ⚠️ LEE CONTENIDO DE DOCUMENTOS (los últimos 60 caracteres de cada cita): el
 --    resultado lo mira el arquitecto y no se copia a ningún registro ni a
 --    ninguna ficha.

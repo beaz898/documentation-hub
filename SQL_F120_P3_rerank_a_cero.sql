@@ -1,7 +1,7 @@
 -- ============================================================================
 -- F-120 · P3 · LA ALARMA DEL RERANK: CERO SELECCIONADOS CON CANDIDATOS — SÓLO
 -- LECTURA
--- ⏳ PENDIENTE DE EJECUTAR. Sólo SELECT: no escribe nada.
+-- ✅ EJECUTADA por el director el 06/10/2026 (corregido el 10/10/2026); resultado en claude/consultas-fable/F-120_2026-10-06_frente-4-reclasificado.md:468-473. Sólo SELECT: no escribe nada.
 --
 -- ┌──────────────────────────────────────────────────────────────────────────┐
 -- │ LA ORGANIZACIÓN DEL PILOTO: a9625e93-…, «Workspace principal». El id     │

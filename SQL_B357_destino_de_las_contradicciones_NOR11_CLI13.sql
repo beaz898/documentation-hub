@@ -1,7 +1,7 @@
 -- ============================================================================
 -- B.357 · ¿EL JUEZ NO DIJO NEGACIÓN, O LO DIJO Y SE LO COMIÓ NUESTRO CÓDIGO?
 -- EL DESTINO DE LO QUE EMITIÓ, PAREJA NOR-11 ↔ CLI-13 — SÓLO LECTURA
--- ⏳ PENDIENTE DE EJECUTAR. Sólo SELECT: no escribe nada.
+-- ✅ EJECUTADA la noche del 09 al 10/10/2026, trece minutos antes de que se borraran NOR-11 y NOR-10 (corregido el 10/10/2026). ⚠️ LAS DIEZ FILAS QUE LEYÓ YA NO EXISTEN (B.367). Su resultado está transcrito en claude/consultas-fable/F-123_2026-10-10_orden-de-ejecucion.md, sección 1.3 de la consulta. Sólo SELECT: no escribe nada.
 -- Salen recuentos, temas y descripciones (texto que escribe el modelo). NINGUNA
 -- cita y ningún texto de documento.
 -- ✅ PROBADO ANTES DE ENTREGARLO (09/10/2026) contra filas sintéticas en un

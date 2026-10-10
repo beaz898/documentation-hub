@@ -1,6 +1,6 @@
 -- ============================================================================
 -- B.323 / B.324 · ¿DOS CORPUS DISTINTOS EL MISMO DÍA? — SÓLO LECTURA
--- ⏳ PENDIENTE DE EJECUTAR. Sólo SELECT: no escribe, no borra, no decide.
+-- ✅ EJECUTADA por el director el 04/10/2026 (corregido el 10/10/2026); resultado en claude/Estado_Del_MVP.md:13093 (B.323). Sólo SELECT: no escribe, no borra, no decide.
 --
 -- QUÉ CONTESTA (arquitecto, 04/10/2026): la tanda de las 16:23–16:32 y la de las
 -- 21:05–21:08 vieron candidatos casi disjuntos (sólo coincide OPE-11), y los

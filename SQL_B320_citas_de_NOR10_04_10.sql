@@ -1,6 +1,6 @@
 -- ============================================================================
 -- B.320 / B.321 · EL TEXTO GUARDADO DE TRES CITAS DE NOR-10 DEL 04/10 — SÓLO LECTURA
--- ⏳ PENDIENTE DE EJECUTAR. Sólo SELECT: no escribe nada.
+-- ✅ EJECUTADA por el director el 04/10/2026 (corregido el 10/10/2026); resultado en claude/Estado_Del_MVP.md:12776-12777 (B.320). Sólo SELECT: no escribe nada.
 --
 -- QUÉ CONTESTA (arquitecto, 04/10/2026, apartado F.2): el TEXTO de lo que haya
 -- guardado de tres citas de los análisis de NOR-10 de hoy. Es lo que decide la

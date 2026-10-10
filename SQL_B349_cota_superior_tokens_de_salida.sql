@@ -1,6 +1,6 @@
 -- ============================================================================
 -- B.349 · LA COTA SUPERIOR DE LOS TOKENS DE SALIDA DEL JUEZ — SÓLO LECTURA
--- ⏳ PENDIENTE DE EJECUTAR. Sólo SELECT: no escribe nada.
+-- ✅ EJECUTADA por el director antes y después de 568a77ab (la primera, el 07/10/2026; corregido el 10/10/2026); resultado en Puntos_Pendientes_Doclity.txt:8205-8208 (B.360). Sólo SELECT: no escribe nada.
 --
 -- ┌──────────────────────────────────────────────────────────────────────────┐
 -- │ LA ORGANIZACIÓN DEL PILOTO: a9625e93-…, «Workspace principal». El id     │

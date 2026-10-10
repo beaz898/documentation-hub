@@ -2,7 +2,7 @@
 -- SQL_B253_repetidos.sql — ¿EL MODELO NOMBRÓ ALGUNA VEZ UN DOCUMENTO DOS VECES?
 -- Y LAS CIFRAS FALSAS QUE DEJÓ EL FALLBACK. (16/09/2026)
 --
--- ESTADO: PENDIENTE DE EJECUTAR.
+-- ESTADO: ✅ EJECUTADA por el director el 16/09/2026 (corregido el 10/10/2026); resultados en claude/Estado_Del_MVP.md:5420-5432 (§5.71).
 --
 -- SOLO LEE. No escribe, no borra, no cambia ningún estado.
 -- Sustituir <ORG_ID> en las cuatro consultas.

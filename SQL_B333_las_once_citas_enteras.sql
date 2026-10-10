@@ -1,6 +1,6 @@
 -- ============================================================================
 -- B.333 · LAS ONCE CITAS ENTERAS DE LOS DESCARTES SIN BARRA — SÓLO LECTURA
--- ⏳ PENDIENTE DE EJECUTAR. Sólo SELECT: no escribe nada.
+-- ✅ EJECUTADA el 06/10/2026 (corregido el 10/10/2026); resultado usado en Puntos_Pendientes_Doclity.txt:8149-8150 (B.358). Sólo SELECT: no escribe nada.
 -- ⚠️ LEE CONTENIDO DE DOCUMENTOS (cada cita ENTERA, en crudo): el resultado lo
 --    mira el arquitecto y no se copia a ningún registro ni a ninguna ficha.
 --

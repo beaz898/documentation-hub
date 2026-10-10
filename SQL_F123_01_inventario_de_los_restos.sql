@@ -122,10 +122,17 @@ FROM (
   --     convenio que SQL_B365). Con esto se cuentan después los PARES que pasan
   --     de 70.000 y de 80.000 caracteres (F-123, 1.2). La marca va para poder
   --     separar los restos, que no tienen trozos y no entran en pareja_entera.
-  --     ⚠️ El presupuesto del juez se mide sobre el texto RENDERIZADO desde los
-  --     trozos (buildAnalyzedDocumentText), no sobre full_text: NOR-11 da 14.704
-  --     renderizado (Estado_Del_MVP.md:7418) y su full_text puede no coincidir.
-  --     La suma de pares con full_text es una APROXIMACIÓN.
+  --     ⚠️⚠️ ESTA COLUMNA NO DECIDE LA FASE 1.2: ES SÓLO ORIENTATIVA. El
+  --     presupuesto del juez se mide sobre el texto RENDERIZADO desde los trozos
+  --     (buildAnalyzedDocumentText, lib/analysis/judge.ts:972-991), no sobre
+  --     full_text. Ese render NO es una simple concatenación: los trozos de
+  --     prosa van tal cual unidos por "\n\n", pero cada tabla se sustituye por
+  --     un bloque reconstruido con su cabecera y todas sus filas
+  --     (renderTableBlock, lib/analysis/table-structure.ts:221-235). No se
+  --     imita en SQL. LA CIFRA QUE DECIDE ES LA RENDERIZADA, y se saca aparte
+  --     de lo que ya guardan los análisis (lecturaDeLasParejas), sin lanzar
+  --     nada. Ejemplo de la diferencia: NOR-11 da 14.704 renderizado y 14.437
+  --     en texto plano de sus trozos (Estado_Del_MVP.md:7418).
   SELECT '2 · NO ES DEL INVENTARIO: ES EL DATO DE LA FASE 1.2', marca, name, id, NULL, NULL,
          NULL, NULL, NULL, caracteres_full_text, 5
   FROM marcados

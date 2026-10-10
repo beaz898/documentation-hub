@@ -13482,8 +13482,12 @@ pierde pasadas enteras; a igual pérdida, lo más barato y lo decidido hace más
         el 4, subir a 20.000 tokens autoriza unos 80.000 caracteres que en realidad son unos
         22.900 tokens.
       - **DECISIÓN PENDIENTE DE DATO**: qué cifra se pone, y si se corrige la conversión. Se
-        decide con la salida del bloque 2 de `SQL_F123_01_inventario_de_los_restos.sql`
-        (cuántos pares del corpus suman más de 70.000 y más de 80.000 caracteres).
+        decide contando cuántos pares del corpus suman más de 70.000 y más de 80.000
+        caracteres **RENDERIZADOS**: la cifra que decide sale de
+        `SQL_F123_02_longitud_renderizada.sql` (lo que ya guardan los análisis en
+        `lecturaDeLasParejas`). El bloque 2 de `SQL_F123_01_inventario_de_los_restos.sql`
+        da el `full_text`, y es sólo ORIENTATIVO: el render reconstruye las tablas
+        (`judge.ts:972-991`) y no es la misma cifra.
       - **REGLA: el presupuesto y la conversión NO se cambian en el mismo commit.** Si se mueven
         los dos a la vez y algo cambia, hay dos causas y ninguna medida.
   - **FASE 2** · F-119 recortada a cuatro movimientos, con sombra primero.

@@ -1,6 +1,6 @@
 -- ============================================================================
 -- B.313 · LOS HALLAZGOS DESCARTADOS POR CITA NO VERIFICABLE, CON SUS DOS CITAS — SÓLO LECTURA
--- ⏳ PENDIENTE DE EJECUTAR. Sólo SELECT: no escribe nada.
+-- ✅ EJECUTADA por el director el 02/10/2026 (corregido el 10/10/2026); resultado en claude/Estado_Del_MVP.md:12028-12030 (B.313). Sólo SELECT: no escribe nada.
 --
 -- QUÉ CONTESTA: en qué punto una cita que viene bien pasa a estar mal. Saca, de
 -- los análisis guardados, cada hallazgo que la comprobación de citas descartó,

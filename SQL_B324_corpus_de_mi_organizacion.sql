@@ -1,6 +1,6 @@
 -- ============================================================================
 -- B.324 · EL CORPUS Y LOS ÚLTIMOS ANÁLISIS DE LA ORGANIZACIÓN DEL PILOTO
--- ⏳ PENDIENTE DE EJECUTAR. Sólo SELECT: no escribe nada.
+-- ✅ EJECUTADA el 05/10/2026 (corregido el 10/10/2026); resultado en Puntos_Pendientes_Doclity.txt:1680-1681 y :7523 (B.334). Sólo SELECT: no escribe nada.
 --
 -- ┌──────────────────────────────────────────────────────────────────────────┐
 -- │ LA ORGANIZACIÓN DEL PILOTO: a9625e93-…, «Workspace principal», la       │
