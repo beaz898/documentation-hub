@@ -8050,6 +8050,15 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     ⚠️ NO se atribuye al cambio del techo: es 1 de 4 y no hay mecanismo. Se anota
     como dato sin explicación. Lo que SÍ queda probado es que el fallo de LUGAR es
     REPRODUCIBLE entre días con la misma reescritura, no azar.
+    ⚠️ LIMITACIÓN DE LA MEDIDA SQL_B357 (aviso del arquitecto sobre su propia
+    consulta, 10/10/2026): se midió el DESTINO de los hallazgos, pero NO LA
+    ENTRADA QUE LOS PRODUJO. La consulta no pidió `lecturaDeLasParejas` (clave del
+    jsonb `analysis`, lib/analysis/tipos-del-analisis-publicado.ts:354), que dice
+    qué régimen de lectura tuvo cada pareja. El director plantea una hipótesis que
+    esa clave contestaría: que el juez no calle, sino que en unas pasadas reciba el
+    documento entero y en otras sólo fragmentos, y que de ahí venga la variación
+    entre pasadas idénticas. Para las diez pasadas del 06 al 08/10 YA NO SE PUEDE
+    COMPROBAR: se borraron con el documento (B.367). Es el coste de esa omisión.
 
   B.358 — [ANOTADO 07/10/2026 · EL DETECTOR EXISTE DESDE EL 02/10; SÓLO EN EL LOG ·
     REPARACIÓN DESCARTADA CON DATOS EL 09/10] LA ATRIBUCIÓN CRUZADA YA SE DETECTA Y
@@ -8557,8 +8566,9 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     tiene análisis guardados, o conservar los análisis. ⚠️ Conservarlos choca con
     B.112, que los borra precisamente para que no los herede un homónimo; si se
     valora, hay que contar con eso.
-    LA PREGUNTA ABIERTA (SQL_B367_que_documento_se_analizo_en_las_filas_con_CLI13.sql,
-    PENDIENTE DE EJECUTAR): quedan cuatro filas con pareja CLI-13 (29/09 13:14,
+    LA PREGUNTA (SQL_B367_que_documento_se_analizo_en_las_filas_con_CLI13.sql,
+    CANCELADO el 10/10 por el arquitecto sin ejecutarse: ya se sabe que el
+    documento analizado es la columna document_name): quedan cuatro filas con pareja CLI-13 (29/09 13:14,
     30/09 12:56, 30/09 13:02 y 09/10 22:20). ¿De qué documento es cada una? El
     documento analizado vive en las columnas document_name y document_id, no en
     el jsonb.

@@ -1,7 +1,9 @@
 -- ============================================================================
 -- B.367 · LAS FILAS QUE QUEDAN CON PAREJA CLI-13: ¿QUÉ DOCUMENTO SE ANALIZÓ EN
 -- CADA UNA? — SÓLO LECTURA
--- ⏳ PENDIENTE DE EJECUTAR. Sólo SELECT: no escribe nada. Sólo nombres de
+-- ✖ CANCELADO el 10/10/2026 por el arquitecto, SIN EJECUTARSE: se pidió cuando no
+-- se sabía dónde vive el documento analizado, y ya se sabe (columna
+-- document_name). Se conserva como estaba. Sólo SELECT: no escribe nada. Sólo nombres de
 -- documento, fechas y recuentos.
 -- ✅ PROBADO ANTES DE ENTREGARLO (10/10/2026) contra filas sintéticas en un
 -- Postgres local (PGlite): salen las filas con pareja CLI-13 y sólo ésas, la de
