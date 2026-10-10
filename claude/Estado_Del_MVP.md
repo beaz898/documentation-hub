@@ -12085,6 +12085,31 @@ la fila: la transcribe el arquitecto.
 
 **Sin arreglo. Una ficha, y a la cola** del orden del 02/10, detrás de B.312.
 
+**⚠️ AÑADIDO EL 10/10/2026 — UN DATO HISTÓRICO QUE NO ES LO QUE PARECE: ES UN ARTEFACTO DE LA
+COLUMNA, NO UNA MEDIDA DE LA PUERTA.**
+- **El dato** (consulta del director del 10/10): `new 9.txt`, 17 pasadas entre el 29/07 y el
+  14/08, 92 contradicciones encontradas y CERO confirmadas; `new 7.txt` 10 y 0, `new 15.txt` 8 y
+  0, `new 8.txt` 1 y 0. Desde finales de septiembre, encontradas y confirmadas coinciden.
+- **La lectura que se dictó y era falsa**: «en julio y agosto la puerta se lo comía todo».
+- **Lo que dice el código**: hasta el 24/08/2026 `contradictions_confirmed` valía 0 siempre en el
+  modo rápido. El mensaje de 3dd8670c, literal: «contradictions_confirmed era estructuralmente 0
+  en todo el modo rapido: contaba `confidence === 'alta'`, y synthesize.ts construia las
+  discrepancias con una lista cerrada de cinco campos donde confidence no estaba». Las cuatro
+  series son anteriores a ese commit. Esas 92 SE PUBLICARON: el cero era la columna, no la puerta.
+
+**⚠️⚠️ LA TRAMPA, PARA CUALQUIERA QUE MIRE ESA TABLA: `contradictions_found` Y
+`contradictions_confirmed` NO SIRVEN PARA MEDIR PÉRDIDAS.**
+- **LAS DOS SE ESCRIBEN AL FINAL**, sobre lo publicado (`lib/persist-analysis.ts:100-101`):
+  `contradictions_found` = `analysis.discrepancies.length`, las PUBLICADAS, después de la puerta,
+  de la cascada y de la síntesis (sin las inconsistencias menores); `contradictions_confirmed` =
+  las publicadas con `confirmedBy`.
+- **DESDE EL 24/08 SON IGUALES POR CONSTRUCCIÓN**: todo lo que sobrevive a la cascada sale sellado
+  (`'juicio'`, `pipeline.ts:564`; `'estructura'` el diff). Que coincidan NO dice «no se pierde
+  nada»: dice que miden casi lo mismo.
+- **NINGUNA DE LAS DOS VE LO QUE SE PERDIÓ ANTES DE PUBLICAR.** Lo que el juez emitió y dónde
+  murió sólo está en las claves por pareja del jsonb (`descartesPorCita`, `discarded`), como lee
+  `SQL_B357_destino_de_las_contradicciones_NOR11_CLI13.sql`.
+
 ### 📋 B.314 — LA CITA NO LLEGA AL USUARIO: en el modo rápido, casi ninguna vista enseña una cita (ficha de PRODUCTO, SIN arreglo, decide el director; 02/10/2026)
 
 **De dónde sale**: la pregunta del arquitecto del 02/10 sobre qué vistas enseñan las citas,

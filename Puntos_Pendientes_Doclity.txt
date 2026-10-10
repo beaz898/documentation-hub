@@ -8568,6 +8568,41 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     cascada descarte ni confirme. Faltaría también con cero bajas en la puerta y
     en la frontera.
 
+  B.368 — [ANOTADO 10/10/2026 · ⚠️ HALLAZGO CENTRAL · NO SE EMPIEZA NADA: PRIMERO,
+    CONSULTA A FABLE] DONDE LA COMPARACIÓN LA DECIDE UNA REGLA, EL SISTEMA ACIERTA
+    Y NO VARÍA. DONDE LA DECIDE EL MODELO, VARÍA Y PUBLICA UN TERCIO
+    · EL CAMINO DETERMINISTA, leído en el código el 10/10: emparejarTablas
+      (lib/analysis/table-pairing.ts:114) → diffPairedRows
+      (lib/analysis/table-diff.ts:196) → emitirDiffDeTablas
+      (lib/analysis/diff-emision.ts:136-185). Ninguno llama al modelo; cada
+      contradicción nace con confirmedBy 'estructura' y origen 'diff_tabular', y
+      se añade DESPUÉS de la cascada (pipeline.ts:947-961): no pasa por la puerta
+      de citas ni por la cascada. El único modelo antes es el rerank, que decide
+      si la otra tabla llega a ser candidata.
+      RESULTADO (consulta del director, 10/10): OPE-10 contra OPE-11, 15 de 15
+      en las DOS pasadas, idénticas; el registro de siembra documenta
+      exactamente 15 filas discrepantes.
+    · EL CAMINO POR MODELO (misma consulta; publicadas, contradictions_found —
+      ver la trampa de esa columna en B.313, Estado_Del_MVP.md): CLI-13 entre 0 y
+      2 en 24 pasadas; CLI-12 entre 0 y 3 en 7; NOR-11, 1 de las 3 sembradas en
+      las 3 pasadas de la noche del 09/10 (dato del arquitecto).
+    · LA ARQUITECTURA YA TIENE EL PATRÓN «LA REGLA MANDA»: lo que el juez diga
+      sobre una pareja de filas que el diff ya comparó se suprime como
+      descartado.cubierto_por_diff (pipeline.ts:397-405).
+    · LO QUE LO CONVIERTE EN DIRECCIÓN Y NO EN ANÉCDOTA: las tres trampas de
+      NOR-11 ↔ CLI-13 son «mismo atributo, dos valores incompatibles»
+      (claude/Casos_Harness.md:249), que es LITERALMENTE lo que hace el diff de
+      tablas, pero en prosa:
+        PLAZO:    tiempo máximo en almacén → 72 horas / 7 días naturales
+        LUGAR:    ubicación del punto de retirada → Chamberí / Retiro
+        NEGACIÓN: contenedor del grupo III → amarillo / negro
+      Las tres son del tipo que una regla puede decidir, y se le preguntan a un
+      modelo que acierta una de tres.
+    · ES EL ARGUMENTO PARA DESCONGELAR LA EXTRACCIÓN DE AFIRMACIONES, hoy
+      congelada con fecha («FUERA DEL MVP, con fecha de revisión "primer
+      cliente"» y la regla de congelación, B.362). NO SE EMPIEZA NADA TODAVÍA:
+      primero va una consulta a Fable con este material.
+
 Forma de trabajo: diagnóstico con datos reales antes de arreglar; un
 cambio lógico cada vez; build verde entre medias; SQL en Supabase antes
 del push; plan completo antes de tocar varios archivos.
