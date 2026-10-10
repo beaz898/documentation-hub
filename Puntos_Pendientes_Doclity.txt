@@ -8679,6 +8679,17 @@ NOTAS DE ORDEN (propuesta, a confirmar)
           37.271 y 30.183 de 55.135, entre el 46 y el 68 % · PUBLICADAS: 3 y 3
       Cuatro ceros con el 11 % y dos treses con la mitad. No es varianza del
       modelo: es cuánto texto se le da.
+      ⚠️ PRECISIÓN DE CODE (10/10/2026) SOBRE LAS TRES CIFRAS DE CORTE_HONESTO:
+      cuadran al carácter con la fórmula de judge.ts:1300-1304 (el analizado se
+      lleva 40.000 menos lo que ocupe el candidato), pero NO son las tres de
+      CLI-12 contra 55.135:
+        · 25.296 = 40.000 − 14.704: CLI-12 analizado, NOR-11 candidato entero
+          (Estado_Del_MVP.md:8438);
+        · 37.271 = 40.000 − 2.729: CLI-12 analizado, NOR-10 candidato por su
+          bloque de relevancia, porque entero no cabe (:8440-8441, :9582);
+        · 30.183 = 40.000 − 9.817: el analizado era NOR-10 (30.183 de 66.801), con
+          CLI-13 candidato entero (:8427-8429). NO es CLI-12.
+      De CLI-12 son 25.296 y 37.271: el 45,9 % y el 67,6 % de 55.135.
     · EL CANDIDATO DESAPARECE A VECES: el 30/09 a las 12:20 y a las 12:29, NOR-11
       NO llegó a ser candidato de CLI-13 (afines 14, elegidosPorElModelo 3,
       NOR-11 fuera). Publicadas 0 las dos veces. El reparto lleva origen

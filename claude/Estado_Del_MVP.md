@@ -13651,6 +13651,16 @@ misma familia, y el más caro.
 - **Las cifras de commits por día del 10/10 eran inventadas**: leídas de una tabla cortada y
   repetidas como exactas. Valen las del git log, en B.372.
 
+**LAS TRES CORRECCIONES DEL 10/10/2026 EN CONTRA DEL ARQUITECTO, dichas por él para que consten:**
+1. **La lectura del presupuesto era errónea**: la condición es la suma de UNA pareja (analizado,
+   candidato), y el analizado de las 22:24:42 era CLI-20 (fase 1.2, arriba).
+2. **La línea base no estaba bloqueada**: el analizado sale de la bandeja de revisión, como CLI-20
+   el 09/10 (orden de F-123, arriba).
+3. **«El mecanismo que explica las lecturas al 11 %» es FALSO**, y la frase fue del arquitecto. Las
+   lecturas al 11 % medidas (CLI-12, 30/09, de 06:37 a 06:40) fueron `tijera_vieja` con el
+   interruptor apagado (B.369). El mecanismo del resto que gana plaza existe (fase 0.1, arriba),
+   pero no explica esas lecturas.
+
 ### 📋 B.331 — COMILLAS CURVAS, Y LA REPRESENTATIVIDAD DEL CORPUS (05/10/2026)
 
 Hecho 1: la clase de caracteres de normalize-core.mjs:84 lleva la comilla doble recta
