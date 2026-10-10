@@ -8653,6 +8653,40 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     esta misma mezcla.
     EL ERROR QUE LO TAPÓ, en Estado_Del_MVP.md (nota del 10/10).
     NO SE PROPONE NINGÚN ARREGLO AQUÍ.
+    ════ DOS PUERTAS, Y NO SON LA MISMA (arquitecto, 10/10; leído en el código
+    el mismo día) ════ Una medida de una no vale para descartar la otra.
+    · PUERTA 1 — QUÉ DOCUMENTOS LLEGAN A «AFINES» (de 5 a 14). Tiene DOS cortes:
+      1a · TOP_K_POR_CONSULTA = 25 TROZOS POR CONSULTA (lib/analysis/retrieval.ts:
+           142, usado en :332). Cada consulta trae sus 25 trozos más parecidos, y
+           luego se agrupan por documento (:406-412). Aquí es donde 20 trozos de
+           un mismo documento podrían ocupar las plazas de otro, y es donde
+           aplicaría la propuesta del director (agregación por documento, MaxP;
+           MMR). SIN MEDIR: no consta que ningún documento con contenido real se
+           haya quedado fuera por amontonamiento. No se guarda nada por
+           consulta; el termómetro (jsonb `analysis`, lib/analysis/termometro.ts)
+           sólo guarda totales del análisis.
+      1b · MAX_CANDIDATOS_DE_RECUPERACION = 25 DOCUMENTOS (:150, aplicado en
+           :568). NO HA ACTUADO en las filas vistas: `afines` es el recuento
+           DESPUÉS de este corte (pipeline.ts:1054), y con como mucho 14 no llegó
+           a 25. Su contador es
+           seleccion.candidatos_cortados_por_tope_de_recuperacion, en
+           pipeline_counters.
+    · PUERTA 2 — QUÉ AFINES LLEGAN A SER CANDIDATOS: el rerank, un modelo, elige
+      de 2 a 4 (tope de 6 en rápido, MAX_SELECTED_QUICK, rerank.ts:28). AQUÍ
+      ESTÁ LA PÉRDIDA MEDIDA: el 30/09 a las 12:20 y 12:29 dejó fuera a NOR-11, y
+      las dos veces se publicó 0. El rerank decide viendo de cada afín sus
+      fragmentos recortados a 300 caracteres (rerank.ts:53-55).
+      ⚠️ LOS CONTADORES DE `coberturaDeCandidatos.reparto` SON DE ESTA PUERTA, NO
+      DE LA 1: `cortadosPorTope` = elegidos por el modelo que no cupieron en el
+      tope de 6 (reparto-del-rerank.ts:177), y `repetidos` = entradas del modelo
+      que nombran dos veces el mismo documento (:104-111). Que valgan 0 NO dice
+      nada del tope de 25 trozos.
+    · CORRECCIÓN A LA PREMISA DEL DIRECTOR, porque cambia el diseño: suponía que
+      si entra un trozo de un documento, después se lee el documento entero.
+      HOY NO ES ASÍ: con tijera_vieja, del candidato se enseñan unos 3.000
+      caracteres (3.067 de 14.704 en NOR-11, el 21 %). Agrupar por documento
+      sólo rinde si además cambia cuánto se lee de cada documento: son dos
+      piezas de la misma reparación.
 
 Forma de trabajo: diagnóstico con datos reales antes de arreglar; un
 cambio lógico cada vez; build verde entre medias; SQL en Supabase antes
