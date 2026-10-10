@@ -8778,6 +8778,52 @@ NOTAS DE ORDEN (propuesta, a confirmar)
       rápida encendida. Las tres de NOR-11 del 09/10 de 22:20 a 22:22 fueron
       exhaustivas (B.369).
 
+  B.372 — [ANOTADO 10/10/2026 · PROCESO · ⚠️ EL HALLAZGO DE LA CRONOLOGÍA DEL 15/09
+    AL 10/10] EL BUCLE DE REENVÍO: LA SELECCIÓN DE CANDIDATOS SE APARTÓ REMITIENDO
+    A UN DICTAMEN QUE ESTABA ARCHIVADO SIN EMPEZAR, Y DESPUÉS SE CONGELÓ
+    · EL BUCLE, con sus citas:
+      - F-119 (30/09), el dictamen sobre la selección, se archivó: «ARCHIVADA. Sin
+        decisión del director. Nada iniciado» (F-119:10; B.303).
+      - F-121 (07/10) la apartó remitiendo a ella: «No pregunto por el retrieval ni
+        por el rerank: eso es F-119, está archivada sin…» (F-121:254).
+      - F-122 (09/10), lo mismo: «No pregunto por el retrieval ni por el rerank: es
+        F-119, y hemos medido que en el corpus actual los seis documentos reales
+        llegan todos a candidato» (F-122:285-286).
+      - Y la regla de congelación de F-122 la congeló: «la elección de documentos
+        de F-119» (F-122:479; corregida el 10/10 en Estado_Del_MVP.md).
+      (F-120, del 06/10, sí preguntó por el rerank en su P5, pero su dictamen no
+      consta: F-120:10.)
+    · ⚠️ LA CONSECUENCIA: NINGUNO DE LOS 27 COMMITS DE PRODUCTO DESDE EL 01/10 TOCA
+      LA SELECCIÓN DE CANDIDATOS. Son de la puerta de citas, del juez y de la
+      pantalla. El 30/09 se archivó F-119 y se abrió B.299 («la comprobación de
+      citas tira 5 de 7»); el 01/10 entraron los primeros commits de la puerta.
+    · EL DATO QUE MIDE EL PARÓN (git log, commits que tocan app/, lib/,
+      components/, worker/ o messages/, sin contar los de sólo pruebas):
+        15/09 7 · 16/09 12 · 17/09 6 · 18/09 5 · 21/09 7 · 22/09 2 · 23/09 5 ·
+        25/09 5 · 26/09 3 · 27/09 11 · 28/09 5 · 29/09 10
+      frente a, desde el 30/09:
+        30/09 0 · 01/10 2 · 02/10 8 · 04/10 2 · 05/10 8 · 06/10 1 · 07/10 1 ·
+        08/10 1 · 09/10 4 · 10/10 0
+      Y de registros y documentación: 26 el 07/10 y 26 el 09/10, frente a 1 y 4 de
+      producto esos mismos días.
+      (El arquitecto citó «10, 12, 6, 7, 11, 10» y «2, 7, 0, 2, 8, 1, 1, 1, 4»; las
+      cifras de arriba son las del git log, día a día.)
+    · EL CASO DE F-121 P5: una consulta que no sólo era innecesaria, sino que metió
+      una contradicción que hubo que deshacer.
+      - F-121:231 preguntó si había un «patrón asentado de "no descartar, rebajar
+        la confianza"».
+      - F-116 ya lo había resuelto: «Lo que queda cuando falta un lado no se tira,
+        pero cambia de especie… No entra en la lista de hallazgos» (F-116:285-288).
+      - Fable contestó contra esa doctrina: «Se publica en un nivel inferior, "cita
+        no verificada"» (F-121:348).
+      - Y se retractó en F-122: «"No descartar, degradar" vale para un fallo de
+        verificación, no para una ausencia de evidencia» (F-122:317).
+    · LO QUE QUEDÓ SIN CONSTRUIR del periodo, con fecha: B.89 / B.83, la guarda
+      del rerank (desde el 22/08); F-108, el corte relativo (16/09); F-109, el
+      rerank con unidades enteras en vez de 300 caracteres (17/09); F-116, el
+      verificador ciego y la segunda vuelta (24/09); F-118, el escalón 2 (28/09);
+      F-119 entera (30/09).
+
 Forma de trabajo: diagnóstico con datos reales antes de arreglar; un
 cambio lógico cada vez; build verde entre medias; SQL en Supabase antes
 del push; plan completo antes de tocar varios archivos.
