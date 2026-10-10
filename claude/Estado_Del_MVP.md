@@ -13455,6 +13455,25 @@ tiene el repositorio, y es la primera de cada encargo de diagnóstico.
   fue afirmar contra una medida propia ya escrita, que es la peor variante. Lo paró la lectura del
   código antes de escribir el SQL_B366, que se canceló (B.360).
 
+**EL ERROR DEL 09 Y 10/10/2026: GENERALIZAR UNA LECTURA A DIEZ PASADAS (B.369).** El séptimo de la
+misma familia, y el más caro.
+- **Lo que se afirmó** todo el 09 y el 10/10: «esa pareja se lee entera, 14.704 de 14.704, el
+  retrieval queda descartado». Se generalizó UNA lectura a las diez pasadas.
+- **Lo que mide la base** (director, 10/10, `lecturaDeLasParejas`): era cierto en seis pasadas del
+  30/09 y falso en el resto. El régimen cambia entre pasadas del mismo par el mismo día, y a veces
+  el candidato ni siquiera llega.
+- **El coste**: se descartó la causa correcta con un dato insuficiente, y un día entero de
+  investigación se dirigió al juez. La hipótesis buena la planteó el director dos veces, la
+  segunda insistiendo.
+- **Y no fue sólo del arquitecto.** La sección 1 de F-121, «el mecanismo, tal como está hoy
+  (lectura de Code, 06-07/10/2026)», dice que en la pareja principal el juez recibe los dos
+  documentos enteros, `pareja_entera`, 14.704 de 14.704. Es la misma generalización, escrita por
+  Code a partir de unas pocas pasadas.
+- **Es la regla de la cifra medida sobre un operando y citada sobre otro**: una medida de UNA
+  pasada citada como propiedad del PAR. Y la regla de este mismo día —«antes de proponer una
+  causa, comprobar si ya está medida»— vale igual para DESCARTAR una causa: «descartado» es una
+  afirmación sobre todas las pasadas, y pide la población entera.
+
 ### 📋 B.331 — COMILLAS CURVAS, Y LA REPRESENTATIVIDAD DEL CORPUS (05/10/2026)
 
 Hecho 1: la clase de caracteres de normalize-core.mjs:84 lleva la comilla doble recta

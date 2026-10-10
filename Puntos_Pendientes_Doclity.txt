@@ -8059,6 +8059,9 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     documento entero y en otras sólo fragmentos, y que de ahí venga la variación
     entre pasadas idénticas. Para las diez pasadas del 06 al 08/10 YA NO SE PUEDE
     COMPROBAR: se borraron con el documento (B.367). Es el coste de esa omisión.
+    Y en las filas que sobreviven la hipótesis del director se comprobó: la
+    entrada varía entre pasadas idénticas, y las medidas del juez están
+    contaminadas (B.369).
 
   B.358 — [ANOTADO 07/10/2026 · EL DETECTOR EXISTE DESDE EL 02/10; SÓLO EN EL LOG ·
     REPARACIÓN DESCARTADA CON DATOS EL 09/10] LA ATRIBUCIÓN CRUZADA YA SE DETECTA Y
@@ -8612,6 +8615,44 @@ NOTAS DE ORDEN (propuesta, a confirmar)
       congelada con fecha («FUERA DEL MVP, con fecha de revisión "primer
       cliente"» y la regla de congelación, B.362). NO SE EMPIEZA NADA TODAVÍA:
       primero va una consulta a Fable con este material.
+
+  B.369 — [ANOTADO 10/10/2026 · ⚠️⚠️ LA MÁS IMPORTANTE DE LA INVESTIGACIÓN · SIN
+    ARREGLO: EL SIGUIENTE PASO LO DECIDEN EL ARQUITECTO Y EL DIRECTOR] EL JUEZ NO
+    VE LOS DOCUMENTOS ENTEROS, Y LA ENTRADA VARÍA ENTRE PASADAS IDÉNTICAS
+    Medido el 10/10/2026 por el director con lecturaDeLasParejas,
+    coberturaDeCandidatos y presupuestoDelCandidato (claves del jsonb `analysis`)
+    sobre las 36 filas que sobreviven al borrado de B.367.
+    · LA PRUEBA DECISIVA, CLI-12 (cuatro contradicciones sembradas, A, B, C y D),
+      mismo documento y mismo corpus, el mismo día:
+        30/09 06:37, 06:38, 06:39 y 06:40 · tijera_vieja · del analizado se
+          enseñan 6.000 de 55.135 caracteres, el 11 % · PUBLICADAS: 0, 0, 0, 0
+        30/09 12:56 y 13:02 · corte_honesto · del analizado se enseñan 25.296,
+          37.271 y 30.183 de 55.135, entre el 46 y el 68 % · PUBLICADAS: 3 y 3
+      Cuatro ceros con el 11 % y dos treses con la mitad. No es varianza del
+      modelo: es cuánto texto se le da.
+    · EL CANDIDATO DESAPARECE A VECES: el 30/09 a las 12:20 y a las 12:29, NOR-11
+      NO llegó a ser candidato de CLI-13 (afines 14, elegidosPorElModelo 3,
+      NOR-11 fuera). Publicadas 0 las dos veces. El reparto lleva origen
+      «modelo»: esa elección la hace un modelo y varía (de 5 a 14 afines, elige
+      entre 2 y 4).
+    · CUÁNTO SE ENSEÑA DEL CANDIDATO:
+        tijera_vieja: unos 3.000 caracteres. NOR-11, 3.067 de 14.704 (21 %);
+          CLI-13, 3.127 de 9.817 (32 %);
+        pareja_entera: todo, y SÓLO en seis pasadas, el 30/09 de 07:50 a 08:08;
+        y el régimen CAMBIA entre pasadas del mismo par el mismo día:
+          tijera_vieja a las 06:35, pareja_entera a las 07:50.
+    ⚠️⚠️ LA CONSECUENCIA: TODAS LAS MEDIDAS DEL JUEZ HECHAS HASTA HOY ESTÁN
+    CONTAMINADAS. LAS DIEZ PASADAS DE SQL_B357 («NEGACIÓN 3 DE 10») SE TOMARON
+    CON UNA MEZCLA DESCONOCIDA DE REGÍMENES Y DE CONJUNTOS DE CANDIDATOS. NO
+    MEDÍAN AL JUEZ: MEDÍAN UNA MEZCLA. Es la limitación que ya anotaba B.357
+    (se midió el destino, no la entrada), y aquí se ve lo que costaba.
+    EL MATIZ: en las SEIS pasadas con pareja_entera se publicó 1 de 3, así que el
+    juez tampoco está limpio. Pero hasta fijar la entrada, cualquier número sobre
+    el juez es ruido.
+    Afecta también a B.368: sus cifras de prosa (CLI-13 0-2, CLI-12 0-3) son de
+    esta misma mezcla.
+    EL ERROR QUE LO TAPÓ, en Estado_Del_MVP.md (nota del 10/10).
+    NO SE PROPONE NINGÚN ARREGLO AQUÍ.
 
 Forma de trabajo: diagnóstico con datos reales antes de arreglar; un
 cambio lógico cada vez; build verde entre medias; SQL en Supabase antes
