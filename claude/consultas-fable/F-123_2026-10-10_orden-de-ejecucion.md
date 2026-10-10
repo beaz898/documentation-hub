@@ -393,7 +393,7 @@ nombra (0.1, 0.4, 1.1, 1.2, 2 y P6) salen **diez**, nueve con cifra y una sin el
 | N.º | Apartado | Predicción | Cifra exacta | Estado |
 |---|---|---|---|---|
 | P-F123-1 | 0.1 | Los «14 afines» del 30/09 incluyen restos (los 14 de `extractor_version` nulo) | **al menos 8** | sin medir |
-| P-F123-2 | 0.1 | El régimen sin_fuente_comun de las cuatro pasadas de las 06:37 a las 06:40 tiene un resto como candidato | **sin cifra** ⚠️ ver (f) 4 | sin medir |
+| P-F123-2 | 0.1 | El régimen sin_fuente_comun de las cuatro pasadas de las 06:37 a las 06:40 tiene un resto como candidato | sin cifra | **✖ FALSA POR PREMISA** (10/10/2026): las cuatro pasadas de CLI-12 de las 06:37 a las 06:40 fueron `tijera_vieja`, no `sin_fuente_comun`, porque el interruptor estuvo apagado hasta las 07:50 (B.369). Ver (f) 4 |
 | P-F123-3 | 0.4 | En los «todo o nada», las entradas (régimen, caracteres leídos, candidatos) difieren | **al menos la mitad** | sin medir |
 | P-F123-4 | 1.1 | Con la guarda, los descartes del rerank en las 10 pasadas rápidas con sitio libre | **de 8 a 0** | sin medir |
 | P-F123-5 | 1.1 | Con la guarda, pasadas que pierden precisión según el arnés | **ninguna** | sin medir |
@@ -439,4 +439,4 @@ nombra (0.1, 0.4, 1.1, 1.2, 2 y P6) salen **diez**, nueve con cifra y una sin el
 4. **P-F123-2 parte de una premisa que no cuadra con lo medido.** Las cuatro pasadas de CLI-12
    de las 06:37 a las 06:40 del 30/09 fueron **`tijera_vieja`**, no `sin_fuente_comun`: el
    interruptor estaba apagado hasta las 07:50 (B.369, medida del director del 10/10). Se
-   registra igual, con esta marca.
+   registra, y se califica **FALSA POR PREMISA** (decisión del arquitecto, 10/10/2026).

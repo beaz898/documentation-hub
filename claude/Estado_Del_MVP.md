@@ -13461,7 +13461,31 @@ pierde pasadas enteras; a igual pérdida, lo más barato y lo decidido hace más
     reindexar) · 0.2 contadores de los topes ciegos con los ids mostrados · 0.3 línea base
     nueva (5 pasadas de NOR-11, CLI-12 y CLI-13 con los contadores escritos) · 0.4 la medición
     que decide si NEGACIÓN es selección o emisión.
+    - ⚠️ **PRECISIÓN SOBRE 0.1 (10/10/2026): Fable justificó la limpieza con DOS argumentos y
+      sólo uno se sostiene.** La fase no cambia de sitio; cambia su justificación.
+      - **CAE**: «los restos disparan el régimen `sin_fuente_comun`». Se apoyaba en las cuatro
+        pasadas de CLI-12 de las 06:37 a las 06:40 del 30/09, que fueron `tijera_vieja`, no
+        `sin_fuente_comun`: el interruptor estuvo apagado hasta las 07:50 (B.369; P-F123-2,
+        FALSA POR PREMISA).
+      - **SIGUE EN PIE**: los restos tienen vectores declarados y compiten por plazas en la
+        búsqueda; y la limpieza es barata ahora que la línea base ya no existe.
+    - **El inventario de 0.1** es `SQL_F123_01_inventario_de_los_restos.sql`. Para decidir si un
+      resto se borra o se reindexa basta con saber si tiene `full_text`, que sale en su bloque 1.
+      **El recuento real de vectores en Pinecone** (`GET /api/admin/vectores-de-un-documento`,
+      sólo lectura) **no se usa ahora: hace falta DESPUÉS**, para verificar que el borrado hizo
+      lo que debía.
   - **FASE 1** · 1.1 la guarda del rerank · 1.2 presupuesto y régimen de lectura.
+    - **1.2, LA CAUTELA DE LA CONVERSIÓN, como DECISIÓN PENDIENTE DE DATO (10/10/2026):**
+      - `PRESUPUESTO_PAREJA_TOKENS = 10_000` y `CARACTERES_POR_TOKEN = 4` dan 40.000 caracteres
+        (`lib/analysis/judge.ts:1168-1170`). F-118 pidió 20.000 tokens (F-118:338).
+      - `CARACTERES_POR_TOKEN = 4` subestima el español, que va por unos 3,5 (F-122, (f)). Con
+        el 4, subir a 20.000 tokens autoriza unos 80.000 caracteres que en realidad son unos
+        22.900 tokens.
+      - **DECISIÓN PENDIENTE DE DATO**: qué cifra se pone, y si se corrige la conversión. Se
+        decide con la salida del bloque 2 de `SQL_F123_01_inventario_de_los_restos.sql`
+        (cuántos pares del corpus suman más de 70.000 y más de 80.000 caracteres).
+      - **REGLA: el presupuesto y la conversión NO se cambian en el mismo commit.** Si se mueven
+        los dos a la vez y algo cambia, hay dos causas y ninguna medida.
   - **FASE 2** · F-119 recortada a cuatro movimientos, con sombra primero.
   - **FASE 3** · 3.1 segunda vuelta dirigida · 3.2 verificador ciego · 3.3 vía 2.
   - **APARTE**: el tope duro de gasto del agente, cuando haya hueco.

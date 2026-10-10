@@ -7,7 +7,11 @@
 -- cinco filas, y cambiando un resto por un documento fuera del corpus sale
 -- FALLA en dos («en el corpus» y «restos»); quedan fuera otra organización y
 -- los trozos de una generación que no es la activa, y un full_text de sólo
--- espacios cuenta como «no tiene».
+-- espacios cuenta como «no tiene». El bloque 2 saca sólo los del corpus, mide
+-- el full_text sin los espacios de los bordes y da NULL si no hay full_text.
+--
+-- ⚠️ EL BLOQUE 2 NO ES DEL INVENTARIO: es el dato de la fase 1.2 (añadido el
+-- 10/10/2026 en el mismo fichero para no hacer dos viajes). Ver su comentario.
 -- CON DATOS REALES NO SE HA EJECUTADO.
 --
 -- ┌──────────────────────────────────────────────────────────────────────────┐
@@ -64,6 +68,7 @@ docs AS (
          d.extractor_version,
          (d.full_text IS NOT NULL
           AND char_length(regexp_replace(d.full_text, '^\s+|\s+$', '', 'g')) > 0)    AS tiene_full_text,
+         char_length(regexp_replace(d.full_text, '^\s+|\s+$', '', 'g'))              AS caracteres_full_text,
          (SELECT count(*) FROM public.document_chunks c
            WHERE c.document_id = d.id AND c.generation = d.active_generation)        AS trozos,
          d.chunk_count                                                               AS vectores_declarados
@@ -92,7 +97,8 @@ control AS (
   UNION ALL
   SELECT 'del corpus sin trozos fuera de criterio',    0, count(*) FILTER (WHERE marca = 'corpus_sin_trozos_fuera_de_criterio') FROM marcados
 )
-SELECT bloque, marca, name, id, analysis_status, extractor_version, tiene_full_text, trozos, vectores_declarados
+SELECT bloque, marca, name, id, analysis_status, extractor_version, tiene_full_text, trozos,
+       vectores_declarados, caracteres_full_text
 FROM (
   -- 0 · CONTROL: la cifra esperada, la medida, y OK o FALLA en `marca`.
   SELECT '0 · control' AS bloque,
@@ -100,14 +106,29 @@ FROM (
          medida || ': esperado ' || esperado || ', medido ' || medido AS name,
          NULL::uuid AS id, NULL::text AS analysis_status, NULL::int AS extractor_version,
          NULL::boolean AS tiene_full_text, NULL::bigint AS trozos, NULL::int AS vectores_declarados,
+         NULL::int AS caracteres_full_text,
          0 AS orden
   FROM control
   UNION ALL
   -- 1 · LOS DOCUMENTOS, uno por fila, con su marca.
   SELECT '1 · documentos', marca, name, id, analysis_status, extractor_version,
-         tiene_full_text, trozos, vectores_declarados,
+         tiene_full_text, trozos, vectores_declarados, NULL::int,
          CASE marca WHEN 'resto' THEN 1 WHEN 'corpus_sin_trozos_fuera_de_criterio' THEN 2
                     WHEN 'corpus_con_trozos' THEN 3 ELSE 4 END
   FROM marcados
+  UNION ALL
+  -- 2 · NO ES DEL INVENTARIO: ES EL DATO DE LA FASE 1.2. Cada documento del
+  --     corpus con la longitud de su full_text recortado por los bordes (mismo
+  --     convenio que SQL_B365). Con esto se cuentan después los PARES que pasan
+  --     de 70.000 y de 80.000 caracteres (F-123, 1.2). La marca va para poder
+  --     separar los restos, que no tienen trozos y no entran en pareja_entera.
+  --     ⚠️ El presupuesto del juez se mide sobre el texto RENDERIZADO desde los
+  --     trozos (buildAnalyzedDocumentText), no sobre full_text: NOR-11 da 14.704
+  --     renderizado (Estado_Del_MVP.md:7418) y su full_text puede no coincidir.
+  --     La suma de pares con full_text es una APROXIMACIÓN.
+  SELECT '2 · NO ES DEL INVENTARIO: ES EL DATO DE LA FASE 1.2', marca, name, id, NULL, NULL,
+         NULL, NULL, NULL, caracteres_full_text, 5
+  FROM marcados
+  WHERE en_el_corpus
 ) t
-ORDER BY bloque, orden, name;
+ORDER BY bloque, orden, caracteres_full_text DESC NULLS LAST, name;
