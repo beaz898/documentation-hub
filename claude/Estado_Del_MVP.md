@@ -5258,7 +5258,7 @@ orden. Corregidos los dos sitios, y la SQL de B.253 filtra por `stageFailures`.
 ### ¿Pasó en las pasadas del director? — lo que se puede deducir, y dónde se acaba
 
 No había contador de repeticiones, así que no se sabe: **se deduce, con huecos**.
-`SQL_B253_repetidos.sql` (PENDIENTE DE EJECUTAR, sólo lee):
+`SQL_B253_repetidos.sql` (sólo lee; ✅ EJECUTADA por el director el 16/09/2026, abajo en «Las consultas, ejecutadas»; corregido el 10/10/2026):
 
 | Señal | Alcance | Hueco |
 |---|---|---|
@@ -10621,7 +10621,7 @@ arquitecto, Code no lo ha visto). NOR-10 → CLI-12, `[98277f67]`, **confirmada 
 
 📝 **LA MEDICIÓN QUE SIGUE, Y LO QUE SIGNIFICA CADA RESULTADO, ESCRITO ANTES DE MIRAR** (02/10/2026).
 La cita se guardó, porque se publicó: `SQL_B311_cita_publicada_autoclave.sql`, de sólo lectura,
-PENDIENTE DE EJECUTAR, la saca entera de los dos lados. Después, offline con NOR-10:
+✅ EJECUTADA por el director el 02/10/2026 (más abajo, :10647-10648; corregido el 10/10/2026), la saca entera de los dos lados. Después, offline con NOR-10:
 - **Cómo se mide**:
   - **El medio** es la cita sin su cabeza ni su cola: lo que queda entre los primeros 20 y los
     últimos 20 caracteres normalizados, que son lo único que comprobó la puerta.
@@ -11977,7 +11977,7 @@ pasa a estar mal, y qué cambió? No se había hecho porque **lo que falla se ti
       caracteres entera, una contradicción y el tope de 10 con su cuenta de 3);
     - los controles pasan con el código de antes y con el de ahora: sin descartes no hay ni lista
       ni cuenta, lo descartado por narración no entra, y la línea de log no cambia.
-  - **El lector**: `SQL_B313_citas_descartadas.sql`, PENDIENTE DE EJECUTAR. Sólo trae los análisis
+  - **El lector**: `SQL_B313_citas_descartadas.sql`, ✅ EJECUTADA por el director el 02/10/2026 (abajo, «LA PRIMERA MEDIDA CON EL DATO EN LA MANO»; corregido el 10/10/2026). Sólo trae los análisis
     hechos después del despliegue.
 
 **🔐 EL REPARO DE LOS DATOS DEL CLIENTE, DECIDIDO** (arquitecto, 02/10). La regla dice «se persisten
@@ -13257,7 +13257,7 @@ trasladó de un sitio al otro al explicar cabeza_sin_cola.
 4. Tablas de Word con barra, ya identificadas y contadas aparte.
 
 LA MEDICIÓN QUE SEPARA LAS CAUSAS: escrita el 05/10 como
-SQL_B332_por_que_falla_la_cola.sql, pendiente de ejecutar. Todo lo necesario está
+SQL_B332_por_que_falla_la_cola.sql, ✅ EJECUTADA el 05/10/2026 (abajo, «MEDIDO EL 05/10/2026 CON SQL_B332»; corregido el 10/10/2026). Todo lo necesario está
 guardado: descartesPorCita lleva, por lado, el tipo de pajar y la longitud
 (types.ts:175), y la cita en crudo, desde el primer descarte guardado (eb0a0033).
 
@@ -13469,6 +13469,16 @@ pierde pasadas enteras; a igual pérdida, lo más barato y lo decidido hace más
         FALSA POR PREMISA).
       - **SIGUE EN PIE**: los restos tienen vectores declarados y compiten por plazas en la
         búsqueda; y la limpieza es barata ahora que la línea base ya no existe.
+      - **LEÍDO EN EL CÓDIGO EL 10/10/2026, sin cambiar el sitio de la fase:** la búsqueda filtra
+        por la METADATA del vector, `analysisStatus = 'analizado'` (`CORPUS_ACTIVO`,
+        `lib/pinecone/vectors.ts:99`, aplicado en la consulta a Pinecone,
+        `lib/analysis/retrieval.ts:325` y `:332`), y la criba posterior sólo mira que la fila
+        exista y la generación (`lib/documents/vivos.ts:80-83`), nunca los trozos. Así que un
+        resto con vectores marcados `analizado` compite, y al juez le llega el texto de la
+        metadata de esos vectores (`criba-de-matches.ts:156`). **Queda por confirmar que esos
+        vectores EXISTEN en el índice**: el recuento real lo da la herramienta de sólo lectura
+        `GET /api/admin/vectores-de-un-documento?documentId=<uuid>`, una llamada por resto. Si
+        no existen, no compiten y la limpieza deja de ser prerrequisito.
     - **El inventario de 0.1** es `SQL_F123_01_inventario_de_los_restos.sql`. Para decidir si un
       resto se borra o se reindexa basta con saber si tiene `full_text`, que sale en su bloque 1.
       **El recuento real de vectores en Pinecone** (`GET /api/admin/vectores-de-un-documento`,
@@ -13490,6 +13500,27 @@ pierde pasadas enteras; a igual pérdida, lo más barato y lo decidido hace más
         (`judge.ts:972-991`) y no es la misma cifra.
       - **REGLA: el presupuesto y la conversión NO se cambian en el mismo commit.** Si se mueven
         los dos a la vez y algo cambia, hay dos causas y ninguna medida.
+      - ⚠️ **LA LECTURA DEL PRESUPUESTO DEL ARQUITECTO ERA ERRÓNEA (10/10/2026), y se escribe.**
+        Leyó «CLI-12 solo ya se pasa de 40.000, y cualquier pareja suya de esa tanda da entre
+        56.030 y 62.186» y concluyó que `pareja_entera` no cuadraba. Dos errores:
+        - **La condición es la SUMA de los dos lados de UNA pareja** —«analizado entero +
+          candidato entero <= presupuesto» (`lib/analysis/judge.ts:1283`)—, y una pareja es
+          siempre **(analizado, candidato)**. Dos candidatos de la misma pasada no forman
+          pareja entre sí: sumar CLI-12 con OPE-10 o RRHH-08 no describe ninguna lectura.
+        - **En la pasada de las 22:24:42 el analizado era CLI-20**, no CLI-12 (dato del
+          arquitecto del 10/10: «el análisis de CLI-20_protocolo-urgencias-dentales.txt, tipo
+          QUICK, dio régimen `corte_honesto | pareja_entera`»). CLI-12 y los otros cuatro
+          eran CANDIDATOS: lo que SQL_F123_02 da con ese sello son sus longitudes como
+          candidatos. Lo esperable por el código: CLI-12 (55.135) no cabe con nada →
+          `corte_honesto`; los pequeños caben con CLI-20 → `pareja_entera`. **Comprobarlo con
+          `SQL_F123_03_lecturas_de_la_pasada_de_las_22_24.sql`** antes de darlo por medido.
+        - Para la decisión de la cifra: los pares que cuentan son (documento que se analiza,
+          candidato posible), y el analizado puede ser también un `pendiente` en revisión
+          (CLI-20 lo era).
+      - **LO QUE HACE COMPARABLE LA CIFRA RENDERIZADA (10/10/2026):** en los 6 del corpus con
+        trozos, `vectores_declarados` coincide con `trozos` (55/55, 11/11, 64/64, 64/64, 15/15,
+        15/15), y en SQL_F123_02 el mínimo es igual al máximo en los seis: ninguno se reindexó
+        entre los análisis observados. Salidas en `claude/Salidas_SQL_F123_2026-10-10.md`.
   - **FASE 2** · F-119 recortada a cuatro movimientos, con sombra primero.
   - **FASE 3** · 3.1 segunda vuelta dirigida · 3.2 verificador ciego · 3.3 vía 2.
   - **APARTE**: el tope duro de gasto del agente, cuando haya hueco.

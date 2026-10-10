@@ -1,7 +1,7 @@
 -- ============================================================================
 -- F-123 · FASE 1.2: LA LONGITUD RENDERIZADA DE CADA DOCUMENTO DEL CORPUS, LEÍDA
 -- DE LO QUE YA GUARDAN LOS ANÁLISIS — SÓLO LECTURA
--- ⏳ PENDIENTE DE EJECUTAR. Sólo SELECT: no escribe nada. Sólo nombres y cifras.
+-- ✅ EJECUTADA por el director el 10/10/2026 (hora no consta); salida literal en claude/Salidas_SQL_F123_2026-10-10.md. Sólo SELECT: no escribe nada. Sólo nombres y cifras.
 -- ✅ PROBADO ANTES DE ENTREGARLO (10/10/2026) contra filas sintéticas en un
 -- Postgres local (PGlite): junta las observaciones de un documento como
 -- candidato y como analizado, ignora las de candidato sin trozos (null), las de

@@ -8828,6 +8828,39 @@ NOTAS DE ORDEN (propuesta, a confirmar)
       verificador ciego y la segunda vuelta (24/09); F-118, el escalón 2 (28/09);
       F-119 entera (30/09).
 
+  B.373 — [ANOTADO 10/10/2026 · NO SE TOCA] CLI-01 ESTÁ DOS VECES EN LA
+    ORGANIZACIÓN DEL PILOTO
+    `CLI-01_protocolo-esterilizacion-instrumental.txt` aparece con dos ids
+    distintos, 97b4503b-44bb-4476-b585-df35d3c3769c y
+    f1d85905-e781-49a7-ae40-a5adbe72e558: los dos `pendiente`, extractor 3, con
+    full_text y 8 trozos y 8 vectores declarados cada uno (SQL_F123_01, salida
+    literal en claude/Salidas_SQL_F123_2026-10-10.md). Es un documento
+    duplicado. Familia de B.323 (dos documentos con el mismo contenido conviven y
+    cada hallazgo se publica dos veces) y de B.212 (dos documentos indexados que
+    comparten nombre reciben el mismo bloque en la bandeja). No se toca: se
+    decide aparte.
+
+  B.374 — [ANOTADO 10/10/2026 · DEFECTO DE PRODUCTO LEÍDO EN EL CÓDIGO, SIN
+    ARREGLAR · ⚠️ PUEDE METER EN LA BÚSQUEDA DOCUMENTOS QUE NO SON DEL CORPUS]
+    REINDEXAR UN DOCUMENTO PENDIENTE MARCA SUS VECTORES NUEVOS COMO «analizado»
+    · reparar (lib/documents/reparar.ts:152-156) sube los vectores nuevos
+      CONSERVANDO el estado de la fila, a propósito: «reindexar no opina sobre el
+      contenido».
+    · Pero luego conmuta con swapDocumentVectors(…, 'mismo_contenido_retroceado')
+      (reparar.ts:188), y su P1 pone `analysisStatus: 'analizado'` en la
+      metadata de TODOS los vectores de la generación nueva, sea cual sea el
+      motivo (lib/document-swap.ts:91-99). La fila no cambia: promocion.ts:90
+      devuelve sólo los campos comunes con ese motivo.
+    · Resultado: un documento `pendiente` reindexado queda con la fila en
+      `pendiente` y los vectores en `analizado`. La búsqueda filtra por la
+      metadata del vector (CORPUS_ACTIVO, lib/pinecone/vectors.ts:99), así que
+      ese documento ENTRA en la búsqueda sin estar en el corpus. Es la ruptura
+      del invariante de F-96 que B.301 decía sin comprobar.
+    · NO CONSTA que haya ocurrido: hace falta saber si algún documento
+      `pendiente` se reindexó. Encontrado el 10/10 por un agente de Code al leer
+      las escrituras de `analysisStatus`; comprobado en el código por Code.
+    · No se arregla en este encargo (sin tocar producto).
+
 Forma de trabajo: diagnóstico con datos reales antes de arreglar; un
 cambio lógico cada vez; build verde entre medias; SQL en Supabase antes
 del push; plan completo antes de tocar varios archivos.

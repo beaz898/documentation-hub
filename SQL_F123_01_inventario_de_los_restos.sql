@@ -1,6 +1,6 @@
 -- ============================================================================
 -- F-123 · FASE 0.1, PRIMER TIEMPO: LISTAR Y MARCAR — SÓLO LECTURA
--- ⏳ PENDIENTE DE EJECUTAR. Sólo SELECT: no escribe, no borra, no reindexa.
+-- ✅ EJECUTADA por el director el 10/10/2026 (hora no consta); salida literal en claude/Salidas_SQL_F123_2026-10-10.md. Sólo SELECT: no escribe, no borra, no reindexa.
 -- Salen nombres de documento, recuentos y marcas; ni un carácter del texto.
 -- ✅ PROBADO ANTES DE ENTREGARLO (10/10/2026) contra filas sintéticas en un
 -- Postgres local (PGlite): con la población esperada el control sale OK en sus
