@@ -13461,14 +13461,41 @@ pierde pasadas enteras; a igual pérdida, lo más barato y lo decidido hace más
     reindexar) · 0.2 contadores de los topes ciegos con los ids mostrados · 0.3 línea base
     nueva (5 pasadas de NOR-11, CLI-12 y CLI-13 con los contadores escritos) · 0.4 la medición
     que decide si NEGACIÓN es selección o emisión.
-    - ⚠️ **PRECISIÓN SOBRE 0.1 (10/10/2026): Fable justificó la limpieza con DOS argumentos y
-      sólo uno se sostiene.** La fase no cambia de sitio; cambia su justificación.
-      - **CAE**: «los restos disparan el régimen `sin_fuente_comun`». Se apoyaba en las cuatro
-        pasadas de CLI-12 de las 06:37 a las 06:40 del 30/09, que fueron `tijera_vieja`, no
-        `sin_fuente_comun`: el interruptor estuvo apagado hasta las 07:50 (B.369; P-F123-2,
-        FALSA POR PREMISA).
+    - ⚠️ **PRECISIÓN SOBRE 0.1 (10/10/2026), CORREGIDA EL MISMO DÍA: LOS DOS ARGUMENTOS DE FABLE
+      VUELVEN A ESTAR EN PIE.** La fase no cambia de sitio.
+      - **«Los restos disparan el régimen `sin_fuente_comun`»: SU INSTANCIA ES FALSA, SU MECANISMO
+        ESTÁ CONFIRMADO EN EL CÓDIGO.** La instancia que citó Fable —las cuatro pasadas de CLI-12
+        de las 06:37 a las 06:40 del 30/09— fue `tijera_vieja`, no `sin_fuente_comun`, porque el
+        interruptor estuvo apagado hasta las 07:50 (B.369; P-F123-2, FALSA POR PREMISA). Pero el
+        mecanismo existe, y por LECTURA, no por predicción: ver «EL MECANISMO DEL DÍA», abajo.
+        (Primera redacción de esta línea, del 10/10: «CAE». Se corrige por eso.)
       - **SIGUE EN PIE**: los restos tienen vectores declarados y compiten por plazas en la
         búsqueda; y la limpieza es barata ahora que la línea base ya no existe.
+      - ⚠️ **EL MECANISMO DEL DÍA (10/10/2026), no identificado hasta hoy.** Un resto con vectores
+        marcados `analizado` compite como candidato, porque la búsqueda filtra por la metadata del
+        vector (`CORPUS_ACTIVO`, `lib/pinecone/vectors.ts:99`) y la criba no mira los trozos
+        (`lib/documents/vivos.ts:80-83`). Si gana plaza, su pareja entra como `sin_fuente_comun`
+        (`lib/analysis/judge.ts:1272-1276`) y el documento ANALIZADO se recorta a 6.000
+        caracteres en esa pareja (`recortarAnalizado`, `judge.ts:1104-1108`).
+        ⚠️ **Precisión de Code al registrarlo**: el arquitecto lo dictó como «el mecanismo que
+        explica las lecturas al 11 %». **Las lecturas al 11 % que tenemos medidas —CLI-12, 30/09,
+        de 06:37 a 06:40— NO las explica este mecanismo**: fueron `tijera_vieja` con el
+        interruptor apagado (B.369), que recorta igual a 6.000 por otra vía. Lo que este
+        mecanismo explica es que, CON el interruptor encendido, una pareja con un resto se lea
+        al 6.000 igual que con la tijera vieja. Cuántas veces ha ocurrido lo cuenta
+        `SQL_F123_04_plazas_de_los_restos.sql` (bloque 2).
+      - **LA PROCEDENCIA DE «UN RESTO GANÓ PLAZA»**, que sostiene esta decisión:
+        - 05/10, un análisis de NOR-11: 2 de los 8 candidatos eran documentos sin trozos y uno se
+          llevó 1 de las 3 plazas del rerank; sus 2 hallazgos murieron en la puerta de citas
+          (`Puntos_Pendientes_Doclity.txt:1711-1719`, B.83, añadido del 05/10). No nombra cuál.
+        - 06/10: los 8 candidatos de NOR-11 fueron los 6 del corpus con trozos más
+          Clientes_Residuos_Sanitarios y Normas_Frecuencia_Recogidas (`:7781-7783`, B.345). Eso
+          es ser AFÍN, no tener plaza en el juez.
+        - 06/10: Normas_Frecuencia_Recogidas llegó al juez: un hallazgo suyo se descartó en la
+          puerta, «idéntico en las dos pasadas con log» (B.346).
+        - **Las tres salen de LOGS transcritos por el arquitecto, no de una lectura de la base**,
+          y los análisis eran de NOR-11, borrados el 09-10/10 (B.367). La base, en lo que quede,
+          la lee SQL_F123_04.
       - **LEÍDO EN EL CÓDIGO EL 10/10/2026, sin cambiar el sitio de la fase:** la búsqueda filtra
         por la METADATA del vector, `analysisStatus = 'analizado'` (`CORPUS_ACTIVO`,
         `lib/pinecone/vectors.ts:99`, aplicado en la consulta a Pinecone,
@@ -13521,6 +13548,21 @@ pierde pasadas enteras; a igual pérdida, lo más barato y lo decidido hace más
         trozos, `vectores_declarados` coincide con `trozos` (55/55, 11/11, 64/64, 64/64, 15/15,
         15/15), y en SQL_F123_02 el mínimo es igual al máximo en los seis: ninguno se reindexó
         entre los análisis observados. Salidas en `claude/Salidas_SQL_F123_2026-10-10.md`.
+      - **EL PRESUPUESTO NO BLOQUEA LA PAREJA SEMBRADA (10/10/2026):** NOR-11 (14.704) + CLI-13
+        (9.817) = 24.521 caracteres renderizados, dentro de los 40.000 de hoy. La fase 1.2 sólo
+        afecta a las parejas de CLI-12 (55.135) y NOR-10 (66.801). **Esto reordena: para la pareja
+        sembrada, la limpieza mueve la aguja y el presupuesto no.**
+  - **LA LÍNEA BASE NO ESTÁ BLOQUEADA — segunda corrección del arquitecto del 10/10/2026.** Dijo
+    que lo estaba porque NOR-11 está `pendiente`, y es al revés: el documento ANALIZADO sale de la
+    bandeja de revisión, como CLI-20 el 09/10 (un análisis rápido de un `pendiente` a las
+    22:24:42). Estar fuera del corpus impide ser CANDIDATO, no ser analizado.
+  - **PREDICCIÓN DEL ARQUITECTO P-ARQ-F123-1, escrita ANTES de medir (regla R2), 10/10/2026.**
+    «Sacados los 14 restos del corpus, 5 pasadas rápidas de NOR-11 con el interruptor encendido
+    dan `pareja_entera` con CLI-13 en 5 de 5, y publican PLAZO y NEGACIÓN en al menos 4 de 5.
+    LUGAR sigue muriendo en la puerta.»
+    - Es del ARQUITECTO, no de Fable. **Si falla, se desmiente su hipótesis y no la de nadie más.**
+    - Cifras: `pareja_entera` 5 de 5; PLAZO y NEGACIÓN publicadas en al menos 4 de 5; LUGAR, 0
+      publicadas (muere en la puerta). Estado: sin medir.
   - **FASE 2** · F-119 recortada a cuatro movimientos, con sombra primero.
   - **FASE 3** · 3.1 segunda vuelta dirigida · 3.2 verificador ciego · 3.3 vía 2.
   - **APARTE**: el tope duro de gasto del agente, cuando haya hueco.

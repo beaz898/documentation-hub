@@ -7567,6 +7567,11 @@ NOTAS DE ORDEN (propuesta, a confirmar)
     ellos (Clientes_Residuos_Sanitarios y Normas_Frecuencia_Recogidas) ganaron
     plaza de candidato. Por eso, mientras estén dentro, ninguna medida de
     desplazamiento es honesta.
+    ⚠️ PRECISIÓN DEL 10/10/2026 sobre la frase de arriba «ganaron plaza de candidato»:
+    aquí «candidato» es AFÍN de la recuperación (B.345, los 8 candidatos del 06/10),
+    no plaza en el juez. Que un resto llegara al juez consta por B.83 (añadido del
+    05/10, sin nombre) y B.346 (Normas_Frecuencia_Recogidas, 06/10), las dos por
+    log. Las plazas reales en la base las cuenta SQL_F123_04.
     ⚠️ AÑADIDO EL 09/10/2026, dato del director: los 14 del corpus sin trozos tienen
     extractor_version NULL y entre 1 y 6 vectores cada uno. Son restos de las
     primeras pruebas (glosarios, facturación, «new 1.txt»…). EL CORPUS REAL SON 6
