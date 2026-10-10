@@ -13430,6 +13430,11 @@ prueba.**
   el 09/10/2026.
 - **Los criterios de reversión de la vía 2** y el alcance de D1 están en B.362 de
   `Puntos_Pendientes_Doclity.txt`.
+- ⚠️ **CORRECCIÓN DEL ARQUITECTO (10/10/2026): LA REGLA CONGELÓ F-119, QUE NO ERA UNA IDEA NUEVA
+  SINO UN ARREGLO YA DICTAMINADO POR FABLE Y SIN CONSTRUIR.** F-119 llegó el 30/09 y se archivó
+  «Sin decisión del director. Nada iniciado» (F-119:10; B.303). **LA REGLA SE CORRIGE: se congelan
+  las ideas NUEVAS, no los arreglos ya decididos y sin ejecutar.** (El arquitecto la fechó el 08/10;
+  aquí consta del 09/10, F-122 D2.)
 
 **NOTA DE MÉTODO (09/10/2026): UN CONTROL QUE NO PUEDE FALLAR NO ES UN CONTROL.** Antes de dar por
 buena una prueba o un bloque de control, se rompe a propósito lo que protege y se comprueba que se
