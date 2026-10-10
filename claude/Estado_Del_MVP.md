@@ -13482,7 +13482,7 @@ misma familia, y el más caro.
   diez pasadas del 06 al 08/10 fueron probablemente `pareja_entera`. Probable, no verificable:
   se borraron. La entrada que sí variaba entre pasadas es la selección de candidatos.
 
-**DOS MÁS DE LA MISMA FAMILIA, EL 10/10/2026.**
+**MÁS DE LA MISMA FAMILIA, EL 10/10/2026.**
 - **«El arreglo no se activa».** El arquitecto lo afirmó sin esperar la comprobación del
   `analysis_type`, que Code había puesto primero de las dos. Las pasadas de NOR-11 de las 22:20
   eran EXHAUSTIVE, que por diseño nunca sale de `tijera_vieja`, y un QUICK de CLI-20 a las
@@ -13491,6 +13491,12 @@ misma familia, y el más caro.
   volvía vacía, y CLI-20 existe: `CLI-20_protocolo-urgencias-dentales.txt`, analizado el 09/10 a
   las 22:24. Es la regla del cero: un cero vale sólo si el camino que lo produjo puede dar un
   no-cero en las mismas condiciones.
+- **«Ya está dictaminado por Fable», señalando F-120.** El arquitecto afirmó la fuente de un
+  dictamen sin comprobarla: en F-120 P5 sólo está la PREGUNTA, y el dictamen de esa consulta «NO
+  CONSTA» (F-120:10). La decisión real sobre la guarda del rerank es de F-22/F-23, de agosto,
+  citada en B.89 (`Puntos_Pendientes_Doclity.txt:1851-1855`).
+- **Las cifras de commits por día del 10/10 eran inventadas**: leídas de una tabla cortada y
+  repetidas como exactas. Valen las del git log, en B.372.
 
 ### 📋 B.331 — COMILLAS CURVAS, Y LA REPRESENTATIVIDAD DEL CORPUS (05/10/2026)
 

@@ -8807,7 +8807,11 @@ NOTAS DE ORDEN (propuesta, a confirmar)
       Y de registros y documentación: 26 el 07/10 y 26 el 09/10, frente a 1 y 4 de
       producto esos mismos días.
       (El arquitecto citó «10, 12, 6, 7, 11, 10» y «2, 7, 0, 2, 8, 1, 1, 1, 4»; las
-      cifras de arriba son las del git log, día a día.)
+      cifras de arriba son las del git log, día a día. ⚠️ Lo reconoció el 10/10:
+      sus series ERAN INVENTADAS, leídas de una tabla que le llegó cortada y
+      repetidas como exactas. La conclusión se sostiene con las del log: la media
+      de commits de producto pasa de 6,5 al día (78 en 12 días con commits, del
+      15/09 al 29/09) a 2,7 (27 en 10 días, del 30/09 al 10/10).)
     · EL CASO DE F-121 P5: una consulta que no sólo era innecesaria, sino que metió
       una contradicción que hubo que deshacer.
       - F-121:231 preguntó si había un «patrón asentado de "no descartar, rebajar
