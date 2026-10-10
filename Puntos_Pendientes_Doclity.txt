@@ -8619,6 +8619,43 @@ NOTAS DE ORDEN (propuesta, a confirmar)
   B.369 — [ANOTADO 10/10/2026 · ⚠️⚠️ LA MÁS IMPORTANTE DE LA INVESTIGACIÓN · SIN
     ARREGLO: EL SIGUIENTE PASO LO DECIDEN EL ARQUITECTO Y EL DIRECTOR] EL JUEZ NO
     VE LOS DOCUMENTOS ENTEROS, Y LA ENTRADA VARÍA ENTRE PASADAS IDÉNTICAS
+    ⚠️⚠️ EL ARREGLO EXISTE, ES EL ESCALÓN 1 (B.295 / F-118), Y ESTÁ DETRÁS DE
+    ANALYSIS_PAREJA_ENTERA. (Hipótesis del director, cerrada leyendo el código el
+    10/10/2026.)
+    · ENTRÓ EL 29/09 EN DOS COMMITS: 34d67fb5 (11:31, «el aparato — qué leyó el
+      juez de cada pareja (lecturaDeLasParejas), sin cambiar el comportamiento») y
+      2467b203 (11:44, «presupuesto por PAREJA detrás de ANALYSIS_PAREJA_ENTERA,
+      con el corte confesado (apagado por defecto)»).
+    · EL 30/09 SE MIDIÓ, NINGÚN CRITERIO DE REVERSIÓN SE DISPARÓ Y SE DECIDIÓ
+      DEJARLO ENCENDIDO («EL INTERRUPTOR SE QUEDA ENCENDIDO», Estado_Del_MVP.md:
+      8589). EL 05/10 SEGUÍA ENCENDIDO (log real con pareja_entera, 14704/14704).
+      EL 09/10 A LAS 22:20 EL RÉGIMEN FUE tijera_vieja, Y EL CÓDIGO SÓLO DA ESE
+      RÉGIMEN CON EL INTERRUPTOR APAGADO O EN MODO EXHAUSTIVO.
+    · LA TABLA DE DECISIÓN (leerLaPareja, lib/analysis/judge.ts:1231-1319;
+      interruptor en :1185-1200, sólo el valor exacto "1" y sólo en rápido):
+        apagado, o exhaustivo (:1271)              → tijera_vieja: analizado 6.000
+                                                     por posición; candidato su
+                                                     bloque por relevancia (~3.000)
+        encendido y un lado sin trozos (:1272-1276) → sin_fuente_comun: igual que
+                                                     la tijera vieja
+        encendido y los dos enteros ≤ 40.000 car.  → pareja_entera: los dos enteros
+          (:1283-1295)
+        encendido y no caben (:1298-1318)          → corte_honesto: el candidato
+                                                     entero si cabe dejando 6.000
+                                                     al analizado (si no, su
+                                                     bloque); el analizado, el
+                                                     resto, nunca menos de 6.000
+    · tijera_vieja NO QUEDÓ POR DESCUIDO: es la forma del interruptor, que falla
+      cerrado (:1179-1184), y el exhaustivo nunca sale de ella (C3, :1194-1197).
+      LO QUE NO CUADRA ES EL ESTADO DEL INTERRUPTOR, NO EL DISEÑO.
+    · PENDIENTE (lo comprueba el director): el analysis_type de la fila del 09/10
+      22:20 y el valor actual de ANALYSIS_PAREJA_ENTERA en Vercel Production.
+    ✅ CERRADA CON DATOS LA SEGUNDA HIPÓTESIS DEL DIRECTOR: EL CORTE POR PARECIDO
+    NO EXISTE DESDE EL 23/09/2026. Había 0,50 en rápido y 0,45 en exhaustivo
+    (SCORE_THRESHOLD_QUICK / _EXHAUSTIVE, cortaban trozo a trozo) y se retiraron
+    porque el suelo medido del corpus era 0,696 y no descartaban nada
+    (lib/analysis/retrieval.ts:112-119; criba-de-matches.ts:172). Hoy no hay
+    umbral ni en la recuperación ni en la criba, y el rerank decide sin número.
     Medido el 10/10/2026 por el director con lecturaDeLasParejas,
     coberturaDeCandidatos y presupuestoDelCandidato (claves del jsonb `analysis`)
     sobre las 36 filas que sobreviven al borrado de B.367.
@@ -8692,6 +8729,23 @@ NOTAS DE ORDEN (propuesta, a confirmar)
       caracteres (3.067 de 14.704 en NOR-11, el 21 %). Agrupar por documento
       sólo rinde si además cambia cuánto se lee de cada documento: son dos
       piezas de la misma reparación.
+
+  B.370 — [ABIERTO 10/10/2026 · SIN ARREGLO · NO SE HACE NADA TODAVÍA] LA
+    PUERTA QUE ELIGE CANDIDATOS DECIDE CON 3.000 CARACTERES DEL ANALIZADO Y 300
+    DE CADA CANDIDATO
+    · El rerank recibe del documento analizado sus PRIMEROS 3.000 caracteres
+      (lib/analysis/rerank.ts:71, newDocumentSample.slice(0, 3000)) y, de cada
+      candidato afín, sus fragmentos recortados a 300 caracteres (:53-55). Con
+      eso un modelo elige entre 2 y 4 candidatos (tope de 6 en rápido,
+      MAX_SELECTED_QUICK, :28).
+    · ES LA PUERTA DONDE ESTÁ LA PÉRDIDA MEDIDA: el 30/09 a las 12:20 y 12:29
+      dejó fuera a NOR-11 como candidato de CLI-13, y las dos veces se publicó 0
+      (B.369, puerta 2).
+    · EL ESCALÓN 1 NO LA TOCA: cambia lo que lee el JUEZ de cada pareja, no lo
+      que lee el rerank para decidir qué parejas hay.
+    · Aquí es donde encajaría la propuesta del director de agrupar por documento
+      (MaxP / MMR), junto con cuánto se lee de cada uno (B.369, corrección a la
+      premisa).
 
 Forma de trabajo: diagnóstico con datos reales antes de arreglar; un
 cambio lógico cada vez; build verde entre medias; SQL en Supabase antes
