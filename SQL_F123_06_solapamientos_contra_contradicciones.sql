@@ -1,7 +1,7 @@
 -- ============================================================================
 -- F-123 · ¿CUANTOS MÁS SOLAPAMIENTOS EMITE EL JUEZ, MENOS CONTRADICCIONES? —
 -- SÓLO LECTURA
--- ⏳ PENDIENTE DE EJECUTAR. Sólo SELECT: no escribe nada. Sólo nombres, fechas y
+-- ⏸ ARCHIVADA SIN EJECUTAR, NO NECESARIA POR AHORA (11/10/2026): el arquitecto retira la hipótesis del techo de solapamientos, porque las pasadas del 07/10 que encontraron las tres ya tenían el techo en 10. Sólo SELECT: no escribe nada. Sólo nombres, fechas y
 -- cifras; ni un carácter del texto.
 -- ✅ PROBADO ANTES DE ENTREGARLO (11/10/2026) contra filas sintéticas en un
 -- Postgres local (PGlite): cuenta por pareja lo que el juez emitió (lo que

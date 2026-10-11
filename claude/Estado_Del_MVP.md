@@ -13610,6 +13610,23 @@ están archivados.
   libre» de F-123 §1.6 no dice si aquellos descartes fueron buenos o malos.
 - **d) La vía 2 (fase 3.3) baja otro escalón**: la puerta no mató ninguna contradicción. Su caso
   —LUGAR muriendo en la puerta— no se dio porque LUGAR no se emitió.
+- **e) La hipótesis del techo de solapamientos, RETIRADA por el arquitecto (11/10/2026)**: las
+  pasadas del 07/10 que encontraron las tres trampas ya tenían el techo en 10 (568a77ab, 07/10
+  10:03; B.357). `SQL_F123_06` queda archivada sin ejecutar.
+- **f) OBSERVACIÓN DE LA SALIDA, NO HIPÓTESIS (director, 11/10/2026).** En las 5 pasadas el juez
+  emite un solapamiento titulado «Contenedores de color amarillo para residuos del grupo III»
+  cuyas dos citas caen exactamente en la zona de la trampa NEGACIÓN:
+  - NOR-11: «…y el resto de residuos biosanitarios especiales no punzantes… en bolsa de color
+    amarillo»;
+  - CLI-13: «Agujas, hojas de bisturí y fresas desechadas van siempre al contenedor rígido
+    amarillo…, nunca a una bolsa».
+  El juez mira la zona correcta, coge el subtipo en el que los dos documentos COINCIDEN
+  (punzocortante → amarillo rígido) y lo publica como acuerdo.
+  ⚠️ Las dos citas van como las transcribió el arquitecto, con «…» suyos: el texto literal
+  completo está en `analysis->'judgments'` de esas cinco filas (`overlappingContent` de la pareja
+  con CLI-13), y no se ha copiado aquí.
+- **g) La comprobación que decide si hay algo que buscar**: si las frases sembradas de LUGAR y
+  NEGACIÓN están en el texto de los trozos que recibe el juez, `SQL_F123_07_frases_sembradas_en_los_trozos.sql`.
   - **FASE 2** · F-119 recortada a cuatro movimientos, con sombra primero.
   - **FASE 3** · 3.1 segunda vuelta dirigida · 3.2 verificador ciego · 3.3 vía 2.
   - **APARTE**: el tope duro de gasto del agente, cuando haya hueco.
