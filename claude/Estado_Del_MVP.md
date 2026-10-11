@@ -13511,6 +13511,11 @@ pierde pasadas enteras; a igual pérdida, lo más barato y lo decidido hace más
       **El recuento real de vectores en Pinecone** (`GET /api/admin/vectores-de-un-documento`,
       sólo lectura) **no se usa ahora: hace falta DESPUÉS**, para verificar que el borrado hizo
       lo que debía.
+    - **LA LECTURA «ANTES» DEL BACKFILL (11/10/2026)**: el director ejecutó «1. Analizar (sin
+      escribir)» ANTES del paso B de `SQL_F123_05` y paró al ver la cifra: **50 documentos, 600
+      vectores a etiquetar, `analizado` 248, `pendiente` 352.** Coincide al vector con la
+      predicción de «el cambio no ha entrado». Si el paso B entra, el «después» tiene que dar
+      50 / 600 / `analizado` 224 / `pendiente` 376.
   - **FASE 1** · 1.1 la guarda del rerank · 1.2 presupuesto y régimen de lectura.
     - **1.2, LA CAUTELA DE LA CONVERSIÓN, como DECISIÓN PENDIENTE DE DATO (10/10/2026):**
       - `PRESUPUESTO_PAREJA_TOKENS = 10_000` y `CARACTERES_POR_TOKEN = 4` dan 40.000 caracteres

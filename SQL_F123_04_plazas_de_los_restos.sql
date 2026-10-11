@@ -1,7 +1,7 @@
 -- ============================================================================
 -- F-123 · FASE 0.1: QUÉ PLAZAS SE HAN LLEVADO LOS RESTOS, Y SI ALGÚN PENDIENTE HA
 -- SIDO CANDIDATO — SÓLO LECTURA
--- ⏳ PENDIENTE DE EJECUTAR. Sólo SELECT: no escribe nada. Sólo nombres, fechas y
+-- ✅ EJECUTADA por el director antes del 11/10/2026 (según el arquitecto: el bloque 3a salió vacío; la salida NO se ha pegado en el repositorio). Sólo SELECT: no escribe nada. Sólo nombres, fechas y
 -- cifras; ni un carácter del texto.
 -- ✅ PROBADO ANTES DE ENTREGARLO (10/10/2026) contra filas sintéticas en un
 -- Postgres local (PGlite): cuenta las plazas por documento con su marca, saca

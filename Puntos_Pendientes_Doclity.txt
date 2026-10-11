@@ -8876,6 +8876,50 @@ NOTAS DE ORDEN (propuesta, a confirmar)
       `pendiente` se reindexó. Encontrado el 10/10 por un agente de Code al leer
       las escrituras de `analysisStatus`; comprobado en el código por Code.
     · No se arregla en este encargo (sin tocar producto).
+    · ✅ CENSO DEL 10 Y EL 11/10/2026: DEFECTO REAL EN EL CÓDIGO, SIN CONSTANCIA DE
+      HABER OCURRIDO. Dos vías independientes (datos del director; las salidas no
+      se han pegado en el repositorio):
+      - BASE: el bloque 3a de SQL_F123_04 salió VACÍO: en ningún análisis guardado
+        desde el 22/09 hubo un afín fuera del fondo (`candidatos_fuera_del_fondo`
+        del termómetro), que es lo que este defecto produciría;
+      - PINECONE: la metadata real de los vectores de NOR-11 (fila `pendiente`,
+        15 vectores, los 15 `pendiente`) y NOR-10 (fila `pendiente`, 67 vectores,
+        los 67 `pendiente`), con repartoCuadra true e idsAnomalos vacío.
+      ⚠️ PRECISIÓN DE CODE SOBRE EL ALCANCE DE LAS DOS VÍAS, para que el «sin
+      constancia» no se lea más fuerte de lo que es:
+      - la vía de Pinecone sólo prueba algo sobre B.374 si esos vectores pasaron
+        por REINDEXAR (reparar → swap). NOR-11 y NOR-10 se volvieron a subir a
+        Drive la noche del 09 al 10/10 (B.367): si sus vectores son de generación
+        1, entraron por el sync, que escribe `pendiente` por su cuenta
+        (app/api/drive/sync/route.ts:305), y NO ejercen el camino del defecto.
+        Si son de generación 2 o más, sí. La salida dice la generación de cada id;
+      - la vía de la base cubre a los `pendiente` que aparecieron como afines en
+        análisis guardados desde el 22/09. Uno con vectores mal marcados que nunca
+        saliera de afín no aparecería ahí.
+      Por eso: el backfill no destruye ninguna prueba de lo que se ha mirado; de
+      los otros 28 `pendiente` con vectores no se ha mirado su metadata.
+
+  B.375 — [ANOTADO 11/10/2026 · NO SE TOCA] EL NAMESPACE DEL PILOTO TIENE 602
+    VECTORES Y LA BASE DOCUMENTA 600: SOBRAN DOS
+    · Salida de GET /api/admin/vectores-de-un-documento (director, 11/10):
+      `totalDelNamespaceSegunPinecone` 602 y `vectoresDocumentadosEnLaBase` 600.
+    · QUÉ ES CADA CIFRA: 602 es el recuento de Pinecone para el namespace
+      (contarVectoresDelNamespace, app/api/admin/vectores-de-un-documento/
+      route.ts:152); 600 es la SUMA de `chunk_count` de las filas de la
+      organización (:156-165), o sea lo DECLARADO al indexar.
+    · DE QUÉ DOCUMENTO SON: esa salida NO lo dice; da dos totales. Tres
+      explicaciones posibles, y se distinguen con una lectura:
+        (i) vectores cuyo documento ya no tiene fila (huérfanos de verdad: los
+            borrados del 09-10/10 o anteriores);
+        (ii) vectores de una generación vieja de un documento que sí existe (no
+            son huérfanos: tienen dueño, y `chunk_count` sólo cuenta la activa);
+        (iii) el recuento de Pinecone va con retraso tras un borrado (B.262: un
+            vector borrado puede seguir contando un tiempo).
+      LA LECTURA QUE LOS SEPARA: /api/admin/cleanup → «1. Analizar (sin
+      borrar)», que sólo lee y lista los vectores sin fila agrupados por
+      documento (cleanup-orphans/route.ts:35-50). Si lista 2 → (i), y ahí sí
+      estaría justificado algún día el botón rojo. Si lista 0 → (ii) o (iii).
+    · No se toca ahora.
 
 Forma de trabajo: diagnóstico con datos reales antes de arreglar; un
 cambio lógico cada vez; build verde entre medias; SQL en Supabase antes
