@@ -13627,6 +13627,41 @@ están archivados.
   con CLI-13), y no se ha copiado aquí.
 - **g) La comprobación que decide si hay algo que buscar**: si las frases sembradas de LUGAR y
   NEGACIÓN están en el texto de los trozos que recibe el juez, `SQL_F123_07_frases_sembradas_en_los_trozos.sql`.
+- ⚠️⚠️ **h) ENCONTRADO (11/10/2026): EL JUEZ PONE LUGAR EN `uniqueToNewDoc`.** La segunda lectura
+  (`SQL_F123_08_lo_que_dijo_el_juez_entero.sql`, control OK en sus cuatro filas) cerró el
+  recorrido. Lo que dice su salida, con las palabras del arquitecto (la salida NO se ha pegado en
+  el repositorio, ni la de SQL_F123_07):
+  - La pasada del 11/10 a las 09:08:33 UTC, pareja NOR-11 ↔ CLI-13, emite en `uniqueToNewDoc`,
+    elemento 4: «Punto de retirada centralizado ubicado en clínica de Chamberí (no Retiro como
+    dice CLI-13)». **Es la trampa LUGAR, detectada, con los dos valores nombrados y el conflicto
+    dicho por el propio juez, EMITIDA EN LA LISTA EQUIVOCADA.** `uniqueToNewDoc` no es lista de
+    hallazgos: no pasa por la puerta, no se verifica y no se publica.
+  - **NEGACIÓN no aparece en ninguna parte de la salida**: ni en contradicciones, ni en los 7
+    solapamientos, ni en `uniqueToNewDoc`. Es omisión.
+  - Agravante de NEGACIÓN, observado: los solapamientos 1 y 2 citan el apartado 8 de CLI-13 (la
+    chuleta) y escogen las líneas en las que los dos documentos COINCIDEN. La línea del
+    contenedor negro está en ese mismo apartado, trozo 9, y no la menciona.
+  - Veredicto de la pareja: `overlapPercent: 35 · verdict: tema_similar`.
+- **i) EL CIERRE DEL RECORRIDO, pareja NOR-11 ↔ CLI-13 (11/10/2026):**
+  - **PLAZO**: no se pierde (trozo 2 de los dos documentos).
+  - **LUGAR**: el juez la emite, en `uniqueToNewDoc`. Pérdida DETERMINISTA y RECUPERABLE, no
+    varianza del modelo. (Que esté en las cinco pasadas, no sólo en la de las 09:08, lo comprueba
+    el bloque 1 de `SQL_F123_09_contradicciones_disfrazadas_en_unique.sql`.)
+  - **NEGACIÓN**: el juez no la menciona. Omisión.
+  - Esto cierra, **con evidencia directa y no por descarte**, que para esta pareja no se perdía
+    nada en la selección, ni en cuánto se lee, ni en la puerta.
+  - **EL PORQUÉ, leído en el prompt (`lib/analysis/judge.ts`)**: las instrucciones 1, 2 y 3
+    definen solapamiento, contradicción e inconsistencia menor (`:800-802`), pero
+    **`uniqueToNewDoc` NO TIENE DEFINICIÓN**: sólo aparece en el esquema de respuesta, como
+    `"uniqueToNewDoc": ["aspecto 1", "aspecto 2"]` (`:864`). Lo que el modelo entiende de esa caja
+    sale de su NOMBRE, «exclusivo del documento nuevo», y «Chamberí» es, a la letra, algo que sólo
+    dice el nuevo. Tampoco tiene tope, ni en el prompt (`:850` sólo acota contradicciones,
+    inconsistencias y solapamientos) ni en el código (`:884` la copia tal cual).
+  - **QUÉ SE HACE HOY CON ESA LISTA**: se guarda en el juicio de cada pareja (jsonb `analysis`);
+    no se verifica ni se pinta. La síntesis por modelo no la recibe (su prompt sólo lleva
+    contradicciones y solapamientos, `lib/analysis/synthesize.ts:241-245`); sólo si esa síntesis
+    falla, las tres primeras entradas pasan a `newInformation` (`:287-290`), que la pantalla
+    enseña con el título «Información nueva» (`components/AnalysisModal.tsx:423-434`).
   - **FASE 2** · F-119 recortada a cuatro movimientos, con sombra primero.
   - **FASE 3** · 3.1 segunda vuelta dirigida · 3.2 verificador ciego · 3.3 vía 2.
   - **APARTE**: el tope duro de gasto del agente, cuando haya hueco.

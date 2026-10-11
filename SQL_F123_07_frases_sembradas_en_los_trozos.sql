@@ -1,7 +1,7 @@
 -- ============================================================================
 -- F-123 · ¿ESTÁN LAS FRASES SEMBRADAS EN EL TEXTO QUE RECIBE EL JUEZ? — SÓLO
 -- LECTURA
--- ⏳ PENDIENTE DE EJECUTAR. Sólo SELECT: no escribe nada.
+-- ✅ EJECUTADA por el director el 11/10/2026 (control OK, según el arquitecto). ⚠️ Su salida NO se ha pegado en el repositorio: no está archivada. Sólo SELECT: no escribe nada.
 -- ⚠️ SACA TEXTO DE DOCUMENTO: 300 caracteres alrededor de cada coincidencia, de
 -- NOR-11 y CLI-13, documentos SEMBRADOS del corpus de pruebas (no de un cliente).
 -- ✅ PROBADO ANTES DE ENTREGARLO (11/10/2026) contra filas sintéticas en un

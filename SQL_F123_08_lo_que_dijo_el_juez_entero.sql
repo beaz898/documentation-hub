@@ -1,7 +1,7 @@
 -- ============================================================================
 -- F-123 · LA SEGUNDA LECTURA: QUÉ DIJO EL JUEZ, ENTERO, EN UNA PASADA DE NOR-11
 -- CONTRA CLI-13 — SÓLO LECTURA
--- ⏳ PENDIENTE DE EJECUTAR. Sólo SELECT: no escribe nada.
+-- ✅ EJECUTADA por el director el 11/10/2026 (control OK, según el arquitecto). ⚠️ Su salida NO se ha pegado en el repositorio: no está archivada. Sólo SELECT: no escribe nada.
 -- ⚠️ SACA TEXTO DE DOCUMENTO EN CANTIDAD, SIN RECORTAR: todas las citas del juez
 -- enteras. Son NOR-11 y CLI-13, los dos documentos SEMBRADOS del corpus de
 -- pruebas, NO de un cliente.
