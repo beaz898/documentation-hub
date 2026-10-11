@@ -13517,6 +13517,8 @@ pierde pasadas enteras; a igual pérdida, lo más barato y lo decidido hace más
       predicción de «el cambio no ha entrado». Si el paso B entra, el «después» tiene que dar
       50 / 600 / `analizado` 224 / `pendiente` 376.
   - **FASE 1** · 1.1 la guarda del rerank · 1.2 presupuesto y régimen de lectura.
+    - ⚠️ **1.1, MARCADA EL 11/10/2026: «su premisa no la sostiene la medida del 11/10»** (el rerank
+      descartó bien con sitio libre en las 5 pasadas de NOR-11; ver «LA LÍNEA BASE NUEVA», abajo).
     - **1.2, LA CAUTELA DE LA CONVERSIÓN, como DECISIÓN PENDIENTE DE DATO (10/10/2026):**
       - `PRESUPUESTO_PAREJA_TOKENS = 10_000` y `CARACTERES_POR_TOKEN = 4` dan 40.000 caracteres
         (`lib/analysis/judge.ts:1168-1170`). F-118 pidió 20.000 tokens (F-118:338).
@@ -13567,7 +13569,47 @@ pierde pasadas enteras; a igual pérdida, lo más barato y lo decidido hace más
     LUGAR sigue muriendo en la puerta.»
     - Es del ARQUITECTO, no de Fable. **Si falla, se desmiente su hipótesis y no la de nadie más.**
     - Cifras: `pareja_entera` 5 de 5; PLAZO y NEGACIÓN publicadas en al menos 4 de 5; LUGAR, 0
-      publicadas (muere en la puerta). Estado: sin medir.
+      publicadas (muere en la puerta). ~~Estado: sin medir.~~
+    - ✖ **CALIFICADA EL 11/10/2026: FALLADA. ERA DEL ARQUITECTO** (sexto error suyo del 10 y el
+      11/10, por su cuenta). Cinco análisis rápidos de NOR-11 el 11/10 entre las 09:08 y las
+      09:15, con el corpus ya limpio (datos del director; los logs no se han pegado en el
+      repositorio):
+      - `pareja_entera` 5 de 5 (analizado 14704/14704, candidato 9817/9817): ACERTADA;
+      - PLAZO publicada 5 de 5: ACERTADA;
+      - **NEGACIÓN publicada en al menos 4 de 5: FALLADA. Fue 0 de 5: el juez no la emite;**
+      - LUGAR, 0 publicadas: acertada en el número y ERRÓNEA en el motivo: no muere en la
+        puerta, no se emite.
+
+**LA LÍNEA BASE NUEVA DEL 11/10/2026 (fase 0.3), lo que leyó el arquitecto y lo que precisa Code.**
+Cinco análisis rápidos de NOR-11, del 11/10 entre las 09:08 y las 09:15, con los 14 restos ya
+fuera del corpus. Datos del director; los logs NO se han pegado en el repositorio, así que no
+están archivados.
+- **a) Lo que arregló la limpieza**: la recuperación da 6 candidatos y CERO restos en las 5
+  pasadas. CLI-13 tiene plaza 5 de 5 y la pareja se lee entera 5 de 5.
+- **b) ⚠️ EL HECHO NUEVO: con los dos documentos COMPLETOS, el juez emite 1 de las 3
+  contradicciones sembradas, 5 de 5 veces.** La puerta de citas no mató ninguna contradicción
+  (sólo un solapamiento por pasada, `lado=existente`, `cruzada`). Con 5 pasadas y con régimen,
+  caracteres leídos y candidatos escritos —la evidencia que pide R2—, para esta pareja **queda
+  descartado que la pérdida de LUGAR y NEGACIÓN sea de la selección, de cuánto se lee o de la
+  puerta. La pérdida dominante es la EMISIÓN DEL JUEZ**: es F-120 P2, el séptimo ejecutable que
+  F-123 dejó debajo de la lista, condicionado a que 0.4 viera entradas idénticas.
+  ⚠️ **Precisión de Code sobre la comparación con antes.** El arquitecto la escribió como «antes,
+  con el 11 % del texto y restos robando plazas, emitía las tres en 3 de 10; más texto no mejoró
+  nada». **Esa premisa no se sostiene**: las diez pasadas del 06 al 08/10 fueron PROBABLEMENTE
+  `pareja_entera` (el interruptor está encendido desde el 30/09; B.369, aflojado) y CLI-13 tuvo
+  plaza en ellas (SQL_B357 las midió todas en esa pareja). El 11 % era CLI-12 con el interruptor
+  apagado, otra pareja. Lo que estas cinco pasadas dicen es lo de arriba —con el texto entero, la
+  selección limpia y la puerta sin bajas, el juez emite una de tres—, no que «más texto no
+  mejore».
+- **c) LA GUARDA DEL RERANK: SU PREMISA NO LA SOSTIENE LA MEDIDA DEL 11/10.** El rerank eligió 2
+  de 6 con las 6 plazas libres en las 5 pasadas, y los 4 que descartó son OPE-10, OPE-11, OPE-13
+  y RRHH-08 (tarifarios, cobertura y guardias, sin relación con un protocolo de residuos).
+  **Descartó bien**: la guarda habría forzado 4 llamadas al juez inútiles por pasada.
+  ⚠️ Precisión de Code: es UNA pareja. El caso con el que nació la guarda era otro —B.83, el
+  falso negativo NOR-01 / CLI-03 que murió en el rerank en agosto— y el «8 de 10 con sitio
+  libre» de F-123 §1.6 no dice si aquellos descartes fueron buenos o malos.
+- **d) La vía 2 (fase 3.3) baja otro escalón**: la puerta no mató ninguna contradicción. Su caso
+  —LUGAR muriendo en la puerta— no se dio porque LUGAR no se emitió.
   - **FASE 2** · F-119 recortada a cuatro movimientos, con sombra primero.
   - **FASE 3** · 3.1 segunda vuelta dirigida · 3.2 verificador ciego · 3.3 vía 2.
   - **APARTE**: el tope duro de gasto del agente, cuando haya hueco.
