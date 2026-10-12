@@ -13508,6 +13508,23 @@ también esa lista a 10. Las instrucciones 4 a 8 de antes pasan a ser la 5 a la 
 - **DEUDA ANOTADA, NO SE TOCA**: `topic` sin definición, pero nada se filtra por él; `verdict`
   definido a medias (`reformulacion` y `solapamiento_parcial` no aparecen en el prompt), sin
   validar el valor, y `duplicado_exacto` sí cambia el camino (`synthesize.ts:239`).
+- ⚠️ **LOS EJEMPLOS DE LA INSTRUCCIÓN 4, CAMBIADOS ANTES DEL PUSH (12/10/2026).** La primera
+  redacción ponía como ejemplo negativo «"El punto está en Chamberí" cuando el existente dice
+  "Retiro"», que es LITERALMENTE la respuesta de la trampa LUGAR que P-F124-1 va a medir: con ese
+  ejemplo, la medida no probaba la definición sino si el juez sabe copiar del prompt. Lo pidió el
+  arquitecto (séptimo error suyo en tres días, por su cuenta) y lo vio Code al revisar el diff.
+  Los dos ejemplos son ahora inventados: devoluciones (positivo) y una sede central en Zaragoza
+  frente a Bilbao (negativo). Ninguna de esas palabras aparece en los 27 ficheros de
+  `corpus-pruebas/` (comprobado el 12/10 sobre el texto extraído de cada uno; «custodia» y
+  «Valencia» se descartaron por aparecer en CLI-03 y en `SIEMBRA_falsos_de_agosto.md`).
+- **DEUDA ANOTADA, NO SE TOCA EN ESTE COMMIT: la regla de las remisiones YA tenía el mismo
+  problema antes de hoy.** `lib/analysis/judge.ts:850` pone como ejemplos «ver CLI-03» y
+  «conforme a NOR-01», dos documentos reales del corpus del piloto. Puede estar sesgando cómo
+  trata el juez las remisiones de esos dos documentos concretos. No se cambia aquí: no es de este
+  cambio y movería dos cosas a la vez.
+- **DEUDA ANOTADA: el error de tipos de `lib/analysis/glosa-de-cita.test.ts:43`**
+  (`verdict: 'contradiccion'`, que no es un valor del tipo), de 94efab9e, 08/10. Lo da
+  `npm run typecheck`; el build de producción no lo ve. Commit aparte, cuando toque.
 
 **EL ORDEN DE EJECUCIÓN DE F-123 (10/10/2026)** — dictamen archivado en
 `claude/consultas-fable/F-123_2026-10-10_orden-de-ejecucion.md`. Criterio de Fable: nada se
@@ -13771,6 +13788,20 @@ pone rojo. Si sigue verde, no controla nada. Los dos casos del mismo día:
   descarte sin esos tres datos se registra como «hipótesis viva, no medida».
 - **R3 · EL RELOJ.** Antes de cada respuesta de Fable debe constar la línea «frentes decididos y
   sin commit desde hace más de 7 días», sacada de la tabla de R1.
+
+**REGLA DE MÉTODO (12/10/2026): UN EJEMPLO DEL PROMPT NO PUEDE CONTENER LA RESPUESTA DEL CASO QUE SE
+VA A MEDIR.** Antes de aprobar un cambio de prompt se comprueba que ningún ejemplo nombre un
+documento, un dato o un valor del corpus de prueba.
+- **El caso**: la primera redacción de la definición de `uniqueToNewDoc` (fase 1.0) ponía como
+  ejemplo negativo Chamberí frente a Retiro, la respuesta exacta de la trampa LUGAR que la medida
+  siguiente iba a contar. Se cambió antes del push por Zaragoza frente a Bilbao, comprobado contra
+  el corpus.
+- **Su hermana, del mismo día: EN LOS COMMITS DE REGISTROS TAMBIÉN SE PASA LA SUITE**, porque hay
+  pruebas sobre la forma del registro (`lib/documentacion/invariantes-de-estado.test.ts`). El
+  caso: tres frases con la palabra de bloqueo fuera de su sección (la regla I3 de la prueba),
+  escritas el 10/10, pusieron la suite en
+  rojo y se subieron así en `bc36aae8` y `e1269406`; se vio el 12/10 al pasar la suite por el
+  commit del prompt.
 
 **REGLA DE MÉTODO (09/10/2026): ANTES DE PROPONER UNA CAUSA, COMPROBAR SI YA ESTÁ MEDIDA.** Cuando el
 arquitecto proponga una explicación, el primer paso del encargo es buscarla en
