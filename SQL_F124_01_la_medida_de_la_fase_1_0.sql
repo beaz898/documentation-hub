@@ -1,7 +1,7 @@
 -- ============================================================================
 -- F-124 · LA MEDIDA DE LA FASE 1.0: LAS SEIS PASADAS DE NOR-11 DEL 12/10, LEÍDAS
 -- DE LA BASE — SÓLO LECTURA
--- ⏳ PENDIENTE DE EJECUTAR. Sólo SELECT: no escribe nada.
+-- ✅ EJECUTADA por el director el 12/10/2026 (todos los controles OK, incluido el positivo del detector, según el arquitecto). ⚠️ Su salida NO se ha pegado en el repositorio: el encargo la anunciaba «al final» y no venía. No está archivada. Sólo SELECT: no escribe nada.
 -- ⚠️ SACA TEXTO DE DOCUMENTO: citas enteras del juez y entradas de
 -- `uniqueToNewDoc`. Son NOR-11 y CLI-13, documentos SEMBRADOS del corpus de
 -- pruebas, NO de un cliente.

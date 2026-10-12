@@ -13607,6 +13607,23 @@ que sigue lo transcribe Code de esos seis logs). Hora del log en UTC: de 19:28:4
   contra práctica») queda en espera, por orden del arquitecto. Con NEGACIÓN publicándose 6 de 6
   puede no hacer falta, y eso se decide con la lectura de `SQL_F124_01`.
 
+**LA LECTURA DE `SQL_F124_01` (12/10/2026): TODO OK, SEGÚN EL ARQUITECTO.** Ejecutada por el
+director el 12/10. ⚠️ **SALIDA NO ARCHIVADA**: el encargo la anunciaba pegada «al final» y no venía.
+Las cifras de abajo son del arquitecto, no de un archivo; se cotejan el día que se pegue la salida.
+- **P-ARQ-F124-1: ACERTADA** (la califica el arquitecto). En las seis pasadas, **0** entradas de
+  `uniqueToNewDoc` que nombran a CLI-13 y **0** de LUGAR. Entradas por pasada, en orden de hora:
+  **10, 7, 8, 9, 8, 7**. ⚠️ **La primera tocó el tope de 10 del prompt**: puede haber truncado algo,
+  y la salida no dice qué. Lo que queda dentro, según el arquitecto, es exclusivo de NOR-11.
+- **«Publicada» queda confirmado contra la base**, no contra el log: en las seis, PLAZO y NEGACIÓN
+  en `analysis->'discrepancies'` con `confirmedBy: juicio` y `contradictions_found = 2`. Ninguna
+  de especie OTRA: cero falsos positivos.
+- **NEGACIÓN se publica con sus DOS citas literales**: la de NOR-11 sobre la bolsa amarilla y la
+  frase sembrada de CLI-13 sobre el contenedor negro. Hallazgo probado, no rescatado a medias.
+- **En LUGAR falla SÓLO el lado nuevo.** La cita del existente (CLI-13) pasa como `literal`. Eso
+  acota el arreglo: no es «las citas», es UN lado de UNA cita con firma conocida —el empalme de dos
+  frases de NOR-11 en orden inverso, `cabeza_sin_cola`—, 6 de 6.
+- **El segundo commit de la 1.0** («norma contra práctica») sigue en espera.
+
 **EL ORDEN DE EJECUCIÓN DE F-123 (10/10/2026)** — dictamen archivado en
 `claude/consultas-fable/F-123_2026-10-10_orden-de-ejecucion.md`. Criterio de Fable: nada se
 cambia sin línea base; nada se mide con los 14 restos compitiendo en la búsqueda; primero lo que

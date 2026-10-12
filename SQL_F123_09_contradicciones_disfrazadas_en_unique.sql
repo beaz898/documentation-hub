@@ -1,7 +1,7 @@
 -- ============================================================================
 -- F-123 · ¿ES SISTEMÁTICO? CADA ENTRADA DE `uniqueToNewDoc` DE TODOS LOS
 -- ANÁLISIS, CON LAS SEÑALES DE CONTRADICCIÓN DISFRAZADA — SÓLO LECTURA
--- ⏳ PENDIENTE DE EJECUTAR. Sólo SELECT: no escribe nada.
+-- ✅ EJECUTADA por el director antes de la consulta F-124 (12/10/2026), que cita su resultado: 1.437 entradas, 7 que nombran al candidato de su pareja. La fecha exacta no consta. ⚠️ Su salida NO se ha pegado en el repositorio: no está archivada. Sólo SELECT: no escribe nada.
 -- ⚠️ SACA TEXTO DEL JUEZ: cada entrada de `uniqueToNewDoc` es una frase que el
 -- modelo escribió sobre el documento analizado (no una cita literal, pero puede
 -- nombrar datos del documento). Organización del piloto, corpus de pruebas.
