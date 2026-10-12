@@ -25,7 +25,11 @@ Estado: ARCHIVADA CON DICTAMEN · EL ORDEN QUE DICTA SUSTITUYE A LA REGLA DE
           2701 palabras.
           60 primeros: "# CONSULTA F-123 — 10/10/2026 — ORDEN DE EJECUCIÓN, NO MECAN"
           60 últimos:  "do o aparcado y **no queremos que entre en esta respuesta**."
-Superada por: —
+Superada por: F-124 (12/10/2026), EN PARTE: fase 1.0 nueva (la caja de
+        `uniqueToNewDoc`), la guarda 1.1 ARCHIVADA con condición de reapertura,
+        y la vía 2 renumerada a 3.4 y con otra justificación («la exigencia de
+        copiar hace que LUGAR no llegue a la caja de contradicción»). Lo demás
+        de F-123 sigue mandando.
 ---
 
 # (a) CABECERA

@@ -13439,6 +13439,57 @@ prueba.**
   y la sustituye el orden de P1. Congeló F-119, que era lo que había que descongelar»). La
   sustituye el orden de abajo.
 
+**EL ORDEN ACTUALIZADO POR F-124 (12/10/2026)** — dictamen archivado en
+`claude/consultas-fable/F-124_2026-10-12_la-caja-sin-definir.md`. Corrige el de F-123 (abajo)
+EN PARTE; F-123 sigue mandando en lo demás.
+- **FASE 0**: 0.1 HECHA (los 14 restos fuera del corpus, 11/10); 0.2, 0.3 y 0.4 en curso.
+- **FASE 1**: **1.0 LA CAJA** (`uniqueToNewDoc`: definición con ejemplo positivo y negativo,
+  prohibición de nombrar al candidato, tope de 10 en prompt y en código, consumidor siempre
+  visible, rescate de red con el contador `rescatadas_de_caja`, segunda llamada para las
+  rescatadas, y el censo del esquema; un commit de prompt y uno de código) → **1.2 presupuesto de
+  lectura**.
+  - **1.1, LA GUARDA DEL RERANK: ARCHIVADA**, con esta condición de reapertura, escrita: **«si los
+    contadores de 0.2 muestran, en cualquier pasada, un candidato VERDADERO de una trampa
+    descartado por el rerank con sitio libre, la guarda vuelve».**
+- **FASE 2**: F-119 recortada, con sombra. ⚠️ **NO ESTÁ EN CURSO: está dictaminada y SIN
+  EMPEZAR.** Fable escribió «en curso» por una lectura equivocada de la consulta (F-124 (f)).
+- **FASE 3**: **3.0** experimento de NEGACIÓN (cinco pasadas, el juez emitiendo sólo
+  contradicciones) → **3.1** segunda vuelta dirigida (sirve a los hallazgos a medias Y a las
+  rescatadas) → **3.2** remedio de NEGACIÓN según lo que diga 3.0 → **3.3** verificador ciego →
+  **3.4 vía 2, CONDICIONADA** (tras 1.0, cinco pasadas: si LUGAR aparece como contradicción y la
+  puerta la mata en 3 de 5 o más, se ejecuta; si se publica sin tocar la puerta, se archiva con
+  fecha).
+- **EL SÉPTIMO EJECUTABLE (F-120 P2) QUEDA DECIDIDO**: entra en la fase 3, con la forma que diga
+  3.0.
+- **Las predicciones** (P-F124-1 a 5, de Fable, y **P-ARQ-F124-1, del arquitecto: el contador
+  `rescatadas_de_caja` tiende a cero tras el arreglo del prompt**) están en la sección (e) de
+  F-124.
+
+**EL CENSO DEL ESQUEMA DEL JUEZ (12/10/2026, encargo de F-124 a Code).** Cada campo del esquema de
+respuesta de `lib/analysis/judge.ts:853-865`, leído en el prompt (`:763-865`) y en sus
+consumidores. «Contador» = sale en `pipelineCounters` o en el `discarded` de la pareja; el
+termómetro no lleva nada del juez.
+
+| Campo | (a) Definición en el prompt | (b) Tope | (c) Consumidor | (d) Contador | (e) Puerta / verificador |
+|---|---|---|---|---|---|
+| `overlapPercent` | SÍ: instr. 4 (`:803`), y sus umbrales en las 5-7 (`:804-806`) | código: se acota a 0-100 (`:880`) | síntesis: severidad del solapamiento (`synthesize.ts:167`, `:194`), duplicado (`:238-239`), prompt del resumen (`:244`) → pantalla | no | no / no |
+| `verdict` | **EN PARTE**: `tema_similar` (`:804`), `sin_relacion` (`:805`), `duplicado_exacto` (`:806`). **`reformulacion` y `solapamiento_parcial` no aparecen en el prompt**: existen sólo en el tipo (`:59`) | ninguno: `response.verdict \|\| 'sin_relacion'` (`:881`), sin validar el valor | síntesis: duplicado (`synthesize.ts:239`) y prompt del resumen (`:244`) | no | no / no |
+| `contradictions[]` | SÍ: instr. 2 (`:801`), con ejemplos de lo que sí (`:809`) y lo que no (`:815`) | prompt: 10 (`:850`); código: ninguno | frontera (`llm-boundary.ts:87`), puerta, cascada y verificador, síntesis (`construirDiscrepancias`, `synthesize.ts:69`) → pantalla | SÍ: `verificador.*` (`counters.ts:215-220`), `frontera.*` y los de la puerta | SÍ / SÍ |
+| `…topic` | **NINGUNA**: sólo el ejemplo «tema» del esquema (`:858`) | ninguno | título de la tarjeta, `descartesPorCita.tema`, el verificador lo recibe (`pipeline.ts:534`) | `frontera.topic_ausente` (`llm-boundary.ts:119`) | no / lo lee |
+| `…newDocSays`, `…existingDocSays` | SÍ: reglas de formato (`:842-847`) | ninguno de longitud | la puerta de citas | los de la puerta | SÍ / SÍ |
+| `…severity` | SÍ: instr. 3 (`:802`) y obligatoriedad (`:851`) | prompt: 5 inconsistencias menores (`:850`); código: valida el valor (`llm-boundary.ts:121-123`) | síntesis: contradicción frente a inconsistencia menor; el verificador puede cambiarla (`pipeline.ts:564`) | `frontera.severity_invalida` | — |
+| `overlappingContent[]` | SÍ: instr. 1 (`:800`) | prompt: 10 (`:850`); código: ninguno | frontera (`traducirSolapamientosDelJuez`), puerta, síntesis (`construirOverlaps`, `synthesize.ts:136`) → pantalla | `frontera.solapamiento_*` y los de la puerta (mezclados con contradicciones); en `pipelineCounters`, ninguno propio | SÍ / **NO** (`pipeline.ts:168-172`) |
+| `…description` | SÍ: `:848` | ninguno | el título del solapamiento, el prompt del resumen | no | no / no |
+| `…evidenceInNewDoc`, `…evidenceInExistingDoc` | SÍ: reglas de formato (`:842-847`) | ninguno de longitud | la puerta de citas | los de la puerta | SÍ / no |
+| **`uniqueToNewDoc`** | **NINGUNA**: sólo «aspecto 1», «aspecto 2» en el esquema (`:864`) | **ninguno**, ni en el prompt ni en el código (`:884`) | **casi nadie**: la síntesis por modelo no la recibe (`synthesize.ts:241-245`); sólo si esa síntesis falla, sus tres primeras entradas pasan a «Información nueva» (`:287-290`) | **no** | **no / no** |
+
+- **`uniqueToExistingDoc` NO EXISTE**, ni ningún campo hermano: no está en el esquema, en el tipo
+  (`judge.ts:56-69`) ni en ningún fichero de `lib/`, `app/` o `components/`.
+- **Para P-F124-5, la lectura** (la calificación es del arquitecto): además de `uniqueToNewDoc`,
+  hay un campo sin definición —`topic`— y uno definido sólo en parte —`verdict`, dos de cinco
+  valores sin aparecer en el prompt—. La segunda mitad de la predicción no aplica: el campo
+  hermano no existe.
+
 **EL ORDEN DE EJECUCIÓN DE F-123 (10/10/2026)** — dictamen archivado en
 `claude/consultas-fable/F-123_2026-10-10_orden-de-ejecucion.md`. Criterio de Fable: nada se
 cambia sin línea base; nada se mide con los 14 restos compitiendo en la búsqueda; primero lo que
