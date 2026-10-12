@@ -13526,6 +13526,87 @@ también esa lista a 10. Las instrucciones 4 a 8 de antes pasan a ser la 5 a la 
   (`verdict: 'contradiccion'`, que no es un valor del tipo), de 94efab9e, 08/10. Lo da
   `npm run typecheck`; el build de producción no lo ve. Commit aparte, cuando toque.
 
+**FASE 1.0, LA MEDIDA DEL PRIMER COMMIT (12/10/2026): 2 DE 3 PUBLICADAS.** Seis pasadas rápidas de
+NOR-11 lanzadas por el director el 12/10, con el log pegado en el encargo (NO archivado entero: lo
+que sigue lo transcribe Code de esos seis logs). Hora del log en UTC: de 19:28:41 a 20:23:21.
+- **QUÉ PROMPT LAS JUZGÓ.** El de `00ed4235`, con los ejemplos inventados: devoluciones y la sede
+  central en Zaragoza frente a Bilbao (`lib/analysis/judge.ts:803`; el tope, `:851`). **La
+  versión con Chamberí y Retiro (`ff5a6583`) nunca estuvo sola en `origin`**: los cinco commits
+  subieron en UN push (`9a0e0ed8..00ed4235`), a las 21:26:55 hora de Madrid según el reflog de
+  `origin/main`, que son las 19:26:55 UTC. Cuando un push trae varios commits, Vercel construye
+  sólo el último: así se comporta Vercel, pero en este panel Code no lo ha visto. La primera pasada empieza 106 segundos después del push. **Que el despliegue
+  estaba listo a esa hora no lo ve Code**: lo dice la conducta, porque LUGAR cambia de caja, y lo
+  confirma el director en el panel de Vercel. ⚠️ El encargo nombraba los ejemplos limpios como
+  «Sevilla / Valencia», y no lo son: Valencia se descartó porque aparece en el corpus.
+- **EL RESULTADO, PASADA A PASADA** (pareja con CLI-13, régimen `pareja_entera`, 14704/14704 y
+  9817/9817):
+
+  | Pasada (UTC, fin del juez) | overlap | Contradicciones del juez | Solapamientos | PLAZO `e7785038` | NEGACIÓN `5a59c682` | LUGAR |
+  |---|---|---|---|---|---|---|
+  | 19:29:12 | 45 % | 3 | 8 | verificada y confirmada | verificada y confirmada | `ebe45632`, puerta, 206 caracteres |
+  | 19:30:09 | 45 % | 3 | 8 | ídem | ídem | `ebe45632`, puerta, 206 |
+  | 19:31:03 | 45 % | 3 | 8 | ídem | ídem | `ebe45632`, puerta, 206 |
+  | 19:32:19 | 45 % | 3 | **9** | ídem | ídem | **`976f6174`**, puerta, **111** |
+  | 20:22:35 | 45 % | 3 | 8 | ídem | ídem | `ebe45632`, puerta, 206 |
+  | 20:23:18 | 45 % | 3 | 8 | ídem | ídem | `ebe45632`, puerta, 206 |
+
+  En las seis, el verificador dice «2 hallazgos → 2 confirmados (2 por juicio), 0 descartados, 0
+  reclasificados». CLI-12, en `corte_honesto`, sale con 0 contradicciones las seis veces. Antes del
+  cambio, la pareja salía con `overlap=35%` y 1 contradicción. NEGACIÓN salía 0 de 5 el 11/10, y
+  hoy sale 6 de 6.
+  ⚠️ **«Publicada» en este registro quiere decir «confirmada por el verificador en el log».** Que
+  esté en `analysis->'discrepancies'` y en `contradictions_found` lo comprueba
+  `SQL_F124_01_la_medida_de_la_fase_1_0.sql` (bloque 0, control 3), que está pendiente de ejecutar.
+- **LAS PREDICCIONES, CALIFICADAS** (las califica el arquitecto en su encargo del 12/10; Code
+  comprobó las cifras contra los seis logs):
+  - **P-F124-1: ACERTADA, 6 de 6** (predecía 4 de 5 o más). Medida con el prompt limpio.
+  - **P-F124-2: ACERTADA, 6 de 6** (predecía 3 de esas 4 o más).
+  - **CONTROL DE NO REGRESIÓN: CUMPLIDO.** PLAZO sale 6 de 6, y no hay ningún falso positivo nuevo:
+    en las seis pasadas no hay más contradicciones que las tres, y CLI-12 da 0.
+  - **P-F124-4 (el experimento de NEGACIÓN con el juez emitiendo sólo contradicciones):
+    POSIBLEMENTE INNECESARIA, A CONFIRMAR.** No está acertada ni fallada, porque el experimento no
+    se ha hecho. NEGACIÓN sale 6 de 6 sin separar las tareas. ⚠️ Esto cambia la premisa de la 3.0
+    y la 3.2: lo que se medía para decidir el remedio de NEGACIÓN ya no tiene caso que arreglar en
+    esta pareja.
+  - **P-ARQ-F124-1** (el contador de rescatadas tiende a cero): sin calificar. La lectura es el
+    bloque 1 de `SQL_F124_01`.
+- **LA FIRMA DE LA MUERTE DE LUGAR — EL CASO MEDIDO DE LA VÍA 2 (fase 3.4): 6 de 6, firma
+  estable, una sola causa.** Siempre muere en la puerta, del `lado=nuevo` (la cita de NOR-11), con
+  `paso=cabeza_sin_cola`. ⚠️ **NO ES UNA REESCRITURA, ES UN EMPALME.** El encargo la llamaba «el
+  juez reescribió la cabeza y copió bien la cola». Code lo comprobó el 12/10 sobre el texto de
+  `corpus-pruebas/NOR-11_gestion-de-residuos-sanitarios.docx` (extraído con mammoth; el pajar de
+  producción es el texto armado desde los trozos, pero estas frases van igual en los dos), y **los
+  dos trozos de la cita están LITERALES en el documento, en dos frases distintas y en orden
+  inverso**:
+  - **La cabeza**, «El punto de retirada centralizado concentra el material de las tres clínicas»,
+    es del apartado **6.1, «Coordinación logística entre clínicas»**: «Dado que el punto de
+    retirada centralizado concentra el material de las tres clínicas, cada centro coordina…».
+    Está en la posición 8.029 del texto.
+  - **La cola**, «, ubicado en la clínica de Chamberí, desde donde se coordina y documenta el
+    transporte del material recogido en Salamanca y Retiro», es de la frase sembrada: «El gestor
+    autorizado recoge los residuos de las tres clínicas en un punto de retirada centralizado,
+    ubicado en la clínica de Chamberí, desde donde se coordina y documenta el transporte del
+    material recogido en Salamanca y Retiro hasta su destino final de tratamiento.» Está en la
+    posición 7.307, **antes** de la cabeza.
+  - **Cabeza más cola dan exactamente 206 caracteres.** Y la de 111 de las 19:32 es la misma
+    cabeza más «, ubicado en la clínica de Chamberí»: también 111 exactos. **El log corta la cita
+    a 200** (`judge.ts:455`). Por eso el texto del encargo termina en «Salamanca y »: la cita
+    guardada termina en «Retiro». El bloque 3 de `SQL_F124_01` la saca entera, con su longitud.
+  - **Por qué `cabeza_sin_cola`, línea a línea** (`lib/analysis/coincidencia-de-cita.ts:162-169`):
+    la puerta toma los 20 primeros caracteres normalizados de la cita («el punto de retirada»).
+    Los encuentra en el apartado 6.1, porque la frase sembrada dice «**un** punto de retirada».
+    Busca la cola sólo DESPUÉS de esa posición, y la cola está antes. El nombre del paso es
+    exacto: la cabeza está y la cola no está detrás.
+  - **El repliegue de glosa no la cubre**: sólo quita tramos entre corchetes
+    (`glosa-de-cita.ts:29`), y esta cita no tiene ninguno.
+  - **Lo que esto aporta a la vía 2**: el juez no inventa texto. Compone una frase con dos trozos
+    verdaderos, y la exigencia de copiar una sola frase contigua es lo que la tira. Con punteros,
+    el juez señalaría la frase sembrada y no tendría que componer nada. Si esto pide la vía 2 o
+    algo más pequeño lo decide el arquitecto, y Code no lo propone.
+- **NADA MÁS EN ESTE COMMIT**: el segundo commit de la 1.0 (contradicción ampliada a «norma
+  contra práctica») queda en espera, por orden del arquitecto. Con NEGACIÓN publicándose 6 de 6
+  puede no hacer falta, y eso se decide con la lectura de `SQL_F124_01`.
+
 **EL ORDEN DE EJECUCIÓN DE F-123 (10/10/2026)** — dictamen archivado en
 `claude/consultas-fable/F-123_2026-10-10_orden-de-ejecucion.md`. Criterio de Fable: nada se
 cambia sin línea base; nada se mide con los 14 restos compitiendo en la búsqueda; primero lo que

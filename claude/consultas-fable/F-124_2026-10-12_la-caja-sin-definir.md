@@ -9,7 +9,11 @@ Fuente: texto pegado por el director en el encargo del 12/10/2026. Los dos
         constan íntegros: la consulta en (c) y el dictamen en (d).
 Estado: ARCHIVADA CON DICTAMEN · CORRIGE F-123 EN PARTE (fase 1.0 nueva, 1.1
         archivada con condición, vía 2 renumerada a 3.4 con otra
-        justificación, séptimo ejecutable decidido). Nada ejecutado todavía.
+        justificación, séptimo ejecutable decidido). Fase 1.0, primer commit
+        (00ed4235) MEDIDO el 12/10/2026 en seis pasadas: P-F124-1 y P-F124-2
+        ACERTADAS 6 de 6; P-F124-4 posiblemente innecesaria, a confirmar;
+        P-ARQ-F124-1 sin calificar. La tabla (e) no se toca: las
+        calificaciones están en claude/Estado_Del_MVP.md (12/10/2026).
         Cotejo de integridad, 12/10/2026, con el método de F-121: sha256 del
         texto tal como queda archivado aquí (saltos LF, sin salto final), 16
         primeros hexadecimales; caracteres = puntos de código; palabras = trozos
