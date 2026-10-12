@@ -800,11 +800,12 @@ INSTRUCCIONES CRÍTICAS:
 1. "Solapamiento" significa contenido que se repite, aunque esté redactado con palabras distintas. NO significa compartir tema general.
 2. "Contradicción" significa que ambos documentos afirman cosas INCOMPATIBLES sobre el mismo dato concreto. Es decir: es IMPOSIBLE que ambas afirmaciones sean verdaderas a la vez.
 3. "Inconsistencia menor" significa que ambos documentos hablan del mismo tema con enfoques, matices o énfasis diferentes, pero no son estrictamente incompatibles.
-4. El porcentaje de solapamiento debe reflejar CUÁNTO del documento nuevo ya está en el existente, no la similitud temática.
-5. Si los documentos hablan del mismo tema pero con contenido distinto, veredicto = "tema_similar", overlapPercent < 20.
-6. Si los documentos NO comparten contenido concreto —solo el ámbito general, o hablan de datos distintos—, veredicto = "sin_relacion", overlapPercent = 0, y las listas de contradicciones y solapamientos VACÍAS. Es una respuesta válida y frecuente.
-7. Solo marca "duplicado_exacto" si el contenido es prácticamente idéntico (>85% del nuevo ya está en el existente).
-8. Revisa TODO el documento nuevo, no solo las primeras líneas. Revisarlo entero no implica que tengas que encontrar algo.
+4. "Exclusivo del nuevo" (la lista uniqueToNewDoc) significa un tema, dato o apartado que el documento nuevo trata y el documento existente no menciona en absoluto. Ejemplo: NOR-11 incluye un procedimiento de trazabilidad por lotes y CLI-13 no habla de trazabilidad. NO es exclusivo un valor distinto para un dato que el documento existente también da: "El punto está en Chamberí" cuando el existente dice "Retiro" es una CONTRADICCIÓN y va en contradictions. Una entrada de esta lista no puede nombrar al documento existente ni contener una comparación.
+5. El porcentaje de solapamiento debe reflejar CUÁNTO del documento nuevo ya está en el existente, no la similitud temática.
+6. Si los documentos hablan del mismo tema pero con contenido distinto, veredicto = "tema_similar", overlapPercent < 20.
+7. Si los documentos NO comparten contenido concreto —solo el ámbito general, o hablan de datos distintos—, veredicto = "sin_relacion", overlapPercent = 0, y las listas de contradicciones y solapamientos VACÍAS. Es una respuesta válida y frecuente.
+8. Solo marca "duplicado_exacto" si el contenido es prácticamente idéntico (>85% del nuevo ya está en el existente).
+9. Revisa TODO el documento nuevo, no solo las primeras líneas. Revisarlo entero no implica que tengas que encontrar algo.
 
 EJEMPLOS DE LO QUE SÍ ES CONTRADICCIÓN:
 - "El plazo de entrega es 30 días" vs "El plazo de entrega es 15 días"
@@ -847,7 +848,7 @@ REGLAS DE FORMATO:
 - Si no puedes copiar una frase literal que sustente el hallazgo, no emitas ese hallazgo.
 - En description: describe QUÉ contenido concreto comparten los dos documentos, en una frase. No vale describir características genéricas que compartirían casi todos los documentos de la empresa (mismo autor, misma plantilla, ambos citan normativa, ambos tienen sección de referencias). Si lo único en común es de ese tipo, NO emitas el solapamiento.
 - Una REMISIÓN no es solapamiento ni contradicción. Si el documento nuevo se limita a remitir a otro documento ("ver CLI-03", "conforme a NOR-01", "según el protocolo X") sin afirmar contenido propio sobre ese tema, no emitas hallazgo con ese documento por esa remisión.
-- Máximo 10 contradicciones, 5 inconsistencias menores y 10 solapamientos.
+- Máximo 10 contradicciones, 5 inconsistencias menores, 10 solapamientos y 10 exclusivos del nuevo.
 - El campo "severity" es obligatorio en cada contradicción: "contradiction" si son incompatibles, "minor_inconsistency" si son diferencias de enfoque o matiz.
 
 Responde con este JSON (sin bloques de código, sin texto adicional):
