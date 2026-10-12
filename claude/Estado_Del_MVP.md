@@ -13490,6 +13490,25 @@ termómetro no lleva nada del juez.
   valores sin aparecer en el prompt—. La segunda mitad de la predicción no aplica: el campo
   hermano no existe.
 
+**FASE 1.0, PRIMER COMMIT: EL CONTRATO DE LA CAJA EN EL PROMPT (12/10/2026).** Un solo commit, de
+prompt: la instrucción 4 nueva define «exclusivo del nuevo» (la lista `uniqueToNewDoc`) con
+ejemplo positivo, ejemplo negativo (Chamberí / Retiro) y prohibición, y el tope pasa a acotar
+también esa lista a 10. Las instrucciones 4 a 8 de antes pasan a ser la 5 a la 9.
+- **LO QUE ESTE COMMIT PONE A PRUEBA, escrito ANTES de medir** (cinco pasadas rápidas de NOR-11
+  contra el corpus, con la pareja con CLI-13):
+  - **P-F124-1**: LUGAR aparece como CONTRADICCIÓN en 4 de 5 pasadas o más;
+  - **P-F124-2**: y la puerta de citas la mata en 3 de esas 4 o más;
+  - **CONTROL DE NO REGRESIÓN**: PLAZO sigue publicándose 5 de 5, y cero falsos positivos nuevos.
+- **LO QUE NO ENTRA EN ESTE COMMIT, y por qué**: el tope en CÓDIGO (commit aparte); el consumidor
+  («solo en el nuevo» publicado siempre, en su sección: commit aparte, toca pantalla); el rescate
+  con `rescatadas_de_caja` y la segunda llamada (después de medir; la segunda llamada es la 3.1);
+  y la definición de contradicción ampliada a «norma contra práctica» (**commit aparte, después
+  de medir éste**: si se mueven las dos definiciones a la vez y algo cambia, hay dos causas y
+  ninguna medida; la misma regla que el presupuesto y la conversión).
+- **DEUDA ANOTADA, NO SE TOCA**: `topic` sin definición, pero nada se filtra por él; `verdict`
+  definido a medias (`reformulacion` y `solapamiento_parcial` no aparecen en el prompt), sin
+  validar el valor, y `duplicado_exacto` sí cambia el camino (`synthesize.ts:239`).
+
 **EL ORDEN DE EJECUCIÓN DE F-123 (10/10/2026)** — dictamen archivado en
 `claude/consultas-fable/F-123_2026-10-10_orden-de-ejecucion.md`. Criterio de Fable: nada se
 cambia sin línea base; nada se mide con los 14 restos compitiendo en la búsqueda; primero lo que
@@ -13606,11 +13625,11 @@ pierde pasadas enteras; a igual pérdida, lo más barato y lo decidido hace más
         trozos, `vectores_declarados` coincide con `trozos` (55/55, 11/11, 64/64, 64/64, 15/15,
         15/15), y en SQL_F123_02 el mínimo es igual al máximo en los seis: ninguno se reindexó
         entre los análisis observados. Salidas en `claude/Salidas_SQL_F123_2026-10-10.md`.
-      - **EL PRESUPUESTO NO BLOQUEA LA PAREJA SEMBRADA (10/10/2026):** NOR-11 (14.704) + CLI-13
+      - **EL PRESUPUESTO NO IMPIDE LEER ENTERA LA PAREJA SEMBRADA (10/10/2026):** NOR-11 (14.704) + CLI-13
         (9.817) = 24.521 caracteres renderizados, dentro de los 40.000 de hoy. La fase 1.2 sólo
         afecta a las parejas de CLI-12 (55.135) y NOR-10 (66.801). **Esto reordena: para la pareja
         sembrada, la limpieza mueve la aguja y el presupuesto no.**
-  - **LA LÍNEA BASE NO ESTÁ BLOQUEADA — segunda corrección del arquitecto del 10/10/2026.** Dijo
+  - **LA LÍNEA BASE NO ESTÁ PARADA — segunda corrección del arquitecto del 10/10/2026.** Dijo
     que lo estaba porque NOR-11 está `pendiente`, y es al revés: el documento ANALIZADO sale de la
     bandeja de revisión, como CLI-20 el 09/10 (un análisis rápido de un `pendiente` a las
     22:24:42). Estar fuera del corpus impide ser CANDIDATO, no ser analizado.
@@ -13804,7 +13823,7 @@ misma familia, y el más caro.
 **LAS CUATRO CORRECCIONES DEL 10/10/2026 EN CONTRA DEL ARQUITECTO, dichas por él para que consten:**
 1. **La lectura del presupuesto era errónea**: la condición es la suma de UNA pareja (analizado,
    candidato), y el analizado de las 22:24:42 era CLI-20 (fase 1.2, arriba).
-2. **La línea base no estaba bloqueada**: el analizado sale de la bandeja de revisión, como CLI-20
+2. **La línea base no estaba parada**: el analizado sale de la bandeja de revisión, como CLI-20
    el 09/10 (orden de F-123, arriba).
 3. **«El mecanismo que explica las lecturas al 11 %» es FALSO**, y la frase fue del arquitecto. Las
    lecturas al 11 % medidas (CLI-12, 30/09, de 06:37 a 06:40) fueron `tijera_vieja` con el
