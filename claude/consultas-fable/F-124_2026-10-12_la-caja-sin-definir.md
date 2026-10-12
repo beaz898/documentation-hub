@@ -30,7 +30,11 @@ Estado: ARCHIVADA CON DICTAMEN · CORRIGE F-123 EN PARTE (fase 1.0 nueva, 1.1
           1941 palabras.
           60 primeros: "# CONSULTA F-124 — 12/10/2026 — LA CAJA SIN DEFINIR DEL CONT"
           60 últimos:  "trada y la salida delante; las hipótesis, después o nunca.**"
-Superada por: —
+Superada por: F-125 (12/10/2026), EN PARTE: decide su punto abierto —la vía 2,
+        que aquí quedaba en 3.4 condicionada—: (B) primero, (A) como destino;
+        y archiva 3.0, 3.2, el rescate (queda sólo el contador-alarma
+        `caja_con_candidato`) y la lista de datos examinados. F-124 sigue
+        mandando en lo demás.
 ---
 
 # (a) CABECERA

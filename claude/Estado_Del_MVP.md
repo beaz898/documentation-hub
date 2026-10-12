@@ -13581,7 +13581,10 @@ que sigue lo transcribe Code de esos seis logs). Hora del log en UTC: de 19:28:4
   - **La cabeza**, «El punto de retirada centralizado concentra el material de las tres clínicas»,
     es del apartado **6.1, «Coordinación logística entre clínicas»**: «Dado que el punto de
     retirada centralizado concentra el material de las tres clínicas, cada centro coordina…».
-    Está en la posición 8.029 del texto.
+    Está en la posición 8.028 del texto. ⚠️ CORREGIDO EL 12/10/2026 por Code, sobre su propio
+    error: aquí decía 8.029, que es la posición de la «l» —la cabeza se buscó sin su primera
+    letra—. El 8.029 viajó a la consulta F-125 y de ahí a la distancia 722 del dictamen; la de
+    inicio a inicio es 721 (F-125, sección (f) 4).
   - **La cola**, «, ubicado en la clínica de Chamberí, desde donde se coordina y documenta el
     transporte del material recogido en Salamanca y Retiro», es de la frase sembrada: «El gestor
     autorizado recoge los residuos de las tres clínicas en un punto de retirada centralizado,
@@ -13623,6 +13626,46 @@ Las cifras de abajo son del arquitecto, no de un archivo; se cotejan el día que
   acota el arreglo: no es «las citas», es UN lado de UNA cita con firma conocida —el empalme de dos
   frases de NOR-11 en orden inverso, `cabeza_sin_cola`—, 6 de 6.
 - **El segundo commit de la 1.0** («norma contra práctica») sigue en espera.
+
+**F-125 (12/10/2026): EL ORDEN NUEVO DE LA FASE 3, QUE SE ENCOGE.** Dictamen archivado en
+`claude/consultas-fable/F-125_2026-10-12_el-empalme.md`. Decide el punto que F-124 dejó abierto:
+**(B) primero, (A) como destino.** El defecto no es el empalme del juez: es que la puerta ancla
+por los 20 primeros caracteres de la cita, que son el trozo menos informativo. La regla nueva
+ancla por el TRAMO LITERAL MÁS LARGO.
+- **3.1 = (B)**, la puerta anclada por el tramo literal más largo, con su contador
+  `cita_recompuesta` y el caso sembrado de empalme falso. Va primero porque es lo único que hoy
+  pierde una trampa 6 de 6. **No se despliega sin la medición en sombra** sobre los descartes de
+  `SQL_B358` (P-F125-1 y P-F125-2).
+- **3.2 verificador ciego.** Sube de importancia, porque es EL control de (B): un empalme que forma
+  una afirmación falsa sólo cae si alguien juzga las frases reales.
+- **3.3 segunda vuelta dirigida**, para los hallazgos a medias. Sin cambios.
+- **3.4 vía 2, (A)**, con disparador escrito: cuando el arnés muestre muertes en la puerta que (B)
+  no cubra en dos o más trampas, o antes del primer cliente si el módulo de unidades
+  (`lib/analysis/unidades-de-cita.ts`) ya está conectado. Hasta entonces, el módulo espera como
+  está.
+- **ARCHIVADAS EL 12/10/2026, con condición de reapertura**:
+  - **3.0, el experimento de NEGACIÓN, y su remedio** (la antigua 3.2). Se reabren si NEGACIÓN baja
+    de 4 de 5 en cualquier pareja nueva, o si una trampa nueva de tipo norma-contra-práctica no se
+    emite en otra pareja. ⚠️ Fable dice que la ampliación de la definición de contradicción
+    («norma contra práctica») se hace igualmente; **el arquitecto la mantiene en espera** (segundo
+    commit de la 1.0), y la decisión es suya.
+  - **El mecanismo de rescate.** No se construye ni el rescate ni la segunda llamada para
+    rescatadas. Queda SÓLO el contador-alarma `caja_con_candidato`: toda entrada de
+    `uniqueToNewDoc` que nombre al candidato de su pareja lo incrementa. Se reabre si deja de ser
+    cero.
+  - **La lista de datos examinados.** Vuelve con la vía 2, cuando las etiquetas la hagan gratis.
+- **LAS CALIFICACIONES QUE FABLE SE PONE A SÍ MISMO**: **P-F124-4 FALLADA EN LO QUE IMPORTA**:
+  predijo que haría falta separar tareas, y bastó definir la caja. **P-F124-3 SIN CASO,
+  ARCHIVADA**: ni acierto ni fallo, porque el cajón quedó limpio y no hay nada que rescatar.
+- **El orden general de F-123, actualizado**: la fase 1 está hecha en su parte 1.0; el 1.2
+  (presupuesto de lectura) sigue; la fase 2 (F-119) sigue; la fase 3 queda como arriba.
+- **Criterio de cierre de la pareja NOR-11 ↔ CLI-13** (Fable): LUGAR publicada en 5 de 6 pasadas o
+  más, con las frases reales; PLAZO y NEGACIÓN se mantienen en 6 de 6; cero falsos; el caso
+  sembrado de empalme falso no se publica.
+- ⚠️ **ANTES DE MEDIR P-F125-1 HAY DOS COSAS QUE DECIDIR** (F-125, sección (f)): cuál de los dos
+  treces de `SQL_B358` es «los 13 de un solo lado»; y que los 89 descartes ya no están enteros
+  en la base, porque los análisis de NOR-11 y NOR-10 se borraron con ellos la noche del 09 al
+  10/10 (B.367). Y 19 de los 21 lados con `cabeza_sin_cola` de F-120 eran el propio LUGAR.
 
 **EL ORDEN DE EJECUCIÓN DE F-123 (10/10/2026)** — dictamen archivado en
 `claude/consultas-fable/F-123_2026-10-10_orden-de-ejecucion.md`. Criterio de Fable: nada se
