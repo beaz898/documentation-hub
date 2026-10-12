@@ -1,4 +1,4 @@
-import type { ComprobadorDeLado } from './coincidencia-de-cita';
+import type { ComprobadorDeLado } from './pajar-de-la-cita';
 import type { DescarteDeCita, DiscardedFindings, DocumentJudgment } from './types';
 
 /**

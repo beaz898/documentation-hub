@@ -1,5 +1,6 @@
 import type { VerifiedQuote } from './judge';
-import { citaUtilizable, type ComprobadorDeLado } from './coincidencia-de-cita';
+import { citaUtilizable } from './coincidencia-de-cita';
+import type { ComprobadorDeLado } from './pajar-de-la-cita';
 import type { PipelineCounters } from './counters';
 import { despegarPunteroDeFila } from './table-structure';
 import type { DocumentJudgment } from './types';

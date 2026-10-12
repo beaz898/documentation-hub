@@ -4,7 +4,8 @@
  */
 
 import type { FragmentContext } from './fragment-context';
-import type { DatosDeLaCita, PajarDeLaCita } from './coincidencia-de-cita';
+import type { DatosDeLaCita } from './coincidencia-de-cita';
+import type { PajarDeLaCita } from './pajar-de-la-cita';
 
 export interface DocumentFragment {
   text: string;

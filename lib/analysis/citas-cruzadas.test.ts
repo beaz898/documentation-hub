@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { StoredChunk } from '@/lib/read-chunks';
 import { fixQuotesInJudgment, verifyQuote } from './judge';
-import { comprobadorDeLado } from './coincidencia-de-cita';
+import { comprobadorDeLado } from './pajar-de-la-cita';
 import { traducirSolapamientosDelJuez } from './llm-boundary';
 import type { DocumentJudgment } from './types';
 

@@ -4,8 +4,8 @@ import { verifyQuote } from './judge';
 import { normalize } from './normalize';
 import {
   normalizarConPosiciones, findBestMatch, describirDescarte, describirAcierto,
-  comprobadorDeLado, loEntregadoDeLaPareja, candidatoEntregadoEntero,
 } from './coincidencia-de-cita';
+import { comprobadorDeLado, loEntregadoDeLaPareja, candidatoEntregadoEntero } from './pajar-de-la-cita';
 import type { LecturaDeLaPareja } from './types';
 
 /**
