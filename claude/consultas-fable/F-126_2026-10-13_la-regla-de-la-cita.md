@@ -490,6 +490,13 @@ Comprobadas por Code el 13/10/2026. El texto de (c) y (d) no se toca.
      especifica que...", "Este documento no menciona...".**»
    Ninguna de las tres cambia el argumento. El texto de (c) NO se corrige: es lo que se le mandó a
    Fable (arquitecto, 13/10/2026).
+   ⚠️ **Y LA PRIMERA SE COLÓ EN EL PRODUCTO.** El «poner» de la consulta pasó al dictamen de Fable
+   («PROHIBIDO unir trozos de sitios distintos, resumir, quitar palabras del medio o poner puntos
+   suspensivos») y de ahí, literal, al prompt nuevo (`f918f5b5`), que ahora dice «poner». Es
+   inocuo —las dos palabras dicen lo mismo— y NO se cambia: la regla nueva es la que dictó Fable,
+   literal (arquitecto, 13/10/2026). Pero es el ejemplo limpio de por qué una cita tiene que ser
+   literal: **un error de transcripción en una consulta acabó siendo la especificación del
+   producto.**
 4. **«El verificador ciego la confirma»** (consulta, sección 2): el verificador que confirmó LUGAR en
    la pasada 1 es **el de siempre** (`verifyFindings`, Haiku), y lo confirmó **por juicio**
    (`confirmedBy: juicio`). NO es ciego: el verificador ciego es la fase 3.2 y no está construido.
@@ -500,10 +507,14 @@ Comprobadas por Code el 13/10/2026. El texto de (c) y (d) no se toca.
    - **3 de 10**, ventana del 06 al 08/10 (diez pasadas, antes de la fase 1.0): la tabla de la
      sección 1.3 de la consulta F-123 (`claude/consultas-fable/F-123_2026-10-10_orden-de-ejecucion.md`)
      dice «NEGACIÓN | 3 de 10 | nunca | 3 de 10» —la emite el juez 3 de 10 y se publica 3 de 10—.
-     El arquitecto la sitúa además en `claude/Medida_B357_destino_contradicciones_NOR11_CLI13.md`,
-     con las tres pasadas en las que se publicó (06/10 07:00:06, 06/10 07:02:31 y 07/10 08:54:11):
-     **ese fichero no existe en el repositorio**, y esas tres horas no aparecen en ningún fichero
-     suyo. La cifra consta por F-123; las horas, sólo por el arquitecto;
+     Y consta además en `claude/Medida_B357_destino_contradicciones_NOR11_CLI13.md`, con las tres
+     pasadas en las que se publicó (06/10 07:00:06, 06/10 07:02:31 y 07/10 08:54:11), que son
+     **exactamente las tres con NEGACIÓN y LUGAR**. ⚠️ CORREGIDO OTRA VEZ EL 13/10/2026: aquí decía
+     que ese fichero no existía en el repositorio, y era verdad, pero no que no existiera. Vivía en
+     el PROYECTO DE CLAUDE, no en el repositorio —el arquitecto dio una ruta del proyecto como si
+     fuera del repo—, y es la ÚNICA COPIA de esas diez pasadas, que se borraron en cascada con
+     NOR-11 el 10/10. Desde el 13/10 está también en el repositorio. **El «3 de 10» consta por DOS
+     fuentes, F-123 y la medida de B.357;**
    - **0 de 5**, el 11/10, la ventana posterior: la de F-124.
 6. **El contador se llama `juez.citas_recompuestas`**, no «juez.recompuestas» como dice el dictamen
    en las tres líneas para `CLAUDE.md`; se escribió con el nombre real, como pidió el arquitecto.
