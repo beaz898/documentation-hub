@@ -13746,7 +13746,10 @@ predicciones escritas antes de medir, en `claude/Predicciones_F125_Seis_Pasadas.
 - **F-126 (13/10/2026)**, archivada en `claude/consultas-fable/F-126_2026-10-13_la-regla-de-la-cita.md`:
   la regla nueva de la cita en el prompt —el tramo CONTIGUO más corto que contenga el dato, puede
   empezar y acabar a mitad de frase, normalmente 40-200 caracteres— con un ejemplo y el molde del
-  JSON en un dominio que no está en el corpus (`f918f5b5`); y las tres líneas de «prompt estricto,
+  JSON en un dominio que no está en el corpus (`f918f5b5`, completado al revisarlo: el ejemplo pasa a
+  ser una SUBORDINADA sin sujeto —el caso que falla—, vuelve la cláusula de B.313 contra recortar
+  para que las citas se parezcan, y el molde de los solapamientos deja también el relleno corto);
+  y las tres líneas de «prompt estricto,
   puerta tolerante» en `CLAUDE.md` (`139aa19e`).
 - **LA REGLA DE CIERRE DEL FRENTE (Fable, F-126): si LUGAR no llega a 5 de 7 con el prompt nuevo, no
   hay tercer ajuste de prompt; se activa la fase 3.4, la vía 2, con `unidades-de-cita.ts`.** Y el

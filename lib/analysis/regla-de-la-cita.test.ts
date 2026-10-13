@@ -36,6 +36,14 @@ describe('F-126 · cada cita es el tramo CONTIGUO más corto que contenga el dat
     expect(reglas).toContain('PROHIBIDO unir trozos de sitios distintos, resumir, quitar palabras del medio o poner puntos suspensivos.');
   });
 
+  // B.313 (02/10/2026): ataca el MOTIVO de la distorsión —que el juez retoque la
+  // cita para que se parezca a la del otro lado—. Se cayó de rebote al sustituir
+  // la regla de la frase entera, y no lo había decidido nadie: vuelve con sus
+  // palabras originales (arquitecto, 13/10/2026).
+  it('B.313: si el dato está en otra frase, se usa esa frase; nada de recortar ni combinar para que las citas se parezcan', () => {
+    expect(reglas).toContain('Si el dato que necesitas está en otra frase, usa esa frase aunque no se parezca a la del otro documento: no recortes ni combines frases para que las dos citas se parezcan.');
+  });
+
   it('la regla vieja ya no está: ni «frase entera de principio a fin» ni «no copies párrafos enteros»', () => {
     expect(juez).not.toContain('de principio a fin de frase');
     expect(juez).not.toContain('NO copies párrafos enteros');
@@ -49,16 +57,42 @@ describe('F-126 · cada cita es el tramo CONTIGUO más corto que contenga el dat
     expect(juez).toContain('- Si no puedes copiar una frase literal que sustente el hallazgo, no emitas ese hallazgo.');
   });
 
-  it('el ejemplo: una cita de mitad de frase, de unos 80 caracteres, que empieza en minúscula y está DENTRO de su frase', () => {
-    const m = reglas.match(/Si el documento dice "([^"]+)", una cita correcta del dato de la edad es "([^"]+)"/);
+  // EL EJEMPLO ENSEÑA EL CASO DIFÍCIL (arquitecto, 13/10/2026): el dato vive en
+  // una SUBORDINADA lejos del sujeto, y la cita correcta es la subordinada, sin
+  // sujeto propio. Es lo que el juez no hacía en LUGAR: fabricaba el sujeto.
+  // «No contiene el sujeto» se comprueba de forma determinista con dos
+  // aproximaciones estructurales, no gramaticales: (1) la cita no contiene el
+  // sujeto de su frase, que en el ejemplo es lo que va antes de la primera coma;
+  // y (2) la cita empieza por algo que introduce una subordinada (un relativo,
+  // una preposición, una conjunción subordinante o un gerundio), de una lista
+  // cerrada. Si alguien cambia el ejemplo por uno con sujeto, cae (1) o (2).
+  it('el ejemplo: la cita es una SUBORDINADA, sin sujeto, en minúscula, de 40 a 100 caracteres y DENTRO de su frase', () => {
+    const m = reglas.match(/Si el documento dice "([^"]+)", y el dato en conflicto es [^,]+, una cita correcta es "([^"]+)"/);
     expect(m).not.toBeNull();
     const [, frase, cita] = m as RegExpMatchArray;
     expect(frase).toContain(cita);
     expect(frase.startsWith(cita)).toBe(false);
     expect(frase.endsWith(cita)).toBe(false);
-    expect(cita[0]).toBe(cita[0].toLowerCase());
-    expect(cita.length).toBeGreaterThanOrEqual(70);
-    expect(cita.length).toBeLessThanOrEqual(90);
+    expect(cita[0]).not.toBe(cita[0].toUpperCase());
+    expect(cita.length).toBeGreaterThanOrEqual(40);
+    expect(cita.length).toBeLessThanOrEqual(100);
+    const sujeto = frase.slice(0, frase.indexOf(','));
+    expect(sujeto.length).toBeGreaterThan(0);
+    expect(cita.toLowerCase()).not.toContain(sujeto.toLowerCase());
+    const introductores = ['que ', 'con ', 'sin ', 'cuando ', 'donde ', 'aunque ', 'siempre que ', 'ubicad', 'situad'];
+    const introduce = introductores.some(i => cita.startsWith(i)) || /^\p{L}+ndo /u.test(cita);
+    expect(introduce).toBe(true);
+  });
+
+  it('el molde de los solapamientos: valores realistas de unos 100 caracteres, no «cita literal del nuevo»', () => {
+    const molde = reglas.slice(reglas.indexOf('"overlappingContent": ['));
+    expect(molde).not.toContain('cita literal del');
+    const valores = [...molde.matchAll(/"(?:evidenceInNewDoc|evidenceInExistingDoc)": "([^"]+)"/g)].map(x => x[1]);
+    expect(valores).toHaveLength(2);
+    for (const v of valores) {
+      expect(v.length).toBeGreaterThanOrEqual(90);
+      expect(v.length).toBeLessThanOrEqual(130);
+    }
   });
 
   it('el molde de las contradicciones: valores realistas de unos 100 caracteres, no «cita literal del nuevo»', () => {
@@ -78,15 +112,19 @@ describe('F-126 · cada cita es el tramo CONTIGUO más corto que contenga el dat
   // no está en corpus-pruebas/ (comprobado el 13/10/2026 sobre el texto extraído
   // de sus 28 ficheros). Si alguien lo cambia por algo del corpus, esto se pone rojo.
   it('ni el ejemplo ni el molde nombran nada de los casos que se miden', () => {
-    const ejemploYMolde = reglas.slice(reglas.indexOf('- Ejemplo de cita correcta'), reglas.indexOf('"overlappingContent": ['))
+    const ejemploYMolde = reglas.slice(reglas.indexOf('- Ejemplo de cita correcta'))
       .normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
     const prohibidas = ['residuo', 'contenedor', 'clinica', 'color', 'amarill', 'negro', 'grupo', 'almacen', 'gestor',
       'retirada', 'chamberi', 'retiro', 'salamanca', 'dentavia', 'plazo', '72 horas', '7 dias'];
     for (const p of prohibidas) expect(ejemploYMolde).not.toContain(p);
   });
 
+  // Hasta el 13/10/2026 fijaba la cadena literal del molde, relleno incluido
+  // («cita literal del nuevo»). Lo que B.312 vigila es otra cosa —que el juez
+  // ponga cada cita en el campo de su lado, el nuevo primero—, así que ahora fija
+  // el ORDEN y los NOMBRES de los campos con cualquier valor.
   it('CONTROL (B.312): el orden y los nombres de los campos de los solapamientos no se tocan', () => {
-    expect(juez).toContain('"evidenceInNewDoc": "cita literal del nuevo", "evidenceInExistingDoc": "cita literal del existente"');
+    expect(juez).toMatch(/\{ "description": "[^"]+", "evidenceInNewDoc": "[^"]+", "evidenceInExistingDoc": "[^"]+" \}/);
     expect(juez).toContain('- En existingDocSays y evidenceInExistingDoc: copia literalmente un fragmento del DOCUMENTO EXISTENTE.');
   });
 });

@@ -42,7 +42,8 @@ Superada por: —
   propia consulta). El director la envía, pega la respuesta y decide.
 - Estado: **ARCHIVADA CON DICTAMEN.** F-125 sigue mandando en la puerta; esto decide el prompt.
 - **Lo que sale de aquí, fuera de la consulta**: la regla nueva de la cita en el prompt del juez
-  (`f918f5b5`), las tres líneas de `CLAUDE.md` (`139aa19e`) y el resultado de la fase 3.1 en
+  (`f918f5b5`, completado por el commit siguiente al índice: el ejemplo de subordinada, la cláusula
+  de B.313 de vuelta y el molde de los solapamientos), las tres líneas de `CLAUDE.md` (`139aa19e`) y el resultado de la fase 3.1 en
   `claude/Estado_Del_MVP.md` (13/10/2026).
 
 ---
@@ -477,15 +478,33 @@ Comprobadas por Code el 13/10/2026. El texto de (c) y (d) no se toca.
    exactos, tanto normalizado como en el original de la cita. La cita de hash `d6fb570d` (pasada 4)
    no se comprobó: su lado nuevo se supone el mismo porque mide 111 y da las mismas posiciones.
 3. **La cita del prompt que hace la consulta en su sección 3 no es literal del todo**, aunque se
-   presenta así: dice «o poner puntos suspensivos» donde el prompt decía «o usar puntos
-   suspensivos»; en la línea «Para qué» omite «en el documento del cliente»; y en la de «TEXTO
-   COPIADO» omite la frase de ejemplos prohibidos. Ninguna de las tres cambia el argumento.
+   presenta como «literal». Comparada palabra a palabra con `judge.ts:890-895` tal como estaba
+   antes de `f918f5b5`, difiere en TRES sitios, y las otras tres líneas son idénticas:
+   - línea 892: la consulta dice «o **poner** puntos suspensivos»; el prompt decía «o **usar**
+     puntos suspensivos»;
+   - línea 893: la consulta dice «cada cita se va a buscar LITERALMENTE y se va a mostrar en
+     pantalla»; el prompt decía «… LITERALMENTE **en el documento del cliente** y se va a mostrar en
+     pantalla»;
+   - línea 894: la consulta acaba en «sin referirse a los fragmentos por su número.»; el prompt
+     seguía con «**Prohibido escribir cosas como "El fragmento [2] muestra que...", "El corpus
+     especifica que...", "Este documento no menciona...".**»
+   Ninguna de las tres cambia el argumento. El texto de (c) NO se corrige: es lo que se le mandó a
+   Fable (arquitecto, 13/10/2026).
 4. **«El verificador ciego la confirma»** (consulta, sección 2): el verificador que confirmó LUGAR en
-   la pasada 1 es el de siempre (`verifyFindings`, Haiku), que NO es ciego: el verificador ciego es
-   la fase 3.2 y no está construido.
-5. **«NEGACIÓN estaba en 3 de 10 antes de la fase 1.0»** (consulta, sección 5): Code no ha
-   localizado esa cifra en el registro. La que consta es **0 de 5** el 11/10 (`Estado_Del_MVP.md`,
-   12/10/2026, y la consulta F-125).
+   la pasada 1 es **el de siempre** (`verifyFindings`, Haiku), y lo confirmó **por juicio**
+   (`confirmedBy: juicio`). NO es ciego: el verificador ciego es la fase 3.2 y no está construido.
+   Lo reconoce el arquitecto, que lo escribió así en la consulta (13/10/2026).
+5. **«NEGACIÓN estaba en 3 de 10 antes de la fase 1.0»** (consulta, sección 5): ⚠️ CORREGIDO EL
+   13/10/2026; aquí decía que Code no lo había localizado, y estaba en el registro. **Las dos cifras
+   son verdad y son de ventanas distintas**:
+   - **3 de 10**, ventana del 06 al 08/10 (diez pasadas, antes de la fase 1.0): la tabla de la
+     sección 1.3 de la consulta F-123 (`claude/consultas-fable/F-123_2026-10-10_orden-de-ejecucion.md`)
+     dice «NEGACIÓN | 3 de 10 | nunca | 3 de 10» —la emite el juez 3 de 10 y se publica 3 de 10—.
+     El arquitecto la sitúa además en `claude/Medida_B357_destino_contradicciones_NOR11_CLI13.md`,
+     con las tres pasadas en las que se publicó (06/10 07:00:06, 06/10 07:02:31 y 07/10 08:54:11):
+     **ese fichero no existe en el repositorio**, y esas tres horas no aparecen en ningún fichero
+     suyo. La cifra consta por F-123; las horas, sólo por el arquitecto;
+   - **0 de 5**, el 11/10, la ventana posterior: la de F-124.
 6. **El contador se llama `juez.citas_recompuestas`**, no «juez.recompuestas» como dice el dictamen
    en las tres líneas para `CLAUDE.md`; se escribió con el nombre real, como pidió el arquitecto.
 7. **Lo que se pierde con la regla nueva, y conviene que conste**: la línea 892 entera se sustituyó,
@@ -494,3 +513,7 @@ Comprobadas por Code el 13/10/2026. El texto de (c) y (d) no se toca.
    parezcan», la cláusula de B.313 contra el juez que «esculpe» la cita para que rime con la del otro
    lado. La regla nueva conserva la prohibición de unir trozos, pero ya no la de recortar para que
    las dos citas se parezcan.
+   ✅ **RESTAURADA el 13/10/2026** en el commit que completa el 1 (decisión del arquitecto): Fable no
+   decidió quitarla —sustituyó la regla de la frase entera, y ésta es otra cosa, el MOTIVO de la
+   distorsión—, así que su caída era un accidente. Vuelve con sus palabras originales al final de
+   la regla nueva, y `regla-de-la-cita.test.ts` la fija.
