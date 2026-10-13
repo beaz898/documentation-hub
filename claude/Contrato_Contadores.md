@@ -134,9 +134,14 @@ abierto después del contrato:
   | `juez.recompuestas_bloqueadas_al_reclasificar` | Contradicciones con la marca `recompuesta` que caían en la rama de reclasificar a solapamiento y la guarda de D4 mató: un solapamiento no pasa por verificador | por HALLAZGO, en la cascada (`discarded` de la pareja, `descartado.recompuesta_al_reclasificar`) | Las reclasificaciones sin marca, que siguen como hoy en `verificador.reclasificados` |
 
   `resto_insuficiente`, `resto_no_literal`, `cita_entera`, `no_aplica` y
-  `sin_frases` NO llevan contador (decisión del arquitecto, D6): quedan en el
-  registro por pareja, `citasAlTramo`, con la salida, las posiciones, la
-  distancia, los trozos y las frases reales si las hay.
+  `sin_frases` NO llevan contador: quedan en el registro por pareja,
+  `citasAlTramo`, con la salida, las posiciones, la distancia, los trozos y las
+  frases reales si las hay. **Quién lo decidió y cuándo**: `resto_insuficiente` y
+  `resto_no_literal` (y las muertes de `empalme_multiple` y `sin_tramo_literal`)
+  son D6, del arquitecto, el 12/10/2026; que `cita_entera` pase como `normalizada` y quede anotada es D7, el mismo día, pero que no lleve contador lo decidió Code;
+  **`sin_frases` NO lo cubría D6** —hablaba de las otras cuatro salidas—: que no
+  lleve contador lo decidió el arquitecto el 13/10/2026, al revisar el commit 4;
+  lo de `cita_entera` y lo de `no_aplica` lo decidió Code al escribir el commit 4, y queda declarado aquí.
 
 ### 2 — Solo recuentos de decisión.
 

@@ -11,8 +11,21 @@ import { defineConfig } from 'vitest/config';
  * tandas; lo determinista, con su batería— y a la regla de F-75, que manda que
  * las baterías vivan en el repositorio.
  *
- * NO se testean aquí: componentes de React, rutas de API, hooks, nada que
- * necesite Supabase, Pinecone o Anthropic, ni mocks de ninguno de los tres.
+ * NO se testean aquí: componentes de React, rutas de API, hooks, ni nada que
+ * necesite Supabase, Pinecone o Anthropic DE VERDAD.
+ *
+ * ⚠️ LA SIMULACIÓN, CORREGIDA EL 13/10/2026 (arquitecto). Decía «ni mocks de
+ * ninguno de los tres», y estaba mal escrita, no mal practicada:
+ *   · SE PERMITE simular `lib/analysis/llm-client` —`vi.mock('./llm-client')`—.
+ *     Es la función intermedia propia del límite con el modelo, la que manda la
+ *     arquitectura (toda integración externa pasa por una función intermedia), y
+ *     simularla prueba el CABLEADO: qué se le envía al modelo y qué se hace con
+ *     su respuesta, incluido que falle. Lo que el modelo DECIDE no se mide aquí:
+ *     se mide en una tanda.
+ *   · NO SE PERMITE simular el SDK de Anthropic directamente, ni llamar al modelo
+ *     de verdad desde una prueba (la guarda de red de vitest.setup.ts lo rompe).
+ *   · Supabase y Pinecone siguen fuera, simulados o no.
+ * Hoy lo hacen cuatro pruebas, y no infringen ninguna regla: reparto-del-rerank.test.ts, style-check.test.ts, style-check-fallo.test.ts y recompuesta-en-la-cascada.test.ts.
  * Para lo que necesita estado real hay endpoints de diagnóstico
  * (app/api/admin/diagnose-vectors es el precedente). Para lo que lee un
  * modelo hay tandas (claude/Protocolo_Harness_Tasas.md).
@@ -56,7 +69,8 @@ export default defineConfig({
      * ⚠️ POR QUÉ ESTO NO TAPA UN CUELGUE DE VERDAD, que es el riesgo normal de
      * subir un timeout: **aquí no hay nada que pueda colgarse.** El alcance
      * declarado son funciones puras deterministas —ni React, ni rutas, ni
-     * Supabase, Pinecone o Anthropic, ni mocks de los tres— y la guarda de red de
+     * Supabase, Pinecone o Anthropic de verdad, con `llm-client` como único
+     * punto legítimo de simulación (ver la cabecera)— y la guarda de red de
      * `vitest.setup.ts` lo hace cumplir cerrando el paso a `fetch`. Sin E/S y sin
      * esperas, un caso que tardara 15 s tendría que estar en un bucle infinito de
      * CPU, y eso no lo esconde ningún tope: lo canta la duración total.

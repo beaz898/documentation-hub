@@ -1199,8 +1199,16 @@ mejor que la memoria de nadie pero no se lanza. **Vitest es esa casa.**
 > **Vitest existe en este proyecto para EJECUTAR BATERÍAS DETERMINISTAS: código
 > puro, entrada conocida, salida conocida.**
 
-**NO se testean aquí**: componentes de React, rutas de API, hooks, nada que
-necesite Supabase, Pinecone o Anthropic, ni **mocks** de ninguno de los tres.
+**NO se testean aquí**: componentes de React, rutas de API, hooks, ni nada que
+necesite Supabase, Pinecone o Anthropic **de verdad**.
+
+⚠️ **LA SIMULACIÓN, CORREGIDA EL 13/10/2026 (arquitecto).** Decía «ni **mocks** de
+ninguno de los tres», y estaba mal escrita, no mal practicada. **Se permite simular
+`lib/analysis/llm-client`**: es la función intermedia propia del límite con el
+modelo, y simularla prueba el cableado —qué se le envía y qué se hace con su
+respuesta, incluido que falle—. **No se permite** simular el SDK de Anthropic
+directamente ni llamar al modelo de verdad desde una prueba. Supabase y Pinecone
+siguen fuera. Hoy lo hacen cuatro pruebas, y no infringen nada: reparto-del-rerank.test.ts, style-check.test.ts, style-check-fallo.test.ts y recompuesta-en-la-cascada.test.ts.
 Para lo que necesita estado real hay endpoints de diagnóstico
 (`app/api/admin/diagnose-vectors` es el precedente). Para lo que lee un modelo
 hay tandas.
@@ -1235,10 +1243,10 @@ forma de que la guarda sirva de algo** — comprobado mutándola: sin el `afterE
 el caso sucio vuelve a pasar en verde.
 
 De ahí sale una regla de escritura, no solo de herramienta: **en la batería solo
-caben caminos que terminen en descarte.** Lo que sobrevive, sobrevive *hacia el
-modelo*, y eso no se mide aquí — se mide en una tanda (§3). Si un caso rompe
-contra la guarda, la salida no es apagarla ni añadir un mock: es que el caso se
-salió del alcance.
+caben caminos que terminen en descarte**, o que lleguen al modelo **simulado en
+`llm-client`** para comprobar el cableado. Lo que el modelo DECIDE no se mide aquí
+— se mide en una tanda (§3). Si un caso rompe contra la guarda, la salida no es
+apagarla ni simular el SDK: es que el caso se salió del alcance.
 
 **Los tests entran en `npm run typecheck`.** Importan `describe`/`it`/`expect`
 explícitamente desde `'vitest'` en vez de declarar globals, así que `tsc` los

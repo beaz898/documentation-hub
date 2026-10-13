@@ -13706,13 +13706,19 @@ Siete commits locales, cada uno con la suite completa y la build de producción 
   - **`pipeline.ts` hay que partirlo**, en su propio commit, cuando 3.1 esté medida. Ya pasaba de
     1.500 líneas y 3.1 le añadió unas cincuenta: excepción consciente del arquitecto, porque partir
     un fichero así en medio de una medición es un riesgo peor que añadirle;
-  - **`recompuesta-en-la-cascada.test.ts` simula `llm-client`**, y la cabecera de
-    `vitest.config.mts` dice que no se simula Anthropic. Hay precedente (`reparto-del-rerank`,
-    `style-check` y `style-check-fallo`) y lo pidió el arquitecto (prueba 5a), pero la regla escrita
-    y la práctica no coinciden;
+  - ~~**`recompuesta-en-la-cascada.test.ts` simula `llm-client`**, y la regla escrita decía que
+    no se simula Anthropic~~ — **RESUELTO el 13/10/2026 (commit 6)**: la regla estaba mal escrita, no
+    mal practicada. Ahora dice que `llm-client` es el único punto legítimo de simulación y que lo
+    prohibido es simular el SDK o llamar al modelo de verdad (`vitest.config.mts`, `vitest.setup.ts`
+    y el §1-bis del protocolo, que van juntos);
   - **con vitest 4, un `beforeEach` con `mockClear` o `mockReset` da por fallido un caso cuyo mock
     lanza aunque el código capture el error** (comprobado el 13/10 con un caso mínimo sobre
     `verifyFindings`). Esa prueba cuenta las llamadas por diferencia.
+- **REGLA DE MÉTODO NUEVA (arquitecto, 13/10/2026): EL VERDE POR COMMIT INCLUYE `tsc` SOBRE TODO
+  EL PROYECTO, DESPUÉS DE ESCRIBIR LAS PRUEBAS.** `next build` no comprueba los tipos de las
+  pruebas, y por ahí entró en el 3a un error de tipos que se corrigió en el 3b. ⚠️ Hoy `tsc` NO está
+  limpio: queda el error conocido de `lib/analysis/glosa-de-cita.test.ts:43`
+  (`verdict: 'contradiccion'`), y es el único. Mientras no se limpie, el verde es «sin errores nuevos».
 - **ANTES DE LAS SEIS PASADAS**: en el modo rápido, el del MVP, toda contradicción que no se
   descarta antes pasa por `verifyFindings` en la cascada (`applyCascadeToCandidate`), que corre
   en los dos modos; las únicas salidas sin verificador eran los descartes y la rama de

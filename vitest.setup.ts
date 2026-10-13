@@ -32,9 +32,11 @@ import { afterEach, beforeEach } from 'vitest';
  * su propio fallo y pasaría en verde igual. Hoy no hay ninguno: verificado
  * pasando la batería entera y buscando rastro de Supabase y Pinecone, cero.
  * Queda escrito por si mañana lo hay. *
- * SI TU TEST ROMPE AQUÍ, la salida no es apagar la guarda ni añadir un mock: es
- * que el caso se salió del alcance de la herramienta. O se recorta hasta el
- * trozo determinista, o se mide donde se miden los modelos, que es una tanda.
+ * SI TU TEST ROMPE AQUÍ, la salida no es apagar la guarda ni simular el SDK o el
+ * `fetch`: es que el caso se salió del alcance de la herramienta. O se recorta
+ * hasta el trozo determinista, o —si lo que se prueba es el cableado— se simula
+ * `llm-client`, el único punto legítimo (cabecera de vitest.config.mts, desde
+ * el 13/10/2026), o se mide donde se miden los modelos, que es una tanda.
  */
 /**
  * ⚠️ EL CALENTAMIENTO DE `Intl` — 23/09/2026. NO SE BORRA SIN LEER ESTO.
