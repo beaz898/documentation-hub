@@ -889,7 +889,8 @@ REGLA DE ORO: Si puedes imaginar un contexto razonable en el que ambas afirmacio
 REGLAS DE FORMATO:
 - En newDocSays y evidenceInNewDoc: copia LITERALMENTE un fragmento del DOCUMENTO NUEVO.
 - En existingDocSays y evidenceInExistingDoc: copia literalmente un fragmento del DOCUMENTO EXISTENTE.
-- Cada cita es UNA sola frase del documento, copiada ENTERA, de principio a fin de frase. NO copies párrafos enteros. PROHIBIDO cortarla por dentro, resumirla, quitarle palabras del medio o usar puntos suspensivos. PROHIBIDO unir trozos que vengan de sitios distintos del documento. Si el dato que necesitas está en otra frase, usa esa frase aunque no se parezca a la del otro documento: no recortes ni combines frases para que las dos citas se parezcan.
+- Cada cita es un tramo de texto CONTIGUO del documento, copiado tal cual. Elige el tramo más CORTO que contenga el dato en conflicto. Puede empezar y acabar a mitad de frase: no hace falta que tenga sujeto ni que se entienda sola. Normalmente entre 40 y 200 caracteres. PROHIBIDO unir trozos de sitios distintos, resumir, quitar palabras del medio o poner puntos suspensivos. Si el dato está en una subordinada, copia la subordinada y lo justo que la rodea.
+- Ejemplo de cita correcta, tomada de mitad de frase. Si el documento dice "En temporada alta, y salvo reserva previa, las bicicletas eléctricas solo se alquilan a personas mayores de dieciséis años que presenten el carné de socio", una cita correcta del dato de la edad es "las bicicletas eléctricas solo se alquilan a personas mayores de dieciséis años": empieza y acaba a mitad de frase, y es correcta.
 - Para qué: cada cita se va a buscar LITERALMENTE en el documento del cliente y se va a mostrar en pantalla. Si no se encuentra tal cual, no sirve, y el hallazgo se pierde.
 - Las citas deben ser TEXTO COPIADO tal cual del documento, sin comentarios, sin explicaciones y sin referirse a los fragmentos por su número. Prohibido escribir cosas como "El fragmento [2] muestra que...", "El corpus especifica que...", "Este documento no menciona...".
 - Si no puedes copiar una frase literal que sustente el hallazgo, no emitas ese hallazgo.
@@ -903,8 +904,8 @@ Responde con este JSON (sin bloques de código, sin texto adicional):
   "overlapPercent": 25,
   "verdict": "tema_similar",
   "contradictions": [
-    { "topic": "tema", "newDocSays": "cita literal del nuevo", "existingDocSays": "cita literal del existente", "severity": "contradiction" },
-    { "topic": "tema", "newDocSays": "cita literal del nuevo", "existingDocSays": "cita literal del existente", "severity": "minor_inconsistency" }
+    { "topic": "tema", "newDocSays": "las bicicletas eléctricas solo se alquilan a personas mayores de dieciséis años que presenten el carné de socio", "existingDocSays": "el alquiler de bicicletas eléctricas está abierto a todo el que tenga más de catorce años, sea o no socio", "severity": "contradiction" },
+    { "topic": "tema", "newDocSays": "cada bicicleta se engrasa y se le tensan los frenos al cerrar el alquiler cada día, antes de guardarla en el cobertizo", "existingDocSays": "el engrase de las bicicletas y el tensado de los frenos se hacen solo dos veces por semana en el cobertizo", "severity": "minor_inconsistency" }
   ],
   "overlappingContent": [
     { "description": "qué contenido concreto comparten (no rasgos genéricos)", "evidenceInNewDoc": "cita literal del nuevo", "evidenceInExistingDoc": "cita literal del existente" }
