@@ -8,7 +8,7 @@ vi.mock('./llm-client', () => ({
 import type { StoredChunk } from '@/lib/read-chunks';
 import type { JudgmentEvidence } from './judge';
 import { applyCascadeToCandidate } from './pipeline';
-import { RECOMPUESTA_BLOQUEADA_AL_RECLASIFICAR } from './repliegue-de-tramo';
+import { RECOMPUESTA_BLOQUEADA_AL_RECLASIFICAR, RECOMPUESTA_SIN_CONTEXTO_DEL_RESTO } from './repliegue-de-tramo';
 import type { CitaRecompuestaDeLado, DocumentJudgment } from './types';
 
 /**
@@ -59,6 +59,17 @@ const cascada = (j: DocumentJudgment) =>
 // error (comprobado el 13/10/2026 con un caso mínimo sobre verifyFindings). Las
 // llamadas se cuentan por diferencia.
 const llamadasHastaAhora = () => llamada.mock.calls.length;
+/** Corre la cascada con el verificador confirmando y devuelve el prompt de SU
+ *  llamada. Exige que haya exactamente una llamada nueva: sin esto, un hallazgo
+ *  que muriera antes del verificador dejaría leer el prompt de la prueba
+ *  anterior y la prueba pasaría en falso (hueco visto el 13/10/2026). */
+async function promptDe(j: DocumentJudgment): Promise<string> {
+  llamada.mockResolvedValue({ results: [{ index: 1, verdict: 'confirmado', severity: 'contradiction' }] });
+  const antes = llamadasHastaAhora();
+  await cascada(j);
+  expect(llamadasHastaAhora()).toBe(antes + 1);
+  return String(llamada.mock.calls[llamada.mock.calls.length - 1][0]);
+}
 
 describe('(5b) la rama de reclasificar a solapamiento', () => {
   // Las dos citas iguales al normalizar: la regla determinista dice 'reclassify'.
@@ -98,11 +109,7 @@ describe('(5a) el verificador falla', () => {
 });
 
 describe('las dos frases al verificador', () => {
-  const prompt = async (j: DocumentJudgment): Promise<string> => {
-    llamada.mockResolvedValue({ results: [{ index: 1, verdict: 'confirmado', severity: 'contradiction' }] });
-    await cascada(j);
-    return String(llamada.mock.calls[llamada.mock.calls.length - 1][0]);
-  };
+  const prompt = promptDe;
 
   it('un recompuesto con las dos frases en TROZOS DISTINTOS llega al verificador con los dos trozos', async () => {
     const p = await prompt(juicio({ recompuesta: { nuevo: MARCA } }));
@@ -140,10 +147,44 @@ describe('la guarda descarta UN hallazgo, no la pareja', () => {
 
 describe('las dos frases en el MISMO trozo (el caso de LUGAR)', () => {
   it('el trozo llega al verificador UNA vez, no dos', async () => {
+    const mismoTrozo: CitaRecompuestaDeLado = { ...MARCA, fraseDelResto: { ...MARCA.fraseDelAncla }, enTrozosDistintos: false };
+    const p = await promptDe(juicio({ recompuesta: { nuevo: mismoTrozo } }));
+    expect(p.split(NUEVOS[0].text).length - 1).toBe(1);
+  });
+});
+
+describe('D4 · la frase del resto sin contexto: falla cerrado (commit 8)', () => {
+  it('(i) LUGAR: las dos frases en el MISMO trozo → el contexto del resto no está vacío, el hallazgo SIGUE y el contador se queda a cero', async () => {
     llamada.mockResolvedValue({ results: [{ index: 1, verdict: 'confirmado', severity: 'contradiction' }] });
     const mismoTrozo: CitaRecompuestaDeLado = { ...MARCA, fraseDelResto: { ...MARCA.fraseDelAncla }, enTrozosDistintos: false };
-    await cascada(juicio({ recompuesta: { nuevo: mismoTrozo } }));
-    const p = String(llamada.mock.calls[llamada.mock.calls.length - 1][0]);
-    expect(p.split(NUEVOS[0].text).length - 1).toBe(1);
+    const r = await cascada(juicio({ recompuesta: { nuevo: mismoTrozo } }));
+    expect(r.judgment.contradictions).toHaveLength(1);
+    expect(r.judgment.discarded?.[RECOMPUESTA_SIN_CONTEXTO_DEL_RESTO]).toBeUndefined();
+  });
+
+  it('(ii) la frase del resto que contextoDeLaCita no encuentra → el hallazgo MUERE, contado, sin llegar al verificador', async () => {
+    const perdida: CitaRecompuestaDeLado = {
+      ...MARCA,
+      fraseDelResto: { chunkIndex: 99, desde: 0, hasta: 10, texto: 'Una frase que no está en ningún trozo de este documento, ni parecida.' },
+    };
+    const antes = llamadasHastaAhora();
+    const r = await cascada(juicio({ recompuesta: { nuevo: perdida } }));
+    expect(r.judgment.contradictions).toEqual([]);
+    expect(r.judgment.discarded?.[RECOMPUESTA_SIN_CONTEXTO_DEL_RESTO]).toBe(1);
+    expect(llamadasHastaAhora()).toBe(antes);
+  });
+});
+
+describe('D2 del commit 8 · con las frases en trozos distintos, al verificador no le llega ningún vecino', () => {
+  // El vecino «siguiente» del trozo del ancla (trozo 0) es el trozo 1.
+  const VECINO = NUEVOS[1].text;
+  it('control: sin la marca, el vecino sí llega (la prueba lo puede ver)', async () => {
+    expect(await promptDe(juicio({}))).toContain(VECINO);
+  });
+  it('con la marca y dos trozos, los dos trozos llegan y el vecino no', async () => {
+    const p = await promptDe(juicio({ recompuesta: { nuevo: MARCA } }));
+    expect(p).toContain(NUEVOS[0].text);
+    expect(p).toContain(NUEVOS[2].text);
+    expect(p).not.toContain(VECINO);
   });
 });

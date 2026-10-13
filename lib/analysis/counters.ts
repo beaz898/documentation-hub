@@ -235,6 +235,8 @@ export const COUNTER_CATALOGUE = [
   'juez.citas_empalme_multiple',
   'juez.citas_sin_tramo_literal',
   'juez.recompuestas_bloqueadas_al_reclasificar',
+  // El sexto (13/10/2026): la frase del resto sin contexto para el verificador.
+  'juez.recompuestas_sin_contexto_del_resto',
   // averia — ESTRENA LA ETAPA, que estaba declarada y vacía desde que se
   // escribió el catálogo. Aquí no se mide lo que el análisis ENCONTRÓ: se mide
   // que el propio sistema no supo algo de sí mismo.

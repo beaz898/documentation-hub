@@ -119,7 +119,7 @@ abierto después del contrato:
   recuentos (`verificado.por_localizacion`, `frontera.cita_solo_por_cabeza_y_cola`)
   en `discardedFindings`, que es lo que este contrato manda no repetir; éstos son
   los primeros de la puerta que pasan por el catálogo.
-  **Ampliada el 13/10/2026 (F-125, fase 3.1) con los cinco del TRAMO LITERAL MÁS
+  **Ampliada el 13/10/2026 (F-125, fase 3.1) con los SEIS del TRAMO LITERAL MÁS
   LARGO**, que sólo se aplica a las citas de las CONTRADICCIONES y sólo cuando la
   comprobación de siempre y la glosa ya fallaron (`repliegue-de-tramo.ts`). Se
   emiten SIEMPRE que el juez corrió, también a cero, sumados sobre todas las
@@ -132,6 +132,16 @@ abierto después del contrato:
   | `juez.citas_empalme_multiple` | Citas cuyo tramo dio `empalme_multiple`: el ancla en medio y restos a los dos lados. El hallazgo muere como hoy | por CITA | — |
   | `juez.citas_sin_tramo_literal` | Citas sin ningún tramo literal que llegue al ancla mínima (40 caracteres normalizados o el 50 % de la cita). El hallazgo muere como hoy | por CITA | Las que no llegaron al tramo (pasaron antes, o por piezas: `no_aplica`) |
   | `juez.recompuestas_bloqueadas_al_reclasificar` | Contradicciones con la marca `recompuesta` que caían en la rama de reclasificar a solapamiento y la guarda de D4 mató: un solapamiento no pasa por verificador | por HALLAZGO, en la cascada (`discarded` de la pareja, `descartado.recompuesta_al_reclasificar`) | Las reclasificaciones sin marca, que siguen como hoy en `verificador.reclasificados` |
+  | `juez.recompuestas_sin_contexto_del_resto` | Contradicciones con la marca `recompuesta` cuya frase del resto dejó VACÍO el contexto del verificador (`contextoDeLaCita` no la encontró, o tocaba más de tres trozos): mueren, porque se verificarían con media evidencia (arquitecto, 13/10/2026, commit 8) | por HALLAZGO, en la cascada (`descartado.recompuesta_sin_contexto_del_resto`) | ⚠️ Las que tienen las dos frases en el MISMO trozo: ahí la unión no añade nada y es el caso BUENO —LUGAR—, que sigue. La condición es «vacío», no «no añadió» |
+
+  ⚠️ **LA TRAMPA DE `estado: 'cruza'`, desde el 13/10/2026.** El sello del contexto
+  del verificador (`lineaDelContexto`, «… (cruza)») y `contarSinContexto` leen el
+  `estado` de cada lado. Hasta ese día `cruza` sólo significaba «la cita cruza
+  trozos de verdad». Desde el commit 8 de la fase 3.1 significa TAMBIÉN «hallazgo
+  recompuesto con las dos frases en trozos distintos, unidos para el verificador»
+  (`conLaFraseDelResto`, `pipeline.ts`), y entonces los vecinos van vacíos a
+  propósito. **Nadie mida `estado='cruza'` creyendo lo primero**: lo que separa los
+  dos casos es `juez.citas_recompuestas_en_trozos_distintos`.
 
   `resto_insuficiente`, `resto_no_literal`, `cita_entera`, `no_aplica` y
   `sin_frases` NO llevan contador: quedan en el registro por pareja,

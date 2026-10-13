@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { StoredChunk } from '@/lib/read-chunks';
 import { verifyQuote } from './judge';
 import { comprobadorDeLado, type LoEntregado } from './pajar-de-la-cita';
-import { comprobarConRepliegues, contadoresDelTramo, localizadorDeLado, registroDelTramo, RECOMPUESTA_BLOQUEADA_AL_RECLASIFICAR, type LocalizadorDeLado } from './repliegue-de-tramo';
+import { comprobarConRepliegues, contadoresDelTramo, localizadorDeLado, registroDelTramo, RECOMPUESTA_BLOQUEADA_AL_RECLASIFICAR, RECOMPUESTA_SIN_CONTEXTO_DEL_RESTO, type LocalizadorDeLado } from './repliegue-de-tramo';
 import { COUNTER_CATALOGUE, mergeCounters } from './counters';
 import type { DocumentJudgment, RegistroDelTramo } from './types';
 
@@ -123,24 +123,25 @@ describe('el registro de la pareja', () => {
   });
 });
 
-describe('los cinco contadores del tramo (commit 4)', () => {
+describe('los seis contadores del tramo (commits 4 y 8)', () => {
   const vacio = (p: Partial<DocumentJudgment> = {}): DocumentJudgment => ({
     documentId: 'd', documentName: 'D.docx', source: 'manual', overlapPercent: 0, verdict: 'sin_relacion',
     contradictions: [], overlappingContent: [], uniqueToNewDoc: [], ...p,
   });
-  const CINCO = [
+  const SEIS = [
     'juez.citas_recompuestas',
     'juez.citas_recompuestas_en_trozos_distintos',
     'juez.citas_empalme_multiple',
     'juez.citas_sin_tramo_literal',
     'juez.recompuestas_bloqueadas_al_reclasificar',
+    'juez.recompuestas_sin_contexto_del_resto',
   ] as const;
 
-  it('una pasada sin ningún empalme emite los cinco, a cero (no vale que falten)', () => {
+  it('una pasada sin ningún empalme emite los seis, a cero (no vale que falten)', () => {
     for (const judgments of [[], [vacio()], [vacio(), vacio({ discarded: { citaNoVerificable: 3 } })]]) {
       const c = contadoresDelTramo(judgments);
-      expect(Object.keys(c).sort()).toEqual([...CINCO].sort());
-      for (const k of CINCO) expect(c[k]).toBe(0);
+      expect(Object.keys(c).sort()).toEqual([...SEIS].sort());
+      for (const k of SEIS) expect(c[k]).toBe(0);
     }
   });
 
@@ -151,7 +152,7 @@ describe('los cinco contadores del tramo (commit 4)', () => {
       vacio({ citasAlTramo: [r('a', 'recompuesta', { ancla: 8, resto: 8 }), r('b', 'recompuesta', { ancla: 1, resto: 3 }), r('c', 'empalme_multiple')] }),
       vacio({
         citasAlTramo: [r('d', 'sin_tramo_literal'), r('e', 'resto_insuficiente'), r('f', 'resto_no_literal'), r('g', 'sin_frases'), r('h', 'no_aplica'), r('i', 'cita_entera')],
-        discarded: { [RECOMPUESTA_BLOQUEADA_AL_RECLASIFICAR]: 2 },
+        discarded: { [RECOMPUESTA_BLOQUEADA_AL_RECLASIFICAR]: 2, [RECOMPUESTA_SIN_CONTEXTO_DEL_RESTO]: 1 },
       }),
     ]);
     expect(c).toEqual({
@@ -160,11 +161,12 @@ describe('los cinco contadores del tramo (commit 4)', () => {
       'juez.citas_empalme_multiple': 1,
       'juez.citas_sin_tramo_literal': 1,
       'juez.recompuestas_bloqueadas_al_reclasificar': 2,
+      'juez.recompuestas_sin_contexto_del_resto': 1,
     });
   });
 
-  it('los cinco están en el catálogo: la fusión los transporta (cláusula 4)', () => {
-    for (const k of CINCO) expect(COUNTER_CATALOGUE).toContain(k);
+  it('los seis están en el catálogo: la fusión los transporta (cláusula 4)', () => {
+    for (const k of SEIS) expect(COUNTER_CATALOGUE).toContain(k);
     expect(mergeCounters(contadoresDelTramo([]))).toEqual(contadoresDelTramo([]));
   });
 });

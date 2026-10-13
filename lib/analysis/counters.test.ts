@@ -94,6 +94,7 @@ describe('el catálogo', () => {
     'juez.citas_empalme_multiple',
     'juez.citas_sin_tramo_literal',
     'juez.recompuestas_bloqueadas_al_reclasificar',
+    'juez.recompuestas_sin_contexto_del_resto',
     // averia — estrena la etapa el 15/09/2026: marca los trabajos a los que se
     // les cobró el máximo POR DEFECTO, no por medida.
     'averia.exhaustivo_sin_clasificar',

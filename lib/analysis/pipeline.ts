@@ -30,7 +30,7 @@ import { getOrderedColumns } from './table-structure';
 import { verifyFindings } from './verify-findings';
 import type { FindingToVerify } from './verify-findings';
 import { ladosParaVerificar, lineaDelContexto, contarSinContexto, contextoDeLaCita, type ContextoDeLaCita, type LadosParaVerificar } from './contexto-de-la-cita';
-import { RECOMPUESTA_BLOQUEADA_AL_RECLASIFICAR, contadoresDelTramo } from './repliegue-de-tramo';
+import { RECOMPUESTA_BLOQUEADA_AL_RECLASIFICAR, RECOMPUESTA_SIN_CONTEXTO_DEL_RESTO, contadoresDelTramo } from './repliegue-de-tramo';
 import type { StoredChunk } from '@/lib/read-chunks';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { CitaRecompuestaDeLado, DocumentJudgment } from './types';
@@ -145,23 +145,49 @@ const MAX_DOUBLE_CHECK_CANDIDATES = 50;
  * hallazgo, así que al contexto de cada lado recompuesto se le une el de la
  * frase del resto, con la MISMA función y sin tocarla (`contextoDeLaCita`).
  * Un lado sin marca sale idéntico.
+ *
+ * DEVUELVE null —y el hallazgo NO se publica, D4— si el contexto de la frase
+ * del resto sale VACÍO: `contextoDeLaCita` no la encontró o tocaba más de tres
+ * trozos. Publicar sin la frase del resto sería verificar con media protección
+ * (decisión del arquitecto, 13/10/2026).
+ * ⚠️ LA CONDICIÓN ES «VACÍO», NO «NO AÑADIÓ NINGÚN TROZO». Con las dos frases en
+ * el MISMO trozo —LUGAR, trozo 8— la unión no añade nada por definición, y ése
+ * es el caso BUENO: el verificador ya tiene la frase del resto dentro del trozo
+ * del ancla. Escribirlo como «no añadió» mataría LUGAR en las seis pasadas.
+ *
+ * CUANDO LA UNIÓN SÍ AÑADE UN TROZO (frases en trozos distintos): `estado:
+ * 'cruza'` y vecinos VACÍOS. Los vecinos son los del trozo del ancla, y dejarlos
+ * pintaría el «siguiente» pegado detrás del trozo del resto, como si fueran
+ * seguidos: vaciarlos debilita al verificador, dejarlos lo engaña, y engañar es
+ * peor (arquitecto, 13/10/2026). ⚠️ Desde ese día un `estado: 'cruza'` puede
+ * venir también de aquí, no sólo de una cita que cruza trozos de verdad; lo que
+ * separa los dos casos es `juez.citas_recompuestas_en_trozos_distintos`.
  */
 function conLaFraseDelResto(
   lados: LadosParaVerificar,
   marca: { nuevo?: CitaRecompuestaDeLado; existente?: CitaRecompuestaDeLado } | undefined,
   chunksNuevo: StoredChunk[],
   chunksExistente: StoredChunk[],
-): LadosParaVerificar {
+): LadosParaVerificar | null {
   if (!marca) return lados;
+  let restoSinContexto = false;
   const unir = (ctx: ContextoDeLaCita, chunks: StoredChunk[], lado: CitaRecompuestaDeLado | undefined): ContextoDeLaCita => {
     if (!lado) return ctx;
     const trozo = chunks.find(t => t.chunkIndex === lado.fraseDelResto.chunkIndex) ?? null;
     const delResto = contextoDeLaCita(chunks, trozo, lado.fraseDelResto.texto);
-    return { ...ctx, trozos: [...ctx.trozos, ...delResto.trozos.filter(t => !ctx.trozos.includes(t))] };
+    if (delResto.trozos.length === 0) { restoSinContexto = true; return ctx; }
+    const anadidos = delResto.trozos.filter(t => !ctx.trozos.includes(t));
+    if (anadidos.length === 0) return ctx; // el mismo trozo: el caso bueno
+    return { trozos: [...ctx.trozos, ...anadidos], vecinos: { previous: null, next: null }, estado: 'cruza' };
   };
   const nuevo = unir(lados.nuevo, chunksNuevo, marca.nuevo);
   const existente = unir(lados.existente, chunksExistente, marca.existente);
-  return { nuevo, existente, campos: { ...lados.campos, newTrozos: nuevo.trozos, existingTrozos: existente.trozos } };
+  if (restoSinContexto) return null;
+  return {
+    nuevo,
+    existente,
+    campos: { newNeighbours: nuevo.vecinos, existingNeighbours: existente.vecinos, newTrozos: nuevo.trozos, existingTrozos: existente.trozos },
+  };
 }
 
 function bumpCount(counts: DiscardedFindings, key: string): void {
@@ -486,13 +512,20 @@ export async function applyCascadeToCandidate(
         return;
       }
 
+      const lados = conLaFraseDelResto(ladosParaVerificar({ chunks: newDocumentChunks, chunk: ev.newChunk, cita: c.newDocSays }, { chunks: existingChunks, chunk: ev.existingChunk, cita: c.existingDocSays }), c.recompuesta, newDocumentChunks, existingChunks);
+      if (!lados) {
+        // F-125, D4: sin la frase del resto, el verificador vería media evidencia.
+        bumpCount(counts, RECOMPUESTA_SIN_CONTEXTO_DEL_RESTO);
+        tally.descartados++;
+        console.log(`[${label}] · [${ev.hash}] "${c.topic.slice(0, 60)}" → descartado: recompuesta_sin_contexto_del_resto (sin la frase del resto no se verifica)`);
+        return;
+      }
       bumpCount(counts, 'a_juicio.sin_clave');
       tally.reclasificados++;
       console.log(
         `[${label}] · [${ev.hash}] "${(c.topic ?? '(sin titulo)').slice(0, 60)}" → baja a juicio: ` +
         `sin_clave (${verdict.anclas.length} columna(s) de ancla, pero la estructura no puede firmar)`
       );
-      const lados = conLaFraseDelResto(ladosParaVerificar({ chunks: newDocumentChunks, chunk: ev.newChunk, cita: c.newDocSays }, { chunks: existingChunks, chunk: ev.existingChunk, cita: c.existingDocSays }), c.recompuesta, newDocumentChunks, existingChunks);
       console.log(`[${label}] · [${ev.hash}] ${lineaDelContexto(lados)}`); // B.322: el sello
       contarSinContexto(counts, lados);
       toVerify.push({
@@ -536,6 +569,15 @@ export async function applyCascadeToCandidate(
       return;
     }
 
+    const lados = conLaFraseDelResto(ladosParaVerificar({ chunks: newDocumentChunks, chunk: ev.newChunk, cita: c.newDocSays }, { chunks: existingChunks, chunk: ev.existingChunk, cita: c.existingDocSays }), c.recompuesta, newDocumentChunks, existingChunks);
+    if (!lados) {
+      // F-125, D4: sin la frase del resto, el verificador vería media evidencia.
+      bumpCount(counts, RECOMPUESTA_SIN_CONTEXTO_DEL_RESTO);
+      tally.descartados++;
+      console.log(`[${label}] · [${ev.hash}] "${c.topic.slice(0, 60)}" → descartado: recompuesta_sin_contexto_del_resto (sin la frase del resto no se verifica)`);
+      return;
+    }
+
     // 'pass' -> baja a juicio (2.3): motivo solo si aplica, nunca los dos a
     // la vez (columna_indeterminada exige cells en los dos lados, que nunca
     // se da si falta un chunk).
@@ -563,7 +605,6 @@ export async function applyCascadeToCandidate(
       }
     }
 
-    const lados = conLaFraseDelResto(ladosParaVerificar({ chunks: newDocumentChunks, chunk: ev.newChunk, cita: c.newDocSays }, { chunks: existingChunks, chunk: ev.existingChunk, cita: c.existingDocSays }), c.recompuesta, newDocumentChunks, existingChunks);
     console.log(`[${label}] · [${ev.hash}] ${lineaDelContexto(lados)}`); // B.322: el sello
     contarSinContexto(counts, lados);
     toVerify.push({

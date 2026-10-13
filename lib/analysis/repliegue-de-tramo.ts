@@ -121,6 +121,11 @@ function repliegueDeTramo(
         return falla({ salida: 'sin_frases', motivo: `ancla: ${motivo(f.ancla)} · resto: ${motivo(f.resto)}`, longitudDeLaCita, ...posiciones });
       }
       const fraseDelAncla = { chunkIndex: f.ancla.chunkIndex, desde: f.ancla.desde, hasta: f.ancla.hasta, texto: f.ancla.texto };
+      // Decisión 3 (arquitecto, 13/10/2026): un chunkIndex que salió de esta
+      // misma lista y no está en ella es una contradicción interna. Muere, y
+      // queda en el registro con su motivo; sin contador nuevo.
+      const trozoDelAncla = trozos.find(t => t.chunkIndex === fraseDelAncla.chunkIndex);
+      if (!trozoDelAncla) return falla({ salida: 'sin_frases', motivo: 'ancla_sin_trozo', longitudDeLaCita, ...posiciones });
       const fraseDelResto = { chunkIndex: f.resto.chunkIndex, desde: f.resto.desde, hasta: f.resto.hasta, texto: f.resto.texto };
       const recompuesta: CitaRecompuestaDeLado = {
         citaDelJuez: quote, fraseDelAncla, fraseDelResto, ...posiciones,
@@ -129,7 +134,7 @@ function repliegueDeTramo(
       };
       return {
         // D3: lo que sigue adelante es la frase real del ancla, nunca el empalme.
-        verificada: { text: fraseDelAncla.texto, chunk: trozos.find(t => t.chunkIndex === fraseDelAncla.chunkIndex) ?? null, columns: null, porCeldas: false },
+        verificada: { text: fraseDelAncla.texto, chunk: trozoDelAncla, columns: null, porCeldas: false },
         cita: fraseDelAncla.texto,
         recompuesta,
         registro: {
@@ -160,15 +165,27 @@ export function registroDelTramo() {
  *  (`pipeline.ts`): un solapamiento no pasa por verificador, así que muere. */
 export const RECOMPUESTA_BLOQUEADA_AL_RECLASIFICAR = 'descartado.recompuesta_al_reclasificar';
 
+/** D4 (arquitecto, 13/10/2026): el motivo, en el `discarded` de la pareja, de
+ *  una contradicción recompuesta cuya frase del resto no encontró contexto para
+ *  el verificador (`conLaFraseDelResto`, `pipeline.ts`). Muere. */
+export const RECOMPUESTA_SIN_CONTEXTO_DEL_RESTO = 'descartado.recompuesta_sin_contexto_del_resto';
+
 /**
- * LOS CINCO CONTADORES DEL TRAMO, sumados sobre todas las parejas. Se emiten
+ * LOS SEIS CONTADORES DEL TRAMO, sumados sobre todas las parejas. Se emiten
  * SIEMPRE que el juez corrió, también a cero: 0 es «corrió y no hizo falta»
  * (F-82). El contrato de cada uno, en `claude/Contrato_Contadores.md`.
  *   · los cuatro primeros, POR CITA, de `citasAlTramo` (el registro de la
- *     puerta): `resto_insuficiente`, `resto_no_literal`, `cita_entera`,
- *     `no_aplica` y `sin_frases` NO llevan contador (D6): sólo registro;
- *   · el quinto, POR HALLAZGO, del `discarded` de la pareja, donde lo deja la
- *     guarda de la cascada (`pipeline.ts`). Por eso se suma DESPUÉS de ella.
+ *     puerta);
+ *   · los dos últimos, POR HALLAZGO, del `discarded` de la pareja, donde los
+ *     dejan las guardas de la cascada (`pipeline.ts`). Por eso se suman
+ *     DESPUÉS de ella.
+ * LAS SALIDAS SIN CONTADOR, que sólo quedan en el registro, y quién lo decidió:
+ *   · `resto_insuficiente` y `resto_no_literal`: D6, del arquitecto, 12/10/2026;
+ *   · `sin_frases`: el arquitecto, 13/10/2026, al revisar el commit 4 (D6 no
+ *     la cubría);
+ *   · `cita_entera` pasa como `normalizada` por D7 (arquitecto, 12/10/2026),
+ *     pero que no lleve contador, y lo mismo `no_aplica`, lo decidió Code al
+ *     escribir el commit 4.
  */
 export function contadoresDelTramo(judgments: DocumentJudgment[]): PipelineCounters {
   const citas = judgments.flatMap(j => j.citasAlTramo ?? []);
@@ -179,5 +196,6 @@ export function contadoresDelTramo(judgments: DocumentJudgment[]): PipelineCount
     'juez.citas_empalme_multiple': citas.filter(c => c.salida === 'empalme_multiple').length,
     'juez.citas_sin_tramo_literal': citas.filter(c => c.salida === 'sin_tramo_literal').length,
     'juez.recompuestas_bloqueadas_al_reclasificar': judgments.reduce((n, j) => n + (j.discarded?.[RECOMPUESTA_BLOQUEADA_AL_RECLASIFICAR] ?? 0), 0),
+    'juez.recompuestas_sin_contexto_del_resto': judgments.reduce((n, j) => n + (j.discarded?.[RECOMPUESTA_SIN_CONTEXTO_DEL_RESTO] ?? 0), 0),
   };
 }
