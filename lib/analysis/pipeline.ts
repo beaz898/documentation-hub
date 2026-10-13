@@ -30,7 +30,7 @@ import { getOrderedColumns } from './table-structure';
 import { verifyFindings } from './verify-findings';
 import type { FindingToVerify } from './verify-findings';
 import { ladosParaVerificar, lineaDelContexto, contarSinContexto, contextoDeLaCita, type ContextoDeLaCita, type LadosParaVerificar } from './contexto-de-la-cita';
-import { RECOMPUESTA_BLOQUEADA_AL_RECLASIFICAR } from './repliegue-de-tramo';
+import { RECOMPUESTA_BLOQUEADA_AL_RECLASIFICAR, contadoresDelTramo } from './repliegue-de-tramo';
 import type { StoredChunk } from '@/lib/read-chunks';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { CitaRecompuestaDeLado, DocumentJudgment } from './types';
@@ -1037,6 +1037,9 @@ async function runCorePipeline(
     totalDescartados += outcome.tally.descartados;
     totalReclasificados += outcome.tally.reclasificados;
   }
+  // F-125 (fase 3.1): los cinco del tramo. DESPUÉS de la cascada, porque el
+  // quinto lo deja su guarda; siempre, también a cero (F-82).
+  Object.assign(counters, contadoresDelTramo(judgments));
   // ⚠️ LOS DENOMINADORES DE LOS CEROS DEL DIFF (F-103 P3, pieza 2). Van SIEMPRE,
   // valgan cero o no: un contador que desaparece cuando vale cero es
   // indistinguible de uno que nadie calculó — y entonces el denominador tampoco

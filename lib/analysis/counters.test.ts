@@ -88,6 +88,12 @@ describe('el catálogo', () => {
     // cita. Recuentos de decisión, sin datos del cliente en el nombre.
     'juez.citas_rescatadas_quitando_glosa',
     'juez.citas_con_glosa_sin_rescate',
+    // F-125, fase 3.1 (13/10/2026): el tramo literal más largo.
+    'juez.citas_recompuestas',
+    'juez.citas_recompuestas_en_trozos_distintos',
+    'juez.citas_empalme_multiple',
+    'juez.citas_sin_tramo_literal',
+    'juez.recompuestas_bloqueadas_al_reclasificar',
     // averia — estrena la etapa el 15/09/2026: marca los trabajos a los que se
     // les cobró el máximo POR DEFECTO, no por medida.
     'averia.exhaustivo_sin_clasificar',

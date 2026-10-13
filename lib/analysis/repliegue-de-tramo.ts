@@ -4,6 +4,7 @@ import { comprobarConRepliegueDeGlosa, type ComprobacionConRepliegue } from './g
 import { indiceDePajar, localizarPorTramo, type IndiceDePajar } from './tramo-de-cita';
 import { frasesDeLaRecompuesta } from './frase-real';
 import type { CitaRecompuestaDeLado, DocumentJudgment, RegistroDelTramo } from './types';
+import type { PipelineCounters } from './counters';
 
 /**
  * LA CADENA DE LA PUERTA PARA LAS CITAS DE UNA CONTRADICCIÓN (F-125, fase 3.1;
@@ -158,3 +159,25 @@ export function registroDelTramo() {
  *  recompuesta que caía en la rama de reclasificar a solapamiento
  *  (`pipeline.ts`): un solapamiento no pasa por verificador, así que muere. */
 export const RECOMPUESTA_BLOQUEADA_AL_RECLASIFICAR = 'descartado.recompuesta_al_reclasificar';
+
+/**
+ * LOS CINCO CONTADORES DEL TRAMO, sumados sobre todas las parejas. Se emiten
+ * SIEMPRE que el juez corrió, también a cero: 0 es «corrió y no hizo falta»
+ * (F-82). El contrato de cada uno, en `claude/Contrato_Contadores.md`.
+ *   · los cuatro primeros, POR CITA, de `citasAlTramo` (el registro de la
+ *     puerta): `resto_insuficiente`, `resto_no_literal`, `cita_entera`,
+ *     `no_aplica` y `sin_frases` NO llevan contador (D6): sólo registro;
+ *   · el quinto, POR HALLAZGO, del `discarded` de la pareja, donde lo deja la
+ *     guarda de la cascada (`pipeline.ts`). Por eso se suma DESPUÉS de ella.
+ */
+export function contadoresDelTramo(judgments: DocumentJudgment[]): PipelineCounters {
+  const citas = judgments.flatMap(j => j.citasAlTramo ?? []);
+  const recompuestas = citas.filter(c => c.salida === 'recompuesta');
+  return {
+    'juez.citas_recompuestas': recompuestas.length,
+    'juez.citas_recompuestas_en_trozos_distintos': recompuestas.filter(c => c.trozos && c.trozos.ancla !== c.trozos.resto).length,
+    'juez.citas_empalme_multiple': citas.filter(c => c.salida === 'empalme_multiple').length,
+    'juez.citas_sin_tramo_literal': citas.filter(c => c.salida === 'sin_tramo_literal').length,
+    'juez.recompuestas_bloqueadas_al_reclasificar': judgments.reduce((n, j) => n + (j.discarded?.[RECOMPUESTA_BLOQUEADA_AL_RECLASIFICAR] ?? 0), 0),
+  };
+}

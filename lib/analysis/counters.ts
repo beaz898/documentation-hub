@@ -225,6 +225,16 @@ export const COUNTER_CATALOGUE = [
   // glosa-de-cita.ts y las suma pipeline.ts.
   'juez.citas_rescatadas_quitando_glosa',
   'juez.citas_con_glosa_sin_rescate',
+  // juez — F-125, fase 3.1 (13/10/2026): el tramo literal más largo, sólo en las
+  // citas de CONTRADICCIÓN. Los cuatro primeros, por CITA (por lado) que llegó
+  // al tramo; el quinto, por HALLAZGO, en la cascada. Los cuenta
+  // repliegue-de-tramo.ts y los suma pipeline.ts. Contrato en
+  // claude/Contrato_Contadores.md, cláusula 1, etapa `juez`.
+  'juez.citas_recompuestas',
+  'juez.citas_recompuestas_en_trozos_distintos',
+  'juez.citas_empalme_multiple',
+  'juez.citas_sin_tramo_literal',
+  'juez.recompuestas_bloqueadas_al_reclasificar',
   // averia — ESTRENA LA ETAPA, que estaba declarada y vacía desde que se
   // escribió el catálogo. Aquí no se mide lo que el análisis ENCONTRÓ: se mide
   // que el propio sistema no supo algo de sí mismo.
