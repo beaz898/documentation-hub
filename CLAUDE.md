@@ -68,6 +68,12 @@ When requested, the system runs multi-step analysis against existing docs:
 - Lo que vio el juez del analizado queda en el resultado: `textoAnalizado: { caracteres, mostrados }` (`lib/analysis/types.ts:457`).
 - Ninguna de las dos cifras tiene medición detrás; son tijeras nuestras, no límites del modelo (`claude/consultas-fable/F-118_2026-09-28_simetria-de-lectura.md`, sección d).
 
+**La puerta de citas del juez** (`fixQuotesInJudgment`, `lib/analysis/judge.ts`; 13/10/2026, F-125 fase 3.1). Un hallazgo pasa sólo si las citas de sus dos lados están en el texto que se le ENTREGÓ al juez de ese lado (`lib/analysis/pajar-de-la-cita.ts`). Por cada cita, en este orden:
+1. **La comprobación de siempre** (`lib/analysis/coincidencia-de-cita.ts`): literal o normalizada. El paso de cabeza y cola (los 20 primeros caracteres normalizados y los 20 últimos) ya no acepta desde B.318: sólo da nombre al fallo (`cabeza_sin_cola`, `cola_demasiado_lejos`…).
+2. **La glosa** (`glosa-de-cita.ts`): se reintenta quitando lo que vaya entre corchetes.
+3. **Sólo en las CONTRADICCIONES, el tramo literal más largo** (`repliegue-de-tramo.ts`, `tramo-de-cita.ts`, `frase-real.ts`): la cita se ancla por el tramo literal más largo que comparte con el texto entregado (≥ 40 caracteres normalizados y ≥ 50 % de la cita), no por sus 20 primeros caracteres. Si el resto de la cita es otro tramo literal (≥ 40) y entre los dos la cubren entera, la cita es «recompuesta»: **lo que se publica es la frase real del ancla, nunca el empalme del juez**, y la marca `recompuesta` guarda la otra frase y la cita del juez. Al verificador le llegan los trozos de las dos frases (`pipeline.ts`), y una contradicción recompuesta que caería en la rama de reclasificar a solapamiento muere (D4). Cinco contadores `juez.*` (`claude/Contrato_Contadores.md`).
+- **Los solapamientos quedan fuera del paso 3**, y es a propósito: no pasan por ningún verificador (cabecera de `applyCascadeToCandidate`, `pipeline.ts`: «Solo contradictions[] pasa por verifyFindings»), así que un solapamiento recompuesto se publicaría sin que nadie comprobase las frases reales.
+
 **Severity tiers** (as of May 2026):
 - `contradiction` — confirmed by both Haiku and Sonnet; shown in main discrepancies list
 - `minor_inconsistency` — real difference but both statements can coexist; shown in separate section

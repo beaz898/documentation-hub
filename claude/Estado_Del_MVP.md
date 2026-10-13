@@ -13667,6 +13667,57 @@ ancla por el TRAMO LITERAL MÁS LARGO.
   en la base, porque los análisis de NOR-11 y NOR-10 se borraron con ellos la noche del 09 al
   10/10 (B.367). Y 19 de los 21 lados con `cabeza_sin_cola` de F-120 eran el propio LUGAR.
 
+**FASE 3.1 (12-13/10/2026): LA PUERTA ANCLADA POR EL TRAMO LITERAL MÁS LARGO, ESCRITA Y SIN PUSH.**
+Siete commits locales, cada uno con la suite completa y la build de producción en verde:
+`d251286e` (0, partir `coincidencia-de-cita.ts` en frío), `ab5cce64` (1, `tramo-de-cita.ts`),
+`6b6d7d14` (2, `frase-real.ts`), `dd029f1a` (3a, la protección), `5df42c50` (3b, el cable),
+`7f0a2247` (4, los contadores) y éste (5, documentación). La descripción de la puerta, en `CLAUDE.md`.
+- **LAS DECISIONES QUE LA GOBIERNAN** (arquitecto): D1, sólo contradicciones; D2, el tramo va el
+  último (comprobación de siempre → glosa → tramo); D3, lo que se publica nunca es el empalme;
+  D4, un empalme nunca se publica sin verificador; D5, la distancia no rechaza, cuenta, y se mide
+  en TROZOS (`juez.citas_recompuestas_en_trozos_distintos`), no en caracteres; D6, las otras
+  salidas mueren como hoy, anotadas en `citasAlTramo`; D7, `cita_entera` pasa como `normalizada`.
+  Y las dos de A y B: cobertura total con el resto ≥ 40, y se publica la frase del ancla mientras
+  al verificador le llegan las dos.
+- **LA MEDIDA EN LOCAL, que sustituye a la de los 89** (texto de NOR-11 tal como se le entrega al
+  juez, 14.704 caracteres): la cita de 206 sale `recompuesta`, ancla la cola (7.555-7.683) y
+  resto la cabeza (8.277-8.353), distancia 722, hueco 594, las dos frases en el trozo 8; la de 111
+  sale `resto_insuficiente` (resto de 33) y muere como hoy, que es lo decidido.
+- **P-F125-1 Y P-F125-2: NO MEDIBLES.** La medida en sombra sobre los 89 descartes de `SQL_B358` se
+  canceló (arquitecto, 12/10): 19 de los 21 lados con `cabeza_sin_cola` de F-120 eran el propio
+  LUGAR, y esas filas se borraron con NOR-11 la noche del 09 al 10/10 (B.367). Medir lo que queda
+  habría costado el ceremonial de la clave para contar, en el mejor caso, el mismo caso repetido.
+- ⚠️ **LO QUE LAS PRUEBAS NO PUEDEN AFIRMAR**: que un empalme falso «no se publica». Eso lo decide
+  el verificador, que es una llamada al modelo; se mide en el arnés y cuesta créditos. Lo que la
+  batería afirma es lo que lo hace posible: lo que sigue adelante son las frases reales, nunca el
+  empalme, y al verificador le llegan las dos. **Un «cero falsos por empalme» sin esa medida es un
+  cero sin población.**
+- **DEUDA ANOTADA, NO SE ARREGLA AQUÍ:**
+  - **un titular de menos de 25 caracteres se pega a la frase que titula**
+    (`unidades-de-cita.ts`, regla 4, el suelo blando), así que la «frase real» puede salir con
+    «## 6. Retirada» delante. Sigue siendo texto que existe en el documento; lo deja a la vista una
+    prueba de `frase-real.test.ts`, que se pondrá roja el día que cambie;
+  - **el solape entre trozos**: una frase puede estar en dos trozos, y el tramo se atribuye a la
+    copia donde cae;
+  - **`normalize()` no quita las comillas tipográficas** aunque el comentario parezca darlo por
+    hecho: la clase de `lib/analysis/normalize-core.mjs:84` lleva tres comillas dobles y dos
+    simples RECTAS, ninguna tipográfica, y tampoco quita `¿` ni `¡`. Comprobado ejecutando la
+    función. Tocarlo movería la línea base del arnés (B.317);
+  - **`pipeline.ts` hay que partirlo**, en su propio commit, cuando 3.1 esté medida. Ya pasaba de
+    1.500 líneas y 3.1 le añadió unas cincuenta: excepción consciente del arquitecto, porque partir
+    un fichero así en medio de una medición es un riesgo peor que añadirle;
+  - **`recompuesta-en-la-cascada.test.ts` simula `llm-client`**, y la cabecera de
+    `vitest.config.mts` dice que no se simula Anthropic. Hay precedente (`reparto-del-rerank`,
+    `style-check` y `style-check-fallo`) y lo pidió el arquitecto (prueba 5a), pero la regla escrita
+    y la práctica no coinciden;
+  - **con vitest 4, un `beforeEach` con `mockClear` o `mockReset` da por fallido un caso cuyo mock
+    lanza aunque el código capture el error** (comprobado el 13/10 con un caso mínimo sobre
+    `verifyFindings`). Esa prueba cuenta las llamadas por diferencia.
+- **ANTES DE LAS SEIS PASADAS**: en el modo rápido, el del MVP, toda contradicción que no se
+  descarta antes pasa por `verifyFindings` en la cascada (`applyCascadeToCandidate`), que corre
+  en los dos modos; las únicas salidas sin verificador eran los descartes y la rama de
+  reclasificar, que la guarda de D4 cierra para las recompuestas.
+
 **EL ORDEN DE EJECUCIÓN DE F-123 (10/10/2026)** — dictamen archivado en
 `claude/consultas-fable/F-123_2026-10-10_orden-de-ejecucion.md`. Criterio de Fable: nada se
 cambia sin línea base; nada se mide con los 14 restos compitiendo en la búsqueda; primero lo que
