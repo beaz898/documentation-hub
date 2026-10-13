@@ -1,7 +1,7 @@
 -- ============================================================================
 -- F-125 · FASE 3.1 · LA MEDIDA DE LAS SEIS PASADAS DE NOR-11 CON LA PUERTA
 -- ANCLADA POR EL TRAMO LITERAL MÁS LARGO (0ab6e7d6) — SÓLO LECTURA
--- ⏳ PENDIENTE DE EJECUTAR. Sólo SELECT: no escribe nada.
+-- ✅ EJECUTADA por el director el 13/10/2026 sobre las pasadas de 11:43 a 11:56 (hora de Madrid). El control cazó SIETE pasadas, no seis («esperado 6, medido 7»); todo lo demás, OK. ⚠️ La salida NO está archivada literal: su resumen, con compactación declarada, está en claude/Predicciones_F125_Seis_Pasadas.md, escrito por el arquitecto. Sólo SELECT: no escribe nada.
 -- ⚠️ SACA TEXTO DE DOCUMENTO, ENTERO: las citas publicadas, las frases reales
 -- del tramo y las citas de los descartes. Son NOR-11, CLI-13 y lo que el juez
 -- compare en esas pasadas, documentos del corpus de pruebas, NO de un cliente.

@@ -13724,6 +13724,37 @@ Siete commits locales, cada uno con la suite completa y la build de producción 
   en los dos modos; las únicas salidas sin verificador eran los descartes y la rama de
   reclasificar, que la guarda de D4 cierra para las recompuestas.
 
+**FASE 3.1 MEDIDA (13/10/2026): LUGAR 1 DE 7, Y EL TECHO LO PONE EL JUEZ, NO LA PUERTA.** Los catorce
+commits subieron en un push (`1671465a..0ab6e7d6`), desplegado en verde a las 11:37 hora de Madrid.
+Siete pasadas de NOR-11 de 11:43 a 11:56, leídas con `SQL_F125_01`; el resultado, con las
+predicciones escritas antes de medir, en `claude/Predicciones_F125_Seis_Pasadas.md`.
+- **EL MARCADOR**: PLAZO 7 de 7, NEGACIÓN 7 de 7, LUGAR 1 de 7, cero falsos positivos. Tres de tres
+  sólo en la pasada 1.
+- **LAS PREDICCIONES DEL ARQUITECTO**: aciertan P-ARQ-F125-2, 3, 5 y 6; fallan la 1, la 4 y la 7, las
+  tres por la misma causa. `juez.recompuestas_bloqueadas_al_reclasificar` y
+  `juez.recompuestas_sin_contexto_del_resto`, a cero en las siete: las guardas de D4 no estorban.
+- **(B) HIZO LO CORRECTO LAS SIETE VECES.** Rescató una, en la pasada 1 (cita de 206 caracteres,
+  recompuesta), con la frase buena, la sembrada con Chamberí. Y se negó seis veces, y acertó al
+  negarse: en la cita de 111 (`resto_insuficiente`) no había nada que rescatar. Su ancla es el
+  trozo 8.277-8.353, cuya frase real habla de coordinar fechas de recogida y no menciona Chamberí, y
+  su resto es el dato, «ubicado en la clínica de Chamberí» (33 caracteres, confirmado por Code con
+  `tramo-de-cita.ts` sobre el texto real). Ninguna frase de NOR-11 dice lo que esa cita afirma.
+  Bajar el suelo de 40 habría publicado la frase de las fechas como prueba del lugar seis veces.
+- **EL TECHO DE 1 DE 7 NO LO PONE LA PUERTA: LO PONE EL JUEZ**, que no copia la frase de LUGAR
+  —267 caracteres, con el dato en una subordinada lejos del sujeto— y la fabrica soldando. Por eso
+  F-126 ataca el prompt y no la puerta.
+- **F-126 (13/10/2026)**, archivada en `claude/consultas-fable/F-126_2026-10-13_la-regla-de-la-cita.md`:
+  la regla nueva de la cita en el prompt —el tramo CONTIGUO más corto que contenga el dato, puede
+  empezar y acabar a mitad de frase, normalmente 40-200 caracteres— con un ejemplo y el molde del
+  JSON en un dominio que no está en el corpus (`f918f5b5`); y las tres líneas de «prompt estricto,
+  puerta tolerante» en `CLAUDE.md` (`139aa19e`).
+- **LA REGLA DE CIERRE DEL FRENTE (Fable, F-126): si LUGAR no llega a 5 de 7 con el prompt nuevo, no
+  hay tercer ajuste de prompt; se activa la fase 3.4, la vía 2, con `unidades-de-cita.ts`.** Y el
+  criterio de abandono del arquitecto sigue: si PLAZO o NEGACIÓN bajan de 7 de 7, se revierte.
+- **LO QUE NO CIERRA**: el caso de empalme falso sembrado, control positivo de (B), sigue sin existir
+  en el corpus. Sin él, el cero de las dos guardas es un cero de población. Se siembra fuera de
+  una medición en curso, nunca en medio de una.
+
 **EL ORDEN DE EJECUCIÓN DE F-123 (10/10/2026)** — dictamen archivado en
 `claude/consultas-fable/F-123_2026-10-10_orden-de-ejecucion.md`. Criterio de Fable: nada se
 cambia sin línea base; nada se mide con los 14 restos compitiendo en la búsqueda; primero lo que
