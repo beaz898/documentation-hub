@@ -116,3 +116,34 @@ describe('las dos frases al verificador', () => {
     expect(p).not.toContain(RESTO);
   });
 });
+
+describe('la guarda descarta UN hallazgo, no la pareja', () => {
+  // El `return` de la guarda está dentro del `forEach` de las contradicciones
+  // (pipeline.ts): sale del hallazgo, no de la función. Esta prueba lo deja
+  // clavado aunque mañana alguien cambie el forEach por un bucle `for`.
+  it('con dos contradicciones —la primera un empalme bloqueado, la segunda normal—, la segunda se publica', async () => {
+    llamada.mockResolvedValue({ results: [{ index: 1, verdict: 'confirmado', severity: 'contradiction' }] });
+    const OTRA = 'El gestor autorizado retira el material de las tres clínicas una vez al mes, el primer lunes.';
+    const j: DocumentJudgment = {
+      ...juicio({ newDocSays: ANCLA, existingDocSays: ANCLA, recompuesta: { nuevo: MARCA } }),
+    };
+    j.contradictions.push({ topic: 'Frecuencia de retirada (normal)', newDocSays: ANCLA, existingDocSays: OTRA, severity: 'contradiction' });
+    const evidencia: JudgmentEvidence = {
+      contradictions: [EVIDENCIA.contradictions[0], { ...EVIDENCIA.contradictions[0], hash: 'efgh5678' }],
+      overlaps: [],
+    };
+    const r = await applyCascadeToCandidate(j, evidencia, NUEVOS, EXISTENTES, 'NUEVO.docx', 'prueba', [], { emitidos: [], sinInterseccion: [] });
+    expect(r.judgment.discarded?.[RECOMPUESTA_BLOQUEADA_AL_RECLASIFICAR]).toBe(1);
+    expect(r.judgment.contradictions.map(c => c.topic)).toEqual(['Frecuencia de retirada (normal)']);
+  });
+});
+
+describe('las dos frases en el MISMO trozo (el caso de LUGAR)', () => {
+  it('el trozo llega al verificador UNA vez, no dos', async () => {
+    llamada.mockResolvedValue({ results: [{ index: 1, verdict: 'confirmado', severity: 'contradiction' }] });
+    const mismoTrozo: CitaRecompuestaDeLado = { ...MARCA, fraseDelResto: { ...MARCA.fraseDelAncla }, enTrozosDistintos: false };
+    await cascada(juicio({ recompuesta: { nuevo: mismoTrozo } }));
+    const p = String(llamada.mock.calls[llamada.mock.calls.length - 1][0]);
+    expect(p.split(NUEVOS[0].text).length - 1).toBe(1);
+  });
+});
