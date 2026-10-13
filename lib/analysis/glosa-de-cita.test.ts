@@ -40,7 +40,10 @@ const juicio = (contradictions: DocumentJudgment['contradictions']): DocumentJud
   documentName: 'NOR-10',
   source: 'manual',
   overlapPercent: 20,
-  verdict: 'contradiccion',
+  // 'tema_similar', no 'contradiccion' (que no es un valor del tipo y daba el
+  // único error de tsc del proyecto). fixQuotesInJudgment no lee `verdict`: sólo
+  // lo copia al juicio que devuelve, y ninguna prueba de este fichero lo mira.
+  verdict: 'tema_similar',
   contradictions,
   overlappingContent: [],
   uniqueToNewDoc: [],

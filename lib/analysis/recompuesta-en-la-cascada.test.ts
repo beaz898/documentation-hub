@@ -85,9 +85,11 @@ describe('(5b) la rama de reclasificar a solapamiento', () => {
   });
 
   it('control: sin la marca, la misma contradicción se reclasifica como hoy', async () => {
+    const antes = llamadasHastaAhora();
     const r = await cascada(juicio(iguales));
     expect(r.judgment.overlappingContent).toHaveLength(1);
     expect(r.judgment.discarded?.[RECOMPUESTA_BLOQUEADA_AL_RECLASIFICAR]).toBeUndefined();
+    expect(llamadasHastaAhora()).toBe(antes);
   });
 });
 
