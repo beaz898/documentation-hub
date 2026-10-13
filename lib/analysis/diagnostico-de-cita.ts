@@ -1,4 +1,10 @@
 import type { ComprobadorDeLado } from './pajar-de-la-cita';
+import type { ViaDeLaCita } from './coincidencia-de-cita';
+
+/** F-125 (13/10/2026): por qué vía pasó cada lado, cuando lo sabe quien llama
+ *  —hoy, sólo `'recompuesta'`, el tramo literal más largo—. Lado ausente = se
+ *  recalcula como siempre. */
+export type ViasConocidas = { nuevo?: ViaDeLaCita; existente?: ViaDeLaCita };
 import type { DescarteDeCita, DiscardedFindings, DocumentJudgment } from './types';
 
 /**
@@ -42,8 +48,9 @@ export function diagnosticoDelDescarte(
 export function diagnosticoDelAcierto(
   lados: { nuevo: ComprobadorDeLado; existente: ComprobadorDeLado },
   citas: { nuevo: string | undefined; existente: string | undefined },
+  vias?: ViasConocidas,
 ): string {
-  return `nuevo: ${lados.nuevo.describirAcierto(citas.nuevo)} · existente: ${lados.existente.describirAcierto(citas.existente)}`;
+  return `nuevo: ${lados.nuevo.describirAcierto(citas.nuevo, vias?.nuevo)} · existente: ${lados.existente.describirAcierto(citas.existente, vias?.existente)}`;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -75,7 +82,7 @@ export function registroDeDescartes() {
   return {
     descartar(
       lados: { nuevo: ComprobadorDeLado; existente: ComprobadorDeLado },
-      d: { tipo: DescarteDeCita['tipo']; hash: string; tema: string; citas: { nuevo: string | undefined; existente: string | undefined }; fallo: DescarteDeCita['ladoFallido'] },
+      d: { tipo: DescarteDeCita['tipo']; hash: string; tema: string; citas: { nuevo: string | undefined; existente: string | undefined }; fallo: DescarteDeCita['ladoFallido']; vias?: ViasConocidas },
     ): string {
       for (const lado of ['nuevo', 'existente'] as const) {
         const fallo = d.fallo === 'ambos' || d.fallo === lado;
@@ -84,7 +91,9 @@ export function registroDeDescartes() {
       if (guardados.length < TOPE_DE_DESCARTES_POR_PAREJA) {
         const ladoDe = (lado: 'nuevo' | 'existente') => {
           const verificada = d.fallo !== 'ambos' && d.fallo !== lado;
-          return { verificada, ...lados[lado].datos(d.citas[lado], verificada) };
+          // F-125: un lado que pasó por el tramo se guarda como 'recompuesta', no
+          // con lo que daría recalcularlo con la cita del juez (segmentos_de_fila).
+          return { verificada, ...lados[lado].datos(d.citas[lado], verificada, verificada ? d.vias?.[lado] : undefined) };
         };
         guardados.push({
           hash: d.hash, tema: d.tema, tipo: d.tipo,

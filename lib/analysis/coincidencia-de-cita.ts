@@ -206,8 +206,12 @@ export function describirDescarte(pajares: string[], quote: string | undefined):
 }
 
 /** La vía por la que pasó una cita, o el paso en que se rindió la que falló.
- *  `segmentos_de_fila` es la vía de tablas de `verifyQuote`. */
-export type ViaDeLaCita = PasoDeLaCita | 'segmentos_de_fila';
+ *  `segmentos_de_fila` es la vía de tablas de `verifyQuote`.
+ *  `recompuesta` (F-125, 13/10/2026) es la del tramo literal más largo
+ *  (`repliegue-de-tramo.ts`): sólo la pone quien SABE que la cita pasó por ahí,
+ *  porque recalcularla no puede verlo. No está en `PasoDeLaCita`: no es un paso
+ *  de `buscarCita`, y `AVANCE_DEL_FALLO` no la ordena. */
+export type ViaDeLaCita = PasoDeLaCita | 'segmentos_de_fila' | 'recompuesta';
 /** Lo mismo que los registros escriben, como DATO (B.313: se guarda lo descartado). */
 export interface DatosDeLaCita { longitud: number; paso: ViaDeLaCita }
 
@@ -229,8 +233,12 @@ export function datosDelDescarte(pajares: string[], quote: string | undefined): 
  *  comprobador contiguo el texto antes que las filas), con la misma búsqueda:
  *  el primer pajar donde casa da la vía. Si no casa en ninguno, pasó por la
  *  vía de segmentos de fila de `verifyQuote`, que aquí no se repite. */
-export function datosDelAcierto(pajares: string[], quote: string | undefined): DatosDeLaCita {
+export function datosDelAcierto(pajares: string[], quote: string | undefined, via?: ViaDeLaCita): DatosDeLaCita {
   const { texto: cita } = despegarPunteroDeFila(quote ?? '');
+  // F-125: si quien llama SABE por dónde pasó (el tramo), lo dice y no se
+  // recalcula; recalcular con la cita del juez daría `segmentos_de_fila`, que es
+  // falso. Sin `via`, exactamente lo de siempre.
+  if (via) return { longitud: cita.length, paso: via };
   for (const pajar of pajares) {
     const { recorte, paso } = buscarCita(pajar, cita);
     if (recorte !== null) return { longitud: cita.length, paso };
@@ -238,6 +246,6 @@ export function datosDelAcierto(pajares: string[], quote: string | undefined): D
   return { longitud: cita.length, paso: 'segmentos_de_fila' };
 }
 
-export function describirAcierto(pajares: string[], quote: string | undefined): string {
-  return enTexto(datosDelAcierto(pajares, quote));
+export function describirAcierto(pajares: string[], quote: string | undefined, via?: ViaDeLaCita): string {
+  return enTexto(datosDelAcierto(pajares, quote, via));
 }

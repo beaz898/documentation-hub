@@ -143,6 +143,26 @@ abierto después del contrato:
   propósito. **Nadie mida `estado='cruza'` creyendo lo primero**: lo que separa los
   dos casos es `juez.citas_recompuestas_en_trozos_distintos`.
 
+  ⚠️ **LAS DOS TRAMPAS DE `paso`, desde el 13/10/2026 (commit 10 de la fase 3.1).**
+  `paso` —la vía de una cita que pasó, o el paso en que se rindió la que falló— puede
+  valer desde ese día **`'recompuesta'`**: la cita pasó por el tramo literal más
+  largo. **Ningún SQL escrito antes de esa fecha lo contempla** (`SQL_B313`, `B332`,
+  `B333`, `F123_08`, `F124_01`, `A2A4` leen `paso` como texto).
+  - **En el log** («Contradicción verificada … nuevo: longitud=…, paso=…»), un lado
+    que pasó por el tramo dice `paso=recompuesta`. Antes de ese commit habría dicho
+    `paso=literal`, porque lo que se comprueba al registrarlo es la frase real del
+    ancla, que sí es literal. **Quien cuente `paso=literal` en logs anteriores al
+    commit 10 se traga los empalmes.**
+  - **En `descartesPorCita`** (el lado verificado de un hallazgo descartado porque
+    falló el otro), un lado que pasó por el tramo se guarda como `'recompuesta'`.
+    Antes de ese commit se habría guardado como **`'segmentos_de_fila'`**, el valor
+    por defecto de `datosDelAcierto` cuando la cita no casa en ningún pajar, que es
+    FALSO: señala el camino de tablas. Ninguna fila con ese error llegó a la base: el
+    commit 10 va en el mismo push que el tramo.
+  - `'recompuesta'` está en `ViaDeLaCita`, no en `PasoDeLaCita`: no es un paso de la
+    búsqueda y `AVANCE_DEL_FALLO` no la ordena. Un lado que salió `cita_entera` (D7)
+    se registra como `'normalizada'`.
+
   `resto_insuficiente`, `resto_no_literal`, `cita_entera`, `no_aplica` y
   `sin_frases` NO llevan contador: quedan en el registro por pareja,
   `citasAlTramo`, con la salida, las posiciones, la distancia, los trozos y las

@@ -1,5 +1,5 @@
 import { readFileSync } from 'node:fs';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { extractSegments, chunkSegments } from '@/lib/chunking';
 import { toStoredChunks, type StoredChunk } from '@/lib/read-chunks';
 import { fixQuotesInJudgment, verifyQuote } from './judge';
@@ -50,6 +50,49 @@ describe('LUGAR, con NOR-11 y CLI-13 reales', async () => {
   const CITA_EXISTENTE = 'El punto de retirada centralizado para las tres clínicas de la red se encuentra en la clínica de Retiro';
   const contradiccion = (newDocSays: string) => juicio({
     contradictions: [{ topic: 'Ubicación del punto de retirada centralizado', newDocSays, existingDocSays: CITA_EXISTENTE, severity: 'contradiction' }],
+  });
+
+  // ── COMMIT 10 · paso 'recompuesta' (arquitecto, 13/10/2026) ──────────────
+  // Un lado que pasó por el tramo NO se registra como lo que daría recalcularlo:
+  // ni `literal` en el log (la frase real del ancla sí es literal) ni
+  // `segmentos_de_fila` en el descarte guardado (la cita del juez no casa en
+  // ningún pajar, y ése es el valor por defecto de datosDelAcierto).
+  const INVENTADA = 'La clínica de Salamanca es la única que recibe al gestor autorizado los sábados por la tarde';
+  const conExistente = (newDocSays: string, existingDocSays: string) => juicio({
+    contradictions: [{ topic: 'Ubicación del punto de retirada centralizado', newDocSays, existingDocSays, severity: 'contradiction' }],
+  });
+  const lineasDeLog = (f: () => void): string[] => {
+    const espia = vi.spyOn(console, 'log').mockImplementation(() => {});
+    try { f(); return espia.mock.calls.map(a => String(a[0])); } finally { espia.mockRestore(); }
+  };
+
+  it('(c10-1) un lado aceptado por (B) sale en el log con paso=recompuesta, no literal', () => {
+    const lineas = lineasDeLog(() => puerta(nor11, cli13, true)(contradiccion(LUGAR_206)));
+    const verificada = lineas.find(l => l.includes('Contradicción verificada'));
+    expect(verificada).toMatch(/nuevo: longitud=\d+, paso=recompuesta,/);
+    expect(verificada).not.toMatch(/nuevo: longitud=\d+, paso=literal,/);
+  });
+
+  it('(c10-2) LA TRAMPA: un lado por (B) y el otro fallido → el descarte guarda paso=recompuesta, no segmentos_de_fila', () => {
+    expect(unidos(cli13)).not.toContain(INVENTADA);
+    const r = puerta(nor11, cli13, true)(conExistente(LUGAR_206, INVENTADA));
+    expect(r.judgment.contradictions).toEqual([]);
+    const d = r.judgment.descartesPorCita?.[0];
+    expect(d?.ladoFallido).toBe('existente');
+    expect(d?.nuevo.verificada).toBe(true);
+    expect(d?.nuevo.paso).toBe('recompuesta');
+  });
+
+  it('(c10-3) no-regresión: un lado que NO pasó por (B) registra el mismo paso que antes, en el descarte y en el log', () => {
+    const literal = nor11[8].text.slice(0, 120);
+    const con = puerta(nor11, cli13, true)(conExistente(literal, INVENTADA));
+    const sin = puerta(nor11, cli13, false)(conExistente(literal, INVENTADA));
+    expect(con.judgment.descartesPorCita).toEqual(sin.judgment.descartesPorCita);
+    expect(con.judgment.descartesPorCita?.[0].nuevo.paso).toBe('literal');
+    const logCon = lineasDeLog(() => puerta(nor11, cli13, true)(contradiccion(literal)));
+    const logSin = lineasDeLog(() => puerta(nor11, cli13, false)(contradiccion(literal)));
+    expect(logCon).toEqual(logSin);
+    expect(logCon.find(l => l.includes('Contradicción verificada'))).toMatch(/nuevo: longitud=\d+, paso=literal,/);
   });
 
   it('control: la cita existente es literal en CLI-13', () => {

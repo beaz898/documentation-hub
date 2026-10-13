@@ -4,7 +4,7 @@ import type { VerifiedQuote } from './judge';
 import { groupChunksByTable, renderTableRow, despegarPunteroDeFila } from './table-structure';
 import {
   findBestMatch, describirDescarte, describirAcierto, datosDelDescarte, datosDelAcierto,
-  type DatosDeLaCita,
+  type DatosDeLaCita, type ViaDeLaCita,
 } from './coincidencia-de-cita';
 
 /**
@@ -71,10 +71,10 @@ export interface ComprobadorDeLado {
   /** Longitud, paso y pajar: lo que va en el log de un descarte. */
   describir(quote: string | undefined): string;
   /** Lo mismo para una cita que PASÓ (B.313): el denominador del registro. */
-  describirAcierto(quote: string | undefined): string;
+  describirAcierto(quote: string | undefined, via?: ViaDeLaCita): string;
   /** Lo mismo que `describir`/`describirAcierto`, como DATO: lo que se guarda
    *  de un hallazgo descartado (B.313). */
-  datos(quote: string | undefined, verificada: boolean): DatosDeLaCita & { pajar: PajarDeLaCita };
+  datos(quote: string | undefined, verificada: boolean, via?: ViaDeLaCita): DatosDeLaCita & { pajar: PajarDeLaCita };
 }
 
 /** Las filas de tabla cuya línea, pintada con LA MISMA función que el juez lee
@@ -159,14 +159,15 @@ export function comprobadorDeLado(
   const pajares = (): string[] => !entregado
     ? (chunks.length > 0 ? chunks.map(c => c.text) : fallbackText ? [fallbackText] : [])
     : [...(entregado.texto !== null ? [entregado.texto] : []), ...entregado.trozos.map(c => c.text)];
-  const describirCon = (describe: (pajares: string[], quote: string | undefined) => string) => (quote: string | undefined): string => {
+  const describirCon = (describe: (pajares: string[], quote: string | undefined, via?: ViaDeLaCita) => string) => (quote: string | undefined, via?: ViaDeLaCita): string => {
     const cuantos = entregado
       ? (entregado.texto !== null ? `${entregado.trozos.length} filas visibles` : `${entregado.trozos.length} trozos`)
       : (chunks.length > 0 ? `${chunks.length} trozos` : '');
-    return `${describe(pajares(), quote)}, pajar=${pajar}${cuantos ? ` (${cuantos})` : ''}`;
+    return `${describe(pajares(), quote, via)}, pajar=${pajar}${cuantos ? ` (${cuantos})` : ''}`;
   };
-  const datos = (quote: string | undefined, verificada: boolean) =>
-    ({ ...(verificada ? datosDelAcierto : datosDelDescarte)(pajares(), quote), pajar });
+  // F-125: `via` sólo vale para una cita que PASÓ; sin ella, lo de siempre.
+  const datos = (quote: string | undefined, verificada: boolean, via?: ViaDeLaCita) =>
+    ({ ...(verificada ? datosDelAcierto(pajares(), quote, via) : datosDelDescarte(pajares(), quote)), pajar });
 
   return { comprobar, describir: describirCon(describirDescarte), describirAcierto: describirCon(describirAcierto), datos };
 }

@@ -6,7 +6,7 @@ import { getOrderedColumns, groupChunksByTable, renderTableBlock, alignQuoteToCe
 import { normalize } from './normalize';
 import { findBestMatch } from './coincidencia-de-cita';
 import { comprobadorDeLado, loEntregadoDeLaPareja, type ComprobadorDeLado } from './pajar-de-la-cita';
-import { registroDeDescartes, diagnosticoDelAcierto } from './diagnostico-de-cita';
+import { registroDeDescartes, diagnosticoDelAcierto, type ViasConocidas } from './diagnostico-de-cita';
 import { comprobarConRepliegueDeGlosa, registroDeGlosas } from './glosa-de-cita';
 import { comprobarConRepliegues, localizadorDeLado, registroDelTramo, type ComprobacionConTramo, type LocalizadorDeLado } from './repliegue-de-tramo';
 import type { RerankedCandidate, DocumentJudgment, PipelineOptions, DiscardedFindings, DocumentFragment, LecturaDeLaPareja, TextoAnalizado } from './types';
@@ -387,6 +387,20 @@ function marcaDeRecompuesta(cNew: ComprobacionConTramo, cExisting: ComprobacionC
   };
 }
 
+/** F-125: la vía de cada lado que pasó por el tramo, para el log y para el
+ *  registro de descartes: `'recompuesta'` si pasó recompuesto; `'normalizada'`
+ *  si salió `cita_entera` (D7: se trata como ese paso). Lado ausente = se
+ *  recalcula como siempre. */
+function viasDelTramo(cNew: ComprobacionConTramo, cExisting: ComprobacionConTramo): ViasConocidas {
+  const via = (c: ComprobacionConTramo) => !c.verificada ? undefined
+    : c.registro?.salida === 'recompuesta' ? 'recompuesta' as const
+    : c.registro?.salida === 'cita_entera' ? 'normalizada' as const
+    : undefined;
+  const nuevo = via(cNew);
+  const existente = via(cExisting);
+  return { ...(nuevo ? { nuevo } : {}), ...(existente ? { existente } : {}) };
+}
+
 /** F-125: lo que el log de una cita aceptada añade si pasó recompuesta. Sólo
  *  números: los trozos de las dos frases y la distancia. */
 function lineaDeRecompuesta(cNew: ComprobacionConTramo, cExisting: ComprobacionConTramo): string {
@@ -458,7 +472,7 @@ export function fixQuotesInJudgment(
 
     if (matchNew && matchExisting) {
       // B.313: el denominador del registro de B.299 (ii) — longitud y vía de las citas que PASAN.
-      console.log(`[judge] Contradicción verificada en "${judgment.documentName}" [${hash}] (${diagnosticoDelAcierto({ nuevo, existente }, { nuevo: cNew.cita, existente: cExisting.cita })}${lineaDeRecompuesta(cNew, cExisting)})`);
+      console.log(`[judge] Contradicción verificada en "${judgment.documentName}" [${hash}] (${diagnosticoDelAcierto({ nuevo, existente }, { nuevo: cNew.cita, existente: cExisting.cita }, viasDelTramo(cNew, cExisting))}${lineaDeRecompuesta(cNew, cExisting)})`);
       // F-125, D3: si un lado pasó recompuesto, su texto ya es la frase real
       // del ancla, y la marca lleva la otra frase y la cita del juez.
       fixedContradictions.push({ ...c, newDocSays: matchNew.text, existingDocSays: matchExisting.text, ...marcaDeRecompuesta(cNew, cExisting) });
@@ -488,7 +502,7 @@ export function fixQuotesInJudgment(
       // B.299: longitud de la cita y paso en que se quedó, por lado. El texto de
       // arriba sigue cortado a 200 SÓLO en el log; la comprobación la vio entera.
       // B.312: y si la cita está en el OTRO lado, «cruzada».
-      const diagnostico = descartes.descartar({ nuevo, existente }, { tipo: 'contradiccion', hash, tema: c.topic, citas: { nuevo: c.newDocSays, existente: c.existingDocSays }, fallo: failedSide });
+      const diagnostico = descartes.descartar({ nuevo, existente }, { tipo: 'contradiccion', hash, tema: c.topic, citas: { nuevo: c.newDocSays, existente: c.existingDocSays }, fallo: failedSide, vias: viasDelTramo(cNew, cExisting) });
       console.warn(
         `[judge] Contradicción descartada en "${judgment.documentName}" [${hash}] (cita no verificable, lado=${failedSide}; ${diagnostico}): ${failedText}`
       );
