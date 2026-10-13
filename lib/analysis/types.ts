@@ -119,6 +119,16 @@ export interface DocumentJudgment {
      * la memoria, no el hallazgo. Se cuenta en `diff.clasificacion.pre_indexado`.
      */
     huella?: string;
+    /**
+     * F-125 (fase 3.1) — LA MARCA DE CITA RECOMPUESTA, por lado. Presente sólo
+     * si la cita de ese lado pasó la puerta por el tramo literal más largo
+     * (`repliegue-de-tramo.ts`): entonces `newDocSays`/`existingDocSays` ya
+     * NO es la cita del juez, es la frase real del ancla, y la cita del juez
+     * queda aquí para auditoría. Sus lectores: la guarda de la reclasificación
+     * y el contexto del verificador (`pipeline.ts`), que no dejan que un
+     * hallazgo así se publique sin verificador.
+     */
+    recompuesta?: { nuevo?: CitaRecompuestaDeLado; existente?: CitaRecompuestaDeLado };
   }>;
   /** F-88 paso 2: la estructura agrupada de cada pareja de tablas de este
    *  candidato. Vacío en los documentos sin tablas, que es el caso normal. */
@@ -153,6 +163,53 @@ export interface DocumentJudgment {
    *  la comprobación de siempre; cuántas se rescataron al quitarla y cuántas no
    *  (glosa-de-cita.ts). Por cita, no por hallazgo. Ausente = ninguna. */
   repliegueDeGlosa?: { rescatadas: number; sinRescate: number };
+  /** F-125 (fase 3.1): cada cita de CONTRADICCIÓN que llegó al tramo literal
+   *  más largo —falló la comprobación de siempre y la glosa—, con lo que salió.
+   *  Por cita (por lado). Ausente = ninguna. Diagnóstico: el destino del
+   *  hallazgo lo decide la puerta, no este registro. */
+  citasAlTramo?: RegistroDelTramo[];
+}
+
+/** F-125: una frase real del documento, sobre el texto de SU trozo. */
+export interface FraseRealDeLaCita {
+  chunkIndex: number;
+  desde: number;
+  hasta: number;
+  texto: string;
+}
+
+/** F-125: lo que se guarda de un lado cuya cita pasó como recompuesta. Las
+ *  posiciones `ancla` y `resto` son sobre el texto ENTREGADO al juez. */
+export interface CitaRecompuestaDeLado {
+  citaDelJuez: string;
+  fraseDelAncla: FraseRealDeLaCita;
+  fraseDelResto: FraseRealDeLaCita;
+  ancla: { desde: number; hasta: number };
+  resto: { desde: number; hasta: number };
+  distancia: number;
+  hueco: number;
+  ordenInverso: boolean;
+  /** ¿Caen las dos frases en trozos distintos del texto entregado? */
+  enTrozosDistintos: boolean;
+}
+
+/** F-125: el registro de una cita que llegó al tramo. `salida` es la de
+ *  `tramo-de-cita.ts`, o `no_aplica` (sin lo entregado, o por piezas) o
+ *  `sin_frases` (recompuesta, pero sin las dos frases reales: no se publica). */
+export interface RegistroDelTramo {
+  hash: string;
+  lado: 'nuevo' | 'existente';
+  salida:
+    | 'recompuesta' | 'resto_insuficiente' | 'resto_no_literal' | 'empalme_multiple'
+    | 'sin_tramo_literal' | 'cita_entera' | 'no_aplica' | 'sin_frases';
+  motivo?: string;
+  longitudDeLaCita: number;
+  ancla?: { desde: number; hasta: number };
+  resto?: { desde: number; hasta: number };
+  longitudDelResto?: number;
+  distancia?: number;
+  trozos?: { ancla: number; resto: number };
+  frases?: { ancla: string; resto: string };
 }
 
 /**

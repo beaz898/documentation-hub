@@ -29,10 +29,11 @@ import { applyDeterministicRules, buildStructuralTopic, destinoSinClave } from '
 import { getOrderedColumns } from './table-structure';
 import { verifyFindings } from './verify-findings';
 import type { FindingToVerify } from './verify-findings';
-import { ladosParaVerificar, lineaDelContexto, contarSinContexto } from './contexto-de-la-cita';
+import { ladosParaVerificar, lineaDelContexto, contarSinContexto, contextoDeLaCita, type ContextoDeLaCita, type LadosParaVerificar } from './contexto-de-la-cita';
+import { RECOMPUESTA_BLOQUEADA_AL_RECLASIFICAR } from './repliegue-de-tramo';
 import type { StoredChunk } from '@/lib/read-chunks';
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { DocumentJudgment } from './types';
+import type { CitaRecompuestaDeLado, DocumentJudgment } from './types';
 import { lineaDeAgregado, lineaDeCandidato } from '@/lib/analysis/traza-diff';
 import { contadoresDeLaGlosa } from './glosa-de-cita';
 
@@ -136,6 +137,32 @@ const MAX_DOUBLE_CHECK_CANDIDATES = 50;
 // Los vecinos y el trozo de la cita que ve el verificador viven en
 // `contexto-de-la-cita.ts` desde el 04/10/2026 (B.322): `ladosParaVerificar`.
 // Sin lectura nueva: los trozos ya vienen cargados completos para el paso 2a.
+
+/**
+ * F-125 (fase 3.1) — EL VERIFICADOR RECIBE LOS TROZOS DE LAS DOS FRASES REALES.
+ * Un hallazgo con la marca `recompuesta` publica la frase del ancla; la del
+ * resto viaja en la marca. Lo que se verifica es todo lo que sostiene el
+ * hallazgo, así que al contexto de cada lado recompuesto se le une el de la
+ * frase del resto, con la MISMA función y sin tocarla (`contextoDeLaCita`).
+ * Un lado sin marca sale idéntico.
+ */
+function conLaFraseDelResto(
+  lados: LadosParaVerificar,
+  marca: { nuevo?: CitaRecompuestaDeLado; existente?: CitaRecompuestaDeLado } | undefined,
+  chunksNuevo: StoredChunk[],
+  chunksExistente: StoredChunk[],
+): LadosParaVerificar {
+  if (!marca) return lados;
+  const unir = (ctx: ContextoDeLaCita, chunks: StoredChunk[], lado: CitaRecompuestaDeLado | undefined): ContextoDeLaCita => {
+    if (!lado) return ctx;
+    const trozo = chunks.find(t => t.chunkIndex === lado.fraseDelResto.chunkIndex) ?? null;
+    const delResto = contextoDeLaCita(chunks, trozo, lado.fraseDelResto.texto);
+    return { ...ctx, trozos: [...ctx.trozos, ...delResto.trozos.filter(t => !ctx.trozos.includes(t))] };
+  };
+  const nuevo = unir(lados.nuevo, chunksNuevo, marca.nuevo);
+  const existente = unir(lados.existente, chunksExistente, marca.existente);
+  return { nuevo, existente, campos: { ...lados.campos, newTrozos: nuevo.trozos, existingTrozos: existente.trozos } };
+}
 
 function bumpCount(counts: DiscardedFindings, key: string): void {
   counts[key] = (counts[key] ?? 0) + 1;
@@ -465,7 +492,7 @@ export async function applyCascadeToCandidate(
         `[${label}] · [${ev.hash}] "${(c.topic ?? '(sin titulo)').slice(0, 60)}" → baja a juicio: ` +
         `sin_clave (${verdict.anclas.length} columna(s) de ancla, pero la estructura no puede firmar)`
       );
-      const lados = ladosParaVerificar({ chunks: newDocumentChunks, chunk: ev.newChunk, cita: c.newDocSays }, { chunks: existingChunks, chunk: ev.existingChunk, cita: c.existingDocSays });
+      const lados = conLaFraseDelResto(ladosParaVerificar({ chunks: newDocumentChunks, chunk: ev.newChunk, cita: c.newDocSays }, { chunks: existingChunks, chunk: ev.existingChunk, cita: c.existingDocSays }), c.recompuesta, newDocumentChunks, existingChunks);
       console.log(`[${label}] · [${ev.hash}] ${lineaDelContexto(lados)}`); // B.322: el sello
       contarSinContexto(counts, lados);
       toVerify.push({
@@ -487,6 +514,18 @@ export async function applyCascadeToCandidate(
     }
 
     if (verdict.outcome === 'reclassify') {
+      // F-125, D4: UN EMPALME NO SE PUBLICA SIN VERIFICADOR. El empalme se
+      // acepta porque se muestran y se verifican las frases reales; un
+      // solapamiento no pasa por verificador (cabecera de applyCascadeToCandidate:
+      // «Solo contradictions[] pasa por verifyFindings»), así que
+      // una contradicción recompuesta convertida en solapamiento perdería las
+      // dos protecciones de golpe. No se reclasifica ni sigue: muere, contada.
+      if (c.recompuesta) {
+        bumpCount(counts, RECOMPUESTA_BLOQUEADA_AL_RECLASIFICAR);
+        tally.descartados++;
+        console.log(`[${label}] · [${ev.hash}] "${c.topic.slice(0, 60)}" → descartado: recompuesta_al_reclasificar (sin verificador no se publica)`);
+        return;
+      }
       bumpCount(counts, 'descartado.equivalentes');
       tally.reclasificados++;
       console.log(`[${label}] · [${ev.hash}] "${c.topic.slice(0, 60)}" → reclasificado a solapamiento`);
@@ -524,7 +563,7 @@ export async function applyCascadeToCandidate(
       }
     }
 
-    const lados = ladosParaVerificar({ chunks: newDocumentChunks, chunk: ev.newChunk, cita: c.newDocSays }, { chunks: existingChunks, chunk: ev.existingChunk, cita: c.existingDocSays });
+    const lados = conLaFraseDelResto(ladosParaVerificar({ chunks: newDocumentChunks, chunk: ev.newChunk, cita: c.newDocSays }, { chunks: existingChunks, chunk: ev.existingChunk, cita: c.existingDocSays }), c.recompuesta, newDocumentChunks, existingChunks);
     console.log(`[${label}] · [${ev.hash}] ${lineaDelContexto(lados)}`); // B.322: el sello
     contarSinContexto(counts, lados);
     toVerify.push({
