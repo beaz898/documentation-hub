@@ -188,3 +188,14 @@ describe('D2 del commit 8 · con las frases en trozos distintos, al verificador 
     expect(p).not.toContain(VECINO);
   });
 });
+
+describe('el registro del tramo sobrevive a la cascada', () => {
+  // `contadoresDelTramo` corre sobre los juicios DESPUÉS de la cascada
+  // (pipeline.ts): si la cascada perdiera `citasAlTramo`, los contadores por
+  // cita valdrían cero aunque el juez los hubiera apuntado.
+  it('citasAlTramo del juicio de entrada sigue en el juicio que devuelve la cascada', async () => {
+    const registro = [{ hash: 'abcd1234', lado: 'nuevo' as const, salida: 'recompuesta' as const, longitudDeLaCita: 120, trozos: { ancla: 0, resto: 2 } }];
+    const r = await cascada({ ...juicio({ newDocSays: ANCLA, existingDocSays: ANCLA, recompuesta: { nuevo: MARCA } }), citasAlTramo: registro });
+    expect(r.judgment.citasAlTramo).toEqual(registro);
+  });
+});

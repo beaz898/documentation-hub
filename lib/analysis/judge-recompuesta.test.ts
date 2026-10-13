@@ -4,7 +4,7 @@ import { extractSegments, chunkSegments } from '@/lib/chunking';
 import { toStoredChunks, type StoredChunk } from '@/lib/read-chunks';
 import { fixQuotesInJudgment, verifyQuote } from './judge';
 import { comprobadorDeLado, type LoEntregado } from './pajar-de-la-cita';
-import { localizadorDeLado } from './repliegue-de-tramo';
+import { contadoresDelTramo, localizadorDeLado } from './repliegue-de-tramo';
 import type { DocumentJudgment } from './types';
 
 /**
@@ -70,6 +70,17 @@ describe('LUGAR, con NOR-11 y CLI-13 reales', async () => {
     expect(c.existingDocSays).toBe(CITA_EXISTENTE);
     expect(r.evidence.contradictions[0].newChunk?.chunkIndex).toBe(c.recompuesta?.nuevo?.fraseDelAncla.chunkIndex);
     expect(r.judgment.citasAlTramo?.map(x => [x.lado, x.salida])).toEqual([['nuevo', 'recompuesta']]);
+  });
+
+  // ⚠️ EL CIRCUITO ENTERO DE LOS CONTADORES (revisión del arquitecto, 13/10/2026):
+  // las pruebas de contadoresDelTramo construyen citasAlTramo a mano, así que si
+  // fixQuotesInJudgment dejara de guardarlo, los contadores por cita valdrían cero
+  // para siempre y todo seguiría en verde. Ésta los saca del juicio REAL.
+  it('(2) los contadores salen del juicio real: una recompuesta, ninguna en trozos distintos (las dos piezas en el trozo 8)', () => {
+    const r = puerta(nor11, cli13, true)(contradiccion(LUGAR_206));
+    const c = contadoresDelTramo([r.judgment]);
+    expect(c['juez.citas_recompuestas']).toBe(1);
+    expect(c['juez.citas_recompuestas_en_trozos_distintos']).toBe(0);
   });
 
   it('(2) control: sin el tramo enganchado, la misma cita muere como hoy (cabeza_sin_cola)', () => {
