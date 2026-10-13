@@ -42,10 +42,10 @@ const MARCA: CitaRecompuestaDeLado = {
 
 function juicio(c: Partial<DocumentJudgment['contradictions'][number]>): DocumentJudgment {
   return {
-    documentId: 'cand', documentName: 'CANDIDATO.docx', overlapPercent: 40, verdict: 'tema_similar',
+    documentId: 'cand', documentName: 'CANDIDATO.docx', source: 'manual', overlapPercent: 40, verdict: 'tema_similar',
     contradictions: [{ topic: 'Frecuencia de retirada', newDocSays: ANCLA, existingDocSays: EXISTENTE, severity: 'contradiction', ...c }],
     overlappingContent: [], uniqueToNewDoc: [],
-  } as DocumentJudgment;
+  };
 }
 const EVIDENCIA: JudgmentEvidence = {
   contradictions: [{ hash: 'abcd1234', newChunk: NUEVOS[0], existingChunk: EXISTENTES[0], newColumns: null, existingColumns: null }],

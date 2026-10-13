@@ -8,6 +8,7 @@ import { findBestMatch } from './coincidencia-de-cita';
 import { comprobadorDeLado, loEntregadoDeLaPareja, type ComprobadorDeLado } from './pajar-de-la-cita';
 import { registroDeDescartes, diagnosticoDelAcierto } from './diagnostico-de-cita';
 import { comprobarConRepliegueDeGlosa, registroDeGlosas } from './glosa-de-cita';
+import { comprobarConRepliegues, localizadorDeLado, registroDelTramo, type ComprobacionConTramo, type LocalizadorDeLado } from './repliegue-de-tramo';
 import type { RerankedCandidate, DocumentJudgment, PipelineOptions, DiscardedFindings, DocumentFragment, LecturaDeLaPareja, TextoAnalizado } from './types';
 import type { StoredChunk } from '@/lib/read-chunks';
 
@@ -375,6 +376,26 @@ function isContextCitation(quote: string | undefined, contextTexts: string[]): b
   return contextTexts.some(text => normalize(text).includes(normQuote));
 }
 
+/** F-125: la marca de una contradicción con algún lado recompuesto. */
+function marcaDeRecompuesta(cNew: ComprobacionConTramo, cExisting: ComprobacionConTramo): Pick<DocumentJudgment['contradictions'][number], 'recompuesta'> {
+  if (!cNew.recompuesta && !cExisting.recompuesta) return {};
+  return {
+    recompuesta: {
+      ...(cNew.recompuesta ? { nuevo: cNew.recompuesta } : {}),
+      ...(cExisting.recompuesta ? { existente: cExisting.recompuesta } : {}),
+    },
+  };
+}
+
+/** F-125: lo que el log de una cita aceptada añade si pasó recompuesta. Sólo
+ *  números: los trozos de las dos frases y la distancia. */
+function lineaDeRecompuesta(cNew: ComprobacionConTramo, cExisting: ComprobacionConTramo): string {
+  const lado = (nombre: string, c: ComprobacionConTramo) => c.recompuesta
+    ? ` · recompuesta ${nombre}: trozos ${c.recompuesta.fraseDelAncla.chunkIndex}/${c.recompuesta.fraseDelResto.chunkIndex}, distancia=${c.recompuesta.distancia}`
+    : '';
+  return lado('nuevo', cNew) + lado('existente', cExisting);
+}
+
 export function fixQuotesInJudgment(
   judgment: DocumentJudgment,
   // B.299 (i): con qué se comprueba cada lado —lo que leyó el juez, o el camino de antes—.
@@ -386,12 +407,16 @@ export function fixQuotesInJudgment(
   // para distinguir el MOTIVO del descarte si el juez cita una pese a la
   // marca — no participa en verifyQuote.
   existingContextTexts: string[] = [],
+  // F-125 (fase 3.1): el tramo literal más largo, SÓLO para las citas de las
+  // CONTRADICCIONES (D1). Sin esto, la puerta es la de antes.
+  localizadores?: { nuevo: LocalizadorDeLado; existente: LocalizadorDeLado },
 ): { judgment: DocumentJudgment; evidence: JudgmentEvidence } {
   let narracionEnCita = 0;
   let citaNoVerificable = 0;
   let citaDeContexto = 0;
   const descartes = registroDeDescartes(); // B.313: se guarda lo que se descarta
   const glosas = registroDeGlosas(); // F-121: las citas rescatadas al quitar la glosa
+  const tramo = registroDelTramo(); // F-125: las citas que llegan al tramo literal más largo
   // F-61: instrumentación permanente — cuánto trabajo hace cada fase de la
   // vía por segmentos. Por LADO verificado (hasta dos por hallazgo), no por
   // hallazgo: "cuánto trabajo hace cada fase" es una pregunta sobre el
@@ -421,16 +446,22 @@ export function fixQuotesInJudgment(
     }
 
     // F-121: la de siempre y, sólo si falla, sin la glosa entre corchetes.
-    const cNew = comprobarConRepliegueDeGlosa(nuevo, c.newDocSays);
-    const cExisting = comprobarConRepliegueDeGlosa(existente, c.existingDocSays);
+    // F-125: y sólo si las dos fallan, el tramo literal más largo (B). Sólo
+    // aquí, en las contradicciones: el bucle de solapamientos no lo usa (D1).
+    const cNew = comprobarConRepliegues(nuevo, localizadores?.nuevo ?? null, c.newDocSays);
+    const cExisting = comprobarConRepliegues(existente, localizadores?.existente ?? null, c.existingDocSays);
     glosas.anotar(cNew, cExisting);
+    tramo.anotar(hash, 'nuevo', cNew);
+    tramo.anotar(hash, 'existente', cExisting);
     const matchNew = cNew.verificada;
     const matchExisting = cExisting.verificada;
 
     if (matchNew && matchExisting) {
       // B.313: el denominador del registro de B.299 (ii) — longitud y vía de las citas que PASAN.
-      console.log(`[judge] Contradicción verificada en "${judgment.documentName}" [${hash}] (${diagnosticoDelAcierto({ nuevo, existente }, { nuevo: cNew.cita, existente: cExisting.cita })})`);
-      fixedContradictions.push({ ...c, newDocSays: matchNew.text, existingDocSays: matchExisting.text });
+      console.log(`[judge] Contradicción verificada en "${judgment.documentName}" [${hash}] (${diagnosticoDelAcierto({ nuevo, existente }, { nuevo: cNew.cita, existente: cExisting.cita })}${lineaDeRecompuesta(cNew, cExisting)})`);
+      // F-125, D3: si un lado pasó recompuesto, su texto ya es la frase real
+      // del ancla, y la marca lleva la otra frase y la cita del juez.
+      fixedContradictions.push({ ...c, newDocSays: matchNew.text, existingDocSays: matchExisting.text, ...marcaDeRecompuesta(cNew, cExisting) });
       contradictionEvidence.push({
         hash,
         newChunk: matchNew.chunk,
@@ -548,6 +579,7 @@ export function fixQuotesInJudgment(
       overlappingContent: fixedOverlaps,
       ...descartes.resultado(),
       ...glosas.resultado(),
+      ...tramo.resultado(),
       ...(Object.keys(discarded).length > 0 ? { discarded } : {}),
     },
     evidence: { contradictions: contradictionEvidence, overlaps: overlapEvidence },
@@ -923,6 +955,11 @@ Responde con este JSON (sin bloques de código, sin texto adicional):
       comprobadorDeLado(verifyQuote, entregado.nuevo, args.newDocumentChunks, args.newDocumentFallbackText),
       comprobadorDeLado(verifyQuote, entregado.existente, existingChunks, existingFallbackText),
       existingContextTexts,
+      // F-125: el índice de cada lado se construye una vez por pareja, sobre lo entregado.
+      {
+        nuevo: localizadorDeLado({ entregado: entregado.nuevo, trozos: args.newDocumentChunks }),
+        existente: localizadorDeLado({ entregado: entregado.existente, trozos: existingChunks }),
+      },
     );
     return { ...verificado, lectura };
   } catch (err) {
