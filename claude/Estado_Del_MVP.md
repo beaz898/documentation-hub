@@ -1,3 +1,7 @@
+> ⚠️ **EL ESTADO VIVO ESTÁ EN `claude/Estado_Y_Pendientes_14-10-2026.md`** (desde el 14/10/2026):
+> dónde estamos, lo hecho, lo que queda en orden y con su origen, y las reglas de método. Este
+> fichero es el registro histórico y no se reescribe; no hace falta buscar el estado en cinco sitios.
+
 # Estado del MVP — 09/09/2026
 
 *(Actualizado el 09/09 con las tandas A1, A3 y A6 y con B.177 y B.198

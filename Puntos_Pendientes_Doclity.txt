@@ -1,3 +1,7 @@
+⚠️ SUPERADO EL 14/10/2026 por claude/Estado_Y_Pendientes_14-10-2026.md, que es el sitio del estado
+vivo y de los pendientes. Este fichero tiene cosas desfasadas; no se borra, y sus fichas siguen
+siendo la casa de lo que se cita por su número.
+
 PENDIENTES — Doclity (Agente IA)
 ================================
 Documento vivo. Se actualiza al completar tareas (marcar [✓]) y se

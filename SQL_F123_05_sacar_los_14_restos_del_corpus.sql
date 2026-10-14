@@ -3,7 +3,7 @@
 -- NADA — ⚠️ ESCRIBE (pasos B y D). Cambia `documents.analysis_status` de
 -- 'analizado' a 'pendiente' en 14 filas. No borra, no reindexa, no toca trozos,
 -- vectores ni análisis.
--- ⏳ PENDIENTE DE EJECUTAR. Lo ejecuta el director, PASO A PASO (ver abajo).
+-- ✅ EJECUTADA por el director el 11/10/2026, PASO A PASO (ver abajo): los 14 restos quedaron fuera del corpus (claude/Estado_Del_MVP.md, fase 0.1). Cabecera corregida el 14/10/2026: hasta entonces seguía diciendo PENDIENTE.
 -- ✅ PROBADO ANTES DE ENTREGARLO (10/10/2026) contra filas sintéticas en un
 -- Postgres local (PGlite): con la población de SQL_F123_01 el paso B cambia 14
 -- filas y deja el corpus en los 6 con trozos; si uno de los 14 ya no está en
