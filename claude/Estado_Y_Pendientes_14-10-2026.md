@@ -222,3 +222,7 @@ Del inventario de Code (14/10), sobre las copias locales y el último censo del 
    F-126 («poner» por «usar») pasó al dictamen de Fable y de ahí al prompt del producto.
 10. **No se abren frentes nuevos sobre algo ya decidido y sin construir**, y los frentes se cierran
     con un disparador escrito. (F-123 P5; F-126 cerró el de la puerta)
+11. Un error de TRANSPORTE no es una corrección del documento. Si un pegado parte o altera un
+    texto al traerlo al repositorio, se arregla la copia para que coincida con el original y se anota
+    el incidente; lo que se añade debajo con su fecha es lo que corrige el CONTENIDO, no lo que
+    arregla la COPIA. (14/10/2026, la línea del esquema de `uniqueToNewDoc`.)

@@ -112,7 +112,9 @@ Las otras tres cajas tienen definición explícita:
 **`uniqueToNewDoc` NO TIENE DEFINICIÓN.** Sólo aparece en el esquema de respuesta
 (`:864`) como:
 
-“uniqueToNewDoc”: [“aspecto 1”, “aspecto 2”]
+```
+"uniqueToNewDoc": ["aspecto 1", "aspecto 2"]
+```
 
 Lo único que el modelo sabe de esa caja es **su nombre**: «exclusivo del
 documento nuevo». Y «el punto de retirada está en Chamberí» es, a la letra, algo
@@ -176,7 +178,10 @@ hipótesis, después o nunca.**
 
 > **Añadido el 14/10/2026 (arquitecto).** Este fichero se escribió en el proyecto de Claude el
 > 12/10/2026 y hasta hoy NO estaba en el repositorio; se trae porque es la única copia de las
-> salidas de `SQL_F123_07` y `SQL_F123_08`. Nada de lo de arriba se modifica. Lo que ha pasado
+> salidas de `SQL_F123_07` y `SQL_F123_08`. Nada de lo de arriba se modifica. Incidente de
+> transporte: al traerlo, el pegado partió la línea del esquema de `uniqueToNewDoc` (sección «El
+> porqué») y le cambió las comillas rectas por tipográficas; se restauró en el cuerpo —bloque de
+> código cercado y comillas rectas— para que la copia coincida con el original. Lo que ha pasado
 > después con sus tres puntos abiertos:
 >
 > 1. **Sí era sistemático, y acotado.** `SQL_F123_09` se ejecutó el 12/10: de **1.437** entradas de
