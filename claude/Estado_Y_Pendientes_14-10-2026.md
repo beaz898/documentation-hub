@@ -40,9 +40,8 @@ repositorio.
 escrito en el prompt. Subió el marcador de 1 a 2 de 3.
 El hallazgo que lo motivó: el juez emitía LUGAR dentro de esa caja, con el conflicto escrito por él
 mismo, en una lista que no pasaba por la puerta ni se publicaba
-(`claude/Hallazgo_LUGAR_en_uniqueToNewDoc.md` — ⏳ **PENDIENTE DE TRAER: hoy sólo existe en el
-proyecto de Claude**; se trae porque es la única copia de las salidas de `SQL_F123_07` y
-`SQL_F123_08`). Lo que falta de esa decisión está en el punto 3.13.
+(`claude/Hallazgo_LUGAR_en_uniqueToNewDoc.md`, la única copia de las salidas de `SQL_F123_07` y
+`SQL_F123_08`, traída al repositorio el 14/10). Lo que falta de esa decisión está en el punto 3.13.
 
 ### Fase 3.1 — el empalme · F-125 (12-13/10) · 13 commits, `0ab6e7d6`
 **13 commits** (del 0 al 11, contando 3a y 3b). El push `1671465a..0ab6e7d6` lleva 14 porque el
