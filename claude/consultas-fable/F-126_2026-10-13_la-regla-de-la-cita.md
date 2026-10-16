@@ -13,7 +13,10 @@ Fuente: los dos textos llegaron en el encargo del arquitecto del 13/10/2026
         el original del dictamen, en la conversación del director con Fable.
         Si se detecta una palabra cortada, el original manda.
 Estado: ARCHIVADA CON DICTAMEN · DECIDE LA REGLA NUEVA DE LA CITA (commit
-        f918f5b5) Y LAS TRES LÍNEAS DE CLAUDE.md (139aa19e). Sin medir.
+        f918f5b5) Y LAS TRES LÍNEAS DE CLAUDE.md (139aa19e). MEDIDA el 14/10/2026
+        (siete pasadas de NOR-11, `SQL_F126_01`): 3 de 3 en las siete; tres de
+        las cuatro predicciones aciertan, falla la de la mediana. Calificadas
+        en (e) el 16/10/2026.
         Cotejo de integridad, 13/10/2026, con el método de F-121: sha256 del
         texto tal como queda archivado aquí (saltos LF, sin salto final), 16
         primeros hexadecimales; caracteres = puntos de código; palabras = trozos
@@ -449,14 +452,17 @@ real tendrá a montones: normativa, contratos, protocolos. Si la regla de P-F126
 
 # (e) PREDICCIONES REGISTRADAS, PENDIENTES DE MEDICIÓN
 
-Con la cifra exacta. Sin veredicto.
+Con la cifra exacta. **Calificadas el 16/10/2026 con la medida del 14/10** —siete pasadas de NOR-11 de
+08:28:55 a 08:46:38 hora de Madrid, leídas con `SQL_F126_01`; la salida está en
+`claude/Predicciones_F126_La_Regla_De_La_Cita.md`—. La calificación es la del arquitecto del 14/10
+(«siete de las ocho aciertan; falla la de la mediana»), que cuenta también las del encargo.
 
 | N.º | De quién | Predicción | Cifra exacta | Estado |
 |---|---|---|---|---|
-| P-F126-1 | Fable | Con la regla «el tramo más corto que contenga el dato», LUGAR se publica por cita literal contigua, SIN recomposición | **5 de 7 o más** | sin medir |
-| P-F126-2 | Fable | PLAZO y NEGACIÓN se mantienen | **7 de 7** las dos | sin medir |
-| P-F126-3 | Fable | La longitud MEDIANA de las citas publicadas baja | **por debajo de 150** caracteres | sin medir |
-| P-F126-4 | Fable | El contador de recompuestas baja, porque el juez ya no necesita soldar | **de 1 de 7 a 0 de 7** | sin medir |
+| P-F126-1 | Fable | Con la regla «el tramo más corto que contenga el dato», LUGAR se publica por cita literal contigua, SIN recomposición | **5 de 7 o más** | ✅ **ACIERTA** · 7 de 7, cita literal contigua de 133 caracteres, `marca recompuesta: no` en las siete |
+| P-F126-2 | Fable | PLAZO y NEGACIÓN se mantienen | **7 de 7** las dos | ✅ **ACIERTA** · 7 de 7 las dos |
+| P-F126-3 | Fable | La longitud MEDIANA de las citas publicadas baja | **por debajo de 150** caracteres | ❌ **FALLA** · 167,0 (de 182,5). Toda la bajada vino de LUGAR (156,5); PLAZO (141,0) y NEGACIÓN (190,0) no se movieron porque ya se citaban bien |
+| P-F126-4 | Fable | El contador de recompuestas baja, porque el juez ya no necesita soldar | **de 1 de 7 a 0 de 7** | ✅ **ACIERTA** · los seis contadores de la puerta a cero en las siete; `citasAlTramo` vacío |
 | (contrafáctica) | Fable | Con «tan largo como haga falta», LUGAR quedaría bajo y habría riesgo en PLAZO o NEGACIÓN | LUGAR **3 de 7 o menos** | no medible: esa regla no se despliega |
 
 **Criterio de abandono** (arquitecto): si PLAZO o NEGACIÓN bajan de 7 de 7, se revierte. **Criterio
