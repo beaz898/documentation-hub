@@ -1,9 +1,29 @@
 # ESTADO Y PENDIENTES — 14/10/2026
 
+> **Revisión: creado el 14/10/2026 · actualizado el 16/10/2026.** El 16/10 cambiaron dos cosas: el
+> frente de lectura (3.1) pasa de una entrada a cinco, con el orden que dictamina F-127, y se
+> corrige el estado de la fase 0, que no era el que creíamos. Se cierra la fase 3.4 (3.8) y entran
+> la deuda nueva, la regla 12 y la sección 0, lo que está en vuelo.
+
 > **Sustituye a `Puntos_Pendientes_Doclity.txt`**, que tiene cosas desfasadas. Escrito por el
 > arquitecto el 14/10/2026, después de cerrar la medida de F-126. Cada pendiente dice **de qué
 > consulta de Fable sale**, para que una entrada suelta se pueda rastrear dentro de un mes.
 > Las consultas están archivadas con sus dos mitades en `claude/consultas-fable/`.
+
+---
+
+## 0. Lo que está en vuelo (16/10/2026)
+
+- **MEDICIÓN LANZADA O POR LANZAR**: tres pasadas de NOR-10 desde la bandeja de revisión, con el
+  presupuesto de hoy. Predicciones cerradas en `claude/Predicciones_F127_NOR10_Documento_Largo.md`;
+  lectura con `SQL_F127_01_la_medida_de_NOR10.sql`. **El producto NO puede cambiar entre las
+  pasadas.** Sirve además como sonda de la frase partida que pide Fable (F-127 P7).
+- **PENDIENTE DE ESCRIBIR**: un añadido a F-127 para Fable con cinco correcciones medidas —el error
+  del bloque de 3.206; que el corte en límite de trozo cuesta la contradicción B; que su P-F127-3 es
+  falsa, con las parejas y las cifras; que el «corte honesto» no declara nada; y que el selector por
+  relevancia corre antes de que se sepa lo que sobra—. Se escribe **DESPUÉS** de las tres pasadas,
+  para que lleve dentro lo que el juez hace con media frase, que es lo que él mismo dice que no
+  sabe.
 
 ---
 
@@ -25,13 +45,27 @@ Cero falsos positivos en todas las ventanas. Lo que publica LUGAR hoy es un tram
 literal** de 133 caracteres («…ubicado en la clínica de Chamberí»), con `marca recompuesta: no`:
 el juez dejó de fabricar la frase y **copia**.
 
+**Las dos mediciones de NOR-11 ↔ CLI-13 que importan, para no confundirlas** (lo hizo el dictamen
+de F-127, que dio la del 13/10 como estado actual):
+- **13/10, fase 3.1**: LUGAR 1 de 7 (`claude/Predicciones_F125_Seis_Pasadas.md`).
+- **14/10, F-126, regla de la cita nueva**: 3 de 3 en las siete pasadas, LUGAR 7 de 7, cita literal
+  contigua de 133 caracteres, los seis contadores a cero, cero falsos positivos
+  (`claude/Predicciones_F126_La_Regla_De_La_Cita.md`).
+
+**El criterio de «cerrado para enseñar»** (F-123, sin cambios en F-127): cada trampa sembrada
+publicada en 4 de 5 pasadas o más, cero falsos, y el coste por análisis escrito. En NOR-11 ↔ CLI-13
+**las dos primeras condiciones SE CUMPLEN desde el 14/10. La que falta es el coste por análisis, y
+es exactamente el paso 1 del frente de lectura (3.1.1).** Por eso el paso 1 va primero, y no es
+burocracia.
+
 ---
 
 ## 2. Lo que está hecho
 
-### Fase 0 — limpieza y línea base · F-123 (10/10)
-Los 14 restos fuera del corpus (`SQL_F123_05`, ejecutado el 11/10), contadores y línea base nueva.
-La línea base anterior se perdió al borrar NOR-11 y NOR-10 de la aplicación: su única copia es
+### Fase 0 — limpieza · F-123 (10/10) · sólo la 0.1
+Los 14 restos fuera del corpus (`SQL_F123_05`, ejecutado el 11/10). **Corregido el 16/10**: aquí
+ponía también «contadores y línea base nueva», y no es verdad; el estado real de 0.2, 0.3 y 0.4
+está en el punto 3.14. La línea base anterior se perdió al borrar NOR-11 y NOR-10 de la aplicación: su única copia es
 `claude/Medida_B357_destino_contradicciones_NOR11_CLI13.md`, que desde el 13/10 también está en el
 repositorio.
 
@@ -73,23 +107,54 @@ sabida: toda la bajada venía de LUGAR porque PLAZO y NEGACIÓN ya se citaban bi
 
 ## 3. Lo que queda, en orden, con su origen
 
-### 3.1 · EL CAMINO CRÍTICO: el presupuesto de lectura · F-123, fase 1.2
-**Esto es lo siguiente, y no es una idea nueva: es un pendiente viejo que acaba de volverse el
-cuello de botella.**
+### 3.1 · EL FRENTE DE LECTURA · F-123 fase 1.2, reescrito por F-127 (16/10)
+**La fase 1.2 de F-123 («subir el presupuesto a 80.000») deja de ser una entrada y pasa a ser
+cinco**, en el orden que dictamina F-127 (P7) y con su estado real. Lo que la motivó sigue en pie:
+la única pareja con verdad documentada que pone a prueba las frases largas con subordinadas es
+**NOR-10 ↔ CLI-12** (`SIEMBRA_corpus_ampliado.md`), y no cabe en una lectura: 66.801 y 55.135
+caracteres renderizados contra 40.000. Y la regla de hoy no es monótona: tiene un barranco en 30 de
+30 parejas, y subir a 80.000 con ella deja fuera la frase B que hoy entra (F-127, (c) 2.1 y 2.2).
 
-Lo medido hoy (inventario de Code, 14/10): la **única** pareja con verdad documentada que pone a
-prueba el caso difícil —frases largas con subordinadas— es **NOR-10 ↔ CLI-12**
-(`SIEMBRA_corpus_ampliado.md`, tres contradicciones sembradas más una no sembrada). Y son los dos
-documentos con más frases largas del corpus: NOR-10 tiene 149 frases de más de 200 caracteres y
-CLI-12 tiene 118.
+#### 3.1.1 · Registrar tokens por llamada · F-127 P7 paso 1 y P9.1 · SIN EMPEZAR
+**Es lo primero.** Cero cambio de comportamiento: la API ya devuelve `input_tokens`,
+`output_tokens`, `cache_creation_input_tokens` y `cache_read_input_tokens`; llegan a
+`lib/llm/anthropic-client.ts:333-340` y se pierden al sumarlos por modelo en
+`lib/observability/usage-context.ts:40-45`. Hay que guardar también la latencia, que hoy no se mide
+en ningún sitio, y el id de pareja. Sin esto ninguna cifra de coste es una cifra, y según el
+arquitecto es la tercera vez que nos bloquea una medición.
 
-El problema: **NOR-10 mide 60.038 caracteres y CLI-12 50.797**, contra los **40.000** del
-presupuesto por pareja. CLI-12 ya entraba recortado frente a NOR-11 (2.959 de 55.135). Una
-contradicción sembrada que no llegue al juez fallaría **por lectura, no por la regla de la cita**,
-y eso haría la medición inservible para lo que queremos saber.
+#### 3.1.2 · Corte en límite de trozo con declaración al juez · F-127 P3 y P7 paso 2 · SIN EMPEZAR, CON UN PROBLEMA MEDIDO
+**Si el corte retrocede al límite anterior, la contradicción B de NOR-10 ↔ CLI-12 se queda fuera
+entera**: B va de 36.552 a 36.852, vive en el trozo 36, que empieza en 36.485, y el corte real cae en
+37.143 (bloque de 2.857, el de las ocho pasadas del 02 y 03/10). Retrocediendo, el corte quedaría en
+36.483. **Candidato del arquitecto, pendiente de dictamen**: avanzar al final del trozo en vez de
+retroceder, pasándose del presupuesto hasta un trozo.
 
-Así que: o se resuelve el presupuesto de lectura, o la validación de F-126 en otra pareja no se
-puede hacer limpia. Dictaminado en F-123 como fase 1.2 y sin construir.
+#### 3.1.3 · Ventana de 80.000 con reparto monótono · F-127 P4, P5 y P7 paso 3 · SIN EMPEZAR
+En **UN SOLO cambio lógico**, verificado en simulación sobre las 56 parejas antes de desplegar, con
+la prueba de monotonía en el arnés: barrido de 10.000 a 200.000 de mil en mil; **control positivo:
+con la regla de hoy se pone roja en las 30 parejas del barranco, y si no se pone roja la prueba no
+vale**. La constante pasa a llamarse `TAMANO_VENTANA`; `FRAGMENT_BUDGET_CHARS_QUICK` cambia de
+oficio, de tope a suelo, y pasa a llamarse `RESERVA_CANDIDATO`; `SUELO_DEL_ANALIZADO` desaparece.
+**Con un arreglo encontrado por Code**: la reserva es lo MENOR entre 3.000 y el tamaño del
+candidato, porque reservar 3.000 a un candidato de 918 caracteres le quita 2.082 al analizado en
+cuatro parejas. ⚠️ Y aun con ese arreglo, a 80.000 **cuatro parejas pierden en el lado candidato**
+(P-F127-3, refutada: F-127 (f), anotación 5), y el reparto nuevo no es recablear un parámetro (ver
+la deuda de `selectUnitsWithinBudget`).
+
+#### 3.1.4 · Caché de prompt en el lado analizado · F-127 P7 paso 4 y P-F127-10 · SIN EMPEZAR
+Antes va un cambio previo apuntado en F-122: los documentos viajan hoy pegados en el prompt y deben
+ir como **bloques de documento** para que la caché actúe. Ese cambio en `llm-client.ts` se mide solo:
+misma salida del juez con los documentos como bloques.
+
+#### 3.1.5 · Escalón 2, leer por ventanas · F-118 D5, F-123 punto 7, F-127 P6 y D1 · SIN EMPEZAR
+**Es la pieza que CIERRA el frente**, no un extra para lo que no quepa: subir el presupuesto sólo
+persigue documentos. Entra como **fase 4**, después de F-119 (3.3) porque la necesita, y después de
+3.2 y 3.3 de la fase 3 (aquí 3.6 y 3.7) porque multiplica llamadas. Diseño en siete piezas en F-127
+P6.
+**CRITERIO DE REVERSIÓN, ESCRITO ANTES DE CONSTRUIRLO**: antes de activarlo, las parejas que caben
+en una ventana dan exactamente lo mismo que hoy en el arnés; la que no cabe da igual o más. Si una
+trampa que hoy sale deja de salir, se apaga el interruptor.
 
 ### 3.2 · El caso de empalme falso sembrado · F-125, confirmado en F-126
 Control **positivo** de (B): dos fragmentos literales que, pegados, afirman algo que ninguna de las
@@ -120,7 +185,11 @@ veces el 13/10 y era falso; está corregido en la precisión 4 del archivo de F-
 ### 3.7 · Fase 3.3, la segunda vuelta · F-123 / F-125
 Sin construir.
 
-### 3.8 · Fase 3.4, la vía 2: los punteros · F-125, con disparador nuevo del 14/10
+### 3.8 · Fase 3.4, la vía 2: los punteros · F-125 · ✅ CERRADA EL 16/10/2026
+**CERRADA el 16/10/2026.** Su condición de activación, la regla de cierre de F-126, era que LUGAR
+no llegara a 5 de 7; el 14/10 dio **7 de 7**. Queda en pie, como **condición de reapertura**, el
+disparador nuevo que se escribió el 14/10 (abajo). Lo que sigue es el texto del 14/10, sin tocar.
+
 Que el juez **señale en vez de copiar** —devuelva un localizador y la máquina extraiga la frase—.
 `unidades-de-cita.ts` está construido desde el 08/10 y sin conectar, y eso no cuesta nada.
 El disparador de F-126 era «si LUGAR no llega a 5 de 7»; llegó a 7, **así que NO se activa**.
@@ -153,6 +222,24 @@ El tope de la caja EN CÓDIGO, no sólo en el prompt; el consumidor, que es ense
 nuevo» en pantalla; y el contador. En F-125 el rescate se archivó y quedó sólo el contador-alarma
 `caja_con_candidato`, que tampoco está construido: ni él ni `rescatadas_de_caja` aparecen en
 `lib/`. Decidido en F-124 y sin construir.
+
+### 3.14 · El estado real de la fase 0 · F-123 · comprobado por Code el 16/10 (F-127 P9.7)
+No era el que creíamos: el «0.2, 0.3 y 0.4 en curso» de `claude/Estado_Del_MVP.md:13449` no tiene
+código detrás.
+- **0.1, los restos fuera**: HECHA el 11/10 (`SQL_F123_05`).
+- **0.2, los contadores de los topes ciegos**: **SIN EMPEZAR**. Ningún commit de código la
+  construye. Lo que ya se guardaba de antes: los caracteres de cada lado desde B.295 (29/09) y la
+  cobertura de candidatos y lo que eligió el rerank desde el 16/09. **Lo que no existe es guardar
+  los ids de los fragmentos mostrados.**
+- **0.3, la línea base**: **HECHA A MEDIAS**. Cinco pasadas de NOR-11 el 11/10, sin las de CLI-12 ni
+  CLI-13 que pedía F-123; consta en el commit de documentación `5e3cc853`, y los logs no se
+  archivaron.
+- **0.4, la comparación de entradas**: **NO SE PUEDE HACER COMO SE DISEÑÓ.** Las pasadas del 11/10
+  emitieron todas sólo PLAZO, así que no hay pasadas buenas con las que comparar. Lo que sí consta
+  es que las entradas fueron idénticas y la omisión la misma las cinco veces
+  (`claude/Hallazgo_LUGAR_en_uniqueToNewDoc.md`), y que desde la fase 1.0 NEGACIÓN se publica 7 de 7.
+  **Queda pendiente de REDISEÑAR o de CANCELAR formalmente**; lo que no puede quedar es como
+  «pendiente» a secas.
 
 ---
 
@@ -191,6 +278,12 @@ Del inventario de Code (14/10), sobre las copias locales y el último censo del 
 | Avisos de Next.js «Unsupported metadata viewport» | vistos el 14/10, inocuos |
 | El SQL escrito antes del 13/10 no contempla `paso='recompuesta'` | F-126, commit 10 |
 | `estado: 'cruza'` puede venir de una unión recompuesta, no sólo de una cita que cruza trozos | fase 3.1, commit 8 |
+| El régimen que se llama «corte honesto» NO declara al juez el texto que le ha omitido. El prompt (`judge.ts:810-820`) mete el texto entre comillas triples con el nombre del documento y nada más; lo omitido queda sólo en la lectura guardada, y el aviso del log (`:1119`) sólo sale con la tijera vieja. F-118:323 ya había previsto declararlo. **El nombre promete algo que el código no hace** | F-127 P9.2, comprobado por Code el 16/10 |
+| El prompt del juez no dice nada sobre texto truncado o incompleto. Lo único parecido es «OMISIÓN SIGNIFICATIVA» (`judge.ts:876`), que habla del contenido, no del recorte | F-127 P9.4 |
+| `selectUnitsWithinBudget` acepta el presupuesto por parámetro (`retrieval.ts:1090-1100`, desde F-73) pero corre en `retrieval.ts:502`, ANTES del juez, cuando «lo que sobra» de la pareja todavía no se sabe, y sólo con los trozos que devolvió Pinecone, con el tope de 25 piezas. **El reparto nuevo no es recablear un parámetro: es mover dónde se decide** | F-127 P9.3 |
+| HAY UN SEGUNDO ÷4 sin medir, en `lib/llm/anthropic-client.ts:322`: estima los tokens de entrada como la longitud del payload entre 4. Con 3.1.1 hecho se puede comprobar cuánto se equivoca | F-127, lectura de Code del 16/10 |
+| La latencia por llamada no se mide en ningún sitio | F-127 P9.1 |
+| `lib/pinecone/corpus-del-examen.test.ts` se suma a `formatos-con-tablas.test.ts` como prueba sensible al disco: se pasó de tiempo (15 s) en una vuelta y pasó entera en la siguiente | vista el 16/10 |
 
 ---
 
@@ -226,3 +319,10 @@ Del inventario de Code (14/10), sobre las copias locales y el último censo del 
     texto al traerlo al repositorio, se arregla la copia para que coincida con el original y se anota
     el incidente; lo que se añade debajo con su fecha es lo que corrige el CONTENIDO, no lo que
     arregla la COPIA. (14/10/2026, la línea del esquema de `uniqueToNewDoc`.)
+12. **Una cifra medida pertenece a la pareja y a la dirección en la que se midió.** Citarla en otra
+    es un error, aunque el número sea real. Ya ha pasado tres veces, según el arquitecto; la última,
+    el 15/10: el bloque de 3.206 es de CLI-13 ← NOR-10 y se usó para razonar sobre NOR-10 ← CLI-12,
+    donde el bloque fue 2.857 en 8 de 8 pasadas. La conexión la hizo Code en su informe del 14/10,
+    y de ahí salió un párrafo falso en la consulta F-127 (punto 2.4) y una predicción de Fable
+    apoyada en él. **Antes de usar una cifra: ¿de qué pareja, de qué dirección y de qué fecha es?**
+    (16/10/2026)
