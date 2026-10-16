@@ -120,8 +120,10 @@ caracteres renderizados contra 40.000. Y la regla de hoy no es monótona: tiene 
 `output_tokens`, `cache_creation_input_tokens` y `cache_read_input_tokens`; llegan a
 `lib/llm/anthropic-client.ts:333-340` y se pierden al sumarlos por modelo en
 `lib/observability/usage-context.ts:40-45`. Hay que guardar también la latencia, que hoy no se mide
-en ningún sitio, y el id de pareja. Sin esto ninguna cifra de coste es una cifra, y según el
-arquitecto es la tercera vez que nos bloquea una medición.
+en ningún sitio, y el id de pareja. Sin esto ninguna cifra de coste es una cifra. **La falta de
+tokens por llamada ha bloqueado dos mediciones concretas, las dos de esta semana**: los caracteres
+por token (P-F127-6, que el propio dictamen da como «no medible hoy; con el paso 1») y el coste por análisis, que es la tercera condición del criterio de
+«cerrado para enseñar» (sección 1).
 
 #### 3.1.2 · Corte en límite de trozo con declaración al juez · F-127 P3 y P7 paso 2 · SIN EMPEZAR, CON UN PROBLEMA MEDIDO
 **Si el corte retrocede al límite anterior, la contradicción B de NOR-10 ↔ CLI-12 se queda fuera
@@ -320,9 +322,14 @@ Del inventario de Code (14/10), sobre las copias locales y el último censo del 
     el incidente; lo que se añade debajo con su fecha es lo que corrige el CONTENIDO, no lo que
     arregla la COPIA. (14/10/2026, la línea del esquema de `uniqueToNewDoc`.)
 12. **Una cifra medida pertenece a la pareja y a la dirección en la que se midió.** Citarla en otra
-    es un error, aunque el número sea real. Ya ha pasado tres veces, según el arquitecto; la última,
-    el 15/10: el bloque de 3.206 es de CLI-13 ← NOR-10 y se usó para razonar sobre NOR-10 ← CLI-12,
-    donde el bloque fue 2.857 en 8 de 8 pasadas. La conexión la hizo Code en su informe del 14/10,
-    y de ahí salió un párrafo falso en la consulta F-127 (punto 2.4) y una predicción de Fable
-    apoyada en él. **Antes de usar una cifra: ¿de qué pareja, de qué dirección y de qué fecha es?**
+    es un error, aunque el número sea real. **El 15/10 es el primer caso documentado de esto
+    exactamente**: el bloque de 3.206 es de CLI-13 ← NOR-10 y se usó para razonar sobre NOR-10 ←
+    CLI-12, donde el bloque fue 2.857 en 8 de 8 pasadas. Error de los dos: Code lo conectó con la
+    frase B en su informe del 14/10 sin decir que eran parejas distintas, y el arquitecto lo metió
+    en la consulta F-127 (punto 2.4) sin comprobar de qué pareja venía. De ahí salió un párrafo
+    falso en la consulta y una predicción de Fable apoyada en él.
+    Pertenece a una familia más amplia —afirmar algo sin comprobar de dónde sale— que tiene cuatro
+    casos anotados en este fichero: las tres rutas del proyecto de Claude citadas como si fueran
+    del repositorio el 14/10 (regla 8) y la cita no literal «poner» por «usar» de la consulta F-126
+    (regla 9). **Antes de usar una cifra: ¿de qué pareja, de qué dirección y de qué fecha es?**
     (16/10/2026)

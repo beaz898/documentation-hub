@@ -642,8 +642,11 @@ Code el mismo día. El texto de (c) y (d) no se toca.
 
 Tres anotaciones más, del mismo 16/10/2026, escritas después de la revisión del arquitecto:
 
-3. **ERROR DEL ARQUITECTO, confirmado: el bloque de 3.206 que la consulta cita en su punto 2.4 es de
-   otra pareja.** La consulta lo usa para sostener que «ese día B habría caído en el estado del
+3. **ERROR DE LOS DOS, confirmado: el bloque de 3.206 que la consulta cita en su punto 2.4 es de
+   otra pareja.** Cada mitad tiene dueño (etiqueta corregida el 16/10/2026, a petición del
+   arquitecto, porque una etiqueta que culpe sólo a uno engaña a quien la lea después): **Code**
+   conectó el 3.206 con la frase B sin decir que eran parejas distintas; **el arquitecto** lo metió
+   en la consulta a Fable sin comprobar de qué pareja venía, y la consulta la firma él. La consulta lo usa para sostener que «ese día B habría caído en el estado del
    medio». Es de CLI-13 ← NOR-10, el 30/09 a las 12:29:31 (`claude/Estado_Del_MVP.md:8435`), no de
    NOR-10 ← CLI-12. En la pareja que se mide, el bloque fue **2.857 en 8 de 8 pasadas** (02 y 03/10,
    `claude/Estado_Del_MVP.md:11152` y `:11585`), y la frase B entra **entera, con 291 caracteres de
