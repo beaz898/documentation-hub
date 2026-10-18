@@ -103,3 +103,39 @@ de la SQL, publicadas y descartadas por la puerta).
 
 **P-F127-5 (Fable, confianza baja)** · «Qué hace el juez con la media frase: no lo sé. Apuesta de baja
 confianza: la cita literalmente y la puerta la acepta en 2 de 3.»
+
+---
+
+## Calificación — escrita el 18/10/2026 con la salida de `SQL_F127_01` del 16/10
+
+Tres pasadas de NOR-10 el 16/10/2026, a las 12:45, 12:46 y 12:46 hora de Madrid, desde la bandeja de
+revisión y sin tocar el código. Los ocho controles de la consulta salieron OK. La calificación es del
+arquitecto; nada de lo de arriba se ha reescrito.
+
+| | Resultado |
+|---|---|
+| **C-1** (C fuera) | ✅ **CONFIRMADO**, 3 de 3 |
+| **C-2** (nada inventado sobre caducidad) | ✅ **PASA**. Una sola contradicción publicada, sobre autoridad; cero citas fuera de lo entregado |
+| **P-1** (`corte_honesto` con «dejó fuera») | ✅ **ACIERTA**, 3 de 3 |
+| **P-2** (analizado entre 36.600 y 37.300 y exactamente 40.000 menos el bloque) | ✅ **ACIERTA**: 37.143 = 40.000 − 2.857 |
+| **P-3** (bloque por encima de 3.148 en al menos 1 de 3) | ❌ **FALLA**: 2.857 en las tres |
+| **P-3b** (bloque entre 2.800 y 2.900 y B entera, 3 de 3) | ✅ **ACIERTA** |
+| **P-4** (toda cita contigua y literal, recompuesta «no», seis contadores a cero) | ✅ **ACIERTA**, 3 de 3 |
+| **P-5** | Retirada el 16/10, antes de medir |
+| **P-6** (A publicada en al menos 2 de 3) | ✅ **ACIERTA EN EL FONDO**, con la precisión de abajo |
+| **P-7** (mediana entre 100 y 220) | ❌ **FALLA**: 281, mínimo 222, máximo 340 |
+| **P-8** (cero falsos positivos en el lado analizado) | ✅ **ACIERTA**: 0 de 3 fuera de lo entregado |
+| **P-F127-4** (Fable: el corte parte frase en las 3) | ✅ **ACIERTA**, en las dos parejas; en 30.183 parte una palabra: «paqu» \| «etes» |
+| **P-F127-5** (Fable: el juez cita la media frase y la puerta la acepta en 2 de 3) | ❌ **FALLA**, 0 de 3: ninguna cita, publicada ni descartada, en los 500 caracteres anteriores al corte ni cruzándolo |
+
+**La precisión de P-6.** El clasificador de la consulta marcó la contradicción publicada como OTRA
+porque busca la frase sembrada exacta, que empieza en la posición **2.094**; el juez citó una frase
+vecina, que empieza en la **2.748**, con el mismo dato («la responsabilidad última —incluida la firma
+de los registros de auditoría trimestral y la decisión de retirar del servicio un autoclave que no
+supere un control biológico— no es delegable y recae siempre sobre esta figura»). Por contenido es la
+contradicción A: el juez detectó la trampa por otra frase, y el medidor lo contó como fallo.
+
+**Lo que la sonda NO distingue** (lo dice Fable en la adenda, y es honesto): el dato de la frase
+partida en 37.143 —a quién compete retirar el autoclave— estaba también entero en la posición 2.748,
+y es justo el que el juez citó. Así que no se sabe si el juez **evita el texto mutilado** o si
+**prefirió la aparición completa del mismo dato** en la 2.748.

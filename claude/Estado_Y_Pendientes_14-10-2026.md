@@ -4,6 +4,9 @@
 > frente de lectura (3.1) pasa de una entrada a cinco, con el orden que dictamina F-127, y se
 > corrige el estado de la fase 0, que no era el que creíamos. Se cierra la fase 3.4 (3.8) y entran
 > la deuda nueva, la regla 12 y la sección 0, lo que está en vuelo.
+> **Actualizado el 18/10/2026**, con la adenda de Fable a F-127 (archivada en su sección (g)): el
+> frente de lectura cambia en 3.1.2, 3.1.3, 3.1.4 y 3.1.5, gana 3.1.6 y 3.1.7, y la horquilla de la
+> cita pasa a guía blanda. La sección 0 recoge que la medición de NOR-10 ya está hecha y calificada.
 
 > **Sustituye a `Puntos_Pendientes_Doclity.txt`**, que tiene cosas desfasadas. Escrito por el
 > arquitecto el 14/10/2026, después de cerrar la medida de F-126. Cada pendiente dice **de qué
@@ -12,18 +15,19 @@
 
 ---
 
-## 0. Lo que está en vuelo (16/10/2026)
+## 0. Lo que está en vuelo (18/10/2026)
 
-- **MEDICIÓN LANZADA O POR LANZAR**: tres pasadas de NOR-10 desde la bandeja de revisión, con el
-  presupuesto de hoy. Predicciones cerradas en `claude/Predicciones_F127_NOR10_Documento_Largo.md`;
-  lectura con `SQL_F127_01_la_medida_de_NOR10.sql`. **El producto NO puede cambiar entre las
-  pasadas.** Sirve además como sonda de la frase partida que pide Fable (F-127 P7).
-- **PENDIENTE DE ESCRIBIR**: un añadido a F-127 para Fable con cinco correcciones medidas —el error
-  del bloque de 3.206; que el corte en límite de trozo cuesta la contradicción B; que su P-F127-3 es
-  falsa, con las parejas y las cifras; que el «corte honesto» no declara nada; y que el selector por
-  relevancia corre antes de que se sepa lo que sobra—. Se escribe **DESPUÉS** de las tres pasadas,
-  para que lleve dentro lo que el juez hace con media frase, que es lo que él mismo dice que no
-  sabe.
+- **HECHO el 16/10**: las tres pasadas de NOR-10 desde la bandeja (12:45, 12:46 y 12:46 hora de
+  Madrid), leídas con `SQL_F127_01_la_medida_de_NOR10.sql`, y calificadas el 18/10 en
+  `claude/Predicciones_F127_NOR10_Documento_Largo.md`. **La regla de la cita de F-126 aguanta fuera
+  de NOR-11**: una contradicción publicada (A, por otra frase), literal y contigua, los seis
+  contadores a cero, cero citas fuera de lo entregado.
+- **HECHO**: el añadido a F-127 con la medición y las cinco correcciones (16/10) y la adenda de Fable
+  que lo contesta (18/10), archivados en la sección (g) del archivo de F-127.
+- **PENDIENTE, para calificar P-F127-12**: la línea del log del retrieval de una de las tres pasadas
+  del 16/10, `[retrieval] "CLI-12_manual-calidad-clinica.docx": 53 fragmentos únicos — …`, entera.
+  Con ella, Code corre en local el selector de producción con 13.199 caracteres, sin consultar
+  Pinecone.
 
 ---
 
@@ -57,6 +61,12 @@ publicada en 4 de 5 pasadas o más, cero falsos, y el coste por análisis escrit
 **las dos primeras condiciones SE CUMPLEN desde el 14/10. La que falta es el coste por análisis, y
 es exactamente el paso 1 del frente de lectura (3.1.1).** Por eso el paso 1 va primero, y no es
 burocracia.
+
+**La horquilla de la cita de F-126 pasa a ser GUÍA BLANDA** (adenda de Fable a F-127, Q5, 18/10):
+«normalmente entre 40 y 300 caracteres»; **la regla dura sigue siendo contigua y literal**. No se
+toca el prompt. El motivo: en NOR-10, el 16/10, la mediana de las citas publicadas fue 281 (de 222 a
+340), literal, contigua y con los seis contadores a cero, que es la regla funcionando. Si el contador
+de recompuestas sube en documentos de frases largas, se revisa.
 
 ---
 
@@ -109,7 +119,8 @@ sabida: toda la bajada venía de LUGAR porque PLAZO y NEGACIÓN ya se citaban bi
 
 ### 3.1 · EL FRENTE DE LECTURA · F-123 fase 1.2, reescrito por F-127 (16/10)
 **La fase 1.2 de F-123 («subir el presupuesto a 80.000») deja de ser una entrada y pasa a ser
-cinco**, en el orden que dictamina F-127 (P7) y con su estado real. Lo que la motivó sigue en pie:
+cinco**, en el orden que dictamina F-127 (P7) y con su estado real; **siete desde el 18/10**, con
+las dos que añade la adenda (3.1.6 y 3.1.7). Lo que la motivó sigue en pie:
 la única pareja con verdad documentada que pone a prueba las frases largas con subordinadas es
 **NOR-10 ↔ CLI-12** (`SIEMBRA_corpus_ampliado.md`), y no cabe en una lectura: 66.801 y 55.135
 caracteres renderizados contra 40.000. Y la regla de hoy no es monótona: tiene un barranco en 30 de
@@ -125,15 +136,28 @@ tokens por llamada ha bloqueado dos mediciones concretas, las dos de esta semana
 por token (P-F127-6, que el propio dictamen da como «no medible hoy; con el paso 1») y el coste por análisis, que es la tercera condición del criterio de
 «cerrado para enseñar» (sección 1).
 
-#### 3.1.2 · Corte en límite de trozo con declaración al juez · F-127 P3 y P7 paso 2 · SIN EMPEZAR, CON UN PROBLEMA MEDIDO
-**Si el corte retrocede al límite anterior, la contradicción B de NOR-10 ↔ CLI-12 se queda fuera
-entera**: B va de 36.552 a 36.852, vive en el trozo 36, que empieza en 36.485, y el corte real cae en
-37.143 (bloque de 2.857, el de las ocho pasadas del 02 y 03/10). Retrocediendo, el corte quedaría en
-36.483. **Candidato del arquitecto, pendiente de dictamen**: avanzar al final del trozo en vez de
-retroceder, pasándose del presupuesto hasta un trozo.
+#### 3.1.2 · El corte: avanzar al final del trozo, y declarar lo omitido · F-127 P3 y P7 paso 2, adenda Q3 · SIN EMPEZAR
+**CAMBIA el 18/10 (adenda de Fable, Q3): ya no es «retroceder al límite».** Retroceder dejaba fuera
+la contradicción B de NOR-10 ↔ CLI-12 entera (B va de 36.552 a 36.852 y vive en el trozo 36, que
+empieza en 36.485; el corte real cae en 37.143, y retrocediendo quedaría en 36.483). Ahora:
+- **el corte AVANZA hasta el final del trozo en curso**, pasándose del presupuesto como mucho un
+  trozo, **con tope de 3.000 caracteres**: si el trozo pasa de eso, se retrocede al límite anterior;
+- **y se DECLARA al juez lo omitido con su tamaño**, que hoy no se hace (deuda de la sección 5).
 
-#### 3.1.3 · Ventana de 80.000 con reparto monótono · F-127 P4, P5 y P7 paso 3 · SIN EMPEZAR
-En **UN SOLO cambio lógico**, verificado en simulación sobre las 56 parejas antes de desplegar, con
+**Son dos cosas distintas y van en DOS commits**: primero la dirección del corte; después la
+declaración, que cambia el prompt y hay que medirla sola.
+
+#### 3.1.3 · El interino: ventana de 80.000 con reparto monótono · F-127 P4, P5 y P7 paso 3, adenda Q4 · SIN EMPEZAR
+**CAMBIA DE FORMA el 18/10 (adenda de Fable, Q4)**: no es pasar un parámetro, es **calcular el resto
+ANTES de seleccionar** —resto = P − min(analizado, P − reserva), porque los tamaños de los dos
+documentos se conocen antes del retrieval— y pasárselo al selector que ya existe. Según la adenda,
+el tope de 25 piezas da unos 30.000 caracteres, suficiente. Reserva = lo menor entre 3.000 y el
+tamaño del candidato.
+⚠️ **Lo que el interino NO cierra, con nombre y cifra**: NOR-10 ↔ CLI-12, en las dos direcciones,
+pierde 41.936 caracteres en el lado candidato. Si eso cuesta una trampa lo dice P-F127-12 (sección
+0: falta la línea del log para simularlo).
+
+Lo escrito el 16/10, que sigue valiendo: en **UN SOLO cambio lógico**, verificado en simulación sobre las 56 parejas antes de desplegar, con
 la prueba de monotonía en el arnés: barrido de 10.000 a 200.000 de mil en mil; **control positivo:
 con la regla de hoy se pone roja en las 30 parejas del barranco, y si no se pone roja la prueba no
 vale**. La constante pasa a llamarse `TAMANO_VENTANA`; `FRAGMENT_BUDGET_CHARS_QUICK` cambia de
@@ -144,10 +168,17 @@ cuatro parejas. ⚠️ Y aun con ese arreglo, a 80.000 **cuatro parejas pierden 
 (P-F127-3, refutada: F-127 (f), anotación 5), y el reparto nuevo no es recablear un parámetro (ver
 la deuda de `selectUnitsWithinBudget`).
 
-#### 3.1.4 · Caché de prompt en el lado analizado · F-127 P7 paso 4 y P-F127-10 · SIN EMPEZAR
+#### 3.1.4 · Documentos como bloques y caché de prompt · F-127 P7 paso 4, P-F127-10, adenda Q2 · SIN EMPEZAR
+**ADELANTA el 18/10: la adenda de Fable lo pone ANTES de las ventanas (3.1.5).**
 Antes va un cambio previo apuntado en F-122: los documentos viajan hoy pegados en el prompt y deben
 ir como **bloques de documento** para que la caché actúe. Ese cambio en `llm-client.ts` se mide solo:
 misma salida del juez con los documentos como bloques.
+**El prompt fijo del juez, medido por Code el 18/10** (lo pedía la adenda, Q6): **11.672 caracteres
+por llamada** —11.480 del prompt sin los documentos más los 192 del sufijo JSON que añade
+`anthropic-client.ts:304`—, iguales en rápido y en exhaustivo. ⚠️ Y casi todo va DESPUÉS de los
+documentos: el prompt empieza con una línea, mete los dos documentos (`judge.ts:810-820`) y sigue con
+las reglas. Una caché de prefijo sólo aprovecha lo que va delante, así que el cambio a bloques tiene
+que mover también el orden.
 
 #### 3.1.5 · Escalón 2, leer por ventanas · F-118 D5, F-123 punto 7, F-127 P6 y D1 · SIN EMPEZAR
 **Es la pieza que CIERRA el frente**, no un extra para lo que no quepa: subir el presupuesto sólo
@@ -157,6 +188,27 @@ P6.
 **CRITERIO DE REVERSIÓN, ESCRITO ANTES DE CONSTRUIRLO**: antes de activarlo, las parejas que caben
 en una ventana dan exactamente lo mismo que hoy en el arnés; la que no cabe da igual o más. Si una
 trampa que hoy sale deja de salir, se apaga el interruptor.
+**Tres precisiones de la adenda de Fable (18/10, Q4):**
+- **la unidad de llamada es la ventana, y la unidad de selección es el TROZO del analizado**: cada
+  trozo trae sus vecinos del candidato y la ventana recibe la unión, con tope;
+- **las ventanas se activan cuando la pareja no cabe, sea cual sea el lado que sobra**: si el
+  candidato no cabe entero, el analizado se recorre por tandas aunque cupiera;
+- **el selector por trozo y ventana es un selector NUEVO**, no el de hoy.
+
+#### 3.1.6 · Una llamada por ventana con varios candidatos etiquetados · adenda de F-127, Q2 (b) · NUEVO · SIN EMPEZAR
+De 6 llamadas a 3 y de 240.000 a unos 150.000 caracteres (cifras de la adenda, para NOR-10 con 2
+candidatos y ventanas de 24.000). Riesgos que nombra Fable: **la atribución cruzada entre
+candidatos**, que se contiene con una etiqueta de documento en cada trozo y validación en código de
+que cada cita viene del documento que dice; y que **la salida se alargue** contra el tope de 8.192.
+Cambia «una llamada por pareja» y sus contadores: **censo antes de tocar nada.**
+
+#### 3.1.7 · Fichas por afirmación · adenda de F-127, D2 · NUEVO · ⚠️ NO ES DEL MVP
+Cinco a ocho semanas. **Decisión archivada** (adenda, D2): no sustituyen a las tandas, las heredan;
+complementan al juez lector, nunca lo reemplazan; se empieza sólo por cifras. La prueba en sombra
+—pasar el extractor una vez sobre el corpus y ver si las trampas aparecen como fichas— cuesta
+céntimos y no toca nada, y **se lanza después del primer cliente y cuando no haya medición en
+curso**, no antes. Y queda escrito (D3) que **el producto NO pasa a detectar sólo cifras**: «sólo
+cifras» es el arranque de las fichas, no del producto.
 
 ### 3.2 · El caso de empalme falso sembrado · F-125, confirmado en F-126
 Control **positivo** de (B): dos fragmentos literales que, pegados, afirman algo que ninguna de las

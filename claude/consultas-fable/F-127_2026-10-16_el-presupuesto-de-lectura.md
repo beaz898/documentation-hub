@@ -34,6 +34,16 @@ Estado: ARCHIVADA CON DICTAMEN · FIJA EL ORDEN DEL FRENTE DE LECTURA (tokens
           3134 palabras.
           60 primeros: "CONSULTA F-127 · EL PRESUPUESTO DE LECTURA Y CÓMO SE REPARTE"
           60 últimos:  "» es una respuesta útil y la preferimos a una\n   estimación."
+        · ADENDA, (g): el añadido del arquitecto del 16/10 y la adenda de Fable
+          del 18/10, con el mismo método.
+          AÑADIDO, (g.1): huella 284c5adfe893f1dd · 13.124 caracteres
+          (13.441 bytes UTF-8) · 201 líneas · 160 no vacías · 2128 palabras.
+          60 primeros: "AÑADIDO A F-127 · LA MEDICIÓN DE NOR-10, Y CINCO CORRECCIONE"
+          60 últimos:  " antes.\n · «No lo sé» sigue siendo mejor que una estimación."
+          ADENDA, (g.2): huella 7ad16e698ebdebb0 · 15.224 caracteres
+          (15.561 bytes UTF-8) · 118 líneas · 75 no vacías · 2677 palabras.
+          60 primeros: "ADENDA DE FABLE A F-127 · LA MEDICIÓN DE NOR-10, LAS CINCO C"
+          60 últimos:  " con varios candidatos baja la precisión. Las tres se miden."
 Superada por: —
 ---
 
@@ -600,9 +610,9 @@ arquitecto.
 |---|---|---|---|---|---|
 | P-F127-1 | Fable | Con R2-con-suelo y ventana 80.000, ningún barranco en el barrido de 10.000 a 200.000; la prueba de monotonía se pone roja con R0 | **0 de 56** con R2 · **30 de 30** con R0 | simulación, 0 pasadas | sin calificar |
 | P-F127-2 | Fable | Con R2-con-suelo y 80.000: analizado entero, candidato entero, y en NOR-10 ← CLI-12 entran A, B, C y D en el lado analizado | **56 de 56** · **52 de 56** · las cuatro | simulación, 0 pasadas | sin calificar |
-| P-F127-3 | Fable | A 40.000, las «seis parejas» del 2.6 empeoran en el lado candidato; a 80.000, ninguna empeora en ningún lado | **ninguna** a 80.000 | simulación, 0 pasadas | sin calificar |
-| P-F127-4 | Fable | El corte a 30.183 cae a mitad de frase. Confianza alta | **en las 3** | pase de NOR-10, 3 pasadas | sin medir |
-| P-F127-5 | Fable | El juez cita la media frase literalmente y la puerta la acepta. Confianza baja | **2 de 3** | misma sonda | sin medir |
+| P-F127-3 | Fable | A 40.000, las «seis parejas» del 2.6 empeoran en el lado candidato; a 80.000, ninguna empeora en ningún lado | **ninguna** a 80.000 | simulación, 0 pasadas | ❌ **REFUTADA** (16/10, anotación 5; aceptada por Fable en la adenda) |
+| P-F127-4 | Fable | El corte a 30.183 cae a mitad de frase. Confianza alta | **en las 3** | pase de NOR-10, 3 pasadas | ✅ **ACIERTA** · 3 de 3, en las dos parejas; en 30.183 parte una palabra, «paqu|etes» (16/10) |
+| P-F127-5 | Fable | El juez cita la media frase literalmente y la puerta la acepta. Confianza baja | **2 de 3** | misma sonda | ❌ **FALLA** · 0 de 3: ninguna cita, publicada ni descartada, en los 500 anteriores al corte ni cruzándolo (16/10) |
 | P-F127-6 | Fable | Caracteres por token en el español del corpus | **entre 3,2 y 3,7** | no medible hoy; con el paso 1 | no medible hoy |
 | P-F127-7 | Fable | Con cache_control sobre el analizado, lecturas de caché en las llamadas 2 a 6 | **más del 60 %** de los tokens de entrada | no medible hoy; con los pasos 1 y 4 | no medible hoy |
 | P-F127-8 | Fable | De 40.000 a 80.000 con reparto monótono, la mediana de latencia por llamada sube. Baja confianza | **menos de 3 segundos** | con el paso 1 | no medible hoy |
@@ -681,3 +691,355 @@ Tres anotaciones más, del mismo 16/10/2026, escritas después de la revisión d
    mide 918 o 917 (CLI-12 o NOR-10 frente a OPE-13 o RRHH-08, de 39.082 o 39.083 a 37.000).
    Con la reserva igual a lo menor entre 3.000 y el tamaño del candidato, esas cuatro dejan de
    empeorar y quedan las ocho.
+
+---
+
+# (g) ADENDA — LA MEDICIÓN DE NOR-10 Y LAS CINCO CORRECCIONES (16/10) · LA RESPUESTA DE FABLE (18/10)
+
+Mismo frente que (c) y (d), por eso va aquí y no en un fichero nuevo. Dos mitades, íntegras, tal como
+llegaron en el encargo del arquitecto del 18/10/2026; sus huellas están en la cabecera de estado. La
+adenda de Fable trae dentro, sin resumir, su sección de preguntas del director (D1, D2 y D3): fija la
+predicción de coste P-F127-19, la decisión sobre las fichas por afirmación y la aclaración de que el
+producto NO pasa a detectar sólo cifras.
+
+## (g.1) EL AÑADIDO DEL ARQUITECTO, 16/10/2026, ÍNTEGRO
+
+AÑADIDO A F-127 · LA MEDICIÓN DE NOR-10, Y CINCO CORRECCIONES
+
+Para Fable. Del arquitecto de Documentation Hub. 16/10/2026.
+No es una consulta nueva: es el mismo frente 1.2, con la medición que pediste y con cosas que
+corrigen tu dictamen y nuestra propia consulta.
+
+=====================================================================
+1 · LA MEDICIÓN QUE PEDISTE: TRES PASADAS DE NOR-10
+=====================================================================
+
+Hechas el 16/10 a las 12:45, 12:46 y 12:46 (Madrid), con NOR-10 desde la bandeja de revisión, sin
+indexar, con el presupuesto de hoy (40.000) y sin tocar una línea de código. Predicciones escritas y
+empujadas al repositorio ANTES de medir. Leídas con una SQL de solo SELECT con ocho controles que
+podían fallar; los ocho salieron OK (tres pasadas y no más, cero en la franja previa, un solo CLI-12,
+67 trozos todos de prosa, el texto reconstruido coincide con lo que midió el juez, CLI-12 llegó al
+juez en las tres, los seis contadores presentes, y contradictions_found cuadra con las publicadas).
+
+1.1 · LA LECTURA, IDÉNTICA EN LAS TRES PASADAS
+
+ · NOR-10 ← CLI-12: corte_honesto. Analizado 37.143 de 66.801 (dejó fuera). Candidato 2.857 de
+   55.135 (dejó fuera). 37.143 + 2.857 = 40.000.
+ · NOR-10 ← CLI-13: corte_honesto. Analizado 30.183 de 66.801. Candidato 9.817 de 9.817, entero.
+ · El rerank dejó 2 candidatos de 4, no 6. Tu estimación de coste supone 6; en este análisis fueron 2.
+ · Latencia: 18.295, 18.653 y 19.959 ms en total; el juez, entre 8.473 y 9.609 ms; el rerank unos
+   3.000; el retrieval entre 3.196 y 3.760; la síntesis unos 2.000.
+
+1.2 · LAS CUATRO FRASES EN EL LADO ANALIZADO, IDÉNTICO EN LAS TRES
+
+ · A: empieza 2.094, acaba 2.255 — FRASE ENTERA DENTRO.
+ · B: empieza 36.599, acaba 36.852 — FRASE ENTERA DENTRO, con 291 caracteres de margen.
+ · C: empieza 58.883, acaba 59.089 — FUERA.
+ · D: empieza 3.943, acaba 4.267 — FRASE ENTERA DENTRO.
+
+1.3 · LO PUBLICADO: UNA CONTRADICCIÓN, LA MISMA EN LAS TRES
+
+Tema: «Autoridad para retirar autoclave de servicio tras fallo de control biológico».
+ · Lado NOR-10, 222 caracteres, literal, dentro de lo entregado, empieza en 2.748: «la
+   responsabilidad última —incluida la firma de los registros de auditoría trimestral y la decisión
+   de retirar del servicio un autoclave que no supere un control biológico— no es delegable y recae
+   siempre sobre esta figura».
+ · Lado CLI-12, 340 caracteres, literal, del trozo 4: «El Coordinador de Calidad es quien autoriza
+   cualquier excepción documentada al protocolo de esterilización, quien firma los registros de
+   auditoría trimestral del área y quien decide, con criterio técnico y sin necesidad de validación
+   adicional del Director Clínico, la retirada de servicio de un autoclave que no supere un control
+   biológico».
+ · Confirmada por el verificador por juicio. Marca recompuesta: no.
+
+1.4 · LA REGLA DE LA CITA DE F-126 AGUANTA FUERA DE NOR-11
+
+Es lo que el director quería saber y la respuesta es sí. En un documento 4,5 veces más largo y sin
+ajustar nada: toda cita literal y contigua, marca recompuesta «no», **los seis contadores de la
+puerta a cero en las tres pasadas**, y **cero citas del lado analizado que no estén dentro de lo
+entregado**. La puerta comprobó contra lo entregado, no contra el documento entero (pajar
+«entregado_texto» en el lado nuevo, «entregado_piezas, 3 trozos» en el existente).
+
+Lo que NO aguanta es la horquilla de longitud de tu propia regla, «normalmente entre 40 y 200
+caracteres»: la mediana de las citas publicadas fue **281** (mínimo 222, máximo 340), contra los 167
+de NOR-11. En un documento de frases largas el juez cita más largo. Sigue siendo literal y contiguo,
+así que no rompe nada, pero la horquilla no describe lo que pasa.
+
+=====================================================================
+2 · LA SONDA DE LA FRASE PARTIDA: TU P-F127-4 ACIERTA, TU P-F127-5 FALLA
+=====================================================================
+
+El corte PARTE UNA FRASE en las tres pasadas y en las dos parejas:
+ · en 37.143, trozo 36 — antes: «…do positivo del indicador biológico (es decir, crecimiento
+   bacteriano tras la incubación),» · después: « el autoclave se retira inmediatamente de servicio,
+   se notifica al Dir…»;
+ · en 30.183, trozo 30 — parte una PALABRA: «…distribuyendo los paqu» | «etes de forma que el vapor
+   pueda circular libremente…».
+
+Tu P-F127-4, confianza alta: ACIERTA, 3 de 3.
+
+Tu P-F127-5 decía que el juez citaría la media frase literalmente y la puerta la aceptaría en 2 de 3.
+**Resultado: ninguna cita, publicada ni descartada por la puerta, en los 500 caracteres anteriores al
+corte ni cruzándolo. 3 de 3.** El juez no tocó la zona mutilada.
+
+Y una honestidad sobre lo que esto prueba y lo que no: el dato de la frase partida —a quién compete
+retirar el autoclave— **estaba también entero en la posición 2.748**, y es justo el que el juez citó.
+Así que no podemos distinguir «el juez evita el texto mutilado» de «el juez prefirió la aparición
+completa anterior». La distinción decide si tu paso 2 hace falta.
+
+=====================================================================
+3 · TU PASO 2, MEDIDO: CORTAR EN LÍMITE DE TROZO CUESTA UNA TRAMPA
+=====================================================================
+
+El último límite de trozo antes del corte está en 36.483. Cortar ahí dejaría fuera **660 caracteres
+más**, y con ellos la frase B entera, que acaba en 36.852 y que hoy entra. Medido, no simulado.
+
+Dicho junto con el punto 2: el paso 2 evita un daño que no se ha manifestado —el juez no citó la
+media frase— y causa uno que sí. Te pedimos que lo reconsideres. Un candidato nuestro, por si sirve:
+**avanzar al final del trozo en lugar de retroceder**, pasándose del presupuesto hasta un trozo
+(aquí 660 caracteres sobre 40.000), con lo que no se entrega ninguna frase partida y no se pierde
+nada. No lo damos por bueno: lo decides tú.
+
+=====================================================================
+4 · EL CUELLO DE BOTELLA SE HA MOVIDO, Y ESTO ES LO CENTRAL
+=====================================================================
+
+De las tres contradicciones sembradas salió UNA. Y no fue por el lado analizado: A, B y D estaban las
+tres enteras dentro de lo entregado. Fue por el candidato:
+
+ · CLI-12 tiene 53 fragmentos. Entraron **3**, en 2.857 caracteres. Los de mejor puntuación: 0
+   (0,938), 4 (0,938) y 45 (0,909).
+ · La contradicción que salió usó el trozo 4. Las parejas de B y de D no estaban entre los tres.
+ · Es decir: **una sola selección de 3.000 caracteres tiene que servir para los 67 trozos del
+   documento analizado.** No importa cuánto del lado analizado leamos si el lado de referencia se
+   elige una vez para todo el documento.
+
+Esto reencuadra tu P4. El problema no es solo cuánto recibe el candidato: es que **la selección es
+global y debería ser local**.
+
+=====================================================================
+5 · LAS CORRECCIONES, YA ANUNCIADAS Y AHORA CON NÚMEROS
+=====================================================================
+
+5.1 · ERROR NUESTRO, EL QUE MÁS IMPORTA. El bloque de 3.206 que nuestra consulta citaba en su punto
+2.4 para sostener que «ese día B habría caído en el estado del medio» **es de otra pareja**: de
+CLI-13 ← NOR-10, el 30/09. En NOR-10 ← CLI-12 el bloque fue 2.857 en las ocho pasadas del 02 y 03/10
+y en las tres de hoy: once de once. **Es una propiedad estable de la pareja, no una lotería.** Tu
+P-F127-5 descansaba en parte sobre ese párrafo falso. De aquí hemos sacado una regla de método: una
+cifra medida pertenece a la pareja y a la dirección en la que se midió.
+
+5.2 · TU P-F127-3 ES FALSA. Recorrido de las 56 parejas con dirección, en simulación, con tu regla
+(el analizado se lleva lo menor entre su tamaño y P − 3.000; el candidato el resto). «A 80.000
+ninguna pareja empeora en ningún lado» no se sostiene: empeoran CUATRO, todas en el lado candidato
+—CLI-12 ← NOR-10 y NOR-10 ← CLI-12 pierden 41.936 cada una; NOR-10 ← NOR-11 y NOR-11 ← NOR-10
+pierden 1.505—. En las cuatro gana el analizado. A 40.000 empeoran DOCE, y en cuatro de ellas pierde
+el ANALIZADO unos 2.082 caracteres, porque se reservan 3.000 a un candidato que mide 918. Arreglo:
+la reserva es lo menor entre 3.000 y el tamaño del candidato.
+
+5.3 · Y en tu corrección de nuestro 2.6 hay un número equivocado: escribes «65.296 + 9.817» para
+NOR-10 ← NOR-11, y 9.817 es CLI-13; NOR-11 mide 14.704. Con el número bueno, R0 entrega 65.296 +
+14.704 = 80.000 y tu regla 66.801 + 13.199 = 80.000: el mismo total, redistribuido hacia el
+analizado. Tu corrección de fondo era correcta —comparábamos R0 con R1, no con R2—.
+
+5.4 · EL «CORTE HONESTO» NO DECLARA NADA. Comprobado: el prompt mete el texto entre comillas triples
+con el nombre del documento y nada más (judge.ts:810-820). Lo omitido queda solo en la lectura
+guardada; el aviso del log solo sale con la tijera vieja. F-118:323 ya lo había previsto. El régimen
+que lleva ese nombre no hace lo que el nombre promete.
+
+5.5 · EL SELECTOR CORRE DEMASIADO PRONTO. selectUnitsWithinBudget acepta el presupuesto por
+parámetro (retrieval.ts:1090-1100, desde F-73), pero se llama en retrieval.ts:502, ANTES del juez,
+cuando «el resto» de la pareja todavía no se sabe, y solo con los trozos que devolvió Pinecone con
+el tope de 25 piezas. Tu reparto no es recablear un parámetro: es mover dónde se decide.
+
+5.6 · Dos menores que pasaron a tu dictamen: las «seis parejas» que empeoran a 40.000 son OCHO, y
+pareja_entera se decide en judge.ts:1337, no en :1339.
+
+5.7 · UN DEFECTO DE NUESTRA FORMA DE MEDIR, no del producto. Nuestro clasificador etiquetó la
+contradicción publicada como «OTRA» porque busca la frase sembrada exacta (que empieza en 2.094),
+y el juez citó una frase vecina (2.748) que dice lo mismo. Por contenido es la contradicción A. O
+sea: **el juez detectó la trampa por otra puerta y nuestro medidor lo contó como fallo.** Lo
+decimos porque afecta a cómo hay que leer cualquier medición con siembra, incluidas las anteriores.
+
+=====================================================================
+6 · LAS PREGUNTAS
+=====================================================================
+
+Q1 · **La del director, y es la principal.** Si los documentos se leen enteros, progresivamente por
+     tandas, ¿resuelve esto? Nuestra lectura es que sí y por dos motivos: el analizado se lee
+     completo (C deja de ser invisible) y, sobre todo, **la selección del candidato pasa de global a
+     local**, con unos 16.000 caracteres por tanda en vez de 3.000 fijos, renovados en cada una.
+     Pero el director pregunta otra cosa además, y queremos tu respuesta explícita: **qué soluciones
+     más eficientes, más fiables y realmente en uso en octubre de 2026** existen para este problema
+     concreto —una selección de referencia que debe servir para un documento largo—, más allá de las
+     ventanas. Si las ventanas son lo mejor que hay, dilo. Si hay algo mejor, nómbralo con quién lo
+     usa.
+
+Q2 · **El coste, que es la objeción del director.** En este análisis, hoy: 2 llamadas, 80.000
+     caracteres de texto de documentos. Con ventanas de 24.000 y 2 candidatos: 6 llamadas, unos
+     240.000. Tres veces. ¿Es eso el precio correcto, o hay formas de bajarlo que no hayamos visto?
+     Nos interesan dos en concreto y cualquiera que añadas: (a) la caché, que hoy no puede actuar
+     porque los documentos van pegados dentro del prompt, y cuánto cabe esperar de ella con ventanas
+     —donde hay más repetido—; y (b) si tiene sentido comparar una ventana contra VARIOS candidatos
+     en una sola llamada, en vez de una llamada por pareja y ventana. Y en latencia: hoy 19 segundos
+     en total, 9 de ellos el juez. Con llamadas en paralelo, ¿qué cabe esperar?
+
+Q3 · **Tu paso 2.** Con lo del punto 3 delante: ¿se mantiene, se cambia a avanzar en vez de
+     retroceder, o se retira y se espera a las ventanas?
+
+Q4 · **La selección local.** Si el problema es que una selección sirve para todo el documento, ¿es
+     la ventana la unidad correcta de selección, o hay una unidad mejor? Y en las parejas que caben
+     en una sola ventana —55 de 56 hoy—, donde no hay ventanas que hacer, ¿el candidato se sigue
+     eligiendo una vez para todo? Porque ahí el problema no desaparece.
+
+Q5 · **La horquilla de la cita.** La mediana subió a 281 en un documento de frases largas. ¿Hay que
+     tocar la horquilla del prompt, dejarla como guía blanda, o no tocar nada mientras la cita sea
+     literal y contigua?
+
+Q6 · **Qué te falta.** Como siempre: si necesitas un dato más, pídelo. Tenemos la salida completa de
+     la SQL, los logs de las tres pasadas y el fichero de siembra.
+
+=====================================================================
+7 · CÓMO QUEREMOS LA RESPUESTA
+=====================================================================
+
+ · Predicciones numeradas y medibles en caracteres, con número de pasadas.
+ · Si algo de lo que recomiendas empeora alguna pareja, dilo con nombre y cifra: es la segunda vez
+   que nos pasa y preferimos saberlo antes.
+ · «No lo sé» sigue siendo mejor que una estimación.
+
+## (g.2) LA ADENDA DE FABLE, 18/10/2026, ÍNTEGRA
+
+ADENDA DE FABLE A F-127 · LA MEDICIÓN DE NOR-10, LAS CINCO CORRECCIONES, Y LAS PREGUNTAS DEL DIRECTOR
+Versión consolidada, 18/10/2026. Mismo frente 1.2. Contiene la respuesta a las seis preguntas del añadido del arquitecto del 16/10 y, al final, una sección con las preguntas que el director hizo en conversación los días 16 a 18, marcada como tal. Esa sección fija una predicción de coste, una decisión sobre la extracción de afirmaciones y una aclaración de alcance que deben quedar archivadas.
+
+Cuentas, por delante
+
+P-F127-3, falsa. Dije “a 80.000 ninguna pareja empeora en ningún lado”. Empeoran cuatro en el lado candidato, dos de ellas en 41.936 caracteres, y a 40.000 empeoran doce, cuatro en el lado analizado por reservar 3.000 a un candidato de 918. Era imposible que el lado sin prioridad no perdiera en alguna pareja. Acepto el arreglo: la reserva es lo menor entre 3.000 y el tamaño del candidato.
+P-F127-5, falsa, 0 de 3, y apoyada en un párrafo que resultó ser de otra pareja. Se cuenta como fallada igualmente.
+P-F127-4, acertada, 3 de 3.
+Tres errores de dato míos: 9.817 por 14.704 en NOR-11; “seis parejas” por ocho; :1339 por :1337.
+El “corte honesto” no declara nada. F-118 lo previó y yo lo di por hecho en F-127 P3. Premisa de inacción sin evidencia.
+El selector corre en el retrieval, no en el juez. Cambia la forma del paso 3: no es pasar un parámetro, es calcular el presupuesto antes de seleccionar.
+Dos reglas de método vuestras que hago mías: una cifra medida pertenece a la pareja y a la dirección en que se midió; y un medidor que busca la frase sembrada exacta cuenta como fallo una detección por otra frase con el mismo dato (5.7). Esto obliga a releer mediciones anteriores.
+
+Lo central, que vuestra sección 4 dice bien: el cuello de botella se ha movido al lado candidato, y no es cuestión de cuánto recibe sino de que una sola selección sirve para todo el documento analizado. Es el defecto de F-119, la moneda antigua, visto desde el juez. La solución no es un presupuesto; es que la selección sea local.
+
+Q1 · ¿Resuelven las ventanas? ¿Hay algo mejor en uso?
+
+Sí, por los dos motivos que dais, y el segundo pesa más: el analizado se lee entero, y el candidato se elige por ventana, con un presupuesto por tanda cinco veces mayor y renovado en cada una. C deja de ser invisible y las parejas de B y D tienen su oportunidad.
+
+Lo que existe más allá de las ventanas, de entrenamiento, marcado:
+
+Extracción de afirmaciones por documento y comparación afirmación contra afirmación. Se extrae una vez al indexar; el análisis alinea afirmaciones por dato en código; el juez ve parejas alineadas. Quién: Kira, Luminance, Harvey; en investigación, “claim extraction”, “FActScore”. Es la respuesta a “más eficiente y más fiable”: selección local por construcción, coste pagado una vez por versión, juez comparando frases cortas. Qué se abandona: lo que la extracción no capture no existe. Es el destino de F-118 y F-120. Detalle en D2.
+Búsqueda híbrida (vectores más palabras exactas, “BM25”) para la selección local con cifras. Congelada, con razón.
+Ventanas con solapamiento y selección por trozo. La práctica dominante, LangChain “map_reduce”, LlamaIndex. Para vuestro tamaño, lo mejor sin construir la extracción.
+
+Lo que no es mejor: resúmenes jerárquicos y ventanas enormes sin selección.
+
+Respuesta corta: las ventanas son lo mejor para este trimestre; la extracción de afirmaciones es lo mejor en absoluto, y es el producto del año que viene.
+
+Q2 · El coste
+
+240.000 no es el precio correcto; es el de la forma más ingenua de hacer ventanas.
+
+(a) Caché. No sé cuánto pesa el prompt fijo del juez; si son 5.000 caracteres, ahorra poco; si son 20.000, mucho. Encargo. Con una llamada por pareja y ventana, lo repetido es la ventana del analizado y el prompt fijo; con (b), solo el prompt fijo. Exige documentos como bloques, paso 4 de P7, que va antes de las ventanas.
+
+(b) Una ventana contra varios candidatos en una llamada. Sí, y es estándar: toda recuperación aumentada entrega pasajes de varios documentos en una llamada, etiquetados. Para vosotros: con NOR-10, 2 candidatos y ventanas de 24.000, de 6 llamadas a 3 y de 240.000 caracteres a unos 150.000. Riesgo conocido: atribución cruzada entre candidatos; se contiene con etiquetas de documento en cada trozo y validación en código de que cada cita viene del documento que dice. Segundo riesgo: la salida se alarga; el tope a 8.192 antes. Cambia “una llamada por pareja” y sus contadores: censo antes.
+
+(c) El tamaño de la ventana es un dial. Con 80.000, una ventana puede ser 40.000 más 40.000: NOR-10 son dos ventanas. Más grandes, menos locales, más baratas. Se mide.
+
+Latencia. Con ventanas en paralelo, el juez tarda lo que la llamada más lenta. Predicción: total entre 20 y 28 segundos, no 57; el retrieval sube de 3-4 a 6-10 por las consultas locales.
+
+El coste correcto, sin adorno: leer un documento tres veces más largo entero cuesta entre 1,5 y 2 veces lo de hoy con (b) y caché, no 3. Es el precio de dejar de perder C y las parejas de B y D.
+
+Q3 · El paso 2
+
+Se cambia a avanzar, no se retira. El corte avanza hasta el final del trozo en curso, pasándose como mucho un trozo; el presupuesto en caracteres es vuestro, no del modelo. Tope: si el trozo supera 3.000, se retrocede al límite anterior. Y se declara: el corte honesto tiene que decir al juez lo omitido con su tamaño, porque hoy no lo hace, y eso no depende de dónde caiga el corte. Sobre lo que la sonda no distingue: no lo sé, y con “avanzar” deja de importar. Con ventanas, la misma regla: cada ventana acaba en límite de trozo.
+
+Q4 · La selección local y su unidad
+
+La unidad de llamada es la ventana; la unidad de selección es el trozo del analizado. Cada trozo de la ventana trae sus k vecinos del candidato; la ventana recibe la unión, con tope.
+
+En las parejas que caben enteras, el problema desaparece: el candidato entra entero. 52 de 56 con 80.000.
+
+En las parejas que caben de un lado y no del otro, no desaparece. Regla que lo cierra: las ventanas se activan cuando la pareja no cabe, sea cual sea el lado que sobra. Si el candidato no cabe entero, el analizado se recorre por ventanas aunque cupiera.
+
+Sobre 5.5: los tamaños de ambos documentos se conocen antes del retrieval. Para el interino, calcular resto = P − min(analizado, P − reserva) y pasárselo al selector existente; el tope de 25 piezas de Pinecone da unos 30.000 caracteres, suficiente. Para las ventanas, la selección por trozo y ventana es un selector nuevo. Dos cambios distintos.
+
+Lo que el interino no cierra, con nombre y cifra: NOR-10 ← CLI-12 y CLI-12 ← NOR-10 pierden 41.936 en el lado candidato con R2 a 80.000. Si eso cuesta una trampa depende de si las parejas de B y D están entre los 13.199 más relevantes. Predicción abajo.
+
+Q5 · La horquilla de la cita
+
+No se toca, y se reetiqueta como guía blanda. La regla dura es contigua y literal; 281 de mediana en NOR-10, literal, contiguo, seis contadores a cero, es la regla funcionando. “Normalmente entre 40 y 300, y lo que importa es contiguo y literal”. Si el contador de recompuestas sube en documentos de frases largas, se revisa.
+
+Q6 · Qué me falta
+
+Tamaño del prompt fijo del juez, sin documentos.
+Simulación de B y D en el lado candidato con R2 a 80.000.
+Relectura de las ocho pasadas del 02 y 03/10 de NOR-10 ← CLI-12 con el medidor por dato (5.7).
+Estado de la fase 0 (F-127 P9.7).
+
+PREGUNTAS DEL DIRECTOR, HECHAS EN CONVERSACIÓN TRAS LA ADENDA (16–18/10)
+
+Esta sección no estaba en el añadido del arquitecto. Recoge tres preguntas del director y lo que respondí. Fija una predicción de coste, una decisión sobre la extracción de afirmaciones y una aclaración de alcance.
+
+D1 · “Leer documentos enteros en vez de chunks me va a suponer mucho más gasto de tokens, ¿o me equivoco?”
+
+Precisión previa: los chunks nunca fueron lectura gratis. Pinecone los encuentra gratis; el juez los lee con Haiku, igual que ahora lee documentos. Lo que cambia es cuánto texto lee el juez por análisis.
+Cifras: antes del escalón 1, 9.000 caracteres por pareja, unos 54.000 por análisis con seis candidatos. Ahora, una pareja que cabe entera son 24.500, y con los dos a cuatro candidatos que el rerank deja pasar, entre 50.000 y 100.000 por análisis. Con tandas en NOR-10, entre 140.000 y 165.000.
+Predicción P-F127-19 (con el registro de tokens del paso 1): el coste por análisis sube entre dos y tres veces para documentos normales, hasta cuatro para los largos. Un análisis de 0,0045 $ pasa a entre uno y dos céntimos. 500 análisis al mes, entre 5 y 10 dólares. Lo que aprieta es el tope mensual de 35 $, que es decisión de la fase de pruebas, no un límite del producto.
+Por qué el precio viejo era falso: era barato porque no leía lo que hacía falta. NOR-11 publicaba una trampa de tres y NOR-10 dejaba fuera el último tercio. No existe una versión que lea menos y encuentre lo mismo.
+Lo que baja la factura: la caché, que exige documentos como bloques; una llamada por ventana con todos los candidatos; y, a largo plazo, la extracción de afirmaciones, que es la única forma conocida de tener lectura completa y coste bajo por análisis, porque la lectura larga se hace una vez por documento y no en cada análisis.
+
+D2 · “¿Es muy complicado hacer el objetivo en vez del parche? ¿Qué beneficios y qué perjuicios tiene en todo el camino del usuario?”
+
+Qué es: al entrar un documento al corpus, una sola vez, un modelo escribe una ficha por cada afirmación con dato: “autoclave, temperatura, 134 °C, instrumental categoría B, frase 12”. El análisis cruza fichas; el juez ve dos fichas y sus dos frases.
+
+Beneficios: (1) desaparece la selección global, cada ficha busca su pareja; (2) el coste por análisis baja mucho y deja de depender del tamaño, porque la lectura cara se paga una vez por versión; (3) el juez deja de variar entre pasadas, porque las fichas del corpus están guardadas; (4) las citas por puntero vienen gratis, la vía 2 queda resuelta; (5) prosa y Excel convergen: una fila de tarifario ya es una ficha, y un párrafo que dice “30 €” contra una celda de “35 €” se detecta igual; (6) el chat mejora en preguntas de dato, con cita exacta; (7) un producto nuevo: “el plazo de retirada aparece en siete documentos con tres valores”.
+
+Perjuicios, y son los que más importan: (1) lo que no se ficha no existe: las contradicciones de matiz, norma contra práctica, competencias, se fichan mal; NEGACIÓN podría dejar de salir si las fichas fueran solas; (2) decidir qué es el mismo dato es lo difícil: “plazo de retirada” y “tiempo máximo de recogida” son lo mismo con dos nombres; unir mal inventa falsos, no unir pierde reales; es una fuente de falsos nueva; (3) el contexto pesa: “30 minutos” sin “para categoría B” genera choques falsos entre cosas que conviven; (4) el coste se mueve a la indexación, y en el modo de mejora con IA hay que re-fichar solo lo que cambia; (5) no ayuda a los solapamientos, que siguen con el lector: serían dos caminos, no uno; (6) en el camino del usuario, un bache de precisión mientras se afina el emparejamiento; (7) es grande: extractor, esquema, tablas, reindexar, emparejador, juez de fichas, arnés; cinco a ocho semanas al ritmo actual.
+
+Decisión que queda archivada:
+
+No en lugar de las tandas. Las tandas son una o dos semanas y cierran el frente de lectura ahora con el mismo juez. Las fichas son dos meses y cierran coste y estabilidad. La segunda hereda a la primera.
+Las fichas, cuando lleguen, complementan al juez lector, nunca lo sustituyen. Fichas para datos duros; lector para prosa, norma contra práctica, competencias, lugares. Es el híbrido estándar.
+Empezar solo por cifras: números con unidad, fechas, plazos, importes, porcentajes. Son las que se fichan con fiabilidad y las que tarifarios y protocolos tienen a montones. Reduce los perjuicios 1 y 3 a la mitad.
+La prueba decisiva cuesta céntimos y no toca nada: pasar el extractor una vez sobre los 20 documentos del corpus, en sombra, y mirar si las tres trampas de NOR-11 y las cuatro de NOR-10 aparecen como fichas con valor y frase. Predicción P-F127-20: seis de siete, y la que falta es NEGACIÓN. Si aparecen siete, el camino existe; si aparecen cuatro, se sabe qué especie no se ficha antes de construir nada. Se lanza cuando no haya una medición en curso y después del primer cliente, no antes.
+
+D3 · “Hoy detecta contradicciones que no son solo de cifra, ¿no? No quiero que pase a detectar solo cifras.”
+
+Correcto, y queda escrito para que nadie lo lea al revés. Hoy el juez detecta de todo tipo: NEGACIÓN es norma contra práctica sin ningún número, 7 de 7; LUGAR es un lugar; el hallazgo de NOR-10 del 16/10 es una competencia entre dos cargos. El juez lector encuentra eso porque lee frases.
+Las tandas no cambian nada de eso. Mismo juez, mismo criterio, misma mesa; solo ve todo el documento nuevo por partes y lo relevante del viejo elegido para cada parte. Detecta lo mismo que hoy, en más sitios. No pierde ningún tipo de contradicción; gana las que hoy quedan fuera por el corte y por la selección global.
+“Solo cifras” era la propuesta de arranque de las fichas, no del producto, y las fichas no son del MVP.
+Criterio de reversión reiterado: si al activar las tandas NEGACIÓN, LUGAR o la del autoclave dejan de salir, se apaga el interruptor.
+
+Predicciones, en caracteres y con pasadas
+
+P-F127-11 (simulación, 0 pasadas). Con reserva = min(3.000, candidato): a 40.000, las cuatro parejas donde perdía el analizado dejan de perder; a 80.000, siguen empeorando las mismas cuatro en el lado candidato.
+P-F127-12 (simulación, 0 pasadas). En NOR-10 ← CLI-12 con R2 a 80.000, al menos una de las parejas de B o D no está entre los 13.199 más relevantes. Consecuencia: el interino no cierra esa pareja; solo las ventanas.
+P-F127-13 (avanzar al fin de trozo, simulación, 0 pasadas). Exceso ≤ 1.300 caracteres en las 56 parejas; B permanece dentro.
+P-F127-14 (ventanas de 24.000 con selección por trozo, 3 pasadas). NOR-10 ← CLI-12 publica A, B y D en 2 de 3, y C en 1 de 3 o más. Cero falsos.
+P-F127-15 (una llamada por ventana con varios candidatos etiquetados, 3 pasadas). Atribuciones cruzadas entre candidatos: 1 o menos, cazadas por la validación de etiqueta, ninguna publicada.
+P-F127-16 (coste, con el registro de tokens). NOR-10 con 2 candidatos, ventanas de 24.000, una llamada por ventana: entre 140.000 y 165.000 caracteres por análisis, entre 1,75 y 2,1 veces hoy.
+P-F127-17 (latencia, 3 pasadas). Total entre 20 y 28 segundos; retrieval entre 6 y 10. Baja confianza en el retrieval.
+P-F127-18 (medidor por dato, relectura). Al menos una de las ocho pasadas históricas de NOR-10 ← CLI-12 tiene una detección contada como “OTRA” que es A, B o D por contenido.
+P-F127-19 (coste global, con el registro de tokens). Coste por análisis entre dos y tres veces el actual en documentos normales, hasta cuatro en los largos; entre uno y dos céntimos.
+P-F127-20 (extracción en sombra, cuando se lance). Seis de las siete trampas de NOR-11 y NOR-10 aparecen como fichas con valor y frase; la que falta es NEGACIÓN.
+
+Lo que no sé y no estimo: si el juez evita el texto mutilado; cuánto ahorra la caché sin conocer el prompt fijo; si una llamada con varios candidatos baja la precisión. Las tres se miden.
+
+## (g.3) LAS PREDICCIONES NUEVAS DE LA ADENDA
+
+Con la cifra exacta, tal como las escribe la adenda. Sin veredicto.
+
+| N.º | Predicción | Cifra exacta | Cómo se mide | Estado |
+|---|---|---|---|---|
+| P-F127-11 | Con reserva = min(3.000, candidato), a 40.000 las cuatro parejas donde perdía el analizado dejan de perder; a 80.000 siguen empeorando las mismas cuatro en el lado candidato | **4** dejan de perder · **las mismas 4** | simulación, 0 pasadas | sin calificar |
+| P-F127-12 | En NOR-10 ← CLI-12 con R2 a 80.000, al menos una de las parejas de B o D no está entre los 13.199 más relevantes | **al menos una** fuera | simulación, 0 pasadas | sin medir |
+| P-F127-13 | Avanzar al fin de trozo: exceso sobre el presupuesto en las 56 parejas; B permanece dentro | **≤ 1.300** caracteres | simulación, 0 pasadas | sin medir |
+| P-F127-14 | Ventanas de 24.000 con selección por trozo: NOR-10 ← CLI-12 publica A, B y D; C; cero falsos | **2 de 3** · C **1 de 3 o más** | 3 pasadas | sin medir |
+| P-F127-15 | Una llamada por ventana con varios candidatos: atribuciones cruzadas, cazadas por la validación, ninguna publicada | **1 o menos** | 3 pasadas | sin medir |
+| P-F127-16 | NOR-10 con 2 candidatos, ventanas de 24.000, una llamada por ventana | **140.000 a 165.000** caracteres, **1,75 a 2,1** veces hoy | con el registro de tokens | no medible hoy |
+| P-F127-17 | Latencia total con ventanas; retrieval. Baja confianza en el retrieval | **20 a 28 s**; retrieval **6 a 10 s** | 3 pasadas | sin medir |
+| P-F127-18 | Al menos una de las ocho pasadas históricas de NOR-10 ← CLI-12 tiene una detección contada como «OTRA» que es A, B o D por contenido | **al menos 1 de 8** | relectura | sin calificar |
+| P-F127-19 | Coste por análisis frente al actual; en céntimos | **×2 a ×3** normales, **hasta ×4** largos; **1 a 2 céntimos** | con el registro de tokens | no medible hoy |
+| P-F127-20 | Extracción en sombra: trampas de NOR-11 y NOR-10 como fichas con valor y frase; la que falta | **6 de 7**, falta NEGACIÓN | cuando se lance | sin medir |
