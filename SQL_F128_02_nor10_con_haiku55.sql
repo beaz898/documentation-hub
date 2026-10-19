@@ -17,12 +17,26 @@
 --     el bloque 2 los repite junto a cada contradicción publicada;
 --   · y un control más, el 0.9: toda pareja de la ventana lleva su modelo, o el
 --     código desplegado no es el de F-128.
--- Todo lo demás —la reconstrucción del texto entregado, las especies, la sonda
+-- ⚠️ EL CLASIFICADOR, CAMBIADO EL 19/10/2026 (bloques 2 y 3). En SQL_F127_01 la
+-- especie salía de buscar palabras en el tema y en las dos citas JUNTOS, así que
+-- bastaba una sola: es lo que el 16/10 contó como OTRA la contradicción del
+-- autoclave, que por contenido era A (el defecto 5.7 de F-127). AHORA SE
+-- CLASIFICA POR EL PAR DE DATOS, UNO EN CADA CITA (arquitecto, 19/10):
+--   · C si la del NUEVO dice «6 meses»                 y la del EXISTENTE «12 meses»;
+--   · B si la del NUEVO dice «semanal» o «lunes»       y la del EXISTENTE «mensual»;
+--   · D si la del NUEVO dice «recaer»                  y la del EXISTENTE «nunca»;
+--   · A si la del NUEVO dice «responsab-»              y la del EXISTENTE «coordinador
+--     de calidad».
+-- Hacen falta los dos, cada uno en su lado. Lo demás es OTRA, y se lee.
+--
+-- Todo lo demás —la reconstrucción del texto entregado, la sonda
 -- de la frase partida, los controles 0.1 a 0.8—, idéntico a SQL_F127_01: lee
 -- su cabecera para la definición de cada cosa.
 -- ✅ PROBADO ANTES DE ENTREGARLO (19/10/2026) en PGlite, con el arnés de
 -- SQL_F127_01 adaptado y los trozos reales de NOR-10 y CLI-12: con tres pasadas
--- los controles salen OK, y falla el 0.9 cuando una pareja no lleva modelo. CON
+-- los controles salen OK, y falla el 0.9 cuando una pareja no lleva modelo. Con
+-- el clasificador por dato (19/10), la A real (las dos frases de la línea base)
+-- sale A, y las citas que no llevan los dos datos salen OTRA. CON
 -- DATOS REALES NO SE HA EJECUTADO.
 --
 -- ┌──────────────────────────────────────────────────────────────────────────┐
@@ -119,7 +133,7 @@ publicadas AS (
 ),
 pub AS (
   SELECT p.*,
-         translate(lower(coalesce(p.tema, '') || ' ' || p.cita_nuevo || ' ' || p.cita_existente), 'áéíóúüñ', 'aeiouun') AS t,
+         translate(lower(coalesce(p.cita_nuevo, '')), 'áéíóúüñ', 'aeiouun') AS tn, translate(lower(coalesce(p.cita_existente, '')), 'áéíóúüñ', 'aeiouun') AS te,
          (SELECT m.marca FROM marcas m WHERE m.n = p.n AND m.candidato = p.candidato
             AND m.cita_nuevo = p.cita_nuevo AND m.cita_existente = p.cita_existente AND m.marca IS NOT NULL LIMIT 1) AS marca,
          (SELECT l.an_most FROM lecturas l WHERE l.n = p.n AND l.nombre = p.candidato LIMIT 1) AS an_most,
@@ -134,10 +148,10 @@ pub AS (
 ),
 pub2 AS (
   SELECT p.*,
-         CASE WHEN t LIKE '%6 meses%' OR t LIKE '%12 meses%' OR t LIKE '%caducidad%' THEN 'C'
-              WHEN t LIKE '%biologic%' AND (t LIKE '%semanal%' OR t LIKE '%lunes%' OR t LIKE '%mensual%') THEN 'B'
-              WHEN t LIKE '%recaer%' OR t LIKE '%nunca por el director%' OR t LIKE '%ausencia%' OR t LIKE '%sustitu%' THEN 'D'
-              WHEN t LIKE '%responsable%' THEN 'A'
+         CASE WHEN tn LIKE '%6 meses%' AND te LIKE '%12 meses%' THEN 'C'
+              WHEN (tn LIKE '%semanal%' OR tn LIKE '%lunes%') AND te LIKE '%mensual%' THEN 'B'
+              WHEN tn LIKE '%recaer%' AND te LIKE '%nunca%' THEN 'D'
+              WHEN tn LIKE '%responsab%' AND te LIKE '%coordinador de calidad%' THEN 'A'
               ELSE 'OTRA' END AS especie,
          -- LA COMPROBACIÓN EXPLÍCITA: ¿está la cita del NUEVO dentro de lo ENTREGADO?
          CASE WHEN p.cita_nuevo = '' THEN 'VACÍA'

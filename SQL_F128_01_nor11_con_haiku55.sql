@@ -21,13 +21,32 @@
 --     se hizo toda con Haiku 4.5, antes de que se guardara el modelo;
 --   · y un control más, el 7: toda pareja de la ventana nueva lleva su modelo,
 --     o el código desplegado no es el de F-128.
--- La mediana, las especies y el resto, idénticos a SQL_F126_01: lee su
--- cabecera para la definición de cada cosa.
+-- La mediana y el resto, idénticos a SQL_F126_01: lee su cabecera para la
+-- definición de cada cosa. LAS ESPECIES, NO:
+--
+-- ⚠️ EL CLASIFICADOR, CAMBIADO EL 19/10/2026 (bloques 1, 2, 5 y 9). En SQL_F126_01
+-- la especie salía del TEMA que escribe el juez («plazo»; «color» y «contenedor»;
+-- «retirada» o «ubicación»). La primera pasada con Haiku 5.5 publicó NEGACIÓN con
+-- las dos citas literales y el clasificador la contó como OTRA: es el defecto 5.7
+-- de F-127 —el medidor cuenta como fallo una detección por otra vía— otra vez.
+-- AHORA SE CLASIFICA POR EL PAR DE DATOS, UNO EN CADA CITA (arquitecto, 19/10):
+--   · PLAZO    si la cita del NUEVO dice «72 horas»   y la del EXISTENTE «7 días»;
+--   · LUGAR    si la del NUEVO dice «Chamberí»        y la del EXISTENTE «Retiro»;
+--   · NEGACIÓN si la del NUEVO dice «amarill-»        y la del EXISTENTE «negro».
+-- Hacen falta LOS DOS datos, cada uno en su lado: uno solo, o los dos en el mismo
+-- lado, no basta. Sin mayúsculas ni acentos, caiga donde caiga el recorte de la
+-- cita. Lo demás es OTRA, y una OTRA se lee antes de llamarla falso positivo.
+-- La consulta relee todas las pasadas cada vez, así que la línea base del 14/10 y
+-- toda la tanda se leen con el medidor arreglado.
 -- ✅ PROBADO ANTES DE ENTREGARLO (19/10/2026) en PGlite, con el arnés de
 -- SQL_F126_01 adaptado: con siete y siete pasadas los controles salen OK, y
 -- falla el 7 cuando una pareja nueva no lleva modelo. Y las DOS LECTURAS de la
 -- tabla de abajo, sobre los mismos datos (línea base, pasada 0 y tanda), salen
--- sin un solo FALLA; con una pasada suelta en el hueco, cae el 3. CON DATOS REALES NO SE HA
+-- sin un solo FALLA; con una pasada suelta en el hueco, cae el 3. El clasificador
+-- por dato (19/10), con las citas reales de la línea base y la NEGACIÓN corta de
+-- Haiku 5.5 con un tema sin «color»: 3/3 en las catorce; y las dos trampas
+-- («Chamberí» en las dos citas, «72 horas» en las dos) salen OTRA. Con el
+-- clasificador viejo, el mismo arnés da 2/3 y se traga las dos trampas. CON DATOS REALES NO SE HA
 -- EJECUTADO.
 --
 -- ┌──────────────────────────────────────────────────────────────────────────┐
@@ -48,11 +67,17 @@
 --
 --   lectura              DESDE                    HASTA                    COMIENZO DEL HUECO                    ESPERADO
 --   ───────────────────  ───────────────────────  ───────────────────────  ────────────────────────────────────  ────────
---   la PASADA 0          1 min antes de la        1 min después de la      '2026-10-14 08:47:00+02'              1
---   (interruptor         pasada 0                 pasada 0                 (el final de la línea base)
+--   la PASADA 0          '2026-10-19 12:02:00+02' '2026-10-19 12:04:00+02' '2026-10-14 08:47:00+02'              1
+--   (interruptor                                                           (el final de la línea base)
 --   apagado)
---   la TANDA de          1 min antes de la        1 min después de la      el HASTA de la lectura de la          7
---   Haiku 5.5            primera pasada con 5.5   última                   pasada 0
+--   la TANDA de          '2026-10-19 12:04:00+02' 1 min después de la      '2026-10-19 12:04:00+02'              7
+--   Haiku 5.5            (la pasada 0 se guardó   última pasada con 5.5    (= el DESDE de la tanda)
+--                        a las 12:03)
+--
+--   ⚠️ Si la primera pasada con Haiku 5.5 se guardó ANTES de las 12:04, el control 1
+--   de la lectura de la pasada 0 dirá «medido 2» y el de la tanda «medido 6»: en ese
+--   caso, poned las dos 12:04 de la tabla a un minuto entre la pasada 0 y esa
+--   primera pasada. (Hora GUARDADA, la del final de cada análisis, en Madrid.)
 --
 -- ⚠️ POR QUÉ CUATRO VALORES Y NO DOS (arquitecto, 19/10/2026): con dos, la pasada 0
 -- habría hecho fallar a propósito el control 3 (cae en el hueco de la tanda) y el
@@ -111,7 +136,7 @@ lecturas AS (
 publicadas AS (
   SELECT pa.ventana, pa.n, x.ord, d->>'existingDocument' AS candidato, d->>'severity' AS severity, d->>'confirmedBy' AS confirmado,
          d->>'topic' AS tema, coalesce(d->>'newDocSays', '') AS cita_nuevo, coalesce(d->>'existingDocSays', '') AS cita_existente,
-         translate(lower(coalesce(d->>'topic', '')), 'áéíóúüñ', 'aeiouun') AS t
+         translate(lower(coalesce(d->>'newDocSays', '')), 'áéíóúüñ', 'aeiouun') AS tn, translate(lower(coalesce(d->>'existingDocSays', '')), 'áéíóúüñ', 'aeiouun') AS te
   FROM pasadas pa
   CROSS JOIN LATERAL jsonb_array_elements(
     CASE WHEN jsonb_typeof(pa.analysis->'discrepancies') = 'array' THEN pa.analysis->'discrepancies' ELSE '[]'::jsonb END)
@@ -126,9 +151,9 @@ marcas AS (
 ),
 pub AS (
   SELECT p.*,
-         CASE WHEN t LIKE '%plazo%' THEN 'PLAZO'
-              WHEN t LIKE '%color%' AND t LIKE '%contenedor%' THEN 'NEGACIÓN'
-              WHEN t LIKE '%retirada%' OR t LIKE '%ubicacion%' THEN 'LUGAR'
+         CASE WHEN tn LIKE '%72 horas%' AND te LIKE '%7 dias%' THEN 'PLAZO'
+              WHEN tn LIKE '%chamberi%' AND te LIKE '%retiro%' THEN 'LUGAR'
+              WHEN tn LIKE '%amarill%' AND te LIKE '%negro%' THEN 'NEGACIÓN'
               ELSE 'OTRA' END AS especie,
          (SELECT m.marca FROM marcas m
            WHERE m.ventana = p.ventana AND m.n = p.n AND m.candidato = p.candidato
@@ -313,14 +338,15 @@ FROM (
   UNION ALL
   -- 9 · LO QUE LA PUERTA MATÓ COMO CONTRADICCIÓN en la ventana nueva (¿muere LUGAR?)
   SELECT '9 · contradicciones que mató la puerta (nueva)', 'nueva ' || d.n,
-         CASE WHEN tt LIKE '%plazo%' THEN 'PLAZO' WHEN tt LIKE '%color%' AND tt LIKE '%contenedor%' THEN 'NEGACIÓN'
-              WHEN tt LIKE '%retirada%' OR tt LIKE '%ubicacion%' THEN 'LUGAR' ELSE 'OTRA' END,
+         CASE WHEN tn LIKE '%72 horas%' AND te LIKE '%7 dias%' THEN 'PLAZO'
+              WHEN tn LIKE '%chamberi%' AND te LIKE '%retiro%' THEN 'LUGAR'
+              WHEN tn LIKE '%amarill%' AND te LIKE '%negro%' THEN 'NEGACIÓN' ELSE 'OTRA' END,
          coalesce(d.candidato, '—') || ' · lado fallido ' || coalesce(d.d->>'ladoFallido', '—') ||
            ' · nuevo: ' || coalesce(d.d->'nuevo'->>'paso', '—') || ' · existente: ' || coalesce(d.d->'existente'->>'paso', '—'),
          d.d->>'tema',
          'NUEVO: ' || coalesce(d.d->>'citaNuevo', '—') || E'\nEXISTENTE: ' || coalesce(d.d->>'citaExistente', '—'),
          0, d.n * 100 + d.ord
-  FROM (SELECT DISTINCT ON (n, ord) n, ord, candidato, d, translate(lower(coalesce(d->>'tema', '')), 'áéíóúüñ', 'aeiouun') AS tt
+  FROM (SELECT DISTINCT ON (n, ord) n, ord, candidato, d, translate(lower(coalesce(d->>'citaNuevo', '')), 'áéíóúüñ', 'aeiouun') AS tn, translate(lower(coalesce(d->>'citaExistente', '')), 'áéíóúüñ', 'aeiouun') AS te
         FROM descartes WHERE d->>'tipo' = 'contradiccion' ORDER BY n, ord) d
 ) t
 ORDER BY bloque, o1, o2, pasada;
