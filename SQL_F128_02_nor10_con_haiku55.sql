@@ -49,7 +49,10 @@
 -- el clasificador por dato (19/10), la A real (las dos frases de la línea base)
 -- sale A, y las citas que no llevan los dos datos salen OTRA. Las APARICIONES
 -- (19/10): con la cita de A repetida a propósito en el full_text, sale 1 en lo
--- entregado y 2 en el documento, y el bloque 2c la caza en las tres. CON
+-- entregado y 2 en el documento, y el bloque 2c la caza en las tres. Los NO APLICA
+-- (20/10): la relectura del 16/10 sale sin un FALLA, con el 0.9 en NO APLICA y no en
+-- OK; una franja al revés sale NO APLICA; y la franja desde el 13/10 caza una pasada
+-- metida el 15/10. CON
 -- DATOS REALES NO SE HA EJECUTADO.
 --
 -- ┌──────────────────────────────────────────────────────────────────────────┐
@@ -59,29 +62,43 @@
 -- └──────────────────────────────────────────────────────────────────────────┘
 --
 -- ┌──────────────────────────────────────────────────────────────────────────┐
--- │ LO ÚNICO QUE TOCA EL DIRECTOR: las DOS MARCAS de la constante            │
--- │ `parametros`, en hora de Madrid y con este formato exacto:               │
--- │     timestamptz 'AAAA-MM-DD HH:MM:SS+02'                                  │
--- │   · DESDE: un minuto ANTES de lanzar la primera pasada de NOR-10;        │
--- │   · HASTA: un minuto DESPUÉS de que termine la última.                    │
+-- │ LO ÚNICO QUE TOCA EL DIRECTOR: los CUATRO VALORES de la constante        │
+-- │ `parametros` marcados con flecha; las horas en hora de Madrid y con este │
+-- │ formato exacto:  timestamptz 'AAAA-MM-DD HH:MM:SS+02'                     │
 -- │ ⚠️ El «+02» es el horario de verano. Desde el domingo 25/10/2026 a las   │
 -- │ 03:00 es «+01».                                                           │
 -- └──────────────────────────────────────────────────────────────────────────┘
 --
--- Aquí bastan dos marcas: la pasada 0 (el interruptor apagado) es de NOR-11 y no
--- cae en ninguna franja de esta lectura, y la tanda de NOR-10 son tres pasadas
--- seguidas. **Ningún control debe fallar; si alguno falla, es que pasó algo**: un
--- control que se espera que falle es un control muerto (arquitecto, 19/10/2026).
+-- QUÉ PONER EN CADA LECTURA (se copia tal cual; aprobado por el arquitecto el 20/10/2026):
+--
+--   lectura                DESDE                    HASTA                    INICIO DE LA FRANJA PREVIA   EXIGIR MODELO
+--   ─────────────────────  ───────────────────────  ───────────────────────  ───────────────────────────  ─────────────
+--   la LÍNEA BASE del      '2026-10-16 12:40:00+02' '2026-10-16 12:50:00+02' '2026-10-13 21:20:36+02'     false
+--   16/10 (Haiku 4.5,                                                        (el push de 2fe72b4e, lo
+--   releída con este                                                         que comprobaba SQL_F127_01)
+--   clasificador)
+--   la TANDA de Haiku 5.5  1 min antes de la        1 min después de la      '2026-10-16 12:50:00+02'     true
+--                          primera de NOR-10        última                   (el final de la línea base)
+--
+-- **Ningún control debe fallar; si alguno falla, es que pasó algo**: un control que
+-- se espera que falle es un control muerto (arquitecto, 19/10/2026). Y **un control
+-- que no puede mirar nada no sale OK: sale «NO APLICA»** (arquitecto, 20/10/2026):
+--   · el 0.2, si el INICIO DE LA FRANJA PREVIA no va antes de DESDE (intervalo al
+--     revés: no hay franja que mirar);
+--   · el 0.9, con EXIGIR MODELO en false: las pasadas anteriores a F-128 no guardan
+--     el modelo, y exigirlo las daría en rojo a propósito.
 -- ============================================================================
 
 WITH parametros AS (
   SELECT 'a9625e93-af2a-4416-a465-5c2fa2a25bdf'::text AS org,   -- ← LA CONSTANTE
-         -- ↓↓↓ LAS DOS MARCAS: lo único que se toca (ver la cabecera) ↓↓↓
+         -- ↓↓↓ LOS CUATRO VALORES: lo único que se toca (la tabla de la cabecera dice qué poner) ↓↓↓
          -- ⚠️ «+02» vale hasta el domingo 25/10/2026 a las 03:00; desde ahí es «+01».
-         timestamptz '2026-10-19 00:00:00+02' AS desde,           -- ← DESDE: antes de la primera pasada de NOR-10
-         timestamptz '2026-10-19 23:59:00+02' AS hasta,           -- ← HASTA: después de la última
+         -- (Vienen puestos los de la LÍNEA BASE del 16/10, la siguiente lectura aprobada.)
+         timestamptz '2026-10-16 12:40:00+02' AS desde,           -- ← DESDE
+         timestamptz '2026-10-16 12:50:00+02' AS hasta,           -- ← HASTA
+         timestamptz '2026-10-13 21:20:36+02' AS push,            -- ← INICIO DE LA FRANJA PREVIA (la franja va de aquí a DESDE)
+         false AS exigir_modelo,                                  -- ← EXIGIR MODELO: true en la tanda, false en la línea base
          -- ↑↑↑ ↑↑↑
-         timestamptz '2026-10-16 12:50:00+02' AS push,            -- la franja previa: del final de la línea base a DESDE
          3 AS esperado
 ),
 nor10 AS (
@@ -262,9 +279,13 @@ control AS (
          (SELECT count(*) FROM pasadas) = p.esperado AS ok
   FROM parametros p
   UNION ALL
-  SELECT 2, 'pasadas de NOR-10 en la FRANJA PREVIA (del final de la línea base del 16/10 a DESDE): esperado 0, medido ' || (SELECT count(*) FROM previas) ||
-         coalesce(' · horas: ' || (SELECT string_agg(to_char(h.created_at AT TIME ZONE 'Europe/Madrid', 'DD/MM HH24:MI:SS'), ', ' ORDER BY h.created_at) FROM previas h), ''),
-         (SELECT count(*) FROM previas) = 0
+  SELECT 2, CASE WHEN p.push >= p.desde
+              THEN 'FRANJA PREVIA: el inicio (' || to_char(p.push AT TIME ZONE 'Europe/Madrid', 'DD/MM HH24:MI:SS') || ') no va antes de DESDE (' ||
+                   to_char(p.desde AT TIME ZONE 'Europe/Madrid', 'DD/MM HH24:MI:SS') || '): el intervalo va al revés y no hay nada que mirar'
+              ELSE 'pasadas de NOR-10 en la FRANJA PREVIA (del INICIO DE LA FRANJA PREVIA a DESDE): esperado 0, medido ' || (SELECT count(*) FROM previas) ||
+                   coalesce(' · horas: ' || (SELECT string_agg(to_char(h.created_at AT TIME ZONE 'Europe/Madrid', 'DD/MM HH24:MI:SS'), ', ' ORDER BY h.created_at) FROM previas h), '') END,
+         CASE WHEN p.push >= p.desde THEN NULL ELSE (SELECT count(*) FROM previas) = 0 END
+  FROM parametros p
   UNION ALL
   SELECT 3, 'documentos CLI-12 en la organización: esperado 1, medido ' || (SELECT count(*) FROM cli12),
          (SELECT count(*) FROM cli12) = 1
@@ -293,9 +314,11 @@ control AS (
   FROM pasadas pa
   UNION ALL
   SELECT 9, 'pasada ' || pa.n || ': todas sus parejas llevan modelo (sin modelo: ' ||
-         (SELECT count(*) FROM lecturas l WHERE l.n = pa.n AND l.modelo IS NULL) || ' de ' || (SELECT count(*) FROM lecturas l WHERE l.n = pa.n) || ')',
-         (SELECT count(*) FROM lecturas l WHERE l.n = pa.n) > 0 AND (SELECT count(*) FROM lecturas l WHERE l.n = pa.n AND l.modelo IS NULL) = 0
-  FROM pasadas pa
+         (SELECT count(*) FROM lecturas l WHERE l.n = pa.n AND l.modelo IS NULL) || ' de ' || (SELECT count(*) FROM lecturas l WHERE l.n = pa.n) || ')' ||
+         CASE WHEN p.exigir_modelo THEN '' ELSE ' · EXIGIR MODELO en false: anterior a F-128, no se exige' END,
+         CASE WHEN NOT p.exigir_modelo THEN NULL
+              ELSE (SELECT count(*) FROM lecturas l WHERE l.n = pa.n) > 0 AND (SELECT count(*) FROM lecturas l WHERE l.n = pa.n AND l.modelo IS NULL) = 0 END
+  FROM pasadas pa, parametros p
 ),
 mediana AS (
   SELECT coalesce(m.grupo, 'TODAS') AS grupo, count(*) AS n, percentile_cont(0.5) WITHIN GROUP (ORDER BY largo) AS med, min(largo) AS mn, max(largo) AS mx
@@ -304,7 +327,7 @@ mediana AS (
 )
 SELECT bloque, pasada, a, b, c, texto
 FROM (
-  SELECT '0 · control' AS bloque, NULL::text AS pasada, CASE WHEN ok THEN 'OK' ELSE 'FALLA' END AS a,
+  SELECT '0 · control' AS bloque, NULL::text AS pasada, CASE WHEN ok IS NULL THEN 'NO APLICA' WHEN ok THEN 'OK' ELSE 'FALLA' END AS a,
          medida AS b, NULL::text AS c, NULL::text AS texto, orden AS o1, 0::bigint AS o2
   FROM control
   UNION ALL

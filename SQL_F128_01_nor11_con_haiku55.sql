@@ -63,7 +63,8 @@
 -- inventarse un acierto, no sólo perder uno.** Contaba como LUGAR una contradicción
 -- con «Chamberí» en los dos lados, porque bastaba el tema. Las APARICIONES (19/10):
 -- con una cita repetida a propósito en el full_text, sale 1 en lo entregado y 2 en
--- el documento, y el bloque 2c la caza en las siete. CON DATOS REALES NO SE HA
+-- el documento, y el bloque 2c la caza en las siete. Y un hueco al revés sale NO
+-- APLICA, no OK (20/10). CON DATOS REALES NO SE HA
 -- EJECUTADO.
 --
 -- ┌──────────────────────────────────────────────────────────────────────────┐
@@ -87,14 +88,17 @@
 --   la PASADA 0          '2026-10-19 12:02:00+02' '2026-10-19 12:04:00+02' '2026-10-14 08:47:00+02'              1
 --   (interruptor                                                           (el final de la línea base)
 --   apagado)
---   la TANDA de          '2026-10-19 12:04:00+02' 1 min después de la      '2026-10-19 12:04:00+02'              7
---   Haiku 5.5            (la pasada 0 se guardó   última pasada con 5.5    (= el DESDE de la tanda)
---                        a las 12:03)
+--   la TANDA de          '2026-10-19 12:14:00+02' '2026-10-19 14:17:00+02' '2026-10-19 12:04:00+02'              7
+--   Haiku 5.5
 --
---   ⚠️ Si la primera pasada con Haiku 5.5 se guardó ANTES de las 12:04, el control 1
---   de la lectura de la pasada 0 dirá «medido 2» y el de la tanda «medido 6»: en ese
---   caso, poned las dos 12:04 de la tabla a un minuto entre la pasada 0 y esa
---   primera pasada. (Hora GUARDADA, la del final de cada análisis, en Madrid.)
+--   Corregido el 20/10/2026 (aprobado por el arquitecto): la pasada 0 se guardó a las
+--   12:03:06 y la primera con Haiku 5.5 a las 12:14:42; la última, a las 14:16:10. El
+--   hueco, de 12:04 a 12:14, comprueba que entre las dos no corrió nada más. (Hora
+--   GUARDADA, la del final de cada análisis, en Madrid.) Con un DESDE anterior a las
+--   12:03:06, la ventana cogía también la pasada 0 y el control 1 daba «medido 8».
+--
+--   Y un control que no puede mirar nada no sale OK: si el COMIENZO DEL HUECO no va
+--   antes de DESDE, el control 3 sale «NO APLICA» (arquitecto, 20/10/2026).
 --
 -- ⚠️ POR QUÉ CUATRO VALORES Y NO DOS (arquitecto, 19/10/2026): con dos, la pasada 0
 -- habría hecho fallar a propósito el control 3 (cae en el hueco de la tanda) y el
@@ -108,9 +112,9 @@ WITH parametros AS (
   SELECT 'a9625e93-af2a-4416-a465-5c2fa2a25bdf'::text AS org,   -- ← LA CONSTANTE
          -- ↓↓↓ LOS CUATRO VALORES: lo único que se toca (la tabla de la cabecera dice qué poner) ↓↓↓
          -- ⚠️ «+02» vale hasta el domingo 25/10/2026 a las 03:00; desde ahí es «+01».
-         timestamptz '2026-10-19 00:00:00+02' AS nueva_desde,     -- ← DESDE
-         timestamptz '2026-10-19 23:59:00+02' AS nueva_hasta,     -- ← HASTA
-         timestamptz '2026-10-14 08:47:00+02' AS push,            -- ← COMIENZO DEL HUECO (el hueco va de aquí a DESDE)
+         timestamptz '2026-10-19 12:14:00+02' AS nueva_desde,     -- ← DESDE (vienen puestos los de la TANDA)
+         timestamptz '2026-10-19 14:17:00+02' AS nueva_hasta,     -- ← HASTA
+         timestamptz '2026-10-19 12:04:00+02' AS push,            -- ← COMIENZO DEL HUECO (el hueco va de aquí a DESDE)
          7 AS esperado_nueva,                                     -- ← ESPERADO: pasadas en la ventana nueva
          -- ↑↑↑ ↑↑↑
          timestamptz '2026-10-14 08:28:00+02' AS vieja_desde,     -- la línea base del 14/10, Haiku 4.5: fija
@@ -241,9 +245,13 @@ control AS (
          (SELECT count(*) FROM pasadas WHERE ventana = 'vieja') = p.esperado_vieja
   FROM parametros p
   UNION ALL
-  SELECT 3, 'pasadas de NOR-11 en el HUECO (del COMIENZO DEL HUECO a DESDE): esperado 0, medido ' || (SELECT count(*) FROM hueco) ||
-         coalesce(' · horas: ' || (SELECT string_agg(to_char(h.created_at AT TIME ZONE 'Europe/Madrid', 'DD/MM HH24:MI:SS'), ', ' ORDER BY h.created_at) FROM hueco h), ''),
-         (SELECT count(*) FROM hueco) = 0
+  SELECT 3, CASE WHEN p.push >= p.nueva_desde
+              THEN 'HUECO: el comienzo (' || to_char(p.push AT TIME ZONE 'Europe/Madrid', 'DD/MM HH24:MI:SS') || ') no va antes de DESDE (' ||
+                   to_char(p.nueva_desde AT TIME ZONE 'Europe/Madrid', 'DD/MM HH24:MI:SS') || '): el intervalo va al revés y no hay nada que mirar'
+              ELSE 'pasadas de NOR-11 en el HUECO (del COMIENZO DEL HUECO a DESDE): esperado 0, medido ' || (SELECT count(*) FROM hueco) ||
+                   coalesce(' · horas: ' || (SELECT string_agg(to_char(h.created_at AT TIME ZONE 'Europe/Madrid', 'DD/MM HH24:MI:SS'), ', ' ORDER BY h.created_at) FROM hueco h), '') END,
+         CASE WHEN p.push >= p.nueva_desde THEN NULL ELSE (SELECT count(*) FROM hueco) = 0 END
+  FROM parametros p
   UNION ALL
   SELECT 4, 'pasada nueva ' || pa.n || ': los seis contadores del tramo están (faltan ' ||
             (SELECT count(*) FROM contadores c WHERE c.n = pa.n AND NOT c.esta) || ')',
@@ -273,7 +281,7 @@ mediana AS (
 )
 SELECT bloque, pasada, a, b, c, texto
 FROM (
-  SELECT '0 · control' AS bloque, NULL::text AS pasada, CASE WHEN ok THEN 'OK' ELSE 'FALLA' END AS a,
+  SELECT '0 · control' AS bloque, NULL::text AS pasada, CASE WHEN ok IS NULL THEN 'NO APLICA' WHEN ok THEN 'OK' ELSE 'FALLA' END AS a,
          medida AS b, NULL::text AS c, NULL::text AS texto, orden AS o1, 0::bigint AS o2
   FROM (SELECT * FROM control UNION ALL SELECT * FROM control7) control
   UNION ALL
