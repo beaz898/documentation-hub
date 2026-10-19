@@ -63,6 +63,21 @@ describe('F-122 P5 · el lector unificado', () => {
 
   it('los bloques de otro tipo se ignoran, en cualquier posición, y se registran', () => {
     const l = textoDeTodosLosBloques({ content: [{ type: 'thinking', thinking: 'x' }, texto('a'), { type: 'tool_use' }, texto('b')] });
-    expect(l).toEqual({ texto: 'ab', bloquesDeTexto: 2, bloquesDeOtroTipo: 2 });
+    expect(l).toEqual({ texto: 'ab', bloquesDeTexto: 2, bloquesDePensamiento: 1, bloquesDeOtroTipo: 1 });
+  });
+
+  it('F-128 · HAIKU 5.5: pensamiento DELANTE y texto detrás → el texto, y sin avisar', () => {
+    const forma = { content: [{ type: 'thinking', thinking: 'PENSAMIENTO DEL MODELO' }, texto('{"ok":true}')] };
+    // La lectura que coge el primer bloque que pille daría el pensamiento, o nada: aquí se pondría roja.
+    expect(lecturaDeAntes(forma)).not.toBe('{"ok":true}');
+    expect(leerTextoDeLaRespuesta(forma, 'json · prueba')).toBe('{"ok":true}');
+    expect(avisos).toEqual([]);
+  });
+
+  it('F-128 · el pensamiento cifrado tampoco avisa, y un tipo desconocido SÍ', () => {
+    expect(leerTextoDeLaRespuesta({ content: [{ type: 'redacted_thinking', data: 'zzz' }, texto('t')] }, 'json · prueba')).toBe('t');
+    expect(avisos).toEqual([]);
+    expect(leerTextoDeLaRespuesta({ content: [{ type: 'algo_nuevo' }, texto('t')] }, 'json · prueba')).toBe('t');
+    expect(avisos).toEqual(['[llm] lector: 1 bloques de texto y 1 de otro tipo (json · prueba)']);
   });
 });
