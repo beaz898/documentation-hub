@@ -692,6 +692,15 @@ Tres anotaciones más, del mismo 16/10/2026, escritas después de la revisión d
    Con la reserva igual a lo menor entre 3.000 y el tamaño del candidato, esas cuatro dejan de
    empeorar y quedan las ocho.
 
+Anotación posterior del arquitecto, 19/10/2026 (no es parte de la adenda):
+
+6. **P-F127-18 no es medible, y su premisa es incorrecta.** Los análisis de NOR-10 se borraron con él
+   (B.367), así que las ocho pasadas del 02 y 03/10 no se pueden releer en la base. Y en lo que se
+   transcribió de ellas **nunca hubo una etiqueta «OTRA»**: la única contradicción, la del autoclave,
+   se contó entonces como «la sembrada A» (`claude/Estado_Del_MVP.md:11585-11588`), y bien. De los
+   tres solapamientos de cada pasada sólo quedan las huellas, no el texto. El defecto del 5.7 es del
+   clasificador de `SQL_F127_01`, que se estrenó el 16/10, no de las mediciones anteriores.
+
 ---
 
 # (g) ADENDA — LA MEDICIÓN DE NOR-10 Y LAS CINCO CORRECCIONES (16/10) · LA RESPUESTA DE FABLE (18/10)
@@ -1034,12 +1043,12 @@ Con la cifra exacta, tal como las escribe la adenda. Sin veredicto.
 | N.º | Predicción | Cifra exacta | Cómo se mide | Estado |
 |---|---|---|---|---|
 | P-F127-11 | Con reserva = min(3.000, candidato), a 40.000 las cuatro parejas donde perdía el analizado dejan de perder; a 80.000 siguen empeorando las mismas cuatro en el lado candidato | **4** dejan de perder · **las mismas 4** | simulación, 0 pasadas | sin calificar |
-| P-F127-12 | En NOR-10 ← CLI-12 con R2 a 80.000, al menos una de las parejas de B o D no está entre los 13.199 más relevantes | **al menos una** fuera | simulación, 0 pasadas | sin medir |
+| P-F127-12 | En NOR-10 ← CLI-12 con R2 a 80.000, al menos una de las parejas de B o D no está entre los 13.199 más relevantes | **al menos una** fuera | simulación, 0 pasadas | ✅ **CONFIRMADA**, y peor: fuera las DOS (34 y 38 de B, 6 de D), en simulación con el selector de producción y la línea del log del 16/10 (19/10; `claude/Predicciones_F127_NOR10_Documento_Largo.md`) |
 | P-F127-13 | Avanzar al fin de trozo: exceso sobre el presupuesto en las 56 parejas; B permanece dentro | **≤ 1.300** caracteres | simulación, 0 pasadas | sin medir |
 | P-F127-14 | Ventanas de 24.000 con selección por trozo: NOR-10 ← CLI-12 publica A, B y D; C; cero falsos | **2 de 3** · C **1 de 3 o más** | 3 pasadas | sin medir |
 | P-F127-15 | Una llamada por ventana con varios candidatos: atribuciones cruzadas, cazadas por la validación, ninguna publicada | **1 o menos** | 3 pasadas | sin medir |
 | P-F127-16 | NOR-10 con 2 candidatos, ventanas de 24.000, una llamada por ventana | **140.000 a 165.000** caracteres, **1,75 a 2,1** veces hoy | con el registro de tokens | no medible hoy |
 | P-F127-17 | Latencia total con ventanas; retrieval. Baja confianza en el retrieval | **20 a 28 s**; retrieval **6 a 10 s** | 3 pasadas | sin medir |
-| P-F127-18 | Al menos una de las ocho pasadas históricas de NOR-10 ← CLI-12 tiene una detección contada como «OTRA» que es A, B o D por contenido | **al menos 1 de 8** | relectura | sin calificar |
+| P-F127-18 | Al menos una de las ocho pasadas históricas de NOR-10 ← CLI-12 tiene una detección contada como «OTRA» que es A, B o D por contenido | **al menos 1 de 8** | relectura | ⚠️ **NO MEDIBLE, CON PREMISA INCORRECTA** (anotación 6) |
 | P-F127-19 | Coste por análisis frente al actual; en céntimos | **×2 a ×3** normales, **hasta ×4** largos; **1 a 2 céntimos** | con el registro de tokens | no medible hoy |
 | P-F127-20 | Extracción en sombra: trampas de NOR-11 y NOR-10 como fichas con valor y frase; la que falta | **6 de 7**, falta NEGACIÓN | cuando se lance | sin medir |

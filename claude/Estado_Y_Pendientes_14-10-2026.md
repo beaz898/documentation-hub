@@ -7,6 +7,10 @@
 > **Actualizado el 18/10/2026**, con la adenda de Fable a F-127 (archivada en su sección (g)): el
 > frente de lectura cambia en 3.1.2, 3.1.3, 3.1.4 y 3.1.5, gana 3.1.6 y 3.1.7, y la horquilla de la
 > cita pasa a guía blanda. La sección 0 recoge que la medición de NOR-10 ya está hecha y calificada.
+> **Actualizado el 19/10/2026**: la tabla de precios tenía Haiku 4.5 a la cuarta parte (corregida,
+> commit `d1505999`), y el coste por análisis deja de depender del registro de tokens por llamada
+> (`SQL_F127_02`); el interino (3.1.3) NO cierra NOR-10 ↔ CLI-12, medido; entra el 3.1.8, el modelo
+> del juez; y la deuda de las cabeceras del selector.
 
 > **Sustituye a `Puntos_Pendientes_Doclity.txt`**, que tiene cosas desfasadas. Escrito por el
 > arquitecto el 14/10/2026, después de cerrar la medida de F-126. Cada pendiente dice **de qué
@@ -24,10 +28,10 @@
   contadores a cero, cero citas fuera de lo entregado.
 - **HECHO**: el añadido a F-127 con la medición y las cinco correcciones (16/10) y la adenda de Fable
   que lo contesta (18/10), archivados en la sección (g) del archivo de F-127.
-- **PENDIENTE, para calificar P-F127-12**: la línea del log del retrieval de una de las tres pasadas
-  del 16/10, `[retrieval] "CLI-12_manual-calidad-clinica.docx": 53 fragmentos únicos — …`, entera.
-  Con ella, Code corre en local el selector de producción con 13.199 caracteres, sin consultar
-  Pinecone.
+- **HECHO el 19/10**: P-F127-12 calificada en simulación, con la línea del log del retrieval de la
+  pasada 1 del 16/10 (3.1.3).
+- **POR EJECUTAR**: `SQL_F127_02_el_coste_por_analisis.sql`, el coste por análisis con el precio
+  bueno (3.1.1). Lo ejecuta el director.
 
 ---
 
@@ -131,10 +135,20 @@ caracteres renderizados contra 40.000. Y la regla de hoy no es monótona: tiene 
 `output_tokens`, `cache_creation_input_tokens` y `cache_read_input_tokens`; llegan a
 `lib/llm/anthropic-client.ts:333-340` y se pierden al sumarlos por modelo en
 `lib/observability/usage-context.ts:40-45`. Hay que guardar también la latencia, que hoy no se mide
-en ningún sitio, y el id de pareja. Sin esto ninguna cifra de coste es una cifra. **La falta de
-tokens por llamada ha bloqueado dos mediciones concretas, las dos de esta semana**: los caracteres
-por token (P-F127-6, que el propio dictamen da como «no medible hoy; con el paso 1») y el coste por análisis, que es la tercera condición del criterio de
-«cerrado para enseñar» (sección 1).
+en ningún sitio, y el id de pareja. **La falta de tokens por llamada ha bloqueado dos mediciones
+concretas, las dos de esta semana**: los caracteres por token (P-F127-6, que el propio dictamen da
+como «no medible hoy; con el paso 1») y el coste por análisis, que es la tercera condición del
+criterio de «cerrado para enseñar» (sección 1).
+**CAMBIA el 19/10: el coste por análisis DEJA DE DEPENDER de este paso.** `llm_usage` guarda una
+fila por modelo y por análisis con los tokens de todas sus llamadas, y eso basta para el coste por
+análisis; lo que no servía era su `cost_usd`, calculado con **Haiku 4.5 a la cuarta parte de su
+precio** (`lib/observability/llm-pricing.ts`, corregida el 19/10 en `d1505999`, con los precios
+verificados por el arquitecto en la documentación de Anthropic: 1 / 5 / 1,25 / 0,10 $ por millón).
+La cifra sale de `SQL_F127_02_el_coste_por_analisis.sql`, que recalcula con el precio bueno y lleva
+sus cinco límites en la cabecera. **Lo que SIGUE dependiendo de este paso**: los caracteres por
+token, el reparto del coste entre las llamadas de un análisis, y el ahorro real de la caché.
+⚠️ **El tope mensual de 35 $ hay que revisarlo con el coste bueno delante** (arquitecto, 19/10): cualquier cifra de coste
+leída de `cost_usd` antes del arreglo es la cuarta parte de la real. Los «0,0045 $» por análisis de F-117 (`claude/consultas-fable/F-117.md:183`), que Fable usa en la adenda, no dicen de dónde salen; si salen de esa columna, son la cuarta parte.
 
 #### 3.1.2 · El corte: avanzar al final del trozo, y declarar lo omitido · F-127 P3 y P7 paso 2, adenda Q3 · SIN EMPEZAR
 **CAMBIA el 18/10 (adenda de Fable, Q3): ya no es «retroceder al límite».** Retroceder dejaba fuera
@@ -154,8 +168,14 @@ documentos se conocen antes del retrieval— y pasárselo al selector que ya exi
 el tope de 25 piezas da unos 30.000 caracteres, suficiente. Reserva = lo menor entre 3.000 y el
 tamaño del candidato.
 ⚠️ **Lo que el interino NO cierra, con nombre y cifra**: NOR-10 ↔ CLI-12, en las dos direcciones,
-pierde 41.936 caracteres en el lado candidato. Si eso cuesta una trampa lo dice P-F127-12 (sección
-0: falta la línea del log para simularlo).
+pierde 41.936 caracteres en el lado candidato. **Y cuesta las trampas: el interino NO cierra NOR-10 ↔
+CLI-12.** Medido en simulación el 19/10 con el selector de producción sobre los 53 fragmentos de
+CLI-12 de la pasada 1 del 16/10, en su orden del log (control: con 3.000 caracteres elige 0, 4 y 45,
+lo mismo que en producción): con 13.199 caracteres entran trece trozos (0, 4, 45, 5, 53, 49, 52, 14,
+15, 35, 17, 24, 26), y **los de B (34 y 38) y el de D (6) se quedan fuera**; harían falta unos
+17.982 caracteres de texto para el 34 y 20.993 para el 6. **El interino vale por la monotonía y por
+las otras parejas, no por ésta. P-F127-12 de Fable: confirmada, y peor de lo que decía** —no es «al
+menos una de las dos», son las dos—.
 
 Lo escrito el 16/10, que sigue valiendo: en **UN SOLO cambio lógico**, verificado en simulación sobre las 56 parejas antes de desplegar, con
 la prueba de monotonía en el arnés: barrido de 10.000 a 200.000 de mil en mil; **control positivo:
@@ -179,6 +199,9 @@ por llamada** —11.480 del prompt sin los documentos más los 192 del sufijo JS
 documentos: el prompt empieza con una línea, mete los dos documentos (`judge.ts:810-820`) y sigue con
 las reglas. Una caché de prefijo sólo aprovecha lo que va delante, así que el cambio a bloques tiene
 que mover también el orden.
+**Dato nuevo para este paso (arquitecto, documentación de Anthropic, 19/10)**: con Haiku 4.5, la
+lectura de caché cuesta **0,10 $ por millón, una décima parte de la entrada normal (1 $)**, y la
+escritura **1,25 $**, un 25 % de recargo la primera vez. Era lo que Fable decía no poder estimar.
 
 #### 3.1.5 · Escalón 2, leer por ventanas · F-118 D5, F-123 punto 7, F-127 P6 y D1 · SIN EMPEZAR
 **Es la pieza que CIERRA el frente**, no un extra para lo que no quepa: subir el presupuesto sólo
@@ -209,6 +232,44 @@ complementan al juez lector, nunca lo reemplazan; se empieza sólo por cifras. L
 céntimos y no toca nada, y **se lanza después del primer cliente y cuando no haya medición en
 curso**, no antes. Y queda escrito (D3) que **el producto NO pasa a detectar sólo cifras**: «sólo
 cifras» es el arranque de las fichas, no del producto.
+
+#### 3.1.8 · El modelo del juez · arquitecto, 19/10 · NUEVO · SIN EMPEZAR Y SIN DECIDIR
+**Claude Haiku 5.5**, identificador `claude-haiku-5-5`. **Verificado por el arquitecto en la página de
+Anthropic el 19/10/2026**; Code no tiene forma de verificarlo y no lo conoce. Lo que dice esa
+página:
+- **Precio**, por millón de tokens, para prompts de menos de 100.000 tokens: **0,10 $ de entrada y
+  0,50 $ de salida**, una décima parte de Haiku 4.5. Anthropic habla de «un 75 % menos de media»
+  contando el tramo grande. Las llamadas del juez están muy por debajo de ese umbral: el prompt fijo
+  son 11.672 caracteres y la pareja, como mucho, 40.000.
+- **Calidad**, muy por encima de Haiku 4.5 en todo lo publicado: GDPval-AA 1620 contra 735;
+  AA-Briefcase 1578 contra 614; HLE sin herramientas 45,9 % contra 10,2 %; OSWorld 72,4 % contra
+  15,7 %. Y dos medidas de clientes más parecidas a lo nuestro: AlphaSense, 0,84 contra 0,76 sobre
+  400 consultas, significativa; Box, once puntos más y la mitad de latencia.
+- **Un dial de esfuerzo regulable**, que Haiku 4.5 no tenía.
+
+`SQL_F127_02` da al lado el coste de los mismos tokens con esos precios, sólo como comparación.
+
+**Tres advertencias del arquitecto, que son lo que impide tratarlo como un cambio obvio:**
+1. **Ningún benchmark mide lo que nos importa.** Lo que necesitamos del juez es obediencia literal
+   —copiar un tramo contiguo tal cual—, no capacidad de razonar. Un modelo más capaz puede ser PEOR
+   en eso, porque tiende a mejorar el texto que se le manda copiar. Es el fallo exacto de F-125 y
+   F-126.
+2. **Cambiar de modelo reinicia la línea base.** Las siete pasadas de NOR-11 del 14/10 y las tres de
+   NOR-10 del 16/10 están medidas sobre Haiku 4.5, igual que la regla de la cita de F-126 y los seis
+   contadores.
+3. **El dial de esfuerzo hay que fijarlo y dejarlo escrito**, o dos mediciones dejan de ser
+   comparables entre sí.
+
+**La prueba, escrita antes de hacerla** (arquitecto, 19/10): siete pasadas de NOR-11 y tres de NOR-10
+con Haiku 5.5 y el dial fijado y escrito, leídas con `SQL_F126_01` y `SQL_F127_01` sin tocar su
+lógica —sólo las ventanas y la hora de su constante de parámetros, que hoy apuntan a las pasadas del
+14 y del 16/10—, contra las dos líneas base: la del 14/10 (NOR-11, 3 de 3 en las siete) y la del
+16/10 (NOR-10).
+**CRITERIO DE REVERSIÓN, ESCRITO ANTES**: si PLAZO, LUGAR o NEGACIÓN bajan de 7 de 7, o si cualquiera
+de los seis contadores de la puerta deja de ser cero, se vuelve a Haiku 4.5 y se archiva por qué.
+
+**No se construye ni se prueba todavía**: va a la próxima vuelta con Fable, porque cambiar el modelo
+del juez toca todo lo archivado y es una pregunta de método, no sólo técnica.
 
 ### 3.2 · El caso de empalme falso sembrado · F-125, confirmado en F-126
 Control **positivo** de (B): dos fragmentos literales que, pegados, afirman algo que ninguna de las
@@ -338,6 +399,7 @@ Del inventario de Code (14/10), sobre las copias locales y el último censo del 
 | HAY UN SEGUNDO ÷4 sin medir, en `lib/llm/anthropic-client.ts:322`: estima los tokens de entrada como la longitud del payload entre 4. Con 3.1.1 hecho se puede comprobar cuánto se equivoca | F-127, lectura de Code del 16/10 |
 | La latencia por llamada no se mide en ningún sitio | F-127 P9.1 |
 | `lib/pinecone/corpus-del-examen.test.ts` se suma a `formatos-con-tablas.test.ts` como prueba sensible al disco: se pasó de tiempo (15 s) en una vuelta y pasó entera en la siguiente | vista el 16/10 |
+| **El presupuesto del selector cuenta sólo el texto; las cabeceras de cada fragmento, unos 55 caracteres por trozo, van aparte.** Con trece trozos el bloque real se pasa unos 700 caracteres de lo que se le dio. El reparto del 3.1.3 tiene que contarlas o la ventana se desborda. Es el mismo vicio que se está arreglando: un presupuesto que no cuenta todo lo que entrega | simulación de P-F127-12, 19/10 |
 
 ---
 

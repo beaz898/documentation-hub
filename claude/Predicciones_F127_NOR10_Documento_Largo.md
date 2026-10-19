@@ -139,3 +139,28 @@ contradicción A: el juez detectó la trampa por otra frase, y el medidor lo con
 partida en 37.143 —a quién compete retirar el autoclave— estaba también entero en la posición 2.748,
 y es justo el que el juez citó. Así que no se sabe si el juez **evita el texto mutilado** o si
 **prefirió la aparición completa del mismo dato** en la 2.748.
+
+---
+
+## P-F127-12 en simulación — la predicción del arquitecto, escrita el 19/10/2026 ANTES de correrla
+
+La simulación: el selector de producción (`selectUnitsWithinBudget`) con 13.199 caracteres, sobre los
+53 fragmentos de CLI-12 que recuperó el retrieval en la pasada 1 del 16/10, en el orden y con las
+puntuaciones de su línea del log. Es lo que recibiría el candidato en NOR-10 ← CLI-12 con la regla
+nueva a 80.000.
+
+**Predicción del arquitecto (19/10)**: con trozos de unos 1.040 caracteres de media caben doce o
+trece, y por orden de puntuación el 34 va el decimoséptimo, el 6 el vigésimo y el 38 el
+vigesimosexto. **No entra ninguno de los tres** (B en el 34 o el 38; D en el 6). Es peor que la
+P-F127-12 de Fable, que decía «al menos una de las dos se queda fuera».
+
+**Resultado (Code, 19/10/2026, después de escribir la predicción de arriba).** Control: con 3.000
+caracteres, el selector elige 0, 4 y 45 —2.691 caracteres de texto, que con sus tres cabeceras son
+los 2.857 del bloque de producción—, lo mismo que pasó el 16/10. Con 13.199 entran **trece trozos**,
+13.137 caracteres de texto: 0, 4, 45, 5, 53, 49, 52, 14, 15, 35, 17, 24 y 26; se para porque le
+sobran 62 y no cabe ninguno más. **34 (B), 38 (B) y 6 (D), fuera**; y tampoco entran el 3 (A) ni el
+51 (C). Los puestos, exactos: 34 el decimoséptimo, 6 el vigésimo, 38 el vigesimosexto; la media de
+los 53 es 1.018 caracteres. Harían falta unos 17.982 caracteres de texto para que entrase el 34 y
+20.993 para el 6.
+- **La predicción del arquitecto: ACIERTA** (calificación pendiente del arquitecto).
+- **P-F127-12 de Fable: confirmada**, y por más de lo que decía: se quedan fuera las dos, B y D.
