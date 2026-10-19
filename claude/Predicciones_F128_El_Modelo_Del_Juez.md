@@ -114,3 +114,17 @@ literal.
 
 **P-7** · La latencia total baja. **Confianza media**: Box reporta la mitad, pero nuestro cuello de
 botella no es sólo el juez.
+
+---
+
+## Notas añadidas después de escribir las predicciones
+
+> **REGLA DE ESTE FICHERO (arquitecto, 19/10/2026): un fichero de predicciones no se retoca nunca.**
+> Lo de arriba se queda como se escribió, también lo que el tiempo deje desfasado o resulte falso. Si
+> algo queda desfasado, va una nota fechada aquí debajo, que dice qué línea es y qué es lo que vale
+> hoy.
+
+- **19/10/2026, la línea 80** («Lo único que toca el director en cada una son **dos marcas de
+  tiempo**»): ha quedado desfasada. Desde el 19/10, `SQL_F128_01` y `SQL_F128_02` tienen **cuatro
+  valores** cada uno, los que dice la tabla de su cabecera. En `SQL_F128_01` son DESDE, HASTA, COMIENZO
+  DEL HUECO y ESPERADO. En `SQL_F128_02` son DESDE, HASTA, INICIO DE LA FRANJA PREVIA y EXIGIR MODELO.

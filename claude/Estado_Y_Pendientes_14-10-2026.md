@@ -11,6 +11,10 @@
 > commit `d1505999`), y el coste por análisis deja de depender del registro de tokens por llamada
 > (`SQL_F127_02`); el interino (3.1.3) NO cierra NOR-10 ↔ CLI-12, medido; entra el 3.1.8, el modelo
 > del juez; y la deuda de las cabeceras del selector.
+> **Actualizado otra vez el 19/10/2026, por la tarde**: **el 3.1.8 queda CERRADO, Haiku 5.5 se queda**
+> (resolución del arquitecto, al final del 3.1.8); entra en la deuda la latencia del juez con 5.5. ⚠️ Las
+> correcciones de esta misma tarde salieron fechadas «20/10»: **era un error de Code**, que dedujo la
+> fecha en vez de leerla del reloj; son del 19/10 y así quedan escritas.
 
 > **Sustituye a `Puntos_Pendientes_Doclity.txt`**, que tiene cosas desfasadas. Escrito por el
 > arquitecto el 14/10/2026, después de cerrar la medida de F-126. Cada pendiente dice **de qué
@@ -261,7 +265,7 @@ cifras» es el arranque de las fichas, no del producto.
 («autoclave, temperatura, 134 °C…»). Con citas sin sujeto —las de NOR-10 con Haiku 5.5, en el 3.1.2—
 el usuario no ve dónde está el desacuerdo; con fichas, el sujeto viaja con el dato por construcción.
 
-#### 3.1.8 · El modelo del juez · arquitecto, 19/10 · NUEVO · SIN EMPEZAR Y SIN DECIDIR
+#### 3.1.8 · El modelo del juez · arquitecto, 19/10 · ~~NUEVO · SIN EMPEZAR Y SIN DECIDIR~~ · ✅ CERRADO EL 19/10/2026: HAIKU 5.5 SE QUEDA
 **Claude Haiku 5.5**, identificador `claude-haiku-5-5`. **Verificado por el arquitecto en la página de
 Anthropic el 19/10/2026**; Code no tiene forma de verificarlo y no lo conoce. Lo que dice esa
 página:
@@ -364,10 +368,11 @@ arquitecto; la calificación de las predicciones va aparte):
 - **NOR-11: en cuatro de las siete pasadas con Haiku 5.5 el marcador fue 2/3, no 3/3.** La tercera
   especie salió OTRA: el juez citó del documento nuevo «En ningún caso se depositan en el contenedor
   negro de zona común, que está reservado exclusivamente a los residuos asimilables a urbanos del
-  grupo I», que habla de otro contenedor, en vez de la frase de la bolsa amarilla. El lado existente
+  grupo I», ~~que habla de otro contenedor, en vez de la frase de la bolsa amarilla~~. El lado existente
   sí era el sembrado. **La línea base del 14/10, releída con el mismo clasificador nuevo, da 3/3 en
-  las siete: la comparación es válida y la caída es real.**
-  - ⚠️ *Precisión de Code (20/10/2026), leído el texto de NOR-11 y el registro de siembra antes de
+  las siete**~~**: la comparación es válida y la caída es real.**~~ *(Tachado el 19/10 por la tarde: no
+  hubo caída; ver la resolución, al final del 3.1.8.)*
+  - ⚠️ *Precisión de Code (19/10/2026), leído el texto de NOR-11 y el registro de siembra antes de
     opinar, como pidió el arquitecto*: esa frase **es la mitad negativa de la trampa sembrada**, no
     otro contenedor. El registro (`corpus-pruebas/SIEMBRA_caso_control.md`, Contradicción 3)
     define la Versión 1 de NEGACIÓN como el apartado 10.2 de NOR-11: «Los residuos del grupo III se
@@ -377,12 +382,14 @@ arquitecto; la calificación de las predicciones va aparte):
     biosanitario especial en el contenedor negro constituye una infracción del protocolo.» El sujeto
     de la frase citada es «los residuos del grupo III», que va en la frase anterior. **Por el
     registro de siembra, esas cuatro son NEGACIÓN**; el clasificador las da OTRA porque exige
-    «amarill-» en la cita del nuevo, y la frase negativa no lo lleva. Pendiente de la decisión del
-    arquitecto (el par de datos de NEGACIÓN, punto 4 del encargo del 20/10).
+    «amarill-» en la cita del nuevo, y la frase negativa no lo lleva. ~~Pendiente de la decisión del
+    arquitecto (el par de datos de NEGACIÓN, punto 4 del encargo del 20/10).~~ **Verificado por el
+    arquitecto en el registro de siembra y decidido el 19/10**: el par de NEGACIÓN sigue el registro, y
+    el medidor lo lleva desde `841c50c6`.
 - ~~**NOR-10: las tres frases sembradas A, B y D entraron enteras en lo entregado** (bloque 4: dentro,
   dentro, dentro; C fuera, como debe) **y el juez no publicó ninguna.** Publicó otras tres, con citas
   del lado nuevo sin sujeto (el requisito nuevo del 3.1.2).~~
-  - **CORREGIDO EL 20/10/2026 (arquitecto): la interpretación de las nueve OTRA de NOR-10 era
+  - **CORREGIDO EL 19/10/2026 (arquitecto): la interpretación de las nueve OTRA de NOR-10 era
     equivocada.** Lo que de verdad pasó: **las tres contradicciones que publicó Haiku 5.5 en NOR-10
     SON la contradicción A.** El registro de siembra (`corpus-pruebas/SIEMBRA_corpus_ampliado.md`,
     §1, «Naturaleza del conflicto» de A) dice que A se manifiesta «en el mismo tipo de decisión
@@ -391,7 +398,7 @@ arquitecto; la calificación de las predicciones va aparte):
     y en CLI-12 3.1, «el Coordinador de Calidad». **Haiku 5.5 encontró A tres veces, desglosada;
     Haiku 4.5 la publicaba una vez. En NOR-10, 5.5 detecta MEJOR, no peor.** El clasificador tiene
     razón al decir OTRA, porque la cita no lleva el cargo; lo que estaba mal era la conclusión.
-    (Las frases completas sí lo llevan, leídas por Code el 20/10: «Es el Director Clínico quien…,
+    (Las frases completas sí lo llevan, leídas por Code el 19/10: «Es el Director Clínico quien…,
     quien autoriza cualquier excepción documentada al procedimiento…» y «El Director Clínico puede
     delegar…, pero la responsabilidad última —incluida la firma de los registros de auditoría
     trimestral…— no es delegable y recae siempre sobre esta figura».)
@@ -406,15 +413,53 @@ arquitecto; la calificación de las predicciones va aparte):
 - **El mismo documento, leído hasta 37.143 frente a CLI-12 y hasta 30.183 frente a CLI-13** en la
   misma pasada: el ejemplo canónico de la entrada del 3.1.
 
-**⚠️ EL CRITERIO DE REVERSIÓN SE HA DISPARADO (20/10/2026): NEGACIÓN en 3 de 7** en NOR-11, con el
+~~**⚠️ EL CRITERIO DE REVERSIÓN SE HA DISPARADO (20/10/2026): NEGACIÓN en 3 de 7** en NOR-11, con el
 clasificador por dato. Las dos lecturas, del arquitecto: **en NOR-11 la caída parece real; en
 NOR-10 el modelo mejoró** (A tres veces, desglosada). **El arquitecto recomienda al director volver
-a Haiku 4.5 por disciplina; la decisión es del director**, y se anotará aquí cuando la comunique.
-- ⚠️ *Precisión de Code (20/10)*: el «3 de 7» es por la cita. Si las cuatro OTRA son la frase
+a Haiku 4.5 por disciplina; la decisión es del director**, y se anotará aquí cuando la comunique.~~
+*(Tachado el 19/10 por la tarde, y la fecha era 19/10, no 20/10: ver la resolución, justo debajo.)*
+- ⚠️ *Precisión de Code (19/10)*: el «3 de 7» es por la cita. Si las cuatro OTRA son la frase
   negativa sembrada del 10.2 (ver la precisión del primer punto), **por el registro de siembra
   NEGACIÓN sale 7 de 7** y el criterio no se habría disparado. Es justo la distinción que pide el
-  punto 4 del encargo del 20/10 —la especie por la cita y la especie por la frase o el registro—, y
+  punto 4 del encargo del 19/10 —la especie por la cita y la especie por la frase o el registro—, y
   conviene tenerla antes de decidir.
+
+**✅ RESOLUCIÓN DE F-128 (arquitecto, 19/10/2026, por la tarde), que corrige lo anotado esta tarde sin
+borrarlo:**
+- **El criterio de reversión NO se disparó.** Las tres trampas de NOR-11 se publicaron **7 de 7** por
+  el registro de siembra: el arquitecto lo verificó en `corpus-pruebas/SIEMBRA_caso_control.md`, donde
+  la Versión 1 de NEGACIÓN lleva en negrita «En ningún caso se depositan en el contenedor negro», que
+  es la frase que citó Haiku 5.5.
+- **Las cuatro OTRA de NOR-11 son NEGACIÓN citada por su mitad negativa, que es la sembrada.**
+- **Las nueve OTRA de NOR-10 son la A desglosada** (autorizar excepciones, firmar auditorías, retirar
+  el autoclave).
+- **Trece de trece OTRA eran correctas: el defecto medido hoy es del clasificador, no del juez.** La
+  segunda columna del medidor (`841c50c6`) existe por esto.
+  - ⚠️ *Precisión de Code (19/10), medido en PGlite con el texto real*: con la segunda columna, las
+    cuatro de NOR-11 salen NEGACIÓN por la cita y por la frase. **De las nueve de NOR-10, el medidor
+    sólo reconoce seis por la frase**: la de las excepciones cae en «Es el Director Clínico quien…»,
+    que lleva el cargo y no «responsab-», y sale OTRA también por la frase. Trece de trece son
+    correctas por el registro; el medidor reconoce diez. Que el par de A siga el cargo del registro
+    («Director Clínico» frente a «Coordinador de Calidad») queda **PENDIENTE de decisión del
+    arquitecto**. (Las tres A de la prueba se reconstruyeron de la descripción del arquitecto; las
+    literales están en la salida del director, que Code no tiene.)
+- **Calificación de las predicciones** (`claude/Predicciones_F128_El_Modelo_Del_Juez.md`; cifras del
+  arquitecto, sacadas de las salidas de `SQL_F128_01`, `SQL_F128_02` y `SQL_F127_02` que ejecutó el
+  director, y que Code no ha visto):
+  - **P-1, P-2, P-3 y P-4: ACERTADAS.**
+  - **P-5: FALLADA.** La mediana de las citas no subió, bajó: **de 167 a 100 en NOR-11 y de 281 a 83
+    en NOR-10.**
+  - **P-6: FALLADA.** El coste por análisis bajó **de 0,04633 a 0,02280 $**, a la mitad y no a menos
+    de la cuarta parte.
+  - **P-7: FALLADA.** La latencia no bajó, subió: **de 19 s a entre 31 y 43 s.**
+- **Decisión: Haiku 5.5 se queda. `ANALYSIS_JUDGE_MODEL` se deja puesto** (en Vercel, con el valor
+  `claude-haiku-5-5`).
+- **Los dos defectos que sobreviven:**
+  1. **el sujeto en las contradicciones de cargo** (3.1.2): las citas de A en NOR-10 no llevan el
+     cargo, y sin él el usuario no ve quién decide en cada documento;
+  2. **la latencia**, que pasa a ser deuda nueva con su número (sección 5).
+- **Con esto el 3.1.8 queda cerrado. Lo siguiente es el 3.1.1**, los tokens por llamada, que el
+  arquitecto encarga aparte.
 
 ### 3.2 · El caso de empalme falso sembrado · F-125, confirmado en F-126
 Control **positivo** de (B): dos fragmentos literales que, pegados, afirman algo que ninguna de las
@@ -551,6 +596,7 @@ Del inventario de Code (14/10), sobre las copias locales y el último censo del 
 | `selectUnitsWithinBudget` acepta el presupuesto por parámetro (`retrieval.ts:1090-1100`, desde F-73) pero corre en `retrieval.ts:502`, ANTES del juez, cuando «lo que sobra» de la pareja todavía no se sabe, y sólo con los trozos que devolvió Pinecone, con el tope de 25 piezas. **El reparto nuevo no es recablear un parámetro: es mover dónde se decide** | F-127 P9.3 |
 | HAY UN SEGUNDO ÷4 sin medir, en `lib/llm/anthropic-client.ts:322`: estima los tokens de entrada como la longitud del payload entre 4. Con 3.1.1 hecho se puede comprobar cuánto se equivoca | F-127, lectura de Code del 16/10 |
 | La latencia por llamada no se mide en ningún sitio | F-127 P9.1 |
+| **La latencia del análisis con el juez en Haiku 5.5: entre 31 y 43 s, frente a 19 s con Haiku 4.5.** La predicción era la contraria (P-7, fallada). Sin el 3.1.1 no se sabe cuánto es del juez y cuánto del resto, ni si pesa el pensamiento: los tokens de salida de cada pareja sí se guardan (`lecturaDeLasParejas[].tokensDeSalida`) | tanda de F-128, 19/10; cifras del arquitecto |
 | `lib/pinecone/corpus-del-examen.test.ts` se suma a `formatos-con-tablas.test.ts` como prueba sensible al disco: se pasó de tiempo (15 s) en una vuelta y pasó entera en la siguiente | vista el 16/10 |
 | **El salto de «Mejora con IA» coge la PRIMERA aparición de la cita, y con citas cortas puede ser la equivocada.** `goToProblem` (`components/ImprovementModal.tsx:318-336`) busca la cita del nuevo en el texto del editor con `findTolerant` (`lib/texto/localizar-cita.ts`) y selecciona la primera que encuentra: una cita literal, contigua, verificada y aceptada por la puerta puede llevar al párrafo equivocado si se repite. Es el mismo error que el arquitecto señaló de los punteros el 19/10: literal pero hablando de otra cosa. Lo mide el bloque 2c de `SQL_F128_01` y `SQL_F128_02`. **Si la medición dice que pasa, el arreglo no es alargar la cita: es que el hallazgo lleve la POSICIÓN y no sólo el texto** | lectura de Code del 19/10, a pregunta del arquitecto; medida con la tanda de F-128 |
 | **El presupuesto del selector cuenta sólo el texto; las cabeceras de cada fragmento, unos 55 caracteres por trozo, van aparte.** Con trece trozos el bloque real se pasa unos 700 caracteres de lo que se le dio. El reparto del 3.1.3 tiene que contarlas o la ventana se desborda. Es el mismo vicio que se está arreglando: un presupuesto que no cuenta todo lo que entrega | simulación de P-F127-12, 19/10 |
