@@ -17,6 +17,17 @@
 --     el bloque 2 los repite junto a cada contradicción publicada;
 --   · y un control más, el 0.9: toda pareja de la ventana lleva su modelo, o el
 --     código desplegado no es el de F-128.
+-- LAS APARICIONES DE CADA CITA (19/10/2026, arquitecto): el salto de «Mejora con IA»
+-- busca la cita del nuevo en el texto del editor —`documents.full_text`, el que
+-- carga la bandeja (app/api/documents/[id]/text)— y se queda con la PRIMERA aparición
+-- (components/ImprovementModal.tsx:318-336, lib/texto/localizar-cita.ts). Una cita
+-- literal que aparezca más de una vez puede llevar al párrafo equivocado. El bloque 2
+-- dice cuántas veces aparece cada una: la del nuevo en lo entregado (el texto que
+-- leyó el juez) y en su full_text; la del existente, en su full_text (su bloque no se
+-- guarda). Cuenta LITERAL, sin la tolerancia de espacios y comillas de findTolerant:
+-- puede quedarse corto, nunca pasarse. Y el bloque 2c resume cuántas citas aparecen
+-- más de una vez en el documento completo.
+--
 -- ⚠️ EL CLASIFICADOR, CAMBIADO EL 19/10/2026 (bloques 2 y 3). En SQL_F127_01 la
 -- especie salía de buscar palabras en el tema y en las dos citas JUNTOS, así que
 -- bastaba una sola: es lo que el 16/10 contó como OTRA la contradicción del
@@ -36,7 +47,9 @@
 -- SQL_F127_01 adaptado y los trozos reales de NOR-10 y CLI-12: con tres pasadas
 -- los controles salen OK, y falla el 0.9 cuando una pareja no lleva modelo. Con
 -- el clasificador por dato (19/10), la A real (las dos frases de la línea base)
--- sale A, y las citas que no llevan los dos datos salen OTRA. CON
+-- sale A, y las citas que no llevan los dos datos salen OTRA. Las APARICIONES
+-- (19/10): con la cita de A repetida a propósito en el full_text, sale 1 en lo
+-- entregado y 2 en el documento, y el bloque 2c la caza en las tres. CON
 -- DATOS REALES NO SE HA EJECUTADO.
 --
 -- ┌──────────────────────────────────────────────────────────────────────────┐
@@ -143,7 +156,9 @@ pub AS (
            WHERE d.org_id = pr.org AND d.name = p.candidato) AS rec_existente,
          (SELECT string_agg(c.chunk_index::text, ', ' ORDER BY c.chunk_index)
             FROM public.documents d JOIN public.document_chunks c ON c.document_id = d.id AND c.generation = coalesce(d.active_generation, 1), parametros pr
-           WHERE d.org_id = pr.org AND d.name = p.candidato AND p.cita_existente <> '' AND strpos(c.text, p.cita_existente) > 0) AS trozo_existente
+           WHERE d.org_id = pr.org AND d.name = p.candidato AND p.cita_existente <> '' AND strpos(c.text, p.cita_existente) > 0) AS trozo_existente,
+         (SELECT d.full_text FROM public.documents d JOIN pasadas pa ON d.id = pa.document_id WHERE pa.n = p.n) AS ft_nuevo,
+         (SELECT d.full_text FROM public.documents d, parametros pr WHERE d.org_id = pr.org AND d.name = p.candidato LIMIT 1) AS ft_existente
   FROM publicadas p
 ),
 pub2 AS (
@@ -164,6 +179,13 @@ pub2 AS (
               WHEN strpos(p.rec_existente, p.cita_existente) > 0 THEN 'literal en el candidato, trozo ' || coalesce(p.trozo_existente, 'ninguno entero: cruza trozos')
               ELSE '⚠️ NO LITERAL en el candidato: leer' END AS existente_literal
   FROM pub p
+),
+apariciones AS (
+  SELECT e.*,
+         CASE WHEN e.cita_nuevo = '' OR left(e.rec_nuevo, e.an_most) IS NULL THEN NULL ELSE (char_length(left(e.rec_nuevo, e.an_most)) - char_length(replace(left(e.rec_nuevo, e.an_most), e.cita_nuevo, ''))) / char_length(e.cita_nuevo) END AS ap_nuevo_entregado,
+         CASE WHEN e.cita_nuevo = '' OR e.ft_nuevo IS NULL THEN NULL ELSE (char_length(e.ft_nuevo) - char_length(replace(e.ft_nuevo, e.cita_nuevo, ''))) / char_length(e.cita_nuevo) END AS ap_nuevo_doc,
+         CASE WHEN e.cita_existente = '' OR e.ft_existente IS NULL THEN NULL ELSE (char_length(e.ft_existente) - char_length(replace(e.ft_existente, e.cita_existente, ''))) / char_length(e.cita_existente) END AS ap_existente_doc
+  FROM pub2 e
 ),
 citas AS (
   SELECT n, candidato, 'nuevo' AS lado, char_length(cita_nuevo) AS largo, cita_nuevo AS texto FROM pub2
@@ -305,16 +327,28 @@ FROM (
            ' · longitudes: nuevo ' || char_length(e.cita_nuevo) || ', existente ' || char_length(e.cita_existente) ||
            ' · ' || coalesce((SELECT coalesce(l.modelo, '— (anterior a F-128)') || ', ' || coalesce(l.tokens_salida, '—') || ' tokens de salida'
              FROM lecturas l WHERE l.n = e.n AND l.nombre = e.candidato LIMIT 1), 'pareja sin lectura'),
-         'NUEVO en lo entregado: ' || e.nuevo_en_lo_entregado || ' · EXISTENTE: ' || e.existente_literal || ' · TEMA: ' || coalesce(e.tema, '—'),
+         'NUEVO en lo entregado: ' || e.nuevo_en_lo_entregado || ' · EXISTENTE: ' || e.existente_literal || ' · TEMA: ' || coalesce(e.tema, '—') ||
+           ' · APARICIONES: la del nuevo ' || coalesce(e.ap_nuevo_entregado::text, '—') || ' en lo entregado y ' ||
+           coalesce(e.ap_nuevo_doc::text, '— (sin full_text)') || ' en su documento; la del existente ' ||
+           coalesce(e.ap_existente_doc::text, '— (sin full_text)') || ' en el suyo',
          'NUEVO: ' || e.cita_nuevo || E'\nEXISTENTE: ' || e.cita_existente ||
            CASE WHEN e.marca IS NULL THEN '' ELSE
              coalesce(E'\nCITA DEL JUEZ (nuevo): ' || (e.marca->'nuevo'->>'citaDelJuez'), '') ||
              coalesce(E'\nCITA DEL JUEZ (existente): ' || (e.marca->'existente'->>'citaDelJuez'), '') END,
          0, e.n * 100 + e.ord
-  FROM pub2 e
+  FROM apariciones e
   UNION ALL
   SELECT '2 · contradicciones publicadas', 'pasada ' || pa.n, 'ninguna', NULL, NULL, NULL, 1, pa.n
   FROM pasadas pa WHERE NOT EXISTS (SELECT 1 FROM pub2 e WHERE e.n = pa.n)
+  UNION ALL
+  -- 2c · LAS CITAS QUE APARECEN MÁS DE UNA VEZ en su documento completo (el salto de Mejora coge la primera)
+  SELECT '2c · citas que aparecen más de una vez en su documento', NULL,
+         'del nuevo: ' || count(*) FILTER (WHERE ap_nuevo_doc > 1) || ' de ' || count(*) FILTER (WHERE ap_nuevo_doc IS NOT NULL) ||
+           ' · del existente: ' || count(*) FILTER (WHERE ap_existente_doc > 1) || ' de ' || count(*) FILTER (WHERE ap_existente_doc IS NOT NULL),
+         coalesce(string_agg('pasada ' || n || ' ' || especie || ': nuevo ' || coalesce(ap_nuevo_doc::text, '—') || ', existente ' || coalesce(ap_existente_doc::text, '—'), ' | ')
+           FILTER (WHERE ap_nuevo_doc > 1 OR ap_existente_doc > 1), 'ninguna'),
+         NULL, NULL, 0, 0
+  FROM apariciones
   UNION ALL
   -- 3 · LA COMPROBACIÓN EXPLÍCITA, en una línea: citas del NUEVO que no están DENTRO de lo entregado
   SELECT '3 · citas del nuevo que NO están dentro de lo entregado', NULL,

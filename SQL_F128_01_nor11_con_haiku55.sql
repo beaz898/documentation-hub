@@ -24,6 +24,18 @@
 -- La mediana y el resto, idénticos a SQL_F126_01: lee su cabecera para la
 -- definición de cada cosa. LAS ESPECIES, NO:
 --
+-- LAS APARICIONES DE CADA CITA (19/10/2026, arquitecto): el salto de «Mejora con IA»
+-- busca la cita del nuevo en el texto del editor —`documents.full_text`, el que
+-- carga la bandeja (app/api/documents/[id]/text)— y se queda con la PRIMERA aparición
+-- (components/ImprovementModal.tsx:318-336, lib/texto/localizar-cita.ts). Una cita
+-- literal que aparezca más de una vez puede llevar al párrafo equivocado. El bloque 2
+-- dice cuántas veces aparece cada una: la del nuevo en lo entregado (el texto de NOR-11
+-- reconstruido desde sus trozos y cortado donde lo cortó el juez, que en esta pareja es
+-- el documento entero) y en su full_text; la del existente, en su full_text. Cuenta
+-- LITERAL, sin la tolerancia de espacios y comillas de findTolerant: puede quedarse
+-- corto, nunca pasarse. El bloque 2c resume cuántas citas de la tanda aparecen más de
+-- una vez en el documento completo.
+--
 -- ⚠️ EL CLASIFICADOR, CAMBIADO EL 19/10/2026 (bloques 1, 2, 5 y 9). En SQL_F126_01
 -- la especie salía del TEMA que escribe el juez («plazo»; «color» y «contenedor»;
 -- «retirada» o «ubicación»). La primera pasada con Haiku 5.5 publicó NEGACIÓN con
@@ -49,7 +61,9 @@
 -- clasificador viejo, el mismo arnés da 2/3 y se traga las dos trampas.
 -- ⚠️ EL HALLAZGO DEL DÍA (arquitecto, 19/10/2026): **el medidor viejo podía
 -- inventarse un acierto, no sólo perder uno.** Contaba como LUGAR una contradicción
--- con «Chamberí» en los dos lados, porque bastaba el tema. CON DATOS REALES NO SE HA
+-- con «Chamberí» en los dos lados, porque bastaba el tema. Las APARICIONES (19/10):
+-- con una cita repetida a propósito en el full_text, sale 1 en lo entregado y 2 en
+-- el documento, y el bloque 2c la caza en las siete. CON DATOS REALES NO SE HA
 -- EJECUTADO.
 --
 -- ┌──────────────────────────────────────────────────────────────────────────┐
@@ -104,7 +118,7 @@ WITH parametros AS (
          7 AS esperado_vieja
 ),
 nor11 AS (
-  SELECT ar.id, ar.created_at, ar.contradictions_found, ar.overlaps_found, ar.pipeline_counters AS pc, ar.analysis
+  SELECT ar.id, ar.created_at, ar.document_id, ar.contradictions_found, ar.overlaps_found, ar.pipeline_counters AS pc, ar.analysis
   FROM public.analysis_results ar, parametros p
   WHERE ar.org_id = p.org AND ar.document_name ILIKE 'NOR-11%'
 ),
@@ -130,7 +144,8 @@ juicios AS (
 lecturas AS (
   SELECT pa.ventana, pa.n, x.ord, x.l->>'documentId' AS doc_id,
          (SELECT d.name FROM public.documents d, parametros p WHERE d.org_id = p.org AND d.id::text = x.l->>'documentId') AS nombre,
-         x.l->>'modelo' AS modelo, x.l->>'tokensDeSalida' AS tokens_salida
+         x.l->>'modelo' AS modelo, x.l->>'tokensDeSalida' AS tokens_salida,
+         (x.l->'analizado'->>'mostrados')::int AS an_most
   FROM pasadas pa
   CROSS JOIN LATERAL jsonb_array_elements(
     CASE WHEN jsonb_typeof(pa.analysis->'lecturaDeLasParejas') = 'array' THEN pa.analysis->'lecturaDeLasParejas' ELSE '[]'::jsonb END)
@@ -162,6 +177,24 @@ pub AS (
            WHERE m.ventana = p.ventana AND m.n = p.n AND m.candidato = p.candidato
              AND m.cita_nuevo = p.cita_nuevo AND m.cita_existente = p.cita_existente AND m.marca IS NOT NULL LIMIT 1) AS marca
   FROM publicadas p
+),
+-- las apariciones de cada cita publicada: en lo entregado y en el full_text de cada documento
+apariciones AS (
+  SELECT e.*,
+         CASE WHEN e.cita_nuevo = '' OR left(e.rec_nuevo, e.an_most) IS NULL THEN NULL ELSE (char_length(left(e.rec_nuevo, e.an_most)) - char_length(replace(left(e.rec_nuevo, e.an_most), e.cita_nuevo, ''))) / char_length(e.cita_nuevo) END AS ap_nuevo_entregado,
+         CASE WHEN e.cita_nuevo = '' OR e.ft_nuevo IS NULL THEN NULL ELSE (char_length(e.ft_nuevo) - char_length(replace(e.ft_nuevo, e.cita_nuevo, ''))) / char_length(e.cita_nuevo) END AS ap_nuevo_doc,
+         CASE WHEN e.cita_existente = '' OR e.ft_existente IS NULL THEN NULL ELSE (char_length(e.ft_existente) - char_length(replace(e.ft_existente, e.cita_existente, ''))) / char_length(e.cita_existente) END AS ap_existente_doc
+  FROM (
+    SELECT p.*,
+           (SELECT string_agg(c.text, E'\n\n' ORDER BY c.chunk_index)
+              FROM pasadas pa JOIN public.documents d ON d.id = pa.document_id
+              JOIN public.document_chunks c ON c.document_id = d.id AND c.generation = coalesce(d.active_generation, 1)
+             WHERE pa.ventana = p.ventana AND pa.n = p.n) AS rec_nuevo,
+           (SELECT l.an_most FROM lecturas l WHERE l.ventana = p.ventana AND l.n = p.n AND l.nombre = p.candidato LIMIT 1) AS an_most,
+           (SELECT d.full_text FROM pasadas pa JOIN public.documents d ON d.id = pa.document_id WHERE pa.ventana = p.ventana AND pa.n = p.n) AS ft_nuevo,
+           (SELECT d.full_text FROM public.documents d, parametros pr WHERE d.org_id = pr.org AND d.name = p.candidato LIMIT 1) AS ft_existente
+    FROM pub p WHERE p.ventana = 'nueva'
+  ) e
 ),
 -- las citas de la mediana: los DOS lados de cada contradicción publicada
 citas AS (
@@ -262,14 +295,26 @@ FROM (
            ' · marca recompuesta: ' || CASE WHEN e.marca IS NULL THEN 'no' ELSE 'SÍ' END ||
            ' · longitudes: nuevo ' || char_length(e.cita_nuevo) || ', existente ' || char_length(e.cita_existente) ||
            ' · ' || coalesce((SELECT coalesce(l.modelo, '— (anterior a F-128)') || ', ' || coalesce(l.tokens_salida, '—') || ' tokens de salida'
-             FROM lecturas l WHERE l.ventana = e.ventana AND l.n = e.n AND l.nombre = e.candidato LIMIT 1), 'pareja sin lectura'),
+             FROM lecturas l WHERE l.ventana = e.ventana AND l.n = e.n AND l.nombre = e.candidato LIMIT 1), 'pareja sin lectura') ||
+           ' · APARICIONES: la del nuevo ' || coalesce(e.ap_nuevo_entregado::text, '—') || ' en lo entregado y ' ||
+           coalesce(e.ap_nuevo_doc::text, '— (sin full_text)') || ' en su documento; la del existente ' ||
+           coalesce(e.ap_existente_doc::text, '— (sin full_text)') || ' en el suyo',
          e.tema,
          'NUEVO: ' || e.cita_nuevo || E'\nEXISTENTE: ' || e.cita_existente ||
            CASE WHEN e.marca IS NULL THEN '' ELSE
              coalesce(E'\nCITA DEL JUEZ (nuevo): ' || (e.marca->'nuevo'->>'citaDelJuez'), '') ||
              coalesce(E'\nCITA DEL JUEZ (existente): ' || (e.marca->'existente'->>'citaDelJuez'), '') END,
          0, e.n * 100 + e.ord
-  FROM pub e WHERE e.ventana = 'nueva'
+  FROM apariciones e
+  UNION ALL
+  -- 2c · LAS CITAS DE LA VENTANA NUEVA QUE APARECEN MÁS DE UNA VEZ en su documento (el salto de Mejora coge la primera)
+  SELECT '2c · citas que aparecen más de una vez en su documento (nueva)', NULL,
+         'del nuevo: ' || count(*) FILTER (WHERE ap_nuevo_doc > 1) || ' de ' || count(*) FILTER (WHERE ap_nuevo_doc IS NOT NULL) ||
+           ' · del existente: ' || count(*) FILTER (WHERE ap_existente_doc > 1) || ' de ' || count(*) FILTER (WHERE ap_existente_doc IS NOT NULL),
+         coalesce(string_agg('nueva ' || n || ' ' || especie || ': nuevo ' || coalesce(ap_nuevo_doc::text, '—') || ', existente ' || coalesce(ap_existente_doc::text, '—'), ' | ')
+           FILTER (WHERE ap_nuevo_doc > 1 OR ap_existente_doc > 1), 'ninguna'),
+         NULL, NULL, 0, 0
+  FROM apariciones
   UNION ALL
   -- 3 · LOS SEIS CONTADORES DEL TRAMO por pasada nueva (FALTA si no está, nunca 0)
   SELECT '3 · contadores del tramo (nueva)', 'nueva ' || pa.n,
