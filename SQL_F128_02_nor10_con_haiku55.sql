@@ -115,11 +115,18 @@
 --           «retirar del servicio un autoclave» 1               «retirada de servicio de un autoclave» 1
 --           «responsable último» 2 · «responsabilidad           «responsable último» 2
 --           última» 2
---     B y D, PENDIENTES del mismo tratamiento (arquitecto, 19/10: sin prisa, ninguna de las dos ha
---     publicado nunca). Hoy, recortados a ojo: B «semanal» o «lunes» / «mensual», D «recaer» /
---     «nunca». El registro declara «semanalmente, todos los lunes» / «periodicidad mensual, el
---     primer día laborable de cada mes», y «puede recaer en el propio Director Clínico» / «nunca
---     por el Director Clínico del propio centro».
+--     B   NOR-10 «semanalmente, todos los lunes» 1             CLI-12, una de:
+--                                                             «periodicidad mensual, el primer día laborable de cada mes» 1
+--                                                             «esta periodicidad mensual se considera suficiente» 1
+--                                                             «criterio de periodicidad mensual del control biológico» 1
+--                                                             «control biológico mensual» 1
+--         (antes «semanal» 11 o «lunes» 1 / «mensual» 14: casaba el test semanal de la cubeta
+--         contra los resultados que se consolidan mensualmente)
+--     D   NOR-10 «puede recaer en el propio Director Clínico» 1  CLI-12 «nunca por el Director Clínico del propio centro» 1
+--         (antes «recaer» 1 / «nunca» 2: casaba con «nunca como mecanismo de control individual»)
+--     B y D, al valor declarado entero y con las otras formulaciones literales del documento
+--     (arquitecto, 19/10). En NOR-10 no hay otra formulación de B ni de D; en CLI-12, B tiene tres
+--     más (el 12.1 y el 12.8 vuelven sobre la periodicidad mensual) y D ninguna.
 --
 --
 -- ┌──────────────────────────────────────────────────────────────────────────┐
@@ -176,8 +183,10 @@ pares AS (
   SELECT * FROM (VALUES
     -- orden, especie, NUEVO: alguna de, y además alguna de (NULL: nada más), EXISTENTE: alguna de, y además alguna de
     (1, 'C', ARRAY['%6 meses%'], NULL::text[], ARRAY['%12 meses%'], NULL::text[]),
-    (2, 'B', ARRAY['%semanal%', '%lunes%'], NULL, ARRAY['%mensual%'], NULL),
-    (3, 'D', ARRAY['%recaer%'], NULL, ARRAY['%nunca%'], NULL),
+    (2, 'B', ARRAY['%semanalmente, todos los lunes%'], NULL,
+             ARRAY['%periodicidad mensual, el primer dia laborable de cada mes%', '%esta periodicidad mensual se considera suficiente%',
+                   '%criterio de periodicidad mensual del control biologico%', '%control biologico mensual%'], NULL),
+    (3, 'D', ARRAY['%puede recaer en el propio director clinico%'], NULL, ARRAY['%nunca por el director clinico del propio centro%'], NULL),
     -- A: el CARGO y la DECISIÓN (19/10); la de «responsable último» la puso Code (ver la cabecera)
     (4, 'A', ARRAY['%director clinico%'],
              ARRAY['%autoriza cualquier excepcion%', '%firma de los registros de auditoria%', '%retirar del servicio un autoclave%',
