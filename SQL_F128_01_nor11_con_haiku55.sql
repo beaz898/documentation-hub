@@ -1,0 +1,326 @@
+-- ============================================================================
+-- F-128 · EL JUEZ CON HAIKU 5.5: SIETE PASADAS DE NOR-11 CONTRA LA LÍNEA BASE DEL
+-- 14/10 (HAIKU 4.5) — SÓLO LECTURA
+-- ⏳ PENDIENTE DE EJECUTAR. Sólo SELECT: ni un UPDATE ni un DELETE.
+-- ⚠️ SACA TEXTO DE DOCUMENTO, ENTERO: las citas publicadas, las del tramo y las
+-- de los descartes. Son NOR-11, CLI-13 y lo que el juez compare en esas pasadas,
+-- documentos del corpus de pruebas, NO de un cliente.
+--
+-- ES SQL_F126_01 CON LA MISMA LÓGICA (19/10/2026). SQL_F126_01 se queda como
+-- está porque es el instrumento con el que se midió la línea base del 14/10, y
+-- su cabecera describe esa medición. Lo que cambia aquí, y nada más:
+--   · las ventanas: la VIEJA es ahora la línea base, las siete pasadas del 14/10
+--     con Haiku 4.5 (08:28:55 a 08:46:38 hora de Madrid); la NUEVA, la tanda de
+--     Haiku 5.5 (o la pasada 0), entre DESDE y HASTA; y el HUECO, del COMIENZO
+--     DEL HUECO a DESDE, que debe estar vacío. Los cuatro valores, abajo;
+--   · la ventana nueva gana límite superior (la segunda marca);
+--   · el bloque 1 dice con qué MODELO juzgó el juez cada pareja de cada pasada y
+--     cuántos TOKENS DE SALIDA gastó (lecturaDeLasParejas[].modelo y
+--     .tokensDeSalida, F-128), y el bloque 2 los repite junto a cada
+--     contradicción publicada. En la línea base salen «— (anterior a F-128)»:
+--     se hizo toda con Haiku 4.5, antes de que se guardara el modelo;
+--   · y un control más, el 7: toda pareja de la ventana nueva lleva su modelo,
+--     o el código desplegado no es el de F-128.
+-- La mediana, las especies y el resto, idénticos a SQL_F126_01: lee su
+-- cabecera para la definición de cada cosa.
+-- ✅ PROBADO ANTES DE ENTREGARLO (19/10/2026) en PGlite, con el arnés de
+-- SQL_F126_01 adaptado: con siete y siete pasadas los controles salen OK, y
+-- falla el 7 cuando una pareja nueva no lleva modelo. Y las DOS LECTURAS de la
+-- tabla de abajo, sobre los mismos datos (línea base, pasada 0 y tanda), salen
+-- sin un solo FALLA; con una pasada suelta en el hueco, cae el 3. CON DATOS REALES NO SE HA
+-- EJECUTADO.
+--
+-- ┌──────────────────────────────────────────────────────────────────────────┐
+-- │ LA ORGANIZACIÓN DEL PILOTO: a9625e93-…, «Workspace principal». El id     │
+-- │ completo está UNA vez, en la constante `parametros` de la primera línea  │
+-- │ de la consulta (convenio del 05/10/2026). No se mira ninguna otra.       │
+-- └──────────────────────────────────────────────────────────────────────────┘
+--
+-- ┌──────────────────────────────────────────────────────────────────────────┐
+-- │ LO ÚNICO QUE TOCA EL DIRECTOR: los CUATRO VALORES de la constante        │
+-- │ `parametros` marcados con flecha, en hora de Madrid y con este formato   │
+-- │ exacto:  timestamptz 'AAAA-MM-DD HH:MM:SS+02'                             │
+-- │ ⚠️ El «+02» es el horario de verano. Desde el domingo 25/10/2026 a las   │
+-- │ 03:00 es «+01».                                                           │
+-- └──────────────────────────────────────────────────────────────────────────┘
+--
+-- QUÉ PONER EN CADA LECTURA (se copia tal cual):
+--
+--   lectura              DESDE                    HASTA                    COMIENZO DEL HUECO                    ESPERADO
+--   ───────────────────  ───────────────────────  ───────────────────────  ────────────────────────────────────  ────────
+--   la PASADA 0          1 min antes de la        1 min después de la      '2026-10-14 08:47:00+02'              1
+--   (interruptor         pasada 0                 pasada 0                 (el final de la línea base)
+--   apagado)
+--   la TANDA de          1 min antes de la        1 min después de la      el HASTA de la lectura de la          7
+--   Haiku 5.5            primera pasada con 5.5   última                   pasada 0
+--
+-- ⚠️ POR QUÉ CUATRO VALORES Y NO DOS (arquitecto, 19/10/2026): con dos, la pasada 0
+-- habría hecho fallar a propósito el control 3 (cae en el hueco de la tanda) y el
+-- 1 (es una sola pasada, no siete). **UN CONTROL QUE SE ESPERA QUE FALLE ES UN
+-- CONTROL MUERTO**: la próxima vez que se ponga rojo de verdad, nadie lo mirará.
+-- Con estos cuatro valores **ningún control debe fallar en ninguna de las dos
+-- lecturas; si alguno falla, es que pasó algo.**
+-- ============================================================================
+
+WITH parametros AS (
+  SELECT 'a9625e93-af2a-4416-a465-5c2fa2a25bdf'::text AS org,   -- ← LA CONSTANTE
+         -- ↓↓↓ LOS CUATRO VALORES: lo único que se toca (la tabla de la cabecera dice qué poner) ↓↓↓
+         -- ⚠️ «+02» vale hasta el domingo 25/10/2026 a las 03:00; desde ahí es «+01».
+         timestamptz '2026-10-19 00:00:00+02' AS nueva_desde,     -- ← DESDE
+         timestamptz '2026-10-19 23:59:00+02' AS nueva_hasta,     -- ← HASTA
+         timestamptz '2026-10-14 08:47:00+02' AS push,            -- ← COMIENZO DEL HUECO (el hueco va de aquí a DESDE)
+         7 AS esperado_nueva,                                     -- ← ESPERADO: pasadas en la ventana nueva
+         -- ↑↑↑ ↑↑↑
+         timestamptz '2026-10-14 08:28:00+02' AS vieja_desde,     -- la línea base del 14/10, Haiku 4.5: fija
+         timestamptz '2026-10-14 08:47:00+02' AS vieja_hasta,
+         7 AS esperado_vieja
+),
+nor11 AS (
+  SELECT ar.id, ar.created_at, ar.contradictions_found, ar.overlaps_found, ar.pipeline_counters AS pc, ar.analysis
+  FROM public.analysis_results ar, parametros p
+  WHERE ar.org_id = p.org AND ar.document_name ILIKE 'NOR-11%'
+),
+pasadas AS (
+  SELECT v.*, row_number() OVER (PARTITION BY v.ventana ORDER BY v.created_at) AS n
+  FROM (
+    SELECT x.*, CASE WHEN x.created_at >= p.nueva_desde AND x.created_at < p.nueva_hasta THEN 'nueva'
+                     WHEN x.created_at >= p.vieja_desde AND x.created_at < p.vieja_hasta THEN 'vieja' END AS ventana
+    FROM nor11 x, parametros p
+  ) v
+  WHERE v.ventana IS NOT NULL
+),
+hueco AS (
+  SELECT x.* FROM nor11 x, parametros p WHERE x.created_at >= p.push AND x.created_at < p.nueva_desde
+),
+juicios AS (
+  SELECT pa.ventana, pa.n, j
+  FROM pasadas pa
+  CROSS JOIN LATERAL jsonb_array_elements(
+    CASE WHEN jsonb_typeof(pa.analysis->'judgments') = 'array' THEN pa.analysis->'judgments' ELSE '[]'::jsonb END) j
+),
+-- F-128: con qué modelo juzgó el juez cada pareja y cuántos tokens de salida gastó
+lecturas AS (
+  SELECT pa.ventana, pa.n, x.ord, x.l->>'documentId' AS doc_id,
+         (SELECT d.name FROM public.documents d, parametros p WHERE d.org_id = p.org AND d.id::text = x.l->>'documentId') AS nombre,
+         x.l->>'modelo' AS modelo, x.l->>'tokensDeSalida' AS tokens_salida
+  FROM pasadas pa
+  CROSS JOIN LATERAL jsonb_array_elements(
+    CASE WHEN jsonb_typeof(pa.analysis->'lecturaDeLasParejas') = 'array' THEN pa.analysis->'lecturaDeLasParejas' ELSE '[]'::jsonb END)
+    WITH ORDINALITY AS x(l, ord)
+),
+publicadas AS (
+  SELECT pa.ventana, pa.n, x.ord, d->>'existingDocument' AS candidato, d->>'severity' AS severity, d->>'confirmedBy' AS confirmado,
+         d->>'topic' AS tema, coalesce(d->>'newDocSays', '') AS cita_nuevo, coalesce(d->>'existingDocSays', '') AS cita_existente,
+         translate(lower(coalesce(d->>'topic', '')), 'áéíóúüñ', 'aeiouun') AS t
+  FROM pasadas pa
+  CROSS JOIN LATERAL jsonb_array_elements(
+    CASE WHEN jsonb_typeof(pa.analysis->'discrepancies') = 'array' THEN pa.analysis->'discrepancies' ELSE '[]'::jsonb END)
+    WITH ORDINALITY AS x(d, ord)
+),
+marcas AS (
+  SELECT ju.ventana, ju.n, ju.j->>'documentName' AS candidato, c->>'newDocSays' AS cita_nuevo, c->>'existingDocSays' AS cita_existente,
+         c->'recompuesta' AS marca
+  FROM juicios ju
+  CROSS JOIN LATERAL jsonb_array_elements(
+    CASE WHEN jsonb_typeof(ju.j->'contradictions') = 'array' THEN ju.j->'contradictions' ELSE '[]'::jsonb END) c
+),
+pub AS (
+  SELECT p.*,
+         CASE WHEN t LIKE '%plazo%' THEN 'PLAZO'
+              WHEN t LIKE '%color%' AND t LIKE '%contenedor%' THEN 'NEGACIÓN'
+              WHEN t LIKE '%retirada%' OR t LIKE '%ubicacion%' THEN 'LUGAR'
+              ELSE 'OTRA' END AS especie,
+         (SELECT m.marca FROM marcas m
+           WHERE m.ventana = p.ventana AND m.n = p.n AND m.candidato = p.candidato
+             AND m.cita_nuevo = p.cita_nuevo AND m.cita_existente = p.cita_existente AND m.marca IS NOT NULL LIMIT 1) AS marca
+  FROM publicadas p
+),
+-- las citas de la mediana: los DOS lados de cada contradicción publicada
+citas AS (
+  SELECT ventana, n, especie, 'nuevo' AS lado, cita_nuevo AS texto, char_length(cita_nuevo) AS largo FROM pub
+  UNION ALL
+  SELECT ventana, n, especie, 'existente', cita_existente, char_length(cita_existente) FROM pub
+),
+tramo AS (
+  SELECT ju.n, ju.j->>'documentName' AS candidato, x.ord, r
+  FROM juicios ju
+  CROSS JOIN LATERAL jsonb_array_elements(
+    CASE WHEN jsonb_typeof(ju.j->'citasAlTramo') = 'array' THEN ju.j->'citasAlTramo' ELSE '[]'::jsonb END) WITH ORDINALITY AS x(r, ord)
+  WHERE ju.ventana = 'nueva'
+),
+descartes AS (
+  SELECT ju.n, ju.j->>'documentName' AS candidato, x.ord, d, lado.nombre AS lado, d->lado.nombre AS datos,
+         CASE WHEN lado.nombre = 'nuevo' THEN d->>'citaNuevo' ELSE d->>'citaExistente' END AS cita
+  FROM juicios ju
+  CROSS JOIN LATERAL jsonb_array_elements(
+    CASE WHEN jsonb_typeof(ju.j->'descartesPorCita') = 'array' THEN ju.j->'descartesPorCita' ELSE '[]'::jsonb END) WITH ORDINALITY AS x(d, ord)
+  CROSS JOIN (VALUES ('nuevo'), ('existente')) AS lado(nombre)
+  WHERE ju.ventana = 'nueva'
+),
+contadores AS (
+  SELECT pa.n, k.clave, coalesce(pa.pc ? k.clave, false) AS esta, pa.pc->>k.clave AS valor
+  FROM pasadas pa
+  CROSS JOIN (VALUES
+    ('juez.citas_recompuestas'),
+    ('juez.citas_recompuestas_en_trozos_distintos'),
+    ('juez.citas_empalme_multiple'),
+    ('juez.citas_sin_tramo_literal'),
+    ('juez.recompuestas_bloqueadas_al_reclasificar'),
+    ('juez.recompuestas_sin_contexto_del_resto')) AS k(clave)
+  WHERE pa.ventana = 'nueva'
+),
+control AS (
+  SELECT 1 AS orden, 'pasadas de NOR-11 en la ventana NUEVA: esperado ' || p.esperado_nueva || ', medido ' ||
+         (SELECT count(*) FROM pasadas WHERE ventana = 'nueva') AS medida,
+         (SELECT count(*) FROM pasadas WHERE ventana = 'nueva') = p.esperado_nueva AS ok
+  FROM parametros p
+  UNION ALL
+  SELECT 2, 'pasadas de NOR-11 en la ventana VIEJA: esperado ' || p.esperado_vieja || ', medido ' ||
+         (SELECT count(*) FROM pasadas WHERE ventana = 'vieja'),
+         (SELECT count(*) FROM pasadas WHERE ventana = 'vieja') = p.esperado_vieja
+  FROM parametros p
+  UNION ALL
+  SELECT 3, 'pasadas de NOR-11 en el HUECO (del COMIENZO DEL HUECO a DESDE): esperado 0, medido ' || (SELECT count(*) FROM hueco) ||
+         coalesce(' · horas: ' || (SELECT string_agg(to_char(h.created_at AT TIME ZONE 'Europe/Madrid', 'DD/MM HH24:MI:SS'), ', ' ORDER BY h.created_at) FROM hueco h), ''),
+         (SELECT count(*) FROM hueco) = 0
+  UNION ALL
+  SELECT 4, 'pasada nueva ' || pa.n || ': los seis contadores del tramo están (faltan ' ||
+            (SELECT count(*) FROM contadores c WHERE c.n = pa.n AND NOT c.esta) || ')',
+         (SELECT count(*) FROM contadores c WHERE c.n = pa.n AND NOT c.esta) = 0
+  FROM pasadas pa WHERE pa.ventana = 'nueva'
+  UNION ALL
+  SELECT 5, 'pasada nueva ' || pa.n || ': está juez.citas_rescatadas_quitando_glosa (se lee la columna buena)',
+         coalesce(pa.pc ? 'juez.citas_rescatadas_quitando_glosa', false)
+  FROM pasadas pa WHERE pa.ventana = 'nueva'
+  UNION ALL
+  SELECT 6, 'pasada nueva ' || pa.n || ': contradictions_found ' || coalesce(pa.contradictions_found::text, '—') ||
+            ' = publicadas ' || (SELECT count(*) FROM pub p WHERE p.ventana = 'nueva' AND p.n = pa.n),
+         pa.contradictions_found = (SELECT count(*) FROM pub p WHERE p.ventana = 'nueva' AND p.n = pa.n)
+  FROM pasadas pa WHERE pa.ventana = 'nueva'
+),
+control7 AS (
+  SELECT 7 AS orden, 'pasada nueva ' || pa.n || ': todas sus parejas llevan modelo (sin modelo: ' ||
+         (SELECT count(*) FROM lecturas l WHERE l.ventana = 'nueva' AND l.n = pa.n AND l.modelo IS NULL) || ' de ' ||
+         (SELECT count(*) FROM lecturas l WHERE l.ventana = 'nueva' AND l.n = pa.n) || ')' AS medida,
+         (SELECT count(*) FROM lecturas l WHERE l.ventana = 'nueva' AND l.n = pa.n) > 0
+           AND (SELECT count(*) FROM lecturas l WHERE l.ventana = 'nueva' AND l.n = pa.n AND l.modelo IS NULL) = 0 AS ok
+  FROM pasadas pa WHERE pa.ventana = 'nueva'
+),
+mediana AS (
+  SELECT ventana, especie, count(*) AS n, percentile_cont(0.5) WITHIN GROUP (ORDER BY largo) AS med, min(largo) AS mn, max(largo) AS mx
+  FROM citas GROUP BY GROUPING SETS ((ventana), (ventana, especie))
+)
+SELECT bloque, pasada, a, b, c, texto
+FROM (
+  SELECT '0 · control' AS bloque, NULL::text AS pasada, CASE WHEN ok THEN 'OK' ELSE 'FALLA' END AS a,
+         medida AS b, NULL::text AS c, NULL::text AS texto, orden AS o1, 0::bigint AS o2
+  FROM (SELECT * FROM control UNION ALL SELECT * FROM control7) control
+  UNION ALL
+  -- 1 · EL CENSO DE LAS DOS VENTANAS, con su ordinal, el marcador, el MODELO y los TOKENS DE SALIDA por pareja (F-128)
+  SELECT '1 · censo', pa.ventana || ' ' || pa.n,
+         to_char(pa.created_at AT TIME ZONE 'Europe/Madrid', 'DD/MM HH24:MI:SS') || ' Madrid (hora guardada: la del final)',
+         'id ' || pa.id || ' · contradictions_found ' || coalesce(pa.contradictions_found::text, '—'),
+         'especies publicadas: ' || coalesce((SELECT string_agg(DISTINCT e.especie, ' + ' ORDER BY e.especie) FROM pub e WHERE e.ventana = pa.ventana AND e.n = pa.n), 'ninguna') ||
+         ' · marcador ' || (SELECT count(DISTINCT e.especie) FROM pub e WHERE e.ventana = pa.ventana AND e.n = pa.n AND e.especie IN ('PLAZO', 'NEGACIÓN', 'LUGAR')) || '/3',
+         'MODELO Y TOKENS DE SALIDA, por pareja: ' || coalesce((SELECT string_agg(coalesce(l.nombre, l.doc_id) || ' → ' ||
+             coalesce(l.modelo, '— (anterior a F-128)') || ', ' || coalesce(l.tokens_salida, '—') || ' tokens de salida', ' | ' ORDER BY l.ord)
+           FROM lecturas l WHERE l.ventana = pa.ventana AND l.n = pa.n), 'sin lecturas'),
+         CASE pa.ventana WHEN 'vieja' THEN 0 ELSE 1 END, pa.n
+  FROM pasadas pa
+  UNION ALL
+  -- 2 · LO PUBLICADO EN LA VENTANA NUEVA: las dos citas enteras, su longitud y la marca
+  SELECT '2 · contradicciones publicadas (nueva)', 'nueva ' || e.n, e.especie,
+         coalesce(e.candidato, '—') || ' · ' || coalesce(e.severity, '—') || ' · confirmedBy: ' || coalesce(e.confirmado, '—') ||
+           ' · marca recompuesta: ' || CASE WHEN e.marca IS NULL THEN 'no' ELSE 'SÍ' END ||
+           ' · longitudes: nuevo ' || char_length(e.cita_nuevo) || ', existente ' || char_length(e.cita_existente) ||
+           ' · ' || coalesce((SELECT coalesce(l.modelo, '— (anterior a F-128)') || ', ' || coalesce(l.tokens_salida, '—') || ' tokens de salida'
+             FROM lecturas l WHERE l.ventana = e.ventana AND l.n = e.n AND l.nombre = e.candidato LIMIT 1), 'pareja sin lectura'),
+         e.tema,
+         'NUEVO: ' || e.cita_nuevo || E'\nEXISTENTE: ' || e.cita_existente ||
+           CASE WHEN e.marca IS NULL THEN '' ELSE
+             coalesce(E'\nCITA DEL JUEZ (nuevo): ' || (e.marca->'nuevo'->>'citaDelJuez'), '') ||
+             coalesce(E'\nCITA DEL JUEZ (existente): ' || (e.marca->'existente'->>'citaDelJuez'), '') END,
+         0, e.n * 100 + e.ord
+  FROM pub e WHERE e.ventana = 'nueva'
+  UNION ALL
+  -- 3 · LOS SEIS CONTADORES DEL TRAMO por pasada nueva (FALTA si no está, nunca 0)
+  SELECT '3 · contadores del tramo (nueva)', 'nueva ' || pa.n,
+         'recompuestas ' || (SELECT CASE WHEN c.esta THEN c.valor ELSE 'FALTA' END FROM contadores c WHERE c.n = pa.n AND c.clave = 'juez.citas_recompuestas') ||
+         ' · en_trozos_distintos ' || (SELECT CASE WHEN c.esta THEN c.valor ELSE 'FALTA' END FROM contadores c WHERE c.n = pa.n AND c.clave = 'juez.citas_recompuestas_en_trozos_distintos'),
+         'empalme_multiple ' || (SELECT CASE WHEN c.esta THEN c.valor ELSE 'FALTA' END FROM contadores c WHERE c.n = pa.n AND c.clave = 'juez.citas_empalme_multiple') ||
+         ' · sin_tramo_literal ' || (SELECT CASE WHEN c.esta THEN c.valor ELSE 'FALTA' END FROM contadores c WHERE c.n = pa.n AND c.clave = 'juez.citas_sin_tramo_literal'),
+         'bloqueadas_al_reclasificar ' || (SELECT CASE WHEN c.esta THEN c.valor ELSE 'FALTA' END FROM contadores c WHERE c.n = pa.n AND c.clave = 'juez.recompuestas_bloqueadas_al_reclasificar') ||
+         ' · sin_contexto_del_resto ' || (SELECT CASE WHEN c.esta THEN c.valor ELSE 'FALTA' END FROM contadores c WHERE c.n = pa.n AND c.clave = 'juez.recompuestas_sin_contexto_del_resto'),
+         NULL, 0, pa.n
+  FROM pasadas pa WHERE pa.ventana = 'nueva'
+  UNION ALL
+  -- 4 · citasAlTramo ENTERO de la ventana nueva, o la frase que dice que no hay
+  SELECT '4 · citasAlTramo (nueva)', 'nueva ' || t.n, coalesce(t.r->>'salida', '—'),
+         coalesce(t.candidato, '—') || ' · hash ' || coalesce(t.r->>'hash', '—') || ' · lado ' || coalesce(t.r->>'lado', '—') ||
+           coalesce(' · motivo ' || (t.r->>'motivo'), '') || ' · longitud de la cita ' || coalesce(t.r->>'longitudDeLaCita', '—'),
+         concat_ws(' · ',
+           'ancla ' || (t.r->'ancla'->>'desde') || '-' || (t.r->'ancla'->>'hasta'),
+           'resto ' || (t.r->'resto'->>'desde') || '-' || (t.r->'resto'->>'hasta'),
+           'longitud del resto ' || (t.r->>'longitudDelResto'),
+           'distancia ' || (t.r->>'distancia'),
+           'trozos ' || (t.r->'trozos'->>'ancla') || '/' || (t.r->'trozos'->>'resto')),
+         CASE WHEN t.r ? 'frases' THEN 'FRASE DEL ANCLA: ' || (t.r->'frases'->>'ancla') || E'\nFRASE DEL RESTO: ' || (t.r->'frases'->>'resto') END,
+         0, t.n * 100 + t.ord
+  FROM tramo t
+  UNION ALL
+  SELECT '4 · citasAlTramo (nueva)', NULL, 'ninguna cita llegó al tramo', 'en ninguna de las pasadas de la ventana nueva', NULL, NULL, 1, 0
+  WHERE NOT EXISTS (SELECT 1 FROM tramo)
+  UNION ALL
+  -- 5 · LA MEDIANA, las dos ventanas lado a lado: primero la global, después por especie
+  SELECT '5 · mediana de las citas publicadas', m.ventana,
+         coalesce(m.especie, 'TODAS'),
+         'n ' || m.n || ' · mediana ' || round(m.med::numeric, 1),
+         'mínimo ' || m.mn || ' · máximo ' || m.mx,
+         NULL, CASE WHEN m.especie IS NULL THEN 0 ELSE 1 END,
+         CASE m.ventana WHEN 'vieja' THEN 0 ELSE 1 END
+  FROM mediana m
+  UNION ALL
+  -- 6 · LA CITA PUBLICADA MÁS CORTA de la ventana nueva (observación, no criterio)
+  SELECT '6 · cita publicada más corta (nueva)', 'nueva ' || c.n, c.especie,
+         'lado ' || c.lado || ' · ' || c.largo || ' caracteres', NULL, c.texto, 0, c.n
+  FROM citas c
+  WHERE c.ventana = 'nueva' AND c.largo = (SELECT min(largo) FROM citas WHERE ventana = 'nueva')
+  UNION ALL
+  -- 7 · LOS SOLAPAMIENTOS PUBLICADOS por pasada, en las dos ventanas
+  SELECT '7 · solapamientos publicados', pa.ventana || ' ' || pa.n,
+         'puntos del juez publicados: ' || coalesce((SELECT sum(jsonb_array_length(o->'puntos')) FROM jsonb_array_elements(
+             CASE WHEN jsonb_typeof(pa.analysis->'overlaps') = 'array' THEN pa.analysis->'overlaps' ELSE '[]'::jsonb END) o
+           WHERE jsonb_typeof(o->'puntos') = 'array'), 0),
+         'grupos (overlaps_found): ' || coalesce(pa.overlaps_found::text, '—') ||
+           ' · de ellos estructurales: ' || (SELECT count(*) FROM jsonb_array_elements(
+             CASE WHEN jsonb_typeof(pa.analysis->'overlaps') = 'array' THEN pa.analysis->'overlaps' ELSE '[]'::jsonb END) o
+           WHERE o->>'confirmedBy' = 'estructura'),
+         NULL, NULL, CASE pa.ventana WHEN 'vieja' THEN 0 ELSE 1 END, pa.n
+  FROM pasadas pa
+  UNION ALL
+  -- 8 · LAS DOS TRAMPAS DE paso en la ventana nueva: el recuento, y las segmentos_de_fila con su cita
+  SELECT '8 · trampas de paso (nueva): recuento', NULL,
+         'paso=recompuesta: ' || count(*) FILTER (WHERE d.datos->>'paso' = 'recompuesta'),
+         'paso=segmentos_de_fila: ' || count(*) FILTER (WHERE d.datos->>'paso' = 'segmentos_de_fila'),
+         'lados de descarte leídos: ' || count(*), NULL, 0, 0
+  FROM descartes d
+  UNION ALL
+  SELECT '8 · trampas de paso (nueva): segmentos_de_fila', 'nueva ' || d.n, d.lado,
+         coalesce(d.candidato, '—') || ' · ' || coalesce(d.d->>'tipo', '—') || ' · verificada ' || coalesce(d.datos->>'verificada', '—') ||
+           ' · lado fallido ' || coalesce(d.d->>'ladoFallido', '—') || ' · pajar ' || coalesce(d.datos->>'pajar', '—'),
+         d.d->>'tema', d.cita, 1, d.n * 100 + d.ord
+  FROM descartes d WHERE d.datos->>'paso' = 'segmentos_de_fila'
+  UNION ALL
+  -- 9 · LO QUE LA PUERTA MATÓ COMO CONTRADICCIÓN en la ventana nueva (¿muere LUGAR?)
+  SELECT '9 · contradicciones que mató la puerta (nueva)', 'nueva ' || d.n,
+         CASE WHEN tt LIKE '%plazo%' THEN 'PLAZO' WHEN tt LIKE '%color%' AND tt LIKE '%contenedor%' THEN 'NEGACIÓN'
+              WHEN tt LIKE '%retirada%' OR tt LIKE '%ubicacion%' THEN 'LUGAR' ELSE 'OTRA' END,
+         coalesce(d.candidato, '—') || ' · lado fallido ' || coalesce(d.d->>'ladoFallido', '—') ||
+           ' · nuevo: ' || coalesce(d.d->'nuevo'->>'paso', '—') || ' · existente: ' || coalesce(d.d->'existente'->>'paso', '—'),
+         d.d->>'tema',
+         'NUEVO: ' || coalesce(d.d->>'citaNuevo', '—') || E'\nEXISTENTE: ' || coalesce(d.d->>'citaExistente', '—'),
+         0, d.n * 100 + d.ord
+  FROM (SELECT DISTINCT ON (n, ord) n, ord, candidato, d, translate(lower(coalesce(d->>'tema', '')), 'áéíóúüñ', 'aeiouun') AS tt
+        FROM descartes WHERE d->>'tipo' = 'contradiccion' ORDER BY n, ord) d
+) t
+ORDER BY bloque, o1, o2, pasada;

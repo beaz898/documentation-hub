@@ -261,10 +261,12 @@ página:
    comparables entre sí.
 
 **La prueba, escrita antes de hacerla** (arquitecto, 19/10): siete pasadas de NOR-11 y tres de NOR-10
-con Haiku 5.5 y el dial fijado y escrito, leídas con `SQL_F126_01` y `SQL_F127_01` sin tocar su
-lógica —sólo las ventanas y la hora de su constante de parámetros, que hoy apuntan a las pasadas del
-14 y del 16/10—, contra las dos líneas base: la del 14/10 (NOR-11, 3 de 3 en las siete) y la del
-16/10 (NOR-10).
+con Haiku 5.5 y el dial fijado y escrito, leídas con `SQL_F128_01_nor11_con_haiku55.sql` y
+`SQL_F128_02_nor10_con_haiku55.sql` —`SQL_F126_01` y `SQL_F127_01` con la misma lógica, las ventanas
+reducidas a dos marcas de tiempo y el modelo y los tokens de salida de cada pareja en la salida; las
+originales se quedan como están, que son las que midieron las líneas base—, contra las dos líneas
+base: la del 14/10 (NOR-11, 3 de 3 en las siete) y la del 16/10 (NOR-10). **La primera pasada va
+sola** (`claude/Predicciones_F128_El_Modelo_Del_Juez.md`, cómo se mide).
 **CRITERIO DE REVERSIÓN, ESCRITO ANTES**: si PLAZO, LUGAR o NEGACIÓN bajan de 7 de 7, o si cualquiera
 de los seis contadores de la puerta deja de ser cero, se vuelve a Haiku 4.5 y se archiva por qué.
 
@@ -272,9 +274,10 @@ de los seis contadores de la puerta deja de ser cero, se vuelve a Haiku 4.5 y se
 La condición que el arquitecto escribió el 14/10 era «la primera vez que un caso sembrado falle en
 otro documento porque el juez no copió». Si Haiku 5.5 deja de copiar literal, esa condición se cumple
 y los punteros vuelven a la mesa, con `unidades-de-cita.ts` ya construido.
-- Precisiones de Code (19/10): la condición dice «en **otro** documento», así que la cumple un fallo
-  de copia en NOR-10; uno sólo en NOR-11, la pareja donde se midió F-126, no la cumple a la letra.
-  Y `unidades-de-cita.ts` está en git desde el 09/10 (`3816c501`; el 3.8 dice 08/10), y no está del
+- Precisiones de Code (19/10): la condición del 14/10 decía «en **otro** documento», y un fallo sólo
+  en NOR-11 no la cumplía a la letra. **Resuelto el mismo día**: el arquitecto reescribió el
+  disparador en el 3.8, y ahora vale en cualquier documento y con cualquier modelo.
+  Y `unidades-de-cita.ts` está en git desde el 09/10 (`3816c501`; el 3.8 decía 08/10, corregido el 19/10), y no está del
   todo sin conectar: `frase-real.ts` lo usa en sólo lectura desde la fase 3.1 para sacar la frase
   real. Lo que está sin conectar es la vía de punteros.
 
@@ -283,8 +286,50 @@ puntero mal puesto da una cita literal que habla de otra cosa, y la puerta no lo
 comprueba que el texto exista en el documento, no que sea el que toca. **Los punteros cambian la
 clase de error, no la eliminan.**
 
-**No se construye ni se prueba todavía**: va a la próxima vuelta con Fable, porque cambiar el modelo
-del juez toca todo lo archivado y es una pregunta de método, no sólo técnica.
+~~**No se construye ni se prueba todavía**: va a la próxima vuelta con Fable, porque cambiar el modelo
+del juez toca todo lo archivado y es una pregunta de método, no sólo técnica.~~
+**EL INTERRUPTOR, construido el 19/10** (sin desplegar ni medir): la variable de entorno
+`ANALYSIS_JUDGE_MODEL`. Sin ella, el juez llama exactamente como antes; con el valor exacto
+`claude-haiku-5-5`, el juez —y sólo el juez— usa Haiku 5.5; cualquier otro valor deja Haiku 4.5 y
+lo dice en el log (`lib/analysis/modelo-del-juez.ts`). El modelo de cada pareja queda en
+`lecturaDeLasParejas[].modelo`. Los identificadores, en `lib/llm/modelos.ts`; los precios de 5.5,
+en la tabla (0,10 / 0,50 / 0,125 / 0,01 $ por millón, tramo de menos de 100.000 tokens, verificados
+por el arquitecto el 19/10).
+- **Variable de entorno y no fila de ajustes** (arquitecto, 19/10/2026): el arquitecto retiró su
+  requisito de volver atrás sin despliegue, que había pedido pensando en un servicio en uso, y no hay
+  ninguno. Con variable, **volver atrás exige un despliegue**: en Vercel un cambio de variable sólo se
+  aplica al desplegar, y en Railway reinicia el servicio. **La fila de ajustes leída en cada análisis
+  es la opción correcta el día que haya un cliente y haya que revertir en caliente**; hoy sería una
+  tabla nueva y una consulta más por análisis para cubrir un riesgo que no existe.
+- **El dial de esfuerzo** (verificado por el arquitecto en la documentación de Anthropic el 19/10):
+  el campo es `output_config.effort`, con los valores `low`, `medium`, `high`, `xhigh` y `max`;
+  el defecto de Haiku 5.5 es `medium`, y mandarlo se comporta igual que omitirlo; Haiku 4.5 no está
+  entre los modelos que lo admiten. **Decisión: se manda `medium` explícito, y sólo con Haiku 5.5**,
+  para que un cambio futuro del defecto no mueva las mediciones sin que nadie se entere.
+- ~~⚠️ **Lo que nadie ha verificado**: si Haiku 5.5 acepta `temperature`, que el juez manda siempre
+  (0,1). Si la rechaza, la primera pasada fallará con un error 400 en el log, el análisis caerá a su
+  fallback y no se cobrará (F-71). Es lo primero que hay que mirar en el log de la primera pasada.~~
+- **RESUELTO el 19/10, antes de lanzar nada: la primera llamada a Haiku 5.5 habría dado 400.** La
+  guía de migración de Haiku 5.5 (documentación de Anthropic, leída por el arquitecto el 19/10):
+  `temperature` sólo 1 o nada; `top_p` sólo 0,99 o nada; `top_k`, siempre rechazado;
+  `temperature` y `top_p` juntos, rechazado; el prefill de asistente, rechazado; `thinking` en su
+  forma vieja, rechazado; y en `max_tokens` cuentan los tokens de pensamiento. Lo que se hizo:
+  - **con Haiku 5.5 el juez NO manda `temperature`**; con Haiku 4.5 sigue mandando 0,1 como siempre
+    (`sinTemperatura` en el cliente; la prueba del cuerpo vigila las dos mitades);
+  - `top_p`, `top_k` y `thinking`: **el cliente no los manda en ninguna ruta** (comprobado por Code);
+  - el sufijo JSON de `callAnthropicJson` **no es un prefill**: va pegado al turno del usuario, y el
+    juez no pasa `messages` (comprobado por Code);
+  - **`max_tokens` a 16.000 con 5.5**, 4.096 con 4.5, y **los tokens de salida de cada llamada del
+    juez quedan en `lecturaDeLasParejas[].tokensDeSalida`**, para saber si el pensamiento se dispara;
+  - `thinking` sin poner.
+  ⚠️ Y deja un **confundido declarado** en la prueba: 4.5 a temperatura 0,1 contra 5.5 sin ella
+  (`claude/Predicciones_F128_El_Modelo_Del_Juez.md`).
+
+**CAMBIA el 19/10 (arquitecto, a instancia del director): la prueba se hace AHORA.** La condición de
+«después del primer cliente» era para no trastear un servicio en uso, y no hay servicio en uso; aquí
+no hay nada que decidir, hay algo que medir. A Fable se le manda con el resultado dentro.
+Predicciones escritas antes: `claude/Predicciones_F128_El_Modelo_Del_Juez.md`. **Esto NO abre la
+puerta a las fichas por afirmación (3.1.7)**, que siguen sin tocar.
 
 ### 3.2 · El caso de empalme falso sembrado · F-125, confirmado en F-126
 Control **positivo** de (B): dos fragmentos literales que, pegados, afirman algo que ninguna de las
@@ -321,13 +366,21 @@ no llegara a 5 de 7; el 14/10 dio **7 de 7**. Queda en pie, como **condición de
 disparador nuevo que se escribió el 14/10 (abajo). Lo que sigue es el texto del 14/10, sin tocar.
 
 Que el juez **señale en vez de copiar** —devuelva un localizador y la máquina extraiga la frase—.
-`unidades-de-cita.ts` está construido desde el 08/10 y sin conectar, y eso no cuesta nada.
+`unidades-de-cita.ts` está construido desde el 09/10 (corregido el 19/10: aquí decía 08/10; git lo da en
+`3816c501`) y sin conectar, y eso no cuesta nada.
 El disparador de F-126 era «si LUGAR no llega a 5 de 7»; llegó a 7, **así que NO se activa**.
 No ganan velocidad ni coste de forma apreciable: lo que cuesta es leer los dos documentos. Ganan
 otra cosa: **eliminan la transcripción como clase de fallo para cualquier documento**, mientras lo
 de hoy es un arreglo comprobado en tres casos de una pareja.
-**Disparador nuevo, escrito el 14/10:** la primera vez que un caso sembrado falle en **otro**
-documento porque el juez no copió, se activa la 3.4.
+**DISPARADOR DE REAPERTURA, REESCRITO EL 19/10/2026** (arquitecto, al ver que la redacción del 14/10
+se podía leer al pie de la letra y dejar fuera NOR-11): **«La 3.4 se reabre la primera vez que el juez
+deje de copiar literal en una medición con verdad sembrada, en cualquier documento y con cualquier
+modelo: o porque una trampa no se publique porque la cita no fuera literal, o porque cualquiera de los
+seis contadores de la puerta deje de ser cero. El documento donde ocurra es indiferente; lo que
+dispara es que el juez deje de copiar.»**
+
+~~**Disparador nuevo, escrito el 14/10:** la primera vez que un caso sembrado falle en **otro**
+documento porque el juez no copió, se activa la 3.4.~~
 
 ### 3.9 · La segunda llamada dirigida para la omisión · F-124
 «La ausencia de evidencia es ausencia de cita» → segunda llamada que pida las dos citas, y de ahí a

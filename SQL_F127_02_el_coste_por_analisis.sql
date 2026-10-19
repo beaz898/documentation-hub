@@ -8,7 +8,9 @@
 -- viejas; y salen FALLA cuando a un análisis le falta su fila de llm_usage,
 -- cuando una fila de llm_usage se asigna a dos análisis, cuando una fila vieja
 -- no da factor 4 (un cost_usd a 0, que es lo que deja un modelo sin precio), y
--- cuando falta la fila de Haiku de un análisis. CON DATOS REALES NO SE HA
+-- cuando falta la fila de Haiku de un análisis; y un análisis con DOS filas,
+-- una de 4.5 y otra de 5.5 (el juez con ANALYSIS_JUDGE_MODEL), da la suma de
+-- las dos (ampliación del 19/10/2026). CON DATOS REALES NO SE HA
 -- EJECUTADO.
 --
 -- ┌──────────────────────────────────────────────────────────────────────────┐
@@ -47,12 +49,16 @@
 --     de ese despliegue lleva un cost_usd 4 veces menor** que el recalculado: es
 --     el control 0.3, y el bloque 1 enseña el factor de cada fila.
 --   · Sonnet 4.6: 3 / 15 / 3,75 / 0,30, los de la tabla, verificados el 19/10.
---   · Haiku 5.5 (`claude-haiku-5-5`), sólo como comparación: 0,10 / 0,50 de
---     entrada y salida, el tramo de prompts de menos de 100.000 tokens, que es
---     el del juez. Verificado por el arquitecto en la página de Anthropic el
---     19/10/2026 (Code no tiene forma de verificarlo). SIN precio de
---     caché: si una fila tiene tokens de caché, su coste en Haiku 5.5 sale
---     «incompleto», nunca con la caché a cero.
+--   · Haiku 5.5 (`claude-haiku-5-5`): 0,10 / 0,50 / 0,125 / 0,01, el tramo de
+--     prompts de menos de 100.000 tokens, que es el del juez. Verificado por el
+--     arquitecto en la página de Anthropic el 19/10/2026 (Code no tiene forma
+--     de verificarlo). Sirve DOS veces: (1) para recalcular las filas de 5.5
+--     que deja el juez cuando está encendido ANALYSIS_JUDGE_MODEL (F-128): con
+--     él, cada análisis deja DOS filas, una de 4.5 (rerank, verificador,
+--     síntesis) y otra de 5.5 (el juez), y el coste del análisis es la suma;
+--     (2) como comparación, el coste de los tokens de 4.5 si todo fuera 5.5.
+--     (Cambiado el 19/10: la primera versión no tenía su precio de caché y
+--     marcaba «incompleto» las filas con caché.)
 --
 -- LAS DOS VENTANAS, en hora de Madrid, sobre la hora GUARDADA:
 --   · NOR-10, 16/10/2026 de 12:40 a 12:50 (las tres pasadas, 12:45, 12:46 y 12:46);
@@ -61,8 +67,8 @@
 -- ⚠️ CONTROL (bloque 0), que PUEDE FALLAR:
 --   0.1 cada análisis de las dos ventanas tiene su fila de Haiku (3 y 7);
 --   0.2 ninguna fila de llm_usage queda asignada a dos análisis;
---   0.3 en las filas escritas antes del arreglo de precios, recalculado ÷
---       guardado = 4,000 (si sale otra cosa, el cost_usd guardado no es el que
+--   0.3 en las filas DE HAIKU 4.5 escritas antes del arreglo de precios
+--       (el único precio que cambió), recalculado ÷ guardado = 4,000 (si sale otra cosa, el cost_usd guardado no es el que
 --       creemos: un 0 es un modelo sin precio en la tabla).
 -- ============================================================================
 
@@ -72,9 +78,10 @@ WITH parametros AS (
 ),
 precios (modelo, entrada, salida, cache_escritura, cache_lectura) AS (
   VALUES ('claude-haiku-4-5-20251001', 1.00, 5.00, 1.25, 0.10),
+         ('claude-haiku-5-5',          0.10, 0.50, 0.125, 0.01),
          ('claude-sonnet-4-6',         3.00, 15.00, 3.75, 0.30)
 ),
-haiku55 (entrada, salida) AS (VALUES (0.10, 0.50)),
+haiku55 (entrada, salida, cache_escritura, cache_lectura) AS (VALUES (0.10, 0.50, 0.125, 0.01)),
 ventanas (nombre, patron, desde, hasta, esperado) AS (
   VALUES ('NOR-10 · 16/10', 'NOR-10%', timestamptz '2026-10-16 12:40:00+02', timestamptz '2026-10-16 12:50:00+02', 3),
          ('NOR-11 · 14/10', 'NOR-11%', timestamptz '2026-10-14 08:25:00+02', timestamptz '2026-10-14 08:50:00+02', 7)
@@ -90,8 +97,8 @@ uso AS (
   SELECT u.*, u.input_tokens * pr.entrada / 1e6 + u.output_tokens * pr.salida / 1e6
               + u.cache_write_tokens * pr.cache_escritura / 1e6 + u.cache_read_tokens * pr.cache_lectura / 1e6 AS recalculado,
          CASE WHEN u.model = 'claude-haiku-4-5-20251001' THEN
-           CASE WHEN u.cache_write_tokens + u.cache_read_tokens > 0 THEN NULL
-                ELSE u.input_tokens * h.entrada / 1e6 + u.output_tokens * h.salida / 1e6 END END AS con_haiku55,
+           u.input_tokens * h.entrada / 1e6 + u.output_tokens * h.salida / 1e6
+           + u.cache_write_tokens * h.cache_escritura / 1e6 + u.cache_read_tokens * h.cache_lectura / 1e6 END AS con_haiku55,
          pr.modelo IS NULL AS sin_precio
   FROM public.llm_usage u
   CROSS JOIN parametros p CROSS JOIN haiku55 h
@@ -113,8 +120,8 @@ pareja AS (
 ),
 por_analisis AS (
   SELECT ventana, n, analisis_id, sum(recalculado) AS coste, sum(cost_usd) AS guardado,
-         CASE WHEN bool_or(model = 'claude-haiku-4-5-20251001' AND con_haiku55 IS NULL) THEN NULL
-              ELSE sum(coalesce(con_haiku55, recalculado)) END AS coste_haiku55
+         sum(coalesce(con_haiku55, recalculado)) AS coste_haiku55,
+         string_agg(model, ' + ' ORDER BY model) AS modelos
   FROM pareja GROUP BY ventana, n, analisis_id
 ),
 control AS (
@@ -129,10 +136,10 @@ control AS (
          (SELECT count(*) FROM (SELECT uso_id FROM pareja GROUP BY uso_id HAVING count(*) > 1) d),
          (SELECT count(*) FROM (SELECT uso_id FROM pareja GROUP BY uso_id HAVING count(*) > 1) d) = 0
   UNION ALL
-  SELECT 3, 'filas escritas antes del arreglo de precios con recalculado ÷ guardado distinto de 4,000: ' ||
-         (SELECT count(*) FROM pareja pa, parametros p WHERE pa.hora_uso < p.arreglo_de_precios
+  SELECT 3, 'filas de Haiku 4.5 escritas antes del arreglo de precios con recalculado ÷ guardado distinto de 4,000: ' ||
+         (SELECT count(*) FROM pareja pa, parametros p WHERE pa.hora_uso < p.arreglo_de_precios AND pa.model = 'claude-haiku-4-5-20251001'
             AND (pa.cost_usd IS NULL OR pa.cost_usd = 0 OR round((pa.recalculado / pa.cost_usd)::numeric, 3) <> 4.000)),
-         (SELECT count(*) FROM pareja pa, parametros p WHERE pa.hora_uso < p.arreglo_de_precios
+         (SELECT count(*) FROM pareja pa, parametros p WHERE pa.hora_uso < p.arreglo_de_precios AND pa.model = 'claude-haiku-4-5-20251001'
             AND (pa.cost_usd IS NULL OR pa.cost_usd = 0 OR round((pa.recalculado / pa.cost_usd)::numeric, 3) <> 4.000)) = 0
 )
 SELECT bloque, pasada, a, b, c
@@ -148,7 +155,7 @@ FROM (
            ' · caché leída ' || pa.cache_read_tokens || ' · créditos ' || coalesce(pa.credits_charged::text, '—'),
          'cost_usd guardado ' || round(pa.cost_usd::numeric, 6) || ' · recalculado ' || round(pa.recalculado::numeric, 6) ||
            ' · factor ' || CASE WHEN pa.cost_usd > 0 THEN round((pa.recalculado / pa.cost_usd)::numeric, 3)::text ELSE '— (guardado 0)' END ||
-           ' · con Haiku 5.5 ' || coalesce(round(pa.con_haiku55::numeric, 6)::text, CASE WHEN pa.model = 'claude-haiku-4-5-20251001' THEN 'incompleto (hay caché sin precio)' ELSE 'no aplica' END),
+           ' · si fuera Haiku 5.5 ' || coalesce(round(pa.con_haiku55::numeric, 6)::text, 'no aplica'),
          1, pa.n, pa.ventana
   FROM pareja pa
   UNION ALL
@@ -157,9 +164,9 @@ FROM (
          'recalculado: media ' || round(avg(v.coste)::numeric, 5) || ' $ · mediana ' ||
            round((percentile_cont(0.5) WITHIN GROUP (ORDER BY v.coste))::numeric, 5) || ' $ · mín ' || round(min(v.coste)::numeric, 5) ||
            ' · máx ' || round(max(v.coste)::numeric, 5) || ' · (guardado: media ' || round(avg(v.guardado)::numeric, 5) || ' $)',
-         'con Haiku 5.5: media ' || coalesce(round(avg(v.coste_haiku55)::numeric, 5)::text, '—') || ' $ · mediana ' ||
-           coalesce(round((percentile_cont(0.5) WITHIN GROUP (ORDER BY v.coste_haiku55))::numeric, 5)::text, '—') || ' $' ||
-           CASE WHEN count(v.coste_haiku55) < count(*) THEN ' (' || (count(*) - count(v.coste_haiku55)) || ' incompletos, fuera)' ELSE '' END,
+         'si todo fuera Haiku 5.5: media ' || round(avg(v.coste_haiku55)::numeric, 5) || ' $ · mediana ' ||
+           round((percentile_cont(0.5) WITHIN GROUP (ORDER BY v.coste_haiku55))::numeric, 5) || ' $ · modelos: ' ||
+           string_agg(DISTINCT v.modelos, ' | '),
          2, 0, v.ventana
   FROM por_analisis v GROUP BY v.ventana
   UNION ALL
@@ -169,8 +176,7 @@ FROM (
          'recalculado: media ' || round(avg(u.recalculado)::numeric, 5) || ' $ · mediana ' ||
            round((percentile_cont(0.5) WITHIN GROUP (ORDER BY u.recalculado))::numeric, 5) || ' $ · (guardado: mediana ' ||
            round((percentile_cont(0.5) WITHIN GROUP (ORDER BY u.cost_usd))::numeric, 5) || ' $)',
-         'con Haiku 5.5: mediana ' || coalesce(round((percentile_cont(0.5) WITHIN GROUP (ORDER BY u.con_haiku55))::numeric, 5)::text, '—') ||
-           ' $ · filas con caché (fuera de esta mediana) ' || count(*) FILTER (WHERE u.con_haiku55 IS NULL),
+         'si fuera Haiku 5.5: mediana ' || round((percentile_cont(0.5) WITHIN GROUP (ORDER BY u.con_haiku55))::numeric, 5) || ' $',
          3, 0, to_char(u.created_at AT TIME ZONE 'Europe/Madrid', 'YYYY-MM')
   FROM uso u WHERE u.model = 'claude-haiku-4-5-20251001'
   GROUP BY to_char(u.created_at AT TIME ZONE 'Europe/Madrid', 'YYYY-MM')
