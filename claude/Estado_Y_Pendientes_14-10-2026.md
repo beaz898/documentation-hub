@@ -268,6 +268,21 @@ lógica —sólo las ventanas y la hora de su constante de parámetros, que hoy 
 **CRITERIO DE REVERSIÓN, ESCRITO ANTES**: si PLAZO, LUGAR o NEGACIÓN bajan de 7 de 7, o si cualquiera
 de los seis contadores de la puerta deja de ser cero, se vuelve a Haiku 4.5 y se archiva por qué.
 
+**El fallo de esta prueba es el disparador de reapertura de la fase 3.4 (3.8)** (arquitecto, 19/10).
+La condición que el arquitecto escribió el 14/10 era «la primera vez que un caso sembrado falle en
+otro documento porque el juez no copió». Si Haiku 5.5 deja de copiar literal, esa condición se cumple
+y los punteros vuelven a la mesa, con `unidades-de-cita.ts` ya construido.
+- Precisiones de Code (19/10): la condición dice «en **otro** documento», así que la cumple un fallo
+  de copia en NOR-10; uno sólo en NOR-11, la pareja donde se midió F-126, no la cumple a la letra.
+  Y `unidades-de-cita.ts` está en git desde el 09/10 (`3816c501`; el 3.8 dice 08/10), y no está del
+  todo sin conectar: `frase-real.ts` lo usa en sólo lectura desde la fase 3.1 para sacar la frase
+  real. Lo que está sin conectar es la vía de punteros.
+
+**Advertencia del arquitecto que va con ella, porque los punteros no son una red perfecta: un
+puntero mal puesto da una cita literal que habla de otra cosa, y la puerta no lo caza**, porque
+comprueba que el texto exista en el documento, no que sea el que toca. **Los punteros cambian la
+clase de error, no la eliminan.**
+
 **No se construye ni se prueba todavía**: va a la próxima vuelta con Fable, porque cambiar el modelo
 del juez toca todo lo archivado y es una pregunta de método, no sólo técnica.
 
