@@ -19,12 +19,18 @@ export interface ModelPricing {
 
 // Modelos reconocidos — clave = model ID exacto que devuelve la API de Anthropic
 const PRICING: Record<string, ModelPricing> = {
+  // Corregido el 19/10/2026: aquí ponía 0,25 / 1,25 / 0,3125 / 0,025, la cuarta parte del precio
+  // real, y nadie hizo la verificación que pide la cabecera. Las cuatro cifras de abajo las verificó
+  // el arquitecto en la documentación oficial de Anthropic el 19/10/2026; la escritura de caché es
+  // la de cinco minutos. Las filas de llm_usage escritas antes de este cambio conservan su cost_usd
+  // con el precio malo: no se recalculan aquí, se recalculan al leerlas (SQL_F127_02).
   'claude-haiku-4-5-20251001': {
-    inputPerMillion:      0.25,
-    outputPerMillion:     1.25,
-    cacheWritePerMillion: 0.3125,  // 0.25 × 1.25
-    cacheReadPerMillion:  0.025,   // 0.25 × 0.10
+    inputPerMillion:      1.00,
+    outputPerMillion:     5.00,
+    cacheWritePerMillion: 1.25,    // 1,00 × 1,25, escritura de cinco minutos
+    cacheReadPerMillion:  0.10,    // 1,00 × 0,10
   },
+  // Verificado por el arquitecto en la documentación oficial de Anthropic el 19/10/2026: coincide.
   'claude-sonnet-4-6': {
     inputPerMillion:      3.00,
     outputPerMillion:    15.00,
