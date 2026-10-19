@@ -367,11 +367,54 @@ arquitecto; la calificación de las predicciones va aparte):
   grupo I», que habla de otro contenedor, en vez de la frase de la bolsa amarilla. El lado existente
   sí era el sembrado. **La línea base del 14/10, releída con el mismo clasificador nuevo, da 3/3 en
   las siete: la comparación es válida y la caída es real.**
-- **NOR-10: las tres frases sembradas A, B y D entraron enteras en lo entregado** (bloque 4: dentro,
+  - ⚠️ *Precisión de Code (20/10/2026), leído el texto de NOR-11 y el registro de siembra antes de
+    opinar, como pidió el arquitecto*: esa frase **es la mitad negativa de la trampa sembrada**, no
+    otro contenedor. El registro (`corpus-pruebas/SIEMBRA_caso_control.md`, Contradicción 3)
+    define la Versión 1 de NEGACIÓN como el apartado 10.2 de NOR-11: «Los residuos del grupo III se
+    depositan siempre en el contenedor o bolsa de color amarillo descrito en el apartado 3.3. **En
+    ningún caso se depositan en el contenedor negro** de zona común, que está reservado
+    exclusivamente a los residuos asimilables a urbanos del grupo I. Introducir material
+    biosanitario especial en el contenedor negro constituye una infracción del protocolo.» El sujeto
+    de la frase citada es «los residuos del grupo III», que va en la frase anterior. **Por el
+    registro de siembra, esas cuatro son NEGACIÓN**; el clasificador las da OTRA porque exige
+    «amarill-» en la cita del nuevo, y la frase negativa no lo lleva. Pendiente de la decisión del
+    arquitecto (el par de datos de NEGACIÓN, punto 4 del encargo del 20/10).
+- ~~**NOR-10: las tres frases sembradas A, B y D entraron enteras en lo entregado** (bloque 4: dentro,
   dentro, dentro; C fuera, como debe) **y el juez no publicó ninguna.** Publicó otras tres, con citas
-  del lado nuevo sin sujeto (el requisito nuevo del 3.1.2).
+  del lado nuevo sin sujeto (el requisito nuevo del 3.1.2).~~
+  - **CORREGIDO EL 20/10/2026 (arquitecto): la interpretación de las nueve OTRA de NOR-10 era
+    equivocada.** Lo que de verdad pasó: **las tres contradicciones que publicó Haiku 5.5 en NOR-10
+    SON la contradicción A.** El registro de siembra (`corpus-pruebas/SIEMBRA_corpus_ampliado.md`,
+    §1, «Naturaleza del conflicto» de A) dice que A se manifiesta «en el mismo tipo de decisión
+    (autorizar excepciones, firmar auditorías, retirar un autoclave de servicio)», y ésas son
+    exactamente las tres publicadas, en ese orden. En NOR-10 2.1 el sujeto es «el Director Clínico»
+    y en CLI-12 3.1, «el Coordinador de Calidad». **Haiku 5.5 encontró A tres veces, desglosada;
+    Haiku 4.5 la publicaba una vez. En NOR-10, 5.5 detecta MEJOR, no peor.** El clasificador tiene
+    razón al decir OTRA, porque la cita no lleva el cargo; lo que estaba mal era la conclusión.
+    (Las frases completas sí lo llevan, leídas por Code el 20/10: «Es el Director Clínico quien…,
+    quien autoriza cualquier excepción documentada al procedimiento…» y «El Director Clínico puede
+    delegar…, pero la responsabilidad última —incluida la firma de los registros de auditoría
+    trimestral…— no es delegable y recae siempre sobre esta figura».)
+  - **B entró entera por el lado de NOR-10 y no se publicó porque su pareja está en el apartado 12.1
+    de CLI-12, y de CLI-12 sólo llegaron tres trozos**: el **0**, la portada del documento (título,
+    versión, fecha, ámbito de aplicación); el **4**, «3. Responsables y organigrama de calidad» —el
+    final del 3.1, con el párrafo del Coordinador de Calidad que autoriza excepciones, firma las
+    auditorías y retira el autoclave, el 3.2 entero y el título del 3.3—; y el **45**, «14. Revisión
+    por la dirección» (14.1, 14.2 y el título del 14.3). Todas las citas del existente salen del
+    trozo 4. **Es el cuello del candidato, no un fallo del juez.**
+  - **C fuera**, como debe. **D no publicada y sin explicación: PENDIENTE.**
 - **El mismo documento, leído hasta 37.143 frente a CLI-12 y hasta 30.183 frente a CLI-13** en la
   misma pasada: el ejemplo canónico de la entrada del 3.1.
+
+**⚠️ EL CRITERIO DE REVERSIÓN SE HA DISPARADO (20/10/2026): NEGACIÓN en 3 de 7** en NOR-11, con el
+clasificador por dato. Las dos lecturas, del arquitecto: **en NOR-11 la caída parece real; en
+NOR-10 el modelo mejoró** (A tres veces, desglosada). **El arquitecto recomienda al director volver
+a Haiku 4.5 por disciplina; la decisión es del director**, y se anotará aquí cuando la comunique.
+- ⚠️ *Precisión de Code (20/10)*: el «3 de 7» es por la cita. Si las cuatro OTRA son la frase
+  negativa sembrada del 10.2 (ver la precisión del primer punto), **por el registro de siembra
+  NEGACIÓN sale 7 de 7** y el criterio no se habría disparado. Es justo la distinción que pide el
+  punto 4 del encargo del 20/10 —la especie por la cita y la especie por la frase o el registro—, y
+  conviene tenerla antes de decidir.
 
 ### 3.2 · El caso de empalme falso sembrado · F-125, confirmado en F-126
 Control **positivo** de (B): dos fragmentos literales que, pegados, afirman algo que ninguna de las
