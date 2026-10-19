@@ -17,7 +17,7 @@ npm run lint     # Lint + type-check
 ### Stack
 
 - **Frontend**: Next.js 15 (React 19, Tailwind CSS)
-- **LLM**: Claude Haiku 4.5 (`claude-haiku-4-5-20251001`) / Claude Sonnet 4.6 (`claude-sonnet-4-6`), fijados en código sin variable de entorno (`lib/llm/anthropic-client.ts:23-24`); el defecto es Haiku (`:88`). En el análisis: juez, rerank, verificador y síntesis → **Haiku** (`judge.ts:874`, `rerank.ts:99`, `verify-findings.ts:253`, `synthesize.ts:266`); el double-check → **Sonnet**, sólo en el exhaustivo (`double-check.ts:364`, llamado en `pipeline.ts:1269`); el agente → Sonnet (`anthropic-client.ts:25`). *(Corregido el 28/09/2026: decía «Sonnet 4.6 (analysis)».)*
+- **LLM**: Claude Haiku 4.5 (`claude-haiku-4-5-20251001`) / Claude Sonnet 4.6 (`claude-sonnet-4-6`), fijados en código en `lib/llm/modelos.ts` y sin variable de entorno, **salvo el juez**: con `ANALYSIS_JUDGE_MODEL=claude-haiku-5-5` el juez —y sólo el juez— llama a Claude Haiku 5.5 con `output_config.effort = medium`, sin `temperature` (5.5 rechaza cualquiera que no sea 1) y con `max_tokens` 16.000 (`lib/analysis/modelo-del-juez.ts`, F-128, 19/10/2026; sin la variable, Haiku 4.5 como siempre); el defecto es Haiku (`:88`). En el análisis: juez, rerank, verificador y síntesis → **Haiku** (`judge.ts:874`, `rerank.ts:99`, `verify-findings.ts:253`, `synthesize.ts:266`); el double-check → **Sonnet**, sólo en el exhaustivo (`double-check.ts:364`, llamado en `pipeline.ts:1269`); el agente → Sonnet (`anthropic-client.ts:25`). *(Corregido el 28/09/2026: decía «Sonnet 4.6 (analysis)».)*
 - **Vector DB**: Pinecone — multilingual-e5-large embeddings (1024 dims)
 - **Auth & Data**: Supabase (PostgreSQL + Row Level Security)
 - **Billing**: Stripe (credit-based consumption model, plans + credit packs)

@@ -1,5 +1,6 @@
 import { recordStageFailure } from './stage-failures';
 import { callLLMJson } from './llm-client';
+import { modeloDelJuez } from './modelo-del-juez';
 import { runInBatches } from '@/lib/run-in-batches';
 import { sanitizeJudgeContradictions, hashCitationPair, traducirSolapamientosDelJuez } from './llm-boundary';
 import { getOrderedColumns, groupChunksByTable, renderTableBlock, alignQuoteToCells, despegarPunteroDeFila } from './table-structure';
@@ -797,7 +798,10 @@ async function judgeSingleDocument(args: {
     fragmentosEnviados: candidate.fragments,
     bloqueRelevancia: existingFragsBlock,
   });
-  const lectura = pareja.lectura;
+  // F-128: el modelo se decide UNA vez por pareja y el mismo valor va a la llamada y a la lectura
+  // guardada, así que la SQL puede decir con qué modelo se midió cada pasada.
+  const delJuez = modeloDelJuez();
+  const lectura: LecturaDeLaPareja = { ...pareja.lectura, modelo: delJuez.modelo };
   if (args.parejaEntera) console.log(lineaDeLaLectura(candidate.documentName, lectura));
   if (pareja.sinTrozos) {
     const sin = [
@@ -914,7 +918,14 @@ Responde con este JSON (sin bloques de código, sin texto adicional):
 }`;
 
   try {
-    const response = await callLLMJson<JudgeResponse>(prompt, { maxOutputTokens: 4096, temperature: 0.1 });
+    const response = await callLLMJson<JudgeResponse>(prompt, {
+      maxOutputTokens: delJuez.maxOutputTokens,
+      ...(delJuez.temperature === undefined ? { sinTemperatura: true } : { temperature: delJuez.temperature }),
+      modeloExacto: delJuez.modelo,
+      ...(delJuez.outputConfig ? { outputConfig: delJuez.outputConfig } : {}),
+      // F-128: lo que gastó de verdad, sumando el reintento si lo hubo; también si después falla.
+      alTerminar: uso => { lectura.tokensDeSalida = (lectura.tokensDeSalida ?? 0) + uso.outputTokens; },
+    });
 
     // Frontera LLM→pipeline (F-39): cada array de la respuesta pasa por la suya;
     // overlappingContent, por traducirSolapamientosDelJuez (B.312).

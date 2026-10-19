@@ -15,14 +15,14 @@ import {
 } from './rate-limiter';
 import { recordToContext } from '@/lib/observability/usage-context';
 import { leerTextoDeLaRespuesta } from './texto-de-la-respuesta';
+import { HAIKU_MODEL, SONNET_MODEL } from './modelos';
 
 // ── Constantes ─────────────────────────────────────────────────────────────────
 
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY!;
 const ANTHROPIC_URL     = 'https://api.anthropic.com/v1/messages';
 
-const HAIKU_MODEL  = 'claude-haiku-4-5-20251001';
-const SONNET_MODEL = 'claude-sonnet-4-6';
+// F-128 (19/10/2026): los identificadores viven en ./modelos.ts.
 export const AGENT_MODEL = SONNET_MODEL;
 
 // 5 reintentos, backoff progresivo. Red de seguridad tras el rate limiter.
@@ -43,6 +43,25 @@ export interface CallOptions {
   system?: string | SystemBlock[];
   messages?: MessageItem[];
   cacheSystem?: boolean;
+  /** F-128: el identificador EXACTO del modelo. Prevalece sobre `model`. Hoy sólo lo usa el juez
+   *  (`lib/analysis/modelo-del-juez.ts`); sin él, todo sigue con `model` como siempre. */
+  modeloExacto?: string;
+  /** F-128: el campo `output_config` de la API. Sólo para los modelos que lo admiten: hoy, el juez
+   *  con Haiku 5.5. Sin él, el cuerpo de la petición no lleva el campo. */
+  outputConfig?: { effort: 'low' | 'medium' | 'high' | 'xhigh' | 'max' };
+  /** F-128: el cuerpo NO lleva `temperature`. Hoy sólo el juez con Haiku 5.5, que rechaza con un
+   *  400 cualquier temperatura que no sea 1. Sin esto, se manda `temperature` como siempre. */
+  sinTemperatura?: boolean;
+  /** F-128: se llama con los tokens de salida de CADA respuesta de la API de esta llamada (dos si
+   *  hubo reintento por JSON mal formado). Hoy sólo lo usa el juez, para guardarlos en su lectura. */
+  alTerminar?: (uso: { outputTokens: number }) => void;
+}
+
+/** F-128: el modelo de una llamada, decidido en UN sitio (antes eran cinco copias de la misma
+ *  línea). Lo leen el cuerpo de la petición, las etiquetas del log y el acumulador de uso, así que
+ *  el modelo que se paga y el que se apunta no pueden separarse. */
+function modeloDe(opts: CallOptions): string {
+  return opts.modeloExacto ?? (opts.model === 'sonnet' ? SONNET_MODEL : HAIKU_MODEL);
 }
 
 interface RawResult {
@@ -86,17 +105,18 @@ function buildSystemBlocks(opts: CallOptions): SystemBlock[] | null {
 }
 
 function buildPayload(prompt: string, opts: CallOptions): Record<string, unknown> {
-  const { maxOutputTokens = 4096, temperature = 0, model = 'haiku' } = opts;
-  const modelId  = model === 'sonnet' ? SONNET_MODEL : HAIKU_MODEL;
+  const { maxOutputTokens = 4096, temperature = 0 } = opts;
+  const modelId  = modeloDe(opts);
   const messages = buildMessages(prompt, opts);
   const payload: Record<string, unknown> = {
     model: modelId,
     max_tokens: maxOutputTokens,
-    temperature,
+    ...(opts.sinTemperatura ? {} : { temperature }),
     messages,
   };
   const systemBlocks = buildSystemBlocks(opts);
   if (systemBlocks) payload.system = systemBlocks;
+  if (opts.outputConfig) payload.output_config = opts.outputConfig;
   return payload;
 }
 
@@ -165,7 +185,7 @@ async function callAnthropicTextWithTokens(
     buildHeaders(opts),
   );
   // F-122 P5: todos los bloques de texto, no sólo el primero (texto-de-la-respuesta.ts).
-  const text = leerTextoDeLaRespuesta(body, `${via} · ${opts.model === 'sonnet' ? SONNET_MODEL : HAIKU_MODEL}`);
+  const text = leerTextoDeLaRespuesta(body, `${via} · ${modeloDe(opts)}`);
   if (!text) throw new Error('Empty text response from Anthropic');
   return { text, inputTokens, outputTokens, cacheCreationTokens, cacheReadTokens };
 }
@@ -196,7 +216,7 @@ export async function callAnthropicWithUsage(
 
   const d    = body as Record<string, unknown>;
   // F-122 P5: todos los bloques de texto, no sólo el primero (texto-de-la-respuesta.ts).
-  const text = leerTextoDeLaRespuesta(body, `con_uso · ${opts.model === 'sonnet' ? SONNET_MODEL : HAIKU_MODEL}`);
+  const text = leerTextoDeLaRespuesta(body, `con_uso · ${modeloDe(opts)}`);
   if (!text) throw new Error('Empty text response from Anthropic');
 
   const usageRaw = d?.usage as Record<string, number> | undefined;
@@ -217,7 +237,7 @@ export async function callAnthropicWithUsage(
   }).catch(err => console.warn('[rate-limiter] Error registrando uso RAG:', err));
 
   // Acumular en el contexto de la operación activa (si existe).
-  const modelId = opts.model === 'sonnet' ? SONNET_MODEL : HAIKU_MODEL;
+  const modelId = modeloDe(opts);
   recordToContext(modelId, {
     inputTokens,
     outputTokens,
@@ -326,12 +346,13 @@ export async function callAnthropicJson<T = unknown>(
   let finalInput:  number = estInput;
   let finalOutput: number = EST_OUTPUT_TOKENS.json;
 
-  const jsonModelId = adjustedOpts.model === 'sonnet' ? SONNET_MODEL : HAIKU_MODEL;
+  const jsonModelId = modeloDe(adjustedOpts);
 
   try {
     const r1 = await callAnthropicTextWithTokens(adjustedPrompt, adjustedOpts, 'json');
     finalInput  = r1.inputTokens;
     finalOutput = r1.outputTokens;
+    adjustedOpts.alTerminar?.({ outputTokens: r1.outputTokens });
     recordToContext(jsonModelId, {
       inputTokens:         r1.inputTokens,
       outputTokens:        r1.outputTokens,
@@ -348,6 +369,7 @@ export async function callAnthropicJson<T = unknown>(
       const r2 = await callAnthropicTextWithTokens(adjustedPrompt, adjustedOpts, 'json');
       finalInput  = r2.inputTokens;
       finalOutput = r2.outputTokens;
+      adjustedOpts.alTerminar?.({ outputTokens: r2.outputTokens });
       recordToContext(jsonModelId, {
         inputTokens:         r2.inputTokens,
         outputTokens:        r2.outputTokens,

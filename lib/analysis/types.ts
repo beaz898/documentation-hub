@@ -277,6 +277,13 @@ export interface LecturaDeLaPareja {
   candidato: { caracteres: number | null; mostrados: number; dejoFuera: boolean | null };
   /** Caracteres de la pareja; `null` con la tijera vieja. */
   presupuesto: number | null;
+  /** F-128 (19/10/2026): el modelo con el que juzgó el juez ESTA pareja (`modeloDelJuez`).
+   *  AUSENTE en los análisis anteriores a F-128, que se hicieron todos con Haiku 4.5. */
+  modelo?: string;
+  /** F-128: los tokens de salida que gastó de verdad la llamada del juez de esta pareja, con los
+   *  del reintento si lo hubo. Con Haiku 5.5 incluyen los del pensamiento: es lo que dice si se
+   *  dispara. AUSENTE si la API no llegó a responder, y en los análisis anteriores a F-128. */
+  tokensDeSalida?: number;
 }
 
 /** Caracteres del texto del analizado que armó el juez, y los que vio. En el

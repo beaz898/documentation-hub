@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { computeCostUsd } from './llm-pricing';
+import * as modelos from '@/lib/llm/modelos';
 
 /**
  * 19/10/2026: la tabla tenía Haiku 4.5 a la cuarta parte de su precio y ninguna prueba lo vigilaba.
@@ -11,10 +12,10 @@ import { computeCostUsd } from './llm-pricing';
 const CERO = { inputTokens: 0, outputTokens: 0, cacheCreationTokens: 0, cacheReadTokens: 0 };
 const M = 1_000_000;
 
-/** Las cadenas que se mandan DE VERDAD a la API, leídas del cliente (no copiadas aquí a mano). */
+/** Las cadenas que se mandan a la API: TODAS las de lib/llm/modelos.ts (F-128), leídas del
+ *  módulo y no copiadas aquí a mano. */
 function modelosQueSeEnvian(): string[] {
-  const fuente = readFileSync('lib/llm/anthropic-client.ts', 'utf8');
-  return [...fuente.matchAll(/const (?:HAIKU|SONNET)_MODEL\s*=\s*'([^']+)'/g)].map(m => m[1]);
+  return Object.values(modelos).filter(v => typeof v === 'string');
 }
 
 describe('la tabla de precios', () => {
@@ -22,10 +23,15 @@ describe('la tabla de precios', () => {
 
   it('cada modelo que se envía a la API tiene precio (si no, su coste sería 0 en silencio)', () => {
     const modelos = modelosQueSeEnvian();
-    expect(modelos).toHaveLength(2);
+    expect(modelos).toHaveLength(3);
     const aviso = vi.spyOn(console, 'warn').mockImplementation(() => {});
     for (const m of modelos) expect(computeCostUsd(m, { ...CERO, inputTokens: M }), m).toBeGreaterThan(0);
     expect(aviso).not.toHaveBeenCalled();
+  });
+
+  it('el cliente no escribe ningún modelo a mano: todos salen de lib/llm/modelos.ts', () => {
+    const fuente = readFileSync('lib/llm/anthropic-client.ts', 'utf8');
+    expect(fuente.match(/'claude-[^']*'/g) ?? []).toEqual([]);
   });
 
   it('⚠️ CONTROL POSITIVO — un modelo que no está en la tabla da 0 y avisa', () => {
@@ -40,5 +46,13 @@ describe('la tabla de precios', () => {
     expect(computeCostUsd(h, { ...CERO, outputTokens: M })).toBeCloseTo(5.0, 10);
     expect(computeCostUsd(h, { ...CERO, cacheCreationTokens: M })).toBeCloseTo(1.25, 10);
     expect(computeCostUsd(h, { ...CERO, cacheReadTokens: M })).toBeCloseTo(0.1, 10);
+  });
+
+  it('Haiku 5.5, tramo de menos de 100.000 tokens: 0,10 / 0,50 / 0,125 / 0,01 $ por millón', () => {
+    const h = 'claude-haiku-5-5';
+    expect(computeCostUsd(h, { ...CERO, inputTokens: M })).toBeCloseTo(0.1, 10);
+    expect(computeCostUsd(h, { ...CERO, outputTokens: M })).toBeCloseTo(0.5, 10);
+    expect(computeCostUsd(h, { ...CERO, cacheCreationTokens: M })).toBeCloseTo(0.125, 10);
+    expect(computeCostUsd(h, { ...CERO, cacheReadTokens: M })).toBeCloseTo(0.01, 10);
   });
 });

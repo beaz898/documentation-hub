@@ -30,6 +30,15 @@ const PRICING: Record<string, ModelPricing> = {
     cacheWritePerMillion: 1.25,    // 1,00 × 1,25, escritura de cinco minutos
     cacheReadPerMillion:  0.10,    // 1,00 × 0,10
   },
+  // F-128: sólo el juez, y sólo con ANALYSIS_JUDGE_MODEL (lib/analysis/modelo-del-juez.ts). Precios
+  // del tramo de prompts de menos de 100.000 tokens, que es el del juez; verificados por el
+  // arquitecto en la página de Anthropic el 19/10/2026. La escritura de caché es la de cinco minutos.
+  'claude-haiku-5-5': {
+    inputPerMillion:      0.10,
+    outputPerMillion:     0.50,
+    cacheWritePerMillion: 0.125,
+    cacheReadPerMillion:  0.01,
+  },
   // Verificado por el arquitecto en la documentación oficial de Anthropic el 19/10/2026: coincide.
   'claude-sonnet-4-6': {
     inputPerMillion:      3.00,
