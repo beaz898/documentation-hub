@@ -46,7 +46,10 @@
 -- por dato (19/10), con las citas reales de la línea base y la NEGACIÓN corta de
 -- Haiku 5.5 con un tema sin «color»: 3/3 en las catorce; y las dos trampas
 -- («Chamberí» en las dos citas, «72 horas» en las dos) salen OTRA. Con el
--- clasificador viejo, el mismo arnés da 2/3 y se traga las dos trampas. CON DATOS REALES NO SE HA
+-- clasificador viejo, el mismo arnés da 2/3 y se traga las dos trampas.
+-- ⚠️ EL HALLAZGO DEL DÍA (arquitecto, 19/10/2026): **el medidor viejo podía
+-- inventarse un acierto, no sólo perder uno.** Contaba como LUGAR una contradicción
+-- con «Chamberí» en los dos lados, porque bastaba el tema. CON DATOS REALES NO SE HA
 -- EJECUTADO.
 --
 -- ┌──────────────────────────────────────────────────────────────────────────┐

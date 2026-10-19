@@ -65,6 +65,15 @@
 > Si las tres salen bien, se lanzan las seis restantes de NOR-11 y después las tres de NOR-10. **Si
 > alguna falla, se para, se quita la variable y se cuenta qué pasó.**
 >
+> ⚠️ **ANOMALÍA DECLARADA: EL PRODUCTO CAMBIÓ ENTRE LA PASADA 1 Y LA 2** (arquitecto, 19/10/2026). La
+> norma es que el producto no se mueve entre pasadas; aquí se movió, y se deja pasar porque partir
+> los commits ahora sería peor remedio. La pasada 1 con Haiku 5.5 corrió con una build cuya **única
+> diferencia** con la de las pasadas 2 a 7 es el lector de la respuesta (`b8f97a37`): avisaba en el
+> log de los bloques de pensamiento, y en las 2 a 7 ya no avisa. **El texto leído es el mismo en las
+> dos builds**: el lector ya elegía los bloques por tipo y no por posición, y lo prueban
+> `lib/llm/texto-de-la-respuesta.test.ts` y sus dos mutaciones. **Si al final alguna diferencia cae
+> justo entre la pasada 1 y las demás, hay que sospechar de esto antes que del modelo.**
+>
 > **Cómo se lee.** NOR-11 con `SQL_F128_01_nor11_con_haiku55.sql` y NOR-10 con
 > `SQL_F128_02_nor10_con_haiku55.sql`: son `SQL_F126_01` y `SQL_F127_01` con la misma lógica, y
 > las originales se quedan como están porque son los instrumentos con los que se midieron las dos

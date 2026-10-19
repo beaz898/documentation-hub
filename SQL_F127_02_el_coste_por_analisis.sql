@@ -10,7 +10,10 @@
 -- no da factor 4 (un cost_usd a 0, que es lo que deja un modelo sin precio), y
 -- cuando falta la fila de Haiku de un análisis; y un análisis con DOS filas,
 -- una de 4.5 y otra de 5.5 (el juez con ANALYSIS_JUDGE_MODEL), da la suma de
--- las dos (ampliación del 19/10/2026). CON DATOS REALES NO SE HA
+-- las dos (ampliación del 19/10/2026). Y la ventana de la TANDA de Haiku 5.5:
+-- con siete y tres análisis de dos filas cada uno, los controles salen OK, el
+-- bloque 2b separa la fila de 4.5 de la del juez, la pasada 0 de las 12:03 queda
+-- fuera, y si a un análisis le falta la fila de 5.5 cae el control 4. CON DATOS REALES NO SE HA
 -- EJECUTADO.
 --
 -- ┌──────────────────────────────────────────────────────────────────────────┐
@@ -60,12 +63,32 @@
 --     (Cambiado el 19/10: la primera versión no tenía su precio de caché y
 --     marcaba «incompleto» las filas con caché.)
 --
--- LAS DOS VENTANAS, en hora de Madrid, sobre la hora GUARDADA:
+-- LAS VENTANAS, en hora de Madrid, sobre la hora GUARDADA:
 --   · NOR-10, 16/10/2026 de 12:40 a 12:50 (las tres pasadas, 12:45, 12:46 y 12:46);
---   · NOR-11, 14/10/2026 de 08:25 a 08:50 (las siete, de 08:28:55 a 08:46:38).
+--   · NOR-11, 14/10/2026 de 08:25 a 08:50 (las siete, de 08:28:55 a 08:46:38);
+--   · LA TANDA DE HAIKU 5.5 (F-128, añadida el 19/10/2026), entre DOS MARCAS que pone
+--     el director: siete pasadas de NOR-11 y tres de NOR-10, en dos ventanas con las
+--     mismas marcas. Es la MEDIDA del coste con el juez en Haiku 5.5, no el recálculo:
+--     cada análisis de la tanda deja DOS filas en llm_usage, la de Haiku 4.5 (rerank,
+--     verificador y síntesis) y la de Haiku 5.5 (el juez), y el bloque 2b las separa,
+--     porque el interés está en esa proporción.
+--
+-- ┌──────────────────────────────────────────────────────────────────────────┐
+-- │ LO ÚNICO QUE TOCA EL DIRECTOR: las DOS MARCAS de la tanda, en la         │
+-- │ constante `parametros`, en hora de Madrid y con este formato exacto:    │
+-- │     timestamptz 'AAAA-MM-DD HH:MM:SS+02'                                  │
+-- │   · DESDE: '2026-10-19 12:04:00+02', justo después de la pasada 0 (que    │
+-- │     se guardó a las 12:03, con el juez en Haiku 4.5, y no es de la tanda);│
+-- │   · HASTA: un minuto DESPUÉS de la última pasada de la tanda.             │
+-- │ ⚠️ «+02» vale hasta el domingo 25/10/2026 a las 03:00; desde ahí, «+01». │
+-- └──────────────────────────────────────────────────────────────────────────┘
 --
 -- ⚠️ CONTROL (bloque 0), que PUEDE FALLAR:
---   0.1 cada análisis de las dos ventanas tiene su fila de Haiku (3 y 7);
+--   0.1 cada análisis de cada ventana tiene su fila de Haiku 4.5 (3 y 7, y
+--       también 7 y 3 en la tanda: el rerank, el verificador y la síntesis
+--       siguen en 4.5);
+--   0.4 en la tanda, cada análisis tiene además su fila de Haiku 5.5, la del
+--       juez (si falta, el juez no corrió con 5.5 y la ventana no es la tanda);
 --   0.2 ninguna fila de llm_usage queda asignada a dos análisis;
 --   0.3 en las filas DE HAIKU 4.5 escritas antes del arreglo de precios
 --       (el único precio que cambió), recalculado ÷ guardado = 4,000 (si sale otra cosa, el cost_usd guardado no es el que
@@ -74,7 +97,12 @@
 
 WITH parametros AS (
   SELECT 'a9625e93-af2a-4416-a465-5c2fa2a25bdf'::text AS org,   -- ← LA CONSTANTE
-         timestamptz '2026-10-19 00:00:00+02' AS arreglo_de_precios  -- ← antes del despliegue de d1505999
+         timestamptz '2026-10-19 00:00:00+02' AS arreglo_de_precios,  -- ← antes del despliegue de d1505999
+         -- ↓↓↓ LAS DOS MARCAS DE LA TANDA DE HAIKU 5.5 (ver la cabecera) ↓↓↓
+         -- ⚠️ «+02» vale hasta el domingo 25/10/2026 a las 03:00; desde ahí es «+01».
+         timestamptz '2026-10-19 12:04:00+02' AS tanda_desde,         -- ← DESDE
+         timestamptz '2026-10-19 23:59:00+02' AS tanda_hasta          -- ← HASTA
+         -- ↑↑↑ ↑↑↑
 ),
 precios (modelo, entrada, salida, cache_escritura, cache_lectura) AS (
   VALUES ('claude-haiku-4-5-20251001', 1.00, 5.00, 1.25, 0.10),
@@ -82,9 +110,13 @@ precios (modelo, entrada, salida, cache_escritura, cache_lectura) AS (
          ('claude-sonnet-4-6',         3.00, 15.00, 3.75, 0.30)
 ),
 haiku55 (entrada, salida, cache_escritura, cache_lectura) AS (VALUES (0.10, 0.50, 0.125, 0.01)),
-ventanas (nombre, patron, desde, hasta, esperado) AS (
-  VALUES ('NOR-10 · 16/10', 'NOR-10%', timestamptz '2026-10-16 12:40:00+02', timestamptz '2026-10-16 12:50:00+02', 3),
-         ('NOR-11 · 14/10', 'NOR-11%', timestamptz '2026-10-14 08:25:00+02', timestamptz '2026-10-14 08:50:00+02', 7)
+ventanas (nombre, patron, desde, hasta, esperado, es_tanda) AS (
+  VALUES ('NOR-10 · 16/10', 'NOR-10%', timestamptz '2026-10-16 12:40:00+02', timestamptz '2026-10-16 12:50:00+02', 3, false),
+         ('NOR-11 · 14/10', 'NOR-11%', timestamptz '2026-10-14 08:25:00+02', timestamptz '2026-10-14 08:50:00+02', 7, false)
+  UNION ALL
+  SELECT 'NOR-11 · tanda de Haiku 5.5', 'NOR-11%', p.tanda_desde, p.tanda_hasta, 7, true FROM parametros p
+  UNION ALL
+  SELECT 'NOR-10 · tanda de Haiku 5.5', 'NOR-10%', p.tanda_desde, p.tanda_hasta, 3, true FROM parametros p
 ),
 analisis AS (
   SELECT v.nombre AS ventana, v.esperado, ar.id, ar.created_at, ar.document_name,
@@ -120,6 +152,12 @@ pareja AS (
 ),
 por_analisis AS (
   SELECT ventana, n, analisis_id, sum(recalculado) AS coste, sum(cost_usd) AS guardado,
+         sum(recalculado) FILTER (WHERE model = 'claude-haiku-4-5-20251001') AS coste_45,
+         sum(recalculado) FILTER (WHERE model = 'claude-haiku-5-5') AS coste_55,
+         sum(output_tokens) FILTER (WHERE model = 'claude-haiku-4-5-20251001') AS salida_45,
+         sum(output_tokens) FILTER (WHERE model = 'claude-haiku-5-5') AS salida_55,
+         sum(input_tokens) FILTER (WHERE model = 'claude-haiku-4-5-20251001') AS entrada_45,
+         sum(input_tokens) FILTER (WHERE model = 'claude-haiku-5-5') AS entrada_55,
          sum(coalesce(con_haiku55, recalculado)) AS coste_haiku55,
          string_agg(model, ' + ' ORDER BY model) AS modelos
   FROM pareja GROUP BY ventana, n, analisis_id
@@ -141,6 +179,13 @@ control AS (
             AND (pa.cost_usd IS NULL OR pa.cost_usd = 0 OR round((pa.recalculado / pa.cost_usd)::numeric, 3) <> 4.000)),
          (SELECT count(*) FROM pareja pa, parametros p WHERE pa.hora_uso < p.arreglo_de_precios AND pa.model = 'claude-haiku-4-5-20251001'
             AND (pa.cost_usd IS NULL OR pa.cost_usd = 0 OR round((pa.recalculado / pa.cost_usd)::numeric, 3) <> 4.000)) = 0
+  UNION ALL
+  SELECT 4, 'ventana ' || v.nombre || ': análisis con fila de Haiku 5.5 (la del juez) ' ||
+         (SELECT count(*) FROM pareja pa WHERE pa.ventana = v.nombre AND pa.model = 'claude-haiku-5-5') ||
+         ' de ' || (SELECT count(*) FROM analisis a WHERE a.ventana = v.nombre),
+         (SELECT count(*) FROM pareja pa WHERE pa.ventana = v.nombre AND pa.model = 'claude-haiku-5-5')
+           = (SELECT count(*) FROM analisis a WHERE a.ventana = v.nombre)
+  FROM ventanas v WHERE v.es_tanda
 )
 SELECT bloque, pasada, a, b, c
 FROM (
@@ -169,6 +214,18 @@ FROM (
            string_agg(DISTINCT v.modelos, ' | '),
          2, 0, v.ventana
   FROM por_analisis v GROUP BY v.ventana
+  UNION ALL
+  -- 2b · LA TANDA DE HAIKU 5.5: las dos filas de cada análisis por separado, y la parte del juez
+  SELECT '2b · la tanda: reparto entre Haiku 4.5 y el juez en Haiku 5.5', v.ventana, 'n ' || count(*),
+         'fila de 4.5 (rerank, verificador, síntesis): media ' || round(avg(v.coste_45)::numeric, 5) || ' $ · ' ||
+           round(avg(v.entrada_45)) || ' de entrada y ' || round(avg(v.salida_45)) || ' de salida · ' ||
+           'fila de 5.5 (el juez): media ' || coalesce(round(avg(v.coste_55)::numeric, 5)::text, '—') || ' $ · ' ||
+           coalesce(round(avg(v.entrada_55))::text, '—') || ' de entrada y ' || coalesce(round(avg(v.salida_55))::text, '—') || ' de salida',
+         'el juez es el ' || coalesce(round((100 * sum(v.coste_55) / nullif(sum(v.coste), 0))::numeric, 1)::text, '—') ||
+           ' % del coste del análisis · coste total: media ' || round(avg(v.coste)::numeric, 5) || ' $, mediana ' ||
+           round((percentile_cont(0.5) WITHIN GROUP (ORDER BY v.coste))::numeric, 5) || ' $',
+         2, 1, v.ventana
+  FROM por_analisis v JOIN ventanas w ON w.nombre = v.ventana AND w.es_tanda GROUP BY v.ventana
   UNION ALL
   -- 3 · TODA LA ORGANIZACIÓN: cada fila de Haiku de analyze_quick es un análisis (límite 2: incluye el examen)
   SELECT '3 · todos los analyze_quick de la organización, por mes', to_char(u.created_at AT TIME ZONE 'Europe/Madrid', 'YYYY-MM'),
