@@ -130,6 +130,16 @@ la única pareja con verdad documentada que pone a prueba las frases largas con 
 caracteres renderizados contra 40.000. Y la regla de hoy no es monótona: tiene un barranco en 30 de
 30 parejas, y subir a 80.000 con ella deja fuera la frase B que hoy entra (F-127, (c) 2.1 y 2.2).
 
+**EL EJEMPLO CANÓNICO DEL PROBLEMA, medido en producción** (tanda de F-128, 19/10/2026; bloque 1 de
+`SQL_F128_02`, dos filas de la misma pasada): **en la misma pasada de NOR-10, el mismo documento
+se lee hasta 37.143 caracteres frente a CLI-12 y hasta 30.183 frente a CLI-13**, porque el bloque del
+otro documento mide 2.857 en un caso y 9.817 en el otro. **Siete mil caracteres de NOR-10 existen
+para una comparación y no para la otra.** Es el mecanismo del barranco —el candidato que entra
+entero se come el analizado— medido en producción y no en simulación. (Precisión de Code: el
+barranco en sentido estricto, subir el presupuesto y leer menos, sigue sin observarse, porque en
+producción sólo ha existido P = 40.000; lo que se ve aquí es el mecanismo que lo produce, como
+decía la consulta de F-127 en su 2.3.)
+
 #### 3.1.1 · Registrar tokens por llamada · F-127 P7 paso 1 y P9.1 · SIN EMPEZAR
 **Es lo primero.** Cero cambio de comportamiento: la API ya devuelve `input_tokens`,
 `output_tokens`, `cache_creation_input_tokens` y `cache_read_input_tokens`; llegan a
@@ -160,6 +170,21 @@ empieza en 36.485; el corte real cae en 37.143, y retrocediendo quedaría en 36.
 
 **Son dos cosas distintas y van en DOS commits**: primero la dirección del corte; después la
 declaración, que cambia el prompt y hay que medirla sola.
+
+**EL CASO QUE LO PRUEBA, medido en la tanda de F-128 (19/10/2026; bloques 4 y 7 de `SQL_F128_02`)**:
+el corte de NOR-10 frente a CLI-12 cae en **37.143, dentro del trozo 36**, y el último límite de trozo
+anterior es **36.483**. La frase sembrada B empieza después: su dato, «semanalmente, todos los
+lunes», en **36.599** (bloque 4), y la frase entera un poco antes, hacia el 36.553. **Retroceder al
+límite anterior dejaría B fuera; avanzar al final del trozo la conserva.** Por eso el 3.1.2 avanza y
+no retrocede.
+
+**REQUISITO NUEVO, del 19/10 (tanda de F-128): LA CITA TIENE QUE LLEVAR EL SUJETO.** En NOR-10 con
+Haiku 5.5 el juez publicó contradicciones cuyas citas del lado nuevo son fragmentos sin sujeto
+—«quien autoriza cualquier excepción documentada al procedimiento», «la firma de los registros de
+auditoría trimestral»—, y contra «El Coordinador de Calidad es quien autoriza…» esas citas no dejan
+ver dónde está el desacuerdo. Contesta la pregunta del director del 19/10 sobre si la cita necesita
+llevar el sujeto: **la necesita.** Lo que se entregue al juez, y lo que se le pida citar, tiene que
+permitir una cita con sujeto.
 
 #### 3.1.3 · El interino: ventana de 80.000 con reparto monótono · F-127 P4, P5 y P7 paso 3, adenda Q4 · SIN EMPEZAR
 **CAMBIA DE FORMA el 18/10 (adenda de Fable, Q4)**: no es pasar un parámetro, es **calcular el resto
@@ -232,6 +257,9 @@ complementan al juez lector, nunca lo reemplazan; se empieza sólo por cifras. L
 céntimos y no toca nada, y **se lanza después del primer cliente y cuando no haya medición en
 curso**, no antes. Y queda escrito (D3) que **el producto NO pasa a detectar sólo cifras**: «sólo
 cifras» es el arranque de las fichas, no del producto.
+**Motivo adicional, del 19/10 (tanda de F-128)**: una ficha guarda el sujeto junto al dato
+(«autoclave, temperatura, 134 °C…»). Con citas sin sujeto —las de NOR-10 con Haiku 5.5, en el 3.1.2—
+el usuario no ve dónde está el desacuerdo; con fichas, el sujeto viaja con el dato por construcción.
 
 #### 3.1.8 · El modelo del juez · arquitecto, 19/10 · NUEVO · SIN EMPEZAR Y SIN DECIDIR
 **Claude Haiku 5.5**, identificador `claude-haiku-5-5`. **Verificado por el arquitecto en la página de
@@ -330,6 +358,20 @@ por el arquitecto el 19/10).
 no hay nada que decidir, hay algo que medir. A Fable se le manda con el resultado dentro.
 Predicciones escritas antes: `claude/Predicciones_F128_El_Modelo_Del_Juez.md`. **Esto NO abre la
 puerta a las fichas por afirmación (3.1.7)**, que siguen sin tocar.
+
+**LO QUE DIO LA TANDA DE F-128 (19/10/2026)**, leída con `SQL_F128_01` y `SQL_F128_02` (lectura del
+arquitecto; la calificación de las predicciones va aparte):
+- **NOR-11: en cuatro de las siete pasadas con Haiku 5.5 el marcador fue 2/3, no 3/3.** La tercera
+  especie salió OTRA: el juez citó del documento nuevo «En ningún caso se depositan en el contenedor
+  negro de zona común, que está reservado exclusivamente a los residuos asimilables a urbanos del
+  grupo I», que habla de otro contenedor, en vez de la frase de la bolsa amarilla. El lado existente
+  sí era el sembrado. **La línea base del 14/10, releída con el mismo clasificador nuevo, da 3/3 en
+  las siete: la comparación es válida y la caída es real.**
+- **NOR-10: las tres frases sembradas A, B y D entraron enteras en lo entregado** (bloque 4: dentro,
+  dentro, dentro; C fuera, como debe) **y el juez no publicó ninguna.** Publicó otras tres, con citas
+  del lado nuevo sin sujeto (el requisito nuevo del 3.1.2).
+- **El mismo documento, leído hasta 37.143 frente a CLI-12 y hasta 30.183 frente a CLI-13** en la
+  misma pasada: el ejemplo canónico de la entrada del 3.1.
 
 ### 3.2 · El caso de empalme falso sembrado · F-125, confirmado en F-126
 Control **positivo** de (B): dos fragmentos literales que, pegados, afirman algo que ninguna de las
