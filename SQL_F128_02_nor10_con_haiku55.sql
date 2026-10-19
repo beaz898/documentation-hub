@@ -53,13 +53,11 @@
 -- (19/10): la relectura del 16/10 sale sin un FALLA, con el 0.9 en NO APLICA y no en
 -- OK; una franja al revés sale NO APLICA; y la franja desde el 13/10 caza una pasada
 -- metida el 15/10. LA SEGUNDA COLUMNA (19/10), con los trozos y el full_text reales de
--- NOR-10 y CLI-12: la A de la línea base sale A en las dos columnas; de las tres A de
--- la tanda (reconstruidas de la descripción del arquitecto, sin sujeto), las tres
--- OTRA por la cita, y por la frase dos A y una OTRA (ver abajo); las especies por la
--- cita, IGUAL que con el fichero anterior. Tres mutaciones caen: sin el principio de
--- frase (cortar por párrafo daría A también a la de las excepciones: la frase
--- anterior es «El responsable último del cumplimiento…»), sin el final y sin el par
--- en la frase. CON DATOS REALES NO SE HA EJECUTADO.
+-- NOR-10 y CLI-12, y con el par de A por el CARGO (19/10): la A de la línea base sale
+-- A en las dos columnas, y las tres A de la tanda (reconstruidas de la descripción del
+-- arquitecto, sin sujeto), OTRA por la cita y A por la frase: hallazgo bueno, cita
+-- mala. Tres mutaciones caen: sin el principio de frase, sin el final y sin el par en
+-- la frase. CON DATOS REALES NO SE HA EJECUTADO.
 --
 -- ⚠️ LA SEGUNDA COLUMNA: LA ESPECIE POR LA FRASE (19/10/2026, aprobada por el
 -- arquitecto). **POR QUÉ EXISTE: el 19/10 el clasificador dio OTRA a TRECE
@@ -77,16 +75,32 @@
 --     SQL_F128_01 con el texto real). Sirve para LEER una OTRA, no para contar.
 --   · Límite declarado: el corte por «. » falla con abreviaturas («p. ej.») y no
 --     conoce «?», «!» ni «;».
---   · ⚠️ **LO QUE NO RESUELVE, medido con el texto real (19/10)**: el par de A pide
---     «responsab-» en el lado de NOR-10, y de las dos frases de NOR-10 donde caen las
---     tres A de la tanda sólo una lo lleva. La de «quien autoriza cualquier excepción
---     documentada al procedimiento» empieza en «Es el Director Clínico quien…»: lleva
---     el cargo y no «responsab-», y sale **OTRA también por la frase**. Las de la
---     firma de las auditorías y la retirada del autoclave caen en «…pero la
---     responsabilidad última —incluida la firma… y la decisión de retirar…— no es
---     delegable…» y salen A. Que el par de A siga el registro de siembra (el cargo,
---     «Director Clínico» frente a «Coordinador de Calidad») es una decisión del
---     arquitecto, PENDIENTE: no está hecho.
+--   · **EL PAR DE A ES EL CARGO, desde el 19/10 (decidido por el arquitecto)**:
+--     «Director Clínico» en el lado de NOR-10 frente a «Coordinador de Calidad» en el de
+--     CLI-12, como lo declara el registro (Contradicción A). Antes pedía «responsab-», y
+--     la A de las excepciones («Es el Director Clínico quien…, quien autoriza cualquier
+--     excepción…») salía OTRA también por la frase.
+--   · ⚠️ **Y EL PRECIO, medido con el texto real**: el cargo aparece mucho —«Director
+--     Clínico» 17 veces en NOR-10 y «Coordinador de Calidad» 33 en CLI-12—, así que el
+--     par de A ya no exige que las dos citas hablen de lo mismo. Una cita de NOR-10 sobre
+--     avisar al Director Clínico de un autoclave averiado contra una de CLI-12 sobre una
+--     investigación «coordinada conjuntamente por el Coordinador de Calidad y el Director
+--     Clínico» sale **A por la cita**, y la cita cuenta para el marcador. Probado.
+--     Una A de la columna de la cita se LEE antes de darla por buena.
+--
+-- ⚠️ REGLA DEL MEDIDOR (arquitecto, 19/10/2026): **EL PAR DE DATOS DE CADA ESPECIE SE TOMA DE
+-- LOS VALORES QUE DECLARA EL REGISTRO DE SIEMBRA, NUNCA DE UNA PALABRA CLAVE ELEGIDA A OJO.** Las
+-- dos averías del 19/10 —NEGACIÓN, que pedía «amarill-», y A, que pedía «responsab-»— son la
+-- misma avería, y las dos se habrían evitado con esta regla. Los registros:
+-- `corpus-pruebas/SIEMBRA_caso_control.md` (NOR-11 ↔ CLI-13) y
+-- `corpus-pruebas/SIEMBRA_corpus_ampliado.md` §1 (NOR-10 ↔ CLI-12); el valor declarado es el que
+-- va en negrita en la tabla de cada contradicción.
+-- PARES REVISADOS CONTRA EL REGISTRO (Code, 19/10): C («6 meses» / «12 meses») y A
+-- (el cargo) son los valores declarados. B y D están RECORTADOS a ojo: el registro declara
+-- «semanalmente, todos los lunes» / «periodicidad mensual, el primer día laborable de cada
+-- mes» (aquí «semanal» o «lunes» / «mensual») y «puede recaer en el propio Director
+-- Clínico» / «nunca por el Director Clínico del propio centro» (aquí «recaer» / «nunca»).
+-- Cambiarlos es decisión del arquitecto: PENDIENTE.
 --
 -- ┌──────────────────────────────────────────────────────────────────────────┐
 -- │ LA ORGANIZACIÓN DEL PILOTO: a9625e93-…, «Workspace principal». El id     │
@@ -142,7 +156,7 @@ pares AS (
     (1, 'C', ARRAY['%6 meses%'],              '%12 meses%'),
     (2, 'B', ARRAY['%semanal%', '%lunes%'],   '%mensual%'),
     (3, 'D', ARRAY['%recaer%'],               '%nunca%'),
-    (4, 'A', ARRAY['%responsab%'],            '%coordinador de calidad%')
+    (4, 'A', ARRAY['%director clinico%'],     '%coordinador de calidad%')    -- el CARGO, del registro (19/10)
   ) AS x(orden, especie, nuevo, existente)
 ),
 nor10 AS (

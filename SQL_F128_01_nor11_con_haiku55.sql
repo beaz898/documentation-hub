@@ -92,9 +92,28 @@
 --     en Chamberí o Salamanca y tienes dudas sobre una recogida» de CLI-13 vive en
 --     una frase que acaba en «el personal de Retiro», y con «Chamberí» en el otro
 --     lado sale LUGAR por la frase y OTRA por la cita. Sirve para LEER una OTRA,
---     no para contar.
+--     no para contar. **Y ese caso es CONTROL NEGATIVO PERMANENTE del arnés**
+--     (arquitecto, 19/10): una pasada sin LUGAR de verdad y con la trampa tiene que dar
+--     LUGAR por la frase y 2/3 en el marcador; con el marcador contado por la frase, se
+--     pone en rojo (probado con esa mutación).
 --   · Límite declarado: el corte por «. » falla con abreviaturas («p. ej.») y no
 --     conoce «?», «!» ni «;»: la frase puede salir más corta o más larga.
+-- ⚠️ REGLA DEL MEDIDOR (arquitecto, 19/10/2026): **EL PAR DE DATOS DE CADA ESPECIE SE TOMA DE
+-- LOS VALORES QUE DECLARA EL REGISTRO DE SIEMBRA, NUNCA DE UNA PALABRA CLAVE ELEGIDA A OJO.** Las
+-- dos averías del 19/10 —NEGACIÓN, que pedía «amarill-», y A, que pedía «responsab-»— son la
+-- misma avería, y las dos se habrían evitado con esta regla. Los registros:
+-- `corpus-pruebas/SIEMBRA_caso_control.md` (NOR-11 ↔ CLI-13) y
+-- `corpus-pruebas/SIEMBRA_corpus_ampliado.md` §1 (NOR-10 ↔ CLI-12); el valor declarado es el que
+-- va en negrita en la tabla de cada contradicción.
+-- PARES REVISADOS CONTRA EL REGISTRO (Code, 19/10): PLAZO («72 horas» / «7 días») es el
+-- valor declarado. LUGAR está RECORTADO a ojo: el registro declara «en la clínica de
+-- Chamberí» / «en la clínica de Retiro», y aquí se pide sólo «chamberi» / «retiro». Con el
+-- valor declarado, la trampa de Chamberí («…el personal de Retiro») dejaría de salir LUGAR
+-- por la frase: el recorte es justo lo que la deja pasar. Y en NEGACIÓN, «amarill-» tampoco
+-- es lo declarado (la negrita es «En ningún caso se depositan en el contenedor negro» /
+-- «se depositan en el contenedor negro»); quitarlo dejaría en OTRA la NEGACIÓN de las siete
+-- pasadas del 14/10, que citan la bolsa amarilla del apartado 3.3 y no el 10.2 sembrado.
+-- Cambiar cualquiera de los dos es decisión del arquitecto: PENDIENTE.
 -- Y EL PAR DE NEGACIÓN SIGUE EL REGISTRO DE SIEMBRA (19/10/2026, aprobado):
 -- `corpus-pruebas/SIEMBRA_caso_control.md`, Contradicción 3, pone a propósito la
 -- negación («En ningún caso se depositan en el contenedor negro») y la afirmación

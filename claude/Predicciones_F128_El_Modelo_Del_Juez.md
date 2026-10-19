@@ -128,3 +128,20 @@ botella no es sólo el juez.
   tiempo**»): ha quedado desfasada. Desde el 19/10, `SQL_F128_01` y `SQL_F128_02` tienen **cuatro
   valores** cada uno, los que dice la tabla de su cabecera. En `SQL_F128_01` son DESDE, HASTA, COMIENZO
   DEL HUECO y ESPERADO. En `SQL_F128_02` son DESDE, HASTA, INICIO DE LA FRANJA PREVIA y EXIGIR MODELO.
+
+- **19/10/2026, la calificación** (arquitecto). Las cifras son del arquitecto, sacadas de las salidas
+  de `SQL_F128_01`, `SQL_F128_02` y `SQL_F127_02` que ejecutó el director. Code no ha visto esas
+  salidas.
+  - **P-1: ACERTADA.** PLAZO, LUGAR y NEGACIÓN, 7 de 7 por el registro de siembra. En cuatro pasadas,
+    NEGACIÓN se citó por su mitad negativa, «En ningún caso se depositan en el contenedor negro…»,
+    que es la Versión 1 sembrada. El clasificador de entonces la contó como OTRA; el defecto era del
+    medidor (`841c50c6`).
+  - **P-2: ACERTADA.** Los seis contadores de la puerta, a cero en las siete pasadas.
+  - **P-3: ACERTADA.** Cero falsos positivos.
+  - **P-4: ACERTADA.** En NOR-10, A publicada en las tres pasadas, y desglosada en tres: autorizar
+    excepciones, firmar auditorías y retirar el autoclave.
+  - **P-5: FALLADA.** La mediana de las citas no subió, bajó: de 167 a 100 en NOR-11 y de 281 a 83
+    en NOR-10.
+  - **P-6: FALLADA.** El coste por análisis bajó de 0,04633 a 0,02280 $, a la mitad y no por debajo
+    de la cuarta parte.
+  - **P-7: FALLADA.** La latencia subió de 19 s a entre 31 y 43 s.

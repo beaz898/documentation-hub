@@ -440,9 +440,17 @@ borrarlo:**
     sólo reconoce seis por la frase**: la de las excepciones cae en «Es el Director Clínico quien…»,
     que lleva el cargo y no «responsab-», y sale OTRA también por la frase. Trece de trece son
     correctas por el registro; el medidor reconoce diez. Que el par de A siga el cargo del registro
-    («Director Clínico» frente a «Coordinador de Calidad») queda **PENDIENTE de decisión del
-    arquitecto**. (Las tres A de la prueba se reconstruyeron de la descripción del arquitecto; las
-    literales están en la salida del director, que Code no tiene.)
+    («Director Clínico» frente a «Coordinador de Calidad») queda ~~**PENDIENTE de decisión del
+    arquitecto**~~ **DECIDIDO el 19/10 (arquitecto) y hecho**: el par de A es el cargo, y con él las
+    trece salen por la frase y la de las excepciones sigue OTRA por la cita (hallazgo bueno, cita
+    mala). Y sube a regla del medidor, escrita en la cabecera de los dos SQL: **el par de cada
+    especie se toma de los valores que declara el registro de siembra, nunca de una palabra elegida
+    a ojo.** Repasados contra el registro, siguen recortados a ojo LUGAR, el «amarill-» de NEGACIÓN,
+    B y D; cambiarlos, PENDIENTE del arquitecto. ⚠️ El cargo aparece 17 veces en NOR-10 y 33 en
+    CLI-12, así que **una A por la cita se lee antes de darla por buena** (probado: dos citas que
+    nombran los dos cargos sin hablar de lo mismo salen A). (Las tres A de la prueba se
+    reconstruyeron de la descripción del arquitecto; las literales están en la salida del director,
+    que Code no tiene.)
 - **Calificación de las predicciones** (`claude/Predicciones_F128_El_Modelo_Del_Juez.md`; cifras del
   arquitecto, sacadas de las salidas de `SQL_F128_01`, `SQL_F128_02` y `SQL_F127_02` que ejecutó el
   director, y que Code no ha visto):
