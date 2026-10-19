@@ -87,39 +87,53 @@
 --     siguiente) y le aplica el MISMO par de datos: la constante `pares`, en un
 --     solo sitio, que leen las dos columnas y el bloque 9. Sin la cita literal en
 --     el full_text sale «SIN FRASE», nunca OTRA. El bloque 2d cruza las dos.
---   · ⚠️ **LA SEGUNDA COLUMNA NO CUENTA PARA EL MARCADOR, Y NO DEBE**: también
---     puede inventarse un acierto. Probado con el texto real: la cita «Si trabajas
---     en Chamberí o Salamanca y tienes dudas sobre una recogida» de CLI-13 vive en
---     una frase que acaba en «el personal de Retiro», y con «Chamberí» en el otro
---     lado sale LUGAR por la frase y OTRA por la cita. Sirve para LEER una OTRA,
---     no para contar. **Y ese caso es CONTROL NEGATIVO PERMANENTE del arnés**
---     (arquitecto, 19/10): una pasada sin LUGAR de verdad y con la trampa tiene que dar
---     LUGAR por la frase y 2/3 en el marcador; con el marcador contado por la frase, se
---     pone en rojo (probado con esa mutación).
+--   · ⚠️ **LA SEGUNDA COLUMNA NO CUENTA PARA EL MARCADOR, NUNCA** (arquitecto, 19/10):
+--     también puede inventarse un acierto. Con LUGAR recortado a «chamberí» / «retiro»,
+--     la cita «Si trabajas en Chamberí o Salamanca y tienes dudas sobre una recogida» de
+--     CLI-13, en una frase que acaba en «el personal de Retiro», daba LUGAR por la frase
+--     sin serlo. Sirve para LEER una OTRA, no para contar. El arnés lo vigila con dos
+--     controles negativos permanentes, en una pasada sin LUGAR de verdad: **la trampa de
+--     Chamberí**, que hoy tiene que dar OTRA en las dos columnas; y **un LUGAR con la
+--     cita mala** («desde donde se coordina y documenta el transporte…», cuya frase sí
+--     lleva «en la clínica de Chamberí»), que da LUGAR por la frase y deja el marcador en
+--     2/3. Con el marcador contado por la frase, se pone en rojo (probado con esa
+--     mutación).
 --   · Límite declarado: el corte por «. » falla con abreviaturas («p. ej.») y no
 --     conoce «?», «!» ni «;»: la frase puede salir más corta o más larga.
--- ⚠️ REGLA DEL MEDIDOR (arquitecto, 19/10/2026): **EL PAR DE DATOS DE CADA ESPECIE SE TOMA DE
--- LOS VALORES QUE DECLARA EL REGISTRO DE SIEMBRA, NUNCA DE UNA PALABRA CLAVE ELEGIDA A OJO.** Las
--- dos averías del 19/10 —NEGACIÓN, que pedía «amarill-», y A, que pedía «responsab-»— son la
--- misma avería, y las dos se habrían evitado con esta regla. Los registros:
--- `corpus-pruebas/SIEMBRA_caso_control.md` (NOR-11 ↔ CLI-13) y
--- `corpus-pruebas/SIEMBRA_corpus_ampliado.md` §1 (NOR-10 ↔ CLI-12); el valor declarado es el que
--- va en negrita en la tabla de cada contradicción.
--- PARES REVISADOS CONTRA EL REGISTRO (Code, 19/10): PLAZO («72 horas» / «7 días») es el
--- valor declarado. LUGAR está RECORTADO a ojo: el registro declara «en la clínica de
--- Chamberí» / «en la clínica de Retiro», y aquí se pide sólo «chamberi» / «retiro». Con el
--- valor declarado, la trampa de Chamberí («…el personal de Retiro») dejaría de salir LUGAR
--- por la frase: el recorte es justo lo que la deja pasar. Y en NEGACIÓN, «amarill-» tampoco
--- es lo declarado (la negrita es «En ningún caso se depositan en el contenedor negro» /
--- «se depositan en el contenedor negro»); quitarlo dejaría en OTRA la NEGACIÓN de las siete
--- pasadas del 14/10, que citan la bolsa amarilla del apartado 3.3 y no el 10.2 sembrado.
--- Cambiar cualquiera de los dos es decisión del arquitecto: PENDIENTE.
--- Y EL PAR DE NEGACIÓN SIGUE EL REGISTRO DE SIEMBRA (19/10/2026, aprobado):
--- `corpus-pruebas/SIEMBRA_caso_control.md`, Contradicción 3, pone a propósito la
--- negación («En ningún caso se depositan en el contenedor negro») y la afirmación
--- (la bolsa amarilla) en frases separadas. El lado de NOR-11 casa con «amarill-» O
--- con «en ningún caso se depositan en el contenedor negro»; el de CLI-13, con
--- «negro», como antes. Vale para las dos columnas.
+-- ⚠️ LAS REGLAS DEL MEDIDOR (arquitecto, 19/10/2026; reescritas enteras esa misma tarde):
+--   1. **EL PAR DE DATOS DE CADA ESPECIE SE TOMA DE LOS VALORES QUE DECLARA EL REGISTRO DE
+--      SIEMBRA, ENTEROS, NUNCA DE UNA PALABRA ELEGIDA A OJO.** Los registros:
+--      `corpus-pruebas/SIEMBRA_caso_control.md` (NOR-11 ↔ CLI-13) y
+--      `corpus-pruebas/SIEMBRA_corpus_ampliado.md` §1 (NOR-10 ↔ CLI-12): la negrita de la tabla
+--      de cada contradicción y su «Naturaleza del conflicto».
+--   2. **Y TIENE QUE SER LO BASTANTE ESPECÍFICO PARA NO CASAR DOS CITAS QUE NO HABLAN DE LO
+--      MISMO.** La prueba es mecánica: se cuenta cuántas veces aparece cada término en su
+--      documento. «72 horas» sale dos veces y discrimina; «Director Clínico» sale diecisiete y
+--      no discrimina solo. **Si un término pasa de dos o tres apariciones, necesita la otra mitad
+--      de lo que declara el registro**, y entonces un lado casa sólo si lleva las dos.
+--   3. **UN HALLAZGO CORRECTO PUEDE CITAR MÁS DE UNA FRASE**: el par acepta todas las
+--      formulaciones literales de la regla que existan en el documento, no sólo la de la negrita.
+--   Las dos averías del 19/10 son los ejemplos: **NEGACIÓN pedía de menos y A pedía de más**
+--   (palabras del arquitecto). NEGACIÓN aceptaba una sola formulación, la de «amarill-», y se dejaba fuera
+--   la negativa sembrada; A pedía «responsab-», que no es lo que declara el registro.
+--   LOS RECUENTOS, en el full_text de cada documento, sin mayúsculas ni acentos (medidos por
+--   Code el 19/10 con los textos del corpus; se revisan sin volver a medir):
+--     PLAZO     NOR-11 «72 horas» 2                         CLI-13 «7 días» 2
+--     LUGAR     NOR-11 «en la clínica de Chamberí» 1        CLI-13 «en la clínica de Retiro» 1
+--               (antes «chamberí» 3 y «retiro» 3: casaba la cabecera «Chamberí · Salamanca · Retiro»)
+--     NEGACIÓN  NOR-11 «amarill-» 3, o «en ningún caso se     CLI-13 «negro» 1
+--               depositan en el contenedor negro» 1
+--   ⚠️ LUGAR, AL VALOR DECLARADO desde el 19/10 (arquitecto). Con él, la trampa de Chamberí
+--   («Si trabajas en Chamberí o Salamanca…», en una frase que acaba en «el personal de Retiro»)
+--   deja de salir LUGAR por la frase. Se queda en el arnés con la expectativa INVERTIDA: OTRA
+--   en las dos columnas. Que deje de morder es la señal de que el agujero está tapado; si
+--   vuelve a morder, el agujero ha vuelto.
+--   NEGACIÓN SE QUEDA CON SUS DOS FORMAS (arquitecto, 19/10), por la regla 3. **Hallazgo de
+--   Code, del 19/10**: la línea base del 14/10 (Haiku 4.5) citaba la frase AFIRMATIVA del
+--   apartado 3.3 («…que se depositan en bolsa de color amarillo dentro del contenedor
+--   correspondiente de cada gabinete»), y la tanda de Haiku 5.5 cita la NEGATIVA del 10.2 («En
+--   ningún caso se depositan en el contenedor negro…»), que es la Versión 1 del registro. **LAS
+--   DOS SON CORRECTAS**: son dos frases del mismo documento que enuncian la misma regla.
 --
 -- ┌──────────────────────────────────────────────────────────────────────────┐
 -- │ LA ORGANIZACIÓN DEL PILOTO: a9625e93-…, «Workspace principal». El id     │
@@ -177,13 +191,16 @@ WITH parametros AS (
 ),
 -- EL PAR DE DATOS DE CADA ESPECIE, EN UN SOLO SITIO (19/10/2026): lo leen la columna de la
 -- cita, la de la frase y el bloque 9. El texto del NUEVO casa con alguno de `nuevo` y el del
--- EXISTENTE con `existente`; sin mayúsculas ni acentos. Gana la primera por `orden`.
+-- EXISTENTE con `existente`; y si `nuevo_y` o `existente_y` no son NULL, ese lado tiene que casar
+-- además con una de ellas (la otra mitad del registro, regla 2). Sin mayúsculas ni acentos.
+-- Gana la primera por `orden`.
 pares AS (
   SELECT * FROM (VALUES
-    (1, 'PLAZO',    ARRAY['%72 horas%'],                                                       '%7 dias%'),
-    (2, 'LUGAR',    ARRAY['%chamberi%'],                                                       '%retiro%'),
-    (3, 'NEGACIÓN', ARRAY['%amarill%', '%en ningun caso se depositan en el contenedor negro%'], '%negro%')
-  ) AS x(orden, especie, nuevo, existente)
+    -- orden, especie, NUEVO: alguna de, y además alguna de (NULL: nada más), EXISTENTE: alguna de, y además alguna de
+    (1, 'PLAZO',    ARRAY['%72 horas%'], NULL::text[], ARRAY['%7 dias%'], NULL::text[]),
+    (2, 'LUGAR',    ARRAY['%en la clinica de chamberi%'], NULL, ARRAY['%en la clinica de retiro%'], NULL),
+    (3, 'NEGACIÓN', ARRAY['%amarill%', '%en ningun caso se depositan en el contenedor negro%'], NULL, ARRAY['%negro%'], NULL)
+  ) AS x(orden, especie, nuevo, nuevo_y, existente, existente_y)
 ),
 nor11 AS (
   SELECT ar.id, ar.created_at, ar.document_id, ar.contradictions_found, ar.overlaps_found, ar.pipeline_counters AS pc, ar.analysis
@@ -237,7 +254,8 @@ marcas AS (
 ),
 pub AS (
   SELECT p.*,
-         coalesce((SELECT pr.especie FROM pares pr WHERE p.tn LIKE ANY (pr.nuevo) AND p.te LIKE pr.existente ORDER BY pr.orden LIMIT 1), 'OTRA') AS especie,
+         coalesce((SELECT pr.especie FROM pares pr WHERE p.tn LIKE ANY (pr.nuevo) AND (pr.nuevo_y IS NULL OR p.tn LIKE ANY (pr.nuevo_y))
+                                AND p.te LIKE ANY (pr.existente) AND (pr.existente_y IS NULL OR p.te LIKE ANY (pr.existente_y)) ORDER BY pr.orden LIMIT 1), 'OTRA') AS especie,
          (SELECT m.marca FROM marcas m
            WHERE m.ventana = p.ventana AND m.n = p.n AND m.candidato = p.candidato
              AND m.cita_nuevo = p.cita_nuevo AND m.cita_existente = p.cita_existente AND m.marca IS NOT NULL LIMIT 1) AS marca
@@ -283,7 +301,8 @@ pubf AS (
   SELECT p.*, fr.frase_nuevo, fr.frase_existente,
          CASE WHEN fr.frase_nuevo IS NULL OR fr.frase_existente IS NULL THEN 'SIN FRASE'
               ELSE coalesce((SELECT pr.especie FROM pares pr
-                              WHERE translate(lower(fr.frase_nuevo), 'áéíóúüñ', 'aeiouun') LIKE ANY (pr.nuevo) AND translate(lower(fr.frase_existente), 'áéíóúüñ', 'aeiouun') LIKE pr.existente
+                              WHERE translate(lower(fr.frase_nuevo), 'áéíóúüñ', 'aeiouun') LIKE ANY (pr.nuevo) AND (pr.nuevo_y IS NULL OR translate(lower(fr.frase_nuevo), 'áéíóúüñ', 'aeiouun') LIKE ANY (pr.nuevo_y))
+                                AND translate(lower(fr.frase_existente), 'áéíóúüñ', 'aeiouun') LIKE ANY (pr.existente) AND (pr.existente_y IS NULL OR translate(lower(fr.frase_existente), 'áéíóúüñ', 'aeiouun') LIKE ANY (pr.existente_y))
                               ORDER BY pr.orden LIMIT 1), 'OTRA') END AS especie_frase
   FROM pubft p LEFT JOIN frases fr ON fr.ventana = p.ventana AND fr.n = p.n AND fr.ord = p.ord
 ),
@@ -508,7 +527,8 @@ FROM (
   UNION ALL
   -- 9 · LO QUE LA PUERTA MATÓ COMO CONTRADICCIÓN en la ventana nueva (¿muere LUGAR?)
   SELECT '9 · contradicciones que mató la puerta (nueva)', 'nueva ' || d.n,
-         coalesce((SELECT pr.especie FROM pares pr WHERE d.tn LIKE ANY (pr.nuevo) AND d.te LIKE pr.existente ORDER BY pr.orden LIMIT 1), 'OTRA'),
+         coalesce((SELECT pr.especie FROM pares pr WHERE d.tn LIKE ANY (pr.nuevo) AND (pr.nuevo_y IS NULL OR d.tn LIKE ANY (pr.nuevo_y))
+                                AND d.te LIKE ANY (pr.existente) AND (pr.existente_y IS NULL OR d.te LIKE ANY (pr.existente_y)) ORDER BY pr.orden LIMIT 1), 'OTRA'),
          coalesce(d.candidato, '—') || ' · lado fallido ' || coalesce(d.d->>'ladoFallido', '—') ||
            ' · nuevo: ' || coalesce(d.d->'nuevo'->>'paso', '—') || ' · existente: ' || coalesce(d.d->'existente'->>'paso', '—'),
          d.d->>'tema',

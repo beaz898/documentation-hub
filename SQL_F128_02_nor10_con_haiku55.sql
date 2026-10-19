@@ -75,32 +75,52 @@
 --     SQL_F128_01 con el texto real). Sirve para LEER una OTRA, no para contar.
 --   · Límite declarado: el corte por «. » falla con abreviaturas («p. ej.») y no
 --     conoce «?», «!» ni «;».
---   · **EL PAR DE A ES EL CARGO, desde el 19/10 (decidido por el arquitecto)**:
---     «Director Clínico» en el lado de NOR-10 frente a «Coordinador de Calidad» en el de
---     CLI-12, como lo declara el registro (Contradicción A). Antes pedía «responsab-», y
---     la A de las excepciones («Es el Director Clínico quien…, quien autoriza cualquier
---     excepción…») salía OTRA también por la frase.
---   · ⚠️ **Y EL PRECIO, medido con el texto real**: el cargo aparece mucho —«Director
---     Clínico» 17 veces en NOR-10 y «Coordinador de Calidad» 33 en CLI-12—, así que el
---     par de A ya no exige que las dos citas hablen de lo mismo. Una cita de NOR-10 sobre
---     avisar al Director Clínico de un autoclave averiado contra una de CLI-12 sobre una
---     investigación «coordinada conjuntamente por el Coordinador de Calidad y el Director
---     Clínico» sale **A por la cita**, y la cita cuenta para el marcador. Probado.
---     Una A de la columna de la cita se LEE antes de darla por buena.
+--   · **EL PAR DE A ES EL CARGO Y LA DECISIÓN** (arquitecto, 19/10, rectificando su decisión de
+--     media hora antes, que lo dejaba sólo en el cargo). El registro dice, entero: «dos figuras
+--     distintas señaladas como autoridad última sobre el mismo proceso, en el mismo tipo de
+--     decisión (autorizar excepciones, firmar auditorías, retirar un autoclave de servicio)». Un
+--     lado casa si lleva su cargo Y una de las formulaciones; si falta cualquiera, OTRA.
+--   · ⚠️ **UNA FORMULACIÓN MÁS DE LAS QUE DIJO EL ARQUITECTO, puesta por Code y a su decisión**:
+--     «responsable último» / «responsabilidad última». Es la frase de la NEGRITA del registro
+--     (la Versión 1 de NOR-10 2.1 y la Versión 2 de CLI-12 3.1), y no lleva ninguna de las tres
+--     decisiones: sin ella, la frase sembrada y la A de la línea base del 16/10 salen OTRA en
+--     las dos columnas (probado). Es la regla 3 aplicada a A. Quitarla es una línea.
+--   · Y el contraejemplo que motivó la rectificación —«se notifica al Director Clínico y se
+--     repite la esterilización…» contra «coordinada conjuntamente por el Coordinador de Calidad
+--     y el Director Clínico…»— sale OTRA en las dos columnas; es control negativo del arnés.
 --
--- ⚠️ REGLA DEL MEDIDOR (arquitecto, 19/10/2026): **EL PAR DE DATOS DE CADA ESPECIE SE TOMA DE
--- LOS VALORES QUE DECLARA EL REGISTRO DE SIEMBRA, NUNCA DE UNA PALABRA CLAVE ELEGIDA A OJO.** Las
--- dos averías del 19/10 —NEGACIÓN, que pedía «amarill-», y A, que pedía «responsab-»— son la
--- misma avería, y las dos se habrían evitado con esta regla. Los registros:
--- `corpus-pruebas/SIEMBRA_caso_control.md` (NOR-11 ↔ CLI-13) y
--- `corpus-pruebas/SIEMBRA_corpus_ampliado.md` §1 (NOR-10 ↔ CLI-12); el valor declarado es el que
--- va en negrita en la tabla de cada contradicción.
--- PARES REVISADOS CONTRA EL REGISTRO (Code, 19/10): C («6 meses» / «12 meses») y A
--- (el cargo) son los valores declarados. B y D están RECORTADOS a ojo: el registro declara
--- «semanalmente, todos los lunes» / «periodicidad mensual, el primer día laborable de cada
--- mes» (aquí «semanal» o «lunes» / «mensual») y «puede recaer en el propio Director
--- Clínico» / «nunca por el Director Clínico del propio centro» (aquí «recaer» / «nunca»).
--- Cambiarlos es decisión del arquitecto: PENDIENTE.
+-- ⚠️ LAS REGLAS DEL MEDIDOR (arquitecto, 19/10/2026; reescritas enteras esa misma tarde):
+--   1. **EL PAR DE DATOS DE CADA ESPECIE SE TOMA DE LOS VALORES QUE DECLARA EL REGISTRO DE
+--      SIEMBRA, ENTEROS, NUNCA DE UNA PALABRA ELEGIDA A OJO.** Los registros:
+--      `corpus-pruebas/SIEMBRA_caso_control.md` (NOR-11 ↔ CLI-13) y
+--      `corpus-pruebas/SIEMBRA_corpus_ampliado.md` §1 (NOR-10 ↔ CLI-12): la negrita de la tabla
+--      de cada contradicción y su «Naturaleza del conflicto».
+--   2. **Y TIENE QUE SER LO BASTANTE ESPECÍFICO PARA NO CASAR DOS CITAS QUE NO HABLAN DE LO
+--      MISMO.** La prueba es mecánica: se cuenta cuántas veces aparece cada término en su
+--      documento. «72 horas» sale dos veces y discrimina; «Director Clínico» sale diecisiete y
+--      no discrimina solo. **Si un término pasa de dos o tres apariciones, necesita la otra mitad
+--      de lo que declara el registro**, y entonces un lado casa sólo si lleva las dos.
+--   3. **UN HALLAZGO CORRECTO PUEDE CITAR MÁS DE UNA FRASE**: el par acepta todas las
+--      formulaciones literales de la regla que existan en el documento, no sólo la de la negrita.
+--   Las dos averías del 19/10 son los ejemplos: **NEGACIÓN pedía de menos y A pedía de más**
+--   (palabras del arquitecto). NEGACIÓN aceptaba una sola formulación, la de «amarill-», y se dejaba fuera
+--   la negativa sembrada; A pidió primero «responsab-», que no es lo que declara el registro, y
+--   después sólo el cargo, que sale 17 y 33 veces.
+--   LOS RECUENTOS, en el full_text de cada documento, sin mayúsculas ni acentos (medidos por
+--   Code el 19/10 con los textos del corpus; se revisan sin volver a medir):
+--     C   NOR-10 «6 meses» 1                                 CLI-12 «12 meses» 2
+--     A   NOR-10 «Director Clínico» 17, y además una de:      CLI-12 «Coordinador de Calidad» 33, y además una de:
+--           «autoriza cualquier excepción» 1                    «autoriza cualquier excepción» 1
+--           «firma de los registros de auditoría» 1             «firma los registros de auditoría» 1
+--           «retirar del servicio un autoclave» 1               «retirada de servicio de un autoclave» 1
+--           «responsable último» 2 · «responsabilidad           «responsable último» 2
+--           última» 2
+--     B y D, PENDIENTES del mismo tratamiento (arquitecto, 19/10: sin prisa, ninguna de las dos ha
+--     publicado nunca). Hoy, recortados a ojo: B «semanal» o «lunes» / «mensual», D «recaer» /
+--     «nunca». El registro declara «semanalmente, todos los lunes» / «periodicidad mensual, el
+--     primer día laborable de cada mes», y «puede recaer en el propio Director Clínico» / «nunca
+--     por el Director Clínico del propio centro».
+--
 --
 -- ┌──────────────────────────────────────────────────────────────────────────┐
 -- │ LA ORGANIZACIÓN DEL PILOTO: a9625e93-…, «Workspace principal». El id     │
@@ -150,14 +170,22 @@ WITH parametros AS (
 ),
 -- EL PAR DE DATOS DE CADA ESPECIE, EN UN SOLO SITIO (19/10/2026): lo leen la columna de la
 -- cita y la de la frase. El texto del NUEVO casa con alguno de `nuevo` y el del EXISTENTE con
--- `existente`; sin mayúsculas ni acentos. Gana la primera por `orden`.
+-- `existente`; y si `nuevo_y` o `existente_y` no son NULL, ese lado tiene que casar además con una de
+-- ellas (la otra mitad del registro, regla 2). Sin mayúsculas ni acentos. Gana la primera por `orden`.
 pares AS (
   SELECT * FROM (VALUES
-    (1, 'C', ARRAY['%6 meses%'],              '%12 meses%'),
-    (2, 'B', ARRAY['%semanal%', '%lunes%'],   '%mensual%'),
-    (3, 'D', ARRAY['%recaer%'],               '%nunca%'),
-    (4, 'A', ARRAY['%director clinico%'],     '%coordinador de calidad%')    -- el CARGO, del registro (19/10)
-  ) AS x(orden, especie, nuevo, existente)
+    -- orden, especie, NUEVO: alguna de, y además alguna de (NULL: nada más), EXISTENTE: alguna de, y además alguna de
+    (1, 'C', ARRAY['%6 meses%'], NULL::text[], ARRAY['%12 meses%'], NULL::text[]),
+    (2, 'B', ARRAY['%semanal%', '%lunes%'], NULL, ARRAY['%mensual%'], NULL),
+    (3, 'D', ARRAY['%recaer%'], NULL, ARRAY['%nunca%'], NULL),
+    -- A: el CARGO y la DECISIÓN (19/10); la de «responsable último» la puso Code (ver la cabecera)
+    (4, 'A', ARRAY['%director clinico%'],
+             ARRAY['%autoriza cualquier excepcion%', '%firma de los registros de auditoria%', '%retirar del servicio un autoclave%',
+                   '%responsable ultimo%', '%responsabilidad ultima%'],
+             ARRAY['%coordinador de calidad%'],
+             ARRAY['%autoriza cualquier excepcion%', '%firma los registros de auditoria%', '%retirada de servicio de un autoclave%',
+                   '%responsable ultimo%'])
+  ) AS x(orden, especie, nuevo, nuevo_y, existente, existente_y)
 ),
 nor10 AS (
   SELECT ar.id, ar.created_at, ar.document_id, ar.contradictions_found, ar.pipeline_counters AS pc, ar.analysis
@@ -238,7 +266,8 @@ pub AS (
 ),
 pub2 AS (
   SELECT p.*,
-         coalesce((SELECT pr.especie FROM pares pr WHERE p.tn LIKE ANY (pr.nuevo) AND p.te LIKE pr.existente ORDER BY pr.orden LIMIT 1), 'OTRA') AS especie,
+         coalesce((SELECT pr.especie FROM pares pr WHERE p.tn LIKE ANY (pr.nuevo) AND (pr.nuevo_y IS NULL OR p.tn LIKE ANY (pr.nuevo_y))
+                                AND p.te LIKE ANY (pr.existente) AND (pr.existente_y IS NULL OR p.te LIKE ANY (pr.existente_y)) ORDER BY pr.orden LIMIT 1), 'OTRA') AS especie,
          -- LA COMPROBACIÓN EXPLÍCITA: ¿está la cita del NUEVO dentro de lo ENTREGADO?
          CASE WHEN p.cita_nuevo = '' THEN 'VACÍA'
               WHEN p.rec_nuevo IS NULL OR p.an_most IS NULL THEN 'NO SE PUEDE COMPROBAR (sin texto reconstruido o sin lectura de la pareja)'
@@ -285,7 +314,8 @@ pub3 AS (
   SELECT p.*, fr.frase_nuevo, fr.frase_existente,
          CASE WHEN fr.frase_nuevo IS NULL OR fr.frase_existente IS NULL THEN 'SIN FRASE'
               ELSE coalesce((SELECT pr.especie FROM pares pr
-                              WHERE translate(lower(fr.frase_nuevo), 'áéíóúüñ', 'aeiouun') LIKE ANY (pr.nuevo) AND translate(lower(fr.frase_existente), 'áéíóúüñ', 'aeiouun') LIKE pr.existente
+                              WHERE translate(lower(fr.frase_nuevo), 'áéíóúüñ', 'aeiouun') LIKE ANY (pr.nuevo) AND (pr.nuevo_y IS NULL OR translate(lower(fr.frase_nuevo), 'áéíóúüñ', 'aeiouun') LIKE ANY (pr.nuevo_y))
+                                AND translate(lower(fr.frase_existente), 'áéíóúüñ', 'aeiouun') LIKE ANY (pr.existente) AND (pr.existente_y IS NULL OR translate(lower(fr.frase_existente), 'áéíóúüñ', 'aeiouun') LIKE ANY (pr.existente_y))
                               ORDER BY pr.orden LIMIT 1), 'OTRA') END AS especie_frase
   FROM pub2 p LEFT JOIN frases fr ON fr.n = p.n AND fr.ord = p.ord
 ),

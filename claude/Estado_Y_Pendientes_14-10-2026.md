@@ -441,16 +441,31 @@ borrarlo:**
     que lleva el cargo y no «responsab-», y sale OTRA también por la frase. Trece de trece son
     correctas por el registro; el medidor reconoce diez. Que el par de A siga el cargo del registro
     («Director Clínico» frente a «Coordinador de Calidad») queda ~~**PENDIENTE de decisión del
-    arquitecto**~~ **DECIDIDO el 19/10 (arquitecto) y hecho**: el par de A es el cargo, y con él las
+    arquitecto**~~ ~~**DECIDIDO el 19/10 (arquitecto) y hecho**: el par de A es el cargo~~, y con él las
     trece salen por la frase y la de las excepciones sigue OTRA por la cita (hallazgo bueno, cita
-    mala). Y sube a regla del medidor, escrita en la cabecera de los dos SQL: **el par de cada
+    mala). ~~Y sube a regla del medidor, escrita en la cabecera de los dos SQL: **el par de cada
     especie se toma de los valores que declara el registro de siembra, nunca de una palabra elegida
-    a ojo.** Repasados contra el registro, siguen recortados a ojo LUGAR, el «amarill-» de NEGACIÓN,
-    B y D; cambiarlos, PENDIENTE del arquitecto. ⚠️ El cargo aparece 17 veces en NOR-10 y 33 en
-    CLI-12, así que **una A por la cita se lee antes de darla por buena** (probado: dos citas que
+    a ojo.**~~ ~~Repasados contra el registro, siguen recortados a ojo LUGAR, el «amarill-» de NEGACIÓN,
+    B y D; cambiarlos, PENDIENTE del arquitecto.~~ ⚠️ El cargo aparece 17 veces en NOR-10 y 33 en
+    CLI-12, así que ~~**una A por la cita se lee antes de darla por buena**~~ (probado: dos citas que
     nombran los dos cargos sin hablar de lo mismo salen A). (Las tres A de la prueba se
     reconstruyeron de la descripción del arquitecto; las literales están en la salida del director,
     que Code no tiene.)
+    **RECTIFICADO esa misma tarde (arquitecto, 19/10)**, por ese contraejemplo: **el par de A es el
+    cargo Y la decisión**, las dos mitades del registro («…en el mismo tipo de decisión: autorizar
+    excepciones, firmar auditorías, retirar un autoclave de servicio»). Code añadió una cuarta forma,
+    «responsable último», que es la frase de la negrita del registro; sin ella, la frase sembrada y la
+    A del 16/10 salen OTRA. Queda a decisión del arquitecto. Con eso, el contraejemplo sale OTRA en las
+    dos columnas y las tres A de la tanda, OTRA por la cita y A por la frase. **Las reglas del medidor
+    son ahora tres**, reescritas enteras en la cabecera de los dos SQL con los recuentos de cada
+    término: (1) el par se toma de lo que declara el registro, ENTERO; (2) tiene que discriminar, y un
+    término que sale más de dos o tres veces en su documento necesita la otra mitad; (3) un hallazgo
+    correcto puede citar más de una frase, y el par acepta todas las formulaciones literales. **LUGAR**
+    pasa al valor declarado («en la clínica de Chamberí» / «en la clínica de Retiro»), y la trampa de
+    Chamberí se queda en el arnés con la expectativa invertida (OTRA en las dos). **NEGACIÓN** se
+    queda con sus dos formas: la línea base del 14/10 citaba la afirmativa del 3.3 y Haiku 5.5 la
+    negativa del 10.2, y las dos son correctas (hallazgo de Code). **B y D**, pendientes del mismo
+    tratamiento.
 - **Calificación de las predicciones** (`claude/Predicciones_F128_El_Modelo_Del_Juez.md`; cifras del
   arquitecto, sacadas de las salidas de `SQL_F128_01`, `SQL_F128_02` y `SQL_F127_02` que ejecutó el
   director, y que Code no ha visto):
