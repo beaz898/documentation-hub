@@ -73,6 +73,9 @@
 -- texto real, OTRA por la cita, y una de ellas LUGAR por la frase (ver abajo). Cuatro
 -- mutaciones caen: sin el par del registro, sin el principio de frase, sin el final
 -- y sin el «SIN FRASE». CON DATOS REALES NO SE HA EJECUTADO.
+-- ✅ EL ARNÉS VIVE EN EL REPOSITORIO Y CORRE EN LA SUITE desde el 19/10/2026 (arquitecto):
+-- `claude/arneses/f128/sql-f128-01-nor11.test.ts`, en PGlite, con el texto de `corpus-pruebas/`. Un cambio en
+-- este fichero que rompa un control, un par o un límite de la frase pone `npm test` en rojo.
 --
 -- ⚠️ LA SEGUNDA COLUMNA: LA ESPECIE POR LA FRASE (19/10/2026, aprobada por el
 -- arquitecto). **POR QUÉ EXISTE: el 19/10 el clasificador dio OTRA a TRECE

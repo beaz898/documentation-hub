@@ -484,6 +484,16 @@ borrarlo:**
 - **Con esto el 3.1.8 queda cerrado. Lo siguiente es el 3.1.1**, los tokens por llamada, que el
   arquitecto encarga aparte.
 
+**PGLITE ENTRA COMO DEPENDENCIA DE DESARROLLO (arquitecto, 19/10/2026), y se rompe a sabiendas la
+regla de «cero dependencias nuevas sin razón».** La razón, con sus palabras: **el medidor es lo que
+falló cuatro veces el 19/10, y este arnés es lo único que lo vigila.** El arnés vive en
+`claude/arneses/f128/`, prueba `SQL_F128_01` y `SQL_F128_02` contra una base Postgres en proceso
+con el texto real de `corpus-pruebas/`, y corre en cada `npm test`. Las condiciones: ningún
+fichero de producto la importa nunca, y lo vigila un censo
+(`claude/arneses/pglite-fuera-del-producto.test.ts`, con control positivo: una sonda en `lib/` lo
+pone en rojo); el alcance de vitest lo dice en sus dos sitios (`vitest.config.mts` y el §1-bis del
+protocolo).
+
 ### 3.2 · El caso de empalme falso sembrado · F-125, confirmado en F-126
 Control **positivo** de (B): dos fragmentos literales que, pegados, afirman algo que ninguna de las
 dos frases reales afirma. Sin él, los ceros de `juez.recompuestas_bloqueadas_al_reclasificar` y
@@ -619,6 +629,7 @@ Del inventario de Code (14/10), sobre las copias locales y el último censo del 
 | `selectUnitsWithinBudget` acepta el presupuesto por parámetro (`retrieval.ts:1090-1100`, desde F-73) pero corre en `retrieval.ts:502`, ANTES del juez, cuando «lo que sobra» de la pareja todavía no se sabe, y sólo con los trozos que devolvió Pinecone, con el tope de 25 piezas. **El reparto nuevo no es recablear un parámetro: es mover dónde se decide** | F-127 P9.3 |
 | HAY UN SEGUNDO ÷4 sin medir, en `lib/llm/anthropic-client.ts:322`: estima los tokens de entrada como la longitud del payload entre 4. Con 3.1.1 hecho se puede comprobar cuánto se equivoca | F-127, lectura de Code del 16/10 |
 | La latencia por llamada no se mide en ningún sitio | F-127 P9.1 |
+| **NINGÚN RECUENTO DE ESPECIES ANTERIOR AL 19/10/2026 ES DE FIAR.** Cinco de los siete pares estaban elegidos a ojo —LUGAR, NEGACIÓN, A, B y D— y producían tanto falsos fallos como falsos aciertos; y antes del 19/10 el clasificador, además, etiquetaba por tema. **Cuando se reabra F-119, o cualquier fase vieja, hay que releer sus análisis con el medidor de hoy antes de usar sus números.** Lo que dejaba pasar cada uno, medido por Code el 19/10 en PGlite con citas literales del texto del corpus (no contado en producción): **LUGAR** «chamberí» / «retiro» (3 y 3 apariciones) casaba la cabecera «Chamberí · Salamanca · Retiro», y por la frase «Si trabajas en Chamberí o Salamanca…», que acaba en «el personal de Retiro», salía LUGAR: falso acierto. **NEGACIÓN** con sólo «amarill-» dejaba en OTRA la negativa sembrada del 10.2: falso fallo, cuatro en la tanda. **A** con «responsab-» dejaba en OTRA también por la frase la de las excepciones (falso fallo) y daba A a una D citada por la segunda frase de NOR-10 2.4 contra el 3.5 (falso acierto); y con el cargo solo (`bae7ec0d`, unas horas), dos citas que nombran los dos cargos sin hablar de lo mismo salían A (falso acierto). **B** «semanal» (11) o «lunes» / «mensual» (14) daba B al test semanal de la cubeta contra los resultados que se consolidan mensualmente: falso acierto. **D** «recaer» / «nunca» (2) daba D a «puede recaer…» contra «nunca como mecanismo de control individual»: falso acierto | repaso de los pares contra el registro, 19/10; regla del medidor del arquitecto |
 | **La latencia del análisis con el juez en Haiku 5.5: entre 31 y 43 s, frente a 19 s con Haiku 4.5.** La predicción era la contraria (P-7, fallada). Sin el 3.1.1 no se sabe cuánto es del juez y cuánto del resto, ni si pesa el pensamiento: los tokens de salida de cada pareja sí se guardan (`lecturaDeLasParejas[].tokensDeSalida`) | tanda de F-128, 19/10; cifras del arquitecto |
 | `lib/pinecone/corpus-del-examen.test.ts` se suma a `formatos-con-tablas.test.ts` como prueba sensible al disco: se pasó de tiempo (15 s) en una vuelta y pasó entera en la siguiente | vista el 16/10 |
 | **El salto de «Mejora con IA» coge la PRIMERA aparición de la cita, y con citas cortas puede ser la equivocada.** `goToProblem` (`components/ImprovementModal.tsx:318-336`) busca la cita del nuevo en el texto del editor con `findTolerant` (`lib/texto/localizar-cita.ts`) y selecciona la primera que encuentra: una cita literal, contigua, verificada y aceptada por la puerta puede llevar al párrafo equivocado si se repite. Es el mismo error que el arquitecto señaló de los punteros el 19/10: literal pero hablando de otra cosa. Lo mide el bloque 2c de `SQL_F128_01` y `SQL_F128_02`. **Si la medición dice que pasa, el arreglo no es alargar la cita: es que el hallazgo lleve la POSICIÓN y no sólo el texto** | lectura de Code del 19/10, a pregunta del arquitecto; medida con la tanda de F-128 |

@@ -58,6 +58,9 @@
 -- arquitecto, sin sujeto), OTRA por la cita y A por la frase: hallazgo bueno, cita
 -- mala. Tres mutaciones caen: sin el principio de frase, sin el final y sin el par en
 -- la frase. CON DATOS REALES NO SE HA EJECUTADO.
+-- ✅ EL ARNÉS VIVE EN EL REPOSITORIO Y CORRE EN LA SUITE desde el 19/10/2026 (arquitecto):
+-- `claude/arneses/f128/sql-f128-02-nor10.test.ts`, en PGlite, con el texto de `corpus-pruebas/`. Un cambio en
+-- este fichero que rompa un control, un par o un límite de la frase pone `npm test` en rojo.
 --
 -- ⚠️ LA SEGUNDA COLUMNA: LA ESPECIE POR LA FRASE (19/10/2026, aprobada por el
 -- arquitecto). **POR QUÉ EXISTE: el 19/10 el clasificador dio OTRA a TRECE
@@ -80,11 +83,21 @@
 --     distintas señaladas como autoridad última sobre el mismo proceso, en el mismo tipo de
 --     decisión (autorizar excepciones, firmar auditorías, retirar un autoclave de servicio)». Un
 --     lado casa si lleva su cargo Y una de las formulaciones; si falta cualquiera, OTRA.
---   · ⚠️ **UNA FORMULACIÓN MÁS DE LAS QUE DIJO EL ARQUITECTO, puesta por Code y a su decisión**:
---     «responsable último» / «responsabilidad última». Es la frase de la NEGRITA del registro
---     (la Versión 1 de NOR-10 2.1 y la Versión 2 de CLI-12 3.1), y no lleva ninguna de las tres
---     decisiones: sin ella, la frase sembrada y la A de la línea base del 16/10 salen OTRA en
---     las dos columnas (probado). Es la regla 3 aplicada a A. Quitarla es una línea.
+--   · ✅ **«RESPONSABLE ÚLTIMO» / «RESPONSABILIDAD ÚLTIMA», LA CUARTA FORMULACIÓN: propuesta por
+--     Code y APROBADA por el arquitecto el 19/10.** La razón: es la frase de la NEGRITA del
+--     registro (la Versión 1 de NOR-10 2.1 y la Versión 2 de CLI-12 3.1), y no lleva ninguna de
+--     las tres decisiones; sin ella, la propia frase sembrada y la A de la línea base del 16/10
+--     salen OTRA en las dos columnas (probado). Es la regla 3 aplicada a A.
+--   · ⚠️ **«LA D VIVE PEGADA A LA A» (registro), comprobado el 19/10**: la segunda frase de NOR-10
+--     2.4 («El Coordinador de Calidad no sustituye al Director Clínico en la responsabilidad
+--     última…») lleva cargo y formulación, y es territorio de D. **Contra la frase de D de CLI-12
+--     (3.5), NO sale A**: el 3.5 no lleva ninguna formulación de A en el lado existente, y sale
+--     OTRA en las dos columnas —con el par anterior, «responsab-» / «coordinador de calidad», sí
+--     salía A—. La primera frase de 2.4 contra el 3.5 sale D. Y la segunda contra el 3.1 sale A,
+--     y es lo correcto: el 3.1 es la Versión 2 de A y lo que se contradice es quién responde. Los
+--     tres casos son controles del arnés. Lo que sí queda: una D citada por la segunda frase de
+--     2.4 sale OTRA, un falso fallo de D (su par pide «puede recaer en el propio Director
+--     Clínico»).
 --   · Y el contraejemplo que motivó la rectificación —«se notifica al Director Clínico y se
 --     repite la esterilización…» contra «coordinada conjuntamente por el Coordinador de Calidad
 --     y el Director Clínico…»— sale OTRA en las dos columnas; es control negativo del arnés.

@@ -33,6 +33,19 @@ import { defineConfig } from 'vitest/config';
  * Si un día alguien quiere testear otra cosa, que sea una decisión discutida y
  * escrita, no una consecuencia de que la herramienta ya esté ahí.
  *
+ * ⚠️ LA EXCEPCIÓN DEL 19/10/2026 (arquitecto): LOS ARNESES DEL MEDIDOR SQL. Los SQL de
+ * medición de la raíz (hoy `SQL_F128_01` y `SQL_F128_02`) se prueban en la suite contra
+ * una base Postgres EN PROCESO, PGlite (`@electric-sql/pglite`, dependencia de DESARROLLO),
+ * con filas sintéticas y el texto real del corpus. Sigue siendo una batería determinista:
+ * ni red, ni Supabase, ni modelo; la base vive en memoria y muere con el caso. Dos
+ * diferencias con el resto, decididas y no heredadas:
+ *   · VIVEN EN `claude/arneses/`, no al lado de su módulo: su módulo es un .sql de la raíz,
+ *     que no es código del producto;
+ *   · PGlite no la importa NINGÚN fichero de producto, y lo vigila un censo:
+ *     `claude/arneses/pglite-fuera-del-producto.test.ts`.
+ * Los fixtures siguen siendo `corpus-pruebas/`: el texto se extrae en cada pasada, no se
+ * copia. Por qué se admite la dependencia, en `claude/Estado_Y_Pendientes_14-10-2026.md`.
+ *
  * Este mismo alcance está escrito en el protocolo del repositorio, §1-bis de
  * claude/Protocolo_Harness_Tasas.md. Si cambia uno, cambian los dos.
  *
