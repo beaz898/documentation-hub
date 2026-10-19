@@ -64,8 +64,43 @@
 -- con «Chamberí» en los dos lados, porque bastaba el tema. Las APARICIONES (19/10):
 -- con una cita repetida a propósito en el full_text, sale 1 en lo entregado y 2 en
 -- el documento, y el bloque 2c la caza en las siete. Y un hueco al revés sale NO
--- APLICA, no OK (20/10). CON DATOS REALES NO SE HA
--- EJECUTADO.
+-- APLICA, no OK (19/10). LA SEGUNDA COLUMNA (19/10), con las citas de la tanda
+-- (ver abajo): las cuatro negativas de NOR-11 salen NEGACIÓN en las dos columnas,
+-- las de la línea base y las de la bolsa amarilla de 5.5 también, y las especies
+-- por la cita de todo lo demás salen IGUAL que con el fichero anterior, fila a fila
+-- (con el full_text y los trozos reales de NOR-11 y CLI-13). Las dos trampas del
+-- arquitecto, que no son literales, salen OTRA y SIN FRASE; las mismas hechas con
+-- texto real, OTRA por la cita, y una de ellas LUGAR por la frase (ver abajo). Cuatro
+-- mutaciones caen: sin el par del registro, sin el principio de frase, sin el final
+-- y sin el «SIN FRASE». CON DATOS REALES NO SE HA EJECUTADO.
+--
+-- ⚠️ LA SEGUNDA COLUMNA: LA ESPECIE POR LA FRASE (19/10/2026, aprobada por el
+-- arquitecto). **POR QUÉ EXISTE: el 19/10 el clasificador dio OTRA a TRECE
+-- hallazgos correctos de trece** —las cuatro NEGACIÓN de NOR-11 y las nueve A de
+-- NOR-10 de la tanda de Haiku 5.5—, **porque exige el dato DENTRO de la cita y el
+-- juez cita trozos de frase.** Con una sola columna, «acierto mal citado» y «fallo
+-- de verdad» salían con la misma etiqueta, OTRA.
+--   · La PRIMERA columna no cambia de criterio: clasifica la CITA, que es lo que
+--     ve el usuario, y de ella sale el MARCADOR.
+--   · La SEGUNDA busca cada cita LITERAL en el full_text de su documento, coge la
+--     frase que la contiene (del último «. » o salto de línea anterior al
+--     siguiente) y le aplica el MISMO par de datos: la constante `pares`, en un
+--     solo sitio, que leen las dos columnas y el bloque 9. Sin la cita literal en
+--     el full_text sale «SIN FRASE», nunca OTRA. El bloque 2d cruza las dos.
+--   · ⚠️ **LA SEGUNDA COLUMNA NO CUENTA PARA EL MARCADOR, Y NO DEBE**: también
+--     puede inventarse un acierto. Probado con el texto real: la cita «Si trabajas
+--     en Chamberí o Salamanca y tienes dudas sobre una recogida» de CLI-13 vive en
+--     una frase que acaba en «el personal de Retiro», y con «Chamberí» en el otro
+--     lado sale LUGAR por la frase y OTRA por la cita. Sirve para LEER una OTRA,
+--     no para contar.
+--   · Límite declarado: el corte por «. » falla con abreviaturas («p. ej.») y no
+--     conoce «?», «!» ni «;»: la frase puede salir más corta o más larga.
+-- Y EL PAR DE NEGACIÓN SIGUE EL REGISTRO DE SIEMBRA (19/10/2026, aprobado):
+-- `corpus-pruebas/SIEMBRA_caso_control.md`, Contradicción 3, pone a propósito la
+-- negación («En ningún caso se depositan en el contenedor negro») y la afirmación
+-- (la bolsa amarilla) en frases separadas. El lado de NOR-11 casa con «amarill-» O
+-- con «en ningún caso se depositan en el contenedor negro»; el de CLI-13, con
+-- «negro», como antes. Vale para las dos columnas.
 --
 -- ┌──────────────────────────────────────────────────────────────────────────┐
 -- │ LA ORGANIZACIÓN DEL PILOTO: a9625e93-…, «Workspace principal». El id     │
@@ -91,14 +126,14 @@
 --   la TANDA de          '2026-10-19 12:14:00+02' '2026-10-19 14:17:00+02' '2026-10-19 12:04:00+02'              7
 --   Haiku 5.5
 --
---   Corregido el 20/10/2026 (aprobado por el arquitecto): la pasada 0 se guardó a las
+--   Corregido el 19/10/2026 (aprobado por el arquitecto): la pasada 0 se guardó a las
 --   12:03:06 y la primera con Haiku 5.5 a las 12:14:42; la última, a las 14:16:10. El
 --   hueco, de 12:04 a 12:14, comprueba que entre las dos no corrió nada más. (Hora
 --   GUARDADA, la del final de cada análisis, en Madrid.) Con un DESDE anterior a las
 --   12:03:06, la ventana cogía también la pasada 0 y el control 1 daba «medido 8».
 --
 --   Y un control que no puede mirar nada no sale OK: si el COMIENZO DEL HUECO no va
---   antes de DESDE, el control 3 sale «NO APLICA» (arquitecto, 20/10/2026).
+--   antes de DESDE, el control 3 sale «NO APLICA» (arquitecto, 19/10/2026).
 --
 -- ⚠️ POR QUÉ CUATRO VALORES Y NO DOS (arquitecto, 19/10/2026): con dos, la pasada 0
 -- habría hecho fallar a propósito el control 3 (cae en el hueco de la tanda) y el
@@ -120,6 +155,16 @@ WITH parametros AS (
          timestamptz '2026-10-14 08:28:00+02' AS vieja_desde,     -- la línea base del 14/10, Haiku 4.5: fija
          timestamptz '2026-10-14 08:47:00+02' AS vieja_hasta,
          7 AS esperado_vieja
+),
+-- EL PAR DE DATOS DE CADA ESPECIE, EN UN SOLO SITIO (19/10/2026): lo leen la columna de la
+-- cita, la de la frase y el bloque 9. El texto del NUEVO casa con alguno de `nuevo` y el del
+-- EXISTENTE con `existente`; sin mayúsculas ni acentos. Gana la primera por `orden`.
+pares AS (
+  SELECT * FROM (VALUES
+    (1, 'PLAZO',    ARRAY['%72 horas%'],                                                       '%7 dias%'),
+    (2, 'LUGAR',    ARRAY['%chamberi%'],                                                       '%retiro%'),
+    (3, 'NEGACIÓN', ARRAY['%amarill%', '%en ningun caso se depositan en el contenedor negro%'], '%negro%')
+  ) AS x(orden, especie, nuevo, existente)
 ),
 nor11 AS (
   SELECT ar.id, ar.created_at, ar.document_id, ar.contradictions_found, ar.overlaps_found, ar.pipeline_counters AS pc, ar.analysis
@@ -173,14 +218,55 @@ marcas AS (
 ),
 pub AS (
   SELECT p.*,
-         CASE WHEN tn LIKE '%72 horas%' AND te LIKE '%7 dias%' THEN 'PLAZO'
-              WHEN tn LIKE '%chamberi%' AND te LIKE '%retiro%' THEN 'LUGAR'
-              WHEN tn LIKE '%amarill%' AND te LIKE '%negro%' THEN 'NEGACIÓN'
-              ELSE 'OTRA' END AS especie,
+         coalesce((SELECT pr.especie FROM pares pr WHERE p.tn LIKE ANY (pr.nuevo) AND p.te LIKE pr.existente ORDER BY pr.orden LIMIT 1), 'OTRA') AS especie,
          (SELECT m.marca FROM marcas m
            WHERE m.ventana = p.ventana AND m.n = p.n AND m.candidato = p.candidato
              AND m.cita_nuevo = p.cita_nuevo AND m.cita_existente = p.cita_existente AND m.marca IS NOT NULL LIMIT 1) AS marca
   FROM publicadas p
+),
+pubft AS (
+  SELECT p.*,
+         (SELECT d.full_text FROM pasadas pa JOIN public.documents d ON d.id = pa.document_id WHERE pa.ventana = p.ventana AND pa.n = p.n) AS ft_nuevo,
+         (SELECT d.full_text FROM public.documents d, parametros pr WHERE d.org_id = pr.org AND d.name = p.candidato LIMIT 1) AS ft_existente
+  FROM pub p
+),
+-- LA SEGUNDA COLUMNA (19/10/2026): la FRASE que contiene cada cita, en el full_text de su documento.
+-- Del último «. » o salto de línea ANTERIOR a la cita al primero POSTERIOR. Sin cita literal en el
+-- full_text, no hay frase: «SIN FRASE», nunca OTRA.
+frase_buscar AS (
+  SELECT f.ventana, f.n, f.ord, l.lado,
+         CASE l.lado WHEN 'nuevo' THEN f.ft_nuevo ELSE f.ft_existente END AS t,
+         CASE l.lado WHEN 'nuevo' THEN f.cita_nuevo ELSE f.cita_existente END AS c
+  FROM pubft f CROSS JOIN (VALUES ('nuevo'), ('existente')) AS l(lado)
+),
+frase_pos AS (
+  SELECT b.*, CASE WHEN b.c = '' OR b.t IS NULL THEN 0 ELSE strpos(b.t, b.c) END AS pos FROM frase_buscar b
+),
+frase_lim AS (
+  SELECT q.*,
+         greatest(1,
+           CASE WHEN strpos(reverse(q.pre), E'\n') = 0 THEN 1 ELSE char_length(q.pre) - strpos(reverse(q.pre), E'\n') + 2 END,
+           CASE WHEN strpos(reverse(q.pre), ' .') = 0 THEN 1 ELSE char_length(q.pre) - strpos(reverse(q.pre), ' .') + 2 END) AS ini,
+         q.pos + char_length(q.c) - 1 +
+           CASE WHEN strpos(q.resto, '. ') = 0 AND strpos(q.resto, E'\n') = 0 THEN char_length(q.resto)
+                WHEN strpos(q.resto, '. ') = 0 THEN strpos(q.resto, E'\n') - 1
+                WHEN strpos(q.resto, E'\n') = 0 THEN strpos(q.resto, '. ')
+                ELSE least(strpos(q.resto, '. '), strpos(q.resto, E'\n') - 1) END - 1 AS fin
+  FROM (SELECT p.*, left(p.t, p.pos - 1) AS pre, substr(p.t, p.pos + char_length(p.c) - 1) AS resto FROM frase_pos p WHERE p.pos > 0) q
+),
+frases AS (
+  SELECT f.ventana, f.n, f.ord,
+         max(btrim(substr(f.t, f.ini, f.fin - f.ini + 1))) FILTER (WHERE f.lado = 'nuevo') AS frase_nuevo,
+         max(btrim(substr(f.t, f.ini, f.fin - f.ini + 1))) FILTER (WHERE f.lado = 'existente') AS frase_existente
+  FROM frase_lim f GROUP BY f.ventana, f.n, f.ord
+),
+pubf AS (
+  SELECT p.*, fr.frase_nuevo, fr.frase_existente,
+         CASE WHEN fr.frase_nuevo IS NULL OR fr.frase_existente IS NULL THEN 'SIN FRASE'
+              ELSE coalesce((SELECT pr.especie FROM pares pr
+                              WHERE translate(lower(fr.frase_nuevo), 'áéíóúüñ', 'aeiouun') LIKE ANY (pr.nuevo) AND translate(lower(fr.frase_existente), 'áéíóúüñ', 'aeiouun') LIKE pr.existente
+                              ORDER BY pr.orden LIMIT 1), 'OTRA') END AS especie_frase
+  FROM pubft p LEFT JOIN frases fr ON fr.ventana = p.ventana AND fr.n = p.n AND fr.ord = p.ord
 ),
 -- las apariciones de cada cita publicada: en lo entregado y en el full_text de cada documento
 apariciones AS (
@@ -194,10 +280,8 @@ apariciones AS (
               FROM pasadas pa JOIN public.documents d ON d.id = pa.document_id
               JOIN public.document_chunks c ON c.document_id = d.id AND c.generation = coalesce(d.active_generation, 1)
              WHERE pa.ventana = p.ventana AND pa.n = p.n) AS rec_nuevo,
-           (SELECT l.an_most FROM lecturas l WHERE l.ventana = p.ventana AND l.n = p.n AND l.nombre = p.candidato LIMIT 1) AS an_most,
-           (SELECT d.full_text FROM pasadas pa JOIN public.documents d ON d.id = pa.document_id WHERE pa.ventana = p.ventana AND pa.n = p.n) AS ft_nuevo,
-           (SELECT d.full_text FROM public.documents d, parametros pr WHERE d.org_id = pr.org AND d.name = p.candidato LIMIT 1) AS ft_existente
-    FROM pub p WHERE p.ventana = 'nueva'
+           (SELECT l.an_most FROM lecturas l WHERE l.ventana = p.ventana AND l.n = p.n AND l.nombre = p.candidato LIMIT 1) AS an_most
+    FROM pubf p WHERE p.ventana = 'nueva'
   ) e
 ),
 -- las citas de la mediana: los DOS lados de cada contradicción publicada
@@ -290,7 +374,9 @@ FROM (
          to_char(pa.created_at AT TIME ZONE 'Europe/Madrid', 'DD/MM HH24:MI:SS') || ' Madrid (hora guardada: la del final)',
          'id ' || pa.id || ' · contradictions_found ' || coalesce(pa.contradictions_found::text, '—'),
          'especies publicadas: ' || coalesce((SELECT string_agg(DISTINCT e.especie, ' + ' ORDER BY e.especie) FROM pub e WHERE e.ventana = pa.ventana AND e.n = pa.n), 'ninguna') ||
-         ' · marcador ' || (SELECT count(DISTINCT e.especie) FROM pub e WHERE e.ventana = pa.ventana AND e.n = pa.n AND e.especie IN ('PLAZO', 'NEGACIÓN', 'LUGAR')) || '/3',
+         ' · marcador ' || (SELECT count(DISTINCT e.especie) FROM pub e WHERE e.ventana = pa.ventana AND e.n = pa.n AND e.especie IN ('PLAZO', 'NEGACIÓN', 'LUGAR')) || '/3' ||
+         ' · POR LA FRASE (no cuenta): ' || coalesce((SELECT string_agg(DISTINCT e.especie_frase, ' + ' ORDER BY e.especie_frase) FROM pubf e WHERE e.ventana = pa.ventana AND e.n = pa.n), 'ninguna') ||
+         ', ' || (SELECT count(DISTINCT e.especie_frase) FROM pubf e WHERE e.ventana = pa.ventana AND e.n = pa.n AND e.especie_frase IN ('PLAZO', 'NEGACIÓN', 'LUGAR')) || '/3',
          'MODELO Y TOKENS DE SALIDA, por pareja: ' || coalesce((SELECT string_agg(coalesce(l.nombre, l.doc_id) || ' → ' ||
              coalesce(l.modelo, '— (anterior a F-128)') || ', ' || coalesce(l.tokens_salida, '—') || ' tokens de salida', ' | ' ORDER BY l.ord)
            FROM lecturas l WHERE l.ventana = pa.ventana AND l.n = pa.n), 'sin lecturas'),
@@ -299,7 +385,7 @@ FROM (
   UNION ALL
   -- 2 · LO PUBLICADO EN LA VENTANA NUEVA: las dos citas enteras, su longitud y la marca
   SELECT '2 · contradicciones publicadas (nueva)', 'nueva ' || e.n, e.especie,
-         coalesce(e.candidato, '—') || ' · ' || coalesce(e.severity, '—') || ' · confirmedBy: ' || coalesce(e.confirmado, '—') ||
+         'POR LA FRASE: ' || e.especie_frase || ' · ' || coalesce(e.candidato, '—') || ' · ' || coalesce(e.severity, '—') || ' · confirmedBy: ' || coalesce(e.confirmado, '—') ||
            ' · marca recompuesta: ' || CASE WHEN e.marca IS NULL THEN 'no' ELSE 'SÍ' END ||
            ' · longitudes: nuevo ' || char_length(e.cita_nuevo) || ', existente ' || char_length(e.cita_existente) ||
            ' · ' || coalesce((SELECT coalesce(l.modelo, '— (anterior a F-128)') || ', ' || coalesce(l.tokens_salida, '—') || ' tokens de salida'
@@ -311,9 +397,18 @@ FROM (
          'NUEVO: ' || e.cita_nuevo || E'\nEXISTENTE: ' || e.cita_existente ||
            CASE WHEN e.marca IS NULL THEN '' ELSE
              coalesce(E'\nCITA DEL JUEZ (nuevo): ' || (e.marca->'nuevo'->>'citaDelJuez'), '') ||
-             coalesce(E'\nCITA DEL JUEZ (existente): ' || (e.marca->'existente'->>'citaDelJuez'), '') END,
+             coalesce(E'\nCITA DEL JUEZ (existente): ' || (e.marca->'existente'->>'citaDelJuez'), '') END ||
+           E'\nFRASE DEL NUEVO: ' || coalesce(e.frase_nuevo, '— (la cita no está literal en su full_text)') ||
+           E'\nFRASE DEL EXISTENTE: ' || coalesce(e.frase_existente, '— (la cita no está literal en su full_text)'),
          0, e.n * 100 + e.ord
   FROM apariciones e
+  UNION ALL
+  -- 2d · LAS DOS COLUMNAS CRUZADAS, por ventana: una OTRA por la cita se parte en «X por la frase» y «OTRA de verdad»
+  SELECT '2d · las dos columnas: por la cita → por la frase', e.ventana,
+         'por la cita ' || e.especie || ' → por la frase ' || e.especie_frase,
+         count(*) || ' contradicciones publicadas', NULL, NULL,
+         CASE e.ventana WHEN 'vieja' THEN 0 ELSE 1 END, 0
+  FROM pubf e GROUP BY e.ventana, e.especie, e.especie_frase
   UNION ALL
   -- 2c · LAS CITAS DE LA VENTANA NUEVA QUE APARECEN MÁS DE UNA VEZ en su documento (el salto de Mejora coge la primera)
   SELECT '2c · citas que aparecen más de una vez en su documento (nueva)', NULL,
@@ -394,9 +489,7 @@ FROM (
   UNION ALL
   -- 9 · LO QUE LA PUERTA MATÓ COMO CONTRADICCIÓN en la ventana nueva (¿muere LUGAR?)
   SELECT '9 · contradicciones que mató la puerta (nueva)', 'nueva ' || d.n,
-         CASE WHEN tn LIKE '%72 horas%' AND te LIKE '%7 dias%' THEN 'PLAZO'
-              WHEN tn LIKE '%chamberi%' AND te LIKE '%retiro%' THEN 'LUGAR'
-              WHEN tn LIKE '%amarill%' AND te LIKE '%negro%' THEN 'NEGACIÓN' ELSE 'OTRA' END,
+         coalesce((SELECT pr.especie FROM pares pr WHERE d.tn LIKE ANY (pr.nuevo) AND d.te LIKE pr.existente ORDER BY pr.orden LIMIT 1), 'OTRA'),
          coalesce(d.candidato, '—') || ' · lado fallido ' || coalesce(d.d->>'ladoFallido', '—') ||
            ' · nuevo: ' || coalesce(d.d->'nuevo'->>'paso', '—') || ' · existente: ' || coalesce(d.d->'existente'->>'paso', '—'),
          d.d->>'tema',

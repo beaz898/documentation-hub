@@ -50,10 +50,43 @@
 -- sale A, y las citas que no llevan los dos datos salen OTRA. Las APARICIONES
 -- (19/10): con la cita de A repetida a propósito en el full_text, sale 1 en lo
 -- entregado y 2 en el documento, y el bloque 2c la caza en las tres. Los NO APLICA
--- (20/10): la relectura del 16/10 sale sin un FALLA, con el 0.9 en NO APLICA y no en
+-- (19/10): la relectura del 16/10 sale sin un FALLA, con el 0.9 en NO APLICA y no en
 -- OK; una franja al revés sale NO APLICA; y la franja desde el 13/10 caza una pasada
--- metida el 15/10. CON
--- DATOS REALES NO SE HA EJECUTADO.
+-- metida el 15/10. LA SEGUNDA COLUMNA (19/10), con los trozos y el full_text reales de
+-- NOR-10 y CLI-12: la A de la línea base sale A en las dos columnas; de las tres A de
+-- la tanda (reconstruidas de la descripción del arquitecto, sin sujeto), las tres
+-- OTRA por la cita, y por la frase dos A y una OTRA (ver abajo); las especies por la
+-- cita, IGUAL que con el fichero anterior. Tres mutaciones caen: sin el principio de
+-- frase (cortar por párrafo daría A también a la de las excepciones: la frase
+-- anterior es «El responsable último del cumplimiento…»), sin el final y sin el par
+-- en la frase. CON DATOS REALES NO SE HA EJECUTADO.
+--
+-- ⚠️ LA SEGUNDA COLUMNA: LA ESPECIE POR LA FRASE (19/10/2026, aprobada por el
+-- arquitecto). **POR QUÉ EXISTE: el 19/10 el clasificador dio OTRA a TRECE
+-- hallazgos correctos de trece** —las cuatro NEGACIÓN de NOR-11 y las nueve A de
+-- NOR-10 de la tanda de Haiku 5.5—, **porque exige el dato DENTRO de la cita y el
+-- juez cita trozos de frase.** Con una sola columna, «acierto mal citado» y «fallo
+-- de verdad» salían con la misma etiqueta, OTRA.
+--   · La PRIMERA columna no cambia: clasifica la CITA, que es lo que ve el usuario.
+--   · La SEGUNDA busca cada cita LITERAL en el full_text de su documento, coge la
+--     frase que la contiene (del último «. » o salto de línea anterior al
+--     siguiente) y le aplica el MISMO par de datos: la constante `pares`, en un
+--     solo sitio. Sin la cita literal en el full_text sale «SIN FRASE», nunca OTRA.
+--     El bloque 2d cruza las dos columnas por pasada.
+--   · ⚠️ **NO CUENTA COMO ACIERTO**: también puede inventarse uno (probado en
+--     SQL_F128_01 con el texto real). Sirve para LEER una OTRA, no para contar.
+--   · Límite declarado: el corte por «. » falla con abreviaturas («p. ej.») y no
+--     conoce «?», «!» ni «;».
+--   · ⚠️ **LO QUE NO RESUELVE, medido con el texto real (19/10)**: el par de A pide
+--     «responsab-» en el lado de NOR-10, y de las dos frases de NOR-10 donde caen las
+--     tres A de la tanda sólo una lo lleva. La de «quien autoriza cualquier excepción
+--     documentada al procedimiento» empieza en «Es el Director Clínico quien…»: lleva
+--     el cargo y no «responsab-», y sale **OTRA también por la frase**. Las de la
+--     firma de las auditorías y la retirada del autoclave caen en «…pero la
+--     responsabilidad última —incluida la firma… y la decisión de retirar…— no es
+--     delegable…» y salen A. Que el par de A siga el registro de siembra (el cargo,
+--     «Director Clínico» frente a «Coordinador de Calidad») es una decisión del
+--     arquitecto, PENDIENTE: no está hecho.
 --
 -- ┌──────────────────────────────────────────────────────────────────────────┐
 -- │ LA ORGANIZACIÓN DEL PILOTO: a9625e93-…, «Workspace principal». El id     │
@@ -69,7 +102,7 @@
 -- │ 03:00 es «+01».                                                           │
 -- └──────────────────────────────────────────────────────────────────────────┘
 --
--- QUÉ PONER EN CADA LECTURA (se copia tal cual; aprobado por el arquitecto el 20/10/2026):
+-- QUÉ PONER EN CADA LECTURA (se copia tal cual; aprobado por el arquitecto el 19/10/2026):
 --
 --   lectura                DESDE                    HASTA                    INICIO DE LA FRANJA PREVIA   EXIGIR MODELO
 --   ─────────────────────  ───────────────────────  ───────────────────────  ───────────────────────────  ─────────────
@@ -82,7 +115,7 @@
 --
 -- **Ningún control debe fallar; si alguno falla, es que pasó algo**: un control que
 -- se espera que falle es un control muerto (arquitecto, 19/10/2026). Y **un control
--- que no puede mirar nada no sale OK: sale «NO APLICA»** (arquitecto, 20/10/2026):
+-- que no puede mirar nada no sale OK: sale «NO APLICA»** (arquitecto, 19/10/2026):
 --   · el 0.2, si el INICIO DE LA FRANJA PREVIA no va antes de DESDE (intervalo al
 --     revés: no hay franja que mirar);
 --   · el 0.9, con EXIGIR MODELO en false: las pasadas anteriores a F-128 no guardan
@@ -100,6 +133,17 @@ WITH parametros AS (
          false AS exigir_modelo,                                  -- ← EXIGIR MODELO: true en la tanda, false en la línea base
          -- ↑↑↑ ↑↑↑
          3 AS esperado
+),
+-- EL PAR DE DATOS DE CADA ESPECIE, EN UN SOLO SITIO (19/10/2026): lo leen la columna de la
+-- cita y la de la frase. El texto del NUEVO casa con alguno de `nuevo` y el del EXISTENTE con
+-- `existente`; sin mayúsculas ni acentos. Gana la primera por `orden`.
+pares AS (
+  SELECT * FROM (VALUES
+    (1, 'C', ARRAY['%6 meses%'],              '%12 meses%'),
+    (2, 'B', ARRAY['%semanal%', '%lunes%'],   '%mensual%'),
+    (3, 'D', ARRAY['%recaer%'],               '%nunca%'),
+    (4, 'A', ARRAY['%responsab%'],            '%coordinador de calidad%')
+  ) AS x(orden, especie, nuevo, existente)
 ),
 nor10 AS (
   SELECT ar.id, ar.created_at, ar.document_id, ar.contradictions_found, ar.pipeline_counters AS pc, ar.analysis
@@ -180,11 +224,7 @@ pub AS (
 ),
 pub2 AS (
   SELECT p.*,
-         CASE WHEN tn LIKE '%6 meses%' AND te LIKE '%12 meses%' THEN 'C'
-              WHEN (tn LIKE '%semanal%' OR tn LIKE '%lunes%') AND te LIKE '%mensual%' THEN 'B'
-              WHEN tn LIKE '%recaer%' AND te LIKE '%nunca%' THEN 'D'
-              WHEN tn LIKE '%responsab%' AND te LIKE '%coordinador de calidad%' THEN 'A'
-              ELSE 'OTRA' END AS especie,
+         coalesce((SELECT pr.especie FROM pares pr WHERE p.tn LIKE ANY (pr.nuevo) AND p.te LIKE pr.existente ORDER BY pr.orden LIMIT 1), 'OTRA') AS especie,
          -- LA COMPROBACIÓN EXPLÍCITA: ¿está la cita del NUEVO dentro de lo ENTREGADO?
          CASE WHEN p.cita_nuevo = '' THEN 'VACÍA'
               WHEN p.rec_nuevo IS NULL OR p.an_most IS NULL THEN 'NO SE PUEDE COMPROBAR (sin texto reconstruido o sin lectura de la pareja)'
@@ -197,12 +237,50 @@ pub2 AS (
               ELSE '⚠️ NO LITERAL en el candidato: leer' END AS existente_literal
   FROM pub p
 ),
+-- LA SEGUNDA COLUMNA (19/10/2026): la FRASE que contiene cada cita, en el full_text de su documento.
+-- Del último «. » o salto de línea ANTERIOR a la cita al primero POSTERIOR. Sin cita literal en el
+-- full_text, no hay frase: «SIN FRASE», nunca OTRA.
+frase_buscar AS (
+  SELECT f.n, f.ord, l.lado,
+         CASE l.lado WHEN 'nuevo' THEN f.ft_nuevo ELSE f.ft_existente END AS t,
+         CASE l.lado WHEN 'nuevo' THEN f.cita_nuevo ELSE f.cita_existente END AS c
+  FROM pub2 f CROSS JOIN (VALUES ('nuevo'), ('existente')) AS l(lado)
+),
+frase_pos AS (
+  SELECT b.*, CASE WHEN b.c = '' OR b.t IS NULL THEN 0 ELSE strpos(b.t, b.c) END AS pos FROM frase_buscar b
+),
+frase_lim AS (
+  SELECT q.*,
+         greatest(1,
+           CASE WHEN strpos(reverse(q.pre), E'\n') = 0 THEN 1 ELSE char_length(q.pre) - strpos(reverse(q.pre), E'\n') + 2 END,
+           CASE WHEN strpos(reverse(q.pre), ' .') = 0 THEN 1 ELSE char_length(q.pre) - strpos(reverse(q.pre), ' .') + 2 END) AS ini,
+         q.pos + char_length(q.c) - 1 +
+           CASE WHEN strpos(q.resto, '. ') = 0 AND strpos(q.resto, E'\n') = 0 THEN char_length(q.resto)
+                WHEN strpos(q.resto, '. ') = 0 THEN strpos(q.resto, E'\n') - 1
+                WHEN strpos(q.resto, E'\n') = 0 THEN strpos(q.resto, '. ')
+                ELSE least(strpos(q.resto, '. '), strpos(q.resto, E'\n') - 1) END - 1 AS fin
+  FROM (SELECT p.*, left(p.t, p.pos - 1) AS pre, substr(p.t, p.pos + char_length(p.c) - 1) AS resto FROM frase_pos p WHERE p.pos > 0) q
+),
+frases AS (
+  SELECT f.n, f.ord,
+         max(btrim(substr(f.t, f.ini, f.fin - f.ini + 1))) FILTER (WHERE f.lado = 'nuevo') AS frase_nuevo,
+         max(btrim(substr(f.t, f.ini, f.fin - f.ini + 1))) FILTER (WHERE f.lado = 'existente') AS frase_existente
+  FROM frase_lim f GROUP BY f.n, f.ord
+),
+pub3 AS (
+  SELECT p.*, fr.frase_nuevo, fr.frase_existente,
+         CASE WHEN fr.frase_nuevo IS NULL OR fr.frase_existente IS NULL THEN 'SIN FRASE'
+              ELSE coalesce((SELECT pr.especie FROM pares pr
+                              WHERE translate(lower(fr.frase_nuevo), 'áéíóúüñ', 'aeiouun') LIKE ANY (pr.nuevo) AND translate(lower(fr.frase_existente), 'áéíóúüñ', 'aeiouun') LIKE pr.existente
+                              ORDER BY pr.orden LIMIT 1), 'OTRA') END AS especie_frase
+  FROM pub2 p LEFT JOIN frases fr ON fr.n = p.n AND fr.ord = p.ord
+),
 apariciones AS (
   SELECT e.*,
          CASE WHEN e.cita_nuevo = '' OR left(e.rec_nuevo, e.an_most) IS NULL THEN NULL ELSE (char_length(left(e.rec_nuevo, e.an_most)) - char_length(replace(left(e.rec_nuevo, e.an_most), e.cita_nuevo, ''))) / char_length(e.cita_nuevo) END AS ap_nuevo_entregado,
          CASE WHEN e.cita_nuevo = '' OR e.ft_nuevo IS NULL THEN NULL ELSE (char_length(e.ft_nuevo) - char_length(replace(e.ft_nuevo, e.cita_nuevo, ''))) / char_length(e.cita_nuevo) END AS ap_nuevo_doc,
          CASE WHEN e.cita_existente = '' OR e.ft_existente IS NULL THEN NULL ELSE (char_length(e.ft_existente) - char_length(replace(e.ft_existente, e.cita_existente, ''))) / char_length(e.cita_existente) END AS ap_existente_doc
-  FROM pub2 e
+  FROM pub3 e
 ),
 citas AS (
   SELECT n, candidato, 'nuevo' AS lado, char_length(cita_nuevo) AS largo, cita_nuevo AS texto FROM pub2
@@ -345,7 +423,7 @@ FROM (
   UNION ALL
   -- 2 · LO PUBLICADO: las dos citas enteras, su longitud, la marca y las dos comprobaciones de literalidad
   SELECT '2 · contradicciones publicadas', 'pasada ' || e.n, e.especie,
-         coalesce(e.candidato, '—') || ' · ' || coalesce(e.severity, '—') || ' · confirmedBy: ' || coalesce(e.confirmado, '—') ||
+         'POR LA FRASE: ' || e.especie_frase || ' · ' || coalesce(e.candidato, '—') || ' · ' || coalesce(e.severity, '—') || ' · confirmedBy: ' || coalesce(e.confirmado, '—') ||
            ' · marca recompuesta: ' || CASE WHEN e.marca IS NULL THEN 'no' ELSE 'SÍ' END ||
            ' · longitudes: nuevo ' || char_length(e.cita_nuevo) || ', existente ' || char_length(e.cita_existente) ||
            ' · ' || coalesce((SELECT coalesce(l.modelo, '— (anterior a F-128)') || ', ' || coalesce(l.tokens_salida, '—') || ' tokens de salida'
@@ -357,9 +435,17 @@ FROM (
          'NUEVO: ' || e.cita_nuevo || E'\nEXISTENTE: ' || e.cita_existente ||
            CASE WHEN e.marca IS NULL THEN '' ELSE
              coalesce(E'\nCITA DEL JUEZ (nuevo): ' || (e.marca->'nuevo'->>'citaDelJuez'), '') ||
-             coalesce(E'\nCITA DEL JUEZ (existente): ' || (e.marca->'existente'->>'citaDelJuez'), '') END,
+             coalesce(E'\nCITA DEL JUEZ (existente): ' || (e.marca->'existente'->>'citaDelJuez'), '') END ||
+           E'\nFRASE DEL NUEVO: ' || coalesce(e.frase_nuevo, '— (la cita no está literal en su full_text)') ||
+           E'\nFRASE DEL EXISTENTE: ' || coalesce(e.frase_existente, '— (la cita no está literal en su full_text)'),
          0, e.n * 100 + e.ord
   FROM apariciones e
+  UNION ALL
+  -- 2d · LAS DOS COLUMNAS CRUZADAS, por pasada: una OTRA por la cita se parte en «X por la frase» y «OTRA de verdad»
+  SELECT '2d · las dos columnas: por la cita → por la frase', 'pasada ' || e.n,
+         'por la cita ' || e.especie || ' → por la frase ' || e.especie_frase,
+         count(*) || ' contradicciones publicadas', NULL, NULL, 0, e.n
+  FROM pub3 e GROUP BY e.n, e.especie, e.especie_frase
   UNION ALL
   SELECT '2 · contradicciones publicadas', 'pasada ' || pa.n, 'ninguna', NULL, NULL, NULL, 1, pa.n
   FROM pasadas pa WHERE NOT EXISTS (SELECT 1 FROM pub2 e WHERE e.n = pa.n)
