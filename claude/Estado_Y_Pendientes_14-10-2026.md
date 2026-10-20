@@ -189,6 +189,16 @@ auditoría trimestral»—, y contra «El Coordinador de Calidad es quien autori
 ver dónde está el desacuerdo. Contesta la pregunta del director del 19/10 sobre si la cita necesita
 llevar el sujeto: **la necesita.** Lo que se entregue al juez, y lo que se le pida citar, tiene que
 permitir una cita con sujeto.
+**ACOTADO EL 20/10 (arquitecto), con las salidas reales de la tanda: LA REGLA ES «SI EL DATO EN
+DISPUTA ES EL SUJETO, LA CITA TIENE QUE EMPEZAR EN EL SUJETO».** El defecto no es general:
+- **en NOR-11 las dos columnas coinciden en 42 de 42 citas** (las 21 contradicciones de la tanda de
+  Haiku 5.5, dos citas cada una; y las 21 de la línea base del 14/10, también), porque el dato en
+  disputa —72 horas, Chamberí, el contenedor— va en el PREDICADO, y el juez cita el predicado;
+- **en la contradicción del cargo el dato ES EL SUJETO de la frase** («Es el Director Clínico quien…»,
+  «El Coordinador de Calidad es quien…»), y es justo lo que el juez recorta: las ocho A de NOR-10 de
+  la tanda y las tres de la línea base salen OTRA por la cita y A por la frase.
+Lo que el 3.1.2 tiene que cumplir, entonces, no es «toda cita lleva sujeto», sino eso: cuando lo que
+se contradice es quién, la cita empieza en quién.
 
 #### 3.1.3 · El interino: ventana de 80.000 con reparto monótono · F-127 P4, P5 y P7 paso 3, adenda Q4 · SIN EMPEZAR
 **CAMBIA DE FORMA el 18/10 (adenda de Fable, Q4)**: no es pasar un parámetro, es **calcular el resto
@@ -432,8 +442,11 @@ borrarlo:**
   es la frase que citó Haiku 5.5.
 - **Las cuatro OTRA de NOR-11 son NEGACIÓN citada por su mitad negativa, que es la sembrada.**
 - **Las nueve OTRA de NOR-10 son la A desglosada** (autorizar excepciones, firmar auditorías, retirar
-  el autoclave).
-- **Trece de trece OTRA eran correctas: el defecto medido hoy es del clasificador, no del juez.** La
+  el autoclave). *(Corregido el 20/10 con la salida real: son OCHO A, publicadas 4/3/2 —la pasada 3
+  publicó dos—, y la novena es la de CLI-13, que no es A; ver la conclusión, abajo.)*
+- **Trece de trece OTRA eran correctas: el defecto medido hoy es del clasificador, no del juez.**
+  *(Corregido el 20/10: doce de trece, las cuatro NEGACIÓN y las ocho A; la decimotercera, pendiente
+  de leer.)* La
   segunda columna del medidor (`841c50c6`) existe por esto.
   - ⚠️ *Precisión de Code (19/10), medido en PGlite con el texto real*: con la segunda columna, las
     cuatro de NOR-11 salen NEGACIÓN por la cita y por la frase. **De las nueve de NOR-10, el medidor
@@ -493,6 +506,36 @@ fichero de producto la importa nunca, y lo vigila un censo
 (`claude/arneses/pglite-fuera-del-producto.test.ts`, con control positivo: una sonda en `lib/` lo
 pone en rojo); el alcance de vitest lo dice en sus dos sitios (`vitest.config.mts` y el §1-bis del
 protocolo).
+
+**✅ LA CONCLUSIÓN DE F-128 (arquitecto, 20/10/2026), con las tres salidas reales que ejecutó el
+director** (`SQL_F128_01` con la tanda de NOR-11, y `SQL_F128_02` con la relectura del 16/10 y con
+la tanda de NOR-10). Los controles salen limpios, el 0.9 sale NO APLICA en la relectura del 16/10, y
+el arnés de `claude/arneses/f128/` reproduce las cifras exactas de las tres.
+**LA CONTRADICCIÓN QUE HAIKU 4.5 PUBLICÓ EL 16/10 SALE OTRA POR LA CITA Y A POR LA FRASE, IGUAL QUE LAS
+DE HAIKU 5.5.** Su cita, literal: «la responsabilidad última —incluida la firma de los registros de
+auditoría trimestral y la decisión de retirar del servicio un autoclave que no supere un control
+biológico— no es delegable y recae siempre sobre esta figura». **222 caracteres sin el cargo.** **EL
+DEFECTO DE LA CITA SIN SUJETO NO LO INTRODUJO HAIKU 5.5: estaba con 4.5, y lo tapaba la longitud.**
+
+| NOR-10 ← CLI-12 | Haiku 4.5, 16/10 | Haiku 5.5, 19/10 |
+|---|---|---|
+| contradicciones publicadas por pasada | 1 / 1 / 1 | 4 / 3 / 2 (una de las 4 es la de CLI-13) |
+| A publicadas | 3 (una por pasada) | 8 (3 / 3 / 2) |
+| por la cita | OTRA | OTRA |
+| por la frase | A | A |
+| mediana de las citas | 281 | 83 |
+
+- **Por qué no se vio el 16/10**: el clasificador de entonces etiquetaba por el tema, y el tema decía
+  «autoclave»; y una cita de 222 caracteres parece completa. La de 5.5 tiene 63 y se ve que le falta
+  el sujeto. La cita de 4.5 tampoco lo llevaba.
+- **El diagnóstico, acotado: está en el 3.1.2.** En NOR-11 las dos columnas coinciden en 42 de 42
+  citas, porque el dato va en el predicado; en la A el dato es el sujeto, y es lo que se recorta.
+- **PENDIENTE DE LEER A MANO, sin juzgar todavía** (arquitecto, 20/10): **el noveno de la tanda de
+  NOR-10, el de CLI-13**, sale OTRA en las dos columnas. Es el único que no es A. NOR-10: «Queda fuera
+  de alcance el material de un solo uso, que se rige por el protocolo NOR-04 de gestión de residuos
+  sanitarios.» CLI-13: «…lo establecido en el protocolo NOR-11 de gestión de residuos sanitarios…».
+  Los dos pasajes, literales, están en la respuesta de Code del 20/10.
+- **Con esto F-128 queda cerrado del todo.** Lo siguiente, el 3.1.1.
 
 ### 3.2 · El caso de empalme falso sembrado · F-125, confirmado en F-126
 Control **positivo** de (B): dos fragmentos literales que, pegados, afirman algo que ninguna de las

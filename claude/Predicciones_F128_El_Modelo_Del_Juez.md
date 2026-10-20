@@ -145,3 +145,11 @@ botella no es sólo el juez.
   - **P-6: FALLADA.** El coste por análisis bajó de 0,04633 a 0,02280 $, a la mitad y no por debajo
     de la cuarta parte.
   - **P-7: FALLADA.** La latencia subió de 19 s a entre 31 y 43 s.
+
+- **20/10/2026, la nota de la calificación** (Code, con las salidas reales que ejecutó el director el
+  20/10). La nota de la calificación, en la P-4, dice «A publicada en las tres pasadas, y desglosada
+  en tres». Lo primero vale.
+  Lo segundo no: las A publicadas por pasada fueron **3, 3 y 2**, ocho en total, porque la pasada 3 no
+  publicó la de la firma de las auditorías. La pasada 1 publicó además una cuarta contradicción, la de
+  CLI-13 («NOR-04» contra «NOR-11»), que no es A y está pendiente de leer. La calificación de la P-4 no
+  cambia: la del autoclave se publicó en las tres.

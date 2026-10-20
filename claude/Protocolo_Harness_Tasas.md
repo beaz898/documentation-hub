@@ -1599,6 +1599,21 @@ dos caminos distintos del mismo `ordenDeGrupos`.
 > Regla práctica: si para mutar hay que CONSERVAR el original en el texto nuevo,
 > la mutación está mal elegida. Se muta lo que decide, no lo que se añade.
 
+**LA QUINTA, del 20/10/2026 (arquitecto), y no es una precaución teórica: hoy ha estado a punto.**
+Cuando la mutación toca un fichero del repositorio —los arneses de `claude/arneses/` mutan los SQL de
+la raíz—, dos cosas, siempre:
+  1. **el generador de mutantes se escribe con la herramienta de ficheros, NUNCA desde el shell**: ni
+     `node -e`, ni un heredoc, ni un script con escapes que el shell reinterprete;
+  2. **después de cada pasada de mutantes se verifica contra git** que los ficheros mutados han vuelto
+     a su sitio (`git diff --quiet HEAD -- <ficheros>`), y el generador restaura los bytes originales en
+     un `finally`, pase lo que pase.
+EL CASO: el 20/10 una pasada de mutantes escrita desde el shell se interrumpió a mitad y dejó DENTRO
+de `SQL_F128_01` el mutante que quita la forma negativa de NEGACIÓN — o sea, **el arreglo del 19/10**.
+Lo cazó un `git status` antes de seguir. Si hubiera entrado en un commit, **se habría deshecho en
+silencio la corrección más importante del día**, y el commit habría parecido limpio. Era la tercera vez
+que los escapes del shell rompían un generador. El generador bueno es
+`mutantes_f128.cjs`: doce mutantes, los doce en rojo, y la verificación contra git al final.
+
 > **Una regla que se estrena el día que se escribe no es una regla que sobre:
 > es una que llegaba tarde.** Las tres describen fallos que ya estaban pasando
 > sin que nadie los contara.

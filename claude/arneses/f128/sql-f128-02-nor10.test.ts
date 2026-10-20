@@ -1,38 +1,45 @@
 import { readFileSync } from 'node:fs';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { PGlite } from '@electric-sql/pglite';
-import { CLI12, NOR10, contadoresACero, especies, fraseDe, poner, publicada, textoDe, type Fila, type Publicada } from './textos';
+import { CLI12, CLI13, NOR10, contadoresACero, especies, fraseDe, poner, publicada, textoDe, type Fila, type Publicada } from './textos';
 
 /**
  * EL ARNÉS DEL MEDIDOR DE NOR-10 (`SQL_F128_02_nor10_con_haiku55.sql`), en PGlite, con el texto
- * real de NOR-10 y CLI-12. Entró en la suite el 19/10/2026 (arquitecto): el medidor es lo que
- * falló cuatro veces el 19/10, y este arnés es lo único que lo vigila.
+ * real de NOR-10, CLI-12 y CLI-13. Entró en la suite el 19/10/2026 (arquitecto): el medidor es lo
+ * que falló cuatro veces el 19/10, y este arnés es lo único que lo vigila.
  *
- * Qué vigila: los controles del bloque 0; la especie de cada contradicción publicada por la cita
- * y por la frase, con los pares al valor declarado por el registro (A: el cargo Y una
- * formulación; B y D, enteros); los dos límites de la frase; y los controles negativos: el
- * contraejemplo del cargo solo, dos trampas que el par recortado de B y D se tragaba, y la D que
- * «vive pegada a la A» (registro), que no puede salir A.
+ * TRES BASES, montadas por separado:
+ *  · LA RÉPLICA DE LA LÍNEA BASE del 16/10 (Haiku 4.5, tres pasadas, una A cada una), con la cita
+ *    EXACTA de la salida del director del 20/10: OTRA por la cita y A por la frase, mediana 281, y
+ *    el 0.9 en NO APLICA porque no guarda el modelo.
+ *  · LA RÉPLICA DE LA TANDA de Haiku 5.5 del 19/10 (publicadas 4/3/2), con sus citas exactas: las
+ *    ocho A, OTRA por la cita y A por la frase; la de CLI-13, OTRA en las dos; mediana 83.
+ *  · LOS CONTROLES sintéticos: los pares al valor declarado por el registro (A: el cargo Y una
+ *    formulación; B y D, enteros), el contraejemplo del cargo solo, las trampas que el par recortado
+ *    de B y D se tragaba, y la D que «vive pegada a la A» (registro), que no puede salir A.
  */
 const ORG = 'a9625e93-af2a-4416-a465-5c2fa2a25bdf';
-const ID = { nor: '11111111-1111-1111-1111-111111111111', cli: '22222222-2222-2222-2222-222222222222' };
-const D = publicada(CLI12);
+const ID = { nor: '11111111-1111-1111-1111-111111111111', cli: '22222222-2222-2222-2222-222222222222', c13: '33333333-3333-3333-3333-333333333333' };
+const D = publicada(CLI12), D13 = publicada(CLI13);
 
-// A: la de la línea base del 16/10 (las dos frases de la negrita del registro) y las tres de la tanda,
-// RECONSTRUIDAS de la descripción del arquitecto (autorizar excepciones, firmar auditorías, retirar el autoclave)
+// ── Las citas EXACTAS de las dos salidas del director (20/10)
+const COORD_ENTERA = 'El Coordinador de Calidad es quien autoriza cualquier excepción documentada al protocolo de esterilización, quien firma los registros de auditoría trimestral del área y quien decide, con criterio técnico y sin necesidad de validación adicional del Director Clínico, la retirada de servicio de un autoclave que no supere un control biológico';
+const A_45 = D('Autoridad para retirar autoclave de servicio tras fallo de control biológico', 'la responsabilidad última —incluida la firma de los registros de auditoría trimestral y la decisión de retirar del servicio un autoclave que no supere un control biológico— no es delegable y recae siempre sobre esta figura', COORD_ENTERA);
+const EXC = D('Responsable de autorizar excepciones', 'quien autoriza cualquier excepción documentada al procedimiento', 'El Coordinador de Calidad es quien autoriza cualquier excepción documentada al protocolo de esterilización');
+const FIR = D('Responsable de firmar los registros de auditoría trimestral', 'la firma de los registros de auditoría trimestral', 'quien firma los registros de auditoría trimestral del área');
+const FIR_INCL = D('Responsable de la firma de los registros de auditoría trimestral', 'incluida la firma de los registros de auditoría trimestral', 'quien firma los registros de auditoría trimestral del área');
+const AUT = D('Responsable de la retirada de un autoclave', 'la decisión de retirar del servicio un autoclave que no supere un control biológico', 'quien decide, con criterio técnico y sin necesidad de validación adicional del Director Clínico, la retirada de servicio de un autoclave que no supere un control biológico');
+const NOR04 = D13('Protocolo de referencia para la gestión de residuos sanitarios (NOR-04 frente a NOR-11)', 'Queda fuera de alcance el material de un solo uso, que se rige por el protocolo NOR-04 de gestión de residuos sanitarios.', 'lo establecido en el protocolo NOR-11 de gestión de residuos sanitarios');
+const TANDA: Publicada[][] = [[EXC, FIR, AUT, NOR04], [EXC, AUT, FIR_INCL], [EXC, AUT]];
+
+// ── Los controles sintéticos (literales del texto real)
 const A_BASE = D('Responsable último de la esterilización', 'El responsable último del cumplimiento de este protocolo en cada centro es el Director Clínico de la clínica correspondiente', 'El responsable último de la esterilización del instrumental en cada clínica es el Coordinador de Calidad del centro, no el Director Clínico');
-const A_EXC = D('Autorización de excepciones', 'quien autoriza cualquier excepción documentada al procedimiento', 'quien autoriza cualquier excepción documentada al protocolo de esterilización');
-const A_FIR = D('Firma de auditorías', 'la firma de los registros de auditoría trimestral', 'quien firma los registros de auditoría trimestral del área');
-const A_AUT = D('Retirada del autoclave', 'la decisión de retirar del servicio un autoclave que no supere un control biológico', 'la retirada de servicio de un autoclave que no supere un control biológico');
-// El contraejemplo del cargo solo (19/10): las dos citas nombran los dos cargos y no hablan de lo mismo
 const TRAMPA_A = D('Notificación', 'se notifica al Director Clínico y se repite la esterilización de toda la carga procesada', 'coordinada conjuntamente por el Coordinador de Calidad y el Director Clínico del centro afectado');
-// B y D al valor declarado (19/10)
 const B_REAL = D('Control biológico', 'El control biológico del autoclave se realiza semanalmente, todos los lunes a primera hora', 'El control biológico del autoclave se realiza con periodicidad mensual, el primer día laborable de cada mes');
 const B_CITA_MALA = D('Control biológico', 'El control biológico del autoclave se realiza semanalmente', 'Esta periodicidad mensual se considera suficiente desde el punto de vista de calidad');
 const D_REAL = D('¿Pueden coincidir las dos figuras?', 'figura que puede recaer en el propio Director Clínico o en otro profesional designado por él', 'nunca por el Director Clínico del propio centro, precisamente para mantener la separación de funciones');
 const TRAMPA_B = D('Periodicidad', 'Semanalmente se realiza el test de la lámina de aluminio', 'Los resultados se consolidan mensualmente por clínica y se incorporan al cuadro de mando de calidad');
 const TRAMPA_D = D('Coincidencia', 'figura que puede recaer en el propio Director Clínico', 'nunca como mecanismo de control individual del personal presente en el momento de la auditoría');
-// «LA D VIVE PEGADA A LA A» (registro): la segunda frase de NOR-10 2.4 lleva cargo y «responsabilidad última»
 const EN_35 = 'En ausencia programada o imprevista del Coordinador de Calidad (vacaciones, baja), sus funciones son asumidas temporalmente por el Coordinador de Calidad de otra clínica de la red, nunca por el Director Clínico del propio centro';
 const D_24B_35 = D('¿Pueden coincidir?', 'El Coordinador de Calidad no sustituye al Director Clínico en la responsabilidad última descrita en el apartado 2.1', EN_35);
 const D_24A_35 = D('¿Pueden coincidir?', 'Cada clínica cuenta con un Coordinador de Calidad, figura que puede recaer en el propio Director Clínico o en otro profesional designado por él', EN_35);
@@ -40,9 +47,10 @@ const A_24B_31 = D('Responsable último', 'El Coordinador de Calidad no sustituy
 
 /** [por la cita, por la frase, nombre] */
 const ESPERADO = new Map<Publicada, [string, string, string]>([
-  [A_BASE, ['A', 'A', 'A de la línea base']], [A_EXC, ['OTRA', 'A', 'A, autorizar excepciones']],
-  [A_FIR, ['OTRA', 'A', 'A, firmar auditorías']], [A_AUT, ['OTRA', 'A', 'A, retirar el autoclave']],
-  [TRAMPA_A, ['OTRA', 'OTRA', 'contraejemplo del cargo solo']],
+  [A_45, ['OTRA', 'A', 'la A de Haiku 4.5, sin el cargo']],
+  [EXC, ['OTRA', 'A', 'A, autorizar excepciones']], [FIR, ['OTRA', 'A', 'A, firmar auditorías']], [FIR_INCL, ['OTRA', 'A', 'A, «incluida la firma…»']],
+  [AUT, ['OTRA', 'A', 'A, retirar el autoclave']], [NOR04, ['OTRA', 'OTRA', 'la de CLI-13, NOR-04 frente a NOR-11']],
+  [A_BASE, ['A', 'A', 'A, las dos frases de la negrita del registro']], [TRAMPA_A, ['OTRA', 'OTRA', 'contraejemplo del cargo solo']],
   [B_REAL, ['B', 'B', 'B sembrada']], [B_CITA_MALA, ['OTRA', 'B', 'B con la cita mala']], [D_REAL, ['D', 'D', 'D']],
   [TRAMPA_B, ['OTRA', 'OTRA', 'trampa B: test semanal de la cubeta contra resultados mensuales']],
   [TRAMPA_D, ['OTRA', 'OTRA', 'trampa D: «nunca como mecanismo de control individual»']],
@@ -51,63 +59,109 @@ const ESPERADO = new Map<Publicada, [string, string, string]>([
   [A_24B_31, ['A', 'A', '2.4 (2.ª frase) contra el 3.1 de la A']],
 ]);
 
-let filas: Fila[] = [];
-
-beforeAll(async () => {
-  const nor = await textoDe(NOR10), cli = await textoDe(CLI12);
+interface Lectura { candidato: 'cli' | 'c13'; tokens?: number }
+async function montar(pasadas: { hora: string; ds: Publicada[]; modelo: boolean }[], ventana: { desde: string; hasta: string; push: string; exigir: boolean }): Promise<Fila[]> {
+  const nor = await textoDe(NOR10), cli = await textoDe(CLI12), c13 = await textoDe(CLI13);
   const rec = nor.trozos.map(c => c.text).join('\n\n');
   const db = new PGlite();
   await db.exec(`CREATE TABLE analysis_results (id uuid DEFAULT gen_random_uuid(), org_id text, created_at timestamptz, document_id uuid, document_name text, contradictions_found int, pipeline_counters jsonb, analysis jsonb);
     CREATE TABLE documents (id uuid, org_id text, name text, active_generation int, full_text text);
     CREATE TABLE document_chunks (document_id uuid, org_id text, generation int, chunk_index int, chunk_type text, text text);`);
-  await db.query('INSERT INTO documents VALUES ($1,$2,$3,1,$4),($5,$2,$6,1,$7)', [ID.nor, ORG, NOR10, nor.fullText, ID.cli, CLI12, cli.fullText]);
-  for (const [id, t] of [[ID.nor, nor], [ID.cli, cli]] as const)
+  await db.query('INSERT INTO documents VALUES ($1,$2,$3,1,$4),($5,$2,$6,1,$7),($8,$2,$9,1,$10)', [ID.nor, ORG, NOR10, nor.fullText, ID.cli, CLI12, cli.fullText, ID.c13, CLI13, c13.fullText]);
+  for (const [id, t] of [[ID.nor, nor], [ID.cli, cli], [ID.c13, c13]] as const)
     for (const c of t.trozos) await db.query('INSERT INTO document_chunks VALUES ($1,$2,1,$3,$4,$5)', [id, ORG, c.chunkIndex, c.chunkType, c.text]);
-  const tanda = [A_EXC, A_FIR, A_AUT];
-  const pasadas = [[A_BASE], tanda, tanda, [...tanda, TRAMPA_A, B_REAL, B_CITA_MALA, D_REAL, TRAMPA_B, TRAMPA_D, D_24B_35, D_24A_35, A_24B_31]];
-  for (let i = 0; i < pasadas.length; i++) {
-    const ds = pasadas[i];
+  // las dos parejas, con lo que leyó el juez de cada una en la tanda real (bloque 1 de las salidas)
+  const lectura = (l: Lectura, modelo: boolean) => l.candidato === 'cli'
+    ? { documentId: ID.cli, regimen: 'corte_honesto', analizado: { caracteres: rec.length, mostrados: 37143, dejoFuera: true }, candidato: { caracteres: 55135, mostrados: 2857, dejoFuera: true }, presupuesto: 40000, ...(modelo ? { modelo: 'claude-haiku-5-5', tokensDeSalida: 3000 } : {}) }
+    : { documentId: ID.c13, regimen: 'corte_honesto', analizado: { caracteres: rec.length, mostrados: 30183, dejoFuera: true }, candidato: { caracteres: 9817, mostrados: 9817, dejoFuera: false }, presupuesto: 40000, ...(modelo ? { modelo: 'claude-haiku-5-5', tokensDeSalida: 2000 } : {}) };
+  for (const p of pasadas) {
+    const deCLI12 = p.ds.filter(d => d.existingDocument === CLI12), deCLI13 = p.ds.filter(d => d.existingDocument === CLI13);
     await db.query('INSERT INTO analysis_results (org_id, created_at, document_id, document_name, contradictions_found, pipeline_counters, analysis) VALUES ($1,$2,$3,$4,$5,$6,$7)',
-      [ORG, `2026-10-19T1${i}:10:00Z`, ID.nor, NOR10, ds.length, contadoresACero(), { discrepancies: ds, judgments: [{ documentName: CLI12, contradictions: ds }],
-        lecturaDeLasParejas: [{ documentId: ID.cli, regimen: 'corte_honesto', modelo: 'claude-haiku-5-5', tokensDeSalida: 3100,
-          analizado: { caracteres: rec.length, mostrados: 37143, dejoFuera: true }, candidato: { caracteres: 55135, mostrados: 2857, dejoFuera: true }, presupuesto: 40000 }] }]);
+      [ORG, p.hora, ID.nor, NOR10, p.ds.length, contadoresACero(), { discrepancies: p.ds,
+        judgments: [{ documentName: CLI12, contradictions: deCLI12 }, { documentName: CLI13, contradictions: deCLI13 }],
+        lecturaDeLasParejas: [lectura({ candidato: 'cli' }, p.modelo), lectura({ candidato: 'c13' }, p.modelo)] }]);
   }
   let sql = readFileSync('SQL_F128_02_nor10_con_haiku55.sql', 'utf8').replaceAll('public.', '');
-  sql = poner(sql, /timestamptz '[^']+' AS desde/, "timestamptz '2026-10-19 11:00:00+02' AS desde");
-  sql = poner(sql, /timestamptz '[^']+' AS hasta/, "timestamptz '2026-10-19 17:00:00+02' AS hasta");
-  sql = poner(sql, /timestamptz '[^']+' AS push/, "timestamptz '2026-10-16 12:50:00+02' AS push");
-  sql = poner(sql, /(true|false) AS exigir_modelo/, 'true AS exigir_modelo');
-  sql = poner(sql, /3 AS esperado/, '4 AS esperado');
-  filas = (await db.query<Fila>(sql)).rows;
+  sql = poner(sql, /timestamptz '[^']+' AS desde/, `timestamptz '${ventana.desde}' AS desde`);
+  sql = poner(sql, /timestamptz '[^']+' AS hasta/, `timestamptz '${ventana.hasta}' AS hasta`);
+  sql = poner(sql, /timestamptz '[^']+' AS push/, `timestamptz '${ventana.push}' AS push`);
+  sql = poner(sql, /(true|false) AS exigir_modelo/, `${ventana.exigir} AS exigir_modelo`);
+  sql = poner(sql, /\d+ AS esperado/, `${pasadas.length} AS esperado`);
+  const filas = (await db.query<Fila>(sql)).rows;
   await db.close();
-}, 120_000);
+  return filas;
+}
 
-describe('SQL_F128_02, el medidor de NOR-10', () => {
+let base: Fila[] = [], tanda: Fila[] = [], controles: Fila[] = [];
+beforeAll(async () => {
+  // la línea base del 16/10, con los valores de la tabla de la cabecera del SQL
+  base = await montar(['2026-10-16T10:45:35Z', '2026-10-16T10:46:17Z', '2026-10-16T10:46:53Z'].map(hora => ({ hora, ds: [A_45], modelo: false })),
+    { desde: '2026-10-16 12:40:00+02', hasta: '2026-10-16 12:50:00+02', push: '2026-10-13 21:20:36+02', exigir: false });
+  tanda = await montar(['2026-10-19T12:26:02Z', '2026-10-19T12:26:40Z', '2026-10-19T12:28:29Z'].map((hora, i) => ({ hora, ds: TANDA[i], modelo: true })),
+    { desde: '2026-10-19 14:20:00+02', hasta: '2026-10-19 14:35:00+02', push: '2026-10-16 12:50:00+02', exigir: true });
+  controles = await montar([[A_BASE], [EXC, FIR, AUT], [TRAMPA_A, B_REAL, B_CITA_MALA, D_REAL, TRAMPA_B, TRAMPA_D, D_24B_35, D_24A_35, A_24B_31]]
+    .map((ds, i) => ({ hora: `2026-10-19T1${i}:10:00Z`, ds, modelo: true })),
+    { desde: '2026-10-19 11:00:00+02', hasta: '2026-10-19 17:00:00+02', push: '2026-10-16 12:50:00+02', exigir: true });
+}, 240_000);
+
+const bloque = (filas: Fila[], prefijo: string) => filas.filter(f => f.bloque.startsWith(prefijo));
+function especiesMal(filas: Fila[]): string[] {
+  const mal: string[] = [];
+  for (const f of bloque(filas, '2 ·').filter(f => f.a !== 'ninguna')) {
+    const e = especies(f);
+    const caso = [...ESPERADO.keys()].find(k => k.newDocSays === e.nuevo && k.existingDocSays === e.existente);
+    if (!caso) { mal.push(`${f.pasada}: cita sin caso: ${e.nuevo.slice(0, 50)}`); continue; }
+    const [cita, frase, nombre] = ESPERADO.get(caso) ?? ['', '', ''];
+    if (e.cita !== cita || e.frase !== frase) mal.push(`${f.pasada} · ${nombre}: cita ${e.cita} (esperado ${cita}), frase ${e.frase} (esperado ${frase})`);
+  }
+  return mal;
+}
+
+describe('SQL_F128_02 · la réplica de la línea base del 16/10 (Haiku 4.5)', () => {
+  it('los controles salen OK, y el 0.9 NO APLICA en las tres (no guarda el modelo)', () => {
+    const c = bloque(base, '0');
+    expect(c.filter(f => f.a === 'NO APLICA').length).toBe(3);
+    expect(c.filter(f => f.a !== 'OK' && f.a !== 'NO APLICA').map(f => `${f.a}: ${f.b}`)).toEqual([]);
+  });
+  it('la A de Haiku 4.5 sale OTRA por la cita y A por la frase, las tres veces', () => {
+    expect(bloque(base, '2 ·').length).toBe(3);
+    expect(especiesMal(base)).toEqual([]);
+  });
+  it('mediana 281, y la cita del nuevo dentro de lo entregado, en la 2748', () => {
+    expect(bloque(base, '6 ·').find(f => f.a === 'TODAS')?.b).toBe('n 6 · mediana 281.0');
+    expect(bloque(base, '2 ·')[0]?.c).toContain('literal, DENTRO de lo entregado (empieza en 2748)');
+    expect(bloque(base, '3 ·')[0]?.a).toBe('de 3 citas publicadas del lado NOR-10: 0 no están dentro');
+  });
+});
+
+describe('SQL_F128_02 · la réplica de la tanda de Haiku 5.5 del 19/10', () => {
   it('todos los controles del bloque 0 salen OK', () => {
-    const controles = filas.filter(f => f.bloque.startsWith('0'));
-    expect(controles.length).toBeGreaterThan(20);
-    expect(controles.filter(f => f.a !== 'OK').map(f => `${f.a}: ${f.b}`)).toEqual([]);
+    expect(bloque(tanda, '0').filter(f => f.a !== 'OK').map(f => `${f.a}: ${f.b}`)).toEqual([]);
   });
-
-  it('cada contradicción publicada sale con su especie por la cita y por la frase', () => {
-    const publicadas = filas.filter(f => f.bloque.startsWith('2 ·') && f.a !== 'ninguna');
-    expect(publicadas.length).toBe(1 + 3 + 3 + 12);
-    const mal: string[] = [];
-    for (const f of publicadas) {
-      const e = especies(f);
-      const caso = [...ESPERADO.keys()].find(k => k.newDocSays === e.nuevo && k.existingDocSays === e.existente);
-      if (!caso) { mal.push(`${f.pasada}: cita sin caso: ${e.nuevo.slice(0, 50)}`); continue; }
-      const [cita, frase, nombre] = ESPERADO.get(caso) ?? ['', '', ''];
-      if (e.cita !== cita || e.frase !== frase) mal.push(`${f.pasada} · ${nombre}: cita ${e.cita} (esperado ${cita}), frase ${e.frase} (esperado ${frase})`);
-    }
-    expect(mal).toEqual([]);
+  it('publicadas 4/3/2: las ocho A, OTRA por la cita y A por la frase; la de CLI-13, OTRA en las dos', () => {
+    expect(bloque(tanda, '2 ·').map(f => f.pasada)).toEqual(['pasada 1', 'pasada 1', 'pasada 1', 'pasada 1', 'pasada 2', 'pasada 2', 'pasada 2', 'pasada 3', 'pasada 3']);
+    expect(especiesMal(tanda)).toEqual([]);
   });
+  it('mediana 83, y cada cita del nuevo empieza donde la salida real dice', () => {
+    expect(bloque(tanda, '6 ·').map(f => `${f.a}: ${f.b}`).sort()).toEqual(['CLI-12: n 16 · mediana 83.0', 'TODAS: n 18 · mediana 83.0']);
+    const inicios = [...new Set(bloque(tanda, '2 ·').map(f => /empieza en (\d+)/.exec(f.c ?? '')?.[1]))].sort();
+    expect(inicios).toEqual(['1474', '2439', '2775', '2784', '2836']);
+  });
+});
 
+describe('SQL_F128_02 · los controles', () => {
+  it('todos los controles del bloque 0 salen OK', () => {
+    expect(bloque(controles, '0').filter(f => f.a !== 'OK').map(f => `${f.a}: ${f.b}`)).toEqual([]);
+  });
+  it('cada caso sale con su especie por la cita y por la frase', () => {
+    expect(bloque(controles, '2 ·').length).toBe(1 + 3 + 9);
+    expect(especiesMal(controles)).toEqual([]);
+  });
   it('los dos límites de la frase, con casos decisivos', () => {
-    const exc = filas.find(f => f.bloque.startsWith('2 ·') && especies(f).nuevo === A_EXC.newDocSays) as Fila;
+    const exc = bloque(controles, '2 ·').find(f => especies(f).nuevo === EXC.newDocSays) as Fila;
     // el principio: la de las excepciones va detrás de «El responsable último…» en su párrafo
     expect(fraseDe(exc, 'NUEVO')).toBe('Es el Director Clínico quien debe asegurar que existen los recursos materiales y humanos necesarios para ejecutar cada etapa del ciclo de esterilización conforme a lo aquí descrito, quien autoriza cualquier excepción documentada al procedimiento y quien responde ante Dirección de Operaciones en caso de incidencia grave relacionada con la esterilización del instrumental.');
     // el final: la del Coordinador de Calidad tiene otra frase detrás en su párrafo
-    expect(fraseDe(exc, 'EXISTENTE')).toBe('El Coordinador de Calidad es quien autoriza cualquier excepción documentada al protocolo de esterilización, quien firma los registros de auditoría trimestral del área y quien decide, con criterio técnico y sin necesidad de validación adicional del Director Clínico, la retirada de servicio de un autoclave que no supere un control biológico.');
+    expect(fraseDe(exc, 'EXISTENTE')).toBe(COORD_ENTERA + '.');
   });
 });

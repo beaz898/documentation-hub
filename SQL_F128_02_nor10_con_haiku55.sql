@@ -66,7 +66,10 @@
 -- arquitecto). **POR QUÉ EXISTE: el 19/10 el clasificador dio OTRA a TRECE
 -- hallazgos correctos de trece** —las cuatro NEGACIÓN de NOR-11 y las nueve A de
 -- NOR-10 de la tanda de Haiku 5.5—, **porque exige el dato DENTRO de la cita y el
--- juez cita trozos de frase.** Con una sola columna, «acierto mal citado» y «fallo
+-- juez cita trozos de frase.** (Corregido el 20/10 con la salida real de la tanda:
+-- eran DOCE de trece —las cuatro NEGACIÓN y OCHO A, publicadas 4/3/2—; la
+-- decimotercera, la de CLI-13, «NOR-04» contra «NOR-11», sale OTRA en las dos
+-- columnas y está pendiente de leer a mano.) Con una sola columna, «acierto mal citado» y «fallo
 -- de verdad» salían con la misma etiqueta, OTRA.
 --   · La PRIMERA columna no cambia: clasifica la CITA, que es lo que ve el usuario.
 --   · La SEGUNDA busca cada cita LITERAL en el full_text de su documento, coge la
