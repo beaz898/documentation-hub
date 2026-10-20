@@ -530,11 +530,20 @@ DEFECTO DE LA CITA SIN SUJETO NO LO INTRODUJO HAIKU 5.5: estaba con 4.5, y lo ta
   el sujeto. La cita de 4.5 tampoco lo llevaba.
 - **El diagnóstico, acotado: está en el 3.1.2.** En NOR-11 las dos columnas coinciden en 42 de 42
   citas, porque el dato va en el predicado; en la A el dato es el sujeto, y es lo que se recorta.
-- **PENDIENTE DE LEER A MANO, sin juzgar todavía** (arquitecto, 20/10): **el noveno de la tanda de
-  NOR-10, el de CLI-13**, sale OTRA en las dos columnas. Es el único que no es A. NOR-10: «Queda fuera
-  de alcance el material de un solo uso, que se rige por el protocolo NOR-04 de gestión de residuos
-  sanitarios.» CLI-13: «…lo establecido en el protocolo NOR-11 de gestión de residuos sanitarios…».
-  Los dos pasajes, literales, están en la respuesta de Code del 20/10.
+- ~~**PENDIENTE DE LEER A MANO, sin juzgar todavía**~~ **ACIERTO REAL NO SEMBRADO** (arquitecto,
+  20/10, con NOR-04 leído por Code): **el noveno de la tanda de NOR-10, el de CLI-13**, sale OTRA en
+  las dos columnas. Es el único que no es A. NOR-10: «Queda fuera de alcance el material de un solo
+  uso, que se rige por el protocolo NOR-04 de gestión de residuos sanitarios.» CLI-13: «…lo
+  establecido en el protocolo NOR-11 de gestión de residuos sanitarios…». **NOR-10 cita el documento
+  equivocado**, y dos veces: el protocolo de residuos es NOR-11 (su título interno, «NOR-11 · Gestión
+  de Residuos Sanitarios»), y `NOR-04_plan-de-emergencia-y-evacuacion.pdf` se titula «Plan de
+  Emergencia y Evacuación» y no habla de residuos. **Nadie lo sembró, y detectarlo es un acierto**:
+  el segundo error real del corpus después de la D del 27/08. Anotado en
+  `corpus-pruebas/SIEMBRA_corpus_ampliado.md`, §6, como la D. Es visible en NOR-10 ↔ CLI-13, que
+  no cubre ningún registro de siembra.
+  - Y la cuenta de la tanda de NOR-10 queda así: **nueve publicadas, nueve correctas**, ocho A y este.
+    El medidor reconoce las ocho A por la frase; este sale OTRA porque no tiene especie en ningún
+    registro.
 - **Con esto F-128 queda cerrado del todo.** Lo siguiente, el 3.1.1.
 
 ### 3.2 · El caso de empalme falso sembrado · F-125, confirmado en F-126

@@ -331,3 +331,68 @@ montones de exclusivas difieran en tamaño sirve para lo que éste no puede.
 - **Total esperado:** 20 coincidencias + 15 discrepancias + 25 filas sin
   pareja = 60 filas de OPE-11 correctamente clasificadas contra las 60 filas
   de OPE-10.
+
+
+---
+
+## 6. NOR-10 remite a un protocolo de residuos que no es el de residuos (NOR-10 ↔ CLI-13) · **NO SEMBRADO**
+
+> **AÑADIDO AL REPOSITORIO EL 20/10/2026.** No figura en el registro original y
+> **nadie lo sembró**: apareció en la tanda de F-128 del 19/10 (el juez con Haiku
+> 5.5), como la cuarta contradicción publicada en la primera pasada de NOR-10, la
+> única de esa tanda que no era A. Es un error real del corpus, así que
+> **detectarlo cuenta como acierto**. Es el segundo error real no sembrado,
+> después de la D del 27/08.
+
+| | Documento | Apartado | Afirmación |
+|---|---|---|---|
+| Versión 1 | NOR-10 | **1** (alcance) | El material de un solo uso «se rige por el protocolo **NOR-04 de gestión de residuos sanitarios**». |
+| Versión 2 | CLI-13 | **1 · Objeto** | La guía traduce «lo establecido en el protocolo **NOR-11 de gestión de residuos sanitarios**». |
+
+**Los pasajes, literales** (del texto extraído de cada documento, como lo indexa el
+producto):
+
+> **NOR-10 · 1, las DOS veces que nombra NOR-04:** «…Aplica a instrumental de mano,
+> piezas de mano y contraángulos, instrumental de cirugía e implantología, e
+> instrumental de ortodoncia reutilizable. **Queda fuera de alcance el material de un
+> solo uso, que se rige por el protocolo NOR-04 de gestión de residuos sanitarios.**
+>
+> Este documento debe leerse conjuntamente con CLI-02 (Control de infecciones),
+> CLI-12 (Manual de calidad de la clínica) y **NOR-04 (Gestión de residuos
+> sanitarios)**. En caso de duda sobre la aplicación de un punto concreto, el personal
+> debe consultar a su responsable de área antes de improvisar una solución no
+> contemplada en este protocolo.»
+
+> **CLI-13 · 1 (Objeto):** «Esta guía traduce a instrucciones prácticas del día a día
+> **lo establecido en el protocolo NOR-11 de gestión de residuos sanitarios**, para el
+> personal que trabaja directamente en el gabinete clínico. No sustituye a NOR-11: ante
+> cualquier duda no resuelta aquí, es ese protocolo el que se consulta en primer
+> lugar.»
+
+> **NOR-11, su título interno:** «NOR-11 · Gestión de Residuos Sanitarios».
+
+> **NOR-04** (`NOR-04_plan-de-emergencia-y-evacuacion.pdf`, una página, leída entera
+> el 20/10): su título interno es «**Plan de Emergencia y Evacuación**» («Versión 1.5 ·
+> Revisado 2024 · Dirección de Operaciones»), y su objeto: «Este plan establece las
+> pautas de actuación ante una emergencia (incendio, evacuación, emergencia médica) en
+> cualquier clínica Dentavia, con el objetivo de proteger a pacientes y personal.» Sus
+> siete apartados son el objeto, la organización de la emergencia, el incendio, la
+> emergencia médica, los simulacros, los medios de protección y los teléfonos. **No
+> habla de residuos.**
+
+**Lo que publicó el juez** (pasada 1 de la tanda, 19/10/2026 14:26), literal:
+«Queda fuera de alcance el material de un solo uso, que se rige por el protocolo
+NOR-04 de gestión de residuos sanitarios.» contra «lo establecido en el protocolo
+NOR-11 de gestión de residuos sanitarios»; tema: «Protocolo de referencia para la
+gestión de residuos sanitarios (NOR-04 frente a NOR-11)».
+
+**Naturaleza del conflicto:** NOR-10 atribuye la gestión de residuos sanitarios a
+NOR-04, que en el corpus es el plan de emergencia y evacuación; el protocolo de
+residuos es NOR-11, como dicen su propio título y CLI-13. NOR-10 cita el documento
+equivocado, y lo hace dos veces.
+
+> ⚠️ **NINGÚN REGISTRO DE SIEMBRA CUBRE ESTA PAREJA.** Es visible en NOR-10 ↔ CLI-13,
+> y ni `SIEMBRA_caso_control.md` (NOR-11 ↔ CLI-13) ni el §1 de este registro
+> (NOR-10 ↔ CLI-12) la miran. Un hallazgo en una pareja sin registro **no se puede dar
+> por falso positivo sin ir al texto**, igual que dice el resumen de arriba para los
+> que no son A, B, C ni D.
