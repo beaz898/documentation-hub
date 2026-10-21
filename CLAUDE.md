@@ -53,7 +53,7 @@ Upload → Text extraction (PDF/docx/md/txt) → Chunking POR SECCIONES: objetiv
 ### Analysis Pipeline (`lib/analysis/pipeline.ts`)
 
 When requested, the system runs multi-step analysis against existing docs:
-- Claim extraction → Pinecone retrieval → **Rerank** (Haiku filters noisy candidates, max 6 quick / 10 exhaustive) → Contradiction/duplicate verification → Synthesis
+- Claim extraction → Pinecone retrieval → **Rerank** (Haiku filters noisy candidates: max 6 quick; exhaustive, the code uses **25** since commit `63cad1bd` of 08/05/2026 —`MAX_SELECTED_EXHAUSTIVE`, `lib/analysis/rerank.ts`—, with no reason written anywhere; whether the intended value is 10 or 25 is **PENDING DECISION**, see the debt entry in `claude/Estado_Y_Pendientes_14-10-2026.md` §5. *Corrected 21/10/2026: this line said «10 exhaustive» since 19/05, which was never true.*) → Contradiction/duplicate verification → Synthesis
 - Each step calls Claude via `lib/analysis/llm-client.ts`
 - Results are confidence-scored findings users can accept/reject before saving improvements
 
