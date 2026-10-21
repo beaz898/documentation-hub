@@ -144,7 +144,7 @@ barranco en sentido estricto, subir el presupuesto y leer menos, sigue sin obser
 producción sólo ha existido P = 40.000; lo que se ve aquí es el mecanismo que lo produce, como
 decía la consulta de F-127 en su 2.3.)
 
-#### 3.1.1 · Registrar tokens por llamada · F-127 P7 paso 1 y P9.1 · ~~SIN EMPEZAR~~ · EN CURSO desde el 21/10: pasos 2 a 4 hechos y el 4 cerrado en producción; paso 5 escrito, pendiente de leer
+#### 3.1.1 · Registrar tokens por llamada · F-127 P7 paso 1 y P9.1 · ~~SIN EMPEZAR~~ · ✅ HECHO EL 21/10/2026: los cinco pasos, y el medidor leído
 **Es lo primero.** Cero cambio de comportamiento: la API ya devuelve `input_tokens`,
 `output_tokens`, `cache_creation_input_tokens` y `cache_read_input_tokens`; llegan a
 `lib/llm/anthropic-client.ts:333-340` y se pierden al sumarlos por modelo en
@@ -265,6 +265,20 @@ del análisis; (4) guardarlo; (5) el medidor, en SQL probado en PGlite y con arn
   una copia de `llm-pricing.ts` y **el arnés comprueba que coinciden**. Probado en PGlite
   (`claude/arneses/f311/sql-311-02-medidor.test.ts`) con un análisis de cifras calculadas a mano; once
   mutantes, uno por control y uno por cálculo, los once en rojo.
+- **✅ LA PRIMERA LECTURA DEL MEDIDOR, Y CIERRA EL 3.1.1** (21/10; cifras del arquitecto, leídas en la salida de `SQL_311_02` que ejecutó el director el 21/10 sobre el análisis rápido de NOR-11 de las 14:01; Code no ha visto esa salida). Un análisis no es una
+  muestra, y las tres respuestas valen como primer dato:
+  1. **LOS DOS ÷4: la estimación se queda CORTA, no larga.** Proporción estimada/real entre 0,635 y
+     0,874, mediana 0,687; en suma, **26.420 estimados contra 38.538 reales** (el 68,5 %). El limitador
+     de cuota trabaja con un margen un tercio más pequeño del que cree. Cero 429 y cero reintentos hoy,
+     así que no muerde todavía. Causa probable, **SIN MEDIR**: `/4` supone cuatro caracteres por token,
+     y el español escapado en JSON va más cerca de tres. Sigue en el pendiente C (3.15).
+  2. **LA LATENCIA: 97,4 % en petición y 2,6 % en espera** (1.094 ms de espera en todo el análisis). **La
+     hipótesis del backoff invisible queda ENTERRADA con datos.** El 77 % de la duración es UNA sola
+     petición del juez: **27.718 ms escribiendo 7.144 tokens de salida**. Sigue en el pendiente B (3.15).
+  3. **EL COSTE: verificador 31,6 %, juez 30,8 %, rerank 29,1 %, síntesis 8,5 %**, de 0,022045 $. El
+     verificador cuesta más que el juez y el rerank casi lo mismo, porque los tres siguen en Haiku 4.5,
+     diez veces más caro por token. Sigue en el pendiente A (3.15).
+  4. **Y la caché, a cero y comprobado**: escrita 0, leída 0, ahorro 0 $.
 ⚠️ **El tope mensual de 35 $ hay que revisarlo con el coste bueno delante** (arquitecto, 19/10): cualquier cifra de coste
 leída de `cost_usd` antes del arreglo es la cuarta parte de la real. Los «0,0045 $» por análisis de F-117 (`claude/consultas-fable/F-117.md:183`), que Fable usa en la adenda, no dicen de dónde salen; si salen de esa columna, son la cuarta parte.
 
@@ -347,6 +361,8 @@ lectura de caché cuesta **0,10 $ por millón, una décima parte de la entrada n
 escritura **1,25 $**, un 25 % de recargo la primera vez. Era lo que Fable decía no poder estimar.
 
 #### 3.1.5 · Escalón 2, leer por ventanas · F-118 D5, F-123 punto 7, F-127 P6 y D1 · SIN EMPEZAR
+**⚠️ ANTES DE DISEÑARLO SE LEEN LOS PENDIENTES A, B Y C DEL 3.15** (arquitecto, 21/10): las ventanas
+multiplican las llamadas al juez, y por tanto exactamente lo que los tres miden.
 **Es la pieza que CIERRA el frente**, no un extra para lo que no quepa: subir el presupuesto sólo
 persigue documentos. Entra como **fase 4**, después de F-119 (3.3) porque la necesita, y después de
 3.2 y 3.3 de la fase 3 (aquí 3.6 y 3.7) porque multiplica llamadas. Diseño en siete piezas en F-127
@@ -742,6 +758,48 @@ código detrás.
   (`claude/Hallazgo_LUGAR_en_uniqueToNewDoc.md`), y que desde la fase 1.0 NEGACIÓN se publica 7 de 7.
   **Queda pendiente de REDISEÑAR o de CANCELAR formalmente**; lo que no puede quedar es como
   «pendiente» a secas.
+
+### 3.15 · Tres pendientes medidos por el 3.1.1 · arquitecto, 21/10 · NO SE TOCAN AHORA
+Salieron medidos el 21/10 con `SQL_311_02` (cifras del arquitecto, leídas en la salida de `SQL_311_02` que ejecutó el director el 21/10 sobre el análisis rápido de NOR-11 de las 14:01; Code no ha visto esa salida), y van con nombre propio y no como líneas de
+la deuda.
+
+**⚠️ DISPARADOR COMÚN DE LOS TRES: se leen ANTES de diseñar el 3.1.5 (las ventanas)**, porque las
+ventanas multiplican el número de llamadas al juez y por tanto multiplican exactamente lo que los tres
+miden. Diseñar las ventanas sin haberlos leído sería decidir a ciegas sobre el coste y el tiempo.
+
+#### PENDIENTE A — LAS TRES ETAPAS QUE SIGUEN EN HAIKU 4.5
+Medido el 21/10 (`SQL_311_02`, un análisis rápido de NOR-11): **rerank 29,1 % del coste, verificador
+31,6 %, síntesis 8,5 %**, las tres en Haiku 4.5, que cuesta diez veces más por token que 5.5. El juez,
+ya en 5.5, es el 30,8 %. Pasarlas a 5.5 llevaría el análisis de 0,022045 $ a unos 0,0083 $ — **es un
+CÁLCULO, dividir por diez el coste de esas tres filas, NO una medición.**
+⚠️ **Y NO ES EL MISMO CAMBIO QUE EL DEL JUEZ, aunque se parezca.** El juez es la última decisión de la
+cadena, así que cambiarle el modelo sólo cambia su salida. **EL RERANK DECIDE QUÉ DOCUMENTOS SE
+COMPARAN**, así que cambiarle el modelo cambia la entrada de todo lo que viene después, y una tanda con
+otro rerank no es comparable con la línea base. Cada etapa necesitaría su propio interruptor y su
+propia medición, **empezando por las dos inofensivas (verificador y síntesis) y dejando el rerank para
+el final, con su línea base propia.** Y arrastra el mismo confundido declarado de F-128: Haiku 5.5 no
+admite `temperature` 0,1.
+
+#### PENDIENTE B — POR QUÉ EL JUEZ ESCRIBE 7.144 TOKENS EN UNA LLAMADA
+Medido el 21/10: **una sola petición del juez, 27.718 ms y 7.144 tokens de salida, el 77 % de la
+duración del análisis.** La pregunta sin contestar: **¿cuánto de esos 7.144 es PENSAMIENTO y cuánto es
+la respuesta escrita?** Los tokens de pensamiento se facturan como salida y Haiku 5.5 piensa de forma
+adaptativa, así que puede ser casi todo pensamiento. No lo sabemos porque `output_tokens` los suma y el
+registro no los separa.
+Cómo se mediría, sin diseñarlo todavía: el lector de la respuesta (`leerTextoDeLaRespuesta`,
+`lib/llm/texto-de-la-respuesta.ts`) ya cuenta los bloques de pensamiento; con su longitud al lado de los
+tokens de salida se podría separar. Y hay una palanca de una línea, sin medir: el dial de esfuerzo de
+5.5 está en `medium` (`lib/analysis/modelo-del-juez.ts`); bajarlo a `low` recortaría el pensamiento.
+**NO SE TOCA sin medir antes**, porque es la misma trampa de siempre: cambiar y medir a la vez.
+
+#### PENDIENTE C — LA ESTIMACIÓN ÷4 DEL LIMITADOR DE CUOTA
+Medido el 21/10: **estima el 68,5 % de lo que manda de verdad.** El limitador decide con esa cifra
+cuántas peticiones puede lanzar sin que la API corte, así que su margen real es un tercio menor del que
+cree. Hoy no muerde: cero 429 en todo lo medido. Pero el volumen por análisis sube con las ventanas, y
+es entonces cuando importa. El arreglo es barato y hay dos formas, **sin decidir cuál**: cambiar el
+divisor con un factor medido, o usar las cifras reales que ya devuelve la petición anterior en vez de
+estimar. **Lo que NO vale es dejar el 4 sin que nadie sepa que se queda corto.** (Las dos estimaciones:
+`callAnthropicJson` y `callAnthropicAgent`, en `lib/llm/anthropic-client.ts`.)
 
 ---
 

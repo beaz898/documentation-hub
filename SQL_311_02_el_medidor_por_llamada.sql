@@ -30,6 +30,9 @@
 --     estimación se pasa diez veces en cuanto la caché se active** (arquitecto,
 --     21/10): el día del 3.1.4, cuando los documentos vayan como bloques cacheados,
 --     esa comparación habría mandado la medición al carajo sin que nada avisara.
+--     Y HOY LA CACHÉ ESTÁ A CERO, COMPROBADO: en la primera lectura de este medidor
+--     (21/10, el análisis rápido de NOR-11 de las 14:01) salió caché escrita 0,
+--     leída 0 y ahorro 0 $ (lectura del arquitecto de la salida del director).
 --   · LA ESTIMACIÓN SÓLO EXISTE donde la calcula el cliente: en las llamadas JSON
 --     del análisis y en el agente. Las peticiones sin ella salen «—».
 --   · LA TABLA DE PRECIOS ESTÁ COPIADA de `lib/observability/llm-pricing.ts`
