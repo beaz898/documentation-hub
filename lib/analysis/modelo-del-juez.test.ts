@@ -29,8 +29,10 @@ async function juzgar() {
       fragments: [{ text: 'texto del candidato', documentId: 'c', documentName: 'C.docx', source: 'manual', score: 0.9, chunkIndex: 0 }] }],
   });
   expect(opciones).toHaveLength(1);
-  const { alTerminar, ...opts } = opciones[0];
+  const { alTerminar, etiqueta, ...opts } = opciones[0];
   expect(typeof alTerminar).toBe('function');
+  // 3.1.1, paso 3 (21/10): la etiqueta del registro por llamada, aparte para que lo de F-128 siga exacto
+  expect(etiqueta).toEqual({ etapa: 'juez', pareja: 'c' });
   return { opts, lectura: r.lecturaDeLasParejas[0] };
 }
 

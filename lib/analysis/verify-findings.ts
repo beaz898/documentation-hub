@@ -259,6 +259,7 @@ async function verifyBatch(batch: FindingToVerify[]): Promise<BatchOutcome[]> {
       maxOutputTokens: 2048,
       temperature: 0.1,
       model: 'haiku',
+      etiqueta: { etapa: 'verificador' },
     });
 
     const byIndex = new Map<number, { verdict?: string; severity?: string }>();

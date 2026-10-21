@@ -144,7 +144,7 @@ barranco en sentido estricto, subir el presupuesto y leer menos, sigue sin obser
 producción sólo ha existido P = 40.000; lo que se ve aquí es el mecanismo que lo produce, como
 decía la consulta de F-127 en su 2.3.)
 
-#### 3.1.1 · Registrar tokens por llamada · F-127 P7 paso 1 y P9.1 · ~~SIN EMPEZAR~~ · EN CURSO desde el 21/10: paso 2 hecho
+#### 3.1.1 · Registrar tokens por llamada · F-127 P7 paso 1 y P9.1 · ~~SIN EMPEZAR~~ · EN CURSO desde el 21/10: pasos 2 y 3 hechos
 **Es lo primero.** Cero cambio de comportamiento: la API ya devuelve `input_tokens`,
 `output_tokens`, `cache_creation_input_tokens` y `cache_read_input_tokens`; llegan a
 `lib/llm/anthropic-client.ts:333-340` y se pierden al sumarlos por modelo en
@@ -196,7 +196,19 @@ del análisis; (4) guardarlo; (5) el medidor, en SQL probado en PGlite y con arn
   pared de una llamada es la suma de `esperaMs + latenciaMs` de sus entradas; sin ella, 17 s de
   backoff dentro de un análisis de 43 serían invisibles, que es la deuda de la latencia del 19/10.
   Las llamadas de un análisis van en paralelo (el juez y el verificador de cinco en cinco, el estilo a
-  la vez), así que su duración no es la suma: sale de `comienzoMs`.
+  la vez), así que su duración no es la suma: sale de `comienzoMs`. **La suma da el trabajo; el
+  comienzo da la duración.**
+- **Sólo en el runtime de Node** (`AsyncLocalStorage`), comprobado el 21/10: ninguna ruta de `app/`
+  declara Edge, `middleware.ts` no importa el cliente y el worker corre en Node. Escrito como condición
+  en la cabecera de `registro-de-llamadas.ts`.
+- **El paso 3, hecho el 21/10: las seis etapas del análisis, etiquetadas** —rerank, juez (con su
+  pareja, por id), verificador, double-check, síntesis y estilo—. **El control de que no falta ninguna**:
+  hasta que el paso 4 guarde el registro no hay análisis real que diga «sin_etapa = 0», así que hoy lo
+  vigila un censo por capacidad (`lib/analysis/etiquetas-de-llamada.test.ts`): toda llamada al cliente
+  en `lib/analysis/` lleva etiqueta, son exactamente las seis, y las de fuera sin etiqueta (el chat dos
+  veces, la mejora y el agente) están en una lista cerrada. El censo corrigió a Code el mismo día: la
+  llamada del agente está en `lib/agent/runner-conv.ts`, no en `llm-call.ts`, que sólo la reexporta.
+  **El control de verdad llega con el paso 4**: el primer análisis guardado tiene que dar `sinEtapa: 0`.
 ⚠️ **El tope mensual de 35 $ hay que revisarlo con el coste bueno delante** (arquitecto, 19/10): cualquier cifra de coste
 leída de `cost_usd` antes del arreglo es la cuarta parte de la real. Los «0,0045 $» por análisis de F-117 (`claude/consultas-fable/F-117.md:183`), que Fable usa en la adenda, no dicen de dónde salen; si salen de esa columna, son la cuarta parte.
 

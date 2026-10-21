@@ -267,7 +267,7 @@ Responde EXCLUSIVAMENTE con este JSON:
 
   let synthesis: SynthesisResponse;
   try {
-    synthesis = await callLLMJson<SynthesisResponse>(prompt, { maxOutputTokens: 1024, temperature: 0.2 });
+    synthesis = await callLLMJson<SynthesisResponse>(prompt, { maxOutputTokens: 1024, temperature: 0.2, etiqueta: { etapa: 'sintesis' } });
   } catch (err) {
     console.warn('[synthesize] LLM failed, using deterministic fallback:', err);
     recordStageFailure('synthesize', err);

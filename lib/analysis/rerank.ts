@@ -96,7 +96,7 @@ IMPORTANTE: el campo documentId debe ser el documentId real que te paso a contin
 ${candidates.map((c, i) => `[${i + 1}] → ${c.documentId}`).join('\n')}`;
 
   try {
-    const response = await callLLMJson<RerankResponse>(prompt, { maxOutputTokens: 2048, temperature: 0.1 });
+    const response = await callLLMJson<RerankResponse>(prompt, { maxOutputTokens: 2048, temperature: 0.1, etiqueta: { etapa: 'rerank' } });
 
     // ⚠️ LA RESOLUCIÓN ES UNA SOLA, y la selección y el reparto salen de ella
     // (B.253). Hasta el 16/09/2026 aquí había un `find` por entrada SIN quitar

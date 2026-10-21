@@ -925,6 +925,8 @@ Responde con este JSON (sin bloques de código, sin texto adicional):
       ...(delJuez.outputConfig ? { outputConfig: delJuez.outputConfig } : {}),
       // F-128: lo que gastó de verdad, sumando el reintento si lo hubo; también si después falla.
       alTerminar: uso => { lectura.tokensDeSalida = (lectura.tokensDeSalida ?? 0) + uso.outputTokens; },
+      // 3.1.1: la pareja va por su id, nunca por su nombre (registro-de-llamadas.ts, cabecera)
+      etiqueta: { etapa: 'juez', pareja: candidate.documentId },
     });
 
     // Frontera LLM→pipeline (F-39): cada array de la respuesta pasa por la suya;

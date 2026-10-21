@@ -362,6 +362,7 @@ Responde EXCLUSIVAMENTE con este JSON:
       maxOutputTokens: 4096,
       temperature: 0.1,
       model: 'sonnet',
+      etiqueta: { etapa: 'double_check' },
     });
 
     const resultMap = new Map<number, { isContradiction: boolean; severity?: string }>();

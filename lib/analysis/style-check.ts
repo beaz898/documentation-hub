@@ -201,6 +201,7 @@ Devuelve el JSON con los problemas internos detectados.`;
       model: 'haiku',
       maxOutputTokens: 3072,
       temperature: TEMPERATURA_DEL_ESTILO,
+      etiqueta: { etapa: 'estilo' },
     });
 
     // ⚠️ EL FILTRO SE PARTE EN DOS MOTIVOS, y no es cosmética: cada uno es la
