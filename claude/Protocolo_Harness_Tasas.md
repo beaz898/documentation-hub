@@ -1242,6 +1242,15 @@ que una suite lenta, porque enseña a repetirla en vez de a investigarla.** Los 
 que son: **un aviso para mirar, no un límite.** Y un tope de tiempo que mide la máquina y no el código
 no es un tope.
 
+**EL EFECTO SECUNDARIO DE LA SEPARACIÓN: LAS HERRAMIENTAS DE UN SOLO USO YA NO SE LANZAN CON `--dir`**
+(arquitecto, 22/10/2026). Con los dos proyectos, cada uno con su `include`, `npx vitest run --root
+E:/Doc-Hub --dir <carpeta temporal>` no recoge nada de fuera del repositorio, y el 21/10 costó diez minutos
+redescubrirlo. La salida está guardada en `claude/herramientas/vitest.herramientas.mts`, y su cabecera dice
+por qué es así:
+`HERRAMIENTAS=<carpeta> npx vitest run --config claude/herramientas/vitest.herramientas.mts <filtro>`, desde
+la raíz, con las pruebas en `<carpeta>/herramientas/*.test.ts`. Las herramientas siguen viviendo fuera del
+árbol del producto (13/10); lo que vive en el repositorio es la forma de lanzarlas.
+
 **Dónde viven los tests**: al lado de su módulo (`lib/chunking.test.ts` junto a
 `lib/chunking.ts`), no en una carpeta propia. Se agrupa por dominio, no por tipo
 de fichero — y así el módulo y su batería **se borran juntos** el día que se

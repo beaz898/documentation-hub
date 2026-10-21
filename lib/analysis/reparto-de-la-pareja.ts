@@ -38,6 +38,15 @@
 /** La ventana del interino, en caracteres: P. Sustituye a los 40.000 (10.000 tokens) del 29/09. */
 export const TAMANO_VENTANA = 80_000;
 
+/**
+ * LA VENTANA MÁS PEQUEÑA QUE ALGUIEN HA MEDIDO (arquitecto, 22/10/2026). La monotonía del reparto —ningún
+ * lado recibe menos al subir P— se ha verificado barriendo P de 10.000 a 200.000 (`reparto-de-la-pareja.test.ts`)
+ * y POR DEBAJO DE 10.000 NADIE HA MEDIDO NADA: producción no visita esa región (la ventana fue 40.000 y es
+ * 80.000). En vez de barrerla, se cierra: `repartoDeLaPareja` se niega a repartir con una ventana menor, así
+ * que la región sin verificar es inalcanzable. Bajar este número exige bajar antes el barrido.
+ */
+export const VENTANA_MINIMA_MEDIDA = 10_000;
+
 export interface RepartoDeLaPareja {
   /** P, la ventana con la que se repartió. */
   ventana: number;
@@ -68,6 +77,9 @@ export function repartoDeLaPareja(a: {
   ventana?: number;
 }): RepartoDeLaPareja {
   const P = a.ventana ?? TAMANO_VENTANA;
+  if (!(P >= VENTANA_MINIMA_MEDIDA)) {
+    throw new Error(`repartoDeLaPareja: ventana ${P} por debajo de ${VENTANA_MINIMA_MEDIDA}, la región que nadie ha medido`);
+  }
   if (a.analizado + a.candidato <= P) {
     return { ventana: P, parejaEntera: true, candidatoEntero: true, paraElAnalizado: a.analizado, paraElCandidato: a.candidato };
   }

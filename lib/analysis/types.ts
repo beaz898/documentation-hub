@@ -289,6 +289,10 @@ export interface LecturaDeLaPareja {
    *  la de 3.000 de siempre, porque la segunda no la mejoraba sin perder trozos o sin pasarse del resto.
    *  AUSENTE fuera del corte honesto y en los análisis anteriores. */
   seleccion?: 'entero' | 'ampliada' | 'la_de_la_recuperacion';
+  /** 3.1.3 (22/10/2026): cuántos trozos distintos del candidato representa lo que se le envió al juez —el
+   *  mismo `representados` de `leerLaPareja`, contado—. Es la cifra guardada contra la que se comprueba la
+   *  predicción de la tanda (12 de CLI-12 contra NOR-10). AUSENTE en los análisis anteriores. */
+  trozosDelCandidato?: number;
 }
 
 /** Caracteres del texto del analizado que armó el juez, y los que vio. En el

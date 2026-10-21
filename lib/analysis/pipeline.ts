@@ -37,7 +37,7 @@ import type { CitaRecompuestaDeLado, DocumentFragment, DocumentJudgment } from '
 import { lineaDeAgregado, lineaDeCandidato } from '@/lib/analysis/traza-diff';
 import { contadoresDeLaGlosa } from './glosa-de-cita';
 import { conRegistroDeLlamadas } from '@/lib/observability/registro-de-llamadas';
-import { segundaSeleccion } from './segunda-seleccion';
+import { lineasDeLaSegundaSeleccion, segundaSeleccion } from './segunda-seleccion';
 
 /**
  * Carga full_text de un lote de documentos. Réplica local del patrón de
@@ -939,6 +939,7 @@ async function runCorePipeline(
     exhaustivo: options.exhaustive === true,
     conContexto,
   });
+  for (const linea of lineasDeLaSegundaSeleccion(segunda)) console.log(linea);
 
   const t2 = Date.now();
   const { judgments: rawJudgments, evidences, textoAnalizado, lecturaDeLasParejas } = await judgeAllDocuments({

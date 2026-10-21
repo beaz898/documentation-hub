@@ -24,4 +24,8 @@ describe('la segunda selección, cableada', () => {
     expect(args).toMatch(/candidates: segunda\.candidates,/);
     expect(args).toMatch(/repartos: segunda\.repartos,/);
   });
+  it('y el pipeline imprime sus líneas (22/10/2026), sin tocar la del presupuesto de la recuperación', () => {
+    expect(pipeline).toMatch(/for \(const linea of lineasDeLaSegundaSeleccion\(segunda\)\) console\.log\(linea\);/);
+    expect(retrieval).toMatch(/\[retrieval\] presupuesto por candidato: \$\{budgetChars\} chars, tope \$\{MAX_FRAGMENTS_PER_DOC_QUICK\} piezas /);
+  });
 });

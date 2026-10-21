@@ -3,7 +3,7 @@ import { beforeAll, describe, expect, it } from 'vitest';
 import { extractSegments, chunkSegments } from '@/lib/chunking';
 import { toStoredChunks } from '@/lib/read-chunks';
 import { buildAnalyzedDocumentText } from './judge';
-import { repartoDeLaPareja, TAMANO_VENTANA } from './reparto-de-la-pareja';
+import { repartoDeLaPareja, TAMANO_VENTANA, VENTANA_MINIMA_MEDIDA } from './reparto-de-la-pareja';
 
 /**
  * EL REPARTO DE LA PAREJA (3.1.3, 21/10/2026) y LA PRUEBA DE FABLE QUE LO CIERRA (F-127, adenda Q4): se barre
@@ -42,12 +42,13 @@ const nuevo = (P: number, p: Par) => {
   return { analizado: r.paraElAnalizado, candidato: r.paraElCandidato };
 };
 
-/** Los pares en que, al subir P de mil en mil, algún lado recibe menos. */
-function quienesBajan(reparto: (P: number, p: Par) => { analizado: number; candidato: number }): string[] {
+const DESDE = VENTANA_MINIMA_MEDIDA, HASTA = 200_000;
+/** Los pares en que, al subir P de `paso` en `paso` entre DESDE y HASTA, algún lado recibe menos. */
+function quienesBajan(reparto: (P: number, p: Par) => { analizado: number; candidato: number }, paso = 1_000): string[] {
   const bajan: string[] = [];
   for (const p of pares) {
-    let antes = reparto(10_000, p);
-    for (let P = 11_000; P <= 200_000; P += 1_000) {
+    let antes = reparto(DESDE, p);
+    for (let P = DESDE + paso; P <= HASTA; P += paso) {
       const ahora = reparto(P, p);
       if (ahora.analizado < antes.analizado || ahora.candidato < antes.candidato) { bajan.push(`${p.a}←${p.c} en P=${P}`); break; }
       antes = ahora;
@@ -55,6 +56,11 @@ function quienesBajan(reparto: (P: number, p: Par) => { analizado: number; candi
   }
   return bajan;
 }
+/** LA CONDICIÓN DEL BARRANCO de la cascada vieja (F-127): el analizado pasa de los 6.000 del suelo, y el
+ *  escalón —P = C + 6.000, donde el candidato entero empieza a caber y el analizado cae al suelo— está dentro
+ *  del rango barrido (estrictamente después del primer punto, que no se compara con nada). */
+const enElBarranco = (p: Par) => p.A > 6_000 && p.C + 6_000 > DESDE && p.C + 6_000 <= HASTA;
+const nombre = (p: Par) => `${p.a}←${p.c}`;
 
 describe('el reparto de la pareja', () => {
   it('la ventana del interino es de 80.000', () => expect(TAMANO_VENTANA).toBe(80_000));
@@ -78,13 +84,38 @@ describe('el reparto de la pareja', () => {
   it(`LA PRUEBA DE FABLE: barriendo P de 10.000 a 200.000, ningún lado recibe menos en ninguno de los pares`, () => {
     expect(pares.length).toBe(90);
     expect(quienesBajan(nuevo)).toEqual([]);
+    // 22/10/2026: y de uno en uno, donde ningún escalón puede caer entre dos puntos de la rejilla
+    expect(quienesBajan(nuevo, 1)).toEqual([]);
   });
 
-  it('⚠️ CONTROL POSITIVO: el reparto viejo SÍ se pone en rojo, y en los pares del barranco, NOR-10 ↔ CLI-12 entre ellos', () => {
-    const bajan = quienesBajan((P, p) => repartoViejo(P, p.A, p.C));
-    expect(bajan.length).toBeGreaterThan(0);
-    expect(bajan.some(b => b.startsWith('NOR-10←CLI-12'))).toBe(true);
-    expect(bajan.some(b => b.startsWith('CLI-12←NOR-10'))).toBe(true);
+  // ~~CONTROL POSITIVO: el reparto viejo se pone en rojo en algún par, y NOR-10 ↔ CLI-12 entre ellos~~ (21/10/2026):
+  // ~~expect(bajan.length).toBeGreaterThan(0); expect(bajan.some(b => b.startsWith('NOR-10←CLI-12'))).toBe(true); …~~
+  // Pasaba aunque el viejo sólo cayera en un par. 22/10/2026 (arquitecto): se afirma lo UNIVERSAL y se imprime el
+  // número, que no se fija a mano: así un documento nuevo en el corpus no la pone roja sin que haya fallo, y si
+  // el número cambia, se ve. Se barre de UNO en uno: con pasos de 1.000, un analizado apenas por encima de 6.000
+  // puede esconder la caída entre dos puntos (hoy no hay ninguno en el corpus: 30 de 30 también a 1.000).
+  it('⚠️ CONTROL POSITIVO: TODO par en la condición del barranco se pone en rojo con el reparto viejo, y se dice cuántos son', () => {
+    const viejo = (P: number, p: Par) => repartoViejo(P, p.A, p.C);
+    const enRojo = new Set(quienesBajan(viejo, 1).map(b => b.slice(0, b.indexOf(' '))));
+    const delBarranco = pares.filter(enElBarranco);
+    // por stderr: vitest 4 no enseña el console.log de una prueba que pasa, y el número tiene que verse
+    process.stderr.write(`[control positivo] pares en la condición del barranco: ${delBarranco.length} de ${pares.length}; en rojo con el reparto viejo: ${delBarranco.filter(p => enRojo.has(nombre(p))).length}\n`);
+    expect(delBarranco.length).toBeGreaterThan(0);
+    expect(delBarranco.filter(p => !enRojo.has(nombre(p))).map(nombre)).toEqual([]);
+  });
+
+  it('CONTROL NEGATIVO: con el analizado en 6.000 o menos, el reparto viejo no se pone en rojo en ningún par', () => {
+    const enRojo = new Set(quienesBajan((P, p) => repartoViejo(P, p.A, p.C), 1).map(b => b.slice(0, b.indexOf(' '))));
+    const pequenos = pares.filter(p => p.A <= 6_000);
+    expect(pequenos.length).toBeGreaterThan(0);
+    expect(pequenos.filter(p => enRojo.has(nombre(p))).map(nombre)).toEqual([]);
+  });
+
+  it('LA REGIÓN SIN MEDIR ES INALCANZABLE: por debajo de 10.000 el reparto se niega, en 10.000 justos reparte', () => {
+    expect(VENTANA_MINIMA_MEDIDA).toBe(10_000);
+    expect(() => repartoDeLaPareja({ analizado: 5_000, candidato: 5_000, reservaMontada: 3_000, ventana: 9_999 })).toThrow(/9999 por debajo de 10000/);
+    expect(() => repartoDeLaPareja({ analizado: 5_000, candidato: 5_000, reservaMontada: 3_000, ventana: Number.NaN })).toThrow();
+    expect(repartoDeLaPareja({ analizado: 5_000, candidato: 5_000, reservaMontada: 3_000, ventana: 10_000 }).parejaEntera).toBe(true);
   });
 
   it('EL INVARIANTE: en cada par y cada P, ningún lado recibe menos que con la tijera vieja (6.000 y la reserva)', () => {

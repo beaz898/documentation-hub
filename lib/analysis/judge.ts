@@ -1326,6 +1326,7 @@ export function leerLaPareja(a: {
 } {
   const porRelevancia = a.fragmentosEnviados.filter(f => !f.isContext).map(f => f.chunkIndex);
   const todos = a.candidatoChunks.map(c => c.chunkIndex);
+  const cuantos = (r: number[]) => new Set(r).size;
   const vieja = (regimen: 'tijera_vieja' | 'sin_fuente_comun') => ({
     textoAnalizado: a.analizadoViejo.texto,
     bloqueCandidato: a.bloqueRelevancia,
@@ -1340,6 +1341,7 @@ export function leerLaPareja(a: {
         textoEnviado: a.bloqueRelevancia,
       }),
       regimen,
+      trozosDelCandidato: cuantos(porRelevancia),
     },
   });
   if (!a.parejaEntera) return vieja('tijera_vieja');
@@ -1370,6 +1372,7 @@ export function leerLaPareja(a: {
         analizado: { caracteres: completo.length, mostrados: completo.length, dejoFuera: false },
         candidato: entero,
         presupuesto,
+        trozosDelCandidato: cuantos(todos),
       },
     };
   }
@@ -1396,6 +1399,7 @@ export function leerLaPareja(a: {
         : ladoCandidatoPorRelevancia(a.candidatoChunks, a.documentName, a.fragmentosEnviados, a.bloqueRelevancia),
       presupuesto,
       seleccion: candidatoCabeEntero ? 'entero' : (a.elegido?.seleccion ?? 'la_de_la_recuperacion'),
+      trozosDelCandidato: cuantos(candidatoCabeEntero ? todos : porRelevancia),
     },
   };
 }

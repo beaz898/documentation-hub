@@ -5,7 +5,7 @@ import { toStoredChunks, type StoredChunk } from '@/lib/read-chunks';
 import { buildUnits, indiceDelAnalizado, selectUnitsWithinBudget } from './retrieval';
 import { buildAnalyzedDocumentText, montarBloqueDelCandidato } from './judge';
 import { repartoDeLaPareja } from './reparto-de-la-pareja';
-import { segundaSeleccion } from './segunda-seleccion';
+import { lineasDeLaSegundaSeleccion, segundaSeleccion } from './segunda-seleccion';
 import type { DocumentFragment, RerankedCandidate } from './types';
 
 /**
@@ -87,6 +87,20 @@ describe('la segunda selección, en NOR-10 ↔ CLI-12', () => {
     });
     expect(repartos.get('cli')!.seleccion).toBe('la_de_la_recuperacion');
     expect(candidates[0]).toBe(candidato);
+  });
+
+  it('22/10/2026, EL LOG: una línea por pareja con su resto y de dónde salió su bloque, y el agregado', () => {
+    process.env[VARIABLE] = '1';
+    const s = correr();
+    const resto = s.repartos.get('cli')!.reparto.paraElCandidato;
+    expect(lineasDeLaSegundaSeleccion(s)).toEqual([
+      `[segunda-seleccion] "${CLI12}": resto ${resto} de 80000, bloque ampliada, 12 trozos`,
+      '[segunda-seleccion] 1 parejas: 0 entero, 1 ampliada, 0 la_de_la_recuperacion, 0 sin trozos',
+    ]);
+    delete process.env[VARIABLE];
+    expect(lineasDeLaSegundaSeleccion(correr())).toEqual([
+      '[segunda-seleccion] no aplica (interruptor apagado, exhaustivo o el analizado sin trozos): el juez lee el bloque de la recuperación',
+    ]);
   });
 
   it('fuera del corte honesto rápido no toca nada: con el interruptor apagado, y en el exhaustivo', () => {

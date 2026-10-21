@@ -151,6 +151,13 @@ describe('la puerta del juez', () => {
     const r = pareja(100_000, 90_000, true, { bloqueRelevancia: 'r'.repeat(76_000) });
     expect(r.lectura.analizado.mostrados).toBe(4_000);
   });
+  it('22/10/2026: la lectura guarda cuántos trozos del candidato vio el juez, en los tres regímenes', () => {
+    // el candidato de pareja() tiene 2 trozos y la relevancia envió el primero
+    expect(pareja(14_704, 9_817).lectura.trozosDelCandidato).toBe(2);                 // pareja entera: los dos
+    expect(pareja(14_704, 66_801).lectura.trozosDelCandidato).toBe(1);                // corte, por relevancia: uno
+    expect(pareja(79_990, 20).lectura.trozosDelCandidato).toBe(2);                    // corte, candidato entero: los dos
+    expect(pareja(14_704, 9_817, false).lectura.trozosDelCandidato).toBe(1);          // tijera vieja: el enviado
+  });
   it('D-1: encendido y un lado sin trozos → sin_fuente_comun, leído como la tijera vieja', () => {
     const cand = pareja(100, 100, true, { candidatoChunks: [] });
     expect(cand.lectura.regimen).toBe('sin_fuente_comun');
