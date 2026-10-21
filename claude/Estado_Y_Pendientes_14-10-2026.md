@@ -144,7 +144,7 @@ barranco en sentido estricto, subir el presupuesto y leer menos, sigue sin obser
 producción sólo ha existido P = 40.000; lo que se ve aquí es el mecanismo que lo produce, como
 decía la consulta de F-127 en su 2.3.)
 
-#### 3.1.1 · Registrar tokens por llamada · F-127 P7 paso 1 y P9.1 · SIN EMPEZAR
+#### 3.1.1 · Registrar tokens por llamada · F-127 P7 paso 1 y P9.1 · ~~SIN EMPEZAR~~ · EN CURSO desde el 21/10: paso 2 hecho
 **Es lo primero.** Cero cambio de comportamiento: la API ya devuelve `input_tokens`,
 `output_tokens`, `cache_creation_input_tokens` y `cache_read_input_tokens`; llegan a
 `lib/llm/anthropic-client.ts:333-340` y se pierden al sumarlos por modelo en
@@ -161,6 +161,36 @@ verificados por el arquitecto en la documentación de Anthropic: 1 / 5 / 1,25 / 
 La cifra sale de `SQL_F127_02_el_coste_por_analisis.sql`, que recalcula con el precio bueno y lleva
 sus cinco límites en la cabecera. **Lo que SIGUE dependiendo de este paso**: los caracteres por
 token, el reparto del coste entre las llamadas de un análisis, y el ahorro real de la caché.
+**EL PLAN, aprobado por el arquitecto el 20/10, en cinco pasos:** (1) censo por capacidad de quién
+llama al modelo; (2) medir cada petición real sin cambiar lo que se manda; (3) etiquetar las etapas
+del análisis; (4) guardarlo; (5) el medidor, en SQL probado en PGlite y con arnés.
+- **Dónde se guarda: en el jsonb del análisis (opción B), no en una tabla.** **La razón, del
+  arquitecto: todavía no sabemos qué queremos registrar, y el 19/10 se aprendió dos veces lo que
+  cuesta fijar una forma antes de tiempo. El jsonb se cambia gratis; una tabla con datos dentro, no.**
+  **Disparador para pasar a la tabla (opción A, `llm_calls`)**: cuando haga falta el coste POR
+  USUARIO, o cuando haya que medir el chat y la mejora. Mientras sea sólo el análisis, el jsonb vale.
+- **La unidad es la PETICIÓN REAL**, con el número de intento dentro, y la repetición por JSON mal
+  formado como segunda «vuelta». Es la única que mide lo que cuestan los reintentos.
+- **Sin tope, con guarda**: 200 peticiones con detalle; el censo da como mucho unas 57 llamadas por
+  exhaustivo (~114 peticiones si todas repitieran), así que hoy no puede saltar. Si salta, el resto se
+  agrega en `fueraDelDetalle`, que lo dice en el propio dato.
+- **El paso 1, el censo** (21/10): un solo punto de salida en el producto,
+  `lib/llm/anthropic-client.ts` (`callAnthropicRaw`). En el análisis lo usan seis etapas: rerank,
+  juez (una llamada por candidato, hasta 25), verificador (⌈contradicciones/15⌉ por candidato),
+  double-check (hasta 4), síntesis y estilo. Fuera del análisis, el chat, la mejora y el agente.
+- **El paso 2, hecho el 21/10** (`lib/observability/registro-de-llamadas.ts`): cada petición apunta
+  etapa, pareja (un id), modelo, vuelta, intento, resultado, latencia y las cuatro cifras de tokens, y
+  la estimación ÷4 donde se calcula. **Ni una palabra del contenido**, escrito en la cabecera del
+  módulo y vigilado por una prueba. **La suma por modelo, intacta al lado**. **La petición a la API
+  sale idéntica byte a byte** a la del cliente de antes, con y sin registro
+  (`lib/llm/cuerpo-byte-a-byte.test.ts`). Nadie abre todavía el registro fuera de las pruebas:
+  abrirlo y guardarlo es el paso 4.
+- **OBJETIVO ESCRITO DEL PUNTO, no un extra (arquitecto, 20/10): que el medidor del paso 5 compare la
+  estimación de entrada con lo que devuelve la API** — los dos ÷4 sin medir, que hoy son
+  `anthropic-client.ts:368` (`callAnthropicJson`, la del limitador de los análisis) y `:454`
+  (`callAnthropicAgent`). El censo por capacidad (`/ 4` junto a tokens o longitudes en `lib`,
+  `app` y `worker`) no encuentra ninguno más. Las líneas que citaba la deuda (`:322`, `:341`) se
+  han movido con los commits; el registro guarda la estimación en `entradaEstimada`.
 ⚠️ **El tope mensual de 35 $ hay que revisarlo con el coste bueno delante** (arquitecto, 19/10): cualquier cifra de coste
 leída de `cost_usd` antes del arreglo es la cuarta parte de la real. Los «0,0045 $» por análisis de F-117 (`claude/consultas-fable/F-117.md:183`), que Fable usa en la adenda, no dicen de dónde salen; si salen de esa columna, son la cuarta parte.
 

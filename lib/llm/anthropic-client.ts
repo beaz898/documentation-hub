@@ -14,6 +14,7 @@ import {
   EST_OUTPUT_TOKENS,
 } from './rate-limiter';
 import { recordToContext } from '@/lib/observability/usage-context';
+import { apuntarPeticion, type DatosDeLaLlamada, type EtiquetaDeLlamada } from '@/lib/observability/registro-de-llamadas';
 import { leerTextoDeLaRespuesta } from './texto-de-la-respuesta';
 import { HAIKU_MODEL, SONNET_MODEL } from './modelos';
 
@@ -55,6 +56,10 @@ export interface CallOptions {
   /** F-128: se llama con los tokens de salida de CADA respuesta de la API de esta llamada (dos si
    *  hubo reintento por JSON mal formado). Hoy sólo lo usa el juez, para guardarlos en su lectura. */
   alTerminar?: (uso: { outputTokens: number }) => void;
+  /** 3.1.1 (21/10/2026): qué etapa hace la llamada, para el registro por llamada
+   *  (`lib/observability/registro-de-llamadas.ts`). NO VIAJA A LA API: `buildPayload` y
+   *  `buildHeaders` no lo leen, y la prueba de cuerpo lo vigila byte a byte. */
+  etiqueta?: EtiquetaDeLlamada;
 }
 
 /** F-128: el modelo de una llamada, decidido en UN sitio (antes eran cinco copias de la misma
@@ -132,9 +137,12 @@ function buildHeaders(opts: CallOptions): Record<string, string> {
 
 // ── Núcleo de retry ────────────────────────────────────────────────────────────
 
+const SIN_TOKENS = { entrada: 0, salida: 0, escrituraCache: 0, lecturaCache: 0 };
+
 async function callAnthropicRaw(
   payload: Record<string, unknown>,
   headers: Record<string, string>,
+  datos: DatosDeLaLlamada,
 ): Promise<RawResult> {
   let lastError = 'unknown';
 
@@ -142,14 +150,20 @@ async function callAnthropicRaw(
     if (attempt > 0) {
       await new Promise(r => setTimeout(r, RETRY_DELAYS[attempt - 1]));
     }
+    // 3.1.1: la latencia de ESTA petición, sin la espera de antes. Lo que se apunta no altera nada
+    // de lo que se manda ni de lo que se devuelve.
+    const t0 = Date.now();
+    let estado: number | undefined;
     try {
       const res = await fetch(ANTHROPIC_URL, {
         method: 'POST',
         headers,
         body: JSON.stringify(payload),
       });
+      estado = res.status;
       if (!res.ok) {
         const errBody = await res.text().catch(() => '');
+        apuntarPeticion(datos, { intento: attempt + 1, resultado: 'http', estadoHttp: res.status, latenciaMs: Date.now() - t0, tokens: SIN_TOKENS });
         // Incluir el body en lastError para que llegue a error_message en BD y logs del runner
         lastError = `HTTP ${res.status}: ${errBody || '(sin body)'}`;
         console.error(`[anthropic ${res.status} body]`, errBody || '(sin body)');
@@ -158,15 +172,23 @@ async function callAnthropicRaw(
       }
       const body = await res.json();
       const usageRaw = (body as Record<string, unknown>)?.usage as Record<string, number> | undefined;
-      return {
+      const resultado = {
         body,
         inputTokens:         usageRaw?.input_tokens                ?? 0,
         outputTokens:        usageRaw?.output_tokens               ?? 0,
         cacheCreationTokens: usageRaw?.cache_creation_input_tokens ?? 0,
         cacheReadTokens:     usageRaw?.cache_read_input_tokens     ?? 0,
       };
+      apuntarPeticion(datos, { intento: attempt + 1, resultado: 'ok', estadoHttp: res.status, latenciaMs: Date.now() - t0, tokens: {
+        entrada: resultado.inputTokens, salida: resultado.outputTokens,
+        escrituraCache: resultado.cacheCreationTokens, lecturaCache: resultado.cacheReadTokens } });
+      return resultado;
     } catch (err) {
       lastError = err instanceof Error ? err.message : String(err);
+      // sin respuesta de la API ('red'), o con respuesta pero sin cuerpo legible ('http' con su estado)
+      apuntarPeticion(datos, estado === undefined
+        ? { intento: attempt + 1, resultado: 'red', latenciaMs: Date.now() - t0, tokens: SIN_TOKENS }
+        : { intento: attempt + 1, resultado: 'http', estadoHttp: estado, latenciaMs: Date.now() - t0, tokens: SIN_TOKENS });
     }
   }
 
@@ -179,10 +201,13 @@ async function callAnthropicTextWithTokens(
   prompt: string,
   opts: CallOptions,
   via: 'json' | 'texto',
+  vuelta: number = 1,
+  entradaEstimada?: number,
 ): Promise<TextResult> {
   const { body, inputTokens, outputTokens, cacheCreationTokens, cacheReadTokens } = await callAnthropicRaw(
     buildPayload(prompt, opts),
     buildHeaders(opts),
+    { etiqueta: opts.etiqueta, modelo: modeloDe(opts), vuelta, entradaEstimada },
   );
   // F-122 P5: todos los bloques de texto, no sólo el primero (texto-de-la-respuesta.ts).
   const text = leerTextoDeLaRespuesta(body, `${via} · ${modeloDe(opts)}`);
@@ -212,6 +237,7 @@ export async function callAnthropicWithUsage(
   const { body, inputTokens, outputTokens } = await callAnthropicRaw(
     buildPayload(prompt, opts),
     buildHeaders(opts),
+    { etiqueta: opts.etiqueta, modelo: modeloDe(opts), vuelta: 1 },
   );
 
   const d    = body as Record<string, unknown>;
@@ -349,7 +375,7 @@ export async function callAnthropicJson<T = unknown>(
   const jsonModelId = modeloDe(adjustedOpts);
 
   try {
-    const r1 = await callAnthropicTextWithTokens(adjustedPrompt, adjustedOpts, 'json');
+    const r1 = await callAnthropicTextWithTokens(adjustedPrompt, adjustedOpts, 'json', 1, estInput);
     finalInput  = r1.inputTokens;
     finalOutput = r1.outputTokens;
     adjustedOpts.alTerminar?.({ outputTokens: r1.outputTokens });
@@ -366,7 +392,7 @@ export async function callAnthropicJson<T = unknown>(
       console.warn('[callAnthropicJson] Parse failed, retrying. head:', r1.text.slice(0, 200));
       await new Promise(r => setTimeout(r, 1500));
 
-      const r2 = await callAnthropicTextWithTokens(adjustedPrompt, adjustedOpts, 'json');
+      const r2 = await callAnthropicTextWithTokens(adjustedPrompt, adjustedOpts, 'json', 2, estInput);
       finalInput  = r2.inputTokens;
       finalOutput = r2.outputTokens;
       adjustedOpts.alTerminar?.({ outputTokens: r2.outputTokens });
@@ -435,6 +461,7 @@ export async function callAnthropicAgent(
     const { body, inputTokens, outputTokens } = await callAnthropicRaw(
       payload as Record<string, unknown>,
       headers,
+      { modelo: AGENT_MODEL, vuelta: 1, entradaEstimada: estInput },
     );
     finalInput  = inputTokens;
     finalOutput = outputTokens;
