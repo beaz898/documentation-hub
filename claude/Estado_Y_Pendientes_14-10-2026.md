@@ -144,7 +144,7 @@ barranco en sentido estricto, subir el presupuesto y leer menos, sigue sin obser
 producción sólo ha existido P = 40.000; lo que se ve aquí es el mecanismo que lo produce, como
 decía la consulta de F-127 en su 2.3.)
 
-#### 3.1.1 · Registrar tokens por llamada · F-127 P7 paso 1 y P9.1 · ~~SIN EMPEZAR~~ · EN CURSO desde el 21/10: pasos 2, 3 y 4 hechos; falta el control en producción y el paso 5
+#### 3.1.1 · Registrar tokens por llamada · F-127 P7 paso 1 y P9.1 · ~~SIN EMPEZAR~~ · EN CURSO desde el 21/10: pasos 2 a 4 hechos y el 4 cerrado en producción; paso 5 escrito, pendiente de leer
 **Es lo primero.** Cero cambio de comportamiento: la API ya devuelve `input_tokens`,
 `output_tokens`, `cache_creation_input_tokens` y `cache_read_input_tokens`; llegan a
 `lib/llm/anthropic-client.ts:333-340` y se pierden al sumarlos por modelo en
@@ -178,6 +178,17 @@ del análisis; (4) guardarlo; (5) el medidor, en SQL probado en PGlite y con arn
   `lib/llm/anthropic-client.ts` (`callAnthropicRaw`). En el análisis lo usan seis etapas: rerank,
   juez (una llamada por candidato, hasta 25), verificador (⌈contradicciones/15⌉ por candidato),
   double-check (hasta 4), síntesis y estilo. Fuera del análisis, el chat, la mejora y el agente.
+  **Cuáles corren en cada modo, leído en el código el 21/10** (`lib/analysis/pipeline.ts`), para quien
+  lea una salida del registro y eche de menos una etapa:
+  · **rerank, juez, verificador y síntesis: en los DOS modos**, dentro de `runCorePipeline`; el
+    verificador sólo si hay contradicciones que verificar, y el juez una vez por candidato;
+  · **double-check: SÓLO EN EL EXHAUSTIVO** (`doubleCheckContradictions`, llamado únicamente desde
+    `runExhaustivePipelineInner`), y sólo si quedan contradicciones confirmadas POR JUICIO: las de
+    estructura no se le mandan, y con ninguna no hace ninguna llamada;
+  · **estilo: SÓLO EN EL EXHAUSTIVO** dentro del pipeline (`analyzeStyle`, en el `Promise.all` de
+    `runExhaustivePipelineInner`). En el rápido el estilo se compra aparte por `/api/analyze-style`, y
+    **esa ruta NO abre el registro por llamada**: sus llamadas no quedan registradas en ningún sitio.
+  Ningún camino del rápido llama a ninguna de las dos: que falten en un análisis rápido es lo esperado.
 - **El paso 2, hecho el 21/10** (`lib/observability/registro-de-llamadas.ts`): cada petición apunta
   etapa, pareja (un id), modelo, vuelta, intento, resultado, latencia y las cuatro cifras de tokens, y
   la estimación ÷4 donde se calcula. **Ni una palabra del contenido**, escrito en la cabecera del
@@ -228,6 +239,23 @@ del análisis; (4) guardarlo; (5) el medidor, en SQL probado en PGlite y con arn
     leer `SQL_311_01_control_del_registro_por_llamada.sql` con DESDE un minuto antes. Tiene que salir
     `sinEtapa = 0`, todas las peticiones con una de las seis etapas y el juez con su pareja. Probado en
     PGlite (`claude/arneses/f311/`): cada control cae donde debe y sin registro sale NO APLICA.
+  - ✅ **CERRADO EL 21/10 EN PRODUCCIÓN** (salida del director): un análisis rápido de NOR-11 (21/10
+    14:01:57) con **`sinEtapa = 0`**, 5 peticiones con detalle y ninguna fuera, cuatro etapas (juez 2,
+    rerank 1, verificador 1, síntesis 1) y el juez con su pareja en las dos. Faltan `estilo` y
+    `double_check`, y es lo esperado: sólo corren en el exhaustivo (ver el censo, arriba). ⚠️ El control
+    prueba que toda petición que ocurrió lleva etiqueta, no que ocurrieran todas las etapas que debían.
+  - **PRIMER DATO, con cautela: un análisis no es una muestra.** En ese análisis, **cero intentos de
+    más y cero repeticiones por JSON** en las cinco peticiones. Si eso se sostiene, los 31-43 s de la
+    deuda del 19/10 (la latencia del juez con Haiku 5.5) son el modelo pensando y no backoff. Cuánto es
+    petición y cuánto espera lo dirá `SQL_311_02`.
+- **El paso 5, escrito el 21/10: `SQL_311_02_el_medidor_por_llamada.sql`** (PENDIENTE DE EJECUTAR, sólo
+  SELECT, sólo la organización del piloto). Por análisis, por etapa y por petición: las cuatro cifras y
+  la latencia; **los dos ÷4, la estimada contra la real** —la real es entrada más caché, porque
+  `input_tokens` no incluye lo cacheado—; el coste por etapa y su porcentaje; la caché y su ahorro de
+  verdad; la DURACIÓN al lado del TRABAJO; y el reparto entre petición y espera. Su tabla de precios es
+  una copia de `llm-pricing.ts` y **el arnés comprueba que coinciden**. Probado en PGlite
+  (`claude/arneses/f311/sql-311-02-medidor.test.ts`) con un análisis de cifras calculadas a mano; once
+  mutantes, uno por control y uno por cálculo, los once en rojo.
 ⚠️ **El tope mensual de 35 $ hay que revisarlo con el coste bueno delante** (arquitecto, 19/10): cualquier cifra de coste
 leída de `cost_usd` antes del arreglo es la cuarta parte de la real. Los «0,0045 $» por análisis de F-117 (`claude/consultas-fable/F-117.md:183`), que Fable usa en la adenda, no dicen de dónde salen; si salen de esa columna, son la cuarta parte.
 
