@@ -169,6 +169,15 @@ del análisis; (4) guardarlo; (5) el medidor, en SQL probado en PGlite y con arn
   cuesta fijar una forma antes de tiempo. El jsonb se cambia gratis; una tabla con datos dentro, no.**
   **Disparador para pasar a la tabla (opción A, `llm_calls`)**: cuando haga falta el coste POR
   USUARIO, o cuando haya que medir el chat y la mejora. Mientras sea sólo el análisis, el jsonb vale.
+  **LOS DISPARADORES, en orden** (arquitecto, 21/10):
+  1. **el coste por usuario** (deuda 2);
+  2. **`/api/analyze-style`**, hallado por Code el 21/10 al leer qué etapas corren en cada modo: en el
+     rápido, el estilo se compra por esa ruta, que **NO abre el registro**. Es una llamada al modelo que
+     el usuario paga, que tarda, y que no queda registrada en ninguna parte. **No se arregla hoy, y la
+     razón es arquitectónica**: el registro vive en el jsonb del análisis, y esa ruta no produce ningún
+     análisis donde guardarlo (persiste un resultado de estilo aparte, como telemetría). Lo mismo vale
+     para el chat y la mejora;
+  y cualquiera de los dos basta para pasar a la tabla.
 - **La unidad es la PETICIÓN REAL**, con el número de intento dentro, y la repetición por JSON mal
   formado como segunda «vuelta». Es la única que mide lo que cuestan los reintentos.
 - **Sin tope, con guarda**: 200 peticiones con detalle; el censo da como mucho unas 57 llamadas por

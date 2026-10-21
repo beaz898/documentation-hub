@@ -1,5 +1,5 @@
 import { fileURLToPath } from 'node:url';
-import { defineConfig } from 'vitest/config';
+import { configDefaults, defineConfig } from 'vitest/config';
 
 /**
  * ALCANCE DE VITEST EN ESTE PROYECTO — decidido antes de instalarlo, para que
@@ -111,6 +111,27 @@ export default defineConfig({
      * del problema, y la mitad que deja es la que no se ve.
      */
     testTimeout: 15_000,
+    /**
+     * ⚠️ DOS PROYECTOS, Y SE LANZAN UNO DETRÁS DEL OTRO (arquitecto, 21/10/2026).
+     * Los arneses de PGlite (`claude/arneses/`) montan bases Postgres en proceso, y
+     * corriendo a la vez que el resto competían por la CPU con las pruebas que leen
+     * disco: con ellos, la suite pasó de ~50 s a 80-100 s, y en una vuelta cayó
+     * `lib/pinecone/corpus-del-examen.test.ts` por tiempo (21,9 s contra su tope de
+     * 15). Un rojo que depende de la CPU enseña a repetir la suite en vez de a
+     * investigarla. Así que:
+     *   · `suite`: todo lo demás, en paralelo como siempre;
+     *   · `arneses`: sólo `claude/arneses/`, DESPUÉS de la suite. Lo que los separa es el ORDEN, no
+     *     un límite de hilos: medido el 21/10, de uno en uno tardaban 79-127 s, con tres a la vez
+     *     55-76 s y sin límite 31-33 s; y como corren cuando la suite ya ha terminado, no compiten con
+     *     ninguna prueba que lea disco. Llevan topes propios de 60-240 s por base.
+     * `npm test` lanza los dos SEGUIDOS (package.json) y falla si falla cualquiera:
+     * los arneses no son un paso opcional. Un `vitest run` a secas también corre los
+     * dos, pero a la vez, que es justo lo que esto evita.
+     */
+    projects: [
+      { extends: true, test: { name: 'suite', exclude: [...configDefaults.exclude, 'claude/arneses/**'] } },
+      { extends: true, test: { name: 'arneses', include: ['claude/arneses/**/*.test.ts'] } },
+    ],
   },
   resolve: {
     alias: [

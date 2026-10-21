@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit && tsc --noEmit -p worker/tsconfig.json",
-    "test": "vitest run",
+    "test": "vitest run --project suite && vitest run --project arneses",
     "verificar-build": "node scripts/verificar-build.mjs",
     "comprobar": "npm run typecheck && npm run test && npm run verificar-build -- --tolerante"
   },

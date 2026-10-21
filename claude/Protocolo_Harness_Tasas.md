@@ -1229,6 +1229,19 @@ diferencias con el resto, decididas y no heredadas:
 Los fixtures siguen siendo `corpus-pruebas/`: el texto se extrae en cada pasada, no se
 copia. Por qué se admite la dependencia, en `claude/Estado_Y_Pendientes_14-10-2026.md`.
 
+**LOS ARNESES CORREN APARTE, DESPUÉS DE LA SUITE (arquitecto, 21/10/2026).** `vitest.config.mts`
+tiene dos proyectos, `suite` y `arneses`, y `npm test` los lanza SEGUIDOS y falla si falla
+cualquiera: los arneses no son un paso opcional. Corriendo a la vez, las bases de PGlite competían
+por la CPU con las pruebas que leen disco, y `lib/pinecone/corpus-del-examen.test.ts` cayó por
+tiempo (21,9 s contra su tope de 15). **El gate de cada commit es `npm test`, no `vitest run` a
+secas**, que corre los dos proyectos a la vez.
+
+**EL CRITERIO DE LA SUITE NO ES QUE TARDE MENOS DE 90 SEGUNDOS: ES QUE SEA DETERMINISTA** (arquitecto,
+21/10/2026, corrigiendo el umbral que él mismo había puesto). **Un rojo que depende de la CPU es peor
+que una suite lenta, porque enseña a repetirla en vez de a investigarla.** Los 90 s se quedan como lo
+que son: **un aviso para mirar, no un límite.** Y un tope de tiempo que mide la máquina y no el código
+no es un tope.
+
 **Dónde viven los tests**: al lado de su módulo (`lib/chunking.test.ts` junto a
 `lib/chunking.ts`), no en una carpeta propia. Se agrupa por dominio, no por tipo
 de fichero — y así el módulo y su batería **se borran juntos** el día que se
