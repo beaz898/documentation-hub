@@ -19,6 +19,19 @@ import { AsyncLocalStorage } from 'async_hooks';
  * exactamente igual: si este detalle se rompe, el coste por análisis que se viene midiendo
  * (`SQL_F127_02`) tiene que seguir saliendo igual.
  *
+ * ⚠️ LA ESPERA ESTÁ PARA QUE LA SUMA RECONSTRUYA EL RELOJ DE PARED (arquitecto, 21/10). Cada entrada
+ * lleva `esperaMs` —lo que pasó entre el comienzo de esa petición y su `fetch`: el limitador de cuota
+ * en la primera de una llamada JSON, el backoff de 2, 5, 10… s entre intentos, y la pausa de 1,5 s antes
+ * de la vuelta 2— y `latenciaMs`, la de la petición. **El reloj de pared de UNA llamada es la suma de
+ * `esperaMs + latenciaMs` de sus entradas.** Sin la espera, un análisis que tarda 43 s con 17 de backoff
+ * saldría «rápido» en el medidor, que es justo la deuda del 19/10 (la latencia del juez con Haiku 5.5
+ * subió de 19 a 31-43 s y no se sabe de dónde sale).
+ * ⚠️ Y LO QUE LA SUMA NO DA: el reloj de pared de un ANÁLISIS. Sus llamadas no van en fila —el juez y el
+ * verificador de cinco en cinco (`JUDGE_CONCURRENCY`, `VERIFY_CONCURRENCY`), el estilo a la vez que todo
+ * lo demás—, así que sumar las entradas de un análisis da el trabajo, no la duración. Para la duración
+ * está `comienzoMs`, los milisegundos desde que se abrió el registro hasta el comienzo de la petición: el
+ * análisis dura lo que va del primer comienzo al último `comienzoMs + esperaMs + latenciaMs`.
+ *
  * Sin un registro abierto (`conRegistroDeLlamadas`), `apuntarPeticion` no hace nada. En el paso 2
  * no lo abre nadie fuera de las pruebas; abrirlo y guardarlo en el análisis es el paso 4.
  *
@@ -56,8 +69,12 @@ export interface PeticionRegistrada {
   /** 'ok': la API contestó 200. 'http': contestó otra cosa (ver `estadoHttp`). 'red': no llegó a contestar. */
   resultado: 'ok' | 'http' | 'red';
   estadoHttp?: number;
-  /** Milisegundos de reloj de esta petición: de antes del `fetch` a tener el cuerpo leído. Sin las esperas entre intentos. */
+  /** Milisegundos de reloj de esta petición: de antes del `fetch` a tener el cuerpo leído. */
   latenciaMs: number;
+  /** Lo que se esperó ANTES de esta petición: el limitador, el backoff entre intentos o la pausa antes de la vuelta 2. 0 si nada. */
+  esperaMs: number;
+  /** Milisegundos desde que se abrió el registro hasta el comienzo de esta petición (el de su espera). */
+  comienzoMs: number;
   /** Las cuatro cifras que devuelve la API. Cero si la petición no tuvo éxito. */
   tokens: CuatroCifras;
   /** La estimación de entrada del limitador (la longitud del payload entre 4), donde se calcula: para compararla. */
@@ -69,10 +86,11 @@ export interface RegistroDeLlamadas {
   /** Llamadas que llegaron sin etiqueta de etapa. Un contador, no un silencio. */
   sinEtapa: number;
   /** null mientras no se pase la guarda; si se pasa, lo agregado de lo que quedó fuera del detalle. */
-  fueraDelDetalle: null | { peticiones: number; tokens: CuatroCifras; latenciaMs: number };
+  fueraDelDetalle: null | { peticiones: number; tokens: CuatroCifras; latenciaMs: number; esperaMs: number };
 }
 
-const contexto = new AsyncLocalStorage<RegistroDeLlamadas>();
+/** El registro y el instante en que se abrió, que no viaja con el dato: `comienzoMs` se cuenta desde él. */
+const contexto = new AsyncLocalStorage<{ registro: RegistroDeLlamadas; abiertoEn: number }>();
 
 function registroVacio(): RegistroDeLlamadas {
   return { peticiones: [], sinEtapa: 0, fueraDelDetalle: null };
@@ -81,29 +99,36 @@ function registroVacio(): RegistroDeLlamadas {
 /** Abre un registro para todo lo que corra dentro de `fn`, y lo devuelve junto al resultado. */
 export async function conRegistroDeLlamadas<T>(fn: () => Promise<T>): Promise<{ resultado: T; registro: RegistroDeLlamadas }> {
   const registro = registroVacio();
-  const resultado = await contexto.run(registro, fn);
+  const resultado = await contexto.run({ registro, abiertoEn: Date.now() }, fn);
   return { resultado, registro };
 }
 
 /** Lo que el cliente sabe de la llamada antes de mandarla. Ningún campo lleva contenido. */
-export interface DatosDeLaLlamada { etiqueta?: EtiquetaDeLlamada; modelo: string; vuelta: number; entradaEstimada?: number }
+export interface DatosDeLaLlamada {
+  etiqueta?: EtiquetaDeLlamada; modelo: string; vuelta: number; entradaEstimada?: number;
+  /** Lo esperado antes del primer intento de esta vuelta (el limitador, o la pausa de la vuelta 2), y cuándo empezó. */
+  esperaAntesMs?: number; comienzoDeLaEspera?: number;
+}
 
 /** Apunta una petición real en el registro abierto, si lo hay. Nunca lanza. */
 export function apuntarPeticion(
   datos: DatosDeLaLlamada,
-  peticion: { intento: number; resultado: PeticionRegistrada['resultado']; estadoHttp?: number; latenciaMs: number; tokens: CuatroCifras },
+  peticion: { intento: number; resultado: PeticionRegistrada['resultado']; estadoHttp?: number; latenciaMs: number; tokens: CuatroCifras;
+    esperaMs: number; comienzo: number },
 ): void {
-  const registro = contexto.getStore();
-  if (!registro) return;
+  const abierto = contexto.getStore();
+  if (!abierto) return;
+  const { registro } = abierto;
   // la llamada sin etiqueta se cuenta una vez, en su primera petición
   if (!datos.etiqueta && datos.vuelta === 1 && peticion.intento === 1) registro.sinEtapa++;
   const total = registro.peticiones.length + (registro.fueraDelDetalle?.peticiones ?? 0);
   if (total >= TOPE_DE_PETICIONES_CON_DETALLE) {
-    const f = registro.fueraDelDetalle ?? { peticiones: 0, tokens: { entrada: 0, salida: 0, escrituraCache: 0, lecturaCache: 0 }, latenciaMs: 0 };
+    const f = registro.fueraDelDetalle ?? { peticiones: 0, tokens: { entrada: 0, salida: 0, escrituraCache: 0, lecturaCache: 0 }, latenciaMs: 0, esperaMs: 0 };
     f.peticiones++;
     f.tokens.entrada += peticion.tokens.entrada; f.tokens.salida += peticion.tokens.salida;
     f.tokens.escrituraCache += peticion.tokens.escrituraCache; f.tokens.lecturaCache += peticion.tokens.lecturaCache;
     f.latenciaMs += peticion.latenciaMs;
+    f.esperaMs += peticion.esperaMs;
     registro.fueraDelDetalle = f;
     return;
   }
@@ -117,6 +142,8 @@ export function apuntarPeticion(
     resultado: peticion.resultado,
     ...(peticion.estadoHttp !== undefined ? { estadoHttp: peticion.estadoHttp } : {}),
     latenciaMs: peticion.latenciaMs,
+    esperaMs: peticion.esperaMs,
+    comienzoMs: peticion.comienzo - abierto.abiertoEn,
     tokens: { ...peticion.tokens },
     ...(datos.entradaEstimada !== undefined ? { entradaEstimada: datos.entradaEstimada } : {}),
   });

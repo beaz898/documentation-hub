@@ -186,11 +186,17 @@ del análisis; (4) guardarlo; (5) el medidor, en SQL probado en PGlite y con arn
   (`lib/llm/cuerpo-byte-a-byte.test.ts`). Nadie abre todavía el registro fuera de las pruebas:
   abrirlo y guardarlo es el paso 4.
 - **OBJETIVO ESCRITO DEL PUNTO, no un extra (arquitecto, 20/10): que el medidor del paso 5 compare la
-  estimación de entrada con lo que devuelve la API** — los dos ÷4 sin medir, que hoy son
-  `anthropic-client.ts:368` (`callAnthropicJson`, la del limitador de los análisis) y `:454`
-  (`callAnthropicAgent`). El censo por capacidad (`/ 4` junto a tokens o longitudes en `lib`,
-  `app` y `worker`) no encuentra ninguno más. Las líneas que citaba la deuda (`:322`, `:341`) se
-  han movido con los commits; el registro guarda la estimación en `entradaEstimada`.
+  estimación de entrada con lo que devuelve la API** — los dos ÷4 sin medir: el de
+  **`callAnthropicJson`** (la estimación del limitador en los análisis) y el de
+  **`callAnthropicAgent`**, los dos en `lib/llm/anthropic-client.ts` (líneas 371 y 462 el 21/10/2026,
+  sólo como ayuda). El censo por capacidad (`/ 4` junto a tokens o longitudes en `lib`, `app` y
+  `worker`) no encuentra ninguno más. El registro guarda la estimación en `entradaEstimada`.
+- **La espera y el comienzo de cada petición** (arquitecto, 21/10): `esperaMs` —el limitador, el
+  backoff entre intentos y la pausa antes de la vuelta 2— y `comienzoMs`. Con la espera, el reloj de
+  pared de una llamada es la suma de `esperaMs + latenciaMs` de sus entradas; sin ella, 17 s de
+  backoff dentro de un análisis de 43 serían invisibles, que es la deuda de la latencia del 19/10.
+  Las llamadas de un análisis van en paralelo (el juez y el verificador de cinco en cinco, el estilo a
+  la vez), así que su duración no es la suma: sale de `comienzoMs`.
 ⚠️ **El tope mensual de 35 $ hay que revisarlo con el coste bueno delante** (arquitecto, 19/10): cualquier cifra de coste
 leída de `cost_usd` antes del arreglo es la cuarta parte de la real. Los «0,0045 $» por análisis de F-117 (`claude/consultas-fable/F-117.md:183`), que Fable usa en la adenda, no dicen de dónde salen; si salen de esa columna, son la cuarta parte.
 
@@ -709,8 +715,9 @@ Del inventario de Code (14/10), sobre las copias locales y el último censo del 
 | El régimen que se llama «corte honesto» NO declara al juez el texto que le ha omitido. El prompt (`judge.ts:810-820`) mete el texto entre comillas triples con el nombre del documento y nada más; lo omitido queda sólo en la lectura guardada, y el aviso del log (`:1119`) sólo sale con la tijera vieja. F-118:323 ya había previsto declararlo. **El nombre promete algo que el código no hace** | F-127 P9.2, comprobado por Code el 16/10 |
 | El prompt del juez no dice nada sobre texto truncado o incompleto. Lo único parecido es «OMISIÓN SIGNIFICATIVA» (`judge.ts:876`), que habla del contenido, no del recorte | F-127 P9.4 |
 | `selectUnitsWithinBudget` acepta el presupuesto por parámetro (`retrieval.ts:1090-1100`, desde F-73) pero corre en `retrieval.ts:502`, ANTES del juez, cuando «lo que sobra» de la pareja todavía no se sabe, y sólo con los trozos que devolvió Pinecone, con el tope de 25 piezas. **El reparto nuevo no es recablear un parámetro: es mover dónde se decide** | F-127 P9.3 |
-| HAY UN SEGUNDO ÷4 sin medir, en `lib/llm/anthropic-client.ts:322`: estima los tokens de entrada como la longitud del payload entre 4. Con 3.1.1 hecho se puede comprobar cuánto se equivoca | F-127, lectura de Code del 16/10 |
+| HAY UN SEGUNDO ÷4 sin medir, en ~~`lib/llm/anthropic-client.ts:322`~~ **`callAnthropicJson` y `callAnthropicAgent`** (`lib/llm/anthropic-client.ts`; líneas 371 y 462 el 21/10/2026, sólo como ayuda: la 322 ya no era ninguna de las dos): estima los tokens de entrada como la longitud del payload entre 4. Con 3.1.1 hecho se puede comprobar cuánto se equivoca; es el objetivo escrito del paso 5 | F-127, lectura de Code del 16/10 |
 | La latencia por llamada no se mide en ningún sitio | F-127 P9.1 |
+| **`lib/llm/anthropic-client.ts` tiene 518 líneas**, por encima del límite de 400 (481 antes del 3.1.1). **NO se parte ahora** (arquitecto, 21/10), y la razón: partir el cliente mientras se instrumenta invalidaría las seis referencias byte a byte de `lib/llm/cuerpo-byte-a-byte.test.ts`, que son lo que hace seguro el 3.1.1. **Disparador: después del paso 4**, cuando el registro esté guardándose y la prueba de cuerpo se pueda recapturar contra una versión estable | 3.1.1, paso 2 |
 | **El tope del rerank en el exhaustivo: el código dice 25 y `CLAUDE.md` decía 10.** Los hechos, sin juzgarlos: `MAX_SELECTED_EXHAUSTIVE` (`lib/analysis/rerank.ts`) nació con 10 en `b5606c69` (04/05/2026, «Update rerank.ts») y pasó a **25** en `63cad1bd` (08/05/2026 12:04, «Increase MAX_SELECTED_EXHAUSTIVE limit to 25»): una línea, sin razón escrita, sin tocar documentación, dentro de una ráfaga de cuatro commits en tres minutos (12:03-12:05) el día que nació el worker de Railway. `CLAUDE.md` nació con el «10» en `e1895bfa` (19/05/2026), **once días después**, así que fue incorrecto desde el primer día (corregido el 21/10 para que no afirme un número; el valor intencionado sigue sin decidir). Y la casa sí lo sabía: `claude/Estado_Del_MVP.md` §5.40 (B.241) documenta el 25 desde el 16/09, y `:4297` registra un exhaustivo con 9 seleccionados. **Lo que queda sin decidir es si el valor que queremos es 25 o 10, y no se decide hoy.** **Disparador para retomarlo: la primera medición de un análisis exhaustivo con el registro por llamada del 3.1.1**, que dirá cuántas llamadas al juez hizo; no se ejecuta `SQL_A2A4_compuerta` ni se prepara otro recuento | historia de git sacada por Code el 21/10, a pregunta del arquitecto |
 | **NINGÚN RECUENTO DE ESPECIES ANTERIOR AL 19/10/2026 ES DE FIAR.** Cinco de los siete pares estaban elegidos a ojo —LUGAR, NEGACIÓN, A, B y D— y producían tanto falsos fallos como falsos aciertos; y antes del 19/10 el clasificador, además, etiquetaba por tema. **Cuando se reabra F-119, o cualquier fase vieja, hay que releer sus análisis con el medidor de hoy antes de usar sus números.** Lo que dejaba pasar cada uno, medido por Code el 19/10 en PGlite con citas literales del texto del corpus (no contado en producción): **LUGAR** «chamberí» / «retiro» (3 y 3 apariciones) casaba la cabecera «Chamberí · Salamanca · Retiro», y por la frase «Si trabajas en Chamberí o Salamanca…», que acaba en «el personal de Retiro», salía LUGAR: falso acierto. **NEGACIÓN** con sólo «amarill-» dejaba en OTRA la negativa sembrada del 10.2: falso fallo, cuatro en la tanda. **A** con «responsab-» dejaba en OTRA también por la frase la de las excepciones (falso fallo) y daba A a una D citada por la segunda frase de NOR-10 2.4 contra el 3.5 (falso acierto); y con el cargo solo (`bae7ec0d`, unas horas), dos citas que nombran los dos cargos sin hablar de lo mismo salían A (falso acierto). **B** «semanal» (11) o «lunes» / «mensual» (14) daba B al test semanal de la cubeta contra los resultados que se consolidan mensualmente: falso acierto. **D** «recaer» / «nunca» (2) daba D a «puede recaer…» contra «nunca como mecanismo de control individual»: falso acierto | repaso de los pares contra el registro, 19/10; regla del medidor del arquitecto |
 | **La latencia del análisis con el juez en Haiku 5.5: entre 31 y 43 s, frente a 19 s con Haiku 4.5.** La predicción era la contraria (P-7, fallada). Sin el 3.1.1 no se sabe cuánto es del juez y cuánto del resto, ni si pesa el pensamiento: los tokens de salida de cada pareja sí se guardan (`lecturaDeLasParejas[].tokensDeSalida`) | tanda de F-128, 19/10; cifras del arquitecto |
@@ -764,3 +771,8 @@ Del inventario de Code (14/10), sobre las copias locales y el último censo del 
     del repositorio el 14/10 (regla 8) y la cita no literal «poner» por «usar» de la consulta F-126
     (regla 9). **Antes de usar una cifra: ¿de qué pareja, de qué dirección y de qué fecha es?**
     (16/10/2026)
+13. **Los punteros al código se dan POR NOMBRE, no por línea.** Fichero y función (o constante); el
+    número de línea, si se da, va como ayuda y con la fecha en que se miró. Las líneas se mueven con
+    cada commit y una deuda que cita líneas envejece mal: el 16/10 el arquitecto dio `:1339` por
+    `:1337`, y el 21/10 los dos ÷4 que la deuda situaba en `anthropic-client.ts:322` (y un informe
+    de Code en `:341`) estaban en otras líneas. (Arquitecto, 21/10/2026)

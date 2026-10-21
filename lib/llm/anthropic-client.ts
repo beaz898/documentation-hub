@@ -147,12 +147,16 @@ async function callAnthropicRaw(
   let lastError = 'unknown';
 
   for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+    // 3.1.1: la espera de ANTES de esta petición —el backoff entre intentos; en el primero, la que traiga
+    // la llamada (el limitador, o la pausa de la vuelta 2)— y su comienzo, para que la suma de las
+    // entradas reconstruya el reloj de pared. Lo que se apunta no altera nada de lo que se manda.
+    const comienzo = attempt > 0 ? Date.now() : (datos.comienzoDeLaEspera ?? Date.now());
     if (attempt > 0) {
       await new Promise(r => setTimeout(r, RETRY_DELAYS[attempt - 1]));
     }
-    // 3.1.1: la latencia de ESTA petición, sin la espera de antes. Lo que se apunta no altera nada
-    // de lo que se manda ni de lo que se devuelve.
     const t0 = Date.now();
+    const esperaMs = attempt > 0 ? t0 - comienzo : (datos.esperaAntesMs ?? 0);
+    const reloj = { esperaMs, comienzo };
     let estado: number | undefined;
     try {
       const res = await fetch(ANTHROPIC_URL, {
@@ -163,7 +167,7 @@ async function callAnthropicRaw(
       estado = res.status;
       if (!res.ok) {
         const errBody = await res.text().catch(() => '');
-        apuntarPeticion(datos, { intento: attempt + 1, resultado: 'http', estadoHttp: res.status, latenciaMs: Date.now() - t0, tokens: SIN_TOKENS });
+        apuntarPeticion(datos, { intento: attempt + 1, resultado: 'http', estadoHttp: res.status, latenciaMs: Date.now() - t0, tokens: SIN_TOKENS, ...reloj });
         // Incluir el body en lastError para que llegue a error_message en BD y logs del runner
         lastError = `HTTP ${res.status}: ${errBody || '(sin body)'}`;
         console.error(`[anthropic ${res.status} body]`, errBody || '(sin body)');
@@ -181,14 +185,14 @@ async function callAnthropicRaw(
       };
       apuntarPeticion(datos, { intento: attempt + 1, resultado: 'ok', estadoHttp: res.status, latenciaMs: Date.now() - t0, tokens: {
         entrada: resultado.inputTokens, salida: resultado.outputTokens,
-        escrituraCache: resultado.cacheCreationTokens, lecturaCache: resultado.cacheReadTokens } });
+        escrituraCache: resultado.cacheCreationTokens, lecturaCache: resultado.cacheReadTokens }, ...reloj });
       return resultado;
     } catch (err) {
       lastError = err instanceof Error ? err.message : String(err);
       // sin respuesta de la API ('red'), o con respuesta pero sin cuerpo legible ('http' con su estado)
       apuntarPeticion(datos, estado === undefined
-        ? { intento: attempt + 1, resultado: 'red', latenciaMs: Date.now() - t0, tokens: SIN_TOKENS }
-        : { intento: attempt + 1, resultado: 'http', estadoHttp: estado, latenciaMs: Date.now() - t0, tokens: SIN_TOKENS });
+        ? { intento: attempt + 1, resultado: 'red', latenciaMs: Date.now() - t0, tokens: SIN_TOKENS, ...reloj }
+        : { intento: attempt + 1, resultado: 'http', estadoHttp: estado, latenciaMs: Date.now() - t0, tokens: SIN_TOKENS, ...reloj });
     }
   }
 
@@ -201,13 +205,12 @@ async function callAnthropicTextWithTokens(
   prompt: string,
   opts: CallOptions,
   via: 'json' | 'texto',
-  vuelta: number = 1,
-  entradaEstimada?: number,
+  vuelta: Pick<DatosDeLaLlamada, 'vuelta' | 'entradaEstimada' | 'esperaAntesMs' | 'comienzoDeLaEspera'> = { vuelta: 1 },
 ): Promise<TextResult> {
   const { body, inputTokens, outputTokens, cacheCreationTokens, cacheReadTokens } = await callAnthropicRaw(
     buildPayload(prompt, opts),
     buildHeaders(opts),
-    { etiqueta: opts.etiqueta, modelo: modeloDe(opts), vuelta, entradaEstimada },
+    { etiqueta: opts.etiqueta, modelo: modeloDe(opts), ...vuelta },
   );
   // F-122 P5: todos los bloques de texto, no sólo el primero (texto-de-la-respuesta.ts).
   const text = leerTextoDeLaRespuesta(body, `${via} · ${modeloDe(opts)}`);
@@ -366,7 +369,9 @@ export async function callAnthropicJson<T = unknown>(
 
   const payload     = buildPayload(adjustedPrompt, adjustedOpts);
   const estInput    = Math.ceil(JSON.stringify(payload).length / 4);
+  const antesDelLimitador = Date.now();                       // 3.1.1: el limitador también es espera
   const windowStart = await acquireRateLimit(estInput, EST_OUTPUT_TOKENS.json);
+  const esperaDelLimitador = Date.now() - antesDelLimitador;
 
   // Inicializar con estimados para que el finally tenga valores correctos incluso en error
   let finalInput:  number = estInput;
@@ -375,7 +380,8 @@ export async function callAnthropicJson<T = unknown>(
   const jsonModelId = modeloDe(adjustedOpts);
 
   try {
-    const r1 = await callAnthropicTextWithTokens(adjustedPrompt, adjustedOpts, 'json', 1, estInput);
+    const r1 = await callAnthropicTextWithTokens(adjustedPrompt, adjustedOpts, 'json',
+      { vuelta: 1, entradaEstimada: estInput, esperaAntesMs: esperaDelLimitador, comienzoDeLaEspera: antesDelLimitador });
     finalInput  = r1.inputTokens;
     finalOutput = r1.outputTokens;
     adjustedOpts.alTerminar?.({ outputTokens: r1.outputTokens });
@@ -390,9 +396,11 @@ export async function callAnthropicJson<T = unknown>(
       return tryParseJson<T>(r1.text);
     } catch {
       console.warn('[callAnthropicJson] Parse failed, retrying. head:', r1.text.slice(0, 200));
+      const antesDeLaPausa = Date.now();
       await new Promise(r => setTimeout(r, 1500));
 
-      const r2 = await callAnthropicTextWithTokens(adjustedPrompt, adjustedOpts, 'json', 2, estInput);
+      const r2 = await callAnthropicTextWithTokens(adjustedPrompt, adjustedOpts, 'json',
+        { vuelta: 2, entradaEstimada: estInput, esperaAntesMs: Date.now() - antesDeLaPausa, comienzoDeLaEspera: antesDeLaPausa });
       finalInput  = r2.inputTokens;
       finalOutput = r2.outputTokens;
       adjustedOpts.alTerminar?.({ outputTokens: r2.outputTokens });
@@ -452,7 +460,9 @@ export async function callAnthropicAgent(
   };
 
   const estInput    = Math.ceil(JSON.stringify(payload).length / 4);
+  const antesDelLimitador = Date.now();
   const windowStart = await acquireRateLimit(estInput, EST_OUTPUT_TOKENS.agent);
+  const esperaDelLimitador = Date.now() - antesDelLimitador;
 
   let finalInput:  number = estInput;
   let finalOutput: number = EST_OUTPUT_TOKENS.agent;
@@ -461,7 +471,7 @@ export async function callAnthropicAgent(
     const { body, inputTokens, outputTokens } = await callAnthropicRaw(
       payload as Record<string, unknown>,
       headers,
-      { modelo: AGENT_MODEL, vuelta: 1, entradaEstimada: estInput },
+      { modelo: AGENT_MODEL, vuelta: 1, entradaEstimada: estInput, esperaAntesMs: esperaDelLimitador, comienzoDeLaEspera: antesDelLimitador },
     );
     finalInput  = inputTokens;
     finalOutput = outputTokens;

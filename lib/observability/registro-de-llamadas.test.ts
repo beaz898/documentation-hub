@@ -25,7 +25,7 @@ function simularApi(respuestas: ('ok' | number | 'red' | 'roto')[]) {
 }
 /** Corre `fn` adelantando el reloj falso, para que las esperas entre intentos no cuesten 2 s de verdad. */
 async function conReloj<T>(fn: () => Promise<T>): Promise<T> {
-  vi.useFakeTimers({ toFake: ['setTimeout'] });
+  vi.useFakeTimers({ toFake: ['setTimeout', 'Date'] });
   const p = fn();
   for (let i = 0; i < 20; i++) await vi.advanceTimersByTimeAsync(25_000);
   return p;
@@ -50,6 +50,33 @@ describe('el registro por llamada al modelo (3.1.1, paso 2)', () => {
     simularApi([429, 'ok']);
     const { registro } = await conReloj(() => conRegistroDeLlamadas(() => callAnthropicJson('hola', { etiqueta: { etapa: 'rerank' } })));
     expect(registro.peticiones.map(p => [p.intento, p.resultado, p.estadoHttp ?? null, p.tokens.entrada])).toEqual([[1, 'http', 429, 0], [2, 'ok', 200, 70]]);
+  });
+
+  it('LA ESPERA: 0 en el primer intento, el backoff en los siguientes, y la pausa de 1,5 s antes de la vuelta 2', async () => {
+    simularApi([429, 529, 'roto', 'ok']);
+    const { registro } = await conReloj(() => conRegistroDeLlamadas(() => callAnthropicJson('hola', { etiqueta: { etapa: 'juez' } })));
+    expect(registro.peticiones.map(p => [p.vuelta, p.intento, p.esperaMs])).toEqual([[1, 1, 0], [1, 2, 2000], [1, 3, 5000], [2, 1, 1500]]);
+  });
+
+  it('LA SUMA RECONSTRUYE EL RELOJ DE PARED de una llamada: espera más latencia, entrada a entrada', async () => {
+    // una API que tarda 300 ms en contestar cada petición, con dos 429 delante
+    const cola: (number | 'ok')[] = [429, 429, 'ok'];
+    vi.stubGlobal('fetch', async () => {
+      await new Promise(r => setTimeout(r, 300));
+      const r = cola.shift();
+      if (typeof r === 'number') return { ok: false, status: r, text: async () => '' };
+      return { ok: true, status: 200, json: async () => ({ content: [{ type: 'text', text: '{"ok":true}' }], usage: { input_tokens: 1, output_tokens: 1 } }) };
+    });
+    const { registro, pared } = await conReloj(async () => {
+      const t0 = Date.now();
+      const { registro } = await conRegistroDeLlamadas(() => callAnthropicJson('hola', { etiqueta: { etapa: 'juez' } }));
+      return { registro, pared: Date.now() - t0 };
+    });
+    const suma = registro.peticiones.reduce((s, p) => s + p.esperaMs + p.latenciaMs, 0);
+    expect(registro.peticiones.map(p => [p.esperaMs, p.latenciaMs])).toEqual([[0, 300], [2000, 300], [5000, 300]]);
+    expect(suma).toBe(pared);                                  // 7.900 ms: 7.000 de backoff que sin la espera no se verían
+    // y comienzoMs coloca cada petición en la línea de tiempo del registro
+    expect(registro.peticiones.map(p => p.comienzoMs)).toEqual([0, 300, 2600]);
   });
 
   it('un fallo de red es su propia entrada, sin estado HTTP', async () => {
@@ -79,7 +106,7 @@ describe('el registro por llamada al modelo (3.1.1, paso 2)', () => {
     expect(s).not.toContain(MARCA);
     expect(s).not.toContain('"ok":true');                      // la respuesta del modelo tampoco
     expect(Object.keys(registro.peticiones[0]).sort()).toEqual(
-      ['entradaEstimada', 'estadoHttp', 'etapa', 'intento', 'latenciaMs', 'modelo', 'n', 'pareja', 'resultado', 'tokens', 'vuelta']);
+      ['comienzoMs', 'entradaEstimada', 'esperaMs', 'estadoHttp', 'etapa', 'intento', 'latenciaMs', 'modelo', 'n', 'pareja', 'resultado', 'tokens', 'vuelta']);
   });
 
   it('LA SUMA POR MODELO NO CAMBIA: con y sin registro, el acumulador de uso da lo mismo', async () => {
@@ -100,16 +127,16 @@ describe('el registro por llamada al modelo (3.1.1, paso 2)', () => {
     const { registro } = await conRegistroDeLlamadas(async () => {
       for (let i = 0; i < TOPE_DE_PETICIONES_CON_DETALLE + 5; i++)
         apuntarPeticion({ etiqueta: { etapa: 'juez' }, modelo: 'm', vuelta: 1 },
-          { intento: 1, resultado: 'ok', latenciaMs: 10, tokens: { entrada: 100, salida: 10, escrituraCache: 1, lecturaCache: 2 } });
+          { intento: 1, resultado: 'ok', latenciaMs: 10, tokens: { entrada: 100, salida: 10, escrituraCache: 1, lecturaCache: 2 }, esperaMs: 3, comienzo: Date.now() });
     });
     expect(registro.peticiones).toHaveLength(TOPE_DE_PETICIONES_CON_DETALLE);
     expect(registro.peticiones[TOPE_DE_PETICIONES_CON_DETALLE - 1].n).toBe(TOPE_DE_PETICIONES_CON_DETALLE);
-    expect(registro.fueraDelDetalle).toEqual({ peticiones: 5, tokens: { entrada: 500, salida: 50, escrituraCache: 5, lecturaCache: 10 }, latenciaMs: 50 });
+    expect(registro.fueraDelDetalle).toEqual({ peticiones: 5, tokens: { entrada: 500, salida: 50, escrituraCache: 5, lecturaCache: 10 }, latenciaMs: 50, esperaMs: 15 });
   });
 
   it('y por debajo de la guarda no hay nada agregado', async () => {
     const { registro } = await conRegistroDeLlamadas(async () => {
-      apuntarPeticion({ modelo: 'm', vuelta: 1 }, { intento: 1, resultado: 'ok', latenciaMs: 1, tokens: { entrada: 1, salida: 1, escrituraCache: 0, lecturaCache: 0 } });
+      apuntarPeticion({ modelo: 'm', vuelta: 1 }, { intento: 1, resultado: 'ok', latenciaMs: 1, tokens: { entrada: 1, salida: 1, escrituraCache: 0, lecturaCache: 0 }, esperaMs: 0, comienzo: Date.now() });
     });
     expect(registro.fueraDelDetalle).toBeNull();
   });
