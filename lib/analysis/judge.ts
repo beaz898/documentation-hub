@@ -12,6 +12,7 @@ import { comprobarConRepliegueDeGlosa, registroDeGlosas } from './glosa-de-cita'
 import { comprobarConRepliegues, localizadorDeLado, registroDelTramo, type ComprobacionConTramo, type LocalizadorDeLado } from './repliegue-de-tramo';
 import type { RerankedCandidate, DocumentJudgment, PipelineOptions, DiscardedFindings, DocumentFragment, LecturaDeLaPareja, TextoAnalizado } from './types';
 import type { StoredChunk } from '@/lib/read-chunks';
+import { repartoDeLaPareja, TAMANO_VENTANA, type RepartoElegido } from './reparto-de-la-pareja';
 
 // F-61: normalize se extrajo a su propio fichero (ver normalize.ts) para
 // evitar un ciclo con table-structure.ts. Se re-exporta aquí para que
@@ -665,6 +666,22 @@ function describeFragment(fragment: DocumentFragment, position: number, document
  * tabla SIN filas en este candidato (nivel 3) sí llega a describeFragment,
  * sin cambios.
  */
+/**
+ * 3.1.3 (21/10/2026): EL BLOQUE DEL CANDIDATO TAL COMO LO VE EL JUEZ, con sus cabeceras de fragmento.
+ * Lo montan el juez (`judgeSingleDocument`) y la segunda selección (`lib/analysis/segunda-seleccion.ts`),
+ * que mide con esto lo que ocupa cada selección YA MONTADA: el formato de las cabeceras vive sólo aquí.
+ */
+export function montarBloqueDelCandidato(fragments: DocumentFragment[], documentName: string, candidateChunks: StoredChunk[]): string {
+  const columnOrderByTable = new Map<string, string[]>();
+  for (const f of fragments) {
+    const tableId = f.context?.tableId;
+    if (tableId && !columnOrderByTable.has(tableId)) {
+      columnOrderByTable.set(tableId, getOrderedColumns(tableId, candidateChunks));
+    }
+  }
+  return buildExistingFragsBlock(fragments, documentName, candidateChunks, columnOrderByTable);
+}
+
 function buildExistingFragsBlock(
   fragments: DocumentFragment[],
   documentName: string,
@@ -722,6 +739,8 @@ async function judgeSingleDocument(args: {
   parejaEntera: boolean;
   analizadoCompleto: string;
   analizadoConTrozos: boolean;
+  /** 3.1.3: el reparto ya decidido por la segunda selección, si la hubo. */
+  elegido?: RepartoElegido;
 }): Promise<{ judgment: DocumentJudgment; evidence: JudgmentEvidence; lectura: LecturaDeLaPareja }> {
   const { newDocumentName, newDocumentText, candidate, chunksByDocument } = args;
 
@@ -774,15 +793,7 @@ async function judgeSingleDocument(args: {
   // volver a loggear orden_no_parseable N veces por las N filas de la misma
   // tabla. chunksByDocument ya trae column_order (lib/read-chunks.ts).
   const candidateChunks = chunksByDocument?.get(candidate.documentId) ?? [];
-  const columnOrderByTable = new Map<string, string[]>();
-  for (const f of candidate.fragments) {
-    const tableId = f.context?.tableId;
-    if (tableId && !columnOrderByTable.has(tableId)) {
-      columnOrderByTable.set(tableId, getOrderedColumns(tableId, candidateChunks));
-    }
-  }
-
-  const existingFragsBlock = buildExistingFragsBlock(candidate.fragments, candidate.documentName, candidateChunks, columnOrderByTable);
+  const existingFragsBlock = montarBloqueDelCandidato(candidate.fragments, candidate.documentName, candidateChunks);
   // B.295: qué leyó el juez de esta pareja. Antes de la llamada: describe lo
   // ENVIADO, así que vale también si el modelo falla.
   // Y con el interruptor encendido, la puerta decide aquí los dos textos: la
@@ -797,6 +808,7 @@ async function judgeSingleDocument(args: {
     candidatoChunks: candidateChunks,
     fragmentosEnviados: candidate.fragments,
     bloqueRelevancia: existingFragsBlock,
+    elegido: args.elegido,
   });
   // F-128: el modelo se decide UNA vez por pareja y el mismo valor va a la llamada y a la lectura
   // guardada, así que la SQL puede decir con qué modelo se midió cada pasada.
@@ -1036,7 +1048,7 @@ Responde con este JSON (sin bloques de código, sin texto adicional):
  * existe en este lado y que este commit no añade (fuera de alcance, ver
  * mensaje de commit).
  */
-function buildAnalyzedDocumentText(chunks: StoredChunk[], documentName: string): string {
+export function buildAnalyzedDocumentText(chunks: StoredChunk[], documentName: string): string {
   const groups = groupChunksByTable(chunks);
   const groupByTableId = new Map(groups.map(g => [g.tableId, g]));
   const rendered = new Set<string>();
@@ -1082,6 +1094,8 @@ export async function judgeAllDocuments(args: {
   newDocumentChunks?: StoredChunk[];
   chunksByDocument?: Map<string, StoredChunk[]>;
   fallbackTexts?: Map<string, string>;
+  /** 3.1.3: por candidato, el reparto que decidió la segunda selección (`segundaSeleccion`). */
+  repartos?: Map<string, RepartoElegido>;
 }): Promise<JudgeAllResult> {
   if (args.candidates.length === 0) return { judgments: [], evidences: [], lecturaDeLasParejas: [] };
 
@@ -1119,8 +1133,8 @@ export async function judgeAllDocuments(args: {
   const parejaEntera = parejaEnteraEnEsteModo(isExhaustive);
   if (parejaEntera) {
     console.log(
-      `[judge] "${args.newDocumentName}": ${INTERRUPTOR_PAREJA_ENTERA}=1 — presupuesto por pareja ` +
-      `${PRESUPUESTO_PAREJA_CARACTERES} caracteres (${PRESUPUESTO_PAREJA_TOKENS} tokens, caracteres/${CARACTERES_POR_TOKEN})`
+      `[judge] "${args.newDocumentName}": ${INTERRUPTOR_PAREJA_ENTERA}=1 — ventana por pareja ` +
+      `${TAMANO_VENTANA} caracteres (reparto del 3.1.3, lib/analysis/reparto-de-la-pareja.ts)`
     );
   }
   const recorte = recortarAnalizado(fullDocumentText, isExhaustive);
@@ -1148,6 +1162,7 @@ export async function judgeAllDocuments(args: {
       parejaEntera,
       analizadoCompleto: fullDocumentText,
       analizadoConTrozos: hasChunks,
+      elegido: args.repartos?.get(candidate.documentId),
     }),
     { batchSize: JUDGE_CONCURRENCY },
   );
@@ -1226,22 +1241,12 @@ function ladoCandidatoPorRelevancia(
 export const INTERRUPTOR_PAREJA_ENTERA = 'ANALYSIS_PAREJA_ENTERA';
 
 /**
- * El presupuesto de la pareja: 10.000 tokens ≈ 40.000 caracteres.
- * ⚠️ LA CONVERSIÓN ES caracteres / 4, la MISMA de las SQL de F-118
- * (`SQL_F118_tamanos_por_pareja.sql` y `SQL_F118_pareja_mayor_posible.sql`, «la
- * equivalencia que usó F-116»). Cambiarla aquí sin cambiarla allí hace que el
- * «10.000» del código y el de las mediciones dejen de significar lo mismo.
+ * 3.1.3 (21/10/2026): AQUÍ ESTABAN el presupuesto de la pareja (`PRESUPUESTO_PAREJA_CARACTERES`,
+ * 10.000 tokens ≈ 40.000 caracteres, caracteres/4) y el suelo del analizado (`SUELO_DEL_ANALIZADO`, los
+ * 6.000 de la tijera vieja). Los sustituyen la ventana del interino (`TAMANO_VENTANA`, 80.000) y el
+ * reparto de `lib/analysis/reparto-de-la-pareja.ts`: el analizado ya no tiene suelo, tiene lo que la
+ * fórmula le promete, min(A, P − reserva), que nunca es menos que lo de la tijera vieja.
  */
-export const PRESUPUESTO_PAREJA_TOKENS = 10_000;
-export const CARACTERES_POR_TOKEN = 4;
-export const PRESUPUESTO_PAREJA_CARACTERES = PRESUPUESTO_PAREJA_TOKENS * CARACTERES_POR_TOKEN;
-
-/**
- * D-3 (arquitecto, 29/09/2026): lo que el corte honesto garantiza al ANALIZADO,
- * nunca menos: lo que recibe hoy con la tijera vieja. Es la MISMA constante, no
- * otra que haya que mantener igual.
- */
-export const SUELO_DEL_ANALIZADO = NEW_DOC_LIMIT_QUICK;
 
 /**
  * El interruptor, FALLANDO CERRADO: se enciende SÓLO con el valor exacto '1'.
@@ -1305,8 +1310,10 @@ export function leerLaPareja(a: {
   analizadoViejo: { texto: string; lado: LecturaDeLaPareja['analizado'] };
   candidatoChunks: StoredChunk[];
   fragmentosEnviados: DocumentFragment[];
-  /** El bloque del candidato por relevancia (`buildExistingFragsBlock`). */
+  /** El bloque del candidato por relevancia (`montarBloqueDelCandidato`). */
   bloqueRelevancia: string;
+  /** 3.1.3: el reparto que decidió la segunda selección, si la hubo. */
+  elegido?: RepartoElegido;
 }): {
   textoAnalizado: string;
   bloqueCandidato: string;
@@ -1344,10 +1351,15 @@ export function leerLaPareja(a: {
   }
   const completo = a.analizadoCompleto;
   const candidatoEntero = buildAnalyzedDocumentText(a.candidatoChunks, a.documentName);
-  const presupuesto = PRESUPUESTO_PAREJA_CARACTERES;
+  // 3.1.3: el reparto lo decide UNA función. Si la segunda selección ya lo decidió, se lee el suyo; si
+  // no (no la hubo), se calcula con la misma función y el bloque que llegó como reserva.
+  const reparto = a.elegido?.reparto ?? repartoDeLaPareja({
+    analizado: completo.length, candidato: candidatoEntero.length, reservaMontada: a.bloqueRelevancia.length,
+  });
+  const presupuesto = reparto.ventana;
   const entero = { caracteres: candidatoEntero.length, mostrados: candidatoEntero.length, dejoFuera: false };
 
-  if (completo.length + candidatoEntero.length <= presupuesto) {
+  if (reparto.parejaEntera) {
     return {
       textoAnalizado: completo,
       bloqueCandidato: candidatoEntero,
@@ -1362,11 +1374,13 @@ export function leerLaPareja(a: {
     };
   }
 
-  // Corte honesto, en cascada (D-3). Pasos 1-2: ¿cabe el candidato entero dejando
-  // al analizado su suelo? Paso 3: si no, su bloque por relevancia.
-  const candidatoCabeEntero = candidatoEntero.length <= presupuesto - SUELO_DEL_ANALIZADO;
+  // Corte honesto (3.1.3, 21/10/2026; sustituye a la cascada D-3 del 29/09). El candidato va entero si
+  // cabe en su resto; si no, su bloque por relevancia, que la segunda selección ya eligió con ese resto.
+  // El analizado se lleva lo que deja el bloque REAL, montado: nunca menos de lo que el reparto promete,
+  // porque el bloque cabe en su resto.
+  const candidatoCabeEntero = reparto.candidatoEntero;
   const bloqueCandidato = candidatoCabeEntero ? candidatoEntero : a.bloqueRelevancia;
-  const topeDelAnalizado = Math.max(SUELO_DEL_ANALIZADO, presupuesto - bloqueCandidato.length);
+  const topeDelAnalizado = Math.max(0, presupuesto - bloqueCandidato.length);
   const recortado = completo.length > topeDelAnalizado;
   const texto = recortado ? completo.slice(0, topeDelAnalizado) : completo;
   return {
@@ -1381,6 +1395,7 @@ export function leerLaPareja(a: {
         ? entero
         : ladoCandidatoPorRelevancia(a.candidatoChunks, a.documentName, a.fragmentosEnviados, a.bloqueRelevancia),
       presupuesto,
+      seleccion: candidatoCabeEntero ? 'entero' : (a.elegido?.seleccion ?? 'la_de_la_recuperacion'),
     },
   };
 }

@@ -1,8 +1,8 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
-  interruptorParejaEntera, leerLaPareja, lineaDeLaLectura, parejaEnteraEnEsteModo,
-  PRESUPUESTO_PAREJA_CARACTERES, SUELO_DEL_ANALIZADO, recortarAnalizado,
+  interruptorParejaEntera, leerLaPareja, lineaDeLaLectura, parejaEnteraEnEsteModo, recortarAnalizado,
 } from './judge';
+import { TAMANO_VENTANA, repartoDeLaPareja } from './reparto-de-la-pareja';
 import type { StoredChunk } from '@/lib/read-chunks';
 import type { DocumentFragment } from './types';
 
@@ -11,6 +11,11 @@ import type { DocumentFragment } from './types';
  * PAREJA. Casos decisivos: el borde del presupuesto (cabe entera / corte honesto),
  * el corte honesto por posición con el suelo del candidato, y el interruptor que
  * sólo se enciende con '1'.
+ *
+ * ⚠️ ACTUALIZADO EL 21/10/2026 (3.1.3): la cascada D-3 —presupuesto de 40.000 y suelo del analizado de
+ * 6.000— la sustituye el reparto de `lib/analysis/reparto-de-la-pareja.ts`, con la ventana de 80.000.
+ * Las pruebas que la fijaban NO se han borrado: lo viejo queda tachado en comentario, con su fecha, y
+ * debajo lo nuevo. En las de aquí, el bloque por relevancia de `pareja()` (21 caracteres) es la reserva.
  */
 
 const VARIABLE = 'ANALYSIS_PAREJA_ENTERA';
@@ -44,10 +49,11 @@ function pareja(nA: number, nC: number, parejaEntera = true, extra: Partial<Para
 }
 
 describe('el presupuesto por pareja', () => {
-  it('10.000 tokens = 40.000 caracteres, y el suelo del analizado es lo que recibe hoy (6.000)', () => {
-    expect(PRESUPUESTO_PAREJA_CARACTERES).toBe(40_000);
-    expect(SUELO_DEL_ANALIZADO).toBe(6000);
-    expect(recortarAnalizado('x'.repeat(9000), false).texto.length).toBe(SUELO_DEL_ANALIZADO);
+  // ~~10.000 tokens = 40.000 caracteres, y el suelo del analizado es lo que recibe hoy (6.000)~~ (hasta el 21/10/2026):
+  // ~~expect(PRESUPUESTO_PAREJA_CARACTERES).toBe(40_000); expect(SUELO_DEL_ANALIZADO).toBe(6000);~~
+  it('21/10/2026: la ventana del interino es de 80.000, y la tijera vieja sigue dando 6.000 al analizado', () => {
+    expect(TAMANO_VENTANA).toBe(80_000);
+    expect(recortarAnalizado('x'.repeat(9000), false).texto.length).toBe(6000);
   });
 });
 
@@ -66,45 +72,84 @@ describe('la puerta del juez', () => {
     expect(r.bloqueCandidato.length).toBe(9817);
     expect(r.lectura.analizado).toEqual({ caracteres: 14704, mostrados: 14704, dejoFuera: false });
     expect(r.lectura.candidato).toEqual({ caracteres: 9817, mostrados: 9817, dejoFuera: false });
-    expect(r.lectura.presupuesto).toBe(40_000);
+    // ~~expect(r.lectura.presupuesto).toBe(40_000);~~ (hasta el 21/10/2026)
+    expect(r.lectura.presupuesto).toBe(80_000);
   });
-  it('CASO DECISIVO del borde: 40.000 justos caben; uno más, corte honesto', () => {
-    expect(pareja(30_000, 10_000).lectura.regimen).toBe('pareja_entera');
-    expect(pareja(30_001, 10_000).lectura.regimen).toBe('corte_honesto');
+  // ~~CASO DECISIVO del borde: 40.000 justos caben; uno más, corte honesto~~ (hasta el 21/10/2026):
+  // ~~pareja(30_000, 10_000) → pareja_entera; pareja(30_001, 10_000) → corte_honesto~~
+  it('21/10/2026, CASO DECISIVO del borde: 80.000 justos caben; uno más, corte honesto', () => {
+    expect(pareja(70_000, 10_000).lectura.regimen).toBe('pareja_entera');
+    expect(pareja(70_001, 10_000).lectura.regimen).toBe('corte_honesto');
   });
-  it('D-3 paso 1-2: el candidato cabe entero dejando el suelo → entero, y el analizado se lleva el resto', () => {
-    const r = pareja(66_669, 5_000);
+  // ~~D-3 paso 1-2: el candidato cabe entero dejando el suelo → entero, y el analizado se lleva el resto~~
+  // ~~pareja(66_669, 5_000): candidato entero 5.000, analizado 35.000 de 66.669~~ (hasta el 21/10/2026).
+  // Con el reparto, en el corte honesto el candidato sólo va entero si cabe en su resto, y su resto es
+  // P − A cuando el analizado cabe: entonces cabrían los dos y no habría corte. Así que sólo pasa cuando el
+  // analizado ocupa todo salvo la reserva y el candidato cabe en ella.
+  it('21/10/2026: el candidato va entero en el corte honesto sólo si cabe en la reserva, y el analizado se lleva el resto', () => {
+    const r = pareja(79_990, 20);
     expect(r.lectura.regimen).toBe('corte_honesto');
-    expect(r.lectura.candidato).toEqual({ caracteres: 5_000, mostrados: 5_000, dejoFuera: false });
-    expect(r.lectura.analizado).toEqual({ caracteres: 66_669, mostrados: 35_000, dejoFuera: true });
-    expect(r.textoAnalizado).toBe('a'.repeat(35_000));
+    expect(r.lectura.candidato).toEqual({ caracteres: 20, mostrados: 20, dejoFuera: false });
+    expect(r.lectura.analizado).toEqual({ caracteres: 79_990, mostrados: 79_980, dejoFuera: true });
+    expect(r.lectura.seleccion).toBe('entero');
   });
-  it('D-3 el borde del paso 1: con 34.000 justos el candidato entra entero y el analizado queda en su suelo', () => {
-    const r = pareja(38_000, 34_000);
-    expect(r.lectura.candidato.dejoFuera).toBe(false);
-    expect(r.lectura.analizado.mostrados).toBe(SUELO_DEL_ANALIZADO);
-    expect(pareja(38_000, 34_001).lectura.candidato.dejoFuera).toBe(true);
+  // ~~D-3 el borde del paso 1: con 34.000 justos el candidato entra entero y el analizado queda en su suelo~~
+  // ~~pareja(38_000, 34_000) entero y el analizado en 6.000; con 34.001, bloque~~ (hasta el 21/10/2026)
+  it('21/10/2026, el borde: el candidato del tamaño justo de la reserva entra entero; uno más, su bloque', () => {
+    expect(pareja(79_990, 21).lectura.candidato.dejoFuera).toBe(false);
+    expect(pareja(79_990, 22).lectura.candidato.dejoFuera).toBe(true);
   });
-  it('D-3 paso 3: el candidato entero no cabe ni con el suelo → su bloque por relevancia, y el analizado el resto', () => {
-    const r = pareja(10_000, 36_000);
+  // ~~D-3 paso 3: el candidato entero no cabe ni con el suelo → su bloque por relevancia, y el analizado el resto~~
+  // ~~pareja(10_000, 36_000)~~ (hasta el 21/10/2026; con 80.000 esa pareja cabe entera)
+  it('21/10/2026: el candidato no cabe en su resto → su bloque por relevancia, y el analizado entero porque cabe', () => {
+    const r = pareja(10_000, 75_000);
     expect(r.lectura.regimen).toBe('corte_honesto');
     expect(r.bloqueCandidato).toBe('bloque-por-relevancia');
     expect(r.lectura.candidato.dejoFuera).toBe(true);
     expect(r.lectura.analizado.dejoFuera).toBe(false);
   });
-  it('el caso real del 29/09: NOR-11 (14.704) contra NOR-10 (66.801) y contra CLI-12 (55.135) → paso 3, el analizado ENTERO y el candidato por relevancia', () => {
-    for (const nC of [66_801, 55_135]) {
-      const r = pareja(14_704, nC);
-      expect(r.lectura.regimen).toBe('corte_honesto');
-      expect(r.bloqueCandidato).toBe('bloque-por-relevancia');
-      expect(r.lectura.analizado).toEqual({ caracteres: 14_704, mostrados: 14_704, dejoFuera: false });
-      expect(r.lectura.candidato.dejoFuera).toBe(true);
-    }
-    expect(pareja(14_704, 9_817).lectura.regimen).toBe('pareja_entera');   // y CLI-13, entera
+  // ~~el caso real del 29/09: NOR-11 contra NOR-10 (66.801) y contra CLI-12 (55.135) → paso 3, el analizado
+  // ENTERO y el candidato por relevancia~~ (hasta el 21/10/2026, con 40.000).
+  it('21/10/2026, el caso real con la ventana de 80.000: NOR-11 (14.704) contra NOR-10 (66.801) → corte honesto con el analizado ENTERO; contra CLI-12 (55.135) y CLI-13, ENTERAS', () => {
+    const r = pareja(14_704, 66_801);
+    expect(r.lectura.regimen).toBe('corte_honesto');
+    expect(r.bloqueCandidato).toBe('bloque-por-relevancia');
+    expect(r.lectura.analizado).toEqual({ caracteres: 14_704, mostrados: 14_704, dejoFuera: false });
+    expect(r.lectura.candidato.dejoFuera).toBe(true);
+    expect(pareja(14_704, 55_135).lectura.regimen).toBe('pareja_entera');
+    expect(pareja(14_704, 9_817).lectura.regimen).toBe('pareja_entera');
   });
-  it('D-3 el suelo del paso 3 aguanta aunque el bloque fuera enorme (hoy inalcanzable: el bloque es ≤ 3.000)', () => {
+  // ~~D-3 el suelo del paso 3 aguanta aunque el bloque fuera enorme: el analizado en 6.000~~ (hasta el 21/10/2026).
+  // Ya no hay suelo: el analizado se lleva lo que la fórmula promete, P − reserva.
+  it('21/10/2026: con una reserva enorme, el analizado recibe exactamente lo que el reparto promete', () => {
     const r = pareja(50_000, 36_000, true, { bloqueRelevancia: 'r'.repeat(35_000) });
-    expect(r.lectura.analizado.mostrados).toBe(SUELO_DEL_ANALIZADO);
+    const prometido = repartoDeLaPareja({ analizado: 50_000, candidato: 36_000, reservaMontada: 35_000 }).paraElAnalizado;
+    expect(prometido).toBe(45_000);
+    expect(r.lectura.analizado.mostrados).toBe(prometido);
+  });
+  it('21/10/2026: con el reparto de la segunda selección, se lee ése y no se recalcula, y la lectura dice de dónde salió el bloque', () => {
+    // el reparto: el analizado cabe (70.000 ≤ 80.000 − 3.100), así que va entero y al candidato le quedan 10.000
+    const reparto = repartoDeLaPareja({ analizado: 70_000, candidato: 30_000, reservaMontada: 3_100 });
+    expect(reparto.paraElCandidato).toBe(10_000);
+    // y la segunda selección le dio un bloque que cabe en esos 10.000, como garantiza
+    const bloque = 'b'.repeat(9_500);
+    const r = pareja(70_000, 30_000, true, { bloqueRelevancia: bloque, elegido: { reparto, seleccion: 'ampliada' } });
+    expect(r.bloqueCandidato).toBe(bloque);
+    expect(r.lectura.seleccion).toBe('ampliada');
+    expect(r.lectura.analizado).toEqual({ caracteres: 70_000, mostrados: 70_000, dejoFuera: false });
+  });
+  it('21/10/2026, CASO DECISIVO de «se lee, no se recalcula»: un reparto decidido con otra ventana es el que manda', () => {
+    // Con la garantía de la segunda selección cumplida, recalcular daría lo mismo: por eso el caso usa otra
+    // ventana, que es lo único que distingue el reparto preguntado del recalculado.
+    const reparto = repartoDeLaPareja({ analizado: 70_000, candidato: 30_000, reservaMontada: 3_100, ventana: 90_000 });
+    const r = pareja(70_000, 30_000, true, { bloqueRelevancia: 'b'.repeat(19_000), elegido: { reparto, seleccion: 'ampliada' } });
+    expect(r.lectura.presupuesto).toBe(90_000);
+  });
+  it('21/10/2026, LA RESERVA GANA (decisión 4, hoy inalcanzable): con una reserva de 76.000 el analizado baja de los 6.000 de la tijera vieja', () => {
+    // Hace falta una reserva por encima de P − 6.000 = 74.000, y la reserva de hoy es el bloque de 3.000 con
+    // sus cabeceras. Si algún día se alcanza, se decidió así: el texto del candidato no se sacrifica.
+    const r = pareja(100_000, 90_000, true, { bloqueRelevancia: 'r'.repeat(76_000) });
+    expect(r.lectura.analizado.mostrados).toBe(4_000);
   });
   it('D-1: encendido y un lado sin trozos → sin_fuente_comun, leído como la tijera vieja', () => {
     const cand = pareja(100, 100, true, { candidatoChunks: [] });
@@ -125,7 +170,7 @@ describe('la puerta del juez', () => {
   it('la línea del log sale de la misma lectura', () => {
     const r = pareja(14704, 9817);
     expect(lineaDeLaLectura('CLI-13.docx', r.lectura))
-      .toBe('[judge] "CLI-13.docx": pareja pareja_entera — analizado 14704/14704, candidato 9817/9817, presupuesto 40000');
+      .toBe('[judge] "CLI-13.docx": pareja pareja_entera — analizado 14704/14704, candidato 9817/9817, presupuesto 80000');
   });
 });
 
@@ -157,7 +202,7 @@ describe('el interruptor, fallando cerrado', () => {
   });
 });
 
-describe('EL INVARIANTE DE D-3: encendido, ningún lado recibe menos que con la tijera vieja', () => {
+describe('EL INVARIANTE DE D-3, QUE EL REPARTO DEL 21/10 CONSERVA: encendido, ningún lado recibe menos que con la tijera vieja', () => {
   /** Una pareja coherente: la tijera vieja es la de verdad (recortarAnalizado), y el
    *  candidato tiene 4 trozos de los que la relevancia envió el 0 y el 2. */
   function coherente(nA: number, nC: number, encendido: boolean, sinTrozos: 'ninguno' | 'analizado' | 'candidato') {
@@ -176,8 +221,10 @@ describe('EL INVARIANTE DE D-3: encendido, ningún lado recibe menos que con la 
       bloqueRelevancia: 'bloque',
     });
   }
-  const A = [100, 6_000, 6_001, 20_000, 38_000, 66_669];
-  const C = [100, 3_000, 20_000, 34_000, 34_001, 36_000];
+  // ~~const A = [100, 6_000, 6_001, 20_000, 38_000, 66_669]; const C = [100, 3_000, 20_000, 34_000, 34_001, 36_000];~~
+  // (hasta el 21/10/2026: los bordes de la cascada D-3 con 40.000). Ahora, los del reparto con 80.000:
+  const A = [100, 6_000, 6_001, 20_000, 38_000, 66_669, 79_990];
+  const C = [100, 3_000, 20_000, 34_000, 66_801, 79_000];
   const S = ['ninguno', 'analizado', 'candidato'] as const;
   it.each(A.flatMap(nA => C.flatMap(nC => S.map(sn => [nA, nC, sn] as const))))(
     'analizado %i · candidato %i · sin trozos: %s', (nA, nC, sn) => {

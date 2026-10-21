@@ -285,6 +285,10 @@ export async function retrieveCandidates(args: {
   /** B.281 — el reparto de CADA candidato recuperado, por documentId
    *  (`repartoDelCandidato`). El pipeline se queda con los que llegaron al juez. */
   repartoPorCandidato: Map<string, RepartoDelCandidato>;
+  /** 3.1.3 (21/10/2026): por candidato, los fragmentos que devolvió Pinecone, deduplicados y en orden
+   *  de score: lo que la primera selección usaba y tiraba. La segunda selección (`segunda-seleccion.ts`)
+   *  vuelve a elegir entre ESTOS, después del rerank, con el resto del reparto. */
+  fragmentosOrdenados: Map<string, DocumentFragment[]>;
 }> {
   const { sampleTexts, orgId, excludeDocumentId, batchDocumentIds, idsDelCorpusExacto, options, supabase, newDocumentChunks } = args;
   const isExhaustive = options?.exhaustive === true;
@@ -302,23 +306,9 @@ export async function retrieveCandidates(args: {
   // igualdad exacta tras normalize — nunca semántica (B.95: "Puesto" con
   // "Implantólogo" no cruza con "Implantólogo / Cirujano oral", y es
   // deliberado: son valores distintos, no el mismo dato mal escrito).
-  const analyzedValueIndex = new Map<string, Set<string>>();
-  for (const c of newDocumentChunks ?? []) {
-    if (!c.cells) continue;
-    for (const [column, value] of Object.entries(c.cells)) {
-      const normCol = normalize(column);
-      const set = analyzedValueIndex.get(normCol) ?? new Set<string>();
-      set.add(normalize(value));
-      analyzedValueIndex.set(normCol, set);
-    }
-  }
-  // F-43/F-44: filas reales del analizado (no solo el índice de valores) —
-  // hace falta para "idéntica" en el sentido estricto: que TODAS las columnas
-  // compartidas coincidan con LA MISMA fila del analizado, no con filas
-  // distintas que cada una casualmente comparte una columna. El índice de
-  // valores (arriba) no distingue eso — es un cruce por columna, independiente
-  // fila a fila del lado analizado.
-  const analyzedRows = (newDocumentChunks ?? []).filter(c => c.chunkType === 'table_row');
+  // 3.1.3 (21/10/2026): el índice y las filas salen de `indiceDelAnalizado`, para que la segunda
+  // selección use EXACTAMENTE los mismos; el cálculo y sus razones están en esa función.
+  const { analyzedValueIndex, analyzedRows } = indiceDelAnalizado(newDocumentChunks ?? []);
 
   const sello = await generateEmbeddingsConSello(sampleTexts);
   const embeddings = sello.vectores;
@@ -438,6 +428,7 @@ export async function retrieveCandidates(args: {
   const candidates: CandidateDocument[] = [];
   const structuralOverlapsByDocument = new Map<string, StructuralOverlap[]>();
   const repartoPorCandidato = new Map<string, RepartoDelCandidato>();
+  const fragmentosOrdenados = new Map<string, DocumentFragment[]>();
   const selectionLimitsByDocument = new Map<string, SelectionLimit[]>();
   // ⚠️ F-114 — EL PUNTO DE CÁLCULO DEL TERMÓMETRO, Y ES ESTE BUCLE Y NO OTRO.
   // Aquí es donde TODAS las depuraciones están hechas: las cuatro —fila viva,
@@ -453,6 +444,7 @@ export async function retrieveCandidates(args: {
   for (const [documentId, frags] of byDoc) {
     const unique = deduplicateFragments(frags);
     const sorted = unique.sort((a, b) => b.score - a.score);
+    fragmentosOrdenados.set(documentId, sorted);
     for (const f of unique) scoresUnicos.push(f.score);
     maximosPorDocumento.push(sorted[0].score);
 
@@ -632,6 +624,7 @@ export async function retrieveCandidates(args: {
     selectionLimits: selectionLimitsByDocument,
     descartesDeRecuperacion: { cortadosPorTope: corte.cortados },
     presupuestoPorCandidato: budgetChars,
+    fragmentosOrdenados,
     repartoPorCandidato,
   };
 }
@@ -642,6 +635,34 @@ export async function retrieveCandidates(args: {
 
 
 /** Elimina fragmentos del mismo chunk (pueden aparecer si distintos embeddings los recuperan). */
+/**
+ * F-42 y F-43/F-44, sacado a función el 21/10/2026 (3.1.3) para que la primera selección y la segunda
+ * usen EXACTAMENTE el mismo índice:
+ *   · `analyzedValueIndex`: los VALORES (normalizados) del documento analizado, por columna
+ *     (normalizada) — no los nombres de columna sueltos (F-41 medía eso y no discriminaba: 15/15 filas
+ *     de una tabla real compartían columna con cualquier otra tabla de personas). Una sola pasada; cada
+ *     fila candidata consulta el Set de su columna — lineal, no producto cartesiano (medido: <1 ms para
+ *     108 filas). Se indexan TODAS las columnas, sin restringir a «compartidas»: una que ningún candidato
+ *     tenga nunca se consulta. Comparación ESTRUCTURAL, igualdad exacta tras normalize — nunca semántica
+ *     (B.95: «Implantólogo» no cruza con «Implantólogo / Cirujano oral», y es deliberado);
+ *   · `analyzedRows`: las filas reales del analizado, porque «idéntica» en sentido estricto exige que
+ *     TODAS las columnas compartidas coincidan con LA MISMA fila, y el índice de valores es un cruce por
+ *     columna, independiente fila a fila.
+ */
+export function indiceDelAnalizado(newDocumentChunks: StoredChunk[]): { analyzedValueIndex: Map<string, Set<string>>; analyzedRows: StoredChunk[] } {
+  const analyzedValueIndex = new Map<string, Set<string>>();
+  for (const c of newDocumentChunks) {
+    if (!c.cells) continue;
+    for (const [column, value] of Object.entries(c.cells)) {
+      const normCol = normalize(column);
+      const set = analyzedValueIndex.get(normCol) ?? new Set<string>();
+      set.add(normalize(value));
+      analyzedValueIndex.set(normCol, set);
+    }
+  }
+  return { analyzedValueIndex, analyzedRows: newDocumentChunks.filter(c => c.chunkType === 'table_row') };
+}
+
 function deduplicateFragments(frags: DocumentFragment[]): DocumentFragment[] {
   const seen = new Set<string>();
   const out: DocumentFragment[] = [];

@@ -284,6 +284,11 @@ export interface LecturaDeLaPareja {
    *  del reintento si lo hubo. Con Haiku 5.5 incluyen los del pensamiento: es lo que dice si se
    *  dispara. AUSENTE si la API no llegó a responder, y en los análisis anteriores a F-128. */
   tokensDeSalida?: number;
+  /** 3.1.3 (21/10/2026): de dónde salió el bloque del candidato en el corte honesto. 'entero': el
+   *  candidato entero; 'ampliada': la segunda selección, con el resto del reparto; 'la_de_la_recuperacion':
+   *  la de 3.000 de siempre, porque la segunda no la mejoraba sin perder trozos o sin pasarse del resto.
+   *  AUSENTE fuera del corte honesto y en los análisis anteriores. */
+  seleccion?: 'entero' | 'ampliada' | 'la_de_la_recuperacion';
 }
 
 /** Caracteres del texto del analizado que armó el juez, y los que vio. En el

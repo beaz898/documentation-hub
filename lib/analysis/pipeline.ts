@@ -33,10 +33,11 @@ import { ladosParaVerificar, lineaDelContexto, contarSinContexto, contextoDeLaCi
 import { RECOMPUESTA_BLOQUEADA_AL_RECLASIFICAR, RECOMPUESTA_SIN_CONTEXTO_DEL_RESTO, contadoresDelTramo } from './repliegue-de-tramo';
 import type { StoredChunk } from '@/lib/read-chunks';
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { CitaRecompuestaDeLado, DocumentJudgment } from './types';
+import type { CitaRecompuestaDeLado, DocumentFragment, DocumentJudgment } from './types';
 import { lineaDeAgregado, lineaDeCandidato } from '@/lib/analysis/traza-diff';
 import { contadoresDeLaGlosa } from './glosa-de-cita';
 import { conRegistroDeLlamadas } from '@/lib/observability/registro-de-llamadas';
+import { segundaSeleccion } from './segunda-seleccion';
 
 /**
  * Carga full_text de un lote de documentos. Réplica local del patrón de
@@ -795,7 +796,7 @@ async function runCorePipeline(
   // lo que sí llegó a decidirse — que es justo lo más informativo.
   const counters: PipelineCounters = {};
 
-  const { candidates, chunksByDocument: chunksFromRetrieval, structuralOverlaps, selectionLimits, descartesDeRecuperacion, termometro, presupuestoPorCandidato, repartoPorCandidato } = await retrieveCandidates({
+  const { candidates, chunksByDocument: chunksFromRetrieval, structuralOverlaps, selectionLimits, descartesDeRecuperacion, termometro, presupuestoPorCandidato, repartoPorCandidato, fragmentosOrdenados } = await retrieveCandidates({
     sampleTexts: input.sampleTexts,
     orgId: input.orgId,
     excludeDocumentId: input.excludeDocumentId,
@@ -905,31 +906,50 @@ async function runCorePipeline(
       chunkIndex: f.chunkIndex,
     })),
   );
+  // 3.1.3 (21/10/2026): también el contexto de TODOS los trozos de los candidatos que van al juez, porque
+  // la segunda selección puede elegir otros. No es otra consulta: `loadFragmentContexts` ya lee todos los
+  // trozos de cada documento implicado y sólo filtra por documento; esto sólo pide más claves de lo leído.
+  const refsDeLaSegunda = reranked.flatMap(c => (chunksByDocument.get(c.documentId) ?? []).map(ch => ({
+    documentId: c.documentId,
+    generation: c.fragments[0]?.generation ?? 1,
+    chunkIndex: ch.chunkIndex,
+  })));
   const contexts = await loadFragmentContexts(input.supabase, {
     orgId: input.orgId,
-    refs: fragmentRefs,
+    refs: [...fragmentRefs, ...refsDeLaSegunda],
   });
-  if (contexts.size > 0) {
-    for (const candidate of reranked) {
-      candidate.fragments = candidate.fragments.map(f => {
-        const ctx = contexts.get(
-          fragmentContextKey(f.documentId, f.generation ?? 1, f.chunkIndex),
-        );
-        return ctx ? { ...f, context: ctx } : f;
-      });
-    }
-  }
-  console.log(`[${label}] Contexto de fragmentos: ${contexts.size}/${fragmentRefs.length} resueltos`);
+  const conContexto = (frags: DocumentFragment[]): DocumentFragment[] => contexts.size === 0 ? frags : frags.map(f => {
+    const ctx = contexts.get(fragmentContextKey(f.documentId, f.generation ?? 1, f.chunkIndex));
+    return ctx ? { ...f, context: ctx } : f;
+  });
+  for (const candidate of reranked) candidate.fragments = conContexto(candidate.fragments);
+  // el log de siempre, sobre las claves de siempre
+  const resueltos = fragmentRefs.filter(r => contexts.has(fragmentContextKey(r.documentId, r.generation, r.chunkIndex))).length;
+  console.log(`[${label}] Contexto de fragmentos: ${resueltos}/${fragmentRefs.length} resueltos`);
+
+  // 3.1.3: la SEGUNDA SELECCIÓN, después del rerank y sólo para las parejas que van al juez (ver su
+  // cabecera). La recuperación eligió con 3.000 y de ahí leyeron el rerank y todo lo demás; esto elige
+  // otra vez, con el resto del reparto, el bloque que leerá el juez.
+  const segunda = segundaSeleccion({
+    candidates: reranked,
+    newDocumentName: input.newDocumentName,
+    newDocumentChunks: input.newDocumentChunks ?? [],
+    chunksByDocument,
+    fragmentosOrdenados,
+    exhaustivo: options.exhaustive === true,
+    conContexto,
+  });
 
   const t2 = Date.now();
   const { judgments: rawJudgments, evidences, textoAnalizado, lecturaDeLasParejas } = await judgeAllDocuments({
     newDocumentName: input.newDocumentName,
     newDocumentSample: input.newDocumentText,
-    candidates: reranked,
+    candidates: segunda.candidates,
     options,
     newDocumentChunks: input.newDocumentChunks ?? [],
     chunksByDocument,
     fallbackTexts,
+    repartos: segunda.repartos,
   });
   console.log(`[${label}] Judge: ${rawJudgments.length} juicios emitidos (${Date.now() - t2}ms)`);
   // F-121: las citas rescatadas al quitar la glosa, y las que no. Aquí, que es
