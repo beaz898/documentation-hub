@@ -12,6 +12,19 @@ tsconfig.tsbuildinfo
 .env.local
 .env*.local
 
+# credenciales — añadido el 21/10/2026 tras el censo de secretos del historial (cero claves
+# encontradas; ver la deuda en claude/Estado_Y_Pendientes_14-10-2026.md). Cubre lo que el
+# .gitignore de Next.js no cubría: los .env de entorno sin el «.local», las claves sueltas y
+# los JSON de cuentas de servicio. Hoy no hay ninguno: es para que no entre uno por descuido.
+.env.production
+.env.development
+.env.test
+*.key
+*service-account*.json
+*service_account*.json
+*-credentials.json
+credentials.json
+
 # sistema
 .DS_Store
 *.pem
