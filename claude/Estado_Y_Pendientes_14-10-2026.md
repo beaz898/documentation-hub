@@ -213,8 +213,14 @@ del análisis; (4) guardarlo; (5) el medidor, en SQL probado en PGlite y con arn
   (`runAnalysisPipeline` y `runExhaustiveAnalysisPipeline`, `lib/analysis/pipeline.ts`), envolviendo el
   contexto de fallos de etapa como éste ya se abría allí, y viaja en el resultado como
   `llamadasAlModelo`: al jsonb de `analysis_results` por `saveAnalysisResult`, que guarda el objeto
-  entero. Cubre de una vez el rápido de `analyze-v2`, el exhaustivo del worker y el examen. **No va al
-  navegador**: la respuesta de `analyze-v2` lleva una lista cerrada de campos y éste no está en ella.
+  entero. Cubre de una vez el rápido de `analyze-v2`, el exhaustivo del worker y el examen.
+  ~~**No va al navegador**: la respuesta de `analyze-v2` lleva una lista cerrada de campos y éste no
+  está en ella.~~ **Corregido por Code el mismo 21/10, abierto el consumidor antes del push: SÍ llega
+  al navegador, por la bandeja.** La respuesta de `analyze-v2` no lo lleva (lista cerrada de campos),
+  pero `app/api/analysis-results/[id]` y `app/api/documents/[id]/analysis` devuelven el jsonb
+  `analysis` entero, igual que ya hacían con `lecturaDeLasParejas`. Lo que viaja son números,
+  etapas, modelos e ids de documentos de la propia organización —nada de contenido—, y sólo a quien
+  ya puede abrir ese análisis. El mensaje del commit `e61dac5b` dice «no va al navegador» y es falso.
   Un duplicado exacto no llama al modelo y sale sin registro.
   - **El cableado lo vigila** `lib/analysis/registro-en-el-pipeline.test.ts` (las dos entradas lo abren
     y lo devuelven); el pipeline entero no se puede ejecutar en la suite.
