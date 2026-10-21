@@ -26,11 +26,22 @@ import { AsyncLocalStorage } from 'async_hooks';
  * `esperaMs + latenciaMs` de sus entradas.** Sin la espera, un análisis que tarda 43 s con 17 de backoff
  * saldría «rápido» en el medidor, que es justo la deuda del 19/10 (la latencia del juez con Haiku 5.5
  * subió de 19 a 31-43 s y no se sabe de dónde sale).
- * ⚠️ Y LO QUE LA SUMA NO DA: el reloj de pared de un ANÁLISIS. Sus llamadas no van en fila —el juez y el
- * verificador de cinco en cinco (`JUDGE_CONCURRENCY`, `VERIFY_CONCURRENCY`), el estilo a la vez que todo
- * lo demás—, así que sumar las entradas de un análisis da el trabajo, no la duración. Para la duración
- * está `comienzoMs`, los milisegundos desde que se abrió el registro hasta el comienzo de la petición: el
- * análisis dura lo que va del primer comienzo al último `comienzoMs + esperaMs + latenciaMs`.
+ * ⚠️ Y LO QUE LA SUMA NO DA: el reloj de pared de un ANÁLISIS, porque sus llamadas no van en fila —el
+ * juez y el verificador de cinco en cinco (`JUDGE_CONCURRENCY` en `lib/analysis/judge.ts`,
+ * `VERIFY_CONCURRENCY` en `lib/analysis/verify-findings.ts`), el estilo a la vez que todo lo demás—.
+ * Corregido por Code y aceptado por el arquitecto el 21/10:
+ *   · **LA SUMA DA EL TRABAJO**: `esperaMs + latenciaMs` sumado sobre las entradas de un análisis es
+ *     el tiempo que pasaron sus llamadas, contadas una a una, solapadas o no.
+ *   · **EL COMIENZO DA LA DURACIÓN**: `comienzoMs` son los milisegundos desde que se abrió el registro
+ *     hasta el comienzo de la petición, y el análisis dura lo que va del primer `comienzoMs` al último
+ *     `comienzoMs + esperaMs + latenciaMs`.
+ *
+ * ⚠️ CONDICIÓN: ESTO SÓLO CORRE EN EL RUNTIME DE NODE. `AsyncLocalStorage` es de `node:async_hooks` y no
+ * existe en el de Edge. Comprobado el 21/10/2026: ninguna ruta de `app/` declara `runtime = 'edge'`
+ * (todas van en Node, el defecto de Next.js); lo único que corre en Edge es `middleware.ts`, que no
+ * importa el cliente del modelo; y el worker de Railway corre en Node con `tsx`. No es nuevo:
+ * `usage-context.ts` y `lib/analysis/stage-failures.ts` ya usaban `AsyncLocalStorage` en el mismo
+ * camino. **Una ruta que importe `lib/llm/anthropic-client.ts` no puede pasar a Edge sin cambiar esto.**
  *
  * Sin un registro abierto (`conRegistroDeLlamadas`), `apuntarPeticion` no hace nada. En el paso 2
  * no lo abre nadie fuera de las pruebas; abrirlo y guardarlo en el análisis es el paso 4.
