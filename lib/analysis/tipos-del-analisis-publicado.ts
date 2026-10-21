@@ -10,6 +10,7 @@ import type { AnalysisMode, DiscardedFindings, DocumentJudgment, GrupoDeTablas, 
 import type { PipelineCounters } from './counters';
 import type { Termometro } from './termometro';
 import type { CoberturaDeCandidatos } from './cobertura-de-candidatos';
+import type { RegistroDeLlamadas } from '@/lib/observability/registro-de-llamadas';
 
 /** Nivel de confianza de una contradicción detectada. */
 export type DiscrepancyConfidence = 'alta' | 'posible';
@@ -352,4 +353,13 @@ export interface FinalAnalysis {
    * hay línea de base. Ausente = el juez no corrió o el análisis es anterior.
    */
   lecturaDeLasParejas?: LecturaDeLaPareja[];
+  /**
+   * 21/10/2026 — 3.1.1, paso 4: una entrada por PETICIÓN REAL al modelo durante el análisis —etapa,
+   * pareja (por id), modelo, vuelta, intento, resultado, latencia, espera, comienzo, las cuatro cifras
+   * de tokens y la estimación ÷4—, más `sinEtapa` (tiene que ser 0: el control del paso 3) y, si se
+   * pasó la guarda de 200, lo agregado en `fueraDelDetalle`. Ni una palabra del contenido
+   * (`lib/observability/registro-de-llamadas.ts`, cabecera). Lo abre el pipeline en sus dos entradas.
+   * Ausente = el análisis es anterior al 21/10 o fue un duplicado exacto, que no llama al modelo.
+   */
+  llamadasAlModelo?: RegistroDeLlamadas;
 }

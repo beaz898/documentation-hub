@@ -36,6 +36,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import type { CitaRecompuestaDeLado, DocumentJudgment } from './types';
 import { lineaDeAgregado, lineaDeCandidato } from '@/lib/analysis/traza-diff';
 import { contadoresDeLaGlosa } from './glosa-de-cita';
+import { conRegistroDeLlamadas } from '@/lib/observability/registro-de-llamadas';
 
 /**
  * Carga full_text de un lote de documentos. Réplica local del patrón de
@@ -1254,10 +1255,14 @@ export async function runAnalysisPipeline(input: AnalyzePipelineInput): Promise<
   // análisis tenga el suyo sin que route.ts ni el worker tengan que saber que
   // existe. AsyncLocalStorage lo aísla por árbol de llamadas: dos análisis
   // simultáneos no comparten array.
-  return stageFailureContext.run([], async () => {
+  //
+  // 3.1.1, paso 4 (21/10/2026): el registro por llamada al modelo se abre AQUÍ por el mismo motivo,
+  // envolviendo todo el análisis, y viaja en el resultado (y por él al jsonb de analysis_results).
+  const { resultado, registro } = await conRegistroDeLlamadas(() => stageFailureContext.run([], async () => {
     const result = await runCorePipeline(input, { exhaustive: false }, 'pipeline-v2');
-    return { ...result, analysisMode: 'quick' };
-  });
+    return { ...result, analysisMode: 'quick' as const };
+  }));
+  return { ...resultado, llamadasAlModelo: registro };
 }
 
 // ============================================================
@@ -1268,7 +1273,10 @@ export async function runExhaustiveAnalysisPipeline(input: ExhaustivePipelineInp
   // F-71: mismo motivo que en el rápido — un contexto de caídas por análisis,
   // abierto aquí para que el worker no tenga que conocerlo. El cuerpo va en una
   // función aparte solo para no indentar noventa líneas.
-  return stageFailureContext.run([], () => runExhaustivePipelineInner(input));
+  // 3.1.1, paso 4 (21/10/2026): y el registro por llamada, igual que en el rápido; envuelve también
+  // el estilo, que corre en paralelo dentro de runExhaustivePipelineInner.
+  const { resultado, registro } = await conRegistroDeLlamadas(() => stageFailureContext.run([], () => runExhaustivePipelineInner(input)));
+  return { ...resultado, llamadasAlModelo: registro };
 }
 
 async function runExhaustivePipelineInner(input: ExhaustivePipelineInput): Promise<FinalAnalysis> {

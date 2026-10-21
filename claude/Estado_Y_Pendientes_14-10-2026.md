@@ -144,7 +144,7 @@ barranco en sentido estricto, subir el presupuesto y leer menos, sigue sin obser
 producción sólo ha existido P = 40.000; lo que se ve aquí es el mecanismo que lo produce, como
 decía la consulta de F-127 en su 2.3.)
 
-#### 3.1.1 · Registrar tokens por llamada · F-127 P7 paso 1 y P9.1 · ~~SIN EMPEZAR~~ · EN CURSO desde el 21/10: pasos 2 y 3 hechos
+#### 3.1.1 · Registrar tokens por llamada · F-127 P7 paso 1 y P9.1 · ~~SIN EMPEZAR~~ · EN CURSO desde el 21/10: pasos 2, 3 y 4 hechos; falta el control en producción y el paso 5
 **Es lo primero.** Cero cambio de comportamiento: la API ya devuelve `input_tokens`,
 `output_tokens`, `cache_creation_input_tokens` y `cache_read_input_tokens`; llegan a
 `lib/llm/anthropic-client.ts:333-340` y se pierden al sumarlos por modelo en
@@ -209,6 +209,19 @@ del análisis; (4) guardarlo; (5) el medidor, en SQL probado en PGlite y con arn
   veces, la mejora y el agente) están en una lista cerrada. El censo corrigió a Code el mismo día: la
   llamada del agente está en `lib/agent/runner-conv.ts`, no en `llm-call.ts`, que sólo la reexporta.
   **El control de verdad llega con el paso 4**: el primer análisis guardado tiene que dar `sinEtapa: 0`.
+- **El paso 4, hecho el 21/10: el registro se abre en las dos entradas del pipeline**
+  (`runAnalysisPipeline` y `runExhaustiveAnalysisPipeline`, `lib/analysis/pipeline.ts`), envolviendo el
+  contexto de fallos de etapa como éste ya se abría allí, y viaja en el resultado como
+  `llamadasAlModelo`: al jsonb de `analysis_results` por `saveAnalysisResult`, que guarda el objeto
+  entero. Cubre de una vez el rápido de `analyze-v2`, el exhaustivo del worker y el examen. **No va al
+  navegador**: la respuesta de `analyze-v2` lleva una lista cerrada de campos y éste no está en ella.
+  Un duplicado exacto no llama al modelo y sale sin registro.
+  - **El cableado lo vigila** `lib/analysis/registro-en-el-pipeline.test.ts` (las dos entradas lo abren
+    y lo devuelven); el pipeline entero no se puede ejecutar en la suite.
+  - **EL CONTROL QUE CIERRA EL PASO 4, PENDIENTE DEL DIRECTOR**: tras el despliegue, un análisis rápido y
+    leer `SQL_311_01_control_del_registro_por_llamada.sql` con DESDE un minuto antes. Tiene que salir
+    `sinEtapa = 0`, todas las peticiones con una de las seis etapas y el juez con su pareja. Probado en
+    PGlite (`claude/arneses/f311/`): cada control cae donde debe y sin registro sale NO APLICA.
 ⚠️ **El tope mensual de 35 $ hay que revisarlo con el coste bueno delante** (arquitecto, 19/10): cualquier cifra de coste
 leída de `cost_usd` antes del arreglo es la cuarta parte de la real. Los «0,0045 $» por análisis de F-117 (`claude/consultas-fable/F-117.md:183`), que Fable usa en la adenda, no dicen de dónde salen; si salen de esa columna, son la cuarta parte.
 
