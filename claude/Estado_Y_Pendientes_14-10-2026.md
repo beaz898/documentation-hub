@@ -341,6 +341,14 @@ ventana acotada por debajo en 10.000 (`VENTANA_MINIMA_MEDIDA`). **En NOR-10 ↔ 
     66.801, en las dos parejas (con CLI-13, porque 66.801 + 9.817 = 76.618 cabe entera; comprobado por
     Code). **Si en la tanda se publica C, ES UN ACIERTO.** Lo que sigue siendo control de invención es
     cualquier cita del nuevo fuera de lo entregado: el bloque 3 de `SQL_F128_02`. Lo mismo, en su cabecera.
+  · **LA LATENCIA: EL ANÁLISIS VA A TARDAR MÁS** (arquitecto, 22/10/2026; «si falla, falla», no se
+    reinterpreta después). La entrada del juez en NOR-11 ↔ CLI-12 pasa de unos 17.600 caracteres a
+    69.839, cuatro veces más. Lo que cuesta tiempo es la SALIDA, no la entrada: si esa pareja sigue
+    dando 0 contradicciones, el tiempo de más será pequeño; si el juez empieza a escribir, se nota.
+    Contra qué se compara: los 36.128 ms del análisis del 21/10 y los 27.718 ms de su petición más
+    larga (cifras del arquitecto, de la salida de `SQL_311_02` que ejecutó el director; Code no la ha
+    visto). La duración de cada pasada sale en el bloque 3 de `SQL_313_01`, al lado de la petición
+    más larga; el 36.128 no va escrito en la consulta, sólo el 27.718.
 **CAMBIA DE FORMA el 18/10 (adenda de Fable, Q4)**: no es pasar un parámetro, es **calcular el resto
 ANTES de seleccionar** —resto = P − min(analizado, P − reserva), porque los tamaños de los dos
 documentos se conocen antes del retrieval— y pasárselo al selector que ya existe. Según la adenda,
