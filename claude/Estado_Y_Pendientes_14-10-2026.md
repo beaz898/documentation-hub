@@ -19,6 +19,10 @@
 > de NOR-10); lo siguiente es el **3.1.2**. Entran el tercer y el cuarto hallazgo real no sembrados del corpus
 > (el comité de calidad de la red, en `corpus-pruebas/SIEMBRA_corpus_ampliado.md` §7 y §8), la caché a cero
 > en dieciséis análisis como justificación del 3.1.4, y el coste de las tres etapas en Haiku 4.5 (3.15 A).
+> **Actualizado otra vez el 22/10/2026, por la tarde**: **el 3.1.3 y la ventana de 150.000 quedan CERRADOS**
+> (tanda de cinco pasadas de NOR-10 y dos de NOR-11: A, B y C publicadas en NOR-10 ↔ CLI-12 por primera vez);
+> **el caso D queda ABIERTO con nombre** (ver el 3.1.3); lo siguiente es la **3.1.2**. Se corrige la regla de
+> conversión del prompt del juez (3.1.4): no es constante.
 
 > **Sustituye a `Puntos_Pendientes_Doclity.txt`**, que tiene cosas desfasadas. Escrito por el
 > arquitecto el 14/10/2026, después de cerrar la medida de F-126. Cada pendiente dice **de qué
@@ -42,8 +46,8 @@
   bueno (3.1.1). Lo ejecuta el director.
 - **HECHO el 22/10**: la tanda del 3.1.3, medida y cerrada (ver el 3.1.3).
 - **HECHO el 22/10**: `SQL_313_02_la_entrada_del_juez_contra_cli13.sql` dice **LA MISMA ENTRADA** (ver el 3.1.3).
-- **EN VUELO (22/10)**: la ventana sube de 80.000 a 150.000 (decisión del director; ver el 3.1.3). Tanda de
-  cinco pasadas de NOR-10 y dos de NOR-11 cuando esté desplegado.
+- **HECHO el 22/10, por la tarde**: la ventana de 150.000, desplegada (`09cf63e5`), medida y CERRADA (ver el
+  3.1.3). **ABIERTO con nombre**: el caso D. **Lo siguiente**: la 3.1.2.
 
 ---
 
@@ -291,6 +295,8 @@ del análisis; (4) guardarlo; (5) el medidor, en SQL probado en PGlite y con arn
 leída de `cost_usd` antes del arreglo es la cuarta parte de la real. Los «0,0045 $» por análisis de F-117 (`claude/consultas-fable/F-117.md:183`), que Fable usa en la adenda, no dicen de dónde salen; si salen de esa columna, son la cuarta parte.
 
 #### 3.1.2 · El corte: avanzar al final del trozo, y declarar lo omitido · F-127 P3 y P7 paso 2, adenda Q3 · SIN EMPEZAR · ES LO SIGUIENTE (22/10)
+⚠️ **No arregla el caso D** (ver el caso abierto, después del 3.1.3): corrige cómo se cita lo que el juez ya
+emitió, y D no se emitió.
 **CAMBIA el 18/10 (adenda de Fable, Q3): ya no es «retroceder al límite».** Retroceder dejaba fuera
 la contradicción B de NOR-10 ↔ CLI-12 entera (B va de 36.552 a 36.852 y vive en el trozo 36, que
 empieza en 36.485; el corte real cae en 37.143, y retrocediendo quedaría en 36.483). Ahora:
@@ -326,7 +332,7 @@ DISPUTA ES EL SUJETO, LA CITA TIENE QUE EMPEZAR EN EL SUJETO».** El defecto no 
 Lo que el 3.1.2 tiene que cumplir, entonces, no es «toda cita lleva sujeto», sino eso: cuando lo que
 se contradice es quién, la cita empieza en quién.
 
-#### 3.1.3 · El interino: ventana de 80.000 con reparto monótono · F-127 P4, P5 y P7 paso 3, adenda Q4 · HECHO Y MEDIDO (22/10)
+#### 3.1.3 · El interino: ventana con reparto monótono (80.000, y 150.000 desde el 22/10) · F-127 P4, P5 y P7 paso 3, adenda Q4 · CERRADO (22/10)
 **MEDIDO el 22/10/2026**, con `SQL_313_01`, `SQL_F128_01`, `SQL_F128_02` y `SQL_311_02` sobre la tanda.
 Cifras del arquitecto, leídas en las cuatro salidas que pegó el director y en los logs; Code no ha visto ni
 unas ni otros. La medida completa está en el proyecto de Claude, `claude/Medida_F313_La_Ventana_Doble_22-10-2026.md`,
@@ -357,8 +363,15 @@ que NO está en este repositorio.
     enteras en lo entregado, y sólo A se publicó. Las otras mitades están las tres en CLI-12
     (`SIEMBRA_corpus_ampliado.md` §1): B en el trozo 34 (y otra forma literal en el 38), C en el 51 y D en
     el 6. NINGUNO está entre los 12 de la selección ampliada (0, 4, 45, 5, 53, 49, 52, 14, 15, 35, 17, 24),
-    sino en los 42.364 caracteres que quedaron fuera. La mitad de CLI-12 de A está en el trozo 4, que sí
-    entró: es el control, y es la única que se publicó. ⚠️ Los índices de los 12 salen de la simulación con el
+    sino en los 42.364 caracteres que quedaron fuera. ~~La mitad de CLI-12 de A está en el trozo 4, que sí
+    entró: es el control, y es la única que se publicó.~~ ⚠️ **CORREGIDO el 22/10 por la tarde (lo señaló el
+    arquitecto; lo comprobó Code)**: la FRASE SEMBRADA de A en CLI-12 («El responsable último de la
+    esterilización del instrumental en cada clínica es el Coordinador de Calidad del centro, no el Director
+    Clínico», 3.1) está en el **TROZO 3**, posición 3.785, que NO entró entre los doce. El trozo 4, que sí
+    entró, lleva las tres decisiones del Coordinador («autoriza… firma… decide… la retirada»), y es lo que
+    citaba A siempre. Code buscó A por «quien decide, con criterio técnico», que es la frase de las
+    decisiones y no la sembrada. **En la tanda de 80.000 ni A se medía contra su pareja real**: no invalida lo
+    escrito, pero cualquier relectura de esa tanda tiene que decirlo. ⚠️ Los índices de los 12 salen de la simulación con el
     orden del log del 16/10; la tanda sólo guarda la CUENTA (`trozosDelCandidato`), no qué trozos. Que
     coincidan la cuenta, el resto y los 12.771 caracteres lo hace muy probable, pero no está guardado. Es el
     límite declarado del interino, quedarse fuera por el ranking, medido ahora en las tres.
@@ -392,12 +405,42 @@ que NO está en este repositorio.
     En las once pasadas del 22/10 NOR-10 no llegó al juez (bloque 1 de `SQL_313_01`, leído por el arquitecto),
     pero podría: SI APARECE, su cambio de régimen es el cambio funcionando, se anota y no cuenta como desviación.
     **Para leerla**: en `SQL_313_01`, ventana 150000 y trozos 55, y los ESPERADOS después de mirar el reloj.
-  · **Dos hallazgos reales no sembrados**, en el registro (`SIEMBRA_corpus_ampliado.md` §7 y §8): la
-    composición del comité de calidad de la red (4 de 5 pasadas) y su periodicidad (1 de 5, minor).
-  · **Anotado, sin tocar código**: un `paso=normalizada` en la pasada de NOR-11 de las 09:48 (contenedor,
-    148/195), el segundo que se ve, y no es de los seis contadores; un motivo de descarte nuevo,
-    `sin_relacion`, en la pasada de NOR-10 de las 10:01; la caché a cero en los dieciséis análisis (3.1.4);
-    y el coste de las tres etapas en Haiku 4.5 (3.15 A).
+  · **LA VENTANA DE 150.000, MEDIDA Y CERRADA el 22/10** (cinco pasadas de NOR-10 y dos de NOR-11, sobre
+    `09cf63e5`; cifras del arquitecto, de las salidas de `SQL_313_01`, `SQL_F128_02` y `SQL_311_02` que ejecutó
+    el director; Code no las ha visto; medida completa en el proyecto de Claude,
+    `claude/Medida_F313b_La_Ventana_De_150000_22-10-2026.md`, que NO está en este repositorio):
+    · **TRES DE TRES EN NOR-10 ↔ CLI-12, por primera vez en el corpus**: A, B y C publicadas en las cinco
+      pasadas, confirmadas por juicio, y reconocidas POR LA PROPIA CITA (bloque 2d: A → A, B → B, C → C, las
+      cinco veces). Por la cita: 0 de 20 en la tanda de 80.000; 15 de 28 en ésta. B cita el trozo 34 de CLI-12
+      y C el 51: los que la predicción 2 decía que llegarían por primera vez.
+    · **Las predicciones, calificadas y sin reinterpretar**: 1 (pareja entera, 55 trozos, 55.135/55.135,
+      analizado 66.801/66.801) ACIERTA; 2 (los trozos 6, 34 y 51 delante) ACIERTA; 3 (D se publica) **FALLA,
+      0 de 5**; 4 (C se publica) ACIERTA; 5 (B es la dudosa) **FALLA en la dirección buena, 5 de 5**; 6 (+15.400
+      tokens, +0,0015 $) ACIERTA, medido +15.434 y +0,00154 $; 7 (la latencia sube) **FALLA en las dos ramas**;
+      8, retirada antes de medir. Los tres fallos son del arquitecto y por lo mismo, en sus palabras: supuso
+      que con más texto el juez escribiría más, y escribió menos. La de Code, los 55 trozos: ACIERTA, 5 de 5.
+    · **EL DATO QUE CAMBIA CÓMO PENSAR: con el candidato entero, el juez ENCUENTRA MÁS, ESCRIBE MENOS Y TARDA
+      MENOS.** Hallazgos por pasada, mediana de 4 a 6; salida del juez, de 9.606 a 7.874 tokens; duración, de
+      36.720 a 30.160 ms. La causa, medida: con sólo el trozo 4 de CLI-12 el juez desmenuzaba A en sus tres
+      decisiones, tres hallazgos para una contradicción; con el documento entero publica A una vez, con su
+      sujeto, y le queda sitio para B y C.
+    · **El coste** (`SQL_311_02`): la entrada del juez es idéntica en las cinco pasadas, 34.324 tokens contra
+      CLI-13 y 50.834 contra CLI-12, 85.158 en total. Efecto neto: **+0,00068 $ por análisis**, porque el juez
+      escribe menos; su etapa pasa de 0,011775 $ a 0,012453 $. NOR-10, entre 0,0294 y 0,0352 $ por análisis;
+      NOR-11, 0,0251 y 0,0269 $, más barato que por la mañana.
+    · **Lo demás**: el comité de calidad vuelve en 3 de 5 y el NOR-04 en 2 de 5; un tema nuevo bien
+      descartado, «Interlocutor ante inspección sanitaria» → `mismo_dato_sin_oposicion`, en 2 de 5; las citas,
+      mediana de 83 a 111, mínimo de 49 a 58 y máximo de 222 a 171 (más largas y menos dispersas). La petición
+      del juez contra CLI-13 sigue en 14.580 tokens: subir la ventana no tocó un byte de las parejas que ya
+      cabían. Los dos FALLA de la tanda: el ESPERADO puesto en 3 cuando fueron 5 (otra vez la razón de la regla
+      del ESPERADO) y `SQL_313_02` relanzada, que ya estaba contestada y sale vacía. Ninguno invalida nada.
+    · **Dos confirmaciones del registro por llamada (3.1.1)**: «DURACIÓN 34.573 ms · TRABAJO 45.637 ms», el
+      trabajo por encima del reloj porque las dos peticiones del juez corren en paralelo (comienzos 8.486 y
+      8.484): el campo `comienzoMs` se gana el sitio. Y el reparto, 95,8–98,0 % en petición y 2,0–4,2 % en
+      espera: la hipótesis del backoff sigue enterrada. El ÷4, al 70 % (68,5 % en la 3.1.1).
+    · **El pendiente del medidor sigue**: la lectura guarda cuántos trozos entran cuando hay selección, no
+      cuáles.
+
 **HECHO EN CÓDIGO el 21-22/10 (`2e63221a` y `aa29166b`, opción (a) del arquitecto)**: dos selecciones —la
 de la recuperación con 3.000, como siempre, y una segunda después del rerank con el resto— y un solo
 reparto (`repartoDeLaPareja`, `lib/analysis/reparto-de-la-pareja.ts`), con las cabeceras contadas y la
@@ -454,10 +497,38 @@ cuatro parejas. ⚠️ Y aun con ese arreglo, a 80.000 **cuatro parejas pierden 
 (P-F127-3, refutada: F-127 (f), anotación 5), y el reparto nuevo no es recablear un parámetro (ver
 la deuda de `selectUnitsWithinBudget`).
 
+#### ⚠️ CASO ABIERTO · D, CON SUS DOS MITADES DELANTE Y SIN EMITIRSE · 22/10 · ABIERTO CON NOMBRE
+**Lo medido (arquitecto, de las salidas de la tanda de 150.000)**: las dos mitades de D estuvieron delante del
+juez las cinco veces —en NOR-10, de 3.943 a 4.267, y el trozo 6 de CLI-12, entregado— y no se publicó nada.
+**No es** el barranco, ni la ventana, ni el ranking, ni un tope de salida (emitió de 5 a 7 crudos contra un
+máximo de 10 del prompt), ni la puerta (los seis contadores a cero). **Y NO LO ARREGLA LA 3.1.2**: la 3.1.2
+corrige cómo se cita lo que el juez ya emitió, y D no se emitió.
+**La lectura de las dos mitades ENTERAS (Code, 22/10, del registro de siembra §1 y de los dos documentos tal
+como los arma el juez)**: en A, las dos frases tienen el mismo sujeto —«el responsable último»— y CLI-12 niega
+literalmente el valor de NOR-10 («es el Coordinador de Calidad del centro, **no el Director Clínico**»): no
+hace falta ningún paso. En D, NO hay una frase que niegue a la otra. NOR-10 2.4 habla de **quién puede ser** el
+Coordinador («figura que puede recaer en el propio Director Clínico»); CLI-12 3.5 habla de **quién lo sustituye
+cuando falta** («sus funciones son asumidas temporalmente por el Coordinador de Calidad de otra clínica de la
+red, nunca por el Director Clínico del propio centro, precisamente para mantener la separación de funciones
+descrita en el apartado 3.1»). Para llegar a la contradicción hay que razonar: si el Director no puede ni
+sustituir al Coordinador, por la separación de funciones de 3.1, tampoco puede serlo. Es la inferencia del
+propio registro, que se apoya además en 3.4 («un documento no escribe un procedimiento de arbitraje entre dos
+figuras que pueden ser la misma persona»). **D exige un paso de razonamiento que A no exige.** Con esto el
+arquitecto escribe la consulta a Fable; no hay arreglo propuesto.
+  · **Dos hallazgos reales no sembrados**, en el registro (`SIEMBRA_corpus_ampliado.md` §7 y §8): la
+    composición del comité de calidad de la red (4 de 5 pasadas) y su periodicidad (1 de 5, minor).
+  · **Anotado, sin tocar código**: un `paso=normalizada` en la pasada de NOR-11 de las 09:48 (contenedor,
+    148/195), el segundo que se ve, y no es de los seis contadores; un motivo de descarte nuevo,
+    `sin_relacion`, en la pasada de NOR-10 de las 10:01; la caché a cero en los dieciséis análisis (3.1.4);
+    y el coste de las tres etapas en Haiku 4.5 (3.15 A).
+
 #### 3.1.4 · Documentos como bloques y caché de prompt · F-127 P7 paso 4, P-F127-10, adenda Q2 · SIN EMPEZAR
 **LA JUSTIFICACIÓN, CON NÚMERO (22/10/2026)**: caché escrita 0, leída 0 y ahorro 0 $ en los DIECISÉIS
 análisis de la tanda del 3.1.3 (`SQL_311_02`; cifra del arquitecto, de la salida del director). La
 primera lectura del 21/10 ya daba cero en uno; ahora es en dieciséis.
+**Y CON NÚMERO DE LO QUE SE PAGA DOS VECES (22/10, tanda de 150.000)**: la caché, a cero en los siete análisis y
+sus 39 peticiones. El analizado (≈24.300 tokens) y el prompt (≈6.400) entran en las DOS peticiones del juez:
+unos 30.700 de los 85.158 tokens de entrada del juez se pagan dos veces en el mismo análisis.
 **ADELANTA el 18/10: la adenda de Fable lo pone ANTES de las ventanas (3.1.5).**
 Antes va un cambio previo apuntado en F-122: los documentos viajan hoy pegados en el prompt y deben
 ir como **bloques de documento** para que la caché actúe. Ese cambio en `llm-client.ts` se mide solo:
@@ -468,6 +539,12 @@ por llamada** —11.480 del prompt sin los documentos más los 192 del sufijo JS
 documentos: el prompt empieza con una línea, mete los dos documentos (`judge.ts:810-820`) y sigue con
 las reglas. Una caché de prefijo sólo aprovecha lo que va delante, así que el cambio a bloques tiene
 que mover también el orden.
+⚠️ **CORREGIDO el 22/10/2026 (arquitecto, con la tanda de 150.000): LA ENTRADA DEL JUEZ NO ES «PROMPT FIJO MÁS
+PAREJA».** La plantilla son 11.672 caracteres, pero el prompt medido en tokens no es constante: 5.647 en los
+análisis de NOR-11 (15 trozos en el analizado) y 6.412 en los de NOR-10 (67 trozos), unos 14,7 tokens por trozo
+del analizado, plausiblemente una cabecera por trozo (la causa NO está comprobada en el código). La regla queda
+**entrada ≈ 5.426 + 14,7 × trozos del analizado + caracteres de la pareja / 2,745**, y ⚠️ **ES UN AJUSTE CON DOS
+PUNTOS, NO UNA LEY**: el tercer punto la confirma o la rompe.
 **Dato nuevo para este paso (arquitecto, documentación de Anthropic, 19/10)**: con Haiku 4.5, la
 lectura de caché cuesta **0,10 $ por millón, una décima parte de la entrada normal (1 $)**, y la
 escritura **1,25 $**, un 25 % de recargo la primera vez. Era lo que Fable decía no poder estimar.
@@ -896,6 +973,11 @@ visto la salida): las tres etapas en Haiku 4.5 —verificador, rerank y síntesi
 del análisis, con **626 tokens de salida entre las tres**. **Los 10.143 tokens de entrada del verificador
 cuestan más que los 45.670 del juez**, y cuadra con la tabla de precios: 10.143 × 1 $/M = 0,0101 $ contra
 45.670 × 0,10 $/M = 0,0046 $ (cuenta de Code). **NO SE TOCA**: no está en el orden de Fable y exige tanda propia.
+**Y OTRA VEZ, con la ventana de 150.000 (22/10, por la tarde; cifras del arquitecto)**: **el verificador es ya
+la etapa más cara, el 46,5 % del análisis**, leyendo 15.079 tokens y escribiendo 256, mientras el juez lee 85.158
+y cuesta el 37,1 %. Las tres etapas en Haiku 4.5 son el **62,9 % del coste** y escriben 675 tokens entre las
+tres; migrarlas bajaría el análisis de 0,0352 $ a unos 0,0151 $, un 57 % (cálculo, no medición). **Es la mayor
+palanca de coste que queda en el pipeline, NO está en el orden de Fable y exige tanda propia. NO SE TOCA.**
 
 #### PENDIENTE B — POR QUÉ EL JUEZ ESCRIBE 7.144 TOKENS EN UNA LLAMADA
 Medido el 21/10: **una sola petición del juez, 27.718 ms y 7.144 tokens de salida, el 77 % de la
