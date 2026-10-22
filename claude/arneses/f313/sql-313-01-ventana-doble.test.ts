@@ -1,5 +1,5 @@
 import { readFileSync } from 'node:fs';
-import { describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { PGlite } from '@electric-sql/pglite';
 import { poner } from '../f128/textos';
 
@@ -46,11 +46,23 @@ const tanda = (): Pasada[] => [
 ];
 
 interface Fila { bloque: string; pasada: string | null; a: string | null; b: string | null; c: string | null }
-async function correr(pasadas: Pasada[]): Promise<Fila[]> {
-  const db = new PGlite();
+/** Los cuatro valores de `parametros` (22/10/2026). Por defecto, los de RELEER la tanda del 22/10, que es lo que
+ *  modelan las filas de `tanda()`; `null` deja el que trae el fichero. */
+interface Valores { nor11: number | null; nor10: number | null; ventana: number | null; trozos: number | null }
+const RELEER_EL_22: Valores = { nor11: 7, nor10: 3, ventana: 80000, trozos: 12 };
+/** UNA base de PGlite por fichero (22/10/2026), vaciada entre caso y caso: levantar una por caso ponía el
+ *  primero de cada fichero por encima de su tope de 60 s con la CPU cargada (113 s medidos), y un rojo que
+ *  depende de la CPU no vale (protocolo: la suite tiene que ser determinista). */
+let db: PGlite;
+beforeAll(async () => {
+  db = new PGlite();
   await db.exec(`CREATE TABLE analysis_results (id uuid DEFAULT gen_random_uuid(), org_id text, created_at timestamptz, document_name text, analysis jsonb);
                  CREATE TABLE documents (id uuid, name text);`);
   await db.query('INSERT INTO documents VALUES ($1, $2), ($3, $4), ($5, $6)', [CLI13, 'CLI-13_instrucciones.docx', CLI12, 'CLI-12_manual.docx', CLI20, 'CLI-20_x.docx']);
+}, 120_000);
+afterAll(async () => { await db.close(); });
+async function correr(pasadas: Pasada[], v: Valores = RELEER_EL_22): Promise<Fila[]> {
+  await db.exec('DELETE FROM analysis_results');
   const meter = (org: string, cuando: string, nombre: string, analysis: unknown) =>
     db.query('INSERT INTO analysis_results (org_id, created_at, document_name, analysis) VALUES ($1,$2,$3,$4)', [org, cuando, nombre, analysis]);
   for (const p of pasadas)
@@ -63,9 +75,11 @@ async function correr(pasadas: Pasada[]): Promise<Fila[]> {
   let sql = readFileSync('SQL_313_01_la_ventana_doble_en_la_tanda.sql', 'utf8').replaceAll('public.', '');
   sql = poner(sql, /timestamptz '[^']+' AS desde/, "timestamptz '2026-10-22 12:00:00+02' AS desde");
   sql = poner(sql, /timestamptz '[^']+' AS hasta/, "timestamptz '2026-10-22 13:00:00+02' AS hasta");
-  const filas = (await db.query<Fila>(sql)).rows;
-  await db.close();
-  return filas;
+  if (v.nor11 !== null) sql = poner(sql, /NULL::int AS esperado_nor11/, `${v.nor11} AS esperado_nor11`);
+  if (v.nor10 !== null) sql = poner(sql, /NULL::int AS esperado_nor10/, `${v.nor10} AS esperado_nor10`);
+  if (v.ventana !== null) sql = poner(sql, /\d+ AS ventana_esperada/, `${v.ventana} AS ventana_esperada`);
+  if (v.trozos !== null) sql = poner(sql, /\d+ AS prediccion_trozos_cli12/, `${v.trozos} AS prediccion_trozos_cli12`);
+  return (await db.query<Fila>(sql)).rows;
 }
 const controles = (f: Fila[]) => f.filter(x => x.bloque.startsWith('0')).map(x => `${x.a} · ${x.b}`);
 const fallas = (f: Fila[]) => controles(f).filter(c => !c.startsWith('OK'));
@@ -102,7 +116,7 @@ describe('SQL_313_01, la ventana doble en la tanda', () => {
     t[2].lecturas = [entera({ presupuesto: 40000 })];
     const f = await correr(t);
     expect(fallas(f)).toHaveLength(1);
-    expect(fallas(f)[0]).toMatch(/^FALLA · parejas sin trozosDelCandidato o con una ventana que no es 80.000: 1 de 11/);
+    expect(fallas(f)[0]).toMatch(/^FALLA · parejas sin trozosDelCandidato o con una ventana que no es 80000: 1 de 11/);
   }, 60_000);
 
   it('la predicción que falla es una predicción fallada, no un control: los controles siguen OK', async () => {
@@ -127,6 +141,27 @@ describe('SQL_313_01, la ventana doble en la tanda', () => {
     expect(fallas(f)).toHaveLength(esperadas.length);
     esperadas.forEach((e, i) => expect(fallas(f)[i].startsWith(e)).toBe(true));
     expect(controles(f)[3]).toContain(': 2 de 10');
+  }, 60_000);
+
+  it('22/10/2026, LOS VALORES QUE TRAE EL FICHERO (los de 150.000) sobre una tanda de 80.000: esperados NO APLICA, el 4 cae y la predicción falla', async () => {
+    const f = await correr(tanda(), { nor11: null, nor10: null, ventana: null, trozos: null });
+    expect(controles(f).map(c => c.split(' · ')[0])).toEqual(['NO APLICA', 'NO APLICA', 'OK', 'FALLA', 'OK', 'OK']);
+    expect(controles(f)[0]).toContain('esperado SIN RELLENAR (mira el reloj de la base), medido 7');
+    expect(controles(f)[3]).toContain('ventana que no es 150000: 11 de 11');
+    expect(f.filter(x => x.bloque.startsWith('2 ·')).map(x => x.a)).toEqual(['FALLA', 'FALLA', 'FALLA']);
+  }, 60_000);
+
+  it('22/10/2026, una tanda de 150.000 con NOR-10 ↔ CLI-12 entera: con los valores del fichero, el 4 OK y la predicción de 55 acierta', async () => {
+    const t: Pasada[] = tanda().map(p => ({ ...p, lecturas: p.lecturas.map((l): Lectura => ({ ...l, presupuesto: 150000 })) }));
+    for (const p of t.filter(p => p.doc === 'NOR-10'))
+      p.lecturas = [corte({ regimen: 'pareja_entera', presupuesto: 150000, seleccion: undefined, trozosDelCandidato: 55,
+        candidato: { caracteres: 55135, mostrados: 55135, dejoFuera: false } })];
+    const f = await correr(t, { nor11: 7, nor10: 3, ventana: null, trozos: null });
+    // sin una sola pareja en corte honesto, el 5 no tiene qué mirar: NO APLICA, nunca OK
+    expect(fallas(f)).toEqual(['NO APLICA · parejas en corte honesto sin seleccion: 0 de 0']);
+    expect(f.filter(x => x.bloque.startsWith('2 ·')).map(x => x.a)).toEqual(['ACIERTA', 'ACIERTA', 'ACIERTA']);
+    expect(f.find(x => x.bloque.startsWith('1 ·') && x.pasada === 'NOR-10 1')!.b)
+      .toBe('pareja_entera · 55 trozos del candidato · candidato 55135/55135 · analizado 66801/66801 · ventana 150000');
   }, 60_000);
 
   it('sin una sola pasada: el 1 y el 2 FALLAN y los que no tienen qué mirar salen NO APLICA, nunca OK', async () => {

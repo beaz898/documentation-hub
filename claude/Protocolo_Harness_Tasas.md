@@ -1268,6 +1268,14 @@ por qué es así:
 la raíz, con las pruebas en `<carpeta>/herramientas/*.test.ts`. Las herramientas siguen viviendo fuera del
 árbol del producto (13/10); lo que vive en el repositorio es la forma de lanzarlas.
 
+**UNA PRUEBA QUE ESCRIBE UNA CONSTANTE SE ROMPE VEINTE VECES; UNA QUE LA REFERENCIA SE ROMPE UNA, Y A PROPÓSITO**
+(arquitecto, 22/10/2026). El caso: subir la ventana del interino de 80.000 a 150.000 rompía unas veinte pruebas
+que llevaban el número escrito (el borde «70.000 + 10.000 cabe», el «79.990», el «presupuesto 80000» del log…).
+Desde entonces se escriben con `P = TAMANO_VENTANA` —`pareja(P − 10.000, 10.000)` cabe justo, `P − 9.999` no—, y
+UNA sola prueba fija el valor (`pareja-entera.test.ts`). Cambiar la constante rompe ésa, que es la que tiene que
+romperse; las demás siguen diciendo lo que significan. Con la constante todavía en 80.000 y las pruebas ya
+reescritas, sólo cayó la que fija el número: es el control de que la reescritura no dependía del valor.
+
 **Dónde viven los tests**: al lado de su módulo (`lib/chunking.test.ts` junto a
 `lib/chunking.ts`), no en una carpeta propia. Se agrupa por dominio, no por tipo
 de fichero — y así el módulo y su batería **se borran juntos** el día que se

@@ -14,8 +14,10 @@
 --   a) por pareja: el régimen, DE DÓNDE SALIÓ EL BLOQUE DEL CANDIDATO (`seleccion`: entero, ampliada o
 --      la_de_la_recuperacion), CUÁNTOS TROZOS DEL CANDIDATO VIO EL JUEZ (`trozosDelCandidato`), lo que vio
 --      de cada lado, la ventana, el modelo y los tokens de salida (bloque 1);
---   b) LA PREDICCIÓN, escrita antes de la tanda (Code, 21/10, con los trozos reales del corpus y el orden de
---      relevancia del log del 16/10): en NOR-10 contra CLI-12 el juez ve 12 trozos de CLI-12 (bloque 2);
+--   b) LA PREDICCIÓN DE LOS TROZOS DE CLI-12 en NOR-10 ↔ CLI-12, escrita antes de cada tanda (bloque 2). Es un
+--      PARÁMETRO desde el 22/10 (ver la tabla de abajo): 12 para la tanda del 22/10 con 80.000 (Code, 21/10, con
+--      los trozos reales y el orden del log del 16/10; ACERTÓ 5 de 5), 55 para la de 150.000 (arquitecto, 22/10:
+--      la pareja entera, sus 55 trozos);
 --   c) LA LATENCIA DEL JUEZ por pareja, con el registro por llamada, al lado de los tokens de salida: la
 --      ventana doble hace que el juez LEA más, y si lee más puede ESCRIBIR más. La cifra contra la que
 --      comparar es la del 21/10: 27.718 ms y 7.144 tokens de salida en una sola petición del juez, el 77 %
@@ -48,20 +50,32 @@
 -- ┌──────────────────────────────────────────────────────────────────────────┐
 -- │ LA ORGANIZACIÓN DEL PILOTO: a9625e93-…, «Workspace principal». El id     │
 -- │ completo está UNA vez, en la constante `parametros`. No se mira otra.    │
--- │ LO ÚNICO QUE TOCA EL DIRECTOR: DESDE y HASTA, que abarcan LAS DIEZ       │
--- │ pasadas, en hora de Madrid, con el formato                               │
--- │ timestamptz 'AAAA-MM-DD HH:MM:SS+02'. ⚠️ Desde el domingo 25/10/2026 a    │
--- │ las 03:00 es «+01».                                                       │
+-- │ LO QUE TOCA EL DIRECTOR, en `parametros`: DESDE y HASTA, que abarcan     │
+-- │ TODAS las pasadas de la tanda, en hora de Madrid, con el formato         │
+-- │ timestamptz 'AAAA-MM-DD HH:MM:SS+02' (⚠️ desde el domingo 25/10/2026 a    │
+-- │ las 03:00 es «+01»); y los cuatro valores de la tabla de abajo.          │
 -- └──────────────────────────────────────────────────────────────────────────┘
+--
+-- QUÉ PONER EN CADA LECTURA (22/10/2026). LOS ESPERADOS, DESPUÉS DE MIRAR EL RELOJ DE LA BASE, nunca antes
+-- (protocolo, regla del 22/10): vienen a NULL, y con NULL sus controles salen NO APLICA, no OK.
+--
+--   lectura                          esperado NOR-11  esperado NOR-10  ventana  trozos de CLI-12
+--   ───────────────────────────────  ───────────────  ───────────────  ───────  ────────────────
+--   releer la tanda del 22/10        11               5                80000    12
+--   (ventana de 80.000)
+--   la tanda de 150.000              los del reloj    los del reloj    150000   55
+--
+-- La ventana es la que el código desplegado escribe en cada pareja (`presupuesto`): con otra, el control 4 cae.
 -- ============================================================================
 
 WITH parametros AS (
   SELECT 'a9625e93-af2a-4416-a465-5c2fa2a25bdf'::text AS org,   -- ← LA CONSTANTE
          timestamptz '2026-10-22 00:00:00+02' AS desde,           -- ← DESDE
          timestamptz '2026-10-23 00:00:00+02' AS hasta,           -- ← HASTA
-         7 AS esperado_nor11,
-         3 AS esperado_nor10,
-         12 AS prediccion_trozos_cli12,
+         NULL::int AS esperado_nor11,                             -- ← ESPERADO NOR-11: DESPUÉS de mirar el reloj
+         NULL::int AS esperado_nor10,                             -- ← ESPERADO NOR-10: ídem
+         150000 AS ventana_esperada,                              -- ← la ventana desplegada (tabla de arriba)
+         55 AS prediccion_trozos_cli12,                           -- ← la predicción de la tanda (tabla de arriba)
          27718 AS referencia_ms,                                  -- la petición del juez del 21/10
          36128 AS base_nor11_ms                                   -- la duración de la pasada de NOR-11 del 21/10, por el registro
 ),
@@ -98,14 +112,14 @@ duracion AS (
   SELECT doc, n, max(com + esp + lat) - min(com) AS ms FROM peticiones GROUP BY doc, n
 ),
 control AS (
-  SELECT 1 AS orden, 'pasadas de NOR-11 entre DESDE y HASTA: esperado ' || p.esperado_nor11 || ', medido ' ||
-         (SELECT count(*) FROM pasadas WHERE doc = 'NOR-11') AS medida,
-         (SELECT count(*) FROM pasadas WHERE doc = 'NOR-11') = p.esperado_nor11 AS ok
+  SELECT 1 AS orden, 'pasadas de NOR-11 entre DESDE y HASTA: esperado ' || coalesce(p.esperado_nor11::text, 'SIN RELLENAR (mira el reloj de la base)') ||
+         ', medido ' || (SELECT count(*) FROM pasadas WHERE doc = 'NOR-11') AS medida,
+         CASE WHEN p.esperado_nor11 IS NULL THEN NULL ELSE (SELECT count(*) FROM pasadas WHERE doc = 'NOR-11') = p.esperado_nor11 END AS ok
   FROM parametros p
   UNION ALL
-  SELECT 2, 'pasadas de NOR-10 entre DESDE y HASTA: esperado ' || p.esperado_nor10 || ', medido ' ||
-         (SELECT count(*) FROM pasadas WHERE doc = 'NOR-10'),
-         (SELECT count(*) FROM pasadas WHERE doc = 'NOR-10') = p.esperado_nor10
+  SELECT 2, 'pasadas de NOR-10 entre DESDE y HASTA: esperado ' || coalesce(p.esperado_nor10::text, 'SIN RELLENAR (mira el reloj de la base)') ||
+         ', medido ' || (SELECT count(*) FROM pasadas WHERE doc = 'NOR-10'),
+         CASE WHEN p.esperado_nor10 IS NULL THEN NULL ELSE (SELECT count(*) FROM pasadas WHERE doc = 'NOR-10') = p.esperado_nor10 END
   FROM parametros p
   UNION ALL
   -- 3 · el interruptor, encendido: con tijera_vieja la tanda no mide la ventana doble
@@ -113,12 +127,13 @@ control AS (
          (SELECT count(*) FROM lecturas WHERE regimen = 'tijera_vieja') || ' de ' || (SELECT count(*) FROM lecturas),
          CASE WHEN (SELECT count(*) FROM lecturas) = 0 THEN NULL ELSE (SELECT count(*) FROM lecturas WHERE regimen = 'tijera_vieja') = 0 END
   UNION ALL
-  -- 4 · el código desplegado es el del 3.1.3: la ventana de 80.000 y el recuento de trozos en cada pareja
-  SELECT 4, 'parejas sin trozosDelCandidato o con una ventana que no es 80.000: ' ||
-         (SELECT count(*) FROM lecturas WHERE trozos IS NULL OR (regimen IN ('pareja_entera', 'corte_honesto') AND ventana IS DISTINCT FROM 80000)) ||
+  -- 4 · el código desplegado es el que se quiere medir: la ventana esperada (parámetro) y el recuento de trozos en cada pareja
+  SELECT 4, 'parejas sin trozosDelCandidato o con una ventana que no es ' || p.ventana_esperada || ': ' ||
+         (SELECT count(*) FROM lecturas WHERE trozos IS NULL OR (regimen IN ('pareja_entera', 'corte_honesto') AND ventana IS DISTINCT FROM p.ventana_esperada)) ||
          ' de ' || (SELECT count(*) FROM lecturas),
          CASE WHEN (SELECT count(*) FROM lecturas) = 0 THEN NULL
-              ELSE (SELECT count(*) FROM lecturas WHERE trozos IS NULL OR (regimen IN ('pareja_entera', 'corte_honesto') AND ventana IS DISTINCT FROM 80000)) = 0 END
+              ELSE (SELECT count(*) FROM lecturas WHERE trozos IS NULL OR (regimen IN ('pareja_entera', 'corte_honesto') AND ventana IS DISTINCT FROM p.ventana_esperada)) = 0 END
+  FROM parametros p
   UNION ALL
   SELECT 5, 'parejas en corte honesto sin seleccion: ' || (SELECT count(*) FROM lecturas WHERE regimen = 'corte_honesto' AND seleccion IS NULL) ||
          ' de ' || (SELECT count(*) FROM lecturas WHERE regimen = 'corte_honesto'),
@@ -149,7 +164,7 @@ FROM (
          10, l.doc, l.n
   FROM lecturas l LEFT JOIN juez j ON j.doc = l.doc AND j.n = l.n AND j.pareja = l.cand_id
   UNION ALL
-  -- 2 · LA PREDICCIÓN: 12 trozos de CLI-12 en NOR-10 ↔ CLI-12
+  -- 2 · LA PREDICCIÓN: los trozos de CLI-12 en NOR-10 ↔ CLI-12 (el parámetro)
   SELECT '2 · predicción', l.doc || ' ' || l.n,
          CASE WHEN l.trozos IS NULL THEN 'SIN DATO' WHEN l.trozos = p.prediccion_trozos_cli12 THEN 'ACIERTA' ELSE 'FALLA' END,
          l.cand || ': predicho ' || p.prediccion_trozos_cli12 || ' trozos, medido ' || coalesce(l.trozos::text, '—'),

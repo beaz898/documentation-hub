@@ -63,22 +63,34 @@ const enElBarranco = (p: Par) => p.A > 6_000 && p.C + 6_000 > DESDE && p.C + 6_0
 const nombre = (p: Par) => `${p.a}←${p.c}`;
 
 describe('el reparto de la pareja', () => {
-  it('la ventana del interino es de 80.000', () => expect(TAMANO_VENTANA).toBe(80_000));
-
-  it('los dos enteros caben: no hay reparto', () => {
-    expect(repartoDeLaPareja({ analizado: 14_704, candidato: 9_817, reservaMontada: 3_100 }))
-      .toEqual({ ventana: 80_000, parejaEntera: true, candidatoEntero: true, paraElAnalizado: 14_704, paraElCandidato: 9_817 });
+  // ~~la ventana del interino es de 80.000: expect(TAMANO_VENTANA).toBe(80_000)~~ (21/10 a 22/10/2026). El valor lo
+  // fija UNA prueba, en pareja-entera.test.ts; aquí se comprueba lo que importa del barrido:
+  it('22/10/2026: la ventana de producción está DENTRO del barrido y es UNO DE SUS PUNTOS, a pasos de 1.000 y de 1', () => {
+    expect(TAMANO_VENTANA).toBeGreaterThanOrEqual(DESDE);
+    expect(TAMANO_VENTANA).toBeLessThanOrEqual(HASTA);
+    expect((TAMANO_VENTANA - DESDE) % 1_000).toBe(0);
+    const puntos = (paso: number) => { const ps: number[] = []; for (let P = DESDE; P <= HASTA; P += paso) ps.push(P); return ps; };
+    expect(puntos(1_000)).toContain(TAMANO_VENTANA);
+    expect(puntos(1)).toContain(TAMANO_VENTANA);
   });
 
-  it('NOR-10 ↔ CLI-12: el analizado entero (66.801) y el resto, 13.199, para el candidato', () => {
-    const r = repartoDeLaPareja({ analizado: 66_801, candidato: 55_135, reservaMontada: 3_100 });
+  it('los dos enteros caben: no hay reparto', () => {
+    // ~~ventana: 80_000~~ (21/10 a 22/10/2026)
+    expect(repartoDeLaPareja({ analizado: 14_704, candidato: 9_817, reservaMontada: 3_100 }))
+      .toEqual({ ventana: TAMANO_VENTANA, parejaEntera: true, candidatoEntero: true, paraElAnalizado: 14_704, paraElCandidato: 9_817 });
+  });
+
+  // ~~con la ventana de producción~~ (21/10 a 22/10/2026): es el caso medido, con 80.000 explícitos
+  it('NOR-10 ↔ CLI-12 con 80.000, el caso medido: el analizado entero (66.801) y el resto, 13.199, para el candidato', () => {
+    const r = repartoDeLaPareja({ analizado: 66_801, candidato: 55_135, reservaMontada: 3_100, ventana: 80_000 });
     expect(r).toEqual({ ventana: 80_000, parejaEntera: false, candidatoEntero: false, paraElAnalizado: 66_801, paraElCandidato: 13_199 });
   });
 
   it('LA RESERVA GARANTIZA TEXTO: con un analizado enorme, el candidato conserva su reserva montada entera', () => {
-    const r = repartoDeLaPareja({ analizado: 200_000, candidato: 55_135, reservaMontada: 3_165 });
+    // ~~analizado 200.000 y 80.000 − 3.165~~ (21/10 a 22/10/2026)
+    const r = repartoDeLaPareja({ analizado: TAMANO_VENTANA + 120_000, candidato: 55_135, reservaMontada: 3_165 });
     expect(r.paraElCandidato).toBe(3_165);
-    expect(r.paraElAnalizado).toBe(80_000 - 3_165);
+    expect(r.paraElAnalizado).toBe(TAMANO_VENTANA - 3_165);
   });
 
   it(`LA PRUEBA DE FABLE: barriendo P de 10.000 a 200.000, ningún lado recibe menos en ninguno de los pares`, () => {

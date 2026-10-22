@@ -4,7 +4,7 @@ import { extractSegments, chunkSegments } from '@/lib/chunking';
 import { toStoredChunks, type StoredChunk } from '@/lib/read-chunks';
 import { buildUnits, indiceDelAnalizado, selectUnitsWithinBudget } from './retrieval';
 import { buildAnalyzedDocumentText, montarBloqueDelCandidato } from './judge';
-import { repartoDeLaPareja } from './reparto-de-la-pareja';
+import { repartoDeLaPareja, TAMANO_VENTANA } from './reparto-de-la-pareja';
 import { lineasDeLaSegundaSeleccion, segundaSeleccion } from './segunda-seleccion';
 import type { DocumentFragment, RerankedCandidate } from './types';
 
@@ -16,7 +16,12 @@ import type { DocumentFragment, RerankedCandidate } from './types';
  *
  * La garantía: el bloque ampliado cabe en su resto YA MONTADO y representa todos los trozos del bloque de la
  * recuperación; y fuera del corte honesto rápido no se toca nada.
+ *
+ * ⚠️ 22/10/2026: con la ventana de producción en 150.000, NOR-10 ↔ CLI-12 cabe entera y la ampliación no corre.
+ * Estas pruebas la ejercen con la ventana de 80.000, el caso medido el 22/10 (`VENTANA_DEL_CASO_MEDIDO`), y la
+ * última comprueba que con la ventana por defecto la pareja sale 'entero'.
  */
+const VENTANA_DEL_CASO_MEDIDO = 80_000;
 const VARIABLE = 'ANALYSIS_PAREJA_ENTERA';
 const original = process.env[VARIABLE];
 afterEach(() => { if (original === undefined) delete process.env[VARIABLE]; else process.env[VARIABLE] = original; });
@@ -38,9 +43,10 @@ beforeAll(async () => {
   candidato = { documentId: 'cli', documentName: CLI12, source: 'manual', fragments: primera, rerankReason: '', rerankConfidence: 'alta' };
 }, 120_000);
 
-const correr = (exhaustivo = false) => segundaSeleccion({
+// ~~sin ventana: la de producción, 80.000~~ (21/10 a 22/10/2026). Ahora, la del caso medido, explícita:
+const correr = (exhaustivo = false, ventana = VENTANA_DEL_CASO_MEDIDO) => segundaSeleccion({
   candidates: [candidato], newDocumentName: NOR10, newDocumentChunks: nor,
-  chunksByDocument: new Map([['cli', cli]]), fragmentosOrdenados: new Map([['cli', ordenados]]), exhaustivo,
+  chunksByDocument: new Map([['cli', cli]]), fragmentosOrdenados: new Map([['cli', ordenados]]), exhaustivo, ventana,
 });
 const indices = (fs: DocumentFragment[]) => fs.filter(f => !f.isContext).map(f => f.chunkIndex);
 
@@ -56,7 +62,7 @@ describe('la segunda selección, en NOR-10 ↔ CLI-12', () => {
     expect(elegido.seleccion).toBe('ampliada');
     const A = buildAnalyzedDocumentText(nor, NOR10).length;
     const reserva = montarBloqueDelCandidato(candidato.fragments, CLI12, cli).length;
-    expect(elegido.reparto).toEqual(repartoDeLaPareja({ analizado: A, candidato: buildAnalyzedDocumentText(cli, CLI12).length, reservaMontada: reserva }));
+    expect(elegido.reparto).toEqual(repartoDeLaPareja({ analizado: A, candidato: buildAnalyzedDocumentText(cli, CLI12).length, reservaMontada: reserva, ventana: VENTANA_DEL_CASO_MEDIDO }));
     expect(elegido.reparto.paraElAnalizado).toBe(A);                                    // NOR-10 entero
     const montado = montarBloqueDelCandidato(candidates[0].fragments, CLI12, cli).length;
     expect(montado).toBeLessThanOrEqual(elegido.reparto.paraElCandidato);
@@ -84,6 +90,7 @@ describe('la segunda selección, en NOR-10 ↔ CLI-12', () => {
     const { candidates, repartos } = segundaSeleccion({
       candidates: [candidato], newDocumentName: NOR10, newDocumentChunks: nor,
       chunksByDocument: new Map([['cli', cli]]), fragmentosOrdenados: new Map([['cli', sinEl45]]), exhaustivo: false,
+      ventana: VENTANA_DEL_CASO_MEDIDO,
     });
     expect(repartos.get('cli')!.seleccion).toBe('la_de_la_recuperacion');
     expect(candidates[0]).toBe(candidato);
@@ -101,6 +108,20 @@ describe('la segunda selección, en NOR-10 ↔ CLI-12', () => {
     expect(lineasDeLaSegundaSeleccion(correr())).toEqual([
       '[segunda-seleccion] no aplica (interruptor apagado, exhaustivo o el analizado sin trozos): el juez lee el bloque de la recuperación',
     ]);
+  });
+
+  it('22/10/2026: CON LA VENTANA DE PRODUCCIÓN, NOR-10 ↔ CLI-12 cabe entera y la segunda selección no amplía: sale «entero» y no toca los fragmentos', () => {
+    process.env[VARIABLE] = '1';
+    // sin `ventana`, como la llama producción (no vale correr(false, undefined): el undefined coge el defecto)
+    const s = segundaSeleccion({
+      candidates: [candidato], newDocumentName: NOR10, newDocumentChunks: nor,
+      chunksByDocument: new Map([['cli', cli]]), fragmentosOrdenados: new Map([['cli', ordenados]]), exhaustivo: false,
+    });
+    const e = s.repartos.get('cli')!;
+    expect(e.seleccion).toBe('entero');
+    expect(e.reparto.parejaEntera).toBe(true);
+    expect(e.reparto.ventana).toBe(TAMANO_VENTANA);
+    expect(s.candidates[0]).toBe(candidato);
   });
 
   it('fuera del corte honesto rápido no toca nada: con el interruptor apagado, y en el exhaustivo', () => {

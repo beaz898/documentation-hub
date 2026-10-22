@@ -18,6 +18,13 @@ import type { StoredChunk } from '@/lib/read-chunks';
  * Sólo con el interruptor de la pareja entera encendido y en el rápido (`parejaEnteraEnEsteModo`), y
  * sólo si los dos lados tienen trozos: fuera de ahí el juez lee con la tijera vieja y esto no hace nada.
  *
+ * ⚠️ CON LA VENTANA DE 150.000 (22/10/2026) Y ESTE CORPUS, LA AMPLIACIÓN DEJA DE EJECUTARSE EN PRODUCCIÓN: todas
+ * las parejas caben enteras y salen 'entero'. NO SE BORRA. Es lo que necesitará la 3.1.5, cuando una pareja no
+ * quepa, y es lo que hizo posible la medida del 22/10 (los 12 trozos de CLI-12 con 80.000). Sus pruebas la
+ * ejercen con la ventana de 80.000, el caso medido, a través de `ventana`; producción no lo pasa y usa la de
+ * `repartoDeLaPareja`, `TAMANO_VENTANA`. Es la misma lectura que hace `repartoDeLaPareja` (`a.ventana ??
+ * TAMANO_VENTANA`): las dos funciones aceptan la ventana del mismo modo.
+ *
  * LAS CABECERAS SE CUENTAN: el resto es lo máximo que puede ocupar el bloque YA MONTADO, y cada
  * selección se mide con la misma función que lo monta para el juez (`montarBloqueDelCandidato`). El
  * selector cuenta texto, así que se le da el resto y, si el bloque montado se pasa, se le quita lo que se
@@ -70,6 +77,8 @@ export function segundaSeleccion(a: {
   chunksByDocument: Map<string, StoredChunk[]>;
   fragmentosOrdenados: Map<string, DocumentFragment[]>;
   exhaustivo: boolean;
+  /** La ventana del reparto. Producción no la pasa: `TAMANO_VENTANA`. Las pruebas, la del caso medido. */
+  ventana?: number;
   /** Pone a cada fragmento su contexto (`loadFragmentContexts`, en el pipeline): sin él, una fila de
    *  tabla se monta como texto suelto y el bloque se mediría mal. Se aplica antes de elegir y a lo
    *  elegido, como el pipeline hace con la selección de la recuperación. */
@@ -87,7 +96,7 @@ export function segundaSeleccion(a: {
     if (docChunks.length === 0) return c;                                   // sin trozos: el juez lee con la tijera vieja
     const candidato = buildAnalyzedDocumentText(docChunks, c.documentName).length;
     const bloqueDeLaRecuperacion = montarBloqueDelCandidato(c.fragments, c.documentName, docChunks);
-    const reparto = repartoDeLaPareja({ analizado, candidato, reservaMontada: bloqueDeLaRecuperacion.length });
+    const reparto = repartoDeLaPareja({ analizado, candidato, reservaMontada: bloqueDeLaRecuperacion.length, ventana: a.ventana });
     if (reparto.parejaEntera || reparto.candidatoEntero) {
       repartos.set(c.documentId, { reparto, seleccion: 'entero' });
       return c;

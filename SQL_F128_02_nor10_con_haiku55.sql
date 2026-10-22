@@ -22,6 +22,10 @@
 -- 22/10): con la cascada vieja el analizado se llevaba justo lo que dejaba el bloque, y la suma daba la
 -- ventana; con el reparto nuevo el analizado va entero y sobra hueco, así que con CLI-12 se espera
 -- unos 66.801 + 12.771 = 79.572, por debajo de 80.000. No es un control: es un cuadre de la cascada vieja.
+-- Y con la ventana de 150.000 (22/10/2026) la pareja con CLI-12 va ENTERA: la suma será 66.801 + 55.135 = 121.936,
+-- por debajo de 150.000, y la columna seguirá diciendo «NO» sin que sea un fallo. Ídem con CLI-13 (76.618).
+-- ⚠️ Y CON LA PAREJA ENTERA NO HAY CORTE: el bloque 8 dice entonces «NO APLICA: sin corte», no «ninguna cita»
+-- (arquitecto, 22/10/2026: un cero que no ha podido mirar no es un acierto).
 --
 -- ES SQL_F127_01 CON LA MISMA LÓGICA (19/10/2026). SQL_F127_01 se queda como
 -- está porque es el instrumento con el que se midió la línea base del 16/10, y
@@ -594,8 +598,14 @@ FROM (
          c.que || ' · TEMA: ' || coalesce(c.tema, '—'), c.cita, 0, c.n
   FROM cerca3 c WHERE c.que IS NOT NULL
   UNION ALL
+  -- ⚠️ 22/10/2026 (arquitecto): sin NINGÚN corte —el analizado entero en todas las parejas— el bloque no puede mirar
+  -- nada, y «ninguna cita» se leería como un acierto. Entonces dice NO APLICA. «Ninguna» sólo con algún corte.
   SELECT '8 · lo que cita el juez cerca del corte', NULL, 'ninguna cita, publicada ni descartada, en los 500 anteriores al corte ni cruzándolo',
          NULL, NULL, NULL, 1, 0
-  WHERE NOT EXISTS (SELECT 1 FROM cerca3 c WHERE c.que IS NOT NULL)
+  WHERE NOT EXISTS (SELECT 1 FROM cerca3 c WHERE c.que IS NOT NULL) AND EXISTS (SELECT 1 FROM cortes)
+  UNION ALL
+  SELECT '8 · lo que cita el juez cerca del corte', NULL, 'NO APLICA: sin corte (el analizado fue entero en todas las parejas)',
+         NULL, NULL, NULL, 1, 0
+  WHERE NOT EXISTS (SELECT 1 FROM cortes)
 ) t
 ORDER BY bloque, o1, o2, pasada;

@@ -1,5 +1,5 @@
 import { readFileSync } from 'node:fs';
-import { describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { PGlite } from '@electric-sql/pglite';
 import { poner, type Fila } from '../f128/textos';
 
@@ -17,9 +17,17 @@ const peticion = (n: number, etapa: string, extra: Record<string, unknown> = {})
 });
 const registroCompleto = () => ({ peticiones: SEIS.map((e, i) => peticion(i + 1, e)), sinEtapa: 0, fueraDelDetalle: null });
 
-async function correr(analisis: { minutos: number; registro?: unknown }[]): Promise<Fila[]> {
-  const db = new PGlite();
+/** UNA base de PGlite por fichero (22/10/2026), vaciada entre caso y caso: una por caso dejaba a los arneses en
+ *  paralelo sin CPU (con cuatro aquí, el primer caso midió 113 s contra su tope de 60), y un rojo que depende
+ *  de la CPU no vale (protocolo: la suite tiene que ser determinista). */
+let db: PGlite;
+beforeAll(async () => {
+  db = new PGlite();
   await db.exec(`CREATE TABLE analysis_results (id uuid DEFAULT gen_random_uuid(), org_id text, created_at timestamptz, document_name text, analysis_type text, analysis jsonb);`);
+}, 120_000);
+afterAll(async () => { await db.close(); });
+async function correr(analisis: { minutos: number; registro?: unknown }[]): Promise<Fila[]> {
+  await db.exec('DELETE FROM analysis_results');
   for (const a of analisis)
     await db.query('INSERT INTO analysis_results (org_id, created_at, document_name, analysis_type, analysis) VALUES ($1,$2,$3,$4,$5)',
       [ORG, new Date(Date.UTC(2026, 9, 21, 10, a.minutos)).toISOString(), 'NOR-11.docx', 'quick', { discrepancies: [], ...(a.registro ? { llamadasAlModelo: a.registro } : {}) }]);
@@ -30,9 +38,7 @@ async function correr(analisis: { minutos: number; registro?: unknown }[]): Prom
     [ORG, '2026-10-21T08:00:00Z', 'Y.docx', 'quick', { llamadasAlModelo: { peticiones: [], sinEtapa: 9, fueraDelDetalle: null } }]);
   let sql = readFileSync('SQL_311_01_control_del_registro_por_llamada.sql', 'utf8').replaceAll('public.', '');
   sql = poner(sql, /timestamptz '[^']+' AS desde/, "timestamptz '2026-10-21 12:00:00+02' AS desde");
-  const filas = (await db.query<Fila>(sql)).rows;
-  await db.close();
-  return filas;
+  return (await db.query<Fila>(sql)).rows;
 }
 const controles = (f: Fila[]) => f.filter(x => x.bloque.startsWith('0')).map(x => `${x.a} · ${x.b}`);
 

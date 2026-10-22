@@ -60,7 +60,7 @@ const ESPERADO = new Map<Publicada, [string, string, string]>([
 ]);
 
 interface Lectura { candidato: 'cli' | 'c13'; tokens?: number }
-async function montar(pasadas: { hora: string; ds: Publicada[]; modelo: boolean }[], ventana: { desde: string; hasta: string; push: string; exigir: boolean }): Promise<Fila[]> {
+async function montar(pasadas: { hora: string; ds: Publicada[]; modelo: boolean }[], ventana: { desde: string; hasta: string; push: string; exigir: boolean }, entera = false): Promise<Fila[]> {
   const nor = await textoDe(NOR10), cli = await textoDe(CLI12), c13 = await textoDe(CLI13);
   const rec = nor.trozos.map(c => c.text).join('\n\n');
   const db = new PGlite();
@@ -74,12 +74,17 @@ async function montar(pasadas: { hora: string; ds: Publicada[]; modelo: boolean 
   const lectura = (l: Lectura, modelo: boolean) => l.candidato === 'cli'
     ? { documentId: ID.cli, regimen: 'corte_honesto', analizado: { caracteres: rec.length, mostrados: 37143, dejoFuera: true }, candidato: { caracteres: 55135, mostrados: 2857, dejoFuera: true }, presupuesto: 40000, ...(modelo ? { modelo: 'claude-haiku-5-5', tokensDeSalida: 3000 } : {}) }
     : { documentId: ID.c13, regimen: 'corte_honesto', analizado: { caracteres: rec.length, mostrados: 30183, dejoFuera: true }, candidato: { caracteres: 9817, mostrados: 9817, dejoFuera: false }, presupuesto: 40000, ...(modelo ? { modelo: 'claude-haiku-5-5', tokensDeSalida: 2000 } : {}) };
+  // 22/10/2026: con la ventana de 150.000 las dos parejas van ENTERAS, y no hay corte
+  const enteraDe = (l: Lectura, modelo: boolean) => ({ ...lectura(l, modelo), regimen: 'pareja_entera', presupuesto: 150000,
+    analizado: { caracteres: rec.length, mostrados: rec.length, dejoFuera: false },
+    candidato: l.candidato === 'cli' ? { caracteres: 55135, mostrados: 55135, dejoFuera: false } : { caracteres: 9817, mostrados: 9817, dejoFuera: false } });
   for (const p of pasadas) {
     const deCLI12 = p.ds.filter(d => d.existingDocument === CLI12), deCLI13 = p.ds.filter(d => d.existingDocument === CLI13);
+    const leer = entera ? enteraDe : lectura;
     await db.query('INSERT INTO analysis_results (org_id, created_at, document_id, document_name, contradictions_found, pipeline_counters, analysis) VALUES ($1,$2,$3,$4,$5,$6,$7)',
       [ORG, p.hora, ID.nor, NOR10, p.ds.length, contadoresACero(), { discrepancies: p.ds,
         judgments: [{ documentName: CLI12, contradictions: deCLI12 }, { documentName: CLI13, contradictions: deCLI13 }],
-        lecturaDeLasParejas: [lectura({ candidato: 'cli' }, p.modelo), lectura({ candidato: 'c13' }, p.modelo)] }]);
+        lecturaDeLasParejas: [leer({ candidato: 'cli' }, p.modelo), leer({ candidato: 'c13' }, p.modelo)] }]);
   }
   let sql = readFileSync('SQL_F128_02_nor10_con_haiku55.sql', 'utf8').replaceAll('public.', '');
   sql = poner(sql, /timestamptz '[^']+' AS desde/, `timestamptz '${ventana.desde}' AS desde`);
@@ -92,7 +97,7 @@ async function montar(pasadas: { hora: string; ds: Publicada[]; modelo: boolean 
   return filas;
 }
 
-let base: Fila[] = [], tanda: Fila[] = [], controles: Fila[] = [];
+let base: Fila[] = [], tanda: Fila[] = [], controles: Fila[] = [], sinCorte: Fila[] = [];
 beforeAll(async () => {
   // la línea base del 16/10, con los valores de la tabla de la cabecera del SQL
   base = await montar(['2026-10-16T10:45:35Z', '2026-10-16T10:46:17Z', '2026-10-16T10:46:53Z'].map(hora => ({ hora, ds: [A_45], modelo: false })),
@@ -102,7 +107,20 @@ beforeAll(async () => {
   controles = await montar([[A_BASE], [EXC, FIR, AUT], [TRAMPA_A, B_REAL, B_CITA_MALA, D_REAL, TRAMPA_B, TRAMPA_D, D_24B_35, D_24A_35, A_24B_31]]
     .map((ds, i) => ({ hora: `2026-10-19T1${i}:10:00Z`, ds, modelo: true })),
     { desde: '2026-10-19 11:00:00+02', hasta: '2026-10-19 17:00:00+02', push: '2026-10-16 12:50:00+02', exigir: true });
+  // 22/10/2026: la misma tanda de 5.5, pero con las dos parejas enteras (ventana de 150.000): no hay corte
+  sinCorte = await montar(['2026-10-19T12:26:02Z', '2026-10-19T12:26:40Z', '2026-10-19T12:28:29Z'].map((hora, i) => ({ hora, ds: TANDA[i], modelo: true })),
+    { desde: '2026-10-19 14:20:00+02', hasta: '2026-10-19 14:35:00+02', push: '2026-10-16 12:50:00+02', exigir: true }, true);
 }, 240_000);
+
+describe('SQL_F128_02 · el bloque 8 sin corte (22/10/2026, arquitecto: la predicción 8 no podía fallar)', () => {
+  it('con las dos parejas enteras no hay corte, y el bloque 8 dice NO APLICA, no «ninguna cita»', () => {
+    expect(bloque(sinCorte, '8 ·').map(f => f.a)).toEqual(['NO APLICA: sin corte (el analizado fue entero en todas las parejas)']);
+    expect(bloque(sinCorte, '7 ·')).toEqual([]);
+  });
+  it('y con corte, sin citas cerca, sigue diciendo «ninguna»: las dos ramas tienen su caso', () => {
+    expect(bloque(base, '8 ·').map(f => f.a)).toEqual(['ninguna cita, publicada ni descartada, en los 500 anteriores al corte ni cruzándolo']);
+  });
+});
 
 const bloque = (filas: Fila[], prefijo: string) => filas.filter(f => f.bloque.startsWith(prefijo));
 function especiesMal(filas: Fila[]): string[] {

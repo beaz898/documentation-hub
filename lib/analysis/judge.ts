@@ -1243,7 +1243,7 @@ export const INTERRUPTOR_PAREJA_ENTERA = 'ANALYSIS_PAREJA_ENTERA';
 /**
  * 3.1.3 (21/10/2026): AQUÍ ESTABAN el presupuesto de la pareja (`PRESUPUESTO_PAREJA_CARACTERES`,
  * 10.000 tokens ≈ 40.000 caracteres, caracteres/4) y el suelo del analizado (`SUELO_DEL_ANALIZADO`, los
- * 6.000 de la tijera vieja). Los sustituyen la ventana del interino (`TAMANO_VENTANA`, 80.000) y el
+ * 6.000 de la tijera vieja). Los sustituyen la ventana del interino (`TAMANO_VENTANA`; 80.000 el 21/10, 150.000 desde el 22/10) y el
  * reparto de `lib/analysis/reparto-de-la-pareja.ts`: el analizado ya no tiene suelo, tiene lo que la
  * fórmula le promete, min(A, P − reserva), que nunca es menos que lo de la tijera vieja.
  */

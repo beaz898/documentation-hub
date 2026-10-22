@@ -1,5 +1,5 @@
 import { readFileSync } from 'node:fs';
-import { describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { PGlite } from '@electric-sql/pglite';
 
 /**
@@ -24,11 +24,19 @@ const pasada = (dia: 21 | 22, hora: number, j13: Record<string, unknown> = {}): 
   ({ dia, hora, peticiones: [{ etapa: 'rerank', modelo: 'claude-haiku-4-5-20251001', resultado: 'ok', tokens: { entrada: 900 } }, juez(CLI13, j13), juez(CLI12, { tokens: { entrada: 20000 } })] });
 
 interface Fila { bloque: string; pasada: string | null; a: string | null; b: string | null; c: string | null }
-async function correr(pasadas: Pasada[]): Promise<Fila[]> {
-  const db = new PGlite();
+/** UNA base de PGlite por fichero (22/10/2026), vaciada entre caso y caso: levantar una por caso ponía el
+ *  primero de cada fichero por encima de su tope de 60 s con la CPU cargada (113 s medidos), y un rojo que
+ *  depende de la CPU no vale (protocolo: la suite tiene que ser determinista). */
+let db: PGlite;
+beforeAll(async () => {
+  db = new PGlite();
   await db.exec(`CREATE TABLE analysis_results (id uuid DEFAULT gen_random_uuid(), org_id text, created_at timestamptz, document_name text, analysis jsonb);
                  CREATE TABLE documents (id uuid, org_id text, name text);`);
   await db.query('INSERT INTO documents VALUES ($1, $2, $3), ($4, $2, $5)', [CLI13, ORG, 'CLI-13_instrucciones.docx', CLI12, 'CLI-12_manual.docx']);
+}, 120_000);
+afterAll(async () => { await db.close(); });
+async function correr(pasadas: Pasada[]): Promise<Fila[]> {
+  await db.exec('DELETE FROM analysis_results');
   const meter = (org: string, cuando: string, nombre: string, analysis: unknown) =>
     db.query('INSERT INTO analysis_results (org_id, created_at, document_name, analysis) VALUES ($1,$2,$3,$4)', [org, cuando, nombre, analysis]);
   for (const p of pasadas)
@@ -38,9 +46,7 @@ async function correr(pasadas: Pasada[]): Promise<Fila[]> {
   await meter('otra', '2026-10-22T10:00:00Z', 'NOR-11_x.docx', { llamadasAlModelo: { peticiones: [juez(CLI13, { tokens: { entrada: 1 } })] } });
   await meter(ORG, '2026-10-22T10:00:00Z', 'NOR-10_x.docx', { llamadasAlModelo: { peticiones: [juez(CLI13, { tokens: { entrada: 2 } })] } });
   const sql = readFileSync('SQL_313_02_la_entrada_del_juez_contra_cli13.sql', 'utf8').replaceAll('public.', '');
-  const filas = (await db.query<Fila>(sql)).rows;
-  await db.close();
-  return filas;
+  return (await db.query<Fila>(sql)).rows;
 }
 const veredicto = (f: Fila[]) => f.find(x => x.bloque.startsWith('3 ·'))!;
 const fallas = (f: Fila[]) => f.filter(x => x.bloque.startsWith('0') && x.a !== 'OK').map(x => `${x.a} · ${x.b}`);

@@ -41,9 +41,9 @@
 - **POR EJECUTAR**: `SQL_F127_02_el_coste_por_analisis.sql`, el coste por análisis con el precio
   bueno (3.1.1). Lo ejecuta el director.
 - **HECHO el 22/10**: la tanda del 3.1.3, medida y cerrada (ver el 3.1.3).
-- **POR EJECUTAR (22/10)**: `SQL_313_02_la_entrada_del_juez_contra_cli13.sql`, si la entrada del juez en
-  NOR-11 ↔ CLI-13 es la misma el 21/10 y en la tanda. Hasta que salga, la bajada de la mediana de las citas
-  es una pregunta y no un hallazgo. Lo ejecuta el director.
+- **HECHO el 22/10**: `SQL_313_02_la_entrada_del_juez_contra_cli13.sql` dice **LA MISMA ENTRADA** (ver el 3.1.3).
+- **EN VUELO (22/10)**: la ventana sube de 80.000 a 150.000 (decisión del director; ver el 3.1.3). Tanda de
+  cinco pasadas de NOR-10 y dos de NOR-11 cuando esté desplegado.
 
 ---
 
@@ -346,10 +346,13 @@ que NO está en este repositorio.
   · **El manual entero no hizo ruido**: de las lecturas de los 55.135 caracteres de CLI-12 contra NOR-11
     salió UNA contradicción en 2 pasadas (cuenta sobre nueve, la de los logs), las dos sobre la revisión
     trimestral del Coordinador.
-  · **La mediana de las citas de NOR-11 baja de 167 a 107**, con tres citas de 33 caracteres de LUGAR. ES
-    UNA PREGUNTA, NO UN HALLAZGO, hasta que `SQL_313_02` diga si la entrada del juez en NOR-11 ↔ CLI-13 es la
-    misma. El código dice que lo es (git diff `10deee06..aa29166b` de `judge.ts`: con la pareja entera el
-    juez recibe lo mismo, y la plantilla no cambió), pero eso es el código, no los datos.
+  · ~~**La mediana de las citas de NOR-11 baja de 167 a 107**, con tres citas de 33 caracteres de LUGAR. ES
+    UNA PREGUNTA, NO UN HALLAZGO, hasta que `SQL_313_02` diga si la entrada del juez es la misma.~~
+    **CERRADO el 22/10: ES MUESTREO, NO REGRESIÓN.** `SQL_313_02` dice LA MISMA ENTRADA: 14.580 tokens en la
+    base del 21/10 y en las once de la tanda, caché a cero en las doce, el mismo modelo, y la salida de la base
+    (7.144) dentro del rango de la tanda (cifras del arquitecto, de la salida del director; Code no la ha
+    visto). Lo confirma el código (git diff `10deee06..aa29166b` de `judge.ts`: con la pareja entera el juez
+    recibe lo mismo, y la plantilla no cambió).
   · ⚠️ **EL SILENCIO DE B, C y D NO ES DEL JUEZ: NO VIO LA OTRA MITAD.** Las cuatro frases de NOR-10 iban
     enteras en lo entregado, y sólo A se publicó. Las otras mitades están las tres en CLI-12
     (`SIEMBRA_corpus_ampliado.md` §1): B en el trozo 34 (y otra forma literal en el 38), C en el 51 y D en
@@ -359,6 +362,36 @@ que NO está en este repositorio.
     orden del log del 16/10; la tanda sólo guarda la CUENTA (`trozosDelCandidato`), no qué trozos. Que
     coincidan la cuenta, el resto y los 12.771 caracteres lo hace muy probable, pero no está guardado. Es el
     límite declarado del interino, quedarse fuera por el ranking, medido ahora en las tres.
+    ⚠️ **CORREGIDO por el arquitecto el 22/10**: «por el ranking, no por la ventana» es cierto CON 80.000 y falso
+    como afirmación general. El ranking sólo decide cuando la pareja no cabe: NOR-11 ↔ CLI-12 cabe entera y van
+    los 55 trozos sin que el ranking intervenga; con una ventana en la que NOR-10 ↔ CLI-12 quepa, los trozos 6,
+    34 y 51 entran sí o sí.
+  · **PENDIENTE DEL MEDIDOR (22/10, NO SE CONSTRUYE AHORA)**: la lectura guarda CUÁNTOS trozos entran en la
+    selección ampliada (`trozosDelCandidato`), no CUÁLES. La lista de 12 es simulación, no medida.
+  · **LA VENTANA SUBE A 150.000 (decisión del director, 22/10)**: el mismo interino con otra constante, dentro de
+    la región que el barrido de monotonía certifica (de 10.000 a 200.000). No sustituye a la 3.1.5 ni se salta
+    su orden. Con 150.000, NOR-10 ↔ CLI-12 cabe entera (66.801 + 55.135 = 121.936) y la ampliación de la
+    segunda selección deja de ejecutarse con este corpus; NO se borra (la necesitará la 3.1.5). Tanda: cinco
+    pasadas de NOR-10 y dos de NOR-11. **LAS PREDICCIONES, escritas antes de medir (arquitecto, 22/10):**
+    1. NOR-10 ↔ CLI-12 pasa a pareja_entera: 55 trozos, 55.135/55.135, analizado 66.801/66.801.
+    2. Los trozos 6, 34 y 51 de CLI-12 están delante del juez por primera vez.
+    3. **D se publica** (conflicto de QUIÉN, como A, que sale 5 de 5).
+    4. **C se publica** (conflicto de NÚMERO, 6 contra 12 meses, como PLAZO, que da 11 de 11).
+    5. B es la dudosa: su otra mitad tiene dos formas literales en CLI-12 (12.1 y 12.8), y la cita puede salir
+       ambigua. Si falla, el motivo NO será la lectura.
+    6. La entrada del juez del análisis pasa de ~68.200 a ~83.600 tokens: el TOTAL cuesta ~0,0084 $ y el AUMENTO
+       son +15.400 tokens = +0,0015 $ (corregida antes de medir: mezclaba el total con el aumento, lo vio Code).
+    7. La latencia sube sólo en la medida en que el juez escriba más.
+    8. ~~El bloque 8 sigue vacío~~ **RETIRADA antes de medir**: no podía fallar. El bloque 8 de `SQL_F128_02` sólo
+       mira las parejas con corte, y sin corte decía «ninguna cita», que se lee como acierto sin haber podido
+       mirar (regla 5). Desde el 22/10 dice «NO APLICA: sin corte».
+    **EL CONTROL QUE IMPORTA**: si D y C siguen sin publicarse TENIENDO su otra mitad delante, es fallo del juez y
+    no de la lectura, y eso cambia el diagnóstico del 3.1.2.
+    **EL CONTROL DE NOR-11**: sus dos pasadas son idénticas a las de la tanda del 22/10 SÓLO para las parejas con
+    CLI-12 y CLI-13, que ya cabían enteras. NOR-11 ↔ NOR-10 suma 81.505: era corte con 80.000 y cabe con 150.000.
+    En las once pasadas del 22/10 NOR-10 no llegó al juez (bloque 1 de `SQL_313_01`, leído por el arquitecto),
+    pero podría: SI APARECE, su cambio de régimen es el cambio funcionando, se anota y no cuenta como desviación.
+    **Para leerla**: en `SQL_313_01`, ventana 150000 y trozos 55, y los ESPERADOS después de mirar el reloj.
   · **Dos hallazgos reales no sembrados**, en el registro (`SIEMBRA_corpus_ampliado.md` §7 y §8): la
     composición del comité de calidad de la red (4 de 5 pasadas) y su periodicidad (1 de 5, minor).
   · **Anotado, sin tocar código**: un `paso=normalizada` en la pasada de NOR-11 de las 09:48 (contenedor,

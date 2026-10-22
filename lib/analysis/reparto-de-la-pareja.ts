@@ -35,14 +35,20 @@
  * 30.000 de resto. Lo que el tope deja sin usar no se lo lleva nadie.
  */
 
-/** La ventana del interino, en caracteres: P. Sustituye a los 40.000 (10.000 tokens) del 29/09. */
-export const TAMANO_VENTANA = 80_000;
+/**
+ * La ventana del interino, en caracteres: P. Sustituye a los 40.000 (10.000 tokens) del 29/09; fue 80.000 del
+ * 21/10 al 22/10/2026, y el director la sube a 150.000 el 22/10 (arquitecto): con 80.000, en NOR-10 ↔ CLI-12 los
+ * trozos de B, C y D se quedaban fuera por el ranking; con 150.000 la pareja cabe entera (66.801 + 55.135 =
+ * 121.936) y el ranking deja de decidir. Dentro de la región que el barrido de monotonía certifica.
+ * ⚠️ LAS PRUEBAS NO ESCRIBEN ESTE NÚMERO: lo referencian. Sólo una lo fija (`pareja-entera.test.ts`).
+ */
+export const TAMANO_VENTANA = 150_000;
 
 /**
  * LA VENTANA MÁS PEQUEÑA QUE ALGUIEN HA MEDIDO (arquitecto, 22/10/2026). La monotonía del reparto —ningún
  * lado recibe menos al subir P— se ha verificado barriendo P de 10.000 a 200.000 (`reparto-de-la-pareja.test.ts`)
- * y POR DEBAJO DE 10.000 NADIE HA MEDIDO NADA: producción no visita esa región (la ventana fue 40.000 y es
- * 80.000). En vez de barrerla, se cierra: `repartoDeLaPareja` se niega a repartir con una ventana menor, así
+ * y POR DEBAJO DE 10.000 NADIE HA MEDIDO NADA: producción no visita esa región (la ventana fue 40.000, luego
+ * 80.000, y es 150.000). En vez de barrerla, se cierra: `repartoDeLaPareja` se niega a repartir con una ventana menor, así
  * que la región sin verificar es inalcanzable. Bajar este número exige bajar antes el barrido.
  */
 export const VENTANA_MINIMA_MEDIDA = 10_000;
