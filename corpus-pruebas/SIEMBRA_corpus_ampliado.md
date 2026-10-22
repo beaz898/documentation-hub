@@ -396,3 +396,71 @@ equivocado, y lo hace dos veces.
 > (NOR-10 ↔ CLI-12) la miran. Un hallazgo en una pareja sin registro **no se puede dar
 > por falso positivo sin ir al texto**, igual que dice el resumen de arriba para los
 > que no son A, B, C ni D.
+
+---
+
+## 7. Quién forma el comité de calidad de la red (NOR-10 ↔ CLI-12) · **NO SEMBRADO**
+
+> **AÑADIDO AL REPOSITORIO EL 22/10/2026.** No figura en el registro original y
+> **nadie lo sembró**: apareció en la tanda del 3.1.3 (22/10, ventana de 80.000), cuando el
+> juez leyó por primera vez NOR-10 entero contra CLI-12, en **4 de 5 pasadas** de NOR-10
+> (cifra del arquitecto, de la salida del director). Es una contradicción real, así que
+> **detectarla cuenta como acierto**. Es el **tercer** hallazgo real no sembrado del corpus,
+> después de la D (27/08) y del NOR-04 (§6, 20/10).
+
+| | Documento | Apartado | Afirmación |
+|---|---|---|---|
+| Versión 1 | NOR-10 | **11.3 · Simulacros internos de inspección** (posición 43.288) | El comité está «formado por los **Directores Clínicos de las tres clínicas y el Coordinador de Calidad Central**». |
+| Versión 2 | CLI-12 | **3.2 · Comité de calidad de la red** | El comité «está formado por los **tres Coordinadores de Calidad de las clínicas y un responsable de Dirección de Operaciones**». |
+
+**Los pasajes, literales** (del texto extraído de cada documento, como lo indexa el producto; las
+posiciones son las del texto que arma el juez, 1 = primer carácter):
+
+> **NOR-10 · 11.3** (trozo 42; la frase empieza en 43.213 y «formado por» en 43.288): «El resultado
+> de cada simulacro se traslada al comité de calidad de la red, formado por los Directores Clínicos de
+> las tres clínicas y el Coordinador de Calidad Central, que revisa de forma comparativa el nivel de
+> preparación de cada centro y establece, si procede, un plan de refuerzo específico para la clínica con
+> peor resultado.»
+
+> **CLI-12 · 3.2** (trozo 4, posición 5.023): «El comité de calidad de la red está formado por los tres
+> Coordinadores de Calidad de las clínicas y un responsable de Dirección de Operaciones, y se reúne
+> trimestralmente para revisar indicadores agregados, incidencias relevantes y propuestas de mejora del
+> sistema. Sus decisiones se documentan en acta y se incorporan, cuando proceda, a la siguiente revisión
+> de este manual o de los protocolos afectados.»
+
+**Naturaleza del conflicto:** dos composiciones distintas para el mismo órgano, con el mismo nombre
+(«comité de calidad de la red»): en NOR-10, los Directores Clínicos y un Coordinador Central; en CLI-12,
+los tres Coordinadores de Calidad de las clínicas y Dirección de Operaciones. Los Directores Clínicos, que
+en NOR-10 son el comité, no aparecen en el de CLI-12.
+
+**Por qué no se vio antes:** el pasaje de NOR-10 está en la posición 43.288, y con la ventana de 40.000 se
+entregaban 37.143 caracteres de NOR-10 en esta pareja. Quedaba fuera, como C.
+
+---
+
+## 8. Cada cuánto se reúne el comité (NOR-10 ↔ CLI-12) · **NO SEMBRADO**, y más flojo
+
+> **AÑADIDO AL REPOSITORIO EL 22/10/2026**, de la misma tanda: **1 de 5 pasadas**, y clasificado
+> por el sistema como **`minor_inconsistency`**, no como contradicción (cifras del arquitecto, de la
+> salida del director). El arquitecto da esa calibración por correcta, y queda escrita con ella.
+> Es el **cuarto** hallazgo real no sembrado del corpus.
+
+| | Documento | Apartado | Afirmación |
+|---|---|---|---|
+| Versión 1 | NOR-10 | **11** (trozo 45, posición 46.787) | El histórico de alertas «se revisa en la **reunión anual** del comité de calidad de la red». |
+| Versión 2 | CLI-12 | **3.2** (trozo 4, posición 5.169) | El comité «**se reúne trimestralmente**». |
+
+**Los pasajes, literales:**
+
+> **NOR-10 · 11** (trozo 45): «El histórico de alertas recibidas y su gestión se archiva junto con el
+> resto de documentación de auditoría externa descrita en el apartado 11.1, y se revisa en la reunión
+> anual del comité de calidad de la red como parte del balance de gestión de riesgos del ejercicio.»
+
+> **CLI-12 · 3.2** (trozo 4): «…y se reúne trimestralmente para revisar indicadores agregados,
+> incidencias relevantes y propuestas de mejora del sistema.»
+
+**Para leerlo, dos pasajes más, literales y sin juicio:** NOR-10 dice también, en su 12.7 (trozo 52),
+que Dirección de Operaciones «consolida trimestralmente los indicadores de trazabilidad de las tres
+clínicas en un informe comparativo, que se presenta en la reunión de comité de calidad de la red descrita
+en el apartado 11.3»; y CLI-12, en su 9.2 (trozos 23 y 24), habla de «la reunión de comité de calidad de
+mitad de año».

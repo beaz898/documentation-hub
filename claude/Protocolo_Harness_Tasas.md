@@ -285,6 +285,23 @@ creado o machacado ficheros.
 
 ---
 
+## ⚠️ EL ESPERADO DE UNA CONSULTA DE TANDA SE RELLENA DESPUÉS DE MIRAR EL RELOJ DE LA BASE, NO ANTES
+
+*Añadida el 22/10/2026 (arquitecto), con la tanda del 3.1.3.*
+
+El caso: la tanda se encargó de siete pasadas de NOR-11 y tres de NOR-10; se lanzaron once y cinco. Una
+cuenta de memoria intermedia dijo nueve, y también era corta. `SQL_313_01` dio dos FALLA, y los dos eran sólo
+el ESPERADO de la cabecera: ningún fallo del sistema. **Un control que cae por un número escrito de antemano
+enseña a no mirar los controles**, que es lo contrario de lo que existe para hacer.
+
+**LA FORMA OPERATIVA**: el número de pasadas de una tanda no se escribe antes de lanzarla, ni se recuerda
+después. Se lee en la base —las horas guardadas de cada análisis, en la ventana— y sólo entonces se pone en el
+ESPERADO. El control sigue sirviendo para lo que vale: que no se cuele una pasada de fuera ni falte una de
+dentro **respecto de lo que se vio en el reloj**. Una consulta nueva que no necesite el número no lo lleva:
+imprime la cuenta y las horas (`SQL_313_02` es la primera así).
+
+---
+
 ## ⚠️ UNA PUERTA QUE DESCARTA TIENE QUE GUARDAR LO QUE DESCARTÓ
 
 *Añadida el 02/10/2026 (arquitecto), con B.313.*
