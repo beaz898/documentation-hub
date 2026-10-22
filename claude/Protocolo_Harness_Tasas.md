@@ -1635,6 +1635,12 @@ Lo cazó un `git status` antes de seguir. Si hubiera entrado en un commit, **se 
 silencio la corrección más importante del día**, y el commit habría parecido limpio. Era la tercera vez
 que los escapes del shell rompían un generador. El generador bueno es
 `mutantes_f128.cjs`: doce mutantes, los doce en rojo, y la verificación contra git al final.
+**Y TAMBIÉN AL LIMPIAR, no sólo al escribir (arquitecto, 22/10/2026; la cuarta vez):** si el texto que se
+limpia lleva comillas invertidas, la limpieza va con Node y por cadena literal, nunca con `sed`. El
+21/10 se colaron unas comillas invertidas escapadas (barra y comilla) en los comentarios de
+`segunda-seleccion.ts`, y al quitarlas con `sed` el de GNU leyó esa secuencia como «principio de línea»
+y metió una comilla al principio de cada una de las 103 líneas. Se arregló volviendo al commit, que no
+tenía más cambios, y limpiando con un script de Node que parte por la cadena exacta.
 
 > **Una regla que se estrena el día que se escribe no es una regla que sobre:
 > es una que llegaba tarde.** Las tres describen fallos que ya estaban pasando

@@ -318,7 +318,29 @@ DISPUTA ES EL SUJETO, LA CITA TIENE QUE EMPEZAR EN EL SUJETO».** El defecto no 
 Lo que el 3.1.2 tiene que cumplir, entonces, no es «toda cita lleva sujeto», sino eso: cuando lo que
 se contradice es quién, la cita empieza en quién.
 
-#### 3.1.3 · El interino: ventana de 80.000 con reparto monótono · F-127 P4, P5 y P7 paso 3, adenda Q4 · SIN EMPEZAR
+#### 3.1.3 · El interino: ventana de 80.000 con reparto monótono · F-127 P4, P5 y P7 paso 3, adenda Q4 · HECHO EN CÓDIGO, PENDIENTE DE LA TANDA
+**HECHO EN CÓDIGO el 21-22/10 (`2e63221a` y `aa29166b`, opción (a) del arquitecto)**: dos selecciones —la
+de la recuperación con 3.000, como siempre, y una segunda después del rerank con el resto— y un solo
+reparto (`repartoDeLaPareja`, `lib/analysis/reparto-de-la-pareja.ts`), con las cabeceras contadas y la
+ventana acotada por debajo en 10.000 (`VENTANA_MINIMA_MEDIDA`). **En NOR-10 ↔ CLI-12 entran 12 trozos, no
+13**: los trece del párrafo de abajo se contaron sólo con el texto; con las cabeceras, el 26 se queda fuera
+(12.771 montados de un resto de 13.199). La lectura de cada pareja guarda `seleccion` y
+`trozosDelCandidato`. La tanda —siete pasadas de NOR-11 y tres de NOR-10— se lee con `SQL_313_01` y con
+`SQL_F128_01`, `SQL_F128_02` y `SQL_311_02` sin tocar su lógica.
+**LAS PREDICCIONES, escritas antes de la tanda (arquitecto, 22/10/2026):**
+  · **NOR-11 ↔ CLI-12 PASA A PAREJA ENTERA**: 14.704 + 55.135 = 69.839, que cabe en 80.000 (tamaños
+    montados, comprobados por Code). Era corte honesto con el candidato en 2.959 de 55.135 (cifra del
+    arquitecto, de la salida del director). El manual de calidad entero se lee por primera vez contra
+    NOR-11: ahí tiene que notarse el interino, y ahí pueden aparecer falsos positivos —55.000 caracteres
+    entrando enteros en una pareja que daba 0 contradicciones—.
+  · **NOR-11 ↔ CLI-13 NO CAMBIA**: ya cabía entera en 40.000 y el texto es el mismo. Las tres trampas
+    tienen que salir 7 de 7, como en F-128; si alguna se mueve, no es el interino, es la variación del modelo.
+  · ⚠️ **LA FRASE C DEJA DE SER EL CONTROL DE INVENCIÓN.** C está en NOR-10 del carácter 58.883 al 59.089
+    (F-127, adenda, 1.2). Con 40.000 se entregaban 37.143 de 66.801 (con CLI-12) y 30.183 (con CLI-13):
+    C quedaba fuera, y si salía, el juez se la inventaba. Con 80.000 el analizado va ENTERO, 66.801 de
+    66.801, en las dos parejas (con CLI-13, porque 66.801 + 9.817 = 76.618 cabe entera; comprobado por
+    Code). **Si en la tanda se publica C, ES UN ACIERTO.** Lo que sigue siendo control de invención es
+    cualquier cita del nuevo fuera de lo entregado: el bloque 3 de `SQL_F128_02`. Lo mismo, en su cabecera.
 **CAMBIA DE FORMA el 18/10 (adenda de Fable, Q4)**: no es pasar un parámetro, es **calcular el resto
 ANTES de seleccionar** —resto = P − min(analizado, P − reserva), porque los tamaños de los dos
 documentos se conocen antes del retrieval— y pasárselo al selector que ya existe. Según la adenda,

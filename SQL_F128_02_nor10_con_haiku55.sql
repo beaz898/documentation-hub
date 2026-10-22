@@ -6,6 +6,23 @@
 -- NOR-10, CLI-12 y lo que el juez compare en esas pasadas, documentos del corpus
 -- de pruebas, NO de un cliente.
 --
+-- ⚠️⚠️ DESDE LA TANDA DEL 3.1.3 (ventana de 80.000, aa29166b), LA FRASE C YA NO ES EL CONTROL DE
+-- INVENCIÓN (arquitecto, 22/10/2026, escrito ANTES de medir). C está en NOR-10 del carácter 58.883 al
+-- 59.089 (F-127, adenda, 1.2). Con la ventana de 40.000 se entregaban 37.143 de 66.801 en la pareja
+-- con CLI-12 (y 30.183 en la de CLI-13): C quedaba FUERA, y por eso servía de control —si salía C, el
+-- juez se la inventaba—. Con 80.000 el analizado va ENTERO, 66.801 de 66.801, en las DOS parejas
+-- (con CLI-12 por el reparto; con CLI-13 porque 66.801 + 9.817 = 76.618 cabe entera): C está DENTRO
+-- de lo entregado. **Si en esta tanda se publica C, ES UN ACIERTO, no una invención**; con el control
+-- viejo se habría leído al revés. Lo que SIGUE siendo control de invención es cualquier cita del nuevo
+-- FUERA de lo entregado: el bloque 3, que no se toca. El bloque 4 dice, por pasada, si C quedó dentro
+-- en la pareja con CLI-12 (cuántos caracteres se entregaron); en la de CLI-13 lo dice el bloque 1.
+-- Y para leer una pasada anterior al 22/10, C vuelve a ser lo que era: lo deciden los caracteres
+-- entregados, no la fecha.
+-- ⚠️ Y LA COLUMNA «analizado + candidato = presupuesto» DEL BLOQUE 1 SALDRÁ «NO» y NO ES UN FALLO (Code,
+-- 22/10): con la cascada vieja el analizado se llevaba justo lo que dejaba el bloque, y la suma daba la
+-- ventana; con el reparto nuevo el analizado va entero y sobra hueco, así que con CLI-12 se espera
+-- unos 66.801 + 12.771 = 79.572, por debajo de 80.000. No es un control: es un cuadre de la cascada vieja.
+--
 -- ES SQL_F127_01 CON LA MISMA LÓGICA (19/10/2026). SQL_F127_01 se queda como
 -- está porque es el instrumento con el que se midió la línea base del 16/10, y
 -- su cabecera describe esa medición. Lo que cambia aquí, y nada más:
