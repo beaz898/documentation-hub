@@ -21,6 +21,14 @@
 --      comparar es la del 21/10: 27.718 ms y 7.144 tokens de salida en una sola petición del juez, el 77 %
 --      de la duración del análisis (lectura del arquitecto de la salida de SQL_311_02 que ejecutó el
 --      director; Code no ha visto esa salida) (bloques 1 y 3).
+--   d) LA DURACIÓN DE CADA PASADA contra su línea base (arquitecto, 22/10/2026), con lo que vale cada una
+--      declarado al lado (bloque 3):
+--      · NOR-11: 36.128 ms, UNA pasada del 21/10 medida por el registro por llamada, del primer comienzoMs
+--        al último final, que es exactamente como mide este bloque. Comparable con las siete de la tanda;
+--      · NOR-10: NO HAY línea base del registro. Sus tres pasadas del 19/10 son anteriores al registro (paso
+--        4 del 3.1.1), y lo único que hay son los totales que imprimió el pipeline en los logs de Vercel
+--        —22.607, 25.033 y 27.605 ms—, que son OTRO RELOJ. Van con esa etiqueta: indicativos, no
+--        comparables al milisegundo. Cifras del arquitecto; Code no ha visto ni la salida ni los logs.
 --
 -- ⚠️ LOS LÍMITES, declarados antes de leer nada:
 --   · DIEZ PASADAS NO SON UNA MUESTRA de la latencia: dicen cómo fueron ésas. La comparación con los
@@ -54,7 +62,8 @@ WITH parametros AS (
          7 AS esperado_nor11,
          3 AS esperado_nor10,
          12 AS prediccion_trozos_cli12,
-         27718 AS referencia_ms                                   -- la petición del juez del 21/10
+         27718 AS referencia_ms,                                  -- la petición del juez del 21/10
+         36128 AS base_nor11_ms                                   -- la duración de la pasada de NOR-11 del 21/10, por el registro
 ),
 pasadas AS (
   SELECT ar.id, ar.created_at, ar.analysis,
@@ -153,7 +162,10 @@ FROM (
          'la petición del juez más larga: ' || coalesce((SELECT max(j.lat_max) FROM juez j WHERE j.doc = pa.doc AND j.n = pa.n)::text, '—') ||
            ' ms (21/10: ' || p.referencia_ms || ' ms) · salida del juez ' ||
            coalesce((SELECT sum(j.salida_reg) FROM juez j WHERE j.doc = pa.doc AND j.n = pa.n)::text, '—') || ' tokens',
-         'duración de las llamadas del análisis: ' || coalesce((SELECT d.ms FROM duracion d WHERE d.doc = pa.doc AND d.n = pa.n)::text, '—') || ' ms',
+         'duración de las llamadas del análisis: ' || coalesce((SELECT d.ms FROM duracion d WHERE d.doc = pa.doc AND d.n = pa.n)::text, '—') || ' ms' ||
+           CASE WHEN pa.doc = 'NOR-11'
+                THEN ' (línea base 21/10, el mismo reloj: ' || p.base_nor11_ms || ' ms)'
+                ELSE ' (sin línea base del registro; los logs de Vercel del 19/10 dieron 22.607, 25.033 y 27.605 ms: otro reloj, indicativos, no comparables al milisegundo)' END,
          30, pa.doc, pa.n
   FROM pasadas pa, parametros p
 ) t

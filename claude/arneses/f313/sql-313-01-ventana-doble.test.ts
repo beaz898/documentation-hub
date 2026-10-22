@@ -83,8 +83,10 @@ describe('SQL_313_01, la ventana doble en la tanda', () => {
     expect(pareja.c).toBe('claude-haiku-5-5 · salida 7000 tokens · juez 30500 ms en 2 petición(es), la más larga 30000 ms');
     const pasada = f.find(x => x.bloque.startsWith('3 ·') && x.pasada === 'NOR-10 1')!;
     expect(pasada.b).toBe('la petición del juez más larga: 30000 ms (21/10: 27718 ms) · salida del juez 6000 tokens');
-    expect(pasada.c).toBe('duración de las llamadas del análisis: 33500 ms');                  // 1.500 + 2.000 de espera + 30.000 − 0
-    expect(f.find(x => x.bloque.startsWith('3 ·') && x.pasada === 'NOR-11 7')!.c).toBe('duración de las llamadas del análisis: 21000 ms');
+    // 1.500 + 2.000 de espera + 30.000 − 0; y NOR-10 no tiene línea base del registro, sólo los logs (otro reloj)
+    expect(pasada.c).toBe('duración de las llamadas del análisis: 33500 ms (sin línea base del registro; los logs de Vercel del 19/10 dieron 22.607, 25.033 y 27.605 ms: otro reloj, indicativos, no comparables al milisegundo)');
+    expect(f.find(x => x.bloque.startsWith('3 ·') && x.pasada === 'NOR-11 7')!.c)
+      .toBe('duración de las llamadas del análisis: 21000 ms (línea base 21/10, el mismo reloj: 36128 ms)');
     expect(f.filter(x => x.bloque.startsWith('3 ·'))).toHaveLength(10);
     // la pasada con dos candidatos: una fila por pareja, cada una con SU juez
     expect(f.filter(x => x.bloque.startsWith('1 ·'))).toHaveLength(11);
