@@ -13,6 +13,7 @@ import { comprobarConRepliegues, localizadorDeLado, registroDelTramo, type Compr
 import type { RerankedCandidate, DocumentJudgment, PipelineOptions, DiscardedFindings, DocumentFragment, LecturaDeLaPareja, TextoAnalizado } from './types';
 import type { StoredChunk } from '@/lib/read-chunks';
 import { repartoDeLaPareja, TAMANO_VENTANA, type RepartoElegido } from './reparto-de-la-pareja';
+import { cortarEnLimiteDePieza, finesDePiezas, SEPARADOR } from './corte-del-analizado';
 
 // F-61: normalize se extrajo a su propio fichero (ver normalize.ts) para
 // evitar un ciclo con table-structure.ts. Se re-exporta aquí para que
@@ -738,6 +739,8 @@ async function judgeSingleDocument(args: {
   /** B.295: el interruptor del escalón 1, ya resuelto (sólo rápido), y lo que necesita la puerta. */
   parejaEntera: boolean;
   analizadoCompleto: string;
+  /** 3.1.2: dónde acaba cada pieza del analizado (`finesDePiezas`). */
+  finesDelAnalizado: number[];
   analizadoConTrozos: boolean;
   /** 3.1.3: el reparto ya decidido por la segunda selección, si la hubo. */
   elegido?: RepartoElegido;
@@ -803,6 +806,7 @@ async function judgeSingleDocument(args: {
     documentId: candidate.documentId,
     documentName: candidate.documentName,
     analizadoCompleto: args.analizadoCompleto,
+    finesDelAnalizado: args.finesDelAnalizado,
     analizadoConTrozos: args.analizadoConTrozos,
     analizadoViejo: { texto: newDocumentText, lado: args.analizado },
     candidatoChunks: candidateChunks,
@@ -1049,6 +1053,15 @@ Responde con este JSON (sin bloques de código, sin texto adicional):
  * mensaje de commit).
  */
 export function buildAnalyzedDocumentText(chunks: StoredChunk[], documentName: string): string {
+  return piezasDelAnalizado(chunks, documentName).join(SEPARADOR);
+}
+
+/**
+ * 3.1.2 (23/10/2026): las PIEZAS del texto que arma el juez —un trozo de prosa, o una tabla entera—, en orden.
+ * `buildAnalyzedDocumentText` las une; el corte del analizado (`corte-del-analizado.ts`) corta entre ellas. El
+ * mismo criterio decide qué es una pieza para las dos cosas.
+ */
+export function piezasDelAnalizado(chunks: StoredChunk[], documentName: string): string[] {
   const groups = groupChunksByTable(chunks);
   const groupByTableId = new Map(groups.map(g => [g.tableId, g]));
   const rendered = new Set<string>();
@@ -1066,7 +1079,7 @@ export function buildAnalyzedDocumentText(chunks: StoredChunk[], documentName: s
     }
     pieces.push(c.text);
   }
-  return pieces.join('\n\n');
+  return pieces;
 }
 
 /** Judgments y su evidencia de verificación, emparejados por POSICIÓN con
@@ -1113,9 +1126,10 @@ export async function judgeAllDocuments(args: {
   if (!hasChunks) {
     console.warn(`[judge] "${args.newDocumentName}": sin newDocumentChunks — documento analizado en texto plano (fallback_sin_chunks)`);
   }
-  const fullDocumentText = hasChunks
-    ? buildAnalyzedDocumentText(args.newDocumentChunks!, args.newDocumentName)
-    : args.newDocumentSample;
+  const piezas = hasChunks ? piezasDelAnalizado(args.newDocumentChunks!, args.newDocumentName) : null;
+  const fullDocumentText = piezas ? piezas.join(SEPARADOR) : args.newDocumentSample;
+  // 3.1.2: dónde acaba cada pieza, para que el corte honesto corte entre piezas; sin trozos, una sola pieza
+  const finesDelAnalizado = piezas ? finesDePiezas(piezas) : [fullDocumentText.length];
 
   // Modo rápido: truncar para ahorrar tokens (solo el texto del PROMPT).
   // Modo exhaustivo: documento completo.
@@ -1161,6 +1175,7 @@ export async function judgeAllDocuments(args: {
       analizado,
       parejaEntera,
       analizadoCompleto: fullDocumentText,
+      finesDelAnalizado,
       analizadoConTrozos: hasChunks,
       elegido: args.repartos?.get(candidate.documentId),
     }),
@@ -1305,6 +1320,8 @@ export function leerLaPareja(a: {
   documentId: string;
   documentName: string;
   analizadoCompleto: string;
+  /** 3.1.2: dónde acaba cada pieza del analizado. Sin él, el analizado es UNA pieza y el corte es por posición. */
+  finesDelAnalizado?: number[];
   analizadoConTrozos: boolean;
   /** El texto y el lado de la tijera vieja (`recortarAnalizado`). */
   analizadoViejo: { texto: string; lado: LecturaDeLaPareja['analizado'] };
@@ -1384,8 +1401,10 @@ export function leerLaPareja(a: {
   const candidatoCabeEntero = reparto.candidatoEntero;
   const bloqueCandidato = candidatoCabeEntero ? candidatoEntero : a.bloqueRelevancia;
   const topeDelAnalizado = Math.max(0, presupuesto - bloqueCandidato.length);
-  const recortado = completo.length > topeDelAnalizado;
-  const texto = recortado ? completo.slice(0, topeDelAnalizado) : completo;
+  // 3.1.2 (23/10/2026): el corte, en un límite de pieza (`cortarEnLimiteDePieza`), ya no por posición
+  const corte = cortarEnLimiteDePieza(completo, a.finesDelAnalizado ?? [completo.length], topeDelAnalizado);
+  const texto = corte.texto;
+  const recortado = texto.length < completo.length;
   return {
     textoAnalizado: texto,
     bloqueCandidato,
@@ -1400,6 +1419,7 @@ export function leerLaPareja(a: {
       presupuesto,
       seleccion: candidatoCabeEntero ? 'entero' : (a.elegido?.seleccion ?? 'la_de_la_recuperacion'),
       trozosDelCandidato: cuantos(candidatoCabeEntero ? todos : porRelevancia),
+      ...(corte.modo ? { corteDelAnalizado: corte.modo } : {}),
     },
   };
 }

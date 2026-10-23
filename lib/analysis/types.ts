@@ -293,6 +293,10 @@ export interface LecturaDeLaPareja {
    *  mismo `representados` de `leerLaPareja`, contado—. Es la cifra guardada contra la que se comprueba la
    *  predicción de la tanda (12 de CLI-12 contra NOR-10). AUSENTE en los análisis anteriores. */
   trozosDelCandidato?: number;
+  /** 3.1.2 (23/10/2026): cómo se cortó el analizado en el corte honesto (`cortarEnLimiteDePieza`): en un límite
+   *  exacto, avanzando al final de la pieza, retrocediendo al límite anterior porque la pieza pasaba de 3.000, o
+   *  por posición porque no había límite anterior. AUSENTE si el analizado fue entero y en los análisis anteriores. */
+  corteDelAnalizado?: 'limite_exacto' | 'avanza' | 'retrocede' | 'posicion';
 }
 
 /** Caracteres del texto del analizado que armó el juez, y los que vio. En el
