@@ -48,6 +48,11 @@
 - **HECHO el 22/10**: `SQL_313_02_la_entrada_del_juez_contra_cli13.sql` dice **LA MISMA ENTRADA** (ver el 3.1.3).
 - **HECHO el 22/10, por la tarde**: la ventana de 150.000, desplegada (`09cf63e5`), medida y CERRADA (ver el
   3.1.3). **ABIERTO con nombre**: el caso D. **Lo siguiente**: la 3.1.2.
+- **POR MANDAR (23/10)**: la consulta **F-129** a Fable sobre el caso D, escrita por el arquitecto en el proyecto
+  de Claude (`claude/Consulta_Fable_F129_D_Una_Permision_Contra_Un_Principio.md`, que NO está en este
+  repositorio); la manda el director. Pregunta si D está dentro o fuera de la definición de contradicción, si es
+  especie propia o cabe en su 3.4, y si va antes o después de la 3.1.2. **No se construye nada del caso D hasta
+  su dictamen.**
 
 ---
 
@@ -413,12 +418,20 @@ que NO está en este repositorio.
       pasadas, confirmadas por juicio, y reconocidas POR LA PROPIA CITA (bloque 2d: A → A, B → B, C → C, las
       cinco veces). Por la cita: 0 de 20 en la tanda de 80.000; 15 de 28 en ésta. B cita el trozo 34 de CLI-12
       y C el 51: los que la predicción 2 decía que llegarían por primera vez.
+      **EL MARCADOR DE LA PAREJA DIFÍCIL ES 3 DE 3, NO 3 DE 4 (arquitecto, 23/10).** D se reclasifica FUERA del
+      marcador y queda como caso con nombre propio (abajo): tenerla en la misma tabla que A, B y C hacía parecer
+      un fallo de detección lo que es una frontera de la definición. Y D no está sembrada: es el hallazgo real
+      del 27/08 (`SIEMBRA_corpus_ampliado.md` §1).
     · **Las predicciones, calificadas y sin reinterpretar**: 1 (pareja entera, 55 trozos, 55.135/55.135,
       analizado 66.801/66.801) ACIERTA; 2 (los trozos 6, 34 y 51 delante) ACIERTA; 3 (D se publica) **FALLA,
       0 de 5**; 4 (C se publica) ACIERTA; 5 (B es la dudosa) **FALLA en la dirección buena, 5 de 5**; 6 (+15.400
       tokens, +0,0015 $) ACIERTA, medido +15.434 y +0,00154 $; 7 (la latencia sube) **FALLA en las dos ramas**;
       8, retirada antes de medir. Los tres fallos son del arquitecto y por lo mismo, en sus palabras: supuso
       que con más texto el juez escribiría más, y escribió menos. La de Code, los 55 trozos: ACIERTA, 5 de 5.
+      ⚠️ **LA PREDICCIÓN 3 FALLÓ PORQUE EL ARQUITECTO CLASIFICÓ D POR SU TEMA SIN LEERLA** (en sus palabras,
+      23/10): dijo «conflicto de quién, de la misma clase que A, la más probable de las tres», y la premisa era
+      falsa. Es la misma regla —leer el registro entero, no la palabra clave— que ya le había fallado antes, y
+      esta vez costó una predicción.
     · **EL DATO QUE CAMBIA CÓMO PENSAR: con el candidato entero, el juez ENCUENTRA MÁS, ESCRIBE MENOS Y TARDA
       MENOS.** Hallazgos por pasada, mediana de 4 a 6; salida del juez, de 9.606 a 7.874 tokens; duración, de
       36.720 a 30.160 ms. La causa, medida: con sólo el trozo 4 de CLI-12 el juez desmenuzaba A en sus tres
@@ -499,7 +512,10 @@ la deuda de `selectUnitsWithinBudget`).
 
 #### ⚠️ CASO ABIERTO · D, CON SUS DOS MITADES DELANTE Y SIN EMITIRSE · 22/10 · ABIERTO CON NOMBRE
 **Lo medido (arquitecto, de las salidas de la tanda de 150.000)**: las dos mitades de D estuvieron delante del
-juez las cinco veces —en NOR-10, de 3.943 a 4.267, y el trozo 6 de CLI-12, entregado— y no se publicó nada.
+juez las cinco veces —en NOR-10, la frase de 3.881 a 4.267 (el dato, «puede recaer en el propio Director Clínico»,
+de 3.943 a 3.984), y el trozo 6 de CLI-12, entregado— y no se publicó nada. ⚠️ Las posiciones, corregidas el 23/10:
+aquí ponía «de 3.943 a 4.267», el principio del DATO con el final de la FRASE, la misma mezcla que F-127 (adenda,
+1.2) y que la etiqueta «empieza» del bloque 4 de `SQL_F128_02`, que es el principio del dato.
 **No es** el barranco, ni la ventana, ni el ranking, ni un tope de salida (emitió de 5 a 7 crudos contra un
 máximo de 10 del prompt), ni la puerta (los seis contadores a cero). **Y NO LO ARREGLA LA 3.1.2**: la 3.1.2
 corrige cómo se cita lo que el juez ya emitió, y D no se emitió.
@@ -515,6 +531,13 @@ sustituir al Coordinador, por la separación de funciones de 3.1, tampoco puede 
 propio registro, que se apoya además en 3.4 («un documento no escribe un procedimiento de arbitraje entre dos
 figuras que pueden ser la misma persona»). **D exige un paso de razonamiento que A no exige.** Con esto el
 arquitecto escribe la consulta a Fable; no hay arreglo propuesto.
+**LA REORDENACIÓN (arquitecto, 23/10): D no es un fallo de detección, es una FRONTERA DE NUESTRA DEFINICIÓN DE
+CONTRADICCIÓN.** Todo lo que el sistema detecta hoy es «el mismo dato con dos valores»; D es una PERMISIÓN contra
+un PRINCIPIO.
+⚠️ **Y LO MÁS INFORMATIVO, en palabras del arquitecto: CLI-12 · 3.5 apunta al apartado 3.1 para la separación de
+funciones, y EL 3.1 ES LA MITAD DE A. La frase que resolvería D es la que el juez ya publica 5 de 5 como A. La
+tiene delante, la cita bien, y no la conecta.**
+**Pendiente del dictamen de F-129** (ver la sección 0). No se construye nada hasta entonces.
   · **Dos hallazgos reales no sembrados**, en el registro (`SIEMBRA_corpus_ampliado.md` §7 y §8): la
     composición del comité de calidad de la red (4 de 5 pasadas) y su periodicidad (1 de 5, minor).
   · **Anotado, sin tocar código**: un `paso=normalizada` en la pasada de NOR-11 de las 09:48 (contenedor,
@@ -1042,6 +1065,7 @@ Del inventario de Code (14/10), sobre las copias locales y el último censo del 
 | `selectUnitsWithinBudget` acepta el presupuesto por parámetro (`retrieval.ts:1090-1100`, desde F-73) pero corre en `retrieval.ts:502`, ANTES del juez, cuando «lo que sobra» de la pareja todavía no se sabe, y sólo con los trozos que devolvió Pinecone, con el tope de 25 piezas. **El reparto nuevo no es recablear un parámetro: es mover dónde se decide** | F-127 P9.3 |
 | HAY UN SEGUNDO ÷4 sin medir, en ~~`lib/llm/anthropic-client.ts:322`~~ **`callAnthropicJson` y `callAnthropicAgent`** (`lib/llm/anthropic-client.ts`; líneas 371 y 462 el 21/10/2026, sólo como ayuda: la 322 ya no era ninguna de las dos): estima los tokens de entrada como la longitud del payload entre 4. Con 3.1.1 hecho se puede comprobar cuánto se equivoca; es el objetivo escrito del paso 5 | F-127, lectura de Code del 16/10 |
 | La latencia por llamada no se mide en ningún sitio | F-127 P9.1 |
+| **LOS ARNESES DE PGLITE TARDAN DE 41 A 122 s SEGÚN LA PASADA, EN VERDE.** El 22/10, con siete ficheros en paralelo, el primer caso de tres de ellos cruzó su tope de 60 s (113 s medidos) porque levantaban una base por caso; se arregló con una base por fichero, sin subir topes. Desde entonces todas las pasadas salen en verde, pero el tiempo varía de 41 a 122 s, y el censo `pglite-fuera-del-producto`, que no usa PGlite, tarda 0,3 s solo y hasta 63 s en paralelo, por hambre de CPU. **Aparcado (arquitecto, 23/10): en verde y lento no es motivo para abrir el frente.** **Disparador: la primera vez que el gate se ponga ROJO por tiempo**, se toca `vitest.config.mts` (pasar el censo al proyecto de la suite, o limitar los hilos de los arneses) y se acabó | medido por Code el 22/10 |
 | **NADIE HA DECIDIDO QUÉ DEL JSONB DEL ANÁLISIS LLEGA AL NAVEGADOR.** Los dos endpoints de la bandeja, `app/api/analysis-results/[id]` y `app/api/documents/[id]/analysis`, devuelven el objeto `analysis` ENTERO; sólo la respuesta de `analyze-v2` lleva una lista cerrada de campos. Dos ejemplos de lo que ya viaja sin que nadie lo decidiera: (1) **el recorte del documento**: `lecturaDeLasParejas` le dice al cliente, en números, que de su documento de 66.801 caracteres el juez sólo leyó 37.143 y dejó fuera el resto; (2) **nuestros reintentos**: desde el 21/10, `llamadasAlModelo` añade las latencias, las esperas, los intentos y los estados HTTP de cada petición al modelo —un 429 nuestro, contado al cliente—. Ninguno lleva contenido y sólo los ve quien ya puede abrir ese análisis, así que **no se toca ahora** (arquitecto, 21/10). **Disparador: antes del primer cliente de pago** hay que decidir qué campos del jsonb salen al navegador y poner una lista cerrada en esos dos endpoints, como ya la tiene `analyze-v2` | lo cazó Code al abrir los consumidores del paso 4 del 3.1.1, 21/10 |
 | **El censo de secretos del 21/10 dio CERO CLAVES en todo el historial, y eso NO es una garantía mayor de la que es.** Recorrió por patrón de credencial los diffs de los 1.758 commits (`git log --all -p`, 350.658 líneas, ficheros ya borrados incluidos) y los 1.758 mensajes, con control positivo (claves fabricadas de cada servicio, todas cazadas). **Lo que NO cubre:** (1) **los binarios** —`.docx`, `.pdf`, `.xlsx` del corpus—, porque sólo lee texto; (2) **el patrón genérico** (un valor literal asignado a un nombre con API_KEY, SECRET, TOKEN…) **sólo salta con valores de 20 caracteres o más**: una contraseña corta asignada a mano no la caza; (3) sólo mira lo que llega por ramas y etiquetas, no el reflog local, que es lo mismo que se publica. Tras el censo, el `.gitignore` cubre además los `.env` sin «.local», los `*.key` y los JSON de cuentas de servicio | censo de Code del 21/10, a pregunta del arquitecto |
 | **De abril a agosto de 2026 el repositorio no tuvo `.gitignore`**: el primer commit es del 03/04/2026 (`8039ad95`) y el `.gitignore` nace el 19/08/2026 (`0f11e7c9`, «Añade .gitignore estándar de Next.js»). En esa ventana se tocaron 287 ficheros distintos y ninguno tiene nombre de entorno ni de credencial. **Por qué estamos tranquilos, y no es por el nombre de los ficheros**: el censo del 21/10 busca por PATRÓN de credencial en todos los diffs del historial, así que una clave pegada en cualquier fichero, se llamara como se llamara, habría salido; no salió ninguna. Con los límites de la entrada anterior | censo de Code del 21/10 |
