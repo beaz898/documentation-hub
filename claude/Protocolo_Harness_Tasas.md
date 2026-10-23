@@ -301,10 +301,29 @@ Los casos, comprobados en el código el 23/10:
   · **la declaración de lo omitido** del 3.1.2 («el documento continúa; no se te han mostrado N caracteres»):
     dentro de las comillas, el juez podría citarla y la puerta la daría por literal. Por eso va FUERA, y una prueba
     lo vigila.
-⚠️ El arquitecto la presentó como la misma clase que el hallazgo de LUGAR en `uniqueToNewDoc`
-(`claude/Hallazgo_LUGAR_en_uniqueToNewDoc.md`). **No lo es**, leído el hallazgo: allí el juez obedecía un contrato
-nuestro sin definir —la caja sólo tenía nombre—, que es la clase de D («obedece la regla que le dimos»), no la de
-confundir texto nuestro con texto del cliente. Se deja fuera de la lista hasta que alguien lo discuta.
+**DOS MIEMBROS, y así queda (arquitecto, 23/10).** El hallazgo de LUGAR en `uniqueToNewDoc`
+(`claude/Hallazgo_LUGAR_en_uniqueToNewDoc.md`) no es de esta clase, leído el hallazgo: es de la siguiente.
+
+---
+
+## ⚠️ EL JUEZ OBEDECE EL CONTRATO QUE LE DIMOS, Y EL CONTRATO ESTABA MAL
+
+*Añadida el 23/10/2026 (arquitecto), a partir de una corrección de Code. Es la clase que más ha costado y la que peor
+se ha diagnosticado.*
+
+**Antes de culpar al modelo, se lee el contrato que le dimos —el prompt, la definición, la caja— y se comprueba que
+dice lo que creemos que dice.** En los dos casos medidos, la primera reacción del arquitecto fue «el juez falla», y en
+los dos la causa era nuestra especificación.
+  · **LUGAR en `uniqueToNewDoc` (12/10/2026)**: la caja `uniqueToNewDoc` sólo tenía un NOMBRE en el esquema de
+    respuesta, «exclusivo del documento nuevo», y «el punto de retirada está en Chamberí» es, a la letra, algo que
+    sólo dice el documento nuevo: el juez metía ahí un conflicto que él mismo había visto. **Lo arregló definir la
+    caja** (fase 1.0 de F-124, `00ed4235`), no tocar el modelo. ⚠️ Con la precisión de Code (23/10, leído el
+    hallazgo): definir la caja sacó LUGAR de `uniqueToNewDoc` y subió el marcador de 1 a 2 de 3, pero LUGAR no se
+    publicó hasta F-126 (14/10), porque seguía muriendo en la puerta de citas; esa segunda mitad es la regla de la
+    cita, no la caja.
+  · **D en NOR-10 ↔ CLI-12 (23/10/2026, F-129)**: la definición pedía «imposible que ambas afirmaciones sean
+    verdaderas», y dos normas no son verdaderas ni falsas: se cumplen o no. El juez obedece y no la emite. Lo
+    arregla el predicado nuevo —de verdad a cumplimiento—, no tocar el modelo.
 
 ---
 
@@ -429,6 +448,12 @@ concreto, la evidencia y la exposición de motivos de cada regla.
 sigue la referencia.** Sin la primera capa, la ley se busca leyendo doce
 consultas. Sin la segunda, la ley queda sin motivos y el primero que la
 encuentre incómoda la cambiará sin saber qué compraba.
+
+**UNA SOLA SERIE DE NÚMEROS, Y EL ÍNDICE LOS LISTA TODOS** (arquitecto, 23/10/2026). Los F-NNN se comparten entre
+las consultas a Fable y nuestras propias tandas de medida, y por eso se buscó un fichero de F-128 que nunca existió:
+F-128 fue una medida nuestra. La regla: **una sola serie**, y `claude/consultas-fable/INDICE.md` lista TODOS los
+números, diciendo en cada fila si es una consulta con sus dos mitades o una medida nuestra. **No se renumera nada
+hacia atrás**: rompería todas las referencias del repositorio.
 
 **SE ARCHIVA EL PAR, NO LA RESPUESTA.** Una respuesta sin su consulta delante es
 ilegible: no se sabe qué se preguntó ni con qué evidencia. El agujero medido el
@@ -1041,6 +1066,18 @@ commit salió igual, porque se encadenó detrás de algo que no se paraba ante u
 rojo; en dos de los tres, además, el nombre se perdió al filtrar la salida.
 
 
+## ⚠️ PARA SEPARAR COMMITS SE PREPARA CADA FICHERO POR SU NOMBRE, NUNCA `git stash`
+
+*Añadida el 23/10/2026 (arquitecto), tras un error de Code.*
+
+El caso: para separar dos commits que estaban mezclados en el árbol, Code usó `git stash push --keep-index` sin nada
+preparado, y el stash se llevó TODOS los cambios sin commit —`package.json`, el protocolo, el estado vivo,
+`judge.ts` y `types.ts`—. Se recuperaron con `git stash pop` en la orden siguiente, comprobando fichero a fichero, y
+no se perdió nada; pero un stash olvidado es trabajo que desaparece del árbol sin que nadie lo vea. **La forma
+correcta: `git add` de cada fichero por su nombre, y un commit por cada grupo.**
+
+---
+
 ## ⚠️ A LA SEGUNDA VEZ DEL MISMO FALLO DE MÉTODO, EL APRENDIZAJE SUBE DE FICHA AL PROTOCOLO
 
 *Adoptada el 28/09/2026, a petición del arquitecto: la lección del día.*
@@ -1284,9 +1321,10 @@ no es un tope.
 
 **LOS ARNESES CORREN CON TRES HILOS (23/10/2026), porque saltó el disparador.** El 23/10 el gate se puso ROJO por
 tiempo por primera vez: la preparación del arnés de `SQL_311_02` cruzó su tope de 120 s con los siete ficheros de
-arneses en paralelo sin límite, y ninguna aserción falló. El disparador estaba escrito («la primera vez que el gate
-se ponga ROJO por tiempo, se toca la configuración y se acabó», arquitecto, 23/10), así que `npm test` lanza ahora
-los arneses con `--maxWorkers=3`. Medido antes de elegir, dos veces cada uno: con 2 hilos, 55 y 41 s; con 3, 44 y
+arneses en paralelo sin límite, y ninguna aserción falló. El disparador estaba escrito: «la primera vez que el gate
+se ponga ROJO por tiempo, se toca `vitest.config.mts` y se acabó» (arquitecto, 23/10). ⚠️ **Corregido con su nombre**:
+el arquitecto escribió `vitest.config.mts`, y el número de hilos es una opción de la ORDEN, así que va en
+`package.json` (lo vio Code). `npm test` lanza ahora los arneses con `--maxWorkers=3`. Medido antes de elegir, dos veces cada uno: con 2 hilos, 55 y 41 s; con 3, 44 y
 38 s; con 4, 59 y 38 s; sin límite, entre 41 y 147 s en lo que va de semana. Con 3 hilos y la suite delante, el gate
 dio 112 y 34 s: la variación sigue —es de la máquina, no del código—, pero ya no cruza ningún tope. Ningún tope se ha
 subido.
