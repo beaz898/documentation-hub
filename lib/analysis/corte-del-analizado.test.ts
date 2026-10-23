@@ -9,7 +9,7 @@ import { repartoDeLaPareja } from './reparto-de-la-pareja';
 /**
  * EL CORTE DEL ANALIZADO EN UN LÍMITE DE PIEZA (3.1.2, primera mitad, 23/10/2026). Cada rama con su caso
  * decisivo; el caso medido de 40.000 (F-128, 19/10) con los trozos reales de NOR-10, de punta a punta por
- * \`leerLaPareja\`; un barrido del corte sobre los diez documentos del corpus; y el cableado en el juez.
+ * `leerLaPareja`; un barrido del corte sobre los diez documentos del corpus; y el cableado en el juez.
  * Con la ventana de producción (150.000) ninguna pareja del corpus tiene corte: esto sólo se ejerce aquí.
  */
 const cortar = (piezas: string[], tope: number) => cortarEnLimiteDePieza(piezas.join(SEPARADOR), finesDePiezas(piezas), tope);

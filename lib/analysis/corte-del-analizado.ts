@@ -2,14 +2,14 @@
  * EL CORTE DEL ANALIZADO EN EL CORTE HONESTO — la primera mitad del 3.1.2 (F-127 P3, P7 paso 2 y adenda Q3;
  * plan aprobado por el arquitecto el 23/10/2026).
  *
- * Hasta aquí el analizado se cortaba por POSICIÓN —\`completo.slice(0, tope)\`—, a mitad de frase o de tabla, y
+ * Hasta aquí el analizado se cortaba por POSICIÓN —`completo.slice(0, tope)`—, a mitad de frase o de tabla, y
  * eso pide al juez citar tramos contiguos literales de un texto que no le llega entero. Ahora:
  *   · el corte AVANZA hasta el final de la pieza en curso, pasándose del tope como mucho una pieza («el
  *     presupuesto en caracteres es vuestro, no del modelo», adenda Q3);
- *   · si esa pieza pasa de \`AVANCE_MAXIMO_DEL_CORTE\` (3.000), RETROCEDE al límite anterior;
+ *   · si esa pieza pasa de `AVANCE_MAXIMO_DEL_CORTE` (3.000), RETROCEDE al límite anterior;
  *   · si no hay límite anterior —la primera pieza ya pasa de 3.000—, se queda en la POSICIÓN de siempre: retroceder
  *     ahí dejaría el analizado vacío, que es peor que media frase. Es la única rama por posición, y se declara.
- * Las piezas son las de \`piezasDelAnalizado\` (\`judge.ts\`), unidas con \`SEPARADOR\`: el mismo criterio que monta el
+ * Las piezas son las de `piezasDelAnalizado` (`judge.ts`), unidas con `SEPARADOR`: el mismo criterio que monta el
  * texto decide dónde puede cortarse, y aquí no se recalcula.
  *
  * ⚠️ DÓNDE SE PUEDE MEDIR: con la ventana de 150.000 ninguna pareja del corpus tiene corte del analizado, y con
@@ -18,7 +18,7 @@
  * 36.553. Las pruebas lo ejercen con esa ventana; en una tanda de este corpus, esta mitad sale «NO APLICA: sin
  * corte» y no cuenta como acierto.
  * ⚠️ Y LA RAMA DE RETROCEDER SÓLO LA PUEDE DISPARAR UNA TABLA: la prosa se subdivide por encima de 1.500
- * caracteres (\`lib/chunking.ts\`), así que sólo una tabla, que se monta como una pieza entera, pasa de 3.000.
+ * caracteres (`lib/chunking.ts`), así que sólo una tabla, que se monta como una pieza entera, pasa de 3.000.
  */
 export const AVANCE_MAXIMO_DEL_CORTE = 3_000;
 export const SEPARADOR = '\n\n';
@@ -31,7 +31,21 @@ export interface CorteDelAnalizado {
   modo?: ModoDelCorte;
 }
 
-/** Dónde acaba cada pieza en el texto unido con \`SEPARADOR\` (fin exclusivo), en orden. */
+/**
+ * LA DECLARACIÓN DE LO OMITIDO — la segunda mitad del 3.1.2 (F-127 P3: «el documento continúa; no se te han
+ * mostrado N caracteres a partir de aquí»; plan aprobado el 23/10/2026). Sólo cuando el corte honesto dejó fuera
+ * parte del analizado; si no, la cadena vacía, y el prompt sale byte a byte igual que antes.
+ * ⚠️ VA FUERA DE LAS COMILLAS DEL DOCUMENTO (protocolo, «lo que escribimos nosotros no va donde el juez cita»):
+ * dentro, el juez podría tomarla por una frase del documento, y la propia frase dice que no lo es. Si la citara, la
+ * puerta la rechazaría —comprueba contra lo entregado del documento, que no la lleva— y el hallazgo se perdería.
+ */
+export function avisoDeLoOmitido(l: { regimen: string; analizado: { caracteres: number; mostrados: number; dejoFuera: boolean } }): string {
+  if (l.regimen !== 'corte_honesto' || !l.analizado.dejoFuera) return '';
+  const omitidos = l.analizado.caracteres - l.analizado.mostrados;
+  return `\n[AVISO DEL SISTEMA, no es texto del documento: el DOCUMENTO NUEVO continúa; no se te han mostrado ${omitidos} caracteres a partir de aquí.]`;
+}
+
+/** Dónde acaba cada pieza en el texto unido con `SEPARADOR` (fin exclusivo), en orden. */
 export function finesDePiezas(piezas: string[]): number[] {
   const fines: number[] = [];
   let pos = 0;
@@ -40,8 +54,8 @@ export function finesDePiezas(piezas: string[]): number[] {
 }
 
 /**
- * Corta \`completo\` por un límite de pieza cerca de \`tope\`. \`fines\` son los de \`finesDePiezas\` sobre las mismas
- * piezas que forman \`completo\`; con una sola pieza (o sin piezas, el texto plano) el corte es por posición.
+ * Corta `completo` por un límite de pieza cerca de `tope`. `fines` son los de `finesDePiezas` sobre las mismas
+ * piezas que forman `completo`; con una sola pieza (o sin piezas, el texto plano) el corte es por posición.
  */
 export function cortarEnLimiteDePieza(completo: string, fines: number[], tope: number): CorteDelAnalizado {
   if (completo.length <= tope) return { texto: completo };

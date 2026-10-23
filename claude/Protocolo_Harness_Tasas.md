@@ -289,9 +289,16 @@ creado o machacado ficheros.
 
 *Añadida el 23/10/2026 (arquitecto), al planear la declaración de lo omitido del 3.1.2.*
 
-**Todo lo que el juez recibe entre las comillas de un documento puede acabar citado como texto del cliente, y la
-puerta lo da por literal**, porque comprueba contra lo entregado. Así que el texto NUESTRO —avisos, cabeceras,
-declaraciones, instrucciones— va fuera de esas comillas; y si tiene que ir dentro, se trata como el riesgo que es.
+**Todo lo que el juez recibe entre las comillas de un documento puede tomarlo por texto del cliente**: citarlo, o
+razonar sobre ello como si el documento lo dijera. Así que el texto NUESTRO —avisos, cabeceras, declaraciones,
+instrucciones— va fuera de esas comillas; y si tiene que ir dentro, se trata como el riesgo que es.
+~~…y la puerta lo da por literal, porque comprueba contra lo entregado~~ ⚠️ **CORREGIDO por Code el 23/10, al
+mutar el commit 2 del 3.1.2: ERA FALSO, y lo había dicho Code en el plan.** La puerta comprueba cada cita contra lo
+ENTREGADO DEL DOCUMENTO (`loEntregadoDeLaPareja`, `lib/analysis/pajar-de-la-cita.ts`: el texto del analizado y los
+trozos del candidato), contra sus trozos, su texto de respaldo y los textos de contexto de los fragmentos, y nada
+de eso lleva nuestras cabeceras ni nuestros avisos. **Si el juez citara texto nuestro, la puerta lo RECHAZARÍA y el
+hallazgo se PERDERÍA**: el daño es una pérdida, no un literal falso publicado. La guarda que lo mantiene así es que
+lo entregado se construya desde el documento y nunca desde el prompt, y una prueba la vigila.
 
 Los casos, comprobados en el código el 23/10:
   · **las cabeceras de fragmento** —`[Fragmento n de "…"]`— las escribimos nosotros DENTRO del bloque citado del
@@ -299,8 +306,8 @@ Los casos, comprobados en el código el 23/10:
     ellas lleva escrito «NO CITAR LITERALMENTE», el prompt prohíbe «referirse a los fragmentos por su número», y la
     puerta tiene patrones que cazan «fragmento [n]» dentro de una cita (`NARRATION_PATTERNS`);
   · **la declaración de lo omitido** del 3.1.2 («el documento continúa; no se te han mostrado N caracteres»):
-    dentro de las comillas, el juez podría citarla y la puerta la daría por literal. Por eso va FUERA, y una prueba
-    lo vigila.
+    dentro de las comillas, el juez podría tomarla por una frase del documento. Por eso va FUERA, empieza diciendo
+    que no es texto del documento, y una prueba vigila que lo entregado del lado nuevo no la lleva.
 **DOS MIEMBROS, y así queda (arquitecto, 23/10).** El hallazgo de LUGAR en `uniqueToNewDoc`
 (`claude/Hallazgo_LUGAR_en_uniqueToNewDoc.md`) no es de esta clase, leído el hallazgo: es de la siguiente.
 

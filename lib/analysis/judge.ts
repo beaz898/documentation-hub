@@ -13,7 +13,7 @@ import { comprobarConRepliegues, localizadorDeLado, registroDelTramo, type Compr
 import type { RerankedCandidate, DocumentJudgment, PipelineOptions, DiscardedFindings, DocumentFragment, LecturaDeLaPareja, TextoAnalizado } from './types';
 import type { StoredChunk } from '@/lib/read-chunks';
 import { repartoDeLaPareja, TAMANO_VENTANA, type RepartoElegido } from './reparto-de-la-pareja';
-import { cortarEnLimiteDePieza, finesDePiezas, SEPARADOR } from './corte-del-analizado';
+import { avisoDeLoOmitido, cortarEnLimiteDePieza, finesDePiezas, SEPARADOR } from './corte-del-analizado';
 
 // F-61: normalize se extrajo a su propio fichero (ver normalize.ts) para
 // evitar un ciclo con table-structure.ts. Se re-exporta aquí para que
@@ -832,7 +832,7 @@ async function judgeSingleDocument(args: {
 DOCUMENTO NUEVO: "${newDocumentName}"
 """
 ${pareja.textoAnalizado}
-"""
+"""${avisoDeLoOmitido(pareja.lectura)}
 
 DOCUMENTO EXISTENTE: "${candidate.documentName}" (fuente: ${candidate.source})
 """
