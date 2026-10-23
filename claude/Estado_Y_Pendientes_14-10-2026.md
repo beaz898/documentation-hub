@@ -48,11 +48,14 @@
 - **HECHO el 22/10**: `SQL_313_02_la_entrada_del_juez_contra_cli13.sql` dice **LA MISMA ENTRADA** (ver el 3.1.3).
 - **HECHO el 22/10, por la tarde**: la ventana de 150.000, desplegada (`09cf63e5`), medida y CERRADA (ver el
   3.1.3). **ABIERTO con nombre**: el caso D. **Lo siguiente**: la 3.1.2.
-- **POR MANDAR (23/10)**: la consulta **F-129** a Fable sobre el caso D, escrita por el arquitecto en el proyecto
+- **HECHO el 23/10**: el dictamen de **F-129**, recibido y archivado con su consulta en
+  `claude/consultas-fable/F-129_2026-10-23_una-permision-contra-un-principio.md`. Lo decidido, en el 3.4 (generalizado) y en el caso D. **Lo siguiente sigue
+  siendo la 3.1.2, y antes su plan.**
+- ~~**POR MANDAR (23/10)**: la consulta **F-129** a Fable sobre el caso D, escrita por el arquitecto en el proyecto
   de Claude (`claude/Consulta_Fable_F129_D_Una_Permision_Contra_Un_Principio.md`, que NO está en este
   repositorio); la manda el director. Pregunta si D está dentro o fuera de la definición de contradicción, si es
   especie propia o cabe en su 3.4, y si va antes o después de la 3.1.2. **No se construye nada del caso D hasta
-  su dictamen.**
+  su dictamen.**~~ (mandada y contestada el 23/10)
 
 ---
 
@@ -299,7 +302,24 @@ del análisis; (4) guardarlo; (5) el medidor, en SQL probado en PGlite y con arn
 ⚠️ **El tope mensual de 35 $ hay que revisarlo con el coste bueno delante** (arquitecto, 19/10): cualquier cifra de coste
 leída de `cost_usd` antes del arreglo es la cuarta parte de la real. Los «0,0045 $» por análisis de F-117 (`claude/consultas-fable/F-117.md:183`), que Fable usa en la adenda, no dicen de dónde salen; si salen de esa columna, son la cuarta parte.
 
-#### 3.1.2 · El corte: avanzar al final del trozo, y declarar lo omitido · F-127 P3 y P7 paso 2, adenda Q3 · SIN EMPEZAR · ES LO SIGUIENTE (22/10)
+#### 3.1.2 · El corte: avanzar al final del trozo, y declarar lo omitido · F-127 P3 y P7 paso 2, adenda Q3 · EN CURSO (23/10)
+**EL PLAN, APROBADO por el arquitecto el 23/10**, en tres commits, cada uno con sus tres gates, sus mutantes y su
+diff antes de subirlo:
+  1. **el corte AVANZA al final del trozo en curso** (tope de 3.000; si el trozo pasa de eso, retrocede al
+     límite anterior). Código, sólo en el corte honesto; la tijera vieja no se toca. Se prueba con la ventana
+     de **40.000**, el caso medido de F-128 (corte en 37.143, dentro del trozo 36; límite anterior, 36.483; B
+     hacia el 36.553).
+  2. **se DECLARA al juez lo omitido**, con su tamaño, FUERA de las comillas del documento. Con la prueba de
+     que el prompt sale byte a byte igual cuando no hay corte.
+  3. **LA REGLA DEL SUJETO**, como EXCEPCIÓN AÑADIDA: sin tocar la frase de F-126 («puede empezar y acabar a
+     mitad de frase…») ni su ejemplo, que son los que llevaron LUGAR a 7 de 7.
+  La tanda, sólo después del 3. **Al calificar, de las mitades del 3.1.2 SÓLO SE PUEDE CALIFICAR LA DEL SUJETO**:
+  con la ventana de 150.000 ninguna pareja del corpus tiene corte, así que las del corte salen «NO APLICA: sin
+  corte» y NO cuentan como aciertos.
+  ⚠️ **ERROR DEL ARQUITECTO (23/10)**: su encargo pedía probar el corte con 80.000, «la ventana del caso medido»,
+  y confundía el corte del ANALIZADO con el del CANDIDATO: con 80.000 el reparto le dio a NOR-10 sus 66.801 enteros
+  y lo que se recortó fue el candidato. El corte del analizado sólo aparece en este corpus por debajo de unos
+  70.000 (lo vio Code).
 ⚠️ **No arregla el caso D** (ver el caso abierto, después del 3.1.3): corrige cómo se cita lo que el juez ya
 emitió, y D no se emitió.
 **CAMBIA el 18/10 (adenda de Fable, Q3): ya no es «retroceder al límite».** Retroceder dejaba fuera
@@ -336,6 +356,13 @@ DISPUTA ES EL SUJETO, LA CITA TIENE QUE EMPEZAR EN EL SUJETO».** El defecto no 
   la tanda y las tres de la línea base salen OTRA por la cita y A por la frase.
 Lo que el 3.1.2 tiene que cumplir, entonces, no es «toda cita lleva sujeto», sino eso: cuando lo que
 se contradice es quién, la cita empieza en quién.
+**P-F129-a (Fable, 23/10), se califica en la tanda del 3.1.2**: con la pareja entera, los hallazgos sin sujeto
+bajan del 29 % a MENOS DEL 10 % antes de que el 3.1.2 toque nada, porque la fragmentación de A era la causa. Si
+no bajan, el 3.1.2 tiene su caso; si bajan, se mide igual pero vale menos.
+**✗ REFUTADA, con la tanda del 22/10 (arquitecto, 23/10)**: el 29 % (8 de 28, 28,6 %) se midió YA con la pareja
+entera y con el 3.1.2 sin tocar, que es exactamente la condición de la predicción, y 28,6 % no es «menos del 10 %»
+(lo avisó Code). NO se lanza otra tanda para medir lo mismo. Se aplica la consecuencia que el propio Fable
+escribió: **«si no bajan, el 3.1.2 tiene su caso»**. Va a la próxima consulta, para que Fable pueda objetar.
 
 #### 3.1.3 · El interino: ventana con reparto monótono (80.000, y 150.000 desde el 22/10) · F-127 P4, P5 y P7 paso 3, adenda Q4 · CERRADO (22/10)
 **MEDIDO el 22/10/2026**, con `SQL_313_01`, `SQL_F128_01`, `SQL_F128_02` y `SQL_311_02` sobre la tanda.
@@ -453,6 +480,14 @@ que NO está en este repositorio.
       espera: la hipótesis del backoff sigue enterrada. El ÷4, al 70 % (68,5 % en la 3.1.1).
     · **El pendiente del medidor sigue**: la lectura guarda cuántos trozos entran cuando hay selección, no
       cuáles.
+    · **«LEER DE MÁS ABARATA», RESULTADO GENERAL (F-129, 23/10)**, no de esta pareja: la fragmentación de
+      hallazgos es un coste de salida, y el texto de entrada completo lo evita. Con un trozo del candidato el
+      juez desmenuzaba A en tres hallazgos; con el candidato entero la publica una vez y le queda sitio.
+    · **RESERVA SOBRE LA VENTANA (F-129, aceptada por el arquitecto)**: la pérdida de atención en contextos
+      largos sigue SIN MEDIR. El arnés es la guarda: si una trampa de una pareja pequeña dejara de salir con la
+      ventana grande, SE MIDE LA VENTANA, NO LA TRAMPA. Hoy no ha pasado. ⚠️ El dictamen dice «150.000
+      caracteres son unos 45.000 tokens»; con la proporción medida el 22/10 en la pareja (2,745 caracteres por
+      token, 3.1.4) salen unos 54.600. Nota de Code; el texto del dictamen no se toca.
 
 **HECHO EN CÓDIGO el 21-22/10 (`2e63221a` y `aa29166b`, opción (a) del arquitecto)**: dos selecciones —la
 de la recuperación con 3.000, como siempre, y una segunda después del rerank con el resto— y un solo
@@ -537,7 +572,13 @@ un PRINCIPIO.
 ⚠️ **Y LO MÁS INFORMATIVO, en palabras del arquitecto: CLI-12 · 3.5 apunta al apartado 3.1 para la separación de
 funciones, y EL 3.1 ES LA MITAD DE A. La frase que resolvería D es la que el juez ya publica 5 de 5 como A. La
 tiene delante, la cita bien, y no la conecta.**
-**Pendiente del dictamen de F-129** (ver la sección 0). No se construye nada hasta entonces.
+~~**Pendiente del dictamen de F-129** (ver la sección 0). No se construye nada hasta entonces.~~
+**DICTAMEN DE F-129 (23/10, `claude/consultas-fable/F-129_2026-10-23_una-permision-contra-un-principio.md`): EL JUEZ NO FALLA EN D.** La definición pide «imposible
+que ambas afirmaciones sean verdaderas», y dos normas no son verdaderas ni falsas: se cumplen o no. ¿Pueden ser
+verdaderas las dos frases de D? Sí. ¿Pueden cumplirse las dos? No. El juez obedece la regla que se le dio. **El
+criterio pasa de VERDAD a CUMPLIMIENTO**, y eso cierra el agujero 3.1.1 del arquitecto: no era el prompt, era la
+definición. D queda dentro del producto y fuera de la definición actual, y entra por el **3.4 generalizado** (ver
+el 3.4). Sigue ABIERTO con nombre hasta que exista la especie.
   · **Dos hallazgos reales no sembrados**, en el registro (`SIEMBRA_corpus_ampliado.md` §7 y §8): la
     composición del comité de calidad de la red (4 de 5 pasadas) y su periodicidad (1 de 5, minor).
   · **Anotado, sin tocar código**: un `paso=normalizada` en la pasada de NOR-11 de las 09:48 (contenedor,
@@ -549,6 +590,13 @@ tiene delante, la cita bien, y no la conecta.**
 **LA JUSTIFICACIÓN, CON NÚMERO (22/10/2026)**: caché escrita 0, leída 0 y ahorro 0 $ en los DIECISÉIS
 análisis de la tanda del 3.1.3 (`SQL_311_02`; cifra del arquitecto, de la salida del director). La
 primera lectura del 21/10 ya daba cero en uno; ahora es en dieciséis.
+**LA CACHÉ VA ANTES QUE LA MIGRACIÓN DE MODELOS (decisión del arquitecto, 23/10, con la razón de F-129)**: el
+verificador es el control de la puerta y de la especie nueva, y abaratarlo es abaratar el control; la caché no
+toca ningún control y recupera el 36 % de la entrada del juez (30.700 de 85.158). **El orden es DECISIÓN DEL
+ARQUITECTO, NO DEL DICTAMEN**: el dictamen no ordena las dos cosas, sólo dice que la caché es «el ahorro que no toca
+ningún control». ⚠️ **Error del arquitecto (23/10)**: su lectura daba el orden como razón de Fable. Y Fable
+no decide sobre la migración porque la consulta no dijo a qué modelo: **fallo de redacción del arquitecto**, en
+sus palabras.
 **Y CON NÚMERO DE LO QUE SE PAGA DOS VECES (22/10, tanda de 150.000)**: la caché, a cero en los siete análisis y
 sus 39 peticiones. El analizado (≈24.300 tokens) y el prompt (≈6.400) entran en las DOS peticiones del juez:
 unos 30.700 de los 85.158 tokens de entrada del juez se pagan dos veces en el mismo análisis.
@@ -885,15 +933,63 @@ dos frases reales afirma. Sin él, los ceros de `juez.recompuestas_bloqueadas_al
 Se siembra fuera de una medición en curso, nunca en medio de una.
 
 ### 3.3 · Fase 2 = F-119 · F-123 · ⚠️ DICTAMINADA SIN COMMIT
+**23/10 (F-129)**: Fable la nombra otra vez por la regla de los 7 días, con 23 días dictaminada y sin commit. Su
+urgencia baja con la pareja entera, porque con el candidato entero no hay selección que hacer; sigue viva para
+corpus donde los candidatos no quepan.
 El frente más antiguo abierto, y Fable lo señaló en la cabecera de F-126 por la regla de los 7 días.
 Recortada por F-123 a cuatro movimientos con medida en sombra. **Dictaminada y sin empezar.** Fable
 la contaba con 13 días sin commit el 13/10 por su regla de los 7 días; la cuenta la lleva él, aquí
 no se guarda un número que envejece.
 
-### 3.4 · «Norma contra práctica» · F-125
-Extender la definición de contradicción. En espera **por decisión del arquitecto, contra la
+### 3.4 · Conflicto normativo (antes «norma contra práctica») · F-125, GENERALIZADO por F-129 (23/10) · DESPUÉS DE LA 3.1.2 Y DE CUATRO SIEMBRAS
+~~Extender la definición de contradicción. En espera **por decisión del arquitecto, contra la
 recomendación de Fable**, con la condición de que fuera después de medir (B). **(B) ya está medida,
-así que esta condición se ha cumplido y queda desbloqueada.** Commit propio.
+así que esta condición se ha cumplido y queda desbloqueada.** Commit propio.~~ (F-125; generalizado el 23/10)
+**EL DICTAMEN DE F-129** (`claude/consultas-fable/F-129_2026-10-23_una-permision-contra-un-principio.md`; lo que sigue es su contenido, con la lectura del
+arquitecto donde se dice):
+- **Se generaliza**: deja de ser «norma contra práctica» y pasa a ser `conflicto_normativo`, con dos subtipos,
+  `norma_contra_practica` y `norma_contra_norma`. Fable lo cuenta como corrección SUYA, no nuestra.
+- **El predicado**: dos pasajes se contradicen si afirman valores distintos para el mismo dato, O si enuncian
+  normas que no pueden cumplirse simultáneamente por el mismo sujeto en el mismo ámbito. **Universo**: normas son
+  los enunciados con «debe», «puede», «nunca», «prohibido», «solo», «exclusivamente», «no sustituye»,
+  «separación», «incompatible» o equivalentes, y el sujeto y el ámbito se nombran EN EL TEXTO. **Vacío**: si falta
+  el sujeto común o el ámbito común, no es conflicto normativo; como mucho, una «sospecha sin contrastar» interna.
+- **Las citas de `norma_contra_norma`**: (1) la permisión, literal y obligatoria; (2) el principio, literal y
+  obligatorio, **y tiene que contener la palabra de incompatibilidad** («nunca», «separación», «prohibido», «no
+  puede»): si el principio sólo se deduce, NO SE PUBLICA; (3) la referencia interna, literal y opcional: **cuando
+  existe en el texto, como «el apartado 3.1», SE EXIGE** y sube la confianza; cuando no existe, el hallazgo se
+  publica si están 1 y 2, con confianza menor. ⚠️ La lectura del arquitecto la daba como «opcional, que sube la
+  confianza cuando existe»; **manda el dictamen: cuando existe, se exige**. **La consecuencia de diseño
+  (arquitecto, 23/10): un hallazgo cuya referencia interna exista en el texto y no se cite DEBE BLOQUEARSE.**
+  Para el 3.4; hoy no se construye. Nunca un conflicto normativo con una
+  cita y una explicación: un cliente no puede comprobar una explicación; puede comprobar dos frases.
+- **El verificador cambia de pregunta** para `norma_contra_norma`: «si se cumple la permisión de la cita 1, ¿puede
+  cumplirse la norma de la cita 2? Sí, no, o depende del ámbito». Sólo «no» confirma; «depende» va a sospecha.
+- **Severidad e incertidumbre son dos campos**: la severidad la decide el juez por impacto («un conflicto de
+  separación de funciones en un protocolo clínico no es menor»), y la confianza se muestra aparte («inferido de
+  principio enunciado»). El dictamen dice que mezclarlos «es lo que vuestra minor_inconsistency hace y conviene no
+  repetir»; **anotarlo como deuda es DECISIÓN DEL ARQUITECTO, NO DEL DICTAMEN** (sección 5). ⚠️ **ERROR DEL
+  ARQUITECTO (23/10), en sus palabras**: su lectura del dictamen la daba como dicha por Fable; «dar peso de
+  dictamen a una decisión propia es de lo peor que puedo hacer en este puesto, porque dentro de un mes nadie la
+  puede discutir».
+- **Dos contadores** para cuando la especie exista: `conflicto_normativo_detectado` y, en el original,
+  «..._no_publicado». **NO se construyen**: van con el 3.4, y cómo se cuenta lo que el juez todavía no emite es una
+  pregunta de ese encargo (arquitecto).
+- **CUATRO SIEMBRAS ANTES DE MEDIR**: dos casos de `norma_contra_norma` distintos de D y SIN referencia interna;
+  un caso NEGATIVO (dos normas que parecen incompatibles y no lo son: el ejemplo del dictamen, NOR-10 deja al
+  Director designar al Coordinador y CLI-12 dice que lo sustituye el de otra clínica en vacaciones); y uno de
+  `norma_contra_practica`, que no tiene siembra. Sin el negativo, el cero de falsos es un cero de población. **Que
+  ninguna se siembre en medio de una medición es DECISIÓN DEL ARQUITECTO, NO DEL DICTAMEN**; ⚠️ su lectura la daba
+  como de Fable: **error del arquitecto, 23/10**.
+- **El orden**: después de la 3.1.2, porque cambiar a la vez la cita con sujeto y la definición deja sin causa un
+  cambio de marcador; y no inmediatamente después: tras las cuatro siembras.
+- **Las predicciones, para la tanda de la extensión**: **P-F129-b**, D se publica como `norma_contra_norma` con las
+  tres citas en 4 de 5 o más; los dos sembrados nuevos, 3 de 5 o más cada uno; el negativo, 0 de 5;
+  `norma_contra_practica`, 3 de 5 o más. **P-F129-c**, las seis contradicciones vivas siguen 5 de 5, y 0 de 5
+  falsos de la especie nueva en el caso de control. **P-F129-d**, al menos un candidato a `norma_contra_norma` recibe
+  «depende del ámbito» del verificador y va a sospecha; si ninguno, el verificador no discrimina y hay que mirar su
+  pregunta. **Criterio de abandono**, el nuestro y suscrito por Fable: una de las seis vivas por debajo de 5 de 5, o
+  un falso de la especie nueva, y se revierte.
 
 ### 3.5 · «Si no puedes copiar una frase literal, no emitas» · F-121 P7, reafirmado en F-126
 Fable la señaló como un acoplamiento entre emisión y copia y sigue pensando que está mal, pero
@@ -1065,6 +1161,7 @@ Del inventario de Code (14/10), sobre las copias locales y el último censo del 
 | `selectUnitsWithinBudget` acepta el presupuesto por parámetro (`retrieval.ts:1090-1100`, desde F-73) pero corre en `retrieval.ts:502`, ANTES del juez, cuando «lo que sobra» de la pareja todavía no se sabe, y sólo con los trozos que devolvió Pinecone, con el tope de 25 piezas. **El reparto nuevo no es recablear un parámetro: es mover dónde se decide** | F-127 P9.3 |
 | HAY UN SEGUNDO ÷4 sin medir, en ~~`lib/llm/anthropic-client.ts:322`~~ **`callAnthropicJson` y `callAnthropicAgent`** (`lib/llm/anthropic-client.ts`; líneas 371 y 462 el 21/10/2026, sólo como ayuda: la 322 ya no era ninguna de las dos): estima los tokens de entrada como la longitud del payload entre 4. Con 3.1.1 hecho se puede comprobar cuánto se equivoca; es el objetivo escrito del paso 5 | F-127, lectura de Code del 16/10 |
 | La latencia por llamada no se mide en ningún sitio | F-127 P9.1 |
+| **`minor_inconsistency` MEZCLA SEVERIDAD E INCERTIDUMBRE EN UN SOLO CAMPO.** El dictamen de F-129 separa las dos cosas para la especie nueva —la severidad, por impacto; la confianza, aparte y mostrada («inferido de principio enunciado»)— y dice que mezclarlas «es lo que vuestra minor_inconsistency hace y conviene no repetir». Hoy un hallazgo menor por matiz y uno dudoso por falta de pruebas se ven igual. **No se toca** (arquitecto, 23/10) | F-129, 23/10 |
 | **LOS ARNESES DE PGLITE TARDAN DE 41 A 122 s SEGÚN LA PASADA, EN VERDE.** El 22/10, con siete ficheros en paralelo, el primer caso de tres de ellos cruzó su tope de 60 s (113 s medidos) porque levantaban una base por caso; se arregló con una base por fichero, sin subir topes. Desde entonces todas las pasadas salen en verde, pero el tiempo varía de 41 a 122 s, y el censo `pglite-fuera-del-producto`, que no usa PGlite, tarda 0,3 s solo y hasta 63 s en paralelo, por hambre de CPU. **Aparcado (arquitecto, 23/10): en verde y lento no es motivo para abrir el frente.** **Disparador: la primera vez que el gate se ponga ROJO por tiempo**, se toca `vitest.config.mts` (pasar el censo al proyecto de la suite, o limitar los hilos de los arneses) y se acabó | medido por Code el 22/10 |
 | **NADIE HA DECIDIDO QUÉ DEL JSONB DEL ANÁLISIS LLEGA AL NAVEGADOR.** Los dos endpoints de la bandeja, `app/api/analysis-results/[id]` y `app/api/documents/[id]/analysis`, devuelven el objeto `analysis` ENTERO; sólo la respuesta de `analyze-v2` lleva una lista cerrada de campos. Dos ejemplos de lo que ya viaja sin que nadie lo decidiera: (1) **el recorte del documento**: `lecturaDeLasParejas` le dice al cliente, en números, que de su documento de 66.801 caracteres el juez sólo leyó 37.143 y dejó fuera el resto; (2) **nuestros reintentos**: desde el 21/10, `llamadasAlModelo` añade las latencias, las esperas, los intentos y los estados HTTP de cada petición al modelo —un 429 nuestro, contado al cliente—. Ninguno lleva contenido y sólo los ve quien ya puede abrir ese análisis, así que **no se toca ahora** (arquitecto, 21/10). **Disparador: antes del primer cliente de pago** hay que decidir qué campos del jsonb salen al navegador y poner una lista cerrada en esos dos endpoints, como ya la tiene `analyze-v2` | lo cazó Code al abrir los consumidores del paso 4 del 3.1.1, 21/10 |
 | **El censo de secretos del 21/10 dio CERO CLAVES en todo el historial, y eso NO es una garantía mayor de la que es.** Recorrió por patrón de credencial los diffs de los 1.758 commits (`git log --all -p`, 350.658 líneas, ficheros ya borrados incluidos) y los 1.758 mensajes, con control positivo (claves fabricadas de cada servicio, todas cazadas). **Lo que NO cubre:** (1) **los binarios** —`.docx`, `.pdf`, `.xlsx` del corpus—, porque sólo lee texto; (2) **el patrón genérico** (un valor literal asignado a un nombre con API_KEY, SECRET, TOKEN…) **sólo salta con valores de 20 caracteres o más**: una contraseña corta asignada a mano no la caza; (3) sólo mira lo que llega por ramas y etiquetas, no el reflog local, que es lo mismo que se publica. Tras el censo, el `.gitignore` cubre además los `.env` sin «.local», los `*.key` y los JSON de cuentas de servicio | censo de Code del 21/10, a pregunta del arquitecto |

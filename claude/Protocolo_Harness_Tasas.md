@@ -285,6 +285,29 @@ creado o machacado ficheros.
 
 ---
 
+## ⚠️ LO QUE ESCRIBIMOS NOSOTROS NO VA DONDE EL JUEZ CITA
+
+*Añadida el 23/10/2026 (arquitecto), al planear la declaración de lo omitido del 3.1.2.*
+
+**Todo lo que el juez recibe entre las comillas de un documento puede acabar citado como texto del cliente, y la
+puerta lo da por literal**, porque comprueba contra lo entregado. Así que el texto NUESTRO —avisos, cabeceras,
+declaraciones, instrucciones— va fuera de esas comillas; y si tiene que ir dentro, se trata como el riesgo que es.
+
+Los casos, comprobados en el código el 23/10:
+  · **las cabeceras de fragmento** —`[Fragmento n de "…"]`— las escribimos nosotros DENTRO del bloque citado del
+    candidato (`lib/analysis/judge.ts`, las etiquetas de fragmento). Se han ido conteniendo caso a caso: una de
+    ellas lleva escrito «NO CITAR LITERALMENTE», el prompt prohíbe «referirse a los fragmentos por su número», y la
+    puerta tiene patrones que cazan «fragmento [n]» dentro de una cita (`NARRATION_PATTERNS`);
+  · **la declaración de lo omitido** del 3.1.2 («el documento continúa; no se te han mostrado N caracteres»):
+    dentro de las comillas, el juez podría citarla y la puerta la daría por literal. Por eso va FUERA, y una prueba
+    lo vigila.
+⚠️ El arquitecto la presentó como la misma clase que el hallazgo de LUGAR en `uniqueToNewDoc`
+(`claude/Hallazgo_LUGAR_en_uniqueToNewDoc.md`). **No lo es**, leído el hallazgo: allí el juez obedecía un contrato
+nuestro sin definir —la caja sólo tenía nombre—, que es la clase de D («obedece la regla que le dimos»), no la de
+confundir texto nuestro con texto del cliente. Se deja fuera de la lista hasta que alguien lo discuta.
+
+---
+
 ## ⚠️ EL ESPERADO DE UNA CONSULTA DE TANDA SE RELLENA DESPUÉS DE MIRAR EL RELOJ DE LA BASE, NO ANTES
 
 *Añadida el 22/10/2026 (arquitecto), con la tanda del 3.1.3.*
