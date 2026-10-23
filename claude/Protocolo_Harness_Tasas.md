@@ -1282,6 +1282,15 @@ que una suite lenta, porque enseña a repetirla en vez de a investigarla.** Los 
 que son: **un aviso para mirar, no un límite.** Y un tope de tiempo que mide la máquina y no el código
 no es un tope.
 
+**LOS ARNESES CORREN CON TRES HILOS (23/10/2026), porque saltó el disparador.** El 23/10 el gate se puso ROJO por
+tiempo por primera vez: la preparación del arnés de `SQL_311_02` cruzó su tope de 120 s con los siete ficheros de
+arneses en paralelo sin límite, y ninguna aserción falló. El disparador estaba escrito («la primera vez que el gate
+se ponga ROJO por tiempo, se toca la configuración y se acabó», arquitecto, 23/10), así que `npm test` lanza ahora
+los arneses con `--maxWorkers=3`. Medido antes de elegir, dos veces cada uno: con 2 hilos, 55 y 41 s; con 3, 44 y
+38 s; con 4, 59 y 38 s; sin límite, entre 41 y 147 s en lo que va de semana. Con 3 hilos y la suite delante, el gate
+dio 112 y 34 s: la variación sigue —es de la máquina, no del código—, pero ya no cruza ningún tope. Ningún tope se ha
+subido.
+
 **EL EFECTO SECUNDARIO DE LA SEPARACIÓN: LAS HERRAMIENTAS DE UN SOLO USO YA NO SE LANZAN CON `--dir`**
 (arquitecto, 22/10/2026). Con los dos proyectos, cada uno con su `include`, `npx vitest run --root
 E:/Doc-Hub --dir <carpeta temporal>` no recoge nada de fuera del repositorio, y el 21/10 costó diez minutos
