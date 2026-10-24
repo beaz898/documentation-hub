@@ -14,6 +14,7 @@ import type { RerankedCandidate, DocumentJudgment, PipelineOptions, DiscardedFin
 import type { StoredChunk } from '@/lib/read-chunks';
 import { repartoDeLaPareja, TAMANO_VENTANA, type RepartoElegido } from './reparto-de-la-pareja';
 import { avisoDeLoOmitido, cortarEnLimiteDePieza, finesDePiezas, SEPARADOR } from './corte-del-analizado';
+import { EXCEPCION_DEL_SUJETO } from './regla-del-sujeto';
 
 // F-61: normalize se extrajo a su propio fichero (ver normalize.ts) para
 // evitar un ciclo con table-structure.ts. Se re-exporta aquí para que
@@ -911,6 +912,7 @@ REGLAS DE FORMATO:
 - En existingDocSays y evidenceInExistingDoc: copia literalmente un fragmento del DOCUMENTO EXISTENTE.
 - Cada cita es un tramo de texto CONTIGUO del documento, copiado tal cual. Elige el tramo más CORTO que contenga el dato en conflicto. Puede empezar y acabar a mitad de frase: no hace falta que tenga sujeto ni que se entienda sola. Normalmente entre 40 y 200 caracteres. PROHIBIDO unir trozos de sitios distintos, resumir, quitar palabras del medio o poner puntos suspensivos. Si el dato está en una subordinada, copia la subordinada y lo justo que la rodea. Si el dato que necesitas está en otra frase, usa esa frase aunque no se parezca a la del otro documento: no recortes ni combines frases para que las dos citas se parezcan.
 - Ejemplo de cita correcta de una subordinada. Si el documento dice "Las bicicletas tándem, que solo pueden llevar quienes tengan la licencia de ciclista del club, se reparten por orden de llegada", y el dato en conflicto es quién puede llevarlas, una cita correcta es "que solo pueden llevar quienes tengan la licencia de ciclista del club": no tiene sujeto, no se entiende sola, empieza y acaba a mitad de frase, y es correcta.
+${EXCEPCION_DEL_SUJETO}
 - Para qué: cada cita se va a buscar LITERALMENTE en el documento del cliente y se va a mostrar en pantalla. Si no se encuentra tal cual, no sirve, y el hallazgo se pierde.
 - Las citas deben ser TEXTO COPIADO tal cual del documento, sin comentarios, sin explicaciones y sin referirse a los fragmentos por su número. Prohibido escribir cosas como "El fragmento [2] muestra que...", "El corpus especifica que...", "Este documento no menciona...".
 - Si no puedes copiar una frase literal que sustente el hallazgo, no emitas ese hallazgo.

@@ -318,6 +318,16 @@ diff antes de subirlo:
   partía. **La rama de la posición la añadió Code y el plan no la recogía** (arquitecto, 23/10): si no hay límite
   anterior —la primera pieza pasa de 3.000, una tabla grande al principio—, el corte se queda en la posición, porque
   retroceder dejaría el analizado vacío. Era un agujero del plan del arquitecto, y puede darse en producción.
+  **COMMIT 2 HECHO (`5d8b160e`, 23/10, aprobado)**: el aviso de lo omitido, fuera de las comillas del documento, y el
+  prompt byte a byte igual sin corte (cuatro huellas del código de `8a790652`). ⚠️ Con la corrección de Code: la
+  razón de ponerlo fuera NO es que la puerta lo diera por literal —la puerta compara contra lo entregado del
+  documento, y una cita de texto nuestro se rechaza y el hallazgo se pierde—, sino que el juez no lo tome por texto del
+  cliente (protocolo).
+  **COMMIT 3 HECHO (24/10, pendiente de aprobación)**: la regla del sujeto, en su propia línea (`EXCEPCION_DEL_SUJETO`,
+  `lib/analysis/regla-del-sujeto.ts`) justo después del ejemplo de F-126, sin tocarlo; quitada esa línea, los cuatro
+  prompts reales salen byte a byte los de `8a790652`. El ejemplo es de las bicicletas del club, no del corpus.
+  **LOS TRES COMMITS SE SUBEN JUNTOS** cuando el arquitecto apruebe el 3, para que Vercel despliegue un estado
+  coherente y la tanda mida la regla del sujeto y no un estado a medias.
   La tanda, sólo después del 3. **Al calificar, de las mitades del 3.1.2 SÓLO SE PUEDE CALIFICAR LA DEL SUJETO**:
   con la ventana de 150.000 ninguna pareja del corpus tiene corte, así que las del corte salen «NO APLICA: sin
   corte» y NO cuentan como aciertos.

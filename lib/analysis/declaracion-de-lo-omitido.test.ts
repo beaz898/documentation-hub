@@ -22,6 +22,7 @@ import { extractSegments, chunkSegments } from '@/lib/chunking';
 import { toStoredChunks, type StoredChunk } from '@/lib/read-chunks';
 import { judgeAllDocuments, leerLaPareja, montarBloqueDelCandidato, piezasDelAnalizado, buildAnalyzedDocumentText } from './judge';
 import { avisoDeLoOmitido, finesDePiezas, SEPARADOR } from './corte-del-analizado';
+import { EXCEPCION_DEL_SUJETO } from './regla-del-sujeto';
 import { loEntregadoDeLaPareja } from './pajar-de-la-cita';
 import { repartoDeLaPareja, type RepartoElegido } from './reparto-de-la-pareja';
 import type { DocumentFragment } from './types';
@@ -74,7 +75,10 @@ describe('2 · SIN CORTE, EL PROMPT ES EL DE ANTES, BYTE A BYTE (las parejas rea
     const ahora: Record<string, string> = {};
     for (const [nuevo, cands] of [['NOR11', ['CLI13', 'CLI12']], ['NOR10', ['CLI12', 'CLI13']]] as const) {
       const ps = await juzgar(nuevo, [...cands]);
-      ps.forEach((p, i) => { ahora[`${nuevo}↔${cands[i]}`] = huella(p); expect(p).not.toContain('AVISO DEL SISTEMA'); });
+      // ~~huella(p)~~ (23/10/2026). Desde el commit 3 del 3.1.2 (24/10) el prompt lleva la excepción del sujeto en su
+      // propia línea: quitada esa línea, el resto tiene que ser el de antes, byte a byte (regla-del-sujeto.test.ts
+      // comprueba que la línea ESTÁ, para que quitarla no sea quitar nada).
+      ps.forEach((p, i) => { ahora[`${nuevo}↔${cands[i]}`] = huella(p.replace(EXCEPCION_DEL_SUJETO + '\n', '')); expect(p).not.toContain('AVISO DEL SISTEMA'); });
     }
     expect(ahora).toEqual(ANTES);
   });
