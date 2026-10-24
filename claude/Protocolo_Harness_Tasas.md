@@ -299,6 +299,10 @@ trozos del candidato), contra sus trozos, su texto de respaldo y los textos de c
 de eso lleva nuestras cabeceras ni nuestros avisos. **Si el juez citara texto nuestro, la puerta lo RECHAZARÍA y el
 hallazgo se PERDERÍA**: el daño es una pérdida, no un literal falso publicado. La guarda que lo mantiene así es que
 lo entregado se construya desde el documento y nunca desde el prompt, y una prueba la vigila.
+**CÓMO ENTRÓ ESA FALSEDAD EN EL PROTOCOLO, que es lo que hay que evitar** (arquitecto, 24/10/2026): la escribió Code
+en el plan del 3.1.2; el arquitecto la REPITIÓ llamándola «lo mejor del plan», y esa repetición es la que la
+convirtió en regla con su nombre. **ELOGIAR UN MECANISMO ES AFIRMARLO.** Quien lo elogia responde de él como si lo
+hubiera comprobado.
 
 Los casos, comprobados en el código el 23/10:
   · **las cabeceras de fragmento** —`[Fragmento n de "…"]`— las escribimos nosotros DENTRO del bloque citado del
@@ -960,6 +964,28 @@ está truncada, o el patrón puede no casar, decirlo. Es más barato que
 retractarse en la consulta siguiente.
 
 
+## ⚠️ EL ARQUITECTO MARCA LO QUE NO HA COMPROBADO
+
+*Añadida el 24/10/2026 (arquitecto), con la cuenta del 23/10.*
+
+**El 23/10 el arquitecto cometió SIETE errores de la misma clase: afirmar de memoria lo que está escrito en el
+repositorio.** Todos los cazó Code leyendo:
+  1. las tres decisiones suyas que su lectura de F-129 atribuía al dictamen (la caché antes que la migración,
+     `minor_inconsistency` como deuda, no sembrar en medio de una medición);
+  2. «pruébalo con 80.000»: confundía el corte del ANALIZADO con el del CANDIDATO;
+  3. «es la tercera vez» de la clase «lo que escribimos nosotros no va donde el juez cita»: el hallazgo de LUGAR no
+     era de esa clase;
+  4. «se toca `vitest.config.mts`»: el número de hilos es una opción de la orden y va en `package.json`;
+  5. la fecha de F-128: dijo 21/10, y fue el 19/10, cerrada el 20/10 (`d4cd1288`);
+  6. «lo arregló definir la caja» para LUGAR: la caja hizo la mitad; la otra fue la regla de la cita de F-126;
+  7. la razón de la puerta («la daría por literal»), que había escrito Code en el plan y el arquitecto repitió.
+**LA FORMA OPERATIVA**: cuando el arquitecto afirme un mecanismo del sistema —qué compara la puerta, cómo se llama un
+fichero, qué día pasó algo—, o cita dónde lo ha leído, o escribe «SIN COMPROBAR» al lado. **Lo que llegue sin una de
+las dos cosas, Code lo trata como hipótesis y lo verifica antes de escribirlo en ningún documento.** Es la regla del
+indicativo de `CLAUDE.md`, aplicada a quien la escribió, con su cuenta.
+
+---
+
 ## ⚠️ EL ARQUITECTO ESTÁ SUJETO A LA MISMA REGLA QUE CODE: UNA CIFRA QUE VA A UNA FICHA SE MIDE O SE ESCRIBE «NO CONSTA»
 
 *Escrita a petición del arquitecto el 29/09/2026, sobre un caso suyo.*
@@ -1072,6 +1098,21 @@ fallo: `a3423ef2` (16/09, Estado_Del_MVP.md §5.70), B.263 (22/09) y B.286
 commit salió igual, porque se encadenó detrás de algo que no se paraba ante un
 rojo; en dos de los tres, además, el nombre se perdió al filtrar la salida.
 
+
+## ⚠️ UNA HUELLA QUE NO CAMBIA NO PRUEBA NADA SI EL CAMBIO NO SE APLICÓ
+
+*Añadida el 24/10/2026 (arquitecto), de la tanda del commit 2 del 3.1.2 (23/10).*
+
+El caso: para probar que el aviso de lo omitido no cambiaba ni un byte del prompt sin corte, Code fijó las huellas de
+cuatro prompts reales. La primera edición del juez NO SE APLICÓ —el ancla no coincidía— y **las cuatro huellas
+salieron iguales igualmente, porque era el código de siempre**. Lo destapó que el script de edición se paró con un
+error; si no, se habría dado por «byte a byte igual» un prompt que nadie había tocado.
+Es de la familia de «un cero permanente es indistinguible de "no ocurrió"» y de «una prueba que lee "la última
+llamada" puede pasar en falso». **LA FORMA OPERATIVA: una afirmación de igualdad byte a byte sólo vale acompañada de
+la prueba de que el camino nuevo existe**, y eso lo da el MUTANTE que lo rompe y sale en rojo. En el commit 2 salió
+(«sin corte, un espacio de más», y el aviso dentro de las comillas).
+
+---
 
 ## ⚠️ PARA SEPARAR COMMITS SE PREPARA CADA FICHERO POR SU NOMBRE, NUNCA `git stash`
 
@@ -1737,6 +1778,14 @@ Lo cazó un `git status` antes de seguir. Si hubiera entrado en un commit, **se 
 silencio la corrección más importante del día**, y el commit habría parecido limpio. Era la tercera vez
 que los escapes del shell rompían un generador. El generador bueno es
 `mutantes_f128.cjs`: doce mutantes, los doce en rojo, y la verificación contra git al final.
+**Y DESPUÉS DE CADA WRITE, COMO PASO OBLIGATORIO (arquitecto, 24/10/2026; el QUINTO incidente):** después de cada
+escritura con la herramienta de ficheros de un `.ts`, `.mts`, `.sql` o `.md`, se CUENTA en ese fichero cuántas
+barras invertidas hay delante de una comilla invertida (`grep -cF` con esa pareja de caracteres como cadena fija), y
+tiene que dar CERO antes de pasar los gates. El 23/10 se colaron ocho en los comentarios del commit 1 del 3.1.2 y una
+en la prueba del commit 2, y la regla de abajo no los evitó porque habla de LIMPIAR; el diagnóstico es de Code: **el
+error está en cómo se escriben los ficheros, no en cómo se limpian.** (Dentro de una plantilla de JavaScript esa
+pareja puede ser legítima: si sale distinto de cero, se mira dónde antes de quitarla.)
+
 **Y TAMBIÉN AL LIMPIAR, no sólo al escribir (arquitecto, 22/10/2026; la cuarta vez):** si el texto que se
 limpia lleva comillas invertidas, la limpieza va con Node y por cadena literal, nunca con `sed`. El
 21/10 se colaron unas comillas invertidas escapadas (barra y comilla) en los comentarios de
