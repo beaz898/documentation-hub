@@ -1105,6 +1105,14 @@ arquitecto donde se dice):
   `norma_contra_practica`, que no tiene siembra. Sin el negativo, el cero de falsos es un cero de población. **Que
   ninguna se siembre en medio de una medición es DECISIÓN DEL ARQUITECTO, NO DEL DICTAMEN**; ⚠️ su lectura la daba
   como de Fable: **error del arquitecto, 23/10**.
+  - ⚠️ **EL NEGATIVO DEL DICTAMEN NO SIRVE TAL CUAL (Code, 26/10)**: sale de **las MISMAS dos frases que D**
+    (NOR-10 · 2.4 y CLI-12 · 3.5), cada caso de una cláusula distinta. **Una frase no puede ser a la vez acierto y
+    falso positivo, y el metro clasifica POR FRASE.** Pasar a medir por cláusula sería cambiar el instrumento en
+    mitad de la medición: **NO se hace.** La precisión del arquitecto: «no es un defecto del corpus ni del
+    análisis; es una limitación DEL METRO, no de lo que se mide». Hace falta un negativo con frases propias.
+  - **PENDIENTE PARA LA PRÓXIMA CONSULTA**: que (ii) «otro profesional designado por él» frente a (iii) «lo
+    sustituye el Coordinador de otra clínica» no choquen (momentos distintos) es **LECTURA DEL ARQUITECTO**, no un
+    hecho medido.
 - **El orden**: después de la 3.1.2, porque cambiar a la vez la cita con sujeto y la definición deja sin causa un
   cambio de marcador; y no inmediatamente después: tras las cuatro siembras.
 - **Las predicciones, para la tanda de la extensión**: **P-F129-b**, D se publica como `norma_contra_norma` con las
