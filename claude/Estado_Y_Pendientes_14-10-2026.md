@@ -395,6 +395,13 @@ diff antes de subirlo:
     > personal ajeno al área auditada, **habitualmente el Coordinador de Calidad de otra clínica de la red**, para
     > garantizar independencia de criterio.»
     ⚠️ La frase de CLI-12 nombra la figura que audita, y eso se dice porque la cita resumida con «…» lo tapaba.
+    **LA LECTURA CORREGIDA (arquitecto, 25/10), con las dos frases enteras**: NO es un `norma_contra_norma`, es EL MISMO
+    DATO CON DOS VALORES —quién revisa—, y lo difícil no es un paso normativo sino reconocer que «revisa
+    trimestralmente el cumplimiento» y «auditoría interna» son la misma actividad: la familia del MISMO DATO BAJO OTRO
+    NOMBRE. Para la consulta: la especie `conflicto_normativo` tendrá que distinguirse de DOS vecinos, no de uno.
+    ⚠️ Con la precisión de Code (leído F-92): F-92 dictaminó esa familia para TABLAS —«el mismo dato bajo distinto
+    nombre DE COLUMNA» (`claude/consultas-fable/F-92.md`, líneas 41 y 238)—; éste es el caso de PROSA, la misma
+    actividad con dos nombres. Misma familia, otro terreno.
   · **«por la frase SIN FRASE», en la pasada 4 de NOR-10**, primera vez. Lo que significa, leído en `SQL_F128_02` (la
     columna `especie_frase`): ALGUNA de las dos citas no aparece literal —`strpos` exacto, con mayúsculas— en el
     `full_text` de su documento, así que no se puede recortar la frase que la contiene. No quiere decir que no
@@ -406,7 +413,27 @@ diff antes de subirlo:
     rango subido (`47a9d99f..90efcd41`) y en los anteriores, y cuadran con los días reales, del 22/10 23:52 al 24/10
     12:44 (+0200; el 25/10, +0100, por el fin del horario de verano). Ningún commit del rango lleva el 13/10, así que
     la fecha que vio el director al subir no sale de git, y las correcciones apoyadas en fechas de commit —la de F-128,
-    19/10 con cierre el 20/10 en `d4cd1288`— siguen en pie.
+    19/10 con cierre el 20/10 en `d4cd1288`— siguen en pie. **El 13/10 que vio el director no sale de git y queda sin
+    explicar; no es un frente** (arquitecto, 25/10).
+  · **LA CITA DEL NUEVO QUE NO ES LITERAL** (pasada 4 de NOR-10, con CLI-12, OTRA, confirmada por juicio, marca
+    recompuesta: no; SQL_F128_02 dice «⚠️ NO LITERAL en NOR-10»). Es lo único de la tanda que puede tocar lo que ve el
+    usuario. Tres causas posibles, y NO se toca nada hasta saber cuál es (arquitecto): la normalización de la puerta,
+    una invención que la puerta dejó pasar, o dos textos desfasados. Lo que Code leyó en el código el 25/10, para
+    separarlas:
+      · **lo que se publica de una cita que pasó por la vía `normalizada` es el texto DEL JUEZ, no el recorte del
+        documento**: es el diseño desde F-55 (comentario de `judge.ts`: «las tres vías devuelven ahora la CITA DEL
+        JUEZ, ya verificada»). Si la causa es ésa, no es un fallo de la puerta: es su contrato;
+      · **la vía por la que pasó cada cita publicada NO se guarda en la base**: `diagnosticoDelAcierto` sólo la
+        escribe en el log (`paso=…`), y se persisten los descartes. La causa 1 sólo se confirma en los logs;
+      · el rescate por glosa publica la cita SIN los corchetes, que es literal: no explica esto;
+      · el «NO LITERAL» de SQL_F128_02 mira el texto RECONSTRUIDO de los trozos guardados, no el `full_text`; así que la
+        causa 3 sólo cabe si los trozos que vio el juez no son los guardados (un análisis desde la bandeja con otra
+        extracción).
+    **La consulta, `SQL_312_01_la_cita_no_literal.sql`** (PENDIENTE DE EJECUTAR, sólo SELECT, sólo la organización del
+    piloto, con las horas de la tanda ya puestas): por cada cita del nuevo publicada que no sea literal, la cita, si
+    es literal en el `full_text` o en algún trozo, el principio y el final literales más largos, EL PRIMER CARÁCTER
+    DISTINTO con su código Unicode en la cita y en el documento, y los contadores de la puerta de esa pasada. Sin
+    interpretar. Arnés en `claude/arneses/f312/`; nueve mutantes, los nueve en rojo.
   · **LO SIGUIENTE, en el orden de Fable**: las cuatro siembras —dos `norma_contra_norma` sin referencia interna, una
     NEGATIVA y una `norma_contra_practica`—, y después el 3.4 generalizado. **No se empieza hasta que lo encargue el
     arquitecto**, y las siembras se escriben fuera de cualquier medición en curso.
@@ -1258,6 +1285,7 @@ Del inventario de Code (14/10), sobre las copias locales y el último censo del 
 | `selectUnitsWithinBudget` acepta el presupuesto por parámetro (`retrieval.ts:1090-1100`, desde F-73) pero corre en `retrieval.ts:502`, ANTES del juez, cuando «lo que sobra» de la pareja todavía no se sabe, y sólo con los trozos que devolvió Pinecone, con el tope de 25 piezas. **El reparto nuevo no es recablear un parámetro: es mover dónde se decide** | F-127 P9.3 |
 | HAY UN SEGUNDO ÷4 sin medir, en ~~`lib/llm/anthropic-client.ts:322`~~ **`callAnthropicJson` y `callAnthropicAgent`** (`lib/llm/anthropic-client.ts`; líneas 371 y 462 el 21/10/2026, sólo como ayuda: la 322 ya no era ninguna de las dos): estima los tokens de entrada como la longitud del payload entre 4. Con 3.1.1 hecho se puede comprobar cuánto se equivoca; es el objetivo escrito del paso 5 | F-127, lectura de Code del 16/10 |
 | La latencia por llamada no se mide en ningún sitio | F-127 P9.1 |
+| **LAS DOS PRUEBAS LENTAS DE LA SUITE (`formatos-con-tablas` y `corpus-del-examen`): LA LENTITUD ES DE LA PRIMERA PASADA EN FRÍO, Y ES IGUAL EN UN ÁRBOL DE ANTES DE ESTA SEMANA.** Medido por Code dos veces, las dos pruebas solas, tres vueltas alternando `67dad20a` (20/10, antes del 3.1.1) y el árbol del día. 25/10: vuelta 1, viejo 46,0 s (`formatos` 22,5 s) y hoy 40,2 s (`corpus` 30,8 s, rojo por tiempo); vueltas 2 y 3, unos 4 s en los dos. 25/10 por la noche, con el gate en verde: vuelta 1, viejo 23,6 s (`formatos` 13,9 s) y hoy 16,7 s (`corpus` 11,0 s), los dos en verde; vueltas 2 y 3, unos 3,5 s en los dos. **En caliente no hay diferencia entre los dos árboles; en frío, los dos son lentos, y no siempre en la misma prueba.** Apunta a la máquina (la primera lectura en frío), no a nada añadido esta semana; la causa exacta —caché de disco, antivirus u otra— SIN MEDIR. El arquitecto decide | medido por Code, 25/10 |
 | **LA VARIACIÓN DEL TIEMPO DE LOS ARNESES SIGUE AHÍ, POR DEBAJO DE LOS TOPES, Y SU CAUSA NO ESTÁ ENTENDIDA.** Con tres hilos (`e298608f`), el gate dio 112 y 34 s en dos pasadas seguidas sin cambiar nada; solos, los arneses han ido de 38 a 147 s esta semana según la pasada y los hilos, y el censo que no usa PGlite tardó 0,3 s solo y hasta 63 s en paralelo. **No es un frente** (arquitecto, 23/10): es deuda, porque la causa —la máquina, el arranque en frío de PGlite, otra cosa— no está medida. Si vuelve a cruzar un tope, se mide antes de tocar | medido por Code, 22-23/10 |
 | **`minor_inconsistency` MEZCLA SEVERIDAD E INCERTIDUMBRE EN UN SOLO CAMPO.** El dictamen de F-129 separa las dos cosas para la especie nueva —la severidad, por impacto; la confianza, aparte y mostrada («inferido de principio enunciado»)— y dice que mezclarlas «es lo que vuestra minor_inconsistency hace y conviene no repetir». Hoy un hallazgo menor por matiz y uno dudoso por falta de pruebas se ven igual. **No se toca** (arquitecto, 23/10) | F-129, 23/10 |
 | **LOS ARNESES DE PGLITE TARDAN DE 41 A 122 s SEGÚN LA PASADA, EN VERDE.** El 22/10, con siete ficheros en paralelo, el primer caso de tres de ellos cruzó su tope de 60 s (113 s medidos) porque levantaban una base por caso; se arregló con una base por fichero, sin subir topes. Desde entonces todas las pasadas salen en verde, pero el tiempo varía de 41 a 122 s, y el censo `pglite-fuera-del-producto`, que no usa PGlite, tarda 0,3 s solo y hasta 63 s en paralelo, por hambre de CPU. ~~**Aparcado (arquitecto, 23/10): en verde y lento no es motivo para abrir el frente.** **Disparador: la primera vez que el gate se ponga ROJO por tiempo**, se toca `vitest.config.mts` (pasar el censo al proyecto de la suite, o limitar los hilos de los arneses) y se acabó~~ **✅ SALTÓ Y SE CERRÓ el 23/10**: el gate se puso rojo por tiempo (la preparación del arnés de `SQL_311_02`, 120 s) y `npm test` lanza ahora los arneses con `--maxWorkers=3` (en `package.json`, no en `vitest.config.mts`: es una opción de la orden). Medido y razonado en el protocolo | medido por Code el 22/10 y el 23/10 |
@@ -1301,6 +1329,7 @@ Del inventario de Code (14/10), sobre las copias locales y el último censo del 
    forma, se REDIRIGE la referencia en vez de duplicarla, porque dos copias divergen.
 9. **Una cita tiene que ser literal.** Un error de transcripción del arquitecto en la consulta
    F-126 («poner» por «usar») pasó al dictamen de Fable y de ahí al prompt del producto.
+   **Y dentro de una frase no se ponen puntos suspensivos** (25/10/2026; protocolo).
 10. **No se abren frentes nuevos sobre algo ya decidido y sin construir**, y los frentes se cierran
     con un disparador escrito. (F-123 P5; F-126 cerró el de la puerta)
 11. Un error de TRANSPORTE no es una corrección del documento. Si un pegado parte o altera un

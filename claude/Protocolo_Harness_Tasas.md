@@ -979,10 +979,26 @@ repositorio.** Todos los cazó Code leyendo:
   5. la fecha de F-128: dijo 21/10, y fue el 19/10, cerrada el 20/10 (`d4cd1288`);
   6. «lo arregló definir la caja» para LUGAR: la caja hizo la mitad; la otra fue la regla de la cita de F-126;
   7. la razón de la puerta («la daría por literal»), que había escrito Code en el plan y el arquitecto repitió.
+  8. **(25/10)** la lectura de «SIN FRASE» en el medidor: dijo qué significaba sin leer la consulta que lo emite
+     (`SQL_F128_02`, la columna `especie_frase`: una de las dos citas no es literal en el `full_text` de su documento).
 **LA FORMA OPERATIVA**: cuando el arquitecto afirme un mecanismo del sistema —qué compara la puerta, cómo se llama un
 fichero, qué día pasó algo—, o cita dónde lo ha leído, o escribe «SIN COMPROBAR» al lado. **Lo que llegue sin una de
 las dos cosas, Code lo trata como hipótesis y lo verifica antes de escribirlo en ningún documento.** Es la regla del
 indicativo de `CLAUDE.md`, aplicada a quien la escribió, con su cuenta.
+
+---
+
+## ⚠️ DENTRO DE UNA FRASE NO SE PONEN PUNTOS SUSPENSIVOS
+
+*Añadida el 25/10/2026 (arquitecto), como extensión de la regla 9 del estado vivo («Una cita tiene que ser literal»).*
+
+**Cuando se cita para una consulta, un registro o una medida, va la frase ENTERA o no va.** Recortar por dentro es
+decidir qué evidencia se ve, y quien lee no puede saber qué se quitó. Si no cabe, se cita entera y se comenta aparte.
+EL CASO: el 25/10 el arquitecto citó la frase de CLI-12 del hallazgo de las auditorías así: «Las auditorías internas
+las realiza siempre personal ajeno al área auditada… para garantizar independencia de criterio». Los puntos
+suspensivos tapaban justo lo que pesaba contra su lectura: «habitualmente el Coordinador de Calidad de otra clínica de
+la red». No fue deliberado, **pero el efecto de una elipsis bien colocada es el mismo que elegir la evidencia.** Lo
+destapó Code al sacar la frase entera del texto del documento.
 
 ---
 
