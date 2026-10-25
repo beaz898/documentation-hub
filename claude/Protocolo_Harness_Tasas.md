@@ -988,6 +988,26 @@ indicativo de `CLAUDE.md`, aplicada a quien la escribió, con su cuenta.
 
 ---
 
+## ⚠️ «SEMBRAR» SON DOS OPERACIONES DISTINTAS
+
+*Añadida el 25/10/2026 (arquitecto), al rehacer el plan de las cuatro siembras de F-129, a partir de una pregunta del
+director: antes de escribir texto, mirar si lo que se quiere probar ya está en el corpus.*
+
+  · **ESCRIBIR texto nuevo en un documento del corpus**: obliga a resubir, reindexar y rehacer la línea base de todo lo
+    medido. CARO.
+  · **REGISTRAR en el fichero de siembra una pareja de frases QUE YA ESTÁ en los documentos**, con su veredicto
+    esperado: no toca un byte del corpus y no rompe nada. GRATIS.
+**Y la razón de método para preferir lo segundo: SEMBRAR UN POSITIVO PRUEBA LA IMPLEMENTACIÓN, NO LA DEFINICIÓN.** Un
+caso que escribimos nosotros para que sea un conflicto normativo tendrá la forma que nosotros creemos que tiene uno, y
+lo que se prueba entonces es nuestra idea de la definición. Es la regla 6 del método —un ejemplo no puede contener la
+respuesta— aplicada al corpus.
+**Los DOCUMENTOS NUEVOS tampoco son gratis**: la recuperación elige candidatos de todo el corpus y el rerank se queda con
+dos, así que añadir documentos cambia quién llega al juez y mueve la línea base igual. ⚠️ **SIN COMPROBAR**: el
+arquitecto lo deduce de los logs («Retrieval 6 candidatos, Rerank 2 seleccionados»), no de haberlo leído en el código.
+Se comprueba cuando toque.
+
+---
+
 ## ⚠️ DENTRO DE UNA FRASE NO SE PONEN PUNTOS SUSPENSIVOS
 
 *Añadida el 25/10/2026 (arquitecto), como extensión de la regla 9 del estado vivo («Una cita tiene que ser literal»).*
