@@ -302,7 +302,7 @@ del análisis; (4) guardarlo; (5) el medidor, en SQL probado en PGlite y con arn
 ⚠️ **El tope mensual de 35 $ hay que revisarlo con el coste bueno delante** (arquitecto, 19/10): cualquier cifra de coste
 leída de `cost_usd` antes del arreglo es la cuarta parte de la real. Los «0,0045 $» por análisis de F-117 (`claude/consultas-fable/F-117.md:183`), que Fable usa en la adenda, no dicen de dónde salen; si salen de esa columna, son la cuarta parte.
 
-#### 3.1.2 · El corte: avanzar al final del trozo, y declarar lo omitido · F-127 P3 y P7 paso 2, adenda Q3 · EN CURSO (23/10)
+#### 3.1.2 · El corte: avanzar al final del trozo, y declarar lo omitido · F-127 P3 y P7 paso 2, adenda Q3 · ✅ MEDIDO EL 25/10: EL SUJETO ACIERTA EN NOR-11 Y FALLA EN NOR-10; EL CORTE, NO APLICA
 **EL PLAN, APROBADO por el arquitecto el 23/10**, en tres commits, cada uno con sus tres gates, sus mutantes y su
 diff antes de subirlo:
   1. **el corte AVANZA al final del trozo en curso** (tope de 3.000; si el trozo pasa de eso, retrocede al
@@ -351,6 +351,65 @@ diff antes de subirlo:
   5 pasadas, «Revisión trimestral del cumplimiento por el Coordinador de Calidad», que el 22/10 salía en 2 de 11; un
   hallazgo nuevo confirmado, «Ámbito de los envases de material estéril usado», en NOR-11 ↔ CLI-13, que habrá que leer
   como se leyó el del comité; y un tercer `paso=normalizada`, en una cita de 135 caracteres.
+  **✅ LA TANDA, MEDIDA (25/10)**: seis pasadas de NOR-10 y cinco de NOR-11, de 19:07 a 19:16 del 24/10 (el reloj de la
+  base, `SQL_311_02`: once análisis). Cifras del arquitecto, de las salidas de `SQL_313_01`, `SQL_F128_01`,
+  `SQL_F128_02` y `SQL_311_02` que ejecutó el director; Code sólo ha visto la de `SQL_311_02`. Medida completa en el
+  proyecto de Claude, `claude/Medida_F312_La_Regla_Del_Sujeto_24-10-2026.md`, que NO está en este repositorio.
+  · **EL CRITERIO DE ABANDONO NO SE DISPARA**: PLAZO, NEGACIÓN y LUGAR, 3 de 3 en las cinco de NOR-11; A, B y C, 3 de
+    3 en las seis de NOR-10, las tres reconocidas por su propia cita. **El commit 3 NO se revierte.**
+  · **Las dos mitades del corte salen «NO APLICA: sin corte»** (control 5 de `SQL_313_01`, bloque 8 de
+    `SQL_F128_02`), como estaba escrito antes de medir: **NO cuentan como aciertos.**
+  · **LA MITAD DEL SUJETO, CALIFICADA Y PARTIDA:**
+    · **ACIERTA EN NOR-11**: la mediana de las citas sube de 107 a 128, y suben las cuatro especies (PLAZO 128→141,
+      LUGAR 87→103, NEGACIÓN 90→94, OTRA 103→149,5); **la cita de 33 caracteres desaparece**, el mínimo pasa de 33 a
+      63. Y el mínimo de 63 está bien: «se depositan en el contenedor negro habilitado en cada gabinete», del lado
+      existente de NEGACIÓN, no tiene sujeto Y NO DEBE TENERLO, porque ahí el dato en disputa es el contenedor. **Es la
+      prueba de que la excepción está acotada y no se comió la regla de F-126.**
+    · **FALLA EN NOR-10**: los hallazgos citados sin sujeto pasan del 29 % (8 de 28) al 23 % (7 de 30), y las
+      medianas se quedan planas, 111 → 108, con el mismo mínimo y el mismo máximo. **La regla se escribió para esos
+      siete y NO se cumple en ellos.**
+    · **Hipótesis del arquitecto, SIN COMPROBAR**: los siete salen de una sola frase larga de NOR-10, donde empezar en
+      la figura obliga a citar unos 200 caracteres con un paréntesis de guiones; en LUGAR el sujeto estaba a 30. Si es
+      la distancia, es el mismo diagnóstico de F-126. **Va a consulta, no al código.**
+    · **Por qué no se itera ahora** (arquitecto): esos siete son las tres decisiones sueltas de A, y si
+      `conflicto_normativo` convierte A en UN hallazgo en vez de tres, el problema se disuelve; iterar hoy sería
+      trabajar contra el paso siguiente.
+  · **EL COSTE** (`SQL_311_02`): la línea de la excepción cuesta EXACTAMENTE +303 tokens de entrada por petición del
+    juez, +606 por análisis, idéntico en las dos parejas (NOR-10 85.158 → 85.764; NOR-11 45.670 → 46.276; y NOR-11 ↔
+    CLI-13, la que no cambiaba de bytes, 14.580 → 14.883). Son 0,00006 $. **Lo que cuesta es la salida, y sólo donde
+    la regla funciona**: NOR-11 pasa de 0,0259 a 0,0299 $ por análisis (+15 %), escribiendo un 19 % más (salida
+    mediana del juez de 10.925 a 13.000 tokens); NOR-10 baja un 5 %. **Por cuatro milésimas de dólar, las citas de
+    NOR-11 pasan de no servir a servir** (arquitecto). Comprobado por Code en la salida: los costes de NOR-11
+    (mediana 0,0299 $) y la salida mediana (13.000), sí; la base del 22/10, de la salida de entonces, que no ha visto.
+  · **UN HALLAZGO CON FORMA DE CONFLICTO NORMATIVO, publicado sin que exista la especie** (pasada 4 de NOR-11, pareja
+    con CLI-12, confirmado; 1 de 5, y el juez emitió algo en esa pareja en 4 de 5, con dos descartados por el
+    verificador). Tiene la forma de un `norma_contra_norma`, con las palabras de incompatibilidad que pidió Fable, y
+    también se lee como un conflicto de dato —quién revisa—: **ESA AMBIGÜEDAD ES EL HALLAZGO** (arquitecto): la frontera
+    no es nítida, y lo que le falta al juez en D quizá no sea el predicado entero sino resolver una referencia cruzada.
+    **Para la consulta siguiente, las dos frases literales enteras** (texto que arma el juez, leído por Code el 25/10):
+    > **NOR-11 · 10.5, «Revisión periódica de buenas prácticas»** (trozo 13, posición 13.678): «El Coordinador de
+    > Calidad de cada clínica revisa trimestralmente el cumplimiento de los criterios descritos en este apartado
+    > mediante observación directa del área de almacenamiento intermedio y de los gabinetes, incorporando los hallazgos
+    > relevantes a la siguiente sesión de formación anual del personal.»
+    > **CLI-12 · 6.2, «Equipo auditor»** (trozo 13, posición 13.907): «Las auditorías internas las realiza siempre
+    > personal ajeno al área auditada, **habitualmente el Coordinador de Calidad de otra clínica de la red**, para
+    > garantizar independencia de criterio.»
+    ⚠️ La frase de CLI-12 nombra la figura que audita, y eso se dice porque la cita resumida con «…» lo tapaba.
+  · **«por la frase SIN FRASE», en la pasada 4 de NOR-10**, primera vez. Lo que significa, leído en `SQL_F128_02` (la
+    columna `especie_frase`): ALGUNA de las dos citas no aparece literal —`strpos` exacto, con mayúsculas— en el
+    `full_text` de su documento, así que no se puede recortar la frase que la contiene. No quiere decir que no
+    corresponda a una frase del registro de siembra. **El candidato del arquitecto encaja con el mecanismo** —una cita
+    que pasó la puerta por `paso=normalizada` no es literal por definición—, **pero NO está comprobado**: también sale
+    si la cita es literal en los trozos y no en el `full_text` (tablas). Se confirma con la fila de la pasada 4
+    (19:09:41) en el bloque 2 de `SQL_F128_02`: si una cita mide 135 y no dice «literal, DENTRO», es ésa.
+  · **LAS FECHAS DE GIT, COMPROBADAS (Code, 25/10)**: las de autor y las de commit coinciden en todos los commits del
+    rango subido (`47a9d99f..90efcd41`) y en los anteriores, y cuadran con los días reales, del 22/10 23:52 al 24/10
+    12:44 (+0200; el 25/10, +0100, por el fin del horario de verano). Ningún commit del rango lleva el 13/10, así que
+    la fecha que vio el director al subir no sale de git, y las correcciones apoyadas en fechas de commit —la de F-128,
+    19/10 con cierre el 20/10 en `d4cd1288`— siguen en pie.
+  · **LO SIGUIENTE, en el orden de Fable**: las cuatro siembras —dos `norma_contra_norma` sin referencia interna, una
+    NEGATIVA y una `norma_contra_practica`—, y después el 3.4 generalizado. **No se empieza hasta que lo encargue el
+    arquitecto**, y las siembras se escriben fuera de cualquier medición en curso.
   La tanda, sólo después del 3. **Al calificar, de las mitades del 3.1.2 SÓLO SE PUEDE CALIFICAR LA DEL SUJETO**:
   con la ventana de 150.000 ninguna pareja del corpus tiene corte, así que las del corte salen «NO APLICA: sin
   corte» y NO cuentan como aciertos.
