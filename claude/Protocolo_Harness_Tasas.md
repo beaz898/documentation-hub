@@ -1111,6 +1111,10 @@ Es de la familia de «un cero permanente es indistinguible de "no ocurrió"» y 
 llamada" puede pasar en falso». **LA FORMA OPERATIVA: una afirmación de igualdad byte a byte sólo vale acompañada de
 la prueba de que el camino nuevo existe**, y eso lo da el MUTANTE que lo rompe y sale en rojo. En el commit 2 salió
 («sin corte, un espacio de más», y el aviso dentro de las comillas).
+**SE GANÓ EL SITIO EN UN DÍA (24/10/2026, commit 3 del 3.1.2)**: la prueba de que el resto del prompt quedaba byte a
+byte igual quitaba la línea de la regla del sujeto y comparaba las huellas. El mutante «la excepción no entra en el
+prompt» deja esas huellas IGUALES —quitar una línea que no está no quita nada—, y sólo lo cazó la otra prueba, la que
+exige que la línea esté. Sin ella, la igualdad habría pasado en verde con el cambio sin hacer.
 
 ---
 

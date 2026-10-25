@@ -327,7 +327,30 @@ diff antes de subirlo:
   `lib/analysis/regla-del-sujeto.ts`) justo después del ejemplo de F-126, sin tocarlo; quitada esa línea, los cuatro
   prompts reales salen byte a byte los de `8a790652`. El ejemplo es de las bicicletas del club, no del corpus.
   **LOS TRES COMMITS SE SUBEN JUNTOS** cuando el arquitecto apruebe el 3, para que Vercel despliegue un estado
-  coherente y la tanda mida la regla del sujeto y no un estado a medias.
+  coherente y la tanda mida la regla del sujeto y no un estado a medias. ✅ **Aprobado el 3 y SUBIDOS el 24/10**
+  (`47a9d99f..90efcd41`, ocho commits).
+  **El ejemplo neutro lo puso Code y el plan no lo recogía** (arquitecto, 24/10): un ejemplo con texto del corpus le
+  enseñaría al juez la respuesta de lo que medimos; es la regla 6 del método (el caso Chamberí/Retiro del 12/10), y
+  lleva una prueba que vigila que no tenga palabras del corpus. Es el segundo agujero del plan que cierra Code, tras la
+  rama de la posición del commit 1.
+  **LA TANDA DEL 3.1.2, escrita antes de medir: CINCO PASADAS DE NOR-10 Y CINCO DE NOR-11**, con las horas apuntadas,
+  y las consultas con el ESPERADO rellenado después de mirar el reloj de la base. ⚠️ **Error del arquitecto, 24/10**:
+  la había dado como cinco y dos. Dos valían cuando el cambio era la ventana, que no tocaba a NOR-11; la regla del
+  sujeto entra en el prompt de TODAS las llamadas, así que NOR-11 deja de ser un control pasivo y pasa a ser una
+  pareja en riesgo con sus tres trampas, y con dos pasadas el criterio «por debajo de 5 de 5» no se puede aplicar.
+  **EL CRITERIO DE ABANDONO, escrito antes de medir (arquitecto)**: si PLAZO, NEGACIÓN, LUGAR, A, B o C baja de 5 de
+  5, **se revierte el commit 3** (`90efcd41`). Y P-F129-a no se vuelve a medir: está refutada por la tanda del 22/10.
+  **LA TANDA, HECHA el 24/10 de 19:06 a 19:17** (Madrid). Según los logs, seis pasadas de NOR-10 y cinco de NOR-11; **manda
+  el reloj de la base, no esa cuenta**: el director ejecuta primero `SQL_313_01` con los esperados vacíos para leer la
+  cuenta medida. **Lo que ya se ve en los logs** (lectura del arquitecto; Code no los ha visto): las tres trampas de
+  NOR-11, 3 de 3 en las cinco pasadas, así que el criterio de abandono NO se dispara; y en NOR-10, A, B y C en todas.
+  ⚠️ **LA REGLA DEL SUJETO NO SE HA CALIFICADO, y no se califica con los logs**: varios TEMAS empiezan por «Quién», y el
+  tema no es la cita. La califican el bloque 2d de `SQL_F128_02` (por la propia cita; el 22/10, 15 de 28) y la
+  mediana por especie de `SQL_F128_01`, o nadie.
+  **Tres cosas de los logs, anotadas sin interpretar** (arquitecto): NOR-11 ↔ CLI-12 publica una contradicción en 4 de
+  5 pasadas, «Revisión trimestral del cumplimiento por el Coordinador de Calidad», que el 22/10 salía en 2 de 11; un
+  hallazgo nuevo confirmado, «Ámbito de los envases de material estéril usado», en NOR-11 ↔ CLI-13, que habrá que leer
+  como se leyó el del comité; y un tercer `paso=normalizada`, en una cita de 135 caracteres.
   La tanda, sólo después del 3. **Al calificar, de las mitades del 3.1.2 SÓLO SE PUEDE CALIFICAR LA DEL SUJETO**:
   con la ventana de 150.000 ninguna pareja del corpus tiene corte, así que las del corte salen «NO APLICA: sin
   corte» y NO cuentan como aciertos.
