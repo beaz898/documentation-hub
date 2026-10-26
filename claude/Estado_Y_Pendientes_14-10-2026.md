@@ -38,25 +38,40 @@ organización del piloto se canceló el 27/07 a las 14:12, la gracia terminó el
 el 25/10 a las 18:11**. Cero documentos, cero filas de análisis, cero trozos, ninguna conexión de Drive. El seguro
 (`SQL_SEG_01`) llegó cinco horas y media tarde.
 
+⚠️ **LA CAUSA, PARA NO CONFUNDIR DOS SUCESOS** (arquitecto, 26/10): los documentos **NO se borraron al bajar el plan a 50
+créditos. Los borró LA PURGA**, que saltó a los 90 días de la cancelación del 27/07. El cambio de plan no borra nada
+(leído en el código: el webhook sólo cambia plan, usuarios y créditos). Y la organización de 50 créditos ni siquiera es
+el piloto bajado de plan: es una organización NUEVA, que `/api/org/setup` creó al volver a entrar el director, porque la
+purga había borrado su membresía.
 **Lo que borra `purgeOrganization`** (`lib/purge-org.ts`): documentos (y con ellos, en cascada, los trozos y las
 versiones en espera), análisis, trabajos del exhaustivo, conversaciones del chat, registro de uso, opiniones,
 compras de créditos, invitaciones, la conexión de Drive, **las membresías**, los ficheros del almacenamiento, el
 espacio entero de Pinecone y, si puede, el usuario de Auth. La fila de la organización no se borra: se marca.
 **Lo que el código NO borra**: `llm_usage` (tokens y coste por llamada) y `finding_dismissals` (los descartes), entre
 otras. Si sus filas siguen, las sacan las consultas 6 y 5 de `SQL_SEG_02`. **Sin comprobar contra la base.**
-
+- ✅ **`llm_usage` SOBREVIVIÓ** (consulta 6 de `SQL_SEG_02`, ejecutada y descargada por el director el 26/10): **543
+  filas** desde el 02/07, con el id del piloto. **Recuperamos la ECONOMÍA del 3.1.1** —tokens, caché, coste en dólares
+  y créditos cobrados, por llamada y por operación—, **NO LA CALIDAD**: ni hallazgos, ni citas, ni trozos, ni régimen
+  (nada del F-128 ni del F-312). **Y no hay latencias**: esa tabla no tiene la columna. No volvió todo.
+- **`finding_dismissals` está VACÍA** (consulta 5, el mismo día). **No la borró la purga**, leído en el código: no está
+  en `lib/purge-org.ts` y no cuelga en cascada de ninguna tabla borrada. Quedan dos lecturas que el código no separa:
+  que nunca se escribió un descarte de esta organización, o que se escribió y se deshizo con el botón de
+  «no descartar» (`borrarDescarte`, `app/api/findings/dismiss`). **Lo sabe el director**, que es quien pulsa ese
+  botón.
 **SE PERDIÓ EL HISTORIAL, NO LA CAPACIDAD DE MEDIR** (director, 26/10). Todas nuestras consultas llevaban la ventana
 de la tanda del momento y ninguna miraba hacia atrás; las líneas base con las que comparábamos están escritas en los
 archivos de medida, que es de donde las leíamos. Esta cabecera no describe una catástrofe operativa.
 
 **Y LA LECTURA DE PRODUCTO DEL DIRECTOR, que no es consuelo: QUE AL CANCELAR SE BORRE TODO ES UN ARGUMENTO DE
 PRIVACIDAD**, no sólo un riesgo: un cliente que cancela no deja sus documentos en nuestros servidores. Eso se vende.
-Pendiente: decirlo en la ficha comercial. No hay ningún fichero con ese nombre; el más cercano es
-`Modelo_De_Negocio.txt`, y no se ha tocado.
+Escrito en `Modelo_De_Negocio.txt` (sección «Grace period»), con su atribución (26/10).
 
-**El camino elegido (director, 26/10): volver a la organización del piloto** con `SQL_ESC_01`, la primera escritura en
-la base del proyecto. Lo revisa el arquitecto antes de que la ejecute el director.
-
+**El camino, CAMBIADO el mismo día (director, 26/10): SE QUEDA EN LA ORGANIZACIÓN NUEVA.** Volvió a contratar, con el
+plan más caro, y tiene 10.000 créditos; la suscripción quedó en la organización nueva. `SQL_ESC_01` queda **archivada
+sin ejecutar**. El id de la nueva lo dará `SQL_ORG_01`, y después se cambia en las consultas que se siguen usando.
+**Con el plan de pago se caen las dos trabas** del plan gratuito: ya no hay tope de 5 documentos nuevos
+(`app/api/ingest/route.ts:173-191`) ni prohibición del exhaustivo (`app/api/analyze-v2/route.ts:246-258`); las dos
+miran sólo `plan === 'free'`.
 **LO QUE SE SALVA, y desde hoy es el registro** (arquitecto, 26/10):
 - el repositorio entero: los 75 SQL, los arneses, el protocolo, el archivo de consultas a Fable y `corpus-pruebas/`
   con los diez documentos de origen;
@@ -66,11 +81,10 @@ la base del proyecto. Lo revisa el arquitecto antes de que la ejecute el directo
   frases literales de los cinco hallazgos reales. El arquitecto lo ha escrito en
   `claude/Purga_Del_25-10-2026_Que_Se_Perdio_Y_Que_Queda.md`, que **no está en el repositorio**.
 
-**Lo que viene después, sin empezar** (arquitecto): la reconstrucción es la ocasión de montar el corpus bien de una
-vez, porque ya no queda línea base que proteger: los diez documentos MÁS los cuatro casos de Fable, escritos ANTES de
-subir y con el registro al día. No se sube nada hasta cerrar las tres preguntas sobre el worker, el plan y la
-organización.
-
+**Lo que viene después, sin empezar** (arquitecto): cambiar el id en las consultas, subir los diez documentos y una
+tanda para tener línea base nueva. La reconstrucción es la ocasión de montar el corpus bien de una vez, porque ya no
+queda línea base que proteger: los diez documentos MÁS los cuatro casos de Fable, **escritos ANTES de subir** y con el
+registro al día, **y se sube una sola vez**. Las siembras y el 3.4 siguen esperando, ahora con más razón.
 ## 0. Lo que está en vuelo (18/10/2026)
 
 - **HECHO el 16/10**: las tres pasadas de NOR-10 desde la bandeja (12:45, 12:46 y 12:46 hora de

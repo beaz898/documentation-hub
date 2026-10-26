@@ -1,4 +1,10 @@
 -- ============================================================================
+-- ⛔ DESCARTADA EL 26/10/2026, SIN EJECUTAR. NO SE EJECUTA.
+-- El director volvió a contratar, con el plan más caro, estando dentro de la organización nueva, y la suscripción
+-- quedó AHÍ. Volver al piloto lo dejaría con 4942 créditos pagando la suscripción de una organización que no usa. El
+-- camino es el contrario: se queda en la organización nueva y se cambia el id en las consultas. Se archiva y NO se
+-- borra: es el registro de lo que se consideró y de por qué no hizo falta (arquitecto, 26/10).
+-- ============================================================================
 -- VOLVER A LA ORGANIZACIÓN DEL PILOTO — ⚠️ LA PRIMERA ESCRITURA EN LA BASE DE TODO EL PROYECTO (26/10/2026)
 -- ⏳ PENDIENTE DE REVISAR POR EL ARQUITECTO, y después PENDIENTE DE EJECUTAR por el director. No antes.
 --

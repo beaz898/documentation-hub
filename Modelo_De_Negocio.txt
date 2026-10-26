@@ -140,6 +140,11 @@ Grace period
   - Al expirar: datos de Supabase + Pinecone eliminados, usuario de Auth eliminado
   - Purga automática ejecutada por /api/admin/purge-expired (cron manual o Vercel cron)
 
+  ARGUMENTO COMERCIAL: PRIVACIDAD (director, 26/10/2026)
+  - Que al cancelar se borre todo es un argumento de privacidad, no sólo un riesgo: un cliente que cancela no
+    deja sus documentos en nuestros servidores. Pasados los 90 días se borran sus documentos, sus vectores y sus
+    análisis. Eso se vende, y va en la ficha comercial.
+  - Se escribió después de vivirlo: el 25/10/2026 la purga borró la organización del propio piloto.
 
 ────────────────────────────────────────────────────────────────
 GATES DE FUNCIONALIDADES (lib/plan-features.ts)

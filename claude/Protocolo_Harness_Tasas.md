@@ -995,6 +995,9 @@ indicativo de `CLAUDE.md`, aplicada a quien la escribió, con su cuenta.
 
 ## ⚠️ LA PRIMERA ESCRITURA EN LA BASE: UNA EXCEPCIÓN, NO UN PRECEDENTE
 
+> ⛔ **NOTA DEL 26/10/2026: NO SE EJECUTÓ NINGUNA. LA EXCEPCIÓN SIGUE SIN ESTRENARSE.** `SQL_ESC_01` se descartó sin
+> ejecutar el mismo día: el director volvió a contratar y la suscripción quedó en la organización nueva. Lo que sigue
+> se queda escrito como las condiciones de una excepción futura, **no como un precedente usado**.
 *Arquitecto, 26/10/2026.* Hasta hoy, todo lo que el director ejecutaba en Supabase era sólo SELECT. **`SQL_ESC_01`**
 (volver a la organización del piloto tras la purga) es la primera escritura de todo el proyecto, y entra como
 **excepción**, con su motivo: la regla de sólo SELECT existe para no destruir datos, y mover una membresía y vaciar
