@@ -543,6 +543,8 @@ export async function applyCascadeToCandidate(
           ...lados.campos,
           newColumnOrder: orderedColumnsFor(ev.newChunk, newDocumentChunks, 'new'),
           existingColumnOrder: orderedColumnsFor(ev.existingChunk, existingChunks, 'existing'),
+          // 3.4, fase 3: la marca del juez llega al verificador; sin ella, el objeto es el de antes
+          ...(c.conflictoNormativo ? { conflictoNormativo: c.conflictoNormativo } : {}),
         },
       });
       return;
@@ -622,6 +624,8 @@ export async function applyCascadeToCandidate(
         ...lados.campos,
         newColumnOrder: orderedColumnsFor(ev.newChunk, newDocumentChunks, 'new'),
         existingColumnOrder: orderedColumnsFor(ev.existingChunk, existingChunks, 'existing'),
+        // 3.4, fase 3: la marca del juez llega al verificador; sin ella, el objeto es el de antes
+        ...(c.conflictoNormativo ? { conflictoNormativo: c.conflictoNormativo } : {}),
       },
     });
   });

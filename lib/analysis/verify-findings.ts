@@ -3,6 +3,8 @@ import { callLLMJson } from './llm-client';
 import { runInBatches } from '@/lib/run-in-batches';
 import type { StoredChunk } from '@/lib/read-chunks';
 import type { DiscardedFindings } from './types';
+import type { ConflictoNormativo } from './conflicto-normativo';
+import { RAMA_DE_LAS_REGLAS, marcaDeConflictoNormativo } from './rama-de-las-reglas';
 
 /**
  * Verificador de hallazgos — la llamada corta (F-22/F-23/F-34).
@@ -97,9 +99,14 @@ export interface FindingToVerify {
    *  o no se pudo determinar. */
   newColumnOrder: string[] | null;
   existingColumnOrder: string[] | null;
+  /** 3.4, fase 3: si el juez lo marcó como conflicto normativo. Con él, el hallazgo se presenta marcado y el lote
+   *  lleva la rama de las reglas (rama-de-las-reglas.ts); sin él, todo es como antes. */
+  conflictoNormativo?: ConflictoNormativo;
 }
 
-export type FindingVerdict = 'confirmado' | 'mismo_dato_sin_oposicion' | 'sin_relacion';
+/** `cumplibles_a_la_vez` (3.4, fase 3) es el veredicto de la rama de las reglas: descarta, como
+ *  `mismo_dato_sin_oposicion`, y se cuenta con su propio nombre, `descartado.cumplibles_a_la_vez`. */
+export type FindingVerdict = 'confirmado' | 'mismo_dato_sin_oposicion' | 'sin_relacion' | 'cumplibles_a_la_vez';
 
 /** Resultado de un hallazgo, en el MISMO orden que el array de entrada — el
  *  emparejamiento con FindingToVerify es por posición, no por ningún id. */
@@ -127,7 +134,7 @@ const MAX_PER_CALL = 15;
  *  callAnthropicRaw. */
 const VERIFY_CONCURRENCY = 5;
 
-const VALID_VERDICTS: FindingVerdict[] = ['confirmado', 'mismo_dato_sin_oposicion', 'sin_relacion'];
+const VALID_VERDICTS: FindingVerdict[] = ['confirmado', 'mismo_dato_sin_oposicion', 'sin_relacion', 'cumplibles_a_la_vez'];
 
 interface VerifyResponse {
   results: Array<{
@@ -174,7 +181,9 @@ function describeSide(quote: string, chunk: StoredChunk | null, neighbours: Find
 export function buildFindingBlock(finding: FindingToVerify, index: number): string {
   const newSide = describeSide(finding.newDocSays, finding.newChunk, finding.newNeighbours, finding.newColumnOrder, finding.newTrozos);
   const existingSide = describeSide(finding.existingDocSays, finding.existingChunk, finding.existingNeighbours, finding.existingColumnOrder, finding.existingTrozos);
-  return `[${index}] Tema: ${finding.topic}
+  // 3.4: la marca, sólo en el hallazgo que la trae; sin ella, el bloque es el de siempre
+  const marca = finding.conflictoNormativo ? `\n${marcaDeConflictoNormativo(finding.conflictoNormativo)}` : '';
+  return `[${index}] Tema: ${finding.topic}${marca}
 DOCUMENTO NUEVO:
 ${newSide}
 
@@ -189,6 +198,8 @@ ${existingSide}`;
  */
 function buildPrompt(batch: FindingToVerify[]): string {
   const block = batch.map((f, i) => buildFindingBlock(f, i + 1)).join('\n\n---\n\n');
+  // 3.4: la rama de las reglas, SÓLO si el lote trae algún hallazgo marcado; sin marcas, el prompt de siempre
+  const rama = batch.some(f => f.conflictoNormativo) ? `${RAMA_DE_LAS_REGLAS}\n\n` : '';
   return `Eres un verificador. Un primer auditor ha señalado ${batch.length} posibles hallazgos entre dos documentos. Para cada uno, decide UNA SOLA cosa: si las dos citas se oponen sobre el MISMO dato concreto. No busques nada fuera de lo que se te muestra; no evalúes el resto del documento.
 
 HALLAZGOS:
@@ -212,7 +223,7 @@ Si un lado es una fila de tabla, compara SOLO columnas que también aparezcan ci
 
 Para "confirmado", añade además severity: "contradiction" si son incompatibles sin matices, "minor_inconsistency" si la oposición es de enfoque, grado o énfasis.
 
-Debes responder los ${batch.length} índices, del 1 al ${batch.length}.
+${rama}Debes responder los ${batch.length} índices, del 1 al ${batch.length}.
 
 Responde EXCLUSIVAMENTE con este JSON:
 {
@@ -246,7 +257,8 @@ function toOutcome(finding: FindingToVerify, raw: { verdict?: string; severity?:
 
   const verdict = raw.verdict as FindingVerdict;
   if (verdict === 'confirmado') {
-    const severity = raw.severity === 'contradiction' ? 'contradiction' : 'minor_inconsistency';
+    // 3.4: un conflicto normativo confirmado llega al usuario como hallazgo de verdad, no como inconsistencia menor
+    const severity = finding.conflictoNormativo || raw.severity === 'contradiction' ? 'contradiction' : 'minor_inconsistency';
     return { finding: { verdict, severity }, discardKey: null, degraded };
   }
 
