@@ -1876,6 +1876,16 @@ limpia lleva comillas invertidas, la limpieza va con Node y por cadena literal, 
 y metió una comilla al principio de cada una de las 103 líneas. Se arregló volviendo al commit, que no
 tenía más cambios, y limpiando con un script de Node que parte por la cadena exacta.
 
+**EL GENERADOR YA NO SE ESCRIBE: ES UN FICHERO DEL REPOSITORIO (arquitecto, 26/10/2026; el séptimo `node -e`).** «Una
+regla que se rompe siete veces no es una regla»: la salida no es escribirla más fuerte, es que no haya ningún
+generador que improvisar. Desde hoy una medición escribe sólo su DEFINICIÓN —fichero, arnés, proyecto, número de
+tests y la lista de mutantes— en un `mutantes-<nombre>.ts` junto a su arnés, y la lanza con
+`node claude/herramientas/mutar-cli.mts <definición>`. La herramienta (`claude/herramientas/mutar.ts`, probada en
+`mutar.test.ts` y mutada con ella misma en `mutantes-de-mutar.ts`) hace lo que esta sección pedía a mano: comprueba
+todas las anclas antes de escribir, rechaza un cambio que contiene al ancla, adapta CRLF, cuenta un rojo sólo con
+todos los tests cargados, restaura en un `finally` y compara la huella y el estado en git de antes y de después. Mata
+la clase por construcción, no por disciplina.
+
 **LA GUARDA EFECTIVA ES LA VERIFICACIÓN POSTERIOR (arquitecto, 26/10/2026).** La regla de no editar con `node -e`
 ni con escapes del shell SE MANTIENE. Pero Code se la ha saltado tres veces en tres días, y las tres la cazó y la
 contó él mismo: **la regla no está funcionando como regla, está funcionando como confesión.** Lo que de verdad
