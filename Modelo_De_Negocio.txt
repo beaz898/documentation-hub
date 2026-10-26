@@ -137,13 +137,28 @@ Grace period
   - 90 días tras cancelación antes de purgar datos
   - Tabla organizations: canceled_at + grace_period_ends_at
   - Durante grace period el acceso sigue activo
-  - Al expirar: datos de Supabase + Pinecone eliminados, usuario de Auth eliminado
-  - Purga automática ejecutada por /api/admin/purge-expired (cron manual o Vercel cron)
+  - Al expirar se ejecuta purgeOrganization (lib/purge-org.ts). Corregido el 26/10/2026, leído en el código:
+    · LA EJECUTA EL WORKER DE RAILWAY CADA 6 HORAS (worker/src/index.ts), y también /api/admin/purge-expired
+      (protegido con ADMIN_SECRET). vercel.json no tiene ningún cron. Condición: fin de la gracia pasado y
+      purged_at vacío.
+    · BORRA: documentos (y con ellos sus trozos y sus versiones en espera), análisis, trabajos del exhaustivo,
+      conversaciones del chat, registro de uso (usage_logs), opiniones, compras de créditos, invitaciones,
+      conexión de Drive, membresías, los ficheros de Storage y el espacio entero de Pinecone. Intenta borrar el
+      usuario de Auth, y puede fallar.
+    · NO BORRA: llm_usage (tokens y coste por llamada) ni finding_dismissals (las huellas de los descartes).
+      Tampoco documentation_gaps, learned_rules, document_tombstones ni las tres tablas del agente
+      (agent_tasks, agent_conversations, agent_messages), que no están en su lista.
+    · La fila de la organización no se borra: se marca purged_at.
 
   ARGUMENTO COMERCIAL: PRIVACIDAD (director, 26/10/2026)
   - Que al cancelar se borre todo es un argumento de privacidad, no sólo un riesgo: un cliente que cancela no
     deja sus documentos en nuestros servidores. Pasados los 90 días se borran sus documentos, sus vectores y sus
     análisis. Eso se vende, y va en la ficha comercial.
+  - ⚠️ SALVEDAD ANTES DE DECÍRSELO A UN CLIENTE (Code, 26/10/2026, leído en el código): hoy la purga NO borra
+    todo lo que el cliente escribió. Quedan las preguntas y respuestas de documentation_gaps, el texto de
+    learned_rules, los nombres de fichero de document_tombstones y los objetivos, títulos y mensajes del agente.
+    Mientras sea así, la frase que se puede decir es «se borran sus documentos, sus vectores y sus análisis»,
+    no «no deja nada en nuestros servidores».
   - Se escribió después de vivirlo: el 25/10/2026 la purga borró la organización del propio piloto.
 
 ────────────────────────────────────────────────────────────────
