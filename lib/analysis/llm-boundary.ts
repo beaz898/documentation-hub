@@ -1,5 +1,6 @@
 import { createHash } from 'crypto';
 import type { DocumentJudgment, DiscardedFindings } from './types';
+import { esConflictoNormativo } from './conflicto-normativo';
 
 /**
  * Frontera LLM→pipeline (F-39, de Fable).
@@ -80,6 +81,13 @@ function isNonBlankString(value: unknown): value is string {
  *   5. `severity` que no sea exactamente `'contradiction'` o
  *      `'minor_inconsistency'` (incluida su ausencia) → se omite el campo del
  *      objeto de salida y se cuenta `frontera.severity_invalida`.
+ *   6. `conflictoNormativo` (3.4, fase 1): si viene con un valor válido
+ *      (conflicto-normativo.ts) se COPIA; si viene con cualquier otro valor, se
+ *      omite y se cuenta `frontera.conflicto_normativo_desconocido`; ausente o
+ *      null, no se copia ni se cuenta (es la contradicción de siempre). ⚠️ EL
+ *      CONTADOR ES EL AVISO de que el prompt y el código se han desincronizado:
+ *      hasta este punto la frontera reconstruía el objeto con cuatro campos y
+ *      tiraba en silencio cualquier otro.
  *
  * No lanza con ninguna entrada — cada comprobación es un type-guard antes de
  * acceder a la propiedad, nunca un acceso que asuma la forma.
@@ -122,11 +130,17 @@ export function sanitizeJudgeContradictions(raw: unknown): {
     const validSeverity = severityRaw === 'contradiction' || severityRaw === 'minor_inconsistency';
     if (!validSeverity) bump('severity_invalida');
 
+    const conflictoRaw = item.conflictoNormativo;
+    const conflictoValido = esConflictoNormativo(conflictoRaw);
+    if (conflictoRaw !== undefined && conflictoRaw !== null && !conflictoValido) bump('conflicto_normativo_desconocido');
+
     contradictions.push({
       topic: hasTopic ? topicRaw : '',
       newDocSays,
       existingDocSays,
       ...(validSeverity ? { severity: severityRaw as 'contradiction' | 'minor_inconsistency' } : {}),
+      // sólo si viene y es válido: sin él, el objeto es byte a byte el de antes de la fase 1
+      ...(conflictoValido ? { conflictoNormativo: conflictoRaw } : {}),
     });
   }
 

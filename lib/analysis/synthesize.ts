@@ -76,6 +76,10 @@ export function construirDiscrepancias(judgments: DocumentJudgment[]): FinalAnal
       // F-86 paso 0: hermano del de arriba, de la misma variable.
       existingDocumentId: j.documentId,
       severity: c.severity,
+      // 3.4, fase 1: la especie normativa, SÓLO si viene. Con una asignación directa, como la de severity, cada
+      // discrepancia ganaría una clave `conflictoNormativo: undefined` que no existía, y este commit no cambia ni la
+      // forma de los objetos de hoy.
+      ...(c.conflictoNormativo ? { conflictoNormativo: c.conflictoNormativo } : {}),
       confirmedBy: c.confirmedBy,
       // F-69: lista CERRADA — un campo que no se nombre aquí muere en este
       // punto, pasen los dos modos por él. Ver `confidence` antes de 3dd8670c.

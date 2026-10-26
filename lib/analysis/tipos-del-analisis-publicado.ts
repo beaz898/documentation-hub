@@ -11,6 +11,7 @@ import type { PipelineCounters } from './counters';
 import type { Termometro } from './termometro';
 import type { CoberturaDeCandidatos } from './cobertura-de-candidatos';
 import type { RegistroDeLlamadas } from '@/lib/observability/registro-de-llamadas';
+import type { ConflictoNormativo } from './conflicto-normativo';
 
 /** Nivel de confianza de una contradicción detectada. */
 export type DiscrepancyConfidence = 'alta' | 'posible';
@@ -142,6 +143,9 @@ export interface FinalAnalysis {
      *  Opcional para compatibilidad: el pipeline rápido no hace doble verificación. */
     confidence?: DiscrepancyConfidence;
     severity?: 'contradiction' | 'minor_inconsistency';
+    /** 3.4, fase 1: mismo campo que en DocumentJudgment.contradictions, transportado por synthesize.ts sólo si viene.
+     *  Ausente en todo análisis guardado antes de que el prompt del juez lo pida. */
+    conflictoNormativo?: ConflictoNormativo;
     confirmedBy?: ConfirmedBy;
     /** F-69: mismo campo que en DocumentJudgment.contradictions, transportado
      *  sin tocar por synthesize.ts. Llega al jsonb de analysis_results por el

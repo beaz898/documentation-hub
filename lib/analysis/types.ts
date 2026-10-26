@@ -6,6 +6,7 @@
 import type { FragmentContext } from './fragment-context';
 import type { DatosDeLaCita } from './coincidencia-de-cita';
 import type { PajarDeLaCita } from './pajar-de-la-cita';
+import type { ConflictoNormativo } from './conflicto-normativo';
 
 export interface DocumentFragment {
   text: string;
@@ -73,6 +74,9 @@ export interface DocumentJudgment {
     newDocSays: string;
     existingDocSays: string;
     severity?: 'contradiction' | 'minor_inconsistency';
+    /** 3.4, fase 1: la especie de conflicto normativo, si el juez la declara. Ausente = la contradicción de siempre.
+     *  Ver lib/analysis/conflicto-normativo.ts. */
+    conflictoNormativo?: ConflictoNormativo;
     confirmedBy?: ConfirmedBy;
     /** F-69: columnas de la fila en las que los dos lados difieren, tal como
      *  las identificó la capa determinista (finding-rules.ts, veredicto
