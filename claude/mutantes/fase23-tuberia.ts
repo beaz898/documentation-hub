@@ -8,7 +8,7 @@ export const definicion: Definicion = {
   fichero: 'lib/analysis/pipeline.ts',
   arnes: 'lib/analysis/rama-de-las-reglas.test.ts',
   proyecto: 'suite',
-  tests: 7,
+  tests: 9,
   mutantes: [
     { nombre: 'el primer sitio no pasa la marca', ancla: "'existing'),\n          " + LINEA + '\n          ' + CAMPO + '\n', cambio: "'existing'),\n" },
     { nombre: 'el segundo sitio no pasa la marca', ancla: "'existing'),\n        " + LINEA + '\n        ' + CAMPO + '\n', cambio: "'existing'),\n" },

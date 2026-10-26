@@ -3,8 +3,13 @@
 *Escritas el 26/10/2026, ANTES de la tanda, por el arquitecto. Se califican una por una después, como en el 3.1.3.
 Las transcribe Code; lo de «cómo se mide» es suyo, leído en el código.*
 
-**El montaje**: NOR-10 analizado en **modo RÁPIDO**, nunca exhaustivo (protocolo: el exhaustivo pierde el campo,
-pendiente D). Cinco pasadas. Lo lanza el director.
+**El montaje**: **cinco pasadas de NOR-10 y cinco de NOR-11**, en **modo RÁPIDO**, nunca exhaustivo (protocolo: el
+exhaustivo pierde el campo, pendiente D). Lo lanza el director.
+
+⚠️ **SALVEDAD DE LA MEDIDA (arquitecto, 26/10)**: el bloque nuevo va en el prompt de TODAS las llamadas del juez,
+también en las que producen A, B y C. **La predicción 2 se mide con el juez cambiado.** Lo que queda intacto es el
+prompt del VERIFICADOR para los hallazgos sin marca: los marcados van en su propio lote, y el de los demás es byte a
+byte el de las tandas anteriores (comprobado con su huella).
 
 **Dónde se lee cada cosa** (Code, leído en el código el 26/10):
 - la especie de cada hallazgo publicado: `analysis->'discrepancies'[].conflictoNormativo`, en `analysis_results`;
@@ -42,6 +47,13 @@ cuando no aplique, no lo pondrá a null.
 8. **El contador `descartado.cumplibles_a_la_vez` será bajo.** Si se dispara, la categoría ve conflictos donde no hay,
 y se revierte.
 
+9. **Los tokens de entrada de CADA llamada del juez suben por el bloque nuevo, y eso NO es una regresión: es el precio
+del cambio.** El bloque añade **4.497 caracteres** (medido sobre el texto del módulo), unos **1.124 tokens** con la
+estimación ÷4 de la casa y unos **1.641** corregidos con el 68,5 % medido el 21/10 (÷4 estima el 68,5 % de lo real).
+Cuando `SQL_311_02` enseñe la entrada del juez más alta que en las tandas anteriores, es esto. Y el lote de los
+marcados del verificador, cuando lo haya, es UNA llamada más con la rama dentro: 2.020 caracteres, unos 505 tokens
+por ÷4 y 737 corregidos.
+
 ## Criterio de abandono, escrito antes de medir
 
 Si en las cinco pasadas **D no sale ni con campo ni sin campo**, o si **los hallazgos de esa pareja pasan de 7**, SE
@@ -49,10 +61,11 @@ REVIERTE EL PROMPT y se replantea. No se itera el texto dentro de la misma tanda
 
 ## Lo que la tanda NO puede medir, dicho antes
 
-- **`norma_contra_practica`**: el corpus no tiene ningún caso, y la rama del verificador, tal como está escrita,
-  pregunta por permisos y obligaciones, y su veredicto «sin_relacion» dice «no son reglas». Un hallazgo de norma contra
-  práctica tiene una cita que NO es una regla (describe lo que se hace): ese veredicto lo descartaría. Señalado por Code
-  el 26/10, antes de medir; lo decide el arquitecto.
+- **`norma_contra_practica`**: el corpus no tiene ningún caso. La rama del verificador ya lleva su pregunta («¿lo que
+  se hace cumple la regla?»), corregida el 26/10 antes de la tanda, pero esta tanda no puede ejercerla.
 - **El primer camino de la tubería** (las filas de tabla sin clave que bajan a juicio, `pipeline.ts`) pasa la marca al
-  verificador sin ningún caso que lo vigile: su mutante sobrevive. Es la misma rama que `cascada-emparejamiento.test.ts`
-  ya declara sin caso. Un conflicto normativo entre filas de tabla es improbable (las reglas son prosa).
+  verificador sin ningún caso que lo vigile: su mutante sobrevive, y se ACEPTA así (arquitecto, 26/10). Razones: un
+  conflicto normativo entre filas de tabla es improbable, porque las reglas son prosa; la casa ya declara ese camino sin
+  caso en `cascada-emparejamiento.test.ts`; y montar las tablas es la clase de rama que no se abre hoy. ⚠️ **LA
+  CONSECUENCIA: SI ALGUNA VEZ APARECE UNA ESPECIE EN UN HALLAZGO DE FILA DE TABLA, ESE CAMINO NO ESTÁ PROBADO Y EL
+  VERIFICADOR PREGUNTARÍA LO QUE NO TOCA.**

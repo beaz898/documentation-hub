@@ -38,6 +38,10 @@ describe('el texto de la rama (corregido el 26/10)', () => {
     expect(RAMA_DE_LAS_REGLAS).toContain('¿LO QUE SE HACE CUMPLE LA REGLA?');
     expect(RAMA_DE_LAS_REGLAS).not.toContain('no son reglas');
   });
+
+  it('la marca, literal: es texto que lee el modelo, no un detalle de formato', () => {
+    expect(marcaDeConflictoNormativo('norma_contra_norma')).toBe('MARCADO COMO CONFLICTO NORMATIVO (norma_contra_norma)');
+  });
 });
 
 describe('el verificador y la rama de las reglas', () => {

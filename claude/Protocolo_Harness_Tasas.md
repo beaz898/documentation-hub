@@ -1001,9 +1001,10 @@ indicativo de `CLAUDE.md`, aplicada a quien la escribió, con su cuenta.
 
 ---
 
-## ⚠️ TRES VECES EN UN DÍA, LA LECTURA DE CODE EVITÓ QUE MIDIÉRAMOS UN FALLO NUESTRO CREYENDO MEDIR AL MODELO
+## ⚠️ CUATRO VECES EN UN DÍA, LA LECTURA DE CODE EVITÓ QUE MIDIÉRAMOS UN FALLO NUESTRO CREYENDO MEDIR AL MODELO
 
-*Arquitecto, 26/10/2026, con su nombre.* Las tres, en el 3.4 y antes de gastar un crédito:
+*Arquitecto, 26/10/2026, con su nombre.* Eran tres; con la cuarta, del mismo día, son cuatro. En el 3.4 y antes de
+gastar un crédito:
   1. **La frontera** (`llm-boundary.ts`) reconstruía cada contradicción con cuatro campos: con el prompt cambiado y el
      código sin tocar, el juez habría clasificado bien y nosotros no habríamos visto nada. Por eso el código va antes que
      el prompt (fase 1).
@@ -1013,8 +1014,20 @@ indicativo de `CLAUDE.md`, aplicada a quien la escribió, con su cuenta.
   3. **La pregunta «¿se pueden cumplir las dos a la vez?»**, del primer contrato, sale «sí» siempre que una de las dos
      reglas sea un permiso (basta con no usarlo): D habría muerto en el contador que se diseñó como control negativo. Es
      un fallo de lógica del arquitecto, y lo delataba que su propio ejemplo ya no respondía a su propia pregunta.
+  4. **La rama del verificador no tenía la pregunta de la práctica**, que sí estaba en el bloque del juez, y su
+     «sin_relacion» decía «no son reglas»: todo hallazgo de `norma_contra_practica`, que tiene una cita que no es una
+     regla, habría muerto ahí. Code lo implementó tal cual y lo marcó; el arquitecto lo corrigió antes de la tanda.
 **La forma operativa**: antes de una tanda que estrena un contrato, alguien lee el contrato contra el código que lo va a
 ejecutar y contra los casos reales que tiene que encontrar. Las tres trampas eran visibles en el texto.
+
+---
+
+## ⚠️ UN CONTRATO QUE EL EJECUTOR CORRIGE EN SILENCIO DEJA DE SER UN CONTRATO
+
+*Arquitecto, 26/10/2026.* Es una regla, no un elogio. Cuando Code ve algo torcido en un texto que es del arquitecto —un
+prompt, una pregunta, una definición—, lo IMPLEMENTA TAL CUAL y lo MARCA, para que lo decida quien lo escribió. No lo
+arregla por su cuenta: un contrato corregido en silencio ya no dice lo que su autor cree que dice, y nadie sabe qué se
+está midiendo. El caso: la rama del verificador sin la pregunta de la práctica, el 26/10 (la cuarta trampa, arriba).
 
 ---
 
