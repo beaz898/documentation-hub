@@ -1381,6 +1381,12 @@ tokens de salida se podría separar. Y hay una palanca de una línea, sin medir:
 5.5 está en `medium` (`lib/analysis/modelo-del-juez.ts`); bajarlo a `low` recortaría el pensamiento.
 **NO SE TOCA sin medir antes**, porque es la misma trampa de siempre: cambiar y medir a la vez.
 
+#### PENDIENTE D — EL EXHAUSTIVO PIERDE `conflictoNormativo` (Code, 26/10/2026, al trazar la fase 1 del 3.4) · SIN TOCAR
+La fase 1 lleva el campo de la frontera al sintetizador por el camino RÁPIDO, que conserva el objeto con spread
+(`judge.ts:482`, `pipeline.ts:646`). El EXHAUSTIVO lo reconstruye campo a campo en dos sitios y el campo se perdería ahí:
+`double-check.ts:96-100` (el resultado del double-check) y `pipeline.ts:1585-1590` (`aInconsistenciaMenor`). Hoy no
+importa: las tandas son rápidas y el juez aún no emite el campo. Antes de medir el 3.4 en exhaustivo, hay que tocarlo.
+
 #### PENDIENTE C — LA ESTIMACIÓN ÷4 DEL LIMITADOR DE CUOTA
 Medido el 21/10: **estima el 68,5 % de lo que manda de verdad.** El limitador decide con esa cifra
 cuántas peticiones puede lanzar sin que la API corte, así que su margen real es un tercio menor del que
