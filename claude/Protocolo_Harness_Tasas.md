@@ -981,10 +981,34 @@ repositorio.** Todos los cazó Code leyendo:
   7. la razón de la puerta («la daría por literal»), que había escrito Code en el plan y el arquitecto repitió.
   8. **(25/10)** la lectura de «SIN FRASE» en el medidor: dijo qué significaba sin leer la consulta que lo emite
      (`SQL_F128_02`, la columna `especie_frase`: una de las dos citas no es literal en el `full_text` de su documento).
+  9. **(26/10)** la razón para meter los trozos en el segundo seguro: «el troceador ha cambiado esta semana
+     (`piezasDelAnalizado`)». `lib/chunking.ts` no cambió: su última versión es del 07/09, y `piezasDelAnalizado` sólo
+     ensambla el texto del juez desde los trozos guardados. La conclusión era buena por otras razones (un documento
+     subido antes del 07/09 se troceó con otro extractor, y nada prueba que el fichero subido sea byte a byte el de
+     `corpus-pruebas`).
 **LA FORMA OPERATIVA**: cuando el arquitecto afirme un mecanismo del sistema —qué compara la puerta, cómo se llama un
 fichero, qué día pasó algo—, o cita dónde lo ha leído, o escribe «SIN COMPROBAR» al lado. **Lo que llegue sin una de
 las dos cosas, Code lo trata como hipótesis y lo verifica antes de escribirlo en ningún documento.** Es la regla del
 indicativo de `CLAUDE.md`, aplicada a quien la escribió, con su cuenta.
+
+---
+
+## ⚠️ UNA MEDICIÓN NO ESTÁ GUARDADA HASTA QUE ESTÁ FUERA DE LA BASE DE DATOS
+
+*Arquitecto, 26/10/2026.* Medimos tres semanas y nunca sacamos copia. El 25/10 a las 18:11 el worker purgó la
+organización del piloto, y con ella todas las filas de análisis; el seguro (`SQL_SEG_01`) se escribió cinco horas y
+media tarde, y se escribió de casualidad.
+**LA FORMA OPERATIVA**: después de cada tanda se ejecuta el seguro y se descarga el CSV, **ANTES de cerrar la tanda, no
+después. Una tanda sin CSV descargado no está cerrada.**
+
+---
+
+## ⚠️ UN RELOJ QUE CORRE CONTRA NOSOTROS Y QUE NADIE MIRA ES UN RELOJ QUE SALTA
+
+*Arquitecto, 26/10/2026.* La fecha de purga estaba en la base desde el 27/07 y nadie la consultó en tres meses,
+porque nadie sabía que existía.
+**LA FORMA OPERATIVA**: cualquier fecha límite que el sistema guarde y que pueda destruir datos se consulta en el
+inventario (`SQL_INV_01`, bloque 0), y **el inventario se ejecuta al empezar cada fase.**
 
 ---
 

@@ -31,6 +31,34 @@
 
 ---
 
+## ⚠️ LA PURGA DEL 25/10/2026: QUÉ SE PERDIÓ Y QUÉ QUEDA
+
+**El hecho**, del inventario (`SQL_INV_01`, ejecutado por el director el 26/10 y transcrito por el arquitecto): la
+organización del piloto se canceló el 27/07 a las 14:12, la gracia terminó el 25/10 a las 13:12 y **el worker la purgó
+el 25/10 a las 18:11**. Cero documentos, cero filas de análisis, cero trozos, ninguna conexión de Drive. El seguro
+(`SQL_SEG_01`) llegó cinco horas y media tarde.
+
+**Lo que borra `purgeOrganization`** (`lib/purge-org.ts`): documentos (y con ellos, en cascada, los trozos y las
+versiones en espera), análisis, trabajos del exhaustivo, conversaciones del chat, registro de uso, opiniones,
+compras de créditos, invitaciones, la conexión de Drive, **las membresías**, los ficheros del almacenamiento, el
+espacio entero de Pinecone y, si puede, el usuario de Auth. La fila de la organización no se borra: se marca.
+**Lo que el código NO borra**: `llm_usage` (tokens y coste por llamada) y `finding_dismissals` (los descartes), entre
+otras. Si sus filas siguen, las sacan las consultas 6 y 5 de `SQL_SEG_02`. **Sin comprobar contra la base.**
+
+**LO QUE SE SALVA, y desde hoy es el registro** (arquitecto, 26/10):
+- el repositorio entero: los 75 SQL, los arneses, el protocolo, el archivo de consultas a Fable y `corpus-pruebas/`
+  con los diez documentos de origen;
+- los logs de Vercel que tiene el director;
+- los archivos de medida del proyecto de Claude, que **PASAN DE SER COMENTARIO A SER REGISTRO PRIMARIO**: son la única
+  copia de los marcadores, las medianas por especie y por tanda, los costes por etapa, los tokens, las latencias y las
+  frases literales de los cinco hallazgos reales. El arquitecto lo ha escrito en
+  `claude/Purga_Del_25-10-2026_Que_Se_Perdio_Y_Que_Queda.md`, que **no está en el repositorio**.
+
+**Lo que viene después, sin empezar** (arquitecto): la reconstrucción es la ocasión de montar el corpus bien de una
+vez, porque ya no queda línea base que proteger: los diez documentos MÁS los cuatro casos de Fable, escritos ANTES de
+subir y con el registro al día. No se sube nada hasta cerrar las tres preguntas sobre el worker, el plan y la
+organización.
+
 ## 0. Lo que está en vuelo (18/10/2026)
 
 - **HECHO el 16/10**: las tres pasadas de NOR-10 desde la bandeja (12:45, 12:46 y 12:46 hora de
@@ -105,6 +133,10 @@ tandas. **Ninguna consulta las ha medido por su nombre.** La cobertura indirecta
   las rápidas y `SQL_F125_01` enseña el tipo de cada pasada; `SQL_F126_01`, `SQL_F128_01/02` y `SQL_313_01` ni
   filtran ni leen la lista aparte. Si alguna pasada de esas tandas fue exhaustiva, el código no lo dice: lo dice la
   columna `analysis_type` del seguro (`SQL_SEG_01`).
+- ✅ **El punto ciego del exhaustivo NO se aplicó a la tanda del 24/10**: la salida de `SQL_311_02` de esa tanda,
+  que está en la conversación del arquitecto (no en el repositorio), dice `quick` en las once pasadas. **Procedencia:**
+  el arquitecto, 26/10, al perderse el CSV con el que se iba a contestar. El arquitecto lo extiende a «nuestras
+  tandas»; lo que el dato cubre es la del 24/10, y de las anteriores `SQL_F124_01` filtraba las rápidas.
 Sin construir nada: el pendiente va en el 3.17.
 
 **El criterio de «cerrado para enseñar»** (F-123, sin cambios en F-127): cada trampa sembrada
@@ -1274,7 +1306,7 @@ divisor con un factor medido, o usar las cifras reales que ya devuelve la petici
 estimar. **Lo que NO vale es dejar el 4 sin que nadie sepa que se queda corto.** (Las dos estimaciones:
 `callAnthropicJson` y `callAnthropicAgent`, en `lib/llm/anthropic-client.ts`.)
 
-### 3.16 · La purga a 90 días · sin frente y sin disparador · anotado el 26/10
+### 3.16 · La purga a 90 días · sin frente y sin disparador · anotado el 26/10 · ⚠️ YA HABÍA SALTADO: EL 25/10 A LAS 18:11 (ver la cabecera)
 Al cancelarse la suscripción, el webhook pone el fin de la gracia a 90 días (`app/api/billing/webhook/route.ts`), y
 pasada esa fecha el worker de Railway, que mira cada 6 horas (`worker/src/index.ts`), ejecuta `purgeOrganization`.
 **Lo que se pierde no es sólo lo de Drive: son también las filas de análisis, donde viven todas nuestras
