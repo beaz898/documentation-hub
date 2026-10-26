@@ -11,6 +11,13 @@ también en las que producen A, B y C. **La predicción 2 se mide con el juez ca
 prompt del VERIFICADOR para los hallazgos sin marca: los marcados van en su propio lote, y el de los demás es byte a
 byte el de las tandas anteriores (comprobado con su huella).
 
+**LA CONSULTA QUE LO LEE TODO: `SQL_34_01_la_tanda_del_conflicto_normativo.sql`** (pendiente de ejecutar; con la
+resolución por usuario y la fila de guarda; ventana y esperados en NULO, para rellenarlos con las horas reales y
+DESPUÉS de mirar el reloj de la base). Sus bloques: 0 control (ventana, pasadas, modo rápido, registro por llamada);
+1 cada hallazgo con su especie y sus citas (1a, 1b, 2, 4, 7); 2 el recuento de NOR-10 ↔ CLI-12 y el criterio de
+abandono; 3 los contadores (5, 6, 8); 4 NOR-11 ↔ CLI-13 y las cinco coincidencias (3); 5 los tokens del juez por
+llamada y la llamada extra del verificador (9).
+
 **Dónde se lee cada cosa** (Code, leído en el código el 26/10):
 - la especie de cada hallazgo publicado: `analysis->'discrepancies'[].conflictoNormativo`, en `analysis_results`;
 - los contadores de la frontera y del verificador **NO están en `pipeline_counters`**: van a
@@ -53,6 +60,10 @@ estimación ÷4 de la casa y unos **1.641** corregidos con el 68,5 % medido el 2
 Cuando `SQL_311_02` enseñe la entrada del juez más alta que en las tandas anteriores, es esto. Y el lote de los
 marcados del verificador, cuando lo haya, es UNA llamada más con la rama dentro: 2.020 caracteres, unos 505 tokens
 por ÷4 y 737 corregidos.
+**Y UNA TERCERA VÍA QUE COINCIDE** (arquitecto, 26/10): con la proporción medida en la pareja el **22/10** —2,745
+caracteres por token (`claude/Estado_Y_Pendientes_14-10-2026.md`, F-129)—, 4.497 ÷ 2,745 = **1.638 tokens**, frente a
+los 1.641 por el 68,5 %. Dos derivaciones independientes con un 0,2 % de diferencia: refuerza la predicción y de paso
+confirma la regla de conversión. (El arquitecto la fechó el 21/10; en el repositorio es del 22/10.)
 
 ## Criterio de abandono, escrito antes de medir
 
