@@ -5,7 +5,7 @@ export const definicion: Definicion = {
   fichero: 'SQL_34_01_la_tanda_del_conflicto_normativo.sql',
   arnes: 'claude/arneses/f34',
   proyecto: 'arneses',
-  tests: 9,
+  tests: 15,
   mutantes: [
     { nombre: 'la resolución no exige UNA pertenencia', ancla: '         CASE WHEN count(m.org_id) = 1 THEN min(m.org_id::text) END AS org', cambio: '         min(m.org_id::text) AS org' },
     { nombre: 'la organización leída deja de ir primera', ancla: "ORDER BY (bloque <> 'organización leída'), bloque,", cambio: 'ORDER BY bloque,' },
