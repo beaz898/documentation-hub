@@ -15,6 +15,7 @@ import type { StoredChunk } from '@/lib/read-chunks';
 import { repartoDeLaPareja, TAMANO_VENTANA, type RepartoElegido } from './reparto-de-la-pareja';
 import { avisoDeLoOmitido, cortarEnLimiteDePieza, finesDePiezas, SEPARADOR } from './corte-del-analizado';
 import { EXCEPCION_DEL_SUJETO } from './regla-del-sujeto';
+import { EXCEPCION_DE_LAS_REGLAS } from './excepcion-de-las-reglas';
 
 // F-61: normalize se extrajo a su propio fichero (ver normalize.ts) para
 // evitar un ciclo con table-structure.ts. Se re-exporta aquí para que
@@ -906,6 +907,8 @@ PRESTA ESPECIAL ATENCIÓN A:
 - Cuantificadores: "todo", "siempre", "nunca", "completamente", "solo", "únicamente" son señales de posible exageración respecto al existente.
 
 REGLA DE ORO: Si puedes imaginar un contexto razonable en el que ambas afirmaciones sean verdaderas simultáneamente, NO es contradicción. Puede ser inconsistencia menor.
+
+${EXCEPCION_DE_LAS_REGLAS}
 
 REGLAS DE FORMATO:
 - En newDocSays y evidenceInNewDoc: copia LITERALMENTE un fragmento del DOCUMENTO NUEVO.

@@ -21,6 +21,7 @@ import { extractSegments, chunkSegments } from '@/lib/chunking';
 import { toStoredChunks, type StoredChunk } from '@/lib/read-chunks';
 import { judgeAllDocuments } from './judge';
 import { EXCEPCION_DEL_SUJETO } from './regla-del-sujeto';
+import { EXCEPCION_DE_LAS_REGLAS } from './excepcion-de-las-reglas';
 
 const VARIABLE = 'ANALYSIS_PAREJA_ENTERA';
 const original = process.env[VARIABLE];
@@ -69,7 +70,8 @@ describe('la regla del sujeto, en los cuatro prompts reales', () => {
   });
   it('QUITADA LA LÍNEA, el prompt es el de antes byte a byte (huellas del código de 8a790652)', () => {
     const sin: Record<string, string> = {};
-    for (const [k, p] of Object.entries(prompt)) sin[k] = huella(p.replace(EXCEPCION_DEL_SUJETO + '\n', ''));
+    // 26/10/2026 (3.4): el bloque de las reglas también es añadido; quitadas las DOS piezas, el resto es el de antes
+    for (const [k, p] of Object.entries(prompt)) sin[k] = huella(p.replace(EXCEPCION_DEL_SUJETO + '\n', '').replace(EXCEPCION_DE_LAS_REGLAS + '\n\n', ''));
     expect(sin).toEqual(ANTES);
   });
   it('el ejemplo no sale del corpus: ni el cargo ni la decisión de A, ni nada de los residuos', () => {
