@@ -47,6 +47,10 @@ purga había borrado su membresía.
 versiones en espera), análisis, trabajos del exhaustivo, conversaciones del chat, registro de uso, opiniones,
 compras de créditos, invitaciones, la conexión de Drive, **las membresías**, los ficheros del almacenamiento, el
 espacio entero de Pinecone y, si puede, el usuario de Auth. La fila de la organización no se borra: se marca.
+**Y EL USUARIO DE AUTH SOBREVIVIÓ: la purga lo intenta y el 25/10 NO PUDO.** `SQL_ORG_01` (26/10) devuelve el usuario
+del director, `a9625e93…`, con alta del 03/04/2026 y una sola pertenencia. Es un dato sobre lo que la purga consigue de
+verdad, no sólo sobre lo que intenta (el borrado de Auth falla si otra tabla, como `llm_usage`, sigue apuntando al
+usuario; eso es lectura del código, no lo dice ningún log).
 **Lo que el código NO borra**: `llm_usage` (tokens y coste por llamada) y `finding_dismissals` (los descartes), entre
 otras. Si sus filas siguen, las sacan las consultas 6 y 5 de `SQL_SEG_02`. **Sin comprobar contra la base.**
 - ✅ **`llm_usage` SOBREVIVIÓ** (consulta 6 de `SQL_SEG_02`, ejecutada y descargada por el director el 26/10): **543
@@ -58,6 +62,9 @@ otras. Si sus filas siguen, las sacan las consultas 6 y 5 de `SQL_SEG_02`. **Sin
   que nunca se escribió un descarte de esta organización, o que se escribió y se deshizo con el botón de
   «no descartar» (`borrarDescarte`, `app/api/findings/dismiss`). **Lo sabe el director**, que es quien pulsa ese
   botón.
+  **Lo que recuerda el director (26/10), escrito como SU RECUERDO y no como un hecho**: «es posible que no haya pulsado
+  descartar en algún hallazgo al menos desde hace un tiempo importante». La lectura más probable es que nunca se guardó
+  un descarte en el piloto. Ninguna medición dependía de eso.
 **SE PERDIÓ EL HISTORIAL, NO LA CAPACIDAD DE MEDIR** (director, 26/10). Todas nuestras consultas llevaban la ventana
 de la tanda del momento y ninguna miraba hacia atrás; las líneas base con las que comparábamos están escritas en los
 archivos de medida, que es de donde las leíamos. Esta cabecera no describe una catástrofe operativa.
@@ -68,7 +75,13 @@ Escrito en `Modelo_De_Negocio.txt` (sección «Grace period»), con su atribuci�
 
 **El camino, CAMBIADO el mismo día (director, 26/10): SE QUEDA EN LA ORGANIZACIÓN NUEVA.** Volvió a contratar, con el
 plan más caro, y tiene 10.000 créditos; la suscripción quedó en la organización nueva. `SQL_ESC_01` queda **archivada
-sin ejecutar**. El id de la nueva lo dará `SQL_ORG_01`, y después se cambia en las consultas que se siguen usando.
+sin ejecutar**. **`SQL_ORG_01` (ejecutada por el director el 26/10)**: una sola pertenencia, a la organización
+`68bf28c3-8352-4052-8eb4-3a7e31b74b53`, «Mi workspace», alta 25/10/2026 23:46, business_plus, 10.000 créditos, suscripción
+de Stripe guardada, sin cancelar ni purgar. **El cambio del id (26/10)**: las consultas que miran hacia delante ya no
+llevan el id de ninguna organización; la resuelven por el USUARIO del director (`SQL_INV_01`, `SQL_SEG_01`,
+`SQL_311_02`, `SQL_312_01`, `SQL_313_01`, `SQL_313_02`, `SQL_F128_01`, `SQL_F128_02`). `SQL_SEG_02` se queda con el
+id del PILOTO a propósito, porque lee lo rescatado. ⚠️ **`a9625e93…` es a la vez el USUARIO del director y la
+ORGANIZACIÓN DEL PILOTO** (código de antes del 27/04): no se unifican nunca.
 **Con el plan de pago se caen las dos trabas** del plan gratuito: ya no hay tope de 5 documentos nuevos
 (`app/api/ingest/route.ts:173-191`) ni prohibición del exhaustivo (`app/api/analyze-v2/route.ts:246-258`); las dos
 miran sólo `plan === 'free'`.
@@ -81,10 +94,23 @@ miran sólo `plan === 'free'`.
   frases literales de los cinco hallazgos reales. El arquitecto lo ha escrito en
   `claude/Purga_Del_25-10-2026_Que_Se_Perdio_Y_Que_Queda.md`, que **no está en el repositorio**.
 
+**LA CADENA VERIFICADA, en este orden** (arquitecto, 26/10): (1) el cambio del id, hecho; (2) el director ejecuta el
+inventario SOBRE LA ORGANIZACIÓN VACÍA, y su primera fila tiene que decir «Mi workspace» y 0 documentos: PRUEBA que la
+resolución funciona antes de depender de ella; (3) los cuatro casos de Fable, escritos; (4) la subida, de una sola
+vez; (5) el inventario otra vez, que tiene que decir diez.
 **Lo que viene después, sin empezar** (arquitecto): cambiar el id en las consultas, subir los diez documentos y una
 tanda para tener línea base nueva. La reconstrucción es la ocasión de montar el corpus bien de una vez, porque ya no
 queda línea base que proteger: los diez documentos MÁS los cuatro casos de Fable, **escritos ANTES de subir** y con el
 registro al día, **y se sube una sola vez**. Las siembras y el 3.4 siguen esperando, ahora con más razón.
+## ⚠️ PENDIENTE CON DISPARADOR: LO QUE LA PURGA NO BORRA (arquitecto, 26/10/2026)
+
+**AÑADIR A `purgeOrganization` LAS TABLAS QUE HOY NO BORRA** (`documentation_gaps`, `learned_rules`, `document_tombstones`,
+`agent_tasks`, `agent_conversations`, `agent_messages`). **DISPARADOR: ANTES DE QUE EXISTA LA FICHA COMERCIAL, NO DESPUÉS.**
+Un argumento de privacidad que no se cumple no es un argumento flojo: es un problema, y si un cliente pide el borrado de
+sus datos y eso sigue ahí, es un problema serio. Hoy quedan preguntas y respuestas, texto de reglas, nombres de fichero
+y mensajes del agente (leído en el código por Code el 26/10; la salvedad, en `Modelo_De_Negocio.txt`). **No se hace
+todavía: es código de producto y lo revisa el arquitecto cuando toque.**
+
 ## 0. Lo que está en vuelo (18/10/2026)
 
 - **HECHO el 16/10**: las tres pasadas de NOR-10 desde la bandeja (12:45, 12:46 y 12:46 hora de
