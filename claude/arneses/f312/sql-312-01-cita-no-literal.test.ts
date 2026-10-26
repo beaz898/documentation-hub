@@ -8,7 +8,13 @@ import { PGlite } from '@electric-sql/pglite';
  * CARÁCTER cambiado en medio y una INVENTADA. Cada una tiene que salir con su primera diferencia exacta.
  * Una base por fichero, vaciada entre casos (protocolo).
  */
-const ORG = 'a9625e93-af2a-4416-a465-5c2fa2a25bdf';
+// La organización se RESUELVE por el USUARIO (26/10/2026). USUARIO y ORG son DISTINTOS a propósito: en la base son el
+// mismo número (código de antes del 27/04), y con el mismo número aquí, volver a leer el id del piloto como
+// organización pasaría sin que nada lo notara. `pertenencias` es para los casos de la guarda, al final.
+const USUARIO = 'a9625e93-af2a-4416-a465-5c2fa2a25bdf';
+const ORG = '68bf28c3-8352-4052-8eb4-3a7e31b74b53';
+const OTRA_ORG = '99999999-9999-9999-9999-999999999999';
+let pertenencias = 1;
 const DOC = '10101010-1010-1010-1010-101010101010';
 const T0 = 'El Director Clínico autoriza cualquier excepción documentada al «protocolo» de esterilización.';
 const T1 = 'La responsabilidad última recae siempre sobre esta figura y no es delegable.';
@@ -37,6 +43,13 @@ async function correr(citas: string[]): Promise<Fila[]> {
   await ruido('otra', '2026-10-24T17:10:00Z', 'NOR-10_x.docx');
   await ruido(ORG, '2026-10-24T17:10:00Z', 'NOR-11_x.docx');
   await ruido(ORG, '2026-10-24T16:00:00Z', 'NOR-10_x.docx');
+  // LA PERTENENCIA (26/10/2026): la consulta resuelve la organización por el USUARIO; las tablas y la columna que
+  // la guarda cuenta, por si el arnés no las tenía, y `pertenencias` filas de membresía, ni una más.
+  await db.exec('CREATE TABLE IF NOT EXISTS memberships (user_id uuid, org_id uuid); CREATE TABLE IF NOT EXISTS organizations (id uuid, name text); ' +
+    'CREATE TABLE IF NOT EXISTS documents (id uuid, org_id text); ALTER TABLE documents ADD COLUMN IF NOT EXISTS org_id text; ' +
+    'DELETE FROM memberships; DELETE FROM organizations;');
+  await db.query("INSERT INTO organizations VALUES ($1, 'Mi workspace')", [ORG]);
+  for (let i = 0; i < pertenencias; i++) await db.query('INSERT INTO memberships VALUES ($1, $2)', [USUARIO, i === 0 ? ORG : OTRA_ORG]);
   const sql = readFileSync('SQL_312_01_la_cita_no_literal.sql', 'utf8').replaceAll('public.', '');
   return (await db.query<Fila>(sql)).rows;
 }
@@ -50,7 +63,7 @@ describe('SQL_312_01, la cita no literal, carácter a carácter', () => {
       'La responsabilidad última recae siempre sobre esta persona y no es delegable',             // un tramo cambiado en medio
       'El comité aprueba por unanimidad el presupuesto anual del servicio',                       // inventada
     ]);
-    expect(f[0].b).toBe('pasadas de NOR-10 entre las dos horas: 1 · contradicciones publicadas: 4 · con la cita del nuevo NO literal en el texto reconstruido: 3');
+    expect(f.find(x => x.bloque === '0 · control')!.b).toBe('pasadas de NOR-10 entre las dos horas: 1 · contradicciones publicadas: 4 · con la cita del nuevo NO literal en el texto reconstruido: 3');
     expect(filas(f)).toHaveLength(3);
   }, 60_000);
 
@@ -82,7 +95,29 @@ describe('SQL_312_01, la cita no literal, carácter a carácter', () => {
 
   it('sin pasadas, el control FALLA y no hay filas', async () => {
     const f = await correr([]);
-    expect(f[0].a).toBe('FALLA');
+    expect(f.find(x => x.bloque === '0 · control')!.a).toBe('FALLA');
     expect(filas(f)).toHaveLength(0);
   }, 60_000);
+});
+
+describe('LA ORGANIZACIÓN LEÍDA (26/10/2026): se resuelve por el usuario, y la primera fila lo dice', () => {
+  it('va primera: la del usuario, con su nombre y sus documentos', async () => {
+    const f = await correr([]);
+    expect(f[0].bloque).toBe('organización leída');
+    expect(f[0].a).toMatch(new RegExp('^organización leída: ' + ORG + ' · «Mi workspace» · \\d+ documentos$'));
+  }, 240_000);
+
+  it('sin pertenencia, o con dos, lo grita en la primera fila', async () => {
+    for (const n of [0, 2]) {
+      pertenencias = n;
+      try {
+        const f = await correr([]);
+        expect(f[0].bloque).toBe('organización leída');
+        expect(f[0].a).toBe('⚠️⚠️ NO SE HA PODIDO RESOLVER LA ORGANIZACIÓN: el usuario ' + USUARIO + ' tiene ' + n +
+            ' pertenencias y tiene que tener UNA. TODO LO QUE SIGUE ESTÁ LEYENDO NADA: NO ES UN RESULTADO.');
+      } finally {
+        pertenencias = 1;
+      }
+    }
+  }, 240_000);
 });

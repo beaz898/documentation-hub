@@ -3,6 +3,13 @@
 -- ⏳ PENDIENTE DE EJECUTAR. Sólo SELECT: no escribe, no borra, no cambia nada.
 -- Sólo la organización del piloto: la constante va al principio de CADA consulta, porque cada una se ejecuta sola.
 --
+-- ⚠️⚠️ ESTE ID ES EL VIEJO A PROPÓSITO (arquitecto, 26/10/2026). NO SE CAMBIA, NO SE RESUELVE Y NO SE «ARREGLA».
+-- Es la organización del PILOTO, purgada el 25/10/2026. Lo único que sobrevivió a la purga son las 543 filas de
+-- llm_usage (consulta 6), guardadas con este id; si se le cambia, se pierde el acceso a lo único que quedó. Las
+-- consultas que miran hacia delante resuelven la organización por el usuario del director, y ESE número es el mismo
+-- que éste: a9625e93-af2a-4416-a465-5c2fa2a25bdf es a la vez el USUARIO del director y la ORGANIZACIÓN DEL PILOTO, por el código de
+-- antes del 27/04/2026. Aquí significa ORG_DEL_PILOTO. NO SE UNIFICA con la constante USUARIO de las otras.
+--
 -- EL CRITERIO (arquitecto, 26/10): se exporta toda tabla que lea alguna de nuestras consultas de medida. Las filas
 -- de análisis ya van en SQL_SEG_01. El censo se hizo sobre los 75 SQL_*.sql de la raíz y de claude/, buscando
 -- «from» y «join» seguidos del nombre de la tabla. Entran, con quién las lee:
@@ -31,7 +38,7 @@
 -- ============================================================================
 
 -- ══ SEG-02 · 1 · documents ══════════════════════════════════════════════════
-WITH p AS (SELECT 'a9625e93-af2a-4416-a465-5c2fa2a25bdf'::text AS org)
+WITH p AS (SELECT 'a9625e93-af2a-4416-a465-5c2fa2a25bdf'::text AS org_del_piloto)   -- ← ORG_DEL_PILOTO: EL ID VIEJO, A PROPÓSITO
 SELECT row_number() OVER (ORDER BY t.created_at, t.id) AS n,
        count(*) OVER () AS total_filas,
        to_char(t.created_at AT TIME ZONE 'Europe/Madrid', 'YYYY-MM-DD HH24:MI:SS') AS fecha_madrid,
@@ -39,22 +46,22 @@ SELECT row_number() OVER (ORDER BY t.created_at, t.id) AS n,
        md5(t.full_text) AS huella_del_texto,
        t.*
 FROM public.documents t, p
-WHERE t.org_id = p.org
+WHERE t.org_id = p.org_del_piloto
 ORDER BY t.created_at, t.id;
 
 -- ══ SEG-02 · 2 · document_chunks ════════════════════════════════════════════
-WITH p AS (SELECT 'a9625e93-af2a-4416-a465-5c2fa2a25bdf'::text AS org)
+WITH p AS (SELECT 'a9625e93-af2a-4416-a465-5c2fa2a25bdf'::text AS org_del_piloto)   -- ← ORG_DEL_PILOTO: EL ID VIEJO, A PROPÓSITO
 SELECT row_number() OVER (ORDER BY t.document_id, t.generation, t.chunk_index) AS n,
        count(*) OVER () AS total_filas,
        length(t.text) AS caracteres_del_trozo,
        md5(t.text) AS huella_del_trozo,
        t.*
 FROM public.document_chunks t, p
-WHERE t.org_id = p.org
+WHERE t.org_id = p.org_del_piloto
 ORDER BY t.document_id, t.generation, t.chunk_index;
 
 -- ══ SEG-02 · 3 · document_staged ════════════════════════════════════════════
-WITH p AS (SELECT 'a9625e93-af2a-4416-a465-5c2fa2a25bdf'::text AS org)
+WITH p AS (SELECT 'a9625e93-af2a-4416-a465-5c2fa2a25bdf'::text AS org_del_piloto)   -- ← ORG_DEL_PILOTO: EL ID VIEJO, A PROPÓSITO
 SELECT row_number() OVER (ORDER BY t.created_at, t.document_id) AS n,
        count(*) OVER () AS total_filas,
        to_char(t.created_at AT TIME ZONE 'Europe/Madrid', 'YYYY-MM-DD HH24:MI:SS') AS fecha_madrid,
@@ -62,11 +69,11 @@ SELECT row_number() OVER (ORDER BY t.created_at, t.document_id) AS n,
        md5(t.full_text) AS huella_del_texto,
        t.*
 FROM public.document_staged t, p
-WHERE t.org_id = p.org
+WHERE t.org_id = p.org_del_piloto
 ORDER BY t.created_at, t.document_id;
 
 -- ══ SEG-02 · 4 · analysis_jobs ══════════════════════════════════════════════
-WITH p AS (SELECT 'a9625e93-af2a-4416-a465-5c2fa2a25bdf'::text AS org)
+WITH p AS (SELECT 'a9625e93-af2a-4416-a465-5c2fa2a25bdf'::text AS org_del_piloto)   -- ← ORG_DEL_PILOTO: EL ID VIEJO, A PROPÓSITO
 SELECT row_number() OVER (ORDER BY t.created_at, t.id) AS n,
        count(*) OVER () AS total_filas,
        to_char(t.created_at AT TIME ZONE 'Europe/Madrid', 'YYYY-MM-DD HH24:MI:SS') AS fecha_madrid,
@@ -76,44 +83,44 @@ SELECT row_number() OVER (ORDER BY t.created_at, t.id) AS n,
        md5(t.document_text) AS huella_del_documento,
        t.*
 FROM public.analysis_jobs t, p
-WHERE t.org_id::text = p.org
+WHERE t.org_id::text = p.org_del_piloto
 ORDER BY t.created_at, t.id;
 
 -- ══ SEG-02 · 5 · finding_dismissals ═════════════════════════════════════════
-WITH p AS (SELECT 'a9625e93-af2a-4416-a465-5c2fa2a25bdf'::text AS org)
+WITH p AS (SELECT 'a9625e93-af2a-4416-a465-5c2fa2a25bdf'::text AS org_del_piloto)   -- ← ORG_DEL_PILOTO: EL ID VIEJO, A PROPÓSITO
 SELECT row_number() OVER (ORDER BY t.created_at, t.id) AS n,
        count(*) OVER () AS total_filas,
        to_char(t.created_at AT TIME ZONE 'Europe/Madrid', 'YYYY-MM-DD HH24:MI:SS') AS fecha_madrid,
        t.*
 FROM public.finding_dismissals t, p
-WHERE t.org_id = p.org
+WHERE t.org_id = p.org_del_piloto
 ORDER BY t.created_at, t.id;
 
 -- ══ SEG-02 · 6 · llm_usage ══════════════════════════════════════════════════
-WITH p AS (SELECT 'a9625e93-af2a-4416-a465-5c2fa2a25bdf'::text AS org)
+WITH p AS (SELECT 'a9625e93-af2a-4416-a465-5c2fa2a25bdf'::text AS org_del_piloto)   -- ← ORG_DEL_PILOTO: EL ID VIEJO, A PROPÓSITO
 SELECT row_number() OVER (ORDER BY t.created_at, t.id) AS n,
        count(*) OVER () AS total_filas,
        to_char(t.created_at AT TIME ZONE 'Europe/Madrid', 'YYYY-MM-DD HH24:MI:SS') AS fecha_madrid,
        t.*
 FROM public.llm_usage t, p
-WHERE t.org_id::text = p.org
+WHERE t.org_id::text = p.org_del_piloto
 ORDER BY t.created_at, t.id;
 
 -- ══ SEG-02 · 7 · usage_logs ═════════════════════════════════════════════════
-WITH p AS (SELECT 'a9625e93-af2a-4416-a465-5c2fa2a25bdf'::text AS org)
+WITH p AS (SELECT 'a9625e93-af2a-4416-a465-5c2fa2a25bdf'::text AS org_del_piloto)   -- ← ORG_DEL_PILOTO: EL ID VIEJO, A PROPÓSITO
 SELECT row_number() OVER (ORDER BY t.created_at, t.id) AS n,
        count(*) OVER () AS total_filas,
        to_char(t.created_at AT TIME ZONE 'Europe/Madrid', 'YYYY-MM-DD HH24:MI:SS') AS fecha_madrid,
        t.*
 FROM public.usage_logs t, p
-WHERE t.org_id = p.org
+WHERE t.org_id = p.org_del_piloto
 ORDER BY t.created_at, t.id;
 
 -- ══ SEG-02 · 8 · organizations ══════════════════════════════════════════════
-WITH p AS (SELECT 'a9625e93-af2a-4416-a465-5c2fa2a25bdf'::text AS org)
+WITH p AS (SELECT 'a9625e93-af2a-4416-a465-5c2fa2a25bdf'::text AS org_del_piloto)   -- ← ORG_DEL_PILOTO: EL ID VIEJO, A PROPÓSITO
 SELECT row_number() OVER (ORDER BY t.id) AS n,
        count(*) OVER () AS total_filas,
        t.*
 FROM public.organizations t, p
-WHERE t.id::text = p.org
+WHERE t.id::text = p.org_del_piloto
 ORDER BY t.id;

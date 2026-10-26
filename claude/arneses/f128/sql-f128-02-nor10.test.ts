@@ -18,7 +18,13 @@ import { CLI12, CLI13, NOR10, contadoresACero, especies, fraseDe, poner, publica
  *    formulación; B y D, enteros), el contraejemplo del cargo solo, las trampas que el par recortado
  *    de B y D se tragaba, y la D que «vive pegada a la A» (registro), que no puede salir A.
  */
-const ORG = 'a9625e93-af2a-4416-a465-5c2fa2a25bdf';
+// La organización se RESUELVE por el USUARIO (26/10/2026). USUARIO y ORG son DISTINTOS a propósito: en la base son el
+// mismo número (código de antes del 27/04), y con el mismo número aquí, volver a leer el id del piloto como
+// organización pasaría sin que nada lo notara. `pertenencias` es para los casos de la guarda, al final.
+const USUARIO = 'a9625e93-af2a-4416-a465-5c2fa2a25bdf';
+const ORG = '68bf28c3-8352-4052-8eb4-3a7e31b74b53';
+const OTRA_ORG = '99999999-9999-9999-9999-999999999999';
+let pertenencias = 1;
 const ID = { nor: '11111111-1111-1111-1111-111111111111', cli: '22222222-2222-2222-2222-222222222222', c13: '33333333-3333-3333-3333-333333333333' };
 const D = publicada(CLI12), D13 = publicada(CLI13);
 
@@ -86,6 +92,13 @@ async function montar(pasadas: { hora: string; ds: Publicada[]; modelo: boolean 
         judgments: [{ documentName: CLI12, contradictions: deCLI12 }, { documentName: CLI13, contradictions: deCLI13 }],
         lecturaDeLasParejas: [leer({ candidato: 'cli' }, p.modelo), leer({ candidato: 'c13' }, p.modelo)] }]);
   }
+  // LA PERTENENCIA (26/10/2026): la consulta resuelve la organización por el USUARIO; las tablas y la columna que
+  // la guarda cuenta, por si el arnés no las tenía, y `pertenencias` filas de membresía, ni una más.
+  await db.exec('CREATE TABLE IF NOT EXISTS memberships (user_id uuid, org_id uuid); CREATE TABLE IF NOT EXISTS organizations (id uuid, name text); ' +
+    'CREATE TABLE IF NOT EXISTS documents (id uuid, org_id text); ALTER TABLE documents ADD COLUMN IF NOT EXISTS org_id text; ' +
+    'DELETE FROM memberships; DELETE FROM organizations;');
+  await db.query("INSERT INTO organizations VALUES ($1, 'Mi workspace')", [ORG]);
+  for (let i = 0; i < pertenencias; i++) await db.query('INSERT INTO memberships VALUES ($1, $2)', [USUARIO, i === 0 ? ORG : OTRA_ORG]);
   let sql = readFileSync('SQL_F128_02_nor10_con_haiku55.sql', 'utf8').replaceAll('public.', '');
   sql = poner(sql, /timestamptz '[^']+' AS desde/, `timestamptz '${ventana.desde}' AS desde`);
   sql = poner(sql, /timestamptz '[^']+' AS hasta/, `timestamptz '${ventana.hasta}' AS hasta`);
@@ -182,4 +195,26 @@ describe('SQL_F128_02 · los controles', () => {
     // el final: la del Coordinador de Calidad tiene otra frase detrás en su párrafo
     expect(fraseDe(exc, 'EXISTENTE')).toBe(COORD_ENTERA + '.');
   });
+});
+
+describe('LA ORGANIZACIÓN LEÍDA (26/10/2026): se resuelve por el usuario, y la primera fila lo dice', () => {
+  it('va primera: la del usuario, con su nombre y sus documentos', async () => {
+    const f = await montar([], { desde: '2026-10-19 14:20:00+02', hasta: '2026-10-19 14:35:00+02', push: '2026-10-16 12:50:00+02', exigir: false });
+    expect(f[0].bloque).toBe('organización leída');
+    expect(f[0].a).toMatch(new RegExp('^organización leída: ' + ORG + ' · «Mi workspace» · \\d+ documentos$'));
+  }, 240_000);
+
+  it('sin pertenencia, o con dos, lo grita en la primera fila', async () => {
+    for (const n of [0, 2]) {
+      pertenencias = n;
+      try {
+        const f = await montar([], { desde: '2026-10-19 14:20:00+02', hasta: '2026-10-19 14:35:00+02', push: '2026-10-16 12:50:00+02', exigir: false });
+        expect(f[0].bloque).toBe('organización leída');
+        expect(f[0].a).toBe('⚠️⚠️ NO SE HA PODIDO RESOLVER LA ORGANIZACIÓN: el usuario ' + USUARIO + ' tiene ' + n +
+            ' pertenencias y tiene que tener UNA. TODO LO QUE SIGUE ESTÁ LEYENDO NADA: NO ES UN RESULTADO.');
+      } finally {
+        pertenencias = 1;
+      }
+    }
+  }, 240_000);
 });

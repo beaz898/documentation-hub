@@ -5,8 +5,12 @@ export const definicion: Definicion = {
   fichero: 'SQL_INV_01_inventario_del_corpus.sql',
   arnes: 'claude/arneses/inv',
   proyecto: 'arneses',
-  tests: 6,
+  tests: 8,
   mutantes: [
+    { nombre: "la resolución no exige UNA pertenencia", ancla: "         CASE WHEN count(m.org_id) = 1 THEN min(m.org_id::text) END AS org", cambio: "         min(m.org_id::text) AS org" },
+    { nombre: "la primera fila no mira qué organización se lee", ancla: "  SELECT CASE WHEN r.org IS NOT NULL", cambio: "  SELECT CASE WHEN true" },
+    { nombre: "se UNIFICA: el id del piloto vuelve a leerse como organización", ancla: "p AS (SELECT (SELECT org FROM resolucion) AS org)", cambio: "p AS (SELECT 'a9625e93-af2a-4416-a465-5c2fa2a25bdf'::text AS org)" },
+    { nombre: "la organización leída deja de ir primera", ancla: "SELECT '0 · cuenta' AS bloque, 0 AS n,", cambio: "SELECT '0 · cuenta' AS bloque, 9 AS n," },
     { nombre: 'documentos de otra organización', ancla: 'FROM public.documents d, p WHERE d.org_id = p.org', cambio: 'FROM public.documents d, p WHERE true' },
     { nombre: 'análisis por documento sin filtrar organización', ancla: 'WHERE ar.org_id = p.org AND ar.document_id = d.id', cambio: 'WHERE ar.document_id = d.id' },
     { nombre: 'trozos de cualquier generación', ancla: 'WHERE c.document_id = d.id AND c.generation = d.active_generation) AS trozos,', cambio: 'WHERE c.document_id = d.id) AS trozos,' },

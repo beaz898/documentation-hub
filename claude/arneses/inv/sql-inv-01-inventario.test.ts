@@ -8,7 +8,11 @@ import { PGlite } from '@electric-sql/pglite';
  * de un documento borrado y sin documento, una conexión de Drive, una lápida, y ruido de otra organización con los
  * mismos nombres. Una base por fichero, vaciada entre casos (protocolo).
  */
-const ORG = 'a9625e93-af2a-4416-a465-5c2fa2a25bdf';
+// LA ORGANIZACIÓN SE RESUELVE POR EL USUARIO (26/10/2026). USUARIO y ORG tienen que ser DISTINTOS en el arnés: si fueran
+// el mismo número —como en la base, por el código de antes del 27/04—, una consulta que volviera a leer el id del
+// piloto como organización pasaría sin que nada lo notara.
+const USUARIO = 'a9625e93-af2a-4416-a465-5c2fa2a25bdf';
+const ORG = '68bf28c3-8352-4052-8eb4-3a7e31b74b53';
 const OTRA = '99999999-9999-9999-9999-999999999999';
 const A = '0000000a-0000-0000-0000-000000000000';   // NOR-10, la copia vieja, con dos análisis
 const B = '0000000b-0000-0000-0000-000000000000';   // NOR-10, la copia nueva, sin análisis
@@ -23,7 +27,8 @@ let db: PGlite;
 beforeAll(async () => {
   db = new PGlite();
   await db.exec(`SET TIME ZONE 'UTC';
-    CREATE TABLE organizations (id uuid, plan text, credits_remaining int, stripe_subscription_id text, canceled_at timestamptz, grace_period_ends_at timestamptz, purged_at timestamptz);
+    CREATE TABLE organizations (id uuid, plan text, credits_remaining int, stripe_subscription_id text, canceled_at timestamptz, grace_period_ends_at timestamptz, purged_at timestamptz, name text);
+    CREATE TABLE memberships (user_id uuid, org_id uuid);
     CREATE TABLE documents (id uuid, org_id text, name text, source text, analysis_status text, active_generation int, chunk_count int, created_at timestamptz, full_text text);
     CREATE TABLE document_chunks (document_id uuid, generation int, chunk_index int);
     CREATE TABLE analysis_results (org_id text, created_at timestamptz, document_id uuid, document_name text);
@@ -32,14 +37,16 @@ beforeAll(async () => {
 }, 120_000);
 afterAll(async () => { await db.close(); });
 
-async function sembrar(cuenta: 'gracia' | 'sin_gracia' | 'sin_org') {
-  await db.exec(`DELETE FROM organizations; DELETE FROM documents; DELETE FROM document_chunks; DELETE FROM analysis_results;
+async function sembrar(cuenta: 'gracia' | 'sin_gracia' | 'sin_org', pertenencias = 1) {
+  await db.exec(`DELETE FROM memberships; DELETE FROM organizations; DELETE FROM documents; DELETE FROM document_chunks; DELETE FROM analysis_results;
                  DELETE FROM drive_connections; DELETE FROM document_tombstones;`);
   if (cuenta !== 'sin_org')
-    await db.query(`INSERT INTO organizations VALUES ($1, 'free', 50, NULL, $2, $3, NULL)`,
+    await db.query(`INSERT INTO organizations VALUES ($1, 'free', 50, NULL, $2, $3, NULL, 'Mi workspace')`,
       [ORG, cuenta === 'gracia' ? '2026-10-20T10:00:00Z' : null,
        cuenta === 'gracia' ? new Date(Date.now() + (30 * 24 + 1) * 3600_000).toISOString() : null]);
-  await db.query(`INSERT INTO organizations VALUES ($1, 'pro', 999, 'sub', NULL, NULL, NULL)`, [OTRA]);
+  await db.query(`INSERT INTO organizations VALUES ($1, 'pro', 999, 'sub', NULL, NULL, NULL, 'Ajena')`, [OTRA]);
+  if (pertenencias >= 1) await db.query('INSERT INTO memberships VALUES ($1, $2)', [USUARIO, ORG]);
+  if (pertenencias >= 2) await db.query('INSERT INTO memberships VALUES ($1, $2)', [USUARIO, OTRA]);
   const doc = (id: string, org: string, nombre: string, origen: string | null, gen: number, alta: string, texto: string | null) =>
     db.query('INSERT INTO documents VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)', [id, org, nombre, origen, 'analizado', gen, 3, alta, texto]);
   await doc(A, ORG, 'NOR-10_manual.docx', 'manual', 2, '2026-10-01T08:00:00Z', 'texto');
@@ -66,14 +73,30 @@ async function sembrar(cuenta: 'gracia' | 'sin_gracia' | 'sin_org') {
   await db.query(`INSERT INTO document_tombstones VALUES ($1,'google_drive','RRHH-03_x.docx','2026-10-14T09:00:00Z'),
                   ($2,'google_drive','ruido.docx','2026-10-14T09:00:00Z')`, [ORG, OTRA]);
 }
-async function correr(cuenta: 'gracia' | 'sin_gracia' | 'sin_org'): Promise<Fila[]> {
-  await sembrar(cuenta);
+async function correr(cuenta: 'gracia' | 'sin_gracia' | 'sin_org', pertenencias = 1): Promise<Fila[]> {
+  await sembrar(cuenta, pertenencias);
   const sql = readFileSync('SQL_INV_01_inventario_del_corpus.sql', 'utf8').replaceAll('public.', '');
   return (await db.query<Fila>(sql)).rows;
 }
-const de = (f: Fila[], bloque: string) => f.filter(x => x.bloque.startsWith(bloque)).map(x => x.texto);
+// la fila de la organización leída (0 · cuenta, n = 0) tiene sus propios casos, abajo; los bloques se leen sin ella
+const de = (f: Fila[], bloque: string) => f.filter(x => x.bloque.startsWith(bloque) && !(x.bloque === '0 · cuenta' && Number(x.n) === 0)).map(x => x.texto);
+const leida = (f: Fila[]) => f.find(x => x.bloque === '0 · cuenta' && Number(x.n) === 0)?.texto;
 
 describe('SQL_INV_01, el inventario del corpus del piloto', () => {
+  it('LA ORGANIZACIÓN LEÍDA va primera: la del usuario, con su nombre y sus documentos', async () => {
+    const f = await correr('gracia');
+    expect(f[0]).toMatchObject({ bloque: '0 · cuenta', texto: 'organización leída: ' + ORG + ' · «Mi workspace» · 5 documentos' });
+  }, 60_000);
+
+  it('SIN PERTENENCIA, O CON DOS, LO GRITA en la primera fila, y no lee la organización de nadie', async () => {
+    for (const n of [0, 2]) {
+      const f = await correr('gracia', n);
+      expect(leida(f)).toBe('⚠️⚠️ NO SE HA PODIDO RESOLVER LA ORGANIZACIÓN: el usuario ' + USUARIO + ' tiene ' + n +
+        ' pertenencias y tiene que tener UNA. TODO LO QUE SIGUE ESTÁ LEYENDO NADA: NO ES UN RESULTADO.');
+      expect(de(f, '1 ·')[0]).toBe('documentos en el corpus: 0 (por origen: ninguno)');
+    }
+  }, 60_000);
+
   it('LA CUENTA: plan, cancelación, purga programada con sus días, y la conexión de Drive del piloto', async () => {
     const c = de(await correr('gracia'), '0 ·');
     expect(c[0]).toMatch(/^reloj de la base: \d\d\/\d\d\/\d{4} \d\d:\d\d Madrid$/);

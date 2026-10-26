@@ -16,7 +16,13 @@ import { computeCostUsd } from '@/lib/observability/llm-pricing';
  * 90 s. Las pruebas de cálculo comparten la del análisis de cifras conocidas, y los tres controles que
  * se miran por análisis (3, 4 y 5) caen juntos en una base con tres análisis, uno roto de cada manera.
  */
-const ORG = 'a9625e93-af2a-4416-a465-5c2fa2a25bdf';
+// La organización se RESUELVE por el USUARIO (26/10/2026). USUARIO y ORG son DISTINTOS a propósito: en la base son el
+// mismo número (código de antes del 27/04), y con el mismo número aquí, volver a leer el id del piloto como
+// organización pasaría sin que nada lo notara. `pertenencias` es para los casos de la guarda, al final.
+const USUARIO = 'a9625e93-af2a-4416-a465-5c2fa2a25bdf';
+const ORG = '68bf28c3-8352-4052-8eb4-3a7e31b74b53';
+const OTRA_ORG = '99999999-9999-9999-9999-999999999999';
+let pertenencias = 1;
 const H45 = 'claude-haiku-4-5-20251001', H55 = 'claude-haiku-5-5';
 type P = { n: number; etapa: string; modelo: string; te: number; ts: number; tw?: number; tr?: number; lat: number; esp: number; com: number; est?: number; resultado?: string };
 const pet = (p: P) => ({
@@ -45,6 +51,13 @@ async function correr(registros: unknown[]): Promise<Fila[]> {
     ['otra', '2026-10-21T12:30:00Z', 'X.docx', 'quick', { llamadasAlModelo: registro([{ ...CINCO[0], modelo: 'modelo-raro' }]) }]);
   await db.query('INSERT INTO analysis_results (org_id, created_at, document_name, analysis_type, analysis) VALUES ($1,$2,$3,$4,$5)',
     [ORG, '2026-10-21T12:40:00Z', 'Y.docx', 'quick', { discrepancies: [] }]);
+  // LA PERTENENCIA (26/10/2026): la consulta resuelve la organización por el USUARIO; las tablas y la columna que
+  // la guarda cuenta, por si el arnés no las tenía, y `pertenencias` filas de membresía, ni una más.
+  await db.exec('CREATE TABLE IF NOT EXISTS memberships (user_id uuid, org_id uuid); CREATE TABLE IF NOT EXISTS organizations (id uuid, name text); ' +
+    'CREATE TABLE IF NOT EXISTS documents (id uuid, org_id text); ALTER TABLE documents ADD COLUMN IF NOT EXISTS org_id text; ' +
+    'DELETE FROM memberships; DELETE FROM organizations;');
+  await db.query("INSERT INTO organizations VALUES ($1, 'Mi workspace')", [ORG]);
+  for (let i = 0; i < pertenencias; i++) await db.query('INSERT INTO memberships VALUES ($1, $2)', [USUARIO, i === 0 ? ORG : OTRA_ORG]);
   let sql = readFileSync('SQL_311_02_el_medidor_por_llamada.sql', 'utf8').replaceAll('public.', '');
   sql = poner(sql, /timestamptz '[^']+' AS desde/, "timestamptz '2026-10-21 00:00:00+02' AS desde");
   sql = poner(sql, /timestamptz '[^']+' AS hasta/, "timestamptz '2026-10-22 00:00:00+02' AS hasta");
@@ -140,4 +153,26 @@ describe('SQL_311_02, el medidor del registro por llamada', () => {
       'FALLA · análisis 3: peticiones que salieron bien y no traen ningún token de entrada: 1',
     ]);
   });
+});
+
+describe('LA ORGANIZACIÓN LEÍDA (26/10/2026): se resuelve por el usuario, y la primera fila lo dice', () => {
+  it('va primera: la del usuario, con su nombre y sus documentos', async () => {
+    const f = await correr([]);
+    expect(f[0].bloque).toBe('organización leída');
+    expect(f[0].a).toMatch(new RegExp('^organización leída: ' + ORG + ' · «Mi workspace» · \\d+ documentos$'));
+  }, 240_000);
+
+  it('sin pertenencia, o con dos, lo grita en la primera fila', async () => {
+    for (const n of [0, 2]) {
+      pertenencias = n;
+      try {
+        const f = await correr([]);
+        expect(f[0].bloque).toBe('organización leída');
+        expect(f[0].a).toBe('⚠️⚠️ NO SE HA PODIDO RESOLVER LA ORGANIZACIÓN: el usuario ' + USUARIO + ' tiene ' + n +
+            ' pertenencias y tiene que tener UNA. TODO LO QUE SIGUE ESTÁ LEYENDO NADA: NO ES UN RESULTADO.');
+      } finally {
+        pertenencias = 1;
+      }
+    }
+  }, 240_000);
 });

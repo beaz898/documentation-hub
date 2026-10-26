@@ -10,7 +10,13 @@ import { poner } from '../f128/textos';
  * control que nunca cae no vigila nada—. Y ruido que no tiene que contar: otra organización, otro documento y
  * una pasada fuera de la ventana.
  */
-const ORG = 'a9625e93-af2a-4416-a465-5c2fa2a25bdf';
+// La organización se RESUELVE por el USUARIO (26/10/2026). USUARIO y ORG son DISTINTOS a propósito: en la base son el
+// mismo número (código de antes del 27/04), y con el mismo número aquí, volver a leer el id del piloto como
+// organización pasaría sin que nada lo notara. `pertenencias` es para los casos de la guarda, al final.
+const USUARIO = 'a9625e93-af2a-4416-a465-5c2fa2a25bdf';
+const ORG = '68bf28c3-8352-4052-8eb4-3a7e31b74b53';
+const OTRA_ORG = '99999999-9999-9999-9999-999999999999';
+let pertenencias = 1;
 const CLI13 = '13131313-1313-1313-1313-131313131313', CLI12 = '12121212-1212-1212-1212-121212121212', CLI20 = '20202020-2020-2020-2020-202020202020';
 
 type Lectura = Record<string, unknown>;
@@ -72,6 +78,13 @@ async function correr(pasadas: Pasada[], v: Valores = RELEER_EL_22): Promise<Fil
   await meter('otra', '2026-10-22T10:30:00Z', 'NOR-11_x.docx', { lecturaDeLasParejas: [entera({ regimen: 'tijera_vieja' })] });
   await meter(ORG, '2026-10-22T10:31:00Z', 'OPE-10_x.docx', { lecturaDeLasParejas: [entera({ regimen: 'tijera_vieja' })] });
   await meter(ORG, '2026-10-22T07:00:00Z', 'NOR-11_x.docx', { lecturaDeLasParejas: [entera({ regimen: 'tijera_vieja' })] });
+  // LA PERTENENCIA (26/10/2026): la consulta resuelve la organización por el USUARIO; las tablas y la columna que
+  // la guarda cuenta, por si el arnés no las tenía, y `pertenencias` filas de membresía, ni una más.
+  await db.exec('CREATE TABLE IF NOT EXISTS memberships (user_id uuid, org_id uuid); CREATE TABLE IF NOT EXISTS organizations (id uuid, name text); ' +
+    'CREATE TABLE IF NOT EXISTS documents (id uuid, org_id text); ALTER TABLE documents ADD COLUMN IF NOT EXISTS org_id text; ' +
+    'DELETE FROM memberships; DELETE FROM organizations;');
+  await db.query("INSERT INTO organizations VALUES ($1, 'Mi workspace')", [ORG]);
+  for (let i = 0; i < pertenencias; i++) await db.query('INSERT INTO memberships VALUES ($1, $2)', [USUARIO, i === 0 ? ORG : OTRA_ORG]);
   let sql = readFileSync('SQL_313_01_la_ventana_doble_en_la_tanda.sql', 'utf8').replaceAll('public.', '');
   sql = poner(sql, /timestamptz '[^']+' AS desde/, "timestamptz '2026-10-22 12:00:00+02' AS desde");
   sql = poner(sql, /timestamptz '[^']+' AS hasta/, "timestamptz '2026-10-22 13:00:00+02' AS hasta");
@@ -168,4 +181,26 @@ describe('SQL_313_01, la ventana doble en la tanda', () => {
     const f = await correr([]);
     expect(controles(f).map(c => c.split(' · ')[0])).toEqual(['FALLA', 'FALLA', 'NO APLICA', 'NO APLICA', 'NO APLICA', 'NO APLICA']);
   }, 60_000);
+});
+
+describe('LA ORGANIZACIÓN LEÍDA (26/10/2026): se resuelve por el usuario, y la primera fila lo dice', () => {
+  it('va primera: la del usuario, con su nombre y sus documentos', async () => {
+    const f = await correr([]);
+    expect(f[0].bloque).toBe('organización leída');
+    expect(f[0].a).toMatch(new RegExp('^organización leída: ' + ORG + ' · «Mi workspace» · \\d+ documentos$'));
+  }, 240_000);
+
+  it('sin pertenencia, o con dos, lo grita en la primera fila', async () => {
+    for (const n of [0, 2]) {
+      pertenencias = n;
+      try {
+        const f = await correr([]);
+        expect(f[0].bloque).toBe('organización leída');
+        expect(f[0].a).toBe('⚠️⚠️ NO SE HA PODIDO RESOLVER LA ORGANIZACIÓN: el usuario ' + USUARIO + ' tiene ' + n +
+            ' pertenencias y tiene que tener UNA. TODO LO QUE SIGUE ESTÁ LEYENDO NADA: NO ES UN RESULTADO.');
+      } finally {
+        pertenencias = 1;
+      }
+    }
+  }, 240_000);
 });

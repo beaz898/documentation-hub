@@ -58,16 +58,42 @@
 -- SE HA EJECUTADO.
 --
 -- ┌──────────────────────────────────────────────────────────────────────────┐
--- │ LA ORGANIZACIÓN DEL PILOTO: a9625e93-…, «Workspace principal». El id     │
--- │ completo está UNA vez, en la constante `parametros`. No se mira otra.    │
+-- │ LA ORGANIZACIÓN NO SE ESCRIBE: se resuelve por el USUARIO del director   │
+-- │ (la constante `usuario`, en el bloque de la resolución). No se toca.     │
 -- │ LO ÚNICO QUE TOCA EL DIRECTOR: DESDE y HASTA, en hora de Madrid, con el  │
 -- │ formato timestamptz 'AAAA-MM-DD HH:MM:SS+02'. ⚠️ Desde el 25/10/2026 a   │
 -- │ las 03:00 es «+01».                                                       │
 -- └──────────────────────────────────────────────────────────────────────────┘
 -- ============================================================================
 
-WITH parametros AS (
-  SELECT 'a9625e93-af2a-4416-a465-5c2fa2a25bdf'::text AS org,   -- ← LA CONSTANTE
+-- ── LA RESOLUCIÓN DE LA ORGANIZACIÓN (26/10/2026), IDÉNTICA EN TODAS LAS CONSULTAS QUE MIRAN HACIA DELANTE ──
+-- La organización NO se escribe: es la ÚNICA a la que pertenece el USUARIO del director. Si tiene cero o más de una,
+-- la primera fila de la salida lo dice a gritos y todo lo demás está leyendo NADA. La primera fila dice SIEMPRE qué
+-- organización se lee, su nombre y cuántos documentos tiene: un id o una resolución equivocados no pueden pasar por
+-- «no hay hallazgos».
+-- ⚠️ a9625e93-af2a-4416-a465-5c2fa2a25bdf ES A LA VEZ EL ID DEL USUARIO DEL DIRECTOR Y EL DE LA ORGANIZACIÓN DEL
+-- PILOTO (purgada el 25/10/2026). Es un accidente histórico del código de antes del 27/04/2026, que tomaba el id del
+-- usuario como id de la organización. AQUÍ ES EL USUARIO. NO SE UNIFICA con ORG_DEL_PILOTO de SQL_SEG_02, que es el
+-- mismo número con el otro significado: unificarlas rompe el rescate de llm_usage sin que salte nada.
+WITH usuario AS (
+  SELECT 'a9625e93-af2a-4416-a465-5c2fa2a25bdf'::uuid AS id                  -- ← USUARIO (el del director; NO es la organización)
+),
+resolucion AS (
+  SELECT u.id AS usuario, count(m.org_id) AS pertenencias,
+         CASE WHEN count(m.org_id) = 1 THEN min(m.org_id::text) END AS org
+  FROM usuario u LEFT JOIN public.memberships m ON m.user_id = u.id
+  GROUP BY u.id
+),
+organizacion_leida AS (
+  SELECT CASE WHEN r.org IS NOT NULL   -- la que se lee DE VERDAD, no la que se cuenta
+              THEN 'organización leída: ' || r.org || ' · «' || coalesce(o.name, '¿sin nombre?') || '» · '
+                   || (SELECT count(*) FROM public.documents d WHERE d.org_id = r.org) || ' documentos'
+              ELSE '⚠️⚠️ NO SE HA PODIDO RESOLVER LA ORGANIZACIÓN: el usuario ' || r.usuario || ' tiene ' || r.pertenencias
+                   || ' pertenencias y tiene que tener UNA. TODO LO QUE SIGUE ESTÁ LEYENDO NADA: NO ES UN RESULTADO.' END AS linea
+  FROM resolucion r LEFT JOIN public.organizations o ON o.id::text = r.org
+),
+parametros AS (
+  SELECT (SELECT org FROM resolucion) AS org,   -- ← la organización RESUELTA por el USUARIO (arriba)
          timestamptz '2026-10-21 00:00:00+02' AS desde,           -- ← DESDE
          timestamptz '2026-10-22 00:00:00+02' AS hasta            -- ← HASTA
 ),
@@ -132,6 +158,10 @@ control AS (
 )
 SELECT bloque, analisis, a, b, c
 FROM (
+  SELECT 'organización leída' AS bloque, NULL::text AS analisis, linea AS a,
+         NULL::text AS b, NULL::text AS c, -1 AS o1, 0::bigint AS o2
+  FROM organizacion_leida
+  UNION ALL
   SELECT '0 · control' AS bloque, NULL::text AS analisis, CASE WHEN ok IS NULL THEN 'NO APLICA' WHEN ok THEN 'OK' ELSE 'FALLA' END AS a,
          medida AS b, NULL::text AS c, orden AS o1, 0::bigint AS o2
   FROM control
@@ -177,4 +207,4 @@ FROM (
          0, c.n
   FROM con_coste c GROUP BY c.n
 ) t
-ORDER BY bloque, o2, o1, a;
+ORDER BY (bloque <> 'organización leída'), bloque, o2, o1, a;
