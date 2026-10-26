@@ -29,10 +29,16 @@ describe('la frontera: conflictoNormativo', () => {
     expect(r.discarded).toEqual({ 'frontera.conflicto_normativo_desconocido': 2 });
   });
 
-  it('AUSENTE O NULL: la contradicción de siempre, sin clave nueva y sin contar nada', () => {
-    const r = sanitizeJudgeContradictions([{ ...base }, { ...base, conflictoNormativo: null }]);
-    expect(r.contradictions.map(c => Object.keys(c))).toEqual([Object.keys(base), Object.keys(base)]);
+  it('AUSENTE: la contradicción de siempre (la de datos), sin clave nueva y sin contar nada', () => {
+    const r = sanitizeJudgeContradictions([{ ...base }]);
+    expect(r.contradictions.map(c => Object.keys(c))).toEqual([Object.keys(base)]);
     expect(r.discarded).toEqual({});
+  });
+
+  it('NULL O VACÍO (3.4, fases 2+3): el juez puso el campo sin especie; no se copia y se cuenta en su contador', () => {
+    const r = sanitizeJudgeContradictions([{ ...base, conflictoNormativo: null }, { ...base, conflictoNormativo: '' }, { ...base, conflictoNormativo: '  ' }]);
+    expect(r.contradictions.map(c => Object.keys(c))).toEqual([Object.keys(base), Object.keys(base), Object.keys(base)]);
+    expect(r.discarded).toEqual({ 'frontera.conflicto_normativo_vacio': 3 });
   });
 
   it('un valor de severity no es un conflicto normativo: son dos campos que no se mezclan', () => {

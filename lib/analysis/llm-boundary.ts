@@ -83,8 +83,10 @@ function isNonBlankString(value: unknown): value is string {
  *      objeto de salida y se cuenta `frontera.severity_invalida`.
  *   6. `conflictoNormativo` (3.4, fase 1): si viene con un valor válido
  *      (conflicto-normativo.ts) se COPIA; si viene con cualquier otro valor, se
- *      omite y se cuenta `frontera.conflicto_normativo_desconocido`; ausente o
- *      null, no se copia ni se cuenta (es la contradicción de siempre). ⚠️ EL
+ *      omite y se cuenta `frontera.conflicto_normativo_desconocido`; null o una
+ *      cadena vacía, no se copia y se cuenta `frontera.conflicto_normativo_vacio`
+ *      (3.4, fases 2+3: el juez puso el campo sin especie); ausente, ni se copia
+ *      ni se cuenta (es la contradicción de siempre, la de datos). ⚠️ EL
  *      CONTADOR ES EL AVISO de que el prompt y el código se han desincronizado:
  *      hasta este punto la frontera reconstruía el objeto con cuatro campos y
  *      tiraba en silencio cualquier otro.
@@ -132,7 +134,9 @@ export function sanitizeJudgeContradictions(raw: unknown): {
 
     const conflictoRaw = item.conflictoNormativo;
     const conflictoValido = esConflictoNormativo(conflictoRaw);
-    if (conflictoRaw !== undefined && conflictoRaw !== null && !conflictoValido) bump('conflicto_normativo_desconocido');
+    const conflictoVacio = conflictoRaw === null || (typeof conflictoRaw === 'string' && conflictoRaw.trim() === '');
+    if (conflictoVacio) bump('conflicto_normativo_vacio');
+    else if (conflictoRaw !== undefined && !conflictoValido) bump('conflicto_normativo_desconocido');
 
     contradictions.push({
       topic: hasTopic ? topicRaw : '',

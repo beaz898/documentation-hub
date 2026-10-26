@@ -58,6 +58,16 @@ describe('el verificador y la rama de las reglas', () => {
     expect(r.counts['descartado.cumplibles_a_la_vez']).toBe(1);
   });
 
+  it('LOS DESCARTES DESGLOSADOS POR ESPECIE: la clave de siempre y, al lado, la de la especie; sin marca, sólo la de siempre', async () => {
+    llamada.mockResolvedValue({ results: [{ index: 1, verdict: 'cumplibles_a_la_vez' }, { index: 2, verdict: 'sin_relacion' }, { index: 3, verdict: 'sin_relacion' }] });
+    const r = await verifyFindings([hallazgo('a', 'norma_contra_norma'), hallazgo('b', 'norma_contra_norma'), hallazgo('c')]);
+    expect(r.counts).toEqual({
+      'descartado.cumplibles_a_la_vez': 1, 'descartado.cumplibles_a_la_vez.norma_contra_norma': 1,
+      'descartado.sin_relacion': 2, 'descartado.sin_relacion.norma_contra_norma': 1,
+      'degradado.verificado_sin_estructura': 3,
+    });
+  });
+
   it('un conflicto normativo CONFIRMADO sale como contradicción aunque el modelo diga menor; sin marca, no', async () => {
     llamada.mockResolvedValue({ results: [{ index: 1, verdict: 'confirmado', severity: 'minor_inconsistency' }, { index: 2, verdict: 'confirmado', severity: 'minor_inconsistency' }] });
     const r = await verifyFindings([hallazgo('marcado', 'norma_contra_norma'), hallazgo('normal')]);

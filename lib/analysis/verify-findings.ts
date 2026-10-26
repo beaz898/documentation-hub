@@ -310,13 +310,17 @@ export async function verifyFindings(findings: FindingToVerify[]): Promise<Verif
 
   const results: VerifiedFinding[] = [];
   const counts: DiscardedFindings = {};
-  for (const outcomes of batchResults) {
-    for (const outcome of outcomes) {
+  batchResults.forEach((outcomes, b) => {
+    outcomes.forEach((outcome, i) => {
       results.push(outcome.finding);
       if (outcome.discardKey) bump(counts, outcome.discardKey);
+      // 3.4: los descartes DESGLOSADOS POR ESPECIE (contador de medición). Sólo para los marcados, con una clave más
+      // larga al lado de la de siempre: sin marcas, los contadores son los de antes. runInBatches conserva el orden.
+      const especie = batches[b][i]?.conflictoNormativo;
+      if (outcome.discardKey && especie) bump(counts, `${outcome.discardKey}.${especie}`);
       if (outcome.degraded) bump(counts, 'degradado.verificado_sin_estructura');
-    }
-  }
+    });
+  });
 
   return { results, counts };
 }
