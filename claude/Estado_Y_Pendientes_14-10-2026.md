@@ -84,6 +84,29 @@ de F-127, que dio la del 13/10 como estado actual):
   contigua de 133 caracteres, los seis contadores a cero, cero falsos positivos
   (`claude/Predicciones_F126_La_Regla_De_La_Cita.md`).
 
+⚠️ **LAS CINCO COINCIDENCIAS DECLARADAS, UN CONTROL NEGATIVO QUE NADIE HA LEÍDO (Code, 26/10).**
+`SIEMBRA_caso_control.md`, apartado B, declara cinco coincidencias entre NOR-11 y CLI-13 (verde para el grupo II,
+azul para el grupo IV incluida la ubicación, rígido amarillo para punzocortantes, cierre a 3/4, grupo I sin color).
+Son, por definición, parejas que NO deben publicarse como contradicción, y han estado en el corpus en todas las
+tandas. **Ninguna consulta las ha medido por su nombre.** La cobertura indirecta tiene tres agujeros:
+- **Desde el 19/10** (`SQL_F128_01` y siguientes) se clasifica por el par de datos, uno en cada cita: una
+  coincidencia publicada saldría OTRA, y una OTRA se lee antes de llamarla falso positivo. El «cero falsos» de esas
+  tandas sí la habría visto.
+- ⚠️ **EL MEDIDOR VIEJO, EL DE ANTES DEL 19/10, PODÍA CONTAR UNA COINCIDENCIA PUBLICADA COMO UN ACIERTO DE
+  NEGACIÓN**, porque clasificaba por el tema, y «color» y «contenedor» contaban como NEGACIÓN. Es un segundo
+  ejemplo del defecto ya conocido («el metro viejo podía inventarse un acierto», 19/10). **No reabre F-126**: lo
+  medido desde el 19/10 clasifica por la pareja de frases y es lo que sostiene las conclusiones de hoy. **Pero los
+  marcadores de la tabla de arriba anteriores al 19/10 llevan ese agujero** (arquitecto).
+- **Las inconsistencias menores**, comprobado leyendo el código el 26/10: en el análisis RÁPIDO viven DENTRO de
+  `discrepancies`, con `severity: minor_inconsistency`, sin ningún filtro entre el juez y la publicación
+  (`pipeline.ts:646`, `synthesize.ts:78`), y los metros las leen. En el EXHAUSTIVO viven FUERA, en
+  `minorInconsistencies` (`pipeline.ts:1524-1525`), y **ningún metro desde `SQL_F124_01` lee esa lista** (sólo
+  `SQL_B357` y `SQL_deteccion_CLI03`). El punto ciego existe sólo para pasadas exhaustivas. `SQL_F124_01` filtra
+  las rápidas y `SQL_F125_01` enseña el tipo de cada pasada; `SQL_F126_01`, `SQL_F128_01/02` y `SQL_313_01` ni
+  filtran ni leen la lista aparte. Si alguna pasada de esas tandas fue exhaustiva, el código no lo dice: lo dice la
+  columna `analysis_type` del seguro (`SQL_SEG_01`).
+Sin construir nada: el pendiente va en el 3.17.
+
 **El criterio de «cerrado para enseñar»** (F-123, sin cambios en F-127): cada trampa sembrada
 publicada en 4 de 5 pasadas o más, cero falsos, y el coste por análisis escrito. En NOR-11 ↔ CLI-13
 **las dos primeras condiciones SE CUMPLEN desde el 14/10. La que falta es el coste por análisis, y
@@ -1250,6 +1273,17 @@ es entonces cuando importa. El arreglo es barato y hay dos formas, **sin decidir
 divisor con un factor medido, o usar las cifras reales que ya devuelve la petición anterior en vez de
 estimar. **Lo que NO vale es dejar el 4 sin que nadie sepa que se queda corto.** (Las dos estimaciones:
 `callAnthropicJson` y `callAnthropicAgent`, en `lib/llm/anthropic-client.ts`.)
+
+### 3.16 · La purga a 90 días · sin frente y sin disparador · anotado el 26/10
+Al cancelarse la suscripción, el webhook pone el fin de la gracia a 90 días (`app/api/billing/webhook/route.ts`), y
+pasada esa fecha el worker de Railway, que mira cada 6 horas (`worker/src/index.ts`), ejecuta `purgeOrganization`.
+**Lo que se pierde no es sólo lo de Drive: son también las filas de análisis, donde viven todas nuestras
+mediciones**, y los documentos, los trozos, los trabajos del exhaustivo y el registro de uso. Volver a pagar un plan
+vacía la fecha. El director lo aparca a propósito (26/10). Los seguros son `SQL_SEG_01` y `SQL_SEG_02`.
+
+### 3.17 · Pendiente del medidor: el control negativo de las cinco coincidencias · arquitecto, 26/10 · SIN CONSTRUIR
+**NINGÚN BLOQUE COMPRUEBA QUE LAS CINCO COINCIDENCIAS DECLARADAS NO SE PUBLIQUEN.** Cuando toque medir la especie
+nueva (el 3.4), ése es el control negativo que ya tenemos, y hay que leerlo. Los tres agujeros, en el §1.
 
 ---
 
