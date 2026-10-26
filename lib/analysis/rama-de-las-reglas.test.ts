@@ -31,6 +31,15 @@ const hallazgo = (topic: string, marca?: 'norma_contra_norma'): FindingToVerify 
 });
 const ultimoPrompt = () => String(llamada.mock.calls[llamada.mock.calls.length - 1][0]);
 
+describe('el texto de la rama (corregido el 26/10)', () => {
+  it('lleva las TRES preguntas, la de la práctica incluida, y «sin_relacion» ya no descarta por «no son reglas»', () => {
+    expect(RAMA_DE_LAS_REGLAS).toContain('SI SE HACE LO QUE UNA PERMITE, ¿SE PUEDE CUMPLIR LA OTRA?');
+    expect(RAMA_DE_LAS_REGLAS).toContain('¿SE PUEDEN CUMPLIR LAS DOS A LA VEZ?');
+    expect(RAMA_DE_LAS_REGLAS).toContain('¿LO QUE SE HACE CUMPLE LA REGLA?');
+    expect(RAMA_DE_LAS_REGLAS).not.toContain('no son reglas');
+  });
+});
+
 describe('el verificador y la rama de las reglas', () => {
   it('SIN MARCAS: ni la rama ni ninguna marca, el prompt de siempre', async () => {
     llamada.mockResolvedValue({ results: [{ index: 1, verdict: 'sin_relacion' }, { index: 2, verdict: 'sin_relacion' }] });
