@@ -103,6 +103,18 @@ Y el 7 de OPE-10 **no es siembra**: mezcla las mutaciones de aquí con las
 diferencias originales entre OPE-10 y OPE-11. Solo el par contra **OPE-11** es
 atribuible.
 
+### ✅ CONFIRMADO EL 26/10/2026, en la subida tras la purga (pasada del director, transcrita por el arquitecto)
+
+Con OPE-10 y OPE-11 los dos en el corpus, OPE-15 emitió **15 discrepancias sobre 2 parejas: 8 contra OPE-11**, que
+son las 8 filas mutadas de §1, **y 7 contra OPE-10**: lo que esta sección predijo. No es un falso positivo: según el
+arquitecto, OPE-10 y OPE-11 comparten filas (DIA-02, DIA-03, HIG-02, HIG-04), y las mutadas de aquí chocan con los dos.
+
+**Las 7 celdas contra OPE-10**, que esta sección no listaba: CON-03 duración; HIG-04 precio y clínica; HIG-03
+clínica; HIG-02 duración; DIA-04 profesional; DIA-03 precio base; DIA-02 precio base y duración.
+
+⚠️ **Un ESPERADO de «8 discrepancias para OPE-15» daría 15 y se leería como un fallo sin serlo**, mientras OPE-10 esté
+en el corpus. El montaje de §4 (OPE-10 fuera del corpus) ya no se cumple: desde el 26/10 OPE-10 está dentro.
+
 ---
 
 ## 4 · MONTAJE
