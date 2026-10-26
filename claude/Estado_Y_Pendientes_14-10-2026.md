@@ -45,6 +45,18 @@ espacio entero de Pinecone y, si puede, el usuario de Auth. La fila de la organi
 **Lo que el código NO borra**: `llm_usage` (tokens y coste por llamada) y `finding_dismissals` (los descartes), entre
 otras. Si sus filas siguen, las sacan las consultas 6 y 5 de `SQL_SEG_02`. **Sin comprobar contra la base.**
 
+**SE PERDIÓ EL HISTORIAL, NO LA CAPACIDAD DE MEDIR** (director, 26/10). Todas nuestras consultas llevaban la ventana
+de la tanda del momento y ninguna miraba hacia atrás; las líneas base con las que comparábamos están escritas en los
+archivos de medida, que es de donde las leíamos. Esta cabecera no describe una catástrofe operativa.
+
+**Y LA LECTURA DE PRODUCTO DEL DIRECTOR, que no es consuelo: QUE AL CANCELAR SE BORRE TODO ES UN ARGUMENTO DE
+PRIVACIDAD**, no sólo un riesgo: un cliente que cancela no deja sus documentos en nuestros servidores. Eso se vende.
+Pendiente: decirlo en la ficha comercial. No hay ningún fichero con ese nombre; el más cercano es
+`Modelo_De_Negocio.txt`, y no se ha tocado.
+
+**El camino elegido (director, 26/10): volver a la organización del piloto** con `SQL_ESC_01`, la primera escritura en
+la base del proyecto. Lo revisa el arquitecto antes de que la ejecute el director.
+
 **LO QUE SE SALVA, y desde hoy es el registro** (arquitecto, 26/10):
 - el repositorio entero: los 75 SQL, los arneses, el protocolo, el archivo de consultas a Fable y `corpus-pruebas/`
   con los diez documentos de origen;

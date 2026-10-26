@@ -993,6 +993,22 @@ indicativo de `CLAUDE.md`, aplicada a quien la escribió, con su cuenta.
 
 ---
 
+## ⚠️ LA PRIMERA ESCRITURA EN LA BASE: UNA EXCEPCIÓN, NO UN PRECEDENTE
+
+*Arquitecto, 26/10/2026.* Hasta hoy, todo lo que el director ejecutaba en Supabase era sólo SELECT. **`SQL_ESC_01`**
+(volver a la organización del piloto tras la purga) es la primera escritura de todo el proyecto, y entra como
+**excepción**, con su motivo: la regla de sólo SELECT existe para no destruir datos, y mover una membresía y vaciar
+dos fechas de cancelación no destruye nada (los dos valores que se pierden van escritos en el comentario de la
+sentencia y salen en el bloque de estado antes de escribir).
+**LAS CONDICIONES, y sin ellas no hay excepción:**
+  · **la revisa el arquitecto ANTES de que la ejecute el director**;
+  · es la mínima que hace falta, y su comentario dice qué toca y qué NO toca;
+  · lleva un bloque de estado que sólo lee, para ejecutar antes y después;
+  · es UNA sentencia con guardas: o hace todo o no hace nada, y si no escribe dice qué guarda falló;
+  · tiene arnés en PGlite con mutantes, como todo lo demás (`claude/arneses/esc/`: cinco tests, catorce mutantes).
+
+---
+
 ## ⚠️ UNA MEDICIÓN NO ESTÁ GUARDADA HASTA QUE ESTÁ FUERA DE LA BASE DE DATOS
 
 *Arquitecto, 26/10/2026.* Medimos tres semanas y nunca sacamos copia. El 25/10 a las 18:11 el worker purgó la
