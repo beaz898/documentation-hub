@@ -1833,6 +1833,16 @@ limpia lleva comillas invertidas, la limpieza va con Node y por cadena literal, 
 y metió una comilla al principio de cada una de las 103 líneas. Se arregló volviendo al commit, que no
 tenía más cambios, y limpiando con un script de Node que parte por la cadena exacta.
 
+**LA GUARDA EFECTIVA ES LA VERIFICACIÓN POSTERIOR (arquitecto, 26/10/2026).** La regla de no editar con `node -e`
+ni con escapes del shell SE MANTIENE. Pero Code se la ha saltado tres veces en tres días, y las tres la cazó y la
+contó él mismo: **la regla no está funcionando como regla, está funcionando como confesión.** Lo que de verdad
+protege es la comprobación que viene después de escribir, y ésa NO SE SALTA NUNCA:
+  · **un fichero no se da por escrito hasta haberla pasado**: releerlo y comprobar que el cambio está y que lo
+    viejo no (el ancla contada, la cadena nueva presente), contar las barras invertidas delante de una comilla
+    invertida, y mirar `git diff` del fichero;
+  · el caso del 26/10: un `node -e` con escapes dejó roto el script de edición de una anotación del estado vivo;
+    como el script comprobaba su ancla, abortó antes de escribir, y el documento no llegó a tocarse.
+
 > **Una regla que se estrena el día que se escribe no es una regla que sobre:
 > es una que llegaba tarde.** Las tres describen fallos que ya estaban pasando
 > sin que nadie los contara.

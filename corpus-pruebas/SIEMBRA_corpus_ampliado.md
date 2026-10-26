@@ -2,7 +2,7 @@
 
 > **Nota del repositorio (27/08/2026).** Este registro se incorporó **literal**,
 > tal como lo entregó su autor. Todo lo añadido o corregido después va **marcado
-> en su sitio** y fechado. Hasta hoy son tres cosas, las tres verificadas leyendo
+> en su sitio** y fechado. Hasta hoy son cuatro cosas, las cuatro verificadas leyendo
 > los ficheros:
 >
 > 1. **§4** — el bloque «NOTA AÑADIDA AL REPOSITORIO»: OPE-10 también tiene 25
@@ -11,6 +11,8 @@
 >    investigar un descarte del juez.
 > 3. **§1 y §5** — corregida la afirmación de que fuera de las tres sembradas los
 >    dos documentos son consistentes. **No lo son.**
+> 4. **§1, datos compartidos (26/10/2026)** — tachado «el ciclo estándar de autoclave a
+>    134 °C/18 min»: CLI-12 no lo dice.
 >
 > El resto del texto no se ha tocado.
 
@@ -316,9 +318,20 @@ montones de exclusivas difieran en tamaño sirve para lo que éste no puede.
   registro ya se equivocó una vez. Un hallazgo que no sea A, B, C o D **no se
   puede dar por falso positivo sin ir al texto a comprobarlo**.
 - Ambos documentos comparten de forma consistente (no contradictoria) datos
-  como el ciclo estándar de autoclave a 134 °C/18 min, la validación anual de
+  como ~~el ciclo estándar de autoclave a 134 °C/18 min~~, la validación anual de
   equipos, el mantenimiento técnico trimestral, la conservación de registros
   durante 5 años y la periodicidad trimestral de auditoría interna del área.
+  - ⚠️ **TACHADO EL 26/10/2026: «134» NO ESTÁ EN CLI-12.** Lo encontró Code leyendo los trozos que produce
+    la indexación y el texto del .docx. Lo que dice cada documento:
+    - **NOR-10 · 9.1 · trozo 29**: «El ciclo estándar para instrumental empaquetado en bolsa mixta se ejecuta
+      a 134 °C durante 18 minutos de fase de meseta, con presión asociada de 2,1 bares, seguido de una fase de
+      secado por vacío de al menos 15 minutos antes de la apertura de la puerta.»
+    - **CLI-12**: no da ni temperatura ni tiempo de ningún ciclo. Nombra el autoclave en cinco sitios: la
+      retirada de servicio tras un control biológico fallido (3.1, trozo 4); «ciclos de autoclave» como punto
+      del checklist de auditoría del área (8.1, trozo 19), sin parámetros; el control biológico (12.1, trozo 34,
+      que es el caso B); el indicador de mantenimiento (12.3, trozo 35); y la relación con el fabricante (12.7,
+      trozo 37).
+    - El resto de esta lista **no se ha comprobado**.
 
 **Hojas de cálculo (OPE-10 vs OPE-11):**
 - **20 filas** que un sistema de deduplicación debería marcar como
