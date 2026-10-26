@@ -1205,6 +1205,27 @@ no se guarda un número que envejece.
 - **El 3.4 se mide primero sobre D**, que ya existe en NOR-10 ↔ CLI-12, está caracterizada en el registro, y F-129
   mostró que sus dos mitades llegaron al juez cinco veces sin publicar nada. La primera medida no necesita documentos
   nuevos.
+- **LA FASE 1, HECHA Y APROBADA (26/10)**: el campo `conflictoNormativo` cruza la frontera y llega al sintetizador, sin
+  tocar ningún prompt (`cbe543b6`; la huella sha256 de 70 juicios y 101 contradicciones reales, idéntica antes y después).
+- ⚠️ **LAS FASES 2 Y 3 VAN JUNTAS (arquitecto, 26/10). EN LA FASE 2 EL VERIFICADOR HAY QUE MOVERLO A LA VEZ, Y LA RAZÓN ES
+  SU TEXTO, NO UNA SOSPECHA.** El verificador del rápido (`verify-findings.ts:192-222`) no pregunta por la verdad sino
+  por los VALORES DISTINTOS de un mismo dato, y avisa de que «una cita que CALLA sobre un dato no le está dando un valor
+  distinto». Ninguna de las dos citas de D asigna un valor al dato en conflicto: la incompatibilidad nace de juntarlas.
+  Con sólo la fase 2, el juez clasificaría bien, el verificador lo borraría detrás, y escribiríamos «el prompt nuevo no
+  funciona».
+- **DOS CONDICIONES DE LA FASE 2+3 (arquitecto, 26/10), escritas ahora y SIN IMPLEMENTAR:**
+  1. **La tanda del 3.4 va en modo RÁPIDO, no exhaustivo**: el exhaustivo reconstruye la contradicción campo a campo y
+     pierde la especie (pendiente D). Está también en el protocolo, como condición de la medida.
+  2. **Dos contadores nuevos, de medición y no de producto**: (a) **contradicción publicada SIN especie cuando el prompt
+     la pide** —hoy «ausente» no se cuenta y está bien, porque nadie la pide; en la fase 2 sí, y «el juez no la
+     clasificó» tiene que dejar huella, incluido el caso de que llegue null—; y (b) **los descartes del verificador
+     desglosados por especie**, porque hoy `verify-findings.ts:253` dice cuántos descartó y no de qué especie eran. Sin
+     los dos, la fase 2+3 daría un cero sin decir de quién es la culpa: del juez que no clasificó, del verificador que
+     descartó, o del juez que nunca emitió.
+- **El contrato lo escribe el arquitecto**: la definición nueva del prompt del juez y la pregunta nueva del verificador,
+  con su ejemplo. La técnica, la de la regla del sujeto: NO reescribir la definición de la verdad, sino AÑADIRLE una
+  excepción al lado. La definición de hoy es correcta para datos; lo que le falta es saber que dos normas no se comparan
+  como datos.
 ~~Extender la definición de contradicción. En espera **por decisión del arquitecto, contra la
 recomendación de Fable**, con la condición de que fuera después de medir (B). **(B) ya está medida,
 así que esta condición se ha cumplido y queda desbloqueada.** Commit propio.~~ (F-125; generalizado el 23/10)

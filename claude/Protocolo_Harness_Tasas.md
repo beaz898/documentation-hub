@@ -1001,6 +1001,15 @@ indicativo de `CLAUDE.md`, aplicada a quien la escribió, con su cuenta.
 
 ---
 
+## ⚠️ LA TANDA DEL 3.4 (CONFLICTO NORMATIVO) VA EN MODO RÁPIDO, NO EXHAUSTIVO
+
+*Arquitecto, 26/10/2026.* Es una CONDICIÓN DE LA MEDIDA, no sólo una deuda: el exhaustivo reconstruye cada
+contradicción campo a campo (`double-check.ts:96-100` y `aInconsistenciaMenor` en `pipeline.ts:1585-1590`) y pierde
+`conflictoNormativo`. **Si alguien mide el 3.4 en exhaustivo, saldrá cero por un motivo que no es el que creeríamos.**
+Se levanta cuando se cierre el pendiente D del estado vivo, no antes.
+
+---
+
 ## ⚠️ DURANTE UN INCIDENTE, CODE RECIBE TRABAJO DEL INCIDENTE Y NADA MÁS
 
 *Arquitecto, 26/10/2026.* La deuda de método va a una lista y tiene su propia sesión. **LA CAUSA**: el 26/10 el
