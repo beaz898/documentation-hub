@@ -303,6 +303,11 @@ lo entregado se construya desde el documento y nunca desde el prompt, y una prue
 en el plan del 3.1.2; el arquitecto la REPITIÓ llamándola «lo mejor del plan», y esa repetición es la que la
 convirtió en regla con su nombre. **ELOGIAR UN MECANISMO ES AFIRMARLO.** Quien lo elogia responde de él como si lo
 hubiera comprobado.
+**Y OTRA VEZ, DISFRAZADO DE URGENCIA (arquitecto, 26/10/2026, con su nombre)**: el hallazgo de Code de un mutante cuyo
+cambio contenía su ancla lo amplificó el arquitecto a «lo más importante de todo lo que has hecho hoy» y lanzó una
+auditoría de todas las mediciones pasadas. Resultado: 6 de 336, ninguno sostuvo una conclusión falsa, y Code corrigió
+que el rojo SÍ se distinguía. La auditoría estuvo bien hecha y el archivo de los generadores se queda; lo que estuvo
+mal fue pedirla en medio de un incidente y con esa palabra.
 
 Los casos, comprobados en el código el 23/10:
   · **las cabeceras de fragmento** —`[Fragmento n de "…"]`— las escribimos nosotros DENTRO del bloque citado del
@@ -990,6 +995,16 @@ repositorio.** Todos los cazó Code leyendo:
 fichero, qué día pasó algo—, o cita dónde lo ha leído, o escribe «SIN COMPROBAR» al lado. **Lo que llegue sin una de
 las dos cosas, Code lo trata como hipótesis y lo verifica antes de escribirlo en ningún documento.** Es la regla del
 indicativo de `CLAUDE.md`, aplicada a quien la escribió, con su cuenta.
+
+---
+
+## ⚠️ DURANTE UN INCIDENTE, CODE RECIBE TRABAJO DEL INCIDENTE Y NADA MÁS
+
+*Arquitecto, 26/10/2026.* La deuda de método va a una lista y tiene su propia sesión. **LA CAUSA**: el 26/10 el
+arquitecto metió la herramienta de mutantes, la auditoría de los generadores y el repaso de la purga encima de un
+incidente que sólo necesitaba cambiar un id y volver a subir unos documentos, y el plan estuvo un día y medio sin
+avanzar (lo señaló el director). **LA FORMA OPERATIVA**: si durante un incidente Code ve algo que le parece importante,
+lo escribe en la lista de pendientes y lo dice en una línea, sin tocarlo.
 
 ---
 

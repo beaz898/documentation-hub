@@ -1,4 +1,7 @@
 -- ============================================================================
+-- ⛔ CANCELADA EL 26/10/2026, SIN EJECUTAR. Lo cerró el director: 3c628122 es un usuario de prueba que creó él para
+-- comprobar que funcionaban las invitaciones a la organización.
+-- ============================================================================
 -- ¿QUIÉN ES 3c628122? — SÓLO LECTURA (26/10/2026)
 -- ⏳ PENDIENTE DE EJECUTAR. Sólo SELECT: no escribe, no borra, no cambia nada.
 --

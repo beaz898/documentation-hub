@@ -47,6 +47,9 @@ purga había borrado su membresía.
 versiones en espera), análisis, trabajos del exhaustivo, conversaciones del chat, registro de uso, opiniones,
 compras de créditos, invitaciones, la conexión de Drive, **las membresías**, los ficheros del almacenamiento, el
 espacio entero de Pinecone y, si puede, el usuario de Auth. La fila de la organización no se borra: se marca.
+**EL SEGUNDO USUARIO, CERRADO (director, 26/10)**: `3c628122…` —una llamada al modelo en el piloto el 08/07 y el botón
+de «Estado del despliegue» el 11/09— es un usuario de prueba que creó el director para comprobar que funcionaban las
+invitaciones a la organización. `SQL_USR_01` queda cancelada sin ejecutar.
 **Y EL USUARIO DE AUTH SOBREVIVIÓ: la purga lo intenta y el 25/10 NO PUDO.** `SQL_ORG_01` (26/10) devuelve el usuario
 del director, `a9625e93…`, con alta del 03/04/2026 y una sola pertenencia. Es un dato sobre lo que la purga consigue de
 verdad, no sólo sobre lo que intenta (el borrado de Auth falla si otra tabla, como `llm_usage`, sigue apuntando al
