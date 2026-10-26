@@ -991,6 +991,9 @@ repositorio.** Todos los cazó Code leyendo:
      ensambla el texto del juez desde los trozos guardados. La conclusión era buena por otras razones (un documento
      subido antes del 07/09 se troceó con otro extractor, y nada prueba que el fichero subido sea byte a byte el de
      `corpus-pruebas`).
+  10. **(26/10, con su nombre y sin suavizar)** afirmó que las 7 discrepancias de OPE-15 contra OPE-10 «no estaban en el
+     registro» y que «el registro describe parejas mientras el sistema ve un corpus». Las dos, falsas: el apartado 3 de
+     `SIEMBRA_OPE-15.md` ya las predecía, con la suma de 15. Lo cazó Code leyendo el registro antes de anotar.
 **LA FORMA OPERATIVA**: cuando el arquitecto afirme un mecanismo del sistema —qué compara la puerta, cómo se llama un
 fichero, qué día pasó algo—, o cita dónde lo ha leído, o escribe «SIN COMPROBAR» al lado. **Lo que llegue sin una de
 las dos cosas, Code lo trata como hipótesis y lo verifica antes de escribirlo en ningún documento.** Es la regla del
@@ -1063,6 +1066,9 @@ respuesta— aplicada al corpus.
 dos, así que añadir documentos cambia quién llega al juez y mueve la línea base igual. ⚠️ **SIN COMPROBAR**: el
 arquitecto lo deduce de los logs («Retrieval 6 candidatos, Rerank 2 seleccionados»), no de haberlo leído en el código.
 Se comprueba cuando toque.
+⚠️ **CORREGIDO POR EL ARQUITECTO (26/10/2026)**: los documentos que no llegan como candidatos no los descarta el
+rerank: **no están en el índice**. Los 35 documentos de ruido de la organización están sin indexar, y por eso no
+aparecen. Lo que sí sigue en pie: añadir documentos AL ÍNDICE cambia quién llega al juez.
 
 ---
 

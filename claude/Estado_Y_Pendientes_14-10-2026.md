@@ -101,6 +101,23 @@ miran sólo `plan === 'free'`.
 inventario SOBRE LA ORGANIZACIÓN VACÍA, y su primera fila tiene que decir «Mi workspace» y 0 documentos: PRUEBA que la
 resolución funciona antes de depender de ella; (3) los cuatro casos de Fable, escritos; (4) la subida, de una sola
 vez; (5) el inventario otra vez, que tiene que decir diez.
+**✅ EL INCIDENTE, CERRADO (26/10/2026)** (arquitecto, del inventario y de los logs del director):
+- **El inventario**: la organización `68bf28c3` «Mi workspace» tiene **45 documentos, TODOS de origen onedrive** y
+  dados de alta a las 00:02-00:03 del 26/10, menos OPE-15 (13:02). **La purga no tocó los ficheros del cliente**: al
+  volver la suscripción, OneDrive volvió a sincronizar la carpeta entera, y el único que faltaba de verdad era OPE-15,
+  que no estaba en OneDrive.
+- **Ocho indexados (estado «analizado»)**: CLI-12, CLI-13, CLI-20, OPE-10, OPE-11, OPE-13, OPE-15 y RRHH-08.
+  **NOR-10 y NOR-11 están en la bandeja**, analizados y SIN INDEXAR, con 6 análisis cada uno, y ahí se quedan:
+  indexarlos los convertiría en corpus y competirían entre sí. **Los 35 documentos de ruido también están sin indexar**,
+  y por eso no aparecen como candidatos: no los descarta el rerank, no están en el índice.
+- **OPE-15**: 8 de 8 contra OPE-11, y 7 contra OPE-10, como predecía su registro (§3).
+- **Un duplicado real, sólo anotado (NO se borra)**: `CLI-01_protocolo-esterilizacion-instrumental.txt` tiene DOS filas
+  (`c4aef699` y `afade06c`), las dos de onedrive, a las 00:02 y 00:03, sin ningún análisis. No es de nuestra lista y no
+  estorba.
+- **Los controles que cuadran**: 20 filas de análisis, las 20 de documentos que siguen en el corpus, cero huérfanas;
+  cero documentos con análisis y sin trozos; cero lápidas; y **9.900 créditos de 10.000, exactamente 20 análisis
+  rápidos a 5**.
+
 **Lo que viene después, sin empezar** (arquitecto): cambiar el id en las consultas, subir los diez documentos y una
 tanda para tener línea base nueva. La reconstrucción es la ocasión de montar el corpus bien de una vez, porque ya no
 queda línea base que proteger: los diez documentos MÁS los cuatro casos de Fable, **escritos ANTES de subir** y con el
@@ -779,6 +796,12 @@ cuatro parejas. ⚠️ Y aun con ese arreglo, a 80.000 **cuatro parejas pierden 
 (P-F127-3, refutada: F-127 (f), anotación 5), y el reparto nuevo no es recablear un parámetro (ver
 la deuda de `selectUnitsWithinBudget`).
 
+**DOS DATOS DEL 26/10, tras la purga** (arquitecto, del log del director): NOR-10 vuelve a dar **67 trozos y 60.038
+caracteres**, los mismos de antes de la purga. Y la pareja **NOR-10 + CLI-12 suma 121.936 caracteres (66.801 +
+55.135): entra entera con 150.000 y NO habría entrado con 80.000**. Esa es la justificación de la ventana en una línea.
+(El 66.801 es lo que lee el juez del analizado, armado desde sus trozos, y el 60.038 su `full_text`: lectura de Code,
+sin comprobar contra esta pasada.)
+
 #### ⚠️ CASO ABIERTO · D, CON SUS DOS MITADES DELANTE Y SIN EMITIRSE · 22/10 · ABIERTO CON NOMBRE
 **Lo medido (arquitecto, de las salidas de la tanda de 150.000)**: las dos mitades de D estuvieron delante del
 juez las cinco veces —en NOR-10, la frase de 3.881 a 4.267 (el dato, «puede recaer en el propio Director Clínico»,
@@ -1176,6 +1199,12 @@ la contaba con 13 días sin commit el 13/10 por su regla de los 7 días; la cuen
 no se guarda un número que envejece.
 
 ### 3.4 · Conflicto normativo (antes «norma contra práctica») · F-125, GENERALIZADO por F-129 (23/10) · DESPUÉS DE LA 3.1.2 Y DE CUATRO SIEMBRAS
+**DOS DECISIONES DEL 26/10 (arquitecto), para no deshacerlas sin hablarlo:**
+- **Los cuatro casos nuevos NO modifican NOR-10, NOR-11, CLI-12 ni CLI-13**: esos cargan la línea base, y tocarlos le
+  pone un asterisco a toda comparación futura. Irán en una **TERCERA PAREJA nueva** que escribe el arquitecto.
+- **El 3.4 se mide primero sobre D**, que ya existe en NOR-10 ↔ CLI-12, está caracterizada en el registro, y F-129
+  mostró que sus dos mitades llegaron al juez cinco veces sin publicar nada. La primera medida no necesita documentos
+  nuevos.
 ~~Extender la definición de contradicción. En espera **por decisión del arquitecto, contra la
 recomendación de Fable**, con la condición de que fuera después de medir (B). **(B) ya está medida,
 así que esta condición se ha cumplido y queda desbloqueada.** Commit propio.~~ (F-125; generalizado el 23/10)

@@ -160,6 +160,10 @@ Grace period
     Mientras sea así, la frase que se puede decir es «se borran sus documentos, sus vectores y sus análisis»,
     no «no deja nada en nuestros servidores».
   - Se escribió después de vivirlo: el 25/10/2026 la purga borró la organización del propio piloto.
+  - Y LO QUE BORRAMOS SON NUESTRAS COPIAS (inventario del 26/10/2026): los originales siguen en el OneDrive o el
+    Drive del cliente. Al volver la suscripción, OneDrive volvió a sincronizar la carpeta entera (45 documentos en
+    un minuto); el único que faltaba era el que no estaba en OneDrive. La frase justa es «borramos nuestras
+    copias», no «sus documentos desaparecen».
 
 ────────────────────────────────────────────────────────────────
 GATES DE FUNCIONALIDADES (lib/plan-features.ts)
