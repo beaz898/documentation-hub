@@ -48,16 +48,27 @@ describe('el verificador y la rama de las reglas', () => {
     expect(ultimoPrompt()).not.toContain('MARCADO COMO CONFLICTO NORMATIVO');
   });
 
-  it('CON UNO MARCADO: la rama una vez, antes de «Debes responder», y la marca sólo en ese hallazgo', async () => {
-    llamada.mockResolvedValue({ results: [{ index: 1, verdict: 'sin_relacion' }, { index: 2, verdict: 'confirmado', severity: 'contradiction' }] });
-    await verifyFindings([hallazgo('sin marca'), hallazgo('con marca', 'norma_contra_norma')]);
-    const p = ultimoPrompt();
-    expect(p.split(RAMA_DE_LAS_REGLAS).length).toBe(2);
-    expect(p).toContain(`${RAMA_DE_LAS_REGLAS}\n\nDebes responder los 2 índices`);
-    expect(p).toContain(`[2] Tema: con marca\n${marcaDeConflictoNormativo('norma_contra_norma')}\nDOCUMENTO NUEVO:`);
-    expect(p).toContain('[1] Tema: sin marca\nDOCUMENTO NUEVO:');
-    // la marca con su paréntesis: la frase sin él también está en el texto de la rama
-    expect(p.split('MARCADO COMO CONFLICTO NORMATIVO (').length).toBe(2);
+  it('UN LOTE MIXTO SE PARTE EN DOS LLAMADAS: la de los no marcados es la de un lote sin marcas, byte a byte', async () => {
+    // la referencia: el mismo par de hallazgos sin marca, solos
+    llamada.mockResolvedValue({ results: [{ index: 1, verdict: 'sin_relacion' }, { index: 2, verdict: 'mismo_dato_sin_oposicion' }] });
+    await verifyFindings([hallazgo('sin marca'), hallazgo('otro sin marca')]);
+    const referencia = ultimoPrompt();
+    // el lote mixto, con el marcado EN MEDIO
+    llamada.mockImplementation(async (p: string) => p.includes(RAMA_DE_LAS_REGLAS)
+      ? { results: [{ index: 1, verdict: 'confirmado', severity: 'minor_inconsistency' }] }
+      : { results: [{ index: 1, verdict: 'sin_relacion' }, { index: 2, verdict: 'mismo_dato_sin_oposicion' }] });
+    const antes = llamada.mock.calls.length;
+    const r = await verifyFindings([hallazgo('sin marca'), hallazgo('con marca', 'norma_contra_norma'), hallazgo('otro sin marca')]);
+    const nuevas = llamada.mock.calls.slice(antes).map(c => String(c[0]));
+    expect(nuevas).toHaveLength(2);
+    const [sinMarcas, conMarcas] = [nuevas.find(p => !p.includes(RAMA_DE_LAS_REGLAS))!, nuevas.find(p => p.includes(RAMA_DE_LAS_REGLAS))!];
+    expect(sinMarcas).toBe(referencia);
+    expect(conMarcas.split(RAMA_DE_LAS_REGLAS).length).toBe(2);
+    expect(conMarcas).toContain(`${RAMA_DE_LAS_REGLAS}\n\nDebes responder los 1 índices`);
+    expect(conMarcas).toContain(`[1] Tema: con marca\n${marcaDeConflictoNormativo('norma_contra_norma')}\nDOCUMENTO NUEVO:`);
+    // los resultados vuelven a su posición de entrada
+    expect(r.results).toEqual([{ verdict: 'sin_relacion' }, { verdict: 'confirmado', severity: 'contradiction' }, { verdict: 'mismo_dato_sin_oposicion' }]);
+    llamada.mockReset();
   });
 
   it('«cumplibles_a_la_vez» descarta, y se cuenta con su propio nombre', async () => {
@@ -68,8 +79,12 @@ describe('el verificador y la rama de las reglas', () => {
   });
 
   it('LOS DESCARTES DESGLOSADOS POR ESPECIE: la clave de siempre y, al lado, la de la especie; sin marca, sólo la de siempre', async () => {
-    llamada.mockResolvedValue({ results: [{ index: 1, verdict: 'cumplibles_a_la_vez' }, { index: 2, verdict: 'sin_relacion' }, { index: 3, verdict: 'sin_relacion' }] });
+    // dos lotes: los marcados (a, b) y el no marcado (c), cada uno con su respuesta
+    llamada.mockImplementation(async (p: string) => p.includes(RAMA_DE_LAS_REGLAS)
+      ? { results: [{ index: 1, verdict: 'cumplibles_a_la_vez' }, { index: 2, verdict: 'sin_relacion' }] }
+      : { results: [{ index: 1, verdict: 'sin_relacion' }] });
     const r = await verifyFindings([hallazgo('a', 'norma_contra_norma'), hallazgo('b', 'norma_contra_norma'), hallazgo('c')]);
+    llamada.mockReset();
     expect(r.counts).toEqual({
       'descartado.cumplibles_a_la_vez': 1, 'descartado.cumplibles_a_la_vez.norma_contra_norma': 1,
       'descartado.sin_relacion': 2, 'descartado.sin_relacion.norma_contra_norma': 1,

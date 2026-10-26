@@ -297,10 +297,16 @@ async function verifyBatch(batch: FindingToVerify[]): Promise<BatchOutcome[]> {
 export async function verifyFindings(findings: FindingToVerify[]): Promise<VerifyFindingsResult> {
   if (findings.length === 0) return { results: [], counts: {} };
 
-  const batches: FindingToVerify[][] = [];
-  for (let i = 0; i < findings.length; i += MAX_PER_CALL) {
-    batches.push(findings.slice(i, i + MAX_PER_CALL));
+  // 3.4 (arquitecto, 26/10): LOS MARCADOS VAN EN SU PROPIO LOTE. El prompt es uno por lote, y si un hallazgo marcado
+  // compartiera lote con los de datos (D y A, B, C son la misma pareja), éstos verían la rama. Separados, los no
+  // marcados reciben el prompt de siempre, byte a byte, y siguen siendo comparables con las tandas anteriores. Sin
+  // marcas, los lotes son exactamente los de antes. Cuesta una llamada más, y sólo cuando hay marcas.
+  const indices = findings.map((_, i) => i);
+  const lotes: number[][] = [];
+  for (const grupo of [indices.filter(i => !findings[i].conflictoNormativo), indices.filter(i => findings[i].conflictoNormativo)]) {
+    for (let i = 0; i < grupo.length; i += MAX_PER_CALL) lotes.push(grupo.slice(i, i + MAX_PER_CALL));
   }
+  const batches: FindingToVerify[][] = lotes.map(lote => lote.map(i => findings[i]));
 
   const batchResults = await runInBatches(
     batches,
@@ -308,15 +314,17 @@ export async function verifyFindings(findings: FindingToVerify[]): Promise<Verif
     { batchSize: VERIFY_CONCURRENCY },
   );
 
-  const results: VerifiedFinding[] = [];
+  // los resultados vuelven a su POSICIÓN de entrada: el emparejamiento con FindingToVerify es por posición
+  const results: VerifiedFinding[] = new Array(findings.length);
   const counts: DiscardedFindings = {};
   batchResults.forEach((outcomes, b) => {
-    outcomes.forEach((outcome, i) => {
-      results.push(outcome.finding);
+    outcomes.forEach((outcome, k) => {
+      const i = lotes[b][k];
+      results[i] = outcome.finding;
       if (outcome.discardKey) bump(counts, outcome.discardKey);
       // 3.4: los descartes DESGLOSADOS POR ESPECIE (contador de medición). Sólo para los marcados, con una clave más
       // larga al lado de la de siempre: sin marcas, los contadores son los de antes. runInBatches conserva el orden.
-      const especie = batches[b][i]?.conflictoNormativo;
+      const especie = findings[i].conflictoNormativo;
       if (outcome.discardKey && especie) bump(counts, `${outcome.discardKey}.${especie}`);
       if (outcome.degraded) bump(counts, 'degradado.verificado_sin_estructura');
     });
