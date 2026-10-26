@@ -1,0 +1,42 @@
+// Los dos mutantes de la línea base de SQL_313_01 (22/10), con la herramienta de ficheros: anclas comprobadas
+// antes de escribir, bytes restaurados en un finally, huella y git status al final, y un rojo sólo cuenta si
+// cargaron TODAS las pruebas del arnés.
+const fs = require('fs');
+const crypto = require('crypto');
+const { spawnSync } = require('child_process');
+const REPO = 'E:/Doc-Hub';
+const Q = 'SQL_313_01_la_ventana_doble_en_la_tanda.sql';
+const MUTANTES = [
+  ['etiquetas de la base cambiadas de documento', "CASE WHEN pa.doc = 'NOR-11'", "CASE WHEN pa.doc = 'NOR-10'"],
+  ['la base de NOR-11 equivocada', '36128 AS base_nor11_ms', '27718 AS base_nor11_ms'],
+];
+const correr = () => {
+  const r = spawnSync(process.execPath, [REPO + '/node_modules/vitest/vitest.mjs', 'run', '--project', 'arneses', 'claude/arneses/f313'], { cwd: REPO, encoding: 'utf8' });
+  const linea = ((r.stdout + r.stderr).match(/Tests\s+[^\n]+/) || ['(sin línea)'])[0].trim();
+  return { status: r.status, linea, total: Number((linea.match(/\((\d+)\)/) || [0, 0])[1]) };
+};
+const base = correr();
+if (base.status !== 0) throw new Error('la línea base no está en verde: ' + base.linea);
+console.log('línea base: ' + base.linea);
+const original = fs.readFileSync(REPO + '/' + Q);
+const lf = original.toString('utf8').replace(/\r\n/g, '\n');
+const crlf = original.toString('utf8').includes('\r\n');
+for (const [n, a] of MUTANTES) if (lf.split(a).length !== 2) throw new Error('ancla no única: ' + n);
+const huella = b => crypto.createHash('sha256').update(b).digest('hex').slice(0, 16);
+const resultados = [];
+try {
+  for (const [nombre, a, b] of MUTANTES) {
+    const m = lf.replace(a, () => b);
+    try {
+      fs.writeFileSync(REPO + '/' + Q, crlf ? m.replace(/\n/g, '\r\n') : m);
+      const r = correr();
+      resultados.push({ nombre, rojo: r.status !== 0 && /failed/.test(r.linea) && r.total === base.total, linea: r.linea });
+    } finally { fs.writeFileSync(REPO + '/' + Q, original); }
+  }
+} finally {
+  fs.writeFileSync(REPO + '/' + Q, original);
+  console.log((huella(fs.readFileSync(REPO + '/' + Q)) === huella(original) ? 'RESTAURADO' : '⚠️ NO RESTAURADO') + ' · ' + Q);
+  console.log('git status:\n' + spawnSync('git', ['-C', REPO, 'status', '--short']).stdout.toString());
+}
+for (const r of resultados) console.log((r.rojo ? 'ROJO ' : 'VERDE') + ' · ' + r.nombre + ' · ' + r.linea);
+console.log(resultados.every(r => r.rojo) ? 'los ' + resultados.length + ' mutantes, en rojo' : '⚠️ HAY MUTANTES QUE SOBREVIVEN');

@@ -1,0 +1,57 @@
+const fs = require('fs');
+const { execSync } = require('child_process');
+
+const P = 'lib/analysis/diff-vision.ts';
+const original = fs.readFileSync(P, 'utf8');
+
+const mutaciones = [
+  { id: 'V1', que: 'un cero se declara interpretable siempre (vuelve B.175)',
+    de: "  return clasificarVision(par) === 'ambos';",
+    a:  '  return true;' },
+
+  { id: 'V2', que: 'la asimetria se funde: quien fue el ciego deja de importar',
+    de: "  if (a) return 'solo_analizado';\n  if (b) return 'solo_candidato';",
+    a:  "  if (a || b) return 'solo_analizado';" },
+
+  { id: 'V3', que: 'las tablas del analizado se SUMAN sobre los pares (total que es producto)',
+    de: '    tablas_analizado: primero?.analizado.tablas ?? 0,',
+    a:  '    tablas_analizado: pares.reduce((s, p) => s + p.analizado.tablas, 0),' },
+
+  { id: 'V4', que: 'las filas se recuentan en vez de preguntarselas al agrupador',
+    de: '    filas: tablas.reduce((suma, t) => suma + t.totalRows, 0),',
+    a:  '    filas: tablas.reduce((suma, t) => suma + t.rows.length, 0),' },
+
+  { id: 'V5', que: 'el ciego del analizado se mide sobre el candidato',
+    de: '    ciegos_por_el_analizado: pares.filter(p => p.analizado.tablas === 0).length,',
+    a:  '    ciegos_por_el_analizado: pares.filter(p => p.candidato.tablas === 0).length,' },
+
+  { id: 'V6', que: 'la vision exige FILAS y no solo tablas (una tabla vacia deja de contar)',
+    de: '  const a = par.analizado.tablas > 0;\n  const b = par.candidato.tablas > 0;',
+    a:  '  const a = par.analizado.filas > 0;\n  const b = par.candidato.filas > 0;' },
+];
+
+function correr() {
+  try {
+    return execSync('npx vitest run --reporter=verbose 2>&1',
+      { encoding: 'utf8', maxBuffer: 60 * 1024 * 1024 });
+  } catch (e) { return (e.stdout || '') + (e.stderr || ''); }
+}
+
+for (const mut of mutaciones) {
+  const n = original.split(mut.de).length - 1;
+  if (n !== 1) { console.log('\n### ' + mut.id + ' — NO APLICADA: patron x' + n); continue; }
+  fs.writeFileSync(P, original.replace(mut.de, mut.a));
+  const aplicada = !fs.readFileSync(P, 'utf8').includes(mut.de);
+  const out = correr();
+  const linea = (out.match(/Tests\s+.*$/m) || ['??'])[0];
+  const fallos = [...new Set([...out.matchAll(/^\s*×.*$/gm)]
+    .map(x => x[0].trim().replace(/\s+\d+ms$/, '').replace(/^× lib\/analysis\//, '')))];
+  console.log('\n### ' + mut.id + ' — ' + mut.que);
+  console.log('  aplicada=' + aplicada + ' | ' + linea);
+  if (fallos.length === 0) console.log('  SOBREVIVE');
+  else fallos.slice(0, 5).forEach(f => console.log('  MUERE: ' + f));
+  fs.writeFileSync(P, original);
+}
+
+fs.writeFileSync(P, original);
+console.log('\n--- restaurado identico: ' + (fs.readFileSync(P, 'utf8') === original) + ' ---');

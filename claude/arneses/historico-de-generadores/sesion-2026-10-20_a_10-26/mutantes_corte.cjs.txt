@@ -1,0 +1,56 @@
+// Los mutantes del commit 1 del 3.1.2 (el corte), con la herramienta de ficheros: anclas comprobadas antes de
+// escribir, bytes restaurados en un finally, huella y git status al final, y un rojo sólo cuenta si cargaron todas.
+const fs = require('fs');
+const crypto = require('crypto');
+const { spawnSync } = require('child_process');
+const REPO = 'E:/Doc-Hub';
+const PRUEBAS = ['lib/analysis/corte-del-analizado.test.ts', 'lib/analysis/pareja-entera.test.ts'];
+const C = 'lib/analysis/corte-del-analizado.ts', J = 'lib/analysis/judge.ts';
+const MUTANTES = [
+  ['el tope de avance a 3.001', C, 'export const AVANCE_MAXIMO_DEL_CORTE = 3_000;', 'export const AVANCE_MAXIMO_DEL_CORTE = 3_001;'],
+  ['el tope de avance a 2.999', C, 'export const AVANCE_MAXIMO_DEL_CORTE = 3_000;', 'export const AVANCE_MAXIMO_DEL_CORTE = 2_999;'],
+  ['el tope estricto', C, 'if (fines[i] - inicio <= AVANCE_MAXIMO_DEL_CORTE)', 'if (fines[i] - inicio < AVANCE_MAXIMO_DEL_CORTE)'],
+  ['siempre retrocede', C, "if (fines[i] - inicio <= AVANCE_MAXIMO_DEL_CORTE) return { texto: completo.slice(0, fines[i]), modo: 'avanza' };", ''],
+  ['sin la rama de posición (retrocede a 0)', C, "  return { texto: completo.slice(0, limite), modo: 'posicion' };\n}", "  return { texto: '', modo: 'retrocede' };\n}"],
+  ['retroceder también sin pasar de 3.000 (el corte viejo, por posición)', C, "if (fines[i] - inicio <= AVANCE_MAXIMO_DEL_CORTE) return { texto: completo.slice(0, fines[i]), modo: 'avanza' };", "if (fines[i] - inicio <= AVANCE_MAXIMO_DEL_CORTE) return { texto: completo.slice(0, limite), modo: 'avanza' };"],
+  ['el separador de un carácter', C, 'piezas.forEach((p, i) => { pos += (i > 0 ? SEPARADOR.length : 0) + p.length; fines.push(pos); });', 'piezas.forEach((p, i) => { pos += (i > 0 ? 1 : 0) + p.length; fines.push(pos); });'],
+  ['el límite exacto no se reconoce', C, "if (fines[i] === limite) return { texto: completo.slice(0, limite), modo: 'limite_exacto' };", ''],
+  ['el separador no se mira', C, "if (anterior !== null && limite < inicio) return { texto: completo.slice(0, anterior), modo: 'limite_exacto' };", ''],
+  ['el juez no pasa los fines (vuelve la posición)', J, '      analizadoCompleto: fullDocumentText,\n      finesDelAnalizado,\n', '      analizadoCompleto: fullDocumentText,\n'],
+  ['el juez corta por posición', J, 'const corte = cortarEnLimiteDePieza(completo, a.finesDelAnalizado ?? [completo.length], topeDelAnalizado);', 'const corte = cortarEnLimiteDePieza(completo, [completo.length], topeDelAnalizado);'],
+  ['la lectura no dice cómo se cortó', J, '      ...(corte.modo ? { corteDelAnalizado: corte.modo } : {}),\n', ''],
+];
+const correr = () => {
+  const r = spawnSync(process.execPath, [REPO + '/node_modules/vitest/vitest.mjs', 'run', ...PRUEBAS], { cwd: REPO, encoding: 'utf8' });
+  const linea = ((r.stdout + r.stderr).match(/Tests\s+[^\n]+/) || ['(sin línea)'])[0].trim();
+  return { status: r.status, linea, total: Number((linea.match(/\((\d+)\)/) || [0, 0])[1]) };
+};
+const base = correr();
+if (base.status !== 0) throw new Error('la línea base no está en verde: ' + base.linea);
+console.log('línea base: ' + base.linea);
+const originales = new Map();
+for (const f of new Set(MUTANTES.map(m => m[1]))) originales.set(f, fs.readFileSync(REPO + '/' + f));
+const huella = b => crypto.createHash('sha256').update(b).digest('hex').slice(0, 16);
+const texto = f => originales.get(f).toString('utf8').replace(/\r\n/g, '\n');
+for (const [n, f, a] of MUTANTES) if (texto(f).split(a).length !== 2) throw new Error('ancla no única: ' + n);
+console.log('las ' + MUTANTES.length + ' anclas, comprobadas');
+const resultados = [];
+try {
+  for (const [nombre, f, a, b] of MUTANTES) {
+    const crlf = originales.get(f).toString('utf8').includes('\r\n');
+    const m = texto(f).replace(a, () => b);
+    try {
+      fs.writeFileSync(REPO + '/' + f, crlf ? m.replace(/\n/g, '\r\n') : m);
+      const r = correr();
+      resultados.push({ nombre, rojo: r.status !== 0 && /failed/.test(r.linea) && r.total === base.total, linea: r.linea });
+    } finally { fs.writeFileSync(REPO + '/' + f, originales.get(f)); }
+  }
+} finally {
+  for (const [f, o] of originales) {
+    fs.writeFileSync(REPO + '/' + f, o);
+    console.log((huella(fs.readFileSync(REPO + '/' + f)) === huella(o) ? 'RESTAURADO' : '⚠️ NO RESTAURADO') + ' · ' + f);
+  }
+  console.log('git status:\n' + spawnSync('git', ['-C', REPO, 'status', '--short']).stdout.toString());
+}
+for (const r of resultados) console.log((r.rojo ? 'ROJO ' : 'VERDE') + ' · ' + r.nombre + ' · ' + r.linea);
+console.log(resultados.every(r => r.rojo) ? 'los ' + resultados.length + ' mutantes, en rojo' : '⚠️ HAY MUTANTES QUE SOBREVIVEN');

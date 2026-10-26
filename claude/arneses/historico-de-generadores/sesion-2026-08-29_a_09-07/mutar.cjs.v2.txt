@@ -1,0 +1,50 @@
+// Muta / revierte UNA mutación. Aborta ruidosamente si el patrón no aparece
+// exactamente una vez — la cuarta cautela: si no se aplicó, el verde de después
+// es el verde LIMPIO y no dice nada.
+const fs = require('fs');
+
+const MUTACIONES = {
+  m1: {
+    f: 'lib/documents/plan-de-reemplazo.ts',
+    de: `    documentId: elegido.id,`,
+    a:  `    documentId: 'un-id-recien-inventado',`,
+  },
+  m2: {
+    f: 'lib/documents/plan-de-reemplazo.ts',
+    de: `    generacion: generacionDe(elegido) + 1,`,
+    a:  `    generacion: generacionDe(elegido),`,
+  },
+  m3: {
+    f: 'lib/documents/plan-de-reemplazo.ts',
+    de: `    return parsed !== null && parsed.generation < generacionNueva;`,
+    a:  `    return parsed !== null && parsed.generation <= generacionNueva;`,
+  },
+  m4: {
+    f: 'lib/documents/plan-de-reemplazo.ts',
+    de: `    sobrantes: sobrantes.map(versionARetirar),`,
+    a:  `    sobrantes: [],`,
+  },
+  m5: {
+    f: 'lib/documents/plan-de-reemplazo.ts',
+    de: `    (a, b) => (b.created_at ?? '').localeCompare(a.created_at ?? ''),`,
+    a:  `    (a, b) => (a.created_at ?? '').localeCompare(b.created_at ?? ''),`,
+  },
+};
+
+const [, , cual, modo] = process.argv;
+const m = MUTACIONES[cual];
+if (!m) { console.error('mutación desconocida: ' + cual); process.exit(1); }
+
+const de = modo === 'revertir' ? m.a : m.de;
+const a  = modo === 'revertir' ? m.de : m.a;
+
+let s = fs.readFileSync(m.f, 'utf8');
+const crlf = s.includes('\r\n');
+if (crlf) s = s.split('\r\n').join('\n');
+
+const n = s.split(de).length - 1;
+if (n !== 1) { console.error(`ABORTA — ${cual} ${modo || 'aplicar'}: el patrón aparece ${n} veces`); process.exit(1); }
+
+s = s.replace(de, a);
+fs.writeFileSync(m.f, crlf ? s.split('\n').join('\r\n') : s);
+console.log(`${cual} ${modo || 'aplicada'} — APLICADA sobre ${m.f}`);

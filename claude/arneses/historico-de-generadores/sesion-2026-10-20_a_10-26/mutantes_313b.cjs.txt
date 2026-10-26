@@ -1,0 +1,70 @@
+// Los mutantes del 22/10 (control universal, cota de la ventana, trozos en la lectura, el log de la segunda
+// selección y SQL_313_01), con la herramienta de ficheros: anclas comprobadas antes de escribir, bytes
+// restaurados en un finally, huella y git status al final, y un rojo sólo cuenta si cargaron TODAS las pruebas.
+const fs = require('fs');
+const crypto = require('crypto');
+const { spawnSync } = require('child_process');
+const REPO = 'E:/Doc-Hub';
+const PRUEBAS = ['lib/analysis/reparto-de-la-pareja.test.ts', 'lib/analysis/pareja-entera.test.ts', 'lib/analysis/segunda-seleccion.test.ts',
+  'lib/analysis/segunda-seleccion-en-el-pipeline.test.ts', 'claude/arneses/f313/sql-313-01-ventana-doble.test.ts'];
+const R = 'lib/analysis/reparto-de-la-pareja.ts', J = 'lib/analysis/judge.ts', S = 'lib/analysis/segunda-seleccion.ts', P = 'lib/analysis/pipeline.ts';
+const Q = 'SQL_313_01_la_ventana_doble_en_la_tanda.sql';
+const MUTANTES = [
+  ['reparto: sin la cota de la ventana', R, 'if (!(P >= VENTANA_MINIMA_MEDIDA)) {', 'if (false) {'],
+  ['reparto: la cota estricta (10.000 justos se niega)', R, 'if (!(P >= VENTANA_MINIMA_MEDIDA)) {', 'if (!(P > VENTANA_MINIMA_MEDIDA)) {'],
+  ['reparto: la cota en 5.000', R, 'export const VENTANA_MINIMA_MEDIDA = 10_000;', 'export const VENTANA_MINIMA_MEDIDA = 5_000;'],
+  ['juez: la tijera vieja cuenta todos los trozos', J, '      regimen,\n      trozosDelCandidato: cuantos(porRelevancia),', '      regimen,\n      trozosDelCandidato: cuantos(todos),'],
+  ['juez: el corte cuenta siempre los de relevancia', J, 'trozosDelCandidato: cuantos(candidatoCabeEntero ? todos : porRelevancia),', 'trozosDelCandidato: cuantos(porRelevancia),'],
+  ['juez: la pareja entera sin trozos', J, '        trozosDelCandidato: cuantos(todos),\n', ''],
+  ['log: no dice de dónde salió el bloque', S, ', bloque ${e.seleccion}, ${trozos} trozos', ', ${trozos} trozos'],
+  ['log: el agregado no cuenta', S, '    cuenta[e.seleccion]++;\n', ''],
+  ['log: calla cuando no aplica', S, "  if (!s.aplica) return ['[segunda-seleccion] no aplica", "  if (!s.aplica) return []; if (false) return ['[segunda-seleccion] no aplica"],
+  ['pipeline: no imprime el log', P, '  for (const linea of lineasDeLaSegundaSeleccion(segunda)) console.log(linea);\n', ''],
+  ['SQL: control 3 nunca cae', Q, "(SELECT count(*) FROM lecturas WHERE regimen = 'tijera_vieja') = 0 END", "(SELECT count(*) FROM lecturas WHERE regimen = 'tijera_vieja') >= 0 END"],
+  ['SQL: control 4 sin la mitad de la ventana', Q, "ELSE (SELECT count(*) FROM lecturas WHERE trozos IS NULL OR (regimen IN ('pareja_entera', 'corte_honesto') AND ventana IS DISTINCT FROM 80000)) = 0 END",
+    "ELSE (SELECT count(*) FROM lecturas WHERE trozos IS NULL) = 0 END"],
+  ['SQL: control 5 nunca cae', Q, "AND seleccion IS NULL) = 0 END", "AND seleccion IS NULL) >= 0 END"],
+  ['SQL: control 6 nunca cae', Q, "AND j.pareja = l.cand_id)) = 0 END", "AND j.pareja = l.cand_id)) >= 0 END"],
+  ['SQL: control 3 sale OK sin parejas', Q, "CASE WHEN (SELECT count(*) FROM lecturas) = 0 THEN NULL ELSE (SELECT count(*) FROM lecturas WHERE regimen = 'tijera_vieja') = 0 END",
+    "(SELECT count(*) FROM lecturas WHERE regimen = 'tijera_vieja') = 0"],
+  ['SQL: la predicción acierta por arriba', Q, 'WHEN l.trozos = p.prediccion_trozos_cli12 THEN', 'WHEN l.trozos <= p.prediccion_trozos_cli12 THEN'],
+  ['SQL: la latencia de la pareja es la más larga, no la suma', Q, 'sum(lat) AS lat_total', 'max(lat) AS lat_total'],
+  ['SQL: la duración sin la espera', Q, 'max(com + esp + lat) - min(com) AS ms', 'max(com + lat) - min(com) AS ms'],
+  ['SQL: el juez de cualquier pareja', Q, 'LEFT JOIN juez j ON j.doc = l.doc AND j.n = l.n AND j.pareja = l.cand_id', 'LEFT JOIN juez j ON j.doc = l.doc AND j.n = l.n'],
+  ['SQL: sin el filtro de la organización', Q, 'WHERE ar.org_id = p.org AND ar.created_at', 'WHERE ar.created_at'],
+];
+const correr = () => {
+  const r = spawnSync(process.execPath, [REPO + '/node_modules/vitest/vitest.mjs', 'run', ...PRUEBAS], { cwd: REPO, encoding: 'utf8' });
+  const lineas = (r.stdout + r.stderr).match(/Tests\s+[^\n]+/g) || ['(sin línea)'];
+  const total = lineas.reduce((n, l) => n + Number((l.match(/\((\d+)\)/) || [0, 0])[1]), 0);
+  return { status: r.status, linea: lineas.join(' + ').trim(), total };
+};
+const base = correr();
+if (base.status !== 0) throw new Error('la línea base no está en verde: ' + base.linea);
+console.log(`línea base: ${base.linea} (total ${base.total})`);
+const originales = new Map();
+for (const f of new Set(MUTANTES.map(m => m[1]))) originales.set(f, fs.readFileSync(REPO + '/' + f));
+const huella = b => crypto.createHash('sha256').update(b).digest('hex').slice(0, 16);
+const texto = f => originales.get(f).toString('utf8').replace(/\r\n/g, '\n');
+for (const [n, f, a] of MUTANTES) if (texto(f).split(a).length !== 2) throw new Error('ancla no única: ' + n);
+console.log(`las ${MUTANTES.length} anclas, comprobadas`);
+const resultados = [];
+try {
+  for (const [nombre, f, a, b] of MUTANTES) {
+    const crlf = originales.get(f).toString('utf8').includes('\r\n');
+    const m = texto(f).replace(a, () => b);
+    try {
+      fs.writeFileSync(REPO + '/' + f, crlf ? m.replace(/\n/g, '\r\n') : m);
+      const r = correr();
+      resultados.push({ nombre, rojo: r.status !== 0 && /failed/.test(r.linea) && r.total === base.total, linea: r.linea });
+    } finally { fs.writeFileSync(REPO + '/' + f, originales.get(f)); }
+  }
+} finally {
+  for (const [f, o] of originales) {
+    fs.writeFileSync(REPO + '/' + f, o);
+    console.log(`${huella(fs.readFileSync(REPO + '/' + f)) === huella(o) ? 'RESTAURADO' : '⚠️ NO RESTAURADO'} · ${f}`);
+  }
+  console.log('git status:\n' + spawnSync('git', ['-C', REPO, 'status', '--short']).stdout.toString());
+}
+for (const r of resultados) console.log(`${r.rojo ? 'ROJO ' : 'VERDE'} · ${r.nombre} · ${r.linea}`);
+console.log(resultados.every(r => r.rojo) ? `los ${resultados.length} mutantes, en rojo` : '⚠️ HAY MUTANTES QUE SOBREVIVEN');

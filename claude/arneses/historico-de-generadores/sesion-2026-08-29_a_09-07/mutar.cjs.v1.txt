@@ -1,0 +1,53 @@
+const fs = require('fs');
+const { execSync } = require('child_process');
+process.chdir('E:/Doc-Hub');
+
+const MUT = [
+  { n: 'M1  conVeredicto (double-check) deja de copiar el id', f: 'lib/analysis/double-check.ts',
+    de: "    ...(d.existingDocumentId !== undefined ? { existingDocumentId: d.existingDocumentId } : {}),\n", a: '' },
+  { n: 'M2  construirDiscrepancias (synthesize) deja de poner el id', f: 'lib/analysis/synthesize.ts',
+    de: "      existingDocumentId: j.documentId,\n      severity: c.severity,", a: "      severity: c.severity," },
+  { n: 'M3  aInconsistenciaMenor (pipeline) deja de copiar el id', f: 'lib/analysis/pipeline.ts',
+    de: "    ...(d.existingDocumentId !== undefined ? { existingDocumentId: d.existingDocumentId } : {}),\n", a: '' },
+  { n: 'M4  aContradiccionAtomica (verify-claims) deja de copiar el id', f: 'lib/analysis/verify-claims.ts',
+    de: "    existingDocumentId: result.existingDocumentId,\n", a: '' },
+  { n: 'M5  construirOverlaps: el monton ESTRUCTURAL pierde el id', f: 'lib/analysis/synthesize.ts',
+    de: "        existingDocumentId: j.documentId,\n        description: structuralEntries", a: "        description: structuralEntries" },
+  { n: 'M6  SUSTITUCION: problems.ts pisa el NOMBRE con el id', f: 'components/improvement/problems.ts',
+    de: "        relatedDoc: d.existingDocument,\n        relatedDocId: d.existingDocumentId,",
+    a: "        relatedDoc: d.existingDocumentId ?? d.existingDocument,\n        relatedDocId: d.existingDocumentId," },
+  { n: 'M7  mergeContradictions deja de conservar el objeto entero', f: 'lib/analysis/pipeline.ts',
+    de: "      result.push(d);",
+    a: "      result.push({ topic: d.topic, newDocSays: d.newDocSays, existingDocSays: d.existingDocSays, existingDocument: d.existingDocument });" },
+];
+
+for (const m of MUT) {
+  const bruto = fs.readFileSync(m.f, 'utf8');
+  const crlf = bruto.includes('\r\n');
+  const lf = crlf ? bruto.split('\r\n').join('\n') : bruto;
+
+  const veces = lf.split(m.de).length - 1;
+  if (veces !== 1) { console.log('\n### ' + m.n + '\n  NO APLICADA - ocurrencias: ' + veces); continue; }
+
+  const mutado = lf.replace(m.de, m.a);
+  fs.writeFileSync(m.f, crlf ? mutado.split('\n').join('\r\n') : mutado);
+  const cambiado = fs.readFileSync(m.f, 'utf8') !== bruto;
+
+  let out = '';
+  try { out = execSync('npx vitest run lib/analysis/recorrido-id-documento.test.ts 2>&1', { encoding: 'utf8' }); }
+  catch (e) { out = (e.stdout || '') + (e.stderr || ''); }
+
+  fs.writeFileSync(m.f, bruto);
+
+  const fallos = [];
+  const re = /[\u00d7]\s(.+)/g;
+  let mm;
+  while ((mm = re.exec(out)) !== null) fallos.push(mm[1].replace(/\s+\d+ms\s*$/, '').trim());
+  const resumen = (out.match(/Tests\s+.*/) || ['(sin resumen)'])[0].trim();
+
+  console.log('\n### ' + m.n);
+  console.log('  mutacion aplicada: ' + cambiado);
+  console.log('  ' + resumen);
+  fallos.forEach(f => console.log('  x ' + f));
+}
+console.log('\n--- arbol restaurado ---');

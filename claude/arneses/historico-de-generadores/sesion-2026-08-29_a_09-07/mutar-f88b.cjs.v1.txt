@@ -1,0 +1,76 @@
+const fs = require('fs');
+const { execSync } = require('child_process');
+process.chdir('E:/Doc-Hub');
+
+const MUT = [
+  { n: 'M1  el bucle se queda con el PRIMER emparejamiento de cada tabla nueva',
+    f: 'lib/analysis/table-pairing.ts',
+    de: '      pares.push({ nueva, existente, clave });',
+    a:  '      pares.push({ nueva, existente, clave });\n      break;' },
+
+  { n: 'M2  desaparece la 3a puerta: se emite aunque no empareje ninguna fila',
+    f: 'lib/analysis/table-pairing.ts',
+    de: '      if (clave.pairs.length === 0) {\n        sinInterseccion++;\n        continue;\n      }',
+    a:  '      // mutacion: sin 3a puerta' },
+
+  { n: 'M3  sin_clave deja de contarse (el par desaparece sin rastro)',
+    f: 'lib/analysis/table-pairing.ts',
+    de: '        sinClave++;\n        continue;',
+    a:  '        continue;' },
+
+  { n: 'M4  los pares se cuentan pero se devuelve la lista vacia',
+    f: 'lib/analysis/table-pairing.ts',
+    de: '  return { pares, counts };',
+    a:  '  return { pares: [], counts };' },
+
+  { n: 'M5  rechazadas_por_escritura deja de sumarse',
+    f: 'lib/analysis/table-pairing.ts',
+    de: '      rechazadasPorEscritura += clave.counts.discrepanciaPorNormalizar;',
+    a:  '      // mutacion: no se suma' },
+
+  { n: 'M6  se invierte el orden de los lados (nueva por existente)',
+    f: 'lib/analysis/table-pairing.ts',
+    de: '      const clave = discoverTableKey(nueva, existente);',
+    a:  '      const clave = discoverTableKey(existente, nueva);' },
+
+  { n: 'M7  la etapa diff.tablas se retira del catalogo',
+    f: 'lib/analysis/counters.ts',
+    de: "  'diff.tablas.candidatos',",
+    a:  "" },
+];
+
+for (const m of MUT) {
+  const bruto = fs.readFileSync(m.f, 'utf8');
+  const crlf = bruto.includes('\r\n');
+  const lf = crlf ? bruto.split('\r\n').join('\n') : bruto;
+
+  const veces = lf.split(m.de).length - 1;
+  if (veces !== 1) { console.log('\n### ' + m.n + '\n  NO APLICADA - ocurrencias: ' + veces); continue; }
+
+  const mutado = lf.replace(m.de, m.a);
+  fs.writeFileSync(m.f, crlf ? mutado.split('\n').join('\r\n') : mutado);
+  const cambiado = fs.readFileSync(m.f, 'utf8') !== bruto;
+
+  // CUARTA PLANTILLA: una mutacion que NO COMPILA no demuestra nada sobre la
+  // bateria — la caza el compilador, no el caso. Se anota aparte.
+  let compila = true;
+  try { execSync('npx tsc --noEmit 2>&1', { encoding: 'utf8' }); }
+  catch { compila = false; }
+
+  let out = '';
+  try { out = execSync('npx vitest run lib/analysis/table-pairing.test.ts lib/analysis/counters.test.ts 2>&1', { encoding: 'utf8' }); }
+  catch (e) { out = (e.stdout || '') + (e.stderr || ''); }
+
+  fs.writeFileSync(m.f, bruto);
+
+  const fallos = [];
+  const re = /[\u00d7]\s(.+)/g;
+  let mm;
+  while ((mm = re.exec(out)) !== null) fallos.push(mm[1].replace(/\s+\d+ms\s*$/, '').trim());
+  const resumen = (out.match(/Tests\s+.*/) || ['(sin resumen)'])[0].trim();
+
+  console.log('\n### ' + m.n);
+  console.log('  aplicada: ' + cambiado + '  |  compila: ' + compila + '  |  ' + resumen);
+  fallos.slice(0, 5).forEach(f => console.log('  x ' + f));
+}
+console.log('\n--- arbol restaurado ---');

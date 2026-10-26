@@ -1,0 +1,55 @@
+// LOS MUTANTES DEL 3.1.1 (paso 2), escritos con la herramienta de ficheros (protocolo, quinta cautela).
+// Guarda los bytes de cada fichero al empezar, restaura en un finally pase lo que pase, y al final
+// comprueba que los bytes son los de antes y, si el fichero está en HEAD sin cambios, contra git.
+const fs = require('fs');
+const crypto = require('crypto');
+const { spawnSync } = require('child_process');
+const REPO = 'E:/Doc-Hub';
+const CLIENTE = REPO + '/lib/llm/anthropic-client.ts', REGISTRO = REPO + '/lib/observability/registro-de-llamadas.ts';
+const original = { [CLIENTE]: fs.readFileSync(CLIENTE), [REGISTRO]: fs.readFileSync(REGISTRO) };
+const huella = b => crypto.createHash('sha256').update(b).digest('hex').slice(0, 16);
+
+const reemplazar = (t, a, b) => { if (t.split(a).length !== 2) throw new Error('el ancla no está exactamente una vez: ' + a.slice(0, 60)); return t.replace(a, () => b); };
+const MUTANTES = [
+  [CLIENTE, 'la etiqueta viaja a la API', t => reemplazar(t, "  if (opts.outputConfig) payload.output_config = opts.outputConfig;", "  if (opts.outputConfig) payload.output_config = opts.outputConfig;\n  if (opts.etiqueta) payload.metadata = { etapa: opts.etiqueta.etapa };")],
+  [CLIENTE, 'la repetición por JSON se apunta como vuelta 1', t => reemplazar(t, "{ vuelta: 2, entradaEstimada: estInput,", "{ vuelta: 1, entradaEstimada: estInput,")],
+  [CLIENTE, 'el 429 no se apunta', t => reemplazar(t, "        apuntarPeticion(datos, { intento: attempt + 1, resultado: 'http', estadoHttp: res.status, latenciaMs: Date.now() - t0, tokens: SIN_TOKENS, ...reloj });\n", '')],
+  [CLIENTE, 'la suma por modelo deja de apuntar la primera vuelta', t => reemplazar(t, "    adjustedOpts.alTerminar?.({ outputTokens: r1.outputTokens });\n    recordToContext(jsonModelId, {", "    adjustedOpts.alTerminar?.({ outputTokens: r1.outputTokens });\n    if (false) recordToContext(jsonModelId, {")],
+  [CLIENTE, 'el backoff no se cuenta como espera', t => reemplazar(t, 'const esperaMs = attempt > 0 ? t0 - comienzo :', 'const esperaMs = attempt > 0 ? 0 :')],
+  [CLIENTE, 'la pausa antes de la vuelta 2 no se cuenta', t => reemplazar(t, 'esperaAntesMs: Date.now() - antesDeLaPausa', 'esperaAntesMs: 0')],
+  [REGISTRO, 'la guarda deja pasar una de más', t => reemplazar(t, 'if (total >= TOPE_DE_PETICIONES_CON_DETALLE) {', 'if (total > TOPE_DE_PETICIONES_CON_DETALLE) {')],
+  [REGISTRO, 'la llamada sin etiqueta no se cuenta', t => reemplazar(t, 'registro.sinEtapa++;', 'registro.sinEtapa += 0;')],
+];
+
+// todas las anclas se comprueban ANTES de escribir nada en el repositorio
+for (const [fichero, nombre, mutar] of MUTANTES) mutar(original[fichero].toString('utf8').replace(/\r\n/g, '\n'));
+console.log(`las ${MUTANTES.length} anclas, comprobadas`);
+
+const resultados = [];
+try {
+  for (const [fichero, nombre, mutar] of MUTANTES) {
+    const texto = original[fichero].toString('utf8');
+    const crlf = texto.includes('\r\n');
+    const mutado = mutar(texto.replace(/\r\n/g, '\n'));
+    try {
+      fs.writeFileSync(fichero, crlf ? mutado.replace(/\n/g, '\r\n') : mutado);
+      const r = spawnSync(process.execPath, [REPO + '/node_modules/vitest/vitest.mjs', 'run', 'lib/llm', 'lib/observability'], { cwd: REPO, encoding: 'utf8' });
+      const linea = ((r.stdout + r.stderr).match(/Tests\s+[^\n]+/) || ['(sin línea de Tests)'])[0].trim();
+      // un rojo sólo cuenta si las 35 pruebas se cargaron: un fichero que no compila también sale rojo
+      const cargadas = /\((\d+)\)/.exec(linea)?.[1];
+      resultados.push({ nombre, rojo: r.status !== 0 && cargadas === '37', linea });
+    } finally {
+      fs.writeFileSync(fichero, original[fichero]);
+    }
+  }
+} finally {
+  for (const f of [CLIENTE, REGISTRO]) fs.writeFileSync(f, original[f]);
+  for (const f of [CLIENTE, REGISTRO]) {
+    const igual = huella(fs.readFileSync(f)) === huella(original[f]);
+    console.log(`${igual ? 'RESTAURADO' : '⚠️ NO RESTAURADO'} · ${f.replace(REPO + '/', '')} · ${huella(fs.readFileSync(f))}`);
+  }
+  const g = spawnSync('git', ['-C', REPO, 'status', '--short']);
+  console.log('git status:\n' + g.stdout.toString());
+}
+for (const r of resultados) console.log(`${r.rojo ? 'ROJO ' : 'VERDE'} · ${r.nombre} · ${r.linea}`);
+console.log(resultados.every(r => r.rojo) ? `los ${resultados.length} mutantes, en rojo` : '⚠️ HAY MUTANTES QUE SOBREVIVEN');

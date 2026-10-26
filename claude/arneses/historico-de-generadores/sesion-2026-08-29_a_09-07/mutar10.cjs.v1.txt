@@ -1,0 +1,52 @@
+const fs = require('fs');
+const { execSync } = require('child_process');
+
+const P = 'lib/chunking.ts';
+const original = fs.readFileSync(P, 'utf8');
+
+const mutaciones = [
+  { id: 'v1', que: 'CHUNK_OVERLAP 200 -> 150 (el solape cambia de paso)',
+    de: 'const CHUNK_OVERLAP = 200;', a: 'const CHUNK_OVERLAP = 150;' },
+
+  { id: 'v2', que: 'CHUNK_SIZE 1200 -> 1100 (el presupuesto cambia)',
+    de: 'const CHUNK_SIZE = 1200;', a: 'const CHUNK_SIZE = 1100;' },
+
+  { id: 'v3', que: 'se retira el corte por salto de linea (solo afecta a las filas)',
+    de: "        const newline = text.lastIndexOf('\\n', end);",
+    a:  "        const newline = -1;" },
+
+  { id: 'v4', que: 'las filas de tabla pasan a partirse por longitud (EL CONTROL)',
+    de: "    const pieces = segment.type !== 'table_summary' && segment.text.length > MAX_CHUNK_SIZE",
+    a:  "    const pieces = segment.type !== 'table_summary' && segment.text.length > 5" },
+];
+
+function correr() {
+  try {
+    return execSync('npx vitest run lib/troceado-congelado.test.ts --reporter=verbose 2>&1',
+      { encoding: 'utf8', maxBuffer: 40 * 1024 * 1024 });
+  } catch (e) { return (e.stdout || '') + (e.stderr || ''); }
+}
+
+function resumen(out) {
+  const m = out.match(/Tests\s+(?:(\d+) failed \| )?(\d+) passed/);
+  const fallos = [...out.matchAll(/^\s*×.*$/gm)]
+    .map(x => x[0].trim().replace(/\s+\d+ms$/, ''))
+    .map(l => l.replace(/^× lib\/troceado-congelado\.test\.ts > /, '').replace(/^× /, ''));
+  return { linea: m ? m[0] : '??', fallos: [...new Set(fallos)] };
+}
+
+for (const mut of mutaciones) {
+  const n = original.split(mut.de).length - 1;
+  if (n !== 1) { console.log('\n### ' + mut.id + ' — NO APLICADA: patron x' + n); continue; }
+  fs.writeFileSync(P, original.replace(mut.de, mut.a));
+  const aplicada = !fs.readFileSync(P, 'utf8').includes(mut.de);
+  const r = resumen(correr());
+  console.log('\n### ' + mut.id + ' — ' + mut.que);
+  console.log('  aplicada=' + aplicada + ' | ' + r.linea);
+  if (r.fallos.length === 0) console.log('  SOBREVIVE');
+  else r.fallos.forEach(f => console.log('  MUERE: ' + f));
+  fs.writeFileSync(P, original);
+}
+
+fs.writeFileSync(P, original);
+console.log('\n--- restaurado identico: ' + (fs.readFileSync(P, 'utf8') === original) + ' ---');

@@ -1,0 +1,63 @@
+const fs = require('fs');
+const { execSync } = require('child_process');
+
+const P = 'lib/drive/sync-guard.ts';
+const original = fs.readFileSync(P, 'utf8');
+
+const RAMA = `  if (origen === 'carpeta_cambiada') {
+    return { aborta: false, archivos: listado.archivos, borrar: [] };
+  }`;
+
+const GUARDA = `  if (!listado.ok) {
+    return { aborta: true, motivo: listado.motivo };
+  }`;
+
+const mutaciones = [
+  { id: 'q1', que: 'se invierte la procedencia (la de siempre deja de borrar)',
+    de: "if (origen === 'carpeta_cambiada') {",
+    a:  "if (origen === 'misma_carpeta') {" },
+
+  { id: 'q2', que: '⚠️ desaparece la rama: la carpeta cambiada vuelve a borrar',
+    de: RAMA,
+    a:  '  // rama retirada por la mutacion' },
+
+  { id: 'q3', que: '⚠️ la procedencia se comprueba ANTES que el fallo de listado',
+    de: GUARDA + '\n',
+    a:  '' },
+
+  { id: 'q4', que: 'la carpeta cambiada deja de indexar lo nuevo',
+    de: "return { aborta: false, archivos: listado.archivos, borrar: [] };",
+    a:  "return { aborta: false, archivos: [], borrar: [] };" },
+];
+
+function correr() {
+  try {
+    return execSync('npx vitest run --reporter=verbose 2>&1',
+      { encoding: 'utf8', maxBuffer: 40 * 1024 * 1024 });
+  } catch (e) { return (e.stdout || '') + (e.stderr || ''); }
+}
+
+function resumen(out) {
+  const m = out.match(/Tests\s+(?:(\d+) failed \| )?(\d+) passed/);
+  const fallos = [...out.matchAll(/^\s*×.*$/gm)]
+    .map(x => x[0].trim().replace(/\s+\d+ms$/, ''))
+    .map(l => l.replace(/^× lib\/drive\/sync-guard\.test\.ts > /, '').replace(/^× /, ''));
+  return { linea: m ? m[0] : '??', fallos: [...new Set(fallos)] };
+}
+
+for (const mut of mutaciones) {
+  const n = original.split(mut.de).length - 1;
+  if (n !== 1) { console.log(`\n### ${mut.id} — NO APLICADA: patron x${n}`); continue; }
+  fs.writeFileSync(P, original.replace(mut.de, mut.a));
+  const ahora = fs.readFileSync(P, 'utf8');
+  const aplicada = !ahora.includes(mut.de);
+  const r = resumen(correr());
+  console.log(`\n### ${mut.id} — ${mut.que}`);
+  console.log(`  aplicada=${aplicada} | ${r.linea}`);
+  if (r.fallos.length === 0) console.log('  ⚠️ SOBREVIVE');
+  else r.fallos.forEach(f => console.log('  MUERE: ' + f));
+  fs.writeFileSync(P, original);
+}
+
+fs.writeFileSync(P, original);
+console.log('\n--- restaurado idéntico: ' + (fs.readFileSync(P, 'utf8') === original) + ' ---');

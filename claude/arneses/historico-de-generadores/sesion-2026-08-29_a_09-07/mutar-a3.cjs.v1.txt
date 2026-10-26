@@ -1,0 +1,73 @@
+const fs = require('fs');
+const { execSync } = require('child_process');
+process.chdir('E:/Doc-Hub');
+
+const ALC = 'lib/analysis/alcance.ts';
+const COB = 'components/improvement/table-coverage.ts';
+const PRB = 'components/improvement/problems.ts';
+
+const MUT = [
+  { n: 'M1  la resta se hace por DOCUMENTO en vez de por tabla',
+    f: ALC,
+    de: "  return `${documentId}␟${tableId}`;",
+    a:  "  return documentId;" },
+
+  { n: 'M2  la resta no se hace (el aviso no desaparece nunca)',
+    f: ALC,
+    de: "  return limits\n    .filter(({ documentId, limit }) => !cubiertasSet.has(clave(documentId, limit.tableId)))\n    .map(l => l.limit);",
+    a:  "  return limits.map(l => l.limit);" },
+
+  { n: 'M3  se resta TODO lo que llega (aunque no este cubierto)',
+    f: ALC,
+    de: "    .filter(({ documentId, limit }) => !cubiertasSet.has(clave(documentId, limit.tableId)))",
+    a:  "    .filter(() => false)" },
+
+  { n: 'M4  el recuento del titular suma tambien las identicas',
+    f: COB,
+    de: "  return grupos.reduce((n, g) => n + g.soloEnNuevo.length + g.soloEnOtro.length, 0);",
+    a:  "  return grupos.reduce((n, g) => n + g.soloEnNuevo.length + g.soloEnOtro.length + g.identicas, 0);" },
+
+  { n: 'M5  los dos montones se intercambian',
+    f: COB,
+    de: "    { documento: nombreDocumentoAnalizado, filas: grupo.soloEnNuevo },\n    { documento: grupo.documentoExistente, filas: grupo.soloEnOtro },",
+    a:  "    { documento: nombreDocumentoAnalizado, filas: grupo.soloEnOtro },\n    { documento: grupo.documentoExistente, filas: grupo.soloEnNuevo }," },
+
+  { n: 'M6  una fila diff_tabular RECUPERA sus acciones',
+    f: PRB,
+    de: "  return p.origen !== 'diff_tabular';",
+    a:  "  return true;" },
+];
+
+for (const m of MUT) {
+  const bruto = fs.readFileSync(m.f, 'utf8');
+  const crlf = bruto.includes('\r\n');
+  const lf = crlf ? bruto.split('\r\n').join('\n') : bruto;
+
+  const veces = lf.split(m.de).length - 1;
+  if (veces !== 1) { console.log('\n### ' + m.n + '\n  NO APLICADA - ocurrencias: ' + veces); continue; }
+
+  const mutado = lf.replace(m.de, m.a);
+  fs.writeFileSync(m.f, crlf ? mutado.split('\n').join('\r\n') : mutado);
+  const cambiado = fs.readFileSync(m.f, 'utf8') !== bruto;
+
+  let compila = true;
+  try { execSync('npx tsc --noEmit 2>&1', { encoding: 'utf8' }); }
+  catch { compila = false; }
+
+  let out = '';
+  try { out = execSync('npx vitest run lib/analysis/alcance.test.ts components/improvement/table-coverage.test.ts 2>&1', { encoding: 'utf8' }); }
+  catch (e) { out = (e.stdout || '') + (e.stderr || ''); }
+
+  fs.writeFileSync(m.f, bruto);
+
+  const fallos = [];
+  const re = /[\u00d7]\s(.+)/g;
+  let mm;
+  while ((mm = re.exec(out)) !== null) fallos.push(mm[1].replace(/\s+\d+ms\s*$/, '').trim());
+  const resumen = (out.match(/Tests\s+.*/) || ['(sin resumen)'])[0].trim();
+
+  console.log('\n### ' + m.n);
+  console.log('  aplicada: ' + cambiado + '  |  compila: ' + compila + '  |  ' + resumen);
+  fallos.slice(0, 4).forEach(f => console.log('  x ' + f));
+}
+console.log('\n--- arbol restaurado ---');

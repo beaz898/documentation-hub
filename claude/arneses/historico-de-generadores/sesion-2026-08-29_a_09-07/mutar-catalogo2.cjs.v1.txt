@@ -1,0 +1,53 @@
+const fs = require('fs');
+const { execSync } = require('child_process');
+
+const P = 'lib/chunking.ts';
+const original = fs.readFileSync(P, 'utf8');
+
+const mutaciones = [
+  { id: 'C1', que: 'la vigente vuelve a ser un LITERAL con el MISMO valor de hoy',
+    de: 'export const EXTRACTOR_VERSION = versionDelCatalogo(CAMBIOS_POR_VERSION);',
+    a:  'export const EXTRACTOR_VERSION = 3;' },
+
+  { id: 'C2', que: 'un LITERAL adelantado: se sube el numero sin catalogar el cambio',
+    de: 'export const EXTRACTOR_VERSION = versionDelCatalogo(CAMBIOS_POR_VERSION);',
+    a:  'export const EXTRACTOR_VERSION = 4;' },
+
+  { id: 'C3', que: 'la vigente pasa a ser el MAXIMO de las claves (los huecos arrastran)',
+    de: '  let vigente = PRIMERA_VERSION_CATALOGADA;\n  while (catalogo[vigente + 1] !== undefined) vigente++;',
+    a:  '  const vigente = Math.max(PRIMERA_VERSION_CATALOGADA, ...Object.keys(catalogo).map(Number));' },
+
+  { id: 'C4b', que: 'el bucle arranca en 1 en vez de en la primera catalogada',
+    de: '  let vigente = PRIMERA_VERSION_CATALOGADA;',
+    a:  '  let vigente = 1;' },
+
+  { id: 'C5', que: 'se retira una entrada del catalogo (la 3 desaparece)',
+    de: "  3: 'troceado', // 07/09 — B.182: el arranque del trozo usa el criterio del final",
+    a:  '' },
+];
+
+function correr() {
+  try {
+    return execSync('npx vitest run --reporter=verbose 2>&1',
+      { encoding: 'utf8', maxBuffer: 60 * 1024 * 1024 });
+  } catch (e) { return (e.stdout || '') + (e.stderr || ''); }
+}
+
+for (const mut of mutaciones) {
+  const n = original.split(mut.de).length - 1;
+  if (n !== 1) { console.log('\n### ' + mut.id + ' — NO APLICADA: patron x' + n); continue; }
+  fs.writeFileSync(P, original.replace(mut.de, mut.a));
+  const aplicada = !fs.readFileSync(P, 'utf8').includes(mut.de);
+  const out = correr();
+  const linea = (out.match(/Tests\s+.*$/m) || ['??'])[0];
+  const fallos = [...new Set([...out.matchAll(/^\s*×.*$/gm)]
+    .map(x => x[0].trim().replace(/\s+\d+ms$/, '').replace(/^× lib\/documents\//, '').replace(/^× lib\//, '')))];
+  console.log('\n### ' + mut.id + ' — ' + mut.que);
+  console.log('  aplicada=' + aplicada + ' | ' + linea);
+  if (fallos.length === 0) console.log('  SOBREVIVE');
+  else fallos.slice(0, 6).forEach(f => console.log('  MUERE: ' + f));
+  fs.writeFileSync(P, original);
+}
+
+fs.writeFileSync(P, original);
+console.log('\n--- restaurado identico: ' + (fs.readFileSync(P, 'utf8') === original) + ' ---');

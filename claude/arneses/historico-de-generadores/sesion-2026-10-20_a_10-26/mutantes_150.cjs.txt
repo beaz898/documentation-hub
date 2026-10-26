@@ -1,0 +1,56 @@
+// Los mutantes de la ventana de 150.000 (22/10), con la herramienta de ficheros: anclas comprobadas antes de
+// escribir, bytes restaurados en un finally, huella y git status al final, y un rojo sólo cuenta si cargaron todas.
+const fs = require('fs');
+const crypto = require('crypto');
+const { spawnSync } = require('child_process');
+const REPO = 'E:/Doc-Hub';
+const PRUEBAS = ['lib/analysis/reparto-de-la-pareja.test.ts', 'lib/analysis/pareja-entera.test.ts', 'lib/analysis/segunda-seleccion.test.ts',
+  'claude/arneses/f313', 'claude/arneses/f128/sql-f128-02-nor10.test.ts'];
+const R = 'lib/analysis/reparto-de-la-pareja.ts', S = 'lib/analysis/segunda-seleccion.ts';
+const Q = 'SQL_313_01_la_ventana_doble_en_la_tanda.sql', N = 'SQL_F128_02_nor10_con_haiku55.sql';
+const MUTANTES = [
+  ['la ventana vuelve a 80.000', R, 'export const TAMANO_VENTANA = 150_000;', 'export const TAMANO_VENTANA = 80_000;'],
+  ['la ventana a 200.000', R, 'export const TAMANO_VENTANA = 150_000;', 'export const TAMANO_VENTANA = 200_000;'],
+  ['la ventana fuera de la rejilla del barrido', R, 'export const TAMANO_VENTANA = 150_000;', 'export const TAMANO_VENTANA = 150_500;'],
+  ['la segunda selección no pasa la ventana', S, 'reservaMontada: bloqueDeLaRecuperacion.length, ventana: a.ventana });', 'reservaMontada: bloqueDeLaRecuperacion.length });'],
+  ['SQL_313_01: el esperado vacío sale OK', Q, "CASE WHEN p.esperado_nor11 IS NULL THEN NULL ELSE", "CASE WHEN p.esperado_nor11 IS NULL THEN true ELSE"],
+  ['SQL_313_01: el control 4 con 80000 escrito', Q, "AND ventana IS DISTINCT FROM p.ventana_esperada)) = 0 END", "AND ventana IS DISTINCT FROM 80000)) = 0 END"],
+  ['SQL_313_01: la predicción por defecto vuelve a 12', Q, '55 AS prediccion_trozos_cli12', '12 AS prediccion_trozos_cli12'],
+  ['SQL_F128_02: «ninguna» también sin corte', N, 'WHERE NOT EXISTS (SELECT 1 FROM cerca3 c WHERE c.que IS NOT NULL) AND EXISTS (SELECT 1 FROM cortes)', 'WHERE NOT EXISTS (SELECT 1 FROM cerca3 c WHERE c.que IS NOT NULL)'],
+  ['SQL_F128_02: nunca NO APLICA', N, "  WHERE NOT EXISTS (SELECT 1 FROM cortes)\n) t", "  WHERE false\n) t"],
+];
+const correr = () => {
+  const r = spawnSync(process.execPath, [REPO + '/node_modules/vitest/vitest.mjs', 'run', ...PRUEBAS], { cwd: REPO, encoding: 'utf8' });
+  const lineas = (r.stdout + r.stderr).match(/Tests\s+[^\n]+/g) || ['(sin línea)'];
+  const total = lineas.reduce((n, l) => n + Number((l.match(/\((\d+)\)/) || [0, 0])[1]), 0);
+  return { status: r.status, linea: lineas.join(' + ').trim(), total };
+};
+const base = correr();
+if (base.status !== 0) throw new Error('la línea base no está en verde: ' + base.linea);
+console.log('línea base: ' + base.linea + ' (total ' + base.total + ')');
+const originales = new Map();
+for (const f of new Set(MUTANTES.map(m => m[1]))) originales.set(f, fs.readFileSync(REPO + '/' + f));
+const huella = b => crypto.createHash('sha256').update(b).digest('hex').slice(0, 16);
+const texto = f => originales.get(f).toString('utf8').replace(/\r\n/g, '\n');
+for (const [n, f, a] of MUTANTES) if (texto(f).split(a).length !== 2) throw new Error('ancla no única: ' + n);
+console.log('las ' + MUTANTES.length + ' anclas, comprobadas');
+const resultados = [];
+try {
+  for (const [nombre, f, a, b] of MUTANTES) {
+    const crlf = originales.get(f).toString('utf8').includes('\r\n');
+    const m = texto(f).replace(a, () => b);
+    try {
+      fs.writeFileSync(REPO + '/' + f, crlf ? m.replace(/\n/g, '\r\n') : m);
+      const r = correr();
+      resultados.push({ nombre, rojo: r.status !== 0 && /failed/.test(r.linea) && r.total === base.total, linea: r.linea });
+    } finally { fs.writeFileSync(REPO + '/' + f, originales.get(f)); }
+  }
+} finally {
+  for (const [f, o] of originales) {
+    fs.writeFileSync(REPO + '/' + f, o);
+    console.log((huella(fs.readFileSync(REPO + '/' + f)) === huella(o) ? 'RESTAURADO' : '⚠️ NO RESTAURADO') + ' · ' + f);
+  }
+  console.log('git status:\n' + spawnSync('git', ['-C', REPO, 'status', '--short']).stdout.toString());
+}
+for (const r of resultados) console.log((r.rojo ? 'ROJO ' : 'VERDE') + ' · ' + r.nombre + ' · ' + r.linea);
+console.log(resultados.every(r => r.rojo) ? 'los ' + resultados.length + ' mutantes, en rojo' : '⚠️ HAY MUTANTES QUE SOBREVIVEN');

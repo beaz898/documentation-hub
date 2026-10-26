@@ -1,0 +1,43 @@
+// Mutantes de SQL_ORG_01. El arnés tiene que ponerse rojo con los tres tests cargados. Precomprobación de anclas,
+// restauración en finally, huella y git status al final.
+const fs = require('fs');
+const crypto = require('crypto');
+const { execSync } = require('child_process');
+const F = 'E:/Doc-Hub/SQL_ORG_01_las_organizaciones_del_director.sql';
+const original = fs.readFileSync(F, 'utf8');
+const huella = s => crypto.createHash('sha256').update(s).digest('hex').slice(0, 16);
+const h0 = huella(original);
+const M = [
+  ['el correo sin pasar a minúsculas', 'WHERE lower(au.email) = p.correo', 'WHERE au.email = p.correo'],
+  ['la constante sin trim', 'lower(trim(\'\')) AS correo', 'lower(\'\') AS correo'],
+  ['las pertenencias de todos los usuarios', 'JOIN public.memberships m ON m.user_id = u.id', 'JOIN public.memberships m ON true'],
+  ['la suscripción al revés', '(o.stripe_subscription_id IS NOT NULL) AS suscripcion_de_stripe_guardada', '(o.stripe_subscription_id IS NULL) AS suscripcion_de_stripe_guardada'],
+  ['los créditos extra en lugar de los del plan', 'o.credits_remaining AS creditos, o.credits_extra AS creditos_extra', 'o.credits_extra AS creditos, o.credits_extra AS creditos_extra'],
+  ['el vacío sale vacío', 'WHERE NOT EXISTS (SELECT 1 FROM filas)', 'WHERE false'],
+  ['sin usuario se confunde con sin pertenencias', "CASE WHEN (SELECT count(*) FROM u) = 0 THEN 'NINGÚN USUARIO con ese correo'", "CASE WHEN (SELECT count(*) FROM u) > 0 THEN 'NINGÚN USUARIO con ese correo'"],
+  ['la fecha de purga no sale', "to_char(purgada AT TIME ZONE 'Europe/Madrid', 'DD/MM/YYYY HH24:MI') AS purgada", 'NULL AS purgada'],
+];
+for (const [nombre, a] of M) {
+  const k = original.split(a).length - 1;
+  if (k !== 1) { console.error('ANCLA ' + k + ' veces: ' + nombre); process.exit(2); }
+}
+const res = [];
+try {
+  for (const [nombre, a, b] of M) {
+    fs.writeFileSync(F, original.split(a).join(b));
+    let out = '';
+    try { out = execSync('npx vitest run --project arneses claude/arneses/org', { cwd: 'E:/Doc-Hub', encoding: 'utf8', stdio: 'pipe' }); }
+    catch (e) { out = (e.stdout || '') + (e.stderr || ''); }
+    const t = /Tests\s+(.*)/.exec(out);
+    const linea = t ? t[1].trim() : '(sin línea de Tests)';
+    const rojo = /failed/.test(linea) && /\(4\)/.test(linea) && !/skipped/.test(linea);
+    res.push((rojo ? 'ROJO  ' : 'VIVO  ') + nombre + ' · ' + linea);
+    console.log(res[res.length - 1]);
+  }
+} finally {
+  fs.writeFileSync(F, original);
+}
+const h1 = huella(fs.readFileSync(F, 'utf8'));
+console.log('huella antes ' + h0 + ' · después ' + h1 + (h0 === h1 ? ' · IGUAL' : ' · DISTINTA'));
+console.log(execSync('git status --short', { cwd: 'E:/Doc-Hub', encoding: 'utf8' }));
+console.log('rojos: ' + res.filter(r => r.startsWith('ROJO')).length + ' de ' + M.length);

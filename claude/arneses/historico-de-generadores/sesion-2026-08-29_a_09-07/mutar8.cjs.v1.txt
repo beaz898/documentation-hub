@@ -1,0 +1,57 @@
+const fs = require('fs');
+const { execSync } = require('child_process');
+
+const F = { dual: 'lib/documents/lectura-dual.ts', promo: 'lib/documents/promocion.ts' };
+const original = { dual: fs.readFileSync(F.dual, 'utf8'), promo: fs.readFileSync(F.promo, 'utf8') };
+
+const mutaciones = [
+  { id: 's1', f: 'dual', que: '⚠️ el array VACÍO cuenta como segmentos (deja el documento mudo)',
+    de: '    && valor.length > 0', a: '    && valor.length >= 0' },
+
+  { id: 's2', f: 'dual', que: 'deja de comprobar que cada elemento sea un segmento',
+    de: "    && valor.every(s => typeof s === 'object' && s !== null && typeof (s as { text?: unknown }).text === 'string');",
+    a:  '    && true;' },
+
+  { id: 's3', f: 'dual', que: '⚠️ con segmentos guardados se ignoran y se usa el texto plano',
+    de: '  if (esListaDeSegmentos(fila.segments)) {\n    return { segmentos: fila.segments, origen: \'segmentos\' };\n  }',
+    a:  '  // rama retirada por la mutacion' },
+
+  { id: 's4', f: 'dual', que: 'el texto vacio deja de detectarse (documento mudo con origen mentiroso)',
+    de: '  if (texto.trim().length === 0) {', a: '  if (texto.length < 0) {' },
+
+  { id: 's5', f: 'promo', que: '⚠️ la promocion pierde los segmentos',
+    de: '    segments: staged.segments ?? null,', a: '    segments: null,' },
+];
+
+function correr() {
+  try {
+    return execSync('npx vitest run --reporter=verbose 2>&1',
+      { encoding: 'utf8', maxBuffer: 60 * 1024 * 1024 });
+  } catch (e) { return (e.stdout || '') + (e.stderr || ''); }
+}
+
+function resumen(out) {
+  const m = out.match(/Tests\s+(?:(\d+) failed \| )?(\d+) passed/);
+  const fallos = [...out.matchAll(/^\s*×.*$/gm)]
+    .map(x => x[0].trim().replace(/\s+\d+ms$/, ''));
+  return { linea: m ? m[0] : '??', fallos: [...new Set(fallos)] };
+}
+
+for (const mut of mutaciones) {
+  const P = F[mut.f];
+  const base = original[mut.f];
+  const n = base.split(mut.de).length - 1;
+  if (n !== 1) { console.log(`\n### ${mut.id} — NO APLICADA: patron x${n}`); continue; }
+  fs.writeFileSync(P, base.replace(mut.de, mut.a));
+  const aplicada = !fs.readFileSync(P, 'utf8').includes(mut.de);
+  const r = resumen(correr());
+  console.log(`\n### ${mut.id} — ${mut.que}`);
+  console.log(`  aplicada=${aplicada} | ${r.linea}`);
+  if (r.fallos.length === 0) console.log('  ⚠️ SOBREVIVE');
+  else r.fallos.slice(0, 5).forEach(f => console.log('  MUERE: ' + f));
+  fs.writeFileSync(P, base);
+}
+
+for (const k of Object.keys(F)) fs.writeFileSync(F[k], original[k]);
+console.log('\n--- restaurados idénticos: ' +
+  Object.keys(F).every(k => fs.readFileSync(F[k], 'utf8') === original[k]) + ' ---');

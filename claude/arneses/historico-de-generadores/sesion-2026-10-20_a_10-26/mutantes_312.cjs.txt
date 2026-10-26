@@ -1,0 +1,49 @@
+// Los mutantes de SQL_312_01 (25/10), con la herramienta de ficheros: anclas comprobadas antes de escribir, bytes
+// restaurados en un finally, huella y git status al final, y un rojo sólo cuenta si cargaron todas.
+const fs = require('fs');
+const crypto = require('crypto');
+const { spawnSync } = require('child_process');
+const REPO = 'E:/Doc-Hub';
+const Q = 'SQL_312_01_la_cita_no_literal.sql';
+const MUTANTES = [
+  ['las literales también cuentan', "WHERE p.cita <> '' AND t.rec IS NOT NULL AND strpos(t.rec, p.cita) = 0", "WHERE p.cita <> '' AND t.rec IS NOT NULL"],
+  ['el carácter de la cita, uno antes', 'substr(t.cita, coalesce(t.cabeza, 0) + 1, 1) AS car_cita', 'substr(t.cita, coalesce(t.cabeza, 0), 1) AS car_cita'],
+  ['el carácter del documento, uno antes', "frente a «' || substr(d.rec, d.donde + d.cabeza, 1)", "frente a «' || substr(d.rec, d.donde + d.cabeza - 1, 1)"],
+  ['el final, medido como principio', 'WHERE strpos(q.rec, right(q.cita, k)) > 0) AS cola', 'WHERE strpos(q.rec, left(q.cita, k)) > 0) AS cola'],
+  ['sin el filtro de la organización', "WHERE ar.org_id = p.org AND ar.document_name ILIKE 'NOR-10%'", "WHERE ar.document_name ILIKE 'NOR-10%'"],
+  ['cualquier documento', "WHERE ar.org_id = p.org AND ar.document_name ILIKE 'NOR-10%'", 'WHERE ar.org_id = p.org'],
+  ['sin el límite de las horas', 'AND ar.created_at >= p.desde AND ar.created_at < p.hasta', ''],
+  ['el control nunca cae', "CASE WHEN (SELECT count(*) FROM pasadas) > 0 THEN 'OK' ELSE 'FALLA' END AS a", "'OK' AS a"],
+  ['todos los contadores, no sólo los de la puerta', "WHERE k LIKE 'juez.cita%' OR k LIKE 'juez.recompuestas%'", ''],
+];
+const correr = () => {
+  const r = spawnSync(process.execPath, [REPO + '/node_modules/vitest/vitest.mjs', 'run', '--project', 'arneses', 'claude/arneses/f312'], { cwd: REPO, encoding: 'utf8' });
+  const linea = ((r.stdout + r.stderr).match(/Tests\s+[^\n]+/) || ['(sin línea)'])[0].trim();
+  return { status: r.status, linea, total: Number((linea.match(/\((\d+)\)/) || [0, 0])[1]) };
+};
+const base = correr();
+if (base.status !== 0) throw new Error('la línea base no está en verde: ' + base.linea);
+console.log('línea base: ' + base.linea);
+const original = fs.readFileSync(REPO + '/' + Q);
+const lf = original.toString('utf8').replace(/\r\n/g, '\n');
+const crlf = original.toString('utf8').includes('\r\n');
+for (const [n, a] of MUTANTES) if (lf.split(a).length !== 2) throw new Error('ancla no única: ' + n);
+console.log('las ' + MUTANTES.length + ' anclas, comprobadas');
+const huella = b => crypto.createHash('sha256').update(b).digest('hex').slice(0, 16);
+const resultados = [];
+try {
+  for (const [nombre, a, b] of MUTANTES) {
+    const m = lf.replace(a, () => b);
+    try {
+      fs.writeFileSync(REPO + '/' + Q, crlf ? m.replace(/\n/g, '\r\n') : m);
+      const r = correr();
+      resultados.push({ nombre, rojo: r.status !== 0 && /failed/.test(r.linea) && r.total === base.total, linea: r.linea });
+    } finally { fs.writeFileSync(REPO + '/' + Q, original); }
+  }
+} finally {
+  fs.writeFileSync(REPO + '/' + Q, original);
+  console.log((huella(fs.readFileSync(REPO + '/' + Q)) === huella(original) ? 'RESTAURADO' : '⚠️ NO RESTAURADO') + ' · ' + Q);
+  console.log('git status:\n' + spawnSync('git', ['-C', REPO, 'status', '--short']).stdout.toString());
+}
+for (const r of resultados) console.log((r.rojo ? 'ROJO ' : 'VERDE') + ' · ' + r.nombre + ' · ' + r.linea);
+console.log(resultados.every(r => r.rojo) ? 'los ' + resultados.length + ' mutantes, en rojo' : '⚠️ HAY MUTANTES QUE SOBREVIVEN');

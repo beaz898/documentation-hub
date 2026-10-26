@@ -1,0 +1,60 @@
+// Los mutantes del 3.1.3 (la segunda selección y el reparto), con la herramienta de ficheros (protocolo,
+// quinta cautela): anclas comprobadas antes de escribir, bytes restaurados en un finally, huella y git status
+// al final, y un rojo sólo cuenta si cargaron TODAS las pruebas (el total de la línea base).
+const fs = require('fs');
+const crypto = require('crypto');
+const { spawnSync } = require('child_process');
+const REPO = 'E:/Doc-Hub';
+const PRUEBAS = ['lib/analysis/reparto-de-la-pareja.test.ts', 'lib/analysis/segunda-seleccion.test.ts', 'lib/analysis/pareja-entera.test.ts', 'lib/analysis/segunda-seleccion-en-el-pipeline.test.ts'];
+const R = 'lib/analysis/reparto-de-la-pareja.ts', S = 'lib/analysis/segunda-seleccion.ts', J = 'lib/analysis/judge.ts', T = 'lib/analysis/retrieval.ts', P = 'lib/analysis/pipeline.ts';
+const MUTANTES = [
+  ['reparto: sin reserva', R, 'const reserva = Math.min(a.reservaMontada, a.candidato, P);', 'const reserva = 0;'],
+  ['reparto: el borde de la pareja entera, estricto', R, 'if (a.analizado + a.candidato <= P) {', 'if (a.analizado + a.candidato < P) {'],
+  ['reparto: el borde del candidato entero, estricto', R, 'const candidatoEntero = a.candidato <= resto;', 'const candidatoEntero = a.candidato < resto;'],
+  ['reparto: el analizado se queda en el suelo viejo', R, 'const paraElAnalizado = Math.min(a.analizado, P - reserva);', 'const paraElAnalizado = Math.min(a.analizado, 6_000);'],
+  ['reparto: la ventana de 40.000', R, 'export const TAMANO_VENTANA = 80_000;', 'export const TAMANO_VENTANA = 40_000;'],
+  ['juez: no lee el reparto de la segunda selección', J, 'const reparto = a.elegido?.reparto ?? repartoDeLaPareja({', 'const reparto = repartoDeLaPareja({'],
+  ['juez: no dice de dónde salió el bloque', J, "seleccion: candidatoCabeEntero ? 'entero' : (a.elegido?.seleccion ?? 'la_de_la_recuperacion'),", "seleccion: candidatoCabeEntero ? 'entero' : 'la_de_la_recuperacion',"],
+  ['juez: vuelve el suelo de 6.000', J, 'const topeDelAnalizado = Math.max(0, presupuesto - bloqueCandidato.length);', 'const topeDelAnalizado = Math.max(6_000, presupuesto - bloqueCandidato.length);'],
+  ['segunda: no cuenta las cabeceras (acepta lo elegido con el texto)', S, 'if (montado <= resto) {', 'if (true) {'],
+  ['segunda: sin la comprobación del superconjunto', S, 'return [...antes].every(k => ahora.has(k)) ? selected : null;', 'return selected;'],
+  ['segunda: también en el exhaustivo', S, 'if (!parejaEnteraEnEsteModo(a.exhaustivo) || a.newDocumentChunks.length === 0)', 'if (a.newDocumentChunks.length === 0)'],
+  ['segunda: elige con 3.000, no con el resto', S, 'let presupuestoDeTexto = resto;', 'let presupuestoDeTexto = 3_000;'],
+  ['recuperación: no guarda los ordenados', T, '    fragmentosOrdenados.set(documentId, sorted);\n', ''],
+  ['pipeline: el juez recibe los del rerank', P, '    candidates: segunda.candidates,', '    candidates: reranked,'],
+  ['pipeline: el juez no recibe los repartos', P, '    repartos: segunda.repartos,\n', ''],
+];
+const correr = () => {
+  const r = spawnSync(process.execPath, [REPO + '/node_modules/vitest/vitest.mjs', 'run', ...PRUEBAS], { cwd: REPO, encoding: 'utf8' });
+  const linea = ((r.stdout + r.stderr).match(/Tests\s+[^\n]+/) || ['(sin línea)'])[0].trim();
+  return { status: r.status, linea, total: Number((linea.match(/\((\d+)\)/) || [])[1]) };
+};
+const base = correr();
+if (base.status !== 0) throw new Error('la línea base no está en verde: ' + base.linea);
+console.log(`línea base: ${base.linea}`);
+const originales = new Map();
+for (const f of new Set(MUTANTES.map(m => m[1]))) originales.set(f, fs.readFileSync(REPO + '/' + f));
+const huella = b => crypto.createHash('sha256').update(b).digest('hex').slice(0, 16);
+const texto = f => originales.get(f).toString('utf8').replace(/\r\n/g, '\n');
+for (const [n, f, a] of MUTANTES) if (texto(f).split(a).length !== 2) throw new Error('ancla no única: ' + n);
+console.log(`las ${MUTANTES.length} anclas, comprobadas`);
+const resultados = [];
+try {
+  for (const [nombre, f, a, b] of MUTANTES) {
+    const crlf = originales.get(f).toString('utf8').includes('\r\n');
+    const m = texto(f).replace(a, () => b);
+    try {
+      fs.writeFileSync(REPO + '/' + f, crlf ? m.replace(/\n/g, '\r\n') : m);
+      const r = correr();
+      resultados.push({ nombre, rojo: r.status !== 0 && /failed/.test(r.linea) && r.total === base.total, linea: r.linea });
+    } finally { fs.writeFileSync(REPO + '/' + f, originales.get(f)); }
+  }
+} finally {
+  for (const [f, o] of originales) {
+    fs.writeFileSync(REPO + '/' + f, o);
+    console.log(`${huella(fs.readFileSync(REPO + '/' + f)) === huella(o) ? 'RESTAURADO' : '⚠️ NO RESTAURADO'} · ${f}`);
+  }
+  console.log('git status:\n' + spawnSync('git', ['-C', REPO, 'status', '--short']).stdout.toString());
+}
+for (const r of resultados) console.log(`${r.rojo ? 'ROJO ' : 'VERDE'} · ${r.nombre} · ${r.linea}`);
+console.log(resultados.every(r => r.rojo) ? `los ${resultados.length} mutantes, en rojo` : '⚠️ HAY MUTANTES QUE SOBREVIVEN');

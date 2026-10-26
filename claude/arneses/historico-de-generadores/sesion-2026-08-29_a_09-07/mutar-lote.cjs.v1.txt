@@ -1,0 +1,65 @@
+const fs = require('fs');
+const { execSync } = require('child_process');
+
+const P = 'lib/documents/lote.ts';
+const original = fs.readFileSync(P, 'utf8');
+
+const mutaciones = [
+  { id: 'L1', que: 'un rechazo TAMBIEN gasta plaza (mata la convergencia)',
+    de: "  return cuboDe(resultado) !== 'bloqueado';",
+    a:  '  return true;' },
+
+  { id: 'L2', que: 'un fallo se clasifica como bloqueado (incidente disfrazado de censo)',
+    de: "  return resultado.clase === 'fallo' ? 'fallido' : 'bloqueado';",
+    a:  "  return 'bloqueado';" },
+
+  { id: 'L3', que: 'el tiempo se comprueba ANTES que el limite (invierte el orden)',
+    de: "  if (estado.intentos >= limites.limite) return { seguir: false, motivo: 'limite' };\n  if (estado.transcurridoMs >= limites.presupuestoMs) return { seguir: false, motivo: 'tiempo' };",
+    a:  "  if (estado.transcurridoMs >= limites.presupuestoMs) return { seguir: false, motivo: 'tiempo' };\n  if (estado.intentos >= limites.limite) return { seguir: false, motivo: 'limite' };" },
+
+  { id: 'L4', que: 'off-by-one en el limite: se cuela una reparacion de mas',
+    de: '  if (estado.intentos >= limites.limite)',
+    a:  '  if (estado.intentos > limites.limite)' },
+
+  { id: 'L5', que: 'los bloqueados cuentan como pendientes (el boton no termina nunca)',
+    de: '    hayMas: entrada.fallidos + sinExaminar > 0,',
+    a:  '    hayMas: entrada.fallidos + sinExaminar + entrada.bloqueados > 0,' },
+
+  { id: 'L6', que: 'se retira la proteccion contra cifras negativas',
+    de: '  const sinExaminar = Math.max(0, entrada.candidatos - examinados);',
+    a:  '  const sinExaminar = entrada.candidatos - examinados;' },
+
+  { id: 'L7', que: 'el presupuesto se iguala a la duracion de la funcion (sin margen)',
+    de: 'export const PRESUPUESTO_PARA_EMPEZAR_MS = 180_000;',
+    a:  'export const PRESUPUESTO_PARA_EMPEZAR_MS = 300_000;' },
+
+  { id: 'L8', que: 'el motivo de bloqueo se aplana a uno solo',
+    de: "  if (resultado.clase === 'rechazado') return resultado.motivo;",
+    a:  "  if (resultado.clase === 'rechazado') return 'rechazado';" },
+];
+
+function correr() {
+  try {
+    return execSync('npx vitest run --reporter=verbose 2>&1',
+      { encoding: 'utf8', maxBuffer: 60 * 1024 * 1024 });
+  } catch (e) { return (e.stdout || '') + (e.stderr || ''); }
+}
+
+for (const mut of mutaciones) {
+  const n = original.split(mut.de).length - 1;
+  if (n !== 1) { console.log('\n### ' + mut.id + ' — NO APLICADA: patron x' + n); continue; }
+  fs.writeFileSync(P, original.replace(mut.de, mut.a));
+  const aplicada = !fs.readFileSync(P, 'utf8').includes(mut.de);
+  const out = correr();
+  const linea = (out.match(/Tests\s+.*$/m) || ['??'])[0];
+  const fallos = [...new Set([...out.matchAll(/^\s*×.*$/gm)]
+    .map(x => x[0].trim().replace(/\s+\d+ms$/, '').replace(/^× lib\/documents\/lote\.test\.ts > /, '')))];
+  console.log('\n### ' + mut.id + ' — ' + mut.que);
+  console.log('  aplicada=' + aplicada + ' | ' + linea);
+  if (fallos.length === 0) console.log('  SOBREVIVE');
+  else fallos.slice(0, 5).forEach(f => console.log('  MUERE: ' + f));
+  fs.writeFileSync(P, original);
+}
+
+fs.writeFileSync(P, original);
+console.log('\n--- restaurado identico: ' + (fs.readFileSync(P, 'utf8') === original) + ' ---');

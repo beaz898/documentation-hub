@@ -1,0 +1,40 @@
+// Recorre la transcripción de la sesión y recupera, de cada fichero cuyo nombre diga «mutant», TODAS las versiones
+// que se escribieron con Write (y las ediciones con Edit, como lista aparte). Sólo lee la transcripción y escribe en
+// la carpeta recuperados/ del scratchpad.
+const fs = require('fs');
+const path = require('path');
+const readline = require('readline');
+const T = process.argv[2] || 'C:/Users/beaz8/.claude/projects/E--Doc-Hub/914469ea-1369-4763-8e6a-9aadf9158516.jsonl';
+const OUT = process.argv[3] || 'C:/Users/beaz8/AppData/Local/Temp/claude/E--Doc-Hub/914469ea-1369-4763-8e6a-9aadf9158516/scratchpad/recuperados';
+const PATRON = new RegExp(process.argv[4] || 'mutant', 'i');
+fs.mkdirSync(OUT, { recursive: true });
+const versiones = new Map();
+const ediciones = new Map();
+const rl = readline.createInterface({ input: fs.createReadStream(T, 'utf8'), crlfDelay: Infinity });
+rl.on('line', linea => {
+  if (!linea.includes(process.argv[5] || 'mutant')) return;
+  let o;
+  try { o = JSON.parse(linea); } catch { return; }
+  const contenido = o && o.message && Array.isArray(o.message.content) ? o.message.content : [];
+  for (const c of contenido) {
+    if (c.type !== 'tool_use' || !c.input || typeof c.input.file_path !== 'string') continue;
+    const fp = c.input.file_path;
+    if (!PATRON.test(path.basename(fp))) continue;
+    if (c.name === 'Write') {
+      if (!versiones.has(fp)) versiones.set(fp, []);
+      versiones.get(fp).push({ cuando: o.timestamp, texto: c.input.content });
+    } else if (c.name === 'Edit') {
+      if (!ediciones.has(fp)) ediciones.set(fp, []);
+      ediciones.get(fp).push({ cuando: o.timestamp, viejo: c.input.old_string, nuevo: c.input.new_string });
+    }
+  }
+});
+rl.on('close', () => {
+  for (const [fp, vs] of versiones) {
+    const base = path.basename(fp);
+    vs.forEach((v, i) => fs.writeFileSync(path.join(OUT, base + '.v' + (i + 1)), v.texto));
+    console.log(base + ' · ' + vs.length + ' versiones · última ' + vs[vs.length - 1].cuando + (ediciones.has(fp) ? ' · y ' + ediciones.get(fp).length + ' ediciones' : ''));
+  }
+  for (const [fp, es] of ediciones) if (!versiones.has(fp)) console.log(path.basename(fp) + ' · sólo ediciones: ' + es.length);
+  fs.writeFileSync(path.join(OUT, 'ediciones.json'), JSON.stringify([...ediciones], null, 1));
+});

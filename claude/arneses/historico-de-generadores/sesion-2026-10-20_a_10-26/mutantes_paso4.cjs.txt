@@ -1,0 +1,39 @@
+// Los mutantes del paso 4 del 3.1.1, con la herramienta de ficheros (protocolo, quinta cautela):
+// anclas comprobadas antes de escribir, bytes restaurados en un finally, huella y git status al final.
+const fs = require('fs');
+const crypto = require('crypto');
+const { spawnSync } = require('child_process');
+const REPO = 'E:/Doc-Hub';
+const PIPE = REPO + '/lib/analysis/pipeline.ts', SQL = REPO + '/SQL_311_01_control_del_registro_por_llamada.sql';
+const MUTANTES = [
+  [PIPE, 'el rápido no devuelve el registro', "  return { ...resultado, llamadasAlModelo: registro };\n}\n\n// ============================================================\n// Pipeline exhaustivo", "  return { ...resultado };\n}\n\n// ============================================================\n// Pipeline exhaustivo", 'lib/analysis/registro-en-el-pipeline'],
+  [PIPE, 'el exhaustivo no abre el registro', "await conRegistroDeLlamadas(() => stageFailureContext.run([], () => runExhaustivePipelineInner(input)));", "{ resultado: await stageFailureContext.run([], () => runExhaustivePipelineInner(input)), registro: undefined };", 'lib/analysis/registro-en-el-pipeline'],
+  [SQL, 'el control 2 no mira sinEtapa', "coalesce((c.reg->>'sinEtapa')::int = 0, false)", 'true', 'claude/arneses/f311'],
+  [SQL, 'el control 3 acepta sin_etapa', "NOT IN ('rerank', 'juez', 'verificador', 'double_check', 'sintesis', 'estilo')),\n         (SELECT", "NOT IN ('rerank', 'juez', 'verificador', 'double_check', 'sintesis', 'estilo', 'sin_etapa')),\n         (SELECT", 'claude/arneses/f311'],
+  [SQL, 'el control 1 sale OK sin registro', "CASE WHEN (SELECT count(*) FROM con_registro) = 0 THEN NULL ELSE true END AS ok", 'true AS ok', 'claude/arneses/f311'],
+];
+const ficheros = [...new Set(MUTANTES.map(m => m[0]))];
+const original = Object.fromEntries(ficheros.map(f => [f, fs.readFileSync(f)]));
+const huella = b => crypto.createHash('sha256').update(b).digest('hex').slice(0, 16);
+const lf = f => original[f].toString('utf8').replace(/\r\n/g, '\n');
+for (const [f, n, a] of MUTANTES) if (lf(f).split(a).length !== 2) throw new Error('ancla no única: ' + n);
+console.log(`las ${MUTANTES.length} anclas, comprobadas`);
+const resultados = [];
+try {
+  for (const [f, nombre, a, b, prueba] of MUTANTES) {
+    const crlf = original[f].toString('utf8').includes('\r\n');
+    const m = lf(f).replace(a, () => b);
+    try {
+      fs.writeFileSync(f, crlf ? m.replace(/\n/g, '\r\n') : m);
+      const r = spawnSync(process.execPath, [REPO + '/node_modules/vitest/vitest.mjs', 'run', prueba], { cwd: REPO, encoding: 'utf8' });
+      const linea = ((r.stdout + r.stderr).match(/Tests\s+[^\n]+/) || ['(sin línea)'])[0].trim();
+      resultados.push({ nombre, rojo: r.status !== 0 && /failed/.test(linea), linea });
+    } finally { fs.writeFileSync(f, original[f]); }
+  }
+} finally {
+  for (const f of ficheros) fs.writeFileSync(f, original[f]);
+  for (const f of ficheros) console.log(`${huella(fs.readFileSync(f)) === huella(original[f]) ? 'RESTAURADO' : '⚠️ NO RESTAURADO'} · ${f.replace(REPO + '/', '')}`);
+  console.log('git status:\n' + spawnSync('git', ['-C', REPO, 'status', '--short']).stdout.toString());
+}
+for (const r of resultados) console.log(`${r.rojo ? 'ROJO ' : 'VERDE'} · ${r.nombre} · ${r.linea}`);
+console.log(resultados.every(r => r.rojo) ? `los ${resultados.length} mutantes, en rojo` : '⚠️ HAY MUTANTES QUE SOBREVIVEN');

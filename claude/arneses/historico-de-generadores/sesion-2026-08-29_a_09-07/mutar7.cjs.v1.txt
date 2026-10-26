@@ -1,0 +1,68 @@
+const fs = require('fs');
+const { execSync } = require('child_process');
+
+const F = {
+  chunking: 'lib/chunking.ts',
+  plan: 'lib/documents/plan-de-reindexado.ts',
+};
+const original = {
+  chunking: fs.readFileSync(F.chunking, 'utf8'),
+  plan: fs.readFileSync(F.plan, 'utf8'),
+};
+
+const mutaciones = [
+  { id: 'r1', fichero: 'chunking', que: '⚠️ produceTablas no reconoce nada (vuelve el agujero)',
+    de: "  return (EXTENSIONES_CON_TABLAS as readonly string[]).includes(ext);",
+    a:  "  return false;" },
+
+  { id: 'r2', fichero: 'chunking', que: 'la lista pierde xlsm',
+    de: "export const EXTENSIONES_CON_TABLAS = ['xlsx', 'xlsm'] as const;",
+    a:  "export const EXTENSIONES_CON_TABLAS = ['xlsx'] as const;" },
+
+  { id: 'r3', fichero: 'chunking', que: 'la extension deja de normalizarse a minusculas',
+    de: "  const ext = fileName.toLowerCase().split('.').pop() ?? '';",
+    a:  "  const ext = fileName.split('.').pop() ?? '';" },
+
+  { id: 'r4', fichero: 'plan', que: '⚠️ las dos fuentes pasan a exigirse a la vez (Y en vez de O)',
+    de: "  return entrada.tieneChunksTabulares || produceTablas(entrada.nombre);",
+    a:  "  return entrada.tieneChunksTabulares && produceTablas(entrada.nombre);" },
+
+  { id: 'r5', fichero: 'plan', que: '⚠️ la guarda vuelve a mirar SOLO los trozos (el estado de ayer)',
+    de: "  if (puedePerderEstructura(entrada)) {",
+    a:  "  if (entrada.tieneChunksTabulares) {" },
+];
+
+function correr() {
+  try {
+    return execSync('npx vitest run --reporter=verbose 2>&1',
+      { encoding: 'utf8', maxBuffer: 60 * 1024 * 1024 });
+  } catch (e) { return (e.stdout || '') + (e.stderr || ''); }
+}
+
+function resumen(out) {
+  const m = out.match(/Tests\s+(?:(\d+) failed \| )?(\d+) passed/);
+  const fallos = [...out.matchAll(/^\s*×.*$/gm)]
+    .map(x => x[0].trim().replace(/\s+\d+ms$/, ''))
+    .map(l => l.replace(/^× lib\/[a-z/-]+\.test\.ts > /, '').replace(/^× /, ''));
+  return { linea: m ? m[0] : '??', fallos: [...new Set(fallos)] };
+}
+
+for (const mut of mutaciones) {
+  const P = F[mut.fichero];
+  const base = original[mut.fichero];
+  const n = base.split(mut.de).length - 1;
+  if (n !== 1) { console.log(`\n### ${mut.id} — NO APLICADA: patron x${n}`); continue; }
+  fs.writeFileSync(P, base.replace(mut.de, mut.a));
+  const aplicada = !fs.readFileSync(P, 'utf8').includes(mut.de);
+  const r = resumen(correr());
+  console.log(`\n### ${mut.id} — ${mut.que}`);
+  console.log(`  aplicada=${aplicada} | ${r.linea}`);
+  if (r.fallos.length === 0) console.log('  ⚠️ SOBREVIVE');
+  else r.fallos.slice(0, 6).forEach(f => console.log('  MUERE: ' + f));
+  if (r.fallos.length > 6) console.log(`  … y ${r.fallos.length - 6} más`);
+  fs.writeFileSync(P, base);
+}
+
+for (const k of Object.keys(F)) fs.writeFileSync(F[k], original[k]);
+console.log('\n--- restaurados idénticos: ' +
+  Object.keys(F).every(k => fs.readFileSync(F[k], 'utf8') === original[k]) + ' ---');

@@ -1,0 +1,72 @@
+const fs = require('fs');
+const { execSync } = require('child_process');
+process.chdir('E:/Doc-Hub');
+
+const NUC = 'components/improvement/table-coverage.ts';
+const PRB = 'components/improvement/problems.ts';
+
+const MUT = [
+  { n: 'M1  se INTERCAMBIAN los dos montones de filas ajenas',
+    f: NUC,
+    de: "    { documento: nombreDocumentoAnalizado, filas: grupo.soloEnNuevo },\n    { documento: grupo.documentoExistente, filas: grupo.soloEnOtro },",
+    a:  "    { documento: nombreDocumentoAnalizado, filas: grupo.soloEnOtro },\n    { documento: grupo.documentoExistente, filas: grupo.soloEnNuevo }," },
+
+  { n: 'M2  el monton del analizado se nombra por ROL en vez de por documento',
+    f: NUC,
+    de: "    { documento: nombreDocumentoAnalizado, filas: grupo.soloEnNuevo },",
+    a:  "    { documento: 'el documento nuevo', filas: grupo.soloEnNuevo }," },
+
+  { n: 'M3  el indice de columnas deja de ordenar',
+    f: NUC,
+    de: "    .sort((a, b) => (b.filas !== a.filas ? b.filas - a.filas : a.columna.localeCompare(b.columna)));",
+    a:  "    ;" },
+
+  { n: 'M4  tieneCobertura ignora las identicas',
+    f: NUC,
+    de: "    grupo.variantesDeEscritura.length > 0 ||\n    grupo.identicas > 0",
+    a:  "    grupo.variantesDeEscritura.length > 0" },
+
+  { n: 'M5  tieneCobertura ignora un monton (el del analizado)',
+    f: NUC,
+    de: "    grupo.soloEnNuevo.length > 0 ||\n",
+    a:  "" },
+
+  { n: 'M6  una fila diff_tabular RECUPERA sus acciones',
+    f: PRB,
+    de: "  return p.origen !== 'diff_tabular';",
+    a:  "  return true;" },
+];
+
+for (const m of MUT) {
+  const bruto = fs.readFileSync(m.f, 'utf8');
+  const crlf = bruto.includes('\r\n');
+  const lf = crlf ? bruto.split('\r\n').join('\n') : bruto;
+
+  const veces = lf.split(m.de).length - 1;
+  if (veces !== 1) { console.log('\n### ' + m.n + '\n  NO APLICADA - ocurrencias: ' + veces); continue; }
+
+  const mutado = lf.replace(m.de, m.a);
+  fs.writeFileSync(m.f, crlf ? mutado.split('\n').join('\r\n') : mutado);
+  const cambiado = fs.readFileSync(m.f, 'utf8') !== bruto;
+
+  let compila = true;
+  try { execSync('npx tsc --noEmit 2>&1', { encoding: 'utf8' }); }
+  catch { compila = false; }
+
+  let out = '';
+  try { out = execSync('npx vitest run components/improvement/table-coverage.test.ts 2>&1', { encoding: 'utf8' }); }
+  catch (e) { out = (e.stdout || '') + (e.stderr || ''); }
+
+  fs.writeFileSync(m.f, bruto);
+
+  const fallos = [];
+  const re = /[\u00d7]\s(.+)/g;
+  let mm;
+  while ((mm = re.exec(out)) !== null) fallos.push(mm[1].replace(/\s+\d+ms\s*$/, '').trim());
+  const resumen = (out.match(/Tests\s+.*/) || ['(sin resumen)'])[0].trim();
+
+  console.log('\n### ' + m.n);
+  console.log('  aplicada: ' + cambiado + '  |  compila: ' + compila + '  |  ' + resumen);
+  fallos.slice(0, 4).forEach(f => console.log('  x ' + f));
+}
+console.log('\n--- arbol restaurado ---');

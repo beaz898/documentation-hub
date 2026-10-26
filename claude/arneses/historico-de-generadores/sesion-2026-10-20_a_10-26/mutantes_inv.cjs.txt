@@ -1,0 +1,48 @@
+// Mutantes de SQL_INV_01: cada uno rompe UNA cosa que la consulta afirma; el arnés tiene que ponerse rojo con los
+// seis tests cargados. Precomprobación de anclas, restauración en finally, huella y git status al final.
+const fs = require('fs');
+const crypto = require('crypto');
+const { execSync } = require('child_process');
+const F = 'E:/Doc-Hub/SQL_INV_01_inventario_del_corpus.sql';
+const original = fs.readFileSync(F, 'utf8');
+const huella = s => crypto.createHash('sha256').update(s).digest('hex').slice(0, 16);
+const h0 = huella(original);
+const M = [
+  ['documentos de otra organización', 'FROM public.documents d, p WHERE d.org_id = p.org', 'FROM public.documents d, p WHERE true'],
+  ['análisis por documento sin filtrar organización', 'WHERE ar.org_id = p.org AND ar.document_id = d.id', 'WHERE ar.document_id = d.id'],
+  ['trozos de cualquier generación', 'WHERE c.document_id = d.id AND c.generation = d.active_generation) AS trozos,', 'WHERE c.document_id = d.id) AS trozos,'],
+  ['prefijo sin la guarda del dígito', "d.name ~ ('^' || l.prefijo || '([^0-9]|$)')\nGROUP BY", "d.name ~ ('^' || l.prefijo)\nGROUP BY"],
+  ['todo análisis con documento cuenta como vivo', "WHEN EXISTS (SELECT 1 FROM docs WHERE docs.id = ar.document_id) THEN 'vivo'", "WHEN true THEN 'vivo'"],
+  ['duplicado exige tres copias', '(SELECT name FROM docs GROUP BY name HAVING count(*) > 1) r', '(SELECT name FROM docs GROUP BY name HAVING count(*) > 2) r'],
+  ['con trozos sin mirar los análisis', 'FROM docs WHERE trozos > 0 AND analisis = 0', 'FROM docs WHERE trozos > 0'],
+  ['la purga programada no se ve', 'WHEN grace_period_ends_at IS NOT NULL\n', 'WHEN false\n'],
+  ['filas de análisis de otra organización', 'FROM public.analysis_results ar, p WHERE ar.org_id = p.org\n),', 'FROM public.analysis_results ar, p\n),'],
+  ['lápidas de otra organización', 'FROM public.document_tombstones t, p WHERE t.org_id = p.org\nUNION ALL', 'FROM public.document_tombstones t, p\nUNION ALL'],
+  ['conexión de Drive de otra organización', 'WHERE dc.org_id = p.org', 'WHERE true'],
+  ['el control compara con todas las filas', "(SELECT coalesce(sum(analisis), 0) FROM docs) = (SELECT count(*) FROM ana WHERE dueno = 'vivo')", '(SELECT coalesce(sum(analisis), 0) FROM docs) = (SELECT count(*) FROM ana)'],
+];
+for (const [nombre, a] of M) {
+  const k = original.split(a).length - 1;
+  if (k !== 1) { console.error('ANCLA ' + k + ' veces: ' + nombre); process.exit(2); }
+}
+const res = [];
+try {
+  for (const [nombre, a, b] of M) {
+    fs.writeFileSync(F, original.split(a).join(b));
+    let out = '';
+    try { out = execSync('npx vitest run --project arneses claude/arneses/inv', { cwd: 'E:/Doc-Hub', encoding: 'utf8', stdio: 'pipe' }); }
+    catch (e) { out = (e.stdout || '') + (e.stderr || ''); }
+    const t = /Tests\s+(.*)/.exec(out);
+    const linea = t ? t[1].trim() : '(sin línea de Tests)';
+    const cargados = /\((6)\)/.test(linea);
+    const rojo = /failed/.test(linea) && cargados;
+    res.push((rojo ? 'ROJO  ' : 'VIVO  ') + nombre + ' · ' + linea);
+    console.log(res[res.length - 1]);
+  }
+} finally {
+  fs.writeFileSync(F, original);
+}
+const h1 = huella(fs.readFileSync(F, 'utf8'));
+console.log('huella antes ' + h0 + ' · después ' + h1 + (h0 === h1 ? ' · IGUAL' : ' · DISTINTA'));
+console.log(execSync('git status --short', { cwd: 'E:/Doc-Hub', encoding: 'utf8' }));
+console.log('rojos: ' + res.filter(r => r.startsWith('ROJO')).length + ' de ' + M.length);

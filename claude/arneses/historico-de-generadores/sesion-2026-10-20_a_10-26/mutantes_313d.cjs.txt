@@ -1,0 +1,49 @@
+// Los mutantes de SQL_313_02 (22/10), con la herramienta de ficheros: anclas comprobadas antes de escribir,
+// bytes restaurados en un finally, huella y git status al final, y un rojo sólo cuenta si cargaron todas.
+const fs = require('fs');
+const crypto = require('crypto');
+const { spawnSync } = require('child_process');
+const REPO = 'E:/Doc-Hub';
+const Q = 'SQL_313_02_la_entrada_del_juez_contra_cli13.sql';
+const MUTANTES = [
+  ['el juez de cualquier pareja', "WHERE x.p->>'etapa' = 'juez' AND x.p->>'pareja' IN (SELECT id FROM cli13)", "WHERE x.p->>'etapa' = 'juez'"],
+  ['los reintentos fallidos cuentan', "SELECT j.*, j.te + j.tw + j.tr AS total FROM juez j WHERE j.resultado = 'ok'", 'SELECT j.*, j.te + j.tw + j.tr AS total FROM juez j'],
+  ['la entrada real sin la caché', 'SELECT j.*, j.te + j.tw + j.tr AS total', 'SELECT j.*, j.te AS total'],
+  ['el veredicto no mira el modelo', 'AND b.n_modelo = 1 AND t.n_modelo = 1 AND b.modelos = t.modelos', ''],
+  ['el veredicto con una ventana vacía', "CASE WHEN b.ventana IS NULL OR t.ventana IS NULL THEN 'SIN COMPARACIÓN (una ventana sin peticiones)'", "CASE WHEN false THEN ''"],
+  ['control 2 nunca cae', "(SELECT count(*) FROM pasadas WHERE ventana = 'base 21/10') > 0", "(SELECT count(*) FROM pasadas WHERE ventana = 'base 21/10') >= 0"],
+  ['control 4 nunca cae', "j.ventana = pa.ventana AND j.n = pa.n) <> 1) = 0 END", "j.ventana = pa.ventana AND j.n = pa.n) <> 1) >= 0 END"],
+  ['sin el filtro de la organización', "WHERE ar.org_id = p.org AND ar.document_name ILIKE 'NOR-11%'", "WHERE ar.document_name ILIKE 'NOR-11%'"],
+  ['cualquier documento', "WHERE ar.org_id = p.org AND ar.document_name ILIKE 'NOR-11%'", 'WHERE ar.org_id = p.org'],
+];
+const correr = () => {
+  const r = spawnSync(process.execPath, [REPO + '/node_modules/vitest/vitest.mjs', 'run', '--project', 'arneses', 'claude/arneses/f313/sql-313-02'], { cwd: REPO, encoding: 'utf8' });
+  const linea = ((r.stdout + r.stderr).match(/Tests\s+[^\n]+/) || ['(sin línea)'])[0].trim();
+  return { status: r.status, linea, total: Number((linea.match(/\((\d+)\)/) || [0, 0])[1]) };
+};
+const base = correr();
+if (base.status !== 0) throw new Error('la línea base no está en verde: ' + base.linea);
+console.log('línea base: ' + base.linea);
+const original = fs.readFileSync(REPO + '/' + Q);
+const lf = original.toString('utf8').replace(/\r\n/g, '\n');
+const crlf = original.toString('utf8').includes('\r\n');
+for (const [n, a] of MUTANTES) if (lf.split(a).length !== 2) throw new Error('ancla no única: ' + n);
+console.log('las ' + MUTANTES.length + ' anclas, comprobadas');
+const huella = b => crypto.createHash('sha256').update(b).digest('hex').slice(0, 16);
+const resultados = [];
+try {
+  for (const [nombre, a, b] of MUTANTES) {
+    const m = lf.replace(a, () => b);
+    try {
+      fs.writeFileSync(REPO + '/' + Q, crlf ? m.replace(/\n/g, '\r\n') : m);
+      const r = correr();
+      resultados.push({ nombre, rojo: r.status !== 0 && /failed/.test(r.linea) && r.total === base.total, linea: r.linea });
+    } finally { fs.writeFileSync(REPO + '/' + Q, original); }
+  }
+} finally {
+  fs.writeFileSync(REPO + '/' + Q, original);
+  console.log((huella(fs.readFileSync(REPO + '/' + Q)) === huella(original) ? 'RESTAURADO' : '⚠️ NO RESTAURADO') + ' · ' + Q);
+  console.log('git status:\n' + spawnSync('git', ['-C', REPO, 'status', '--short']).stdout.toString());
+}
+for (const r of resultados) console.log((r.rojo ? 'ROJO ' : 'VERDE') + ' · ' + r.nombre + ' · ' + r.linea);
+console.log(resultados.every(r => r.rojo) ? 'los ' + resultados.length + ' mutantes, en rojo' : '⚠️ HAY MUTANTES QUE SOBREVIVEN');

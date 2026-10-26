@@ -1,0 +1,51 @@
+// Los mutantes del commit 3 del 3.1.2 (la regla del sujeto), con la herramienta de ficheros: anclas comprobadas
+// antes de escribir, bytes restaurados en un finally, huella y git status al final, y un rojo sólo cuenta si cargaron todas.
+const fs = require('fs');
+const crypto = require('crypto');
+const { spawnSync } = require('child_process');
+const REPO = 'E:/Doc-Hub';
+const PRUEBAS = ['lib/analysis/regla-del-sujeto.test.ts', 'lib/analysis/declaracion-de-lo-omitido.test.ts'];
+const J = 'lib/analysis/judge.ts', R = 'lib/analysis/regla-del-sujeto.ts';
+const MUTANTES = [
+  ['la excepción no entra en el prompt (las huellas, sin ella, salen iguales)', J, 'y es correcta.\n${EXCEPCION_DEL_SUJETO}\n- Para qué', 'y es correcta.\n- Para qué'],
+  ['la excepción, dos veces', J, 'y es correcta.\n${EXCEPCION_DEL_SUJETO}\n- Para qué', 'y es correcta.\n${EXCEPCION_DEL_SUJETO}\n${EXCEPCION_DEL_SUJETO}\n- Para qué'],
+  ['la excepción, ANTES del ejemplo de F-126', J, '- Ejemplo de cita correcta de una subordinada.', '${EXCEPCION_DEL_SUJETO}\n- Ejemplo de cita correcta de una subordinada.'],
+  ['se toca la frase de F-126', J, 'no hace falta que tenga sujeto ni que se entienda sola.', 'no hace falta que tenga sujeto.'],
+  ['se toca el ejemplo de F-126', J, 'no tiene sujeto, no se entiende sola, empieza y acaba a mitad de frase, y es correcta.', 'empieza y acaba a mitad de frase, y es correcta.'],
+  ['el ejemplo, con el cargo del corpus', R, 'si el documento dice "El encargado del taller', 'si el documento dice "El Coordinador del taller'],
+  ['la excepción reescribe una línea en vez de añadirse', J, '- Para qué: cada cita se va a buscar LITERALMENTE', '- Para qué: cada cita se buscará LITERALMENTE'],
+];
+const correr = () => {
+  const r = spawnSync(process.execPath, [REPO + '/node_modules/vitest/vitest.mjs', 'run', ...PRUEBAS], { cwd: REPO, encoding: 'utf8' });
+  const linea = ((r.stdout + r.stderr).match(/Tests\s+[^\n]+/) || ['(sin línea)'])[0].trim();
+  return { status: r.status, linea, total: Number((linea.match(/\((\d+)\)/) || [0, 0])[1]) };
+};
+const base = correr();
+if (base.status !== 0) throw new Error('la línea base no está en verde: ' + base.linea);
+console.log('línea base: ' + base.linea);
+const originales = new Map();
+for (const f of new Set(MUTANTES.map(m => m[1]))) originales.set(f, fs.readFileSync(REPO + '/' + f));
+const huella = b => crypto.createHash('sha256').update(b).digest('hex').slice(0, 16);
+const texto = f => originales.get(f).toString('utf8').replace(/\r\n/g, '\n');
+for (const [n, f, a] of MUTANTES) if (texto(f).split(a).length !== 2) throw new Error('ancla no única: ' + n);
+console.log('las ' + MUTANTES.length + ' anclas, comprobadas');
+const resultados = [];
+try {
+  for (const [nombre, f, a, b] of MUTANTES) {
+    const crlf = originales.get(f).toString('utf8').includes('\r\n');
+    const m = texto(f).replace(a, () => b);
+    try {
+      fs.writeFileSync(REPO + '/' + f, crlf ? m.replace(/\n/g, '\r\n') : m);
+      const r = correr();
+      resultados.push({ nombre, rojo: r.status !== 0 && /failed/.test(r.linea) && r.total === base.total, linea: r.linea });
+    } finally { fs.writeFileSync(REPO + '/' + f, originales.get(f)); }
+  }
+} finally {
+  for (const [f, o] of originales) {
+    fs.writeFileSync(REPO + '/' + f, o);
+    console.log((huella(fs.readFileSync(REPO + '/' + f)) === huella(o) ? 'RESTAURADO' : '⚠️ NO RESTAURADO') + ' · ' + f);
+  }
+  console.log('git status:\n' + spawnSync('git', ['-C', REPO, 'status', '--short']).stdout.toString());
+}
+for (const r of resultados) console.log((r.rojo ? 'ROJO ' : 'VERDE') + ' · ' + r.nombre + ' · ' + r.linea);
+console.log(resultados.every(r => r.rojo) ? 'los ' + resultados.length + ' mutantes, en rojo' : '⚠️ HAY MUTANTES QUE SOBREVIVEN');

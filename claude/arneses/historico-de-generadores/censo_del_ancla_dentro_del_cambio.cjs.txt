@@ -1,0 +1,80 @@
+// Saca la lista de mutantes de cada generador improvisado SIN EJECUTARLO DE VERDAD, y busca el defecto de la
+// «cuarta»: un cambio que contiene a su ancla. El generador corre en un vm con un fs que sólo lee (escribir lanza
+// STOP) y sin procesos (lanzarlos lanza STOP). `const MUTANTES`/`const M` pasa a global para poder leerla, y
+// `reemplazar` se sustituye por una que sólo apunta el par (ancla, cambio).
+const fs = require('fs');
+const vm = require('vm');
+const path = require('path');
+
+const PARADA = 'STOP-SIN-EFECTOS';
+function analizar(fichero) {
+  let src = fs.readFileSync(fichero, 'utf8');
+  const candidatos = ['MUTANTES', 'MUTACIONES', 'MUT', 'M', 'mutantes', 'mutaciones', 'CASOS'];
+  const nombreLista = candidatos.find(n => new RegExp('const ' + n + '\\s*=\\s*\\[').test(src)) ?? null;
+  if (!nombreLista) return { fichero, error: 'no encuentro la lista de mutantes' };
+  src = src.replace(new RegExp('const ' + nombreLista + '\\s*='), 'globalThis.__LISTA =');
+  src = src.split(nombreLista + '.').join('__LISTA.').split(nombreLista + ')').join('__LISTA)').split('of ' + nombreLista).join('of __LISTA');
+  const conReemplazar = /const reemplazar\s*=/.test(src);
+  if (conReemplazar) src = src.replace(/const reemplazar\s*=/, 'const reemplazar = (t, a, b) => { globalThis.__pares.push([a, b]); return t; };\nconst __reemplazarOriginal =');
+  const fsFalso = {
+    readFileSync: (...a) => fs.readFileSync(...a),
+    existsSync: (...a) => fs.existsSync(...a),
+    writeFileSync: () => { throw new Error(PARADA); },
+    appendFileSync: () => { throw new Error(PARADA); },
+    copyFileSync: () => { throw new Error(PARADA); },
+    mkdirSync: () => undefined,
+  };
+  const procesoFalso = { spawnSync: () => { throw new Error(PARADA); }, execSync: () => { throw new Error(PARADA); } };
+  const ctx = {
+    require: m => m === 'fs' ? fsFalso : m === 'child_process' ? procesoFalso : require(m),
+    console: { log: () => {}, error: () => {}, warn: () => {} },
+    process: { exit: () => { throw new Error(PARADA); }, argv: [], env: process.env, cwd: () => 'E:/Doc-Hub', chdir: () => undefined },
+    __pares: [], Buffer,
+  };
+  ctx.globalThis = ctx;
+  try { vm.runInNewContext(src, ctx, { filename: fichero }); }
+  catch (e) { if (!String(e && e.message).includes(PARADA)) ctx.__errorDeEjecucion = String(e && e.message).slice(0, 120); }
+  const lista = ctx.__LISTA;
+  if (!Array.isArray(lista)) return { fichero, error: 'la lista no llegó a definirse' + (ctx.__errorDeEjecucion ? ': ' + ctx.__errorDeEjecucion : '') };
+  const mutantes = [];
+  for (const e of lista) {
+    const arr = Array.isArray(e) ? e : Object.values(e);
+    const cadenas = arr.filter(x => typeof x === 'string');
+    const funcion = arr.find(x => typeof x === 'function');
+    const pares = arr.filter(x => Array.isArray(x) && x.every(p => Array.isArray(p) && p.length === 2));
+    const nombre = cadenas.find(s => !/^(E:|[A-Za-z_]+\/|SQL_)/.test(s) && !s.endsWith('.ts') && !s.endsWith('.sql')) ?? cadenas[0] ?? '(sin nombre)';
+    let parejas = [];
+    if (funcion) {
+      ctx.__pares.length = 0;
+      try { funcion('x'); } catch { /* el ancla no está en 'x': da igual, el par ya se apuntó */ }
+      parejas = ctx.__pares.slice();
+      if (parejas.length === 0) parejas = [['(función sin reemplazar: no analizable)', '']];
+    } else if (pares.length > 0) {
+      parejas = pares.flat();
+    } else if (cadenas.length >= 3) {
+      parejas = [[cadenas[cadenas.length - 2], cadenas[cadenas.length - 1]]];
+    } else {
+      parejas = [['(formato desconocido: no analizable)', '']];
+    }
+    for (const [a, b] of parejas) {
+      const analizable = !String(a).startsWith('(función sin reemplazar') && !String(a).startsWith('(formato desconocido');
+      mutantes.push({ nombre, ancla: a, cambio: b, contiene: analizable && typeof a === 'string' && typeof b === 'string' && a.length > 0 && b.includes(a), analizable });
+    }
+  }
+  return { fichero, mutantes, error: ctx.__errorDeEjecucion };
+}
+
+const carpeta = process.argv[2];
+const ficheros = process.argv.slice(3);
+let total = 0, conDefecto = 0, noAnalizables = 0;
+for (const f of ficheros) {
+  const r = analizar(path.join(carpeta, f));
+  if (!r.mutantes) { console.log('✗ ' + f + ': ' + r.error); continue; }
+  const malos = r.mutantes.filter(m => m.contiene);
+  const na = r.mutantes.filter(m => !m.analizable);
+  total += r.mutantes.length; conDefecto += malos.length; noAnalizables += na.length;
+  console.log((malos.length ? '⚠️ ' : '  ') + f + ': ' + r.mutantes.length + ' pares · cambio que contiene al ancla: ' + malos.length + (na.length ? ' · no analizables: ' + na.length : ''));
+  for (const m of malos) console.log('      · «' + m.nombre + '»\n        ancla:  ' + JSON.stringify(m.ancla).slice(0, 160) + '\n        cambio: ' + JSON.stringify(m.cambio).slice(0, 160));
+  for (const m of na) console.log('      · no analizable: «' + m.nombre + '»');
+}
+console.log('TOTAL: ' + total + ' pares · con el defecto: ' + conDefecto + ' · no analizables: ' + noAnalizables);

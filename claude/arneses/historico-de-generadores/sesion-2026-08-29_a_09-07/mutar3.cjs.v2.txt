@@ -1,0 +1,71 @@
+const fs = require('fs');
+const { execSync } = require('child_process');
+
+const P = 'lib/documents/estado-de-reparacion.ts';
+const original = fs.readFileSync(P, 'utf8');
+
+const mutaciones = [
+  { id: 'm1', que: 'la version futura pasa a incluir la vigente (>= en vez de >)',
+    de: 'if (version !== null && version > versionVigente) {',
+    a:  'if (version !== null && version >= versionVigente) {' },
+
+  { id: 'm2', que: 'null se trata como la version vigente (el parque viejo sale "al dia")',
+    de: "const version = typeof fila.extractorVersion === 'number' ? fila.extractorVersion : null;",
+    a:  "const version = typeof fila.extractorVersion === 'number' ? fila.extractorVersion : versionVigente;" },
+
+  { id: 'm3', que: 'se deja de exigir identificador del proveedor',
+    de: `  const id = typeof fila.providerFileId === 'string' ? fila.providerFileId.trim() : '';
+  if (id.length === 0) {
+    return { estado: 'reparable_resubiendo', anomalia: 'sincronizado_sin_id' };
+  }`,
+    a: `  const id = typeof fila.providerFileId === 'string' ? fila.providerFileId.trim() : '';
+  if (id.length < 0) {
+    return { estado: 'reparable_resubiendo', anomalia: 'sincronizado_sin_id' };
+  }` },
+
+  { id: 'm4', que: '⚠️ deja de PREGUNTAR el criterio de origen y lo recalcula a mano',
+    de: 'if (!esOrigenSincronizado(fila.source)) {',
+    a:  "if (fila.source !== 'google_drive') {" },
+
+  { id: 'm5', que: 'el recuento arranca vacio en vez de con las tres claves a cero',
+    de: `  const recuento = {
+    al_dia: 0,
+    reparable_automaticamente: 0,
+    reparable_resubiendo: 0,`,
+    a: `  const recuento = {
+    al_dia: 0,
+    reparable_automaticamente: 0,
+    reparable_resubiendo: undefined as unknown as number,` },
+];
+
+function correr() {
+  try {
+    return execSync('npx vitest run --reporter=verbose 2>&1',
+      { encoding: 'utf8', maxBuffer: 40 * 1024 * 1024 });
+  } catch (e) { return (e.stdout || '') + (e.stderr || ''); }
+}
+
+function resumen(out) {
+  const m = out.match(/Tests\s+(?:(\d+) failed \| )?(\d+) passed/);
+  const fallos = [...out.matchAll(/^\s*×.*$/gm)]
+    .map(x => x[0].trim().replace(/\s+\d+ms$/, ''))
+    .map(l => l.replace(/^× lib\/documents\/estado-de-reparacion\.test\.ts > /, '').replace(/^× /, ''));
+  return { linea: m ? m[0] : '??', fallos: [...new Set(fallos)] };
+}
+
+for (const mut of mutaciones) {
+  const n = original.split(mut.de).length - 1;
+  if (n !== 1) { console.log(`\n### ${mut.id} — NO APLICADA: patron x${n}`); continue; }
+  fs.writeFileSync(P, original.replace(mut.de, mut.a));
+  const ahora = fs.readFileSync(P, 'utf8');
+  const aplicada = ahora.includes(mut.a) && !ahora.includes(mut.de);
+  const r = resumen(correr());
+  console.log(`\n### ${mut.id} — ${mut.que}`);
+  console.log(`  aplicada=${aplicada} | ${r.linea}`);
+  if (r.fallos.length === 0) console.log('  ⚠️ SOBREVIVE');
+  else r.fallos.forEach(f => console.log('  MUERE: ' + f));
+  fs.writeFileSync(P, original);
+}
+
+fs.writeFileSync(P, original);
+console.log('\n--- restaurado idéntico: ' + (fs.readFileSync(P, 'utf8') === original) + ' ---');

@@ -1,0 +1,61 @@
+const fs = require('fs');
+const { execSync } = require('child_process');
+
+const P = 'lib/documents/plan-de-reindexado.ts';
+const original = fs.readFileSync(P, 'utf8');
+
+const mutaciones = [
+  { id: 'n1', que: 'se invierte la precedencia: staged_vivo se comprueba antes que al_dia',
+    de: `  if (estado === 'al_dia') return { via: 'rechazado', motivo: 'al_dia' };
+  if (entrada.hayStagedVivo) return { via: 'rechazado', motivo: 'staged_vivo' };`,
+    a:  `  if (entrada.hayStagedVivo) return { via: 'rechazado', motivo: 'staged_vivo' };
+  if (estado === 'al_dia') return { via: 'rechazado', motivo: 'al_dia' };` },
+
+  { id: 'n2', que: '⚠️ se invierte la guarda de tablas (la que impide perder celdas)',
+    de: 'if (entrada.tieneChunksTabulares) {',
+    a:  'if (!entrada.tieneChunksTabulares) {' },
+
+  { id: 'n3', que: 'el minimo de texto baja de 50 a 1',
+    de: 'const MINIMO_DE_TEXTO = 50;',
+    a:  'const MINIMO_DE_TEXTO = 1;' },
+
+  { id: 'n4', que: 'reprocesar se dispara con el estado equivocado',
+    de: "if (estado === 'reparable_automaticamente') return { via: 'reprocesar' };",
+    a:  "if (estado === 'reparable_resubiendo') return { via: 'reprocesar' };" },
+
+  { id: 'n5', que: 're-trocear pasa por reparacion COMPLETA',
+    de: "return plan.via === 'reprocesar';",
+    a:  "return plan.via !== 'rechazado';" },
+];
+
+function correr() {
+  try {
+    return execSync('npx vitest run --reporter=verbose 2>&1',
+      { encoding: 'utf8', maxBuffer: 40 * 1024 * 1024 });
+  } catch (e) { return (e.stdout || '') + (e.stderr || ''); }
+}
+
+function resumen(out) {
+  const m = out.match(/Tests\s+(?:(\d+) failed \| )?(\d+) passed/);
+  const fallos = [...out.matchAll(/^\s*×.*$/gm)]
+    .map(x => x[0].trim().replace(/\s+\d+ms$/, ''))
+    .map(l => l.replace(/^× lib\/documents\/plan-de-reindexado\.test\.ts > /, '').replace(/^× /, ''));
+  return { linea: m ? m[0] : '??', fallos: [...new Set(fallos)] };
+}
+
+for (const mut of mutaciones) {
+  const n = original.split(mut.de).length - 1;
+  if (n !== 1) { console.log(`\n### ${mut.id} — NO APLICADA: patron x${n}`); continue; }
+  fs.writeFileSync(P, original.replace(mut.de, mut.a));
+  const ahora = fs.readFileSync(P, 'utf8');
+  const aplicada = ahora.includes(mut.a) && !ahora.includes(mut.de);
+  const r = resumen(correr());
+  console.log(`\n### ${mut.id} — ${mut.que}`);
+  console.log(`  aplicada=${aplicada} | ${r.linea}`);
+  if (r.fallos.length === 0) console.log('  ⚠️ SOBREVIVE');
+  else r.fallos.forEach(f => console.log('  MUERE: ' + f));
+  fs.writeFileSync(P, original);
+}
+
+fs.writeFileSync(P, original);
+console.log('\n--- restaurado idéntico: ' + (fs.readFileSync(P, 'utf8') === original) + ' ---');

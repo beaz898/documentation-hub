@@ -1,0 +1,62 @@
+const fs = require('fs');
+const { execSync } = require('child_process');
+
+const P = 'lib/documents/plan-de-reindexado.ts';
+const original = fs.readFileSync(P, 'utf8');
+
+const mutaciones = [
+  { id: 'u1', que: '⚠️ desaparece la relajacion: con segmentos tampoco se repara',
+    de: '  if (entrada.tieneSegmentos) return false;',
+    a:  '  // relajacion retirada por la mutacion' },
+
+  { id: 'u2', que: '⚠️ la relajacion se invierte: SIN segmentos se abre la guarda (el 87%)',
+    de: '  if (entrada.tieneSegmentos) return false;',
+    a:  '  if (!entrada.tieneSegmentos) return false;' },
+
+  { id: 'u3', que: 'los segmentos ENDURECEN en vez de relajar',
+    de: '  if (entrada.tieneSegmentos) return false;',
+    a:  '  if (entrada.tieneSegmentos) return true;' },
+
+  { id: 'u4', que: '⚠️ la guarda se relaja por el NOMBRE en vez de por los segmentos',
+    de: '  if (entrada.tieneSegmentos) return false;',
+    a:  '  if (produceTablas(entrada.nombre)) return false;' },
+
+  { id: 'u5', que: 'la relajacion se comprueba DESPUES de la guarda (codigo muerto)',
+    de: `  if (entrada.tieneSegmentos) return false;
+
+  return entrada.tieneChunksTabulares || produceTablas(entrada.nombre);`,
+    a: `  if (entrada.tieneChunksTabulares || produceTablas(entrada.nombre)) return true;
+
+  return entrada.tieneSegmentos ? false : false;` },
+];
+
+function correr() {
+  try {
+    return execSync('npx vitest run --reporter=verbose 2>&1',
+      { encoding: 'utf8', maxBuffer: 60 * 1024 * 1024 });
+  } catch (e) { return (e.stdout || '') + (e.stderr || ''); }
+}
+
+function resumen(out) {
+  const m = out.match(/Tests\s+(?:(\d+) failed \| )?(\d+) passed/);
+  const fallos = [...out.matchAll(/^\s*×.*$/gm)]
+    .map(x => x[0].trim().replace(/\s+\d+ms$/, ''))
+    .map(l => l.replace(/^× lib\/documents\/plan-de-reindexado\.test\.ts > /, '').replace(/^× /, ''));
+  return { linea: m ? m[0] : '??', fallos: [...new Set(fallos)] };
+}
+
+for (const mut of mutaciones) {
+  const n = original.split(mut.de).length - 1;
+  if (n !== 1) { console.log(`\n### ${mut.id} — NO APLICADA: patron x${n}`); continue; }
+  fs.writeFileSync(P, original.replace(mut.de, mut.a));
+  const aplicada = !fs.readFileSync(P, 'utf8').includes(mut.de);
+  const r = resumen(correr());
+  console.log(`\n### ${mut.id} — ${mut.que}`);
+  console.log(`  aplicada=${aplicada} | ${r.linea}`);
+  if (r.fallos.length === 0) console.log('  ⚠️ SOBREVIVE');
+  else r.fallos.slice(0, 5).forEach(f => console.log('  MUERE: ' + f));
+  fs.writeFileSync(P, original);
+}
+
+fs.writeFileSync(P, original);
+console.log('\n--- restaurado idéntico: ' + (fs.readFileSync(P, 'utf8') === original) + ' ---');

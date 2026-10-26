@@ -1,0 +1,49 @@
+const fs = require('fs');
+const { execSync } = require('child_process');
+
+const P = 'lib/chunking.ts';
+const original = fs.readFileSync(P, 'utf8');
+
+const mutaciones = [
+  { id: 'w5b', que: 'se retira la guarda que QUEDA (desde >= hasta)',
+    de: '  if (desde >= hasta) return desde;',
+    a:  '  if (false) return desde;' },
+
+  { id: 'w6', que: 'CHUNK_OVERLAP sube a la mitad del corte (rompe el invariante)',
+    de: 'export const CHUNK_OVERLAP = 200;',
+    a:  'export const CHUNK_OVERLAP = 600;' },
+
+  { id: 'w2', que: 'la frontera MAS TARDIA en vez de la mas temprana — repetida con salida completa',
+    de: '    const i = text.indexOf(sep, desde);',
+    a:  '    const i = text.lastIndexOf(sep, hasta);' },
+];
+
+function correr() {
+  try {
+    return execSync('npx vitest run --reporter=verbose 2>&1',
+      { encoding: 'utf8', maxBuffer: 60 * 1024 * 1024 });
+  } catch (e) { return (e.stdout || '') + (e.stderr || ''); }
+}
+
+for (const mut of mutaciones) {
+  const n = original.split(mut.de).length - 1;
+  if (n !== 1) { console.log('\n### ' + mut.id + ' — NO APLICADA: patron x' + n); continue; }
+  fs.writeFileSync(P, original.replace(mut.de, mut.a));
+  const aplicada = !fs.readFileSync(P, 'utf8').includes(mut.de);
+  const out = correr();
+  const linea = (out.match(/Tests\s+.*$/m) || ['??'])[0];
+  const ficheros = (out.match(/Test Files\s+.*$/m) || ['??'])[0];
+  const errores = (out.match(/Errors\s+.*$/m) || [''])[0];
+  const fallos = [...new Set([...out.matchAll(/^\s*×.*$/gm)].map(x => x[0].trim().replace(/\s+\d+ms$/, '')))];
+  console.log('\n### ' + mut.id + ' — ' + mut.que);
+  console.log('  aplicada=' + aplicada);
+  console.log('  ' + ficheros + ' | ' + linea + (errores ? ' | ' + errores : ''));
+  const pistas = [...new Set([...out.matchAll(/(?:timed out|Timeout|out of memory|RangeError|heap)/g)].map(x => x[0]))];
+  if (pistas.length) console.log('  senales: ' + pistas.join(', '));
+  if (fallos.length === 0) console.log('  SOBREVIVE');
+  else fallos.slice(0, 8).forEach(f => console.log('  MUERE: ' + f));
+  fs.writeFileSync(P, original);
+}
+
+fs.writeFileSync(P, original);
+console.log('\n--- restaurado identico: ' + (fs.readFileSync(P, 'utf8') === original) + ' ---');

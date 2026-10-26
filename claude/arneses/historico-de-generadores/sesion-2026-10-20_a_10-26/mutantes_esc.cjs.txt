@@ -1,0 +1,50 @@
+// Mutantes de SQL_ESC_01 (la primera escritura en la base): cada guarda, cada mitad de cada UPDATE, y las dos líneas
+// del estado que avisan. El arnés tiene que ponerse rojo con los cinco tests cargados. Precomprobación de anclas,
+// restauración en finally, huella y git status al final.
+const fs = require('fs');
+const crypto = require('crypto');
+const { execSync } = require('child_process');
+const F = 'E:/Doc-Hub/SQL_ESC_01_volver_a_la_organizacion_del_piloto.sql';
+const original = fs.readFileSync(F, 'utf8');
+const huella = s => crypto.createHash('sha256').update(s).digest('hex').slice(0, 16);
+const h0 = huella(original);
+const M = [
+  ['la membresía se mueve sin mirar las guardas', 'WHERE ok.todo AND t.id = (SELECT id FROM m)', 'WHERE t.id = (SELECT id FROM m)'],
+  ['la organización se reactiva sin mirar las guardas', 'WHERE ok.todo AND t.id = p.org', 'WHERE t.id = p.org'],
+  ['se mueven TODAS las membresías', 'WHERE ok.todo AND t.id = (SELECT id FROM m)', 'WHERE ok.todo'],
+  ['se reactivan TODAS las organizaciones', 'WHERE ok.todo AND t.id = p.org', 'WHERE ok.todo'],
+  ['también se vacía purged_at', 'SET canceled_at = NULL, grace_period_ends_at = NULL', 'SET canceled_at = NULL, grace_period_ends_at = NULL, purged_at = NULL'],
+  ['se vacía sólo la cancelación y no la gracia', 'SET canceled_at = NULL, grace_period_ends_at = NULL', 'SET canceled_at = NULL'],
+  ['guarda: una membresía o más', '(SELECT count(*) FROM m) = 1 AS una_membresia', '(SELECT count(*) FROM m) >= 1 AS una_membresia'],
+  ['guarda: no mira los documentos de la nueva', 'NOT EXISTS (SELECT 1 FROM public.documents d JOIN m ON d.org_id = m.org_id::text) AS la_nueva_sin_documentos', 'true AS la_nueva_sin_documentos'],
+  ['guarda: no mira purged_at', 'EXISTS (SELECT 1 FROM public.organizations o WHERE o.id = p.org AND o.purged_at IS NOT NULL) AS piloto_purgado', 'true AS piloto_purgado'],
+  ['guarda: no mira los miembros del piloto', 'NOT EXISTS (SELECT 1 FROM public.memberships mm WHERE mm.org_id = p.org) AS piloto_sin_miembros', 'true AS piloto_sin_miembros'],
+  ['guarda: no mira si ya es del piloto', 'NOT EXISTS (SELECT 1 FROM m WHERE m.org_id = p.org) AS no_es_ya_el_piloto', 'true AS no_es_ya_el_piloto'],
+  ['guarda: no exige un único usuario', '(SELECT count(*) FROM u) = 1 AS un_usuario', '(SELECT count(*) FROM u) <= 1 AS un_usuario'],
+  ['estado: el aviso del worker no mira purged_at', "CASE WHEN o.grace_period_ends_at < now() AND o.purged_at IS NULL THEN '⚠️ SÍ, EN MENOS DE SEIS HORAS'", "CASE WHEN o.grace_period_ends_at < now() THEN '⚠️ SÍ, EN MENOS DE SEIS HORAS'"],
+  ['estado: el aviso del cobro al revés', "CASE WHEN o.canceled_at IS NOT NULL AND o.grace_period_ends_at < now() THEN 'SÍ'", "CASE WHEN o.canceled_at IS NOT NULL AND o.grace_period_ends_at > now() THEN 'SÍ'"],
+];
+for (const [nombre, a] of M) {
+  const k = original.split(a).length - 1;
+  if (k !== 1) { console.error('ANCLA ' + k + ' veces: ' + nombre); process.exit(2); }
+}
+const res = [];
+try {
+  for (const [nombre, a, b] of M) {
+    fs.writeFileSync(F, original.split(a).join(b));
+    let out = '';
+    try { out = execSync('npx vitest run --project arneses claude/arneses/esc', { cwd: 'E:/Doc-Hub', encoding: 'utf8', stdio: 'pipe' }); }
+    catch (e) { out = (e.stdout || '') + (e.stderr || ''); }
+    const t = /Tests\s+(.*)/.exec(out);
+    const linea = t ? t[1].trim() : '(sin línea de Tests)';
+    const rojo = /failed/.test(linea) && /\(5\)/.test(linea) && !/skipped/.test(linea);
+    res.push((rojo ? 'ROJO  ' : 'VIVO  ') + nombre + ' · ' + linea);
+    console.log(res[res.length - 1]);
+  }
+} finally {
+  fs.writeFileSync(F, original);
+}
+const h1 = huella(fs.readFileSync(F, 'utf8'));
+console.log('huella antes ' + h0 + ' · después ' + h1 + (h0 === h1 ? ' · IGUAL' : ' · DISTINTA'));
+console.log(execSync('git status --short', { cwd: 'E:/Doc-Hub', encoding: 'utf8' }));
+console.log('rojos: ' + res.filter(r => r.startsWith('ROJO')).length + ' de ' + M.length);

@@ -1885,6 +1885,13 @@ tests y la lista de mutantes— en un `mutantes-<nombre>.ts` junto a su arnés, 
 todas las anclas antes de escribir, rechaza un cambio que contiene al ancla, adapta CRLF, cuenta un rojo sólo con
 todos los tests cargados, restaura en un `finally` y compara la huella y el estado en git de antes y de después. Mata
 la clase por construcción, no por disciplina.
+**EL CENSO DE LO QUE YA SE MIDIÓ (26/10/2026), con su comando**: los generadores improvisados que se pudieron recuperar
+están en `claude/arneses/historico-de-generadores/` (los scratchpads se vacían solos: los de septiembre ya estaban
+vacíos). De 336 pares, **6 tenían el cambio conteniendo a su ancla, y ninguno sostuvo una conclusión falsa**: cinco
+salieron ROJOS con todos los tests cargados, y un rojo no puede venir de un mutante sin aplicar, porque el original pasa
+en verde; el sexto (F-88 M4) no compilaba y ya se vio y reescribió el 30/08. **El defecto sólo engaña con un VIVO.** ⚠️ Y
+corrige a Code, que el 26/10 escribió que el de `esc` «salía rojo sin distinguirse de no aplicarlo»: era falso. El
+detalle, en el `INDICE.md` de esa carpeta.
 
 **LA GUARDA EFECTIVA ES LA VERIFICACIÓN POSTERIOR (arquitecto, 26/10/2026).** La regla de no editar con `node -e`
 ni con escapes del shell SE MANTIENE. Pero Code se la ha saltado tres veces en tres días, y las tres la cazó y la

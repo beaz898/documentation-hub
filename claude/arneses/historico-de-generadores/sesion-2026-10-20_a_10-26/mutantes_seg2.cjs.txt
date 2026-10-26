@@ -1,0 +1,54 @@
+// Mutantes de SQL_SEG_02: el filtro de la organización de cada una de las ocho consultas, los órdenes, los cuadres y
+// las huellas. El arnés tiene que ponerse rojo con los siete tests cargados. Precomprobación de anclas, restauración
+// en finally, huella y git status al final.
+const fs = require('fs');
+const crypto = require('crypto');
+const { execSync } = require('child_process');
+const F = 'E:/Doc-Hub/SQL_SEG_02_las_tablas_de_la_medida.sql';
+const original = fs.readFileSync(F, 'utf8');
+const huella = s => crypto.createHash('sha256').update(s).digest('hex').slice(0, 16);
+const h0 = huella(original);
+const filtro = (tabla, cond) => ['FROM public.' + tabla + ' t, p\nWHERE ' + cond, 'FROM public.' + tabla + ' t, p\nWHERE true'];
+const M = [
+  ['documents sin organización', ...filtro('documents', 't.org_id = p.org')],
+  ['document_chunks sin organización', ...filtro('document_chunks', 't.org_id = p.org')],
+  ['document_staged sin organización', ...filtro('document_staged', 't.org_id = p.org')],
+  ['analysis_jobs sin organización', ...filtro('analysis_jobs', 't.org_id::text = p.org')],
+  ['finding_dismissals sin organización', ...filtro('finding_dismissals', 't.org_id = p.org')],
+  ['llm_usage sin organización', ...filtro('llm_usage', 't.org_id::text = p.org')],
+  ['usage_logs sin organización', ...filtro('usage_logs', 't.org_id = p.org')],
+  ['organizations sin la fila del piloto', 'WHERE t.id::text = p.org', 'WHERE true'],
+  ['trozos al revés', 'ORDER BY t.document_id, t.generation, t.chunk_index;', 'ORDER BY t.document_id, t.generation, t.chunk_index DESC;'],
+  ['trozos: total por índice y no de todo', 'count(*) OVER () AS total_filas,\n       length(t.text)', 'count(*) OVER (PARTITION BY t.chunk_index) AS total_filas,\n       length(t.text)'],
+  ['documents: huella del nombre', 'md5(t.full_text) AS huella_del_texto,\n       t.*\nFROM public.documents', 'md5(t.name) AS huella_del_texto,\n       t.*\nFROM public.documents'],
+  ['staged: huella de otra cosa', 'md5(t.full_text) AS huella_del_texto,\n       t.*\nFROM public.document_staged', "md5('x') AS huella_del_texto,\n       t.*\nFROM public.document_staged"],
+  ['jobs: caracteres de un resultado recortado', 'length(t.result::text) AS caracteres_del_resultado', 'length(left(t.result::text, 100)) AS caracteres_del_resultado'],
+  ['jobs: huella del documento sobre el estado', 'md5(t.document_text) AS huella_del_documento', 'md5(t.status) AS huella_del_documento'],
+  ['llm_usage al revés de fecha', 'FROM public.llm_usage t, p\nWHERE t.org_id::text = p.org\nORDER BY t.created_at, t.id;', 'FROM public.llm_usage t, p\nWHERE t.org_id::text = p.org\nORDER BY t.created_at DESC, t.id;'],
+];
+const EOL = original.includes('\r\n') ? '\r\n' : '\n';
+for (const m of M) { m[1] = m[1].split('\n').join(EOL); m[2] = m[2].split('\n').join(EOL); }
+for (const [nombre, a] of M) {
+  const k = original.split(a).length - 1;
+  if (k !== 1) { console.error('ANCLA ' + k + ' veces: ' + nombre); process.exit(2); }
+}
+const res = [];
+try {
+  for (const [nombre, a, b] of M) {
+    fs.writeFileSync(F, original.split(a).join(b));
+    let out = '';
+    try { out = execSync('npx vitest run --project arneses claude/arneses/seg/sql-seg-02', { cwd: 'E:/Doc-Hub', encoding: 'utf8', stdio: 'pipe' }); }
+    catch (e) { out = (e.stdout || '') + (e.stderr || ''); }
+    const t = /Tests\s+(.*)/.exec(out);
+    const linea = t ? t[1].trim() : '(sin línea de Tests)';
+    const rojo = /failed/.test(linea) && /\(7\)/.test(linea) && !/skipped/.test(linea);
+    res.push((rojo ? 'ROJO  ' : 'VIVO  ') + nombre + ' · ' + linea);
+    console.log(res[res.length - 1]);
+  }
+} finally {
+  fs.writeFileSync(F, original);
+}
+const h1 = huella(fs.readFileSync(F, 'utf8'));
+console.log('huella antes ' + h0 + ' · después ' + h1 + (h0 === h1 ? ' · IGUAL' : ' · DISTINTA'));
+console.log(execSync('git status --short', { cwd: 'E:/Doc-Hub', encoding: 'utf8' }));
+console.log('rojos: ' + res.filter(r => r.startsWith('ROJO')).length + ' de ' + M.length);

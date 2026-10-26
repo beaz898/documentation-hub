@@ -1,0 +1,85 @@
+const fs = require('fs');
+const { execSync } = require('child_process');
+
+const P = 'lib/chunking.ts';
+const original = fs.readFileSync(P, 'utf8');
+
+const mutaciones = [
+  {
+    id: 'm1',
+    que: 'CHUNK_OVERLAP 200 -> 0 (sin solape)',
+    de: 'const CHUNK_OVERLAP = 200;',
+    a:  'const CHUNK_OVERLAP = 0;',
+  },
+  {
+    id: 'm2',
+    que: 'CHUNK_SIZE 1200 -> 3000 (trozos el doble de grandes)',
+    de: 'const CHUNK_SIZE = 1200;',
+    a:  'const CHUNK_SIZE = 3000;',
+  },
+  {
+    id: 'm3',
+    que: 'HAS_ANY_HEADING_RE no casa nunca (todo cae en caso 4)',
+    de: 'const HAS_ANY_HEADING_RE = /^#{1,6}\\s/m;',
+    a:  'const HAS_ANY_HEADING_RE = /^#{7,9}\\s/m;',
+  },
+  {
+    id: 'm4',
+    que: 'se retira el corte en salto de linea simple (corte duro)',
+    de: `          const newline = text.lastIndexOf('\\n', end);
+          if (newline > start + maxSize * 0.5) {
+            end = newline;
+          }`,
+    a: `          const newline = -1;
+          if (newline > start + maxSize * 0.5) {
+            end = newline;
+          }`,
+  },
+];
+
+function correr() {
+  try {
+    const out = execSync('npx vitest run --reporter=verbose 2>&1', {
+      encoding: 'utf8', maxBuffer: 40 * 1024 * 1024,
+    });
+    return out;
+  } catch (e) {
+    return (e.stdout || '') + (e.stderr || '');
+  }
+}
+
+function resumen(out) {
+  const m = out.match(/Tests\s+(?:(\d+) failed \| )?(\d+) passed/);
+  const fallos = [...out.matchAll(/^\s*(?:×|FAIL).*$/gm)]
+    .map(x => x[0].trim())
+    .filter(l => l.startsWith('×'))
+    .map(l => l.replace(/\s+\d+ms$/, ''));
+  return { linea: m ? m[0] : '??', fallos: [...new Set(fallos)] };
+}
+
+for (const mut of mutaciones) {
+  const n = original.split(mut.de).length - 1;
+  if (n !== 1) {
+    console.log(`\n### ${mut.id} — ⚠️ NO APLICADA: el patrón aparece ${n} veces`);
+    continue;
+  }
+  fs.writeFileSync(P, original.replace(mut.de, mut.a));
+
+  // CAUTELA 1: comprobar que la mutación está de verdad en el fichero.
+  const ahora = fs.readFileSync(P, 'utf8');
+  const aplicada = ahora.includes(mut.a) && !ahora.includes(mut.de);
+
+  const r = resumen(correr());
+  console.log(`\n### ${mut.id} — ${mut.que}`);
+  console.log(`aplicada=${aplicada}`);
+  console.log(`  ${r.linea}`);
+  if (r.fallos.length === 0) {
+    console.log('  ⚠️ SOBREVIVE — ningún caso muere');
+  } else {
+    r.fallos.forEach(f => console.log('  MUERE: ' + f));
+  }
+  fs.writeFileSync(P, original);
+}
+
+fs.writeFileSync(P, original);
+console.log('\n--- fichero restaurado ---');

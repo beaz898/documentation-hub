@@ -1,0 +1,79 @@
+const fs = require('fs');
+const { execSync } = require('child_process');
+process.chdir('E:/Doc-Hub');
+
+const MUT = [
+  { n: 'M1  las variantes de escritura ENTRAN al array de contradicciones',
+    f: 'lib/analysis/diff-emision.ts',
+    de: '      if (d.columns.length > 0 && d.varianteDeEscritura.length === d.columns.length) variantes.push(d);\n      else discrepantes.push(d);',
+    a:  '      discrepantes.push(d);' },
+
+  { n: 'M2  el groupId se DERIVA del contenido (deja de ser opaco)',
+    f: 'lib/analysis/diff-emision.ts',
+    de: '    const groupId = nuevoGroupId();',
+    a:  '    const groupId = `${par.nueva.tableId}|${par.existente.tableId}`;' },
+
+  { n: 'M3  se INTERCAMBIAN los dos montones de ajenas',
+    f: 'lib/analysis/diff-emision.ts',
+    de: '      soloEnNuevo: par.clave.onlyNueva.map(r => aFila(r.text, Object.values(r.cells ?? {}))),\n      soloEnOtro: par.clave.onlyExistente.map(r => aFila(r.text, Object.values(r.cells ?? {}))),',
+    a:  '      soloEnNuevo: par.clave.onlyExistente.map(r => aFila(r.text, Object.values(r.cells ?? {}))),\n      soloEnOtro: par.clave.onlyNueva.map(r => aFila(r.text, Object.values(r.cells ?? {}))),' },
+
+  { n: 'M4  se emite SIN confirmedBy estructura (se cuela ante Sonnet)',
+    f: 'lib/analysis/diff-emision.ts',
+    de: "        confirmedBy: 'estructura',",
+    a:  "        confirmedBy: 'juicio'," },
+
+  { n: 'M5  el origen deja de viajar (no se suprimen las acciones)',
+    f: 'lib/analysis/diff-emision.ts',
+    de: "        origen: 'diff_tabular',",
+    a:  '        // mutacion: sin origen' },
+
+  { n: 'M6  synthesize deja de transportar origen/groupId/huella',
+    f: 'lib/analysis/synthesize.ts',
+    de: '      origen: c.origen,\n      groupId: c.groupId,\n      huella: c.huella,',
+    a:  '      // mutacion: no se transportan' },
+
+  { n: 'M7  la huella se calcula sin el id del documento analizado',
+    f: 'lib/analysis/diff-emision.ts',
+    de: '  if (!lados.nuevo.id) return undefined;',
+    a:  "  const idNuevo = lados.nuevo.id ?? '';" },
+
+  { n: 'M8  tableDiffs NO se recoge en synthesize',
+    f: 'lib/analysis/synthesize.ts',
+    de: '  const grupos = judgments.flatMap(j => j.tableDiffs ?? []);',
+    a:  '  const grupos: NonNullable<FinalAnalysis[\'tableDiffs\']> = [];' },
+];
+
+for (const m of MUT) {
+  const bruto = fs.readFileSync(m.f, 'utf8');
+  const crlf = bruto.includes('\r\n');
+  const lf = crlf ? bruto.split('\r\n').join('\n') : bruto;
+
+  const veces = lf.split(m.de).length - 1;
+  if (veces !== 1) { console.log('\n### ' + m.n + '\n  NO APLICADA - ocurrencias: ' + veces); continue; }
+
+  const mutado = lf.replace(m.de, m.a);
+  fs.writeFileSync(m.f, crlf ? mutado.split('\n').join('\r\n') : mutado);
+  const cambiado = fs.readFileSync(m.f, 'utf8') !== bruto;
+
+  let compila = true;
+  try { execSync('npx tsc --noEmit 2>&1', { encoding: 'utf8' }); }
+  catch { compila = false; }
+
+  let out = '';
+  try { out = execSync('npx vitest run lib/analysis/diff-emision.test.ts 2>&1', { encoding: 'utf8' }); }
+  catch (e) { out = (e.stdout || '') + (e.stderr || ''); }
+
+  fs.writeFileSync(m.f, bruto);
+
+  const fallos = [];
+  const re = /[\u00d7]\s(.+)/g;
+  let mm;
+  while ((mm = re.exec(out)) !== null) fallos.push(mm[1].replace(/\s+\d+ms\s*$/, '').trim());
+  const resumen = (out.match(/Tests\s+.*/) || ['(sin resumen)'])[0].trim();
+
+  console.log('\n### ' + m.n);
+  console.log('  aplicada: ' + cambiado + '  |  compila: ' + compila + '  |  ' + resumen);
+  fallos.slice(0, 4).forEach(f => console.log('  x ' + f));
+}
+console.log('\n--- arbol restaurado ---');

@@ -1,0 +1,44 @@
+// Los mutantes del paso 5 del 3.1.1 (el medidor), con la herramienta de ficheros (protocolo, quinta cautela):
+// anclas comprobadas antes de escribir, bytes restaurados en un finally, huella y git status al final.
+const fs = require('fs');
+const crypto = require('crypto');
+const { spawnSync } = require('child_process');
+const REPO = 'E:/Doc-Hub';
+const SQL = REPO + '/SQL_311_02_el_medidor_por_llamada.sql';
+const MUTANTES = [
+  ['control 1 nunca NO APLICA', "CASE WHEN (SELECT count(*) FROM analisis) = 0 THEN NULL ELSE true END AS ok", 'true AS ok'],
+  ['control 2 nunca cae', "(SELECT count(*) FROM con_coste WHERE NOT con_precio) = 0\n", "(SELECT count(*) FROM con_coste WHERE NOT con_precio) >= 0\n"],
+  ['control 3 nunca cae', "jsonb_typeof(a.reg->'fueraDelDetalle') IS DISTINCT FROM 'object'", 'true'],
+  ['control 4 nunca cae', "coalesce((a.reg->>'sinEtapa')::int = 0, false)", 'true'],
+  ['control 5 nunca cae', "c.resultado = 'ok' AND c.entrada_total = 0) = 0\n", "c.resultado = 'ok' AND c.entrada_total = 0) >= 0\n"],
+  ['(b) la real sin la caché', 'q.te + q.tw + q.tr AS entrada_total', 'q.te AS entrada_total'],
+  ['(c) la salida a precio de entrada', 'q.ts * pr.salida', 'q.ts * pr.entrada'],
+  ['(d) el ahorro con el signo al revés', '((q.tw + q.tr) * pr.entrada - (q.tw * pr.escritura + q.tr * pr.lectura)) / 1e6 AS ahorro_cache', '((q.tw * pr.escritura + q.tr * pr.lectura) - (q.tw + q.tr) * pr.entrada) / 1e6 AS ahorro_cache'],
+  ['(e) la duración como la suma', 'max(c.com + c.esp + c.lat) - min(c.com) AS duracion', 'sum(c.esp + c.lat) AS duracion'],
+  ['(f) la espera fuera del trabajo', 'sum(c.esp + c.lat) AS trabajo', 'sum(c.lat) AS trabajo'],
+  ['el precio de Haiku 5.5 cambiado sólo aquí', "('claude-haiku-5-5',          0.10, 0.50, 0.125, 0.01)", "('claude-haiku-5-5',          0.25, 0.50, 0.125, 0.01)"],
+];
+const original = fs.readFileSync(SQL);
+const huella = b => crypto.createHash('sha256').update(b).digest('hex').slice(0, 16);
+const lf = original.toString('utf8').replace(/\r\n/g, '\n');
+const crlf = original.toString('utf8').includes('\r\n');
+for (const [n, a] of MUTANTES) if (lf.split(a).length !== 2) throw new Error('ancla no única: ' + n);
+console.log(`las ${MUTANTES.length} anclas, comprobadas`);
+const resultados = [];
+try {
+  for (const [nombre, a, b] of MUTANTES) {
+    const m = lf.replace(a, () => b);
+    try {
+      fs.writeFileSync(SQL, crlf ? m.replace(/\n/g, '\r\n') : m);
+      const r = spawnSync(process.execPath, [REPO + '/node_modules/vitest/vitest.mjs', 'run', 'claude/arneses/f311/sql-311-02'], { cwd: REPO, encoding: 'utf8' });
+      const linea = ((r.stdout + r.stderr).match(/Tests\s+[^\n]+/) || ['(sin línea)'])[0].trim();
+      resultados.push({ nombre, rojo: r.status !== 0 && /failed/.test(linea) && /\(9\)/.test(linea), linea });
+    } finally { fs.writeFileSync(SQL, original); }
+  }
+} finally {
+  fs.writeFileSync(SQL, original);
+  console.log(`${huella(fs.readFileSync(SQL)) === huella(original) ? 'RESTAURADO' : '⚠️ NO RESTAURADO'} · SQL_311_02_el_medidor_por_llamada.sql`);
+  console.log('git status:\n' + spawnSync('git', ['-C', REPO, 'status', '--short']).stdout.toString());
+}
+for (const r of resultados) console.log(`${r.rojo ? 'ROJO ' : 'VERDE'} · ${r.nombre} · ${r.linea}`);
+console.log(resultados.every(r => r.rojo) ? `los ${resultados.length} mutantes, en rojo` : '⚠️ HAY MUTANTES QUE SOBREVIVEN');

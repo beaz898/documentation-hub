@@ -1,0 +1,75 @@
+const fs = require('fs');
+const { execSync } = require('child_process');
+
+const FICHEROS = [
+  'lib/documents/estado-de-reparacion.ts',
+  'lib/documents/plan-de-reindexado.ts',
+  'lib/chunking.ts',
+];
+const original = Object.fromEntries(FICHEROS.map(f => [f, fs.readFileSync(f, 'utf8')]));
+
+const mutaciones = [
+  { id: 'M1', f: 'lib/documents/estado-de-reparacion.ts',
+    que: 'la via vuelve a decidirse por el ORIGEN (el defecto de B.195)',
+    de: '  if (fila.tieneSegmentos && soloCambioElTroceado(version, versionVigente)) {',
+    a:  '  if (false) {' },
+
+  { id: 'M2', f: 'lib/chunking.ts',
+    que: 'soloCambioElTroceado deja de fallar cerrada ante un sello ausente',
+    de: "  if (typeof selloDelDocumento !== 'number' || !Number.isFinite(selloDelDocumento)) return false;",
+    a:  "  if (typeof selloDelDocumento !== 'number' || !Number.isFinite(selloDelDocumento)) return true;" },
+
+  { id: 'M3', f: 'lib/chunking.ts',
+    que: 'una version sin clasificar pasa por troceado (la trampa se abre)',
+    de: "    if (CAMBIOS_POR_VERSION[v] !== 'troceado') return false;",
+    a:  "    if (CAMBIOS_POR_VERSION[v] === 'extraccion') return false;" },
+
+  { id: 'M4', f: 'lib/documents/estado-de-reparacion.ts',
+    que: 'la anomalia via_no_construida se calla (el lector vuelve a prometer)',
+    de: "    return { estado: 'reparable_resubiendo', anomalia: 'via_no_construida' };",
+    a:  "    return { estado: 'reparable_resubiendo' };" },
+
+  { id: 'M5', f: 'lib/documents/plan-de-reindexado.ts',
+    que: 'el plan vuelve a mirar el estado en vez de preguntar por la via',
+    de: "  if (anomalia === 'via_no_construida') return { via: 'reprocesar' };",
+    a:  "  if (estado === 'reparable_automaticamente') return { via: 'reprocesar' };" },
+
+  { id: 'M6', f: 'lib/documents/plan-de-reindexado.ts',
+    que: 'la guarda de estructura se relaja siempre (vuelve B.191)',
+    de: '  if (entrada.fila.tieneSegmentos) return false;',
+    a:  '  return false;' },
+
+  { id: 'M7', f: 'lib/chunking.ts',
+    que: 'el rango vacio deja de ser cierto en vacio',
+    de: '  if (selloDelDocumento >= versionVigente) return true; // nada cambió: cierto en vacío',
+    a:  '  if (selloDelDocumento >= versionVigente) return false;' },
+];
+
+function correr() {
+  try {
+    return execSync('npx vitest run --reporter=verbose 2>&1',
+      { encoding: 'utf8', maxBuffer: 60 * 1024 * 1024 });
+  } catch (e) { return (e.stdout || '') + (e.stderr || ''); }
+}
+
+function restaurar() { for (const f of FICHEROS) fs.writeFileSync(f, original[f]); }
+
+for (const mut of mutaciones) {
+  const n = original[mut.f].split(mut.de).length - 1;
+  if (n !== 1) { console.log('\n### ' + mut.id + ' — NO APLICADA: patron x' + n); continue; }
+  fs.writeFileSync(mut.f, original[mut.f].replace(mut.de, mut.a));
+  const aplicada = !fs.readFileSync(mut.f, 'utf8').includes(mut.de);
+  const out = correr();
+  const linea = (out.match(/Tests\s+.*$/m) || ['??'])[0];
+  const fallos = [...new Set([...out.matchAll(/^\s*×.*$/gm)]
+    .map(x => x[0].trim().replace(/\s+\d+ms$/, '').replace(/^× lib\/documents\//, '')))];
+  console.log('\n### ' + mut.id + ' — ' + mut.que);
+  console.log('  aplicada=' + aplicada + ' | ' + linea);
+  if (fallos.length === 0) console.log('  SOBREVIVE');
+  else fallos.slice(0, 5).forEach(f => console.log('  MUERE: ' + f));
+  restaurar();
+}
+
+restaurar();
+console.log('\n--- restaurados identicos: ' +
+  FICHEROS.every(f => fs.readFileSync(f, 'utf8') === original[f]) + ' ---');

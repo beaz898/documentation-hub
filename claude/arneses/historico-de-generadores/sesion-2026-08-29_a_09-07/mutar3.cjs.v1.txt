@@ -1,0 +1,70 @@
+const fs = require('fs');
+const { execSync } = require('child_process');
+process.chdir('E:/Doc-Hub');
+
+const MUT = [
+  { n: 'M1  la huella deja de ordenar canonicamente (usa el orden de rol)',
+    f: 'lib/analysis/huella-hallazgo.ts',
+    de: "  const [primero, segundo] = ordenCanonico(a, b, x => x.textoCitado);\n\n  const tupla = codificar([\n    primero.id, primero.textoCitado,\n    segundo.id, segundo.textoCitado,\n  ]);",
+    a: "  const tupla = codificar([\n    a.id, a.textoCitado,\n    b.id, b.textoCitado,\n  ]);" },
+
+  { n: 'M2  huellaDeDescarte ignora la cita del lado existente',
+    f: 'lib/analysis/descartes.ts',
+    de: "    b: { id: coordenadas.existingDocumentId, textoCitado: coordenadas.existingDocSays },",
+    a: "    b: { id: coordenadas.existingDocumentId, textoCitado: '' }," },
+
+  { n: 'M3  esDescartePermanente deja de mirar el conjunto de la org',
+    f: 'lib/analysis/double-check.ts',
+    de: "  return huella !== null && descartes.conjunto.has(huella);",
+    a: "  return false;" },
+
+  { n: 'M4  esDescartePermanente ignora que falte el id (identidad inventada)',
+    f: 'lib/analysis/double-check.ts',
+    de: "  if (!d.existingDocumentId) return false;",
+    a: "  // mutacion" },
+
+  { n: 'M5  marcarDescartadas FILTRA en vez de marcar',
+    f: 'lib/analysis/descartes.ts',
+    de: "    if (huella && params.descartes.has(huella)) return { ...d, dismissed: true };\n    return d;\n  });",
+    a: "    if (huella && params.descartes.has(huella)) return { ...d, dismissed: true };\n    return d;\n  }).filter(d => !d.dismissed);" },
+
+  { n: 'M6  marcarDescartadas marca TODO lo que tenga coordenadas',
+    f: 'lib/analysis/descartes.ts',
+    de: "    if (huella && params.descartes.has(huella)) return { ...d, dismissed: true };",
+    a: "    if (huella) return { ...d, dismissed: true };" },
+
+  { n: 'M7  huellaDeDescarte acepta un documento en revision sin id',
+    f: 'lib/analysis/descartes.ts',
+    de: "  if (!documentoEnRevision) return null;",
+    a: "  if (!documentoEnRevision) return huellaDeProsa({ a: { id: '', textoCitado: coordenadas.newDocSays }, b: { id: coordenadas.existingDocumentId, textoCitado: coordenadas.existingDocSays } });" },
+];
+
+for (const m of MUT) {
+  const bruto = fs.readFileSync(m.f, 'utf8');
+  const crlf = bruto.includes('\r\n');
+  const lf = crlf ? bruto.split('\r\n').join('\n') : bruto;
+
+  const veces = lf.split(m.de).length - 1;
+  if (veces !== 1) { console.log('\n### ' + m.n + '\n  NO APLICADA - ocurrencias: ' + veces); continue; }
+
+  const mutado = lf.replace(m.de, m.a);
+  fs.writeFileSync(m.f, crlf ? mutado.split('\n').join('\r\n') : mutado);
+  const cambiado = fs.readFileSync(m.f, 'utf8') !== bruto;
+
+  let out = '';
+  try { out = execSync('npx vitest run lib/analysis/descartes.test.ts 2>&1', { encoding: 'utf8' }); }
+  catch (e) { out = (e.stdout || '') + (e.stderr || ''); }
+
+  fs.writeFileSync(m.f, bruto);
+
+  const fallos = [];
+  const re = /[\u00d7]\s(.+)/g;
+  let mm;
+  while ((mm = re.exec(out)) !== null) fallos.push(mm[1].replace(/\s+\d+ms\s*$/, '').trim());
+  const resumen = (out.match(/Tests\s+.*/) || ['(sin resumen)'])[0].trim();
+
+  console.log('\n### ' + m.n);
+  console.log('  aplicada: ' + cambiado + '   |   ' + resumen);
+  fallos.slice(0, 6).forEach(f => console.log('  x ' + f));
+}
+console.log('\n--- arbol restaurado ---');

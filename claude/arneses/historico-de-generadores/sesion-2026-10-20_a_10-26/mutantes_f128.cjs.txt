@@ -1,0 +1,62 @@
+// LOS MUTANTES DE LOS DOS SQL DE F-128, contra el arnés de claude/arneses/.
+// Escrito con la herramienta de ficheros, sin pasar por el shell (protocolo, 20/10/2026).
+// Cada mutante se escribe en el SQL del repositorio, se corre el arnés y se RESTAURAN LOS BYTES ORIGINALES
+// en un finally, pase lo que pase; al final se verifica contra git que los dos SQL son idénticos a HEAD.
+const fs = require('fs');
+const { spawnSync } = require('child_process');
+const REPO = 'E:/Doc-Hub';
+const F1 = REPO + '/SQL_F128_01_nor11_con_haiku55.sql', F2 = REPO + '/SQL_F128_02_nor10_con_haiku55.sql';
+const original = { [F1]: fs.readFileSync(F1), [F2]: fs.readFileSync(F2) };   // bytes, con sus finales de línea
+
+const reemplazar = (texto, a, b) => {
+  const n = texto.split(a).length - 1;
+  if (n === 0) throw new Error('el mutante no encuentra su ancla: ' + a.slice(0, 60));
+  return texto.split(a).join(b);
+};
+const MUTANTES = [
+  [F1, 'sin la forma negativa de NEGACIÓN (el arreglo del 19/10)', t => reemplazar(t, ", '%en ningun caso se depositan en el contenedor negro%'", '')],
+  [F1, 'la frase empieza en el párrafo', t => reemplazar(t, "strpos(reverse(q.pre), ' .')", "strpos(reverse(q.pre), '#.')")],
+  [F1, 'la frase acaba en el párrafo', t => reemplazar(t, "strpos(q.resto, '. ')", "strpos(q.resto, '#.')")],
+  [F1, 'sin «SIN FRASE»', t => reemplazar(t, "THEN 'SIN FRASE'", "THEN 'OTRA'")],
+  [F1, 'el marcador contado por la frase', t => reemplazar(t,
+    "' · marcador ' || (SELECT count(DISTINCT e.especie) FROM pub e WHERE e.ventana = pa.ventana AND e.n = pa.n AND e.especie IN ('PLAZO', 'NEGACIÓN', 'LUGAR')) || '/3'",
+    "' · marcador ' || (SELECT count(DISTINCT e.especie_frase) FROM pubf e WHERE e.ventana = pa.ventana AND e.n = pa.n AND e.especie_frase IN ('PLAZO', 'NEGACIÓN', 'LUGAR')) || '/3'")],
+  [F1, 'LUGAR recortado otra vez', t => reemplazar(t, "ARRAY['%en la clinica de chamberi%'], NULL, ARRAY['%en la clinica de retiro%']", "ARRAY['%chamberi%'], NULL, ARRAY['%retiro%']")],
+  [F2, 'la frase empieza en el párrafo', t => reemplazar(t, "strpos(reverse(q.pre), ' .')", "strpos(reverse(q.pre), '#.')")],
+  [F2, 'la frase acaba en el párrafo', t => reemplazar(t, "strpos(q.resto, '. ')", "strpos(q.resto, '#.')")],
+  [F2, 'sin el par en la frase', t => reemplazar(t, "translate(lower(fr.frase_existente), 'áéíóúüñ', 'aeiouun') LIKE ANY (pr.existente)", "translate(lower(fr.frase_existente), 'áéíóúüñ', 'aeiouun') LIKE 'IMPOSIBLE'")],
+  [F2, 'A sin «responsable último» (la variante estricta)', t => reemplazar(reemplazar(t,
+    ",\n                   '%responsable ultimo%', '%responsabilidad ultima%']", ']'),
+    ",\n                   '%responsable ultimo%']", ']')],
+  [F2, 'A con el cargo solo (bae7ec0d)', t => {
+    const a = t.replace(/ARRAY\['%director clinico%'\],\n\s+ARRAY\[[^\]]*\],/, () => "ARRAY['%director clinico%'], NULL,");
+    const b = a.replace(/ARRAY\['%coordinador de calidad%'\],\n\s+ARRAY\[[^\]]*\]\)/, () => "ARRAY['%coordinador de calidad%'], NULL)");
+    if (a === t || b === a) throw new Error('el mutante del cargo solo no encuentra su ancla');
+    return b; }],
+  [F2, 'B recortado otra vez', t => reemplazar(t, "(2, 'B', ARRAY['%semanalmente, todos los lunes%'], NULL,", "(2, 'B', ARRAY['%semanal%', '%lunes%'], NULL,")],
+];
+
+const resultados = [];
+try {
+  for (const [fichero, nombre, mutar] of MUTANTES) {
+    const crlf = original[fichero].toString('utf8').includes('\r\n');
+    const lf = original[fichero].toString('utf8').replace(/\r\n/g, '\n');
+    const mutado = mutar(lf);
+    if (mutado === lf) throw new Error('el mutante no cambió nada: ' + nombre);
+    try {
+      fs.writeFileSync(fichero, crlf ? mutado.replace(/\n/g, '\r\n') : mutado);
+      const r = spawnSync(process.execPath, [REPO + '/node_modules/vitest/vitest.mjs', 'run', 'claude/arneses/f128'], { cwd: REPO, encoding: 'utf8' });
+      const linea = ((r.stdout + r.stderr).match(/Tests\s+[^\n]+/) || ['(sin línea de Tests)'])[0].trim();
+      resultados.push({ fichero: fichero.endsWith('01_nor11_con_haiku55.sql') ? '01' : '02', nombre, rojo: r.status !== 0, linea });
+    } finally {
+      fs.writeFileSync(fichero, original[fichero]);                                   // los bytes de antes, siempre
+    }
+  }
+} finally {
+  fs.writeFileSync(F1, original[F1]); fs.writeFileSync(F2, original[F2]);
+  const g = spawnSync('git', ['-C', REPO, 'diff', '--quiet', 'HEAD', '--', 'SQL_F128_01_nor11_con_haiku55.sql', 'SQL_F128_02_nor10_con_haiku55.sql']);
+  console.log(g.status === 0 ? 'VERIFICADO CONTRA GIT: los dos SQL, idénticos a HEAD' : '⚠️ LOS SQL NO SON IDÉNTICOS A HEAD: restaurar a mano');
+}
+for (const r of resultados) console.log(`${r.rojo ? 'ROJO ' : 'VERDE'} · SQL_${r.fichero} · ${r.nombre} · ${r.linea}`);
+const vivos = resultados.filter(r => !r.rojo);
+console.log(vivos.length === 0 ? `los ${resultados.length} mutantes, en rojo` : `⚠️ ${vivos.length} mutantes SOBREVIVEN`);
