@@ -1001,6 +1001,23 @@ indicativo de `CLAUDE.md`, aplicada a quien la escribió, con su cuenta.
 
 ---
 
+## ⚠️ TRES VECES EN UN DÍA, LA LECTURA DE CODE EVITÓ QUE MIDIÉRAMOS UN FALLO NUESTRO CREYENDO MEDIR AL MODELO
+
+*Arquitecto, 26/10/2026, con su nombre.* Las tres, en el 3.4 y antes de gastar un crédito:
+  1. **La frontera** (`llm-boundary.ts`) reconstruía cada contradicción con cuatro campos: con el prompt cambiado y el
+     código sin tocar, el juez habría clasificado bien y nosotros no habríamos visto nada. Por eso el código va antes que
+     el prompt (fase 1).
+  2. **El verificador** no pregunta por la verdad sino por los VALORES DISTINTOS de un dato, y ninguna de las dos citas
+     de D le asigna un valor: con sólo la fase 2, el verificador habría borrado D detrás del juez. Por eso las fases 2 y
+     3 van juntas.
+  3. **La pregunta «¿se pueden cumplir las dos a la vez?»**, del primer contrato, sale «sí» siempre que una de las dos
+     reglas sea un permiso (basta con no usarlo): D habría muerto en el contador que se diseñó como control negativo. Es
+     un fallo de lógica del arquitecto, y lo delataba que su propio ejemplo ya no respondía a su propia pregunta.
+**La forma operativa**: antes de una tanda que estrena un contrato, alguien lee el contrato contra el código que lo va a
+ejecutar y contra los casos reales que tiene que encontrar. Las tres trampas eran visibles en el texto.
+
+---
+
 ## ⚠️ LA TANDA DEL 3.4 (CONFLICTO NORMATIVO) VA EN MODO RÁPIDO, NO EXHAUSTIVO
 
 *Arquitecto, 26/10/2026.* Es una CONDICIÓN DE LA MEDIDA, no sólo una deuda: el exhaustivo reconstruye cada

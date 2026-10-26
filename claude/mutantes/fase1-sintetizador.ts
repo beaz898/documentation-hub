@@ -5,7 +5,7 @@ export const definicion: Definicion = {
   fichero: 'lib/analysis/synthesize.ts',
   arnes: 'lib/analysis/conflicto-normativo.test.ts',
   proyecto: 'suite',
-  tests: 6,
+  tests: 7,
   mutantes: [
     { nombre: 'asignación directa: toda discrepancia gana la clave con undefined', ancla: '...(c.conflictoNormativo ? { conflictoNormativo: c.conflictoNormativo } : {}),', cambio: 'conflictoNormativo: c.conflictoNormativo,' },
     { nombre: 'el sintetizador lo tira', ancla: '      ...(c.conflictoNormativo ? { conflictoNormativo: c.conflictoNormativo } : {}),\n', cambio: '' },
