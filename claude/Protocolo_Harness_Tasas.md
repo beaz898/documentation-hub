@@ -1029,8 +1029,18 @@ gastar un crédito:
   4. **La rama del verificador no tenía la pregunta de la práctica**, que sí estaba en el bloque del juez, y su
      «sin_relacion» decía «no son reglas»: todo hallazgo de `norma_contra_practica`, que tiene una cita que no es una
      regla, habría muerto ahí. Code lo implementó tal cual y lo marcó; el arquitecto lo corrigió antes de la tanda.
+  **SEXTA, Y LA SEGUNDA DE LA MISMA FORMA** (arquitecto, 27/10/2026, con su nombre): **el criterio del juez cambiado y
+     el del verificador dejado.** En el arreglo de D, el arquitecto escribió el principio en el bloque del juez y
+     «el verificador NO se toca», y el «sin_relacion» de la rama descartaba cuando UNA de las dos citas no mandaba nada:
+     §3.1, la mitad que el juez escoge para D, no manda nada. Es la segunda vez en dos días (la primera, la 2 de
+     arriba, la paró Code y de ahí salió que las fases 2 y 3 van juntas), y va contra una regla que ya existía: UN
+     CRITERIO SE IMPLEMENTA UNA VEZ. ⚠️ *Code*: en esta lista es la quinta; el arquitecto la cuenta sexta, y no se
+     corrige sin él.
 **La forma operativa**: antes de una tanda que estrena un contrato, alguien lee el contrato contra el código que lo va a
 ejecutar y contra los casos reales que tiene que encontrar. Las tres trampas eran visibles en el texto.
+**Y LA DE LA SEXTA**: cuando se cambie el criterio del juez, **SE REVISA LA RAMA DEL VERIFICADOR EN EL MISMO COMMIT,
+siempre, aunque parezca que no le afecta.** (En el arreglo del 27/10 fueron dos commits, uno por texto, para que cada
+uno se pueda revertir solo; la revisión fue en el mismo encargo.)
 
 ---
 
@@ -1266,6 +1276,13 @@ la prueba de que el camino nuevo existe**, y eso lo da el MUTANTE que lo rompe y
 byte igual quitaba la línea de la regla del sujeto y comparaba las huellas. El mutante «la excepción no entra en el
 prompt» deja esas huellas IGUALES —quitar una línea que no está no quita nada—, y sólo lo cazó la otra prueba, la que
 exige que la línea esté. Sin ella, la igualdad habría pasado en verde con el cambio sin hacer.
+**UNA PRUEBA DE HUELLA QUE QUITA LA PIEZA ENTERA NO PRUEBA SU CONTENIDO; HACE FALTA UNA QUE LO MIRE** (arquitecto,
+27/10/2026). El caso: para el arreglo de D se pidió que «las pruebas de huella con las dos piezas quitadas sigan dando
+las huellas de antes». Lo hacen con cualquier texto dentro, porque quitan la constante entera, y los mutantes del
+bloque sólo miraban dónde va. Las tres puertas habrían dado un verde que no probaba nada, de la misma clase que el
+mutante cuyo cambio contenía su ancla. Desde el 27/10, el bloque del juez y la rama del verificador tienen cada uno una
+prueba que exige que el texto viejo NO esté y el nuevo SÍ, con sus mutantes (`claude/mutantes/principio-juez.ts`,
+`claude/mutantes/principio-rama.ts`).
 
 ---
 

@@ -80,3 +80,54 @@ REVIERTE EL PROMPT y se replantea. No se itera el texto dentro de la misma tanda
   caso en `cascada-emparejamiento.test.ts`; y montar las tablas es la clase de rama que no se abre hoy. ⚠️ **LA
   CONSECUENCIA: SI ALGUNA VEZ APARECE UNA ESPECIE EN UN HALLAZGO DE FILA DE TABLA, ESE CAMINO NO ESTÁ PROBADO Y EL
   VERIFICADOR PREGUNTARÍA LO QUE NO TOCA.**
+
+---
+
+# LA SEGUNDA TANDA DEL 3.4 · el principio (27/10/2026)
+
+*Escritas el 27/10/2026, ANTES de la tanda, por el arquitecto. Las transcribe Code; el precio y el «dónde se lee» son
+suyos, medidos en el código.* La medida de la primera tanda y su lectura: `claude/Medida_34_Conflicto_Normativo_26-10-2026.md`.
+
+**Lo que cambia** (dos commits, cada uno revertible solo):
+- el bloque del juez (`lib/analysis/excepcion-de-las-reglas.ts`): la cláusula de la razón se estrecha a «SU PROPIA
+  regla» y entra el bloque del principio, al final de la lista de lo que no es conflicto y antes del último punto;
+- la rama del verificador (`lib/analysis/rama-de-las-reglas.ts`): la pregunta del principio, su caso en los
+  veredictos, y «sin_relacion» sólo si NINGUNA de las dos manda, describe una práctica ni enuncia un principio.
+
+## Las predicciones
+
+1. **D se publica CON `conflictoNormativo = "norma_contra_norma"` en AL MENOS EL 80 % DE LAS PASADAS de NOR-10.** En
+   proporción, no en cifra: el director lanza las que lanza.
+2. **La mitad que cita sigue siendo §3.1 y no §3.5.** Lo mide `SQL_34_02` con los dos párrafos.
+3. **A, B y C en el 100 % de las pasadas, SIN el campo.**
+4. **El caso del Coordinador (NOR-11 ↔ CLI-12) NO DESAPARECE**: ayer salió 1 de 7, así que se predice al menos 1 de cada 7.
+5. **El total de hallazgos por pasada en NOR-10 ↔ CLI-12: NO MÁS DE 6.** Ayer fueron 4 o 5.
+6. **`descartado.cumplibles_a_la_vez` sigue bajo.**
+7. **Ningún conflicto normativo cuya segunda cita sea un motivo técnico sin principio.** Se lee una por una.
+8. **D NO MUERE EN EL VERIFICADOR**: `descartado.sin_relacion.norma_contra_norma` y
+   `descartado.cumplibles_a_la_vez.norma_contra_norma` siguen a 0. Separa los dos sitios donde puede fallar: si falla,
+   dirá cuál de los dos.
+
+## Criterio de abandono, escrito antes de medir
+
+Si los hallazgos de esa pareja **PASAN DE 7**, o si aparece un conflicto normativo del tipo de la 7, **SE REVIERTEN LOS
+DOS TEXTOS** y se vuelve a los de ayer, que ya funcionaban para obligación contra obligación. No se itera dentro de la
+tanda.
+
+## El precio, medido sobre el texto final (no es una regresión: es el precio)
+
+- **El bloque del juez crece 1.646 caracteres**, de 4.495 a 6.141: unos **600 tokens** por llamada del juez, a 2,745
+  caracteres por token (F-129, 22/10). Va en TODAS las llamadas del juez, también en las que producen A, B y C.
+- **La rama del verificador crece 573 caracteres**, de 2.018 a 2.591: unos **209 tokens**, sólo en la llamada de los
+  marcados.
+- (Medido el 27/10 sobre el texto de la constante, la de `HEAD` contra la nueva. El bloque de ayer mide aquí 4.495;
+  la predicción 9 de la primera tanda decía 4.497, medido entonces de otra forma, y aquí no se reconcilia.)
+
+## Dónde se lee cada cosa (Code, leído en el código el 27/10)
+
+- 1, 3, 4 y 7: el bloque 1 de `SQL_34_01`, cada hallazgo con su especie y sus dos citas.
+- 2: `SQL_34_02`, bloque 1. ⚠️ **§3.1 no es sólo el principio**: lleva también la frase sembrada de A y el párrafo de
+  las decisiones que A cita siempre, así que «§3.1» sale con citas en toda pasada que publique A. Lo que mide la 2 es la
+  columna «de la frase del principio», no el total de §3.1.
+- 5: el bloque 2 de `SQL_34_01`; 6 y 8: el bloque 3 de `SQL_34_01`, con el desglose por especie.
+- Las dos consultas llevan la ventana y los esperados en NULO: se rellenan después de mirar el reloj de la base.
