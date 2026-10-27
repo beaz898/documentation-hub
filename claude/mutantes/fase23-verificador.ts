@@ -5,7 +5,7 @@ export const definicion: Definicion = {
   fichero: 'lib/analysis/verify-findings.ts',
   arnes: 'lib/analysis/rama-de-las-reglas.test.ts',
   proyecto: 'suite',
-  tests: 9,
+  tests: 10,
   mutantes: [
     { nombre: 'la rama va siempre, también sin marcas', ancla: 'const rama = batch.some(f => f.conflictoNormativo) ? ', cambio: 'const rama = true ? ' },
     { nombre: 'la rama no va nunca', ancla: 'const rama = batch.some(f => f.conflictoNormativo) ? ', cambio: 'const rama = false ? ' },

@@ -13,7 +13,9 @@ import type { DocumentJudgment } from './types';
 import { verifyFindings, type FindingToVerify } from './verify-findings';
 
 /**
- * LA RAMA DE LAS REGLAS DEL VERIFICADOR (3.4, fase 3 · 26/10/2026). El modelo está simulado: nada sale a la red.
+ * LA RAMA DE LAS REGLAS DEL VERIFICADOR (3.4, fase 3 · 26/10/2026; el principio, 27/10). El modelo está simulado: nada
+ * sale a la red.
+ *   · el texto: las cuatro preguntas, el principio en los veredictos, y «sin_relacion» sólo si NINGUNA manda;
  *   · un lote sin marcas no lleva la rama ni ninguna marca (el prompt de siempre);
  *   · un lote con un hallazgo marcado lleva la rama una vez, y la marca sólo en ese hallazgo;
  *   · `cumplibles_a_la_vez` descarta y se cuenta con su nombre;
@@ -37,6 +39,17 @@ describe('el texto de la rama (corregido el 26/10)', () => {
     expect(RAMA_DE_LAS_REGLAS).toContain('¿SE PUEDEN CUMPLIR LAS DOS A LA VEZ?');
     expect(RAMA_DE_LAS_REGLAS).toContain('¿LO QUE SE HACE CUMPLE LA REGLA?');
     expect(RAMA_DE_LAS_REGLAS).not.toContain('no son reglas');
+  });
+
+  it('EL PRINCIPIO (27/10): la cuarta pregunta, su caso en «confirmado» y en «cumplibles», y «sin_relacion» con NINGUNA', () => {
+    expect(RAMA_DE_LAS_REGLAS).toContain('que corresponda de estas cuatro:');
+    expect(RAMA_DE_LAS_REGLAS).toContain('¿PERMITE LA OTRA JUSTO LO QUE ESE PRINCIPIO EXCLUYE?');
+    expect(RAMA_DE_LAS_REGLAS).toContain('otra regla, y que lo sea NO la deja fuera.');
+    expect(RAMA_DE_LAS_REGLAS).toContain('O, si una enuncia un principio: la otra\n  permite justo lo que ese principio excluye.');
+    expect(RAMA_DE_LAS_REGLAS).toContain('O, si una\n  enuncia un principio: lo que la otra permite no es lo que ese principio\n  excluye.');
+    expect(RAMA_DE_LAS_REGLAS).toContain('o ninguna de las dos manda nada, describe una práctica\n  NI ENUNCIA UN PRINCIPIO.');
+    // la de antes: con que UNA no mandara bastaba para descartar
+    expect(RAMA_DE_LAS_REGLAS).not.toContain('una de las dos no manda nada');
   });
 
   it('la marca, literal: es texto que lee el modelo, no un detalle de formato', () => {

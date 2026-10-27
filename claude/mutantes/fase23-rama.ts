@@ -5,7 +5,7 @@ export const definicion: Definicion = {
   fichero: 'lib/analysis/rama-de-las-reglas.ts',
   arnes: 'lib/analysis/rama-de-las-reglas.test.ts',
   proyecto: 'suite',
-  tests: 9,
+  tests: 10,
   mutantes: [
     { nombre: 'sin la pregunta de la práctica', ancla: '¿LO QUE SE HACE CUMPLE LA REGLA?', cambio: '¿QUÉ SE HACE?' },
     { nombre: 'vuelve el «no son reglas» que descartaba la práctica', ancla: '- "sin_relacion": no se refieren al mismo procedimiento', cambio: '- "sin_relacion": no son reglas, o no se refieren al mismo procedimiento' },
