@@ -1,13 +1,20 @@
 -- ============================================================================
--- SQL_34_02 · EL MATERIAL DEL DIAGNÓSTICO DE D, EN LAS PASADAS DE NOR-10 DE LA TANDA DEL 3.4 — SÓLO LECTURA (27/10/2026)
+-- SQL_34_02 · EL MATERIAL DEL DIAGNÓSTICO DE D, EN LAS PASADAS DE NOR-10 DE UNA TANDA DEL 3.4 — SÓLO LECTURA
+-- (27/10/2026; §3.1 y la ventana en NULO, 27/10/2026)
 -- ⏳ PENDIENTE DE EJECUTAR. Sólo SELECT: no escribe, no borra, no cambia nada.
 --
--- QUÉ CONTESTA (encargo del arquitecto del 27/10, puntos d, e y f; lo demás sale del repositorio):
---   1 · ¿SE CITA §3.5 DE CLI-12 EN ALGÚN HALLAZGO? Busca en las tres cosas que la base guarda con citas: las
---       contradicciones publicadas, los solapamientos (judgments[].overlappingContent) y los descartes de la puerta de
---       citas (judgments[].descartesPorCita). Una cita «es de §3.5» si, normalizada, es un tramo literal del párrafo
---       §3.5 (copiado abajo del corpus de pruebas): la puerta sólo deja pasar citas literales, así que no hay otra forma
---       de que una cita venga de ahí.
+-- QUÉ CONTESTA (encargos del arquitecto del 27/10):
+--   1 · ¿QUÉ MITAD DE CLI-12 SE CITA? Por pasada, cuántas citas del lado existente son de §3.5 y cuántas de §3.1, las
+--       dos SIEMPRE, también a cero. Busca en las tres cosas que la base guarda con citas: las contradicciones
+--       publicadas, los solapamientos (judgments[].overlappingContent) y los descartes de la puerta de citas
+--       (judgments[].descartesPorCita). Una cita «es de» un apartado si, normalizada (minúsculas, sin tildes, los
+--       espacios en uno), es un tramo literal de su texto, copiado abajo del corpus de pruebas: la puerta sólo deja
+--       pasar citas literales.
+--       ⚠️ §3.1 NO ES SÓLO EL PRINCIPIO (Code, leído en el corpus el 27/10): lleva tres cosas, la frase sembrada de A
+--       («El responsable último…»), la del principio («Esta asignación responde…», la que el juez escogió para D el
+--       26/10) y el párrafo de las decisiones del Coordinador, que es lo que A cita siempre. Contado entero, §3.1 sale
+--       con citas en cada pasada en que se publique A. Por eso, al lado, «de la frase del principio»: las citas de §3.1
+--       que tocan esa frase.
 --   2 · TODOS LOS DESCARTES de cada pasada: los contadores de analysis->'discardedFindings', TODOS, con su nombre; y
 --       cada descarte de la puerta de citas, con su tipo, su tema, el lado que falló y las dos citas.
 --       ⚠️ LO QUE LA BASE NO TIENE, leído en el código: el TEXTO de lo que descartó el VERIFICADOR. Sólo se guarda la
@@ -18,8 +25,9 @@
 --       medido en el repositorio el 27/10), la frase de NOR-10 §2.4 va del carácter 3.880 al 4.267 de 66.801, y la de
 --       CLI-12 §3.5 del 6.679 al 6.991 de 55.135. «Dentro» es que lo mostrado llegue al FINAL de la frase.
 --
--- LA VENTANA Y EL ESPERADO vienen PUESTOS con lo que dio la base en SQL_34_01 (arquitecto, 27/10): del 26/10 a las
--- 23:00 al 27/10 a las 00:30, hora de Madrid, y 8 pasadas de NOR-10. Si no cuadran, el control lo dice.
+-- LA VENTANA Y EL ESPERADO VAN EN NULO y se rellenan DESPUÉS DE MIRAR EL RELOJ DE LA BASE, nunca antes. Sin ventana,
+-- el control 1 lo dice y no se lee ninguna pasada. La primera tanda (26/10, 23:00 a 00:30, 8 pasadas de NOR-10) ya se
+-- leyó con la versión anterior de esta consulta.
 -- La consulta no interpreta: enseña.
 -- ============================================================================
 -- ── LA RESOLUCIÓN DE LA ORGANIZACIÓN (26/10/2026), IDÉNTICA EN TODAS LAS CONSULTAS QUE MIRAN HACIA DELANTE ──
@@ -50,12 +58,20 @@ organizacion_leida AS (
 ),
 parametros AS (
   SELECT (SELECT org FROM resolucion) AS org,   -- ← la organización RESUELTA por el USUARIO (arriba)
-         timestamptz '2026-10-26 23:00:00+01' AS desde,   -- ← DESDE (de SQL_34_01)
-         timestamptz '2026-10-27 00:30:00+01' AS hasta,   -- ← HASTA
-         8 AS esperado_nor10,                              -- ← las pasadas de NOR-10 que midió la base
-         -- §3.5 de CLI-12, literal del corpus de pruebas (trozo 6), normalizado como las citas
-         translate(lower('En ausencia programada o imprevista del Coordinador de Calidad (vacaciones, baja), sus funciones son asumidas temporalmente por el Coordinador de Calidad de otra clínica de la red, nunca por el Director Clínico del propio centro, precisamente para mantener la separación de funciones descrita en el apartado 3.1. Esta sustitución se comunica formalmente a todo el personal del centro afectado.'), 'áéíóúü', 'aeiouu') AS parrafo_35,
+         NULL::timestamptz AS desde,             -- ← DESDE: el comienzo real de la tanda
+         NULL::timestamptz AS hasta,             -- ← HASTA: el final real de la tanda
+         NULL::int AS esperado_nor10,            -- ← ESPERADO NOR-10: DESPUÉS de mirar el reloj de la base
          4267 AS fin_24, 6991 AS fin_35
+),
+textos AS (
+  -- literales del corpus de pruebas (CLI-12, trozos 3, 4 y 6), normalizados como las citas
+  SELECT translate(lower(regexp_replace('En ausencia programada o imprevista del Coordinador de Calidad (vacaciones, baja), sus funciones son asumidas temporalmente por el Coordinador de Calidad de otra clínica de la red, nunca por el Director Clínico del propio centro, precisamente para mantener la separación de funciones descrita en el apartado 3.1. Esta sustitución se comunica formalmente a todo el personal del centro afectado.', '\s+', ' ', 'g')), 'áéíóúü', 'aeiouu') AS p35,
+         translate(lower(regexp_replace('El responsable último de la esterilización del instrumental en cada clínica es el Coordinador de Calidad del centro, no el Director Clínico. Esta asignación responde a un criterio deliberado del sistema de gestión de calidad: separar la responsabilidad de un proceso crítico de seguridad del paciente de la persona que, en su rol de Director Clínico, gestiona simultáneamente la agenda asistencial y puede verse sometida a presión de tiempo que entre en conflicto con el rigor exigido en esterilización. El Coordinador de Calidad es quien autoriza cualquier excepción documentada al protocolo de esterilización, quien firma los registros de auditoría trimestral del área y quien decide, con criterio técnico y sin necesidad de validación adicional del Director Clínico, la retirada de servicio de un autoclave que no supere un control biológico. El Director Clínico es informado de estas decisiones pero no interviene en ellas como autoridad jerárquica.', '\s+', ' ', 'g')), 'áéíóúü', 'aeiouu') AS p31,
+         translate(lower('Esta asignación responde a un criterio deliberado del sistema de gestión de calidad: separar la responsabilidad de un proceso crítico de seguridad del paciente de la persona que, en su rol de Director Clínico, gestiona simultáneamente la agenda asistencial y puede verse sometida a presión de tiempo que entre en conflicto con el rigor exigido en esterilización.'), 'áéíóúü', 'aeiouu') AS principio
+),
+tramo AS (
+  -- dónde cae la frase del principio dentro de §3.1 normalizado
+  SELECT position(t.principio IN t.p31) AS ini, position(t.principio IN t.p31) + length(t.principio) - 1 AS fin FROM textos t
 ),
 pasadas AS (
   SELECT ar.id, ar.created_at, ar.analysis,
@@ -84,19 +100,33 @@ citas AS (
   FROM juicios ju CROSS JOIN LATERAL jsonb_array_elements(CASE WHEN jsonb_typeof(ju.j->'descartesPorCita') = 'array'
                                                                 THEN ju.j->'descartesPorCita' ELSE '[]'::jsonb END) x
 ),
-de35 AS (
-  SELECT c.* FROM citas c, parametros p
-  WHERE length(coalesce(c.cita, '')) >= 20
-    AND position(translate(lower(c.cita), 'áéíóúü', 'aeiouu') IN p.parrafo_35) > 0
+clasificadas AS (
+  SELECT c.*, k.normal,
+         length(k.normal) >= 20 AND position(k.normal IN t.p35) > 0 AS de35,
+         length(k.normal) >= 20 AND position(k.normal IN t.p31) > 0 AS de31,
+         length(k.normal) >= 20 AND position(k.normal IN t.p31) > 0
+           AND position(k.normal IN t.p31) <= tr.fin AND position(k.normal IN t.p31) + length(k.normal) - 1 >= tr.ini AS del_principio
+  FROM citas c
+  CROSS JOIN LATERAL (SELECT translate(lower(regexp_replace(coalesce(c.cita, ''), '\s+', ' ', 'g')), 'áéíóúü', 'aeiouu') AS normal) k
+  CROSS JOIN textos t CROSS JOIN tramo tr
 ),
 nombres AS (SELECT d.id::text AS id, d.name FROM public.documents d, parametros p WHERE d.org_id = p.org),
 control (orden, medida, ok) AS (
-  SELECT 1, 'pasadas de NOR-10 en la ventana: ' || (SELECT count(*) FROM pasadas) || ' · esperado: ' || p.esperado_nor10,
-         (SELECT count(*) FROM pasadas) = p.esperado_nor10
+  SELECT 1, 'ventana: ' || coalesce(to_char(p.desde AT TIME ZONE 'Europe/Madrid', 'DD/MM HH24:MI'), 'SIN RELLENAR') || ' a ' ||
+            coalesce(to_char(p.hasta AT TIME ZONE 'Europe/Madrid', 'DD/MM HH24:MI'), 'SIN RELLENAR') || ' (hora de Madrid)',
+         p.desde IS NOT NULL AND p.hasta IS NOT NULL
   FROM parametros p
   UNION ALL
-  SELECT 2, 'citas del lado existente leídas en las tres fuentes: ' || (SELECT count(*) FROM citas),
+  SELECT 2, 'pasadas de NOR-10 en la ventana: ' || (SELECT count(*) FROM pasadas) || ' · esperado: ' || coalesce(p.esperado_nor10::text, 'SIN RELLENAR'),
+         CASE WHEN p.esperado_nor10 IS NULL THEN NULL ELSE (SELECT count(*) FROM pasadas) = p.esperado_nor10 END
+  FROM parametros p
+  UNION ALL
+  SELECT 3, 'citas del lado existente leídas en las tres fuentes: ' || (SELECT count(*) FROM citas),
          CASE WHEN (SELECT count(*) FROM pasadas) = 0 THEN NULL ELSE (SELECT count(*) FROM citas) > 0 END
+  UNION ALL
+  -- el texto de §3.1 contiene la frase del principio: si no, el recuento «de la frase del principio» no mira nada
+  SELECT 4, 'la frase del principio está dentro de §3.1: carácter ' || (SELECT ini FROM tramo) || ' a ' || (SELECT fin FROM tramo),
+         (SELECT ini FROM tramo) > 0
 )
 SELECT bloque, pasada, a, b, c
 FROM (
@@ -106,16 +136,21 @@ FROM (
   SELECT '0 · control', NULL, CASE WHEN ok IS NULL THEN 'NO APLICA' WHEN ok THEN 'OK' ELSE 'FALLA' END, medida, NULL, orden, 0
   FROM control
   UNION ALL
-  -- 1 · §3.5 CITADO: el resumen por pasada (también cuando es cero, que es un resultado) y cada cita encontrada
-  SELECT '1 · §3.5 citado', 'NOR-10 ' || pa.n,
-         (SELECT count(*) FROM de35 WHERE de35.n = pa.n)::text || ' citas de §3.5',
+  -- 1 · LA MITAD CITADA: el resumen por pasada, con los dos apartados SIEMPRE, y cada cita encontrada
+  SELECT '1 · la mitad citada', 'NOR-10 ' || pa.n,
+         '§3.5: ' || (SELECT count(*) FROM clasificadas cl WHERE cl.n = pa.n AND cl.de35) ||
+           ' · §3.1: ' || (SELECT count(*) FROM clasificadas cl WHERE cl.n = pa.n AND cl.de31) ||
+           ' (de la frase del principio: ' || (SELECT count(*) FROM clasificadas cl WHERE cl.n = pa.n AND cl.del_principio) || ')',
          'de ' || (SELECT count(*) FROM citas WHERE citas.n = pa.n) || ' citas del lado existente en la pasada',
          NULL, pa.n, 0
   FROM pasadas pa
   UNION ALL
-  SELECT '1 · §3.5 citado', 'NOR-10 ' || d.n, d.fuente, coalesce(d.candidato, '—') || ' · ' || coalesce(d.tema, '(sin tema)'),
-         '«' || d.cita || '»', d.n, 1
-  FROM de35 d
+  SELECT '1 · la mitad citada', 'NOR-10 ' || cl.n,
+         CASE WHEN cl.de35 THEN '§3.5' WHEN cl.del_principio THEN '§3.1 · la frase del principio' ELSE '§3.1 · fuera de la frase del principio' END
+           || ' · ' || cl.fuente,
+         coalesce(cl.candidato, '—') || ' · ' || coalesce(cl.tema, '(sin tema)'),
+         '«' || cl.cita || '»', cl.n, 1
+  FROM clasificadas cl WHERE cl.de35 OR cl.de31
   UNION ALL
   -- 2 · TODOS LOS DESCARTES: los contadores, todos, y los descartes de la puerta de citas con su texto
   SELECT '2 · descartes', 'NOR-10 ' || pa.n, k.clave, k.valor, 'contador', pa.n, 0
