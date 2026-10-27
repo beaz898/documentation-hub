@@ -1,9 +1,9 @@
 # MEDIDA 3.4 · Conflicto normativo, fases 2+3 · la tanda del 26/10/2026
 
-*Escrito por Code el 27/10/2026, por encargo del arquitecto: «TRANSCRIBE, NO INTERPRETES». Las calificaciones y
-los datos son del arquitecto, leídos en la salida de `SQL_34_01_la_tanda_del_conflicto_normativo.sql` que ejecutó el
-director. **Code no ha visto esa salida.** Lo que Code añade es sólo lo leído en el repositorio, y va marcado como suyo.
-Las predicciones, escritas antes de medir, están en `claude/Predicciones_34_Conflicto_Normativo.md`.*
+*Escrito por Code el 27/10/2026, por encargo del arquitecto: «TRANSCRIBE, NO INTERPRETES». Las calificaciones, los
+datos y la lectura son del arquitecto, leídos en la salida de `SQL_34_01_la_tanda_del_conflicto_normativo.sql` que
+ejecutó el director. **Code no ha visto esa salida.** Lo que Code añade es sólo lo leído en el repositorio, y va
+marcado como suyo. Las predicciones, escritas antes de medir, están en `claude/Predicciones_34_Conflicto_Normativo.md`.*
 
 **Decisión del arquitecto, 27/10: NO SE REVIERTE.**
 
@@ -19,25 +19,21 @@ Las predicciones, escritas antes de medir, están en `claude/Predicciones_34_Con
 
 ## Las predicciones, una por una
 
-Recuento del arquitecto: **de nueve, aciertan 7, falla la 1a y la 9 no se puede calificar contra una línea base.**
-⚠️ *Code*: la lista de predicciones tiene diez entradas, porque la 1 se parte en 1a y 1b. Cuál de las diez queda
-fuera de las nueve, o cómo se cuentan, lo escribe el arquitecto en su lectura. Aquí no se decide.
+Calificación del arquitecto (27/10), tal cual: **SON SIETE ACIERTOS: las filas 2 a 8.** Falla la 1a; la 1b se
+cumple pero es inestable y va como caso propio, no como acierto; la 9 no es calificable.
 
 | | Predicción (resumida; el texto entero, en las predicciones) | Calificación | El dato, como lo dio el arquitecto |
 |---|---|---|---|
 | 1a | D se publica en NOR-10 ↔ CLI-12 con `norma_contra_norma`, en al menos 4 de 5 | **FALLA** | D aparece una vez en 8 pasadas, sin especie (pasada 7). |
-| 1b | Si D sale sin el campo, es media victoria y se mide aparte | sin calificar una a una | La pasada 7: D sin especie. El juez cita en CLI-12 «separar la responsabilidad de un proceso crítico de seguridad del paciente de la persona que, en su rol de Director Clínico, gestiona simultáneamente la agenda asistencial», **que no es §3.5**. |
-| 2 | A, B y C siguen publicándose 3 de 3, sin el campo | sin calificar una a una | A, B y C intactas, **8 de 8**. |
-| 3 | Las cinco coincidencias de NOR-11 ↔ CLI-13 sin hallazgo, y ninguno de esa pareja con el campo | sin calificar una a una | Las cinco coincidencias no saltaron, **7 de 7**. |
-| 4 | «Retirada de un autoclave» se funde con A o sale sin el campo | sin calificar una a una | El arquitecto no dio el dato por separado; está en la salida de SQL_34_01. |
-| 5 | `frontera.conflicto_normativo_vacio` vale 0 | sin calificar una a una | **Cero vacías.** |
-| 6 | `frontera.conflicto_normativo_desconocido` vale 0 | sin calificar una a una | **Cero especies desconocidas.** |
-| 7 | Los hallazgos de NOR-10 ↔ CLI-12 pasan de 4 a 5, no a 8 | sin calificar una a una | **Nunca pasaron de 5.** |
-| 8 | `descartado.cumplibles_a_la_vez` será bajo | sin calificar una a una; ver la nota 3 | **0.** |
-| 9 | La entrada de cada llamada del juez sube por el bloque nuevo | **NO SE PUEDE CALIFICAR CONTRA UNA LÍNEA BASE** | La purga se llevó las cifras de antes. La aritmética interna, en la nota 2. |
-
-⚠️ *Code*: el arquitecto dio la cuenta global, no la calificación fila a fila. Las filas 1b a 8 son ocho para siete
-aciertos, así que Code no las reparte: la calificación de cada una la escribe el arquitecto en su lectura.
+| 1b | Si D sale sin el campo, es media victoria y se mide aparte | **SE CUMPLE PERO INESTABLE**: una de ocho, y va como caso propio, no como acierto | La pasada 7: D sin especie. El juez cita en CLI-12 «separar la responsabilidad de un proceso crítico de seguridad del paciente de la persona que, en su rol de Director Clínico, gestiona simultáneamente la agenda asistencial», **que no es §3.5**. |
+| 2 | A, B y C siguen publicándose 3 de 3, sin el campo | **ACIERTA** | A, B y C intactas, **8 de 8**. |
+| 3 | Las cinco coincidencias de NOR-11 ↔ CLI-13 sin hallazgo, y ninguno de esa pareja con el campo | **ACIERTA** | Las cinco coincidencias no saltaron, **7 de 7**. |
+| 4 | «Retirada de un autoclave» se funde con A o sale sin el campo | **ACIERTA** | **8 de 8**: sale en las ocho, siempre sin especie, y en la pasada 7 fundida en el título de A. |
+| 5 | `frontera.conflicto_normativo_vacio` vale 0 | **ACIERTA** | **0.** |
+| 6 | `frontera.conflicto_normativo_desconocido` vale 0 | **ACIERTA** | **0.** |
+| 7 | Los hallazgos de NOR-10 ↔ CLI-12 pasan de 4 a 5, no a 8 | **ACIERTA** | Entre 4 y 5, **nunca más de 5**. |
+| 8 | `descartado.cumplibles_a_la_vez` será bajo | **ACIERTA**, CON LA SALVEDAD de la nota 3 | **0.** |
+| 9 | La entrada de cada llamada del juez sube por el bloque nuevo | **NO CALIFICABLE** por falta de línea base | La purga se llevó las cifras de antes. La aritmética interna, en la nota 2. |
 
 ## Lo que se vio, además de las predicciones (datos del arquitecto)
 
@@ -74,6 +70,42 @@ aciertos, así que Code no las reparte: la calificación de cada una la escribe 
 3. **La predicción 8 salió 0, pero un 0 sin un caso diseñado para parecer conflicto sin serlo no demuestra mucho.** El
    control negativo de verdad llega con la tercera pareja.
 
-## La lectura del arquitecto
+## La lectura del arquitecto (27/10/2026)
 
-**PENDIENTE DEL ARQUITECTO.**
+**EL JUEZ NO FALLÓ.** Encontró D y la emparejó MEJOR de lo que el arquitecto había previsto: en vez de §3.5, que sólo
+aplica el principio al caso de la ausencia, cogió §3.1, que ENUNCIA EL PRINCIPIO: «separar la responsabilidad de un
+proceso crítico de seguridad del paciente de la persona que, en su rol de Director Clínico, gestiona simultáneamente
+la agenda asistencial». Y entonces chocó con una cláusula que escribió el arquitecto en el bloque de las reglas:
+
+> «Una regla y la razón por la que existe no son dos reglas: que un texto explique su propio criterio no lo pone en
+> conflicto con nada.» (`lib/analysis/excepcion-de-las-reglas.ts:91-92`)
+
+§3.1 ES literalmente «la razón por la que existe» una regla. **SU PROPIA CLÁUSULA EXCLUYE EL EMPAREJAMIENTO QUE EL JUEZ
+ELIGIÓ**, así que publicó el hallazgo como contradicción normal, sin especie.
+
+**ES LA TERCERA VEZ DE LA CLASE «EL JUEZ OBEDECE EL CONTRATO QUE LE DIMOS, Y EL CONTRATO ESTABA MAL»**
+(`claude/Protocolo_Harness_Tasas.md`), y las tres son del arquitecto. Y lo que más duele: **LA CONSULTA A FABLE SE
+TITULABA «D: UNA PERMISIÓN CONTRA UN PRINCIPIO»** (`claude/consultas-fable/F-129_2026-10-23_una-permision-contra-un-principio.md`).
+Fable nombró el mecanismo exacto y el arquitecto escribió un prompt que excluye los principios.
+
+**POR QUÉ EL CASO DEL COORDINADOR SÍ FUNCIONÓ**, que es la forma de la diferencia: sus dos citas comparten SUJETO,
+VERBO Y OBJETO con modalidad opuesta (el Coordinador revisa su propia área / no audita su propia área), así que el
+conflicto está DENTRO de las dos frases. En D hay que encadenar cuatro pasos, y el conflicto vive en la cadena, no en
+las frases.
+
+**HIPÓTESIS, SIN COMPROBAR**: por eso D sale en una de ocho y no en ocho de ocho. Como contradicción normal compite
+con A, B, C y las de la retirada, y es la más débil de todas.
+
+**Lo que confirma (g)**: no hay ningún caso sembrado de norma contra práctica en los registros. La tercera pareja hace
+falta, y uno de sus cuatro casos tiene que ser ése. Nada se hace con esto todavía.
+
+### La condición del arreglo, escrita antes
+
+**EL ARREGLO NO SE TOCA HASTA QUE EL DIRECTOR EJECUTE `SQL_34_02_el_material_del_diagnostico_de_d.sql`.**
+- **SI §3.5 NO SE CITÓ NUNCA** en las ocho pasadas, la lectura de arriba se refuerza.
+- **SI SE CITÓ Y TAMBIÉN SALIÓ SIN ESPECIE**, el problema NO es la cláusula del principio, y hay que mirar otra cosa.
+
+**La dirección del arreglo, anotada y sin escribir** (la escribe el arquitecto): la cláusula NO SE QUITA, porque sin
+ella el juez convierte cualquier frase explicativa en regla y fabrica conflictos. Se ESTRECHA: debe excluir «una regla
+y SU PROPIA razón», no «una razón que enuncia un PRINCIPIO frente a una regla de otro sitio que permite justo lo que el
+principio prohíbe».

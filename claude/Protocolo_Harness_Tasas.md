@@ -328,8 +328,8 @@ Los casos, comprobados en el código el 23/10:
 se ha diagnosticado.*
 
 **Antes de culpar al modelo, se lee el contrato que le dimos —el prompt, la definición, la caja— y se comprueba que
-dice lo que creemos que dice.** En los dos casos medidos, la primera reacción del arquitecto fue «el juez falla», y en
-los dos la causa era nuestra especificación.
+dice lo que creemos que dice.** En los tres casos medidos, la primera reacción del arquitecto fue «el juez falla», y en
+los tres la causa era nuestra especificación.
   · **LUGAR en `uniqueToNewDoc` (12/10/2026)**: la caja `uniqueToNewDoc` sólo tenía un NOMBRE en el esquema de
     respuesta, «exclusivo del documento nuevo», y «el punto de retirada está en Chamberí» es, a la letra, algo que
     sólo dice el documento nuevo: el juez metía ahí un conflicto que él mismo había visto. **Lo arregló definir la
@@ -340,6 +340,15 @@ los dos la causa era nuestra especificación.
   · **D en NOR-10 ↔ CLI-12 (23/10/2026, F-129)**: la definición pedía «imposible que ambas afirmaciones sean
     verdaderas», y dos normas no son verdaderas ni falsas: se cumplen o no. El juez obedece y no la emite. Lo
     arregla el predicado nuevo —de verdad a cumplimiento—, no tocar el modelo.
+  · **D otra vez, en la tanda del 3.4 (26/10/2026)**, y es la TERCERA, del arquitecto como las otras dos. El juez
+    encontró D y la emparejó con CLI-12 §3.1, que ENUNCIA EL PRINCIPIO, en vez de con §3.5, que sólo lo aplica a la
+    ausencia. Y chocó con una cláusula del bloque de las reglas: «Una regla y la razón por la que existe no son dos
+    reglas: que un texto explique su propio criterio no lo pone en conflicto con nada»
+    (`lib/analysis/excepcion-de-las-reglas.ts:91-92`). §3.1 ES «la razón por la que existe» una regla: la cláusula
+    excluye el emparejamiento que el juez eligió, y lo publicó como contradicción normal, sin especie (1 de 8). **LO QUE
+    MÁS DUELE: la consulta a Fable se titulaba «D: una permisión contra un principio» (F-129). Fable nombró el
+    mecanismo exacto y el arquitecto escribió un prompt que excluye los principios.** La medida, en
+    `claude/Medida_34_Conflicto_Normativo_26-10-2026.md`; el arreglo espera a `SQL_34_02`.
 
 ---
 
