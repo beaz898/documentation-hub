@@ -349,6 +349,9 @@ los tres la causa era nuestra especificación.
     MÁS DUELE: la consulta a Fable se titulaba «D: una permisión contra un principio» (F-129). Fable nombró el
     mecanismo exacto y el arquitecto escribió un prompt que excluye los principios.** La medida, en
     `claude/Medida_34_Conflicto_Normativo_26-10-2026.md`; el arreglo espera a `SQL_34_02`.
+  · **D ES MIEMBRO DE DOS DE LOS TRES, POR DOS DEFECTOS DISTINTOS DEL CONTRATO** (arquitecto, 27/10): primero la
+    definición de verdad en vez de cumplimiento (F-129), ahora la cláusula que excluye los principios. **D ES EL CASO
+    QUE NO DEJA DE ENCONTRAR NUESTROS ERRORES DE CONTRATO, y eso dice más de nuestros contratos que del caso.**
 
 ---
 

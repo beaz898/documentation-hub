@@ -93,6 +93,13 @@ VERBO Y OBJETO con modalidad opuesta (el Coordinador revisa su propia área / no
 conflicto está DENTRO de las dos frases. En D hay que encadenar cuatro pasos, y el conflicto vive en la cadena, no en
 las frases.
 
+**LA PRECISIÓN DEL ARQUITECTO (27/10), lo más fino del diagnóstico: SU EJEMPLO DEL TALLER NO CUBRE LA FORMA DE D.** Su
+regla 2 lleva una PROHIBICIÓN EXPLÍCITA («nunca la misma persona puede hacer las dos cosas») pegada a la razón. La
+mitad que el juez escoge de D, §3.1, NO TIENE PROHIBICIÓN NINGUNA: es sólo el motivo. Le enseñó el caso fácil
+—prohibición más motivo— y con la cláusula le prohibió el difícil: el principio solo. Y el difícil es el frecuente en
+documentación real: casi ningún documento dice «nunca», dice «esto se hace así para mantener X separado de Y», y es
+otro el que permite juntarlos.
+
 **HIPÓTESIS, SIN COMPROBAR**: por eso D sale en una de ocho y no en ocho de ocho. Como contradicción normal compite
 con A, B, C y las de la retirada, y es la más débil de todas.
 
@@ -102,6 +109,10 @@ falta, y uno de sus cuatro casos tiene que ser ése. Nada se hace con esto todav
 ### La condición del arreglo, escrita antes
 
 **EL ARREGLO NO SE TOCA HASTA QUE EL DIRECTOR EJECUTE `SQL_34_02_el_material_del_diagnostico_de_d.sql`.**
+**EJECUTADA (cifras del arquitecto, 27/10; Code no ha visto la salida): §3.5, CERO CITAS en las ocho pasadas, sobre 62
+citas del lado existente; las dos mitades de D DENTRO en las ocho, con los documentos enteros; y en los descartes nada
+con forma de D.** No es disponibilidad: el juez tiene §3.5 delante ocho veces y prefiere §3.1 siempre. La lectura se
+confirma y el arreglo se escribe.
 - **SI §3.5 NO SE CITÓ NUNCA** en las ocho pasadas, la lectura de arriba se refuerza.
 - **SI SE CITÓ Y TAMBIÉN SALIÓ SIN ESPECIE**, el problema NO es la cláusula del principio, y hay que mirar otra cosa.
 
