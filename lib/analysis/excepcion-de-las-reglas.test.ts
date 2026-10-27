@@ -83,6 +83,8 @@ describe('la excepción de las reglas, en los cuatro prompts reales', () => {
     expect(clausula < principio && principio < ejemplo && ejemplo < ultimo).toBe(true);
     expect(EXCEPCION_DE_LAS_REGLAS.split('SUPONER UN HECHO').length).toBe(2);
     expect(EXCEPCION_DE_LAS_REGLAS.slice(ultimo).split('\n- ').length).toBe(1);
+    // con su cabecera, para que no se lea como un punto más del ejemplo del taller
+    expect(EXCEPCION_DE_LAS_REGLAS).toContain('excluye. Es "norma_contra_norma".\n\nY ESTO VALE PARA CUALQUIERA DE LOS CASOS DE ARRIBA:\n- SI PARA VER EL CONFLICTO');
   });
 
   it('los ejemplos no salen del corpus', () => {

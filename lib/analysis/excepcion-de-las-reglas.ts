@@ -126,6 +126,7 @@ reparten las firmas, y no prohíbe nada. Pero ENUNCIA UN PRINCIPIO —dos
 personas distintas—, y la primera PERMITE justo lo que ese principio
 excluye. Es "norma_contra_norma".
 
+Y ESTO VALE PARA CUALQUIERA DE LOS CASOS DE ARRIBA:
 - SI PARA VER EL CONFLICTO TIENES QUE SUPONER UN HECHO QUE NO ESTÁ EN
   NINGUNO DE LOS DOS TEXTOS NI LO PERMITE NINGUNA DE LAS DOS REGLAS, NO
   HAY HALLAZGO.

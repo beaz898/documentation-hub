@@ -13,7 +13,8 @@ export const definicion: Definicion = {
     { nombre: 'vuelve la cláusula vieja', ancla: CLAUSULA_NUEVA, cambio: CLAUSULA_VIEJA },
     { nombre: 'sin la frase del principio', ancla: '    SI UN TEXTO ENUNCIA UN PRINCIPIO Y EL OTRO PERMITE JUSTO LO QUE ESE\n', cambio: '' },
     { nombre: 'sin el ejemplo del principio solo', ancla: 'EJEMPLO, el mismo taller y el principio SOLO:', cambio: 'EJEMPLO:' },
-    { nombre: 'vuelve el párrafo que repetía «suponer un hecho»', ancla: 'excluye. Es "norma_contra_norma".\n\n- SI PARA VER', cambio: 'excluye. Es "norma_contra_norma".\n\nLO QUE SIGUE SIN SER CONFLICTO: si hay que suponer un hecho, NO HAY HALLAZGO.\n\n- SI PARA VER' },
+    { nombre: 'vuelve el párrafo que repetía «suponer un hecho»', ancla: 'excluye. Es "norma_contra_norma".\n\nY ESTO VALE', cambio: 'excluye. Es "norma_contra_norma".\n\nLO QUE SIGUE SIN SER CONFLICTO: si hay que suponer un hecho, NO HAY HALLAZGO.\n\nY ESTO VALE' },
+    { nombre: 'el último punto sin su cabecera', ancla: 'Y ESTO VALE PARA CUALQUIERA DE LOS CASOS DE ARRIBA:\n', cambio: '' },
     { nombre: 'el último punto deja de cerrar', ancla: '- SI PARA VER EL CONFLICTO TIENES QUE SUPONER UN HECHO', cambio: '- SI PARA VER EL CONFLICTO TIENES QUE IMAGINAR UN HECHO' },
   ],
 };
