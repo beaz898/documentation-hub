@@ -64,6 +64,11 @@ por ÷4 y 737 corregidos.
 caracteres por token (`claude/Estado_Y_Pendientes_14-10-2026.md`, F-129)—, 4.497 ÷ 2,745 = **1.638 tokens**, frente a
 los 1.641 por el 68,5 %. Dos derivaciones independientes con un 0,2 % de diferencia: refuerza la predicción y de paso
 confirma la regla de conversión. (El arquitecto la fechó el 21/10; en el repositorio es del 22/10.)
+⚠️ **NOTA DE CORRECCIÓN (27/10/2026): el 4.497 y el 4.495 son los dos buenos, y miden cosas distintas.** La constante
+`EXCEPCION_DE_LAS_REGLAS` mide 4.495 caracteres; el juez la mete entre dos saltos de línea (`lib/analysis/judge.ts:909-912`),
+así que lo que añade al prompt es la constante y uno de esos saltos dobles, 4.495 + 2 = **4.497**. Lo confirma el mutante
+«el bloque no entra en el prompt» (`claude/mutantes/fase2-juez.ts`), que quita exactamente esas dos cosas. La hipótesis
+fue del arquitecto; Code la comprobó.
 
 ## Criterio de abandono, escrito antes de medir
 
@@ -88,7 +93,10 @@ REVIERTE EL PROMPT y se replantea. No se itera el texto dentro de la misma tanda
 *Escritas el 27/10/2026, ANTES de la tanda, por el arquitecto. Las transcribe Code; el precio y el «dónde se lee» son
 suyos, medidos en el código.* La medida de la primera tanda y su lectura: `claude/Medida_34_Conflicto_Normativo_26-10-2026.md`.
 
-**Lo que cambia** (dos commits, cada uno revertible solo):
+**El montaje**: **cinco pasadas de NOR-10 y siete de NOR-11** —siete, para que la predicción 4 se pueda calificar—, en
+**modo rápido**. Lo lanza el director, y después ejecuta `SQL_34_01` y `SQL_34_02` con la ventana real.
+
+**Lo que cambia** (dos commits, cada uno revertible solo, y un tercero con la cabecera del último punto del juez):
 - el bloque del juez (`lib/analysis/excepcion-de-las-reglas.ts`): la cláusula de la razón se estrecha a «SU PROPIA
   regla» y entra el bloque del principio, al final de la lista de lo que no es conflicto y antes del último punto;
 - la rama del verificador (`lib/analysis/rama-de-las-reglas.ts`): la pregunta del principio, su caso en los
@@ -98,9 +106,14 @@ suyos, medidos en el código.* La medida de la primera tanda y su lectura: `clau
 
 1. **D se publica CON `conflictoNormativo = "norma_contra_norma"` en AL MENOS EL 80 % DE LAS PASADAS de NOR-10.** En
    proporción, no en cifra: el director lanza las que lanza.
-2. **La mitad que cita sigue siendo §3.1 y no §3.5.** Lo mide `SQL_34_02` con los dos párrafos.
+2. **LA MITAD QUE CITA ES LA FRASE DEL PRINCIPIO DENTRO DE §3.1, no §3.5 ni otra parte de §3.1.** Se lee
+   EXCLUSIVAMENTE en la columna «de la frase del principio» de `SQL_34_02`. ⚠️ §3.1 entero sale citado en todas las
+   pasadas porque A lo cita siempre: ese número NO mide nada y no se usa para calificar. *(Reescrita el 27/10, antes
+   de la tanda: decía «sigue siendo §3.1 y no §3.5», que no podía fallar.)*
 3. **A, B y C en el 100 % de las pasadas, SIN el campo.**
-4. **El caso del Coordinador (NOR-11 ↔ CLI-12) NO DESAPARECE**: ayer salió 1 de 7, así que se predice al menos 1 de cada 7.
+4. **El caso del Coordinador (NOR-11 ↔ CLI-12) NO DESAPARECE. SE CALIFICA SÓLO CON 7 O MÁS PASADAS DE NOR-11**: con
+   menos, NO CALIFICABLE, y se dice así. Ayer salió 1 de 7, que es demasiado raro para que una ausencia en 5 pasadas
+   signifique nada. *(Reescrita el 27/10, antes de la tanda: «al menos 1 de cada 7» no decía qué pasaba con menos.)*
 5. **El total de hallazgos por pasada en NOR-10 ↔ CLI-12: NO MÁS DE 6.** Ayer fueron 4 o 5.
 6. **`descartado.cumplibles_a_la_vez` sigue bajo.**
 7. **Ningún conflicto normativo cuya segunda cita sea un motivo técnico sin principio.** Se lee una por una.
@@ -116,18 +129,20 @@ tanda.
 
 ## El precio, medido sobre el texto final (no es una regresión: es el precio)
 
-- **El bloque del juez crece 1.646 caracteres**, de 4.495 a 6.141: unos **600 tokens** por llamada del juez, a 2,745
-  caracteres por token (F-129, 22/10). Va en TODAS las llamadas del juez, también en las que producen A, B y C.
+- **El bloque del juez crece 1.698 caracteres**, de 4.495 a 6.193, con la cabecera del último punto: unos **619 tokens**
+  por llamada del juez, a 2,745 caracteres por token (F-129, 22/10). Va en TODAS las llamadas del juez, también en las
+  que producen A, B y C.
 - **La rama del verificador crece 573 caracteres**, de 2.018 a 2.591: unos **209 tokens**, sólo en la llamada de los
   marcados.
-- (Medido el 27/10 sobre el texto de la constante, la de `HEAD` contra la nueva. El bloque de ayer mide aquí 4.495;
-  la predicción 9 de la primera tanda decía 4.497, medido entonces de otra forma, y aquí no se reconcilia.)
+- (Medido el 27/10 sobre el texto de la constante, la de ayer contra la nueva. Como los saltos de línea que la rodean
+  ya estaban, lo que crece la constante es lo que crece el prompt. El 4.495 de ayer y el 4.497 de la predicción 9 de
+  la primera tanda quedan reconciliados en la nota de corrección de esa predicción.)
 
 ## Dónde se lee cada cosa (Code, leído en el código el 27/10)
 
 - 1, 3, 4 y 7: el bloque 1 de `SQL_34_01`, cada hallazgo con su especie y sus dos citas.
-- 2: `SQL_34_02`, bloque 1. ⚠️ **§3.1 no es sólo el principio**: lleva también la frase sembrada de A y el párrafo de
-  las decisiones que A cita siempre, así que «§3.1» sale con citas en toda pasada que publique A. Lo que mide la 2 es la
-  columna «de la frase del principio», no el total de §3.1.
+- 2: `SQL_34_02`, bloque 1, **sólo la columna «de la frase del principio»**. ⚠️ §3.1 no es sólo el principio: lleva
+  también la frase sembrada de A y el párrafo de las decisiones que A cita siempre, así que el total de §3.1 sale con
+  citas en toda pasada que publique A.
 - 5: el bloque 2 de `SQL_34_01`; 6 y 8: el bloque 3 de `SQL_34_01`, con el desglose por especie.
 - Las dos consultas llevan la ventana y los esperados en NULO: se rellenan después de mirar el reloj de la base.
