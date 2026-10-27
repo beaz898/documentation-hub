@@ -6,7 +6,7 @@ export const definicion: Definicion = {
   fichero: 'lib/analysis/judge.ts',
   arnes: 'lib/analysis/excepcion-de-las-reglas.test.ts',
   proyecto: 'suite',
-  tests: 4,
+  tests: 5,
   mutantes: [
     { nombre: 'el bloque no entra en el prompt', ancla: ORO + '\n\n${EXCEPCION_DE_LAS_REGLAS}\n\nREGLAS DE FORMATO:', cambio: ORO + '\n\nREGLAS DE FORMATO:' },
     { nombre: 'el bloque va ANTES de la regla de oro', ancla: ORO + '\n\n${EXCEPCION_DE_LAS_REGLAS}\n\nREGLAS DE FORMATO:', cambio: '${EXCEPCION_DE_LAS_REGLAS}\n\n' + ORO + '\n\nREGLAS DE FORMATO:' },

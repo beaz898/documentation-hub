@@ -8,6 +8,8 @@ import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
  *   · que, quitado, el prompt sea el de antes byte a byte lo comprueban regla-del-sujeto.test.ts y
  *     declaracion-de-lo-omitido.test.ts con las huellas de 8a790652; esta prueba, que esté, es la que hace que
  *     aquélla signifique algo;
+ *   · el principio (27/10): la cláusula vieja ya no está, y la nueva, el bloque del principio y el último punto van
+ *     en ese orden;
  *   · los ejemplos no salen del corpus.
  */
 const prompts: string[] = [];
@@ -67,6 +69,20 @@ describe('la excepción de las reglas, en los cuatro prompts reales', () => {
   it('pide los dos valores del campo y ningún otro, con su ejemplo de JSON', () => {
     expect(EXCEPCION_DE_LAS_REGLAS).toContain('"conflictoNormativo": "norma_contra_norma"');
     expect(EXCEPCION_DE_LAS_REGLAS).toContain('- "norma_contra_practica":');
+  });
+
+  it('EL PRINCIPIO (27/10): la cláusula vieja ya no está, la nueva y el bloque del principio sí, y el último punto cierra', () => {
+    // Las huellas quitan el bloque entero y no ven su contenido: ésta es la prueba que lo mira.
+    expect(EXCEPCION_DE_LAS_REGLAS).not.toContain('Una regla y la razón por la que existe no son dos reglas');
+    expect(EXCEPCION_DE_LAS_REGLAS).not.toContain('LO QUE SIGUE SIN SER CONFLICTO');
+    const clausula = EXCEPCION_DE_LAS_REGLAS.indexOf('NO LA PONE EN CONFLICTO CON SU PROPIA\n  REGLA.');
+    const principio = EXCEPCION_DE_LAS_REGLAS.indexOf('SI UN TEXTO ENUNCIA UN PRINCIPIO Y EL OTRO PERMITE JUSTO LO QUE ESE');
+    const ejemplo = EXCEPCION_DE_LAS_REGLAS.indexOf('EJEMPLO, el mismo taller y el principio SOLO:');
+    const ultimo = EXCEPCION_DE_LAS_REGLAS.indexOf('- SI PARA VER EL CONFLICTO TIENES QUE SUPONER UN HECHO');
+    expect([clausula, principio, ejemplo, ultimo].every(i => i > 0)).toBe(true);
+    expect(clausula < principio && principio < ejemplo && ejemplo < ultimo).toBe(true);
+    expect(EXCEPCION_DE_LAS_REGLAS.split('SUPONER UN HECHO').length).toBe(2);
+    expect(EXCEPCION_DE_LAS_REGLAS.slice(ultimo).split('\n- ').length).toBe(1);
   });
 
   it('los ejemplos no salen del corpus', () => {
