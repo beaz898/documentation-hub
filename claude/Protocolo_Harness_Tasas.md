@@ -1303,6 +1303,29 @@ juez, por pareja, lo lleva el código en `DocumentJudgment.discarded` (los desca
 la cascada, fundidos en `pipeline.ts:663-666`) y en `descartesPorCita`; que esos campos lleguen al jsonb guardado está
 SIN COMPROBAR en la base, y `citaNoVerificable` mezcla contradicciones y solapamientos. Hasta que se lea, el descarte
 del tope es una lectura, no una medida.
+**Y SE LEYÓ EL 28/10, con SQL_34_03**: el juez corrió con claude-haiku-5-5 y techo de 16.000; la salida en NOR-10 ↔
+CLI-12 fue de 5.306 a 7.683, del 33 % al 48 %, y el máximo de toda la tabla, 9.074, un 57 %. Sin truncamiento; lo emitido
+es lo publicado (cascada, puerta, frontera y sin atribuir a cero) y el tope de diez no se toca. **Nada se pierde en la
+cadena: el juez no escribe D** (cifras del arquitecto, de la salida que ejecutó el director; Code no la ha visto).
+**EL DECIMOTERCER ERROR DE LA MISMA CLASE, con el nombre del arquitecto (28/10/2026)**: anunció «4.096» en negrita cuando
+Code había escrito que no podía saber qué modelo corrió y que lo decía la base. Leyó «sin la variable, 4.096» y supuso
+que no había variable: afirmó una configuración que no había leído y construyó un razonamiento entero encima.
+
+---
+
+## ⚠️ LAS CONDICIONES DE UNA MEDICIÓN SON PARTE DE LA MEDICIÓN
+
+*Arquitecto, 28/10/2026, con su nombre.* Si un parámetro puede cambiar el resultado y no se guarda, la medida no es
+reproducible, y lo que se escribe sobre ella es una suposición. **El caso**: las dos tandas del 3.4 se midieron con el juez
+en Haiku 5.5, que no lleva temperatura en el cuerpo y corre con la de la API, creyendo que corría a 0,1; y el dato no se
+guardaba en ningún sitio. **LA FORMA OPERATIVA**: antes de una tanda que estrena algo, se comprueba que los parámetros de
+la llamada están en el registro; si no están, se añaden antes de medir. Desde el 28/10 lo están: cada petición del
+registro por llamada y cada `lecturaDeLasParejas[]` llevan `parametros` (`maxTokens`, `temperatura` y `esfuerzo`, o
+«sin_enviar»), leídos del cuerpo que se envía (`parametrosEnviados`, `lib/llm/anthropic-client.ts`).
+⚠️ *Code, 28/10*: que Haiku 5.5 no admite una temperatura distinta de 1 estaba escrito desde el 19/10, como confundido
+declarado antes de medir (`claude/Predicciones_F128_El_Modelo_Del_Juez.md`, cabecera; y `lib/analysis/modelo-del-juez.ts:43-47`).
+Lo que faltaba no era saberlo: era que la medida lo llevara consigo, y que quien leyera las tandas del 3.4 lo tuviera
+delante.
 
 ---
 
