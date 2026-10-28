@@ -21,33 +21,32 @@ export function estaCaducada(ahora: Date): boolean {
 }
 
 /**
- * ⚠️ EL TERCER CRITERIO, PENDIENTE (arquitecto, 28/10). Se MUEVE LITERAL desde `lib/analysis/excepcion-de-las-reglas.ts`, el
- * bloque del criterio del conflicto normativo, sin reescribir ni una palabra: reescribirlo daría dos definiciones del
- * conflicto normativo, que es lo que el dictamen de F-130 prohíbe. Si no cabe como pregunta, lo recorta el arquitecto,
- * no Code. Mientras esté vacío, la ruta de E3 responde 409 y no llama al modelo.
- */
-export const CRITERIO_TRES = '';
-
-/**
- * LA PREGUNTA CERRADA, texto del arquitecto (28/10), literal salvo dos cosas de Code: las marcas {{…}} donde él escribió
- * «<…>», y los dos trozos en párrafos separados (en su texto venían en una línea, «<texto del trozo a> <texto del trozo b>»).
- * Una pareja por llamada, así que la pareja es siempre la 1. ⚠️ Las dos últimas frases son la pieza del hueco por
- * pareja Y POR CRITERIO: «No las quites al implementar» (arquitecto).
+ * LA PREGUNTA CERRADA, texto del arquitecto (29/10), literal salvo las marcas {{…}} y la sangría de su mensaje. DOS
+ * preguntas, no tres (su corrección del 29/10: el bloque del juez no es un tercer criterio, es la pregunta del
+ * cumplimiento con sus guardas): A va al hueco 1, el dato; D al 2, el cumplimiento; y no compiten. El criterio del
+ * cumplimiento entra en {{CRITERIO_DEL_CUMPLIMIENTO}}, recortado del bloque del juez (`criterio-del-cumplimiento.ts`).
+ * Una pareja por llamada, así que la pareja es siempre la 1.
+ * ⚠️ «CONTESTAR A UNA NO TE EXIME…» y las dos líneas «HAY HALLAZGO SI LA RESPUESTA ES…» son las piezas que, si alguien
+ * las simplifica, devuelven el fallo; llevan mutante cada una. La pregunta del cumplimiento le ha fallado dos veces al
+ * arquitecto por su polaridad («sí» es lo normal y «no» es el hallazgo): por eso se marca qué respuesta es el hallazgo.
  */
 export const PREGUNTA_CERRADA = [
-  'PAREJA {{N}}: {{DOCUMENTO_1}}, trozo {{TROZO_A}} ↔ {{DOCUMENTO_2}}, trozo {{TROZO_B}}',
+  'PAREJA {{N}}: {{DOC_1}}, trozo {{TROZO_A}} ↔ {{DOC_2}}, trozo {{TROZO_B}}',
   '',
   '{{TEXTO_A}}',
   '',
   '{{TEXTO_B}}',
   '',
-  'Contesta a LAS TRES preguntas. Las tres son obligatorias y «no» es la respuesta normal.',
+  'Contesta a LAS DOS preguntas. Las dos son obligatorias.',
+  'CONTESTAR A UNA NO TE EXIME DE CONTESTAR A LA OTRA, ni cuando tu respuesta señale un hallazgo ni cuando no lo señale.',
   '',
-  '¿Dicen las dos cosas DISTINTAS sobre el MISMO dato?',
-  '¿Se pueden CUMPLIR LAS DOS A LA VEZ?',
-  '{{CRITERIO_TRES}}',
+  'PREGUNTA 1 · EL DATO',
+  '¿Dicen los dos textos cosas DISTINTAS sobre el MISMO dato?',
+  'HAY HALLAZGO SI LA RESPUESTA ES «SÍ». Si es sí, cita la frase literal de cada lado. Si es no, contesta «no» y pasa a la 2.',
   '',
-  'Para cada una: sí o no. Si es sí, la cita literal de cada lado. CONTESTAR «SÍ» A UNA NO TE EXIME DE CONTESTAR A LAS OTRAS DOS. CONTESTAR «NO» A UNA NO TE EXIME DE CONTESTAR A LAS OTRAS DOS.',
+  'PREGUNTA 2 · EL CUMPLIMIENTO',
+  '{{CRITERIO_DEL_CUMPLIMIENTO}}',
+  'HAY HALLAZGO SI LA RESPUESTA ES «NO»: si NO se pueden cumplir las dos a la vez. Si se pueden cumplir, contesta «sí» y no cites nada.',
 ].join('\n');
 
 /**
@@ -102,12 +101,13 @@ export function correspondencia(delVector: string | undefined, deLaBase: string)
 
 export interface DatosDeLaPareja { documento1: string; trozoA: number; textoA: string; documento2: string; trozoB: number; textoB: string }
 
-/** El prompt de E3 para una pareja. Sin el tercer criterio no se arma: el criterio es del arquitecto, y vacío es «pendiente». */
-export function construirPrompt(pareja: DatosDeLaPareja, criterioTres: string): { ok: true; prompt: string } | { ok: false; motivo: string } {
-  if (criterioTres.trim() === '') return { ok: false, motivo: 'el tercer criterio está vacío: pendiente de moverlo literal desde excepcion-de-las-reglas.ts' };
+/** El prompt de E3 para una pareja. Sin el criterio del cumplimiento no se arma: vacío es que el recorte no se pudo hacer. */
+export function construirPrompt(pareja: DatosDeLaPareja, criterioDelCumplimiento: string): { ok: true; prompt: string } | { ok: false; motivo: string } {
+  if (criterioDelCumplimiento.trim() === '') return { ok: false, motivo: 'el criterio del cumplimiento está vacío' };
   const valores: Record<string, string> = {
-    '{{N}}': '1', '{{DOCUMENTO_1}}': pareja.documento1, '{{TROZO_A}}': String(pareja.trozoA), '{{DOCUMENTO_2}}': pareja.documento2,
-    '{{TROZO_B}}': String(pareja.trozoB), '{{TEXTO_A}}': pareja.textoA, '{{TEXTO_B}}': pareja.textoB, '{{CRITERIO_TRES}}': criterioTres,
+    '{{N}}': '1', '{{DOC_1}}': pareja.documento1, '{{TROZO_A}}': String(pareja.trozoA), '{{DOC_2}}': pareja.documento2,
+    '{{TROZO_B}}': String(pareja.trozoB), '{{TEXTO_A}}': pareja.textoA, '{{TEXTO_B}}': pareja.textoB,
+    '{{CRITERIO_DEL_CUMPLIMIENTO}}': criterioDelCumplimiento,
   };
   // una sola pasada por la plantilla: un texto del cliente que contuviera una marca no se sustituye
   return { ok: true, prompt: PREGUNTA_CERRADA.replace(/\{\{[A-Z_0-9]+\}\}/g, m => valores[m] ?? m) };

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
-  CADUCA_EL, CRITERIO_TRES, PAREJAS_DE_E3, PREGUNTA_CERRADA, TROZOS, VECES_DE_E3,
+  CADUCA_EL, PAREJAS_DE_E3, PREGUNTA_CERRADA, TROZOS, VECES_DE_E3,
   construirPrompt, contarFiguras, correspondencia, coseno, estaCaducada, puestos,
 } from './medida-f130';
 
@@ -16,24 +16,25 @@ describe('las medidas temporales de F-130', () => {
     expect(estaCaducada(new Date(fecha))).toBe(true);
   });
 
-  it('EL TERCER CRITERIO ES DEL ARQUITECTO: vacío hasta que llegue, y sin él no se arma ningún prompt', () => {
-    expect(CRITERIO_TRES).toBe('');
-    expect(construirPrompt(PAREJA, CRITERIO_TRES)).toEqual({ ok: false, motivo: 'el tercer criterio está vacío: pendiente de moverlo literal desde excepcion-de-las-reglas.ts' });
+  it('SIN CRITERIO DEL CUMPLIMIENTO no se arma ningún prompt', () => {
+    expect(construirPrompt(PAREJA, '  ')).toEqual({ ok: false, motivo: 'el criterio del cumplimiento está vacío' });
   });
 
-  it('LA PREGUNTA, literal del arquitecto: las tres preguntas y las dos frases que obligan a contestar las tres', () => {
-    expect(PREGUNTA_CERRADA).toContain('Contesta a LAS TRES preguntas. Las tres son obligatorias y «no» es la respuesta normal.');
-    expect(PREGUNTA_CERRADA).toContain('¿Dicen las dos cosas DISTINTAS sobre el MISMO dato?\n¿Se pueden CUMPLIR LAS DOS A LA VEZ?\n{{CRITERIO_TRES}}');
-    expect(PREGUNTA_CERRADA).toContain('CONTESTAR «SÍ» A UNA NO TE EXIME DE CONTESTAR A LAS OTRAS DOS. CONTESTAR «NO» A UNA NO TE EXIME DE CONTESTAR A LAS OTRAS DOS.');
+  it('LA PREGUNTA, literal del arquitecto: DOS preguntas, lo que obliga a contestar las dos, y QUÉ RESPUESTA ES EL HALLAZGO en cada una', () => {
+    expect(PREGUNTA_CERRADA).toContain('Contesta a LAS DOS preguntas. Las dos son obligatorias.\n');
+    expect(PREGUNTA_CERRADA).toContain('CONTESTAR A UNA NO TE EXIME DE CONTESTAR A LA OTRA, ni cuando tu respuesta señale un hallazgo ni cuando no lo señale.');
+    expect(PREGUNTA_CERRADA).toContain('PREGUNTA 1 · EL DATO\n¿Dicen los dos textos cosas DISTINTAS sobre el MISMO dato?\nHAY HALLAZGO SI LA RESPUESTA ES «SÍ». Si es sí, cita la frase literal de cada lado. Si es no, contesta «no» y pasa a la 2.');
+    expect(PREGUNTA_CERRADA).toContain('PREGUNTA 2 · EL CUMPLIMIENTO\n{{CRITERIO_DEL_CUMPLIMIENTO}}\nHAY HALLAZGO SI LA RESPUESTA ES «NO»: si NO se pueden cumplir las dos a la vez. Si se pueden cumplir, contesta «sí» y no cites nada.');
+    expect(PREGUNTA_CERRADA).not.toContain('TRES');
   });
 
   it('EL PROMPT: cada marca en su sitio, los textos tal cual (también con «$» o con una marca dentro), y la pareja siempre la 1', () => {
-    const r = construirPrompt({ ...PAREJA, textoA: 'uno $& dos', textoB: 'trae {{CRITERIO_TRES}} dentro' }, 'TERCERO');
+    const r = construirPrompt({ ...PAREJA, textoA: 'uno $& dos', textoB: 'trae {{CRITERIO_DEL_CUMPLIMIENTO}} dentro' }, 'EL CRITERIO');
     expect(r.ok).toBe(true);
     if (!r.ok) return;
-    expect(r.prompt.startsWith('PAREJA 1: NOR-10_x.docx, trozo 4 ↔ CLI-12_x.docx, trozo 3\n\nuno $& dos\n\ntrae {{CRITERIO_TRES}} dentro\n\n')).toBe(true);
-    expect(r.prompt).toContain('¿Se pueden CUMPLIR LAS DOS A LA VEZ?\nTERCERO\n');
-    expect(r.prompt).not.toMatch(/\{\{(N|DOCUMENTO_1|TROZO_A|DOCUMENTO_2|TROZO_B|TEXTO_A|TEXTO_B)\}\}/);
+    expect(r.prompt.startsWith('PAREJA 1: NOR-10_x.docx, trozo 4 ↔ CLI-12_x.docx, trozo 3\n\nuno $& dos\n\ntrae {{CRITERIO_DEL_CUMPLIMIENTO}} dentro\n\n')).toBe(true);
+    expect(r.prompt).toContain('PREGUNTA 2 · EL CUMPLIMIENTO\nEL CRITERIO\nHAY HALLAZGO SI LA RESPUESTA ES «NO»');
+    expect(r.prompt).not.toMatch(/\{\{(N|DOC_1|TROZO_A|DOC_2|TROZO_B|TEXTO_A|TEXTO_B)\}\}/);
   });
 
   it('E3 EN LA CONDICIÓN REALISTA Y CON LAS DOS PAREJAS: NOR-10·4 ↔ CLI-12·3 y NOR-10·4 ↔ CLI-12·6, siete veces cada una', () => {
