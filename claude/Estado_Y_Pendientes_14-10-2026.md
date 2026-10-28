@@ -131,6 +131,91 @@ sus datos y eso sigue ahí, es un problema serio. Hoy quedan preguntas y respues
 y mensajes del agente (leído en el código por Code el 26/10; la salvedad, en `Modelo_De_Negocio.txt`). **No se hace
 todavía: es código de producto y lo revisa el arquitecto cuando toque.**
 
+## ⚠️ F-130 (28/10/2026): LA SEGUNDA PASADA POR PAREJAS — EL PLAN, A FALTA DE ARCHIVAR EL DICTAMEN
+
+**Fuente y lo que falta.** Lo de esta sección son decisiones del arquitecto, de sus mensajes del 28/10, sacadas del
+dictamen F-130 según su resumen. **La consulta y el dictamen están PENDIENTES DE ARCHIVAR**: su texto no ha llegado a
+Code (dos encargos seguidos sin él; regla nueva en el protocolo). Van a `claude/Consulta_Fable_F130_Que_Decide_Lo_Que_Un_Juez_Escribe.md`
+y `claude/Dictamen_Fable_F130_El_Umbral_Movil_Y_La_Pasada_Por_Parejas.md`, y las predicciones P-F130-1 a P-F130-11, sin
+resumir, a `claude/Predicciones_34_Conflicto_Normativo.md`. Hasta entonces, cualquier cita del dictamen aquí es del
+resumen del arquitecto. **Atribución**: las seis preguntas D1 a D6 del 28/10 (entre las 15:45 y las 19:45) las hizo **EL
+DIRECTOR**, directamente a Fable y sin pasar por el arquitecto; de ellas salen la decisión, el plan de tres semanas, el
+encaje con lo planeado y la comprobación de coherencia. Y un precedente de la consulta: su sección 0 («cómo queremos
+que nos contestes») **no le da a Fable nuestras opciones**, porque anclarle sale más caro que lo que informan.
+
+**LA DECISIÓN**: se construye la **segunda pasada por parejas**. No es un giro: la pasada 1 no se toca. Se añaden un
+enumerador de parejas en código, una pregunta cerrada por lote de parejas, y la unión con desduplicación por posición
+de cita. Dos a tres semanas, detrás de interruptor y en sombra. **Nada de eso se construye antes de E3.**
+
+**EL MECANISMO, con su nombre (del dictamen)**: no hay cola de prioridades, **hay un umbral móvil**. Y la hipótesis
+principal, nueva: **A TAPA A D**, por cobertura de actores compartidos (el modelo está entrenado para no repetirse, y A
+habla de las mismas dos figuras). Explicaría que D salga poco, que salga cuarta o quinta, y que el quinto conflicto
+sólo salga 5 de 13 teniendo superficie y marcador.
+
+**LA PAREJA COMPARTIDA** (hallazgo de Code, 28/10, leído en el corpus; interpretación del arquitecto): **el par NOR-10·4
+↔ CLI-12·3 lleva una mitad de A y una de D en cada lado** (NOR-10·4: la primera frase de §2.4, de D, y la segunda, del
+lado de A; CLI-12·3: la frase sembrada de A y la del principio de D). Por tanto la supresión NO desaparece dentro de la
+pregunta cerrada, porque A viaja en la misma pareja que D. **Lo que la neutraliza es EL HUECO OBLIGATORIO POR
+CRITERIO**: tres preguntas con respuesta obligatoria a cada una, de modo que A contesta la primera y D la tercera, y
+dejan de competir. **Eso es lo que hace que la pasada 2 funcione, no que la pregunta sea cerrada.** ⚠️ Si alguien
+simplifica la pieza al implementarla, la pasada 2 hereda el problema que viene a resolver.
+
+**LA SEMANA 0, SIN CÓDIGO DE PRODUCTO, Y EN ESTE ORDEN:**
+- **E3 VA PRIMERO, Y ES EL ÚNICO PORTERO**: la pregunta cerrada sobre la pareja de D, 7 veces. **Condición para
+  construir: 6 de 7 o más; si no llega, NO SE CONSTRUYE.** Se corre en la **condición REALISTA**, los dos trozos enteros
+  y A dentro (NOR-10·4 ↔ CLI-12·3). La condición limpia, las dos frases de D solas, se DESCARTA: daría 7 de 7 y no
+  mediría nada, porque el enumerador nunca entregará frases, entregará trozos. El texto de la pregunta lo escribe el
+  arquitecto (pendiente): tres criterios con respuesta obligatoria, y el tercero se MUEVE LITERAL desde
+  `lib/analysis/excepcion-de-las-reglas.ts`, sin reescribirlo. Herramienta: `app/api/admin/medida-f130/` (`8c9576dd`),
+  temporal, que caduca el 15/11/2026.
+- **E1**, cobertura por A: las dos mitades de A retiradas. P-F130-1: D pasa de 2 de 7 a 4 de 5 o más.
+- **E5**, curva de acumulación, 10 pasadas. P-F130-5: se aplana entre 7 y 9 distintos a partir de la sexta, y D aparece
+  antes de la quinta.
+- **P-F130-9**, informativa y no decisiva: el enumerador tiene DOS vías, vecinos vectoriales y solapamiento de términos.
+  · **Las figuras: SE CUMPLE** (Code, 28/10, contado en los trozos que produce hoy la indexación sobre `corpus-pruebas/`):
+    NOR-10·4, «Coordinador de Calidad» 3 (2 fuera de encabezados) y «Director Clínico» 2; CLI-12·3, 2 (1) y 2; CLI-12·6,
+    3 (2) y 1.
+  · **La vecindad vectorial**: PENDIENTE de que el director la mida con la misma herramienta (botón de vecindad), que
+    además comprueba por el TEXTO que cada vector es el trozo que creemos.
+  · ⚠️ **LA FRASE DEL ARQUITECTO DEL 28/10, que se queda escrita**: «Si eso no se cumple, el enumerador no encontraría a D
+    y el plan entero se cae en su primera pieza». **CORREGIDA por el arquitecto el mismo día**: era falsa; el enumerador
+    tiene dos vías y la de términos ya se cumple, así que la vectorial es informativa. E3 pasa delante.
+- **El texto del producto**: de «exhaustivo» a «cobertura medida». Texto, no código.
+
+**LO QUE SE ABSORBE O CAMBIA DE SITIO** (decisión del arquitecto, del dictamen):
+- **La fase 3.3, la segunda vuelta dirigida (F-116; en este estado, la sección 3.7)**: ABSORBIDA por la pasada 2. No se
+  construye aparte.
+- **La lista de datos examinados (F-120)**: ABSORBIDA. La lista de parejas preguntadas es exactamente eso, y la hace el
+  código.
+- **F-119**: el enumerador de parejas ES el guardado de lo que el retrieval tira. Su fase 2 sigue pendiente, pero sólo
+  para la selección de candidatos, que es otra cosa.
+- **La especie `conflicto_normativo` (F-129)**: pasa a ser **EL TERCER CRITERIO** de la pregunta cerrada. **No hay dos
+  definiciones**: el contrato del 3.4 no se tira, cambia de sitio.
+- **Las ventanas (F-127)** siguen siendo de la pasada 1 y no cambian.
+- **Las fichas** siguen siendo destino; la pasada 2 es su versión sin extracción y no las contradice.
+- **El verificador ciego (3.6, fase 3.2) SUBE DE IMPORTANCIA**: es el control de la pasada 2 y del E7.
+- **SE RETIRA LA PALABRA «EXHAUSTIVO» del producto.** Con la frase de Fable, entera, porque nos señala: «ninguna
+  respuesta anterior había cuestionado y debía haberse cuestionado». Eso incluye las del arquitecto.
+
+**EL ORDEN AL RETOMAR** (del dictamen): 3.1.2; 3.1.4 (caché); los cuatro casos del F-129, medidos ahora también en la
+pasada 2; la fase 2 del F-119, recortada; las ventanas de la fase 4; y el exhaustivo, que primero tiene que heredar la
+ventana del rápido, porque hoy lee menos. **Congelado con fecha**: tablas de Word, cola, búsqueda híbrida, fichas, y la
+migración de modelo de las tres etapas baratas.
+
+**LA ESTIMACIÓN, con la corrección al lado y no en su lugar**:
+- 27/10, del arquitecto, en conversación (no estaba escrita en el repositorio): «entre tres y cuatro jornadas para dejar
+  el 3.4 cerrado».
+- **28/10, corrección del arquitecto, con su nombre**: **dos o tres semanas más la semana 0**. No porque Fable infle
+  nada: la forma que teníamos NO PODÍA DAR COBERTURA POR CONSTRUCCIÓN, y eso no se sabía el 27.
+
+**⚠️ RIESGO ABIERTO, EL TROCEADOR** (advertencia de Code del 28/10; el arquitecto la extiende): Pinecone guarda los
+trozos de cuando se indexó, y si la indexación posterior a la purga usó otro troceador, los números de trozo podrían
+no corresponder. **Eso no afecta sólo a P-F130-9: afecta a TODO lo que se ha medido por número de trozo desde el
+25/10.** La herramienta de vecindad lo comprueba para los tres trozos de D comparando el TEXTO de cada vector con el de
+la base; el resto sigue sin comprobar.
+
+---
+
 ## 0. Lo que está en vuelo (18/10/2026)
 
 - **HECHO el 16/10**: las tres pasadas de NOR-10 desde la bandeja (12:45, 12:46 y 12:46 hora de

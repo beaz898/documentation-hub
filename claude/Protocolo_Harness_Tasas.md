@@ -1238,6 +1238,17 @@ qué significa. Y el número de puntos caza lo que la línea sola no caza: que s
 pierda un punto del medio al pegar, con el principio y el final intactos.
 
 
+## ⚠️ UN ENCARGO QUE DICE «EL CONTENIDO LITERAL QUE TE PASA EL DIRECTOR» SIN LLEVARLO DENTRO NO ES UN ENCARGO
+
+*Arquitecto, 28/10/2026, con su nombre.* Code no ve el proyecto de Claude ni las conversaciones: todo material externo
+le llega PEGADO. Un encargo que remite a un texto que no trae no se puede cumplir, y lo único correcto es devolverlo
+pidiendo el texto, no reconstruirlo a partir de un resumen. **El caso, dos veces seguidas el mismo día**: el encargo
+de archivar F-130 pedía «el contenido literal que te pasa el director» y no lo llevaba; y el siguiente traía, en el
+sitio de los dos textos, los marcadores «[DIRECTOR: pega aquí…]» sin rellenar. Las dos veces se archivó nada, y es lo
+que tenía que pasar.
+
+---
+
 ## ⚠️ UN ROJO NO PUEDE PASAR EN SILENCIO: la suite y el commit
 
 *Adoptada el 28/09/2026, a petición del arquitecto, a la TERCERA vez del mismo
