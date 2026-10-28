@@ -12,9 +12,12 @@
 --       los tokens de salida de cada llamada del juez de esa pareja (llamadasAlModelo.peticiones, etapa «juez»,
 --       resultado «ok»), el max_tokens que tocaba y la distancia al techo. A GRITOS si una llamada llega al 95 % o más.
 --       Al lado, en las parejas NOR-10 ↔ CLI-12, si se publicó D.
---       · EL TOPE NO ESTÁ GUARDADO EN LA BASE: se deduce del modelo, con las dos cifras del código (Code, 28/10):
---         claude-haiku-4-5-20251001 → 4.096 (lib/analysis/modelo-del-juez.ts:31) y claude-haiku-5-5 → 16.000 (:56).
---         Si ese código cambia, estas dos cifras se cambian con él. Con otro modelo, el tope sale DESCONOCIDO.
+--       · EL TOPE SALE DEL DATO desde el 28/10/2026: cada petición guarda lo que viajó en el cuerpo
+--         (peticiones[].parametros: maxTokens, temperatura y esfuerzo, o «sin_enviar»). En las filas de antes no está
+--         guardado, y el tope se DEDUCE del modelo con las dos cifras del código: claude-haiku-4-5-20251001 → 4.096
+--         (lib/analysis/modelo-del-juez.ts:31) y claude-haiku-5-5 → 16.000 (:56). La fila dice «del dato» o «deducido
+--         del modelo», y «condiciones sin guardar» cuando no hay temperatura ni esfuerzo que leer. Con otro modelo y sin
+--         dato, el tope sale DESCONOCIDO.
 --       · lecturaDeLasParejas[].tokensDeSalida SUMA las dos vueltas cuando el JSON no se pudo leer a la primera
 --         (lib/analysis/types.ts:287-290), así que la distancia al techo se mide por LLAMADA, no con esa suma.
 --       · D se reconoce por su cita del lado de NOR-10: un tramo literal (normalizado, 20 caracteres o más) del
@@ -102,15 +105,18 @@ lecturas AS (
 llamadas AS (
   -- cada llamada del juez que respondió, con su modelo, su vuelta y sus tokens de salida
   SELECT pa.doc, pa.n, q->>'pareja' AS pareja, q->>'modelo' AS modelo, (q->>'vuelta')::int AS vuelta,
-         (q->'tokens'->>'salida')::bigint AS salida
+         (q->'tokens'->>'salida')::bigint AS salida, q->'parametros' AS parametros
   FROM pasadas pa
   CROSS JOIN LATERAL jsonb_array_elements(CASE WHEN jsonb_typeof(pa.analysis->'llamadasAlModelo'->'peticiones') = 'array'
                                                THEN pa.analysis->'llamadasAlModelo'->'peticiones' ELSE '[]'::jsonb END) q
   WHERE q->>'etapa' = 'juez' AND q->>'resultado' = 'ok'
 ),
 techo AS (
-  SELECT ll.*, CASE ll.modelo WHEN 'claude-haiku-4-5-20251001' THEN 4096 WHEN 'claude-haiku-5-5' THEN 16000 END AS tope
+  SELECT ll.*, coalesce((ll.parametros->>'maxTokens')::int, de.tope) AS tope,
+         CASE WHEN ll.parametros->>'maxTokens' IS NOT NULL THEN 'del dato' WHEN de.tope IS NOT NULL THEN 'deducido del modelo' END AS origen_tope
   FROM llamadas ll
+  -- sólo para las filas de antes del 28/10, que no guardan el max_tokens enviado
+  CROSS JOIN LATERAL (SELECT CASE ll.modelo WHEN 'claude-haiku-4-5-20251001' THEN 4096 WHEN 'claude-haiku-5-5' THEN 16000 END AS tope) de
 ),
 publicadas_d AS (
   -- D publicada: cita del lado de NOR-10 que toca la primera frase de 2.4, en una pareja con CLI-12
@@ -208,8 +214,10 @@ FROM (
   -- 1 · EL TECHO: una fila por llamada del juez, con su pareja, su modelo, su salida y su tope
   SELECT '1 · el techo', te.doc || ' ' || te.n,
          coalesce(nm.name, te.pareja, '—') || ' · ' || coalesce(te.modelo, 'sin modelo') ||
-           CASE WHEN le.modelo IS DISTINCT FROM te.modelo THEN ' (⚠️ la lectura dice ' || coalesce(le.modelo, 'sin modelo') || ')' ELSE '' END,
-         'vuelta ' || te.vuelta || ' · salida ' || te.salida || ' de ' || coalesce(te.tope::text, 'TOPE DESCONOCIDO') ||
+           CASE WHEN le.modelo IS DISTINCT FROM te.modelo THEN ' (⚠️ la lectura dice ' || coalesce(le.modelo, 'sin modelo') || ')' ELSE '' END ||
+           CASE WHEN te.parametros IS NULL THEN ' · condiciones sin guardar'
+                ELSE ' · temperatura ' || coalesce(te.parametros->>'temperatura', '—') || ' · esfuerzo ' || coalesce(te.parametros->>'esfuerzo', '—') END,
+         'vuelta ' || te.vuelta || ' · salida ' || te.salida || ' de ' || coalesce(te.tope::text || ' ' || te.origen_tope, 'TOPE DESCONOCIDO') ||
            CASE WHEN te.tope IS NULL THEN '' ELSE ' (' || round(100.0 * te.salida / te.tope, 1) || ' %, faltan ' || (te.tope - te.salida) || ')' END ||
            ' · suma de la lectura: ' || coalesce(le.suma_salida::text, '—'),
          CASE WHEN te.tope IS NULL THEN 'TOPE DESCONOCIDO para este modelo'

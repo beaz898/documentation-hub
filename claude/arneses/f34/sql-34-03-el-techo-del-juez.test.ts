@@ -10,7 +10,8 @@ import { PGlite } from '@electric-sql/pglite';
  *   · NOR-10 2, Haiku 5.5: CLI-12 con dos vueltas, la primera al 100 %, D publicada con su especie y diez emitidas;
  *   · NOR-10 3, un modelo sin tope conocido y distinto del de la lectura, D publicada por una cita a caballo entre las
  *     dos frases de 2.4, y una respuesta sin la lista de contradicciones;
- *   · NOR-10 4: D sólo en un solapamiento descartado, que no cuenta como D muerta en la puerta;
+ *   · NOR-10 4: D sólo en un solapamiento descartado, que no cuenta como D muerta en la puerta; y la única llamada
+ *     con los parámetros guardados (28/10), cuyo tope sale del dato y no del modelo;
  *   · NOR-11 1: lo emitido depende de lo sin atribuir.
  * Ruido con la salida al techo: una pasada fuera de la ventana, otra de otra organización y otra de NOR-05. Una base
  * por fichero.
@@ -23,9 +24,9 @@ const H45 = 'claude-haiku-4-5-20251001', H55 = 'claude-haiku-5-5';
 const FRASE_DE_A = 'El Coordinador de Calidad no sustituye al Director Clínico en la responsabilidad última';
 
 type Fila = { bloque: string; pasada: string | null; a: string | null; b: string | null; c: string | null; d: string | null };
-const llamada = (etapa: string, pareja: string | null, modelo: string, salida: number, vuelta = 1, resultado = 'ok') =>
+const llamada = (etapa: string, pareja: string | null, modelo: string, salida: number, vuelta = 1, resultado = 'ok', parametros?: unknown) =>
   ({ n: 1, etapa, ...(pareja ? { pareja } : {}), modelo, vuelta, intento: 1, resultado, latenciaMs: 1, esperaMs: 0, comienzoMs: 0,
-     tokens: { entrada: 100, salida, escrituraCache: 0, lecturaCache: 0 } });
+     tokens: { entrada: 100, salida, escrituraCache: 0, lecturaCache: 0 }, ...(parametros ? { parametros } : {}) });
 const registro = (peticiones: unknown[], fuera = false) =>
   ({ peticiones, sinEtapa: 0, fueraDelDetalle: fuera ? { peticiones: 1, tokens: { entrada: 0, salida: 0, escrituraCache: 0, lecturaCache: 0 }, latenciaMs: 0, esperaMs: 0 } : null });
 const lectura = (doc: string, modelo: string, tokensDeSalida: number) => ({ documentId: doc, regimen: 'pareja_entera', modelo, tokensDeSalida });
@@ -90,7 +91,8 @@ async function sembrar(o: Opciones = {}) {
     judgments: [{ documentId: C12, documentName: 'CLI-12_manual.docx', contradictions: [], discarded: {},
                   descartesPorCita: [{ tipo: 'solapamiento', tema: 's', citaNuevo: 'puede recaer en el propio Director Clínico o en otro profesional', citaExistente: 'x' }] }],
     lecturaDeLasParejas: [lectura(C12, H45, 2000)],
-    llamadasAlModelo: registro([llamada('juez', C12, H45, 2000)]),
+    // con los parámetros guardados (28/10): el tope sale del dato, 2.048, y no del modelo, que daría 4.096
+    llamadasAlModelo: registro([llamada('juez', C12, H45, 2000, 1, 'ok', { maxTokens: 2048, temperatura: 0.1, esfuerzo: 'sin_enviar' })]),
   });
   await meter(ORG, '2026-10-26T22:25:00Z', 'NOR-11_x.docx', {
     discrepancies: [disc(C12, 'puede recaer en el propio Director Clínico o en otro profesional')],
@@ -170,19 +172,19 @@ describe('SQL_34_03, el techo del juez y lo que emitió', () => {
 
   it('1 · EL TECHO: una fila por llamada del juez con respuesta, su tope, el 95 % a gritos, y D al lado', async () => {
     expect(de(await correr(), '1 · el techo')).toEqual([
-      ['NOR-10 1', 'CLI-12_manual.docx · ' + H45, 'vuelta 1 · salida 4000 de 4096 (97.7 %, faltan 96) · suma de la lectura: 4000',
+      ['NOR-10 1', 'CLI-12_manual.docx · ' + H45 + ' · condiciones sin guardar', 'vuelta 1 · salida 4000 de 4096 deducido del modelo (97.7 %, faltan 96) · suma de la lectura: 4000',
         '⚠️⚠️ AL 95 % O MÁS DEL TOPE', 'D no publicada: muerta en la puerta de citas'],
-      ['NOR-10 1', 'CLI-13_instrucciones.docx · ' + H45, 'vuelta 1 · salida 1000 de 4096 (24.4 %, faltan 3096) · suma de la lectura: 1000',
+      ['NOR-10 1', 'CLI-13_instrucciones.docx · ' + H45 + ' · condiciones sin guardar', 'vuelta 1 · salida 1000 de 4096 deducido del modelo (24.4 %, faltan 3096) · suma de la lectura: 1000',
         'por debajo del 95 %', 'D: no aplica'],
-      ['NOR-10 2', 'CLI-12_manual.docx · ' + H55, 'vuelta 1 · salida 16000 de 16000 (100.0 %, faltan 0) · suma de la lectura: 25000',
+      ['NOR-10 2', 'CLI-12_manual.docx · ' + H55 + ' · condiciones sin guardar', 'vuelta 1 · salida 16000 de 16000 deducido del modelo (100.0 %, faltan 0) · suma de la lectura: 25000',
         '⚠️⚠️ AL 95 % O MÁS DEL TOPE', 'D PUBLICADA (norma_contra_norma)'],
-      ['NOR-10 2', 'CLI-12_manual.docx · ' + H55, 'vuelta 2 · salida 9000 de 16000 (56.3 %, faltan 7000) · suma de la lectura: 25000',
+      ['NOR-10 2', 'CLI-12_manual.docx · ' + H55 + ' · condiciones sin guardar', 'vuelta 2 · salida 9000 de 16000 deducido del modelo (56.3 %, faltan 7000) · suma de la lectura: 25000',
         'por debajo del 95 %', 'D PUBLICADA (norma_contra_norma)'],
-      ['NOR-10 3', 'CLI-12_manual.docx · claude-otro (⚠️ la lectura dice ' + H45 + ')', 'vuelta 1 · salida 3000 de TOPE DESCONOCIDO · suma de la lectura: 3000',
+      ['NOR-10 3', 'CLI-12_manual.docx · claude-otro (⚠️ la lectura dice ' + H45 + ')' + ' · condiciones sin guardar', 'vuelta 1 · salida 3000 de TOPE DESCONOCIDO · suma de la lectura: 3000',
         'TOPE DESCONOCIDO para este modelo', 'D PUBLICADA (sin especie)'],
-      ['NOR-10 4', 'CLI-12_manual.docx · ' + H45, 'vuelta 1 · salida 2000 de 4096 (48.8 %, faltan 2096) · suma de la lectura: 2000',
-        'por debajo del 95 %', 'D no publicada'],
-      ['NOR-11 1', 'CLI-12_manual.docx · ' + H45, 'vuelta 1 · salida 500 de 4096 (12.2 %, faltan 3596) · suma de la lectura: 500',
+      ['NOR-10 4', 'CLI-12_manual.docx · ' + H45 + ' · temperatura 0.1 · esfuerzo sin_enviar', 'vuelta 1 · salida 2000 de 2048 del dato (97.7 %, faltan 48) · suma de la lectura: 2000',
+        '⚠️⚠️ AL 95 % O MÁS DEL TOPE', 'D no publicada'],
+      ['NOR-11 1', 'CLI-12_manual.docx · ' + H45 + ' · condiciones sin guardar', 'vuelta 1 · salida 500 de 4096 deducido del modelo (12.2 %, faltan 3596) · suma de la lectura: 500',
         'por debajo del 95 %', 'D: no aplica'],
     ]);
   });
