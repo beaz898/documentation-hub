@@ -21,13 +21,34 @@ export function estaCaducada(ahora: Date): boolean {
 }
 
 /**
- * ⚠️ PENDIENTE DEL ARQUITECTO. El texto de la pregunta cerrada lo escribe él (28/10): tres criterios con respuesta
- * obligatoria a cada uno, y el TERCERO se mueve LITERAL desde `lib/analysis/excepcion-de-las-reglas.ts`, sin
- * reescribirlo, porque reescribirlo daría dos definiciones del conflicto normativo. Tiene que llevar `{{TEXTO_1}}` y
- * `{{TEXTO_2}}` una vez cada uno, donde van los dos trozos, y pedir la respuesta en JSON (se lee con `callLLMJson`).
- * Mientras esté vacío, la ruta de E3 responde 409 y no llama al modelo.
+ * ⚠️ EL TERCER CRITERIO, PENDIENTE (arquitecto, 28/10). Se MUEVE LITERAL desde `lib/analysis/excepcion-de-las-reglas.ts`, el
+ * bloque del criterio del conflicto normativo, sin reescribir ni una palabra: reescribirlo daría dos definiciones del
+ * conflicto normativo, que es lo que el dictamen de F-130 prohíbe. Si no cabe como pregunta, lo recorta el arquitecto,
+ * no Code. Mientras esté vacío, la ruta de E3 responde 409 y no llama al modelo.
  */
-export const PREGUNTA_CERRADA = '';
+export const CRITERIO_TRES = '';
+
+/**
+ * LA PREGUNTA CERRADA, texto del arquitecto (28/10), literal salvo dos cosas de Code: las marcas {{…}} donde él escribió
+ * «<…>», y los dos trozos en párrafos separados (en su texto venían en una línea, «<texto del trozo a> <texto del trozo b>»).
+ * Una pareja por llamada, así que la pareja es siempre la 1. ⚠️ Las dos últimas frases son la pieza del hueco por
+ * pareja Y POR CRITERIO: «No las quites al implementar» (arquitecto).
+ */
+export const PREGUNTA_CERRADA = [
+  'PAREJA {{N}}: {{DOCUMENTO_1}}, trozo {{TROZO_A}} ↔ {{DOCUMENTO_2}}, trozo {{TROZO_B}}',
+  '',
+  '{{TEXTO_A}}',
+  '',
+  '{{TEXTO_B}}',
+  '',
+  'Contesta a LAS TRES preguntas. Las tres son obligatorias y «no» es la respuesta normal.',
+  '',
+  '¿Dicen las dos cosas DISTINTAS sobre el MISMO dato?',
+  '¿Se pueden CUMPLIR LAS DOS A LA VEZ?',
+  '{{CRITERIO_TRES}}',
+  '',
+  'Para cada una: sí o no. Si es sí, la cita literal de cada lado. CONTESTAR «SÍ» A UNA NO TE EXIME DE CONTESTAR A LAS OTRAS DOS. CONTESTAR «NO» A UNA NO TE EXIME DE CONTESTAR A LAS OTRAS DOS.',
+].join('\n');
 
 /**
  * Los trozos que se miden, por código de documento y número de trozo de la generación activa. Cada uno lleva una
@@ -44,9 +65,13 @@ export type ClaveDeTrozo = keyof typeof TROZOS;
 /**
  * E3 EN LA CONDICIÓN REALISTA (arquitecto, 28/10): los dos trozos ENTEROS, con A dentro, y no las dos frases de D
  * solas. La condición limpia daría 7 de 7 y no mediría nada, porque el enumerador entregará trozos, no frases. Y el par
- * NOR-10·4 ↔ CLI-12·3 lleva una mitad de A y una de D en cada lado.
+ * NOR-10·4 ↔ CLI-12·3 lleva una mitad de A y una de D en cada lado. LAS DOS PAREJAS, siete veces cada una (arquitecto,
+ * 28/10, a partir de P-F130-9, que nombra §2.4–§3.1 y §2.4–§3.5): la condición realista no la especifica el dictamen.
  */
-export const PAREJA_DE_E3: { analizado: ClaveDeTrozo; candidato: ClaveDeTrozo } = { analizado: 'nor10_4', candidato: 'cli12_3' };
+export const PAREJAS_DE_E3: Array<{ analizado: ClaveDeTrozo; candidato: ClaveDeTrozo }> = [
+  { analizado: 'nor10_4', candidato: 'cli12_3' },
+  { analizado: 'nor10_4', candidato: 'cli12_6' },
+];
 export const VECES_DE_E3 = 7;
 
 export const FIGURAS = ['Coordinador de Calidad', 'Director Clínico'] as const;
@@ -75,14 +100,17 @@ export function correspondencia(delVector: string | undefined, deLaBase: string)
   return { estado: 'distinto', separaEn: i, largoVector: delVector.length, largoBase: deLaBase.length };
 }
 
-/** El prompt de E3: la pregunta con los dos trozos en sus marcas. Cada marca tiene que estar exactamente una vez. */
-export function construirPrompt(pregunta: string, texto1: string, texto2: string): { ok: true; prompt: string } | { ok: false; motivo: string } {
-  if (pregunta.trim() === '') return { ok: false, motivo: 'la pregunta cerrada está vacía: pendiente del arquitecto' };
-  for (const marca of ['{{TEXTO_1}}', '{{TEXTO_2}}']) {
-    const n = pregunta.split(marca).length - 1;
-    if (n !== 1) return { ok: false, motivo: `la marca ${marca} sale ${n} veces y tiene que salir una` };
-  }
-  return { ok: true, prompt: pregunta.replace('{{TEXTO_1}}', () => texto1).replace('{{TEXTO_2}}', () => texto2) };
+export interface DatosDeLaPareja { documento1: string; trozoA: number; textoA: string; documento2: string; trozoB: number; textoB: string }
+
+/** El prompt de E3 para una pareja. Sin el tercer criterio no se arma: el criterio es del arquitecto, y vacío es «pendiente». */
+export function construirPrompt(pareja: DatosDeLaPareja, criterioTres: string): { ok: true; prompt: string } | { ok: false; motivo: string } {
+  if (criterioTres.trim() === '') return { ok: false, motivo: 'el tercer criterio está vacío: pendiente de moverlo literal desde excepcion-de-las-reglas.ts' };
+  const valores: Record<string, string> = {
+    '{{N}}': '1', '{{DOCUMENTO_1}}': pareja.documento1, '{{TROZO_A}}': String(pareja.trozoA), '{{DOCUMENTO_2}}': pareja.documento2,
+    '{{TROZO_B}}': String(pareja.trozoB), '{{TEXTO_A}}': pareja.textoA, '{{TEXTO_B}}': pareja.textoB, '{{CRITERIO_TRES}}': criterioTres,
+  };
+  // una sola pasada por la plantilla: un texto del cliente que contuviera una marca no se sustituye
+  return { ok: true, prompt: PREGUNTA_CERRADA.replace(/\{\{[A-Z_0-9]+\}\}/g, m => valores[m] ?? m) };
 }
 
 /** El puesto (desde 1) de cada id objetivo en una lista de resultados ordenada, o null si no salió. */
