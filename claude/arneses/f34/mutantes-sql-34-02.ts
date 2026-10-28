@@ -5,7 +5,7 @@ export const definicion: Definicion = {
   fichero: 'SQL_34_02_el_material_del_diagnostico_de_d.sql',
   arnes: 'claude/arneses/f34',
   proyecto: 'arneses',
-  tests: 16,
+  tests: 22,
   mutantes: [
     { nombre: 'la resolución no exige UNA pertenencia', ancla: '         CASE WHEN count(m.org_id) = 1 THEN min(m.org_id::text) END AS org', cambio: '         min(m.org_id::text) AS org' },
     { nombre: 'la organización leída deja de ir primera', ancla: "ORDER BY (bloque <> 'organización leída'), bloque,", cambio: 'ORDER BY bloque,' },
