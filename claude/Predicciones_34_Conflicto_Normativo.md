@@ -151,7 +151,7 @@ tanda.
 
 # F-130 · LAS ONCE PREDICCIONES DEL DICTAMEN (28/10/2026)
 
-*Copiadas LITERALES de `claude/Dictamen_Fable_F130_El_Umbral_Movil_Y_La_Pasada_Por_Parejas.md`, sin resumir. Las
+*Copiadas LITERALES de `claude/consultas-fable/F-130_2026-10-28_que-decide-lo-que-un-juez-escribe.md`, sin resumir. Las
 predicciones son de Fable. Donde una sale dos veces en el dictamen, con palabras distintas, van las dos, cada una con su
 sitio. Lo único que añade Code son las líneas «Sitio».*
 

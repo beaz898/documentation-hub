@@ -133,9 +133,8 @@ todavía: es código de producto y lo revisa el arquitecto cuando toque.**
 
 ## ⚠️ F-130 (28/10/2026): LA SEGUNDA PASADA POR PAREJAS — EL PLAN
 
-**Fuente.** El par está archivado: la consulta en `claude/Consulta_Fable_F130_Que_Decide_Lo_Que_Un_Juez_Escribe.md` y el
-dictamen en `claude/Dictamen_Fable_F130_El_Umbral_Movil_Y_La_Pasada_Por_Parejas.md` (cotejo en su cabecera; fila en
-`claude/consultas-fable/INDICE.md`). Las once predicciones, literales, en `claude/Predicciones_34_Conflicto_Normativo.md`.
+**Fuente.** El par está archivado en un solo fichero, como la casa: `claude/consultas-fable/F-130_2026-10-28_que-decide-lo-que-un-juez-escribe.md`
+(consulta en (c), dictamen en (d), cotejo en su cabecera; fila en `claude/consultas-fable/INDICE.md`). Las once predicciones, literales, en `claude/Predicciones_34_Conflicto_Normativo.md`.
 Las citas entre comillas de esta sección son del dictamen; lo demás dice de quién es. **Atribución**: las seis preguntas
 D1 a D6 del 28/10 (entre las 15:45 y las 19:45) las hizo **EL DIRECTOR**, directamente a Fable y sin pasar por el
 arquitecto; de ellas salen la decisión, el plan exacto, su encaje con lo planeado y la comprobación de coherencia. Y un
@@ -172,6 +171,8 @@ llevársela a Fable, primero el dictamen, literal:
 - *(Code añade, porque es el mismo punto)* P5: «una pregunta con solo esos dos pasajes y su contexto: “¿afirman valores
   distintos del mismo dato, o enuncian normas que no pueden cumplirse a la vez, o ninguna?”. Tres salidas, cerradas, con
   citas de los dos pasajes como puntero.» Es una pregunta con tres salidas excluyentes: UNA respuesta por pareja.
+  **El arquitecto (29/10), con esta cita delante**: «una sola respuesta por pareja eligiendo entre tres salidas es
+  EXACTAMENTE el diseño que deja que A desplace a D». Remata la discrepancia.
 
 La discrepancia, en palabras del arquitecto: **un hueco por pareja NO BASTA.** En la pareja NOR-10·4 ↔ CLI-12·3 viajan A
 y D juntas. Si el formato pide UNA respuesta por pareja, el modelo contesta A —la fácil, la directa, la que siempre
@@ -182,21 +183,37 @@ entre que el plan funcione y que herede el fallo que viene a corregir. ⚠️ Si
 implementarla, la pasada 2 hereda el problema.
 *Corrección de lo escrito el mismo día*: la versión anterior de esta sección atribuía el «hueco obligatorio por
 criterio» a la lectura del dictamen. El dictamen dice «por pareja»; «por pareja y por criterio» es del arquitecto.
+⚠️ **CORRECCIÓN DEL ARQUITECTO, 29/10, al lado de su «TRES RESPUESTAS» y no en su lugar: ERAN DOS CRITERIOS, NO TRES.**
+«Mi esquema estaba mal de anatomía.» `excepcion-de-las-reglas.ts` NO es un tercer criterio: es la pregunta del
+CUMPLIMIENTO con sus guardas, más la ETIQUETA de la especie, más el FORMATO DE SALIDA, y su pregunta central es la
+pregunta 2. Con DOS huecos basta, y basta justo donde importa: **A es un hallazgo del DATO y va al hueco 1; D es del
+CUMPLIMIENTO y va al hueco 2. NO COMPITEN.** El hueco es por pareja y por criterio: dos respuestas obligatorias por pareja.
 
 **LA SEMANA 0, SIN CÓDIGO DE PRODUCTO.** El dictamen la lista así: «E3: pregunta cerrada sobre la pareja de D, 7 veces.
 Condición para construir: 6 de 7 o más. E1 y E5: cobertura por A, y curva de acumulación con 10 pasadas. Media hora. […]
 Comprobación de Code: los trozos de D son vecinos vectoriales y comparten las dos figuras. Cambio de texto del producto:
 de “exhaustivo” a “cobertura medida”. Texto, no código.» Y el arquitecto fija el orden y la forma:
 - **E3 VA PRIMERO, Y ES EL ÚNICO PORTERO.** **Si no llega a 6 de 7, NO SE CONSTRUYE.**
-  · **LAS DOS PAREJAS, siete veces cada una** (arquitecto, 28/10): NOR-10·4 ↔ CLI-12·3 y NOR-10·4 ↔ CLI-12·6. Lo saca
-    de P-F130-9, que nombra las dos («las parejas §2.4–§3.1 y §2.4–§3.5»). *Nota de Code*: el texto de E3 dice «la
-    pareja de D», en singular; la extensión a las dos es la lectura del arquitecto a partir de P-F130-9.
+  · **LAS DOS PAREJAS, siete veces cada una — LECTURA DEL ARQUITECTO, NO DEL DICTAMEN**: NOR-10·4 ↔ CLI-12·3 y NOR-10·4
+    ↔ CLI-12·6. *Nota de Code*: P-F130-9 nombra dos parejas («§2.4–§3.1 y §2.4–§3.5»), pero para el ENUMERADOR; el texto
+    de E3 dice «la pareja de D», en singular. El arquitecto escribió primero «es del dictamen; no es una decisión mía» y
+    lo corrigió él el 29/10: «Falso […] Extenderlo a las dos es MI lectura».
   · **EN LA CONDICIÓN REALISTA — AÑADIDO DEL ARQUITECTO, el dictamen no especifica la condición de E3**: los trozos
     enteros, con A dentro. La condición limpia, las dos frases de D solas, se DESCARTA: daría 7 de 7 y no mediría nada,
     porque el enumerador entregará trozos, nunca frases.
-  · **El texto de la pregunta**: los dos primeros criterios y el formato son del arquitecto (28/10), con las tres
-    respuestas obligatorias; el tercero se MUEVE LITERAL desde `lib/analysis/excepcion-de-las-reglas.ts`, sin reescribir
-    ni una palabra, y si no cabe como pregunta, el arquitecto lo recorta, no Code.
+  · **El texto de la pregunta** (arquitecto, 29/10): DOS preguntas, el DATO y el CUMPLIMIENTO, con «CONTESTAR A UNA NO TE
+    EXIME DE CONTESTAR A LA OTRA» y, en cada una, QUÉ RESPUESTA ES EL HALLAZGO (en la 1, «sí»; en la 2, «no»). La 2 lleva
+    el criterio del cumplimiento RECORTADO del bloque del juez por la cirugía del arquitecto, ejecutada por Code sobre los
+    bytes del fichero: se quitan el arranque, la frase del campo, «ORDEN OBLIGATORIO» y el JSON; se quedan literales las
+    guardas, las dos definiciones, los ejemplos y el bloque del principio; y las remisiones al formato viejo («NO lleva el
+    campo», «es una CONTRADICCIÓN NORMAL») pasan a decir que ese caso es un hallazgo de la PREGUNTA 1. No es una copia: la
+    herramienta lo DERIVA del bloque del juez (`app/api/admin/medida-f130/criterio-del-cumplimiento.ts`), y si el bloque
+    cambia, el recorte se niega.
+    **EL RECORTE SALE MÁS LIMPIO QUE EL ORIGINAL PORQUE EL FORMATO DE DOS HUECOS LES DA UN DESTINO** (arquitecto, 29/10):
+    en el prompt viejo, el teletrabajo y el semanal frente al mensual «no llevaban el campo» y se quedaban sin sitio; con
+    dos huecos dejan de ser excepciones y pasan a ser respuestas del hueco 1.
+    ⚠️ *El arquitecto lo pidió (29/10)*: la pregunta del cumplimiento le ha fallado dos veces por su polaridad, y no se
+    escribe sin marcar qué respuesta es el hallazgo (regla en el protocolo).
   · Herramienta: `app/api/admin/medida-f130/` (`8c9576dd`), temporal, que caduca el 15/11/2026.
 - **E1**, cobertura por A, y **E5**, curva de acumulación (P-F130-1 y P-F130-5).
 - **P-F130-9, informativa y no decisiva**: el enumerador tiene DOS vías, vecinos vectoriales y solapamiento de términos.

@@ -1238,6 +1238,22 @@ qué significa. Y el número de puntos caza lo que la línea sola no caza: que s
 pierda un punto del medio al pegar, con el principio y el final intactos.
 
 
+## ⚠️ LA PREGUNTA DEL CUMPLIMIENTO NO SE ESCRIBE SIN MARCAR QUÉ RESPUESTA ES EL HALLAZGO
+
+*Arquitecto, 29/10/2026, con su nombre.* «¿Se pueden cumplir las dos a la vez?» tiene la polaridad al revés que las
+demás preguntas de la casa: lo normal es «sí» y el hallazgo es «no». **Le ha fallado al arquitecto DOS veces:**
+  1. **En el diseño del 3.4 (26/10)**: contestaba «sí» siempre que una de las reglas fuera un permiso (basta con no
+     usarlo), y D habría muerto en el contador que se diseñó como control negativo (la tercera trampa de «CUATRO VECES EN
+     UN DÍA», arriba).
+  2. **En la pregunta cerrada de E3 (28/10)**: el formato decía «"no" es la respuesta normal» y «si es sí, la cita
+     literal de cada lado», justo al revés para esa pregunta. Lo marcó Code.
+**LA FORMA OPERATIVA**: la pregunta se deja LITERAL —las guardas del contrato están escritas alrededor de esas palabras
+exactas, y darle la vuelta las rompería— y a su lado se escribe, pregunta por pregunta, **QUÉ RESPUESTA ES EL HALLAZGO**
+(«HAY HALLAZGO SI LA RESPUESTA ES «NO»»). Y esa línea lleva mutante: es la pieza que, si alguien la simplifica, devuelve
+el fallo.
+
+---
+
 ## ⚠️ UN ENCARGO QUE DICE «EL CONTENIDO LITERAL QUE TE PASA EL DIRECTOR» SIN LLEVARLO DENTRO NO ES UN ENCARGO
 
 *Arquitecto, 28/10/2026, con su nombre.* Code no ve el proyecto de Claude ni las conversaciones: todo material externo
