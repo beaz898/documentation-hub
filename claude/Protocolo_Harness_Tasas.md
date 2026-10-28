@@ -1288,6 +1288,21 @@ prueba que exige que el texto viejo NO esté y el nuevo SÍ, con sus mutantes (`
 dos días, los dos del arquitecto: el contador de «publicada sin especie» (26/10) y «cita §3.1» (27/10), que habría
 salido cierta siempre porque A cita §3.1 en todas las pasadas. **LA FORMA OPERATIVA: al escribir una predicción,
 preguntarse qué resultado la haría fallar; si no hay ninguno, no se escribe.**
+**Y SU HERMANA: UNA EXPLICACIÓN QUE NO SE PUEDE COMPROBAR TAMPOCO ES UNA EXPLICACIÓN** (arquitecto, 28/10/2026, con su
+nombre). El caso: para explicar que D saliera en una pasada de ocho, el arquitecto escribió «las fáciles ganan, D compite
+por la atención». **No era comprobable.** El director propuso una causa concreta que SÍ se podía comprobar: el tope de
+«Máximo 10 contradicciones» del prompt del juez (`lib/analysis/judge.ts:924`). En la lectura del arquitecto, los datos la
+descartan: el tope es diez y los análisis dieron entre cuatro y seis hallazgos, así que nadie se queda fuera por falta
+de sitio. Y al descartar la del director se descarta también la suya, porque sin escasez de plazas «competir» no señala
+ningún mecanismo: era una metáfora. **La hipótesis comprobable la puso el director, no el arquitecto.** LA FORMA
+OPERATIVA: una explicación nombra un mecanismo que algún dato podría desmentir; si ninguno puede, se escribe como
+metáfora o no se escribe.
+⚠️ *Code, 28/10*: los «entre cuatro y seis» son hallazgos PUBLICADOS, después de la puerta de citas y del verificador.
+El tope del prompt se aplica a lo que el juez EMITE en cada pareja, y eso no consta en esas cifras. Lo que emitió el
+juez, por pareja, lo lleva el código en `DocumentJudgment.discarded` (los descartes de la frontera, de la puerta y de
+la cascada, fundidos en `pipeline.ts:663-666`) y en `descartesPorCita`; que esos campos lleguen al jsonb guardado está
+SIN COMPROBAR en la base, y `citaNoVerificable` mezcla contradicciones y solapamientos. Hasta que se lea, el descarte
+del tope es una lectura, no una medida.
 
 ---
 
