@@ -6,11 +6,13 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
  * el dial de esfuerzo fijado en `medium`. Y el modelo usado queda en la lectura de cada pareja.
  */
 const opciones: Record<string, unknown>[] = [];
+// 28/10: lo que el cliente leyó del cuerpo enviado; el juez lo guarda tal cual, sin calcularlo él
+const PARAMETROS = { maxTokens: 777, temperatura: 'sin_enviar', esfuerzo: 'marca' };
 vi.mock('./llm-client', () => ({
   callLLMJson: async (_prompt: string, opts: Record<string, unknown>) => {
     opciones.push(opts);
     // La API respondió con 123 tokens de salida: el juez tiene que guardarlos en la lectura.
-    (opts.alTerminar as ((u: { outputTokens: number }) => void) | undefined)?.({ outputTokens: 123 });
+    (opts.alTerminar as ((u: { outputTokens: number; parametros: unknown }) => void) | undefined)?.({ outputTokens: 123, parametros: PARAMETROS });
     return { overlapPercent: 0, verdict: 'tema_distinto', contradictions: [], overlappingContent: [], uniqueToNewDoc: [] };
   },
   callLLM: async () => '',
@@ -49,6 +51,7 @@ describe('el modelo del juez', () => {
     expect(opts).not.toHaveProperty('sinTemperatura');
     expect(lectura.modelo).toBe(HAIKU_MODEL);
     expect(lectura.tokensDeSalida).toBe(123);
+    expect(lectura.parametros).toEqual(PARAMETROS);
   });
 
   it('con claude-haiku-5-5: Haiku 5.5, SIN temperatura, 16.000 de salida y el dial en medium; la lectura lo dice', async () => {
@@ -58,6 +61,7 @@ describe('el modelo del juez', () => {
     expect(opts).not.toHaveProperty('temperature');
     expect(lectura.modelo).toBe(HAIKU_55_MODEL);
     expect(lectura.tokensDeSalida).toBe(123);
+    expect(lectura.parametros).toEqual(PARAMETROS);
   });
 
   it('⚠️ CONTROL — cualquier otro valor deja Haiku 4.5 y lo dice en el log', () => {

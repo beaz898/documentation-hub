@@ -105,8 +105,10 @@ describe('el registro por llamada al modelo (3.1.1, paso 2)', () => {
     const s = JSON.stringify(registro);
     expect(s).not.toContain(MARCA);
     expect(s).not.toContain('"ok":true');                      // la respuesta del modelo tampoco
+    // 28/10: «parametros», las condiciones de la llamada; sólo números y el nivel de esfuerzo, ningún contenido
     expect(Object.keys(registro.peticiones[0]).sort()).toEqual(
-      ['comienzoMs', 'entradaEstimada', 'esperaMs', 'estadoHttp', 'etapa', 'intento', 'latenciaMs', 'modelo', 'n', 'pareja', 'resultado', 'tokens', 'vuelta']);
+      ['comienzoMs', 'entradaEstimada', 'esperaMs', 'estadoHttp', 'etapa', 'intento', 'latenciaMs', 'modelo', 'n', 'parametros', 'pareja', 'resultado', 'tokens', 'vuelta']);
+    expect(Object.keys(registro.peticiones[0].parametros ?? {}).sort()).toEqual(['esfuerzo', 'maxTokens', 'temperatura']);
   });
 
   it('LA SUMA POR MODELO NO CAMBIA: con y sin registro, el acumulador de uso da lo mismo', async () => {

@@ -14,7 +14,7 @@ import {
   EST_OUTPUT_TOKENS,
 } from './rate-limiter';
 import { recordToContext } from '@/lib/observability/usage-context';
-import { apuntarPeticion, type DatosDeLaLlamada, type EtiquetaDeLlamada } from '@/lib/observability/registro-de-llamadas';
+import { apuntarPeticion, type DatosDeLaLlamada, type EtiquetaDeLlamada, type ParametrosEnviados } from '@/lib/observability/registro-de-llamadas';
 import { leerTextoDeLaRespuesta } from './texto-de-la-respuesta';
 import { HAIKU_MODEL, SONNET_MODEL } from './modelos';
 
@@ -55,7 +55,7 @@ export interface CallOptions {
   sinTemperatura?: boolean;
   /** F-128: se llama con los tokens de salida de CADA respuesta de la API de esta llamada (dos si
    *  hubo reintento por JSON mal formado). Hoy sólo lo usa el juez, para guardarlos en su lectura. */
-  alTerminar?: (uso: { outputTokens: number }) => void;
+  alTerminar?: (uso: { outputTokens: number; parametros: ParametrosEnviados }) => void;
   /** 3.1.1 (21/10/2026): qué etapa hace la llamada, para el registro por llamada
    *  (`lib/observability/registro-de-llamadas.ts`). NO VIAJA A LA API: `buildPayload` y
    *  `buildHeaders` no lo leen, y la prueba de cuerpo lo vigila byte a byte. */
@@ -75,6 +75,7 @@ interface RawResult {
   outputTokens: number;
   cacheCreationTokens: number;
   cacheReadTokens: number;
+  parametros: ParametrosEnviados;
 }
 
 interface TextResult {
@@ -83,6 +84,7 @@ interface TextResult {
   outputTokens: number;
   cacheCreationTokens: number;
   cacheReadTokens: number;
+  parametros: ParametrosEnviados;
 }
 
 // ── Constructores de payload / headers ─────────────────────────────────────────
@@ -125,6 +127,20 @@ function buildPayload(prompt: string, opts: CallOptions): Record<string, unknown
   return payload;
 }
 
+/**
+ * LAS CONDICIONES DE LA LLAMADA, LEÍDAS DEL CUERPO QUE SE ENVÍA (28/10/2026). Del objeto que va a la API, no de las
+ * opciones: así el registro dice lo que viajó, también si mañana `buildPayload` cambia un defecto. Un campo que no
+ * está en el cuerpo es «sin_enviar», que no es lo mismo que su valor por defecto en la API.
+ */
+export function parametrosEnviados(payload: Record<string, unknown>): ParametrosEnviados {
+  const config = payload.output_config as { effort?: unknown } | undefined;
+  return {
+    maxTokens: Number(payload.max_tokens),
+    temperatura: typeof payload.temperature === 'number' ? payload.temperature : 'sin_enviar',
+    esfuerzo: typeof config?.effort === 'string' ? config.effort : 'sin_enviar',
+  };
+}
+
 function buildHeaders(opts: CallOptions): Record<string, string> {
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
@@ -142,9 +158,12 @@ const SIN_TOKENS = { entrada: 0, salida: 0, escrituraCache: 0, lecturaCache: 0 }
 async function callAnthropicRaw(
   payload: Record<string, unknown>,
   headers: Record<string, string>,
-  datos: DatosDeLaLlamada,
+  datosDeLaLlamada: DatosDeLaLlamada,
 ): Promise<RawResult> {
   let lastError = 'unknown';
+  // 28/10/2026: cada intento se apunta con lo que lleva el cuerpo, que es el mismo en todos los intentos
+  const parametros = parametrosEnviados(payload);
+  const datos: DatosDeLaLlamada = { ...datosDeLaLlamada, parametros };
 
   for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
     // 3.1.1: la espera de ANTES de esta petición —el backoff entre intentos; en el primero, la que traiga
@@ -182,6 +201,7 @@ async function callAnthropicRaw(
         outputTokens:        usageRaw?.output_tokens               ?? 0,
         cacheCreationTokens: usageRaw?.cache_creation_input_tokens ?? 0,
         cacheReadTokens:     usageRaw?.cache_read_input_tokens     ?? 0,
+        parametros,
       };
       apuntarPeticion(datos, { intento: attempt + 1, resultado: 'ok', estadoHttp: res.status, latenciaMs: Date.now() - t0, tokens: {
         entrada: resultado.inputTokens, salida: resultado.outputTokens,
@@ -207,7 +227,7 @@ async function callAnthropicTextWithTokens(
   via: 'json' | 'texto',
   vuelta: Pick<DatosDeLaLlamada, 'vuelta' | 'entradaEstimada' | 'esperaAntesMs' | 'comienzoDeLaEspera'> = { vuelta: 1 },
 ): Promise<TextResult> {
-  const { body, inputTokens, outputTokens, cacheCreationTokens, cacheReadTokens } = await callAnthropicRaw(
+  const { body, inputTokens, outputTokens, cacheCreationTokens, cacheReadTokens, parametros } = await callAnthropicRaw(
     buildPayload(prompt, opts),
     buildHeaders(opts),
     { etiqueta: opts.etiqueta, modelo: modeloDe(opts), ...vuelta },
@@ -215,7 +235,7 @@ async function callAnthropicTextWithTokens(
   // F-122 P5: todos los bloques de texto, no sólo el primero (texto-de-la-respuesta.ts).
   const text = leerTextoDeLaRespuesta(body, `${via} · ${modeloDe(opts)}`);
   if (!text) throw new Error('Empty text response from Anthropic');
-  return { text, inputTokens, outputTokens, cacheCreationTokens, cacheReadTokens };
+  return { text, inputTokens, outputTokens, cacheCreationTokens, cacheReadTokens, parametros };
 }
 
 // ── Respuestas de texto — sin rate limiting (función interna) ──────────────────
@@ -384,7 +404,7 @@ export async function callAnthropicJson<T = unknown>(
       { vuelta: 1, entradaEstimada: estInput, esperaAntesMs: esperaDelLimitador, comienzoDeLaEspera: antesDelLimitador });
     finalInput  = r1.inputTokens;
     finalOutput = r1.outputTokens;
-    adjustedOpts.alTerminar?.({ outputTokens: r1.outputTokens });
+    adjustedOpts.alTerminar?.({ outputTokens: r1.outputTokens, parametros: r1.parametros });
     recordToContext(jsonModelId, {
       inputTokens:         r1.inputTokens,
       outputTokens:        r1.outputTokens,
@@ -403,7 +423,7 @@ export async function callAnthropicJson<T = unknown>(
         { vuelta: 2, entradaEstimada: estInput, esperaAntesMs: Date.now() - antesDeLaPausa, comienzoDeLaEspera: antesDeLaPausa });
       finalInput  = r2.inputTokens;
       finalOutput = r2.outputTokens;
-      adjustedOpts.alTerminar?.({ outputTokens: r2.outputTokens });
+      adjustedOpts.alTerminar?.({ outputTokens: r2.outputTokens, parametros: r2.parametros });
       recordToContext(jsonModelId, {
         inputTokens:         r2.inputTokens,
         outputTokens:        r2.outputTokens,

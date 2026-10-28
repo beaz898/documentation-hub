@@ -67,6 +67,18 @@ export interface EtiquetaDeLlamada {
 
 export interface CuatroCifras { entrada: number; salida: number; escrituraCache: number; lecturaCache: number }
 
+/**
+ * LAS CONDICIONES DE LA LLAMADA, leídas del cuerpo que se ENVÍA (arquitecto, 28/10/2026): las dos tandas del 3.4
+ * corrieron con el juez en Haiku 5.5, sin `temperature` en el cuerpo, y el dato no estaba guardado en ningún sitio.
+ * «sin_enviar» NO es 1 ni es el defecto: es que el campo no viajó, y lo que haga la API entonces no lo sabe el
+ * registro. Las saca `parametrosEnviados` (lib/llm/anthropic-client.ts) del mismo objeto que va a la API.
+ */
+export interface ParametrosEnviados {
+  maxTokens: number;
+  temperatura: number | 'sin_enviar';
+  esfuerzo: string | 'sin_enviar';
+}
+
 export interface PeticionRegistrada {
   /** Orden de la petición dentro del registro, desde 1. */
   n: number;
@@ -90,6 +102,8 @@ export interface PeticionRegistrada {
   tokens: CuatroCifras;
   /** La estimación de entrada del limitador (la longitud del payload entre 4), donde se calcula: para compararla. */
   entradaEstimada?: number;
+  /** 28/10/2026. AUSENTE en los análisis de antes de ese día. */
+  parametros?: ParametrosEnviados;
 }
 
 export interface RegistroDeLlamadas {
@@ -119,6 +133,8 @@ export interface DatosDeLaLlamada {
   etiqueta?: EtiquetaDeLlamada; modelo: string; vuelta: number; entradaEstimada?: number;
   /** Lo esperado antes del primer intento de esta vuelta (el limitador, o la pausa de la vuelta 2), y cuándo empezó. */
   esperaAntesMs?: number; comienzoDeLaEspera?: number;
+  /** Lo que lleva el cuerpo de la petición (`parametrosEnviados`): lo pone `callAnthropicRaw`, que tiene el cuerpo. */
+  parametros?: ParametrosEnviados;
 }
 
 /** Apunta una petición real en el registro abierto, si lo hay. Nunca lanza. */
@@ -157,5 +173,6 @@ export function apuntarPeticion(
     comienzoMs: peticion.comienzo - abierto.abiertoEn,
     tokens: { ...peticion.tokens },
     ...(datos.entradaEstimada !== undefined ? { entradaEstimada: datos.entradaEstimada } : {}),
+    ...(datos.parametros ? { parametros: { ...datos.parametros } } : {}),
   });
 }

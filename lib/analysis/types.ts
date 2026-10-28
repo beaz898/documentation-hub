@@ -7,6 +7,7 @@ import type { FragmentContext } from './fragment-context';
 import type { DatosDeLaCita } from './coincidencia-de-cita';
 import type { PajarDeLaCita } from './pajar-de-la-cita';
 import type { ConflictoNormativo } from './conflicto-normativo';
+import type { ParametrosEnviados } from '@/lib/observability/registro-de-llamadas';
 
 export interface DocumentFragment {
   text: string;
@@ -288,6 +289,8 @@ export interface LecturaDeLaPareja {
    *  del reintento si lo hubo. Con Haiku 5.5 incluyen los del pensamiento: es lo que dice si se
    *  dispara. AUSENTE si la API no llegó a responder, y en los análisis anteriores a F-128. */
   tokensDeSalida?: number;
+  /** 28/10/2026: lo que llevó el cuerpo de la última respuesta del juez de esta pareja. AUSENTE antes de ese día. */
+  parametros?: ParametrosEnviados;
   /** 3.1.3 (21/10/2026): de dónde salió el bloque del candidato en el corte honesto. 'entero': el
    *  candidato entero; 'ampliada': la segunda selección, con el resto del reparto; 'la_de_la_recuperacion':
    *  la de 3.000 de siempre, porque la segunda no la mejoraba sin perder trozos o sin pasarse del resto.
