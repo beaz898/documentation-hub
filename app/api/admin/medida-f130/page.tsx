@@ -2,7 +2,7 @@
 import { useState } from 'react';
 
 /**
- * LA PÁGINA DE LAS DOS MEDIDAS TEMPORALES DE F-130 (29/10/2026). Dos botones y el JSON de vuelta, para copiarlo y
+ * LA PÁGINA DE LAS DOS MEDIDAS TEMPORALES DE F-130 (28/10/2026). Dos botones y el JSON de vuelta, para copiarlo y
  * pegarlo. Temporal como toda la carpeta (cabecera de `medida-f130.ts`): se borra con ella.
  */
 export default function MedidaF130() {

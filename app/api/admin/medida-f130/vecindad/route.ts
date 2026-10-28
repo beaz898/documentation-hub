@@ -8,7 +8,7 @@ import { contarFiguras, coseno, correspondencia, puestos } from '../medida-f130'
  *
  * ¿Son vecinos vectoriales el trozo 4 de NOR-10 y los trozos 3 y 6 de CLI-12, y comparten las dos figuras? SOLO LEE:
  * la base y Pinecone (un `fetch` de tres vectores y tres consultas acotadas a un documento). Ningún modelo, ningún
- * embebido, ningún crédito. Informativa, no decisiva (arquitecto, 29/10): el enumerador tiene dos vías.
+ * embebido, ningún crédito. Informativa, no decisiva (arquitecto, 28/10): el enumerador tiene dos vías.
  * Comprueba la correspondencia de cada vector por su TEXTO, no sólo por su número.
  */
 export const maxDuration = 120;

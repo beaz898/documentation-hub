@@ -1,6 +1,6 @@
 import type { Definicion } from '../herramientas/mutar';
 
-// Las herramientas temporales de F-130 (29/10). Se borra con app/api/admin/medida-f130/.
+// Las herramientas temporales de F-130 (28/10). Se borra con app/api/admin/medida-f130/.
 // node claude/herramientas/mutar-cli.mts claude/mutantes/medida-f130.ts
 export const definicion: Definicion = {
   fichero: 'app/api/admin/medida-f130/medida-f130.ts',

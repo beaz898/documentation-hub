@@ -5,7 +5,7 @@ import {
 } from './medida-f130';
 
 /**
- * LAS DOS HERRAMIENTAS TEMPORALES DE F-130 (29/10/2026): lo que se puede comprobar sin red. Se borra con la carpeta.
+ * LAS DOS HERRAMIENTAS TEMPORALES DE F-130 (28/10/2026): lo que se puede comprobar sin red. Se borra con la carpeta.
  */
 describe('las medidas temporales de F-130', () => {
   it('CADUCAN SOLAS: antes de la fecha funcionan, desde la fecha no', () => {

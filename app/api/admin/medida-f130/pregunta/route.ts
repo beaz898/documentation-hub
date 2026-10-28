@@ -11,7 +11,7 @@ import { construirPrompt, PAREJA_DE_E3, PREGUNTA_CERRADA, VECES_DE_E3 } from '..
  *
  * La pregunta cerrada sobre la pareja de D, siete veces, en la condición REALISTA: los dos trozos enteros, con A dentro
  * (`PAREJA_DE_E3`). Con la configuración EXACTA del juez (`modeloDelJuez()`), cada llamada en el registro con sus
- * parámetros. NO COBRA CRÉDITOS (arquitecto, 29/10): es instrumento de medida; el gasto real queda en el registro que
+ * parámetros. NO COBRA CRÉDITOS (arquitecto, 28/10): es instrumento de medida; el gasto real queda en el registro que
  * devuelve. Sin la pregunta del arquitecto (`PREGUNTA_CERRADA` vacía) responde 409 y no llama al modelo.
  */
 export const maxDuration = 300;

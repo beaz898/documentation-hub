@@ -1,5 +1,5 @@
 /**
- * LAS DOS HERRAMIENTAS TEMPORALES DE MEDIDA DE F-130 (29/10/2026). INSTRUMENTO, NO PRODUCTO.
+ * LAS DOS HERRAMIENTAS TEMPORALES DE MEDIDA DE F-130 (28/10/2026). INSTRUMENTO, NO PRODUCTO.
  *
  * Esta carpeta entera se borra en UN commit cuando acabe la semana 0 de F-130: la página, las dos rutas, este módulo
  * y su prueba. Mientras tanto, pasada la fecha de `CADUCA_EL` las dos rutas responden 410 y no tocan ni la base, ni
@@ -7,7 +7,7 @@
  *   · vecindad (P-F130-9): ¿son vecinos vectoriales el trozo 4 de NOR-10 y los trozos 3 y 6 de CLI-12, y comparten
  *     las dos figuras? Lee la base y Pinecone; no llama a ningún modelo ni embebe nada.
  *   · pregunta (E3): la pregunta cerrada sobre la pareja de D, siete veces, con la configuración exacta del juez
- *     (`modeloDelJuez()`). Gasta en la API y NO cobra créditos (arquitecto, 29/10): el gasto queda en el registro por
+ *     (`modeloDelJuez()`). Gasta en la API y NO cobra créditos (arquitecto, 28/10): el gasto queda en el registro por
  *     llamada que devuelve.
  * Las dos: POST, sólo administradores, organización resuelta por el usuario, nada del cliente en la entrada (los
  * pasajes se leen de la base) y ninguna tabla nueva. Lo que devuelven lo pega el director y se archiva en `claude/`.
@@ -21,7 +21,7 @@ export function estaCaducada(ahora: Date): boolean {
 }
 
 /**
- * ⚠️ PENDIENTE DEL ARQUITECTO. El texto de la pregunta cerrada lo escribe él (29/10): tres criterios con respuesta
+ * ⚠️ PENDIENTE DEL ARQUITECTO. El texto de la pregunta cerrada lo escribe él (28/10): tres criterios con respuesta
  * obligatoria a cada uno, y el TERCERO se mueve LITERAL desde `lib/analysis/excepcion-de-las-reglas.ts`, sin
  * reescribirlo, porque reescribirlo daría dos definiciones del conflicto normativo. Tiene que llevar `{{TEXTO_1}}` y
  * `{{TEXTO_2}}` una vez cada uno, donde van los dos trozos, y pedir la respuesta en JSON (se lee con `callLLMJson`).
@@ -42,7 +42,7 @@ export const TROZOS = {
 export type ClaveDeTrozo = keyof typeof TROZOS;
 
 /**
- * E3 EN LA CONDICIÓN REALISTA (arquitecto, 29/10): los dos trozos ENTEROS, con A dentro, y no las dos frases de D
+ * E3 EN LA CONDICIÓN REALISTA (arquitecto, 28/10): los dos trozos ENTEROS, con A dentro, y no las dos frases de D
  * solas. La condición limpia daría 7 de 7 y no mediría nada, porque el enumerador entregará trozos, no frases. Y el par
  * NOR-10·4 ↔ CLI-12·3 lleva una mitad de A y una de D en cada lado.
  */
