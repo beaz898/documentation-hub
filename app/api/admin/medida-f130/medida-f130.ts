@@ -29,6 +29,10 @@ export function estaCaducada(ahora: Date): boolean {
  * ⚠️ «CONTESTAR A UNA NO TE EXIME…» y las dos líneas «HAY HALLAZGO SI LA RESPUESTA ES…» son las piezas que, si alguien
  * las simplifica, devuelven el fallo; llevan mutante cada una. La pregunta del cumplimiento le ha fallado dos veces al
  * arquitecto por su polaridad («sí» es lo normal y «no» es el hallazgo): por eso se marca qué respuesta es el hallazgo.
+ * La cita y la etiqueta de la 2 (29/10): sin cita, E3 NO MIDE —un «no» sin cita no dice si encontró D o cualquier otra
+ * cosa—; la etiqueta es parte de la respuesta de la 2 cuando dispara, NO un tercer hueco. Llevan mutante cada una.
+ * ⚠️ La respuesta va en TEXTO LLANO a propósito: son catorce respuestas que el arquitecto lee a ojo. ES DECISIÓN DE E3,
+ * NO DEL PRODUCTO: el formato estructurado de la pasada 2 se decide cuando se construya, y no se copia de aquí.
  */
 export const PREGUNTA_CERRADA = [
   'PAREJA {{N}}: {{DOC_1}}, trozo {{TROZO_A}} ↔ {{DOC_2}}, trozo {{TROZO_B}}',
@@ -46,7 +50,7 @@ export const PREGUNTA_CERRADA = [
   '',
   'PREGUNTA 2 · EL CUMPLIMIENTO',
   '{{CRITERIO_DEL_CUMPLIMIENTO}}',
-  'HAY HALLAZGO SI LA RESPUESTA ES «NO»: si NO se pueden cumplir las dos a la vez. Si se pueden cumplir, contesta «sí» y no cites nada.',
+  'HAY HALLAZGO SI LA RESPUESTA ES «NO»: si NO se pueden cumplir las dos a la vez. Si es «no», cita la frase literal de cada lado y di cuál de las dos etiquetas es, "norma_contra_norma" o "norma_contra_practica". Si se pueden cumplir, contesta «sí» y no cites nada.',
 ].join('\n');
 
 /**

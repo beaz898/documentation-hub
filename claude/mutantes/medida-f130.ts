@@ -15,6 +15,8 @@ export const definicion: Definicion = {
     { nombre: 'el «no te exime» sin su «ni cuando… ni cuando…»', ancla: ', ni cuando tu respuesta señale un hallazgo ni cuando no lo señale.', cambio: '.' },
     { nombre: 'la pregunta 1 sin decir qué respuesta es el hallazgo', ancla: 'HAY HALLAZGO SI LA RESPUESTA ES «SÍ». ', cambio: '' },
     { nombre: 'la pregunta 2 sin decir qué respuesta es el hallazgo', ancla: 'HAY HALLAZGO SI LA RESPUESTA ES «NO»: si NO se pueden cumplir las dos a la vez. ', cambio: '' },
+    { nombre: 'la pregunta 2 sin pedir la cita', ancla: 'Si es «no», cita la frase literal de cada lado y di', cambio: 'Si es «no», di' },
+    { nombre: 'la pregunta 2 sin pedir la etiqueta', ancla: ' y di cuál de las dos etiquetas es, "norma_contra_norma" o "norma_contra_practica".', cambio: '.' },
     { nombre: 'la pregunta 2 con la polaridad invertida', ancla: 'HAY HALLAZGO SI LA RESPUESTA ES «NO»: si NO se pueden', cambio: 'HAY HALLAZGO SI LA RESPUESTA ES «SÍ»: si se pueden' },
     { nombre: 'las marcas se sustituyen una tras otra (una marca dentro del texto del cliente se sustituiría)', ancla: 'PREGUNTA_CERRADA.replace(/\\{\\{[A-Z_0-9]+\\}\\}/g, m => valores[m] ?? m)', cambio: 'Object.entries(valores).reduce((t, [k, v]) => t.split(k).join(v), PREGUNTA_CERRADA)' },
     { nombre: 'una sola pareja', ancla: "  { analizado: 'nor10_4', candidato: 'cli12_6' },\n", cambio: '' },
