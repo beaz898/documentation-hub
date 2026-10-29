@@ -203,28 +203,49 @@ describe('la costura: ausente el parámetro, el camino de siempre', () => {
 // El censo de importadores — la cláusula (a) del director, con mecanismo
 // ---------------------------------------------------------------------------
 
-/** Todos los `.ts`/`.tsx` de los cuatro árboles donde vive código. */
-function ficherosDeCodigo(): string[] {
+/**
+ * Todos los `.ts`/`.tsx` de los cuatro árboles donde vive código, CON SU TEXTO, leídos UNA vez por fichero de prueba.
+ * ⚠️ EL ARREGLO DE LAS CAÍDAS POR TIEMPO (29/10/2026): antes cada caso recorría y leía del disco `app`, `lib`,
+ * `components` y `worker` enteros, y bajo carga el control positivo pasó de 15 s. Ahora el primer caso que lo pide lo
+ * lee y los demás reutilizan lo leído (medido el 29/10, el fichero solo: los otros cinco casos, de 4 a 10 ms). El margen,
+ * aparte: `CENSO` abajo. ⚠️ Ninguna prueba ve si esta caché se quita: el censo da lo mismo, sólo más lento.
+ */
+let arbolLeido: Array<{ ruta: string; texto: string }> | null = null;
+function arbolDeCodigo(): Array<{ ruta: string; texto: string }> {
+  if (arbolLeido) return arbolLeido;
   const raices = ['app', 'lib', 'components', 'worker'];
-  const salida: string[] = [];
+  const salida: Array<{ ruta: string; texto: string }> = [];
   const recorrer = (dir: string) => {
     for (const entrada of readdirSync(dir)) {
       if (entrada === 'node_modules' || entrada.startsWith('.')) continue;
       const ruta = join(dir, entrada);
       if (statSync(ruta).isDirectory()) recorrer(ruta);
-      else if (/\.tsx?$/.test(entrada)) salida.push(ruta.replace(/\\/g, '/'));
+      else if (/\.tsx?$/.test(entrada)) salida.push({ ruta: ruta.replace(/\\/g, '/'), texto: readFileSync(ruta, 'utf8') });
     }
   };
   for (const r of raices) recorrer(r);
+  arbolLeido = salida;
   return salida;
 }
+
+/** Las rutas que no son de prueba cuyo texto cumple `cumple`. */
+function rutasQue(cumple: (texto: string) => boolean, excluir: (ruta: string) => boolean): string[] {
+  return arbolDeCodigo().filter(f => !excluir(f.ruta) && cumple(f.texto)).map(f => f.ruta);
+}
+const esPrueba = (f: string) => f.endsWith('.test.ts') || f.endsWith('.test.tsx');
+
+/**
+ * EL MARGEN, con la convención de `formatos-con-tablas.test.ts`: un tiempo propio por caso. 30 s, el doble del general
+ * (`vitest.config.mts`, 15 s). Medido el 29/10 con el fichero solo, la primera lectura del árbol: 11,4 s EN FRÍO (el disco
+ * sin caché) y 0,35 s en caliente. 30 s son 2,6 veces lo de en frío: generoso para el frío con la suite entera
+ * compitiendo, y acotado: un cuelgue de verdad sigue dando rojo en medio minuto, no una espera muda.
+ */
+const CENSO = { timeout: 30_000 };
 
 /** Quién importa un símbolo, por CAPACIDAD (la línea de import), no por nombre
  *  de fichero. Excluye los `.test.ts`, que no son caminos de producto. */
 function importadoresDe(simbolo: string): string[] {
-  return ficherosDeCodigo()
-    .filter(f => !f.endsWith('.test.ts') && !f.endsWith('.test.tsx'))
-    .filter(f => new RegExp(`import[^;]*\\b${simbolo}\\b[^;]*from`, 's').test(readFileSync(f, 'utf8')));
+  return rutasQue(t => new RegExp(`import[^;]*\\b${simbolo}\\b[^;]*from`, 's').test(t), esPrueba);
 }
 
 describe('quién puede usar el corpus exacto', () => {
@@ -233,7 +254,7 @@ describe('quién puede usar el corpus exacto', () => {
    *  le PASA ese dato lo vigila el censo siguiente. */
   const AUTORIZADOS = ['app/api/admin/examen/route.ts', 'lib/analysis/retrieval.ts'];
 
-  it('⚠️ CONTROL POSITIVO — el censo SÍ ve imports cuando los hay', () => {
+  it('⚠️ CONTROL POSITIVO — el censo SÍ ve imports cuando los hay', CENSO, () => {
     // Sin esta mitad, el caso de abajo daría verde con un censo ciego: es
     // exactamente B.126, un test que no puede fallar por la razón que vigila.
     const delProducto = importadoresDe('buildCorpusFilter');
@@ -241,7 +262,7 @@ describe('quién puede usar el corpus exacto', () => {
     expect(delProducto).toContain('app/api/admin/vecindario/route.ts');
   });
 
-  it('ningún camino de usuario importa buildCorpusExacto', () => {
+  it('ningún camino de usuario importa buildCorpusExacto', CENSO, () => {
     const intrusos = importadoresDe('buildCorpusExacto').filter(f => !AUTORIZADOS.includes(f));
     expect(intrusos, `importadores no autorizados: ${intrusos.join(', ')}`).toEqual([]);
   });
@@ -249,15 +270,16 @@ describe('quién puede usar el corpus exacto', () => {
   /** La ruta del módulo como ESPECIFICADOR —entre comillas, en un `import`,
    *  `import()` o `require`—, no como palabra: un comentario que nombra el
    *  fichero de pruebas no llega al módulo (26/09/2026, `pipeline.ts`). */
-  const porRuta = () => ficherosDeCodigo()
-    .filter(f => !f.endsWith('.test.ts') && f !== 'lib/pinecone/corpus-del-examen.ts')
-    .filter(f => /['"][^'"\n]*corpus-del-examen['"]/.test(readFileSync(f, 'utf8')));
+  const porRuta = () => rutasQue(
+    t => /['"][^'"\n]*corpus-del-examen['"]/.test(t),
+    f => f.endsWith('.test.ts') || f === 'lib/pinecone/corpus-del-examen.ts',
+  );
 
-  it('⚠️ CONTROL POSITIVO — el censo por ruta SÍ ve a quien importa el módulo', () => {
+  it('⚠️ CONTROL POSITIVO — el censo por ruta SÍ ve a quien importa el módulo', CENSO, () => {
     expect(porRuta()).toContain('lib/analysis/retrieval.ts');
   });
 
-  it('tampoco por la ruta del módulo, que es la otra forma de llegar', () => {
+  it('tampoco por la ruta del módulo, que es la otra forma de llegar', CENSO, () => {
     const intrusos = porRuta().filter(f => !AUTORIZADOS.includes(f));
     expect(intrusos, `tocan el módulo sin autorización: ${intrusos.join(', ')}`).toEqual([]);
   });
@@ -279,17 +301,15 @@ describe('quién pasa idsDelCorpusExacto — condición (b) del arquitecto', () 
     'lib/analysis/termometro.ts',
     'lib/pinecone/corpus-del-examen.ts',   // el módulo, que lo nombra en su aviso
   ];
-  const quienLoNombra = () => ficherosDeCodigo()
-    .filter(f => !f.endsWith('.test.ts') && !f.endsWith('.test.tsx'))
-    .filter(f => /\bidsDelCorpusExacto\b/.test(readFileSync(f, 'utf8')));
+  const quienLoNombra = () => rutasQue(t => /\bidsDelCorpusExacto\b/.test(t), esPrueba);
 
-  it('⚠️ CONTROL POSITIVO — el censo SÍ ve a quien lo nombra', () => {
+  it('⚠️ CONTROL POSITIVO — el censo SÍ ve a quien lo nombra', CENSO, () => {
     const lo = quienLoNombra();
     expect(lo).toContain('lib/analysis/pipeline.ts');
     expect(lo).toContain('lib/analysis/retrieval.ts');
   });
 
-  it('nadie fuera de la lista lo nombra', () => {
+  it('nadie fuera de la lista lo nombra', CENSO, () => {
     const intrusos = quienLoNombra().filter(f => !AUTORIZADOS.includes(f));
     expect(intrusos, `nombran idsDelCorpusExacto sin autorización: ${intrusos.join(', ')}`).toEqual([]);
   });
