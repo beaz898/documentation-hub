@@ -214,6 +214,24 @@ de “exhaustivo” a “cobertura medida”. Texto, no código.» Y el arquitec
     dos huecos dejan de ser excepciones y pasan a ser respuestas del hueco 1.
     ⚠️ *El arquitecto lo pidió (29/10)*: la pregunta del cumplimiento le ha fallado dos veces por su polaridad, y no se
     escribe sin marcar qué respuesta es el hallazgo (regla en el protocolo).
+    **LOS DOS AGUJEROS DE LA PREGUNTA 2 TIENEN UNA SOLA CAUSA, y es del arquitecto (29/10)**: no pedía la cita ni la
+    etiqueta cuando la 2 disparaba, porque al recortar se quitaron la frase del campo y el JSON por ser «formato de
+    salida» y no se puso ninguno en su lugar. **AL RECORTAR UN BLOQUE SE QUITA SU FORMATO DE SALIDA Y HAY QUE ESCRIBIR EL
+    NUEVO EN EL MISMO SITIO.** Y por qué se arregló antes de subir y no después: **SIN CITA, E3 NO MIDE**. Un «no» sin cita
+    no dice si encontró D o cualquier otra cosa, y los catorce resultados no se podrían puntuar. La línea de la 2 pide
+    ahora la cita de cada lado y cuál de las dos etiquetas es; la etiqueta es parte de la respuesta de la 2 cuando
+    dispara, NO un tercer hueco.
+    **UN ACIERTO DE CODE, nombrado por el arquitecto (29/10): UNA LISTA DE CORTES SE APLICA ESTRECHA, Y LO QUE NO NOMBRA
+    SE PREGUNTA.** La lista no nombraba dos párrafos, y Code los dejó y preguntó. El del «MANDAN» empieza por «Pero», que
+    se lee como continuación del párrafo mandado quitar: si se hubiera arrastrado, la pregunta 2 se habría quedado SIN
+    PREGUNTA.
+    **La respuesta de E3 va en TEXTO LLANO, a propósito** (arquitecto, 29/10): son catorce respuestas que él lee a ojo, y
+    en texto se ve QUÉ encontró. ⚠️ **Es decisión de E3, no del producto**: el formato estructurado de la pasada 2 se
+    decide cuando se construya, y nadie debe copiarlo de aquí.
+    **La prueba de huella del recorte se pondrá en rojo el día que se toque el bloque del juez, y es lo que se quiere**
+    (arquitecto, 29/10): no se relaja; la carpeta caduca el 15/11, así que la molestia tiene fecha.
+    **Los tres textos que pidió Fable** (los prompts del juez y del verificador, y la pregunta de E3), capturados del código
+    y no copiados a mano: `claude/consultas-fable/F-130_anexo_textos_para_fable_2026-10-29.md`.
   · Herramienta: `app/api/admin/medida-f130/` (`8c9576dd`), temporal, que caduca el 15/11/2026.
 - **E1**, cobertura por A, y **E5**, curva de acumulación (P-F130-1 y P-F130-5).
 - **P-F130-9, informativa y no decisiva**: el enumerador tiene DOS vías, vecinos vectoriales y solapamiento de términos.
