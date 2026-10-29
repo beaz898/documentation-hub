@@ -236,6 +236,36 @@ de “exhaustivo” a “cobertura medida”. Texto, no código.» Y el arquitec
     respuestas no citan el mismo par de frases va **EN CÓDIGO** cuando se construya, como la propuso Fable («al
     validador»). Para E3 basta la instrucción, porque las catorce respuestas las lee el arquitecto.
 
+**E3, PRIMERA TANDA (29/10/2026): LA CONDICIÓN QUE EL ARQUITECTO FIJÓ ANTES DE MEDIR NO SE CUMPLIÓ.** La pareja de §3.1
+dio **5 de 7** (la condición era 6 de 7 o más); la de §3.5, **6 de 7**. **NADA SE CONSTRUYE.** Cifras del arquitecto,
+de los JSON de la herramienta, que están **PENDIENTES DE PEGAR** para archivarlos enteros; todo lo de la tanda, en
+`claude/Medida_F130_E3_Y_Vecindad_29-10-2026.md`.
+- **La causa, en palabras del modelo, no de interpretación**: en las vueltas 2 y 3 de §3.1 el modelo encontró el
+  conflicto y lo TIRÓ por la línea «LAS DOS RESPUESTAS NO PUEDEN CITAR EL MISMO PAR DE FRASES», leyéndola como «mismo
+  asunto» («Ambos textos son reglas, pero regulan la misma cosa, así que el conflicto ya queda recogido en la pregunta
+  1…»). La línea iba a impedir un falso positivo y produjo un falso negativo.
+- **Los dos cambios, del arquitecto**: la línea se estrecha («Esto se refiere A LAS FRASES, NO AL ASUNTO…»), y cada
+  texto lleva su documento y su trozo delante. **Tercer defecto del arquitecto en el mismo formato**: sin etiqueta, la
+  pasada 2 intercambiaría quién dice qué.
+- **P-E3-R1, escrita antes de repetir**: con la línea estrechada, §3.1 da 6 de 7 o más, y cambian las vueltas que hoy
+  fallan por la regla de las frases. **Si sigue por debajo de 6, NO SE CONSTRUYE y toca la variante limpia.** ⚠️ **Al
+  lado, lo que vigila al arquitecto**: fijó el 6 de 7 antes de medir para no poder racionalizar después, y ha salido 5.
+  Lo que justifica repetir no es su explicación: es que el diagnóstico está en las palabras del modelo y produce una
+  predicción falsable. **Si al repetir falla, no hay tercera vuelta de excusas.**
+- **Sólo se repite §3.1**, siete llamadas; §3.5 no se toca. *(Code: §3.5 quedó medida con el formato de la primera
+  tanda y §3.1 se repite con el nuevo.)*
+- **REQUISITO DE LA PASADA 2**: el campo «pareja» del registro llevó el mismo id, el de CLI-12, en las catorce llamadas,
+  porque es el id del documento candidato. El registro de la pasada 2 tiene que distinguir la pareja de TROZOS, no sólo
+  el documento.
+- **Consumo**: unos 55.000 tokens de entrada y 45.000 de salida en 14 llamadas; latencias de 8 a 21 s; salida máxima,
+  el 26 % del tope de 16.000.
+- **LO BUENO, Y ES GRANDE**: **P-F130-9, CONFIRMADA POR LAS DOS VÍAS.** Los tres trozos en Pinecone con correspondencia
+  «igual»: los números de trozo son los que creíamos, y **el riesgo del troceador queda cerrado para estos tres** (para
+  el resto sigue abierto). Puestos entre los 55 de CLI-12: la pareja de §3.1 en el 4 y la de §3.5 en el 3; desde el otro
+  lado, el 2 y el 1; un enumerador de cinco vecinos encuentra las dos. Y **la mitad de §3.5, que no se citó ni una vez
+  en quince pasadas de la lista abierta, sale 6 de 7 con una pregunta cerrada**: la mejor prueba de que la arquitectura
+  de F-130 funciona.
+
 **LO QUE FABLE AÑADIÓ AL LEER LOS PROMPTS (29/10): SE ANOTA Y NO SE TOCA NADA.** Fuente: su segundo mensaje tras la
 entrega de los prompts, archivado literal y completo en la adenda (e) de F-130 (huella `01d46b3cb421d487`). Fable lo
 abre con «Dos cosas, no una, y ninguna es un plan» y lo cierra con «Lo demás no choca»; del punto 1 dice que «no choca
