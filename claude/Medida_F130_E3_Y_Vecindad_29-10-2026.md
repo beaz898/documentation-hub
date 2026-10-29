@@ -210,6 +210,67 @@ lo que mantiene a A fuera de la casilla 2 (la segunda opción de Code, quitárse
 **ESTO NO ES UNA CUARTA TANDA**: la tercera no se ha corrido. Lo que se corrige es el texto antes de lanzarlo, no el
 resultado después de verlo.
 
-## La lectura del arquitecto de la tercera tanda
+## E3 · TERCERA TANDA: P-E3-R2 HA FALLADO, Y NO SE CONSTRUYE LA PASADA 2 (29/10/2026)
+
+**P-E3-R2 HA FALLADO: 4 DE 7, con el umbral en 6. POR LO ESCRITO ANTES DE MEDIR, NO SE CONSTRUYE LA PASADA 2. No hay
+cuarta tanda.**
+
+⚠️ **El JSON de la tercera tanda NO está archivado: no ha llegado a Code.** La puntuación de abajo es la del arquitecto,
+con la regla que escribió antes de ver nada, y Code no la ha podido comprobar. Tampoco las citas de las vueltas. Cuando
+el director pegue el JSON se archiva al lado de los otros dos y se comprueba contra él.
+
+**La puntuación** (arquitecto; sólo cuenta D si la pregunta 2 se apoya en el PERMISO de NOR-10):
+- **D REGISTRADA en las vueltas 2, 3, 4 y 7**: las cuatro citan «puede recaer en el propio Director Clínico» contra el
+  principio de CLI-12.
+- **NO CUENTAN las vueltas 1, 5 y 6**: la casilla 2 se llena con A, las frases de la responsabilidad última, con etiqueta
+  norma_contra_norma. En la 5 y la 6 se menciona el principio, pero enfrentado a la ASIGNACIÓN de responsabilidad, no al
+  permiso.
+
+**LO QUE SÍ SE ARREGLÓ** (arquitecto: «es el único diagnóstico mío de los tres que acertó»): **LOS DESCARTES
+DESAPARECIERON.** Las siete vueltas contestan la pregunta 2 entera, con citas y etiqueta. Ni un «ya queda recogido» ni un
+«no encuentro otro par». Las dos líneas que añadió eran la causa, y quitarlas lo resolvió.
+
+**LA SERIE COMPLETA, la pareja de §3.1**:
+
+| Condición | D |
+|---|---|
+| lista abierta | 2 de 7 |
+| línea ancha | 5 de 7 |
+| línea estrecha | 3 de 7 |
+| sin línea y por frases | 4 de 7 |
+
+La pareja de §3.5, **6 de 7** (primera tanda, formato de entonces).
+
+**LA LECCIÓN GENERAL de estos dos días, con el nombre del arquitecto**: **EMPAREJAR POR PÁRRAFOS NO ELIMINA LA
+COMPETENCIA: LA REDUCE. LA COMPETENCIA VUELVE SIEMPRE QUE DOS HALLAZGOS VIVEN EN LA MISMA PAREJA.** Aquí el mismo párrafo
+de NOR-10 lleva la frase de A y la de D, y dos casillas obligatorias no las separan porque A cabe en las dos. La pregunta
+cerrada sube D del 29 % al 57 % y saca una mitad que la lista abierta no había citado en quince pasadas, **pero 57 % no
+es cobertura.**
+
+**La vuelta 3, como prueba de que el modelo PUEDE hacer la distinción** (cita del arquitecto, sin comprobar hasta que
+llegue el JSON): «las dos reglas regulan cosas distintas… por eso este hallazgo es de la pregunta 2 y no se confunde con
+el de la pregunta 1». La hace 4 de 7. **Es muestreo a temperatura 1, no imposibilidad.**
+
+## LA VARIANTE LIMPIA: preparada, sin correr (29/10/2026)
+
+**Lo que estaba escrito, y se hace**: la variante limpia, sólo las dos frases de D, sin A delante, siete veces.
+⚠️ **SU ALCANCE, escrito ANTES de correrla: NO REABRE LA DECISIÓN DE CONSTRUIR.** Sólo mide el techo de la pregunta
+cerrada cuando A no está, para saber si el problema es A o la pregunta. **Ese número va en la consulta F-131 a Fable.**
+
+**Cómo está hecha** (`app/api/admin/medida-f130/limpia/route.ts`):
+- **La misma pregunta de la tercera tanda, sin tocar una letra**, y la misma configuración del juez (la llamada está ahora
+  en un sitio, `preguntar-al-juez.ts`, que usan E3 y la variante). Lo único que cambia es el contenido de los dos textos.
+- **Las frases no se escriben a mano**: se cortan del texto de la base, la que contiene la frase de cada trozo de
+  `TROZOS` («puede recaer en el propio Director Clínico» en NOR-10·4; «separar la responsabilidad de un proceso crítico
+  de seguridad del paciente» en CLI-12·3). Una frase va de punto a punto, o hasta el salto de línea, y «2.1» no la corta.
+- **Falla cerrada, con 409 y sin llamar al modelo**: si la frase no sale una sola vez, o si lleva una marca de A
+  («responsabilidad última», «responsable último»).
+- **Dos botones**: «ver las dos frases» (sin modelo, no gasta) devuelve las dos frases y el prompt; el otro corre las
+  siete. **Primero el de ver**: así se comprueba qué se manda antes de gastar. El botón de E3 se ha quitado de la página.
+
+**PENDIENTE DEL ARQUITECTO, ANTES DE PULSAR**: la regla de puntuación de la variante limpia y, si la hay, su predicción.
+La de P-E3-R2 (sólo cuenta D apoyada en el permiso) es la candidata obvia, pero no está escrita para esta medida.
+
+## La lectura del arquitecto de la variante limpia
 
 **PENDIENTE.**

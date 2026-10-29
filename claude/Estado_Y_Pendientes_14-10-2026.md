@@ -139,6 +139,15 @@ sección 5). **El riesgo no es el rojo falso: es que, con rojos ambiguos, algún
 lo da por «el de siempre».** **DISPARADOR: el primer commit después de E3.** Entonces Code dice si es un tiempo fijo que
 se puede subir o si hace falta separar esas pruebas de la puerta. Ahora no se toca.
 
+**EL DISPARADOR SALTÓ (29/10, el primer commit después de E3), Y LO QUE DICE CODE**: es un **tiempo fijo que se puede
+subir**, no hace falta separarlas. El límite es el `testTimeout: 15_000` general (`vitest.config.mts:113`), reloj de
+pared. La prueba que cae, el control positivo de `corpus-del-examen.test.ts:236`, recorre y lee del disco `app`, `lib`,
+`components` y `worker` enteros, y lo hace otra vez en cada `it` (`ficherosDeCodigo`, `:207`; `importadoresDe`, `:224`),
+sin guardar nada. Sola pasa en menos de un segundo, y cae sólo bajo carga: es espera de disco, no un cuelgue.
+`formatos-con-tablas.test.ts:49` ya lleva su propio `timeout: 30_000`. La propuesta, que es código de prueba y espera la
+aprobación del arquitecto: leer el árbol una vez por fichero de prueba y darle un tiempo propio, como `formatos`.
+**No se ha tocado.**
+
 **REGISTRO, 29/10/2026 (sólo registro; no se reescribe ningún commit)**: el mensaje del commit `142a6930` («F-130: el
 segundo mensaje de Fable tras los prompts…») dice «Gates: npm test (suite 2115, arneses 117)», y **en ese momento no lo
 había pasado**. La suite y el commit iban en la misma orden, contra la regla («Un rojo no puede pasar en silencio», en el
@@ -276,6 +285,21 @@ de los JSON de la herramienta, archivados enteros el 29/10 (`claude/Medida_F130_
   contradicción de la frase B, no la relectura del arquitecto.** La frase B se sustituye por una que pregunta SOBRE
   FRASES, y el recorte del criterio no se toca. P-E3-R2 no cambia. **No es una cuarta tanda: la tercera no se ha corrido;
   se corrige el texto antes de lanzarlo.**
+- ⚠️ **E3, TERCERA TANDA (29/10): P-E3-R2 HA FALLADO: 4 DE 7, con el umbral en 6. POR LO ESCRITO ANTES DE MEDIR, NO SE
+  CONSTRUYE LA PASADA 2. No hay cuarta tanda.** Puntuación del arquitecto: D en las vueltas 2, 3, 4 y 7; en la 1, la 5 y
+  la 6 la casilla 2 se llena con A. **Lo que sí se arregló**: los descartes desaparecieron; las siete contestan la 2
+  entera, con citas y etiqueta. **La serie de §3.1**: lista abierta 2; línea ancha 5; línea estrecha 3; sin línea y por
+  frases 4, todas de 7. §3.5, 6 de 7. ⚠️ El JSON de esta tanda no ha llegado a Code: la puntuación está sin comprobar
+  contra él, y se archiva cuando llegue.
+  **LA LECCIÓN GENERAL, con el nombre del arquitecto: EMPAREJAR POR PÁRRAFOS NO ELIMINA LA COMPETENCIA: LA REDUCE. LA
+  COMPETENCIA VUELVE SIEMPRE QUE DOS HALLAZGOS VIVEN EN LA MISMA PAREJA.** El mismo párrafo de NOR-10 lleva la frase de
+  A y la de D, y dos casillas no las separan porque A cabe en las dos. La pregunta cerrada sube D del 29 % al 57 % y
+  saca una mitad que la lista abierta no había citado en quince pasadas, **pero 57 % no es cobertura.** La vuelta 3
+  prueba que el modelo puede hacer la distinción: la hace 4 de 7, y es muestreo a temperatura 1, no imposibilidad.
+  **LO SIGUIENTE: LA VARIANTE LIMPIA, PREPARADA Y SIN CORRER** (`app/api/admin/medida-f130/limpia/`): la misma pregunta
+  sobre las dos frases de D solas, cortadas de la base, siete veces, con un botón de ver las frases antes de gastar.
+  **NO REABRE LA DECISIÓN DE CONSTRUIR**: mide el techo de la pregunta cerrada cuando A no está, y el número va a F-131.
+  Su regla de puntuación, PENDIENTE DEL ARQUITECTO antes de pulsar.
   **LA TERCERA TANDA, y es la última**: se borra la línea del mismo par (vuelve al validador de la pasada 2, en código) y
   se desacopla la pregunta 2 («ESTA PREGUNTA SE CONTESTA SOLA, COMO SI LA 1 NO EXISTIERA…»), que son dos cambios pero una
   sola cosa: quitar el acoplamiento entre las preguntas. Las etiquetas se quedan. **P-E3-R2**: §3.1 da 6 de 7 o más,
