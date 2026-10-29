@@ -215,9 +215,16 @@ resultado después de verlo.
 **P-E3-R2 HA FALLADO: 4 DE 7, con el umbral en 6. POR LO ESCRITO ANTES DE MEDIR, NO SE CONSTRUYE LA PASADA 2. No hay
 cuarta tanda.**
 
-⚠️ **El JSON de la tercera tanda NO está archivado: no ha llegado a Code.** La puntuación de abajo es la del arquitecto,
-con la regla que escribió antes de ver nada, y Code no la ha podido comprobar. Tampoco las citas de las vueltas. Cuando
-el director pegue el JSON se archiva al lado de los otros dos y se comprueba contra él.
+**El JSON**, pegado por el director (pulsado a las 18:31 UTC): `claude/Medida_F130_E3_Tercera_Tanda_29-10-2026.json`, con
+el «registro» compactado a una línea por petición, como los otros dos; mismos valores. Siete respuestas; 28.882 tokens de
+entrada y 20.431 de salida; latencias de 9.393 a 16.413 ms; salida máxima, 3.877, el 24,2 % del tope. Los mismos
+parámetros en las siete: `maxTokens` 16.000, temperatura «sin_enviar», esfuerzo «medium».
+
+**Comprobado por Code contra el JSON**: la pregunta 2 cita «puede recaer en el propio Director Clínico» en las vueltas 2, 3,
+4 y 7, y en ninguna otra; las siete llevan etiqueta norma_contra_norma; ninguna dice «ya queda recogido» ni «no encuentro
+otro par». La cita de la vuelta 3 está en el JSON; literal, es: «Las dos reglas regulan cosas distintas: el Texto 1
+regula quién puede ocupar el cargo de Coordinador de Calidad, y el Texto 2 regula quién es el responsable último de la
+esterilización. Por eso este hallazgo es de la pregunta 2 y no se confunde con el de la pregunta 1.»
 
 **La puntuación** (arquitecto; sólo cuenta D si la pregunta 2 se apoya en el PERMISO de NOR-10):
 - **D REGISTRADA en las vueltas 2, 3, 4 y 7**: las cuatro citan «puede recaer en el propio Director Clínico» contra el
@@ -247,9 +254,7 @@ de NOR-10 lleva la frase de A y la de D, y dos casillas obligatorias no las sepa
 cerrada sube D del 29 % al 57 % y saca una mitad que la lista abierta no había citado en quince pasadas, **pero 57 % no
 es cobertura.**
 
-**La vuelta 3, como prueba de que el modelo PUEDE hacer la distinción** (cita del arquitecto, sin comprobar hasta que
-llegue el JSON): «las dos reglas regulan cosas distintas… por eso este hallazgo es de la pregunta 2 y no se confunde con
-el de la pregunta 1». La hace 4 de 7. **Es muestreo a temperatura 1, no imposibilidad.**
+**La vuelta 3, como prueba de que el modelo PUEDE hacer la distinción** (la cita literal, arriba): la hace 4 de 7. **Es muestreo a temperatura 1, no imposibilidad.**
 
 ## LA VARIANTE LIMPIA: preparada, sin correr (29/10/2026)
 

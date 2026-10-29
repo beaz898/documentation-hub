@@ -289,8 +289,9 @@ de los JSON de la herramienta, archivados enteros el 29/10 (`claude/Medida_F130_
   CONSTRUYE LA PASADA 2. No hay cuarta tanda.** Puntuación del arquitecto: D en las vueltas 2, 3, 4 y 7; en la 1, la 5 y
   la 6 la casilla 2 se llena con A. **Lo que sí se arregló**: los descartes desaparecieron; las siete contestan la 2
   entera, con citas y etiqueta. **La serie de §3.1**: lista abierta 2; línea ancha 5; línea estrecha 3; sin línea y por
-  frases 4, todas de 7. §3.5, 6 de 7. ⚠️ El JSON de esta tanda no ha llegado a Code: la puntuación está sin comprobar
-  contra él, y se archiva cuando llegue.
+  frases 4, todas de 7. §3.5, 6 de 7. JSON archivado (`claude/Medida_F130_E3_Tercera_Tanda_29-10-2026.json`), y la
+  puntuación comprobada por Code contra él: el permiso sale en la pregunta 2 de las vueltas 2, 3, 4 y 7, y en ninguna
+  otra.
   **LA LECCIÓN GENERAL, con el nombre del arquitecto: EMPAREJAR POR PÁRRAFOS NO ELIMINA LA COMPETENCIA: LA REDUCE. LA
   COMPETENCIA VUELVE SIEMPRE QUE DOS HALLAZGOS VIVEN EN LA MISMA PAREJA.** El mismo párrafo de NOR-10 lleva la frase de
   A y la de D, y dos casillas no las separan porque A cabe en las dos. La pregunta cerrada sube D del 29 % al 57 % y
