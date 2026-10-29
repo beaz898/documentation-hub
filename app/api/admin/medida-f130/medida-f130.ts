@@ -31,6 +31,9 @@ export function estaCaducada(ahora: Date): boolean {
  * arquitecto por su polaridad («sí» es lo normal y «no» es el hallazgo): por eso se marca qué respuesta es el hallazgo.
  * La cita y la etiqueta de la 2 (29/10): sin cita, E3 NO MIDE —un «no» sin cita no dice si encontró D o cualquier otra
  * cosa—; la etiqueta es parte de la respuesta de la 2 cuando dispara, NO un tercer hueco. Llevan mutante cada una.
+ * La última línea (arquitecto, 29/10, a partir de la respuesta de Fable): las dos respuestas no pueden citar el mismo par
+ * de frases. Sin ella, lo más fácil para el modelo es contestar lo mismo dos veces con etiquetas distintas, y E3 daría
+ * un 6 de 7 FALSO: A en la 1 y A otra vez en la 2, puntuado como D. Lleva mutante.
  * ⚠️ La respuesta va en TEXTO LLANO a propósito: son catorce respuestas que el arquitecto lee a ojo. ES DECISIÓN DE E3,
  * NO DEL PRODUCTO: el formato estructurado de la pasada 2 se decide cuando se construya, y no se copia de aquí.
  */
@@ -51,6 +54,8 @@ export const PREGUNTA_CERRADA = [
   'PREGUNTA 2 · EL CUMPLIMIENTO',
   '{{CRITERIO_DEL_CUMPLIMIENTO}}',
   'HAY HALLAZGO SI LA RESPUESTA ES «NO»: si NO se pueden cumplir las dos a la vez. Si es «no», cita la frase literal de cada lado y di cuál de las dos etiquetas es, "norma_contra_norma" o "norma_contra_practica". Si se pueden cumplir, contesta «sí» y no cites nada.',
+  '',
+  'LAS DOS RESPUESTAS NO PUEDEN CITAR EL MISMO PAR DE FRASES. Si tu hallazgo del cumplimiento se apoya en las mismas dos frases que el del dato, entonces NO es un hallazgo del cumplimiento: contesta «sí» a la 2.',
 ].join('\n');
 
 /**

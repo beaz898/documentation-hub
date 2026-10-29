@@ -1262,6 +1262,9 @@ pidiendo el texto, no reconstruirlo a partir de un resumen. **El caso, dos veces
 de archivar F-130 pedía «el contenido literal que te pasa el director» y no lo llevaba; y el siguiente traía, en el
 sitio de los dos textos, los marcadores «[DIRECTOR: pega aquí…]» sin rellenar. Las dos veces se archivó nada, y es lo
 que tenía que pasar.
+**Y SU SIMÉTRICA: UN MENSAJE PARA FUERA NO SALE CON HUECOS** (arquitecto, 29/10/2026). Lo que se manda a Fable, o a
+cualquiera de fuera, lleva el texto dentro, o dice qué fichero se manda. Un mensaje que sale con «[pega aquí…]» sin
+rellenar llega incompleto a quien no puede pedir lo que falta, y lo que conteste se construye sobre el hueco.
 
 ---
 

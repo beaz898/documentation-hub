@@ -31,6 +31,8 @@ Estado: ARCHIVADA CON DICTAMEN · se construye la segunda pasada por parejas, si
           4053 palabras.
           60 primeros: "RESPUESTA DE FABLE — F-130 · QUÉ DECIDE LO QUE UN JUEZ ESCRI"
           60 últimos:  "50 análisis): ni “solo pasada 1” ni “solo pasada 2” es cero."
+        · ADENDA, (e): la respuesta de Fable del 29/10 sobre E3 (la pregunta enviada, PENDIENTE). Respuesta: huella
+          90df305f7c0ad1f0 · 1017 caracteres · 7 líneas.
 ---
 
 (c) LA CONSULTA ENVIADA — literal
@@ -281,3 +283,27 @@ La “segunda vuelta dirigida” de F-116 (3.3) queda absorbida por la pasada 2:
 PREDICCIONES NUEVAS
 
 P-F130-7 (E7, 5 pasadas): lectura global con lo conocido excluido saca ≥ 1 hallazgo distinto por pasada que hoy no sale; el verificador rechaza < 1 de cada 3. P-F130-8 (coste, con registro por llamada): el análisis de NOR-10 pasa de 0,015 $ a entre 0,025 y 0,035 $; entre 5 y 10 segundos más. P-F130-9 (enumerador, 0 pasadas): las parejas §2.4–§3.1 y §2.4–§3.5 salen por vecindad vectorial y por términos compartidos. P-F130-10 (activación, 5 pasadas): D y el quinto conflicto, 4 de 5 o más cada uno; las seis vivas, 5 de 5; falsos de la pasada 2 en el caso de control, 0. P-F130-11 (contadores, tras 50 análisis): ni “solo pasada 1” ni “solo pasada 2” es cero.
+
+---
+
+(e) ADENDA, 29/10/2026 — LA RESPUESTA DE FABLE SOBRE EL FORMATO Y LA CONDICIÓN DE E3
+
+Se archiva como adenda de F-130 y no como consulta nueva: una pregunta que completa un dictamen va dentro de su
+consulta (instrucción del arquitecto, 29/10).
+
+⚠️ LO QUE SE LE PREGUNTÓ NO ESTÁ AQUÍ: no ha llegado a Code. Por lo que contesta, se le consultó el formato de dos
+preguntas de E3, la condición realista y las dos parejas; el texto enviado queda PENDIENTE, y no se reconstruye.
+⚠️ El texto de E3 del anexo de los prompts (`F-130_anexo_textos_para_fable_2026-10-29.md`) es ANTERIOR a la línea que
+esta respuesta motivó («LAS DOS RESPUESTAS NO PUEDEN CITAR EL MISMO PAR DE FRASES…»); la versión vigente está en
+`app/api/admin/medida-f130/medida-f130.ts`. Fable propuso la comprobación «al validador»; el arquitecto la puso, para
+E3, como línea de la pregunta.
+
+LA RESPUESTA DE FABLE — literal, tal como la pegó el arquitecto
+
+1. «Dos preguntas con respuesta obligatoria, dato y cumplimiento, en vez de una con tres salidas: correcto y mejor que lo que dicté. Es el hueco obligatorio aplicado dos veces, y evita justo lo que medisteis: que A ocupe el único hueco y D no se escriba. Añadiría una sola cosa al validador: que las dos respuestas no puedan citar exactamente el mismo par de frases, para que "cumplimiento" no sea una copia de "dato" con otra etiqueta.»
+
+2. «E3 con los trozos enteros y A dentro: correcto, es lo que entregará el enumerador y es lo que mide. La variante de solo las dos frases no mediría la pasada 2, pero sí mediría el techo de la pregunta cerrada; descartarla es razonable, y si algún día E3 sale por debajo de 6 de 7, esa variante será la primera que querréis para saber si falla la pregunta o el contexto.»
+
+3. «Las dos parejas por separado, condición en la de §3.1: correcto, y es vuestra propia regla de que una cifra pertenece a la pareja en que se midió. Sin choque.»
+
+Cierre: «Nada de esto choca con F-130.»

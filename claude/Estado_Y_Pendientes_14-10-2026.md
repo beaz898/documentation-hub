@@ -201,6 +201,21 @@ de “exhaustivo” a “cobertura medida”. Texto, no código.» Y el arquitec
   · **EN LA CONDICIÓN REALISTA — AÑADIDO DEL ARQUITECTO, el dictamen no especifica la condición de E3**: los trozos
     enteros, con A dentro. La condición limpia, las dos frases de D solas, se DESCARTA: daría 7 de 7 y no mediría nada,
     porque el enumerador entregará trozos, nunca frases.
+  · **VALIDADO POR FABLE, Y NO CHOCA CON F-130: NO HAY SEGUNDO PLAN** (adenda (e) del archivo, 29/10). Sus palabras:
+    del formato, «Dos preguntas con respuesta obligatoria, dato y cumplimiento, en vez de una con tres salidas: correcto y
+    mejor que lo que dicté. Es el hueco obligatorio aplicado dos veces, y evita justo lo que medisteis: que A ocupe el
+    único hueco y D no se escriba»; de la condición, «E3 con los trozos enteros y A dentro: correcto, es lo que entregará
+    el enumerador y es lo que mide»; de las parejas, «Las dos parejas por separado, condición en la de §3.1: correcto»;
+    y su cierre, «Nada de esto choca con F-130.» *(Nota de Code: «condición en la de §3.1» dice en qué pareja se
+    califica el 6 de 7; la de §3.5 se mide aparte.)*
+  · **La línea del mismo par de frases** (arquitecto, 29/10, de la propuesta de Fable): «LAS DOS RESPUESTAS NO PUEDEN
+    CITAR EL MISMO PAR DE FRASES…». Sin ella, lo más fácil para el modelo es contestar lo mismo dos veces con etiquetas
+    distintas, y E3 daría un 6 de 7 FALSO: A en la 1 y A otra vez en la 2, puntuado como D. Fable la proponía «al
+    validador»; para E3 va en la pregunta, con su mutante.
+  · ⚠️ **LA CONTINGENCIA, ESCRITA ANTES DE MEDIR**: **SI E3 SALE POR DEBAJO DE 6 DE 7, lo primero que se corre es la
+    VARIANTE LIMPIA**, sólo las dos frases de D, porque distingue si falla la pregunta o el contexto. (Fable: «si algún
+    día E3 sale por debajo de 6 de 7, esa variante será la primera que querréis para saber si falla la pregunta o el
+    contexto.»)
   · **El texto de la pregunta** (arquitecto, 29/10): DOS preguntas, el DATO y el CUMPLIMIENTO, con «CONTESTAR A UNA NO TE
     EXIME DE CONTESTAR A LA OTRA» y, en cada una, QUÉ RESPUESTA ES EL HALLAZGO (en la 1, «sí»; en la 2, «no»). La 2 lleva
     el criterio del cumplimiento RECORTADO del bloque del juez por la cirugía del arquitecto, ejecutada por Code sobre los
