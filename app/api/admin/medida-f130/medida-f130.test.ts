@@ -29,7 +29,9 @@ describe('las medidas temporales de F-130', () => {
     // 29/10, tras la segunda tanda: la línea del mismo par se BORRA (va al validador de la pasada 2, en código) y la 2 se
     // DESACOPLA de la 1, justo detrás de su «HAY HALLAZGO»; es una sola cosa, quitar el acoplamiento entre las preguntas
     expect(PREGUNTA_CERRADA).not.toContain('MISMO PAR DE FRASES');
-    expect(PREGUNTA_CERRADA.endsWith('Si se pueden cumplir, contesta «sí» y no cites nada.\nESTA PREGUNTA SE CONTESTA SOLA, COMO SI LA 1 NO EXISTIERA. Da igual lo que hayas contestado en la 1. NO VALE RESPONDER «ya queda recogido en la pregunta 1» NI «no encuentro otro par de frases»: si no se pueden cumplir las dos, HAY HALLAZGO Y LO CITAS, aunque las frases sean las mismas que citaste en la 1.')).toBe(true);
+    // corregida antes de la tercera tanda: la 2 se pregunta SOBRE FRASES, y ya no dice «aunque las frases sean las mismas»
+    expect(PREGUNTA_CERRADA.endsWith('Si se pueden cumplir, contesta «sí» y no cites nada.\nESTA PREGUNTA SE CONTESTA SOLA, COMO SI LA 1 NO EXISTIERA, Y SE PREGUNTA SOBRE FRASES, NO SOBRE LOS DOS TEXTOS EN BLOQUE. Un mismo par de trozos puede mandar a la vez sobre la misma cosa y sobre cosas distintas, así que no decidas eso del par entero: la distinción de arriba se aplica AL PAR DE FRASES que estés considerando. Recorre las frases y busca si hay ALGUNA de un texto y ALGUNA del otro que no se puedan cumplir a la vez. NO VALE RESPONDER «ya queda recogido en la pregunta 1» NI «no encuentro otro par de frases».')).toBe(true);
+    expect(PREGUNTA_CERRADA).not.toContain('aunque las frases sean las mismas');
   });
 
   it('EL PROMPT: cada marca en su sitio, los textos tal cual (también con «$» o con una marca dentro), y la pareja siempre la 1', () => {

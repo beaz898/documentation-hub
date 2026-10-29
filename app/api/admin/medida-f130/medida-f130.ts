@@ -37,7 +37,12 @@ export function estaCaducada(ahora: Date): boolean {
  * Y LA PREGUNTA 2 SE DESACOPLA en el mismo cambio: «ESTA PREGUNTA SE CONTESTA SOLA, COMO SI LA 1 NO EXISTIERA…», que mata
  * las dos salidas que el modelo usó («ya queda recogido en la pregunta 1», «no encuentro otro par de frases»). Son dos
  * cambios en dos sitios pero UNA SOLA COSA: los dos quitan el acoplamiento entre las preguntas, y uno sin el otro dejaría
- * una salida abierta. La frase lleva mutante por cada una de sus dos partes.
+ * una salida abierta. La frase lleva mutante por cada una de sus partes.
+ * ⚠️ CORREGIDA ANTES DE LANZAR LA TERCERA TANDA (29/10), por una marca de Code: la primera versión terminaba en «aunque las
+ * frases sean las mismas que citaste en la 1», y chocaba con el criterio recortado, que manda a la 1 lo que versa sobre
+ * la misma cosa. Y en las vueltas 1, 3 y 4 de la segunda tanda el modelo no se escurría: OBEDECÍA ese criterio, juzgando
+ * el par de trozos ENTERO, cuando ese par manda a la vez sobre la misma cosa (A) y sobre cosas distintas (D). Ahora la
+ * pregunta 2 se hace SOBRE FRASES, no sobre los dos textos en bloque; el recorte del criterio no se toca.
  * Y CADA TEXTO LLEVA SU DOCUMENTO Y SU TROZO DELANTE (29/10): sin etiqueta, el modelo deducía cuál era cuál por la
  * numeración. Para E3 es inocuo; para la pasada 2 intercambiaría quién dice qué. Tercer defecto del mismo formato.
  * ⚠️ La respuesta va en TEXTO LLANO a propósito: son catorce respuestas que el arquitecto lee a ojo. ES DECISIÓN DE E3,
@@ -62,7 +67,7 @@ export const PREGUNTA_CERRADA = [
   'PREGUNTA 2 · EL CUMPLIMIENTO',
   '{{CRITERIO_DEL_CUMPLIMIENTO}}',
   'HAY HALLAZGO SI LA RESPUESTA ES «NO»: si NO se pueden cumplir las dos a la vez. Si es «no», cita la frase literal de cada lado y di cuál de las dos etiquetas es, "norma_contra_norma" o "norma_contra_practica". Si se pueden cumplir, contesta «sí» y no cites nada.',
-  'ESTA PREGUNTA SE CONTESTA SOLA, COMO SI LA 1 NO EXISTIERA. Da igual lo que hayas contestado en la 1. NO VALE RESPONDER «ya queda recogido en la pregunta 1» NI «no encuentro otro par de frases»: si no se pueden cumplir las dos, HAY HALLAZGO Y LO CITAS, aunque las frases sean las mismas que citaste en la 1.',
+  'ESTA PREGUNTA SE CONTESTA SOLA, COMO SI LA 1 NO EXISTIERA, Y SE PREGUNTA SOBRE FRASES, NO SOBRE LOS DOS TEXTOS EN BLOQUE. Un mismo par de trozos puede mandar a la vez sobre la misma cosa y sobre cosas distintas, así que no decidas eso del par entero: la distinción de arriba se aplica AL PAR DE FRASES que estés considerando. Recorre las frases y busca si hay ALGUNA de un texto y ALGUNA del otro que no se puedan cumplir a la vez. NO VALE RESPONDER «ya queda recogido en la pregunta 1» NI «no encuentro otro par de frases».',
 ].join('\n');
 
 /**

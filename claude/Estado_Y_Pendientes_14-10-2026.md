@@ -268,6 +268,14 @@ de los JSON de la herramienta, archivados enteros el 29/10 (`claude/Medida_F130_
   **Fallo de método, con su nombre**: cambió dos cosas a la vez, la línea y las etiquetas, y no se puede atribuir
   limpiamente la bajada. **Hallazgo estructural**: A puede contestar también la pregunta 2, así que ocupa las dos casillas
   y D se queda sin sitio; **dos casillas no bastan cuando un hallazgo cabe en las dos.**
+  ⚠️ **CORRECCIÓN DEL ARQUITECTO, 29/10, al lado de su diagnóstico y no en su lugar**: lo correcto es que **LA PREGUNTA 2 SE
+  ESTABA HACIENDO SOBRE LOS DOS TEXTOS EN BLOQUE, Y HAY QUE HACERLA SOBRE FRASES.** En las vueltas 1, 3 y 4 el modelo no se
+  escurría: obedecía el criterio («misma cosa → pregunta 1»; el conflicto normativo, «cuando mandan sobre COSAS
+  DISTINTAS»), y al juzgar la pareja entera como «de la misma cosa», el propio criterio le cerraba la puerta a D. Esa
+  pareja manda a la vez sobre la misma cosa (A) y sobre cosas distintas (D). **Lo destapó la marca de Code sobre la
+  contradicción de la frase B, no la relectura del arquitecto.** La frase B se sustituye por una que pregunta SOBRE
+  FRASES, y el recorte del criterio no se toca. P-E3-R2 no cambia. **No es una cuarta tanda: la tercera no se ha corrido;
+  se corrige el texto antes de lanzarlo.**
   **LA TERCERA TANDA, y es la última**: se borra la línea del mismo par (vuelve al validador de la pasada 2, en código) y
   se desacopla la pregunta 2 («ESTA PREGUNTA SE CONTESTA SOLA, COMO SI LA 1 NO EXISTIERA…»), que son dos cambios pero una
   sola cosa: quitar el acoplamiento entre las preguntas. Las etiquetas se quedan. **P-E3-R2**: §3.1 da 6 de 7 o más,

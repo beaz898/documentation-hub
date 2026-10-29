@@ -193,6 +193,23 @@ hallazgo de la PREGUNTA 1, no de la 2». La línea B dice que en la 2 «HAY HALL
 mismas que citaste en la 1». Las dos instrucciones van en la misma pregunta y apuntan en sentidos contrarios para A: el
 criterio la manda a la 1 y la línea B la admite en la 2.
 
+**RESUELTO ANTES DE LANZAR (arquitecto, 29/10).** Al mirar la contradicción, el arquitecto relee la segunda tanda: **en las
+vueltas 1, 3 y 4 el modelo NO se escurría, OBEDECÍA EL CRITERIO.** El criterio dice «misma cosa → pregunta 1» y define el
+conflicto normativo «cuando las dos mandan sobre COSAS DISTINTAS»; cuando decide que la pareja va «de la misma cosa», el
+propio criterio le cierra la puerta a D. Y esa pareja manda sobre las dos a la vez: la misma (quién responde, A) y cosas
+distintas (quién ocupa el cargo frente a quién responde, D). **La frase B se sustituye entera**:
+«ESTA PREGUNTA SE CONTESTA SOLA, COMO SI LA 1 NO EXISTIERA, Y SE PREGUNTA SOBRE FRASES, NO SOBRE LOS DOS TEXTOS EN BLOQUE. Un
+mismo par de trozos puede mandar a la vez sobre la misma cosa y sobre cosas distintas, así que no decidas eso del par
+entero: la distinción de arriba se aplica AL PAR DE FRASES que estés considerando. Recorre las frases y busca si hay
+ALGUNA de un texto y ALGUNA del otro que no se puedan cumplir a la vez. NO VALE RESPONDER «ya queda recogido en la
+pregunta 1» NI «no encuentro otro par de frases».»
+Quita el final que chocaba («aunque las frases sean las mismas»), mantiene cerradas las dos salidas que usó el modelo y
+deja de pedirle un juicio sobre el par entero. **El recorte del criterio NO se toca**: sus remisiones a la pregunta 1 son
+lo que mantiene a A fuera de la casilla 2 (la segunda opción de Code, quitárselas, «era la peor de las dos»).
+**P-E3-R2 NO CAMBIA**: mismo umbral y misma regla de puntuación.
+**ESTO NO ES UNA CUARTA TANDA**: la tercera no se ha corrido. Lo que se corrige es el texto antes de lanzarlo, no el
+resultado después de verlo.
+
 ## La lectura del arquitecto de la tercera tanda
 
 **PENDIENTE.**
