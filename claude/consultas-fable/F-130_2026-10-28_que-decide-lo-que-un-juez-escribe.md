@@ -34,6 +34,7 @@ Estado: ARCHIVADA CON DICTAMEN · se construye la segunda pasada por parejas, si
         · ADENDA, (e): lo enviado a Fable el 29/10 (el anexo de prompts, huella e579d3d0e2fc1a2c, y la línea de cubierta del
           director) y su respuesta sobre E3. Respuesta: huella
           90df305f7c0ad1f0 · 1017 caracteres · 7 líneas.
+          Segundo mensaje: huella 01d46b3cb421d487 · 1371 caracteres · 6 líneas.
 ---
 
 (c) LA CONSULTA ENVIADA — literal
@@ -297,9 +298,8 @@ LO QUE SE LE MANDÓ (aclarado por el arquitecto, 29/10): el contenido ENTERO de
 pregunta cerrada de E3, capturados del código; huella del fichero, e579d3d0e2fc1a2c), más una línea de cubierta del
 director, literal: «Los textos iban vacíos por un fallo nuestro; van ahora enteros, tal como los capturó el código».
 No se copia aquí: el anexo es el fichero que se mandó, y se queda como está.
-⚠️ Según el arquitecto, Fable añadió además dos observaciones al leer los prompts (la «séptima presión» del prompt
-del juez y el enrutado del verificador; están en el estado vivo, sección de F-130). Su texto NO ha llegado a Code y
-no está en las tres líneas de abajo: si existe, se archiva aquí, íntegro.
+Fable contestó en DOS mensajes: el primero, tres líneas sobre E3 (abajo, primero); el segundo, dos observaciones
+sobre los prompts (abajo, después), que llegó a Code el 29/10.
 ⚠️ El texto de E3 del anexo de los prompts (`F-130_anexo_textos_para_fable_2026-10-29.md`) es ANTERIOR a la línea que
 esta respuesta motivó («LAS DOS RESPUESTAS NO PUEDEN CITAR EL MISMO PAR DE FRASES…»); la versión vigente está en
 `app/api/admin/medida-f130/medida-f130.ts`. Fable propuso la comprobación «al validador»; el arquitecto la puso, para
@@ -314,3 +314,24 @@ LA RESPUESTA DE FABLE — literal, tal como la pegó el arquitecto
 3. «Las dos parejas por separado, condición en la de §3.1: correcto, y es vuestra propia regla de que una cifra pertenece a la pareja en que se midió. Sin choque.»
 
 Cierre: «Nada de esto choca con F-130.»
+
+EL SEGUNDO MENSAJE DE FABLE TRAS LA ENTREGA DE LOS PROMPTS — literal y completo, tal como lo pegó el arquitecto
+
+Dos cosas, no una, y ninguna es un plan:
+
+1. El prompt del juez se contradice a sí mismo sobre D. Arriba, "REGLA PRINCIPAL, POR ENCIMA DE TODAS LAS DEMÁS: si hablan de datos distintos, NO emites hallazgo"; abajo, "CONFLICTO NORMATIVO es cuando las dos mandan sobre COSAS DISTINTAS". El bloque normativo se presenta como excepción, pero la regla de arriba se declara por encima de todas, y D es, por definición, "cosas distintas". Eso no choca con la decisión de F-130; la refuerza: es una presión más contra D en la lista abierta, y es la clase de tensión que la pregunta cerrada de E3 no tiene porque sus dos preguntas son obligatorias y no jerarquizadas.
+2. El verificador depende de que el juez haya puesto la etiqueta. Un D emitido sin `conflictoNormativo`, que ya os ha pasado (1 de 8), va al lote de siempre, donde la única pregunta es "¿valores distintos del mismo dato?", y muere. Es el cajón de F-124 otra vez: la ruta la decide una marca del juez. Sí choca con el espíritu de F-130 y con vuestra propia decisión de E3: el verificador debería hacer las dos preguntas obligatorias a todo hallazgo, como hace la pregunta cerrada, en vez de una u otra según la marca. Y de paso, el prompt del lote de marcados empieza diciendo "decide UNA SOLA cosa: si se oponen sobre el mismo dato" y más abajo dice que a los marcados no les haga esa pregunta.
+
+Lo demás no choca.
+
+⚠️ SUS DOS CITAS DE NUESTROS PROMPTS SON RESÚMENES, NO LITERALES (comprobado por Code contra los ficheros, 29/10). Las
+de arriba son de Fable y se quedan como suyas; los literales verificados son éstos:
+· Del juez (`lib/analysis/judge.ts:843-846`): «REGLA PRINCIPAL, POR ENCIMA DE TODAS LAS DEMAS: Antes de emitir cualquier
+  hallazgo, verifica que los dos textos hablan del MISMO DATO CONCRETO. Si hablan de datos distintos, no hay nada que
+  comparar y NO emites hallazgo, aunque ambos textos pertenezcan al mismo ámbito.» «DEMAS» va sin tilde, y hay una
+  frase intermedia que el resumen omite. La otra cita del punto 1 sí es literal (`lib/analysis/excepcion-de-las-reglas.ts:62`).
+· Del verificador (`lib/analysis/verify-findings.ts:203`): «Para cada uno, decide UNA SOLA cosa: si las dos citas se oponen
+  sobre el MISMO dato concreto.» Y lo que dice «más abajo» es la rama (`lib/analysis/rama-de-las-reglas.ts:17-18`): «a ése, y
+  sólo a ése, NO le hagas la pregunta de los valores distintos».
+El arquitecto transmitió el resumen de Fable del prompt del juez como si fuera cita; se corrigió en el estado vivo y
+no se repite (arquitecto, 29/10).

@@ -220,9 +220,10 @@ de “exhaustivo” a “cobertura medida”. Texto, no código.» Y el arquitec
     respuestas no citan el mismo par de frases va **EN CÓDIGO** cuando se construya, como la propuso Fable («al
     validador»). Para E3 basta la instrucción, porque las catorce respuestas las lee el arquitecto.
 
-**LO QUE FABLE AÑADIÓ AL LEER LOS PROMPTS (29/10): SE ANOTA Y NO SE TOCA NADA.** ⚠️ Fuente: el mensaje del arquitecto del
-29/10; el texto de Fable con estas dos observaciones NO ha llegado a Code, y no es el de la adenda (e), que sólo trae
-tres líneas sobre E3. Si hay más texto de Fable, se archiva íntegro en la adenda. **LA RAZÓN, que es la que impide la
+**LO QUE FABLE AÑADIÓ AL LEER LOS PROMPTS (29/10): SE ANOTA Y NO SE TOCA NADA.** Fuente: su segundo mensaje tras la
+entrega de los prompts, archivado literal y completo en la adenda (e) de F-130 (huella `01d46b3cb421d487`). Fable lo
+abre con «Dos cosas, no una, y ninguna es un plan» y lo cierra con «Lo demás no choca»; del punto 1 dice que «no choca
+con la decisión de F-130; la refuerza», y del 2, que «Sí choca con el espíritu de F-130». **LA RAZÓN, que es la que impide la
 rama: LA SEMANA 0 MIDE EL SISTEMA TAL COMO ESTÁ.** Si se cambia ahora el prompt del juez o el enrutado del verificador,
 el 2 de 7 de D deja de ser comparable, y E1 y E5 medirían otro sistema.
 - **LA SÉPTIMA PRESIÓN CONTRA D, Y NO ES DEL MODELO: LA PUSIMOS NOSOTROS.** La tabla de P2 del dictamen tenía seis
@@ -232,16 +233,20 @@ el 2 de 7 de D deja de ser comparable, y E1 y E5 medirían otro sistema.
   textos pertenezcan al mismo ámbito.» Y el bloque de las reglas, en el mismo prompt (`lib/analysis/excepcion-de-las-reglas.ts:62`):
   «CONFLICTO NORMATIVO es cuando las dos mandan sobre COSAS DISTINTAS». Una regla «por encima de todas» manda no emitir
   cuando hablan de datos distintos, y la otra define el conflicto normativo justo por mandar sobre cosas distintas.
-  *(Nota de Code: el arquitecto la citó resumida y con tilde, «DEMÁS»; aquí va el literal.)* Y la observación de Fable,
-  según el arquitecto: **la pregunta cerrada no tiene esa tensión, porque sus dos preguntas son obligatorias y no
-  jerarquizadas.**
+  ⚠️ **LA CITA QUE CIRCULÓ ERA UN RESUMEN DE FABLE, NO EL LITERAL** (arquitecto, 29/10): «REGLA PRINCIPAL, POR ENCIMA
+  DE TODAS LAS DEMÁS: si hablan de datos distintos, NO emites hallazgo» es como lo escribió Fable, con tilde y sin la
+  frase intermedia; el arquitecto lo transmitió como si fuera cita, y el literal es el de arriba, comprobado por Code
+  contra el fichero. Se corrige aquí y no se repite: una cita de nuestro código se copia del fichero, no del resumen de
+  quien lo leyó. (La de Fable del verificador, «decide UNA SOLA cosa: si se oponen sobre el mismo dato», también es
+  resumen; el literal, abajo.) Y la observación de Fable: **la pregunta cerrada no tiene esa tensión, «porque sus dos
+  preguntas son obligatorias y no jerarquizadas».**
 - **E8, ANOTADO Y NO CORRIDO**: quitar la cláusula «POR ENCIMA DE TODAS LAS DEMAS» y medir D. La misma forma que E1: se
   quita una cosa y se mide. Si mueve D, parte del 29 % era nuestro. **NO SE CORRE ANTES DE E3: nada se mueve mientras
   se mide.**
 - **EL DEFECTO VIVO DEL VERIFICADOR — es un defecto, no una idea.** La ruta la decide una marca del juez: una D SIN
   etiqueta cae en el lote cuya única pregunta es por el dato, y muere por ENRUTADO, no por juicio. Con el dato que ya
-  hay: en la primera tanda del 3.4, D salió 1 vez de 8 y SIN etiqueta. Es el cajón de F-124 otra vez, y según el
-  arquitecto lo dice Fable con esas palabras. **Y el prompt del lote de los marcados se contradice**: su primera línea
+  hay: en la primera tanda del 3.4, D salió 1 vez de 8 y SIN etiqueta. Fable: «Es el cajón de F-124 otra vez: la ruta la
+  decide una marca del juez.» **Y el prompt del lote de los marcados se contradice**: su primera línea
   (`lib/analysis/verify-findings.ts:203`) dice «Para cada uno, decide UNA SOLA cosa: si las dos citas se oponen sobre el
   MISMO dato concreto», y la rama que va más abajo (`lib/analysis/rama-de-las-reglas.ts:17-18`) dice que al marcado «NO
   le hagas la pregunta de los valores distintos».
