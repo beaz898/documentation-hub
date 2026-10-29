@@ -249,8 +249,23 @@ PASADA 2. No hay cuarta tanda.** Puntuación del arquitecto: D en las vueltas 2,
 **La serie de §3.1**: lista abierta 2 de 7; línea ancha 5 de 7; línea estrecha 3 de 7; sin línea y por frases 4 de 7. La
 de §3.5, 6 de 7.
 **Lo siguiente, que también estaba escrito**: la variante limpia, sólo las dos frases de D. **No reabre la decisión de
-construir**: mide el techo de la pregunta cerrada sin A, y el número va a F-131. Su regla de puntuación, PENDIENTE DEL
-ARQUITECTO antes de pulsar.
+construir**: mide el techo de la pregunta cerrada sin A, y el número va a F-131.
+
+## P-VL-1 · la variante limpia, escrita ANTES de pulsar (arquitecto, 29/10)
+
+**P-VL-1: 7 DE 7.** El 28/10 el arquitecto escribió que esta condición «daría 7 de 7 y no mediría nada»; si sale menos, el
+que queda retratado es él.
+**Cómo se puntúa.** En la pregunta 1 la correcta es «no», y un «sí» es un falso positivo que se anota. En la pregunta 2
+cuenta como D un «no se pueden cumplir» apoyado en el permiso de NOR-10 contra el principio de CLI-12. Reformular A es
+imposible por construcción, porque A no está en el material.
+**Los dos fallos, nombrados antes**:
+- a) «el principio sólo explica, no manda», y «sí» a la 2: la guarda del principio no se sostiene sola;
+- b) negarse a inferir porque el apartado 3.1 no está entero: es un límite de la variante, no de la pregunta.
+**Cómo se lee el número.**
+- **6 o 7**: el problema es la presencia de A en la pareja, que es el núcleo de F-131.
+- **4 o menos**: el problema no es A, sino la pregunta o la guarda; F-131 cambia de forma y es mucho más importante.
+- **5**: no distingue, y se dice.
+**No reabre la decisión de construir.**
 ⚠️ **Al lado, porque es lo que vigila al arquitecto**: fijó el 6 de 7 ANTES de medir para no poder racionalizar después,
 y ha salido 5. Lo que justifica repetir no es su explicación: es que el diagnóstico está en las palabras del modelo y
 produce una predicción falsable. **Si al repetir falla, no hay tercera vuelta de excusas.**

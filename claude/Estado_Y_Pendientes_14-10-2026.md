@@ -143,10 +143,21 @@ se puede subir o si hace falta separar esas pruebas de la puerta. Ahora no se to
 subir**, no hace falta separarlas. El límite es el `testTimeout: 15_000` general (`vitest.config.mts:113`), reloj de
 pared. La prueba que cae, el control positivo de `corpus-del-examen.test.ts:236`, recorre y lee del disco `app`, `lib`,
 `components` y `worker` enteros, y lo hace otra vez en cada `it` (`ficherosDeCodigo`, `:207`; `importadoresDe`, `:224`),
-sin guardar nada. Sola pasa en menos de un segundo, y cae sólo bajo carga: es espera de disco, no un cuelgue.
-`formatos-con-tablas.test.ts:49` ya lleva su propio `timeout: 30_000`. La propuesta, que es código de prueba y espera la
-aprobación del arquitecto: leer el árbol una vez por fichero de prueba y darle un tiempo propio, como `formatos`.
-**No se ha tocado.**
+sin guardar nada. Cae sólo bajo carga: es espera de disco, no un cuelgue. `formatos-con-tablas.test.ts:49` ya lleva su
+propio `timeout: 30_000`. La propuesta: leer el árbol una vez por fichero de prueba y darle un tiempo propio, como
+`formatos`.
+⚠️ *Corrección de Code, el mismo día, al medirlo*: aquí decía «sola pasa en menos de un segundo», y eso es sólo EN
+CALIENTE (0,35 s). En frío, el fichero solo, la primera lectura del árbol tardó **11,4 s**. Ya lo decía la fila de las dos
+pruebas lentas de la sección 5: la lentitud es de la primera pasada en frío.
+
+**APROBADO Y HECHO (arquitecto, 29/10): EL DISPARADOR QUEDA CERRADO.**
+- **EL ARREGLO ES LEER EL ÁRBOL UNA SOLA VEZ** (`arbolDeCodigo` en `corpus-del-examen.test.ts`): el primer caso que lo pide
+  lo lee con su texto y los otros cinco lo reutilizan. Así se quita el trabajo de disco, que es la causa. Medido, el
+  fichero solo: los cinco que reutilizan tardan de 4 a 10 ms.
+- **EL MARGEN ES EL TIEMPO PROPIO**: `timeout: 30_000` en cada caso del censo, con la convención de `formatos`. Son 30 s, el
+  doble del general y 2,6 veces la lectura en frío; con eso un cuelgue de verdad sigue dando rojo en medio minuto.
+- ⚠️ **El límite, declarado**: ninguna prueba ve si se quita la caché, porque el censo da lo mismo y sólo tarda más. No
+  lleva mutante.
 
 **REGISTRO, 29/10/2026 (sólo registro; no se reescribe ningún commit)**: el mensaje del commit `142a6930` («F-130: el
 segundo mensaje de Fable tras los prompts…») dice «Gates: npm test (suite 2115, arneses 117)», y **en ese momento no lo
@@ -300,7 +311,14 @@ de los JSON de la herramienta, archivados enteros el 29/10 (`claude/Medida_F130_
   **LO SIGUIENTE: LA VARIANTE LIMPIA, PREPARADA Y SIN CORRER** (`app/api/admin/medida-f130/limpia/`): la misma pregunta
   sobre las dos frases de D solas, cortadas de la base, siete veces, con un botón de ver las frases antes de gastar.
   **NO REABRE LA DECISIÓN DE CONSTRUIR**: mide el techo de la pregunta cerrada cuando A no está, y el número va a F-131.
-  Su regla de puntuación, PENDIENTE DEL ARQUITECTO antes de pulsar.
+  **La regla y P-VL-1, escritas antes de pulsar (arquitecto, 29/10):**
+  - En la pregunta 1 lo correcto es «no», y un «sí» es un falso positivo. En la pregunta 2 cuenta como D lo apoyado en el
+    permiso contra el principio; reformular A es imposible por construcción.
+  - Dos fallos nombrados antes: (a) «el principio sólo explica», es decir, que la guarda no se sostiene sola; (b) negarse
+    porque el 3.1 no está entero, que es un límite de la variante.
+  - **P-VL-1: 7 de 7.** Un 6 o un 7 dicen que el problema es A en la pareja; un 4 o menos, que es la pregunta o la guarda, y
+    F-131 cambia de forma; un 5 no distingue.
+  - **El orden**: primero «ver las dos frases», sin gastar, y su salida va al arquitecto; sólo después, las siete.
   **LA TERCERA TANDA, y es la última**: se borra la línea del mismo par (vuelve al validador de la pasada 2, en código) y
   se desacopla la pregunta 2 («ESTA PREGUNTA SE CONTESTA SOLA, COMO SI LA 1 NO EXISTIERA…»), que son dos cambios pero una
   sola cosa: quitar el acoplamiento entre las preguntas. Las etiquetas se quedan. **P-E3-R2**: §3.1 da 6 de 7 o más,

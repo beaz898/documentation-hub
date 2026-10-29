@@ -273,8 +273,38 @@ cerrada cuando A no está, para saber si el problema es A o la pregunta. **Ese n
 - **Dos botones**: «ver las dos frases» (sin modelo, no gasta) devuelve las dos frases y el prompt; el otro corre las
   siete. **Primero el de ver**: así se comprueba qué se manda antes de gastar. El botón de E3 se ha quitado de la página.
 
-**PENDIENTE DEL ARQUITECTO, ANTES DE PULSAR**: la regla de puntuación de la variante limpia y, si la hay, su predicción.
-La de P-E3-R2 (sólo cuenta D apoyada en el permiso) es la candidata obvia, pero no está escrita para esta medida.
+**LA REGLA DE PUNTUACIÓN, escrita ANTES de pulsar (arquitecto, 29/10)**; aquí es más simple que en E3, porque A no está en
+los textos:
+- **PREGUNTA 1: la respuesta correcta es «NO».** Con sólo esas dos frases no hay ningún dato con dos valores. Si contesta
+  «sí», es un **falso positivo** y se anota como tal.
+- **PREGUNTA 2: CUENTA COMO D** si contesta que NO se pueden cumplir las dos, apoyándose en el permiso de NOR-10 contra el
+  principio de CLI-12. Como las frases de A no están en el material, la vía de «reformular A» es **imposible por
+  construcción**: eso es justamente lo que esta medida aísla.
+
+**LOS DOS FALLOS POSIBLES, NOMBRADOS ANTES DE VERLOS** para que después no sean excusas:
+- **a)** Que diga que la frase del principio «sólo explica, no manda» y conteste «sí» a la 2. Eso sería que **LA GUARDA DEL
+  PRINCIPIO no se sostiene sola**, y es un resultado importante.
+- **b)** Que se niegue a inferir porque el apartado 3.1 no está entero en el material. Ya pasó en la primera tanda, en la
+  vuelta 1 de la pareja de §3.5 («el contenido de ese apartado no aparece en los textos»). Si vuelve a pasar, **es un
+  límite de la variante, no de la pregunta.**
+
+**P-VL-1, LA PREDICCIÓN: 7 DE 7.** El arquitecto la pone ahí porque el 28/10 escribió que esta condición «daría 7 de 7 y no
+mediría nada»: si sale menos, el que queda retratado es él.
+
+**CÓMO SE LEE EL NÚMERO, también antes de medir:**
+- **6 o 7**: confirma que el problema es **LA PRESENCIA DE A EN LA PAREJA**, y eso es el núcleo de la consulta F-131.
+- **4 o menos**: el problema **NO es A**, sino la pregunta o la guarda del principio. Entonces F-131 cambia de forma por
+  completo y es mucho más importante.
+- **5**: no distingue, y se dice que no distingue.
+
+**NO REABRE LA DECISIÓN DE CONSTRUIR**, que ya está tomada y escrita.
+
+**EL ORDEN (arquitecto)**: primero el botón de **ver las dos frases**, que no gasta, y su salida se le pega al arquitecto,
+que comprueba con sus ojos que no hay nada de A delante. **Sólo después, las siete llamadas.**
+
+## Las dos frases del ensayo
+
+**PENDIENTE**: la salida del botón «ver las dos frases».
 
 ## La lectura del arquitecto de la variante limpia
 
