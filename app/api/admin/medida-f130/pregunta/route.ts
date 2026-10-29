@@ -60,7 +60,7 @@ export async function POST(req: NextRequest) {
   );
 
   return NextResponse.json({
-    medida: 'E3 · la pregunta cerrada sobre las dos parejas de D, en la condición realista, siete veces cada una',
+    medida: 'E3 · la pregunta cerrada sobre las parejas de PAREJAS_DE_E3 (repetición del 29/10: sólo la de §3.1), en la condición realista, siete veces cada una',
     cuando: new Date().toISOString(),
     modelo: delJuez.modelo,
     respuestas,

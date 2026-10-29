@@ -29,7 +29,7 @@ export default function MedidaF130() {
       <p>Herramienta de medida, no producto. Se borra al acabar la semana 0. No cobra créditos.</p>
       <p>
         <button disabled={ocupado} onClick={() => medir('vecindad')}>P-F130-9 · Vecindad (sólo lee, sin modelo)</button>{' '}
-        <button disabled={ocupado} onClick={() => medir('pregunta')}>E3 · Pregunta cerrada, dos parejas, 7 veces cada una (gasta en la API)</button>
+        <button disabled={ocupado} onClick={() => medir('pregunta')}>E3 · Pregunta cerrada, repetición: sólo la pareja de §3.1, 7 veces (gasta en la API)</button>
       </p>
       <p>Copia todo lo que salga abajo y pégaselo a Claude Code.</p>
       <pre style={{ whiteSpace: 'pre-wrap', background: '#f4f4f4', padding: '1rem', minHeight: '10rem' }}>{salida}</pre>
