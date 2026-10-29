@@ -7,7 +7,7 @@ import { getDocumentChunks } from '@/lib/read-chunks';
 import { estaCaducada, CADUCA_EL, TROZOS, type ClaveDeTrozo } from './medida-f130';
 
 /**
- * Lo común a las dos rutas temporales de F-130: la caducidad, el administrador y la lectura de los trozos de la base.
+ * Lo común a las tres rutas temporales de F-130: la caducidad, el administrador y la lectura de los trozos de la base.
  * Temporal como toda la carpeta (cabecera de `medida-f130.ts`).
  */
 

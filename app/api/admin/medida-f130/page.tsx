@@ -2,14 +2,14 @@
 import { useState } from 'react';
 
 /**
- * LA PÁGINA DE LAS DOS MEDIDAS TEMPORALES DE F-130 (28/10/2026). Dos botones y el JSON de vuelta, para copiarlo y
+ * LA PÁGINA DE LAS MEDIDAS TEMPORALES DE F-130 (28/10/2026). Los botones y el JSON de vuelta, para copiarlo y
  * pegarlo. Temporal como toda la carpeta (cabecera de `medida-f130.ts`): se borra con ella.
  */
 export default function MedidaF130() {
   const [salida, setSalida] = useState('');
   const [ocupado, setOcupado] = useState(false);
 
-  async function medir(ruta: 'vecindad' | 'pregunta') {
+  async function medir(ruta: 'vecindad' | 'limpia?ensayo=1' | 'limpia') {
     setOcupado(true);
     setSalida(`Midiendo ${ruta}…`);
     try {
@@ -29,8 +29,10 @@ export default function MedidaF130() {
       <p>Herramienta de medida, no producto. Se borra al acabar la semana 0. No cobra créditos.</p>
       <p>
         <button disabled={ocupado} onClick={() => medir('vecindad')}>P-F130-9 · Vecindad (sólo lee, sin modelo)</button>{' '}
-        <button disabled={ocupado} onClick={() => medir('pregunta')}>E3 · Pregunta cerrada, repetición: sólo la pareja de §3.1, 7 veces (gasta en la API)</button>
+        <button disabled={ocupado} onClick={() => medir('limpia?ensayo=1')}>Variante limpia · ver las dos frases (sin modelo, no gasta)</button>{' '}
+        <button disabled={ocupado} onClick={() => medir('limpia')}>Variante limpia · las dos frases de D, 7 veces (gasta en la API)</button>
       </p>
+      <p>E3 terminó el 29/10 con la tercera tanda; no hay cuarta y ya no tiene botón.</p>
       <p>Copia todo lo que salga abajo y pégaselo a Claude Code.</p>
       <pre style={{ whiteSpace: 'pre-wrap', background: '#f4f4f4', padding: '1rem', minHeight: '10rem' }}>{salida}</pre>
     </main>

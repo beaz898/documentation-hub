@@ -1,19 +1,20 @@
 /**
- * LAS DOS HERRAMIENTAS TEMPORALES DE MEDIDA DE F-130 (28/10/2026). INSTRUMENTO, NO PRODUCTO.
+ * LAS HERRAMIENTAS TEMPORALES DE MEDIDA DE F-130 (28/10/2026). INSTRUMENTO, NO PRODUCTO.
  *
- * Esta carpeta entera se borra en UN commit cuando acabe la semana 0 de F-130: la página, las dos rutas, este módulo
- * y su prueba. Mientras tanto, pasada la fecha de `CADUCA_EL` las dos rutas responden 410 y no tocan ni la base, ni
+ * Esta carpeta entera se borra en UN commit cuando acabe la semana 0 de F-130: la página, las tres rutas, este módulo
+ * y su prueba. Mientras tanto, pasada la fecha de `CADUCA_EL` las tres rutas responden 410 y no tocan ni la base, ni
  * Pinecone, ni el modelo: si alguien se olvida de borrarla, se apaga sola.
  *   · vecindad (P-F130-9): ¿son vecinos vectoriales el trozo 4 de NOR-10 y los trozos 3 y 6 de CLI-12, y comparten
  *     las dos figuras? Lee la base y Pinecone; no llama a ningún modelo ni embebe nada.
  *   · pregunta (E3): la pregunta cerrada sobre la pareja de D, siete veces, con la configuración exacta del juez
  *     (`modeloDelJuez()`). Gasta en la API y NO cobra créditos (arquitecto, 28/10): el gasto queda en el registro por
  *     llamada que devuelve.
- * Las dos: POST, sólo administradores, organización resuelta por el usuario, nada del cliente en la entrada (los
+ *   · limpia (29/10): la variante limpia, la misma pregunta sobre las dos frases de D solas; con `?ensayo=1`, sin modelo.
+ * Las tres: POST, sólo administradores, organización resuelta por el usuario, nada del cliente en la entrada (los
  * pasajes se leen de la base) y ninguna tabla nueva. Lo que devuelven lo pega el director y se archiva en `claude/`.
  */
 
-/** Pasada esta fecha, las dos rutas responden 410. Fecha del arquitecto: la semana 0 de F-130 más margen. */
+/** Pasada esta fecha, las tres rutas responden 410. Fecha del arquitecto: la semana 0 de F-130 más margen. */
 export const CADUCA_EL = '2026-11-15T00:00:00+01:00';
 
 export function estaCaducada(ahora: Date): boolean {
@@ -94,6 +95,40 @@ export const PAREJAS_DE_E3: Array<{ analizado: ClaveDeTrozo; candidato: ClaveDeT
   { analizado: 'nor10_4', candidato: 'cli12_3' },
 ];
 export const VECES_DE_E3 = 7;
+
+/**
+ * LA VARIANTE LIMPIA (arquitecto, 29/10, tras fallar P-E3-R2): la MISMA pregunta cerrada, pero cada texto es SÓLO la
+ * frase de D de su trozo, sin A delante. Siete veces. Lo único que cambia respecto a E3 es el contenido de los textos.
+ * ⚠️ SU ALCANCE, escrito antes de correrla: NO REABRE LA DECISIÓN DE CONSTRUIR. Mide el techo de la pregunta cerrada
+ * cuando A no está, para saber si el problema es A o la pregunta; el número va a la consulta F-131 a Fable. (El 28/10
+ * se dijo que esta condición «daría 7 de 7 y no mediría nada»: no mide la pasada 2, que entregará trozos; mide el techo.)
+ * Las frases NO se escriben aquí: se cortan del texto de la base por la frase de cada trozo de `TROZOS`.
+ */
+export const PAREJA_DE_LA_VARIANTE_LIMPIA: { analizado: ClaveDeTrozo; candidato: ClaveDeTrozo } = { analizado: 'nor10_4', candidato: 'cli12_3' };
+export const VECES_DE_LA_VARIANTE_LIMPIA = 7;
+
+/** Lo que delata a A (quién es el responsable último): si la frase cortada lo lleva, A va delante y no se mide. */
+export const MARCAS_DE_A = ['responsabilidad última', 'responsable último'] as const;
+
+/**
+ * La frase del texto que contiene el ancla, que tiene que salir UNA vez. Una frase acaba en un punto seguido de espacio,
+ * o en un salto de línea: así «apartado 2.1» no la corta. (El punto que cierra el texto no hace falta mirarlo: la frase
+ * llega igual hasta el final.) Si la frase lleva una marca de A, no vale.
+ */
+export function fraseQueContiene(texto: string, ancla: string): { ok: true; frase: string } | { ok: false; motivo: string } {
+  const donde = texto.indexOf(ancla);
+  if (donde === -1) return { ok: false, motivo: `el texto no contiene «${ancla}»` };
+  if (texto.indexOf(ancla, donde + 1) !== -1) return { ok: false, motivo: `«${ancla}» sale más de una vez` };
+  const acaba = (i: number) => texto[i] === '\n' || (texto[i] === '.' && /\s/.test(texto[i + 1] ?? ''));
+  let inicio = donde;
+  while (inicio > 0 && !acaba(inicio - 1)) inicio--;
+  let fin = donde + ancla.length;
+  while (fin < texto.length && !acaba(fin)) fin++;
+  const frase = texto.slice(inicio, texto[fin] === '.' ? fin + 1 : fin).trim();
+  const conA = MARCAS_DE_A.find(m => frase.includes(m));
+  if (conA) return { ok: false, motivo: `la frase de «${ancla}» lleva «${conA}»: A iría delante` };
+  return { ok: true, frase };
+}
 
 export const FIGURAS = ['Coordinador de Calidad', 'Director Clínico'] as const;
 

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
-  CADUCA_EL, PAREJAS_DE_E3, PREGUNTA_CERRADA, TROZOS, VECES_DE_E3,
-  construirPrompt, contarFiguras, correspondencia, coseno, estaCaducada, puestos,
+  CADUCA_EL, MARCAS_DE_A, PAREJAS_DE_E3, PAREJA_DE_LA_VARIANTE_LIMPIA, PREGUNTA_CERRADA, TROZOS, VECES_DE_E3, VECES_DE_LA_VARIANTE_LIMPIA,
+  construirPrompt, contarFiguras, correspondencia, coseno, estaCaducada, fraseQueContiene, puestos,
 } from './medida-f130';
 
 /**
@@ -72,5 +72,28 @@ describe('las medidas temporales de F-130', () => {
 
   it('LOS PUESTOS, desde 1, y nulo si no salió', () => {
     expect(puestos(['x', 'y', 'z'], ['z', 'w'])).toEqual({ z: 3, w: null });
+  });
+
+  it('LA VARIANTE LIMPIA: la pareja de §3.1, siete veces, cada lado con la frase de D de su trozo', () => {
+    expect(PAREJA_DE_LA_VARIANTE_LIMPIA).toEqual({ analizado: 'nor10_4', candidato: 'cli12_3' });
+    expect(VECES_DE_LA_VARIANTE_LIMPIA).toBe(7);
+    expect(MARCAS_DE_A).toEqual(['responsabilidad última', 'responsable último']);
+  });
+
+  it('LA FRASE QUE CONTIENE EL ANCLA: de punto a punto, sin cortar en «2.1», y hasta el salto de línea', () => {
+    const t = 'Primera frase. Según el apartado 2.1, el cargo puede recaer en X. Tercera frase.';
+    expect(fraseQueContiene(t, 'puede recaer')).toEqual({ ok: true, frase: 'Según el apartado 2.1, el cargo puede recaer en X.' });
+    expect(fraseQueContiene('## 2.4 Cargo\nEl cargo puede recaer en X\nOtra línea.', 'puede recaer')).toEqual({ ok: true, frase: 'El cargo puede recaer en X' });
+    expect(fraseQueContiene('El cargo puede recaer en X.', 'puede recaer')).toEqual({ ok: true, frase: 'El cargo puede recaer en X.' });
+    expect(fraseQueContiene('Uno. El cargo puede recaer', 'puede recaer')).toEqual({ ok: true, frase: 'El cargo puede recaer' });
+  });
+
+  it('LA FRASE NO SE ADIVINA: sin el ancla, con el ancla dos veces, o con A dentro, no hay frase', () => {
+    expect(fraseQueContiene('Nada aquí.', 'puede recaer')).toEqual({ ok: false, motivo: 'el texto no contiene «puede recaer»' });
+    expect(fraseQueContiene('Puede: puede recaer. Y puede recaer.', 'puede recaer')).toEqual({ ok: false, motivo: '«puede recaer» sale más de una vez' });
+    expect(fraseQueContiene('Es el responsable último y puede recaer en X.', 'puede recaer')).toEqual({ ok: false, motivo: 'la frase de «puede recaer» lleva «responsable último»: A iría delante' });
+    expect(fraseQueContiene('Lleva la responsabilidad última y puede recaer en X.', 'puede recaer').ok).toBe(false);
+    // la marca de A en OTRA frase del trozo no la quita: eso es justo lo que se recorta
+    expect(fraseQueContiene('El responsable último es Y. El cargo puede recaer en X.', 'puede recaer')).toEqual({ ok: true, frase: 'El cargo puede recaer en X.' });
   });
 });
