@@ -131,6 +131,22 @@ sus datos y eso sigue ahí, es un problema serio. Hoy quedan preguntas y respues
 y mensajes del agente (leído en el código por Code el 26/10; la salvedad, en `Modelo_De_Negocio.txt`). **No se hace
 todavía: es código de producto y lo revisa el arquitecto cuando toque.**
 
+## ⚠️ PENDIENTE CON DISPARADOR: UNA PUERTA QUE SE CAE POR TIEMPO BAJO CARGA NO ES UNA PUERTA (arquitecto, 29/10/2026)
+
+**La decisión, sin abrirla ahora.** Van varias caídas por tiempo, bajo carga, entre `lib/pinecone/corpus-del-examen.test.ts`
+y `lib/formatos-con-tablas.test.ts`; solas pasan en menos de un segundo (la deuda de las dos pruebas lentas está en la
+sección 5). **El riesgo no es el rojo falso: es que, con rojos ambiguos, algún día pase un rojo DE VERDAD porque alguien
+lo da por «el de siempre».** **DISPARADOR: el primer commit después de E3.** Entonces Code dice si es un tiempo fijo que
+se puede subir o si hace falta separar esas pruebas de la puerta. Ahora no se toca.
+
+**REGISTRO, 29/10/2026 (sólo registro; no se reescribe ningún commit)**: el mensaje del commit `142a6930` («F-130: el
+segundo mensaje de Fable tras los prompts…») dice «Gates: npm test (suite 2115, arneses 117)», y **en ese momento no lo
+había pasado**. La suite y el commit iban en la misma orden, contra la regla («Un rojo no puede pasar en silencio», en el
+protocolo), y el commit se hizo con un rojo: el fallo por tiempo de `corpus-del-examen` («⚠️ CONTROL POSITIVO — el censo
+SÍ ve imports cuando los hay», 15 s) bajo carga. **Repetida sola, la suite salió verde: 2115 tests y 117 de arneses.** El
+commit sólo toca dos ficheros `.md`. Es el mismo trato que `d46990eb` dio a la fecha mal puesta: se deja escrito en un
+commit aparte, no se reescribe.
+
 ## ⚠️ F-130 (28/10/2026): LA SEGUNDA PASADA POR PAREJAS — EL PLAN
 
 **Fuente.** El par está archivado en un solo fichero, como la casa: `claude/consultas-fable/F-130_2026-10-28_que-decide-lo-que-un-juez-escribe.md`
