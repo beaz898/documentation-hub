@@ -257,6 +257,12 @@ de los JSON de la herramienta, archivados enteros el 29/10 (`claude/Medida_F130_
   línea sólo quita motivos para descartar, así que repetirla no cambiaría ninguna decisión y cuesta siete llamadas.
   **Ese 6 de 7 es del formato viejo y las dos cifras no son estrictamente comparables; si se construye, §3.5 se vuelve a
   medir con el prompt definitivo.**
+- ⚠️ **E3, SEGUNDA TANDA (29/10, 15:15 UTC): P-E3-R1 FALLÓ.** La pareja de §3.1, con la línea estrechada y los textos
+  etiquetados, dio **3 de 7** (puntuación del arquitecto); la predicción era 6 de 7 o más. **Por lo escrito antes de
+  medir: NO SE CONSTRUYE, toca la variante limpia, y no hay tercera vuelta de excusas.** JSON archivado
+  (`claude/Medida_F130_E3_Segunda_Tanda_29-10-2026.json`); la tabla de qué cita cada vuelta, en el documento de medida:
+  sólo la vuelta 6 cita el par de D, y en las 1, 3 y 4 el modelo contesta «no» a la 2 y no lo cuenta por la línea del
+  mismo par. La lectura, PENDIENTE DEL ARQUITECTO.
 - **P-E3-R1 ES SOBRE LA LÍNEA**, escrito antes de medir (arquitecto, 29/10): la repetición cambia dos cosas, la línea y
   las etiquetas de los textos. Las etiquetas son un arreglo de corrección y no deberían mover la detección; si la mueven
   mucho, es un resultado inesperado y se anota como tal, no se mezcla con la predicción.

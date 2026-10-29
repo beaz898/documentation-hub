@@ -97,6 +97,33 @@ prompt definitivo.**
 racionalizar después, y ha salido 5. Lo que justifica repetir no es su explicación: es que **el diagnóstico está en las
 palabras del modelo y produce una predicción falsable**. Si al repetir falla, **no hay tercera vuelta de excusas**.
 
-## La lectura del arquitecto de la repetición
+## E3 · SEGUNDA TANDA, LA REPETICIÓN DE §3.1 (29/10/2026, 15:15 UTC)
 
-**PENDIENTE**: después de la repetición.
+**P-E3-R1 FALLÓ.** Con la línea estrechada y los textos etiquetados, la pareja de §3.1 dio **3 de 7** (puntuación del
+arquitecto); la predicción era 6 de 7 o más. Por lo escrito antes de medir: **NO SE CONSTRUYE, y lo que toca es la
+variante limpia**, sólo las dos frases de D. **No hay tercera vuelta de excusas.**
+
+**El JSON**, pegado por el director: `claude/Medida_F130_E3_Segunda_Tanda_29-10-2026.json` (con el bloque «registro»
+compactado a una línea por petición, como el de la primera tanda; mismos valores). Siete respuestas; 28.441 tokens de
+entrada y 22.618 de salida; latencias de 12.010 a 16.956 ms; salida máxima, 3.831, el 23,9 % del tope. Parámetros de las
+siete: `maxTokens` 16.000, temperatura «sin_enviar», esfuerzo «medium».
+
+**Qué cita cada vuelta en la pregunta 2** (tabulación de Code sobre el JSON, no puntuación; la puntuación es del
+arquitecto):
+
+| Vuelta | ¿Cita el permiso de §2.4? | ¿Cita el principio de §3.1? | Lo que hace en la 2 |
+|---|---|---|---|
+| 1 | no | no | dice «NO» y no lo cuenta: «no tengo otro par de frases distinto […] y la regla exige que las frases no se repitan» |
+| 2 | sí | no | hallazgo: el permiso frente a la frase de A («El responsable último… no el Director Clínico») |
+| 3 | no | no | dice «No» y no lo registra: «no encuentro en los dos trozos una frase diferente» |
+| 4 | no | no | dice «No» y no aporta par: «no encuentro otro par de frases que apoye el incumplimiento sin repetirla» |
+| 5 | no | no | hallazgo con otro par: el alcance del papel del Coordinador («encargado de supervisar…» frente a «responsable último…») |
+| 6 | sí | sí | hallazgo: el permiso frente al principio, el par de D |
+| 7 | sí | no (lo menciona en la explicación) | hallazgo: el permiso frente a la frase de A |
+
+Las tres vueltas que citan el permiso (2, 6 y 7) son las que suman el 3 de 7. **Sólo la 6 cita el par de D.** En las
+vueltas 1, 3 y 4 el modelo contesta «no» a la pregunta 2 y, aun así, no lo cuenta por la línea del mismo par.
+
+## La lectura del arquitecto de la segunda tanda
+
+**PENDIENTE DEL ARQUITECTO.**
