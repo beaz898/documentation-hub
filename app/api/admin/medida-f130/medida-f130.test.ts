@@ -26,8 +26,10 @@ describe('las medidas temporales de F-130', () => {
     expect(PREGUNTA_CERRADA).toContain('PREGUNTA 1 · EL DATO\n¿Dicen los dos textos cosas DISTINTAS sobre el MISMO dato?\nHAY HALLAZGO SI LA RESPUESTA ES «SÍ». Si es sí, cita la frase literal de cada lado. Si es no, contesta «no» y pasa a la 2.');
     expect(PREGUNTA_CERRADA).toContain('PREGUNTA 2 · EL CUMPLIMIENTO\n{{CRITERIO_DEL_CUMPLIMIENTO}}\nHAY HALLAZGO SI LA RESPUESTA ES «NO»: si NO se pueden cumplir las dos a la vez. Si es «no», cita la frase literal de cada lado y di cuál de las dos etiquetas es, "norma_contra_norma" o "norma_contra_practica". Si se pueden cumplir, contesta «sí» y no cites nada.');
     expect(PREGUNTA_CERRADA).not.toContain('TRES');
-    // la última línea, ESTRECHADA el 29/10: las mismas FRASES, no el mismo asunto (en dos vueltas tiró el conflicto por el asunto)
-    expect(PREGUNTA_CERRADA.endsWith('\n\nLAS DOS RESPUESTAS NO PUEDEN CITAR EL MISMO PAR DE FRASES. Esto se refiere A LAS FRASES, NO AL ASUNTO: que las dos preguntas traten del mismo asunto es NORMAL y no quita el hallazgo. Sólo contestas «sí» a la 2 si las frases que citarías son LAS MISMAS que ya has citado en la 1. Si puedes apoyar el cumplimiento en OTRO par de frases, aunque vaya del mismo asunto, HAY HALLAZGO y lo citas.')).toBe(true);
+    // 29/10, tras la segunda tanda: la línea del mismo par se BORRA (va al validador de la pasada 2, en código) y la 2 se
+    // DESACOPLA de la 1, justo detrás de su «HAY HALLAZGO»; es una sola cosa, quitar el acoplamiento entre las preguntas
+    expect(PREGUNTA_CERRADA).not.toContain('MISMO PAR DE FRASES');
+    expect(PREGUNTA_CERRADA.endsWith('Si se pueden cumplir, contesta «sí» y no cites nada.\nESTA PREGUNTA SE CONTESTA SOLA, COMO SI LA 1 NO EXISTIERA. Da igual lo que hayas contestado en la 1. NO VALE RESPONDER «ya queda recogido en la pregunta 1» NI «no encuentro otro par de frases»: si no se pueden cumplir las dos, HAY HALLAZGO Y LO CITAS, aunque las frases sean las mismas que citaste en la 1.')).toBe(true);
   });
 
   it('EL PROMPT: cada marca en su sitio, los textos tal cual (también con «$» o con una marca dentro), y la pareja siempre la 1', () => {

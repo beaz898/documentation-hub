@@ -31,12 +31,13 @@ export function estaCaducada(ahora: Date): boolean {
  * arquitecto por su polaridad («sí» es lo normal y «no» es el hallazgo): por eso se marca qué respuesta es el hallazgo.
  * La cita y la etiqueta de la 2 (29/10): sin cita, E3 NO MIDE —un «no» sin cita no dice si encontró D o cualquier otra
  * cosa—; la etiqueta es parte de la respuesta de la 2 cuando dispara, NO un tercer hueco. Llevan mutante cada una.
- * La última línea (arquitecto, 29/10, a partir de la respuesta de Fable): las dos respuestas no pueden citar el mismo par
- * de frases. Sin ella, lo más fácil para el modelo es contestar lo mismo dos veces con etiquetas distintas, y E3 daría
- * un 6 de 7 FALSO: A en la 1 y A otra vez en la 2, puntuado como D. Lleva mutante.
- * ⚠️ ESTRECHADA EL 29/10 tras la primera tanda de E3 (5 de 7 en §3.1): en dos vueltas el modelo encontró el conflicto y lo
- * TIRÓ por esa línea, leyéndola como «mismo asunto» y no como «mismas frases». La línea iba a impedir un falso positivo y
- * produjo un falso negativo. Ahora dice que se refiere A LAS FRASES, NO AL ASUNTO.
+ * ⚠️ LA LÍNEA DEL MISMO PAR DE FRASES SE BORRÓ (arquitecto, 29/10, tras la segunda tanda): sin ella, nunca medido; ancha,
+ * 5 de 7; estrecha, 3 de 7. Hacía daño en las dos versiones, y más cuanto más se apretaba; y su sitio no era el prompt:
+ * Fable la puso en el VALIDADOR, en código, y así queda como requisito de la pasada 2. En E3 el validador es el arquitecto.
+ * Y LA PREGUNTA 2 SE DESACOPLA en el mismo cambio: «ESTA PREGUNTA SE CONTESTA SOLA, COMO SI LA 1 NO EXISTIERA…», que mata
+ * las dos salidas que el modelo usó («ya queda recogido en la pregunta 1», «no encuentro otro par de frases»). Son dos
+ * cambios en dos sitios pero UNA SOLA COSA: los dos quitan el acoplamiento entre las preguntas, y uno sin el otro dejaría
+ * una salida abierta. La frase lleva mutante por cada una de sus dos partes.
  * Y CADA TEXTO LLEVA SU DOCUMENTO Y SU TROZO DELANTE (29/10): sin etiqueta, el modelo deducía cuál era cuál por la
  * numeración. Para E3 es inocuo; para la pasada 2 intercambiaría quién dice qué. Tercer defecto del mismo formato.
  * ⚠️ La respuesta va en TEXTO LLANO a propósito: son catorce respuestas que el arquitecto lee a ojo. ES DECISIÓN DE E3,
@@ -61,8 +62,7 @@ export const PREGUNTA_CERRADA = [
   'PREGUNTA 2 · EL CUMPLIMIENTO',
   '{{CRITERIO_DEL_CUMPLIMIENTO}}',
   'HAY HALLAZGO SI LA RESPUESTA ES «NO»: si NO se pueden cumplir las dos a la vez. Si es «no», cita la frase literal de cada lado y di cuál de las dos etiquetas es, "norma_contra_norma" o "norma_contra_practica". Si se pueden cumplir, contesta «sí» y no cites nada.',
-  '',
-  'LAS DOS RESPUESTAS NO PUEDEN CITAR EL MISMO PAR DE FRASES. Esto se refiere A LAS FRASES, NO AL ASUNTO: que las dos preguntas traten del mismo asunto es NORMAL y no quita el hallazgo. Sólo contestas «sí» a la 2 si las frases que citarías son LAS MISMAS que ya has citado en la 1. Si puedes apoyar el cumplimiento en OTRO par de frases, aunque vaya del mismo asunto, HAY HALLAZGO y lo citas.',
+  'ESTA PREGUNTA SE CONTESTA SOLA, COMO SI LA 1 NO EXISTIERA. Da igual lo que hayas contestado en la 1. NO VALE RESPONDER «ya queda recogido en la pregunta 1» NI «no encuentro otro par de frases»: si no se pueden cumplir las dos, HAY HALLAZGO Y LO CITAS, aunque las frases sean las mismas que citaste en la 1.',
 ].join('\n');
 
 /**
