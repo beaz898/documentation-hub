@@ -31,7 +31,8 @@ Estado: ARCHIVADA CON DICTAMEN · se construye la segunda pasada por parejas, si
           4053 palabras.
           60 primeros: "RESPUESTA DE FABLE — F-130 · QUÉ DECIDE LO QUE UN JUEZ ESCRI"
           60 últimos:  "50 análisis): ni “solo pasada 1” ni “solo pasada 2” es cero."
-        · ADENDA, (e): la respuesta de Fable del 29/10 sobre E3 (la pregunta enviada, PENDIENTE). Respuesta: huella
+        · ADENDA, (e): lo enviado a Fable el 29/10 (el anexo de prompts, huella e579d3d0e2fc1a2c, y la línea de cubierta del
+          director) y su respuesta sobre E3. Respuesta: huella
           90df305f7c0ad1f0 · 1017 caracteres · 7 líneas.
 ---
 
@@ -291,8 +292,14 @@ P-F130-7 (E7, 5 pasadas): lectura global con lo conocido excluido saca ≥ 1 hal
 Se archiva como adenda de F-130 y no como consulta nueva: una pregunta que completa un dictamen va dentro de su
 consulta (instrucción del arquitecto, 29/10).
 
-⚠️ LO QUE SE LE PREGUNTÓ NO ESTÁ AQUÍ: no ha llegado a Code. Por lo que contesta, se le consultó el formato de dos
-preguntas de E3, la condición realista y las dos parejas; el texto enviado queda PENDIENTE, y no se reconstruye.
+LO QUE SE LE MANDÓ (aclarado por el arquitecto, 29/10): el contenido ENTERO de
+`F-130_anexo_textos_para_fable_2026-10-29.md`, en esta misma carpeta (los prompts del juez y del verificador y la
+pregunta cerrada de E3, capturados del código; huella del fichero, e579d3d0e2fc1a2c), más una línea de cubierta del
+director, literal: «Los textos iban vacíos por un fallo nuestro; van ahora enteros, tal como los capturó el código».
+No se copia aquí: el anexo es el fichero que se mandó, y se queda como está.
+⚠️ Según el arquitecto, Fable añadió además dos observaciones al leer los prompts (la «séptima presión» del prompt
+del juez y el enrutado del verificador; están en el estado vivo, sección de F-130). Su texto NO ha llegado a Code y
+no está en las tres líneas de abajo: si existe, se archiva aquí, íntegro.
 ⚠️ El texto de E3 del anexo de los prompts (`F-130_anexo_textos_para_fable_2026-10-29.md`) es ANTERIOR a la línea que
 esta respuesta motivó («LAS DOS RESPUESTAS NO PUEDEN CITAR EL MISMO PAR DE FRASES…»); la versión vigente está en
 `app/api/admin/medida-f130/medida-f130.ts`. Fable propuso la comprobación «al validador»; el arquitecto la puso, para

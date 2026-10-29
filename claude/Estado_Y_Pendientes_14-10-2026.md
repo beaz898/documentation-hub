@@ -216,6 +216,38 @@ de “exhaustivo” a “cobertura medida”. Texto, no código.» Y el arquitec
     VARIANTE LIMPIA**, sólo las dos frases de D, porque distingue si falla la pregunta o el contexto. (Fable: «si algún
     día E3 sale por debajo de 6 de 7, esa variante será la primera que querréis para saber si falla la pregunta o el
     contexto.»)
+  · **REQUISITO DE LA PASADA 2** (arquitecto, 29/10, a partir de una marca de Code): la comprobación de que las dos
+    respuestas no citan el mismo par de frases va **EN CÓDIGO** cuando se construya, como la propuso Fable («al
+    validador»). Para E3 basta la instrucción, porque las catorce respuestas las lee el arquitecto.
+
+**LO QUE FABLE AÑADIÓ AL LEER LOS PROMPTS (29/10): SE ANOTA Y NO SE TOCA NADA.** ⚠️ Fuente: el mensaje del arquitecto del
+29/10; el texto de Fable con estas dos observaciones NO ha llegado a Code, y no es el de la adenda (e), que sólo trae
+tres líneas sobre E3. Si hay más texto de Fable, se archiva íntegro en la adenda. **LA RAZÓN, que es la que impide la
+rama: LA SEMANA 0 MIDE EL SISTEMA TAL COMO ESTÁ.** Si se cambia ahora el prompt del juez o el enrutado del verificador,
+el 2 de 7 de D deja de ser comparable, y E1 y E5 medirían otro sistema.
+- **LA SÉPTIMA PRESIÓN CONTRA D, Y NO ES DEL MODELO: LA PUSIMOS NOSOTROS.** La tabla de P2 del dictamen tenía seis
+  filas; ésta es la séptima. El prompt del juez dice, literal (`lib/analysis/judge.ts:843-846`):
+  «REGLA PRINCIPAL, POR ENCIMA DE TODAS LAS DEMAS: Antes de emitir cualquier hallazgo, verifica que los dos textos hablan
+  del MISMO DATO CONCRETO. Si hablan de datos distintos, no hay nada que comparar y NO emites hallazgo, aunque ambos
+  textos pertenezcan al mismo ámbito.» Y el bloque de las reglas, en el mismo prompt (`lib/analysis/excepcion-de-las-reglas.ts:62`):
+  «CONFLICTO NORMATIVO es cuando las dos mandan sobre COSAS DISTINTAS». Una regla «por encima de todas» manda no emitir
+  cuando hablan de datos distintos, y la otra define el conflicto normativo justo por mandar sobre cosas distintas.
+  *(Nota de Code: el arquitecto la citó resumida y con tilde, «DEMÁS»; aquí va el literal.)* Y la observación de Fable,
+  según el arquitecto: **la pregunta cerrada no tiene esa tensión, porque sus dos preguntas son obligatorias y no
+  jerarquizadas.**
+- **E8, ANOTADO Y NO CORRIDO**: quitar la cláusula «POR ENCIMA DE TODAS LAS DEMAS» y medir D. La misma forma que E1: se
+  quita una cosa y se mide. Si mueve D, parte del 29 % era nuestro. **NO SE CORRE ANTES DE E3: nada se mueve mientras
+  se mide.**
+- **EL DEFECTO VIVO DEL VERIFICADOR — es un defecto, no una idea.** La ruta la decide una marca del juez: una D SIN
+  etiqueta cae en el lote cuya única pregunta es por el dato, y muere por ENRUTADO, no por juicio. Con el dato que ya
+  hay: en la primera tanda del 3.4, D salió 1 vez de 8 y SIN etiqueta. Es el cajón de F-124 otra vez, y según el
+  arquitecto lo dice Fable con esas palabras. **Y el prompt del lote de los marcados se contradice**: su primera línea
+  (`lib/analysis/verify-findings.ts:203`) dice «Para cada uno, decide UNA SOLA cosa: si las dos citas se oponen sobre el
+  MISMO dato concreto», y la rama que va más abajo (`lib/analysis/rama-de-las-reglas.ts:17-18`) dice que al marcado «NO
+  le hagas la pregunta de los valores distintos».
+  **EL ARREGLO YA ESTÁ EN EL PLAN, NO ES RAMA NUEVA**: «el verificador debería hacer las dos preguntas obligatorias a todo
+  hallazgo» es la forma de la pasada 2, y lo absorbe el trabajo decidido. **Es LO PRIMERO que se toca cuando empiecen los
+  commits de la pasada 2.**
   · **El texto de la pregunta** (arquitecto, 29/10): DOS preguntas, el DATO y el CUMPLIMIENTO, con «CONTESTAR A UNA NO TE
     EXIME DE CONTESTAR A LA OTRA» y, en cada una, QUÉ RESPUESTA ES EL HALLAZGO (en la 1, «sí»; en la 2, «no»). La 2 lleva
     el criterio del cumplimiento RECORTADO del bloque del juez por la cirugía del arquitecto, ejecutada por Code sobre los
