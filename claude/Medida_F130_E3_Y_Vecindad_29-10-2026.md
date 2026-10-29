@@ -1,14 +1,29 @@
 # MEDIDA F-130 · SEMANA 0: E3 Y LA VECINDAD (P-F130-9) · 29/10/2026
 
 *Escrito por Code el 29/10/2026. Las cifras y la lectura son del arquitecto, leídas en los dos JSON que devolvió la
-herramienta temporal `app/api/admin/medida-f130/`, pulsada por el director. **Code no ha visto esos JSON**: lo que no
-diga de dónde sale, sale del mensaje del arquitecto del 29/10.*
+herramienta temporal `app/api/admin/medida-f130/`, pulsada por el director. Cuando se escribió, Code no había visto los
+JSON; llegaron después, están archivados al lado y las cifras se comprobaron contra ellos (sección siguiente). La lectura
+sigue siendo del arquitecto.*
 
 ## Los dos JSON, literales
 
-**PENDIENTES DE PEGAR.** El encargo del 29/10 pide archivarlos enteros, y no llegaron dentro (regla del protocolo: «un
-encargo que dice "el contenido literal" sin llevarlo dentro no es un encargo»). Van aquí, tal cual, cuando el director
-los pegue: el de la vecindad y el de E3.
+**ARCHIVADOS el 29/10/2026**, pegados por el director (los encargos anteriores no los traían), en dos ficheros al lado de
+éste:
+- `claude/Medida_F130_Vecindad_29-10-2026.json`, pulsado a las 12:04 UTC;
+- `claude/Medida_F130_E3_Primera_Tanda_29-10-2026.json`, pulsado a las 12:05 UTC: las dos parejas, siete veces cada una.
+  *Code compactó el bloque «registro» a una línea por petición: mismos valores, sólo cambian los espacios.*
+
+**Comprobado por Code contra los dos JSON** (las cifras de abajo, del arquitecto, salen de ellos): correspondencia «igual»
+en los tres trozos; puestos 4 y 3 desde NOR-10·4, 2 desde CLI-12·3 y 1 desde CLI-12·6; §3.1, «sí» a la pregunta 2 en las
+vueltas 2 y 3 (5 de 7); §3.5, «sí» en la vuelta 1 (6 de 7); 54.677 tokens de entrada y 44.667 de salida en 14 llamadas;
+latencias de 8.312 a 20.716 ms; salida máxima, 4.232, el 26,4 % del tope; y un solo id de pareja en las catorce.
+Parámetros de las catorce: `maxTokens` 16.000, `temperatura` «sin_enviar», `esfuerzo` «medium».
+
+**Un dato del JSON que el mensaje del arquitecto no traía** (Code, transcrito; no se interpreta): en la pareja de §3.5,
+el fallo de la vuelta 1 se apoya en que §3.1 no está en el material entregado: «El 3.5 menciona "la separación de funciones
+descrita en el apartado 3.1", pero el contenido de ese apartado no aparece en los textos. Para decir que el 2.4 contradice
+ese principio tendría que suponer qué establece el 3.1, y eso no está permitido.» Y las vueltas 2, 3, 4 y 6, que sí
+dispararon, lo anotan como limitación.
 
 ## E3 · la pregunta cerrada, primera tanda
 

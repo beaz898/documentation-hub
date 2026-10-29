@@ -238,7 +238,7 @@ de “exhaustivo” a “cobertura medida”. Texto, no código.» Y el arquitec
 
 **E3, PRIMERA TANDA (29/10/2026): LA CONDICIÓN QUE EL ARQUITECTO FIJÓ ANTES DE MEDIR NO SE CUMPLIÓ.** La pareja de §3.1
 dio **5 de 7** (la condición era 6 de 7 o más); la de §3.5, **6 de 7**. **NADA SE CONSTRUYE.** Cifras del arquitecto,
-de los JSON de la herramienta, que están **PENDIENTES DE PEGAR** para archivarlos enteros; todo lo de la tanda, en
+de los JSON de la herramienta, archivados enteros el 29/10 (`claude/Medida_F130_Vecindad_29-10-2026.json` y `claude/Medida_F130_E3_Primera_Tanda_29-10-2026.json`); todo lo de la tanda, en
 `claude/Medida_F130_E3_Y_Vecindad_29-10-2026.md`.
 - **La causa, en palabras del modelo, no de interpretación**: en las vueltas 2 y 3 de §3.1 el modelo encontró el
   conflicto y lo TIRÓ por la línea «LAS DOS RESPUESTAS NO PUEDEN CITAR EL MISMO PAR DE FRASES», leyéndola como «mismo

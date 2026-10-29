@@ -1,0 +1,166 @@
+{
+  "estadoHttp": 200,
+  "medida": "P-F130-9 · vecindad del trozo 4 de NOR-10 con los trozos 3 y 6 de CLI-12",
+  "cuando": "2026-10-29T12:04:04.120Z",
+  "porTrozo": {
+    "nor10_4": {
+      "documento": "NOR-10_protocolo-esterilizacion-instrumental.docx",
+      "trozo": 4,
+      "vectorId": "d3c82d7f-5b6b-4e91-b082-aebdac0c7c94-4",
+      "enPinecone": true,
+      "correspondencia": {
+        "estado": "igual"
+      },
+      "figuras": {
+        "Coordinador de Calidad": {
+          "total": 3,
+          "fueraDeEncabezados": 2
+        },
+        "Director Clínico": {
+          "total": 2,
+          "fueraDeEncabezados": 2
+        }
+      }
+    },
+    "cli12_3": {
+      "documento": "CLI-12_manual-calidad-clinica.docx",
+      "trozo": 3,
+      "vectorId": "facac5fd-ca7a-4f04-abf9-4926bb955e0a-3",
+      "enPinecone": true,
+      "correspondencia": {
+        "estado": "igual"
+      },
+      "figuras": {
+        "Coordinador de Calidad": {
+          "total": 2,
+          "fueraDeEncabezados": 1
+        },
+        "Director Clínico": {
+          "total": 2,
+          "fueraDeEncabezados": 2
+        }
+      }
+    },
+    "cli12_6": {
+      "documento": "CLI-12_manual-calidad-clinica.docx",
+      "trozo": 6,
+      "vectorId": "facac5fd-ca7a-4f04-abf9-4926bb955e0a-6",
+      "enPinecone": true,
+      "correspondencia": {
+        "estado": "igual"
+      },
+      "figuras": {
+        "Coordinador de Calidad": {
+          "total": 3,
+          "fueraDeEncabezados": 2
+        },
+        "Director Clínico": {
+          "total": 1,
+          "fueraDeEncabezados": 1
+        }
+      }
+    }
+  },
+  "parecido": {
+    "nor10_4__cli12_3": 0.9232117403944018,
+    "nor10_4__cli12_6": 0.9292086524742159
+  },
+  "desdeNor10_4": {
+    "trozosDelOtroDocumento": 55,
+    "deOtrasGeneraciones": 0,
+    "puestos": {
+      "facac5fd-ca7a-4f04-abf9-4926bb955e0a-3": 4,
+      "facac5fd-ca7a-4f04-abf9-4926bb955e0a-6": 3
+    },
+    "puntuaciones": {
+      "facac5fd-ca7a-4f04-abf9-4926bb955e0a-3": 0.923173845,
+      "facac5fd-ca7a-4f04-abf9-4926bb955e0a-6": 0.929208755
+    },
+    "primeros": [
+      {
+        "trozo": 4,
+        "score": 0.948145509
+      },
+      {
+        "trozo": 5,
+        "score": 0.936868608
+      },
+      {
+        "trozo": 6,
+        "score": 0.929208755
+      },
+      {
+        "trozo": 3,
+        "score": 0.923173845
+      },
+      {
+        "trozo": 37,
+        "score": 0.912141144
+      }
+    ]
+  },
+  "desdeCli12_3": {
+    "trozosDelOtroDocumento": 67,
+    "deOtrasGeneraciones": 0,
+    "puestos": {
+      "d3c82d7f-5b6b-4e91-b082-aebdac0c7c94-4": 2
+    },
+    "puntuaciones": {
+      "d3c82d7f-5b6b-4e91-b082-aebdac0c7c94-4": 0.923212528
+    },
+    "primeros": [
+      {
+        "trozo": 2,
+        "score": 0.932604373
+      },
+      {
+        "trozo": 4,
+        "score": 0.923212528
+      },
+      {
+        "trozo": 3,
+        "score": 0.915372491
+      },
+      {
+        "trozo": 49,
+        "score": 0.909739
+      },
+      {
+        "trozo": 39,
+        "score": 0.900247753
+      }
+    ]
+  },
+  "desdeCli12_6": {
+    "trozosDelOtroDocumento": 67,
+    "deOtrasGeneraciones": 0,
+    "puestos": {
+      "d3c82d7f-5b6b-4e91-b082-aebdac0c7c94-4": 1
+    },
+    "puntuaciones": {
+      "d3c82d7f-5b6b-4e91-b082-aebdac0c7c94-4": 0.929216325
+    },
+    "primeros": [
+      {
+        "trozo": 4,
+        "score": 0.929216325
+      },
+      {
+        "trozo": 40,
+        "score": 0.89855057
+      },
+      {
+        "trozo": 42,
+        "score": 0.892598569
+      },
+      {
+        "trozo": 52,
+        "score": 0.888456523
+      },
+      {
+        "trozo": 2,
+        "score": 0.88272059
+      }
+    ]
+  }
+}
