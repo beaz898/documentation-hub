@@ -253,7 +253,13 @@ de los JSON de la herramienta, que están **PENDIENTES DE PEGAR** para archivarl
   Lo que justifica repetir no es su explicación: es que el diagnóstico está en las palabras del modelo y produce una
   predicción falsable. **Si al repetir falla, no hay tercera vuelta de excusas.**
 - **Sólo se repite §3.1**, siete llamadas; §3.5 no se toca. *(Code: §3.5 quedó medida con el formato de la primera
-  tanda y §3.1 se repite con el nuevo.)*
+  tanda y §3.1 se repite con el nuevo.)* **Decisión del arquitecto (29/10): §3.5 NO SE REPITE AHORA**: estrechar la
+  línea sólo quita motivos para descartar, así que repetirla no cambiaría ninguna decisión y cuesta siete llamadas.
+  **Ese 6 de 7 es del formato viejo y las dos cifras no son estrictamente comparables; si se construye, §3.5 se vuelve a
+  medir con el prompt definitivo.**
+- **P-E3-R1 ES SOBRE LA LÍNEA**, escrito antes de medir (arquitecto, 29/10): la repetición cambia dos cosas, la línea y
+  las etiquetas de los textos. Las etiquetas son un arreglo de corrección y no deberían mover la detección; si la mueven
+  mucho, es un resultado inesperado y se anota como tal, no se mezcla con la predicción.
 - **REQUISITO DE LA PASADA 2**: el campo «pareja» del registro llevó el mismo id, el de CLI-12, en las catorce llamadas,
   porque es el id del documento candidato. El registro de la pasada 2 tiene que distinguir la pareja de TROZOS, no sólo
   el documento.

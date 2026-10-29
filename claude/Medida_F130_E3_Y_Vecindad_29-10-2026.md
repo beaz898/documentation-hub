@@ -68,6 +68,16 @@ abierta, sale 6 de 7 con una pregunta cerrada.** Es la mejor prueba que hay de q
 cambian son las que ahora fallan por la regla de las frases. **Si sigue por debajo de 6, NO SE CONSTRUYE**, y entonces
 toca la variante limpia.
 
+**LO QUE MIDE P-E3-R1, escrito antes de medir para que no se cuele después** (arquitecto, 29/10): la repetición cambia
+DOS cosas respecto a la primera tanda, la línea y las etiquetas de los textos. **La predicción es sobre la LÍNEA.** Las
+etiquetas son un arreglo de corrección y no deberían mover la detección; **si la mueven mucho, es un resultado
+inesperado y se anota como tal, no se mezcla con la predicción.**
+
+**§3.5 NO SE REPITE AHORA** (decisión del arquitecto, 29/10): su 6 de 7 se midió con la línea ancha, y estrecharla sólo
+quita motivos para descartar, así que repetirla no cambiaría ninguna decisión y cuesta siete llamadas. **Ese 6 de 7 es
+del formato viejo, y las dos cifras no son estrictamente comparables. Si se construye, §3.5 se vuelve a medir con el
+prompt definitivo.**
+
 ⚠️ **Y AL LADO, PORQUE ES LO QUE VIGILA AL ARQUITECTO**: el arquitecto fijó el 6 de 7 ANTES de medir para no poder
 racionalizar después, y ha salido 5. Lo que justifica repetir no es su explicación: es que **el diagnóstico está en las
 palabras del modelo y produce una predicción falsable**. Si al repetir falla, **no hay tercera vuelta de excusas**.
