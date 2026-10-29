@@ -266,6 +266,11 @@ imposible por construcción, porque A no está en el material.
 - **4 o menos**: el problema no es A, sino la pregunta o la guarda; F-131 cambia de forma y es mucho más importante.
 - **5**: no distingue, y se dice.
 **No reabre la decisión de construir.**
+**CALIFICACIÓN (29/10, del arquitecto): P-VL-1 SE CUMPLE, 7 DE 7.** Las siete citan el permiso contra el principio; el fallo
+(b) no se dio. **Y en la pregunta 1, SIETE FALSOS POSITIVOS DE SIETE**: las siete dicen «sí» donde lo escrito era «no».
+Es el hallazgo principal del día; la interpretación (el modelo describe el mismo hallazgo en las dos casillas), en la
+medida. ⚠️ El JSON no ha llegado a Code: sin comprobar contra él. Y con siete tiradas, la cuenta de Code (Fisher, en la
+medida): sólo 2 de 7 frente a 7 de 7 se separa del ruido (p = 0,021).
 ⚠️ **Al lado, porque es lo que vigila al arquitecto**: fijó el 6 de 7 ANTES de medir para no poder racionalizar después,
 y ha salido 5. Lo que justifica repetir no es su explicación: es que el diagnóstico está en las palabras del modelo y
 produce una predicción falsable. **Si al repetir falla, no hay tercera vuelta de excusas.**

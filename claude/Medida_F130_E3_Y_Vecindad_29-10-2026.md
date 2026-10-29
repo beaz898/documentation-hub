@@ -304,8 +304,76 @@ que comprueba con sus ojos que no hay nada de A delante. **Sólo después, las s
 
 ## Las dos frases del ensayo
 
-**PENDIENTE**: la salida del botón «ver las dos frases».
+⚠️ **La salida del botón «ver las dos frases» no ha llegado a Code.** El arquitecto la vio antes de dar paso a las siete
+llamadas; aquí no está archivada.
 
-## La lectura del arquitecto de la variante limpia
+## LA VARIANTE LIMPIA: 7 DE 7. P-VL-1 SE CUMPLE (29/10/2026)
 
-**PENDIENTE.**
+⚠️ **El JSON de la variante limpia NO está archivado: no ha llegado a Code.** Todo lo de esta sección es del arquitecto, y
+Code no lo ha comprobado: ni el 7 de 7, ni las siete respuestas de la pregunta 1, ni las dos citas de abajo. Cuando el
+director pegue el JSON se archiva como `claude/Medida_F130_Variante_Limpia_29-10-2026.json`, al lado de los otros tres, y
+se comprueba contra él.
+
+**El resultado** (arquitecto): **LAS SIETE CITAN EL PERMISO contra el principio**, con etiqueta norma_contra_norma. **P-VL-1
+(7 de 7) SE CUMPLE.** **El fallo (b), nombrado antes, NO se dio**: sólo la vuelta 4 menciona que «esta asignación» no tiene
+antecedente, y lo resuelve suponiéndolo.
+
+**LA PREGUNTA 1: SIETE FALSOS POSITIVOS DE SIETE.** Las siete contestaron «SÍ», y la regla escrita antes de medir decía que
+lo correcto era «no». Se anota como falso positivo, porque así estaba escrito, **Y COMO EL HALLAZGO PRINCIPAL DEL DÍA.**
+
+**LA INTERPRETACIÓN DEL ARQUITECTO, que sustituye su diagnóstico de esta tarde y va al lado de él, no en su lugar:**
+**EL MODELO NO USA LAS DOS CASILLAS PARA GUARDAR DOS HALLAZGOS DISTINTOS: USA LAS DOS PARA DESCRIBIR EL MISMO HALLAZGO DOS
+VECES.**
+- **Con UN solo conflicto en la pareja, lo mete en las dos casillas**, y salen 7 de 7 en las dos preguntas.
+- **Con DOS conflictos, uno se queda las dos casillas y el otro desaparece**: A se quedaba las dos y D se caía, 4 de 7.
+- Es la MISMA conducta explicando los dos resultados. Y por tanto **EL MECANISMO DE «UNA CASILLA PARA A Y OTRA PARA D» NUNCA
+  FUNCIONÓ.** No es que dos casillas no basten: es que el modelo no reparte por casillas.
+
+**Las dos citas literales que lo prueban** (vueltas 4 y 6, según el arquitecto; sin comprobar contra el JSON):
+- «Como ambas frases regulan la misma cuestión, la discrepancia es también un hallazgo de la Pregunta 1.»
+- «Como el Texto 1 y el Texto 2 regulan la misma figura, el hallazgo también aparece en la Pregunta 1.»
+
+## Lo que el arquitecto corrige de esta tarde, al lado y sin borrar (29/10/2026)
+
+**1 · LAS CIFRAS NO FORMABAN UNA PROGRESIÓN.** Esta tarde dijo que 5, 3 y 4 de 7 formaban una progresión («la línea hace
+daño en las dos versiones, y más cuanto más se aprieta»). **Con siete tiradas y temperatura 1, esas tres cifras están
+dentro del ruido y NO son distinguibles.** Según el arquitecto, lo único fuera del ruido son los saltos grandes: 2 de 7
+con la pregunta abierta; entre 3 y 5 de 7 con la cerrada en la pareja que lleva A; 6 de 7 en la pareja de §3.5; 7 de 7
+sin A.
+**El fallo de método que lo acompaña: PARA DISTINGUIR UN 5 DE UN 4 HABRÍAN HECHO FALTA VEINTE O TREINTA PASADAS POR
+CONDICIÓN, NO SIETE.** Fable dio la herramienta para eso, su E5 (la curva de acumulación), y no se ha corrido.
+
+⚠️ **Code, con la cuenta hecha** (Fisher exacto bilateral, siete frente a siete; en `scratchpad`, no en el repositorio):
+también los saltos grandes, salvo uno, siguen dentro del ruido con siete tiradas.
+
+| Comparación | p |
+|---|---|
+| 5 frente a 3 | 0,592 |
+| 5 frente a 4 | 1,000 |
+| 2 frente a 4 (el «del 29 % al 57 %» de esta tarde) | 0,592 |
+| 3 frente a 6 | 0,266 |
+| 4 frente a 6 | 0,559 |
+| 4 frente a 7 | 0,192 |
+| 3 frente a 7 | 0,070 |
+| 6 frente a 7 | 1,000 |
+| **2 frente a 7** | **0,021** |
+
+Sólo 2 de 7 frente a 7 de 7 baja de 0,05. El intervalo de Wilson al 95 % de un 7 de 7 va del 65 % al 100 %, y el de un 4 de
+7, del 25 % al 84 %: se solapan. Lo que sí se separa de cualquier ruido son **los siete «sí» de la pregunta 1** donde se
+esperaba «no», porque no compiten con otra cifra: son siete de siete en el sentido contrario al escrito.
+
+**2 · LOS PARCHES SE VOLVIERON REACTIVOS, con el nombre del arquitecto.** La última frase que añadió nombra las excusas exactas
+que el modelo había usado en este caso («ya queda recogido en la pregunta 1», «no encuentro otro par de frases»). Está
+escrita en general y no menciona el corpus, pero es tapar agujeros observados en vez de arreglar el mecanismo, y las tres
+tandas fallidas son lo que cuesta hacer eso. **Las DOS PREGUNTAS siguen siendo genéricas**, afirma o manda, y no hay una
+tercera; **los parches no lo eran.**
+
+## Lo que va a Fable: una ADENDA DE F-130, no una consulta nueva (29/10/2026)
+
+**Decisión del director, con su razón escrita**: mismo objetivo y misma dinámica que F-130, y un número nuevo arrastra
+ceremonia (plan, predicciones, pendientes, revisión de choques) que no compra nada mientras no haya plan que escribir.
+**REGLA NUEVA, DEL DIRECTOR: EL NÚMERO VIENE DESPUÉS DEL CONTENIDO, NO ANTES.** Si la respuesta de Fable trae una
+arquitectura distinta, entonces nace F-131 con ese contenido dentro; si trae un ajuste, se queda en adenda.
+(Lo escrito antes, «ese número va en la consulta F-131 a Fable», queda sustituido por esto.)
+
+**La decisión de no construir la pasada 2 sigue en pie. La adenda la escribe el arquitecto mañana.**

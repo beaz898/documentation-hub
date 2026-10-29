@@ -319,6 +319,23 @@ de los JSON de la herramienta, archivados enteros el 29/10 (`claude/Medida_F130_
   - **P-VL-1: 7 de 7.** Un 6 o un 7 dicen que el problema es A en la pareja; un 4 o menos, que es la pregunta o la guarda, y
     F-131 cambia de forma; un 5 no distingue.
   - **El orden**: primero «ver las dos frases», sin gastar, y su salida va al arquitecto; sólo después, las siete.
+- ⚠️ **LA VARIANTE LIMPIA (29/10): 7 DE 7, P-VL-1 SE CUMPLE; Y EN LA PREGUNTA 1, SIETE FALSOS POSITIVOS DE SIETE, EL
+  HALLAZGO PRINCIPAL DEL DÍA.** (Del arquitecto; el JSON y la salida del ensayo no han llegado a Code, y está sin
+  comprobar.)
+  **LA INTERPRETACIÓN, al lado de los diagnósticos de esta tarde y no en su lugar: EL MODELO NO USA LAS DOS CASILLAS PARA
+  DOS HALLAZGOS DISTINTOS, USA LAS DOS PARA DESCRIBIR EL MISMO HALLAZGO DOS VECES.** Con un conflicto en la pareja, lo
+  pone en las dos; con dos, uno se queda las dos casillas y el otro desaparece. **El mecanismo de «una casilla para A y
+  otra para D» nunca funcionó.**
+  **Correcciones del arquitecto, al lado**:
+  - 5, 3 y 4 de 7 no eran una progresión, están dentro del ruido. El fallo de método: harían falta 20 o 30 pasadas por
+    condición, y la E5 de Fable (la curva de acumulación) no se ha corrido.
+  - Y con su nombre: los parches se volvieron reactivos, porque nombraban las excusas observadas; las dos preguntas eran
+    genéricas y los parches no.
+  - Code añade la cuenta (Fisher, en la medida): con siete tiradas sólo 2 frente a 7 se separa del ruido (p = 0,021);
+    4 frente a 7 da 0,19.
+  **A Fable va una ADENDA DE F-130, no F-131** (decisión del director). **REGLA NUEVA DEL DIRECTOR: EL NÚMERO VIENE DESPUÉS
+  DEL CONTENIDO.** Si Fable trae una arquitectura distinta, nace F-131 con ella dentro; si trae un ajuste, se queda en
+  adenda. **La pasada 2 sigue sin construirse. La adenda la escribe el arquitecto mañana.**
   **LA TERCERA TANDA, y es la última**: se borra la línea del mismo par (vuelve al validador de la pasada 2, en código) y
   se desacopla la pregunta 2 («ESTA PREGUNTA SE CONTESTA SOLA, COMO SI LA 1 NO EXISTIERA…»), que son dos cambios pero una
   sola cosa: quitar el acoplamiento entre las preguntas. Las etiquetas se quedan. **P-E3-R2**: §3.1 da 6 de 7 o más,
