@@ -262,7 +262,22 @@ de los JSON de la herramienta, archivados enteros el 29/10 (`claude/Medida_F130_
   medir: NO SE CONSTRUYE, toca la variante limpia, y no hay tercera vuelta de excusas.** JSON archivado
   (`claude/Medida_F130_E3_Segunda_Tanda_29-10-2026.json`); la tabla de qué cita cada vuelta, en el documento de medida:
   sólo la vuelta 6 cita el par de D, y en las 1, 3 y 4 el modelo contesta «no» a la 2 y no lo cuenta por la línea del
-  mismo par. La lectura, PENDIENTE DEL ARQUITECTO.
+  mismo par.
+  **LA LECTURA DEL ARQUITECTO (29/10): P-E3-R1 HA FALLADO, 3 DE 7, PEOR QUE LOS 5 DE LA PRIMERA TANDA.** D registrada en
+  las vueltas 2, 6 y 7; en la 1, la 3 y la 4 la pregunta 2 razona sobre A y declina; en la 5, otro hallazgo que no es D.
+  **Fallo de método, con su nombre**: cambió dos cosas a la vez, la línea y las etiquetas, y no se puede atribuir
+  limpiamente la bajada. **Hallazgo estructural**: A puede contestar también la pregunta 2, así que ocupa las dos casillas
+  y D se queda sin sitio; **dos casillas no bastan cuando un hallazgo cabe en las dos.**
+  **LA TERCERA TANDA, y es la última**: se borra la línea del mismo par (vuelve al validador de la pasada 2, en código) y
+  se desacopla la pregunta 2 («ESTA PREGUNTA SE CONTESTA SOLA, COMO SI LA 1 NO EXISTIERA…»), que son dos cambios pero una
+  sola cosa: quitar el acoplamiento entre las preguntas. Las etiquetas se quedan. **P-E3-R2**: §3.1 da 6 de 7 o más,
+  con el mismo umbral; **sólo cuenta como D la pregunta 2 apoyada en el permiso de NOR-10**, y la que reformula A no
+  cuenta. **Si falla porque A llena la casilla 2, el fallo es estructural, no se construye, y lo que va a Fable es un dato
+  dentro de F-130, no una consulta nueva. No hay cuarta tanda.** ⚠️ *Code*: antes de la segunda tanda se escribió que,
+  por debajo de 6, lo que tocaba era la variante limpia y que no habría tercera vuelta; esto es una tercera tanda, y
+  según el arquitecto el director la aceptó sabiéndolo. *Y lo que Code marcó al implementar B*: el criterio recortado
+  que va en la pregunta 2 dice que lo que manda sobre la misma cosa «es un hallazgo de la PREGUNTA 1, no de la 2», y la
+  línea B admite en la 2 las mismas frases de la 1 (detalle en el documento de medida).
 - **P-E3-R1 ES SOBRE LA LÍNEA**, escrito antes de medir (arquitecto, 29/10): la repetición cambia dos cosas, la línea y
   las etiquetas de los textos. Las etiquetas son un arreglo de corrección y no deberían mover la detección; si la mueven
   mucho, es un resultado inesperado y se anota como tal, no se mezcla con la predicción.

@@ -124,6 +124,75 @@ arquitecto):
 Las tres vueltas que citan el permiso (2, 6 y 7) son las que suman el 3 de 7. **Sólo la 6 cita el par de D.** En las
 vueltas 1, 3 y 4 el modelo contesta «no» a la pregunta 2 y, aun así, no lo cuenta por la línea del mismo par.
 
-## La lectura del arquitecto de la segunda tanda
+## La lectura del arquitecto de la segunda tanda (29/10/2026)
 
-**PENDIENTE DEL ARQUITECTO.**
+**P-E3-R1 HA FALLADO: 3 DE 7, PEOR QUE LOS 5 DE LA PRIMERA TANDA.** La predicción que el arquitecto escribió antes de medir
+no se cumplió, y la segunda tanda salió peor que la primera.
+
+**La puntuación, vuelta por vuelta, comprobable contra el JSON:**
+- **Vueltas 2, 6 y 7: D REGISTRADA**, con el permiso de NOR-10 («puede recaer en el propio Director Clínico») contra la
+  regla o el principio de CLI-12, etiqueta norma_contra_norma.
+- **Vueltas 1, 3 y 4**: la pregunta 2 contesta «no», pero RAZONANDO SOBRE A, no sobre D, y luego declina registrar («no
+  encuentro otro par de frases distinto»). La 4 además cierra la vía de D: el Coordinador no puede ser el Director
+  «porque el TEXTO 2 excluye esa identidad».
+- **Vuelta 5**: encuentra otro par y construye OTRO hallazgo (NOR-10 limita al Coordinador a «supervisión documental»
+  frente a la «responsabilidad última» de CLI-12). Es un hallazgo, pero NO es D.
+
+**1 · FALLO DE MÉTODO, con el nombre del arquitecto**: cambió DOS cosas a la vez, la línea y las etiquetas, sabiéndolo, y
+lo había dejado escrito antes de medir. **Por eso NO SE PUEDE ATRIBUIR LIMPIAMENTE LA BAJADA.** Casi seguro es la línea,
+pero la vuelta 4 razona con más seguridad sobre A ahora que los textos están etiquetados, y no se pueden separar los dos
+efectos. Es un defecto de método, no un detalle.
+
+**2 · EL HALLAZGO ESTRUCTURAL, más grande que la línea**: **A PUEDE CONTESTAR TAMBIÉN LA PREGUNTA 2.** «Dos personas no
+pueden ser las dos el responsable último» es un problema de cumplimiento tanto como de dato, así que A ocupa LAS DOS
+casillas y D se queda sin sitio: la supresión reaparece un nivel más arriba. El argumento del arquitecto del 29/10 era
+que dos casillas obligatorias separan a A y a D; con estos datos, **DOS CASILLAS NO BASTAN CUANDO UN HALLAZGO CABE EN LAS
+DOS.**
+
+## La tercera tanda: el cambio, la predicción y cómo se puntúa (escrito ANTES de medir, 29/10/2026)
+
+⚠️ **Lo que se escribió antes de la segunda tanda, y no es lo que se hace** (Code, para que conste): «Si sigue por debajo
+de 6, NO SE CONSTRUYE, y entonces toca la variante limpia», y «no hay tercera vuelta de excusas». Lo que se hace es una
+tercera tanda del mismo E3, no la variante limpia. Según el arquitecto, el director la ha aceptado sabiendo que se dijo
+que no la habría.
+
+**EL CAMBIO, y es quitar lo añadido** (arquitecto):
+- **A · Se borra la línea del mismo par, entera, con su mutante.** No se estrecha más. Sin línea, nunca medido; ancha,
+  5 de 7; estrecha, 3 de 7: hace daño en las dos versiones, y más cuanto más se aprieta. Y su sitio no era el prompt:
+  Fable la puso en el VALIDADOR, en código. Sigue escrita como requisito de la pasada 2; en E3 el validador es el
+  arquitecto, que lee las siete.
+- **B · Se desacopla la pregunta 2**, con una línea tras su «HAY HALLAZGO SI LA RESPUESTA ES «NO»…»: «ESTA PREGUNTA SE
+  CONTESTA SOLA, COMO SI LA 1 NO EXISTIERA. Da igual lo que hayas contestado en la 1. NO VALE RESPONDER «ya queda recogido
+  en la pregunta 1» NI «no encuentro otro par de frases»: si no se pueden cumplir las dos, HAY HALLAZGO Y LO CITAS, aunque
+  las frases sean las mismas que citaste en la 1.» Mata las dos salidas que el modelo ha usado: «ya queda recogido», en
+  las dos tandas, y «no encuentro otro par», en la segunda.
+- ⚠️ **A y B son dos cambios en dos sitios pero UNA SOLA COSA**: los dos quitan el acoplamiento entre las preguntas, y
+  hacer uno sin el otro dejaría una salida abierta y desperdiciaría la tanda. Esta vez la razón para cambiar dos cosas a
+  la vez es distinta, y queda escrita.
+- **C · Las etiquetas de los textos se quedan**: son un arreglo de corrección, y sin ellas la pasada 2 intercambiaría
+  quién dice qué.
+
+**P-E3-R2, LA ÚLTIMA** (arquitecto, antes de medir): sin la línea y con la pregunta 2 desacoplada, **la pareja de §3.1 da 6
+DE 7 O MÁS. El umbral NO SE BAJA**: es el mismo que se fijó el 28/10.
+
+**CÓMO SE PUNTÚA, escrito antes de ver nada**: sólo cuenta como D que la pregunta 2 afirme que NO se pueden cumplir las dos
+**APOYÁNDOSE EN EL PERMISO** de NOR-10 («puede recaer en el propio Director Clínico») contra la regla o el principio de
+CLI-12. Si la pregunta 2 se contesta reformulando A (quién es el responsable último), **NO CUENTA**, aunque diga «no se
+pueden cumplir» y aunque lleve etiqueta.
+
+**EL OTRO RESULTADO POSIBLE, con su significado escrito de antemano**: si vuelve a fallar porque la casilla 2 se llena con
+A, **EL FALLO NO ES INSTRUMENTAL SINO ESTRUCTURAL —dos casillas no bastan— Y NO SE CONSTRUYE.** Entonces lo que va a Fable
+es un DATO dentro de F-130, no una pregunta abierta: «movimos tu comprobación del validador al prompt y esto pasó; y A
+ocupa las dos casillas». Ninguna consulta nueva.
+
+**NO HAY CUARTA TANDA.**
+
+⚠️ **Lo que Code marcó al implementar B** (el texto se implementa tal cual): el criterio del cumplimiento que va dentro de
+la pregunta 2, recortado del bloque del juez, dice dos veces que cuando las dos reglas mandan sobre la MISMA cosa «es un
+hallazgo de la PREGUNTA 1, no de la 2». La línea B dice que en la 2 «HAY HALLAZGO Y LO CITAS, aunque las frases sean las
+mismas que citaste en la 1». Las dos instrucciones van en la misma pregunta y apuntan en sentidos contrarios para A: el
+criterio la manda a la 1 y la línea B la admite en la 2.
+
+## La lectura del arquitecto de la tercera tanda
+
+**PENDIENTE.**
