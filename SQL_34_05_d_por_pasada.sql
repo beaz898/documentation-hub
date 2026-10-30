@@ -3,7 +3,8 @@
 -- ⏳ PENDIENTE DE EJECUTAR. Sólo SELECT: no escribe, no borra, no cambia nada.
 --
 -- PARA QUÉ (arquitecto, 30/10): medir la línea base de D con veinte análisis reales de NOR-10. ANTES, su CONTROL POSITIVO:
--- correrla sobre la ventana de la SEGUNDA TANDA DEL 3.4 (27/10, siete pasadas de NOR-10) y ver si reproduce el «2 de 7»
+-- correrla sobre la ventana de la SEGUNDA TANDA DEL 3.4 (28/10, 08:21-08:30 de Madrid, siete pasadas de NOR-10; decía «27/10»,
+-- que era un error, corregido el 30/10 con la lista de pasadas y el reflog) y ver si reproduce el «2 de 7»
 -- que el arquitecto puntuó leyendo SQL_34_01 («2 de 7, UNA de ellas con la etiqueta», consulta F-130). Si no lo
 -- reproduce, se separa la consulta mal hecha de la puntuación a ojo mal hecha antes de medir nada nuevo.
 --

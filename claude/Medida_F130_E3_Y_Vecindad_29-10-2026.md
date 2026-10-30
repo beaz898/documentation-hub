@@ -652,7 +652,7 @@ suspenso falso el 15 % de las veces.**
 - **Y CON SU FECHA: la cuenta se podía haber hecho el 28/10, ANTES de fijar el umbral, y no se hizo.**
 
 **3 · Y LO MISMO INVALIDA EL NÚMERO QUE DEFINE EL PROBLEMA ENTERO**: el «2 de 7» de la lista abierta (la segunda tanda del
-3.4, 27/10) **también es de siete tiradas. NUNCA SE HA MEDIDO.** Llevamos una semana resolviendo un problema cuyo tamaño
+3.4, 28/10 por la mañana; aquí decía «27/10», corregido el 30/10) **también es de siete tiradas. NUNCA SE HA MEDIDO.** Llevamos una semana resolviendo un problema cuyo tamaño
 no conocemos. Va al estado vivo como el pendiente PRINCIPAL.
 - ⚠️ *Code corrige la cifra del arquitecto*: escribió que un 2 de 7 es compatible con una tasa real «de entre el 15 % y el
   50 %». Al 95 %, el intervalo es **del 8 % al 64 % (Wilson)**, o **del 4 % al 71 % (exacto, Clopper-Pearson)**. Es más ancho
@@ -664,7 +664,7 @@ medir (`claude/Protocolo_Harness_Tasas.md`).
 ## LA LÍNEA BASE: LA CONSULTA, ANTES QUE LOS ANÁLISIS (30/10/2026)
 
 **El orden del arquitecto**: primero la consulta que cuenta D por pasada, y sólo su CONTROL POSITIVO sobre los datos
-viejos de la segunda tanda del 3.4 (27/10, siete pasadas de NOR-10). **No se lanza ningún análisis hasta que el control
+viejos de la segunda tanda del 3.4 (28/10, 08:21-08:30 de Madrid, siete pasadas de NOR-10; aquí decía «27/10», corregido el 30/10). **No se lanza ningún análisis hasta que el control
 esté en verde y el arquitecto lo vea.** Antes del encargo, el director confirmó dos cosas: NOR-10 aparece en la bandeja,
 y hoy no ha lanzado ningún análisis.
 
@@ -713,3 +713,48 @@ puerta mataría una paráfrasis sí está en el código: comprueba que la cita e
   su fecha y hora de Madrid y su duración, y nada más. De ahí se leen las siete del 27/10.
 - **Con la ventana puesta, mide.** Con un solo extremo puesto, mide y el control de la ventana falla.
 - El arnés cubre los dos modos, con 7 casos. Los mutantes, ahora 36, incluyen los del modo lista, y salen 36 de 36 en rojo.
+
+## QUÉ TANDA ES CADA GRUPO DE PASADAS, CON EL REFLOG (30/10/2026)
+
+**La lista de pasadas rápidas de NOR-10**, de la primera ejecución de `SQL_34_05`, sin ventana, por el director, en hora de
+Madrid:
+- 26/10 13:41:23 a 14:01:53: seis pasadas;
+- 26/10 23:38:53 a 23:46:36: ocho pasadas;
+- 28/10 08:21:39 a 08:30:53: siete pasadas.
+
+Duraciones de 28 a 44 s. **No hay ninguna el 27/10.**
+
+**Cuándo se subió cada commit del 3.4** (reflog de `origin/main`; Madrid era UTC+1 desde el 25/10). Es la hora del push. El
+despliegue de Vercel llega minutos después y aquí no consta.
+
+| Push | Madrid | UTC | Lo que llevaba del 3.4 |
+|---|---|---|---|
+| `f43cae93` | 26/10 17:52:38 | 16:52:38 | `cbe543b6`, fase 1: el campo de la especie llega al sintetizador, sin tocar ningún prompt |
+| `c2dbc798` | 26/10 23:22:26 | 22:22:26 | `5ca99f12`, el bloque del juez (fase 2); `c08a02e7`, la rama del verificador (fase 3); `c4d5af05`, los contadores por especie; `86428408` y `ddfa9dcc`, la rama corregida y su lote |
+| `1a11616f` | 27/10 16:10:41 | 15:10:41 | `1912469a`, el principio en el bloque del juez; `e946823d`, el principio en la rama; `5c2d50c9`, la cabecera del último punto |
+
+- **El 28/10 no se subió nada.** El push siguiente a `1a11616f` es el del 29/10 a las 12:52 de Madrid. Entre los dos, el
+  código del análisis desplegado era el de `1a11616f`. `a241e137`, el registro de los parámetros, que no toca el prompt, se
+  hizo el 28/10 a las 14:21 y subió el 29/10.
+- **Por tanto, el apunte del arquitecto, «el código del 3.4 se subió el 28/10 sobre las 08:58», es el que está mal.** El
+  principio se subió el 27/10 a las 16:10 de Madrid, dieciséis horas antes de las siete pasadas.
+
+**Qué es cada grupo**:
+- **Las seis del 26/10 por la tarde (13:41-14:01)** corrieron ANTES de cualquier push del 3.4. Son los análisis de después
+  de la purga y la resincronización de OneDrive: el estado vivo del 26/10 dice «NOR-10 y NOR-11 están en la bandeja,
+  analizados y SIN INDEXAR, con 6 análisis cada uno». Prompt anterior al 3.4. **No son ninguna de las dos tandas.**
+- **Las ocho del 26/10 por la noche (23:38-23:46) son la PRIMERA tanda del 3.4, la del «1 de 8».** Corrieron 16 minutos
+  después del push de las fases 2 y 3. Casan con su medida, que dice «8 pasadas de NOR-10» y ventana «del 26/10 a las
+  23:00 al 27/10 a las 00:30». Y la propia tanda enseña especies («la pasada 5 de NOR-11 clasificó como
+  norma_contra_norma»), que sin la fase 2 desplegada no podían salir.
+- **Las siete del 28/10 por la mañana (08:21-08:30) son la SEGUNDA tanda, la del «2 de 7»**, con el prompt del principio,
+  desplegado desde el 27/10 a las 16:10. No corrieron el 27/10: las predicciones se escribieron el 27/10, antes de la
+  tanda, y la tanda fue a la mañana siguiente.
+- **Las dos tandas del 3.4 están en la lista, y ninguna corrió con un prompt anterior al suyo.**
+
+**LA VENTANA DEL CONTROL POSITIVO**: `desde` = `timestamptz '2026-10-28 08:15:00+01'`, `hasta` = `timestamptz '2026-10-28
+08:35:00+01'`, `esperado` = `7`. En ese intervalo la lista sólo tiene esas siete.
+
+**Y LA FECHA EQUIVOCADA LA PROPAGÓ CODE**: el «27/10» de la segunda tanda lo escribió Code en la cabecera de `SQL_34_05`,
+en esta medida y en el estado, copiándolo del encargo sin mirarlo en el reflog. Está corregido en los cuatro sitios, con
+la nota de que decía «27/10».

@@ -199,7 +199,7 @@ es compatible con una tasa real **del 8 % al 64 %** (Wilson), o del 4 % al 71 % 
 a ojo. El procedimiento, el coste y la consulta se plantean ANTES de pedírselo al director.
 - **La consulta está hecha**: `SQL_34_05_d_por_pasada.sql`, sólo lectura y PENDIENTE DE EJECUTAR, con arnés y 28 mutantes
   en rojo.
-- **El orden**: primero su CONTROL POSITIVO, sobre las siete pasadas de la segunda tanda del 27/10. Tiene que
+- **El orden**: primero su CONTROL POSITIVO, sobre las siete pasadas de la segunda tanda, la del 28/10 de 08:21 a 08:30 de Madrid (aquí decía «27/10», corregido el 30/10). Tiene que
   reproducir el «2 de 7» puntuado a ojo; si no, se separa la consulta mal hecha de la puntuación mal hecha. Y declara qué
   parte de la señal murió sin texto.
 - **NO SE LANZA NINGÚN ANÁLISIS hasta que el control esté en verde y el arquitecto lo vea.**

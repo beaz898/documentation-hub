@@ -1409,6 +1409,13 @@ condición, extendida a la tasa real del sistema sin medirla.
 **LA FORMA OPERATIVA**: al escribir una cifra se escribe a la vez de qué condición sale (qué tanda, qué herramienta, qué
 prueba, cuántas tiradas). Si el texto la usa para otra condición, eso es un encargo de medición, no una afirmación.
 
+**Y EN EL MISMO ENCARGO EN QUE ESCRIBIÓ LA REGLA, EL ARQUITECTO VOLVIÓ A AFIRMAR DE MEMORIA LO QUE ESTABA EN LOS DATOS**
+(30/10, con su nombre). Dio la segunda tanda del 3.4 como «del 27/10», y en la lista de pasadas de NOR-10 no hay ninguna
+el 27/10: corrió el 28/10 de 08:21 a 08:30. Y tenía apuntado que el código del 3.4 «se subió el 28/10 sobre las 08:58»:
+el reflog dice que el 28/10 no se subió nada, y que el principio se subió el 27/10 a las 16:10 de Madrid. **Code propagó
+el «27/10»** a la cabecera de `SQL_34_05`, a la medida y al estado sin mirarlo en el reflog. Lo cazó la primera
+pulsación de la consulta, la que lista sin ventana, que es para lo que se hizo.
+
 ---
 
 ## ⚠️ PARA SEPARAR COMMITS SE PREPARA CADA FICHERO POR SU NOMBRE, NUNCA `git stash`
