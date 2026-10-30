@@ -1388,6 +1388,29 @@ fue del arquitecto, al citar a Code.**
 
 ---
 
+## ⚠️ UNA CIFRA MEDIDA EN UNA CONDICIÓN NO SE EXTIENDE A OTRA SIN MEDIRLA
+
+*Arquitecto, 30/10/2026, con su nombre.* No se extiende de una tanda a todas, ni de la herramienta al producto, ni de una
+prueba a las que se le parecen. **Es EXTRAPOLACIÓN, no memoria**, y es la forma general de lo que el protocolo ya tenía en
+pequeño desde el 24/10: afirmar de memoria lo que está escrito en el repositorio.
+
+**LAS DOS CORRECCIONES DEL 30/10 SON LA MISMA EQUIVOCACIÓN, y por eso van juntas:**
+- **El 20 % de paráfrasis era de UNA condición** (la 2, 4 de 20), y el arquitecto lo dio como la tasa general; en las
+  sesenta respuestas de esa mañana son 6, el 10 %. **Y peor que la cifra: lo extendió AL PRODUCTO**, que contesta en JSON
+  con campos de cita y no en texto libre como la herramienta de E3. **Su tasa NO ESTÁ MEDIDA.** Lo único que se sostiene
+  es lo que está en el código: la puerta mata una paráfrasis.
+- **Las tres caídas por tiempo del 30/10 no eran tres censos del repositorio: lo era una**, `pglite-fuera-del-producto`.
+  Las otras dos, `formatos-con-tablas` y `tramo-de-cita`, extraen documentos reales de `corpus-pruebas/`, y el arreglo
+  de «leer el árbol una vez», que el arquitecto extendió a las tres por parecido, no les vale.
+
+**Y EL MISMO ERROR, CINCO DÍAS ANTES**: «el 2 de 7 es el tamaño del problema». Era una cifra de siete tiradas en una
+condición, extendida a la tasa real del sistema sin medirla.
+
+**LA FORMA OPERATIVA**: al escribir una cifra se escribe a la vez de qué condición sale (qué tanda, qué herramienta, qué
+prueba, cuántas tiradas). Si el texto la usa para otra condición, eso es un encargo de medición, no una afirmación.
+
+---
+
 ## ⚠️ PARA SEPARAR COMMITS SE PREPARA CADA FICHERO POR SU NOMBRE, NUNCA `git stash`
 
 *Añadida el 23/10/2026 (arquitecto), tras un error de Code.*
