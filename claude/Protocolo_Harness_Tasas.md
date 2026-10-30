@@ -1359,6 +1359,20 @@ delante.
 
 ---
 
+## ⚠️ UN UMBRAL SE ACOMPAÑA DE SU TASA DE FALSO SUSPENSO, CALCULADA ANTES DE MEDIR
+
+*Arquitecto, 30/10/2026, con su nombre.* Si no se sabe la tasa real, la tasa de falso suspenso se calcula para dos o tres
+tasas plausibles y se escribe. **Un umbral sin esa cuenta no es una puerta: es una moneda al aire.**
+**El caso.** La puerta de E3 era «6 de 7 o más». Con una tasa real del 90 %, suspende en falso el 15 % de las veces
+(binomial, n = 7: P(X ≤ 5) = 0,1497); con el 85 %, el 28 %; con el 80 %, el 42 %. La tercera tanda dio 4 de 7 y se decidió
+«no se construye». Por la mañana, el mismo texto dio 20 de 20 y luego 16 de 20, 36 de 40 en total. **El veredicto quedó
+anulado** porque la regla de decisión era inválida. La cuenta se podía haber hecho el 28/10, antes de fijar el umbral.
+**Y SU HERMANA, que es la misma cuenta mirada desde el otro lado**: el número que define un problema también lleva su
+intervalo. El «2 de 7» de D era de siete tiradas, compatible con cualquier tasa entre el 8 % y el 64 %, y se trató como
+el tamaño del problema durante una semana.
+
+---
+
 ## ⚠️ PARA SEPARAR COMMITS SE PREPARA CADA FICHERO POR SU NOMBRE, NUNCA `git stash`
 
 *Añadida el 23/10/2026 (arquitecto), tras un error de Code.*

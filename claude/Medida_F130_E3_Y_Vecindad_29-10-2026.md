@@ -609,3 +609,54 @@ las dos condiciones de esta mañana leyeron la misma base a la misma hora, esper
 
 **3 · LA CUENTA PEDIDA** (Fisher exacto bilateral): **4 de 7 (tercera tanda) frente a 20 de 20 (condición 1): p = 0,012.** De
 paso: 7 de 7 (variante limpia, 29/10) frente a 20 de 20 (condición 2, 30/10), p = 1.
+
+## SQL_34_04: la salida, literal (ejecutada por el director, 30/10/2026)
+
+```
+bloque,a,b,c,d
+organización leída,organización leída: 68bf28c3-8352-4052-8eb4-3a7e31b74b53 · «Mi workspace» · 45 documentos,null,null,null
+1 · el trozo,NOR-10 · trozo 4,NOR-10_protocolo-esterilizacion-instrumental.docx · generación activa 1 · documento tocado por última vez: 28/10/2026 07:30:54 UTC,creado 25/10/2026 23:03:10 UTC · 1148 caracteres · md5 84c1022806be48e0db356c35233ef5f9 · contiene su frase: sí,EL TEXTO ES EL MISMO: el trozo existe desde antes de las 18:30 UTC del 29/10 y el documento no se ha tocado desde entonces
+1 · el trozo,CLI-12 · trozo 3,CLI-12_manual-calidad-clinica.docx · generación activa 1 · documento tocado por última vez: 26/10/2026 12:00:17 UTC,creado 25/10/2026 23:03:05 UTC · 914 caracteres · md5 0cead8dca4fc4f1a0ae92baf9ca2cfdc · contiene su frase: sí,EL TEXTO ES EL MISMO: el trozo existe desde antes de las 18:30 UTC del 29/10 y el documento no se ha tocado desde entonces
+2 · las generaciones,NOR-10,"generación 1: 67 trozos, creados de 25/10 23:03 a 25/10 23:03 UTC",sin versión en espera,null
+2 · las generaciones,CLI-12,"generación 1: 55 trozos, creados de 25/10 23:03 a 25/10 23:03 UTC",sin versión en espera,null
+```
+
+**QUEDA DEMOSTRADO POR LAS DOS VÍAS: LAS TRES TANDAS MANDARON EL MISMO TEXTO.**
+- El código que arma el prompt es idéntico byte a byte en los dos commits desplegados (sección anterior).
+- El texto de los dos trozos es el mismo desde el 25/10, y los documentos no se han tocado desde antes de la tercera
+  tanda (esta salida).
+
+## LO QUE ESTABA EN ESPERA, CORREGIDO POR EL ARQUITECTO (30/10/2026)
+
+**1 · NO HACE FALTA HABLAR DEL MODELO, y el arquitecto retira esa hipótesis como explicación principal.** Si la tasa real
+de este caso es el 90 % (hoy, 36 de 40 con A, exactamente el 90 %), **sacar 4 de 7 ocurre el 2,5 % de las veces**: una
+entre cuarenta. El 4 de 7 de anoche es compatible con una tirada desafortunada, sin que cambiara nada fuera.
+- **Las dos posibilidades, escritas.** La PARSIMONIOSA: la varianza; con siete tiradas no se veía. La NO NECESARIA: que
+  algo cambiara fuera, en el modelo que sirve la API.
+- *Comprobado por Code (binomial, n = 7, p = 0,9)*: P(X ≤ 4) = **0,0257**. Cuadra.
+
+**2 · LA PUERTA ESTABA MAL CONSTRUIDA, y es del arquitecto.** Con una tasa real del 90 %, un umbral de «6 de 7 o más» **da un
+suspenso falso el 15 % de las veces.**
+- *Comprobado por Code*: P(X ≥ 6) = 0,8503, así que el suspenso falso es P(X ≤ 5) = **0,1497**. Cuadra. Con otras tasas
+  reales, el mismo umbral suspende en falso:
+
+| Tasa real | Suspenso falso con «6 de 7 o más» |
+|---|---|
+| 95 % | 4,4 % |
+| 90 % | 15,0 % |
+| 85 % | 28,3 % |
+| 80 % | 42,3 % |
+
+- **POR TANTO, EL VEREDICTO «NO SE CONSTRUYE» QUEDA ANULADO.** No se revisa porque el arquitecto quiera: **se anula porque la
+  regla de decisión era inválida.**
+- **Y CON SU FECHA: la cuenta se podía haber hecho el 28/10, ANTES de fijar el umbral, y no se hizo.**
+
+**3 · Y LO MISMO INVALIDA EL NÚMERO QUE DEFINE EL PROBLEMA ENTERO**: el «2 de 7» de la lista abierta (la segunda tanda del
+3.4, 27/10) **también es de siete tiradas. NUNCA SE HA MEDIDO.** Llevamos una semana resolviendo un problema cuyo tamaño
+no conocemos. Va al estado vivo como el pendiente PRINCIPAL.
+- ⚠️ *Code corrige la cifra del arquitecto*: escribió que un 2 de 7 es compatible con una tasa real «de entre el 15 % y el
+  50 %». Al 95 %, el intervalo es **del 8 % al 64 % (Wilson)**, o **del 4 % al 71 % (exacto, Clopper-Pearson)**. Es más ancho
+  que lo escrito, y refuerza el punto.
+
+**4 · AL PROTOCOLO, con el nombre del arquitecto**: un umbral se acompaña de su tasa de falso suspenso, calculada antes de
+medir (`claude/Protocolo_Harness_Tasas.md`).

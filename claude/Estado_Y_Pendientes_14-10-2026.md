@@ -176,6 +176,25 @@ SÍ ve imports cuando los hay», 15 s) bajo carga. **Repetida sola, la suite sal
 commit sólo toca dos ficheros `.md`. Es el mismo trato que `d46990eb` dio a la fecha mal puesta: se deja escrito en un
 commit aparte, no se reescribe.
 
+## ⚠️⚠️ EL PENDIENTE PRINCIPAL, POR ENCIMA DE TODO LO DEL 3.4 (arquitecto, 30/10/2026): EL TAMAÑO DEL PROBLEMA NUNCA SE HA MEDIDO
+
+**El «2 de 7» de D con la lista abierta, el número que define el problema entero de F-130, es de SIETE tiradas.** Al 95 %
+es compatible con una tasa real **del 8 % al 64 %** (Wilson), o del 4 % al 71 % (exacto). El arquitecto había escrito
+«entre el 15 % y el 50 %», y Code lo corrige. **Llevamos una semana resolviendo un problema cuyo tamaño no conocemos.**
+**Lo siguiente es MEDIR LA LÍNEA BASE**: veinte análisis reales de NOR-10, con la cuenta de D hecha por una consulta y no
+a ojo. El procedimiento, el coste y la consulta se plantean ANTES de pedírselo al director.
+
+**Y LO QUE ESTO ARRASTRA, del mismo día (30/10):**
+- **EL VEREDICTO «NO SE CONSTRUYE LA PASADA 2» QUEDA ANULADO**: la regla de decisión era inválida. Con una tasa real del
+  90 %, «6 de 7 o más» suspende en falso el 15 % de las veces. La cuenta se podía haber hecho el 28/10, antes de fijar el
+  umbral, y no se hizo.
+- **El 4 de 7 de la tercera tanda y el 20 de 20 de esta mañana fueron con el MISMO TEXTO**, demostrado por las dos vías:
+  el código, byte a byte, y `SQL_34_04`, ejecutada.
+  - La explicación PARSIMONIOSA es la varianza: con un 90 % real, un 4 de 7 sale el 2,5 % de las veces.
+  - Que algo cambiara fuera, en el modelo, queda escrito como posibilidad NO NECESARIA. El arquitecto lo retira como
+    explicación principal.
+- Detalle y cuentas, en `claude/Medida_F130_E3_Y_Vecindad_29-10-2026.md`, al final.
+
 ## ⚠️ F-130 (28/10/2026): LA SEGUNDA PASADA POR PAREJAS — EL PLAN
 
 **Fuente.** El par está archivado en un solo fichero, como la casa: `claude/consultas-fable/F-130_2026-10-28_que-decide-lo-que-un-juez-escribe.md`

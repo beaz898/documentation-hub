@@ -1,6 +1,7 @@
 -- ============================================================================
 -- SQL_34_04 · ¿CAMBIÓ EL TEXTO DE LOS DOS TROZOS DE E3 ENTRE LA TERCERA TANDA Y LA CONDICIÓN 1? — SÓLO LECTURA (30/10/2026)
--- ⏳ PENDIENTE DE EJECUTAR. Sólo SELECT: no escribe, no borra, no cambia nada.
+-- ✅ EJECUTADO por el director el 30/10/2026. Sólo SELECT: no escribe, no borra, no cambia nada. Su salida, literal, en
+-- claude/Medida_F130_E3_Y_Vecindad_29-10-2026.md («SQL_34_04: la salida»): los dos trozos, «EL TEXTO ES EL MISMO».
 --
 -- LA PREGUNTA (arquitecto, 30/10): la tercera tanda de E3 (29/10, 18:31 UTC) dio 4 de 7 y la condición 1 de la medición
 -- de veinte (30/10, 08:03 UTC) dio 20 de 20 con la misma pareja. El CÓDIGO que arma el prompt es el mismo byte a byte en
