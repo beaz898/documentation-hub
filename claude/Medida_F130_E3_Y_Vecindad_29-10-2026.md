@@ -463,9 +463,32 @@ lectura falsa se copia, y no se deja vivo sólo porque la carpeta vaya a borrars
 
 ## Los JSON de la medición de veinte
 
-⚠️ **NO HAN LLEGADO A CODE.** El arquitecto da 20 de 20 en las dos condiciones (condición 1 a las 08:03 UTC del 30/10).
-Code no ha podido archivarlos ni comprobar la puntuación (el permiso en la pregunta 2, la vuelta 12 de la condición 1
-como marginal) ni la pregunta 1 (veinte «sí» en la condición 1; diecinueve y un «no», el de la vuelta 11, en la 2).
+**CONDICIÓN 1, la pareja entera con A** (08:03:13 UTC del 30/10): `claude/Medida_F130_Veinte_Condicion_1_30-10-2026.json`,
+pegado por el director, con el «registro» compactado a una línea por petición, como los otros; mismos valores. La
+puntuación del arquitecto, **20 de 20, COMPROBADA por Code contra el JSON**:
+- en las veinte, la pregunta 2 cita «puede recaer en el propio Director Clínico» y lleva la etiqueta norma_contra_norma;
+- en las veinte, la pregunta 1 dice «sí».
+
+**Cifras**: 20 llamadas, todas «ok», a la misma pareja (`facac5fd…`, la misma que la tercera tanda). **4.126 tokens de entrada
+en las veinte**, los mismos que en la tercera tanda. 63.491 de salida, la máxima 4.706; latencias de 8.880 a 19.754 ms; los
+mismos parámetros en las veinte.
+
+**La vuelta 12, que el arquitecto marca como marginal**: en su pregunta 2 razona primero sobre A («no sustituye al Director
+Clínico en la responsabilidad última» frente a «no el Director Clínico») y sólo después invoca el permiso. **La
+comprobación mecánica la cuenta igual**: el permiso está en su pregunta 2. Una señal mecánica más gruesa, que en la
+pregunta 2 aparezca «responsable último» o «responsabilidad última» antes que el permiso, marca también la **vuelta 16**.
+Leída, la 16 empieza por la regla y el principio de CLI-12, que son el lado de D, y no por la frase de A de NOR-10, así que
+no es el caso de la 12. Se anota, sin cambiar la puntuación.
+
+**Tres cosas vistas al leer, sin cambiar la puntuación**:
+- **La vuelta 11 contesta la pregunta 2 con «Sí, hay hallazgo»**: la polaridad al revés en la palabra, aunque el texto dice
+  que no se pueden cumplir las dos a la vez y cita el par de D. Es la confusión de polaridad que la pregunta ya marca.
+- **Las vueltas 4 y 11 terminan con «No encuentro otro par de frases en conflicto»**, y lo dicen DESPUÉS de registrar D. No
+  es el descarte de la segunda tanda.
+- **La vuelta 14 termina con «Esto ya se recoge en la pregunta 1»**, sobre A y también después de registrar D.
+
+**CONDICIÓN 2, las dos frases sin A: el JSON NO HA LLEGADO A CODE.** El arquitecto da 20 de 20, y en la pregunta 1
+diecinueve «sí» y un «no» (la vuelta 11). Sin comprobar.
 
 ## ¿ES EL MISMO PROMPT EL DE LA TERCERA TANDA (29/10, 18:31 UTC) Y EL DE LA CONDICIÓN 1 (30/10, 08:03 UTC)? (30/10/2026)
 

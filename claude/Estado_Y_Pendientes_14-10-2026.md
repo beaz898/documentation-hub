@@ -158,6 +158,15 @@ pruebas lentas de la sección 5: la lentitud es de la primera pasada en frío.
   doble del general y 2,6 veces la lectura en frío; con eso un cuelgue de verdad sigue dando rojo en medio minuto.
 - ⚠️ **El límite, declarado**: ninguna prueba ve si se quita la caché, porque el censo da lo mismo y sólo tarda más. No
   lleva mutante.
+- ⚠️ **PRIMERA RECAÍDA TRAS EL CIERRE (30/10, Code)**: una pasada de la suite dio dos rojos por tiempo a 30 s y tardó 77 s
+  en vez de unos 40.
+  - Uno fue `formatos-con-tablas` (CLI-12), que ya tenía su tiempo propio de 30 s.
+  - El otro, **NUEVO**: `lib/analysis/tramo-de-cita.test.ts`, «LUGAR sobre el texto real de NOR-11 · la de 206». Nunca se
+    había caído.
+  - El censo de `corpus-del-examen`, el que se arregló ayer, no cayó.
+  - Repetida sola, verde, en 38 s.
+  No se toca nada; se anota porque el riesgo escrito arriba («algún día pasa un rojo DE VERDAD porque alguien lo da por
+  "el de siempre"») es justo éste: **el segundo rojo no era «el de siempre».**
 
 **REGISTRO, 29/10/2026 (sólo registro; no se reescribe ningún commit)**: el mensaje del commit `142a6930` («F-130: el
 segundo mensaje de Fable tras los prompts…») dice «Gates: npm test (suite 2115, arneses 117)», y **en ese momento no lo
@@ -350,8 +359,10 @@ de los JSON de la herramienta, archivados enteros el 29/10 (`claude/Medida_F130_
     la adenda cambia de forma.
   - Los cortes de Fisher, calculados antes, están en la medida: con 20 de 20 sin A, se separa si con A sale 15 o menos.
   - El comentario de `medida-f130.ts` con la lectura de progresión está corregido.
-- ⚠️ **30/10: LA CONDICIÓN 1 DIO 20 DE 20 CON LA PAREJA QUE ANOCHE DIO 4 DE 7 (Fisher, p = 0,012).** (Del arquitecto; los
-  JSON de esta mañana no han llegado a Code.)
+- ⚠️ **30/10: LA CONDICIÓN 1 DIO 20 DE 20 CON LA PAREJA QUE ANOCHE DIO 4 DE 7 (Fisher, p = 0,012).** El 20 de 20 está
+  comprobado por Code contra el JSON (`claude/Medida_F130_Veinte_Condicion_1_30-10-2026.json`): el permiso en las veinte
+  preguntas 2, y 4.126 tokens de entrada en las veinte, los mismos que en la tercera tanda. El JSON de la condición 2 no
+  ha llegado.
   **ANTES DE NADA, ¿ERA EL MISMO PROMPT?**
   - **El código que lo arma es idéntico byte a byte** en los dos commits desplegados (`b3b4e9da` y `6be894ce`): sha256
     `293c93ea9242e1a6`. La llamada al modelo se movió de fichero, pero es la misma (detalle en la medida).
