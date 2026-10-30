@@ -320,8 +320,9 @@ de los JSON de la herramienta, archivados enteros el 29/10 (`claude/Medida_F130_
     F-131 cambia de forma; un 5 no distingue.
   - **El orden**: primero «ver las dos frases», sin gastar, y su salida va al arquitecto; sólo después, las siete.
 - ⚠️ **LA VARIANTE LIMPIA (29/10): 7 DE 7, P-VL-1 SE CUMPLE; Y EN LA PREGUNTA 1, SIETE FALSOS POSITIVOS DE SIETE, EL
-  HALLAZGO PRINCIPAL DEL DÍA.** (Del arquitecto; el JSON y la salida del ensayo no han llegado a Code, y está sin
-  comprobar.)
+  HALLAZGO PRINCIPAL DEL DÍA.** Los dos JSON, el del ensayo y el de las siete, están archivados al lado de los otros, y lo
+  ha comprobado Code contra ellos. El prompt desplegado es exactamente el del repositorio, y en las siete la pregunta 1
+  cita las mismas dos frases que la 2.
   **LA INTERPRETACIÓN, al lado de los diagnósticos de esta tarde y no en su lugar: EL MODELO NO USA LAS DOS CASILLAS PARA
   DOS HALLAZGOS DISTINTOS, USA LAS DOS PARA DESCRIBIR EL MISMO HALLAZGO DOS VECES.** Con un conflicto en la pareja, lo
   pone en las dos; con dos, uno se queda las dos casillas y el otro desaparece. **El mecanismo de «una casilla para A y

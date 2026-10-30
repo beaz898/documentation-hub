@@ -304,15 +304,36 @@ que comprueba con sus ojos que no hay nada de A delante. **Sólo después, las s
 
 ## Las dos frases del ensayo
 
-⚠️ **La salida del botón «ver las dos frases» no ha llegado a Code.** El arquitecto la vio antes de dar paso a las siete
-llamadas; aquí no está archivada.
+**El JSON del ensayo**, pegado por el director: `claude/Medida_F130_Variante_Limpia_Ensayo_29-10-2026.json`. El arquitecto
+lo vio y dio paso a las siete llamadas. Las dos frases, literales:
+- **NOR-10, trozo 4**: «Cada clínica cuenta con un Coordinador de Calidad, figura que puede recaer en el propio Director
+  Clínico o en otro profesional designado por él, encargado de supervisar el cumplimiento documental del protocolo:
+  mantener actualizados los registros, preparar la documentación para auditorías internas y externas, y proponer mejoras
+  al protocolo basadas en la experiencia diaria del centro.»
+- **CLI-12, trozo 3**: «Esta asignación responde a un criterio deliberado del sistema de gestión de calidad: separar la
+  responsabilidad de un proceso crítico de seguridad del paciente de la persona que, en su rol de Director Clínico,
+  gestiona simultáneamente la agenda asistencial y puede verse sometida a presión de tiempo que entre en conflicto con el
+  rigor exigido en esterilización.»
+
+**Comprobado por Code** (con una herramienta de un solo uso en `scratchpad`):
+- El prompt del ensayo (7.585 caracteres) es **exactamente** el que arma `construirPrompt` con esas dos frases y el criterio
+  de hoy; es decir, lo desplegado era lo que dice el repositorio.
+- Ninguna de las dos frases lleva una marca de A.
+- Las frases de la tanda de siete son las mismas que las del ensayo.
 
 ## LA VARIANTE LIMPIA: 7 DE 7. P-VL-1 SE CUMPLE (29/10/2026)
 
-⚠️ **El JSON de la variante limpia NO está archivado: no ha llegado a Code.** Todo lo de esta sección es del arquitecto, y
-Code no lo ha comprobado: ni el 7 de 7, ni las siete respuestas de la pregunta 1, ni las dos citas de abajo. Cuando el
-director pegue el JSON se archiva como `claude/Medida_F130_Variante_Limpia_29-10-2026.json`, al lado de los otros tres, y
-se comprueba contra él.
+**El JSON**, pegado por el director (pulsado a las 21:26 UTC): `claude/Medida_F130_Variante_Limpia_29-10-2026.json`, con el
+«registro» compactado a una línea por petición, como los otros; mismos valores. Siete respuestas; 25.445 tokens de
+entrada y 16.452 de salida; latencias de 8.796 a 11.762 ms; salida máxima, 2.751. Los mismos parámetros en las siete.
+
+**Comprobado por Code contra el JSON**:
+- En las siete, la pregunta 1 dice «sí».
+- En las siete, la pregunta 2 cita el permiso («puede recaer en el propio Director Clínico») y el principio («separar la
+  responsabilidad de un proceso crítico…»), con la etiqueta norma_contra_norma.
+- Sólo la vuelta 4 menciona «esta asignación».
+- Las dos citas de abajo están en el JSON, literales.
+- Y lo que se ve al leerlas: **en las siete, la pregunta 1 cita las mismas dos frases que la 2**.
 
 **El resultado** (arquitecto): **LAS SIETE CITAN EL PERMISO contra el principio**, con etiqueta norma_contra_norma. **P-VL-1
 (7 de 7) SE CUMPLE.** **El fallo (b), nombrado antes, NO se dio**: sólo la vuelta 4 menciona que «esta asignación» no tiene
@@ -329,7 +350,7 @@ VECES.**
 - Es la MISMA conducta explicando los dos resultados. Y por tanto **EL MECANISMO DE «UNA CASILLA PARA A Y OTRA PARA D» NUNCA
   FUNCIONÓ.** No es que dos casillas no basten: es que el modelo no reparte por casillas.
 
-**Las dos citas literales que lo prueban** (vueltas 4 y 6, según el arquitecto; sin comprobar contra el JSON):
+**Las dos citas literales que lo prueban** (vueltas 4 y 6; comprobadas contra el JSON):
 - «Como ambas frases regulan la misma cuestión, la discrepancia es también un hallazgo de la Pregunta 1.»
 - «Como el Texto 1 y el Texto 2 regulan la misma figura, el hallazgo también aparece en la Pregunta 1.»
 
