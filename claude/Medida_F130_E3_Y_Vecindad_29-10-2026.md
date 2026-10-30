@@ -398,3 +398,69 @@ arquitectura distinta, entonces nace F-131 con ese contenido dentro; si trae un 
 (Lo escrito antes, «ese número va en la consulta F-131 a Fable», queda sustituido por esto.)
 
 **La decisión de no construir la pasada 2 sigue en pie. La adenda la escribe el arquitecto mañana.**
+
+## La segunda corrección del arquitecto sobre las cifras, con su nombre (30/10/2026)
+
+**EL ARQUITECTO CORRIGIÓ LA PARTE QUE LE QUITABA RAZÓN Y SE DEJÓ LA QUE SE LA DABA.** El 29/10 corrigió que 5, 3 y 4 no
+eran una progresión, pero añadió que «los saltos grandes sí están fuera del ruido», y dijo DOS VECES que la pregunta
+cerrada «dobla D, del 29 % al 57 %». El Fisher de Code da p = 0,592 para eso. Es la segunda vez en el mismo asunto.
+
+**LO QUE QUEDA EN PIE, y sólo son dos cosas:**
+- **2 de 7 (pregunta abierta) frente a 7 de 7 (cerrada sin A): p = 0,021.** La forma de la pregunta importa.
+- **Los siete «sí» de la pregunta 1**: NO COMPITEN CON OTRA CIFRA. Siete de siete en dirección contraria a una predicción
+  registrada antes de medir es fuerte por sí solo.
+
+**LO QUE NO QUEDA EN PIE es el centro de la adenda**: «con estas tandas, sin A sale 7 y con A sale 4» todavía no está
+demostrado.
+
+## LA MEDICIÓN DE VEINTE POR CONDICIÓN: preparada, sin correr (30/10/2026)
+
+**Por eso se mide antes de escribir.** Veinte pasadas en cada una de las dos condiciones, unas 40 llamadas:
+- **Condición 1**: la pareja entera NOR-10·4 ↔ CLI-12·3, con A dentro. Es la de la tercera tanda, sin tocar el prompt
+  (ruta `pregunta`).
+- **Condición 2**: las dos frases de D solas, sin A. Es la variante limpia, sin tocar nada (ruta `limpia`).
+
+⚠️ **ESTO NO REABRE NADA.** La puerta se cerró con tres tandas y **LA PASADA 2 NO SE CONSTRUYE: sigue decidido.** Esto es
+medición **PARA LA CONSULTA**, que es otro propósito. Desde fuera se parece a una cuarta vuelta, y no lo es.
+
+**Es la E5 de Fable, que el arquitecto lleva dos días debiendo: LA HERRAMIENTA ESTABA DADA DESDE EL DICTAMEN Y NO SE
+USÓ.**
+
+**LA REGLA DE PUNTUACIÓN NO CAMBIA en ninguna de las dos**: sólo cuenta como D que la pregunta 2 se apoye en el permiso de
+NOR-10 contra la regla o el principio de CLI-12. **En las dos se cuenta además, aparte, cuántas veces la pregunta 1
+contesta «sí».**
+
+**NINGUNA PREDICCIÓN DEL ARQUITECTO ESTA VEZ**: lleva tres falladas y una acertada en tres días, y con veinte pasadas por
+condición el número hablará solo. **Lo único escrito antes de medir es la LECTURA**: si las dos condiciones se separan con
+p < 0,05, el contraejemplo está demostrado y es el centro de la adenda; **si no se separan, LA ADENDA CAMBIA DE FORMA** y lo
+que se le cuenta a Fable es que no se ha podido demostrar.
+
+**Los cortes de esa lectura, calculados por Code ANTES de medir** (Fisher exacto bilateral, 20 frente a 20; en
+`scratchpad`): para cada resultado de la condición 2, el mayor resultado de la condición 1 que todavía se separa con
+p < 0,05.
+
+| Condición 2 (sin A) | Se separa si la condición 1 (con A) da… | p en el corte, y uno más |
+|---|---|---|
+| 20 de 20 | 15 o menos | 0,047 · con 16, 0,106 |
+| 19 de 20 | 13 o menos | 0,044 · con 14, 0,091 |
+| 18 de 20 | 11 o menos | 0,031 · con 12, 0,065 |
+| 17 de 20 | 10 o menos | 0,041 · con 11, 0,082 |
+| 16 de 20 | 9 o menos | 0,048 · con 10, 0,096 |
+
+Es aritmética, no predicción: no dice qué va a salir, sólo dónde está la raya.
+
+**Cómo está hecha**: el número de pasadas es una constante por condición, `VECES_DE_E3` y `VECES_DE_LA_VARIANTE_LIMPIA`,
+las dos a 20; los prompts no se tocan. La página vuelve a tener el botón de la condición 1, junto al de la condición 2. El
+paralelismo sigue en 4, como en las tandas de siete. **El presupuesto de tiempo** (la regla de las esperas):
+- cinco tandas de 4, unos 85 s en condiciones normales;
+- unos 205 s si una tanda entera agota los reintentos del cliente (52 s de esperas, `RETRY_DELAYS` en
+  `lib/llm/anthropic-client.ts`);
+- `maxDuration` es 300 en las dos rutas.
+
+**Y el comentario que repetía la lectura de progresión** («Hacía daño en las dos versiones, y más cuanto más se apretaba»,
+en `medida-f130.ts`) está corregido. Ahora dice que con siete tiradas esas cifras no se distinguen. Un comentario con una
+lectura falsa se copia, y no se deja vivo sólo porque la carpeta vaya a borrarse.
+
+## Los JSON de la medición de veinte
+
+**PENDIENTE**: los dos, uno por condición.

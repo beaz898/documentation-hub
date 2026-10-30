@@ -337,6 +337,19 @@ de los JSON de la herramienta, archivados enteros el 29/10 (`claude/Medida_F130_
   **A Fable va una ADENDA DE F-130, no F-131** (decisión del director). **REGLA NUEVA DEL DIRECTOR: EL NÚMERO VIENE DESPUÉS
   DEL CONTENIDO.** Si Fable trae una arquitectura distinta, nace F-131 con ella dentro; si trae un ajuste, se queda en
   adenda. **La pasada 2 sigue sin construirse. La adenda la escribe el arquitecto mañana.**
+- ⚠️ **30/10: EL ARQUITECTO CORRIGIÓ LA PARTE QUE LE QUITABA RAZÓN Y SE DEJÓ LA QUE SE LA DABA** («los saltos grandes sí
+  están fuera del ruido»; «dobla D, del 29 % al 57 %», p = 0,592). **En pie quedan dos cosas**: 2 de 7 frente a 7 de 7
+  (p = 0,021) y los siete «sí» de la pregunta 1. **No queda en pie el centro de la adenda**: que sin A sale 7 y con A
+  sale 4.
+  **POR ESO SE MIDE ANTES DE ESCRIBIR: VEINTE POR CONDICIÓN, PREPARADO Y SIN CORRER.** Las dos condiciones son la pareja
+  entera con A (la tercera tanda) y las dos frases sin A (la variante limpia), sin tocar los prompts; unas 40 llamadas.
+  **NO REABRE NADA: la pasada 2 no se construye. Es medición PARA LA CONSULTA, no una cuarta vuelta.** Es la E5 de Fable:
+  **LA HERRAMIENTA ESTABA DADA DESDE EL DICTAMEN Y NO SE USÓ.**
+  - La puntuación no cambia, y se cuenta aparte la pregunta 1.
+  - Sin predicción del arquitecto; sólo la lectura: si se separan con p < 0,05, el contraejemplo está demostrado; si no,
+    la adenda cambia de forma.
+  - Los cortes de Fisher, calculados antes, están en la medida: con 20 de 20 sin A, se separa si con A sale 15 o menos.
+  - El comentario de `medida-f130.ts` con la lectura de progresión está corregido.
   **LA TERCERA TANDA, y es la última**: se borra la línea del mismo par (vuelve al validador de la pasada 2, en código) y
   se desacopla la pregunta 2 («ESTA PREGUNTA SE CONTESTA SOLA, COMO SI LA 1 NO EXISTIERA…»), que son dos cambios pero una
   sola cosa: quitar el acoplamiento entre las preguntas. Las etiquetas se quedan. **P-E3-R2**: §3.1 da 6 de 7 o más,
