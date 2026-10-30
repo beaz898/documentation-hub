@@ -660,3 +660,32 @@ no conocemos. Va al estado vivo como el pendiente PRINCIPAL.
 
 **4 · AL PROTOCOLO, con el nombre del arquitecto**: un umbral se acompaña de su tasa de falso suspenso, calculada antes de
 medir (`claude/Protocolo_Harness_Tasas.md`).
+
+## LA LÍNEA BASE: LA CONSULTA, ANTES QUE LOS ANÁLISIS (30/10/2026)
+
+**El orden del arquitecto**: primero la consulta que cuenta D por pasada, y sólo su CONTROL POSITIVO sobre los datos
+viejos de la segunda tanda del 3.4 (27/10, siete pasadas de NOR-10). **No se lanza ningún análisis hasta que el control
+esté en verde y el arquitecto lo vea.** Antes del encargo, el director confirmó dos cosas: NOR-10 aparece en la bandeja,
+y hoy no ha lanzado ningún análisis.
+
+**`SQL_34_05_d_por_pasada.sql`**, sólo lectura y PENDIENTE DE EJECUTAR.
+- **La regla**: hay D en una pasada si se publicó una contradicción con CLI-12 cuya cita de NOR-10 toca la PRIMERA frase de
+  2.4, la del permiso. Si la cita sigue en la segunda frase, la pasada sale como DUDOSA.
+- **Del lado de CLI-12**: dice si citó el principio de §3.1, §3.5, otra parte de §3.1 u otra cosa.
+- **Lo que no se ve, por pasada**:
+  - lo muerto en la puerta de citas, que se reconoce porque queda con texto;
+  - lo muerto SIN texto en la pareja (verificador, cascada, frontera y puerta sin detalle), aparte lo del verificador
+    con la etiqueta.
+- **Los literales del corpus** están copiados tal cual de `SQL_34_02` y `SQL_34_03`, por script.
+- **Arnés en PGlite**: `claude/arneses/f34/sql-34-05-d-por-pasada.test.ts`, 6 casos.
+- **Mutantes**: `claude/arneses/f34/mutantes-sql-34-05.ts`, 28 de 28 en rojo. Los dos que sobrevivían en la primera
+  vuelta se mataron con casos nuevos.
+
+⚠️ **Corrección de Code a lo que el arquitecto le atribuyó**: lo que Code dijo que no deja texto es la D matada por el
+VERIFICADOR, no por la puerta de citas. La puerta guarda cada descarte con sus dos citas (`judgments[].descartesPorCita`),
+y lo que muere ahí se reconoce. Lo que se queda sin texto es lo que tumban el verificador y la cascada, guardado sólo como
+número por motivo (`lib/analysis/types.ts:59-61`; el verificador lo funde en el juicio de la pareja, `pipeline.ts:637-639`
+y `:653-656`). La consulta cuenta las dos cosas por separado.
+
+**El control positivo: PENDIENTE DEL DIRECTOR.** La ventana de la segunda tanda no está escrita en ningún documento, así que
+se mira en el reloj de la base, como con `SQL_34_01`.

@@ -167,6 +167,11 @@ pruebas lentas de la sección 5: la lentitud es de la primera pasada en frío.
   - Repetida sola, verde, en 38 s.
   No se toca nada; se anota porque el riesgo escrito arriba («algún día pasa un rojo DE VERDAD porque alguien lo da por
   "el de siempre"») es justo éste: **el segundo rojo no era «el de siempre».**
+- ⚠️ **SEGUNDA RECAÍDA, el mismo 30/10 (Code)**: un rojo por tiempo a 60 s en un arnés,
+  `claude/arneses/pglite-fuera-del-producto.test.ts` («ningún fichero fuera de claude/arneses/ la importa»). Es otro censo
+  que lee el repositorio entero del disco, el mismo patrón que tenía `corpus-del-examen`. Ocurrió justo después de
+  veintiocho mutantes y de casi una hora de disco ocupado. Repetida sola, verde (2120 y 129). Ya van tres pruebas
+  distintas en un día: `formatos`, `tramo-de-cita` y ésta. No se toca nada.
 
 **REGISTRO, 29/10/2026 (sólo registro; no se reescribe ningún commit)**: el mensaje del commit `142a6930` («F-130: el
 segundo mensaje de Fable tras los prompts…») dice «Gates: npm test (suite 2115, arneses 117)», y **en ese momento no lo
@@ -183,6 +188,13 @@ es compatible con una tasa real **del 8 % al 64 %** (Wilson), o del 4 % al 71 % 
 «entre el 15 % y el 50 %», y Code lo corrige. **Llevamos una semana resolviendo un problema cuyo tamaño no conocemos.**
 **Lo siguiente es MEDIR LA LÍNEA BASE**: veinte análisis reales de NOR-10, con la cuenta de D hecha por una consulta y no
 a ojo. El procedimiento, el coste y la consulta se plantean ANTES de pedírselo al director.
+- **La consulta está hecha**: `SQL_34_05_d_por_pasada.sql`, sólo lectura y PENDIENTE DE EJECUTAR, con arnés y 28 mutantes
+  en rojo.
+- **El orden**: primero su CONTROL POSITIVO, sobre las siete pasadas de la segunda tanda del 27/10. Tiene que
+  reproducir el «2 de 7» puntuado a ojo; si no, se separa la consulta mal hecha de la puntuación mal hecha. Y declara qué
+  parte de la señal murió sin texto.
+- **NO SE LANZA NINGÚN ANÁLISIS hasta que el control esté en verde y el arquitecto lo vea.**
+- Del director: NOR-10 sale en la bandeja, y hoy no ha lanzado análisis.
 
 **Y LO QUE ESTO ARRASTRA, del mismo día (30/10):**
 - **EL VEREDICTO «NO SE CONSTRUYE LA PASADA 2» QUEDA ANULADO**: la regla de decisión era inválida. Con una tasa real del
