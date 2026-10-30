@@ -463,4 +463,52 @@ lectura falsa se copia, y no se deja vivo sólo porque la carpeta vaya a borrars
 
 ## Los JSON de la medición de veinte
 
-**PENDIENTE**: los dos, uno por condición.
+⚠️ **NO HAN LLEGADO A CODE.** El arquitecto da 20 de 20 en las dos condiciones (condición 1 a las 08:03 UTC del 30/10).
+Code no ha podido archivarlos ni comprobar la puntuación (el permiso en la pregunta 2, la vuelta 12 de la condición 1
+como marginal) ni la pregunta 1 (veinte «sí» en la condición 1; diecinueve y un «no», el de la vuelta 11, en la 2).
+
+## ¿ES EL MISMO PROMPT EL DE LA TERCERA TANDA (29/10, 18:31 UTC) Y EL DE LA CONDICIÓN 1 (30/10, 08:03 UTC)? (30/10/2026)
+
+**Lo que pidió el arquitecto antes de nada**: demostrarlo byte a byte, y si no son idénticos, PARAR, porque la explicación
+sería nuestra y no de fuera.
+
+**Qué estaba desplegado** (reflog de `origin/main`, horas locales +01:00 pasadas a UTC):
+- La tercera tanda (18:31 UTC) corrió con **`b3b4e9da`**, subido a las 18:24 UTC. El siguiente push, a las 19:25 UTC, fue
+  después. Y la tercera tanda gastó 4.126 tokens de entrada, frente a los 4.063 de la segunda, con el texto anterior; así
+  que ya corría el texto nuevo.
+- La condición 1 (08:03 UTC) corrió con **`6be894ce`**, subido a las 07:49 UTC.
+
+**1 · EL CÓDIGO QUE ARMA EL PROMPT ES EL MISMO, BYTE A BYTE.** Comprobado con una herramienta de un solo uso en
+`scratchpad`: se extrajeron de cada commit `medida-f130.ts`, `criterio-del-cumplimiento.ts` y
+`lib/analysis/excepcion-de-las-reglas.ts`, y con el código de cada uno se armó el prompt sobre los MISMOS dos textos de
+relleno.
+- Los dos prompts son idénticos byte a byte: sha256 `293c93ea9242e1a6` y 6.890 caracteres en los dos.
+- También son idénticos el criterio recortado (`a29a3e97e1504b6c`), `PREGUNTA_CERRADA`, `PAREJAS_DE_E3` y `TROZOS`. Sólo
+  cambia `VECES_DE_E3`, de 7 a 20.
+- `excepcion-de-las-reglas.ts` y `criterio-del-cumplimiento.ts` tienen el mismo sha1 en los dos commits.
+- Entre los dos commits no cambió nada en `lib/analysis`, `lib/llm`, `lib/read-chunks.ts`, `lib/observability` ni
+  `lib/run-in-batches.ts`.
+
+⚠️ **«Sólo cambiaron VECES_DE_E3 y un comentario» no es exacto.** Entre los dos commits, `c17459c6` sacó la llamada al modelo
+de `pregunta/route.ts` a `preguntar-al-juez.ts`, y se añadieron la variante limpia y su corte. **Comparada línea a línea, la
+llamada es la misma**: las mismas opciones de `callLLM` (`maxOutputTokens`, sin temperatura, `modeloExacto`,
+`outputConfig`, la etiqueta), `batchSize: 4`, y la misma llamada a `construirPrompt` con los mismos campos. El lector de
+trozos sólo cambió una palabra de un comentario.
+
+**2 · EL TEXTO DE LOS DOS TROZOS: NO SE PUEDE VER DESDE EL CÓDIGO, y queda PENDIENTE de `SQL_34_04`.** El prompt lleva dentro
+el texto de NOR-10·4 y CLI-12·3, leído de la base en cada pulsación. La consulta (sólo lectura, PENDIENTE DE EJECUTAR) dice
+por cada trozo si su texto es el mismo desde antes de la tercera tanda. Se apoya en que los trozos sólo se insertan y se
+borran (censo en su cabecera) y en que cambiar de generación toca `documents.updated_at`. Si no lo puede afirmar, lo dice y
+no lo da por bueno. Que las dos tandas gastaran los mismos 4.126 tokens de entrada es coherente con el mismo texto, **pero no
+lo prueba.**
+
+**HASTA QUE `SQL_34_04` DIGA «EL TEXTO ES EL MISMO» EN LOS DOS TROZOS, NO SE ESCRIBE NADA QUE SE APOYE EN «NO CAMBIAMOS
+NADA»**:
+- la conclusión «algo cambió fuera de nuestro prompt, o la varianza es mucho mayor»;
+- lo que eso le hace a la decisión de ayer;
+- el hallazgo de producto sobre medir la cobertura periódicamente.
+Es la instrucción del arquitecto: si los prompts no son idénticos, todo eso sobra. Lo que no depende de la noche, porque
+las dos condiciones de esta mañana leyeron la misma base a la misma hora, espera a que lleguen los JSON.
+
+**3 · LA CUENTA PEDIDA** (Fisher exacto bilateral): **4 de 7 (tercera tanda) frente a 20 de 20 (condición 1): p = 0,012.** De
+paso: 7 de 7 (variante limpia, 29/10) frente a 20 de 20 (condición 2, 30/10), p = 1.

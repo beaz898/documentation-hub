@@ -350,6 +350,15 @@ de los JSON de la herramienta, archivados enteros el 29/10 (`claude/Medida_F130_
     la adenda cambia de forma.
   - Los cortes de Fisher, calculados antes, están en la medida: con 20 de 20 sin A, se separa si con A sale 15 o menos.
   - El comentario de `medida-f130.ts` con la lectura de progresión está corregido.
+- ⚠️ **30/10: LA CONDICIÓN 1 DIO 20 DE 20 CON LA PAREJA QUE ANOCHE DIO 4 DE 7 (Fisher, p = 0,012).** (Del arquitecto; los
+  JSON de esta mañana no han llegado a Code.)
+  **ANTES DE NADA, ¿ERA EL MISMO PROMPT?**
+  - **El código que lo arma es idéntico byte a byte** en los dos commits desplegados (`b3b4e9da` y `6be894ce`): sha256
+    `293c93ea9242e1a6`. La llamada al modelo se movió de fichero, pero es la misma (detalle en la medida).
+  - **El texto de los dos trozos, que se lee de la base, está PENDIENTE de `SQL_34_04`** (sólo lectura, pendiente de
+    ejecutar).
+  - **Hasta que diga «EL TEXTO ES EL MISMO» en los dos, no se escribe nada que se apoye en «no cambiamos nada»**: ni «algo
+    cambió fuera», ni lo que le hace a la decisión de ayer, ni el hallazgo de producto.
   **LA TERCERA TANDA, y es la última**: se borra la línea del mismo par (vuelve al validador de la pasada 2, en código) y
   se desacopla la pregunta 2 («ESTA PREGUNTA SE CONTESTA SOLA, COMO SI LA 1 NO EXISTIERA…»), que son dos cambios pero una
   sola cosa: quitar el acoplamiento entre las preguntas. Las etiquetas se quedan. **P-E3-R2**: §3.1 da 6 de 7 o más,
