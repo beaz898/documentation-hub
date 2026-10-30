@@ -370,6 +370,15 @@ de los JSON de la herramienta, archivados enteros el 29/10 (`claude/Medida_F130_
   **LA LECTURA (arquitecto): LAS DOS CONDICIONES NO SE SEPARAN** (p = 1; con la cuenta literal, p = 0,106). **LA HIPÓTESIS
   DE QUE LA PRESENCIA DE A IMPIDE QUE SALGA D QUEDA REFUTADA**: era la del arquitecto y la medición la tumba. No depende de
   la noche.
+  **LA CONDICIÓN 1 REPETIDA** (08:17 UTC, `claude/Medida_F130_Veinte_Condicion_1_Repetida_30-10-2026.json`):
+  - **16 de 20**, comprobado. Fallan la 2, la 4, la 8 y la 14, que contestan la pregunta 2 con A.
+  - Mismo prompt y mismos 4.126 tokens de entrada que la condición 1 de una hora antes, que dio 20 de 20 (p = 0,106).
+  - **Frente a la repetición, el 4 de 7 de anoche ya no se separa (p = 0,328); frente a las dos de hoy juntas, 36 de 40,
+    tampoco con p < 0,05 (p = 0,057).** «La varianza es mayor de lo que siete tiradas mostraban» basta para explicar la
+    noche. No se afirma nada; `SQL_34_04` sigue haciendo falta.
+  - ⚠️ **Las dos lecturas que el arquitecto escribió antes de la repetición se contradicen.** «Si da otra cosa que 20 de
+    20, el proceso es demasiado inestable» frente a «si se separa de la de hace una hora, el problema es la
+    inestabilidad»: dio 16, pero no se separa. La decisión es suya.
   **ANTES DE NADA, ¿ERA EL MISMO PROMPT?**
   - **El código que lo arma es idéntico byte a byte** en los dos commits desplegados (`b3b4e9da` y `6be894ce`): sha256
     `293c93ea9242e1a6`. La llamada al modelo se movió de fichero, pero es la misma (detalle en la medida).

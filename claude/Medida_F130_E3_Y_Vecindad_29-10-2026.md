@@ -515,6 +515,43 @@ en la palabra, como la 11 de la condición 1. La vuelta 11, la del «no» en la 
 normativa, y se trata en la pregunta 2»: es la única de las cuarenta respuestas de esta mañana que separa las casillas
 como se diseñaron.
 
+## LA CONDICIÓN 1 REPETIDA, MISMO PROMPT (30/10/2026, 08:17:19 UTC)
+
+`claude/Medida_F130_Veinte_Condicion_1_Repetida_30-10-2026.json`, pegado por el director, con el «registro» compactado como
+los otros.
+
+**La puntuación del arquitecto, 16 de 20, COMPROBADA contra el JSON.** La comprobación literal («puede recaer en el propio
+Director Clínico» en la pregunta 2) falla justo en las vueltas 2, 4, 8 y 14, y en ninguna otra. En las cuatro, la pregunta
+2 se contesta con las frases de A. La 14 dice: «Ninguna de las dos permite algo que la otra excluya». Las veinte preguntas
+1 dicen «sí».
+
+**Cifras**: 20 llamadas, todas «ok», a la misma pareja. **4.126 tokens de entrada en las veinte**, como la condición 1 de
+hace una hora y como la tercera tanda. 60.622 de salida, la máxima 4.171; latencias de 9.552 a 18.396 ms; los mismos
+parámetros.
+
+**Las cuentas (Fisher exacto bilateral), de Code**:
+
+| Comparación | p |
+|---|---|
+| condición 1 (20 de 20) frente a su repetición (16 de 20), una hora después | 0,106 |
+| tercera tanda (4 de 7) frente a la repetición (16 de 20) | **0,328** |
+| tercera tanda (4 de 7) frente a las dos de esta mañana juntas (36 de 40) | **0,057** |
+
+⚠️ **Lo que eso le hace al asunto grande, y lo dice Code, no el arquitecto.** El 4 de 7 de anoche frente al 20 de 20 de esta
+mañana daba p = 0,012. Con la repetición, el mismo prompt y la misma base han dado 20 y 16 en una hora. **Frente a la
+repetición, el 4 de 7 de anoche ya no se separa (p = 0,328); frente a las dos juntas, tampoco con p < 0,05 (p = 0,057).**
+- Con estos datos, «algo cambió fuera entre anoche y esta mañana» deja de ser necesario para explicar el 4 de 7. La otra
+  posibilidad que el arquitecto dejó escrita, **«la varianza real es mucho mayor de lo que siete tiradas podían mostrar»**,
+  basta para explicarlo.
+- No se afirma ninguna de las dos. `SQL_34_04` sigue haciendo falta para descartar que cambiara el texto.
+
+⚠️ **LAS DOS LECTURAS QUE EL ARQUITECTO ESCRIBIÓ ANTES DE ESTA REPETICIÓN DAN RESPUESTAS OPUESTAS, Y LA DECISIÓN ES SUYA.**
+- La primera: «Si vuelve a dar 20 de 20, hoy es sólido; **si da otra cosa, el proceso es demasiado inestable para poner una
+  puerta encima**». Dio 16: otra cosa.
+- La segunda: «**si la repetición de hoy se separa de la de hace una hora, el problema es la inestabilidad del proceso**».
+  20 frente a 16 da p = 0,106: no se separa.
+- Code no elige.
+
 ## LA LECTURA DE LA MEDICIÓN DE VEINTE, por lo escrito antes de medir (arquitecto, 30/10/2026)
 
 **LAS DOS CONDICIONES NO SE SEPARAN** (20 frente a 20, p = 1; con la cuenta literal de la condición 2, 20 frente a 16,
