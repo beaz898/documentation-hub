@@ -487,8 +487,45 @@ no es el caso de la 12. Se anota, sin cambiar la puntuación.
   es el descarte de la segunda tanda.
 - **La vuelta 14 termina con «Esto ya se recoge en la pregunta 1»**, sobre A y también después de registrar D.
 
-**CONDICIÓN 2, las dos frases sin A: el JSON NO HA LLEGADO A CODE.** El arquitecto da 20 de 20, y en la pregunta 1
-diecinueve «sí» y un «no» (la vuelta 11). Sin comprobar.
+**CONDICIÓN 2, las dos frases sin A** (08:04:58 UTC del 30/10): `claude/Medida_F130_Veinte_Condicion_2_30-10-2026.json`,
+pegado por el director, con el «registro» compactado como los otros.
+
+**Cifras**: 20 llamadas, todas «ok». **3.635 tokens de entrada en las veinte**, los mismos que en la variante limpia de anoche.
+46.465 de salida, la máxima 2.936; latencias de 7.962 a 13.805 ms; los mismos parámetros en las veinte.
+
+**LAS DOS FRASES QUE LEYÓ ESTA MAÑANA SON IDÉNTICAS, BYTE A BYTE, A LAS DE ANOCHE**, las del ensayo y las de la variante
+limpia de las 21:26 UTC. Es una prueba parcial sobre la noche: las dos frases de D, cortadas del texto de los trozos, no
+cambiaron. **No prueba el resto de los dos trozos**, que es lo que lee la condición 1; eso sigue en `SQL_34_04`.
+
+**La pregunta 1, COMPROBADA**: diecinueve «sí» y un «no», el de la vuelta 11, como da el arquitecto.
+
+**⚠️ LA PREGUNTA 2: LA COMPROBACIÓN MECÁNICA NO DA 20, DA 16.** Buscando «puede recaer en el propio Director Clínico» en la
+pregunta 2, como pidió el arquitecto, sale en dieciséis vueltas.
+- **Las vueltas 1, 2, 7 y 15 se apoyan en el permiso, pero lo PARAFRASEAN** («el Texto 1 permite que el Director Clínico
+  sea el Coordinador») **y no citan en la pregunta 2 ninguna frase literal de los documentos**. La pregunta pide «cita la
+  frase literal de cada lado», y estas cuatro no lo hacen; las citas literales las pusieron en la pregunta 1.
+- Por la regla escrita, «apoyándose en el permiso», las cuatro cuentan y salen 20 de 20. Por la comprobación literal, que
+  es con la que se puntuaron la tercera tanda (4 de 7) y la condición 1 (20 de 20), salen 16 de 20. **Cuál vale lo decide
+  el arquitecto.**
+- **No cambia la lectura**: condición 1 frente a condición 2, 20 frente a 20, p = 1; 20 frente a 16, **p = 0,106**. Con
+  cualquiera de las dos cuentas, las condiciones no se separan.
+
+**Dos cosas vistas al leer**: las vueltas 1 y 9 encabezan la pregunta 2 con «SÍ, hay hallazgo», con la polaridad al revés
+en la palabra, como la 11 de la condición 1. La vuelta 11, la del «no» en la pregunta 1, explica que la tensión «es
+normativa, y se trata en la pregunta 2»: es la única de las cuarenta respuestas de esta mañana que separa las casillas
+como se diseñaron.
+
+## LA LECTURA DE LA MEDICIÓN DE VEINTE, por lo escrito antes de medir (arquitecto, 30/10/2026)
+
+**LAS DOS CONDICIONES NO SE SEPARAN** (20 frente a 20, p = 1; con la cuenta literal de la condición 2, 20 frente a 16,
+p = 0,106). **LA HIPÓTESIS DE QUE LA PRESENCIA DE A IMPIDE QUE SALGA D QUEDA REFUTADA**, no «no demostrada»: **era la
+hipótesis del arquitecto y la medición la tumba.** Con A dentro, D salió en las veinte vueltas de la condición 1, citando el
+permiso literal.
+
+Esta lectura no depende de la noche: las dos condiciones leyeron la misma base, con minuto y medio de diferencia.
+
+**Lo que sí depende de la noche**, es decir, la tercera tanda (4 de 7) frente a la condición 1 (20 de 20) con el mismo
+prompt, **sigue en espera de `SQL_34_04`**, en la sección siguiente.
 
 ## ¿ES EL MISMO PROMPT EL DE LA TERCERA TANDA (29/10, 18:31 UTC) Y EL DE LA CONDICIÓN 1 (30/10, 08:03 UTC)? (30/10/2026)
 

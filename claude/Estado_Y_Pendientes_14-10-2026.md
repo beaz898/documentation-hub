@@ -361,8 +361,15 @@ de los JSON de la herramienta, archivados enteros el 29/10 (`claude/Medida_F130_
   - El comentario de `medida-f130.ts` con la lectura de progresión está corregido.
 - ⚠️ **30/10: LA CONDICIÓN 1 DIO 20 DE 20 CON LA PAREJA QUE ANOCHE DIO 4 DE 7 (Fisher, p = 0,012).** El 20 de 20 está
   comprobado por Code contra el JSON (`claude/Medida_F130_Veinte_Condicion_1_30-10-2026.json`): el permiso en las veinte
-  preguntas 2, y 4.126 tokens de entrada en las veinte, los mismos que en la tercera tanda. El JSON de la condición 2 no
-  ha llegado.
+  preguntas 2, y 4.126 tokens de entrada en las veinte, los mismos que en la tercera tanda.
+  **LA CONDICIÓN 2** (`claude/Medida_F130_Veinte_Condicion_2_30-10-2026.json`):
+  - En la pregunta 1, diecinueve «sí» y un «no», el de la vuelta 11. Comprobado.
+  - En la pregunta 2, la comprobación literal da **16 de 20, no 20**. Las vueltas 1, 2, 7 y 15 se apoyan en el permiso pero
+    lo parafrasean, sin cita literal. Cuál de las dos cuentas vale lo decide el arquitecto.
+  - Sus dos frases son idénticas a las de anoche, y los tokens de entrada también (3.635).
+  **LA LECTURA (arquitecto): LAS DOS CONDICIONES NO SE SEPARAN** (p = 1; con la cuenta literal, p = 0,106). **LA HIPÓTESIS
+  DE QUE LA PRESENCIA DE A IMPIDE QUE SALGA D QUEDA REFUTADA**: era la del arquitecto y la medición la tumba. No depende de
+  la noche.
   **ANTES DE NADA, ¿ERA EL MISMO PROMPT?**
   - **El código que lo arma es idéntico byte a byte** en los dos commits desplegados (`b3b4e9da` y `6be894ce`): sha256
     `293c93ea9242e1a6`. La llamada al modelo se movió de fichero, pero es la misma (detalle en la medida).
