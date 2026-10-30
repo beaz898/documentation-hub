@@ -689,3 +689,27 @@ y `:653-656`). La consulta cuenta las dos cosas por separado.
 
 **El control positivo: PENDIENTE DEL DIRECTOR.** La ventana de la segunda tanda no está escrita en ningún documento, así que
 se mira en el reloj de la base, como con `SQL_34_01`.
+
+**El arquitecto, con su nombre, 30/10**: la frase «una D matada en la puerta de la cita no se distingue» la escribió él en
+el encargo, atribuyéndosela a Code, y no la dijo Code: lo de Code era del VERIFICADOR. **La propagación del error fue del
+arquitecto al citar a Code**, y la corrección importa porque se recupera más señal de la que él dijo. Queda en el
+protocolo, junto a la regla de que el control positivo es un paso del director.
+**Lo que sí se sostiene, según el arquitecto**: el 20 % de las respuestas parafrasea en vez de citar literalmente, y en el
+producto la puerta las mataría. ⚠️ *Code, contado sobre los tres JSON de esta mañana*: la pregunta 2 no lleva ninguna cita
+literal en **6 de las 60**.
+
+| Tanda | Sin cita literal en la pregunta 2 |
+|---|---|
+| condición 1 | 0 de 20 |
+| condición 1 repetida | 2 de 20 (la 4 y la 14, que además contestan con A) |
+| condición 2 | 4 de 20 (la 1, la 2, la 7 y la 15) |
+
+El 20 % es sólo de la condición 2; en las sesenta es el 10 %. Y E3 contesta en texto libre, mientras que el juez del
+producto contesta en JSON con campos de cita: **que el juez del producto parafrasee a esa tasa no está medido.** Que la
+puerta mataría una paráfrasis sí está en el código: comprueba que la cita esté en el texto entregado.
+
+**`SQL_34_05`, DOS PULSACIONES Y UN SOLO FICHERO (arquitecto, 30/10)**, para que el director no tenga que adivinar la ventana:
+- **Con «desde» y «hasta» vacíos, la consulta no mide: lista** todas las pasadas rápidas de NOR-10 de la organización, con
+  su fecha y hora de Madrid y su duración, y nada más. De ahí se leen las siete del 27/10.
+- **Con la ventana puesta, mide.** Con un solo extremo puesto, mide y el control de la ventana falla.
+- El arnés cubre los dos modos, con 7 casos. Los mutantes, ahora 36, incluyen los del modo lista, y salen 36 de 36 en rojo.

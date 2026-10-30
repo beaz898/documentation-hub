@@ -172,6 +172,15 @@ pruebas lentas de la sección 5: la lentitud es de la primera pasada en frío.
   que lee el repositorio entero del disco, el mismo patrón que tenía `corpus-del-examen`. Ocurrió justo después de
   veintiocho mutantes y de casi una hora de disco ocupado. Repetida sola, verde (2120 y 129). Ya van tres pruebas
   distintas en un día: `formatos`, `tramo-de-cita` y ésta. No se toca nada.
+- ⚠️ **PENDIENTE CON DISPARADOR (arquitecto, 30/10; anotado, sin abrir): LAS TRES PRUEBAS QUE SE CAYERON POR TIEMPO HOY.**
+  El arreglo que propone el arquitecto ya está inventado en `corpus-del-examen`: leer el árbol una vez. **DISPARADOR: el
+  primer commit después de medir la línea base. Ahora no se toca.**
+  ⚠️ *Code, leído en las tres*: sólo `pglite-fuera-del-producto` es un censo que lee el repositorio entero, y a ésa el
+  arreglo le vale. Las otras dos leen otra cosa:
+  - `formatos-con-tablas` extrae con `extractSegments` cada documento real de `corpus-pruebas/`, con PDF y Word;
+  - `tramo-de-cita` extrae un documento real de `corpus-pruebas/`.
+  Su coste es la extracción de documentos, no el recorrido del árbol, y «leer el árbol una vez» no lo toca. Cuando salte
+  el disparador, esas dos necesitan otro arreglo; por ejemplo, extraer una vez por fichero de prueba.
 
 **REGISTRO, 29/10/2026 (sólo registro; no se reescribe ningún commit)**: el mensaje del commit `142a6930` («F-130: el
 segundo mensaje de Fable tras los prompts…») dice «Gates: npm test (suite 2115, arneses 117)», y **en ese momento no lo

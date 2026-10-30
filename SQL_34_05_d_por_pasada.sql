@@ -34,8 +34,14 @@
 --       latencia); el VEREDICTO; las citas de cada D; lo muerto en la puerta; lo muerto sin texto.
 --   2 · el total: D en X de N pasadas, cuántas con la etiqueta, cuántas dudosas, y la cota sin texto.
 --
--- LA VENTANA Y EL ESPERADO VAN EN NULO y se rellenan DESPUÉS DE MIRAR EL RELOJ DE LA BASE, nunca antes. Para el control
--- positivo, la ventana de la segunda tanda del 27/10 y el esperado 7.
+-- DOS PULSACIONES, UN SOLO FICHERO (arquitecto, 30/10), porque la ventana de la segunda tanda no está escrita en ningún
+-- documento:
+--   1 · CON «desde» Y «hasta» VACÍOS, la consulta NO MIDE: LISTA todas las pasadas rápidas de NOR-10 de la organización,
+--       con su fecha y hora (de Madrid) y su duración, y nada más. De ahí se leen las siete del 27/10.
+--   2 · Con la ventana puesta (y el esperado, 7), mide. Con sólo uno de los dos extremos puesto, mide y el control 1
+--       falla.
+-- La ventana y el esperado van en NULO y se rellenan DESPUÉS DE MIRAR EL RELOJ DE LA BASE, que es justo lo que da el
+-- paso 1. El control positivo es un paso DEL DIRECTOR: Code no ejecuta consultas.
 -- ============================================================================
 -- ── LA RESOLUCIÓN DE LA ORGANIZACIÓN (26/10/2026), IDÉNTICA EN TODAS LAS CONSULTAS QUE MIRAN HACIA DELANTE ──
 -- La organización NO se escribe: es la ÚNICA a la que pertenece el USUARIO del director. Si tiene cero o más de una,
@@ -195,13 +201,31 @@ control (orden, medida, ok) AS (
             || (SELECT count(*) FROM veredicto WHERE NOT con_juicio OR NOT con_discarded),
          CASE WHEN (SELECT count(*) FROM pasadas) = 0 THEN NULL
               ELSE (SELECT count(*) FROM veredicto WHERE NOT con_juicio OR NOT con_discarded) = 0 END
+),
+modo AS (   -- con «desde» y «hasta» vacíos, la consulta LISTA en vez de medir (arquitecto, 30/10)
+  SELECT (p.desde IS NULL AND p.hasta IS NULL) AS sin_ventana FROM parametros p
+),
+listado AS (   -- SIN VENTANA: todas las pasadas rápidas de NOR-10 de la organización, para leer de aquí la ventana
+  SELECT ar.created_at,
+         (SELECT max((q->>'comienzoMs')::bigint + (q->>'latenciaMs')::bigint)
+            FROM jsonb_array_elements(CASE WHEN jsonb_typeof(ar.analysis->'llamadasAlModelo'->'peticiones') = 'array'
+                                           THEN ar.analysis->'llamadasAlModelo'->'peticiones' ELSE '[]'::jsonb END) q) AS ms,
+         row_number() OVER (ORDER BY ar.created_at, ar.id) AS n
+  FROM public.analysis_results ar, parametros p
+  WHERE ar.org_id = p.org AND ar.document_name LIKE 'NOR-10%' AND ar.analysis_type = 'quick'
 )
 SELECT bloque, a, b, c, d FROM (
   SELECT 'organización leída' AS bloque, linea AS a, NULL::text AS b, NULL::text AS c, NULL::text AS d, 0 AS o1, 0 AS o2
   FROM organizacion_leida
   UNION ALL
+  -- SIN VENTANA: sólo la lista, con su fecha y hora y su duración, y nada más
+  SELECT '0 · sin ventana: las pasadas rápidas de NOR-10',
+         'pasada ' || l.n || ' · ' || to_char(l.created_at AT TIME ZONE 'Europe/Madrid', 'DD/MM/YYYY HH24:MI:SS') || ' (hora de Madrid)',
+         coalesce(round(l.ms / 1000.0)::text || ' s', 'duración sin guardar'), NULL, NULL, l.n, 0
+  FROM listado l, modo m WHERE m.sin_ventana
+  UNION ALL
   SELECT '0 · control', medida, CASE WHEN ok IS NULL THEN 'NO APLICA' WHEN ok THEN 'OK' ELSE '⚠️⚠️ FALLA' END, NULL, NULL, orden, 0
-  FROM control
+  FROM control WHERE NOT (SELECT sin_ventana FROM modo)
   UNION ALL
   -- 1 · por pasada: el veredicto y lo que no se ve
   SELECT '1 · por pasada', 'pasada ' || v.n || ' · ' || to_char(v.created_at AT TIME ZONE 'Europe/Madrid', 'DD/MM HH24:MI:SS')
@@ -215,12 +239,14 @@ SELECT bloque, a, b, c, d FROM (
            || CASE WHEN NOT v.con_juicio THEN ' · ⚠️ SIN JUICIO DE CLI-12' WHEN NOT v.con_discarded THEN ' · ⚠️ SIN «discarded»: agujero' ELSE '' END,
          NULL, v.n, 0
   FROM veredicto v LEFT JOIN condiciones c ON c.n = v.n
+  WHERE NOT (SELECT sin_ventana FROM modo)
   UNION ALL
   -- las citas de cada D, una fila por hallazgo
   SELECT '1 · por pasada', 'pasada ' || dp.n || ' · cita de D',
          coalesce(dp.especie, 'sin especie') || ' · CLI-12: ' || dp.lado_cli || CASE WHEN dp.a_caballo THEN ' · ⚠️ A CABALLO' ELSE '' END,
          'NOR-10: «' || coalesce(dp.cita_nor, '') || '»', 'CLI-12: «' || coalesce(dp.cita_cli, '') || '»', dp.n, row_number() OVER (PARTITION BY dp.n ORDER BY dp.cita_nor)
   FROM d_publicada dp
+  WHERE NOT (SELECT sin_ventana FROM modo)
   UNION ALL
   -- 2 · EL TOTAL
   SELECT '2 · el total',
@@ -233,5 +259,6 @@ SELECT bloque, a, b, c, d FROM (
            || (SELECT coalesce(sum(sin_texto), 0) FROM veredicto WHERE NOT d_limpia AND NOT d_dudosa) || ' de ellos en pasadas SIN D'
            || ' (con la etiqueta: ' || (SELECT coalesce(sum(sin_texto_con_etiqueta), 0) FROM veredicto WHERE NOT d_limpia AND NOT d_dudosa) || ')',
          NULL, 0, 0
+  FROM modo WHERE NOT modo.sin_ventana
 ) x
 ORDER BY (bloque <> 'organización leída'), bloque, o1, o2;

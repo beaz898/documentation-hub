@@ -11,6 +11,7 @@ import { PGlite } from '@electric-sql/pglite';
  *   5 · sólo A, y tres muertos sin texto en la pareja (uno del verificador con la etiqueta); y en la puerta, A, que no es D;
  *   6 · la cita de D contra CLI-13, que no es la pareja, y el juicio de CLI-13 con descartes, que no cuentan;
  *   7 · sólo A, con el juicio de CLI-12 sin «discarded» guardado: un agujero, no un cero.
+ * Sin ventana, la consulta sólo lista las pasadas rápidas de NOR-10 (las ocho de la organización, la de fuera incluida).
  * Ruido con D: una pasada fuera de la ventana, otra de otra organización y otra de NOR-11; y en todas, la lectura de
  * una pareja con CLI-13 con otro modelo, que no es la de D. Una base por fichero.
  */
@@ -83,13 +84,11 @@ async function sembrar(o: Opciones = {}) {
   await meter(ORG, '2026-10-27T10:45:00Z', 'NOR-11_otro.docx', conD);
 }
 
-async function correr(o: Opciones = {}, conVentana = true, esperado: number | null = 7): Promise<Fila[]> {
+async function correr(o: Opciones = {}, conVentana: boolean | 'solo_desde' = true, esperado: number | null = 7): Promise<Fila[]> {
   await sembrar(o);
   let sql = readFileSync('SQL_34_05_d_por_pasada.sql', 'utf8').replaceAll('public.', '');
-  if (conVentana) {
-    sql = sql.replace('NULL::timestamptz AS desde', "timestamptz '2026-10-27 10:00:00+00' AS desde")
-             .replace('NULL::timestamptz AS hasta', "timestamptz '2026-10-27 13:00:00+00' AS hasta");
-  }
+  if (conVentana) sql = sql.replace('NULL::timestamptz AS desde', "timestamptz '2026-10-27 10:00:00+00' AS desde");
+  if (conVentana === true) sql = sql.replace('NULL::timestamptz AS hasta', "timestamptz '2026-10-27 13:00:00+00' AS hasta");
   if (esperado !== null) sql = sql.replace('NULL::int AS esperado', `${esperado} AS esperado`);
   return (await db.query<Fila>(sql)).rows;
 }
@@ -99,6 +98,8 @@ describe('SQL_34_05, D por pasada', () => {
   it('LA ORGANIZACIÓN LEÍDA va primera, y los controles: OK los que miran, y el del agujero FALLA por la pasada 7', async () => {
     const f = await correr();
     expect(f[0].a).toBe(`organización leída: ${ORG} · «Mi workspace» · 2 documentos`);
+    // con ventana mide, y la lista del modo sin ventana no sale
+    expect(f.filter(x => x.bloque.startsWith('0 · sin ventana'))).toEqual([]);
     expect(de(f, '0 · control').map(x => [x[0], x[1]])).toEqual([
       ['ventana: 27/10 11:00 a 27/10 14:00 (hora de Madrid)', 'OK'],
       ['pasadas de NOR-10 en la ventana: 7 · esperado: 7', 'OK'],
@@ -139,12 +140,22 @@ describe('SQL_34_05, D por pasada', () => {
     ]]);
   });
 
-  it('LOS CONTROLES QUE PUEDEN FALLAR, fallan: sin ventana, con una pasada exhaustiva, con dos CLI-12 y con el esperado mal', async () => {
+  it('LOS CONTROLES QUE PUEDEN FALLAR, fallan: con un solo extremo de la ventana, con una pasada exhaustiva, con dos CLI-12 y con el esperado mal', async () => {
     const control = (f: Fila[]) => de(f, '0 · control').map(x => x[1]);
-    expect(control(await correr({}, false, null))).toEqual(['⚠️⚠️ FALLA', 'NO APLICA', 'NO APLICA', 'OK', 'OK', 'NO APLICA']);
+    expect(control(await correr({}, 'solo_desde', null))).toEqual(['⚠️⚠️ FALLA', 'NO APLICA', 'NO APLICA', 'OK', 'OK', 'NO APLICA']);
     expect(control(await correr({ exhaustiva: true }))[2]).toBe('⚠️⚠️ FALLA');
     expect(control(await correr({ dosCli12: true }))[3]).toBe('⚠️⚠️ FALLA');
     expect(control(await correr({}, true, 6))[1]).toBe('⚠️⚠️ FALLA');
+  });
+
+  it('SIN VENTANA, LISTA Y NO MIDE: todas las pasadas rápidas de NOR-10 de la organización, con su hora y su duración, y nada más', async () => {
+    const f = await correr({}, false, null);
+    expect(f.map(x => x.bloque)).toEqual(['organización leída', ...Array(8).fill('0 · sin ventana: las pasadas rápidas de NOR-10')]);
+    expect(de(f, '0 · sin ventana: las pasadas rápidas de NOR-10')).toEqual(
+      ['10:00', '11:30', '11:40', '11:50', '12:00', '12:10', '12:20', '12:30'].map((h, i) =>
+        [`pasada ${i + 1} · 27/10/2026 ${h}:00 (hora de Madrid)`, '35 s', null, null]));
+    // la exhaustiva no sale en la lista
+    expect(de(await correr({ exhaustiva: true }, false, null), '0 · sin ventana: las pasadas rápidas de NOR-10').length).toBe(7);
   });
 
   it('SIN ORGANIZACIÓN RESUELTA, la primera fila lo grita y no hay ni una D', async () => {

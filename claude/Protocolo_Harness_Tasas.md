@@ -1373,6 +1373,21 @@ el tamaño del problema durante una semana.
 
 ---
 
+## ⚠️ EL ARQUITECTO NO PIDE A CODE QUE EJECUTE UNA CONSULTA: PIDE QUE LA DEJE LISTA, Y EL CONTROL POSITIVO ES UN PASO DEL DIRECTOR
+
+*Arquitecto, 30/10/2026, con su nombre.* Code no ejecuta SQL contra la base: las consultas las ejecuta el director. **El
+caso**: el encargo de la línea base pedía «el control positivo en verde antes de pulsar» como si Code pudiera correrlo, y
+tal como se pidió era imposible. **LA FORMA OPERATIVA**: un encargo de consulta dice «déjala lista, con arnés y
+mutantes», y el control positivo va en la lista de pasos del director, con la ventana, el esperado y lo que tiene que
+salir para que esté en verde. Si la consulta necesita un dato que sólo da la base (la ventana de una tanda vieja, por
+ejemplo), la consulta lo saca ella misma en una primera pulsación: `SQL_34_05` sin ventana lista las pasadas.
+**Y EN EL MISMO ENCARGO, OTRO ERROR DEL ARQUITECTO, que es de la misma familia que el decimotercero**: atribuyó a Code
+«una D matada en la puerta de la cita no se distingue». Lo que Code había dicho era del VERIFICADOR. La puerta guarda cada
+descarte con sus dos citas y se reconoce, así que se recupera más señal de la que se escribió. **La propagación del error
+fue del arquitecto, al citar a Code.**
+
+---
+
 ## ⚠️ PARA SEPARAR COMMITS SE PREPARA CADA FICHERO POR SU NOMBRE, NUNCA `git stash`
 
 *Añadida el 23/10/2026 (arquitecto), tras un error de Code.*
