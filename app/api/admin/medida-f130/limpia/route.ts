@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
     analizado: { documento: x.nombre, trozo: x.chunkIndex, frase: fraseA.frase },
     candidato: { documento: y.nombre, trozo: y.chunkIndex, frase: fraseB.frase },
   };
-  const medida = 'Variante limpia de F-130 · la pregunta cerrada de E3 sobre las dos frases de D solas, sin A delante, siete veces';
+  const medida = `Variante limpia de F-130 · la pregunta cerrada de E3 sobre las dos frases de D solas, sin A delante, ${VECES_DE_LA_VARIANTE_LIMPIA} veces`;
 
   if (req.nextUrl.searchParams.get('ensayo') === '1') {
     return NextResponse.json({ medida, ensayo: 'sin llamar al modelo', frases, prompt: armado.prompt });

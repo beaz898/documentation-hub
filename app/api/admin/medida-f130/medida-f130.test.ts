@@ -44,9 +44,9 @@ describe('las medidas temporales de F-130', () => {
     expect(r.prompt).not.toMatch(/\{\{(N|DOC_1|TROZO_A|DOC_2|TROZO_B|TEXTO_A|TEXTO_B)\}\}/);
   });
 
-  it('LA REPETICIÓN DE E3 (29/10): sólo la pareja de §3.1, NOR-10·4 ↔ CLI-12·3, en la condición realista, siete veces', () => {
+  it('LA REPETICIÓN DE E3 (29/10): sólo la pareja de §3.1, NOR-10·4 ↔ CLI-12·3, en la condición realista, veinte veces (30/10)', () => {
     expect(PAREJAS_DE_E3.map(p => [TROZOS[p.analizado], TROZOS[p.candidato]].map(t => `${t.codigo}·${t.trozo}`))).toEqual([['NOR-10·4', 'CLI-12·3']]);
-    expect(VECES_DE_E3).toBe(7);
+    expect(VECES_DE_E3).toBe(20);
   });
 
   it('LAS FIGURAS, contadas con y sin encabezados', () => {
@@ -74,9 +74,9 @@ describe('las medidas temporales de F-130', () => {
     expect(puestos(['x', 'y', 'z'], ['z', 'w'])).toEqual({ z: 3, w: null });
   });
 
-  it('LA VARIANTE LIMPIA: la pareja de §3.1, siete veces, cada lado con la frase de D de su trozo', () => {
+  it('LA VARIANTE LIMPIA: la pareja de §3.1, veinte veces (30/10), cada lado con la frase de D de su trozo', () => {
     expect(PAREJA_DE_LA_VARIANTE_LIMPIA).toEqual({ analizado: 'nor10_4', candidato: 'cli12_3' });
-    expect(VECES_DE_LA_VARIANTE_LIMPIA).toBe(7);
+    expect(VECES_DE_LA_VARIANTE_LIMPIA).toBe(20);
     expect(MARCAS_DE_A).toEqual(['responsabilidad última', 'responsable último']);
   });
 

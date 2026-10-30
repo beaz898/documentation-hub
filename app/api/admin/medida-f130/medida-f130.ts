@@ -32,9 +32,10 @@ export function estaCaducada(ahora: Date): boolean {
  * arquitecto por su polaridad («sí» es lo normal y «no» es el hallazgo): por eso se marca qué respuesta es el hallazgo.
  * La cita y la etiqueta de la 2 (29/10): sin cita, E3 NO MIDE —un «no» sin cita no dice si encontró D o cualquier otra
  * cosa—; la etiqueta es parte de la respuesta de la 2 cuando dispara, NO un tercer hueco. Llevan mutante cada una.
- * ⚠️ LA LÍNEA DEL MISMO PAR DE FRASES SE BORRÓ (arquitecto, 29/10, tras la segunda tanda): sin ella, nunca medido; ancha,
- * 5 de 7; estrecha, 3 de 7. Hacía daño en las dos versiones, y más cuanto más se apretaba; y su sitio no era el prompt:
- * Fable la puso en el VALIDADOR, en código, y así queda como requisito de la pasada 2. En E3 el validador es el arquitecto.
+ * ⚠️ LA LÍNEA DEL MISMO PAR DE FRASES SE BORRÓ (arquitecto, 29/10, tras la segunda tanda): ancha, 5 de 7; estrecha, 3 de 7;
+ * sin ella, 4 de 7. Con siete tiradas esas tres cifras NO se distinguen (Fisher: 5 frente a 3, p = 0,59), así que no dicen
+ * que la línea hiciera más daño cuanto más se apretaba; lo que sí se vio es que el modelo la usaba para descartar. Y su
+ * sitio no era el prompt: Fable la puso en el VALIDADOR, en código, y así queda como requisito de la pasada 2.
  * Y LA PREGUNTA 2 SE DESACOPLA en el mismo cambio: «ESTA PREGUNTA SE CONTESTA SOLA, COMO SI LA 1 NO EXISTIERA…», que mata
  * las dos salidas que el modelo usó («ya queda recogido en la pregunta 1», «no encuentro otro par de frases»). Son dos
  * cambios en dos sitios pero UNA SOLA COSA: los dos quitan el acoplamiento entre las preguntas, y uno sin el otro dejaría
@@ -94,18 +95,28 @@ export type ClaveDeTrozo = keyof typeof TROZOS;
 export const PAREJAS_DE_E3: Array<{ analizado: ClaveDeTrozo; candidato: ClaveDeTrozo }> = [
   { analizado: 'nor10_4', candidato: 'cli12_3' },
 ];
-export const VECES_DE_E3 = 7;
+
+/**
+ * VEINTE POR CONDICIÓN (arquitecto, 30/10): la E5 de Fable, que estaba dada desde el dictamen y no se usó. Con siete
+ * tiradas sólo 2 de 7 frente a 7 de 7 se separaba del ruido. Las dos condiciones, sin tocar los prompts: la pareja entera
+ * con A (E3, tercera tanda) y las dos frases de D solas (la variante limpia). Se lee con Fisher, p < 0,05.
+ * ⚠️ NO REABRE NADA: la pasada 2 no se construye. Es medición PARA LA CONSULTA, no una cuarta vuelta de E3.
+ * El presupuesto de tiempo, con `batchSize: 4` (`preguntar-al-juez.ts`): cinco tandas, unos 85 s en condiciones normales y
+ * unos 205 s si una tanda entera agota los reintentos del cliente (52 s de esperas); `maxDuration` es 300.
+ */
+export const VECES_DE_E3 = 20;
 
 /**
  * LA VARIANTE LIMPIA (arquitecto, 29/10, tras fallar P-E3-R2): la MISMA pregunta cerrada, pero cada texto es SÓLO la
- * frase de D de su trozo, sin A delante. Siete veces. Lo único que cambia respecto a E3 es el contenido de los textos.
+ * frase de D de su trozo, sin A delante. Siete veces el 29/10; veinte desde el 30/10, como E3 (arriba). Lo único que
+ * cambia respecto a E3 es el contenido de los textos.
  * ⚠️ SU ALCANCE, escrito antes de correrla: NO REABRE LA DECISIÓN DE CONSTRUIR. Mide el techo de la pregunta cerrada
  * cuando A no está, para saber si el problema es A o la pregunta; el número va a la consulta F-131 a Fable. (El 28/10
  * se dijo que esta condición «daría 7 de 7 y no mediría nada»: no mide la pasada 2, que entregará trozos; mide el techo.)
  * Las frases NO se escriben aquí: se cortan del texto de la base por la frase de cada trozo de `TROZOS`.
  */
 export const PAREJA_DE_LA_VARIANTE_LIMPIA: { analizado: ClaveDeTrozo; candidato: ClaveDeTrozo } = { analizado: 'nor10_4', candidato: 'cli12_3' };
-export const VECES_DE_LA_VARIANTE_LIMPIA = 7;
+export const VECES_DE_LA_VARIANTE_LIMPIA = 20;
 
 /** Lo que delata a A (quién es el responsable último): si la frase cortada lo lleva, A va delante y no se mide. */
 export const MARCAS_DE_A = ['responsabilidad última', 'responsable último'] as const;

@@ -9,7 +9,7 @@ export default function MedidaF130() {
   const [salida, setSalida] = useState('');
   const [ocupado, setOcupado] = useState(false);
 
-  async function medir(ruta: 'vecindad' | 'limpia?ensayo=1' | 'limpia') {
+  async function medir(ruta: 'vecindad' | 'pregunta' | 'limpia?ensayo=1' | 'limpia') {
     setOcupado(true);
     setSalida(`Midiendo ${ruta}…`);
     try {
@@ -30,9 +30,12 @@ export default function MedidaF130() {
       <p>
         <button disabled={ocupado} onClick={() => medir('vecindad')}>P-F130-9 · Vecindad (sólo lee, sin modelo)</button>{' '}
         <button disabled={ocupado} onClick={() => medir('limpia?ensayo=1')}>Variante limpia · ver las dos frases (sin modelo, no gasta)</button>{' '}
-        <button disabled={ocupado} onClick={() => medir('limpia')}>Variante limpia · las dos frases de D, 7 veces (gasta en la API)</button>
       </p>
-      <p>E3 terminó el 29/10 con la tercera tanda; no hay cuarta y ya no tiene botón.</p>
+      <p>Medición de veinte por condición (30/10), para la consulta. No reabre la decisión de construir. Un botón y luego el otro:</p>
+      <p>
+        <button disabled={ocupado} onClick={() => medir('pregunta')}>Condición 1 · la pareja entera, con A, 20 veces (gasta en la API)</button>{' '}
+        <button disabled={ocupado} onClick={() => medir('limpia')}>Condición 2 · las dos frases de D, sin A, 20 veces (gasta en la API)</button>
+      </p>
       <p>Copia todo lo que salga abajo y pégaselo a Claude Code.</p>
       <pre style={{ whiteSpace: 'pre-wrap', background: '#f4f4f4', padding: '1rem', minHeight: '10rem' }}>{salida}</pre>
     </main>
