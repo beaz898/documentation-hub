@@ -1,6 +1,7 @@
 -- ============================================================================
 -- SQL_34_06 · A, B, C, D Y EL QUINTO CONFLICTO, POR PASADA, CONTADOS POR LA CONSULTA — SÓLO LECTURA (31/10/2026)
--- ⏳ PENDIENTE DE EJECUTAR. Sólo SELECT: no escribe, no borra, no cambia nada.
+-- ✅ EJECUTADO por el director el 31/10/2026 con NOR-10 (la línea base por hallazgo: A, B y C 21 de 21, D 3 de 21, que
+-- reproduce a SQL_34_05). Sólo SELECT: no escribe, no borra, no cambia nada. La salida, literal, en la medida de F-130.
 --
 -- PARA QUÉ (arquitecto, 31/10): la línea base POR HALLAZGO, gratis, sobre las pasadas que ya están en la base. Las 21
 -- pasadas de la línea base de D (30-31/10) publicaron todo lo que encontraron, y SQL_34_05 sólo contó D porque sólo

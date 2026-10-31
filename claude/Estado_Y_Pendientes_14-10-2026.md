@@ -203,6 +203,21 @@ a ojo. El procedimiento, el coste y la consulta se plantean ANTES de pedírselo 
   reproducir el «2 de 7» puntuado a ojo; si no, se separa la consulta mal hecha de la puntuación mal hecha. Y declara qué
   parte de la señal murió sin texto.
 - **NO SE LANZA NINGÚN ANÁLISIS hasta que el control esté en verde y el arquitecto lo vea.**
+- ⚠️⚠️ **EL ENUNCIADO DEL PROBLEMA (arquitecto, 31/10), que SUSTITUYE A TODAS LAS FORMULACIONES ANTERIORES**: «EL SISTEMA
+  ENCUENTRA EL 100 % DE LAS CONTRADICCIONES DE DATO Y EL 14 % DE LAS INFERENCIALES, con 21 pasadas por caso.»
+  - Es la línea base por hallazgo de `SQL_34_06`, ejecutada y archivada: **A, B y C, 21 de 21; D, 3 de 21**. Su control
+    positivo, en verde: D reproduce a `SQL_34_05`.
+  - ⚠️ *Code, al lado*: son tres casos de dato y uno inferencial, en una pareja y un corpus. La forma que sostienen los
+    datos es «en NOR-10 ↔ CLI-12, A, B y C salen 21 de 21 y D 3 de 21». El quinto, de dato bajo otro nombre, no está
+    medido.
+  - **Lo que no se infla (arquitecto)**: A, B y C sin especie es lo correcto, por contrato. El hallazgo de la especie
+    sigue siendo **«0 de 3», el de D, no «0 de 66»**.
+  - **A se cita SIEMPRE por §2.1** (21 de 21, NOR-10·2; ninguna por la segunda frase de §2.4). Eso no separa a A y a D en
+    la pasada 2, porque el enumerador forma parejas de trozos y NOR-10·4 ↔ CLI-12·3 lleva A dentro por su texto. **Pero
+    abre un requisito**: la pasada 2 encontraría A con otra cita, y la desduplicación por posición de cita la publicaría
+    dos veces. El filtro de lo cubierto, o la desduplicación, tiene que reconocerla como la misma. Al plan.
+  - **La línea base del quinto, siguiente y gratis**: 13 pasadas de NOR-11 el 28/10, de 08:33 a 08:55 según el
+    arquitecto. La ventana se confirma cuando llegue la lista sin ventana de NOR-11, que no ha llegado a Code.
 - ✅ **MEDIDA (30-31/10), las dos salidas archivadas literales en la medida y comprobadas por Code:**
   - **El control positivo, en verde**: reproduce el «2 de 7 · con la etiqueta: 1» de la segunda tanda, que era la
     puntuación a ojo del arquitecto.
