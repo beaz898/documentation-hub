@@ -1388,6 +1388,23 @@ fue del arquitecto, al citar a Code.**
 
 ---
 
+## ⚠️ EL ARQUITECTO ATRIBUYE UN HALLAZGO A QUIEN NO LO HIZO
+
+*Arquitecto, 31/10/2026, con su nombre. Es una clase propia, distinta de la extrapolación.* Son dos casos en dos días, y
+los dos los cazó Code:
+- **30/10**: citó a Code diciendo que «una D matada en la puerta de la cita no se distingue». Lo que Code había dicho era
+  del VERIFICADOR. La puerta guarda cada descarte con sus dos citas, y lo que muere ahí se reconoce.
+- **31/10**: escribió que la respuesta de Fable cerraba «dos fugas que encontró Code, sin que ninguno supiera del otro».
+  La fuga del verificador la encontró FABLE el 29/10, y él mismo lo dice: «es la línea de mi respuesta del 29/10». Lo de
+  Code era otra cosa: que lo que mata el verificador no deja texto, y que la puerta mataría una paráfrasis.
+
+**LA FORMA OPERATIVA**: antes de escribir «lo encontraste tú» o «lo dijo él», se mira en el archivo quién lo escribió
+primero.
+**Y SU PRIMA, del mismo día**: un resumen que recorta una regla deja de ser la regla. La regla nueva de Fable llevaba una
+regla secuencial, «parar antes solo con 18 de 20 o 10 de 20», y el resumen del arquitecto la había cortado.
+
+---
+
 ## ⚠️ UNA CIFRA MEDIDA EN UNA CONDICIÓN NO SE EXTIENDE A OTRA SIN MEDIRLA
 
 *Arquitecto, 30/10/2026, con su nombre.* No se extiende de una tanda a todas, ni de la herramienta al producto, ni de una

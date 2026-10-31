@@ -237,6 +237,29 @@ a ojo. El procedimiento, el coste y la consulta se plantean ANTES de pedírselo 
   - **la línea base por pareja**: hoy el 14 %, objetivo el 80 % o más;
   - **E5 sobre las tres parejas con siembra, veinte pasadas cada una, ANTES DE ACTIVAR**: qué tres parejas, en el plan.
   **NO SE CONSTRUYE TODAVÍA: el plan rehecho lo escribe el arquitecto.**
+- ⚠️⚠️ **EL PLAN REHECHO: EL ORDEN COMPLETO (arquitecto, 31/10)**
+  1. **Extender la consulta y sacar la línea base POR HALLAZGO. Gratis**, sobre las pasadas que ya están en la base. ✅
+     **PREPARADO**: `SQL_34_06_hallazgos_por_pasada.sql`, consulta nueva, porque `SQL_34_05` está ejecutada y se queda como
+     se ejecutó. Cuenta A, B, C y D en NOR-10, y el quinto en NOR-11. Para D usa la misma regla que `SQL_34_05`, y su
+     arnés lo comprueba. PENDIENTE DE EJECUTAR.
+  2. **El verificador sin marca, en un commit SOLO**, y después **se vuelve a medir la línea base con 20 pasadas** y la
+     consulta extendida. Va primero porque puede subir la línea base él solo: en la pasada 8 murió algo sin texto. Si va
+     junto a la pasada 2, los dos efectos quedan confundidos. **Es un DEFECTO**, y lo encontró Fable el 29/10.
+  3. **La pasada 2**:
+     - enumerador de parejas;
+     - prompt cerrado por lote, con los tres criterios;
+     - lote por `llm-client`, con registro;
+     - filtro de lo ya cubierto;
+     - unión y desduplicación por posición de cita;
+     - interruptor y modo sombra.
+  4. **E5 con la pasada 2 encendida**: 20 pasadas por pareja, contando TODOS los hallazgos, contra la línea base por
+     hallazgo.
+  5. **Activación con los criterios en veintes de Fable**, más el del quinto conflicto cuando tenga su número.
+  **El contador de P-F130-11** («sólo pasada 1 / sólo pasada 2 / las dos») va desde el primer commit de la pasada 2.
+  **EL QUINTO CONFLICTO NO QUEDA FUERA**: es el control más valioso, el único que nadie sembró. Si la pasada 2 lo pierde,
+  está afinada a lo que escribimos nosotros. **Su umbral NO se pone antes de medir su línea base**: salía 5 de 13, y
+  exigirle 16 de 20 sin más sería repetir el error de la puerta.
+  **NO SE CONSTRUYE NADA DE LA PASADA 2.**
 - Del director: NOR-10 sale en la bandeja, y hoy no ha lanzado análisis.
 
 **Y LO QUE ESTO ARRASTRA, del mismo día (30/10):**

@@ -925,3 +925,64 @@ que distingue «sube la cobertura en general» de «sube D en esta pareja». Es 
 - Fable no nombra cuáles son las tres parejas; eso va en el plan.
 
 **NO SE CONSTRUYE NADA TODAVÍA: el plan rehecho lo escribe el arquitecto con esto delante.**
+
+## LA LÍNEA BASE POR HALLAZGO: SQL_34_06, Y LAS PAREJAS CON SUS TROZOS (31/10/2026)
+
+**El paso 1 del plan rehecho (arquitecto, 31/10)**: las 21 pasadas de la línea base publicaron todo lo que encontraron, y
+`SQL_34_05` sólo contó D porque sólo buscaba D. **`SQL_34_06_hallazgos_por_pasada.sql`** (sólo lectura, PENDIENTE DE
+EJECUTAR) cuenta, con la misma regla, A, B, C y D en NOR-10 y el quinto conflicto en NOR-11. Cero análisis, cero
+créditos.
+- **Es una consulta nueva y no una edición de `SQL_34_05`**: ésa está ejecutada y sus salidas archivadas.
+- **Para D usa la misma regla**, y su arnés corre las dos sobre los mismos datos y exige que D salga igual. En la base, sobre
+  las mismas ventanas, D tiene que dar 2 de 7 (28/10) y 3 de 21 (30-31/10): ése es su control positivo.
+- **Un borde en que difieren, y no se dio en la base**: una pasada con una D limpia y una dudosa con etiqueta. `SQL_34_05`
+  contaba la etiqueta, y ésta no.
+- **La cota sin texto se guarda por PAREJA, no por caso**: sale una vez por pasada, y no se puede repartir entre A, B, C
+  y D.
+- **Arnés**: `claude/arneses/f34/sql-34-06-hallazgos-por-pasada.test.ts`, 10 casos.
+- **Mutantes**: 33 de 33 en rojo. Los cuatro que sobrevivían en la primera vuelta se mataron con casos nuevos: una cita
+  corta, la etiqueta de una dudosa, la lista con exhaustivas y la puerta de un caso encontrado.
+
+**De dónde salen las frases y los trozos.** No de memoria: del registro de siembra
+(`corpus-pruebas/SIEMBRA_corpus_ampliado.md` §1, y el estado vivo del 25/10 para el quinto) y del texto troceado con el
+mismo código de la indexación (`extractSegments` + `chunkSegments`, herramienta de un solo uso).
+- **Control del troceado**:
+  - 67 trozos en NOR-10 y 55 en CLI-12, como dice la base (`SQL_34_04`);
+  - D en NOR-10·4, el principio en CLI-12·3 y §3.5 en CLI-12·6, los tres medidos contra Pinecone el 29/10 (P-F130-9);
+  - el párrafo de 2.4 es, byte a byte, el literal que ya usa `SQL_34_05`.
+- **NOR-11 da 15 trozos**, y eso no está comprobado contra la base. El trozo 13 del quinto coincide con la lectura del
+  25/10 del estado vivo.
+
+| Caso | Documento analizado | CLI-12 | Notas |
+|---|---|---|---|
+| **A** | NOR-10·2 (§2.1, «El responsable último del cumplimiento…») | CLI-12·3 (§3.1, «El responsable último de la esterilización…») | el juez cita A también con la SEGUNDA frase de §2.4, en NOR-10·4 |
+| **B** | NOR-10·36 (§10.2, «…semanalmente, todos los lunes…») | CLI-12·34 (§12.1, «…periodicidad mensual…») | CLI-12·38 repite «periodicidad mensual» al justificar §12.1 |
+| **C** | NOR-10·58 (§13.4, «…6 meses…») | CLI-12·51 (§16.2, «…12 meses…») | |
+| **D** | NOR-10·4 (§2.4, primera frase) | CLI-12·3 (§3.1, el principio) y CLI-12·6 (§3.5) | no sembrada |
+| **el quinto** | NOR-11·13 (§10.5) | CLI-12·13 (§6.2) | no sembrado |
+
+**Lo que el arquitecto pidió que se dijera**: B y C NO caen en el par de trozos de A y D, y cada una tiene el suyo. **La que
+comparte es A**: su forma de la segunda frase de §2.4 vive en NOR-10·4 ↔ CLI-12·3, la misma pareja de trozos que D. Su
+forma sembrada, §2.1, está en otra (NOR-10·2 ↔ CLI-12·3). Para el enumerador son, por tanto:
+- 2↔3 y 4↔3 para A, la segunda compartida con D;
+- 4↔6 para D por §3.5;
+- 36↔34 (y quizá 36↔38) para B;
+- 58↔51 para C;
+- 13↔13 en NOR-11 para el quinto.
+
+⚠️ **Una precisión sobre E5 «tres parejas, veinte pasadas cada una»**: una pasada es un análisis de un DOCUMENTO, y un
+análisis de NOR-10 lleva a la vez A, B, C y D. Así que E5 son **20 análisis de NOR-10, que cuentan los cuatro casos, más 20
+de NOR-11 para el quinto: 40, no 80.**
+
+**Las pasadas de NOR-11 que hay en la base, por lo escrito, sin haberlas visto**:
+- 6 del 26/10 por la tarde, con el prompt anterior al 3.4;
+- 7 de la primera tanda, el 26/10 por la noche, con las fases 2 y 3 pero sin el principio.
+- Si la segunda tanda, la del 28/10, llevó también pasadas de NOR-11, como decía su montaje («cinco pasadas de NOR-10 y
+  siete de NOR-11»), **ésas serían las únicas con el prompt de hoy**.
+- La primera pulsación de `SQL_34_06` con `documento = 'NOR-11'` y sin ventana las lista, y de ahí se ve si hay línea base
+  gratis del quinto. Con el prompt de antes no valdría como línea base de hoy.
+
+**Lo que tiene que pulsar el director, cuando suban los commits**:
+1. `SQL_34_06` con la ventana de la línea base (`desde` = `'2026-10-30 23:40:00+01'`, `hasta` = `'2026-10-31 23:35:00+01'`),
+   `esperado` = `21` y `documento` = `'NOR-10'`. En verde si D sale «3 de 21 · con la etiqueta: 0». Da A, B y C.
+2. `SQL_34_06` con `documento` = `'NOR-11'` y sin ventana: la lista de pasadas de NOR-11.
