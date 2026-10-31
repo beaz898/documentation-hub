@@ -223,9 +223,20 @@ a ojo. El procedimiento, el coste y la consulta se plantean ANTES de pedírselo 
   en sombra y medirlo. **NO SE CONSTRUYE TODAVÍA: el plan rehecho lo escribe el arquitecto.**
 - ⚠️ **PENDIENTE PROPIO, LA ESPECIE: 0 de 3 en la línea base; sin medir** (frente al 1 de 2 de la segunda tanda, p = 0,400).
   Pone en duda que la especie del 3.4 esté sirviendo donde importa, pero son tres casos.
-- ⚠️ **LA RESPUESTA DE FABLE A LA ADENDA DE F-130 NO HA LLEGADO A CODE**: el hueco para pegarla venía vacío. Lo que el
-  arquitecto decide a partir de ella espera a su texto literal. Es la lista de la medida: el verificador sin marca, los
-  criterios en veintes, E5 sobre tres parejas, entre otras.
+- **LA RESPUESTA DE FABLE A LA ADENDA (31/10)**, archivada literal como F-130 (f) (huella `1834bd56ddea1667`). Lo enviado,
+  sin archivar. **Lo que el arquitecto decide de ella**, cotejado contra el texto (detalle en la medida):
+  - **la contabilidad del «6 de 7» es de los dos**: Fable la escribió y el arquitecto la adoptó sin calcular. La regla
+    nueva de Fable: n ≥ 20, o regla secuencial escrita (parar antes sólo con 18 de 20 o 10 de 20);
+  - **la especie, tercer criterio de la pregunta cerrada**: en la pasada 2 la pone la estructura;
+  - **EL VERIFICADOR DEJA DE DEPENDER DE LA MARCA**: hace las dos preguntas a todo hallazgo, y la etiqueta pasa a ser una
+    pista, no una ruta. ⚠️ La «convergencia de dos fugas sin que ninguno supiera del otro» no se sostiene: la fuga del
+    verificador la encontró Fable el 29/10, y Code midió otra cosa (lo que no deja texto, y la paráfrasis);
+  - **el disparador de la paráfrasis**: si la pasada 2 pasa del 5 %, la vía 2 de F-125, la de los punteros;
+  - **criterios de activación en veintes**, que sustituyen a P-F130-10: D 16 de 20 o más; las seis vivas, 19 de 20 o más;
+    falsos, 0 de 20. *Code*: el quinto conflicto no figura;
+  - **la línea base por pareja**: hoy el 14 %, objetivo el 80 % o más;
+  - **E5 sobre las tres parejas con siembra, veinte pasadas cada una, ANTES DE ACTIVAR**: qué tres parejas, en el plan.
+  **NO SE CONSTRUYE TODAVÍA: el plan rehecho lo escribe el arquitecto.**
 - Del director: NOR-10 sale en la bandeja, y hoy no ha lanzado análisis.
 
 **Y LO QUE ESTO ARRASTRA, del mismo día (30/10):**

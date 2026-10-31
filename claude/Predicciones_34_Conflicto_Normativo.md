@@ -196,6 +196,10 @@ distinguen».*
 
 **P-F130-10.** «P-F130-10 (activación, 5 pasadas): D y el quinto conflicto, 4 de 5 o más cada uno; las seis vivas, 5 de
 5; falsos de la pasada 2 en el caso de control, 0.» *Sitio: «PREDICCIONES NUEVAS».*
+⚠️ **SUSTITUIDA el 31/10 por los criterios en veintes** (respuesta de Fable a la adenda, F-130 (f), punto c; decisión del
+arquitecto): «D en 16 de 20 o más; cada una de las seis vivas en 19 de 20 o más; falsos en el caso de control, 0 de
+20». *Code*: los criterios nuevos no nombran «el quinto conflicto», que P-F130-10 pedía en 4 de 5. No consta si sale o
+si queda dentro de «las seis vivas»; lo decide el arquitecto en el plan.
 
 **P-F130-11.** «P-F130-11 (contadores, tras 50 análisis): ni “solo pasada 1” ni “solo pasada 2” es cero.» *Sitio:
 «PREDICCIONES NUEVAS». En D4: «Tras cincuenta análisis reales se decide. Apuesta: ninguno será cero.»*

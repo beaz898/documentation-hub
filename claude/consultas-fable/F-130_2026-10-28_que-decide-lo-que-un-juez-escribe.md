@@ -35,6 +35,11 @@ Estado: ARCHIVADA CON DICTAMEN · se construye la segunda pasada por parejas, si
           director) y su respuesta sobre E3. Respuesta: huella
           90df305f7c0ad1f0 · 1017 caracteres · 7 líneas.
           Segundo mensaje: huella 01d46b3cb421d487 · 1371 caracteres · 6 líneas.
+        · ADENDA, (f), 31/10: la respuesta de Fable con la línea base medida. Lo enviado, SIN ARCHIVAR (no ha llegado a
+          Code). Respuesta: huella 1834bd56ddea1667 · 2388 caracteres (2446 bytes UTF-8) · 7 líneas · 6 no vacías ·
+          494 palabras.
+          60 primeros: "a) ¿Choca? No. Lo que sí hay es un error mío que vuestra sec"
+          60 últimos:  " la curva que no corrimos, y es la que hay que correr ahora."
 ---
 
 (c) LA CONSULTA ENVIADA — literal
@@ -335,3 +340,22 @@ de arriba son de Fable y se quedan como suyas; los literales verificados son és
   sólo a ése, NO le hagas la pregunta de los valores distintos».
 El arquitecto transmitió el resumen de Fable del prompt del juez como si fuera cita; se corrigió en el estado vivo y
 no se repite (arquitecto, 29/10).
+
+(f) ADENDA, 31/10/2026 — LA RESPUESTA DE FABLE CON LA LÍNEA BASE MEDIDA (3 DE 21)
+
+Se archiva como adenda de F-130 y no como consulta nueva, por decisión del director (30/10): el número viene después del
+contenido, y la respuesta trae un ajuste, no una arquitectura distinta.
+
+LO QUE SE LE MANDÓ: ⚠️ NO HA LLEGADO A CODE. La adenda la escribió el arquitecto, y la respuesta se refiere a su «sección 3»
+y a su «sección 5»; el texto enviado no está en el repositorio. Cuando llegue, se archiva aquí, literal, encima de la
+respuesta.
+
+LA RESPUESTA DE FABLE — literal, tal como la pegó el director el 31/10
+
+a) ¿Choca? No. Lo que sí hay es un error mío que vuestra sección 3 destapa y que debo contar: la puerta “6 de 7 o más” la escribí yo en F-130, y con n = 7 es una puerta que suspende falso el 15 % de las veces a una tasa real del 90 %. Mi propio F-117 P2 decía que una medida vale solo contra su banda de ruido, y no me lo apliqué al diseñar E3. Costó un día de parón. Regla que adopto para mí: ninguna predicción mía con criterio de aceptación lleva n menor que 20, o lleva regla secuencial escrita (parar antes solo con 18 de 20 o 10 de 20).
+b) Dónde vive la especie. Sigue siendo el tercer criterio de la pregunta cerrada, y el 0 de 3 del producto confirma por qué debe vivir ahí y no en una etiqueta del juez: en la pasada 2 la etiqueta no la elige el juez, la pone la estructura, porque sale de la pregunta 2 y no de la 1. En la pasada 1, en cambio, la etiqueta es una decisión del juez en lista abierta, y ya sabemos lo que les pasa a esas decisiones. Consecuencia, y es la línea de mi respuesta del 29/10: el verificador no puede depender de la marca. Hace las dos preguntas a todo hallazgo, como la pregunta cerrada, y la etiqueta de la pasada 1 pasa a ser una pista, no una ruta. Con eso, un D que la pasada 1 emita sin etiqueta sobrevive al verificador, y la especie se recupera en el camino en vez de en el prompt. Sobre el 10 % de paráfrasis en la pregunta cerrada: en JSON con campos de cita no está medido, como decís; si en la pasada 2 supera el 5 %, es exactamente el disparador de la vía 2 que quedó escrito en F-125, aplicado a la pasada 2.
+c) Con el 14 % en vez del 29 %. Nada distinto en la decisión; tres cosas distintas en la medición:
+
+Todos los criterios de activación de la pasada 2 se reescriben en veintes, no en cincos: D en 16 de 20 o más; cada una de las seis vivas en 19 de 20 o más; falsos en el caso de control, 0 de 20.
+La línea base se escribe por pareja y con n: “NOR-10 ← CLI-12, D, 3 de 21”. Es vuestra regla de que la cifra pertenece a la pareja, y es el número que convierte “cobertura medida” en una frase con contenido: hoy 14 %, objetivo escrito 80 % o más.
+Vuestro límite de la sección 5 es correcto y se resuelve con E5 sobre las tres parejas con siembra, veinte pasadas cada una, antes de activar: eso es lo que distingue “sube la cobertura en general” de “sube D en esta pareja”. Es la curva que no corrimos, y es la que hay que correr ahora.

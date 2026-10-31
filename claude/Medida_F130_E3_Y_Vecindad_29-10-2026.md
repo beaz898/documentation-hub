@@ -869,12 +869,59 @@ lugar.
 
 **NO SE CONSTRUYE NADA TODAVÍA**: el plan rehecho lo escribe el arquitecto.
 
-⚠️ **LA RESPUESTA DE FABLE A LA ADENDA NO HA LLEGADO A CODE.** El mensaje del arquitecto trae el hueco para pegarla vacío: «[DIRECTOR:
-pega aquí su respuesta entera, los tres puntos a, b y c]». Lo que el arquitecto decide a partir de ella, y lo que le
-atribuye a Fable, no se escribe hasta tener su texto literal para archivarlo y cotejarlo:
-- la contabilidad del «6 de 7» y la cita de F-117;
-- la especie como tercer criterio de la pregunta cerrada;
-- el verificador que deja de depender de la marca, y la convergencia de las dos fugas;
-- el disparador de la paráfrasis;
-- los criterios en veintes que sustituyen a P-F130-10;
-- E5 sobre las tres parejas sembradas.
+**LA RESPUESTA DE FABLE A LA ADENDA LLEGÓ EL 31/10**, archivada literal como adenda (f) de F-130 (huella `1834bd56ddea1667`).
+⚠️ Lo que se le mandó, la adenda del arquitecto con sus «sección 3» y «sección 5», sigue sin archivar.
+
+## LO QUE EL ARQUITECTO DECIDE A PARTIR DE LA RESPUESTA DE FABLE, COTEJADO CONTRA SU TEXTO (31/10/2026)
+
+**1 · La contabilidad del «6 de 7», que es de los dos.** Fable escribió la puerta en F-130, y el arquitecto la adoptó sin
+calcular su tasa de suspenso falso: dos fallos, en sitios distintos.
+- *Cotejo*: Fable dice «la puerta “6 de 7 o más” la escribí yo en F-130», y cita su «F-117 P2», según el cual una medida
+  vale sólo contra su banda de ruido, «y no me lo apliqué al diseñar E3».
+- *Su regla nueva*, literal: «ninguna predicción mía con criterio de aceptación lleva n menor que 20, o lleva regla
+  secuencial escrita (parar antes solo con 18 de 20 o 10 de 20)». El paréntesis, la regla secuencial concreta, no iba en
+  el resumen del arquitecto.
+
+**2 · La especie se queda como TERCER CRITERIO de la pregunta cerrada.** En la pasada 2 la etiqueta no la elige el juez:
+la pone la estructura, porque sale de la pregunta 2 y no de la 1. En la pasada 1 es una decisión del juez en lista
+abierta.
+- *Cotejo*: literal en (b).
+- Fable lee el 0 de 3 como confirmación; en la línea base, el 0 de 3 sigue siendo tres casos, sin medir.
+
+**3 · EL VERIFICADOR DEJA DE DEPENDER DE LA MARCA.** Hace las dos preguntas a todo hallazgo, y la etiqueta de la pasada 1
+pasa a ser una pista, no una ruta. Con eso, una D emitida sin etiqueta sobrevive al verificador.
+- *Cotejo*: literal en (b), «el verificador no puede depender de la marca […] una pista, no una ruta».
+- ⚠️ **La convergencia que el arquitecto pidió escribir NO se sostiene tal como la dijo.** La dijo así: «tú encontraste dos
+  fugas, el verificador y la puerta de citas, y su respuesta tapa la primera, sin que ninguno supiera del otro». **La
+  fuga del verificador la encontró Fable**, el 29/10:
+  - está en el estado vivo, en «LO QUE FABLE AÑADIÓ AL LEER LOS PROMPTS (29/10)»: «la ruta la decide una marca del juez»;
+  - el propio Fable lo dice: «es la línea de mi respuesta del 29/10».
+  - **Lo que Code señaló el 30/10 es otra cosa**: que lo que mata el verificador no deja texto, sólo contadores, y la
+    medición no lo ve; y que la puerta mataría una paráfrasis.
+  - Así que no son dos hallazgos independientes que convergen: **Fable sigue su propia línea del 29/10, y Code midió lo que
+    esa fuga y la puerta dejan sin ver.**
+
+**4 · LA SEGUNDA FUGA, CON DISPARADOR**: si la paráfrasis en la pasada 2 pasa del 5 %, se activa la vía 2 de F-125,
+aplicada a la pasada 2.
+- *Cotejo*: literal en (b).
+- La vía 2 de F-125 existe y es la de los punteros: «(A) Punteros — tu vía 2, hoy en 3.4», con su disparador escrito, en
+  `claude/consultas-fable/F-125_2026-10-12_el-empalme.md`.
+- El 10 % de paráfrasis es de la herramienta, en texto libre; en JSON con campos de cita no está medido, y Fable lo dice
+  igual.
+
+**5 · LOS CRITERIOS DE ACTIVACIÓN, EN VEINTES Y NO EN CINCOS. SUSTITUYEN A P-F130-10**:
+- D en 16 de 20 o más;
+- cada una de las seis vivas en 19 de 20 o más;
+- falsos en el caso de control, 0 de 20.
+*Cotejo*: literal en (c).
+
+**6 · LA LÍNEA BASE, POR PAREJA Y CON SU n**: «NOR-10 ← CLI-12, D, 3 de 21». Es lo que convierte «cobertura medida» en una
+frase con contenido: **hoy el 14 %, objetivo escrito el 80 % o más.**
+- *Cotejo*: literal en (c).
+
+**7 · EL LÍMITE SE RESUELVE CON E5 SOBRE LAS TRES PAREJAS CON SIEMBRA, VEINTE PASADAS CADA UNA, ANTES DE ACTIVAR.** Eso es lo
+que distingue «sube la cobertura en general» de «sube D en esta pareja». Es la curva que no se corrió.
+- *Cotejo*: literal en (c).
+- Fable no nombra cuáles son las tres parejas; eso va en el plan.
+
+**NO SE CONSTRUYE NADA TODAVÍA: el plan rehecho lo escribe el arquitecto con esto delante.**
