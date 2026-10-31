@@ -203,6 +203,29 @@ a ojo. El procedimiento, el coste y la consulta se plantean ANTES de pedírselo 
   reproducir el «2 de 7» puntuado a ojo; si no, se separa la consulta mal hecha de la puntuación mal hecha. Y declara qué
   parte de la señal murió sin texto.
 - **NO SE LANZA NINGÚN ANÁLISIS hasta que el control esté en verde y el arquitecto lo vea.**
+- ✅ **MEDIDA (30-31/10), las dos salidas archivadas literales en la medida y comprobadas por Code:**
+  - **El control positivo, en verde**: reproduce el «2 de 7 · con la etiqueta: 1» de la segunda tanda, que era la
+    puntuación a ojo del arquitecto.
+  - **LA LÍNEA BASE: «NOR-10 ← CLI-12, D, 3 de 21»**, el 14 %; **«3 o 4 de 21»** con la cota sin texto, que es 1, en la
+    pasada 8. Intervalo de Wilson al 95 %: del 5 % al 35 %.
+  - Las tres D citan el permiso contra el principio de §3.1, y las tres van **sin especie**.
+  - El director corrió 21 con el esperado en 20, y el control lo marcó en rojo; el número se queda.
+- **LO QUE SE ESCRIBE, con las tres correcciones de Code aceptadas por el arquitecto:**
+  - El problema es real.
+  - **«El 2 de 7 era optimista» no se puede afirmar** (p = 0,574): ahora hay un número con intervalo.
+  - **El 14 % (el producto entero) y el 90 % (la herramienta, sin puerta ni verificador) son condiciones distintas.** El
+    Fisher (p = 5,58 × 10⁻⁹) demuestra que la pregunta cerrada ENCUENTRA D mucho más de lo que el producto la PUBLICA,
+    no que una pasada 2 la publique: el 90 % es un techo. El arquitecto, con su nombre: es la regla que escribió ayer,
+    incumplida en el mismo mensaje en que la daba por aprendida; cuarta vez en dos días.
+  - Medido para un hallazgo, una pareja y un corpus.
+- **LA JUSTIFICACIÓN PARA CONSTRUIR, al lado de la anulación**: hay un hueco grande y medido entre lo que la pregunta
+  cerrada encuentra y lo que el producto publica, y la única manera de saber cuánto sobrevive al camino es construirlo
+  en sombra y medirlo. **NO SE CONSTRUYE TODAVÍA: el plan rehecho lo escribe el arquitecto.**
+- ⚠️ **PENDIENTE PROPIO, LA ESPECIE: 0 de 3 en la línea base; sin medir** (frente al 1 de 2 de la segunda tanda, p = 0,400).
+  Pone en duda que la especie del 3.4 esté sirviendo donde importa, pero son tres casos.
+- ⚠️ **LA RESPUESTA DE FABLE A LA ADENDA DE F-130 NO HA LLEGADO A CODE**: el hueco para pegarla venía vacío. Lo que el
+  arquitecto decide a partir de ella espera a su texto literal. Es la lista de la medida: el verificador sin marca, los
+  criterios en veintes, E5 sobre tres parejas, entre otras.
 - Del director: NOR-10 sale en la bandeja, y hoy no ha lanzado análisis.
 
 **Y LO QUE ESTO ARRASTRA, del mismo día (30/10):**

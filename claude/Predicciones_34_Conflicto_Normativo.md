@@ -301,3 +301,12 @@ demostrado por el código y por `SQL_34_04`. Con un 90 % real, un 4 de 7 sale el
 **Las calificaciones de P-E3-R1 y P-E3-R2 se quedan como se escribieron**: son lo que salió. Lo que se anula es lo que se
 DECIDÍA con ellas. Y el «2 de 7» de la lista abierta, que es el tamaño del problema, tampoco está medido: es el pendiente
 principal (estado vivo).
+
+**AL LADO DE LA ANULACIÓN, Y NO EN SU LUGAR (arquitecto, 31/10): LO QUE SUSTITUYE AL UMBRAL.**
+- **La línea base**: «NOR-10 ← CLI-12, D, 3 de 21» (o 4 con la cota sin texto). El control positivo, en verde: reproduce
+  el 2 de 7.
+- **Frente a la pregunta cerrada** (36 de 40), **p = 5,58 × 10⁻⁹**. Pero son condiciones distintas: producto entero frente a
+  herramienta sin puerta ni verificador. El 90 % es un techo.
+- **La justificación, reescrita**: «hay un hueco grande y medido entre lo que la pregunta cerrada encuentra y lo que el
+  producto publica, y la única manera de saber cuánto sobrevive al camino es construirlo en sombra y medirlo».
+- Medido para un hallazgo, una pareja y un corpus. El plan rehecho lo escribe el arquitecto, y no se construye todavía.

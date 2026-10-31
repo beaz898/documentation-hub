@@ -1416,6 +1416,13 @@ el reflog dice que el 28/10 no se subió nada, y que el principio se subió el 2
 el «27/10»** a la cabecera de `SQL_34_05`, a la medida y al estado sin mirarlo en el reflog. Lo cazó la primera
 pulsación de la consulta, la que lista sin ventana, que es para lo que se hizo.
 
+**Y AL DÍA SIGUIENTE, OTRA VEZ, con las palabras del arquitecto (31/10): «ES LA REGLA QUE ESCRIBÍ AYER, INCUMPLIDA EN EL
+MISMO MENSAJE EN QUE LA DABA POR APRENDIDA. Cuarta vez en dos días.»** Escribió «del 14 % al 90 %» como argumento para
+construir. El 14 % es el producto entero (los 6.000 caracteres de NOR-10, fragmentos de CLI-12, JSON, la puerta y el
+verificador), y el 90 % es la herramienta de E3 (dos trozos enteros, texto libre, sin puerta ni verificador). La regla de
+puntuación es la misma, y la condición, distinta. El Fisher demuestra que la pregunta cerrada ENCUENTRA D mucho más de
+lo que el producto la PUBLICA; no que una pasada 2 la publique. Lo cazó Code y el arquitecto lo aceptó.
+
 ---
 
 ## ⚠️ PARA SEPARAR COMMITS SE PREPARA CADA FICHERO POR SU NOMBRE, NUNCA `git stash`

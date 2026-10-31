@@ -758,3 +758,123 @@ despliegue de Vercel llega minutos después y aquí no consta.
 **Y LA FECHA EQUIVOCADA LA PROPAGÓ CODE**: el «27/10» de la segunda tanda lo escribió Code en la cabecera de `SQL_34_05`,
 en esta medida y en el estado, copiándolo del encargo sin mirarlo en el reflog. Está corregido en los cuatro sitios, con
 la nota de que decía «27/10».
+
+## EL CONTROL POSITIVO Y LA LÍNEA BASE: LAS DOS SALIDAS DE SQL_34_05, LITERALES (ejecutadas por el director, 30-31/10/2026)
+
+**El control positivo**, con la ventana del 28/10 de 08:15 a 08:35:
+
+```
+bloque,a,b,c,d
+organización leída,organización leída: 68bf28c3-8352-4052-8eb4-3a7e31b74b53 · «Mi workspace» · 45 documentos,null,null,null
+0 · control,ventana: 28/10 08:15 a 28/10 08:35 (hora de Madrid),OK,null,null
+0 · control,pasadas de NOR-10 en la ventana: 7 · esperado: 7,OK,null,null
+0 · control,pasadas que no son rápidas: 0,OK,null,null
+0 · control,documentos CLI-12 en la organización: 1 (tiene que ser uno),OK,null,null
+0 · control,la primera frase de 2.4 está dentro de 2.4: carácter 1 a 387 · el principio dentro de §3.1: carácter 142 a 503,OK,null,null
+0 · control,"pasadas sin juicio de CLI-12, o con él pero sin «discarded» guardado: 0",OK,null,null
+1 · por pasada,pasada 1 · 28/10 08:21:39 · claude-haiku-5-5 · 38 s,no,"en la puerta, con texto: 0 · sin texto en la pareja: 0 (con la etiqueta, del verificador: 0)",null
+1 · por pasada,pasada 2 · 28/10 08:23:35 · claude-haiku-5-5 · 36 s,no,"en la puerta, con texto: 0 · sin texto en la pareja: 0 (con la etiqueta, del verificador: 0)",null
+1 · por pasada,pasada 3 · 28/10 08:24:29 · claude-haiku-5-5 · 41 s,no,"en la puerta, con texto: 0 · sin texto en la pareja: 0 (con la etiqueta, del verificador: 0)",null
+1 · por pasada,pasada 4 · 28/10 08:25:32 · claude-haiku-5-5 · 37 s,D (sin especie),"en la puerta, con texto: 0 · sin texto en la pareja: 0 (con la etiqueta, del verificador: 0)",null
+1 · por pasada,pasada 4 · cita de D,sin especie · CLI-12: el principio de §3.1,NOR-10: «figura que puede recaer en el propio Director Clínico o en otro profesional designado por él»,"CLI-12: «separar la responsabilidad de un proceso crítico de seguridad del paciente de la persona que, en su rol de Director Clínico»"
+1 · por pasada,pasada 5 · 28/10 08:27:05 · claude-haiku-5-5 · 43 s,D (norma_contra_norma),"en la puerta, con texto: 0 · sin texto en la pareja: 0 (con la etiqueta, del verificador: 0)",null
+1 · por pasada,pasada 5 · cita de D,norma_contra_norma · CLI-12: el principio de §3.1,NOR-10: «figura que puede recaer en el propio Director Clínico o en otro profesional designado por él»,"CLI-12: «separar la responsabilidad de un proceso crítico de seguridad del paciente de la persona que, en su rol de Director Clínico, gestiona simultáneamente la agenda asistencial»"
+1 · por pasada,pasada 6 · 28/10 08:29:01 · claude-haiku-5-5 · 38 s,no,"en la puerta, con texto: 0 · sin texto en la pareja: 0 (con la etiqueta, del verificador: 0)",null
+1 · por pasada,pasada 7 · 28/10 08:30:53 · claude-haiku-5-5 · 32 s,no,"en la puerta, con texto: 0 · sin texto en la pareja: 0 (con la etiqueta, del verificador: 0)",null
+2 · el total,D en 2 de 7 pasadas · con la etiqueta: 1 · dudosas aparte: 0,"muertas en la puerta, con texto: 0 pasadas","sin texto en la pareja: 0 hallazgos en 0 pasadas, 0 de ellos en pasadas SIN D (con la etiqueta: 0)",null
+```
+
+**La línea base**, con la ventana del 30/10 a las 23:40 al 31/10 a las 23:35:
+
+```
+bloque,a,b,c,d
+organización leída,organización leída: 68bf28c3-8352-4052-8eb4-3a7e31b74b53 · «Mi workspace» · 45 documentos,null,null,null
+0 · control,ventana: 30/10 23:40 a 31/10 23:35 (hora de Madrid),OK,null,null
+0 · control,pasadas de NOR-10 en la ventana: 21 · esperado: 20,⚠️⚠️ FALLA,null,null
+0 · control,pasadas que no son rápidas: 0,OK,null,null
+0 · control,documentos CLI-12 en la organización: 1 (tiene que ser uno),OK,null,null
+0 · control,la primera frase de 2.4 está dentro de 2.4: carácter 1 a 387 · el principio dentro de §3.1: carácter 142 a 503,OK,null,null
+0 · control,"pasadas sin juicio de CLI-12, o con él pero sin «discarded» guardado: 0",OK,null,null
+1 · por pasada,pasada 1 · 30/10 23:58:11 · claude-haiku-5-5 · 34 s,no,"en la puerta, con texto: 0 · sin texto en la pareja: 0 (con la etiqueta, del verificador: 0)",null
+1 · por pasada,pasada 2 · 30/10 23:58:58 · claude-haiku-5-5 · 29 s,no,"en la puerta, con texto: 0 · sin texto en la pareja: 0 (con la etiqueta, del verificador: 0)",null
+1 · por pasada,pasada 3 · 30/10 23:59:46 · claude-haiku-5-5 · 33 s,no,"en la puerta, con texto: 0 · sin texto en la pareja: 0 (con la etiqueta, del verificador: 0)",null
+1 · por pasada,pasada 4 · 31/10 00:00:36 · claude-haiku-5-5 · 36 s,no,"en la puerta, con texto: 0 · sin texto en la pareja: 0 (con la etiqueta, del verificador: 0)",null
+1 · por pasada,pasada 5 · 31/10 00:01:22 · claude-haiku-5-5 · 28 s,no,"en la puerta, con texto: 0 · sin texto en la pareja: 0 (con la etiqueta, del verificador: 0)",null
+1 · por pasada,pasada 6 · 31/10 00:02:26 · claude-haiku-5-5 · 50 s,no,"en la puerta, con texto: 0 · sin texto en la pareja: 0 (con la etiqueta, del verificador: 0)",null
+1 · por pasada,pasada 7 · 31/10 00:03:15 · claude-haiku-5-5 · 35 s,no,"en la puerta, con texto: 0 · sin texto en la pareja: 0 (con la etiqueta, del verificador: 0)",null
+1 · por pasada,pasada 8 · 31/10 00:04:07 · claude-haiku-5-5 · 40 s,no,"en la puerta, con texto: 0 · sin texto en la pareja: 1 (con la etiqueta, del verificador: 0)",null
+1 · por pasada,pasada 9 · 31/10 00:04:56 · claude-haiku-5-5 · 35 s,no,"en la puerta, con texto: 0 · sin texto en la pareja: 0 (con la etiqueta, del verificador: 0)",null
+1 · por pasada,pasada 10 · 31/10 00:05:47 · claude-haiku-5-5 · 36 s,no,"en la puerta, con texto: 0 · sin texto en la pareja: 0 (con la etiqueta, del verificador: 0)",null
+1 · por pasada,pasada 11 · 31/10 00:06:49 · claude-haiku-5-5 · 40 s,no,"en la puerta, con texto: 0 · sin texto en la pareja: 0 (con la etiqueta, del verificador: 0)",null
+1 · por pasada,pasada 12 · 31/10 00:07:38 · claude-haiku-5-5 · 38 s,D (sin especie),"en la puerta, con texto: 0 · sin texto en la pareja: 0 (con la etiqueta, del verificador: 0)",null
+1 · por pasada,pasada 12 · cita de D,sin especie · CLI-12: el principio de §3.1,NOR-10: «figura que puede recaer en el propio Director Clínico o en otro profesional designado por él»,"CLI-12: «separar la responsabilidad de un proceso crítico de seguridad del paciente de la persona que, en su rol de Director Clínico, gestiona simultáneamente la agenda asistencial»"
+1 · por pasada,pasada 13 · 31/10 00:08:16 · claude-haiku-5-5 · 27 s,no,"en la puerta, con texto: 0 · sin texto en la pareja: 0 (con la etiqueta, del verificador: 0)",null
+1 · por pasada,pasada 14 · 31/10 00:09:02 · claude-haiku-5-5 · 31 s,no,"en la puerta, con texto: 0 · sin texto en la pareja: 0 (con la etiqueta, del verificador: 0)",null
+1 · por pasada,pasada 15 · 31/10 00:09:47 · claude-haiku-5-5 · 32 s,no,"en la puerta, con texto: 0 · sin texto en la pareja: 0 (con la etiqueta, del verificador: 0)",null
+1 · por pasada,pasada 16 · 31/10 00:10:42 · claude-haiku-5-5 · 40 s,no,"en la puerta, con texto: 0 · sin texto en la pareja: 0 (con la etiqueta, del verificador: 0)",null
+1 · por pasada,pasada 17 · 31/10 00:11:34 · claude-haiku-5-5 · 40 s,D (sin especie),"en la puerta, con texto: 0 · sin texto en la pareja: 0 (con la etiqueta, del verificador: 0)",null
+1 · por pasada,pasada 17 · cita de D,sin especie · CLI-12: el principio de §3.1,NOR-10: «figura que puede recaer en el propio Director Clínico o en otro profesional designado por él»,"CLI-12: «separar la responsabilidad de un proceso crítico de seguridad del paciente de la persona que, en su rol de Director Clínico, gestiona simultáneamente la agenda asistencial»"
+1 · por pasada,pasada 18 · 31/10 00:12:27 · claude-haiku-5-5 · 41 s,no,"en la puerta, con texto: 0 · sin texto en la pareja: 0 (con la etiqueta, del verificador: 0)",null
+1 · por pasada,pasada 19 · 31/10 00:13:23 · claude-haiku-5-5 · 34 s,no,"en la puerta, con texto: 0 · sin texto en la pareja: 0 (con la etiqueta, del verificador: 0)",null
+1 · por pasada,pasada 20 · 31/10 00:14:23 · claude-haiku-5-5 · 42 s,no,"en la puerta, con texto: 0 · sin texto en la pareja: 0 (con la etiqueta, del verificador: 0)",null
+1 · por pasada,pasada 21 · 31/10 00:15:28 · claude-haiku-5-5 · 47 s,D (sin especie),"en la puerta, con texto: 0 · sin texto en la pareja: 0 (con la etiqueta, del verificador: 0)",null
+1 · por pasada,pasada 21 · cita de D,sin especie · CLI-12: el principio de §3.1,NOR-10: «figura que puede recaer en el propio Director Clínico o en otro profesional designado por él»,"CLI-12: «separar la responsabilidad de un proceso crítico de seguridad del paciente de la persona que, en su rol de Director Clínico»"
+2 · el total,D en 3 de 21 pasadas · con la etiqueta: 0 · dudosas aparte: 0,"muertas en la puerta, con texto: 0 pasadas","sin texto en la pareja: 1 hallazgos en 1 pasadas, 1 de ellos en pasadas SIN D (con la etiqueta: 0)",null
+```
+
+**Comprobado por Code contra las dos salidas**:
+- **El control positivo, EN VERDE.** Los seis controles salen OK, y la consulta saca **«D en 2 de 7 · con la etiqueta: 1»**:
+  reproduce la puntuación a ojo del arquitecto.
+  - La D con etiqueta es la de la pasada 5; la otra, la de la 4, va sin especie. Las dos citan el permiso contra el
+    principio de §3.1.
+  - En esa ventana no murió nada sin texto. Así que el «el verificador mató uno» de la consulta F-130 no ocurrió en NOR-10
+    ↔ CLI-12 en la segunda tanda.
+- **La línea base: D en 3 de 21**, en las pasadas 12, 17 y 21, **las tres sin especie**. Las tres citan el permiso contra el
+  principio de §3.1, y ninguna cita §3.5. La cota sin texto es **1**, en la pasada 8, que no tiene D, y no lleva la
+  etiqueta. En la puerta no murió nada.
+- **El control del esperado, en rojo: 21 pasadas con el esperado en 20.** El director corrió una más y el control avisó.
+  **El número se queda: veintiuna vale más que veinte.**
+- El modelo es Haiku 5.5 en todas, y las duraciones van de 27 a 50 s.
+
+## LA CONCLUSIÓN DE LA SEMANA, CON LAS TRES CORRECCIONES DE CODE ACEPTADAS POR EL ARQUITECTO (31/10/2026)
+
+**LA LÍNEA BASE, por pareja y con su n**: «NOR-10 ← CLI-12, D, **3 de 21**», el 14 %; con la cota sin texto, **«3 o 4 de
+21»**. Intervalo de Wilson al 95 %: del 5 % al 35 % (con 4, del 8 % al 40 %).
+
+**1 · EL PROBLEMA ES REAL**: D llega al usuario una de cada siete veces.
+- *Corrección aceptada*: **«el 2 de 7 era optimista» NO se puede afirmar.** 2 de 7 frente a 3 de 21 da p = 0,574, y los dos
+  números no se distinguen. Lo correcto es que **ahora hay un número con intervalo (del 5 % al 35 %) donde antes había
+  siete tiradas.**
+
+**2 · LA COMPARACIÓN CRUZA CONDICIONES, y es la corrección grave.** El arquitecto, con su nombre: **ES LA REGLA QUE ESCRIBIÓ
+AYER, INCUMPLIDA EN EL MISMO MENSAJE EN QUE LA DABA POR APRENDIDA. Cuarta vez en dos días.**
+- **El 14 % es el producto entero**: los primeros 6.000 caracteres de NOR-10, fragmentos de CLI-12, JSON, la puerta de citas
+  y el verificador.
+- **El 90 % es la herramienta**: dos trozos enteros, texto libre, sin puerta y sin verificador.
+- La regla de puntuación es la misma; la condición, distinta.
+- **Lo que demuestra el Fisher** (3 de 21 frente a 36 de 40, **p = 5,58 × 10⁻⁹**; con 4 de 21, p = 4,60 × 10⁻⁸): la
+  pregunta cerrada ENCUENTRA D muchísimo más de lo que el producto la PUBLICA.
+- **Lo que NO demuestra**: que una pasada 2 dentro del producto la publique. **El 90 % es un techo.**
+
+**3 · LA ESPECIE: 0 de 3 en la línea base; sin medir.** No «casi no aparece en el producto real»: son tres casos, y frente al
+1 de 2 de la segunda tanda da p = 0,400. Queda como pendiente propio.
+
+**4 · EL LÍMITE, con el nombre del arquitecto**: esto está medido para UN hallazgo, UNA pareja y UN corpus. Que la pasada 2
+suba la cobertura EN GENERAL es extrapolación, y no está medido.
+
+**LA JUSTIFICACIÓN PARA CONSTRUIR, reescrita por el arquitecto: cambia de forma, no de fondo.** No es «del 14 % al 90 %». Es
+**«hay un hueco grande y medido entre lo que la pregunta cerrada encuentra y lo que el producto publica, y la única manera
+de saber cuánto sobrevive al camino es construirlo en sombra y medirlo».** Va al lado de la anulación del umbral, no en su
+lugar.
+
+**NO SE CONSTRUYE NADA TODAVÍA**: el plan rehecho lo escribe el arquitecto.
+
+⚠️ **LA RESPUESTA DE FABLE A LA ADENDA NO HA LLEGADO A CODE.** El mensaje del arquitecto trae el hueco para pegarla vacío: «[DIRECTOR:
+pega aquí su respuesta entera, los tres puntos a, b y c]». Lo que el arquitecto decide a partir de ella, y lo que le
+atribuye a Fable, no se escribe hasta tener su texto literal para archivarlo y cotejarlo:
+- la contabilidad del «6 de 7» y la cita de F-117;
+- la especie como tercer criterio de la pregunta cerrada;
+- el verificador que deja de depender de la marca, y la convergencia de las dos fugas;
+- el disparador de la paráfrasis;
+- los criterios en veintes que sustituyen a P-F130-10;
+- E5 sobre las tres parejas sembradas.

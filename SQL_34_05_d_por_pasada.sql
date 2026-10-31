@@ -1,6 +1,7 @@
 -- ============================================================================
 -- SQL_34_05 · D POR PASADA EN LOS ANÁLISIS RÁPIDOS DE NOR-10, CONTADA POR LA CONSULTA Y NO A OJO — SÓLO LECTURA (30/10/2026)
--- ⏳ PENDIENTE DE EJECUTAR. Sólo SELECT: no escribe, no borra, no cambia nada.
+-- ✅ EJECUTADO por el director (30-31/10/2026): la lista sin ventana, el control positivo (2 de 7, en verde) y la línea base
+-- (3 de 21). Sólo SELECT: no escribe, no borra, no cambia nada. Las salidas, literales, en claude/Medida_F130_E3_Y_Vecindad_29-10-2026.md.
 --
 -- PARA QUÉ (arquitecto, 30/10): medir la línea base de D con veinte análisis reales de NOR-10. ANTES, su CONTROL POSITIVO:
 -- correrla sobre la ventana de la SEGUNDA TANDA DEL 3.4 (28/10, 08:21-08:30 de Madrid, siete pasadas de NOR-10; decía «27/10»,
