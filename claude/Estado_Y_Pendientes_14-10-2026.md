@@ -290,6 +290,9 @@ a ojo. El procedimiento, el coste y la consulta se plantean ANTES de pedírselo 
     frase. No es un riesgo teórico ni un hecho. (El arquitecto había dicho que «no pasó nunca en las 13», y lo corrige él.)
   - ⚠️⚠️ **LA PARTICIÓN, REESCRITA (arquitecto, 01/11, con el glosario verificado por Code; y corregida el mismo día por el
     dato de Code de que el §4 nunca se cita): D Y EL QUINTO SON DOS FRONTERAS DISTINTAS.**
+    ⚠️⚠️ **LA IDEA DE «CLASE» MUERE ENTERA (arquitecto, 02/11).** Con la retirada del glosario no queda NINGUNA propiedad
+    compartida entre D y el quinto. No es «escrito frente a no escrito», porque el modelo no usa lo escrito. **Dos casos,
+    dos fronteras, los dos por debajo del 100 %, y nada más.**
     - **D: deducir lo que nadie escribió.** Una permisión contra un principio (F-129, `claude/consultas-fable/INDICE.md:197`).
     - ⚠️⚠️ **RETIRADA DEL ARQUITECTO, con su nombre (01/11)**: retira «el paso está escrito en el glosario y lo que el
       sistema no hace es usar el glosario». En las cinco pasadas en que salió el quinto, la cita de CLI-12 fue siempre
@@ -463,7 +466,8 @@ a ojo. El procedimiento, el coste y la consulta se plantean ANTES de pedírselo 
      - un botón en `page.tsx`;
      - el prompt y el criterio, sin tocar: el quinto es de dato, y la pregunta 1 del prompt («¿Dicen los dos textos
        cosas DISTINTAS sobre el MISMO dato?») es la suya;
-     - ⚠️ **la herramienta caduca el 15/11** (`CADUCA_EL`): si el paso 3 va después, hay que alargarla, con su nombre.
+     - ~~la herramienta caduca el 15/11~~ ✅ **ampliada al 15/12/2026 (arquitecto, 02/11)**, con el motivo escrito al lado
+       de `CADUCA_EL`: la usan los pasos 3 y 5, y el 15/11 llegaba antes que el final del plan.
      **Lo que cuesta: 0 créditos**, porque la ruta no cobra (`pregunta/route.ts`, cabecera). En dinero de API, unos
      **0,04 $ por tanda de 20**: la tanda de D del 30/10 gastó 82.520 tokens de entrada y 63.491 de salida con Haiku 5.5
      (`claude/Medida_F130_Veinte_Condicion_1_30-10-2026.json`), a 0,10 $ y 0,50 $ el millón
@@ -791,10 +795,11 @@ el 2 de 7 de D deja de ser comparable, y E1 y E5 medirían otro sistema.
     en texto se ve QUÉ encontró. ⚠️ **Es decisión de E3, no del producto**: el formato estructurado de la pasada 2 se
     decide cuando se construya, y nadie debe copiarlo de aquí.
     **La prueba de huella del recorte se pondrá en rojo el día que se toque el bloque del juez, y es lo que se quiere**
-    (arquitecto, 29/10): no se relaja; la carpeta caduca el 15/11, así que la molestia tiene fecha.
+    (arquitecto, 29/10): no se relaja; la carpeta caduca el 15/11 (ampliada al 15/12 el 02/11), así que la molestia tiene fecha.
     **Los tres textos que pidió Fable** (los prompts del juez y del verificador, y la pregunta de E3), capturados del código
     y no copiados a mano: `claude/consultas-fable/F-130_anexo_textos_para_fable_2026-10-29.md`.
-  · Herramienta: `app/api/admin/medida-f130/` (`8c9576dd`), temporal, que caduca el 15/11/2026.
+  · Herramienta: `app/api/admin/medida-f130/` (`8c9576dd`), temporal, que caduca el 15/11/2026 (ampliada al 15/12/2026 el
+    02/11: la usan los pasos 3 y 5 del plan de F-130).
 - **E1**, cobertura por A, y **E5**, curva de acumulación (P-F130-1 y P-F130-5).
 - **P-F130-9, informativa y no decisiva**: el enumerador tiene DOS vías, vecinos vectoriales y solapamiento de términos.
   · **Las figuras: SE CUMPLE en los tres trozos** (Code, 28/10, troceado de hoy sobre `corpus-pruebas/`): NOR-10·4,

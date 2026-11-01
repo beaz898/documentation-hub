@@ -26,8 +26,10 @@
 -- CONTROLES: las pasadas frente a las esperadas, en cada medición; que sean rápidas; un solo CLI-12; que cada pasada
 -- tenga la lectura de CLI-12; y el CONTROL POSITIVO, que puede fallar: los caracteres de CLI-12 en la lectura tienen
 -- que ser 55.135 en todas (el texto armado medido en el repositorio el 27/10, SQL_34_02, y por el estado el 23/10), y
--- los de NOR-10, 66.801, y los de NOR-11, 14.704 (tamaños montados, estado vivo, predicciones del 22/10). Si no, o el
--- documento es otro, o la consulta no está leyendo el campo que cree.
+-- los de NOR-10, 66.801, y los de NOR-11, 14.704. ✅ LAS TRES, COMPROBADAS POR CODE EL 02/11/2026: buildAnalyzedDocumentText
+-- sobre el troceado de la indexación de corpus-pruebas/ (55, 67 y 15 trozos, los de la base), con el mismo paso a
+-- StoredChunk de lib/persist-chunks.ts y lib/read-chunks.ts. Si no salen, o el documento es otro, o la consulta no
+-- está leyendo el campo que cree.
 -- ============================================================================
 -- ── LA RESOLUCIÓN DE LA ORGANIZACIÓN (26/10/2026), IDÉNTICA EN TODAS LAS CONSULTAS QUE MIRAN HACIA DELANTE ──
 -- La organización NO se escribe: es la ÚNICA a la que pertenece el USUARIO del director. Si tiene cero o más de una,
