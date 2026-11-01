@@ -1117,6 +1117,8 @@ DE LAS CONTRADICCIONES DE DATO Y EL 14 % DE LAS INFERENCIALES, con 21 pasadas po
   CLI-12, con 21 pasadas por caso, las tres contradicciones de dato sembradas (A, B y C) salen las 21 veces, y la
   inferencial (D), 3 de 21.**
 - El quinto conflicto, de dato pero bajo otro nombre, todavía no está medido.
+- **01/11: el arquitecto toma literal la redacción de Code** como enunciado del problema, y la suya queda sustituida, no borrada:
+  generalizaba de casos a clases, que es la regla que él escribió el 30/10 (quinto caso del patrón, en el protocolo).
 
 **LO QUE NO SE INFLA, con el nombre del arquitecto, porque la tentación era suya**: los cuatro salen sin especie, y para A, B y
 C eso es CORRECTO, porque son contradicciones de dato y por contrato no llevan especie. **El hallazgo de la especie sigue

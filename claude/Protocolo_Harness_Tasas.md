@@ -1426,6 +1426,17 @@ condición, extendida a la tasa real del sistema sin medirla.
 **LA FORMA OPERATIVA**: al escribir una cifra se escribe a la vez de qué condición sale (qué tanda, qué herramienta, qué
 prueba, cuántas tiradas). Si el texto la usa para otra condición, eso es un encargo de medición, no una afirmación.
 
+**⚠️ YA ES UN PATRÓN Y NO UN DESCUIDO, con las palabras del arquitecto (01/11): «LA REGLA DE NO EXTRAPOLAR LA ESCRIBÍ YO Y LA ESTÁ
+HACIENDO CUMPLIR CODE.»** Cinco veces en tres días, y las cinco las cazó Code:
+1. el 20 % de paráfrasis, de una condición, extendido al producto (30/10);
+2. las tres pruebas lentas, tratadas como tres censos del repositorio por parecido (30/10);
+3. el 14 % del producto frente al 90 % de la herramienta, cruzando condiciones (31/10);
+4. «el 2 de 7 era optimista», con p = 0,574 (31/10);
+5. «el sistema encuentra el 100 % de las contradicciones de dato y el 14 % de las inferenciales»: de tres casos y uno a dos
+   clases (31/10). Lo sustituye la redacción de Code, que el arquitecto tomó literal.
+**Cómo funciona esto de verdad, y así queda escrito**: la regla la escribe el arquitecto, y la sostiene el contrato de que
+Code implementa lo que el arquitecto dice Y AVISA.
+
 **Y EN EL MISMO ENCARGO EN QUE ESCRIBIÓ LA REGLA, EL ARQUITECTO VOLVIÓ A AFIRMAR DE MEMORIA LO QUE ESTABA EN LOS DATOS**
 (30/10, con su nombre). Dio la segunda tanda del 3.4 como «del 27/10», y en la lista de pasadas de NOR-10 no hay ninguna
 el 27/10: corrió el 28/10 de 08:21 a 08:30. Y tenía apuntado que el código del 3.4 «se subió el 28/10 sobre las 08:58»:

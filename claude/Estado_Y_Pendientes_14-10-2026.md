@@ -181,6 +181,10 @@ pruebas lentas de la sección 5: la lentitud es de la primera pasada en frío.
   - `tramo-de-cita` extrae un documento real de `corpus-pruebas/`.
   Su coste es la extracción de documentos, no el recorrido del árbol, y «leer el árbol una vez» no lo toca. Cuando salte
   el disparador, esas dos necesitan otro arreglo; por ejemplo, extraer una vez por fichero de prueba.
+  ⚠️ **Y EL ARREGLO DEL 29/10 RECAYÓ (Code, 01/11)**: el control positivo de `corpus-del-examen`, el censo que ya lee el
+  árbol una vez, agotó sus 30 s propios en una pasada lenta de la suite (79 s en vez de unos 40). Repetida sola, verde. El
+  margen de 30 s (2,6 veces la lectura en frío medida a solas) lo eligió Code, y esta vez no bastó: la lectura en frío
+  bajo la carga de la suite entera no estaba medida. Entra en el mismo disparador. No se toca.
 
 **REGISTRO, 29/10/2026 (sólo registro; no se reescribe ningún commit)**: el mensaje del commit `142a6930` («F-130: el
 segundo mensaje de Fable tras los prompts…») dice «Gates: npm test (suite 2115, arneses 117)», y **en ese momento no lo
@@ -203,8 +207,13 @@ a ojo. El procedimiento, el coste y la consulta se plantean ANTES de pedírselo 
   reproducir el «2 de 7» puntuado a ojo; si no, se separa la consulta mal hecha de la puntuación mal hecha. Y declara qué
   parte de la señal murió sin texto.
 - **NO SE LANZA NINGÚN ANÁLISIS hasta que el control esté en verde y el arquitecto lo vea.**
-- ⚠️⚠️ **EL ENUNCIADO DEL PROBLEMA (arquitecto, 31/10), que SUSTITUYE A TODAS LAS FORMULACIONES ANTERIORES**: «EL SISTEMA
-  ENCUENTRA EL 100 % DE LAS CONTRADICCIONES DE DATO Y EL 14 % DE LAS INFERENCIALES, con 21 pasadas por caso.»
+- ⚠️⚠️ **EL ENUNCIADO DEL PROBLEMA, que SUSTITUYE A TODAS LAS FORMULACIONES ANTERIORES** (redacción de Code, que el arquitecto toma
+  literal el 01/11): «En NOR-10 ↔ CLI-12, con 21 pasadas por caso, el sistema encuentra las tres contradicciones de dato
+  sembradas (A, B y C) las 21 veces, y la inferencial (D) 3 de 21, el 14 %.»
+  - **Por qué no la del arquitecto, con su nombre**: la suya, «EL SISTEMA ENCUENTRA EL 100 % DE LAS CONTRADICCIONES DE DATO
+    Y EL 14 % DE LAS INFERENCIALES», GENERALIZABA DE CASOS A CLASES (tres de dato y una inferencial, en una pareja y un
+    corpus). Es la regla que él mismo escribió el 30/10. Se escribió aquí el 31/10, con la nota de Code al lado, y queda
+    sustituida, no borrada. Su texto está arriba, en esta misma frase, y en la medida.
   - Es la línea base por hallazgo de `SQL_34_06`, ejecutada y archivada: **A, B y C, 21 de 21; D, 3 de 21**. Su control
     positivo, en verde: D reproduce a `SQL_34_05`.
   - ⚠️ *Code, al lado*: son tres casos de dato y uno inferencial, en una pareja y un corpus. La forma que sostienen los
