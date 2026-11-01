@@ -4,7 +4,7 @@ import { runInBatches } from '@/lib/run-in-batches';
 import type { StoredChunk } from '@/lib/read-chunks';
 import type { DiscardedFindings } from './types';
 import type { ConflictoNormativo } from './conflicto-normativo';
-import { RAMA_DE_LAS_REGLAS, marcaDeConflictoNormativo } from './rama-de-las-reglas';
+import { PREGUNTA_DEL_CUMPLIMIENTO, pistaDeConflictoNormativo } from './rama-de-las-reglas';
 
 /**
  * Verificador de hallazgos — la llamada corta (F-22/F-23/F-34).
@@ -99,14 +99,42 @@ export interface FindingToVerify {
    *  o no se pudo determinar. */
   newColumnOrder: string[] | null;
   existingColumnOrder: string[] | null;
-  /** 3.4, fase 3: si el juez lo marcó como conflicto normativo. Con él, el hallazgo se presenta marcado y el lote
-   *  lleva la rama de las reglas (rama-de-las-reglas.ts); sin él, todo es como antes. */
+  /** 3.4, fase 3: si el juez lo marcó como conflicto normativo. Desde el 02/11/2026 (F-130, paso 2) es una PISTA en el
+   *  bloque del hallazgo y nada más: el hallazgo recibe las mismas dos preguntas que los demás. Sigue sirviendo para la
+   *  severidad de un confirmado y para el desglose de los descartes por especie. */
   conflictoNormativo?: ConflictoNormativo;
 }
 
-/** `cumplibles_a_la_vez` (3.4, fase 3) es el veredicto de la rama de las reglas: descarta, como
- *  `mismo_dato_sin_oposicion`, y se cuenta con su propio nombre, `descartado.cumplibles_a_la_vez`. */
+/** El veredicto de un hallazgo. Desde el 02/11/2026 no lo escribe el modelo: lo saca `veredictoDeLasDosRespuestas` de
+ *  sus dos respuestas. `cumplibles_a_la_vez` (3.4, fase 3) descarta, como `mismo_dato_sin_oposicion`, y se cuenta con su
+ *  propio nombre, `descartado.cumplibles_a_la_vez`. */
 export type FindingVerdict = 'confirmado' | 'mismo_dato_sin_oposicion' | 'sin_relacion' | 'cumplibles_a_la_vez';
+
+/** Las respuestas de las dos preguntas (F-130, paso 2). Las dos son obligatorias. */
+export const RESPUESTAS_DEL_DATO = ['opuestos', 'mismo_dato_sin_oposicion', 'otro_dato'] as const;
+export const RESPUESTAS_DEL_CUMPLIMIENTO = ['no_cumplibles', 'cumplibles', 'no_mandan'] as const;
+export type RespuestaDelDato = (typeof RESPUESTAS_DEL_DATO)[number];
+export type RespuestaDelCumplimiento = (typeof RESPUESTAS_DEL_CUMPLIMIENTO)[number];
+
+/**
+ * EL VEREDICTO SALE DE LAS DOS RESPUESTAS, Y SE DECIDE AQUÍ Y SÓLO AQUÍ (F-130, paso 2, 02/11/2026). Un hallazgo se
+ * confirma si CUALQUIERA de las dos preguntas encuentra el conflicto: valores opuestos del mismo dato, o dos cosas que
+ * no se pueden cumplir a la vez. Si no, los descartes conservan sus nombres de siempre, para que las consultas que los
+ * leen (`descartado.<veredicto>`) sigan leyendo lo mismo:
+ *   · mismo dato sin oposición → `mismo_dato_sin_oposicion`, conteste lo que conteste la 2;
+ *   · otro dato, pero las dos se pueden cumplir → `cumplibles_a_la_vez`;
+ *   · otro dato, y ninguna manda → `sin_relacion`.
+ * `soloPorCumplimiento`: confirmado por la pregunta 2 sin que la 1 viera oposición. Es lo que la ruta por marca no
+ * dejaba pasar sin la marca del juez.
+ */
+export function veredictoDeLasDosRespuestas(dato: RespuestaDelDato, cumplimiento: RespuestaDelCumplimiento):
+  { verdict: FindingVerdict; soloPorCumplimiento: boolean } {
+  if (dato === 'opuestos') return { verdict: 'confirmado', soloPorCumplimiento: false };
+  if (cumplimiento === 'no_cumplibles') return { verdict: 'confirmado', soloPorCumplimiento: true };
+  if (dato === 'mismo_dato_sin_oposicion') return { verdict: 'mismo_dato_sin_oposicion', soloPorCumplimiento: false };
+  if (cumplimiento === 'cumplibles') return { verdict: 'cumplibles_a_la_vez', soloPorCumplimiento: false };
+  return { verdict: 'sin_relacion', soloPorCumplimiento: false };
+}
 
 /** Resultado de un hallazgo, en el MISMO orden que el array de entrada — el
  *  emparejamiento con FindingToVerify es por posición, no por ningún id. */
@@ -116,6 +144,9 @@ export interface VerifiedFinding {
    *  veredictos el hallazgo se descarta y la severity original deja de
    *  importar. */
   severity?: 'contradiction' | 'minor_inconsistency';
+  /** Sólo en un confirmado por la pregunta 2 sin oposición en la 1 (`veredictoDeLasDosRespuestas`). Lo cuenta la
+   *  cascada como `verificador.confirmados_solo_por_cumplimiento`. */
+  soloPorCumplimiento?: true;
 }
 
 export interface VerifyFindingsResult {
@@ -134,14 +165,16 @@ const MAX_PER_CALL = 15;
  *  callAnthropicRaw. */
 const VERIFY_CONCURRENCY = 5;
 
-const VALID_VERDICTS: FindingVerdict[] = ['confirmado', 'mismo_dato_sin_oposicion', 'sin_relacion', 'cumplibles_a_la_vez'];
+/** Lo que el modelo contesta de cada hallazgo: las dos respuestas y, si la 1 es «opuestos», la severidad. */
+interface RespuestaDelModelo {
+  index: number;
+  dato?: string;
+  cumplimiento?: string;
+  severity?: string;
+}
 
 interface VerifyResponse {
-  results: Array<{
-    index: number;
-    verdict?: string;
-    severity?: string;
-  }>;
+  results: RespuestaDelModelo[];
 }
 
 function bump(counts: DiscardedFindings, key: string): void {
@@ -181,8 +214,8 @@ function describeSide(quote: string, chunk: StoredChunk | null, neighbours: Find
 export function buildFindingBlock(finding: FindingToVerify, index: number): string {
   const newSide = describeSide(finding.newDocSays, finding.newChunk, finding.newNeighbours, finding.newColumnOrder, finding.newTrozos);
   const existingSide = describeSide(finding.existingDocSays, finding.existingChunk, finding.existingNeighbours, finding.existingColumnOrder, finding.existingTrozos);
-  // 3.4: la marca, sólo en el hallazgo que la trae; sin ella, el bloque es el de siempre
-  const marca = finding.conflictoNormativo ? `\n${marcaDeConflictoNormativo(finding.conflictoNormativo)}` : '';
+  // la pista del juez, sólo en el hallazgo que la trae; sin ella, el bloque es el de siempre
+  const marca = finding.conflictoNormativo ? `\n${pistaDeConflictoNormativo(finding.conflictoNormativo)}` : '';
   return `[${index}] Tema: ${finding.topic}${marca}
 DOCUMENTO NUEVO:
 ${newSide}
@@ -195,22 +228,29 @@ ${existingSide}`;
  * El prompt en sí. Corto a propósito (F-34: "si te sale largo, es señal de
  * que estás replicando al juez") — no repite las reglas del juez porque no
  * juzga documentos enteros, juzga si dos citas ya elegidas se oponen.
+ * ⚠️ DOS PREGUNTAS OBLIGATORIAS A TODO HALLAZGO desde el 02/11/2026 (F-130, paso 2): la del dato, que es la de siempre
+ * con sus mismas reglas, y la del cumplimiento (rama-de-las-reglas.ts). Es UN prompt para todos los lotes: la marca
+ * del juez ya no elige pregunta, va como pista en el bloque. El modelo contesta las dos por separado y el veredicto lo
+ * saca el código (`veredictoDeLasDosRespuestas`). Antes el prompt decía «decide UNA SOLA cosa» y la rama, más abajo,
+ * le quitaba esa pregunta a los marcados: las dos instrucciones se contradecían (Fable, F-130, 29/10).
  */
 function buildPrompt(batch: FindingToVerify[]): string {
   const block = batch.map((f, i) => buildFindingBlock(f, i + 1)).join('\n\n---\n\n');
-  // 3.4: la rama de las reglas, SÓLO si el lote trae algún hallazgo marcado; sin marcas, el prompt de siempre
-  const rama = batch.some(f => f.conflictoNormativo) ? `${RAMA_DE_LAS_REGLAS}\n\n` : '';
-  return `Eres un verificador. Un primer auditor ha señalado ${batch.length} posibles hallazgos entre dos documentos. Para cada uno, decide UNA SOLA cosa: si las dos citas se oponen sobre el MISMO dato concreto. No busques nada fuera de lo que se te muestra; no evalúes el resto del documento.
+  return `Eres un verificador. Un primer auditor ha señalado ${batch.length} posibles hallazgos entre dos documentos. A CADA UNO le haces DOS preguntas, y LAS DOS SON OBLIGATORIAS: contestar a una no te exime de contestar a la otra, ni cuando la primera encuentre el conflicto ni cuando no. No busques nada fuera de lo que se te muestra; no evalúes el resto del documento.
 
 HALLAZGOS:
 ${block}
 
-VEREDICTOS POSIBLES:
-- "confirmado": las dos citas hablan del mismo dato concreto y dicen cosas incompatibles.
-- "mismo_dato_sin_oposicion": hablan del mismo dato concreto, pero no son incompatibles (una amplía, matiza, o coincide con la otra).
-- "sin_relacion": no hablan del mismo dato concreto, aunque compartan tema, entidad o vocabulario.
+Si un hallazgo trae una PISTA DEL PRIMER AUDITOR, es sólo eso, una pista: no contesta ninguna de las dos preguntas por ti.
 
-SI LAS DOS CITAS HABLAN DEL MISMO DATO CONCRETO, lo que separa "confirmado" de "mismo_dato_sin_oposicion" es una sola cosa: si le asignan VALORES DISTINTOS. El dato es la pregunta que las dos responden (quién ocupa un cargo, qué precio tiene un servicio, con qué frecuencia se hace algo); el valor es la respuesta que da cada una.
+PREGUNTA 1 · EL DATO: ¿SE OPONEN LAS DOS CITAS SOBRE EL MISMO DATO CONCRETO?
+
+RESPUESTAS de la pregunta 1, en el campo "dato":
+- "opuestos": las dos citas hablan del mismo dato concreto y dicen cosas incompatibles.
+- "mismo_dato_sin_oposicion": hablan del mismo dato concreto, pero no son incompatibles (una amplía, matiza, o coincide con la otra).
+- "otro_dato": no hablan del mismo dato concreto, aunque compartan tema, entidad o vocabulario.
+
+SI LAS DOS CITAS HABLAN DEL MISMO DATO CONCRETO, lo que separa "opuestos" de "mismo_dato_sin_oposicion" es una sola cosa: si le asignan VALORES DISTINTOS. El dato es la pregunta que las dos responden (quién ocupa un cargo, qué precio tiene un servicio, con qué frecuencia se hace algo); el valor es la respuesta que da cada una.
 
 - Se oponen: "la responsable del área es Ana Ruiz" frente a "el responsable del área es Beatriz Soler". Mismo dato —quién es el responsable—, dos valores. Que una cita sea más larga, más específica o esté redactada de otro modo no cambia esto.
 - No se oponen: "la responsable del área es Ana Ruiz" frente a "la responsable del área coordina las auditorías". La segunda no da otro valor al mismo dato: habla de otro dato. Y una cita que CALLA sobre un dato no le está dando un valor distinto.
@@ -221,15 +261,17 @@ Y una cita puede JUSTIFICAR su propio valor: dar el motivo técnico por el que e
 
 Si un lado es una fila de tabla, compara SOLO columnas que también aparezcan citadas o mencionadas en el otro lado. Una columna que solo existe en un lado no es un dato compartido: no la uses para decidir.
 
-Para "confirmado", añade además severity: "contradiction" si son incompatibles sin matices, "minor_inconsistency" si la oposición es de enfoque, grado o énfasis.
+Si la respuesta a la pregunta 1 es "opuestos", añade además severity: "contradiction" si son incompatibles sin matices, "minor_inconsistency" si la oposición es de enfoque, grado o énfasis.
 
-${rama}Debes responder los ${batch.length} índices, del 1 al ${batch.length}.
+${PREGUNTA_DEL_CUMPLIMIENTO}
+
+Debes responder los ${batch.length} índices, del 1 al ${batch.length}, y en cada uno LAS DOS respuestas.
 
 Responde EXCLUSIVAMENTE con este JSON:
 {
   "results": [
-    { "index": 1, "verdict": "confirmado", "severity": "contradiction" },
-    { "index": 2, "verdict": "sin_relacion" }
+    { "index": 1, "dato": "opuestos", "cumplimiento": "cumplibles", "severity": "contradiction" },
+    { "index": 2, "dato": "otro_dato", "cumplimiento": "no_mandan" }
   ]
 }`;
 }
@@ -248,18 +290,26 @@ function isDegraded(finding: FindingToVerify): boolean {
   return isMissingChunk(finding.newChunk) || isMissingChunk(finding.existingChunk);
 }
 
-function toOutcome(finding: FindingToVerify, raw: { verdict?: string; severity?: string } | undefined): BatchOutcome {
+const esRespuestaDelDato = (v: unknown): v is RespuestaDelDato =>
+  typeof v === 'string' && (RESPUESTAS_DEL_DATO as readonly string[]).includes(v);
+const esRespuestaDelCumplimiento = (v: unknown): v is RespuestaDelCumplimiento =>
+  typeof v === 'string' && (RESPUESTAS_DEL_CUMPLIMIENTO as readonly string[]).includes(v);
+
+function toOutcome(finding: FindingToVerify, raw: RespuestaDelModelo | undefined): BatchOutcome {
   const degraded = isDegraded(finding);
 
-  if (!raw || !raw.verdict || !VALID_VERDICTS.includes(raw.verdict as FindingVerdict)) {
+  // LAS DOS RESPUESTAS SON OBLIGATORIAS: si falta una, o no es una de las suyas, el hallazgo no tiene veredicto y no se
+  // aprueba por silencio (sale como 'sin_relacion', contado como descartado.sin_veredicto, igual que antes).
+  if (!raw || !esRespuestaDelDato(raw.dato) || !esRespuestaDelCumplimiento(raw.cumplimiento)) {
     return { finding: { verdict: 'sin_relacion' }, discardKey: 'descartado.sin_veredicto', degraded };
   }
 
-  const verdict = raw.verdict as FindingVerdict;
+  const { verdict, soloPorCumplimiento } = veredictoDeLasDosRespuestas(raw.dato, raw.cumplimiento);
   if (verdict === 'confirmado') {
-    // 3.4: un conflicto normativo confirmado llega al usuario como hallazgo de verdad, no como inconsistencia menor
-    const severity = finding.conflictoNormativo || raw.severity === 'contradiction' ? 'contradiction' : 'minor_inconsistency';
-    return { finding: { verdict, severity }, discardKey: null, degraded };
+    // un conflicto que no se puede cumplir llega al usuario como hallazgo de verdad, no como inconsistencia menor: lo
+    // marcara el juez (3.4) o lo encontrara sólo la pregunta 2 (02/11). La severidad del modelo sólo cuenta en la 1.
+    const severity = finding.conflictoNormativo || soloPorCumplimiento || raw.severity === 'contradiction' ? 'contradiction' : 'minor_inconsistency';
+    return { finding: { verdict, severity, ...(soloPorCumplimiento ? { soloPorCumplimiento: true as const } : {}) }, discardKey: null, degraded };
   }
 
   return { finding: { verdict }, discardKey: `descartado.${verdict}`, degraded };
@@ -274,7 +324,7 @@ async function verifyBatch(batch: FindingToVerify[]): Promise<BatchOutcome[]> {
       etiqueta: { etapa: 'verificador' },
     });
 
-    const byIndex = new Map<number, { verdict?: string; severity?: string }>();
+    const byIndex = new Map<number, RespuestaDelModelo>();
     for (const r of response.results || []) {
       if (typeof r.index === 'number') byIndex.set(r.index, r);
     }
@@ -297,15 +347,11 @@ async function verifyBatch(batch: FindingToVerify[]): Promise<BatchOutcome[]> {
 export async function verifyFindings(findings: FindingToVerify[]): Promise<VerifyFindingsResult> {
   if (findings.length === 0) return { results: [], counts: {} };
 
-  // 3.4 (arquitecto, 26/10): LOS MARCADOS VAN EN SU PROPIO LOTE. El prompt es uno por lote, y si un hallazgo marcado
-  // compartiera lote con los de datos (D y A, B, C son la misma pareja), éstos verían la rama. Separados, los no
-  // marcados reciben el prompt de siempre, byte a byte, y siguen siendo comparables con las tandas anteriores. Sin
-  // marcas, los lotes son exactamente los de antes. Cuesta una llamada más, y sólo cuando hay marcas.
-  const indices = findings.map((_, i) => i);
+  // UN SOLO REPARTO, EN EL ORDEN DE ENTRADA (02/11/2026, F-130 paso 2). Hasta ese día los marcados iban en su propio
+  // lote, porque el prompt de los marcados llevaba la rama y el de los demás no (3.4, 26/10). Con las dos preguntas a
+  // todos, el prompt es el mismo para cualquier lote y la marca ya no elige lote: ver buildPrompt.
   const lotes: number[][] = [];
-  for (const grupo of [indices.filter(i => !findings[i].conflictoNormativo), indices.filter(i => findings[i].conflictoNormativo)]) {
-    for (let i = 0; i < grupo.length; i += MAX_PER_CALL) lotes.push(grupo.slice(i, i + MAX_PER_CALL));
-  }
+  for (let i = 0; i < findings.length; i += MAX_PER_CALL) lotes.push(findings.slice(i, i + MAX_PER_CALL).map((_, k) => i + k));
   const batches: FindingToVerify[][] = lotes.map(lote => lote.map(i => findings[i]));
 
   const batchResults = await runInBatches(

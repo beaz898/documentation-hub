@@ -216,6 +216,9 @@ export const COUNTER_CATALOGUE = [
   'verificador.confirmados',
   'verificador.confirmados_por_estructura',
   'verificador.confirmados_por_juicio',
+  // F-130 paso 2 (02/11/2026): de los de juicio, los que confirmó SÓLO la pregunta del cumplimiento, sin oposición
+  // en la del dato. Es lo que el verificador dejaba morir cuando el juez no ponía la marca (verify-findings.ts).
+  'verificador.confirmados_solo_por_cumplimiento',
   'verificador.descartados',
   'verificador.reclasificados',
   // juez — ESTRENA LA ETAPA (F-121, 08/10/2026): la puerta de citas del juez

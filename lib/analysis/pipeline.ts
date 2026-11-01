@@ -204,6 +204,9 @@ interface CascadeTally {
   /** De los confirmados: cuántos por la llamada corta. F-36: "es la métrica
    *  que os dirá cuánto trabajo hace cada capa". */
   confirmadosPorJuicio: number;
+  /** De los de juicio: cuántos confirmó SÓLO la pregunta 2, la del cumplimiento, sin oposición en la del dato
+   *  (verify-findings.ts, veredictoDeLasDosRespuestas; F-130 paso 2, 02/11/2026). Es lo que antes moría sin la marca. */
+  confirmadosSoloPorCumplimiento: number;
   descartados: number;
   reclasificados: number;
 }
@@ -296,6 +299,7 @@ export async function applyCascadeToCandidate(
     confirmados: 0,
     confirmadosPorEstructura: 0,
     confirmadosPorJuicio: 0,
+    confirmadosSoloPorCumplimiento: 0,
     descartados: 0,
     reclasificados: 0,
   };
@@ -646,6 +650,7 @@ export async function applyCascadeToCandidate(
         bumpCount(counts, 'confirmado.por_juicio');
         tally.confirmados++;
         tally.confirmadosPorJuicio++;
+        if (r.soloPorCumplimiento) tally.confirmadosSoloPorCumplimiento++;
         console.log(`[${label}] · [${hash}] "${original.topic.slice(0, 60)}" → confirmado por juicio`);
         keptContradictions.push({ ...original, severity: r.severity ?? original.severity, confirmedBy: 'juicio' });
       } else {
@@ -977,6 +982,7 @@ async function runCorePipeline(
   let totalConfirmados = 0;
   let totalConfirmadosPorEstructura = 0;
   let totalConfirmadosPorJuicio = 0;
+  let totalConfirmadosSoloPorCumplimiento = 0;
   let totalDescartados = 0;
   let totalReclasificados = 0;
   // F-102: el diff imprime una línea POR CANDIDATO, y con un solo candidato esa
@@ -1101,6 +1107,7 @@ async function runCorePipeline(
     totalConfirmados += outcome.tally.confirmados;
     totalConfirmadosPorEstructura += outcome.tally.confirmadosPorEstructura;
     totalConfirmadosPorJuicio += outcome.tally.confirmadosPorJuicio;
+    totalConfirmadosSoloPorCumplimiento += outcome.tally.confirmadosSoloPorCumplimiento;
     totalDescartados += outcome.tally.descartados;
     totalReclasificados += outcome.tally.reclasificados;
   }
@@ -1150,6 +1157,7 @@ async function runCorePipeline(
   counters['verificador.confirmados'] = totalConfirmados;
   counters['verificador.confirmados_por_estructura'] = totalConfirmadosPorEstructura;
   counters['verificador.confirmados_por_juicio'] = totalConfirmadosPorJuicio;
+  counters['verificador.confirmados_solo_por_cumplimiento'] = totalConfirmadosSoloPorCumplimiento;
   counters['verificador.descartados'] = totalDescartados;
   counters['verificador.reclasificados'] = totalReclasificados;
 

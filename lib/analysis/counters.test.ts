@@ -82,6 +82,7 @@ describe('el catálogo', () => {
       'verificador.confirmados',
       'verificador.confirmados_por_estructura',
       'verificador.confirmados_por_juicio',
+      'verificador.confirmados_solo_por_cumplimiento',
       'verificador.descartados',
       'verificador.reclasificados',
     // juez — estrena la etapa el 08/10/2026 (F-121): la puerta de citas, por

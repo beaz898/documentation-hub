@@ -64,7 +64,7 @@ const llamadasHastaAhora = () => llamada.mock.calls.length;
  *  que muriera antes del verificador dejaría leer el prompt de la prueba
  *  anterior y la prueba pasaría en falso (hueco visto el 13/10/2026). */
 async function promptDe(j: DocumentJudgment): Promise<string> {
-  llamada.mockResolvedValue({ results: [{ index: 1, verdict: 'confirmado', severity: 'contradiction' }] });
+  llamada.mockResolvedValue({ results: [{ index: 1, dato: 'opuestos', cumplimiento: 'cumplibles', severity: 'contradiction' }] });
   const antes = llamadasHastaAhora();
   await cascada(j);
   expect(llamadasHastaAhora()).toBe(antes + 1);
@@ -103,7 +103,7 @@ describe('(5a) el verificador falla', () => {
   });
 
   it('control: con el verificador confirmando, el mismo hallazgo sí sigue', async () => {
-    llamada.mockResolvedValue({ results: [{ index: 1, verdict: 'confirmado', severity: 'contradiction' }] });
+    llamada.mockResolvedValue({ results: [{ index: 1, dato: 'opuestos', cumplimiento: 'cumplibles', severity: 'contradiction' }] });
     const r = await cascada(juicio({ recompuesta: { nuevo: MARCA } }));
     expect(r.judgment.contradictions).toHaveLength(1);
     expect(r.judgment.contradictions[0].newDocSays).toBe(ANCLA);
@@ -131,7 +131,7 @@ describe('la guarda descarta UN hallazgo, no la pareja', () => {
   // (pipeline.ts): sale del hallazgo, no de la función. Esta prueba lo deja
   // clavado aunque mañana alguien cambie el forEach por un bucle `for`.
   it('con dos contradicciones —la primera un empalme bloqueado, la segunda normal—, la segunda se publica', async () => {
-    llamada.mockResolvedValue({ results: [{ index: 1, verdict: 'confirmado', severity: 'contradiction' }] });
+    llamada.mockResolvedValue({ results: [{ index: 1, dato: 'opuestos', cumplimiento: 'cumplibles', severity: 'contradiction' }] });
     const OTRA = 'El gestor autorizado retira el material de las tres clínicas una vez al mes, el primer lunes.';
     const j: DocumentJudgment = {
       ...juicio({ newDocSays: ANCLA, existingDocSays: ANCLA, recompuesta: { nuevo: MARCA } }),
@@ -157,7 +157,7 @@ describe('las dos frases en el MISMO trozo (el caso de LUGAR)', () => {
 
 describe('D4 · la frase del resto sin contexto: falla cerrado (commit 8)', () => {
   it('(i) LUGAR: las dos frases en el MISMO trozo → el contexto del resto no está vacío, el hallazgo SIGUE y el contador se queda a cero', async () => {
-    llamada.mockResolvedValue({ results: [{ index: 1, verdict: 'confirmado', severity: 'contradiction' }] });
+    llamada.mockResolvedValue({ results: [{ index: 1, dato: 'opuestos', cumplimiento: 'cumplibles', severity: 'contradiction' }] });
     const mismoTrozo: CitaRecompuestaDeLado = { ...MARCA, fraseDelResto: { ...MARCA.fraseDelAncla }, enTrozosDistintos: false };
     const r = await cascada(juicio({ recompuesta: { nuevo: mismoTrozo } }));
     expect(r.judgment.contradictions).toHaveLength(1);
