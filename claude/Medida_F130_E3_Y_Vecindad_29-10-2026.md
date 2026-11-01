@@ -1138,3 +1138,52 @@ siendo «0 de 3», el de D, y no «0 de 66».** Contarlo como 66 habría sido el
   - O el filtro de lo ya cubierto, o la desduplicación, tienen que reconocer que son el mismo hallazgo aunque la cita sea
     otra.
   - Va al plan como requisito, y no se decide aquí.
+
+## LAS PASADAS RÁPIDAS DE NOR-11: LA LISTA SIN VENTANA DE SQL_34_06, LITERAL (ejecutada por el director, 31/10/2026)
+
+```
+bloque,a,b,c,d
+organización leída,organización leída: 68bf28c3-8352-4052-8eb4-3a7e31b74b53 · «Mi workspace» · 45 documentos,null,null,null
+0 · sin ventana: las pasadas rápidas de NOR-11,pasada 1 · 26/10/2026 13:28:43 (hora de Madrid),39 s,null,null
+0 · sin ventana: las pasadas rápidas de NOR-11,pasada 2 · 26/10/2026 13:30:24 (hora de Madrid),44 s,null,null
+0 · sin ventana: las pasadas rápidas de NOR-11,pasada 3 · 26/10/2026 13:31:58 (hora de Madrid),31 s,null,null
+0 · sin ventana: las pasadas rápidas de NOR-11,pasada 4 · 26/10/2026 13:35:04 (hora de Madrid),39 s,null,null
+0 · sin ventana: las pasadas rápidas de NOR-11,pasada 5 · 26/10/2026 13:37:07 (hora de Madrid),41 s,null,null
+0 · sin ventana: las pasadas rápidas de NOR-11,pasada 6 · 26/10/2026 14:38:04 (hora de Madrid),44 s,null,null
+0 · sin ventana: las pasadas rápidas de NOR-11,pasada 7 · 26/10/2026 23:29:26 (hora de Madrid),39 s,null,null
+0 · sin ventana: las pasadas rápidas de NOR-11,pasada 8 · 26/10/2026 23:32:32 (hora de Madrid),43 s,null,null
+0 · sin ventana: las pasadas rápidas de NOR-11,pasada 9 · 26/10/2026 23:33:49 (hora de Madrid),43 s,null,null
+0 · sin ventana: las pasadas rápidas de NOR-11,pasada 10 · 26/10/2026 23:34:51 (hora de Madrid),41 s,null,null
+0 · sin ventana: las pasadas rápidas de NOR-11,pasada 11 · 26/10/2026 23:35:46 (hora de Madrid),42 s,null,null
+0 · sin ventana: las pasadas rápidas de NOR-11,pasada 12 · 26/10/2026 23:36:40 (hora de Madrid),37 s,null,null
+0 · sin ventana: las pasadas rápidas de NOR-11,pasada 13 · 26/10/2026 23:37:46 (hora de Madrid),46 s,null,null
+0 · sin ventana: las pasadas rápidas de NOR-11,pasada 14 · 28/10/2026 08:33:20 (hora de Madrid),42 s,null,null
+0 · sin ventana: las pasadas rápidas de NOR-11,pasada 15 · 28/10/2026 08:34:17 (hora de Madrid),40 s,null,null
+0 · sin ventana: las pasadas rápidas de NOR-11,pasada 16 · 28/10/2026 08:35:39 (hora de Madrid),47 s,null,null
+0 · sin ventana: las pasadas rápidas de NOR-11,pasada 17 · 28/10/2026 08:36:30 (hora de Madrid),40 s,null,null
+0 · sin ventana: las pasadas rápidas de NOR-11,pasada 18 · 28/10/2026 08:43:47 (hora de Madrid),38 s,null,null
+0 · sin ventana: las pasadas rápidas de NOR-11,pasada 19 · 28/10/2026 08:44:49 (hora de Madrid),46 s,null,null
+0 · sin ventana: las pasadas rápidas de NOR-11,pasada 20 · 28/10/2026 08:45:43 (hora de Madrid),41 s,null,null
+0 · sin ventana: las pasadas rápidas de NOR-11,pasada 21 · 28/10/2026 08:46:37 (hora de Madrid),42 s,null,null
+0 · sin ventana: las pasadas rápidas de NOR-11,pasada 22 · 28/10/2026 08:47:24 (hora de Madrid),34 s,null,null
+0 · sin ventana: las pasadas rápidas de NOR-11,pasada 23 · 28/10/2026 08:48:53 (hora de Madrid),36 s,null,null
+0 · sin ventana: las pasadas rápidas de NOR-11,pasada 24 · 28/10/2026 08:49:57 (hora de Madrid),47 s,null,null
+0 · sin ventana: las pasadas rápidas de NOR-11,pasada 25 · 28/10/2026 08:52:24 (hora de Madrid),40 s,null,null
+0 · sin ventana: las pasadas rápidas de NOR-11,pasada 26 · 28/10/2026 08:55:12 (hora de Madrid),40 s,null,null
+```
+
+**Qué es cada grupo**, con los pushes del 3.4 (sección «QUÉ TANDA ES CADA GRUPO DE PASADAS»):
+- **Las 6 del 26/10, de 13:28 a 14:38**, son anteriores a cualquier push del 3.4, el primero a las 17:52. Son las de después de la
+  purga, con el prompt anterior.
+- **Las 7 del 26/10, de 23:29 a 23:37**, son la primera tanda, después del push de las fases 2 y 3 (23:22). ⚠️ La primera corrió
+  **siete minutos** después del push, y si el despliegue de Vercel ya había terminado no consta aquí. Las de NOR-10 de esa
+  tanda empezaron 16 minutos después.
+- **Las 13 del 28/10, de 08:33:20 a 08:55:12**, son la segunda tanda: después del push del principio (27/10, 16:10) y antes
+  del siguiente (29/10). **Son las únicas con el prompt de hoy.** El montaje decía «siete de NOR-11» y fueron 13; las de
+  NOR-10 de esa misma tanda fueron 7, de 08:21 a 08:30.
+
+**LA VENTANA DEL QUINTO, comprobada contra la lista**: `desde` = `timestamptz '2026-10-28 08:30:00+01'`, `hasta` =
+`timestamptz '2026-10-28 09:00:00+01'`, `esperado` = `13`, `documento` = `'NOR-11'`. En esa media hora la lista sólo tiene las
+13. Es la ventana que propuso el arquitecto, y es correcta.
+- *Por comprobar*: el «5 de 13» del quinto en la consulta F-130, escrita esa misma mañana, puede ser justo esta ventana. La
+  consulta lo dirá.

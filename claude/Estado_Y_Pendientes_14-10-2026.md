@@ -216,8 +216,10 @@ a ojo. El procedimiento, el coste y la consulta se plantean ANTES de pedírselo 
     la pasada 2, porque el enumerador forma parejas de trozos y NOR-10·4 ↔ CLI-12·3 lleva A dentro por su texto. **Pero
     abre un requisito**: la pasada 2 encontraría A con otra cita, y la desduplicación por posición de cita la publicaría
     dos veces. El filtro de lo cubierto, o la desduplicación, tiene que reconocerla como la misma. Al plan.
-  - **La línea base del quinto, siguiente y gratis**: 13 pasadas de NOR-11 el 28/10, de 08:33 a 08:55 según el
-    arquitecto. La ventana se confirma cuando llegue la lista sin ventana de NOR-11, que no ha llegado a Code.
+  - **La línea base del quinto, siguiente y gratis**: 13 pasadas de NOR-11 el 28/10, de 08:33:20 a 08:55:12. **La ventana
+    está COMPROBADA contra la lista sin ventana**, archivada en la medida: de 08:30 a 09:00 del 28/10, esperado 13,
+    documento `'NOR-11'`. En esa media hora sólo están ésas, y son las únicas de NOR-11 con el prompt de hoy. PENDIENTE
+    DEL DIRECTOR.
 - ✅ **MEDIDA (30-31/10), las dos salidas archivadas literales en la medida y comprobadas por Code:**
   - **El control positivo, en verde**: reproduce el «2 de 7 · con la etiqueta: 1» de la segunda tanda, que era la
     puntuación a ojo del arquitecto.
