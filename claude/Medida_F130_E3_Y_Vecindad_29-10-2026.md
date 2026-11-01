@@ -1140,6 +1140,8 @@ siendo «0 de 3», el de D, y no «0 de 66».** Contarlo como 66 habría sido el
   - O el filtro de lo ya cubierto, o la desduplicación, tienen que reconocer que son el mismo hallazgo aunque la cita sea
     otra.
   - Va al plan como requisito, y no se decide aquí.
+- **01/11, el arquitecto confirma las dos cosas**: esta lectura es la correcta, y la suya («en la pasada 2 A y D caerían en
+  parejas distintas») queda retirada. Y el requisito de la desduplicación entra en el punto 3 del plan (estado vivo).
 
 ## LAS PASADAS RÁPIDAS DE NOR-11: LA LISTA SIN VENTANA DE SQL_34_06, LITERAL (ejecutada por el director, 31/10/2026)
 

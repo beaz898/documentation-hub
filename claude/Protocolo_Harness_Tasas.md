@@ -1398,8 +1398,14 @@ los dos los cazó Code:
   La fuga del verificador la encontró FABLE el 29/10, y él mismo lo dice: «es la línea de mi respuesta del 29/10». Lo de
   Code era otra cosa: que lo que mata el verificador no deja texto, y que la puerta mataría una paráfrasis.
 
-**LA FORMA OPERATIVA**: antes de escribir «lo encontraste tú» o «lo dijo él», se mira en el archivo quién lo escribió
-primero.
+- **01/11, y es distinto de los anteriores**: aquéllos extrapolaban, y aquí se INVENTÓ UN SUCESO. El arquitecto escribió
+  que Code había parado su enunciado del problema «antes de que se escribiera». No lo paró: el enunciado se escribió en
+  el estado vivo y en la medida el 31/10, con la nota de Code al lado, y al día siguiente lo sustituyó la redacción de
+  Code. Code no paró nada: escribió y avisó, que es el contrato. (El relato equivocado quedó en el mensaje, y no llegó a
+  ningún documento.)
+
+**LA FORMA OPERATIVA**: antes de escribir «lo encontraste tú», «lo dijo él» o «lo paraste», se mira en el archivo quién lo
+escribió primero, y qué pasó.
 **Y SU PRIMA, del mismo día**: un resumen que recorta una regla deja de ser la regla. La regla nueva de Fable llevaba una
 regla secuencial, «parar antes solo con 18 de 20 o 10 de 20», y el resumen del arquitecto la había cortado.
 

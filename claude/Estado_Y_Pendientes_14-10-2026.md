@@ -225,6 +225,11 @@ a ojo. El procedimiento, el coste y la consulta se plantean ANTES de pedírselo 
     la pasada 2, porque el enumerador forma parejas de trozos y NOR-10·4 ↔ CLI-12·3 lleva A dentro por su texto. **Pero
     abre un requisito**: la pasada 2 encontraría A con otra cita, y la desduplicación por posición de cita la publicaría
     dos veces. El filtro de lo cubierto, o la desduplicación, tiene que reconocerla como la misma. Al plan.
+    **CONFIRMADO POR EL ARQUITECTO (01/11)**, y su lectura queda retirada:
+    - Que A se cite por §2.1 la separa de D EN LA PASADA 1, no en la 2. El enumerador empareja trozos por su texto, y
+      NOR-10·4 lleva dentro la segunda frase de §2.4, que expresa A.
+    - **Por eso la medición del 90 % conserva su sentido**: midió la pareja tal como la entregará el enumerador.
+    - Lo que cambia es qué significa «A dentro»: no es la A que el producto publica, sino la A que vive en ese trozo.
   - **La línea base del quinto, siguiente y gratis**: 13 pasadas de NOR-11 el 28/10, de 08:33:20 a 08:55:12. **La ventana
     está COMPROBADA contra la lista sin ventana**, archivada en la medida: de 08:30 a 09:00 del 28/10, esperado 13,
     documento `'NOR-11'`. En esa media hora sólo están ésas, y son las únicas de NOR-11 con el prompt de hoy. PENDIENTE
@@ -277,6 +282,11 @@ a ojo. El procedimiento, el coste y la consulta se plantean ANTES de pedírselo 
      - lote por `llm-client`, con registro;
      - filtro de lo ya cubierto;
      - unión y desduplicación por posición de cita;
+     - ⚠️ **REQUISITO EXPLÍCITO (01/11, de Code, aceptado por el arquitecto)**: si la pasada 2 encuentra A en NOR-10·4 ↔
+       CLI-12·3, la citará por la segunda frase de §2.4, y la pasada 1 ya la publicó por §2.1. **Con desduplicación por
+       posición de cita, el usuario vería A dos veces.** El filtro de lo cubierto, o la desduplicación, tiene que
+       reconocer que es el mismo hallazgo aunque la cita sea otra. El arquitecto: «sin ese aviso habríamos construido
+       la desduplicación por posición y el duplicado habría aparecido en el modo sombra, o peor, en producción»;
      - interruptor y modo sombra.
   4. **E5 con la pasada 2 encendida**: 20 pasadas por pareja, contando TODOS los hallazgos, contra la línea base por
      hallazgo.
