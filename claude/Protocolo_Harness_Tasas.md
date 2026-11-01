@@ -1517,6 +1517,9 @@ entre X de N y (N − Y) de N».
 **EL CASO**: el quinto en NOR-11, 5 hallados de 13 sin un solo negativo limpio (4 sin «discarded» y 4 con un muerto sin
 texto). Se escribió primero como «5 de 13», que se lee como tasa. D, en la misma semana, tiene 17 negativos limpios de
 21, y su 3 de 21 sí es una tasa. Las dos filas sólo son comparables con el denominador al lado.
+**SU PRIMER USO, el mismo día (01/11)**: `SQL_34_07` sobre esas 13 pasadas, control positivo 9 de 9, dio los cuatro
+agujeros como CERO REAL (el juez contestó «sin_relacion» y no emitió nada). Pasaron a negativos limpios, y el quinto quedó
+entre 5 y 9 de 13. Sin la consulta, la fila se habría quedado sin denominador o se habría puntuado mal.
 
 **EL CONTROL, cada vez que el control 6 de `SQL_34_06` (o el de cualquier consulta por pasada) dé agujeros**: se ejecuta
 `SQL_34_07_el_agujero_de_discarded.sql` con la MISMA ventana, ANTES de puntuar. «discarded» falta por dos causas que el

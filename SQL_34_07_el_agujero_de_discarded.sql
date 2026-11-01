@@ -1,6 +1,7 @@
 -- ============================================================================
 -- SQL_34_07 · EL AGUJERO DE «discarded»: ¿JUICIO VACÍO O JUEZ CAÍDO? — SÓLO LECTURA (01/11/2026)
--- ⏳ PENDIENTE DE EJECUTAR. Sólo SELECT: no escribe, no borra, no cambia nada. La ejecuta el director; Code no
+-- ✅ EJECUTADO por el director el 01/11/2026 con NOR-11, ventana del 28/10 de 08:30 a 09:00: las cuatro pasadas sin
+-- «discarded» (1, 2, 7 y 8), CERO REAL; control positivo 9 de 9. La salida, literal, en la medida de F-130. Sólo SELECT: no escribe, no borra, no cambia nada. La ejecuta el director; Code no
 -- ejecuta consultas.
 --
 -- PARA QUÉ (arquitecto, 01/11): el control 6 de SQL_34_06 da como AGUJERO toda pasada cuyo juicio de CLI-12 no guarda

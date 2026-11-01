@@ -1294,3 +1294,135 @@ conversación y lo comparó línea a línea. **Coincidían las 28 líneas**, y l
 pegado, no el montado. Si no hubieran coincidido, el análisis entero se habría tenido que rehacer. La regla de la casa
 —los textos que faltan no se reconstruyen— se estaba incumpliendo sin saberlo, y lo único que lo paró fue preguntar de
 dónde venía el texto antes de archivarlo.
+
+## EL AGUJERO DE «discarded» EN EL QUINTO: LA SALIDA DE SQL_34_07, LITERAL (ejecutada por el director, 01/11/2026)
+
+Parámetros: `documento` = `'NOR-11'`, ventana del 28/10 de 08:30 a 09:00 (+01), `esperado` = `13`. La salida, como llegó.
+El director la pegó dentro del mensaje: por pegada aparte no había llegado. Code la sacó del registro de la conversación
+con un script, no la copió a mano:
+
+```
+bloque,a,b,c,d
+organización leída,organización leída: 68bf28c3-8352-4052-8eb4-3a7e31b74b53 · «Mi workspace» · 45 documentos,null,null,null
+0 · control,ventana: 28/10 08:30 a 28/10 09:00 (hora de Madrid),OK,null,null
+0 · control,pasadas de NOR-11 en la ventana: 13 · esperado: 13,OK,null,null
+0 · control,pasadas que no son rápidas: 0,OK,null,null
+0 · control,documentos CLI-12 en la organización: 1 (tiene que ser uno),OK,null,null
+0 · control,pasadas con el registro por llamada: 13 de 13 · que pasaron su guarda de 200: 0,OK,null,null
+0 · control,CONTROL POSITIVO · pasadas con «discarded» y una petición del juez a CLI-12 con 200: 9 de 9,OK,null,null
+1 · por pasada,pasada 1 · 28/10 08:33:20,CERO REAL: el juez contestó a CLI-12 (el juicio no es el de reserva) y no descartó nada,"juez a CLI-12: 1 peticiones, 1 con 200, la última: ok · caídas del juez en el análisis: 0",el juicio de CLI-12: sin_relacion · solape 0 % · contradicciones 0 · solapes 0 · únicos 7
+1 · por pasada,pasada 2 · 28/10 08:34:17,CERO REAL: el juez contestó a CLI-12 (el juicio no es el de reserva) y no descartó nada,"juez a CLI-12: 1 peticiones, 1 con 200, la última: ok · caídas del juez en el análisis: 0",el juicio de CLI-12: sin_relacion · solape 0 % · contradicciones 0 · solapes 0 · únicos 10
+1 · por pasada,pasada 3 · 28/10 08:35:39,con «discarded»: no es un agujero,"juez a CLI-12: 1 peticiones, 1 con 200, la última: ok · caídas del juez en el análisis: 0",el juicio de CLI-12: tema_similar · solape 5 % · contradicciones 1 · solapes 2 · únicos 10
+1 · por pasada,pasada 4 · 28/10 08:36:30,con «discarded»: no es un agujero,"juez a CLI-12: 1 peticiones, 1 con 200, la última: ok · caídas del juez en el análisis: 0",el juicio de CLI-12: tema_similar · solape 2 % · contradicciones 0 · solapes 0 · únicos 10
+1 · por pasada,pasada 5 · 28/10 08:43:47,con «discarded»: no es un agujero,"juez a CLI-12: 1 peticiones, 1 con 200, la última: ok · caídas del juez en el análisis: 0",el juicio de CLI-12: tema_similar · solape 5 % · contradicciones 1 · solapes 1 · únicos 7
+1 · por pasada,pasada 6 · 28/10 08:44:49,con «discarded»: no es un agujero,"juez a CLI-12: 1 peticiones, 1 con 200, la última: ok · caídas del juez en el análisis: 0",el juicio de CLI-12: tema_similar · solape 8 % · contradicciones 0 · solapes 2 · únicos 6
+1 · por pasada,pasada 7 · 28/10 08:45:43,CERO REAL: el juez contestó a CLI-12 (el juicio no es el de reserva) y no descartó nada,"juez a CLI-12: 1 peticiones, 1 con 200, la última: ok · caídas del juez en el análisis: 0",el juicio de CLI-12: sin_relacion · solape 0 % · contradicciones 0 · solapes 0 · únicos 10
+1 · por pasada,pasada 8 · 28/10 08:46:37,CERO REAL: el juez contestó a CLI-12 (el juicio no es el de reserva) y no descartó nada,"juez a CLI-12: 1 peticiones, 1 con 200, la última: ok · caídas del juez en el análisis: 0",el juicio de CLI-12: sin_relacion · solape 0 % · contradicciones 0 · solapes 0 · únicos 8
+1 · por pasada,pasada 9 · 28/10 08:47:24,con «discarded»: no es un agujero,"juez a CLI-12: 1 peticiones, 1 con 200, la última: ok · caídas del juez en el análisis: 0",el juicio de CLI-12: tema_similar · solape 5 % · contradicciones 1 · solapes 1 · únicos 8
+1 · por pasada,pasada 10 · 28/10 08:48:53,con «discarded»: no es un agujero,"juez a CLI-12: 1 peticiones, 1 con 200, la última: ok · caídas del juez en el análisis: 0",el juicio de CLI-12: tema_similar · solape 5 % · contradicciones 0 · solapes 1 · únicos 8
+1 · por pasada,pasada 11 · 28/10 08:49:57,con «discarded»: no es un agujero,"juez a CLI-12: 1 peticiones, 1 con 200, la última: ok · caídas del juez en el análisis: 0",el juicio de CLI-12: tema_similar · solape 5 % · contradicciones 0 · solapes 2 · únicos 10
+1 · por pasada,pasada 12 · 28/10 08:52:24,con «discarded»: no es un agujero,"juez a CLI-12: 1 peticiones, 1 con 200, la última: ok · caídas del juez en el análisis: 0",el juicio de CLI-12: tema_similar · solape 5 % · contradicciones 1 · solapes 1 · únicos 7
+1 · por pasada,pasada 13 · 28/10 08:55:12,con «discarded»: no es un agujero,"juez a CLI-12: 1 peticiones, 1 con 200, la última: ok · caídas del juez en el análisis: 0",el juicio de CLI-12: tema_similar · solape 4 % · contradicciones 1 · solapes 2 · únicos 10
+2 · el total,agujeros: 4 · cero real: 4 · juez caído: 0 · no se distingue: 0 · no se sabe: 0,null,null,null
+```
+
+**Comprobado con script sobre la salida**:
+- Seis controles, los seis OK. **El control positivo, 9 de 9.**
+- **Las cuatro pasadas sin «discarded», la 1, la 2, la 7 y la 8, son CERO REAL**: el juicio no es el de reserva.
+- **Las 13 pasadas**: una petición del juez a CLI-12, con 200, y ninguna caída del juez.
+- **Los cuatro cero real tienen el mismo juicio**: «sin_relacion · solape 0 %», sin contradicciones ni solapes, y con
+  7, 10, 10 y 8 únicos. **El juez no vio relación con CLI-12 en esa pareja y no emitió nada**, así que no hubo nada que
+  descartar (arquitecto: coherente).
+- Las otras nueve llevan «tema_similar», con solapes del 2 al 8 %.
+
+**CONSECUENCIA: LAS PASADAS 1, 2, 7 Y 8 PASAN A NEGATIVOS LIMPIOS. El quinto ya tiene denominador**: 5 hallados, 4
+negativos limpios y 4 «no sé» (la 4, la 6, la 10 y la 11, con un muerto sin texto cada una). **Entre 5 y 9 de 13.**
+
+### Las cuentas (arquitecto y Code, 01/11; las dos correcciones de Code, aceptadas)
+
+Wilson al 95 % y Fisher exacto bilateral, calculados con un script:
+
+| | Wilson al 95 % | Fisher frente a D (3 de 21) |
+|---|---|---|
+| D, 3 de 21 | 5,0 % a 34,6 % | — |
+| D con su cota, 4 de 21 | 7,7 % a 40,0 % | — |
+| el quinto, 5 de 13 | 17,7 % a 64,5 % | p = 0,211 |
+| el quinto, 6 de 13 | 23,2 % a 70,9 % | p = 0,057 |
+| el quinto, 7 de 13 | 29,1 % a 76,8 % | p = 0,022 |
+| el quinto, 8 de 13 | 35,5 % a 82,3 % | p = 0,008 |
+| el quinto, 9 de 13 | 42,4 % a 87,3 % | p = 0,002 |
+| A, B o C, 21 de 21 | 84,5 % a 100 % | — |
+
+- **Si un caso es peor que el otro: NO SE PUEDE AFIRMAR NI NEGAR.** Depende de los cuatro «no sé», y ninguna consulta
+  los puede atribuir. A 5 de 13 no hay diferencia con D; a 6 de 13, p = 0,057; a partir de 7 de 13, sí la hay.
+- **Los dos están por debajo de A, B y C, sin el «muy»**: el quinto a 9 de 13 frente a 21 de 21 da p = 0,015, así que
+  la diferencia se afirma. Pero los intervalos se tocan (87,3 % y 84,5 %), y el adjetivo no se sostiene. Para D, frente
+  a 21 de 21, p < 0,0001.
+
+### El glosario de CLI-12 y la remisión de NOR-11, verificados (Code, 01/11)
+
+Verificados contra `corpus-pruebas/` con el código de la indexación (`extractSegments` y `chunkSegments`). Control: 55
+trozos en CLI-12 y 15 en NOR-11, como en la base. **Contra el texto guardado en la base NO está verificado**: queda
+pendiente, CON DISPARADOR, para el día que algo se apoye en el glosario (arquitecto). Ningún documento del repositorio
+había usado antes el §4.
+
+- **CLI-12 §4, «Definiciones», trozo 7**: «Auditoría interna: revisión sistemática y planificada de un proceso,
+  realizada por personal de la propia organización, con el fin de verificar su cumplimiento y detectar oportunidades
+  de mejora.»
+- **CLI-12 §4, trozos 8 y 9**: «Estas definiciones son vinculantes para la interpretación de cualquier otro documento
+  del sistema de calidad de Dentavia, incluidos los protocolos clínicos y operativos de cada área.»
+- **CLI-12 §4, trozo 9**: «En caso de conflicto terminológico entre este manual y un protocolo operativo concreto,
+  prevalece la definición de este manual a efectos de indicadores y auditoría de calidad, sin perjuicio de que el
+  protocolo operativo mantenga su propia terminología técnica específica para la ejecución diaria del proceso.»
+- **CLI-12 §6.2, «Equipo auditor», trozo 13**: «Las auditorías internas las realiza siempre personal ajeno al área
+  auditada, habitualmente el Coordinador de Calidad de otra clínica de la red, para garantizar independencia de
+  criterio. El Coordinador de Calidad de la propia clínica participa en la auditoría como interlocutor, pero no como
+  auditor de su propia área.»
+- **NOR-11 §10.5, «Revisión periódica de buenas prácticas», trozo 13**: «El Coordinador de Calidad de cada clínica
+  revisa trimestralmente el cumplimiento de los criterios descritos en este apartado mediante observación directa del
+  área de almacenamiento intermedio y de los gabinetes, incorporando los hallazgos relevantes a la siguiente sesión de
+  formación anual del personal.»
+- **NOR-11 §11, «Relación con otros documentos», trozo 14** (la pieza que encontró Code): «También se relaciona con el
+  protocolo de desinfección de superficies, de aplicación conjunta ante derrames, y con el manual de calidad CLI-12,
+  que establece el enfoque de auditoría aplicable a este proceso, igual que ocurre con el resto de procesos críticos de
+  seguridad de la clínica.»
+
+⚠️⚠️ **HALLAZGO DE TROCEADO (arquitecto: «hallazgo de troceado, no nota»), con la corrección de Code sobre CÓMO está la
+frase de «vinculantes».** La frase no está PARTIDA entre los trozos 8 y 9: está ENTERA EN LOS DOS. El §4 se subdividió
+por longitud y el solape la repite (`lib/chunking.ts`, solape de 200 sólo dentro de una subdivisión por longitud; la
+entrada «Revisión por la dirección» también sale en el 7 y en el 8). Code había escrito «en el borde entre los dos», y
+esa frase floja es la que leyó el arquitecto como «partida». **El hallazgo se sostiene igual, y es éste: ningún trozo
+tiene a la vez la definición y lo que la hace vinculante.** La definición está en el 7, la obligatoriedad en el 8 y el
+9, y la cláusula que arbitra, con su excepción, sólo en el 9. Y las dos mitades del quinto van en otros trozos: NOR-11·13
+y CLI-12·13. Una comparación por parejas de trozos no tiene nunca la definición, su fuerza vinculante y las dos mitades
+a la vez.
+
+### La lectura del arquitecto, comprobada, y la contraria (01/11)
+
+**Encaja cláusula por cláusula con la definición del §4** (Code):
+- «revisión»: «revisa»;
+- «sistemática y planificada»: «trimestralmente», sobre «los criterios descritos en este apartado»;
+- «de un proceso»: el almacenamiento y los gabinetes;
+- «por personal de la propia organización»: el Coordinador de Calidad de cada clínica;
+- «para verificar su cumplimiento»: «revisa… el cumplimiento»;
+- «detectar oportunidades de mejora»: los hallazgos van a la formación.
+Con la definición, NOR-11 §10.5 es una auditoría interna, y CLI-12 §6.2 la contradice: «siempre personal ajeno al
+área», «no como auditor de su propia área». **Y NOR-11 §11 se remite a CLI-12 para el enfoque de auditoría de este
+proceso.**
+
+**LA LECTURA CONTRARIA, DEFENDIBLE, Y LA CLÁUSULA NO DECIDE LIMPIAMENTE** (Code; el arquitecto la acepta y retira «tiene
+que pelear contra el propio manual»). Tres argumentos:
+1. La cláusula que arbitra trae su excepción: prevalece el manual «a efectos de indicadores y auditoría de calidad»,
+   pero «sin perjuicio de que el protocolo operativo mantenga su propia terminología técnica específica para la
+   ejecución diaria del proceso». Una «revisión periódica de buenas prácticas» por «observación directa» puede ser
+   justo esa terminología de la ejecución diaria.
+2. El §6 describe las auditorías internas con un calendario anual, tipos (6.1) e informe con plazo (6.3), y NOR-11
+   §10.5 no tiene nada de eso: puede ser supervisión, no auditoría.
+3. La definición del §4, leída al pie de la letra, convierte en auditoría cualquier supervisión periódica.
+
+**¿Sigue siendo un caso de dato? Sí** (Code; el arquitecto lo creía). El dato es quién revisa o audita este proceso:
+el coordinador propio en NOR-11; «siempre personal ajeno al área» en CLI-12. Son dos valores para el mismo dato, y el
+glosario es lo que une los dos nombres de la actividad.
+⚠️ *Lo que no se sabe* (Code): en las cinco pasadas en que salió el quinto, la cita de CLI-12 es siempre de §6.2,
+nunca del §4. Que el juez lo hallara POR el glosario no consta. Pudo bastarle saber, sin el glosario, que revisar el
+cumplimiento es auditar.

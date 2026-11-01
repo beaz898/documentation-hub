@@ -218,7 +218,7 @@ a ojo. El procedimiento, el coste y la consulta se plantean ANTES de pedírselo 
     positivo, en verde: D reproduce a `SQL_34_05`.
   - ⚠️ *Code, al lado*: son tres casos de dato y uno inferencial, en una pareja y un corpus. La forma que sostienen los
     datos es «en NOR-10 ↔ CLI-12, A, B y C salen 21 de 21 y D 3 de 21». El quinto, de dato bajo otro nombre, no está
-    medido. *(01/11: medido en NOR-11 ↔ CLI-12, 5 hallados de 13 SIN NINGÚN NEGATIVO LIMPIO, que es un suelo y no una tasa; la tabla de la semana 0, más abajo.)*
+    medido. *(01/11: medido en NOR-11 ↔ CLI-12, entre 5 y 9 de 13, con los cuatro agujeros resueltos por SQL_34_07; la tabla de la semana 0, más abajo.)*
   - **Lo que no se infla (arquitecto)**: A, B y C sin especie es lo correcto, por contrato. El hallazgo de la especie
     sigue siendo **«0 de 3», el de D, no «0 de 66»**.
   - **A se cita SIEMPRE por §2.1** (21 de 21, NOR-10·2; ninguna por la segunda frase de §2.4). Eso no separa a A y a D en
@@ -235,40 +235,46 @@ a ojo. El procedimiento, el coste y la consulta se plantean ANTES de pedírselo 
     documento `'NOR-11'`. En esa media hora sólo están ésas, y son las únicas de NOR-11 con el prompt de hoy.
     ✅ **MEDIDA (01/11), archivada literal en la medida y comprobada con script.** Reproduce el «hallado 5 de 13,
     etiquetado 1 de esas 5» de la consulta F-130: es su control positivo.
-    ⚠️⚠️ **Y NO ES UNA TASA: ES UN SUELO (arquitecto, 01/11, sobre la frase de Code «no hay ninguna pasada sin el quinto
-    que esté limpia», que Code había dado sin su peso).** Las 8 pasadas sin el quinto son la 1, la 2, la 7 y la 8 (sin
-    registro de descartes) y la 4, la 6, la 10 y la 11 (un muerto sin texto cada una). **Cinco sí, ocho «no sé», ni un
-    negativo limpio.**
+    **Era un SUELO y no una tasa** (arquitecto, 01/11, sobre la frase de Code «no hay ninguna pasada sin el quinto que
+    esté limpia»), hasta que `SQL_34_07` resolvió los cuatro agujeros: abajo.
+  - ⚠️ **EL QUINTO NO ESTÁ EN NINGÚN REGISTRO DE SIEMBRA, Y NO ES SOSPECHOSO: NOR-11 ↔ CLI-12 NO ES UNA PAREJA SEMBRADA**
+    (pregunta del director; respuesta del arquitecto, comprobada por Code el 01/11). `corpus-pruebas/SIEMBRA_corpus_ampliado.md`
+    cubre NOR-10 ↔ CLI-12 (A, B y C sembradas; D, §7 y §8 halladas sin sembrar), el Excel OPE-10 ↔ OPE-11 y, en su §6,
+    NOR-10 ↔ CLI-13 (no sembrado). `corpus-pruebas/SIEMBRA_caso_control.md` cubre NOR-11 ↔ CLI-13: PLAZO, LUGAR y
+    NEGACIÓN CATEGÓRICA (la del contenedor negro). Ninguno nombra la pareja NOR-11 ↔ CLI-12 (`grep` de las dos en los
+    ocho `SIEMBRA_*.md`: cero). **El quinto cae en un cruce que nadie sembró.** Si se registra como hallazgo real, lo
+    decide el arquitecto (pendiente, abajo).
   - ⚠️⚠️ **LA SEMANA 0, CERRADA (arquitecto, 01/11).** Cada fila, con su pareja, su ventana y su DENOMINADOR. Un
-    negativo limpio es una pasada sin el caso, con «discarded» guardado y sin muertos sin texto en la pareja:
+    negativo limpio es una pasada sin el caso, con «discarded» guardado (o con el agujero resuelto como cero real por
+    `SQL_34_07`) y sin muertos sin texto en la pareja:
 
     | Caso | Pareja | Pasadas | Hallado | Negativos limpios | «No sé» | La etiqueta |
     |---|---|---|---|---|---|---|
     | A | NOR-10 ↔ CLI-12 | 21 (30-31/10) | 21 de 21 | — | — | sin especie, por contrato |
     | B | NOR-10 ↔ CLI-12 | 21 (30-31/10) | 21 de 21 | — | — | sin especie, por contrato |
     | C | NOR-10 ↔ CLI-12 | 21 (30-31/10) | 21 de 21 | — | — | sin especie, por contrato |
-    | D | NOR-10 ↔ CLI-12 | 21 (30-31/10) | **3 de 21, hasta 4 de 21** | 17 | 1 (la pasada 8, un muerto sin texto; 0 sin registro) | 0 de 3 con la etiqueta |
-    | el quinto | NOR-11 ↔ CLI-12 | 13 (28/10, 08:30-09:00) | 5 de 13, SIN TASA | **0** | 8 (4 sin registro, 4 con un muerto sin texto) | 4 de 5 bien (sin etiqueta) y 1 mal |
+    | D | NOR-10 ↔ CLI-12 | 21 (30-31/10) | **3 de 21, hasta 4 de 21** | 17 | 1 (la pasada 8, un muerto sin texto) | 0 de 3 con la etiqueta |
+    | el quinto | NOR-11 ↔ CLI-12 | 13 (28/10, 08:30-09:00) | **entre 5 y 9 de 13** | 4 (la 1, la 2, la 7 y la 8) | 4 (la 4, la 6, la 10 y la 11, un muerto sin texto cada una) | 4 de 5 bien (sin etiqueta) y 1 mal |
 
-    **La fila del quinto, como se lee** (redacción del arquitecto, 01/11): «el quinto, 5 hallados de 13 pasadas, SIN
-    NINGÚN NEGATIVO LIMPIO: las otras 8 pasadas o no registran descartes o tienen un hallazgo muerto sin texto, así que la
-    tasa no está medida y está entre 5 de 13 y 13 de 13». **El dato es que no hay denominador.** Si `SQL_34_07` da las
-    cuatro sin registro como cero real, pasan a negativos limpios y el quinto queda entre 5 y 9 de 13.
-    **D sí tiene número, y es EL ÚNICO NÚMERO FIRME DE LA SEMANA 0** (recuento de Code, 01/11, sobre la salida archivada
-    de `SQL_34_06`): 3 halladas, 17 negativos limpios, 0 sin registro (el control 6 sale en verde) y **la que falta para
-    las 21 es un muerto sin texto, en la pasada 8**: 3 + 17 + 1 = 21. **«3 de 21, hasta 4 de 21»**: la cota es la pasada 8,
-    donde D pudo morir sin dejar texto.
-    ⚠️⚠️ **LA CONSECUENCIA (arquitecto, 01/11): VOLVEMOS A UN SOLO CASO DÉBIL MEDIDO, LA D. EL QUINTO NO ESTÁ MEDIDO.**
-    Y van separadas dos cosas que el arquitecto había mezclado: **la CLASE del quinto, «el mismo dato bajo otro nombre»,
-    se establece leyendo sus dos frases y no depende de la tasa. Lo que no está medido es la TASA. Clase sí, tasa no.**
-  - **El hueco del control 6 (encargo del arquitecto: averiguar, no arreglar)**: en las pasadas 1, 2, 7 y 8 falta
-    `discarded` en el juicio de CLI-12. El código lo omite cuando está vacío (`judge.ts:602`, `:969`; `pipeline.ts:717`),
-    y también cuando el juez falla (`judge.ts:1017`). El control 6 lee cualquier ausencia como agujero y no puede
-    separar los dos casos. ✅ **LA CONSULTA QUE LOS SEPARA, ESCRITA (01/11): `SQL_34_07_el_agujero_de_discarded.sql`,
-    PENDIENTE DE EJECUTAR**, con la ventana del quinto. Lee la forma del juicio, las caídas del juez de `stageFailures`
-    y las peticiones del juez a CLI-12 de `llamadasAlModelo`. Su control positivo puede fallar, y está probada en PGlite
-    (7 pruebas; 32 de 32 mutantes en rojo). **Es CONTROL PERMANENTE** (`claude/Protocolo_Harness_Tasas.md`): sin ella,
-    la próxima tanda de 20 tendrá el mismo agujero.
+    - **D** (recuento de Code, 01/11): 3 + 17 + 1 = 21; la cota es la pasada 8, donde D pudo morir sin dejar texto.
+    - **El quinto**: `SQL_34_07` (ejecutada el 01/11, salida literal en la medida, control positivo 9 de 9) da las cuatro
+      pasadas sin «discarded» como CERO REAL, con el juicio «sin_relacion · solape 0 %»: el juez no vio relación y no
+      emitió nada. Pasan a negativos limpios. **5 hallados, 4 negativos limpios, 4 «no sé»: entre 5 y 9 de 13.**
+    - **LAS CUENTAS** (Wilson al 95 % y Fisher exacto bilateral, con las dos correcciones de Code que acepta el arquitecto;
+      la tabla entera, en la medida):
+      - D, 3 de 21: del 5 % al 35 %. El quinto, del 18 % al 64 % a 5 de 13, y del 42 % al 87 % a 9 de 13.
+      - **Si un caso es peor que el otro, NO SE PUEDE AFIRMAR NI NEGAR**: depende de los cuatro «no sé», y ninguna
+        consulta los puede atribuir. A 5 de 13, p = 0,21; a 6 de 13, p = 0,057; a partir de 7 de 13, la diferencia con
+        D sí es significativa.
+      - **Los dos están por debajo de A, B y C, sin el «muy»**: el quinto a 9 de 13 frente a 21 de 21 da p = 0,015, y la
+        diferencia se afirma, pero los intervalos se tocan (87 % y 84,5 %).
+    ⚠️⚠️ **EL ÚNICO CASO DÉBIL MEDIDO CON NÚMERO FIRME ES D.** La CLASE del quinto, «el mismo dato bajo otro nombre», se
+    establece leyendo sus frases y no depende de la tasa. La tasa ya está acotada, entre 5 y 9 de 13, y no se puede
+    comparar con la de D.
+  - **El hueco del control 6, RESUELTO (01/11)**: `discarded` se omite cuando está vacío (`judge.ts:602`, `:969`;
+    `pipeline.ts:717`) y cuando el juez falla (`judge.ts:1017`). `SQL_34_07_el_agujero_de_discarded.sql` los separa
+    (probada en PGlite: 7 pruebas, 32 de 32 mutantes en rojo). **Ejecutada con el quinto: los cuatro, cero real.** Es
+    CONTROL PERMANENTE (`claude/Protocolo_Harness_Tasas.md`).
   - **El punto 3, el requisito AMPLIADO (arquitecto, 01/11)**: el lado de NOR-11 es la misma frase, palabra por palabra,
     en las cinco pasadas; lo único que cambia es la frase de CLI-12 que se cita: «…no como auditor de su propia área» en
     la 3 y la 5, «…personal ajeno al área auditada…» en la 9, la 12 y la 13. Las dos están en CLI-12 §6.2, trozo 13.
@@ -276,31 +282,53 @@ a ojo. El procedimiento, el coste y la consulta se plantean ANTES de pedírselo 
     trozos distintos** (el caso de A). Y la duplicación dentro de una pasada es **compatible con lo observado en la pasada
     12**: publicó el quinto y además tuvo un muerto sin texto, que podría ser una segunda emisión del quinto por la otra
     frase. No es un riesgo teórico ni un hecho. (El arquitecto había dicho que «no pasó nunca en las 13», y lo corrige él.)
-  - **LA PARTICIÓN: la adición del arquitecto (01/11), decidida**: no son una clase, son DOS FRONTERAS VECINAS CON NOMBRE
-    PROPIO EN LA CASA. D es «una permisión contra un principio» (F-129, `claude/consultas-fable/INDICE.md:197`). El
-    quinto es «el mismo dato bajo otro nombre»: la línea de F-92 EXISTE (`INDICE.md:194`, «el hueco es el territorio de
-    las omisiones —y del mismo dato bajo otro nombre—»), y F-92 la dictaminó para TABLAS, «el mismo dato bajo distinto
-    nombre de columna» (`F-92.md:238`). El quinto es el caso de PROSA: **el nombre es de F-92, y llevarlo a la prosa es
-    nuestro** (precisión de Code del 25/10, más abajo en este fichero). Lo que comparten: exigen un paso que no está
-    escrito. Y se retira «la superficie no basta», que sólo estuvo en los mensajes del arquitecto: con dos casos no se
-    puede decir qué superficie pesa.
-    ⚠️⚠️ **LA REDACCIÓN: SUSPENDIDA, NO SUSTITUIDA, HASTA QUE VUELVA `SQL_34_07` (arquitecto, 01/11).** Code se cazó a
-    sí mismo: su redacción dice que el quinto sale «por debajo de la mitad» y lo pone «en el lado débil», y con el suelo
-    eso no se sostiene. Las dos versiones se quedan aquí, cada una con su condición:
-    - **SI LAS CUATRO PASADAS SIN REGISTRO SON «CONTESTÓ Y NO DESCARTÓ»** (cero real en `SQL_34_07`), vuelve a valer la
-      original de Code: «En los cinco casos medidos (dos parejas, un corpus), los tres en que los dos documentos
-      nombran el mismo dato con las mismas palabras (A, B y C) salen 21 de 21. Los dos que exigen un paso que no está
-      escrito salen por debajo de la mitad: D, deducir del principio que el permiso lo vulnera, 3 de 21; y el quinto,
-      reconocer que "revisa trimestralmente el cumplimiento" y "auditoría interna" son la misma actividad, 5 de 13. Son
-      dos casos en el lado débil, no una clase.»
-      ⚠️ *Code, al ponerla aquí*: aun así, el quinto quedaría entre 5 y 9 de 13, y 9 de 13 no está por debajo de la
-      mitad. Con las cuatro como cero real, «por debajo de la mitad» sólo es seguro si los cuatro muertos sin texto
-      tampoco eran el quinto, y eso no lo puede decir ninguna consulta.
-    - **SI FUERON CAÍDAS** (o no se distinguen), va la nueva de Code: «En los cinco casos medidos (dos parejas, un
-      corpus), los tres en que los dos documentos nombran el mismo dato con las mismas palabras (A, B y C) salen 21 de 21.
-      D, que exige deducir del principio que el permiso lo vulnera, sale 3 de 21, con 17 negativos limpios. El quinto,
-      que exige reconocer que "revisa trimestralmente el cumplimiento" y "auditoría interna" son la misma actividad, sale
-      en 5 de 13 pasadas sin ningún negativo limpio: no tiene tasa.»
+  - ⚠️⚠️ **LA PARTICIÓN, REESCRITA (arquitecto, 01/11, con el glosario verificado por Code): D Y EL QUINTO YA NO SON LA
+    MISMA FAMILIA.**
+    - **D: deducir lo que nadie escribió.** Una permisión contra un principio (F-129, `claude/consultas-fable/INDICE.md:197`).
+    - **El quinto: aplicar una definición vinculante que sí está escrita, y que tiene una excepción.** CLI-12 §4 define la
+      auditoría interna como «revisión sistemática y planificada de un proceso, realizada por personal de la propia
+      organización, con el fin de verificar su cumplimiento y detectar oportunidades de mejora». Declara las definiciones
+      «vinculantes para la interpretación de cualquier otro documento del sistema de calidad de Dentavia». NOR-11 §10.5
+      encaja cláusula por cláusula. Y NOR-11 §11 se remite a CLI-12 como el manual «que establece el enfoque de auditoría
+      aplicable a este proceso» (pieza encontrada por Code). Textos literales y trozos, en la medida.
+    - **Sigue siendo un caso de dato**: quién revisa o audita este proceso, el coordinador propio o «siempre personal
+      ajeno al área». El glosario es lo que une los dos nombres de la actividad. El nombre de la familia es de F-92
+      (`INDICE.md:194`; F-92 lo dijo para tablas, `F-92.md:238`), y llevarlo a la prosa es nuestro.
+    - **LA LECTURA CONTRARIA ES DEFENDIBLE, Y LA CLÁUSULA NO DECIDE LIMPIAMENTE** (Code; el arquitecto la acepta y retira
+      «tiene que pelear contra el propio manual»). La cláusula que arbitra prevalece «sin perjuicio de que el protocolo
+      operativo mantenga su propia terminología técnica específica para la ejecución diaria del proceso». El §6 da a las
+      auditorías calendario, tipos e informe, y §10.5 no tiene nada de eso. Y la definición, al pie de la letra,
+      convierte en auditoría cualquier supervisión periódica.
+    - ⚠️ *Lo que no consta* (Code): en las cinco pasadas en que salió el quinto, la cita de CLI-12 es de §6.2, nunca del
+      §4. No se sabe si el juez lo halló POR el glosario.
+    - **LA REDACCIÓN: NO SOBREVIVE NINGUNA DE LAS DOS** (arquitecto, 01/11). La original de Code decía «por debajo de la
+      mitad» y «lado débil»; la nueva, «no tiene tasa». Con el quinto entre 5 y 9 de 13, la primera no vale (9 de 13 es
+      el 69 %) y la segunda ya no es verdad. **La que queda, con el intervalo y sin adjetivos**: «En los cinco casos
+      medidos (dos parejas, un corpus), A, B y C, en que los dos documentos nombran el mismo dato con las mismas
+      palabras, salen 21 de 21. D, deducir del principio que el permiso lo vulnera, sale 3 de 21, hasta 4 de 21. El
+      quinto, aplicar la definición vinculante de auditoría interna del §4 de CLI-12, sale entre 5 y 9 de 13. No se
+      puede afirmar ni negar que uno de los dos últimos sea peor que el otro.»
+    - Y se retira «la superficie no basta», que sólo estuvo en los mensajes del arquitecto.
+  - ⚠️⚠️ **DECISIÓN DE PRODUCTO DEL ARQUITECTO, con su nombre (01/11): EL QUINTO ESTÁ EN EL LÍMITE DE LO QUE MERECE LA
+    PENA PERSEGUIR, Y PERSEGUIRLO PUEDE EMPEORAR EL PRODUCTO.** Tres motivos:
+    1. Tiene dos lecturas defendibles, y la cláusula que debería arbitrar trae una excepción que apoya a la contraria.
+       Si un revisor humano competente puede discrepar, el producto no debería afirmarlo.
+    2. El mecanismo que encadena glosario, cláusula y referencia cruzada ES EL MISMO que produce falsos positivos
+       razonados. Y la definición del §4 es tan amplia que convierte cualquier supervisión periódica en auditoría: eso
+       reabre F-125 y F-126.
+    3. El dolor del cliente son las contradicciones que un humano vería, del tipo de A, B y C.
+    **CONSECUENCIA: NO SE CONSTRUYE NINGÚN MECANISMO CUYO OBJETIVO SEA CAZAR CASOS COMO EL QUINTO.** El quinto se queda
+    como guarda de no regresión, y nada más.
+    **IDEA DE PRODUCTO, SIN ESPECIFICAR NI CONSTRUIR (arquitecto, 01/11)**: para casos así, en vez de afirmar la
+    contradicción, un ESCALÓN DISTINTO que diga «esto puede chocar según la definición vinculante del §4, que tiene una
+    excepción: decide tú», con las dos lecturas y la cláusula entera citada.
+  - **PENDIENTE DE DECISIÓN DEL ARQUITECTO: ¿se registra el quinto como hallazgo real no sembrado?** No está registrado
+    en ningún sitio con sus pasajes literales. La costumbre de la casa (§6, §7 y §8 de `SIEMBRA_corpus_ampliado.md`, del
+    20 y el 22/10) es una sección nueva al final de ese fichero, «· NO SEMBRADO», con los pasajes literales, aunque la
+    pareja no sea la del fichero (el §6 es NOR-10 ↔ CLI-13). No se escribe hasta que lo decida.
+  - **PENDIENTE CON DISPARADOR (arquitecto, 01/11)**: el glosario de CLI-12 está verificado con el código de la indexación
+    sobre `corpus-pruebas/`, no contra el texto guardado en la base. Se verifica en la base **el día que algo se apoye en
+    el glosario**.
   - ⚠️ **REINCIDENCIA DEL ARQUITECTO, con su nombre (01/11): la clase del quinto, mal por SEGUNDA vez.** La primera, del
     24-25/10: lo presentó como un `norma_contra_norma`, y la lectura corregida está más abajo en este fichero, fechada
     «arquitecto, 25/10». La segunda, hoy: la partición «dato / cumplimiento» volvía a sacar el quinto del dato.
@@ -383,7 +411,7 @@ a ojo. El procedimiento, el coste y la consulta se plantean ANTES de pedírselo 
   1. **Extender la consulta y sacar la línea base POR HALLAZGO. Gratis**, sobre las pasadas que ya están en la base. ✅
      **PREPARADO**: `SQL_34_06_hallazgos_por_pasada.sql`, consulta nueva, porque `SQL_34_05` está ejecutada y se queda como
      se ejecutó. Cuenta A, B, C y D en NOR-10, y el quinto en NOR-11. Para D usa la misma regla que `SQL_34_05`, y su
-     arnés lo comprueba. PENDIENTE DE EJECUTAR.
+     arnés lo comprueba. ✅ EJECUTADO (31/10 con NOR-10, 01/11 con NOR-11), y con él `SQL_34_07`: la semana 0, arriba.
   2. **El verificador sin marca, en un commit SOLO**, y después **se vuelve a medir la línea base con 20 pasadas** y la
      consulta extendida. Va primero porque puede subir la línea base él solo: en la pasada 8 murió algo sin texto. Si va
      junto a la pasada 2, los dos efectos quedan confundidos. **Es un DEFECTO**, y lo encontró Fable el 29/10.
@@ -401,9 +429,15 @@ a ojo. El procedimiento, el coste y la consulta se plantean ANTES de pedírselo 
      - interruptor y modo sombra.
   4. **E5 con la pasada 2 encendida**: 20 pasadas por pareja, contando TODOS los hallazgos, contra la línea base por
      hallazgo.
-  5. **Activación con los criterios en veintes de Fable**, más el del quinto conflicto cuando tenga su número.
+  5. **Activación con los criterios en veintes de Fable.**
+  ⚠️⚠️ **EL OBJETIVO ES D; EL QUINTO ES COMPROBACIÓN (decisión del director, tomada con el arquitecto, 01/11).** Se
+  arregla para D, y después se mira si el quinto se movió. Si se mueve, el arreglo es general; si no, son dos
+  problemas. Y el quinto es GUARDA DE NO REGRESIÓN: ningún arreglo puede bajarlo de su línea base (entre 5 y 9 de
+  13). **NO SE CONSTRUYE NINGÚN MECANISMO CUYO OBJETIVO SEA CAZAR CASOS COMO EL QUINTO** (decisión de producto del
+  arquitecto, 01/11, con sus tres motivos, arriba).
   **El contador de P-F130-11** («sólo pasada 1 / sólo pasada 2 / las dos») va desde el primer commit de la pasada 2.
-  **EL QUINTO CONFLICTO NO QUEDA FUERA**: es el control más valioso, el único que nadie sembró. Si la pasada 2 lo pierde,
+  ~~**EL QUINTO CONFLICTO NO QUEDA FUERA**~~ *(SUSTITUIDO el 01/11 por la decisión de arriba: el quinto es comprobación
+  y guarda de no regresión, no objetivo)*: es el control más valioso, el único que nadie sembró. Si la pasada 2 lo pierde,
   está afinada a lo que escribimos nosotros. **Su umbral NO se pone antes de medir su línea base**: salía 5 de 13, y
   exigirle 16 de 20 sin más sería repetir el error de la puerta.
   **NO SE CONSTRUYE NADA DE LA PASADA 2.**
