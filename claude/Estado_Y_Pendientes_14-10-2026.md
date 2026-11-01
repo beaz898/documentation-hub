@@ -218,7 +218,7 @@ a ojo. El procedimiento, el coste y la consulta se plantean ANTES de pedírselo 
     positivo, en verde: D reproduce a `SQL_34_05`.
   - ⚠️ *Code, al lado*: son tres casos de dato y uno inferencial, en una pareja y un corpus. La forma que sostienen los
     datos es «en NOR-10 ↔ CLI-12, A, B y C salen 21 de 21 y D 3 de 21». El quinto, de dato bajo otro nombre, no está
-    medido. *(01/11: medido en NOR-11 ↔ CLI-12, 5 de 13; la tabla de la semana 0, más abajo.)*
+    medido. *(01/11: medido en NOR-11 ↔ CLI-12, 5 hallados de 13 SIN NINGÚN NEGATIVO LIMPIO, que es un suelo y no una tasa; la tabla de la semana 0, más abajo.)*
   - **Lo que no se infla (arquitecto)**: A, B y C sin especie es lo correcto, por contrato. El hallazgo de la especie
     sigue siendo **«0 de 3», el de D, no «0 de 66»**.
   - **A se cita SIEMPRE por §2.1** (21 de 21, NOR-10·2; ninguna por la segunda frase de §2.4). Eso no separa a A y a D en
@@ -233,35 +233,70 @@ a ojo. El procedimiento, el coste y la consulta se plantean ANTES de pedírselo 
   - **La línea base del quinto, siguiente y gratis**: 13 pasadas de NOR-11 el 28/10, de 08:33:20 a 08:55:12. **La ventana
     está COMPROBADA contra la lista sin ventana**, archivada en la medida: de 08:30 a 09:00 del 28/10, esperado 13,
     documento `'NOR-11'`. En esa media hora sólo están ésas, y son las únicas de NOR-11 con el prompt de hoy.
-    ✅ **MEDIDA (01/11), archivada literal en la medida y comprobada con script**: **el quinto, 5 publicadas en 13
-    pasadas, hasta 13 emitidas** (hasta 9 si los 4 agujeros del control 6 son juicios vacíos y no caídas del juez). Con
-    la etiqueta, 1 de 5. Reproduce el «hallado 5 de 13, etiquetado 1 de esas 5» de la consulta F-130: es su control
-    positivo.
-  - ⚠️⚠️ **LA SEMANA 0, CERRADA (arquitecto, 01/11).** Cada fila, con su pareja y su ventana:
+    ✅ **MEDIDA (01/11), archivada literal en la medida y comprobada con script.** Reproduce el «hallado 5 de 13,
+    etiquetado 1 de esas 5» de la consulta F-130: es su control positivo.
+    ⚠️⚠️ **Y NO ES UNA TASA: ES UN SUELO (arquitecto, 01/11, sobre la frase de Code «no hay ninguna pasada sin el quinto
+    que esté limpia», que Code había dado sin su peso).** Las 8 pasadas sin el quinto son la 1, la 2, la 7 y la 8 (sin
+    registro de descartes) y la 4, la 6, la 10 y la 11 (un muerto sin texto cada una). **Cinco sí, ocho «no sé», ni un
+    negativo limpio.**
+  - ⚠️⚠️ **LA SEMANA 0, CERRADA (arquitecto, 01/11).** Cada fila, con su pareja, su ventana y su DENOMINADOR. Un
+    negativo limpio es una pasada sin el caso, con «discarded» guardado y sin muertos sin texto en la pareja:
 
-    | Caso | Pareja | Pasadas | Publicado | Con la etiqueta |
-    |---|---|---|---|---|
-    | A | NOR-10 ↔ CLI-12 | 21 (30-31/10) | 21 de 21 | sin especie, por contrato |
-    | B | NOR-10 ↔ CLI-12 | 21 (30-31/10) | 21 de 21 | sin especie, por contrato |
-    | C | NOR-10 ↔ CLI-12 | 21 (30-31/10) | 21 de 21 | sin especie, por contrato |
-    | D | NOR-10 ↔ CLI-12 | 21 (30-31/10) | 3 de 21 (hasta 4 con la cota sin texto) | 0 de 3 |
-    | el quinto | NOR-11 ↔ CLI-12 | 13 (28/10, 08:30-09:00) | 5 de 13 (hasta 13 emitidas) | 1 de 5 |
+    | Caso | Pareja | Pasadas | Hallado | Negativos limpios | «No sé» | Con la etiqueta |
+    |---|---|---|---|---|---|---|
+    | A | NOR-10 ↔ CLI-12 | 21 (30-31/10) | 21 de 21 | — | — | sin especie, por contrato |
+    | B | NOR-10 ↔ CLI-12 | 21 (30-31/10) | 21 de 21 | — | — | sin especie, por contrato |
+    | C | NOR-10 ↔ CLI-12 | 21 (30-31/10) | 21 de 21 | — | — | sin especie, por contrato |
+    | D | NOR-10 ↔ CLI-12 | 21 (30-31/10) | 3 de 21 | 17 | 1 (la pasada 8, un muerto sin texto; 0 sin registro) | 0 de 3 |
+    | el quinto | NOR-11 ↔ CLI-12 | 13 (28/10, 08:30-09:00) | 5 de 13 | **0** | 8 (4 sin registro, 4 con un muerto sin texto) | 1 de 5, PUESTA MAL si el quinto es de dato |
 
-  - **El hueco del control 6, sin arreglar (encargo del arquitecto: averiguar, no arreglar)**: en las pasadas 1, 2, 7 y 8
-    falta `discarded` en el juicio de CLI-12. El código lo omite cuando está vacío (`judge.ts:602`, `:969`;
-    `pipeline.ts:717`), y también cuando el juez falla (`judge.ts:1017`). El control 6 lee cualquier ausencia como agujero y
-    no puede separar los dos casos; `stageFailures` y `llamadasAlModelo` sí. Ninguna consulta los ha leído: **PENDIENTE DE
-    QUE EL ARQUITECTO LA PIDA.**
-  - **Para el punto 3 (Code, a la espera del arquitecto)**: el quinto ancla en CLI-12 por dos frases, «…no como auditor
-    de su propia área» (pasadas 3 y 5) y «Las auditorías internas las realiza siempre…» (9, 12 y 13). Las dos están en
-    CLI-12·13, así que el enumerador forma la misma pareja; pero es el mismo requisito de desduplicación que con A.
-  - **La partición «dato / cumplimiento» que propuso el arquitecto, PENDIENTE DE SU DECISIÓN**. Code: no se sostiene.
-    El quinto es de dato bajo otro nombre, que es la lectura del propio arquitecto del 25/10. La redacción que propone
-    Code, con su alcance: «En los cinco casos medidos (dos parejas, un corpus), los tres en que los dos documentos
-    nombran el mismo dato con las mismas palabras (A, B y C) salen 21 de 21. Los dos que exigen un paso que no está
-    escrito salen por debajo de la mitad: D, deducir del principio que el permiso lo vulnera, 3 de 21; y el quinto,
-    reconocer que "revisa trimestralmente el cumplimiento" y "auditoría interna" son la misma actividad, 5 de 13. Son
-    dos casos en el lado débil, no una clase.»
+    **La fila del quinto, como se lee** (redacción del arquitecto, 01/11): «el quinto, 5 hallados de 13 pasadas, SIN
+    NINGÚN NEGATIVO LIMPIO: las otras 8 pasadas o no registran descartes o tienen un hallazgo muerto sin texto, así que la
+    tasa no está medida y está entre 5 de 13 y 13 de 13». **El dato es que no hay denominador.** Si `SQL_34_07` da las
+    cuatro sin registro como cero real, pasan a negativos limpios y el quinto queda entre 5 y 9 de 13.
+    **D sí tiene número** (recuento de Code, 01/11, sobre la salida archivada de `SQL_34_06`): 17 negativos limpios, 1
+    «no sé» y ningún agujero, con el control 6 en verde. Su 3 de 21 es una tasa, de 3 a 4 de 21 con la cota.
+  - **El hueco del control 6 (encargo del arquitecto: averiguar, no arreglar)**: en las pasadas 1, 2, 7 y 8 falta
+    `discarded` en el juicio de CLI-12. El código lo omite cuando está vacío (`judge.ts:602`, `:969`; `pipeline.ts:717`),
+    y también cuando el juez falla (`judge.ts:1017`). El control 6 lee cualquier ausencia como agujero y no puede
+    separar los dos casos. ✅ **LA CONSULTA QUE LOS SEPARA, ESCRITA (01/11): `SQL_34_07_el_agujero_de_discarded.sql`,
+    PENDIENTE DE EJECUTAR**, con la ventana del quinto. Lee la forma del juicio, las caídas del juez de `stageFailures`
+    y las peticiones del juez a CLI-12 de `llamadasAlModelo`. Su control positivo puede fallar, y está probada en PGlite
+    (7 pruebas; 32 de 32 mutantes en rojo). **Es CONTROL PERMANENTE** (`claude/Protocolo_Harness_Tasas.md`): sin ella,
+    la próxima tanda de 20 tendrá el mismo agujero.
+  - **El punto 3, el requisito AMPLIADO (arquitecto, 01/11)**: el lado de NOR-11 es la misma frase, palabra por palabra,
+    en las cinco pasadas; lo único que cambia es la frase de CLI-12 que se cita: «…no como auditor de su propia área» en
+    la 3 y la 5, «…personal ajeno al área auditada…» en la 9, la 12 y la 13. Las dos están en CLI-12 §6.2, trozo 13.
+    **La desduplicación tiene que reconocer el mismo hallazgo citado desde DOS FRASES DEL MISMO TROZO, no sólo desde
+    trozos distintos** (el caso de A). Y la duplicación dentro de una pasada es **compatible con lo observado en la pasada
+    12**: publicó el quinto y además tuvo un muerto sin texto, que podría ser una segunda emisión del quinto por la otra
+    frase. No es un riesgo teórico ni un hecho. (El arquitecto había dicho que «no pasó nunca en las 13», y lo corrige él.)
+  - **LA PARTICIÓN, DECIDIDA (arquitecto, 01/11): la redacción de Code, literal**: «En los cinco casos medidos (dos
+    parejas, un corpus), los tres en que los dos documentos nombran el mismo dato con las mismas palabras (A, B y C)
+    salen 21 de 21. Los dos que exigen un paso que no está escrito salen por debajo de la mitad: D, deducir del principio
+    que el permiso lo vulnera, 3 de 21; y el quinto, reconocer que "revisa trimestralmente el cumplimiento" y "auditoría
+    interna" son la misma actividad, 5 de 13. Son dos casos en el lado débil, no una clase.»
+    **Con la adición del arquitecto**: no son una clase, son DOS FRONTERAS VECINAS CON NOMBRE PROPIO EN LA CASA. D es «una
+    permisión contra un principio» (F-129, `claude/consultas-fable/INDICE.md:197`). El quinto es «el mismo dato bajo otro
+    nombre» (F-92, `INDICE.md:194`); F-92 la nombró para TABLAS, como el mismo dato bajo distinto nombre de columna, y el
+    quinto es el caso de PROSA (precisión de Code del 25/10, más abajo en este fichero). Lo que comparten: exigen un paso
+    que no está escrito. Y se retira «la superficie no basta»: con dos casos no se puede decir qué superficie pesa.
+    ⚠️ ***Code, 01/11, PENDIENTE DEL ARQUITECTO: la redacción de Code CAE CON EL SUELO DEL QUINTO.*** Dice que el quinto
+    sale «por debajo de la mitad» y lo pone «en el lado débil». Sin negativos limpios, el quinto no tiene tasa: puede
+    estar entre 5 y 13 de 13. La propuesta que la sustituye: «En los cinco casos medidos (dos parejas, un corpus), los
+    tres en que los dos documentos nombran el mismo dato con las mismas palabras (A, B y C) salen 21 de 21. D, que exige
+    deducir del principio que el permiso lo vulnera, sale 3 de 21, con 17 negativos limpios. El quinto, que exige
+    reconocer que "revisa trimestralmente el cumplimiento" y "auditoría interna" son la misma actividad, sale en 5 de 13
+    pasadas sin ningún negativo limpio: no tiene tasa.»
+  - ⚠️ **REINCIDENCIA DEL ARQUITECTO, con su nombre (01/11): la clase del quinto, mal por SEGUNDA vez.** La primera, del
+    24-25/10, está más abajo en este fichero: lo presentó como un `norma_contra_norma`, y la lectura corregida
+    («NO es un `norma_contra_norma`, es EL MISMO DATO CON DOS VALORES») está fechada «arquitecto, 25/10». La segunda,
+    hoy: la partición «dato / cumplimiento» volvía a poner el quinto fuera del dato. **El archivo primario, en este
+    repositorio, es este fichero**: la medida que el arquitecto cita, `claude/Medida_F312_La_Regla_Del_Sujeto_24-10-2026.md`
+    §5.1, NO ESTÁ AQUÍ (lo dice este mismo fichero en la tanda del 24/10), y Code no ha podido leer ni su texto ni su
+    fecha. ⚠️ El arquitecto escribe que «la primera también la cazaste tú». Lo que dice el archivo es que el 25/10 Code
+    leyó las dos frases enteras, y que la corrección es del arquitecto. Que la cazara Code no está escrito en ningún
+    sitio.
 - ✅ **MEDIDA (30-31/10), las dos salidas archivadas literales en la medida y comprobadas por Code:**
   - **El control positivo, en verde**: reproduce el «2 de 7 · con la etiqueta: 1» de la segunda tanda, que era la
     puntuación a ojo del arquitecto.
@@ -280,8 +315,24 @@ a ojo. El procedimiento, el coste y la consulta se plantean ANTES de pedírselo 
 - **LA JUSTIFICACIÓN PARA CONSTRUIR, al lado de la anulación**: hay un hueco grande y medido entre lo que la pregunta
   cerrada encuentra y lo que el producto publica, y la única manera de saber cuánto sobrevive al camino es construirlo
   en sombra y medirlo. **NO SE CONSTRUYE TODAVÍA: el plan rehecho lo escribe el arquitecto.**
-- ⚠️ **PENDIENTE PROPIO, LA ESPECIE: 1 de 5 en el quinto, 0 de 3 en D** (01/11; frente al 1 de 2 de D en la segunda tanda,
-  p = 0,400). Sin sumar: «1 de 8» mezcla dos casos. Y si el quinto es de dato, esa etiqueta es un error, no un acierto.
+- ⚠️ **PENDIENTE PROPIO, LA ESPECIE (decisión del arquitecto, 01/11)**: «0 de 3 en D; y en el quinto, 1 de 5 con
+  etiqueta, pero PUESTA MAL si el quinto es de dato». No se suman. (D, frente al 1 de 2 de la segunda tanda: p = 0,400.)
+  - **Y LA ESPECIE TAMBIÉN SE MUERE SIN TEXTO**: en la pasada 4 de NOR-11, el verificador mató un hallazgo con la
+    etiqueta y no quedó su texto. No se sabe de qué hallazgo era: lo que muere sin texto se cuenta por pareja, no por caso.
+  - **(a) ¿Es la primera vez que se MIDE la confusión con etiqueta?** Sí. La aparición del 24/10 (pasada 4 de NOR-11)
+    se publicó «sin que exista la especie», según este fichero, y el campo `conflictoNormativo` entró el 26/10 a las
+    17:34 (`cbe543b6`, fase 1 del 3.4). El 24/10 no podía llevar etiqueta.
+  - **(b) ¿Tiene la taxonomía etiqueta para «el mismo dato bajo otro nombre»?** No, y no la necesita. El campo tiene dos
+    valores, `norma_contra_norma` y `norma_contra_practica` (`lib/analysis/conflicto-normativo.ts:17`); ausente, «la
+    contradicción es la de siempre», dos valores para el mismo dato (ibíd., cabecera). Si el quinto es de dato, lo
+    correcto es SIN ETIQUETA, que es lo que salió en 4 de las 5. Las categorías DISTORSIÓN CONCEPTUAL y SUSTITUCIÓN DE
+    TÉRMINOS del prompt del juez (`judge.ts:899-900`) son otra cosa: un término incorrecto, no la misma actividad con
+    dos nombres, y no se guardan en ningún campo.
+  - **La otra medición del mismo hallazgo, «1 de 5» el 24/10, VA SEPARADA: las condiciones no eran las mismas.** Era la
+    tanda de 19:07 a 19:16 del 24/10, anterior a las tres fases del 3.4 (26/10, `cbe543b6`, `5ca99f12`, `c08a02e7`), así
+    que el prompt del juez y el verificador eran otros. Su «1 de 5» es una cifra del arquitecto, sacada de los logs, no
+    de esta regla. Y la misma fuente dice «el juez emitió algo en esa pareja en 4 de 5, con dos descartados por el
+    verificador». No son dos puntos de la misma serie.
   Pone en duda que la especie del 3.4 esté sirviendo donde importa, pero son tres casos.
 - **LA RESPUESTA DE FABLE A LA ADENDA (31/10)**, archivada literal como F-130 (f) (huella `1834bd56ddea1667`). Lo enviado,
   sin archivar. **Lo que el arquitecto decide de ella**, cotejado contra el texto (detalle en la medida):
@@ -1089,6 +1140,8 @@ diff antes de subirlo:
     DATO CON DOS VALORES —quién revisa—, y lo difícil no es un paso normativo sino reconocer que «revisa
     trimestralmente el cumplimiento» y «auditoría interna» son la misma actividad: la familia del MISMO DATO BAJO OTRO
     NOMBRE. Para la consulta: la especie `conflicto_normativo` tendrá que distinguirse de DOS vecinos, no de uno.
+    ⚠️ **REINCIDENCIA, 01/11**: el arquitecto volvió a sacar el quinto del dato, con la partición «dato / cumplimiento».
+    Está archivada como reincidencia en el pendiente principal de F-130, al lado de la tabla de la semana 0.
     ⚠️ Con la precisión de Code (leído F-92): F-92 dictaminó esa familia para TABLAS —«el mismo dato bajo distinto
     nombre DE COLUMNA» (`claude/consultas-fable/F-92.md`, líneas 41 y 238)—; éste es el caso de PROSA, la misma
     actividad con dos nombres. Misma familia, otro terreno.

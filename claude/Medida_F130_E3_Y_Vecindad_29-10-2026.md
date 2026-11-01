@@ -1244,6 +1244,8 @@ organización leída,organización leída: 68bf28c3-8352-4052-8eb4-3a7e31b74b53 
   (la 4, la 6, la 10 y la 11) y los 4 agujeros. Si los agujeros son ceros de verdad (el juicio salió sin descartes), el
   máximo es 9. Si son caídas del juez, es 13. Ningún muerto sin texto se puede atribuir al quinto: van por pareja, no por
   caso.
+  ⚠️ *Sustituida el 01/11 (arquitecto)*: «hasta 13 emitidas» no es el dato. El dato es que el quinto NO TIENE
+  DENOMINADOR: ningún negativo limpio, y la tasa entre 5 y 13 de 13. Más abajo, «Lo que dice la salida del quinto».
 
 **Por qué falta `discarded`**, leído en el código y SIN tocar nada: se omite a propósito cuando está vacío
 (`lib/analysis/judge.ts:602` y `:969`, y la unión en `lib/analysis/pipeline.ts:717`). Cuando el juez falla, el juicio
@@ -1251,3 +1253,41 @@ vuelve vacío y tampoco lo lleva (`judge.ts:1017`, `recordStageFailure('judge', 
 no distingue «vacío» de «el juez se cayó»**: cuenta como agujero cualquier ausencia. Lo que sí los distingue está en la
 base (`analysis.stageFailures` con stage `judge`, y en `llamadasAlModelo` el resultado de la llamada del juez a la pareja
 de CLI-12), pero ninguna consulta lo ha leído todavía.
+
+### Lo que dice la salida del quinto, leído por el arquitecto y por Code (01/11/2026)
+
+- ⚠️⚠️ **NO ES UNA TASA: ES UN SUELO (arquitecto).** Code lo había escrito sin darle su peso: no hay ninguna pasada sin el
+  quinto que esté limpia. El arquitecto lo comprobó en la salida. **Cinco «sí» limpios y ocho «no sé», ni un solo
+  negativo limpio.** Las ocho pasadas sin el quinto:
+  - la 1, la 2, la 7 y la 8, sin registro de descartes;
+  - la 4, la 6, la 10 y la 11, con un muerto sin texto cada una.
+  La tasa no está medida: está entre 5 de 13 y 13 de 13. Si `SQL_34_07` (PENDIENTE DE EJECUTAR) da las cuatro sin
+  registro como cero real, queda entre 5 y 9 de 13.
+- **D, para comparar, sí tiene denominador** (recuento de Code sobre la salida de NOR-10 de más arriba, con un script).
+  En las 21 pasadas: 3 con D; 17 negativos limpios (con «discarded» y sin muertos sin texto); 1 «no sé» (la pasada 8,
+  un muerto sin texto); 0 sin registro (su control 6 sale OK). Su 3 de 21 es una tasa.
+- **«Muertas en la puerta, con texto: 0 pasadas» (arquitecto)**: la puerta es la única etapa que conserva el texto, y
+  no se reconoce en ella ninguna muerte del quinto. ⚠️ *Con el alcance de la columna (Code)*: cuenta las pasadas en que
+  el CASO murió en la puerta, reconocido por su frase. Lo que la puerta mató de otros hallazgos de la pareja no sale en
+  esta consulta. Lo que se sostiene es: **si el quinto murió en alguna pasada, no fue en la puerta con texto; fue sin
+  texto, donde no se le puede reconocer.** Eso corrige a la baja lo que el arquitecto esperaba recuperar de la puerta.
+  En NOR-10 la misma columna da 0 para A, B, C y D.
+- ✅ **CONTROL VERDE**: las cinco citas del quinto dicen «CLI-12: fuera de §3.1 y §3.5». El quinto no es A ni D citadas
+  de nuevo.
+- **El modelo**: las 13 pasadas corrieron con `claude-haiku-5-5`. La columna sale de `lecturaDeLasParejas` de la pareja
+  con CLI-12, es decir, es el modelo del JUEZ en esa pareja; del resto de etapas no dice nada. Es una parte del
+  inventario de modelos por etapa.
+- **El lado de NOR-11 es la misma frase, palabra por palabra, en las cinco**: la frase de §10.5 hasta «…y de los
+  gabinetes», sin el resto de la frase. Lo único que cambia es la frase de CLI-12 (las dos en §6.2, trozo 13).
+- **La pasada 12** publicó el quinto y además tuvo un muerto sin texto. Una segunda emisión del quinto por la otra
+  frase es **compatible con lo observado**: no es un hecho, ni un riesgo sólo teórico.
+- **Lo que no se sabe de la etiqueta muerta**: el muerto sin texto de la pasada 4 llevaba la etiqueta y lo mató el
+  verificador. De qué hallazgo era no consta: va por pareja, no por caso.
+
+**EL CASI-FALLO DE CODE, CON SU DETECCIÓN (01/11)**: el CSV que Code analizó primero no lo copió de lo que pegó el
+director. Lo montó con lo que tenía en sus notas, después de una compactación de la conversación, y con él sacó las
+comprobaciones de arriba. Antes de archivarlo se dio cuenta de dónde venía, sacó el mensaje literal del registro de la
+conversación y lo comparó línea a línea. **Coincidían las 28 líneas**, y lo que está archivado arriba es el texto
+pegado, no el montado. Si no hubieran coincidido, el análisis entero se habría tenido que rehacer. La regla de la casa
+—los textos que faltan no se reconstruyen— se estaba incumpliendo sin saberlo, y lo único que lo paró fue preguntar de
+dónde venía el texto antes de archivarlo.

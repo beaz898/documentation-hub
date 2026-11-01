@@ -1459,6 +1459,35 @@ lo que el producto la PUBLICA; no que una pasada 2 la publique. Lo cazó Code y 
 
 ---
 
+## ⚠️ CONTROL PERMANENTE: UNA TASA POR PASADA SE PUNTÚA SOBRE NEGATIVOS LIMPIOS, Y EL AGUJERO DE «discarded» SE RESUELVE ANTES
+
+*Arquitecto, 01/11/2026.* **Una tasa necesita negativos limpios.** Un negativo limpio es una pasada sin el caso, con el
+juicio de la pareja guardado CON «discarded» y sin muertos sin texto en la pareja. Si una pasada sin el caso no es un
+negativo limpio, es un «no sé»: puede que el caso se emitiera y muriera donde no deja texto. Con «no sé», lo hallado es
+un SUELO y no una tasa, y se escribe así, con su intervalo: «X hallados de N, con Y negativos limpios; la tasa está
+entre X de N y (N − Y) de N».
+
+**EL CASO**: el quinto en NOR-11, 5 hallados de 13 sin un solo negativo limpio (4 sin «discarded» y 4 con un muerto sin
+texto). Se escribió primero como «5 de 13», que se lee como tasa. D, en la misma semana, tiene 17 negativos limpios de
+21, y su 3 de 21 sí es una tasa. Las dos filas sólo son comparables con el denominador al lado.
+
+**EL CONTROL, cada vez que el control 6 de `SQL_34_06` (o el de cualquier consulta por pasada) dé agujeros**: se ejecuta
+`SQL_34_07_el_agujero_de_discarded.sql` con la MISMA ventana, ANTES de puntuar. «discarded» falta por dos causas que el
+juicio guardado no separa: se omite cuando está vacío (`lib/analysis/judge.ts:602` y `:969`, `pipeline.ts:717`), y
+falta también cuando el juez se cae (`judge.ts:1017`). La consulta las separa leyendo tres cosas: la forma del juicio,
+las caídas del juez de `stageFailures` y las peticiones del juez a la pareja de `llamadasAlModelo`. Su veredicto por
+pasada:
+- **CERO REAL**: la pasada pasa a negativo limpio, si además no tiene muertos sin texto.
+- **JUEZ CAÍDO**, **NO SE DISTINGUE** o **NO SE SABE**: la pasada se queda en «no sé».
+**Su control positivo puede fallar**: en las pasadas CON «discarded», el registro tiene que tener una petición del juez
+a la pareja con 200. Si falla, la consulta no está leyendo el registro, y lo que diga no vale.
+⚠️ **Lo que no tiene control positivo en la base**: la lectura de `stageFailures`, mientras ninguna pasada tenga una
+caída. Lo cubre el arnés (`claude/arneses/f34/sql-34-07-el-agujero-de-discarded.test.ts`, 32 de 32 mutantes en rojo).
+⚠️ **La consulta mira hoy a CLI-12**, que es la pareja de las cinco siembras. Para otra pareja hay que cambiar su
+`cli12`, con su arnés.
+
+---
+
 ## ⚠️ PARA SEPARAR COMMITS SE PREPARA CADA FICHERO POR SU NOMBRE, NUNCA `git stash`
 
 *Añadida el 23/10/2026 (arquitecto), tras un error de Code.*
