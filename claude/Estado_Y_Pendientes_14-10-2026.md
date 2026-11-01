@@ -218,7 +218,7 @@ a ojo. El procedimiento, el coste y la consulta se plantean ANTES de pedírselo 
     positivo, en verde: D reproduce a `SQL_34_05`.
   - ⚠️ *Code, al lado*: son tres casos de dato y uno inferencial, en una pareja y un corpus. La forma que sostienen los
     datos es «en NOR-10 ↔ CLI-12, A, B y C salen 21 de 21 y D 3 de 21». El quinto, de dato bajo otro nombre, no está
-    medido.
+    medido. *(01/11: medido en NOR-11 ↔ CLI-12, 5 de 13; la tabla de la semana 0, más abajo.)*
   - **Lo que no se infla (arquitecto)**: A, B y C sin especie es lo correcto, por contrato. El hallazgo de la especie
     sigue siendo **«0 de 3», el de D, no «0 de 66»**.
   - **A se cita SIEMPRE por §2.1** (21 de 21, NOR-10·2; ninguna por la segunda frase de §2.4). Eso no separa a A y a D en
@@ -232,8 +232,36 @@ a ojo. El procedimiento, el coste y la consulta se plantean ANTES de pedírselo 
     - Lo que cambia es qué significa «A dentro»: no es la A que el producto publica, sino la A que vive en ese trozo.
   - **La línea base del quinto, siguiente y gratis**: 13 pasadas de NOR-11 el 28/10, de 08:33:20 a 08:55:12. **La ventana
     está COMPROBADA contra la lista sin ventana**, archivada en la medida: de 08:30 a 09:00 del 28/10, esperado 13,
-    documento `'NOR-11'`. En esa media hora sólo están ésas, y son las únicas de NOR-11 con el prompt de hoy. PENDIENTE
-    DEL DIRECTOR.
+    documento `'NOR-11'`. En esa media hora sólo están ésas, y son las únicas de NOR-11 con el prompt de hoy.
+    ✅ **MEDIDA (01/11), archivada literal en la medida y comprobada con script**: **el quinto, 5 publicadas en 13
+    pasadas, hasta 13 emitidas** (hasta 9 si los 4 agujeros del control 6 son juicios vacíos y no caídas del juez). Con
+    la etiqueta, 1 de 5. Reproduce el «hallado 5 de 13, etiquetado 1 de esas 5» de la consulta F-130: es su control
+    positivo.
+  - ⚠️⚠️ **LA SEMANA 0, CERRADA (arquitecto, 01/11).** Cada fila, con su pareja y su ventana:
+
+    | Caso | Pareja | Pasadas | Publicado | Con la etiqueta |
+    |---|---|---|---|---|
+    | A | NOR-10 ↔ CLI-12 | 21 (30-31/10) | 21 de 21 | sin especie, por contrato |
+    | B | NOR-10 ↔ CLI-12 | 21 (30-31/10) | 21 de 21 | sin especie, por contrato |
+    | C | NOR-10 ↔ CLI-12 | 21 (30-31/10) | 21 de 21 | sin especie, por contrato |
+    | D | NOR-10 ↔ CLI-12 | 21 (30-31/10) | 3 de 21 (hasta 4 con la cota sin texto) | 0 de 3 |
+    | el quinto | NOR-11 ↔ CLI-12 | 13 (28/10, 08:30-09:00) | 5 de 13 (hasta 13 emitidas) | 1 de 5 |
+
+  - **El hueco del control 6, sin arreglar (encargo del arquitecto: averiguar, no arreglar)**: en las pasadas 1, 2, 7 y 8
+    falta `discarded` en el juicio de CLI-12. El código lo omite cuando está vacío (`judge.ts:602`, `:969`;
+    `pipeline.ts:717`), y también cuando el juez falla (`judge.ts:1017`). El control 6 lee cualquier ausencia como agujero y
+    no puede separar los dos casos; `stageFailures` y `llamadasAlModelo` sí. Ninguna consulta los ha leído: **PENDIENTE DE
+    QUE EL ARQUITECTO LA PIDA.**
+  - **Para el punto 3 (Code, a la espera del arquitecto)**: el quinto ancla en CLI-12 por dos frases, «…no como auditor
+    de su propia área» (pasadas 3 y 5) y «Las auditorías internas las realiza siempre…» (9, 12 y 13). Las dos están en
+    CLI-12·13, así que el enumerador forma la misma pareja; pero es el mismo requisito de desduplicación que con A.
+  - **La partición «dato / cumplimiento» que propuso el arquitecto, PENDIENTE DE SU DECISIÓN**. Code: no se sostiene.
+    El quinto es de dato bajo otro nombre, que es la lectura del propio arquitecto del 25/10. La redacción que propone
+    Code, con su alcance: «En los cinco casos medidos (dos parejas, un corpus), los tres en que los dos documentos
+    nombran el mismo dato con las mismas palabras (A, B y C) salen 21 de 21. Los dos que exigen un paso que no está
+    escrito salen por debajo de la mitad: D, deducir del principio que el permiso lo vulnera, 3 de 21; y el quinto,
+    reconocer que "revisa trimestralmente el cumplimiento" y "auditoría interna" son la misma actividad, 5 de 13. Son
+    dos casos en el lado débil, no una clase.»
 - ✅ **MEDIDA (30-31/10), las dos salidas archivadas literales en la medida y comprobadas por Code:**
   - **El control positivo, en verde**: reproduce el «2 de 7 · con la etiqueta: 1» de la segunda tanda, que era la
     puntuación a ojo del arquitecto.
@@ -252,7 +280,8 @@ a ojo. El procedimiento, el coste y la consulta se plantean ANTES de pedírselo 
 - **LA JUSTIFICACIÓN PARA CONSTRUIR, al lado de la anulación**: hay un hueco grande y medido entre lo que la pregunta
   cerrada encuentra y lo que el producto publica, y la única manera de saber cuánto sobrevive al camino es construirlo
   en sombra y medirlo. **NO SE CONSTRUYE TODAVÍA: el plan rehecho lo escribe el arquitecto.**
-- ⚠️ **PENDIENTE PROPIO, LA ESPECIE: 0 de 3 en la línea base; sin medir** (frente al 1 de 2 de la segunda tanda, p = 0,400).
+- ⚠️ **PENDIENTE PROPIO, LA ESPECIE: 1 de 5 en el quinto, 0 de 3 en D** (01/11; frente al 1 de 2 de D en la segunda tanda,
+  p = 0,400). Sin sumar: «1 de 8» mezcla dos casos. Y si el quinto es de dato, esa etiqueta es un error, no un acierto.
   Pone en duda que la especie del 3.4 esté sirviendo donde importa, pero son tres casos.
 - **LA RESPUESTA DE FABLE A LA ADENDA (31/10)**, archivada literal como F-130 (f) (huella `1834bd56ddea1667`). Lo enviado,
   sin archivar. **Lo que el arquitecto decide de ella**, cotejado contra el texto (detalle en la medida):

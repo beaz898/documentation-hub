@@ -1189,5 +1189,65 @@ organización leída,organización leída: 68bf28c3-8352-4052-8eb4-3a7e31b74b53 
 **LA VENTANA DEL QUINTO, comprobada contra la lista**: `desde` = `timestamptz '2026-10-28 08:30:00+01'`, `hasta` =
 `timestamptz '2026-10-28 09:00:00+01'`, `esperado` = `13`, `documento` = `'NOR-11'`. En esa media hora la lista sólo tiene las
 13. Es la ventana que propuso el arquitecto, y es correcta.
-- *Por comprobar*: el «5 de 13» del quinto en la consulta F-130, escrita esa misma mañana, puede ser justo esta ventana. La
-  consulta lo dirá.
+- ~~*Por comprobar*~~ **Comprobado el 01/11**: la consulta da el quinto en 5 de 13 y la etiqueta en 1 de esas 5, igual que la consulta
+  F-130 (sección «EL QUINTO EN NOR-11», más abajo).
+
+## EL QUINTO EN NOR-11: LA SALIDA DE SQL_34_06 CON VENTANA, LITERAL (ejecutada por el director, 01/11/2026)
+
+Parámetros: `documento` = `'NOR-11'`, `desde` = `timestamptz '2026-10-28 08:30:00+01'`, `hasta` =
+`timestamptz '2026-10-28 09:00:00+01'`, `esperado` = `13`. La salida, como llegó:
+
+```
+bloque,a,b,c,d
+organización leída,organización leída: 68bf28c3-8352-4052-8eb4-3a7e31b74b53 · «Mi workspace» · 45 documentos,null,null,null
+0 · control,ventana: 28/10 08:30 a 28/10 09:00 (hora de Madrid),OK,null,null
+0 · control,pasadas de NOR-11 en la ventana: 13 · esperado: 13,OK,null,null
+0 · control,pasadas que no son rápidas: 0,OK,null,null
+0 · control,documentos CLI-12 en la organización: 1 (tiene que ser uno),OK,null,null
+0 · control,casos de NOR-11: quinto · frases dentro de su párrafo: 1 de 1,OK,null,null
+0 · control,"pasadas sin juicio de CLI-12, o con él pero sin «discarded» guardado: 4",⚠️⚠️ FALLA,null,null
+1 · por pasada,pasada 1 · 28/10 08:33:20 · claude-haiku-5-5 · 42 s,quinto: no,"sin texto en la pareja: 0 (con la etiqueta, del verificador: 0) · ⚠️ SIN «discarded»: agujero",null
+1 · por pasada,pasada 2 · 28/10 08:34:17 · claude-haiku-5-5 · 40 s,quinto: no,"sin texto en la pareja: 0 (con la etiqueta, del verificador: 0) · ⚠️ SIN «discarded»: agujero",null
+1 · por pasada,pasada 3 · 28/10 08:35:39 · claude-haiku-5-5 · 47 s,quinto: sí (sin especie),"sin texto en la pareja: 0 (con la etiqueta, del verificador: 0)",null
+1 · por pasada,pasada 3 · cita de quinto,sin especie · CLI-12: fuera de §3.1 y §3.5,cita del documento: «El Coordinador de Calidad de cada clínica revisa trimestralmente el cumplimiento de los criterios descritos en este apartado mediante observación directa del área de almacenamiento intermedio y de los gabinetes»,"CLI-12: «El Coordinador de Calidad de la propia clínica participa en la auditoría como interlocutor, pero no como auditor de su propia área.»"
+1 · por pasada,pasada 4 · 28/10 08:36:30 · claude-haiku-5-5 · 40 s,quinto: no,"sin texto en la pareja: 1 (con la etiqueta, del verificador: 1)",null
+1 · por pasada,pasada 5 · 28/10 08:43:47 · claude-haiku-5-5 · 38 s,quinto: sí (norma_contra_norma),"sin texto en la pareja: 0 (con la etiqueta, del verificador: 0)",null
+1 · por pasada,pasada 5 · cita de quinto,norma_contra_norma · CLI-12: fuera de §3.1 y §3.5,cita del documento: «El Coordinador de Calidad de cada clínica revisa trimestralmente el cumplimiento de los criterios descritos en este apartado mediante observación directa del área de almacenamiento intermedio y de los gabinetes»,"CLI-12: «El Coordinador de Calidad de la propia clínica participa en la auditoría como interlocutor, pero no como auditor de su propia área.»"
+1 · por pasada,pasada 6 · 28/10 08:44:49 · claude-haiku-5-5 · 46 s,quinto: no,"sin texto en la pareja: 1 (con la etiqueta, del verificador: 0)",null
+1 · por pasada,pasada 7 · 28/10 08:45:43 · claude-haiku-5-5 · 41 s,quinto: no,"sin texto en la pareja: 0 (con la etiqueta, del verificador: 0) · ⚠️ SIN «discarded»: agujero",null
+1 · por pasada,pasada 8 · 28/10 08:46:37 · claude-haiku-5-5 · 42 s,quinto: no,"sin texto en la pareja: 0 (con la etiqueta, del verificador: 0) · ⚠️ SIN «discarded»: agujero",null
+1 · por pasada,pasada 9 · 28/10 08:47:24 · claude-haiku-5-5 · 34 s,quinto: sí (sin especie),"sin texto en la pareja: 0 (con la etiqueta, del verificador: 0)",null
+1 · por pasada,pasada 9 · cita de quinto,sin especie · CLI-12: fuera de §3.1 y §3.5,cita del documento: «El Coordinador de Calidad de cada clínica revisa trimestralmente el cumplimiento de los criterios descritos en este apartado mediante observación directa del área de almacenamiento intermedio y de los gabinetes»,"CLI-12: «Las auditorías internas las realiza siempre personal ajeno al área auditada, habitualmente el Coordinador de Calidad de otra clínica de la red, para garantizar independencia de criterio»"
+1 · por pasada,pasada 10 · 28/10 08:48:53 · claude-haiku-5-5 · 36 s,quinto: no,"sin texto en la pareja: 1 (con la etiqueta, del verificador: 0)",null
+1 · por pasada,pasada 11 · 28/10 08:49:57 · claude-haiku-5-5 · 47 s,quinto: no,"sin texto en la pareja: 1 (con la etiqueta, del verificador: 0)",null
+1 · por pasada,pasada 12 · 28/10 08:52:24 · claude-haiku-5-5 · 40 s,quinto: sí (sin especie),"sin texto en la pareja: 1 (con la etiqueta, del verificador: 0)",null
+1 · por pasada,pasada 12 · cita de quinto,sin especie · CLI-12: fuera de §3.1 y §3.5,cita del documento: «El Coordinador de Calidad de cada clínica revisa trimestralmente el cumplimiento de los criterios descritos en este apartado mediante observación directa del área de almacenamiento intermedio y de los gabinetes»,"CLI-12: «Las auditorías internas las realiza siempre personal ajeno al área auditada, habitualmente el Coordinador de Calidad de otra clínica de la red»"
+1 · por pasada,pasada 13 · 28/10 08:55:12 · claude-haiku-5-5 · 40 s,quinto: sí (sin especie),"sin texto en la pareja: 0 (con la etiqueta, del verificador: 0)",null
+1 · por pasada,pasada 13 · cita de quinto,sin especie · CLI-12: fuera de §3.1 y §3.5,cita del documento: «El Coordinador de Calidad de cada clínica revisa trimestralmente el cumplimiento de los criterios descritos en este apartado mediante observación directa del área de almacenamiento intermedio y de los gabinetes»,"CLI-12: «Las auditorías internas las realiza siempre personal ajeno al área auditada, habitualmente el Coordinador de Calidad de otra clínica de la red, para garantizar independencia de criterio.»"
+2 · el total,quinto en 5 de 13 pasadas · con la etiqueta: 1 · dudosas aparte: 0,"muertas en la puerta, con texto: 0 pasadas",null,null
+2 · el total,"sin texto en la pareja, que no se reparte por caso: 5 hallazgos en 5 pasadas (con la etiqueta, del verificador: 1)",null,null,null
+```
+
+**Comprobado con script sobre la salida pegada** (no a ojo):
+- Las 13 pasadas de la ventana son las pasadas 14 a 26 de la lista sin ventana: las 13 tienen la misma hora y la misma
+  duración.
+- **El quinto, en 5 de 13**: pasadas 3, 5, 9, 12 y 13. **Con la etiqueta, 1**: la pasada 5 (`norma_contra_norma`).
+  Dudosas, 0. Muertas en la puerta con texto, 0.
+- **Agujeros** (juicio de CLI-12 sin `discarded`): pasadas 1, 2, 7 y 8. El control 6 FALLA por esas cuatro.
+- **Muertos sin texto en la pareja**, uno por pasada: en las pasadas 4, 6, 10, 11 y 12. La de la pasada 4 lleva la
+  etiqueta y la mató el verificador. La pasada 12 tiene además el quinto publicado.
+- No hay ninguna pasada sin el quinto que no tenga a la vez un agujero o un muerto sin texto.
+- **Por dónde ancla el quinto en CLI-12** (las dos frases están en el trozo 13): «…no como auditor de su propia área» en
+  las pasadas 3 y 5; «Las auditorías internas las realiza siempre…» en las pasadas 9, 12 y 13. Cada pasada tiene una sola
+  cita del quinto. La frase de NOR-11 es siempre la misma, y siempre sin el punto final.
+- **La cota**: 5 publicadas. Como mucho, 13 emitidas: a las 5 se suman los muertos sin texto de las pasadas sin el quinto
+  (la 4, la 6, la 10 y la 11) y los 4 agujeros. Si los agujeros son ceros de verdad (el juicio salió sin descartes), el
+  máximo es 9. Si son caídas del juez, es 13. Ningún muerto sin texto se puede atribuir al quinto: van por pareja, no por
+  caso.
+
+**Por qué falta `discarded`**, leído en el código y SIN tocar nada: se omite a propósito cuando está vacío
+(`lib/analysis/judge.ts:602` y `:969`, y la unión en `lib/analysis/pipeline.ts:717`). Cuando el juez falla, el juicio
+vuelve vacío y tampoco lo lleva (`judge.ts:1017`, `recordStageFailure('judge', err)`). **Con lo guardado, el control 6
+no distingue «vacío» de «el juez se cayó»**: cuenta como agujero cualquier ausencia. Lo que sí los distingue está en la
+base (`analysis.stageFailures` con stage `judge`, y en `llamadasAlModelo` el resultado de la llamada del juez a la pareja
+de CLI-12), pero ninguna consulta lo ha leído todavía.
