@@ -14,8 +14,11 @@
  * pasajes se leen de la base) y ninguna tabla nueva. Lo que devuelven lo pega el director y se archiva en `claude/`.
  */
 
-/** Pasada esta fecha, las tres rutas responden 410. Fecha del arquitecto: la semana 0 de F-130 más margen. */
-export const CADUCA_EL = '2026-11-15T00:00:00+01:00';
+/** Pasada esta fecha, las tres rutas responden 410. Era el 15/11 (la semana 0 de F-130 más margen); el arquitecto la
+ *  amplía el 02/11/2026 al 15/12 porque el plan de F-130 tiene cinco pasos y la herramienta la usan el 3 y el 5, así que
+ *  el 15/11 llegaba antes que el final del plan. Con ella, la carpeta ya no se borra al acabar la semana 0 sino al
+ *  acabar el plan. */
+export const CADUCA_EL = '2026-12-15T00:00:00+01:00';
 
 export function estaCaducada(ahora: Date): boolean {
   return ahora.getTime() >= new Date(CADUCA_EL).getTime();
