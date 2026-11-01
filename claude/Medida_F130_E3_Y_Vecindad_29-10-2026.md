@@ -1265,13 +1265,16 @@ de CLI-12), pero ninguna consulta lo ha leído todavía.
   registro como cero real, queda entre 5 y 9 de 13.
 - **D, para comparar, sí tiene denominador** (recuento de Code sobre la salida de NOR-10 de más arriba, con un script).
   En las 21 pasadas: 3 con D; 17 negativos limpios (con «discarded» y sin muertos sin texto); 1 «no sé» (la pasada 8,
-  un muerto sin texto); 0 sin registro (su control 6 sale OK). Su 3 de 21 es una tasa.
+  un muerto sin texto); 0 sin registro (su control 6 sale OK). 3 + 17 + 1 = 21. Su 3 de 21 es una tasa, y lleva su
+  cota: **«3 de 21, hasta 4 de 21»**, por la pasada 8. Es el único número firme de la semana 0.
 - **«Muertas en la puerta, con texto: 0 pasadas» (arquitecto)**: la puerta es la única etapa que conserva el texto, y
   no se reconoce en ella ninguna muerte del quinto. ⚠️ *Con el alcance de la columna (Code)*: cuenta las pasadas en que
   el CASO murió en la puerta, reconocido por su frase. Lo que la puerta mató de otros hallazgos de la pareja no sale en
   esta consulta. Lo que se sostiene es: **si el quinto murió en alguna pasada, no fue en la puerta con texto; fue sin
   texto, donde no se le puede reconocer.** Eso corrige a la baja lo que el arquitecto esperaba recuperar de la puerta.
   En NOR-10 la misma columna da 0 para A, B, C y D.
+  **«Todas las muertes son ciegas», RETIRADO por el arquitecto (01/11)**: «me pasé de la columna». Se adopta literal la
+  versión de Code: «si el quinto murió en alguna pasada, no fue en la puerta con texto».
 - ✅ **CONTROL VERDE**: las cinco citas del quinto dicen «CLI-12: fuera de §3.1 y §3.5». El quinto no es A ni D citadas
   de nuevo.
 - **El modelo**: las 13 pasadas corrieron con `claude-haiku-5-5`. La columna sale de `lecturaDeLasParejas` de la pareja

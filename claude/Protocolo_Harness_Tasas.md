@@ -1459,6 +1459,53 @@ lo que el producto la PUBLICA; no que una pasada 2 la publique. Lo cazó Code y 
 
 ---
 
+## ⚠️ UNA REFERENCIA QUE CODE NO PUEDE ABRIR NO ES UNA FUENTE
+
+*Arquitecto, 01/11/2026, con su literalidad:*
+
+> «Una afirmación sobre la clase o el tipo de un caso ya medido no se escribe sin la cita literal de lo que ya consta
+> sobre ese caso. Si lo que consta está fuera del repositorio, el arquitecto pega el texto en el encargo: UNA REFERENCIA
+> QUE CODE NO PUEDE ABRIR NO ES UNA FUENTE. Code rechaza la afirmación que llegue sin cita, y lo dice.»
+
+**LAS DOS OCURRENCIAS, del mismo día y del mismo autor:**
+1. **La reincidencia de la clase del quinto.** El 24-25/10 el arquitecto lo presentó como un `norma_contra_norma`, y lo
+   corrigió él mismo («NO es un conflicto normativo»; la primera caza fue de Code, según su documento del proyecto). El
+   01/11 propuso una partición «dato / cumplimiento» que volvía a sacarlo del dato, sin citar lo que ya constaba sobre
+   ese caso. Está en `claude/Estado_Y_Pendientes_14-10-2026.md`, en el pendiente principal de F-130.
+2. **La cita a un fichero que no existe en el repositorio.** Ese mismo día remitió a
+   `claude/Medida_F312_La_Regla_Del_Sujeto_24-10-2026.md` §5.1, que es un documento del proyecto de Claude. Code buscó el
+   fichero, no lo encontró y lo dijo; el estado ya decía que no estaba aquí. Después el arquitecto pegó el §5.1 literal,
+   que es lo que exige la regla, y quedó archivado en el estado.
+
+---
+
+## REGISTRO DE CASI-FALLOS
+
+*Abierto el 01/11/2026.* El arquitecto pidió llevar dos casi-fallos «al registro de casi-fallos», y en el repositorio no
+había ninguno: es esta sección. Un casi-fallo es un fallo que se cazó antes de llegar a un documento o a una salida. Se
+escribe con su detección, porque eso es lo que se repite. **Va el más reciente al final.**
+
+1. **01/11 · El CSV del quinto, montado de notas** (Code). Después de compactarse la conversación, Code analizó una
+   salida de `SQL_34_06` que había montado con sus notas, en vez de copiarla del mensaje del director. **Detección**:
+   antes de archivarla se preguntó de dónde venía el texto, sacó el mensaje literal del registro de la conversación y
+   lo comparó línea a línea. Coincidían las 28 líneas, y lo archivado es el texto pegado. Detalle en
+   `claude/Medida_F130_E3_Y_Vecindad_29-10-2026.md`, «Lo que dice la salida del quinto».
+2. **01/11 · La fila nula de un LEFT JOIN leída como un juicio** (Code, en `SQL_34_07`). Con `LEFT JOIN LATERAL … ON`,
+   una pasada sin juicio de CLI-12 deja una fila con `j` nulo. El `string_agg` de la forma, con sus `coalesce`, la
+   convertía en «¿sin veredicto? · solape ? % · …» en vez de «ninguno». **Detección**: el arnés, en la pasada 8 sembrada
+   sin juicio de CLI-12, esperaba «el juicio de CLI-12: ninguno» y recibió lo otro. **Arreglo**: `FILTER (WHERE j IS NOT
+   NULL)` en el `string_agg`, con el mutante «la forma de la fila nula» en rojo. La misma fila nula hacía que
+   `con_discarded` saliera `false` por casualidad, y eso lo destapó un mutante superviviente. Se arregló con el mismo
+   `FILTER`, de modo que sin juicio sale nulo y decide la condición explícita `juicios = 0`.
+3. **01/11 · El heredoc con texto largo, caído otra vez** (Code). Un `cat <<'EOF'` con un bloque largo de markdown
+   falló con «unexpected EOF while looking for matching». Ya había pasado antes en la misma sesión. La causa exacta no
+   está verificada. **Detección de que no dejó nada a medias**: antes de seguir, Code comprobó que no se había escrito
+   ningún fichero en el scratchpad y que `git diff --stat` estaba vacío, es decir, que el estado seguía intacto. Después
+   escribió los textos con la herramienta Write y aplicó el cambio con un script de node que comprueba sus anclas.
+   **Lo que queda**: un texto largo no va en un heredoc; va con Write.
+
+---
+
 ## ⚠️ CONTROL PERMANENTE: UNA TASA POR PASADA SE PUNTÚA SOBRE NEGATIVOS LIMPIOS, Y EL AGUJERO DE «discarded» SE RESUELVE ANTES
 
 *Arquitecto, 01/11/2026.* **Una tasa necesita negativos limpios.** Un negativo limpio es una pasada sin el caso, con el
