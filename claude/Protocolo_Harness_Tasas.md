@@ -1411,6 +1411,28 @@ regla secuencial, «parar antes solo con 18 de 20 o 10 de 20», y el resumen del
 
 ---
 
+## ⚠️ EL ARQUITECTO AFILA LO QUE CODE DEJÓ HEDGEADO
+
+*Arquitecto, 01/11/2026, con su nombre. Es un patrón suyo, distinto del de afirmar de memoria y del de atribuir un
+hallazgo a quien no lo hizo. No había un registro de fallos de método en el repositorio: va aquí, como los otros
+patrones del arquitecto, y porque es la segunda vez (la regla de «a la segunda vez del mismo fallo de método», más
+abajo).* Enunciado literal:
+
+> «El arquitecto afila lo que Code dejó hedgeado. Cuando una afirmación del arquitecto proceda de una frase prudente de
+> Code, se cita la frase de Code literal al lado.»
+
+**LAS DOS OCURRENCIAS, las dos del 01/11:**
+1. **«Todas las muertes son ciegas».** Code había escrito sobre la columna «muertas en la puerta, con texto: 0»
+   (`SQL_34_06`), que sólo cuenta las muertes reconocibles como el quinto. El arquitecto la extendió a todas las muertes
+   de la pareja. Retirada; se adoptó la frase de Code: «si el quinto murió en alguna pasada, no fue en la puerta con
+   texto».
+2. **«Partida».** Code escribió que la frase de «vinculantes» del §4 de CLI-12 estaba «en el borde entre los dos»
+   trozos. El arquitecto lo convirtió en «partida entre el trozo 8 y el 9», y así entró en su borrador de la adenda.
+   La frase está entera en los dos, repetida por el solape. ⚠️ *La mitad de Code*: «en el borde» era una frase floja,
+   y por eso cabía la lectura afilada.
+
+---
+
 ## ⚠️ UNA CIFRA MEDIDA EN UNA CONDICIÓN NO SE EXTIENDE A OTRA SIN MEDIRLA
 
 *Arquitecto, 30/10/2026, con su nombre.* No se extiende de una tanda a todas, ni de la herramienta al producto, ni de una

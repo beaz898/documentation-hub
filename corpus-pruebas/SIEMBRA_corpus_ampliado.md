@@ -15,6 +15,10 @@
 >    134 °C/18 min»: CLI-12 no lo dice.
 >
 > El resto del texto no se ha tocado.
+>
+> **Nota del 01/11/2026.** Este fichero recoge además hallazgos reales **NO SEMBRADOS de más de una pareja**, no
+> sólo de las de la lista de abajo: §6 (NOR-10 ↔ CLI-13) y §9 (NOR-11 ↔ CLI-12). Cada sección lleva su pareja en el
+> encabezado.
 
 Registro de auditoría de los problemas sembrados deliberadamente en los cinco
 ficheros de esta ampliación del corpus piloto Dentavia. Permite verificar los
@@ -477,3 +481,85 @@ que Dirección de Operaciones «consolida trimestralmente los indicadores de tra
 clínicas en un informe comparativo, que se presenta en la reunión de comité de calidad de la red descrita
 en el apartado 11.3»; y CLI-12, en su 9.2 (trozos 23 y 24), habla de «la reunión de comité de calidad de
 mitad de año».
+
+---
+
+## 9. Quién revisa el cumplimiento del almacenamiento de residuos (NOR-11 ↔ CLI-12) · **NO SEMBRADO**, con dos lecturas
+
+> **AÑADIDO AL REPOSITORIO EL 01/11/2026** (decisión del arquitecto). **La pareja NO es la de este registro:**
+> es NOR-11 ↔ CLI-12, que no está sembrada en ningún `SIEMBRA_*.md`. Va aquí por costumbre de la casa, como el §6.
+> Nadie lo sembró. Es el **quinto** hallazgo real no sembrado del corpus, después de la D (27/08), el NOR-04 (§6),
+> el comité (§7) y su periodicidad (§8). En las medidas se le llama «el quinto conflicto».
+> **A diferencia de los otros, tiene dos lecturas defendibles** (abajo). Por decisión del arquitecto (01/11), no se
+> construye ningún mecanismo para cazarlo, y queda como **guarda de no regresión**: detectarlo cuenta como acierto, y un
+> arreglo no puede hacerlo bajar de su línea base.
+
+| | Documento | Apartado | Afirmación |
+|---|---|---|---|
+| Versión 1 | NOR-11 | **10.5 · Revisión periódica de buenas prácticas** (trozo 13, posición 13.678) | El Coordinador de Calidad **de cada clínica** revisa trimestralmente el cumplimiento de los criterios. |
+| Versión 2 | CLI-12 | **6.2 · Equipo auditor** (trozo 13, posición 13.907) | Las auditorías internas las realiza **siempre personal ajeno al área auditada**; el Coordinador de la propia clínica, **no como auditor de su propia área**. |
+
+**Los pasajes, literales** (del texto troceado con el código de la indexación; las posiciones son las del texto que
+arma el juez, leídas el 25/10):
+
+> **NOR-11 · 10.5** (trozo 13): «El Coordinador de Calidad de cada clínica revisa trimestralmente el cumplimiento de
+> los criterios descritos en este apartado mediante observación directa del área de almacenamiento intermedio y de los
+> gabinetes, incorporando los hallazgos relevantes a la siguiente sesión de formación anual del personal.»
+
+> **CLI-12 · 6.2** (trozo 13): «Las auditorías internas las realiza siempre personal ajeno al área auditada,
+> habitualmente el Coordinador de Calidad de otra clínica de la red, para garantizar independencia de criterio. El
+> Coordinador de Calidad de la propia clínica participa en la auditoría como interlocutor, pero no como auditor de su
+> propia área.»
+
+**Lo que une los dos nombres, literal:**
+
+> **CLI-12 · 4, «Definiciones»** (trozo 7): «Auditoría interna: revisión sistemática y planificada de un proceso,
+> realizada por personal de la propia organización, con el fin de verificar su cumplimiento y detectar oportunidades
+> de mejora.»
+
+> **CLI-12 · 4** (trozo 8, y repetida en el 9 por el solape): «Estas definiciones son vinculantes para la
+> interpretación de cualquier otro documento del sistema de calidad de Dentavia, incluidos los protocolos clínicos y
+> operativos de cada área.»
+
+> **CLI-12 · 4** (trozo 9): «En caso de conflicto terminológico entre este manual y un protocolo operativo concreto,
+> prevalece la definición de este manual a efectos de indicadores y auditoría de calidad, sin perjuicio de que el
+> protocolo operativo mantenga su propia terminología técnica específica para la ejecución diaria del proceso.»
+
+> **NOR-11 · 11, «Relación con otros documentos»** (trozo 14): «También se relaciona con el protocolo de desinfección
+> de superficies, de aplicación conjunta ante derrames, y con el manual de calidad CLI-12, que establece el enfoque de
+> auditoría aplicable a este proceso, igual que ocurre con el resto de procesos críticos de seguridad de la clínica.»
+
+**Naturaleza del conflicto: el mismo dato bajo otro nombre.** El dato es quién revisa el cumplimiento de este proceso:
+el Coordinador de la propia clínica, en NOR-11; «siempre personal ajeno al área», en CLI-12. Los dos documentos llaman
+a la actividad de distinta manera («revisa trimestralmente el cumplimiento» y «auditoría interna»). Es de dato, no un
+conflicto normativo: lo correcto es publicarlo sin la etiqueta `conflictoNormativo`.
+
+**LAS DOS LECTURAS:**
+- **Es una contradicción.** NOR-11 §10.5 encaja cláusula por cláusula con la definición del §4: una revisión, trimestral
+  y sobre unos criterios descritos, de un proceso, por personal propio, para verificar su cumplimiento, con los
+  hallazgos a la formación. La definición se declara vinculante para «cualquier otro documento del sistema», y NOR-11
+  §11 se remite a CLI-12 para el enfoque de auditoría de ese proceso.
+- **No lo es.** Tres argumentos:
+  1. La cláusula que arbitra trae su excepción: el protocolo puede mantener «su propia terminología técnica específica
+     para la ejecución diaria del proceso», y una «revisión periódica de buenas prácticas» por «observación directa»
+     puede ser justo eso.
+  2. El §6 de CLI-12 da a las auditorías internas calendario anual, tipos (6.1) e informe con plazo (6.3), y NOR-11
+     §10.5 no tiene nada de eso: puede ser supervisión, no auditoría.
+  3. La definición del §4, al pie de la letra, convierte en auditoría cualquier supervisión periódica.
+
+**EL GLOSARIO NO ES EL PASO QUE FALTA: ES LA CORROBORACIÓN** (arquitecto, 01/11). En las cinco pasadas del 28/10 en que el
+juez lo publicó, la cita de CLI-12 es siempre de §6.2, **nunca del §4**. El modelo lo encuentra equiparando las dos
+actividades por su cuenta. El glosario es lo que un revisor humano usaría para corroborarlo.
+
+**Lo medido, cada cifra con su condición, sin sumarlas:**
+- 22/10: «2 de 11» publicado (cifra del arquitecto, de los logs).
+- 24/10: «1 de 5» publicado, con «el juez emitió algo en esa pareja en 4 de 5» (cifra del arquitecto, de los logs;
+  anterior al 3.4).
+- 28/10, de 08:30 a 09:00, 13 pasadas, con la regla de `SQL_34_06` y los agujeros resueltos por `SQL_34_07`: **entre 5 y
+  9 de 13** (5 halladas, 4 negativos limpios y 4 con un muerto sin texto). Con la etiqueta `norma_contra_norma` en 1 de
+  las 5, que es un error; las otras 4, sin etiqueta, están bien. Detalle en
+  `claude/Medida_F130_E3_Y_Vecindad_29-10-2026.md`.
+
+**El troceado de CLI-12 lo hace más difícil de ver por trozos:** ningún trozo tiene a la vez la definición (trozo 7) y
+lo que la hace vinculante (8 y 9), y la cláusula con su excepción sólo está en el 9. Las dos mitades están en otros dos
+trozos: NOR-11·13 y CLI-12·13.

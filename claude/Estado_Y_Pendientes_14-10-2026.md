@@ -268,6 +268,12 @@ a ojo. El procedimiento, el coste y la consulta se plantean ANTES de pedírselo 
         D sí es significativa.
       - **Los dos están por debajo de A, B y C, sin el «muy»**: el quinto a 9 de 13 frente a 21 de 21 da p = 0,015, y la
         diferencia se afirma, pero los intervalos se tocan (87 % y 84,5 %).
+    ⚠️⚠️ **PREMISA SIN VERIFICAR PARA LAS PASADAS MEDIDAS (arquitecto, 01/11): «EL JUEZ TIENE LOS DOS DOCUMENTOS ENTEROS
+    DELANTE».** El código lo da por hecho con la ventana de 150.000, y se midió para NOR-11 ↔ CLI-12 el 23/10, y para D el
+    22/10 (más abajo), en OTRAS tandas. Ni para las 21 de D (30-31/10) ni para las 13 del quinto (28/10) está leído en la
+    base. Si el candidato no va entero, se elige entre los fragmentos que devolvió Pinecone, y el §4 o una mitad de D
+    pudieron no llegar. **Lo lee `SQL_34_08_lo_que_recibio_el_juez.sql`, PENDIENTE DE EJECUTAR.** Hasta que vuelva, la
+    línea base de D y la lectura del quinto cuelgan de esta premisa.
     ⚠️⚠️ **EL ÚNICO CASO DÉBIL MEDIDO CON NÚMERO FIRME ES D.** La CLASE del quinto, «el mismo dato bajo otro nombre», se
     establece leyendo sus frases y no depende de la tasa. La tasa ya está acotada, entre 5 y 9 de 13, y no se puede
     comparar con la de D.
@@ -282,10 +288,17 @@ a ojo. El procedimiento, el coste y la consulta se plantean ANTES de pedírselo 
     trozos distintos** (el caso de A). Y la duplicación dentro de una pasada es **compatible con lo observado en la pasada
     12**: publicó el quinto y además tuvo un muerto sin texto, que podría ser una segunda emisión del quinto por la otra
     frase. No es un riesgo teórico ni un hecho. (El arquitecto había dicho que «no pasó nunca en las 13», y lo corrige él.)
-  - ⚠️⚠️ **LA PARTICIÓN, REESCRITA (arquitecto, 01/11, con el glosario verificado por Code): D Y EL QUINTO YA NO SON LA
-    MISMA FAMILIA.**
+  - ⚠️⚠️ **LA PARTICIÓN, REESCRITA (arquitecto, 01/11, con el glosario verificado por Code; y corregida el mismo día por el
+    dato de Code de que el §4 nunca se cita): D Y EL QUINTO SON DOS FRONTERAS DISTINTAS.**
     - **D: deducir lo que nadie escribió.** Una permisión contra un principio (F-129, `claude/consultas-fable/INDICE.md:197`).
-    - **El quinto: aplicar una definición vinculante que sí está escrita, y que tiene una excepción.** CLI-12 §4 define la
+    - ⚠️⚠️ **RETIRADA DEL ARQUITECTO, con su nombre (01/11)**: retira «el paso está escrito en el glosario y lo que el
+      sistema no hace es usar el glosario». En las cinco pasadas en que salió el quinto, la cita de CLI-12 fue siempre
+      de §6.2 y nunca del §4: **EL MODELO ENCUENTRA EL QUINTO SIN USAR EL GLOSARIO**, equiparando «revisar el
+      cumplimiento» con «auditoría interna» por su cuenta. **Lo correcto: EL GLOSARIO NO ES EL PASO QUE FALTA, ES LA
+      CORROBORACIÓN QUE UN REVISOR HUMANO USARÍA.**
+    - **El quinto: reconocer que dos nombres son la misma actividad, cosa que el modelo hace por su cuenta entre 5 y 9 de 13
+      veces; el glosario lo corrobora.** (Antes de la retirada ponía: «aplicar una definición vinculante que sí está
+      escrita, y que tiene una excepción».) CLI-12 §4 define la
       auditoría interna como «revisión sistemática y planificada de un proceso, realizada por personal de la propia
       organización, con el fin de verificar su cumplimiento y detectar oportunidades de mejora». Declara las definiciones
       «vinculantes para la interpretación de cualquier otro documento del sistema de calidad de Dentavia». NOR-11 §10.5
@@ -306,8 +319,10 @@ a ojo. El procedimiento, el coste y la consulta se plantean ANTES de pedírselo 
       el 69 %) y la segunda ya no es verdad. **La que queda, con el intervalo y sin adjetivos**: «En los cinco casos
       medidos (dos parejas, un corpus), A, B y C, en que los dos documentos nombran el mismo dato con las mismas
       palabras, salen 21 de 21. D, deducir del principio que el permiso lo vulnera, sale 3 de 21, hasta 4 de 21. El
-      quinto, aplicar la definición vinculante de auditoría interna del §4 de CLI-12, sale entre 5 y 9 de 13. No se
-      puede afirmar ni negar que uno de los dos últimos sea peor que el otro.»
+      quinto, reconocer que «revisar trimestralmente el cumplimiento» y «auditoría interna» son la misma actividad (lo
+      que el §4 de CLI-12 corrobora), sale entre 5 y 9 de 13. No se puede afirmar ni negar que uno de los dos últimos sea
+      peor que el otro.» *(Corregida el 01/11 con la retirada de arriba: decía «aplicar la definición vinculante de
+      auditoría interna del §4 de CLI-12».)*
     - Y se retira «la superficie no basta», que sólo estuvo en los mensajes del arquitecto.
   - ⚠️⚠️ **DECISIÓN DE PRODUCTO DEL ARQUITECTO, con su nombre (01/11): EL QUINTO ESTÁ EN EL LÍMITE DE LO QUE MERECE LA
     PENA PERSEGUIR, Y PERSEGUIRLO PUEDE EMPEORAR EL PRODUCTO.** Tres motivos:
@@ -322,10 +337,15 @@ a ojo. El procedimiento, el coste y la consulta se plantean ANTES de pedírselo 
     **IDEA DE PRODUCTO, SIN ESPECIFICAR NI CONSTRUIR (arquitecto, 01/11)**: para casos así, en vez de afirmar la
     contradicción, un ESCALÓN DISTINTO que diga «esto puede chocar según la definición vinculante del §4, que tiene una
     excepción: decide tú», con las dos lecturas y la cláusula entera citada.
-  - **PENDIENTE DE DECISIÓN DEL ARQUITECTO: ¿se registra el quinto como hallazgo real no sembrado?** No está registrado
-    en ningún sitio con sus pasajes literales. La costumbre de la casa (§6, §7 y §8 de `SIEMBRA_corpus_ampliado.md`, del
-    20 y el 22/10) es una sección nueva al final de ese fichero, «· NO SEMBRADO», con los pasajes literales, aunque la
-    pareja no sea la del fichero (el §6 es NOR-10 ↔ CLI-13). No se escribe hasta que lo decida.
+  - ✅ **REGISTRADO (decisión del arquitecto, 01/11)**: el quinto es el §9 de `corpus-pruebas/SIEMBRA_corpus_ampliado.md`,
+    «· NO SEMBRADO», con su pareja en el encabezado, los pasajes literales, las dos lecturas con los tres argumentos de
+    la contraria y el dato de que el §4 nunca se cita. Y una línea al principio del fichero: contiene hallazgos no
+    sembrados de más de una pareja.
+  - **PENDIENTE CON DISPARADOR: LA PREGUNTA 1 A FABLE (arquitecto, 01/11)**, que sale de la adenda porque iría sin ejemplo
+    medido, y eso es lo que el director prohibió: «¿Cuál es la unidad de comparación correcta cuando la pieza que decide
+    si hay contradicción no está en ninguna de las dos cosas que se comparan?». **Su disparador es el paso 3 del plan**,
+    la pregunta cerrada sobre la pareja del quinto: si sale cerca del 90 %, la pareja le basta y la pregunta no tiene
+    caso; si se cae, tiene su ejemplo medido y va a Fable.
   - **PENDIENTE CON DISPARADOR (arquitecto, 01/11)**: el glosario de CLI-12 está verificado con el código de la indexación
     sobre `corpus-pruebas/`, no contra el texto guardado en la base. Se verifica en la base **el día que algo se apoye en
     el glosario**.
@@ -430,6 +450,27 @@ a ojo. El procedimiento, el coste y la consulta se plantean ANTES de pedírselo 
   4. **E5 con la pasada 2 encendida**: 20 pasadas por pareja, contando TODOS los hallazgos, contra la línea base por
      hallazgo.
   5. **Activación con los criterios en veintes de Fable.**
+  ⚠️⚠️ **EL ORDEN FINAL (arquitecto, 01/11). Sustituye al orden de arriba en lo que no coincida:**
+  1. **Verificar qué recibió el juez**, gratis: `SQL_34_08_lo_que_recibio_el_juez.sql`, las 21 de D y las 13 del quinto.
+  2. **El verificador, en un commit solo** (el punto 2 de arriba).
+  3. **La pregunta cerrada sobre la pareja del quinto, NOR-11·13 ↔ CLI-12·13**, como se hizo con D, 20 pasadas. Si
+     sale cerca del 90 %, la pareja le basta; si se cae, la pregunta 1 a Fable tiene su ejemplo (arriba). **Lo que hay
+     que tocar** en `app/api/admin/medida-f130/` (Code, 01/11; no construido):
+     - dos trozos nuevos en `TROZOS` (`medida-f130.ts`), cada uno con la frase que lo comprueba por el texto: NOR-11·13
+       («revisa trimestralmente el cumplimiento») y CLI-12·13 («Las auditorías internas las realiza siempre»);
+     - una pareja propia y su ruta (o la ruta de la pregunta, parametrizada). `PAREJAS_DE_E3` es la de D, y sus
+       pruebas la fijan (`medida-f130.test.ts`);
+     - un botón en `page.tsx`;
+     - el prompt y el criterio, sin tocar: el quinto es de dato, y la pregunta 1 del prompt («¿Dicen los dos textos
+       cosas DISTINTAS sobre el MISMO dato?») es la suya;
+     - ⚠️ **la herramienta caduca el 15/11** (`CADUCA_EL`): si el paso 3 va después, hay que alargarla, con su nombre.
+     **Lo que cuesta: 0 créditos**, porque la ruta no cobra (`pregunta/route.ts`, cabecera). En dinero de API, unos
+     **0,04 $ por tanda de 20**: la tanda de D del 30/10 gastó 82.520 tokens de entrada y 63.491 de salida con Haiku 5.5
+     (`claude/Medida_F130_Veinte_Condicion_1_30-10-2026.json`), a 0,10 $ y 0,50 $ el millón
+     (`lib/observability/llm-pricing.ts:36`). Los trozos del quinto no tienen por qué medir lo mismo: es un orden de
+     magnitud.
+  4. **La pasada 2, con el quinto como guarda de no regresión.**
+  5. **E5.**
   ⚠️⚠️ **EL OBJETIVO ES D; EL QUINTO ES COMPROBACIÓN (decisión del director, tomada con el arquitecto, 01/11).** Se
   arregla para D, y después se mira si el quinto se movió. Si se mueve, el arreglo es general; si no, son dos
   problemas. Y el quinto es GUARDA DE NO REGRESIÓN: ningún arreglo puede bajarlo de su línea base (entre 5 y 9 de
@@ -1484,6 +1525,8 @@ caracteres**, los mismos de antes de la purga. Y la pareja **NOR-10 + CLI-12 sum
 sin comprobar contra esta pasada.)
 
 #### ⚠️ CASO ABIERTO · D, CON SUS DOS MITADES DELANTE Y SIN EMITIRSE · 22/10 · ABIERTO CON NOMBRE
+⚠️ **01/11: MEDIDO PARA LA TANDA DEL 22/10, NO PARA LAS 21 PASADAS DE LA LÍNEA BASE (30-31/10).** Para ésas, sin verificar
+hasta `SQL_34_08` (pendiente principal de F-130).
 **Lo medido (arquitecto, de las salidas de la tanda de 150.000)**: las dos mitades de D estuvieron delante del
 juez las cinco veces —en NOR-10, la frase de 3.881 a 4.267 (el dato, «puede recaer en el propio Director Clínico»,
 de 3.943 a 3.984), y el trozo 6 de CLI-12, entregado— y no se publicó nada. ⚠️ Las posiciones, corregidas el 23/10:

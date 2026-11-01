@@ -1426,3 +1426,7 @@ glosario es lo que une los dos nombres de la actividad.
 ⚠️ *Lo que no se sabe* (Code): en las cinco pasadas en que salió el quinto, la cita de CLI-12 es siempre de §6.2,
 nunca del §4. Que el juez lo hallara POR el glosario no consta. Pudo bastarle saber, sin el glosario, que revisar el
 cumplimiento es auditar.
+**Y DE AHÍ LA RETIRADA DEL ARQUITECTO (01/11)**: retira «el paso está escrito en el glosario y lo que el sistema no hace
+es usar el glosario». El modelo encuentra el quinto sin usar el glosario: **el glosario no es el paso que falta, es la
+corroboración que un revisor humano usaría.** Y la premisa de que el juez tuvo los dos documentos enteros delante, en
+estas 13 pasadas y en las 21 de D, queda SIN VERIFICAR hasta `SQL_34_08`.
