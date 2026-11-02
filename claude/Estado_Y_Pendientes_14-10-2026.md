@@ -469,7 +469,9 @@ a ojo. El procedimiento, el coste y la consulta se plantean ANTES de pedírselo 
      se ejecutó. Cuenta A, B, C y D en NOR-10, y el quinto en NOR-11. Para D usa la misma regla que `SQL_34_05`, y su
      arnés lo comprueba. ✅ EJECUTADO (31/10 con NOR-10, 01/11 con NOR-11), y con él `SQL_34_07`: la semana 0, arriba.
   2. **El verificador sin marca, en un commit SOLO**, y después **se vuelve a medir la línea base con 20 pasadas** y la
-     consulta extendida. Va primero porque puede subir la línea base él solo: en la pasada 8 murió algo sin texto. Si va
+     consulta extendida. ~~Va primero porque puede subir la línea base él solo: en la pasada 8 murió algo sin texto.~~
+     *(RETIRADO por el arquitecto el 02/11: para D no puede; de sus 21 pasadas, 17 son negativos limpios y sólo 1 tuvo una
+     muerte sin texto, y lo dijo antes de tener ese recuento. Su predicción para la tanda, P-VN-1, en las predicciones.)* Si va
      junto a la pasada 2, los dos efectos quedan confundidos. **Es un DEFECTO**, y lo encontró Fable el 29/10.
   3. **La pasada 2**:
      - enumerador de parejas;

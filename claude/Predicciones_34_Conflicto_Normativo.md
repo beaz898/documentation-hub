@@ -373,3 +373,31 @@ decisión de empezar con 2 de 3:
 
 Con los números corregidos, 3 de 5 es mejor que 2 de 3 en D y en los falsos, e **igual** en lo discutible (50 % las dos,
 no mejor). Eso abarata la revisión si alguna vez se dispara: la constante pasa a 3 de 5 sin perder nada.
+
+## P-VN-1 · EL VERIFICADOR NUEVO EN LA TANDA DE 20, escrita ANTES de que corran las pasadas (arquitecto, 02/11/2026, 17:08)
+
+**La predicción del arquitecto, literal:** «EL CAMBIO DEL VERIFICADOR NO PUEDE MOVER A D CASI NADA, y el motivo está
+medido — de las 21 pasadas de D, 17 son negativos limpios donde el juez no emitió nada y el verificador no tuvo nada que
+salvar; sólo 1 tuvo una muerte sin texto. ASÍ QUE: D entre 3 y 4 de 21. El quinto, que tiene 4 muertes sin texto de 13,
+entre 5 y 9 de 13.»
+**Y retira** lo que escribió el 30/10, que el verificador «puede subir la línea base él solo»: para D no puede, y lo dijo
+antes de tener el recuento de negativos limpios (estado vivo, paso 2 del plan).
+
+**Lo que Code añade antes de que se lance, leído el código y hechas las cuentas (02/11, 17:08):**
+1. **El mecanismo es correcto, y es una cota del efecto, no una predicción del recuento.** El verificador sólo juzga lo
+   que el juez emite. En la línea base, lo que pudo matar sin dejar texto en la pareja de D es 1 de 21, y en la del quinto
+   4 de 13. Eso acota lo que el cambio puede SALVAR, si el juez emite lo mismo.
+2. **El cambio también puede BAJAR a D, no sólo subirlo.** El prompt del verificador es otro para todos los hallazgos: un
+   D que antes se confirmaba por la pregunta del dato puede ahora contestarse distinto en esa pregunta; y si el modelo
+   devuelve mal uno de los dos campos, el hallazgo muere como `descartado.sin_veredicto`. La cota del punto 1 vale para
+   lo que sube; para lo que baja, la guarda es la cifra (b) de `SQL_34_09`.
+3. **La tanda es de 20 pasadas nuevas, no las mismas 21**, y el juez vuelve a tirar en cada una. Con la tasa de la línea
+   base (3 de 21) y SIN NINGÚN efecto del verificador, D en 20 pasadas cae entre 0 y 6 el 95 % de las veces, y en 3 o 4
+   sólo el 41 % (cuenta binomial, `varianza.mjs`, de un solo uso). «Entre 3 y 4» fallaría seis de cada diez veces con el
+   mecanismo funcionando tal como predice. Lo mismo el quinto: a 5/13, en 20 pasadas va de 4 a 12; a 9/13, de 10 a 18.
+**Una forma puntuable, que propone Code y decide el arquitecto antes de lanzar:**
+- **P-VN-1a (el mecanismo)**: en las 20 de NOR-10, `verificador.confirmados_solo_por_cumplimiento` deja D como mucho en
+  una pasada más de las que el juez emite (se lee junto a `SQL_34_06`, pasada a pasada). Y `descartado.sin_veredicto` no
+  sube frente a la línea base (`SQL_34_09`, bloque 2).
+- **P-VN-1b (el recuento)**: D en 20 pasadas, entre 0 y 6; el quinto, entre 4 y 18. Es el rango que da el azar con las
+  tasas de la línea base: fuera de él, algo se movió y hay que mirar qué.
