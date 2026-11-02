@@ -532,12 +532,13 @@ verificador son más que cero y el contador sale a cero, el cero es una medida; 
 - **El cero es una medida, no una pantalla apagada**: llegaron 106 hallazgos al verificador. Y las dos tandas son
   comparables en volumen: 106 frente a 105.
 
-**De `SQL_34_06`, según el arquitecto; su salida NO ha llegado a Code y no está comprobada**: D se publicó en 1 de 21 (la
+*(19:48: ya comprobado con la salida entera; ver «D, PUNTUADA CON LA SALIDA ENTERA», abajo.)* **De `SQL_34_06`, según el arquitecto; su salida NO ha llegado a Code y no está comprobada**: D se publicó en 1 de 21 (la
 pasada 19), y todos los hallazgos de las 21 salen «sin especie». Con eso: **P-VN-1 falla** (la tachada: D en 1, no en 3 o 4),
 **P-VN-1b se cumple** (1 está en [0, 6]), y **no se puede decir que D haya empeorado** (1 de 21 sale el 13,7 % de las veces con
 la tasa de la base).
 
-### ⚠️ EL HALLAZGO: EL VERIFICADOR NUNCA FUE EL FRENO DE D (arquitecto; la cadena del código, comprobada por Code)
+*(REESCRITO a las 19:48, abajo, con las palabras del arquitecto: no es un hallazgo nuevo, y se retira «va contra la premisa».)*
+### ~~⚠️ EL HALLAZGO: EL VERIFICADOR NUNCA FUE EL FRENO DE D~~ (arquitecto; la cadena del código, comprobada por Code)
 
 **Si la D de la pasada 19 se publicó como contradicción y el contador de esa pasada es 0, entonces la pregunta 1 respondió
 «opuestos».** No hay otro camino; comprobado en el código, eslabón a eslabón:
@@ -570,7 +571,7 @@ contesta esa pregunta del lado de «está dentro», al menos una vez.
 ### EL CONTADOR A CERO NO DICE «EL CAMBIO NO SIRVE» (arquitecto, para el registro)
 
 Dice que **la situación que el cambio arregla no ocurrió en esta tanda**. En las 21 pasadas todos los hallazgos salen «sin
-especie» (dato de `SQL_34_06`, sin comprobar por Code), y la fuga que el cambio tapa sólo se dispara con un hallazgo
+especie» (dato de `SQL_34_06`; comprobado a las 19:48), y la fuga que el cambio tapa sólo se dispara con un hallazgo
 etiquetado.
 
 ### MAÑANA, NOR-11, escrito antes (arquitecto, con la corrección de Code)
@@ -588,3 +589,44 @@ etiquetas en pasadas del producto, según las medidas archivadas:
 
 **Así que el camino arreglado también se ha disparado en NOR-10**: una vez en 28 pasadas (7 del 28/10 y 21 de la línea base).
 NOR-11 sigue siendo el terreno más probable (dos etiquetas en 13 pasadas el 28/10, y una más el 26/10), pero no el único.
+
+## D, PUNTUADA CON LA SALIDA ENTERA DE SQL_34_06 (Code, 02/11/2026, 19:48)
+
+Salida literal en `claude/Medida_F130_E3_Y_Vecindad_29-10-2026.md`, comprobada con un script. **Ya no es el número del
+arquitecto: es el de la consulta.**
+- **D, en 1 de 21: la pasada 19, sin especie.** P-VN-1 (la tachada, «3 o 4») falla. P-VN-1b, el suelo de ruido, se cumple:
+  1 está en [0, 6]. La señal de un solo lado (≥8) no salta. **No se puede decir que D haya empeorado**: con la tasa de la
+  base, 1 o menos de 21 sale el 17,7 % de las veces, y exactamente 1, el 13,7 %. Son dos magnitudes distintas y las dos son
+  ciertas.
+- **A, B y C, en 21 de 21, sin especie: no regresan** (la base, 21 de 21).
+- **Ninguna etiqueta en las 21 pasadas, y ningún muerto sin texto.** El contador a 0 (`SQL_34_09`) junto a la D de la pasada
+  19 obliga a que la pregunta 1 respondiera «opuestos» (la cadena del código, arriba; el arquitecto la da por buena entera).
+  *Y la cota, al lado: es UNA pasada. Dice que el verificador PUEDE leer D como dato, no que lo haga siempre.*
+- **El coste nuevo, contra el que se puntúa P-F130-17, no sale de estas dos consultas**: queda pendiente.
+
+### LO QUE LA PASADA 19 ENSEÑA, REESCRITO (arquitecto y Code, 02/11, 19:48)
+
+**NO ES UN HALLAZGO NUEVO.** Las tres D de la línea base iban sin etiqueta, y el verificador viejo sólo les hacía la pregunta
+del dato. **Ya teníamos tres pruebas, en nuestros propios datos y sin leerlas, de que la pregunta 1 confirma a D.** La tanda
+nueva lo hace VISIBLE con el contador; no lo descubre.
+
+**SE RETIRA «VA CONTRA LA PREMISA CON LA QUE CONSTRUIMOS EL CAMBIO»** (arquitecto). La fuga de la ruta por marca es real, y D
+sí ha estado marcada: en la pasada 5 de la ventana del control positivo del 28/10
+(`claude/Medida_F130_E3_Y_Vecindad_29-10-2026.md:780`). *El arquitecto escribió «la pasada 7»; es la 5 (Code).* **El camino
+arreglado se ha disparado una vez en 28 pasadas de NOR-10. Ésa es su tasa medida, y es el dato que faltaba para saber lo que
+vale el cambio.**
+
+### ⚠️ LO QUE MÁS IMPORTA DE ESTE DÍA: UNA DUDA QUE NO SUPIMOS RESOLVER LEYENDO, RESUELTA POR EL PRODUCTO MIDIÉNDOLA
+
+El 23/10, F-129 dejó escrito en su §3.1, punto 1
+(`claude/consultas-fable/F-129_2026-10-23_una-permision-contra-un-principio.md:198-202`), que quizá D estaba dentro de la
+definición de siempre. «Nunca por el Director Clínico del propio centro… para mantener la separación de funciones» y
+«figura que puede recaer en el propio Director Clínico» mencionan las dos figuras por su nombre y afirman cosas
+incompatibles sobre su relación. **Y terminaba: «Si eso basta, D está dentro de la definición actual y lo que falla es el
+prompt, no la definición. No sé decidirlo yo».**
+
+**El verificador ha contestado que sí, al menos una vez**: en la pasada 19 confirmó D por la pregunta del dato. Diez días
+después, una duda que no supimos decidir leyendo la ha contestado el propio producto midiéndolo. **Vale más que el número de
+D** (arquitecto).
+La tensión que abre sigue escrita arriba: o el verificador tiene una noción de «mismo dato» más ancha que la nuestra, o
+nuestra clasificación de D («una permisión contra un principio», F-129:191-192) tiene que revisarse.

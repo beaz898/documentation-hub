@@ -1563,6 +1563,11 @@ la extrapolación (llevar una cifra a otra condición). Enunciado literal:*
    por azar el 0,4 % de las veces y el verificador no lo puede producir; si sale, señala que se movió otra cosa. La cazó
    Code; queda como señal de un solo lado (`claude/Predicciones_34_Conflicto_Normativo.md`, «LO QUE LA TANDA PUEDE
    CONCLUIR»).
+9. **02/11 · «NOR-11 es el único sitio donde hemos visto al juez poner una etiqueta alguna vez»**: falso. Las etiquetas en
+   pasadas del producto: el quinto de NOR-11 el 26/10 (pasada 5) y el 28/10 (pasada 5, más un muerto sin texto etiquetado
+   en la pasada 4); y **la D de NOR-10 el 28/10, pasada 5 de 7** (`claude/Medida_F130_E3_Y_Vecindad_29-10-2026.md:780`).
+   Ninguna en las 21 de la línea base de D ni en las 21 de la tanda nueva. La cazó Code con un `grep` de las medidas
+   archivadas (`claude/Predicciones_34_Conflicto_Normativo.md`, «MAÑANA, NOR-11»).
 ⚠️ **Referencia cruzada, sin contar dos veces (arquitecto, 02/11)**: «el sistema encuentra el 100 % de las contradicciones
 de dato» (31/10) también es un absoluto sobre un conjunto sin enumerar, pero se cuenta en la extrapolación, ocurrencia
 5, donde ya estaba.
