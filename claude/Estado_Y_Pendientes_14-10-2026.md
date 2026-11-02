@@ -189,6 +189,13 @@ pruebas lentas de la sección 5: la lentitud es de la primera pasada en frío.
   una tarde de mutantes. Sola, verde en menos de un segundo; la suite repetida entera, verde (2127 y 160). Y **EL DISPARADOR
   YA SE CUMPLIÓ**: la línea base se midió el 31/10 y desde entonces ha habido muchos commits sin abrir esto. Lo decide el
   arquitecto; Code no lo toca.
+  ⚠️⚠️ **DECISIÓN DEL ARQUITECTO (02/11): SE ABRE, PERO NO AHORA, Y CON UN DISPARADOR QUE NO PUEDE ESCURRIRSE**: el primer
+  commit después de puntuar la tanda del verificador nuevo, **y si eso no ha ocurrido el 05/11, entonces el 05/11, pase lo
+  que pase**. Su disparador ya venció dos veces, y diferirlo una tercera es como la deuda se vuelve permanente.
+  - **Se abre SÓLO la que recae, `pglite-fuera-del-producto`.** `formatos-con-tablas` y `tramo-de-cita` quedan aparte:
+    tratar las tres como una clase, cuando sólo una es un censo del repositorio, ya fue un error.
+  - **El objetivo NO es «que vaya más rápido»: es QUE UN FALLO DE TIEMPO NO PRODUZCA UN ROJO QUE APRENDAMOS A IGNORAR.** Ése
+    es el daño real, no los 67 segundos.
 
 **REGISTRO, 29/10/2026 (sólo registro; no se reescribe ningún commit)**: el mensaje del commit `142a6930` («F-130: el
 segundo mensaje de Fable tras los prompts…») dice «Gates: npm test (suite 2115, arneses 117)», y **en ese momento no lo

@@ -1377,6 +1377,9 @@ D saldría «entre 3 y 4 de 21» en la tanda del verificador nuevo. Con 20 pasad
 (73 %) y calculado el 11 % de P-F130-12, y escribió una peor que las dos. **Y el agujero fue del razonamiento, no del
 número: calculó sólo lo que el cambio puede salvar y nada de lo que puede romper. Una cota de un solo lado.** La cazó
 Code antes de lanzar; quedó tachada, en su sitio y con su hora (`claude/Predicciones_34_Conflicto_Normativo.md`, P-VN-1).
+**Y EN LA CUENTA SIGUIENTE, EL MISMO DÍA, UNA CIFRA MAL**: P(1) con p = 0,1429 y n = 20 escrita como 0,178; es 0,153. El
+arquitecto usó 0,8571 elevado a 18 donde iba a 19, y de ahí salió un «22 %» donde es un 20 %. La corrigió Code con un
+script.
 
 ---
 
@@ -1550,6 +1553,10 @@ la extrapolación (llevar una cifra a otra condición). Enunciado literal:*
 7. **02/11 · «3 de 5 es mejor que 2 de 3 en las TRES columnas»**, de la tabla D9 corregida: en la de lo discutible empatan
    al 50 %, y es exacto por simetría (toda regla de mayoría sobre un número impar da 50 % con p = 0,5). Se dijo «las tres»
    sin mirar la tercera. La cazó Code.
+8. **02/11 · «no hay resultado de D en esta tanda que signifique algo»**: borraba una señal real. Un D de 8 o más de 20 sale
+   por azar el 0,4 % de las veces y el verificador no lo puede producir; si sale, señala que se movió otra cosa. La cazó
+   Code; queda como señal de un solo lado (`claude/Predicciones_34_Conflicto_Normativo.md`, «LO QUE LA TANDA PUEDE
+   CONCLUIR»).
 ⚠️ **Referencia cruzada, sin contar dos veces (arquitecto, 02/11)**: «el sistema encuentra el 100 % de las contradicciones
 de dato» (31/10) también es un absoluto sobre un conjunto sin enumerar, pero se cuenta en la extrapolación, ocurrencia
 5, donde ya estaba.

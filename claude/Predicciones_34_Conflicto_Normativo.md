@@ -419,6 +419,7 @@ que el cambio puede SALVAR, y nada de lo que puede ROMPER. Su cota era de un sol
 da el azar con las tasas de la línea base. **Su función no es acertar —es casi inevitable que acierte—: es QUE NADIE LEA
 DENTRO DE UN MES UN «D SALIÓ 5 DE 20» COMO PRUEBA DE MEJORA** (arquitecto).
 
+*(Sustituido, abajo, por «LO QUE LA TANDA PUEDE CONCLUIR», la versión final antes de lanzar.)*
 **LO QUE ESTA TANDA MIDE DE VERDAD (arquitecto, 02/11; cuentas comprobadas por Code con `cuentas_vn.mjs`, de un solo uso):**
 - **EN D, NINGÚN RESULTADO SE PUEDE ATRIBUIR AL VERIFICADOR.** El mecanismo acota el efecto en +1 de 21 y el ruido es de unos
   ±3. Incluso D en 0 o 1 de 20 sale el 20 % de las veces sin ningún cambio (P(0) = 0,046, P(1) = 0,153). *Code corrige dos
@@ -438,3 +439,19 @@ DENTRO DE UN MES UN «D SALIÓ 5 DE 20» COMO PRUEBA DE MEJORA** (arquitecto).
 - **CONSECUENCIA (arquitecto)**: la tanda mide el número del quinto, los dos controles del mecanismo (P-VN-1a), que A, B, C y el
   caso de control no regresen, y el coste nuevo. **EL NÚMERO DE D NO ENTRA. Y para esta medición se invierten los papeles**:
   veníamos tratando a D como objetivo y al quinto como guarda, y aquí el quinto es donde hay ojos.
+
+### LO QUE LA TANDA PUEDE CONCLUIR, Y LO QUE NO (arquitecto y Code, 02/11/2026, versión final antes de lanzar)
+
+- **EL QUINTO** (20 pasadas nuevas de NOR-11 frente a las 13 de la línea base, 5 de 13):
+  - **≥16 de 20: demuestra que el quinto cambió** (Fisher contra 5 de 13, p = 0,027 a 16). *Que lo cambiara el verificador lo
+    dice el contador nuevo: si los confirmados sólo por el cumplimiento aparecen en esas pasadas, es él (Code).*
+  - **13 a 15: lo sugiere y no lo demuestra** (13 da p = 0,17).
+  - **10 a 12: ambiguo.**
+  - **≤9: «NO SE VE RESCATE».** No dice «no había nada que rescatar»: las muertes sin texto van por pareja y no por caso.
+- **D**: el mecanismo, P-VN-1a (el contador y `sin_veredicto`), más **UNA SEÑAL DE UN SOLO LADO: ≥8 de 20**, que por azar
+  sale el 0,4 % de las veces y que el verificador no puede producir. **Si sale, no es el verificador: se movió otra cosa,
+  y hay que pararse a averiguar qué.**
+- **A, B y C, y el caso de control**: que no regresen.
+- **El coste nuevo**, contra el que se puntúa P-F130-17.
+- ⚠️ **LO QUE LA TANDA NO PUEDE: decir si el verificador mejoró a D.** Con el efecto acotado en +1 de 21 y el ruido en ±3, es
+  invisible. **Que nadie lo lea de otra manera dentro de un mes** (arquitecto).
