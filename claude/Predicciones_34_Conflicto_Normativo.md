@@ -455,3 +455,25 @@ DENTRO DE UN MES UN «D SALIÓ 5 DE 20» COMO PRUEBA DE MEJORA** (arquitecto).
 - **El coste nuevo**, contra el que se puntúa P-F130-17.
 - ⚠️ **LO QUE LA TANDA NO PUEDE: decir si el verificador mejoró a D.** Con el efecto acotado en +1 de 21 y el ruido en ±3, es
   invisible. **Que nadie lo lea de otra manera dentro de un mes** (arquitecto).
+
+### LOS UMBRALES PARA n = 21, RECALCULADOS ANTES DE MIRAR NINGÚN RESULTADO (Code, 02/11/2026, 18:38)
+
+La tanda de NOR-10 fueron **21 pasadas, no 20** (arquitecto, de la salida de `SQL_34_09` sin ventanas, de 17:54:03 a 18:29:41;
+la salida no ha llegado a Code). **Se puntúan las 21**: así el n coincide con la línea base de D, que también fueron 21, y
+descartar datos después de contarlos no se hace. Mañana, **21 de NOR-11**, para que las dos tandas sean iguales entre sí.
+⚠️ **El n de la tanda nueva es 21 y el de la línea base del quinto es 13: eso no se puede igualar, y la comparación es
+desigual por construcción.**
+
+Cuentas binomiales y Fisher exacto bilateral, con script (`umbrales21.mjs`, de un solo uso), escritas ANTES de que el
+director ejecute `SQL_34_06`:
+- **D, el suelo de ruido (n = 21, p = 3/21)**: media 3,0; el 95 % central, **de 0 a 6**. La señal de un solo lado sigue en
+  **≥8**, que por azar sale el 0,6 %. Y 0 o 1 de 21 sale el 17,7 % de las veces sin ningún cambio. *(El arquitecto daba media
+  3,0 y [0, 6]: correcto.)*
+- **El quinto**: sin rescate (p = 5/13), **de 4 a 13**; con los cuatro rescatados (p = 9/13), **de 10 a 18**. *(El arquitecto
+  daba 4 a 12 y 10 a 19: los dos, uno de más o de menos.)*
+- **Fisher, x de 21 frente a 5 de 13**: 14 da p = 0,160; 15, 0,080; **16, 0,038**; 17, 0,025. **El umbral sigue en 16.**
+- **La lectura del quinto, con n = 21** (sustituye a la de n = 20 de «LO QUE LA TANDA PUEDE CONCLUIR»):
+  - **≥16 de 21: demuestra que el quinto cambió** (p = 0,038). Que fuera el verificador lo dice el contador nuevo.
+  - **14 y 15: lo sugiere y no lo demuestra.**
+  - **10 a 13: ambiguo.** El 13 pasa aquí porque con n = 21 cae dentro del rango sin rescate.
+  - **≤9: «no se ve rescate»** (si se hubieran rescatado los cuatro, saldría así sólo el 1,1 % de las veces).
