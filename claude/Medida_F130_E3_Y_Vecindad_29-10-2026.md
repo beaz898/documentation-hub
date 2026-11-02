@@ -1582,3 +1582,42 @@ producto lee las de CLI-12 (§4 y §12.9) como solapamiento, no está medido.
 **La restricción estructural**: un hallazgo publicado no tiene campo libre donde explicar una prelación; sólo el tema y
 las dos citas literales (`lib/analysis/tipos-del-analisis-publicado.ts`, `discrepancies`). Ponerle al lado la cláusula
 que lo resuelve es, como mínimo, un campo nuevo.
+
+## LA TANDA DEL VERIFICADOR NUEVO, DÍA 1 (NOR-10): LA LISTA DE SQL_34_09 SIN VENTANAS, LITERAL (ejecutada por el director, 02/11/2026)
+
+El arquitecto la pegó dentro de su mensaje. Code la sacó del registro de la conversación con un script, no la copió a mano:
+
+```
+bloque,a,b,c,d
+organización leída,organización leída: 68bf28c3-8352-4052-8eb4-3a7e31b74b53 · «Mi workspace» · 45 documentos,null,null,null
+0 · sin ventana: las pasadas rápidas desde el 02/11,NOR-10 · pasada 1 · 02/11/2026 17:54:03 (hora de Madrid),con el verificador nuevo,null,null
+0 · sin ventana: las pasadas rápidas desde el 02/11,NOR-10 · pasada 2 · 02/11/2026 17:55:08 (hora de Madrid),con el verificador nuevo,null,null
+0 · sin ventana: las pasadas rápidas desde el 02/11,NOR-10 · pasada 3 · 02/11/2026 17:56:03 (hora de Madrid),con el verificador nuevo,null,null
+0 · sin ventana: las pasadas rápidas desde el 02/11,NOR-10 · pasada 4 · 02/11/2026 17:56:54 (hora de Madrid),con el verificador nuevo,null,null
+0 · sin ventana: las pasadas rápidas desde el 02/11,NOR-10 · pasada 5 · 02/11/2026 17:57:53 (hora de Madrid),con el verificador nuevo,null,null
+0 · sin ventana: las pasadas rápidas desde el 02/11,NOR-10 · pasada 6 · 02/11/2026 17:58:59 (hora de Madrid),con el verificador nuevo,null,null
+0 · sin ventana: las pasadas rápidas desde el 02/11,NOR-10 · pasada 7 · 02/11/2026 18:03:32 (hora de Madrid),con el verificador nuevo,null,null
+0 · sin ventana: las pasadas rápidas desde el 02/11,NOR-10 · pasada 8 · 02/11/2026 18:05:55 (hora de Madrid),con el verificador nuevo,null,null
+0 · sin ventana: las pasadas rápidas desde el 02/11,NOR-10 · pasada 9 · 02/11/2026 18:07:05 (hora de Madrid),con el verificador nuevo,null,null
+0 · sin ventana: las pasadas rápidas desde el 02/11,NOR-10 · pasada 10 · 02/11/2026 18:08:07 (hora de Madrid),con el verificador nuevo,null,null
+0 · sin ventana: las pasadas rápidas desde el 02/11,NOR-10 · pasada 11 · 02/11/2026 18:10:11 (hora de Madrid),con el verificador nuevo,null,null
+0 · sin ventana: las pasadas rápidas desde el 02/11,NOR-10 · pasada 12 · 02/11/2026 18:14:49 (hora de Madrid),con el verificador nuevo,null,null
+0 · sin ventana: las pasadas rápidas desde el 02/11,NOR-10 · pasada 13 · 02/11/2026 18:16:36 (hora de Madrid),con el verificador nuevo,null,null
+0 · sin ventana: las pasadas rápidas desde el 02/11,NOR-10 · pasada 14 · 02/11/2026 18:19:03 (hora de Madrid),con el verificador nuevo,null,null
+0 · sin ventana: las pasadas rápidas desde el 02/11,NOR-10 · pasada 15 · 02/11/2026 18:20:13 (hora de Madrid),con el verificador nuevo,null,null
+0 · sin ventana: las pasadas rápidas desde el 02/11,NOR-10 · pasada 16 · 02/11/2026 18:21:16 (hora de Madrid),con el verificador nuevo,null,null
+0 · sin ventana: las pasadas rápidas desde el 02/11,NOR-10 · pasada 17 · 02/11/2026 18:24:17 (hora de Madrid),con el verificador nuevo,null,null
+0 · sin ventana: las pasadas rápidas desde el 02/11,NOR-10 · pasada 18 · 02/11/2026 18:25:06 (hora de Madrid),con el verificador nuevo,null,null
+0 · sin ventana: las pasadas rápidas desde el 02/11,NOR-10 · pasada 19 · 02/11/2026 18:26:22 (hora de Madrid),con el verificador nuevo,null,null
+0 · sin ventana: las pasadas rápidas desde el 02/11,NOR-10 · pasada 20 · 02/11/2026 18:27:48 (hora de Madrid),con el verificador nuevo,null,null
+0 · sin ventana: las pasadas rápidas desde el 02/11,NOR-10 · pasada 21 · 02/11/2026 18:29:41 (hora de Madrid),con el verificador nuevo,null,null
+```
+
+**Comprobado con script**: 21 pasadas de NOR-10 y ninguna de NOR-11. Las 21 llevan el verificador nuevo (el contador
+`verificador.confirmados_solo_por_cumplimiento`), de 17:54:03 a 18:29:41, y las 21 caen dentro de la ventana de 17:54:00 a
+18:30:00. No hay ninguna otra pasada rápida de NOR-10 desde el 02/11. **Son 21 y se puntúan las 21** (arquitecto): el n coincide
+con la línea base de D. Los umbrales para n = 21, escritos antes de mirar nada, están en
+`claude/Predicciones_34_Conflicto_Normativo.md`.
+**Las ventanas para puntuar**: `SQL_34_06` con `'NOR-10'`, de `2026-11-02 17:54:00+01` a `2026-11-02 18:30:00+01` y 21
+esperadas; `SQL_34_09` con la fila 3 en esa misma ventana y 21, y la fila 4 (NOR-11) con una ventana vacía y 0 esperadas
+hasta que exista su tanda (mañana, 21 pasadas, después de la 01:00).

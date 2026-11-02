@@ -1381,6 +1381,12 @@ Code antes de lanzar; quedó tachada, en su sitio y con su hora (`claude/Predicc
 arquitecto usó 0,8571 elevado a 18 donde iba a 19, y de ahí salió un «22 %» donde es un 20 %. La corrigió Code con un
 script.
 
+**PARA ESTOS TAMAÑOS SE USA EL BINOMIAL EXACTO, NO LA APROXIMACIÓN NORMAL** (arquitecto, 02/11/2026, regla). Con n = 21, el
+arquitecto dio los rangos del quinto como 4 a 12 y 10 a 19 con la aproximación normal; los exactos son 4 a 13 y 10 a 18
+(P(X ≥ 13) con p = 5/13 es el 2,5 %, y P(X ≥ 19) con p = 9/13, el 2,3 %: los extremos caen justo en la frontera del 2,5 %).
+**Los dos se desviaron un punto, y en direcciones distintas, que es la firma de la aproximación.** Los corrigió Code con
+la cuenta exacta, antes de mirar ningún resultado.
+
 ---
 
 ## ⚠️ EL ARQUITECTO NO PIDE A CODE QUE EJECUTE UNA CONSULTA: PIDE QUE LA DEJE LISTA, Y EL CONTROL POSITIVO ES UN PASO DEL DIRECTOR
