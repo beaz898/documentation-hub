@@ -314,3 +314,62 @@ principal (estado vivo).
 - **La justificación, reescrita**: «hay un hueco grande y medido entre lo que la pregunta cerrada encuentra y lo que el
   producto publica, y la única manera de saber cuánto sobrevive al camino es construirlo en sombra y medirlo».
 - Medido para un hallazgo, una pareja y un corpus. El plan rehecho lo escribe el arquitecto, y no se construye todavía.
+
+## 02/11/2026 · LAS PREDICCIONES DE LA ADENDA (g) DE FABLE, P-F130-12 A 19, literales, con lo que hace falta para puntuarlas
+
+Fuente: la respuesta definitiva de Fable del 02/11 a las 15:05, archivada literal como adenda (g) de F-130 (huella
+`56a18f52599e9b79`). **Retiradas en la misma respuesta**: P-F130-6 entera y el quinto como criterio de activación de
+P-F130-10; y sus dos reglas de tiradas de ese día, «tres de tres» y «tres de cinco» (ésta, sustituida por decisión del
+director). Que la primera cayó por la cuenta del arquitecto, 0,9³ = 73 %, lo dice el arquitecto; el texto de Fable dice
+«(D al 73 %)».
+
+**P-F130-12.** «P-F130-12: D, acuerdo ≥ 2 de 3 en 19 de 20 o más. Comprometido.»
+- ⚠️ **TIENE UN 10,7 % DE FALLO FALSO** (arquitecto, 02/11; cuenta de Code con script, `binomial.mjs`, de un solo uso).
+  Con p = 0,9 por tirada y la regla 2 de 3, cada pareja se firma el 97,2 %, y 19 o 20 de 20 sale el 89,3 % de las veces
+  con todo funcionando. No es una objeción: un rojo injusto aquí sólo dispara pasar a 3 de 5 (con 3 de 5, 98,7 %), que es
+  cambiar una constante. Y supone p = 0,9, que es el techo de la pregunta cerrada en la herramienta de E3, no un dato del
+  producto.
+
+**P-F130-13.** «P-F130-13: el quinto, presentado en 20 de 20 por escape; acuerdo ≥ 2 de 3 en 12 de 20 o menos.»
+**SE PARTE EN DOS Y SE PUNTÚAN APARTE (arquitecto, 02/11):**
+- **P-F130-13a**: «el quinto, presentado en 20 de 20 por escape». ⚠️ El arquitecto la daba como independiente de toda
+  tasa, «el marcador fuerza la salida». **Code, 02/11: con la función tal como está escrita, no lo es, por tres cosas**:
+  1. el quinto es nivel_1 (sus citas publicadas comparten 4 términos, 5 unificando singular y plural; ver la adenda (g) y
+     el estado), y la rama de «comprometido» va primero: sin el veto, se firma;
+  2. con el veto, sigue dependiendo de QUÉ frase del §4 se cite como puente. El §4 tiene tres frases candidatas y sólo
+     una lleva escape: la del conflicto terminológico («a efectos de», «sin perjuicio»). La definición y la de
+     «vinculantes» no llevan ninguno, y la definición es el puente más natural (`escape.mjs`, de un solo uso);
+  3. sin puente y siendo nivel_1, se firma, y P-F130-14 admite hasta 6 de 20 sin el §4.
+  Así que 13a depende de P-F130-14 y de qué frase cite el juez, salvo que se cambie la regla (pendiente, en el estado).
+- **P-F130-13b**: «acuerdo ≥ 2 de 3 en 12 de 20 o menos». **Supone que el quinto está cerca del 50 % con la pregunta
+  cerrada, y eso NO ESTÁ MEDIDO**: lo mide el paso 3 del plan. Si estuviera al 90 % como D, el acuerdo saldría 19 de 20 y
+  la predicción fallaría con el mecanismo funcionando bien (arquitecto, 02/11).
+
+**P-F130-14.** «P-F130-14: el puente citado en el quinto, cuando se pide, es el §4 en 14 de 20 o más.»
+- *Code, 02/11*: para puntuarla hay que decir qué frase del §4 cuenta. Las tres frases están en tres trozos distintos
+  (7, 8-9 y 9), y sólo la del trozo 9 lleva escape.
+
+**P-F130-15.** «P-F130-15: con la línea sobre prelación, NOR-11 contra CLI-13 en 3 de 3 en 19 de 20, y la prelación en jerarquia en 19 de 20 en vez de como solapamiento.»
+
+**P-F130-16.** «P-F130-16: las dos lecturas del verificador para el quinto coinciden en sustancia con el adjunto 6 en 16 de 20 (solo si se enciende el interruptor).»
+
+**P-F130-17.** «P-F130-17: coste de NOR-10 entre 0,03 y 0,04 $; latencia +5 a +10 s.»
+- *Code, 02/11*: la base de 0,015 $ es anterior al verificador nuevo (`f1d94cbc`), que ya suma algo (unos +0,001 $ por
+  llamada, estimado). La predicción se puntúa contra el coste medido después de ese commit, no contra el 0,015.
+
+**P-F130-18.** «P-F130-18: de las 4 negativas de 40 de E3, al menos 3 son de lectura, no de atención.»
+
+**P-F130-19.** «P-F130-19: tasa de "sí" por error en parejas sin conflicto, entre 2 y 5 % por tirada.»
+
+**LA TABLA D9, RECALCULADA (arquitecto y Code, 02/11; cuenta binomial con script)**, al lado de la de Fable y sin tocar la
+decisión de empezar con 2 de 3:
+
+| Regla | D (p = 0,9) | Discutible (p = 0,5) | Falso, 3 % por tirada | Fable decía |
+|---|---|---|---|---|
+| 2 de 3 | 97,2 % | 50,0 % | 0,265 % | igual |
+| 2 de 4 | 99,6 % | 68,8 % | 0,519 % | igual |
+| 3 de 4 | 94,8 % | 31,3 % | **0,011 %** | 0,04 % |
+| 3 de 5 | 99,1 % | 50,0 % | **0,026 %** | 0,08 % |
+
+Con los números corregidos, 3 de 5 es mejor que 2 de 3 en D y en los falsos, e **igual** en lo discutible (50 % las dos,
+no mejor). Eso abarata la revisión si alguna vez se dispara: la constante pasa a 3 de 5 sin perder nada.

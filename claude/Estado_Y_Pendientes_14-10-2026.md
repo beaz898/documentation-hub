@@ -486,6 +486,29 @@ a ojo. El procedimiento, el coste y la consulta se plantean ANTES de pedírselo 
   4. **E5 con la pasada 2 encendida**: 20 pasadas por pareja, contando TODOS los hallazgos, contra la línea base por
      hallazgo.
   5. **Activación con los criterios en veintes de Fable.**
+  ⚠️⚠️ **LA RESPUESTA DE FABLE A LA ADENDA (g), 02/11 a las 15:05, ARCHIVADA LITERAL** en F-130 (huella `56a18f52599e9b79`), con
+  lo enviado. P-F130-12 a 19, literales en `claude/Predicciones_34_Conflicto_Normativo.md`, con lo que hace falta para
+  puntuarlas (12: un 10,7 % de fallo falso; 13 partida en 13a y 13b). La versión anterior de ese día y las preguntas D1 a
+  D9 del director no han llegado a Code. **NO SE CONSTRUYE NADA DE SU ESPECIFICACIÓN** (arquitecto). Antes hay que
+  resolver lo que encontró Code al abrirla contra el código (02/11):
+  - **salida(hallazgo)**: el quinto es nivel_1 (sus citas publicadas comparten 4 términos, 5 unificando singular y
+    plural; con un umbral de 3), y la rama de «comprometido» va primero: se firmaría. El arquitecto propone que el escape
+    sea un VETO, evaluado antes que nivel_1. **Es necesario pero no basta**: el escape se mira en la frase del puente, y la
+    frase del §4 más natural como puente, la definición, no lleva ninguna palabra de la lista (sólo la del conflicto
+    terminológico lleva «a efectos de» y «sin perjuicio»); y sin puente, un nivel_1 se firma.
+  - **nivel_1 por términos compartidos no separa los niveles en este corpus**: A comparte 6, C 5, el quinto 4 o 5, B entre 1 y
+    5 (4 de sus 21 pasadas, con 1, por una cita de CLI-12 recortada) y D 2. Pone el caso de nivel 3 dentro del nivel 1 y
+    saca de él a veces a uno sembrado de nivel 1. Y el enumerador de la pasada 2 empareja precisamente por términos
+    compartidos.
+  - **El caso decisivo de la ficha de nivel_1, como lo pide el arquitecto**: las dos citas del quinto comparten 4 términos
+    (coordinador, calidad, clínica, área) y AUN ASÍ no se firman, porque su puente tiene escape. Con la regla escrita, no
+    se cumple: es el caso que la tumba.
+  - **Lo demás que no cabe tal cual**: la línea sobre la prelación en el prompt del juez cambia la pasada 1, y va en commit
+    aparte DESPUÉS de volver a medir con el verificador nuevo; `jerarquia` y `puente` son campos nuevos que cruzan la
+    frontera del modelo (`llm-boundary.ts`) y la puerta de citas (el puente es una tercera cita literal); `salida`,
+    `presentado` y `jerarquia` no son etapas del catálogo de contadores (`Stage`, `lib/analysis/counters.ts:36`), que está
+    cerrado y se amplía con su justificación en el contrato; y «las lecturas» con el interruptor encendido sí tocan el
+    verificador, que la especificación dice no tocar.
   ⚠️⚠️ **EL ORDEN FINAL (arquitecto, 01/11). Sustituye al orden de arriba en lo que no coincida:**
   1. **Verificar qué recibió el juez**, gratis: `SQL_34_08_lo_que_recibio_el_juez.sql`, las 21 de D y las 13 del quinto.
      ✅ **HECHO (02/11): los dos documentos enteros, 34 de 34.**

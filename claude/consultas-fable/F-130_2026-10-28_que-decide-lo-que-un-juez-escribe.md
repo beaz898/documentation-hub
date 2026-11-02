@@ -40,6 +40,9 @@ Estado: ARCHIVADA CON DICTAMEN · se construye la segunda pasada por parejas, si
           494 palabras.
           60 primeros: "a) ¿Choca? No. Lo que sí hay es un error mío que vuestra sec"
           60 últimos:  " la curva que no corrimos, y es la que hay que correr ahora."
+        · ADENDA, (g), 02/11: el quinto conflicto, los tres niveles y la prelación. Lo enviado y la respuesta definitiva
+          (15:05), los dos literales. La versión anterior de hoy y las preguntas D1 a D9 del director, SIN ARCHIVAR (no han
+          llegado a Code). Respuesta: huella 56a18f52599e9b79 · 15056 caracteres (15302 bytes UTF-8) · 156 líneas · 105 no vacías · 2695 palabras.
 ---
 
 (c) LA CONSULTA ENVIADA — literal
@@ -359,3 +362,291 @@ c) Con el 14 % en vez del 29 %. Nada distinto en la decisión; tres cosas distin
 Todos los criterios de activación de la pasada 2 se reescriben en veintes, no en cincos: D en 16 de 20 o más; cada una de las seis vivas en 19 de 20 o más; falsos en el caso de control, 0 de 20.
 La línea base se escribe por pareja y con n: “NOR-10 ← CLI-12, D, 3 de 21”. Es vuestra regla de que la cifra pertenece a la pareja, y es el número que convierte “cobertura medida” en una frase con contenido: hoy 14 %, objetivo escrito 80 % o más.
 Vuestro límite de la sección 5 es correcto y se resuelve con E5 sobre las tres parejas con siembra, veinte pasadas cada una, antes de activar: eso es lo que distingue “sube la cobertura en general” de “sube D en esta pareja”. Es la curva que no corrimos, y es la que hay que correr ahora.
+
+
+(g) ADENDA, 02/11/2026 — EL QUINTO CONFLICTO, LOS TRES NIVELES Y LA PRELACIÓN
+
+Se archiva como adenda de F-130 y no como consulta nueva, por decisión del director y del arquitecto (02/11).
+
+LO QUE SE LE MANDÓ: el texto que Code preparó y el arquitecto cerró el 02/11, abajo, literal. ⚠️ Lo que el director pegó
+de verdad no ha llegado a Code: si lo pegó tal cual, es éste. Y la respuesta de Fable contesta también a «preguntas del
+director hechas en conversación (02/11, 13:40–15:05)», D1 a D9, que tampoco han llegado a Code: sólo están las
+respuestas, dentro de la de Fable.
+⚠️ LA VERSIÓN ANTERIOR DE HOY: la de las 15:05 dice que «sustituye a todas las anteriores de hoy», y el arquitecto pidió
+archivar la anterior marcada como sustituida. **No ha llegado a Code ninguna versión anterior**: no está en el registro
+de la conversación ni en el repositorio. Queda dicho aquí, en vez de archivar algo que no se ha visto.
+⚠️ Fable retiró sus dos reglas de tiradas de hoy, «tres de tres» y «tres de cinco» (sección «Lo que cae de mi dictamen»).
+Según el arquitecto, la primera cayó por su cuenta: 0,9³ = 73 %. El texto de Fable dice «(D al 73 %)» sin atribuirla.
+
+LO ENVIADO, huella aefc070e1880b89d · 18378 caracteres (18788 bytes UTF-8) · 89 líneas · 69 no vacías · 3274 palabras.
+          60 primeros: "ADENDA A F-130 (02/11/2026). No es una consulta nueva.
+
+LO Q"
+          60 últimos:  " a cuál; si la respuesta no toca el plan, decid eso también."
+
+---
+ADENDA A F-130 (02/11/2026). No es una consulta nueva.
+
+LO QUE NO OS PEDIMOS: no pedimos un plan nuevo. Preguntamos una sola cosa, pero queremos que la penséis con la apertura que os pedimos más abajo: si un caso como el quinto conflicto hay que perseguirlo o declinarlo, y si el sitio al que apuntamos es el correcto.
+Las tres preguntas de la sección LOS TRES NIVELES son el andamio de esta pregunta, no preguntas aparte: si contestáis la principal con ellas resueltas, nos basta. No queremos cuatro respuestas: queremos una, bien apoyada.
+
+UNA CORRECCIÓN A LO QUE OS DIJIMOS EN F-130, ANTES DE NADA. Allí os presentamos el quinto conflicto como «la forma FÁCIL de la misma familia» que D: «Mismo sujeto, mismo verbo, mismo objeto, modalidad opuesta». No lo es. Con las dos frases enteras delante, el quinto es de DATO: quién revisa el cumplimiento de ese proceso, el Coordinador de Calidad de la propia clínica (NOR-11) o «siempre personal ajeno al área» (CLI-12). Lo difícil no es un paso de razonamiento normativo, sino reconocer que «revisa trimestralmente el cumplimiento» y «auditoría interna» son la misma actividad. D es «una permisión contra un principio» (F-129); el quinto es «el mismo dato bajo otro nombre». Son dos fronteras distintas y no comparten ninguna propiedad. Si algo de vuestro dictamen se apoyaba en que eran la misma familia (por ejemplo, «tiene superficie y marcador; debería salir más»), se apoyaba en una premisa nuestra que era falsa.
+El nombre de esa familia es vuestro, de F-92, pero lo dictaminasteis PARA TABLAS: «el mismo dato bajo distinto nombre de columna». Llevarlo a la prosa es nuestro, no vuestro: no lo teníais resuelto para este caso.
+Y DECIDNOS QUÉ DE VUESTRO DICTAMEN CAE CON ESTA CORRECCIÓN. Vosotros sabéis mejor que nosotros qué conclusiones vuestras se apoyaban en que el quinto conflicto fuera de la familia de D. Nosotros hemos encontrado una —"tiene superficie y marcador; debería salir más"— y ya la hemos retirado de nuestro lado, junto con lo que construimos encima. Si hay más, nombradlas. Preferimos rehacer una parte del plan ahora que descubrir dentro de dos semanas que se apoyaba en esto.
+
+LOS TRES NIVELES. Nos damos cuenta de que metemos en un mismo saco tres cosas distintas:
+1. LAS QUE NO NECESITAN NADA. "La tarea A la hace Miguel" contra "la tarea A la hace Pepe". Mismo dato, dos valores, las dos frases literales. El producto las encuentra 21 de 21 (A, B y C, en NOR-10 ↔ CLI-12, en las 21 pasadas de la línea base).
+2. LAS QUE NECESITAN UNA REGLA QUE ESTÁ EN OTRO SITIO. Un documento dice "la tarea A la hace Pepe"; otro dice "las tareas de cierre las hace siempre Miguel"; y un tercer sitio dice "la tarea A es una tarea de cierre". Las dos primeras frases no se contradicen a la cara: la contradicción existe por lo que dice el tercer sitio. Sigue siendo decidible SIN interpretar: basta con haber leído ese tercer sitio.
+3. LAS QUE NECESITAN INTERPRETAR, y donde dos personas competentes pueden discrepar. El quinto conflicto: ¿es "revisar trimestralmente el cumplimiento" una "auditoría interna"? Depende, y puede haber excepciones.
+NUESTRA INCLINACIÓN: el producto debe comprometerse en el 1 y en el 2, y NO debe afirmar el 3 —pero tampoco callarlo: presentarlo y que decida el cliente—. Y en el 2 la obligación no es sólo encontrarlo: es DECIR CUÁL ES LA REGLA, porque el cliente tiene que poder comprobar si esa regla aplica a su caso. Un "esto se contradice" sin la regla al lado no le sirve.
+Y UNA LECTURA NUESTRA, SIN MEDIR, QUE OS PEDIMOS QUE CORRIJÁIS: puede que los tres niveles no sean tres cosas distintas sino UNA PROGRESIÓN. El nivel 2 es el nivel 1 más una tercera pieza, y esa tercera pieza es una CATEGORIZACIÓN: "la tarea A es una tarea de cierre". Y el nivel 3 es el nivel 2 donde esa tercera pieza SE PUEDE DISCUTIR.
+El quinto conflicto encaja a medias: "revisa trimestralmente el cumplimiento" (NOR-11 §10.5) + "las auditorías internas las realiza siempre personal ajeno al área" (CLI-12 §6.2) + una tercera pieza en el glosario (CLI-12 §4). Pero esa tercera pieza no es una categorización escrita, como "la tarea A es una tarea de cierre": es una DEFINICIÓN de auditoría interna, y la categorización —"esto es una auditoría interna"— no está escrita en ningún sitio; hay que deducirla aplicando la definición. Tiene la estructura del nivel 2 salvo en eso, y lo que lo empuja al 3 es que esa deducción admite las dos lecturas, por la excepción de la cláusula.
+Si esto es correcto, la pregunta (b) tiene forma: EL NIVEL 2 SE FILTRA AL 3 CUANDO LA TERCERA PIEZA NO ESTÁ ESCRITA COMO CATEGORIZACIÓN Y HAY QUE DEDUCIRLA, O CUANDO ES DISCUTIBLE. Decidnos si el eje es ése, y si hay alguna manera de saber ANTES de publicar si la tercera pieza de un caso es discutible o no, porque de eso dependería que el producto se comprometa o presente.
+Y HAY UNA CASILLA QUE NO TENEMOS LLENA, que os pedimos que decidáis porque de ella depende el tamaño del nivel 2: ¿puede una deducción ser APRETADA? Es decir, ¿existe el caso en que la tercera pieza hay que deducirla y la deducción NO admite discusión? No tenemos ni un ejemplo: el único caso que tenemos con la tercera pieza deducida es éste, y es discutible. Si deducir abre siempre la puerta a discutir, entonces el producto sólo puede comprometerse cuando la categorización está escrita, y el nivel 2 se encoge mucho. Decidnos si esa casilla existe y, si existe, cómo se distingue antes de publicar.
+LO QUE OS PEDIMOS QUE PONGÁIS A PRUEBA: (a) si los tres niveles son los correctos, y DÓNDE CAE D: nosotros lo vemos entre el 2 y el 3, decidible por lógica pero discutible por un abogado, y no sabemos decidirlo; (b) SI EL NIVEL 2 ES DE VERDAD MECÁNICO O SE FILTRA AL 3, porque elegir mal la regla que resuelve es una respuesta segura y equivocada, y eso es peor que callar; (c) si el producto debe comprometerse en el 2 con la misma firmeza que en el 1.
+
+LA PREGUNTA (del director). ¿Debería un producto negarse a afirmar un caso como el quinto conflicto?
+Nuestra inclinación es que sí. Hay dos lecturas defendibles y una excepción que arbitra a medias. Un mecanismo que lo cazara reabriría los falsos positivos razonados de F-125 y F-126. Preferimos un escalón que lo muestre, con las dos lecturas, antes que un mecanismo que lo afirme. Decidnos si eso es lo correcto o si nos estamos rindiendo antes de tiempo.
+
+EL ARGUMENTO CONTRA NUESTRA PROPIA INCLINACIÓN, que os damos porque es el que nos haría cambiar de opinión. El quinto conflicto NO ESTÁ SEMBRADO: surgió en un cruce que nadie planeó emparejar. Nuestras fichas de siembra cubren NOR-10 ↔ CLI-12 y NOR-11 ↔ CLI-13, y éste es NOR-11 ↔ CLI-12. Si aparece solo en un corpus de prueba de 45 documentos, aparecerá en el de un cliente. Y hay una asimetría: UN FALSO POSITIVO EL CLIENTE LO VE Y LO DESCARTA; UN FALSO NEGATIVO NO LO VE NUNCA. Declinar en silencio es equivocarse de la única manera que el cliente no puede detectar.
+
+QUÉ HAREMOS CON VUESTRA RESPUESTA. Con ella decidimos una de dos cosas: construir el escalón que lo muestre sin afirmarlo, o dejar el quinto conflicto como guarda de no regresión y no perseguirlo. EL PLAN DE CINCO PASOS NO CAMBIA EN NINGUNO DE LOS DOS CASOS.
+
+CÓMO QUEREMOS QUE PENSÉIS ESTO.
+No os pedimos sólo que juzguéis nuestro ejemplo. Os pedimos que vayáis un paso por delante de nosotros:
+1. DECIDNOS SI ESTAMOS APUNTANDO AL SITIO EQUIVOCADO. Puede que lo que hacemos esté bien y falte otra cosa al lado, en otra capa. No os cerréis al caso que os damos: es un ejemplo de lo que nos pasa, no el perímetro de la pregunta.
+2. PARA CADA SALIDA QUE PROPONGÁIS, DECIDNOS QUÉ ROMPE DOS PASOS MÁS ADELANTE. Una solución que arregla esto y nos revienta la puerta de citas o nos reabre los falsos positivos razonados de F-125 y F-126 no nos vale, y preferimos saberlo ahora que descubrirlo midiendo.
+3. GENÉRICO, NO AD HOC. Si la salida sólo sirve para este par de documentos, no la queremos.
+
+UNA HIPÓTESIS DEL DIRECTOR, que ponemos encima de la mesa sin defenderla: puede que el eje no sea cómo comparamos dos documentos, sino que EL CORPUS DICE QUÉ DOCUMENTO PREVALECE, y el producto no lo usa para resolver.
+Lo medido, cada cosa con su conjunto:
+- Cláusulas que dicen qué documento manda sobre otro: en los 20 documentos del corpus que tenemos a mano (la organización tiene 45; los otros 25 no los hemos mirado) hay al menos cuatro. El «al menos» es en serio: las buscamos por vocabulario, y la cuarta sólo apareció al leer el contexto de otra.
+  · CLI-12 §4: sus definiciones son «vinculantes para la interpretación de cualquier otro documento del sistema», y prevalecen «en caso de conflicto terminológico», con la excepción que citamos en los adjuntos.
+  · CLI-12 §12.9: cuando un protocolo y el manual difieren, el comité de calidad decide cuál prevalece en la siguiente revisión documental.
+  · NOR-11 §11: «En caso de cualquier discrepancia aparente entre ambos documentos, prevalece siempre el criterio de NOR-11», frente a la guía CLI-13.
+  · CLI-13: «No sustituye a NOR-11: ante cualquier duda no resuelta aquí, es ese protocolo el que se consulta en primer lugar».
+- Las dos últimas resuelven la pareja de nuestro caso de control, NOR-11 ↔ CLI-13, con tres contradicciones sembradas. Cuántas encuentra el producto depende de la tanda: 2 de 3 el 27/08; las tres en sólo 3 de 10 pasadas del 6 al 8/10; y las tres en las cinco pasadas del 24/10, según una consulta del director que no ha comprobado Code.
+- EL PRODUCTO YA LEE ESA PRELACIÓN, Y LA ARCHIVA COMO SOLAPAMIENTO. En un examen del 27/09, cinco pasadas de NOR-11, las cinco publicaron un SOLAPAMIENTO que la describe —«Ambos documentos establecen que NOR-11 es el protocolo normativo y CLI-13 es su traducción práctica para el gabinete, sin alterar los criterios de NOR-11»—, con las propias frases de prelación como evidencia. Ninguna la liga a una contradicción: ese día sólo se publicó una con CLI-13, y no era de las sembradas. En las diez pasadas del 6 al 8/10, ninguno de los temas de las 13 contradicciones que sobrevivieron al juez la menciona; de ésas sólo tenemos archivados los temas, no las citas. No le falta extraerla: le falta el cable entre «esto es un solapamiento» y «esto resuelve aquella contradicción».
+- NO HAY DÓNDE PONERLA. Un hallazgo publicado sólo tiene un tema y las dos citas literales: no tiene un campo libre donde decir qué cláusula del corpus lo resuelve. Ponerla al lado es, como mínimo, un campo nuevo.
+- El §4 de CLI-12 estuvo delante del juez en las 13 pasadas del quinto conflicto, y en las cinco veces que lo publicó no lo citó ni una.
+- Ninguna etapa del producto busca cláusulas de prelación.
+EL ARGUMENTO EN CONTRA DE ESTA HIPÓTESIS, Y ES NUESTRO. Lo que proponemos usar lo identificamos nosotros mismos el 27/08 como un RIESGO, con nombre: «la coartada jerárquica». Lo dejamos escrito así: «un modelo puede leerla como "no hay contradicción, hay jerarquía"»; y las contradicciones de ese par se confirmaban «PESE a esta coartada, no en su ausencia». Y lo que medimos el 27/09 va en esa dirección: el producto leyó la prelación como que los dos documentos «se complementan», que ya es media coartada.
+La pregunta que sale de ahí: ¿la prelación es material para ENCONTRAR contradicciones, o para RESOLVER las que ya se encuentran? Nuestra lectura, que os pedimos que pongáis a prueba: si es para resolver —poner junto a un hallazgo que ya existe la cláusula del corpus que dice cuál prevalece—, no toca la detección y no reabre los falsos positivos razonados de F-125 y F-126, porque no crea hallazgos; sólo añade qué dice el corpus sobre uno. Pero la cláusula que se pega puede estar mal elegida, que es el punto (b) de los tres niveles. Y si es para resolver: ¿cómo se hace sin convertirla en la coartada jerárquica que ya nos preocupaba en agosto, es decir, sin que la prelación acabe borrando la contradicción en vez de explicarla? Si no es el eje, decidnos cuál es.
+
+LA PREGUNTA NO DEPENDE DE LA TASA. Va de si se debe afirmar un caso con dos lecturas defendibles, no de cada cuánto se encuentra. Y la tasa está a punto de moverse: está entrando un cambio del verificador (hace las dos preguntas obligatorias, la del dato y la del cumplimiento, a todo hallazgo, y la marca del juez pasa a ser una pista) que puede mover la del quinto conflicto. No calibréis la respuesta sobre el número de la tabla.
+
+QUÉ ESTÁ MEDIDO Y QUÉ NO
+- Medido: la línea base de los cinco casos (la tabla de abajo); que el juez tuvo los dos documentos enteros delante en las 34 pasadas de esa línea base (34 de 34, con los 55 trozos del manual, el §4 y el §6.2 incluidos); las cuatro cláusulas de prelación, en 20 documentos de 45 y como cota inferior; y lo que hace el producto con la prelación del caso de control en las cinco pasadas del 27/09 y en los temas de las diez del 6 al 8/10.
+- NO medido: el efecto del cambio del verificador; el comportamiento del quinto conflicto con la pregunta cerrada sobre su pareja de trozos; si el producto lee las cláusulas de CLI-12 (§4 y §12.9) como lee las del caso de control; las citas de las diez pasadas del 6 al 8/10 y todas las pasadas posteriores del caso de control; y los 25 documentos de la organización que no tenemos a mano.
+
+UN DATO QUE OS PUEDE INTERESAR Y POR EL QUE NO PREGUNTAMOS. Una medición nuestra del 24-25/10 predijo que la especie conflicto_normativo tendría que distinguirse de dos vecinos, y uno de ellos es éste. Es la primera vez que esa confusión se mide: de las 5 veces que el producto publicó el quinto conflicto, 4 fueron sin etiqueta —que es lo correcto para un caso de dato— y 1 con norma_contra_norma, mal puesta. La taxonomía no tiene etiqueta para esta familia, y eso está bien por diseño.
+
+ADJUNTOS
+
+1. La semana 0, cerrada, a 02/11/2026. Producto entero (análisis rápido, juez Haiku 5.5, pareja entera, puerta de citas y verificador ANTERIOR al cambio). Un negativo limpio es una pasada sin el caso, sin muertos sin texto en la pareja y con el registro de descartes comprobado.
+
+| Caso | Pareja | Pasadas | Hallado | Negativos limpios | «No sé» |
+|---|---|---|---|---|---|
+| A, B y C (sembrados, el mismo dato con las mismas palabras) | NOR-10 ↔ CLI-12 | 21 | 21 de 21 cada uno | — | — |
+| D (una permisión contra un principio; F-129) | NOR-10 ↔ CLI-12 | 21 | 3 de 21, hasta 4 de 21 | 17 | 1 |
+| el quinto conflicto (no sembrado; el mismo dato bajo otro nombre) | NOR-11 ↔ CLI-12 | 13 | entre 5 y 9 de 13 | 4 | 4 |
+
+2. Los intervalos (Wilson al 95 %) y Fisher exacto bilateral.
+- D, 3 de 21: 5 % a 35 %.
+- El quinto conflicto: 18 % a 64 % a 5 de 13; 42 % a 87 % a 9 de 13.
+- D frente al quinto conflicto: p = 0,21 a 5 de 13; p = 0,057 a 6 de 13; p = 0,022 a 7 de 13; p = 0,002 a 9 de 13. No se puede afirmar ni negar que uno sea peor que el otro.
+- El quinto conflicto a 9 de 13 frente a A, B y C (21 de 21): p = 0,015, con los intervalos tocándose (87 % y 84,5 %).
+
+3. Los textos, literales, del documento troceado con el código de la indexación.
+- CLI-12 §4, «Definiciones» (trozo 7): «Auditoría interna: revisión sistemática y planificada de un proceso, realizada por personal de la propia organización, con el fin de verificar su cumplimiento y detectar oportunidades de mejora.»
+- CLI-12 §4 (trozos 8 y 9): «Estas definiciones son vinculantes para la interpretación de cualquier otro documento del sistema de calidad de Dentavia, incluidos los protocolos clínicos y operativos de cada área.»
+- CLI-12 §4 (trozo 9): «En caso de conflicto terminológico entre este manual y un protocolo operativo concreto, prevalece la definición de este manual a efectos de indicadores y auditoría de calidad, sin perjuicio de que el protocolo operativo mantenga su propia terminología técnica específica para la ejecución diaria del proceso.»
+- CLI-12 §6.2, «Equipo auditor» (trozo 13): «Las auditorías internas las realiza siempre personal ajeno al área auditada, habitualmente el Coordinador de Calidad de otra clínica de la red, para garantizar independencia de criterio. El Coordinador de Calidad de la propia clínica participa en la auditoría como interlocutor, pero no como auditor de su propia área.»
+- NOR-11 §10.5, «Revisión periódica de buenas prácticas» (trozo 13): «El Coordinador de Calidad de cada clínica revisa trimestralmente el cumplimiento de los criterios descritos en este apartado mediante observación directa del área de almacenamiento intermedio y de los gabinetes, incorporando los hallazgos relevantes a la siguiente sesión de formación anual del personal.»
+- NOR-11 §11, «Relación con otros documentos» (trozo 14): «También se relaciona con el protocolo de desinfección de superficies, de aplicación conjunta ante derrames, y con el manual de calidad CLI-12, que establece el enfoque de auditoría aplicable a este proceso, igual que ocurre con el resto de procesos críticos de seguridad de la clínica.»
+
+4. El hallazgo del troceado. Ningún trozo tiene a la vez la definición (trozo 7) y lo que la hace vinculante (8 y 9), y la cláusula con su excepción sólo está en el 9. Las dos mitades del quinto conflicto están en otros dos trozos: NOR-11·13 y CLI-12·13.
+
+5. Cómo lo encuentra el producto. El §4 estuvo delante del juez las 13 veces, y en las cinco en que publicó el quinto conflicto la cita del manual es siempre de §6.2, nunca del §4: el modelo equipara las dos actividades por su cuenta. El glosario no es el paso que falta; es la corroboración que un revisor humano usaría.
+
+6. Las dos lecturas.
+- La que lo hace contradicción: NOR-11 §10.5 encaja cláusula por cláusula con la definición vinculante, y NOR-11 §11 se remite a CLI-12 para el enfoque de auditoría de ese proceso.
+- La contraria: la excepción de la cláusula protege la terminología del protocolo para la ejecución diaria; el §6 de CLI-12 da a las auditorías calendario, tipos e informe, y §10.5 no tiene nada de eso; la definición, al pie de la letra, convierte en auditoría cualquier supervisión periódica; y la remisión de NOR-11 §11 a CLI-12 va en una lista de relaciones con otros documentos, «igual que ocurre con el resto de procesos críticos de seguridad de la clínica».
+
+EL GUARDARRAÍL, porque ya nos ha pasado: si vuestra respuesta implica cambiar el plan de cinco pasos, DECIDLO EXPLÍCITAMENTE Y DECID DÓNDE SE INSERTA. No vamos a correr dos planes en paralelo. Si cabe como paso nuevo, decid entre cuáles; si sustituye a uno, decid a cuál; si la respuesta no toca el plan, decid eso también.
+---
+
+LA RESPUESTA, huella 56a18f52599e9b79 · 15056 caracteres (15302 bytes UTF-8) · 156 líneas · 105 no vacías · 2695 palabras.
+          60 primeros: "ADENDA DE FABLE A F-130 · ¿DEBE EL PRODUCTO AFIRMAR UN CASO "
+          60 últimos:  "or error en parejas sin conflicto, entre 2 y 5 % por tirada."
+
+---
+ADENDA DE FABLE A F-130 · ¿DEBE EL PRODUCTO AFIRMAR UN CASO CON DOS LECTURAS?
+Versión consolidada y definitiva, 02/11/2026, 15:05. Sustituye a todas las anteriores de hoy. Contiene la respuesta a la adenda del arquitecto, la sección completa con las preguntas del director hechas en conversación, marcada como tal, y la especificación para Code. Las decisiones del director van marcadas [DECISIÓN DEL DIRECTOR]. El plan de cinco pasos no cambia.
+
+Lo que cae de mi dictamen con vuestra corrección, nombrado
+
+Cae P-F130-6 entera ("el quinto bajo E1 sube a 4 de 5"): su premisa era que el quinto sufría cobertura por actor, como D. Retirada.
+Cae el quinto como criterio de activación de la pasada 2 (P-F130-10). Pasa a guarda de no regresión en la salida "presentado".
+Cae la frase de la tabla de P2 "tiene superficie y marcador; debería salir más". Tiene superficie, no marcador.
+Caen mis dos reglas de tiradas anteriores de hoy: "tres de tres" (D al 73 %) y "tres de cinco" (sustituida por decisión del director, con revisión escrita, D9).
+Se mantiene que el quinto se enumera en la pasada 2 y que la pregunta cerrada reduce varianza en lo decidible. En lo no decidible, la varianza es la señal.
+Sobre F-92: "el mismo dato bajo otro nombre" lo dicté para tablas. Llevarlo a prosa no lo tenía resuelto.
+
+La respuesta, en una frase: el producto no se niega a afirmar ni afirma: triza en tres salidas, se compromete, presenta o calla, y la salida la decide una medida. La medida es el acuerdo entre tiradas independientes de la misma pregunta cerrada, más la lectura del puente. Vuestra inclinación es correcta en el resultado, el quinto no se firma, e incorrecta en el método: no se decide a mano ni se declina en silencio.
+
+1 · Los tres niveles: una progresión, y el eje es si la deducción tiene escape
+
+Nivel 1: dos piezas. Nivel 2: dos piezas y un puente. Nivel 3: un puente con dos lecturas. El eje no es "escrito o deducido": es si la deducción tiene escape.
+
+La casilla que no tenéis llena existe: aritmética ("plazo máximo 30 días" y "entrega a los 45"); descripción que agota la categoría ("las tareas de cierre las hace Miguel" y "la tarea A consiste en cerrar la caja"); definición cumplida punto por punto sin excepción; y D, 36 de 40.
+
+Lo que abre el escape, y se lee en el puente: cláusula de excepción o alcance ("a efectos de", "sin perjuicio de"); definición amplia; cuantificador o hedge; o que el juez no cite el puente y lo supla con su equiparación. El §4 estuvo delante 13 veces y no se citó ni una.
+
+D: nivel 2. Se firma. El quinto: nivel 3. Se presenta.
+
+2 · Cómo se sabe antes de publicar, sin clasificar a mano
+
+Medida 1 · Acuerdo entre tiradas. [DECISIÓN DEL DIRECTOR] La pregunta cerrada se hace una vez por pareja. Cuando es positiva, se repite dos veces más, mismo texto, tres en total:
+
+2 o 3 "sí" de 3, y puente sin escape: se compromete. Con 90 % por tirada, el 97,2 %.
+2 o 3 de 3, y puente con escape, o sin puente en un caso que no es de nivel 1: se presenta.
+1 de 3: se presenta.
+0 de 3 en la repetición: se registra, no se publica.
+D aparece en alguna de las dos listas, firmada o posible, el 99,9 % de las veces.
+
+Medida 2 · Lectura del puente. Para todo positivo, tercera cita opcional: la regla, definición o categorización que conecta las dos mitades. En código: puente con marcador de excepción, baja a presentar aunque sea 3 de 3; sin puente y no nivel 1, baja a presentar; puente sin escape, se compromete.
+
+Dos filtros: el acuerdo quita el azar; la excepción quita lo discutible. El quinto no se firma aunque saliera 3 de 3, por el "sin perjuicio" de su puente.
+
+Qué ve el cliente
+
+Comprometido: dos citas, y la tercera si existe. La lista firmada deja de bailar.
+Presentado: por defecto interno, tras interruptor, contador y registro. En pantalla, con etiqueta "posible" y el botón "no es contradicción", cuando se decida con un cliente delante.
+Silencio: lo que no supera la primera pregunta.
+
+3 · La promesa del producto, con frontera
+
+Cada salto es una oportunidad de error; cuatro saltos al 90 % son un 65 %. Promesa: contradicciones directas, y contradicciones con un solo puente escrito dentro de la pareja o en las notas de jerarquía. Más de un salto no se promete; si aparece, se registra como posible. Cobertura medida con frontera declarada.
+
+4 · La prelación: material para resolver, no para encontrar
+
+Una contradicción no desaparece porque un documento prevalezca. Invariante: la prelación nunca filtra; solo anota. La coartada jerárquica ya se midió el 27/09.
+No reabre F-125 ni F-126.
+Guarda de ahora: una línea en el prompt del juez y en la pregunta cerrada: "una cláusula que dice qué documento prevalece no elimina una contradicción; se reporta igualmente". NOR-11 contra CLI-13 es su prueba de no regresión.
+El quinto: la prelación no lo resuelve; cuando la prelación tiene excepción, el puente tiene escape.
+
+Primera versión: bloque de notas por análisis, "Reglas de jerarquía detectadas", con las cláusulas que el juez encuentre en los dos documentos, citadas, sin ligar a hallazgos. Coste cero.
+
+Segunda versión, paso 6, explicada. Al indexar un documento, además de trocearlo, se lee una vez buscando frases de prelación ("prevalece", "vinculante", "no sustituye a", "en caso de discrepancia", "se consulta en primer lugar"), se confirman con una llamada corta, y se guardan en una tabla: documento, posición, frase, a quién nombra. Con NOR-11, se guarda "§11: prevalece NOR-11 frente a CLI-13", una vez. Cualquier análisis que toque a uno de los dos saca la nota aunque el otro no sea candidato; el chat responde "¿qué prevalece sobre X?" leyendo la tabla. Es el índice de un libro. Coste: una lectura extra por documento al entrar. Primera ficha del producto, acotada a prelación.
+
+Sube de prioridad porque sirve a las notas del análisis y al asistente de redacción de D4.
+
+5 · Qué rompe cada salida dos pasos más adelante
+
+La repetición ×3: dos preguntas cortas más por positivo; con cinco positivos, diez. Riesgo: acuerdo alto y falso; lo contiene el verificador y el puente citado.
+La tercera cita: campo nuevo; censo de los ocho consumidores de F-122.
+"Presentado" en pantalla, cuando se active: etiqueta "el sistema no firma esto"; las lecturas del verificador se miden contra el adjunto 6.
+Prelación como nota: no rompe detección; rompe el prompt si parece resolución, por eso la línea. Paso 6 acotado a prelación.
+
+PREGUNTAS DEL DIRECTOR, HECHAS EN CONVERSACIÓN (02/11, 13:40–15:05)
+
+D1 · "Tres pasadas y se encarece mucho." No son tres análisis. Pasada 1 sin cambios. Pasada 2 en preguntas cortas agrupadas. Repetición solo en positivos: con cinco positivos, diez preguntas más, unos 15.000 tokens. Nota de jerarquía, coste cero. P-F130-17: NOR-10 pasa de 0,015 $ a entre 0,03 y 0,04 $, y entre 5 y 10 segundos más.
+
+D2 · "Un apartado de notas con las reglas." Adoptado como primera versión. La nota nunca sirve para dejar de reportar; sirve para decir cuál corregir.
+
+D3 · "¿D es interpretable? ¿Y 4, 5, 10 puentes?" D no es interpretable: un puente escrito sin excepción, un paso, 90 %. El quinto sí. Cadenas largas no se prometen: sección 3.
+
+D4 · "¿No sería mejor preguntar antes de escribir?" Es asistencia a la redacción, un producto con nombre, más barato de lo que parece: usa el chat para "¿dónde se habla de X?" y el paso 6 para "¿qué prevalece?". Previene en vez de detectar. No sustituye al análisis: los documentos que ya existen, los que llegan de fuera, y la gente que no pregunta. Consecuencia: el paso 6 sube.
+
+D5 · "¿Por qué 90 % y no 100 %? ¿Es profesional que salgan 5 un día y 4 otro?" El juez va a temperatura 1 sin alternativa: cada respuesta es una tirada. La décima vez lee "separar la responsabilidad" como cosa del rol, o se pierde en los trozos largos. Se sabe leyendo las 4 negativas de 40: encargo para Code. No se puede forzar una tirada; se puede dejar de depender de una. Y lo firmado deja de bailar porque lo del límite va a otra lista.
+
+D6 · "¿No sería mejor subir el esfuerzo o el modelo?" [DECISIÓN DEL DIRECTOR: aparcado]
+
+Suben la probabilidad por tirada; no arreglan la lista abierta ni cubren casos desconocidos, que solo cubre la lista de comprobación. Un modelo mayor en la pasada 1 costaría entre 3 y 5 veces más por 85.000 tokens: más que la pasada 2 entera. Dentro de la pasada 2, la pregunta era "tres tiradas de un modelo mejor o tres de Haiku"; el experimento estaba diseñado (Haiku medio, Haiku alto, modelo siguiente, veinte tiradas por condición). Queda aparcado: la diferencia entre el 97 y el 99 no justifica el coste ni el experimento ahora. Mis apuestas, por si se corre más adelante: esfuerzo alto lleva p en D a entre 0,92 y 0,96 con latencia entre 1,5 y 2 veces; el modelo siguiente a entre 0,95 y 0,98 con coste entre 3 y 5 veces; en el quinto, ninguno pasa de 0,7.
+
+D7 · "¿Por qué no firmar con una sola tirada positiva de tres? Falsos apenas hay, y el usuario tiene un botón."
+
+El 90 % es de D. La pasada 2 pregunta por 20 o 40 parejas por candidato, y la mayoría no tienen conflicto. La tasa de "sí" por error en esas no está medida; apuesta: entre 2 y 5 % por tirada, porque lo medido hasta ahora es lo que el producto firma tras puerta y verificador, no lo que una pregunta cerrada contesta en bruto.
+La cuenta, con 3 % por tirada y 30 parejas: "una de tres basta" da 9 % por pareja, unas 2 o 3 falsas por análisis antes del verificador; "dos de tres" da 0,3 % por pareja, una falsa cada diez análisis. La regla "una de tres" sube D de 97 a 99,9 y multiplica por 30 los falsos. Con dos o tres falsas por análisis, el usuario deja de confiar en la lista y tampoco lee las verdaderas: la precisión es el sello (F-116).
+Lo que cumple el objetivo del director sin pagar eso: dos niveles. Dos o tres de tres, firmada; una de tres, posible con el botón. D aparece en alguna de las dos el 99,9 %.
+Encargo para Code, que decide esto con dato: cien parejas sin conflicto, pregunta cerrada, tres tiradas, contar los "sí". P-F130-19: entre 2 y 5 % por tirada. Si queda por debajo del 0,5 %, la regla "una de tres" vale y se adopta.
+
+D8 · "¿Dos 'no' no es 0,1 × 0,1?" Es 0,1 × 0,1 para dos tiradas concretas. En tres tiradas hay tres maneras de acabar con dos "no" (no-no-sí, no-sí-no, sí-no-no), cada una 0,009, más no-no-no, 0,001: 2,8 % de fallo, 97,2 % de acierto. Como tres monedas: exactamente dos caras no es 0,25 sino 0,375.
+
+D9 · "¿Y con cuatro?" [DECISIÓN DEL DIRECTOR: 2 de 3, con revisión]
+
+Regla | D (p = 0,9) | Discutible (p = 0,5) | Falso en pareja sin conflicto (3 % por tirada)
+2 de 3 | 97,2 % | 50 % | 0,26 %
+2 de 4 | 99,6 % | 69 % | 0,52 %
+3 de 4 | 94,8 % | 31 % | 0,04 %
+3 de 5 | 99,1 % | 50 % | 0,08 %
+2 de 4 paga una tirada más que 2 de 3 para ganar en D lo que pierde en la red. No se recomienda. 3 de 5 es la forma limpia de pasar al 99 %.
+Decisión: se empieza con 2 de 3. Condición de revisión escrita: si en el arnés D queda por debajo de 19 de 20 firmada, o si el registro por llamada muestra que dos tiradas más por positivo cuestan menos de lo estimado, se pasa a 3 de 5. Es un número en una constante con ficha; no es una obra.
+
+ESPECIFICACIÓN PARA CODE · qué se inserta, dónde, y con qué contadores
+
+En el paso 2 (prompt cerrado y formato):
+
+Campo opcional por respuesta positiva: puente: { documento: "nuevo"|"existente", cita: "…" }. Literal.
+Campo por respuesta: jerarquia: [ { documento, cita } ]. Literal.
+Línea en el prompt cerrado y en el del juez: "Una cláusula que dice qué documento prevalece sobre otro no elimina una contradicción. Si los dos documentos chocan, repórtalo igualmente; la cláusula va aparte, en jerarquia."
+
+En el paso 3 (llamada por lote): [DECISIÓN DEL DIRECTOR]
+
+Para cada pareja positiva en la primera llamada: dos llamadas más idénticas, en lote propio, mismo modelo y esfuerzo que hoy. acuerdo: n_de_3.
+Constantes con ficha: TIRADAS = 3, UMBRAL_FIRMA = 2. Condición de revisión en la ficha: D < 19 de 20 firmada, o coste medido de las dos tiradas extra menor del estimado → TIRADAS = 5, UMBRAL_FIRMA = 3.
+Registro por llamada: repeticion: 1..3.
+
+En el paso 5 (unión y desduplicación):
+
+salida(hallazgo), determinista:
+acuerdo ≥ UMBRAL_FIRMA y (nivel_1 o puente sin escape) → comprometido.
+acuerdo ≥ UMBRAL_FIRMA y (puente con escape, o sin puente y no nivel_1) → presentado.
+0 < acuerdo < UMBRAL_FIRMA → presentado.
+acuerdo = 0 en repetición → registrado_no_publicado.
+nivel_1: las dos citas comparten al menos 3 términos clave normalizados, o nombran el mismo valor numérico o fecha con valores distintos. Ficha con caso decisivo.
+escape(puente): lista fija en fichero propio: "sin perjuicio", "a efectos de", "salvo", "excepto", "habitualmente", "en general", "normalmente", "siempre que", "en su caso". Con ficha.
+presentado interno por defecto; interruptor PRESENTADO_EN_PANTALLA, apagado. Cuando se encienda, lleva el botón "no es contradicción".
+Contadores: salida.comprometido, salida.presentado, salida.no_publicado, presentado.por_acuerdo, presentado.por_escape, presentado.sin_puente, jerarquia.detectada.
+Con el interruptor encendido: llamada al verificador, "escribe dos frases, una por lectura, sin afirmar ninguna", campo lecturas: [a, b].
+
+En el paso 7 (arnés), n = 20:
+
+D: comprometido, acuerdo ≥ 2 de 3 en 19 de 20 o más.
+El quinto: presentado, nunca comprometido, en 20 de 20.
+NOR-11 contra CLI-13: las tres sembradas comprometido en 19 de 20; jerarquia.detectada > 0 en 19 de 20.
+Control positivo del escape: puente con "sin perjuicio" y acuerdo 3 de 3; esperado presentado.por_escape.
+Control negativo de la nota: prelación presente y contradicción sembrada; esperado comprometido.
+Tasa de "sí" por error: cien parejas sin conflicto, tres tiradas; cuenta por tirada. Decide D7.
+Encargo previo: leer las 4 negativas de 40 de E3 y clasificarlas en "lectura" o "atención".
+
+Paso 6, subido de prioridad, después de activar la pasada 2: extracción de cláusulas de prelación por documento al indexar, tabla propia, nota en análisis y consulta en chat. Ficha con predicción y arnés antes de construir. Acotado a prelación.
+
+Aparcado por decisión del director: cualquier cambio de modelo o de esfuerzo, en la pasada 1 o en la 2.
+
+Lo que no se toca: puerta de citas, verificador de lote, pantalla salvo el bloque de notas, todo lo congelado.
+
+Predicciones, n = 20
+
+P-F130-12: D, acuerdo ≥ 2 de 3 en 19 de 20 o más. Comprometido.
+P-F130-13: el quinto, presentado en 20 de 20 por escape; acuerdo ≥ 2 de 3 en 12 de 20 o menos.
+P-F130-14: el puente citado en el quinto, cuando se pide, es el §4 en 14 de 20 o más.
+P-F130-15: con la línea sobre prelación, NOR-11 contra CLI-13 en 3 de 3 en 19 de 20, y la prelación en jerarquia en 19 de 20 en vez de como solapamiento.
+P-F130-16: las dos lecturas del verificador para el quinto coinciden en sustancia con el adjunto 6 en 16 de 20 (solo si se enciende el interruptor).
+P-F130-17: coste de NOR-10 entre 0,03 y 0,04 $; latencia +5 a +10 s.
+P-F130-18: de las 4 negativas de 40 de E3, al menos 3 son de lectura, no de atención.
+P-F130-19: tasa de "sí" por error en parejas sin conflicto, entre 2 y 5 % por tirada.
+---
+
+NOTAS A LA ADENDA (g), FUERA DEL TEXTO DE FABLE (arquitecto y Code, 02/11/2026):
+- **La tabla de D9 tiene dos cifras mal**, en la columna de los falsos: «3 de 4» da 0,011 % (no 0,04 %) y «3 de 5» da 0,026 %
+  (no 0,08 %). Las corrigió el arquitecto y lo comprobó Code con una cuenta binomial. La decisión de empezar con 2 de 3
+  no cambia. Con las cifras corregidas, 3 de 5 es mejor que 2 de 3 en D y en los falsos, e igual en lo discutible. La
+  tabla recalculada, en `claude/Predicciones_34_Conflicto_Normativo.md`.
+- **La función salida(hallazgo) tiene un defecto, y no se construye nada hasta resolverlo**: un hallazgo nivel_1 con
+  puente con escape cumple las dos ramas, y la de «comprometido» va primero. El quinto es nivel_1. Detalle en el estado
+  vivo (pendiente principal de F-130).
+- **Los «pasos» 2, 3, 5, 6 y 7 de la especificación no son los del plan de cinco pasos de la casa**, que tiene el
+  verificador en el 2 y la pregunta cerrada del quinto en el 3. Toda la especificación cae dentro del paso 4 del plan
+  (la pasada 2), salvo su «paso 6», que va detrás.
