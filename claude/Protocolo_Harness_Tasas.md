@@ -1417,6 +1417,14 @@ los dos los cazó Code:
     dato bajo distinto nombre de columna», y el arquitecto escribió «el mismo dato en otra columna»; el de NOR-11 §11 es
     «igual que ocurre con el resto de procesos críticos de seguridad de la clínica», y escribió «con los protocolos de
     seguridad de la clínica». Las dos las corrigió Code contra el fichero antes de que salieran en la adenda.
+  - **02/11 · «quien escribió el corpus en agosto sabía que la coartada jerárquica estaba ahí y sembró igual»; «el caso de
+    control ya es un experimento sobre la coartada, diseñado hace nueve semanas»**. El registro original de la siembra
+    (`corpus-pruebas/SIEMBRA_caso_control.md`, líneas 1 a 147, del autor del corpus) no menciona la prelación. «La
+    coartada jerárquica» está sólo en el bloque «AUDITORÍA Y MEDICIÓN — AÑADIDO AL REPOSITORIO EL 27/08/2026», que escribió
+    la casa al auditar el par DESPUÉS de sembrar. Y «PESE a esta coartada, no en su ausencia» habla de las dos
+    confirmaciones de la tanda del 27/08, no de cómo se sembró. Se atribuyó una intención a quien no consta que la
+    tuviera. Lo que sí es verdad, y basta: el caso de control CONTIENE la coartada y por eso sirve para probar la hipótesis,
+    aunque no se diseñara para eso. Lo comprobó Code antes de que llegara a ningún documento.
   - **«La contradicción del prompt viejo la encontró Code».** La encontró FABLE el 29/10 (F-130: «el prompt del lote de
     marcados empieza diciendo "decide UNA SOLA cosa: si se oponen sobre el mismo dato" y más abajo dice que a los
     marcados no les haga esa pregunta»). Code comprobó las dos frases literales contra los ficheros
@@ -1490,6 +1498,8 @@ la extrapolación (llevar una cifra a otra condición). Enunciado literal:*
 5. **02/11 · «que el producto encuentra de forma fiable»**, sobre las tres sembradas del caso de control. Con su
    conjunto: 2 de 3 el 27/08, y las tres en 3 de 10 pasadas del 06 al 08/10 (B.357); 3 de 3 en las cinco del 24/10 según
    una salida que leyó el arquitecto y Code no ha visto. La cazó Code; el arquitecto la retira.
+6. **02/11 · «hace catorce semanas»**, del 27/08, en un texto para la adenda: una cifra sin contar. Del 27/08 al 02/11 van
+   67 días, nueve semanas y media. La cazó Code; en la adenda va la fecha, no la cuenta.
 ⚠️ **Referencia cruzada, sin contar dos veces (arquitecto, 02/11)**: «el sistema encuentra el 100 % de las contradicciones
 de dato» (31/10) también es un absoluto sobre un conjunto sin enumerar, pero se cuenta en la extrapolación, ocurrencia
 5, donde ya estaba.
