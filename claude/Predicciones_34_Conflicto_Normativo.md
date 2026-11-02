@@ -725,8 +725,15 @@ en serio hay que fijar el modelo de la pasada 2 y medir una llamada.
 
 ### EL VERIFICADOR CUESTA CASI LO MISMO QUE EL JUEZ (arquitecto; cifras comprobadas a las 22:27)
 
-40,1 % frente a 40,5 % de la factura, con 1,19 peticiones por análisis frente a 2,00. Una etapa que tratamos como una segunda
-opinión barata es el 40 % del coste. **Eso cambia cómo hay que mirar cualquier propuesta que añada llamadas cerca de ella.**
+*(TACHADA en parte por el arquitecto el 02/11, con su motivo: la frase sugería novedad donde no la hay. El verificador YA ERA el
+36,8 % de la factura antes del cambio; no llegó al 40 % por el cambio. Lo que sigue en pie es la consecuencia: una etapa que
+tratamos como una segunda opinión barata es más de un tercio del coste.)*
+~~40,1 % frente a 40,5 % de la factura, con 1,19 peticiones por análisis frente a 2,00. Una etapa que tratamos como una segunda
+opinión barata es el 40 % del coste.~~ **Eso cambia cómo hay que mirar cualquier propuesta que añada llamadas cerca de ella.**
+**Lo que sí es limpio (arquitecto): EL AUMENTO ES TODO DEL VERIFICADOR**, +0,001715 $ de +0,001714 $ en total, con el juez, el
+rerank y la síntesis sin moverse. Atribución perfecta.
+**EL COSTE REAL, para el estado y para cualquier cosa de precios: UNOS 0,03 $ POR ANÁLISIS DE NOR-10, Y ASÍ DESDE EL 22/10**
+(0,0294-0,0352 $ el 22/10, `SQL_311_02`; 0,0315 $ en la base del 30-31/10 y 0,0332 $ con el verificador nuevo, `SQL_34_10`).
 *Code, el motivo probable, sin medir*: el verificador va en Haiku 4.5 (1 $/M de entrada) y el juez en Haiku 5.5 (0,10 $/M):
 diez veces más caro por token. Se comprueba con el bloque 2 de la salida cuando llegue.
 

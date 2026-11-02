@@ -1411,6 +1411,25 @@ puede confundirse con otra dé un número distinto.
 
 ---
 
+## ⚠️ LA MISMA ENFERMEDAD QUE EL 0,015, CON ARITMÉTICA ENCIMA, QUE LA HACE MÁS CREÍBLE
+
+*Título de Code; la regla, del arquitecto, 02/11/2026.* **Un número obtenido combinando dos mediciones lleva las condiciones de
+las dos. Si las condiciones difieren —otra ventana, otro modelo, otra etapa—, la combinación no vale y se mide de nuevo.**
+**Por qué es lo peor de las dos (arquitecto)**: un número fabricado con cuentas detrás PARECE DERIVADO. El 02/11 se produjo uno
+de cada: el 0,015 del arquitecto, desnudo, y el 0,0235 de Code, con aritmética. Éste sumaba el 0,0228 de F-128 (ventana a
+40.000, el análisis entero) y el +0,00068 de F-129 (ventana de 80.000 a 150.000, sólo la etapa del juez): otra ventana y otra
+etapa, las dos cosas que la regla nombra.
+
+**Y SU HERMANA, PARA QUIEN PIDE LA CAUSA (arquitecto, con su nombre): ANTES DE PEDIR LA CAUSA DE UNA DIFERENCIA, EL ARQUITECTO
+COMPRUEBA QUE LAS DOS CIFRAS MIDAN LO MISMO.** Sus palabras: «pasé la tarde exigiendo la causa de una subida del 34 % sin
+comprobar antes que los dos números fueran comparables». Dos ocurrencias el 02/11:
+1. **la latencia, CAZADA**: las dos columnas de duración no medían lo mismo (una restaba el origen y la otra no), y lo vio
+   porque el resultado era imposible;
+2. **el coste, FALLADA**: el «0,0235 → 0,0315» comparaba una suma fabricada con una medición, y encargó buscar la causa para la
+   mañana siguiente. La encontró Code al ir a buscarla: no había causa porque no había diferencia.
+
+---
+
 ## ⚠️ NINGUNA CIFRA SALE EN UN ENCARGO A FABLE SIN SU MEDICIÓN, SU FECHA Y SU FICHERO AL LADO
 
 *Arquitecto, 02/11/2026, con su nombre.* **Si no los tiene, se escribe «no medido» y se manda así.**
@@ -1432,6 +1451,9 @@ podía comparar con la base de la otra pareja); una sola petición con espera po
 peticiones empezando en el origen (restar el comienzo o no restarlo daba lo mismo, y de ahí salió la etiqueta falsa «sin la
 espera»). **Los dos primeros los cazaron los mutantes, ninguno las pruebas. El tercero no lo cazó nada hasta la medición
 real**, porque no había ningún mutante de «la resta del origen». El caso de ejemplo, con su arreglo, más abajo.
+**Y SIN REGALARLE EL MÉRITO AL ARNÉS (arquitecto)**: los mutantes cazaron dos de tres. El tercero lo cazó la medición real,
+porque el número salió físicamente imposible: «sin la espera» daba MÁS que con ella. **Un resultado físicamente imposible es
+la prueba más fuerte que hay, y ningún arnés sustituye a mirar si el número puede ser verdad.**
 
 ---
 

@@ -614,7 +614,9 @@ a ojo. El procedimiento, el coste y la consulta se plantean ANTES de pedírselo 
   6. **La duda de F-129 §3.1.1, contestada por el producto.**
   7. **EL COSTE** *(comprobado contra la salida de `SQL_34_10` a las 22:27; el aumento entero es del verificador)*: **el cambio
      cuesta 0,0017 $ (0,0315 → 0,0332 $, +5,4 %) y siete décimas de segundo**; 0 peticiones fallidas de 109; controles en OK y el
-     positivo en 55 de 55. **El verificador es el 40 % de la factura, casi lo mismo que el juez** (36,8 % en la base).
+     positivo en 55 de 55. ~~**El verificador es el 40 % de la factura, casi lo mismo que el juez**~~ *(tachado por el
+     arquitecto: ya era el 36,8 % antes del cambio, y la frase sugería novedad)*. **El aumento es todo del verificador**
+     (+0,001715 $ de +0,001714). **EL COSTE REAL: unos 0,03 $ por análisis de NOR-10, y así desde el 22/10.**
   8. **LA CORRECCIÓN DE LA BASE**: **la cifra de coste que usábamos todos, 0,015 $, es menos de la mitad de la real** y no salió
      de ninguna medición. P-F130-17 queda **NO PUNTUABLE tal como está**, y va a Fable cuando se le escriba. El origen del
      0,015 y la proyección con sus supuestos, en `claude/Predicciones_34_Conflicto_Normativo.md`.
