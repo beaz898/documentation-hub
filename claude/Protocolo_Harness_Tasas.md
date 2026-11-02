@@ -1417,9 +1417,11 @@ los dos los cazó Code:
     dato bajo distinto nombre de columna», y el arquitecto escribió «el mismo dato en otra columna»; el de NOR-11 §11 es
     «igual que ocurre con el resto de procesos críticos de seguridad de la clínica», y escribió «con los protocolos de
     seguridad de la clínica». Las dos las corrigió Code contra el fichero antes de que salieran en la adenda.
-  - **02/11, la tercera de la misma familia**: el arquitecto citó a Fable entre comillas, «se inserta en cuatro pasos y
-    añade un sexto», y esa frase no está en la respuesta archivada de Fable (grep sobre el texto literal). Era su lectura
-    de la numeración, puesta en boca de Fable.
+  - ~~**02/11, la tercera de la misma familia**~~ *(EN REVISIÓN, 02/11)*: el arquitecto citó a Fable entre comillas, «se
+    inserta en cuatro pasos y añade un sexto», y esa frase no está en la versión definitiva de Fable. El arquitecto dice
+    que es literal de la versión SUSTITUIDA (su línea 2: «No cambia el plan de cinco pasos: se inserta dentro de cuatro de
+    ellos y añade un sexto después»), que Code no tiene. Si lo es, sale de aquí y va a la sección «UNA CITA DE UN DOCUMENTO
+    SUSTITUIDO…»; si no está ahí tampoco, se queda aquí.
   - **02/11 · «quien escribió el corpus en agosto sabía que la coartada jerárquica estaba ahí y sembró igual»; «el caso de
     control ya es un experimento sobre la coartada, diseñado hace nueve semanas»**. El registro original de la siembra
     (`corpus-pruebas/SIEMBRA_caso_control.md`, líneas 1 a 147, del autor del corpus) no menciona la prelación. «La
@@ -1475,6 +1477,21 @@ abajo).* Enunciado literal:
    trozos. El arquitecto lo convirtió en «partida entre el trozo 8 y el 9», y así entró en su borrador de la adenda.
    La frase está entera en los dos, repetida por el solape. ⚠️ *La mitad de Code*: «en el borde» era una frase floja,
    y por eso cabía la lectura afilada.
+
+---
+
+## ⚠️ UNA CITA DE UN DOCUMENTO SUSTITUIDO TIENE QUE DECIR DE QUÉ VERSIÓN SALE
+
+*Arquitecto, 02/11/2026. Regla literal:*
+
+> «Una cita de un documento que ha sido sustituido tiene que decir de qué versión sale. Sin la versión, la cita no vale.»
+
+El fallo es citar una versión sustituida como si fuera la vigente. Va a repetirse, porque Fable manda versiones
+consolidadas que sustituyen a las anteriores del mismo día.
+**LA OCURRENCIA, PENDIENTE DE COMPROBAR**: el 02/11 el arquitecto citó «se inserta en cuatro pasos y añade un sexto» como
+de Fable; en la versión definitiva de las 15:05 no está («el plan de cinco pasos no cambia»), y según el arquitecto es
+de la versión sustituida, línea 2. Code no tiene esa versión: se comprueba cuando el director la pegue. Si no está ahí
+tampoco, la ocurrencia vuelve a la familia del misquote, en la sección de atribuciones.
 
 ---
 

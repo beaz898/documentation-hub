@@ -531,7 +531,9 @@ a ojo. El procedimiento, el coste y la consulta se plantean ANTES de pedírselo 
        E5). Casi toda su especificación cae en NUESTRO PASO 4, y su «paso 6» va detrás. **Leerla como que se reparte por
        cuatro pasos del plan y añade un sexto es falso por la numeración, no por desacuerdo**: el trabajo no está repartido
        por el plan, está todo en el paso 4. *(El arquitecto lo citó como frase de Fable, «se inserta en cuatro pasos y añade
-       un sexto»; esa frase no está en el texto de Fable, comprobado por Code con grep sobre la respuesta archivada.)*
+       un sexto»; esa frase no está en la versión definitiva de Fable, comprobado por Code con grep sobre la respuesta
+       archivada. El arquitecto dice que es literal de la versión SUSTITUIDA, su línea 2, que Code no tiene: PENDIENTE DE
+       COMPROBAR cuando llegue.)*
     2. **LAS DOS AUTOCONTRADICCIONES DE LA ESPECIFICACIÓN.** El puente es una tercera cita literal y tiene que pasar por la
        puerta de citas, que su propio texto dice que no se toca. Y las «dos lecturas» las escribe el verificador, que
        también dice que no se toca.
@@ -545,6 +547,29 @@ a ojo. El procedimiento, el coste y la consulta se plantean ANTES de pedírselo 
     `presentado` y `jerarquia` no son etapas del catálogo de contadores (`Stage`, `lib/analysis/counters.ts:36`), que está
     cerrado y se amplía con su justificación en el contrato; y «las lecturas» con el interruptor encendido sí tocan el
     verificador, que la especificación dice no tocar.
+  ⚠️⚠️ **LA TANDA DEL VERIFICADOR NUEVO: CÓMO SE LANZA (arquitecto y Code, 02/11)**
+  - **SE PARTE POR DOCUMENTO** (decisión del arquitecto): 20 de NOR-10 un día y 20 de NOR-11 el siguiente, después de la
+    01:00 de Madrid. **No se toca ninguna variable de Vercel.** Dos motivos:
+    - **el tope**: 30 análisis rápidos al día por usuario (`lib/rate-limiter.ts:23`), y el día empieza a las 00:00 UTC, la
+      01:00 de Madrid; 40 no caben;
+    - **la comparación**: la línea base también se midió en días distintos (D el 30-31/10, el quinto el 28/10), así que
+      partir por documento CONSERVA su estructura. Con las 40 el mismo día se compararía contra una base construida de
+      otra forma.
+  - **Lo que el director no toca durante la tanda**: ningún push (los commits pendientes se suben ANTES y se espera al
+    despliegue); ninguna variable de Vercel; ningún documento de la organización (subir, reemplazar, reindexar o borrar
+    cambia los candidatos, y una subida además bloquea el análisis con el cerrojo de subida, HTTP 423); sólo análisis
+    rápidos, de uno en uno (el semáforo de concurrencia admite uno activo por organización); y apuntar la hora de
+    comienzo y de fin de cada día.
+  - **Los topes, revisados en el código (02/11)**: 30 rápidos por usuario y día; un análisis activo por organización; el
+    cerrojo de subida; 5 créditos por análisis rápido (`lib/credits.ts:9`): 100 por día y 200 en total, descontados antes
+    de cada análisis y devueltos si alguna etapa cae. El saldo de la organización no lo ve Code: lo comprueba el director
+    antes de empezar. Por hora o por documento no hay ninguno. Cada análisis tiene 120 s como máximo
+    (`app/api/analyze-v2/route.ts:44`).
+  - **El orden**: (1) subir los commits pendientes y esperar a Vercel; (2) 20 de NOR-10, de una en una; (3) `SQL_34_09` sin
+    ventanas: las 20 tienen que salir «con el verificador nuevo», y si alguna sale con el código viejo se para antes de
+    gastar el segundo día; (4) al día siguiente, después de la 01:00, 20 de NOR-11; (5) `SQL_34_09` sin ventanas otra vez;
+    (6) si sale limpio, `SQL_34_06` por documento (y `SQL_34_07` si su control 6 falla) y `SQL_34_09` con las dos
+    ventanas. Antes del paso 2, el arquitecto elige cómo se puntúa P-VN-1.
   ⚠️⚠️ **EL ORDEN FINAL (arquitecto, 01/11). Sustituye al orden de arriba en lo que no coincida:**
   1. **Verificar qué recibió el juez**, gratis: `SQL_34_08_lo_que_recibio_el_juez.sql`, las 21 de D y las 13 del quinto.
      ✅ **HECHO (02/11): los dos documentos enteros, 34 de 34.**
