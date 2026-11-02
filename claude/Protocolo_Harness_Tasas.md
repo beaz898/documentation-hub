@@ -1413,6 +1413,10 @@ los dos los cazó Code:
     que tocaba: no apoyar un control en una cifra que no había visto medir. Midió las tres, y coincidían.
   - **«Unos 59.100 caracteres» de CLI-12, y son 55.135.** El arquitecto leyó mal un número de un mensaje de Code que le
     llegó troceado.
+  - **Dos citas de memoria en vez de citarlas, en la misma familia del misquote (02/11)**: el literal de F-92 es «el mismo
+    dato bajo distinto nombre de columna», y el arquitecto escribió «el mismo dato en otra columna»; el de NOR-11 §11 es
+    «igual que ocurre con el resto de procesos críticos de seguridad de la clínica», y escribió «con los protocolos de
+    seguridad de la clínica». Las dos las corrigió Code contra el fichero antes de que salieran en la adenda.
   - **«La contradicción del prompt viejo la encontró Code».** La encontró FABLE el 29/10 (F-130: «el prompt del lote de
     marcados empieza diciendo "decide UNA SOLA cosa: si se oponen sobre el mismo dato" y más abajo dice que a los
     marcados no les haga esa pregunta»). Code comprobó las dos frases literales contra los ficheros
@@ -1590,6 +1594,12 @@ escribe con su detección, porque eso es lo que se repite. **Va el más reciente
    ningún fichero en el scratchpad y que `git diff --stat` estaba vacío, es decir, que el estado seguía intacto. Después
    escribió los textos con la herramienta Write y aplicó el cambio con un script de node que comprueba sus anclas.
    **Lo que queda**: un texto largo no va en un heredoc; va con Write.
+4. **02/11 · Comillas invertidas dentro de `node -e "…"`, otra vez y contra la regla propia** (Code). Al añadir al estado una
+   nota con dos rutas entre comillas invertidas, el shell las tomó por órdenes e intentó ejecutar «…F-130…md:86» como
+   fichero y «:190» como orden. No existían, así que fallaron sin efecto. **Detección**: el error del shell en la salida;
+   **comprobación de que no hubo daño**: `git diff --stat` y `git diff` del protocolo, que el mismo script había escrito
+   antes de fallar en el estado; el protocolo estaba bien y el estado, intacto. Se rehízo con un script escrito con Write.
+   Es la regla de la memoria de Code («Backticks en bash: nunca», 01/10, y el 05/10 ejecutó cinco ficheros como guiones).
 
 ---
 

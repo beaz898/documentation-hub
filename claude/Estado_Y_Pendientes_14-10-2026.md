@@ -356,10 +356,21 @@ a ojo. El procedimiento, el coste y la consulta se plantean ANTES de pedírselo 
     si hay contradicción no está en ninguna de las dos cosas que se comparan?». **Su disparador es el paso 3 del plan**,
     la pregunta cerrada sobre la pareja del quinto: si sale cerca del 90 %, la pareja le basta y la pregunta no tiene
     caso; si se cae, tiene su ejemplo medido y va a Fable.
+  - **LAS CLÁUSULAS DE PRELACIÓN DEL CORPUS, buscadas por Code (02/11)** en los 20 documentos del repositorio (la
+    organización tiene 45): entre documentos, CLI-12 §4, CLI-12 §12.9 (el comité decide cuál prevalece cuando un protocolo y
+    el manual difieren) y NOR-11 §11 (frente a CLI-13, «prevalece siempre el criterio de NOR-11»: la pareja del caso de
+    control). Entre personas, CLI-12 §3.4. CLI-12 §4 NO es la única. Literales, en la medida. No se ha medido si el
+    producto usa alguna.
   - **PENDIENTE CON DISPARADOR (arquitecto, 01/11)**: el glosario de CLI-12 está verificado con el código de la indexación
     sobre `corpus-pruebas/`, no contra el texto guardado en la base. Se verifica en la base **el día que algo se apoye en
     el glosario**.
-  - ⚠️ **REINCIDENCIA DEL ARQUITECTO, con su nombre (01/11): la clase del quinto, mal por SEGUNDA vez.** La primera, del
+  - ⚠️⚠️ **EL ERROR DE CLASE DEL QUINTO, TRES OCURRENCIAS Y NO DOS (arquitecto, 02/11, con su nombre)**: 24-25/10, 28/10 y
+    01/11. **LA DEL 28/10 ES LA PEOR DE LAS TRES, PORQUE ES LA ÚNICA QUE SALIÓ DE CASA Y CONTAMINÓ UN DICTAMEN AJENO**: la
+    consulta F-130 le presentó el quinto a Fable como de la familia de D, y el dictamen se apoyó en eso. La encontró Code
+    al comprobar el nombre del caso para la adenda (abajo). La adenda del 02/11 lo corrige ante Fable y le pide que diga
+    qué más de su dictamen cae con la corrección.
+  - ⚠️ **REINCIDENCIA DEL ARQUITECTO, con su nombre (01/11): la clase del quinto, mal por SEGUNDA vez** *(así se escribió el
+    01/11; desde el 02/11 son tres, arriba)*. La primera, del
     24-25/10: lo presentó como un `norma_contra_norma`, y la lectura corregida está más abajo en este fichero, fechada
     «arquitecto, 25/10». La segunda, hoy: la partición «dato / cumplimiento» volvía a sacar el quinto del dato.
     ⚠️ *Code, 02/11*: entre las dos hay una aparición más, sin registrar hasta hoy. La consulta F-130 del 28/10, posterior a

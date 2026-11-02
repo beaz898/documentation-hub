@@ -1498,3 +1498,32 @@ organización leída,organización leída: 68bf28c3-8352-4052-8eb4-3a7e31b74b53 
 - **LA SEMANA 0 SE CIERRA CON ESO: EL FALLO NO ESTÁ EN BUSCAR NI EN ENTREGAR, ESTÁ EN PREGUNTAR.**
 - **El dato que cierra la retirada del glosario**: el §4 estuvo delante del juez las 13 veces, y en las 5 en que publicó
   el quinto la cita de CLI-12 fue siempre de §6.2. No es que no pudiera verlo: lo tenía y no lo usó.
+
+### Las cláusulas de prelación del corpus, buscadas (Code, 02/11/2026)
+
+Al montar la adenda, una frase propuesta decía que CLI-12 §4 era «la única cláusula de prelación del corpus». Code la
+buscó antes de que saliera: el texto extraído por la indexación de los 20 documentos del corpus que están en el
+repositorio (`corpus-pruebas/`), con vocabulario de prelación («prevalece», «vinculante», «en caso de conflicto /
+discrepancia», «tiene prioridad», «deroga»…). **La organización tiene 45 documentos y aquí hay 20: los otros 25 no se
+han mirado.** Lo encontrado, literal:
+
+- **CLI-12 §4** (trozos 8 y 9), las dos ya conocidas: «Estas definiciones son vinculantes…» y «En caso de conflicto
+  terminológico entre este manual y un protocolo operativo concreto, prevalece la definición de este manual…».
+- **CLI-12 §3.4, «Resolución de conflictos de criterio»** (trozo 5), entre PERSONAS y no entre documentos: «Cuando el
+  Coordinador de Calidad y el Director Clínico de un centro discrepan sobre una decisión relativa a un proceso de
+  seguridad del paciente, prevalece el criterio del Coordinador de Calidad en las materias descritas en el apartado
+  3.1, sin perjuicio de que el Director Clínico pueda elevar la discrepancia al comité de calidad de la red…».
+- **CLI-12 §12.9, «Diferencias de criterio entre documentos de la red»** (trozo 39): «Dentavia es consciente de que los
+  protocolos operativos de cada área […] y los manuales de calidad […] pueden en ocasiones establecer criterios
+  formulados de manera distinta para un mismo aspecto del proceso. Cuando el comité de calidad de la red detecta una
+  diferencia de este tipo entre un protocolo operativo y este manual, la resuelve expresamente en la siguiente revisión
+  documental programada, dejando constancia de qué criterio prevalece y por qué, en lugar de dejar ambos documentos
+  vigentes con formulaciones distintas de forma indefinida.»
+- **NOR-11 §11, «Relación con otros documentos»** (trozo 14, el mismo de la remisión a CLI-12): «Este protocolo se
+  complementa con la guía práctica CLI-13, dirigida al personal de gabinete, que traduce estos criterios a instrucciones
+  de uso diario sin modificar en ningún caso lo aquí establecido. En caso de cualquier discrepancia aparente entre ambos
+  documentos, prevalece siempre el criterio de NOR-11.» **Es la pareja del caso de control** (NOR-11 ↔ CLI-13, PLAZO,
+  LUGAR y NEGACIÓN): el propio corpus dice cuál de las dos versiones vale.
+
+**Así que «la única cláusula de prelación del corpus» es falsa** incluso en la parte medida: entre documentos hay, al
+menos, la de CLI-12 §4, la de §12.9 y la de NOR-11 §11. No se ha medido si el producto usa alguna.
