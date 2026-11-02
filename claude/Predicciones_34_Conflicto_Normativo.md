@@ -641,7 +641,9 @@ registro la documenta: del primer comienzo al último final, CON la espera. La c
 `max(comienzo + latencia)`, SIN la espera. Las dos no se mezclan: el «+5 a +10 s» se mide con una y la misma en las dos
 puntas.
 
-**DECISIÓN DEL ARQUITECTO (02/11/2026): LA LATENCIA DE P-F130-17 SE PUNTÚA CON LA DEFINICIÓN QUE CUENTA LA ESPERA, Y EN LAS
+*(TACHADA por el arquitecto el 02/11 a las 21:27, en su sitio y no borrada. Motivo: «estaba mal fundada». Las dos columnas no se
+diferencian por la espera, sino por el ORIGEN; ver «LA LATENCIA, OTRA VEZ», abajo.)*
+~~**DECISIÓN DEL ARQUITECTO (02/11/2026): LA LATENCIA DE P-F130-17 SE PUNTÚA CON LA DEFINICIÓN QUE CUENTA LA ESPERA, Y EN LAS
 DOS PUNTAS.** El motivo: P-F130-17 habla de lo que espera el usuario, y el usuario espera también la espera.
 Las dos definiciones, por su nombre:
 - **CON LA ESPERA, la que se puntúa**: `SQL_34_10`, del primer `comienzoMs` al último `comienzoMs + esperaMs + latenciaMs`
@@ -651,4 +653,94 @@ Las dos definiciones, por su nombre:
 `SQL_34_10` da además la ESPERA MEDIA POR ANÁLISIS y, al lado, la duración sin la espera, para ver de qué tamaño es la
 diferencia. Si son décimas, las dos definiciones coinciden en la práctica; si son segundos, la diferencia manda sobre cómo se
 puntúa el «+5 a +10 s». *Arquitecto: sin esta decisión, una diferencia de definición habría fabricado la mitad del efecto
-predicho.*
+predicho.*~~
+
+## EL COSTE DEL VERIFICADOR NUEVO, Y LA BASE DE P-F130-17 (arquitecto y Code, 02/11/2026, 21:27)
+
+⚠️ **LA SALIDA DE `SQL_34_10` NO HA LLEGADO A CODE.** El arquitecto escribió «la salida va dentro de la pegada del director» y
+en el mensaje no había ninguna fila: sólo las cifras de su lectura. **Todas las cifras de esta sección que salen de esa
+salida son del arquitecto y no están comprobadas**: 0,0315 → 0,0332 $ (+5,4 %, +0,0017 $), el verificador al 40,1 % y el
+juez al 40,5 % con 1,19 y 2,00 peticiones por análisis, la duración de 34,4 s (37,5 s en la otra columna), +0,7 s, la espera
+de 0,99 → 1,34 s, 0 fallidas de 109, y el control positivo en 55 de 55. Se archivan y se comprueban cuando llegue la salida.
+
+### LA PREDICCIÓN DEL ARQUITECTO, «15-25 %»: NO ESTABA ESCRITA ANTES DE MEDIR
+
+El arquitecto escribe: «dije 15-25 % y ha salido +5,4 %. El incremento lo tenía bien; lo que tenía mal era el denominador.
+Anclé en 0,015 $ y la base medida es 0,0315 $». Y su motivo: **«no es un error de estimación, es haber usado una cifra de otra
+fuente sin medirla»**.
+*Code*: el «15-25 %» no aparece en ninguno de los mensajes pegados antes de éste (buscado con un script en los 394). Según su
+propia regla de hoy («si no está en el encargo, no existe»), **no es una predicción registrada y no se puntúa**. Se escribe
+como lo que es: una expectativa contada después.
+
+### P-F130-17: NO PUNTUABLE TAL COMO ESTÁ, PORQUE SU BASE ES FALSA (arquitecto)
+
+P-F130-17 (Fable, D1, literal): «NOR-10 pasa de 0,015 $ a entre 0,03 y 0,04 $, y entre 5 y 10 segundos más», hablando del
+coste DESPUÉS de la pasada 2 (`claude/consultas-fable/F-130_2026-10-28_que-decide-lo-que-un-juez-escribe.md:554`). **Si NOR-10
+cuesta ya unos 0,033 $ sin la pasada 2** (cifra del arquitecto, sin comprobar), el rango que Fable predice para DESPUÉS es el
+que hay ANTES. **Queda marcada como NO PUNTUABLE tal como está**, y hay que llevárselo a Fable cuando se le escriba: es su
+predicción apoyada en una cifra nuestra mala.
+
+### DE DÓNDE SALIÓ EL 0,015 $ (Code, buscado en el repositorio)
+
+1. **Su primera aparición es nuestra, en el encargo a Fable**: «Coste actual: unos 0,015 $ por análisis»
+   (`F-130_…md:72`, en el texto que entró con `46e81362`, el 29/10 a las 00:33). **No cita ninguna medición, ni fecha, ni
+   ventana.** No he encontrado ninguna medición en el repositorio que dé 0,015 $ por análisis.
+2. **Y la medición que sí había lo contradice.** F-128 midió el coste por análisis con el juez en Haiku 5.5: **0,02280 $**
+   (P-6, calificada el 20/10; `claude/Predicciones_F128_El_Modelo_Del_Juez.md:145`). F-129 midió que subir la ventana a
+   150.000 costaba **+0,00068 $ por análisis** (`claude/consultas-fable/F-129_…md:120`, 23/10). **Así que el 28/10 la cifra
+   medida era de unos 0,0235 $, no 0,015.**
+3. **La hipótesis del arquitecto, que el 0,015 sea de antes de subir a 150.000, no se sostiene con lo escrito**: antes de
+   subir ya se había medido 0,0228, y la subida añadió menos de una milésima. El 0,015 no corresponde a ninguna ventana
+   medida.
+4. **Y entre el 0,0235 del 23/10 y el 0,0315 de la base del 30-31/10** (si se confirma) hay unos 0,008 $ que ninguna medición
+   escrita explica. No lo explico yo tampoco: es un encargo de verificación para cuando llegue la salida, mirando el
+   reparto por etapa.
+5. **Code repitió el 0,015 dos veces hoy sin contrastarlo**: en el coste estimado del verificador (`529ca827`, 08:48: «sobre
+   los 0,015 $ de un análisis de NOR-10») y en la nota a P-F130-17 (`d3ee10f7`, 16:33). La medición de F-128 estaba en
+   nuestros propios ficheros.
+
+### LA PROYECCIÓN DE LA PASADA 2 SOBRE LA BASE REAL, CON SUS SUPUESTOS A LA VISTA (Code)
+
+**coste después = base medida + coste de la pasada 2 agrupada + coste de la repetición en positivos**
+
+| Término | Valor | De dónde sale | ¿Medido? |
+|---|---|---|---|
+| base | ~0,0332 $ | `SQL_34_10`, tanda nueva de NOR-10 | **Sí, pero sin comprobar por Code**: la salida no ha llegado |
+| pasada 2 agrupada | **sin cifra** | Fable, D1: «preguntas cortas agrupadas» | **No**: Fable no da tokens ni modelo |
+| repetición | 15.000 tokens con 5 positivos | Fable, D1 | **No**: ni los tokens, ni el reparto entre entrada y salida, ni el modelo |
+| positivos por análisis | 5 | Fable, D1 | **No**. En la pareja NOR-10 ↔ CLI-12 se publican unos 3 por pasada (A, B y C en 21 de 21, D en 1 de 21, `SQL_34_06`); las demás parejas no están contadas |
+
+**Lo que da cada lectura de la repetición** (precios de `lib/observability/llm-pricing.ts`):
+- con Haiku 4.5 y todo entrada: 15.000 × 1 $/M = **0,015 $**; con un 10 % de salida (1.500 × 5 $/M): **0,021 $**;
+- con Haiku 5.5 y todo entrada: 15.000 × 0,10 $/M = **0,0015 $**;
+- con 3 positivos en vez de 5, si escala lineal (otro supuesto): el 60 % de cada cifra.
+
+**La proyección honrada**: si se toma el incremento que Fable predijo (de +0,015 a +0,025 $) y se suma a la base medida,
+sale **de 0,048 a 0,058 $**. Pero **ese incremento no tiene ningún término medido**: depende del modelo de la pasada 2, que
+no está decidido, y la diferencia entre Haiku 4.5 y 5.5 es de diez veces. **Lo único medido es la base.** Antes de proyectar
+en serio hay que fijar el modelo de la pasada 2 y medir una llamada.
+
+### EL VERIFICADOR CUESTA CASI LO MISMO QUE EL JUEZ (arquitecto; cifras sin comprobar)
+
+40,1 % frente a 40,5 % de la factura, con 1,19 peticiones por análisis frente a 2,00. Una etapa que tratamos como una segunda
+opinión barata es el 40 % del coste. **Eso cambia cómo hay que mirar cualquier propuesta que añada llamadas cerca de ella.**
+*Code, el motivo probable, sin medir*: el verificador va en Haiku 4.5 (1 $/M de entrada) y el juez en Haiku 5.5 (0,10 $/M):
+diez veces más caro por token. Se comprueba con el bloque 2 de la salida cuando llegue.
+
+### LA LATENCIA, OTRA VEZ: LAS DOS COLUMNAS NO SE DIFERENCIAN POR LA ESPERA, SINO POR EL ORIGEN (arquitecto; Code lo confirma en el código)
+
+Con la espera sale 34,4 s y «sin ella» 37,5 s: sin la espera sale MÁS, y eso es imposible si sólo se quitara un sumando.
+**Confirmado en las dos consultas**: `SQL_34_10` resta el comienzo de la primera petición
+(`max(com + esp + lat) - min(com)`, línea 107); la columna de `SQL_34_06` no lo resta (`max(com + lat)`, sus líneas 182 y 237), y
+la copia de esa columna en `SQL_34_10` (línea 108) tampoco. **El nombre «sin la espera» lo puso Code**, al leer la expresión y
+ver sólo el sumando que faltaba, no la resta que faltaba. Y el arnés no podía verlo: todas sus peticiones empiezan en el
+origen (`comienzoMs` = 0 en la primera), así que restar o no restar daba lo mismo.
+**Consecuencia (arquitecto)**: ninguna de las dos es lo que espera el usuario, y el «+5 a +10 s» no se puede puntuar contra
+ninguna. Hace falta una TERCERA cifra: la duración de la petición HTTP de principio a fin.
+**Y ESA CIFRA SÍ ESTÁ GUARDADA (Code)**: `usage_logs.latency_ms` (`lib/usage-logger.ts:118`). En el análisis rápido se mide
+desde que entra la petición (`app/api/analyze-v2/route.ts:55`, `startedAt`) hasta justo antes de guardar el análisis
+(`:667`), con `endpoint = '/api/analyze-v2'` y `user_query = '<nombre> (rápido)'` (`:670-677`). **Lo que NO cuenta**: el
+tránsito por la red, el arranque de la función antes de entrar, y el guardado y la respuesta después de la línea 667. Es la
+cifra más cercana a lo que espera el usuario que hay guardada. No hay consulta que la lea por tanda: **es un pendiente**, y no
+se escribe sin encargo.
+**Lo que sí queda medido** (arquitecto, sin comprobar): **la espera es de décimas, 0,99 → 1,34 s**. La trampa era pequeña.

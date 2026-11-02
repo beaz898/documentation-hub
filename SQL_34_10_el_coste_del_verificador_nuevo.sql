@@ -27,9 +27,10 @@
 --   · DURACIÓN de un análisis: del primer `comienzoMs` al último `comienzoMs + esperaMs + latenciaMs`, que es la que
 --     documenta el registro (registro-de-llamadas.ts:35-37) y la de SQL_311_02. ⚠️ NO es la columna «s» de SQL_34_06,
 --     que es `max(comienzoMs + latenciaMs)`: no cuenta la espera. Las dos cifras no se mezclan.
---   · ⚠️ LA DURACIÓN QUE SE PUNTÚA ES ÉSTA, LA QUE CUENTA LA ESPERA (decisión del arquitecto, 02/11): P-F130-17 habla de
---     lo que espera el usuario, y el usuario espera también la espera. Al lado sale la duración SIN la espera, calculada
---     como la columna «s» de SQL_34_06, sólo para ver de qué tamaño es la diferencia entre las dos definiciones.
+--   · ⚠️ AL LADO SALE LA COLUMNA «s» DE SQL_34_06, `max(comienzoMs + latenciaMs)`, que NO cuenta la espera y NO resta el
+--     origen. (Corregido el 02/11 a las 21:27: decía «sin la espera», y la medida salió MÁS larga que la duración de aquí; la
+--     diferencia es el origen. La decisión de puntuar con ésta, tachada: ninguna de las dos es lo que espera el usuario; eso
+--     lo da usage_logs.latency_ms.)
 --   · ESPERA MEDIA POR ANÁLISIS: la suma de los `esperaMs` de sus peticiones (limitador de cuota y backoff de los
 --     reintentos). Las peticiones en paralelo pueden solaparse, así que la suma es una COTA SUPERIOR de lo que la espera
 --     añade a la duración. Si son décimas, las dos definiciones de duración son la misma cifra en la práctica.
@@ -173,7 +174,7 @@ SELECT bloque, a, b, c, d FROM (
            || coalesce(round(100 * x.verificador_total::numeric / nullif(x.coste_total, 0)::numeric, 1)::text, '—') || ' % del coste · '
            || round(x.peticiones_verificador_medias::numeric, 2) || ' peticiones por análisis · latencia media por petición '
            || coalesce(round(x.latencia_verificador::numeric)::text, '—') || ' ms',
-         'duración media del análisis ' || round(x.duracion_media::numeric / 1000, 1) || ' s, con la espera (sin ella, como SQL_34_06: '
+         'duración media del análisis ' || round(x.duracion_media::numeric / 1000, 1) || ' s, con la espera (la columna de SQL_34_06, sin espera ni origen: '
            || round(x.duracion_sin_espera_media::numeric / 1000, 1) || ' s) · espera media por análisis '
            || round(x.espera_media::numeric / 1000, 2) || ' s · peticiones que no salieron bien: ' || x.fallidas || ' de ' || x.peticiones,
          x.orden, 0

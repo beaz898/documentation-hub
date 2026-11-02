@@ -1411,6 +1411,24 @@ puede confundirse con otra dé un número distinto.
 
 ---
 
+## ⚠️ UNA CIFRA DE OTRA FUENTE, SIN MEDIR, COMO DENOMINADOR: EL 0,015 $ (02/11/2026)
+
+**El arquitecto, con su nombre**: esperaba que el verificador nuevo subiera el coste de un 15 a un 25 %, y subió un 5,4 %
+(cifra suya; la salida de `SQL_34_10` no ha llegado a Code). «El incremento lo tenía bien; lo que tenía mal era el
+denominador»: tomó 0,015 $ como base, y la base medida es 0,0315 $. **No es un error de estimación: es haber usado una cifra
+de otra fuente sin medirla.** *(El «15-25 %» no se había escrito en ningún encargo antes de medir: no es una predicción
+registrada.)*
+**Y Code, el mismo día**: repitió el 0,015 dos veces (`529ca827` y `d3ee10f7`) sin mirar que F-128 ya había medido 0,02280 $
+por análisis el 20/10, en nuestros propios ficheros. **El 0,015 nació en nuestro encargo a Fable del 29/10, sin medición
+detrás**, y de ahí volvió como predicción de Fable (P-F130-17) con su base falsa dentro. Es el corolario de F-106 entero: un
+número escrito por esta casa vuelve con autoridad prestada.
+**Y la segunda de Code, del mismo día**: etiquetó la columna de duración de `SQL_34_06` como «sin la espera», viendo el
+sumando que le faltaba y no la resta que le faltaba (el origen). El arquitecto decidió sobre esa etiqueta, y la decisión cayó
+en cuanto se midió: «sin la espera» salía MÁS larga. El arnés no lo podía cazar porque todas sus peticiones empezaban en el
+origen: **tercer caso del día de datos de prueba demasiado simétricos**, el mismo de «la otra pareja» y «la espera sin sumar».
+
+---
+
 ## ⚠️ LO QUE EL ARQUITECTO EXPLICA AL DIRECTOR NO ENTRA EN EL REGISTRO
 
 *Arquitecto, 02/11/2026, con su nombre.* **Cualquier CIFRA que el arquitecto afirme va dentro del encargo, no sólo en la

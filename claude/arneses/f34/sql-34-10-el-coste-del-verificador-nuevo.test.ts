@@ -124,16 +124,16 @@ describe('SQL_34_10, el coste de la tanda del verificador nuevo', () => {
     expect(de(await correr(), '1 · por medición')).toEqual([
       ['línea base · NOR-10 · 21 pasadas', 'coste medio por análisis 0.021000 $ (de 0.021000 a 0.021000) · total 0.441000 $',
         'verificador: 0.004500 $ por análisis · 21.4 % del coste · 1.00 peticiones por análisis · latencia media por petición 2000 ms',
-        'duración media del análisis 32.5 s, con la espera (sin ella, como SQL_34_06: 32.0 s) · espera media por análisis 0.80 s · peticiones que no salieron bien: 0 de 63'],
+        'duración media del análisis 32.5 s, con la espera (la columna de SQL_34_06, sin espera ni origen: 32.0 s) · espera media por análisis 0.80 s · peticiones que no salieron bien: 0 de 63'],
       // (0,0345 + 20 × 0,0245) / 21 = 0,5245 / 21 = 0,0249762; el verificador, 21 × 0,008 / 0,5245 = 32,03 %;
       // 43 peticiones en 21 pasadas = 2,05; latencia (21 × 6.000 + 1.000) / 43 = 2.953,5 → 2953
       ['tanda nueva · NOR-10 · 21 pasadas', 'coste medio por análisis 0.024976 $ (de 0.024500 a 0.034500) · total 0.524500 $',
         'verificador: 0.008000 $ por análisis · 32.0 % del coste · 2.05 peticiones por análisis · latencia media por petición 2953 ms',
-        'duración media del análisis 34.2 s, con la espera (sin ella, como SQL_34_06: 34.0 s) · espera media por análisis 0.20 s · peticiones que no salieron bien: 1 de 85'],
+        'duración media del análisis 34.2 s, con la espera (la columna de SQL_34_06, sin espera ni origen: 34.0 s) · espera media por análisis 0.20 s · peticiones que no salieron bien: 1 de 85'],
       // NOR-11: 0,010 + 0,0045 + 0,0015 = 0,016 por pasada; el verificador, 0,0045 / 0,016 = 28,1 %
       ['línea base · NOR-11 · 13 pasadas', 'coste medio por análisis 0.016000 $ (de 0.016000 a 0.016000) · total 0.208000 $',
         'verificador: 0.004500 $ por análisis · 28.1 % del coste · 1.00 peticiones por análisis · latencia media por petición 2000 ms',
-        'duración media del análisis 32.5 s, con la espera (sin ella, como SQL_34_06: 32.0 s) · espera media por análisis 0.80 s · peticiones que no salieron bien: 0 de 39'],
+        'duración media del análisis 32.5 s, con la espera (la columna de SQL_34_06, sin espera ni origen: 32.0 s) · espera media por análisis 0.80 s · peticiones que no salieron bien: 0 de 39'],
     ]);
   });
 

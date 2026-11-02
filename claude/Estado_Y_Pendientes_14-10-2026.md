@@ -602,6 +602,22 @@ a ojo. El procedimiento, el coste y la consulta se plantean ANTES de pedírselo 
   el coste medio por análisis, el del verificador aparte y la duración, de la tanda nueva frente a la base. Las tres
   ventanas van rellenas, y la de NOR-11 nueva en nulo hasta mañana. Con eso, P-F130-17 tiene contra qué puntuarse cuando
   llegue la pasada 2.
+  ⚠️⚠️ **EL PASO 2 QUEDA CERRADO POR EL LADO DE NOR-10 (arquitecto, 02/11). EL BALANCE COMPLETO:**
+  1. **Nada roto**: A, B y C en 21 de 21.
+  2. **D en 1 de 21**, dentro del suelo de ruido [0, 6] y sin cambio detectable.
+  3. **El verificador de dos preguntas, igual de fiable que el de una**: `sin_veredicto`, 0 de 106 frente a 0 de 105.
+  4. **La primera tanda de 21 limpia**: cero muertes sin texto y descartes registrados en las 21.
+  5. **El camino arreglado, disparado una vez en 28 pasadas de NOR-10.**
+  6. **La duda de F-129 §3.1.1, contestada por el producto.**
+  7. **EL COSTE** *(cifras del arquitecto; la salida de `SQL_34_10` no ha llegado a Code y no están comprobadas)*: **el cambio
+     cuesta 0,0017 $ (0,0315 → 0,0332 $, +5,4 %) y siete décimas de segundo**; 0 peticiones fallidas de 109; controles en OK y el
+     positivo en 55 de 55. **El verificador es el 40 % de la factura, casi lo mismo que el juez.**
+  8. **LA CORRECCIÓN DE LA BASE**: **la cifra de coste que usábamos todos, 0,015 $, es menos de la mitad de la real** y no salió
+     de ninguna medición. P-F130-17 queda **NO PUNTUABLE tal como está**, y va a Fable cuando se le escriba. El origen del
+     0,015 y la proyección con sus supuestos, en `claude/Predicciones_34_Conflicto_Normativo.md`.
+  - **PENDIENTE (anotado, sin abrir)**: la latencia que espera el usuario está guardada en `usage_logs.latency_ms` y ninguna
+    consulta la lee por tanda. Sin ella, el «+5 a +10 s» no se puede puntuar.
+  - **PENDIENTE**: archivar y comprobar la salida de `SQL_34_10` cuando llegue entera.
   ⚠️⚠️ **EL ORDEN FINAL (arquitecto, 01/11). Sustituye al orden de arriba en lo que no coincida:**
   1. **Verificar qué recibió el juez**, gratis: `SQL_34_08_lo_que_recibio_el_juez.sql`, las 21 de D y las 13 del quinto.
      ✅ **HECHO (02/11): los dos documentos enteros, 34 de 34.**
