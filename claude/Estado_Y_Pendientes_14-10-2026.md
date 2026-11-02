@@ -185,6 +185,10 @@ pruebas lentas de la sección 5: la lentitud es de la primera pasada en frío.
   árbol una vez, agotó sus 30 s propios en una pasada lenta de la suite (79 s en vez de unos 40). Repetida sola, verde. El
   margen de 30 s (2,6 veces la lectura en frío medida a solas) lo eligió Code, y esta vez no bastó: la lectura en frío
   bajo la carga de la suite entera no estaba medida. Entra en el mismo disparador. No se toca.
+  ⚠️ **TERCERA RECAÍDA (Code, 02/11)**: `pglite-fuera-del-producto` agotó sus 60 s en la suite entera (67 s), después de
+  una tarde de mutantes. Sola, verde en menos de un segundo; la suite repetida entera, verde (2127 y 160). Y **EL DISPARADOR
+  YA SE CUMPLIÓ**: la línea base se midió el 31/10 y desde entonces ha habido muchos commits sin abrir esto. Lo decide el
+  arquitecto; Code no lo toca.
 
 **REGISTRO, 29/10/2026 (sólo registro; no se reescribe ningún commit)**: el mensaje del commit `142a6930` («F-130: el
 segundo mensaje de Fable tras los prompts…») dice «Gates: npm test (suite 2115, arneses 117)», y **en ese momento no lo

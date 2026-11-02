@@ -376,10 +376,11 @@ no mejor). Eso abarata la revisión si alguna vez se dispara: la constante pasa 
 
 ## P-VN-1 · EL VERIFICADOR NUEVO EN LA TANDA DE 20, escrita ANTES de que corran las pasadas (arquitecto, 02/11/2026, 17:08)
 
-**La predicción del arquitecto, literal:** «EL CAMBIO DEL VERIFICADOR NO PUEDE MOVER A D CASI NADA, y el motivo está
+*(TACHADA el 02/11 por el arquitecto, en su sitio y con su hora; la sustituyen P-VN-1a y P-VN-1b, abajo.)*
+~~**La predicción del arquitecto, literal:** «EL CAMBIO DEL VERIFICADOR NO PUEDE MOVER A D CASI NADA, y el motivo está
 medido — de las 21 pasadas de D, 17 son negativos limpios donde el juez no emitió nada y el verificador no tuvo nada que
 salvar; sólo 1 tuvo una muerte sin texto. ASÍ QUE: D entre 3 y 4 de 21. El quinto, que tiene 4 muertes sin texto de 13,
-entre 5 y 9 de 13.»
+entre 5 y 9 de 13.»~~
 **Y retira** lo que escribió el 30/10, que el verificador «puede subir la línea base él solo»: para D no puede, y lo dijo
 antes de tener el recuento de negativos limpios (estado vivo, paso 2 del plan).
 
@@ -401,3 +402,39 @@ antes de tener el recuento de negativos limpios (estado vivo, paso 2 del plan).
   sube frente a la línea base (`SQL_34_09`, bloque 2).
 - **P-VN-1b (el recuento)**: D en 20 pasadas, entre 0 y 6; el quinto, entre 4 y 18. Es el rango que da el azar con las
   tasas de la línea base: fuera de él, algo se movió y hay que mirar qué.
+
+### P-VN-1 · LO QUE QUEDA, decidido por el arquitecto (02/11/2026), antes de lanzar
+
+**Por qué se tachó P-VN-1**, con las palabras del arquitecto: «MI PREDICCIÓN ERA LA PEOR DEL DÍA». «Entre 3 y 4 de 21»
+fallaría el 59 % de las veces con el mecanismo funcionando exactamente como dijo (con p = 0,1429 y n = 20, P(3) = 0,242 y
+P(4) = 0,171, suma 0,413; el arquitecto lo verificó). El mismo día corrigió el «3 de 3» de Fable (73 %) y calculó el 11 %
+de P-F130-12, y escribió una peor que las dos. **Y el agujero no era del número, sino del razonamiento**: calculó sólo lo
+que el cambio puede SALVAR, y nada de lo que puede ROMPER. Su cota era de un solo lado.
+
+**P-VN-1a · LA PREDICCIÓN DE VERDAD: el mecanismo.** En la tanda nueva, el contador
+`verificador.confirmados_solo_por_cumplimiento` deja a D como mucho en una pasada más de las que emite el juez, y
+`descartado.sin_veredicto` NO sube frente a la línea base (`SQL_34_09`, bloque 2).
+
+**P-VN-1b · NO ES UNA PREDICCIÓN, ES EL SUELO DE RUIDO**: D entre 0 y 6 de 20; el quinto entre 4 y 18 de 20. Es el rango que
+da el azar con las tasas de la línea base. **Su función no es acertar —es casi inevitable que acierte—: es QUE NADIE LEA
+DENTRO DE UN MES UN «D SALIÓ 5 DE 20» COMO PRUEBA DE MEJORA** (arquitecto).
+
+**LO QUE ESTA TANDA MIDE DE VERDAD (arquitecto, 02/11; cuentas comprobadas por Code con `cuentas_vn.mjs`, de un solo uso):**
+- **EN D, NINGÚN RESULTADO SE PUEDE ATRIBUIR AL VERIFICADOR.** El mecanismo acota el efecto en +1 de 21 y el ruido es de unos
+  ±3. Incluso D en 0 o 1 de 20 sale el 20 % de las veces sin ningún cambio (P(0) = 0,046, P(1) = 0,153). *Code corrige dos
+  cifras*: el arquitecto escribió P(1) = 0,178 y «el 22 %». *Y el absoluto, matizado*: «no hay resultado de D que signifique
+  algo» vale para el verificador; un D de 8 o más de 20 (0,4 % por azar) no lo puede producir el verificador, pero sí
+  señalaría que cambió otra cosa.
+- **EN EL QUINTO SÍ HAY OJOS, con dos matices de Code.** Sin rescate (p = 5/13 = 0,385), 4 a 12 de 20; con los cuatro muertos
+  sin texto rescatados (p = 9/13 = 0,692), 10 a 18. Leído así: ≤9 es «no rescató» (2,1 % de error si rescató los cuatro),
+  ≥13 es «rescató» (1,5 % de error si no rescató nada), y 10-12 es ambiguo. Las cuentas del arquitecto son correctas.
+  Pero:
+  1. **los dos p son estimaciones de 13 pasadas, no tasas conocidas.** Comparando la tanda nueva con la base por Fisher
+     (x de 20 frente a 5 de 13), la diferencia sólo sale significativa a partir de 16 de 20 (p = 0,027); 13 de 20 da
+     p = 0,17. «≥13 es rescató» es compatible con un rescate, pero no lo demuestra frente a la incertidumbre de la base;
+  2. **«los cuatro rescatados» es una cota, no un escenario conocido.** Los muertos sin texto se cuentan por pareja, no por
+     caso, y no se sabe si alguno era el quinto. Un ≤9 dice «no se ve rescate», no «no había nada que rescatar».
+  Y el cambio también puede bajar al quinto: la guarda es la misma cifra (b).
+- **CONSECUENCIA (arquitecto)**: la tanda mide el número del quinto, los dos controles del mecanismo (P-VN-1a), que A, B, C y el
+  caso de control no regresen, y el coste nuevo. **EL NÚMERO DE D NO ENTRA. Y para esta medición se invierten los papeles**:
+  veníamos tratando a D como objetivo y al quinto como guarda, y aquí el quinto es donde hay ojos.

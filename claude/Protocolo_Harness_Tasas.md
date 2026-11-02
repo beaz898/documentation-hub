@@ -1371,6 +1371,13 @@ anulado** porque la regla de decisión era inválida. La cuenta se podía haber 
 intervalo. El «2 de 7» de D era de siete tiradas, compatible con cualquier tasa entre el 8 % y el 64 %, y se trató como
 el tamaño del problema durante una semana.
 
+**OTRA VEZ, EL 02/11, Y EN EL MISMO DÍA EN QUE HABÍA HECHO LAS CUENTAS DE LOS DEMÁS** (arquitecto, con su nombre): escribió que
+D saldría «entre 3 y 4 de 21» en la tanda del verificador nuevo. Con 20 pasadas y la tasa de la línea base, eso falla el
+59 % de las veces aunque el mecanismo funcione exactamente como dijo. Ese mismo día había corregido el «3 de 3» de Fable
+(73 %) y calculado el 11 % de P-F130-12, y escribió una peor que las dos. **Y el agujero fue del razonamiento, no del
+número: calculó sólo lo que el cambio puede salvar y nada de lo que puede romper. Una cota de un solo lado.** La cazó
+Code antes de lanzar; quedó tachada, en su sitio y con su hora (`claude/Predicciones_34_Conflicto_Normativo.md`, P-VN-1).
+
 ---
 
 ## ⚠️ EL ARQUITECTO NO PIDE A CODE QUE EJECUTE UNA CONSULTA: PIDE QUE LA DEJE LISTA, Y EL CONTROL POSITIVO ES UN PASO DEL DIRECTOR
