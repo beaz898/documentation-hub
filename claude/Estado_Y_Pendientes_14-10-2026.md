@@ -593,9 +593,9 @@ a ojo. El procedimiento, el coste y la consulta se plantean ANTES de pedírselo 
   1. **Nada roto**: A, B y C en 21 de 21, como en la base.
   2. **D en 1 de 21** (la pasada 19), dentro del suelo de ruido [0, 6] y sin cambio detectable.
   3. **El verificador de dos preguntas, igual de fiable que el de una**: `descartado.sin_veredicto`, 0 de 106 frente a 0 de 105.
-  4. **Cero muertes sin texto y descartes registrados en las 21**: tanda limpia. *Matiz de Code: es la primera tanda de 21
-     limpia, pero no la primera limpia; las 7 pasadas del 28/10 también lo salieron
-     (`claude/Medida_F130_E3_Y_Vecindad_29-10-2026.md:775-783`).*
+  4. **Cero muertes sin texto y descartes registrados en las 21: LA PRIMERA TANDA DE 21 LIMPIA.** *(Corregido el 02/11 a
+     petición del arquitecto: decía «la primera tanda perfectamente limpia», y las 7 pasadas del 28/10 también salieron
+     limpias, `claude/Medida_F130_E3_Y_Vecindad_29-10-2026.md:775-783`.)*
   5. **El camino arreglado, disparado una vez en 28 pasadas de NOR-10** (la D etiquetada del 28/10, pasada 5 de 7).
   6. **La duda de F-129 §3.1.1, contestada por el producto**: el verificador confirmó D por la pregunta del dato.
   **EL CABO QUE FALTA PARA CERRARLO: EL COSTE.** `SQL_34_10_el_coste_del_verificador_nuevo.sql` (PENDIENTE DE EJECUTAR) da

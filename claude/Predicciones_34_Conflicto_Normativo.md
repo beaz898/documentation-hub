@@ -640,3 +640,15 @@ tanda nueva de NOR-10 frente a su base.
 registro la documenta: del primer comienzo al último final, CON la espera. La columna «s» de `SQL_34_06` es
 `max(comienzo + latencia)`, SIN la espera. Las dos no se mezclan: el «+5 a +10 s» se mide con una y la misma en las dos
 puntas.
+
+**DECISIÓN DEL ARQUITECTO (02/11/2026): LA LATENCIA DE P-F130-17 SE PUNTÚA CON LA DEFINICIÓN QUE CUENTA LA ESPERA, Y EN LAS
+DOS PUNTAS.** El motivo: P-F130-17 habla de lo que espera el usuario, y el usuario espera también la espera.
+Las dos definiciones, por su nombre:
+- **CON LA ESPERA, la que se puntúa**: `SQL_34_10`, del primer `comienzoMs` al último `comienzoMs + esperaMs + latenciaMs`
+  (la que documenta `lib/observability/registro-de-llamadas.ts:35-37`).
+- **SIN LA ESPERA, que NO se usa para puntuar**: la columna de segundos de `SQL_34_06`, `max(comienzoMs + latenciaMs)`. Se
+  queda como está, etiquetada en su cabecera como «sin la espera, no comparable con SQL_34_10».
+`SQL_34_10` da además la ESPERA MEDIA POR ANÁLISIS y, al lado, la duración sin la espera, para ver de qué tamaño es la
+diferencia. Si son décimas, las dos definiciones coinciden en la práctica; si son segundos, la diferencia manda sobre cómo se
+puntúa el «+5 a +10 s». *Arquitecto: sin esta decisión, una diferencia de definición habría fabricado la mitad del efecto
+predicho.*

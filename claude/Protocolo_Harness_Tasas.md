@@ -1389,6 +1389,28 @@ la cuenta exacta, antes de mirar ningún resultado.
 
 ---
 
+## ⚠️ EL CASO DE EJEMPLO DE LOS MUTANTES: UN HUECO EN LAS PRUEBAS QUE HABRÍA DEJADO PASAR UN NÚMERO SEGURO Y FALSO
+
+*Arquitecto, 02/11/2026: «es el mejor ejemplo que tenemos de para qué sirve el arnés».*
+**El caso.** `SQL_34_10` compara el coste de la tanda nueva con su línea base, emparejadas por documento. En la primera
+vuelta de mutantes sobrevivió uno: «la comparación contra la otra pareja», que empareja la tanda nueva de NOR-10 con la base
+de NOR-11. Ninguna prueba falló. En el arnés, las dos líneas base tenían las mismas cifras por pasada (0,021 $), así que
+comparar contra la equivocada daba el mismo número.
+**NO CAZÓ UN ERROR DEL CÓDIGO: CAZÓ UN HUECO EN LAS PRUEBAS.** El código estaba bien. Pero si alguien rompía ese
+emparejamiento, la suite seguía en verde, y la consulta habría devuelto contra la base que no era una diferencia de coste
+con dos decimales: **un número seguro y falso.**
+**El arreglo**: no se tocó la consulta, sino los datos del arnés. La base de NOR-11 lleva un juez de 50.000 tokens de entrada
+(0,016 $ por pasada, frente a 0,021 de NOR-10), y con eso las dos bases dejan de ser intercambiables. El mutante salió en rojo:
+24 de 24.
+**Y el gemelo, el mismo día**: al añadir la espera media, sobrevivió «la espera sin sumar» (`max` en vez de `sum`). Cada
+pasada del arnés tenía como mucho una petición con espera, y la suma era el máximo. El arreglo fue el mismo: dar espera a una
+segunda petición (300 ms al rerank de la base, que no mueve la duración). 27 de 27.
+**La lección**: un mutante vivo no siempre dice que el código esté mal. Muchas veces dice que **los datos de prueba son
+demasiado simétricos para distinguir lo correcto de lo parecido.** Los datos de prueba se eligen para que cada pieza que
+puede confundirse con otra dé un número distinto.
+
+---
+
 ## ⚠️ LO QUE EL ARQUITECTO EXPLICA AL DIRECTOR NO ENTRA EN EL REGISTRO
 
 *Arquitecto, 02/11/2026, con su nombre.* **Cualquier CIFRA que el arquitecto afirme va dentro del encargo, no sólo en la
@@ -1582,6 +1604,9 @@ la extrapolación (llevar una cifra a otra condición). Enunciado literal:*
    en la pasada 4); y **la D de NOR-10 el 28/10, pasada 5 de 7** (`claude/Medida_F130_E3_Y_Vecindad_29-10-2026.md:780`).
    Ninguna en las 21 de la línea base de D ni en las 21 de la tanda nueva. La cazó Code con un `grep` de las medidas
    archivadas (`claude/Predicciones_34_Conflicto_Normativo.md`, «MAÑANA, NOR-11»).
+10. **02/11 · «la primera tanda perfectamente limpia»**, en el balance del paso 2: es la primera tanda DE 21 limpia, no la
+   primera limpia. Las 7 pasadas del 28/10 también salieron sin muertes sin texto y con los descartes registrados
+   (`claude/Medida_F130_E3_Y_Vecindad_29-10-2026.md:775-783`). La cazó Code al comprobar el balance contra las medidas.
 ⚠️ **Referencia cruzada, sin contar dos veces (arquitecto, 02/11)**: «el sistema encuentra el 100 % de las contradicciones
 de dato» (31/10) también es un absoluto sobre un conjunto sin enumerar, pero se cuenta en la extrapolación, ocurrencia
 5, donde ya estaba.

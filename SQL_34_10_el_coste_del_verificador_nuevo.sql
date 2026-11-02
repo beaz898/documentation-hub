@@ -27,6 +27,12 @@
 --   · DURACIÓN de un análisis: del primer `comienzoMs` al último `comienzoMs + esperaMs + latenciaMs`, que es la que
 --     documenta el registro (registro-de-llamadas.ts:35-37) y la de SQL_311_02. ⚠️ NO es la columna «s» de SQL_34_06,
 --     que es `max(comienzoMs + latenciaMs)`: no cuenta la espera. Las dos cifras no se mezclan.
+--   · ⚠️ LA DURACIÓN QUE SE PUNTÚA ES ÉSTA, LA QUE CUENTA LA ESPERA (decisión del arquitecto, 02/11): P-F130-17 habla de
+--     lo que espera el usuario, y el usuario espera también la espera. Al lado sale la duración SIN la espera, calculada
+--     como la columna «s» de SQL_34_06, sólo para ver de qué tamaño es la diferencia entre las dos definiciones.
+--   · ESPERA MEDIA POR ANÁLISIS: la suma de los `esperaMs` de sus peticiones (limitador de cuota y backoff de los
+--     reintentos). Las peticiones en paralelo pueden solaparse, así que la suma es una COTA SUPERIOR de lo que la espera
+--     añade a la duración. Si son décimas, las dos definiciones de duración son la misma cifra en la práctica.
 --   · LATENCIA DEL VERIFICADOR: la media de `latenciaMs` de sus peticiones; las peticiones van en paralelo, así que no
 --     es lo que el verificador añade a la duración del análisis.
 --
@@ -97,7 +103,9 @@ por_pasada AS (
          count(c.etapa) FILTER (WHERE c.etapa = 'verificador') AS peticiones_verificador,
          count(c.etapa) AS peticiones,
          count(c.etapa) FILTER (WHERE c.resultado IS DISTINCT FROM 'ok') AS fallidas,
-         coalesce(max(c.com + c.esp + c.lat) - min(c.com), 0) AS duracion
+         coalesce(max(c.com + c.esp + c.lat) - min(c.com), 0) AS duracion,
+         coalesce(max(c.com + c.lat), 0) AS duracion_sin_espera,   -- la de SQL_34_06, sólo para comparar
+         coalesce(sum(c.esp), 0) AS espera
   FROM pasadas p LEFT JOIN con_coste c ON c.id = p.id
   GROUP BY p.orden, p.id
 ),
@@ -109,7 +117,7 @@ por_medicion AS (
          avg(pp.peticiones_verificador) AS peticiones_verificador_medias,
          count(pp.id) FILTER (WHERE pp.peticiones_verificador > 0) AS con_verificador,
          sum(pp.fallidas) AS fallidas, sum(pp.peticiones) AS peticiones,
-         avg(pp.duracion) AS duracion_media,
+         avg(pp.duracion) AS duracion_media, avg(pp.duracion_sin_espera) AS duracion_sin_espera_media, avg(pp.espera) AS espera_media,
          (SELECT avg(c.lat) FROM con_coste c WHERE c.orden = m.orden AND c.etapa = 'verificador') AS latencia_verificador
   FROM mediciones m LEFT JOIN por_pasada pp ON pp.orden = m.orden
   GROUP BY m.orden, m.tanda, m.documento, m.esperado, m.desde, m.hasta
@@ -165,8 +173,9 @@ SELECT bloque, a, b, c, d FROM (
            || coalesce(round(100 * x.verificador_total::numeric / nullif(x.coste_total, 0)::numeric, 1)::text, '—') || ' % del coste · '
            || round(x.peticiones_verificador_medias::numeric, 2) || ' peticiones por análisis · latencia media por petición '
            || coalesce(round(x.latencia_verificador::numeric)::text, '—') || ' ms',
-         'duración media del análisis ' || round(x.duracion_media::numeric / 1000, 1) || ' s · peticiones que no salieron bien: '
-           || x.fallidas || ' de ' || x.peticiones,
+         'duración media del análisis ' || round(x.duracion_media::numeric / 1000, 1) || ' s, con la espera (sin ella, como SQL_34_06: '
+           || round(x.duracion_sin_espera_media::numeric / 1000, 1) || ' s) · espera media por análisis '
+           || round(x.espera_media::numeric / 1000, 2) || ' s · peticiones que no salieron bien: ' || x.fallidas || ' de ' || x.peticiones,
          x.orden, 0
   FROM por_medicion x WHERE NOT x.sin_ventana AND x.n > 0
   UNION ALL
@@ -183,7 +192,8 @@ SELECT bloque, a, b, c, d FROM (
            || coalesce(to_char(100 * (n.coste_medio - b.coste_medio) / nullif(b.coste_medio, 0), 'FMSG990.0'), '—') || ' %)',
          'verificador: ' || round(b.verificador_medio::numeric, 6) || ' → ' || round(n.verificador_medio::numeric, 6) || ' $ ('
            || coalesce(to_char(100 * (n.verificador_medio - b.verificador_medio) / nullif(b.verificador_medio, 0), 'FMSG990.0'), '—') || ' %)',
-         'duración media: ' || round(b.duracion_media::numeric / 1000, 1) || ' → ' || round(n.duracion_media::numeric / 1000, 1) || ' s',
+         'duración media, con la espera: ' || round(b.duracion_media::numeric / 1000, 1) || ' → ' || round(n.duracion_media::numeric / 1000, 1)
+           || ' s · espera media: ' || round(b.espera_media::numeric / 1000, 2) || ' → ' || round(n.espera_media::numeric / 1000, 2) || ' s',
          CASE n.documento WHEN 'NOR-10' THEN 1 ELSE 2 END, 0
   FROM por_medicion b
   JOIN por_medicion n ON n.documento = b.documento AND n.tanda = 'tanda nueva' AND NOT n.sin_ventana AND n.n > 0

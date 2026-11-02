@@ -13,6 +13,11 @@ import { computeCostUsd } from '@/lib/observability/llm-pricing';
  *     1.500 y 500 = 0,004 $ cada una (latencias 2.000 y 4.000), 0,008 $. Total, 0,0245 $; duración, 34.000 ms. La pasada
  *     1 lleva un juez de 200.000 de entrada (0,025 $, total 0,0345 $), y la 2 una petición del verificador fallida, sin
  *     tokens, de 1.000 ms.
+ *   · LA ESPERA: en la base, 800 ms por pasada, en DOS peticiones (500 del verificador y 300 del rerank, que acaba a los
+ *     1.400 ms y no mueve la duración): la suma no es el máximo. Sin la espera, la duración es 32.000 ms. En la tanda
+ *     nueva, ninguna espera, salvo la pasada 3, que lleva 4.200 ms en la segunda petición del verificador: acaba a los
+ *     38.200 ms con la espera y a los 34.000 sin ella. Medias: (20 × 34.000 + 38.200) / 21 = 34.200 ms con la espera, y
+ *     34.000 sin ella; espera, 4.200 / 21 = 200 ms.
  * Ruido: otra organización y NOR-12 dentro de la ventana nueva.
  */
 const USUARIO = 'a9625e93-af2a-4416-a465-5c2fa2a25bdf';
@@ -49,7 +54,7 @@ const registro = (pets: Pet[], extra: Record<string, unknown> = {}) => ({
 });
 const juez = (te = 100_000): Pet => ({ etapa: 'juez', modelo: H55, te, ts: 10_000, lat: 30_000, com: 0 });
 const rerank: Pet = { etapa: 'rerank', modelo: H45, te: 1_000, ts: 100, lat: 1_000, com: 100 };
-const base = (te = 100_000) => registro([juez(te), rerank, { etapa: 'verificador', modelo: H45, te: 2_000, ts: 500, lat: 2_000, esp: 500, com: 30_000 }]);
+const base = (te = 100_000) => registro([juez(te), { ...rerank, esp: 300 }, { etapa: 'verificador', modelo: H45, te: 2_000, ts: 500, lat: 2_000, esp: 500, com: 30_000 }]);
 
 async function sembrar(o: Opciones = {}) {
   await db.exec('DELETE FROM memberships; DELETE FROM organizations; DELETE FROM documents; DELETE FROM analysis_results;');
@@ -68,7 +73,7 @@ async function sembrar(o: Opciones = {}) {
   const n = o.unaMenos ? 20 : 21;
   for (let i = 1; i <= n; i++) {
     const verif = (lat: number): Pet => ({ etapa: o.verificadorConOtroNombre && i === 3 ? 'verify' : 'verificador', modelo: H45, te: 1_500, ts: 500, lat, com: 30_000 });
-    const pets: Pet[] = [juez(i === 1 ? 200_000 : 100_000), rerank, verif(2_000), verif(4_000)];
+    const pets: Pet[] = [juez(i === 1 ? 200_000 : 100_000), rerank, verif(2_000), { ...verif(4_000), esp: i === 3 ? 4_200 : 0 }];
     if (i === 2) pets.push({ etapa: 'verificador', modelo: H45, te: 0, ts: 0, lat: 1_000, com: 30_000, resultado: 'http' });
     if (i === 4 && o.sinPrecio) pets.push({ etapa: 'sintesis', modelo: 'claude-desconocido', te: 10, ts: 10, lat: 10, com: 0 });
     if (i === 5 && o.sinEtapa) pets.push({ modelo: H45, te: 10, ts: 10, lat: 10, com: 0 });
@@ -119,16 +124,16 @@ describe('SQL_34_10, el coste de la tanda del verificador nuevo', () => {
     expect(de(await correr(), '1 · por medición')).toEqual([
       ['línea base · NOR-10 · 21 pasadas', 'coste medio por análisis 0.021000 $ (de 0.021000 a 0.021000) · total 0.441000 $',
         'verificador: 0.004500 $ por análisis · 21.4 % del coste · 1.00 peticiones por análisis · latencia media por petición 2000 ms',
-        'duración media del análisis 32.5 s · peticiones que no salieron bien: 0 de 63'],
+        'duración media del análisis 32.5 s, con la espera (sin ella, como SQL_34_06: 32.0 s) · espera media por análisis 0.80 s · peticiones que no salieron bien: 0 de 63'],
       // (0,0345 + 20 × 0,0245) / 21 = 0,5245 / 21 = 0,0249762; el verificador, 21 × 0,008 / 0,5245 = 32,03 %;
       // 43 peticiones en 21 pasadas = 2,05; latencia (21 × 6.000 + 1.000) / 43 = 2.953,5 → 2953
       ['tanda nueva · NOR-10 · 21 pasadas', 'coste medio por análisis 0.024976 $ (de 0.024500 a 0.034500) · total 0.524500 $',
         'verificador: 0.008000 $ por análisis · 32.0 % del coste · 2.05 peticiones por análisis · latencia media por petición 2953 ms',
-        'duración media del análisis 34.0 s · peticiones que no salieron bien: 1 de 85'],
+        'duración media del análisis 34.2 s, con la espera (sin ella, como SQL_34_06: 34.0 s) · espera media por análisis 0.20 s · peticiones que no salieron bien: 1 de 85'],
       // NOR-11: 0,010 + 0,0045 + 0,0015 = 0,016 por pasada; el verificador, 0,0045 / 0,016 = 28,1 %
       ['línea base · NOR-11 · 13 pasadas', 'coste medio por análisis 0.016000 $ (de 0.016000 a 0.016000) · total 0.208000 $',
         'verificador: 0.004500 $ por análisis · 28.1 % del coste · 1.00 peticiones por análisis · latencia media por petición 2000 ms',
-        'duración media del análisis 32.5 s · peticiones que no salieron bien: 0 de 39'],
+        'duración media del análisis 32.5 s, con la espera (sin ella, como SQL_34_06: 32.0 s) · espera media por análisis 0.80 s · peticiones que no salieron bien: 0 de 39'],
     ]);
   });
 
@@ -148,7 +153,7 @@ describe('SQL_34_10, el coste de la tanda del verificador nuevo', () => {
     ]);
     // (0,0249762 − 0,021) / 0,021 = +18,9 %; el verificador, (0,008 − 0,0045) / 0,0045 = +77,8 %
     expect(de(f, '3 · nueva frente a base')).toEqual([
-      ['NOR-10', 'coste medio por análisis: 0.021000 → 0.024976 $ (+18.9 %)', 'verificador: 0.004500 → 0.008000 $ (+77.8 %)', 'duración media: 32.5 → 34.0 s'],
+      ['NOR-10', 'coste medio por análisis: 0.021000 → 0.024976 $ (+18.9 %)', 'verificador: 0.004500 → 0.008000 $ (+77.8 %)', 'duración media, con la espera: 32.5 → 34.2 s · espera media: 0.80 → 0.20 s'],
     ]);
   });
 

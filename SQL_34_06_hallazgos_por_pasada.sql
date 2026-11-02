@@ -39,6 +39,9 @@
 --   0 · controles: la ventana; las pasadas frente a las esperadas; que sean rápidas; un solo CLI-12; que el documento sea
 --       uno de los dos y cada frase esté dentro de su párrafo; y el agujero de un juicio sin «discarded».
 --   1 · por pasada: hora, modelo y duración; el estado de cada caso; las citas de cada caso encontrado; lo muerto sin texto.
+--   ⚠️ LA DURACIÓN DE ESTA CONSULTA ES `max(comienzoMs + latenciaMs)`: SIN LA ESPERA, Y NO ES COMPARABLE CON SQL_34_10, que
+--   cuenta la espera (del primer comienzo al último final, como lo documenta el registro). P-F130-17 se puntúa con la de
+--   SQL_34_10 en las dos puntas (arquitecto, 02/11/2026). Esta columna se queda como está, etiquetada.
 --   2 · el total: cada caso en X de N pasadas, con la etiqueta, dudosas y muertas en la puerta; y la cota sin texto.
 -- DOS PULSACIONES, COMO SQL_34_05: sin «desde» ni «hasta», LISTA las pasadas rápidas del documento (hora y duración); con la
 -- ventana, mide. El control positivo y la medida los ejecuta el director: Code no ejecuta consultas.
