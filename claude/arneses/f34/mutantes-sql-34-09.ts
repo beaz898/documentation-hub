@@ -1,0 +1,35 @@
+import type { Definicion } from '../../herramientas/mutar';
+
+// Los mutantes de SQL_34_09. node claude/herramientas/mutar-cli.mts claude/arneses/f34/mutantes-sql-34-09.ts
+export const definicion: Definicion = {
+  fichero: 'SQL_34_09_el_verificador_nuevo.sql',
+  arnes: 'claude/arneses/f34/sql-34-09-el-verificador-nuevo.test.ts',
+  proyecto: 'arneses',
+  tests: 6,
+  mutantes: [
+    { nombre: 'la resolución no exige UNA pertenencia', ancla: '         CASE WHEN count(m.org_id) = 1 THEN min(m.org_id::text) END AS org', cambio: '         min(m.org_id::text) AS org' },
+    { nombre: 'la organización leída deja de ir primera', ancla: "ORDER BY (bloque <> 'organización leída'), bloque, o1, o2;", cambio: 'ORDER BY bloque, o1, o2;' },
+    { nombre: 'pasadas de cualquier organización', ancla: "  JOIN public.analysis_results ar ON ar.org_id = (SELECT org FROM resolucion) AND ar.document_name LIKE m.documento || '%'\n                                 AND ar.created_at >= m.desde", cambio: "  JOIN public.analysis_results ar ON true AND ar.document_name LIKE m.documento || '%'\n                                 AND ar.created_at >= m.desde" },
+    { nombre: 'pasadas de cualquier documento', ancla: " AND ar.document_name LIKE m.documento || '%'\n                                 AND ar.created_at >= m.desde", cambio: '\n                                 AND ar.created_at >= m.desde' },
+    { nombre: 'sin la ventana', ancla: '                                 AND ar.created_at >= m.desde AND ar.created_at < m.hasta', cambio: '' },
+    { nombre: 'el contador presente sin mirar la clave (mediciones)', ancla: "(ar.analysis->'pipelineCounters') ? 'verificador.confirmados_solo_por_cumplimiento' AS con_contador,\n         coalesce", cambio: "true AS con_contador,\n         coalesce" },
+    { nombre: 'el contador presente sin mirar la clave (lista)', ancla: "(ar.analysis->'pipelineCounters') ? 'verificador.confirmados_solo_por_cumplimiento' AS con_contador,\n         row_number", cambio: "true AS con_contador,\n         row_number" },
+    { nombre: 'el contador de otra clave', ancla: "coalesce((ar.analysis->'pipelineCounters'->>'verificador.confirmados_solo_por_cumplimiento')::bigint, 0) AS solo_cumplimiento", cambio: "coalesce((ar.analysis->'pipelineCounters'->>'verificador.confirmados_por_juicio')::bigint, 0) AS solo_cumplimiento" },
+    { nombre: 'el denominador de otra clave', ancla: "coalesce((ar.analysis->'pipelineCounters'->>'verificador.hallazgos_entrantes')::bigint, 0) AS entrantes", cambio: '0 AS entrantes' },
+    { nombre: 'sin veredicto de otra clave', ancla: "coalesce((ar.analysis->'discardedFindings'->>'descartado.sin_veredicto')::bigint, 0) AS sin_veredicto", cambio: "coalesce((ar.analysis->'discardedFindings'->>'descartado.sin_relacion')::bigint, 0) AS sin_veredicto" },
+    { nombre: 'las pasadas con solo cumplimiento sin filtrar', ancla: 'count(p.created_at) FILTER (WHERE p.solo_cumplimiento > 0) AS pasadas_con_solo_cumplimiento', cambio: 'count(p.created_at) AS pasadas_con_solo_cumplimiento' },
+    { nombre: 'las pasadas con sin veredicto sin filtrar', ancla: 'count(p.created_at) FILTER (WHERE p.sin_veredicto > 0) AS pasadas_con_sin_veredicto', cambio: 'count(p.created_at) AS pasadas_con_sin_veredicto' },
+    { nombre: 'el control de las esperadas no mira', ancla: "         x.n = x.esperado\n  FROM por_medicion x", cambio: "         true\n  FROM por_medicion x" },
+    { nombre: 'el control del modo rápido no mira', ancla: 'ELSE (SELECT sum(no_rapidas) FROM por_medicion) = 0 END', cambio: 'ELSE true END' },
+    { nombre: 'el control positivo del despliegue no mira', ancla: "ELSE (SELECT sum(con_contador) FROM por_medicion WHERE tanda = 'tanda nueva') = (SELECT sum(n) FROM por_medicion WHERE tanda = 'tanda nueva') END", cambio: 'ELSE true END' },
+    { nombre: 'el espejo de la línea base no mira', ancla: "ELSE (SELECT sum(con_contador) FROM por_medicion WHERE tanda = 'línea base') = 0 END", cambio: 'ELSE true END' },
+    { nombre: 'mide aunque falte una ventana', ancla: "  SELECT bool_or(desde IS NULL OR hasta IS NULL) AS sin_ventana FROM mediciones WHERE tanda = 'tanda nueva'", cambio: '  SELECT false AS sin_ventana' },
+    { nombre: 'la lista de cualquier documento', ancla: " AND ar.document_name LIKE d.documento || '%'\n                                 AND ar.analysis_type = 'quick'", cambio: "\n                                 AND ar.analysis_type = 'quick'" },
+    { nombre: 'la lista desde cualquier fecha', ancla: " AND ar.created_at >= timestamptz '2026-11-02 00:00:00+01'", cambio: '' },
+    { nombre: 'la lista no señala el código viejo', ancla: "CASE WHEN l.con_contador THEN 'con el verificador nuevo' ELSE '⚠️ SIN el contador: código viejo' END", cambio: "'con el verificador nuevo'" },
+    { nombre: 'la guarda no compara', ancla: "CASE WHEN n.sin_veredicto > b.sin_veredicto THEN '⚠️ SUBE'", cambio: "CASE WHEN false THEN '⚠️ SUBE'" },
+    { nombre: 'la guarda compara con la otra pareja', ancla: 'JOIN por_medicion n ON n.documento = b.documento AND n.tanda', cambio: 'JOIN por_medicion n ON n.documento <> b.documento AND n.tanda' },
+    { nombre: 'el total cuenta también la línea base', ancla: "  FROM por_medicion x, modo WHERE x.tanda = 'tanda nueva' AND NOT modo.sin_ventana\n  GROUP BY", cambio: "  FROM por_medicion x, modo WHERE NOT modo.sin_ventana\n  GROUP BY" },
+    { nombre: 'sin la nota de la base sin contador', ancla: "CASE WHEN x.con_contador = 0 THEN ' (sin el contador: anterior al cambio)' ELSE '' END", cambio: "''" },
+  ],
+};

@@ -503,6 +503,40 @@ a ojo. El procedimiento, el coste y la consulta se plantean ANTES de pedírselo 
   - **El caso decisivo de la ficha de nivel_1, como lo pide el arquitecto**: las dos citas del quinto comparten 4 términos
     (coordinador, calidad, clínica, área) y AUN ASÍ no se firman, porque su puente tiene escape. Con la regla escrita, no
     se cumple: es el caso que la tumba.
+  - ⚠️⚠️ **HALLAZGO DE CODE (02/11), aceptado entero por el arquitecto: nivel_1 NO ESTÁ MAL, ESTÁ DEL REVÉS.** Los términos
+    clave que comparten las citas reales, con el normalizador de la puerta de citas y una lista mínima de palabras vacías:
+
+    | Caso | Nivel que le toca | Citas | Términos compartidos | ¿nivel_1 con umbral 3? |
+    |---|---|---|---|---|
+    | A | 1 | 21 | 6 | sí |
+    | B | 1 | 21 | de 1 a 5 (en 4 de 21 pasadas, 1) | no en 4 de 21 |
+    | C | 1 | 21 | 5 | sí |
+    | D | 2 | 3 | 2 | no |
+    | el quinto | 3 | 5 | 4 (5 unificando singular y plural) | sí |
+
+    Mete al quinto, que es de nivel 3, y deja fuera a D y, a veces, a B, que es de nivel 1 y está sembrado. Y el enumerador
+    de la pasada 2 empareja POR términos compartidos, así que el filtro sería verdadero casi siempre por construcción. **El
+    veto del escape que propuso el arquitecto era insuficiente, y por el camino más probable**: el §4 tiene tres frases
+    candidatas a puente y sólo la del conflicto terminológico lleva escape; la definición, que es el puente natural, no
+    lleva ninguno. **El caso decisivo que pidió el arquitecto para la ficha NO SE CUMPLE con la regla tal como está: ese
+    caso es el que la tumba.**
+    **Las tres propuestas de Code, sin construir y sin decidir, VAN A FABLE tal como están escritas** (arquitecto): el
+    escape buscado en TODO el apartado del puente y no sólo en la frase citada; que nivel_1 no pueda firmar un hallazgo
+    cuyo puente sea una definición que hay que aplicar; y nivel_1 definido por algo que no sea contar términos.
+  - ⚠️⚠️ **BLOQUEANTES ANTES DE CONSTRUIR (arquitecto, 02/11):**
+    1. **EL CHOQUE DE NOMBRES.** Los «pasos» de la especificación de Fable (2, 3, 5, 6 y 7) NO SON LOS DEL PLAN DE CINCO PASOS
+       de la casa (1 verificar qué recibió el juez, 2 el verificador, 3 la pregunta cerrada del quinto, 4 la pasada 2, 5
+       E5). Casi toda su especificación cae en NUESTRO PASO 4, y su «paso 6» va detrás. **Leerla como que se reparte por
+       cuatro pasos del plan y añade un sexto es falso por la numeración, no por desacuerdo**: el trabajo no está repartido
+       por el plan, está todo en el paso 4. *(El arquitecto lo citó como frase de Fable, «se inserta en cuatro pasos y añade
+       un sexto»; esa frase no está en el texto de Fable, comprobado por Code con grep sobre la respuesta archivada.)*
+    2. **LAS DOS AUTOCONTRADICCIONES DE LA ESPECIFICACIÓN.** El puente es una tercera cita literal y tiene que pasar por la
+       puerta de citas, que su propio texto dice que no se toca. Y las «dos lecturas» las escribe el verificador, que
+       también dice que no se toca.
+    3. **LA TRAMPA DE SECUENCIA (encontrada por Code): la línea sobre la prelación en el prompt del juez CAMBIA LA PASADA 1. NO
+       ENTRA HASTA DESPUÉS DE LA MEDICIÓN de las 20 pasadas con el verificador nuevo**: antes, se mezclaría con su efecto.
+    4. **P-F130-17 se puntúa contra el coste MEDIDO después del verificador nuevo** (`f1d94cbc`), no contra los 0,015 $
+       viejos.
   - **Lo demás que no cabe tal cual**: la línea sobre la prelación en el prompt del juez cambia la pasada 1, y va en commit
     aparte DESPUÉS de volver a medir con el verificador nuevo; `jerarquia` y `puente` son campos nuevos que cruzan la
     frontera del modelo (`llm-boundary.ts`) y la puerta de citas (el puente es una tercera cita literal); `salida`,

@@ -1417,6 +1417,9 @@ los dos los cazó Code:
     dato bajo distinto nombre de columna», y el arquitecto escribió «el mismo dato en otra columna»; el de NOR-11 §11 es
     «igual que ocurre con el resto de procesos críticos de seguridad de la clínica», y escribió «con los protocolos de
     seguridad de la clínica». Las dos las corrigió Code contra el fichero antes de que salieran en la adenda.
+  - **02/11, la tercera de la misma familia**: el arquitecto citó a Fable entre comillas, «se inserta en cuatro pasos y
+    añade un sexto», y esa frase no está en la respuesta archivada de Fable (grep sobre el texto literal). Era su lectura
+    de la numeración, puesta en boca de Fable.
   - **02/11 · «quien escribió el corpus en agosto sabía que la coartada jerárquica estaba ahí y sembró igual»; «el caso de
     control ya es un experimento sobre la coartada, diseñado hace nueve semanas»**. El registro original de la siembra
     (`corpus-pruebas/SIEMBRA_caso_control.md`, líneas 1 a 147, del autor del corpus) no menciona la prelación. «La
@@ -1520,6 +1523,9 @@ la extrapolación (llevar una cifra a otra condición). Enunciado literal:*
    una salida que leyó el arquitecto y Code no ha visto. La cazó Code; el arquitecto la retira.
 6. **02/11 · «hace catorce semanas»**, del 27/08, en un texto para la adenda: una cifra sin contar. Del 27/08 al 02/11 van
    67 días, nueve semanas y media. La cazó Code; en la adenda va la fecha, no la cuenta.
+7. **02/11 · «3 de 5 es mejor que 2 de 3 en las TRES columnas»**, de la tabla D9 corregida: en la de lo discutible empatan
+   al 50 %, y es exacto por simetría (toda regla de mayoría sobre un número impar da 50 % con p = 0,5). Se dijo «las tres»
+   sin mirar la tercera. La cazó Code.
 ⚠️ **Referencia cruzada, sin contar dos veces (arquitecto, 02/11)**: «el sistema encuentra el 100 % de las contradicciones
 de dato» (31/10) también es un absoluto sobre un conjunto sin enumerar, pero se cuenta en la extrapolación, ocurrencia
 5, donde ya estaba.

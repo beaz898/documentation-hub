@@ -640,6 +640,10 @@ P-F130-19: tasa de "sí" por error en parejas sin conflicto, entre 2 y 5 % por t
 ---
 
 NOTAS A LA ADENDA (g), FUERA DEL TEXTO DE FABLE (arquitecto y Code, 02/11/2026):
+- ⚠️ **ESTE ARCHIVO TIENE LAS RESPUESTAS DE FABLE A LAS PREGUNTAS D1 A D9 DEL DIRECTOR, PERO NO LAS PREGUNTAS**, y esas
+  preguntas son las que decidieron el diseño (las tiradas, la regla de 2 de 3, las notas de jerarquía, el aparcamiento
+  del modelo). El director las pegará, y entonces se archivan aquí, literales. Lo mismo la versión anterior de la
+  respuesta de ese día, que se archivará marcada como sustituida.
 - **La tabla de D9 tiene dos cifras mal**, en la columna de los falsos: «3 de 4» da 0,011 % (no 0,04 %) y «3 de 5» da 0,026 %
   (no 0,08 %). Las corrigió el arquitecto y lo comprobó Code con una cuenta binomial. La decisión de empezar con 2 de 3
   no cambia. Con las cifras corregidas, 3 de 5 es mejor que 2 de 3 en D y en los falsos, e igual en lo discutible. La
