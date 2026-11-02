@@ -477,3 +477,49 @@ director ejecute `SQL_34_06`:
   - **14 y 15: lo sugiere y no lo demuestra.**
   - **10 a 13: ambiguo.** El 13 pasa aquí porque con n = 21 cae dentro del rango sin rescate.
   - **≤9: «no se ve rescate»** (si se hubieran rescatado los cuatro, saldría así sólo el 1,1 % de las veces).
+
+## P-VN-2 · EL QUINTO TAMPOCO SUBE MUCHO, escrita ANTES de que corran las 21 de NOR-11 (arquitecto, 02/11/2026, 18:59)
+
+**El razonamiento del arquitecto, como lo escribió:** el cambio añade la pregunta del cumplimiento, y sirve a un hallazgo
+que la pregunta del dato rechazaría y la del cumplimiento acepta. D es de cumplimiento: la pregunta 2 es la suya, y el cambio
+está hecho para él, pero casi nunca se emite. El quinto es de dato: la pregunta 1, la que ya se le hacía, era la correcta
+para él, y sus muertes no vienen de una pregunta equivocada. Y la pregunta 2 tropieza con la misma ambigüedad: sólo se
+contesta decidiendo si «revisar el cumplimiento» es «auditar».
+**Retira** que el quinto sea «donde hay ojos»: es cierto estadísticamente y, según él, falso mecánicamente.
+**La predicción, literal:** «EL QUINTO TAMPOCO SUBE MUCHO, y verificador.confirmados_solo_por_cumplimiento sale BAJO O A
+CERO en las dos tandas. Y si el quinto sube con el contador a cero, LA SUBIDA NO ES DEL VERIFICADOR.»
+P-VN-1b, el suelo de ruido, se queda como está.
+
+**Lo que dice el código, comprobado por Code a la misma hora, antes de lanzar:**
+1. **El cambio tiene DOS efectos, y el contador sólo ve uno.**
+   - A los hallazgos SIN marca les añade la pregunta 2. Si la 1 los rechaza y la 2 los acepta, el contador sube
+     (`lib/analysis/verify-findings.ts:133`, `soloPorCumplimiento: true`; `lib/analysis/pipeline.ts:653`).
+   - **A los hallazgos CON marca les devuelve la pregunta 1, que antes NO se les hacía.** Antes del cambio, los marcados iban
+     en su propio lote (`verify-findings.ts:300` en `f1d94cbc~1`), y su rama decía «a ése, y sólo a ése, NO le hagas la
+     pregunta de los valores distintos» (`rama-de-las-reglas.ts:18` en `f1d94cbc~1`). Ahora, si la pregunta 1 contesta
+     «opuestos», se confirma por la línea 132 (`soloPorCumplimiento: false`), y **el contador NO lo cuenta.**
+2. **Y eso toca justo al quinto.** De las cinco veces que se publicó, una llevó `norma_contra_norma`, mal puesta. Y de sus
+   cuatro muertos sin texto, el de la pasada 4 llevaba la etiqueta y lo mató el verificador (`SQL_34_06`, 28/10). Si ese
+   muerto era el quinto, al verificador viejo se le hizo **la pregunta equivocada**: sólo la del cumplimiento, a un caso de
+   dato. Eso no se puede saber, porque las muertes sin texto van por pareja y no por caso, pero el camino existe y es el
+   contrario de «sus muertes no vienen de una pregunta equivocada».
+3. **Así que la última frase de P-VN-2 no se sostiene**: «si el quinto sube con el contador a cero, la subida no es del
+   verificador» es falso. Un quinto marcado y rescatado por la pregunta 1 sube con el contador a cero. Lo que separa los dos
+   casos son las publicaciones del quinto CON etiqueta en la tanda nueva (`SQL_34_06` da la especie de cada una): un rescate
+   por esta vía sale publicado con `norma_contra_norma`.
+4. **La parte de que el contador salga bajo o a cero es coherente con el código** para las dos tandas, por los motivos del
+   arquitecto: A, B y C se confirman por la pregunta 1, D casi no se emite, y el quinto, cuando se rescata por la vía que
+   el cambio abre, no pasa por el contador.
+5. **Y el contador tampoco es una prueba de rescate en el otro sentido**: suma CUALQUIER confirmado sólo por la pregunta 2,
+   lleve marca o no (`pipeline.ts:653` no mira la marca). Un hallazgo marcado que la 2 confirma y la 1 no, lo habría
+   confirmado también el verificador viejo por su rama. Sólo los SIN marca que suben el contador son rescates del cambio.
+   **Comprobado en las medidas archivadas** (`claude/Medida_F130_E3_Y_Vecindad_29-10-2026.md`): el quinto, 5 de 13 con la
+   etiqueta sólo en la pasada 5 (`:1214`); el muerto sin texto de la pasada 4, con la etiqueta y del verificador (`:1213`);
+   las tres D de la base de NOR-10, sin especie (`:809`, `:815`, `:820`).
+
+**¿Un contador a cero en toda la tanda de NOR-10 es lo esperado? Sí, y queda escrito antes de verlo.** A, B y C son de dato y
+se confirman por la pregunta 1 (`verify-findings.ts:132`), que no suma al contador. D casi no se emite, y en la línea base las
+tres D publicadas iban sin etiqueta: el verificador viejo ya las confirmaba por la pregunta 1. Un cero ahí no es un fallo
+del cambio: es el mecanismo diciendo que no había nada por ese camino. **Pero un cero sólo vale si se puede demostrar que se
+buscó**: el denominador es `verificador.hallazgos_entrantes` (`SQL_34_09`, bloque 1). Si los hallazgos que llegaron al
+verificador son más que cero y el contador sale a cero, el cero es una medida; si no llegó ninguno, es una pantalla apagada.
