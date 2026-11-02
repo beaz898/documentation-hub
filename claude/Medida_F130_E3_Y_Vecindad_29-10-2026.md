@@ -1527,3 +1527,48 @@ han mirado.** Lo encontrado, literal:
 
 **Así que «la única cláusula de prelación del corpus» es falsa** incluso en la parte medida: entre documentos hay, al
 menos, la de CLI-12 §4, la de §12.9 y la de NOR-11 §11. No se ha medido si el producto usa alguna.
+
+### ¿Usa el producto la prelación? Lo medido sobre lo archivado (Code, 02/11/2026)
+
+Encargo del arquitecto: en las tandas archivadas del caso de control (NOR-11 ↔ CLI-13), ¿menciona algún hallazgo
+publicado la prelación de NOR-11 §11, o cualquier otra? Y ¿hay algo en el pipeline que busque cláusulas de prelación?
+Sin arreglar nada.
+
+**LO QUE YA SABÍA LA CASA, y desde el 27/08**: la prelación del caso de control está escrita en
+`corpus-pruebas/SIEMBRA_caso_control.md` §C.1, «La coartada jerárquica», con tres frases: NOR-11:19 («…sin alterar en
+ningún caso los criterios establecidos en el presente documento»), NOR-11:84 («En caso de cualquier discrepancia
+aparente entre ambos documentos, prevalece siempre el criterio de NOR-11») y **CLI-13:17** («No sustituye a NOR-11:
+ante cualquier duda no resuelta aquí, es ese protocolo el que se consulta en primer lugar»). Se registró como RIESGO:
+«un modelo puede leerla como "no hay contradicción, hay jerarquía"», y «las confirmaciones se logran PESE a eso»
+(también en `claude/Casos_Harness.md` y en `examen/casos/P2_residuos_prosa.mjs`). Lo nuevo del 02/11 no es la
+cláusula: es leerla como un recurso para RESOLVER los hallazgos (arquitecto). La CLI-13:17 no salió en la búsqueda
+por vocabulario de la sección anterior: el «al menos tres» de allí es una cota inferior.
+
+**1 · EN EL PIPELINE**: ninguna etapa busca cláusulas de prelación. El censo:
+`grep -rn -i "prelaci|prevalec|prevalen|vinculant|precedence|prevail|jerarqu"` sobre `lib`, `app` y `worker`, sin las
+pruebas, da tres resultados y ninguno es de prelación entre documentos: dos prompts que dicen que las reglas de
+honestidad «prevalecen» sobre las convenciones de la organización (`lib/rag.ts:370`, `lib/agent/runner-conv.ts:490`) y
+un comentario del cliente del modelo (`lib/llm/anthropic-client.ts:47`).
+
+**2 · EN LO ARCHIVADO**. Un hallazgo publicado sólo puede mencionarla en su `topic`, que escribe el modelo, o en sus dos
+citas literales: no tiene un campo de explicación (`lib/analysis/tipos-del-analisis-publicado.ts`, `discrepancies`).
+Los dos conjuntos archivados con texto de esta pareja:
+- **El examen del 27/09** (`examen/resultados/2026-09-27_c39397e7/P2_pasada1..5.json`, cinco pasadas de NOR-11): **1
+  hallazgo publicado con CLI-13 en las cinco** (pasada 1, tema «Fecha de última revisión», que no es de las sembradas),
+  y **0 que mencionen la prelación**. **PERO EL PRODUCTO SÍ LA VIO: en las cinco pasadas publicó un SOLAPAMIENTO que la
+  describe**, con las propias frases de prelación como evidencia. Por ejemplo, la pasada 2: «Ambos documentos
+  establecen que NOR-11 es el protocolo normativo y CLI-13 es su traducción práctica para el gabinete, sin alterar los
+  criterios de NOR-11», con la evidencia «No sustituye a NOR-11: ante cualquier duda no resuelta aquí, es ese protocolo
+  el que se consulta en primer lugar». La leyó como algo que los dos documentos comparten, no como lo que resuelve sus
+  contradicciones.
+- **Las diez pasadas del 06 al 08/10** (`claude/Medida_B357_destino_contradicciones_NOR11_CLI13.md`): 13 contradicciones
+  sobrevivieron en el juicio de CLI-13. De ellas sólo están archivados los TEMAS, no las citas: «Plazo máximo de
+  almacenamiento de residuos grupo III», «Color del contenedor para residuos grupo III no punzantes» y «Contenedor para
+  residuos grupo III no punzantes». **Ninguno menciona la prelación.**
+- **Lo que no está archivado y no se ha mirado**: las citas de esas diez pasadas, y todas las pasadas posteriores con
+  CLI-13 (entre ellas las cinco del 24/10). Están en la base, y una consulta de sólo lectura lo cerraría.
+
+**Cuántas de las tres sembradas encuentra el producto depende de la condición** (para no escribir «de forma
+fiable» sin su conjunto): 2 de 3 el 27/08 (`SIEMBRA_caso_control.md` §D); en las diez pasadas del 06 al 08/10, las
+tres sólo en 3 de 10 (B.357); en las cinco del 24/10, 3 de 3 en las cinco (cifra del arquitecto, de las salidas de
+`SQL_313_01`, en el estado).

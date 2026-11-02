@@ -359,8 +359,15 @@ a ojo. El procedimiento, el coste y la consulta se plantean ANTES de pedírselo 
   - **LAS CLÁUSULAS DE PRELACIÓN DEL CORPUS, buscadas por Code (02/11)** en los 20 documentos del repositorio (la
     organización tiene 45): entre documentos, CLI-12 §4, CLI-12 §12.9 (el comité decide cuál prevalece cuando un protocolo y
     el manual difieren) y NOR-11 §11 (frente a CLI-13, «prevalece siempre el criterio de NOR-11»: la pareja del caso de
-    control). Entre personas, CLI-12 §3.4. CLI-12 §4 NO es la única. Literales, en la medida. No se ha medido si el
-    producto usa alguna.
+    control). Entre personas, CLI-12 §3.4. CLI-12 §4 NO es la única. Y una cuarta que la búsqueda por vocabulario no cazó:
+    CLI-13:17, «No sustituye a NOR-11…» (el número es una cota inferior). Literales, en la medida.
+    **¿LA USA EL PRODUCTO? (Code, 02/11, sobre lo archivado)**: ninguna etapa del pipeline busca cláusulas de prelación
+    (censo con grep, en la medida). En el examen del 27/09, cinco pasadas de NOR-11: 1 hallazgo publicado con CLI-13 (no
+    sembrado) y 0 que la mencionen; pero las cinco publicaron un SOLAPAMIENTO que la describe («NOR-11 es el protocolo
+    normativo y CLI-13 es su traducción práctica…»): el producto la VE y la lee como algo compartido, no como lo que
+    resuelve. En las diez pasadas del 06 al 08/10 (B.357), ninguno de los temas de las 13 contradicciones la menciona
+    (las citas no están archivadas). Lo posterior no se ha mirado. La casa la tenía escrita desde el 27/08 como RIESGO, «la
+    coartada jerárquica» (`SIEMBRA_caso_control.md` §C.1); leerla como recurso para RESOLVER es del arquitecto (02/11).
   - **PENDIENTE CON DISPARADOR (arquitecto, 01/11)**: el glosario de CLI-12 está verificado con el código de la indexación
     sobre `corpus-pruebas/`, no contra el texto guardado en la base. Se verifica en la base **el día que algo se apoye en
     el glosario**.

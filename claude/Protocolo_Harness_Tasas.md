@@ -1467,6 +1467,37 @@ abajo).* Enunciado literal:
 
 ---
 
+## ⚠️ EL ARQUITECTO ESCRIBE CUANTIFICADORES ABSOLUTOS SOBRE CONJUNTOS QUE NO HA ENUMERADO
+
+*Arquitecto, 02/11/2026, con su nombre. Es un patrón propio, distinto del error de clase (agrupar por apariencia) y de
+la extrapolación (llevar una cifra a otra condición). Enunciado literal:*
+
+> «El arquitecto escribe cuantificadores absolutos —"la única", "nunca", "siempre", "todas", "ninguna"— sobre conjuntos
+> que no ha enumerado. REGLA: un absoluto no se escribe sin el conjunto sobre el que se contó, y quién lo contó. Code
+> rechaza el absoluto que llegue sin su conjunto, y lo dice.»
+
+**LAS OCURRENCIAS, comprobadas en el registro por Code, y las tres primeras las cazó Code:**
+1. **01/11 · «todas las muertes son ciegas»**, de la columna «muertas en la puerta, con texto» de `SQL_34_06`, que sólo
+   cuenta las muertes reconocibles como el quinto. Se adoptó «si el quinto murió en alguna pasada, no fue en la puerta
+   con texto».
+2. **01/11 · «con la pregunta cerrada por parejas de P-F130-9 no puede salir nunca»**, en el borrador de la adenda. El
+   modelo podía equiparar las dos actividades sin el glosario; quedó «no tiene el glosario delante».
+3. **02/11 · «la única cláusula de prelación del corpus» y «no ha tocado nunca»**, en la hipótesis del director para la
+   adenda. Buscado en los 20 documentos del repositorio (de 45), hay al menos otras tres cláusulas entre documentos, y
+   «nunca» no lo había medido nadie.
+4. **01/11 · «no pasó nunca en las 13»**, sobre la duplicación dentro de una pasada: había muertos sin texto que no se
+   podían atribuir. **Ésta la cazó el propio arquitecto**, y quedó «compatible con lo observado en la pasada 12».
+⚠️ *Candidata que Code no añade, para no agrupar por la apariencia*: «el sistema encuentra el 100 % de las
+contradicciones de dato» (31/10) también es un absoluto sobre un conjunto sin enumerar, pero ya está registrada como
+extrapolación (de tres casos a una clase). Si cuenta también aquí, lo decide el arquitecto.
+
+**Y EL MISMO DÍA, LA REGLA APLICADA A CODE**: la búsqueda que tumbó la ocurrencia 3 era por VOCABULARIO («prevalece»,
+«vinculante»…), y dio tres cláusulas entre documentos. La cuarta, CLI-13 «No sustituye a NOR-11…», no tiene ninguna de
+esas palabras y sólo apareció al leer el contexto. El «al menos» de Code era una cota inferior y así se escribe: el
+conjunto es el patrón de búsqueda, no el corpus.
+
+---
+
 ## ⚠️ EL ARQUITECTO AGRUPA EN CLASE LO QUE COMPARTE LA APARIENCIA Y NO EL MECANISMO
 
 *Arquitecto, 02/11/2026, con su nombre. Enunciado literal:*
